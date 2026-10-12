@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · CROSS JOIN en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:132px;top:442px;letter-spacing:-3px}
+#s0 .title span.sp{margin-right:40px}
+#s0 .hilite{top:518px;height:46px}
+#s0 .sub{top:604px;font-size:56px}
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:38px;white-space:nowrap}
+.nw{white-space:nowrap}
+
+/* Code : deux à quatre lignes (chapitres 3 et 6) */
+.code.sm .body{font-size:32px;line-height:50px;padding:26px 36px}
+.code.sm .ln{height:50px}
+.code.sm .caret i{top:-37px;height:42px}
+
+/* Une valeur et sa version suivante, l’une sur l’autre : la case se retourne de l’une à l’autre */
+.sw{display:inline-grid;justify-items:start}
+.sw>span{grid-area:1/1}
+.sw .b{opacity:0}
+/* La table clients en violet, la table produits en bleu */
+.tag.tp,.db-bar .tb.tp{background:#E5F0FF;color:#1D5FB8}
+
+/* ---------- 1 · Le catalogue des offres ---------- */
+.board{left:64px;width:952px;padding:0 0 8px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.db-bar .tb+.tb{margin-left:10px}
+.au{position:relative;display:grid;grid-template-columns:360px 1fr;gap:20px;padding:22px}
+.ap{border-radius:26px;background:var(--surface-2);padding:16px}
+.ah{display:flex;align-items:center;gap:10px;height:40px;font-size:27px;font-weight:800;color:var(--ink);white-space:nowrap}
+.ah .emo{font-size:28px}
+.kg{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.k{height:44px;border-radius:12px;background:#fff;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:var(--ink);white-space:nowrap}
+.an2{margin-top:10px;height:32px;display:flex;align-items:center;font-size:22px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.nolink{position:absolute;left:368px;top:50%;margin-top:-24px;width:48px;height:48px;border-radius:50%;background:#EF4F55;border:4px solid #fff;box-shadow:0 4px 0 #F6C9CD;color:#fff;font-family:var(--display);font-size:24px;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:2}
+.pill{left:0;width:1080px;display:flex;justify-content:center;gap:16px}
+.pill>span{height:60px;padding:0 24px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill>span.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.pill>span.rd{background:#FDEBEC;color:#C2323A}
+.pill>span.am{background:#FFF4E5;color:#9A5B00}
+.pill>span.gr{background:#E7F7EE;color:#1B7A45}
+.pill .ic{font-size:.9em;background:#fff}
+
+/* ---------- 2 · Le problème : INNER JOIN sans condition possible ---------- */
+.mini.two{font-size:30px;line-height:46px}
+.mini.one{font-size:32px;padding-right:120px}
+.qs{display:inline-grid;justify-items:center;padding:0 10px;border-radius:10px;border:3px dashed rgba(255,212,138,.75);color:#FFD48A;font-weight:700;line-height:36px}
+.qs>span{grid-area:1/1}
+.cl2-h{display:grid;justify-items:start;align-items:center;height:36px;margin:22px 0 12px;font-size:25px;font-weight:700;color:var(--ink-3)}
+.cl2-h>span{grid-area:1/1;white-space:nowrap}
+.cl2-h .b{display:flex;align-items:center;gap:8px;color:#C2323A;font-weight:800}
+.cols{display:flex;gap:14px}
+.cc{position:relative;height:56px;padding:0 20px;border-radius:14px;background:var(--surface-2);border:2px solid var(--line);font-family:var(--mono);font-size:26px;font-weight:700;color:var(--ink-2);display:flex;align-items:center}
+.cc .x{position:absolute;right:-11px;top:-11px;width:30px;height:30px;border-radius:50%;background:#EF4F55;color:#fff;font-family:var(--display);font-size:17px;font-weight:800;display:flex;align-items:center;justify-content:center;opacity:0}
+.orph{margin-top:18px;height:56px;padding:0 20px;border-radius:999px;background:#FDEBEC;color:#C2323A;font-size:27px;font-weight:700;display:inline-flex;align-items:center;gap:10px;white-space:nowrap}
+.trap-h.gr{color:#1B7A45}
+.cmb{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cb{height:60px;border-radius:16px;background:#E7F7EE;border:2px solid #BFE8D0;display:flex;align-items:center;justify-content:center;gap:8px;font-size:25px;font-weight:600;color:var(--ink);white-space:nowrap}
+.cb b{font-weight:800;color:#1B7A45}
+.more2{margin-top:12px;text-align:center;font-size:25px;font-weight:600;color:var(--ink-3)}
+.goal{left:64px;width:952px;height:96px;border-radius:32px;background:#E7F7EE;border:3px solid #BFE8D0;display:flex;align-items:center;justify-content:center;gap:14px;font-size:33px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.goal .emo{font-size:36px}
+
+/* ---------- 3 · Chaque client avec chaque produit ---------- */
+.lk{left:64px;width:952px;height:580px}
+.mt{position:absolute;top:0;background:#fff;border:3px solid var(--line);border-radius:34px;box-shadow:0 8px 0 var(--lip);overflow:hidden}
+.mt.cl{left:0;width:356px}
+.mt.pr{left:586px;width:366px}
+.mt .tt{height:64px;display:flex;align-items:center;gap:12px;padding:0 22px;font-size:28px;font-weight:700;color:var(--ink);white-space:nowrap}
+.mt .tt .emo{font-size:28px}
+.mt .hd,.mt .rw{display:grid;align-items:center;padding:0 16px;font-family:var(--mono);white-space:nowrap}
+.mt .hd{height:50px;background:var(--surface-2);font-size:23px;font-weight:700;color:var(--ink-3)}
+.mt .rw{position:relative;height:46px;font-size:25px;font-weight:600;color:var(--ink);box-shadow:inset 0 2px 0 var(--line-2)}
+.mt.cl .hd,.mt.cl .rw{grid-template-columns:50px 122px 1fr}
+.mt.pr .hd,.mt.pr .rw{grid-template-columns:50px 1fr}
+.mt .rw .bg{position:absolute;left:0;top:0;right:0;bottom:0;background:var(--accent-soft);opacity:0;z-index:0}
+.mt.pr .rw .bg{background:#E5F0FF}
+.mt .rw>span:not(.bg){position:relative;z-index:1}
+.lks{position:absolute;left:356px;top:0;width:230px;height:580px;overflow:visible;pointer-events:none}
+.lks path{fill:none;stroke:#8B6CFF;stroke-width:3;stroke-linecap:round}
+.lks circle{fill:#8B6CFF;stroke:none}
+.ct3>span{opacity:0}
+.st{text-decoration:line-through;text-decoration-thickness:3px}
+
+/* ---------- 4 · Les doublons ---------- */
+.mini.mq{position:absolute;margin:0;left:64px;width:952px;font-size:32px;line-height:48px;padding:22px 34px}
+.mini.mq .caret i{top:-36px;height:42px}
+.xt{height:44px;display:flex;align-items:center;padding:0 34px;font-size:24px;font-weight:600;color:var(--ink-3)}
+.rgD{display:grid;grid-template-columns:270px 1fr;padding:0 26px;align-items:center}
+.tr.t4{height:46px;font-size:28px}
+.tr.t4.pa .hl{background:#FFF4E5;box-shadow:inset 8px 0 0 #F2994A}
+.tr.t4.ly .hl{background:var(--accent-soft);box-shadow:inset 8px 0 0 var(--accent-2)}
+.dp{position:absolute;right:24px;top:50%;margin-top:-16px;height:32px;padding:0 14px;border-radius:999px;background:#FDEBEC;color:#C2323A;font-family:var(--ui);font-size:20px;font-weight:700;display:flex;align-items:center;opacity:0;z-index:2}
+
+/* ---------- 5 · Le piège : un ON oublié ---------- */
+.res5{margin-top:24px;height:84px;border-radius:24px;background:var(--surface-2);display:flex;align-items:center;gap:22px;padding:0 24px;font-size:28px;font-weight:700;color:var(--ink-2)}
+.res5 .lst{margin-left:auto;height:60px;padding:0 20px;border-radius:16px;background:#fff;border:3px solid #C9BCFF;color:var(--accent-ink);font-family:var(--mono);font-weight:800;display:flex;align-items:center;white-space:nowrap}
+.res5 .lst .a{color:#B4ACD6}
+.pr5{margin-top:18px;display:flex;gap:12px;flex-wrap:wrap}
+.pr5 .orph{margin-top:0}
+.pr5 .orph.am{background:#FFF4E5;color:#9A5B00}
+.orph .ic{font-size:.9em;background:#fff}
+
+/* ---------- 6 · Le résultat ---------- */
+.rgR{display:grid;grid-template-columns:270px 1fr;padding:0 26px;align-items:center}
+.tr.t6{height:44px;font-size:26px}
+.more{height:40px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 0 var(--line-2);font-size:23px;font-weight:600;color:var(--ink-3)}
+.vg{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:22px}
+.vt{border-radius:24px;background:var(--surface-2);padding:14px 18px 18px}
+.vh{display:flex;align-items:center;gap:10px;height:44px;font-size:28px;font-weight:800;color:var(--ink);white-space:nowrap}
+.vh .emo{font-size:28px}
+.vh .vn{margin-left:auto;height:36px;padding:0 14px;border-radius:999px;background:#E7F7EE;color:#1B7A45;font-size:21px;font-weight:700;display:flex;align-items:center}
+.vd{margin-top:10px;display:grid;grid-template-columns:repeat(8,1fr);gap:7px}
+.vd i{height:36px;border-radius:10px;background:#fff;border:2px solid #BFE8D0;display:flex;align-items:center;justify-content:center;color:#1B7A45;font-family:var(--display);font-style:normal;font-size:18px;font-weight:800}
+
+/* ---------- 7 · À retenir : trois idées un peu longues, le récapitulatif se resserre ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:19px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+.rtxt .blk.sm{font-size:.74em}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Jointures</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>C</span><span>R</span><span>O</span><span>S</span><span class="sp">S</span><span>J</span><span>O</span><span>I</span><span>N</span></div>
+    <div class="abs sub">Créer toutes les combinaisons</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec <span class="ic">CROSS JOIN</span>, chaque ligne d’une table<br>est associée à chaque ligne de l’autre.</div>
+  </section>
+
+  <!-- 1 · Situation : le catalogue des offres -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="cb1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Catalogue des offres</span><span class="tb" id="tb1">table clients</span><span class="tb tp" id="tb1b">table produits</span></div>
+      <div class="au">
+        <div class="ap" id="pv1"><div class="ah"><span class="emo">🏙️</span>6 villes</div><div class="kg" id="kv1"></div><div class="an2">où vivent les 10 clients</div></div>
+        <div class="ap" id="pp1"><div class="ah"><span class="emo">📦</span>8 produits</div><div class="kg" id="kp1"></div></div>
+        <div class="nolink" id="x1">✕</div>
+      </div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">🏙️</span><span class="nl">La ville du client</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">📦</span><span class="nl">Le nom du produit</span><span class="tag tp">table produits</span></div>
+    </div>
+    <div class="abs pill" id="p1"><span class="rd"><span class="emo">✕</span>Aucun lien entre une ville et un produit</span></div>
+  </section>
+
+  <!-- 2 · Le problème : INNER JOIN a besoin d’une condition, impossible à écrire ici -->
+  <section class="scene" id="s2">
+    <div class="abs card trap" id="ta2" style="top:300px">
+      <div class="trap-h"><span class="emo">🧪</span><span>Premier essai&nbsp;: <span class="ic">INNER JOIN</span></span></div>
+      <div class="mini two"><span class="kw">FROM</span> clients <span class="glow" id="j2"><span class="kw">INNER JOIN</span></span> produits
+  <span class="glow" id="o2"><span class="kw">ON</span> clients.ville = produits.<span class="qs" id="q2"><span class="a">?</span></span></span></div>
+      <div class="cl2-h" id="h2"><span class="a">Les colonnes de la table produits</span><span class="b"><span class="emo">✕</span>Aucune ne contient une ville</span></div>
+      <div class="cols" id="cols2"></div>
+    </div>
+    <div class="abs card trap" id="tb2">
+      <div class="trap-h gr"><span class="emo">🧩</span><span>Des combinaisons à former</span></div>
+      <div class="cmb" id="cmb2"><span class="cb"><b>Paris</b> + Fibre Prébiotique</span><span class="cb"><b>Paris</b> + Collagène Marin</span><span class="cb"><b>Lyon</b> + Fibre Prébiotique</span><span class="cb"><b>Lyon</b> + Collagène Marin</span></div>
+      <div class="more2" id="mo2">⋯ et toutes les autres</div>
+    </div>
+    <div class="abs goal" id="goal2"><span class="emo">🎯</span>Associer chaque ville à chaque produit</div>
+  </section>
+
+  <!-- 3 · CROSS JOIN en action : chaque client est associé à chaque produit -->
+  <section class="scene" id="s3">
+    <div class="abs code sm" id="s3code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s3l1"><span class="kw">FROM</span> clients<span class="caret"><i></i></span></span><span class="ln" id="s3l2"><span class="glow" id="cj3"><span class="kw">CROSS JOIN</span></span> produits<span class="caret"><i></i></span></span></div>
+    </div>
+    <div class="abs pill" id="n3a"><span class="vi"><span class="emo">✖️</span>Pas de <span class="ic">ON</span>&nbsp;: aucune condition</span></div>
+    <div class="abs lk" id="lk3" style="top:300px">
+      <div class="mt cl"><div class="tt"><span class="emo">👤</span><span>Table clients</span></div><div class="hd"><span>id</span><span>prenom</span><span>ville</span></div></div>
+      <div class="mt pr"><div class="tt"><span class="emo">📦</span><span>Table produits</span></div><div class="hd"><span>id</span><span>nom</span></div></div>
+      <svg class="lks" id="lks3" viewBox="0 0 230 580"></svg>
+    </div>
+    <div class="abs pill" id="n3b"><span class="vi"><span class="emo">✖️</span><span class="sw ct3" id="ct3"></span></span><span class="rd" id="n3c"><span class="emo">✕</span><span class="st">10 + 8 = 18</span></span></div>
+  </section>
+
+  <!-- 4 · Les doublons : plusieurs clients dans la même ville, DISTINCT les retire -->
+  <section class="scene" id="s4">
+    <div class="abs mini mq" id="q4" style="top:300px"><span class="kw">SELECT</span> <span id="d4" class="glow"><span class="kw">DISTINCT</span> </span><span class="caret"><i></i></span>clients.ville,
+       produits.nom <span class="kw">AS</span> produit
+<span class="kw">FROM</span> clients <span class="kw">CROSS JOIN</span> produits;</div>
+    <div class="tbl card" id="tbl4">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat du CROSS JOIN</span><span class="cnt"><span id="c4a">80 lignes</span><span id="c4b">48 lignes</span></span></div>
+      <div class="xt">Extrait&nbsp;: les lignes de la Fibre Prébiotique</div>
+      <div class="rgD th"><div>ville</div><div>produit</div></div>
+      <div class="rows" id="rows4"></div>
+    </div>
+  </section>
+
+  <!-- 5 · Le piège : un INNER JOIN sans ON associe tout -->
+  <section class="scene" id="s5">
+    <div class="abs card trap" id="ta5" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Un <span class="ic">ON</span> oublié</span></div>
+      <div class="mini one"><span class="kw">FROM</span> commandes <span class="glow" id="j5"><span class="kw">INNER JOIN</span> clients</span>;<span class="go" id="go5a"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+      <div class="res5"><span>Résultat</span><span class="lst" id="ls5a"><span class="sw" id="sw5a"><span class="a">?</span><span class="b">160 lignes</span></span></span></div>
+      <div class="pr5"><span class="orph am" id="cj5"><span class="emo">✖️</span>Comme un <span class="ic">CROSS JOIN</span></span><span class="orph" id="eq5"><span class="emo">✕</span>16 × 10 = 160, au lieu de 15</span></div>
+    </div>
+    <div class="abs card trap" id="tb5">
+      <div class="trap-h gr"><span class="emo">✅</span><span>Avec la condition après <span class="ic">ON</span></span></div>
+      <div class="mini two"><span class="kw">FROM</span> commandes <span class="kw">INNER JOIN</span> clients
+  <span class="glow" id="o5"><span class="kw">ON</span> clients.id = commandes.client_id</span>;</div>
+      <div class="res5"><span>Résultat</span><span class="lst" id="ls5b"><span class="sw" id="sw5b"><span class="a">?</span><span class="b">15 lignes</span></span></span></div>
+    </div>
+    <div class="abs pill" id="n5"><span class="am"><span class="emo">🔎</span>Résultat démesuré&nbsp;: <span class="ic">ON</span> oublié&nbsp;?</span></div>
+  </section>
+
+  <!-- 6 · Le résultat : la requête complète, puis le catalogue -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> <span class="glow" id="d6"><span class="kw">DISTINCT</span></span> clients.ville,<span class="caret"><i></i></span></span><span class="ln" id="s6l2">       produits.nom <span class="kw">AS</span> produit<span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="kw">FROM</span> clients<span class="caret"><i></i></span></span><span class="ln" id="s6l4"><span class="glow" id="cj6"><span class="kw">CROSS JOIN</span> produits</span>;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">48 lignes</span></span></div>
+      <div class="rgR th"><div>ville</div><div>produit</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card board" id="cat6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Catalogue des offres · 48 offres</span></div>
+      <div class="vg" id="vg6"></div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ Chaque produit, dans chaque ville</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">✖️</div><div class="rtxt"><span class="ic">CROSS JOIN</span> associe <b>chaque ligne</b> d’une table à <b>chaque ligne</b> de l’autre.<span class="rs">Il ne cherche aucune correspondance&nbsp;: il n’utilise donc généralement pas <span class="ic">ON</span>.</span></div></div>
+      <div class="rrow"><div class="rico emo">🧮</div><div class="rtxt">Nombre de lignes&nbsp;=<br><span class="nw">lignes de gauche × lignes de droite</span>&nbsp;:<br><span class="ic blk sm">10 clients × 8 produits = 80</span></div></div>
+      <div class="rrow"><div class="rico emo">🧭</div><div class="rtxt">Pour obtenir <b>toutes les combinaisons</b>, utilise <span class="ic">CROSS JOIN</span>.<span class="rs">Pour associer les lignes qui se correspondent, utilise une jointure avec <span class="ic">ON</span>.</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 169.9;
+
+/* Table clients [id, prénom, ville], puis table produits [id, nom] : aucune colonne ne relie une ville à un produit. */
+const CLIENTS = [[1, 'Sophie', 'Paris'], [2, 'Lucas', 'Lyon'], [3, 'Emma', 'Marseille'], [4, 'Nathan', 'Paris'], [5, 'Chloé', 'Bordeaux'],
+  [6, 'Hugo', 'Lyon'], [7, 'Léa', 'Paris'], [8, 'Gabriel', 'Toulouse'], [9, 'Inès', 'Nantes'], [10, 'Nathan', 'Paris']];
+const PRODUITS = [[1, 'Fibre Prébiotique'], [2, 'Collagène Marin'], [3, 'Magnésium'], [4, 'Vitamine D'], [5, 'Tisane Détox'],
+  [6, 'Protéine Végétale'], [7, 'Oméga 3'], [8, 'Shaker Inox']];
+/* Les 6 villes, dans l’ordre renvoyé par SELECT DISTINCT clients.ville, produits.nom … CROSS JOIN produits. */
+const VILLES = ['Paris', 'Lyon', 'Marseille', 'Bordeaux', 'Toulouse', 'Nantes'];
+const COLONNES = ['id', 'nom', 'categorie', 'prix', 'stock'];   // les colonnes de la table produits
+/* Lignes de la Fibre Prébiotique, client par client : Paris revient 4 fois, Lyon 2 fois ; DISTINCT ne conserve que la première. */
+const DOUBLONS = [4, 6, 7, 10];
+
+const CHAPTERS = [
+  {n:1, label:'Situation',             a:5.0,   b:35.4},
+  {n:2, label:'Le problème',           a:35.4,  b:61.6},
+  {n:3, label:'CROSS JOIN en action',  a:61.6,  b:94.0},
+  {n:4, label:'Les doublons',          a:94.0,  b:115.3},
+  {n:5, label:'Le piège',              a:115.3, b:140.8},
+  {n:6, label:'Le résultat',           a:140.8, b:157.1},
+  {n:7, label:'À retenir',             a:157.1, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 9.6,     "L’équipe commerciale prépare une <b>nouvelle campagne</b>."],
+  [9.7, 15.5,    "Elle veut une offre pour <b>chaque produit</b>, dans <b>chaque ville</b> où vivent des clients."],
+  [15.6, 19.8,   "Les villes des clients se trouvent dans la <b>table clients</b>."],
+  [19.9, 24.0,   "Les produits sont enregistrés dans la table <code>produits</code>."],
+  [24.1, 28.4,   "Mais aucune colonne ne permet de relier une ville à un produit."],
+  [28.5, 34.9,   "Il faut donc associer les <b>deux tables</b> pour former toutes les combinaisons entre villes et produits."],
+  [35.7, 40.8,   "Premier réflexe : <code>INNER JOIN</code>, comme pour relier une commande à son client."],
+  [40.9, 44.6,   "Mais <code>INNER JOIN</code> a besoin d’une condition après <code>ON</code>."],
+  [44.7, 50.1,   "Or rien ne relie une ville à un produit : la condition est <b>impossible</b> à écrire."],
+  [50.2, 55.6,   "Ici, aucune correspondance à chercher : seulement des <b>combinaisons</b> à former."],
+  [55.7, 61.1,   "Il faut une jointure qui associe <b>chaque ville</b> à <b>chaque produit</b>, sans condition."],
+  [61.9, 67.9,   "C’est exactement le rôle de <code>CROSS JOIN</code>, qui se place après <code>FROM</code>, comme les autres jointures."],
+  [68.0, 72.1,   "<code>CROSS JOIN</code> s’écrit <b>sans</b> <code>ON</code> : aucune condition n’est vérifiée."],
+  [72.2, 77.2,   "La première ligne, celle de Sophie, à Paris, est associée aux <b>8 produits</b>."],
+  [77.3, 82.0,   "Puis la ligne de Lucas, à Lyon, est associée aux mêmes <b>8 produits</b>."],
+  [82.1, 87.1,   "Et ainsi de suite pour chaque client : <b>aucune combinaison</b> n’est écartée."],
+  [87.2, 93.5,   "Au total, <b>80 lignes</b> : les nombres se multiplient, ils ne s’additionnent pas."],
+  [94.3, 99.0,   "Mais plusieurs clients habitent la <b>même ville</b> : 4 à Paris, 2 à Lyon."],
+  [99.1, 103.6,  "Chaque produit est donc associé <b>4 fois</b> à Paris, et 2 fois à Lyon."],
+  [103.7, 109.4, "Pour ne conserver qu’une fois chaque combinaison, place <code>DISTINCT</code> juste après <code>SELECT</code>."],
+  [109.5, 114.8, "Sans les doublons, il reste <b>48 lignes</b> : 6&nbsp;villes&nbsp;×&nbsp;8&nbsp;produits."],
+  [115.6, 120.6, "Attention : dans SQLite, un <code>INNER JOIN</code> sans <code>ON</code> ne provoque <b>aucune erreur</b>."],
+  [120.7, 125.9, "Il associe chaque commande à chaque client, exactement comme un <code>CROSS JOIN</code>."],
+  [126.0, 130.7, "Résultat : <b>160 lignes</b> au lieu de 15, soit 16 commandes × 10 clients."],
+  [130.8, 136.0, "Avec <code>ON</code>, chaque commande retrouve son client : il reste <b>15 lignes</b>."],
+  [136.1, 140.3, "Un résultat démesuré est souvent le signe d’un <code>ON</code> oublié."],
+  [141.1, 147.3, "La requête complète associe chaque ville à chaque produit, et <code>DISTINCT</code> retire les doublons."],
+  [147.4, 151.0, "Résultat : <b>48 lignes</b>, une pour chaque offre."],
+  [151.1, 156.6, "L’équipe commerciale peut lancer sa campagne : chaque produit, dans <b>chaque ville</b>."],
+  [157.4, 162.2, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [162.3, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [162.3, 999, "<code>CROSS JOIN</code> associe chaque ligne d’une table à chaque ligne de l’autre."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+function dom(){
+  /* Chapitre 1 : les 6 villes et les 8 produits */
+  $('#kv1').innerHTML = VILLES.map(v => `<span class="k">${v}</span>`).join('');
+  $('#kp1').innerHTML = PRODUITS.map(([, n]) => `<span class="k">${n}</span>`).join('');
+  /* Chapitre 2 : les colonnes de la table produits, et le « ? » qui les essaie une à une */
+  $('#cols2').innerHTML = COLONNES.map(c => `<span class="cc">${c}<span class="x">✕</span></span>`).join('');
+  $('#q2').insertAdjacentHTML('beforeend', COLONNES.map(c => `<span class="v">${c}</span>`).join(''));
+  /* Chapitre 3 : la table clients et la table produits, côte à côte ; le compteur de lignes */
+  $('#lk3 .mt.cl').insertAdjacentHTML('beforeend', CLIENTS.map(([id, p, v]) =>
+    `<div class="rw"><span class="bg"></span><span>${id}</span><span>${p}</span><span>${v}</span></div>`).join(''));
+  $('#lk3 .mt.pr').insertAdjacentHTML('beforeend', PRODUITS.map(([id, n]) =>
+    `<div class="rw"><span class="bg"></span><span>${id}</span><span>${n}</span></div>`).join(''));
+  $('#ct3').innerHTML = CLIENTS.map((_, i) => `<span>${i + 1}&nbsp;×&nbsp;8&nbsp;=&nbsp;${(i + 1) * 8} lignes</span>`).join('');
+  /* Chapitre 4 : les lignes de la Fibre Prébiotique, client par client */
+  $('#rows4').innerHTML = CLIENTS.map(([id, , v]) =>
+    `<div class="rgD tr t4${v === 'Paris' ? ' pa' : v === 'Lyon' ? ' ly' : ''}"><span class="hl"></span><div>${v}</div><div>Fibre Prébiotique</div>${DOUBLONS.includes(id) ? '<span class="dp">doublon</span>' : ''}</div>`).join('');
+  /* Chapitre 6 : le résultat (les 3 premières lignes, puis les 3 dernières), et le catalogue ville par ville */
+  const r6 = (v, p) => `<div class="rgR tr t6"><div>${v}</div><div>${p}</div></div>`;
+  $('#rows6').innerHTML = PRODUITS.slice(0, 3).map(([, p]) => r6('Paris', p)).join('') + '<div class="more">⋯ 42 autres lignes ⋯</div>' +
+    PRODUITS.slice(5).map(([, p]) => r6('Nantes', p)).join('');
+  $('#vg6').innerHTML = VILLES.map(v => `<div class="vt"><div class="vh"><span class="emo">🏙️</span>${v}<span class="vn">8 offres</span></div><div class="vd">${'<i>✓</i>'.repeat(8)}</div></div>`).join('');
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+/* Une case se retourne : la valeur de départ laisse place à la suivante. */
+function flip(sw, t, sound = true){
+  tl.to(sw, {scaleY: 0, duration: 0.12, ease: 'power2.in'}, t);
+  tl.set(sw.querySelector('.a'), {opacity: 0}, t + 0.12);
+  tl.set(sw.querySelector('.b'), {opacity: 1}, t + 0.12);
+  tl.to(sw, {scaleY: 1, duration: 0.22, ease: 'back.out(2)'}, t + 0.12);
+  if (sound) cue(t + 0.12, 'tick', 0.5, 3);
+}
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => i % 2 || cue(t + i * step, 'tick', 0.45, (i / 2) % 5));
+}
+/* Une carte arrive en tournant légèrement, puis ses éléments un à un. */
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(sel, $(id));
+  gsap.set(items, {autoAlpha: 0, y: 18});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => i % 2 || cue(t + 0.65 + i * step, 'pop', 0.55, (i / 2) % 5));
+  return items;
+}
+/* Une pastille qui s’allume puis s’éteint (une ville, un produit…). */
+const glowChip = (el, t, bg, bd, c, d = 0.5) => {
+  tl.to(el, {backgroundColor: bg, borderColor: bd, color: c, duration: 0.18}, t);
+  tl.to(el, {backgroundColor: '#fff', borderColor: '#E6E1F6', color: '#221C46', duration: 0.3}, t + d);
+};
+/* Les liens de chaque client vers chaque produit : une courbe entre les deux tables, mesurée avant toute animation. */
+function liens(){
+  const box = $('#lk3'), cl = $$('#lk3 .mt.cl .rw'), pr = $$('#lk3 .mt.pr .rw');
+  const cy = el => { const r = rel(el, box); return r.y + r.h / 2; };
+  const out = [];
+  CLIENTS.forEach((_, i) => PRODUITS.forEach((_, j) => {
+    const y1 = cy(cl[i]).toFixed(1), y2 = cy(pr[j]).toFixed(1);
+    out.push({i, j, d: `M2 ${y1} C112 ${y1} 112 ${y2} 218 ${y2}`, y2});
+  }));
+  $('#lks3').innerHTML = out.map(o => `<path d="${o.d}"/>`).join('') + PRODUITS.map((_, j) => `<circle cx="218" cy="${out[j].y2}" r="7"/>`).join('');
+  const paths = $$('#lks3 path');
+  return out.map((o, k) => Object.assign(o, {path: paths[k], len: paths[k].getTotalLength()}));
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.5);   // le temps de lire la bulle de la mascotte
+  let te;
+  const L = liens();   // mesures faites avant toute animation
+  const clR = $$('#lk3 .mt.cl .rw'), prR = $$('#lk3 .mt.pr .rw'), dots = $$('#lks3 circle');
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  gsap.set('#x1', {autoAlpha: 0, scale: 0.4});
+  boardIn('#cb1', 5.15, '.ah, .k, .an2', 0.04);
+  // Une offre pour chaque produit, dans chaque ville
+  bump('#pp1 .ah', 11.6, 1.08, 1);
+  cue(11.6, 'tick', 0.5, 2);
+  bump('#pv1 .ah', 12.6, 1.08, 1);
+  cue(12.6, 'tick', 0.5, 4);
+  // Les villes : table clients
+  show('#tb1', 16.0, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(16.0, 'pop', 0.7, 3);
+  stackBelow('#s1 .need', '#cb1');   // la liste se cale sous le catalogue, sans le toucher
+  show('#s1 .need', 16.5, {y: 60});
+  cue(16.5, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows[0], {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, 16.8);
+  cue(16.8, 'pop', 0.7, 0);
+  pulse('#pv1', 17.6, 3, 'rgba(201,188,255,.45)');
+  // Les produits : table produits
+  show('#tb1b', 20.3, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(20.3, 'pop', 0.7, 4);
+  tl.to(needRows[1], {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, 20.8);
+  cue(20.8, 'pop', 0.7, 2);
+  pulse('#pp1', 21.6, 3, 'rgba(160,196,255,.45)');
+  // Aucune colonne ne relie une ville à un produit
+  tl.to('#x1', {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2.4)'}, 24.9);
+  cue(24.9, 'false', 0.6);
+  shake('#x1', 25.4);
+  stackBelow('#p1', '#s1 .need', 0, 30);
+  show('#p1', 25.9, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(25.9, 'pop', 0.6, 1);
+  // Former toutes les combinaisons : Paris avec chaque produit, puis Lyon
+  bump('#tb1', 29.0, 1.1, 1);
+  bump('#tb1b', 29.5, 1.1, 1);
+  cue(29.0, 'tick', 0.5, 2);
+  cue(29.5, 'tick', 0.5, 4);
+  const kv = $$('#kv1 .k'), kp = $$('#kp1 .k');
+  [[0, 30.6], [1, 32.4]].forEach(([v, t]) => {
+    glowChip(kv[v], t, '#EEE9FF', '#C9BCFF', '#5335E0', 1.55);
+    kp.forEach((p, j) => glowChip(p, t + 0.2 + j * 0.15, '#E5F0FF', '#A9CBFA', '#1D5FB8', 0.25));
+    kp.forEach((_, j) => j % 2 || cue(t + 0.2 + j * 0.15, 'tick', 0.4, (j / 2) % 5));
+  });
+  hide(['#cb1', '#s1 .need', '#p1'], 34.9);
+  sceneOff('#s1', 35.4);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 35.4);
+  show('#ta2', 35.45, {y: 50});
+  cue(35.45, 'whoosh', 0.6);
+  pulse('#j2', 37.2, 3, 'rgba(201,188,255,.4)');
+  // INNER JOIN a besoin d’une condition après ON
+  pulse('#o2', 41.6, 3, 'rgba(201,188,255,.4)');
+  bump('#q2', 43.0, 1.25, 1);
+  cue(43.0, 'tick', 0.5, 3);
+  // Le « ? » essaie chaque colonne de la table produits : aucune ne contient une ville
+  const cc = $$('#cols2 .cc'), qv = $$('#q2 > span');
+  gsap.set(qv.slice(1), {autoAlpha: 0});
+  gsap.set(['#h2', ...cc], {autoAlpha: 0, y: 14});
+  tl.to(['#h2', ...cc], {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out', stagger: 0.08}, 36.2);
+  cc.forEach((_, i) => i % 2 || cue(36.28 + i * 0.08, 'tick', 0.4, i));
+  COLONNES.forEach((_, k) => {
+    const t = 45.7 + k * 0.6;
+    tl.set(qv[k], {autoAlpha: 0}, t);
+    tl.set(qv[k + 1], {autoAlpha: 1}, t);
+    tl.to(cc[k], {borderColor: '#F6C9CD', backgroundColor: '#FDEBEC', color: '#C2323A', duration: 0.2}, t + 0.15);
+    tl.fromTo(cc[k].querySelector('.x'), {autoAlpha: 0, scale: 0.4}, {autoAlpha: 1, scale: 1, duration: 0.25, ease: 'back.out(2.4)', immediateRender: false}, t + 0.2);
+    cue(t + 0.2, 'false', 0.35);
+  });
+  tl.set(qv[COLONNES.length], {autoAlpha: 0}, 48.7);
+  tl.set(qv[0], {autoAlpha: 1}, 48.7);
+  tl.to('#q2', {borderColor: 'rgba(255,140,140,.9)', color: '#FF9B9B', duration: 0.2}, 48.7);
+  gsap.set('#h2 .b', {autoAlpha: 0});
+  tl.to('#h2 .a', {autoAlpha: 0, x: 20, duration: 0.2, ease: 'power2.in'}, 48.9);
+  tl.fromTo('#h2 .b', {autoAlpha: 0, x: -24}, {autoAlpha: 1, x: 0, duration: 0.35, ease: 'back.out(2)', immediateRender: false}, 49.05);
+  cue(49.05, 'false', 0.6);
+  shake('#h2 .b', 49.5);
+  // Des combinaisons à former
+  stackBelow('#tb2', '#ta2', 0, 30);
+  show('#tb2', 50.6, {y: 50});
+  cue(50.6, 'whoosh', 0.6);
+  const cb = $$('#cmb2 .cb');
+  gsap.set([...cb, '#mo2'], {autoAlpha: 0, scale: 0.8});
+  tl.to(cb, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)', stagger: 0.3}, 51.3);
+  cb.forEach((_, i) => cue(51.3 + i * 0.3, 'pop', 0.55, i));
+  tl.to('#mo2', {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'power3.out'}, 52.8);
+  // Une jointure qui associe chaque ville à chaque produit
+  stackBelow('#goal2', '#tb2', 0, 30);
+  show('#goal2', 56.4, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(56.4, 'pop', 0.75, 3);
+  hide(['#ta2', '#tb2', '#goal2'], 61.1, {y: -40}, 0.4);
+  sceneOff('#s2', 61.6);
+
+  /* ===== 3 · CROSS JOIN en action ===== */
+  sceneOn('#s3', 61.6);
+  show('#s3code', 61.65, {y: 60}, 0.6);
+  cue(61.65, 'whoosh', 0.7);
+  te = typeLine($('#s3l1'), 62.15, 26);
+  te = typeLine($('#s3l2'), te + 0.1, 26);
+  pulse('#cj3', 64.8, 3, 'rgba(201,188,255,.45)');
+  // Sans ON : aucune condition
+  stackBelow('#n3a', '#s3code', 0, 34);
+  show('#n3a', 68.6, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(68.6, 'pop', 0.7, 2);
+  hide(['#s3code', '#n3a'], 71.9, {y: -40}, 0.4);
+  // Les deux tables, puis chaque client relié à chaque produit
+  show('#lk3', 72.3, {y: 50});
+  cue(72.3, 'whoosh', 0.7);
+  gsap.set([...clR, ...prR], {autoAlpha: 0, y: 10});
+  tl.to(clR, {autoAlpha: 1, y: 0, duration: 0.28, ease: 'power2.out', stagger: 0.04}, 72.65);
+  tl.to(prR, {autoAlpha: 1, y: 0, duration: 0.28, ease: 'power2.out', stagger: 0.04}, 72.9);
+  L.forEach(({path, len}) => gsap.set(path, {strokeDasharray: len, strokeDashoffset: len, opacity: 0}));
+  gsap.set(dots, {autoAlpha: 0, scale: 0, transformOrigin: '50% 50%'});
+  const ct = $$('#ct3 > span');
+  gsap.set(ct[0], {opacity: 1});
+  stackBelow('#n3b', '#lk3', 0, 30);
+  gsap.set('#n3c', {autoAlpha: 0, scale: 0.7});
+  /* Un client : sa ligne s’allume, ses 8 liens partent vers les 8 produits, le compteur avance. */
+  const fan = (i, t, step, dur) => {
+    tl.to(clR[i].querySelector('.bg'), {opacity: 1, duration: 0.25}, t);
+    L.filter(p => p.i === i).forEach((p, k) => {
+      const tk = t + 0.2 + k * step;
+      tl.set(p.path, {opacity: 1}, tk);
+      tl.to(p.path, {strokeDashoffset: 0, duration: dur, ease: 'power2.inOut'}, tk);
+      tl.to(prR[p.j].querySelector('.bg'), {opacity: 1, duration: 0.12, yoyo: true, repeat: 1}, tk + dur * 0.7);
+      if (i === 0) tl.to(dots[k], {autoAlpha: 1, scale: 1, duration: 0.22, ease: 'back.out(2.4)'}, tk + dur * 0.85);
+    });
+    const end = t + 0.2 + 7 * step + dur;
+    if (i > 0) { tl.set(ct[i - 1], {opacity: 0}, end); tl.set(ct[i], {opacity: 1}, end); }
+    return end;
+  };
+  /* Le client terminé s’efface un peu : ses liens restent, plus discrets. */
+  const fade = (i, t) => {
+    tl.to(L.filter(p => p.i === i).map(p => p.path), {opacity: 0.28, duration: 0.3}, t);
+    tl.to(clR[i].querySelector('.bg'), {opacity: 0.35, duration: 0.3}, t);
+  };
+  te = fan(0, 73.6, 0.2, 0.4);
+  cue(73.8, 'pop', 0.55, 0);
+  show('#n3b', te + 0.1, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(te + 0.1, 'pop', 0.7, 2);
+  fade(0, 77.3);
+  te = fan(1, 77.6, 0.2, 0.4);
+  cue(77.8, 'pop', 0.55, 1);
+  bump('#ct3', te, 1.1, 1);
+  // Et ainsi de suite : les 8 autres clients, plus vite
+  for (let i = 2; i < CLIENTS.length; i++) {
+    const t = 82.3 + (i - 2) * 0.5;
+    fade(i - 1, t);
+    fan(i, t, 0.03, 0.3);
+    cue(t + 0.2, 'tick', 0.45, i % 5);
+  }
+  fade(CLIENTS.length - 1, 86.4);
+  // 10 clients × 8 produits : 80 lignes, et non 10 + 8
+  tl.to(L.map(p => p.path), {opacity: 0.5, duration: 0.4}, 87.2);
+  bump('#n3b > .vi', 87.4, 1.1, 3);
+  cue(87.4, 'chord', 0.6);
+  tl.to('#n3c', {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)'}, 90.4);
+  cue(90.4, 'false', 0.55);
+  hide(['#lk3', '#n3b'], 93.5, {y: -40});
+  sceneOff('#s3', 94.0);
+
+  /* ===== 4 · Les doublons ===== */
+  sceneOn('#s4', 94.0);
+  show('#q4', 94.05, {y: 40}, 0.5);
+  cue(94.05, 'whoosh', 0.6);
+  stackBelow('#tbl4', '#q4', 0, 30);
+  show('#tbl4', 94.3, {y: 40}, 0.5);
+  const r4 = $$('#rows4 .tr');
+  rowsIn(r4, 94.65, 0.06);
+  gsap.set('#c4b', {autoAlpha: 0});
+  show('#c4a', 95.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // Plusieurs clients dans la même ville : 4 à Paris, 2 à Lyon
+  const pa = r4.filter(r => r.classList.contains('pa')), ly = r4.filter(r => r.classList.contains('ly'));
+  tl.to(pa.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.15}, 96.6);
+  cue(96.6, 'tick', 0.5, 1);
+  tl.to(ly.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.15}, 97.9);
+  cue(97.9, 'tick', 0.5, 3);
+  // Chaque produit, 4 fois à Paris et 2 fois à Lyon : des doublons
+  bump(pa.map(r => r.children[1]), 100.0, 1.08, 1);
+  bump(ly.map(r => r.children[1]), 101.6, 1.08, 1);
+  const dp = $$('#rows4 .dp');
+  gsap.set(dp, {scale: 0.6});
+  tl.to(dp, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.12}, 102.4);
+  dp.forEach((_, i) => cue(102.4 + i * 0.12, 'pop', 0.5, i));
+  // DISTINCT, juste après SELECT
+  splitChars($('#d4'));
+  te = typeMore($('#d4'), 105.6, 16);
+  pulse('#d4', te + 0.2, 3, 'rgba(201,188,255,.45)');
+  // Les doublons disparaissent : 48 lignes
+  const du = DOUBLONS.map(id => r4[id - 1]);
+  tl.to(du, {height: 0, autoAlpha: 0, duration: 0.45, ease: 'power2.inOut', stagger: 0.15}, 110.0);
+  cue(110.0, 'whoosh', 0.45);
+  tl.to('#c4a', {autoAlpha: 0, scale: 0.6, duration: 0.15}, 111.3);
+  tl.fromTo('#c4b', {autoAlpha: 0, scale: 0.6}, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)', immediateRender: false}, 111.45);
+  cue(111.45, 'true', 0.6);
+  bump('#c4b', 112.2, 1.15, 3);
+  tl.to([...pa, ...ly].map(r => r.querySelector('.hl')), {opacity: 0, duration: 0.4}, 112.4);
+  hide(['#q4', '#tbl4'], 114.8, {y: -40});
+  sceneOff('#s4', 115.3);
+
+  /* ===== 5 · Le piège ===== */
+  sceneOn('#s5', 115.3);
+  show('#ta5', 115.35, {y: 50});
+  cue(115.35, 'whoosh', 0.6);
+  pulse('#j5', 116.9, 3, 'rgba(201,188,255,.4)');
+  press($('#go5a'), 118.8, '#4B30CC', 6);
+  // Aucune erreur : la requête renvoie 160 lignes
+  flip($('#sw5a'), 119.1);
+  tl.to('#ls5a', {borderColor: '#F6C9CD', color: '#C2323A', duration: 0.25}, 119.2);
+  // Comme un CROSS JOIN
+  show('#cj5', 121.6, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(121.6, 'pop', 0.6, 2);
+  // 160 lignes au lieu de 15
+  show('#eq5', 126.6, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(126.6, 'false', 0.6);
+  shake('#eq5', 127.1);
+  // Avec ON : 15 lignes
+  stackBelow('#tb5', '#ta5', 0, 30);
+  show('#tb5', 131.0, {y: 50});
+  cue(131.0, 'whoosh', 0.6);
+  pulse('#o5', 132.0, 3, 'rgba(201,188,255,.4)');
+  flip($('#sw5b'), 133.6, false);
+  tl.to('#ls5b', {borderColor: '#BFE8D0', color: '#1B7A45', duration: 0.25}, 133.7);
+  cue(133.7, 'true', 0.6);
+  // Un résultat démesuré : un ON oublié ?
+  stackBelow('#n5', '#tb5', 0, 30);
+  show('#n5', 136.7, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(136.7, 'pop', 0.7, 3);
+  bump('#ls5a', 137.6, 1.12, 3);
+  hide(['#ta5', '#tb5', '#n5'], 140.3, {y: -40});
+  sceneOff('#s5', 140.8);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 140.8);
+  show('#s6code', 140.85, {y: 60}, 0.6);
+  cue(140.85, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 141.35, 40);
+  for (const k of [2, 3, 4]) te = typeLine($('#s6l' + k), te + 0.1, 40);
+  pulse(['#d6', '#cj6'], 144.9, 3, 'rgba(201,188,255,.3)');
+  press($('#s6run'), 146.2);
+  stackBelow('#tbl6', '#s6code', 0, 30);
+  show('#tbl6', 146.45, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr, #rows6 .more'), 146.6, 0.1);
+  show('#cnt6', 147.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 148.3, 1.15, 3);
+  hide(['#s6code', '#tbl6'], 150.9, {y: -40}, 0.4);
+  // Le catalogue : 6 villes, 8 offres chacune
+  boardIn('#cat6', 151.2, '.vt', 0.12);
+  const sq = $$('#vg6 .vd i');
+  gsap.set(sq, {autoAlpha: 0, scale: 0.5});
+  tl.to(sq, {autoAlpha: 1, scale: 1, duration: 0.2, ease: 'back.out(2.4)', stagger: 0.035}, 152.4);
+  sq.forEach((_, i) => i % 6 || cue(152.4 + i * 0.035, 'tick', 0.4, (i / 6) % 5));
+  stackBelow('#badge6', '#cat6', 0, 50);
+  show('#badge6', 154.6, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(154.6, 'chord', 0.7);
+  hide(['#cat6', '#badge6'], 156.6);
+  sceneOff('#s6', 157.1);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(157.1, [157.8, 159.6, 161.4]);
+  hold(159.4, 4.8);
+  hold(161.2, 3.8);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(162.35, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 162.3,
+  glyphs: '🏙️📦👤🧪🧩🎯✖️⚠️✅🔎🧮🧭✓✕?·…⋯+=×', dom, build});
+</script>
+</body>
+</html>
