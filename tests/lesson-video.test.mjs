@@ -678,6 +678,15 @@ const COURSES = [
       '<span class="glow" id="w4"><span class="kw">AND</span> commandes.statut = <span class="str">\'en_preparation\'</span></span>',
       '<span class="glow" id="or5"><span class="kw">OR</span> clients.ville = <span class="str">\'Paris\'</span></span>', '<span class="n5">72 lignes</span>',
       '✓ 2 commandes pour le coursier']},
+  {id: 44, next: 45, titre: 'Quel JOIN choisir\u00a0?', page: 'quel-join-choisir.html', thumb: 'quel-join-choisir-thumb.jpg', duree: '3 min 23', notesAt: 186.3,
+    notes: /notes:\{t:198\.0,y:1322,card:\[64,292,1016,1027\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Pour choisir une jointure, réponds<br>à deux questions, dans l’ordre.',
+    chapters: ['Situation', 'Le problème', 'Première question', 'Deuxième question', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<span class="jn-q" id="jq2">Laquelle choisir&nbsp;?</span>', 'const GARDE = {inner: [1, 0, 0], left: [1, 1, 0], right: [1, 0, 1], full: [1, 1, 1]};',
+      '<span class="orph" id="m2a"><span class="emo">✕</span>Inès Lefebvre</span>', '<span class="qb">1</span><span class="tx">Faut-il vérifier une correspondance&nbsp;?</span>',
+      '<span class="jc2 nx" id="nx3">Question 2&nbsp;→</span>', '<span class="qb">2</span><span class="tx">Quelles lignes doivent rester, même sans correspondance&nbsp;?</span>',
+      '<span class="glow" id="o5">commandes.client_id</span> = clients.id;', '<div class="gd-x" id="gx5"><span class="emo">✕</span>L’ordre écrit dans le <span class="ic">ON</span> ne change pas les côtés</div>',
+      '<span class="glow" id="j6"><span class="kw">LEFT JOIN</span> commandes</span>', '✓ 2 clients à contrôler']},
 ];
 
 for (const c of COURSES) {

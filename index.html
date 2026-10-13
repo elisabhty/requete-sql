@@ -11368,6 +11368,11 @@ guide({ id:49, titre:"Plusieurs conditions dans ON", résumé:"Relier seulement 
   learningCheck:{question:"Le produit d’une commande est le bon, mais son stock vaut 0. Avec ON … AND produits.stock > 0, que devient cette commande ?",options:["Elle est reliée quand même, car c’est le bon produit","Elle disparaît du résultat : une seule condition fausse suffit","SQL affiche une erreur"],answer:1,explanation:"Avec AND, toutes les conditions doivent être vraies. Si le stock vaut 0, la deuxième est fausse : la commande n’est pas reliée à son produit."}
 }),
 guide({ id:44, titre:"Quel JOIN choisir ?", résumé:"Choisir la bonne jointure selon les lignes à garder",
+  /* Cours en vidéo : l’animation (assets/anim/quel-join-choisir.html, moteur commun assets/anim/core.js) remplace le texte du cours.
+     La vidéo suit l’audit du fichier clients avec l’arbre de décision ; le texte ci-dessous reste pour le cas où la vidéo ne se charge pas. */
+  video:{anim:'assets/anim/quel-join-choisir.html?app&embed',thumb:'assets/anim/quel-join-choisir-thumb.jpg',duree:'3 min 23',
+    /* « Ajouter dans notes » : apparaît à 3 min 18 (198,0 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:198.0,y:1322,card:[64,292,1016,1027],to:[940,255]}},
   sit:{
     blocks:[
       "L’équipe audit contrôle le fichier clients avant la clôture du mois. Elle veut <b>la liste de tous les clients</b> avec la date de leurs commandes, y compris ceux qui n’ont <b>jamais commandé</b>.",
@@ -11456,9 +11461,9 @@ guide({ id:44, titre:"Quel JOIN choisir ?", résumé:"Choisir la bonne jointure
   ],
   reflex:[
     {recap:[
-      ["❓","Avant d’écrire la jointure, demande-toi <b>quelles lignes doivent rester</b>, même sans correspondance."],
-      ["📌","<code>INNER</code> : seulement les correspondances. <code>LEFT</code> : tout à gauche. <code>RIGHT</code> : tout à droite. <code>FULL</code> : tout des deux côtés."],
-      ["🧭","<code>CROSS</code> crée toutes les combinaisons, sans <code>ON</code> ; <code>SELF</code> relie les lignes d’une même table."]
+      ["🔗","D’abord, faut-il vérifier une <b>correspondance</b> ?","Sans correspondance : <code>CROSS JOIN</code>.<br>Dans une même table : <code>SELF JOIN</code>."],
+      ["🧭","Entre deux tables, demande-toi quelles lignes doivent <b>rester</b> :","<code>INNER</code> → les correspondances<br><code>LEFT</code> → toute la table de gauche<br><code>RIGHT</code> → toute la table de droite<br><code>FULL</code> → toutes les lignes"],
+      ["📍","La table de gauche est celle placée après <code>FROM</code>, quel que soit l’ordre du <code>ON</code>."]
     ],label:"Les trois idées à retenir"}
   ],
   anatomie:[{tok:"SELECT clients.prenom, commandes.date_commande",txt:"Le prénom du client et la date de sa commande."},{tok:"FROM clients",txt:"La table de gauche : tous les clients doivent rester."},{tok:"LEFT JOIN commandes",txt:"On ajoute les commandes quand elles existent."},{tok:"ON clients.id = commandes.client_id",txt:"Sans commande, la date vaut NULL."}],
@@ -27939,7 +27944,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1771';
+  const SW_CACHE='requete-2026-10-12-ludique-v1772';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
