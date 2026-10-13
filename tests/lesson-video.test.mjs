@@ -687,6 +687,14 @@ const COURSES = [
       '<span class="jc2 nx" id="nx3">Question 2&nbsp;→</span>', '<span class="qb">2</span><span class="tx">Quelles lignes doivent rester, même sans correspondance&nbsp;?</span>',
       '<span class="glow" id="o5">commandes.client_id</span> = clients.id;', '<div class="gd-x" id="gx5"><span class="emo">✕</span>L’ordre écrit dans le <span class="ic">ON</span> ne change pas les côtés</div>',
       '<span class="glow" id="j6"><span class="kw">LEFT JOIN</span> commandes</span>', '✓ 2 clients à contrôler']},
+  {id: 45, next: 47, titre: 'Sous-requête dans WHERE avec IN', page: 'sous-requete-in.html', thumb: 'sous-requete-in-thumb.jpg', duree: '3 min 31', notesAt: 194.1,
+    notes: /notes:\{t:205\.8,y:1294,card:\[64,292,1016,999\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Avec une sous-requête, la liste de <span class="ic">IN</span><br>est fabriquée par une autre requête.',
+    chapters: ['Situation', 'Le problème', 'La sous-requête', 'IN en action', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<span class="m">no such column: statut</span>', '<span class="col gh" id="gh2">✕ statut</span>', 'const LISTE = [4, 1, 3, 5, null];',
+      '<span class="nt" id="nt3">commande n°16 · sans client</span>', '<span class="kw glow" id="k3">IN</span> <span class="glow" id="p3a">(</span>',
+      '<span class="glow" id="eq5">=</span> (', '<span class="n2" id="n5">1 ligne</span><span class="ok2" id="ok5">✓ Aucune erreur</span>',
+      '<span class="orph" id="m5a"><span class="emo">✕</span>Sophie Martin</span>', '✓ 4 clients à appeler']},
 ];
 
 for (const c of COURSES) {

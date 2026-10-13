@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Sous-requête dans WHERE avec IN en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:150px;top:434px;letter-spacing:-3px}
+#s0 .title span.sp{margin-right:44px}
+#s0 .hilite{top:524px;height:50px}
+#s0 .sub{top:624px;font-size:62px}
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:38px;white-space:nowrap}
+.nw{white-space:nowrap}
+
+/* Code : sept lignes (chapitre 6) */
+.code.sm .body{font-size:32px;line-height:50px;padding:26px 36px}
+.code.sm .ln{height:50px}
+.code.sm .caret i{top:-37px;height:42px}
+/* Mini-requêtes : une ligne par bloc, pour pouvoir en ajouter une ou décaler le texte */
+.mini.mm{font-size:32px;line-height:48px;padding:20px 126px 20px 30px}
+.mini .ml{display:block;height:48px}
+.mini .ml.ex{overflow:hidden;margin-left:-8px;padding-left:8px}
+
+/* La table clients en violet, la table commandes en orange */
+.tag.tc{background:#FFF4E5;color:#9A5B00}
+
+/* ---------- 1 · Le retard du transporteur ---------- */
+.board{left:64px;width:952px;padding:0 0 8px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar>span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.lx{padding:28px 34px 26px}
+.lx-hero{display:flex;align-items:center;gap:26px}
+.lx-ico{width:112px;height:112px;border-radius:34px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:64px;flex:none}
+.lx-t1{font-size:42px;font-weight:800;color:var(--ink);white-space:nowrap}
+.lx-t2{margin-top:6px;font-size:30px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.lx-conds{margin-top:26px;display:flex;align-items:center;gap:14px}
+.cd{height:60px;padding:0 22px;border-radius:999px;font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.cd.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.cd.am{background:#FFF4E5;color:#9A5B00}
+
+/* ---------- 2 · Le problème : le statut est dans une autre table ---------- */
+#tp2 .out{margin-top:22px}
+.sc{left:64px;width:952px;padding:24px 26px 26px}
+.sc-h{display:flex;align-items:center;gap:12px;padding:0 6px 16px;font-size:31px;font-weight:700;color:var(--ink);white-space:nowrap}
+.sc-h .emo{font-size:31px}
+.sc-g{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.sc-c{border-radius:28px;background:var(--surface-2);padding:18px 18px 20px}
+.sc-c .tag{display:inline-block;margin:0 0 14px}
+.cols{display:flex;flex-wrap:wrap;gap:10px}
+.col{height:50px;padding:0 16px;border-radius:14px;background:#fff;border:2px solid var(--line);font-family:var(--mono);font-size:27px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:8px;white-space:nowrap}
+.col.gh{background:#FDEBEC;border:2px dashed #F2B8BC;color:#C2323A}
+.goal{left:64px;width:952px;height:96px;border-radius:32px;background:#E7F7EE;border:3px solid #BFE8D0;display:flex;align-items:center;justify-content:center;gap:14px;font-size:33px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.goal .emo{font-size:36px}
+
+/* ---------- 3 · La sous-requête ---------- */
+.rgL{display:grid;grid-template-columns:200px 1fr;padding:0 26px;align-items:center}
+.tr.t3{height:56px;font-size:32px}
+.tr.t3.no .hl{background:#FFF4E5;box-shadow:inset 8px 0 0 #F2994A}
+.nt{height:44px;padding:0 16px;border-radius:999px;background:#FFF4E5;color:#9A5B00;font-family:var(--ui);font-size:24px;font-weight:700;font-style:normal;display:inline-flex;align-items:center}
+.nul{color:var(--ink-3);font-style:italic}
+.pill{left:0;width:1080px;display:flex;justify-content:center}
+.pill>span{height:62px;padding:0 24px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill.vi>span{background:var(--accent-soft);color:var(--accent-ink)}
+.pill.gr>span{background:#E7F7EE;color:#1B7A45}
+.pill .ic{font-size:.92em;background:#fff}
+
+/* ---------- 4 · IN en action : la liste, puis chaque client ---------- */
+.lp{left:64px;width:952px;padding:22px 30px 26px}
+.lp-h{display:flex;align-items:center;gap:12px;font-size:31px;font-weight:700;color:var(--ink);white-space:nowrap}
+.lp-h .emo{font-size:31px}
+.lp-v{margin-top:18px;display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:34px;font-weight:800;color:var(--accent-ink);white-space:nowrap}
+.lp-v .pp{color:var(--ink-3)}
+.lv{position:relative;min-width:88px;height:72px;padding:0 18px;border-radius:20px;background:var(--surface-2);border:3px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.lv.nl{color:var(--ink-3);font-style:italic;font-weight:700}
+.lv .xs{position:absolute;left:12px;right:12px;top:50%;height:5px;margin-top:-2px;border-radius:3px;background:#E5484D}
+.rgC{display:grid;grid-template-columns:120px 230px 1fr 70px;padding:0 26px;align-items:center}
+.tr.t4{height:56px;font-size:31px}
+.tr.t4.ok .hl{background:#E7F7EE;box-shadow:inset 8px 0 0 #2FA36B}
+.idb{display:inline-flex;align-items:center;justify-content:center;min-width:54px;height:44px;padding:0 10px;border-radius:12px}
+.tr>div.mk{position:relative;justify-self:end;width:46px;height:46px;padding:0;overflow:visible}
+.mk i{position:absolute;left:0;top:0;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--ui);font-size:24px;font-weight:800;font-style:normal;color:#fff;opacity:0}
+.mk .y{background:#2FA36B}
+.mk .n{background:#E5484D}
+
+/* ---------- 5 · Le piège : = au lieu de IN ---------- */
+.r5{left:64px;width:952px;padding:22px 28px 24px}
+.r5-h{display:flex;align-items:center;gap:14px;font-size:31px;font-weight:700;color:var(--ink);white-space:nowrap}
+.r5-h .emo{font-size:31px}
+.n2{margin-left:auto;height:54px;padding:0 20px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:27px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.ok2{height:54px;padding:0 20px;border-radius:999px;background:#E7F7EE;color:#1B7A45;font-size:27px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.r5-row{margin-top:16px;height:66px;border-radius:20px;background:var(--surface-2);display:grid;grid-template-columns:190px 210px 1fr;align-items:center;padding:0 24px;font-family:var(--mono);font-size:31px;font-weight:600;color:var(--ink);white-space:nowrap}
+.ms{margin-top:18px;display:flex;gap:12px}
+.orph{height:54px;padding:0 18px;border-radius:999px;background:#FDEBEC;color:#C2323A;font-size:26px;font-weight:700;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+
+/* ---------- 6 · Le résultat ---------- */
+.rgR{display:grid;grid-template-columns:190px 220px 1fr;padding:0 26px;align-items:center}
+.tr.t6{height:56px;font-size:31px}
+.ctl{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:26px 26px 20px}
+.cl{position:relative;height:166px;border-radius:24px;background:#fff;border:3px solid var(--line);box-shadow:0 5px 0 var(--lip);display:flex;align-items:center;gap:18px;padding:0 22px}
+.cl .emo{font-size:44px}
+.cl .cn{font-size:31px;font-weight:800;color:var(--ink);white-space:nowrap}
+.cl .cv{margin-top:4px;font-family:var(--mono);font-size:24px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.cl .cx{margin-top:8px;height:40px;padding:0 14px;border-radius:999px;background:#FFF4E5;color:#9A5B00;font-size:22px;font-weight:700;display:inline-flex;align-items:center;white-space:nowrap}
+
+/* ---------- 7 · À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:20px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Sous-requêtes</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>I</span><span class="sp">N</span><span>(</span><span>S</span><span>E</span><span>L</span><span>E</span><span>C</span><span>T</span><span>)</span></div>
+    <div class="abs sub">Filtrer avec une sous-requête</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec une sous-requête, la liste de <span class="ic">IN</span><br>est fabriquée par une autre requête.</div>
+  </section>
+
+  <!-- 1 · Situation : le transporteur annonce un retard -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="ab1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Service client · alerte livraison</span><span class="tb" id="tb1">table clients</span></div>
+      <div class="lx">
+        <div class="lx-hero"><div class="lx-ico">🚚</div><div><div class="lx-t1">Retard du transporteur</div><div class="lx-t2">Les prochaines livraisons sont décalées</div></div></div>
+        <div class="lx-conds"><span class="cd vi" id="cd1">📞 Appeler les clients</span><span class="cd am" id="cd2">📦 En préparation</span></div>
+      </div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">👤</span><span class="nl">Le prénom du client</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">👪</span><span class="nl">Son nom de famille</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">📞</span><span class="nl">Son téléphone</span><span class="tag">table clients</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : le statut n’est pas dans la table clients -->
+  <section class="scene" id="s2">
+    <div class="abs card trap" id="tp2" style="top:300px">
+      <div class="trap-h"><span class="emo">🔎</span><span>Premier essai</span></div>
+      <div class="mini mm"><span class="ml"><span class="kw">SELECT</span> prenom, nom, telephone</span><span class="ml"><span class="kw">FROM</span> clients</span><span class="ml"><span class="glow" id="w2"><span class="kw">WHERE</span> <span class="bad" id="st2">statut</span> = <span class="str">'en_preparation'</span></span>;</span><span class="go" id="go2"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+      <div class="out err" id="er2"><div class="oi">✕</div><div class="ot"><b>Erreur SQL</b><span class="m">no such column: statut</span></div></div>
+    </div>
+    <div class="abs card sc" id="sc2">
+      <div class="sc-h"><span class="emo">🗂️</span><span>Où se trouve le statut&nbsp;?</span></div>
+      <div class="sc-g">
+        <div class="sc-c" id="sa2"><span class="tag">table clients</span><div class="cols"><span class="col">id</span><span class="col">prenom</span><span class="col">nom</span><span class="col">ville</span><span class="col">telephone</span><span class="col gh" id="gh2">✕ statut</span></div></div>
+        <div class="sc-c" id="sb2"><span class="tag tc">table commandes</span><div class="cols"><span class="col">id</span><span class="col" id="ci2">client_id</span><span class="col">date_commande</span><span class="col" id="cs2">statut</span></div></div>
+      </div>
+    </div>
+    <div class="abs goal" id="goal2"><span class="emo">🎯</span>D’abord, trouver les clients concernés</div>
+  </section>
+
+  <!-- 3 · La sous-requête : elle fabrique la liste des clients -->
+  <section class="scene" id="s3">
+    <div class="abs card trap" id="sq3" style="top:300px">
+      <div class="trap-h"><span class="emo">🧺</span><span>La sous-requête</span></div>
+      <div class="mini mm"><span class="ml ex" id="x3a"><span class="kw" id="in3">WHERE</span> id <span class="kw glow" id="k3">IN</span> <span class="glow" id="p3a">(</span></span><span class="ml" id="q3a"><span class="kw">SELECT</span> client_id</span><span class="ml" id="q3b"><span class="kw">FROM</span> commandes</span><span class="ml" id="q3c"><span class="glow" id="w3"><span class="kw">WHERE</span> statut = <span class="str">'en_preparation'</span></span><span id="sc3">;</span></span><span class="ml ex" id="x3b"><span class="glow" id="p3b">)</span></span><span class="go" id="go3"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+    </div>
+    <div class="tbl card" id="ls3">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat de la sous-requête</span><span class="cnt"><span id="cnt3">5 lignes</span></span></div>
+      <div class="rgL th"><div>client_id</div></div>
+      <div class="rows" id="rows3"></div>
+    </div>
+    <div class="abs pill vi" id="lp3"><span>🧺 La liste reçue par <span class="ic">IN</span>&nbsp;: <span class="ic">4, 1, 3, 5, NULL</span></span></div>
+  </section>
+
+  <!-- 4 · IN en action : pour chaque client, son id est-il dans la liste ? -->
+  <section class="scene" id="s4">
+    <div class="abs card lp" id="lp4" style="top:300px">
+      <div class="lp-h"><span class="emo">🧺</span><span>La liste fabriquée par la sous-requête</span></div>
+      <div class="lp-v"><span>IN (</span><span class="lv">4</span><span class="lv">1</span><span class="lv">3</span><span class="lv">5</span><span class="lv nl">NULL</span><span>)</span></div>
+    </div>
+    <div class="tbl card" id="ct4">
+      <div class="tt"><span class="emo">👥</span><span>Table clients</span><span class="cnt"><span id="cnt4">4 clients conservés</span></span></div>
+      <div class="rgC th"><div>id</div><div>prenom</div><div>nom</div><div></div></div>
+      <div class="rows" id="rows4"></div>
+    </div>
+  </section>
+
+  <!-- 5 · Le piège : = au lieu de IN -->
+  <section class="scene" id="s5">
+    <div class="abs card trap" id="tp5" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Et avec <span class="ic">=</span> au lieu de <span class="ic">IN</span>&nbsp;?</span></div>
+      <div class="mini mm"><span class="ml"><span class="kw">WHERE</span> id <span class="glow" id="eq5">=</span> (</span><span class="ml">  <span class="kw">SELECT</span> client_id</span><span class="ml">  <span class="kw">FROM</span> commandes</span><span class="ml">  <span class="kw">WHERE</span> statut = <span class="str">'en_preparation'</span></span><span class="ml">);</span><span class="go" id="go5"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+    </div>
+    <div class="abs card r5" id="rs5">
+      <div class="r5-h"><span class="emo">🔎</span><span>Résultat</span><span class="n2" id="n5">1 ligne</span><span class="ok2" id="ok5">✓ Aucune erreur</span></div>
+      <div class="r5-row" id="row5"><span>Nathan</span><span>Petit</span><span>06 39 98 40 15</span></div>
+    </div>
+    <div class="abs card lp" id="ex5">
+      <div class="lp-h"><span class="emo">☝️</span><span><span class="ic">=</span> ne garde qu’une seule valeur</span></div>
+      <div class="lp-v"><span>= (</span><span class="lv">4</span><span class="lv">1<i class="xs"></i></span><span class="lv">3<i class="xs"></i></span><span class="lv">5<i class="xs"></i></span><span class="lv nl">NULL<i class="xs"></i></span><span>)</span></div>
+      <div class="ms"><span class="orph" id="m5a"><span class="emo">✕</span>Sophie Martin</span><span class="orph" id="m5b"><span class="emo">✕</span>Emma Dubois</span><span class="orph" id="m5c"><span class="emo">✕</span>Chloé Moreau</span></div>
+    </div>
+    <div class="abs pill gr" id="ok5b"><span>✓ Avec <span class="ic">IN</span>&nbsp;: les 4 clients</span></div>
+  </section>
+
+  <!-- 6 · Le résultat : la requête complète, puis les appels à passer -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> prenom, nom, telephone<span class="caret"><i></i></span></span><span class="ln" id="s6l2"><span class="kw">FROM</span> clients<span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="glow" id="i6"><span class="kw">WHERE</span> id <span class="kw">IN</span> (</span><span class="caret"><i></i></span></span><span class="ln" id="s6l4">  <span class="kw">SELECT</span> client_id<span class="caret"><i></i></span></span><span class="ln" id="s6l5">  <span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="s6l6">  <span class="kw">WHERE</span> statut = <span class="str">'en_preparation'</span><span class="caret"><i></i></span></span><span class="ln" id="s6l7">);<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">4 lignes</span></span></div>
+      <div class="rgR th"><div>prenom</div><div>nom</div><div>telephone</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card board" id="ab6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Service client · appels à passer</span></div>
+      <div class="ctl" id="ct6"></div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ 4 clients à appeler</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">📋</div><div class="rtxt">Une sous-requête dans <span class="ic">WHERE</span> avec <span class="ic">IN</span> fournit une <b>liste de valeurs</b>&nbsp;: le résultat d’une autre requête.<span class="rs">La sous-requête trouve les identifiants&nbsp;; <span class="ic">IN</span> vérifie si chaque valeur fait partie de cette liste.</span></div></div>
+      <div class="rrow"><div class="rico emo">🧱</div><div class="rtxt">La structure à retenir&nbsp;:<br><span class="ic blk">WHERE colonne IN (SELECT …)</span></div></div>
+      <div class="rrow"><div class="rico emo">⚠️</div><div class="rtxt">Pour plusieurs valeurs possibles, utilise <span class="ic">IN</span>, pas <span class="ic">=</span>&nbsp;: il n’en attend qu’<b>une seule</b>.<span class="rs">Avec <span class="ic">=</span>, SQLite garde la première valeur, sans aucune erreur.</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 199.0;
+
+/* La sous-requête (client_id des commandes en préparation, n°12 à n°16) : la commande n°16 n’a pas de client. */
+const LISTE = [4, 1, 3, 5, null];
+/* La table clients : [id, prénom, nom]. */
+const CLIENTS = [[1, 'Sophie', 'Martin'], [2, 'Lucas', 'Bernard'], [3, 'Emma', 'Dubois'], [4, 'Nathan', 'Petit'], [5, 'Chloé', 'Moreau'],
+  [6, 'Hugo', 'Laurent'], [7, 'Léa', 'Simon'], [8, 'Gabriel', 'Michel'], [9, 'Inès', 'Lefebvre'], [10, 'Nathan', 'Dupont']];
+/* Le résultat de la requête complète (4 lignes) : [prénom, nom, téléphone, commande en préparation]. */
+const RESULTAT = [['Sophie', 'Martin', '06 39 98 12 04', 'n°13'], ['Emma', 'Dubois', '06 39 98 33 08', 'n°14'],
+  ['Nathan', 'Petit', '06 39 98 40 15', 'n°12'], ['Chloé', 'Moreau', '06 39 98 51 62', 'n°15']];
+
+const CHAPTERS = [
+  {n:1, label:'Situation',            a:5.0,   b:34.6},
+  {n:2, label:'Le problème',          a:34.6,  b:63.0},
+  {n:3, label:'La sous-requête',      a:63.0,  b:97.1},
+  {n:4, label:'IN en action',         a:97.1,  b:136.9},
+  {n:5, label:'Le piège',             a:136.9, b:166.1},
+  {n:6, label:'Le résultat',          a:166.1, b:188.9},
+  {n:7, label:'À retenir',            a:188.9, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 10.6,    "Le transporteur annonce un <b>retard</b> sur les prochaines livraisons."],
+  [10.7, 16.2,   "Le service client veut appeler les clients concernés pour les prévenir."],
+  [16.3, 21.8,   "Sont concernés : les clients dont une commande est <b>en préparation</b>."],
+  [21.9, 27.6,   "Le prénom, le nom et le téléphone se trouvent dans la <b>table clients</b>."],
+  [27.7, 34.1,   "Mais comment savoir quels clients ont une commande en préparation ?"],
+  [34.9, 40.6,   "Premier essai : filtrer la table clients sur le <b>statut</b> de la commande."],
+  [40.7, 45.9,   "Erreur : la table clients n’a aucune colonne <code>statut</code>."],
+  [46.0, 51.6,   "Le statut est rangé ailleurs : dans la table <code>commandes</code>."],
+  [51.7, 57.2,   "Chaque commande y garde aussi le numéro de son client : <code>client_id</code>."],
+  [57.3, 62.5,   "Il faut donc d’abord trouver les clients concernés dans la table commandes."],
+  [63.3, 69.0,   "La solution : une <b class=\"nw\">sous-requête</b>, une requête placée dans une autre."],
+  [69.1, 75.0,   "Exécutée seule, elle garde les commandes <b>en préparation</b> et renvoie leur <code>client_id</code>."],
+  [75.1, 80.6,   "Elle renvoie une liste de numéros de clients : <b>4, 1, 3 et 5</b>."],
+  [80.7, 86.0,   "La liste contient aussi un <code>NULL</code> : la commande n°16 n’a pas de client."],
+  [86.1, 91.4,   "Cette requête se place ensuite entre parenthèses, juste après <code>IN</code>."],
+  [91.5, 96.6,   "Ainsi, <code>IN</code> reçoit la liste fabriquée par la <span class=\"nw\">sous-requête</span>."],
+  [97.4, 103.4,  "<code>IN</code> teste chaque client, un par un : son id est-il dans la liste ?"],
+  [103.5, 109.0, "Sophie Martin a l’id 1, qui est dans la liste : elle est conservée."],
+  [109.1, 114.3, "Lucas Bernard a l’id 2, qui n’est pas dans la liste : il est écarté."],
+  [114.4, 120.2, "De même, Emma Dubois, Nathan Petit et Chloé Moreau sont dans la liste."],
+  [120.3, 126.0, "Les cinq autres clients sont écartés : leur id n’est pas dans la liste."],
+  [126.1, 131.6, "Le <code>NULL</code> ne correspond à aucun client : il ne change rien ici."],
+  [131.7, 136.4, "Résultat : <b>4 clients</b> sont conservés."],
+  [137.2, 143.0, "Attention : avec <code>=</code> au lieu de <code>IN</code>, la requête s’exécute aussi."],
+  [143.1, 148.6, "Résultat : <b>1 seule ligne</b>, Nathan Petit, et aucune erreur."],
+  [148.7, 154.6, "Le signe <code>=</code> attend une seule valeur : SQLite garde la première de la liste."],
+  [154.7, 160.2, "Sophie Martin, Emma Dubois et Chloé Moreau seraient oubliées."],
+  [160.3, 165.6, "Pour comparer à une liste de valeurs, utilise toujours <code>IN</code>."],
+  [166.4, 172.0, "La requête complète : la <span class=\"nw\">sous-requête</span> fournit la liste, <code>IN</code> fait le tri."],
+  [172.1, 177.6, "Résultat : <b>4 lignes</b>, avec le prénom, le nom et le téléphone."],
+  [177.7, 183.2, "Le service client a maintenant les quatre numéros à appeler."],
+  [183.3, 188.4, "Chaque client concerné sera ainsi prévenu du retard de sa commande."],
+  [189.2, 194.0, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [194.1, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [194.1, 999, "La <span class=\"nw\">sous-requête</span> fabrique la liste, <code>IN</code> garde les lignes qui en font partie."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+function dom(){
+  const nul = '<span class="nul">NULL</span>';
+  /* Chapitre 3 : le résultat de la sous-requête, une colonne client_id */
+  $('#rows3').innerHTML = LISTE.map(v => `<div class="rgL tr t3${v === null ? ' no' : ''}"><span class="hl"></span><div>${v === null ? nul : v}</div>` +
+    `<div>${v === null ? '<span class="nt" id="nt3">commande n°16 · sans client</span>' : ''}</div></div>`).join('');
+  /* Chapitre 4 : la table clients, chaque ligne avec sa marque ✓ ou ✕ */
+  $('#rows4').innerHTML = CLIENTS.map(([id, p, n]) => `<div class="rgC tr t4${LISTE.includes(id) ? ' ok' : ''}"><span class="hl"></span>` +
+    `<div><span class="idb">${id}</span></div><div>${p}</div><div>${n}</div><div class="mk"><i class="y">✓</i><i class="n">✕</i></div></div>`).join('');
+  /* Chapitre 6 : le résultat, puis les quatre appels à passer */
+  $('#rows6').innerHTML = RESULTAT.map(([p, n, t]) => `<div class="rgR tr t6"><span class="hl"></span><div>${p}</div><div>${n}</div><div>${t}</div></div>`).join('');
+  $('#ct6').innerHTML = RESULTAT.map(([p, n, t, c]) =>
+    `<div class="cl"><span class="emo">📞</span><div><div class="cn">${p} ${n}</div><div class="cv">${t}</div><div class="cx">📦 Commande ${c}</div></div></div>`).join('');
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+const VERT = {backgroundColor: '#E7F7EE', borderColor: '#7FD3A8', color: '#1B7A45'};
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+/* Une carte arrive en tournant légèrement, puis ses éléments un à un. */
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(sel, $(id));
+  gsap.set(items, {autoAlpha: 0, y: 24});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => cue(t + 0.65 + i * step, 'pop', 0.55, i % 5));
+  return items;
+}
+/* Une erreur SQL : l’encadré apparaît et tremble. */
+function errorIn(sel, t){
+  show(sel, t, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  tl.to(sel, {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, t + 0.4);
+  cue(t, 'error', 0.85);
+}
+/* Chapitre 4 : IN teste un client. Son id s’allume, la valeur de la liste qui lui correspond aussi (s’il y en a une),
+   puis la ligne reçoit ✓ (conservée) ou ✕ (écartée). */
+function testRow(i, t, d = 0.45){
+  const r = $$('#rows4 .tr')[i], k = LISTE.indexOf(CLIENTS[i][0]);
+  const idb = r.querySelector('.idb'), chip = k >= 0 ? $$('#lp4 .lv')[k] : null;
+  tl.to(idb, {backgroundColor: '#FFE2A8', duration: 0.2}, t);
+  cue(t, 'tick', 0.5, i % 5);
+  if (chip) {
+    tl.to(chip, Object.assign({duration: 0.25}, VERT), t + d);
+    bump(chip, t + d, 1.12, 1);
+  }
+  tl.to(r.querySelector(chip ? '.y' : '.n'), {autoAlpha: 1, duration: 0.2}, t + 2 * d);
+  tl.to(idb, {backgroundColor: chip ? '#C9F0DA' : 'rgba(255,226,168,0)', duration: 0.25}, t + 2 * d);
+  if (chip) tl.to(r.querySelector('.hl'), {opacity: 1, duration: 0.3}, t + 2 * d);
+  else tl.to(r, {opacity: 0.45, duration: 0.3}, t + 2 * d);
+  cue(t + 2 * d, chip ? 'true' : 'miss', 0.5);
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  boardIn('#ab1', 5.15, '.lx-hero');
+  gsap.set(['#cd1', '#cd2', '#tb1'], {autoAlpha: 0});
+  // Appeler les clients concernés
+  show('#cd1', 11.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(11.6, 'pop', 0.7, 1);
+  // Ceux qui ont une commande en préparation
+  show('#cd2', 17.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(17.2, 'pop', 0.7, 3);
+  shake('#cd2', 17.8);
+  // Le prénom, le nom et le téléphone : table clients
+  stackBelow('#s1 .need', '#ab1');   // la liste se cale sous la carte de l’alerte, sans la toucher
+  show('#tb1', 22.4, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(22.4, 'pop', 0.7, 2);
+  show('#s1 .need', 22.8, {y: 60});
+  cue(22.8, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.25}, 23.1);
+  [0, 1, 2].forEach(i => cue(23.1 + i * 0.25, 'pop', 0.7, i));
+  // Mais qui a une commande en préparation ?
+  bump('#cd2', 28.6, 1.1, 1);
+  cue(28.6, 'tick', 0.5, 3);
+  hide(['#ab1', '#s1 .need'], 34.1);
+  sceneOff('#s1', 34.6);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 34.6);
+  show('#tp2', 34.65, {y: 50});
+  cue(34.65, 'whoosh', 0.6);
+  // Premier essai : un WHERE sur le statut
+  pulse('#w2', 36.6, 3, 'rgba(201,188,255,.35)');
+  // Erreur : pas de colonne statut
+  press($('#go2'), 40.9, '#4B30CC', 6);
+  errorIn('#er2', 41.3);
+  tl.to('#st2', {textDecorationColor: 'rgba(239,79,85,1)', duration: 0.3}, 41.8);
+  // Le statut est dans la table commandes
+  stackBelow('#sc2', '#tp2', 0, 30);
+  stackBelow('#goal2', '#sc2', 0, 30);
+  show('#sc2', 46.2, {y: 50});
+  cue(46.2, 'whoosh', 0.6);
+  const colsA = $$('#sa2 .col:not(.gh)'), colsB = $$('#sb2 .col');
+  gsap.set([...colsA, '#gh2', ...colsB], {autoAlpha: 0, scale: 0.7});
+  tl.to(colsA, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.08}, 46.7);
+  tl.to('#gh2', {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)'}, 47.6);
+  cue(47.6, 'miss', 0.55);
+  shake('#gh2', 48.0);
+  tl.to(colsB, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.08}, 49.2);
+  colsB.forEach((_, i) => cue(49.2 + i * 0.08, 'pop', 0.5, i));
+  tl.to('#cs2', {backgroundColor: '#FFF4E5', borderColor: '#F5C27A', color: '#9A5B00', duration: 0.3}, 50.0);
+  bump('#cs2', 50.0, 1.12, 1);
+  cue(50.0, 'true', 0.5);
+  // Chaque commande garde le numéro de son client
+  tl.to('#ci2', {backgroundColor: '#FFF4E5', borderColor: '#F5C27A', color: '#9A5B00', duration: 0.3}, 52.6);
+  bump('#ci2', 52.6, 1.12, 1);
+  cue(52.6, 'tick', 0.55, 2);
+  // D’abord, trouver les clients concernés
+  show('#goal2', 57.8, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(57.8, 'pop', 0.75, 3);
+  hide(['#tp2', '#sc2', '#goal2'], 62.5, {y: -40}, 0.4);
+  sceneOff('#s2', 63.0);
+
+  /* ===== 3 · La sous-requête ===== */
+  sceneOn('#s3', 63.0);
+  // Les deux lignes ajoutées autour de la sous-requête (WHERE id IN ( … )) : place prévue pour la pastille finale, puis repliées
+  stackBelow('#lp3', '#sq3', 0, 30);
+  gsap.set(['#x3a', '#x3b'], {height: 0, opacity: 0});
+  stackBelow('#ls3', '#sq3', 0, 30);
+  show('#sq3', 63.05, {y: 50});
+  cue(63.05, 'whoosh', 0.6);
+  // Exécutée seule : les commandes en préparation, leur client_id
+  pulse('#w3', 71.0, 3, 'rgba(201,188,255,.35)');
+  press($('#go3'), 74.3, '#4B30CC', 6);
+  // Une liste de numéros de clients : 4, 1, 3, 5
+  show('#ls3', 75.3, {y: 40}, 0.5);
+  const r3 = $$('#rows3 .tr');
+  rowsIn(r3.slice(0, 4), 75.6, 0.35);
+  // Et un NULL : la commande n°16 n’a pas de client
+  gsap.set(r3[4], {autoAlpha: 0, y: 14});
+  tl.to(r3[4], {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out'}, 81.2);
+  cue(81.2, 'tick', 0.5, 4);
+  show('#cnt3', 81.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  tl.to(r3[4].querySelector('.hl'), {opacity: 1, duration: 0.3}, 82.0);
+  show('#nt3', 82.4, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(82.4, 'pop', 0.6, 2);
+  // Entre parenthèses, juste après IN
+  hide('#ls3', 86.3, {y: 30}, 0.35);
+  tl.to('#go3', {autoAlpha: 0, duration: 0.25}, 86.3);
+  tl.to('#sc3', {autoAlpha: 0, duration: 0.2}, 86.8);
+  tl.to(['#x3a', '#x3b'], {height: 48, duration: 0.45, ease: 'power3.out'}, 87.0);
+  tl.to(['#x3a', '#x3b'], {opacity: 1, duration: 0.3}, 87.4);   // le texte des deux lignes arrive une fois la place faite
+  tl.to(['#q3a', '#q3b', '#q3c'], {paddingLeft: 38.4, duration: 0.45, ease: 'power3.out'}, 87.0);
+  cue(87.0, 'fold', 0.6);
+  pulse(['#p3a', '#p3b'], 87.8, 3, 'rgba(255,214,140,.5)');
+  // IN reçoit la liste
+  pulse('#k3', 91.9, 3, 'rgba(201,188,255,.45)');
+  show('#lp3', 92.3, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(92.3, 'pop', 0.7, 3);
+  hide(['#sq3', '#lp3'], 96.6, {y: -40});
+  sceneOff('#s3', 97.1);
+
+  /* ===== 4 · IN en action ===== */
+  sceneOn('#s4', 97.1);
+  show('#lp4', 97.15, {y: 50});
+  cue(97.15, 'whoosh', 0.6);
+  stackBelow('#ct4', '#lp4', 0, 30);
+  show('#ct4', 97.7, {y: 50});
+  rowsIn($$('#rows4 .tr'), 98.0, 0.06);
+  gsap.set('#cnt4', {autoAlpha: 0});
+  // Sophie Martin, id 1 : conservée
+  testRow(0, 104.0);
+  // Lucas Bernard, id 2 : écarté
+  testRow(1, 109.6);
+  // Emma Dubois, Nathan Petit, Chloé Moreau : conservés
+  testRow(2, 115.0, 0.3);
+  testRow(3, 116.4, 0.3);
+  testRow(4, 117.8, 0.3);
+  // Les cinq autres : écartés
+  [5, 6, 7, 8, 9].forEach((i, k) => testRow(i, 120.9 + k * 0.7, 0.2));
+  // Le NULL ne correspond à aucun client
+  pulse($$('#lp4 .lv')[4], 126.7, 3, 'rgba(201,188,255,.45)');
+  cue(126.7, 'tick', 0.5, 4);
+  // 4 clients conservés
+  show('#cnt4', 132.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt4', 132.6, 1.12, 3);
+  cue(132.0, 'chord', 0.6);
+  hide(['#lp4', '#ct4'], 136.4, {y: -40});
+  sceneOff('#s4', 136.9);
+
+  /* ===== 5 · Le piège ===== */
+  sceneOn('#s5', 136.9);
+  show('#tp5', 136.95, {y: 50});
+  cue(136.95, 'whoosh', 0.6);
+  // Avec = au lieu de IN
+  pulse('#eq5', 139.0, 3, 'rgba(255,214,140,.5)');
+  cue(139.0, 'tick', 0.5, 2);
+  // 1 seule ligne, sans erreur
+  press($('#go5'), 143.2, '#4B30CC', 6);
+  stackBelow('#rs5', '#tp5', 0, 30);
+  stackBelow('#ex5', '#rs5', 0, 30);
+  stackBelow('#ok5b', '#ex5', 0, 30);
+  show('#rs5', 143.5, {y: 50});
+  cue(143.5, 'whoosh', 0.6);
+  gsap.set(['#n5', '#ok5', '#row5'], {autoAlpha: 0});
+  show('#n5', 144.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(144.2, 'pop', 0.7, 2);
+  show('#row5', 145.0, {y: 14}, 0.35, 'power2.out');
+  cue(145.0, 'tick', 0.5, 1);
+  show('#ok5', 146.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(146.0, 'true', 0.5);
+  // = ne garde que la première valeur
+  show('#ex5', 149.0, {y: 50});
+  cue(149.0, 'whoosh', 0.6);
+  const c5 = $$('#ex5 .lv'), xs = $$('#ex5 .xs');
+  gsap.set(xs, {scaleX: 0, rotation: -16});
+  gsap.set(['#m5a', '#m5b', '#m5c'], {autoAlpha: 0});
+  tl.to(c5[0], Object.assign({duration: 0.3}, VERT), 150.4);
+  bump(c5[0], 150.4, 1.12, 1);
+  cue(150.4, 'true', 0.5);
+  tl.to(c5.slice(1), {opacity: 0.4, duration: 0.3, stagger: 0.18}, 151.3);
+  tl.to(xs, {scaleX: 1, duration: 0.25, ease: 'power2.out', stagger: 0.18}, 151.3);
+  xs.forEach((_, i) => cue(151.3 + i * 0.18, 'miss', 0.4));
+  // Sophie Martin, Emma Dubois et Chloé Moreau : jamais prévenues
+  ['#m5a', '#m5b', '#m5c'].forEach((m, i) => { show(m, 155.2 + i * 0.4, {y: 0, scale: 0.7}, 0.4, 'back.out(2)'); cue(155.2 + i * 0.4, 'miss', 0.55); });
+  shake(['#m5a', '#m5b', '#m5c'], 156.6);
+  // Toujours IN pour une liste
+  show('#ok5b', 160.8, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(160.8, 'true', 0.6);
+  hide(['#tp5', '#rs5', '#ex5', '#ok5b'], 165.6, {y: -40});
+  sceneOff('#s5', 166.1);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 166.1);
+  show('#s6code', 166.15, {y: 60}, 0.6);
+  cue(166.15, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 166.65, 40);
+  for (const k of [2, 3, 4, 5, 6, 7]) te = typeLine($('#s6l' + k), te + 0.1, 40);
+  pulse('#i6', te + 0.2, 3, 'rgba(201,188,255,.35)');
+  press($('#s6run'), 172.3);
+  stackBelow('#tbl6', '#s6code', 0, 30);
+  show('#tbl6', 172.55, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 172.7, 0.12);
+  show('#cnt6', 173.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 174.1, 1.15, 3);
+  hide(['#s6code', '#tbl6'], 177.4, {y: -40}, 0.4);
+  // Les quatre appels à passer
+  boardIn('#ab6', 177.8, '.cl', 0.25);
+  stackBelow('#badge6', '#ab6', 0, 50);
+  show('#badge6', 184.0, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(184.0, 'chord', 0.7);
+  hide(['#ab6', '#badge6'], 188.4);
+  sceneOff('#s6', 188.9);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(188.9, [189.6, 191.4, 193.2]);
+  hold(191.2, 4.8);
+  hold(193.0, 4.8);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(194.15, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 194.1,
+  glyphs: '🚚📞📦👤👪🔎✕✓🗂️🎯🧺👥⚠️☝️📋🧱·?…', dom, build});
+</script>
+</body>
+</html>
