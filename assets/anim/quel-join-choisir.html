@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Quel JOIN choisir ? en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:236px;top:380px;letter-spacing:-5px}
+#s0 .title span.sp{margin-right:52px}
+#s0 .hilite{top:530px;height:62px}
+#s0 .sub{top:650px;font-size:66px}
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:38px;white-space:nowrap}
+.nw{white-space:nowrap}
+
+/* Code : cinq lignes (chapitre 6) */
+.code.sm .body{font-size:32px;line-height:50px;padding:26px 36px}
+.code.sm .ln{height:50px}
+.code.sm .caret i{top:-37px;height:42px}
+
+/* La table clients en violet, la table commandes en orange */
+.tag.tc,.db-bar .tb.tc{background:#FFF4E5;color:#9A5B00}
+
+/* Les ronds des jointures, dessinés comme dans le tableau « Les types de JOIN » de l’app */
+.vn{width:64px;height:36px;flex:none;overflow:visible}
+.vn .g{fill:var(--accent);opacity:.5}
+.vn .t{fill:none;stroke:var(--accent);stroke-opacity:.85;stroke-width:2.2}
+
+/* ---------- 1 · L’audit du fichier clients ---------- */
+.board{left:64px;width:952px;padding:0 0 8px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar>span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.db-bar .tb+.tb{margin-left:10px}
+.lx{padding:28px 34px 26px}
+.lx-hero{display:flex;align-items:center;gap:26px}
+.lx-ico{width:112px;height:112px;border-radius:34px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:64px;flex:none}
+.lx-t1{font-size:42px;font-weight:800;color:var(--ink);white-space:nowrap}
+.lx-t2{margin-top:6px;font-size:30px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.lx-conds{margin-top:26px;display:flex;align-items:center;gap:14px}
+.lx-conds .lb{font-size:27px;font-weight:700;color:var(--ink-3);white-space:nowrap}
+.cd{height:60px;padding:0 22px;border-radius:999px;font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.cd.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.cd.am{background:#FFF4E5;color:#9A5B00}
+
+/* ---------- 2 · Le problème : six jointures possibles ---------- */
+.jn{left:64px;width:952px;padding:26px 30px 30px}
+.jn-h{display:flex;align-items:center;gap:12px;font-size:32px;font-weight:700;color:var(--ink);white-space:nowrap}
+.jn-h .emo{font-size:32px}
+.jn-q{margin-left:auto;height:54px;padding:0 22px;border-radius:999px;background:#FFF4E5;color:#9A5B00;font-size:27px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.jn-g{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.jc{height:80px;border-radius:22px;background:var(--surface-2);border:3px solid var(--line);display:flex;align-items:center;gap:18px;padding:0 22px;font-family:var(--mono);font-size:28px;font-weight:700;color:var(--accent-ink);white-space:nowrap}
+.ij{left:64px;width:952px;padding:24px 30px 26px}
+.ij-h{display:flex;align-items:center;gap:12px;font-size:31px;font-weight:700;color:var(--ink);white-space:nowrap}
+.ij-h .emo{font-size:31px}
+.mini.sm{margin-top:16px;font-size:29px;line-height:44px;padding-right:126px}
+.ij-r{margin-top:20px;display:flex;align-items:center;gap:14px}
+.ij-r .n2{height:56px;padding:0 22px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:28px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.ij-r .ok2{height:56px;padding:0 22px;border-radius:999px;background:#E7F7EE;color:#1B7A45;font-size:28px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.orph{height:56px;padding:0 20px;border-radius:999px;background:#FDEBEC;color:#C2323A;font-size:28px;font-weight:700;display:inline-flex;align-items:center;gap:10px;white-space:nowrap}
+.goal{left:64px;width:952px;height:96px;border-radius:32px;background:#E7F7EE;border:3px solid #BFE8D0;display:flex;align-items:center;justify-content:center;gap:14px;font-size:33px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.goal .emo{font-size:36px}
+
+/* ---------- 3 et 4 · L’arbre de décision : une question, puis ses réponses ---------- */
+.qn{left:64px;width:952px;padding:24px 30px;display:flex;align-items:center;gap:24px}
+.qn .qb{flex:none;width:86px;height:86px;border-radius:26px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 7px 0 #4B30CC;color:#fff;font-family:var(--display);font-size:50px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.qn .tx{font-size:37px;line-height:1.25;font-weight:700;color:var(--ink)}
+.rail{left:0;top:0;width:1080px;height:1920px;overflow:visible;pointer-events:none}
+.rail path{fill:none;stroke:#B9A8FF;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
+.rail circle{fill:#8B6CFF}
+.brow{left:132px;width:884px;height:122px;border-radius:30px;display:flex;align-items:center;gap:18px;padding:0 22px 0 24px}
+.brow .vn{width:84px;height:48px}
+.brow .ba{flex:1;min-width:0}
+.brow .ba .t{font-size:30px;font-weight:700;color:var(--ink);white-space:nowrap}
+.brow .ba .s{margin-top:4px;font-size:24px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.jc2{height:62px;padding:0 20px;border-radius:18px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:25px;font-weight:800;display:flex;align-items:center;white-space:nowrap}
+.jc2.nx{font-family:var(--ui);font-size:26px}
+.pill{left:0;width:1080px;display:flex;justify-content:center}
+.pill>span{height:62px;padding:0 24px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill.vi>span{background:var(--accent-soft);color:var(--accent-ink)}
+.pill.gr>span{background:#E7F7EE;color:#1B7A45}
+.pill .ic{font-size:.92em;background:#fff}
+/* Les trois cas : une ligne avec correspondance, une ligne à gauche seulement, une ligne à droite seulement */
+.cs{left:64px;width:952px;padding:22px 26px 24px}
+.cs-h{display:flex;align-items:center;gap:12px;padding:0 6px 12px;font-size:30px;font-weight:700;color:var(--ink);white-space:nowrap}
+.cs-h .emo{font-size:30px}
+.cs-h small{font-size:24px;font-weight:600;color:var(--ink-3)}
+.cs-r{position:relative;height:66px;margin-top:10px;border-radius:20px;background:var(--surface-2);display:grid;grid-template-columns:270px 46px 1fr 60px;align-items:center;padding:0 20px;white-space:nowrap}
+.cs-r .who{font-size:28px;font-weight:700;color:var(--accent-ink)}
+.cs-r .lk{font-size:28px;font-weight:700;color:var(--ink-3);text-align:center}
+.cs-r .wc{font-size:28px;font-weight:700;color:#9A5B00}
+.cs-r .nul{color:var(--ink-3);font-style:italic;font-weight:600}
+.cs-r .mk{position:relative;justify-self:end;width:46px;height:46px}
+.cs-r .mk i{position:absolute;left:0;top:0;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;font-style:normal;color:#fff;opacity:0}
+.cs-r .mk .y{background:#2FA36B}
+.cs-r .mk .n{background:#E5484D}
+.lv{left:64px;width:952px;display:grid;grid-template-columns:1fr 1fr;gap:36px 30px}
+.lf{height:188px;border-radius:30px;padding:20px 24px;display:flex;flex-direction:column;justify-content:center;gap:8px}
+.lf .lt{display:flex;align-items:center;gap:16px}
+.lf .vn{width:84px;height:48px}
+.lf .jn3{font-family:var(--mono);font-size:27px;font-weight:800;color:var(--accent-ink);white-space:nowrap}
+.lf .ld{font-size:25px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+
+/* ---------- 5 · Le piège : la gauche ne se lit pas dans le ON ---------- */
+.gd{left:64px;width:952px;padding:24px 28px 26px}
+.gd-r{height:84px;border-radius:22px;background:var(--surface-2);display:flex;align-items:center;gap:18px;padding:0 22px;white-space:nowrap;overflow:hidden}
+.gd-r+.gd-r{margin-top:12px}
+.gd-k{width:150px;font-size:29px;font-weight:800;color:var(--ink)}
+.gd-v{font-size:27px;font-weight:600;color:var(--ink-2)}
+.gd-t{margin-left:auto;height:52px;padding:0 18px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:26px;font-weight:700;display:flex;align-items:center}
+.gd-t.tc{background:#FFF4E5;color:#9A5B00}
+.gd-x{margin:0 0 18px;height:52px;display:flex;align-items:center;justify-content:center;gap:12px;font-size:28px;font-weight:700;color:#C2323A;white-space:nowrap}
+
+/* ---------- 6 · Le résultat ---------- */
+.rgR{display:grid;grid-template-columns:200px 240px 1fr;padding:0 26px;align-items:center}
+.tr.t6{height:50px;font-size:28px}
+.tr.t6.no .hl{background:#FFF4E5;box-shadow:inset 8px 0 0 #F2994A}
+.more{height:42px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 0 var(--line-2);font-size:23px;font-weight:600;color:var(--ink-3)}
+.nul{color:var(--ink-3);font-style:italic}
+.ctl{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:26px 26px 20px}
+.cl{position:relative;height:160px;border-radius:24px;background:#fff;border:3px solid var(--line);box-shadow:0 5px 0 var(--lip);display:flex;align-items:center;gap:18px;padding:0 24px}
+.cl .emo{font-size:46px}
+.cl .cn{font-size:32px;font-weight:800;color:var(--ink);white-space:nowrap}
+.cl .cv{margin-top:4px;font-size:24px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.cl .cx{margin-top:8px;height:40px;padding:0 14px;border-radius:999px;background:#FFF4E5;color:#9A5B00;font-size:22px;font-weight:700;display:inline-flex;align-items:center;white-space:nowrap}
+
+/* ---------- 7 · À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:20px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+.rtxt .blk.sm{font-size:.74em}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Jointures</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>J</span><span>O</span><span>I</span><span class="sp">N</span><span>?</span></div>
+    <div class="abs sub">Choisir la bonne jointure</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Pour choisir une jointure, réponds<br>à deux questions, dans l’ordre.</div>
+  </section>
+
+  <!-- 1 · Situation : l’audit du fichier clients -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="ab1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Audit · fin de mois</span><span class="tb" id="tb1">table clients</span><span class="tb tc" id="tb1b">table commandes</span></div>
+      <div class="lx">
+        <div class="lx-hero"><div class="lx-ico">🔍</div><div><div class="lx-t1">Contrôle du fichier clients</div><div class="lx-t2">Avant la clôture du mois</div></div></div>
+        <div class="lx-conds"><span class="cd vi" id="cd1">👥 Tous les clients</span><span class="cd am" id="cd2">⚠️ Même sans commande</span></div>
+      </div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">👤</span><span class="nl">Le prénom du client</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">👪</span><span class="nl">Son nom de famille</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">📅</span><span class="nl">La date de sa commande</span><span class="tag tc">table commandes</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : six jointures, et un premier essai qui perd des clients -->
+  <section class="scene" id="s2">
+    <div class="abs card jn" id="jn2" style="top:300px">
+      <div class="jn-h"><span class="emo">🔗</span><span>Les jointures possibles</span><span class="jn-q" id="jq2">Laquelle choisir&nbsp;?</span></div>
+      <div class="jn-g">
+        <div class="jc" data-k="inner"><span>INNER JOIN</span></div>
+        <div class="jc" data-k="left"><span>LEFT JOIN</span></div>
+        <div class="jc" data-k="right"><span>RIGHT JOIN</span></div>
+        <div class="jc" data-k="full"><span>FULL OUTER JOIN</span></div>
+        <div class="jc" data-k="cross"><span>CROSS JOIN</span></div>
+        <div class="jc" data-k="self"><span>SELF JOIN</span></div>
+      </div>
+    </div>
+    <div class="abs card ij" id="ij2">
+      <div class="ij-h"><span class="emo">🔎</span><span>Premier essai</span></div>
+      <div class="mini sm"><span class="kw">FROM</span> clients
+<span class="glow" id="j2"><span class="kw">INNER JOIN</span> commandes</span>
+    <span class="kw">ON</span> clients.id = commandes.client_id;<span class="go" id="go2"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+      <div class="ij-r"><span class="n2" id="n2">15 lignes</span><span class="ok2" id="ok2">✓ Aucune erreur</span></div>
+      <div class="ij-r"><span class="orph" id="m2a"><span class="emo">✕</span>Inès Lefebvre</span><span class="orph" id="m2b"><span class="emo">✕</span>Nathan Dupont</span></div>
+    </div>
+    <div class="abs goal" id="goal2"><span class="emo">🎯</span>Deux questions pour choisir</div>
+  </section>
+
+  <!-- 3 · Première question : une correspondance à vérifier ? -->
+  <section class="scene" id="s3">
+    <div class="abs card qn" id="q3" style="top:300px"><span class="qb">1</span><span class="tx">Faut-il vérifier une correspondance&nbsp;?</span></div>
+    <svg class="abs rail" id="rail3" viewBox="0 0 1080 1920"></svg>
+    <div class="abs card brow" id="b3a"><span class="vw" data-k="cross"></span><div class="ba"><div class="t">Non&nbsp;: toutes les combinaisons</div><div class="s">Chaque produit dans chaque ville</div></div><span class="jc2">CROSS JOIN</span></div>
+    <div class="abs card brow" id="b3b"><span class="vw" data-k="self"></span><div class="ba"><div class="t">Oui, dans une même table</div><div class="s">Deux commandes du même client</div></div><span class="jc2">SELF JOIN</span></div>
+    <div class="abs card brow" id="b3c"><span class="vw" data-k="two"></span><div class="ba"><div class="t">Oui, entre deux tables</div><div class="s">Chaque commande et son client</div></div><span class="jc2 nx" id="nx3">Question 2&nbsp;→</span></div>
+    <div class="abs pill vi" id="on3"><span><span class="ic">ON clients.id = commandes.client_id</span></span></div>
+  </section>
+
+  <!-- 4 · Deuxième question : quelles lignes doivent rester ? -->
+  <section class="scene" id="s4">
+    <div class="abs card qn" id="q4" style="top:300px"><span class="qb">2</span><span class="tx">Quelles lignes doivent rester, même sans correspondance&nbsp;?</span></div>
+    <div class="abs card cs" id="cs4">
+      <div class="cs-h"><span class="emo">🔎</span><span>Trois cas</span><small>· clients et commandes</small></div>
+      <div class="cs-r" id="cr1"><span class="who">Sophie Martin</span><span class="lk">⇄</span><span class="wc">commande n°1</span><span class="mk"><i class="y">✓</i><i class="n">✕</i></span></div>
+      <div class="cs-r" id="cr2"><span class="who">Inès Lefebvre</span><span class="lk">·</span><span class="wc nul">aucune commande</span><span class="mk"><i class="y">✓</i><i class="n">✕</i></span></div>
+      <div class="cs-r" id="cr3"><span class="who nul">aucun client</span><span class="lk">·</span><span class="wc">commande n°16</span><span class="mk"><i class="y">✓</i><i class="n">✕</i></span></div>
+    </div>
+    <div class="abs lv" id="lv4">
+      <div class="card lf" id="l4a"><div class="lt"><span class="vw" data-k="inner"></span><span class="jn3">INNER JOIN</span></div><div class="ld">Seulement les correspondances</div></div>
+      <div class="card lf" id="l4b"><div class="lt"><span class="vw" data-k="left"></span><span class="jn3">LEFT JOIN</span></div><div class="ld">Toute la table de gauche</div></div>
+      <div class="card lf" id="l4c"><div class="lt"><span class="vw" data-k="right"></span><span class="jn3">RIGHT JOIN</span></div><div class="ld">Toute la table de droite</div></div>
+      <div class="card lf" id="l4d"><div class="lt"><span class="vw" data-k="full"></span><span class="jn3">FULL OUTER JOIN</span></div><div class="ld">Toutes les lignes des deux tables</div></div>
+    </div>
+    <div class="abs pill gr" id="ch4"><span>🧭 <span class="ic">FROM clients LEFT JOIN commandes</span></span></div>
+  </section>
+
+  <!-- 5 · Le piège : la table de gauche ne se lit pas dans le ON -->
+  <section class="scene" id="s5">
+    <div class="abs card trap" id="tp5" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Où se trouve la table de gauche&nbsp;?</span></div>
+      <div class="mini sm"><span class="glow" id="f5"><span class="kw">FROM</span> clients</span>
+<span class="glow" id="j5"><span class="kw">LEFT JOIN</span> commandes</span>
+    <span class="kw">ON</span> <span class="glow" id="o5">commandes.client_id</span> = clients.id;<span class="go" id="go5"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+    </div>
+    <div class="abs card gd" id="gd5">
+      <div class="gd-x" id="gx5"><span class="emo">✕</span>L’ordre écrit dans le <span class="ic">ON</span> ne change pas les côtés</div>
+      <div class="gd-r" id="gl5"><span class="gd-k">Gauche</span><span class="gd-v">la table placée après <span class="ic">FROM</span></span><span class="gd-t">clients</span></div>
+      <div class="gd-r" id="gr5"><span class="gd-k">Droite</span><span class="gd-v">la table placée après <span class="ic">JOIN</span></span><span class="gd-t tc">commandes</span></div>
+    </div>
+    <div class="abs pill gr" id="r5"><span>✓ 17 lignes&nbsp;: tous les clients restent</span></div>
+  </section>
+
+  <!-- 6 · Le résultat : la requête complète, puis les clients à contrôler -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> clients.prenom, clients.nom,<span class="caret"><i></i></span></span><span class="ln" id="s6l2">       commandes.date_commande<span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="kw">FROM</span> clients<span class="caret"><i></i></span></span><span class="ln" id="s6l4"><span class="glow" id="j6"><span class="kw">LEFT JOIN</span> commandes</span><span class="caret"><i></i></span></span><span class="ln" id="s6l5">    <span class="kw">ON</span> clients.id = commandes.client_id;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">17 lignes</span></span></div>
+      <div class="rgR th"><div>prenom</div><div>nom</div><div>date_commande</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card board" id="ab6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Audit · clients sans commande</span></div>
+      <div class="ctl" id="ct6"></div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ 2 clients à contrôler</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🔗</div><div class="rtxt">D’abord, faut-il vérifier une <b>correspondance</b>&nbsp;?<span class="rs">Sans correspondance&nbsp;: <span class="ic">CROSS JOIN</span>.<br>Dans une même table&nbsp;: <span class="ic">SELF JOIN</span>.</span></div></div>
+      <div class="rrow"><div class="rico emo">🧭</div><div class="rtxt">Entre deux tables, demande-toi quelles lignes doivent <b>rester</b>&nbsp;:<span class="rs"><span class="ic">INNER</span> → les correspondances<br><span class="ic">LEFT</span> → toute la table de gauche<br><span class="ic">RIGHT</span> → toute la table de droite<br><span class="ic">FULL</span> → toutes les lignes</span></div></div>
+      <div class="rrow"><div class="rico emo">📍</div><div class="rtxt">La table de gauche est celle placée après <span class="ic">FROM</span>, quel que soit l’ordre du <span class="ic">ON</span>.</div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 191.2;
+
+/* Le résultat de la requête complète (LEFT JOIN, 17 lignes) : [prénom, nom, date de la commande].
+   Les deux dernières lignes sont les clients sans commande : Inès Lefebvre et Nathan Dupont. */
+const RESULTAT = [['Sophie', 'Martin', '2026-07-02'], ['Sophie', 'Martin', '2026-07-02'], ['Sophie', 'Martin', '2026-07-28'],
+  ['Lucas', 'Bernard', '2026-07-05'], ['Lucas', 'Bernard', '2026-07-20'], ['Emma', 'Dubois', '2026-07-08'], ['Emma', 'Dubois', '2026-07-30'],
+  ['Nathan', 'Petit', '2026-07-11'], ['Nathan', 'Petit', '2026-07-25'], ['Chloé', 'Moreau', '2026-07-12'], ['Chloé', 'Moreau', '2026-08-01'],
+  ['Hugo', 'Laurent', '2026-07-15'], ['Léa', 'Simon', '2026-07-18'], ['Léa', 'Simon', '2026-07-18'], ['Gabriel', 'Michel', '2026-07-22'],
+  ['Inès', 'Lefebvre', null], ['Nathan', 'Dupont', null]];
+const SANS = [['Inès', 'Lefebvre', 'Nantes'], ['Nathan', 'Dupont', 'Paris']];
+/* Les lignes gardées dans les trois cas (avec correspondance, à gauche seulement, à droite seulement), pour chaque jointure. */
+const GARDE = {inner: [1, 0, 0], left: [1, 1, 0], right: [1, 0, 1], full: [1, 1, 1]};
+
+const CHAPTERS = [
+  {n:1, label:'Situation',            a:5.0,   b:35.0},
+  {n:2, label:'Le problème',          a:35.0,  b:62.4},
+  {n:3, label:'Première question',    a:62.4,  b:91.4},
+  {n:4, label:'Deuxième question',    a:91.4,  b:134.9},
+  {n:5, label:'Le piège',             a:134.9, b:158.2},
+  {n:6, label:'Le résultat',          a:158.2, b:181.1},
+  {n:7, label:'À retenir',            a:181.1, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 10.4,    "L’équipe audit contrôle le fichier clients avant la clôture du mois."],
+  [10.5, 15.6,   "Elle veut la liste de <b>tous les clients</b>, avec la date de leurs commandes."],
+  [15.7, 21.2,   "Même les clients <b>sans commande</b> : ce sont eux qu’il faut contrôler."],
+  [21.3, 25.6,   "Le prénom et le nom se trouvent dans la <b>table clients</b>."],
+  [25.7, 30.0,   "La date de chaque commande est dans la table <code>commandes</code>."],
+  [30.1, 34.5,   "Il faut donc relier les <b>deux tables</b> avec une jointure."],
+  [35.3, 40.1,   "Pour relier deux tables, il existe <b>plusieurs jointures</b>."],
+  [40.2, 45.6,   "<code>INNER</code>, <code>LEFT</code>, <code>RIGHT</code>, <code>FULL</code>, <code>CROSS</code>, <code>SELF</code> : chacune donne un autre résultat."],
+  [45.7, 51.0,   "Premier essai avec <code>INNER JOIN</code> : <b>15 lignes</b>, sans aucune erreur."],
+  [51.1, 56.9,   "Mais Inès Lefebvre et Nathan Dupont, qui n’ont jamais commandé, sont <b>absents</b> du résultat."],
+  [57.0, 61.9,   "Pour choisir la bonne jointure, il suffit de répondre à <b>deux questions</b>."],
+  [62.7, 67.9,   "Première question : faut-il vérifier une <b>correspondance</b> entre les lignes ?"],
+  [68.0, 73.8,   "Non : on veut toutes les combinaisons, c’est <code>CROSS JOIN</code>, sans <code>ON</code>."],
+  [73.9, 79.7,   "Si la correspondance relie les lignes d’une <b>même table</b>, c’est <code>SELF JOIN</code>."],
+  [79.8, 85.6,   "Ici, chaque commande correspond à un client : il faut relier <b>deux tables</b>."],
+  [85.7, 90.9,   "Elle s’écrit dans le <code>ON</code> : le numéro du client doit être le même."],
+  [91.7, 97.7,   "Deuxième question : quelles lignes garder, même <b>sans correspondance</b> ?"],
+  [97.8, 102.5,  "Sophie Martin a commandé, mais Inès Lefebvre n’a jamais commandé."],
+  [102.6, 105.9, "Et la commande n°16 n’a aucun client."],
+  [106.0, 111.2, "Uniquement les correspondances : c’est <code>INNER JOIN</code>, comme au premier essai."],
+  [111.3, 117.3, "Toute la table de gauche, placée après <code>FROM</code> : c’est <code>LEFT JOIN</code>."],
+  [117.4, 123.4, "Toute la table de droite, placée après <code>JOIN</code> : c’est <code>RIGHT JOIN</code>."],
+  [123.5, 128.5, "Toutes les lignes des deux tables : c’est <code>FULL OUTER JOIN</code>."],
+  [128.6, 134.4, "L’audit veut tous les clients, placés après <code>FROM</code> : c’est donc <code>LEFT JOIN</code>."],
+  [135.2, 140.6, "Attention : ici, le <code>ON</code> commence par la table commandes."],
+  [140.7, 146.9, "Elle ne devient pas la table de gauche : le <code>ON</code> ne change pas les côtés."],
+  [147.0, 152.4, "La gauche est toujours la table placée après <code>FROM</code> : ici, la table clients."],
+  [152.5, 157.7, "Le résultat ne change pas : <b>17 lignes</b>, avec tous les clients."],
+  [158.5, 164.5, "La requête complète conserve tous les clients avec <code>LEFT JOIN</code>."],
+  [164.6, 170.2, "Résultat : <b>17 lignes</b>, les 15 commandes et les 2 clients sans commande."],
+  [170.3, 175.5, "Pour Inès Lefebvre et Nathan Dupont, la date vaut <code>NULL</code>."],
+  [175.6, 180.6, "L’équipe audit sait exactement quels clients contrôler."],
+  [181.4, 186.2, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [186.3, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [186.3, 999, "Pour choisir, deux questions : une correspondance ? Puis, quelles lignes garder ?"]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+/* Les ronds d’une jointure, comme dans le tableau « Les types de JOIN » de l’app : la partie gardée est remplie.
+   CROSS JOIN : une grille (toutes les combinaisons) ; SELF JOIN : deux copies d’une même table ; deux tables : deux ronds vides. */
+function venn(k, id){
+  if (k === 'cross') return `<svg class="vn" viewBox="0 0 64 36"><g class="g">${[3, 14, 25].map(y => [17, 28, 39].map(x => `<rect x="${x}" y="${y}" width="8" height="8" rx="2.5"/>`).join('')).join('')}</g></svg>`;
+  if (k === 'self') return '<svg class="vn" viewBox="0 0 64 36"><g class="g"><circle cx="26" cy="15" r="12"/><circle cx="38" cy="21" r="12"/></g><circle class="t" cx="26" cy="15" r="12"/><circle class="t" cx="38" cy="21" r="12"/></svg>';
+  const A = 'cx="23" cy="18" r="15"', B = 'cx="41" cy="18" r="15"';
+  const g = {inner: `<circle ${A} clip-path="url(#${id})"/>`, left: `<circle ${A}/>`, right: `<circle ${B}/>`, full: `<circle ${A}/><circle ${B}/>`, two: ''}[k];
+  return `<svg class="vn" viewBox="0 0 64 36"><defs><clipPath id="${id}"><circle ${B}/></clipPath></defs><g class="g">${g}</g><circle class="t" ${A}/><circle class="t" ${B}/></svg>`;
+}
+
+function dom(){
+  /* Les ronds de chaque jointure (chapitres 2, 3 et 4) */
+  $$('.jc[data-k]').forEach((el, i) => el.insertAdjacentHTML('afterbegin', venn(el.dataset.k, 'vj' + i)));
+  $$('.vw[data-k]').forEach((el, i) => { el.outerHTML = venn(el.dataset.k, 'vw' + i); });
+  /* Chapitre 6 : le résultat, les 3 premières lignes puis les 2 clients sans commande */
+  const nul = '<span class="nul">NULL</span>';
+  const r6 = ([p, n, d]) => `<div class="rgR tr t6${d ? '' : ' no'}"><span class="hl"></span><div>${p}</div><div>${n}</div><div>${d || nul}</div></div>`;
+  $('#rows6').innerHTML = RESULTAT.slice(0, 3).map(r6).join('') + '<div class="more">⋯ 12 autres lignes ⋯</div>' + RESULTAT.slice(15).map(r6).join('');
+  /* Chapitre 6 : les deux clients à contrôler */
+  $('#ct6').innerHTML = SANS.map(([p, n, v]) =>
+    `<div class="cl"><span class="emo">👤</span><div><div class="cn">${p} ${n}</div><div class="cv">📍 ${v}</div><div class="cx">Aucune commande</div></div></div>`).join('');
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+/* Une carte arrive en tournant légèrement, puis ses éléments un à un. */
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(sel, $(id));
+  gsap.set(items, {autoAlpha: 0, y: 24});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => cue(t + 0.65 + i * step, 'pop', 0.55, i % 5));
+  return items;
+}
+/* Chapitre 3 : l’arbre. Une branche part de la question et descend vers chaque réponse ;
+   mesures faites avant toute animation, une fois les cartes à leur place. */
+function rail(svg, top, rows){
+  const S = $('#stage'), r = sel => rel($(sel), S), x = 98;
+  const q = r(top);
+  let y = q.y + q.h + 9;
+  $(svg).innerHTML = rows.map(sel => {
+    const b = r(sel), yc = b.y + b.h / 2, xe = b.x - 6;
+    const d = `M${x} ${y.toFixed(1)} V${(yc - 18).toFixed(1)} Q${x} ${yc.toFixed(1)} ${x + 18} ${yc.toFixed(1)} H${xe.toFixed(1)}`;
+    y = yc - 18;
+    return `<path d="${d}"/><circle cx="${xe.toFixed(1)}" cy="${yc.toFixed(1)}" r="8"/>`;
+  }).join('');
+  return $$('path', $(svg)).map((path, i) => {
+    const len = path.getTotalLength(), dot = $$('circle', $(svg))[i];
+    gsap.set(path, {strokeDasharray: len, strokeDashoffset: len, opacity: 0});
+    gsap.set(dot, {autoAlpha: 0, scale: 0, transformOrigin: '50% 50%'});
+    return {path, dot};
+  });
+}
+/* Une réponse de l’arbre : la branche se dessine, puis la carte de la réponse arrive. */
+function branch(seg, row, t){
+  tl.set(seg.path, {opacity: 1}, t);
+  tl.to(seg.path, {strokeDashoffset: 0, duration: 0.5, ease: 'power2.inOut'}, t);
+  tl.to(seg.dot, {autoAlpha: 1, scale: 1, duration: 0.25, ease: 'back.out(2.4)'}, t + 0.45);
+  show(row, t + 0.4, {y: 0, x: -30}, 0.45, 'power3.out');
+  cue(t + 0.4, 'pop', 0.7, 2);
+}
+/* Chapitre 4 : une jointure à l’essai. Sa carte s’allume, et les trois cas montrent les lignes gardées. */
+function leaf(id, t, on = true){
+  tl.to(id, {borderColor: on ? '#B9A8FF' : '#E6E1F6', backgroundColor: on ? '#F7F4FF' : '#FFFFFF', duration: 0.3}, t);
+}
+function cases(t, k){
+  $$('#cs4 .cs-r').forEach((r, i) => {
+    const keep = GARDE[k][i];
+    tl.to(r, {opacity: keep ? 1 : 0.4, duration: 0.3}, t + i * 0.12);
+    tl.to(r.querySelector('.y'), {autoAlpha: keep ? 1 : 0, duration: 0.2}, t + i * 0.12);
+    tl.to(r.querySelector('.n'), {autoAlpha: keep ? 0 : 1, duration: 0.2}, t + i * 0.12);
+    cue(t + i * 0.12, keep ? 'tick' : 'miss', 0.45, i + 2);
+  });
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
+  let te;
+  /* Les cartes se calent l’une sous l’autre, puis les branches de l’arbre sont mesurées */
+  stackBelow('#b3a', '#q3', 0, 44);
+  stackBelow('#b3b', '#b3a', 0, 22);
+  stackBelow('#b3c', '#b3b', 0, 22);
+  stackBelow('#on3', '#b3c', 0, 34);
+  const R3 = rail('#rail3', '#q3', ['#b3a', '#b3b', '#b3c']);
+  stackBelow('#cs4', '#q4', 0, 30);
+  stackBelow('#lv4', '#cs4', 0, 30);
+  stackBelow('#ch4', '#lv4', 0, 30);
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  boardIn('#ab1', 5.15, '.lx-hero');
+  gsap.set(['#cd1', '#cd2', '#tb1', '#tb1b'], {autoAlpha: 0});
+  // Tous les clients, avec la date de leurs commandes
+  show('#cd1', 11.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(11.6, 'pop', 0.7, 1);
+  // Même ceux qui n’ont jamais commandé
+  show('#cd2', 16.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(16.4, 'pop', 0.7, 3);
+  shake('#cd2', 17.0);
+  // Le prénom et le nom : table clients
+  stackBelow('#s1 .need', '#ab1');   // la liste se cale sous la carte de l’audit, sans la toucher
+  show('#tb1', 21.6, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(21.6, 'pop', 0.7, 2);
+  show('#s1 .need', 22.0, {y: 60});
+  cue(22.0, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows.slice(0, 2), {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.25}, 22.3);
+  [0, 1].forEach(i => cue(22.3 + i * 0.25, 'pop', 0.7, i));
+  // La date : table commandes
+  show('#tb1b', 26.0, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(26.0, 'pop', 0.7, 4);
+  tl.to(needRows[2], {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, 26.4);
+  cue(26.4, 'pop', 0.7, 2);
+  // Relier les deux tables
+  bump('#tb1', 30.6, 1.1, 1);
+  bump('#tb1b', 31.1, 1.1, 1);
+  cue(30.6, 'tick', 0.5, 2);
+  cue(31.1, 'tick', 0.5, 4);
+  hide(['#ab1', '#s1 .need'], 34.5);
+  sceneOff('#s1', 35.0);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 35.0);
+  const jc = boardIn('#jn2', 35.15, '.jc', 0.12);
+  gsap.set('#jq2', {autoAlpha: 0});
+  // Chacune donne un résultat différent : laquelle choisir ?
+  show('#jq2', 41.0, {y: 0, scale: 0.6}, 0.45, 'back.out(2)');
+  cue(41.0, 'pop', 0.7, 3);
+  tl.to(jc, {borderColor: '#C9BCFF', duration: 0.2, yoyo: true, repeat: 1, stagger: 0.18}, 41.8);
+  // Premier essai : INNER JOIN, 15 lignes, aucune erreur
+  stackBelow('#ij2', '#jn2', 0, 30);
+  show('#ij2', 45.9, {y: 50});
+  cue(45.9, 'whoosh', 0.6);
+  pulse('#j2', 46.6, 3, 'rgba(201,188,255,.35)');
+  press($('#go2'), 47.7, '#4B30CC', 6);
+  show('#n2', 48.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(48.0, 'pop', 0.7, 2);
+  show('#ok2', 48.7, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(48.7, 'true', 0.5);
+  // Inès Lefebvre et Nathan Dupont ont disparu
+  show('#m2a', 51.9, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(51.9, 'miss', 0.6);
+  show('#m2b', 52.5, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(52.5, 'miss', 0.6);
+  shake(['#m2a', '#m2b'], 53.3);
+  // Deux questions pour choisir
+  stackBelow('#goal2', '#ij2', 0, 30);
+  show('#goal2', 57.9, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(57.9, 'pop', 0.75, 3);
+  hide(['#jn2', '#ij2', '#goal2'], 61.9, {y: -40}, 0.4);
+  sceneOff('#s2', 62.4);
+
+  /* ===== 3 · Première question ===== */
+  sceneOn('#s3', 62.4);
+  show('#q3', 62.45, {y: 50});
+  cue(62.45, 'whoosh', 0.6);
+  bump('#q3 .qb', 63.6, 1.15, 1);
+  cue(63.6, 'pop', 0.7, 1);
+  // Non : toutes les combinaisons, CROSS JOIN
+  branch(R3[0], '#b3a', 68.5);
+  // Une même table : SELF JOIN
+  branch(R3[1], '#b3b', 74.4);
+  // Deux tables : on passe à la question 2
+  branch(R3[2], '#b3c', 80.3);
+  tl.to(['#b3a', '#b3b'], {opacity: 0.4, duration: 0.4}, 82.1);
+  tl.to('#b3c', {borderColor: '#7FD3A8', backgroundColor: '#F2FBF6', duration: 0.4}, 82.1);
+  tl.to('#nx3', {backgroundColor: '#E7F7EE', color: '#1B7A45', duration: 0.3}, 82.3);
+  cue(82.1, 'true', 0.55);
+  // Elle s’écrit dans le ON
+  show('#on3', 86.3, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(86.3, 'pop', 0.7, 2);
+  hide(['#q3', '#rail3', '#b3a', '#b3b', '#b3c', '#on3'], 90.9, {y: -40});
+  sceneOff('#s3', 91.4);
+
+  /* ===== 4 · Deuxième question ===== */
+  sceneOn('#s4', 91.4);
+  show('#q4', 91.45, {y: 50});
+  cue(91.45, 'whoosh', 0.6);
+  bump('#q4 .qb', 92.6, 1.15, 1);
+  cue(92.6, 'pop', 0.7, 2);
+  // Trois cas : Sophie Martin a commandé, Inès Lefebvre jamais, la commande n°16 n’a aucun client
+  show('#cs4', 98.0, {y: 50});
+  cue(98.0, 'whoosh', 0.6);
+  const cr = $$('#cs4 .cs-r');
+  gsap.set(cr, {autoAlpha: 0, x: -30});
+  [98.5, 100.3, 102.9].forEach((t, i) => { tl.to(cr[i], {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, t); cue(t, 'pop', 0.6, i + 1); });
+  // Les quatre réponses, une à une
+  const lf = $$('#lv4 .lf');
+  gsap.set(lf, {autoAlpha: 0, scale: 0.8});
+  const essai = (i, k, t) => {
+    if (i) leaf(lf[i - 1], t, false);
+    tl.to(lf[i], {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(1.8)'}, t);
+    cue(t, 'pop', 0.7, i + 1);
+    leaf(lf[i], t + 0.5);
+    cases(t + 0.9, k);
+  };
+  essai(0, 'inner', 106.3);
+  essai(1, 'left', 111.6);
+  essai(2, 'right', 117.7);
+  essai(3, 'full', 123.8);
+  // L’audit veut tous les clients : LEFT JOIN
+  leaf(lf[3], 128.9, false);
+  tl.to([lf[0], lf[2], lf[3]], {opacity: 0.4, duration: 0.4}, 129.3);
+  tl.to(lf[1], {borderColor: '#7FD3A8', backgroundColor: '#F2FBF6', duration: 0.4}, 129.3);
+  cue(129.3, 'true', 0.6);
+  cases(129.7, 'left');
+  show('#ch4', 130.9, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(130.9, 'pop', 0.7, 3);
+  hide(['#q4', '#cs4', '#lv4', '#ch4'], 134.4, {y: -40});
+  sceneOff('#s4', 134.9);
+
+  /* ===== 5 · Le piège ===== */
+  sceneOn('#s5', 134.9);
+  show('#tp5', 134.95, {y: 50});
+  cue(134.95, 'whoosh', 0.6);
+  // Le ON commence par la table commandes
+  pulse('#o5', 136.7, 3, 'rgba(255,214,140,.45)');
+  cue(136.7, 'tick', 0.5, 2);
+  // Elle ne devient pas la table de gauche
+  stackBelow('#gd5', '#tp5', 0, 30);
+  stackBelow('#r5', '#gd5', 0, 30);   // place prévue pour la carte entière : elle grandit à mesure que ses lignes arrivent
+  const hG = $('#gl5').offsetHeight;
+  show('#gd5', 141.3, {y: 50});
+  cue(141.3, 'whoosh', 0.6);
+  gsap.set('#gx5', {autoAlpha: 0, x: -30});
+  gsap.set(['#gl5', '#gr5'], {autoAlpha: 0, height: 0, marginTop: 0});
+  tl.to('#gx5', {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, 142.7);
+  cue(142.7, 'false', 0.5);
+  shake('#gx5', 143.3);
+  // La gauche : la table placée après FROM ; la droite : celle placée après JOIN
+  tl.to('#gl5', {height: hG, autoAlpha: 1, duration: 0.45, ease: 'power3.out'}, 147.5);
+  cue(147.5, 'pop', 0.65, 1);
+  pulse('#f5', 148.1, 3, 'rgba(201,188,255,.45)');
+  tl.to('#gr5', {height: hG, marginTop: 12, autoAlpha: 1, duration: 0.45, ease: 'power3.out'}, 149.6);
+  cue(149.6, 'pop', 0.65, 3);
+  pulse('#j5', 150.2, 3, 'rgba(255,214,140,.4)');
+  // Le résultat ne change pas : 17 lignes
+  press($('#go5'), 152.9, '#4B30CC', 6);
+  show('#r5', 153.3, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(153.3, 'true', 0.6);
+  hide(['#tp5', '#gd5', '#r5'], 157.2, {y: -40});
+  sceneOff('#s5', 158.2);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 158.2);
+  show('#s6code', 158.25, {y: 60}, 0.6);
+  cue(158.25, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 158.75, 40);
+  for (const k of [2, 3, 4, 5]) te = typeLine($('#s6l' + k), te + 0.1, 40);
+  pulse('#j6', te + 0.2, 3, 'rgba(201,188,255,.35)');
+  press($('#s6run'), 164.3);
+  stackBelow('#tbl6', '#s6code', 0, 30);
+  show('#tbl6', 164.55, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr, #rows6 .more'), 164.7, 0.1);
+  show('#cnt6', 165.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 166.1, 1.15, 3);
+  // Inès Lefebvre et Nathan Dupont : la date vaut NULL
+  tl.to($$('#rows6 .tr.no .hl'), {opacity: 1, duration: 0.3, stagger: 0.3}, 170.7);
+  [0, 1].forEach(i => cue(170.7 + i * 0.3, 'tick', 0.55, i + 2));
+  hide(['#s6code', '#tbl6'], 175.2, {y: -40}, 0.4);
+  // Les deux clients à contrôler
+  boardIn('#ab6', 175.6, '.cl', 0.25);
+  stackBelow('#badge6', '#ab6', 0, 50);
+  show('#badge6', 177.6, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(177.6, 'chord', 0.7);
+  hide(['#ab6', '#badge6'], 180.6);
+  sceneOff('#s6', 181.1);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(181.1, [181.8, 183.6, 185.4]);
+  hold(183.4, 4.8);
+  hold(185.2, 4.8);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(186.35, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 186.3,
+  glyphs: '🔍👥⚠️👤👪📅🔗🔎✕✓🎯⇄·⋯🧭📍?→', dom, build});
+</script>
+</body>
+</html>
