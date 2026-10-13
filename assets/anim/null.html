@@ -60,7 +60,7 @@
 .sp.sp1 .sn{color:#8C86AE}
 .schips{display:grid;gap:10px}
 .sp2 .schips{grid-template-columns:1fr 1fr}
-.sch{height:54px;border-radius:16px;background:#fff;border:2px solid var(--line);display:flex;align-items:center;padding:0 16px;font-size:28px;font-weight:700;color:var(--ink);white-space:nowrap}
+.sch{height:54px;border-radius:16px;background:#fff;border:2px solid var(--line);display:flex;align-items:center;padding:0 16px;font-size:26px;font-weight:700;color:var(--ink);white-space:nowrap}
 .sp1 .sch{border:3px dashed #B9B2D6;color:#6A6490}
 .ssum{margin-top:22px;text-align:center;font-family:var(--display);font-size:46px;font-weight:800;color:var(--ink);opacity:0}
 .ssum em{font-style:normal;color:var(--accent)}
@@ -165,7 +165,7 @@
     <div class="abs card trap" id="fix4" style="top:640px">
       <div class="trap-h"><span class="emo">✅</span><span>Avec IS NULL</span></div>
       <div class="mini"><span class="kw">WHERE</span> email <span class="kw glow" id="isn4">IS NULL</span>;<span class="go" id="goF"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg></span></div>
-      <div class="okline" id="ok4"><span class="oi">✓</span><b>2 lignes</b><span>Hugo et Inès</span></div>
+      <div class="okline" id="ok4"><span class="oi">✓</span><b>2 lignes</b><span>Hugo Laurent et Inès Lefebvre</span></div>
     </div>
   </section>
 
@@ -225,7 +225,7 @@ const CLIENTS = [['Sophie','Martin','sophie@mail.fr','06 39 98 12 04'],['Lucas',
   ['Hugo','Laurent',null,'06 39 98 68 03'],['Léa','Simon','lea@mail.fr','06 39 98 74 29'],['Gabriel','Michel','gabriel@mail.fr','06 39 98 85 16'],
   ['Inès','Lefebvre',null,'06 39 98 97 50'],['Nathan','Dupont','nathan.dupont@mail.fr','06 39 98 10 26']];
 const NUL = c => c[2] === null;
-const SHORT = c => c[0] === 'Nathan' ? `Nathan ${c[1][0]}.` : c[0];
+const NOM = c => `${c[0]} ${c[1]}`;   // le prénom et le nom du client, toujours ensemble
 const mail = c => NUL(c) ? '<span class="nul">NULL</span>' : c[2];
 
 const CHAPTERS = [
@@ -244,12 +244,12 @@ const CAPTIONS = [
   [8.7, 11.35,  "Certains clients n’ont <b>aucun email</b> : il faut les retrouver pour les <b>appeler</b>."],
   [11.45, 14.6, "Ces informations se trouvent dans la <b>table clients</b> (<b>10 clients</b>)."],
   [15.3, 19.0,  "Avec <code>SELECT prenom, email</code>, on affiche l’email de chaque client."],
-  [19.1, 22.9,  "Pour Hugo et Inès, la case contient <code>NULL</code> : <b>aucune valeur</b> n’est enregistrée."],
+  [19.1, 22.9,  "Pour Hugo Laurent et Inès Lefebvre, la case contient <code>NULL</code> : <b>aucune valeur</b> n’est enregistrée."],
   [23.0, 26.6,  "<code>NULL</code> n’est ni un texte vide, ni zéro : c’est l’<b>absence</b> de valeur."],
   [26.7, 29.6,  "Il n’y a aucune valeur à comparer : <span class=\"nw\">c’est le rôle</span> de <code>IS NULL</code>."],
   [30.3, 33.9,  "Pour repérer une valeur absente, on ne compare pas : on écrit <code>IS NULL</code>."],
   [34.0, 35.85, "Pour chaque client, SQL vérifie une chose : son email est-il absent ?"],
-  [35.95, 41.6, "La condition n’est vraie que pour Hugo et Inès : leur email est absent."],
+  [35.95, 41.6, "Seuls Hugo Laurent et Inès Lefebvre vérifient la condition :<br>leur email est absent."],
   [41.7, 46.4,  "Les autres clients ont un email : <span class=\"nw\">ils sont écartés</span>. Il reste <b>2 clients</b>."],
   [47.3, 51.2,  "Attention : avec <code>= NULL</code>, la requête ne renvoie <b>aucune ligne</b>."],
   [51.3, 55.4,  "<code>NULL</code> n’est égal à rien, <span class=\"nw\">pas même à lui-même</span> :<br><code>= NULL</code> n’est <b>jamais\u00a0vrai</b>."],
@@ -271,8 +271,8 @@ function dom(){
   $('#rows2').innerHTML = CLIENTS.map(c => `<div class="rgE tr te" data-n="${NUL(c) ? 1 : 0}"><i class="hl"></i><div>${c[0]}</div><div>${mail(c)}</div></div>`).join('');
   $('#rows3').insertAdjacentHTML('afterbegin', CLIENTS.map(c => `<div class="rgS tr te" data-n="${NUL(c) ? 1 : 0}"><i class="hl"></i><div>${c[0]}</div><div>${mail(c)}</div>` +
     `<div>${NUL(c) ? '<span class="pill t">✓ vraie</span>' : '<span class="pill f">✕ fausse</span>'}</div></div>`).join(''));
-  $('#sch1').innerHTML = CLIENTS.filter(NUL).map(c => `<div class="sch">${SHORT(c)}</div>`).join('');
-  $('#sch2').innerHTML = CLIENTS.filter(c => !NUL(c)).map(c => `<div class="sch">${SHORT(c)}</div>`).join('');
+  $('#sch1').innerHTML = CLIENTS.filter(NUL).map(c => `<div class="sch">${NOM(c)}</div>`).join('');
+  $('#sch2').innerHTML = CLIENTS.filter(c => !NUL(c)).map(c => `<div class="sch">${NOM(c)}</div>`).join('');
   $('#callRows').innerHTML = CLIENTS.filter(NUL).map(c =>
     `<div class="call"><span class="av">${c[0][0]}${c[1][0]}</span><div class="cm"><b>${c[0]} ${c[1]}</b><span class="tel">${c[3]}</span></div>` +
     `<span class="mail"><span class="emo">✉️</span>email absent</span><span class="cb emo">📞</span></div>`).join('');
