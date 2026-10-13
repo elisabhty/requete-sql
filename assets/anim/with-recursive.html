@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · WITH RECURSIVE en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:104px;top:456px;letter-spacing:-2px}
+#s0 .title span.sp{margin-right:32px}
+#s0 .hilite{top:520px;height:38px}
+#s0 .sub{top:600px;font-size:58px}
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:36px;white-space:nowrap}
+.nw{white-space:nowrap}
+.tag.tc{background:#FFF4E5;color:#9A5B00}
+.tag.tf{background:#E7F7EE;color:#1B7A45}
+
+/* Code : la CTE récursive (chapitres 3 à 6) */
+.code.sm .body{font-size:32px;line-height:50px;padding:26px 36px}
+.code.sm .ln{height:50px}
+.code.sm .caret i{top:-37px;height:42px}
+.code .ln.ex{overflow:hidden;margin-left:-8px;padding-left:8px}
+.code .strike{position:absolute;left:84px;top:23px;width:482px;height:5px;border-radius:3px;background:#EF4F55;transform:scaleX(0);transform-origin:0 50%}
+
+/* ---------- 1 · Les jours creux ---------- */
+.board{left:64px;width:952px;padding:0 0 8px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar>span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:#FFF4E5;color:#9A5B00;font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.lx{padding:28px 34px 26px}
+.lx-hero{display:flex;align-items:center;gap:26px}
+.lx-ico{width:112px;height:112px;border-radius:34px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:64px;flex:none}
+.lx-t1{font-size:42px;font-weight:800;color:var(--ink);white-space:nowrap}
+.lx-t2{margin-top:6px;font-size:30px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.lx-conds{margin-top:26px;display:flex;align-items:center;gap:14px}
+.cd{height:60px;padding:0 22px;border-radius:999px;font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.cd.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.cd.am{background:#FFF4E5;color:#9A5B00}
+.pill{left:0;width:1080px;display:flex;justify-content:center}
+.pill>span{height:62px;padding:0 24px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill.rd>span{background:#FDEBEC;color:#C2323A}
+.goal{left:64px;width:952px;height:96px;border-radius:32px;background:#E7F7EE;border:3px solid #BFE8D0;display:flex;align-items:center;justify-content:center;gap:14px;font-size:33px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.goal .emo{font-size:36px}
+
+/* ---------- 2 et 6 · Le calendrier de juillet ---------- */
+.cal{left:64px;width:952px;padding:24px 28px 28px}
+.cal-h{display:flex;align-items:center;gap:16px;padding:0 4px 16px}
+.cal-h .emo{width:62px;height:62px;border-radius:20px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:36px;flex:none}
+.cal-t{font-size:34px;font-weight:800;color:var(--ink);white-space:nowrap}
+.cal-lg{margin-left:auto;display:flex;gap:10px}
+.lg{height:46px;padding:0 16px;border-radius:999px;font-size:24px;font-weight:700;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.lg.c{background:#E7F7EE;color:#1B7A45}
+.lg.q{background:#FDEBEC;color:#C2323A}
+.lg.p{background:#FFF4E5;color:#9A5B00}
+.cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+.wd{height:38px;display:flex;align-items:center;justify-content:center;font-size:23px;font-weight:700;color:var(--ink-3)}
+.dc{position:relative;height:84px;border-radius:18px;border:3px dashed #D9D2F5;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.dc .bg{position:absolute;left:-3px;top:-3px;right:-3px;bottom:-3px;border-radius:18px;opacity:0}
+.dc .bg.c{background:#E7F7EE;border:3px solid #BFE8D0}
+.dc .bg.q{background:#FDEBEC;border:3px solid #F6C9CD}
+.dc .bg.p{background:#FFF4E5;border:3px solid #FFD49A}
+.dc b{position:relative;font-family:var(--display);font-size:29px;font-weight:800;color:var(--ink);line-height:1}
+.dc .ico{position:relative;display:inline-grid;height:26px;font-size:22px;line-height:26px;font-weight:800}
+.dc .ico>i{grid-area:1/1;font-style:normal;opacity:0;text-align:center}
+.dc .ico>i.q{color:#C2323A}
+
+/* ---------- 3 à 6 · Résultats ---------- */
+.rg1{display:grid;grid-template-columns:300px 1fr;padding:0 26px;align-items:center}
+.tr.t3{height:56px;font-size:32px}
+.an{display:inline-flex;align-items:center;height:40px;padding:0 14px;border-radius:999px;font-family:var(--ui);font-size:23px;font-weight:700;white-space:nowrap}
+.an.a1{background:var(--accent-soft);color:var(--accent-ink)}
+.an.a2{background:var(--surface-2);color:var(--ink-3)}
+.an.a3{background:#FFF4E5;color:#9A5B00}
+.tr.etc>div{grid-column:1/-1;font-family:var(--ui);font-size:26px;font-weight:600;color:var(--ink-3)}
+.tick{position:relative;height:224px;overflow:hidden}
+.tick-in{position:absolute;left:0;right:0;top:0}
+.run-p{margin-left:auto;height:54px;padding:0 22px;border-radius:999px;background:#FFF4E5;color:#9A5B00;font-size:28px;font-weight:700;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.us{left:64px;width:952px;padding:26px 28px 28px}
+.us-g{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.uc{height:72px;border-radius:20px;background:var(--surface-2);display:flex;align-items:center;gap:12px;padding:0 22px;font-size:31px;font-weight:700;color:var(--ink);white-space:nowrap}
+.uc.on{background:var(--accent-soft);color:var(--accent-ink)}
+
+/* ---------- 7 · À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:20px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Sous-requêtes</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>W</span><span>I</span><span>T</span><span class="sp">H</span><span>R</span><span>E</span><span>C</span><span>U</span><span>R</span><span>S</span><span>I</span><span>V</span><span>E</span></div>
+    <div class="abs sub">Fabriquer une suite de lignes</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec <span class="ic">WITH RECURSIVE</span>, fabrique une suite de lignes à partir d’une seule ligne.</div>
+  </section>
+
+  <!-- 1 · Situation : les jours creux de juillet -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="ab1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Marketing · promotions de juillet</span><span class="tb" id="tb1">table commandes</span></div>
+      <div class="lx">
+        <div class="lx-hero"><div class="lx-ico">🏷️</div><div><div class="lx-t1">Jours creux</div><div class="lx-t2">Une promotion pour chaque jour sans commande</div></div></div>
+        <div class="lx-conds"><span class="cd vi" id="cd1">📅 Juillet 2026</span><span class="cd am" id="cd2">🛒 Aucune commande ce jour-là</span></div>
+      </div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">📅</span><span class="nl">Les 31 jours de juillet</span><span class="tag tf">à fabriquer</span></div>
+      <div class="need-row"><span class="emo">🛒</span><span class="nl">La date des commandes</span><span class="tag tc">table commandes</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : les jours sans commande n’existent nulle part -->
+  <section class="scene" id="s2">
+    <div class="abs card cal" id="cal2" style="top:300px">
+      <div class="cal-h"><span class="emo">📅</span><span class="cal-t">Juillet 2026</span>
+        <div class="cal-lg"><span class="lg c" id="lgc2">🛒 12 jours</span><span class="lg q" id="lgq2">? 19 jours</span></div></div>
+      <div class="cal-g" id="cg2"></div>
+    </div>
+    <div class="abs goal" id="goal2"><span class="emo">🎯</span>Fabriquer la liste des 31 jours de juillet</div>
+  </section>
+
+  <!-- 3 à 5 · L’ancre, la partie récursive, puis la condition d’arrêt oubliée -->
+  <section class="scene" id="s3">
+    <div class="abs code sm" id="c3" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="l1"><span class="kw">WITH RECURSIVE</span> <span class="glow" id="nm3">jours(jour)</span> <span class="kw">AS</span> (<span class="caret"><i></i></span></span><span class="ln" id="l2">    <span class="glow" id="an3"><span class="kw">SELECT</span> <span class="str">'2026-07-01'</span></span><span class="caret"><i></i></span></span><span class="ln ex" id="l3x">    <span class="glow" id="ua3"><span class="kw">UNION ALL</span></span><span class="caret"><i></i></span></span><span class="ln ex" id="l4x">    <span class="kw">SELECT</span> <span class="glow" id="rc3"><span class="kw">DATE</span>(jour, <span class="str">'+1 day'</span>)</span><span class="caret"><i></i></span></span><span class="ln ex" id="l5x">    <span class="glow" id="fj3"><span class="kw">FROM</span> jours</span><span class="caret"><i></i></span></span><span class="ln ex" id="l6x">    <span class="glow" id="wh3"><span class="kw">WHERE</span> jour &lt; <span class="str">'2026-07-31'</span></span><i class="strike" id="sk5"></i><span class="caret"><i></i></span></span><span class="ln" id="l7">)<span class="caret"><i></i></span></span><span class="ln" id="l8"><span class="kw">SELECT</span> jour<span class="caret"><i></i></span></span><span class="ln" id="l9"><span class="kw">FROM</span> jours;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="r3"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tb3">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt3">1 ligne</span></span></div>
+      <div class="rg1 th"><div>jour</div><div></div></div>
+      <div class="rows" id="rows3"></div>
+    </div>
+    <div class="tbl card" id="tb4">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt4">31 lignes</span></span></div>
+      <div class="rg1 th"><div>jour</div><div></div></div>
+      <div class="rows" id="rows4"></div>
+    </div>
+    <div class="tbl card" id="tb5">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="run-p" id="rp5">⏳ Exécution en cours…</span></div>
+      <div class="rg1 th"><div>jour</div><div></div></div>
+      <div class="tick"><div class="tick-in" id="tk5"></div></div>
+    </div>
+    <div class="abs pill rd" id="tp5"><span>✕ Sans condition d’arrêt, la requête ne s’arrête jamais</span></div>
+  </section>
+
+  <!-- 6 · Le résultat : la requête complète, puis le calendrier des promotions -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">WITH RECURSIVE</span> jours(jour) <span class="kw">AS</span> (<span class="caret"><i></i></span></span><span class="ln" id="s6l2">    <span class="kw">SELECT</span> <span class="str">'2026-07-01'</span><span class="caret"><i></i></span></span><span class="ln" id="s6l3">    <span class="kw">UNION ALL</span><span class="caret"><i></i></span></span><span class="ln" id="s6l4">    <span class="kw">SELECT</span> <span class="kw">DATE</span>(jour, <span class="str">'+1 day'</span>)<span class="caret"><i></i></span></span><span class="ln" id="s6l5">    <span class="kw">FROM</span> jours<span class="caret"><i></i></span></span><span class="ln" id="s6l6">    <span class="kw">WHERE</span> jour &lt; <span class="str">'2026-07-31'</span><span class="caret"><i></i></span></span><span class="ln" id="s6l7">)<span class="caret"><i></i></span></span><span class="ln" id="s6l8"><span class="kw">SELECT</span> jour <span class="kw">FROM</span> jours<span class="caret"><i></i></span></span><span class="ln" id="s6l9"><span class="glow" id="ex6"><span class="kw">EXCEPT</span></span><span class="caret"><i></i></span></span><span class="ln" id="s6l10"><span class="kw">SELECT</span> date_commande <span class="kw">FROM</span> commandes;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">19 lignes</span></span></div>
+      <div class="rg1 th"><div>jour</div><div></div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card cal" id="cal6" style="top:300px">
+      <div class="cal-h"><span class="emo">🏷️</span><span class="cal-t">Promotions de juillet</span>
+        <div class="cal-lg"><span class="lg p" id="lgp6">🏷️ 19 jours creux</span></div></div>
+      <div class="cal-g" id="cg6"></div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ 19 promotions programmées</span></div>
+    <div class="abs card us" id="us6">
+      <div class="us-g"><span class="uc on">📅 Suites de dates</span><span class="uc">🌳 Arbres</span><span class="uc">👥 Organigrammes</span><span class="uc">🗂️ Catégories imbriquées</span></div>
+    </div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🔁</div><div class="rtxt">Une CTE récursive part d’une <b>ancre</b>, puis une partie <b>relit&nbsp;la&nbsp;CTE</b>.<span class="rs">Les deux sont reliées par <span class="ic">UNION ALL</span>.</span></div></div>
+      <div class="rrow"><div class="rico emo">🛑</div><div class="rtxt">Tant qu’elle produit des lignes, la récursion continue&nbsp;: il faut une <b>condition&nbsp;d’arrêt</b>.<span class="rs">Sans elle, la requête ne s’arrête jamais.</span><span class="ic blk">WHERE jour &lt; '2026-07-31'</span></div></div>
+      <div class="rrow"><div class="rico emo">🌳</div><div class="rtxt">Elle sert aux suites, mais aussi aux arbres, aux organigrammes et aux catégories imbriquées.</div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 164.1;
+
+/* Juillet 2026 : le 1er tombe un mercredi. Les jours de commande viennent de la table commandes (date_commande). */
+const DECALAGE = 2;
+const JOURS_AVEC_COMMANDE = [2, 5, 8, 11, 12, 15, 18, 20, 22, 25, 28, 30];
+const JOURS_CREUX = Array.from({length: 31}, (_, i) => i + 1).filter(j => !JOURS_AVEC_COMMANDE.includes(j));   // 19 jours
+const iso = j => `2026-07-${String(j).padStart(2, '0')}`;
+
+const CHAPTERS = [
+  {n:1, label:'Situation',            a:5.0,   b:28.0},
+  {n:2, label:'Le problème',          a:28.0,  b:52.0},
+  {n:3, label:'L’ancre',              a:52.0,  b:76.0},
+  {n:4, label:'La partie récursive',  a:76.0,  b:104.0},
+  {n:5, label:'Le piège',             a:104.0, b:128.0},
+  {n:6, label:'Le résultat',          a:128.0, b:154.0},
+  {n:7, label:'À retenir',            a:154.0, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 10.6,    "Le marketing prépare des <b>promotions</b> pour les jours creux de juillet."],
+  [10.7, 16.4,   "Un jour creux, c’est un jour où personne n’a passé commande sur le site web."],
+  [16.5, 22.1,   "Les commandes et leurs dates sont enregistrées dans la <b>table commandes</b>."],
+  [22.2, 27.5,   "Il faut donc comparer les 31 jours de juillet aux dates des commandes."],
+  [28.3, 33.9,   "La table commandes ne contient que 12 dates de juillet, celles des jours avec commande."],
+  [34.0, 39.6,   "Les 19 autres jours n’apparaissent dans aucune table : il n’y a rien à lire."],
+  [39.7, 45.3,   "Il faut donc d’abord <b>fabriquer</b> la liste des 31 jours de juillet."],
+  [45.4, 51.5,   "Les écrire un par un serait long : une requête s’en charge très bien."],
+  [52.3, 57.9,   "<code>WITH RECURSIVE</code> déclare la CTE : son nom, <code>jours</code>, et sa colonne, <code>jour</code>."],
+  [58.0, 63.6,   "À l’intérieur, l’<b>ancre</b> crée la première ligne : le 1er juillet."],
+  [63.7, 69.3,   "L’ancre ne dépend d’aucune autre ligne : exécutée seule, elle donne <b>1 ligne</b>."],
+  [69.4, 75.5,   "Reste à fabriquer les 30 jours suivants, à partir de cette première ligne."],
+  [76.3, 81.9,   "La <b>partie récursive</b> se place sous l’ancre, reliée par <code>UNION ALL</code>."],
+  [82.0, 87.6,   "Elle relit la CTE <code>jours</code> et ajoute un jour à la dernière ligne créée."],
+  [87.7, 93.3,   "Le <code>WHERE</code> l’arrête : au 31 juillet, la condition devient fausse."],
+  [93.4, 98.9,   "Résultat : <b>31 lignes</b>, du 1er au 31 juillet."],
+  [99.0, 103.5,  "Le 31 est bien créé : il vient du 30, et le 30 est avant le 31."],
+  [104.3, 109.9, "Attention : que se <span class=\"nw\">passe-t-il</span> si on oublie la <b>condition d’arrêt</b> ?"],
+  [110.0, 115.6, "La partie récursive trouve toujours un jour de plus à créer : août, septembre, 2027…"],
+  [115.7, 121.3, "La requête ne s’arrête jamais : elle tourne jusqu’à épuiser les ressources du moteur."],
+  [121.4, 127.5, "Une condition d’arrêt est donc indispensable : on remet le <code>WHERE</code>."],
+  [128.3, 133.9, "La requête complète fabrique les 31 jours, puis retire ceux qui ont une commande."],
+  [134.0, 139.6, "<code>EXCEPT</code> retire les 12 dates de la table commandes : il reste <b>19 jours</b>."],
+  [139.7, 145.3, "Ce sont les jours creux de juillet : chacun aura sa promotion."],
+  [145.4, 153.5, "Une CTE récursive sert aux suites, comme ici, mais aussi aux arbres et aux organigrammes."],
+  [154.3, 159.1, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [159.2, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [159.2, 999, "Une CTE récursive part d’une ancre, puis relit sa propre CTE jusqu’à ce que son <code>WHERE</code> l’arrête."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+function dom(){
+  /* Calendriers de juillet (chapitres 2 et 6) */
+  const cal = () => ['L', 'M', 'M', 'J', 'V', 'S', 'D'].map(d => `<div class="wd">${d}</div>`).join('')
+    + '<div></div>'.repeat(DECALAGE)
+    + Array.from({length: 31}, (_, i) => i + 1).map(j => `<div class="dc${JOURS_AVEC_COMMANDE.includes(j) ? ' wc' : ' wq'}"><span class="bg c"></span><span class="bg q"></span><span class="bg p"></span><b>${j}</b><span class="ico"><i class="c">🛒</i><i class="q">?</i><i class="p">🏷️</i></span></div>`).join('');
+  $('#cg2').innerHTML = cal();
+  $('#cg6').innerHTML = cal();
+  /* Résultats */
+  const ligne = ([j, t, k]) => j
+    ? `<div class="rg1 tr t3"><span class="hl"></span><div>${j}</div><div>${t ? `<span class="an ${k}">${t}</span>` : ''}</div></div>`
+    : `<div class="rg1 tr t3 etc"><span class="hl"></span><div>${t}</div></div>`;
+  $('#rows3').innerHTML = [[iso(1), 'ancre', 'a1']].map(ligne).join('');
+  $('#rows4').innerHTML = [[iso(1), 'ancre', 'a1'], [iso(2), '+ 1 jour', 'a2'], [iso(3), '+ 1 jour', 'a2'], [null, '… 27 autres jours'], [iso(31), 'dernier jour', 'a3']].map(ligne).join('');
+  $('#rows6').innerHTML = [[iso(1)], [iso(3)], [iso(4)], [null, '… 15 autres jours creux'], [iso(31)]].map(ligne).join('');
+  /* Chapitre 5 : sans condition d’arrêt, les dates défilent sans fin */
+  const fuite = ['2026-07-29', '2026-07-30', '2026-07-31', '2026-08-01', '2026-08-02', '2026-08-03', '2026-08-04', '2026-08-05',
+    '2026-08-19', '2026-09-07', '2026-10-15', '2026-12-31', '2027-03-08', '2027-09-21', '2028-05-02', '2029-11-17', '2031-06-30', '2034-02-14', '2038-10-01'];
+  $('#tk5').innerHTML = fuite.map(j => `<div class="rg1 tr t3"><div>${j}</div><div></div></div>`).join('');
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+/* Une carte arrive en tournant légèrement, puis ses éléments un à un. */
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(sel, $(id));
+  gsap.set(items, {autoAlpha: 0, y: 24});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => cue(t + 0.65 + i * step, 'pop', 0.55, i % 5));
+  return items;
+}
+/* Une case du calendrier prend un état : c (commande), q (absente de la table), p (promotion). */
+function dayState(cells, k, t, step = 0.06, sound = 'tick'){
+  tl.to(cells.map(c => c.querySelector('.bg.' + k)), {opacity: 1, duration: 0.3, stagger: step}, t);
+  tl.to(cells.map(c => c.querySelector('.ico i.' + k)), {opacity: 1, duration: 0.3, stagger: step}, t);
+  cells.forEach((_, i) => { if (i % 3 === 0) cue(t + i * step, sound, 0.4, i % 5); });
+}
+/* Une ligne ajoutée au code : elle s’ouvre, puis se tape. */
+function lineIn(id, t, cps = 40){
+  tl.to(id, {height: 50, duration: 0.3, ease: 'power3.out'}, t);
+  tl.to(id, {opacity: 1, duration: 0.01}, t + 0.3);
+  cue(t, 'fold', 0.5);
+  return typeLine($(id), t + 0.35, cps);
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.4, 2.1);   // le temps de lire la bulle de la mascotte (après le saut des 13 lettres du titre)
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  boardIn('#ab1', 5.15, '.lx-hero');
+  gsap.set(['#cd1', '#cd2', '#tb1'], {autoAlpha: 0});
+  // Juillet, aucune commande
+  show('#cd1', 11.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(11.0, 'pop', 0.7, 1);
+  show('#cd2', 12.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(12.6, 'pop', 0.7, 3);
+  // La table commandes
+  stackBelow('#s1 .need', '#ab1');   // la liste se cale sous la carte des jours creux, sans la toucher
+  show('#tb1', 17.0, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(17.0, 'pop', 0.7, 2);
+  show('#s1 .need', 17.5, {y: 60});
+  cue(17.5, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.35}, 17.8);
+  [0, 1].forEach(i => cue(17.8 + i * 0.35, 'pop', 0.7, i));
+  // Comparer les 31 jours aux dates des commandes
+  pulse(needRows, 22.8, 3, 'rgba(201,188,255,.3)');
+  hide(['#ab1', '#s1 .need'], 27.5);
+  sceneOff('#s1', 28.0);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 28.0);
+  show('#cal2', 28.2, {y: 60}, 0.6);
+  cue(28.2, 'whoosh', 0.7);
+  const c2 = $$('#cg2 .dc'), c2c = $$('#cg2 .dc.wc'), c2q = $$('#cg2 .dc.wq');
+  gsap.set(c2, {autoAlpha: 0, scale: 0.85});
+  tl.to(c2, {autoAlpha: 1, scale: 1, duration: 0.25, ease: 'back.out(2)', stagger: 0.02}, 28.6);
+  gsap.set(['#lgc2', '#lgq2'], {autoAlpha: 0});
+  // 12 jours avec commande
+  dayState(c2c, 'c', 29.6, 0.12, 'pop');
+  show('#lgc2', 31.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // 19 jours absents de toute table
+  dayState(c2q, 'q', 34.6, 0.06, 'tick');
+  show('#lgq2', 36.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(36.0, 'miss', 0.5);
+  // Fabriquer les 31 jours
+  stackBelow('#goal2', '#cal2', 0, 40);
+  show('#goal2', 40.4, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(40.4, 'pop', 0.75, 3);
+  // Une requête peut les fabriquer
+  tl.to(c2, {scale: 1.08, duration: 0.15, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.03}, 46.2);
+  cue(46.2, 'chord', 0.45);
+  hide(['#cal2', '#goal2'], 51.5, {y: -40}, 0.4);
+  sceneOff('#s2', 52.0);
+
+  /* ===== 3 · L’ancre ===== */
+  sceneOn('#s3', 52.0);
+  // Le tableau des 31 lignes se cale sous la requête complète ; celui de l’ancre, sous la requête de 5 lignes
+  const ex = ['#l3x', '#l4x', '#l5x', '#l6x'];
+  stackBelow('#tb4', '#c3', 0, 30);
+  stackBelow('#tb5', '#c3', 0, 30);
+  gsap.set(ex, {height: 0, opacity: 0});
+  stackBelow('#tb3', '#c3', 0, 30);
+  show('#c3', 52.35, {y: 60}, 0.6);
+  cue(52.35, 'whoosh', 0.7);
+  te = typeLine($('#l1'), 52.85, 40);
+  te = typeLine($('#l2'), te + 0.08, 40);
+  te = typeLine($('#l7'), te + 0.08, 40);
+  te = typeLine($('#l8'), te + 0.08, 40);
+  te = typeLine($('#l9'), te + 0.08, 40);
+  // Le nom de la CTE et sa colonne
+  pulse('#nm3', 55.6, 3, 'rgba(201,188,255,.45)');
+  cue(55.6, 'tick', 0.45, 2);
+  // L’ancre : la première ligne
+  pulse('#an3', 58.6, 3, 'rgba(201,188,255,.45)');
+  cue(58.6, 'tick', 0.45, 3);
+  // Exécutée seule : 1 ligne
+  press($('#r3'), 64.1);
+  show('#tb3', 64.35, {y: 40}, 0.5);
+  rowsIn($$('#rows3 .tr'), 64.5, 0.1);
+  gsap.set('#cnt3', {autoAlpha: 0});
+  show('#cnt3', 65.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // Les 30 jours suivants
+  tl.to('#rows3 .hl', {opacity: 1, duration: 0.3}, 70.0);
+  cue(70.0, 'tick', 0.45, 1);
+
+  /* ===== 4 · La partie récursive ===== */
+  hide('#tb3', 76.3, {y: 0}, 0.25);
+  te = lineIn('#l3x', 76.7);
+  pulse('#ua3', te + 0.2, 3, 'rgba(201,188,255,.45)');
+  // Elle relit la CTE et ajoute un jour
+  te = lineIn('#l4x', 82.2);
+  te = lineIn('#l5x', te + 0.1);
+  pulse('#rc3', te + 0.2, 3, 'rgba(201,188,255,.45)');
+  pulse('#fj3', te + 1.3, 3, 'rgba(255,214,140,.45)');
+  // Le WHERE l’arrête
+  te = lineIn('#l6x', 87.9);
+  pulse('#wh3', te + 0.2, 3, 'rgba(255,214,140,.5)');
+  // 31 lignes
+  press($('#r3'), 93.6);
+  show('#tb4', 93.85, {y: 40}, 0.5);
+  rowsIn($$('#rows4 .tr'), 94.0, 0.3);
+  gsap.set('#cnt4', {autoAlpha: 0});
+  show('#cnt4', 95.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt4', 96.5, 1.15, 3);
+  // Le 31 vient du 30
+  const r4 = $$('#rows4 .tr');
+  tl.to(r4[4].querySelector('.hl'), {opacity: 1, duration: 0.3}, 99.4);
+  pulse('#wh3', 100.2, 3, 'rgba(255,214,140,.5)');
+  cue(99.4, 'tick', 0.45, 4);
+
+  /* ===== 5 · Le piège ===== */
+  tl.to(r4[4].querySelector('.hl'), {opacity: 0, duration: 0.3}, 104.2);
+  hide('#tb4', 104.4, {y: 0}, 0.25);
+  // La condition d’arrêt est oubliée
+  tl.to('#sk5', {scaleX: 1, duration: 0.4, ease: 'power2.out'}, 105.4);
+  tl.to('#l6x', {opacity: 0.4, duration: 0.3}, 105.8);
+  cue(105.4, 'miss', 0.6);
+  // Les dates défilent sans fin
+  press($('#r3'), 110.4);
+  show('#tb5', 110.65, {y: 40}, 0.5);
+  const nTick = $$('#tk5 .tr').length;
+  tl.fromTo('#tk5', {y: 0}, {y: -(nTick - 4) * 56, duration: 4.6, ease: 'power2.in', immediateRender: false}, 111.0);
+  tl.to('#rp5', {opacity: 0.45, duration: 0.4, yoyo: true, repeat: 9, ease: 'sine.inOut'}, 111.0);
+  [0, 0.9, 1.7, 2.4, 3.0, 3.5, 3.9, 4.25, 4.5].forEach((d, i) => cue(111.0 + d, 'tick', 0.35, i % 5));
+  // Elle ne s’arrête jamais
+  stackBelow('#tp5', '#tb5', 0, 34);
+  show('#tp5', 116.2, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(116.2, 'error', 0.6);
+  shake('#tp5', 116.7);
+  // On remet la condition d’arrêt
+  hide(['#tb5', '#tp5'], 121.6, {y: 0}, 0.3);
+  tl.to('#sk5', {scaleX: 0, duration: 0.35, ease: 'power2.in'}, 122.2);
+  tl.to('#l6x', {opacity: 1, duration: 0.3}, 122.4);
+  pulse('#wh3', 123.0, 3, 'rgba(201,188,255,.5)');
+  cue(122.2, 'fold', 0.5);
+  press($('#r3'), 124.6);
+  show('#tb4', 124.85, {y: 40}, 0.5);
+  cue(125.3, 'true', 0.5);
+  hide(['#c3', '#tb4'], 127.5, {y: -40});
+  sceneOff('#s3', 128.0);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 128.0);
+  show('#s6code', 128.05, {y: 60}, 0.6);
+  cue(128.05, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 128.5, 46);
+  for (let k = 2; k <= 10; k++) te = typeLine($('#s6l' + k), te + 0.05, 46);
+  // EXCEPT retire les 12 dates : 19 jours
+  press($('#s6run'), 134.3);
+  stackBelow('#tbl6', '#s6code', 0, 30);
+  show('#tbl6', 134.55, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 134.7, 0.15);
+  show('#cnt6', 135.5, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  pulse('#ex6', 136.4, 3, 'rgba(201,188,255,.45)');
+  bump('#cnt6', 137.6, 1.15, 3);
+  hide(['#s6code', '#tbl6'], 139.4, {y: -40}, 0.4);
+  // Les jours creux reçoivent leur promotion
+  gsap.set('#cal6', {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to('#cal6', {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, 139.9);
+  cue(139.9, 'whoosh', 0.8);
+  const c6c = $$('#cg6 .dc.wc'), c6p = $$('#cg6 .dc.wq');
+  gsap.set('#lgp6', {autoAlpha: 0});
+  dayState(c6c, 'c', 140.6, 0.02, 'tick');
+  dayState(c6p, 'p', 141.3, 0.06, 'pop');
+  show('#lgp6', 142.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  stackBelow('#badge6', '#cal6', 0, 50);
+  show('#badge6', 143.3, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(143.3, 'chord', 0.7);
+  // Suites, arbres, organigrammes
+  stackBelow('#us6', '#badge6', 0, 44);
+  show('#us6', 145.9, {y: 50});
+  cue(145.9, 'whoosh', 0.6);
+  const uc = $$('#us6 .uc');
+  gsap.set(uc, {autoAlpha: 0, y: 20});
+  tl.to(uc, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'back.out(1.8)', stagger: 0.35}, 146.3);
+  uc.forEach((_, i) => cue(146.3 + i * 0.35, 'pop', 0.55, i + 1));
+  hide(['#cal6', '#badge6', '#us6'], 153.5);
+  sceneOff('#s6', 154.0);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(154.0, [154.7, 156.5, 158.3]);
+  hold(156.3, 4.8);
+  hold(158.1, 4.8);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(159.25, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 159.2,
+  glyphs: '🏷️📅🛒🎯🔎⏳✕✓🔁🛑🌳👥🗂️·…?', dom, build});
+</script>
+</body>
+</html>

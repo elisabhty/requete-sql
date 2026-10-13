@@ -747,6 +747,16 @@ const COURSES = [
       '🏷️ Tisane Détox&nbsp;: à écouler en promotion', "tl.to(blocB, {y: -4 * LH, duration: 0.6, ease: 'power2.inOut'}, 113.0);",
       '✕ Des stocks confortables&nbsp;: 120, 500 et 150 unités', '✓ Commande envoyée au fournisseur',
       '<div class="mn-l"><span class="ic">EXCEPT</span><span>retire la seconde</span></div>']},
+  {id: 77, next: 60, titre: 'WITH RECURSIVE (CTE RECURSIVE)', page: 'with-recursive.html', thumb: 'with-recursive-thumb.jpg', duree: '2 min 56', notesAt: 159.2,
+    notes: /notes:\{t:170\.9,y:1309,card:\[64,292,1016,1014\],to:\[940,255\]\}/, table: 'commandes',
+    bubble: 'Avec <span class="ic">WITH RECURSIVE</span>, fabrique une suite de lignes à partir d’une seule ligne.',
+    chapters: ['Situation', 'Le problème', 'L’ancre', 'La partie récursive', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['const JOURS_AVEC_COMMANDE = [2, 5, 8, 11, 12, 15, 18, 20, 22, 25, 28, 30];', '<span class="lg q" id="lgq2">? 19 jours</span>',
+      '<span class="glow" id="an3"><span class="kw">SELECT</span> <span class="str">\'2026-07-01\'</span></span>',
+      '<span class="glow" id="rc3"><span class="kw">DATE</span>(jour, <span class="str">\'+1 day\'</span>)</span>',
+      '<span class="glow" id="wh3"><span class="kw">WHERE</span> jour &lt; <span class="str">\'2026-07-31\'</span></span><i class="strike" id="sk5"></i>',
+      '⏳ Exécution en cours…', '✕ Sans condition d’arrêt, la requête ne s’arrête jamais',
+      '<span class="glow" id="ex6"><span class="kw">EXCEPT</span></span>', '✓ 19 promotions programmées']},
 ];
 
 for (const c of COURSES) {
