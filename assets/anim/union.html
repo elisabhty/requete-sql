@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · UNION et UNION ALL en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .sub{font-size:68px}
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:36px;white-space:nowrap}
+.nw{white-space:nowrap}
+
+/* Code : huit à neuf lignes (chapitres 3, 4 et 6) */
+.code.sm .body{font-size:32px;line-height:50px;padding:26px 36px}
+.code.sm .ln{height:50px}
+.code.sm .caret i{top:-37px;height:42px}
+.code .ln.ex{overflow:hidden;margin-left:-8px;padding-left:8px}
+.code .wx{display:inline-block;overflow:hidden;vertical-align:top}
+/* Mini-requêtes */
+.mini .ml{display:block}
+.mini.m10{font-size:30px;line-height:44px;padding:20px 30px}
+.tag.tc{background:#FFF4E5;color:#9A5B00}
+.tag.tp{background:#E6F0FF;color:#2A5CB0}
+
+/* ---------- 1 · Le tableau de bord ---------- */
+.board{left:64px;width:952px;padding:0 0 8px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar>span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.lx{padding:28px 34px 26px}
+.lx-hero{display:flex;align-items:center;gap:26px}
+.lx-ico{width:112px;height:112px;border-radius:34px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:64px;flex:none}
+.lx-t1{font-size:42px;font-weight:800;color:var(--ink);white-space:nowrap}
+.lx-t2{margin-top:6px;font-size:30px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.lx-conds{margin-top:26px;display:flex;align-items:center;gap:14px}
+.cd{height:60px;padding:0 22px;border-radius:999px;font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.cd.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.cd.am{background:#FFF4E5;color:#9A5B00}
+.cd.bl{background:#E6F0FF;color:#2A5CB0}
+.pill{left:0;width:1080px;display:flex;justify-content:center}
+.pill>span{height:62px;padding:0 24px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill.vi>span{background:var(--accent-soft);color:var(--accent-ink)}
+.pill.gr>span{background:#E7F7EE;color:#1B7A45}
+.pill.rd>span{background:#FDEBEC;color:#C2323A}
+.pill .ic{font-size:.92em;background:#fff}
+
+/* ---------- 2 · Trois requêtes, trois résultats ---------- */
+.tri{left:64px;width:952px;display:flex;flex-direction:column;gap:36px}
+.q2{display:grid;grid-template-columns:200px 1fr 196px;align-items:center;gap:24px;padding:26px 28px}
+.q2-h{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:31px;font-weight:700;color:var(--ink);white-space:nowrap}
+.q2-h .emo{font-size:52px;line-height:1}
+.q2 .mini{margin-top:0;font-size:32px;line-height:48px;padding:18px 28px}
+.q2-r{height:132px;border-radius:24px;border:3px solid var(--line);background:#fff;overflow:hidden;display:flex;flex-direction:column}
+.q2-rh{height:44px;flex:none;background:var(--surface-2);font-family:var(--mono);font-size:23px;font-weight:700;color:var(--ink-3);display:flex;align-items:center;justify-content:center}
+.q2-n{flex:1;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:62px;font-weight:800;color:var(--ink);letter-spacing:-1px}
+.goal{left:64px;width:952px;height:96px;border-radius:32px;background:#E7F7EE;border:3px solid #BFE8D0;display:flex;align-items:center;justify-content:center;gap:14px;font-size:33px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.goal .emo{font-size:36px}
+
+/* ---------- 3 et 4 · UNION ALL, puis les noms de colonnes ---------- */
+.rg1{display:grid;grid-template-columns:260px 1fr;padding:0 26px;align-items:center}
+.rg2{display:grid;grid-template-columns:330px 1fr;padding:0 26px;align-items:center}
+.tr.t3{height:56px;font-size:32px}
+.qm{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:11px;background:#FDEBEC;color:#C2323A;font-family:var(--ui);font-size:24px;font-weight:800;vertical-align:middle}
+.th .hn{justify-self:start;border-radius:10px;padding:0 8px;margin-left:-8px}
+
+/* ---------- 5 · Le piège ---------- */
+#er5{height:auto;min-height:124px;padding:18px 28px}
+#er5 .m{font-size:26px;line-height:1.3;white-space:normal}
+.cc{left:64px;width:952px;padding:22px 26px 24px}
+.cc-r{height:74px;border-radius:20px;background:var(--surface-2);display:flex;align-items:center;gap:16px;padding:0 22px;font-size:32px;font-weight:700;color:var(--ink);white-space:nowrap}
+.cc-r+.cc-r{margin-top:12px}
+.cc-r .ic{background:#fff}
+.cc-r .xr{color:#C2323A}
+#b5{text-underline-offset:5px;text-decoration-thickness:4px}
+.cc-r .k{margin-left:auto;height:50px;padding:0 18px;border-radius:999px;font-size:27px;font-weight:800;display:flex;align-items:center}
+.cc-r .k.ok{background:#E7F7EE;color:#1B7A45}
+.cc-r .k.ko{background:#FDEBEC;color:#C2323A}
+
+/* ---------- 6 · Le résultat ---------- */
+.kpis{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;padding:26px 28px 28px}
+.kpi{height:236px;border-radius:26px;background:#fff;border:3px solid var(--line);box-shadow:0 5px 0 var(--lip);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.kpi .emo{font-size:48px}
+.kpi .kv{font-family:var(--display);font-size:88px;font-weight:800;color:var(--ink);line-height:1;letter-spacing:-1px}
+.kpi .kl{font-size:29px;font-weight:700;color:var(--ink-3)}
+.mn{left:64px;width:952px;padding:30px 34px 28px;display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:end}
+.mn-c{display:flex;flex-direction:column;align-items:center;gap:20px}
+.mn-g{display:grid;gap:7px}
+.mn-g.gj{grid-template-columns:repeat(4,72px)}
+.mn-g.gu{grid-template-columns:repeat(2,72px)}
+.mn-g i{display:block;height:36px;border-radius:10px;background:var(--surface-2);border:3px solid var(--line)}
+.mn-g i.nx{background:#D9CEFF;border-color:#9F88FF}
+.mn-l{font-size:36px;font-weight:700;color:var(--ink);white-space:nowrap}
+
+/* ---------- 7 · À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:20px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Combiner des résultats</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>U</span><span>N</span><span>I</span><span>O</span><span>N</span></div>
+    <div class="abs sub">Empiler des résultats</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec <span class="ic">UNION</span>, empile les lignes<br>de plusieurs requêtes en un seul résultat.</div>
+  </section>
+
+  <!-- 1 · Situation : le tableau de bord de la direction -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="ab1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Direction · point du lundi</span><span class="tb" id="tb1">table clients</span></div>
+      <div class="lx">
+        <div class="lx-hero"><div class="lx-ico">📊</div><div><div class="lx-t1">Tableau de bord</div><div class="lx-t2">Les chiffres clés, en un coup d’œil</div></div></div>
+        <div class="lx-conds"><span class="cd vi" id="cd1">👥 Clients</span><span class="cd am" id="cd2">🛒 Commandes</span><span class="cd bl" id="cd3">📦 Produits</span></div>
+      </div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">👥</span><span class="nl">Le nombre de clients</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">🛒</span><span class="nl">Le nombre de commandes</span><span class="tag tc">table commandes</span></div>
+      <div class="need-row"><span class="emo">📦</span><span class="nl">Le nombre de produits</span><span class="tag tp">table produits</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : trois requêtes, trois résultats séparés -->
+  <section class="scene" id="s2">
+    <div class="abs tri" id="tr2" style="top:300px">
+      <div class="card q2" id="qa2"><div class="q2-h"><span class="emo">👥</span><span>Clients</span></div><div class="mini"><span class="ml"><span class="kw">SELECT</span> <span class="kw">COUNT</span>(*)</span><span class="ml"><span class="kw">FROM</span> clients;</span></div><div class="q2-r"><div class="q2-rh">COUNT(*)</div><div class="q2-n">10</div></div></div>
+      <div class="card q2" id="qb2"><div class="q2-h"><span class="emo">🛒</span><span>Commandes</span></div><div class="mini"><span class="ml"><span class="kw">SELECT</span> <span class="kw">COUNT</span>(*)</span><span class="ml"><span class="kw">FROM</span> commandes;</span></div><div class="q2-r"><div class="q2-rh">COUNT(*)</div><div class="q2-n">16</div></div></div>
+      <div class="card q2" id="qc2"><div class="q2-h"><span class="emo">📦</span><span>Produits</span></div><div class="mini"><span class="ml"><span class="kw">SELECT</span> <span class="kw">COUNT</span>(*)</span><span class="ml"><span class="kw">FROM</span> produits;</span></div><div class="q2-r"><div class="q2-rh">COUNT(*)</div><div class="q2-n">8</div></div></div>
+    </div>
+    <div class="abs pill rd" id="jn2"><span>✕ <span class="ic">JOIN</span>&nbsp;: aucune ligne à relier entre ces tables</span></div>
+    <div class="abs goal" id="goal2"><span class="emo">🎯</span>Empiler les trois lignes dans un seul résultat</div>
+  </section>
+
+  <!-- 3 et 4 · UNION ALL, puis les noms de colonnes -->
+  <section class="scene" id="s3">
+    <div class="abs code sm" id="c3" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="l1"><span class="kw">SELECT</span> <span id="lab1"><span class="str">'Clients'</span> <span class="glow" id="ai4"><span class="kw">AS</span> indicateur</span>,</span><span class="wx" id="cn1"><span class="kw">COUNT</span>(*)</span><span class="caret"><i></i></span></span><span class="ln ex" id="l1b">       <span class="kw">COUNT</span>(*) <span class="glow" id="av4"><span class="kw">AS</span> valeur</span></span><span class="ln" id="l2"><span class="kw">FROM</span> clients<span class="caret"><i></i></span></span><span class="ln" id="l3"><span class="glow" id="u3a"><span class="kw">UNION ALL</span></span><span class="caret"><i></i></span></span><span class="ln" id="l4"><span class="kw">SELECT</span> <span id="lab2"><span class="str">'Commandes'</span>, </span><span class="kw">COUNT</span>(*)<span class="caret"><i></i></span></span><span class="ln" id="l5"><span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="l6"><span class="glow" id="u3b"><span class="kw">UNION ALL</span></span><span class="caret"><i></i></span></span><span class="ln" id="l7"><span class="kw">SELECT</span> <span id="lab3"><span class="str">'Produits'</span>, </span><span class="kw">COUNT</span>(*)<span class="caret"><i></i></span></span><span class="ln" id="l8"><span class="kw">FROM</span> produits;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="r3"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tb3">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt3">3 lignes</span></span></div>
+      <div class="rg1 th"><div>COUNT(*)</div><div></div></div>
+      <div class="rows" id="rows3"></div>
+    </div>
+    <div class="tbl card" id="tb4">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt4">3 lignes</span></span></div>
+      <div class="rg2 th"><div><span class="hn glow" id="hi4">indicateur</span></div><div><span class="hn glow" id="hv4">valeur</span></div></div>
+      <div class="rows" id="rows4"></div>
+    </div>
+  </section>
+
+  <!-- 5 · Le piège : une colonne de trop -->
+  <section class="scene" id="s5">
+    <div class="abs card trap" id="tp5" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Et avec le stock total en plus&nbsp;?</span></div>
+      <div class="mini m10"><span class="ml"><span class="kw">SELECT</span> <span class="str">'Clients'</span> <span class="kw">AS</span> indicateur,</span><span class="ml">       <span class="kw">COUNT</span>(*) <span class="kw">AS</span> valeur</span><span class="ml"><span class="kw">FROM</span> clients</span><span class="ml"><span class="kw">UNION ALL</span></span><span class="ml"><span class="kw">SELECT</span> <span class="str">'Commandes'</span>, <span class="kw">COUNT</span>(*)</span><span class="ml"><span class="kw">FROM</span> commandes</span><span class="ml"><span class="kw">UNION ALL</span></span><span class="ml"><span class="kw">SELECT</span> <span class="str">'Produits'</span>, <span class="kw">COUNT</span>(*),</span><span class="ml">       <span class="glow bad" id="b5"><span class="kw">SUM</span>(stock)</span></span><span class="ml"><span class="kw">FROM</span> produits;</span></div>
+      <div class="out err" id="er5"><div class="oi">✕</div><div class="ot"><b>Erreur SQL</b><span class="m">SELECTs to the left and right of UNION ALL do not have the same number of result columns</span></div></div>
+    </div>
+    <div class="abs card cc" id="cc5">
+      <div class="cc-r"><span class="ic">'Clients', COUNT(*)</span><span class="k ok">2 colonnes</span></div>
+      <div class="cc-r"><span class="ic">'Commandes', COUNT(*)</span><span class="k ok">2 colonnes</span></div>
+      <div class="cc-r"><span class="ic">'Produits', COUNT(*), <span class="xr">SUM(stock)</span></span><span class="k ko">3 colonnes</span></div>
+    </div>
+    <div class="abs pill gr" id="fx5"><span>✓ Un chiffre de plus = une ligne de plus</span></div>
+  </section>
+
+  <!-- 6 · Le résultat : la requête complète, puis le tableau de bord -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> <span class="str">'Clients'</span> <span class="kw">AS</span> indicateur,<span class="caret"><i></i></span></span><span class="ln" id="s6l2">       <span class="kw">COUNT</span>(*) <span class="kw">AS</span> valeur<span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="kw">FROM</span> clients<span class="caret"><i></i></span></span><span class="ln" id="s6l4"><span class="glow" id="u6a"><span class="kw">UNION ALL</span></span><span class="caret"><i></i></span></span><span class="ln" id="s6l5"><span class="kw">SELECT</span> <span class="str">'Commandes'</span>, <span class="kw">COUNT</span>(*)<span class="caret"><i></i></span></span><span class="ln" id="s6l6"><span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="s6l7"><span class="glow" id="u6b"><span class="kw">UNION ALL</span></span><span class="caret"><i></i></span></span><span class="ln" id="s6l8"><span class="kw">SELECT</span> <span class="str">'Produits'</span>, <span class="kw">COUNT</span>(*)<span class="caret"><i></i></span></span><span class="ln" id="s6l9"><span class="kw">FROM</span> produits;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">3 lignes</span></span></div>
+      <div class="rg2 th"><div>indicateur</div><div>valeur</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card board" id="ab6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Direction · tableau de bord</span></div>
+      <div class="kpis" id="kp6"></div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ Tableau de bord à jour</span></div>
+    <div class="abs card mn" id="mn6">
+      <div class="mn-c"><div class="mn-g gj" id="gj6"><i></i><i></i><i class="nx"></i><i class="nx"></i><i></i><i></i><i class="nx"></i><i class="nx"></i><i></i><i></i><i class="nx"></i><i class="nx"></i></div><div class="mn-l"><span class="ic">JOIN</span> élargit</div></div>
+      <div class="mn-c"><div class="mn-g gu" id="gu6"><i></i><i></i><i></i><i></i><i></i><i></i><i class="nx"></i><i class="nx"></i><i class="nx"></i><i class="nx"></i></div><div class="mn-l"><span class="ic">UNION</span> rallonge</div></div>
+    </div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">📚</div><div class="rtxt"><span class="ic">UNION</span> empile les lignes de deux <span class="ic">SELECT</span> et <b>écarte les doublons</b>&nbsp;; <span class="ic">UNION ALL</span> les garde tous.<br><span class="ic blk">SELECT … UNION SELECT …</span></div></div>
+      <div class="rrow"><div class="rico emo">📏</div><div class="rtxt">Les deux requêtes doivent avoir le <b>même nombre de colonnes</b>.<span class="rs">Leurs noms viennent de la première requête.</span></div></div>
+      <div class="rrow"><div class="rico emo">🧠</div><div class="rtxt">Un moyen simple de s’en souvenir&nbsp;: <b>JOIN élargit, UNION rallonge</b>.</div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 160.6;
+
+/* Les trois indicateurs : [nom, valeur, emoji] (COUNT(*) de chaque table). */
+const INDICATEURS = [['Clients', 10, '👥'], ['Commandes', 16, '🛒'], ['Produits', 8, '📦']];
+
+const CHAPTERS = [
+  {n:1, label:'Situation',              a:5.0,   b:27.5},
+  {n:2, label:'Le problème',            a:27.5,  b:50.5},
+  {n:3, label:'UNION ALL',              a:50.5,  b:80.5},
+  {n:4, label:'Les noms de colonnes',   a:80.5,  b:103.5},
+  {n:5, label:'Le piège',               a:103.5, b:127.0},
+  {n:6, label:'Le résultat',            a:127.0, b:150.5},
+  {n:7, label:'À retenir',              a:150.5, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 10.1,    "Chaque lundi, la direction consulte un <b>tableau de bord</b> du site web."],
+  [10.2, 16.3,   "Elle y suit trois chiffres : le nombre de clients, celui des commandes et celui des produits."],
+  [16.4, 22.2,   "Les clients sont dans la <b>table clients</b>, les commandes et les produits dans leurs tables."],
+  [22.3, 27.0,   "Et elle veut ces trois chiffres dans <b>un seul résultat</b>."],
+  [27.8, 33.4,   "Un par un, ces chiffres s’obtiennent avec un <code>COUNT(*)</code> sur chaque table."],
+  [33.5, 39.0,   "Mais cela fait trois requêtes, et trois résultats séparés."],
+  [39.1, 44.6,   "Un <code>JOIN</code> ne convient pas : il n’y a aucune ligne à relier ici."],
+  [44.7, 50.0,   "Il faut <b>empiler</b> les trois lignes, l’une sous l’autre."],
+  [50.8, 56.4,   "Placé entre deux requêtes, <code>UNION ALL</code> empile leurs lignes."],
+  [56.5, 62.2,   "Les trois comptages forment un seul résultat : <b>3 lignes</b>, dans la même colonne."],
+  [62.3, 68.0,   "<code>UNION</code> écarterait les lignes en double, alors que <code>UNION ALL</code> les garde toutes."],
+  [68.1, 74.1,   "<code>UNION ALL</code> est donc le bon choix : avec <code>UNION</code>, deux chiffres égaux ne feraient qu’une ligne."],
+  [74.2, 80.0,   "Mais une colonne de chiffres seuls ne dit pas quel nombre correspond à quoi."],
+  [80.8, 86.6,   "Pour nommer les chiffres, on ajoute une colonne de texte dans chacune des trois requêtes."],
+  [86.7, 92.7,   "Les colonnes du résultat portent les noms de la <b>première</b> requête : <code>indicateur</code> et <code>valeur</code>."],
+  [92.8, 97.8,   "Les alias ne s’écrivent donc qu’une fois, dans le premier <code>SELECT</code>."],
+  [97.9, 103.0,  "Chaque requête renvoie maintenant deux colonnes : un nom et un chiffre."],
+  [103.8, 109.4, "Attention : la direction veut aussi le stock total des produits."],
+  [109.5, 115.2, "Ajouté en troisième colonne, il rend la requête impossible à exécuter."],
+  [115.3, 121.0, "Deux colonnes en haut, trois en bas : les lignes ne peuvent pas s’empiler."],
+  [121.1, 126.5, "Pour un chiffre de plus, il faut une ligne de plus, avec ses deux colonnes."],
+  [127.3, 133.0, "La requête complète empile les trois <code>SELECT</code> avec <code>UNION ALL</code>."],
+  [133.1, 138.6, "Résultat : <b>3 lignes</b>, chacune avec le nom de l’indicateur et sa valeur."],
+  [138.7, 144.2, "Le tableau de bord affiche 10 clients, 16 commandes et 8 produits."],
+  [144.3, 150.0, "Pour s’en souvenir : <code>JOIN</code> élargit le résultat, <code>UNION</code> le rallonge."],
+  [150.8, 155.6, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [155.7, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [155.7, 999, "<code>UNION</code> empile les lignes de requêtes qui ont le même nombre de colonnes."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+function dom(){
+  /* Chapitre 3 : les trois comptages, sans nom */
+  $('#rows3').innerHTML = INDICATEURS.map(([, v]) => `<div class="rg1 tr t3"><span class="hl"></span><div>${v}</div><div><span class="qm">?</span></div></div>`).join('');
+  /* Chapitres 4 et 6 : chaque chiffre avec son nom */
+  const ligne = ([n, v]) => `<div class="rg2 tr t3"><span class="hl"></span><div>${n}</div><div>${v}</div></div>`;
+  $('#rows4').innerHTML = INDICATEURS.map(ligne).join('');
+  $('#rows6').innerHTML = INDICATEURS.map(ligne).join('');
+  /* Chapitre 6 : le tableau de bord */
+  $('#kp6').innerHTML = INDICATEURS.map(([n, v, e]) => `<div class="kpi"><span class="emo">${e}</span><div class="kv">${v}</div><div class="kl">${n}</div></div>`).join('');
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+/* Une carte arrive en tournant légèrement, puis ses éléments un à un. */
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(sel, $(id));
+  gsap.set(items, {autoAlpha: 0, y: 24});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => cue(t + 0.65 + i * step, 'pop', 0.55, i % 5));
+  return items;
+}
+/* Une erreur SQL : l’encadré apparaît et tremble. */
+function errorIn(sel, t){
+  show(sel, t, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  tl.to(sel, {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, t + 0.4);
+  cue(t, 'error', 0.85);
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  boardIn('#ab1', 5.15, '.lx-hero');
+  gsap.set(['#cd1', '#cd2', '#cd3', '#tb1'], {autoAlpha: 0});
+  // Trois chiffres : clients, commandes, produits
+  ['#cd1', '#cd2', '#cd3'].forEach((c, i) => { show(c, 11.6 + i * 0.5, {y: 0, scale: 0.6}, 0.4, 'back.out(2)'); cue(11.6 + i * 0.5, 'pop', 0.7, i + 1); });
+  // Les clients : table clients
+  stackBelow('#s1 .need', '#ab1');   // la liste se cale sous la carte du tableau de bord, sans la toucher
+  show('#tb1', 16.9, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(16.9, 'pop', 0.7, 2);
+  show('#s1 .need', 17.3, {y: 60});
+  cue(17.3, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.3}, 17.6);
+  [0, 1, 2].forEach(i => cue(17.6 + i * 0.3, 'pop', 0.7, i));
+  // Un seul résultat
+  bump('#ab1 .lx-ico', 22.4, 1.15, 3);
+  cue(22.4, 'tick', 0.5, 3);
+  hide(['#ab1', '#s1 .need'], 27.0);
+  sceneOff('#s1', 27.5);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 27.5);
+  const q2 = $$('#tr2 .q2');
+  gsap.set(q2, {autoAlpha: 0, y: 60});
+  tl.to(q2, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'back.out(1.6)', stagger: 0.2}, 27.6);
+  q2.forEach((_, i) => cue(27.6 + i * 0.2, 'pop', 0.65, i + 1));
+  const n2 = $$('#tr2 .q2-n');
+  gsap.set(n2, {autoAlpha: 0, scale: 0.6});
+  // Trois résultats séparés
+  tl.to(n2, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)', stagger: 0.4}, 34.0);
+  n2.forEach((_, i) => cue(34.0 + i * 0.4, 'tick', 0.55, i + 2));
+  // Pas de JOIN
+  stackBelow('#jn2', '#tr2', 0, 40);
+  stackBelow('#goal2', '#jn2', 0, 30);
+  show('#jn2', 39.6, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(39.6, 'miss', 0.55);
+  shake('#jn2', 40.2);
+  // Empiler les trois lignes
+  show('#goal2', 45.2, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(45.2, 'pop', 0.75, 3);
+  const r2 = $$('#tr2 .q2-r');
+  tl.to(r2, {scale: 1.06, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.3}, 46.4);
+  r2.forEach((_, i) => cue(46.4 + i * 0.3, 'tick', 0.5, i + 2));
+  hide(['#tr2', '#jn2', '#goal2'], 50.0, {y: -40}, 0.4);
+  sceneOff('#s2', 50.5);
+
+  /* ===== 3 · UNION ALL ===== */
+  sceneOn('#s3', 50.5);
+  // Les tableaux se calent sous la requête telle qu’elle sera au chapitre 4 (une ligne de plus)
+  stackBelow('#tb3', '#c3', 0, 30);
+  stackBelow('#tb4', '#c3', 0, 30);
+  gsap.set('#l1b', {height: 0, opacity: 0});
+  show('#c3', 50.85, {y: 60}, 0.6);
+  cue(50.85, 'whoosh', 0.7);
+  te = typeLine($('#l1'), 51.35, 42, false, $('#lab1'));
+  te = typeLine($('#l2'), te + 0.08, 42);
+  te = typeLine($('#l3'), te + 0.08, 42);
+  te = typeLine($('#l4'), te + 0.08, 42, false, $('#lab2'));
+  te = typeLine($('#l5'), te + 0.08, 42);
+  te = typeLine($('#l6'), te + 0.08, 42);
+  te = typeLine($('#l7'), te + 0.08, 42, false, $('#lab3'));
+  te = typeLine($('#l8'), te + 0.08, 42);
+  pulse(['#u3a', '#u3b'], te + 0.2, 3, 'rgba(201,188,255,.45)');
+  // 3 lignes, une seule colonne
+  press($('#r3'), 57.0);
+  show('#tb3', 57.25, {y: 40}, 0.5);
+  rowsIn($$('#rows3 .tr'), 57.4, 0.35);
+  gsap.set('#cnt3', {autoAlpha: 0});
+  show('#cnt3', 58.8, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  const qm = $$('#rows3 .qm');
+  gsap.set(qm, {autoAlpha: 0});
+  // UNION écarterait les doublons
+  pulse(['#u3a', '#u3b'], 62.8, 3, 'rgba(255,214,140,.5)');
+  cue(62.8, 'tick', 0.5, 2);
+  // Quel nombre correspond à quoi ?
+  tl.to(qm, {autoAlpha: 1, duration: 0.25, stagger: 0.25}, 74.5);
+  qm.forEach((_, i) => cue(74.5 + i * 0.25, 'miss', 0.4));
+  tl.to(qm, {scale: 1.15, duration: 0.18, yoyo: true, repeat: 1, stagger: 0.1}, 75.6);
+
+  /* ===== 4 · Les noms de colonnes ===== */
+  // Une colonne de texte dans chaque requête : COUNT(*) descend d’une ligne, les noms s’écrivent
+  tl.to('#cn1', {width: 0, autoAlpha: 0, duration: 0.3}, 81.3);
+  tl.to('#l1b', {height: 50, duration: 0.4, ease: 'power3.out'}, 81.5);
+  tl.to('#l1b', {opacity: 1, duration: 0.3}, 81.85);
+  cue(81.5, 'fold', 0.6);
+  te = typeMore($('#lab1'), 82.3, 30);
+  te = typeMore($('#lab2'), te + 0.15, 30);
+  te = typeMore($('#lab3'), te + 0.15, 30);
+  // Les noms des colonnes : ceux de la première requête
+  press($('#r3'), 87.0);
+  hide('#tb3', 87.1, {y: 0}, 0.2);
+  show('#tb4', 87.3, {y: 20}, 0.4);
+  rowsIn($$('#rows4 .tr'), 87.5, 0.2);
+  gsap.set('#cnt4', {autoAlpha: 0});
+  show('#cnt4', 88.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  pulse(['#ai4', '#hi4'], 89.0, 3, 'rgba(201,188,255,.5)');
+  pulse(['#av4', '#hv4'], 90.3, 3, 'rgba(201,188,255,.5)');
+  cue(89.0, 'tick', 0.5, 2);
+  cue(90.3, 'tick', 0.5, 4);
+  // Écrits une seule fois
+  pulse(['#lab2', '#lab3'], 93.0, 3, 'rgba(255,214,140,.4)');
+  // Deux colonnes par requête
+  bump('#cnt4', 98.4, 1.12, 1);
+  cue(98.4, 'true', 0.5);
+  hide(['#c3', '#tb4'], 103.0, {y: -40});
+  sceneOff('#s3', 103.5);
+
+  /* ===== 5 · Le piège ===== */
+  sceneOn('#s5', 103.5);
+  show('#tp5', 103.85, {y: 50});
+  cue(103.85, 'whoosh', 0.6);
+  // Le stock total en troisième colonne
+  pulse('#b5', 105.6, 3, 'rgba(255,214,140,.5)');
+  cue(105.6, 'tick', 0.5, 2);
+  // Erreur
+  errorIn('#er5', 110.0);
+  tl.to('#b5', {textDecorationColor: 'rgba(239,79,85,1)', duration: 0.3}, 110.5);
+  // Deux colonnes, puis trois
+  stackBelow('#cc5', '#tp5', 0, 30);
+  stackBelow('#fx5', '#cc5', 0, 30);
+  show('#cc5', 115.8, {y: 50});
+  cue(115.8, 'whoosh', 0.6);
+  const cc = $$('#cc5 .cc-r');
+  gsap.set(cc, {autoAlpha: 0, x: -30});
+  tl.to(cc, {autoAlpha: 1, x: 0, duration: 0.4, ease: 'power3.out', stagger: 0.35}, 116.2);
+  [0, 1, 2].forEach(i => cue(116.2 + i * 0.35, i < 2 ? 'tick' : 'miss', 0.5, i + 1));
+  shake(cc[2], 117.4);
+  // Une ligne de plus
+  show('#fx5', 121.6, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(121.6, 'true', 0.6);
+  hide(['#tp5', '#cc5', '#fx5'], 126.5, {y: -40});
+  sceneOff('#s5', 127.0);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 127.0);
+  show('#s6code', 127.05, {y: 60}, 0.6);
+  cue(127.05, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 127.55, 44);
+  for (let k = 2; k <= 9; k++) te = typeLine($('#s6l' + k), te + 0.06, 44);
+  pulse(['#u6a', '#u6b'], te + 0.2, 3, 'rgba(201,188,255,.4)');
+  // 3 lignes
+  press($('#s6run'), 133.4);
+  stackBelow('#tbl6', '#s6code', 0, 30);
+  show('#tbl6', 133.65, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 133.8, 0.15);
+  show('#cnt6', 134.5, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 135.3, 1.15, 3);
+  hide(['#s6code', '#tbl6'], 138.5, {y: -40}, 0.4);
+  // Le tableau de bord
+  boardIn('#ab6', 138.9, '.kpi', 0.2);
+  stackBelow('#badge6', '#ab6', 0, 50);
+  show('#badge6', 141.2, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(141.2, 'chord', 0.7);
+  // JOIN élargit (des colonnes en plus), UNION rallonge (des lignes en plus)
+  stackBelow('#mn6', '#badge6', 0, 44);
+  show('#mn6', 144.5, {y: 50});
+  cue(144.5, 'whoosh', 0.6);
+  const nj = $$('#gj6 .nx'), nu = $$('#gu6 .nx');
+  gsap.set(nj, {autoAlpha: 0, scaleX: 0, transformOrigin: '0% 50%'});
+  gsap.set(nu, {autoAlpha: 0, y: -14});
+  tl.to(nj, {autoAlpha: 1, scaleX: 1, duration: 0.35, ease: 'power3.out', stagger: {each: 0.05, grid: [3, 2], from: 'start', axis: 'x'}}, 145.4);
+  cue(145.4, 'pop', 0.6, 2);
+  tl.to(nu, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'back.out(1.8)', stagger: 0.08}, 147.3);
+  cue(147.3, 'pop', 0.6, 4);
+  hide(['#ab6', '#badge6', '#mn6'], 150.0);
+  sceneOff('#s6', 150.5);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(150.5, [151.2, 153.0, 154.8]);
+  hold(152.8, 4.8);
+  hold(154.6, 4.8);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(155.75, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 155.7,
+  glyphs: '📊👥🛒📦✕🎯🔎⚠️✓📚📏🧠·?…', dom, build});
+</script>
+</body>
+</html>
