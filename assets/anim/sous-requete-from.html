@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Sous-requête dans FROM en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:122px;top:448px;letter-spacing:-2px}
+#s0 .title span.sp{margin-right:38px}
+#s0 .hilite{top:522px;height:42px}
+#s0 .sub{top:612px;font-size:60px}
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:38px;white-space:nowrap}
+.nw{white-space:nowrap}
+
+/* Code : huit lignes (chapitres 3, 4 et 6) */
+.code.sm .body{font-size:32px;line-height:50px;padding:26px 36px}
+.code.sm .ln{height:50px}
+.code.sm .caret i{top:-37px;height:42px}
+.code .ln.ex{overflow:hidden;margin-left:-8px;padding-left:8px}
+.code .wx{display:inline-block;overflow:hidden;vertical-align:top}
+/* Mini-requêtes des pièges */
+.mini.mm{font-size:32px;line-height:48px;padding:20px 126px 20px 30px}
+.mini.m8{font-size:28px;line-height:42px;padding:20px 100px 20px 30px}
+.mini .ml{display:block}
+/* Étiquettes : table commandes en violet, table produits en bleu, valeur à calculer en orange */
+.tag.tp{background:#E6F0FF;color:#2A5CB0}
+.tag.calc{background:#FFF4E5;color:#9A5B00}
+
+/* ---------- 1 · Le panier moyen ---------- */
+.board{left:64px;width:952px;padding:0 0 8px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar>span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.lx{padding:28px 34px 26px}
+.lx-hero{display:flex;align-items:center;gap:26px}
+.lx-ico{width:112px;height:112px;border-radius:34px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:64px;flex:none}
+.lx-t1{font-size:42px;font-weight:800;color:var(--ink);white-space:nowrap}
+.lx-t2{margin-top:6px;font-size:30px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.lx-conds{margin-top:26px;display:flex;align-items:center;gap:14px}
+.cd{height:60px;padding:0 22px;border-radius:999px;font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.cd.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.cd.am{background:#FFF4E5;color:#9A5B00}
+
+/* ---------- 2 · Le problème : aucune colonne montant ---------- */
+#tp2 .out,#tp5 .out{margin-top:22px}
+.sc{left:64px;width:952px;padding:22px 26px 26px}
+.sc-h{display:flex;align-items:center;gap:12px;padding:0 4px 16px;font-size:31px;font-weight:700;color:var(--ink);white-space:nowrap}
+.sc-h .emo{font-size:31px}
+.cols{display:flex;flex-wrap:wrap;gap:10px}
+.col{height:50px;padding:0 16px;border-radius:14px;background:var(--surface-2);border:2px solid var(--line);font-family:var(--mono);font-size:27px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:8px;white-space:nowrap}
+.col.gh{background:#FDEBEC;border:2px dashed #F2B8BC;color:#C2323A}
+.col.ok{background:#E7F7EE;border-color:#7FD3A8;color:#1B7A45}
+.fm{left:64px;width:952px;height:132px;display:flex;align-items:center;justify-content:center;gap:22px;white-space:nowrap}
+.fm-r{font-family:var(--mono);font-size:34px;font-weight:800;color:var(--ink)}
+.fm-o{font-family:var(--mono);font-size:38px;font-weight:800;color:var(--ink-3)}
+.fm-t{display:flex;flex-direction:column;align-items:center;gap:6px}
+.fm-t b{font-family:var(--mono);font-size:32px;font-weight:800;color:var(--ink)}
+.fm-t .tag{margin:0;font-size:22px;padding:4px 12px}
+.goal{left:64px;width:952px;height:96px;border-radius:32px;background:#E7F7EE;border:3px solid #BFE8D0;display:flex;align-items:center;justify-content:center;gap:14px;font-size:33px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.goal .emo{font-size:36px}
+
+/* ---------- 3 et 4 · La sous-requête, puis la table dérivée ---------- */
+.tsw{position:relative;display:inline-block;height:44px;width:560px}
+.tsw>span{position:absolute;left:0;top:0;display:flex;align-items:center;gap:14px;height:44px;white-space:nowrap}
+.tsw .t2{font-family:var(--mono);font-size:31px;color:var(--accent-ink);opacity:0}
+.rgM{display:grid;grid-template-columns:220px 1fr;padding:0 26px;align-items:center}
+.tr.t3{height:56px;font-size:32px}
+.an{color:var(--ink-3);font-family:var(--ui);font-size:24px;font-weight:600}
+.more{height:42px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 0 var(--line-2);font-size:23px;font-weight:600;color:var(--ink-3)}
+.pill{left:0;width:1080px;display:flex;justify-content:center}
+.pill>span{height:62px;padding:0 24px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill.vi>span{background:var(--accent-soft);color:var(--accent-ink)}
+.pill.gr>span{background:#E7F7EE;color:#1B7A45}
+.pill .ic{font-size:.92em;background:#fff}
+
+/* ---------- 6 · Le résultat ---------- */
+.rgA{display:grid;grid-template-columns:1fr;padding:0 26px;align-items:center}
+.tr.t6{height:66px;font-size:36px}
+.kp{position:relative;display:flex;align-items:center;gap:28px;padding:34px 36px 36px}
+.kp-ico{width:120px;height:120px;border-radius:36px;background:#E7F7EE;display:flex;align-items:center;justify-content:center;font-size:66px;flex:none}
+.kp-l{font-size:32px;font-weight:700;color:var(--ink-3);white-space:nowrap}
+.kp-v{font-family:var(--display);font-size:92px;font-weight:800;letter-spacing:-2px;color:var(--ink);line-height:1.05;white-space:nowrap}
+.kp-s{margin-top:4px;font-size:27px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+#sp6{right:34px;top:34px}
+
+/* ---------- 7 · À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:20px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Sous-requêtes</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>F</span><span>R</span><span>O</span><span class="sp">M</span><span>(</span><span>S</span><span>E</span><span>L</span><span>E</span><span>C</span><span>T</span><span>)</span></div>
+    <div class="abs sub">Une sous-requête comme table</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec une sous-requête dans <span class="ic">FROM</span>,<br>un résultat se lit comme une table.</div>
+  </section>
+
+  <!-- 1 · Situation : le panier moyen de l’équipe finance -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="ab1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Finance · indicateurs du mois</span><span class="tb" id="tb1">table commandes</span></div>
+      <div class="lx">
+        <div class="lx-hero"><div class="lx-ico">🧺</div><div><div class="lx-t1">Panier moyen</div><div class="lx-t2">Le montant moyen d’une commande</div></div></div>
+        <div class="lx-conds"><span class="cd vi" id="cd1">📈 Indicateur du mois</span><span class="cd am" id="cd2">💶 Montant moyen</span></div>
+      </div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">🔢</span><span class="nl">La quantité commandée</span><span class="tag">table commandes</span></div>
+      <div class="need-row"><span class="emo">🏷️</span><span class="nl">Le prix du produit</span><span class="tag tp">table produits</span></div>
+      <div class="need-row"><span class="emo">💶</span><span class="nl">Le montant moyen</span><span class="tag calc" id="tg1">à calculer</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : la colonne montant n’existe pas -->
+  <section class="scene" id="s2">
+    <div class="abs card trap" id="tp2" style="top:300px">
+      <div class="trap-h"><span class="emo">🔎</span><span>Premier essai</span></div>
+      <div class="mini mm"><span class="ml"><span class="glow" id="a2"><span class="kw">SELECT</span> <span class="kw">AVG</span>(<span class="bad" id="b2">montant</span>)</span></span><span class="ml"><span class="kw">FROM</span> commandes;</span><span class="go" id="go2"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+      <div class="out err" id="er2"><div class="oi">✕</div><div class="ot"><b>Erreur SQL</b><span class="m">no such column: montant</span></div></div>
+    </div>
+    <div class="abs card sc" id="sc2">
+      <div class="sc-h"><span class="emo">🗂️</span><span>Les colonnes de la table commandes</span></div>
+      <div class="cols"><span class="col">id</span><span class="col">numero_commande</span><span class="col">client_id</span><span class="col">produit_id</span><span class="col" id="qt2">quantite</span><span class="col">date_commande</span><span class="col">statut</span><span class="col gh" id="gh2">✕ montant</span></div>
+    </div>
+    <div class="abs card fm" id="fm2"><span class="fm-r">💶 montant</span><span class="fm-o">=</span><span class="fm-t"><b>prix</b><span class="tag tp">table produits</span></span><span class="fm-o">×</span><span class="fm-t"><b>quantite</b><span class="tag">table commandes</span></span></div>
+    <div class="abs goal" id="goal2"><span class="emo">🎯</span>D’abord les montants, puis leur moyenne</div>
+  </section>
+
+  <!-- 3 et 4 · La sous-requête, puis la table dérivée -->
+  <section class="scene" id="s3">
+    <div class="abs code sm" id="c3" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln ex" id="c3a"><span class="kw">SELECT</span> <span class="glow" id="avg3"><span class="kw">AVG</span>(montant)</span></span><span class="ln ex" id="c3b"><span class="kw">FROM</span> <span id="po3">(</span></span><span class="ln" id="c3c"><span class="kw">SELECT</span> <span class="glow" id="mul3">produits.prix * commandes.quantite</span><span class="caret"><i></i></span></span><span class="ln" id="c3d">       <span class="glow" id="as3"><span class="kw">AS</span> montant</span><span class="caret"><i></i></span></span><span class="ln" id="c3e"><span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="c3f"><span class="glow" id="j3"><span class="kw">JOIN</span> produits</span><span class="caret"><i></i></span></span><span class="ln" id="c3g">  <span class="glow" id="on3"><span class="kw">ON</span> commandes.produit_id = produits.id</span><span class="wx" id="sc3">;</span><span class="caret"><i></i></span></span><span class="ln ex" id="c3h"><span id="pc3">)</span> <span class="glow" id="al3"><span class="kw">AS</span> commandes_montants</span>;</span></div>
+      <div class="run" id="r3"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tb3">
+      <div class="tt"><span class="tsw"><span class="t1"><span class="emo">🔎</span><span>Résultat de la sous-requête</span></span><span class="t2"><span class="emo">🗃️</span><span>commandes_montants</span></span></span><span class="cnt"><span id="cnt3">16 lignes</span></span></div>
+      <div class="rgM th"><div>montant</div><div></div></div>
+      <div class="rows" id="rows3"></div>
+    </div>
+  </section>
+
+  <!-- 5 · Le piège : une colonne absente de la table dérivée -->
+  <section class="scene" id="s5">
+    <div class="abs card trap" id="tp5" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Et la quantité moyenne&nbsp;?</span></div>
+      <div class="mini m8"><span class="ml"><span class="kw">SELECT</span> <span class="glow" id="q5"><span class="kw">AVG</span>(<span class="bad" id="b5">quantite</span>)</span></span><span class="ml"><span class="kw">FROM</span> (</span><span class="ml">  <span class="kw">SELECT</span> produits.prix * commandes.quantite</span><span class="ml">         <span class="glow" id="m5"><span class="kw">AS</span> montant</span></span><span class="ml">  <span class="kw">FROM</span> commandes</span><span class="ml">  <span class="kw">JOIN</span> produits</span><span class="ml">    <span class="kw">ON</span> commandes.produit_id = produits.id</span><span class="ml">) <span class="kw">AS</span> commandes_montants;</span><span class="go" id="go5"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+      <div class="out err" id="er5"><div class="oi">✕</div><div class="ot"><b>Erreur SQL</b><span class="m">no such column: quantite</span></div></div>
+    </div>
+    <div class="abs card sc" id="sc5">
+      <div class="sc-h"><span class="emo">🗃️</span><span>Les colonnes de commandes_montants</span></div>
+      <div class="cols"><span class="col ok" id="mt5">montant</span><span class="col gh" id="gh5">✕ quantite</span></div>
+    </div>
+    <div class="abs pill gr" id="fx5"><span>✓ Il faudrait l’ajouter au <span class="ic">SELECT</span> de la sous-requête</span></div>
+  </section>
+
+  <!-- 6 · Le résultat : la requête complète, puis l’indicateur -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> <span class="kw">AVG</span>(montant)<span class="caret"><i></i></span></span><span class="ln" id="s6l2"><span class="kw">FROM</span> (<span class="caret"><i></i></span></span><span class="ln" id="s6l3">  <span class="kw">SELECT</span> produits.prix * commandes.quantite<span class="caret"><i></i></span></span><span class="ln" id="s6l4">         <span class="kw">AS</span> montant<span class="caret"><i></i></span></span><span class="ln" id="s6l5">  <span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="s6l6">  <span class="kw">JOIN</span> produits<span class="caret"><i></i></span></span><span class="ln" id="s6l7">    <span class="kw">ON</span> commandes.produit_id = produits.id<span class="caret"><i></i></span></span><span class="ln" id="s6l8">) <span class="glow" id="al6"><span class="kw">AS</span> commandes_montants</span>;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">1 ligne</span></span></div>
+      <div class="rgA th"><div>AVG(montant)</div></div>
+      <div class="rows"><div class="rgA tr t6" id="r6"><span class="hl"></span><div>46.71875</div></div></div>
+    </div>
+    <div class="abs pill vi" id="dv6"><span>🧮 <span class="ic">747.5 ÷ 16 = 46.71875</span></span></div>
+    <div class="abs card board" id="ab6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Finance · indicateurs du mois</span></div>
+      <div class="kp">
+        <div class="kp-ico">🧺</div>
+        <div><div class="kp-l">Panier moyen</div><div class="kp-v">46,72&nbsp;€</div><div class="kp-s">par commande · 16 commandes</div></div>
+        <div class="stamp" id="sp6">À jour</div>
+      </div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ Indicateur mis à jour</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🗃️</div><div class="rtxt">Une sous-requête dans <span class="ic">FROM</span> produit un <b>résultat intermédiaire</b> que la requête principale utilise comme une table.<span class="rs">Ici&nbsp;: d’abord le montant de chaque commande, puis la moyenne de ces montants.</span></div></div>
+      <div class="rrow"><div class="rico emo">🏷️</div><div class="rtxt">Cette «&nbsp;table dérivée&nbsp;» <span class="nw">doit avoir un <b>alias</b>&nbsp;:</span><br><span class="ic blk">FROM (SELECT …) AS alias</span></div></div>
+      <div class="rrow"><div class="rico emo">💡</div><div class="rtxt">Quand un calcul porte sur le résultat d’un autre calcul, pense à placer une <span class="nw">sous-requête</span> dans <span class="ic">FROM</span>.</div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 173.1;
+
+/* Les trois premiers montants de la table dérivée : [montant, commande, prix × quantité]. Les 16 montants totalisent 747.5. */
+const MONTANTS = [['59.8', 'commande n°1', '29.9 × 2'], ['19.9', 'commande n°2', '19.9 × 1'], ['34.9', 'commande n°3', '34.9 × 1']];
+
+const CHAPTERS = [
+  {n:1, label:'Situation',            a:5.0,   b:33.6},
+  {n:2, label:'Le problème',          a:33.6,  b:57.5},
+  {n:3, label:'La sous-requête',      a:57.5,  b:81.5},
+  {n:4, label:'La table dérivée',     a:81.5,  b:110.5},
+  {n:5, label:'Le piège',             a:110.5, b:134.9},
+  {n:6, label:'Le résultat',          a:134.9, b:163.0},
+  {n:7, label:'À retenir',            a:163.0, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 10.9,    "Chaque mois, l’équipe finance suit un indicateur clé : le <b>panier moyen</b>."],
+  [11.0, 16.3,   "C’est le montant moyen dépensé à chaque commande sur le site web."],
+  [16.4, 22.0,   "Les 16 commandes sont rangées dans la <b>table commandes</b>, avec leur quantité."],
+  [22.1, 27.6,   "Le prix de chaque produit, lui, se trouve dans la table <code>produits</code>."],
+  [27.7, 33.1,   "Le montant d’une commande, c’est le prix multiplié par la quantité."],
+  [33.9, 39.4,   "Premier essai : la moyenne d’une colonne <code>montant</code>."],
+  [39.5, 45.0,   "Erreur : la table commandes n’a aucune colonne <code>montant</code>."],
+  [45.1, 51.0,   "Le montant n’existe nulle part : il faut le calculer, commande par commande."],
+  [51.1, 57.0,   "Il faut donc deux calculs : d’abord les montants, puis leur moyenne."],
+  [57.8, 63.4,   "Première étape : une requête calcule le montant de chaque commande."],
+  [63.5, 69.0,   "Le <code>JOIN</code> relie chaque commande à son produit, pour connaître son prix."],
+  [69.1, 74.8,   "Le prix est multiplié par la quantité, et <code>AS</code> nomme ce calcul <code>montant</code>."],
+  [74.9, 81.0,   "La requête renvoie <b>16 montants</b>, un par commande : 59.8, 19.9, 34.9…"],
+  [81.8, 87.5,   "Ce résultat est ensuite placé entre parenthèses, dans le <code>FROM</code>."],
+  [87.6, 93.2,   "Avec <code>AS</code>, il reçoit un nom de table, son alias : <code>commandes_montants</code>."],
+  [93.3, 99.2,   "La requête principale le lit comme une vraie table : c’est une <b>table dérivée</b>."],
+  [99.3, 105.0,  "La <span class=\"nw\">sous-requête</span> s’exécute en premier : ses 16 montants forment cette table."],
+  [105.1, 110.0, "La requête principale n’a plus qu’à calculer leur moyenne : <code>AVG(montant)</code>."],
+  [110.8, 116.6, "Attention : une table dérivée ne contient que les colonnes de sa <span class=\"nw\">sous-requête</span>."],
+  [116.7, 122.3, "Ici, seulement <code>montant</code> : demander <code>AVG(quantite)</code> provoque une erreur."],
+  [122.4, 128.2, "La quantité est restée dans la table commandes, hors de la table dérivée."],
+  [128.3, 134.4, "Pour s’en servir, il faudrait l’ajouter au <code>SELECT</code> de la <span class=\"nw\">sous-requête</span>."],
+  [135.2, 141.0, "La requête complète calcule d’abord les montants, puis leur moyenne."],
+  [141.1, 146.4, "Résultat : une seule ligne, <b>46.71875</b>."],
+  [146.5, 152.2, "C’est 747,5 € au total, divisés par les 16 commandes."],
+  [152.3, 157.5, "Le panier moyen s’élève donc à environ <b>46,72 €</b> par commande."],
+  [157.6, 162.5, "L’équipe finance peut mettre à jour son indicateur du mois."],
+  [163.3, 168.1, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [168.2, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [168.2, 999, "Pour calculer sur un résultat, pense à une <span class=\"nw\">sous-requête</span> dans <code>FROM</code>."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+function dom(){
+  /* Chapitres 3 et 4 : les montants calculés par la sous-requête (les trois premiers), avec leur calcul en note */
+  $('#rows3').innerHTML = MONTANTS.map(([m, c, x]) => `<div class="rgM tr t3"><span class="hl"></span><div>${m}</div><div class="an">${c} · ${x}</div></div>`).join('') +
+    '<div class="more">⋯ 13 autres montants ⋯</div>';
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+/* Une carte arrive en tournant légèrement, puis ses éléments un à un. */
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(sel, $(id));
+  gsap.set(items, {autoAlpha: 0, y: 24});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => cue(t + 0.65 + i * step, 'pop', 0.55, i % 5));
+  return items;
+}
+/* Une erreur SQL : l’encadré apparaît et tremble. */
+function errorIn(sel, t){
+  show(sel, t, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  tl.to(sel, {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, t + 0.4);
+  cue(t, 'error', 0.85);
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  boardIn('#ab1', 5.15, '.lx-hero');
+  gsap.set(['#cd1', '#cd2', '#tb1'], {autoAlpha: 0});
+  // Un indicateur suivi chaque mois
+  show('#cd1', 7.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(7.6, 'pop', 0.7, 1);
+  // Le montant moyen d’une commande
+  show('#cd2', 11.8, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(11.8, 'pop', 0.7, 3);
+  // Les commandes et leur quantité : table commandes
+  stackBelow('#s1 .need', '#ab1');   // la liste se cale sous la carte de l’indicateur, sans la toucher
+  show('#tb1', 16.9, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(16.9, 'pop', 0.7, 2);
+  show('#s1 .need', 17.3, {y: 60});
+  cue(17.3, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows[0], {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, 17.6);
+  cue(17.6, 'pop', 0.7, 0);
+  // Le prix : table produits
+  tl.to(needRows[1], {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, 22.6);
+  cue(22.6, 'pop', 0.7, 2);
+  // Le montant moyen : à calculer
+  tl.to(needRows[2], {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, 28.2);
+  cue(28.2, 'pop', 0.7, 4);
+  bump('#tg1', 29.0, 1.12, 1);
+  hide(['#ab1', '#s1 .need'], 33.1);
+  sceneOff('#s1', 33.6);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 33.6);
+  show('#tp2', 33.65, {y: 50});
+  cue(33.65, 'whoosh', 0.6);
+  // La moyenne d’une colonne montant
+  pulse('#a2', 35.6, 3, 'rgba(201,188,255,.35)');
+  // Erreur : aucune colonne montant
+  press($('#go2'), 39.9, '#4B30CC', 6);
+  errorIn('#er2', 40.3);
+  tl.to('#b2', {textDecorationColor: 'rgba(239,79,85,1)', duration: 0.3}, 40.8);
+  stackBelow('#sc2', '#tp2', 0, 30);
+  stackBelow('#fm2', '#sc2', 0, 30);
+  stackBelow('#goal2', '#fm2', 0, 30);
+  show('#sc2', 41.6, {y: 50});
+  cue(41.6, 'whoosh', 0.6);
+  const cols2 = $$('#sc2 .col:not(.gh)');
+  gsap.set([...cols2, '#gh2'], {autoAlpha: 0, scale: 0.7});
+  tl.to(cols2, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.08}, 42.1);
+  tl.to('#gh2', {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)'}, 43.0);
+  cue(43.0, 'miss', 0.55);
+  shake('#gh2', 43.4);
+  // Le montant se calcule : prix × quantité
+  show('#fm2', 45.7, {y: 0, scale: 0.85}, 0.45, 'back.out(1.8)');
+  cue(45.7, 'pop', 0.7, 2);
+  bump($$('#fm2 .fm-t')[0], 47.0, 1.1, 1);
+  bump($$('#fm2 .fm-t')[1], 47.6, 1.1, 1);
+  // D’abord les montants, puis leur moyenne
+  show('#goal2', 51.7, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(51.7, 'pop', 0.75, 3);
+  hide(['#tp2', '#sc2', '#fm2', '#goal2'], 57.0, {y: -40}, 0.4);
+  sceneOff('#s2', 57.5);
+
+  /* ===== 3 · La sous-requête ===== */
+  sceneOn('#s3', 57.5);
+  // Le tableau des montants se cale sous la requête telle qu’elle sera au chapitre 4 (trois lignes de plus, sans bouton)
+  gsap.set('#r3', {height: 0, marginBottom: 0});
+  stackBelow('#tb3', '#c3', 0, 30);
+  gsap.set('#r3', {clearProps: 'height,marginBottom'});
+  gsap.set(['#c3a', '#c3b', '#c3h'], {height: 0, opacity: 0});
+  show('#c3', 57.85, {y: 60}, 0.6);
+  cue(57.85, 'whoosh', 0.7);
+  te = typeLine($('#c3c'), 58.4, 40);
+  for (const id of ['#c3d', '#c3e', '#c3f', '#c3g']) te = typeLine($(id), te + 0.1, 40);
+  // JOIN : le prix du produit de chaque commande
+  pulse(['#j3', '#on3'], 64.0, 3, 'rgba(201,188,255,.35)');
+  // prix × quantité, nommé montant
+  pulse('#mul3', 69.6, 3, 'rgba(201,188,255,.35)');
+  pulse('#as3', 72.0, 3, 'rgba(201,188,255,.35)');
+  // 16 montants
+  press($('#r3'), 75.2);
+  show('#tb3', 75.45, {y: 40}, 0.5);
+  rowsIn($$('#rows3 .tr, #rows3 .more'), 75.7, 0.35);
+  gsap.set('#cnt3', {autoAlpha: 0});
+  show('#cnt3', 77.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt3', 78.0, 1.12, 1);
+
+  /* ===== 4 · La table dérivée ===== */
+  // Entre parenthèses dans le FROM : le bouton s’efface, deux lignes s’ouvrent au-dessus, une en dessous
+  tl.to('#r3', {height: 0, marginBottom: 0, autoAlpha: 0, duration: 0.35, ease: 'power2.in'}, 82.0);
+  tl.to('#sc3', {width: 0, duration: 0.3}, 82.2);
+  tl.to(['#c3a', '#c3b', '#c3h'], {height: 50, duration: 0.45, ease: 'power3.out'}, 82.5);
+  tl.to(['#c3a', '#c3b', '#c3h'], {opacity: 1, duration: 0.3}, 82.9);
+  tl.to(['#c3c', '#c3d', '#c3e', '#c3f', '#c3g'], {paddingLeft: 38.4, duration: 0.45, ease: 'power3.out'}, 82.5);
+  cue(82.5, 'fold', 0.6);
+  tl.to(['#po3', '#pc3'], {color: '#FFC870', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 83.6);   // les deux parenthèses s’allument
+  // Son alias : commandes_montants
+  pulse('#al3', 88.1, 3, 'rgba(201,188,255,.45)');
+  tl.to('#tb3 .t1', {autoAlpha: 0, y: -16, duration: 0.3}, 88.9);
+  tl.fromTo('#tb3 .t2', {autoAlpha: 0, y: 16}, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out', immediateRender: false}, 89.1);
+  tl.to($$('#rows3 .an'), {autoAlpha: 0, duration: 0.3}, 89.1);
+  cue(89.1, 'pop', 0.7, 3);
+  // Une vraie table : la table dérivée
+  tl.to('#tb3', {borderColor: '#B9A8FF', duration: 0.4}, 94.0);
+  bump('#tb3 .t2', 94.0, 1.08, 1);
+  cue(94.0, 'true', 0.55);
+  // Exécutée en premier : ses 16 montants
+  bump('#cnt3', 99.9, 1.15, 3);
+  cue(99.9, 'tick', 0.5, 2);
+  // Leur moyenne : AVG(montant)
+  pulse('#avg3', 105.6, 3, 'rgba(201,188,255,.45)');
+  cue(105.6, 'tick', 0.5, 4);
+  hide(['#c3', '#tb3'], 110.0, {y: -40});
+  sceneOff('#s3', 110.5);
+
+  /* ===== 5 · Le piège ===== */
+  sceneOn('#s5', 110.5);
+  show('#tp5', 110.85, {y: 50});
+  cue(110.85, 'whoosh', 0.6);
+  pulse('#m5', 113.4, 3, 'rgba(201,188,255,.45)');
+  // AVG(quantite) : erreur
+  pulse('#q5', 117.2, 3, 'rgba(255,214,140,.5)');
+  press($('#go5'), 118.4, '#4B30CC', 6);
+  errorIn('#er5', 118.8);
+  tl.to('#b5', {textDecorationColor: 'rgba(239,79,85,1)', duration: 0.3}, 119.3);
+  // La quantité n’est pas dans la table dérivée
+  stackBelow('#sc5', '#tp5', 0, 30);
+  stackBelow('#fx5', '#sc5', 0, 30);
+  show('#sc5', 122.9, {y: 50});
+  cue(122.9, 'whoosh', 0.6);
+  gsap.set(['#mt5', '#gh5'], {autoAlpha: 0, scale: 0.7});
+  tl.to('#mt5', {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)'}, 123.4);
+  cue(123.4, 'pop', 0.6, 2);
+  tl.to('#gh5', {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)'}, 124.2);
+  cue(124.2, 'miss', 0.55);
+  shake('#gh5', 124.6);
+  // L’ajouter au SELECT de la sous-requête
+  show('#fx5', 128.9, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(128.9, 'true', 0.6);
+  hide(['#tp5', '#sc5', '#fx5'], 134.4, {y: -40});
+  sceneOff('#s5', 134.9);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 134.9);
+  show('#s6code', 134.95, {y: 60}, 0.6);
+  cue(134.95, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 135.45, 40);
+  for (const k of [2, 3, 4, 5, 6, 7, 8]) te = typeLine($('#s6l' + k), te + 0.1, 40);
+  // Une seule ligne : 46.71875
+  press($('#s6run'), 141.5);
+  stackBelow('#tbl6', '#s6code', 0, 30);
+  stackBelow('#dv6', '#tbl6', 0, 30);
+  show('#tbl6', 141.75, {y: 40}, 0.5);
+  rowsIn([$('#r6')], 142.0);
+  gsap.set('#cnt6', {autoAlpha: 0});
+  show('#cnt6', 142.5, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  tl.to('#r6 .hl', {opacity: 1, duration: 0.3}, 143.2);
+  cue(143.2, 'true', 0.55);
+  // 747.5 ÷ 16
+  show('#dv6', 147.0, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(147.0, 'pop', 0.7, 2);
+  hide(['#s6code', '#tbl6', '#dv6'], 152.0, {y: -40}, 0.4);
+  // L’indicateur du mois : 46,72 €
+  boardIn('#ab6', 152.4, '.kp > div:not(.stamp)', 0.2);
+  gsap.set('#sp6', {autoAlpha: 0, scale: 1.8, rotation: -14});
+  tl.to('#sp6', {autoAlpha: 1, scale: 1, rotation: -8, duration: 0.35, ease: 'back.out(2)'}, 158.0);
+  cue(158.0, 'stamp', 0.8);
+  stackBelow('#badge6', '#ab6', 0, 50);
+  show('#badge6', 158.8, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(158.8, 'chord', 0.7);
+  hide(['#ab6', '#badge6'], 162.5);
+  sceneOff('#s6', 163.0);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(163.0, [163.7, 165.5, 167.3]);
+  hold(165.3, 4.8);
+  hold(167.1, 4.8);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(168.25, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 168.2,
+  glyphs: '🧺📈💶🔢🏷️🔎🗂️✕🎯🗃️⚠️✓🧮💡·⋯×÷…«»', dom, build});
+</script>
+</body>
+</html>
