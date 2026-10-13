@@ -245,7 +245,7 @@
 <script src="core.js"></script>
 <script>
 'use strict';
-const DURATION = 157.0;
+const DURATION = 157.7;
 
 /* Table commandes [id, client_id] : la commande n°16 n’a pas de client. */
 const COMMANDES = [[1, 1], [2, 1], [3, 2], [4, 3], [5, 4], [6, 5], [7, 6], [8, 7], [9, 7], [10, 2], [11, 8], [12, 4], [13, 1], [14, 3], [15, 5], [16, null]];
@@ -257,13 +257,13 @@ const PAIRES = [[1, 2, 1], [1, 13, 1], [2, 13, 1], [3, 10, 2], [4, 14, 3], [5, 1
 const COLIS = [[1, [1, 2, 13], 3], [2, [3, 10], 1], [3, [4, 14], 1], [4, [5, 12], 1], [5, [6, 15], 1], [7, [8, 9], 1]];
 
 const CHAPTERS = [
-  {n:1, label:'Situation',             a:5.0,   b:36.1},
-  {n:2, label:'Le problème',           a:36.1,  b:57.3},
-  {n:3, label:'SELF JOIN en action',   a:57.3,  b:84.4},
-  {n:4, label:'Avec elle-même',        a:84.4,  b:106.2},
-  {n:5, label:'Le piège',              a:106.2, b:127.2},
-  {n:6, label:'Le résultat',           a:127.2, b:144.2},
-  {n:7, label:'À retenir',             a:144.2, b:DURATION}
+  {n:1, label:'Situation',             a:5.0,   b:36.4},
+  {n:2, label:'Le problème',           a:36.4,  b:57.6},
+  {n:3, label:'SELF JOIN en action',   a:57.6,  b:84.7},
+  {n:4, label:'Avec elle-même',        a:84.7,  b:106.5},
+  {n:5, label:'Le piège',              a:106.5, b:127.5},
+  {n:6, label:'Le résultat',           a:127.5, b:144.9},
+  {n:7, label:'À retenir',             a:144.9, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
@@ -272,31 +272,31 @@ const CAPTIONS = [
   [10.4, 15.8,   "Quand un même client a passé plusieurs commandes, ses colis peuvent partir <b>ensemble</b>."],
   [15.9, 19.9,   "Toutes les commandes se trouvent dans la <b>table commandes</b>."],
   [20.0, 24.4,   "Chacune indique le client qui l’a passée, avec <code>client_id</code>."],
-  [24.5, 29.7,   "Par exemple, Sophie, la cliente 1,<br>a passé <b>3 commandes</b> :<br>les n°1, n°2 et n°13."],
-  [29.8, 35.6,   "Il faut donc comparer les commandes <b>entre elles</b> pour former les paires d’un même client."],
-  [36.4, 41.8,   "Pour les comparer, il faut réunir deux commandes sur <b>une même ligne</b>."],
-  [41.9, 46.6,   "Premier essai : écrire <code>JOIN</code> pour relier la table commandes à <span class=\"nw\">elle-même</span>."],
-  [46.7, 52.2,   "Refusée : <code>commandes.id</code> peut désigner l’une ou l’autre des deux copies."],
-  [52.3, 56.8,   "Il faut donner à chaque copie de la table <b>un nom différent</b>."],
-  [57.6, 63.1,   "Un <code>SELF JOIN</code> est un <code>JOIN</code> ordinaire : la même table y est lue <b>deux fois</b>."],
-  [63.2, 68.9,   "Chaque copie reçoit un alias : <code>c1</code> pour la première commande, <code>c2</code> pour la seconde."],
-  [69.0, 73.1,   "<code>ON</code> associe deux commandes qui ont le <b>même client</b>."],
-  [73.2, 78.3,   "Pour la commande n°1 de la cliente 1, <code>c2</code> trouve les n°1, n°2 et n°13."],
-  [78.4, 83.9,   "Les n°2 et n°13 sont associées, elles aussi, aux n°1, n°2 et n°13."],
-  [84.7, 88.9,   "Le résultat compte <b>31 lignes</b>. Voici celles de la cliente 1."],
-  [89.0, 94.4,   "Chaque commande est associée à <b class=\"nw\">elle-même</b> : la n°1 avec la n°1, la n°2 avec la n°2…"],
-  [94.5, 100.1,   "Pour les écarter, on ajoute avec <code>AND</code> une condition : des <code>id</code> <b>différents</b>."],
-  [100.2, 105.7,  "Il reste <b>16 lignes</b> : aucune commande n’est plus associée à <span class=\"nw\">elle-même</span>."],
-  [106.5, 110.5, "Attention : avec <code>&lt;&gt;</code>, chaque paire apparaît <b>deux fois</b>."],
-  [110.6, 115.4, "La paire 1 et 2 forme une ligne, et la paire 2 et 1 une autre."],
-  [115.5, 121.6, "En remplaçant <code>&lt;&gt;</code> par <code>&lt;</code>, seul le sens où <code>c1.id</code> est le plus petit est conservé."],
-  [121.7, 126.7, "Il reste <b>une ligne par paire</b> : 3 paires pour la cliente 1."],
-  [127.5, 133.9, "La requête complète associe les commandes d’un même client, chaque paire une seule fois."],
-  [134.0, 138.5, "Résultat : <b>8 paires</b> de commandes, dont 3 pour Sophie, la cliente 1."],
-  [138.6, 143.7, "L’entrepôt peut regrouper les colis de <b>6 clients</b>, en un seul envoi chacun."],
-  [144.5, 149.3, "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [149.4, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
-      : [149.4, 999, "Un <code>SELF JOIN</code> relie une table à <span class=\"nw\">elle-même</span>, sous deux alias."]
+  [24.5, 30.0,   "Par exemple, Sophie Martin, la cliente 1,<br>a passé <b>3 commandes</b> :<br>les n°1, n°2 et n°13."],
+  [30.1, 35.9,   "Il faut donc comparer les commandes <b>entre elles</b> pour former les paires d’un même client."],
+  [36.7, 42.1,   "Pour les comparer, il faut réunir deux commandes sur <b>une même ligne</b>."],
+  [42.2, 46.9,   "Premier essai : écrire <code>JOIN</code> pour relier la table commandes à <span class=\"nw\">elle-même</span>."],
+  [47.0, 52.5,   "Refusée : <code>commandes.id</code> peut désigner l’une ou l’autre des deux copies."],
+  [52.6, 57.1,   "Il faut donner à chaque copie de la table <b>un nom différent</b>."],
+  [57.9, 63.4,   "Un <code>SELF JOIN</code> est un <code>JOIN</code> ordinaire : la même table y est lue <b>deux fois</b>."],
+  [63.5, 69.2,   "Chaque copie reçoit un alias : <code>c1</code> pour la première commande, <code>c2</code> pour la seconde."],
+  [69.3, 73.4,   "<code>ON</code> associe deux commandes qui ont le <b>même client</b>."],
+  [73.5, 78.6,   "Pour la commande n°1 de la cliente 1, <code>c2</code> trouve les n°1, n°2 et n°13."],
+  [78.7, 84.2,   "Les n°2 et n°13 sont associées, elles aussi, aux n°1, n°2 et n°13."],
+  [85.0, 89.2,   "Le résultat compte <b>31 lignes</b>. Voici celles de la cliente 1."],
+  [89.3, 94.7,   "Chaque commande est associée à <b class=\"nw\">elle-même</b> : la n°1 avec la n°1, la n°2 avec la n°2…"],
+  [94.8, 100.4,   "Pour les écarter, on ajoute avec <code>AND</code> une condition : des <code>id</code> <b>différents</b>."],
+  [100.5, 106.0,  "Il reste <b>16 lignes</b> : aucune commande n’est plus associée à <span class=\"nw\">elle-même</span>."],
+  [106.8, 110.8, "Attention : avec <code>&lt;&gt;</code>, chaque paire apparaît <b>deux fois</b>."],
+  [110.9, 115.7, "La paire 1 et 2 forme une ligne, et la paire 2 et 1 une autre."],
+  [115.8, 121.9, "En remplaçant <code>&lt;&gt;</code> par <code>&lt;</code>, seul le sens où <code>c1.id</code> est le plus petit est conservé."],
+  [122.0, 127.0, "Il reste <b>une ligne par paire</b> : 3 paires pour la cliente 1."],
+  [127.8, 134.2, "La requête complète associe les commandes d’un même client, chaque paire une seule fois."],
+  [134.3, 139.2, "Résultat : <b>8 paires</b> de commandes, dont 3 pour Sophie Martin, la cliente 1."],
+  [139.3, 144.4, "L’entrepôt peut regrouper les colis de <b>6 clients</b>, en un seul envoi chacun."],
+  [145.2, 150.0, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [150.1, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [150.1, 999, "Un <code>SELF JOIN</code> relie une table à <span class=\"nw\">elle-même</span>, sous deux alias."]
 ];
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
@@ -413,62 +413,62 @@ function build(){
     cue(25.4 + i * 0.3, 'pop', 0.6, i + 1);
   });
   // Comparer les commandes entre elles
-  bump(ck.filter(k => SOPHIE.includes(+k.dataset.id)), 30.8, 1.1, 3);
-  bump($$('#s1 .need .tag'), 32.6, 1.08, 1);
-  hide(['#cb1', '#s1 .need'], 35.6);
-  sceneOff('#s1', 36.1);
+  bump(ck.filter(k => SOPHIE.includes(+k.dataset.id)), 31.1, 1.1, 3);
+  bump($$('#s1 .need .tag'), 32.9, 1.08, 1);
+  hide(['#cb1', '#s1 .need'], 35.9);
+  sceneOff('#s1', 36.4);
 
   /* ===== 2 · Le problème ===== */
-  sceneOn('#s2', 36.1);
+  sceneOn('#s2', 36.4);
   stackBelow('#ta2', '#pr2', 0, 30);
   stackBelow('#goal2', '#ta2', 0, 30);   // place prévue pour la carte entière : elle s’ouvre ensuite
   const open2 = fold($('#er2'));
   // Deux commandes, côte à côte, sur une même ligne
-  show('#pr2', 36.15, {y: 50});
-  cue(36.15, 'whoosh', 0.6);
-  show('#k2a', 37.8, {y: 0, x: -40, scale: 0.8}, 0.45, 'back.out(1.8)');
-  show('#k2b', 38.4, {y: 0, x: 40, scale: 0.8}, 0.45, 'back.out(1.8)');
-  cue(37.8, 'pop', 0.6, 1);
-  cue(38.4, 'pop', 0.6, 3);
+  show('#pr2', 36.45, {y: 50});
+  cue(36.45, 'whoosh', 0.6);
+  show('#k2a', 38.1, {y: 0, x: -40, scale: 0.8}, 0.45, 'back.out(1.8)');
+  show('#k2b', 38.7, {y: 0, x: 40, scale: 0.8}, 0.45, 'back.out(1.8)');
+  cue(38.1, 'pop', 0.6, 1);
+  cue(38.7, 'pop', 0.6, 3);
   // Premier essai : la table, deux fois
-  show('#ta2', 42.2, {y: 50});
-  cue(42.2, 'whoosh', 0.6);
+  show('#ta2', 42.5, {y: 50});
+  cue(42.5, 'whoosh', 0.6);
   // Relier la table à elle-même
-  press($('#go2'), 45.5, '#4B30CC', 6);
+  press($('#go2'), 45.8, '#4B30CC', 6);
   // Refusée : commandes.id est ambigu
-  open2(45.8);
-  cue(45.8, 'false', 0.6);
-  pulse('#i2', 47.6, 3, 'rgba(255,140,140,.45)');
-  shake('#er2', 48.8);
+  open2(46.1);
+  cue(46.1, 'false', 0.6);
+  pulse('#i2', 47.9, 3, 'rgba(255,140,140,.45)');
+  shake('#er2', 49.1);
   // Un nom différent pour chaque copie
-  show('#goal2', 52.9, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
-  cue(52.9, 'pop', 0.75, 3);
-  hide(['#pr2', '#ta2', '#goal2'], 56.8, {y: -40}, 0.4);
-  sceneOff('#s2', 57.3);
+  show('#goal2', 53.2, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(53.2, 'pop', 0.75, 3);
+  hide(['#pr2', '#ta2', '#goal2'], 57.1, {y: -40}, 0.4);
+  sceneOff('#s2', 57.6);
 
   /* ===== 3 · SELF JOIN en action ===== */
-  sceneOn('#s3', 57.3);
-  show('#s3code', 57.35, {y: 60}, 0.6);
-  cue(57.35, 'whoosh', 0.7);
-  te = typeLine($('#s3l1'), 57.85, 26);
+  sceneOn('#s3', 57.6);
+  show('#s3code', 57.65, {y: 60}, 0.6);
+  cue(57.65, 'whoosh', 0.7);
+  te = typeLine($('#s3l1'), 58.15, 26);
   te = typeLine($('#s3l2'), te + 0.1, 26);
   te = typeLine($('#s3l3'), te + 0.1, 30);
   // Deux alias : c1 et c2
-  pulse('#a3a', 64.4, 3, 'rgba(201,188,255,.5)');
-  pulse('#a3b', 65.8, 3, 'rgba(160,196,255,.5)');
+  pulse('#a3a', 64.7, 3, 'rgba(201,188,255,.5)');
+  pulse('#a3b', 66.1, 3, 'rgba(160,196,255,.5)');
   stackBelow('#n3a', '#s3code', 0, 34);
-  show('#n3a', 66.6, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
-  cue(66.6, 'pop', 0.7, 2);
+  show('#n3a', 66.9, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(66.9, 'pop', 0.7, 2);
   // ON : le même client
-  pulse('#o3', 69.6, 3, 'rgba(201,188,255,.45)');
-  cue(69.6, 'tick', 0.5, 3);
-  hide(['#s3code', '#n3a'], 72.8, {y: -40}, 0.4);
+  pulse('#o3', 69.9, 3, 'rgba(201,188,255,.45)');
+  cue(69.9, 'tick', 0.5, 3);
+  hide(['#s3code', '#n3a'], 73.1, {y: -40}, 0.4);
   // Les deux copies, puis les liens des commandes de la cliente 1
-  show('#lk3', 73.2, {y: 50});
-  cue(73.2, 'whoosh', 0.7);
+  show('#lk3', 73.5, {y: 50});
+  cue(73.5, 'whoosh', 0.7);
   gsap.set([...r1, ...r2], {autoAlpha: 0, y: 10});
-  tl.to(r1, {autoAlpha: 1, y: 0, duration: 0.28, ease: 'power2.out', stagger: 0.03}, 73.5);
-  tl.to(r2, {autoAlpha: 1, y: 0, duration: 0.28, ease: 'power2.out', stagger: 0.03}, 73.7);
+  tl.to(r1, {autoAlpha: 1, y: 0, duration: 0.28, ease: 'power2.out', stagger: 0.03}, 73.8);
+  tl.to(r2, {autoAlpha: 1, y: 0, duration: 0.28, ease: 'power2.out', stagger: 0.03}, 74.0);
   L.forEach(({path, len}) => gsap.set(path, {strokeDasharray: len, strokeDashoffset: len, opacity: 0}));
   gsap.set(dots, {autoAlpha: 0, scale: 0, transformOrigin: '50% 50%'});
   const fan = (i, t, step) => {
@@ -482,114 +482,114 @@ function build(){
       cue(tk + 0.4, 'pop', 0.5, k);
     });
   };
-  fan(1, 74.8, 0.35);
+  fan(1, 75.1, 0.35);
   // Les commandes n°2 et n°13 aussi
-  tl.to(L.filter(p => p.i === 1).map(p => p.path), {opacity: 0.35, duration: 0.3}, 78.8);
-  tl.to(r1[0].querySelector('.bg'), {opacity: 0.4, duration: 0.3}, 78.8);
-  fan(2, 79.2, 0.2);
-  tl.to(L.filter(p => p.i === 2).map(p => p.path), {opacity: 0.35, duration: 0.3}, 80.9);
-  tl.to(r1[1].querySelector('.bg'), {opacity: 0.4, duration: 0.3}, 80.9);
-  fan(13, 81.2, 0.2);
-  tl.to(L.map(p => p.path), {opacity: 1, duration: 0.3}, 82.8);
-  tl.to([r1[0], r1[1]].map(r => r.querySelector('.bg')), {opacity: 1, duration: 0.3}, 82.8);
-  hide('#lk3', 83.9, {y: -40});
-  sceneOff('#s3', 84.4);
+  tl.to(L.filter(p => p.i === 1).map(p => p.path), {opacity: 0.35, duration: 0.3}, 79.1);
+  tl.to(r1[0].querySelector('.bg'), {opacity: 0.4, duration: 0.3}, 79.1);
+  fan(2, 79.5, 0.2);
+  tl.to(L.filter(p => p.i === 2).map(p => p.path), {opacity: 0.35, duration: 0.3}, 81.2);
+  tl.to(r1[1].querySelector('.bg'), {opacity: 0.4, duration: 0.3}, 81.2);
+  fan(13, 81.5, 0.2);
+  tl.to(L.map(p => p.path), {opacity: 1, duration: 0.3}, 83.1);
+  tl.to([r1[0], r1[1]].map(r => r.querySelector('.bg')), {opacity: 1, duration: 0.3}, 83.1);
+  hide('#lk3', 84.2, {y: -40});
+  sceneOff('#s3', 84.7);
 
   /* ===== 4 · Avec elle-même ===== */
-  sceneOn('#s4', 84.4);
-  show('#q4', 84.45, {y: 40}, 0.5);
-  cue(84.45, 'whoosh', 0.6);
+  sceneOn('#s4', 84.7);
+  show('#q4', 84.75, {y: 40}, 0.5);
+  cue(84.75, 'whoosh', 0.6);
   stackBelow('#tbl4', '#q4', 0, 30);
-  show('#tbl4', 84.7, {y: 40}, 0.5);
+  show('#tbl4', 85.0, {y: 40}, 0.5);
   const t4 = $$('#rows4 .tr');
-  rowsIn(t4, 85.05, 0.06);
+  rowsIn(t4, 85.35, 0.06);
   gsap.set('#c4b', {autoAlpha: 0});
-  show('#c4a', 85.8, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  bump('#c4a', 86.6, 1.12, 1);
+  show('#c4a', 86.1, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#c4a', 86.9, 1.12, 1);
   // Chaque commande avec elle-même
   const self4 = t4.filter(r => r.classList.contains('self'));
-  tl.to(self4.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.35}, 89.8);
-  self4.forEach((r, i) => cue(89.8 + i * 0.35, 'false', 0.4));
+  tl.to(self4.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.35}, 90.1);
+  self4.forEach((r, i) => cue(90.1 + i * 0.35, 'false', 0.4));
   const dp4 = $$('#rows4 .dp');
   gsap.set(dp4, {scale: 0.6});
-  tl.to(dp4, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.35}, 90.0);
+  tl.to(dp4, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.35}, 90.3);
   // AND c1.id <> c2.id
   splitChars($('#w4'));
-  te = typeMore($('#w4'), 96.1, 18);
+  te = typeMore($('#w4'), 96.4, 18);
   pulse('#w4', te + 0.25, 3, 'rgba(201,188,255,.45)');
   // 16 lignes : plus aucune commande avec elle-même
-  tl.to(self4, {height: 0, autoAlpha: 0, duration: 0.45, ease: 'power2.inOut', stagger: 0.15}, 100.8);
-  cue(100.8, 'whoosh', 0.45);
-  swapCnt('#c4a', '#c4b', 101.9);
-  bump('#c4b', 102.6, 1.15, 3);
-  hide(['#q4', '#tbl4'], 105.7, {y: -40});
-  sceneOff('#s4', 106.2);
+  tl.to(self4, {height: 0, autoAlpha: 0, duration: 0.45, ease: 'power2.inOut', stagger: 0.15}, 101.1);
+  cue(101.1, 'whoosh', 0.45);
+  swapCnt('#c4a', '#c4b', 102.2);
+  bump('#c4b', 102.9, 1.15, 3);
+  hide(['#q4', '#tbl4'], 106.0, {y: -40});
+  sceneOff('#s4', 106.5);
 
   /* ===== 5 · Le piège ===== */
-  sceneOn('#s5', 106.2);
-  show('#q5', 106.25, {y: 40}, 0.5);
-  cue(106.25, 'whoosh', 0.6);
+  sceneOn('#s5', 106.5);
+  show('#q5', 106.55, {y: 40}, 0.5);
+  cue(106.55, 'whoosh', 0.6);
   stackBelow('#tbl5', '#q5', 0, 30);
-  show('#tbl5', 106.5, {y: 40}, 0.5);
+  show('#tbl5', 106.8, {y: 40}, 0.5);
   const t5 = $$('#rows5 .tr');
-  rowsIn(t5, 106.85, 0.06);
+  rowsIn(t5, 107.15, 0.06);
   gsap.set('#c5b', {autoAlpha: 0});
-  show('#c5a', 107.5, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  show('#c5a', 107.8, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
   // Chaque paire deux fois
   const inv = t5.filter(r => r.classList.contains('inv'));
-  tl.to(inv.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.3}, 108.7);
-  inv.forEach((r, i) => cue(108.7 + i * 0.3, 'tick', 0.5, i + 1));
+  tl.to(inv.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.3}, 109.0);
+  inv.forEach((r, i) => cue(109.0 + i * 0.3, 'tick', 0.5, i + 1));
   // 1 et 2, puis 2 et 1
   const p12 = t5[0], p21 = t5.find(r => r.children[1].textContent === '2' && r.children[2].textContent === '1');
-  bump([p12.children[1], p12.children[2]], 111.2, 1.12, 1);
-  bump([p21.children[1], p21.children[2]], 112.1, 1.12, 1);
+  bump([p12.children[1], p12.children[2]], 111.5, 1.12, 1);
+  bump([p21.children[1], p21.children[2]], 112.4, 1.12, 1);
   const dp5 = $$('#rows5 .dp');
   gsap.set(dp5, {scale: 0.6});
-  tl.to(dp5, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.2}, 113.1);
-  dp5.forEach((_, i) => cue(113.1 + i * 0.2, 'pop', 0.5, i));
+  tl.to(dp5, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.2}, 113.4);
+  dp5.forEach((_, i) => cue(113.4 + i * 0.2, 'pop', 0.5, i));
   // <> devient < : seul le sens où c1.id est le plus petit est conservé
-  flip($('#op5'), 116.8);
-  pulse('#w5', 117.2, 3, 'rgba(201,188,255,.45)');
+  flip($('#op5'), 117.1);
+  pulse('#w5', 117.5, 3, 'rgba(201,188,255,.45)');
   // Une seule fois : 3 paires pour la cliente 1
-  tl.to(inv, {height: 0, autoAlpha: 0, duration: 0.45, ease: 'power2.inOut', stagger: 0.15}, 122.2);
-  cue(122.2, 'whoosh', 0.45);
-  swapCnt('#c5a', '#c5b', 123.3);
-  bump('#c5b', 124.0, 1.15, 3);
-  hide(['#q5', '#tbl5'], 126.7, {y: -40});
-  sceneOff('#s5', 127.2);
+  tl.to(inv, {height: 0, autoAlpha: 0, duration: 0.45, ease: 'power2.inOut', stagger: 0.15}, 122.5);
+  cue(122.5, 'whoosh', 0.45);
+  swapCnt('#c5a', '#c5b', 123.6);
+  bump('#c5b', 124.3, 1.15, 3);
+  hide(['#q5', '#tbl5'], 127.0, {y: -40});
+  sceneOff('#s5', 127.5);
 
   /* ===== 6 · Le résultat ===== */
-  sceneOn('#s6', 127.2);
-  show('#s6code', 127.25, {y: 60}, 0.6);
-  cue(127.25, 'whoosh', 0.7);
-  te = typeLine($('#s6l1'), 127.75, 44);
+  sceneOn('#s6', 127.5);
+  show('#s6code', 127.55, {y: 60}, 0.6);
+  cue(127.55, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 128.05, 44);
   for (const k of [2, 3, 4, 5, 6, 7]) te = typeLine($('#s6l' + k), te + 0.08, 44);
   pulse(['#a6a', '#a6b', '#w6'], te + 0.2, 3, 'rgba(201,188,255,.3)');
-  press($('#s6run'), 133.7);
+  press($('#s6run'), 134.0);
   stackBelow('#tbl6', '#s6code', 0, 30);
-  show('#tbl6', 133.95, {y: 40}, 0.5);
-  rowsIn($$('#rows6 .tr'), 134.1, 0.08);
-  show('#cnt6', 134.9, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  bump('#cnt6', 135.6, 1.15, 3);
-  tl.to($$('#rows6 .tr').slice(0, 3), {backgroundColor: '#FFF4E5', duration: 0.3, stagger: 0.12}, 136.4);
-  hide(['#s6code', '#tbl6'], 138.5, {y: -40}, 0.4);
+  show('#tbl6', 134.25, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 134.4, 0.08);
+  show('#cnt6', 135.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 135.9, 1.15, 3);
+  tl.to($$('#rows6 .tr').slice(0, 3), {backgroundColor: '#FFF4E5', duration: 0.3, stagger: 0.12}, 136.7);
+  hide(['#s6code', '#tbl6'], 139.2, {y: -40}, 0.4);
   // Les colis regroupés, client par client
-  boardIn('#rg6', 138.9, '.gk', 0.22);
+  boardIn('#rg6', 139.6, '.gk', 0.22);
   stackBelow('#badge6', '#rg6', 0, 50);
-  show('#badge6', 141.5, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(141.5, 'chord', 0.7);
-  hide(['#rg6', '#badge6'], 143.7);
-  sceneOff('#s6', 144.2);
+  show('#badge6', 142.2, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(142.2, 'chord', 0.7);
+  hide(['#rg6', '#badge6'], 144.4);
+  sceneOff('#s6', 144.9);
 
   /* ===== 7 · À retenir ===== */
-  recapScene(144.2, [144.9, 146.7, 148.5]);
-  hold(146.5, 4.8);
-  hold(148.3, 3.8);
+  recapScene(144.9, [145.6, 147.4, 149.2]);
+  hold(147.2, 4.8);
+  hold(149.0, 3.8);
   // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(149.45, 'pop', 0.85, 5);
+  if (APP) cue(150.15, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 149.4,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 150.1,
   glyphs: '📦🧾👤🧪🎯🪞🔎🏷️☝️✓✕?·…⋯', dom, build});
 </script>
 </body>

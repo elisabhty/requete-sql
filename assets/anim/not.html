@@ -86,9 +86,10 @@ sup{font-size:.6em;line-height:0;vertical-align:.62em}
 .who .tt{height:80px;display:flex;align-items:center;gap:14px;padding:0 34px;font-weight:700;font-size:32px;color:var(--ink)}
 .who .tt .emo{font-size:34px}
 .clg{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;padding:0 30px}
-.cl{position:relative;height:66px;border-radius:18px;background:var(--surface-2);border:3px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 20px}
-.cl b{font-size:30px;font-weight:800;color:var(--ink);white-space:nowrap}
-.cl span{font-size:25px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+/* Le prénom et le nom sur une ligne, la ville et l’âge en dessous */
+.cl{position:relative;height:84px;border-radius:18px;background:var(--surface-2);border:3px solid var(--line);display:flex;flex-direction:column;justify-content:center;gap:2px;padding:0 20px}
+.cl b{font-size:28px;line-height:34px;font-weight:800;color:var(--ink);white-space:nowrap}
+.cl span{font-size:22px;line-height:28px;font-weight:600;color:var(--ink-3);white-space:nowrap}
 .cl .x{position:absolute;right:16px;top:50%;margin-top:-17px;width:34px;height:34px;border-radius:50%;background:var(--danger-fill);color:#fff;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;opacity:0}
 .cl .strike{position:absolute;left:16px;right:60px;top:50%;height:3px;margin-top:-1px;background:#C2323A;transform-origin:0 50%;transform:scaleX(0);border-radius:2px}
 
@@ -263,7 +264,7 @@ const CLIENTS = [['Sophie','Martin','Paris',34,'2023-01-15'],['Lucas','Bernard',
 const OLD = c => c[4] < '2023-03-01';
 const GROUP = c => c[2] === 'Paris' && c[3] > 35;          // (ville = 'Paris' AND age > 35)
 const NOPAR = c => c[2] !== 'Paris' && c[3] > 35;          // NOT ville = 'Paris' AND age > 35
-const SHORT = c => c[0] === 'Nathan' ? `Nathan ${c[1][0]}.` : c[0];
+const NOM = c => `${c[0]} ${c[1]}`;   // le prénom et le nom du client, toujours ensemble
 
 const CHAPTERS = [
   {n:1, label:'Situation',          a:5.0,  b:15.0},
@@ -292,9 +293,9 @@ const CAPTIONS = [
   [52.3, 56.3,  "Attention, l’inverse de <code>&lt;</code> est <code>&gt;=</code>, pas\u00a0<code>&gt;</code> : le 1<sup>er</sup>&nbsp;mars compte aussi."],
   [56.4, 59.6,  "Avec <code>NOT</code>, tu gardes la condition telle quelle : aucune erreur de signe."],
   [60.3, 64.3,  "Pour inverser un <b>groupe de conditions</b>, mets-le entre parenthèses après <code>NOT</code>."],
-  [64.4, 68.4,  "Seuls les Parisiens de plus de 35 ans sont écartés : Léa. Il reste <b>9 clients</b>."],
+  [64.4, 68.4,  "Seule Léa Simon, Parisienne de plus de 35 ans, est écartée : il reste <b>9 clients</b>."],
   [68.5, 73.0,  "Sans parenthèses, <code>NOT</code> n’inverse que la condition qui le suit : <code>ville = 'Paris'</code>."],
-  [73.1, 78.6,  "Tous les Parisiens sont écartés, Sophie comprise : il reste <b>3 clients</b>."],
+  [73.1, 78.6,  "Tous les Parisiens, dont Sophie Martin, sont écartés : il reste <b>3 clients</b>."],
   [79.3, 83.6,  "La requête affiche le prénom, le nom, la ville et la date d’inscription."],
   [83.7, 87.7,  "Résultat : <b>6 clients</b> recevront <span class=\"nw\">la livraison gratuite</span>,<br>aucun n’a reçu le code."],
   [87.8, 91.5,  "<code>WHERE</code> ne filtre que le résultat : la <b>table\u00a0clients</b> n’est pas modifiée."],
@@ -308,7 +309,7 @@ const QUESTIONS = [];
 
 function dom(){
   $('#rows2').innerHTML = CLIENTS.filter(OLD).map(c => `<div class="rgD tr td"><div>${c[0]}</div><div>${c[4]}</div><span class="got">code −15 % reçu</span></div>`).join('');
-  $('#gchips').innerHTML = CLIENTS.filter(c => !OLD(c)).map(c => `<div class="gchip">${SHORT(c)}</div>`).join('');
+  $('#gchips').innerHTML = CLIENTS.filter(c => !OLD(c)).map(c => `<div class="gchip">${NOM(c)}</div>`).join('');
   $('#rows3').insertAdjacentHTML('afterbegin', CLIENTS.map(c => {
     const a = OLD(c), keep = !a, ck = v => `<span class="ck2 ${v ? 'y' : 'n'}">${v ? '✓' : '✕'}</span>`;
     return `<div class="rgN tr tn" data-keep="${keep ? 1 : 0}"><i class="hl"></i><div>${c[0]}</div><div>${c[4]}</div>` +
@@ -316,7 +317,7 @@ function dom(){
       `<div>${keep ? '<span class="pill t">✓ gardée</span>' : '<span class="pill f">✕ écartée</span>'}</div></div>`;
   }).join(''));
   $('#clg').innerHTML = CLIENTS.map(c =>
-    `<div class="cl" data-g="${GROUP(c) ? 1 : 0}" data-n="${NOPAR(c) ? 1 : 0}" data-s="${c[0] === 'Sophie' ? 1 : 0}"><b>${SHORT(c)}</b><span>${c[2]} · ${c[3]} ans</span><i class="strike"></i><i class="x">✕</i></div>`).join('');
+    `<div class="cl" data-g="${GROUP(c) ? 1 : 0}" data-n="${NOPAR(c) ? 1 : 0}" data-s="${c[0] === 'Sophie' ? 1 : 0}"><b>${NOM(c)}</b><span>${c[2]} · ${c[3]} ans</span><i class="strike"></i><i class="x">✕</i></div>`).join('');
   $('#cgrid').innerHTML = CLIENTS.filter(c => !OLD(c)).map(c =>
     `<div class="cp6"><span class="ci emo">🚚</span><div class="cm"><span class="ck">Frais de port offerts</span><b>${c[0]} ${c[1]}</b><span class="cs">${c[2]}</span></div></div>`).join('');
 }
