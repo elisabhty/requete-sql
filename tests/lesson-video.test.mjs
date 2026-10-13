@@ -703,6 +703,14 @@ const COURSES = [
       '<span class="kw">WHERE</span> produit_id = <span class="glow" id="v3">5</span>', '📌 Le 5 est écrit en dur&nbsp;: la Tisane Détox seulement',
       '= <span class="glow" id="pi4">produits.id</span>)', '<span class="glow" id="f5"><span class="kw">FROM</span> commandes</span>)',
       '✕ La Tisane Détox ne serait jamais relancée', '<span class="glow" id="as6"><span class="kw">AS</span> derniere_commande</span>', '✓ Tisane Détox relancée']},
+  {id: 48, next: 55, titre: 'Sous-requête dans FROM', page: 'sous-requete-from.html', thumb: 'sous-requete-from-thumb.jpg', duree: '3 min 05', notesAt: 168.2,
+    notes: /notes:\{t:179\.9,y:1303,card:\[64,292,1016,1008\],to:\[940,255\]\}/, table: 'commandes',
+    bubble: 'Avec une sous-requête dans <span class="ic">FROM</span>,<br>un résultat se lit comme une table.',
+    chapters: ['Situation', 'Le problème', 'La sous-requête', 'La table dérivée', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<span class="m">no such column: montant</span>', '<span class="col gh" id="gh2">✕ montant</span>',
+      '<span class="glow" id="mul3">produits.prix * commandes.quantite</span>', '<span class="glow" id="al3"><span class="kw">AS</span> commandes_montants</span>',
+      '<span class="t2"><span class="emo">🗃️</span><span>commandes_montants</span></span>', '<span class="m">no such column: quantite</span>',
+      '<span class="col gh" id="gh5">✕ quantite</span>', '<div>46.71875</div>', '✓ Indicateur mis à jour']},
 ];
 
 for (const c of COURSES) {
