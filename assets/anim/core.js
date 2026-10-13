@@ -42,7 +42,9 @@ const shortWord = w => SHORT_WORDS.has(w.toLowerCase().replace(/^[(«“"']+/, '
 const glueShort = t => t.replace(/(\S+)( +)(?=\S|$)/g, (m, w) => shortWord(w) ? w + NB : m);
 /* Un court libellé entre guillemets (« Nom du produit ») ne se coupe pas d’une ligne à l’autre. */
 const glueQuotes = t => t.replace(/«([^«»]{1,28})»/g, (m, q) => '«' + q.replace(/ /g, NB) + '»');
-const frText = t => glueQuotes(glueShort(t.replace(/ ([:?!;»])/g, NB + '$1').replace(/« /g, '«' + NB).replace(/(\d) (?=\S)/g, '$1' + NB)));
+/* Le prénom et le nom d’un client (« Sophie Martin ») restent ensemble sur la même ligne. */
+const glueNames = t => t.replace(/(^|[^\p{L}])(Sophie|Lucas|Emma|Nathan|Chloé|Hugo|Léa|Gabriel|Inès) (?=\p{Lu})/gu, '$1$2' + NB);
+const frText = t => glueNames(glueQuotes(glueShort(t.replace(/ ([:?!;»])/g, NB + '$1').replace(/« /g, '«' + NB).replace(/(\d) (?=\S)/g, '$1' + NB))));
 /* Légendes : une expression ne se coupe pas d’une ligne à l’autre. Certains mots ne terminent jamais une ligne
    (« du plus / cher », « la même / ville », « les deux / colonnes », « puis / le nouveau nom »),
    d’autres ne la commencent jamais (« ne livre / pas », « la valeur / suivante »), et un nombre reste collé au mot
@@ -416,7 +418,7 @@ function textIssues(){
 
 /* Cadres collés (?check) : deux cadres visibles en même temps — cartes, éditeurs de code, encadrés posés dans une scène,
    pastilles, légende, puce de chapitre — gardent au moins 20 px d’écart, ombre portée comprise. Les tampons, posés exprès
-   sur une carte, ne comptent pas. Surlignages coupés : un surlignage visible (cadre autour d’un mot, fond d’un mot-clé…)
+   sur une carte, et ce qui s’envole par-dessus (.fly : l’enveloppe d’un email envoyé) ne comptent pas. Surlignages coupés : un surlignage visible (cadre autour d’un mot, fond d’un mot-clé…)
    n’est jamais rogné par un parent qui masque ce qui dépasse (cellule de tableau, ligne de code qui s’ouvre…).
    La timeline est parcourue par pas de 0,2 s ; un défaut qui ne dure qu’un instant (rebond, ouverture) est ignoré. */
 const CARD_GAP = 20;
@@ -427,7 +429,7 @@ function layoutIssues(render, total){
   const isBox = el => { const cs = getComputedStyle(el); return el.tagName !== 'IMG' && !el.classList.contains('mascot') &&
     (cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || cs.backgroundImage !== 'none' || parseFloat(cs.borderTopWidth) > 0 || cs.boxShadow !== 'none'); };
   const set = new Set();
-  const take = el => { if (!el.classList.contains('stamp') && !el.parentElement.closest('.card, .code')) set.add(el); };
+  const take = el => { if (!el.classList.contains('stamp') && !el.classList.contains('fly') && !el.parentElement.closest('.card, .code')) set.add(el); };
   $$('.card, .code', stage).forEach(take);
   $$('section.scene > *', stage).forEach(el => { if (isBox(el)) take(el); });
   $$('.badge span, .tagpill', stage).forEach(el => { if (!el.closest('.card, .code')) set.add(el); });
