@@ -727,6 +727,16 @@ const COURSES = [
       '<span class="glow" id="nn3"><span class="kw">WHERE</span> client_id <span class="kw">IS NOT NULL</span></span>',
       '<span class="glow" id="wh4"><span class="kw">WHERE</span> nb_commandes &gt;= 2</span>;', '<span class="m">no such table: totaux</span>',
       '<span class="glow" id="j6"><span class="kw">JOIN</span> totaux</span>', '✓ 6 invitations envoyées']},
+  {id: 73, next: 80, titre: 'UNION et UNION ALL', page: 'union.html', thumb: 'union-thumb.jpg', duree: '2 min 52', notesAt: 155.7,
+    notes: /notes:\{t:167\.4,y:1210,card:\[64,292,1016,915\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Avec <span class="ic">UNION</span>, empile les lignes<br>de plusieurs requêtes en un seul résultat.',
+    chapters: ['Situation', 'Le problème', 'UNION ALL', 'Les noms de colonnes', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ["const INDICATEURS = [['Clients', 10, '👥'], ['Commandes', 16, '🛒'], ['Produits', 8, '📦']];",
+      '<div class="q2-rh">COUNT(*)</div><div class="q2-n">16</div>', '<span class="glow" id="u3a"><span class="kw">UNION ALL</span></span>',
+      '<div><span class="qm">?</span></div>', '<span class="glow" id="ai4"><span class="kw">AS</span> indicateur</span>',
+      '<span class="m">SELECTs to the left and right of UNION ALL do not have the same number of result columns</span>',
+      '<span class="k ko">3 colonnes</span>', '✓ Un chiffre de plus = une ligne de plus', '✓ Tableau de bord à jour',
+      '<div class="mn-l"><span class="ic">UNION</span> rallonge</div>']},
 ];
 
 for (const c of COURSES) {
