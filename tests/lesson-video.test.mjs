@@ -628,7 +628,7 @@ const COURSES = [
     traps: ['<span>Audit de la base</span><span class="tb" id="tb1">table clients</span>', 'const ORDRE = [[1, 1], [1, 2], [1, 13], [2, 3], [2, 10], [3, 4], [3, 14], [4, 5], [4, 12], [5, 6], [5, 15], [6, 7], [7, 8], [7, 9], [8, 11],',
       '<span class="glow" id="l2"><span class="kw">LEFT JOIN</span></span>', '<span class="glow" id="r2"><span class="kw">RIGHT JOIN</span></span>',
       '<span class="kw"><span class="glow" id="fo3">FULL OUTER</span> JOIN</span> commandes', '<span class="glow" id="o3"><span class="kw">ON</span> clients.id = commandes.client_id</span>',
-      '<span>↔️ Aucune ligne n’est exclue</span>', '<span>🕳️ NULL du côté qui manque</span>', '<span class="bl">correspondances, une ligne chacune</span>',
+      '<span>↔️ Aucune ligne n’est exclue</span>', '<span>🚫 NULL en l’absence de correspondance</span>', '<span class="bl">correspondances, une ligne chacune</span>',
       '✓ Aucune ligne oubliée, 3 à vérifier']},
   {id: 40, next: 19, titre: 'CROSS JOIN', page: 'cross-join.html', thumb: 'cross-join-thumb.jpg', duree: '2 min 39', notesAt: 140.2,
     notes: /notes:\{t:151\.3,y:1185,card:\[64,292,1016,890\],to:\[940,255\]\}/, table: 'clients',
