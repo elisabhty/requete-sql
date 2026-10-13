@@ -11803,6 +11803,12 @@ guide({ id:48, titre:"Sous-requête dans FROM", résumé:"Utiliser une sous-requ
   learningCheck:{question:"Avant le AVG de la requête principale, que contient commandes_montants ?",options:["Un montant par commande","Un total par client","Une copie des produits"],answer:0,explanation:"La table dérivée contient prix × quantité pour chacune des seize commandes. AVG calcule ensuite sur ces seize valeurs."}
 }),
 guide({ id:55, titre:"EXISTS et NOT EXISTS", résumé:"Tester la présence ou l’absence d’une ligne liée",
+  /* Cours en vidéo : l’animation (assets/anim/exists.html, moteur commun assets/anim/core.js) remplace le texte du cours.
+     La vidéo suit la nouvelle saveur de Fibre Prébiotique : EXISTS garde les clients qui en ont déjà commandé ;
+     le texte ci-dessous reste pour le cas où la vidéo ne se charge pas. */
+  video:{anim:'assets/anim/exists.html?app&embed',thumb:'assets/anim/exists-thumb.jpg',duree:'3 min 04',
+    /* « Ajouter dans notes » : apparaît à 2 min 59 (178,8 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:178.8,y:1352,card:[64,292,1016,1057],to:[940,255]}},
   sit:{
     blocks:[
       "L’équipe commerciale prépare <b>une offre de bienvenue</b> pour les clients qui <b>n’ont encore rien commandé</b>.",
@@ -11893,9 +11899,9 @@ guide({ id:55, titre:"EXISTS et NOT EXISTS", résumé:"Tester la présence ou l�
   ],
   reflex:[
     {recap:[
-      ["🔎","<code>EXISTS</code> teste la <b>présence d’une ligne</b>, pas une valeur : il est vrai si la sous-requête en trouve au moins une.","<code>NOT EXISTS</code> est vrai quand elle n’en trouve aucune."],
+      ["🔎","<code>EXISTS</code> est vrai si la sous-requête trouve au moins une ligne : il teste une <b>présence</b>, pas une valeur.","<code>NOT EXISTS</code> est vrai si elle n’en trouve aucune."],
       ["🔗","La sous-requête est <b>corrélée</b> : elle ne cherche que les commandes du client en cours :",null,"commandes.client_id = clients.id"],
-      ["⚠️","Pour trouver les absents, préfère <code>NOT EXISTS</code> à <code>NOT IN</code> : un <code>NULL</code> ne change pas son résultat.","Un <code>JOIN</code> peut multiplier les lignes ; <code>EXISTS</code> n’en garde qu’une."]
+      ["⚠️","Sans la condition de liaison, <code>EXISTS</code> est vrai pour <b>tous les clients</b>.","Une seule commande dans la table suffit, peu importe son client."]
     ],label:"Les trois idées à retenir"}
   ],
   anatomie:[{tok:"SELECT prenom",txt:"La colonne affichée."},{tok:"FROM clients",txt:"La requête principale lit la table clients."},{tok:"WHERE EXISTS",txt:"Garde le client si la recherche trouve au moins une ligne."},{tok:"SELECT 1 FROM commandes",txt:"La recherche porte sur les commandes : seule leur présence compte."},{tok:"WHERE commandes.client_id = clients.id",plain:1,txt:"Elle ne garde que les commandes du client en cours…"},{tok:"AND commandes.produit_id = 1",plain:1,txt:"… et seulement celles de la Fibre Prébiotique."}],
@@ -27962,7 +27968,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1775';
+  const SW_CACHE='requete-2026-10-12-ludique-v1776';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

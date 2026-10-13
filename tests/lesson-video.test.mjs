@@ -711,6 +711,14 @@ const COURSES = [
       '<span class="glow" id="mul3">produits.prix * commandes.quantite</span>', '<span class="glow" id="al3"><span class="kw">AS</span> commandes_montants</span>',
       '<span class="t2"><span class="emo">🗃️</span><span>commandes_montants</span></span>', '<span class="m">no such column: quantite</span>',
       '<span class="col gh" id="gh5">✕ quantite</span>', '<div>46.71875</div>', '✓ Indicateur mis à jour']},
+  {id: 55, next: 59, titre: 'EXISTS et NOT EXISTS', page: 'exists.html', thumb: 'exists-thumb.jpg', duree: '3 min 04', notesAt: 167.1,
+    notes: /notes:\{t:178\.8,y:1352,card:\[64,292,1016,1057\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Avec <span class="ic">EXISTS</span>, vérifie qu’une ligne liée<br>existe dans une autre table.',
+    chapters: ['Situation', 'Le problème', 'EXISTS', 'La recherche corrélée', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<span class="col gh" id="gh2">✕ commande</span>', "const FIBRE = [['n°1', 1], ['n°5', 4], ['n°8', 7], ['n°15', 5]];",
+      '<span class="rv">✓ 1 ligne trouvée&nbsp;: la commande n°5</span><span class="vd ok">EXISTS → vrai</span>', '<span class="rv no">Aucune ligne trouvée</span><span class="vd ko">EXISTS → faux</span>',
+      'commandes.client_id = <span class="glow" id="ci4">clients.id</span>', '<span class="glow" id="w5"><span class="kw">WHERE</span> commandes.produit_id = 1</span>',
+      '✕ Inès Lefebvre et Nathan Dupont n’ont jamais commandé', '✓ 4 clients prévenus', '<span class="ic">NOT EXISTS</span> → les 6 autres clients']},
 ];
 
 for (const c of COURSES) {

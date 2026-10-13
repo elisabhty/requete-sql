@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · EXISTS et NOT EXISTS en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .sub{font-size:64px}
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:38px;white-space:nowrap}
+.nw{white-space:nowrap}
+
+/* Code : huit lignes (chapitre 6) */
+.code.sm .body{font-size:32px;line-height:50px;padding:26px 36px}
+.code.sm .ln{height:50px}
+.code.sm .caret i{top:-37px;height:42px}
+/* Mini-requêtes */
+.mini.mm{font-size:32px;line-height:48px;padding:20px 126px 20px 30px}
+.mini.m6{font-size:30px;line-height:44px;padding:20px 30px}
+.mini.m6.go5{padding-right:120px}
+.mini .ml{display:block}
+/* Valeurs qui changent sur place (id du client) : empilées dans la même case, une seule visible */
+.pn{display:inline-grid}
+.pn>b{grid-area:1/1;font-weight:inherit;opacity:0}
+/* La table clients en violet, la table commandes en orange */
+.tag.tc{background:#FFF4E5;color:#9A5B00}
+
+/* ---------- 1 · La nouvelle saveur ---------- */
+.board{left:64px;width:952px;padding:0 0 8px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar>span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.lx{padding:28px 34px 26px}
+.lx-hero{display:flex;align-items:center;gap:26px}
+.lx-ico{width:112px;height:112px;border-radius:34px;background:#FFF8D6;display:flex;align-items:center;justify-content:center;font-size:64px;flex:none}
+.lx-t1{font-size:42px;font-weight:800;color:var(--ink);white-space:nowrap}
+.lx-t2{margin-top:6px;font-size:30px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.lx-conds{margin-top:26px;display:flex;align-items:center;gap:14px}
+.cd{height:60px;padding:0 22px;border-radius:999px;font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.cd.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.cd.am{background:#FFF4E5;color:#9A5B00}
+.pill{left:0;width:1080px;display:flex;justify-content:center}
+.pill>span{height:62px;padding:0 24px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill.vi>span{background:var(--accent-soft);color:var(--accent-ink)}
+.pill.am>span{background:#FFF4E5;color:#9A5B00}
+.pill.gr>span{background:#E7F7EE;color:#1B7A45}
+.pill.rd>span{background:#FDEBEC;color:#C2323A}
+.pill .ic{font-size:.92em;background:#fff}
+
+/* ---------- 2 · Le problème : la réponse est dans une autre table ---------- */
+.sc{left:64px;width:952px;padding:24px 26px 26px}
+.sc-h{display:flex;align-items:center;gap:12px;padding:0 6px 16px;font-size:31px;font-weight:700;color:var(--ink);white-space:nowrap}
+.sc-h .emo{font-size:31px}
+.sc-g{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.sc-c{border-radius:28px;background:var(--surface-2);padding:18px 18px 20px}
+.sc-c .tag{display:inline-block;margin:0 0 14px}
+.cols{display:flex;flex-wrap:wrap;gap:10px}
+.col{height:50px;padding:0 16px;border-radius:14px;background:#fff;border:2px solid var(--line);font-family:var(--mono);font-size:27px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:8px;white-space:nowrap}
+.col.gh{background:#FDEBEC;border:2px dashed #F2B8BC;color:#C2323A}
+.rgO{display:grid;grid-template-columns:1fr 200px 200px;padding:0 26px;align-items:center}
+.tr.t2{height:52px;font-size:30px}
+.goal{left:64px;width:952px;height:96px;border-radius:32px;background:#E7F7EE;border:3px solid #BFE8D0;display:flex;align-items:center;justify-content:center;gap:14px;font-size:33px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.goal .emo{font-size:36px}
+#od2 .cnt{width:210px}
+
+/* ---------- 3 · EXISTS, pour un client ---------- */
+.who{position:relative;height:56px;margin-top:16px}
+.who>span{position:absolute;left:0;top:0;height:56px;padding:0 20px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap;opacity:0}
+.rz{position:relative;margin-top:18px;height:76px;border-radius:20px;background:var(--surface-2);overflow:hidden}
+.rz>div{position:absolute;left:0;top:0;right:0;bottom:0;display:flex;align-items:center;gap:18px;padding:0 22px;white-space:nowrap;opacity:0}
+.rz .rv{font-size:29px;font-weight:700;color:var(--ink)}
+.rz .rv.no{color:var(--ink-3);font-style:italic}
+.vd{margin-left:auto;height:54px;padding:0 20px;border-radius:999px;font-family:var(--mono);font-size:26px;font-weight:800;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.vd.ok{background:#E7F7EE;color:#1B7A45}
+.vd.ko{background:#FDEBEC;color:#C2323A}
+
+/* ---------- 4 · La recherche corrélée ---------- */
+.pv{margin-left:auto;height:54px;padding:0 18px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:26px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.rgE{display:grid;grid-template-columns:90px 210px 1fr 150px;padding:0 26px;align-items:center}
+.tr.t4{height:50px;font-size:30px}
+.tr.t4 .hl{background:var(--accent-soft);box-shadow:inset 8px 0 0 var(--accent)}
+.tr>div.vc{position:relative;height:40px;padding:0;overflow:visible}
+.vc>i{position:absolute;right:0;top:0;height:40px;padding:0 14px;border-radius:999px;font-family:var(--ui);font-size:23px;font-weight:800;font-style:normal;display:flex;align-items:center;opacity:0}
+.vc .y{background:#E7F7EE;color:#1B7A45}
+.vc .n{background:#FDEBEC;color:#C2323A}
+
+/* ---------- 5 · Le piège ---------- */
+.ng{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.nc{height:54px;border-radius:16px;background:#E7F7EE;border:2px solid #BFE8D0;color:#1B7A45;font-size:27px;font-weight:700;display:flex;align-items:center;gap:10px;padding:0 16px;white-space:nowrap}
+.lp{left:64px;width:952px;padding:22px 30px 26px}
+.lp-h{display:flex;align-items:center;gap:12px;font-size:31px;font-weight:700;color:var(--ink);white-space:nowrap}
+.lp-h .emo{font-size:31px}
+.lp-h .n2{margin-left:auto;height:54px;padding:0 20px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:27px;font-weight:700;display:flex;align-items:center}
+
+/* ---------- 6 · Le résultat ---------- */
+.rgR{display:grid;grid-template-columns:260px 1fr;padding:0 26px;align-items:center}
+.tr.t6{height:56px;font-size:31px}
+.ms{position:relative;padding:30px 34px 32px}
+.ms-h{display:flex;align-items:center;gap:24px}
+.ms-ico{width:104px;height:104px;border-radius:32px;background:#FFF8D6;display:flex;align-items:center;justify-content:center;font-size:58px;flex:none}
+.ms-t1{font-size:38px;font-weight:800;color:var(--ink);white-space:nowrap}
+.ms-t2{margin-top:6px;font-size:27px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.ms-to{margin-top:24px;display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding-right:200px}
+.ms-to .lb{font-size:27px;font-weight:700;color:var(--ink-3);margin-right:4px}
+.rc{height:52px;padding:0 18px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:27px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+#sp6{right:30px;top:auto;bottom:26px}
+
+/* ---------- 7 · À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:20px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Sous-requêtes</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>E</span><span>X</span><span>I</span><span>S</span><span>T</span><span>S</span></div>
+    <div class="abs sub">Tester la présence d’une ligne</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec <span class="ic">EXISTS</span>, vérifie qu’une ligne liée<br>existe dans une autre table.</div>
+  </section>
+
+  <!-- 1 · Situation : une nouvelle saveur de Fibre Prébiotique -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="ab1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Marketing · nouvelle saveur</span><span class="tb" id="tb1">table clients</span></div>
+      <div class="lx">
+        <div class="lx-hero"><div class="lx-ico" id="ic1">🍋</div><div><div class="lx-t1">Nouvelle saveur</div><div class="lx-t2">La Fibre Prébiotique au citron</div></div></div>
+        <div class="lx-conds"><span class="cd vi" id="cd1">📣 Prévenir les clients</span><span class="cd am" id="cd2">🛒 Déjà commandé</span></div>
+      </div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">👤</span><span class="nl">Le prénom du client</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">👪</span><span class="nl">Son nom de famille</span><span class="tag">table clients</span></div>
+    </div>
+    <div class="abs pill am" id="cn1"><span>🛒 À vérifier&nbsp;: une commande de Fibre Prébiotique</span></div>
+  </section>
+
+  <!-- 2 · Le problème : la réponse est dans la table commandes -->
+  <section class="scene" id="s2">
+    <div class="abs card sc" id="sc2" style="top:300px">
+      <div class="sc-h"><span class="emo">🗂️</span><span>Qui a commandé la Fibre Prébiotique&nbsp;?</span></div>
+      <div class="sc-g">
+        <div class="sc-c" id="sa2"><span class="tag">table clients</span><div class="cols"><span class="col">id</span><span class="col">prenom</span><span class="col">nom</span><span class="col">ville</span><span class="col">telephone</span><span class="col gh" id="gh2">✕ commande</span></div></div>
+        <div class="sc-c" id="sb2"><span class="tag tc">table commandes</span><div class="cols"><span class="col">id</span><span class="col" id="ci2">client_id</span><span class="col" id="cp2">produit_id</span><span class="col">quantite</span></div></div>
+      </div>
+    </div>
+    <div class="tbl card" id="od2">
+      <div class="tt"><span class="emo">🛒</span><span class="nw">Commandes de Fibre Prébiotique</span><span class="cnt"><span id="cnt2">4 commandes</span></span></div>
+      <div class="rgO th"><div>commande</div><div>client_id</div><div>produit_id</div></div>
+      <div class="rows" id="rows2"></div>
+    </div>
+    <div class="abs goal" id="goal2"><span class="emo">❓</span>Pour chaque client&nbsp;: existe-t-il une commande&nbsp;?</div>
+  </section>
+
+  <!-- 3 · EXISTS : la recherche, pour un client -->
+  <section class="scene" id="s3">
+    <div class="abs card trap" id="ex3" style="top:300px">
+      <div class="trap-h"><span class="emo">🔍</span><span>La recherche, pour un client</span></div>
+      <div class="who"><span id="wa3">👤 Nathan Petit · client 4</span><span id="wb3">👤 Lucas Bernard · client 2</span></div>
+      <div class="mini mm"><span class="ml"><span class="glow" id="s13"><span class="kw">SELECT</span> 1</span></span><span class="ml"><span class="kw">FROM</span> commandes</span><span class="ml"><span class="kw">WHERE</span> client_id = <span class="glow" id="cc3"><span class="pn"><b>4</b><b>2</b></span></span></span><span class="ml">  <span class="kw">AND</span> produit_id = 1;</span><span class="go" id="go3"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+      <div class="rz" id="rz3">
+        <div id="ra3"><span class="rv">✓ 1 ligne trouvée&nbsp;: la commande n°5</span><span class="vd ok">EXISTS → vrai</span></div>
+        <div id="rb3"><span class="rv no">Aucune ligne trouvée</span><span class="vd ko">EXISTS → faux</span></div>
+      </div>
+    </div>
+    <div class="abs pill gr" id="pa3"><span>✓ Nathan Petit sera prévenu</span></div>
+  </section>
+
+  <!-- 4 · La recherche corrélée : un verdict par client -->
+  <section class="scene" id="s4">
+    <div class="abs card trap" id="cq4" style="top:300px">
+      <div class="trap-h"><span class="emo">🔗</span><span>La recherche corrélée</span><span class="pv" id="pv4">clients.id =<span class="pn"><b>?</b><b>1</b><b>2</b><b>3</b><b>4</b><b>5</b><b>6</b><b>7</b><b>8</b><b>9</b><b>10</b></span></span></div>
+      <div class="mini m6"><span class="ml"><span class="kw">EXISTS</span> (</span><span class="ml">  <span class="kw">SELECT</span> 1</span><span class="ml">  <span class="kw">FROM</span> commandes</span><span class="ml">  <span class="kw">WHERE</span> commandes.client_id = <span class="glow" id="ci4">clients.id</span></span><span class="ml">    <span class="glow" id="an4"><span class="kw">AND</span> commandes.produit_id = 1</span></span><span class="ml">)</span></div>
+    </div>
+    <div class="tbl card" id="ct4">
+      <div class="tt"><span class="emo">👥</span><span>Table clients</span><span class="cnt"><span id="cnt4">4 clients conservés</span></span></div>
+      <div class="rgE th"><div>id</div><div>prenom</div><div>nom</div><div>EXISTS</div></div>
+      <div class="rows" id="rows4"></div>
+    </div>
+  </section>
+
+  <!-- 5 · Le piège : sans la condition de liaison -->
+  <section class="scene" id="s5">
+    <div class="abs card trap" id="tp5" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Et sans la condition de liaison&nbsp;?</span></div>
+      <div class="mini m6 go5"><span class="ml"><span class="kw">EXISTS</span> (</span><span class="ml">  <span class="kw">SELECT</span> 1</span><span class="ml">  <span class="kw">FROM</span> commandes</span><span class="ml">  <span class="glow" id="w5"><span class="kw">WHERE</span> commandes.produit_id = 1</span></span><span class="ml">)</span><span class="go" id="go5"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+    </div>
+    <div class="abs card lp" id="rs5">
+      <div class="lp-h"><span class="emo">🔎</span><span>Résultat</span><span class="n2" id="n5">10 lignes</span></div>
+      <div class="ng" id="ng5"></div>
+    </div>
+    <div class="abs pill rd" id="x5"><span>✕ Inès Lefebvre et Nathan Dupont n’ont jamais commandé</span></div>
+  </section>
+
+  <!-- 6 · Le résultat : la requête complète, puis l’annonce -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> prenom, nom<span class="caret"><i></i></span></span><span class="ln" id="s6l2"><span class="kw">FROM</span> clients<span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="glow" id="e6"><span class="kw">WHERE EXISTS</span></span> (<span class="caret"><i></i></span></span><span class="ln" id="s6l4">  <span class="kw">SELECT</span> 1<span class="caret"><i></i></span></span><span class="ln" id="s6l5">  <span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="s6l6">  <span class="kw">WHERE</span> commandes.client_id = clients.id<span class="caret"><i></i></span></span><span class="ln" id="s6l7">    <span class="kw">AND</span> commandes.produit_id = 1<span class="caret"><i></i></span></span><span class="ln" id="s6l8">);<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">4 lignes</span></span></div>
+      <div class="rgR th"><div>prenom</div><div>nom</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card board" id="ab6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Marketing · annonce</span></div>
+      <div class="ms">
+        <div class="ms-h"><span class="ms-ico">🍋</span><div><div class="ms-t1">La Fibre Prébiotique au citron</div><div class="ms-t2">Nouveau&nbsp;: la même fibre, au citron</div></div></div>
+        <div class="ms-to" id="to6"><span class="lb">À&nbsp;:</span></div>
+        <div class="stamp" id="sp6">Envoyé</div>
+      </div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ 4 clients prévenus</span></div>
+    <div class="abs pill vi" id="ne6"><span>🔄 <span class="ic">NOT EXISTS</span> → les 6 autres clients</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🔎</div><div class="rtxt"><span class="ic">EXISTS</span> est vrai si la <span class="nw">sous-requête</span> trouve au moins une ligne&nbsp;: il teste une <b>présence</b>, pas une valeur.<span class="rs"><span class="ic">NOT EXISTS</span> est vrai si elle n’en trouve aucune.</span></div></div>
+      <div class="rrow"><div class="rico emo">🔗</div><div class="rtxt">La sous-requête est <b>corrélée</b>&nbsp;: elle ne cherche que les commandes du client en cours&nbsp;:<br><span class="ic blk">commandes.client_id = clients.id</span></div></div>
+      <div class="rrow"><div class="rico emo">⚠️</div><div class="rtxt">Sans la condition de liaison, <span class="ic">EXISTS</span> est vrai pour <b>tous les clients</b>.<span class="rs">Une seule commande dans la table suffit, <span class="nw">peu importe</span> son client.</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 172.0;
+
+/* La table clients : [id, prénom, nom, a-t-il commandé de la Fibre Prébiotique (produit 1) ?]. */
+const CLIENTS = [[1, 'Sophie', 'Martin', 1], [2, 'Lucas', 'Bernard', 0], [3, 'Emma', 'Dubois', 0], [4, 'Nathan', 'Petit', 1], [5, 'Chloé', 'Moreau', 1],
+  [6, 'Hugo', 'Laurent', 0], [7, 'Léa', 'Simon', 1], [8, 'Gabriel', 'Michel', 0], [9, 'Inès', 'Lefebvre', 0], [10, 'Nathan', 'Dupont', 0]];
+/* Les commandes de Fibre Prébiotique : [commande, client_id]. */
+const FIBRE = [['n°1', 1], ['n°5', 4], ['n°8', 7], ['n°15', 5]];
+/* Les clients qui n’ont jamais rien commandé (aucune ligne dans la table commandes). */
+const JAMAIS = [9, 10];
+
+const CHAPTERS = [
+  {n:1, label:'Situation',              a:5.0,   b:27.5},
+  {n:2, label:'Le problème',            a:27.5,  b:56.0},
+  {n:3, label:'EXISTS',                 a:56.0,  b:84.5},
+  {n:4, label:'La recherche corrélée',  a:84.5,  b:113.9},
+  {n:5, label:'Le piège',               a:113.9, b:137.9},
+  {n:6, label:'Le résultat',            a:137.9, b:161.9},
+  {n:7, label:'À retenir',              a:161.9, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 10.6,    "Le site web lance une <b>nouvelle saveur</b> de Fibre&nbsp;Prébiotique."],
+  [10.7, 16.3,   "L’équipe marketing veut prévenir les clients qui en ont déjà commandé."],
+  [16.4, 21.8,   "Le prénom et le nom de chaque client se trouvent dans la <b>table clients</b>."],
+  [21.9, 27.0,   "La condition, elle, se vérifie dans la table <code>commandes</code>."],
+  [27.8, 33.4,   "Rien dans la table clients ne dit qui a commandé la Fibre&nbsp;Prébiotique."],
+  [33.5, 39.4,   "La réponse est dans la table <code>commandes</code>, grâce à <code>client_id</code> et <code>produit_id</code>."],
+  [39.5, 44.6,   "La Fibre&nbsp;Prébiotique, produit 1, y apparaît dans 4 commandes."],
+  [44.7, 50.3,   "Leur nombre ne compte pas : une seule commande suffit pour répondre oui."],
+  [50.4, 55.5,   "Pour chaque client, une question : existe-t-il une telle commande ?"],
+  [56.3, 62.0,   "<code>EXISTS</code> est vrai dès que sa recherche trouve au moins une ligne."],
+  [62.1, 67.6,   "Pour Nathan Petit, client 4 : la recherche trouve sa commande n°5."],
+  [67.7, 72.6,   "Une ligne suffit : <code>EXISTS</code> est vrai, Nathan Petit sera prévenu."],
+  [72.7, 78.2,   "Pour Lucas Bernard, client 2 : aucune ligne, <code>EXISTS</code> est faux."],
+  [78.3, 84.0,   "Seule la présence d’une ligne compte : on écrit simplement <code>SELECT 1</code>."],
+  [84.8, 90.5,   "Pour suivre chaque client, l’id écrit en dur devient <code>clients.id</code>."],
+  [90.6, 96.3,   "C’est l’id du client de la ligne en cours : la <span class=\"nw\">sous-requête</span> est <b>corrélée</b>."],
+  [96.4, 101.8,  "La seconde condition, avec <code>AND</code>, ne garde que la Fibre&nbsp;Prébiotique."],
+  [101.9, 107.7, "Client après client, <code>EXISTS</code> rend son verdict : vrai ou faux."],
+  [107.8, 113.4, "Vrai pour Sophie Martin, Nathan Petit, Chloé Moreau et Léa Simon."],
+  [114.2, 120.0, "Attention : si la condition de liaison est oubliée, la requête s’exécute aussi."],
+  [120.1, 126.0, "Quel que soit le client, la recherche trouve toujours des commandes de Fibre&nbsp;Prébiotique."],
+  [126.1, 131.4, "<code>EXISTS</code> est donc vrai pour les <b>10 clients</b>."],
+  [131.5, 137.4, "Inès Lefebvre et Nathan Dupont, qui n’ont jamais rien commandé, recevraient l’annonce."],
+  [138.2, 143.9, "La requête complète garde les clients pour qui une telle commande existe."],
+  [144.0, 149.5, "Résultat : <b>4 lignes</b>, avec le prénom et le nom de chaque client."],
+  [149.6, 155.2, "Les quatre clients reçoivent l’annonce de la nouvelle saveur."],
+  [155.3, 161.4, "À l’inverse, <code>NOT EXISTS</code> garderait les 6 clients sans commande de Fibre&nbsp;Prébiotique."],
+  [162.2, 167.0, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [167.1, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [167.1, 999, "<code>EXISTS</code> cherche une ligne liée : vrai s’il en trouve une, faux sinon."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+function dom(){
+  /* Chapitre 2 : les quatre commandes de Fibre Prébiotique */
+  $('#rows2').innerHTML = FIBRE.map(([n, c]) => `<div class="rgO tr t2"><span class="hl"></span><div>commande ${n}</div><div>${c}</div><div>1</div></div>`).join('');
+  /* Chapitre 4 : la table clients, avec le verdict de EXISTS */
+  $('#rows4').innerHTML = CLIENTS.map(([id, p, n]) => `<div class="rgE tr t4"><span class="hl"></span><div>${id}</div><div>${p}</div><div>${n}</div>` +
+    `<div class="vc"><i class="y">vrai</i><i class="n">faux</i></div></div>`).join('');
+  /* Chapitre 5 : sans la condition de liaison, les 10 clients */
+  $('#ng5').innerHTML = CLIENTS.map(([id, p, n]) => `<span class="nc${JAMAIS.includes(id) ? ' jm' : ''}">✓ ${p} ${n}</span>`).join('');
+  /* Chapitre 6 : le résultat, puis les destinataires de l’annonce */
+  const gardes = CLIENTS.filter(c => c[3]);
+  $('#rows6').innerHTML = gardes.map(([, p, n]) => `<div class="rgR tr t6"><span class="hl"></span><div>${p}</div><div>${n}</div></div>`).join('');
+  $('#to6').insertAdjacentHTML('beforeend', gardes.map(([, p, n]) => `<span class="rc">${p} ${n}</span>`).join(''));
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+/* Une carte arrive en tournant légèrement, puis ses éléments un à un. */
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(sel, $(id));
+  gsap.set(items, {autoAlpha: 0, y: 24});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => cue(t + 0.65 + i * step, 'pop', 0.55, i % 5));
+  return items;
+}
+/* Chapitre 4 : EXISTS rend son verdict pour un client. La ligne s’allume, clients.id prend son id,
+   puis « vrai » (une commande existe) ou « faux » (aucune) s’affiche. */
+function verdict(i, t, d = 0.35){
+  const rows = $$('#rows4 .tr'), nums = $$('#pv4 .pn b'), r = rows[i], ok = CLIENTS[i][3];
+  if (i) {
+    const prev = rows[i - 1];
+    if (!CLIENTS[i - 1][3]) tl.to(prev.querySelector('.hl'), {opacity: 0, duration: 0.2}, t);
+  }
+  tl.to(r.querySelector('.hl'), {opacity: 1, duration: 0.2}, t);
+  tl.set(nums[i], {autoAlpha: 0}, t);
+  tl.set(nums[i + 1], {autoAlpha: 1}, t);
+  cue(t, 'tick', 0.45, i % 5);
+  tl.fromTo(r.querySelector(ok ? '.y' : '.n'), {autoAlpha: 0, scale: 0.6}, {autoAlpha: 1, scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false}, t + d);
+  if (ok) tl.to(r.querySelector('.hl'), {backgroundColor: '#E7F7EE', boxShadow: 'inset 8px 0 0 #2FA36B', duration: 0.25}, t + d);
+  else tl.to(r, {opacity: 0.5, duration: 0.25}, t + d);
+  cue(t + d, ok ? 'true' : 'miss', 0.45);
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  boardIn('#ab1', 5.15, '.lx-hero');
+  gsap.set(['#cd1', '#cd2', '#tb1'], {autoAlpha: 0});
+  // Prévenir les clients qui en ont déjà commandé
+  show('#cd1', 11.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(11.3, 'pop', 0.7, 1);
+  show('#cd2', 13.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(13.6, 'pop', 0.7, 3);
+  // Le prénom et le nom : table clients
+  stackBelow('#s1 .need', '#ab1');   // la liste se cale sous la carte de l’annonce, sans la toucher
+  stackBelow('#cn1', '#s1 .need', 0, 30);
+  show('#tb1', 16.9, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(16.9, 'pop', 0.7, 2);
+  show('#s1 .need', 17.3, {y: 60});
+  cue(17.3, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.25}, 17.6);
+  [0, 1].forEach(i => cue(17.6 + i * 0.25, 'pop', 0.7, i));
+  // La condition : dans la table commandes
+  show('#cn1', 22.4, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(22.4, 'pop', 0.7, 4);
+  hide(['#ab1', '#s1 .need', '#cn1'], 27.0);
+  sceneOff('#s1', 27.5);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 27.5);
+  show('#sc2', 27.55, {y: 50});
+  cue(27.55, 'whoosh', 0.6);
+  const colsA = $$('#sa2 .col:not(.gh)'), colsB = $$('#sb2 .col');
+  gsap.set([...colsA, '#gh2', ...colsB], {autoAlpha: 0, scale: 0.7});
+  // Rien dans la table clients
+  tl.to(colsA, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.08}, 28.1);
+  tl.to('#gh2', {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)'}, 29.6);
+  cue(29.6, 'miss', 0.55);
+  shake('#gh2', 30.0);
+  // La table commandes : client_id et produit_id
+  tl.to(colsB, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.08}, 34.0);
+  colsB.forEach((_, i) => cue(34.0 + i * 0.08, 'pop', 0.5, i));
+  const AMBRE = {backgroundColor: '#FFF4E5', borderColor: '#F5C27A', color: '#9A5B00', duration: 0.3};
+  tl.to('#ci2', AMBRE, 35.4);
+  bump('#ci2', 35.4, 1.12, 1);
+  tl.to('#cp2', AMBRE, 36.4);
+  bump('#cp2', 36.4, 1.12, 1);
+  cue(35.4, 'tick', 0.5, 2);
+  cue(36.4, 'tick', 0.5, 4);
+  // La Fibre Prébiotique : 4 commandes
+  stackBelow('#od2', '#sc2', 0, 30);
+  stackBelow('#goal2', '#od2', 0, 30);
+  show('#od2', 40.0, {y: 50});
+  cue(40.0, 'whoosh', 0.6);
+  rowsIn($$('#rows2 .tr'), 40.4, 0.25);
+  gsap.set('#cnt2', {autoAlpha: 0});
+  show('#cnt2', 41.8, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // Une seule suffit
+  tl.to($$('#rows2 .hl')[0], {opacity: 1, duration: 0.3}, 45.4);
+  bump('#cnt2', 46.2, 1.12, 1);
+  cue(45.4, 'tick', 0.5, 3);
+  // Existe-t-il une commande ?
+  show('#goal2', 50.9, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(50.9, 'pop', 0.75, 3);
+  hide(['#sc2', '#od2', '#goal2'], 55.5, {y: -40}, 0.4);
+  sceneOff('#s2', 56.0);
+
+  /* ===== 3 · EXISTS ===== */
+  sceneOn('#s3', 56.0);
+  show('#ex3', 56.05, {y: 50});
+  cue(56.05, 'whoosh', 0.6);
+  const n3 = $$('#cc3 .pn b');
+  gsap.set(n3, {autoAlpha: 0});
+  gsap.set(['#wa3', '#wb3', '#ra3', '#rb3'], {autoAlpha: 0});
+  tl.set(n3[0], {autoAlpha: 1}, 56.05);
+  // Nathan Petit, client 4 : une ligne, EXISTS vrai
+  show('#wa3', 62.4, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(62.4, 'pop', 0.65, 2);
+  pulse('#cc3', 63.2, 3, 'rgba(201,188,255,.5)');
+  press($('#go3'), 64.6, '#4B30CC', 6);
+  tl.to('#ra3', {autoAlpha: 1, duration: 0.3}, 64.9);
+  cue(64.9, 'pop', 0.6, 3);
+  stackBelow('#pa3', '#ex3', 0, 30);
+  bump($$('#ra3 .vd')[0], 68.1, 1.12, 1);
+  cue(68.1, 'true', 0.55);
+  show('#pa3', 68.6, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  // Lucas Bernard, client 2 : aucune ligne, EXISTS faux
+  hide('#pa3', 72.7, {y: 0, scale: 0.8}, 0.25);
+  tl.to(['#wa3', '#ra3'], {autoAlpha: 0, duration: 0.25}, 72.8);
+  tl.set(n3[0], {autoAlpha: 0}, 73.0);
+  tl.set(n3[1], {autoAlpha: 1}, 73.0);
+  show('#wb3', 73.0, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(73.0, 'pop', 0.65, 1);
+  pulse('#cc3', 73.5, 3, 'rgba(201,188,255,.5)');
+  press($('#go3'), 74.8, '#4B30CC', 6);
+  tl.to('#rb3', {autoAlpha: 1, duration: 0.3}, 75.1);
+  cue(75.1, 'miss', 0.55);
+  shake($$('#rb3 .vd')[0], 75.6);
+  // SELECT 1 : seule la présence compte
+  pulse('#s13', 78.8, 3, 'rgba(255,214,140,.5)');
+  cue(78.8, 'tick', 0.5, 2);
+  hide('#ex3', 84.0, {y: -40});
+  sceneOff('#s3', 84.5);
+
+  /* ===== 4 · La recherche corrélée ===== */
+  sceneOn('#s4', 84.5);
+  show('#cq4', 84.85, {y: 50});
+  cue(84.85, 'whoosh', 0.6);
+  const nums = $$('#pv4 .pn b');
+  gsap.set(nums, {autoAlpha: 0});
+  gsap.set('#pv4', {autoAlpha: 0});
+  // Son id devient clients.id
+  pulse('#ci4', 86.6, 3, 'rgba(201,188,255,.5)');
+  // La ligne en cours : la sous-requête est corrélée
+  stackBelow('#ct4', '#cq4', 0, 30);
+  show('#ct4', 90.9, {y: 50});
+  cue(90.9, 'whoosh', 0.6);
+  rowsIn($$('#rows4 .tr'), 91.2, 0.06);
+  show('#pv4', 92.4, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  tl.set(nums[0], {autoAlpha: 1}, 92.4);
+  pulse('#ci4', 93.2, 3, 'rgba(201,188,255,.5)');
+  // AND : seulement la Fibre Prébiotique
+  pulse('#an4', 96.9, 3, 'rgba(201,188,255,.45)');
+  cue(96.9, 'tick', 0.5, 3);
+  // Client après client : vrai ou faux
+  verdict(0, 102.3, 0.5);
+  verdict(1, 103.4, 0.5);
+  for (let i = 2; i < 10; i++) verdict(i, 104.5 + (i - 2) * 0.6, 0.3);
+  tl.to($$('#rows4 .tr')[9].querySelector('.hl'), {opacity: 0, duration: 0.2}, 109.6);
+  // Vrai pour quatre clients
+  gsap.set('#cnt4', {autoAlpha: 0});
+  show('#cnt4', 108.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt4', 109.2, 1.12, 3);
+  cue(108.4, 'chord', 0.6);
+  hide(['#cq4', '#ct4'], 113.4, {y: -40});
+  sceneOff('#s4', 113.9);
+
+  /* ===== 5 · Le piège ===== */
+  sceneOn('#s5', 113.9);
+  show('#tp5', 114.25, {y: 50});
+  cue(114.25, 'whoosh', 0.6);
+  // Aucune condition sur le client
+  pulse('#w5', 116.2, 3, 'rgba(255,214,140,.5)');
+  cue(116.2, 'tick', 0.5, 2);
+  // La recherche trouve toujours des commandes
+  press($('#go5'), 120.5, '#4B30CC', 6);
+  stackBelow('#rs5', '#tp5', 0, 30);
+  stackBelow('#x5', '#rs5', 0, 30);
+  show('#rs5', 120.8, {y: 50});
+  cue(120.8, 'whoosh', 0.6);
+  const nc = $$('#ng5 .nc');
+  gsap.set(nc, {autoAlpha: 0, scale: 0.8});
+  tl.to(nc, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.12}, 121.2);
+  nc.forEach((_, i) => cue(121.2 + i * 0.12, 'true', 0.3));
+  // Les 10 clients
+  gsap.set('#n5', {autoAlpha: 0});
+  show('#n5', 126.5, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#n5', 127.2, 1.15, 3);
+  cue(126.5, 'false', 0.5);
+  // Même Inès Lefebvre et Nathan Dupont
+  tl.to($$('#ng5 .nc.jm'), {backgroundColor: '#FDEBEC', borderColor: '#F2B8BC', color: '#C2323A', duration: 0.3, stagger: 0.25}, 132.0);
+  cue(132.0, 'miss', 0.55);
+  show('#x5', 132.8, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  shake($$('#ng5 .nc.jm'), 133.4);
+  hide(['#tp5', '#rs5', '#x5'], 137.4, {y: -40});
+  sceneOff('#s5', 137.9);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 137.9);
+  show('#s6code', 137.95, {y: 60}, 0.6);
+  cue(137.95, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 138.45, 40);
+  for (const k of [2, 3, 4, 5, 6, 7, 8]) te = typeLine($('#s6l' + k), te + 0.1, 40);
+  pulse('#e6', te + 0.2, 3, 'rgba(201,188,255,.35)');
+  press($('#s6run'), 144.3);
+  stackBelow('#tbl6', '#s6code', 0, 30);
+  show('#tbl6', 144.55, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 144.7, 0.12);
+  show('#cnt6', 145.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 146.1, 1.15, 3);
+  hide(['#s6code', '#tbl6'], 149.4, {y: -40}, 0.4);
+  // L’annonce de la nouvelle saveur
+  boardIn('#ab6', 149.8, '.ms-h, .ms-to', 0.25);
+  gsap.set('#sp6', {autoAlpha: 0, scale: 1.8, rotation: -14});
+  tl.to('#sp6', {autoAlpha: 1, scale: 1, rotation: -8, duration: 0.35, ease: 'back.out(2)'}, 151.8);
+  cue(151.8, 'stamp', 0.8);
+  stackBelow('#badge6', '#ab6', 0, 50);
+  stackBelow('#ne6', '#badge6', 0, 30);
+  show('#badge6', 152.6, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(152.6, 'chord', 0.7);
+  // À l’inverse : NOT EXISTS
+  show('#ne6', 155.8, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(155.8, 'pop', 0.7, 3);
+  hide(['#ab6', '#badge6', '#ne6'], 161.4);
+  sceneOff('#s6', 161.9);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(161.9, [162.6, 164.4, 166.2]);
+  hold(164.2, 4.8);
+  hold(166.0, 4.8);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(167.15, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 167.1,
+  glyphs: '🍋📣🛒👤👪🗂️✕❓🔍✓🔗👥⚠️🔎🔄→·?…', dom, build});
+</script>
+</body>
+</html>
