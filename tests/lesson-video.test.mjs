@@ -719,6 +719,14 @@ const COURSES = [
       '<span class="rv">✓ 1 ligne trouvée&nbsp;: la commande n°5</span><span class="vd ok">EXISTS → vrai</span>', '<span class="rv no">Aucune ligne trouvée</span><span class="vd ko">EXISTS → faux</span>',
       'commandes.client_id = <span class="glow" id="ci4">clients.id</span>', '<span class="glow" id="w5"><span class="kw">WHERE</span> commandes.produit_id = 1</span>',
       '✕ Inès Lefebvre et Nathan Dupont n’ont jamais commandé', '✓ 4 clients prévenus', '<span class="ic">NOT EXISTS</span> → les 6 autres clients']},
+  {id: 59, next: 73, titre: 'WITH (CTE)', page: 'with-cte.html', thumb: 'with-cte-thumb.jpg', duree: '2 min 57', notesAt: 160.2,
+    notes: /notes:\{t:171\.9,y:1302,card:\[64,292,1016,1007\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Avec <span class="ic">WITH</span>, prépare un calcul à part,<br>puis utilise-le comme une table.',
+    chapters: ['Situation', 'Le problème', 'La CTE', 'Lire la CTE', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<div class="gh" id="gh2">nb_commandes&nbsp;?</div>', 'const TOTAUX = [[1, 3], [2, 2], [3, 2], [4, 2], [5, 2], [6, 1], [7, 2], [8, 1]];',
+      '<span class="glow" id="nn3"><span class="kw">WHERE</span> client_id <span class="kw">IS NOT NULL</span></span>',
+      '<span class="glow" id="wh4"><span class="kw">WHERE</span> nb_commandes &gt;= 2</span>;', '<span class="m">no such table: totaux</span>',
+      '<span class="glow" id="j6"><span class="kw">JOIN</span> totaux</span>', '✓ 6 invitations envoyées']},
 ];
 
 for (const c of COURSES) {

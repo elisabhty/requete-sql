@@ -11916,6 +11916,12 @@ guide({ id:55, titre:"EXISTS et NOT EXISTS", résumé:"Tester la présence ou l�
   learningCheck:{question:"Dans EXISTS, SELECT 1 change-t-il les colonnes affichées par le SELECT extérieur ?",options:["Oui, il ajoute une colonne 1","Oui, il supprime le prénom","Non"],answer:2,explanation:"EXISTS regarde seulement si une ligne existe. SELECT 1 exprime ce test ; la requête principale choisit ses propres colonnes."}
 }),
 guide({ id:59, titre:"WITH (CTE)", résumé:"Créer et réutiliser un résultat intermédiaire",
+  /* Cours en vidéo : l’animation (assets/anim/with-cte.html, moteur commun assets/anim/core.js) remplace le texte du cours.
+     La vidéo suit l’avant-première des clients réguliers : la CTE totaux compte les commandes de chaque client ;
+     le texte ci-dessous reste pour le cas où la vidéo ne se charge pas. */
+  video:{anim:'assets/anim/with-cte.html?app&embed',thumb:'assets/anim/with-cte-thumb.jpg',duree:'2 min 57',
+    /* « Ajouter dans notes » : apparaît à 2 min 52 (171,9 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:171.9,y:1302,card:[64,292,1016,1007],to:[940,255]}},
   sit:{
     blocks:[
       "L’équipe marketing prépare <b>une avant-première</b> des nouveautés. Elle veut la réserver aux <b>clients réguliers</b>, c’est-à-dire à ceux qui ont passé <b>au moins 2 commandes</b>.",
@@ -12008,9 +12014,9 @@ guide({ id:59, titre:"WITH (CTE)", résumé:"Créer et réutiliser un résultat 
   ],
   reflex:[
     {recap:[
-      ["🧩","<code>WITH</code> crée un <b>résultat intermédiaire nommé</b> (une CTE), utilisé par la requête qui suit.","Il permet de découper une requête en étapes."],
+      ["🧩","<code>WITH</code> crée un <b>résultat intermédiaire</b> et lui donne un nom : c’est une CTE.","Il permet de découper une requête en étapes."],
       ["🧱","<code>WITH</code> = je prépare. <code>AS</code> = je nomme. Le <code>SELECT</code> final = j’utilise :",null,"WITH totaux AS (SELECT …)"],
-      ["⛓️","Après un seul <code>WITH</code>, plusieurs CTE se séparent par des virgules.","Chacune peut utiliser celles qui la précèdent.","WITH a AS (…), b AS (…)"]
+      ["⏳","Une CTE n’existe que <b>le temps de sa requête</b> : elle n’est pas enregistrée dans la base.","Une requête suivante qui la lit obtient « no such table »."]
     ],label:"Les trois idées à retenir"}
   ],
   anatomie:[{tok:"WITH par_ville AS (",txt:"Commence la CTE et lui donne un nom."},{tok:"SELECT ville, COUNT(*) AS nb_clients FROM clients GROUP BY ville",plain:1,txt:"La requête qui prépare le résultat intermédiaire."},{tok:")",txt:"Termine la définition de la CTE."},{tok:"SELECT * FROM par_ville WHERE nb_clients >= 2",plain:1,txt:"La requête principale lit la CTE comme une table."}],
@@ -27968,7 +27974,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1776';
+  const SW_CACHE='requete-2026-10-12-ludique-v1777';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

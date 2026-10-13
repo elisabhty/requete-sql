@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · WITH (CTE) en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .sub{font-size:64px}
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:38px;white-space:nowrap}
+.nw{white-space:nowrap}
+
+/* Code : huit lignes (chapitres 3 et 4), douze lignes plus petites (chapitre 6) */
+.code.sm .body{font-size:32px;line-height:50px;padding:26px 36px}
+.code.sm .ln{height:50px}
+.code.sm .caret i{top:-37px;height:42px}
+.code.xs .body{font-size:28px;line-height:42px;padding:22px 34px}
+.code.xs .ln{height:42px}
+.code.xs .caret i{top:-32px;height:36px}
+.code .ln.ex{overflow:hidden;margin-left:-8px;padding-left:8px}
+.code .wx{display:inline-block;overflow:hidden;vertical-align:top}
+/* Mini-requêtes du piège */
+.mini.mm{font-size:32px;line-height:48px;padding:20px 126px 20px 30px}
+.mini.m7{font-size:27px;line-height:40px;padding:18px 30px}
+.mini .ml{display:block}
+.tag.tc{background:#FFF4E5;color:#9A5B00}
+
+/* ---------- 1 · L’avant-première ---------- */
+.board{left:64px;width:952px;padding:0 0 8px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar>span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.lx{padding:28px 34px 26px}
+.lx-hero{display:flex;align-items:center;gap:26px}
+.lx-ico{width:112px;height:112px;border-radius:34px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:64px;flex:none}
+.lx-t1{font-size:42px;font-weight:800;color:var(--ink);white-space:nowrap}
+.lx-t2{margin-top:6px;font-size:30px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.lx-conds{margin-top:26px;display:flex;align-items:center;gap:14px}
+.cd{height:60px;padding:0 22px;border-radius:999px;font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.cd.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.cd.am{background:#FFF4E5;color:#9A5B00}
+.pill{left:0;width:1080px;display:flex;justify-content:center}
+.pill>span{height:62px;padding:0 24px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill.vi>span{background:var(--accent-soft);color:var(--accent-ink)}
+.pill.gr>span{background:#E7F7EE;color:#1B7A45}
+.pill .ic{font-size:.92em;background:#fff}
+
+/* ---------- 2 · Le problème : aucune colonne ne compte les commandes ---------- */
+.rgK{display:grid;grid-template-columns:220px 1fr 260px;padding:0 26px;align-items:center}
+.tr.t2{height:52px;font-size:30px}
+.th .gh{justify-self:start;height:40px;padding:0 12px;border-radius:12px;border:2px dashed #F2B8BC;background:#FDEBEC;color:#C2323A}
+.q2{display:inline-block;color:#C2323A;font-weight:800}
+.more{height:42px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 0 var(--line-2);font-size:23px;font-weight:600;color:var(--ink-3)}
+.st{left:64px;width:952px;padding:22px 26px 24px}
+.st-r{display:flex;align-items:center;gap:20px;height:84px;padding:0 20px;border-radius:22px;background:var(--surface-2)}
+.st-r+.st-r{margin-top:12px}
+.st-n{flex:none;width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 5px 0 #4B30CC;color:#fff;font-family:var(--display);font-size:32px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.st-t{font-size:31px;font-weight:700;color:var(--ink);white-space:nowrap}
+
+/* ---------- 3 et 4 · La CTE, puis la lecture de la CTE ---------- */
+.rgT{display:grid;grid-template-columns:260px 1fr;padding:0 26px;align-items:center}
+.tr.t3{height:48px;font-size:30px}
+.tr.t3.un .hl{background:#FDEBEC;box-shadow:inset 8px 0 0 #E5484D}
+.tt .mo{font-family:var(--mono);color:var(--accent-ink)}
+.cnt.sw span{opacity:0}
+
+/* ---------- 5 · Le piège ---------- */
+.okl{margin-top:14px;height:54px;display:inline-flex;align-items:center;gap:10px;padding:0 20px;border-radius:999px;background:#E7F7EE;color:#1B7A45;font-size:27px;font-weight:700;white-space:nowrap}
+.lbl{margin-top:22px;font-size:27px;font-weight:700;color:var(--ink-3)}
+#tp5 .mini.mm{margin-top:12px}
+#tp5 .out{margin-top:20px}
+
+/* ---------- 6 · Le résultat ---------- */
+.rgR{display:grid;grid-template-columns:200px 220px 1fr;padding:0 26px;align-items:center}
+.tr.t6{height:48px;font-size:29px}
+.iv{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:26px 240px 28px 28px}
+.ic6{height:72px;border-radius:20px;background:#F7F4FF;border:2px solid #E0D7FF;display:flex;align-items:center;gap:14px;padding:0 18px;white-space:nowrap}
+.ic6 .emo{font-size:34px}
+.ic6 .nm{font-size:29px;font-weight:800;color:var(--ink)}
+#sp6{right:26px;top:50%;margin-top:-34px}
+
+/* ---------- 7 · À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:20px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Sous-requêtes</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>W</span><span>I</span><span>T</span><span>H</span></div>
+    <div class="abs sub">Un résultat intermédiaire nommé</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec <span class="ic">WITH</span>, prépare un calcul à part,<br>puis utilise-le comme une table.</div>
+  </section>
+
+  <!-- 1 · Situation : l’avant-première des clients réguliers -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="ab1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Marketing · avant-première</span><span class="tb" id="tb1">table clients</span></div>
+      <div class="lx">
+        <div class="lx-hero"><div class="lx-ico">✨</div><div><div class="lx-t1">Avant-première</div><div class="lx-t2">Les nouveautés, en exclusivité</div></div></div>
+        <div class="lx-conds"><span class="cd vi" id="cd1">💌 Sur invitation</span><span class="cd am" id="cd2">🛒 Au moins 2 commandes</span></div>
+      </div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">👤</span><span class="nl">Le prénom du client</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">👪</span><span class="nl">Son nom de famille</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">✉️</span><span class="nl">Son email</span><span class="tag">table clients</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : le nombre de commandes n’existe dans aucune colonne -->
+  <section class="scene" id="s2">
+    <div class="tbl card" id="cl2" style="top:300px">
+      <div class="tt"><span class="emo">👥</span><span>Table clients</span></div>
+      <div class="rgK th"><div>prenom</div><div>nom</div><div class="gh" id="gh2">nb_commandes&nbsp;?</div></div>
+      <div class="rows" id="rows2"></div>
+    </div>
+    <div class="abs card st" id="st2">
+      <div class="st-r" id="sa2"><span class="st-n">1</span><span class="st-t">Compter les commandes de chaque client</span></div>
+      <div class="st-r" id="sb2"><span class="st-n">2</span><span class="st-t">Garder ceux qui en ont au moins 2</span></div>
+    </div>
+    <div class="abs pill vi" id="pw2"><span>🧩 Deux étapes&nbsp;: c’est le rôle de <span class="ic">WITH</span></span></div>
+  </section>
+
+  <!-- 3 et 4 · La CTE, puis la lecture de la CTE -->
+  <section class="scene" id="s3">
+    <div class="abs code sm" id="c3" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="c3a"><span class="glow" id="kw3"><span class="kw">WITH</span></span> <span class="glow" id="nm3">totaux</span> <span class="glow" id="as3"><span class="kw">AS</span></span> (<span class="caret"><i></i></span></span><span class="ln" id="c3b">  <span class="kw">SELECT</span> client_id, <span class="glow" id="ct3"><span class="kw">COUNT</span>(*) <span class="kw">AS</span> nb_commandes</span><span class="caret"><i></i></span></span><span class="ln" id="c3c">  <span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="c3d">  <span class="glow" id="nn3"><span class="kw">WHERE</span> client_id <span class="kw">IS NOT NULL</span></span><span class="caret"><i></i></span></span><span class="ln" id="c3e">  <span class="glow" id="gb3"><span class="kw">GROUP BY</span> client_id</span><span class="caret"><i></i></span></span><span class="ln" id="c3f">)<span class="caret"><i></i></span></span><span class="ln" id="c3g"><span class="glow" id="sl3"><span class="kw">SELECT</span> *</span><span class="caret"><i></i></span></span><span class="ln" id="c3h"><span class="kw">FROM</span> <span class="glow" id="ft3">totaux</span><span class="wx" id="sc3">;</span><span class="caret"><i></i></span></span><span class="ln ex" id="c3i"><span class="glow" id="wh4"><span class="kw">WHERE</span> nb_commandes &gt;= 2</span>;</span></div>
+      <div class="run" id="r3"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tb3">
+      <div class="tt"><span class="emo">🗃️</span><span class="mo">totaux</span><span class="cnt sw"><span id="n3a">8 lignes</span><span id="n3b">6 lignes</span></span></div>
+      <div class="rgT th"><div>client_id</div><div>nb_commandes</div></div>
+      <div class="rows" id="rows3"></div>
+    </div>
+  </section>
+
+  <!-- 5 · Le piège : une CTE n’existe que le temps de sa requête -->
+  <section class="scene" id="s5">
+    <div class="abs card trap" id="tp5" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Et dans la requête suivante&nbsp;?</span></div>
+      <div class="mini m7"><span class="ml"><span class="kw">WITH</span> totaux <span class="kw">AS</span> (</span><span class="ml">  <span class="kw">SELECT</span> client_id, <span class="kw">COUNT</span>(*) <span class="kw">AS</span> nb_commandes</span><span class="ml">  <span class="kw">FROM</span> commandes</span><span class="ml">  <span class="kw">WHERE</span> client_id <span class="kw">IS NOT NULL</span></span><span class="ml">  <span class="kw">GROUP BY</span> client_id</span><span class="ml">)</span><span class="ml"><span class="kw">SELECT</span> * <span class="kw">FROM</span> totaux<span class="glow" id="pv5">;</span></span></div>
+      <span class="okl" id="ok5">✓ Première requête&nbsp;: 8 lignes</span>
+      <div class="lbl" id="lb5">Requête suivante&nbsp;:</div>
+      <div class="mini mm" id="q5"><span class="ml"><span class="kw">SELECT</span> *</span><span class="ml"><span class="kw">FROM</span> <span class="bad" id="b5">totaux</span>;</span><span class="go" id="go5"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+      <div class="out err" id="er5"><div class="oi">✕</div><div class="ot"><b>Erreur SQL</b><span class="m">no such table: totaux</span></div></div>
+    </div>
+  </section>
+
+  <!-- 6 · Le résultat : la requête complète, puis les invitations -->
+  <section class="scene" id="s6">
+    <div class="abs code xs" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">WITH</span> totaux <span class="kw">AS</span> (<span class="caret"><i></i></span></span><span class="ln" id="s6l2">  <span class="kw">SELECT</span> client_id, <span class="kw">COUNT</span>(*) <span class="kw">AS</span> nb_commandes<span class="caret"><i></i></span></span><span class="ln" id="s6l3">  <span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="s6l4">  <span class="kw">WHERE</span> client_id <span class="kw">IS NOT NULL</span><span class="caret"><i></i></span></span><span class="ln" id="s6l5">  <span class="kw">GROUP BY</span> client_id<span class="caret"><i></i></span></span><span class="ln" id="s6l6">)<span class="caret"><i></i></span></span><span class="ln" id="s6l7"><span class="kw">SELECT</span> clients.prenom, clients.nom,<span class="caret"><i></i></span></span><span class="ln" id="s6l8">       clients.email<span class="caret"><i></i></span></span><span class="ln" id="s6l9"><span class="kw">FROM</span> clients<span class="caret"><i></i></span></span><span class="ln" id="s6l10"><span class="glow" id="j6"><span class="kw">JOIN</span> totaux</span><span class="caret"><i></i></span></span><span class="ln" id="s6l11">  <span class="kw">ON</span> clients.id = totaux.client_id<span class="caret"><i></i></span></span><span class="ln" id="s6l12"><span class="glow" id="w6"><span class="kw">WHERE</span> totaux.nb_commandes &gt;= 2</span>;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">6 lignes</span></span></div>
+      <div class="rgR th"><div>prenom</div><div>nom</div><div>email</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card board" id="ab6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Avant-première · invitations par email</span></div>
+      <div class="iv" id="iv6"><div class="stamp" id="sp6">Envoyé</div></div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ 6 invitations envoyées</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🧩</div><div class="rtxt"><span class="ic">WITH</span> crée un <b>résultat intermédiaire</b> et lui donne un nom&nbsp;: c’est une CTE.<span class="rs">Il permet de découper une requête en étapes.</span></div></div>
+      <div class="rrow"><div class="rico emo">🧱</div><div class="rtxt"><span class="ic">WITH</span> = je prépare. <span class="ic">AS</span> = je nomme. Le <span class="ic">SELECT</span> final = j’utilise&nbsp;:<br><span class="ic blk">WITH totaux AS (SELECT …)</span></div></div>
+      <div class="rrow"><div class="rico emo">⏳</div><div class="rtxt">Une CTE n’existe que <b>le temps de sa requête</b>&nbsp;: elle n’est pas enregistrée dans la base.<span class="rs">Une requête suivante qui la lit obtient «&nbsp;no such table&nbsp;».</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 165.1;
+
+/* La CTE totaux : [client_id, nb_commandes] (la commande n°16, sans client, est écartée). */
+const TOTAUX = [[1, 3], [2, 2], [3, 2], [4, 2], [5, 2], [6, 1], [7, 2], [8, 1]];
+/* Le résultat : les 6 clients réguliers [prénom, nom, email]. */
+const REGULIERS = [['Sophie', 'Martin', 'sophie@mail.fr'], ['Lucas', 'Bernard', 'lucas@mail.fr'], ['Emma', 'Dubois', 'emma@mail.fr'],
+  ['Nathan', 'Petit', 'nathan@mail.fr'], ['Chloé', 'Moreau', 'chloe@mail.fr'], ['Léa', 'Simon', 'lea@mail.fr']];
+/* Chapitre 2 : les premiers clients de la table, sans nombre de commandes. */
+const APERCU = [['Sophie', 'Martin'], ['Lucas', 'Bernard'], ['Emma', 'Dubois'], ['Nathan', 'Petit']];
+
+const CHAPTERS = [
+  {n:1, label:'Situation',      a:5.0,   b:27.5},
+  {n:2, label:'Le problème',    a:27.5,  b:50.5},
+  {n:3, label:'La CTE',         a:50.5,  b:80.5},
+  {n:4, label:'Lire la CTE',    a:80.5,  b:103.0},
+  {n:5, label:'Le piège',       a:103.0, b:126.0},
+  {n:6, label:'Le résultat',    a:126.0, b:155.0},
+  {n:7, label:'À retenir',      a:155.0, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 10.6,    "L’équipe marketing veut présenter ses nouveautés en <b class=\"nw\">avant-première</b>."],
+  [10.7, 16.3,   "Elle la réserve aux clients réguliers, qui ont passé <b>au moins 2 commandes</b>."],
+  [16.4, 21.8,   "Le prénom, le nom et l’email se trouvent dans la <b>table clients</b>."],
+  [21.9, 27.0,   "Les commandes, elles, sont rangées dans la table <code>commandes</code>."],
+  [27.8, 33.4,   "Mais aucune colonne ne donne le nombre de commandes d’un client."],
+  [33.5, 39.0,   "Ce nombre doit d’abord être <b>calculé</b>, à partir des 16 commandes."],
+  [39.1, 44.6,   "Ensuite seulement, on peut garder les clients qui en ont au moins 2."],
+  [44.7, 50.0,   "Pour enchaîner ces deux étapes dans une seule requête, il existe <code>WITH</code>."],
+  [50.8, 56.5,   "<code>WITH</code> prépare d’abord un calcul à part, et lui donne un nom : <code>totaux</code>."],
+  [56.6, 62.2,   "La requête entre parenthèses compte les commandes de chaque client."],
+  [62.3, 68.2,   "<code>WHERE client_id IS NOT NULL</code> écarte la commande n°16, qui n’a pas de client."],
+  [68.3, 73.8,   "Résultat : une ligne par client, avec son nombre de commandes."],
+  [73.9, 80.0,   "<code>WITH</code> = je prépare. <code>AS</code> = je nomme. Le <code>SELECT</code> qui suit = j’utilise."],
+  [80.8, 86.4,   "Après le <code>WITH</code>, <code>totaux</code> se lit comme n’importe quelle table."],
+  [86.5, 91.8,   "On peut donc la filtrer : <code>WHERE nb_commandes >= 2</code>."],
+  [91.9, 97.4,   "Les clients 6 et 8 sont écartés : une seule commande chacun."],
+  [97.5, 102.5,  "Il reste <b>6 clients réguliers</b> sur 8."],
+  [103.3, 108.8, "Attention : une CTE n’est pas enregistrée dans la base."],
+  [108.9, 114.6, "Elle n’existe que pendant la requête qui la définit, jusqu’au point-virgule."],
+  [114.7, 120.4, "Une requête suivante qui lit <code>totaux</code> provoque une erreur : <code>no such table</code>."],
+  [120.5, 125.5, "Pour s’en servir, le <code>WITH</code> doit être écrit dans la même requête."],
+  [126.3, 132.0, "La requête complète prépare <code>totaux</code>, puis la relie à la table clients."],
+  [132.1, 137.7, "Le <code>JOIN</code> retrouve le prénom, le nom et l’email de chaque client."],
+  [137.8, 143.2, "Le <code>WHERE</code> ne garde que les clients à 2 commandes ou plus."],
+  [143.3, 148.8, "La requête renvoie <b>6 lignes</b>, de Sophie Martin à Léa Simon."],
+  [148.9, 154.5, "Les 6 invitations à l’avant-première partent par email."],
+  [155.3, 160.1, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [160.2, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [160.2, 999, "<code>WITH</code> prépare un résultat nommé, lu ensuite comme une table."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+function dom(){
+  /* Chapitre 2 : les premiers clients, sans nombre de commandes */
+  $('#rows2').innerHTML = APERCU.map(([p, n]) => `<div class="rgK tr t2"><span class="hl"></span><div>${p}</div><div>${n}</div><div><span class="q2">?</span></div></div>`).join('') +
+    '<div class="more">⋯ 6 autres clients ⋯</div>';
+  /* Chapitres 3 et 4 : la CTE totaux */
+  $('#rows3').innerHTML = TOTAUX.map(([c, n]) => `<div class="rgT tr t3${n < 2 ? ' un' : ''}"><span class="hl"></span><div>${c}</div><div>${n}</div></div>`).join('');
+  /* Chapitre 6 : le résultat, puis les invitations */
+  $('#rows6').innerHTML = REGULIERS.map(([p, n, e]) => `<div class="rgR tr t6"><span class="hl"></span><div>${p}</div><div>${n}</div><div>${e}</div></div>`).join('');
+  $('#iv6').insertAdjacentHTML('afterbegin', REGULIERS.map(([p, n]) => `<div class="ic6"><span class="emo">💌</span><span class="nm">${p} ${n}</span></div>`).join(''));
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+/* Une carte arrive en tournant légèrement, puis ses éléments un à un. */
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(sel, $(id));
+  gsap.set(items, {autoAlpha: 0, y: 24});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => cue(t + 0.65 + i * step, 'pop', 0.55, i % 5));
+  return items;
+}
+/* Une erreur SQL : l’encadré apparaît et tremble. */
+function errorIn(sel, t){
+  show(sel, t, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  tl.to(sel, {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, t + 0.4);
+  cue(t, 'error', 0.85);
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  boardIn('#ab1', 5.15, '.lx-hero');
+  gsap.set(['#cd1', '#cd2', '#tb1'], {autoAlpha: 0});
+  // Sur invitation, pour les clients réguliers
+  show('#cd1', 7.8, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(7.8, 'pop', 0.7, 1);
+  show('#cd2', 11.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(11.6, 'pop', 0.7, 3);
+  shake('#cd2', 12.2);
+  // Le prénom, le nom et l’email : table clients
+  stackBelow('#s1 .need', '#ab1');   // la liste se cale sous la carte de l’avant-première, sans la toucher
+  show('#tb1', 16.9, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(16.9, 'pop', 0.7, 2);
+  show('#s1 .need', 17.3, {y: 60});
+  cue(17.3, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.25}, 17.6);
+  [0, 1, 2].forEach(i => cue(17.6 + i * 0.25, 'pop', 0.7, i));
+  // Les commandes : table commandes
+  bump('#cd2', 22.5, 1.1, 1);
+  cue(22.5, 'tick', 0.5, 3);
+  hide(['#ab1', '#s1 .need'], 27.0);
+  sceneOff('#s1', 27.5);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 27.5);
+  show('#cl2', 27.55, {y: 50});
+  cue(27.55, 'whoosh', 0.6);
+  rowsIn($$('#rows2 .tr, #rows2 .more'), 27.9, 0.1);
+  // Aucune colonne pour le nombre de commandes
+  gsap.set('#gh2', {autoAlpha: 0, scale: 0.7});
+  tl.to('#gh2', {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)'}, 29.4);
+  cue(29.4, 'miss', 0.55);
+  shake('#gh2', 29.8);
+  tl.to($$('#rows2 .q2'), {scale: 1.35, duration: 0.18, yoyo: true, repeat: 1, stagger: 0.08}, 30.6);
+  // 1 · Calculer, à partir des 16 commandes
+  stackBelow('#st2', '#cl2', 0, 30);
+  stackBelow('#pw2', '#st2', 0, 30);
+  show('#st2', 34.0, {y: 50});
+  cue(34.0, 'whoosh', 0.6);
+  gsap.set(['#sa2', '#sb2'], {autoAlpha: 0, x: -30});
+  tl.to('#sa2', {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, 34.4);
+  cue(34.4, 'pop', 0.65, 1);
+  // 2 · Puis garder ceux qui en ont au moins 2
+  tl.to('#sb2', {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, 39.6);
+  cue(39.6, 'pop', 0.65, 3);
+  // WITH
+  show('#pw2', 45.2, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(45.2, 'chord', 0.6);
+  hide(['#cl2', '#st2', '#pw2'], 50.0, {y: -40}, 0.4);
+  sceneOff('#s2', 50.5);
+
+  /* ===== 3 · La CTE ===== */
+  sceneOn('#s3', 50.5);
+  // Le tableau totaux se cale sous la requête de ce chapitre (huit lignes et le bouton) ; au chapitre 4, le bouton laisse sa place à une ligne de plus
+  gsap.set('#c3i', {height: 0, opacity: 0});
+  stackBelow('#tb3', '#c3', 0, 30);
+  show('#c3', 50.85, {y: 60}, 0.6);
+  cue(50.85, 'whoosh', 0.7);
+  te = typeLine($('#c3a'), 51.35, 40);
+  for (const id of ['#c3b', '#c3c', '#c3d', '#c3e', '#c3f', '#c3g', '#c3h']) te = typeLine($(id), te + 0.08, 40);
+  // WITH … totaux
+  pulse('#nm3', 55.0, 3, 'rgba(201,188,255,.45)');
+  // Le calcul : les commandes de chaque client
+  pulse(['#ct3', '#gb3'], 57.2, 3, 'rgba(201,188,255,.35)');
+  // La commande n°16 est écartée
+  pulse('#nn3', 62.9, 3, 'rgba(255,214,140,.5)');
+  cue(62.9, 'tick', 0.5, 2);
+  // Une ligne par client
+  press($('#r3'), 68.6);
+  show('#tb3', 68.85, {y: 40}, 0.5);
+  rowsIn($$('#rows3 .tr'), 69.0, 0.12);
+  gsap.set(['#n3a', '#n3b'], {autoAlpha: 0});
+  show('#n3a', 70.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // Je prépare, je nomme, j’utilise
+  pulse('#kw3', 74.4, 3, 'rgba(201,188,255,.5)');
+  pulse(['#as3', '#nm3'], 75.9, 3, 'rgba(201,188,255,.5)');
+  pulse(['#sl3', '#ft3'], 77.4, 3, 'rgba(255,214,140,.5)');
+  [74.4, 75.9, 77.4].forEach((t, i) => cue(t, 'tick', 0.5, i + 1));
+
+  /* ===== 4 · Lire la CTE ===== */
+  // totaux se lit comme une table
+  pulse('#ft3', 81.3, 3, 'rgba(201,188,255,.5)');
+  tl.to('#tb3', {borderColor: '#B9A8FF', duration: 0.4}, 81.6);
+  cue(81.6, 'tick', 0.5, 3);
+  // WHERE nb_commandes >= 2 : le bouton s’efface, la ligne du filtre s’ouvre
+  tl.to('#r3', {height: 0, marginBottom: 0, autoAlpha: 0, duration: 0.35, ease: 'power2.in'}, 86.8);
+  tl.to('#sc3', {width: 0, duration: 0.25}, 87.1);
+  tl.to('#c3i', {height: 50, duration: 0.4, ease: 'power3.out'}, 87.2);
+  tl.to('#c3i', {opacity: 1, duration: 0.3}, 87.55);
+  cue(87.2, 'fold', 0.6);
+  pulse('#wh4', 88.3, 3, 'rgba(201,188,255,.5)');
+  // Les clients 6 et 8 : une seule commande
+  const un = $$('#rows3 .tr.un');
+  tl.to(un.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.3}, 92.4);
+  un.forEach((_, i) => cue(92.4 + i * 0.3, 'miss', 0.5));
+  tl.to(un, {opacity: 0.35, duration: 0.4}, 94.6);
+  // 6 clients réguliers
+  tl.to('#n3a', {autoAlpha: 0, duration: 0.2}, 98.0);
+  show('#n3b', 98.1, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#n3b', 98.8, 1.15, 3);
+  cue(98.1, 'chord', 0.6);
+  hide(['#c3', '#tb3'], 102.5, {y: -40});
+  sceneOff('#s3', 103.0);
+
+  /* ===== 5 · Le piège ===== */
+  sceneOn('#s5', 103.0);
+  show('#tp5', 103.35, {y: 50});
+  cue(103.35, 'whoosh', 0.6);
+  gsap.set(['#ok5', '#lb5', '#q5', '#er5'], {autoAlpha: 0});
+  show('#ok5', 104.6, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(104.6, 'true', 0.5);
+  // Jusqu’au point-virgule
+  pulse('#pv5', 110.0, 3, 'rgba(255,214,140,.6)');
+  cue(110.0, 'tick', 0.5, 2);
+  // La requête suivante : no such table
+  show('#lb5', 115.0, {y: 14}, 0.35);
+  show('#q5', 115.3, {y: 30}, 0.45);
+  cue(115.3, 'whoosh', 0.5);
+  press($('#go5'), 116.6, '#4B30CC', 6);
+  errorIn('#er5', 117.0);
+  tl.to('#b5', {textDecorationColor: 'rgba(239,79,85,1)', duration: 0.3}, 117.5);
+  // Le WITH dans la même requête
+  bump('#ok5', 121.0, 1.1, 1);
+  cue(121.0, 'tick', 0.5, 3);
+  hide('#tp5', 125.5, {y: -40});
+  sceneOff('#s5', 126.0);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 126.0);
+  show('#s6code', 126.05, {y: 60}, 0.6);
+  cue(126.05, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 126.55, 44);
+  for (let k = 2; k <= 12; k++) te = typeLine($('#s6l' + k), te + 0.06, 44);
+  // JOIN : le prénom, le nom et l’email
+  pulse('#j6', 132.6, 3, 'rgba(201,188,255,.4)');
+  // WHERE : 2 commandes ou plus
+  pulse('#w6', 138.3, 3, 'rgba(201,188,255,.4)');
+  // 6 lignes
+  press($('#s6run'), 143.5);
+  stackBelow('#tbl6', '#s6code', 0, 30);
+  show('#tbl6', 143.75, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 143.9, 0.1);
+  show('#cnt6', 144.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 145.4, 1.15, 3);
+  hide(['#s6code', '#tbl6'], 148.6, {y: -40}, 0.4);
+  // Les invitations
+  boardIn('#ab6', 149.0, '.ic6', 0.12);
+  gsap.set('#sp6', {autoAlpha: 0, scale: 1.8, rotation: -14});
+  tl.to('#sp6', {autoAlpha: 1, scale: 1, rotation: -8, duration: 0.35, ease: 'back.out(2)'}, 151.0);
+  cue(151.0, 'stamp', 0.8);
+  stackBelow('#badge6', '#ab6', 0, 50);
+  show('#badge6', 151.8, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(151.8, 'chord', 0.7);
+  hide(['#ab6', '#badge6'], 154.5);
+  sceneOff('#s6', 155.0);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(155.0, [155.7, 157.5, 159.3]);
+  hold(157.3, 4.8);
+  hold(159.1, 4.8);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(160.25, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 160.2,
+  glyphs: '✨💌🛒👤👪✉️👥🧩🗃️⚠️✕✓🔎⏳⋯«»·?…', dom, build});
+</script>
+</body>
+</html>
