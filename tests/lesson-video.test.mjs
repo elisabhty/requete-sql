@@ -695,6 +695,14 @@ const COURSES = [
       '<span class="nt" id="nt3">commande n°16 · sans client</span>', '<span class="kw glow" id="k3">IN</span> <span class="glow" id="p3a">(</span>',
       '<span class="glow" id="eq5">=</span> (', '<span class="n2" id="n5">1 ligne</span><span class="ok2" id="ok5">✓ Aucune erreur</span>',
       '<span class="orph" id="m5a"><span class="emo">✕</span>Sophie Martin</span>', '✓ 4 clients à appeler']},
+  {id: 47, next: 48, titre: 'Sous-requête dans SELECT', page: 'sous-requete-select.html', thumb: 'sous-requete-select-thumb.jpg', duree: '3 min 28', notesAt: 191.3,
+    notes: /notes:\{t:203\.0,y:1202,card:\[64,292,1016,907\],to:\[940,255\]\}/, table: 'produits',
+    bubble: 'Avec une sous-requête dans <span class="ic">SELECT</span>,<br>chaque ligne reçoit sa propre valeur.',
+    chapters: ['Situation', 'Le problème', 'La sous-requête', 'Ligne par ligne', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<span class="rz-v" id="v2">2026-08-03</span><span class="n2" id="n2">1 seule ligne</span>', "const TOUTE_LA_TABLE = '2026-08-03';",
+      '<span class="kw">WHERE</span> produit_id = <span class="glow" id="v3">5</span>', '📌 Le 5 est écrit en dur&nbsp;: la Tisane Détox seulement',
+      '= <span class="glow" id="pi4">produits.id</span>)', '<span class="glow" id="f5"><span class="kw">FROM</span> commandes</span>)',
+      '✕ La Tisane Détox ne serait jamais relancée', '<span class="glow" id="as6"><span class="kw">AS</span> derniere_commande</span>', '✓ Tisane Détox relancée']},
 ];
 
 for (const c of COURSES) {

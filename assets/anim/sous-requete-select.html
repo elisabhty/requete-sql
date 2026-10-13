@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Sous-requête dans SELECT en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:106px;top:456px;letter-spacing:-2px}
+#s0 .title span.sp{margin-right:34px}
+#s0 .hilite{top:520px;height:38px}
+#s0 .sub{top:604px;font-size:60px}
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:38px;white-space:nowrap}
+.nw{white-space:nowrap}
+
+/* Code : sept lignes (chapitre 6) */
+.code.sm .body{font-size:32px;line-height:50px;padding:26px 36px}
+.code.sm .ln{height:50px}
+.code.sm .caret i{top:-37px;height:42px}
+/* Mini-requêtes : une ligne par bloc, pour pouvoir en ajouter une ou décaler le texte */
+.mini.mm{font-size:32px;line-height:48px;padding:20px 126px 20px 30px}
+.mini .ml{display:block;height:48px}
+.mini .ml.ex{overflow:hidden;margin-left:-8px;padding-left:8px}
+.mini .wx{display:inline-block;overflow:hidden;vertical-align:top}
+.tag.calc{background:#FFF4E5;color:#9A5B00}
+
+/* ---------- 1 · Les produits endormis ---------- */
+.board{left:64px;width:952px;padding:0 0 8px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar>span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.lx{padding:28px 34px 26px}
+.lx-hero{display:flex;align-items:center;gap:26px}
+.lx-ico{width:112px;height:112px;border-radius:34px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:64px;flex:none}
+.lx-t1{font-size:42px;font-weight:800;color:var(--ink);white-space:nowrap}
+.lx-t2{margin-top:6px;font-size:30px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.lx-conds{margin-top:26px;display:flex;align-items:center;gap:14px}
+.cd{height:60px;padding:0 22px;border-radius:999px;font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.cd.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.cd.am{background:#FFF4E5;color:#9A5B00}
+
+/* ---------- 2 · Le problème : une seule date pour toute la table ---------- */
+.rz{position:relative;margin-top:18px;height:72px;border-radius:20px;background:var(--surface-2);display:flex;align-items:center;gap:20px;padding:0 22px;white-space:nowrap;overflow:hidden}
+.rz-h{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--ink-3)}
+.rz-v{font-family:var(--mono);font-size:32px;font-weight:700;color:var(--ink);border-radius:10px;padding:0 6px;margin:0 -6px}
+.n2{margin-left:auto;height:54px;padding:0 20px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:27px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.goal{left:64px;width:952px;height:96px;border-radius:32px;background:#E7F7EE;border:3px solid #BFE8D0;display:flex;align-items:center;justify-content:center;gap:14px;font-size:33px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.goal .emo{font-size:36px}
+/* Les tableaux de produits : id, nom, date de la dernière commande */
+.rgP{display:grid;grid-template-columns:96px 1fr 330px;padding:0 26px;align-items:center}
+.rgN{display:grid;grid-template-columns:1fr 330px;padding:0 26px;align-items:center}
+.tr.tp{height:50px;font-size:30px}
+.tr.am .hl{background:#FFF4E5;box-shadow:inset 8px 0 0 #F2994A}
+.tr.rd .hl{background:#FDEBEC;box-shadow:inset 8px 0 0 #E5484D}
+.dc .q{color:var(--ink-3)}
+.dc .d{position:absolute;left:12px;top:7px;opacity:0}
+
+/* ---------- 3 · Pour un seul produit ---------- */
+.pill{left:0;width:1080px;display:flex;justify-content:center}
+.pill>span{height:62px;padding:0 24px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill.vi>span{background:var(--accent-soft);color:var(--accent-ink)}
+.pill.am>span{background:#FFF4E5;color:#9A5B00}
+.pill.gr>span{background:#E7F7EE;color:#1B7A45}
+.pill.rd>span{background:#FDEBEC;color:#C2323A}
+.pill .ic{font-size:.92em;background:#fff}
+
+/* ---------- 4 · Ligne par ligne ---------- */
+.pv{margin-left:auto;height:54px;padding:0 18px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:26px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pv .pn{position:relative;display:inline-block;width:18px;height:34px}
+.pv .pn b{position:absolute;left:0;top:0;line-height:34px;opacity:0}
+.lp{left:64px;width:952px;padding:22px 30px 26px}
+.lp-h{display:flex;align-items:center;gap:12px;font-size:31px;font-weight:700;color:var(--ink);white-space:nowrap}
+.lp-h .emo{font-size:31px}
+.dg{position:relative;height:64px;margin-top:16px}
+.dg .grp{position:absolute;left:0;top:0;display:flex;gap:12px;opacity:0}
+.dt{height:64px;padding:0 18px;border-radius:18px;background:var(--surface-2);border:3px solid var(--line);font-family:var(--mono);font-size:26px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;white-space:nowrap}
+
+/* ---------- 6 · Le résultat ---------- */
+.rl{position:relative;display:flex;align-items:center;gap:26px;padding:30px 34px 32px}
+.rl-ico{width:112px;height:112px;border-radius:34px;background:#E7F7EE;display:flex;align-items:center;justify-content:center;font-size:64px;flex:none}
+.rl-t1{font-size:42px;font-weight:800;color:var(--ink);white-space:nowrap}
+.rl-t2{margin-top:6px;font-size:28px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.rl-c{margin-top:18px;display:flex;gap:12px}
+#sp6{right:30px;top:30px}
+
+/* ---------- 7 · À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:20px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Sous-requêtes</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>S</span><span>E</span><span>L</span><span>E</span><span>C</span><span class="sp">T</span><span>(</span><span>S</span><span>E</span><span>L</span><span>E</span><span>C</span><span>T</span><span>)</span></div>
+    <div class="abs sub">Calculer une valeur par ligne</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec une sous-requête dans <span class="ic">SELECT</span>,<br>chaque ligne reçoit sa propre valeur.</div>
+  </section>
+
+  <!-- 1 · Situation : relancer les produits qui ne se vendent plus -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="ab1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Marketing · relance produits</span><span class="tb" id="tb1">table produits</span></div>
+      <div class="lx">
+        <div class="lx-hero"><div class="lx-ico" id="ic1">💤</div><div><div class="lx-t1">Produits endormis</div><div class="lx-t2">Relancer ceux qui ne se vendent plus</div></div></div>
+        <div class="lx-conds"><span class="cd vi" id="cd1">📦 Chaque produit</span><span class="cd am" id="cd2">📅 Sa dernière commande</span></div>
+      </div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">📦</span><span class="nl">Le nom du produit</span><span class="tag">table produits</span></div>
+      <div class="need-row"><span class="emo">📅</span><span class="nl">Sa dernière commande</span><span class="tag calc" id="tg1">à calculer</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : MAX() seul renvoie une seule date -->
+  <section class="scene" id="s2">
+    <div class="abs card trap" id="tp2" style="top:300px">
+      <div class="trap-h"><span class="emo">🔎</span><span>Premier essai</span></div>
+      <div class="mini mm"><span class="ml"><span class="kw">SELECT</span> <span class="glow" id="m2"><span class="kw">MAX</span>(date_commande)</span></span><span class="ml"><span class="kw">FROM</span> commandes;</span><span class="go" id="go2"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+      <div class="rz" id="rz2"><span class="rz-h">MAX(date_commande)</span><span class="rz-v" id="v2">2026-08-03</span><span class="n2" id="n2">1 seule ligne</span></div>
+    </div>
+    <div class="tbl card" id="gl2">
+      <div class="tt"><span class="emo">🎯</span><span>Le résultat attendu</span></div>
+      <div class="rgN th"><div>nom</div><div>derniere_commande</div></div>
+      <div class="rows" id="rows2"></div>
+    </div>
+    <div class="abs goal" id="goal2"><span class="emo">🔁</span>Un calcul pour chaque produit</div>
+  </section>
+
+  <!-- 3 · Pour un seul produit, puis la sous-requête -->
+  <section class="scene" id="s3">
+    <div class="abs card trap" id="sq3" style="top:300px">
+      <div class="trap-h"><span class="emo">🍵</span><span>Pour un seul produit</span></div>
+      <div class="mini mm"><span class="ml ex" id="x3a"><span class="kw">SELECT</span> nom,</span><span class="ml"><span class="wx" id="pp3">  <span id="po3">(</span></span><span class="kw">SELECT</span> <span class="kw">MAX</span>(date_commande)</span><span class="ml" id="q3b"><span class="kw">FROM</span> commandes</span><span class="ml" id="q3c"><span class="glow" id="w3"><span class="kw">WHERE</span> produit_id = <span class="glow" id="v3">5</span></span><span class="wx" id="sc3">;</span><span class="wx" id="cp3">)</span></span><span class="ml ex" id="x3b"><span class="kw">FROM</span> produits;</span><span class="go" id="go3"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+      <div class="rz" id="rz3"><span class="rz-h">MAX(date_commande)</span><span class="rz-v">2026-07-18</span><span class="n2">Tisane Détox</span></div>
+    </div>
+    <div class="abs pill am" id="hd3"><span>📌 Le 5 est écrit en dur&nbsp;: la Tisane Détox seulement</span></div>
+  </section>
+
+  <!-- 4 · Ligne par ligne : la sous-requête corrélée -->
+  <section class="scene" id="s4">
+    <div class="abs card trap" id="cq4" style="top:300px">
+      <div class="trap-h"><span class="emo">🔁</span><span>Un calcul par ligne</span><span class="pv" id="pv4">produits.id =<span class="pn"><b>?</b><b>1</b><b>2</b><b>3</b><b>4</b><b>5</b><b>6</b><b>7</b><b>8</b></span></span></div>
+      <div class="mini mm"><span class="ml">(<span class="kw">SELECT</span> <span class="kw">MAX</span>(date_commande)</span><span class="ml"> <span class="kw">FROM</span> commandes</span><span class="ml"> <span class="kw">WHERE</span> commandes.produit_id</span><span class="ml">       = <span class="glow" id="pi4">produits.id</span>)</span></div>
+    </div>
+    <div class="abs card lp" id="st4">
+      <div class="lp-h"><span class="emo">🗓️</span><span>Les commandes du produit en cours</span></div>
+      <div class="dg" id="dg4"></div>
+    </div>
+    <div class="abs pill vi" id="co4"><span>🔗 Une sous-requête <b>corrélée</b>&nbsp;: elle suit la ligne en cours</span></div>
+    <div class="tbl card" id="pt4">
+      <div class="tt"><span class="emo">📦</span><span>Table produits</span><span class="cnt"><span id="cnt4">8 dates calculées</span></span></div>
+      <div class="rgP th"><div>id</div><div>nom</div><div>derniere_commande</div></div>
+      <div class="rows" id="rows4"></div>
+    </div>
+  </section>
+
+  <!-- 5 · Le piège : sans le lien avec produits.id -->
+  <section class="scene" id="s5">
+    <div class="abs card trap" id="tp5" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Et sans le lien avec <span class="ic">produits.id</span>&nbsp;?</span></div>
+      <div class="mini mm"><span class="ml"><span class="kw">SELECT</span> nom,</span><span class="ml">  (<span class="kw">SELECT</span> <span class="kw">MAX</span>(date_commande)</span><span class="ml">   <span class="glow" id="f5"><span class="kw">FROM</span> commandes</span>)</span><span class="ml"><span class="kw">FROM</span> produits;</span><span class="go" id="go5"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+    </div>
+    <div class="tbl card" id="rs5">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt5">La même date partout</span></span></div>
+      <div class="rgN th"><div>nom</div><div>(SELECT MAX(…</div></div>
+      <div class="rows" id="rows5"></div>
+    </div>
+    <div class="abs pill rd" id="x5"><span>✕ La Tisane Détox ne serait jamais relancée</span></div>
+  </section>
+
+  <!-- 6 · Le résultat : la requête complète, puis la relance -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> nom,<span class="caret"><i></i></span></span><span class="ln" id="s6l2">  (<span class="kw">SELECT</span> <span class="kw">MAX</span>(date_commande)<span class="caret"><i></i></span></span><span class="ln" id="s6l3">   <span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="s6l4">   <span class="kw">WHERE</span> commandes.produit_id<span class="caret"><i></i></span></span><span class="ln" id="s6l5">         = produits.id)<span class="caret"><i></i></span></span><span class="ln" id="s6l6">  <span class="glow" id="as6"><span class="kw">AS</span> derniere_commande</span><span class="caret"><i></i></span></span><span class="ln" id="s6l7"><span class="kw">FROM</span> produits;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">8 lignes</span></span></div>
+      <div class="rgN th"><div>nom</div><div>derniere_commande</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card board" id="ab6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Marketing · relance produits</span></div>
+      <div class="rl">
+        <div class="rl-ico">🍵</div>
+        <div><div class="rl-t1">Tisane Détox</div><div class="rl-t2">📅 Dernière commande&nbsp;: 2026-07-18</div><div class="rl-c"><span class="cd am">💤 Produit endormi</span><span class="cd vi">🎁 Offre de relance</span></div></div>
+        <div class="stamp" id="sp6">Relancé</div>
+      </div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ Tisane Détox relancée</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🧮</div><div class="rtxt">Une sous-requête dans <span class="ic">SELECT</span> calcule <b>une valeur par ligne</b> affichée.<span class="rs">Ici&nbsp;: la date de la dernière commande de chaque produit.</span></div></div>
+      <div class="rrow"><div class="rico emo">🔗</div><div class="rtxt">Elle est souvent <b>corrélée</b>&nbsp;: elle utilise une colonne de la requête principale&nbsp;:<br><span class="ic blk">commandes.produit_id = produits.id</span></div></div>
+      <div class="rrow"><div class="rico emo">⚠️</div><div class="rtxt">Sans ce lien, elle lit <b>toute la table</b>&nbsp;: chaque produit reçoit la même date.</div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 196.2;
+
+/* La table produits et, pour chacun, les dates de ses commandes (table commandes). La plus récente est sa dernière commande. */
+const PRODUITS = [
+  [1, 'Fibre Prébiotique', ['2026-07-02', '2026-07-11', '2026-07-18', '2026-08-01']],
+  [2, 'Collagène Marin',   ['2026-07-08', '2026-07-25']],
+  [3, 'Magnésium',         ['2026-07-02', '2026-07-20']],
+  [4, 'Vitamine D',        ['2026-07-12', '2026-08-03']],
+  [5, 'Tisane Détox',      ['2026-07-18']],
+  [6, 'Protéine Végétale', ['2026-07-05', '2026-07-22']],
+  [7, 'Oméga 3',           ['2026-07-15', '2026-07-30']],
+  [8, 'Shaker Inox',       ['2026-07-28']]
+];
+const DERNIERE = p => p[2][p[2].length - 1];   // les dates sont rangées : la dernière est la plus récente
+const TOUTE_LA_TABLE = '2026-08-03';             // MAX(date_commande) sur toute la table commandes
+
+const CHAPTERS = [
+  {n:1, label:'Situation',            a:5.0,   b:33.6},
+  {n:2, label:'Le problème',          a:33.6,  b:61.0},
+  {n:3, label:'La sous-requête',      a:61.0,  b:91.1},
+  {n:4, label:'Ligne par ligne',      a:91.1,  b:133.0},
+  {n:5, label:'Le piège',             a:133.0, b:156.5},
+  {n:6, label:'Le résultat',          a:156.5, b:186.1},
+  {n:7, label:'À retenir',            a:186.1, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 10.8,    "L’équipe marketing veut relancer les produits qui ne se vendent plus."],
+  [10.9, 16.5,   "Pour les repérer, il lui faut la date de leur <b>dernière commande</b>."],
+  [16.6, 21.6,   "Plus cette date est ancienne, plus le produit est endormi."],
+  [21.7, 27.2,   "Le nom de chaque produit se trouve dans la <b>table produits</b>."],
+  [27.3, 33.1,   "Sa dernière commande, elle, doit être calculée à partir des commandes."],
+  [33.9, 39.4,   "Premier essai : <code>MAX()</code> sur la date de toutes les commandes."],
+  [39.5, 45.2,   "Il renvoie la date la plus récente : <span class=\"nw\">2026-08-03</span>, sur une seule ligne."],
+  [45.3, 50.6,   "C’est la dernière commande de la table entière, tous produits confondus."],
+  [50.7, 56.2,   "Or il faut une date pour chaque produit, juste à côté de son nom."],
+  [56.3, 60.5,   "Le calcul doit donc être refait pour chaque produit."],
+  [61.3, 67.0,   "Commençons par un seul produit : la Tisane&nbsp;Détox, dont l’id est 5."],
+  [67.1, 72.8,   "Seules ses commandes sont gardées : <code>MAX()</code> renvoie alors <span class=\"nw\">2026-07-18</span>."],
+  [72.9, 78.8,   "Le calcul fonctionne, mais le 5 est écrit en dur : il ne vaut que pour ce produit."],
+  [78.9, 85.0,   "Entre parenthèses dans le <code>SELECT</code>, ce calcul devient une <b class=\"nw\">sous-requête</b>."],
+  [85.1, 90.6,   "Il reste à remplacer le 5 par l’id de chaque produit."],
+  [91.4, 97.0,   "Pour que le calcul suive chaque produit, le 5 devient <code>produits.id</code>."],
+  [97.1, 102.8,  "<code>produits.id</code> désigne l’id du produit de la ligne en cours."],
+  [102.9, 108.4, "Ligne 1 : pour la Fibre&nbsp;Prébiotique, la <span class=\"nw\">sous-requête</span> trouve 4 commandes."],
+  [108.5, 113.9, "La plus récente date du <span class=\"nw\">2026-08-01</span> : c’est sa dernière commande."],
+  [114.0, 119.6, "Ligne 2 : pour le Collagène&nbsp;Marin, la <span class=\"nw\">sous-requête</span> renvoie <span class=\"nw\">2026-07-25</span>."],
+  [119.7, 125.6, "Le calcul est refait pour chaque produit, qui reçoit sa propre date."],
+  [125.7, 132.5, "Reliée ainsi à la requête principale, la <span class=\"nw\">sous-requête</span> est dite <b>corrélée</b>."],
+  [133.3, 139.0, "Attention : la requête s’exécute même sans le lien avec <code>produits.id</code>."],
+  [139.1, 144.4, "Mais chaque produit affiche la même date : <span class=\"nw\">2026-08-03</span>."],
+  [144.5, 150.2, "La <span class=\"nw\">sous-requête</span> lit alors toute la table commandes, pour chaque produit."],
+  [150.3, 156.0, "La Tisane&nbsp;Détox paraît commandée le 3 août : elle ne serait jamais relancée."],
+  [156.8, 162.6, "La requête complète : le nom, puis la <span class=\"nw\">sous-requête</span> corrélée entre parenthèses."],
+  [162.7, 168.3, "<code>AS</code> donne un nom lisible à la colonne calculée : <code>derniere_commande</code>."],
+  [168.4, 174.0, "Résultat : <b>8 lignes</b>, chaque produit avec la date de sa dernière commande."],
+  [174.1, 179.8, "La plus ancienne : la Tisane&nbsp;Détox, sans commande depuis le 18 juillet."],
+  [179.9, 185.6, "L’équipe marketing la relance en priorité, avec une offre."],
+  [186.4, 191.2, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [191.3, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [191.3, 999, "Une <span class=\"nw\">sous-requête</span> corrélée calcule une valeur pour chaque ligne."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+function dom(){
+  const nom = p => `<div>${p[1]}</div>`;
+  /* Chapitre 2 : le résultat attendu, une date par produit (encore inconnue) */
+  $('#rows2').innerHTML = PRODUITS.map(p => `<div class="rgN tr tp"><span class="hl"></span>${nom(p)}<div class="dc"><span class="q">?</span></div></div>`).join('');
+  /* Chapitre 4 : la table produits, la date arrive ligne après ligne ; les dates des commandes de chaque produit */
+  $('#rows4').innerHTML = PRODUITS.map(p => `<div class="rgP tr tp"><span class="hl"></span><div>${p[0]}</div>${nom(p)}` +
+    `<div class="dc"><span class="q">?</span><span class="d">${DERNIERE(p)}</span></div></div>`).join('');
+  $('#dg4').innerHTML = PRODUITS.map(p => `<div class="grp">${p[2].map(d => `<span class="dt">${d}</span>`).join('')}</div>`).join('');
+  /* Chapitre 5 : sans le lien, la même date pour tous */
+  $('#rows5').innerHTML = PRODUITS.map(p => `<div class="rgN tr tp am"><span class="hl"></span>${nom(p)}<div>${TOUTE_LA_TABLE}</div></div>`).join('');
+  /* Chapitre 6 : le résultat de la requête complète */
+  $('#rows6').innerHTML = PRODUITS.map(p => `<div class="rgN tr tp am"><span class="hl"></span>${nom(p)}<div>${DERNIERE(p)}</div></div>`).join('');
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+const VERT = {backgroundColor: '#E7F7EE', borderColor: '#7FD3A8', color: '#1B7A45'};
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+/* Une carte arrive en tournant légèrement, puis ses éléments un à un. */
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(sel, $(id));
+  gsap.set(items, {autoAlpha: 0, y: 24});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => cue(t + 0.65 + i * step, 'pop', 0.55, i % 5));
+  return items;
+}
+/* Chapitre 4 : la sous-requête calcule la date d’une ligne. La ligne s’allume, produits.id prend son id,
+   les dates de ses commandes s’affichent, la plus récente passe au vert, puis elle remplit la cellule. */
+function ligne(i, t, d = 0.9){
+  const rows = $$('#rows4 .tr'), grps = $$('#dg4 .grp'), nums = $$('#pv4 .pn b');
+  if (i) {
+    tl.to(rows[i - 1].querySelector('.hl'), {opacity: 0, duration: 0.2}, t);
+    tl.set(grps[i - 1], {autoAlpha: 0}, t);
+  }
+  tl.to(rows[i].querySelector('.hl'), {opacity: 1, duration: 0.25}, t);
+  tl.set(nums[i], {autoAlpha: 0}, t);
+  tl.set(nums[i + 1], {autoAlpha: 1}, t);
+  bump('#pv4', t, 1.08, 1);
+  cue(t, 'tick', 0.5, i % 5);
+  const g = grps[i], chips = $$('.dt', g);
+  tl.fromTo(g, {autoAlpha: 0, y: 10}, {autoAlpha: 1, y: 0, duration: 0.25, ease: 'power2.out', immediateRender: false}, t + 0.1);
+  tl.to(chips[chips.length - 1], Object.assign({duration: 0.25}, VERT), t + d);
+  bump(chips[chips.length - 1], t + d, 1.08, 1);
+  cue(t + d, 'true', 0.45);
+  const cell = rows[i].querySelector('.dc');
+  tl.to(cell.querySelector('.q'), {autoAlpha: 0, duration: 0.15}, t + 1.6 * d);
+  tl.fromTo(cell.querySelector('.d'), {autoAlpha: 0, x: -14}, {autoAlpha: 1, x: 0, duration: 0.3, ease: 'power2.out', immediateRender: false}, t + 1.6 * d);
+  cue(t + 1.6 * d, 'pop', 0.55, (i + 2) % 5);
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.5, 2.1);   // le temps de lire la bulle de la mascotte (après le saut des 14 lettres du titre)
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  boardIn('#ab1', 5.15, '.lx-hero');
+  gsap.set(['#cd1', '#cd2', '#tb1'], {autoAlpha: 0});
+  // Chaque produit, avec la date de sa dernière commande
+  show('#cd1', 11.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(11.6, 'pop', 0.7, 1);
+  show('#cd2', 13.9, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(13.9, 'pop', 0.7, 3);
+  // Plus la date est ancienne, plus le produit est endormi
+  bump('#ic1', 17.3, 1.15, 3);
+  cue(17.3, 'tick', 0.5, 2);
+  // Le nom : table produits
+  stackBelow('#s1 .need', '#ab1');   // la liste se cale sous la carte de la relance, sans la toucher
+  show('#tb1', 22.2, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(22.2, 'pop', 0.7, 2);
+  show('#s1 .need', 22.6, {y: 60});
+  cue(22.6, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows[0], {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, 22.9);
+  cue(22.9, 'pop', 0.7, 0);
+  // La dernière commande : à calculer
+  tl.to(needRows[1], {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, 27.9);
+  cue(27.9, 'pop', 0.7, 2);
+  bump('#tg1', 28.7, 1.12, 1);
+  hide(['#ab1', '#s1 .need'], 33.1);
+  sceneOff('#s1', 33.6);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 33.6);
+  show('#tp2', 33.65, {y: 50});
+  cue(33.65, 'whoosh', 0.6);
+  // Premier essai : MAX() sur toutes les commandes
+  pulse('#m2', 35.6, 3, 'rgba(201,188,255,.35)');
+  // Une seule date : 2026-08-03
+  press($('#go2'), 39.9, '#4B30CC', 6);
+  gsap.set(['#v2', '#n2'], {autoAlpha: 0});
+  show('#rz2', 40.2, {y: 14}, 0.35, 'power2.out');
+  show('#v2', 40.6, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(40.6, 'pop', 0.7, 2);
+  show('#n2', 41.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(41.6, 'tick', 0.5, 3);
+  // Toute la table, tous produits confondus
+  pulse('#v2', 46.0, 3, 'rgba(255,214,140,.55)');
+  // Il faut une date par produit
+  stackBelow('#gl2', '#tp2', 0, 30);
+  stackBelow('#goal2', '#gl2', 0, 30);
+  show('#gl2', 51.0, {y: 50});
+  cue(51.0, 'whoosh', 0.6);
+  rowsIn($$('#rows2 .tr'), 51.4, 0.08);
+  tl.to($$('#rows2 .q'), {scale: 1.3, duration: 0.18, yoyo: true, repeat: 1, stagger: 0.06}, 53.2);
+  // Refaire le calcul pour chaque produit
+  show('#goal2', 56.8, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(56.8, 'pop', 0.75, 3);
+  hide(['#tp2', '#gl2', '#goal2'], 60.5, {y: -40}, 0.4);
+  sceneOff('#s2', 61.0);
+
+  /* ===== 3 · La sous-requête ===== */
+  sceneOn('#s3', 61.0);
+  // Les lignes ajoutées autour du calcul (SELECT nom, … FROM produits) restent repliées jusqu’au chapitre
+  gsap.set(['#x3a', '#x3b'], {height: 0, opacity: 0});
+  gsap.set(['#pp3', '#cp3'], {width: 0});
+  stackBelow('#hd3', '#sq3', 0, 30);
+  show('#sq3', 61.35, {y: 50});
+  cue(61.35, 'whoosh', 0.6);
+  // La Tisane Détox, id 5
+  pulse('#v3', 63.6, 3, 'rgba(201,188,255,.5)');
+  // Le WHERE ne garde que ses commandes : 2026-07-18
+  pulse('#w3', 67.6, 3, 'rgba(201,188,255,.35)');
+  press($('#go3'), 69.6, '#4B30CC', 6);
+  show('#rz3', 70.0, {y: 14}, 0.35, 'power2.out');
+  cue(70.0, 'pop', 0.7, 2);
+  // Le 5 est écrit en dur
+  pulse('#v3', 73.5, 3, 'rgba(255,214,140,.6)');
+  show('#hd3', 74.2, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(74.2, 'tick', 0.55, 3);
+  // Entre parenthèses dans le SELECT : une sous-requête
+  hide('#hd3', 79.2, {y: 20}, 0.3);
+  tl.to('#rz3', {height: 0, marginTop: 0, autoAlpha: 0, duration: 0.35, ease: 'power2.in'}, 79.3);
+  tl.to('#go3', {autoAlpha: 0, duration: 0.25}, 79.3);
+  const W = ch => ch * 19.2;   // largeur d’un caractère : 0,6 × 32 px
+  tl.to(['#x3a', '#x3b'], {height: 48, duration: 0.45, ease: 'power3.out'}, 79.8);
+  tl.to(['#x3a', '#x3b'], {opacity: 1, duration: 0.3}, 80.2);
+  tl.to('#pp3', {width: W(3), duration: 0.45, ease: 'power3.out'}, 79.8);
+  tl.to(['#q3b', '#q3c'], {paddingLeft: W(3), duration: 0.45, ease: 'power3.out'}, 79.8);
+  tl.to('#sc3', {width: 0, duration: 0.3}, 79.8);
+  tl.to('#cp3', {width: W(1), duration: 0.3}, 80.0);
+  cue(79.8, 'fold', 0.6);
+  tl.to(['#po3', '#cp3'], {color: '#FFC870', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 80.8);   // les deux parenthèses s’allument
+  // Remplacer le 5 par l’id de chaque produit
+  pulse('#v3', 85.6, 3, 'rgba(255,214,140,.6)');
+  cue(85.6, 'tick', 0.5, 2);
+  hide('#sq3', 90.6, {y: -40});
+  sceneOff('#s3', 91.1);
+
+  /* ===== 4 · Ligne par ligne ===== */
+  sceneOn('#s4', 91.1);
+  show('#cq4', 91.45, {y: 50});
+  cue(91.45, 'whoosh', 0.6);
+  // Le 5 devient produits.id
+  pulse('#pi4', 93.6, 3, 'rgba(201,188,255,.5)');
+  // La table produits : une ligne à la fois
+  stackBelow('#st4', '#cq4', 0, 30);
+  stackBelow('#co4', '#cq4', 0, 30);
+  stackBelow('#pt4', '#st4', 0, 30);
+  show('#pt4', 97.4, {y: 50});
+  cue(97.4, 'whoosh', 0.6);
+  rowsIn($$('#rows4 .tr'), 97.7, 0.07);
+  const nums = $$('#pv4 .pn b');
+  gsap.set(nums, {autoAlpha: 0});
+  gsap.set('#pv4', {autoAlpha: 0});
+  gsap.set('#cnt4', {autoAlpha: 0});
+  show('#pv4', 99.0, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  tl.set(nums[0], {autoAlpha: 1}, 99.0);
+  pulse('#pi4', 99.6, 3, 'rgba(201,188,255,.5)');
+  // Ligne 1 : la Fibre Prébiotique, 4 commandes, la plus récente le 2026-08-01
+  show('#st4', 103.1, {y: 30}, 0.45);
+  cue(103.1, 'whoosh', 0.5);
+  ligne(0, 103.4, 5.6);
+  // Ligne 2 : le Collagène Marin, 2026-07-25
+  ligne(1, 114.4, 1.3);
+  // Les six autres produits, à la suite
+  [2, 3, 4, 5, 6, 7].forEach((i, k) => ligne(i, 120.2 + k * 0.85, 0.3));
+  // Une sous-requête corrélée
+  tl.to($$('#rows4 .hl')[7], {opacity: 0, duration: 0.25}, 126.0);
+  hide('#st4', 126.0, {y: -20}, 0.3);
+  show('#co4', 126.5, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(126.5, 'pop', 0.7, 3);
+  show('#cnt4', 127.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(127.4, 'chord', 0.6);
+  hide(['#cq4', '#co4', '#pt4'], 132.5, {y: -40});
+  sceneOff('#s4', 133.0);
+
+  /* ===== 5 · Le piège ===== */
+  sceneOn('#s5', 133.0);
+  show('#tp5', 133.05, {y: 50});
+  cue(133.05, 'whoosh', 0.6);
+  // La même date pour tous
+  press($('#go5'), 139.4, '#4B30CC', 6);
+  stackBelow('#rs5', '#tp5', 0, 30);
+  stackBelow('#x5', '#rs5', 0, 30);
+  show('#rs5', 139.7, {y: 50});
+  cue(139.7, 'whoosh', 0.6);
+  const r5 = $$('#rows5 .tr');
+  rowsIn(r5, 140.0, 0.1);
+  tl.to($$('#rows5 .hl'), {opacity: 1, duration: 0.25, stagger: 0.08}, 141.3);
+  gsap.set('#cnt5', {autoAlpha: 0});
+  show('#cnt5', 142.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(142.3, 'false', 0.5);
+  // Toute la table commandes, pour chaque produit
+  pulse('#f5', 145.0, 3, 'rgba(255,214,140,.5)');
+  // La Tisane Détox ne serait jamais relancée
+  tl.to(r5[4].querySelector('.hl'), {backgroundColor: '#FDEBEC', boxShadow: 'inset 8px 0 0 #E5484D', duration: 0.3}, 150.8);
+  cue(150.8, 'miss', 0.55);
+  show('#x5', 151.4, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  shake('#x5', 152.0);
+  hide(['#tp5', '#rs5', '#x5'], 156.0, {y: -40});
+  sceneOff('#s5', 156.5);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 156.5);
+  show('#s6code', 156.55, {y: 60}, 0.6);
+  cue(156.55, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 157.05, 40);
+  for (const k of [2, 3, 4, 5, 6, 7]) te = typeLine($('#s6l' + k), te + 0.1, 40);
+  // AS : un nom lisible pour la colonne calculée
+  pulse('#as6', 163.2, 3, 'rgba(201,188,255,.35)');
+  press($('#s6run'), 168.7);
+  stackBelow('#tbl6', '#s6code', 0, 30);
+  show('#tbl6', 168.95, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 169.1, 0.1);
+  show('#cnt6', 169.9, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 170.7, 1.15, 3);
+  // La plus ancienne : la Tisane Détox
+  tl.to($$('#rows6 .tr')[4].querySelector('.hl'), {opacity: 1, duration: 0.3}, 174.6);
+  cue(174.6, 'tick', 0.6, 3);
+  hide(['#s6code', '#tbl6'], 179.4, {y: -40}, 0.4);
+  // La relance de la Tisane Détox
+  boardIn('#ab6', 179.9, '.rl > div:not(.stamp)', 0.2);
+  gsap.set('#sp6', {autoAlpha: 0, scale: 1.8, rotation: -14});
+  tl.to('#sp6', {autoAlpha: 1, scale: 1, rotation: -8, duration: 0.35, ease: 'back.out(2)'}, 181.6);
+  cue(181.6, 'stamp', 0.8);
+  stackBelow('#badge6', '#ab6', 0, 50);
+  show('#badge6', 182.6, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(182.6, 'chord', 0.7);
+  hide(['#ab6', '#badge6'], 185.6);
+  sceneOff('#s6', 186.1);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(186.1, [186.8, 188.6, 190.4]);
+  hold(188.4, 4.8);
+  hold(190.2, 4.8);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(191.35, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 191.3,
+  glyphs: '💤📦📅🔎🎯🔁🍵📌🗓️🔗⚠️✕✓🎁🧮·?…', dom, build});
+</script>
+</body>
+</html>
