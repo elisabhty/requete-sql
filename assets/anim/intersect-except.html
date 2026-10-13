@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · INTERSECT et EXCEPT en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:96px;top:462px;letter-spacing:-2px}
+#s0 .title span.sp{margin-right:30px}
+#s0 .hilite{top:522px;height:34px}
+#s0 .sub{top:596px;font-size:58px}
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:36px;white-space:nowrap}
+.nw{white-space:nowrap}
+.tag.tc{background:#FFF4E5;color:#9A5B00}
+
+/* Code : neuf lignes (chapitres 3 à 6) */
+.code.sm .body{font-size:30px;line-height:46px;padding:24px 34px}
+.code.sm .ln{height:46px}
+.code.sm .caret i{top:-34px;height:40px}
+.code .wx{display:inline-block;overflow:hidden;vertical-align:top}
+
+/* ---------- 1 · Le réassort ---------- */
+.board{left:64px;width:952px;padding:0 0 8px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar>span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.lx{padding:28px 34px 26px}
+.lx-hero{display:flex;align-items:center;gap:26px}
+.lx-ico{width:112px;height:112px;border-radius:34px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:64px;flex:none}
+.lx-t1{font-size:42px;font-weight:800;color:var(--ink);white-space:nowrap}
+.lx-t2{margin-top:6px;font-size:30px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.lx-conds{margin-top:26px;display:flex;align-items:center;gap:14px}
+.cd{height:60px;padding:0 22px;border-radius:999px;font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.cd.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.cd.am{background:#FFF4E5;color:#9A5B00}
+.pill{left:0;width:1080px;display:flex;justify-content:center}
+.pill>span{height:62px;padding:0 24px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill.am>span{background:#FFF4E5;color:#9A5B00}
+.pill.rd>span{background:#FDEBEC;color:#C2323A}
+
+/* ---------- 2 · Deux listes ---------- */
+.lists{left:64px;width:952px;display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+.lst{padding:24px 24px 26px}
+.lst-h{display:flex;align-items:center;gap:16px;padding:0 4px 18px}
+.lst-h .emo{width:66px;height:66px;border-radius:20px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:40px;flex:none}
+.lst-t{font-size:32px;font-weight:800;color:var(--ink);white-space:nowrap}
+.lst-s{margin-top:2px;font-size:25px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.pc{height:58px;border-radius:16px;background:var(--surface-2);border:3px solid transparent;display:flex;align-items:center;padding:0 18px;font-size:28px;font-weight:700;color:var(--ink);white-space:nowrap}
+.pc+.pc{margin-top:10px}
+.lst-n{margin-top:18px;display:flex;justify-content:center}
+.lst-n span{height:48px;padding:0 20px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:26px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.goal{left:64px;width:952px;height:96px;border-radius:32px;background:#E7F7EE;border:3px solid #BFE8D0;display:flex;align-items:center;justify-content:center;gap:14px;font-size:33px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.goal .emo{font-size:36px}
+
+/* ---------- 3 à 5 · INTERSECT, EXCEPT, l’ordre ---------- */
+.rg1{display:grid;grid-template-columns:1fr;padding:0 26px;align-items:center}
+.tr.t3{height:56px;font-size:32px}
+
+/* ---------- 6 · Le résultat ---------- */
+.bc-rows{padding:20px 28px 22px}
+.bc-r{height:72px;border-radius:20px;background:var(--surface-2);display:flex;align-items:center;gap:18px;padding:0 22px;font-size:32px;font-weight:700;color:var(--ink);white-space:nowrap}
+.bc-r+.bc-r{margin-top:12px}
+.bc-r .ok{width:40px;height:40px;border-radius:50%;background:#E7F7EE;color:#1B7A45;font-size:24px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+.bc-r .st{margin-left:auto;height:46px;padding:0 16px;border-radius:999px;background:#FDEBEC;color:#C2323A;font-size:25px;font-weight:800;display:flex;align-items:center}
+.mn{left:64px;width:952px;padding:26px 30px 28px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.mn-c{display:flex;flex-direction:column;align-items:center;gap:14px}
+.vn{width:344px;height:195px;display:block}
+.vn .vb{fill:#F3F0FF}
+.vn .vc{fill:none;stroke:#9F88FF;stroke-width:4}
+.vn .vf{fill:#7C5CFF}
+.vn text{font-family:var(--display);font-size:34px;font-weight:800;fill:#4B30CC;text-anchor:middle}
+.mn-l{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:31px;font-weight:700;color:var(--ink);white-space:nowrap}
+
+/* ---------- 7 · À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:20px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Combiner des résultats</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>I</span><span>N</span><span>T</span><span>E</span><span>R</span><span>S</span><span>E</span><span>C</span><span class="sp">T</span><span>E</span><span>X</span><span>C</span><span>E</span><span>P</span><span>T</span></div>
+    <div class="abs sub">Comparer deux résultats</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec <span class="ic">INTERSECT</span> et <span class="ic">EXCEPT</span>,<br>compare les lignes de deux requêtes.</div>
+  </section>
+
+  <!-- 1 · Situation : la commande au fournisseur -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="ab1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Fournisseur · commande du mois</span><span class="tb" id="tb1">table produits</span></div>
+      <div class="lx">
+        <div class="lx-hero"><div class="lx-ico">📦</div><div><div class="lx-t1">Réassort</div><div class="lx-t2">Les produits à racheter en priorité</div></div></div>
+        <div class="lx-conds"><span class="cd vi" id="cd1">📉 Stock sous 100</span><span class="cd am" id="cd2">🛒 Commandé depuis le 20 juillet</span></div>
+      </div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">📦</span><span class="nl">Le nom des produits</span><span class="tag">table produits</span></div>
+      <div class="need-row"><span class="emo">📉</span><span class="nl">Leur stock</span><span class="tag">table produits</span></div>
+      <div class="need-row"><span class="emo">🗓️</span><span class="nl">La date des commandes</span><span class="tag tc">table commandes</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : deux listes à comparer -->
+  <section class="scene" id="s2">
+    <div class="abs lists" id="ls2" style="top:300px">
+      <div class="card lst" id="la2">
+        <div class="lst-h"><span class="emo">📉</span><div><div class="lst-t">Stock faible</div><div class="lst-s">sous 100 unités</div></div></div>
+        <div id="pa2"></div>
+        <div class="lst-n"><span>5 produits</span></div>
+      </div>
+      <div class="card lst" id="lb2">
+        <div class="lst-h"><span class="emo">🛒</span><div><div class="lst-t">Commandés</div><div class="lst-s">depuis le 20 juillet</div></div></div>
+        <div id="pb2"></div>
+        <div class="lst-n"><span>7 produits</span></div>
+      </div>
+    </div>
+    <div class="abs goal" id="goal2"><span class="emo">🎯</span>Garder les produits présents dans les deux listes</div>
+  </section>
+
+  <!-- 3 à 5 · INTERSECT, EXCEPT, puis l’ordre des deux requêtes -->
+  <section class="scene" id="s3">
+    <div class="abs code sm" id="c3" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="l1"><span class="kw">SELECT</span> <span class="glow" id="n1">nom</span><span class="caret"><i></i></span></span><span class="ln" id="l2"><span class="kw">FROM</span> produits<span class="caret"><i></i></span></span><span class="ln" id="l3"><span class="glow" id="w3"><span class="kw">WHERE</span> stock &lt; 100</span><span class="wx" id="sc3">;</span><span class="caret"><i></i></span></span><span class="ln" id="l4"><span class="glow" id="op3"><span class="kw"><span class="wx" id="kwI">INTERSECT</span><span id="kwE">EXCEPT</span></span></span><span class="caret"><i></i></span></span><span class="ln" id="l5"><span class="kw">SELECT</span> <span class="glow" id="n5">produits.nom</span><span class="caret"><i></i></span></span><span class="ln" id="l6"><span class="kw">FROM</span> produits<span class="caret"><i></i></span></span><span class="ln" id="l7"><span class="kw">JOIN</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="l8">  <span class="kw">ON</span> commandes.produit_id = produits.id<span class="caret"><i></i></span></span><span class="ln" id="l9"><span class="glow" id="w9"><span class="kw">WHERE</span> commandes.date_commande &gt;= <span class="str">'2026-07-20'</span></span><span class="wx" id="sc9">;</span><span class="caret"><i></i></span></span></div>
+      <div class="run" id="r3"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tb3">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt3">4 lignes</span></span></div>
+      <div class="rg1 th"><div>nom</div></div>
+      <div class="rows" id="rows3"></div>
+    </div>
+    <div class="tbl card" id="tb4">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt4">1 ligne</span></span></div>
+      <div class="rg1 th"><div>nom</div></div>
+      <div class="rows" id="rows4"></div>
+    </div>
+    <div class="abs pill am" id="pr4"><span>🏷️ Tisane Détox&nbsp;: à écouler en promotion</span></div>
+    <div class="tbl card" id="tb5">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt5">3 lignes</span></span></div>
+      <div class="rg1 th"><div>nom</div></div>
+      <div class="rows" id="rows5"></div>
+    </div>
+    <div class="abs pill rd" id="tp5"><span>✕ Des stocks confortables&nbsp;: 120, 500 et 150 unités</span></div>
+  </section>
+
+  <!-- 6 · Le résultat : la requête complète, puis le bon de commande -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> nom<span class="caret"><i></i></span></span><span class="ln" id="s6l2"><span class="kw">FROM</span> produits<span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="kw">WHERE</span> stock &lt; 100<span class="caret"><i></i></span></span><span class="ln" id="s6l4"><span class="glow" id="op6"><span class="kw">INTERSECT</span></span><span class="caret"><i></i></span></span><span class="ln" id="s6l5"><span class="kw">SELECT</span> produits.nom<span class="caret"><i></i></span></span><span class="ln" id="s6l6"><span class="kw">FROM</span> produits<span class="caret"><i></i></span></span><span class="ln" id="s6l7"><span class="kw">JOIN</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="s6l8">  <span class="kw">ON</span> commandes.produit_id = produits.id<span class="caret"><i></i></span></span><span class="ln" id="s6l9"><span class="kw">WHERE</span> commandes.date_commande &gt;= <span class="str">'2026-07-20'</span>;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">4 lignes</span></span></div>
+      <div class="rg1 th"><div>nom</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card board" id="bc6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Fournisseur · bon de commande</span></div>
+      <div class="bc-rows" id="bcr6"></div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ Commande envoyée au fournisseur</span></div>
+    <div class="abs card mn" id="mn6">
+      <div class="mn-c">
+        <svg class="vn" viewBox="0 0 300 170" aria-hidden="true"><defs><clipPath id="vca"><circle cx="115" cy="85" r="70"/></clipPath></defs><circle class="vb" cx="115" cy="85" r="70"/><circle class="vb" cx="185" cy="85" r="70"/><circle class="vf" id="vi6" cx="185" cy="85" r="70" clip-path="url(#vca)"/><circle class="vc" cx="115" cy="85" r="70"/><circle class="vc" cx="185" cy="85" r="70"/><text x="80" y="97">1</text><text x="220" y="97">2</text></svg>
+        <div class="mn-l"><span class="ic">INTERSECT</span><span>garde le commun</span></div>
+      </div>
+      <div class="mn-c">
+        <svg class="vn" viewBox="0 0 300 170" aria-hidden="true"><defs><mask id="vmb"><rect x="0" y="0" width="300" height="170" fill="#fff"/><circle cx="185" cy="85" r="70" fill="#000"/></mask></defs><circle class="vb" cx="115" cy="85" r="70"/><circle class="vb" cx="185" cy="85" r="70"/><circle class="vf" id="ve6" cx="115" cy="85" r="70" mask="url(#vmb)"/><circle class="vc" cx="115" cy="85" r="70"/><circle class="vc" cx="185" cy="85" r="70"/><text x="80" y="97">1</text><text x="220" y="97">2</text></svg>
+        <div class="mn-l"><span class="ic">EXCEPT</span><span>retire la seconde</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🤝</div><div class="rtxt"><span class="ic">INTERSECT</span> ne garde que les lignes <b>présentes dans les deux</b> requêtes.<span class="rs">Ici&nbsp;: stock faible, toujours commandés.</span></div></div>
+      <div class="rrow"><div class="rico emo">➖</div><div class="rtxt"><span class="ic">EXCEPT</span> garde les lignes de la première qui <b>ne sont pas</b> dans la seconde.<span class="rs">Ici&nbsp;: stock faible, mais plus commandés.</span></div></div>
+      <div class="rrow"><div class="rico emo">📏</div><div class="rtxt">Comme <span class="ic">UNION</span>&nbsp;: même nombre de colonnes, doublons écartés.<span class="rs">Avec <span class="ic">EXCEPT</span>, l’<b>ordre</b> des deux requêtes compte&nbsp;: la première donne la liste de départ.</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 164.1;
+
+/* Les deux listes : les produits en stock faible (stock < 100) et les produits commandés depuis le 20 juillet. */
+const STOCK_FAIBLE = [['Collagène Marin', 80], ['Oméga 3', 90], ['Protéine Végétale', 45], ['Shaker Inox', 30], ['Tisane Détox', 60]];
+const COMMANDES_RECENTES = ['Collagène Marin', 'Fibre Prébiotique', 'Magnésium', 'Oméga 3', 'Protéine Végétale', 'Shaker Inox', 'Vitamine D'];
+const FAIBLES = STOCK_FAIBLE.map(([n]) => n);
+const COMMUNS = FAIBLES.filter(n => COMMANDES_RECENTES.includes(n));          // INTERSECT : 4 produits
+const SANS_VENTE = FAIBLES.filter(n => !COMMANDES_RECENTES.includes(n));      // EXCEPT : la Tisane Détox
+const INVERSE = COMMANDES_RECENTES.filter(n => !FAIBLES.includes(n));         // ordre inversé : 3 produits
+
+const CHAPTERS = [
+  {n:1, label:'Situation',          a:5.0,   b:28.0},
+  {n:2, label:'Le problème',        a:28.0,  b:52.0},
+  {n:3, label:'INTERSECT',          a:52.0,  b:82.0},
+  {n:4, label:'EXCEPT',             a:82.0,  b:106.0},
+  {n:5, label:'Le piège',           a:106.0, b:130.0},
+  {n:6, label:'Le résultat',        a:130.0, b:154.0},
+  {n:7, label:'À retenir',          a:154.0, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 10.6,    "Chaque mois, le site web passe une <b>commande à son fournisseur</b>."],
+  [10.7, 16.4,   "Il veut racheter en priorité les produits en <b>stock faible</b>, sous 100 unités."],
+  [16.5, 22.1,   "Mais seulement ceux qui se vendent encore : commandés depuis le 20 juillet."],
+  [22.2, 27.5,   "Les stocks sont dans la <b>table produits</b>, les ventes dans la table commandes."],
+  [28.3, 33.4,   "Chaque critère donne une liste, avec sa propre requête."],
+  [33.5, 39.8,   "À gauche, les 5 produits en stock faible ; à droite, les 7 produits commandés récemment."],
+  [39.9, 45.6,   "Le fournisseur ne doit recevoir que les produits <b>présents dans les deux listes</b>."],
+  [45.7, 51.5,   "Il faut donc comparer les deux listes, ligne par ligne."],
+  [52.3, 57.9,   "Les deux requêtes se suivent, et <code>INTERSECT</code> se place entre elles."],
+  [58.0, 63.6,   "<code>INTERSECT</code> ne garde que les lignes <b>présentes dans les deux</b> résultats."],
+  [63.7, 69.3,   "Résultat : <b>4 produits</b>, en stock faible et commandés depuis le 20 juillet."],
+  [69.4, 75.2,   "Comme avec <code>UNION</code>, les deux requêtes renvoient le même nombre de colonnes."],
+  [75.3, 81.5,   "Et les doublons sont écartés : un même produit n’apparaît qu’une seule fois."],
+  [82.3, 87.9,   "Et les produits en stock faible qui ne se vendent plus ?"],
+  [88.0, 93.6,   "<code>EXCEPT</code>, lui, ne garde que les lignes de la première requête <b>absentes</b> de la seconde."],
+  [93.7, 99.7,   "Il ne reste que la <b>Tisane Détox</b> : son stock est faible, mais elle ne se vend plus."],
+  [99.8, 105.5,  "Inutile de la racheter : mieux vaut écouler son stock avec une promotion."],
+  [106.3, 111.9, "Attention : avec <code>EXCEPT</code>, l’<b>ordre</b> des deux requêtes compte."],
+  [112.0, 117.6, "Si on inverse les deux requêtes, on part de la liste des produits commandés."],
+  [117.7, 123.3, "Résultat : 3 produits commandés récemment, mais <b>pas en stock faible</b>."],
+  [123.4, 129.5, "La première requête donne la liste de départ, et la seconde, les lignes qu’on en retire."],
+  [130.3, 135.9, "La requête complète compare les deux listes avec <code>INTERSECT</code>."],
+  [136.0, 141.6, "Résultat : <b>4 produits</b> à racheter, en stock faible et toujours commandés."],
+  [141.7, 147.3, "Ces 4 produits partent sur le bon de commande, envoyé au fournisseur."],
+  [147.4, 153.5, "Pour s’en souvenir : <code>INTERSECT</code> garde ce qui est commun, <code>EXCEPT</code> retire la seconde liste."],
+  [154.3, 159.1, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [159.2, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [159.2, 999, "<code>INTERSECT</code> garde ce qui est commun aux deux requêtes, <code>EXCEPT</code> retire la seconde de la première."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+function dom(){
+  /* Chapitre 2 : les deux listes, produits communs repérés */
+  const puce = n => `<div class="pc${COMMUNS.includes(n) ? ' cm' : ''}">${n}</div>`;
+  $('#pa2').innerHTML = FAIBLES.map(puce).join('');
+  $('#pb2').innerHTML = COMMANDES_RECENTES.map(puce).join('');
+  /* Chapitres 3 à 6 : les résultats */
+  const ligne = n => `<div class="rg1 tr t3"><span class="hl"></span><div>${n}</div></div>`;
+  $('#rows3').innerHTML = COMMUNS.map(ligne).join('');
+  $('#rows4').innerHTML = SANS_VENTE.map(ligne).join('');
+  $('#rows5').innerHTML = INVERSE.map(ligne).join('');
+  $('#rows6').innerHTML = COMMUNS.map(ligne).join('');
+  /* Chapitre 6 : le bon de commande */
+  $('#bcr6').innerHTML = STOCK_FAIBLE.filter(([n]) => COMMUNS.includes(n))
+    .map(([n, s]) => `<div class="bc-r"><span class="ok">✓</span><span>${n}</span><span class="st">stock&nbsp;: ${s}</span></div>`).join('');
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+/* Une carte arrive en tournant légèrement, puis ses éléments un à un. */
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(sel, $(id));
+  gsap.set(items, {autoAlpha: 0, y: 24});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => cue(t + 0.65 + i * step, 'pop', 0.55, i % 5));
+  return items;
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.65, 2.1);   // le temps de lire la bulle de la mascotte (après le saut des 15 lettres du titre)
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  boardIn('#ab1', 5.15, '.lx-hero');
+  gsap.set(['#cd1', '#cd2', '#tb1'], {autoAlpha: 0});
+  // Stock faible
+  show('#cd1', 11.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(11.4, 'pop', 0.7, 1);
+  // Commandé depuis le 20 juillet
+  show('#cd2', 17.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(17.2, 'pop', 0.7, 3);
+  // La table produits, la table commandes
+  stackBelow('#s1 .need', '#ab1');   // la liste se cale sous la carte du réassort, sans la toucher
+  show('#tb1', 22.6, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(22.6, 'pop', 0.7, 2);
+  show('#s1 .need', 23.0, {y: 60});
+  cue(23.0, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.3}, 23.3);
+  [0, 1, 2].forEach(i => cue(23.3 + i * 0.3, 'pop', 0.7, i));
+  hide(['#ab1', '#s1 .need'], 27.5);
+  sceneOff('#s1', 28.0);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 28.0);
+  const lists = $$('#ls2 .lst');
+  gsap.set(lists, {autoAlpha: 0, y: 60});
+  tl.to(lists, {autoAlpha: 1, y: 0, duration: 0.55, ease: 'back.out(1.5)', stagger: 0.25}, 28.2);
+  lists.forEach((_, i) => cue(28.2 + i * 0.25, 'whoosh', 0.55));
+  // À gauche 5 produits, à droite 7
+  const pa = $$('#pa2 .pc'), pb = $$('#pb2 .pc');
+  gsap.set([...pa, ...pb], {autoAlpha: 0, x: -20});
+  tl.to(pa, {autoAlpha: 1, x: 0, duration: 0.3, ease: 'power3.out', stagger: 0.12}, 34.3);
+  tl.to(pb, {autoAlpha: 1, x: 0, duration: 0.3, ease: 'power3.out', stagger: 0.12}, 35.3);
+  pa.forEach((_, i) => cue(34.3 + i * 0.12, 'tick', 0.4, i % 5));
+  pb.forEach((_, i) => cue(35.3 + i * 0.12, 'tick', 0.4, i % 5));
+  const cnt2 = $$('#ls2 .lst-n span');
+  gsap.set(cnt2, {autoAlpha: 0});
+  tl.to(cnt2, {autoAlpha: 1, duration: 0.3, stagger: 0.3}, 36.6);
+  // Présents dans les deux listes
+  const cm = $$('#ls2 .pc.cm'), autres = $$('#ls2 .pc:not(.cm)');
+  tl.to(cm, {backgroundColor: '#EEE9FF', borderColor: '#B9A8FF', color: '#4B30CC', duration: 0.35, stagger: 0.06}, 40.4);
+  tl.to(autres, {opacity: 0.35, duration: 0.35}, 40.4);
+  cue(40.4, 'chord', 0.5);
+  // Comparer les deux listes
+  stackBelow('#goal2', '#ls2', 0, 44);
+  show('#goal2', 46.0, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(46.0, 'pop', 0.75, 3);
+  bump(cm, 47.4, 1.05, 1);
+  hide(['#ls2', '#goal2'], 51.5, {y: -40}, 0.4);
+  sceneOff('#s2', 52.0);
+
+  /* ===== 3 · INTERSECT ===== */
+  sceneOn('#s3', 52.0);
+  // Les trois résultats se calent sous la requête
+  ['#tb3', '#tb4', '#tb5'].forEach(t => stackBelow(t, '#c3', 0, 30));
+  // Le point-virgule final changera de ligne au chapitre 5
+  const w3 = $('#sc3').offsetWidth;
+  gsap.set('#sc3', {width: 0});
+  show('#c3', 52.35, {y: 60}, 0.6);
+  cue(52.35, 'whoosh', 0.7);
+  te = typeLine($('#l1'), 52.85, 42);
+  te = typeLine($('#l2'), te + 0.08, 42);
+  te = typeLine($('#l3'), te + 0.08, 42, false, $('#sc3'));
+  te = typeLine($('#l4'), te + 0.08, 42, false, $('#kwE'));
+  for (let k = 5; k <= 9; k++) te = typeLine($('#l' + k), te + 0.08, 42);
+  // INTERSECT entre les deux requêtes
+  pulse('#op3', te + 0.2, 3, 'rgba(201,188,255,.45)');
+  // Les lignes présentes dans les deux résultats
+  press($('#r3'), 58.7);
+  show('#tb3', 58.95, {y: 40}, 0.5);
+  rowsIn($$('#rows3 .tr'), 59.1, 0.3);
+  gsap.set('#cnt3', {autoAlpha: 0});
+  show('#cnt3', 60.5, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // 4 produits
+  bump('#cnt3', 64.0, 1.15, 3);
+  cue(64.0, 'true', 0.5);
+  // Même nombre de colonnes
+  pulse(['#n1', '#n5'], 70.0, 3, 'rgba(201,188,255,.5)');
+  cue(70.0, 'tick', 0.5, 2);
+  // Doublons écartés
+  tl.to($$('#rows3 .hl'), {opacity: 1, duration: 0.25, stagger: 0.15}, 76.0);
+  tl.to($$('#rows3 .hl'), {opacity: 0, duration: 0.3}, 78.4);
+  cue(76.0, 'tick', 0.45, 3);
+
+  /* ===== 4 · EXCEPT ===== */
+  // Stock faible… qui ne se vend plus
+  pulse('#w3', 82.8, 3, 'rgba(201,188,255,.45)');
+  pulse('#w9', 84.4, 3, 'rgba(255,214,140,.45)');
+  cue(82.8, 'tick', 0.45, 1);
+  cue(84.4, 'tick', 0.45, 3);
+  // INTERSECT s’efface, EXCEPT s’écrit
+  tl.to('#kwI', {width: 0, autoAlpha: 0, duration: 0.35, ease: 'power2.in'}, 88.3);
+  cue(88.3, 'fold', 0.6);
+  te = typeMore($('#kwE'), 88.75, 20);
+  pulse('#op3', te + 0.15, 3, 'rgba(201,188,255,.5)');
+  // Il ne reste que la Tisane Détox
+  press($('#r3'), 91.4);
+  hide('#tb3', 91.5, {y: 0}, 0.2);
+  show('#tb4', 91.7, {y: 20}, 0.4);
+  rowsIn($$('#rows4 .tr'), 91.9, 0.1);
+  gsap.set('#cnt4', {autoAlpha: 0});
+  show('#cnt4', 92.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  tl.to('#rows4 .hl', {opacity: 1, duration: 0.3}, 94.2);
+  cue(94.2, 'tick', 0.5, 2);
+  // Une promotion plutôt qu’un rachat
+  stackBelow('#pr4', '#tb4', 0, 34);
+  show('#pr4', 100.3, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(100.3, 'pop', 0.7, 4);
+
+  /* ===== 5 · Le piège ===== */
+  hide('#pr4', 106.0, {y: 0, scale: 0.8}, 0.3);
+  tl.to('#rows4 .hl', {opacity: 0, duration: 0.3}, 106.0);
+  pulse('#op3', 107.0, 3, 'rgba(255,214,140,.5)');
+  cue(107.0, 'tick', 0.5, 2);
+  // On inverse les deux requêtes : la liste des produits commandés passe en premier
+  // (la première requête et EXCEPT s’effacent, la seconde remonte, puis elles reviennent en dessous : aucun texte ne se superpose)
+  const LH = 46;
+  const blocA = ['#l1', '#l2', '#l3'], blocB = ['#l5', '#l6', '#l7', '#l8', '#l9'];
+  tl.to([...blocA, '#l4'], {x: 60, opacity: 0, duration: 0.35, ease: 'power2.in'}, 112.6);
+  tl.to(blocB, {y: -4 * LH, duration: 0.6, ease: 'power2.inOut'}, 113.0);
+  tl.set('#l4', {y: 2 * LH}, 113.0);
+  tl.set(blocA, {y: 6 * LH}, 113.0);
+  tl.to('#l4', {x: 0, opacity: 1, duration: 0.35, ease: 'power3.out'}, 113.6);
+  tl.to(blocA, {x: 0, opacity: 1, duration: 0.35, ease: 'power3.out', stagger: 0.08}, 113.75);
+  cue(112.6, 'whoosh', 0.6);
+  cue(113.6, 'pop', 0.5, 2);
+  // Le point-virgule suit la fin de la requête
+  tl.to('#sc9', {width: 0, autoAlpha: 0, duration: 0.25}, 114.4);
+  tl.fromTo('#sc3', {width: 0}, {width: w3, duration: 0.25, immediateRender: false}, 114.6);
+  cue(114.6, 'type', 0.6, 2);
+  // 3 produits… dont le stock n’est pas faible
+  press($('#r3'), 117.9);
+  hide('#tb4', 118.0, {y: 0}, 0.2);
+  show('#tb5', 118.2, {y: 20}, 0.4);
+  rowsIn($$('#rows5 .tr'), 118.4, 0.25);
+  gsap.set('#cnt5', {autoAlpha: 0});
+  show('#cnt5', 119.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  stackBelow('#tp5', '#tb5', 0, 34);
+  show('#tp5', 120.6, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(120.6, 'miss', 0.6);
+  shake('#tp5', 121.1);
+  // Liste de départ, puis ce qu’on retire
+  pulse(['#n5', '#w9'], 124.0, 3, 'rgba(201,188,255,.45)');
+  pulse(['#n1', '#w3'], 126.2, 3, 'rgba(255,214,140,.45)');
+  cue(124.0, 'tick', 0.45, 1);
+  cue(126.2, 'tick', 0.45, 3);
+  hide(['#c3', '#tb5', '#tp5'], 129.5, {y: -40});
+  sceneOff('#s3', 130.0);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 130.0);
+  show('#s6code', 130.05, {y: 60}, 0.6);
+  cue(130.05, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 130.55, 44);
+  for (let k = 2; k <= 9; k++) te = typeLine($('#s6l' + k), te + 0.06, 44);
+  pulse('#op6', te + 0.2, 3, 'rgba(201,188,255,.4)');
+  // 4 produits à racheter
+  press($('#s6run'), 136.3);
+  stackBelow('#tbl6', '#s6code', 0, 30);
+  show('#tbl6', 136.55, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 136.7, 0.15);
+  show('#cnt6', 137.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 138.2, 1.15, 3);
+  hide(['#s6code', '#tbl6'], 141.3, {y: -40}, 0.4);
+  // Le bon de commande
+  boardIn('#bc6', 141.75, '.bc-r', 0.2);
+  stackBelow('#badge6', '#bc6', 0, 50);
+  show('#badge6', 144.2, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(144.2, 'chord', 0.7);
+  // INTERSECT garde le commun, EXCEPT retire la seconde liste
+  stackBelow('#mn6', '#badge6', 0, 44);
+  show('#mn6', 147.6, {y: 50});
+  cue(147.6, 'whoosh', 0.6);
+  gsap.set(['#vi6', '#ve6'], {autoAlpha: 0});
+  tl.to('#vi6', {autoAlpha: 1, duration: 0.4}, 148.6);
+  cue(148.6, 'pop', 0.6, 2);
+  tl.to('#ve6', {autoAlpha: 1, duration: 0.4}, 150.4);
+  cue(150.4, 'pop', 0.6, 4);
+  hide(['#bc6', '#badge6', '#mn6'], 153.5);
+  sceneOff('#s6', 154.0);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(154.0, [154.7, 156.5, 158.3]);
+  hold(156.3, 4.8);
+  hold(158.1, 4.8);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(159.25, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 159.2,
+  glyphs: '📦📉🛒🗓️🎯🔎🏷️✕✓🤝➖📏·…', dom, build});
+</script>
+</body>
+</html>

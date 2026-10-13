@@ -737,6 +737,16 @@ const COURSES = [
       '<span class="m">SELECTs to the left and right of UNION ALL do not have the same number of result columns</span>',
       '<span class="k ko">3 colonnes</span>', '✓ Un chiffre de plus = une ligne de plus', '✓ Tableau de bord à jour',
       '<div class="mn-l"><span class="ic">UNION</span> rallonge</div>']},
+  {id: 80, next: 77, titre: 'INTERSECT et EXCEPT', page: 'intersect-except.html', thumb: 'intersect-except-thumb.jpg', duree: '2 min 56', notesAt: 159.2,
+    notes: /notes:\{t:170\.9,y:1243,card:\[64,292,1016,948\],to:\[940,255\]\}/, table: 'produits',
+    bubble: 'Avec <span class="ic">INTERSECT</span> et <span class="ic">EXCEPT</span>,<br>compare les lignes de deux requêtes.',
+    chapters: ['Situation', 'Le problème', 'INTERSECT', 'EXCEPT', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ["const STOCK_FAIBLE = [['Collagène Marin', 80], ['Oméga 3', 90], ['Protéine Végétale', 45], ['Shaker Inox', 30], ['Tisane Détox', 60]];",
+      '<span class="glow" id="op3"><span class="kw"><span class="wx" id="kwI">INTERSECT</span><span id="kwE">EXCEPT</span></span></span>',
+      '<span class="glow" id="w9"><span class="kw">WHERE</span> commandes.date_commande &gt;= <span class="str">\'2026-07-20\'</span></span>',
+      '🏷️ Tisane Détox&nbsp;: à écouler en promotion', "tl.to(blocB, {y: -4 * LH, duration: 0.6, ease: 'power2.inOut'}, 113.0);",
+      '✕ Des stocks confortables&nbsp;: 120, 500 et 150 unités', '✓ Commande envoyée au fournisseur',
+      '<div class="mn-l"><span class="ic">EXCEPT</span><span>retire la seconde</span></div>']},
 ];
 
 for (const c of COURSES) {
