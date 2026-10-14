@@ -803,6 +803,16 @@ const COURSES = [
       '<span class="b"><span class="glow" id="p4"><span class="kw">2 PRECEDING</span></span></span>', '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> date_commande</span>',
       '✕ Les deux commandes du 2 juillet ont le même cumul', '<div class="lim" id="lim6"><span>Palier&nbsp;: 700&nbsp;€</span></div>',
       '✓ Palier franchi le 1er&nbsp;août']},
+  {id: 56, next: 72, titre: 'Normalisation', page: 'normalisation.html', thumb: 'normalisation-thumb.jpg', duree: '3 min 15', notesAt: 174.9,
+    notes: /notes:\{t:186\.2,y:1304,card:\[64,292,1016,1009\],to:\[940,255\]\}/, table: 'produits',
+    bubble: 'Normaliser, c’est écrire chaque information<br>une seule fois, dans la bonne table.',
+    chapters: ['Situation', 'Le problème', 'La normalisation', 'Une seule fois', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ["const COUPE = [['Collagène Marin', 4], ['Fibre Prébiotique', 6], ['Fibre prebiotique', 1], ['Fibres Prébiotiques', 3], ['Magnésium', 3],",
+      "const VENTES = [['Collagène Marin', 4], ['Fibre Prébiotique', 10], ['Magnésium', 3], ['Oméga 3', 3], ['Protéine Végétale', 2], ['Shaker Inox', 1], ['Tisane Détox', 2], ['Vitamine D', 3]];",
+      "'Fibre <i class=\"ty\">p</i>r<i class=\"ty\">e</i>biotique'", '<span class="cl">🧮 Vrai total</span>',
+      '<div class="sr fk" id="sl-produit_id"><span class="v"><span class="emo">🔗</span>produit_id</span></div>',
+      '<span class="w x st">Fibres Prébiotiques</span>', '<span class="n1">produit_id = 1</span>', '<span class="emo">🔗</span>commandes.produit_id = produits.id',
+      '<span class="c rg" id="rg5">région</span>', '<span class="glow" id="g6"><span class="kw">GROUP BY</span> produits.nom</span>', '✓ Une seule barre par produit']},
 ];
 
 for (const c of COURSES) {
