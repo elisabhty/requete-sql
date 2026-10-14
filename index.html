@@ -2070,6 +2070,20 @@
   @keyframes askRing{0%{box-shadow:0 3px 0 var(--lip),0 0 0 0 color-mix(in srgb,var(--accent) 38%,transparent)}100%{box-shadow:0 3px 0 var(--lip),0 0 0 14px transparent}}
   @media (prefers-reduced-motion:reduce){.gd-ask.is-in,.gd-ask.is-in i{animation:none}}
   html[data-motion="reduce"] .gd-ask.is-in,html[data-motion="reduce"] .gd-ask.is-in i{animation:none}
+  /* Diagramme de classes UML (cours « Modéliser avec UML ») : les classes de haut en bas, reliées par leurs associations ;
+     chaque bout d’association porte sa multiplicité, le nom de l’association se lit dans le sens du triangle. */
+  .uml{margin:14px 0 16px;padding:16px 12px 14px;border-radius:18px;background:#fff;border:1px solid var(--card-border);display:flex;flex-direction:column;align-items:center}
+  .uml-c{width:min(100%,232px);border:2px solid color-mix(in srgb,var(--accent) 42%,#fff);border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 3px 0 var(--lip)}
+  .uml-n{display:block;padding:7px 10px;background:var(--accent-soft);border-bottom:2px solid color-mix(in srgb,var(--accent) 42%,#fff);text-align:center;font:800 15px/1.2 var(--display);color:var(--accent-ink)}
+  .uml-c ul{list-style:none;margin:0;padding:7px 14px 8px}
+  .uml-c li{font:600 12.5px/1.6 var(--mono);color:var(--ink-2)}
+  .uml-l{position:relative;width:min(100%,232px);height:72px}
+  .uml-l::before{content:"";position:absolute;left:50%;top:0;bottom:3px;width:2px;margin-left:-1px;background:var(--ink-3)}
+  .uml-m{position:absolute;left:calc(50% + 9px);font:800 13px/1 var(--mono);color:var(--accent-ink)}
+  .uml-m.is-top{top:8px}
+  .uml-m.is-bot{bottom:9px}
+  .uml-a{position:absolute;right:calc(50% + 11px);top:50%;transform:translateY(-50%);font:italic 600 13px/1.2 var(--ui);color:var(--ink-3);white-space:nowrap}
+  .uml-a i{margin-left:5px;font-style:normal;color:var(--ink-2)}
   /* WHERE : chaque ligne est testée à son tour, puis gardée ou écartée (initRowTest) */
   .rt-wrap{margin:12px 0 14px}
   .rt-wrap > .pk-comp.ij-t{margin:0}
@@ -7185,7 +7199,17 @@ function guideBlock(b){
     const z=b.quiz,n=z.items.length,at=x=>guideFr(x).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     return `<div class="fn-use jc-quiz">${(z.intro||[]).map(x=>`<p>${guideFr(x)}</p>`).join('')}<div class="jc-score" aria-live="polite"><span class="jc-score-t"><b>0</b> / ${n} bonnes réponses</span><span class="jc-score-bar"><i></i></span></div>${z.items.map((it,i)=>`<div class="ij-ask jc-ask" data-ok="${it.ok}" data-yes="${at(it.yes)}" data-no="${at(it.no)}"><p class="ij-ask-q"><span class="jc-ask-n">${i+1}</span><span>${guideFr(it.q)}</span></p><div class="ij-ask-opts">${z.opts.map(o=>`<button type="button">${guideFr(o)}</button>`).join('')}</div><p class="ij-ask-fb" hidden></p></div>`).join('')}<div class="jc-done" hidden aria-live="polite"></div></div>`;
   }
+  if(b.uml)return guideUml(b.uml);
   throw new Error('bloc de cours inconnu : '+JSON.stringify(b).slice(0,80));
+}
+/* Diagramme de classes UML : les classes de haut en bas, une association entre deux classes voisines.
+   d : {label, classes:[{n:nom, a:[attributs]}], links:[{l:nom de l’association, up:se lit de bas en haut,
+   top:multiplicité écrite côté classe du haut, bottom:côté classe du bas}]}. */
+function guideUml(d){
+  const cls=c=>`<div class="uml-c"><b class="uml-n">${guideEsc(c.n)}</b><ul>${c.a.map(x=>`<li>${guideEsc(x)}</li>`).join('')}</ul></div>`;
+  const link=l=>`<div class="uml-l"><span class="uml-m is-top">${guideEsc(l.top)}</span><span class="uml-a">${guideFr(l.l)}<i aria-hidden="true">${l.up?'▴':'▾'}</i></span><span class="uml-m is-bot">${guideEsc(l.bottom)}</span></div>`;
+  const say=d.links.map((l,i)=>{const A=d.classes[i].n,B=d.classes[i+1].n;return `${l.up?B:A} ${l.l} ${l.up?A:B} (${A} ${l.top}, ${B} ${l.bottom})`;}).join(' ; ');
+  return `<figure class="uml" aria-label="${guideEsc(d.label+' : '+say).replace(/"/g,'&quot;')}">${d.classes.map((c,i)=>cls(c)+(d.links[i]?link(d.links[i]):'')).join('')}</figure>`;
 }
 /* Carte « Mission accomplie » : parcours (de combien de lignes à combien), puis le Résultat : un dashboard, des pastilles ou
    une page (objets à thème : billets, bons, enveloppes, téléphone, document, couloirs, calendrier, colis). */
@@ -12860,7 +12884,7 @@ guide({ id:79, titre:"Fenêtres glissantes", résumé:"Suivre l’évolution des
   learningCheck:{question:"Sur la 1re commande, combien de lignes compte le cadre ROWS BETWEEN 2 PRECEDING AND CURRENT ROW ?",options:["3","1","0"],answer:1,explanation:"Il n’existe aucune commande avant la première : le cadre ne contient que la ligne actuelle."}
 })
 ]},
-{ titre:"Modéliser", sous:"Normalisation et cardinalités", lessons:[
+{ titre:"Modéliser", sous:"Normalisation, cardinalités et UML", lessons:[
 guide({ id:56, titre:"Normalisation", résumé:"Répartir les données dans des tables reliées",
   /* Cours en vidéo : l’animation (assets/anim/normalisation.html, moteur commun assets/anim/core.js) remplace le texte du cours.
      La vidéo suit le tableau de bord Power BI alimenté par une grande table où le nom du produit est retapé à chaque commande
@@ -13097,6 +13121,122 @@ guide({ id:72, titre:"Relations 1-1, 1-N et N-N", résumé:"Les trois formes de 
   petitDefi:[{p:"Un auteur écrit plusieurs livres, et un livre peut être écrit par plusieurs auteurs. Quelle est la forme de cette relation ?",sql:"auteurs ←→ livres : __________",a:"N-N",answers:["N-N","n-n","NN","plusieurs-à-plusieurs","many-to-many","N,N"]}],
   testeVariants:[{k:"nn",label:"Table de jointure",sql:"CREATE TABLE echantillons (\n  client_id INTEGER,\n  produit_id INTEGER,\n  date_envoi TEXT,\n  PRIMARY KEY (client_id, produit_id)\n);\n\nINSERT INTO echantillons VALUES (1, 1, '2026-09-01');\nINSERT INTO echantillons VALUES (1, 3, '2026-09-01');\nINSERT INTO echantillons VALUES (2, 1, '2026-09-02');\n\nSELECT client_id, produit_id, date_envoi FROM echantillons;",out:"Sophie reçoit deux produits, et le produit 1 est offert à deux clients.",tone:"good"},{k:"doublon",label:"Deux fois le même couple",sql:"CREATE TABLE echantillons (\n  client_id INTEGER,\n  produit_id INTEGER,\n  date_envoi TEXT,\n  PRIMARY KEY (client_id, produit_id)\n);\n\nINSERT INTO echantillons VALUES (1, 1, '2026-09-01');\nINSERT INTO echantillons VALUES (1, 1, '2026-09-05');",out:"Refusé : la clé primaire porte sur le couple.",tone:"bad"},{k:"unun",label:"1-1",sql:"CREATE TABLE cartes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER UNIQUE\n    REFERENCES clients(id)\n);\n\nINSERT INTO cartes VALUES (1, 1);\nINSERT INTO cartes VALUES (2, 1);",out:"Refusé : UNIQUE interdit une deuxième carte au même client.",tone:"bad"}],
   learningCheck:{question:"La clé primaire composée d’une table de jointure remplace-t-elle les deux clés étrangères ?",options:["Non","Oui","Seulement pour les clients"],answer:0,explanation:"La clé composée interdit un lien en double. Les clés étrangères imposent que le client et le produit existent."}
+}),
+guide({ id:81, titre:"Modéliser avec UML", résumé:"Du diagramme de classes aux tables",
+  /* Cours en vidéo : l’animation (assets/anim/uml.html, moteur commun assets/anim/core.js) remplace le texte du cours.
+     La vidéo suit les ateliers NutriBoost (un coach anime plusieurs ateliers, un client s’inscrit à plusieurs ateliers) :
+     la règle lue dans un seul sens, le diagramme de classes, les multiplicités, la classe Coach devenue la table coachs,
+     coach_id du côté 0..*, puis la table d’association inscriptions ; le texte ci-dessous est gardé pour le cas où la vidéo ne se charge pas. */
+  video:{anim:'assets/anim/uml.html?app&embed',thumb:'assets/anim/uml-thumb.jpg',duree:'3 min 43',
+    /* « Ajouter dans notes » : apparaît à 3 min 34 (214,9 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:214.9,y:1289,card:[64,292,1016,994],to:[940,255]}},
+  sit:{
+    blocks:[
+      "NutriBoost lance des <b>ateliers</b> : récupération après le sport, cuisine saine, gainage en douceur… Chaque atelier est animé par un coach, et les clients peuvent s’y inscrire.",
+      "Avant de créer la moindre table, l’équipe veut se mettre d’accord sur le <b>modèle</b>. La règle tient en une phrase : un coach anime plusieurs ateliers, et un client s’inscrit à plusieurs ateliers. Il faudra trois nouvelles tables :",
+      {need:[["🧑‍🏫","Les coachs","table coachs"],["🗓️","Les ateliers","table ateliers"],["🙋","Les inscriptions","table inscriptions"]],label:"Les informations à enregistrer"}
+    ],
+    problem:{
+      p:["La règle dit ce que font un coach et un client, mais <b>dans un seul sens</b>.","Or, pour savoir où ranger chaque lien, il faut aussi l’autre sens : combien de coachs pour un atelier ? Combien de clients ?"],
+      scene:{h:"📝 Une règle, deux liens",cols:"1fr 1.3fr",
+        lanes:[{k:"R1",l:"Un coach",c:[["a2","anime"],["a3","plusieurs ateliers"]]},
+          {k:"R2",l:"Un client",c:[["b2","s’inscrit à"],["b3","plusieurs ateliers"]]},
+          {k:"R3",l:"Un atelier",c:[["c2","est animé par","h"],["c3","? coach","qh"]]},
+          {k:"R4",l:"Un atelier",c:[["d2","accueille","h"],["d3","? client","qh"]]}],
+        caps:["<b>La règle</b> · Un coach anime plusieurs ateliers, un client s’inscrit à plusieurs ateliers.","<b>Un seul sens</b> · Chaque phrase part d’un coach ou d’un client, jamais d’un atelier.","<b>L’autre sens</b> · Pour un atelier : combien de coachs ? Combien de clients ?","<b>Résultat</b> · Sans les deux sens, impossible de savoir où ranger les liens."],
+        steps:[{cap:0,on:["R1","R2"],d:2000},{cap:1,off:["R1","R2"],on:["a3","b3"],d:2400},{cap:2,off:["a3","b3"],show:["c2","c3","d2","d3"],on:["R3","R4"],stagger:120,d:2800},{cap:3,off:["R3","R4"],mark:{c3:"is-miss",d3:"is-miss"},d:2600}]},
+      then:["Il faut donc <b>décrire chaque lien dans les deux sens</b>, avant de créer les tables.","C’est exactement le rôle du <b>diagramme de classes UML</b>."]
+    },
+    mission:"Aide l’équipe à <b>traduire le diagramme de classes</b> en tables : les coachs, les ateliers et les inscriptions des clients, avec chaque lien rangé au bon endroit."
+  },
+  concept:{
+    title:"Comment lire un diagramme de classes ?",
+    blocks:[
+      "Un diagramme de classes dessine les données <b>avant</b> de créer les tables. Chaque sujet est une <b>classe</b> : une boîte avec son nom, puis ses <b>attributs</b>. Les traits entre les boîtes sont les <b>associations</b> :",
+      {uml:{label:"Le diagramme des ateliers",classes:[{n:"Coach",a:["id","prenom","nom"]},{n:"Atelier",a:["id","titre"]},{n:"Client",a:["id","prenom","nom","…"]}],
+        links:[{l:"anime",top:"1",bottom:"0..*"},{l:"s’inscrit à",up:true,top:"0..*",bottom:"0..*"}]}},
+      "Aux deux bouts d’une association, une <b>multiplicité</b> répond à la même question, une fois dans chaque sens :",
+      {ask:"Pour un objet d’un côté, combien d’objets de l’autre côté ?"},
+      {looks:[["1","exactement un"],["0..1","zéro ou un"],["0..*","zéro, un ou plusieurs (parfois noté *)"],["1..*","au moins un"]],label:"Les multiplicités"},
+      {scene:{h:"🧭 Lire une association dans les deux sens",cols:"1fr 1.1fr 1fr",
+        lanes:[{k:"A",l:"Pour un coach",c:[["a1","1 coach"],["a2","anime"],["a3","0..* ateliers","h"]]},
+          {k:"B",l:"Pour un atelier",c:[["b1","1 atelier"],["b2","est animé par"],["b3","1 coach","h"]]}],
+        caps:["<b>L’association « anime »</b> · Elle relie Coach et Atelier : elle se lit dans les deux sens.","<b>Pour un coach</b> · Le bout côté Atelier porte <b>0..*</b> : zéro, un ou plusieurs ateliers.","<b>Pour un atelier</b> · Le bout côté Coach porte <b>1</b> : exactement un coach.","<b>Résultat</b> · Coach 1 — 0..* Atelier : un coach anime plusieurs ateliers, chaque atelier a un seul coach."],
+        steps:[{cap:0,on:["A","B"],d:2000},{cap:1,off:["A","B"],on:["A"],show:["a3"],d:2600},{cap:2,off:["A"],on:["B"],show:["b3"],d:2600},{cap:3,on:["A","B"],d:2600}]}}
+    ]
+  },
+  steps:[
+    {h:"Une classe devient une table",blocks:[
+      "Chaque <b>classe</b> devient une table, chaque <b>attribut</b> une colonne. L’identifiant de la classe devient la <b>clé primaire</b> :",
+      {syntax:"CREATE TABLE coachs (\n  ⟦id INTEGER PRIMARY KEY⟧,\n  prenom TEXT,\n  nom TEXT\n);"},
+      {say:"👇 Exécute ces instructions pour créer la table des coachs et y enregistrer les deux coachs :",run:"CREATE TABLE coachs (\n  id INTEGER PRIMARY KEY,\n  prenom TEXT,\n  nom TEXT\n);\nINSERT INTO coachs\nVALUES (1, 'Camille', 'Roux'),\n       (2, 'Thomas', 'Girard');\nSELECT id, prenom, nom\nFROM coachs;"},
+      {arrow:"Deux lignes, une par coach : la classe <b>Coach</b> est devenue la table <code>coachs</code>."},
+      {tip:{t:"Et la classe Client ?",blocks:["Elle existe déjà : c’est la table <code>clients</code>. Il n’y a rien à créer pour elle."]}}
+    ]},
+    {h:"1 — 0..* : la clé étrangère va du côté 0..*",blocks:[
+      "Entre <b>Coach</b> et <b>Atelier</b>, le <code>0..*</code> est du côté d’Atelier : un coach anime plusieurs ateliers, mais un atelier n’a qu’un coach. Chaque atelier garde donc le numéro de son coach : la clé étrangère va dans <code>ateliers</code>.",
+      {syntax:"coach_id INTEGER\n  ⟦REFERENCES coachs(id)⟧"},
+      "La boutique applique déjà cette règle : dans son diagramme, <b>Client</b> <code>1</code> — <code>0..*</code> <b>Commande</b>. La clé étrangère <code>client_id</code> est donc dans <code>commandes</code>, du côté <code>0..*</code>.",
+      {say:"👇 Exécute cette requête pour retrouver les commandes de Sophie Martin, la cliente 1 :",run:"SELECT id, client_id, produit_id\nFROM commandes\nWHERE client_id = 1;"},
+      {arrow:"Trois commandes portent le numéro 1 : une cliente, plusieurs commandes. Les ateliers suivent la même règle : chaque atelier gardera le numéro de son coach."},
+      {tip:{t:"Pourquoi pas dans coachs ?",blocks:["Une colonne <code>atelier_id</code> dans <code>coachs</code> devrait ranger deux numéros d’atelier pour Camille Roux. Or, une case ne garde qu’une valeur."]}}
+    ]},
+    {h:"0..* — 0..* : une table d’association",blocks:[
+      "Entre <b>Client</b> et <b>Atelier</b>, les deux bouts portent <code>0..*</code> : un client s’inscrit à plusieurs ateliers, et un atelier accueille plusieurs clients. Aucune des deux tables ne peut ranger ce lien dans une colonne : on crée une <b>table d’association</b>, avec une clé étrangère vers chaque classe.",
+      {syntax:"CREATE TABLE inscriptions (\n  client_id INTEGER\n    REFERENCES clients(id),\n  atelier_id INTEGER\n    REFERENCES ateliers(id),\n  ⟦PRIMARY KEY (client_id,\n               atelier_id)⟧\n);"},
+      {scene:{h:"🙋 Qui s’inscrit où ?",cols:"1fr 1.2fr",
+        lanes:[{k:"H",l:"table inscriptions",c:[["","client_id","t"],["","atelier_id","t"]]},
+          {k:"R1",c:[["a1","1 · Sophie"],["a2","1 · Récupération"]]},
+          {k:"R2",c:[["b1","1 · Sophie"],["b2","3 · Gainage doux"]]},
+          {k:"R3",c:[["c1","4 · Nathan"],["c2","1 · Récupération"]]},
+          {k:"R4",c:[["d1","7 · Léa"],["d2","2 · Cuisine saine"]]}],
+        caps:["<b>La table inscriptions</b> · Chaque ligne relie un client à un atelier.","<b>Côté client</b> · Sophie Martin apparaît sur deux lignes : elle suit deux ateliers.","<b>Côté atelier</b> · L’atelier 1 apparaît sur deux lignes : il accueille deux clients.","<b>Résultat</b> · Les deux « plusieurs » tiennent dans une seule table, sans rien recopier."],
+        steps:[{cap:0,on:["R1","R2","R3","R4"],d:1900},{cap:1,off:["R1","R2","R3","R4"],on:["R1","R2"],dim:["R3","R4"],d:2600},{cap:2,off:["R1","R2"],undim:["R3","R4"],on:["R1","R3"],dim:["R2","R4"],d:2600},{cap:3,off:["R1","R3"],undim:["R2","R4"],on:["R1","R2","R3","R4"],d:2400}]}},
+      {warn:{t:"Deux fois la même inscription",blocks:[
+        "La clé primaire porte sur le <b>couple</b> : un client peut suivre plusieurs ateliers, mais ne s’inscrit qu’une fois au même atelier. Si Sophie Martin, la cliente 1, s’inscrit deux fois à l’atelier 1 :",
+        {say:"👇 Teste par toi-même :",run:"CREATE TABLE essai (\n  client_id INTEGER,\n  atelier_id INTEGER,\n  PRIMARY KEY (client_id,\n               atelier_id)\n);\nINSERT INTO essai\nVALUES (1, 1);\nINSERT INTO essai\nVALUES (1, 1);"},
+        {arrow:"La base refuse la seconde ligne : le couple (1, 1) existe déjà."}
+      ]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à traduire tout le diagramme : une table par nouvelle classe, et la table d’association. La table <code>sqlite_master</code>, où SQLite tient la liste de ses tables, permet ensuite de vérifier qu’elles existent.",
+      {say:"👇 Exécute la requête pour créer les tables du diagramme :",run:"CREATE TABLE coachs (\n  id INTEGER PRIMARY KEY,\n  prenom TEXT,\n  nom TEXT\n);\nCREATE TABLE ateliers (\n  id INTEGER PRIMARY KEY,\n  titre TEXT,\n  coach_id INTEGER\n    REFERENCES coachs(id)\n);\nCREATE TABLE inscriptions (\n  client_id INTEGER\n    REFERENCES clients(id),\n  atelier_id INTEGER\n    REFERENCES ateliers(id),\n  PRIMARY KEY (client_id,\n               atelier_id)\n);\nSELECT name FROM sqlite_master\nWHERE type = 'table';"},
+      {done:{
+        label:"Du diagramme aux tables",
+        unit:"free",
+        funnel:[
+          {n:4,t:"tables au départ",s:"<code>clients</code>, <code>produits</code>, <code>commandes</code> et <code>fidelite</code>",dots:"0000"},
+          {step:"CREATE TABLE coachs, ateliers, inscriptions",s:"une table par classe, une table d’association"},
+          {n:7,t:"⭐ tables dans la base",s:"les 4 d’origine, <code>coachs</code>, <code>ateliers</code> et <code>inscriptions</code>",dots:"0000111",out:true}
+        ],
+        board:{ico:"🗂️",h:"Tables de la base",aria:"Les tables de la base : clients, produits, commandes et fidelite, puis les trois tables du diagramme, coachs, ateliers et inscriptions",kpi:"Tables",cols:["name"],
+          rows:[["clients"], ["produits"], ["commandes"], ["fidelite"], ["coachs"], ["ateliers"], ["inscriptions"]],done:"✓ Le diagramme est traduit : chaque lien à sa place"},
+        fill:["coachs(id)","clients(id)","ateliers(id)","PRIMARY KEY"],
+        ui:{t:"Le diagramme est devenu une base",s:"Une table par classe, la clé étrangère du côté 0..*, et une table d’association pour les inscriptions.",n:["CREATE TABLE","REFERENCES","PRIMARY KEY"]},
+        rows:7
+      }}
+    ]}
+  ],
+  reflex:[
+    {recap:[
+      ["🧩","Dans un diagramme de classes, chaque <b>classe</b> devient une table, et chaque <b>attribut</b> une colonne."],
+      ["🔗","<b>1 — 0..*</b> : la clé étrangère va dans la table du côté <code>0..*</code>.","Comme <code>coach_id</code>, rangée dans <code>ateliers</code>."],
+      ["🗂️","<b>0..* — 0..*</b> : une table d’association, avec les deux clés étrangères et une clé primaire sur le couple :",null,"PRIMARY KEY (client_id, atelier_id)"]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"CREATE TABLE inscriptions",txt:"La table d’association : elle porte le lien entre Client et Atelier."},{tok:"client_id INTEGER REFERENCES clients(id)",txt:"Un bout de l’association : le client."},{tok:"atelier_id INTEGER REFERENCES ateliers(id)",txt:"L’autre bout : l’atelier."},{tok:"PRIMARY KEY (client_id, atelier_id)",txt:"Le couple est unique : une seule inscription par client et par atelier."}],
+  exemple:"CREATE TABLE coachs (\n  id INTEGER PRIMARY KEY,\n  prenom TEXT,\n  nom TEXT\n);\n\nCREATE TABLE ateliers (\n  id INTEGER PRIMARY KEY,\n  titre TEXT,\n  coach_id INTEGER\n    REFERENCES coachs(id)\n);\n\nCREATE TABLE inscriptions (\n  client_id INTEGER\n    REFERENCES clients(id),\n  atelier_id INTEGER\n    REFERENCES ateliers(id),\n  PRIMARY KEY (client_id,\n               atelier_id)\n);",
+  attendu:"Trois nouvelles tables : <code>coachs</code>, <code>ateliers</code>, qui garde le numéro de son coach, et <code>inscriptions</code>, qui relie les clients aux ateliers.",
+  retenir:"Un <b>diagramme de classes UML</b> dessine les données avant de créer les tables : les classes, leurs attributs et les associations.<br><br>Chaque classe devient une table, chaque attribut une colonne. <b>1 — 0..*</b> : une clé étrangère du côté <code>0..*</code>. <b>0..* — 0..*</b> : une <b>table d’association</b> qui porte les deux clés.<br><br>Une multiplicité se lit à côté de la classe qu’elle compte : <code>0..*</code> à côté d’Atelier, c’est « plusieurs ateliers » pour un coach.",
+  consigne:"Les coachs proposent aussi des <b>programmes</b> d’entraînement. Le diagramme : <b>Programme</b> (id, nom) <code>1</code> — <code>0..*</code> <b>Séance</b> (id, titre). Traduis-le en deux tables, <code>programmes</code> puis <code>seances</code> : l’identifiant <code>id</code> en clé primaire, les attributs, puis la clé étrangère en dernier, du bon côté. Nomme-la d’après la table qu’elle désigne : <code>programme_id</code> ou <code>seance_id</code>.",
+  solution:"CREATE TABLE programmes (\n  id INTEGER PRIMARY KEY,\n  nom TEXT\n);\nCREATE TABLE seances (\n  id INTEGER PRIMARY KEY,\n  titre TEXT,\n  programme_id INTEGER\n    REFERENCES programmes(id)\n);",
+  verif:"SELECT name AS colonne, pk AS cle_primaire FROM pragma_table_info('seances') ORDER BY cid; SELECT name, pk FROM pragma_table_info('programmes') ORDER BY cid; SELECT \"from\", \"table\", \"to\" FROM pragma_foreign_key_list('seances'); SELECT COUNT(*) FROM pragma_foreign_key_list('programmes');",
+  indice:"Le <code>0..*</code> est du côté Séance : un programme compte plusieurs séances. C’est donc chaque séance qui garde le numéro de son programme, avec <code>REFERENCES</code>.",
+  write:true,
+  exoNeeds:[{re:"\\bREFERENCES\\b",msg:"Traduis l’association avec une clé étrangère (REFERENCES), placée du côté 0..*."}],
+  petitDefi:[{p:"Dans un diagramme de classes, quelle multiplicité signifie « zéro, un ou plusieurs » ?",sql:"multiplicité : __________",a:"0..*",answers:["0..*","0..n","0..N","*","0.*"]}],
+  testeVariants:[{k:"un",label:"1 — 0..*",sql:"CREATE TABLE coachs (\n  id INTEGER PRIMARY KEY,\n  prenom TEXT,\n  nom TEXT\n);\nCREATE TABLE ateliers (\n  id INTEGER PRIMARY KEY,\n  titre TEXT,\n  coach_id INTEGER\n    REFERENCES coachs(id)\n);\n\nINSERT INTO coachs\nVALUES (1, 'Camille', 'Roux');\nINSERT INTO ateliers\nVALUES (1, 'Récupération', 1),\n       (2, 'Cuisine saine', 1);\n\nSELECT id, titre, coach_id\nFROM ateliers;",out:"Deux ateliers pour la coach 1 : la clé étrangère est du côté 0..*.",tone:"good"},{k:"nn",label:"0..* — 0..*",sql:"CREATE TABLE ateliers (\n  id INTEGER PRIMARY KEY,\n  titre TEXT\n);\nCREATE TABLE inscriptions (\n  client_id INTEGER\n    REFERENCES clients(id),\n  atelier_id INTEGER\n    REFERENCES ateliers(id),\n  PRIMARY KEY (client_id,\n               atelier_id)\n);\n\nINSERT INTO ateliers\nVALUES (1, 'Récupération'),\n       (3, 'Gainage doux');\nINSERT INTO inscriptions\nVALUES (1, 1), (1, 3), (4, 1);\n\nSELECT client_id, atelier_id\nFROM inscriptions;",out:"Sophie Martin suit deux ateliers, et l’atelier 1 accueille deux clients.",tone:"good"},{k:"doublon",label:"Deux fois la même inscription",sql:"CREATE TABLE inscriptions (\n  client_id INTEGER,\n  atelier_id INTEGER,\n  PRIMARY KEY (client_id,\n               atelier_id)\n);\n\nINSERT INTO inscriptions\nVALUES (1, 1);\nINSERT INTO inscriptions\nVALUES (1, 1);",out:"Refusé : la clé primaire porte sur le couple.",tone:"bad"}],
+  learningCheck:{question:"Coach 1 — 0..* Atelier : dans quelle table va la clé étrangère ?",options:["ateliers","coachs","Une table d’association"],answer:0,explanation:"Le 0..* est du côté Atelier : chaque atelier garde le numéro de son coach dans coach_id."}
 })
 ]},
 { titre:"Créer et faire évoluer les tables", sous:"CREATE, ALTER et DROP TABLE", lessons:[
@@ -15283,6 +15423,10 @@ const QCM={
    {q:"Comment transformer une relation 1-N en 1-1 ?",o:["En ajoutant UNIQUE sur la clé étrangère","En déplaçant la clé dans l’autre table","En ajoutant une table de jointure"],b:0,e:"Sans <code>UNIQUE</code>, un client pourrait recevoir deux cartes. Avec, la seconde est refusée."},
    {q:"Un client peut suivre plusieurs produits, et un produit être suivi par plusieurs clients. Comment écrire ce lien ?",o:["Une clé étrangère dans clients","Une clé étrangère dans produits","Une troisième table qui porte les deux clés"],b:2,e:"Les deux côtés sont « plusieurs » : aucune colonne ne peut retenir plusieurs valeurs. Il faut une table de jointure."},
    {q:"Dans une table de jointure, à quoi sert <code>PRIMARY KEY (client_id, produit_id)</code> ?",o:["À interdire deux fois le même couple","À rendre chaque colonne unique","À accélérer les jointures"],b:0,e:"Chaque colonne se répète librement ; c’est la paire qui doit être unique."}],
+ 81:[{q:"Dans un diagramme de classes, que devient une <b>classe</b> quand on crée la base ?",o:["Une colonne","Une table","Une clé étrangère"],b:1,e:"Une classe décrit un sujet : elle devient une table, et ses attributs deviennent ses colonnes."},
+   {q:"Coach 1 — 0..* Atelier : que signifie le <code>0..*</code>, écrit à côté d’Atelier ?",o:["Un atelier a plusieurs coachs","Un coach anime zéro, un ou plusieurs ateliers","Un atelier peut n’avoir aucun coach"],b:1,e:"Une multiplicité se lit à côté de la classe qu’elle compte : pour un coach, 0..* ateliers."},
+   {q:"Client 0..* — 0..* Atelier : comment traduire cette association ?",o:["Une clé étrangère dans clients","Une clé étrangère dans ateliers","Une table d’association avec les deux clés"],b:2,e:"Les deux bouts sont « plusieurs » : aucune colonne ne peut ranger plusieurs numéros. La table inscriptions porte client_id et atelier_id."},
+   {q:"Dans la table <code>inscriptions</code>, à quoi sert <code>PRIMARY KEY (client_id, atelier_id)</code> ?",o:["À interdire deux fois la même inscription","À interdire deux clients dans un même atelier","À relier les coachs aux ateliers"],b:0,e:"Un client peut suivre plusieurs ateliers, un atelier accueillir plusieurs clients : seul le couple doit rester unique."}],
  73:[{q:"Quelle différence entre <code>UNION</code> et <code>UNION ALL</code> ?",o:["UNION trie, UNION ALL non","UNION écarte les doublons, UNION ALL les garde","UNION ne marche que sur deux tables identiques"],b:1,e:"Dix villes (une par client) et huit catégories (une par produit) donnent 18 lignes avec ALL, mais 11 sans : sept lignes étaient en double."},
    {q:"Que doivent avoir en commun les deux <code>SELECT</code> d’un <code>UNION</code> ?",o:["Le même nombre de colonnes","Les mêmes noms de colonnes","La même table de départ"],b:0,e:"Le nombre de colonnes doit correspondre ; les noms sont libres, c’est celui de la première requête qui est retenu."},
    {q:"Tu veux plus de <b>lignes</b>, pas plus de colonnes. Quel outil ?",o:["JOIN","UNION","GROUP BY"],b:1,e:"<code>JOIN</code> élargit le résultat en ajoutant des colonnes ; <code>UNION</code> le rallonge en empilant des lignes."}],
@@ -18215,6 +18359,7 @@ const SQ_ALIASES={
   79:'fenetres glissantes cumul moyenne mobile rows between unbounded preceding following cadre running total ntile',
   56:'normalisation formes normales 1fn 2fn 3fn redondance modelisation',
   72:'relations 1-1 1-n n-n modelisation cardinalite association table de liaison un a plusieurs plusieurs a plusieurs liens tables',
+  81:'uml diagramme de classes classe attribut association multiplicite 0..* modelisation conception schema merise mcd table d association',
   61:'create table creer table structure types colonnes contraintes',
   65:'alter table ajouter colonne modifier structure renommer add column',
   66:'drop supprimer table structure drop table vue index vider table',
@@ -28294,7 +28439,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1795';
+  const SW_CACHE='requete-2026-10-12-ludique-v1796';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

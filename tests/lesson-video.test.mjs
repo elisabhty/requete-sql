@@ -840,7 +840,7 @@ const COURSES = [
       '<div class="sr fk" id="sl-produit_id"><span class="v"><span class="emo">🔗</span>produit_id</span></div>',
       '<span class="w x st">Fibres Prébiotiques</span>', '<span class="n1">produit_id = 1</span>', '<span class="emo">🔗</span>commandes.produit_id = produits.id',
       '<span class="c rg" id="rg5">région</span>', '<span class="glow" id="g6"><span class="kw">GROUP BY</span> produits.nom</span>', '✓ Une seule barre par produit']},
-  {id: 72, next: 61, titre: 'Relations 1-1, 1-N et N-N', page: 'relations.html', thumb: 'relations-thumb.jpg', duree: '3 min 30', notesAt: 190.3,
+  {id: 72, next: 81, titre: 'Relations 1-1, 1-N et N-N', page: 'relations.html', thumb: 'relations-thumb.jpg', duree: '3 min 30', notesAt: 190.3,
     notes: /notes:\{t:201\.6,y:1286,card:\[64,292,1016,991\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avant de relier deux tables, demande-toi&nbsp;: combien de lignes en face&nbsp;?',
     chapters: ['Situation', 'Le problème', 'Combien en face ?', '1 → N', '1 ↔ 1', 'N ↔ N', 'Le couple unique', 'Le résultat', 'À retenir'],
@@ -853,6 +853,18 @@ const COURSES = [
       'table de jointure</span>', '<span class="kw">PRIMARY KEY</span> (client_id, produit_id)', 'echantillons.client_id, echantillons.produit_id</span>',
       "row([fk(1, 'k-cl'), fk(1, 'k-pr'), '2026-09-05', st('ko', '✕ refusé')], ' nw')", "row([fk(2, 'k-cl'), fk(1, 'k-pr'), '2026-09-02', st('ok', '✓ accepté')], ' nw')",
       '✓ 3 envois, aucun doublon possible']},
+  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'uml.html', thumb: 'uml-thumb.jpg', duree: '3 min 43', notesAt: 195.45,
+    notes: /notes:\{t:214\.9,y:1289,card:\[64,292,1016,994\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Dessine les classes et leurs liens<br>avant de créer les tables.',
+    chapters: ['Situation', 'Le problème', 'Le diagramme', 'Les multiplicités', 'Classe → table', '1 — 0..*', '0..* — 0..*', 'Le résultat', 'À retenir'],
+    traps: ["const COACHS = [[1, 'Camille', 'Roux'], [2, 'Thomas', 'Girard']];", "const ATELIERS = [[1, 'Récupération', 1], [2, 'Cuisine saine', 1], [3, 'Gainage doux', 2]];",
+      'const INSCRIPTIONS = [[1, 1], [1, 3], [4, 1], [7, 2]];', '<span class="pc qq">? coach</span>', '<span class="pc qq">? client</span>',
+      // Le diagramme : trois classes, deux associations, une multiplicité à chaque bout
+      '<div class="un">Coach</div>', '<div class="un">Atelier</div>', '<div class="un">Client</div>', '<span class="ux" id="ux1">anime<i>▾</i></span>',
+      '<span class="ux" id="ux2">s’inscrit à<i>▴</i></span>', '<span class="um" id="um1a">1</span><span class="um" id="um1b">0..*</span>',
+      // Traduction : la classe devient une table, coach_id du côté 0..*, la table d’association
+      '<span class="abs fl fly k-ch" id="fl6">coach_id</span>', "essai(1, 2, 'k-at')", '<span class="emo">🔑</span>clé primaire sur le couple',
+      '<span class="kw">PRIMARY KEY</span> (client_id, atelier_id)', '✓ 3 nouvelles tables, chaque lien à sa place']},
 ];
 
 for (const c of COURSES) {
@@ -915,6 +927,41 @@ test('Les bases de données relationnelles : la table clients, les commandes et 
   assert.equal(q("SELECT id, nom, ville FROM clients WHERE prenom = 'Nathan' ORDER BY id"), '[[4,"Petit","Paris"],[10,"Dupont","Paris"]]', 'deux Nathan, tous deux à Paris');
   db.close();
   assert.ok(!page.includes('fidelite'), 'la vidéo ne montre pas la table de l’exercice');
+});
+
+test('Modéliser avec UML : les clients inscrits sont ceux de la base, et les tables de la vidéo celles que crée la requête du cours', async () => {
+  const page = fs.readFileSync(path.join(ROOT, 'assets/anim/uml.html'), 'utf8');
+  const a = page.indexOf('const COACHS = '), b = page.indexOf('const CHAPTERS = ');
+  assert.ok(a > 0 && b > a, 'données de la page localisées');
+  const ctx = vm.createContext({});
+  vm.runInContext(page.slice(a, b) + ';this.D = {COACHS, ATELIERS, CLIENTS, INSCRIPTIONS, TABLES};', ctx);
+  const D = JSON.parse(JSON.stringify(ctx.D));
+  const data = vm.createContext({});
+  vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), data);
+  const lesson = vm.runInContext('MODULES.flatMap(m=>m.lessons).find(l=>l.id===81)', data);
+  const {createRequire} = await import('node:module');
+  const SQL = await createRequire(import.meta.url)(path.join(ROOT, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(ROOT, 'vendor/sqljs', f)});
+  const db = new SQL.Database();
+  db.run(vm.runInContext('SCHEMA_SQL', data));
+  for (const [id, [prenom, nom]] of Object.entries(D.CLIENTS))
+    assert.equal(JSON.stringify(db.exec(`SELECT prenom, nom FROM clients WHERE id = ${id}`)[0].values), JSON.stringify([[prenom, nom]]), `client ${id}`);
+  assert.ok(D.INSCRIPTIONS.every(([c, at]) => D.CLIENTS[c] && D.ATELIERS.some(x => x[0] === at)), 'chaque inscription désigne un client et un atelier montrés');
+  /* La requête complète du cours crée les trois tables, puis on y range les données de la vidéo : les clés étrangères les acceptent. */
+  db.run('PRAGMA foreign_keys = ON;');
+  const res = db.exec(lesson.missionSql);
+  assert.equal(JSON.stringify(res.at(-1).values.map(r => r[0])), JSON.stringify(D.TABLES), 'les 7 tables du résultat');
+  db.run(`INSERT INTO coachs VALUES ${D.COACHS.map(([i, p, n]) => `(${i}, '${p}', '${n}')`).join(', ')};`);
+  db.run(`INSERT INTO ateliers VALUES ${D.ATELIERS.map(([i, t, c]) => `(${i}, '${t}', ${c})`).join(', ')};`);
+  db.run(`INSERT INTO inscriptions VALUES ${D.INSCRIPTIONS.map(([c, at]) => `(${c}, ${at})`).join(', ')};`);
+  assert.equal(JSON.stringify(db.exec('SELECT coach_id, COUNT(*) FROM ateliers GROUP BY coach_id')[0].values), '[[1,2],[2,1]]', 'Camille Roux anime deux ateliers, Thomas Girard un seul');
+  assert.equal(JSON.stringify(db.exec('SELECT client_id, COUNT(*) FROM inscriptions GROUP BY client_id HAVING COUNT(*) > 1')[0].values), '[[1,2]]', 'Sophie Martin suit deux ateliers');
+  assert.equal(JSON.stringify(db.exec('SELECT atelier_id, COUNT(*) FROM inscriptions GROUP BY atelier_id HAVING COUNT(*) > 1')[0].values), '[[1,2]]', 'l’atelier Récupération accueille deux clients');
+  assert.throws(() => db.run('INSERT INTO inscriptions VALUES (1, 1);'), /UNIQUE constraint failed/, 'clé primaire sur le couple');
+  db.close();
+  /* Mêmes coachs et mêmes ateliers que dans le cours (étape 1 et onglet Teste). */
+  assert.ok(lesson.studio.uses.body.includes('VALUES (1, &#39;Camille&#39;, &#39;Roux&#39;),') || lesson.studio.uses.body.includes("VALUES (1, 'Camille', 'Roux'),"), 'les deux coachs du cours');
+  assert.ok(lesson.testeVariants[0].sql.includes("VALUES (1, 'Récupération', 1),\n       (2, 'Cuisine saine', 1);"), 'les ateliers de Camille Roux');
+  assert.ok(!page.includes('programme') && !page.includes('seance'), 'la vidéo ne montre pas l’exercice');
 });
 
 test('moteur commun des animations : mode intégré, rendu net, pauses de lecture calculées d’après chaque légende', () => {
