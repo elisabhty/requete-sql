@@ -6512,6 +6512,15 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-pk-dots i.cur{background:var(--accent,#6A4DF4);box-shadow:0 0 0 3px rgba(106,77,244,.2)}
 .lv-pk-t{margin:9px 2px 12px;font:700 17px/1.25 var(--display);letter-spacing:-.01em;color:var(--ink,#221C46);text-wrap:balance}
 .lv-pk-t code{font:700 .86em/1 var(--mono);color:var(--accent-ink,#5335E0);background:var(--accent-soft,#EEE9FF);padding:.12em .34em;border-radius:.32em;white-space:nowrap}
+.lv-pk-t[hidden]{display:none}
+/* La case jaune : la même que le trou à remplir dans la requête */
+.lv-pk-hole{display:inline-flex;align-items:center;justify-content:center;width:25px;height:22px;margin-right:7px;border-radius:7px;border:2px solid #F2B529;background:#FFF3CF;color:#9A6400;font:800 13px/1 var(--mono);vertical-align:2px}
+/* La correction : ce que fait ce choix, et pourquoi il convient ou non */
+.lv-pk-why{margin:9px 2px 12px;padding:10px 13px;border-radius:14px;font:600 14.5px/1.4 var(--ui);letter-spacing:-.005em;text-wrap:pretty}
+.lv-pk-why[hidden]{display:none}
+.lv-pk-why.ok{background:#EAF7EF;color:#14532D}
+.lv-pk-why.ko{background:#FDEEEF;color:#7F1D1D}
+.lv-pk-why code{font:700 .9em/1 var(--mono);padding:.1em .3em;border-radius:.3em;background:rgba(255,255,255,.75);white-space:nowrap}
 .lv-pk-opts{display:flex;flex-wrap:wrap;justify-content:center;gap:9px}
 .lv-pk-opts[hidden]{display:none}
 .lv-pk-opt{min-height:48px;min-width:70px;padding:0 15px;border-radius:15px;border:2px solid #D9CFFF;background:var(--accent-soft,#EEE9FF);color:var(--accent-ink,#5335E0);box-shadow:0 4px 0 #CBBEFB;font:700 15.5px/1 var(--mono);letter-spacing:-.2px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .12s,box-shadow .12s,background-color .2s,border-color .2s,color .2s,opacity .25s}
@@ -20507,7 +20516,8 @@ function lvPkShow(i,p){
   box.className='lv-pk';
   box.innerHTML=`<div class="lv-pk-card" role="group" aria-labelledby="lv-pk-t" tabindex="-1">
     <div class="lv-pk-top"><span class="lv-pk-kick">À toi · ${i+1}/${n}</span><span class="lv-pk-dots" aria-hidden="true">${lvPkDots(i,n)}</span></div>
-    <p class="lv-pk-t" id="lv-pk-t">${p.prompt}</p>
+    <p class="lv-pk-t" id="lv-pk-t"><span class="lv-pk-hole" aria-hidden="true">?</span>${p.prompt}</p>
+    <p class="lv-pk-why" hidden></p>
     <div class="lv-pk-opts">${p.options.map((o,k)=>`<button type="button" class="lv-pk-opt" data-k="${k}">${esc(o.label)}</button>`).join('')}</div>
     <button type="button" class="lq-btn lv-pk-go" hidden>Continuer</button>
   </div>`;
@@ -20539,16 +20549,23 @@ function lvPkTry(k){
     if(!LV||LV.pk!==P)return;
     let res;
     try{ res=IX&&IX.pick?IX.pick(P.i,k):null; }catch(e){ res=null; }
-    Promise.resolve(res).then(r=>lvPkVerdict(P,k,btn,ok,r&&r.say||'')).catch(()=>lvPkVerdict(P,k,btn,ok,''));
+    Promise.resolve(res).then(r=>lvPkVerdict(P,k,btn,ok,r||{})).catch(()=>lvPkVerdict(P,k,btn,ok,{}));
   };
   let rect=null; try{ rect=IX&&IX.slot?IX.slot(P.i):null; }catch(e){}
   lvPkFly(btn,rect,land);
 }
-function lvPkVerdict(P,k,btn,ok,say){
+function lvPkVerdict(P,k,btn,ok,r){
   if(!LV||LV.pk!==P)return;
   P.busy=false; P.box.classList.remove('is-busy');
   btn.classList.remove('is-lift');
-  const kick=P.box.querySelector('.lv-pk-kick'), sr=LV.root.querySelector('.lv-sr'), plain=String(say).replace(/<[^>]+>/g,'');
+  const why=r.why||r.say||'', kick=P.box.querySelector('.lv-pk-kick'), sr=LV.root.querySelector('.lv-sr'), plain=String(why).replace(/<[^>]+>/g,'');
+  /* La correction prend la place de la question : ce que fait ce choix, et pourquoi il convient ou non. */
+  const wEl=P.box.querySelector('.lv-pk-why');
+  if(why&&wEl){
+    wEl.innerHTML=why; wEl.className='lv-pk-why '+(ok?'ok':'ko'); wEl.hidden=false;
+    P.box.querySelector('.lv-pk-t').hidden=true;
+    if(!prefersReduceMotion()&&wEl.animate)wEl.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:260,easing:'ease-out'});
+  }
   if(ok){
     const first=P.tries===1;
     P.done=true;
@@ -28263,7 +28280,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1790';
+  const SW_CACHE='requete-2026-10-12-ludique-v1791';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

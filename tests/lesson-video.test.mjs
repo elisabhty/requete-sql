@@ -690,10 +690,19 @@ const COURSES = [
     chapters: ['Le cabinet médical', 'L’aquarium', 'La bibliothèque', 'L’hôtel', 'Le glacier', 'L’entreprise', 'À retenir'],
     traps: ["const SAL = [[1, 'Nadia Benali', N], [2, 'Hugo Lefèvre', 1], [3, 'Inès Fabre', 2], [4, 'Théo Petit', 2]];",
       "on: (l, r) => l[1] === r[0], cols: ['patient', 'medecin'], sel: [[0, 0], [1, 1]],",
-      "{label: 'medecins.id', ok: true, say: 'Chaque rendez-vous est relié à son médecin.'},",
-      "{label: 'rendez_vous.medecin_id', on: l => l[1] !== N, say: 'Chaque rendez-vous serait relié à tous les médecins.'}]},",
+      "{label: 'medecins.id', ok: true, say: 'Chaque rendez-vous est relié à son médecin.',",
+      "{label: 'rendez_vous.medecin_id', on: l => l[1] !== N, say: 'Chaque rendez-vous serait relié à tous les médecins.',",
       "{at: 113.0, c: 3, kind: 'join', res: 1, mir: 1,", "options: J('cross', {", "{label: 'managers', err: 'no such table: managers',",
-      "{label: 'm.manager_id', on: (l, r) => l[2] !== N && l[2] === r[2], say: 'Ces lignes réunissent des salariés du même manager.'},",
+      "{label: 'm.manager_id', on: (l, r) => l[2] !== N && l[2] === r[2], say: 'Ces lignes réunissent des salariés du même manager.',",
+      // Le trou à remplir : jaune, entouré d’un anneau ; les autres trous restent discrets
+      '<span class="se">…</span><span class="sa hid">?</span>', "tl.to([s + ' .sa', s + ' .sg'], {autoAlpha: 1, duration: 0.3}, t + 0.3);",
+      '.slot.pv .se,.slot.pv .sa,.slot.pv.ok .sg,.pvh{opacity:0!important}',
+      // Chaque cas s’ouvre sur une grande carte (le lieu, les lignes à garder), qui monte se ranger en bandeau
+      '<div class="abs card op" id="op${n}"><div class="opi emo">${c.emo}</div><div class="opk">Cas ${n} sur 6 · ${CHAPTERS[ci].label}</div><div class="opn">${c.need}</div></div>',
+      "{emo: '🩺', need: 'Les rendez-vous qui ont un médecin',", "{emo: '🍦', need: 'Chaque parfum dans chaque format', w: 340,",
+      "opener(1, 5.15, 10.9);", "opener(6, 171.55, 176.7);",
+      // La correction de chaque étiquette, envoyée au plateau de l’app
+      "return new Promise(res => later(tv, () => res({ok, say: fr(o.say), why: fr(o.why || o.say)})));",
       '<span class="cm hid" id="q5c">-- sans ON</span>', "if (out.length + rest.length <= 6) rest.forEach(s => { out.push(JSON.parse(s)); mk.push('m'); });",
       "leave(i, answered){ if (answered && X && X.ok && X.i === i) wait = i; else clear(); },",
       "tick(){ if (wait < 0) return; const a = PICKS[wait].at, t = tl.time(); if (t >= a + 0.0199 || t < a - 0.001) clear(); }"]},
@@ -974,13 +983,17 @@ test('LvAnim : moments « À toi » de la leçon interactive, arrêt pile, évé
 
 test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la requête, verdict, score du premier essai', () => {
   const show = cut('function lvPkShow(i,p){', 'function lvPkTry(k){');
-  for (const part of ['À toi · ${i+1}/${n}', "LV.root.classList.add('is-q','is-pk');", 'IX.enter(i)', '>Continuer</button>'])
+  for (const part of ['À toi · ${i+1}/${n}', "LV.root.classList.add('is-q','is-pk');", 'IX.enter(i)', '>Continuer</button>',
+    '<span class="lv-pk-hole" aria-hidden="true">?</span>${p.prompt}', '<p class="lv-pk-why" hidden></p>'])
     assert.ok(show.includes(part), `plateau : ${part}`);
   const tr = cut('function lvPkTry(k){', 'function lvPkVerdict(');
   assert.ok(tr.includes('IX.pick(P.i,k)') && tr.includes('lvPkFly(btn,rect,land)'), 'l’étiquette s’envole jusqu’au trou, puis la page montre le résultat de ce choix');
+  assert.ok(tr.includes('lvPkVerdict(P,k,btn,ok,r||{})'), 'la page renvoie le verdict et la correction de ce choix');
   const vd = cut('function lvPkVerdict(', '/* L’étiquette quitte le plateau');
-  for (const part of ['lvPkSet(LV.id,P.i,first)', "LvSfx.play('chord',0,.55,0)", 'lvPkBurst(rect)', "kick.textContent='✕ Essaie un autre choix';", "btn.classList.add('is-out')"])
+  for (const part of ['lvPkSet(LV.id,P.i,first)', "LvSfx.play('chord',0,.55,0)", 'lvPkBurst(rect)', "kick.textContent='✕ Essaie un autre choix';", "btn.classList.add('is-out')",
+    "const why=r.why||r.say||''", "wEl.innerHTML=why; wEl.className='lv-pk-why '+(ok?'ok':'ko'); wEl.hidden=false;", "P.box.querySelector('.lv-pk-t').hidden=true;"])
     assert.ok(vd.includes(part), `verdict : ${part}`);
+  assert.ok(html.includes('.lv-pk-hole{') && html.includes('.lv-pk-why.ok{') && html.includes('.lv-pk-why.ko{'), 'case jaune du prompt, correction verte ou rouge');
   assert.ok(html.includes('.lv.is-pk .lv-bottom{visibility:hidden}') && html.includes('const a=lvPt(0,1496);'), 'le plateau couvre la légende et les commandes, jamais le résultat');
   assert.ok(cut('function lvPkClose(answered){', 'function lvReplay(){').includes('IX.leave(P.i,!!answered)'), 'à la reprise, la page laisse la timeline reprendre la même image');
   assert.ok(html.includes("o['p'+i]={first:first?1:0}") && html.includes('.lv-pk-t code{'), 'premier essai gardé pour le score ; code du prompt en étiquette');
@@ -1041,6 +1054,15 @@ test('Quel JOIN choisir ? : chaque étiquette montre le résultat de SQLite (ord
   ];
   const rows = (i, label) => { const P = ctx.PICKS[i]; return ctx.rowsOf(P, ctx.pairsFor(P, P.options.find(o => o.label === label))); };
   for (const [i, label, exp] of SQLITE) assert.equal(JSON.stringify(rows(i, label)), JSON.stringify(exp), `moment ${i + 1}, ${label}`);
+  const plain = h => String(h).replace(/<[^>]+>/g, '');
+  ctx.PICKS.forEach((P, i) => P.options.forEach(o => {
+    assert.ok(typeof o.why === 'string' && plain(o.why).length >= 60 && plain(o.why).length <= 170, `moment ${i + 1}, ${o.label} : une correction qui explique le choix`);
+    assert.ok(typeof o.say === 'string' && plain(o.say).length <= 56, `moment ${i + 1}, ${o.label} : un verdict court sous la requête`);
+  }));
+  ctx.PICKS.filter(P => P.kind === 'join').forEach(P => {
+    const good = P.options.find(o => o.ok), others = P.options.filter(o => !o.ok).map(o => o.label.split(' ')[0]);
+    assert.ok(others.some(l => good.why.includes(`<code>${l}</code>`)), `${good.label} : la bonne correction dit pourquoi pas ${others.join(', ')}`);
+  });
   const [r, mk] = ctx.diff(rows(2, 'RIGHT'), rows(2, 'LEFT'));
   assert.equal(JSON.stringify(mk), '["","","","x","m"]', 'aquarium avec RIGHT : la tortue en trop, les Abysses manquantes');
   assert.equal(JSON.stringify(r[4]), '["Abysses",null]');

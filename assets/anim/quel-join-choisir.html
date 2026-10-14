@@ -11,17 +11,23 @@
 #s0 .title span.sp{margin-right:52px}
 #s0 .hilite{top:530px;height:62px}
 #s0 .sub{top:650px;font-size:66px}
-/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur */
 #s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
 #s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
 #s0 .mascot{left:290px;top:1050px}
 #s1 .need-row .nl{font-size:38px;white-space:nowrap}
 .hid{opacity:0;visibility:hidden}
 
-/* Les ronds des jointures, dessinés comme dans le tableau « Les types de JOIN » de l’app */
+/* Les ronds des jointures, comme dans le tableau « Les types de JOIN » */
 .vn{width:64px;height:36px;flex:none;overflow:visible}
 .vn .g{fill:var(--accent);opacity:.5}
 .vn .t{fill:none;stroke:var(--accent);stroke-opacity:.85;stroke-width:2.2}
+
+/* ---------- Ouverture d’un cas : grande carte, qui monte ensuite se ranger en bandeau ---------- */
+.op{left:64px;top:540px;width:952px;padding:54px 60px 62px;border-radius:56px;display:flex;flex-direction:column;align-items:center;text-align:center}
+.op .opi{width:180px;height:180px;border-radius:50px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:104px}
+.op .opk{margin-top:34px;height:54px;padding:0 26px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:29px;font-weight:800;display:flex;align-items:center;white-space:nowrap}
+.op .opn{margin-top:24px;font-family:var(--display);font-size:68px;font-weight:800;line-height:1.08;letter-spacing:-1.6px;color:var(--ink);text-wrap:balance}
 
 /* ---------- Un cas : son objectif, ses deux tables, la requête à trous, le verdict et le résultat ---------- */
 .cz{left:64px;top:236px;width:952px;height:108px;border-radius:36px;display:flex;align-items:center;gap:22px;padding:0 30px 0 18px}
@@ -55,16 +61,18 @@ circle.ok{fill:#2FA36B}circle.ko{fill:#E5484D}circle.cr{fill:#8B6CFF}
 .sw{display:inline-grid}.sw>*{grid-area:1/1}
 .slot{position:relative;display:inline-grid;vertical-align:top;height:42px;margin-top:3px;line-height:42px}
 .slot>*{grid-area:1/1;padding:0 12px;border-radius:10px;text-align:center}
-.se{border:2px dashed rgba(201,188,255,.55);background:rgba(201,188,255,.07);color:#8E88B8;line-height:38px}
+.se{border:2px dashed rgba(201,188,255,.3);color:rgba(201,188,255,.42);line-height:38px}
+/* Trou à remplir maintenant : jaune, avec un anneau qui pulse ; les autres restent discrets. */
+.sa{border:3px solid #FFC94A;background:rgba(255,201,74,.2);color:#FFD66B;font-weight:800;line-height:36px}
 .sv,.so{background:rgba(139,108,255,.32);color:#fff;font-weight:700}
 .sv.kw,.so.kw{color:var(--t-kw);font-weight:800}
 .so.ko{background:rgba(239,79,85,.32);color:#FFB3B7}
-.sg{position:absolute;left:-7px;top:-7px;right:-7px;bottom:-7px;padding:0;border:3px solid #B9A8FF;border-radius:15px;animation:sg 1.1s ease-in-out infinite}
-@keyframes sg{50%{border-color:#E9E3FF;box-shadow:0 0 0 6px rgba(185,168,255,.25)}}
+.sg{position:absolute;left:-8px;top:-8px;right:-8px;bottom:-8px;padding:0;border:3px solid rgba(255,201,74,.9);border-radius:16px;animation:sg 1.1s ease-in-out infinite}
+@keyframes sg{50%{border-color:rgba(255,201,74,.3);box-shadow:0 0 0 8px rgba(255,201,74,.2)}}
 .gh{display:inline-block;vertical-align:top;height:42px;margin-top:3px;padding:0 12px;border:2px dashed #F07A80;border-radius:10px;color:#FFB3B7;line-height:38px}
 .gh b{color:#FFB3B7}
 /* Aperçu d’un choix (moment « À toi ») : il prend le pas sur la timeline, le temps de l’arrêt */
-.slot.pv .se,.slot.pv.ok .sg,.pvh{opacity:0!important}
+.slot.pv .se,.slot.pv .sa,.slot.pv.ok .sg,.pvh{opacity:0!important}
 .pvs{opacity:1!important;visibility:visible!important}
 .r.pd>span{opacity:.28!important;transition:opacity .35s}
 /* Verdict */
@@ -170,7 +178,7 @@ const N = null;
    sel : les colonnes du SELECT ([0 = gauche ou 1 = droite, colonne]) ; q : la requête, {i} = le trou du moment i. */
 const SAL = [[1, 'Nadia Benali', N], [2, 'Hugo Lefèvre', 1], [3, 'Inès Fabre', 2], [4, 'Théo Petit', 2]];
 const CASES = [
-  {emo: '🩺', need: 'Chaque patient avec son médecin',
+  {emo: '🩺', need: 'Les rendez-vous qui ont un médecin',
     L: ['rendez_vous', '📅', ['patient', 'medecin_id'], '1fr 150px', [['Julie Roy', 1], ['Marc Diaz', 2], ['Sarah Lopez', N]]],
     R: ['medecins', '🩺', ['id', 'nom'], '42px 1fr', [[1, 'Dr Claire Morel'], [2, 'Dr Paul Garnier'], [3, 'Dr Anne Roux']]],
     on: (l, r) => l[1] === r[0], cols: ['patient', 'medecin'], sel: [[0, 0], [1, 1]],
@@ -180,7 +188,7 @@ const CASES = [
     R: ['animaux', '🐟', ['nom', 'bassin_id'], '1fr 136px', [['Poisson-clown', 1], ['Hippocampe', 2], ['Raie', 2], ['Tortue', N]]],
     on: (l, r) => l[0] === r[1], cols: ['bassin', 'animal'], sel: [[0, 1], [1, 0]],
     q: ['<b>SELECT</b> bassins.nom <b>AS</b> bassin, animaux.nom <b>AS</b> animal', '<b>FROM</b> bassins', '{2} <b>JOIN</b> animaux', '  <b>ON</b> bassins.id = animaux.bassin_id']},
-  {emo: '📚', need: 'Tous les livres, même jamais empruntés',
+  {emo: '📚', need: 'Tous les livres, même\u00a0jamais empruntés',
     L: ['emprunts', '🔖', ['lecteur', 'livre_id'], '1fr 122px', [['Léa Martin', 1], ['Yanis Durand', 2]]],
     R: ['livres', '📖', ['id', 'titre'], '42px 1fr', [[1, 'Le Petit Prince'], [2, 'Les Misérables'], [3, 'Germinal']]],
     on: (l, r) => l[1] === r[0], cols: ['lecteur', 'titre'], sel: [[0, 0], [1, 1]],
@@ -191,13 +199,13 @@ const CASES = [
     R: ['chambres', '🛏️', ['id', 'numero'], '42px 1fr', [[1, 101], [2, 102], [3, 103]]],
     on: (l, r) => l[1] === r[0], cols: ['nom', 'numero'], sel: [[0, 0], [1, 1]],
     q: ['<b>SELECT</b> clients.nom, chambres.numero', '<b>FROM</b> clients', '{5} <b>JOIN</b> chambres', '  <b>ON</b> clients.chambre_id = chambres.id']},
-  {emo: '🍦', need: 'Toutes les glaces possibles', w: 340,
+  {emo: '🍦', need: 'Chaque parfum dans chaque format', w: 340,
     L: ['parfums', '🍓', ['nom'], '1fr', [['Vanille'], ['Chocolat'], ['Fraise']]],
     R: ['formats', '🍦', ['nom'], '1fr', [['Cornet'], ['Pot']]],
     on: () => false, cols: ['parfum', 'format'], sel: [[0, 0], [1, 0]],
     q: ['<b>SELECT</b> parfums.nom <b>AS</b> parfum, formats.nom <b>AS</b> format', '<b>FROM</b> parfums', '{6} <b>JOIN</b> formats', '<span class="cm hid" id="q5c">-- sans ON</span>'],
     x: '<div class="abs gx" id="gx5">rien<br>à relier</div>'},
-  {emo: '🏢', need: 'Chaque salarié avec son manager',
+  {emo: '🏢', need: 'Le manager de chaque salarié',
     L: ['salaries<span class="al hid">AS s</span>', '👥', ['id', 'nom', 'manager_id'], '42px 1fr 150px', SAL],
     R: ['salaries<span class="al">AS m</span>', '👥', ['id', 'nom', 'manager_id'], '42px 1fr 150px', SAL],
     on: (l, r) => l[2] === r[0], cols: ['nom', 'manager'], sel: [[0, 1], [1, 1]],
@@ -206,39 +214,79 @@ const CASES = [
 ];
 
 /* Les neuf moments « À toi » : l’image s’arrête, l’élève place une étiquette dans le trou de la requête.
-   kind : on (compléter le ON), join (choisir le JOIN), tbl (choisir la table) ; res : le résultat s’affiche ;
-   mir : les tables ont changé de côté ; chaque étiquette a son verdict (say). */
+   kind : on (le ON), join (le JOIN), tbl (la table) ; res : le résultat s’affiche ; mir : tables échangées.
+   say : verdict court sous la requête ; why : correction du plateau (la bonne dit aussi pourquoi pas les autres). */
 const JL = {inner: 'INNER', left: 'LEFT', right: 'RIGHT', full: 'FULL OUTER', cross: 'CROSS'};
-const J = (ok, says, gh) => Object.keys(says).map(j => ({label: JL[j], j, ok: j === ok, say: says[j], gh: !!(gh && j !== ok)}));
+const GERM = ['Germinal disparaît : jamais emprunté.', '<code>INNER JOIN</code> ne garde que les livres empruntés : Germinal, jamais emprunté, disparaît.'];
+const J = (ok, texts, gh) => Object.keys(texts).map(j => ({label: JL[j], j, ok: j === ok, say: texts[j][0], why: texts[j][1], gh: !!(gh && j !== ok)}));
 const PICKS = [
   {at: 36.3, c: 1, kind: 'on', prompt: 'Complète le <code>ON</code> : relie chaque rendez-vous à son médecin.', options: [
-    {label: 'medecins.nom', on: (l, r) => l[1] === r[1], say: 'Un numéro n’est jamais égal à un nom : aucun lien.'},
-    {label: 'medecins.id', ok: true, say: 'Chaque rendez-vous est relié à son médecin.'},
-    {label: 'rendez_vous.medecin_id', on: l => l[1] !== N, say: 'Chaque rendez-vous serait relié à tous les médecins.'}]},
-  {at: 47.9, c: 1, kind: 'join', res: 1, prompt: 'Quel <code>JOIN</code> pour la liste des médecins ?', options: J('inner', {
-    inner: 'Seulement les rendez-vous qui ont un médecin.', left: 'Sarah Lopez n’a pas encore de médecin.',
-    right: 'Le Dr Anne Roux n’a aucun rendez-vous.', full: 'Rendez-vous sans médecin et médecin sans rendez-vous.'})},
+    {label: 'medecins.nom', on: (l, r) => l[1] === r[1], say: 'Un numéro n’est jamais égal à un nom : aucun lien.',
+      why: '<code>medecin_id</code> contient un numéro, <code>medecins.nom</code> un nom : ils ne sont jamais égaux, donc aucun rendez-vous n’est relié.'},
+    {label: 'medecins.id', ok: true, say: 'Chaque rendez-vous est relié à son médecin.',
+      why: '<code>medecin_id</code> contient le numéro du médecin : c’est son <code>id</code> dans la table <code>medecins</code>. Julie Roy (1) retrouve le Dr Claire Morel.'},
+    {label: 'rendez_vous.medecin_id', on: l => l[1] !== N, say: 'Chaque rendez-vous serait relié à tous les médecins.',
+      why: 'Comparer <code>medecin_id</code> à lui-même est toujours vrai : chaque rendez-vous est relié à tous les médecins.'}]},
+  {at: 47.9, c: 1, kind: 'join', res: 1, prompt: 'Quel <code>JOIN</code> garde seulement les rendez-vous qui ont un médecin ?', options: J('inner', {
+    inner: ['Seulement les rendez-vous qui ont un médecin.',
+      '<code>INNER JOIN</code> ne garde que les lignes reliées des deux côtés. <code>LEFT</code> aurait gardé Sarah Lopez, <code>RIGHT</code> le Dr Anne Roux, <code>FULL</code> les deux.'],
+    left: ['Sarah Lopez apparaît, sans médecin.',
+      '<code>LEFT JOIN</code> garde tous les rendez-vous, même sans médecin : Sarah Lopez apparaît, alors qu’elle n’est sur la liste d’aucun médecin.'],
+    right: ['Le Dr Anne Roux apparaît, sans patient.',
+      '<code>RIGHT JOIN</code> garde tous les médecins, même sans rendez-vous : le Dr Anne Roux apparaît, alors qu’elle n’a aucun patient.'],
+    full: ['Sarah Lopez et le Dr Anne Roux en trop.',
+      '<code>FULL OUTER JOIN</code> garde tout, des deux côtés : Sarah Lopez et le Dr Anne Roux apparaissent, sans correspondance.']})},
   {at: 73.2, c: 2, kind: 'join', res: 1, prompt: 'Quel <code>JOIN</code> garde tous les bassins, même vides ?', options: J('left', {
-    inner: 'Les Abysses disparaissent : le soigneur les oublie.', left: 'Tous les bassins restent, même les Abysses.',
-    right: 'Les Abysses disparaissent, la tortue apparaît.', full: 'La tortue n’est dans aucun bassin à visiter.'})},
+    inner: ['Les Abysses disparaissent : le soigneur les oublie.',
+      '<code>INNER JOIN</code> ne garde que les bassins qui ont un animal : les Abysses, vides, sortent de la tournée.'],
+    left: ['Tous les bassins restent, même les Abysses.',
+      '<code>LEFT JOIN</code> garde toute la table placée après <code>FROM</code> : les bassins, même les Abysses. <code>RIGHT</code> aurait gardé les animaux.'],
+    right: ['Les Abysses disparaissent, la tortue apparaît.',
+      '<code>RIGHT JOIN</code> garde toute la table placée après <code>JOIN</code> : les animaux. La tortue arrive, les Abysses disparaissent.'],
+    full: ['La tortue n’est dans aucun bassin à visiter.',
+      '<code>FULL OUTER JOIN</code> garde bien les Abysses, mais aussi la tortue, qui n’est dans aucun bassin : une ligne en trop.']})},
   {at: 100.3, c: 3, kind: 'join', res: 1, prompt: 'Quel <code>JOIN</code> garde tous les livres, sans changer le <code>FROM</code> ?', options: J('right', {
-    inner: 'Germinal disparaît : jamais emprunté.', left: '<code>LEFT</code> garde les emprunts : Germinal disparaît.', right: 'Tous les livres restent, même Germinal.'})},
-  {at: 113.0, c: 3, kind: 'join', res: 1, mir: 1, prompt: 'Avec <code>livres</code> après <code>FROM</code> : quel <code>JOIN</code> ?', options: J('left', {
-    inner: 'Germinal disparaît : jamais emprunté.', left: 'Le même résultat : tous les livres restent.', right: '<code>RIGHT</code> garde les emprunts : Germinal disparaît.'})},
-  {at: 141.7, c: 4, kind: 'join', res: 1, prompt: 'Quel <code>JOIN</code> montre les clients et les chambres ?', options: J('full', {
-    inner: 'Ali Koné et la chambre 103 disparaissent.', left: 'La chambre 103, libre, n’apparaît pas.',
-    right: 'Ali Koné, sans chambre, n’apparaît pas.', full: 'Ali Koné et la chambre 103 sont bien là.'})},
+    inner: GERM,
+    left: ['<code>LEFT</code> garde les emprunts : Germinal disparaît.',
+      '<code>LEFT JOIN</code> garde la table placée après <code>FROM</code> : ici <code>emprunts</code>, pas <code>livres</code>. Germinal disparaît.'],
+    right: ['Tous les livres restent, même Germinal.',
+      '<code>RIGHT JOIN</code> garde toute la table placée après <code>JOIN</code> : les livres, même Germinal. <code>LEFT</code> aurait gardé les emprunts.']})},
+  {at: 113.0, c: 3, kind: 'join', res: 1, mir: 1, prompt: 'Maintenant, <code>livres</code> est après <code>FROM</code> : quel <code>JOIN</code> garde tous les livres ?', options: J('left', {
+    inner: GERM,
+    left: ['Le même résultat : tous les livres restent.',
+      '<code>livres</code> est maintenant après <code>FROM</code> : <code>LEFT JOIN</code> garde tous les livres. <code>RIGHT</code> garderait maintenant les emprunts.'],
+    right: ['<code>RIGHT</code> garde les emprunts : Germinal disparaît.',
+      '<code>RIGHT JOIN</code> garde la table placée après <code>JOIN</code> : maintenant, c’est <code>emprunts</code>. Germinal disparaît.']})},
+  {at: 141.7, c: 4, kind: 'join', res: 1, prompt: 'Quel <code>JOIN</code> garde tous les clients et toutes les chambres ?', options: J('full', {
+    inner: ['Ali Koné et la chambre 103 disparaissent.',
+      '<code>INNER JOIN</code> ne garde que les clients qui ont une chambre : Ali Koné et la chambre 103 disparaissent.'],
+    left: ['La chambre 103, libre, n’apparaît pas.',
+      '<code>LEFT JOIN</code> garde tous les clients, même Ali Koné, mais seulement les chambres occupées : la 103 manque.'],
+    right: ['Ali Koné, sans chambre, n’apparaît pas.',
+      '<code>RIGHT JOIN</code> garde toutes les chambres, même la 103, mais seulement les clients logés : Ali Koné manque.'],
+    full: ['Ali Koné et la chambre 103 sont bien là.',
+      '<code>FULL OUTER JOIN</code> garde les deux tables en entier : Ali Koné et la chambre 103 restent. <code>LEFT</code> et <code>RIGHT</code> n’en gardent qu’une.']})},
   {at: 164.4, c: 5, kind: 'join', res: 1, prompt: 'Quel <code>JOIN</code> associe chaque parfum à chaque format ?', options: J('cross', {
-    inner: '<code>INNER</code> cherche des correspondances : il n’y en a aucune.', left: '<code>LEFT</code> cherche aussi des correspondances : aucune ici.',
-    cross: 'Chaque parfum avec chaque format : 6 glaces.'}, true)},
+    inner: ['<code>INNER</code> cherche des correspondances : il n’y en a aucune.',
+      '<code>INNER JOIN</code> relie les lignes qui se correspondent, grâce au <code>ON</code>. Ici, rien ne relie un parfum à un format.'],
+    left: ['<code>LEFT</code> cherche aussi des correspondances : aucune ici.',
+      '<code>LEFT JOIN</code> a lui aussi besoin d’un <code>ON</code> pour relier les lignes. Or aucune colonne ne relie un parfum à un format.'],
+    cross: ['Chaque parfum avec chaque format : 6 glaces.',
+      '<code>CROSS JOIN</code> n’a pas de <code>ON</code> : chaque parfum avec chaque format, 3 × 2 = 6 glaces. <code>INNER</code> et <code>LEFT</code> cherchent des correspondances.']}, true)},
   {at: 189.0, c: 6, kind: 'tbl', prompt: 'Quelle table relier pour retrouver le manager ?', options: [
-    {label: 'managers', err: 'no such table: managers', say: 'Pas de table managers : les managers sont des salariés.'},
-    {label: 'salaries', ok: true, say: 'La même table, une seconde fois : c’est un <code>SELF JOIN</code>.'},
-    {label: 's', err: 'no such table: s', say: '<code>s</code> est un alias : la table s n’existe pas.'}]},
+    {label: 'managers', err: 'no such table: managers', say: 'Pas de table managers : les managers sont des salariés.',
+      why: 'La base n’a pas de table <code>managers</code> : les managers sont des salariés, rangés dans la table <code>salaries</code>.'},
+    {label: 'salaries', ok: true, say: 'La même table, une seconde fois : c’est un <code>SELF JOIN</code>.',
+      why: 'Le manager est lui aussi dans <code>salaries</code> : on relie la table à elle-même. C’est un <code>SELF JOIN</code>, avec deux alias, <code>s</code> et <code>m</code>.'},
+    {label: 's', err: 'no such table: s', say: '<code>s</code> est un alias : la table s n’existe pas.',
+      why: '<code>s</code> n’est qu’un alias de <code>salaries</code>, donné dans le <code>FROM</code>. Après <code>JOIN</code>, il faut le vrai nom de la table.'}]},
   {at: 200.6, c: 6, kind: 'on', res: 1, prompt: 'Complète le <code>ON</code> pour retrouver le manager.', options: [
-    {label: 's.id', on: l => l[2] === l[0], say: 'Personne n’est son propre manager : aucune ligne.'},
-    {label: 'm.manager_id', on: (l, r) => l[2] !== N && l[2] === r[2], say: 'Ces lignes réunissent des salariés du même manager.'},
-    {label: 'm.id', ok: true, say: 'Chaque salarié retrouve son manager.'}]}
+    {label: 's.id', on: l => l[2] === l[0], say: 'Personne n’est son propre manager : aucune ligne.',
+      why: '<code>s.manager_id = s.id</code> demande d’être son propre manager. Personne ne l’est : aucune ligne.'},
+    {label: 'm.manager_id', on: (l, r) => l[2] !== N && l[2] === r[2], say: 'Ces lignes réunissent des salariés du même manager.',
+      why: '<code>s.manager_id = m.manager_id</code> relie des salariés qui ont le même manager, comme Inès Fabre et Théo Petit : des collègues.'},
+    {label: 'm.id', ok: true, say: 'Chaque salarié retrouve son manager.',
+      why: 'Le <code>manager_id</code> du salarié (<code>s</code>) est l’<code>id</code> de son manager (<code>m</code>) : Hugo Lefèvre retrouve Nadia Benali.'}]}
 ];
 
 const CHAPTERS = [
@@ -253,35 +301,35 @@ const CHAPTERS = [
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
 const CAPTIONS = [
-  [5.3, 11.6,    "Premier cas : au cabinet médical, chaque médecin imprime la liste de <b>ses patients</b> du jour."],
+  [5.3, 11.6,    "Au cabinet médical, chaque médecin imprime la liste de <b>ses patients</b> du jour."],
   [11.7, 17.4,   "Pour chaque rendez-vous, il faut le nom du patient et celui de son médecin."],
   [17.5, 23.9,   "Les rendez-vous sont dans la table <code>rendez_vous</code>, et les médecins dans la table <code>medecins</code>."],
   [24.0, 30.7,   "Le rendez-vous de Sarah Lopez n’a pas encore de médecin, et le Dr Anne Roux n’a aucun rendez-vous."],
-  [30.8, 36.7,   "À toi : complète le <code>ON</code> pour relier chaque rendez-vous à son médecin."],
+  [30.8, 36.7,   "À toi : dans le <code>ON</code>, remplis la <b>case jaune</b> pour relier chaque rendez-vous à son médecin."],
   [36.8, 42.3,   "<code>medecin_id</code> contient le numéro du médecin : il correspond à <code>medecins.id</code>."],
   [42.4, 48.3,   "La liste ne montre que les rendez-vous qui ont un médecin. À toi : quel <code>JOIN</code> ?"],
   [48.4, 54.4,   "<code>INNER JOIN</code> ne garde que les lignes qui ont une correspondance <b>des deux côtés</b>."],
-  [55.2, 61.6,   "Deuxième cas : chaque matin, à l’aquarium, le soigneur passe voir <b>tous les bassins</b>."],
+  [55.2, 61.6,   "Chaque matin, à l’aquarium, le soigneur fait le tour de <b>tous les bassins</b>."],
   [61.7, 68.6,   "Les Abysses sont vides pendant leur nettoyage, et la tortue, soignée en quarantaine, n’a pas de bassin."],
   [68.7, 73.6,   "À toi : quel <code>JOIN</code> garde tous les bassins, même ceux qui sont vides ?"],
   [73.7, 79.0,   "<code>LEFT JOIN</code> garde toute la table placée après <code>FROM</code> : ici, les bassins."],
   [79.1, 83.8,   "Les Abysses apparaissent avec <code>NULL</code> : aucun animal n’y vit."],
-  [84.6, 90.6,   "Troisième cas : à la bibliothèque, la requête part de la table <code>emprunts</code>."],
-  [90.7, 96.6,   "Mais il faut voir <b>tous les livres</b>, même Germinal, qu’aucun lecteur n’a encore emprunté."],
+  [84.6, 90.6,   "À la bibliothèque, l’inventaire montre <b>tous les livres</b>, même jamais empruntés."],
+  [90.7, 96.6,   "Or la requête part de la table <code>emprunts</code>, et Germinal n’a jamais été emprunté."],
   [96.7, 100.7,  "À toi : quel <code>JOIN</code> les garde tous, sans changer le <code>FROM</code> ?"],
   [100.8, 106.1, "<code>RIGHT JOIN</code> garde toute la table placée après <code>JOIN</code> : ici, les livres."],
   [106.2, 113.4, "Et si la table <code>livres</code> passe après <code>FROM</code> ? À toi : quel <code>JOIN</code> donne le même résultat ?"],
   [113.5, 119.7, "Les tables échangent leur place, et <code>RIGHT JOIN</code> devient <code>LEFT JOIN</code>, souvent plus lisible."],
-  [120.5, 126.8, "Quatrième cas : à l’hôtel, le soir, le réceptionniste vérifie <b>les clients et les chambres</b>."],
+  [120.5, 126.8, "Le soir, à l’hôtel, le réceptionniste vérifie <b>tous les clients et toutes les chambres</b>."],
   [126.9, 132.5, "Les clients sont dans la <b>table clients</b>, les chambres dans la table <code>chambres</code>."],
   [132.6, 137.7, "Ali Koné attend encore sa chambre, et la chambre 103 est libre."],
   [137.8, 142.1, "À toi : quel <code>JOIN</code> les montre tous les deux ?"],
   [142.2, 146.9, "Avec <code>FULL OUTER JOIN</code>, toutes les lignes <b>des deux tables</b> restent."],
-  [147.7, 153.5, "Cinquième cas : au glacier, la carte affiche <b>toutes les glaces possibles</b>."],
+  [147.7, 153.5, "Au glacier, la carte doit proposer <b>chaque parfum dans chaque format</b>."],
   [153.6, 159.6, "Chaque parfum se sert en cornet comme en pot : il n’y a rien à relier."],
   [159.7, 164.8, "À toi : quel <code>JOIN</code> associe chacun des parfums à chacun des formats ?"],
   [164.9, 170.9, "Sans <code>ON</code>, <code>CROSS JOIN</code> associe chaque ligne à chaque ligne : 3&nbsp;×&nbsp;2&nbsp;=&nbsp;<b>6 glaces</b>."],
-  [171.7, 178.0, "Dernier cas : l’annuaire de l’entreprise présente chaque salarié avec le nom de <b>son manager</b>."],
+  [171.7, 178.0, "L’annuaire de l’entreprise indique <b>le manager</b> de chaque salarié."],
   [178.1, 184.0, "Les managers sont eux aussi des salariés : tout se trouve dans une seule table, <code>salaries</code>."],
   [184.1, 189.4, "À toi : quelle table relier pour retrouver le manager de chaque salarié ?"],
   [189.5, 195.4, "La même table, une seconde fois : c’est un <code>SELF JOIN</code>, avec deux alias, <code>s</code> et <code>m</code>."],
@@ -296,8 +344,7 @@ const CAPTIONS = [
 /* Pas de question du lecteur : les moments « À toi » (PICKS) font participer l’élève. */
 const QUESTIONS = [];
 
-/* Les ronds d’une jointure, comme dans le tableau « Les types de JOIN » de l’app : la partie gardée est remplie.
-   CROSS JOIN : une grille (toutes les combinaisons). */
+/* Les ronds d’une jointure (partie gardée remplie) ; CROSS JOIN : une grille. */
 function venn(k, id){
   if (k === 'cross') return `<svg class="vn" viewBox="0 0 64 36"><g class="g">${[3, 14, 25].map(y => [17, 28, 39].map(x => `<rect x="${x}" y="${y}" width="8" height="8" rx="2.5"/>`).join('')).join('')}</g></svg>`;
   const A = 'cx="23" cy="18" r="15"', B = 'cx="41" cy="18" r="15"';
@@ -349,7 +396,7 @@ function tableHTML([name, emo, cols, g, rows], id, x, w, cls = ''){
 }
 function slotHTML(i){
   const P = PICKS[i], w = Math.max(...P.options.map(o => o.label.length)) * 16.2 + 24;
-  return `<span class="slot" id="sl${i}" style="width:${w.toFixed(1)}px"><span class="se">?</span><span class="sv${P.kind === 'join' ? ' kw' : ''} hid">${P.options.find(o => o.ok).label}</span><i class="sg hid"></i></span>`;
+  return `<span class="slot" id="sl${i}" style="width:${w.toFixed(1)}px"><span class="se">…</span><span class="sa hid">?</span><span class="sv${P.kind === 'join' ? ' kw' : ''} hid">${P.options.find(o => o.ok).label}</span><i class="sg hid"></i></span>`;
 }
 function vdHTML(P, o, ok, attrs, cls, vid){
   const ic = P.kind === 'join' ? venn(o.j, vid) : ok ? `<span class="emo">${P.kind === 'tbl' ? '🪞' : '🔗'}</span>` : '<i class="x">✕</i>';
@@ -374,7 +421,8 @@ function lkHTML(g, pairs, cls){
 function dom(){
   CASES.forEach((c, ci) => {
     const n = ci + 1, w = c.w || 448;
-    let h = `<div class="abs card cz" id="hd${n}"><span class="ico emo">${c.emo}</span><div><div class="k">Cas ${n} sur 6</div><div class="n">${c.need}</div></div></div>` +
+    let h = `<div class="abs card op" id="op${n}"><div class="opi emo">${c.emo}</div><div class="opk">Cas ${n} sur 6 · ${CHAPTERS[ci].label}</div><div class="opn">${c.need}</div></div>` +
+      `<div class="abs card cz" id="hd${n}"><span class="ico emo">${c.emo}</span><div><div class="k">Cas ${n} sur 6</div><div class="n">${c.need}</div></div></div>` +
       tableHTML(c.L, 'tl' + n, 64, w, n === 3 ? ' fly' : '') + tableHTML(c.R, 'tr' + n, 1016 - w, w, n === 6 ? ' hid' : '') +
       `<svg class="abs lk hid" id="lk${n}" viewBox="0 0 1080 1920"></svg>` + (n === 3 ? '<svg class="abs lk hid" id="lk3b" viewBox="0 0 1080 1920"></svg>' : '') +
       `<div class="abs code qy" id="qy${n}">${c.q.map(l => `<span class="l">${l.replace(/\{(\d)\}/g, (m, i) => slotHTML(+i))}</span>`).join('')}</div>` + phHTML(c.cols, n);
@@ -429,6 +477,23 @@ function headIn(n, t){
   tl.to('#hd' + n + ' .ico', {scale: 1, rotation: 0, duration: 0.5, ease: 'back.out(2.6)'}, t + 0.2);
   cue(t + 0.2, 'pop', 0.8, 4);
 }
+/* Ouverture d’un cas : la grande carte arrive au centre ; à `out`, elle monte jusqu’au bandeau du cas, qui prend sa place. */
+function opener(n, t, out){
+  const op = '#op' + n, a = rel($(op)), h = rel($('#hd' + n));
+  gsap.set(op, {autoAlpha: 0, y: 60, scale: 0.92, transformOrigin: '50% 50%'});
+  tl.to(op, {autoAlpha: 1, y: 0, scale: 1, duration: 0.6, ease: 'back.out(1.5)'}, t);
+  cue(t, 'whoosh', 0.7);
+  gsap.set(op + ' .opi', {scale: 0.3, rotation: -18});
+  tl.to(op + ' .opi', {scale: 1, rotation: 0, duration: 0.55, ease: 'back.out(2.6)'}, t + 0.25);
+  cue(t + 0.25, 'pop', 0.8, 4);
+  show(op + ' .opk', t + 0.45, {y: 16}, 0.4, 'power3.out');
+  show(op + ' .opn', t + 0.65, {y: 24}, 0.5, 'power3.out');
+  cue(t + 0.65, 'pop', 0.6, 6);
+  tl.to(op, {y: (h.y + h.h / 2) - (a.y + a.h / 2), scale: 0.4, duration: 0.55, ease: 'power2.in'}, out);
+  tl.to(op, {autoAlpha: 0, duration: 0.2, ease: 'power1.in'}, out + 0.35);
+  cue(out, 'whoosh', 0.6);
+  headIn(n, out + 0.4);
+}
 function tablesIn(n, t, sides = ['tl', 'tr']){
   sides.forEach((s, k) => {
     const el = '#' + s + n, u = t + k * 0.2;
@@ -460,16 +525,18 @@ function linksIn(sel, t){
 const hlRow = (sel, k, t) => { tl.to($$(sel + ' .r .hl')[k], {opacity: 1, duration: 0.3}, t); cue(t, 'tick', 0.55, 3); };
 const pulseCol = (sel, k, t, rows) => { pulse($$(sel + ' .r').filter((_, i) => !rows || rows.includes(i)).map(r => r.children[k + 1]), t); cue(t, 'tick', 0.5, 2); };
 const pulseLine = (n, k, t) => pulse($$('#qy' + n + ' .l')[k], t, 3, 'rgba(201,188,255,.22)');
-/* Moment « À toi » : le trou de la requête s’entoure d’un anneau qui pulse, jusqu’à l’arrêt de l’image. */
+/* Moment « À toi » : le trou à remplir passe au jaune, avec un anneau qui pulse ; les autres restent discrets. */
 function ask(i, t){
-  tl.to('#sl' + i + ' .sg', {autoAlpha: 1, duration: 0.3}, t + 0.3);
-  bump('#sl' + i, t + 0.3, 1.12);
+  const s = '#sl' + i;
+  tl.to(s + ' .se', {autoAlpha: 0, duration: 0.2}, t + 0.3);
+  tl.to([s + ' .sa', s + ' .sg'], {autoAlpha: 1, duration: 0.3}, t + 0.3);
+  bump(s, t + 0.3, 1.15);
   cue(t + 0.3, 'pop', 0.7, 4);
 }
 /* Juste après l’arrêt, la timeline montre la bonne réponse : exactement l’image de son aperçu (la reprise est invisible). */
 function answer(i, x = {}){
   const P = PICKS[i], t = +(P.at + 0.02).toFixed(2), s = '#sl' + i;
-  tl.set([s + ' .se', s + ' .sg'].concat(x.hide || []), {autoAlpha: 0}, t);
+  tl.set([s + ' .se', s + ' .sa', s + ' .sg'].concat(x.hide || []), {autoAlpha: 0}, t);
   tl.set([s + ' .sv', '#vd' + i].concat(x.show || []), {autoAlpha: 1}, t);
   if (!P.res) return;
   tl.set('#rs' + i, {autoAlpha: 1}, t);
@@ -489,7 +556,7 @@ function build(){
 
   /* ===== 1 · Le cabinet médical ===== */
   sceneOn('#s1', 5.0);
-  headIn(1, 5.15);
+  opener(1, 5.15, 10.9);
   // Le nom du patient et celui de son médecin
   stackBelow('#s1 .need', '#hd1', 0, 30);
   show('#s1 .need', 11.9, {y: 50});
@@ -526,8 +593,8 @@ function build(){
 
   /* ===== 2 · L’aquarium ===== */
   sceneOn('#s2', 54.9);
-  headIn(2, 55.05);
-  tablesIn(2, 56.5);
+  opener(2, 55.05, 59.5);
+  tablesIn(2, 60.2);
   // Les Abysses : vides ; la tortue : sans bassin
   linksIn('#lk2', 62.0);
   hlRow('#tl2', 2, 63.6);
@@ -547,13 +614,13 @@ function build(){
 
   /* ===== 3 · La bibliothèque ===== */
   sceneOn('#s3', 84.3);
-  headIn(3, 84.45);
-  tablesIn(3, 85.8);
-  queryIn(3, 87.9);
-  pulseLine(3, 1, 88.9);
-  // Tous les livres, même Germinal
-  linksIn('#lk3', 91.0);
-  hlRow('#tr3', 2, 92.8);
+  opener(3, 84.45, 88.4);
+  tablesIn(3, 89.1);
+  queryIn(3, 90.3);
+  // La requête part de la table emprunts ; Germinal n’a jamais été emprunté
+  pulseLine(3, 1, 91.2);
+  linksIn('#lk3', 92.3);
+  hlRow('#tr3', 2, 94.0);
   ask(3, 96.7);
   show('#ph3', 97.0, {y: 30}, 0.45);
   cue(97.0, 'whoosh', 0.5);
@@ -582,8 +649,8 @@ function build(){
 
   /* ===== 4 · L’hôtel ===== */
   sceneOn('#s4', 120.2);
-  headIn(4, 120.35);
-  tablesIn(4, 121.8);
+  opener(4, 120.35, 125.5);
+  tablesIn(4, 126.2);
   // La table clients, la table chambres
   pulse('#tl4 .h', 127.6, 3, '#DDD3FF');
   pulse('#tr4 .h', 129.5, 3, '#DDD3FF');
@@ -604,8 +671,8 @@ function build(){
 
   /* ===== 5 · Le glacier ===== */
   sceneOn('#s5', 147.4);
-  headIn(5, 147.55);
-  tablesIn(5, 149.0);
+  opener(5, 147.55, 152.2);
+  tablesIn(5, 152.9);
   // Rien à faire correspondre
   show('#gx5', 154.6, {y: 0, scale: 0.6}, 0.45, 'back.out(2)');
   cue(154.6, 'pop', 0.7, 2);
@@ -624,8 +691,8 @@ function build(){
 
   /* ===== 6 · L’entreprise ===== */
   sceneOn('#s6', 171.4);
-  headIn(6, 171.55);
-  tablesIn(6, 173.2, ['tl']);
+  opener(6, 171.55, 176.7);
+  tablesIn(6, 177.4, ['tl']);
   // Les managers sont aussi des salariés
   pulseCol('#tl6', 2, 178.9);
   pulseCol('#tl6', 0, 180.6, [0, 1]);
@@ -753,7 +820,7 @@ const IX = (() => {
     // Le verdict
     const v = put(S, vdHTML(P, o, ok, '', '', 'vx' + uid++), VT[i]);
     anim(v, [{opacity: 0, transform: 'scale(.7)'}, {opacity: 1, transform: 'none'}], {delay: tv, duration: 380});
-    return new Promise(res => later(tv, () => res({ok, say: o.say})));
+    return new Promise(res => later(tv, () => res({ok, say: fr(o.say), why: fr(o.why || o.say)})));
   }
   return {
     enter: clear,
@@ -767,7 +834,7 @@ const IX = (() => {
 window.IX = IX;
 
 Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 218.5, picks: PICKS,
-  glyphs: '🩺📅👤🐠🌊🐟📚🔖📖🛎️🛏️🍦🍓🏢👥🔎🔗🪞🧭📍✓✕?→×', dom, build, onRender: () => IX.tick()});
+  glyphs: '🩺📅👤🐠🌊🐟📚🔖📖🛎️🛏️🍦🍓🏢👥🔎🔗🪞🧭📍✓✕?→×…', dom, build, onRender: () => IX.tick()});
 </script>
 </body>
 </html>
