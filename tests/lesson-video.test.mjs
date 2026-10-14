@@ -350,23 +350,28 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 1, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.jpg', duree: '3 min 27', notesAt: 184.05,
-    notes: /notes:\{t:198\.4,y:1284,card:\[64,292,1016,989\],to:\[940,255\]\}/, table: 'clients',
+  {id: 0, next: 1, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.jpg', duree: '3 min 57', notesAt: 214.85,
+    notes: /notes:\{t:228\.8,y:1291,card:\[64,292,1016,996\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Chaque sujet a sa table,<br>et des numéros relient les tables.',
-    chapters: ['Situation', 'Le problème', 'Le découpage', 'Les clés', 'Pourquoi un numéro ?', 'Le résultat', 'À retenir'],
+    chapters: ['Situation', 'Le problème', 'Le découpage', 'La clé primaire', 'La clé étrangère', 'Le résultat', 'À retenir'],
     traps: [
       // Le fichier Excel : une ligne par commande, le client et le produit recopiés
       '<span class="xfn">commandes.xlsx</span>', '<span class="xn" id="xn">16 commandes</span>', "const HEAD = ['N°', 'Prénom', 'Nom', 'E-mail', 'Produit', 'Prix', 'Qté'];",
       "const COMMANDES = [[1, 1, 1, 2], [2, 1, 3, 1], [3, 2, 6, 1], [4, 3, 2, 3], [5, 4, 1, 1], [13, 1, 8, 1]];", '<div class="need-h">Trois sujets sur chaque ligne</div>',
       // Un e-mail corrigé sur deux lignes seulement : deux e-mails pour la même cliente
       "const NOUVEL_EMAIL = 's.martin@mail.fr';", 'L’e-mail de Sophie Martin, commande par commande', 'Deux e-mails pour Sophie Martin',
-      // Le découpage par sujet, puis les clés
-      "const GRP = ['k-co', 'k-cl', 'k-cl', 'k-cl', 'k-pr', 'k-pr', 'k-co'];", '<span class="emo">🔑</span>clé primaire', '<span class="emo">🔗</span>clé étrangère',
-      '<div class="stamp" id="stamp4">Relationnelle</div>',
-      // Deux Nathan à Paris : seul le numéro dit lequel
-      'Lequel des deux&nbsp;?', 'Le client 4&nbsp;: Nathan Petit', '<span class="star glow" id="star6">*</span>', '10 lignes · 9 colonnes', '✓ La table est lue, jamais modifiée',
-      // Plus tard, la jointure reconstitue la feuille
-      '<span>Plus tard&nbsp;: la jointure</span>']},
+      // Le découpage par sujet
+      "const GRP = ['k-co', 'k-cl', 'k-cl', 'k-cl', 'k-pr', 'k-pr', 'k-co'];",
+      // La clé primaire : son nom complet, les deux Nathan, un numéro déjà pris refusé, un client sans numéro qui reçoit le suivant
+      '<span class="emo">🔑</span>clé primaire', '<b class="nq k-cl">clients</b><i class="ndot">.</i><b class="nq nqc">id</b><span class="nlb">la table</span>',
+      'Lequel des deux&nbsp;?', 'Le client 4&nbsp;: Nathan Petit', "const NOUVEAUX = [[4, 'Yanis', 'Roche'], [null, 'Lina', 'Garnier']];",
+      'UNIQUE constraint failed: clients.id', '<span class="tys ko">✕ refusé</span>',
+      // La clé étrangère : commandes.client_id → clients.id, puis la commande pour le client 99 refusée
+      '<span class="emo">🔗</span>clé étrangère', '<b class="nq k-co">commandes</b><i class="ndot">.</i><b class="nq nqc">client_id</b><i class="narr">→</i><b class="nq k-cl">clients</b>',
+      '<div class="stamp" id="stamp4">Relationnelle</div>', 'const CLIENT_INCONNU = 99;', '<span class="m">FOREIGN KEY constraint failed</span>',
+      // Le résultat, la jointure, puis les trois idées
+      '<span class="star glow" id="star6">*</span>', '10 lignes · 9 colonnes', '✓ La table est lue, jamais modifiée', '<span>Plus tard&nbsp;: la jointure</span>',
+      '<span class="ic blk">commandes.client_id → clients.id</span>']},
   {id: 1, next: 2, titre: 'SELECT', page: 'select.html', thumb: 'select-thumb.jpg', duree: '2 min 27', notesAt: 104,
     notes: /notes:\{t:139\.3,y:1360,card:\[64,356,1016,1066\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avec <span class="ic">SELECT</span>, garde seulement les colonnes utiles.',
@@ -584,7 +589,7 @@ const COURSES = [
       '<span class="emo">🎂</span>&nbsp;7 clients de 30 ans ou plus</span>', '<span class="kw">WHERE</span> <span class="glow" id="cw5"><span class="kw">COUNT</span>(*) &gt;= 2</span>',
       '<b>Erreur SQL</b><span class="m">misuse of aggregate: COUNT()</span>', '<span class="sk">HAVING</span><span class="sx">trie les groupes</span><span class="sc ok" id="sc5c">COUNT(*) ✓</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> nb_clients</span>', '✓ 2 ateliers&nbsp;: Paris et Lyon']},
-  {id: 76, next: 34, titre: 'GROUP_CONCAT', page: 'group-concat.html', thumb: 'group-concat-thumb.jpg', duree: '2 min 46', notesAt: 150.2,
+  {id: 76, next: 18, titre: 'GROUP_CONCAT', page: 'group-concat.html', thumb: 'group-concat-thumb.jpg', duree: '2 min 46', notesAt: 150.2,
     notes: /notes:\{t:158\.5,y:1367,card:\[64,300,1016,1072\],to:\[940,255\]\}/, table: 'commandes',
     bubble: 'Avec <span class="ic">GROUP_CONCAT</span>, liste les valeurs de chaque groupe.',
     chapters: ['Situation', 'Le problème', 'GROUP_CONCAT en action', 'Séparateur et NULL', 'Le piège', 'Le résultat', 'À retenir'],
@@ -595,27 +600,6 @@ const COURSES = [
       '<span class="snote" id="sn4">une virgule sans espace</span>', '<span class="vc nul" id="vn4"><small>commande n°16</small><b>NULL</b>', '<span class="b">4, 1, 3, 5</span>',
       '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> statut <span class="kw">DESC</span></span>', '<span class="b">16, 15, 14, 13, 12</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> commandes</span>', '✓ 16 commandes, chacune sous son statut']},
-  {id: 34, next: 35, titre: 'Clé primaire', page: 'cle-primaire.html', thumb: 'cle-primaire-thumb.jpg', duree: '2 min 43', notesAt: 146.9,
-    notes: /notes:\{t:155\.6,y:1279,card:\[64,300,1016,984\],to:\[940,255\]\}/, table: 'prospects',
-    bubble: 'Avec <span class="ic">PRIMARY KEY</span>, donne à chaque ligne un numéro unique.',
-    chapters: ['Situation', 'Le problème', 'PRIMARY KEY en action', 'Unique et jamais vide', 'Le piège', 'Le résultat', 'À retenir'],
-    traps: ['<span>Salon bien-être · Lyon</span><span class="tb" id="tb1">table prospects</span>', '<span class="gift" id="gf1"><span class="emo">🎁</span>veut un échantillon</span>',
-      '<span class="nl">Un numéro par visiteur</span><span class="tag calc">à ajouter</span>', '<span class="kw">WHERE</span> <span class="glow" id="w2">prenom = <span class="str">\'Camille\'</span></span>;',
-      '<span class="mk q" id="mk2"><span class="emo">🎁</span>laquelle&nbsp;?</span>', '  id <span class="kw">INTEGER</span> <span class="glow" id="pk3"><span class="kw">PRIMARY KEY</span></span>,',
-      'const ECHANTILLON = 3;', '<b>Erreur SQL</b><span class="m">UNIQUE constraint failed: prospects.id</span>', '<span class="sw" id="sw4"><span class="a">?</span><span class="b">6</span></span>', '<span class="glow" id="pv4">(prenom, ville)</span>',
-      '  prenom <span class="kw">TEXT</span> <span class="glow" id="pk5"><span class="kw">PRIMARY KEY</span></span>,', '<b>Erreur SQL</b><span class="m">UNIQUE constraint failed: prospects.prenom</span>',
-      '<span class="kc">id</span><span class="kt">attribué une fois pour toutes</span>', '<span class="kw">WHERE</span> <span class="glow" id="w6">id = 3</span>;', '✓ La bonne Camille, sans hésiter']},
-  {id: 35, next: 18, titre: 'Clé étrangère', page: 'cle-etrangere.html', thumb: 'cle-etrangere-thumb.jpg', duree: '2 min 25', notesAt: 129.7,
-    notes: /notes:\{t:137\.6,y:1220,card:\[64,300,1016,925\],to:\[940,255\]\}/, table: 'avis',
-    bubble: 'Avec <span class="ic">FOREIGN KEY</span>, relie chaque ligne à une autre table.',
-    chapters: ['Situation', 'Le problème', 'FOREIGN KEY en action', 'Une valeur qui se répète', 'Le piège', 'Le résultat', 'À retenir'],
-    traps: ['<span>Site web · Avis des clients</span><span class="tb" id="tb1">table avis</span>', '<span class="nl">Le produit concerné</span><span class="tag calc">à relier</span>',
-      'const AVIS = [[1, 3, 5], [2, 1, 4], [3, 3, 4], [4, 6, 5]];', '<div class="qm" id="qm2">?</div>',
-      '<span class="glow" id="fk3"><span class="kw">FOREIGN KEY</span> (produit_id)</span>', '<span class="glow" id="rf3"><span class="kw">REFERENCES</span> produits(id)</span>',
-      '<span class="emo">🔗</span>produit_id&nbsp;: le 3 revient deux fois', '<span class="emo">🔑</span>id&nbsp;: un seul 3',
-      '<span class="kw">VALUES</span> (<span class="glow" id="v5">42</span>, 5);', '<b>Erreur SQL</b><span class="m">FOREIGN KEY constraint failed</span>',
-      '<span class="emo">❓</span>avis orphelin&nbsp;: aucun produit 42', '<span class="kw">WHERE</span> <span class="glow" id="w6">produit_id = 3</span>;',
-      '<div class="rv-h">Avis des clients · 2</div>', 'l’avis 1, noté 5 étoiles,<br>et l’avis 3, noté 4 étoiles.', '✓ Chaque avis sous le bon produit']},
   {id: 18, next: 20, titre: 'INNER JOIN', page: 'inner-join.html', thumb: 'inner-join-thumb.jpg', duree: '2 min 20', notesAt: 120.9,
     notes: /notes:\{t:132\.1,y:1365,card:\[64,300,1016,1070\],to:\[940,255\]\}/, table: 'commandes',
     bubble: 'Avec <span class="ic">INNER JOIN</span>, seules les lignes<br>qui ont une correspondance<br>dans l’autre table sont conservées.',
@@ -915,7 +899,7 @@ test('Les bases de données relationnelles : la feuille Excel, la table clients,
   const a = page.indexOf('const COLS = '), b = page.indexOf('const CHAPTERS = ');
   assert.ok(a > 0 && b > a, 'données de la page localisées');
   const ctx = vm.createContext({});
-  vm.runInContext(page.slice(a, b) + ';this.COLS = COLS; this.CLIENTS = CLIENTS; this.PRODUITS = PRODUITS; this.COMMANDES = COMMANDES; this.NOUVEL_EMAIL = NOUVEL_EMAIL;', ctx);
+  vm.runInContext(page.slice(a, b) + ';this.COLS = COLS; this.CLIENTS = CLIENTS; this.PRODUITS = PRODUITS; this.COMMANDES = COMMANDES; this.NOUVEL_EMAIL = NOUVEL_EMAIL; this.NOUVEAUX = NOUVEAUX; this.CLIENT_INCONNU = CLIENT_INCONNU;', ctx);
   const data = vm.createContext({});
   vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), data);
   const {createRequire} = await import('node:module');
@@ -934,6 +918,13 @@ test('Les bases de données relationnelles : la feuille Excel, la table clients,
   assert.equal(js(ctx.COMMANDES.map(c => c[0])), '[1,2,3,4,5,13]', 'la feuille montre les commandes 1 à 5, puis la 13');
   assert.equal(q(`SELECT COUNT(*) FROM clients WHERE email = '${ctx.NOUVEL_EMAIL}'`), '[[0]]', 'le nouvel e-mail est imaginaire : il n’est pas dans la base');
   assert.equal(q("SELECT id, nom, ville FROM clients WHERE prenom = 'Nathan' ORDER BY id"), '[[4,"Petit","Paris"],[10,"Dupont","Paris"]]', 'deux Nathan, tous deux à Paris');
+  /* Ce que la base vérifie : un numéro déjà pris est refusé, un client sans numéro reçoit le suivant, un client inconnu est refusé. */
+  const [[idPris, p1, n1], [, p2, n2]] = JSON.parse(JSON.stringify(ctx.NOUVEAUX));
+  assert.throws(() => db.run(`INSERT INTO clients (id, prenom, nom) VALUES (${idPris}, '${p1}', '${n1}')`), /UNIQUE constraint failed: clients\.id/, 'le numéro 4 est déjà pris');
+  db.run(`INSERT INTO clients (prenom, nom) VALUES ('${p2}', '${n2}')`);
+  assert.equal(q(`SELECT id FROM clients WHERE prenom = '${p2}'`), '[[11]]', 'sans numéro, le client reçoit le suivant : 11');
+  db.run('PRAGMA foreign_keys = ON;');
+  assert.throws(() => db.run(`INSERT INTO commandes (client_id, produit_id, quantite) VALUES (${ctx.CLIENT_INCONNU}, 1, 1)`), /FOREIGN KEY constraint failed/, 'aucun client 99 : la commande est refusée');
   db.close();
   assert.ok(!page.includes('fidelite'), 'la vidéo ne montre pas la table de l’exercice');
 });
