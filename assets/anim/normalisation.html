@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Normalisation en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:116px;top:446px;letter-spacing:-2px}
+#s0 .hilite{top:508px;height:42px}
+#s0 .sub{top:612px;font-size:62px}
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:38px;white-space:nowrap}
+.hid{opacity:0;visibility:hidden}
+
+/* Une couleur par sujet : le client, le produit, la commande */
+.k-cl{--c:#7C5CFF;--cs:#EEE9FF;--ci:#4B30CC}
+.k-pr{--c:#22A06B;--cs:#E7F7EE;--ci:#1B7A45}
+.k-co{--c:#E8892B;--cs:#FFF4E5;--ci:#9A5B00}
+
+/* ---------- 1 · Le tableau de bord ---------- */
+.board{left:64px;width:952px;padding:0 0 14px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar>span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center}
+.sk-h{display:flex;align-items:center;gap:12px;padding:22px 34px 8px;font-size:29px;font-weight:700;color:var(--ink-2)}
+.skr{height:52px;display:flex;align-items:center;gap:24px;padding:0 34px}
+.skr i{display:block;height:20px;border-radius:10px;background:#ECE8F8}
+.skr .b{height:28px;border-radius:9px;background:linear-gradient(90deg,#E3DCFA,#EFEBFC)}
+.gline{left:64px;width:952px;padding:20px 30px 24px}
+.gl-h{font-size:28px;font-weight:700;color:var(--ink-3)}
+.gl-r{margin-top:14px;display:flex;gap:12px}
+.gc{height:84px;padding:0 16px;border-radius:18px;background:var(--surface-2);display:flex;flex-direction:column;justify-content:center;font-size:27px;font-weight:700;color:var(--ink);white-space:nowrap}
+.gc small{font-size:19px;font-weight:700;color:var(--ink-3)}
+
+/* ---------- Tables (la grande table, puis les tables normalisées) ---------- */
+.mt{background:#fff;border:3px solid var(--line);border-radius:32px;box-shadow:0 8px 0 var(--lip);overflow:hidden;padding:0 0 6px}
+.mt .tt{height:68px;display:flex;align-items:center;gap:12px;padding:0 24px;font-size:29px;font-weight:700;color:var(--ink);white-space:nowrap}
+.mt .tt .emo{font-size:31px}
+.mt .tt.c{background:var(--cs);color:var(--ci)}
+.gr{display:grid;grid-template-columns:var(--g);align-items:center;padding:0 12px;font-family:var(--mono);white-space:nowrap}
+.gr>span{position:relative;z-index:1;padding:0 7px;border-radius:8px;overflow:hidden}
+.hd{height:46px;background:var(--surface-2);font-size:22px;font-weight:700;color:var(--ink-3)}
+.rw{position:relative;height:52px;font-size:26px;font-weight:600;color:var(--ink);box-shadow:inset 0 2px 0 var(--line-2)}
+.rw .hl{position:absolute;left:0;top:0;right:0;bottom:0;background:var(--cs,#EEE9FF);opacity:0}
+.nul{color:var(--ink-3);font-style:italic}
+.fc{margin-left:auto;height:46px;padding:0 16px;border-radius:999px;background:#FFF4E5;color:#9A5B00;font-size:24px;font-weight:700;display:flex;align-items:center}
+.ty{font-style:normal;border-radius:6px;box-shadow:inset 0 -4px 0 rgba(242,153,74,0)}
+.cv5{display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:38px;padding:0 10px;border-radius:10px;background:var(--cs);color:var(--ci);font-weight:800}
+
+/* ---------- 2 · Le graphique Power BI ---------- */
+.chr{left:64px;width:952px;padding:0 0 12px;overflow:hidden}
+.cr{position:relative;height:46px;display:grid;grid-template-columns:316px 1fr 56px;align-items:center;gap:14px;padding:0 26px;white-space:nowrap}
+.cr .cl{font-size:25px;font-weight:650;color:var(--ink-2)}
+.cr .cb{position:relative;height:26px}
+.cr .cb i{position:absolute;left:0;top:0;height:26px;border-radius:8px;background:#B9A8FF;transform-origin:0 50%}
+.cr .cv{font-family:var(--mono);font-size:25px;font-weight:700;color:var(--ink)}
+.cr .bg{position:absolute;left:10px;right:10px;top:3px;bottom:3px;border-radius:12px;background:#FFF4E5;opacity:0}
+.cr>*:not(.bg){position:relative;z-index:1}
+.cr.fb .cb i{background:#B9A8FF}
+.cr.tot{margin-top:8px;height:54px}
+.cr.tot .cl{color:#9A5B00;font-weight:800}
+.cr.tot .cb i{background:repeating-linear-gradient(90deg,#F2994A 0 14px,rgba(242,153,74,.25) 14px 22px);opacity:.9}
+.cr.tot .cv{color:#9A5B00}
+.ch-h{display:flex;align-items:center;gap:12px;padding:18px 26px 6px;font-size:25px;font-weight:700;color:var(--ink-3)}
+
+/* ---------- 3 · La normalisation : chaque colonne rejoint la table de ce qu’elle décrit ---------- */
+.qn{left:64px;width:952px;padding:22px 30px;display:flex;align-items:center;gap:24px}
+.qn .qb{flex:none;width:80px;height:80px;border-radius:24px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 6px 0 #4B30CC;color:#fff;font-family:var(--display);font-size:46px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.qn .tx{font-size:37px;line-height:1.25;font-weight:700;color:var(--ink)}
+.gb{left:64px;width:952px;padding:18px 26px 22px}
+.gb-h{font-size:28px;font-weight:700;color:var(--ink-3)}
+.gb-r{margin-top:14px;display:flex;gap:12px}
+.cpn{height:60px;padding:0 18px;border-radius:16px;background:var(--surface-2);border:3px solid var(--line);font-family:var(--mono);font-size:28px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;white-space:nowrap}
+.sc{width:298px;border-radius:30px;padding:0 0 12px}
+.sc .tt{height:68px;font-size:29px}
+.sr{position:relative;height:66px;margin:12px 14px 0;border-radius:16px;display:grid;align-items:center;justify-items:center;font-family:var(--mono);font-size:27px;font-weight:700;white-space:nowrap}
+.sr>*{grid-area:1/1}
+.sr.fk{overflow:hidden}
+.sr.key{background:var(--surface-2);color:var(--ink-2)}
+.sr .q{width:100%;height:100%;border-radius:16px;border:3px dashed #D8D1F2;color:#B4ACD8;display:flex;align-items:center;justify-content:center}
+.sr .v{width:100%;height:100%;border-radius:16px;background:var(--cs);color:var(--ci);display:flex;align-items:center;justify-content:center;gap:8px}
+.sr .v .emo{font-size:25px}
+.fl{height:60px;padding:0 18px;border-radius:16px;background:var(--cs);border:3px solid var(--c);font-family:var(--mono);font-size:28px;font-weight:700;color:var(--ci);display:flex;align-items:center;white-space:nowrap;box-shadow:0 12px 24px -12px rgba(40,20,120,.45)}
+.lk{left:0;top:0;width:1080px;height:1920px;overflow:visible;pointer-events:none}
+.lk path{fill:none;stroke-width:5;stroke-linecap:round}
+.lk circle{stroke:none}
+
+/* ---------- 4 · Une seule fois ---------- */
+.vs{left:64px;width:952px;padding:20px 26px 22px;display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.vs-h{font-size:25px;font-weight:700;color:var(--ink-3);white-space:nowrap}
+.vs-c{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.vs-c .w{height:48px;padding:0 14px;border-radius:12px;background:var(--surface-2);font-family:var(--mono);font-size:24px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;white-space:nowrap}
+.vs-c .w.x{background:#FFF4E5;color:#9A5B00}
+.vs-c .st{position:relative}
+.vs-c .st::after{content:"";position:absolute;left:10px;right:10px;top:50%;height:4px;margin-top:-2px;border-radius:2px;background:#E5484D;transform:scaleX(var(--s,0));transform-origin:0 50%}
+.vs-c .n1{height:62px;padding:0 20px;border-radius:16px;background:#E7F7EE;color:#1B7A45;font-family:var(--mono);font-size:30px;font-weight:800;display:flex;align-items:center;white-space:nowrap}
+.vs-c .ok{font-size:25px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.cpill{left:0;width:1080px;display:flex;justify-content:center}
+.cpill>span{height:76px;padding:0 30px;border-radius:24px;background:var(--code-bg);box-shadow:0 7px 0 #110E27;font-family:var(--mono);font-size:31px;font-weight:600;color:var(--code-ink);display:flex;align-items:center;gap:14px;white-space:pre}
+.cpill .emo{font-size:30px}
+
+/* ---------- 5 · Le piège : une table pour chaque ville ? ---------- */
+.gh5{left:64px;width:952px;padding:22px 30px 24px;border-radius:36px;border:3px dashed #CFC4F5;background:rgba(255,255,255,.7)}
+.gh5-h{display:flex;align-items:center;gap:12px;font-size:32px;font-weight:700;color:var(--ink);white-space:nowrap}
+.gh5-s{margin-top:16px;display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:27px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.gh5-s .c{height:50px;padding:0 14px;border-radius:12px;background:var(--surface-2);display:flex;align-items:center}
+.gh5-s .c.rg{background:#E6F1FF;color:#1F5FAD}
+.lb5{margin-top:12px;font-size:26px;font-weight:700;color:#1F5FAD;white-space:nowrap}
+.vd5{margin-top:18px;height:58px;padding:0 20px;border-radius:999px;background:#FDEBEC;color:#C2323A;font-size:27px;font-weight:700;display:inline-flex;align-items:center;gap:10px;white-space:nowrap}
+.pill{left:0;width:1080px;display:flex;justify-content:center}
+.pill>span{height:66px;padding:0 26px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:30px;font-weight:700;display:flex;align-items:center;gap:12px;white-space:nowrap}
+
+/* ---------- 6 · Le résultat : une barre par produit ---------- */
+.code.sm .body{font-size:32px;line-height:50px;padding:24px 36px}
+.code.sm .ln{height:50px}
+.code.sm .caret i{top:-37px;height:42px}
+.rgV{display:grid;grid-template-columns:330px 1fr;padding:0 26px;align-items:center}
+.tr.tv{height:54px;font-size:30px}
+.tr.tv .vb{display:flex;align-items:center;gap:16px}
+.tr.tv .vb i{display:block;height:28px;border-radius:8px;background:#B9A8FF;transform-origin:0 50%}
+.tr.tv.fb .hl{background:#E7F7EE;box-shadow:inset 8px 0 0 #22A06B}
+
+/* ---------- 7 · À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:22px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Modéliser</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>N</span><span>O</span><span>R</span><span>M</span><span>A</span><span>L</span><span>I</span><span>S</span><span>A</span><span>T</span><span>I</span><span>O</span><span>N</span></div>
+    <div class="abs sub">Répartir les données</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Normaliser, c’est écrire chaque information<br>une seule fois, dans la bonne table.</div>
+  </section>
+
+  <!-- 1 · Situation : le tableau de bord Power BI, alimenté par une grande table -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="ab1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Power BI · Ventes par produit</span><span class="tb hid" id="tb1">grande table</span></div>
+      <div class="sk-h"><span class="emo">📦</span><span>Unités vendues par produit</span></div>
+      <div class="skr"><i style="width:230px"></i><i class="b" style="width:470px"></i></div>
+      <div class="skr"><i style="width:190px"></i><i class="b" style="width:330px"></i></div>
+      <div class="skr"><i style="width:250px"></i><i class="b" style="width:250px"></i></div>
+      <div class="skr"><i style="width:170px"></i><i class="b" style="width:150px"></i></div>
+    </div>
+    <div class="abs card gline" id="gl1">
+      <div class="gl-h">Une ligne de la grande table · une commande</div>
+      <div class="gl-r"><span class="gc"><small>client</small>Sophie Martin</span><span class="gc"><small>ville</small>Paris</span><span class="gc"><small>produit</small>Fibre Prébiotique</span><span class="gc"><small>prix</small>29.9</span><span class="gc"><small>quantité</small>2</span></div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">🏷️</span><span class="nl">Le nom du produit</span><span class="tag">grande table</span></div>
+      <div class="need-row"><span class="emo">🔢</span><span class="nl">La quantité commandée</span><span class="tag">grande table</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : le nom retapé à chaque commande, la Fibre Prébiotique coupée en trois barres -->
+  <section class="scene" id="s2">
+    <div class="abs mt" id="gt2" style="left:64px;width:952px;top:300px;--g:234px 150px 1fr 84px 124px">
+      <div class="tt"><span class="emo">🧾</span><span>La grande table</span><span class="fc hid" id="fc2">3 façons d’écrire</span></div>
+      <div class="gr hd"><span>client</span><span>ville</span><span>produit</span><span>prix</span><span>quantite</span></div>
+    </div>
+    <div class="abs card chr" id="ch2">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Power BI · Ventes par produit</span></div>
+      <div class="ch-h"><span class="emo">📦</span><span>Unités vendues</span></div>
+    </div>
+  </section>
+
+  <!-- 3 · La normalisation : chaque colonne rejoint la table de ce qu’elle décrit -->
+  <section class="scene" id="s3">
+    <div class="abs card qn" id="q3" style="top:300px"><span class="qb">?</span><span class="tx">Qu’est-ce que cette information décrit&nbsp;?</span></div>
+    <div class="abs card gb" id="gb3">
+      <div class="gb-h">La grande table</div>
+      <div class="gb-r"><span class="cpn" id="cp-prenom">prenom</span><span class="cpn" id="cp-ville">ville</span><span class="cpn" id="cp-produit">produit</span><span class="cpn" id="cp-prix">prix</span><span class="cpn" id="cp-quantite">quantite</span></div>
+    </div>
+    <div class="abs mt sc k-cl" id="tc3" style="left:64px"><div class="tt c"><span class="emo">👤</span><span>clients</span></div>
+      <div class="sr key">🔑 id</div><div class="sr" id="sl-prenom"><span class="q">?</span><span class="v hid">prenom</span></div><div class="sr" id="sl-ville"><span class="q">?</span><span class="v hid">ville</span></div></div>
+    <div class="abs mt sc k-co" id="tm3" style="left:391px"><div class="tt c"><span class="emo">🧾</span><span>commandes</span></div>
+      <div class="sr key">🔑 id</div><div class="sr fk" id="sl-client_id"><span class="v"><span class="emo">🔗</span>client_id</span></div><div class="sr fk" id="sl-produit_id"><span class="v"><span class="emo">🔗</span>produit_id</span></div><div class="sr" id="sl-quantite"><span class="q">?</span><span class="v hid">quantite</span></div></div>
+    <div class="abs mt sc k-pr" id="tp3" style="left:718px"><div class="tt c"><span class="emo">🏷️</span><span>produits</span></div>
+      <div class="sr key">🔑 id</div><div class="sr" id="sl-produit"><span class="q">?</span><span class="v hid">nom</span></div><div class="sr" id="sl-prix"><span class="q">?</span><span class="v hid">prix</span></div></div>
+    <svg class="abs lk hid" id="lk3" viewBox="0 0 1080 1920"></svg>
+    <span class="abs fl fly k-cl hid" id="fl-prenom">prenom</span><span class="abs fl fly k-cl hid" id="fl-ville">ville</span>
+    <span class="abs fl fly k-pr hid" id="fl-produit">produit</span><span class="abs fl fly k-pr hid" id="fl-prix">prix</span>
+    <span class="abs fl fly k-co hid" id="fl-quantite">quantite</span>
+  </section>
+
+  <!-- 4 · Une seule fois : le nom dans la table produits, le numéro dans les commandes -->
+  <section class="scene" id="s4">
+    <div class="abs mt k-co" id="tm4" style="left:64px;width:400px;top:300px;--g:60px 1fr 140px">
+      <div class="tt c"><span class="emo">🧾</span><span>Table commandes</span></div>
+      <div class="gr hd"><span>id</span><span>produit_id</span><span>quantite</span></div>
+    </div>
+    <div class="abs mt k-pr" id="tp4" style="left:536px;width:480px;top:300px;--g:48px 1fr 92px">
+      <div class="tt c"><span class="emo">🏷️</span><span>Table produits</span></div>
+      <div class="gr hd"><span>id</span><span>nom</span><span>prix</span></div>
+    </div>
+    <svg class="abs lk hid" id="lk4" viewBox="0 0 1080 1920"></svg>
+    <div class="abs card vs" id="vs4">
+      <div class="vs-c" id="vb4"><div class="vs-h">Avant · le nom retapé</div><span class="w">Fibre Prébiotique</span><span class="w x st">Fibre prebiotique</span><span class="w x st">Fibres Prébiotiques</span></div>
+      <div class="vs-c" id="va4"><div class="vs-h">Maintenant · son numéro</div><span class="n1">produit_id = 1</span><span class="ok">✓ Une seule façon de l’écrire</span></div>
+    </div>
+    <div class="abs cpill" id="cp4"><span><span class="emo">🔗</span>commandes.produit_id = produits.id</span></div>
+  </section>
+
+  <!-- 5 · Le piège : une table pour chaque ville ? -->
+  <section class="scene" id="s5">
+    <div class="abs mt k-cl" id="tc5" style="left:64px;width:952px;top:300px;--g:220px 1fr 260px">
+      <div class="tt c"><span class="emo">👤</span><span>Table clients</span></div>
+      <div class="gr hd"><span>prenom</span><span>nom</span><span>ville</span></div>
+    </div>
+    <div class="abs gh5" id="vl5">
+      <div class="gh5-h"><span class="emo">🏙️</span><span>Une table villes&nbsp;?</span></div>
+      <div class="gh5-s"><span>villes</span><span class="c">id</span><span class="c">nom</span><span class="c rg" id="rg5">région</span></div>
+      <div class="lb5" id="lb5">👉 Seulement si la ville a ses propres informations, comme sa région</div>
+      <div class="vd5" id="vd5"><span class="emo">✕</span>Ici, une jointure de plus pour un simple nom</div>
+    </div>
+    <div class="abs pill" id="pl5"><span><span class="emo">⚖️</span>Normaliser n’est pas découper à l’infini</span></div>
+  </section>
+
+  <!-- 6 · Le résultat : la requête complète, puis une barre par produit -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> produits.nom,<span class="caret"><i></i></span></span><span class="ln" id="s6l2">       <span class="kw">SUM</span>(commandes.quantite) <span class="kw">AS</span> unites<span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="s6l4"><span class="glow" id="j6"><span class="kw">JOIN</span> produits</span><span class="caret"><i></i></span></span><span class="ln" id="s6l5">  <span class="kw">ON</span> commandes.produit_id = produits.id<span class="caret"><i></i></span></span><span class="ln" id="s6l6"><span class="glow" id="g6"><span class="kw">GROUP BY</span> produits.nom</span><span class="caret"><i></i></span></span><span class="ln" id="s6l7"><span class="kw">ORDER BY</span> produits.nom;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">8 lignes</span></span></div>
+      <div class="rgV th"><div>nom</div><div>unites</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ Une seule barre par produit</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🗂️</div><div class="rtxt">Chaque information est rangée <b>dans la table de ce qu’elle décrit</b>.<span class="rs">Elle n’est écrite qu’une fois&nbsp;: plus de copies qui se contredisent.</span></div></div>
+      <div class="rrow"><div class="rico emo">🔗</div><div class="rtxt">Les tables se relient par des <b>identifiants</b>.<span class="rs">Une jointure les rassemble au moment de lire&nbsp;:</span><span class="ic blk">commandes.produit_id = produits.id</span></div></div>
+      <div class="rrow"><div class="rico emo">⚖️</div><div class="rtxt">Normaliser n’est pas <b>découper à l’infini</b>.<span class="rs">Une table, seulement pour un sujet qui a ses propres informations.</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 183.3;
+
+/* La grande table : les quatre commandes de Fibre Prébiotique, avec le nom retapé à chaque fois
+   ([commande, client, ville, produit tel qu’il est écrit, prix, quantité] ; les fautes sont marquées). */
+const FIBRE = [[1, 'Sophie Martin', 'Paris', 'Fibre Prébiotique', 29.9, 2], [5, 'Nathan Petit', 'Paris', 'Fibre <i class="ty">p</i>r<i class="ty">e</i>biotique', 29.9, 1],
+  [8, 'Léa Simon', 'Paris', 'Fibre Prébiotique', 29.9, 4], [15, 'Chloé Moreau', 'Bordeaux', 'Fibre<i class="ty">s</i> Prébiotique<i class="ty">s</i>', 29.9, 3]];
+/* Le graphique lu dans la grande table (quantités additionnées par nom, comme GROUP BY) : la Fibre Prébiotique coupée en trois. */
+const COUPE = [['Collagène Marin', 4], ['Fibre Prébiotique', 6], ['Fibre prebiotique', 1], ['Fibres Prébiotiques', 3], ['Magnésium', 3],
+  ['Oméga 3', 3], ['Protéine Végétale', 2], ['Shaker Inox', 1], ['Tisane Détox', 2], ['Vitamine D', 3]];
+/* Les tables normalisées : produits (id, nom, prix) et les quatre commandes de Fibre Prébiotique (id, produit_id, quantite). */
+const PRODUITS = [[1, 'Fibre Prébiotique', 29.9], [2, 'Collagène Marin', 39.9], [3, 'Magnésium', 19.9], [4, 'Vitamine D', 14.9],
+  [5, 'Tisane Détox', 12.5], [6, 'Protéine Végétale', 34.9], [7, 'Oméga 3', 24.9], [8, 'Shaker Inox', 15]];
+const COMMANDES_FIBRE = [[1, 1, 2], [5, 1, 1], [8, 1, 4], [15, 1, 3]];
+const CLIENTS = [['Sophie', 'Martin', 'Paris'], ['Lucas', 'Bernard', 'Lyon'], ['Emma', 'Dubois', 'Marseille'], ['Nathan', 'Petit', 'Paris'], ['Chloé', 'Moreau', 'Bordeaux'],
+  ['Hugo', 'Laurent', 'Lyon'], ['Léa', 'Simon', 'Paris'], ['Gabriel', 'Michel', 'Toulouse'], ['Inès', 'Lefebvre', 'Nantes'], ['Nathan', 'Dupont', 'Paris']];
+/* Le résultat de la requête complète (JOIN produits, GROUP BY produits.nom) : une ligne, et une barre, par produit. */
+const VENTES = [['Collagène Marin', 4], ['Fibre Prébiotique', 10], ['Magnésium', 3], ['Oméga 3', 3], ['Protéine Végétale', 2], ['Shaker Inox', 1], ['Tisane Détox', 2], ['Vitamine D', 3]];
+const UNIT = 48;   // px par unité vendue, dans les deux graphiques
+
+const CHAPTERS = [
+  {n:1, label:'Situation',         a:5.0,   b:30.3},
+  {n:2, label:'Le problème',       a:30.3,  b:60.6},
+  {n:3, label:'La normalisation',  a:60.6,  b:91.4},
+  {n:4, label:'Une seule fois',    a:91.4,  b:116.9},
+  {n:5, label:'Le piège',          a:116.9, b:144.5},
+  {n:6, label:'Le résultat',       a:144.5, b:169.7},
+  {n:7, label:'À retenir',         a:169.7, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 11.3,    "Un <b>tableau de bord Power BI</b> doit suivre les ventes de chaque produit."],
+  [11.4, 17.4,   "Pour l’alimenter, toutes les informations sont regroupées dans une <b>grande table</b>."],
+  [17.5, 24.1,   "Chaque ligne décrit une commande : le client, sa ville, le produit commandé, son prix et la quantité."],
+  [24.2, 29.8,   "Pour chaque produit, il faut récupérer son <b>nom</b> et la <b>quantité commandée</b>."],
+  [30.6, 36.2,   "Dans la grande table, le nom du produit est <b>retapé à chaque commande</b>."],
+  [36.3, 43.3,   "Pour la Fibre Prébiotique, il est écrit de trois façons : un accent oublié, un « s » en trop…"],
+  [43.4, 50.7,   "Le tableau de bord regroupe les lignes par nom : la Fibre Prébiotique est <b>coupée en trois barres</b>."],
+  [50.8, 55.7,   "Son vrai total, 6 + 1 + 3 = <b>10 unités</b>, n’apparaît nulle part."],
+  [55.8, 60.1,   "Il faut donc écrire chaque information <b>une seule fois</b>."],
+  [60.9, 67.1,   "Normaliser revient à ranger chaque information dans la table de <b>ce qu’elle décrit</b>."],
+  [67.2, 73.0,   "Le prénom et la ville décrivent un client : ils vont dans la table <code>clients</code>."],
+  [73.1, 79.4,   "Le nom et le prix décrivent un produit : ils vont dans la table <code>produits</code>."],
+  [79.5, 84.8,   "La quantité décrit la commande : elle reste dans la table <code>commandes</code>."],
+  [84.9, 90.9,   "Chaque commande garde deux numéros pour se relier : <code>client_id</code> et <code>produit_id</code>."],
+  [91.7, 98.1,   "Le nom « Fibre Prébiotique » n’est plus écrit qu’une fois, dans la <b>table produits</b>."],
+  [98.2, 103.6,  "Ses quatre commandes ne portent que son numéro : <code>produit_id</code> vaut 1."],
+  [103.7, 109.7, "Un numéro s’écrit d’une seule façon : plus d’accent oublié, ni de « s » en trop."],
+  [109.8, 116.4, "Pour lire le nom, une jointure relie les deux tables :<br><code>commandes.produit_id = produits.id</code>"],
+  [117.2, 124.0, "Attention : Paris est écrit quatre fois dans la table clients. Faut-il créer une table <code>villes</code> ?"],
+  [124.1, 130.0, "Non : chaque Paris est la ville d’un client différent, écrite une seule fois pour lui."],
+  [130.1, 137.0, "Une table villes ne sert que si la ville porte ses propres informations, comme sa région ou son département."],
+  [137.1, 144.0, "Sinon, chaque lecture paierait une jointure de plus : normaliser n’est pas <b>découper à l’infini</b>."],
+  [144.8, 152.3, "Le tableau de bord lit maintenant la table commandes, en la reliant à la table produits."],
+  [152.4, 159.1, "<code>GROUP BY</code> additionne les quantités de chaque produit : <b>8 lignes</b>, une par produit."],
+  [159.2, 164.1, "La Fibre Prébiotique retrouve son vrai total : <b>10 unités</b>."],
+  [164.2, 169.2, "Le tableau de bord est juste : <b>une seule barre</b> par produit."],
+  [170.0, 174.8, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [174.9, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [174.9, 999, "Chaque information est écrite <b>une seule fois</b>, dans la table de ce qu’elle décrit."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+const cell = v => v === null ? '<span class="nul">NULL</span>' : v;
+const bar = n => `<i style="width:${n * UNIT}px"></i>`;
+function dom(){
+  /* 2 · La grande table (le nom du produit, tapé à chaque commande), puis le graphique coupé en trois */
+  $('#gt2').insertAdjacentHTML('beforeend', FIBRE.map(([, c, v, p, px, q]) =>
+    `<div class="gr rw"><i class="hl"></i><span>${c}</span><span>${v}</span><span class="pd">${p}</span><span>${px}</span><span>${q}</span></div>`).join(''));
+  $('#ch2').insertAdjacentHTML('beforeend', COUPE.map(([p, n], k) =>
+    `<div class="cr${k >= 1 && k <= 3 ? ' fb' : ''}"><i class="bg"></i><span class="cl">${p}</span><span class="cb">${bar(n)}</span><span class="cv">${n}</span></div>`).join('') +
+    `<div class="cr tot" id="tot2"><i class="bg"></i><span class="cl">🧮 Vrai total</span><span class="cb">${bar(10)}</span><span class="cv">10</span></div>`);
+  /* 4 · Les quatre commandes de Fibre Prébiotique, et la table produits */
+  $('#tm4').insertAdjacentHTML('beforeend', COMMANDES_FIBRE.map(([id, p, q]) =>
+    `<div class="gr rw"><i class="hl"></i><span>${id}</span><span><span class="cv5">${p}</span></span><span>${q}</span></div>`).join(''));
+  $('#tp4').insertAdjacentHTML('beforeend', PRODUITS.map(([id, n, px]) =>
+    `<div class="gr rw"><i class="hl"></i><span>${id}</span><span>${n}</span><span>${px}</span></div>`).join(''));
+  /* 5 · La table clients */
+  $('#tc5').insertAdjacentHTML('beforeend', CLIENTS.map(([p, n, v]) =>
+    `<div class="gr rw"><i class="hl"></i><span>${p}</span><span>${n}</span><span class="vl">${v}</span></div>`).join(''));
+  /* 6 · Le résultat : une ligne par produit, avec la barre que le tableau de bord en tirera */
+  $('#rows6').innerHTML = VENTES.map(([p, n]) =>
+    `<div class="rgV tr tv${p === 'Fibre Prébiotique' ? ' fb' : ''}"><span class="hl"></span><div>${p}</div><div class="vb">${bar(n)}<span>${n}</span></div></div>`).join('');
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.45)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+/* Une carte arrive en tournant légèrement, puis ses lignes une à une. */
+function boardIn(id, t, sel, step = 0.16){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const rows = $$(`${id} ${sel}`);
+  gsap.set(rows, {autoAlpha: 0, x: -34});
+  tl.to(rows, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out', stagger: step}, t + 0.65);
+  rows.forEach((_, i) => cue(t + 0.65 + i * step, 'pop', 0.6, i % 5));
+  return rows;
+}
+/* Des barres qui poussent depuis la gauche. */
+function barsIn(bars, t, step = 0.07){
+  gsap.set(bars, {scaleX: 0});
+  tl.to(bars, {scaleX: 1, duration: 0.5, ease: 'power3.out', stagger: step}, t);
+  bars.forEach((_, i) => { if (i % 2 === 0) cue(t + i * step, 'tick', 0.4, i % 5); });
+}
+/* Un lien entre deux points de la scène (courbe), mesuré avant toute animation. */
+const curve = (x1, y1, x2, y2, c) => { const d = (x2 - x1) / 2;
+  return `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} C${(x1 + d).toFixed(1)} ${y1.toFixed(1)} ${(x2 - d).toFixed(1)} ${y2.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}" stroke="${c}"/>` +
+    `<circle cx="${x1.toFixed(1)}" cy="${y1.toFixed(1)}" r="7" fill="${c}"/><circle cx="${x2.toFixed(1)}" cy="${y2.toFixed(1)}" r="7" fill="${c}"/>`; };
+function linksIn(sel, t, step = 0.18){
+  tl.set(sel, {autoAlpha: 1}, t);
+  $$(sel + ' path').forEach((p, k) => {
+    const L = p.getTotalLength();
+    gsap.set(p, {strokeDasharray: L, strokeDashoffset: L});
+    tl.to(p, {strokeDashoffset: 0, duration: 0.45, ease: 'power2.inOut'}, t + k * step);
+    cue(t + k * step, 'tick', 0.5, k % 5);
+  });
+  const d = $$(sel + ' circle');
+  gsap.set(d, {autoAlpha: 0});
+  tl.to(d, {autoAlpha: 1, duration: 0.2, stagger: 0.05}, t + 0.3);
+}
+
+/* 3 · Une colonne de la grande table s’envole jusqu’à sa place dans la table qu’elle décrit. */
+const FLY = {};
+function measureFlights(){
+  ['prenom', 'ville', 'produit', 'prix', 'quantite'].forEach(k => {
+    const a = rel($('#cp-' + k)), b = rel($('#sl-' + k)), f = $('#fl-' + k);
+    f.style.left = a.x + 'px'; f.style.top = a.y + 'px';
+    FLY[k] = {dx: b.x + (b.w - f.offsetWidth) / 2 - a.x, dy: b.y + (b.h - f.offsetHeight) / 2 - a.y};
+  });
+}
+function fly(k, t){
+  const f = '#fl-' + k, {dx, dy} = FLY[k];
+  tl.set(f, {autoAlpha: 1}, t);
+  tl.to('#cp-' + k, {opacity: 0.3, duration: 0.2}, t);
+  tl.to(f, {x: dx * 0.5, y: dy * 0.5 - 60, rotation: -5, duration: 0.3, ease: 'power1.out'}, t);
+  tl.to(f, {x: dx, y: dy, rotation: 0, duration: 0.3, ease: 'power2.in'}, t + 0.3);
+  cue(t, 'whoosh', 0.45);
+  tl.set(f, {autoAlpha: 0}, t + 0.62);
+  tl.set('#sl-' + k + ' .q', {autoAlpha: 0}, t + 0.6);
+  tl.fromTo('#sl-' + k + ' .v', {autoAlpha: 0, scale: 1.25}, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.4)', immediateRender: false}, t + 0.6);
+  cue(t + 0.6, 'pop', 0.65, 3);
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.4, 2.1);   // le temps de lire la bulle de la mascotte (après le saut des 13 lettres du titre)
+
+  /* Mise en page, puis mesures (avant toute animation) */
+  stackBelow('#gl1', '#ab1', 0, 30);
+  stackBelow('#s1 .need', '#gl1', 0, 30);   // la liste se cale sous la ligne de la grande table, sans la toucher
+  stackBelow('#ch2', '#gt2', 0, 30);
+  stackBelow('#gb3', '#q3', 0, 28);
+  ['#tc3', '#tm3', '#tp3'].forEach(s => stackBelow(s, '#gb3', 0, 34));
+  /* Les deux numéros de la commande, reliés à l’id du client et à l’id du produit (mesurés une fois les deux lignes ouvertes) */
+  const r3 = s => rel($(s));
+  const ci = r3('#tc3 .sr.key'), pi = r3('#tp3 .sr.key'), cc = r3('#sl-client_id'), pc = r3('#sl-produit_id');
+  $('#lk3').innerHTML = curve(cc.x, cc.y + cc.h / 2, ci.x + ci.w, ci.y + ci.h / 2, '#7C5CFF') + curve(pc.x + pc.w, pc.y + pc.h / 2, pi.x, pi.y + pi.h / 2, '#22A06B');
+  /* … puis refermées : la quantité vole d’abord jusqu’à sa place, juste sous l’id */
+  gsap.set('#tm3 .sr.fk', {height: 0, marginTop: 0, autoAlpha: 0});
+  measureFlights();
+  /* 4 · Chaque commande renvoie à la ligne 1 de la table produits */
+  stackBelow('#vs4', '#tp4', 0, 30);
+  stackBelow('#cp4', '#vs4', 0, 30);
+  const m4 = $$('#tm4 .rw').map(r => rel(r)), p1 = rel($$('#tp4 .rw')[0]);
+  $('#lk4').innerHTML = m4.map(r => curve(r.x + r.w + 3, r.y + r.h / 2, p1.x - 3, p1.y + p1.h / 2, '#22A06B')).join('');
+  stackBelow('#vl5', '#tc5', 0, 30);
+  stackBelow('#pl5', '#vl5', 0, 30);
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  boardIn('#ab1', 5.15, '.sk-h, .skr', 0.14);
+  // Une seule grande table
+  show('#tb1', 12.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(12.4, 'pop', 0.7, 3);
+  bump('#tb1', 13.4, 1.1, 3);
+  // Une ligne par commande : le client, sa ville, le produit, son prix, la quantité
+  show('#gl1', 17.7, {y: 50});
+  cue(17.7, 'whoosh', 0.6);
+  const gc = $$('#gl1 .gc');
+  gsap.set(gc, {autoAlpha: 0, y: 20, scale: 0.85});
+  [19.0, 19.7, 20.4, 21.4, 22.0].forEach((t, i) => { tl.to(gc[i], {autoAlpha: 1, y: 0, scale: 1, duration: 0.35, ease: 'back.out(2)'}, t); cue(t, 'pop', 0.6, i); });
+  // Le nom du produit et la quantité commandée
+  show('#s1 .need', 24.5, {y: 60});
+  cue(24.5, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  [25.4, 26.9].forEach((t, i) => { tl.to(needRows[i], {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, t); cue(t, 'pop', 0.7, i * 2); });
+  pulse([gc[2], gc[4]], 27.8, 3, 'rgba(201,188,255,.6)');
+  hide(['#ab1', '#gl1', '#s1 .need'], 29.8);
+  sceneOff('#s1', 30.3);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 30.3);
+  show('#gt2', 30.35, {y: 50});
+  cue(30.35, 'whoosh', 0.7);
+  const r2 = $$('#gt2 .rw');
+  rowsIn(r2, 30.9, 0.12);
+  // Le nom du produit, retapé à chaque commande
+  const pd = $$('#gt2 .pd');
+  te = 32.4;
+  pd.forEach(c => { te = typeChars(splitChars(c), te, 34) + 0.15; });
+  // Trois façons : un accent oublié, un « s » en trop
+  show('#fc2', 37.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(37.6, 'pop', 0.7, 2);
+  const ty = $$('#gt2 .ty');
+  [[ty.slice(0, 2), 39.4], [ty.slice(2), 41.4]].forEach(([els, t], k) => {
+    tl.to(els, {backgroundColor: 'rgba(242,153,74,.35)', boxShadow: 'inset 0 -4px 0 rgba(242,153,74,1)', duration: 0.3, stagger: 0.15}, t);
+    tl.to(r2[k ? 3 : 1].querySelector('.hl'), {opacity: 1, duration: 0.3}, t);
+    gsap.set(r2[k ? 3 : 1], {'--cs': '#FFF4E5'});
+    cue(t, 'miss', 0.55);
+  });
+  // Le graphique : la Fibre Prébiotique coupée en trois barres
+  show('#ch2', 43.7, {y: 50});
+  cue(43.7, 'whoosh', 0.7);
+  const cr = $$('#ch2 .cr:not(.tot)');
+  rowsIn(cr, 44.2, 0.06);
+  barsIn($$('#ch2 .cr:not(.tot) .cb i'), 44.6, 0.06);
+  tl.to($$('#ch2 .cr.fb .bg'), {opacity: 1, duration: 0.3, stagger: 0.2}, 47.4);
+  tl.to($$('#ch2 .cr.fb .cb i'), {backgroundColor: '#F2994A', duration: 0.3, stagger: 0.2}, 47.4);
+  cue(47.4, 'false', 0.55);
+  bump($$('#ch2 .cr.fb .cv'), 48.6, 1.3, 1);
+  // Son vrai total, 6 + 1 + 3 = 10, n’apparaît nulle part
+  gsap.set('#tot2', {autoAlpha: 0});
+  tl.to('#tot2', {autoAlpha: 1, duration: 0.35}, 52.0);
+  barsIn($$('#tot2 .cb i'), 52.2);
+  cue(52.0, 'pop', 0.7, 4);
+  bump('#tot2 .cv', 53.4, 1.25, 1);
+  // Écrire chaque information une seule fois
+  pulse(pd, 57.0, 3, 'rgba(201,188,255,.55)');
+  cue(57.0, 'tick', 0.5, 2);
+  hide(['#gt2', '#ch2'], 60.1);
+  sceneOff('#s2', 60.6);
+
+  /* ===== 3 · La normalisation ===== */
+  sceneOn('#s3', 60.6);
+  show('#q3', 60.65, {y: 50});
+  cue(60.65, 'whoosh', 0.6);
+  bump('#q3 .qb', 61.8, 1.15, 1);
+  cue(61.8, 'pop', 0.7, 1);
+  show('#gb3', 62.6, {y: 40});
+  cue(62.6, 'whoosh', 0.5);
+  const chips = $$('#gb3 .cpn');
+  gsap.set(chips, {autoAlpha: 0, y: 16});
+  tl.to(chips, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'back.out(2)', stagger: 0.1}, 62.9);
+  chips.forEach((_, i) => cue(62.9 + i * 0.1, 'tick', 0.45, i));
+  ['#tc3', '#tm3', '#tp3'].forEach((s, i) => { show(s, 64.4 + i * 0.25, {y: 60}, 0.55, 'back.out(1.5)'); cue(64.4 + i * 0.25, 'pop', 0.6, i * 2); });
+  // Le client : prenom et ville
+  fly('prenom', 68.6);
+  fly('ville', 69.6);
+  // Le produit : son nom et son prix
+  fly('produit', 74.9);
+  fly('prix', 75.9);
+  // La commande : la quantité
+  fly('quantite', 81.0);
+  // Deux numéros pour se relier
+  [['client_id', 86.6], ['produit_id', 87.3]].forEach(([k, t]) => {
+    tl.to('#sl-' + k, {height: 66, marginTop: 12, autoAlpha: 1, duration: 0.45, ease: 'back.out(1.6)'}, t);
+    cue(t, 'pop', 0.7, 4);
+  });
+  linksIn('#lk3', 87.9, 0.3);
+  hide(['#q3', '#gb3', '#tc3', '#tm3', '#tp3', '#lk3'], 90.9);
+  sceneOff('#s3', 91.4);
+
+  /* ===== 4 · Une seule fois ===== */
+  sceneOn('#s4', 91.4);
+  show('#tm4', 91.45, {y: 0, x: -60}, 0.55, 'power3.out');
+  show('#tp4', 91.65, {y: 0, x: 60}, 0.55, 'power3.out');
+  cue(91.45, 'whoosh', 0.6);
+  rowsIn($$('#tp4 .rw'), 92.0, 0.06);
+  rowsIn($$('#tm4 .rw'), 92.3, 0.1);
+  // « Fibre Prébiotique » : écrit une seule fois
+  tl.to($$('#tp4 .rw')[0].querySelector('.hl'), {opacity: 1, duration: 0.3}, 94.6);
+  cue(94.6, 'pop', 0.7, 3);
+  // Ses quatre commandes : produit_id vaut 1
+  bump($$('#tm4 .cv5'), 99.8, 1.25, 1);
+  cue(99.8, 'tick', 0.55, 2);
+  linksIn('#lk4', 100.5, 0.2);
+  // Un numéro s’écrit d’une seule façon
+  show('#vs4', 104.2, {y: 40});
+  cue(104.2, 'whoosh', 0.6);
+  const vw = $$('#vb4 .w, #vb4 .vs-h');
+  gsap.set(vw, {autoAlpha: 0, x: -24});
+  tl.to(vw, {autoAlpha: 1, x: 0, duration: 0.3, ease: 'power3.out', stagger: 0.12}, 104.6);
+  tl.to($$('#vb4 .st'), {'--s': 1, duration: 0.35, ease: 'power2.out', stagger: 0.25}, 106.0);
+  cue(106.0, 'miss', 0.5);
+  const va = $$('#va4 > *');
+  gsap.set(va, {autoAlpha: 0, y: 14});
+  tl.to(va, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'back.out(2)', stagger: 0.25}, 107.0);
+  cue(107.0, 'true', 0.55);
+  // La jointure relie les deux tables
+  show('#cp4', 111.4, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(111.4, 'pop', 0.7, 2);
+  tl.to('#lk4 path', {strokeWidth: 9, duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 112.6);
+  hide(['#tm4', '#tp4', '#lk4', '#vs4', '#cp4'], 116.4);
+  sceneOff('#s4', 116.9);
+
+  /* ===== 5 · Le piège ===== */
+  sceneOn('#s5', 116.9);
+  show('#tc5', 116.95, {y: 50});
+  cue(116.95, 'whoosh', 0.6);
+  const r5 = $$('#tc5 .rw');
+  rowsIn(r5, 117.5, 0.06);
+  // Paris, écrit quatre fois
+  const paris = r5.filter((_, i) => CLIENTS[i][2] === 'Paris');
+  pulse(paris.map(r => r.querySelector('.vl')), 119.8, 3, 'rgba(201,188,255,.6)');
+  cue(119.8, 'tick', 0.55, 2);
+  show('#vl5', 121.7, {y: 40});
+  cue(121.7, 'whoosh', 0.6);
+  gsap.set(['#vl5 .gh5-s', '#vd5'], {autoAlpha: 0});
+  // Chaque Paris : la ville d’un client différent
+  paris.forEach((r, i) => { tl.to(r.querySelector('.hl'), {opacity: 1, duration: 0.3}, 125.6 + i * 0.45); cue(125.6 + i * 0.45, 'pop', 0.55, i); });
+  // Une table villes, seulement si la ville a ses propres informations
+  tl.to('#vl5 .gh5-s', {autoAlpha: 1, duration: 0.35}, 131.4);
+  cue(131.4, 'pop', 0.6, 3);
+  gsap.set('#lb5', {autoAlpha: 0});
+  bump('#rg5', 133.4, 1.18, 1);
+  tl.to('#lb5', {autoAlpha: 1, duration: 0.35}, 133.6);
+  // Sinon : une jointure de plus, pour rien
+  show('#vd5', 138.6, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(138.6, 'false', 0.55);
+  show('#pl5', 141.0, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(141.0, 'pop', 0.7, 4);
+  hide(['#tc5', '#vl5', '#pl5'], 143.5);
+  sceneOff('#s5', 144.5);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 144.5);
+  show('#s6code', 144.55, {y: 60}, 0.6);
+  cue(144.55, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 145.05, 40);
+  for (const k of [2, 3, 4, 5, 6, 7]) te = typeLine($('#s6l' + k), te + 0.08, 40);
+  pulse('#j6', 150.9, 3, 'rgba(201,188,255,.35)');
+  press($('#s6run'), 152.0);
+  stackBelow('#tbl6', '#s6code', 0, 30);
+  show('#tbl6', 152.3, {y: 40}, 0.5);
+  const r6 = $$('#rows6 .tr');
+  gsap.set($$('#rows6 .vb i'), {width: 0});
+  rowsIn(r6, 152.45, 0.08);
+  show('#cnt6', 153.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  pulse('#g6', 154.4, 3, 'rgba(201,188,255,.35)');
+  bump('#cnt6', 156.0, 1.15, 3);
+  // Le résultat remonte : chaque ligne devient une barre du tableau de bord
+  hide('#s6code', 159.4, {y: -40}, 0.4);
+  tl.to('#tbl6', {top: 300, duration: 0.6, ease: 'power3.inOut'}, 159.8);
+  cue(159.8, 'whoosh', 0.45);
+  $$('#rows6 .vb i').forEach((b, i) => { tl.to(b, {width: VENTES[i][1] * UNIT, duration: 0.5, ease: 'power3.out'}, 160.6 + i * 0.08); if (i % 2 === 0) cue(160.6 + i * 0.08, 'tick', 0.4, i % 5); });
+  const f6 = $$('#rows6 .tr.fb')[0];
+  tl.to(f6.querySelector('.hl'), {opacity: 1, duration: 0.3}, 161.9);
+  tl.to(f6.querySelector('.vb i'), {backgroundColor: '#22A06B', duration: 0.3}, 161.9);
+  bump(f6.querySelector('.vb span'), 162.2, 1.3, 1);
+  cue(161.9, 'true', 0.6);
+  // Une seule barre par produit
+  const top6 = $('#tbl6').style.top;
+  $('#tbl6').style.top = '300px';
+  stackBelow('#badge6', '#tbl6', 0, 50);   // le badge se cale sous le résultat remonté
+  $('#tbl6').style.top = top6;
+  show('#badge6', 165.0, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(165.0, 'chord', 0.7);
+  hide(['#tbl6', '#badge6'], 169.2);
+  sceneOff('#s6', 169.7);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(169.7, [170.4, 172.2, 174.0]);
+  hold(172.0, 4.8);
+  hold(173.8, 4.4);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(174.95, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 174.9,
+  glyphs: '📊📦🧾🏷️🔢👤🔑🔗✍️🧮🏙️🗂️⚖️🔎✓✕?→·…«»', dom, build});
+</script>
+</body>
+</html>
