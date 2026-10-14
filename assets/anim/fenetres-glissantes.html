@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Fenêtres glissantes en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:112px;top:452px;letter-spacing:-2px}
+#s0 .title span.sp{margin-right:34px}
+#s0 .hilite{top:520px;height:40px}
+#s0 .sub{top:604px;font-size:58px}
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:36px;white-space:nowrap}
+.nw{white-space:nowrap}
+/* La table commandes en orange */
+.tag.tc{background:#FFF4E5;color:#9A5B00}
+.tag.tf{background:#E7F7EE;color:#1B7A45}
+
+/* Code : neuf lignes (chapitre 2), seize lignes (chapitre 3) */
+.code.xs .body{font-size:30px;line-height:46px;padding:24px 36px}
+.code.xs .ln{height:46px}
+.code.xs .caret i{top:-35px;height:40px}
+.code .ln.dim{opacity:.45}
+.mini.mq{position:absolute;margin:0;left:64px;width:952px;font-size:30px;line-height:46px;padding:22px 34px}
+.mini .ml{display:block}
+/* Une version et la suivante, l’une sur l’autre : SUM puis AVG, cumul puis moyenne_3… */
+.sw{display:inline-grid;justify-items:start}
+.sw>span{grid-area:1/1}
+.sw .b{opacity:0}
+
+/* ---------- 1 · Le palier ---------- */
+.board{left:64px;width:952px;padding:0 0 8px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar>span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:#FFF4E5;color:#9A5B00;font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.lx{padding:28px 34px 26px}
+.lx-hero{display:flex;align-items:center;gap:26px}
+.lx-ico{width:112px;height:112px;border-radius:34px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:64px;flex:none}
+.lx-t1{font-size:42px;font-weight:800;color:var(--ink);white-space:nowrap}
+.lx-t2{margin-top:6px;font-size:30px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.lx-conds{margin-top:26px;display:flex;align-items:center;gap:14px}
+.cd{height:60px;padding:0 22px;border-radius:999px;font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.cd.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.cd.am{background:#FFF4E5;color:#9A5B00}
+
+/* ---------- 2, 3 et 4 · Les montants, le cumul, la moyenne mobile ---------- */
+.rgA{display:grid;grid-template-columns:90px 280px 220px 1fr;padding:0 20px;align-items:center}
+.rgB{display:grid;grid-template-columns:300px 240px 1fr;padding:0 20px;align-items:center}
+.th.t3{height:52px;font-size:26px}
+.th.t3>div{padding:0 8px}
+.tr.t3{height:38px;font-size:29px}
+.tr.t3>div{padding:3px 8px}
+.qm{display:inline-flex;align-items:center;justify-content:center;width:38px;height:28px;border-radius:9px;border:2px dashed #F2C38A;color:#C08A3E;font-family:var(--display);font-size:20px;font-weight:800}
+.pv{display:inline-grid;justify-items:start}
+.pv>b{grid-area:1/1;font-weight:600}
+.pv>b.b{opacity:0}
+.th .pv>b{font-weight:700}
+.vv{border-radius:8px;padding:0 6px;margin-left:-6px}
+/* Le cadre de la fenêtre : les lignes qui entrent dans le calcul de la ligne actuelle */
+.frm{position:absolute;left:0;right:0;top:0;height:38px;border-radius:12px;background:rgba(124,92,255,.10);box-shadow:inset 8px 0 0 #7C5CFF,inset 0 0 0 2px rgba(124,92,255,.35);z-index:0;opacity:0}
+.sm2{left:64px;width:952px;padding:24px 30px 26px}
+.sm2-q{font-family:var(--mono);font-size:28px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.sm2-q .kw{color:var(--accent-ink)}
+.sm2-r{margin-top:16px;display:flex;align-items:center;gap:18px}
+.sm2-r b{height:62px;padding:0 24px;border-radius:18px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:32px;font-weight:800;display:flex;align-items:center}
+.sm2-r span{font-size:28px;font-weight:700;color:var(--ink-3);white-space:nowrap}
+.pill{left:0;width:1080px;display:flex;justify-content:center}
+.pill>span{height:62px;padding:0 24px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill>span.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.pill>span.rd{background:#FDEBEC;color:#C2323A}
+.goal{left:64px;width:952px;height:96px;border-radius:32px;background:#E7F7EE;border:3px solid #BFE8D0;display:flex;align-items:center;justify-content:center;gap:14px;font-size:33px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.goal .emo{font-size:36px}
+
+/* ---------- 5 · Le piège : le cadre par défaut ---------- */
+.mini.m5{font-size:30px;line-height:44px;padding:20px 30px}
+.rt5{margin-top:20px;border-radius:24px;background:var(--surface-2);overflow:hidden}
+.rt5 .h,.rt5 .r{display:grid;grid-template-columns:260px 220px 1fr;align-items:center;padding:0 22px;font-family:var(--mono);white-space:nowrap}
+.rt5 .h{height:46px;font-size:22px;font-weight:700;color:var(--ink-3)}
+.rt5 .r{position:relative;height:56px;font-size:27px;font-weight:600;color:var(--ink);background:#fff;box-shadow:inset 0 2px 0 var(--line-2)}
+.rt5 .r>span{position:relative;z-index:1}
+.rt5 .r .hl{position:absolute;left:0;top:0;right:0;bottom:0;background:#FDEBEC;box-shadow:inset 8px 0 0 #EF4F55;opacity:0;z-index:0}
+.jr{display:inline-flex;align-items:center;height:40px;padding:0 12px;margin-left:-12px;border-radius:12px;font-family:var(--display);font-weight:800}
+.fix{left:64px;width:952px;padding:24px 30px 28px}
+.fix-h{display:flex;align-items:center;gap:12px;font-size:32px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.fix-h .ok{width:46px;height:46px;border-radius:50%;background:#22A35A;color:#fff;font-family:var(--display);font-weight:800;font-size:26px;display:flex;align-items:center;justify-content:center}
+
+/* ---------- 6 · Le résultat : le tableau de bord ---------- */
+.ch6{left:64px;width:952px;padding:0 0 26px;overflow:hidden}
+.plot{position:relative;margin:30px 34px 0;height:470px}
+.bars{position:absolute;left:0;right:0;bottom:46px;height:400px;display:flex;align-items:flex-end;gap:12px}
+.bar{flex:1;border-radius:10px 10px 4px 4px;background:#D3C9FF;transform-origin:50% 100%}
+.bar.up{background:#F2A13B}
+.lim{position:absolute;left:0;right:0;height:0;border-top:4px dashed #E2503F}
+.lim span{position:absolute;left:0;top:-48px;height:40px;padding:0 14px;border-radius:12px;background:#FDEBEC;color:#C2323A;font-size:24px;font-weight:800;display:flex;align-items:center;white-space:nowrap}
+.xl{position:absolute;bottom:0;height:36px;font-size:24px;font-weight:600;color:var(--ink-3);white-space:nowrap;transform:translateX(-50%)}
+.kp6{display:flex;gap:16px;padding:22px 34px 0}
+.kp{flex:1;height:96px;border-radius:24px;background:var(--surface-2);display:flex;flex-direction:column;justify-content:center;padding:0 22px;white-space:nowrap}
+.kp b{font-family:var(--display);font-size:36px;font-weight:800;color:var(--ink)}
+.kp span{font-size:24px;font-weight:600;color:var(--ink-3)}
+.kp.up{background:#FFF4E5}
+.kp.up b{color:#B4630A}
+
+/* ---------- 7 · À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:20px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Fonctions de fenêtre</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>R</span><span>O</span><span>W</span><span class="sp">S</span><span>B</span><span>E</span><span>T</span><span>W</span><span>E</span><span>E</span><span>N</span></div>
+    <div class="abs sub">Suivre l’évolution des commandes</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec <span class="ic">ROWS BETWEEN</span>, choisis les lignes qui entrent dans chaque calcul.</div>
+  </section>
+
+  <!-- 1 · Situation : le palier de 700 € -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="ab1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Finance · suivi des ventes</span><span class="tb" id="tb1">table commandes</span></div>
+      <div class="lx">
+        <div class="lx-hero"><div class="lx-ico">📈</div><div><div class="lx-t1">Le palier de 700&nbsp;€</div><div class="lx-t2">À quelle date le cumul le dépasse-t-il&nbsp;?</div></div></div>
+        <div class="lx-conds"><span class="cd vi" id="cd1">🧾 16 commandes</span><span class="cd am" id="cd2">🎯 Palier&nbsp;: 700&nbsp;€</span></div>
+      </div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">📅</span><span class="nl">La date des commandes</span><span class="tag tc">table commandes</span></div>
+      <div class="need-row"><span class="emo">💶</span><span class="nl">Le montant&nbsp;: prix × quantité</span><span class="tag tf">à calculer</span></div>
+      <div class="need-row"><span class="emo">📈</span><span class="nl">Le chiffre d’affaires cumulé</span><span class="tag tf">à calculer</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : SUM() ne renvoie qu’un seul total -->
+  <section class="scene" id="s2">
+    <div class="abs code xs" id="c2" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="c2l1"><span class="kw">WITH</span> montants <span class="kw">AS</span> (<span class="caret"><i></i></span></span><span class="ln" id="c2l2">  <span class="kw">SELECT</span> commandes.id, commandes.date_commande,<span class="caret"><i></i></span></span><span class="ln" id="c2l3">         <span class="glow" id="mt2">produits.prix * commandes.quantite</span><span class="caret"><i></i></span></span><span class="ln" id="c2l4">           <span class="kw">AS</span> montant<span class="caret"><i></i></span></span><span class="ln" id="c2l5">  <span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="c2l6">  <span class="kw">JOIN</span> produits<span class="caret"><i></i></span></span><span class="ln" id="c2l7">    <span class="kw">ON</span> produits.id = commandes.produit_id<span class="caret"><i></i></span></span><span class="ln" id="c2l8">)<span class="caret"><i></i></span></span><span class="ln" id="c2l9"><span class="kw">SELECT</span> * <span class="kw">FROM</span> montants;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="r2"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tb2" style="top:300px">
+      <div class="tt"><span class="emo">🔎</span><span>montants</span><span class="cnt"><span>16 lignes</span></span></div>
+      <div class="rgA th t3"><div>id</div><div>date_commande</div><div>montant</div><div id="hc2">cumul</div></div>
+      <div class="rows" id="rows2"></div>
+    </div>
+    <div class="abs card sm2" id="sm2">
+      <div class="sm2-q"><span class="kw">SELECT</span> <span class="kw">SUM</span>(montant) <span class="kw">FROM</span> montants;</div>
+      <div class="sm2-r"><b id="tot2">747.5</b><span>une seule ligne pour toutes les commandes</span></div>
+    </div>
+    <div class="abs goal" id="goal2"><span class="emo">🎯</span>Un total qui grossit, commande après commande</div>
+  </section>
+
+  <!-- 3 et 4 · Le cumul, puis la moyenne mobile -->
+  <section class="scene" id="s3">
+    <div class="abs code xs" id="c3" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln dim"><span class="kw">WITH</span> montants <span class="kw">AS</span> (</span><span class="ln dim">  <span class="kw">SELECT</span> commandes.id, commandes.date_commande,</span><span class="ln dim">         produits.prix * commandes.quantite</span><span class="ln dim">           <span class="kw">AS</span> montant</span><span class="ln dim">  <span class="kw">FROM</span> commandes</span><span class="ln dim">  <span class="kw">JOIN</span> produits</span><span class="ln dim">    <span class="kw">ON</span> produits.id = commandes.produit_id</span><span class="ln dim">)</span><span class="ln" id="c3l1"><span class="kw">SELECT</span> date_commande, montant,<span class="caret"><i></i></span></span><span class="ln" id="c3l2">       <span class="kw">SUM</span>(montant) <span class="kw">OVER</span> (<span class="caret"><i></i></span></span><span class="ln" id="c3l3">         <span class="kw">ORDER BY</span> date_commande, id<span class="caret"><i></i></span></span><span class="ln" id="c3l4">         <span class="glow" id="fr3a"><span class="kw">ROWS BETWEEN UNBOUNDED PRECEDING</span></span><span class="caret"><i></i></span></span><span class="ln" id="c3l5">                  <span class="glow" id="fr3b"><span class="kw">AND CURRENT ROW</span></span><span class="caret"><i></i></span></span><span class="ln" id="c3l6">       ) <span class="kw">AS</span> cumul<span class="caret"><i></i></span></span><span class="ln" id="c3l7"><span class="kw">FROM</span> montants<span class="caret"><i></i></span></span><span class="ln" id="c3l8"><span class="kw">ORDER BY</span> date_commande, id;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="r3"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="abs mini mq" id="m3" style="top:300px"><span class="ml"><span class="sw" id="w3a"><span class="a"><span class="kw">SUM</span>(montant) <span class="kw">OVER</span> (</span><span class="b"><span class="kw">AVG</span>(montant) <span class="kw">OVER</span> (</span></span></span><span class="ml">  <span class="kw">ORDER BY</span> date_commande, id</span><span class="ml">  <span class="kw">ROWS BETWEEN</span> <span class="sw" id="w3b"><span class="a"><span class="kw">UNBOUNDED PRECEDING</span></span><span class="b"><span class="glow" id="p4"><span class="kw">2 PRECEDING</span></span></span></span></span><span class="ml">           <span class="kw">AND CURRENT ROW</span></span><span class="ml"><span class="sw" id="w3c"><span class="a">) <span class="kw">AS</span> cumul</span><span class="b">) <span class="kw">AS</span> moyenne_3</span></span></span></div>
+    <div class="tbl card" id="tb3">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt3">16 lignes</span></span></div>
+      <div class="rgB th t3"><div>date_commande</div><div>montant</div><div><span class="pv" id="h3"><b class="a">cumul</b><b class="b">moyenne_3</b></span></div></div>
+      <div class="rows" id="rows3"><span class="frm" id="frm3"></span></div>
+    </div>
+    <div class="abs pill" id="ad3"><span class="vi">🪟 Lignes 1 à 3&nbsp;: 59,8 + 19,9 + 34,9 = 114,6</span></div>
+    <div class="abs pill" id="av4"><span class="vi">🪟 Le 8 juillet&nbsp;: (19,9 + 34,9 + 119,7) ÷ 3 = 58,17</span></div>
+  </section>
+
+  <!-- 5 · Le piège : sans ROWS BETWEEN, le cadre par défaut réunit les commandes du même jour -->
+  <section class="scene" id="s5">
+    <div class="abs card trap" id="tp5" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Et sans <span class="ic">ROWS BETWEEN</span>&nbsp;?</span></div>
+      <div class="mini m5"><span class="ml"><span class="kw">SUM</span>(montant) <span class="kw">OVER</span> (</span><span class="ml">  <span class="glow" id="ob5"><span class="kw">ORDER BY</span> date_commande</span></span><span class="ml">) <span class="kw">AS</span> cumul</span></div>
+      <div class="rt5">
+        <div class="h"><span>date_commande</span><span>montant</span><span>cumul</span></div>
+        <div class="r"><span class="hl"></span><span>2026-07-02</span><span>59.8</span><span><span class="jr" id="j5a">79.7</span></span></div>
+        <div class="r"><span class="hl"></span><span>2026-07-02</span><span>19.9</span><span><span class="jr" id="j5b">79.7</span></span></div>
+        <div class="r"><span class="hl"></span><span>2026-07-05</span><span>34.9</span><span><span class="jr">114.6</span></span></div>
+      </div>
+    </div>
+    <div class="abs pill" id="ms5"><span class="rd">✕ Les deux commandes du 2 juillet ont le même cumul</span></div>
+    <div class="abs card fix" id="fx5">
+      <div class="fix-h"><span class="ok">✓</span><span>Avec <span class="ic">id</span> et <span class="ic">ROWS BETWEEN</span></span></div>
+      <div class="rt5">
+        <div class="h"><span>date_commande</span><span>montant</span><span>cumul</span></div>
+        <div class="r"><span class="hl"></span><span>2026-07-02</span><span>59.8</span><span><span class="jr" id="j5c">59.8</span></span></div>
+        <div class="r"><span class="hl"></span><span>2026-07-02</span><span>19.9</span><span><span class="jr">79.7</span></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · Le résultat : le palier franchi le 1er août -->
+  <section class="scene" id="s6">
+    <div class="abs card ch6" id="ch6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>📈 Chiffre d’affaires cumulé</span><span class="tb">16 commandes</span></div>
+      <div class="plot" id="plot6">
+        <div class="bars" id="bars6"></div>
+        <div class="lim" id="lim6"><span>Palier&nbsp;: 700&nbsp;€</span></div>
+      </div>
+      <div class="kp6">
+        <div class="kp" id="k14"><b>642,90&nbsp;€</b><span>30 juillet · 14e commande</span></div>
+        <div class="kp up" id="k15"><b>732,60&nbsp;€</b><span>1er août · 15e commande</span></div>
+      </div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ Palier franchi le 1er&nbsp;août</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🪟</div><div class="rtxt">Le <b>cadre de fenêtre</b> indique les lignes utilisées pour calculer la ligne actuelle&nbsp;:<br><span class="ic blk">ROWS BETWEEN début AND fin</span></div></div>
+      <div class="rrow"><div class="rico emo">💰</div><div class="rtxt">Un <b>cumul</b>&nbsp;: le cadre part du début et s’agrandit jusqu’à la ligne actuelle&nbsp;:<br><span class="ic blk">UNBOUNDED PRECEDING AND CURRENT ROW</span></div></div>
+      <div class="rrow"><div class="rico emo">📊</div><div class="rtxt">Une <b>moyenne mobile</b>&nbsp;: le cadre se déplace sur quelques lignes.<span class="rs">Ici, la commande actuelle et les 2 précédentes.</span><span class="ic blk">2 PRECEDING AND CURRENT ROW</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 167.6;
+
+/* Les 16 commandes, dans l’ordre des dates puis des id : [id, date, montant = prix × quantité]. */
+const MONTANTS = [[1, '2026-07-02', 59.8], [2, '2026-07-02', 19.9], [3, '2026-07-05', 34.9], [4, '2026-07-08', 119.7],
+  [5, '2026-07-11', 29.9], [6, '2026-07-12', 29.8], [7, '2026-07-15', 24.9], [8, '2026-07-18', 119.6],
+  [9, '2026-07-18', 25], [10, '2026-07-20', 39.8], [11, '2026-07-22', 34.9], [12, '2026-07-25', 39.9],
+  [13, '2026-07-28', 15], [14, '2026-07-30', 49.8], [15, '2026-08-01', 89.7], [16, '2026-08-03', 14.9]];
+/* Le cumul (du début jusqu’à la ligne) et la moyenne mobile (la ligne et les 2 précédentes), arrondis comme dans l’app. */
+const r2 = v => Math.round(v * 100) / 100;
+const CUMUL = [], MOY3 = [];
+MONTANTS.forEach(([, , m], i) => {
+  CUMUL.push(r2(MONTANTS.slice(0, i + 1).reduce((s, x) => s + x[2], 0)));
+  const w = MONTANTS.slice(Math.max(0, i - 2), i + 1);
+  MOY3.push(r2(w.reduce((s, x) => s + x[2], 0) / w.length));
+});
+const PALIER = 700;
+
+const CHAPTERS = [
+  {n:1, label:'Situation',          a:5.0,   b:28.0},
+  {n:2, label:'Le problème',        a:28.0,  b:52.0},
+  {n:3, label:'Le cumul',           a:52.0,  b:78.0},
+  {n:4, label:'La moyenne mobile',  a:78.0,  b:104.0},
+  {n:5, label:'Le piège',           a:104.0, b:128.0},
+  {n:6, label:'Le résultat',        a:128.0, b:157.5},
+  {n:7, label:'À retenir',          a:157.5, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 10.5,    "L’équipe finance suit l’évolution des ventes au fil des commandes."],
+  [10.6, 16.1,   "Elle veut savoir à quelle date le chiffre d’affaires cumulé dépasse <b>700 €</b>."],
+  [16.2, 22.0,   "Les quantités commandées sont dans la <b>table commandes</b>, les prix dans la table produits."],
+  [22.1, 27.6,   "Pour chaque commande, le montant vaut le prix du produit multiplié par la quantité."],
+  [28.3, 33.9,   "On calcule d’abord le montant de chaque commande dans un <code>WITH</code> nommé <code>montants</code>."],
+  [34.0, 39.6,   "Avec <code>SUM(montant)</code>, on obtient bien le total : <b>747,50 €</b>, sur une seule ligne."],
+  [39.7, 45.3,   "Or l’équipe veut conserver chaque commande, avec le total des ventes jusqu’à elle."],
+  [45.4, 51.5,   "Il faut donc un total qui grossit à chaque commande : un <b>cumul</b>."],
+  [52.3, 57.9,   "Le <b>cadre</b> de la fenêtre indique les lignes utilisées pour calculer chaque ligne."],
+  [58.0, 63.6,   "Pour un cumul, le cadre part de la première ligne et va jusqu’à la ligne actuelle."],
+  [63.7, 69.3,   "Pour la troisième commande, le cadre réunit les lignes 1 à 3 : 114,60 €."],
+  [69.4, 77.5,   "À chaque ligne, le cadre s’agrandit, et le cumul grossit jusqu’à 747,50 €."],
+  [78.3, 83.9,   "Un cadre peut aussi <b>glisser</b> : avec <code>2 PRECEDING</code>, il ne remonte que de deux lignes."],
+  [84.0, 89.6,   "Chaque moyenne porte alors sur la commande actuelle et sur les deux précédentes."],
+  [89.7, 95.3,   "Pour la commande du 8 juillet, la moyenne des trois dernières commandes vaut 58,17 €."],
+  [95.4, 103.5,  "Au début, le cadre est plus court : une ligne, puis deux lignes."],
+  [104.3, 109.8, "Attention : ici, <code>OVER</code> trie seulement par date, sans <code>ROWS BETWEEN</code>."],
+  [109.9, 115.5, "Le cadre par défaut va alors jusqu’à la dernière commande <b>du même jour</b>."],
+  [115.6, 121.2, "Les deux commandes du 2 juillet affichent le même cumul : 79,70 €."],
+  [121.3, 127.5, "Avec <code>id</code> et <code>ROWS BETWEEN</code>, chaque commande a de nouveau son propre cumul."],
+  [128.3, 134.4, "Sur le tableau de bord, chaque barre montre le cumul après une commande."],
+  [134.5, 140.1, "Le 30 juillet, le cumul atteint 642,90 € : le palier n’est pas encore franchi."],
+  [140.2, 145.8, "Le 1er août, une commande de 89,70 € le fait passer à <b>732,60 €</b>."],
+  [145.9, 151.5, "Le palier de 700 € est franchi à la 15e commande sur 16."],
+  [151.6, 157.0, "L’équipe finance sait maintenant à quelle date le palier a été atteint."],
+  [157.8, 162.6, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [162.7, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [162.7, 999, "Le cadre de fenêtre choisit les lignes de chaque calcul : pour un cumul ou une moyenne mobile."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+function dom(){
+  /* Chapitre 2 : le résultat du WITH ; la colonne du cumul attend encore ses valeurs */
+  $('#rows2').innerHTML = MONTANTS.map(([id, d, m]) =>
+    `<div class="rgA tr t3"><div>${id}</div><div>${d}</div><div>${m}</div><div><span class="qm">?</span></div></div>`).join('');
+  /* Chapitres 3 et 4 : le cumul (a), puis la moyenne mobile (b) */
+  $('#rows3').insertAdjacentHTML('beforeend', MONTANTS.map(([, d, m], i) =>
+    `<div class="rgB tr t3"><div>${d}</div><div>${m}</div><div><span class="pv"><b class="a"><span class="vv">${CUMUL[i]}</span></b><b class="b"><span class="vv">${MOY3[i]}</span></b></span></div></div>`).join(''));
+  /* Chapitre 6 : une barre par commande, haute comme son cumul ; la ligne du palier */
+  const max = CUMUL[CUMUL.length - 1];
+  $('#bars6').innerHTML = CUMUL.map(c => `<i class="bar" style="height:${(c / max * 100).toFixed(2)}%"></i>`).join('');
+  $('#lim6').style.bottom = (46 + PALIER / max * 400).toFixed(1) + 'px';
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+/* Une carte arrive en tournant légèrement, puis ses éléments un à un. */
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(sel, $(id));
+  gsap.set(items, {autoAlpha: 0, y: 24});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => cue(t + 0.65 + i * step, 'pop', 0.55, i % 5));
+  return items;
+}
+/* Une valeur laisse place à la suivante (couche « de » → couche « vers »). */
+function swapLayer(els, from, to, t){
+  tl.to(els.map(e => e.querySelector('.' + from)), {autoAlpha: 0, duration: 0.15}, t);
+  tl.fromTo(els.map(e => e.querySelector('.' + to)), {autoAlpha: 0, y: 10}, {autoAlpha: 1, y: 0, duration: 0.25, ease: 'back.out(2)', immediateRender: false}, t + 0.12);
+}
+/* Le cadre de la fenêtre couvre les lignes a à b (comprises) du tableau. */
+const RH = 38;
+function cadre(a, b, t, d = 0.45, ease = 'power2.inOut'){
+  tl.to('#frm3', {top: a * RH, height: (b - a + 1) * RH, duration: d, ease}, t);
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.4);   // le temps de lire la bulle de la mascotte
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  boardIn('#ab1', 5.15, '.lx-hero');
+  gsap.set(['#cd1', '#cd2', '#tb1'], {autoAlpha: 0});
+  // Le palier de 700 €
+  show('#cd1', 11.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(11.2, 'pop', 0.7, 1);
+  show('#cd2', 12.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(12.0, 'pop', 0.7, 3);
+  // La table commandes
+  stackBelow('#s1 .need', '#ab1');   // la liste se cale sous la carte de la situation, sans la toucher
+  show('#tb1', 17.0, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(17.0, 'pop', 0.7, 2);
+  show('#s1 .need', 17.5, {y: 60});
+  cue(17.5, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.3}, 17.8);
+  needRows.forEach((_, i) => cue(17.8 + i * 0.3, 'pop', 0.7, i));
+  // Le montant : prix × quantité
+  pulse(needRows[1], 22.8, 3, 'rgba(201,188,255,.35)');
+  hide(['#ab1', '#s1 .need'], 27.5);
+  sceneOff('#s1', 28.0);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 28.0);
+  show('#c2', 28.2, {y: 60}, 0.6);
+  cue(28.2, 'whoosh', 0.7);
+  te = typeLine($('#c2l1'), 28.6, 64);
+  for (let k = 2; k <= 9; k++) te = typeLine($('#c2l' + k), te + 0.04, 64);
+  pulse('#mt2', 30.8, 3, 'rgba(201,188,255,.45)');
+  press($('#r2'), 32.9);
+  hide('#c2', 33.15, {y: -40}, 0.4);
+  show('#tb2', 33.45, {y: 40}, 0.5);
+  const rw2 = $$('#rows2 .tr');
+  rowsIn(rw2, 33.65, 0.04);
+  const q2 = $$('#rows2 .qm');
+  gsap.set(['#hc2', ...q2], {autoAlpha: 0});
+  // SUM(montant) : une seule ligne
+  stackBelow('#sm2', '#tb2', 0, 30);
+  show('#sm2', 35.2, {y: 40}, 0.5);
+  cue(35.2, 'whoosh', 0.6);
+  bump('#tot2', 36.4, 1.15, 1);
+  cue(36.4, 'pop', 0.6, 2);
+  hide('#sm2', 39.8, {y: 20}, 0.3);
+  // Garder chaque commande, avec son cumul
+  show('#hc2', 40.4, {y: 10}, 0.3);
+  tl.to(q2, {autoAlpha: 1, duration: 0.2, stagger: 0.05}, 40.6);
+  cue(40.6, 'tick', 0.5, 1);
+  // Un total qui grossit
+  stackBelow('#goal2', '#tb2', 0, 30);
+  show('#goal2', 46.0, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(46.0, 'pop', 0.75, 3);
+  hide(['#tb2', '#goal2'], 51.5, {y: -40}, 0.4);
+  sceneOff('#s2', 52.0);
+
+  /* ===== 3 · Le cumul ===== */
+  sceneOn('#s3', 52.0);
+  show('#c3', 52.35, {y: 60}, 0.6);
+  cue(52.35, 'whoosh', 0.7);
+  te = typeLine($('#c3l1'), 52.95, 50);
+  for (let k = 2; k <= 8; k++) te = typeLine($('#c3l' + k), te + 0.05, 50);
+  // Du début jusqu’à la ligne actuelle
+  pulse('#fr3a', 58.4, 3, 'rgba(201,188,255,.45)');
+  pulse('#fr3b', 59.4, 3, 'rgba(201,188,255,.45)');
+  press($('#r3'), 62.5);
+  hide('#c3', 62.75, {y: -40}, 0.4);
+  stackBelow('#tb3', '#m3', 0, 30);
+  show('#m3', 63.05, {y: 40}, 0.5);
+  cue(63.05, 'whoosh', 0.6);
+  show('#tb3', 63.3, {y: 40}, 0.5);
+  const r3 = $$('#rows3 .tr');
+  rowsIn(r3, 63.5, 0.04);
+  gsap.set('#cnt3', {autoAlpha: 0});
+  show('#cnt3', 64.1, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // La troisième commande : lignes 1 à 3
+  tl.to('#frm3', {opacity: 1, duration: 0.3}, 64.6);
+  cadre(0, 1, 65.0);
+  cadre(0, 2, 65.6);
+  cue(65.6, 'tick', 0.5, 2);
+  pulse(r3[2].querySelector('.a .vv'), 66.2, 3, 'rgba(255,214,140,.85)');
+  stackBelow('#ad3', '#tb3', 0, 30);
+  stackBelow('#av4', '#tb3', 0, 30);
+  show('#ad3', 66.4, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(66.4, 'pop', 0.6, 2);
+  hide('#ad3', 69.5, {y: 0, scale: 0.8}, 0.25);
+  // Le cadre s’agrandit jusqu’à la dernière ligne
+  cadre(0, 15, 70.0, 4.2, 'none');
+  cue(70.0, 'whoosh', 0.5);
+  pulse(r3[15].querySelector('.a .vv'), 74.4, 3, 'rgba(255,214,140,.85)');
+  cue(74.4, 'true', 0.5);
+
+  /* ===== 4 · La moyenne mobile ===== */
+  tl.to('#frm3', {opacity: 0, duration: 0.3}, 77.4);
+  // SUM devient AVG, UNBOUNDED devient 2 : le cadre glisse
+  swapLayer([$('#w3a')], 'a', 'b', 78.5);
+  swapLayer([$('#w3b')], 'a', 'b', 78.8);
+  swapLayer([$('#w3c')], 'a', 'b', 79.1);
+  cue(78.5, 'fold', 0.5);
+  pulse('#p4', 80.4, 3, 'rgba(201,188,255,.5)');
+  // La moyenne : la ligne et les deux précédentes
+  swapLayer([$('#h3')], 'a', 'b', 84.1);
+  r3.forEach((r, i) => swapLayer([r.querySelector('.pv')], 'a', 'b', 84.2 + i * 0.05));
+  cue(84.2, 'pop', 0.5, 1);
+  tl.set('#frm3', {top: 0, height: 3 * RH}, 84.9);
+  tl.to('#frm3', {opacity: 1, duration: 0.3}, 85.0);
+  cadre(1, 3, 86.2);
+  cue(86.2, 'tick', 0.5, 2);
+  cadre(2, 4, 87.4);
+  cue(87.4, 'tick', 0.5, 3);
+  // Le 8 juillet : 58,17
+  cadre(1, 3, 89.9);
+  pulse(r3[3].querySelector('.b .vv'), 90.4, 3, 'rgba(255,214,140,.85)');
+  show('#av4', 90.6, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(90.6, 'pop', 0.6, 2);
+  hide('#av4', 95.3, {y: 0, scale: 0.8}, 0.25);
+  // Un cadre plus court pour les deux premières commandes
+  cadre(0, 0, 95.8);
+  pulse(r3[0].querySelector('.b .vv'), 96.3, 1, 'rgba(255,214,140,.85)');
+  cue(96.3, 'tick', 0.5, 1);
+  cadre(0, 1, 97.6);
+  pulse(r3[1].querySelector('.b .vv'), 98.1, 1, 'rgba(255,214,140,.85)');
+  cue(98.1, 'tick', 0.5, 2);
+  hide(['#m3', '#tb3'], 103.5, {y: -40});
+  sceneOff('#s3', 104.0);
+
+  /* ===== 5 · Le piège ===== */
+  sceneOn('#s5', 104.0);
+  show('#tp5', 104.35, {y: 50});
+  cue(104.35, 'whoosh', 0.6);
+  const r5 = $$('#tp5 .r');
+  rowsIn(r5, 105.0, 0.15);
+  const j5 = $$('#tp5 .jr');
+  gsap.set(j5, {autoAlpha: 0, scale: 0.5});
+  // Seulement la date, sans cadre
+  pulse('#ob5', 106.2, 3, 'rgba(255,214,140,.5)');
+  // Les commandes du même jour
+  tl.to(j5, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.2)', stagger: 0.3}, 110.4);
+  j5.forEach((_, i) => cue(110.4 + i * 0.3, 'tick', 0.5, i + 1));
+  // Le même cumul : 79,7
+  tl.to(['#j5a', '#j5b'], {color: '#C2323A', backgroundColor: '#FDEBEC', duration: 0.3}, 116.0);
+  tl.to(r5.slice(0, 2).map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3}, 116.0);
+  shake('#j5a', 116.2);
+  cue(116.2, 'miss', 0.6);
+  stackBelow('#ms5', '#tp5', 0, 30);
+  show('#ms5', 116.7, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  // Avec id et ROWS BETWEEN
+  stackBelow('#fx5', '#ms5', 0, 30);
+  show('#fx5', 121.8, {y: 50});
+  cue(121.8, 'true', 0.6);
+  pulse('#j5c', 122.9, 3, 'rgba(34,163,90,.2)');
+  cue(122.9, 'tick', 0.5, 3);
+  hide(['#tp5', '#ms5', '#fx5'], 127.5, {y: -40});
+  sceneOff('#s5', 128.0);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 128.0);
+  show('#ch6', 128.3, {y: 60}, 0.6);
+  cue(128.3, 'whoosh', 0.7);
+  const bars = $$('#bars6 .bar');
+  gsap.set(bars, {scaleY: 0});
+  tl.to(bars, {scaleY: 1, duration: 0.35, ease: 'back.out(1.6)', stagger: 0.28}, 128.9);
+  bars.forEach((_, i) => cue(128.9 + i * 0.28, 'tick', 0.4, i % 5));
+  gsap.set('#lim6', {autoAlpha: 0});
+  show('#lim6', 133.6, {y: 0}, 0.4);
+  cue(133.6, 'pop', 0.6, 2);
+  // Le 30 juillet : 642,90 €
+  gsap.set(['#k14', '#k15'], {autoAlpha: 0});
+  bump(bars[13], 134.9, 1.06, 1);
+  show('#k14', 135.2, {y: 20, scale: 0.9}, 0.45, 'back.out(2)');
+  cue(135.2, 'pop', 0.6, 1);
+  // Le 1er août : 732,60 €
+  tl.to(bars[14], {backgroundColor: '#F2A13B', duration: 0.3}, 140.6);
+  bump(bars[14], 140.6, 1.08, 1);
+  cue(140.6, 'chord', 0.6);
+  show('#k15', 141.0, {y: 20, scale: 0.9}, 0.45, 'back.out(2)');
+  // La 15e commande sur 16
+  bump('#k15', 146.3, 1.06, 1);
+  cue(146.3, 'tick', 0.5, 3);
+  stackBelow('#badge6', '#ch6', 0, 50);
+  show('#badge6', 151.9, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(151.9, 'success', 0.9);
+  hide(['#ch6', '#badge6'], 157.0);
+  sceneOff('#s6', 157.5);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(157.5, [158.2, 160.0, 161.8]);
+  hold(159.8, 4.8);
+  hold(161.6, 4.8);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(162.75, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 162.7,
+  glyphs: '📈🧾🎯📅💶🔎⚠️✕✓🪟💰📊·…→×÷€', dom, build});
+</script>
+</body>
+</html>
