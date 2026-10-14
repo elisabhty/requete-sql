@@ -757,6 +757,15 @@ const COURSES = [
       '<span class="glow" id="wh3"><span class="kw">WHERE</span> jour &lt; <span class="str">\'2026-07-31\'</span></span><i class="strike" id="sk5"></i>',
       '⏳ Exécution en cours…', '✕ Sans condition d’arrêt, la requête ne s’arrête jamais',
       '<span class="glow" id="ex6"><span class="kw">EXCEPT</span></span>', '✓ 19 promotions programmées']},
+  {id: 60, next: 74, titre: 'OVER()', page: 'over.html', thumb: 'over-thumb.jpg', duree: '2 min 56', notesAt: 159.2,
+    notes: /notes:\{t:170\.9,y:1318,card:\[64,292,1016,1023\],to:\[940,255\]\}/, table: 'produits',
+    bubble: 'Avec <span class="ic">OVER()</span>, un calcul porte sur plusieurs lignes sans les regrouper.',
+    chapters: ['Situation', 'Le problème', 'OVER ()', 'PARTITION BY', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<div class="lst-t mono">GROUP BY categorie</div>', '✕ Le nom et le prix des produits ont disparu',
+      '<span class="glow" id="ov3"><span class="kw">OVER</span> (<span class="wx" id="cp3">)</span></span>',
+      '<span class="glow" id="pb3"><span class="kw">PARTITION BY</span> categorie</span>', '<b class="v8">8</b><b class="vp">${nbDans(c)}</b>',
+      '<span class="m">misuse of window function COUNT()</span>', '<div class="st ko" id="sw5"><b>2</b><span>WHERE</span></div>',
+      '<span class="glow" id="wh6"><span class="kw">WHERE</span> nb_produits = 1</span>', '✓ 3 catégories à étoffer']},
 ];
 
 for (const c of COURSES) {
