@@ -778,6 +778,17 @@ const COURSES = [
       '<div class="fc" id="f5c"><div class="fn">DENSE_RANK()</div><b class="ok">1</b><b class="ok">1</b><b>2</b></div>',
       '<span class="glow" id="rk6"><span class="kw">RANK</span>() <span class="kw">OVER</span> (</span>', '🥇 Premier achat de 3 clients',
       '✓ Mise en avant pour les nouveaux clients']},
+  {id: 78, next: 79, titre: 'LAG et LEAD', page: 'lag-lead.html', thumb: 'lag-lead-thumb.jpg', duree: '3 min 00', notesAt: 163.2,
+    notes: /notes:\{t:175\.1,y:1302,card:\[64,292,1016,1007\],to:\[940,255\]\}/, table: 'commandes',
+    bubble: 'Avec <span class="ic">LAG()</span> et <span class="ic">LEAD()</span>, chaque ligne lit la valeur d’une ligne voisine.',
+    chapters: ['Situation', 'Le problème', 'LAG() et LEAD()', 'Le délai en jours', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<span class="al2" id="al2">? jours</span>', '<span class="glow" id="lg3"><span class="kw">LAG</span>(date_commande) <span class="kw">OVER</span> (</span>',
+      '<span class="b"><span class="kw">LEAD</span>(date_commande) <span class="kw">OVER</span> (</span>',
+      '<b class="a">${val(p)}</b><b class="b">${val(s)}</b><b class="c"><span class="vv">${val(j)}</span></b>',
+      '<span class="glow" id="jd4b"><span class="kw">julianday</span>(<span class="kw">LAG</span>(date_commande)</span>',
+      '<span class="glow" id="nb5"><span class="kw">ORDER BY</span> client_id, date_commande, id</span>', '<span class="jr" id="j5b">−23</span>',
+      '✕ Lucas Bernard lit la commande de Sophie Martin', '<span class="glow" id="av6"><span class="kw">COALESCE</span>(<span class="kw">AVG</span>(jours_depuis), 10)</span>',
+      '🔔 Hugo Laurent et Gabriel Michel&nbsp;: 10 jours par défaut', '✓ 8 rappels programmés']},
 ];
 
 for (const c of COURSES) {

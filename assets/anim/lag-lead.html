@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · LAG et LEAD en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:190px;top:424px;letter-spacing:-4px}
+#s0 .title span.sp{margin-right:46px}
+#s0 .hilite{top:534px;height:56px}
+#s0 .sub{top:640px;font-size:58px}
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:36px;white-space:nowrap}
+.nw{white-space:nowrap}
+/* La table clients en violet, la table commandes en orange */
+.tag.tc{background:#FFF4E5;color:#9A5B00}
+.tag.tf{background:#E7F7EE;color:#1B7A45}
+.tag.td{background:#E5F0FF;color:#1D5FB8}
+
+/* Code : huit lignes (chapitre 3), dix-sept lignes (chapitre 6) */
+.code.sm .body{font-size:32px;line-height:50px;padding:26px 36px}
+.code.sm .ln{height:50px}
+.code.sm .caret i{top:-37px;height:42px}
+.code.xs .body{font-size:30px;line-height:46px;padding:24px 36px}
+.code.xs .ln{height:46px}
+.code.xs .caret i{top:-35px;height:40px}
+.mini.mq{position:absolute;margin:0;left:64px;width:952px;font-size:30px;line-height:46px;padding:22px 34px}
+.mini .ml{display:block}
+/* Une version et la suivante, l’une sur l’autre : LAG puis LEAD, precedente puis suivante… */
+.sw{display:inline-grid;justify-items:start}
+.sw>span{grid-area:1/1}
+.sw .b{opacity:0}
+
+/* ---------- 1 · Les rappels ---------- */
+.board{left:64px;width:952px;padding:0 0 8px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar>span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:#FFF4E5;color:#9A5B00;font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.lx{padding:28px 34px 26px}
+.lx-hero{display:flex;align-items:center;gap:26px}
+.lx-ico{width:112px;height:112px;border-radius:34px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:64px;flex:none}
+.lx-t1{font-size:42px;font-weight:800;color:var(--ink);white-space:nowrap}
+.lx-t2{margin-top:6px;font-size:30px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.lx-conds{margin-top:26px;display:flex;align-items:center;gap:14px}
+.cd{height:60px;padding:0 22px;border-radius:999px;font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.cd.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.cd.am{background:#FFF4E5;color:#9A5B00}
+
+/* ---------- 2, 3 et 4 · Les commandes ---------- */
+.rgA{display:grid;grid-template-columns:90px 200px 290px 1fr;padding:0 20px;align-items:center}
+.rgB{display:grid;grid-template-columns:200px 300px 1fr;padding:0 20px;align-items:center}
+.th.t3{height:54px;font-size:26px}
+.th.t3>div{padding:0 8px}
+.tr.t3{height:42px;font-size:30px}
+.tr.t3>div{padding:4px 8px}
+.nul{color:var(--ink-3);font-style:italic;font-weight:500}
+.dv{border-radius:8px;padding:0 6px;margin-left:-6px}
+.qm{display:inline-flex;align-items:center;justify-content:center;width:38px;height:30px;border-radius:9px;border:2px dashed #F2C38A;color:#C08A3E;font-family:var(--display);font-size:21px;font-weight:800}
+.pv{display:inline-grid;justify-items:start}
+.pv>b{grid-area:1/1;font-weight:600}
+.pv>b.b,.pv>b.c{opacity:0}
+.th .pv>b{font-weight:700}
+.vv{border-radius:8px;padding:0 6px;margin-left:-6px}
+/* Un client, un groupe : les groupes alternent deux teintes */
+.tr .bd{position:absolute;left:0;top:0;right:0;bottom:0;opacity:0;z-index:0}
+.tr .bd.g0{background:#F7F4FF;box-shadow:inset 8px 0 0 #A08CF6}
+.tr .bd.g1{background:#FFF8EE;box-shadow:inset 8px 0 0 #F2B25C}
+/* Chapitre 2 : la seconde commande de Lucas Bernard doit lire la date d’une autre ligne */
+.ar2{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;z-index:2}
+.ar2 path{fill:none;stroke:#7C5CFF;stroke-width:5;stroke-linecap:round}
+.ar2 circle{fill:#7C5CFF}
+.al2{position:absolute;height:46px;padding:0 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--display);font-size:25px;font-weight:800;display:flex;align-items:center;white-space:nowrap;z-index:3}
+.pill{left:0;width:1080px;display:flex;justify-content:center}
+.pill>span{height:62px;padding:0 24px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill>span.rd{background:#FDEBEC;color:#C2323A}
+.pill>span.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.pill>span.or{background:#FFF4E5;color:#9A5B00}
+.goal{left:64px;width:952px;height:96px;border-radius:32px;background:#E7F7EE;border:3px solid #BFE8D0;display:flex;align-items:center;justify-content:center;gap:14px;font-size:33px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.goal .emo{font-size:36px}
+
+/* ---------- 5 · Le piège : sans PARTITION BY ---------- */
+.mini.m5{font-size:30px;line-height:44px;padding:20px 30px}
+.rt5{margin-top:20px;border-radius:24px;background:var(--surface-2);overflow:hidden}
+.rt5 .h,.rt5 .r{display:grid;grid-template-columns:150px 230px 250px 1fr;align-items:center;padding:0 22px;font-family:var(--mono);white-space:nowrap}
+.rt5 .h{height:46px;font-size:22px;font-weight:700;color:var(--ink-3)}
+.rt5 .r{position:relative;height:56px;font-size:27px;font-weight:600;color:var(--ink);background:#fff;box-shadow:inset 0 2px 0 var(--line-2)}
+.rt5 .r>span{position:relative;z-index:1}
+.rt5 .r .hl{position:absolute;left:0;top:0;right:0;bottom:0;background:#FDEBEC;box-shadow:inset 8px 0 0 #EF4F55;opacity:0;z-index:0}
+.cv{display:inline-block;border-radius:8px;padding:0 6px;margin-left:-6px}
+.jr{display:inline-flex;align-items:center;height:40px;padding:0 12px;margin-left:-12px;border-radius:12px;font-family:var(--display);font-weight:800}
+.fix{left:64px;width:952px;padding:24px 30px 28px}
+.fix-h{display:flex;align-items:center;gap:12px;font-size:32px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.fix-h .ok{width:46px;height:46px;border-radius:50%;background:#22A35A;color:#fff;font-family:var(--display);font-weight:800;font-size:26px;display:flex;align-items:center;justify-content:center}
+
+/* ---------- 6 · Le résultat ---------- */
+.rgC{display:grid;grid-template-columns:230px 250px 1fr;padding:0 20px;align-items:center}
+.tr.t6{height:50px;font-size:32px}
+.tr.t6>div{padding:6px 8px}
+.nf{padding:24px 30px 24px}
+.nf-n{display:flex;gap:18px;align-items:center;padding:20px 22px;border-radius:28px;background:var(--surface-2)}
+.nf-ico{width:68px;height:68px;border-radius:20px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:38px;flex:none}
+.nf-h{display:flex;align-items:center;gap:12px;font-size:25px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.nf-h b{color:var(--ink);font-weight:800}
+.nf-t{margin-top:4px;font-size:29px;font-weight:600;color:var(--ink);white-space:nowrap}
+.nf-sub{padding:22px 8px 6px;font-size:26px;font-weight:700;color:var(--ink-3);white-space:nowrap}
+.nf-r{height:64px;display:flex;align-items:center;gap:14px;padding:0 8px;box-shadow:inset 0 -2px 0 var(--line-2);font-size:30px;font-weight:700;color:var(--ink);white-space:nowrap}
+.nf-r b{margin-left:auto;height:46px;padding:0 18px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:26px;font-weight:800;display:flex;align-items:center}
+.nf-r i{font-style:normal;height:40px;padding:0 14px;border-radius:999px;background:#FFF4E5;color:#9A5B00;font-size:22px;font-weight:800;display:flex;align-items:center}
+.nf-more{padding:16px 8px 0;font-size:26px;font-weight:700;color:var(--ink-3);white-space:nowrap}
+
+/* ---------- 7 · À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:20px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Fonctions de fenêtre</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>L</span><span>A</span><span class="sp">G</span><span>L</span><span>E</span><span>A</span><span>D</span></div>
+    <div class="abs sub">Lire la ligne précédente ou suivante</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec <span class="ic">LAG()</span> et <span class="ic">LEAD()</span>, chaque ligne lit la valeur d’une ligne voisine.</div>
+  </section>
+
+  <!-- 1 · Situation : un rappel au rythme de chaque client -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="ab1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Marketing · rappels de réachat</span><span class="tb" id="tb1">table commandes</span></div>
+      <div class="lx">
+        <div class="lx-hero"><div class="lx-ico">🔔</div><div><div class="lx-t1">Pensez à recommander</div><div class="lx-t2">Un rappel au rythme de chaque client</div></div></div>
+        <div class="lx-conds"><span class="cd vi" id="cd1">👥 8 clients</span><span class="cd am" id="cd2">⏱️ Délai moyen</span></div>
+      </div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">👤</span><span class="nl">Le prénom et le nom</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">📅</span><span class="nl">Les dates des commandes</span><span class="tag tc">table commandes</span></div>
+      <div class="need-row"><span class="emo">⏱️</span><span class="nl">Le délai moyen, en jours</span><span class="tag tf">à calculer</span></div>
+      <div class="need-row"><span class="emo">🔔</span><span class="nl">10 jours par défaut</span><span class="tag td">à prévoir</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : la date de la commande précédente est sur une autre ligne -->
+  <section class="scene" id="s2">
+    <div class="tbl card" id="tb2" style="top:300px">
+      <div class="tt"><span class="emo">🧾</span><span>Table commandes</span><span class="cnt"><span>16 lignes</span></span></div>
+      <div class="rgA th t3"><div>id</div><div>client_id</div><div>date_commande</div><div>delai</div></div>
+      <div class="rows" id="rows2"><svg class="ar2" id="ar2"><path id="ap2"/><circle id="ad2" r="8"/></svg><span class="al2" id="al2">? jours</span></div>
+    </div>
+    <div class="abs goal" id="goal2"><span class="emo">🎯</span>Lire la date de la commande précédente</div>
+  </section>
+
+  <!-- 3 et 4 · LAG() et LEAD(), puis le délai en jours -->
+  <section class="scene" id="s3">
+    <div class="abs code sm" id="c3" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="c3l1"><span class="kw">SELECT</span> client_id, date_commande,<span class="caret"><i></i></span></span><span class="ln" id="c3l2">       <span class="glow" id="lg3"><span class="kw">LAG</span>(date_commande) <span class="kw">OVER</span> (</span><span class="caret"><i></i></span></span><span class="ln" id="c3l3">         <span class="glow" id="pb3"><span class="kw">PARTITION BY</span> client_id</span><span class="caret"><i></i></span></span><span class="ln" id="c3l4">         <span class="glow" id="ob3"><span class="kw">ORDER BY</span> date_commande, id</span><span class="caret"><i></i></span></span><span class="ln" id="c3l5">       ) <span class="kw">AS</span> precedente<span class="caret"><i></i></span></span><span class="ln" id="c3l6"><span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="c3l7"><span class="kw">WHERE</span> client_id <span class="kw">IS NOT NULL</span><span class="caret"><i></i></span></span><span class="ln" id="c3l8"><span class="kw">ORDER BY</span> client_id, date_commande, id;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="r3"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="abs mini mq" id="m3" style="top:300px"><span class="ml"><span class="sw" id="m3a"><span class="a"><span class="kw">LAG</span>(date_commande) <span class="kw">OVER</span> (</span><span class="b"><span class="kw">LEAD</span>(date_commande) <span class="kw">OVER</span> (</span></span></span><span class="ml">  <span class="kw">PARTITION BY</span> client_id</span><span class="ml">  <span class="kw">ORDER BY</span> date_commande, id</span><span class="ml"><span class="sw" id="m3b"><span class="a">) <span class="kw">AS</span> precedente</span><span class="b">) <span class="kw">AS</span> suivante</span></span></span></div>
+    <div class="abs mini mq" id="m4" style="top:300px"><span class="ml"><span class="glow" id="jd4a"><span class="kw">julianday</span>(date_commande)</span></span><span class="ml">- <span class="glow" id="jd4b"><span class="kw">julianday</span>(<span class="kw">LAG</span>(date_commande)</span> <span class="kw">OVER</span> (</span><span class="ml">    <span class="kw">PARTITION BY</span> client_id</span><span class="ml">    <span class="kw">ORDER BY</span> date_commande, id</span><span class="ml">  )) <span class="kw">AS</span> jours_depuis</span></div>
+    <div class="tbl card" id="tb3">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt3">15 lignes</span></span></div>
+      <div class="rgB th t3"><div>client_id</div><div>date_commande</div><div><span class="pv" id="h3"><b class="a">precedente</b><b class="b">suivante</b><b class="c">jours_depuis</b></span></div></div>
+      <div class="rows" id="rows3"></div>
+    </div>
+  </section>
+
+  <!-- 5 · Le piège : sans PARTITION BY, une seule suite pour tous les clients -->
+  <section class="scene" id="s5">
+    <div class="abs card trap" id="tp5" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Et sans <span class="ic">PARTITION BY</span>&nbsp;?</span></div>
+      <div class="mini m5"><span class="ml"><span class="kw">LAG</span>(date_commande) <span class="kw">OVER</span> (</span><span class="ml">  <span class="glow" id="nb5"><span class="kw">ORDER BY</span> client_id, date_commande, id</span></span><span class="ml">) <span class="kw">AS</span> precedente</span></div>
+      <div class="rt5">
+        <div class="h"><span>client_id</span><span>date_commande</span><span>precedente</span><span>jours</span></div>
+        <div class="r"><span class="hl"></span><span>1</span><span><span class="cv" id="d5a">2026-07-28</span></span><span>2026-07-02</span><span><span class="jr">26</span></span></div>
+        <div class="r"><span class="hl"></span><span>2</span><span>2026-07-05</span><span><span class="cv" id="p5b">2026-07-28</span></span><span><span class="jr" id="j5b">−23</span></span></div>
+        <div class="r"><span class="hl"></span><span>2</span><span>2026-07-20</span><span>2026-07-05</span><span><span class="jr">15</span></span></div>
+      </div>
+    </div>
+    <div class="abs pill" id="ms5"><span class="rd">✕ Lucas Bernard lit la commande de Sophie Martin</span></div>
+    <div class="abs card fix" id="fx5">
+      <div class="fix-h"><span class="ok">✓</span><span>Avec <span class="ic">PARTITION BY client_id</span></span></div>
+      <div class="rt5">
+        <div class="h"><span>client_id</span><span>date_commande</span><span>precedente</span><span>jours</span></div>
+        <div class="r" id="r5f"><span class="hl"></span><span>2</span><span>2026-07-05</span><span><span class="cv nul">NULL</span></span><span><span class="jr nul">NULL</span></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · Le résultat : la moyenne de chaque client, 10 jours par défaut -->
+  <section class="scene" id="s6">
+    <div class="abs code xs" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="glow" id="w6"><span class="kw">WITH</span> delais <span class="kw">AS</span> (</span><span class="caret"><i></i></span></span><span class="ln" id="s6l2">  <span class="kw">SELECT</span> client_id,<span class="caret"><i></i></span></span><span class="ln" id="s6l3">         <span class="kw">julianday</span>(date_commande)<span class="caret"><i></i></span></span><span class="ln" id="s6l4">         - <span class="kw">julianday</span>(<span class="kw">LAG</span>(date_commande) <span class="kw">OVER</span> (<span class="caret"><i></i></span></span><span class="ln" id="s6l5">             <span class="kw">PARTITION BY</span> client_id<span class="caret"><i></i></span></span><span class="ln" id="s6l6">             <span class="kw">ORDER BY</span> date_commande, id<span class="caret"><i></i></span></span><span class="ln" id="s6l7">           )) <span class="kw">AS</span> jours_depuis<span class="caret"><i></i></span></span><span class="ln" id="s6l8">  <span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="s6l9">  <span class="kw">WHERE</span> client_id <span class="kw">IS NOT NULL</span><span class="caret"><i></i></span></span><span class="ln" id="s6l10">)<span class="caret"><i></i></span></span><span class="ln" id="s6l11"><span class="kw">SELECT</span> clients.prenom, clients.nom,<span class="caret"><i></i></span></span><span class="ln" id="s6l12">       <span class="glow" id="av6"><span class="kw">COALESCE</span>(<span class="kw">AVG</span>(jours_depuis), 10)</span><span class="caret"><i></i></span></span><span class="ln" id="s6l13">         <span class="kw">AS</span> delai_moyen<span class="caret"><i></i></span></span><span class="ln" id="s6l14"><span class="kw">FROM</span> delais<span class="caret"><i></i></span></span><span class="ln" id="s6l15"><span class="kw">JOIN</span> clients <span class="kw">ON</span> clients.id = delais.client_id<span class="caret"><i></i></span></span><span class="ln" id="s6l16"><span class="kw">GROUP BY</span> clients.id<span class="caret"><i></i></span></span><span class="ln" id="s6l17"><span class="kw">ORDER BY</span> clients.id;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6" style="top:300px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">8 lignes</span></span></div>
+      <div class="rgC th t3"><div>prenom</div><div>nom</div><div>delai_moyen</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs pill" id="mo6"><span class="vi">⏱️ Sophie Martin&nbsp;: (0 + 26) ÷ 2 = 13 jours</span></div>
+    <div class="abs pill" id="co6"><span class="or">🔔 Hugo Laurent et Gabriel Michel&nbsp;: 10 jours par défaut</span></div>
+    <div class="abs card board" id="ph6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>🔔 Rappels programmés</span></div>
+      <div class="nf">
+        <div class="nf-n"><span class="nf-ico">🛍️</span><div><div class="nf-h"><b>NutriBoost</b><span>· aperçu du rappel</span></div><div class="nf-t">Bonjour Sophie&nbsp;! Pensez à recommander.</div></div></div>
+        <div class="nf-sub">Envoyé après la dernière commande du client</div>
+        <div class="nf-r"><span>Sophie Martin</span><b>après 13 jours</b></div>
+        <div class="nf-r"><span>Lucas Bernard</span><b>après 15 jours</b></div>
+        <div class="nf-r"><span>Emma Dubois</span><b>après 22 jours</b></div>
+        <div class="nf-r"><span>Hugo Laurent</span><i>par défaut</i><b>après 10 jours</b></div>
+        <div class="nf-more">+ 4 autres rappels</div>
+      </div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ 8 rappels programmés</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">↕️</div><div class="rtxt"><span class="ic">LAG()</span> lit une valeur sur la ligne <b>précédente</b>, <span class="ic">LEAD()</span> sur la <b>suivante</b>.<br><span class="ic blk">LAG(date_commande) OVER (…)</span></div></div>
+      <div class="rrow"><div class="rico emo">🧭</div><div class="rtxt"><span class="ic">PARTITION BY</span> sépare les groupes&nbsp;; l’<span class="ic">ORDER BY</span> de <span class="ic">OVER</span> définit ce qui vient avant ou après.<span class="rs">Sans <span class="ic">PARTITION BY</span>&nbsp;: une seule suite.</span></div></div>
+      <div class="rrow"><div class="rico emo">🕳️</div><div class="rtxt">Au bord de la fenêtre, il n’y a pas de voisine&nbsp;: le résultat vaut <span class="ic">NULL</span>.<span class="rs"><span class="ic">AVG()</span> ignore les <span class="ic">NULL</span>&nbsp;; <span class="ic">COALESCE()</span> fixe une valeur par défaut.</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 168.1;
+
+/* La table commandes, dans l’ordre des id : [id, client_id, date]. La commande n°16 n’a pas de client. */
+const TABLE = [[1, 1, '2026-07-02'], [2, 1, '2026-07-02'], [3, 2, '2026-07-05'], [4, 3, '2026-07-08'], [5, 4, '2026-07-11'],
+  [6, 5, '2026-07-12'], [7, 6, '2026-07-15'], [8, 7, '2026-07-18'], [9, 7, '2026-07-18'], [10, 2, '2026-07-20'],
+  [11, 8, '2026-07-22'], [12, 4, '2026-07-25'], [13, 1, '2026-07-28'], [14, 3, '2026-07-30'], [15, 5, '2026-08-01'], [16, null, '2026-08-03']];
+/* Le résultat des chapitres 3 et 4, client par client puis par date : [client_id, date, LAG, LEAD, jours depuis la précédente]. */
+const SUITE = [
+  [1, '2026-07-02', null, '2026-07-02', null], [1, '2026-07-02', '2026-07-02', '2026-07-28', 0], [1, '2026-07-28', '2026-07-02', null, 26],
+  [2, '2026-07-05', null, '2026-07-20', null], [2, '2026-07-20', '2026-07-05', null, 15],
+  [3, '2026-07-08', null, '2026-07-30', null], [3, '2026-07-30', '2026-07-08', null, 22],
+  [4, '2026-07-11', null, '2026-07-25', null], [4, '2026-07-25', '2026-07-11', null, 14],
+  [5, '2026-07-12', null, '2026-08-01', null], [5, '2026-08-01', '2026-07-12', null, 20],
+  [6, '2026-07-15', null, null, null],
+  [7, '2026-07-18', null, '2026-07-18', null], [7, '2026-07-18', '2026-07-18', null, 0],
+  [8, '2026-07-22', null, null, null]
+];
+/* Chapitre 6 : le délai moyen de chaque client (10 jours par défaut pour Hugo Laurent et Gabriel Michel). */
+const MOYENNES = [['Sophie', 'Martin', 13], ['Lucas', 'Bernard', 15], ['Emma', 'Dubois', 22], ['Nathan', 'Petit', 14],
+  ['Chloé', 'Moreau', 20], ['Hugo', 'Laurent', 10], ['Léa', 'Simon', 0], ['Gabriel', 'Michel', 10]];
+const NUL = '<i class="nul">NULL</i>';
+const val = v => v === null ? NUL : v;
+
+const CHAPTERS = [
+  {n:1, label:'Situation',          a:5.0,   b:28.0},
+  {n:2, label:'Le problème',        a:28.0,  b:52.0},
+  {n:3, label:'LAG() et LEAD()',    a:52.0,  b:78.0},
+  {n:4, label:'Le délai en jours',  a:78.0,  b:104.0},
+  {n:5, label:'Le piège',           a:104.0, b:128.0},
+  {n:6, label:'Le résultat',        a:128.0, b:158.0},
+  {n:7, label:'À retenir',          a:158.0, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 10.6,    "L’équipe marketing veut rappeler à chaque client de <b>recommander</b>, au bon moment."],
+  [10.7, 16.4,   "Ce moment dépend du <b>délai moyen</b> qui sépare deux commandes du client."],
+  [16.5, 22.1,   "Les dates des commandes sont enregistrées dans la <b>table commandes</b>."],
+  [22.2, 27.5,   "Et un client qui n’a commandé qu’une fois recevra son rappel après <b>10 jours</b>."],
+  [28.3, 33.9,   "Dans la table, chaque commande a sa propre ligne, tous clients confondus."],
+  [34.0, 39.6,   "Le client 2, Lucas Bernard, a commandé le 5 juillet, puis le 20 juillet."],
+  [39.7, 45.3,   "Pour mesurer son délai, la seconde commande doit lire une date sur une <b>autre ligne</b>."],
+  [45.4, 51.5,   "Chaque ligne doit donc pouvoir lire la date de la commande précédente du même client."],
+  [52.3, 57.9,   "Avec <code>LAG(date_commande)</code>, chaque ligne lit la date de la ligne <b>précédente</b>."],
+  [58.0, 63.6,   "<code>PARTITION BY</code> sépare les clients, et <code>ORDER BY</code> range les commandes de chacun par date."],
+  [63.7, 69.3,   "Pour sa première commande, aucun client n’a de précédente : le résultat vaut <code>NULL</code>."],
+  [69.4, 77.5,   "<code>LEAD()</code> lit la ligne <b>suivante</b> : c’est alors la dernière commande qui affiche <code>NULL</code>."],
+  [78.3, 83.9,   "Pour le délai, <code>julianday()</code> convertit chaque date en nombre de jours."],
+  [84.0, 89.6,   "La différence donne le délai : Lucas Bernard a recommandé après <b>15 jours</b>."],
+  [89.7, 95.3,   "Sophie Martin a commandé deux fois le 2 juillet : 0 jour d’écart, puis 26 jours."],
+  [95.4, 103.5,  "Sans commande précédente, pas de délai : les premières commandes restent à <code>NULL</code>."],
+  [104.3, 109.8, "Attention : sans <code>PARTITION BY</code>, toutes les commandes forment une <b>seule suite</b>."],
+  [109.9, 115.5, "La toute première commande de Lucas Bernard lit alors la dernière de Sophie Martin."],
+  [115.6, 121.2, "Le délai calculé vaut <b>−23 jours</b> : un résultat qui n’a aucun sens."],
+  [121.3, 127.5, "Avec <code>PARTITION BY client_id</code>, chaque client garde sa propre suite."],
+  [128.3, 134.4, "D’abord, un <code>WITH</code> nommé <code>delais</code> calcule le délai de chaque commande."],
+  [134.5, 140.1, "Ensuite, <code>AVG()</code> calcule la moyenne de chaque client et ignore les <code>NULL</code>."],
+  [140.2, 145.5, "Sophie Martin : 0 et 26 jours, soit <b>13 jours</b> en moyenne."],
+  [145.6, 151.8, "Hugo Laurent et Gabriel Michel n’ont aucun délai : <code>COALESCE()</code> remplace ce <code>NULL</code> par <b>10 jours</b>."],
+  [151.9, 157.5, "Chaque client recevra son rappel au bon moment : <b>8 rappels</b> sont programmés."],
+  [158.3, 163.1, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [163.2, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [163.2, 999, "<code>LAG()</code> lit la ligne précédente et <code>LEAD()</code> la suivante, groupe par groupe avec <code>PARTITION BY</code>."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+function dom(){
+  /* Chapitre 2 : la table commandes, telle quelle ; le délai est encore inconnu */
+  $('#rows2').insertAdjacentHTML('beforeend', TABLE.map(([id, c, d]) =>
+    `<div class="rgA tr t3"><span class="hl"></span><div>${id}</div><div>${val(c)}</div><div><span class="dv">${d}</span></div><div><span class="qm">?</span></div></div>`).join(''));
+  /* Chapitres 3 et 4 : la date précédente (a), la suivante (b), puis le délai en jours (c) ; une teinte par client */
+  $('#rows3').innerHTML = SUITE.map(([c, d, p, s, j]) =>
+    `<div class="rgB tr t3"><span class="bd g${(c + 1) % 2}"></span><span class="hl"></span><div>${c}</div><div>${d}</div><div><span class="pv"><b class="a">${val(p)}</b><b class="b">${val(s)}</b><b class="c"><span class="vv">${val(j)}</span></b></span></div></div>`).join('');
+  /* Chapitre 6 : le résultat de la requête finale */
+  $('#rows6').innerHTML = MOYENNES.map(([p, n, m]) =>
+    `<div class="rgC tr t6"><span class="hl"></span><div>${p}</div><div>${n}</div><div>${m}</div></div>`).join('');
+}
+/* Chapitre 2 : la flèche part de la seconde commande de Lucas Bernard (id 10) et remonte jusqu’à sa première (id 3). */
+function fleche(){
+  const rows = $$('#rows2 .tr'), box = $('#rows2');
+  const y = i => rows[i].offsetTop + rows[i].offsetHeight / 2;
+  const x1 = box.offsetWidth - 150, x2 = box.offsetWidth - 70, ya = y(9), yb = y(2);
+  $('#ar2').setAttribute('viewBox', `0 0 ${box.offsetWidth} ${box.offsetHeight}`);
+  $('#ap2').setAttribute('d', `M${x1} ${ya} C${x2} ${ya} ${x2} ${yb} ${x1} ${yb}`);
+  $('#ad2').setAttribute('cx', x1); $('#ad2').setAttribute('cy', yb);
+  const al = $('#al2');
+  al.style.left = Math.round(x1 + (x2 - x1) * 0.75 - al.offsetWidth / 2) + 'px';
+  al.style.top = Math.round((ya + yb) / 2 - al.offsetHeight / 2) + 'px';
+  return $('#ap2').getTotalLength();
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+/* Une carte arrive en tournant légèrement, puis ses éléments un à un. */
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(sel, $(id));
+  gsap.set(items, {autoAlpha: 0, y: 24});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => cue(t + 0.65 + i * step, 'pop', 0.55, i % 5));
+  return items;
+}
+/* Une valeur laisse place à la suivante (couche « de » → couche « vers ») ; les lignes passent groupe par groupe. */
+function swapLayer(els, from, to, t){
+  tl.to(els.map(e => e.querySelector('.' + from)), {autoAlpha: 0, duration: 0.15}, t);
+  tl.fromTo(els.map(e => e.querySelector('.' + to)), {autoAlpha: 0, y: 10}, {autoAlpha: 1, y: 0, duration: 0.25, ease: 'back.out(2)', immediateRender: false}, t + 0.12);
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.3);   // le temps de lire la bulle de la mascotte
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  boardIn('#ab1', 5.15, '.lx-hero');
+  gsap.set(['#cd1', '#cd2', '#tb1'], {autoAlpha: 0});
+  // Un rappel au bon moment : le délai moyen de chaque client
+  show('#cd1', 11.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(11.2, 'pop', 0.7, 1);
+  show('#cd2', 12.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(12.2, 'pop', 0.7, 3);
+  // La table commandes
+  stackBelow('#s1 .need', '#ab1');   // la liste se cale sous la carte de la situation, sans la toucher
+  show('#tb1', 17.0, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(17.0, 'pop', 0.7, 2);
+  show('#s1 .need', 17.5, {y: 60});
+  cue(17.5, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.3}, 17.8);
+  needRows.forEach((_, i) => cue(17.8 + i * 0.3, 'pop', 0.7, i));
+  // 10 jours par défaut
+  pulse(needRows[3], 23.4, 3, 'rgba(160,196,255,.35)');
+  hide(['#ab1', '#s1 .need'], 27.5);
+  sceneOff('#s1', 28.0);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 28.0);
+  show('#tb2', 28.2, {y: 60}, 0.55);
+  cue(28.2, 'whoosh', 0.6);
+  const r2 = $$('#rows2 .tr');
+  rowsIn(r2, 28.6, 0.05);
+  // Lucas Bernard : le 5 juillet, puis le 20 juillet
+  const lu2 = [2, 9].map(i => r2[i]);
+  tl.to(lu2.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.5}, 35.0);
+  lu2.forEach((r, i) => { pulse(r.querySelector('.dv'), 35.3 + i * 0.5, 1, 'rgba(255,214,140,.85)'); cue(35.0 + i * 0.5, 'tick', 0.5, i + 1); });
+  // La date d’une autre ligne
+  const len = fleche();
+  gsap.set('#ap2', {strokeDasharray: len, strokeDashoffset: len, opacity: 0});
+  tl.set('#ap2', {opacity: 1}, 40.3);
+  gsap.set('#ad2', {autoAlpha: 0, scale: 0, transformOrigin: '50% 50%'});
+  gsap.set('#al2', {autoAlpha: 0, scale: 0.7});
+  tl.to('#ap2', {strokeDashoffset: 0, duration: 0.8, ease: 'power2.inOut'}, 40.3);
+  cue(40.3, 'whoosh', 0.5);
+  tl.to('#ad2', {autoAlpha: 1, scale: 1, duration: 0.25, ease: 'back.out(2.4)'}, 41.05);
+  tl.to('#al2', {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)'}, 41.3);
+  cue(41.3, 'pop', 0.6, 2);
+  // Lire la date de la commande précédente
+  stackBelow('#goal2', '#tb2', 0, 30);
+  show('#goal2', 46.0, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(46.0, 'pop', 0.75, 3);
+  hide(['#tb2', '#goal2'], 51.5, {y: -40}, 0.4);
+  sceneOff('#s2', 52.0);
+
+  /* ===== 3 · LAG() et LEAD() ===== */
+  sceneOn('#s3', 52.0);
+  show('#c3', 52.35, {y: 60}, 0.6);
+  cue(52.35, 'whoosh', 0.7);
+  te = typeLine($('#c3l1'), 52.85, 48);
+  for (let k = 2; k <= 8; k++) te = typeLine($('#c3l' + k), te + 0.05, 48);
+  pulse('#lg3', 54.6, 3, 'rgba(201,188,255,.45)');
+  // PARTITION BY sépare les clients, ORDER BY range leurs commandes
+  pulse('#pb3', 58.3, 3, 'rgba(201,188,255,.45)');
+  pulse('#ob3', 59.7, 3, 'rgba(201,188,255,.45)');
+  press($('#r3'), 62.3);
+  hide('#c3', 62.55, {y: -40}, 0.4);
+  gsap.set('#m4', {autoAlpha: 0});
+  stackBelow('#tb3', '#m3', 0, 30);   // sous OVER (…) ; le tableau descend quand le calcul du délai prend une ligne de plus
+  show('#m3', 62.85, {y: 40}, 0.5);
+  cue(62.85, 'whoosh', 0.6);
+  show('#tb3', 63.1, {y: 40}, 0.5);
+  const r3 = $$('#rows3 .tr');
+  rowsIn(r3, 63.3, 0.04);
+  gsap.set('#cnt3', {autoAlpha: 0});
+  show('#cnt3', 63.9, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  tl.to(r3.map(r => r.querySelector('.bd')), {opacity: 1, duration: 0.3}, 63.6);
+  const va = r3.map(r => r.querySelector('.pv .a'));
+  gsap.set(va, {autoAlpha: 0});
+  tl.to(va, {autoAlpha: 1, duration: 0.2, stagger: 0.05}, 64.1);
+  // La première commande de chaque client : NULL
+  const premieres = r3.filter((_, i) => SUITE[i][2] === null);
+  bump(premieres.map(r => r.querySelector('.pv .a')), 65.7, 1.25, 1);
+  cue(65.7, 'tick', 0.5, 2);
+  // LEAD() : la ligne suivante
+  ['#m3a', '#m3b', '#h3'].forEach((s, i) => swapLayer([$(s)], 'a', 'b', 70.0 + i * 0.1));
+  cue(70.0, 'fold', 0.5);
+  [1, 2, 3, 4, 5, 6, 7, 8].forEach((c, k) => swapLayer(r3.filter((_, i) => SUITE[i][0] === c).map(r => r.querySelector('.pv')), 'a', 'b', 70.7 + k * 0.15));
+  cue(70.7, 'pop', 0.5, 1);
+  const dernieres = r3.filter((_, i) => SUITE[i][3] === null);
+  bump(dernieres.map(r => r.querySelector('.pv .b')), 73.0, 1.25, 1);
+  cue(73.0, 'tick', 0.5, 3);
+
+  /* ===== 4 · Le délai en jours ===== */
+  hide('#m3', 78.4, {y: 0}, 0.3);
+  show('#m4', 78.6, {y: 20}, 0.4);
+  cue(78.6, 'whoosh', 0.5);
+  tl.to('#tb3', {y: 46, duration: 0.35, ease: 'power3.out'}, 78.6);
+  // La date précédente revient : c’est elle que l’on soustrait
+  swapLayer([$('#h3'), ...r3.map(r => r.querySelector('.pv'))], 'b', 'a', 78.8);
+  pulse('#jd4a', 79.8, 3, 'rgba(201,188,255,.45)');
+  pulse('#jd4b', 81.0, 3, 'rgba(201,188,255,.45)');
+  // La différence donne le délai
+  swapLayer([$('#h3')], 'a', 'c', 84.2);
+  [1, 2, 3, 4, 5, 6, 7, 8].forEach((c, k) => swapLayer(r3.filter((_, i) => SUITE[i][0] === c).map(r => r.querySelector('.pv')), 'a', 'c', 84.3 + k * 0.15));
+  cue(84.3, 'pop', 0.5, 2);
+  // Lucas Bernard : 15 jours
+  const lu3 = r3.filter((_, i) => SUITE[i][0] === 2);
+  tl.to(lu3.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3}, 85.8);
+  pulse(lu3[1].querySelector('.vv'), 86.3, 3, 'rgba(255,214,140,.85)');
+  cue(86.3, 'tick', 0.5, 1);
+  tl.to(lu3.map(r => r.querySelector('.hl')), {opacity: 0, duration: 0.3}, 89.4);
+  // Sophie Martin : 0, puis 26 jours
+  const so3 = r3.filter((_, i) => SUITE[i][0] === 1);
+  tl.to(so3.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3}, 90.2);
+  pulse(so3[1].querySelector('.vv'), 90.9, 1, 'rgba(255,214,140,.85)');
+  cue(90.9, 'tick', 0.5, 2);
+  pulse(so3[2].querySelector('.vv'), 92.0, 1, 'rgba(255,214,140,.85)');
+  cue(92.0, 'tick', 0.5, 4);
+  tl.to(so3.map(r => r.querySelector('.hl')), {opacity: 0, duration: 0.3}, 95.1);
+  // Les premières commandes restent à NULL
+  bump(premieres.map(r => r.querySelector('.pv .c')), 96.2, 1.25, 1);
+  cue(96.2, 'tick', 0.5, 0);
+  hide(['#m4', '#tb3'], 103.5, {y: -40});
+  sceneOff('#s3', 104.0);
+
+  /* ===== 5 · Le piège ===== */
+  sceneOn('#s5', 104.0);
+  show('#tp5', 104.35, {y: 50});
+  cue(104.35, 'whoosh', 0.6);
+  const r5 = $$('#tp5 .r');
+  rowsIn(r5, 105.0, 0.15);
+  const j5 = $$('#tp5 .jr');
+  gsap.set(j5, {autoAlpha: 0, scale: 0.5});
+  // Une seule suite : pas de PARTITION BY
+  pulse('#nb5', 106.2, 3, 'rgba(255,214,140,.5)');
+  // La première commande de Lucas Bernard lit la dernière de Sophie Martin
+  pulse(['#d5a', '#p5b'], 110.6, 3, 'rgba(255,214,140,.85)');
+  cue(110.6, 'tick', 0.5, 2);
+  // −23 jours
+  tl.to(j5, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.2)', stagger: 0.3}, 115.9);
+  j5.forEach((_, i) => cue(115.9 + i * 0.3, 'tick', 0.5, i + 1));
+  tl.to('#j5b', {color: '#C2323A', backgroundColor: '#FDEBEC', duration: 0.3}, 116.6);
+  tl.to(r5[1].querySelector('.hl'), {opacity: 1, duration: 0.3}, 116.6);
+  shake('#j5b', 116.8);
+  cue(116.8, 'miss', 0.6);
+  stackBelow('#ms5', '#tp5', 0, 30);
+  show('#ms5', 117.3, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  // Avec PARTITION BY : chaque client garde sa suite
+  stackBelow('#fx5', '#ms5', 0, 30);
+  show('#fx5', 121.8, {y: 50});
+  cue(121.8, 'true', 0.6);
+  bump($$('#r5f .nul'), 123.0, 1.2, 1);
+  cue(123.0, 'tick', 0.5, 3);
+  hide(['#tp5', '#ms5', '#fx5'], 127.5, {y: -40});
+  sceneOff('#s5', 128.0);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 128.0);
+  show('#s6code', 128.05, {y: 60}, 0.6);
+  cue(128.05, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 128.5, 64);
+  for (let k = 2; k <= 17; k++) te = typeLine($('#s6l' + k), te + 0.05, 64);
+  pulse('#w6', 129.2, 3, 'rgba(201,188,255,.45)');
+  pulse('#av6', 134.9, 3, 'rgba(201,188,255,.45)');
+  press($('#s6run'), 136.8);
+  hide('#s6code', 137.05, {y: -40}, 0.4);
+  show('#tbl6', 137.4, {y: 40}, 0.5);
+  const r6 = $$('#rows6 .tr');
+  rowsIn(r6, 137.6, 0.1);
+  gsap.set('#cnt6', {autoAlpha: 0});
+  show('#cnt6', 138.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // Sophie Martin : 13 jours en moyenne
+  tl.to(r6[0].querySelector('.hl'), {opacity: 1, duration: 0.3}, 140.6);
+  stackBelow('#mo6', '#tbl6', 0, 30);
+  stackBelow('#co6', '#tbl6', 0, 30);
+  show('#mo6', 141.2, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(141.2, 'pop', 0.6, 2);
+  tl.to(r6[0].querySelector('.hl'), {opacity: 0, duration: 0.3}, 145.3);
+  hide('#mo6', 145.3, {y: 0, scale: 0.8}, 0.25);
+  // Hugo Laurent et Gabriel Michel : 10 jours par défaut
+  tl.to([r6[5], r6[7]].map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.3}, 146.3);
+  cue(146.3, 'tick', 0.5, 1);
+  show('#co6', 147.0, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(147.0, 'chord', 0.6);
+  hide(['#tbl6', '#co6'], 151.5, {y: -40});
+  // 8 rappels programmés
+  boardIn('#ph6', 151.95, '.nf-n, .nf-sub, .nf-r, .nf-more', 0.15);
+  stackBelow('#badge6', '#ph6', 0, 50);
+  show('#badge6', 154.7, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(154.7, 'success', 0.9);
+  hide(['#ph6', '#badge6'], 157.5);
+  sceneOff('#s6', 158.0);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(158.0, [158.7, 160.5, 162.3]);
+  hold(160.3, 4.8);
+  hold(162.1, 4.8);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(163.25, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 163.2,
+  glyphs: '🔔👥⏱️👤📅🧾🎯🔎⚠️✕✓🛍️↕️🧭🕳️·…→−÷', dom, build});
+</script>
+</body>
+</html>
