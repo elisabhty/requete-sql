@@ -161,6 +161,8 @@ gsap.config({force3D: false});
 const tl = gsap.timeline({paused: true});
 const CUES = [];
 function cue(t, type, gain = 1, pitch = 0){ CUES.push({t: +t.toFixed(3), type, gain, pitch}); }
+/* Son joué tout de suite (aperçu d’un moment « À toi ») : le lecteur fournit window.__sfx ; seule, la page reste muette. */
+function sfx(type, pitch = 0, gain = 1){ try { if (typeof window.__sfx === 'function') window.__sfx(type, pitch, gain); } catch (e) {} }
 /* Mouvements d’ambiance (mascotte qui flotte…) : une pause de lecture peut tomber pendant eux. */
 const AMB = {data: 'amb'};
 
@@ -486,11 +488,12 @@ function layoutIssues(render, total){
 }
 
 /* Une pause de lecture fige l’image : rien ne doit être en plein mouvement à cet instant
-   (hors mouvements d’ambiance). Liste les animations interrompues, pour la mise au point. */
-function holdClashes(){
+   (hors mouvements d’ambiance). Liste les animations interrompues, pour la mise au point.
+   Les moments « À toi » (picks) arrêtent aussi l’image : ils sont vérifiés de la même façon. */
+function holdClashes(extra = []){
   const out = [];
   const tweens = tl.getChildren(true, true, false).filter(c => !(c.vars && c.vars.data === 'amb'));
-  HOLDS.forEach(([h]) => {
+  HOLDS.map(h => [h[0]]).concat(extra.map(t => [t])).forEach(([h]) => {
     tweens.forEach(c => {
       const a = c.startTime(), b = a + c.totalDuration();
       if (b - a > 0.002 && a < h - 0.001 && b > h + 0.001) {
@@ -503,9 +506,9 @@ function holdClashes(){
 }
 
 /* ---------- Le cours ---------- */
-/* cfg : {duration, chapters, captions, questions, notesAt, glyphs, dom(), build()} */
+/* cfg : {duration, chapters, captions, questions, picks, notesAt, glyphs, dom(), build(), onRender(T)} */
 function Course(cfg){
-  const {duration, chapters, captions, questions = [], notesAt = null} = cfg;
+  const {duration, chapters, captions, questions = [], picks = [], notesAt = null} = cfg;
   let out = 0;
   function renderAt(T){
     tl.seek(warp(T), true);
@@ -516,6 +519,8 @@ function Course(cfg){
       if (b1) b1.style.transform = `translate(${Math.sin(T * 0.21) * 60}px, ${Math.cos(T * 0.17) * 40}px)`;
       if (b2) b2.style.transform = `translate(${Math.cos(T * 0.15) * 70}px, ${Math.sin(T * 0.19) * 50}px)`;
     }
+    /* La page peut suivre le rendu (aperçu d’un moment « À toi » retiré quand la timeline montre la même image). */
+    if (cfg.onRender) cfg.onRender(T);
   }
   window.renderAt = renderAt;
   window.__ready = (async () => {
@@ -535,11 +540,14 @@ function Course(cfg){
     renderAt(0);
     if (EMBED) dispatchEvent(new Event('resize'));
     return {duration: out, fps: FPS, cues: CUES.map(c => Object.assign({}, c, {t: unwarp(c.t)})), overflow: checkCaptions(captions),
-      notesT: notesAt != null ? unwarp(notesAt) : null, holds: +total.toFixed(3), holdList: HOLDS, clashes: holdClashes(),
+      notesT: notesAt != null ? unwarp(notesAt) : null, holds: +total.toFixed(3), holdList: HOLDS, clashes: holdClashes(picks.map(p => p.at)),
       textIssues: QS.has('check') ? textIssues() : undefined,
       layoutIssues: QS.has('check') ? layoutIssues(renderAt, out) : undefined,
       chapters: chapters.map(c => ({t: unwarp(c.a), n: c.n, label: c.label})),
       questions: questions.map(q => ({t: unwarp(q.at), kicker: q.kicker, ctx: fr(q.ctx || ''), q: fr(q.q), options: q.options.map(o => ({label: o.label, ok: o.ok})), okTitle: fr(q.okTitle), koTitle: fr(q.koTitle), why: fr(q.why)})),
+      /* Moments « À toi » : l’animation s’arrête, l’élève place une étiquette dans la requête ; la page montre aussitôt
+         le résultat de son choix (window.IX : slot, pick, leave), le lecteur gère le plateau, le son et la reprise. */
+      picks: picks.map(p => ({t: unwarp(p.at), prompt: fr(p.prompt), options: p.options.map(o => ({label: o.label, ok: !!o.ok}))})),
       /* Légendes en texte : le lecteur les annonce à VoiceOver au fil de l’animation. */
       captions: captions.map(c => ({a: unwarp(c[0]), b: unwarp(Math.min(c[1], duration)), text: plain(c[2])}))};
   })();

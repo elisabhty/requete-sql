@@ -680,15 +680,19 @@ const COURSES = [
       '<span class="glow" id="or5"><span class="kw">OR</span> clients.ville = <span class="str">\'Paris\'</span></span>', '<span class="n5">72 lignes</span>',
       '✓ 2 commandes pour le coursier', '<span class="c">Lyon ✕</span>', '"👉 13 est le numéro de la commande ; 1 est le numéro du client."',
       '<span class="bike" id="bike6"><span class="emo">🛵</span></span>', '<span class="lvr">✓ Livrée</span>']},
-  {id: 44, next: 45, titre: 'Quel JOIN choisir\u00a0?', page: 'quel-join-choisir.html', thumb: 'quel-join-choisir-thumb.jpg', duree: '3 min 23', notesAt: 186.3,
-    notes: /notes:\{t:198\.0,y:1322,card:\[64,292,1016,1027\],to:\[940,255\]\}/, table: 'clients',
-    bubble: 'Pour choisir une jointure, réponds<br>à deux questions, dans l’ordre.',
-    chapters: ['Situation', 'Le problème', 'Première question', 'Deuxième question', 'Le piège', 'Le résultat', 'À retenir'],
-    traps: ['<span class="jn-q" id="jq2">Laquelle choisir&nbsp;?</span>', 'const GARDE = {inner: [1, 0, 0], left: [1, 1, 0], right: [1, 0, 1], full: [1, 1, 1]};',
-      '<span class="orph" id="m2a"><span class="emo">✕</span>Inès Lefebvre</span>', '<span class="qb">1</span><span class="tx">Faut-il vérifier une correspondance&nbsp;?</span>',
-      '<span class="jc2 nx" id="nx3">Question 2&nbsp;→</span>', '<span class="qb">2</span><span class="tx">Quelles lignes doivent rester, même sans correspondance&nbsp;?</span>',
-      '<span class="glow" id="o5">commandes.client_id</span> = clients.id;', '<div class="gd-x" id="gx5"><span class="emo">✕</span>L’ordre écrit dans le <span class="ic">ON</span> ne change pas les côtés</div>',
-      '<span class="glow" id="j6"><span class="kw">LEFT JOIN</span> commandes</span>', '✓ 2 clients à contrôler']},
+  {id: 44, next: 45, titre: 'Quel JOIN choisir ?', page: 'quel-join-choisir.html', thumb: 'quel-join-choisir-thumb.jpg', duree: '3 min 58', notesAt: 218.5,
+    notes: /notes:\{t:229\.2,y:1322,card:\[64,292,1016,1027\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Six situations de la vie courante&nbsp;:<br>à toi de choisir le bon <span class="ic">JOIN</span>.',
+    chapters: ['Le cabinet médical', 'L’aquarium', 'La bibliothèque', 'L’hôtel', 'Le glacier', 'L’entreprise', 'À retenir'],
+    traps: ["const SAL = [[1, 'Nadia Benali', N], [2, 'Hugo Lefèvre', 1], [3, 'Inès Fabre', 2], [4, 'Théo Petit', 2]];",
+      "on: (l, r) => l[1] === r[0], cols: ['patient', 'medecin'], sel: [[0, 0], [1, 1]],",
+      "{label: 'medecins.id', ok: true, say: 'Chaque rendez-vous est relié à son médecin.'},",
+      "{label: 'rendez_vous.medecin_id', on: l => l[1] !== N, say: 'Chaque rendez-vous serait relié à tous les médecins.'}]},",
+      "{at: 113.0, c: 3, kind: 'join', res: 1, mir: 1,", "options: J('cross', {", "{label: 'managers', err: 'no such table: managers',",
+      "{label: 'm.manager_id', on: (l, r) => l[2] !== N && l[2] === r[2], say: 'Ces lignes réunissent des salariés du même manager.'},",
+      '<span class="cm hid" id="q5c">-- sans ON</span>', "if (out.length + rest.length <= 6) rest.forEach(s => { out.push(JSON.parse(s)); mk.push('m'); });",
+      "leave(i, answered){ if (answered && X && X.ok && X.i === i) wait = i; else clear(); },",
+      "tick(){ if (wait < 0) return; const a = PICKS[wait].at, t = tl.time(); if (t >= a + 0.0199 || t < a - 0.001) clear(); }"]},
   {id: 45, next: 47, titre: 'Sous-requête dans WHERE avec IN', page: 'sous-requete-in.html', thumb: 'sous-requete-in-thumb.jpg', duree: '3 min 31', notesAt: 194.1,
     notes: /notes:\{t:205\.8,y:1294,card:\[64,292,1016,999\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avec une sous-requête, la liste de <span class="ic">IN</span><br>est fabriquée par une autre requête.',
@@ -923,4 +927,107 @@ test('animations : opérateurs écrits tels qu’on les tape (<= et non ≤), Je
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/comparer.html'), 'utf8');
   assert.ok(/\.op \.sym\{[^}]*font-variant-ligatures:none/.test(page), 'symboles du tableau des opérateurs sans ligatures');
   assert.ok(!/[≤≥≠]/.test(page), 'jamais ≤, ≥ ou ≠ : les opérateurs SQL tels qu’on les tape');
+});
+
+test('LvAnim : moments « À toi » de la leçon interactive, arrêt pile, événement « pick », son d’aperçu fourni à la page', async () => {
+  const frames = [];
+  let now = 0;
+  const ctx = vm.createContext({
+    requestAnimationFrame: cb => { frames.push(cb); return frames.length; },
+    cancelAnimationFrame: () => { frames.length = 0; },
+    performance: {now: () => now},
+    setTimeout, clearTimeout, Promise, Math, Number, Set, Map, Error,
+  });
+  vm.runInContext(cut('const LvSfx=', 'function lessonVideoOn(l)') + ';this.LvAnim=LvAnim;', ctx);
+  const info = {duration: 10, cues: [], chapters: [], captions: [], questions: [],
+    picks: [{t: 3, prompt: 'Quel <code>JOIN</code> ?', options: [{label: 'INNER', ok: true}, {label: 'LEFT', ok: false}]}]};
+  const win = {__ready: Promise.resolve(info), renderAt: () => {}};
+  const frame = {addEventListener(type, fn) { this.load = fn; }, contentWindow: win, src: ''};
+  const a = new ctx.LvAnim(frame), log = [];
+  a.addEventListener('pick', e => log.push(`pick:${e.detail.i}:${e.detail.p.options.length}`));
+  a.play();
+  await frame.load();
+  assert.equal(typeof win.__sfx, 'function', 'la page joue les sons de ses aperçus par le lecteur (bouton son respecté)');
+  const step = dt => { now += dt * 1000; const f = frames.shift(); f && f(now); };
+  for (let i = 0; i < 50; i++) step(0.1);
+  assert.equal(a.currentTime, 3, 'arrêt pile sur le moment « À toi »');
+  assert.ok(a.paused && log.join() === 'pick:0:2', 'le moment met l’animation en pause et prévient le lecteur');
+  a.play();
+  for (let i = 0; i < 80; i++) step(0.1);
+  assert.ok(a.ended && log.length === 1, 'reprise jusqu’à la fin, sans repasser par le moment');
+  a.destroy();
+});
+
+test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la requête, verdict, score du premier essai', () => {
+  const show = cut('function lvPkShow(i,p){', 'function lvPkTry(k){');
+  for (const part of ['À toi · ${i+1}/${n}', "LV.root.classList.add('is-q','is-pk');", 'IX.enter(i)', '>Continuer</button>'])
+    assert.ok(show.includes(part), `plateau : ${part}`);
+  const tr = cut('function lvPkTry(k){', 'function lvPkVerdict(');
+  assert.ok(tr.includes('IX.pick(P.i,k)') && tr.includes('lvPkFly(btn,rect,land)'), 'l’étiquette s’envole jusqu’au trou, puis la page montre le résultat de ce choix');
+  const vd = cut('function lvPkVerdict(', '/* L’étiquette quitte le plateau');
+  for (const part of ['lvPkSet(LV.id,P.i,first)', "LvSfx.play('chord',0,.55,0)", 'lvPkBurst(rect)', "kick.textContent='✕ Essaie un autre choix';", "btn.classList.add('is-out')"])
+    assert.ok(vd.includes(part), `verdict : ${part}`);
+  assert.ok(html.includes('.lv.is-pk .lv-bottom{visibility:hidden}') && html.includes('const a=lvPt(0,1496);'), 'le plateau couvre la légende et les commandes, jamais le résultat');
+  assert.ok(cut('function lvPkClose(answered){', 'function lvReplay(){').includes('IX.leave(P.i,!!answered)'), 'à la reprise, la page laisse la timeline reprendre la même image');
+  assert.ok(html.includes("o['p'+i]={first:first?1:0}") && html.includes('.lv-pk-t code{'), 'premier essai gardé pour le score ; code du prompt en étiquette');
+  const core = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
+  assert.ok(core.includes('picks: picks.map(p => ({t: unwarp(p.at), prompt: fr(p.prompt), options: p.options.map(o => ({label: o.label, ok: !!o.ok}))}))')
+    && core.includes('clashes: holdClashes(picks.map(p => p.at))') && core.includes('if (cfg.onRender) cfg.onRender(T);'), 'moteur : moments exportés, aucune animation coupée par un arrêt, rendu suivi par la page');
+});
+
+test('leçon seule (Quel JOIN choisir ?) : la vidéo interactive valide la leçon, sans exercice, quiz ni révision', () => {
+  const l44 = cut('guide({ id:44, titre:"Quel JOIN choisir ?"', 'guide({ id:45,');
+  assert.ok(l44.includes('leconSeule:true,') && l44.includes(",duree:'3 min 58',moments:9,"), 'leçon 44 : leçon seule, 9 moments');
+  assert.ok(html.includes("'joinRecap','leconSeule','exoNeeds','video']"), 'drapeau copié par guide()');
+  assert.ok(html.includes('function dueList(){ return allLessons.filter(l=>isDue(l.id)&&!l.leconSeule); }'), 'pas de révision « De mémoire » sans exercice');
+  assert.ok(html.includes("if(current.leconSeule)return [{i:0,l:'Leçon'") && html.includes("if(leconSeule(id))return !!(state.lessons[id]&&state.lessons[id].done);"), 'une seule étape : la leçon');
+  const end = cut('function lvEnded(){', 'function lvReplay(){');
+  assert.ok(end.includes('markDone(id,false)') && end.includes('🎯 Du premier coup'), 'fin de la vidéo : leçon validée, score des moments');
+  assert.ok(cut('function lvGoExercise(){', 'function lvFail(){').includes('leconSeuleBilan(first)'), '« Terminer la leçon » ouvre le bilan');
+  assert.ok(html.includes("${l.leconSeule?'Leçon terminée&nbsp;!':'À toi de jouer&nbsp;!'}") && html.includes("${l.leconSeule?'Terminer la leçon':'Passer à l’exercice'}"), 'écran de fin propre à la leçon seule');
+  assert.ok(html.includes('<i>🎯</i> ${ok}/${n} du premier coup'), 'bilan : moments trouvés du premier coup');
+});
+
+test('Quel JOIN choisir ? : chaque étiquette montre le résultat de SQLite (ordre compris), lignes en trop et manquantes', () => {
+  const page = fs.readFileSync(path.join(ROOT, 'assets/anim/quel-join-choisir.html'), 'utf8');
+  const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
+  assert.ok(a > 0 && b > a, 'données de la page localisées');
+  const ctx = vm.createContext({APP: true, $: () => null, $$: () => []});
+  vm.runInContext(page.slice(a, b) + ';this.PICKS = PICKS; this.rowsOf = rowsOf; this.pairsFor = pairsFor; this.diff = diff;', ctx);
+  assert.equal(ctx.PICKS.length, 9, 'neuf moments « À toi »');
+  ctx.PICKS.forEach((P, i) => {
+    assert.equal(P.options.filter(o => o.ok).length, 1, `moment ${i + 1} : une seule bonne étiquette`);
+    if (i) assert.ok(P.at > ctx.PICKS[i - 1].at, 'moments dans l’ordre');
+  });
+  const N = null;
+  /* Résultats obtenus avec SQLite (sql.js) pour chaque requête complétée. */
+  const SQLITE = [
+    [1, 'INNER', [["Julie Roy", "Dr Claire Morel"], ["Marc Diaz", "Dr Paul Garnier"]]],
+    [1, 'LEFT', [["Julie Roy", "Dr Claire Morel"], ["Marc Diaz", "Dr Paul Garnier"], ["Sarah Lopez", N]]],
+    [1, 'RIGHT', [["Julie Roy", "Dr Claire Morel"], ["Marc Diaz", "Dr Paul Garnier"], [N, "Dr Anne Roux"]]],
+    [1, 'FULL OUTER', [["Julie Roy", "Dr Claire Morel"], ["Marc Diaz", "Dr Paul Garnier"], ["Sarah Lopez", N], [N, "Dr Anne Roux"]]],
+    [2, 'INNER', [["Lagon", "Poisson-clown"], ["Récif", "Hippocampe"], ["Récif", "Raie"]]],
+    [2, 'LEFT', [["Lagon", "Poisson-clown"], ["Récif", "Hippocampe"], ["Récif", "Raie"], ["Abysses", N]]],
+    [2, 'RIGHT', [["Lagon", "Poisson-clown"], ["Récif", "Hippocampe"], ["Récif", "Raie"], [N, "Tortue"]]],
+    [2, 'FULL OUTER', [["Lagon", "Poisson-clown"], ["Récif", "Hippocampe"], ["Récif", "Raie"], ["Abysses", N], [N, "Tortue"]]],
+    [3, 'INNER', [["Léa Martin", "Le Petit Prince"], ["Yanis Durand", "Les Misérables"]]],
+    [3, 'LEFT', [["Léa Martin", "Le Petit Prince"], ["Yanis Durand", "Les Misérables"]]],
+    [3, 'RIGHT', [["Léa Martin", "Le Petit Prince"], ["Yanis Durand", "Les Misérables"], [N, "Germinal"]]],
+    [4, 'INNER', [["Léa Martin", "Le Petit Prince"], ["Yanis Durand", "Les Misérables"]]],
+    [4, 'LEFT', [["Léa Martin", "Le Petit Prince"], ["Yanis Durand", "Les Misérables"], [N, "Germinal"]]],
+    [4, 'RIGHT', [["Léa Martin", "Le Petit Prince"], ["Yanis Durand", "Les Misérables"]]],
+    [5, 'INNER', [["Louis Bernard", 101], ["Emma Leroy", 102]]],
+    [5, 'LEFT', [["Louis Bernard", 101], ["Emma Leroy", 102], ["Ali Koné", N]]],
+    [5, 'RIGHT', [["Louis Bernard", 101], ["Emma Leroy", 102], [N, 103]]],
+    [5, 'FULL OUTER', [["Louis Bernard", 101], ["Emma Leroy", 102], ["Ali Koné", N], [N, 103]]],
+    [6, 'CROSS', [["Vanille", "Cornet"], ["Vanille", "Pot"], ["Chocolat", "Cornet"], ["Chocolat", "Pot"], ["Fraise", "Cornet"], ["Fraise", "Pot"]]],
+    [8, 's.id', []],
+    [8, 'm.manager_id', [["Hugo Lefèvre", "Hugo Lefèvre"], ["Inès Fabre", "Inès Fabre"], ["Inès Fabre", "Théo Petit"], ["Théo Petit", "Inès Fabre"], ["Théo Petit", "Théo Petit"]]],
+    [8, 'm.id', [["Hugo Lefèvre", "Nadia Benali"], ["Inès Fabre", "Hugo Lefèvre"], ["Théo Petit", "Hugo Lefèvre"]]],
+  ];
+  const rows = (i, label) => { const P = ctx.PICKS[i]; return ctx.rowsOf(P, ctx.pairsFor(P, P.options.find(o => o.label === label))); };
+  for (const [i, label, exp] of SQLITE) assert.equal(JSON.stringify(rows(i, label)), JSON.stringify(exp), `moment ${i + 1}, ${label}`);
+  const [r, mk] = ctx.diff(rows(2, 'RIGHT'), rows(2, 'LEFT'));
+  assert.equal(JSON.stringify(mk), '["","","","x","m"]', 'aquarium avec RIGHT : la tortue en trop, les Abysses manquantes');
+  assert.equal(JSON.stringify(r[4]), '["Abysses",null]');
 });
