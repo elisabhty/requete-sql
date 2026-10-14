@@ -103,11 +103,16 @@
 .never{left:0;width:1080px;display:flex;justify-content:center;opacity:0}
 .never span{height:66px;padding:0 28px;border-radius:999px;background:var(--danger-soft);border:3px solid #F6C9CD;color:var(--danger);font-size:30px;font-weight:700;display:flex;align-items:center;gap:12px;white-space:nowrap}
 
-/* ---------- 7 · À quoi ça sert : afficher par portions ---------- */
-#use .uhero{left:0;width:1080px;top:650px;display:flex;justify-content:center}
-#use .uhero .codepill{font-size:52px;height:108px;padding:0 44px}
-.ulist{left:64px;top:372px;width:952px;display:flex;flex-direction:column;gap:32px}
-.urow{display:flex;align-items:center;gap:30px;padding:30px 36px;border-radius:40px;opacity:0}
+/* ---------- 7 · À quoi ça sert : des résultats par portions ---------- */
+/* Le site web du chapitre 6 reste à l’écran, réduit à gauche ; à droite, un repère pour chaque portion de 3 produits. */
+.brk{width:24px;border:6px solid var(--accent);border-left:0;border-radius:0 16px 16px 0;opacity:0}
+.brk.dash{border-style:dashed;border-color:#B9A8FF}
+.bkl{display:flex;flex-direction:column;align-items:flex-start;gap:12px;opacity:0}
+.bkl b{font-family:var(--display);font-size:42px;font-weight:800;letter-spacing:-.6px;color:var(--ink);white-space:nowrap}
+.bkl .ic{font-size:30px}
+.bkl .bks{font-size:31px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.ulist{left:64px;top:372px;width:952px;display:flex;flex-direction:column;gap:30px}
+.urow{display:flex;align-items:center;gap:30px;padding:26px 36px;border-radius:40px;opacity:0}
 .urow .rico{width:112px;height:112px;border-radius:30px;font-size:58px}
 .urow .rtxt{flex:1;min-width:0;font-size:43px;line-height:1.25;padding-top:0}
 .urow .rtxt b{font-weight:750}
@@ -209,17 +214,20 @@
     <div class="abs badge" id="badge6" style="top:1372px"><span>✓ 3 produits de plus</span></div>
   </section>
 
-  <!-- 7 · À quoi ça sert : afficher par portions -->
+  <!-- 7 · À quoi ça sert : le site web reste à l’écran, ses produits arrivent par portions ; puis il rejoint la liste des usages -->
   <section class="scene" id="use">
-    <div class="abs uhero"><span class="codepill"><span class="kw">LIMIT</span> + <span class="kw">OFFSET</span></span></div>
-    <div class="abs rtitle">Afficher par portions</div>
+    <div class="abs rtitle">Des résultats par portions</div>
     <div class="abs ulist">
-      <div class="card urow"><div class="rico emo">📄</div><div class="rtxt"><b>Pages de résultats</b><span class="rs">Afficher les clients 1 à 10, puis 11 à 20.</span></div></div>
-      <div class="card urow"><div class="rico emo">⬇️</div><div class="rtxt"><b>Bouton « Voir plus »</b><span class="rs">Charger les 10 produits suivants.</span></div></div>
-      <div class="card urow"><div class="rico emo">🔍</div><div class="rtxt"><b>Recherche dans une application</b><span class="rs">Afficher les résultats page par page.</span></div></div>
-      <div class="card urow"><div class="rico emo">📊</div><div class="rtxt"><b>Tableau de bord</b><span class="rs">Parcourir une longue liste de commandes sans tout afficher à la fois.</span></div></div>
-      <div class="card urow"><div class="rico emo">🌐</div><div class="rtxt"><b>API</b><span class="rs">Demander au serveur une portion précise&nbsp;des données.</span></div></div>
+      <div class="card urow"><div class="rico emo">📱</div><div class="rtxt"><b>Sites web et applications</b><span class="rs">Pages de résultats, recherche, bouton&nbsp;« Voir plus ».</span></div></div>
+      <div class="card urow"><div class="rico emo">💼</div><div class="rtxt"><b>Logiciels métier</b><span class="rs">Consulter les clients ou les factures par groupes de 20.</span></div></div>
+      <div class="card urow"><div class="rico emo">📊</div><div class="rtxt"><b>Tableaux de bord</b><span class="rs">Parcourir une longue liste de commandes.</span></div></div>
+      <div class="card urow"><div class="rico emo">🔌</div><div class="rtxt"><b>API</b><span class="rs">Renvoyer une portion des résultats à chaque demande.</span></div></div>
+      <div class="card urow"><div class="rico emo">⚙️</div><div class="rtxt"><b>Scripts de traitement</b><span class="rs">Récupérer des données par lots.</span></div></div>
     </div>
+    <div class="abs phone" id="ph7"></div>
+    <div class="abs brk" id="bk1"></div><div class="abs bkl" id="bl1"><b>Portion 1</b><span class="ic">OFFSET 0</span></div>
+    <div class="abs brk" id="bk2"></div><div class="abs bkl" id="bl2"><b>Portion 2</b><span class="ic">OFFSET 3</span></div>
+    <div class="abs brk dash" id="bk3"></div><div class="abs bkl" id="bl3"><b>Portion 3</b><span class="bks">pas encore chargée</span></div>
   </section>
 
   <!-- 8 · À retenir -->
@@ -240,7 +248,7 @@
 <script src="core.js"></script>
 <script>
 'use strict';
-const DURATION = 144.6;
+const DURATION = 149.8;
 
 /* Table produits : [id, nom, categorie, prix] */
 const PRODUITS = [[1,'Fibre Prébiotique','Bien-être',29.9],[2,'Collagène Marin','Beauté',39.9],[3,'Magnésium','Bien-être',19.9],
@@ -259,8 +267,8 @@ const CHAPTERS = [
   {n:4, label:'Sauter avec OFFSET',    a:50.0, b:66.0},
   {n:5, label:'Un classement stable',  a:66.0, b:82.0},
   {n:6, label:'Le résultat',           a:82.0, b:99.0},
-  {n:7, label:'À quoi ça sert',        a:99.0, b:131.8},
-  {n:8, label:'À retenir',             a:131.8, b:DURATION}
+  {n:7, label:'À quoi ça sert',        a:99.0, b:137.0},
+  {n:8, label:'À retenir',             a:137.0, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
@@ -288,16 +296,16 @@ const CAPTIONS = [
   [85.7, 89.4,  "Résultat : <b>3 lignes</b>, Oméga 3, Magnésium et Shaker Inox."],
   [89.5, 93.6,  "Sur le site web, les 3 produits s’ajoutent <b>sous les premiers</b>, sans doublon."],
   [93.7, 98.6,  "<code>LIMIT</code> et <code>OFFSET</code> découpent le résultat, sans modifier la <b>table\u00a0produits</b>."],
-  [99.3, 103.3,   "<code>LIMIT</code> + <code>OFFSET</code> sert à afficher des résultats <b>par portions</b>."],
-  [103.4, 108.2,  "C’est utile quand une application a\u00a0<b>trop\u00a0de\u00a0lignes</b> à montrer d’un coup."],
-  [108.3, 112.6,  "<b>Pages de résultats</b> : afficher les clients 1 à 10, puis 11 à 20."],
-  [112.7, 116.5,  "<b>Bouton « Voir plus »</b> : charger les 10 produits suivants."],
-  [116.6, 121.3,  "<b>Recherche dans une application</b> : afficher les résultats page par page."],
-  [121.4, 127.1,  "<b>Tableau de bord</b> : parcourir une longue\u00a0liste de commandes sans tout\u00a0afficher à la fois."],
-  [127.2, 131.2,  "<b>API</b> : demander au serveur<br>une portion précise des données."],
-  [132.1, 136.9,  "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [137, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
-      : [137, 999, "<code>LIMIT</code> garde les premières lignes, <code>OFFSET</code> en saute, après un tri stable."]
+  [99.3, 104.75,   "Les produits arrivent ainsi <b>par portions</b> de 3 : une requête par portion."],
+  [104.85, 111.05, "C’est utile pour afficher ou récupérer<br>des résultats <b>par portions</b>, sans tout charger d’un coup."],
+  [111.15, 116.1,  "On s’en sert d’abord sur les <b>sites web</b> et dans les <b>applications</b>…"],
+  [116.2, 122.45,  "…mais aussi dans les <b>logiciels métier</b> : consulter les clients ou les factures par groupes de 20."],
+  [122.55, 127.15, "Dans les <b>tableaux de bord</b> : parcourir une longue liste de commandes."],
+  [127.25, 131.85, "Dans les <b>API</b> : renvoyer une portion des résultats à chaque demande."],
+  [131.95, 136.4,  "Et dans les <b>scripts de traitement</b> : récupérer des données par lots."],
+  [137.3, 142.1,   "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [142.2, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [142.2, 999, "<code>LIMIT</code> garde les premières lignes, <code>OFFSET</code> en saute, après un tri stable."]
 ];
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
@@ -315,6 +323,7 @@ function telephone(id, suite){
 function dom(){
   telephone('#ph1', [0, 1, 2].map(inconnue).join(''));
   telephone('#ph6', CLASSEMENT.slice(3, 6).map(fiche).join(''));
+  telephone('#ph7', CLASSEMENT.slice(3, 6).map(fiche).join(''));   // le même site web, repris au chapitre 7
   const pill = (cls, emo, t) => `<span class="pl ${cls}">${emo ? `<span class="emo">${emo}</span>` : ''}${t}</span>`;
   $('#rows2').innerHTML = CLASSEMENT.map((p, i) => `<div class="rgL tr tl" data-i="${i}"><i class="hl"></i><div>${p[0]}</div><div>${p[1]}</div><div>${p[3]}</div>` +
     `<div>${i < 3 ? pill('on', '📱', 'à l’écran') : i < 6 ? pill('nx', '⬇️', 'à charger') : ''}</div></div>`).join('');
@@ -562,46 +571,78 @@ function build(){
   tl.to(new6.map(c => c.querySelector('.glw')), {opacity: 1, duration: 0.35, stagger: 0.1}, 92.0);
   show('#badge6', 92.5, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
   cue(92.5, 'success', 0.9);
-  hide(['#ph6', '#badge6'], 98.6);
-  sceneOff('#s6', 99.05);
+  hide('#badge6', 98.6);
+  // Le site web reste à l’écran : le chapitre 7 le reprend tel quel (#ph7, même image)
 
   /* ===== 7 · À quoi ça sert ===== */
+  // Même image qu’à la fin du chapitre 6 : le site web se range à gauche, et chaque portion de 3 produits reçoit son repère.
+  sceneOff('#s6', 99.0);
   sceneOn('#use', 99.0);
-  // « LIMIT + OFFSET » et le titre, d’abord au centre de l’écran
-  show('#use .uhero', 99.1, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(99.1, 'whoosh', 0.7);
-  const ut = $('#use .rtitle'), ub = rel(ut);
-  const dx = 540 - (ub.x + ub.w / 2), dy = 880 - (ub.y + ub.h / 2);
-  gsap.set(ut, {autoAlpha: 0, x: dx, y: dy + 40, scale: 1.3, transformOrigin: '50% 50%'});
-  tl.to(ut, {autoAlpha: 1, y: dy, duration: 0.55, ease: 'expo.out'}, 99.45);
-  cue(99.45, 'pop', 0.7, 2);
-  // Les cas d’usage arrivent un à un : le titre monte à sa place, au-dessus de la liste
-  hide('#use .uhero', 107.8, {y: -40, scale: 0.9}, 0.3);
-  tl.to(ut, {x: 0, y: 0, scale: 1, duration: 0.6, ease: 'power3.inOut'}, 108.1);
-  cue(108.1, 'whoosh', 0.5);
-  const urows = $$('#use .urow');
+  const ph7 = $('#ph7'), c7 = $$('#ph7 .pc'), glw7 = c7.slice(3).map(c => c.querySelector('.glw'));
+  const p0 = rel(ph7), S7 = 0.84, X7 = 96, Y7 = 400;          // site web réduit : coin haut gauche (96, 400), échelle 0,84
+  gsap.set(glw7, {opacity: 1});
+  tl.to(glw7, {opacity: 0, duration: 0.4}, 99.2);
+  gsap.set(ph7, {transformOrigin: '0 0'});
+  tl.to(ph7, {x: X7 - p0.x, y: Y7 - p0.y, scale: S7, duration: 0.75, ease: 'power3.inOut'}, 99.15);
+  cue(99.15, 'whoosh', 0.6);
+  show('#use .rtitle', 99.5, {y: 34});
+  // Un crochet à droite de chaque portion (mesuré dans le site web, puis ramené à sa taille réduite), son étiquette à côté
+  const inPh = el => rel(el, ph7), bx = X7 + p0.w * S7 + 22;
+  [[c7[0], c7[2]], [c7[3], c7[5]], [$('#ph7 .more'), $('#ph7 .more')]].forEach(([u, v], k) => {
+    const y1 = Y7 + inPh(u).y * S7 + 6, y2 = Y7 + (inPh(v).y + inPh(v).h) * S7 - 6;   // 6 px de retrait : deux crochets voisins restent à plus de 20 px
+    const bk = $('#bk' + (k + 1)), bl = $('#bl' + (k + 1));
+    Object.assign(bk.style, {left: bx + 'px', top: y1 + 'px', height: (y2 - y1) + 'px'});
+    bl.style.left = (bx + 24 + 22) + 'px';
+    bl.style.top = Math.round((y1 + y2) / 2 - bl.offsetHeight / 2) + 'px';
+  });
+  const bracket = (k, t) => {
+    gsap.set('#bk' + k, {autoAlpha: 0, scaleY: 0.2, transformOrigin: '50% 50%'});
+    tl.to('#bk' + k, {autoAlpha: 1, scaleY: 1, duration: 0.45, ease: 'power3.out'}, t);
+    show('#bl' + k, t + 0.12, {y: 0, x: -24}, 0.45, 'power3.out');
+    cue(t, 'pop', 0.8, k + 1);
+  };
+  // Portion 1, puis portion 2 : une requête chacune (OFFSET 0, puis OFFSET 3)
+  bracket(1, 100.0);
+  bracket(2, 100.6);
+  tl.to(['#bl1 .ic', '#bl2 .ic'], {scale: 1.12, duration: 0.2, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.3}, 102.6);
+  // La portion 3 n’est pas encore chargée : elle attend le prochain « Voir plus »
+  bracket(3, 105.2);
+  tl.to('#ph7 .more', {scale: 1.05, duration: 0.25, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 106.2);
+  // Le site web devient le premier usage de la liste : il rapetisse jusqu’à l’icône de « Sites web et applications »
+  hide(['#bk1', '#bk2', '#bk3', '#bl1', '#bl2', '#bl3'], 110.6, {y: 0}, 0.3);
+  const urows = $$('#use .urow'), ico = rel(urows[0].querySelector('.rico')), sf = 64 / p0.h;
+  tl.to(ph7, {x: ico.x + ico.w / 2 - p0.x - p0.w * sf / 2, y: ico.y + ico.h / 2 - p0.y - p0.h * sf / 2, scale: sf,
+    duration: 0.75, ease: 'power3.inOut'}, 110.9);
+  cue(110.9, 'whoosh', 0.6);
+  tl.to(ph7, {autoAlpha: 0, duration: 0.2, ease: 'power1.in'}, 111.6);
   gsap.set(urows, {autoAlpha: 0, x: -36});
-  [108.6, 112.8, 116.7, 121.5, 127.3].forEach((t, i) => {
+  gsap.set(urows[0], {x: 0});
+  tl.to(urows[0], {autoAlpha: 1, duration: 0.4, ease: 'power2.out'}, 111.5);
+  tl.fromTo(urows[0].querySelector('.rico'), {scale: 0.6}, {scale: 1, duration: 0.5, ease: 'back.out(2.4)', immediateRender: false}, 111.6);
+  cue(111.6, 'pop', 0.85, 0);
+  tl.to(urows[0], {borderColor: '#A893FF', duration: 0.3}, 111.75);
+  // … mais aussi : logiciels métier, tableaux de bord, API, scripts de traitement. Le cas en cours est entouré.
+  [116.3, 122.65, 127.35, 132.05].forEach((t, j) => {
+    const i = j + 1;
     tl.to(urows[i], {autoAlpha: 1, x: 0, duration: 0.55, ease: 'power3.out'}, t);
     tl.fromTo(urows[i].querySelector('.rico'), {scale: 0.6}, {scale: 1, duration: 0.5, ease: 'back.out(2.4)', immediateRender: false}, t + 0.1);
     cue(t, 'pop', 0.85, i * 2);
-    // Le cas en cours est entouré ; le précédent reprend son cadre habituel
     tl.to(urows[i], {borderColor: '#A893FF', duration: 0.3}, t + 0.15);
-    if (i) tl.to(urows[i - 1], {borderColor: '#E6E1F6', duration: 0.3}, t + 0.15);
+    tl.to(urows[i - 1], {borderColor: '#E6E1F6', duration: 0.3}, t + 0.15);
   });
-  hide(['#use .rtitle', '#use .ulist'], 131.25);
-  sceneOff('#use', 131.75);
+  hide(['#use .rtitle', '#use .ulist'], 136.45);
+  sceneOff('#use', 136.95);
 
   /* ===== 8 · À retenir ===== */
-  recapScene(131.8, [132.5, 134.3, 136.1]);
-  hold(134.1, 2.9);
-  hold(135.9, 2.9);
+  recapScene(137.0, [137.7, 139.5, 141.3]);
+  hold(139.3, 2.9);
+  hold(141.1, 2.9);
   // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(137.05, 'pop', 0.85, 5);
+  if (APP) cue(142.25, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 137,
-  glyphs: '📱⬇️🔢🏷️💶🔎⚠️✅🪟🧪✂️⏭️🔒🌾🌊⚡☀️🍵🌱🐟🥤📄🔍📊🌐✓✕→·€−×—+', dom, build});
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 142.2,
+  glyphs: '📱⬇️🔢🏷️💶🔎⚠️✅🪟🧪✂️⏭️🔒🌾🌊⚡☀️🍵🌱🐟🥤💼📊🔌⚙️✓✕→·€−×—+…', dom, build});
 </script>
 </body>
 </html>
