@@ -44,7 +44,7 @@ for(const l of lessons){
  }
 }
 const lesson=id=>lessons.find(l=>l.id===id);
-assert.equal(lessons.length,66);
+assert.equal(lessons.length,67);
 assert.equal(ctx.exerciseResultsMatch(query('SELECT nom,stock FROM produits'),query(lesson(2).solution),lesson(2)),false,'alias requis');
 assert.equal(ctx.exerciseResultsMatch(query(lesson(1).solution+' SELECT 99;'),query(lesson(1).solution),lesson(1)),false,'résultats multiples');
 assert.equal(ctx.exerciseResultsMatch(query("SELECT nom,prix FROM produits WHERE categorie='Nutrition' OR categorie='Boisson' AND prix<20"),query(lesson(6).solution),lesson(6)),false,'parenthèses requises avec AND et OR');
