@@ -434,8 +434,8 @@ const COURSES = [
       '<span class="sus"><span class="emo">🔍</span>50 ou 500 ?</span>', '<span class="tx">30 → 500</span><span class="tx">500 → 30</span>',
       '<span class="tx">A → Z</span><span class="tx">Z → A</span>', '<span class="kw">ORDER BY</span> categorie, prix<span class="sens" id="descC"> <span class="kw glow">DESC</span></span>;',
       '✓ Vérifications prêtes']},
-  {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '2 min 56', notesAt: 142.2,
-    notes: /notes:\{t:168\.8,y:1372,card:\[64,356,1016,1077\],to:\[940,255\]\}/, table: 'produits',
+  {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '3 min 01', notesAt: 142.2,
+    notes: /notes:\{t:172\.9,y:1372,card:\[64,356,1016,1077\],to:\[940,255\]\}/, table: 'produits',
     bubble: 'Avec <span class="ic">LIMIT</span> et <span class="ic">OFFSET</span>, tu affiches seulement la partie du résultat qui t’intéresse.',
     chapters: ['Situation', 'Le problème', 'LIMIT en action', 'Sauter avec OFFSET', 'Un classement stable', 'Le résultat', 'À quoi ça sert', 'À retenir'],
     traps: ['<div class="more"><span class="emo">⬇️</span>Voir plus</div>', '<div class="pc sk"><span class="pi">?</span>',
@@ -443,6 +443,9 @@ const COURSES = [
       '<b>Pas les 3 plus chers</b><span class="s">L’ordre de ces lignes n’est pas garanti.</span>', '<span id="fc1"><b>OFFSET 3</b>· page 2</span>',
       '— plus aucune ligne —', 'Imaginons l’Oméga 3 à 29,90 €', '<span class="kw">ORDER BY</span> prix <span class="kw">DESC</span><span id="idC">, id</span>;',
       '✕ Oméga 3 : jamais affiché', '✓ 3 produits de plus',
+      // Ce que font LIMIT et OFFSET, en deux légendes
+      '"<code>LIMIT</code> indique combien de lignes récupérer, et <code>OFFSET</code> combien de lignes sauter au début du résultat."',
+      '"La <b>table produits</b> reste inchangée."',
       // À quoi ça sert : le site web reste à l’écran (une requête par portion de 3), puis rejoint la liste des usages
       "telephone('#ph7', CLASSEMENT.slice(3, 6).map(fiche).join(''));", "sceneOff('#s6', 99.0);\n  sceneOn('#use', 99.0);",
       '<b>Portion 1</b><span class="ic">OFFSET 0</span>', '<b>Portion 2</b><span class="ic">OFFSET 3</span>', '<b>Portion 3</b><span class="bks">pas encore chargée</span>',
