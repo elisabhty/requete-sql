@@ -350,17 +350,23 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 1, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.jpg', duree: '3 min 07', notesAt: 164.75,
-    notes: /notes:\{t:178\.7,y:1284,card:\[64,292,1016,989\],to:\[940,255\]\}/, table: 'clients',
+  {id: 0, next: 1, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.jpg', duree: '3 min 27', notesAt: 184.05,
+    notes: /notes:\{t:198\.4,y:1284,card:\[64,292,1016,989\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Chaque sujet a sa table,<br>et des numéros relient les tables.',
-    chapters: ['Situation', 'Le problème', 'Anatomie d’une table', 'Les clés', 'Pourquoi un numéro ?', 'Le résultat', 'À retenir'],
-    traps: ['<span class="dn">clients</span>', '<span class="dn">produits</span>', '<span class="dn">commandes</span>', '<div class="stamp" id="stamp2">Relationnelle</div>',
-      "const COMMANDES = [[1, 1, 1, 2], [2, 1, 3, 1], [3, 2, 6, 1], [5, 4, 1, 1], [13, 1, 8, 1]];", '<span class="bcn" id="cnt2">16 lignes</span>',
-      // Une fiche devient une ligne ; colonne, ligne, cellule
-      '<span>Fiche client</span>', '<b>Colonne</b>', '<b>Ligne</b>', '<b>Cellule</b>', '<span class="cn" id="cn3">10 lignes</span>',
-      '<span class="emo">🔑</span>clé primaire', '<span class="emo">🔗</span>clé étrangère',
+    chapters: ['Situation', 'Le problème', 'Le découpage', 'Les clés', 'Pourquoi un numéro ?', 'Le résultat', 'À retenir'],
+    traps: [
+      // Le fichier Excel : une ligne par commande, le client et le produit recopiés
+      '<span class="xfn">commandes.xlsx</span>', '<span class="xn" id="xn">16 commandes</span>', "const HEAD = ['N°', 'Prénom', 'Nom', 'E-mail', 'Produit', 'Prix', 'Qté'];",
+      "const COMMANDES = [[1, 1, 1, 2], [2, 1, 3, 1], [3, 2, 6, 1], [4, 3, 2, 3], [5, 4, 1, 1], [13, 1, 8, 1]];", '<div class="need-h">Trois sujets sur chaque ligne</div>',
+      // Un e-mail corrigé sur deux lignes seulement : deux e-mails pour la même cliente
+      "const NOUVEL_EMAIL = 's.martin@mail.fr';", 'L’e-mail de Sophie Martin, commande par commande', 'Deux e-mails pour Sophie Martin',
+      // Le découpage par sujet, puis les clés
+      "const GRP = ['k-co', 'k-cl', 'k-cl', 'k-cl', 'k-pr', 'k-pr', 'k-co'];", '<span class="emo">🔑</span>clé primaire', '<span class="emo">🔗</span>clé étrangère',
+      '<div class="stamp" id="stamp4">Relationnelle</div>',
       // Deux Nathan à Paris : seul le numéro dit lequel
-      'Lequel des deux&nbsp;?', 'Le client 4&nbsp;: Nathan Petit', '<span class="star glow" id="star6">*</span>', '10 lignes · 9 colonnes', '✓ La table est lue, jamais modifiée']},
+      'Lequel des deux&nbsp;?', 'Le client 4&nbsp;: Nathan Petit', '<span class="star glow" id="star6">*</span>', '10 lignes · 9 colonnes', '✓ La table est lue, jamais modifiée',
+      // Plus tard, la jointure reconstitue la feuille
+      '<span>Plus tard&nbsp;: la jointure</span>']},
   {id: 1, next: 2, titre: 'SELECT', page: 'select.html', thumb: 'select-thumb.jpg', duree: '2 min 27', notesAt: 104,
     notes: /notes:\{t:139\.3,y:1360,card:\[64,356,1016,1066\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avec <span class="ic">SELECT</span>, garde seulement les colonnes utiles.',
@@ -904,12 +910,12 @@ for (const c of COURSES) {
   });
 }
 
-test('Les bases de données relationnelles : la table clients, les commandes et les produits de la vidéo sont ceux de SQLite', async () => {
+test('Les bases de données relationnelles : la feuille Excel, la table clients, les commandes et les produits de la vidéo sont ceux de SQLite', async () => {
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/bases-relationnelles.html'), 'utf8');
   const a = page.indexOf('const COLS = '), b = page.indexOf('const CHAPTERS = ');
   assert.ok(a > 0 && b > a, 'données de la page localisées');
   const ctx = vm.createContext({});
-  vm.runInContext(page.slice(a, b) + ';this.COLS = COLS; this.CLIENTS = CLIENTS; this.PRODUITS = PRODUITS; this.COMMANDES = COMMANDES;', ctx);
+  vm.runInContext(page.slice(a, b) + ';this.COLS = COLS; this.CLIENTS = CLIENTS; this.PRODUITS = PRODUITS; this.COMMANDES = COMMANDES; this.NOUVEL_EMAIL = NOUVEL_EMAIL;', ctx);
   const data = vm.createContext({});
   vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), data);
   const {createRequire} = await import('node:module');
@@ -921,9 +927,12 @@ test('Les bases de données relationnelles : la table clients, les commandes et 
   assert.equal(js(all.columns), js(ctx.COLS), 'SELECT * FROM clients : les 9 colonnes, dans l’ordre');
   assert.equal(js(all.values), js(ctx.CLIENTS), 'les 10 clients, valeur par valeur (NULL compris)');
   for (const [id, c, p, n] of ctx.COMMANDES) assert.equal(q(`SELECT id, client_id, produit_id, quantite FROM commandes WHERE id = ${id}`), js([[id, c, p, n]]), `commande ${id}`);
-  for (const [id, nom] of Object.entries(ctx.PRODUITS)) assert.equal(q(`SELECT nom FROM produits WHERE id = ${id}`), js([[nom]]), `produit ${id}`);
+  for (const [id, [nom, prix]] of Object.entries(ctx.PRODUITS)) assert.equal(q(`SELECT nom, prix FROM produits WHERE id = ${id}`), js([[nom, prix]]), `produit ${id}`);
   assert.equal(q('SELECT COUNT(*) FROM commandes'), '[[16]]', 'un seul tableau : 16 lignes, une par commande');
   assert.equal(q('SELECT id FROM commandes WHERE client_id = 1 ORDER BY id'), '[[1],[2],[13]]', 'les trois commandes de Sophie Martin');
+  assert.equal(q('SELECT id FROM commandes WHERE produit_id = 1 AND id <= 5 ORDER BY id'), '[[1],[5]]', 'la Fibre Prébiotique dans les commandes 1 et 5 de la feuille');
+  assert.equal(js(ctx.COMMANDES.map(c => c[0])), '[1,2,3,4,5,13]', 'la feuille montre les commandes 1 à 5, puis la 13');
+  assert.equal(q(`SELECT COUNT(*) FROM clients WHERE email = '${ctx.NOUVEL_EMAIL}'`), '[[0]]', 'le nouvel e-mail est imaginaire : il n’est pas dans la base');
   assert.equal(q("SELECT id, nom, ville FROM clients WHERE prenom = 'Nathan' ORDER BY id"), '[[4,"Petit","Paris"],[10,"Dupont","Paris"]]', 'deux Nathan, tous deux à Paris');
   db.close();
   assert.ok(!page.includes('fidelite'), 'la vidéo ne montre pas la table de l’exercice');
