@@ -789,6 +789,15 @@ const COURSES = [
       '<span class="glow" id="nb5"><span class="kw">ORDER BY</span> client_id, date_commande, id</span>', '<span class="jr" id="j5b">−23</span>',
       '✕ Lucas Bernard lit la commande de Sophie Martin', '<span class="glow" id="av6"><span class="kw">COALESCE</span>(<span class="kw">AVG</span>(jours_depuis), 10)</span>',
       '🔔 Hugo Laurent et Gabriel Michel&nbsp;: 10 jours par défaut', '✓ 8 rappels programmés']},
+  {id: 79, next: 56, titre: 'Fenêtres glissantes', page: 'fenetres-glissantes.html', thumb: 'fenetres-glissantes-thumb.jpg', duree: '3 min 00', notesAt: 162.7,
+    notes: /notes:\{t:174\.7,y:1274,card:\[64,292,1016,979\],to:\[940,255\]\}/, table: 'commandes',
+    bubble: 'Avec <span class="ic">ROWS BETWEEN</span>, choisis les lignes qui entrent dans chaque calcul.',
+    chapters: ['Situation', 'Le problème', 'Le cumul', 'La moyenne mobile', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<span class="glow" id="mt2">produits.prix * commandes.quantite</span>', '<b id="tot2">747.5</b>',
+      '<span class="glow" id="fr3a"><span class="kw">ROWS BETWEEN UNBOUNDED PRECEDING</span></span>', '<span class="frm" id="frm3"></span>',
+      '<span class="b"><span class="glow" id="p4"><span class="kw">2 PRECEDING</span></span></span>', '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> date_commande</span>',
+      '✕ Les deux commandes du 2 juillet ont le même cumul', '<div class="lim" id="lim6"><span>Palier&nbsp;: 700&nbsp;€</span></div>',
+      '✓ Palier franchi le 1er&nbsp;août']},
 ];
 
 for (const c of COURSES) {
