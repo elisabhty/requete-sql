@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Fonctions de rang en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:220px;top:382px}
+#s0 .title span:nth-child(5){margin-left:12px}
+#s0 .hilite{top:536px;height:58px}
+#s0 .sub{top:650px;font-size:58px}
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:36px;white-space:nowrap}
+.nw{white-space:nowrap}
+/* La table clients en violet, la table commandes en orange, la table produits en bleu */
+.tag.tc{background:#FFF4E5;color:#9A5B00}
+.tag.tp{background:#E5F0FF;color:#1D5FB8}
+.tag.tf{background:#E7F7EE;color:#1B7A45}
+
+/* Code : onze lignes (chapitre 3), douze lignes (chapitre 6) */
+.code.sm .body{font-size:32px;line-height:50px;padding:26px 36px}
+.code.sm .ln{height:50px}
+.code.sm .caret i{top:-37px;height:42px}
+.code.xs .body{font-size:30px;line-height:46px;padding:24px 36px}
+.code.xs .ln{height:46px}
+.code.xs .caret i{top:-35px;height:40px}
+.mini.mq{position:absolute;margin:0;left:64px;width:952px;font-size:30px;line-height:46px;padding:22px 34px}
+.mini .ml{display:block}
+.mini .ml.ex{overflow:hidden;margin-left:-8px;padding-left:8px}
+
+/* ---------- 1 · Le premier achat ---------- */
+.board{left:64px;width:952px;padding:0 0 8px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar>span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:#FFF4E5;color:#9A5B00;font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.lx{padding:28px 34px 26px}
+.lx-hero{display:flex;align-items:center;gap:26px}
+.lx-ico{width:112px;height:112px;border-radius:34px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:64px;flex:none}
+.lx-t1{font-size:42px;font-weight:800;color:var(--ink);white-space:nowrap}
+.lx-t2{margin-top:6px;font-size:30px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.lx-conds{margin-top:26px;display:flex;align-items:center;gap:14px}
+.cd{height:60px;padding:0 22px;border-radius:999px;font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.cd.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.cd.am{background:#FFF4E5;color:#9A5B00}
+
+/* ---------- 2, 3 et 4 · Les commandes, rangées par date puis client par client ---------- */
+.rgT{display:grid;grid-template-columns:140px 140px 306px 200px 1fr;padding:0 20px;align-items:center}
+.th.t3{height:52px;font-size:23px}
+.th.t3>div{padding:0 8px}
+.tr.t3{height:40px;font-size:28px}
+.tr.t3>div{padding:4px 8px}
+.tbl .cnt .ob{font-family:var(--mono);font-size:25px}
+.dv{border-radius:8px;padding:0 6px;margin-left:-6px}
+.qm{display:inline-flex;align-items:center;justify-content:center;width:34px;height:26px;border-radius:8px;border:2px dashed #F2C38A;color:#C08A3E;font-family:var(--display);font-size:19px;font-weight:800}
+.pn{display:inline-grid;justify-items:start}
+.pn>b{grid-area:1/1;font-weight:700}
+.pn>b.b{opacity:0}
+/* Un client, un groupe : les groupes alternent deux teintes */
+.tr .bd{position:absolute;left:0;top:0;right:0;bottom:0;opacity:0;z-index:0}
+.tr .bd.g0{background:#F7F4FF;box-shadow:inset 8px 0 0 #A08CF6}
+.tr .bd.g1{background:#FFF8EE;box-shadow:inset 8px 0 0 #F2B25C}
+.pill{left:0;width:1080px;display:flex;justify-content:center}
+.pill>span{height:62px;padding:0 24px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill>span.rd{background:#FDEBEC;color:#C2323A}
+.pill>span.or{background:#FFF4E5;color:#9A5B00}
+.goal{left:64px;width:952px;height:96px;border-radius:32px;background:#E7F7EE;border:3px solid #BFE8D0;display:flex;align-items:center;justify-content:center;gap:14px;font-size:33px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.goal .emo{font-size:36px}
+
+/* ---------- 5 · Le piège : deux commandes le même jour ---------- */
+.rt5{margin-top:20px;border-radius:24px;background:var(--surface-2);overflow:hidden}
+.rt5 .h,.rt5 .r{display:grid;grid-template-columns:210px 1fr 150px;align-items:center;padding:0 22px;font-family:var(--mono);white-space:nowrap}
+.rt5 .h{height:46px;font-size:22px;font-weight:700;color:var(--ink-3)}
+.rt5 .r{position:relative;height:58px;font-size:26px;font-weight:600;color:var(--ink);background:#fff;box-shadow:inset 0 2px 0 var(--line-2)}
+.rt5 .r>span{position:relative;z-index:1}
+.rt5 .r .hl{position:absolute;left:0;top:0;right:0;bottom:0;background:#FDEBEC;box-shadow:inset 8px 0 0 #EF4F55;opacity:0;z-index:0}
+.d5{border-radius:8px;padding:0 6px;margin-left:-6px}
+.n5 b{display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:40px;padding:0 10px;border-radius:12px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--display);font-size:26px;font-weight:800}
+.cmp{left:64px;width:952px;padding:24px 26px 26px}
+.cmp-h{font-size:28px;font-weight:700;color:var(--ink-3);padding:0 4px 16px;white-space:nowrap}
+.cmp-g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.fc{border-radius:24px;background:var(--surface-2);padding:18px 12px 20px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.fc .fn{font-family:var(--mono);font-size:25px;font-weight:800;color:var(--accent-ink);white-space:nowrap;margin-bottom:4px}
+.fc b{width:76px;height:56px;border-radius:16px;background:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:32px;font-weight:800;color:var(--ink)}
+.fc b.ko{background:#FDEBEC;color:#C2323A}
+.fc b.ok{background:#E7F7EE;color:#1B7A45}
+
+/* ---------- 6 · Le résultat ---------- */
+.rgR{display:grid;grid-template-columns:150px 150px 350px 1fr;padding:0 20px;align-items:center}
+.pc{border-radius:8px;padding:0 6px;margin-left:-6px}
+.web .wb{padding:28px 34px 32px}
+.wb-h{display:flex;align-items:center;gap:24px}
+.wb-h .emo{width:100px;height:100px;border-radius:30px;background:#E7F7EE;display:flex;align-items:center;justify-content:center;font-size:56px;flex:none}
+.wb-t1{font-family:var(--display);font-size:46px;font-weight:800;letter-spacing:-.8px;color:var(--ink);white-space:nowrap}
+.wb-t2{margin-top:4px;font-size:30px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.wb-p{margin-top:28px;display:flex;align-items:center;gap:24px;padding:22px 26px;border-radius:32px;background:var(--surface-2)}
+.wb-ico{width:96px;height:96px;border-radius:28px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:52px;flex:none}
+.wb-pn{font-size:38px;font-weight:800;color:var(--ink);white-space:nowrap}
+.wb-bd{margin-top:8px;height:52px;padding:0 18px;border-radius:999px;background:#FFF4E5;color:#9A5B00;font-size:25px;font-weight:800;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.wb-pp{margin-left:auto;font-family:var(--display);font-size:38px;font-weight:800;color:var(--ink);white-space:nowrap}
+.wb-cta{margin-top:24px;height:88px;border-radius:28px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 8px 0 #4B30CC;color:#fff;font-size:32px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:12px;white-space:nowrap}
+
+/* ---------- 7 · À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:20px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Fonctions de fenêtre</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>R</span><span>A</span><span>N</span><span>K</span><span>(</span><span>)</span></div>
+    <div class="abs sub">Classer les lignes, ex&nbsp;æquo compris</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec <span class="ic">RANK()</span>, chaque ligne reçoit une place&nbsp;: la même pour les ex&nbsp;æquo.</div>
+  </section>
+
+  <!-- 1 · Situation : le premier achat de chaque client -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="ab1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Marketing · nouveaux clients</span><span class="tb" id="tb1">table commandes</span></div>
+      <div class="lx">
+        <div class="lx-hero"><div class="lx-ico">🛍️</div><div><div class="lx-t1">Le premier achat</div><div class="lx-t2">Quel produit attire les nouveaux clients&nbsp;?</div></div></div>
+        <div class="lx-conds"><span class="cd vi" id="cd1">👥 8 clients</span><span class="cd am" id="cd2">🧾 15 commandes</span></div>
+      </div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">👤</span><span class="nl">Le prénom et le nom</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">📦</span><span class="nl">Le produit acheté</span><span class="tag tp">table produits</span></div>
+      <div class="need-row"><span class="emo">📅</span><span class="nl">La date de la commande</span><span class="tag tc">table commandes</span></div>
+      <div class="need-row"><span class="emo">🔢</span><span class="nl">Son rang chez le client</span><span class="tag tf">à calculer</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : rangées par date, les commandes des clients sont mélangées -->
+  <section class="scene" id="s2">
+    <div class="tbl card" id="tb2" style="top:300px">
+      <div class="tt"><span class="emo">🧾</span><span>Les commandes</span><span class="cnt"><span class="ob" id="ob2">ORDER BY date_commande</span></span></div>
+      <div class="rgT th t3"><div>prenom</div><div>nom</div><div>produit</div><div>date_commande</div><div>numero</div></div>
+      <div class="rows" id="rows2"></div>
+    </div>
+    <div class="abs pill" id="dj2"><span class="or">📅 Sophie Martin&nbsp;: deux commandes le 2 juillet</span></div>
+    <div class="abs goal" id="goal2"><span class="emo">🎯</span>Numéroter les commandes, client par client</div>
+  </section>
+
+  <!-- 3 et 4 · ROW_NUMBER(), puis PARTITION BY -->
+  <section class="scene" id="s3">
+    <div class="abs code sm" id="c3" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="c3l1"><span class="kw">SELECT</span> clients.prenom, clients.nom,<span class="caret"><i></i></span></span><span class="ln" id="c3l2">       produits.nom <span class="kw">AS</span> produit,<span class="caret"><i></i></span></span><span class="ln" id="c3l3">       commandes.date_commande,<span class="caret"><i></i></span></span><span class="ln" id="c3l4">       <span class="glow" id="rn3"><span class="kw">ROW_NUMBER</span>() <span class="kw">OVER</span> (</span><span class="caret"><i></i></span></span><span class="ln" id="c3l5">         <span class="glow" id="ob3"><span class="kw">ORDER BY</span> commandes.date_commande</span><span class="caret"><i></i></span></span><span class="ln" id="c3l6">       ) <span class="kw">AS</span> numero<span class="caret"><i></i></span></span><span class="ln" id="c3l7"><span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="c3l8"><span class="kw">JOIN</span> clients<span class="caret"><i></i></span></span><span class="ln" id="c3l9">  <span class="kw">ON</span> clients.id = commandes.client_id<span class="caret"><i></i></span></span><span class="ln" id="c3l10"><span class="kw">JOIN</span> produits<span class="caret"><i></i></span></span><span class="ln" id="c3l11">  <span class="kw">ON</span> produits.id = commandes.produit_id;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="r3"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="abs mini mq" id="m3" style="top:300px"><span class="ml"><span class="kw">ROW_NUMBER</span>() <span class="kw">OVER</span> (</span><span class="ml ex" id="m3x">  <span class="glow" id="pb4"><span class="kw">PARTITION BY</span> clients.id</span></span><span class="ml">  <span class="kw">ORDER BY</span> commandes.date_commande</span><span class="ml">) <span class="kw">AS</span> numero</span><span class="go" id="go3"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+    <div class="tbl card" id="tb3">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt3">15 lignes</span></span></div>
+      <div class="rgT th t3"><div>prenom</div><div>nom</div><div>produit</div><div>date_commande</div><div>numero</div></div>
+      <div class="rows" id="rows3"></div>
+    </div>
+  </section>
+
+  <!-- 5 · Le piège : deux commandes le même jour, deux numéros différents -->
+  <section class="scene" id="s5">
+    <div class="abs card trap" id="tp5" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Sophie Martin, le même jour</span></div>
+      <div class="rt5">
+        <div class="h"><span>date_commande</span><span>produit</span><span>numero</span></div>
+        <div class="r"><span class="hl"></span><span><span class="d5">2026-07-02</span></span><span>Fibre Prébiotique</span><span class="n5"><b>1</b></span></div>
+        <div class="r"><span class="hl"></span><span><span class="d5">2026-07-02</span></span><span>Magnésium</span><span class="n5"><b>2</b></span></div>
+        <div class="r"><span class="hl"></span><span>2026-07-28</span><span>Shaker Inox</span><span class="n5"><b>3</b></span></div>
+      </div>
+    </div>
+    <div class="abs pill" id="ms5"><span class="rd">✕ Le Magnésium ne compte plus comme premier achat</span></div>
+    <div class="abs card cmp" id="cmp5">
+      <div class="cmp-h">Les trois commandes de Sophie Martin</div>
+      <div class="cmp-g">
+        <div class="fc" id="f5a"><div class="fn">ROW_NUMBER()</div><b>1</b><b class="ko">2</b><b>3</b></div>
+        <div class="fc" id="f5b"><div class="fn">RANK()</div><b class="ok">1</b><b class="ok">1</b><b>3</b></div>
+        <div class="fc" id="f5c"><div class="fn">DENSE_RANK()</div><b class="ok">1</b><b class="ok">1</b><b>2</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · Le résultat : RANK(), puis les premiers achats -->
+  <section class="scene" id="s6">
+    <div class="abs code xs" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> clients.prenom, clients.nom,<span class="caret"><i></i></span></span><span class="ln" id="s6l2">       produits.nom <span class="kw">AS</span> produit,<span class="caret"><i></i></span></span><span class="ln" id="s6l3">       <span class="glow" id="rk6"><span class="kw">RANK</span>() <span class="kw">OVER</span> (</span><span class="caret"><i></i></span></span><span class="ln" id="s6l4">         <span class="kw">PARTITION BY</span> clients.id<span class="caret"><i></i></span></span><span class="ln" id="s6l5">         <span class="kw">ORDER BY</span> commandes.date_commande<span class="caret"><i></i></span></span><span class="ln" id="s6l6">       ) <span class="kw">AS</span> rang<span class="caret"><i></i></span></span><span class="ln" id="s6l7"><span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="s6l8"><span class="kw">JOIN</span> clients<span class="caret"><i></i></span></span><span class="ln" id="s6l9">  <span class="kw">ON</span> clients.id = commandes.client_id<span class="caret"><i></i></span></span><span class="ln" id="s6l10"><span class="kw">JOIN</span> produits<span class="caret"><i></i></span></span><span class="ln" id="s6l11">  <span class="kw">ON</span> produits.id = commandes.produit_id<span class="caret"><i></i></span></span><span class="ln" id="s6l12"><span class="glow" id="ob6"><span class="kw">ORDER BY</span> rang, produit</span>;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6" style="top:300px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">15 lignes</span></span></div>
+      <div class="rgR th t3"><div>prenom</div><div>nom</div><div>produit</div><div>rang</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs pill" id="fq6"><span class="or">🥇 Fibre Prébiotique&nbsp;: 3 premiers achats</span></div>
+    <div class="abs card board web" id="web6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Site web · page d’accueil</span></div>
+      <div class="wb">
+        <div class="wb-h"><span class="emo">🌱</span><div><div class="wb-t1">Nouveau chez NutriBoost&nbsp;?</div><div class="wb-t2">Le premier achat préféré de nos clients</div></div></div>
+        <div class="wb-p"><div class="wb-ico">🌾</div><div><div class="wb-pn">Fibre Prébiotique</div><span class="wb-bd" id="wbd6">🥇 Premier achat de 3 clients</span></div><div class="wb-pp">29,90&nbsp;€</div></div>
+        <div class="wb-cta">🛒 Ajouter au panier</div>
+      </div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ Mise en avant pour les nouveaux clients</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🔢</div><div class="rtxt"><span class="ic">ROW_NUMBER()</span>, <span class="ic">RANK()</span> et <span class="ic">DENSE_RANK()</span> <b>numérotent</b> les lignes dans l’ordre indiqué dans <span class="ic">OVER</span>&nbsp;:<br><span class="ic blk">OVER (ORDER BY date_commande)</span></div></div>
+      <div class="rrow"><div class="rico emo">🥇</div><div class="rtxt">Elles ne diffèrent que sur les <b>ex&nbsp;æquo</b>, ici deux commandes du même jour&nbsp;:<span class="rs"><span class="ic">ROW_NUMBER()</span>&nbsp;: 1, 2, 3 · <span class="ic">RANK()</span>&nbsp;: 1, 1, 3 · <span class="ic">DENSE_RANK()</span>&nbsp;: 1, 1, 2</span></div></div>
+      <div class="rrow"><div class="rico emo">🗂️</div><div class="rtxt">Avec <span class="ic">PARTITION BY</span>, la numérotation repart de 1 <b>dans chaque groupe</b>&nbsp;:<br><span class="ic blk">PARTITION BY clients.id</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 167.6;
+
+/* Les 15 commandes passées par un client : [prénom, nom, produit, date], dans l’ordre des dates (résultat du chapitre 3).
+   La commande n°16, sans client, n’est pas reliée par le JOIN avec la table clients. */
+const CMD = [
+  ['Sophie', 'Martin', 'Fibre Prébiotique', '2026-07-02'],
+  ['Sophie', 'Martin', 'Magnésium', '2026-07-02'],
+  ['Lucas', 'Bernard', 'Protéine Végétale', '2026-07-05'],
+  ['Emma', 'Dubois', 'Collagène Marin', '2026-07-08'],
+  ['Nathan', 'Petit', 'Fibre Prébiotique', '2026-07-11'],
+  ['Chloé', 'Moreau', 'Vitamine D', '2026-07-12'],
+  ['Hugo', 'Laurent', 'Oméga 3', '2026-07-15'],
+  ['Léa', 'Simon', 'Fibre Prébiotique', '2026-07-18'],
+  ['Léa', 'Simon', 'Tisane Détox', '2026-07-18'],
+  ['Lucas', 'Bernard', 'Magnésium', '2026-07-20'],
+  ['Gabriel', 'Michel', 'Protéine Végétale', '2026-07-22'],
+  ['Nathan', 'Petit', 'Collagène Marin', '2026-07-25'],
+  ['Sophie', 'Martin', 'Shaker Inox', '2026-07-28'],
+  ['Emma', 'Dubois', 'Oméga 3', '2026-07-30'],
+  ['Chloé', 'Moreau', 'Fibre Prébiotique', '2026-08-01']
+];
+/* Les clients dans l’ordre de leur id (1 à 8) : PARTITION BY clients.id les regroupe dans cet ordre. */
+const CLIENTS = ['Sophie', 'Lucas', 'Emma', 'Nathan', 'Chloé', 'Hugo', 'Léa', 'Gabriel'];
+const GRP = CMD.map(([p]) => CLIENTS.indexOf(p));
+/* Chapitre 4 : place de chaque commande une fois regroupée par client (POS), et son numéro dans le groupe (NUM). */
+const ORDRE = CMD.map((_, i) => i).sort((a, b) => GRP[a] - GRP[b] || a - b);
+const POS = [], NUM = [];
+ORDRE.forEach((i, j) => { POS[i] = j; NUM[i] = ORDRE.slice(0, j + 1).filter(k => GRP[k] === GRP[i]).length; });
+/* Chapitre 6 : RANK() par client, trié par rang puis par produit (ordre renvoyé par la base). */
+const FINAL = [
+  ['Emma', 'Dubois', 'Collagène Marin', 1], ['Sophie', 'Martin', 'Fibre Prébiotique', 1], ['Nathan', 'Petit', 'Fibre Prébiotique', 1],
+  ['Léa', 'Simon', 'Fibre Prébiotique', 1], ['Sophie', 'Martin', 'Magnésium', 1], ['Hugo', 'Laurent', 'Oméga 3', 1],
+  ['Lucas', 'Bernard', 'Protéine Végétale', 1], ['Gabriel', 'Michel', 'Protéine Végétale', 1], ['Léa', 'Simon', 'Tisane Détox', 1],
+  ['Chloé', 'Moreau', 'Vitamine D', 1], ['Nathan', 'Petit', 'Collagène Marin', 2], ['Chloé', 'Moreau', 'Fibre Prébiotique', 2],
+  ['Lucas', 'Bernard', 'Magnésium', 2], ['Emma', 'Dubois', 'Oméga 3', 2], ['Sophie', 'Martin', 'Shaker Inox', 3]
+];
+
+const CHAPTERS = [
+  {n:1, label:'Situation',      a:5.0,   b:28.0},
+  {n:2, label:'Le problème',    a:28.0,  b:52.0},
+  {n:3, label:'ROW_NUMBER()',   a:52.0,  b:78.0},
+  {n:4, label:'PARTITION BY',   a:78.0,  b:104.0},
+  {n:5, label:'Le piège',       a:104.0, b:128.0},
+  {n:6, label:'Le résultat',    a:128.0, b:157.5},
+  {n:7, label:'À retenir',      a:157.5, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 10.6,    "L’équipe marketing veut savoir quel produit attire les <b>nouveaux clients</b>."],
+  [10.7, 16.4,   "Pour le trouver, elle cherche le <b>premier achat</b> de chaque client."],
+  [16.5, 22.1,   "Les dates des achats sont enregistrées dans la <b>table commandes</b>."],
+  [22.2, 27.5,   "Il faut donc numéroter les commandes de chaque client, dans l’ordre des dates."],
+  [28.3, 33.9,   "Avec <code>ORDER BY date_commande</code>, les commandes sont rangées par date."],
+  [34.0, 39.6,   "Mais les clients sont mélangés : les trois commandes de Sophie Martin sont dispersées."],
+  [39.7, 45.3,   "Et deux d’entre elles datent du <b>même jour</b>, le 2 juillet."],
+  [45.4, 51.5,   "Il faut un numéro par commande, qui reparte de 1 pour chaque client."],
+  [52.3, 57.9,   "<code>ROW_NUMBER()</code> numérote les lignes, dans l’ordre indiqué par <code>OVER</code>."],
+  [58.0, 63.6,   "Ici, l’ordre est celui des dates : <code>ORDER BY date_commande</code>."],
+  [63.7, 69.3,   "Résultat : les 15 commandes sont numérotées de 1 à 15."],
+  [69.4, 77.5,   "Mais la numérotation ne repart pas pour chaque client : Lucas Bernard commence à 3."],
+  [78.3, 83.9,   "<code>PARTITION BY clients.id</code> regroupe les commandes client par client."],
+  [84.0, 89.6,   "La numérotation <b>repart de 1</b> dans chaque groupe."],
+  [89.7, 95.3,   "Le numéro 1 correspond donc à la première commande de chaque client."],
+  [95.4, 103.5,  "Chaque client a désormais sa propre numérotation : 1, 2, puis 3 pour Sophie Martin."],
+  [104.3, 109.8, "Attention : le 2 juillet, Sophie Martin a passé deux commandes le même jour."],
+  [109.9, 116.1, "<code>ROW_NUMBER()</code> leur donne quand même 1 et 2 : le Magnésium ne compte plus comme un premier achat."],
+  [116.2, 121.7, "<code>RANK()</code> donne la <b>même place</b> aux ex&nbsp;æquo : 1, 1, puis 3."],
+  [121.8, 127.5, "<code>DENSE_RANK()</code> aussi, mais sans sauter de numéro : 1, 1, puis 2."],
+  [128.3, 134.4, "La requête finale remplace <code>ROW_NUMBER()</code> par <code>RANK()</code> et trie par rang, puis par produit."],
+  [134.5, 140.1, "En haut du résultat, les commandes de rang 1 : ce sont les <b>premiers achats</b>."],
+  [140.2, 145.8, "Elles sont 10 pour 8 clients, car Sophie Martin et Léa Simon en comptent deux chacune."],
+  [145.9, 151.5, "La Fibre Prébiotique y apparaît <b>3 fois</b> : c’est le premier achat le plus fréquent."],
+  [151.6, 157.0, "L’équipe marketing la met en avant sur la page d’accueil du site web."],
+  [157.8, 162.6, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [162.7, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [162.7, 999, "Les fonctions de rang numérotent les lignes ; <code>PARTITION BY</code> fait repartir la numérotation dans chaque groupe."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+function dom(){
+  /* Chapitre 2 : les commandes rangées par date, sans numéro */
+  $('#rows2').innerHTML = CMD.map(([p, n, pr, d]) =>
+    `<div class="rgT tr t3"><span class="hl"></span><div>${p}</div><div>${n}</div><div>${pr}</div><div><span class="dv">${d}</span></div><div><span class="qm">?</span></div></div>`).join('');
+  /* Chapitres 3 et 4 : le numéro sur toute la table (a), puis client par client (b) ; une teinte par client */
+  $('#rows3').innerHTML = CMD.map(([p, n, pr, d], i) =>
+    `<div class="rgT tr t3"><span class="bd g${GRP[i] % 2}"></span><span class="hl"></span><div>${p}</div><div>${n}</div><div>${pr}</div><div>${d}</div><div><span class="pn"><b class="a">${i + 1}</b><b class="b">${NUM[i]}</b></span></div></div>`).join('');
+  /* Chapitre 6 : le résultat de la requête finale */
+  $('#rows6').innerHTML = FINAL.map(([p, n, pr, r]) =>
+    `<div class="rgR tr t3"><span class="hl"></span><div>${p}</div><div>${n}</div><div><span class="pc">${pr}</span></div><div>${r}</div></div>`).join('');
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+/* Une carte arrive en tournant légèrement, puis ses éléments un à un. */
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(sel, $(id));
+  gsap.set(items, {autoAlpha: 0, y: 24});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => cue(t + 0.65 + i * step, 'pop', 0.55, i % 5));
+  return items;
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  boardIn('#ab1', 5.15, '.lx-hero');
+  gsap.set(['#cd1', '#cd2', '#tb1'], {autoAlpha: 0});
+  // Le premier achat de chaque client
+  show('#cd1', 11.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(11.2, 'pop', 0.7, 1);
+  show('#cd2', 12.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(12.0, 'pop', 0.7, 3);
+  // La table commandes
+  stackBelow('#s1 .need', '#ab1');   // la liste se cale sous la carte de la situation, sans la toucher
+  show('#tb1', 17.0, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(17.0, 'pop', 0.7, 2);
+  show('#s1 .need', 17.5, {y: 60});
+  cue(17.5, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.3}, 17.8);
+  needRows.forEach((_, i) => cue(17.8 + i * 0.3, 'pop', 0.7, i));
+  // Le rang de chaque commande, à calculer
+  pulse(needRows[3], 22.8, 3, 'rgba(201,188,255,.35)');
+  hide(['#ab1', '#s1 .need'], 27.5);
+  sceneOff('#s1', 28.0);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 28.0);
+  show('#tb2', 28.2, {y: 60}, 0.55);
+  cue(28.2, 'whoosh', 0.6);
+  const r2 = $$('#rows2 .tr');
+  rowsIn(r2, 28.6, 0.06);
+  pulse('#ob2', 30.6, 3, 'rgba(201,188,255,.9)');
+  // Les commandes de Sophie Martin, dispersées
+  const so2 = [0, 1, 12].map(i => r2[i].querySelector('.hl'));
+  tl.to(so2, {opacity: 1, duration: 0.3, stagger: 0.3}, 35.9);
+  so2.forEach((_, i) => cue(35.9 + i * 0.3, 'tick', 0.5, i + 1));
+  // Deux commandes le même jour
+  pulse([0, 1].map(i => r2[i].querySelector('.dv')), 40.4, 3, 'rgba(255,214,140,.8)');
+  cue(40.4, 'tick', 0.5, 3);
+  stackBelow('#dj2', '#tb2', 0, 30);
+  show('#dj2', 40.9, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(40.9, 'pop', 0.6, 2);
+  // Un numéro par commande, qui repart de 1 pour chaque client
+  bump($$('#rows2 .qm'), 45.9, 1.2, 1);
+  cue(45.9, 'tick', 0.45, 4);
+  stackBelow('#goal2', '#dj2', 0, 30);
+  show('#goal2', 46.4, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(46.4, 'pop', 0.75, 3);
+  hide(['#tb2', '#dj2', '#goal2'], 51.5, {y: -40}, 0.4);
+  sceneOff('#s2', 52.0);
+
+  /* ===== 3 · ROW_NUMBER() ===== */
+  sceneOn('#s3', 52.0);
+  show('#c3', 52.35, {y: 60}, 0.6);
+  cue(52.35, 'whoosh', 0.7);
+  te = typeLine($('#c3l1'), 52.85, 50);
+  for (let k = 2; k <= 11; k++) te = typeLine($('#c3l' + k), te + 0.05, 50);
+  pulse('#rn3', 55.8, 3, 'rgba(201,188,255,.45)');
+  // L’ordre des dates
+  pulse('#ob3', 59.6, 3, 'rgba(201,188,255,.45)');
+  // 15 commandes, numérotées de 1 à 15
+  press($('#r3'), 63.9);
+  hide('#c3', 64.15, {y: -40}, 0.4);
+  gsap.set('#m3x', {height: 0, opacity: 0});
+  stackBelow('#tb3', '#m3', 0, 30);   // sous OVER (…) ; le tableau descend quand PARTITION BY s’ajoute
+  show('#m3', 64.45, {y: 40}, 0.5);
+  cue(64.45, 'whoosh', 0.6);
+  show('#tb3', 64.7, {y: 40}, 0.5);
+  const r3 = $$('#rows3 .tr');
+  rowsIn(r3, 64.9, 0.05);
+  gsap.set('#cnt3', {autoAlpha: 0});
+  show('#cnt3', 65.7, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  const na = r3.map(r => r.querySelector('.pn .a')), nb = r3.map(r => r.querySelector('.pn .b'));
+  gsap.set(na, {autoAlpha: 0, scale: 0.5});
+  tl.to(na, {autoAlpha: 1, scale: 1, duration: 0.25, ease: 'back.out(2.2)', stagger: 0.1}, 66.1);
+  na.forEach((_, i) => cue(66.1 + i * 0.1, 'tick', 0.4, i % 5));
+  // Lucas Bernard commence à 3
+  const lu = [2, 9].map(i => r3[i].querySelector('.hl'));
+  tl.to(lu, {opacity: 1, duration: 0.3, stagger: 0.3}, 71.2);
+  bump(na[2], 71.8, 1.45, 1);
+  cue(71.8, 'miss', 0.5);
+  tl.to(lu, {opacity: 0, duration: 0.3}, 77.3);
+
+  /* ===== 4 · PARTITION BY ===== */
+  // PARTITION BY s’écrit dans OVER (…)
+  tl.to('#m3x', {height: 46, duration: 0.3, ease: 'power3.out'}, 78.6);
+  tl.to('#m3x', {opacity: 1, duration: 0.01}, 78.9);
+  tl.to('#tb3', {y: 46, duration: 0.3, ease: 'power3.out'}, 78.6);
+  cue(78.6, 'fold', 0.5);
+  te = typeLine($('#m3x'), 79.0, 32);
+  pulse('#pb4', te + 0.2, 3, 'rgba(201,188,255,.5)');
+  // Les commandes se regroupent, client par client
+  press($('#go3'), 84.4, '#4B30CC', 6);
+  r3.forEach((r, i) => tl.to(r, {y: (POS[i] - i) * 40, duration: 0.7, ease: 'power2.inOut'}, 84.7));
+  cue(84.7, 'whoosh', 0.55);
+  // Dans chaque groupe, la numérotation repart de 1
+  CLIENTS.forEach((_, k) => {
+    const t = 85.6 + k * 0.3, idx = GRP.map((g, i) => g === k ? i : -1).filter(i => i >= 0);
+    tl.to(idx.map(i => r3[i].querySelector('.bd')), {opacity: 1, duration: 0.25}, t);
+    tl.to(idx.map(i => na[i]), {autoAlpha: 0, duration: 0.15}, t + 0.1);
+    tl.fromTo(idx.map(i => nb[i]), {autoAlpha: 0, scale: 0.5}, {autoAlpha: 1, scale: 1, duration: 0.25, ease: 'back.out(2.2)', immediateRender: false}, t + 0.2);
+    cue(t, 'pop', 0.5, k % 5);
+  });
+  // Le numéro 1 : la première commande de chaque client
+  const ones = nb.filter((_, i) => NUM[i] === 1);
+  bump(ones, 90.4, 1.5, 1);
+  cue(90.4, 'true', 0.5);
+  // Sophie Martin : 1, 2, puis 3
+  const so3 = GRP.map((g, i) => g === 0 ? r3[i].querySelector('.hl') : null).filter(Boolean);
+  tl.to(so3, {opacity: 1, duration: 0.3, stagger: 0.3}, 96.6);
+  so3.forEach((_, i) => cue(96.6 + i * 0.3, 'tick', 0.5, i + 1));
+  hide(['#m3', '#tb3'], 103.5, {y: -40});
+  sceneOff('#s3', 104.0);
+
+  /* ===== 5 · Le piège ===== */
+  sceneOn('#s5', 104.0);
+  show('#tp5', 104.35, {y: 50});
+  cue(104.35, 'whoosh', 0.6);
+  const r5 = $$('#tp5 .r');
+  rowsIn(r5, 104.9, 0.15);
+  const n5 = $$('#tp5 .n5 b');
+  gsap.set(n5, {autoAlpha: 0, scale: 0.5});
+  // Le même jour, le 2 juillet
+  pulse($$('#tp5 .d5'), 106.6, 3, 'rgba(255,214,140,.8)');
+  cue(106.6, 'tick', 0.5, 2);
+  // ROW_NUMBER() : 1 et 2 quand même
+  tl.to(n5, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.2)', stagger: 0.4}, 110.6);
+  n5.forEach((_, i) => cue(110.6 + i * 0.4, 'tick', 0.5, i + 1));
+  tl.to(n5[1], {color: '#C2323A', backgroundColor: '#FDEBEC', duration: 0.3}, 112.0);
+  tl.to(r5[1].querySelector('.hl'), {opacity: 1, duration: 0.3}, 112.0);
+  shake(n5[1], 112.2);
+  cue(112.2, 'miss', 0.6);
+  stackBelow('#ms5', '#tp5', 0, 30);
+  show('#ms5', 112.7, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  // Les trois fonctions de rang, sur les mêmes commandes
+  stackBelow('#cmp5', '#ms5', 0, 30);
+  const fb = $$('#f5b b'), fc = $$('#f5c b');
+  gsap.set([...fb, ...fc], {autoAlpha: 0, scale: 0.5});
+  show('#cmp5', 116.3, {y: 50});
+  cue(116.3, 'whoosh', 0.6);
+  // RANK() : 1, 1, puis 3
+  show('#f5b', 116.9, {y: 30}, 0.4);
+  tl.to(fb, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.2)', stagger: 0.35}, 117.4);
+  fb.forEach((_, i) => cue(117.4 + i * 0.35, 'pop', 0.55, i));
+  bump(fb.slice(0, 2), 119.0, 1.15, 1);
+  cue(119.0, 'true', 0.5);
+  // DENSE_RANK() : 1, 1, puis 2
+  show('#f5c', 122.3, {y: 30}, 0.4);
+  tl.to(fc, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.2)', stagger: 0.35}, 122.8);
+  fc.forEach((_, i) => cue(122.8 + i * 0.35, 'pop', 0.55, i + 2));
+  // RANK() saute le 2, DENSE_RANK() non
+  pulse([fb[2], fc[2]], 124.6, 3, 'rgba(255,214,140,.8)');
+  cue(124.6, 'tick', 0.5, 3);
+  hide(['#tp5', '#ms5', '#cmp5'], 127.5, {y: -40});
+  sceneOff('#s5', 128.0);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 128.0);
+  show('#s6code', 128.05, {y: 60}, 0.6);
+  cue(128.05, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 128.5, 56);
+  for (let k = 2; k <= 12; k++) te = typeLine($('#s6l' + k), te + 0.05, 56);
+  pulse('#rk6', 130.4, 3, 'rgba(201,188,255,.45)');
+  pulse('#ob6', te + 0.15, 3, 'rgba(201,188,255,.45)');
+  press($('#s6run'), 135.4);
+  hide('#s6code', 135.65, {y: -40}, 0.4);
+  show('#tbl6', 136.0, {y: 40}, 0.5);
+  const r6 = $$('#rows6 .tr');
+  rowsIn(r6, 136.2, 0.05);
+  gsap.set('#cnt6', {autoAlpha: 0});
+  show('#cnt6', 137.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // Les commandes de rang 1 : les premiers achats
+  const first = r6.slice(0, 10), others = r6.slice(10);
+  tl.to(first.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.25, stagger: 0.08}, 137.6);
+  first.forEach((_, i) => cue(137.6 + i * 0.08, 'tick', 0.4, i % 5));
+  tl.to(others, {opacity: 0.38, duration: 0.4}, 138.6);
+  // Sophie Martin et Léa Simon : deux premiers achats chacune
+  const nameCells = i => [r6[i].children[1], r6[i].children[2]];
+  bump([1, 4].flatMap(nameCells), 141.0, 1.1, 1);
+  cue(141.0, 'tick', 0.5, 1);
+  bump([3, 8].flatMap(nameCells), 142.4, 1.1, 1);
+  cue(142.4, 'tick', 0.5, 3);
+  // La Fibre Prébiotique : 3 premiers achats
+  pulse([1, 2, 3].map(i => r6[i].querySelector('.pc')), 146.4, 3, 'rgba(255,214,140,.85)');
+  cue(146.4, 'tick', 0.5, 2);
+  stackBelow('#fq6', '#tbl6', 0, 30);
+  show('#fq6', 146.9, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(146.9, 'chord', 0.6);
+  hide(['#tbl6', '#fq6'], 151.2, {y: -40});
+  // Mise en avant sur le site web
+  boardIn('#web6', 151.6, '.wb-h, .wb-p, .wb-cta', 0.22);
+  bump('#wbd6', 153.2, 1.1, 1);
+  stackBelow('#badge6', '#web6', 0, 50);
+  show('#badge6', 153.9, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(153.9, 'success', 0.9);
+  hide(['#web6', '#badge6'], 157.0);
+  sceneOff('#s6', 157.5);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(157.5, [158.2, 160.0, 161.8]);
+  hold(159.8, 4.8);
+  hold(161.6, 4.8);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(162.75, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 162.7,
+  glyphs: '🛍️👥🧾👤📦📅🔢🎯🔎⚠️✕✓🥇🗂️🌱🌾🛒·…→€æ', dom, build});
+</script>
+</body>
+</html>

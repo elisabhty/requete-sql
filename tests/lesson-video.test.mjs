@@ -767,6 +767,17 @@ const COURSES = [
       '<span class="glow" id="pb3"><span class="kw">PARTITION BY</span> categorie</span>', '<b class="v8">8</b><b class="vp">${nbDans(c)}</b>',
       '<span class="m">misuse of window function COUNT()</span>', '<div class="st ko" id="sw5"><b>2</b><span>WHERE</span></div>',
       '<span class="glow" id="wh6"><span class="kw">WHERE</span> nb_produits = 1</span>', '✓ 3 catégories à étoffer']},
+  {id: 74, next: 78, titre: 'Fonctions de rang', page: 'fonctions-rang.html', thumb: 'fonctions-rang-thumb.jpg', duree: '2 min 59', notesAt: 162.7,
+    notes: /notes:\{t:174\.4,y:1310,card:\[64,292,1016,1015\],to:\[940,255\]\}/, table: 'commandes',
+    bubble: 'Avec <span class="ic">RANK()</span>, chaque ligne reçoit une place&nbsp;: la même pour les ex&nbsp;æquo.',
+    chapters: ['Situation', 'Le problème', 'ROW_NUMBER()', 'PARTITION BY', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<span class="cnt"><span class="ob" id="ob2">ORDER BY date_commande</span></span>', '📅 Sophie Martin&nbsp;: deux commandes le 2 juillet',
+      '<span class="glow" id="rn3"><span class="kw">ROW_NUMBER</span>() <span class="kw">OVER</span> (</span>',
+      '<span class="glow" id="pb4"><span class="kw">PARTITION BY</span> clients.id</span>', '<b class="a">${i + 1}</b><b class="b">${NUM[i]}</b>',
+      '✕ Le Magnésium ne compte plus comme premier achat', '<div class="fc" id="f5b"><div class="fn">RANK()</div><b class="ok">1</b><b class="ok">1</b><b>3</b></div>',
+      '<div class="fc" id="f5c"><div class="fn">DENSE_RANK()</div><b class="ok">1</b><b class="ok">1</b><b>2</b></div>',
+      '<span class="glow" id="rk6"><span class="kw">RANK</span>() <span class="kw">OVER</span> (</span>', '🥇 Premier achat de 3 clients',
+      '✓ Mise en avant pour les nouveaux clients']},
 ];
 
 for (const c of COURSES) {
