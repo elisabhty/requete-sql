@@ -1,5 +1,6 @@
 /* Objets à thème, famille « calendrier » : le calendrier mural du cours 53 (dates de suivi), les billets duo empilés du cours 42
-   (SELF JOIN) et le colis du cours 35 (clé étrangère). Chaque Résultat reste une page (guidePage) : une carte par ligne du
+   (SELF JOIN) et le colis (mise en page « parcel », gardée pour d’autres cours depuis que le cours Clé étrangère a rejoint le
+   cours 0). Chaque Résultat reste une page (guidePage) : une carte par ligne du
    résultat, dans l'ordre, avec toutes ses colonnes (contrôle des pages de tests/helpers/guide-checks.mjs). */
 import path from 'node:path';
 import vm from 'node:vm';
@@ -62,16 +63,6 @@ test('cours 42 (SELF JOIN) : billets duo, Lyon et les deux Nathan en vue, trois 
   assert.ok(c.includes('<b class="db-x pg-name" data-c="0" data-v="Nathan">Nathan\u00a0P.</b><i class="pg-sep">\u00a0&amp; </i><b class="db-x pg-name" data-c="1" data-v="Nathan">Nathan\u00a0D.</b>'), 'deux clients différents, même prénom');
   assert.equal((c.match(/<small class="pg-subs">Pour vous deux<\/small><em class="pg-stamp">Envoyé<\/em>/g) || []).length, 7);
   assert.ok(c.includes('>… et 3 autres à Paris</div></div>'));
-});
-
-test('cours 35 (clé étrangère) : le colis de Nathan, son étiquette et la pastille « Cadeau glissé »', () => {
-  const l = lessonOf(35), c = cardOf(l);
-  assert.doesNotThrow(() => checkGuideLesson(env, l));
-  assert.ok(!c.includes('db-table is-fiche'), 'plus de fiche');
-  assert.ok(c.includes('<div class="pg-grid is-parcel"><div class="pg-card is-parcel" style="--t:calc(var(--t0,.15s) + .95s + 0*var(--sg,.28s))"><span class="pc-box" aria-hidden="true"><i class="pc-flap is-l"></i><i class="pc-flap is-r"></i><i class="pc-gift">🎁</i></span>'));
-  assert.ok(c.includes('<small class="pg-kick">Destinataire\u00a0: Nathan</small><b class="db-x pg-name pc-no" data-c="0" data-v="CMD-2026-1093528">CMD-2026-1093528</b>'));
-  assert.ok(c.includes('<span class="db-x pg-sub" data-c="1" data-v="2">Produit n°\u00a02</span> · <span class="db-x pg-sub" data-c="2" data-v="en_preparation">en préparation</span>'), 'valeur brute, texte lisible');
-  assert.ok(c.includes('<em class="pg-stamp pc-sticker"><i aria-hidden="true">🎁</i>Cadeau glissé</em>'));
 });
 
 test('CSS calendrier et colis : état final de base, états cachés seulement avant la lecture', () => {
