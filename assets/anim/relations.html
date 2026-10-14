@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Relations 1-1, 1-N et N-N en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:150px;top:436px;letter-spacing:-3px}
+#s0 .hilite{top:520px;height:50px}
+#s0 .sub{top:612px;font-size:62px}
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur */
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:38px;white-space:nowrap}
+.tag.nv{background:#FFF4E5;color:#9A5B00}
+.hid{opacity:0;visibility:hidden}
+
+/* Une couleur par table : clients, produits, commandes, fidelite, echantillons */
+.k-cl{--c:#7C5CFF;--cs:#EEE9FF;--ci:#4B30CC}
+.k-pr{--c:#22A06B;--cs:#E7F7EE;--ci:#1B7A45}
+.k-co{--c:#E8892B;--cs:#FFF4E5;--ci:#9A5B00}
+.k-fi{--c:#2F80ED;--cs:#E6F1FF;--ci:#1F5FAD}
+.k-ec{--c:#D6409F;--cs:#FCE7F3;--ci:#9D174D}
+
+/* ---------- 1 · L’opération échantillons ---------- */
+.board{left:64px;width:952px;padding:0 0 12px;overflow:hidden}
+.ob-h{height:76px;display:flex;align-items:center;gap:14px;padding:0 34px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:30px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.ob-h .emo{font-size:32px}
+.env{display:flex;flex-direction:column;gap:14px;padding:24px 34px;white-space:nowrap}
+.env+.env{box-shadow:inset 0 2px 0 var(--line-2)}
+.env .who{font-size:34px;font-weight:750;color:var(--ink)}
+.env .who .emo{font-size:34px;margin-right:10px}
+.env .gets{display:flex;align-items:center;gap:12px}
+.env .ar{width:38px;text-align:center;font-size:32px;font-weight:700;color:var(--ink-3)}
+.pc{position:relative;height:60px;padding:0 16px;border-radius:18px;background:var(--cs);color:var(--ci);font-size:29px;font-weight:700;display:flex;align-items:center;gap:8px}
+.pc .emo{font-size:29px}
+/* La même carte, en une ligne par client (chapitre 2) */
+.board.sm .env{flex-direction:row;align-items:center;gap:12px;padding:0 30px;height:92px}
+.board.sm .who{font-size:30px}
+.board.sm .who .emo{font-size:30px;margin-right:8px}
+.board.sm .pc{height:54px;font-size:26px;padding:0 14px}
+.board.sm .pc .emo{font-size:26px}
+
+/* ---------- Les tables, en petit ---------- */
+.mt{background:#fff;border:3px solid var(--line);border-radius:32px;box-shadow:0 8px 0 var(--lip);overflow:hidden;padding:0 0 6px}
+.mt .tt{position:relative;height:72px;display:flex;align-items:center;gap:12px;padding:0 20px 0 22px;font-size:29px;font-weight:700;white-space:nowrap;background:var(--cs);color:var(--ci)}
+.mt .tt .emo{font-size:32px}
+.gr{display:grid;grid-template-columns:var(--g);align-items:center;padding:0 12px;font-family:var(--mono);white-space:nowrap}
+.gr>span{position:relative;z-index:1;padding:0 7px;border-radius:8px}
+.hd{height:50px;background:var(--surface-2);font-size:23px;font-weight:700;color:var(--ink-3)}
+.rw{position:relative;height:58px;font-size:26px;font-weight:600;color:var(--ink);box-shadow:inset 0 2px 0 var(--line-2)}
+.rw .hl{position:absolute;left:0;top:0;right:0;bottom:0;background:var(--cs);opacity:0}
+.mt .hd .fkh{color:var(--ci)}
+/* Valeur d’une clé étrangère : la couleur de la table qu’elle désigne */
+.fk{display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:36px;padding:0 10px;border-radius:10px;background:var(--cs);color:var(--ci);font-weight:800}
+/* La forme du lien, au coin de chaque table : 1 ou N */
+.cd{margin-left:auto;min-width:46px;height:46px;padding:0 8px;border-radius:14px;background:#fff;color:var(--ci);font-family:var(--display);font-size:30px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 3px var(--c)}
+/* Colonne d’essai (chapitres 2 et 4) : deux numéros pour une seule case */
+.tc{border-bottom:3px dashed currentColor;border-radius:0}
+.tcl{display:flex;align-items:center;gap:6px;height:44px;padding:0 4px;border-radius:12px}
+.gr>span.tcl{padding:0 4px}
+.tn{min-width:36px;height:36px;padding:0 8px;border-radius:10px;background:var(--cs);color:var(--ci);font-weight:800;display:inline-flex;align-items:center;justify-content:center}
+.tx{width:30px;height:30px;border-radius:50%;background:var(--danger-fill);color:#fff;font-style:normal;font-family:var(--ui);font-size:17px;font-weight:800;display:inline-flex;align-items:center;justify-content:center}
+.lk{left:0;top:0;width:1080px;height:1920px;overflow:visible;pointer-events:none}
+.lk path{fill:none;stroke-width:5;stroke-linecap:round}
+.lk circle{stroke:none}
+.np{left:0;width:1080px;display:flex;justify-content:center}
+.np>span{height:66px;padding:0 26px;border-radius:999px;font-size:30px;font-weight:700;display:flex;align-items:center;gap:12px;white-space:nowrap}
+.np.ko>span{background:var(--danger-soft);color:var(--danger)}
+.np.ok>span{background:var(--accent-soft);color:var(--accent-ink)}
+
+/* ---------- 3 · Combien de lignes en face ? ---------- */
+.qn{left:64px;width:952px;padding:22px 30px;display:flex;align-items:center;gap:24px}
+.qn .qb{flex:none;width:80px;height:80px;border-radius:24px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 6px 0 #4B30CC;color:#fff;font-family:var(--display);font-size:46px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.qn .tx3{font-size:38px;line-height:1.25;font-weight:700;color:var(--ink);white-space:nowrap}
+.qn .an{margin-left:auto;display:flex;gap:12px}
+.qn .an span{min-width:62px;height:62px;padding:0 14px;border-radius:18px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--display);font-size:36px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.pa{left:64px;width:952px;height:220px}
+.pa svg{position:absolute;left:0;top:0;width:946px;height:214px;overflow:visible}
+.dg circle{fill:#D8D1F2}
+.dg path{fill:none;stroke:#D8D1F2;stroke-width:5;stroke-linecap:round}
+.pa .pl{position:absolute;top:50%;margin-top:-24px;height:48px;display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:28px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.pa .pl .emo{font-size:29px}
+.pa .pl.l{right:746px}
+.pa .pl.r{left:498px}
+.pa .cb{position:absolute;right:30px;top:50%;margin-top:-46px;height:92px;padding:0 26px;border-radius:28px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--display);font-size:46px;font-weight:800;display:flex;align-items:center;white-space:nowrap}
+
+/* ---------- 4 et 5 · La déclaration, sous les tables ---------- */
+.cw{left:0;width:1080px;display:flex;justify-content:center}
+.cw .mini{margin-top:0}
+.trap .mini{padding-right:120px}
+.trap .out{height:auto;min-height:124px;padding:18px 28px}
+.trap .ot .m{font-size:25px;white-space:nowrap}
+
+/* ---------- 7 · Le couple unique ---------- */
+.pk{left:0;width:1080px;display:flex;justify-content:center}
+.pk>span{height:84px;padding:0 30px;border-radius:24px;background:var(--code-bg);box-shadow:0 7px 0 #110E27;font-family:var(--mono);font-size:32px;font-weight:600;color:var(--code-ink);display:flex;align-items:center;gap:14px;white-space:pre}
+.pk .emo{font-size:30px}
+.rw.nw{background:#FCE7F3}
+.rw .st7{justify-self:end;height:36px;padding:0 12px;border-radius:999px;font-family:var(--ui);font-size:21px;font-weight:800;display:inline-flex;align-items:center;white-space:nowrap}
+.st7.ko{background:#F9D0D3;color:var(--danger)}
+.st7.ok{background:#D5F2E1;color:#1B7A45}
+.erc{left:64px;width:952px;padding:20px 28px;border-radius:30px;background:var(--danger-soft);border:3px solid #F6C9CD;display:flex;align-items:center;gap:22px}
+.erc .oi{background:var(--danger-fill);color:#fff}
+.erc b{display:block;font-size:30px;font-weight:800;color:var(--danger)}
+.erc .m{display:block;margin-top:4px;font-family:var(--mono);font-size:25px;line-height:1.35;font-weight:600;color:#8E2A31;white-space:pre}
+
+/* ---------- 8 · Le résultat ---------- */
+.code.sm .body{font-size:30px;line-height:46px;padding:22px 36px}
+.code.sm .ln{height:46px}
+.code.sm .caret i{top:-34px;height:40px}
+.code.sm .top{height:66px}
+.code.sm .run{height:92px;margin:0 32px 30px}
+.rgE{display:grid;grid-template-columns:230px 250px 1fr;padding:0 26px;align-items:center}
+.tr.te{height:60px;font-size:32px}
+
+/* ---------- 9 · À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:24px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Modéliser</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>R</span><span>E</span><span>L</span><span>A</span><span>T</span><span>I</span><span>O</span><span>N</span><span>S</span></div>
+    <div class="abs sub">1-1, 1-N et N-N</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avant de relier deux tables, demande-toi&nbsp;: combien de lignes en face&nbsp;?</div>
+  </section>
+
+  <!-- 1 · Situation : l’opération échantillons gratuits -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="ab1" style="top:300px">
+      <div class="ob-h"><span class="emo">🎁</span><span>Opération échantillons gratuits</span></div>
+      <div class="env"><span class="who"><span class="emo">👤</span>Sophie Martin</span><span class="gets"><span class="ar">↳</span><span class="pc k-pr"><span class="emo">🌾</span>Fibre Prébiotique</span><span class="pc k-pr"><span class="emo">⚡</span>Magnésium</span></span></div>
+      <div class="env"><span class="who"><span class="emo">👤</span>Lucas Bernard</span><span class="gets"><span class="ar">↳</span><span class="pc k-pr"><span class="emo">🌾</span>Fibre Prébiotique</span></span></div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à enregistrer</div>
+      <div class="need-row"><span class="emo">👤</span><span class="nl">Le client destinataire</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">🏷️</span><span class="nl">Le produit offert</span><span class="tag">table produits</span></div>
+      <div class="need-row"><span class="emo">📅</span><span class="nl">La date d’envoi</span><span class="tag nv">aucune table</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : une case ne range qu’un seul numéro -->
+  <section class="scene" id="s2">
+    <div class="abs card board sm" id="ab2" style="top:300px">
+      <div class="ob-h"><span class="emo">🎁</span><span>Les envois prévus</span></div>
+      <div class="env"><span class="who"><span class="emo">👤</span>Sophie Martin</span><span class="ar">→</span><span class="pc k-pr"><span class="emo">🌾</span>Fibre Prébiotique</span><span class="pc k-pr"><span class="emo">⚡</span>Magnésium</span></div>
+      <div class="env"><span class="who"><span class="emo">👤</span>Lucas Bernard</span><span class="ar">→</span><span class="pc k-pr"><span class="emo">🌾</span>Fibre Prébiotique</span></div>
+    </div>
+    <div class="abs mt k-cl" id="c2" style="left:64px;width:400px;--g:40px 1fr 156px">
+      <div class="tt"><span class="emo">👤</span><span>clients</span></div>
+      <div class="gr hd"><span>id</span><span>prenom</span><span class="tc k-pr fkh hid" id="tc2a">produit_id</span></div>
+    </div>
+    <div class="abs mt k-pr" id="p2" style="left:524px;width:492px;--g:40px 1fr 140px">
+      <div class="tt"><span class="emo">🏷️</span><span>produits</span></div>
+      <div class="gr hd"><span>id</span><span>nom</span><span class="tc k-cl fkh hid" id="tc2b">client_id</span></div>
+    </div>
+    <svg class="abs lk hid" id="lk2" viewBox="0 0 1080 1920"></svg>
+    <div class="abs np ko" id="np2"><span><span class="emo">✕</span>Une case ne range qu’un seul numéro</span></div>
+    <div class="abs np ok" id="ok2"><span><span class="emo">➕</span>Il faut une table de plus</span></div>
+  </section>
+
+  <!-- 3 · Combien de lignes en face ? -->
+  <section class="scene" id="s3">
+    <div class="abs card qn" id="qq3" style="top:300px"><span class="qb">?</span><span class="tx3">Combien de lignes en face&nbsp;?</span><span class="an"><span id="a31">1</span><span id="a3n">N</span></span></div>
+  </section>
+
+  <!-- 4 · 1 → N : la clé étrangère du côté « plusieurs » -->
+  <section class="scene" id="s4">
+    <div class="abs mt k-cl" id="c4" style="left:64px;width:400px;top:300px;--g:52px 1fr 172px">
+      <div class="tt"><span class="emo">👤</span><span>clients</span><span class="cd hid" id="cd4a">1</span></div>
+      <div class="gr hd"><span>id</span><span>prenom</span><span class="tc k-co fkh hid" id="tc4">commande_id</span></div>
+    </div>
+    <div class="abs mt k-co" id="m4" style="left:536px;width:480px;top:300px;--g:64px 150px 1fr">
+      <div class="tt"><span class="emo">🧾</span><span>commandes</span><span class="cd hid" id="cd4b">N</span></div>
+      <div class="gr hd"><span>id</span><span class="fkh k-cl">client_id</span><span>produit_id</span></div>
+    </div>
+    <svg class="abs lk hid" id="lk4" viewBox="0 0 1080 1920"></svg>
+    <div class="abs cw" id="cw4"><div class="mini"><span class="kw">client_id</span> INTEGER
+  <span class="glow" id="rf4"><span class="kw">REFERENCES</span> clients(id)</span></div></div>
+  </section>
+
+  <!-- 5 · 1 ↔ 1 : la même clé, avec UNIQUE -->
+  <section class="scene" id="s5">
+    <div class="abs mt k-cl" id="c5" style="left:64px;width:340px;top:300px;--g:52px 1fr">
+      <div class="tt"><span class="emo">👤</span><span>clients</span><span class="cd hid" id="cd5a">1</span></div>
+      <div class="gr hd"><span>id</span><span>prenom</span></div>
+    </div>
+    <div class="abs mt k-fi" id="f5" style="left:476px;width:540px;top:300px;--g:64px 160px 1fr">
+      <div class="tt"><span class="emo">💳</span><span>fidelite</span><span class="cd hid" id="cd5b">1</span></div>
+      <div class="gr hd"><span>id</span><span class="fkh k-cl">client_id</span><span>points</span></div>
+    </div>
+    <svg class="abs lk hid" id="lk5" viewBox="0 0 1080 1920"></svg>
+    <div class="abs cw" id="cw5"><div class="mini"><span class="kw">client_id</span> INTEGER <span class="glow" id="un5"><span class="kw">UNIQUE</span></span>
+  <span class="kw">REFERENCES</span> clients(id)</div></div>
+    <div class="abs card trap" id="tp5">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Une deuxième fiche pour Nathan Petit</span></div>
+      <div class="mini"><span class="kw">INSERT INTO</span> fidelite
+  (client_id, points)
+<span class="kw">VALUES</span> (4, 10);<span class="go" id="go5"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg></span></div>
+      <div class="out err" id="er5"><span class="oi">!</span><div class="ot"><b>Erreur SQL</b><span class="m">UNIQUE constraint failed: fidelite.client_id</span></div></div>
+    </div>
+  </section>
+
+  <!-- 6 · N ↔ N : une table de jointure, reliée aux deux tables -->
+  <section class="scene" id="s6">
+    <div class="abs mt k-cl" id="c6" style="left:140px;width:800px;top:300px;--g:60px 1fr 1fr">
+      <div class="tt"><span class="emo">👤</span><span>clients</span></div>
+      <div class="gr hd"><span>id</span><span>prenom</span><span>nom</span></div>
+    </div>
+    <div class="abs mt k-ec" id="e6" style="left:140px;width:800px;--g:220px 230px 1fr">
+      <div class="tt"><span class="emo">🔗</span><span>echantillons</span><span class="cd hid" id="tj6" style="padding:0 16px;font-family:var(--ui);font-size:24px">table de jointure</span></div>
+      <div class="gr hd"><span class="fkh k-cl">client_id</span><span class="fkh k-pr">produit_id</span><span>date_envoi</span></div>
+    </div>
+    <div class="abs mt k-pr" id="p6" style="left:140px;width:800px;--g:60px 1fr">
+      <div class="tt"><span class="emo">🏷️</span><span>produits</span></div>
+      <div class="gr hd"><span>id</span><span>nom</span></div>
+    </div>
+    <svg class="abs lk hid" id="lk6a" viewBox="0 0 1080 1920"></svg>
+    <svg class="abs lk hid" id="lk6b" viewBox="0 0 1080 1920"></svg>
+  </section>
+
+  <!-- 7 · Le couple unique : une clé primaire sur les deux colonnes -->
+  <section class="scene" id="s8">
+    <div class="abs mt k-ec" id="e8" style="left:64px;width:952px;top:300px;--g:220px 230px 1fr 190px">
+      <div class="tt"><span class="emo">🔗</span><span>echantillons</span></div>
+      <div class="gr hd"><span class="fkh k-cl">client_id</span><span class="fkh k-pr">produit_id</span><span>date_envoi</span><span></span></div>
+    </div>
+    <div class="abs pk" id="pk8"><span><span class="emo">🔑</span><span><span class="kw">PRIMARY KEY</span> (client_id, produit_id)</span></span></div>
+    <div class="abs erc" id="er8"><span class="oi">!</span><div><b>Erreur SQL</b><span class="m">UNIQUE constraint failed:
+echantillons.client_id, echantillons.produit_id</span></div></div>
+  </section>
+
+  <!-- 8 · Le résultat : la requête complète -->
+  <section class="scene" id="s9">
+    <div class="abs code sm" id="s9code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="k1"><span class="kw">CREATE TABLE</span> echantillons (<span class="caret"><i></i></span></span><span class="ln" id="k2">  client_id INTEGER <span class="glow" id="g2"><span class="kw">REFERENCES</span> clients(id)</span>,<span class="caret"><i></i></span></span><span class="ln" id="k3">  produit_id INTEGER <span class="glow" id="g3"><span class="kw">REFERENCES</span> produits(id)</span>,<span class="caret"><i></i></span></span><span class="ln" id="k4">  <span class="glow" id="g4">date_envoi TEXT</span>,<span class="caret"><i></i></span></span><span class="ln" id="k5">  <span class="glow" id="g5"><span class="kw">PRIMARY KEY</span> (client_id, produit_id)</span><span class="caret"><i></i></span></span><span class="ln" id="k6">);<span class="caret"><i></i></span></span><span class="ln" id="k7"><span class="kw">INSERT INTO</span> echantillons<span class="caret"><i></i></span></span><span class="ln" id="k8"><span class="kw">VALUES</span> (1, 1, '2026-09-01'),<span class="caret"><i></i></span></span><span class="ln" id="k9">       (1, 3, '2026-09-01'),<span class="caret"><i></i></span></span><span class="ln" id="k10">       (2, 1, '2026-09-02');<span class="caret"><i></i></span></span><span class="ln" id="k11"><span class="kw">SELECT</span> client_id, produit_id, date_envoi<span class="caret"><i></i></span></span><span class="ln" id="k12"><span class="kw">FROM</span> echantillons;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s9run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl9">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt9">3 lignes</span></span></div>
+      <div class="rgE th"><div>client_id</div><div>produit_id</div><div>date_envoi</div></div>
+      <div class="rows" id="rows9"></div>
+    </div>
+    <div class="abs badge" id="badge9"><span>✓ 3 envois, aucun doublon possible</span></div>
+  </section>
+
+  <!-- 9 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🔢</div><div class="rtxt">Pour trouver la forme d’une relation, demande de chaque côté&nbsp;: <b>combien de lignes en face&nbsp;?</b></div></div>
+      <div class="rrow"><div class="rico emo">🔗</div><div class="rtxt"><b>1 → N</b>&nbsp;: une clé étrangère, du côté «&nbsp;plusieurs&nbsp;». <b>1 ↔ 1</b>&nbsp;: la même clé, avec <span class="ic">UNIQUE</span> en plus.</div></div>
+      <div class="rrow"><div class="rico emo">🧩</div><div class="rtxt"><b>N ↔ N</b>&nbsp;: une table de jointure, avec les deux clés<br>et une clé primaire sur le couple&nbsp;:<br><span class="ic blk">PRIMARY KEY (client_id, produit_id)</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 198.7;
+
+/* Extraits de la base de l’app (vérifiés dans SQLite). Clients : id → [prenom, nom] ; produits : id → nom. */
+const CLIENTS = {1: ['Sophie', 'Martin'], 2: ['Lucas', 'Bernard'], 3: ['Emma', 'Dubois'], 4: ['Nathan', 'Petit'], 5: ['Chloé', 'Moreau'], 7: ['Léa', 'Simon']};
+const PRODUITS = {1: 'Fibre Prébiotique', 3: 'Magnésium'};
+/* Commandes 4, 5, 6 et 12 : [id, client_id, produit_id]. Nathan Petit, le client 4, en a deux : la 5 et la 12. */
+const COMMANDES = [[4, 3, 2], [5, 4, 1], [6, 5, 4], [12, 4, 2]];
+/* Table fidelite : [id, client_id, points]. */
+const FIDELITE = [[1, 1, 120], [2, 2, 80], [3, 4, 250], [4, 7, 160]];
+/* Les trois envois : [client_id, produit_id, date_envoi], dans l’ordre de SELECT … FROM echantillons. */
+const ENVOIS = [[1, 1, '2026-09-01'], [1, 3, '2026-09-01'], [2, 1, '2026-09-02']];
+/* Les trois formes de lien, en points reliés : [gauche, droite] pour chaque trait ; hl : le point regardé de chaque côté. */
+const FORMES = [
+  {l: ['👤', 'clients'], r: ['💳', 'fidelite'], nl: 3, nr: 3, ln: [[0, 0], [1, 1], [2, 2]], cb: '1 ↔ 1'},
+  {l: ['👤', 'clients'], r: ['🧾', 'commandes'], nl: 2, nr: 4, ln: [[0, 0], [0, 1], [1, 2], [1, 3]], cb: '1 → N'},
+  {l: ['👤', 'clients'], r: ['🏷️', 'produits'], nl: 2, nr: 2, ln: [[0, 0], [0, 1], [1, 0]], cb: 'N ↔ N'}
+];
+
+const CHAPTERS = [
+  {n:1, label:'Situation',          a:5.0,   b:30.4},
+  {n:2, label:'Le problème',        a:30.4,  b:56.8},
+  {n:3, label:'Combien en face ?',  a:56.8,  b:82.6},
+  {n:4, label:'1 → N',              a:82.6,  b:104.1},
+  {n:5, label:'1 ↔ 1',              a:104.1, b:121.2},
+  {n:6, label:'N ↔ N',              a:121.2, b:141.5},
+  {n:7, label:'Le couple unique',   a:141.5, b:163.2},
+  {n:8, label:'Le résultat',        a:163.2, b:185.1},
+  {n:9, label:'À retenir',          a:185.1, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 9.7,     "L’équipe marketing lance une opération d’<b>échantillons gratuits</b>."],
+  [9.8, 14.7,    "Un client recevra <b>plusieurs produits</b> ; un produit ira à <b>plusieurs clients</b>."],
+  [14.8, 20.1,   "Pour chaque envoi, il faut enregistrer le client, le produit et la date d’envoi."],
+  [20.2, 25.2,   "Les clients sont dans la <b>table clients</b>, les produits dans la table <code>produits</code>."],
+  [25.3, 29.8,   "Pour enregistrer les envois, il n’existe encore <b>aucune table</b>."],
+  [30.7, 35.7,   "Sophie Martin reçoit deux produits ; la Fibre Prébiotique va à deux clients."],
+  [35.8, 40.3,   "Une clé étrangère range dans une case le numéro d’<b>une seule</b> ligne."],
+  [40.4, 46.1,   "Dans la table <code>clients</code>, la case de Sophie Martin devrait ranger <b>deux numéros</b> de produit."],
+  [46.2, 51.3,   "Et dans la table <code>produits</code>, la case de la Fibre devrait contenir <b>deux</b> clients."],
+  [51.4, 56.3,   "Aucune des deux tables ne peut ranger ce lien : il faut <b>une table de plus</b>."],
+  [57.1, 63.0,   "Pour connaître la forme d’un lien, demande dans les deux sens : <b>combien de lignes en face ?</b>"],
+  [63.1, 65.9,   "La réponse est <b>1</b>, ou <b>N</b> pour plusieurs."],
+  [66.0, 71.2,   "Un client a une seule fiche de fidélité, et une fiche n’a qu’un client : <b>1\u00a0↔\u00a01</b>."],
+  [71.3, 76.6,   "Un client a plusieurs commandes, une commande n’a qu’un client : <b>1\u00a0→\u00a0N</b>."],
+  [76.7, 82.1,   "Un client reçoit plusieurs produits, un produit, plusieurs clients : <b>N\u00a0↔\u00a0N</b>."],
+  [82.9, 88.0,   "En <b>1\u00a0→\u00a0N</b>, la clé étrangère va du côté « plusieurs » : la table <code>commandes</code>."],
+  [88.1, 94.0,   "Chaque commande garde le numéro de son client : Nathan Petit, le client 4, a deux commandes."],
+  [94.1, 99.3,   "Dans la table <code>clients</code>, une seule case devrait ranger ses <b>deux</b> commandes."],
+  [99.4, 103.6,  "La clé étrangère se déclare sur la colonne, avec <code>REFERENCES</code>."],
+  [104.4, 108.4, "En <b>1\u00a0↔\u00a01</b>, c’est la même clé étrangère, avec <code>UNIQUE</code> en plus."],
+  [108.5, 114.8, "Dans la table <code>fidelite</code>, chaque client n’a qu’une fiche : celle de Nathan Petit compte 250 points."],
+  [114.9, 120.7, "Une deuxième fiche pour Nathan Petit ? <code>UNIQUE</code> la refuse : il en a déjà une."],
+  [121.5, 125.6, "En <b>N\u00a0↔\u00a0N</b>, le lien a sa propre table : une <b>table de jointure</b>."],
+  [125.7, 131.8, "Chaque ligne relie un client à un produit, avec deux clés étrangères : <code>client_id</code> et <code>produit_id</code>."],
+  [131.9, 136.7, "La date d’envoi décrit le lien lui-même : sa place est dans cette table."],
+  [136.8, 141.0, "Sophie Martin apparaît sur deux lignes : une par produit reçu."],
+  [141.8, 147.9, "Un même envoi ne doit exister qu’une fois : c’est le <b>couple</b> client + produit qui reste unique."],
+  [148.0, 151.8, "On déclare donc une clé primaire sur les deux colonnes."],
+  [151.9, 157.8, "Sophie Martin et la Fibre une seconde fois ? Le couple (1,\u00a01) existe déjà : la base refuse."],
+  [157.9, 162.7, "Lucas Bernard et la Fibre : le couple (2,\u00a01) est nouveau, il est accepté."],
+  [163.5, 168.8, "La requête complète crée la table <code>echantillons</code>, puis enregistre les trois envois."],
+  [168.9, 173.7, "Deux clés étrangères, la date d’envoi et une clé primaire sur le couple."],
+  [173.7, 179.2, "Résultat : <b>3 envois</b>. Sophie Martin reçoit deux produits, la Fibre va à deux clients."],
+  [179.3, 184.7, "Les deux « plusieurs » tiennent dans une table, sans doublon possible."],
+  [185.4, 190.2, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [190.3, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [190.3, 999, "Pour relier deux tables, compte d’abord les lignes en face : <b>1 ou N</b> ?"]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+const row = (cells, cls = '') => `<div class="gr rw${cls}"><i class="hl"></i>${cells.map(c => `<span>${c}</span>`).join('')}</div>`;
+const fk = (v, k) => `<b class="fk ${k}">${v}</b>`;
+/* Case d’essai : deux numéros pour une seule case (le second arrive ensuite), puis la croix. */
+const essai = (a, b, k) => `<span class="tcl"><b class="tn ${k}">${a}</b>${b != null ? `<b class="tn ${k}">${b}</b><i class="tx">✕</i>` : ''}</span>`;
+function dom(){
+  /* 2 · Les clients et les produits des envois, avec leur colonne d’essai */
+  $('#c2').insertAdjacentHTML('beforeend', row([1, 'Sophie', essai(1, 3, 'k-pr')]) + row([2, 'Lucas', essai(1, null, 'k-pr')]));
+  $('#p2').insertAdjacentHTML('beforeend', row([1, PRODUITS[1], essai(1, 2, 'k-cl')]) + row([3, PRODUITS[3], essai(1, null, 'k-cl')]));
+  /* 3 · Les trois formes de lien */
+  $('#s3').insertAdjacentHTML('beforeend', FORMES.map((f, k) => {
+    const y = (n, i) => 107 + (i - (n - 1) / 2) * 42, X1 = 227, X2 = 467;   // repère : l’intérieur de la carte (946 × 214)
+    const dl = Array.from({length: f.nl}, (_, i) => `<circle class="dl" cx="${X1}" cy="${y(f.nl, i)}" r="14"/>`).join('');
+    const dr = Array.from({length: f.nr}, (_, i) => `<circle class="dr" cx="${X2}" cy="${y(f.nr, i)}" r="14"/>`).join('');
+    const ln = f.ln.map(([a, b]) => { const y1 = y(f.nl, a), y2 = y(f.nr, b), d = (X2 - X1) / 2;
+      return `<path data-a="${a}" data-b="${b}" d="M${X1} ${y1} C${X1 + d} ${y1} ${X2 - d} ${y2} ${X2} ${y2}"/>`; }).join('');
+    return `<div class="abs card pa" id="pa${k}"><svg class="dg" viewBox="0 0 946 214">${ln}${dl}${dr}</svg>` +
+      `<span class="pl l"><span class="emo">${f.l[0]}</span>${f.l[1]}</span><span class="pl r"><span class="emo">${f.r[0]}</span>${f.r[1]}</span><span class="cb">${f.cb}</span></div>`;
+  }).join(''));
+  /* 4 · Trois clients, quatre commandes */
+  $('#c4').insertAdjacentHTML('beforeend', [3, 4, 5].map(id => row([id, CLIENTS[id][0], id === 4 ? essai(5, 12, 'k-co') : ''])).join(''));
+  $('#m4').insertAdjacentHTML('beforeend', COMMANDES.map(([id, c, p]) => row([id, fk(c, 'k-cl'), p])).join(''));
+  /* 5 · Quatre clients, quatre fiches */
+  $('#c5').insertAdjacentHTML('beforeend', FIDELITE.map(([, c]) => row([c, CLIENTS[c][0]])).join(''));
+  $('#f5').insertAdjacentHTML('beforeend', FIDELITE.map(([id, c, p]) => row([id, fk(c, 'k-cl'), `<span class="pt">${p}</span>`])).join(''));
+  /* 6 · La table de jointure, entre les clients et les produits */
+  $('#c6').insertAdjacentHTML('beforeend', [1, 2].map(id => row([id, ...CLIENTS[id]])).join(''));
+  $('#e6').insertAdjacentHTML('beforeend', ENVOIS.slice(0, 2).map(([c, p, d]) => row([fk(c, 'k-cl'), fk(p, 'k-pr'), d])).join(''));
+  $('#p6').insertAdjacentHTML('beforeend', [1, 3].map(id => row([id, PRODUITS[id]])).join(''));
+  /* 7 · Deux envois, puis deux nouveaux : (1, 1) refusé, (2, 1) accepté */
+  const st = (k, t) => `<b class="st7 ${k}">${t}</b>`;
+  $('#e8').insertAdjacentHTML('beforeend', ENVOIS.slice(0, 2).map(([c, p, d]) => row([fk(c, 'k-cl'), fk(p, 'k-pr'), d, ''])).join('') +
+    row([fk(1, 'k-cl'), fk(1, 'k-pr'), '2026-09-05', st('ko', '✕ refusé')], ' nw') + row([fk(2, 'k-cl'), fk(1, 'k-pr'), '2026-09-02', st('ok', '✓ accepté')], ' nw'));
+  /* 8 · Le résultat de la requête complète */
+  $('#rows9').innerHTML = ENVOIS.map(([c, p, d]) => `<div class="rgE tr te"><i class="hl"></i><div>${c}</div><div>${p}</div><div>${d}</div></div>`).join('');
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.45)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+/* Une table arrive, puis ses lignes. */
+function tableIn(sel, t, from = {y: 50}){
+  show(sel, t, from, 0.55, 'power3.out');
+  cue(t, 'whoosh', 0.55);
+  rowsIn($$(sel + ' .rw:not(.nw)'), t + 0.35);
+}
+/* Un lien entre deux points de la scène (courbe), mesuré avant toute animation. */
+const curve = (x1, y1, x2, y2, c, bx) => { const d = bx != null ? 0 : (x2 - x1) / 2, cx1 = bx != null ? bx : x1 + d, cx2 = bx != null ? bx : x2 - d;
+  return `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} C${cx1.toFixed(1)} ${y1.toFixed(1)} ${cx2.toFixed(1)} ${y2.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}" stroke="${c}"/>` +
+    `<circle cx="${x1.toFixed(1)}" cy="${y1.toFixed(1)}" r="7" fill="${c}"/><circle cx="${x2.toFixed(1)}" cy="${y2.toFixed(1)}" r="7" fill="${c}"/>`; };
+function linksIn(sel, t, step = 0.18){
+  tl.set(sel, {autoAlpha: 1}, t);
+  $$(sel + ' path').forEach((p, k) => {
+    const L = p.getTotalLength();
+    gsap.set(p, {strokeDasharray: L, strokeDashoffset: L});
+    tl.to(p, {strokeDashoffset: 0, duration: 0.45, ease: 'power2.inOut'}, t + k * step);
+    cue(t + k * step, 'tick', 0.5, k % 5);
+  });
+  const d = $$(sel + ' circle');
+  gsap.set(d, {autoAlpha: 0});
+  tl.to(d, {autoAlpha: 1, duration: 0.2, stagger: 0.05}, t + 0.3);
+}
+const hlRow = (r, t) => { tl.to(r.querySelector('.hl'), {opacity: 1, duration: 0.3}, t); cue(t, 'tick', 0.55, 3); };
+/* Case d’essai : le premier numéro se pose, le second veut la même case, et la case refuse. */
+function essaiIn(cell, t, second = true){
+  const n = $$('.tn', cell), x = cell.querySelector('.tx');
+  gsap.set(n, {autoAlpha: 0, scale: 0.4});
+  tl.to(n[0], {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.4)'}, t);
+  cue(t, 'pop', 0.6, 2);
+  if (!second || n.length < 2) return;
+  gsap.set(x, {autoAlpha: 0, scale: 0.3});
+  tl.to(n[1], {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.4)'}, t + 0.7);
+  cue(t + 0.7, 'pop', 0.6, 4);
+  tl.to(cell, {backgroundColor: '#FDEBEC', boxShadow: 'inset 0 0 0 3px #EF4F55', duration: 0.25}, t + 1.2);
+  tl.to(n, {backgroundColor: '#F9D0D3', color: '#C2323A', duration: 0.25}, t + 1.2);
+  tl.to(x, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.4)'}, t + 1.3);
+  tl.to(cell, {x: 7, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, t + 1.35);
+  cue(t + 1.2, 'false', 0.6);
+}
+/* Une forme de lien : la carte, ses points, ses traits ; puis le point regardé de chaque côté, et la réponse. */
+function formeIn(k, t){
+  const card = '#pa' + k, f = FORMES[k];
+  show(card, t, {y: 40}, 0.5, 'power3.out');
+  cue(t, 'whoosh', 0.5);
+  const dots = $$(card + ' circle'), paths = $$(card + ' path');
+  gsap.set(dots, {scale: 0, transformOrigin: '50% 50%'});
+  tl.to(dots, {scale: 1, duration: 0.3, ease: 'back.out(2.4)', stagger: 0.04}, t + 0.3);
+  paths.forEach((p, i) => {
+    const L = p.getTotalLength();
+    gsap.set(p, {strokeDasharray: L, strokeDashoffset: L});
+    tl.to(p, {strokeDashoffset: 0, duration: 0.4, ease: 'power2.inOut'}, t + 0.6 + i * 0.1);
+  });
+  cue(t + 0.6, 'tick', 0.5, 1);
+  const dl = $$(card + ' .dl'), dr = $$(card + ' .dr');
+  const on = (els, c, u) => { tl.to(els, {fill: c, duration: 0.25}, u); };
+  const lines = side => paths.filter(p => p.dataset[side] === '0');
+  // Côté gauche : un client, combien de lignes en face ?
+  on([dl[0]], '#6A4DF4', t + 1.7);
+  tl.to(lines('a'), {stroke: '#6A4DF4', strokeWidth: 7, duration: 0.25}, t + 1.7);
+  on(lines('a').map(p => dr[+p.dataset.b]), '#B9A8FF', t + 1.8);
+  cue(t + 1.7, 'pop', 0.6, 3);
+  // Côté droit : une ligne d’en face, combien de clients ?
+  on([dl[0]], '#D8D1F2', t + 2.9);
+  tl.to(lines('a'), {stroke: '#D8D1F2', strokeWidth: 5, duration: 0.25}, t + 2.9);
+  on(lines('a').map(p => dr[+p.dataset.b]), '#D8D1F2', t + 2.9);
+  on([dr[0]], '#22A06B', t + 3.1);
+  tl.to(lines('b'), {stroke: '#22A06B', strokeWidth: 7, duration: 0.25}, t + 3.1);
+  on(lines('b').map(p => dl[+p.dataset.a]), '#8FD9B6', t + 3.2);
+  cue(t + 3.1, 'pop', 0.6, 5);
+  show(card + ' .cb', t + 4.2, {y: 0, scale: 0.5}, 0.45, 'back.out(2.2)');
+  cue(t + 4.2, 'chord', 0.5);
+}
+/* Une nouvelle ligne s’ouvre sous les autres, ou s’en va. */
+const unfold = (r, t) => { tl.to(r, {height: 58, autoAlpha: 1, duration: 0.45, ease: 'power3.out'}, t); cue(t, 'pop', 0.6, 2); };
+const fold = (r, t) => tl.to(r, {height: 0, autoAlpha: 0, duration: 0.4, ease: 'power2.inOut'}, t);
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
+
+  /* Mise en page, puis mesures (avant toute animation) */
+  stackBelow('#s1 .need', '#ab1', 0, 30);   // la liste se cale sous la carte de l’opération, sans la toucher
+  const tallest = (a, b) => $(a).offsetHeight >= $(b).offsetHeight ? a : b;
+  ['#c2', '#p2'].forEach(t => stackBelow(t, '#ab2', 0, 40));
+  stackBelow('#np2', '#c2', 0, 40);
+  stackBelow('#ok2', '#c2', 0, 40);
+  stackBelow('#pa0', '#qq3', 0, 26);
+  stackBelow('#pa1', '#pa0', 0, 26);
+  stackBelow('#pa2', '#pa1', 0, 26);
+  stackBelow('#cw4', tallest('#c4', '#m4'), 0, 40);
+  stackBelow('#cw5', tallest('#c5', '#f5'), 0, 34);
+  stackBelow('#tp5', '#cw5', 0, 30);
+  stackBelow('#e6', '#c6', 0, 56);
+  stackBelow('#p6', '#e6', 0, 56);
+  stackBelow('#pk8', '#e8', 0, 30);
+  stackBelow('#er8', '#pk8', 0, 30);
+  stackBelow('#tbl9', '#s9code', 0, 30);
+  const R = el => rel(el), mid = r => r.y + r.h / 2;
+  /* 2 · Les envois : Sophie → Fibre et Magnésium, Lucas → Fibre */
+  const c2 = $$('#c2 .rw').map(R), p2 = $$('#p2 .rw').map(R);
+  $('#lk2').innerHTML = [[0, 0], [0, 1], [1, 0]].map(([a, b]) => curve(c2[a].x + c2[a].w + 3, mid(c2[a]), p2[b].x - 3, mid(p2[b]), '#7C5CFF')).join('');
+  /* 4 · Chaque commande renvoie à son client */
+  const c4 = $$('#c4 .rw').map(R), m4 = $$('#m4 .rw').map(R);
+  $('#lk4').innerHTML = COMMANDES.map(([, c], i) => curve(m4[i].x - 3, mid(m4[i]), c4[c - 3].x + c4[c - 3].w + 3, mid(c4[c - 3]), '#7C5CFF')).join('');
+  /* 5 · Chaque fiche renvoie à un seul client */
+  const c5 = $$('#c5 .rw').map(R), f5 = $$('#f5 .rw').map(R);
+  $('#lk5').innerHTML = f5.map((r, i) => curve(r.x - 3, mid(r), c5[i].x + c5[i].w + 3, mid(c5[i]), '#7C5CFF')).join('');
+  /* 6 · Chaque envoi renvoie à son client (en haut, par la gauche) et à son produit (en bas, par la droite) */
+  const c6 = $$('#c6 .rw').map(R), e6 = $$('#e6 .rw').map(R), p6 = $$('#p6 .rw').map(R);
+  $('#lk6a').innerHTML = ENVOIS.slice(0, 2).map(([c], i) => curve(e6[i].x - 3, mid(e6[i]), c6[c - 1].x - 3, mid(c6[c - 1]), '#7C5CFF', 84 - i * 12)).join('');
+  $('#lk6b').innerHTML = ENVOIS.slice(0, 2).map(([, p], i) => { const r = p6[p === 1 ? 0 : 1];
+    return curve(e6[i].x + e6[i].w + 3, mid(e6[i]), r.x + r.w + 3, mid(r), '#22A06B', 996 + i * 12); }).join('');
+  /* 7 · Les deux nouvelles lignes, repliées au départ */
+  const nw = $$('#e8 .rw.nw');
+  gsap.set(nw, {height: 0, autoAlpha: 0});
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  show('#ab1', 5.15, {y: 80, rotation: -4}, 0.7, 'back.out(1.3)');
+  cue(5.15, 'whoosh', 0.8);
+  const ev = $$('#ab1 .env'), pcs = $$('#ab1 .pc');
+  gsap.set(ev, {autoAlpha: 0, x: -34});
+  tl.to(ev, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out', stagger: 0.25}, 5.8);
+  gsap.set(pcs, {autoAlpha: 0, scale: 0.6});
+  [6.3, 6.7, 7.2].forEach((t, i) => { tl.to(pcs[i], {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)'}, t); cue(t, 'pop', 0.6, i); });
+  // Plusieurs produits pour un client, plusieurs clients pour un produit
+  pulse(pcs.slice(0, 2), 10.6, 3, 'rgba(34,160,107,.28)');
+  cue(10.6, 'tick', 0.5, 2);
+  pulse([pcs[0], pcs[2]], 12.6, 3, 'rgba(124,92,255,.3)');
+  cue(12.6, 'tick', 0.5, 4);
+  // Le client, le produit, la date d’envoi
+  show('#s1 .need', 15.1, {y: 60});
+  cue(15.1, 'whoosh', 0.6);
+  const nr = $$('#s1 .need-row'), tg = $$('#s1 .tag');
+  gsap.set(nr, {autoAlpha: 0, x: -34});
+  gsap.set(tg, {autoAlpha: 0, scale: 0.6});
+  nr.forEach((r, k) => { tl.to(r, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, 15.6 + k * 0.45); cue(15.6 + k * 0.45, 'pop', 0.7, k); });
+  [21.1, 22.9, 25.9].forEach((t, k) => { tl.to(tg[k], {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)'}, t); cue(t, 'pop', 0.7, 3 + k); });
+  bump(tg[2], 26.9, 1.12, 3);
+  hide(['#ab1', '#s1 .need'], 29.95);
+  sceneOff('#s1', 30.45);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 30.4);
+  show('#ab2', 30.45, {y: 40}, 0.5);
+  cue(30.45, 'whoosh', 0.6);
+  tableIn('#c2', 31.0, {y: 0, x: -60});
+  tableIn('#p2', 31.2, {y: 0, x: 60});
+  // Chaque flèche de la carte devient un lien entre les deux tables
+  const ar2 = $$('#ab2 .pc');
+  [32.6, 32.9, 33.2].forEach((t, i) => { tl.to(ar2[i], {backgroundColor: '#C9EFDB', duration: 0.2, yoyo: true, repeat: 1}, t); });
+  linksIn('#lk2', 32.6, 0.3);
+  // Une clé étrangère : un seul numéro par case
+  const t2 = $$('#s2 .tcl');
+  gsap.set(t2, {autoAlpha: 0});
+  // Dans la table clients : deux produits pour la case de Sophie
+  show('#tc2a', 41.0, {y: 0, scale: 0.7}, 0.35, 'back.out(2)');
+  tl.to(t2.slice(0, 2), {autoAlpha: 1, duration: 0.2}, 41.3);
+  essaiIn(t2[0], 41.7);
+  essaiIn(t2[1], 42.0, false);
+  show('#np2', 44.0, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  // Dans la table produits : deux clients pour la case de la Fibre
+  show('#tc2b', 46.6, {y: 0, scale: 0.7}, 0.35, 'back.out(2)');
+  tl.to(t2.slice(2), {autoAlpha: 1, duration: 0.2}, 46.9);
+  essaiIn(t2[2], 47.3);
+  essaiIn(t2[3], 47.6, false);
+  bump('#np2 span', 49.3, 1.06, 1);
+  // Il faut une table de plus
+  tl.to('#np2', {autoAlpha: 0, y: -20, duration: 0.3}, 52.0);
+  show('#ok2', 52.3, {y: 0, scale: 0.6}, 0.45, 'back.out(2)');
+  cue(52.3, 'chord', 0.6);
+  hide(['#ab2', '#c2', '#p2', '#lk2', '#ok2'], 56.35);
+  sceneOff('#s2', 56.85);
+
+  /* ===== 3 · Combien de lignes en face ? ===== */
+  sceneOn('#s3', 56.8);
+  show('#qq3', 56.85, {y: 50});
+  cue(56.85, 'whoosh', 0.6);
+  bump('#qq3 .qb', 58.6, 1.15, 1);
+  cue(58.6, 'pop', 0.7, 1);
+  gsap.set(['#a31', '#a3n'], {autoAlpha: 0, scale: 0.4});
+  tl.to('#a31', {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.4)'}, 63.4);
+  tl.to('#a3n', {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.4)'}, 64.2);
+  cue(63.4, 'pop', 0.7, 2);
+  cue(64.2, 'pop', 0.7, 5);
+  formeIn(0, 66.1);
+  formeIn(1, 71.4);
+  formeIn(2, 76.8);
+  hide(['#qq3', '#pa0', '#pa1', '#pa2'], 82.15);
+  sceneOff('#s3', 82.65);
+
+  /* ===== 4 · 1 → N ===== */
+  sceneOn('#s4', 82.6);
+  tableIn('#c4', 82.65, {y: 0, x: -60});
+  tableIn('#m4', 82.85, {y: 0, x: 60});
+  linksIn('#lk4', 84.2, 0.15);
+  // 1 du côté des clients, N du côté des commandes : la clé va dans la table commandes
+  show('#cd4a', 85.6, {y: 0, scale: 0.4}, 0.35, 'back.out(2.4)');
+  show('#cd4b', 86.0, {y: 0, scale: 0.4}, 0.35, 'back.out(2.4)');
+  cue(85.6, 'pop', 0.7, 1);
+  cue(86.0, 'pop', 0.7, 4);
+  pulse($$('#m4 .fk'), 86.8, 3, 'rgba(124,92,255,.35)');
+  cue(86.8, 'tick', 0.5, 2);
+  // Nathan Petit, le client 4 : deux commandes
+  const r4 = $$('#c4 .rw'), mr = $$('#m4 .rw'), l4 = $$('#lk4 path');
+  hlRow(r4[1], 89.4);
+  [1, 3].forEach((i, k) => hlRow(mr[i], 90.0 + k * 0.3));
+  tl.to([l4[1], l4[3]], {strokeWidth: 9, duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 90.8);
+  // Dans la table clients, une seule case pour deux commandes : non
+  const t4 = $('#c4 .tcl');
+  gsap.set(t4, {autoAlpha: 0});
+  show('#tc4', 94.6, {y: 0, scale: 0.7}, 0.35, 'back.out(2)');
+  tl.to(t4, {autoAlpha: 1, duration: 0.2}, 94.9);
+  essaiIn(t4, 95.3);
+  // La déclaration : REFERENCES
+  show('#cw4', 99.7, {y: 30}, 0.5, 'power3.out');
+  cue(99.7, 'whoosh', 0.5);
+  pulse('#rf4', 100.9, 3, 'rgba(201,188,255,.35)');
+  hide(['#c4', '#m4', '#lk4', '#cw4'], 103.65);
+  sceneOff('#s4', 104.15);
+
+  /* ===== 5 · 1 ↔ 1 ===== */
+  sceneOn('#s5', 104.1);
+  tableIn('#c5', 104.15, {y: 0, x: -60});
+  tableIn('#f5', 104.35, {y: 0, x: 60});
+  linksIn('#lk5', 105.4, 0.15);
+  show('#cd5a', 105.9, {y: 0, scale: 0.4}, 0.35, 'back.out(2.4)');
+  show('#cd5b', 106.2, {y: 0, scale: 0.4}, 0.35, 'back.out(2.4)');
+  cue(105.9, 'pop', 0.7, 1);
+  cue(106.2, 'pop', 0.7, 3);
+  show('#cw5', 106.6, {y: 30}, 0.5, 'power3.out');
+  cue(106.6, 'whoosh', 0.5);
+  pulse('#un5', 107.4, 3, 'rgba(201,188,255,.35)');
+  // La fiche de Nathan Petit : 250 points
+  const r5 = $$('#c5 .rw'), f5r = $$('#f5 .rw'), l5 = $$('#lk5 path');
+  hlRow(r5[2], 109.4);
+  hlRow(f5r[2], 109.9);
+  tl.to(l5[2], {strokeWidth: 9, duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 110.4);
+  bump(f5r[2].querySelector('.pt'), 111.6, 1.3, 1);
+  cue(111.6, 'pop', 0.6, 4);
+  // Une deuxième fiche : refusée
+  show('#tp5', 115.1, {y: 40}, 0.5);
+  cue(115.1, 'whoosh', 0.6);
+  press($('#go5'), 116.4, '#4B30CC', 6);
+  show('#er5', 116.7, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  tl.to('#er5', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 117.1);
+  cue(116.7, 'error', 0.85);
+  pulse('#un5', 118.0, 3, 'rgba(239,79,85,.35)');
+  hide(['#c5', '#f5', '#lk5', '#cw5', '#tp5'], 120.75);
+  sceneOff('#s5', 121.25);
+
+  /* ===== 6 · N ↔ N ===== */
+  sceneOn('#s6', 121.2);
+  tableIn('#e6', 121.25);
+  tableIn('#c6', 121.6, {y: -40});
+  tableIn('#p6', 121.8, {y: 40});
+  show('#tj6', 123.4, {y: 0, scale: 0.5}, 0.4, 'back.out(2)');
+  cue(123.4, 'pop', 0.7, 3);
+  // Deux clés étrangères : client_id, produit_id
+  const h6 = $$('#e6 .hd span');
+  pulse([h6[0], ...$$('#e6 .rw .fk.k-cl')], 126.4, 3, 'rgba(124,92,255,.3)');
+  linksIn('#lk6a', 126.6, 0.3);
+  pulse([h6[1], ...$$('#e6 .rw .fk.k-pr')], 128.6, 3, 'rgba(34,160,107,.3)');
+  linksIn('#lk6b', 128.8, 0.3);
+  // La date d’envoi décrit le lien
+  pulse([h6[2], ...$$('#e6 .rw span:nth-child(4)')], 132.6, 3, 'rgba(214,64,159,.25)');
+  cue(132.6, 'tick', 0.5, 2);
+  // Sophie Martin : deux lignes
+  hlRow($$('#c6 .rw')[0], 137.3);
+  $$('#e6 .rw').forEach((r, i) => hlRow(r, 137.7 + i * 0.25));
+  tl.to('#lk6a path', {strokeWidth: 9, duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 138.4);
+  hide(['#c6', '#e6', '#p6', '#lk6a', '#lk6b'], 141.05);
+  sceneOff('#s6', 141.55);
+
+  /* ===== 7 · Le couple unique ===== */
+  sceneOn('#s8', 141.5);
+  tableIn('#e8', 141.55);
+  // Le couple client + produit de chaque envoi
+  const e8 = $$('#e8 .rw'), cpl = r => [r.children[1], r.children[2]];
+  pulse(cpl(e8[0]), 143.8, 3, 'rgba(214,64,159,.25)');
+  pulse(cpl(e8[1]), 144.6, 3, 'rgba(214,64,159,.25)');
+  cue(143.8, 'tick', 0.5, 2);
+  cue(144.6, 'tick', 0.5, 4);
+  // PRIMARY KEY (client_id, produit_id)
+  show('#pk8', 148.3, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(148.3, 'pop', 0.7, 3);
+  // (1, 1) une seconde fois : refusé
+  unfold(e8[2], 152.3);
+  tl.to([...cpl(e8[0]), ...cpl(e8[2])], {backgroundColor: 'rgba(242,153,74,.35)', duration: 0.3}, 153.5);
+  cue(153.5, 'tick', 0.55, 1);
+  tl.to(e8[2], {backgroundColor: '#FDEBEC', duration: 0.3}, 154.7);
+  gsap.set(e8[2].querySelector('.st7'), {autoAlpha: 0, scale: 0.5});
+  tl.to(e8[2].querySelector('.st7'), {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.2)'}, 154.7);
+  show('#er8', 154.9, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  cue(154.8, 'error', 0.85);
+  tl.to([...cpl(e8[0]), ...cpl(e8[2])], {backgroundColor: 'rgba(242,153,74,0)', duration: 0.3}, 156.9);
+  hide('#er8', 157.2, {y: -20}, 0.3);
+  fold(e8[2], 157.3);
+  // (2, 1) : un couple nouveau, accepté
+  unfold(e8[3], 158.3);
+  gsap.set(e8[3].querySelector('.st7'), {autoAlpha: 0, scale: 0.5});
+  tl.to(e8[3].querySelector('.st7'), {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.2)'}, 159.6);
+  tl.to(e8[3], {backgroundColor: '#E7F7EE', duration: 0.3}, 159.6);
+  cue(159.6, 'true', 0.6);
+  pulse([e8[0].children[2], e8[3].children[2]], 160.8, 3, 'rgba(34,160,107,.35)');
+  hide(['#e8', '#pk8'], 162.75);
+  sceneOff('#s8', 163.25);
+
+  /* ===== 8 · Le résultat ===== */
+  sceneOn('#s9', 163.2);
+  show('#s9code', 163.25, {y: 60}, 0.6);
+  cue(163.25, 'whoosh', 0.7);
+  te = typeLine($('#k1'), 163.75, 70);
+  for (let k = 2; k <= 12; k++) te = typeLine($('#k' + k), te + 0.05, 70);
+  // Deux clés étrangères, la date, la clé sur le couple
+  pulse(['#g2', '#g3'], 169.3, 3, 'rgba(201,188,255,.35)');
+  pulse('#g4', 170.6, 3, 'rgba(201,188,255,.35)');
+  pulse('#g5', 171.6, 3, 'rgba(201,188,255,.35)');
+  press($('#s9run'), 172.8);
+  show('#tbl9', 173.05, {y: 40}, 0.5);
+  const r9 = $$('#rows9 .tr');
+  rowsIn(r9, 173.2, 0.12);
+  show('#cnt9', 173.7, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // Sophie Martin : deux produits ; la Fibre : deux clients
+  r9.slice(0, 2).forEach((r, i) => hlRow(r, 175.0 + i * 0.25));
+  tl.to(r9.slice(0, 2).map(r => r.querySelector('.hl')), {opacity: 0, duration: 0.3}, 176.6);
+  [0, 2].forEach((i, k) => hlRow(r9[i], 176.9 + k * 0.25));
+  // Le résultat remonte ; le badge se cale dessous
+  hide('#s9code', 179.8, {y: -40}, 0.4);
+  tl.to('#tbl9', {top: 300, duration: 0.6, ease: 'power3.inOut'}, 180.2);
+  cue(180.2, 'whoosh', 0.45);
+  const top9 = $('#tbl9').style.top;
+  $('#tbl9').style.top = '300px';
+  stackBelow('#badge9', '#tbl9', 0, 50);
+  $('#tbl9').style.top = top9;
+  show('#badge9', 181.3, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(181.3, 'chord', 0.7);
+  hide(['#tbl9', '#badge9'], 184.65);
+  sceneOff('#s9', 185.15);
+
+  /* ===== 9 · À retenir ===== */
+  recapScene(185.1, [185.8, 187.6, 189.4]);
+  hold(187.4, 4.8);
+  hold(189.2, 4.4);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(190.35, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 190.3,
+  glyphs: '🎁👤🌾⚡🏷️📅🧾💳🔗🔑🔎🔢🧩⚠️✓✕➕?→↔·…«»', dom, build});
+</script>
+</body>
+</html>

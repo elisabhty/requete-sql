@@ -829,6 +829,19 @@ const COURSES = [
       '<div class="sr fk" id="sl-produit_id"><span class="v"><span class="emo">🔗</span>produit_id</span></div>',
       '<span class="w x st">Fibres Prébiotiques</span>', '<span class="n1">produit_id = 1</span>', '<span class="emo">🔗</span>commandes.produit_id = produits.id',
       '<span class="c rg" id="rg5">région</span>', '<span class="glow" id="g6"><span class="kw">GROUP BY</span> produits.nom</span>', '✓ Une seule barre par produit']},
+  {id: 72, next: 61, titre: 'Relations 1-1, 1-N et N-N', page: 'relations.html', thumb: 'relations-thumb.jpg', duree: '3 min 30', notesAt: 190.3,
+    notes: /notes:\{t:201\.6,y:1286,card:\[64,292,1016,991\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Avant de relier deux tables, demande-toi&nbsp;: combien de lignes en face&nbsp;?',
+    chapters: ['Situation', 'Le problème', 'Combien en face ?', '1 → N', '1 ↔ 1', 'N ↔ N', 'Le couple unique', 'Le résultat', 'À retenir'],
+    traps: ["const COMMANDES = [[4, 3, 2], [5, 4, 1], [6, 5, 4], [12, 4, 2]];", "const FIDELITE = [[1, 1, 120], [2, 2, 80], [3, 4, 250], [4, 7, 160]];",
+      "const ENVOIS = [[1, 1, '2026-09-01'], [1, 3, '2026-09-01'], [2, 1, '2026-09-02']];",
+      // Une case ne range qu’un seul numéro : deux produits pour Sophie Martin, deux clients pour la Fibre, deux commandes pour Nathan Petit
+      "row([1, 'Sophie', essai(1, 3, 'k-pr')])", "row([1, PRODUITS[1], essai(1, 2, 'k-cl')])", "id === 4 ? essai(5, 12, 'k-co') : ''",
+      '<span class="tx3">Combien de lignes en face&nbsp;?</span>', "cb: '1 ↔ 1'}", "cb: '1 → N'}", "cb: 'N ↔ N'}",
+      '<span class="glow" id="un5"><span class="kw">UNIQUE</span></span>', '<span class="m">UNIQUE constraint failed: fidelite.client_id</span>',
+      'table de jointure</span>', '<span class="kw">PRIMARY KEY</span> (client_id, produit_id)', 'echantillons.client_id, echantillons.produit_id</span>',
+      "row([fk(1, 'k-cl'), fk(1, 'k-pr'), '2026-09-05', st('ko', '✕ refusé')], ' nw')", "row([fk(2, 'k-cl'), fk(1, 'k-pr'), '2026-09-02', st('ok', '✓ accepté')], ' nw')",
+      '✓ 3 envois, aucun doublon possible']},
 ];
 
 for (const c of COURSES) {
