@@ -26,7 +26,7 @@
 /* Une valeur et sa version suivante, l’une sur l’autre : la case se retourne de l’une à l’autre */
 .sw{display:inline-grid;justify-items:start}
 .sw>span{grid-area:1/1}
-.sw .b{opacity:0}
+.sw .b,.sw .c{opacity:0}
 /* La table commandes en orange, la table clients en violet */
 .tag.tc,.db-bar .tb.tc{background:#FFF4E5;color:#9A5B00}
 
@@ -63,7 +63,7 @@
 .goal .emo{font-size:36px}
 
 /* ---------- 3 · AND en action : deux conditions vérifiées pour chaque paire ---------- */
-.ck{left:64px;width:952px;padding:24px 32px 18px}
+.ck{left:64px;width:952px;padding:24px 26px 18px}
 .ck-h{display:flex;align-items:center;gap:12px;font-size:31px;font-weight:700;color:var(--ink);white-space:nowrap}
 .ck-h .emo{font-size:32px}
 .ck-h .sep{color:var(--ink-3);font-weight:600}
@@ -71,15 +71,18 @@
 .ck-out .sw{justify-items:center}
 .ck-out .a{color:#A69FCB}
 .ck-out.yes .b{color:#1B7A45}
-.ck-out.no .b{color:#C2323A}
-.ck-r{margin-top:14px;height:64px;border-radius:20px;background:var(--surface-2);display:grid;grid-template-columns:170px 1fr 220px;align-items:center;padding:0 22px;gap:16px}
+.ck-out.no .b,.ck-out .c{color:#C2323A}
+/* Libellé, condition, valeur : la condition 1 (32 caractères) tient dans sa colonne, la valeur garde sa marge à droite */
+.ck-r{margin-top:14px;height:64px;border-radius:20px;background:var(--surface-2);display:grid;grid-template-columns:150px 1fr 190px;align-items:center;padding:0 20px;gap:14px}
 .ck-l{font-size:24px;font-weight:700;color:var(--ink-3);white-space:nowrap}
 .ck-t{font-family:var(--mono);font-size:24px;font-weight:600;color:var(--ink);white-space:nowrap}
 .ck-v{justify-self:end;height:44px;min-width:150px;padding:0 16px;border-radius:14px;background:#fff;font-family:var(--mono);font-size:24px;font-weight:800;display:flex;align-items:center;justify-content:center;white-space:nowrap}
 .ck-v .sw{justify-items:center}
 .ck-v .a{color:#C08A3E}
 .ck-v.yes .b{color:#1B7A45}
-.ck-v.no .b{color:#C2323A}
+.ck-v.no .b,.ck-v .c{color:#C2323A}
+/* Ce que vérifie la condition 1 : la commande n°13, son client_id, l’id de la cliente */
+#n13,#c1a,#c1b{border-radius:8px;padding:0 6px;margin:0 -6px}
 
 /* ---------- 4 · Une troisième condition : le statut ---------- */
 .rgC{display:grid;grid-template-columns:90px 180px 200px 1fr;padding:0 26px;align-items:center}
@@ -113,6 +116,19 @@
 .stop .sn{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--ink-3);white-space:nowrap}
 .stop .sw2{margin-top:4px;font-size:32px;font-weight:800;color:var(--ink);white-space:nowrap}
 .stop .sv{margin-top:4px;font-size:24px;font-weight:600;color:#1B7A45;white-space:nowrap}
+/* Le tampon « Livrée » posé sur la commande quand le coursier passe */
+.stop .lvr{position:absolute;right:10px;top:6px;height:36px;padding:0 12px;border-radius:11px;border:3px solid #2FA36B;background:#E7F7EE;color:#1B7A45;font-size:20px;font-weight:800;display:flex;align-items:center;white-space:nowrap;transform:rotate(-8deg);opacity:0}
+/* La route de la tournée : l’entrepôt, deux arrêts, le coursier */
+.route{position:relative;height:150px;margin:-6px 26px 4px}
+.road{position:absolute;left:0;top:0;width:894px;height:150px;overflow:visible}
+.road .rd-b{fill:none;stroke:#E4DEF7;stroke-width:18;stroke-linecap:round}
+.road .rd-d{fill:none;stroke:#fff;stroke-width:3;stroke-dasharray:16 16;stroke-linecap:round}
+.hub{position:absolute;top:50px;width:84px;height:84px;border-radius:50%;background:#fff;border:3px solid var(--line);box-shadow:0 5px 0 var(--lip);display:flex;align-items:center;justify-content:center;font-size:44px}
+.pin{position:absolute;top:73px;width:38px;height:38px;border-radius:50%;background:#fff;border:4px solid #C9BCFF;display:flex;align-items:center;justify-content:center}
+.pin i{font-style:normal;font-size:20px;font-weight:800;color:#fff;opacity:0}
+.bike{position:absolute;left:0;top:0;width:84px;height:84px;display:flex;align-items:flex-end;justify-content:center;font-size:74px;line-height:1}
+/* L’emoji du scooter regarde vers la gauche : retourné, il roule vers les arrêts */
+.bike .emo{display:inline-block;transform:scaleX(-1)}
 
 /* ---------- 7 · À retenir ---------- */
 #s7 .rtitle{top:196px}
@@ -187,9 +203,9 @@
       <div class="body"><span class="ln" id="s3l1"><span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="s3l2"><span class="kw">INNER JOIN</span> clients<span class="caret"><i></i></span></span><span class="ln" id="s3l3">    <span class="glow" id="o3"><span class="kw">ON</span> commandes.client_id = clients.id</span><span class="caret"><i></i></span></span><span class="ln" id="s3l4">    <span class="glow" id="a3"><span class="kw">AND</span> clients.ville = <span class="str">'Paris'</span></span><span class="caret"><i></i></span></span></div>
     </div>
     <div class="abs card ck" id="ck1">
-      <div class="ck-h"><span class="emo">🧾</span><span>Commande n°13</span><span class="sep">·</span><span class="emo">👤</span><span>Sophie Martin</span><span class="ck-out yes"><span class="sw"><span class="a">?</span><span class="b">✓ Reliées</span></span></span></div>
-      <div class="ck-r"><span class="ck-l">Condition 1</span><span class="ck-t">commandes.client_id = clients.id</span><span class="ck-v yes"><span class="sw"><span class="a">?</span><span class="b">1 = 1 ✓</span></span></span></div>
-      <div class="ck-r"><span class="ck-l">Condition 2</span><span class="ck-t">clients.ville = 'Paris'</span><span class="ck-v yes"><span class="sw"><span class="a">?</span><span class="b">Paris ✓</span></span></span></div>
+      <div class="ck-h"><span class="emo">🧾</span><span id="n13">Commande n°13</span><span class="sep">·</span><span class="emo">👤</span><span>Sophie Martin</span><span class="ck-out yes"><span class="sw"><span class="a">?</span><span class="b">✓ Reliées</span><span class="c">✕ Exclue</span></span></span></div>
+      <div class="ck-r"><span class="ck-l">Condition 1</span><span class="ck-t"><span id="c1a">commandes.client_id</span> = <span id="c1b">clients.id</span></span><span class="ck-v yes"><span class="sw"><span class="a">?</span><span class="b">1 = 1 ✓</span></span></span></div>
+      <div class="ck-r"><span class="ck-l">Condition 2</span><span class="ck-t">clients.ville = 'Paris'</span><span class="ck-v yes"><span class="sw"><span class="a">?</span><span class="b">Paris ✓</span><span class="c">Lyon ✕</span></span></span></div>
     </div>
     <div class="abs card ck" id="ck2">
       <div class="ck-h"><span class="emo">🧾</span><span>Commande n°14</span><span class="sep">·</span><span class="emo">👤</span><span>Emma Dubois</span><span class="ck-out no"><span class="sw"><span class="a">?</span><span class="b">✕ Pas reliées</span></span></span></div>
@@ -248,6 +264,13 @@
     <div class="abs card board" id="fb6" style="top:300px">
       <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Tournée express · Paris</span></div>
       <div class="stops" id="st6"></div>
+      <div class="route" id="rt6">
+        <svg class="road" viewBox="0 0 894 150"></svg>
+        <span class="hub" id="hub6"><span class="emo">🏬</span></span>
+        <span class="pin" id="pin1"><i>✓</i></span>
+        <span class="pin" id="pin2"><i>✓</i></span>
+        <span class="bike" id="bike6"><span class="emo">🛵</span></span>
+      </div>
     </div>
     <div class="abs badge" id="badge6"><span>✓ 2 commandes pour le coursier</span></div>
   </section>
@@ -270,7 +293,7 @@
 <script src="core.js"></script>
 <script>
 'use strict';
-const DURATION = 154.4;
+const DURATION = 182.5;
 
 /* Commandes reliées à leur client par INNER JOIN (la commande n°16, sans client, n’y est pas) : [id, prénom, nom, ville, statut]. */
 const LIGNES = [[1, 'Sophie', 'Martin', 'Paris', 'expédiée'], [2, 'Sophie', 'Martin', 'Paris', 'expédiée'], [3, 'Lucas', 'Bernard', 'Lyon', 'expédiée'],
@@ -281,16 +304,18 @@ const LIGNES = [[1, 'Sophie', 'Martin', 'Paris', 'expédiée'], [2, 'Sophie', 'M
 const PARIS = LIGNES.filter(l => l[3] === 'Paris');                       // 7 lignes avec AND clients.ville = 'Paris'
 const LIVRER = PARIS.filter(l => l[4] === 'en_preparation');              // 2 lignes avec AND commandes.statut = 'en_preparation'
 /* Avec OR clients.ville = 'Paris' : la commande n°14 est reliée à sa cliente et aux 4 clients parisiens (72 lignes en tout). */
+/* La tournée (repère de la route) : l’entrepôt, puis un arrêt sous chacune des deux commandes. */
+const ROUTE = {hub: 40, stops: [219, 675], end: 790};
 const OU14 = [['Sophie', 'Martin', 'Paris'], ['Emma', 'Dubois', 'Marseille'], ['Nathan', 'Petit', 'Paris'], ['Léa', 'Simon', 'Paris'], ['Nathan', 'Dupont', 'Paris']];
 
 const CHAPTERS = [
   {n:1, label:'Situation',                a:5.0,   b:33.0},
   {n:2, label:'Le problème',              a:33.0,  b:52.8},
-  {n:3, label:'AND en action',            a:52.8,  b:84.9},
-  {n:4, label:'Une troisième condition',  a:84.9,  b:107.0},
-  {n:5, label:'Le piège',                 a:107.0, b:128.4},
-  {n:6, label:'Le résultat',              a:128.4, b:144.3},
-  {n:7, label:'À retenir',                a:144.3, b:DURATION}
+  {n:3, label:'AND en action',            a:52.8,  b:109.4},
+  {n:4, label:'Une troisième condition',  a:109.4, b:131.5},
+  {n:5, label:'Le piège',                 a:131.5, b:152.9},
+  {n:6, label:'Le résultat',              a:152.9, b:172.4},
+  {n:7, label:'À retenir',                a:172.4, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
@@ -306,25 +331,30 @@ const CAPTIONS = [
   [48.2, 52.0,   "Le <code>ON</code> doit donc vérifier <b>plusieurs conditions</b>."],
   [53.1, 58.2,   "On ajoute une deuxième condition avec <code>AND</code>, juste après la première."],
   [58.3, 63.9,   "Pour chaque paire, le <code>ON</code> vérifie maintenant <b>deux conditions</b>."],
-  [64.0, 68.9,   "Commande n°13 et Sophie Martin : c’est sa cliente, et elle habite à Paris."],
-  [69.0, 73.6,   "Les deux conditions sont vraies : les deux lignes sont <b>reliées</b>."],
-  [73.7, 78.9,   "Commande n°14 et Emma Dubois : c’est sa cliente, mais elle habite à Marseille."],
-  [79.0, 84.1,   "Une seule condition fausse suffit : les deux lignes ne sont <b>pas reliées</b>."],
-  [85.2, 89.2,   "Résultat : <b>7 lignes</b>, uniquement des clients parisiens."],
-  [89.3, 93.2,   "Mais la plupart de ces commandes sont déjà <b>expédiées</b>."],
-  [93.3, 98.5,   "Une troisième condition, sur la table commandes, vérifie le statut."],
-  [98.6, 102.3,  "Chaque condition s’ajoute avec un nouveau <code>AND</code>."],
-  [102.4, 106.2, "Il ne reste que <b>2 lignes</b> : les commandes n°12 et n°13."],
-  [107.3, 112.9, "Attention : avec <code>OR</code> à la place de <code>AND</code>, une seule condition vraie suffit."],
-  [113.0, 118.7, "La commande n°14 est reliée à sa cliente, Emma Dubois, et à tous les clients parisiens."],
-  [118.8, 122.7, "Résultat : <b>72 lignes</b>, la plupart sans aucun sens."],
-  [122.8, 127.6, "Pour exiger que <b>toutes les conditions</b> soient vraies, il faut <code>AND</code>."],
-  [128.7, 134.7, "La requête complète affiche le numéro de chaque commande, avec le prénom et le nom du client."],
-  [134.8, 138.8, "Résultat : <b>2 lignes</b>, exactement les commandes à livrer."],
-  [138.9, 143.6, "Le coursier peut livrer Nathan Petit et Sophie Martin dans la journée."],
-  [144.6, 149.4, "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [149.5, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
-      : [149.5, 999, "<code>AND</code> ajoute une condition au <code>ON</code> : toutes doivent être vraies."]
+  [64.0, 68.1,   "1. La commande n°13 appartient-elle à Sophie Martin ?"],
+  [68.2, 72.9,   "La commande n°13 a <code>client_id</code> = 1, et Sophie Martin a <code>id</code> = 1."],
+  [73.0, 76.1,   "Les identifiants correspondent : ✅"],
+  [76.2, 81.1,   "2. Sophie Martin habite-t-elle à Paris ? Sa ville est Paris : ✅"],
+  [81.2, 88.0,   "Avec <code>AND</code>, les deux conditions doivent être remplies : la commande apparaît donc dans le résultat."],
+  [88.1, 93.1,   "Si Sophie Martin habitait à Lyon, cette ligne serait <b>exclue</b>."],
+  [93.2, 98.1,   "👉 13 est le numéro de la commande ; 1 est le numéro du client."],
+  [98.2, 103.4,  "Commande n°14 et Emma Dubois : c’est sa cliente, mais elle habite à Marseille."],
+  [103.5, 108.6, "Une seule condition fausse suffit : les deux lignes ne sont <b>pas reliées</b>."],
+  [109.7, 113.7, "Résultat : <b>7 lignes</b>, uniquement des clients parisiens."],
+  [113.8, 117.7, "Mais la plupart de ces commandes sont déjà <b>expédiées</b>."],
+  [117.8, 123.0, "Une troisième condition, sur la table commandes, vérifie le statut."],
+  [123.1, 126.8, "Chaque condition s’ajoute avec un nouveau <code>AND</code>."],
+  [126.9, 130.7, "Il ne reste que <b>2 lignes</b> : les commandes n°12 et n°13."],
+  [131.8, 137.4, "Attention : avec <code>OR</code> à la place de <code>AND</code>, une seule condition vraie suffit."],
+  [137.5, 143.2, "La commande n°14 est reliée à sa cliente, Emma Dubois, et à tous les clients parisiens."],
+  [143.3, 147.2, "Résultat : <b>72 lignes</b>, la plupart sans aucun sens."],
+  [147.3, 152.1, "Pour exiger que <b>toutes les conditions</b> soient vraies, il faut <code>AND</code>."],
+  [153.2, 159.2, "La requête complète affiche le numéro de chaque commande, avec le prénom et le nom du client."],
+  [159.3, 163.3, "Résultat : <b>2 lignes</b>, exactement les commandes à livrer."],
+  [163.4, 171.7, "Le coursier peut livrer Nathan Petit et Sophie Martin dans la journée."],
+  [172.7, 177.5, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [177.6, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [177.6, 999, "<code>AND</code> ajoute une condition au <code>ON</code> : toutes doivent être vraies."]
 ];
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
@@ -343,7 +373,11 @@ function dom(){
   /* Chapitre 6 : le résultat final, puis les deux arrêts de la tournée */
   $('#rows6').innerHTML = LIVRER.map(([id, p, n]) => `<div class="rgR tr t6"><span class="hl"></span><div>${id}</div><div>${p}</div><div>${n}</div></div>`).join('');
   $('#st6').innerHTML = LIVRER.map(([id, p, n]) =>
-    `<div class="stop"><span class="emo">🧾</span><div><div class="sn">Commande n°${id}</div><div class="sw2">${p} ${n}</div><div class="sv">📍 Paris · en préparation</div></div></div>`).join('');
+    `<div class="stop"><span class="emo">🧾</span><div><div class="sn">Commande n°${id}</div><div class="sw2">${p} ${n}</div><div class="sv">📍 Paris · en préparation</div></div><span class="lvr">✓ Livrée</span></div>`).join('');
+  /* La route : un trait, l’entrepôt au départ, un arrêt sous chaque commande */
+  $('#rt6 .road').innerHTML = `<path class="rd-b" d="M${ROUTE.hub} 92 H${ROUTE.end}"/><path class="rd-d" d="M${ROUTE.hub} 92 H${ROUTE.end}"/>`;
+  $('#hub6').style.left = (ROUTE.hub - 42) + 'px';
+  ROUTE.stops.forEach((x, k) => { $('#pin' + (k + 1)).style.left = (x - 19) + 'px'; });
 }
 
 const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
@@ -354,6 +388,14 @@ function flip(sw, t, sound = true){
   tl.to(sw, {scaleY: 0, duration: 0.12, ease: 'power2.in'}, t);
   tl.set(sw.querySelector('.a'), {opacity: 0}, t + 0.12);
   tl.set(sw.querySelector('.b'), {opacity: 1}, t + 0.12);
+  tl.to(sw, {scaleY: 1, duration: 0.22, ease: 'back.out(2)'}, t + 0.12);
+  if (sound) cue(t + 0.12, 'tick', 0.5, 3);
+}
+/* Une case à trois états (a, b, c) : elle se retourne de l’un à l’autre (Paris ✓ → Lyon ✕, et retour). */
+function swapTo(sw, from, to, t, sound = true){
+  tl.to(sw, {scaleY: 0, duration: 0.12, ease: 'power2.in'}, t);
+  tl.set(sw.querySelector('.' + from), {opacity: 0}, t + 0.12);
+  tl.set(sw.querySelector('.' + to), {opacity: 1}, t + 0.12);
   tl.to(sw, {scaleY: 1, duration: 0.22, ease: 'back.out(2)'}, t + 0.12);
   if (sound) cue(t + 0.12, 'tick', 0.5, 3);
 }
@@ -467,129 +509,188 @@ function build(){
   pulse('#a3', 61.0, 3, 'rgba(201,188,255,.45)');
   cue(59.4, 'tick', 0.5, 1);
   cue(61.0, 'tick', 0.5, 4);
-  // Commande n°13 et Sophie Martin : les deux conditions sont vraies
+  // Commande n°13 et Sophie Martin : les deux conditions, vérifiées l’une après l’autre
   stackBelow('#ck1', '#s3code', 0, 34);
   show('#ck1', 64.3, {y: 50});
   cue(64.3, 'whoosh', 0.6);
-  const v1 = $$('#ck1 .ck-v .sw'), v2 = $$('#ck2 .ck-v .sw');
-  flip(v1[0], 65.9);
-  flip(v1[1], 67.4);
-  flip($('#ck1 .ck-out .sw'), 69.9, false);
-  cue(70.0, 'true', 0.6);
-  bump('#ck1 .ck-out', 70.4, 1.1, 1);
+  const v1 = $$('#ck1 .ck-v .sw'), v2 = $$('#ck2 .ck-v .sw'), c1 = $$('#ck1 .ck-r'), out1 = $('#ck1 .ck-out .sw');
+  // 1. La commande n°13 appartient-elle à Sophie Martin ?
+  pulse(c1[0], 65.0, 3, 'rgba(201,188,255,.45)');
+  cue(65.0, 'tick', 0.5, 1);
+  // client_id = 1 dans la commande, id = 1 pour Sophie Martin
+  pulse('#c1a', 68.8, 3, 'rgba(255,214,140,.6)');
+  cue(68.8, 'tick', 0.5, 2);
+  pulse('#c1b', 70.9, 3, 'rgba(255,214,140,.6)');
+  cue(70.9, 'tick', 0.5, 3);
+  // Les identifiants correspondent
+  flip(v1[0], 73.3);
+  cue(73.5, 'true', 0.45);
+  // 2. Sophie Martin habite-t-elle à Paris ? Oui
+  pulse(c1[1], 76.5, 3, 'rgba(201,188,255,.45)');
+  cue(76.5, 'tick', 0.5, 4);
+  flip(v1[1], 79.0);
+  cue(79.2, 'true', 0.45);
+  // Avec AND, les deux conditions doivent être remplies : la commande apparaît dans le résultat
+  pulse('#a3', 81.6, 3, 'rgba(201,188,255,.45)');
+  cue(81.6, 'tick', 0.5, 2);
+  flip(out1, 84.6, false);
+  cue(84.7, 'true', 0.6);
+  bump('#ck1 .ck-out', 85.1, 1.1, 1);
+  // Si elle habitait à Lyon, la ligne serait exclue (puis retour à Paris)
+  swapTo(v1[1], 'b', 'c', 89.4);
+  cue(89.5, 'false', 0.5);
+  swapTo(out1, 'b', 'c', 90.7, false);
+  cue(90.8, 'miss', 0.55);
+  shake('#ck1 .ck-out', 91.1);
+  swapTo(v1[1], 'c', 'b', 92.9);
+  swapTo(out1, 'c', 'b', 92.9, false);
+  // 13 : le numéro de la commande ; 1 : le numéro du client
+  pulse('#n13', 93.8, 3, 'rgba(201,188,255,.55)');
+  cue(93.8, 'pop', 0.5, 1);
+  pulse(v1[0].parentElement, 95.8, 3, 'rgba(255,214,140,.6)');
+  cue(95.8, 'pop', 0.5, 3);
   // Commande n°14 et Emma Dubois : une condition fausse
   stackBelow('#ck2', '#ck1', 0, 24);
-  show('#ck2', 74.0, {y: 50});
-  cue(74.0, 'whoosh', 0.6);
-  flip(v2[0], 75.6);
-  flip(v2[1], 77.2, false);
-  cue(77.3, 'false', 0.55);
-  shake('#ck2 .ck-r:last-child .ck-v', 77.6);
-  flip($('#ck2 .ck-out .sw'), 79.9, false);
-  cue(80.0, 'miss', 0.6);
-  shake('#ck2 .ck-out', 80.4);
-  hide(['#s3code', '#ck1', '#ck2'], 84.4, {y: -40});
-  sceneOff('#s3', 84.9);
+  show('#ck2', 98.5, {y: 50});
+  cue(98.5, 'whoosh', 0.6);
+  flip(v2[0], 100.1);
+  flip(v2[1], 101.7, false);
+  cue(101.8, 'false', 0.55);
+  shake('#ck2 .ck-r:last-child .ck-v', 102.1);
+  flip($('#ck2 .ck-out .sw'), 104.4, false);
+  cue(104.5, 'miss', 0.6);
+  shake('#ck2 .ck-out', 104.9);
+  hide(['#s3code', '#ck1', '#ck2'], 108.9, {y: -40});
+  sceneOff('#s3', 109.4);
 
   /* ===== 4 · Une troisième condition ===== */
-  sceneOn('#s4', 84.9);
-  show('#tbl4', 84.95, {y: 40}, 0.5);
-  cue(84.95, 'whoosh', 0.6);
+  sceneOn('#s4', 109.4);
+  show('#tbl4', 109.45, {y: 40}, 0.5);
+  cue(109.45, 'whoosh', 0.6);
   const r4 = $$('#rows4 .tr');
-  rowsIn(r4, 85.3, 0.08);
+  rowsIn(r4, 109.8, 0.08);
   gsap.set('#cnt4b', {autoAlpha: 0});
-  show('#cnt4a', 86.1, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  bump('#cnt4a', 86.9, 1.15, 3);
+  show('#cnt4a', 110.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt4a', 111.4, 1.15, 3);
   // La plupart sont déjà expédiées
-  pulse($$('#rows4 .cs.x'), 90.2, 3, 'rgba(214,208,236,.8)');
-  cue(90.2, 'tick', 0.5, 2);
+  pulse($$('#rows4 .cs.x'), 114.7, 3, 'rgba(214,208,236,.8)');
+  cue(114.7, 'tick', 0.5, 2);
   // Une troisième condition, sur la table commandes : le statut
   stackBelow('#wh4', '#tbl4', 0, 34);
-  show('#wh4', 93.8, {y: 30}, 0.5);
-  cue(93.8, 'whoosh', 0.6);
-  pulse('#w4', 95.6, 3, 'rgba(201,188,255,.35)');
-  cue(95.6, 'tick', 0.5, 3);
+  show('#wh4', 118.3, {y: 30}, 0.5);
+  cue(118.3, 'whoosh', 0.6);
+  pulse('#w4', 120.1, 3, 'rgba(201,188,255,.35)');
+  cue(120.1, 'tick', 0.5, 3);
   // Chaque condition s’ajoute avec un nouveau AND
-  bump('#w4 .kw', 99.4, 1.2, 1);
-  cue(99.4, 'pop', 0.6, 2);
+  bump('#w4 .kw', 123.9, 1.2, 1);
+  cue(123.9, 'pop', 0.6, 2);
   // Il reste 2 lignes : les commandes n°12 et n°13
-  tl.to(r4.filter(r => !r.classList.contains('ok')), {opacity: 0.25, duration: 0.4}, 102.8);
-  cue(102.8, 'miss', 0.5);
-  tl.to($$('#rows4 .tr.ok .hl'), {opacity: 1, duration: 0.3, stagger: 0.2}, 103.1);
-  hide('#cnt4a', 103.5, {y: 0, scale: 0.8}, 0.2);
-  show('#cnt4b', 103.7, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  cue(103.7, 'true', 0.55);
+  tl.to(r4.filter(r => !r.classList.contains('ok')), {opacity: 0.25, duration: 0.4}, 127.3);
+  cue(127.3, 'miss', 0.5);
+  tl.to($$('#rows4 .tr.ok .hl'), {opacity: 1, duration: 0.3, stagger: 0.2}, 127.6);
+  hide('#cnt4a', 128.0, {y: 0, scale: 0.8}, 0.2);
+  show('#cnt4b', 128.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(128.2, 'true', 0.55);
   stackBelow('#n4', '#wh4', 0, 30);
-  show('#n4', 104.4, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
-  cue(104.4, 'pop', 0.7, 2);
-  hide(['#tbl4', '#wh4', '#n4'], 106.5, {y: -40});
-  sceneOff('#s4', 107.0);
+  show('#n4', 128.9, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(128.9, 'pop', 0.7, 2);
+  hide(['#tbl4', '#wh4', '#n4'], 131.0, {y: -40});
+  sceneOff('#s4', 131.5);
 
   /* ===== 5 · Le piège ===== */
-  sceneOn('#s5', 107.0);
-  show('#trap5', 107.05, {y: 50});
-  cue(107.05, 'whoosh', 0.6);
+  sceneOn('#s5', 131.5);
+  show('#trap5', 131.55, {y: 50});
+  cue(131.55, 'whoosh', 0.6);
   // OR à la place de AND : une seule condition vraie suffit
-  pulse('#or5', 108.8, 3, 'rgba(255,214,140,.45)');
-  cue(108.8, 'tick', 0.5, 2);
-  press($('#go5'), 111.8, '#4B30CC', 6);
+  pulse('#or5', 133.3, 3, 'rgba(255,214,140,.45)');
+  cue(133.3, 'tick', 0.5, 2);
+  press($('#go5'), 136.3, '#4B30CC', 6);
   gsap.set('#rt5', {autoAlpha: 0});
-  show('#rt5', 112.1, {y: 20}, 0.45);
-  cue(112.1, 'whoosh', 0.5);
+  show('#rt5', 136.6, {y: 20}, 0.45);
+  cue(136.6, 'whoosh', 0.5);
   const r5 = $$('#rt5 .tr');
-  rowsIn(r5, 112.3, 0.1);
+  rowsIn(r5, 136.8, 0.1);
   // La commande n°14 reliée aux 4 clients parisiens, en plus d’Emma Dubois
-  tl.to(r5.filter(r => r.classList.contains('ko')).map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.25}, 114.6);
-  [0, 1, 2, 3].forEach(i => cue(114.6 + i * 0.25, 'pop', 0.5, i));
-  tl.to(r5.filter(r => r.classList.contains('ok')).map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3}, 116.8);
-  cue(116.8, 'tick', 0.5, 2);
+  tl.to(r5.filter(r => r.classList.contains('ko')).map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.25}, 139.1);
+  [0, 1, 2, 3].forEach(i => cue(139.1 + i * 0.25, 'pop', 0.5, i));
+  tl.to(r5.filter(r => r.classList.contains('ok')).map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3}, 141.3);
+  cue(141.3, 'tick', 0.5, 2);
   // 72 lignes
-  bump('#rt5 .n5', 119.4, 1.18, 3);
-  cue(119.4, 'false', 0.6);
+  bump('#rt5 .n5', 143.9, 1.18, 3);
+  cue(143.9, 'false', 0.6);
   // Avec AND, toutes les conditions doivent être vraies
   stackBelow('#fix5', '#trap5');
-  show('#fix5', 123.3, {y: 50});
-  cue(123.3, 'whoosh', 0.6);
-  pulse('#f5b', 124.0, 3, 'rgba(201,188,255,.35)');
-  press($('#go5b'), 125.1, '#4B30CC', 6);
-  flip($('#sw5'), 125.4);
-  tl.to('#fix5 .lst', {borderColor: '#7FD3A8', duration: 0.3}, 125.5);
-  cue(125.5, 'true', 0.6);
-  hide(['#trap5', '#fix5'], 127.9);
-  sceneOff('#s5', 128.4);
+  show('#fix5', 147.8, {y: 50});
+  cue(147.8, 'whoosh', 0.6);
+  pulse('#f5b', 148.5, 3, 'rgba(201,188,255,.35)');
+  press($('#go5b'), 149.6, '#4B30CC', 6);
+  flip($('#sw5'), 149.9);
+  tl.to('#fix5 .lst', {borderColor: '#7FD3A8', duration: 0.3}, 150.0);
+  cue(150.0, 'true', 0.6);
+  hide(['#trap5', '#fix5'], 152.4);
+  sceneOff('#s5', 152.9);
 
   /* ===== 6 · Le résultat ===== */
-  sceneOn('#s6', 128.4);
-  show('#s6code', 128.45, {y: 60}, 0.6);
-  cue(128.45, 'whoosh', 0.7);
-  te = typeLine($('#s6l1'), 128.95, 44);
+  sceneOn('#s6', 152.9);
+  show('#s6code', 152.95, {y: 60}, 0.6);
+  cue(152.95, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 153.45, 44);
   for (const k of [2, 3, 4, 5, 6, 7]) te = typeLine($('#s6l' + k), te + 0.1, 44);
-  pulse(['#o6', '#a6', '#b6'], 134.0, 3, 'rgba(201,188,255,.3)');
-  press($('#s6run'), 135.2);
+  pulse(['#o6', '#a6', '#b6'], 158.5, 3, 'rgba(201,188,255,.3)');
+  press($('#s6run'), 159.7);
   stackBelow('#tbl6', '#s6code', 0, 30);
-  show('#tbl6', 135.45, {y: 40}, 0.5);
-  rowsIn($$('#rows6 .tr'), 135.6, 0.15);
-  show('#cnt6', 136.1, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  bump('#cnt6', 136.9, 1.15, 3);
-  hide(['#s6code', '#tbl6'], 138.6, {y: -40}, 0.4);
-  // La tournée du coursier : Nathan Petit et Sophie Martin
-  boardIn('#fb6', 139.0, '.stop', 0.25);
+  show('#tbl6', 159.95, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 160.1, 0.15);
+  show('#cnt6', 160.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 161.4, 1.15, 3);
+  hide(['#s6code', '#tbl6'], 163.1, {y: -40}, 0.4);
+  // La tournée du coursier : la route se dessine depuis l’entrepôt
+  boardIn('#fb6', 163.5, '.stop', 0.25);
+  tl.fromTo('#rt6 .road', {scaleX: 0}, {scaleX: 1, transformOrigin: '0% 50%', duration: 0.7, ease: 'power2.inOut', immediateRender: false}, 164.8);
+  gsap.set('#rt6 .road', {scaleX: 0, transformOrigin: '0% 50%'});
+  show(['#hub6', '#pin1', '#pin2'], 164.8, {y: 0, scale: 0.4}, 0.4, 'back.out(2.2)');
+  cue(164.8, 'whoosh', 0.5);
+  cue(164.9, 'pop', 0.6, 0);
+  // Le coursier part de l’entrepôt, livre Nathan Petit, puis Sophie Martin
+  const bike = $('#bike6'), BX = x => x - 42, BY = 12;
+  gsap.set(bike, {x: BX(ROUTE.hub), y: BY, autoAlpha: 0, scale: 0.4, transformOrigin: '50% 100%'});
+  tl.to(bike, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.2)'}, 165.4);
+  cue(165.4, 'pop', 0.7, 2);
+  const ride = (x, t, d) => {
+    tl.to(bike, {x: BX(x), duration: d, ease: 'power1.inOut'}, t);
+    tl.to(bike, {y: BY - 7, duration: d / 8, yoyo: true, repeat: 7, ease: 'sine.inOut'}, t);
+    cue(t, 'whoosh', 0.55);
+  };
+  const deliver = (k, t) => {
+    tl.to('#pin' + (k + 1), {backgroundColor: '#2FA36B', borderColor: '#2FA36B', duration: 0.25}, t);
+    show($$('#pin' + (k + 1) + ' i'), t, {y: 0, scale: 0.4}, 0.3, 'back.out(2.4)');
+    const st = $$('#st6 .stop')[k];
+    bump(st, t, 1.04, 1);
+    const lvr = st.querySelector('.lvr');
+    gsap.set(lvr, {autoAlpha: 0, scale: 1.7, rotation: -20});
+    tl.to(lvr, {autoAlpha: 1, scale: 1, rotation: -8, duration: 0.35, ease: 'back.out(1.6)'}, t + 0.1);
+    cue(t + 0.1, 'stamp', 0.8);
+  };
+  ride(ROUTE.stops[0], 165.7, 1.2);
+  deliver(0, 166.9);
+  ride(ROUTE.stops[1], 167.4, 1.4);
+  deliver(1, 168.8);
   stackBelow('#badge6', '#fb6', 0, 50);
-  show('#badge6', 141.1, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(141.1, 'chord', 0.7);
-  hide(['#fb6', '#badge6'], 143.8);
-  sceneOff('#s6', 144.3);
+  show('#badge6', 169.4, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(169.4, 'chord', 0.7);
+  hide(['#fb6', '#badge6'], 171.9);
+  sceneOff('#s6', 172.4);
 
   /* ===== 7 · À retenir ===== */
-  recapScene(144.3, [145.0, 146.8, 148.6]);
-  hold(146.6, 4.8);
-  hold(148.4, 3.8);
+  recapScene(172.4, [173.1, 174.9, 176.7]);
+  hold(174.7, 4.8);
+  hold(176.5, 3.8);
   // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(149.55, 'pop', 0.85, 5);
+  if (APP) cue(177.65, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 149.5,
-  glyphs: '🛵📍📦🧾👤👪🔎🎯⚠️🔗➕✅✓✕?!·…⋯', dom, build});
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 177.6,
+  glyphs: '🛵🏬📍📦🧾👤👪🔎🎯⚠️🔗➕✅👉✓✕?!·…⋯', dom, build});
 </script>
 </body>
 </html>
