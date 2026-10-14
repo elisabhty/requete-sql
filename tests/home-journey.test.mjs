@@ -9,13 +9,15 @@ for(const name of ['console','defis','jeu','practice'])assert.equal(ctx.primaryT
 for(const name of ['notes','collection','entretien','library'])assert.equal(ctx.primaryTabFor(name),'library');
 for(const name of ['learn','planning','compte'])assert.equal(ctx.primaryTabFor(name),name,'Mon compte est un onglet de la barre du bas');
 let exo=false,done=false;
-ctx.etapesDe=()=>({exo});ctx.lecCompletee=()=>done;
+ctx.etapesDe=()=>({exo});ctx.lecCompletee=()=>done;let seule=false;ctx.leconSeule=()=>seule;
 vm.runInContext(extract('function homeLessonSteps(','function renderHomeHero('),ctx);
 assert.equal(ctx.homeLessonSteps(38)[2].locked,true,'quiz fermé tant que l’exercice n’est pas validé');
 exo=true;
 assert.equal(ctx.homeLessonSteps(38)[1].done,true);
 assert.equal(ctx.homeLessonSteps(38)[2].locked,false);
 done=true;assert.ok(ctx.homeLessonSteps(38).every(step=>step.done));
+seule=true;done=false;assert.deepEqual(JSON.parse(JSON.stringify(ctx.homeLessonSteps(44))),[{step:0,done:false,locked:false}],'leçon seule (vidéo interactive) : une seule étape, sans exercice ni quiz');
+done=true;assert.equal(ctx.homeLessonSteps(44)[0].done,true);seule=false;
 let opened;
 ctx.isDefiId=id=>typeof id==='string';ctx.openLesson=(...args)=>opened=args;ctx.openChallenge=id=>opened=[id];
 vm.runInContext(extract('function openItem(','/* Un plan sauvegardé'),ctx);
