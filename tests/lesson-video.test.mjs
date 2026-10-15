@@ -229,7 +229,7 @@ test('reprise, repères de chapitres, double appui, question et légendes dans l
   const marks = cut('function lvMarks(){', '/* En glissant sur la barre');
   assert.ok(marks.includes("LV.seek.style.setProperty('--gaps'") && html.includes('background:var(--gaps,linear-gradient(transparent,transparent))'), 'barre coupée au début de chaque chapitre');
   assert.ok(cut('function lvTip(on){', '/* Double appui').includes("tip.textContent=(c?`${c.n} · ${c.label}`:'Intro')+' · '+lvFmt(t);"), 'nom du chapitre en glissant');
-  assert.ok(player.includes('if(side&&T.side===side&&now-T.t<330){') && player.includes('lvSkip(side*LV_SKIP); lvDtFx(side,T.total);'), 'double appui à gauche / à droite');
+  assert.ok(player.includes('if(side&&T.side===side&&now-T.t<330){') && player.includes('if(lvSkip(side*LV_SKIP))lvDtFx(side,T.total);'), 'double appui à gauche / à droite');
   assert.ok(player.includes("T.timer=setTimeout(()=>{ T.timer=0; if(LV&&LV.root===root)lvToggle(); },300);"), 'un seul appui sur le côté : pause après un court délai');
   const ans = cut('function lvQAnswer(k){', 'function lvQClose(answered){');
   for (const part of ["LV.video.sfx(ok?'true':'false')", 'navigator.vibrate(ok?[10,60,20]:[20,60,20])', 'lvNoteBurst(btns[k])', 'const ok=lvQFill(box,q,k);'])
@@ -707,7 +707,7 @@ const COURSES = [
   {id: 44, next: 45, titre: 'Quel JOIN choisir ?', page: 'quel-join-choisir.html', thumb: 'quel-join-choisir-thumb.jpg', duree: '4 min 12', notesAt: 218.5,
     notes: /notes:\{t:243\.1,y:1396,card:\[64,292,1016,1101\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Six situations de la vie courante&nbsp;:<br>à toi de choisir le bon <span class="ic">JOIN</span>.',
-    chapters: ['Le cabinet médical', 'L’aquarium', 'La bibliothèque', 'L’hôtel', 'Le glacier', 'L’entreprise', 'À retenir'],
+    chapters: ['Le cabinet des Tilleuls', 'L’aquarium de l’Atlas', 'La bibliothèque des Lumières', 'L’hôtel des Cimes', 'Le glacier parisien', 'L’agence Horizon', 'À retenir'],
     traps: ["const SAL = [[1, 'Nadia Benali', N], [2, 'Hugo Lefèvre', 1], [3, 'Inès Fabre', 2], [4, 'Théo Petit', 2]];",
       "on: (l, r) => l[1] === r[0], cols: ['patient', 'medecin'], sel: [[0, 0], [1, 1]],",
       "{label: 'medecins.id', ok: true, say: 'Chaque rendez-vous est relié à son médecin.',",
@@ -1142,6 +1142,49 @@ test('leçon seule (Quel JOIN choisir ?) : la vidéo interactive valide la leço
   assert.ok(cut('function lvGoExercise(){', 'function lvFail(){').includes('leconSeuleBilan(first)'), '« Terminer la leçon » ouvre le bilan');
   assert.ok(html.includes("${l.leconSeule?'Leçon terminée&nbsp;!':'À toi de jouer&nbsp;!'}") && html.includes("${l.leconSeule?'Terminer la leçon':'Passer à l’exercice'}"), 'écran de fin propre à la leçon seule');
   assert.ok(html.includes('<i>🎯</i> ${ok}/${n} du premier coup'), 'bilan : moments trouvés du premier coup');
+});
+
+test('leçon seule : on n’avance pas au-delà d’un moment « À toi » pas réussi ; la leçon se valide avec au moins 6 sur 9', () => {
+  const video = {picks: [{t: 10}, {t: 20}, {t: 30}], duration: 40, currentTime: 0, paused: false, plays: 0,
+    pause() { this.paused = true; }, play() { this.plays++; this.paused = false; return Promise.resolve(); }};
+  const LV = {id: 44, video, pk: null, q: null, root: {classList: {contains: () => false}, querySelector: () => null}}, shown = [];
+  const ctx = vm.createContext({LV, LV_ANS: {}, lvAnsSave() {}, lvSyncSeek() {}, lvNoteSync() {}, lvQClose() {}, prefersReduceMotion: () => true, navigator: {},
+    lvPkShow(i, p) { shown.push(i); LV.pk = {i, p, done: false}; }, lvPkClose() { LV.pk = null; }, Math, Object, Promise});
+  vm.runInContext(cut('function lvPkGet(id,i){', 'function lvPkIX(){') + cut('/* Saut de ±5 s', 'function lvSpeedMenu(open){') + cut('function lvPlay(){', 'function lvToggle(){')
+    + ';this.api={lvPkSet,lvPkScore,lvPkReset,lvReussi,lvPkGate,lvSkip,lvPlay};', ctx);
+  const {api} = ctx;
+  assert.equal(api.lvPkGate(9.9), -1, 'avant le premier moment : rien ne bloque');
+  assert.equal(api.lvPkGate(25), 0, 'au-delà : le premier moment pas encore réussi');
+  video.currentTime = 7;
+  assert.equal(api.lvSkip(5), false, '+5 s : le saut s’arrête sur le moment');
+  assert.ok(video.currentTime === 10 && video.paused && shown.join() === '0', 'arrêt pile sur le moment, plateau ouvert');
+  assert.ok(api.lvSkip(5) === false && video.currentTime === 10, 'plateau ouvert : pas de saut en avant');
+  api.lvPlay();
+  assert.equal(video.plays, 0, 'ni lecture (espace, gros bouton) tant que la bonne étiquette n’est pas posée');
+  assert.ok(api.lvSkip(-5) === true && video.currentTime === 5 && !LV.pk, 'reculer reste possible');
+  api.lvPkSet(44, 0, false);
+  video.currentTime = 7;
+  assert.ok(api.lvSkip(5) === true && video.currentTime === 12, 'moment réussi (au deuxième essai) : on peut le dépasser');
+  assert.equal(api.lvPkGate(39), 1, 'le moment suivant bloque à son tour');
+  api.lvPkSet(44, 1, true); api.lvPkSet(44, 2, true);
+  assert.equal(api.lvPkGate(39), -1, 'tous réussis : la barre est libre');
+  const l = {id: 44, video: {moments: 3, seuil: 2}};
+  assert.ok(api.lvPkScore(44, 3) === 2 && api.lvReussi(l), '2 sur 3 du premier coup, seuil 2 : validée');
+  ctx.LV_ANS[44][0] = {k: 1, q: 'Une question'};
+  api.lvPkReset(44);
+  assert.equal(Object.keys(ctx.LV_ANS[44]).join(), '0', 'nouvelle tentative : seuls les moments sont remis à zéro');
+  assert.ok(!api.lvReussi(l) && api.lvReussi({id: 44, video: {moments: 3}}), 'sous le seuil : pas validée ; sans seuil, la fin suffit');
+  const player = cut('function openLessonVideo(){', 'function lvPlay(){');
+  assert.ok(player.includes('LV.gate=lvPkGate(t);') && player.includes('if(g>=0)lvPkStop(g); else if(again)lvPlay();'), 'barre : le curseur s’arrête avant le moment, son plateau s’ouvre au relâchement');
+  assert.ok(player.includes('const g=lvPkGate(r); if(g>=0)r=Math.max(0,video.picks[g].t-.08);'), 'reprise : jamais au-delà d’un moment pas réussi');
+  const end = cut('function lvEnded(){', '/* ---------- « Ajouter dans notes »');
+  for (const part of ['LV.retry=!was&&ok<need;', 'if(LV.firstDone){ markDone(id,false);', 'Il en faut au moins ${need} pour valider la leçon.',
+    "LV.retry?'Recommencer la vidéo':'Terminer la leçon'", 'if(LV.retry)lvPkReset(id);', "root.classList.toggle('is-retry',LV.retry);"])
+    assert.ok(end.includes(part), `fin de la vidéo : ${part}`);
+  assert.ok(cut('function lvGoExercise(){', 'function lvFail(){').includes('if(LV&&LV.retry){ lvReplay(); return; }'), 'sous le seuil : « Recommencer la vidéo »');
+  assert.ok(cut('function leconSeuleBilan(first){', 'function lvFail(){').includes('if(!lvReussi(current))return;'), 'ni bilan ni validation sous le seuil');
+  assert.ok(cut('guide({ id:44,', 'guide({ id:45,').includes(',moments:9,seuil:6,'), 'leçon 44 : au moins 6 moments sur 9');
+  assert.ok(html.includes('Obtiens ${lvSeuil(l)}/${v.moments} pour valider la leçon'), 'le bouton du cours annonce la règle');
 });
 
 test('Quel JOIN choisir ? : chaque étiquette montre le résultat de SQLite (ordre compris), lignes en trop et manquantes', () => {

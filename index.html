@@ -6601,7 +6601,12 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-end-score{margin:-6px 0 16px;padding:11px 14px;border-radius:16px;background:var(--accent-soft,#EEE9FF);color:var(--ink-2,#4E4872);font:700 16px/1.3 var(--display);text-align:center}
 .lv-end-score[hidden]{display:none}
 .lv-end-score b{color:var(--accent-ink,#5335E0);font-weight:800}
+/* Score sous le seuil (6 sur 9) : la leçon n’est pas validée, la vidéo est à recommencer */
+.lv-end-need{display:block;margin-top:5px;font-size:14px;font-weight:600;color:var(--ink-2,#4E4872)}
+.lv.is-retry .lv-end-score{background:#FFF4E5}
+.lv.is-retry .lv-end-score b{color:#B4610E}
 .lv-end .lv-again{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;margin-top:12px;font-size:16px;cursor:pointer}
+.lv-end .lv-again[hidden]{display:none}
 .lv-end .lv-again svg{width:18px;height:18px}
 /* Dans le cours : la vignette qui rouvre la vidéo */
 .lv-lesson .lv-card{position:relative;display:block;container-type:inline-size;width:min(100%,420px,max(230px,calc(100svh - 430px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))));aspect-ratio:1/1;margin:18px auto 6px;padding:0;border:2px solid var(--line,#E6E1F6);border-radius:24px;overflow:hidden;background:#F4F2FC;box-shadow:0 5px 0 var(--lip,#DCD5F2);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .12s,box-shadow .12s}
@@ -11164,11 +11169,13 @@ guide({ id:49, titre:"Plusieurs conditions dans ON", résumé:"Relier seulement 
 }),
 guide({ id:44, titre:"Quel JOIN choisir ?", résumé:"Choisir la bonne jointure selon les lignes à garder",
   /* Cours en vidéo interactive : l’animation (assets/anim/quel-join-choisir.html, moteur commun assets/anim/core.js) remplace le texte du cours.
-     La vidéo interactive suit six situations de la vie courante (cabinet médical, aquarium, bibliothèque, hôtel, glacier, entreprise) :
-     à chacun des 9 moments « À toi », l’image s’arrête et l’élève place l’étiquette qui complète la requête, avec le résultat aussitôt.
-     Leçon seule : ni exercice ni quiz, la fin de la vidéo valide la leçon. Le texte ci-dessous reste pour le cas où la vidéo ne se charge pas. */
+     La vidéo interactive suit six situations de la vie courante (Le cabinet des Tilleuls, L’aquarium de l’Atlas, La bibliothèque des Lumières,
+     L’hôtel des Cimes, Le glacier parisien, L’agence Horizon) : à chacun des 9 moments « À toi », l’image s’arrête et l’élève place
+     l’étiquette qui complète la requête, avec le résultat aussitôt. On ne peut pas avancer au-delà d’un moment tant qu’il n’est pas réussi.
+     Leçon seule : ni exercice ni quiz. La fin de la vidéo valide la leçon avec au moins 6 moments sur 9 réussis du premier coup (seuil) ;
+     sinon, la vidéo est à recommencer. Le texte ci-dessous reste pour le cas où la vidéo ne se charge pas. */
   leconSeule:true,
-  video:{anim:'assets/anim/quel-join-choisir.html?app&embed',thumb:'assets/anim/quel-join-choisir-thumb.jpg',duree:'4 min 12',moments:9,
+  video:{anim:'assets/anim/quel-join-choisir.html?app&embed',thumb:'assets/anim/quel-join-choisir-thumb.jpg',duree:'4 min 12',moments:9,seuil:6,
     /* « Ajouter dans notes » : apparaît à 4 min 03 (243,1 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
     notes:{t:243.1,y:1396,card:[64,292,1016,1101],to:[940,255]}},
   sit:{
@@ -19812,11 +19819,17 @@ function lvCardSync(id){
   if(m)m.textContent=lessonVideoMeta(current);
   if(c)c.setAttribute('aria-label',`${lessonVideoMeta(current)} : cours ${current.titre} en plein écran`);
 }
+/* Leçon seule validée à la fin de la vidéo : le bouton du haut devient « Voir le bilan » (vu en fermant la vidéo). */
+function lvNavSync(id){
+  if(!current||current.id!==id||!current.leconSeule||!lecCompletee(id))return;
+  const b=document.querySelector('#lesson-body .ls-next[data-jc-gate]');
+  if(b){ b.removeAttribute('aria-disabled'); b.removeAttribute('data-jc-gate'); b.textContent='Voir le bilan'; b.onclick=()=>setLessonStep(3); }
+}
 function lessonVideoSlide(l){
   const v=l.video, m=moduleDeLecon(l.id), locked=jcGateLocked(l);
   return `
       <div class="ls-nav">
-        ${l.leconSeule?(state.lessons[l.id]&&state.lessons[l.id].done?'<button class="ls-next" type="button" onclick="setLessonStep(3)">Voir le bilan</button>':'<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">Termine la vidéo pour valider la leçon</button>')
+        ${l.leconSeule?(state.lessons[l.id]&&state.lessons[l.id].done?'<button class="ls-next" type="button" onclick="setLessonStep(3)">Voir le bilan</button>':`<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">${lvSeuil(l)?`Obtiens ${lvSeuil(l)}/${v.moments} pour valider la leçon`:'Termine la vidéo pour valider la leçon'}</button>`)
           :locked?'<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">Termine la vidéo pour continuer</button>':'<button class="ls-next" type="button" onclick="setLessonStep(1)">Passer à l’exercice</button>'}
       </div>
       <div class="ls-main">
@@ -19882,7 +19895,7 @@ function openLessonVideo(){
     </div>`;
   document.body.appendChild(root);
   const video=v.anim?new LvAnim(root.querySelector('.lv-anim')):root.querySelector('video'), seek=root.querySelector('.lv-seek');
-  LV={id:l.id,root,video,seek,seeking:false,note:null,q:null,cap:null,saved:0,tap:{t:0,side:0,timer:0,total:0,burst:0}};
+  LV={id:l.id,root,video,seek,seeking:false,gate:-1,gateResume:false,retry:false,note:null,q:null,cap:null,saved:0,tap:{t:0,side:0,timer:0,total:0,burst:0}};
   const noteEl=root.querySelector('.lv-note');
   if(noteEl){
     LV.note={el:noteEl,cfg:v.notes,shown:false,done:false,timer:0};
@@ -19913,6 +19926,8 @@ function openLessonVideo(){
     let r=resume;
     (video.questions||[]).forEach(q=>{ if(r>=q.t-.02&&r<=q.t+.3)r=Math.max(0,q.t-.08); });
     (video.picks||[]).forEach(q=>{ if(r>=q.t-.02&&r<=q.t+.3)r=Math.max(0,q.t-.08); });
+    /* Jamais au-delà d’un moment « À toi » pas encore réussi : la reprise se fait juste avant lui. */
+    const g=lvPkGate(r); if(g>=0)r=Math.max(0,video.picks[g].t-.08);
     video.currentTime=r;
   },{once:true});
   video.addEventListener('play',()=>{ root.classList.remove('is-paused'); if(video.playbackRate!==LV_RATE)video.playbackRate=LV_RATE; if(LV&&LV.q)lvQClose(true); if(LV&&LV.pk)lvPkClose(true); lvSyncPP(); });
@@ -19933,13 +19948,30 @@ function openLessonVideo(){
     const d=video.duration;
     if(LV.q)lvQClose(false);
     if(LV.pk)lvPkClose(false);
-    if(d)video.currentTime=seek.value/1000*d;
+    if(d){
+      /* Pas au-delà d’un moment « À toi » pas encore réussi : le curseur et la vidéo s’arrêtent juste avant,
+         et le plateau du moment s’ouvre quand on relâche (change). */
+      let t=seek.value/1000*d;
+      LV.gate=lvPkGate(t);
+      if(LV.gate>=0){
+        t=Math.max(0,video.picks[LV.gate].t-.05);
+        if(!video.paused){ video.pause(); LV.gateResume=true; }
+        seek.value=String(Math.floor(t/d*1000));
+      }
+      video.currentTime=t;
+    }
     seek.style.setProperty('--pf',(seek.value/1000).toFixed(4));
     root.querySelector('.lv-cur').textContent=lvFmt(seek.value/1000*(d||0));
     lvTip(true);
     lvNoteSync();
   });
-  seek.addEventListener('change',()=>{ if(LV){ LV.seeking=false; lvTip(false); lvPosKeep(); } });
+  seek.addEventListener('change',()=>{
+    if(!LV)return;
+    LV.seeking=false; lvTip(false);
+    const g=LV.gate, again=LV.gateResume; LV.gate=-1; LV.gateResume=false;
+    if(g>=0)lvPkStop(g); else if(again)lvPlay();
+    lvPosKeep();
+  });
   /* Un appui met en pause ou relance ; deux appuis rapides à gauche ou à droite reculent ou avancent de 5 s. */
   root.querySelector('.lv-stage').addEventListener('click',e=>{
     if(!LV||LV.root!==root)return;
@@ -19950,7 +19982,7 @@ function openLessonVideo(){
     if(side&&T.side===side&&now-T.t<330){
       clearTimeout(T.timer); T.timer=0; T.t=now;
       T.total=(now-T.burst<900?T.total:0)+LV_SKIP; T.burst=now;
-      lvSkip(side*LV_SKIP); lvDtFx(side,T.total);
+      if(lvSkip(side*LV_SKIP))lvDtFx(side,T.total);
       return;
     }
     T.t=now; T.side=side; clearTimeout(T.timer); T.timer=0;
@@ -19985,6 +20017,8 @@ function openLessonVideo(){
 function lvPlay(){
   const V=LV&&LV.video;
   if(!V)return;
+  /* Moment « À toi » ouvert : la vidéo ne repart qu’une fois la bonne étiquette posée (bouton « Continuer »). */
+  if(LV.pk&&!LV.pk.done)return;
   const p=V.play();
   if(p&&p.catch)p.catch(err=>{
     if(!LV||LV.video!==V)return;
@@ -20013,17 +20047,23 @@ function lvSyncPP(){
   b.setAttribute('aria-label',playing?'Mettre en pause':'Lire');
   b.classList.toggle('is-play',!playing);
 }
+/* Saut de ±5 s (boutons, double appui, flèches). Vers l’avant, il s’arrête sur le premier moment « À toi » pas encore
+   réussi et ouvre son plateau ; rend false dans ce cas (ou si rien ne bouge). */
 function lvSkip(d){
-  if(!LV||LV.root.classList.contains('is-end'))return;
+  if(!LV||LV.root.classList.contains('is-end'))return false;
   const V=LV.video, dur=V.duration||0;
-  if(!dur)return;
+  if(!dur)return false;
+  if(d>0&&LV.pk&&!LV.pk.done)return false;
   if(LV.q)lvQClose(false);
   if(LV.pk)lvPkClose(false);
-  V.currentTime=Math.max(0,Math.min(dur-0.15,V.currentTime+d));
+  const to=Math.max(0,Math.min(dur-0.15,V.currentTime+d)), g=lvPkGate(to);
+  if(g>=0){ lvPkStop(g); return false; }
+  V.currentTime=to;
   lvSyncSeek(); lvNoteSync();
   const ic=LV.root.querySelector(d<0?'.lv-back svg':'.lv-fwd svg');
   if(ic&&ic.animate&&!prefersReduceMotion())ic.animate([{transform:'rotate(0)'},{transform:`rotate(${d<0?-55:55}deg)`,offset:.38},{transform:'rotate(0)'}],{duration:420,easing:'cubic-bezier(.2,.8,.2,1)'});
   if(navigator.vibrate)navigator.vibrate(6);
+  return true;
 }
 function lvSpeedMenu(open){
   if(!LV)return;
@@ -20062,15 +20102,27 @@ function lvEnded(){
   LV_POS.delete(id); lvPosSave();
   if(LV.q)lvQClose(true);
   if(LV.pk)lvPkClose(true);
-  jcMarkPassed(id);
-  jcUnlockExo();
-  /* Leçon seule : la fin de la vidéo valide la leçon ; l’écran de fin donne le score du premier essai. */
+  /* Leçon seule : la fin de la vidéo valide la leçon si assez de moments « À toi » ont été réussis du premier coup
+     (seuil du cours : 6 sur 9) ; l’écran de fin donne ce score. En dessous, il propose de recommencer la vidéo :
+     les moments sont remis à zéro pour une nouvelle tentative. Une leçon déjà validée le reste. */
+  LV.retry=false;
   if(current&&current.id===id&&current.leconSeule){
-    LV.firstDone=!(state.lessons[id]&&state.lessons[id].done);
-    if(LV.firstDone){ markDone(id,false); renderModules();renderProgress();renderCollection();renderPlanning(); }
-    const sc=root.querySelector('.lv-end-score'), n=(LV.video.picks||[]).length;
-    if(sc&&n){ sc.innerHTML=`🎯 Du premier coup&nbsp;: <b>${lvPkScore(id,n)}&nbsp;sur&nbsp;${n}</b>`; sc.hidden=false; }
+    const n=(LV.video.picks||[]).length, ok=n?lvPkScore(id,n):0, need=lvSeuil(current), was=lecCompletee(id);
+    LV.retry=!was&&ok<need;
+    LV.firstDone=!was&&!LV.retry;
+    if(!LV.retry)jcMarkPassed(id);
+    if(LV.firstDone){ markDone(id,false); renderModules();renderProgress();renderCollection();renderPlanning(); lvNavSync(id); }
+    const sc=root.querySelector('.lv-end-score');
+    if(sc&&n){ sc.innerHTML=`🎯 Du premier coup&nbsp;: <b>${ok}&nbsp;sur&nbsp;${n}</b>${LV.retry?`<span class="lv-end-need">Il en faut au moins ${need} pour valider la leçon.</span>`:''}`; sc.hidden=false; }
+    root.querySelector('#lv-end-h').innerHTML=LV.retry?'Encore un effort&nbsp;!':'Leçon terminée&nbsp;!';
+    root.querySelector('.lv-go').textContent=LV.retry?'Recommencer la vidéo':'Terminer la leçon';
+    root.querySelector('.lv-again').hidden=LV.retry;
+    if(LV.retry)lvPkReset(id);
+  }else{
+    jcMarkPassed(id);
+    jcUnlockExo();
   }
+  root.classList.toggle('is-retry',LV.retry);
   lvCardSync(id);
   root.classList.add('is-end');
   root.querySelector('.lv-end').hidden=false;
@@ -20369,6 +20421,26 @@ function lvQPlace(){
 function lvPkGet(id,i){ const a=LV_ANS[id]&&LV_ANS[id]['p'+i]; return a&&typeof a.first==='number'?a:null; }
 function lvPkSet(id,i,first){ const o=LV_ANS[id]||(LV_ANS[id]={}); if(!o['p'+i]){ o['p'+i]={first:first?1:0}; lvAnsSave(); } }
 function lvPkScore(id,n){ let ok=0; for(let i=0;i<n;i++){ const a=lvPkGet(id,i); if(a&&a.first)ok++; } return ok; }
+/* Nouvelle tentative : les moments sont à refaire, le score du premier essai repart de zéro. */
+function lvPkReset(id){ const o=LV_ANS[id]; if(!o)return; Object.keys(o).forEach(k=>{ if(/^p\d+$/.test(k))delete o[k]; }); lvAnsSave(); }
+/* Seuil de validation d’une leçon seule (video.seuil : 6 moments sur 9 réussis du premier coup ; 0 = la fin suffit). */
+function lvSeuil(l){ return (l&&l.video&&l.video.seuil)||0; }
+function lvReussi(l){ const s=lvSeuil(l); return !s||lvPkScore(l.id,(l.video&&l.video.moments)||0)>=s; }
+/* On n’avance pas au-delà d’un moment tant qu’il n’est pas réussi : premier moment pas encore réussi placé avant `to`
+   (−1 s’il n’y en a pas). La barre, les sauts de 5 s et la reprise s’arrêtent juste avant lui. */
+function lvPkGate(to){
+  const ps=(LV&&LV.video.picks)||[];
+  for(let i=0;i<ps.length;i++)if(ps[i].t<=to+.001&&!lvPkGet(LV.id,i))return i;
+  return -1;
+}
+/* S’arrête sur ce moment et ouvre son plateau, comme si la lecture y était arrivée. */
+function lvPkStop(i){
+  const V=LV.video, p=V.picks[i];
+  if(!V.paused)V.pause();
+  V.currentTime=p.t;
+  lvSyncSeek(); lvNoteSync();
+  lvPkShow(i,p);
+}
 function lvPkIX(){ try{ const w=LV&&LV.video&&LV.video.win; return w&&w.IX||null; }catch(e){ return null; } }
 function lvPkDots(i,n){
   return Array.from({length:n},(_,j)=>{ const a=lvPkGet(LV.id,j); return `<i class="${j===i?'cur':a?(a.first?'ok':'try'):''}"></i>`; }).join('');
@@ -20522,12 +20594,15 @@ function lvPkClose(answered){
 }
 function lvReplay(){
   if(!LV)return;
-  LV.root.classList.remove('is-end','end-in');
+  LV.retry=false;
+  LV.root.classList.remove('is-end','end-in','is-retry');
   LV.root.querySelector('.lv-end').hidden=true;
   try{LV.video.currentTime=0;}catch(e){}
   lvPlay();
 }
 function lvGoExercise(){
+  /* Score sous le seuil : « Recommencer la vidéo » relance une tentative depuis le début. */
+  if(LV&&LV.retry){ lvReplay(); return; }
   if(LV&&current&&current.id===LV.id&&current.leconSeule){ const first=!!LV.firstDone; closeLessonVideo(true); leconSeuleBilan(first); return; }
   closeLessonVideo(true);
   setLessonStep(1);
@@ -20535,7 +20610,10 @@ function lvGoExercise(){
 /* Leçon seule : après « Terminer la leçon », le bilan ; la première fois, la fête et la carte débloquée. */
 function leconSeuleBilan(first){
   if(mode!=='lesson'||!current)return;
-  if(!lecCompletee(current.id)){ markDone(current.id,false); renderModules();renderProgress();renderCollection();renderPlanning(); first=true; }
+  if(!lecCompletee(current.id)){
+    if(!lvReussi(current))return;
+    markDone(current.id,false); renderModules();renderProgress();renderCollection();renderPlanning(); first=true;
+  }
   lessonStepDir=1;
   lessonStep=3;
   renderLessonFlow();
@@ -28145,7 +28223,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1809';
+  const SW_CACHE='requete-2026-10-12-ludique-v1810';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
