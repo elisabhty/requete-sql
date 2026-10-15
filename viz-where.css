@@ -1,0 +1,211 @@
+/* viz-where.css — animation du cours WHERE
+   Complète viz-select.css. Ne s'applique qu'aux visualisations marquées
+   .vw par viz-where.js : sept leçons partagent data-kind="filter"
+   (where, compare, andor, like, inbetween, distinct, count) et seule
+   celle du cours WHERE a été relue ici. Sans le JS, ce fichier est inerte.
+
+   Ce que le texte du cours annonçait sans que l'animation le montre :
+     « SQL teste chaque ligne »  -> les 9 lignes basculaient toutes ensemble
+     « il n'en reste que 3 »     -> le 3 n'était affiché nulle part
+   Et les lignes refusées tombaient à 1,9:1 de contraste, juste avant la
+   phrase « rien n'est effacé de la table ».
+
+   Tout l'état du palier 1 est porté par des animations, pas par des
+   transitions, pour trois raisons :
+   - le délai par ligne écrit en style inline par layoutSqlList() est
+     inopérant : il est posé dans la même tâche que le changement de
+     data-phase, et le moteur ne le retient pas ;
+   - une transition est prioritaire sur une animation dans la cascade CSS,
+     donc mettre la valeur finale dans une règle statique déclencherait une
+     transition qui court-circuiterait le délai ;
+   - animation-play-state gèle la cascade exactement là où elle en est sur
+     pause, alors que le transition:none de la pause la ferait sauter à
+     l'état final. */
+
+/* --- 1. socle ---------------------------------------------------------- */
+/* Le barré est posé dès le départ en transparent : text-decoration-line
+   n'est pas animable, seule sa couleur peut suivre la cascade. */
+.sql-viz.vw .grp-chip{
+  text-decoration:line-through;
+  text-decoration-color:transparent;
+  text-decoration-thickness:1px;
+  transition:
+    background-color .3s ease,
+    color .3s ease,
+    border-color .3s ease,
+    text-decoration-color .3s ease,
+    transform .78s cubic-bezier(.32,.72,.28,1);
+}
+
+/* --- 2. lignes refusées : écartées, mais lisibles ----------------------
+   Avant : opacity .3 + grayscale(.4) -> 1,92:1 sur le nom et 1,36:1 sur la
+   ville. Après : plus d'opacité, le retrait passe par le fond et la
+   couleur -> 4,54:1, au-dessus du seuil AA de 4,5:1. */
+.sql-viz.vw[data-phase="1"] .grp-chip[data-keep="0"]{
+  opacity:1;
+  filter:none;
+  text-decoration-color:transparent;
+  animation:wReject .34s ease var(--dw,0ms) both;
+}
+.sql-viz.vw[data-phase="1"] .grp-chip[data-keep="0"] .grp-extra{
+  animation:wRejectExtra .34s ease var(--dw,0ms) both;
+}
+@keyframes wReject{
+  from{
+    background-color:var(--surface);
+    color:var(--ink);
+    border-color:var(--line-2);
+    text-decoration-color:rgba(110,110,115,0);
+    box-shadow:0 2px 8px rgba(20,20,40,.07);
+  }
+  to{
+    background-color:#F2F2F7;
+    color:#6E6E73;
+    border-color:transparent;
+    text-decoration-color:rgba(110,110,115,.7);
+    box-shadow:0 2px 8px rgba(20,20,40,0);
+  }
+}
+@keyframes wRejectExtra{
+  from{ color:#8E8E93; }
+  to{ color:#6E6E73; }
+}
+
+/* --- 3. l'anneau d'évaluation ------------------------------------------
+   ::before pulse en violet sur la ligne en cours de test, puis se fige en
+   turquoise si la ligne est gardée, ou s'efface si elle est écartée. On
+   neutralise le bord et l'ombre turquoise instantanés d'origine, qui
+   arrivaient sur les trois lignes gardées en même temps. */
+.sql-viz.vw[data-phase="1"] .grp-chip[data-keep="1"]{
+  border-color:var(--line-2);
+  box-shadow:0 2px 8px rgba(20,20,40,.07);
+}
+.sql-viz.vw .grp-chip::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  border:1.5px solid transparent;
+  opacity:0;
+  pointer-events:none;
+}
+.sql-viz.vw[data-phase="1"] .grp-chip[data-keep="1"]::before{
+  animation:wRingKeep .6s ease var(--dw,0ms) both;
+}
+.sql-viz.vw[data-phase="1"] .grp-chip[data-keep="0"]::before{
+  animation:wRingRej .5s ease var(--dw,0ms) both;
+}
+@keyframes wRingKeep{
+  0%{   opacity:0; border-color:rgba(91,91,214,.55); transform:scale(.985); }
+  30%{  opacity:1; border-color:rgba(91,91,214,.55); transform:scale(1); }
+  100%{ opacity:1; border-color:rgba(20,184,166,.6); transform:scale(1); }
+}
+@keyframes wRingRej{
+  0%{   opacity:0; border-color:rgba(91,91,214,.55); }
+  35%{  opacity:1; border-color:rgba(91,91,214,.55); }
+  100%{ opacity:0; border-color:rgba(91,91,214,0); }
+}
+
+/* --- 4. le verdict ----------------------------------------------------- */
+.sql-viz.vw .grp-chip::after{
+  position:absolute;
+  right:9px;
+  top:50%;
+  font-family:var(--ui);
+  font-size:12px;
+  font-weight:800;
+  line-height:1;
+  opacity:0;
+  transform:translateY(-50%) scale(.7);
+  pointer-events:none;
+}
+.sql-viz.vw[data-phase="1"] .grp-chip[data-keep="1"]::after{
+  content:"\2713";
+  color:#0F766E;
+  animation:wMark .3s cubic-bezier(.32,1.5,.5,1) var(--dwm,0ms) both;
+}
+.sql-viz.vw[data-phase="1"] .grp-chip[data-keep="0"]::after{
+  content:"\2715";
+  color:#6E6E73;
+  animation:wMark .3s cubic-bezier(.32,1.5,.5,1) var(--dwm,0ms) both;
+}
+@keyframes wMark{
+  from{ opacity:0; transform:translateY(-50%) scale(.7); }
+  to{   opacity:1; transform:translateY(-50%) scale(1); }
+}
+
+/* --- 5. compteur de lignes gardées ------------------------------------
+   Une bande de chiffres clippée sur 1em et décalée en step-end. Le
+   compteur avance pile quand une ligne reçoit sa coche, sans aucun
+   minuteur JS : il reste donc synchrone avec la cascade et se met en
+   pause avec elle. Posé dans la rangée des puces d'étapes, il ne coûte
+   pas un pixel de hauteur. */
+.wc{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  margin-left:auto;
+  flex:0 0 auto;
+  font-family:var(--ui);
+  font-size:11px;
+  font-weight:700;
+  color:var(--ink-2);
+  white-space:nowrap;
+}
+.wc-box{
+  display:block;
+  overflow:hidden;
+  height:1em;
+  font-family:var(--mono);
+  font-size:12px;
+  font-weight:800;
+  color:#0F766E;
+}
+.wc-strip{
+  display:flex;
+  flex-direction:column;
+  font-style:normal;
+  transform:translateY(0);
+}
+.wc-strip > b{
+  display:block;
+  height:1em;
+  line-height:1;
+  font-weight:800;
+}
+.sql-viz.vw[data-phase="1"] .wc-strip{
+  animation:var(--wcname) var(--wcdur,1080ms) step-end both;
+}
+
+/* Sous 360px de large, on ne garde que « 3 / 9 » : la colonne de leçon
+   tombe vers 160px et le libellé entier passerait par-dessus les puces.
+   Pas d'overflow:hidden sur .vb-steps : ça rognerait les zones tactiles de
+   44px que les puces étendent en dehors de leur boîte. */
+@media (max-width:359px){
+  .wc-lbl{ display:none; }
+}
+
+/* --- 6. pause : geler, pas sauter -------------------------------------
+   !important est nécessaire ici : la propriété raccourcie animation des
+   règles ci-dessus remet animation-play-state à running, et elle est plus
+   spécifique que ce sélecteur. */
+.sql-viz.vw[data-paused="1"] .grp-chip,
+.sql-viz.vw[data-paused="1"] .grp-chip::before,
+.sql-viz.vw[data-paused="1"] .grp-chip::after,
+.sql-viz.vw[data-paused="1"] .grp-chip .grp-extra,
+.sql-viz.vw[data-paused="1"] .wc-strip{
+  animation-play-state:paused!important;
+}
+
+/* --- 7. prefers-reduced-motion : l'état final, tout de suite ----------- */
+@media (prefers-reduced-motion:reduce){
+  .sql-viz.vw .grp-chip,
+  .sql-viz.vw .grp-chip::before,
+  .sql-viz.vw .grp-chip::after,
+  .sql-viz.vw .grp-chip .grp-extra,
+  .sql-viz.vw .wc-strip{
+    animation-duration:1ms!important;
+    animation-delay:0ms!important;
+    transition:none!important;
+  }
+}
