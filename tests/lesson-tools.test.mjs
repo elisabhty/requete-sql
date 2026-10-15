@@ -70,7 +70,7 @@ test('tableaux de résultat des cours : titres de colonnes et valeurs centrés (
   assert.ok(!/\.exframe \.xf-result \.table-wrap [^{]*\{text-align:left\}/.test(css), 'plus de colonne alignée à gauche dans un cadre de résultat');
 });
 
-test('encadré « Bon à savoir » : non numéroté, avec son étiquette ; le cours 0 enchaîne les tables, les clés, le choix des colonnes et les virgules', () => {
+test('encadré « Bon à savoir » : non numéroté, avec son étiquette ; le cours 0 enchaîne les tables, les clés et leur déclaration, le choix des colonnes et les virgules', () => {
   /* guide() : une étape marquée aside devient un encadré non numéroté, avec son étiquette à la place de « Étape N ». */
   assert.ok(html.includes("<div class=\"fn-use${st.aside?' is-aside':''}\"><p class=\"pt-syntax-h\"${st.aside?` data-tag=\"${st.aside}\"`:''}>"), 'guide() : encadré aside');
   assert.ok(/\.fn-use\.is-aside\{counter-increment:none\}/.test(html), 'non compté dans les étapes');
@@ -79,7 +79,7 @@ test('encadré « Bon à savoir » : non numéroté, avec son étiquette ; le co
   vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), ctx);
   const body = vm.runInContext('MODULES.flatMap(m=>m.lessons).find(l=>l.id===0)', ctx).studio.uses.body;
   const heads = [...body.matchAll(/<div class="fn-use( is-aside)?"><p class="pt-syntax-h"(?: data-tag="([^"]*)")?>([^<]*)<\/p>/g)].map(m => (m[2] ? m[2] + ' : ' : '') + m[3].replace(/[\u00a0\u202f]/g, ' ')); /* guideFr met une espace insécable avant « ? » */
-  assert.deepEqual(heads, ['Chaque sujet a sa table', 'Des tables reliées par des numéros', 'Choisir les colonnes', 'Bien placer les virgules', 'La requête complète']);
+  assert.deepEqual(heads, ['Chaque sujet a sa table', 'Des tables reliées par des numéros', 'Déclarer les clés', 'Choisir les colonnes', 'Bien placer les virgules', 'La requête complète']);
 });
 
 test('apartés « Bon à savoir » (titre en question) dans 11 cours ; chaque cours finit par l’étape « La requête complète »', () => {

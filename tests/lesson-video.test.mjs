@@ -350,8 +350,8 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '4 min 45', notesAt: 261.65,
-    notes: /notes:\{t:277,y:1392,card:\[64,292,1016,1097\],to:\[940,255\]\}/, table: 'clients',
+  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '4 min 59', notesAt: 274.85,
+    notes: /notes:\{t:290\.5,y:1404,card:\[64,292,1016,1109\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Chaque sujet a sa table,<br>et des numéros relient les tables.',
     chapters: ['Situation', 'Le problème', 'Le découpage', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],
     traps: [
@@ -366,9 +366,14 @@ const COURSES = [
       '<span class="emo">🔑</span>clé primaire', '<b class="nq k-cl">clients</b><i class="ndot">.</i><b class="nq nqc">id</b><span class="nlb">la table</span>',
       'Lequel des deux&nbsp;?', 'Le client 4&nbsp;: Nathan Petit', "const NOUVEAUX = [[4, 'Yanis', 'Roche'], [null, 'Lina', 'Garnier']];",
       'UNIQUE constraint failed: clients.id', '<span class="tys ko">✕ refusé</span>',
+      // … et sa déclaration : id INTEGER PRIMARY KEY, à la création de la table
+      '<span class="fname">schema.sql</span>', 'id <span class="glow" id="pkt">INTEGER</span> <span class="glow" id="pkk"><span class="kw">PRIMARY KEY</span></span>,', 'avec <code>PRIMARY KEY</code> placé juste après le type de la colonne',
       // La clé étrangère : commandes.client_id → clients.id, puis la commande pour le client 99 refusée
       '<span class="emo">🔗</span>clé étrangère', '<b class="nq k-co">commandes</b><i class="ndot">.</i><b class="nq nqc">client_id</b><i class="narr">→</i><b class="nq k-cl">clients</b>',
       '<div class="stamp" id="stamp4">Relationnelle</div>', 'const CLIENT_INCONNU = 99;', '<span class="m">FOREIGN KEY constraint failed</span>',
+      // … et sa déclaration : FOREIGN KEY (client_id) REFERENCES clients(id), rappelée quand la commande est refusée
+      '<span class="kw">FOREIGN KEY</span> <span class="glow" id="fka">(client_id)</span>', '<span class="kw">REFERENCES</span> <span class="glow" id="fkb">clients(id)</span>',
+      '<div class="abs fkp" id="fkp"><span class="codepill"><span class="kw">FOREIGN KEY</span> (client_id) <span class="kw">REFERENCES</span> clients(id)</span></div>', 'Grâce à elle, la base vérifie chaque lien',
       // Lire une table : SELECT * FROM clients, les 10 clients et leurs 9 colonnes
       '<span class="star glow" id="star6">*</span>', '10 lignes · 9 colonnes', '✓ La table est lue, jamais modifiée',
       // Choisir les colonnes : l’étoile devient prenom, nom, email ; les six autres colonnes se replient ; Sophie Martin, une seule fois ; la jointure, plus tard
@@ -377,8 +382,8 @@ const COURSES = [
       // Deux pièges : sans virgule, un alias (AS sous-entendu) ; une virgule de trop, une erreur
       'une virgule entre deux colonnes', 'SELECT</span> prenom<span class="ghost" id="ghostAS"> <b>AS</b></span> email', 'la requête équivaut à <code>prenom AS email</code>',
       'Les prénoms, sous le titre <span class="ic">email</span>', 'near "FROM": syntax error',
-      // Les trois idées : les tables, les clés, SELECT
-      '<span class="ic blk">commandes.client_id → clients.id</span>', '<span class="ic blk">SELECT prenom, nom, email</span>']},
+      // Les trois idées : les tables, les clés (et leur déclaration), SELECT
+      '<span class="ic blk">FOREIGN KEY (client_id)<br>&nbsp;&nbsp;REFERENCES clients(id)</span>', '<span class="ic blk">SELECT prenom, nom, email</span>']},
   {id: 2, next: 13, titre: 'Renommer avec AS', page: 'as.html', thumb: 'as-thumb.jpg', duree: '2 min 02', notesAt: 92.4,
     notes: /notes:\{t:114\.15,y:1330,card:\[64,356,1016,1017\],to:\[940,255\]\}/, table: 'produits',
     bubble: 'Avec <span class="ic">AS</span>, donne à une colonne un nom plus clair dans le résultat.',
@@ -927,6 +932,9 @@ test('Les bases de données relationnelles : la feuille Excel, la table clients,
   assert.equal(js(alias.columns), js(['email']), 'sans virgule : une seule colonne, titrée email');
   assert.equal(js(alias.values.slice(0, 2)), js([['Sophie'], ['Lucas']]), 'qui contient les prénoms');
   assert.throws(() => db.exec('SELECT prenom, nom, email,\nFROM clients;'), /near "FROM": syntax error/, 'virgule de trop avant FROM');
+  /* Les déclarations montrées (schema.sql) sont celles de la base : id, clé primaire de clients ; client_id → clients(id). */
+  assert.equal(q("SELECT name, type FROM pragma_table_info('clients') WHERE pk = 1"), '[["id","INTEGER"]]', 'id INTEGER PRIMARY KEY');
+  assert.equal(q("SELECT \"table\", \"to\" FROM pragma_foreign_key_list('commandes') WHERE \"from\" = 'client_id'"), '[["clients","id"]]', 'FOREIGN KEY (client_id) REFERENCES clients(id)');
   /* Ce que la base vérifie : un numéro déjà pris est refusé, un client sans numéro reçoit le suivant, un client inconnu est refusé. */
   const [[idPris, p1, n1], [, p2, n2]] = JSON.parse(JSON.stringify(ctx.NOUVEAUX));
   assert.throws(() => db.run(`INSERT INTO clients (id, prenom, nom) VALUES (${idPris}, '${p1}', '${n1}')`), /UNIQUE constraint failed: clients\.id/, 'le numéro 4 est déjà pris');

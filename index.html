@@ -7665,14 +7665,16 @@ guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, cl
      La vidéo part du fichier Excel de NutriBoost, une ligne par commande : Sophie Martin et son e-mail y sont recopiés trois fois,
      et un e-mail corrigé sur deux lignes seulement en laisse deux. La feuille est découpée par sujet (tables clients, produits,
      commandes), puis vient la clé primaire (clients.id, unique et jamais vide, les deux Nathan, un numéro déjà pris refusé) et
-     la clé étrangère (commandes.client_id → clients.id, une commande pour le client 99 refusée). On lit enfin la table clients :
+     la clé étrangère (commandes.client_id → clients.id, une commande pour le client 99 refusée), chacune avec sa déclaration
+     (id INTEGER PRIMARY KEY dans CREATE TABLE clients ; FOREIGN KEY (client_id) REFERENCES clients(id) dans CREATE TABLE
+     commandes, rappelée quand la commande 99 est refusée). On lit enfin la table clients :
      SELECT * pour toutes ses colonnes, puis SELECT prenom, nom, email pour n’en garder que trois, dans l’ordre écrit (Sophie
      Martin n’a plus qu’un e-mail), et les deux pièges de la virgule (oubliée : un alias ; en trop : une erreur). Ce cours reprend
      ainsi les anciens cours « Clé primaire », « Clé étrangère » et « SELECT » ; le texte ci-dessous est gardé pour le cas où la
      vidéo ne se charge pas. */
-  video:{anim:'assets/anim/bases-relationnelles.html?app&embed',thumb:'assets/anim/bases-relationnelles-thumb.webp',duree:'4 min 45',
-    /* « Ajouter dans notes » : apparaît à 4 min 37 (277 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:277,y:1392,card:[64,292,1016,1097],to:[940,255]}},
+  video:{anim:'assets/anim/bases-relationnelles.html?app&embed',thumb:'assets/anim/bases-relationnelles-thumb.webp',duree:'4 min 59',
+    /* « Ajouter dans notes » : apparaît à 4 min 50 (290,5 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:290.5,y:1404,card:[64,292,1016,1109],to:[940,255]}},
   sit:{
     blocks:[
       "<b>NutriBoost</b> est une boutique en ligne de compléments alimentaires et de nutrition sportive. Chaque jour, des clients s’inscrivent, consultent le catalogue et passent des commandes.",
@@ -7726,7 +7728,16 @@ guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, cl
       {say:"👇 Exécute cette requête pour ouvrir la table des commandes :",run:"SELECT *\nFROM commandes;"},
       {arrow:"16 lignes, avec des <code>client_id</code> et des <code>produit_id</code>."},
       {tip:{t:"Pourquoi « relationnel » ?",blocks:["Le mot ne parle pas de liens entre les lignes, mais de la capacité à mettre des <b>tables entières</b> en relation : <code>commandes</code> désigne <code>clients</code> grâce à <code>client_id</code>, et <code>produits</code> grâce à <code>produit_id</code>."]}},
-      "Ces clés ne sont pas une simple habitude : la base les vérifie.",
+    ]},
+    {h:"Déclarer les clés",blocks:[
+      "Les clés se déclarent à la création de chaque table, avec <code>CREATE TABLE</code>. La clé primaire s’écrit <code>PRIMARY KEY</code>, placé juste après le type de la colonne :",
+      {syntax:"CREATE TABLE clients (\n  id INTEGER ⟦PRIMARY KEY⟧,\n  …\n);"},
+      {looks:[["id","est le nom de la colonne"],["INTEGER","est son type : un nombre entier"],["PRIMARY KEY","en fait la clé primaire de la table"]]},
+      "La clé étrangère s’écrit <code>FOREIGN KEY</code> suivi de sa colonne, puis <code>REFERENCES</code> suivi de la table et de la colonne visées :",
+      {syntax:"CREATE TABLE commandes (\n  …\n  client_id INTEGER,\n  …\n  ⟦FOREIGN KEY (client_id)⟧\n    ⟦REFERENCES clients(id)⟧\n);"},
+      {looks:[["FOREIGN KEY (client_id)","la colonne qui porte le lien"],["REFERENCES clients(id)","la clé visée : la colonne id de la table clients"]]},
+      {tip:{t:"Une écriture plus courte",blocks:["La clé étrangère peut aussi se déclarer directement sur sa colonne, sans <code>FOREIGN KEY</code> : <code>client_id INTEGER REFERENCES clients(id)</code>. Les deux écritures font la même chose."]}},
+      "Grâce à ces déclarations, la base vérifie chaque clé.",
       {warn:{t:"Un numéro déjà pris",blocks:[
         "Une clé primaire ne se répète jamais : la base refuse un second client numéro 4.",
         {say:"👇 Teste par toi-même :",run:"INSERT INTO clients (id, prenom)\nVALUES (4, 'Yanis');"},
@@ -7735,6 +7746,11 @@ guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, cl
       {warn:{t:"Un client qui n’existe pas",blocks:[
         "Une clé étrangère doit renvoyer à une ligne qui existe : la base refuse une commande pour le client 99, car aucune ligne de la table <code>clients</code> ne porte ce numéro. On parle d’<b>intégrité référentielle</b>.",
         {say:"👇 Teste par toi-même :",run:"INSERT INTO commandes\n  (client_id, produit_id,\n   quantite)\nVALUES (99, 1, 1);"}
+      ]}},
+      {warn:{t:"Sans FOREIGN KEY",blocks:[
+        "Un nom qui finit par <code>_id</code> ne suffit pas : c’est la déclaration <code>FOREIGN KEY</code> qui déclenche la vérification. Sans elle, la base accepte même un client qui n’existe pas :",
+        {say:"👇 Teste par toi-même :",run:"CREATE TABLE colis (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER\n);\nINSERT INTO colis VALUES (1, 99);\nSELECT id, client_id\nFROM colis;"},
+        {arrow:"Le colis 1 est rattaché au client 99, qui n’existe pas : rien ne l’a empêché."}
       ]}}
     ]},
     {h:"Choisir les colonnes",blocks:[
@@ -7787,18 +7803,18 @@ guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, cl
   reflex:[
     {recap:[
       ["🗂️","Une <b>table</b> range un sujet : <code>clients</code>, <code>produits</code>, <code>commandes</code>.","Ses colonnes sont des caractéristiques, ses lignes des enregistrements."],
-      ["🔑","Une <b>clé primaire</b> identifie chaque ligne ; une <b>clé étrangère</b> renvoie vers la clé primaire d’une autre table :",null,"commandes.client_id → clients.id"],
+      ["🔑","Une <b>clé primaire</b> (<code>PRIMARY KEY</code>) identifie chaque ligne ; une <b>clé étrangère</b> renvoie vers celle d’une autre table :",null,"FOREIGN KEY (client_id) REFERENCES clients(id)"],
       ["📋","<code>SELECT</code> choisit les <b>colonnes</b> à afficher, séparées par une virgule ; l’étoile <code>*</code> les prend toutes :",null,"SELECT prenom, nom, email"]
     ],label:"Les trois idées à retenir"}
   ],
   anatomie:[{tok:"SELECT",txt:"Lit des données. Il ne modifie jamais rien."},{tok:"prenom, nom, email",plain:1,txt:"Les colonnes à afficher, séparées par une virgule, dans l’ordre voulu ; l’étoile * les prend toutes."},{tok:"FROM clients",txt:"La table interrogée."},{tok:";",punc:1,txt:"Termine la requête."}],
   exemple:"SELECT prenom, ville FROM clients;",
   attendu:"<b>10 lignes</b> et <b>2 colonnes</b> : <code>prenom</code> et <code>ville</code>. Chaque client apparaît avec seulement ces deux informations.",
-  retenir:"Une base relationnelle organise les données dans des tables spécialisées (<code>clients</code>, <code>produits</code>, <code>commandes</code>).<br><br>• Colonnes : caractéristiques typées (<code>TEXT</code>, <code>INTEGER</code>, <code>REAL</code>).<br>• Lignes : enregistrements individuels (Sophie, Lucas…).<br>• Clé primaire (<code>PRIMARY KEY</code>) : identifie chaque ligne, unique et jamais vide, comme <code>clients.id</code>.<br>• Clé étrangère (<code>FOREIGN KEY</code>) : renvoie vers la clé primaire d’une autre table, comme <code>commandes.client_id</code> vers <code>clients.id</code> ; la base refuse un lien vers une ligne qui n’existe pas.<br><br><code>SELECT</code> lit les tables sans jamais modifier la base. Après <code>SELECT</code>, écris les colonnes à afficher, séparées par une virgule, sans virgule après la dernière : <code>SELECT prenom, nom, email FROM clients</code>. Elles s’affichent dans l’ordre écrit.<br><br>L’étoile <code>*</code> les affiche toutes : pratique pour découvrir une table. Pour une liste précise, indique seulement les colonnes utiles : le résultat est plus lisible.",
+  retenir:"Une base relationnelle organise les données dans des tables spécialisées (<code>clients</code>, <code>produits</code>, <code>commandes</code>).<br><br>• Colonnes : caractéristiques typées (<code>TEXT</code>, <code>INTEGER</code>, <code>REAL</code>).<br>• Lignes : enregistrements individuels (Sophie, Lucas…).<br>• Clé primaire : identifie chaque ligne, unique et jamais vide, comme <code>clients.id</code>. Elle se déclare à la création de la table : <code>id INTEGER PRIMARY KEY</code>.<br>• Clé étrangère : renvoie vers la clé primaire d’une autre table, comme <code>commandes.client_id</code> vers <code>clients.id</code>. Elle se déclare avec <code>FOREIGN KEY (client_id) REFERENCES clients(id)</code> ; la base refuse alors un lien vers une ligne qui n’existe pas.<br><br><code>SELECT</code> lit les tables sans jamais modifier la base. Après <code>SELECT</code>, écris les colonnes à afficher, séparées par une virgule, sans virgule après la dernière : <code>SELECT prenom, nom, email FROM clients</code>. Elles s’affichent dans l’ordre écrit.<br><br>L’étoile <code>*</code> les affiche toutes : pratique pour découvrir une table. Pour une liste précise, indique seulement les colonnes utiles : le résultat est plus lisible.",
   consigne:"Affiche le nom et le prix de chaque produit, dans cet ordre.",
   solution:"SELECT nom, prix FROM produits;",
   indice:"Après <code>SELECT</code>, écris <code>nom, prix</code> ; après <code>FROM</code>, indique la table <code>produits</code>.",
-  petitDefi:[{p:"Complète pour afficher toutes les colonnes de la table commandes.",sql:"SELECT __________\nFROM commandes;",a:"*",answers:["*"]},{p:"Dans le vocabulaire formel du modèle relationnel, comment appelle-t-on une <b>ligne</b> ?",sql:"ligne → __________",a:"tuple",answers:["tuple","un tuple","Tuple","enregistrement"]}],
+  petitDefi:[{p:"Complète pour afficher toutes les colonnes de la table commandes.",sql:"SELECT __________\nFROM commandes;",a:"*",answers:["*"]},{p:"Complète pour faire de <code>id</code> la clé primaire de la table.",sql:"CREATE TABLE avis (\n  id INTEGER __________,\n  note INTEGER\n);",a:"PRIMARY KEY",answers:["PRIMARY KEY"]},{p:"Dans le vocabulaire formel du modèle relationnel, comment appelle-t-on une <b>ligne</b> ?",sql:"ligne → __________",a:"tuple",answers:["tuple","un tuple","Tuple","enregistrement"]}],
   testeVariants:[{k:"cli",label:"clients",sql:"SELECT * FROM clients;",out:"Dix lignes, neuf colonnes : un client par ligne."},{k:"col",label:"Deux colonnes",sql:"SELECT prenom, ville FROM clients;",out:"Deux colonnes seulement, pour les dix clients.",expectRows:10},{k:"prd",label:"produits",sql:"SELECT * FROM produits;",out:"Huit lignes. Un autre sujet, donc une autre table."},{k:"cmd",label:"commandes",sql:"SELECT * FROM commandes;",out:"Seize lignes — et aucun nom : seulement des client_id et des produit_id."}],
   learningCheck:{question:"SELECT prenom, nom, email FROM clients affiche combien de colonnes et de lignes ?",options:["10 colonnes et 3 lignes","3 colonnes et 3 lignes","3 colonnes et 10 lignes"],answer:2,explanation:"SELECT choisit trois colonnes. Sans filtre, les dix clients restent."}
 })
@@ -14815,7 +14831,7 @@ const NIV={f:{l:'Facile',c:'f'},m:{l:'Moyen',c:'m'},d:{l:'Difficile',c:'d'}};
    ============================================================ */
 const CARTES={
  0:{k:"Modèle relationnel",t:"Tables, clés et lecture avec SELECT",s:"SELECT prenom, nom FROM clients;",
-    m:"Une base relationnelle range l’information en <b>tables</b> : <b>colonnes</b> = caractéristiques, <b>lignes</b> = éléments enregistrés. Chaque ligne a une clé primaire unique et jamais vide (<code>clients.id</code>) ; une table en désigne une autre par une clé étrangère — <code>commandes.client_id</code> renvoie à <code>clients.id</code>. Formellement : relation, attribut, tuple. <code>SELECT</code> lit une table sans la modifier : il dresse la liste des <b>colonnes</b>, séparées par une virgule ; <code>*</code> les prend toutes. Toutes les lignes sortent : ce n’est pas un filtre."},
+    m:"Une base relationnelle range l’information en <b>tables</b> : <b>colonnes</b> = caractéristiques, <b>lignes</b> = éléments enregistrés. Chaque ligne a une clé primaire unique et jamais vide (<code>clients.id</code>, déclarée avec <code>PRIMARY KEY</code>) ; une table en désigne une autre par une clé étrangère — <code>commandes.client_id</code> renvoie à <code>clients.id</code> (<code>FOREIGN KEY … REFERENCES</code>). Formellement : relation, attribut, tuple. <code>SELECT</code> lit une table sans la modifier : il dresse la liste des <b>colonnes</b>, séparées par une virgule ; <code>*</code> les prend toutes. Toutes les lignes sortent : ce n’est pas un filtre."},
  4:{k:"WHERE",t:"Filtrer les lignes",s:"WHERE ville = 'Paris'",
     m:"<code>WHERE</code> choisit les <b>lignes</b> qui restent dans le résultat. Texte entre guillemets simples : <code>'Paris'</code>. Rien n’est effacé de la table."},
  5:{k:"> < >= <=",t:"Seuils numériques",s:"WHERE prix > 25",
@@ -14933,7 +14949,8 @@ const QCM={
    {q:"On enregistre une commande avec <code>client_id = 99</code>. Aucun client n’a <code>id = 99</code>. Que se passe-t-il&nbsp;?",o:["Le client 99 est créé automatiquement","La commande est enregistrée quand même","La base refuse la commande : la clé étrangère renvoie à un client qui n’existe pas"],b:2,e:"<code>commandes.client_id</code> doit renvoyer à une ligne de <code>clients.id</code> : c’est l’intégrité référentielle."},
    {q:"L’étoile <code>*</code> signifie :",o:["Toutes les lignes","Toutes les colonnes","Toutes les tables"],b:1,e:"Elle remplace la liste des colonnes. Le nombre de lignes ne change pas."},
    {q:"Que renvoie <code>SELECT prenom, telephone FROM clients;</code> ?",o:["La première ligne seulement","Les 10 clients, avec seulement prenom et telephone","Toutes les colonnes de tous les clients"],b:1,e:"SELECT ne filtre pas les clients : il choisit seulement les colonnes à afficher. Les 10 clients sont toujours là, avec ces deux colonnes."},
-   {q:"<code>SELECT prenom telephone FROM clients;</code> sans virgule :",o:["Affiche les deux colonnes : l’espace suffit","Échoue : il manque la virgule entre les colonnes","N’affiche qu’une colonne : celle de prenom"],b:2,e:"Sans virgule, <code>telephone</code> est lu comme un <b>alias</b> : le titre donné à la colonne dans le résultat (<code>AS</code> est facultatif, la requête équivaut à <code>prenom AS telephone</code>). Une seule colonne s’affiche, avec les prénoms sous le titre <code>telephone</code>. Pour deux colonnes, il faut la virgule : <code>prenom, telephone</code>."}],
+   {q:"<code>SELECT prenom telephone FROM clients;</code> sans virgule :",o:["Affiche les deux colonnes : l’espace suffit","Échoue : il manque la virgule entre les colonnes","N’affiche qu’une colonne : celle de prenom"],b:2,e:"Sans virgule, <code>telephone</code> est lu comme un <b>alias</b> : le titre donné à la colonne dans le résultat (<code>AS</code> est facultatif, la requête équivaut à <code>prenom AS telephone</code>). Une seule colonne s’affiche, avec les prénoms sous le titre <code>telephone</code>. Pour deux colonnes, il faut la virgule : <code>prenom, telephone</code>."},
+   {q:"Dans la table <code>commandes</code>, comment déclare-t-on que <code>client_id</code> renvoie à <code>clients.id</code> ?",o:["<code>client_id INTEGER PRIMARY KEY</code>","<code>FOREIGN KEY (client_id) REFERENCES clients(id)</code>","<code>SELECT client_id FROM clients</code>"],b:1,e:"<code>FOREIGN KEY</code> désigne la colonne qui porte le lien, <code>REFERENCES</code> la table et la colonne visées. <code>PRIMARY KEY</code> déclare la clé primaire de la table elle-même."}],
  2:[{q:"<code>SELECT prix AS tarif FROM produits;</code> affiche :",o:["Une colonne renommée tarif dans le résultat","La colonne prix renommée aussi dans la table","Une erreur, AS est interdit"],b:0,e:"<code>AS</code> ne change que l’en-tête affiché. La table garde le nom <code>prix</code>."},
    {q:"Pour un alias avec un espace, il faut :",o:["Des guillemets simples","Des guillemets doubles","Un underscore obligatoire"],b:1,e:"<code>prix AS \"Prix (€)\"</code>. Sans guillemets, l’espace casse la syntaxe. En SQL, les guillemets doubles servent aux noms et les guillemets simples aux valeurs texte."}],
  22:[{q:"<code>WHERE NOT ville = 'Paris'</code> garde :",o:["Seulement les Parisiens","Tous les clients sauf les Parisiens","Aucune ligne"],b:1,e:"<code>NOT</code> inverse la condition : sont gardées les lignes qui ne sont <b>pas</b> à Paris."},
@@ -17995,7 +18012,7 @@ let courseFilter='all';
    ============================================================ */
 const SQ_STOP=new Set(['le','la','les','l','de','du','des','d','un','une','et','ou','en','dans','avec','sur','par','pour','au','aux','a','je','veux','comment','faire','cours','lecon','chapitre','lesson']);
 const SQ_ALIASES={
-  0:'base de donnees relationnelle table colonne ligne enregistrement champ cle schema sgbd excel tableur cle primaire pk primary key identifiant unique id cle etrangere fk foreign key reference lien integrite referentielle table.colonne choisir colonnes afficher lister projection select requete de base toutes les colonnes etoile tout afficher select * virgule',
+  0:'base de donnees relationnelle table colonne ligne enregistrement champ cle schema sgbd excel tableur cle primaire pk primary key identifiant unique id cle etrangere fk foreign key reference lien integrite referentielle table.colonne references create table declarer declaration choisir colonnes afficher lister projection select requete de base toutes les colonnes etoile tout afficher select * virgule',
   2:'alias renommer nom colonne as intitule libelle',
   13:'doublons doublon unique valeurs distinctes dedoublonner distinct sans doublon supprimer les doublons enlever doublons',
   4:'filtrer filtre condition critere clause where lignes selectionner',
@@ -28122,7 +28139,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1799';
+  const SW_CACHE='requete-2026-10-12-ludique-v1800';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

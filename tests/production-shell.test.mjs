@@ -134,8 +134,10 @@ assert(!html.includes('guide({ id:1,'), 'le cours 1 (SELECT) a disparu');
 const introLesson = html.slice(html.indexOf('guide({ id:0, titre:"Les bases de données relationnelles"'), html.indexOf('guide({ id:2, titre:"Renommer avec AS"'));
 assert(introLesson.includes('run:"SELECT prenom, nom\\nFROM clients;"') && introLesson.includes('run:"SELECT prenom email\\nFROM clients;"') && introLesson.includes('run:"SELECT prenom, email,\\nFROM clients;"'), 'le cours 0 fait choisir les colonnes et tester les deux pièges de la virgule');
 assert(introLesson.includes('solution:"SELECT nom, prix FROM produits;"'), 'l’exercice du cours 0 : choisir deux colonnes, dans l’ordre');
+assert(introLesson.includes('{h:"Déclarer les clés"') && introLesson.includes('id INTEGER ⟦PRIMARY KEY⟧') && introLesson.includes('⟦FOREIGN KEY (client_id)⟧\\n    ⟦REFERENCES clients(id)⟧') && introLesson.includes('client_id INTEGER REFERENCES clients(id)'), 'le cours 0 montre comment déclarer la clé primaire et la clé étrangère');
+assert(introLesson.includes('{warn:{t:"Sans FOREIGN KEY"'), 'sans déclaration FOREIGN KEY, la base ne vérifie rien');
 assert(introLesson.includes("VALUES (4, 'Yanis');") && introLesson.includes('VALUES (99, 1, 1);') && introLesson.includes('<b>intégrité référentielle</b>'), 'le cours 0 fait tester le numéro déjà pris et le client qui n’existe pas');
-assert(introLesson.includes('["clients.id","la clé primaire') && introLesson.includes('"commandes.client_id → clients.id"'), 'le cours 0 nomme les clés avec table.colonne');
+assert(introLesson.includes('["clients.id","la clé primaire') && introLesson.includes('["commandes.client_id","la clé étrangère'), 'le cours 0 nomme les clés avec table.colonne');
 assert(html.includes("(4,'Nathan','Petit','5 rue Victor Hugo','Paris'") && html.includes("(10,'Nathan','Dupont','9 place du Marché','Paris'"), 'les deux Nathan de Paris existent dans les données SQLite');
 assert(html.includes('{ id:12, titre:"LIMIT et OFFSET"') && html.includes('LIMIT 3 OFFSET 3'), 'pagination stable couverte par une leçon complète');
 assert(html.includes('{ id:76, titre:"GROUP_CONCAT"') && html.includes('STRING_AGG'), 'agrégation de texte couverte avec ouverture multi-SGBD');
@@ -144,7 +146,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
 assert(html.includes('{ id:73, titre:"UNION et UNION ALL"') && html.includes('18 lignes : 10 + 8') && !html.includes('17 lignes : 9 + 8'), 'UNION ALL visible et cardinalité corrigée');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-10-12-ludique-v1799') && html.includes('requete-2026-10-12-ludique-v1799') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-10-12-ludique-v1800') && html.includes('requete-2026-10-12-ludique-v1800') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
