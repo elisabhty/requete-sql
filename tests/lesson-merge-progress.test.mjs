@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* Fusion de cours : les leçons déjà validées restent acquises quand leur quiz s'enrichit,
-   et les cours fusionnés (SELECT *, OR, ORDER BY plusieurs colonnes, OFFSET, EXPLAIN, Les relations entre les tables) n'existent plus. */
+   et les cours fusionnés (SELECT *, OR, ORDER BY plusieurs colonnes, OFFSET, EXPLAIN, Les relations entre les tables,
+   puis SELECT lui-même, rejoint par le cours 0) n'existent plus. */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -16,19 +17,20 @@ load('const ORDERED_LESSONS=', 'function exerciseRequiresOrder(');
 const lessons = vm.runInContext('MODULES.flatMap(m=>m.lessons)', ctx);
 const titre = id => lessons.find(l => l.id === id)?.titre;
 
-/* Les six cours fusionnés ont disparu ; leurs cours d'accueil portent les deux notions. */
-for (const id of [3, 29, 24, 75, 58, 36]) assert.equal(titre(id), undefined, `le cours ${id} a été fusionné`);
-assert.equal(titre(1), 'SELECT');
+/* Les cours fusionnés ont disparu ; leurs cours d'accueil portent les deux notions (SELECT et SELECT * : dans le cours 0). */
+for (const id of [1, 3, 29, 24, 75, 58, 36]) assert.equal(titre(id), undefined, `le cours ${id} a été fusionné`);
+assert.equal(titre(0), 'Les bases de données relationnelles');
 assert.equal(titre(6), 'AND et OR');
 assert.equal(titre(11), 'ORDER BY');
 assert.equal(titre(12), 'LIMIT et OFFSET');
 assert.equal(titre(57), 'Les index et EXPLAIN');
 assert.equal(titre(72), 'Relations 1-1, 1-N et N-N');
 const quiz = vm.runInContext('QCM', ctx);
-for (const id of [1, 6, 11, 12, 57, 72]) assert.equal(quiz[id].length, 4, `quiz du cours ${id} : les questions des deux cours`);
-for (const id of [36, 58]) assert.equal(quiz[id], undefined, `plus de quiz pour le cours fusionné ${id}`);
+for (const id of [6, 11, 12, 57, 72]) assert.equal(quiz[id].length, 4, `quiz du cours ${id} : les questions des deux cours`);
+assert.equal(quiz[0].length, 9, 'quiz du cours 0 : tables, clés, puis SELECT, l’étoile et la virgule');
+for (const id of [1, 36, 58]) assert.equal(quiz[id], undefined, `plus de quiz pour le cours fusionné ${id}`);
 const carte = vm.runInContext('CARTES', ctx);
-for (const id of [3, 29, 75, 58]) assert.equal(carte[id], undefined, `plus de carte mémo pour le cours fusionné ${id}`);
+for (const id of [1, 3, 29, 75, 58]) assert.equal(carte[id], undefined, `plus de carte mémo pour le cours fusionné ${id}`);
 const ordered = vm.runInContext('ORDERED_LESSONS', ctx);
 for (const id of [24, 75]) assert.equal(ordered.has(id), false, `le cours ${id} n'a plus besoin d'un ordre imposé`);
 for (const id of [11, 12]) assert.equal(ordered.has(id), true, `le cours ${id} exige l'ordre des lignes`);
@@ -41,7 +43,8 @@ ctx.state = { lessons: {
   12: { done: true },                                         // ancien état sans étapes
   57: { done: true, etapes: { exo: 1, q0: 1, q1: 1, q2: 1 } },   // quiz passé de 3 à 4 questions
   6: { done: false, etapes: { exo: 1, q0: 1 } },              // en cours : rien n'est offert
-  1: { done: true, etapes: { exo: 1, q0: 1, q1: 1, q2: 1, q3: 1 } }  // déjà complet : rien ne change
+  72: { done: true, etapes: { exo: 1, q0: 1, q1: 1, q2: 1, q3: 1 } },  // déjà complet : rien ne change
+  0: { done: true, etapes: { exo: 1, q0: 1, q1: 1, q2: 1, q3: 1, q4: 1, q5: 1 } }  // quiz passé de 6 à 9 questions (l'id zéro compte)
 } };
 vm.runInContext('migrerEtapes()', ctx);
 const e = id => JSON.parse(JSON.stringify(ctx.state.lessons[id].etapes));   // objets du contexte vm : on compare des copies simples
@@ -49,7 +52,8 @@ assert.deepEqual(e(11), { exo: 1, q0: 1, q1: 1, q2: 1, q3: 1 });
 assert.deepEqual(e(12), { exo: 1, q0: 1, q1: 1, q2: 1, q3: 1 });
 assert.deepEqual(e(57), { exo: 1, q0: 1, q1: 1, q2: 1, q3: 1 });
 assert.deepEqual(e(6), { exo: 1, q0: 1 }, 'une leçon non validée garde sa progression partielle');
-assert.deepEqual(e(1), { exo: 1, q0: 1, q1: 1, q2: 1, q3: 1 });
+assert.deepEqual(e(72), { exo: 1, q0: 1, q1: 1, q2: 1, q3: 1 });
+assert.deepEqual(e(0), { exo: 1, q0: 1, q1: 1, q2: 1, q3: 1, q4: 1, q5: 1, q6: 1, q7: 1, q8: 1 });
 assert.equal(ctx.saved, 1, 'enregistrement unique');
 vm.runInContext('migrerEtapes()', ctx);
 assert.equal(ctx.saved, 1, 'deuxième passage : rien à enregistrer');
@@ -62,7 +66,7 @@ Object.assign(ctx, {
   NIVEAUX: [{ k: 'debutant', from: 0 }], leconsDepuis: () => [], itemDone: id => !!ctx.state.lessons[id]?.done,
   dstr: () => '2026-10-05', auj: () => new Date(2026, 9, 5), addJ: d => d, parseD: d => new Date(d),
 });
-ctx.state = { lessons: {}, plan: { niveau: 'debutant', per: 3, archive: [3, 1, 36], sessions: [
+ctx.state = { lessons: {}, plan: { niveau: 'debutant', per: 3, archive: [3, 0, 1, 36], sessions: [
   { d: '2026-10-05', lessons: [24, 11, 75] },
   { d: '2026-10-06', lessons: [12, 29, 6] },
   { d: '2026-10-07', lessons: [3] },
@@ -71,6 +75,6 @@ ctx.state = { lessons: {}, plan: { niveau: 'debutant', per: 3, archive: [3, 1, 3
 vm.runInContext('nettoyerPlan()', ctx);
 const plan = JSON.parse(JSON.stringify(ctx.state.plan));
 assert.deepEqual(plan.sessions, [{ d: '2026-10-05', lessons: [11] }, { d: '2026-10-06', lessons: [12, 6] }, { d: '2026-10-08', lessons: [57] }], 'les cours fusionnés quittent le parcours, les séances vides disparaissent');
-assert.deepEqual(plan.archive, [1], 'et l’archive');
+assert.deepEqual(plan.archive, [0], 'et l’archive (le cours 0 reste, le cours 1 part)');
 
 console.log('Fusion de cours : progression et parcours conservés, quiz et cartes à jour : OK.');

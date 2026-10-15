@@ -44,13 +44,13 @@ for(const l of lessons){
  }
 }
 const lesson=id=>lessons.find(l=>l.id===id);
-assert.equal(lessons.length,65);
+assert.equal(lessons.length,64);
 assert.equal(ctx.exerciseResultsMatch(query('SELECT nom,stock FROM produits'),query(lesson(2).solution),lesson(2)),false,'alias requis');
-assert.equal(ctx.exerciseResultsMatch(query(lesson(1).solution+' SELECT 99;'),query(lesson(1).solution),lesson(1)),false,'résultats multiples');
+assert.equal(ctx.exerciseResultsMatch(query(lesson(0).solution+' SELECT 99;'),query(lesson(0).solution),lesson(0)),false,'résultats multiples');
 assert.equal(ctx.exerciseResultsMatch(query("SELECT nom,prix FROM produits WHERE categorie='Nutrition' OR categorie='Boisson' AND prix<20"),query(lesson(6).solution),lesson(6)),false,'parenthèses requises avec AND et OR');
 assert.equal(ctx.exerciseResultsMatch(query('SELECT nom,categorie,stock FROM produits ORDER BY categorie,stock'),query(lesson(11).solution),lesson(11)),false,'sens décroissant du second critère');
 assert.equal(ctx.exerciseResultsMatch(query('SELECT id,nom,prix FROM produits ORDER BY prix,id LIMIT 3 OFFSET 3'),query(lesson(12).solution),lesson(12)),false,'troisième page seulement');
-assert.equal(ctx.exerciseResultsMatch(query('SELECT nom,prix FROM produits ORDER BY prix DESC'),query(lesson(1).solution),lesson(1)),true,'ordre libre sans demande de tri');
+assert.equal(ctx.exerciseResultsMatch(query('SELECT nom,prix FROM produits ORDER BY prix DESC'),query(lesson(0).solution),lesson(0)),true,'ordre libre sans demande de tri');
 let state={lessons:{64:{etapes:{exo:1,q0:true,q1:'1',q2:0,unexpected:1},draft:'SELECT 1;',testeDraft:'SELECT 2;',testeVi:2}}};
 for(let i=0;i<3;i++)state=JSON.parse(JSON.stringify(ctx.normalizeState(state)));
 assert.deepEqual(state.lessons[64].etapes,{exo:1,q0:1,q1:1});assert.equal(state.lessons[64].draft,'SELECT 1;');assert.equal(state.lessons[64].testeVi,2);

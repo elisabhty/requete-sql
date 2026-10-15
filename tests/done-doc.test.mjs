@@ -1,5 +1,4 @@
-/* Objet à thème « doc » (guidePage, layout doc) : un document sur porte-bloc. Cours 1 (SELECT) : la liste remise au
-   transporteur, une ligne cochée par client, pièce jointe, tampon « Transmise » et camion. Cours 5 (Comparer des valeurs) :
+/* Objet à thème « doc » (guidePage, layout doc) : un document sur porte-bloc. Cours 5 (Comparer des valeurs) :
    le bon de commande, une jauge de stock par produit (seuil en pointillés), la ligne du Shaker Inox barrée mais gardée. */
 import path from 'node:path';
 import vm from 'node:vm';
@@ -13,20 +12,6 @@ const {html, ctx} = env;
 const lessonOf = id => vm.runInContext(`MODULES.flatMap(m=>m.lessons).find(l=>l.id===${id})`, ctx);
 const cardOf = l => { const b = l.studio.uses.body; return b.slice(b.lastIndexOf('<div class="ij-done is-locked"')); };
 const withBody = (l, b) => Object.assign({}, l, {studio: Object.assign({}, l.studio, {uses: Object.assign({}, l.studio.uses, {body: b})})});
-
-test('cours 1 (SELECT) : la liste remise au transporteur est une feuille sur porte-bloc, une ligne cochée par client', () => {
-  const l1 = lessonOf(1), c = cardOf(l1);
-  assert.ok(c.includes('<div class="ij-sms is-board is-page" style="--n:10;--sg:0.22s" data-total="10" role="group"'), 'racine de page inchangée : le contrôle des pages s’applique');
-  assert.ok(c.includes('<div class="pg-win is-clip"><i class="dc-clip" aria-hidden="true"></i><div class="pg-body dc-paper"><div class="dc-head" aria-hidden="true">'), 'planche, pince, feuille, en-tête');
-  assert.ok(c.includes('<b class="dc-title">Clients à livrer</b>'));
-  assert.ok(c.includes('<p class="ij-sms-h"><i aria-hidden="true">🚚</i>Feuille de prise en charge</p>'), 'titre tiré de l’histoire (« prendre en charge »), distinct du pied');
-  assert.ok(c.includes('<div class="pg-grid is-doc" role="table" aria-label="Clients à livrer"><div class="dc-th" role="row" aria-hidden="true">'), 'intitulés de colonnes avant la 1re ligne');
-  assert.equal((c.match(/<div class="pg-card is-line" role="row" style="--t:/g) || []).length, 10, 'une ligne par client');
-  assert.ok(c.includes('<span class="pg-main" role="cell"><span class="pg-who"><b class="db-x pg-name" data-c="0" data-v="Nathan">Nathan</b> <b class="db-x pg-name" data-c="1" data-v="Dupont">Dupont</b></span><small class="pg-subs"><span class="db-x pg-sub" data-c="2" data-v="Paris">Paris</span> · <span class="db-x pg-sub is-mono" data-c="3" data-v="06 39 98 10 26">06 39 98 10 26</span></small></span>'), 'nom, puis ville · téléphone');
-  assert.ok(c.includes('</div></div><div class="dc-foot" aria-hidden="true"><small>📎 liste_clients.csv</small><i class="dc-truck">🚚</i></div><em class="pg-seal" aria-hidden="true">Transmise</em></div></div><p class="ij-sms-done">✓ Liste de 10 clients transmise au transporteur</p>'), 'pièce jointe et camion, puis le tampon, après la dernière ligne');
-  assert.ok(!c.includes('ij-sms-bubble') && !c.includes('ij-sms-list'), 'plus de bulle de message');
-  assert.doesNotThrow(() => checkGuideLesson(env, l1));
-});
 
 test('cours 5 (Comparer des valeurs) : bon de commande avec jauges de stock, le Shaker Inox barré mais gardé', () => {
   const l5 = lessonOf(5), c = cardOf(l5);

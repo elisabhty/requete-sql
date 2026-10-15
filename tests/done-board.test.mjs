@@ -69,7 +69,7 @@ test('cours 6 (AND et OR) : le Résultat est une planche de billets d’invitati
 /* Objets à thème (guidePage) : la structure de chaque mise en page, sur le modèle des billets du cours 6. Le protocole des
    pages reste celui du contrôle (tests/helpers/guide-checks.mjs) : une carte pg-card par ligne du résultat, dans l'ordre (cartes
    empilées comprises), chacune avec toutes les colonnes de sa ligne (data-c, data-v). */
-const themed = [1, 4, 5, 22, 7, 8, 9, 53, 21, 18, 42, 45, 55, 59, 80, 78, 57];
+const themed = [4, 5, 22, 7, 8, 9, 53, 21, 18, 42, 45, 55, 59, 80, 78, 57];
 const lessonOf = id => vm.runInContext(`MODULES.flatMap(m=>m.lessons).find(l=>l.id===${id})`, ctx);
 const doneOf = id => { const b = lessonOf(id).studio.uses.body; return b.slice(b.lastIndexOf('<div class="ij-done is-locked"')); };
 const count = (s, re) => (s.match(re) || []).length;
