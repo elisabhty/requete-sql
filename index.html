@@ -7664,8 +7664,9 @@ guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, cl
   /* Cours en vidéo : l’animation (assets/anim/bases-relationnelles.html, moteur commun assets/anim/core.js) remplace le texte du cours.
      La vidéo part du fichier Excel de NutriBoost, une ligne par commande : à chaque nouvelle commande ou demande, il s’alourdit, il
      devient difficile de s’y retrouver, plusieurs personnes de plusieurs équipes le modifient et les erreurs arrivent. Sophie Martin et son e-mail y sont recopiés trois fois,
-     et un e-mail corrigé sur deux lignes seulement en laisse deux. La feuille est découpée par sujet (tables clients, produits,
-     commandes), puis vient la clé primaire (clients.id, unique et jamais vide, les deux Nathan, un numéro déjà pris refusé) et
+     et un e-mail corrigé sur deux lignes seulement en laisse deux. La feuille est découpée par sujet : une table range les données en
+     lignes et en colonnes, sur un seul sujet (tables clients, produits, commandes). Ensemble, ces tables forment une base de données,
+     gérée par un SGBD (ici SQLite) : les équipes lui envoient leurs requêtes SQL, il les exécute et contrôle chaque modification. Puis vient la clé primaire (clients.id, unique et jamais vide, les deux Nathan, un numéro déjà pris refusé) et
      la clé étrangère (commandes.client_id → clients.id, une commande pour le client 99 refusée), chacune avec sa déclaration
      (id INTEGER PRIMARY KEY dans CREATE TABLE clients ; FOREIGN KEY (client_id) REFERENCES clients(id) dans CREATE TABLE
      commandes, rappelée quand la commande 99 est refusée). On lit enfin la table clients :
@@ -7673,9 +7674,9 @@ guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, cl
      Martin n’a plus qu’un e-mail), et les deux pièges de la virgule (oubliée : un alias ; en trop : une erreur). Ce cours reprend
      ainsi les anciens cours « Clé primaire », « Clé étrangère » et « SELECT » ; le texte ci-dessous est gardé pour le cas où la
      vidéo ne se charge pas. */
-  video:{anim:'assets/anim/bases-relationnelles.html?app&embed',thumb:'assets/anim/bases-relationnelles-thumb.webp',duree:'5 min 18',
-    /* « Ajouter dans notes » : apparaît à 5 min 06 (306,6 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:309.65,y:1404,card:[64,292,1016,1109],to:[940,255]}},
+  video:{anim:'assets/anim/bases-relationnelles.html?app&embed',thumb:'assets/anim/bases-relationnelles-thumb.webp',duree:'5 min 55',
+    /* « Ajouter dans notes » : apparaît à 5 min 46 (346,5 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:346.5,y:1404,card:[64,292,1016,1109],to:[940,255]}},
   sit:{
     blocks:[
       "<b>NutriBoost</b> est une boutique en ligne de compléments alimentaires et de nutrition sportive. Chaque jour, des clients s’inscrivent, consultent le catalogue et passent des commandes.",
@@ -7699,7 +7700,7 @@ guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, cl
   concept:{
     title:"Comment une base de données range-t-elle l’information ?",
     blocks:[
-      "Une <b>table</b> est une grille :",
+      "Une <b>table</b> organise les données en lignes et en colonnes, comme dans un tableau Excel. Elle rassemble les informations sur un même sujet pour les retrouver et les mettre à jour facilement :",
       {ask:"Où se range chaque information ?"},
       {scene:{h:"📋 Anatomie d’une table",cols:".6fr 1fr 1fr",
         lanes:[{c:[["h1","id","t"],["h2","prenom","t"],["h3","ville","t"]]},
@@ -7708,6 +7709,8 @@ guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, cl
           {k:"R3",c:[["c1","3"],["c2","Emma"],["c3","Marseille"]]}],
         caps:["<b>Une table</b> · Ici, celle des clients.","<b>Les colonnes</b> · Chaque colonne est une caractéristique : l’identifiant, le prénom, la ville.","<b>Les lignes</b> · Chaque ligne est un enregistrement : un client.","<b>Une cellule</b> · À l’intersection d’une ligne et d’une colonne : la ville de Sophie, Paris."],
         steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,off:["R1","R2","R3"],on:["h1","h2","h3"],d:2300},{cap:2,off:["h1","h2","h3"],on:["R1"],d:2300},{cap:3,off:["R1"],on:["a3"],d:2600}]}},
+      "Ensemble, les tables forment une <b>base de données</b>. Elle est gérée par un <b>SGBD</b>, un système de gestion de base de données : on lui envoie des requêtes en <b>SQL</b>, il les exécute et contrôle chaque modification. Ici, le SGBD est <b>SQLite</b>.",
+      {tip:{t:"D’autres SGBD",blocks:["PostgreSQL, MySQL, SQL Server et Oracle sont d’autres SGBD. Le SQL de base est le même partout ; quelques écritures changent, comme celle d’un identifiant qui s’incrémente. Pour les comparer, voir la page <button type='button' class='sgbd-link' data-sgbd='tables'>Selon le SGBD</button>."]}},
       "Pour relier deux tables sans recopier d’informations, on utilise des <b>clés</b> :",
       {scene:{h:"🔗 Des tables reliées",cols:".8fr 1fr 1.2fr",
         lanes:[{k:"P",l:"Table clients · clé primaire id",c:[["p1","id 1"],["p2","Sophie"],["p3","Paris"]]},
@@ -7739,18 +7742,18 @@ guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, cl
       {syntax:"CREATE TABLE commandes (\n  …\n  client_id INTEGER,\n  …\n  ⟦FOREIGN KEY (client_id)⟧\n    ⟦REFERENCES clients(id)⟧\n);"},
       {looks:[["FOREIGN KEY (client_id)","la colonne qui porte le lien"],["REFERENCES clients(id)","la clé visée : la colonne id de la table clients"]]},
       {tip:{t:"Une écriture plus courte",blocks:["La clé étrangère peut aussi se déclarer directement sur sa colonne, sans <code>FOREIGN KEY</code> : <code>client_id INTEGER REFERENCES clients(id)</code>. Les deux écritures font la même chose."]}},
-      "Grâce à ces déclarations, la base vérifie chaque clé.",
+      "Grâce à ces déclarations, le SGBD vérifie chaque clé.",
       {warn:{t:"Un numéro déjà pris",blocks:[
-        "Une clé primaire ne se répète jamais : la base refuse un second client numéro 4.",
+        "Une clé primaire ne se répète jamais : le SGBD refuse un second client numéro 4.",
         {say:"👇 Teste par toi-même :",run:"INSERT INTO clients (id, prenom)\nVALUES (4, 'Yanis');"},
         "Sans numéro, en revanche, le client est accepté : SQLite lui donne le suivant, le 11. Une clé primaire n’est jamais vide."
       ]}},
       {warn:{t:"Un client qui n’existe pas",blocks:[
-        "Une clé étrangère doit renvoyer à une ligne qui existe : la base refuse une commande pour le client 99, car aucune ligne de la table <code>clients</code> ne porte ce numéro. On parle d’<b>intégrité référentielle</b>.",
+        "Une clé étrangère doit renvoyer à une ligne qui existe : le SGBD refuse une commande pour le client 99, car aucune ligne de la table <code>clients</code> ne porte ce numéro. On parle d’<b>intégrité référentielle</b>.",
         {say:"👇 Teste par toi-même :",run:"INSERT INTO commandes\n  (client_id, produit_id,\n   quantite)\nVALUES (99, 1, 1);"}
       ]}},
       {warn:{t:"Sans FOREIGN KEY",blocks:[
-        "Un nom qui finit par <code>_id</code> ne suffit pas : c’est la déclaration <code>FOREIGN KEY</code> qui déclenche la vérification. Sans elle, la base accepte même un client qui n’existe pas :",
+        "Un nom qui finit par <code>_id</code> ne suffit pas : c’est la déclaration <code>FOREIGN KEY</code> qui déclenche la vérification. Sans elle, le SGBD accepte même un client qui n’existe pas :",
         {say:"👇 Teste par toi-même :",run:"CREATE TABLE colis (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER\n);\nINSERT INTO colis VALUES (1, 99);\nSELECT id, client_id\nFROM colis;"},
         {arrow:"Le colis 1 est rattaché au client 99, qui n’existe pas : rien ne l’a empêché."}
       ]}}
@@ -7812,7 +7815,7 @@ guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, cl
   anatomie:[{tok:"SELECT",txt:"Lit des données. Il ne modifie jamais rien."},{tok:"prenom, nom, email",plain:1,txt:"Les colonnes à afficher, séparées par une virgule, dans l’ordre voulu ; l’étoile * les prend toutes."},{tok:"FROM clients",txt:"La table interrogée."},{tok:";",punc:1,txt:"Termine la requête."}],
   exemple:"SELECT prenom, ville FROM clients;",
   attendu:"<b>10 lignes</b> et <b>2 colonnes</b> : <code>prenom</code> et <code>ville</code>. Chaque client apparaît avec seulement ces deux informations.",
-  retenir:"Une base relationnelle organise les données dans des tables spécialisées (<code>clients</code>, <code>produits</code>, <code>commandes</code>).<br><br>• Colonnes : caractéristiques typées (<code>TEXT</code>, <code>INTEGER</code>, <code>REAL</code>).<br>• Lignes : enregistrements individuels (Sophie, Lucas…).<br>• Clé primaire : identifie chaque ligne, unique et jamais vide, comme <code>clients.id</code>. Elle se déclare à la création de la table : <code>id INTEGER PRIMARY KEY</code>.<br>• Clé étrangère : renvoie vers la clé primaire d’une autre table, comme <code>commandes.client_id</code> vers <code>clients.id</code>. Elle se déclare avec <code>FOREIGN KEY (client_id) REFERENCES clients(id)</code> ; la base refuse alors un lien vers une ligne qui n’existe pas.<br><br><code>SELECT</code> lit les tables sans jamais modifier la base. Après <code>SELECT</code>, écris les colonnes à afficher, séparées par une virgule, sans virgule après la dernière : <code>SELECT prenom, nom, email FROM clients</code>. Elles s’affichent dans l’ordre écrit.<br><br>L’étoile <code>*</code> les affiche toutes : pratique pour découvrir une table. Pour une liste précise, indique seulement les colonnes utiles : le résultat est plus lisible.",
+  retenir:"Une base relationnelle organise les données dans des tables spécialisées (<code>clients</code>, <code>produits</code>, <code>commandes</code>). Elle est gérée par un SGBD (système de gestion de base de données), ici SQLite : il exécute les requêtes SQL et contrôle chaque modification.<br><br>• Colonnes : caractéristiques typées (<code>TEXT</code>, <code>INTEGER</code>, <code>REAL</code>).<br>• Lignes : enregistrements individuels (Sophie, Lucas…).<br>• Clé primaire : identifie chaque ligne, unique et jamais vide, comme <code>clients.id</code>. Elle se déclare à la création de la table : <code>id INTEGER PRIMARY KEY</code>.<br>• Clé étrangère : renvoie vers la clé primaire d’une autre table, comme <code>commandes.client_id</code> vers <code>clients.id</code>. Elle se déclare avec <code>FOREIGN KEY (client_id) REFERENCES clients(id)</code> ; le SGBD refuse alors un lien vers une ligne qui n’existe pas.<br><br><code>SELECT</code> lit les tables sans jamais modifier la base. Après <code>SELECT</code>, écris les colonnes à afficher, séparées par une virgule, sans virgule après la dernière : <code>SELECT prenom, nom, email FROM clients</code>. Elles s’affichent dans l’ordre écrit.<br><br>L’étoile <code>*</code> les affiche toutes : pratique pour découvrir une table. Pour une liste précise, indique seulement les colonnes utiles : le résultat est plus lisible.",
   consigne:"Affiche le nom et le prix de chaque produit, dans cet ordre.",
   solution:"SELECT nom, prix FROM produits;",
   indice:"Après <code>SELECT</code>, écris <code>nom, prix</code> ; après <code>FROM</code>, indique la table <code>produits</code>.",
@@ -14833,7 +14836,7 @@ const NIV={f:{l:'Facile',c:'f'},m:{l:'Moyen',c:'m'},d:{l:'Difficile',c:'d'}};
    ============================================================ */
 const CARTES={
  0:{k:"Modèle relationnel",t:"Tables, clés et lecture avec SELECT",s:"SELECT prenom, nom FROM clients;",
-    m:"Une base relationnelle range l’information en <b>tables</b> : <b>colonnes</b> = caractéristiques, <b>lignes</b> = éléments enregistrés. Chaque ligne a une clé primaire unique et jamais vide (<code>clients.id</code>, déclarée avec <code>PRIMARY KEY</code>) ; une table en désigne une autre par une clé étrangère — <code>commandes.client_id</code> renvoie à <code>clients.id</code> (<code>FOREIGN KEY … REFERENCES</code>). Formellement : relation, attribut, tuple. <code>SELECT</code> lit une table sans la modifier : il dresse la liste des <b>colonnes</b>, séparées par une virgule ; <code>*</code> les prend toutes. Toutes les lignes sortent : ce n’est pas un filtre."},
+    m:"Une base relationnelle, gérée par un <b>SGBD</b> comme SQLite, range l’information en <b>tables</b> : <b>colonnes</b> = caractéristiques, <b>lignes</b> = éléments enregistrés. Chaque ligne a une clé primaire unique et jamais vide (<code>clients.id</code>, déclarée avec <code>PRIMARY KEY</code>) ; une table en désigne une autre par une clé étrangère — <code>commandes.client_id</code> renvoie à <code>clients.id</code> (<code>FOREIGN KEY … REFERENCES</code>). Formellement : relation, attribut, tuple. <code>SELECT</code> lit une table sans la modifier : il dresse la liste des <b>colonnes</b>, séparées par une virgule ; <code>*</code> les prend toutes. Toutes les lignes sortent : ce n’est pas un filtre."},
  4:{k:"WHERE",t:"Filtrer les lignes",s:"WHERE ville = 'Paris'",
     m:"<code>WHERE</code> choisit les <b>lignes</b> qui restent dans le résultat. Texte entre guillemets simples : <code>'Paris'</code>. Rien n’est effacé de la table."},
  5:{k:"> < >= <=",t:"Seuils numériques",s:"WHERE prix > 25",
@@ -14952,7 +14955,8 @@ const QCM={
    {q:"L’étoile <code>*</code> signifie :",o:["Toutes les lignes","Toutes les colonnes","Toutes les tables"],b:1,e:"Elle remplace la liste des colonnes. Le nombre de lignes ne change pas."},
    {q:"Que renvoie <code>SELECT prenom, telephone FROM clients;</code> ?",o:["La première ligne seulement","Les 10 clients, avec seulement prenom et telephone","Toutes les colonnes de tous les clients"],b:1,e:"SELECT ne filtre pas les clients : il choisit seulement les colonnes à afficher. Les 10 clients sont toujours là, avec ces deux colonnes."},
    {q:"<code>SELECT prenom telephone FROM clients;</code> sans virgule :",o:["Affiche les deux colonnes : l’espace suffit","Échoue : il manque la virgule entre les colonnes","N’affiche qu’une colonne : celle de prenom"],b:2,e:"Sans virgule, <code>telephone</code> est lu comme un <b>alias</b> : le titre donné à la colonne dans le résultat (<code>AS</code> est facultatif, la requête équivaut à <code>prenom AS telephone</code>). Une seule colonne s’affiche, avec les prénoms sous le titre <code>telephone</code>. Pour deux colonnes, il faut la virgule : <code>prenom, telephone</code>."},
-   {q:"Dans la table <code>commandes</code>, comment déclare-t-on que <code>client_id</code> renvoie à <code>clients.id</code> ?",o:["<code>client_id INTEGER PRIMARY KEY</code>","<code>FOREIGN KEY (client_id) REFERENCES clients(id)</code>","<code>SELECT client_id FROM clients</code>"],b:1,e:"<code>FOREIGN KEY</code> désigne la colonne qui porte le lien, <code>REFERENCES</code> la table et la colonne visées. <code>PRIMARY KEY</code> déclare la clé primaire de la table elle-même."}],
+   {q:"Dans la table <code>commandes</code>, comment déclare-t-on que <code>client_id</code> renvoie à <code>clients.id</code> ?",o:["<code>client_id INTEGER PRIMARY KEY</code>","<code>FOREIGN KEY (client_id) REFERENCES clients(id)</code>","<code>SELECT client_id FROM clients</code>"],b:1,e:"<code>FOREIGN KEY</code> désigne la colonne qui porte le lien, <code>REFERENCES</code> la table et la colonne visées. <code>PRIMARY KEY</code> déclare la clé primaire de la table elle-même."},
+   {q:"Qu’est-ce qu’un <b>SGBD</b>, comme SQLite ?",o:["Une table qui rassemble toutes les informations","Le logiciel qui gère la base : il exécute les requêtes SQL et contrôle chaque modification","Un fichier Excel partagé entre plusieurs équipes"],b:1,e:"SGBD signifie « système de gestion de base de données ». On lui envoie des requêtes en SQL ; il les exécute et refuse, par exemple, un numéro de client déjà pris."}],
  2:[{q:"<code>SELECT prix AS tarif FROM produits;</code> affiche :",o:["Une colonne renommée tarif dans le résultat","La colonne prix renommée aussi dans la table","Une erreur, AS est interdit"],b:0,e:"<code>AS</code> ne change que l’en-tête affiché. La table garde le nom <code>prix</code>."},
    {q:"Pour un alias avec un espace, il faut :",o:["Des guillemets simples","Des guillemets doubles","Un underscore obligatoire"],b:1,e:"<code>prix AS \"Prix (€)\"</code>. Sans guillemets, l’espace casse la syntaxe. En SQL, les guillemets doubles servent aux noms et les guillemets simples aux valeurs texte."}],
  22:[{q:"<code>WHERE NOT ville = 'Paris'</code> garde :",o:["Seulement les Parisiens","Tous les clients sauf les Parisiens","Aucune ligne"],b:1,e:"<code>NOT</code> inverse la condition : sont gardées les lignes qui ne sont <b>pas</b> à Paris."},
@@ -28141,7 +28145,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1806';
+  const SW_CACHE='requete-2026-10-12-ludique-v1807';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
