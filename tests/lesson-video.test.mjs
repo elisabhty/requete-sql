@@ -350,25 +350,32 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '5 min 18', notesAt: 290.45,
-    notes: /notes:\{t:309\.65,y:1404,card:\[64,292,1016,1109\],to:\[940,255\]\}/, table: 'clients',
+  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '5 min 55', notesAt: 327.35,
+    notes: /notes:\{t:346\.5,y:1404,card:\[64,292,1016,1109\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Chaque sujet a sa table,<br>et des numéros relient les tables.',
-    chapters: ['Situation', 'Le problème', 'Le découpage', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],
+    chapters: ['Situation', 'Le problème', 'Le découpage', 'Base de données et SGBD', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],
     traps: [
       // Le fichier Excel : une ligne par commande, le client et le produit recopiés
       '<span class="xfn">commandes.xlsx</span>', '<span class="xn" id="xn">16 commandes</span>', "const HEAD = ['N°', 'Prénom', 'Nom', 'E-mail', 'Produit', 'Prix', 'Qté'];",
       "const COMMANDES = [[1, 1, 1, 2], [2, 1, 3, 1], [3, 2, 6, 1], [4, 3, 2, 3], [5, 4, 1, 1], [13, 1, 8, 1]];", '<div class="need-h">Trois sujets sur chaque ligne</div>',
       // Le fichier grossit à chaque commande ou demande, plusieurs équipes le modifient, les erreurs arrivent
       'À chaque nouvelle commande ou demande, le fichier s’alourdit', 'Difficile de s’y retrouver', 'Il est mis à jour par plusieurs personnes, de plusieurs équipes différentes.',
-      "cur('tc1', 'tc-a', 1, '📦', 'Logistique') + cur('tc2', 'tc-b', 0, '💬', 'Service client') + cur('tc3', 'tc-c', 1, '💼', 'Commercial')", 'Des erreurs apparaissent',
+      "cur('tc1', 'tc-a', 1, '🚚', 'Logistique') + cur('tc2', 'tc-b', 0, '💬', 'Service client') + cur('tc3', 'tc-c', 1, '💼', 'Commercial')", 'Des erreurs apparaissent',
       // Un e-mail corrigé sur deux lignes seulement : deux e-mails pour la même cliente
       "const NOUVEL_EMAIL = 's.martin@mail.fr';", 'L’e-mail de Sophie Martin, commande par commande', 'Deux e-mails pour Sophie Martin',
-      // Le découpage par sujet
+      // Le découpage par sujet : ce qu’est une table (des lignes et des colonnes, un seul sujet), puis les trois tables
       "const GRP = ['k-co', 'k-cl', 'k-cl', 'k-cl', 'k-pr', 'k-pr', 'k-co'];",
+      'Une <b>table</b> organise les données en lignes et en colonnes, comme dans un tableau Excel.',
+      'Elle rassemble les informations sur <b>un même sujet</b> pour les retrouver et les mettre à jour facilement.',
+      'On crée donc <b>trois tables</b> : clients, produits et commandes.', '<span>Trois tables</span>',
+      // La base de données et le SGBD (ici SQLite), à qui les équipes envoient leurs requêtes SQL
+      'Ensemble, ces tables forment<br>une <b>base de données</b>.', 'Elle est gérée par un <b>SGBD</b> : un système de gestion de base de données.',
+      'Ici, le SGBD est <b>SQLite</b>.', 'Les équipes lui envoient des requêtes en <b>SQL</b> : il les exécute et contrôle chaque modification.',
+      '<div class="sgs" id="sgs">Système de gestion de base de données</div>', '<span class="sgq" id="sgq">SQLite</span>', '<span>Base de données</span>',
       // La clé primaire : son nom complet, les deux Nathan, un numéro déjà pris refusé, un client sans numéro qui reçoit le suivant
       '<span class="emo">🔑</span>clé primaire', '<b class="nq k-cl">clients</b><i class="ndot">.</i><b class="nq nqc">id</b><span class="nlb">la table</span>',
       'Lequel des deux&nbsp;?', 'Le client 4&nbsp;: Nathan Petit', "const NOUVEAUX = [[4, 'Yanis', 'Roche'], [null, 'Lina', 'Garnier']];",
-      'UNIQUE constraint failed: clients.id', '<span class="tys ko">✕ refusé</span>',
+      'UNIQUE constraint failed: clients.id', '<span class="tys ko">✕ refusé</span>', 'Le SGBD y veille : un numéro déjà pris est <b>refusé</b>',
       // … et sa déclaration : id INTEGER PRIMARY KEY, à la création de la table
       '<span class="fname">schema.sql</span>', 'id <span class="glow" id="pkt">INTEGER</span> <span class="glow" id="pkk"><span class="kw">PRIMARY KEY</span></span>,', 'avec <code>PRIMARY KEY</code> placé juste après le type de la colonne',
       // La clé étrangère : commandes.client_id → clients.id, puis la commande pour le client 99 refusée
@@ -376,7 +383,7 @@ const COURSES = [
       '<div class="stamp" id="stamp4">Relationnelle</div>', 'const CLIENT_INCONNU = 99;', '<span class="m">FOREIGN KEY constraint failed</span>',
       // … et sa déclaration : FOREIGN KEY (client_id) REFERENCES clients(id), rappelée quand la commande est refusée
       '<span class="kw">FOREIGN KEY</span> <span class="glow" id="fka">(client_id)</span>', '<span class="kw">REFERENCES</span> <span class="glow" id="fkb">clients(id)</span>',
-      '<div class="abs fkp" id="fkp"><span class="codepill"><span class="kw">FOREIGN KEY</span> (client_id) <span class="kw">REFERENCES</span> clients(id)</span></div>', 'Grâce à elle, la base vérifie chaque lien',
+      '<div class="abs fkp" id="fkp"><span class="codepill"><span class="kw">FOREIGN KEY</span> (client_id) <span class="kw">REFERENCES</span> clients(id)</span></div>', 'Le SGBD vérifie alors chaque lien : existe-t-il un client numéro 99 ?',
       // Lire une table : SELECT * FROM clients, les 10 clients et leurs 9 colonnes
       '<span class="star glow" id="star6">*</span>', '10 lignes · 9 colonnes', '✓ La table est lue, jamais modifiée',
       // Choisir les colonnes : l’étoile devient prenom, nom, email ; les six autres colonnes se replient ; Sophie Martin, une seule fois ; la jointure, plus tard
