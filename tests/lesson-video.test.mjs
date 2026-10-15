@@ -350,8 +350,8 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '5 min 16', notesAt: 290.45,
-    notes: /notes:\{t:307\.8,y:1404,card:\[64,292,1016,1109\],to:\[940,255\]\}/, table: 'clients',
+  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '5 min 18', notesAt: 290.45,
+    notes: /notes:\{t:309\.65,y:1404,card:\[64,292,1016,1109\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Chaque sujet a sa table,<br>et des numéros relient les tables.',
     chapters: ['Situation', 'Le problème', 'Le découpage', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],
     traps: [
