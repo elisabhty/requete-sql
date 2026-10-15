@@ -48,21 +48,20 @@ test('style : pastilles rondes à droite de l’en-tête avec leur nom dessous, 
   assert.ok(/body\.in-lesson:has\(#scr-lesson\.active \.navbar\.has-tools\) #fab\{display:none!important\}/.test(css));
 });
 
-test('cours SELECT, carte « Mission accomplie » : 9 colonnes au départ, SELECT sélectionne, 4 colonnes à l’arrivée', () => {
+test('cours 0, carte « Mission accomplie » : 9 colonnes au départ, SELECT sélectionne, 3 colonnes à l’arrivée', () => {
   const ctx = vm.createContext({});
   vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), ctx);
-  const lesson = vm.runInContext('MODULES.flatMap(m=>m.lessons).find(l=>l.id===1)', ctx);
+  const lesson = vm.runInContext('MODULES.flatMap(m=>m.lessons).find(l=>l.id===0)', ctx);
   const body = lesson.studio.uses.body;
   assert.ok(body.includes('Toutes les colonnes de la table <code>clients</code>'));
-  /* La carte de fin ne parle pas de l’adresse (l’encadré « Quand l’utiliser ? », plus haut, peut en parler). */
+  /* La carte de fin ne parle pas de l’adresse (l’encadré « L’étoile ou la liste ? », plus haut, peut en parler). */
   const funnel = body.slice(body.indexOf('Toutes les colonnes de la table <code>clients</code>'));
-  assert.ok(funnel.includes('SELECT prenom, nom, ville, telephone') && !funnel.includes('adresse'));
+  assert.ok(funnel.includes('SELECT prenom, nom, email') && !funnel.includes('adresse'));
   assert.ok(body.includes('ne sélectionne que les colonnes utiles'));
   assert.ok(body.includes('colonnes à l’arrivée'));
-  assert.ok(body.includes('Celles qui servent à identifier un client'));
-  assert.ok(!body.includes('colonnes dans la liste de livraison') && !body.includes('ne garde que les colonnes utiles'));
-  /* guideFr met une espace insécable avant « : ». */
-  assert.equal(vm.runInContext('GUIDE_DONE[1].s', ctx).replace(/ /g, ' '), 'Chaque client apparaît uniquement avec les informations utiles au transporteur : la liste est prête.');
+  assert.ok(body.includes('Celles qui servent à écrire à un client'));
+  assert.equal(vm.runInContext('GUIDE_DONE[0].s', ctx).replace(/\u00a0/g, ' '), 'Chaque client y figure une seule fois, avec son prénom, son nom et son e-mail.');
+  assert.equal(vm.runInContext('GUIDE_DONE[1]', ctx), undefined, 'le cours SELECT a rejoint le cours 0');
 });
 
 test('tableaux de résultat des cours : titres de colonnes et valeurs centrés (seul le numéro de ligne « # » reste à droite)', () => {
@@ -71,19 +70,19 @@ test('tableaux de résultat des cours : titres de colonnes et valeurs centrés (
   assert.ok(!/\.exframe \.xf-result \.table-wrap [^{]*\{text-align:left\}/.test(css), 'plus de colonne alignée à gauche dans un cadre de résultat');
 });
 
-test('cours SELECT : l’étoile est un encadré « Bon à savoir » sous forme de question, pas une étape de la requête', () => {
+test('encadré « Bon à savoir » : non numéroté, avec son étiquette ; le cours 0 enchaîne les tables, les clés, le choix des colonnes et les virgules', () => {
   /* guide() : une étape marquée aside devient un encadré non numéroté, avec son étiquette à la place de « Étape N ». */
   assert.ok(html.includes("<div class=\"fn-use${st.aside?' is-aside':''}\"><p class=\"pt-syntax-h\"${st.aside?` data-tag=\"${st.aside}\"`:''}>"), 'guide() : encadré aside');
   assert.ok(/\.fn-use\.is-aside\{counter-increment:none\}/.test(html), 'non compté dans les étapes');
   assert.ok(/\.jn-course \.fn-use\.is-aside > \.pt-syntax-h::before\{content:attr\(data-tag\)!important/.test(html), 'étiquette à la place de « Étape N »');
   const ctx = vm.createContext({});
   vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), ctx);
-  const body = vm.runInContext('MODULES.flatMap(m=>m.lessons).find(l=>l.id===1)', ctx).studio.uses.body;
+  const body = vm.runInContext('MODULES.flatMap(m=>m.lessons).find(l=>l.id===0)', ctx).studio.uses.body;
   const heads = [...body.matchAll(/<div class="fn-use( is-aside)?"><p class="pt-syntax-h"(?: data-tag="([^"]*)")?>([^<]*)<\/p>/g)].map(m => (m[2] ? m[2] + ' : ' : '') + m[3].replace(/[\u00a0\u202f]/g, ' ')); /* guideFr met une espace insécable avant « ? » */
-  assert.deepEqual(heads, ['Afficher une ou plusieurs colonnes', 'Bien placer les virgules', 'Bon à savoir : Et pour afficher toutes les colonnes ?', 'La requête complète']);
+  assert.deepEqual(heads, ['Chaque sujet a sa table', 'Des tables reliées par des numéros', 'Choisir les colonnes', 'Bien placer les virgules', 'La requête complète']);
 });
 
-test('apartés « Bon à savoir » (titre en question) dans 12 cours ; chaque cours finit par l’étape « La requête complète »', () => {
+test('apartés « Bon à savoir » (titre en question) dans 11 cours ; chaque cours finit par l’étape « La requête complète »', () => {
   const ctx = vm.createContext({});
   vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), ctx);
   const lessons = JSON.parse(vm.runInContext('JSON.stringify(MODULES.flatMap(m=>m.lessons).map(l=>({id:l.id,body:(l.studio&&l.studio.uses&&l.studio.uses.body)||""})))', ctx));
@@ -98,7 +97,7 @@ test('apartés « Bon à savoir » (titre en question) dans 12 cours ; chaque co
     if (a.length) asides[l.id] = a;
   }
   assert.deepEqual(asides, {
-    1: ['Et pour afficher toutes les colonnes ?'], 13: ['Et avec plusieurs colonnes ?'], 7: ['Et un texte vide, c’est NULL ?'],
+    13: ['Et avec plusieurs colonnes ?'], 7: ['Et un texte vide, c’est NULL ?'],
     10: ['Et si on inverse les limites ?'], 23: ['Et si la valeur est un texte vide ?'], 17: ['WHERE ou HAVING ?'],
     38: ['LEFT JOIN ou RIGHT JOIN ?'], 56: ['Faut-il tout découper ?'], 66: ['Vider une table, est-ce la supprimer ?', 'Et si DROP TABLE échoue ?'],
     28: ['Que peut-il mal se passer ?'], 63: ['Que ne fait pas un SAVEPOINT ?'], 70: ['Que ne fait pas un trigger ?'],

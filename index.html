@@ -7659,17 +7659,20 @@ function guide(spec){
    2. PROGRAMME
    ============================================================ */
 const MODULES = [
-{ titre:"Introduction", sous:"Bases de données, tables et relations", lessons:[
-guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, colonnes, lignes et liens",
+{ titre:"Introduction", sous:"Bases de données, tables, relations et SELECT", lessons:[
+guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, clés et lecture avec SELECT",
   /* Cours en vidéo : l’animation (assets/anim/bases-relationnelles.html, moteur commun assets/anim/core.js) remplace le texte du cours.
      La vidéo part du fichier Excel de NutriBoost, une ligne par commande : Sophie Martin et son e-mail y sont recopiés trois fois,
      et un e-mail corrigé sur deux lignes seulement en laisse deux. La feuille est découpée par sujet (tables clients, produits,
      commandes), puis vient la clé primaire (clients.id, unique et jamais vide, les deux Nathan, un numéro déjà pris refusé) et
-     la clé étrangère (commandes.client_id → clients.id, une commande pour le client 99 refusée). Ce cours reprend ainsi les
-     anciens cours « Clé primaire » et « Clé étrangère » ; le texte ci-dessous est gardé pour le cas où la vidéo ne se charge pas. */
-  video:{anim:'assets/anim/bases-relationnelles.html?app&embed',thumb:'assets/anim/bases-relationnelles-thumb.jpg',duree:'3 min 57',
-    /* « Ajouter dans notes » : apparaît à 3 min 48 (228,8 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:228.8,y:1291,card:[64,292,1016,996],to:[940,255]}},
+     la clé étrangère (commandes.client_id → clients.id, une commande pour le client 99 refusée). On lit enfin la table clients :
+     SELECT * pour toutes ses colonnes, puis SELECT prenom, nom, email pour n’en garder que trois, dans l’ordre écrit (Sophie
+     Martin n’a plus qu’un e-mail), et les deux pièges de la virgule (oubliée : un alias ; en trop : une erreur). Ce cours reprend
+     ainsi les anciens cours « Clé primaire », « Clé étrangère » et « SELECT » ; le texte ci-dessous est gardé pour le cas où la
+     vidéo ne se charge pas. */
+  video:{anim:'assets/anim/bases-relationnelles.html?app&embed',thumb:'assets/anim/bases-relationnelles-thumb.webp',duree:'4 min 45',
+    /* « Ajouter dans notes » : apparaît à 4 min 37 (277 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:277,y:1392,card:[64,292,1016,1097],to:[940,255]}},
   sit:{
     blocks:[
       "<b>NutriBoost</b> est une boutique en ligne de compléments alimentaires et de nutrition sportive. Chaque jour, des clients s’inscrivent, consultent le catalogue et passent des commandes.",
@@ -7687,7 +7690,7 @@ guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, co
         steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,off:["R1","R2","R3"],mark:{b1:"is-miss",b2:"is-miss"},d:2600},{cap:2,unmark:{b1:"is-miss",b2:"is-miss"},gone:["b1","b2"],d:2600}]},
       then:["Il faut donc ranger chaque sujet dans <b>sa propre table</b>, puis <b>relier les tables</b> entre elles.","C’est exactement le principe d’une <b>base de données relationnelle</b>."]
     },
-    mission:"Aide l’équipe à <b>découvrir la table clients</b> : affiche toutes ses lignes et toutes ses colonnes, pour comprendre comment une table est organisée."
+    mission:"Aide l’équipe à <b>découvrir la table clients</b>, puis à en tirer la liste qui lui servira à écrire à ses clients : leur <b>prénom</b>, leur <b>nom</b> et leur <b>e-mail</b>, chacun une seule fois."
   },
   concept:{
     title:"Comment une base de données range-t-elle l’information ?",
@@ -7734,20 +7737,49 @@ guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, co
         {say:"👇 Teste par toi-même :",run:"INSERT INTO commandes\n  (client_id, produit_id,\n   quantite)\nVALUES (99, 1, 1);"}
       ]}}
     ]},
+    {h:"Choisir les colonnes",blocks:[
+      "L’étoile affiche toutes les colonnes. Pour n’en afficher que certaines, écris leur nom après <code>SELECT</code>, <b>séparés par une virgule</b>. Elles s’affichent <b>dans l’ordre où tu les écris</b> :",
+      {syntax:"SELECT ⟦prenom, nom⟧\nFROM clients;"},
+      {looks:[["SELECT prenom, nom","indique les colonnes à afficher"],["FROM clients","indique la table dans laquelle les lire"]]},
+      {say:"👇 Exécute cette requête pour voir le prénom et le nom des clients :",run:"SELECT prenom, nom\nFROM clients;"},
+      {arrow:"Deux colonnes seulement, mais les 10 clients sont tous là : <code>SELECT</code> choisit les colonnes, pas les lignes."},
+      {tip:{t:"L’étoile ou la liste ?",blocks:[
+        "🔎 Pour <b>découvrir</b> une table et tout ce qu’elle contient : <code>SELECT *</code>. L’étoile suit la table : une colonne ajoutée plus tard apparaît aussi dans le résultat.",
+        "🎯 Pour une liste précise, comme le prénom et le nom des clients : <code>SELECT prenom, nom</code>. Le résultat est plus lisible, sans les adresses, les e-mails et les autres informations inutiles ici."
+      ]}}
+    ]},
+    {h:"Bien placer les virgules",blocks:[
+      "Une virgule sépare chaque colonne, mais il n’en faut <b>pas</b> après la dernière.",
+      {warn:{t:"Sans virgule",blocks:[
+        "Si tu écris :",
+        {syntax:"SELECT prenom email\nFROM clients;"},
+        "Sans virgule, <code>email</code> est lu comme un <b>alias</b> : le titre donné à la colonne dans le résultat. Le mot-clé <code>AS</code> étant facultatif, cette requête équivaut à :",
+        {syntax:"SELECT prenom AS email\nFROM clients;"},
+        "Résultat : <b>une seule colonne</b> s’affiche, contenant les prénoms, sous le titre <code>email</code>. Pour afficher les prénoms et les e-mails dans deux colonnes, il faut la virgule : <code>SELECT prenom, email</code>.",
+        {say:"👇 Teste par toi-même :",run:"SELECT prenom email\nFROM clients;"}
+      ]}},
+      {warn:{t:"Une virgule de trop",blocks:[
+        "Si tu écris :",
+        {syntax:"SELECT prenom, email,\nFROM clients;"},
+        "La virgule après <code>email</code> annonce une autre colonne, mais c’est <code>FROM</code> qui suit : la requête est invalide.",
+        {say:"👇 Teste par toi-même :",run:"SELECT prenom, email,\nFROM clients;"}
+      ]}}
+    ]},
     {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à ouvrir la table <code>clients</code>. <code>SELECT</code> la lit, sans jamais la modifier.",
-      {say:"👇 Exécute la requête pour découvrir la table clients :",run:"SELECT *\nFROM clients;"},
+      "Il ne reste plus qu’à préparer la liste des clients : leur prénom, leur nom et leur e-mail, dans cet ordre. <code>SELECT</code> lit la table, sans jamais la modifier.",
+      {say:"👇 Exécute la requête pour obtenir la liste des clients :",run:"SELECT prenom, nom, email\nFROM clients;"},
       {done:{
-        label:"De la table clients à son contenu",
+        label:"Des neuf colonnes aux trois colonnes utiles",
+        unit:"cols",
         funnel:[
-          {n:10,t:"clients dans la table",s:"une ligne par client",dots:"0000000000"},
-          {step:"SELECT * FROM clients",s:"lit toute la table, sans rien modifier"},
-          {n:10,t:"⭐ lignes affichées",s:"avec leurs 9 colonnes : id, prenom, nom, adresse, ville, age, email, telephone et date_inscription",dots:"1111111111",out:true}
+          {n:9,t:"colonnes au départ",s:"Toutes les colonnes de la table <code>clients</code>",dots:"000000000"},
+          {step:"SELECT prenom, nom, email",s:"ne sélectionne que les colonnes utiles"},
+          {n:3,t:"⭐ colonnes à l’arrivée",s:"Celles qui servent à écrire à un client : <code>prenom</code>, <code>nom</code> et <code>email</code>",dots:"011000100",out:true}
         ],
-        board:{ico:"🗂️",h:"Table clients",aria:"La table clients s’affiche en entier : 10 lignes, une par client, et 9 colonnes, une par caractéristique",kpi:"Lignes",kpi2:{"t": "Colonnes", "v": "cols"},wide:true,cols:["id", "prenom", "nom", "adresse", "ville", "age", "email", "telephone", "date_inscription"],
-          rows:[[1, "Sophie", "Martin", "12 rue des Lilas", "Paris", 34, "sophie@mail.fr", "06 39 98 12 04", "2023-01-15"], [2, "Lucas", "Bernard", "8 avenue Foch", "Lyon", 28, "lucas@mail.fr", "06 39 98 21 47", "2023-03-22"], [3, "Emma", "Dubois", "27 rue Gambetta", "Marseille", 45, "emma@mail.fr", "06 39 98 33 08", "2022-11-05"], [4, "Nathan", "Petit", "5 rue Victor Hugo", "Paris", 31, "nathan@mail.fr", "06 39 98 40 15", "2023-06-10"], [5, "Chloé", "Moreau", "19 rue Pasteur", "Bordeaux", 26, "chloe@mail.fr", "06 39 98 51 62", "2023-02-18"], [6, "Hugo", "Laurent", "3 allée des Pins", "Lyon", 52, null, "06 39 98 68 03", "2022-09-30"], [7, "Léa", "Simon", "41 avenue Jaurès", "Paris", 38, "lea@mail.fr", "06 39 98 74 29", "2023-05-12"], [8, "Gabriel", "Michel", "16 rue de la Paix", "Toulouse", 29, "gabriel@mail.fr", "06 39 98 85 16", "2023-04-08"], [9, "Inès", "Lefebvre", "22 rue des Roses", "Nantes", 41, null, "06 39 98 97 50", "2023-07-26"], [10, "Nathan", "Dupont", "9 place du Marché", "Paris", 30, "nathan.dupont@mail.fr", "06 39 98 10 26", "2023-08-03"]],done:"✓ Toute la table est affichée"},
-        fill:["SELECT","*","FROM","clients"],
-        ui:{t:"La table clients est ouverte",s:"Une ligne par client, une colonne par caractéristique.",n:["SELECT","*","FROM"]},
+        board:{ico:"✉️",h:"Clients à contacter",aria:"La liste des dix clients s’affiche, chacun une seule fois, avec son prénom, son nom et son e-mail",kpi:"Lignes",kpi2:{"t": "Colonnes", "v": "cols"},cols:["prenom", "nom", "email"],
+          rows:[["Sophie", "Martin", "sophie@mail.fr"], ["Lucas", "Bernard", "lucas@mail.fr"], ["Emma", "Dubois", "emma@mail.fr"], ["Nathan", "Petit", "nathan@mail.fr"], ["Chloé", "Moreau", "chloe@mail.fr"], ["Hugo", "Laurent", null], ["Léa", "Simon", "lea@mail.fr"], ["Gabriel", "Michel", "gabriel@mail.fr"], ["Inès", "Lefebvre", null], ["Nathan", "Dupont", "nathan.dupont@mail.fr"]],done:"✓ Chaque client une seule fois"},
+        fill:["nom","email","FROM","clients"],
+        ui:{t:"La liste des clients est prête",s:"Chaque client y figure une seule fois, avec son prénom, son nom et son e-mail.",n:["SELECT","FROM"]},
         rows:10
       }}
     ]}
@@ -7755,141 +7787,23 @@ guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, co
   reflex:[
     {recap:[
       ["🗂️","Une <b>table</b> range un sujet : <code>clients</code>, <code>produits</code>, <code>commandes</code>.","Ses colonnes sont des caractéristiques, ses lignes des enregistrements."],
-      ["🔑","Une <b>clé primaire</b> identifie chaque ligne : elle est unique et jamais vide.",null,"clients.id"],
-      ["🔗","Une <b>clé étrangère</b> renvoie vers la clé primaire d’une autre table :",null,"commandes.client_id → clients.id"]
+      ["🔑","Une <b>clé primaire</b> identifie chaque ligne ; une <b>clé étrangère</b> renvoie vers la clé primaire d’une autre table :",null,"commandes.client_id → clients.id"],
+      ["📋","<code>SELECT</code> choisit les <b>colonnes</b> à afficher, séparées par une virgule ; l’étoile <code>*</code> les prend toutes :",null,"SELECT prenom, nom, email"]
     ],label:"Les trois idées à retenir"}
   ],
-  anatomie:[{tok:"SELECT",txt:"Lit des données. Il ne modifie jamais rien."},{tok:"*",plain:1,txt:"Toutes les colonnes de la table."},{tok:"FROM clients",txt:"La table interrogée."},{tok:";",punc:1,txt:"Termine la requête."}],
-  exemple:"SELECT * FROM produits;",
-  attendu:"<b>8 lignes</b> et <b>5 colonnes</b> : une ligne par produit, chaque colonne décrivant une caractéristique.",
-  retenir:"Une base relationnelle organise les données dans des tables spécialisées (<code>clients</code>, <code>produits</code>, <code>commandes</code>).<br><br>• Colonnes : caractéristiques typées (<code>TEXT</code>, <code>INTEGER</code>, <code>REAL</code>).<br>• Lignes : enregistrements individuels (Sophie, Lucas…).<br>• Clé primaire (<code>PRIMARY KEY</code>) : identifie chaque ligne, unique et jamais vide, comme <code>clients.id</code>.<br>• Clé étrangère (<code>FOREIGN KEY</code>) : renvoie vers la clé primaire d’une autre table, comme <code>commandes.client_id</code> vers <code>clients.id</code> ; la base refuse un lien vers une ligne qui n’existe pas.<br><br><code>SELECT</code> permet d’interroger et de lire les tables sans jamais modifier la base.",
-  consigne:"Ouvre la table fidelite en affichant toutes ses colonnes : elle contient les points de fidélité des clients.",
-  solution:"SELECT * FROM fidelite;",
-  indice:"<code>SELECT * FROM fidelite;</code> — l’étoile signifie « toutes les colonnes ».",
-  petitDefi:[{p:"Dans le vocabulaire formel du modèle relationnel, comment appelle-t-on une <b>ligne</b> ?",sql:"ligne → __________",a:"tuple",answers:["tuple","un tuple","Tuple","enregistrement"]}],
-  testeVariants:[{k:"cli",label:"clients",sql:"SELECT * FROM clients;",out:"Dix lignes, neuf colonnes : un client par ligne."},{k:"prd",label:"produits",sql:"SELECT * FROM produits;",out:"Huit lignes. Un autre sujet, donc une autre table."},{k:"cmd",label:"commandes",sql:"SELECT * FROM commandes;",out:"Seize lignes — et aucun nom : seulement des client_id et des produit_id."}],
-  learningCheck:{question:"Dans clients, que représente la valeur Paris pour Sophie ?",options:["Une cellule","Une colonne entière","Une table"],answer:0,explanation:"La ligne décrit Sophie ; la colonne ville décrit la caractéristique ; leur intersection contient Paris."}
-})
-]},
-{ titre:"Lire une table", sous:"SELECT, filtres, tri et pagination", lessons:[
-guide({ id:1, titre:"SELECT", résumé:"Choisir les colonnes à afficher",
-  /* Cours en vidéo, comme WHERE : l’animation (assets/anim/select.html, moteur commun assets/anim/core.js) remplace le texte du cours. */
-  video:{anim:'assets/anim/select.html?app&embed',thumb:'assets/anim/select-thumb.jpg',duree:'2 min 27',
-    /* « Ajouter dans notes » : apparaît à 2 min 19 (139,3 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:139.3,y:1360,card:[64,356,1016,1066],to:[940,255]}},
-  sit:{
-    blocks:[
-      "La boutique travaille avec un nouveau <b>transporteur</b>. Pour lui permettre de prendre connaissance des clients qu’il sera amené à prendre en charge, l’équipe logistique souhaite lui transmettre une <b>liste</b> avec leurs <b>principales informations</b>.",
-      "La table <code>clients</code> contient au total <b>10 clients</b>. Pour cette liste, l’équipe souhaite récupérer uniquement :",
-      {need:[["👤","Le prénom du client","table clients"],["👪","Son nom de famille","table clients"],["📍","Sa ville","table clients"],["📞","Son téléphone","table clients"]],label:"Les informations à récupérer"}
-    ],
-    problem:{
-      p:["La table <code>clients</code> regroupe <b>plusieurs renseignements</b> sur chaque client, répartis dans <b>différentes colonnes</b>.","Or, le transporteur n’a pas besoin de toutes ces informations : l’<b>identifiant</b>, l’<b>adresse</b>, l’<b>âge</b>, l’<b>email</b> ou la <b>date d’inscription</b> ne doivent pas apparaître dans notre liste."],
-      scene:{h:"📇 Informations d’un client",cols:"110px 1fr",form:true,
-        lanes:[
-          {k:"L1",c:[["","id","t"],["a1","1"]]},
-          {k:"L2",c:[["","prenom","t"],["a2","Sophie"]]},
-          {k:"L3",c:[["","nom","t"],["a3","Martin"]]},
-          {k:"L4",c:[["","adresse","t"],["a4","12 rue des Lilas"]]},
-          {k:"L5",c:[["","ville","t"],["a5","Paris"]]},
-          {k:"L6",c:[["","age","t"],["a6","34"]]},
-          {k:"L7",c:[["","email","t"],["a7","sophie@mail.fr"]]},
-          {k:"L8",c:[["","telephone","t"],["a8","06 39 98 12 04"]]},
-          {k:"L9",c:[["","date_inscription","t"],["a9","2023-01-15"]]}],
-        caps:["<b>Table clients</b> · 9 colonnes pour chaque client.","<b>Inutiles pour identifier un client</b> · 5 colonnes s’effacent.","<b>À afficher</b> · il reste les 4 colonnes utiles."],
-        steps:[{cap:0,on:["L1","L2","L3","L4","L5","L6","L7","L8","L9"],d:1900},{cap:1,off:["L1","L4","L6","L7","L9"],dim:["L1","L4","L6","L7","L9"],d:2300},{cap:2,fold:["L1","L4","L6","L7","L9"],d:2600}]},
-      then:["Il faut donc indiquer à SQL <b>quelles colonnes afficher</b> : uniquement celles qui servent à identifier les clients.","C’est exactement le rôle de <code>SELECT</code>."]
-    },
-    mission:"Aide l’équipe logistique à retrouver le <b>prénom</b>, le <b>nom de famille</b>, la <b>ville</b> et le <b>téléphone</b> de chaque client, afin de préparer la liste à transmettre au transporteur."
-  },
-  concept:{
-    title:"Comment indiquer à SQL quelles colonnes afficher ?",
-    blocks:[
-      "Une table peut contenir de nombreuses colonnes. <code>SELECT</code> permet de choisir uniquement celles que tu veux voir.",
-      {ask:"Quelles informations veut-on voir ?"},
-      "Il suffit d’écrire le nom des colonnes après <code>SELECT</code>, en les séparant par une virgule :",
-      {syntax:"SELECT ⟦prenom, nom, ville, telephone⟧\nFROM clients;"}
-    ]
-  },
-  steps:[
-    {h:"Afficher une ou plusieurs colonnes",blocks:[
-      "Une requête <code>SELECT</code> interroge la base de données et renvoie un tableau de résultats. La mission demande plusieurs informations : commençons par le prénom des clients. On écrit :",
-      {syntax:"SELECT ⟦prenom⟧\nFROM clients;"},
-      {looks:[["SELECT","indique la colonne à afficher"],["FROM clients","indique la table dans laquelle la lire"]]},
-      {say:"👇 Exécute cette requête pour voir le prénom des clients :",run:"SELECT prenom\nFROM clients;"},
-      {arrow:"Le résultat contient une seule colonne, mais tous les clients sont là. Il reste à afficher les autres informations demandées."},
-      "Pour afficher plusieurs colonnes, écris-les à la suite, <b>séparées par une virgule</b>. Elles s’affichent <b>dans l’ordre où tu les écris</b> :",
-      {syntax:"SELECT ⟦prenom,⟧ nom\nFROM clients;"},
-      {say:"👇 Exécute cette requête pour voir le prénom et le nom des clients :",run:"SELECT prenom, nom\nFROM clients;"}
-    ]},
-    {h:"Bien placer les virgules",blocks:[
-      "Une virgule sépare chaque colonne, mais il n’en faut <b>pas</b> après la dernière.",
-      {warn:{t:"Sans virgule",blocks:[
-        "Si tu écris :",
-        {syntax:"SELECT prenom ville\nFROM clients;"},
-        "Sans virgule, <code>ville</code> est lu comme un <b>alias</b> : le titre donné à la colonne dans le résultat. Le mot-clé <code>AS</code> étant facultatif, cette requête équivaut à :",
-        {syntax:"SELECT prenom AS ville\nFROM clients;"},
-        "Résultat : <b>une seule colonne</b> s’affiche, contenant les prénoms, sous le titre <code>ville</code>. Pour afficher les prénoms et les villes dans deux colonnes, il faut la virgule : <code>SELECT prenom, ville</code>.",
-        {say:"👇 Teste par toi-même :",run:"SELECT prenom ville\nFROM clients;"}
-      ]}},
-      {warn:{t:"Une virgule de trop",blocks:[
-        "Si tu écris :",
-        {syntax:"SELECT prenom, ville,\nFROM clients;"},
-        "SQL voit la virgule après <code>ville</code> et comprend que la liste des colonnes continue.",
-        "Il s’attend donc à trouver le nom d’une autre colonne, mais rencontre <code>FROM</code> à la place : la requête est invalide.",
-        {say:"👇 Teste par toi-même :",run:"SELECT prenom, ville,\nFROM clients;"}
-      ]}}
-    ]},
-    {h:"Et pour afficher toutes les colonnes ?",aside:"Bon à savoir",blocks:[
-      "Pas besoin d’écrire leur nom une par une.",
-      "Avec <code>SELECT</code>, utilise simplement une étoile <code>*</code> :",
-      {syntax:"SELECT ⟦*⟧\nFROM clients;"},
-      {looks:[["*","sélectionne toutes les colonnes"]]},
-      {say:"👇 Exécute la requête : toutes les informations de chaque client s’affichent.",run:"SELECT *\nFROM clients;"},
-      {arrow:"Le résultat contient les 9 colonnes de la table, pour les 10 clients."},
-      "L’étoile suit la table : si une colonne est ajoutée plus tard, elle apparaît automatiquement dans le résultat.",
-      {tip:{t:"Quand l’utiliser ?",blocks:[
-        "🔎 Pour <b>découvrir</b> toutes les informations disponibles : <code>SELECT *</code>.",
-        "🎯 Pour obtenir les prénoms et noms des clients : <code>SELECT prenom, nom</code>.",
-        "Avec <code>*</code>, tu récupères toutes les colonnes. Pour préparer une liste avec seulement les prénoms et les noms, indique ces deux colonnes : le résultat sera plus lisible, sans les adresses, les e-mails et les autres informations inutiles ici."
-      ]}}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes utiles, puis indiquer dans quelle table les lire.",
-      {say:"👇 Exécute la requête pour obtenir la liste des clients :",run:"SELECT prenom, nom, ville, telephone\nFROM clients;"},
-      {done:{
-        label:"Des neuf colonnes aux quatre colonnes utiles",
-        unit:"cols",
-        funnel:[
-          {n:9,t:"colonnes au départ",s:"Toutes les colonnes de la table <code>clients</code>",dots:"000000000"},
-          {step:"SELECT prenom, nom, ville, telephone",s:"ne sélectionne que les colonnes utiles"},
-          {n:4,t:"⭐ colonnes à l’arrivée",s:"Celles qui servent à identifier un client : <code>prenom</code>, <code>nom</code>, <code>ville</code> et <code>telephone</code>",dots:"011010010",out:true}
-        ],
-        page:{ico:"🚚",h:"Feuille de prise en charge",aria:"Les dix clients, avec leur prénom, leur nom, leur ville et leur téléphone, s’inscrivent ligne par ligne sur la feuille remise au nouveau transporteur",chrome:false,layout:"doc",doc:{kick:"Nouveau transporteur",title:"Clients à livrer",meta:["De : NutriBoost · logistique"],th:["Client · ville · téléphone"],foot:"📎 liste_clients.csv",truck:true},name:[0,1],sub:[{col:2},{col:3,mono:true}],seal:"Transmise",sg:0.22,rows:[["Sophie","Martin","Paris","06 39 98 12 04"],["Lucas","Bernard","Lyon","06 39 98 21 47"],["Emma","Dubois","Marseille","06 39 98 33 08"],["Nathan","Petit","Paris","06 39 98 40 15"],["Chloé","Moreau","Bordeaux","06 39 98 51 62"],["Hugo","Laurent","Lyon","06 39 98 68 03"],["Léa","Simon","Paris","06 39 98 74 29"],["Gabriel","Michel","Toulouse","06 39 98 85 16"],["Inès","Lefebvre","Nantes","06 39 98 97 50"],["Nathan","Dupont","Paris","06 39 98 10 26"]],done:"✓ Liste de 10 clients transmise au transporteur"},
-        fill:["ville","telephone","FROM","clients"],
-        ui:{t:"10 clients dans la liste",s:"Chaque client apparaît uniquement avec les informations utiles au transporteur : la liste est prête.",n:["SELECT","FROM"]},
-        rows:10
-      }}
-    ]}
-  ],
-  reflex:[
-    {recap:[
-      ["📋","<code>SELECT</code> sert à choisir les <b>colonnes</b> à afficher.","Il agit sur le résultat, sans modifier la table."],
-      ["📍","<code>FROM</code> indique la <b>table</b> où lire les données :",null,"FROM clients"],
-      ["➕","Sépare les colonnes par une <b>virgule</b>, sans en mettre après la dernière. Pour afficher <b>toutes</b> les colonnes, place simplement une étoile <code>*</code> après <code>SELECT</code>.",null,"SELECT prenom, nom, ville, telephone"]
-    ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"SELECT",txt:"Introduit les colonnes à afficher."},{tok:"prenom, nom, ville, telephone",plain:1,txt:"Les quatre colonnes retenues, séparées par une virgule."},{tok:"FROM",txt:"Introduit la table à lire."},{tok:"clients",plain:1,txt:"La table clients : les données des 10 personnes."}],
+  anatomie:[{tok:"SELECT",txt:"Lit des données. Il ne modifie jamais rien."},{tok:"prenom, nom, email",plain:1,txt:"Les colonnes à afficher, séparées par une virgule, dans l’ordre voulu ; l’étoile * les prend toutes."},{tok:"FROM clients",txt:"La table interrogée."},{tok:";",punc:1,txt:"Termine la requête."}],
   exemple:"SELECT prenom, ville FROM clients;",
   attendu:"<b>10 lignes</b> et <b>2 colonnes</b> : <code>prenom</code> et <code>ville</code>. Chaque client apparaît avec seulement ces deux informations.",
-  retenir:"<code>SELECT</code> sert à choisir les colonnes à afficher.<br>Il agit sur le résultat, sans modifier la table.<br><br><code>FROM</code> indique la table à lire : <code>FROM clients</code><br><br>Sépare les colonnes par une virgule, sans en mettre après la dernière : <code>SELECT prenom, nom, ville, telephone</code>.<br><br>Pour afficher toutes les colonnes, place simplement une étoile <code>*</code> après <code>SELECT</code> : pratique pour découvrir toutes les informations disponibles. Pour une liste précise, comme les prénoms et les noms, indique seulement ces colonnes : le résultat est plus lisible.",
+  retenir:"Une base relationnelle organise les données dans des tables spécialisées (<code>clients</code>, <code>produits</code>, <code>commandes</code>).<br><br>• Colonnes : caractéristiques typées (<code>TEXT</code>, <code>INTEGER</code>, <code>REAL</code>).<br>• Lignes : enregistrements individuels (Sophie, Lucas…).<br>• Clé primaire (<code>PRIMARY KEY</code>) : identifie chaque ligne, unique et jamais vide, comme <code>clients.id</code>.<br>• Clé étrangère (<code>FOREIGN KEY</code>) : renvoie vers la clé primaire d’une autre table, comme <code>commandes.client_id</code> vers <code>clients.id</code> ; la base refuse un lien vers une ligne qui n’existe pas.<br><br><code>SELECT</code> lit les tables sans jamais modifier la base. Après <code>SELECT</code>, écris les colonnes à afficher, séparées par une virgule, sans virgule après la dernière : <code>SELECT prenom, nom, email FROM clients</code>. Elles s’affichent dans l’ordre écrit.<br><br>L’étoile <code>*</code> les affiche toutes : pratique pour découvrir une table. Pour une liste précise, indique seulement les colonnes utiles : le résultat est plus lisible.",
   consigne:"Affiche le nom et le prix de chaque produit, dans cet ordre.",
   solution:"SELECT nom, prix FROM produits;",
   indice:"Après <code>SELECT</code>, écris <code>nom, prix</code> ; après <code>FROM</code>, indique la table <code>produits</code>.",
-  petitDefi:[{p:"Complète pour afficher toutes les colonnes de la table commandes.",sql:"SELECT __________\nFROM commandes;",a:"*",answers:["*"]}],
-  testeVariants:[{k:"base",label:"Exemple",sql:"SELECT prenom, ville FROM clients;"},{k:"star",label:"Toutes les colonnes",sql:"SELECT * FROM clients;",out:"Neuf colonnes pour les dix clients.",expectRows:10}],
-  learningCheck:{question:"SELECT prenom, nom, ville, telephone FROM clients affiche combien de colonnes et de lignes ?",options:["10 colonnes et 4 lignes","4 colonnes et 4 lignes","4 colonnes et 10 lignes"],answer:2,explanation:"SELECT choisit quatre colonnes. Sans filtre, les dix clients restent."}
-}),
+  petitDefi:[{p:"Complète pour afficher toutes les colonnes de la table commandes.",sql:"SELECT __________\nFROM commandes;",a:"*",answers:["*"]},{p:"Dans le vocabulaire formel du modèle relationnel, comment appelle-t-on une <b>ligne</b> ?",sql:"ligne → __________",a:"tuple",answers:["tuple","un tuple","Tuple","enregistrement"]}],
+  testeVariants:[{k:"cli",label:"clients",sql:"SELECT * FROM clients;",out:"Dix lignes, neuf colonnes : un client par ligne."},{k:"col",label:"Deux colonnes",sql:"SELECT prenom, ville FROM clients;",out:"Deux colonnes seulement, pour les dix clients.",expectRows:10},{k:"prd",label:"produits",sql:"SELECT * FROM produits;",out:"Huit lignes. Un autre sujet, donc une autre table."},{k:"cmd",label:"commandes",sql:"SELECT * FROM commandes;",out:"Seize lignes — et aucun nom : seulement des client_id et des produit_id."}],
+  learningCheck:{question:"SELECT prenom, nom, email FROM clients affiche combien de colonnes et de lignes ?",options:["10 colonnes et 3 lignes","3 colonnes et 3 lignes","3 colonnes et 10 lignes"],answer:2,explanation:"SELECT choisit trois colonnes. Sans filtre, les dix clients restent."}
+})
+]},
+{ titre:"Lire une table", sous:"SELECT, filtres, tri et pagination", lessons:[
 guide({ id:2, titre:"Renommer avec AS", résumé:"Donner un nom lisible à une colonne du résultat",
   /* Cours en vidéo, comme WHERE et SELECT : l’animation (assets/anim/as.html, moteur commun assets/anim/core.js) remplace le texte du cours. */
   video:{anim:'assets/anim/as.html?app&embed',thumb:'assets/anim/as-thumb.jpg',duree:'2 min 02',
@@ -14900,10 +14814,8 @@ const NIV={f:{l:'Facile',c:'f'},m:{l:'Moyen',c:'m'},d:{l:'Difficile',c:'d'}};
    3bis. LES CARTES
    ============================================================ */
 const CARTES={
- 0:{k:"Modèle relationnel",t:"Tables, colonnes, lignes et liens",s:"SELECT * FROM clients;",
-    m:"Une base relationnelle range l’information en <b>tables</b> : <b>colonnes</b> = caractéristiques, <b>lignes</b> = éléments enregistrés. Chaque ligne a une clé primaire unique et jamais vide (<code>clients.id</code>) ; une table en désigne une autre par une clé étrangère — <code>commandes.client_id</code> renvoie à <code>clients.id</code>. Formellement : relation, attribut, tuple."},
- 1:{k:"SELECT",t:"Choisir les colonnes à afficher",s:"SELECT prenom, telephone FROM clients;",
-    m:"<code>SELECT</code> dresse la liste des <b>colonnes</b>. Une virgule sépare chaque nom ; <code>*</code> les prend toutes, pratique pour découvrir une table. Toutes les lignes sortent : ce n’est pas un filtre. La table d’origine ne change pas."},
+ 0:{k:"Modèle relationnel",t:"Tables, clés et lecture avec SELECT",s:"SELECT prenom, nom FROM clients;",
+    m:"Une base relationnelle range l’information en <b>tables</b> : <b>colonnes</b> = caractéristiques, <b>lignes</b> = éléments enregistrés. Chaque ligne a une clé primaire unique et jamais vide (<code>clients.id</code>) ; une table en désigne une autre par une clé étrangère — <code>commandes.client_id</code> renvoie à <code>clients.id</code>. Formellement : relation, attribut, tuple. <code>SELECT</code> lit une table sans la modifier : il dresse la liste des <b>colonnes</b>, séparées par une virgule ; <code>*</code> les prend toutes. Toutes les lignes sortent : ce n’est pas un filtre."},
  4:{k:"WHERE",t:"Filtrer les lignes",s:"WHERE ville = 'Paris'",
     m:"<code>WHERE</code> choisit les <b>lignes</b> qui restent dans le résultat. Texte entre guillemets simples : <code>'Paris'</code>. Rien n’est effacé de la table."},
  5:{k:"> < >= <=",t:"Seuils numériques",s:"WHERE prix > 25",
@@ -15018,11 +14930,10 @@ const QCM={
    {q:"Le mot « relationnel » désigne un lien entre :",o:["Les lignes d’une même table","Les tables entre elles","Les colonnes et leurs types"],b:1,e:"<code>commandes.client_id</code> désigne <code>clients.id</code> : ce sont les tables qui sont mises en relation."},
    {q:"Dans le vocabulaire formel, une <b>colonne</b> s’appelle :",o:["Un tuple","Un attribut","Une relation"],b:1,e:"Table = relation, colonne = attribut, ligne = tuple. « Relation » désigne la table elle-même."},
    {q:"Quelle règle doit respecter une clé primaire, comme <code>clients.id</code> ?",o:["Elle peut se répéter si le prénom change","Elle est unique et jamais vide","Elle doit contenir le prénom du client"],b:1,e:"Chaque ligne a son propre numéro, toujours rempli : un numéro déjà pris est refusé."},
-   {q:"On enregistre une commande avec <code>client_id = 99</code>. Aucun client n’a <code>id = 99</code>. Que se passe-t-il&nbsp;?",o:["Le client 99 est créé automatiquement","La commande est enregistrée quand même","La base refuse la commande : la clé étrangère renvoie à un client qui n’existe pas"],b:2,e:"<code>commandes.client_id</code> doit renvoyer à une ligne de <code>clients.id</code> : c’est l’intégrité référentielle."}],
- 1:[{q:"Que renvoie <code>SELECT prenom, telephone FROM clients;</code> ?",o:["La première ligne seulement","Les 10 clients, avec seulement prenom et telephone","Toutes les colonnes de tous les clients"],b:1,e:"SELECT ne filtre pas les clients : il choisit seulement les colonnes à afficher. Les 10 clients sont toujours là, avec ces deux colonnes."},
-   {q:"<code>SELECT prenom telephone FROM clients;</code> sans virgule :",o:["Affiche les deux colonnes : l’espace suffit","Échoue : il manque la virgule entre les colonnes","N’affiche qu’une colonne : celle de prenom"],b:2,e:"Sans virgule, <code>telephone</code> est lu comme un <b>alias</b> : le titre donné à la colonne dans le résultat (<code>AS</code> est facultatif, la requête équivaut à <code>prenom AS telephone</code>). Une seule colonne s’affiche, avec les prénoms sous le titre <code>telephone</code>. Pour deux colonnes, il faut la virgule : <code>prenom, telephone</code>."},
-   {q:"L’étoile <code>*</code> signifie :",o:["Toutes les lignes","Toutes les colonnes","Toutes les tables"],b:1,e:"Elle remplace la liste des colonnes. Le nombre de lignes ne change pas."},
-   {q:"Après l’ajout d’une colonne <code>pays</code> à la table <code>clients</code>, <code>SELECT * FROM clients;</code> :",o:["Affiche aussi pays","N’affiche pas pays","Provoque une erreur"],b:0,e:"L’étoile suit la table : toutes les colonnes apparaissent, y compris celles qu’on ajoute plus tard."}],
+   {q:"On enregistre une commande avec <code>client_id = 99</code>. Aucun client n’a <code>id = 99</code>. Que se passe-t-il&nbsp;?",o:["Le client 99 est créé automatiquement","La commande est enregistrée quand même","La base refuse la commande : la clé étrangère renvoie à un client qui n’existe pas"],b:2,e:"<code>commandes.client_id</code> doit renvoyer à une ligne de <code>clients.id</code> : c’est l’intégrité référentielle."},
+   {q:"L’étoile <code>*</code> signifie :",o:["Toutes les lignes","Toutes les colonnes","Toutes les tables"],b:1,e:"Elle remplace la liste des colonnes. Le nombre de lignes ne change pas."},
+   {q:"Que renvoie <code>SELECT prenom, telephone FROM clients;</code> ?",o:["La première ligne seulement","Les 10 clients, avec seulement prenom et telephone","Toutes les colonnes de tous les clients"],b:1,e:"SELECT ne filtre pas les clients : il choisit seulement les colonnes à afficher. Les 10 clients sont toujours là, avec ces deux colonnes."},
+   {q:"<code>SELECT prenom telephone FROM clients;</code> sans virgule :",o:["Affiche les deux colonnes : l’espace suffit","Échoue : il manque la virgule entre les colonnes","N’affiche qu’une colonne : celle de prenom"],b:2,e:"Sans virgule, <code>telephone</code> est lu comme un <b>alias</b> : le titre donné à la colonne dans le résultat (<code>AS</code> est facultatif, la requête équivaut à <code>prenom AS telephone</code>). Une seule colonne s’affiche, avec les prénoms sous le titre <code>telephone</code>. Pour deux colonnes, il faut la virgule : <code>prenom, telephone</code>."}],
  2:[{q:"<code>SELECT prix AS tarif FROM produits;</code> affiche :",o:["Une colonne renommée tarif dans le résultat","La colonne prix renommée aussi dans la table","Une erreur, AS est interdit"],b:0,e:"<code>AS</code> ne change que l’en-tête affiché. La table garde le nom <code>prix</code>."},
    {q:"Pour un alias avec un espace, il faut :",o:["Des guillemets simples","Des guillemets doubles","Un underscore obligatoire"],b:1,e:"<code>prix AS \"Prix (€)\"</code>. Sans guillemets, l’espace casse la syntaxe. En SQL, les guillemets doubles servent aux noms et les guillemets simples aux valeurs texte."}],
  22:[{q:"<code>WHERE NOT ville = 'Paris'</code> garde :",o:["Seulement les Parisiens","Tous les clients sauf les Parisiens","Aucune ligne"],b:1,e:"<code>NOT</code> inverse la condition : sont gardées les lignes qui ne sont <b>pas</b> à Paris."},
@@ -18084,8 +17995,7 @@ let courseFilter='all';
    ============================================================ */
 const SQ_STOP=new Set(['le','la','les','l','de','du','des','d','un','une','et','ou','en','dans','avec','sur','par','pour','au','aux','a','je','veux','comment','faire','cours','lecon','chapitre','lesson']);
 const SQ_ALIASES={
-  0:'base de donnees relationnelle table colonne ligne enregistrement champ cle schema sgbd excel tableur cle primaire pk primary key identifiant unique id cle etrangere fk foreign key reference lien integrite referentielle table.colonne',
-  1:'choisir colonnes afficher lister projection select requete de base toutes les colonnes etoile tout afficher select *',
+  0:'base de donnees relationnelle table colonne ligne enregistrement champ cle schema sgbd excel tableur cle primaire pk primary key identifiant unique id cle etrangere fk foreign key reference lien integrite referentielle table.colonne choisir colonnes afficher lister projection select requete de base toutes les colonnes etoile tout afficher select * virgule',
   2:'alias renommer nom colonne as intitule libelle',
   13:'doublons doublon unique valeurs distinctes dedoublonner distinct sans doublon supprimer les doublons enlever doublons',
   4:'filtrer filtre condition critere clause where lignes selectionner',
@@ -28212,7 +28122,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1798';
+  const SW_CACHE='requete-2026-10-12-ludique-v1799';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

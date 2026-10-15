@@ -129,7 +129,11 @@ assert(onboarding.includes('Tes 7 prochains jours') && onboarding.includes('Prem
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('.plus-details-body'), 'nouvelles micro-interactions respectent la réduction des mouvements');
 /* Les anciens cours « Clé primaire » et « Clé étrangère » sont fusionnés dans le cours 0 (vidéo et texte). */
 assert(!html.includes('guide({ id:34,') && !html.includes('guide({ id:35,') && !html.includes('{ titre:"Clés et relations"'), 'les cours 34 et 35 et leur module ont disparu');
-const introLesson = html.slice(html.indexOf('guide({ id:0, titre:"Les bases de données relationnelles"'), html.indexOf('guide({ id:1, titre:"SELECT"'));
+/* Le cours « SELECT » (choisir les colonnes, l’étoile, les virgules) a lui aussi rejoint le cours 0. */
+assert(!html.includes('guide({ id:1,'), 'le cours 1 (SELECT) a disparu');
+const introLesson = html.slice(html.indexOf('guide({ id:0, titre:"Les bases de données relationnelles"'), html.indexOf('guide({ id:2, titre:"Renommer avec AS"'));
+assert(introLesson.includes('run:"SELECT prenom, nom\\nFROM clients;"') && introLesson.includes('run:"SELECT prenom email\\nFROM clients;"') && introLesson.includes('run:"SELECT prenom, email,\\nFROM clients;"'), 'le cours 0 fait choisir les colonnes et tester les deux pièges de la virgule');
+assert(introLesson.includes('solution:"SELECT nom, prix FROM produits;"'), 'l’exercice du cours 0 : choisir deux colonnes, dans l’ordre');
 assert(introLesson.includes("VALUES (4, 'Yanis');") && introLesson.includes('VALUES (99, 1, 1);') && introLesson.includes('<b>intégrité référentielle</b>'), 'le cours 0 fait tester le numéro déjà pris et le client qui n’existe pas');
 assert(introLesson.includes('["clients.id","la clé primaire') && introLesson.includes('"commandes.client_id → clients.id"'), 'le cours 0 nomme les clés avec table.colonne');
 assert(html.includes("(4,'Nathan','Petit','5 rue Victor Hugo','Paris'") && html.includes("(10,'Nathan','Dupont','9 place du Marché','Paris'"), 'les deux Nathan de Paris existent dans les données SQLite');
@@ -140,7 +144,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
 assert(html.includes('{ id:73, titre:"UNION et UNION ALL"') && html.includes('18 lignes : 10 + 8') && !html.includes('17 lignes : 9 + 8'), 'UNION ALL visible et cardinalité corrigée');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-10-12-ludique-v1798') && html.includes('requete-2026-10-12-ludique-v1798') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-10-12-ludique-v1799') && html.includes('requete-2026-10-12-ludique-v1799') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);

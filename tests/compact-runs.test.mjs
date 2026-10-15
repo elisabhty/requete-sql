@@ -37,10 +37,12 @@ test('cadre surligné + cadre « Exécuter » qui se suivent : la requête ne s�
   /* Aucun cadre « Exécuter » sans requête ; les requêtes fusionnées sont celles qui suivaient aussitôt leur cadre surligné. */
   assert.equal(lessons.reduce((n, l) => n + (l.body.match(/data-compact=/g) || []).length, 0), 0, 'plus de cadre compact');
   const merged = lessons.reduce((n, l) => n + (l.body.match(/ data-hit="/g) || []).length, 0);
-  assert.equal(merged, 25, '25 requêtes montrées deux fois de suite, désormais une seule fois');
-  const select = lessons.find(l => l.id === 1);
-  assert.equal((select.body.match(/ data-hit="/g) || []).length, 1, 'cours SELECT : un seul cas (prénom et nom)');
-  assert.equal((select.body.match(/<div class="ij-run"/g) || []).length, 6, 'cours SELECT : 6 exécutions, toutes avec leur requête');
+  assert.equal(merged, 24, '24 requêtes montrées deux fois de suite, désormais une seule fois');
+  /* Le cours 0 (qui a repris le cours SELECT) : un seul cas, SELECT * FROM produits ; huit exécutions, toutes avec leur requête. */
+  const intro = lessons.find(l => l.id === 0);
+  assert.equal((intro.body.match(/ data-hit="/g) || []).length, 1, 'cours 0 : un seul cas (SELECT * FROM produits)');
+  assert.equal((intro.body.match(/<div class="ij-run"/g) || []).length, 8, 'cours 0 : 8 exécutions, toutes avec leur requête');
+  assert.equal(lessons.find(l => l.id === 1), undefined, 'le cours SELECT a rejoint le cours 0');
 });
 
 test('requête surlignée dans le cadre « Exécuter » : mêmes couleurs que la requête simple, avec la partie mise en avant', () => {
@@ -60,5 +62,5 @@ test('écran de fin : « Le réflexe de cette leçon » = la requête de la miss
   const recap = fnSrc('bravoRecapHtml');
   assert.ok(recap.indexOf('l.missionSql') > 0 && recap.indexOf('l.missionSql') < recap.indexOf('l.solution'), 'la mission passe avant la solution de l’exercice');
   for (const l of lessons) assert.ok(l.missionSql && l.missionSql.trim(), `cours ${l.id} : requête de mission`);
-  assert.equal(lessons.find(l => l.id === 1).missionSql, 'SELECT prenom, nom, ville, telephone\nFROM clients;');
+  assert.equal(lessons.find(l => l.id === 0).missionSql, 'SELECT prenom, nom, email\nFROM clients;');
 });

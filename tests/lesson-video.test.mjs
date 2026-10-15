@@ -350,10 +350,10 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 1, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.jpg', duree: '3 min 57', notesAt: 214.85,
-    notes: /notes:\{t:228\.8,y:1291,card:\[64,292,1016,996\],to:\[940,255\]\}/, table: 'clients',
+  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '4 min 45', notesAt: 261.65,
+    notes: /notes:\{t:277,y:1392,card:\[64,292,1016,1097\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Chaque sujet a sa table,<br>et des numéros relient les tables.',
-    chapters: ['Situation', 'Le problème', 'Le découpage', 'La clé primaire', 'La clé étrangère', 'Le résultat', 'À retenir'],
+    chapters: ['Situation', 'Le problème', 'Le découpage', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],
     traps: [
       // Le fichier Excel : une ligne par commande, le client et le produit recopiés
       '<span class="xfn">commandes.xlsx</span>', '<span class="xn" id="xn">16 commandes</span>', "const HEAD = ['N°', 'Prénom', 'Nom', 'E-mail', 'Produit', 'Prix', 'Qté'];",
@@ -369,16 +369,16 @@ const COURSES = [
       // La clé étrangère : commandes.client_id → clients.id, puis la commande pour le client 99 refusée
       '<span class="emo">🔗</span>clé étrangère', '<b class="nq k-co">commandes</b><i class="ndot">.</i><b class="nq nqc">client_id</b><i class="narr">→</i><b class="nq k-cl">clients</b>',
       '<div class="stamp" id="stamp4">Relationnelle</div>', 'const CLIENT_INCONNU = 99;', '<span class="m">FOREIGN KEY constraint failed</span>',
-      // Le résultat, la jointure, puis les trois idées
-      '<span class="star glow" id="star6">*</span>', '10 lignes · 9 colonnes', '✓ La table est lue, jamais modifiée', '<span>Plus tard&nbsp;: la jointure</span>',
-      '<span class="ic blk">commandes.client_id → clients.id</span>']},
-  {id: 1, next: 2, titre: 'SELECT', page: 'select.html', thumb: 'select-thumb.jpg', duree: '2 min 27', notesAt: 104,
-    notes: /notes:\{t:139\.3,y:1360,card:\[64,356,1016,1066\],to:\[940,255\]\}/, table: 'clients',
-    bubble: 'Avec <span class="ic">SELECT</span>, garde seulement les colonnes utiles.',
-    chapters: ['Situation', 'Le problème', 'Choisir les colonnes', 'Deux pièges', 'Toutes les colonnes', 'Le résultat', 'À retenir'],
-    traps: ['near "FROM": syntax error', 'SELECT</span> prenom<span class="ghost" id="ghostAS"> <b>AS</b></span> ville',
-      'Pour <b>découvrir</b> toutes<br>les informations disponibles', 'Pour obtenir les <b>prénoms</b><br>et <b>noms</b> des clients', '<span class="ic">SELECT prenom, nom</span>',
-      'indique <b>ces deux colonnes</b>', 'Le résultat sera plus lisible, sans les adresses, les e-mails et les autres informations inutiles ici.', 'la requête équivaut à <code>prenom AS ville</code>', 'il faut la\\u00a0virgule :<br><code>prenom, ville</code>']},
+      // Lire une table : SELECT * FROM clients, les 10 clients et leurs 9 colonnes
+      '<span class="star glow" id="star6">*</span>', '10 lignes · 9 colonnes', '✓ La table est lue, jamais modifiée',
+      // Choisir les colonnes : l’étoile devient prenom, nom, email ; les six autres colonnes se replient ; Sophie Martin, une seule fois ; la jointure, plus tard
+      '<span id="cols7"><span class="glow" id="c7a">prenom</span><span class="cm" id="k7a">,</span> <span class="glow" id="c7b">nom</span>', "const KEEP = [1, 2, 6], DROP = [0, 3, 4, 5, 7, 8]",
+      '10 lignes · 3 colonnes', 'dans l’ordre où on les écrit', '✓ Chaque client une seule fois', 'Sophie Martin n’a plus qu’un seul e-mail', '<span>Plus tard&nbsp;: la jointure</span>',
+      // Deux pièges : sans virgule, un alias (AS sous-entendu) ; une virgule de trop, une erreur
+      'une virgule entre deux colonnes', 'SELECT</span> prenom<span class="ghost" id="ghostAS"> <b>AS</b></span> email', 'la requête équivaut à <code>prenom AS email</code>',
+      'Les prénoms, sous le titre <span class="ic">email</span>', 'near "FROM": syntax error',
+      // Les trois idées : les tables, les clés, SELECT
+      '<span class="ic blk">commandes.client_id → clients.id</span>', '<span class="ic blk">SELECT prenom, nom, email</span>']},
   {id: 2, next: 13, titre: 'Renommer avec AS', page: 'as.html', thumb: 'as-thumb.jpg', duree: '2 min 02', notesAt: 92.4,
     notes: /notes:\{t:114\.15,y:1330,card:\[64,356,1016,1017\],to:\[940,255\]\}/, table: 'produits',
     bubble: 'Avec <span class="ic">AS</span>, donne à une colonne un nom plus clair dans le résultat.',
@@ -918,6 +918,15 @@ test('Les bases de données relationnelles : la feuille Excel, la table clients,
   assert.equal(js(ctx.COMMANDES.map(c => c[0])), '[1,2,3,4,5,13]', 'la feuille montre les commandes 1 à 5, puis la 13');
   assert.equal(q(`SELECT COUNT(*) FROM clients WHERE email = '${ctx.NOUVEL_EMAIL}'`), '[[0]]', 'le nouvel e-mail est imaginaire : il n’est pas dans la base');
   assert.equal(q("SELECT id, nom, ville FROM clients WHERE prenom = 'Nathan' ORDER BY id"), '[[4,"Petit","Paris"],[10,"Dupont","Paris"]]', 'deux Nathan, tous deux à Paris');
+  /* Choisir les colonnes : SELECT prenom, nom, email (les 10 clients, dans l’ordre écrit) ; sans virgule, un alias ; une virgule de trop, une erreur. */
+  const three = db.exec('SELECT prenom, nom, email FROM clients')[0];
+  assert.equal(js(three.columns), js(['prenom', 'nom', 'email']), 'les trois colonnes gardées, dans l’ordre de la requête');
+  assert.equal(js(three.values), js(ctx.CLIENTS.map(c => [c[1], c[2], c[6]])), 'les 10 clients, chacun une seule fois (NULL compris)');
+  assert.equal(q("SELECT COUNT(*) FROM clients WHERE prenom = 'Sophie' AND nom = 'Martin'"), '[[1]]', 'Sophie Martin : une seule ligne, donc un seul e-mail');
+  const alias = db.exec('SELECT prenom email FROM clients')[0];
+  assert.equal(js(alias.columns), js(['email']), 'sans virgule : une seule colonne, titrée email');
+  assert.equal(js(alias.values.slice(0, 2)), js([['Sophie'], ['Lucas']]), 'qui contient les prénoms');
+  assert.throws(() => db.exec('SELECT prenom, nom, email,\nFROM clients;'), /near "FROM": syntax error/, 'virgule de trop avant FROM');
   /* Ce que la base vérifie : un numéro déjà pris est refusé, un client sans numéro reçoit le suivant, un client inconnu est refusé. */
   const [[idPris, p1, n1], [, p2, n2]] = JSON.parse(JSON.stringify(ctx.NOUVEAUX));
   assert.throws(() => db.run(`INSERT INTO clients (id, prenom, nom) VALUES (${idPris}, '${p1}', '${n1}')`), /UNIQUE constraint failed: clients\.id/, 'le numéro 4 est déjà pris');
@@ -926,7 +935,7 @@ test('Les bases de données relationnelles : la feuille Excel, la table clients,
   db.run('PRAGMA foreign_keys = ON;');
   assert.throws(() => db.run(`INSERT INTO commandes (client_id, produit_id, quantite) VALUES (${ctx.CLIENT_INCONNU}, 1, 1)`), /FOREIGN KEY constraint failed/, 'aucun client 99 : la commande est refusée');
   db.close();
-  assert.ok(!page.includes('fidelite'), 'la vidéo ne montre pas la table de l’exercice');
+  assert.ok(!/SELECT(<\/span>)? nom, prix/.test(page), 'la vidéo ne montre pas la requête de l’exercice (le nom et le prix des produits)');
 });
 
 test('Modéliser avec UML : les clients inscrits sont ceux de la base, et les tables de la vidéo celles que crée la requête du cours', async () => {
@@ -995,12 +1004,14 @@ test('moteur commun des animations : préchargé et jamais servi périmé', () =
   assert.ok(sw.slice(i, i + 700).includes("fetch(req, { cache: 'no-cache' })"), 'revalidé auprès du serveur');
 });
 
-test('SELECT sans virgule : le cours texte et le quiz expliquent l’alias (AS facultatif), comme l’animation', () => {
-  const sel = cut('guide({ id:1, titre:"SELECT"', 'guide({ id:2,');
-  assert.ok(sel.includes('Sans virgule, <code>ville</code> est lu comme un <b>alias</b> : le titre donné à la colonne dans le résultat. Le mot-clé <code>AS</code> étant facultatif, cette requête équivaut à :'));
-  assert.ok(sel.includes('{syntax:"SELECT prenom AS ville\\nFROM clients;"}'), 'la requête équivalente avec AS');
-  assert.ok(sel.includes('il faut la virgule : <code>SELECT prenom, ville</code>'), 'la correction');
-  assert.ok(!/SQL ne comprend pas|Il interprète/.test(sel), 'SQL n’est pas personnifié');
+test('SELECT sans virgule : le cours texte (cours 0) et le quiz expliquent l’alias (AS facultatif), comme l’animation', () => {
+  const sel = cut('guide({ id:0, titre:"Les bases de données relationnelles"', 'guide({ id:2,');
+  assert.ok(sel.includes('Sans virgule, <code>email</code> est lu comme un <b>alias</b> : le titre donné à la colonne dans le résultat. Le mot-clé <code>AS</code> étant facultatif, cette requête équivaut à :'));
+  assert.ok(sel.includes('{syntax:"SELECT prenom AS email\\nFROM clients;"}'), 'la requête équivalente avec AS');
+  assert.ok(sel.includes('il faut la virgule : <code>SELECT prenom, email</code>'), 'la correction');
+  assert.ok(!/SQL ne comprend pas|Il interprète|SQL voit|Il s’attend/.test(sel), 'SQL n’est pas personnifié');
+  const page = fs.readFileSync(path.join(ROOT, 'assets/anim/bases-relationnelles.html'), 'utf8');
+  assert.ok(page.includes('Sans virgule, <code>email</code> est lu comme un <b>alias</b> : le titre donné à la colonne dans le résultat.'), 'même explication dans la vidéo');
   const qcm = cut('const QCM={', '\n};');
   assert.ok(qcm.includes('Sans virgule, <code>telephone</code> est lu comme un <b>alias</b>') && !qcm.includes('il interprète <code>telephone</code>'), 'explication du quiz alignée');
 });
