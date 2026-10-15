@@ -38,10 +38,10 @@ test('cadre surligné + cadre « Exécuter » qui se suivent : la requête ne s�
   assert.equal(lessons.reduce((n, l) => n + (l.body.match(/data-compact=/g) || []).length, 0), 0, 'plus de cadre compact');
   const merged = lessons.reduce((n, l) => n + (l.body.match(/ data-hit="/g) || []).length, 0);
   assert.equal(merged, 24, '24 requêtes montrées deux fois de suite, désormais une seule fois');
-  /* Le cours 0 (qui a repris le cours SELECT) : un seul cas, SELECT * FROM produits ; huit exécutions, toutes avec leur requête. */
+  /* Le cours 0 (qui a repris le cours SELECT) : un seul cas, SELECT * FROM produits ; neuf exécutions, toutes avec leur requête. */
   const intro = lessons.find(l => l.id === 0);
   assert.equal((intro.body.match(/ data-hit="/g) || []).length, 1, 'cours 0 : un seul cas (SELECT * FROM produits)');
-  assert.equal((intro.body.match(/<div class="ij-run"/g) || []).length, 8, 'cours 0 : 8 exécutions, toutes avec leur requête');
+  assert.equal((intro.body.match(/<div class="ij-run"/g) || []).length, 9, 'cours 0 : 9 exécutions, toutes avec leur requête');
   assert.equal(lessons.find(l => l.id === 1), undefined, 'le cours SELECT a rejoint le cours 0');
 });
 
