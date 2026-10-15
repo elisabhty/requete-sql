@@ -244,9 +244,9 @@
   <section class="scene" id="s7">
     <div class="abs rtitle">Les trois idées à retenir</div>
     <div class="abs card recap" id="recap">
-      <div class="rrow"><div class="rico emo">📋</div><div class="rtxt">Une sous-requête dans <span class="ic">WHERE</span> avec <span class="ic">IN</span> fournit une <b>liste de valeurs</b>&nbsp;: le résultat d’une autre requête.<span class="rs">La sous-requête trouve les identifiants&nbsp;; <span class="ic">IN</span> vérifie si chaque valeur fait partie de cette liste.</span></div></div>
+      <div class="rrow"><div class="rico emo">📋</div><div class="rtxt">La <span class="nw">sous-requête</span> fournit<br>une <b>liste de valeurs</b>.<span class="rs">Avec <span class="ic">IN</span>, la requête principale conserve les lignes dont la valeur figure dans cette liste.</span></div></div>
       <div class="rrow"><div class="rico emo">🧱</div><div class="rtxt">La structure à retenir&nbsp;:<br><span class="ic blk">WHERE colonne IN (SELECT …)</span></div></div>
-      <div class="rrow"><div class="rico emo">⚠️</div><div class="rtxt">Pour plusieurs valeurs possibles, utilise <span class="ic">IN</span>, pas <span class="ic">=</span>&nbsp;: il n’en attend qu’<b>une seule</b>.<span class="rs">Avec <span class="ic">=</span>, SQLite garde la première valeur, sans aucune erreur.</span></div></div>
+      <div class="rrow"><div class="rico emo">⚠️</div><div class="rtxt"><span class="ic">IN</span> permet de rechercher<br>parmi <b>plusieurs valeurs</b>.<span class="rs">Le signe <span class="ic">=</span> compare à une seule valeur&nbsp;:<br>la sous-requête doit alors renvoyer<br>au maximum une ligne.</span></div></div>
     </div>
   </section>
 
@@ -258,7 +258,7 @@
 <script src="core.js"></script>
 <script>
 'use strict';
-const DURATION = 199.0;
+const DURATION = 218.4;
 
 /* La sous-requête (client_id des commandes en préparation, n°12 à n°16) : la commande n°16 n’a pas de client. */
 const LISTE = [4, 1, 3, 5, null];
@@ -272,11 +272,11 @@ const RESULTAT = [['Sophie', 'Martin', '06 39 98 12 04', 'n°13'], ['Emma', 'Dub
 const CHAPTERS = [
   {n:1, label:'Situation',            a:5.0,   b:34.6},
   {n:2, label:'Le problème',          a:34.6,  b:63.0},
-  {n:3, label:'La sous-requête',      a:63.0,  b:97.1},
-  {n:4, label:'IN en action',         a:97.1,  b:136.9},
-  {n:5, label:'Le piège',             a:136.9, b:166.1},
-  {n:6, label:'Le résultat',          a:166.1, b:188.9},
-  {n:7, label:'À retenir',            a:188.9, b:DURATION}
+  {n:3, label:'La sous-requête',      a:63.0,  b:103.7},
+  {n:4, label:'IN en action',         a:103.7,  b:151.5},
+  {n:5, label:'Le piège',             a:151.5, b:180.7},
+  {n:6, label:'Le résultat',          a:180.7, b:208.3},
+  {n:7, label:'À retenir',            a:208.3, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
@@ -284,38 +284,44 @@ const CAPTIONS = [
   [5.3, 10.6,    "Le transporteur annonce un <b>retard</b> sur les prochaines livraisons."],
   [10.7, 16.2,   "Le service client veut appeler les clients concernés pour les prévenir."],
   [16.3, 21.8,   "Sont concernés : les clients dont une commande est <b>en préparation</b>."],
-  [21.9, 27.6,   "Le prénom, le nom et le téléphone se trouvent dans la <b>table clients</b>."],
+  [21.9, 27.6,   "Le prénom, le nom et le téléphone<br>des clients se trouvent<br>dans la <b>table clients</b>."],
   [27.7, 34.1,   "Mais comment savoir quels clients ont une commande en préparation ?"],
   [34.9, 40.6,   "Premier essai : filtrer la table clients sur le <b>statut</b> de la commande."],
   [40.7, 45.9,   "Erreur : la table clients n’a aucune colonne <code>statut</code>."],
   [46.0, 51.6,   "Le statut est rangé ailleurs : dans la table <code>commandes</code>."],
   [51.7, 57.2,   "Chaque commande y garde aussi le numéro de son client : <code>client_id</code>."],
   [57.3, 62.5,   "Il faut donc d’abord trouver les clients concernés dans la table commandes."],
-  [63.3, 69.0,   "La solution : une <b class=\"nw\">sous-requête</b>, une requête placée dans une autre."],
-  [69.1, 75.0,   "Exécutée seule, elle garde les commandes <b>en préparation</b> et renvoie leur <code>client_id</code>."],
-  [75.1, 80.6,   "Elle renvoie une liste de numéros de clients : <b>4, 1, 3 et 5</b>."],
-  [80.7, 86.0,   "La liste contient aussi un <code>NULL</code> : la commande n°16 n’a pas de client."],
-  [86.1, 91.4,   "Cette requête se place ensuite entre parenthèses, juste après <code>IN</code>."],
-  [91.5, 96.6,   "Ainsi, <code>IN</code> reçoit la liste fabriquée par la <span class=\"nw\">sous-requête</span>."],
-  [97.4, 103.4,  "<code>IN</code> teste chaque client, un par un : son id est-il dans la liste ?"],
-  [103.5, 109.0, "Sophie Martin a l’id 1, qui est dans la liste : elle est conservée."],
-  [109.1, 114.3, "Lucas Bernard a l’id 2, qui n’est pas dans la liste : il est écarté."],
-  [114.4, 120.2, "De même, Emma Dubois, Nathan Petit et Chloé Moreau sont dans la liste."],
-  [120.3, 126.0, "Les cinq autres clients sont écartés : leur id n’est pas dans la liste."],
-  [126.1, 131.6, "Le <code>NULL</code> ne correspond à aucun client : il ne change rien ici."],
-  [131.7, 136.4, "Résultat : <b>4 clients</b> sont conservés."],
-  [137.2, 143.0, "Attention : avec <code>=</code> au lieu de <code>IN</code>, la requête s’exécute aussi."],
-  [143.1, 148.6, "Résultat : <b>1 seule ligne</b>, Nathan Petit, et aucune erreur."],
-  [148.7, 154.6, "Le signe <code>=</code> attend une seule valeur : SQLite garde la première de la liste."],
-  [154.7, 160.2, "Sophie Martin, Emma Dubois et Chloé Moreau seraient oubliées."],
-  [160.3, 165.6, "Pour comparer à une liste de valeurs, utilise toujours <code>IN</code>."],
-  [166.4, 172.0, "La requête complète : la <span class=\"nw\">sous-requête</span> fournit la liste, <code>IN</code> fait le tri."],
-  [172.1, 177.6, "Résultat : <b>4 lignes</b>, avec le prénom, le nom et le téléphone."],
-  [177.7, 183.2, "Le service client a maintenant les quatre numéros à appeler."],
-  [183.3, 188.4, "Chaque client concerné sera ainsi prévenu du retard de sa commande."],
-  [189.2, 194.0, "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [194.1, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
-      : [194.1, 999, "La <span class=\"nw\">sous-requête</span> fabrique la liste, <code>IN</code> garde les lignes qui en font partie."]
+  [63.3, 67.8,   "Une <b class=\"nw\">sous-requête</b> est une requête placée à l’intérieur d’une autre."],
+  [67.9, 74.2,   "Elle fournit un résultat que la requête principale utilise, par exemple pour filtrer les données."],
+  [74.3, 81.6,   "Exécutée seule, cette requête renvoie les identifiants des clients (<code>client_id</code>) ayant une commande <b>en préparation</b>."],
+  [81.7, 87.2,   "Elle renvoie une liste de numéros de clients : <b>4, 1, 3 et 5</b>."],
+  [87.3, 92.6,   "La liste contient aussi un <code>NULL</code> : la commande n°16 n’a pas de client."],
+  [92.7, 98.0,   "Cette requête se place ensuite entre parenthèses, juste après <code>IN</code>."],
+  [98.1, 103.2,   "Ainsi, <code>IN</code> reçoit la liste fabriquée par la <span class=\"nw\">sous-requête</span>."],
+  [104.0, 110.0,  "<code>IN</code> teste chaque client, un par un : son id est-il dans la liste ?"],
+  [110.1, 115.8, "L’identifiant de Sophie Martin (1)<br>figure dans la liste renvoyée<br>par la <span class=\"nw\">sous-requête</span> :"],
+  [115.9, 119.1, "sa ligne est donc conservée dans le résultat."],
+  [119.2, 125.4, "L’identifiant de Lucas Bernard (2) ne figure pas dans la liste renvoyée par la <span class=\"nw\">sous-requête</span> :"],
+  [125.5, 128.9, "sa ligne n’apparaît donc pas dans le résultat."],
+  [129.0, 134.8, "De même, Emma Dubois, Nathan Petit et Chloé Moreau sont dans la liste."],
+  [134.9, 140.6, "Les cinq autres clients sont écartés : leur id n’est pas dans la liste."],
+  [140.7, 146.2, "Le <code>NULL</code> ne correspond à aucun client : il ne change rien ici."],
+  [146.3, 151.0, "Résultat : <b>4 clients</b> sont conservés."],
+  [151.8, 157.6, "Attention : avec <code>=</code> au lieu de <code>IN</code>, la requête s’exécute aussi."],
+  [157.7, 163.2, "Résultat : <b>1 seule ligne</b>, Nathan Petit, et aucune erreur."],
+  [163.3, 169.2, "Le signe <code>=</code> attend une seule valeur."],
+  [169.3, 172.6, "<span class=\"nw\">Sophie Martin</span>, <span class=\"nw\">Emma Dubois</span><br>et <span class=\"nw\">Chloé Moreau</span><br>sont absentes du résultat,"],
+  [172.7, 174.8, "alors qu’elles ont aussi<br>une commande en préparation."],
+  [174.9, 180.2, "Pour vérifier si un identifiant figure parmi plusieurs valeurs renvoyées par une <span class=\"nw\">sous-requête</span>, utilise <code>IN</code>."],
+  [181.0, 184.5, "La <span class=\"nw\">sous-requête</span> renvoie<br>une liste d’identifiants."],
+  [184.6, 191.4, "Avec <code>IN</code>, la requête principale conserve uniquement les clients dont l’identifiant figure dans cette liste."],
+  [191.5, 194.9, "Le résultat affiche le prénom,<br>le nom et le téléphone"],
+  [195.0, 197.0, "des <b>4 clients</b> ayant au moins<br>une commande en préparation."],
+  [197.1, 202.6, "Le service client a maintenant les quatre numéros à appeler."],
+  [202.7, 207.8, "Chaque client concerné sera ainsi prévenu du retard de sa commande."],
+  [208.6, 213.4, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [213.5, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [213.5, 999, "La <span class=\"nw\">sous-requête</span> fabrique la liste, <code>IN</code> garde les lignes qui en font partie."]
 ];
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
@@ -458,137 +464,137 @@ function build(){
   show('#sq3', 63.05, {y: 50});
   cue(63.05, 'whoosh', 0.6);
   // Exécutée seule : les commandes en préparation, leur client_id
-  pulse('#w3', 71.0, 3, 'rgba(201,188,255,.35)');
-  press($('#go3'), 74.3, '#4B30CC', 6);
+  pulse('#w3', 76.2, 3, 'rgba(201,188,255,.35)');
+  press($('#go3'), 80.9, '#4B30CC', 6);
   // Une liste de numéros de clients : 4, 1, 3, 5
-  show('#ls3', 75.3, {y: 40}, 0.5);
+  show('#ls3', 81.9, {y: 40}, 0.5);
   const r3 = $$('#rows3 .tr');
-  rowsIn(r3.slice(0, 4), 75.6, 0.35);
+  rowsIn(r3.slice(0, 4), 82.2, 0.35);
   // Et un NULL : la commande n°16 n’a pas de client
   gsap.set(r3[4], {autoAlpha: 0, y: 14});
-  tl.to(r3[4], {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out'}, 81.2);
-  cue(81.2, 'tick', 0.5, 4);
-  show('#cnt3', 81.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  tl.to(r3[4].querySelector('.hl'), {opacity: 1, duration: 0.3}, 82.0);
-  show('#nt3', 82.4, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
-  cue(82.4, 'pop', 0.6, 2);
+  tl.to(r3[4], {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out'}, 87.8);
+  cue(87.8, 'tick', 0.5, 4);
+  show('#cnt3', 88.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  tl.to(r3[4].querySelector('.hl'), {opacity: 1, duration: 0.3}, 88.6);
+  show('#nt3', 89.0, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(89.0, 'pop', 0.6, 2);
   // Entre parenthèses, juste après IN
-  hide('#ls3', 86.3, {y: 30}, 0.35);
-  tl.to('#go3', {autoAlpha: 0, duration: 0.25}, 86.3);
-  tl.to('#sc3', {autoAlpha: 0, duration: 0.2}, 86.8);
-  tl.to(['#x3a', '#x3b'], {height: 48, duration: 0.45, ease: 'power3.out'}, 87.0);
-  tl.to(['#x3a', '#x3b'], {opacity: 1, duration: 0.3}, 87.4);   // le texte des deux lignes arrive une fois la place faite
-  tl.to(['#q3a', '#q3b', '#q3c'], {paddingLeft: 38.4, duration: 0.45, ease: 'power3.out'}, 87.0);
-  cue(87.0, 'fold', 0.6);
-  pulse(['#p3a', '#p3b'], 87.8, 3, 'rgba(255,214,140,.5)');
+  hide('#ls3', 92.9, {y: 30}, 0.35);
+  tl.to('#go3', {autoAlpha: 0, duration: 0.25}, 92.9);
+  tl.to('#sc3', {autoAlpha: 0, duration: 0.2}, 93.4);
+  tl.to(['#x3a', '#x3b'], {height: 48, duration: 0.45, ease: 'power3.out'}, 93.6);
+  tl.to(['#x3a', '#x3b'], {opacity: 1, duration: 0.3}, 94.0);   // le texte des deux lignes arrive une fois la place faite
+  tl.to(['#q3a', '#q3b', '#q3c'], {paddingLeft: 38.4, duration: 0.45, ease: 'power3.out'}, 93.6);
+  cue(93.6, 'fold', 0.6);
+  pulse(['#p3a', '#p3b'], 94.4, 3, 'rgba(255,214,140,.5)');
   // IN reçoit la liste
-  pulse('#k3', 91.9, 3, 'rgba(201,188,255,.45)');
-  show('#lp3', 92.3, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
-  cue(92.3, 'pop', 0.7, 3);
-  hide(['#sq3', '#lp3'], 96.6, {y: -40});
-  sceneOff('#s3', 97.1);
+  pulse('#k3', 98.5, 3, 'rgba(201,188,255,.45)');
+  show('#lp3', 98.9, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(98.9, 'pop', 0.7, 3);
+  hide(['#sq3', '#lp3'], 103.2, {y: -40});
+  sceneOff('#s3', 103.7);
 
   /* ===== 4 · IN en action ===== */
-  sceneOn('#s4', 97.1);
-  show('#lp4', 97.15, {y: 50});
-  cue(97.15, 'whoosh', 0.6);
+  sceneOn('#s4', 103.7);
+  show('#lp4', 103.75, {y: 50});
+  cue(103.75, 'whoosh', 0.6);
   stackBelow('#ct4', '#lp4', 0, 30);
-  show('#ct4', 97.7, {y: 50});
-  rowsIn($$('#rows4 .tr'), 98.0, 0.06);
+  show('#ct4', 104.3, {y: 50});
+  rowsIn($$('#rows4 .tr'), 104.6, 0.06);
   gsap.set('#cnt4', {autoAlpha: 0});
   // Sophie Martin, id 1 : conservée
-  testRow(0, 104.0);
+  testRow(0, 110.6, 2.675);   // l’id, puis la valeur 1 de la liste, puis ✓ avec « sa ligne est donc conservée »
   // Lucas Bernard, id 2 : écarté
-  testRow(1, 109.6);
+  testRow(1, 119.7, 2.925);   // ✕ avec « sa ligne n’apparaît donc pas »
   // Emma Dubois, Nathan Petit, Chloé Moreau : conservés
-  testRow(2, 115.0, 0.3);
-  testRow(3, 116.4, 0.3);
-  testRow(4, 117.8, 0.3);
+  testRow(2, 129.6, 0.3);
+  testRow(3, 131.0, 0.3);
+  testRow(4, 132.4, 0.3);
   // Les cinq autres : écartés
-  [5, 6, 7, 8, 9].forEach((i, k) => testRow(i, 120.9 + k * 0.7, 0.2));
+  [5, 6, 7, 8, 9].forEach((i, k) => testRow(i, 135.5 + k * 0.7, 0.2));
   // Le NULL ne correspond à aucun client
-  pulse($$('#lp4 .lv')[4], 126.7, 3, 'rgba(201,188,255,.45)');
-  cue(126.7, 'tick', 0.5, 4);
+  pulse($$('#lp4 .lv')[4], 141.3, 3, 'rgba(201,188,255,.45)');
+  cue(141.3, 'tick', 0.5, 4);
   // 4 clients conservés
-  show('#cnt4', 132.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  bump('#cnt4', 132.6, 1.12, 3);
-  cue(132.0, 'chord', 0.6);
-  hide(['#lp4', '#ct4'], 136.4, {y: -40});
-  sceneOff('#s4', 136.9);
+  show('#cnt4', 146.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt4', 147.2, 1.12, 3);
+  cue(146.6, 'chord', 0.6);
+  hide(['#lp4', '#ct4'], 151.0, {y: -40});
+  sceneOff('#s4', 151.5);
 
   /* ===== 5 · Le piège ===== */
-  sceneOn('#s5', 136.9);
-  show('#tp5', 136.95, {y: 50});
-  cue(136.95, 'whoosh', 0.6);
+  sceneOn('#s5', 151.5);
+  show('#tp5', 151.55, {y: 50});
+  cue(151.55, 'whoosh', 0.6);
   // Avec = au lieu de IN
-  pulse('#eq5', 139.0, 3, 'rgba(255,214,140,.5)');
-  cue(139.0, 'tick', 0.5, 2);
+  pulse('#eq5', 153.6, 3, 'rgba(255,214,140,.5)');
+  cue(153.6, 'tick', 0.5, 2);
   // 1 seule ligne, sans erreur
-  press($('#go5'), 143.2, '#4B30CC', 6);
+  press($('#go5'), 157.8, '#4B30CC', 6);
   stackBelow('#rs5', '#tp5', 0, 30);
   stackBelow('#ex5', '#rs5', 0, 30);
   stackBelow('#ok5b', '#ex5', 0, 30);
-  show('#rs5', 143.5, {y: 50});
-  cue(143.5, 'whoosh', 0.6);
+  show('#rs5', 158.1, {y: 50});
+  cue(158.1, 'whoosh', 0.6);
   gsap.set(['#n5', '#ok5', '#row5'], {autoAlpha: 0});
-  show('#n5', 144.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  cue(144.2, 'pop', 0.7, 2);
-  show('#row5', 145.0, {y: 14}, 0.35, 'power2.out');
-  cue(145.0, 'tick', 0.5, 1);
-  show('#ok5', 146.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  cue(146.0, 'true', 0.5);
+  show('#n5', 158.8, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(158.8, 'pop', 0.7, 2);
+  show('#row5', 159.6, {y: 14}, 0.35, 'power2.out');
+  cue(159.6, 'tick', 0.5, 1);
+  show('#ok5', 160.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(160.6, 'true', 0.5);
   // = ne garde que la première valeur
-  show('#ex5', 149.0, {y: 50});
-  cue(149.0, 'whoosh', 0.6);
+  show('#ex5', 163.6, {y: 50});
+  cue(163.6, 'whoosh', 0.6);
   const c5 = $$('#ex5 .lv'), xs = $$('#ex5 .xs');
   gsap.set(xs, {scaleX: 0, rotation: -16});
   gsap.set(['#m5a', '#m5b', '#m5c'], {autoAlpha: 0});
-  tl.to(c5[0], Object.assign({duration: 0.3}, VERT), 150.4);
-  bump(c5[0], 150.4, 1.12, 1);
-  cue(150.4, 'true', 0.5);
-  tl.to(c5.slice(1), {opacity: 0.4, duration: 0.3, stagger: 0.18}, 151.3);
-  tl.to(xs, {scaleX: 1, duration: 0.25, ease: 'power2.out', stagger: 0.18}, 151.3);
-  xs.forEach((_, i) => cue(151.3 + i * 0.18, 'miss', 0.4));
+  tl.to(c5[0], Object.assign({duration: 0.3}, VERT), 165.0);
+  bump(c5[0], 165.0, 1.12, 1);
+  cue(165.0, 'true', 0.5);
+  tl.to(c5.slice(1), {opacity: 0.4, duration: 0.3, stagger: 0.18}, 165.9);
+  tl.to(xs, {scaleX: 1, duration: 0.25, ease: 'power2.out', stagger: 0.18}, 165.9);
+  xs.forEach((_, i) => cue(165.9 + i * 0.18, 'miss', 0.4));
   // Sophie Martin, Emma Dubois et Chloé Moreau : jamais prévenues
-  ['#m5a', '#m5b', '#m5c'].forEach((m, i) => { show(m, 155.2 + i * 0.4, {y: 0, scale: 0.7}, 0.4, 'back.out(2)'); cue(155.2 + i * 0.4, 'miss', 0.55); });
-  shake(['#m5a', '#m5b', '#m5c'], 156.6);
+  ['#m5a', '#m5b', '#m5c'].forEach((m, i) => { show(m, 169.8 + i * 0.4, {y: 0, scale: 0.7}, 0.4, 'back.out(2)'); cue(169.8 + i * 0.4, 'miss', 0.55); });
+  shake(['#m5a', '#m5b', '#m5c'], 171.2);
   // Toujours IN pour une liste
-  show('#ok5b', 160.8, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
-  cue(160.8, 'true', 0.6);
-  hide(['#tp5', '#rs5', '#ex5', '#ok5b'], 165.6, {y: -40});
-  sceneOff('#s5', 166.1);
+  show('#ok5b', 175.4, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(175.4, 'true', 0.6);
+  hide(['#tp5', '#rs5', '#ex5', '#ok5b'], 180.2, {y: -40});
+  sceneOff('#s5', 180.7);
 
   /* ===== 6 · Le résultat ===== */
-  sceneOn('#s6', 166.1);
-  show('#s6code', 166.15, {y: 60}, 0.6);
-  cue(166.15, 'whoosh', 0.7);
-  te = typeLine($('#s6l1'), 166.65, 40);
+  sceneOn('#s6', 180.7);
+  show('#s6code', 180.75, {y: 60}, 0.6);
+  cue(180.75, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 181.25, 40);
   for (const k of [2, 3, 4, 5, 6, 7]) te = typeLine($('#s6l' + k), te + 0.1, 40);
   pulse('#i6', te + 0.2, 3, 'rgba(201,188,255,.35)');
-  press($('#s6run'), 172.3);
+  press($('#s6run'), 191.7);
   stackBelow('#tbl6', '#s6code', 0, 30);
-  show('#tbl6', 172.55, {y: 40}, 0.5);
-  rowsIn($$('#rows6 .tr'), 172.7, 0.12);
-  show('#cnt6', 173.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  bump('#cnt6', 174.1, 1.15, 3);
-  hide(['#s6code', '#tbl6'], 177.4, {y: -40}, 0.4);
+  show('#tbl6', 191.95, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 192.1, 0.12);
+  show('#cnt6', 192.7, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 195.1, 1.15, 3);   // avec « des 4 clients… »
+  hide(['#s6code', '#tbl6'], 196.8, {y: -40}, 0.4);
   // Les quatre appels à passer
-  boardIn('#ab6', 177.8, '.cl', 0.25);
+  boardIn('#ab6', 197.2, '.cl', 0.25);
   stackBelow('#badge6', '#ab6', 0, 50);
-  show('#badge6', 184.0, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(184.0, 'chord', 0.7);
-  hide(['#ab6', '#badge6'], 188.4);
-  sceneOff('#s6', 188.9);
+  show('#badge6', 203.4, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(203.4, 'chord', 0.7);
+  hide(['#ab6', '#badge6'], 207.8);
+  sceneOff('#s6', 208.3);
 
   /* ===== 7 · À retenir ===== */
-  recapScene(188.9, [189.6, 191.4, 193.2]);
-  hold(191.2, 4.8);
-  hold(193.0, 4.8);
+  recapScene(208.3, [209.0, 210.8, 212.6]);
+  hold(210.6, 4.8);
+  hold(212.4, 4.8);
   // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(194.15, 'pop', 0.85, 5);
+  if (APP) cue(213.55, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 194.1,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 213.5,
   glyphs: '🚚📞📦👤👪🔎✕✓🗂️🎯🧺👥⚠️☝️📋🧱·?…', dom, build});
 </script>
 </body>
