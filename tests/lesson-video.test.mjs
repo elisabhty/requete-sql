@@ -350,14 +350,17 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '4 min 59', notesAt: 274.85,
-    notes: /notes:\{t:290\.5,y:1404,card:\[64,292,1016,1109\],to:\[940,255\]\}/, table: 'clients',
+  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '5 min 15', notesAt: 290.45,
+    notes: /notes:\{t:306\.6,y:1404,card:\[64,292,1016,1109\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Chaque sujet a sa table,<br>et des numéros relient les tables.',
     chapters: ['Situation', 'Le problème', 'Le découpage', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],
     traps: [
       // Le fichier Excel : une ligne par commande, le client et le produit recopiés
       '<span class="xfn">commandes.xlsx</span>', '<span class="xn" id="xn">16 commandes</span>', "const HEAD = ['N°', 'Prénom', 'Nom', 'E-mail', 'Produit', 'Prix', 'Qté'];",
       "const COMMANDES = [[1, 1, 1, 2], [2, 1, 3, 1], [3, 2, 6, 1], [4, 3, 2, 3], [5, 4, 1, 1], [13, 1, 8, 1]];", '<div class="need-h">Trois sujets sur chaque ligne</div>',
+      // Le fichier grossit à chaque commande ou demande, plusieurs équipes le modifient, les erreurs arrivent
+      'À chaque nouvelle commande ou demande, le fichier s’alourdit', 'Difficile de s’y retrouver', 'Il est mis à jour par plusieurs personnes, de plusieurs équipes différentes.',
+      "cur('tc1', 'tc-a', 1, '📦', 'Logistique') + cur('tc2', 'tc-b', 0, '💬', 'Service client') + cur('tc3', 'tc-c', 1, '💼', 'Commercial')", 'Des erreurs apparaissent',
       // Un e-mail corrigé sur deux lignes seulement : deux e-mails pour la même cliente
       "const NOUVEL_EMAIL = 's.martin@mail.fr';", 'L’e-mail de Sophie Martin, commande par commande', 'Deux e-mails pour Sophie Martin',
       // Le découpage par sujet

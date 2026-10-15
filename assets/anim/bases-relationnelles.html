@@ -55,6 +55,23 @@
 .flyv{position:absolute;display:block;white-space:nowrap;font-style:normal;font-weight:500;line-height:normal;color:var(--ci);background:var(--cs)}
 .flyv.fvh{font-weight:700}
 
+/* ---------- 1 · Le fichier grossit, plusieurs équipes le modifient, les erreurs arrivent ---------- */
+.xd.lastd{box-shadow:none}
+/* À chaque nouvelle commande ou demande, une ligne de plus (lignes sans valeurs : le fichier qui grossit) */
+.xgrow{height:0;overflow:hidden;box-shadow:inset 0 2px 0 var(--line-2)}
+.xsk{height:58px;box-shadow:inset 0 -2px 0 var(--line-2)}
+.xsk i{display:block;height:14px;border-radius:7px;background:#E6E1F6}
+.xplus{height:28px;padding:0 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:18px;font-weight:800;display:flex;align-items:center}
+/* Une personne par équipe dans le même fichier : son curseur (cadre de couleur) et son nom */
+.tcur{position:absolute;border:4px solid var(--tc);border-radius:4px;opacity:0;z-index:4}
+.tcur b{position:absolute;left:-4px;font-style:normal;bottom:100%;margin-bottom:2px;height:42px;padding:0 14px;border-radius:10px 10px 10px 0;background:var(--tc);color:#fff;font-size:26px;font-weight:700;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.tcur b .emo{font-size:24px}
+.tcur.r b{left:auto;right:-4px;border-radius:10px 10px 0 10px}
+.tc-a{--tc:#2F7BEA}
+.tc-b{--tc:#E0457B}
+.tc-c{--tc:#0E9F8E}
+.xerr{position:absolute;border-radius:6px;background:rgba(239,79,85,.24);box-shadow:inset 0 0 0 3px #EF4F55;opacity:0;z-index:3}
+
 /* ---------- 1 · Trois sujets sur chaque ligne ---------- */
 #s1 .need-row .nl{font-size:40px;white-space:nowrap}
 #s1 .tag{font-size:27px;color:var(--ci);background:var(--cs)}
@@ -279,6 +296,8 @@
       <div class="need-row k-pr"><span class="emo">📦</span><span class="nl">Le produit</span><span class="tag">Produit · Prix</span></div>
       <div class="need-row k-co"><span class="emo">🧾</span><span class="nl">La commande</span><span class="tag">N° · Qté</span></div>
     </div>
+    <div class="abs np qq" id="np1g"><span><span class="emo">🔎</span>Difficile de s’y retrouver</span></div>
+    <div class="abs np ko" id="np1e"><span><span class="emo">✕</span>Des erreurs apparaissent</span></div>
   </section>
 
   <!-- 2 · Le problème : une ligne oubliée -->
@@ -400,7 +419,7 @@
 <script src="core.js"></script>
 <script>
 'use strict';
-const DURATION = 283.2;
+const DURATION = 298.8;
 
 /* Extraits de la base de l’app (vérifiés dans SQLite). La table clients en entier : ses 10 lignes et ses 9 colonnes. */
 const COLS = ['id', 'prenom', 'nom', 'adresse', 'ville', 'age', 'email', 'telephone', 'date_inscription'];
@@ -430,15 +449,15 @@ const CLIENT_INCONNU = 99;
 const cli = id => CLIENTS[id - 1], cmd = id => COMMANDES.find(c => c[0] === id);
 
 const CHAPTERS = [
-  {n:1, label:'Situation',             a:5.0,   b:37.3},
-  {n:2, label:'Le problème',           a:37.3,  b:67.9},
-  {n:3, label:'Le découpage',          a:67.9,  b:98.5},
-  {n:4, label:'La clé primaire',       a:98.5,  b:152.1},
-  {n:5, label:'La clé étrangère',      a:152.1, b:199.4},
-  {n:6, label:'Lire une table',        a:199.4, b:216.8},
-  {n:7, label:'Choisir les colonnes',  a:216.8, b:246.6},
-  {n:8, label:'Deux pièges',           a:246.6, b:269.6},
-  {n:9, label:'À retenir',             a:269.6, b:DURATION}
+  {n:1, label:'Situation',             a:5.0,   b:52.9},
+  {n:2, label:'Le problème',           a:52.9,  b:83.5},
+  {n:3, label:'Le découpage',          a:83.5,  b:114.1},
+  {n:4, label:'La clé primaire',       a:114.1,  b:167.7},
+  {n:5, label:'La clé étrangère',      a:167.7, b:215.0},
+  {n:6, label:'Lire une table',        a:215.0, b:232.4},
+  {n:7, label:'Choisir les colonnes',  a:232.4, b:262.2},
+  {n:8, label:'Deux pièges',           a:262.2, b:285.2},
+  {n:9, label:'À retenir',             a:285.2, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
@@ -449,52 +468,55 @@ const CAPTIONS = [
   [21.5, 26.6,   "Une <b>colonne</b> par caractéristique, et une <b>ligne</b> par commande."],
   [26.7, 31.2,   "Au croisement des deux, une <b>cellule</b> : l’e-mail de Sophie Martin."],
   [31.3, 37.0,   "Chaque ligne mélange ainsi <b>trois sujets</b> : le client, le produit et la commande."],
-  [37.6, 42.3,   "Sophie Martin a commandé <b>trois fois</b> : elle occupe trois lignes du fichier."],
-  [42.4, 47.2,   "Son prénom, son nom et son e-mail y sont donc recopiés <b>trois fois</b>."],
-  [47.3, 52.6,   "La Fibre Prébiotique et son prix reviennent aussi à chacune de ses commandes."],
-  [52.7, 58.4,   "Si Sophie Martin change d’e-mail, il faut le corriger <b>sur chaque ligne</b>."],
-  [58.5, 63.6,   "Une ligne oubliée, et le fichier contient <b>deux e-mails</b> pour la même cliente."],
-  [63.7, 67.6,   "Il faut donc noter chaque information <b>une seule fois</b>."],
-  [68.2, 72.6,   "La solution : découper la feuille <b>par sujet</b>, une table pour chacun."],
-  [72.7, 77.9,   "Le prénom, le nom et l’e-mail partent dans la <b>table clients</b>."],
-  [78.0, 82.4,   "Sophie Martin n’y figure plus qu’<b>une seule fois</b>."],
-  [82.5, 87.6,   "Le produit et son prix partent dans la <b>table produits</b>."],
-  [87.7, 93.8,   "Il reste la <b>table commandes</b> : le numéro de chaque commande et sa quantité."],
-  [93.9, 98.2,   "Chaque table ne décrit plus qu’<b>un seul sujet</b>."],
-  [98.8, 104.0,  "Problème : dans la table commandes, on ne sait plus <b>qui a commandé quoi</b>."],
-  [104.1, 109.6, "Chaque client reçoit donc un <b>numéro</b> unique : sa <b>clé primaire</b>."],
-  [109.7, 115.6, "On l’écrit table.colonne : <code>clients.id</code> désigne la colonne id de la table clients."],
-  [115.7, 121.0, "Même chose dans <code>produits.id</code> : la <span class=\"nw\">Fibre Prébiotique</span> porte le numéro 1."],
-  [121.8, 125.2, "Pourquoi noter un numéro, et pas le prénom du client ?"],
-  [125.3, 129.8, "Deux clients s’appellent Nathan, et tous les deux habitent à Paris."],
-  [129.9, 133.5, "Une commande notée « Nathan » ne dirait pas <b>lequel</b>."],
-  [133.6, 139.5, "La clé primaire ne se répète jamais : la commande n°5 porte le 4, celui de Nathan Petit."],
-  [139.6, 145.7, "Elle se déclare à la création de la table, avec <code>PRIMARY KEY</code> placé juste après le type de la colonne."],
-  [145.8, 151.7, "La base y veille : un numéro déjà pris est <b>refusé</b>, et un client sans numéro reçoit le suivant."],
-  [152.4, 158.3, "Notés dans la table commandes, ces numéros sont des <b>clés étrangères</b>."],
-  [158.4, 164.5, "Le nom le dit : <code>commandes.client_id</code> contient un numéro de <code>clients.id</code>."],
-  [164.6, 170.8, "La commande n°1 renvoie au client 1, Sophie Martin, et au produit 1, la <span class=\"nw\">Fibre Prébiotique</span>."],
-  [170.9, 176.1, "Ses trois commandes renvoient au client 1 : son nom n’est donc écrit <b>qu’une seule fois</b>."],
-  [176.2, 181.1, "Ces numéros relient les tables : c’est ce qui rend la base <b>relationnelle</b>."],
-  [181.5, 188.0, "La clé étrangère se déclare avec <code>FOREIGN KEY</code> et sa colonne, puis <code>REFERENCES</code> et la clé visée."],
-  [188.6, 193.8, "Grâce à elle, la base vérifie chaque lien : existe-t-il un client numéro 99 ?"],
-  [193.9, 199.2, "Aucune ligne de <code>clients.id</code> ne porte ce numéro : la commande est <b>refusée</b>."],
-  [199.7, 203.6, "Pour lire une table, on écrit <code>SELECT * FROM</code> suivi de son nom."],
-  [203.7, 207.6, "Après <code>SELECT</code>, l’étoile <code>*</code> signifie « toutes les colonnes »."],
-  [207.7, 212.0, "Résultat : les <b>10 clients</b>, un par ligne, avec leurs <b>9 colonnes</b>."],
-  [212.1, 216.4, "<code>SELECT</code> lit les données de la table, sans jamais les modifier."],
-  [217.1, 223.0, "Pour envoyer un e-mail aux clients, trois colonnes suffisent : le prénom, le nom et <span class=\"nw\">l’e-mail</span>."],
-  [223.1, 227.9, "Il suffit d’écrire leurs noms à la place de l’étoile, séparés par une <b>virgule</b>."],
-  [228.0, 234.1, "Les colonnes s’affichent <b>dans l’ordre où on les écrit</b> : d’abord le prénom, puis le nom, puis <span class=\"nw\">l’e-mail</span>."],
-  [234.2, 240.4, "Les <b>10 clients</b> sont toujours là, chacun <b>une seule fois</b> : Sophie Martin n’a plus qu’un seul e-mail."],
-  [240.5, 246.3, "Et la feuille Excel ? Une requête, la <b>jointure</b>, pourra la reconstituer à partir des tables."],
-  [246.9, 251.5, "Une <b>virgule</b> sépare deux colonnes ; jamais de virgule après la dernière."],
-  [251.6, 257.4, "Sans virgule, <code>email</code> est lu comme un <b>alias</b> : le titre donné à la colonne dans le résultat."],
-  [257.5, 263.5, "<code>AS</code> étant facultatif, la requête équivaut à <code>prenom AS email</code> : une seule colonne, avec les prénoms."],
-  [263.6, 269.3, "Avec une virgule de trop avant <code>FROM</code>, la requête provoque une erreur."],
-  [269.9, 274.7, "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [274.8, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
-      : [274.8, 999, "Chaque sujet a sa table, des clés relient les tables, et <code>SELECT</code> les lit."]
+  [37.6, 44.2,   "À chaque nouvelle commande ou demande, le fichier s’alourdit, et il devient difficile de s’y retrouver."],
+  [44.3, 48.8,   "Il est mis à jour par plusieurs personnes, de plusieurs équipes différentes."],
+  [48.9, 52.6,   "Et les <b>erreurs</b> commencent à apparaître."],
+  [53.2, 57.9,   "Sophie Martin a commandé <b>trois fois</b> : elle occupe trois lignes du fichier."],
+  [58.0, 62.8,   "Son prénom, son nom et son e-mail y sont donc recopiés <b>trois fois</b>."],
+  [62.9, 68.2,   "La Fibre Prébiotique et son prix reviennent aussi à chacune de ses commandes."],
+  [68.3, 74.0,   "Si Sophie Martin change d’e-mail, il faut le corriger <b>sur chaque ligne</b>."],
+  [74.1, 79.2,   "Une ligne oubliée, et le fichier contient <b>deux e-mails</b> pour la même cliente."],
+  [79.3, 83.2,   "Il faut donc noter chaque information <b>une seule fois</b>."],
+  [83.8, 88.2,   "La solution : découper la feuille <b>par sujet</b>, une table pour chacun."],
+  [88.3, 93.5,   "Le prénom, le nom et l’e-mail partent dans la <b>table clients</b>."],
+  [93.6, 98.0,   "Sophie Martin n’y figure plus qu’<b>une seule fois</b>."],
+  [98.1, 103.2,   "Le produit et son prix partent dans la <b>table produits</b>."],
+  [103.3, 109.4,   "Il reste la <b>table commandes</b> : le numéro de chaque commande et sa quantité."],
+  [109.5, 113.8,   "Chaque table ne décrit plus qu’<b>un seul sujet</b>."],
+  [114.4, 119.6,  "Problème : dans la table commandes, on ne sait plus <b>qui a commandé quoi</b>."],
+  [119.7, 125.2, "Chaque client reçoit donc un <b>numéro</b> unique : sa <b>clé primaire</b>."],
+  [125.3, 131.2, "On l’écrit table.colonne : <code>clients.id</code> désigne la colonne id de la table clients."],
+  [131.3, 136.6, "Même chose dans <code>produits.id</code> : la <span class=\"nw\">Fibre Prébiotique</span> porte le numéro 1."],
+  [137.4, 140.8, "Pourquoi noter un numéro, et pas le prénom du client ?"],
+  [140.9, 145.4, "Deux clients s’appellent Nathan, et tous les deux habitent à Paris."],
+  [145.5, 149.1, "Une commande notée « Nathan » ne dirait pas <b>lequel</b>."],
+  [149.2, 155.1, "La clé primaire ne se répète jamais : la commande n°5 porte le 4, celui de Nathan Petit."],
+  [155.2, 161.3, "Elle se déclare à la création de la table, avec <code>PRIMARY KEY</code> placé juste après le type de la colonne."],
+  [161.4, 167.3, "La base y veille : un numéro déjà pris est <b>refusé</b>, et un client sans numéro reçoit le suivant."],
+  [168.0, 173.9, "Notés dans la table commandes, ces numéros sont des <b>clés étrangères</b>."],
+  [174.0, 180.1, "Le nom le dit : <code>commandes.client_id</code> contient un numéro de <code>clients.id</code>."],
+  [180.2, 186.4, "La commande n°1 renvoie au client 1, Sophie Martin, et au produit 1, la <span class=\"nw\">Fibre Prébiotique</span>."],
+  [186.5, 191.7, "Ses trois commandes renvoient au client 1 : son nom n’est donc écrit <b>qu’une seule fois</b>."],
+  [191.8, 196.7, "Ces numéros relient les tables : c’est ce qui rend la base <b>relationnelle</b>."],
+  [197.1, 203.6, "La clé étrangère se déclare avec <code>FOREIGN KEY</code> et sa colonne, puis <code>REFERENCES</code> et la clé visée."],
+  [204.2, 209.4, "Grâce à elle, la base vérifie chaque lien : existe-t-il un client numéro 99 ?"],
+  [209.5, 214.8, "Aucune ligne de <code>clients.id</code> ne porte ce numéro : la commande est <b>refusée</b>."],
+  [215.3, 219.2, "Pour lire une table, on écrit <code>SELECT * FROM</code> suivi de son nom."],
+  [219.3, 223.2, "Après <code>SELECT</code>, l’étoile <code>*</code> signifie « toutes les colonnes »."],
+  [223.3, 227.6, "Résultat : les <b>10 clients</b>, un par ligne, avec leurs <b>9 colonnes</b>."],
+  [227.7, 232.0, "<code>SELECT</code> lit les données de la table, sans jamais les modifier."],
+  [232.7, 238.6, "Pour envoyer un e-mail aux clients, trois colonnes suffisent : le prénom, le nom et <span class=\"nw\">l’e-mail</span>."],
+  [238.7, 243.5, "Il suffit d’écrire leurs noms à la place de l’étoile, séparés par une <b>virgule</b>."],
+  [243.6, 249.7, "Les colonnes s’affichent <b>dans l’ordre où on les écrit</b> : d’abord le prénom, puis le nom, puis <span class=\"nw\">l’e-mail</span>."],
+  [249.8, 256.0, "Les <b>10 clients</b> sont toujours là, chacun <b>une seule fois</b> : Sophie Martin n’a plus qu’un seul e-mail."],
+  [256.1, 261.9, "Et la feuille Excel ? Une requête, la <b>jointure</b>, pourra la reconstituer à partir des tables."],
+  [262.5, 267.1, "Une <b>virgule</b> sépare deux colonnes ; jamais de virgule après la dernière."],
+  [267.2, 273.0, "Sans virgule, <code>email</code> est lu comme un <b>alias</b> : le titre donné à la colonne dans le résultat."],
+  [273.1, 279.1, "<code>AS</code> étant facultatif, la requête équivaut à <code>prenom AS email</code> : une seule colonne, avec les prénoms."],
+  [279.2, 284.9, "Avec une virgule de trop avant <code>FROM</code>, la requête provoque une erreur."],
+  [285.5, 290.3, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [290.4, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [290.4, 999, "Chaque sujet a sa table, des clés relient les tables, et <code>SELECT</code> les lit."]
 ];
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
@@ -523,9 +545,15 @@ function dom(){
   h += `<div class="xrw xh">${HEAD.map((v, j) => cell(v, j, 0)).join('')}</div>`;
   COMMANDES.forEach((c, i) => {
     if (i === 5) h += `<div class="xrw xd more"><span class="k-co"><i class="v">⋮</i></span>${'<span></span>'.repeat(6)}</div>`;
-    h += `<div class="xrw xd" data-o="${c[0]}"><i class="hl"></i>${sheet(c).map((v, j) => cell(v, j, c[0])).join('')}</div>`;
+    h += `<div class="xrw xd${i === COMMANDES.length - 1 ? ' lastd' : ''}" data-o="${c[0]}"><i class="hl"></i>${sheet(c).map((v, j) => cell(v, j, c[0])).join('')}</div>`;
   });
-  $('#xg').innerHTML = h + '<i class="colb" id="xb1"></i><i class="sel" id="sel2"></i>';
+  /* À chaque nouvelle commande ou demande, une ligne de plus : des lignes sans valeurs, le temps de voir le fichier grossir */
+  const SKW = [[70, 62, 84, 66, 48, 40], [58, 76, 70, 80, 56, 34], [76, 54, 88, 60, 44, 46], [64, 70, 74, 84, 52, 38], [72, 58, 80, 68, 46, 42], [60, 74, 86, 62, 54, 36]];
+  const grow = `<div class="xgrow" id="xgrow">${SKW.map(ws => `<div class="xrw xsk"><span><b class="xplus">+1</b></span>${ws.map(w => `<span><i style="width:${w}%"></i></span>`).join('')}</div>`).join('')}</div>`;
+  /* Trois personnes, de trois équipes, dans le même fichier ; la cellule modifiée par deux d’entre elles à la fois */
+  const cur = (id, k, r, emo, who) => `<i class="tcur ${k}${r ? ' r' : ''}" id="${id}"><b><span class="emo">${emo}</span>${who}</b></i>`;
+  $('#xg').innerHTML = h + grow + '<i class="colb" id="xb1"></i><i class="sel" id="sel2"></i>' +
+    cur('tc1', 'tc-a', 1, '📦', 'Logistique') + cur('tc2', 'tc-b', 0, '💬', 'Service client') + cur('tc3', 'tc-c', 1, '💼', 'Commercial') + '<i class="xerr" id="xerr"></i>';
   /* 2 · La loupe : l’e-mail de Sophie Martin sur ses trois commandes, corrigé sur les deux premières seulement */
   $('#zm2').insertAdjacentHTML('beforeend', SOPHIE.map((o, i) => `<div class="zmr"><span class="zn">Commande ${o}</span>` +
     `<span class="zv"><i class="zo">${cli(1)[6]}${i === 2 ? '<i class="mark"></i>' : ''}</i>${i < 2 ? `<i class="zw">${NOUVEL_EMAIL}</i>` : ''}</span>` +
@@ -629,6 +657,15 @@ function build(){
   /* 2 · La cellule sélectionnée : l’e-mail des commandes 1 puis 2 */
   const s1 = inXg(cells(XD[0])[3]), s2 = inXg(cells(XD[1])[3]);
   Object.assign($('#sel2').style, {left: (s1.x - 2) + 'px', top: (s1.y - 2) + 'px', width: (s1.w + 2) + 'px', height: (s1.h + 2) + 'px'});
+  /* 1 · Les curseurs des trois équipes : la quantité de la commande 5 (logistique), l’e-mail de la commande 3 (service client),
+     le prix de la commande 2 (commercial) ; puis le service client rejoint la cellule de la logistique, qui passe en rouge */
+  const box = (el, c) => Object.assign($(el).style, {left: (c.x - 2) + 'px', top: (c.y - 2) + 'px', width: (c.w + 2) + 'px', height: (c.h + 2) + 'px'});
+  const q5 = inXg(cells(XD[4])[6]), e3 = inXg(cells(XD[2])[3]), p2 = inXg(cells(XD[1])[5]);
+  box('#tc1', q5); box('#tc2', e3); box('#tc3', p2);
+  Object.assign($('#xerr').style, {left: (q5.x + 1) + 'px', top: (q5.y + 1) + 'px', width: (q5.w - 4) + 'px', height: (q5.h - 4) + 'px'});
+  /* Les deux bulles se posent sous la feuille une fois grossie (6 lignes de plus). */
+  const GROWN = $('#xl').offsetTop + $('#xl').offsetHeight + 6 * 58 + 9 + 36;
+  ['#np1g', '#np1e'].forEach(s => { $(s).style.top = GROWN + 'px'; });
   /* 3 · Les pastilles en vol : une copie de chaque valeur, posée là où la feuille sera après sa descente (mesurée dans cet état) */
   const fx = $('#fx');
   gsap.set('#xl', {y: SLIDE, scale: K});
@@ -747,67 +784,96 @@ function build(){
   hide('#s1 .need', 36.6);
   untint([0, 1, 2, 3, 4, 5, 6].map(hv), 36.7, '#4E4872');
   tl.to(letters, {backgroundColor: '#F8F6FE', color: '#9A94BD', duration: 0.35}, 36.7);
-  sceneOff('#s1', 37.35);
+  // À chaque nouvelle commande ou demande, une ligne de plus : le fichier s’alourdit, difficile de s’y retrouver
+  const sk = $$('#xgrow .xsk');
+  gsap.set(sk, {autoAlpha: 0, y: 18});
+  [38.0, 38.45, 38.85, 39.2, 39.5, 39.75].forEach((t, i) => {
+    tl.to('#xgrow', {height: (i + 1) * 58, duration: 0.28, ease: 'power2.out'}, t);
+    tl.to(sk[i], {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out'}, t + 0.04);
+    cue(t, 'tick', 0.45, i % 5);
+  });
+  show('#np1g', 41.0, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(41.0, 'pop', 0.6, 2);
+  // Il est mis à jour par plusieurs personnes, de plusieurs équipes différentes
+  hide('#np1g', 44.3, {y: 0, scale: 0.8}, 0.3);
+  ['#tc1', '#tc2', '#tc3'].forEach((s, i) => { show(s, 44.8 + i * 0.5, {y: 0, scale: 1.2}, 0.3, 'back.out(2)'); cue(44.8 + i * 0.5, 'click', 0.6); });
+  // … et les erreurs commencent : deux personnes modifient la même cellule
+  tl.to('#tc2 b', {autoAlpha: 0, duration: 0.2}, 49.1);
+  tl.to('#tc2', {left: q5.x + 3, top: q5.y + 3, width: q5.w - 6, height: q5.h - 6, duration: 0.5, ease: 'power2.inOut'}, 49.15);
+  cue(49.15, 'whoosh', 0.4);
+  tl.to('#xerr', {autoAlpha: 1, duration: 0.25}, 49.75);
+  tl.to(vOf(XD[4], 6), {color: '#C2323A', duration: 0.25}, 49.75);
+  cue(49.75, 'false', 0.55);
+  show('#np1e', 50.2, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(50.2, 'pop', 0.6, 1);
+  // Retour au fichier d’origine
+  hide('#np1e', 52.0, {y: 0, scale: 0.8}, 0.3);
+  tl.to(['#tc1', '#tc2', '#tc3', '#xerr'], {autoAlpha: 0, duration: 0.3}, 52.0);
+  tl.to(vOf(XD[4], 6), {color: '#221C46', duration: 0.3}, 52.0);
+  tl.to(sk, {autoAlpha: 0, duration: 0.25}, 52.05);
+  tl.to('#xgrow', {height: 0, duration: 0.5, ease: 'power2.inOut'}, 52.15);
+  cue(52.15, 'fold', 0.45);
+  sceneOff('#s1', 52.95);
 
   /* ===== 2 · Le problème ===== */
-  sceneOn('#s2', 37.3);
+  sceneOn('#s2', 52.9);
   // Les trois commandes de Sophie Martin
   const XS = SOPHIE.map(o => XD[COMMANDES.findIndex(c => c[0] === o)]), XF = FIBRE.map(o => XD[COMMANDES.findIndex(c => c[0] === o)]);
-  XS.forEach((r, i) => hlRow(r, 38.6 + i * 0.25));
+  XS.forEach((r, i) => hlRow(r, 54.2 + i * 0.25));
   // Son prénom, son nom et son e-mail : recopiés trois fois
   const mk = (rows, js) => rows.flatMap(r => js.map(j => vOf(r, j).querySelector('.mark:not(.ko)')));
-  tl.to(mk(XS, [1, 2, 3]), {opacity: 1, duration: 0.3, stagger: 0.06}, 43.5);
-  cue(43.5, 'pop', 0.6, 1);
-  cue(43.9, 'pop', 0.6, 3);
-  bump(XS.flatMap(r => [1, 2, 3].map(j => vOf(r, j))), 45.6, 1.08, 3);
+  tl.to(mk(XS, [1, 2, 3]), {opacity: 1, duration: 0.3, stagger: 0.06}, 59.1);
+  cue(59.1, 'pop', 0.6, 1);
+  cue(59.5, 'pop', 0.6, 3);
+  bump(XS.flatMap(r => [1, 2, 3].map(j => vOf(r, j))), 61.2, 1.08, 3);
   // La Fibre Prébiotique et son prix, eux aussi
-  XS.forEach(r => hlRow(r, 47.5, 0));
-  off(mk(XS, [1, 2, 3]), 47.5);
-  tl.to(mk(XF, [4, 5]), {opacity: 1, duration: 0.3, stagger: 0.08}, 48.7);
-  cue(48.7, 'pop', 0.6, 2);
-  bump(XF.flatMap(r => [4, 5].map(j => vOf(r, j))), 50.7, 1.08, 3);
+  XS.forEach(r => hlRow(r, 63.1, 0));
+  off(mk(XS, [1, 2, 3]), 63.1);
+  tl.to(mk(XF, [4, 5]), {opacity: 1, duration: 0.3, stagger: 0.08}, 64.3);
+  cue(64.3, 'pop', 0.6, 2);
+  bump(XF.flatMap(r => [4, 5].map(j => vOf(r, j))), 66.3, 1.08, 3);
   // Sophie Martin change d’e-mail : on le corrige sur la commande 1, puis sur la commande 2…
-  off(mk(XF, [4, 5]), 52.8);
-  show('#zm2', 53.0, {y: 50}, 0.55);
-  cue(53.0, 'whoosh', 0.5);
+  off(mk(XF, [4, 5]), 68.4);
+  show('#zm2', 68.6, {y: 50}, 0.55);
+  cue(68.6, 'whoosh', 0.5);
   const zr = $$('#zm2 .zmr');
-  tl.fromTo('#sel2', {opacity: 0, scale: 1.15}, {opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', immediateRender: false}, 53.6);
-  cue(53.6, 'click', 0.7);
+  tl.fromTo('#sel2', {opacity: 0, scale: 1.15}, {opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', immediateRender: false}, 69.2);
+  cue(69.2, 'click', 0.7);
   const nw = [0, 1].map(i => cells(XD[i])[3].querySelector('.xnw'));
-  [[0, 54.3], [1, 56.4]].forEach(([i, t]) => {
+  [[0, 69.9], [1, 72.0]].forEach(([i, t]) => {
     tl.set(vOf(XD[i], 3), {autoAlpha: 0}, t - 0.3);
     tl.set(nw[i], {autoAlpha: 1}, t - 0.3);
     typeLine(nw[i], t, 17);
   });
-  [[0, 55.4], [1, 57.5]].forEach(([i, t]) => {
+  [[0, 71.0], [1, 73.1]].forEach(([i, t]) => {
     tl.to(zr[i].querySelector('.zo'), {autoAlpha: 0, duration: 0.25}, t);
     tl.to(zr[i].querySelector('.zw'), {autoAlpha: 1, duration: 0.25}, t + 0.1);
     show(zr[i].querySelector('.zs'), t + 0.2, {y: 0, scale: 0.6}, 0.35, 'back.out(2.2)');
     cue(t + 0.2, 'true', 0.45);
   });
-  tl.to('#sel2', {y: s2.y - s1.y, duration: 0.3, ease: 'power2.inOut'}, 55.9);
-  cue(55.9, 'tick', 0.5, 2);
+  tl.to('#sel2', {y: s2.y - s1.y, duration: 0.3, ease: 'power2.inOut'}, 71.5);
+  cue(71.5, 'tick', 0.5, 2);
   // … mais la commande 13 est oubliée : deux e-mails pour la même cliente
-  tl.to('#sel2', {opacity: 0, duration: 0.25}, 58.7);
-  on(vOf(XD[5], 3).querySelector('.mark.ko'), 59.3);
-  on(zr[2].querySelector('.mark'), 59.3);
-  show(zr[2].querySelector('.zs'), 59.6, {y: 0, scale: 0.6}, 0.35, 'back.out(2.2)');
-  bump(vOf(XD[5], 3), 59.4, 1.12, 1);
-  cue(59.3, 'false', 0.55);
-  show('#np2', 60.8, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
-  cue(60.8, 'pop', 0.6, 1);
+  tl.to('#sel2', {opacity: 0, duration: 0.25}, 74.3);
+  on(vOf(XD[5], 3).querySelector('.mark.ko'), 74.9);
+  on(zr[2].querySelector('.mark'), 74.9);
+  show(zr[2].querySelector('.zs'), 75.2, {y: 0, scale: 0.6}, 0.35, 'back.out(2.2)');
+  bump(vOf(XD[5], 3), 75.0, 1.12, 1);
+  cue(74.9, 'false', 0.55);
+  show('#np2', 76.4, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(76.4, 'pop', 0.6, 1);
   // Retour au fichier d’origine
-  hide('#np2', 64.0, {y: 0, scale: 0.8}, 0.3);
-  hide('#zm2', 64.1, {y: 40}, 0.4);
-  tl.to(nw, {autoAlpha: 0, duration: 0.3}, 64.6);
-  tl.to([0, 1].map(i => vOf(XD[i], 3)), {autoAlpha: 1, duration: 0.3}, 64.75);
-  off(vOf(XD[5], 3).querySelector('.mark.ko'), 64.6);
-  cue(64.6, 'fold', 0.45);
-  sceneOff('#s2', 67.95);
+  hide('#np2', 79.6, {y: 0, scale: 0.8}, 0.3);
+  hide('#zm2', 79.7, {y: 40}, 0.4);
+  tl.to(nw, {autoAlpha: 0, duration: 0.3}, 80.2);
+  tl.to([0, 1].map(i => vOf(XD[i], 3)), {autoAlpha: 1, duration: 0.3}, 80.35);
+  off(vOf(XD[5], 3).querySelector('.mark.ko'), 80.2);
+  cue(80.2, 'fold', 0.45);
+  sceneOff('#s2', 83.55);
 
   /* ===== 3 · Le découpage ===== */
   // Chaque groupe de colonnes prend la couleur de sa table
-  [['k-cl', 68.9], ['k-pr', 69.5], ['k-co', 70.1]].forEach(([k, t], i) => {
+  [['k-cl', 84.5], ['k-pr', 85.1], ['k-co', 85.7]].forEach(([k, t], i) => {
     const vs = [XH, ...XD].flatMap(r => groups[k].map(j => vOf(r, j)));
     if (k === 'k-co') vs.push(XM.querySelector('.v'));
     tint(vs, k, t);
@@ -815,8 +881,8 @@ function build(){
     cue(t, 'pop', 0.6, i * 2 + 1);
   });
   // La feuille descend, à la place de la future table commandes
-  tl.to('#xl', {y: SLIDE, scale: K, duration: 0.8, ease: 'power2.inOut'}, 70.9);
-  cue(70.9, 'whoosh', 0.45);
+  tl.to('#xl', {y: SLIDE, scale: K, duration: 0.8, ease: 'power2.inOut'}, 86.5);
+  cue(86.5, 'whoosh', 0.45);
   /* Chaque pastille quitte la feuille et rejoint sa table ; les doublons se posent sur la même ligne */
   const launch = (fl, t0, step, dur = 0.75) => {
     const seen = new Set();
@@ -836,283 +902,283 @@ function build(){
     return last;
   };
   // La table clients
-  show('#c3', 73.0, {y: -30, scale: 0.96}, 0.45, 'power3.out');
-  cue(73.0, 'pop', 0.6, 2);
-  const endC = launch(flC, 73.5, 0.12);
+  show('#c3', 88.6, {y: -30, scale: 0.96}, 0.45, 'power3.out');
+  cue(88.6, 'pop', 0.6, 2);
+  const endC = launch(flC, 89.1, 0.12);
   const c3r = $$('#c3 .rw');
   bump($$('.v', c3r[0]), endC + 0.05, 1.1, 1);
   cue(endC + 0.05, 'pop', 0.7, 4);
   // Sophie Martin, une seule fois
-  hlRow(c3r[0], 78.8);
-  bump($$('.v', c3r[0]), 79.6, 1.1, 1);
-  hlRow(c3r[0], 82.2, 0);
+  hlRow(c3r[0], 94.4);
+  bump($$('.v', c3r[0]), 95.2, 1.1, 1);
+  hlRow(c3r[0], 97.8, 0);
   // La table produits
-  show('#p3', 83.0, {y: 30, scale: 0.96}, 0.45, 'power3.out');
-  cue(83.0, 'pop', 0.6, 3);
-  const endP = launch(flP, 83.5, 0.15);
+  show('#p3', 98.6, {y: 30, scale: 0.96}, 0.45, 'power3.out');
+  cue(98.6, 'pop', 0.6, 3);
+  const endP = launch(flP, 99.1, 0.15);
   bump($$('.v', $$('#p3 .rw')[0]), endP + 0.05, 1.1, 1);
   cue(endP + 0.05, 'pop', 0.7, 5);
   // Il reste la table commandes : la feuille cède sa place
-  tl.to('#xl', {autoAlpha: 0, duration: 0.4}, 88.3);
-  show('#m3', 88.55, {y: 0, scale: 0.98}, 0.4, 'power2.out');
-  launch(flM, 88.4, 0.07);
+  tl.to('#xl', {autoAlpha: 0, duration: 0.4}, 103.9);
+  show('#m3', 104.15, {y: 0, scale: 0.98}, 0.4, 'power2.out');
+  launch(flM, 104.0, 0.07);
   const m3more = $('#m3 .rw.more');
   gsap.set(m3more, {autoAlpha: 0});
-  tl.to(m3more, {autoAlpha: 1, duration: 0.3}, 89.3);
-  pulse('#m3 .tt', 90.6, 3, 'rgba(255,224,138,.9)');
-  cue(90.6, 'pop', 0.6, 2);
+  tl.to(m3more, {autoAlpha: 1, duration: 0.3}, 104.9);
+  pulse('#m3 .tt', 106.2, 3, 'rgba(255,224,138,.9)');
+  cue(106.2, 'pop', 0.6, 2);
   // Un seul sujet par table
-  [['#c3', 94.6], ['#m3', 95.3], ['#p3', 96.0]].forEach(([s, t], i) => { bump(s + ' .tt .emo', t, 1.3, 1); cue(t, 'pop', 0.65, i * 2); });
+  [['#c3', 110.2], ['#m3', 110.9], ['#p3', 111.6]].forEach(([s, t], i) => { bump(s + ' .tt .emo', t, 1.3, 1); cue(t, 'pop', 0.65, i * 2); });
 
   /* ===== 4 · La clé primaire ===== */
   // Qui a commandé quoi ?
   const m3r = $$('#m3 .rw:not(.more)');
-  tl.to('#kq4', {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)'}, 100.0);
+  tl.to('#kq4', {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)'}, 115.6);
   gsap.set('#kq4', {scale: 0.5});
-  cue(100.0, 'false', 0.45);
-  bump('#kq4', 101.6, 1.1, 1);
+  cue(115.6, 'false', 0.45);
+  bump('#kq4', 117.2, 1.1, 1);
   // Chaque client reçoit un numéro : la clé primaire
   const idIn = (tb, k, t) => { const vs = $$(tb + ' .rw:not(.more)').map(r => r.children[k + 1].querySelector('.v')); gsap.set(vs, {autoAlpha: 0, scale: 0.5});
     tl.to(vs, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.4)', stagger: 0.1}, t); vs.forEach((_, i) => cue(t + i * 0.1, 'tick', 0.5, i % 5)); };
   const hdIn = (tb, k, t) => { const v = $(tb + ' .hd').children[k].querySelector('.v'); gsap.set(v, {autoAlpha: 0}); tl.to(v, {autoAlpha: 1, duration: 0.3}, t); };
-  tl.to('#c3', {'--w0': '64px', duration: 0.5, ease: 'power2.inOut'}, 104.9);
-  cue(104.9, 'whoosh', 0.4);
-  hdIn('#c3', 0, 105.2);
-  idIn('#c3', 0, 105.4);
-  on('#cb4a', 106.6);
-  cue(106.6, 'tick', 0.55, 3);
+  tl.to('#c3', {'--w0': '64px', duration: 0.5, ease: 'power2.inOut'}, 120.5);
+  cue(120.5, 'whoosh', 0.4);
+  hdIn('#c3', 0, 120.8);
+  idIn('#c3', 0, 121.0);
+  on('#cb4a', 122.2);
+  cue(122.2, 'tick', 0.55, 3);
   gsap.set('#kp4a', {scale: 0.5});
-  tl.to('#kp4a', {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)'}, 107.5);
-  cue(107.5, 'pop', 0.75, 4);
+  tl.to('#kp4a', {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)'}, 123.1);
+  cue(123.1, 'pop', 0.75, 4);
   // Son nom complet, table.colonne : la carte prend la place de la table commandes
   const nPart = r => [...r.children].filter(e => !e.classList.contains('nlb') && e.tagName !== 'SPAN');
-  off('#cb4a', 110.0);
-  tl.to('#m3', {autoAlpha: 0, duration: 0.3}, 109.9);
-  show('#nm4', 110.2, {y: 30}, 0.5);
-  cue(110.2, 'whoosh', 0.5);
+  off('#cb4a', 125.6);
+  tl.to('#m3', {autoAlpha: 0, duration: 0.3}, 125.5);
+  show('#nm4', 125.8, {y: 30}, 0.5);
+  cue(125.8, 'whoosh', 0.5);
   const n4a = nPart($('#nr4a')), n4b = nPart($('#nr4b')), n4l = $$('#nr4a .nlb');
   gsap.set([...n4a, ...n4b, ...n4l], {autoAlpha: 0, y: 10});
-  tl.to(n4a, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.14}, 110.7);
-  cue(110.7, 'tick', 0.45, 1);
-  [0, 1].forEach(i => { tl.to(n4l[i], {autoAlpha: 1, y: 0, duration: 0.3}, 111.7 + i * 0.6); bump(n4a[i * 2], 111.7 + i * 0.6, 1.12, 1); cue(111.7 + i * 0.6, 'tick', 0.5, 2 + i * 2); });
+  tl.to(n4a, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.14}, 126.3);
+  cue(126.3, 'tick', 0.45, 1);
+  [0, 1].forEach(i => { tl.to(n4l[i], {autoAlpha: 1, y: 0, duration: 0.3}, 127.3 + i * 0.6); bump(n4a[i * 2], 127.3 + i * 0.6, 1.12, 1); cue(127.3 + i * 0.6, 'tick', 0.5, 2 + i * 2); });
   // Chaque produit aussi : produits.id
-  tl.to('#p3', {'--w0': '64px', duration: 0.5, ease: 'power2.inOut'}, 116.3);
-  cue(116.3, 'whoosh', 0.4);
-  hdIn('#p3', 0, 116.6);
-  idIn('#p3', 0, 116.8);
+  tl.to('#p3', {'--w0': '64px', duration: 0.5, ease: 'power2.inOut'}, 131.9);
+  cue(131.9, 'whoosh', 0.4);
+  hdIn('#p3', 0, 132.2);
+  idIn('#p3', 0, 132.4);
   const p3r = $$('#p3 .rw');
-  hlRow(p3r[0], 117.7);
-  bump(p3r[0].children[1].querySelector('.v'), 118.0, 1.3, 1);
-  tl.to(n4b, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.12}, 118.5);
-  cue(118.5, 'pop', 0.6, 3);
-  bump(n4b[0], 119.2, 1.12, 1);
+  hlRow(p3r[0], 133.3);
+  bump(p3r[0].children[1].querySelector('.v'), 133.6, 1.3, 1);
+  tl.to(n4b, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.12}, 134.1);
+  cue(134.1, 'pop', 0.6, 3);
+  bump(n4b[0], 134.8, 1.12, 1);
   // Place aux deux Nathan
-  hide(['#c3', '#m3', '#p3', '#nm4'], 120.9, {y: 30}, 0.4);
-  hlRow(p3r[0], 121.4, 0);
-  sceneOff('#sx', 121.45);
+  hide(['#c3', '#m3', '#p3', '#nm4'], 136.5, {y: 30}, 0.4);
+  hlRow(p3r[0], 137.0, 0);
+  sceneOff('#sx', 137.05);
 
   // Pourquoi un numéro, et pas le prénom ?
-  sceneOn('#s5', 121.5);
-  show('#c5', 121.6, {y: 50}, 0.55, 'power3.out');
-  cue(121.6, 'whoosh', 0.55);
+  sceneOn('#s5', 137.1);
+  show('#c5', 137.2, {y: 50}, 0.55, 'power3.out');
+  cue(137.2, 'whoosh', 0.55);
   const c5r = $$('#c5 .rw');
-  rowsIn(c5r, 121.95, 0.12);
+  rowsIn(c5r, 137.55, 0.12);
   // Deux Nathan, tous deux à Paris
-  on(c5r.map(r => r.children[2].querySelector('.mark')), 126.7);
-  cue(126.7, 'pop', 0.6, 2);
-  on(c5r.map(r => r.children[4].querySelector('.mark')), 128.8);
-  cue(128.8, 'pop', 0.6, 4);
+  on(c5r.map(r => r.children[2].querySelector('.mark')), 142.3);
+  cue(142.3, 'pop', 0.6, 2);
+  on(c5r.map(r => r.children[4].querySelector('.mark')), 144.4);
+  cue(144.4, 'pop', 0.6, 4);
   // Une commande notée « Nathan » : lequel ?
-  show('#m5', 130.0, {y: 50}, 0.55, 'power3.out');
-  cue(130.0, 'whoosh', 0.55);
+  show('#m5', 145.6, {y: 50}, 0.55, 'power3.out');
+  cue(145.6, 'whoosh', 0.55);
   const m5r = $('#m5 .rw');
-  rowsIn([m5r], 130.35);
-  on('#v5a .mark', 131.0);
-  cue(131.0, 'pop', 0.6, 1);
+  rowsIn([m5r], 145.95);
+  on('#v5a .mark', 146.6);
+  cue(146.6, 'pop', 0.6, 1);
   const g5 = $$('#lk5 g');
-  linkIn(g5[0], 131.4, 0.5);
-  linkIn(g5[1], 131.6, 0.5);
-  show('#q5a', 132.5, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  cue(132.5, 'false', 0.55);
+  linkIn(g5[0], 147.0, 0.5);
+  linkIn(g5[1], 147.2, 0.5);
+  show('#q5a', 148.1, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(148.1, 'false', 0.55);
   // La clé primaire ne se répète jamais : 4 et 10
-  on($$('#c5 .ring'), 134.2, 0.25);
-  cue(134.2, 'tick', 0.55, 3);
+  on($$('#c5 .ring'), 149.8, 0.25);
+  cue(149.8, 'tick', 0.55, 3);
   // La commande 5 porte le 4 : Nathan Petit
-  tl.to('#h5a', {autoAlpha: 0, y: -16, duration: 0.25}, 136.2);
-  tl.fromTo('#h5b', {autoAlpha: 0, y: 16}, {autoAlpha: 1, y: 0, duration: 0.3, immediateRender: false}, 136.3);
-  tl.to('#v5a', {autoAlpha: 0, scale: 0.6, duration: 0.25}, 136.4);
-  tl.fromTo('#v5b', {autoAlpha: 0, scale: 0.4}, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.4)', immediateRender: false}, 136.5);
-  cue(136.5, 'pop', 0.75, 4);
-  off([...$$('#c5 .mark'), $$('#c5 .ring')[1]], 136.8);
-  tl.to(g5[1], {opacity: 0, duration: 0.3}, 136.8);
-  recolor(g5[0], '#7C5CFF', 136.8);
-  hlRow(c5r[0], 137.5);
-  tl.to('#q5a', {autoAlpha: 0, scale: 0.8, duration: 0.25}, 137.6);
-  show('#q5b', 137.75, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  cue(137.75, 'true', 0.6);
+  tl.to('#h5a', {autoAlpha: 0, y: -16, duration: 0.25}, 151.8);
+  tl.fromTo('#h5b', {autoAlpha: 0, y: 16}, {autoAlpha: 1, y: 0, duration: 0.3, immediateRender: false}, 151.9);
+  tl.to('#v5a', {autoAlpha: 0, scale: 0.6, duration: 0.25}, 152.0);
+  tl.fromTo('#v5b', {autoAlpha: 0, scale: 0.4}, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.4)', immediateRender: false}, 152.1);
+  cue(152.1, 'pop', 0.75, 4);
+  off([...$$('#c5 .mark'), $$('#c5 .ring')[1]], 152.4);
+  tl.to(g5[1], {opacity: 0, duration: 0.3}, 152.4);
+  recolor(g5[0], '#7C5CFF', 152.4);
+  hlRow(c5r[0], 153.1);
+  tl.to('#q5a', {autoAlpha: 0, scale: 0.8, duration: 0.25}, 153.2);
+  show('#q5b', 153.35, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(153.35, 'true', 0.6);
   // Elle se déclare à la création de la table, avec PRIMARY KEY placé juste après le type de la colonne (id INTEGER)
-  hide(['#m5', '#lk5', '#q5b'], 139.6, {y: 0}, 0.35);
-  hlRow(c5r[0], 139.6, 0);
-  show('#pk5', 140.0, {y: 40}, 0.5);
-  cue(140.0, 'whoosh', 0.5);
-  te = typeLine($('#pk1'), 140.45, 28);
+  hide(['#m5', '#lk5', '#q5b'], 155.2, {y: 0}, 0.35);
+  hlRow(c5r[0], 155.2, 0);
+  show('#pk5', 155.6, {y: 40}, 0.5);
+  cue(155.6, 'whoosh', 0.5);
+  te = typeLine($('#pk1'), 156.05, 28);
   te = typeLine($('#pk2'), te + 0.1, 24);
   gsap.set(['#pk3', '#pk4'], {autoAlpha: 0});
   tl.to(['#pk3', '#pk4'], {autoAlpha: 1, duration: 0.3, stagger: 0.12}, te + 0.1);
-  pulse('#pkt', 142.7, 3, 'rgba(201,188,255,.35)');
-  cue(142.7, 'tick', 0.5, 2);
+  pulse('#pkt', 158.3, 3, 'rgba(201,188,255,.35)');
+  cue(158.3, 'tick', 0.5, 2);
   gsap.set('#pkband', {scaleX: 0});
-  tl.to('#pkband', {scaleX: 1, duration: 0.5, ease: 'expo.out'}, 143.4);
-  pulse('#pkk', 143.4, 3, 'rgba(255,224,138,.35)');
-  cue(143.4, 'pop', 0.75, 4);
+  tl.to('#pkband', {scaleX: 1, duration: 0.5, ease: 'expo.out'}, 159.0);
+  pulse('#pkk', 159.0, 3, 'rgba(255,224,138,.35)');
+  cue(159.0, 'pop', 0.75, 4);
   // … c’est elle, la colonne id de la table clients
-  pulse([$('#c5 .hd').children[0], ...c5r.map(r => r.children[1])], 143.7, 3, 'rgba(201,188,255,.55)');
-  hide('#pk5', 145.5, {y: -30}, 0.35);
+  pulse([$('#c5 .hd').children[0], ...c5r.map(r => r.children[1])], 159.3, 3, 'rgba(201,188,255,.55)');
+  hide('#pk5', 161.1, {y: -30}, 0.35);
   // La base y veille : le numéro 4 est déjà pris ; sans numéro, le client reçoit le suivant
-  show('#tr5', 146.2, {y: 40}, 0.5);
-  cue(146.2, 'whoosh', 0.5);
+  show('#tr5', 161.8, {y: 40}, 0.5);
+  cue(161.8, 'whoosh', 0.5);
   const tya = $('#ty5a'), tyb = $('#ty5b');
   gsap.set([tya, tyb], {autoAlpha: 0, x: -30});
-  tl.to(tya, {autoAlpha: 1, x: 0, duration: 0.4, ease: 'power3.out'}, 146.7);
-  cue(146.7, 'tick', 0.5, 2);
-  bump([tya.children[1], c5r[0].children[1]], 147.2, 1.15, 1);
-  show(tya.querySelector('.tys'), 147.6, {y: 0, scale: 0.6}, 0.35, 'back.out(2.2)');
-  cue(147.6, 'false', 0.55);
-  show('#te5', 148.0, {y: 0, scale: 0.9}, 0.3);
-  tl.to(tyb, {autoAlpha: 1, x: 0, duration: 0.4, ease: 'power3.out'}, 149.1);
-  cue(149.1, 'tick', 0.5, 3);
-  tl.to('#i5a', {autoAlpha: 0, scale: 0.6, duration: 0.25}, 149.8);
-  tl.fromTo('#i5b', {autoAlpha: 0, scale: 0.4}, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.4)', immediateRender: false}, 149.9);
-  cue(149.9, 'pop', 0.7, 5);
-  show(tyb.querySelector('.tys'), 150.3, {y: 0, scale: 0.6}, 0.35, 'back.out(2.2)');
-  cue(150.3, 'true', 0.5);
-  hide(['#c5', '#tr5'], 151.5);
-  sceneOff('#s5', 152.05);
+  tl.to(tya, {autoAlpha: 1, x: 0, duration: 0.4, ease: 'power3.out'}, 162.3);
+  cue(162.3, 'tick', 0.5, 2);
+  bump([tya.children[1], c5r[0].children[1]], 162.8, 1.15, 1);
+  show(tya.querySelector('.tys'), 163.2, {y: 0, scale: 0.6}, 0.35, 'back.out(2.2)');
+  cue(163.2, 'false', 0.55);
+  show('#te5', 163.6, {y: 0, scale: 0.9}, 0.3);
+  tl.to(tyb, {autoAlpha: 1, x: 0, duration: 0.4, ease: 'power3.out'}, 164.7);
+  cue(164.7, 'tick', 0.5, 3);
+  tl.to('#i5a', {autoAlpha: 0, scale: 0.6, duration: 0.25}, 165.4);
+  tl.fromTo('#i5b', {autoAlpha: 0, scale: 0.4}, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.4)', immediateRender: false}, 165.5);
+  cue(165.5, 'pop', 0.7, 5);
+  show(tyb.querySelector('.tys'), 165.9, {y: 0, scale: 0.6}, 0.35, 'back.out(2.2)');
+  cue(165.9, 'true', 0.5);
+  hide(['#c5', '#tr5'], 167.1);
+  sceneOff('#s5', 167.65);
 
   /* ===== 5 · La clé étrangère ===== */
-  sceneOn('#sx', 152.1);
-  ['#c3', '#m3', '#p3'].forEach((s, i) => tl.fromTo(s, {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'power3.out', immediateRender: false}, 152.2 + i * 0.15));
-  cue(152.2, 'whoosh', 0.55);
+  sceneOn('#sx', 167.7);
+  ['#c3', '#m3', '#p3'].forEach((s, i) => tl.fromTo(s, {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'power3.out', immediateRender: false}, 167.8 + i * 0.15));
+  cue(167.8, 'whoosh', 0.55);
   // Notés dans la table commandes : les clés étrangères
-  tl.to('#m3', {'--w1': '156px', '--w2': '172px', duration: 0.6, ease: 'power2.inOut'}, 153.2);
-  cue(153.2, 'whoosh', 0.45);
-  hdIn('#m3', 1, 153.5);
-  hdIn('#m3', 2, 153.6);
-  idIn('#m3', 1, 153.8);
-  idIn('#m3', 2, 154.5);
-  tl.to('#kq4', {autoAlpha: 0, scale: 0.8, duration: 0.25}, 155.8);
+  tl.to('#m3', {'--w1': '156px', '--w2': '172px', duration: 0.6, ease: 'power2.inOut'}, 168.8);
+  cue(168.8, 'whoosh', 0.45);
+  hdIn('#m3', 1, 169.1);
+  hdIn('#m3', 2, 169.2);
+  idIn('#m3', 1, 169.4);
+  idIn('#m3', 2, 170.1);
+  tl.to('#kq4', {autoAlpha: 0, scale: 0.8, duration: 0.25}, 171.4);
   gsap.set('#kp4b', {scale: 0.5});
-  tl.to('#kp4b', {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)'}, 156.0);
-  cue(156.0, 'pop', 0.75, 5);
-  on('#cb4b', 156.7);
-  cue(156.7, 'tick', 0.55, 2);
+  tl.to('#kp4b', {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)'}, 171.6);
+  cue(171.6, 'pop', 0.75, 5);
+  on('#cb4b', 172.3);
+  cue(172.3, 'tick', 0.55, 2);
   // Leur nom dit où chercher : commandes.client_id → clients.id
-  off('#cb4b', 158.4);
-  tl.to('#p3', {autoAlpha: 0, duration: 0.3}, 158.6);
-  show('#nm5', 158.9, {y: 30}, 0.5);
-  cue(158.9, 'whoosh', 0.5);
+  off('#cb4b', 174.0);
+  tl.to('#p3', {autoAlpha: 0, duration: 0.3}, 174.2);
+  show('#nm5', 174.5, {y: 30}, 0.5);
+  cue(174.5, 'whoosh', 0.5);
   const na = nPart($('#nr5a')), nb = nPart($('#nr5b')), nl = $$('#nr5a .nlb');
   gsap.set([...na, ...nb, ...nl], {autoAlpha: 0, y: 10});
-  tl.to(na, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.14}, 159.4);
-  na.forEach((_, i) => { if (i % 2 === 0) cue(159.4 + i * 0.14, 'tick', 0.45, i % 5); });
-  tl.to(nl, {autoAlpha: 1, y: 0, duration: 0.3, stagger: 0.3}, 160.6);
-  bump(na[2], 161.2, 1.12, 1);
-  bump(na[6], 161.5, 1.12, 1);
-  tl.to(nb, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.1}, 162.2);
-  cue(162.2, 'pop', 0.6, 3);
-  hide('#nm5', 164.2, {y: 30}, 0.35);
-  tl.to('#p3', {autoAlpha: 1, duration: 0.35}, 164.55);
+  tl.to(na, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.14}, 175.0);
+  na.forEach((_, i) => { if (i % 2 === 0) cue(175.0 + i * 0.14, 'tick', 0.45, i % 5); });
+  tl.to(nl, {autoAlpha: 1, y: 0, duration: 0.3, stagger: 0.3}, 176.2);
+  bump(na[2], 176.8, 1.12, 1);
+  bump(na[6], 177.1, 1.12, 1);
+  tl.to(nb, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.1}, 177.8);
+  cue(177.8, 'pop', 0.6, 3);
+  hide('#nm5', 179.8, {y: 30}, 0.35);
+  tl.to('#p3', {autoAlpha: 1, duration: 0.35}, 180.15);
   // La commande 1 : le client 1 et le produit 1
   const g4 = $$('#lk4 g');
-  hlRow(m3r[0], 165.2);
-  bump(m3r[0].children[2].querySelector('.fk'), 165.9, 1.25, 1);
-  linkIn(g4[0], 166.2, 0.6);
-  hlRow(c3r[0], 166.9);
-  bump(m3r[0].children[3].querySelector('.fk'), 168.0, 1.25, 1);
-  linkIn(g4[1], 168.3, 0.6);
-  hlRow(p3r[0], 169.0);
+  hlRow(m3r[0], 180.8);
+  bump(m3r[0].children[2].querySelector('.fk'), 181.5, 1.25, 1);
+  linkIn(g4[0], 181.8, 0.6);
+  hlRow(c3r[0], 182.5);
+  bump(m3r[0].children[3].querySelector('.fk'), 183.6, 1.25, 1);
+  linkIn(g4[1], 183.9, 0.6);
+  hlRow(p3r[0], 184.6);
   // Ses trois commandes renvoient au client 1
-  hlRow(m3r[1], 171.5);
-  linkIn(g4[2], 171.9, 0.6);
-  hlRow(m3r[5], 172.5);
-  linkIn(g4[3], 172.9, 0.7);
-  [g4[0], g4[2], g4[3]].forEach(g => tl.to(g.querySelector('path'), {strokeWidth: 9, duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 174.1));
-  bump($$('.v', c3r[0]).slice(1), 174.2, 1.1, 1);
+  hlRow(m3r[1], 187.1);
+  linkIn(g4[2], 187.5, 0.6);
+  hlRow(m3r[5], 188.1);
+  linkIn(g4[3], 188.5, 0.7);
+  [g4[0], g4[2], g4[3]].forEach(g => tl.to(g.querySelector('path'), {strokeWidth: 9, duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 189.7));
+  bump($$('.v', c3r[0]).slice(1), 189.8, 1.1, 1);
   // La Fibre Prébiotique, elle aussi, n’est écrite qu’une fois : la commande 5 y renvoie
-  hlRow(m3r[4], 174.5);
-  linkIn(g4[4], 174.7, 0.6);
+  hlRow(m3r[4], 190.1);
+  linkIn(g4[4], 190.3, 0.6);
   // Une base relationnelle
-  tl.fromTo('#stamp4', {autoAlpha: 0, scale: 2.2, rotation: -16}, {autoAlpha: 1, scale: 1, rotation: -7, duration: 0.32, ease: 'power3.in'}, 177.6);
-  cue(177.9, 'stamp', 0.9);
-  hide(['#c3', '#m3', '#p3', '#lk4'], 180.8);
-  sceneOff('#sx', 181.35);
+  tl.fromTo('#stamp4', {autoAlpha: 0, scale: 2.2, rotation: -16}, {autoAlpha: 1, scale: 1, rotation: -7, duration: 0.32, ease: 'power3.in'}, 193.2);
+  cue(193.5, 'stamp', 0.9);
+  hide(['#c3', '#m3', '#p3', '#lk4'], 196.4);
+  sceneOff('#sx', 196.95);
   // La clé étrangère se déclare : FOREIGN KEY et sa colonne, puis REFERENCES et la clé visée
-  sceneOn('#sk', 181.2);
-  show('#fk7', 181.3, {y: 60}, 0.6);
-  cue(181.3, 'whoosh', 0.7);
-  te = typeLine($('#fk1'), 181.8, 30);
+  sceneOn('#sk', 196.8);
+  show('#fk7', 196.9, {y: 60}, 0.6);
+  cue(196.9, 'whoosh', 0.7);
+  te = typeLine($('#fk1'), 197.4, 30);
   gsap.set(['#fk2', '#fk3', '#fk4', '#fk8'], {autoAlpha: 0});
   tl.to(['#fk2', '#fk3', '#fk4'], {autoAlpha: 1, duration: 0.3, stagger: 0.12}, te + 0.1);
-  te = typeLine($('#fk5'), 183.4, 24);
+  te = typeLine($('#fk5'), 199.0, 24);
   te = typeLine($('#fk6'), te + 0.1, 24);
   tl.to('#fk8', {autoAlpha: 1, duration: 0.25}, te + 0.1);
   gsap.set('#fkband', {scaleX: 0});
-  tl.to('#fkband', {scaleX: 1, duration: 0.5, ease: 'expo.out'}, 185.85);
-  cue(185.85, 'pop', 0.7, 3);
-  pulse(['#fka', '#fkc'], 186.2, 1, 'rgba(201,188,255,.45)');
-  cue(186.2, 'tick', 0.5, 2);
-  pulse('#fkb', 186.8, 1, 'rgba(255,224,138,.4)');
-  cue(186.8, 'tick', 0.5, 4);
-  hide('#fk7', 187.8, {y: -30}, 0.35);
-  sceneOff('#sk', 188.25);
+  tl.to('#fkband', {scaleX: 1, duration: 0.5, ease: 'expo.out'}, 201.45);
+  cue(201.45, 'pop', 0.7, 3);
+  pulse(['#fka', '#fkc'], 201.8, 1, 'rgba(201,188,255,.45)');
+  cue(201.8, 'tick', 0.5, 2);
+  pulse('#fkb', 202.4, 1, 'rgba(255,224,138,.4)');
+  cue(202.4, 'tick', 0.5, 4);
+  hide('#fk7', 203.4, {y: -30}, 0.35);
+  sceneOff('#sk', 203.85);
   // Grâce à elle, la base vérifie chaque lien : une commande pour le client 99 ?
-  sceneOn('#s8', 188.3);
-  show('#fkp', 188.35, {y: -20, scale: 0.94}, 0.5);
-  show('#m8', 188.4, {y: 50}, 0.55, 'power3.out');
-  cue(188.4, 'whoosh', 0.55);
-  rowsIn([$('#m8 .rw')], 188.8);
-  bump('#f8', 190.2, 1.3, 1);
-  cue(190.2, 'pop', 0.65, 2);
-  show('#id8', 190.8, {y: 40}, 0.5);
-  cue(190.8, 'whoosh', 0.5);
+  sceneOn('#s8', 203.9);
+  show('#fkp', 203.95, {y: -20, scale: 0.94}, 0.5);
+  show('#m8', 204.0, {y: 50}, 0.55, 'power3.out');
+  cue(204.0, 'whoosh', 0.55);
+  rowsIn([$('#m8 .rw')], 204.4);
+  bump('#f8', 205.8, 1.3, 1);
+  cue(205.8, 'pop', 0.65, 2);
+  show('#id8', 206.4, {y: 40}, 0.5);
+  cue(206.4, 'whoosh', 0.5);
   const chips = $$('#idr8 .idc');
   gsap.set('#idx8', {autoAlpha: 0, y: 8});
-  chips.forEach((c, i) => { tl.to(c, {backgroundColor: '#FFE08A', duration: 0.1, yoyo: true, repeat: 1}, 191.5 + i * 0.14); cue(191.5 + i * 0.14, 'tick', 0.4, i % 5); });
-  tl.to('#idx8', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'back.out(2)'}, 194.1);
-  cue(194.1, 'false', 0.55);
-  tl.to('#f8', {backgroundColor: '#FDE0E2', color: '#C2323A', duration: 0.3}, 194.2);
-  show('#er8', 194.9, {y: 0, scale: 0.8}, 0.45, 'back.out(1.8)');
-  cue(194.9, 'pop', 0.6, 1);
+  chips.forEach((c, i) => { tl.to(c, {backgroundColor: '#FFE08A', duration: 0.1, yoyo: true, repeat: 1}, 207.1 + i * 0.14); cue(207.1 + i * 0.14, 'tick', 0.4, i % 5); });
+  tl.to('#idx8', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'back.out(2)'}, 209.7);
+  cue(209.7, 'false', 0.55);
+  tl.to('#f8', {backgroundColor: '#FDE0E2', color: '#C2323A', duration: 0.3}, 209.8);
+  show('#er8', 210.5, {y: 0, scale: 0.8}, 0.45, 'back.out(1.8)');
+  cue(210.5, 'pop', 0.6, 1);
   // C’est la déclaration FOREIGN KEY qui refuse la commande
-  tl.to('#fkp .codepill', {backgroundColor: '#5A1F33', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 195.4);
-  cue(195.4, 'tick', 0.5, 1);
-  hide(['#fkp', '#m8', '#id8', '#er8'], 198.9);
-  sceneOff('#s8', 199.45);
+  tl.to('#fkp .codepill', {backgroundColor: '#5A1F33', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 211.0);
+  cue(211.0, 'tick', 0.5, 1);
+  hide(['#fkp', '#m8', '#id8', '#er8'], 214.5);
+  sceneOff('#s8', 215.05);
 
   /* ===== 6 · Lire une table ===== */
-  sceneOn('#s6', 199.4);
-  show('#s6code', 199.45, {y: 60}, 0.6);
-  cue(199.45, 'whoosh', 0.7);
-  te = typeLine($('#q61'), 199.95, 16, false, $('#cols7'));   // prenom, nom, email : tapés au chapitre 7, à la place de l’étoile
+  sceneOn('#s6', 215.0);
+  show('#s6code', 215.05, {y: 60}, 0.6);
+  cue(215.05, 'whoosh', 0.7);
+  te = typeLine($('#q61'), 215.55, 16, false, $('#cols7'));   // prenom, nom, email : tapés au chapitre 7, à la place de l’étoile
   te = typeLine($('#q62'), te + 0.1, 16);
-  pulse('#tn6', 202.1, 3, 'rgba(201,188,255,.35)');
-  pulse('#star6', 205.4, 3, 'rgba(255,224,138,.35)');
-  bump('#star6', 205.4, 1.3, 1);
-  press($('#s6run'), 207.0);
-  show('#tbl6', 207.25, {y: 40}, 0.5);
+  pulse('#tn6', 217.7, 3, 'rgba(201,188,255,.35)');
+  pulse('#star6', 221.0, 3, 'rgba(255,224,138,.35)');
+  bump('#star6', 221.0, 1.3, 1);
+  press($('#s6run'), 222.6);
+  show('#tbl6', 222.85, {y: 40}, 0.5);
   const r6 = $$('#rows6 .tr');
-  rowsIn(r6, 207.4, 0.06);
+  rowsIn(r6, 223.0, 0.06);
   gsap.set('#cnt7', {autoAlpha: 0});
-  show('#cnt6', 208.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  cue(208.0, 'pop', 0.7, 3);
+  show('#cnt6', 223.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(223.6, 'pop', 0.7, 3);
   // Les 9 colonnes défilent, jusqu’à la dernière, puis reviennent
-  tl.to('#pan6', {x: -PAN, duration: 2.6, ease: 'power1.inOut'}, 208.8);
-  cue(208.8, 'whoosh', 0.4);
-  tl.to('#pan6', {x: 0, duration: 0.9, ease: 'power2.inOut'}, 212.0);
+  tl.to('#pan6', {x: -PAN, duration: 2.6, ease: 'power1.inOut'}, 224.4);
+  cue(224.4, 'whoosh', 0.4);
+  tl.to('#pan6', {x: 0, duration: 0.9, ease: 'power2.inOut'}, 227.6);
   // La table est lue, sans être modifiée
-  show('#badge6', 213.1, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(213.1, 'chord', 0.7);
-  hide('#badge6', 216.2, {y: 0, scale: 0.8}, 0.3);
+  show('#badge6', 228.7, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(228.7, 'chord', 0.7);
+  hide('#badge6', 231.8, {y: 0, scale: 0.8}, 0.3);
 
   /* ===== 7 · Choisir les colonnes ===== */
   // Pour écrire aux clients : le prénom, le nom et l’e-mail ; les six autres colonnes s’estompent
@@ -1120,128 +1186,128 @@ function build(){
   const colCells = j => [th6[j], ...r6.map(r => r.children[j + 1])];   // dans une ligne, le premier enfant est le surlignage
   const keepH = KEEP.map(j => th6[j]);
   gsap.set('#pan6', {'--k0': '64px', '--k1': '150px', '--k2': '160px', '--k3': '300px', '--k4': '170px', '--k5': '80px', '--k6': '360px', '--k7': '250px', '--k8': '260px'});   // valeurs de départ, pour que le repli parte des largeurs réelles
-  tl.to(DROP.flatMap(colCells), {opacity: 0.2, duration: 0.45}, 217.6);
-  cue(217.6, 'fold', 0.45);
-  tl.to(keepH.slice(0, 2), {color: '#4B30CC', backgroundColor: '#E4DCFF', duration: 0.3}, 218.5);
-  cue(218.5, 'pop', 0.6, 2);
+  tl.to(DROP.flatMap(colCells), {opacity: 0.2, duration: 0.45}, 233.2);
+  cue(233.2, 'fold', 0.45);
+  tl.to(keepH.slice(0, 2), {color: '#4B30CC', backgroundColor: '#E4DCFF', duration: 0.3}, 234.1);
+  cue(234.1, 'pop', 0.6, 2);
   // La colonne email est plus loin : le tableau défile jusqu’à elle, puis revient
-  tl.to('#pan6', {x: -PANE, duration: 0.9, ease: 'power2.inOut'}, 219.2);
-  cue(219.2, 'whoosh', 0.4);
-  tl.to(keepH[2], {color: '#4B30CC', backgroundColor: '#E4DCFF', duration: 0.3}, 220.2);
-  cue(220.2, 'pop', 0.6, 4);
-  tl.to('#pan6', {x: 0, duration: 0.7, ease: 'power2.inOut'}, 221.2);
+  tl.to('#pan6', {x: -PANE, duration: 0.9, ease: 'power2.inOut'}, 234.8);
+  cue(234.8, 'whoosh', 0.4);
+  tl.to(keepH[2], {color: '#4B30CC', backgroundColor: '#E4DCFF', duration: 0.3}, 235.8);
+  cue(235.8, 'pop', 0.6, 4);
+  tl.to('#pan6', {x: 0, duration: 0.7, ease: 'power2.inOut'}, 236.8);
   // À la place de l’étoile : leurs noms, séparés par une virgule
-  tl.to('#star6', {scale: 0.2, autoAlpha: 0, duration: 0.25, ease: 'power2.in'}, 223.4);
-  cue(223.4, 'fold', 0.4);
-  tl.set('#star6', {display: 'none'}, 223.65);
-  te = typeMore($('#cols7'), 223.8, 16);
+  tl.to('#star6', {scale: 0.2, autoAlpha: 0, duration: 0.25, ease: 'power2.in'}, 239.0);
+  cue(239.0, 'fold', 0.4);
+  tl.set('#star6', {display: 'none'}, 239.25);
+  te = typeMore($('#cols7'), 239.4, 16);
   ['#k7a', '#k7b'].forEach((s, i) => {
-    const t = 225.5 + i * 0.35;
+    const t = 241.1 + i * 0.35;
     tl.to(s, {scale: 1.7, y: -6, color: '#FFC94A', duration: 0.2, ease: 'power2.out'}, t)
       .to(s, {scale: 1, y: 0, color: '#FFE08A', duration: 0.3, ease: 'back.out(2)'}, t + 0.2);
     cue(t, 'pop', 0.75, 3 + i);
   });
   // Exécuter : les six colonnes se replient, les trois autres s’élargissent
-  press($('#s6run'), 228.3);
-  tl.to(DROP.flatMap(colCells), {opacity: 0, paddingLeft: 0, paddingRight: 0, duration: 0.3}, 228.55);
+  press($('#s6run'), 243.9);
+  tl.to(DROP.flatMap(colCells), {opacity: 0, paddingLeft: 0, paddingRight: 0, duration: 0.3}, 244.15);
   tl.to('#pan6', {'--k0': '0px', '--k3': '0px', '--k4': '0px', '--k5': '0px', '--k7': '0px', '--k8': '0px',
-    '--k1': W3[0] + 'px', '--k2': W3[1] + 'px', '--k6': W3[2] + 'px', width: $('#tbl6').clientWidth, duration: 0.75, ease: 'power3.inOut'}, 228.65);
-  cue(228.65, 'whoosh', 0.5);
-  tl.to('#cnt6', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 229.1);
-  tl.fromTo('#cnt7', {autoAlpha: 0, y: 24}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)', immediateRender: false}, 229.2);
-  cue(229.2, 'pop', 0.8, 4);
+    '--k1': W3[0] + 'px', '--k2': W3[1] + 'px', '--k6': W3[2] + 'px', width: $('#tbl6').clientWidth, duration: 0.75, ease: 'power3.inOut'}, 244.25);
+  cue(244.25, 'whoosh', 0.5);
+  tl.to('#cnt6', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 244.7);
+  tl.fromTo('#cnt7', {autoAlpha: 0, y: 24}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)', immediateRender: false}, 244.8);
+  cue(244.8, 'pop', 0.8, 4);
   // 1, 2, 3 : l’ordre des colonnes est celui de la requête (les rangs prennent leur place une fois les colonnes élargies)
   gsap.set(['#o7a', '#o7b', '#o7c'], {display: 'none'});
-  tl.set(['#o7a', '#o7b', '#o7c'], {display: 'inline-flex'}, 229.5);
+  tl.set(['#o7a', '#o7b', '#o7c'], {display: 'inline-flex'}, 245.1);
   [['#o7a', '#c7a'], ['#o7b', '#c7b'], ['#o7c', '#c7c']].forEach(([o, w], i) => {
-    const t = 230.4 + i * 0.6;
+    const t = 246.0 + i * 0.6;
     show(o, t, {y: 0, scale: 0.4}, 0.35, 'back.out(2.4)');
     tl.to(w, {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.22, yoyo: true, repeat: 1, ease: 'power1.inOut'}, t);
     cue(t, 'pop', 0.9, 1 + i * 2);
   });
-  tl.to(keepH, {color: '#6A6490', backgroundColor: 'rgba(228,220,255,0)', duration: 0.3}, 232.3);
+  tl.to(keepH, {color: '#6A6490', backgroundColor: 'rgba(228,220,255,0)', duration: 0.3}, 247.9);
   // Les 10 clients sont toujours là, chacun une seule fois : Sophie Martin, avec un seul e-mail
-  bump('#cnt7', 234.6, 1.1, 1);
-  cue(234.6, 'tick', 0.55, 2);
-  hlRow(r6[0], 235.9);
-  pulse(r6[0].children[7], 236.4, 3, 'rgba(201,188,255,.55)');
-  show('#badge7', 237.2, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(237.2, 'chord', 0.7);
+  bump('#cnt7', 250.2, 1.1, 1);
+  cue(250.2, 'tick', 0.55, 2);
+  hlRow(r6[0], 251.5);
+  pulse(r6[0].children[7], 252.0, 3, 'rgba(201,188,255,.55)');
+  show('#badge7', 252.8, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(252.8, 'chord', 0.7);
   // Et la feuille Excel ? Plus tard, la jointure la reconstitue à partir des tables
-  hide('#s6code', 240.8, {y: -40}, 0.4);
-  hlRow(r6[0], 240.8, 0);
-  tl.to('#tbl6', {top: TOP6 - UP7, duration: 0.6, ease: 'power3.inOut'}, 241.2);
-  tl.to('#badge7', {top: TOPB7 - UP7, duration: 0.6, ease: 'power3.inOut'}, 241.2);
-  cue(241.2, 'whoosh', 0.45);
-  show('#jn6', 242.0, {y: 50}, 0.5);
-  cue(242.0, 'whoosh', 0.55);
+  hide('#s6code', 256.4, {y: -40}, 0.4);
+  hlRow(r6[0], 256.4, 0);
+  tl.to('#tbl6', {top: TOP6 - UP7, duration: 0.6, ease: 'power3.inOut'}, 256.8);
+  tl.to('#badge7', {top: TOPB7 - UP7, duration: 0.6, ease: 'power3.inOut'}, 256.8);
+  cue(256.8, 'whoosh', 0.45);
+  show('#jn6', 257.6, {y: 50}, 0.5);
+  cue(257.6, 'whoosh', 0.55);
   const [jr1, jr2] = $$('#jn6 .jnr'), jc = [...jr1.children], jr = [...jr2.children];
   gsap.set([...jc, ...jr], {autoAlpha: 0, scale: 0.6});
-  tl.to(jc, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)', stagger: 0.12}, 242.6);
-  jc.forEach((_, i) => { if (i % 2 === 0) cue(242.6 + i * 0.12, 'pop', 0.55, i); });
-  tl.to(jr, {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)', stagger: 0.15}, 244.4);
-  cue(244.55, 'chord', 0.6);
-  hide(['#tbl6', '#badge7', '#jn6'], 246.15);
-  sceneOff('#s6', 246.65);
+  tl.to(jc, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)', stagger: 0.12}, 258.2);
+  jc.forEach((_, i) => { if (i % 2 === 0) cue(258.2 + i * 0.12, 'pop', 0.55, i); });
+  tl.to(jr, {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)', stagger: 0.15}, 260.0);
+  cue(260.15, 'chord', 0.6);
+  hide(['#tbl6', '#badge7', '#jn6'], 261.75);
+  sceneOff('#s6', 262.25);
 
   /* ===== 8 · Deux pièges ===== */
-  sceneOn('#s9', 246.6);
-  show('#qdemo .codepill', 246.65, {y: 0, scale: 0.9}, 0.55, 'back.out(1.8)');
-  cue(246.65, 'whoosh', 0.6);
+  sceneOn('#s9', 262.2);
+  show('#qdemo .codepill', 262.25, {y: 0, scale: 0.9}, 0.55, 'back.out(1.8)');
+  cue(262.25, 'whoosh', 0.6);
   // Une virgule entre deux colonnes
   ['#cm9a', '#cm9b'].forEach((s, i) => {
-    const t = 247.5 + i * 0.3;
+    const t = 263.1 + i * 0.3;
     tl.to(s, {scale: 1.7, y: -6, color: '#FFC94A', duration: 0.2, ease: 'power2.out'}, t)
       .to(s, {scale: 1, y: 0, color: '#FFE08A', duration: 0.3, ease: 'back.out(2)'}, t + 0.2);
     cue(t, 'pop', 0.8, 4 + i);
   });
   gsap.set('#brkPath', {strokeDasharray: `${BRK} ${BRK + 2}`, strokeDashoffset: BRK + 1});
-  tl.to('#brkPath', {strokeDashoffset: 0, duration: 0.5, ease: 'power2.inOut'}, 248.3);
-  show('#qlabel', 248.65, {y: 14});
+  tl.to('#brkPath', {strokeDashoffset: 0, duration: 0.5, ease: 'power2.inOut'}, 263.9);
+  show('#qlabel', 264.25, {y: 14});
   // Sans virgule : email devient le titre de la colonne (un alias), qui contient les prénoms
-  show('#trapA', 251.8, {y: 50});
-  cue(251.8, 'whoosh', 0.6);
-  press($('#goA'), 252.7, '#4B30CC', 6);
-  show('#resA', 252.95, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
-  cue(252.95, 'pop', 0.8, 2);
+  show('#trapA', 267.4, {y: 50});
+  cue(267.4, 'whoosh', 0.6);
+  press($('#goA'), 268.3, '#4B30CC', 6);
+  show('#resA', 268.55, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  cue(268.55, 'pop', 0.8, 2);
   const mrr = $$('#resA .mrr');
   gsap.set(mrr, {autoAlpha: 0, y: 10});
-  tl.to(mrr, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.08}, 253.15);
+  tl.to(mrr, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.08}, 268.75);
   gsap.set('#thEmail .mbox', {autoAlpha: 0, scale: 1.25});
-  tl.to('#thEmail .mbox', {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 253.9);
-  tl.to('#thEmail', {color: '#C2323A', duration: 0.2}, 253.9);
-  cue(253.9, 'miss', 0.7, 2);
-  show('#noteA', 254.4, {y: 0, x: -24}, 0.45);
-  cue(254.4, 'pop', 0.7, 4);
+  tl.to('#thEmail .mbox', {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 269.5);
+  tl.to('#thEmail', {color: '#C2323A', duration: 0.2}, 269.5);
+  cue(269.5, 'miss', 0.7, 2);
+  show('#noteA', 270.0, {y: 0, x: -24}, 0.45);
+  cue(270.0, 'pop', 0.7, 4);
   // AS est facultatif : il apparaît, en pointillés, entre prenom et email
-  tl.to('#ghostAS', {width: GW, duration: 0.5, ease: 'power3.out'}, 257.9);
-  cue(257.9, 'whoosh', 0.45);
-  show('#glbl', 258.25, {y: 14, scale: 0.8}, 0.4, 'back.out(2)');
-  cue(258.25, 'pop', 0.8, 3);
-  tl.to('#thEmail', {scale: 1.15, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 258.8);
+  tl.to('#ghostAS', {width: GW, duration: 0.5, ease: 'power3.out'}, 273.5);
+  cue(273.5, 'whoosh', 0.45);
+  show('#glbl', 273.85, {y: 14, scale: 0.8}, 0.4, 'back.out(2)');
+  cue(273.85, 'pop', 0.8, 3);
+  tl.to('#thEmail', {scale: 1.15, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 274.4);
   // Une virgule de trop avant FROM : la requête provoque une erreur
-  show('#trapB', 263.9, {y: 50});
-  cue(263.9, 'whoosh', 0.6);
-  press($('#goB'), 264.8, '#4B30CC', 6);
+  show('#trapB', 279.5, {y: 50});
+  cue(279.5, 'whoosh', 0.6);
+  press($('#goB'), 280.4, '#4B30CC', 6);
   gsap.set('#badComma .mbox', {autoAlpha: 0, scale: 1.4});
-  tl.to('#badComma .mbox', {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 265.05);
-  tl.to('#badComma', {color: '#FF9DA1', duration: 0.2}, 265.05);
-  show('#errB', 265.05, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
-  tl.to('#errB', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 265.45);
-  cue(265.05, 'error', 0.9);
-  hide(['#qdemo', '#trapA', '#trapB'], 269.05);
-  sceneOff('#s9', 269.6);
+  tl.to('#badComma .mbox', {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 280.65);
+  tl.to('#badComma', {color: '#FF9DA1', duration: 0.2}, 280.65);
+  show('#errB', 280.65, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  tl.to('#errB', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 281.05);
+  cue(280.65, 'error', 0.9);
+  hide(['#qdemo', '#trapA', '#trapB'], 284.65);
+  sceneOff('#s9', 285.2);
 
   /* ===== 9 · À retenir ===== */
-  recapScene(269.6, [270.3, 272.1, 273.9]);
-  hold(271.9, 5.2);
-  hold(273.7, 5.2);
+  recapScene(285.2, [285.9, 287.7, 289.5]);
+  hold(287.5, 5.2);
+  hold(289.3, 5.2);
   // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(274.85, 'pop', 0.85, 5);
+  if (APP) cue(290.45, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 274.85,
-  glyphs: '📊👥📦🧾🔑🔗❓🔎👀🗂️🏷️➕📋⚠️✓✕?!→↔↑·…⋮«»+', dom, build});
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 290.45,
+  glyphs: '📊👥📦🧾🔑🔗❓🔎👀🗂️🏷️➕📋⚠️💬💼✓✕?!→↔↑·…⋮«»+', dom, build});
 </script>
 </body>
 </html>
