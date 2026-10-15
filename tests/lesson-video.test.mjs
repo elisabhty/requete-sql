@@ -703,8 +703,8 @@ const COURSES = [
       '<span class="glow" id="or5"><span class="kw">OR</span> clients.ville = <span class="str">\'Paris\'</span></span>', '<span class="n5">72 lignes</span>',
       '✓ 2 commandes pour le coursier', '<span class="c">Lyon ✕</span>', '"👉 13 est le numéro de la commande ; 1 est le numéro du client."',
       '<span class="bike" id="bike6"><span class="emo">🛵</span></span>', '<span class="lvr">✓ Livrée</span>']},
-  {id: 44, next: 45, titre: 'Quel JOIN choisir ?', page: 'quel-join-choisir.html', thumb: 'quel-join-choisir-thumb.jpg', duree: '3 min 58', notesAt: 218.5,
-    notes: /notes:\{t:229\.2,y:1322,card:\[64,292,1016,1027\],to:\[940,255\]\}/, table: 'clients',
+  {id: 44, next: 45, titre: 'Quel JOIN choisir ?', page: 'quel-join-choisir.html', thumb: 'quel-join-choisir-thumb.jpg', duree: '4 min 12', notesAt: 218.5,
+    notes: /notes:\{t:243\.1,y:1396,card:\[64,292,1016,1101\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Six situations de la vie courante&nbsp;:<br>à toi de choisir le bon <span class="ic">JOIN</span>.',
     chapters: ['Le cabinet médical', 'L’aquarium', 'La bibliothèque', 'L’hôtel', 'Le glacier', 'L’entreprise', 'À retenir'],
     traps: ["const SAL = [[1, 'Nadia Benali', N], [2, 'Hugo Lefèvre', 1], [3, 'Inès Fabre', 2], [4, 'Théo Petit', 2]];",
@@ -1132,7 +1132,7 @@ test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la 
 
 test('leçon seule (Quel JOIN choisir ?) : la vidéo interactive valide la leçon, sans exercice, quiz ni révision', () => {
   const l44 = cut('guide({ id:44, titre:"Quel JOIN choisir ?"', 'guide({ id:45,');
-  assert.ok(l44.includes('leconSeule:true,') && l44.includes(",duree:'3 min 58',moments:9,"), 'leçon 44 : leçon seule, 9 moments');
+  assert.ok(l44.includes('leconSeule:true,') && l44.includes(",duree:'4 min 12',moments:9,"), 'leçon 44 : leçon seule, 9 moments');
   assert.ok(html.includes("'joinRecap','leconSeule','exoNeeds','video']"), 'drapeau copié par guide()');
   assert.ok(html.includes('function dueList(){ return allLessons.filter(l=>isDue(l.id)&&!l.leconSeule); }'), 'pas de révision « De mémoire » sans exercice');
   assert.ok(html.includes("if(current.leconSeule)return [{i:0,l:'Leçon'") && html.includes("if(leconSeule(id))return !!(state.lessons[id]&&state.lessons[id].done);"), 'une seule étape : la leçon');
