@@ -259,7 +259,7 @@
 <script src="core.js"></script>
 <script>
 'use strict';
-const DURATION = 205.6;
+const DURATION = 208.1;
 
 /* La table clients : [id, prénom, nom, a-t-il commandé de la Fibre Prébiotique (produit 1) ?]. */
 const CLIENTS = [[1, 'Sophie', 'Martin', 1], [2, 'Lucas', 'Bernard', 0], [3, 'Emma', 'Dubois', 0], [4, 'Nathan', 'Petit', 1], [5, 'Chloé', 'Moreau', 1],
@@ -274,9 +274,9 @@ const CHAPTERS = [
   {n:2, label:'Le problème',            a:27.5,  b:62.6},
   {n:3, label:'EXISTS',                 a:62.6,  b:102.7},
   {n:4, label:'La recherche corrélée',  a:102.7,  b:138.0},
-  {n:5, label:'Le piège',               a:138.0, b:170.4},
-  {n:6, label:'Le résultat',            a:170.4, b:195.5},
-  {n:7, label:'À retenir',              a:195.5, b:DURATION}
+  {n:5, label:'Le piège',               a:138.0, b:172.9},
+  {n:6, label:'Le résultat',            a:172.9, b:198.0},
+  {n:7, label:'À retenir',              a:198.0, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
@@ -312,16 +312,16 @@ const CAPTIONS = [
   [143.2, 147.6, "mais ne vérifie plus si la commande<br>appartient au client concerné."],
   [147.7, 153.4, "Sans le lien avec le client,<br>la <span class=\"nw\">sous-requête</span> cherche<br>une commande de Fibre&nbsp;Prébiotique,"],
   [153.5, 155.8, "peu importe qui l’a passée."],
-  [155.9, 160.6, "Une telle commande existe :<br><code>EXISTS</code> est donc vrai<br>pour tous les clients,"],
-  [160.7, 163.9, "même ceux qui n’ont jamais<br>acheté ce produit."],
-  [164.0, 169.9, "Inès Lefebvre et Nathan Dupont, qui n’ont jamais rien commandé, recevraient l’annonce."],
-  [170.7, 177.5, "La requête affiche le prénom et le nom<br>des clients ayant passé au moins<br>une commande de Fibre&nbsp;Prébiotique."],
-  [177.6, 183.1, "Résultat : <b>4 lignes</b>, avec le prénom et le nom de chaque client."],
-  [183.2, 188.8, "Les quatre clients reçoivent l’annonce de la nouvelle saveur."],
-  [188.9, 195.0, "À l’inverse, <code>NOT EXISTS</code> garderait les 6 clients sans commande de Fibre&nbsp;Prébiotique."],
-  [195.8, 200.6, "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [200.7, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
-      : [200.7, 999, "<code>EXISTS</code> cherche une ligne liée : vrai s’il en trouve une, faux sinon."]
+  [155.9, 160.5, "Une commande de ce produit existe,<br>mais son client n’est pas vérifié."],
+  [160.6, 166.4, "<code>EXISTS</code> est donc vrai<br>pour les <b>10 clients</b>, même ceux<br>qui n’ont jamais commandé ce produit."],
+  [166.5, 172.4, "Inès Lefebvre et Nathan Dupont, qui n’ont jamais rien commandé, recevraient l’annonce."],
+  [173.2, 180.0, "La requête affiche le prénom et le nom<br>des clients ayant passé au moins<br>une commande de Fibre&nbsp;Prébiotique."],
+  [180.1, 185.6, "Résultat : <b>4 lignes</b>, avec le prénom et le nom de chaque client."],
+  [185.7, 191.3, "Les quatre clients reçoivent l’annonce de la nouvelle saveur."],
+  [191.4, 197.5, "À l’inverse, <code>NOT EXISTS</code> garderait les 6 clients sans commande de Fibre&nbsp;Prébiotique."],
+  [198.3, 203.1, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [203.2, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [203.2, 999, "<code>EXISTS</code> cherche une ligne liée : vrai s’il en trouve une, faux sinon."]
 ];
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
@@ -547,61 +547,64 @@ function build(){
   gsap.set(nc, {autoAlpha: 0, scale: 0.8});
   tl.to(nc, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.12}, 148.8);
   nc.forEach((_, i) => cue(148.8 + i * 0.12, 'true', 0.3));
-  // EXISTS est vrai pour tous les clients : 10 lignes
+  // Une commande de ce produit existe, mais son client n’est pas vérifié : la ligne WHERE ne parle que du produit
+  pulse('#w5', 158.3, 3, 'rgba(255,214,140,.5)');
+  cue(158.3, 'tick', 0.5, 2);
+  // EXISTS est donc vrai pour les 10 clients : 10 lignes
   gsap.set('#n5', {autoAlpha: 0});
-  show('#n5', 159.1, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  bump('#n5', 159.8, 1.15, 3);
-  cue(159.1, 'false', 0.5);
-  // Même ceux qui n’ont jamais acheté ce produit (en ambre)
-  tl.to($$('#ng5 .nc.nb'), {backgroundColor: '#FFF4E5', borderColor: '#F5C27A', color: '#9A5B00', duration: 0.3, stagger: 0.08}, 161.1);
-  cue(161.1, 'tick', 0.5, 3);
+  show('#n5', 162.7, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#n5', 163.4, 1.15, 3);
+  cue(162.7, 'false', 0.5);
+  // Même ceux qui n’ont jamais commandé ce produit (en ambre)
+  tl.to($$('#ng5 .nc.nb'), {backgroundColor: '#FFF4E5', borderColor: '#F5C27A', color: '#9A5B00', duration: 0.3, stagger: 0.08}, 164.0);
+  cue(164.0, 'tick', 0.5, 3);
   // Même Inès Lefebvre et Nathan Dupont
-  tl.to($$('#ng5 .nc.jm'), {backgroundColor: '#FDEBEC', borderColor: '#F2B8BC', color: '#C2323A', duration: 0.3, stagger: 0.25}, 164.5);
-  cue(164.5, 'miss', 0.55);
-  show('#x5', 165.3, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
-  shake($$('#ng5 .nc.jm'), 165.9);
-  hide(['#tp5', '#rs5', '#x5'], 169.9, {y: -40});
-  sceneOff('#s5', 170.4);
+  tl.to($$('#ng5 .nc.jm'), {backgroundColor: '#FDEBEC', borderColor: '#F2B8BC', color: '#C2323A', duration: 0.3, stagger: 0.25}, 167.0);
+  cue(167.0, 'miss', 0.55);
+  show('#x5', 167.8, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  shake($$('#ng5 .nc.jm'), 168.4);
+  hide(['#tp5', '#rs5', '#x5'], 172.4, {y: -40});
+  sceneOff('#s5', 172.9);
 
   /* ===== 6 · Le résultat ===== */
-  sceneOn('#s6', 170.4);
-  show('#s6code', 170.45, {y: 60}, 0.6);
-  cue(170.45, 'whoosh', 0.7);
-  te = typeLine($('#s6l1'), 170.95, 40);
+  sceneOn('#s6', 172.9);
+  show('#s6code', 172.95, {y: 60}, 0.6);
+  cue(172.95, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 173.45, 40);
   for (const k of [2, 3, 4, 5, 6, 7, 8]) te = typeLine($('#s6l' + k), te + 0.1, 40);
   pulse('#e6', te + 0.2, 3, 'rgba(201,188,255,.35)');
-  press($('#s6run'), 177.9);
+  press($('#s6run'), 180.4);
   stackBelow('#tbl6', '#s6code', 0, 30);
-  show('#tbl6', 178.15, {y: 40}, 0.5);
-  rowsIn($$('#rows6 .tr'), 178.3, 0.12);
-  show('#cnt6', 178.9, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  bump('#cnt6', 179.7, 1.15, 3);
-  hide(['#s6code', '#tbl6'], 183.0, {y: -40}, 0.4);
+  show('#tbl6', 180.65, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 180.8, 0.12);
+  show('#cnt6', 181.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 182.2, 1.15, 3);
+  hide(['#s6code', '#tbl6'], 185.5, {y: -40}, 0.4);
   // L’annonce de la nouvelle saveur
-  boardIn('#ab6', 183.4, '.ms-h, .ms-to', 0.25);
+  boardIn('#ab6', 185.9, '.ms-h, .ms-to', 0.25);
   gsap.set('#sp6', {autoAlpha: 0, scale: 1.8, rotation: -14});
-  tl.to('#sp6', {autoAlpha: 1, scale: 1, rotation: -8, duration: 0.35, ease: 'back.out(2)'}, 185.4);
-  cue(185.4, 'stamp', 0.8);
+  tl.to('#sp6', {autoAlpha: 1, scale: 1, rotation: -8, duration: 0.35, ease: 'back.out(2)'}, 187.9);
+  cue(187.9, 'stamp', 0.8);
   stackBelow('#badge6', '#ab6', 0, 50);
   stackBelow('#ne6', '#badge6', 0, 30);
-  show('#badge6', 186.2, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(186.2, 'chord', 0.7);
+  show('#badge6', 188.7, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(188.7, 'chord', 0.7);
   // À l’inverse : NOT EXISTS
-  show('#ne6', 189.4, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
-  cue(189.4, 'pop', 0.7, 3);
-  hide(['#ab6', '#badge6', '#ne6'], 195.0);
-  sceneOff('#s6', 195.5);
+  show('#ne6', 191.9, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(191.9, 'pop', 0.7, 3);
+  hide(['#ab6', '#badge6', '#ne6'], 197.5);
+  sceneOff('#s6', 198.0);
 
   /* ===== 7 · À retenir ===== */
-  recapScene(195.5, [196.2, 198.0, 199.8]);
-  hold(197.8, 7.0);   // le temps de lire chaque idée et sa précision avant la suivante
-  hold(199.6, 9.7);
-  hold(201.3, 5.0);   // la dernière idée reste à l’écran avant la fin
+  recapScene(198.0, [198.7, 200.5, 202.3]);
+  hold(200.3, 7.0);   // le temps de lire chaque idée et sa précision avant la suivante
+  hold(202.1, 9.7);
+  hold(203.8, 5.0);   // la dernière idée reste à l’écran avant la fin
   // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(200.75, 'pop', 0.85, 5);
+  if (APP) cue(203.25, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 200.7,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 203.2,
   glyphs: '🍋📣🛒👤👪🗂️✕❓🔍✓🔗👥⚠️🔎🔄→·?…', dom, build});
 </script>
 </body>
