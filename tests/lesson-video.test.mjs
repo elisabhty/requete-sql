@@ -767,7 +767,7 @@ const COURSES = [
       '<span class="glow" id="wh4"><span class="kw">WHERE</span> nb_commandes &gt;= 2</span>;', '<span class="m">no such table: totaux</span>',
       '<span class="glow" id="j6"><span class="kw">JOIN</span> totaux</span>', '✓ 6 invitations envoyées']},
   {id: 73, next: 80, titre: 'UNION et UNION ALL', page: 'union.html', thumb: 'union-thumb.jpg', duree: '3 min 22', notesAt: 155.7,
-    notes: /notes:\{t:196\.7,y:1210,card:\[64,292,1016,915\],to:\[940,255\]\}/, table: 'clients',
+    notes: /notes:\{t:196\.9,y:1210,card:\[64,292,1016,915\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avec <span class="ic">UNION</span>, empile les lignes<br>de plusieurs requêtes en un seul résultat.',
     chapters: ['Situation', 'Le problème', 'UNION ALL', 'Les noms de colonnes', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ["const INDICATEURS = [['Nombre de clients', 10, '👥'], ['Nombre de commandes', 16, '🛒'], ['Nombre de produits', 8, '📦']];",
