@@ -211,7 +211,7 @@
 <script src="core.js"></script>
 <script>
 'use strict';
-const DURATION = 171.5;
+const DURATION = 185.0;
 
 /* La CTE totaux : [client_id, nb_commandes] (la commande n°16, sans client, est écartée). */
 const TOTAUX = [[1, 3], [2, 2], [3, 2], [4, 2], [5, 2], [6, 1], [7, 2], [8, 1]];
@@ -224,11 +224,11 @@ const APERCU = [['Sophie', 'Martin'], ['Lucas', 'Bernard'], ['Emma', 'Dubois'], 
 const CHAPTERS = [
   {n:1, label:'Situation',      a:5.0,   b:27.5},
   {n:2, label:'Le problème',    a:27.5,  b:56.9},
-  {n:3, label:'La CTE',         a:56.9,  b:86.9},
-  {n:4, label:'Lire la CTE',    a:86.9,  b:109.4},
-  {n:5, label:'Le piège',       a:109.4, b:132.4},
-  {n:6, label:'Le résultat',    a:132.4, b:161.4},
-  {n:7, label:'À retenir',      a:161.4, b:DURATION}
+  {n:3, label:'La CTE',         a:56.9,  b:95.2},
+  {n:4, label:'Lire la CTE',    a:95.2,  b:122.9},
+  {n:5, label:'Le piège',       a:122.9, b:145.9},
+  {n:6, label:'Le résultat',    a:145.9, b:174.9},
+  {n:7, label:'À retenir',      a:174.9, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
@@ -242,27 +242,30 @@ const CAPTIONS = [
   [39.1, 44.6,   "Ensuite seulement, on peut garder les clients qui en ont au moins 2."],
   [44.7, 50.2,   "Pour organiser ces deux étapes<br>dans une seule requête,<br>on utilise la clause SQL <code>WITH</code>."],
   [50.3, 56.4,   "Elle permet de nommer un résultat<br>intermédiaire pour le réutiliser<br>dans la suite de la requête."],
-  [57.2, 62.9,   "<code>WITH</code> prépare d’abord un calcul à part, et lui donne un nom : <code>totaux</code>."],
-  [63.0, 68.6,   "La requête entre parenthèses compte les commandes de chaque client."],
-  [68.7, 74.6,   "<code>WHERE client_id IS NOT NULL</code> écarte la commande n°16, qui n’a pas de client."],
-  [74.7, 80.2,   "Résultat : une ligne par client, avec son nombre de commandes."],
-  [80.3, 86.4,   "<code>WITH</code> = je prépare. <code>AS</code> = je nomme. Le <code>SELECT</code> qui suit = j’utilise."],
-  [87.2, 92.8,   "Après le <code>WITH</code>, <code>totaux</code> se lit comme n’importe quelle table."],
-  [92.9, 98.2,   "On peut donc la filtrer : <code>WHERE nb_commandes >= 2</code>."],
-  [98.3, 103.8,   "Les clients 6 et 8 sont écartés : une seule commande chacun."],
-  [103.9, 108.9,  "Il reste <b>6 clients réguliers</b> sur 8."],
-  [109.7, 115.2, "Attention : une CTE n’est pas enregistrée dans la base."],
-  [115.3, 121.0, "Elle n’existe que pendant la requête qui la définit, jusqu’au point-virgule."],
-  [121.1, 126.8, "Une requête suivante qui lit <code>totaux</code> provoque une erreur : <code>no such table</code>."],
-  [126.9, 131.9, "Pour s’en servir, le <code>WITH</code> doit être écrit dans la même requête."],
-  [132.7, 138.4, "La requête complète prépare <code>totaux</code>, puis la relie à la table clients."],
-  [138.5, 144.1, "Le <code>JOIN</code> retrouve le prénom, le nom et l’email de chaque client."],
-  [144.2, 149.6, "Le <code>WHERE</code> ne garde que les clients à 2 commandes ou plus."],
-  [149.7, 155.2, "La requête renvoie <b>6 lignes</b>, de Sophie Martin à Léa Simon."],
-  [155.3, 160.9, "Les 6 invitations à l’avant-première partent par email."],
-  [161.7, 166.5, "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [166.6, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
-      : [166.6, 999, "<code>WITH</code> prépare un résultat nommé, lu ensuite comme une table."]
+  [57.2, 63.2,   "Avec <code>WITH totaux AS (…)</code>,<br>on donne le nom <code>totaux</code> au résultat<br>de la requête entre parenthèses."],
+  [63.3, 67.8,   "Ce résultat pourra ensuite être utilisé<br>dans la requête principale."],
+  [67.9, 73.6,   "La requête entre parenthèses regroupe<br>les commandes par client<br>avec <code>GROUP BY client_id</code>,"],
+  [73.7, 78.0,   "puis les compte avec <code>COUNT(*)</code>.<br>Ce nombre est nommé <code>nb_commandes</code>."],
+  [78.1, 84.0,   "<code>WHERE client_id IS NOT NULL</code> écarte la commande n°16, qui n’a pas de client."],
+  [84.1, 89.6,   "Résultat : une ligne par client, avec son nombre de commandes."],
+  [89.7, 94.7,   "<code>WITH totaux AS (…)</code> définit un résultat<br>nommé <code>totaux</code> : c’est une <b>CTE</b>."],
+  [95.5, 101.1,  "Le <code>SELECT * FROM totaux</code> qui suit<br>affiche ce résultat,<br>comme on consulterait une table."],
+  [101.2, 104.9, "Dans <code>totaux</code>, le nombre<br>de commandes est déjà calculé."],
+  [105.0, 111.7, "<code>WHERE nb_commandes >= 2</code> permet donc<br>de garder uniquement les clients ayant<br>passé au moins deux commandes."],
+  [111.8, 117.3, "Les clients 6 et 8 n’ont passé<br>qu’une commande chacun :<br>ils ne sont pas retenus."],
+  [117.4, 122.4, "Les six autres clients<br>remplissent la condition."],
+  [123.2, 128.7, "Attention : une CTE n’est pas enregistrée dans la base."],
+  [128.8, 134.5, "Elle n’existe que pendant la requête qui la définit, jusqu’au point-virgule."],
+  [134.6, 140.3, "Une requête suivante qui lit <code>totaux</code> provoque une erreur : <code>no such table</code>."],
+  [140.4, 145.4, "Pour s’en servir, le <code>WITH</code> doit être écrit dans la même requête."],
+  [146.2, 151.9, "La requête complète prépare <code>totaux</code>, puis la relie à la table clients."],
+  [152.0, 157.6, "Le <code>JOIN</code> retrouve le prénom, le nom et l’email de chaque client."],
+  [157.7, 163.1, "Le <code>WHERE</code> ne garde que les clients à 2 commandes ou plus."],
+  [163.2, 168.7, "La requête renvoie <b>6 lignes</b>, de Sophie Martin à Léa Simon."],
+  [168.8, 174.4, "Les 6 invitations à l’avant-première partent par email."],
+  [175.2, 180.0, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [180.1, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [180.1, 999, "<code>WITH</code> prépare un résultat nommé, lu ensuite comme une table."]
 ];
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
@@ -380,111 +383,119 @@ function build(){
   cue(57.25, 'whoosh', 0.7);
   te = typeLine($('#c3a'), 57.75, 40);
   for (const id of ['#c3b', '#c3c', '#c3d', '#c3e', '#c3f', '#c3g', '#c3h']) te = typeLine($(id), te + 0.08, 40);
-  // WITH … totaux
-  pulse('#nm3', 61.4, 3, 'rgba(201,188,255,.45)');
-  // Le calcul : les commandes de chaque client
-  pulse(['#ct3', '#gb3'], 63.6, 3, 'rgba(201,188,255,.35)');
+  // « on donne le nom totaux » au résultat de la requête entre parenthèses
+  pulse('#nm3', 60.0, 3, 'rgba(201,188,255,.45)');
+  // « la requête principale » : le SELECT qui suit
+  pulse(['#sl3', '#ft3'], 66.3, 3, 'rgba(255,214,140,.5)');
+  cue(66.3, 'tick', 0.5, 1);
+  // Regrouper par client avec GROUP BY client_id, puis compter avec COUNT(*), nommé nb_commandes
+  pulse('#gb3', 72.2, 3, 'rgba(201,188,255,.45)');
+  cue(72.2, 'tick', 0.5, 2);
+  pulse('#ct3', 74.1, 3, 'rgba(201,188,255,.45)');
+  cue(74.1, 'tick', 0.5, 3);
   // La commande n°16 est écartée
-  pulse('#nn3', 69.3, 3, 'rgba(255,214,140,.5)');
-  cue(69.3, 'tick', 0.5, 2);
+  pulse('#nn3', 78.7, 3, 'rgba(255,214,140,.5)');
+  cue(78.7, 'tick', 0.5, 2);
   // Une ligne par client
-  press($('#r3'), 75.0);
-  show('#tb3', 75.25, {y: 40}, 0.5);
-  rowsIn($$('#rows3 .tr'), 75.4, 0.12);
+  press($('#r3'), 84.4);
+  show('#tb3', 84.65, {y: 40}, 0.5);
+  rowsIn($$('#rows3 .tr'), 84.8, 0.12);
   gsap.set(['#n3a', '#n3b'], {autoAlpha: 0});
-  show('#n3a', 76.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  // Je prépare, je nomme, j’utilise
-  pulse('#kw3', 80.8, 3, 'rgba(201,188,255,.5)');
-  pulse(['#as3', '#nm3'], 82.3, 3, 'rgba(201,188,255,.5)');
-  pulse(['#sl3', '#ft3'], 83.8, 3, 'rgba(255,214,140,.5)');
-  [80.8, 82.3, 83.8].forEach((t, i) => cue(t, 'tick', 0.5, i + 1));
+  show('#n3a', 86.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // WITH totaux AS (…) définit un résultat nommé totaux : c’est une CTE
+  pulse(['#kw3', '#nm3', '#as3'], 90.2, 3, 'rgba(201,188,255,.5)');
+  cue(90.2, 'tick', 0.5, 1);
 
   /* ===== 4 · Lire la CTE ===== */
-  // totaux se lit comme une table
-  pulse('#ft3', 87.7, 3, 'rgba(201,188,255,.5)');
-  tl.to('#tb3', {borderColor: '#B9A8FF', duration: 0.4}, 88.0);
-  cue(88.0, 'tick', 0.5, 3);
+  // Le SELECT * FROM totaux qui suit affiche ce résultat, comme on consulterait une table
+  pulse(['#sl3', '#ft3'], 96.0, 3, 'rgba(255,214,140,.5)');
+  cue(96.0, 'tick', 0.5, 2);
+  tl.to('#tb3', {borderColor: '#B9A8FF', duration: 0.4}, 99.0);
+  cue(99.0, 'tick', 0.5, 3);
+  // Dans totaux, le nombre de commandes est déjà calculé
+  pulse($$('#tb3 .th > div')[1], 101.7, 3, 'rgba(201,188,255,.5)');
+  cue(101.7, 'tick', 0.5, 4);
   // WHERE nb_commandes >= 2 : le bouton s’efface, la ligne du filtre s’ouvre
-  tl.to('#r3', {height: 0, marginBottom: 0, autoAlpha: 0, duration: 0.35, ease: 'power2.in'}, 93.2);
-  tl.to('#sc3', {width: 0, duration: 0.25}, 93.5);
-  tl.to('#c3i', {height: 50, duration: 0.4, ease: 'power3.out'}, 93.6);
-  tl.to('#c3i', {opacity: 1, duration: 0.3}, 93.95);
-  cue(93.6, 'fold', 0.6);
-  pulse('#wh4', 94.7, 3, 'rgba(201,188,255,.5)');
-  // Les clients 6 et 8 : une seule commande
+  tl.to('#r3', {height: 0, marginBottom: 0, autoAlpha: 0, duration: 0.35, ease: 'power2.in'}, 105.3);
+  tl.to('#sc3', {width: 0, duration: 0.25}, 105.6);
+  tl.to('#c3i', {height: 50, duration: 0.4, ease: 'power3.out'}, 105.7);
+  tl.to('#c3i', {opacity: 1, duration: 0.3}, 106.05);
+  cue(105.7, 'fold', 0.6);
+  pulse('#wh4', 106.8, 3, 'rgba(201,188,255,.5)');
+  // Les clients 6 et 8 : une seule commande chacun, ils ne sont pas retenus
   const un = $$('#rows3 .tr.un');
-  tl.to(un.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.3}, 98.8);
-  un.forEach((_, i) => cue(98.8 + i * 0.3, 'miss', 0.5));
-  tl.to(un, {opacity: 0.35, duration: 0.4}, 101.0);
-  // 6 clients réguliers
-  tl.to('#n3a', {autoAlpha: 0, duration: 0.2}, 104.4);
-  show('#n3b', 104.5, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  bump('#n3b', 105.2, 1.15, 3);
-  cue(104.5, 'chord', 0.6);
-  hide(['#c3', '#tb3'], 108.9, {y: -40});
-  sceneOff('#s3', 109.4);
+  tl.to(un.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.3}, 112.3);
+  un.forEach((_, i) => cue(112.3 + i * 0.3, 'miss', 0.5));
+  tl.to(un, {opacity: 0.35, duration: 0.4}, 115.4);
+  // Les six autres clients remplissent la condition
+  tl.to('#n3a', {autoAlpha: 0, duration: 0.2}, 117.9);
+  show('#n3b', 118.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#n3b', 118.7, 1.15, 3);
+  cue(118.0, 'chord', 0.6);
+  hide(['#c3', '#tb3'], 122.4, {y: -40});
+  sceneOff('#s3', 122.9);
 
   /* ===== 5 · Le piège ===== */
-  sceneOn('#s5', 109.4);
-  show('#tp5', 109.75, {y: 50});
-  cue(109.75, 'whoosh', 0.6);
+  sceneOn('#s5', 122.9);
+  show('#tp5', 123.25, {y: 50});
+  cue(123.25, 'whoosh', 0.6);
   gsap.set(['#ok5', '#lb5', '#q5', '#er5'], {autoAlpha: 0});
-  show('#ok5', 111.0, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
-  cue(111.0, 'true', 0.5);
+  show('#ok5', 124.5, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(124.5, 'true', 0.5);
   // Jusqu’au point-virgule
-  pulse('#pv5', 116.4, 3, 'rgba(255,214,140,.6)');
-  cue(116.4, 'tick', 0.5, 2);
+  pulse('#pv5', 129.9, 3, 'rgba(255,214,140,.6)');
+  cue(129.9, 'tick', 0.5, 2);
   // La requête suivante : no such table
-  show('#lb5', 121.4, {y: 14}, 0.35);
-  show('#q5', 121.7, {y: 30}, 0.45);
-  cue(121.7, 'whoosh', 0.5);
-  press($('#go5'), 123.0, '#4B30CC', 6);
-  errorIn('#er5', 123.4);
-  tl.to('#b5', {textDecorationColor: 'rgba(239,79,85,1)', duration: 0.3}, 123.9);
+  show('#lb5', 134.9, {y: 14}, 0.35);
+  show('#q5', 135.2, {y: 30}, 0.45);
+  cue(135.2, 'whoosh', 0.5);
+  press($('#go5'), 136.5, '#4B30CC', 6);
+  errorIn('#er5', 136.9);
+  tl.to('#b5', {textDecorationColor: 'rgba(239,79,85,1)', duration: 0.3}, 137.4);
   // Le WITH dans la même requête
-  bump('#ok5', 127.4, 1.1, 1);
-  cue(127.4, 'tick', 0.5, 3);
-  hide('#tp5', 131.9, {y: -40});
-  sceneOff('#s5', 132.4);
+  bump('#ok5', 140.9, 1.1, 1);
+  cue(140.9, 'tick', 0.5, 3);
+  hide('#tp5', 145.4, {y: -40});
+  sceneOff('#s5', 145.9);
 
   /* ===== 6 · Le résultat ===== */
-  sceneOn('#s6', 132.4);
-  show('#s6code', 132.45, {y: 60}, 0.6);
-  cue(132.45, 'whoosh', 0.7);
-  te = typeLine($('#s6l1'), 132.95, 44);
+  sceneOn('#s6', 145.9);
+  show('#s6code', 145.95, {y: 60}, 0.6);
+  cue(145.95, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 146.45, 44);
   for (let k = 2; k <= 12; k++) te = typeLine($('#s6l' + k), te + 0.06, 44);
   // JOIN : le prénom, le nom et l’email
-  pulse('#j6', 139.0, 3, 'rgba(201,188,255,.4)');
+  pulse('#j6', 152.5, 3, 'rgba(201,188,255,.4)');
   // WHERE : 2 commandes ou plus
-  pulse('#w6', 144.7, 3, 'rgba(201,188,255,.4)');
+  pulse('#w6', 158.2, 3, 'rgba(201,188,255,.4)');
   // 6 lignes
-  press($('#s6run'), 149.9);
+  press($('#s6run'), 163.4);
   stackBelow('#tbl6', '#s6code', 0, 30);
-  show('#tbl6', 150.15, {y: 40}, 0.5);
-  rowsIn($$('#rows6 .tr'), 150.3, 0.1);
-  show('#cnt6', 151.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  bump('#cnt6', 151.8, 1.15, 3);
-  hide(['#s6code', '#tbl6'], 155.0, {y: -40}, 0.4);
+  show('#tbl6', 163.65, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 163.8, 0.1);
+  show('#cnt6', 164.5, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 165.3, 1.15, 3);
+  hide(['#s6code', '#tbl6'], 168.5, {y: -40}, 0.4);
   // Les invitations
-  boardIn('#ab6', 155.4, '.ic6', 0.12);
+  boardIn('#ab6', 168.9, '.ic6', 0.12);
   gsap.set('#sp6', {autoAlpha: 0, scale: 1.8, rotation: -14});
-  tl.to('#sp6', {autoAlpha: 1, scale: 1, rotation: -8, duration: 0.35, ease: 'back.out(2)'}, 157.4);
-  cue(157.4, 'stamp', 0.8);
+  tl.to('#sp6', {autoAlpha: 1, scale: 1, rotation: -8, duration: 0.35, ease: 'back.out(2)'}, 170.9);
+  cue(170.9, 'stamp', 0.8);
   stackBelow('#badge6', '#ab6', 0, 50);
-  show('#badge6', 158.2, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(158.2, 'chord', 0.7);
-  hide(['#ab6', '#badge6'], 160.9);
-  sceneOff('#s6', 161.4);
+  show('#badge6', 171.7, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(171.7, 'chord', 0.7);
+  hide(['#ab6', '#badge6'], 174.4);
+  sceneOff('#s6', 174.9);
 
   /* ===== 7 · À retenir ===== */
-  recapScene(161.4, [162.1, 163.9, 165.7]);
-  hold(163.7, 4.8);
-  hold(165.5, 4.8);
+  recapScene(174.9, [175.6, 177.4, 179.2]);
+  hold(177.2, 4.8);
+  hold(179.0, 4.8);
   // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(166.65, 'pop', 0.85, 5);
+  if (APP) cue(180.15, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 166.6,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 180.1,
   glyphs: '✨💌🛒👤👪✉️👥🧩🗃️⚠️✕✓🔎⏳⋯«»·?…', dom, build});
 </script>
 </body>
