@@ -40,12 +40,13 @@ test('chaque cours a un réflexe de trois cartes bien formées', () => {
       assert.ok(/\p{Extended_Pictographic}/u.test(emoji), `${l.titre} : un emoji par carte`);
       const t = text(strong);
       assert.ok(t.length >= 20 && t.length <= 150, `${l.titre} : phrase de ${t.length} caractères : ${t}`);
-      /* Précision : une phrase courte, ou une liste « mot-clé → rôle » ou d’exemples (une ligne par élément, séparées par <br>). */
+      /* Précision : une ou deux phrases courtes (160 caractères au plus, la longueur des précisions écrites pour les vidéos),
+         ou une liste « mot-clé → rôle » ou d’exemples (une ligne par élément, séparées par <br>). */
       const subLines = sub ? sub.split(/<br\s*\/?>/) : [];
       if (subLines.length > 1) {
         assert.ok(subLines.length <= 8, `${l.titre} : liste de ${subLines.length} lignes dans la précision`);
         for (const ln of subLines) assert.ok(text(ln).length <= 80, `${l.titre} : ligne de liste trop longue : ${text(ln)}`);
-      } else if (sub) assert.ok(text(sub).length <= 120, `${l.titre} : précision trop longue : ${text(sub)}`);
+      } else if (sub) assert.ok(text(sub).length <= 160, `${l.titre} : précision trop longue : ${text(sub)}`);
       if (code) assert.ok(decode(code).length <= 46, `${l.titre} : code trop long pour une puce : ${decode(code)}`);
     }
     /* Espace insécable avant : ? ! ; (hors code), comme dans les autres textes des cours. */
