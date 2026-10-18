@@ -434,7 +434,7 @@ function layoutIssues(render, total){
   const take = el => { if (!el.classList.contains('stamp') && !el.classList.contains('fly') && !el.parentElement.closest('.card, .code')) set.add(el); };
   $$('.card, .code', stage).forEach(take);
   $$('section.scene > *', stage).forEach(el => { if (isBox(el)) take(el); });
-  $$('.badge span, .tagpill', stage).forEach(el => { if (!el.closest('.card, .code')) set.add(el); });
+  $$('.badge span, .tagpill, .pill > span', stage).forEach(el => { if (!el.closest('.card, .code')) set.add(el); });
   $$('#cap .c, #chap .chip').forEach(el => set.add(el));
   const items = [...set].map(el => {
     const m = /(-?[\d.]+)px\s+(-?[\d.]+)px\s+(-?[\d.]+)px/.exec(getComputedStyle(el).boxShadow || ''), sc = el.closest('section');
