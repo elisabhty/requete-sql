@@ -91,6 +91,8 @@
 #sp6{right:34px;top:34px}
 
 /* ---------- 7 · À retenir ---------- */
+/* Chapitre 6 : la sous-requête (lignes 3 à 7) s’allume, puis AVG(montant) */
+#bd6{top:124px;height:254px}
 #s7 .rtitle{top:196px}
 #s7 .recap{top:292px}
 #s7 .rrow{gap:24px;padding:20px 34px}
@@ -186,7 +188,7 @@
   <section class="scene" id="s6">
     <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
       <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
-      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> <span class="kw">AVG</span>(montant)<span class="caret"><i></i></span></span><span class="ln" id="s6l2"><span class="kw">FROM</span> (<span class="caret"><i></i></span></span><span class="ln" id="s6l3">  <span class="kw">SELECT</span> produits.prix * commandes.quantite<span class="caret"><i></i></span></span><span class="ln" id="s6l4">         <span class="kw">AS</span> montant<span class="caret"><i></i></span></span><span class="ln" id="s6l5">  <span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="s6l6">  <span class="kw">JOIN</span> produits<span class="caret"><i></i></span></span><span class="ln" id="s6l7">    <span class="kw">ON</span> commandes.produit_id = produits.id<span class="caret"><i></i></span></span><span class="ln" id="s6l8">) <span class="glow" id="al6"><span class="kw">AS</span> commandes_montants</span>;<span class="caret"><i></i></span></span></div>
+      <div class="body"><i class="band" id="bd6"></i><span class="ln" id="s6l1"><span class="kw">SELECT</span> <span class="glow" id="avg6"><span class="kw">AVG</span>(montant)</span><span class="caret"><i></i></span></span><span class="ln" id="s6l2"><span class="kw">FROM</span> (<span class="caret"><i></i></span></span><span class="ln" id="s6l3">  <span class="kw">SELECT</span> produits.prix * commandes.quantite<span class="caret"><i></i></span></span><span class="ln" id="s6l4">         <span class="kw">AS</span> montant<span class="caret"><i></i></span></span><span class="ln" id="s6l5">  <span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="s6l6">  <span class="kw">JOIN</span> produits<span class="caret"><i></i></span></span><span class="ln" id="s6l7">    <span class="kw">ON</span> commandes.produit_id = produits.id<span class="caret"><i></i></span></span><span class="ln" id="s6l8">) <span class="glow" id="al6"><span class="kw">AS</span> commandes_montants</span>;<span class="caret"><i></i></span></span></div>
       <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
     </div>
     <div class="tbl card" id="tbl6">
@@ -224,7 +226,7 @@
 <script src="core.js"></script>
 <script>
 'use strict';
-const DURATION = 180.4;
+const DURATION = 185.7;
 
 /* Les trois premiers montants de la table dérivée : [montant, commande, prix × quantité]. Les 16 montants totalisent 747.5. */
 const MONTANTS = [['59.8', 'commande n°1', '29.9 × 2'], ['19.9', 'commande n°2', '19.9 × 1'], ['34.9', 'commande n°3', '34.9 × 1']];
@@ -235,8 +237,8 @@ const CHAPTERS = [
   {n:3, label:'La sous-requête',      a:60.5,  b:84.5},
   {n:4, label:'La table dérivée',     a:84.5,  b:113.5},
   {n:5, label:'Le piège',             a:113.5, b:142.2},
-  {n:6, label:'Le résultat',          a:142.2, b:170.3},
-  {n:7, label:'À retenir',            a:170.3, b:DURATION}
+  {n:6, label:'Le résultat',          a:142.2, b:175.6},
+  {n:7, label:'À retenir',            a:175.6, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
@@ -266,14 +268,15 @@ const CAPTIONS = [
   [123.5, 129.6, "La colonne <code>quantite</code><br>n’est donc pas accessible :<br><code>AVG(quantite)</code> provoque une erreur."],
   [129.7, 135.5, "La quantité est restée dans la table commandes, hors de la table dérivée."],
   [135.6, 141.7, "Pour s’en servir, il faudrait l’ajouter au <code>SELECT</code> de la <span class=\"nw\">sous-requête</span>."],
-  [142.5, 148.3, "La requête complète calcule d’abord les montants, puis leur moyenne."],
-  [148.4, 153.7, "Résultat : une seule ligne, <b>46.71875</b>."],
-  [153.8, 159.5, "C’est 747,5 € au total, divisés par les 16 commandes."],
-  [159.6, 164.8, "Le panier moyen s’élève donc à environ <b>46,72 €</b> par commande."],
-  [164.9, 169.8, "L’équipe finance peut mettre à jour son indicateur du mois."],
-  [170.6, 175.4, "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [175.5, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
-      : [175.5, 999, "Pour calculer sur un résultat, pense à une <span class=\"nw\">sous-requête</span> dans <code>FROM</code>."]
+  [142.5, 147.8, "La requête complète calcule<br>le montant de chaque commande<br>dans la <span class=\"nw\">sous-requête</span>,"],
+  [147.9, 153.6, "puis fait la moyenne de ces montants<br>dans la requête principale<br>pour obtenir le panier moyen."],
+  [153.7, 159.0, "Résultat : une seule ligne, <b>46.71875</b>."],
+  [159.1, 164.8, "C’est 747,5 € au total, divisés par les 16 commandes."],
+  [164.9, 170.1, "Le panier moyen s’élève donc à environ <b>46,72 €</b> par commande."],
+  [170.2, 175.1, "L’équipe finance peut mettre à jour son indicateur du mois."],
+  [175.9, 180.7, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [180.8, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [180.8, 999, "Pour calculer sur un résultat, pense à une <span class=\"nw\">sous-requête</span> dans <code>FROM</code>."]
 ];
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
@@ -467,42 +470,50 @@ function build(){
   sceneOn('#s6', 142.2);
   show('#s6code', 142.25, {y: 60}, 0.6);
   cue(142.25, 'whoosh', 0.7);
-  te = typeLine($('#s6l1'), 142.75, 40);
-  for (const k of [2, 3, 4, 5, 6, 7, 8]) te = typeLine($('#s6l' + k), te + 0.1, 40);
+  te = typeLine($('#s6l1'), 142.75, 55);
+  for (const k of [2, 3, 4, 5, 6, 7, 8]) te = typeLine($('#s6l' + k), te + 0.1, 55);
+  // Le montant de chaque commande : dans la sous-requête
+  tl.to('#bd6', {scaleX: 1, duration: 0.4, ease: 'power3.out'}, Math.min(te + 0.15, 147.0));
+  cue(Math.min(te + 0.15, 147.0), 'tick', 0.5, 2);
+  tl.to('#bd6', {autoAlpha: 0, duration: 0.3}, 148.0);
+  // Leur moyenne : dans la requête principale
+  tl.to('#avg6', {backgroundColor: 'rgba(201,188,255,.42)', duration: 0.3}, 148.5);
+  cue(148.5, 'tick', 0.5, 4);
+  tl.to('#avg6', {backgroundColor: 'rgba(201,188,255,0)', duration: 0.3}, 153.45);   // après la pause de lecture de la légende
   // Une seule ligne : 46.71875
-  press($('#s6run'), 148.8);
+  press($('#s6run'), 154.1);
   stackBelow('#tbl6', '#s6code', 0, 30);
   stackBelow('#dv6', '#tbl6', 0, 30);
-  show('#tbl6', 149.05, {y: 40}, 0.5);
-  rowsIn([$('#r6')], 149.3);
+  show('#tbl6', 154.35, {y: 40}, 0.5);
+  rowsIn([$('#r6')], 154.6);
   gsap.set('#cnt6', {autoAlpha: 0});
-  show('#cnt6', 149.8, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  tl.to('#r6 .hl', {opacity: 1, duration: 0.3}, 150.5);
-  cue(150.5, 'true', 0.55);
+  show('#cnt6', 155.1, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  tl.to('#r6 .hl', {opacity: 1, duration: 0.3}, 155.8);
+  cue(155.8, 'true', 0.55);
   // 747.5 ÷ 16
-  show('#dv6', 154.3, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
-  cue(154.3, 'pop', 0.7, 2);
-  hide(['#s6code', '#tbl6', '#dv6'], 159.3, {y: -40}, 0.4);
+  show('#dv6', 159.6, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(159.6, 'pop', 0.7, 2);
+  hide(['#s6code', '#tbl6', '#dv6'], 164.6, {y: -40}, 0.4);
   // L’indicateur du mois : 46,72 €
-  boardIn('#ab6', 159.7, '.kp > div:not(.stamp)', 0.2);
+  boardIn('#ab6', 165.0, '.kp > div:not(.stamp)', 0.2);
   gsap.set('#sp6', {autoAlpha: 0, scale: 1.8, rotation: -14});
-  tl.to('#sp6', {autoAlpha: 1, scale: 1, rotation: -8, duration: 0.35, ease: 'back.out(2)'}, 165.3);
-  cue(165.3, 'stamp', 0.8);
+  tl.to('#sp6', {autoAlpha: 1, scale: 1, rotation: -8, duration: 0.35, ease: 'back.out(2)'}, 170.6);
+  cue(170.6, 'stamp', 0.8);
   stackBelow('#badge6', '#ab6', 0, 50);
-  show('#badge6', 166.1, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(166.1, 'chord', 0.7);
-  hide(['#ab6', '#badge6'], 169.8);
-  sceneOff('#s6', 170.3);
+  show('#badge6', 171.4, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(171.4, 'chord', 0.7);
+  hide(['#ab6', '#badge6'], 175.1);
+  sceneOff('#s6', 175.6);
 
   /* ===== 7 · À retenir ===== */
-  recapScene(170.3, [171.0, 172.8, 174.6]);
-  hold(172.6, 4.8);
-  hold(174.4, 4.8);
+  recapScene(175.6, [176.3, 178.1, 179.9]);
+  hold(177.9, 4.8);
+  hold(179.7, 4.8);
   // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(175.55, 'pop', 0.85, 5);
+  if (APP) cue(180.85, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 175.5,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 180.8,
   glyphs: '🧺📈💶🔢🏷️🔎🗂️✕🎯🗃️⚠️✓🧮💡·⋯×÷…«»', dom, build});
 </script>
 </body>
