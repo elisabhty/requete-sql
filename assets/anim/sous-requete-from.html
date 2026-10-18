@@ -212,9 +212,9 @@
   <section class="scene" id="s7">
     <div class="abs rtitle">Les trois idées à retenir</div>
     <div class="abs card recap" id="recap">
-      <div class="rrow"><div class="rico emo">🗃️</div><div class="rtxt">Une sous-requête dans <span class="ic">FROM</span> produit un <b>résultat intermédiaire</b> que la requête principale utilise comme une table.<span class="rs">Ici&nbsp;: d’abord le montant de chaque commande, puis la moyenne de ces montants.</span></div></div>
-      <div class="rrow"><div class="rico emo">🏷️</div><div class="rtxt">Cette «&nbsp;table dérivée&nbsp;» <span class="nw">doit avoir un <b>alias</b>&nbsp;:</span><br><span class="ic blk">FROM (SELECT …) AS alias</span></div></div>
-      <div class="rrow"><div class="rico emo">💡</div><div class="rtxt">Quand un calcul porte sur le résultat d’un autre calcul, pense à placer une <span class="nw">sous-requête</span> dans <span class="ic">FROM</span>.</div></div>
+      <div class="rrow"><div class="rico emo">🗃️</div><div class="rtxt">Une <span class="nw">sous-requête</span> dans <span class="ic">FROM</span> fournit un résultat utilisé <b>comme une table</b> par la requête principale.<span class="rs">Ce résultat est appelé une «&nbsp;table dérivée&nbsp;».</span></div></div>
+      <div class="rrow"><div class="rico emo">🏷️</div><div class="rtxt">Donne un nom à cette table dérivée grâce à un <b>alias</b>.<span class="rs">Exemple&nbsp;:<br><span class="ic blk">FROM (SELECT …) AS commandes_montants</span></span></div></div>
+      <div class="rrow"><div class="rico emo">🧮</div><div class="rtxt">Cette méthode permet de <b>calculer à partir d’un premier résultat</b>.<span class="rs">Ici&nbsp;: calculer le montant de chaque commande, puis la moyenne de ces montants.</span></div></div>
     </div>
   </section>
 
@@ -226,7 +226,7 @@
 <script src="core.js"></script>
 <script>
 'use strict';
-const DURATION = 185.7;
+const DURATION = 180.7;
 
 /* Les trois premiers montants de la table dérivée : [montant, commande, prix × quantité]. Les 16 montants totalisent 747.5. */
 const MONTANTS = [['59.8', 'commande n°1', '29.9 × 2'], ['19.9', 'commande n°2', '19.9 × 1'], ['34.9', 'commande n°3', '34.9 × 1']];
@@ -237,8 +237,8 @@ const CHAPTERS = [
   {n:3, label:'La sous-requête',      a:60.5,  b:84.5},
   {n:4, label:'La table dérivée',     a:84.5,  b:113.5},
   {n:5, label:'Le piège',             a:113.5, b:142.2},
-  {n:6, label:'Le résultat',          a:142.2, b:175.6},
-  {n:7, label:'À retenir',            a:175.6, b:DURATION}
+  {n:6, label:'Le résultat',          a:142.2, b:170.6},
+  {n:7, label:'À retenir',            a:170.6, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
@@ -270,13 +270,12 @@ const CAPTIONS = [
   [135.6, 141.7, "Pour s’en servir, il faudrait l’ajouter au <code>SELECT</code> de la <span class=\"nw\">sous-requête</span>."],
   [142.5, 147.8, "La requête complète calcule<br>le montant de chaque commande<br>dans la <span class=\"nw\">sous-requête</span>,"],
   [147.9, 153.6, "puis fait la moyenne de ces montants<br>dans la requête principale<br>pour obtenir le panier moyen."],
-  [153.7, 159.0, "Résultat : une seule ligne, <b>46.71875</b>."],
-  [159.1, 164.8, "C’est 747,5 € au total, divisés par les 16 commandes."],
-  [164.9, 170.1, "Le panier moyen s’élève donc à environ <b>46,72 €</b> par commande."],
-  [170.2, 175.1, "L’équipe finance peut mettre à jour son indicateur du mois."],
-  [175.9, 180.7, "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [180.8, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
-      : [180.8, 999, "Pour calculer sur un résultat, pense à une <span class=\"nw\">sous-requête</span> dans <code>FROM</code>."]
+  [153.7, 159.0, "La requête renvoie une seule valeur :<br>le panier moyen demandé,<br>soit environ <b>46,72 €</b> par commande."],
+  [159.1, 164.8, "Les 16 commandes totalisent <b>747,50 €</b>.<br>En divisant ce total par 16, on obtient<br>un panier moyen d’environ <b>46,72 €</b>."],
+  [164.9, 170.1, "L’équipe finance peut mettre à jour son indicateur du mois."],
+  [170.9, 175.7, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [175.8, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [175.8, 999, "Pour calculer sur un résultat, pense à une <span class=\"nw\">sous-requête</span> dans <code>FROM</code>."]
 ];
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
@@ -497,23 +496,24 @@ function build(){
   // L’indicateur du mois : 46,72 €
   boardIn('#ab6', 165.0, '.kp > div:not(.stamp)', 0.2);
   gsap.set('#sp6', {autoAlpha: 0, scale: 1.8, rotation: -14});
-  tl.to('#sp6', {autoAlpha: 1, scale: 1, rotation: -8, duration: 0.35, ease: 'back.out(2)'}, 170.6);
-  cue(170.6, 'stamp', 0.8);
+  tl.to('#sp6', {autoAlpha: 1, scale: 1, rotation: -8, duration: 0.35, ease: 'back.out(2)'}, 167.6);
+  cue(167.6, 'stamp', 0.8);
   stackBelow('#badge6', '#ab6', 0, 50);
-  show('#badge6', 171.4, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(171.4, 'chord', 0.7);
-  hide(['#ab6', '#badge6'], 175.1);
-  sceneOff('#s6', 175.6);
+  show('#badge6', 168.4, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(168.4, 'chord', 0.7);
+  hide(['#ab6', '#badge6'], 170.1);
+  sceneOff('#s6', 170.6);
 
   /* ===== 7 · À retenir ===== */
-  recapScene(175.6, [176.3, 178.1, 179.9]);
-  hold(177.9, 4.8);
-  hold(179.7, 4.8);
+  recapScene(170.6, [171.3, 173.1, 174.9]);
+  hold(172.9, 6.4);   // le temps de lire chaque idée et sa précision avant la suivante
+  hold(174.7, 4.8);
+  hold(176.4, 2.4);   // la dernière idée reste à l’écran avant la fin
   // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(180.85, 'pop', 0.85, 5);
+  if (APP) cue(175.85, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 180.8,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 175.8,
   glyphs: '🧺📈💶🔢🏷️🔎🗂️✕🎯🗃️⚠️✓🧮💡·⋯×÷…«»', dom, build});
 </script>
 </body>
