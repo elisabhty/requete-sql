@@ -245,9 +245,9 @@
   <section class="scene" id="s7">
     <div class="abs rtitle">Les trois idées à retenir</div>
     <div class="abs card recap" id="recap">
-      <div class="rrow"><div class="rico emo">🔎</div><div class="rtxt"><span class="ic">EXISTS</span> est vrai si la <span class="nw">sous-requête</span> trouve au moins une ligne&nbsp;: il teste une <b>présence</b>, pas une valeur.<span class="rs"><span class="ic">NOT EXISTS</span> est vrai si elle n’en trouve aucune.</span></div></div>
-      <div class="rrow"><div class="rico emo">🔗</div><div class="rtxt">La sous-requête est <b>corrélée</b>&nbsp;: elle ne cherche que les commandes du client en cours&nbsp;:<br><span class="ic blk">commandes.client_id = clients.id</span></div></div>
-      <div class="rrow"><div class="rico emo">⚠️</div><div class="rtxt">Sans la condition de liaison, <span class="ic">EXISTS</span> est vrai pour <b>tous les clients</b>.<span class="rs">Une seule commande dans la table suffit, <span class="nw">peu importe</span> son client.</span></div></div>
+      <div class="rrow"><div class="rico emo">🔎</div><div class="rtxt"><b>Vérifier si une ligne existe</b><span class="rs"><span class="ic">EXISTS</span> est vrai lorsque la <span class="nw">sous-requête</span> renvoie au moins une ligne. <span class="ic">NOT EXISTS</span> est vrai lorsqu’elle n’en renvoie aucune.</span></div></div>
+      <div class="rrow"><div class="rico emo">🔗</div><div class="rtxt"><b>Vérifier les commandes du bon client</b><span class="rs">La condition <span class="ic">commandes.client_id = clients.id</span> limite la recherche aux commandes du client étudié. La <span class="nw">sous-requête</span> dépend donc de ce client&nbsp;: elle est <b>corrélée</b>.</span></div></div>
+      <div class="rrow"><div class="rico emo">⚠️</div><div class="rtxt"><b>Sans ce lien, tous les clients<br>peuvent être retenus</b><span class="rs">Il suffit qu’une personne ait commandé le produit pour que <span class="ic">EXISTS</span> soit vrai pour tous, même pour ceux qui ne l’ont jamais commandé.</span></div></div>
     </div>
   </section>
 
@@ -259,7 +259,7 @@
 <script src="core.js"></script>
 <script>
 'use strict';
-const DURATION = 196.8;
+const DURATION = 202.8;
 
 /* La table clients : [id, prénom, nom, a-t-il commandé de la Fibre Prébiotique (produit 1) ?]. */
 const CLIENTS = [[1, 'Sophie', 'Martin', 1], [2, 'Lucas', 'Bernard', 0], [3, 'Emma', 'Dubois', 0], [4, 'Nathan', 'Petit', 1], [5, 'Chloé', 'Moreau', 1],
@@ -274,9 +274,9 @@ const CHAPTERS = [
   {n:2, label:'Le problème',            a:27.5,  b:62.6},
   {n:3, label:'EXISTS',                 a:62.6,  b:102.7},
   {n:4, label:'La recherche corrélée',  a:102.7,  b:135.2},
-  {n:5, label:'Le piège',               a:135.2, b:162.7},
-  {n:6, label:'Le résultat',            a:162.7, b:186.7},
-  {n:7, label:'À retenir',              a:186.7, b:DURATION}
+  {n:5, label:'Le piège',               a:135.2, b:167.6},
+  {n:6, label:'Le résultat',            a:167.6, b:192.7},
+  {n:7, label:'À retenir',              a:192.7, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
@@ -309,16 +309,18 @@ const CAPTIONS = [
   [130.0, 134.7, "en effet, ces quatre clients ont déjà<br>commandé de la Fibre&nbsp;Prébiotique."],
   [135.5, 140.3, "Sans la condition<br><code>commandes.client_id = clients.id</code>,<br>la requête s’exécute,"],
   [140.4, 144.8, "mais ne vérifie plus si la commande<br>appartient au client concerné."],
-  [144.9, 150.8, "Quel que soit le client, la recherche trouve toujours des commandes de Fibre&nbsp;Prébiotique."],
-  [150.9, 156.2, "<code>EXISTS</code> est donc vrai pour les <b>10 clients</b>."],
-  [156.3, 162.2, "Inès Lefebvre et Nathan Dupont, qui n’ont jamais rien commandé, recevraient l’annonce."],
-  [163.0, 168.7, "La requête complète garde les clients pour qui une telle commande existe."],
-  [168.8, 174.3, "Résultat : <b>4 lignes</b>, avec le prénom et le nom de chaque client."],
-  [174.4, 180.0, "Les quatre clients reçoivent l’annonce de la nouvelle saveur."],
-  [180.1, 186.2, "À l’inverse, <code>NOT EXISTS</code> garderait les 6 clients sans commande de Fibre&nbsp;Prébiotique."],
-  [187.0, 191.8, "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [191.9, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
-      : [191.9, 999, "<code>EXISTS</code> cherche une ligne liée : vrai s’il en trouve une, faux sinon."]
+  [144.9, 150.6, "Sans le lien avec le client,<br>la <span class=\"nw\">sous-requête</span> cherche<br>une commande de Fibre&nbsp;Prébiotique,"],
+  [150.7, 153.0, "peu importe qui l’a passée."],
+  [153.1, 157.8, "Une telle commande existe :<br><code>EXISTS</code> est donc vrai<br>pour tous les clients,"],
+  [157.9, 161.1, "même ceux qui n’ont jamais<br>acheté ce produit."],
+  [161.2, 167.1, "Inès Lefebvre et Nathan Dupont, qui n’ont jamais rien commandé, recevraient l’annonce."],
+  [167.9, 174.7, "La requête affiche le prénom et le nom<br>des clients ayant passé au moins<br>une commande de Fibre&nbsp;Prébiotique."],
+  [174.8, 180.3, "Résultat : <b>4 lignes</b>, avec le prénom et le nom de chaque client."],
+  [180.4, 186.0, "Les quatre clients reçoivent l’annonce de la nouvelle saveur."],
+  [186.1, 192.2, "À l’inverse, <code>NOT EXISTS</code> garderait les 6 clients sans commande de Fibre&nbsp;Prébiotique."],
+  [193.0, 197.8, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [197.9, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [197.9, 999, "<code>EXISTS</code> cherche une ligne liée : vrai s’il en trouve une, faux sinon."]
 ];
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
@@ -331,7 +333,8 @@ function dom(){
   $('#rows4').innerHTML = CLIENTS.map(([id, p, n]) => `<div class="rgE tr t4"><span class="hl"></span><div>${id}</div><div>${p}</div><div>${n}</div>` +
     `<div class="vc"><i class="y">vrai</i><i class="n">faux</i></div></div>`).join('');
   /* Chapitre 5 : sans la condition de liaison, les 10 clients */
-  $('#ng5').innerHTML = CLIENTS.map(([id, p, n]) => `<span class="nc${JAMAIS.includes(id) ? ' jm' : ''}">✓ ${p} ${n}</span>`).join('');
+  /* nb : n’a jamais acheté la Fibre Prébiotique ; jm : n’a jamais rien commandé. */
+  $('#ng5').innerHTML = CLIENTS.map(([id, p, n, f]) => `<span class="nc${f ? '' : ' nb'}${JAMAIS.includes(id) ? ' jm' : ''}">✓ ${p} ${n}</span>`).join('');
   /* Chapitre 6 : le résultat, puis les destinataires de l’annonce */
   const gardes = CLIENTS.filter(c => c[3]);
   $('#rows6').innerHTML = gardes.map(([, p, n]) => `<div class="rgR tr t6"><span class="hl"></span><div>${p}</div><div>${n}</div></div>`).join('');
@@ -528,7 +531,7 @@ function build(){
   // … elle ne vérifie plus si la commande appartient au client concerné
   pulse('#w5', 141.2, 3, 'rgba(255,214,140,.5)');
   cue(141.2, 'tick', 0.5, 2);
-  // La recherche trouve toujours des commandes
+  // Sans le lien avec le client, la sous-requête trouve toujours une commande de Fibre Prébiotique
   press($('#go5'), 145.3, '#4B30CC', 6);
   stackBelow('#rs5', '#tp5', 0, 30);
   stackBelow('#x5', '#rs5', 0, 30);
@@ -538,57 +541,61 @@ function build(){
   gsap.set(nc, {autoAlpha: 0, scale: 0.8});
   tl.to(nc, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.12}, 146.0);
   nc.forEach((_, i) => cue(146.0 + i * 0.12, 'true', 0.3));
-  // Les 10 clients
+  // EXISTS est vrai pour tous les clients : 10 lignes
   gsap.set('#n5', {autoAlpha: 0});
-  show('#n5', 151.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  bump('#n5', 152.0, 1.15, 3);
-  cue(151.3, 'false', 0.5);
+  show('#n5', 156.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#n5', 157.0, 1.15, 3);
+  cue(156.3, 'false', 0.5);
+  // Même ceux qui n’ont jamais acheté ce produit (en ambre)
+  tl.to($$('#ng5 .nc.nb'), {backgroundColor: '#FFF4E5', borderColor: '#F5C27A', color: '#9A5B00', duration: 0.3, stagger: 0.08}, 158.3);
+  cue(158.3, 'tick', 0.5, 3);
   // Même Inès Lefebvre et Nathan Dupont
-  tl.to($$('#ng5 .nc.jm'), {backgroundColor: '#FDEBEC', borderColor: '#F2B8BC', color: '#C2323A', duration: 0.3, stagger: 0.25}, 156.8);
-  cue(156.8, 'miss', 0.55);
-  show('#x5', 157.6, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
-  shake($$('#ng5 .nc.jm'), 158.2);
-  hide(['#tp5', '#rs5', '#x5'], 162.2, {y: -40});
-  sceneOff('#s5', 162.7);
+  tl.to($$('#ng5 .nc.jm'), {backgroundColor: '#FDEBEC', borderColor: '#F2B8BC', color: '#C2323A', duration: 0.3, stagger: 0.25}, 161.7);
+  cue(161.7, 'miss', 0.55);
+  show('#x5', 162.5, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  shake($$('#ng5 .nc.jm'), 163.1);
+  hide(['#tp5', '#rs5', '#x5'], 167.1, {y: -40});
+  sceneOff('#s5', 167.6);
 
   /* ===== 6 · Le résultat ===== */
-  sceneOn('#s6', 162.7);
-  show('#s6code', 162.75, {y: 60}, 0.6);
-  cue(162.75, 'whoosh', 0.7);
-  te = typeLine($('#s6l1'), 163.25, 40);
+  sceneOn('#s6', 167.6);
+  show('#s6code', 167.65, {y: 60}, 0.6);
+  cue(167.65, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 168.15, 40);
   for (const k of [2, 3, 4, 5, 6, 7, 8]) te = typeLine($('#s6l' + k), te + 0.1, 40);
   pulse('#e6', te + 0.2, 3, 'rgba(201,188,255,.35)');
-  press($('#s6run'), 169.1);
+  press($('#s6run'), 175.1);
   stackBelow('#tbl6', '#s6code', 0, 30);
-  show('#tbl6', 169.35, {y: 40}, 0.5);
-  rowsIn($$('#rows6 .tr'), 169.5, 0.12);
-  show('#cnt6', 170.1, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  bump('#cnt6', 170.9, 1.15, 3);
-  hide(['#s6code', '#tbl6'], 174.2, {y: -40}, 0.4);
+  show('#tbl6', 175.35, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 175.5, 0.12);
+  show('#cnt6', 176.1, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 176.9, 1.15, 3);
+  hide(['#s6code', '#tbl6'], 180.2, {y: -40}, 0.4);
   // L’annonce de la nouvelle saveur
-  boardIn('#ab6', 174.6, '.ms-h, .ms-to', 0.25);
+  boardIn('#ab6', 180.6, '.ms-h, .ms-to', 0.25);
   gsap.set('#sp6', {autoAlpha: 0, scale: 1.8, rotation: -14});
-  tl.to('#sp6', {autoAlpha: 1, scale: 1, rotation: -8, duration: 0.35, ease: 'back.out(2)'}, 176.6);
-  cue(176.6, 'stamp', 0.8);
+  tl.to('#sp6', {autoAlpha: 1, scale: 1, rotation: -8, duration: 0.35, ease: 'back.out(2)'}, 182.6);
+  cue(182.6, 'stamp', 0.8);
   stackBelow('#badge6', '#ab6', 0, 50);
   stackBelow('#ne6', '#badge6', 0, 30);
-  show('#badge6', 177.4, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(177.4, 'chord', 0.7);
+  show('#badge6', 183.4, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(183.4, 'chord', 0.7);
   // À l’inverse : NOT EXISTS
-  show('#ne6', 180.6, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
-  cue(180.6, 'pop', 0.7, 3);
-  hide(['#ab6', '#badge6', '#ne6'], 186.2);
-  sceneOff('#s6', 186.7);
+  show('#ne6', 186.6, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(186.6, 'pop', 0.7, 3);
+  hide(['#ab6', '#badge6', '#ne6'], 192.2);
+  sceneOff('#s6', 192.7);
 
   /* ===== 7 · À retenir ===== */
-  recapScene(186.7, [187.4, 189.2, 191.0]);
-  hold(189.0, 4.8);
-  hold(190.8, 4.8);
+  recapScene(192.7, [193.4, 195.2, 197.0]);
+  hold(195.0, 7.0);   // le temps de lire chaque idée et sa précision avant la suivante
+  hold(196.8, 9.7);
+  hold(198.5, 5.0);   // la dernière idée reste à l’écran avant la fin
   // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(191.95, 'pop', 0.85, 5);
+  if (APP) cue(197.95, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 191.9,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 197.9,
   glyphs: '🍋📣🛒👤👪🗂️✕❓🔍✓🔗👥⚠️🔎🔄→·?…', dom, build});
 </script>
 </body>
