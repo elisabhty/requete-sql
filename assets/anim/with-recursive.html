@@ -244,9 +244,10 @@ const CAPTIONS = [
   [52.3, 55.4,   "<code>WITH RECURSIVE</code> définit<br>un résultat temporaire appelé CTE,"],
   [55.5, 56.9,   "nommé ici <code>jours</code>,<br>avec une colonne <code>jour</code>."],
   [57.0, 57.9,   "Il pourra se compléter date après date."],
-  [58.0, 63.6,   "À l’intérieur, l’<b>ancre</b> crée la première ligne : le 1er juillet."],
-  [63.7, 69.3,   "L’ancre ne dépend d’aucune autre ligne : exécutée seule, elle donne <b>1 ligne</b>."],
-  [69.4, 75.5,   "Reste à fabriquer les 30 jours suivants, à partir de cette première ligne."],
+  [58.0, 63.6,   "<code>SELECT '2026-07-01'</code> fournit<br>la date de départ : le 1er juillet.<br>Cette partie s’appelle l’<b>ancre</b>."],
+  [63.7, 66.3,   "Cette date est écrite directement<br>dans la requête, sans lire de table."],
+  [66.4, 69.3,   "Pour l’instant, le résultat contient<br>donc <b>une seule ligne</b>."],
+  [69.4, 75.5,   "À partir de cette date,<br>on va ajouter un jour à chaque étape,<br>jusqu’au 31 juillet."],
   [76.3, 81.9,   "La <b>partie récursive</b> se place sous l’ancre, reliée par <code>UNION ALL</code>."],
   [82.0, 87.6,   "Elle relit la CTE <code>jours</code> et ajoute un jour à la dernière ligne créée."],
   [87.7, 93.3,   "Le <code>WHERE</code> l’arrête : au 31 juillet, la condition devient fausse."],
@@ -398,13 +399,15 @@ function build(){
   // L’ancre : la première ligne
   pulse('#an3', 58.6, 3, 'rgba(201,188,255,.45)');
   cue(58.6, 'tick', 0.45, 3);
-  // Exécutée seule : 1 ligne
-  press($('#r3'), 64.1);
-  show('#tb3', 64.35, {y: 40}, 0.5);
-  rowsIn($$('#rows3 .tr'), 64.5, 0.1);
+  // La date est écrite dans la requête, sans lire de table
+  pulse('#an3 .str', 64.0, 1, 'rgba(255,214,140,.4)');
+  // Pour l’instant, le résultat contient une seule ligne
+  press($('#r3'), 66.6);
+  show('#tb3', 66.85, {y: 40}, 0.5);
+  rowsIn($$('#rows3 .tr'), 67.0, 0.1);
   gsap.set('#cnt3', {autoAlpha: 0});
-  show('#cnt3', 65.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  // Les 30 jours suivants
+  show('#cnt3', 67.5, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // Un jour de plus à chaque étape, jusqu’au 31 juillet
   tl.to('#rows3 .hl', {opacity: 1, duration: 0.3}, 70.0);
   cue(70.0, 'tick', 0.45, 1);
 
