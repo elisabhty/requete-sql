@@ -108,10 +108,12 @@
 /* ---------- 7 · À retenir ---------- */
 #s7 .rtitle{top:196px}
 #s7 .recap{top:292px}
-#s7 .rrow{gap:24px;padding:20px 34px}
-#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
-#s7 .rtxt{font-size:39px}
-#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+/* Récapitulatif plus dense que d’habitude : la deuxième idée détaille les trois fonctions. */
+#s7 .rrow{gap:20px;padding:16px 28px}
+#s7 .rico{width:80px;height:80px;border-radius:22px;font-size:42px}
+#s7 .rtxt{font-size:34px}
+#s7 .rtxt .rs{margin-top:4px;font-size:31px}
+#s7 .rtxt .rs.rl{margin-top:2px;padding-left:22px;text-indent:-22px}   /* ROW_NUMBER / RANK / DENSE_RANK : une ligne par fonction */
 </style>
 </head>
 <body>
@@ -231,9 +233,9 @@
   <section class="scene" id="s7">
     <div class="abs rtitle">Les trois idées à retenir</div>
     <div class="abs card recap" id="recap">
-      <div class="rrow"><div class="rico emo">🔢</div><div class="rtxt"><span class="ic">ROW_NUMBER()</span>, <span class="ic">RANK()</span> et <span class="ic">DENSE_RANK()</span> <b>numérotent</b> les lignes dans l’ordre indiqué dans <span class="ic">OVER</span>&nbsp;:<br><span class="ic blk">OVER (ORDER BY date_commande)</span></div></div>
-      <div class="rrow"><div class="rico emo">🥇</div><div class="rtxt">Elles ne diffèrent que sur les <b>ex&nbsp;æquo</b>, ici deux commandes du même jour&nbsp;:<span class="rs"><span class="ic">ROW_NUMBER()</span>&nbsp;: 1, 2, 3 · <span class="ic">RANK()</span>&nbsp;: 1, 1, 3 · <span class="ic">DENSE_RANK()</span>&nbsp;: 1, 1, 2</span></div></div>
-      <div class="rrow"><div class="rico emo">🗂️</div><div class="rtxt">Avec <span class="ic">PARTITION BY</span>, la numérotation repart de 1 <b>dans chaque groupe</b>&nbsp;:<br><span class="ic blk">PARTITION BY clients.id</span></div></div>
+      <div class="rrow"><div class="rico emo">🔢</div><div class="rtxt">Attribuer un numéro ou un rang à chaque ligne<span class="rs"><span class="ic">ROW_NUMBER()</span>, <span class="ic">RANK()</span> et <span class="ic">DENSE_RANK()</span><br>utilisent l’ordre défini dans <span class="ic">OVER</span>, par exemple&nbsp;:</span><span class="ic blk">OVER (ORDER BY date_commande)</span></div></div>
+      <div class="rrow"><div class="rico emo">🥇</div><div class="rtxt">Choisir comment traiter les ex&nbsp;æquo<span class="rs">Pour deux commandes à la même date,<br>suivies d’une commande plus récente&nbsp;:</span><span class="rs rl"><span class="ic">ROW_NUMBER()</span>&nbsp;: un numéro différent<br>pour chaque ligne <span class="nw">→ 1, 2, 3</span></span><span class="rs rl"><span class="ic">RANK()</span>&nbsp;: même rang en cas d’égalité,<br>puis un saut <span class="nw">→ 1, 1, 3</span></span><span class="rs rl"><span class="ic">DENSE_RANK()</span>&nbsp;: même rang en cas d’égalité,<br>sans saut <span class="nw">→ 1, 1, 2</span></span></div></div>
+      <div class="rrow"><div class="rico emo">🗂️</div><div class="rtxt">Recommencer à 1 dans chaque groupe<span class="rs">Avec <span class="ic">PARTITION BY client_id</span>, la numérotation<br>ou le classement recommence pour chaque client.</span></div></div>
     </div>
   </section>
 
@@ -565,8 +567,8 @@ function build(){
 
   /* ===== 7 · À retenir ===== */
   recapScene(157.5, [158.2, 160.0, 161.8]);
-  hold(159.8, 4.8);
-  hold(161.6, 4.8);
+  hold(159.8, 8.0);   // le temps de lire la première idée (titre, précision et code)
+  hold(161.6, 13.0);  // puis la deuxième, la plus longue (les trois fonctions)
   // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
   if (APP) cue(162.75, 'pop', 0.85, 5);
 }
