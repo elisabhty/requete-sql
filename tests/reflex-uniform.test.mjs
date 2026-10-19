@@ -39,7 +39,8 @@ test('chaque cours a un réflexe de trois cartes bien formées', () => {
       const [, emoji, strong, sub, code] = c;
       assert.ok(/\p{Extended_Pictographic}/u.test(emoji), `${l.titre} : un emoji par carte`);
       const t = text(strong);
-      assert.ok(t.length >= 20 && t.length <= 150, `${l.titre} : phrase de ${t.length} caractères : ${t}`);
+      /* Phrase, ou titre court quand la carte suit le format « titre + précision » (« Un arrêt à prévoir »). */
+      assert.ok(t.length >= 12 && t.length <= 150, `${l.titre} : phrase de ${t.length} caractères : ${t}`);
       /* Précision : une ou deux phrases courtes (180 caractères au plus : quatre lignes au plus dans la carte des vidéos),
          ou une liste « mot-clé → rôle » ou d’exemples (une ligne par élément, séparées par <br>). */
       const subLines = sub ? sub.split(/<br\s*\/?>/) : [];
