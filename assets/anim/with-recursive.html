@@ -249,10 +249,13 @@ const CAPTIONS = [
   [66.4, 69.3,   "Pour l’instant, le résultat contient<br>donc <b>une seule ligne</b>."],
   [69.4, 75.5,   "À partir de cette date,<br>on va ajouter un jour à chaque étape,<br>jusqu’au 31 juillet."],
   [76.3, 81.9,   "La <b>partie récursive</b> se place sous l’ancre, reliée par <code>UNION ALL</code>."],
-  [82.0, 87.6,   "Elle relit la CTE <code>jours</code> et ajoute un jour à la dernière ligne créée."],
-  [87.7, 93.3,   "Le <code>WHERE</code> l’arrête : au 31 juillet, la condition devient fausse."],
+  [82.0, 85.6,   "À chaque étape, <code>DATE(jour, '+1 day')</code><br>ajoute un jour à la date précédente :"],
+  [85.7, 87.6,   "le 1er juillet donne le 2,<br>puis le 2 donne le 3…"],
+  [87.7, 90.6,   "<code>WHERE jour &lt; '2026-07-31'</code><br>autorise la création du jour suivant"],
+  [90.7, 93.3,   "tant que la date utilisée<br>est avant le 31 juillet."],
   [93.4, 98.9,   "Résultat : <b>31 lignes</b>, du 1er au 31 juillet."],
-  [99.0, 103.5,  "Le 31 est bien créé : il vient du 30, et le 30 est avant le 31."],
+  [99.0, 101.0,  "Le 30 juillet permet donc<br>de créer le 31 juillet."],
+  [101.1, 103.5, "Mais le 31 ne respecte plus la condition :<br>aucune date supplémentaire<br>n’est créée."],
   [104.3, 109.9, "Attention : que se <span class=\"nw\">passe-t-il</span> si on oublie la <b>condition d’arrêt</b> ?"],
   [110.0, 115.6, "La partie récursive trouve toujours un jour de plus à créer : août, septembre, 2027…"],
   [115.7, 121.3, "La requête ne s’arrête jamais : elle tourne jusqu’à épuiser les ressources du moteur."],
@@ -415,14 +418,17 @@ function build(){
   hide('#tb3', 76.3, {y: 0}, 0.25);
   te = lineIn('#l3x', 76.7);
   pulse('#ua3', te + 0.2, 3, 'rgba(201,188,255,.45)');
-  // Elle relit la CTE et ajoute un jour
+  // DATE(jour, '+1 day') ajoute un jour à la date précédente…
   te = lineIn('#l4x', 82.2);
   te = lineIn('#l5x', te + 0.1);
   pulse('#rc3', te + 0.2, 3, 'rgba(201,188,255,.45)');
-  pulse('#fj3', te + 1.3, 3, 'rgba(255,214,140,.45)');
-  // Le WHERE l’arrête
+  // … lue dans la CTE jours : le 1er donne le 2, puis le 2 donne le 3
+  pulse('#fj3', 85.9, 3, 'rgba(255,214,140,.45)');
+  // WHERE autorise le jour suivant…
   te = lineIn('#l6x', 87.9);
   pulse('#wh3', te + 0.2, 3, 'rgba(255,214,140,.5)');
+  // … tant que la date utilisée est avant le 31 juillet
+  pulse('#wh3 .str', 90.9, 1, 'rgba(255,214,140,.5)');
   // 31 lignes
   press($('#r3'), 93.6);
   show('#tb4', 93.85, {y: 40}, 0.5);
@@ -430,11 +436,12 @@ function build(){
   gsap.set('#cnt4', {autoAlpha: 0});
   show('#cnt4', 95.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
   bump('#cnt4', 96.5, 1.15, 3);
-  // Le 31 vient du 30
+  // Le 30 juillet permet de créer le 31…
   const r4 = $$('#rows4 .tr');
   tl.to(r4[4].querySelector('.hl'), {opacity: 1, duration: 0.3}, 99.4);
-  pulse('#wh3', 100.2, 3, 'rgba(255,214,140,.5)');
   cue(99.4, 'tick', 0.45, 4);
+  // … mais le 31 ne respecte plus la condition
+  pulse('#wh3', 101.3, 3, 'rgba(255,214,140,.5)');
 
   /* ===== 5 · Le piège ===== */
   tl.to(r4[4].querySelector('.hl'), {opacity: 0, duration: 0.3}, 104.2);
