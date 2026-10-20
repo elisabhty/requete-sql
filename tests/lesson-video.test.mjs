@@ -243,7 +243,8 @@ test('reprise, repères de chapitres, double appui, question et légendes dans l
 });
 
 test('service worker : l’animation, chargée dans un cadre, n’écrase jamais la page de l’app et reste disponible hors ligne', () => {
-  const iAnim = sw.indexOf("if (req.mode === 'navigate' && (req.destination === 'iframe' || url.pathname.includes('/assets/anim/')))");
+  /* Les pages des cours interactifs (assets/projet/) suivent la même règle que les animations. */
+  const iAnim = sw.indexOf("if (req.mode === 'navigate' && (req.destination === 'iframe' || url.pathname.includes('/assets/anim/') || url.pathname.includes('/assets/projet/')))");
   const iShell = sw.indexOf("if (req.mode === 'navigate') {");
   assert.ok(iAnim > 0 && iShell > iAnim, 'les cadres sont traités avant la page de l’app');
   const block = sw.slice(iAnim, iShell);

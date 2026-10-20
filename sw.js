@@ -14,7 +14,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-10-12-ludique-v1898';
+const CACHE = 'requete-2026-10-12-ludique-v1899';
 
 const PRECACHE = [
   './',
@@ -182,10 +182,10 @@ self.addEventListener('fetch', (e) => {
      les charger lui-même ; hors ligne, l’image fixe (poster) s’affiche. */
   if (url.pathname.endsWith('.mp4')) return;
 
-  /* Animations des cours, chargées dans un cadre par le lecteur : réseau d’abord,
-     rangées sous leur propre adresse — surtout pas sous index.html, sinon l’app
-     hors ligne s’ouvrirait sur l’animation. */
-  if (req.mode === 'navigate' && (req.destination === 'iframe' || url.pathname.includes('/assets/anim/'))) {
+  /* Animations des cours, chargées dans un cadre par le lecteur, et pages des cours
+     interactifs (assets/projet/) : réseau d’abord, rangées sous leur propre adresse —
+     surtout pas sous index.html, sinon l’app hors ligne s’ouvrirait sur cette page. */
+  if (req.mode === 'navigate' && (req.destination === 'iframe' || url.pathname.includes('/assets/anim/') || url.pathname.includes('/assets/projet/'))) {
     e.respondWith((async () => {
       const cache = await caches.open(CACHE);
       try {
