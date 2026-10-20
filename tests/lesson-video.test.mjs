@@ -1335,7 +1335,7 @@ test('leçon seule (Quel JOIN choisir ?) : la vidéo interactive valide la leço
     'bilan : les erreurs (règle des erreurs) ou les moments trouvés du premier coup');
 });
 
-test('leçon seule : on n’avance pas au-delà d’un moment « À toi » pas réussi ; la leçon se valide avec au moins 6 sur 9', () => {
+test('leçon seule : on n’avance pas au-delà d’un moment « À toi » pas réussi ; la leçon se valide selon sa règle (erreurs au plus, ou seuil)', () => {
   const video = {picks: [{t: 10}, {t: 20}, {t: 30}], duration: 40, currentTime: 0, paused: false, plays: 0,
     pause() { this.paused = true; }, play() { this.plays++; this.paused = false; return Promise.resolve(); }};
   const LV = {id: 44, video, pk: null, q: null, root: {classList: {contains: () => false}, querySelector: () => null}}, shown = [];
@@ -1385,7 +1385,7 @@ test('leçon seule : on n’avance pas au-delà d’un moment « À toi » pas r
   assert.ok(cut('function lvGoExercise(){', 'function lvFail(){').includes('if(LV&&LV.retry){ if(LV.rates&&LV.rates.length)lvRedo(LV.rates); else lvReplay(); return; }'), 'pas assez : rejouer les moments ratés');
   assert.ok(cut('function lvReplay(){', 'function lvGoExercise(){').includes('if(LV.retry)lvPkReset(LV.id);'), '« Tout recommencer » : tous les moments sont à refaire');
   assert.ok(cut('function leconSeuleBilan(first){', 'function lvFail(){').includes('if(!lvReussi(current))return;'), 'ni bilan ni validation sous le seuil');
-  assert.ok(cut('guide({ id:44,', 'guide({ id:45,').includes(',moments:9,seuil:6,'), 'leçon 44 : au moins 6 moments sur 9');
+  assert.ok(cut('guide({ id:44,', 'guide({ id:45,').includes(',moments:9,erreurs:2,'), 'leçon 44 : 2 erreurs au plus, comme le chapitre 1 du projet');
   assert.ok(html.includes('Obtiens ${lvSeuil(l)}/${v.moments} pour valider la leçon') && html.includes('Termine la vidéo avec ${lvErreursMax(l)} erreur'), 'le bouton du cours annonce la règle');
   assert.ok(cut('guide({ id:56,', 'guide({ id:72,').includes(",moments:6,erreurs:2,"), 'leçon 56 : 2 erreurs au plus');
 });
