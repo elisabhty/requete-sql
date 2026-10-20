@@ -218,7 +218,7 @@
   <section class="scene" id="sx">
     <div class="abs card pg" id="pg"><div class="pgh"><span class="emo">🗓️</span>Les ateliers de la rentrée</div></div>
     <div class="abs card xl" id="xl">
-      <div class="xlt"><span class="emo">📊</span><span class="xfn">inscriptions-ateliers.xlsx</span><i class="you">Toi</i><span class="xn"><span id="xn1">4 inscriptions</span><span class="bad hid" id="xn2">5 inscriptions&nbsp;?</span></span></div>
+      <div class="xlt"><span class="emo">📊</span><span class="xfn">inscriptions-ateliers.xlsx</span><i class="you">Toi</i><span class="xn"><span id="xn1">6 inscriptions</span><span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span></span></div>
       <div class="xg" id="xg"></div>
     </div>
   </section>
@@ -247,23 +247,27 @@
 const DURATION = 166.0;
 
 /* ---------- Le cas : les ateliers NutriBoost (le même dans tous les chapitres du projet) ---------- */
-const COACHS = [[1, 'Salma', 'Haddad', 'salma@mail.fr', 'SH'], [2, 'Moussa', 'Diallo', 'moussa@mail.fr', 'MD']];
+const COACHS = [[1, 'Salma', 'Haddad', 'salma@mail.fr', 'SH'], [2, 'Moussa', 'Diallo', 'moussa@mail.fr', 'MD'],
+  [3, 'Julie', 'Nguyen', 'julie@mail.fr', 'JN'], [4, 'Diego', 'Ramos', 'diego@mail.fr', 'DR']];
 /* L’adresse d’où Salma Haddad écrit : la nouvelle, à recopier à la place de l’ancienne. */
 const NEWMAIL = 'salma@pro.fr';
-/* Ateliers : [id, titre, date (fichier), date (base), coach, emoji] — un coach par atelier. Yoga du matin arrive plus tard, sans inscrit. */
-const ATELIERS = [[1, 'Récupération', '12/09', '2026-09-12', 1, '🥗'], [2, 'Cuisine saine', '19/09', '2026-09-19', 2, '🍳']];
-const YOGA = [3, 'Yoga du matin', '03/10', '2026-10-03', 2, '🌅'];
+/* Ateliers : [id, titre, date (fichier), date (base), coach, emoji] — un coach par atelier, sauf Moussa Diallo : il anime le Pilates,
+   puis propose Yoga du matin, qui arrive plus tard, sans inscrit. */
+const ATELIERS = [[1, 'Récupération', '12/09', '2026-09-12', 1, '🥗'], [2, 'Pilates', '17/09', '2026-09-17', 2, '🤸'],
+  [3, 'Cuisine saine', '19/09', '2026-09-19', 3, '🍳'], [4, 'Méditation', '24/09', '2026-09-24', 4, '🧘']];
+const YOGA = [5, 'Yoga du matin', '03/10', '2026-10-03', 2, '🌅'];
 /* Clients de la base de l’app : id → [prénom, nom]. */
-const CLIENTS = {1: ['Sophie', 'Martin'], 3: ['Emma', 'Dubois'], 4: ['Nathan', 'Petit'], 7: ['Léa', 'Simon']};
+const CLIENTS = {1: ['Sophie', 'Martin'], 3: ['Emma', 'Dubois'], 4: ['Nathan', 'Petit'], 5: ['Chloé', 'Moreau'], 6: ['Hugo', 'Laurent'], 7: ['Léa', 'Simon']};
 /* Inscriptions : [client_id, atelier_id, date (fichier), date (base)]. */
-const INSCR = [[1, 1, '01/09', '2026-09-01'], [4, 1, '02/09', '2026-09-02'], [7, 2, '04/09', '2026-09-04'], [3, 1, '05/09', '2026-09-05']];
+const INSCR = [[1, 1, '01/09', '2026-09-01'], [4, 1, '02/09', '2026-09-02'], [5, 2, '03/09', '2026-09-03'], [7, 3, '04/09', '2026-09-04'],
+  [3, 1, '05/09', '2026-09-05'], [6, 4, '06/09', '2026-09-06']];
 /* Le fichier : une ligne par inscription, le client, l’atelier et son coach recopiés. */
 const COLS = ['client', 'atelier', 'date', 'coach', 'e-mail du coach', 'inscrit le'];
 const SUBJ = [['k-cl', '👥', 'client', [0]], ['k-at', '📅', 'atelier', [1, 2]], ['k-co', '🧑‍🏫', 'coach', [3, 4]], ['k-in', '📝', 'inscription', [5]]];
 const at = id => ATELIERS.find(a => a[0] === id), co = id => COACHS.find(c => c[0] === id);
 const SHEET = INSCR.map(([c, a, d]) => { const A = at(a), C = co(A[4]); return [CLIENTS[c].join(' '), A[1], A[2], C[1] + ' ' + C[2], C[3], d]; });
 const SALMA = INSCR.map(([, a], i) => at(a)[4] === 1 ? i : -1).filter(i => i >= 0);   // les lignes de l’atelier de Salma Haddad
-const LEA = 2;
+const LEA = INSCR.findIndex(r => r[0] === 7);   // la seule ligne de Léa Simon, et de Cuisine saine
 
 const CHAPTERS = [
   {n:1, label:'Le fichier Excel',    a:5.0,   b:29.6},
@@ -276,7 +280,7 @@ const CHAPTERS = [
 
 /* Légendes : [début, fin, texte] (temps de la timeline). Pendant un mail, la légende s’efface : le mail a la parole. */
 const CAPTIONS = [
-  [5.3, 11.5,    "<b>Deux ateliers bien-être</b> arrivent<br>chez NutriBoost : récupération<br>après le sport et cuisine saine."],
+  [5.3, 11.5,    "<b>Quatre ateliers bien-être</b> arrivent<br>chez NutriBoost : récupération,<br>cuisine saine, Pilates et méditation."],
   [11.6, 16.9,   "Chaque atelier est animé par un <b>coach</b>, et tous les clients peuvent s’y inscrire."],
   [17.0, 23.0,   "Pour l’instant, les inscriptions sont notées dans un <b>fichier Excel</b> : une ligne par inscription."],
   [23.1, 29.3,   "Chaque ligne indique le client, l’atelier et sa date, le coach et son e-mail, puis la date d’inscription."],
@@ -285,7 +289,7 @@ const CAPTIONS = [
   [40.3, 46.3,   "Son adresse apparaît sur <b>trois lignes</b> :<br>il faut donc la modifier à chaque endroit."],
   [46.4, 51.6,   "Si tu en oublies une, le fichier<br>contiendra deux adresses différentes<br>pour la même personne."],
   [54.7, 61.8,   "À toi !"],
-  [61.9, 68.4,   "Cette ligne est la seule où figure Cuisine saine : l’atelier, sa date et son coach disparaîtraient avec elle."],
+  [61.9, 68.4,   "Cette ligne est la seule où figure Cuisine saine : l’atelier, sa date et sa coach disparaîtraient avec elle."],
   [74.7, 80.5,   "À toi !"],
   [80.6, 83.0,   "Chaque ligne regroupe des informations sur un client, un atelier, un coach et une inscription."],
   [83.1, 85.0,   "<b>Tout est lié</b> :<br>modifier ou supprimer une inscription"],
@@ -374,9 +378,9 @@ function dom(){
       (i === LEA && j >= 1 && j <= 3 ? `<i class="lost" id="ls${j}"></i>` : '') + '</span>').join('') +
       (i === LEA ? '<i class="delb" id="delb"></i>' : '') + '</div>';
   });
-  const Y = ['?', YOGA[1], YOGA[2], co(2)[1] + ' ' + co(2)[2], co(2)[3], '?'];
+  const Y = ['?', YOGA[1], YOGA[2], co(YOGA[4])[1] + ' ' + co(YOGA[4])[2], co(YOGA[4])[3], '?'];
   h += '<div class="xr xd ny last hid" id="xdy">' + Y.map((v, j) => `<span id="cy_${j}">` + (j === 0 || j === 5 ? `<i class="ask" id="ask${j}">?</i>` : `<i class="v">${v}</i>`) +
-    (j === 0 ? `<i class="op1" id="op1">${co(2)[1]} ${co(2)[2]}</i><i class="op2" id="op2"></i><i class="op3" id="op3">—</i>` : '') +
+    (j === 0 ? `<i class="op1" id="op1">${co(YOGA[4])[1]} ${co(YOGA[4])[2]}</i><i class="op2" id="op2"></i><i class="op3" id="op3">—</i>` : '') +
     (j === 5 ? '<i class="op3" id="op3b">—</i>' : '') + '</span>').join('') +
     '<i class="nyo" id="nyo"></i></div>';
   $('#xg').innerHTML = h;
@@ -384,7 +388,7 @@ function dom(){
   let u = MAILS.map(([w, k, tag, from, body], n) => `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[4]}<b class="mbg emo">✉️</b></i>` +
     `<div class="mw"><div class="mn"><b>${w[1]} ${w[2]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
     `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${body.map(x => `<span class="sn">${x}</span>`).join('')}</p></div></div>`).join('');
-  const A2 = at(2), C2 = co(A2[4]);
+  const A2 = at(INSCR[LEA][1]), C2 = co(A2[4]);
   u += `<div class="abs card lc" id="lc"><div class="lch"><span class="emo">🗑️</span>Effacé avec la ligne</div><div class="lcc">` +
     `<span class="lchip"><span class="emo">${A2[5]}</span>${A2[1]}<i class="x">✕</i></span><span class="lchip">${A2[2]}<i class="x">✕</i></span>` +
     `<span class="lchip">${av(C2)}animé par ${C2[1]} ${C2[2]}<i class="x">✕</i></span></div></div>`;
@@ -434,10 +438,11 @@ function layout(){
   ['#lc', '#anoms', '.ml'].forEach(s => $$(s).forEach(el => { el.style.top = below + 'px'; }));
   $('#leg').style.top = (below + 96) + 'px';
   $$('.ml').forEach((el, n) => { el.style.height = 'auto'; MH[n + 1] = el.offsetHeight; el.style.height = ''; });
-  // Chaque tampon : sous le fichier, sous la carte de ce qui serait perdu, sous le mail replié de Moussa Diallo
-  [['#an1', 30], ['#an2', $('#lc').offsetHeight + 46], ['#an3', 84 + 150 + 46]].forEach(([s, dy]) => {
+  // Chaque tampon : sous le fichier, sous la carte de ce qui serait perdu ; celui de l’insertion, posé sur le mail replié de Moussa Diallo
+  [['#an1', 30], ['#an2', $('#lc').offsetHeight + 46]].forEach(([s, dy]) => {
     const el = $(s); el.style.left = Math.round((1080 - el.offsetWidth) / 2) + 'px'; el.style.top = (below + dy) + 'px';
   });
+  const a3 = $('#an3'); a3.style.left = (1080 - 64 - 34 - a3.offsetWidth) + 'px'; a3.style.top = (below + 84 + Math.round((150 - a3.offsetHeight) / 2)) + 'px';
   // Les quatre tables : sous l’en-tête du fichier replié (titre, lettres, en-têtes)
   const top = 236 + 70 + 38 + 56 + 10 + 48;
   $$('.bin').forEach((b, q) => { b.style.left = (64 + (q % 2) * 496) + 'px'; b.style.top = (top + Math.floor(q / 2) * 380) + 'px'; });
@@ -524,12 +529,12 @@ function build(){
 
   /* ===== 1 · Le fichier Excel ===== */
   sceneOn('#sx', 5.0);
-  // Deux ateliers bien-être : récupération, cuisine saine
+  // Quatre ateliers bien-être : récupération, cuisine saine, Pilates, méditation
   show('#pg', 5.3, {y: 60}, 0.6);
   cue(5.3, 'whoosh', 0.7);
   const pr = $$('#pg .pgr');
   gsap.set(pr, {autoAlpha: 0, x: -36});
-  [7.0, 8.7].forEach((t, k) => { tl.to(pr[k], {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, t); cue(t, 'pop', 0.7, k); });
+  [6.9, 7.9, 8.9, 9.9].forEach((t, k) => { tl.to(pr[k], {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, t); cue(t, 'pop', 0.7, k); });
   // un coach par atelier
   $$('#pg .av').forEach((a, k) => { bump(a, 12.4 + k * 0.25, 1.18); cue(12.4 + k * 0.25, 'tick', 0.5, k); });
   // le fichier des inscriptions : une ligne par inscription
@@ -537,8 +542,9 @@ function build(){
   tl.fromTo('#xl', {autoAlpha: 0, y: 360}, {autoAlpha: 1, y: 300, duration: 0.6, ease: 'expo.out', immediateRender: false}, 17.2);
   cue(17.2, 'whoosh', 0.7);
   tl.to('#xl', {y: 0, duration: 0.6, ease: 'power2.inOut'}, 29.6);
-  rowsIn($$('#xd0, #xd1, #xd2, #xd3'), 17.8);
-  $$('#xd0, #xd1, #xd2, #xd3').forEach((r, k) => { tl.to(r.querySelector('.hl'), {opacity: 1, duration: 0.25, yoyo: true, repeat: 1}, 19.8 + k * 0.45); cue(19.8 + k * 0.45, 'tick', 0.5, k); });
+  const rows = SHEET.map((r, i) => $('#xd' + i));
+  rowsIn(rows, 17.8, 0.1);
+  rows.forEach((r, k) => { tl.to(r.querySelector('.hl'), {opacity: 1, duration: 0.25, yoyo: true, repeat: 1}, 19.6 + k * 0.4); cue(19.6 + k * 0.4, 'tick', 0.5, k); });
   // les colonnes, une à une
   [[0, 23.5], [1, 24.4], [2, 25.1], [3, 25.8], [4, 26.5], [5, 27.3]].forEach(([j, t]) => colIn(j, t, 0.9));
 
@@ -629,7 +635,7 @@ function build(){
   /* ===== 4 · Une table par sujet ===== */
   // le fichier se replie sur ses en-têtes ; les quatre tables arrivent, chacune de la couleur de son sujet
   hide(SUBJ.map((s, q) => '#bd' + q).concat(SUBJ.map((s, q) => '#sj' + q), ['#anoms']), 88.0, {y: 0}, 0.3);
-  tl.to($$('#xd0, #xd1, #xd2, #xd3'), {autoAlpha: 0, height: 0, duration: 0.5, ease: 'power2.inOut', stagger: 0.05}, 88.4);
+  tl.to(rows, {autoAlpha: 0, height: 0, duration: 0.5, ease: 'power2.inOut', stagger: 0.04}, 88.4);
   cue(88.4, 'whoosh', 0.6);
   $$('.bin').forEach((b, q) => { show(b, 89.5 + q * 0.18, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(89.5 + q * 0.18, 'pop', 0.6, q); });
   // la table clients existe déjà ; trois tables à ajouter : ateliers, coachs, inscriptions
@@ -658,7 +664,7 @@ function build(){
   tl.set('#ryg', {autoAlpha: 1, height: 68}, a4);
   tl.to('#ryg .hl', {opacity: 0, duration: 0.6}, 131.2);
   // À toi : qui s’est inscrit le 4 septembre ?
-  tl.to($$('#tbi .r')[2].querySelector('.hl'), {opacity: 1, duration: 0.3}, 136.6);
+  tl.to($$('#tbi .r')[LEA].querySelector('.hl'), {opacity: 1, duration: 0.3}, 136.6);
   cue(136.6, 'tick', 0.5, 3);
   const a5 = +(PICKS[5].at + 0.02).toFixed(2);
   // (réponse : impossible à savoir) rien ne la relie encore : ni client, ni atelier
@@ -714,7 +720,7 @@ const IX = (() => {
         return {ok: true, done: X.got.size === SALMA.length, why: '', at: rel(cellEl)};
       }
       flash(cellEl, 'kof');
-      return {ok: false, why: fr(j === 4 ? 'C’est l’e-mail de Moussa Diallo.' : j === 3 && SALMA.includes(r) ? 'Ici, c’est son nom. Cherche son e-mail.' : 'Pas d’e-mail de Salma Haddad dans cette case.')};
+      return {ok: false, why: fr(j === 4 ? `C’est l’e-mail de ${SHEET[r][3]}.` : j === 3 && SALMA.includes(r) ? 'Ici, c’est son nom. Cherche son e-mail.' : 'Pas d’e-mail de Salma Haddad dans cette case.')};
     }
     if (i === 1) {
       const r = +a.slice(1);
@@ -778,7 +784,7 @@ const IX = (() => {
 window.IX = IX;
 
 Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 159.3, picks: PICKS, opens: OPENS,
-  glyphs: '📊📅🧑‍🏫👥📝🔑🔎🗂️📋🗓️🗑️🥗🍳🌅✉️👆⚠️👍✓✕✎?—→×', dom, build, onRender: () => IX.tick()});
+  glyphs: '📊📅🧑‍🏫👥📝🔑🔎🗂️📋🗓️🗑️🥗🍳🤸🧘🌅✉️👆⚠️👍✓✕✎?—→×', dom, build, onRender: () => IX.tick()});
 </script>
 </body>
 </html>
