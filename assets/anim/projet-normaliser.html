@@ -80,7 +80,7 @@
 .ask{position:absolute;left:3px;right:5px;top:8px;bottom:8px;z-index:2;border-radius:10px;border:3px solid #F2B529;background:#FFF3CF;color:#9A6400;font-family:var(--mono);font-weight:800;font-size:30px;display:flex;align-items:center;justify-content:center}
 .op1,.op2,.op3{position:absolute;left:3px;right:5px;top:8px;bottom:8px;z-index:2;border-radius:10px;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden}
 .op1{padding:0 6px;background:var(--danger-soft);color:var(--danger);font-weight:700;font-size:24px;justify-content:flex-start}
-.op2{border:3px dashed var(--danger-fill);background:#fff}
+.op2{padding:0 6px;border:3px dashed var(--danger-fill);background:#fff;color:var(--danger);font-weight:700;font-size:24px;justify-content:flex-start}
 .op3{background:#F1EEFC;color:var(--ink-3);font-family:var(--mono);font-weight:800;font-size:30px}
 .nyo{position:absolute;left:-3px;right:-3px;top:2px;bottom:2px;z-index:3;border-radius:14px;border:4px dashed var(--danger-fill);opacity:0;visibility:hidden}
 /* Bandes de couleur : les sujets mélangés sur chaque ligne */
@@ -335,10 +335,11 @@ const BINS = [['clients', '👥', 'k-cl', ['id', 'prenom', 'nom']], ['ateliers',
 const PICKS = [
   {at: 40.0, kind: 'tap', need: 3, prompt: 'Touche chaque case où l’e-mail de Salma Haddad est écrit.'},
   {at: 61.6, kind: 'tap', need: 1, prompt: 'Touche la ligne qu’il faudrait supprimer.'},
-  {at: 80.3, kind: 'pick', text: true, prompt: 'Que mettre dans la case client de cette ligne ?', options: [
-    {label: 'Moussa Diallo', why: 'Il anime l’atelier : il ne s’y inscrit pas.'},
-    {label: 'Laisser vide', why: 'La ligne compterait alors comme une inscription : il y en aurait une de trop.'},
-    {label: 'Rien ne convient', ok: true, why: 'Sans inscrit, pas de ligne : le fichier ne peut pas enregistrer cet atelier.'}]},
+  {at: 80.3, kind: 'pick', text: true, prompt: 'Tu ajoutes l’atelier Yoga du matin, mais personne n’est encore inscrit. Quel problème rencontres-tu ?', options: [
+    {label: 'Tu dois inventer un client.', why: 'Rien ne t’y oblige, et un faux client fausserait le fichier : une inscription de trop.'},
+    {label: 'Tu crées une ligne d’atelier dans un tableau censé contenir des inscriptions.', ok: true,
+      why: 'Un atelier peut exister sans inscription. En séparant les ateliers et les inscriptions en deux tables, tu peux l’enregistrer sans renseigner de client.'},
+    {label: 'Tu dois ajouter le coach comme client.', why: 'Moussa Diallo anime l’atelier : il ne s’y inscrit pas.'}]},
   /* Chaque étiquette dit ce que contient sa colonne, avec la lettre de la colonne dans le fichier. */
   {at: 105.0, kind: 'sort', prompt: 'Glisse chaque colonne du fichier dans sa table.', hint: 'Ou touche une colonne, puis sa table.',
     options: SORT.map((r, j) => ({label: r[5], tag: 'ABCDEF'[j]}))},
@@ -381,7 +382,7 @@ function dom(){
   });
   const Y = ['?', YOGA[1], YOGA[2], co(YOGA[4])[1] + ' ' + co(YOGA[4])[2], co(YOGA[4])[3], '?'];
   h += '<div class="xr xd ny last hid" id="xdy">' + Y.map((v, j) => `<span id="cy_${j}">` + (j === 0 || j === 5 ? `<i class="ask" id="ask${j}">?</i>` : `<i class="v">${v}</i>`) +
-    (j === 0 ? `<i class="op1" id="op1">${co(YOGA[4])[1]} ${co(YOGA[4])[2]}</i><i class="op2" id="op2"></i><i class="op3" id="op3">—</i>` : '') +
+    (j === 0 ? `<i class="op1" id="op1">${co(YOGA[4])[1]} ${co(YOGA[4])[2]}</i><i class="op2" id="op2">Client X</i><i class="op3" id="op3">—</i>` : '') +
     (j === 5 ? '<i class="op3" id="op3b">—</i>' : '') + '</span>').join('') +
     '<i class="nyo" id="nyo"></i></div>';
   $('#xg').innerHTML = h;
@@ -749,14 +750,14 @@ const IX = (() => {
     }
     return {ok: false};
   }
-  /* Choix d’une étiquette (moments 3 et 6) : la case client de l’atelier sans inscrit, ou le verdict sous les tables. */
+  /* Choix d’une réponse (moments 3 et 6) : ce que deviendrait la ligne de l’atelier sans inscrit, ou le verdict sous les tables. */
   function pick(i, k){
     clear(); start(i);
     const P = PICKS[i], o = P.options[k], ok = !!o.ok;
     if (i === 2) {
       mark($('#ask0'), 'pvh');
-      if (k === 0) mark($('#op1'), 'pvs');
-      if (k === 1) { mark($('#op2'), 'pvs'); mark($('#xn1'), 'pvh'); mark($('#xn2'), 'pvs'); }
+      if (k === 0) { mark($('#op2'), 'pvs'); mark($('#xn1'), 'pvh'); mark($('#xn2'), 'pvs'); }
+      if (k === 2) mark($('#op1'), 'pvs');
       if (ok) { mark($('#ask5'), 'pvh'); ['#op3', '#op3b', '#nyo', '#an3'].forEach(s => mark($(s), 'pvs')); }
       sfx(ok ? 'stamp' : 'miss', 0, 0.5);
     }

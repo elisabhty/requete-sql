@@ -844,7 +844,7 @@ const COURSES = [
     traps: ["const INSCR = [[1, 1, '01/09', '2026-09-01'], [4, 1, '02/09', '2026-09-02'], [5, 2, '03/09', '2026-09-03'], [7, 3, '04/09', '2026-09-04'],",
       "const YOGA = [5, 'Yoga du matin', '03/10', '2026-10-03', 2, '🌅'];", '<span id="xn1">6 inscriptions</span>', "const COLS = ['client', 'atelier', 'date', 'coach', 'e-mail du coach', 'inscrit le'];",
       // Les six moments : les copies de l’e-mail, la ligne à supprimer, la case client du Yoga, les colonnes à ranger, la table du Yoga, la table sans liens
-      "{at: 40.0, kind: 'tap', need: 3,", "{at: 61.6, kind: 'tap', need: 1,", "{label: 'Rien ne convient', ok: true,", "{at: 105.0, kind: 'sort',",
+      "{at: 40.0, kind: 'tap', need: 3,", "{at: 61.6, kind: 'tap', need: 1,", "{label: 'Tu crées une ligne d’atelier dans un tableau censé contenir des inscriptions.', ok: true,", "{at: 105.0, kind: 'sort',",
       "{at: 129.8, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}",
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
@@ -1137,7 +1137,7 @@ test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la 
 
 test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme à la souris, sans couper « e-mail »', () => {
   const show = cut('function lvPkShow(i,p){', 'function lvPkTry(k){');
-  for (const part of ["const total=kind==='sort'?opts.length:(p.need||0);", "box.className='lv-pk'+(kind==='pick'?'':' is-'+kind)+(p.text?' is-text':'');",
+  for (const part of ["const total=kind==='sort'?opts.length:(p.need||0);", "box.className='lv-pk'+(kind==='pick'?'':' is-'+kind)+(p.text?' is-text':'')+(kind==='pick'&&opts.some(o=>String(o.label).length>30)?' is-long':'');",
     '<span class="lv-pk-cnt">0 / ${total}</span>', '<span class="lv-pk-ico" aria-hidden="true">${LV_PK_ICO[kind]||LV_PK_ICO.tap}</span>${p.prompt}',
     '<p class="lv-pk-hint">${p.hint}</p>', '}else lvPkLayer(P);', "p={...p,prompt:lvNw(p.prompt),hint:p.hint?lvNw(p.hint):''};"])
     assert.ok(show.includes(part), `plateau : ${part}`);
@@ -1287,6 +1287,8 @@ test('mail reçu : l’image s’arrête sur la notification, le toucher l’ouv
   assert.ok(html.includes("if(why)opts.hidden=true; else opts.classList.add('is-won');") && html.includes('.lv-pk-opts.is-won .lv-pk-opt.is-gone{display:none}')
     && html.includes('.lv-pk-opts:not([hidden])~.lv-pk-go{margin-top:14px}'), 'plateau réussi : la bonne étiquette, puis « Continuer », bien séparés');
   assert.ok(html.includes('.lv-pk.is-sort .lv-pk-opts:not([hidden]){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}'), 'étiquettes à glisser sur deux colonnes');
+  assert.ok(html.includes("(kind==='pick'&&opts.some(o=>String(o.label).length>30)?' is-long':'')") && html.includes('.lv-pk.is-long .lv-pk-opts:not([hidden]){flex-direction:column;align-items:stretch;gap:8px}'),
+    'réponses longues (une phrase) : l’une sous l’autre, sur deux lignes au besoin');
 });
 
 test('moments « À toi » : la légende annonce le moment sans répéter la consigne de la carte, l’attente est coupée', () => {

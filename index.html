@@ -6564,6 +6564,8 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-pk-hint{margin:10px 2px 0;font:600 13px/1.35 var(--ui);color:var(--ink-3,#6A6490);text-align:center;text-wrap:balance}
 .lv-pk-hint[hidden]{display:none}
 .lv-pk.is-text .lv-pk-opt{font-family:var(--ui);font-weight:700;letter-spacing:-.01em}
+.lv-pk.is-long .lv-pk-opts:not([hidden]){flex-direction:column;align-items:stretch;gap:8px}
+.lv-pk.is-long .lv-pk-opt{min-height:44px;padding:9px 14px;font-size:14.5px;line-height:1.28;text-align:left}
 .lv-pk.is-sort .lv-pk-opts{gap:8px}
 /* Étiquettes à glisser, au nom explicite (« date de l’atelier ») : sur deux colonnes, un nom long passe sur deux lignes */
 .lv-pk.is-sort .lv-pk-opts:not([hidden]){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
@@ -20540,7 +20542,8 @@ function lvPkShow(i,p){
   const n=(LV.video.picks||[]).length, box=document.createElement('div'), kind=LV_PK_ICO[p.kind]?p.kind:'pick', opts=p.options||[];
   /* Compteur des gestes attendus : une étiquette par place (sort), sinon le nombre de bons gestes (need). */
   const total=kind==='sort'?opts.length:(p.need||0);
-  box.className='lv-pk'+(kind==='pick'?'':' is-'+kind)+(p.text?' is-text':'');
+  /* Réponses longues (une phrase) : l’une sous l’autre, sur toute la largeur, le texte sur deux lignes au besoin. */
+  box.className='lv-pk'+(kind==='pick'?'':' is-'+kind)+(p.text?' is-text':'')+(kind==='pick'&&opts.some(o=>String(o.label).length>30)?' is-long':'');
   box.innerHTML=`<div class="lv-pk-card" role="group" aria-labelledby="lv-pk-t" tabindex="-1">
     <div class="lv-pk-top"><span class="lv-pk-kick">À toi · ${i+1}/${n}</span>${total>1?`<span class="lv-pk-cnt">0 / ${total}</span>`:''}<span class="lv-pk-dots" aria-hidden="true">${lvPkDots(i,n)}</span></div>
     <p class="lv-pk-t" id="lv-pk-t">${kind==='pick'?`<span class="lv-pk-hole" aria-hidden="true">?</span>${p.prompt}`:`<span class="lv-pk-ico" aria-hidden="true">${LV_PK_ICO[kind]||LV_PK_ICO.tap}</span>${p.prompt}`}</p>
@@ -28654,7 +28657,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1911';
+  const SW_CACHE='requete-2026-10-12-ludique-v1912';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
