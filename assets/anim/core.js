@@ -625,9 +625,9 @@ function Course(cfg){
          Autres gestes (kind) : tap (toucher les bons endroits de l’image), sort (glisser chaque étiquette vers sa place),
          link (relier deux éléments) ; la page décrit les endroits (IX.spots) et juge chaque geste (IX.act).
          need : nombre de bons gestes attendus (tap, link) ; hint : consigne du geste, sous le plateau ;
-         text : étiquettes en texte courant (une réponse en mots), et non en code. */
+         text : étiquettes en texte courant (une réponse en mots), et non en code ; tag : repère de l’étiquette à glisser (lettre de colonne). */
       picks: picks.map(p => ({t: unwarp(p.at), kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', need: p.need || 0,
-        options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok}))})),
+        options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || ''}))})),
       /* Légendes en texte : le lecteur les annonce à VoiceOver au fil de l’animation. */
       captions: captions.map(c => ({a: unwarp(c[0]), b: unwarp(Math.min(c[1], duration)), text: plain(c[2])}))};
   })();
