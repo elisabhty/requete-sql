@@ -838,7 +838,7 @@ const COURSES = [
       '✕ Les deux commandes du 2 juillet ont le même cumul', '<div class="lim" id="lim6"><span>Palier&nbsp;: 700&nbsp;€</span></div>',
       '✓ Palier franchi le 1er&nbsp;août']},
   {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '2 min 45', notesAt: 159.3,
-    notes: /notes:\{t:158\.1,y:1194,card:\[64,292,1016,899\],to:\[940,255\]\}/, table: 'inscriptions',
+    notes: /notes:\{t:158\.2,y:1194,card:\[64,292,1016,899\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Le tableur des ateliers mélange tout&nbsp;:<br>à toi de le ranger en tables.',
     chapters: ['Le tableur', 'Les copies', 'Supprimer, ajouter', 'Une table par sujet', 'Les tables remplies', 'À retenir'],
     traps: ["const INSCR = [[1, 1, '01/09', '2026-09-01'], [4, 1, '02/09', '2026-09-02'], [7, 2, '04/09', '2026-09-04'], [1, 3, '05/09', '2026-09-05']];",
@@ -865,7 +865,7 @@ const COURSES = [
     notes: /notes:\{t:214\.9,y:1289,card:\[64,292,1016,994\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Dessine les classes et leurs liens<br>avant de créer les tables.',
     chapters: ['Situation', 'Le problème', 'Le diagramme', 'Les multiplicités', 'Classe → table', '1 — 0..*', '0..* — 0..*', 'Le résultat', 'À retenir'],
-    traps: ["const COACHS = [[1, 'Camille', 'Roux'], [2, 'Thomas', 'Girard']];", "const ATELIERS = [[1, 'Récupération', 1], [2, 'Cuisine saine', 1], [3, 'Gainage doux', 2]];",
+    traps: ["const COACHS = [[1, 'Salma', 'Haddad'], [2, 'Moussa', 'Diallo']];", "const ATELIERS = [[1, 'Récupération', 1], [2, 'Cuisine saine', 1], [3, 'Gainage doux', 2]];",
       'const INSCRIPTIONS = [[1, 1], [1, 3], [4, 1], [7, 2]];', '<span class="pc qq">? coach</span>', '<span class="pc qq">? client</span>',
       // Le diagramme : trois classes, deux associations, une multiplicité à chaque bout
       '<div class="un">Coach</div>', '<div class="un">Atelier</div>', '<div class="un">Client</div>', '<span class="ux" id="ux1">anime<i>▾</i></span>',
@@ -983,14 +983,14 @@ test('Modéliser avec UML : les clients inscrits sont ceux de la base, et les ta
   db.run(`INSERT INTO coachs VALUES ${D.COACHS.map(([i, p, n]) => `(${i}, '${p}', '${n}')`).join(', ')};`);
   db.run(`INSERT INTO ateliers VALUES ${D.ATELIERS.map(([i, t, c]) => `(${i}, '${t}', ${c})`).join(', ')};`);
   db.run(`INSERT INTO inscriptions VALUES ${D.INSCRIPTIONS.map(([c, at]) => `(${c}, ${at})`).join(', ')};`);
-  assert.equal(JSON.stringify(db.exec('SELECT coach_id, COUNT(*) FROM ateliers GROUP BY coach_id')[0].values), '[[1,2],[2,1]]', 'Camille Roux anime deux ateliers, Thomas Girard un seul');
+  assert.equal(JSON.stringify(db.exec('SELECT coach_id, COUNT(*) FROM ateliers GROUP BY coach_id')[0].values), '[[1,2],[2,1]]', 'Salma Haddad anime deux ateliers, Moussa Diallo un seul');
   assert.equal(JSON.stringify(db.exec('SELECT client_id, COUNT(*) FROM inscriptions GROUP BY client_id HAVING COUNT(*) > 1')[0].values), '[[1,2]]', 'Sophie Martin suit deux ateliers');
   assert.equal(JSON.stringify(db.exec('SELECT atelier_id, COUNT(*) FROM inscriptions GROUP BY atelier_id HAVING COUNT(*) > 1')[0].values), '[[1,2]]', 'l’atelier Récupération accueille deux clients');
   assert.throws(() => db.run('INSERT INTO inscriptions VALUES (1, 1);'), /UNIQUE constraint failed/, 'clé primaire sur le couple');
   db.close();
   /* Mêmes coachs et mêmes ateliers que dans le cours (étape 1 et onglet Teste). */
-  assert.ok(lesson.studio.uses.body.includes('VALUES (1, &#39;Camille&#39;, &#39;Roux&#39;),') || lesson.studio.uses.body.includes("VALUES (1, 'Camille', 'Roux'),"), 'les deux coachs du cours');
-  assert.ok(lesson.testeVariants[0].sql.includes("VALUES (1, 'Récupération', 1),\n       (2, 'Cuisine saine', 1);"), 'les ateliers de Camille Roux');
+  assert.ok(lesson.studio.uses.body.includes('VALUES (1, &#39;Salma&#39;, &#39;Haddad&#39;),') || lesson.studio.uses.body.includes("VALUES (1, 'Salma', 'Haddad'),"), 'les deux coachs du cours');
+  assert.ok(lesson.testeVariants[0].sql.includes("VALUES (1, 'Récupération', 1),\n       (2, 'Cuisine saine', 1);"), 'les ateliers de Salma Haddad');
   assert.ok(!page.includes('programme') && !page.includes('seance'), 'la vidéo ne montre pas l’exercice');
 });
 
@@ -1188,7 +1188,7 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
   assert.equal(calls.join(' '), 'coach1→atelier2 coach1→atelier2', 'lien dans les deux sens');
   /* Mots à trait d’union : jamais coupés en fin de ligne, balises intactes. */
   vm.runInContext(cut('function lvNw(h){', 'function lvPkShow(i,p){') + ';this.lvNw=lvNw;', ctx);
-  assert.equal(ctx.lvNw('Touche chaque case où l’e-mail de Camille Roux est écrit.'), 'Touche chaque case où l’<span class="lv-nw">e-mail</span> de Camille Roux est écrit.');
+  assert.equal(ctx.lvNw('Touche chaque case où l’e-mail de Salma Haddad est écrit.'), 'Touche chaque case où l’<span class="lv-nw">e-mail</span> de Salma Haddad est écrit.');
   assert.equal(ctx.lvNw('d’après la table <code class="a-b">inscriptions</code> ?'), 'd’après la table <code class="a-b">inscriptions</code> ?', 'balises et attributs intacts');
   assert.ok(html.includes('.lv-nw{white-space:nowrap}'), 'mot gardé entier');
 });
@@ -1204,9 +1204,9 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
   const D = JSON.parse(JSON.stringify(ctx.D));
   assert.deepEqual(D.PICKS.map(p => p.kind), ['tap', 'tap', 'pick', 'sort', 'tap', 'pick'], 'toucher, choisir, glisser');
   assert.ok(D.PICKS.filter(p => p.kind === 'tap').every(p => /^Touche /.test(p.prompt)), 'chaque moment à toucher dit qu’il faut toucher l’image');
-  /* Le récit : trois demandes (Camille Roux, Léa Simon, Thomas Girard) font découvrir les trois anomalies, chacune tamponnée, puis réunies. */
+  /* Le récit : trois demandes (Salma Haddad, Léa Simon, Moussa Diallo) font découvrir les trois anomalies, chacune tamponnée, puis réunies. */
   const caps = page.slice(page.indexOf('const CAPTIONS = ['), page.indexOf('const QUESTIONS = []'));
-  for (const who of ['<b>Camille Roux</b> : « ', '<b>Léa Simon</b> : « ', '<b>Thomas Girard</b> : « ']) assert.ok(caps.includes(who), `message : ${who}`);
+  for (const who of ['<b>Salma Haddad</b> : « ', '<b>Léa Simon</b> : « ', '<b>Moussa Diallo</b> : « ']) assert.ok(caps.includes(who), `message : ${who}`);
   for (const part of ["['an1', 'Anomalie de mise à jour'], ['an2', 'Anomalie de suppression'], ['an3', 'Anomalie d’insertion']", "['Mise à jour', 'Suppression', 'Insertion']",
     "pingIn('#pcm', 33.6, 0.7);", "pingIn('#pla', 52.1, 0.6);", "stampIn('#an1', 49.4, -5);", "stampIn('#an2', 65.5, -5);", '<i class="you">Toi</i>', "pop('#rcm', 122.5, 0.4);"])
     assert.ok(page.includes(part), `récit : ${part}`);
@@ -1219,7 +1219,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
   assert.deepEqual(D.SORT.map(r => r[0]), D.COLS, 'chaque colonne du tableur est à ranger, dans l’ordre du tableur');
   assert.equal(D.PICKS[3].options.map(o => o.tag + ' ' + o.label).join(', '), 'A client, B atelier, C date, D coach, E e-mail du coach, F inscrit le', 'chaque étiquette porte la lettre de sa colonne dans le tableur');
   assert.ok(D.SORT.every(r => D.BINS.some(x => x[0] === r[1])), 'chaque colonne a sa table parmi les quatre');
-  assert.equal(D.SHEET.filter(r => r[4] === 'camille@mail.fr').length, D.PICKS[0].need, 'l’e-mail de Camille Roux, autant de fois que de cases à toucher');
+  assert.equal(D.SHEET.filter(r => r[4] === 'salma@mail.fr').length, D.PICKS[0].need, 'l’e-mail de Salma Haddad, autant de fois que de cases à toucher');
   assert.equal(D.SHEET.filter(r => r[1] === 'Cuisine saine').length, 1, 'Cuisine saine : une seule ligne, effacée avec la désinscription');
   assert.ok(!D.INSCR.some(r => r[1] === D.YOGA[0]), 'Yoga du matin : aucun inscrit');
   const data = vm.createContext({});
@@ -1233,7 +1233,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
   db.close();
   /* Mêmes coachs, ateliers et inscriptions que la vidéo UML (le chapitre 3 du projet). */
   const uml = fs.readFileSync(path.join(ROOT, 'assets/anim/uml.html'), 'utf8');
-  assert.ok(uml.includes("const COACHS = [[1, 'Camille', 'Roux'], [2, 'Thomas', 'Girard']];") && uml.includes("const ATELIERS = [[1, 'Récupération', 1], [2, 'Cuisine saine', 1], [3, 'Gainage doux', 2]];"), 'coachs et ateliers du cas');
+  assert.ok(uml.includes("const COACHS = [[1, 'Salma', 'Haddad'], [2, 'Moussa', 'Diallo']];") && uml.includes("const ATELIERS = [[1, 'Récupération', 1], [2, 'Cuisine saine', 1], [3, 'Gainage doux', 2]];"), 'coachs et ateliers du cas');
   assert.deepEqual(D.INSCR.map(r => [r[0], r[1]]).sort(), [[1, 1], [1, 3], [4, 1], [7, 2]], 'inscriptions du cas');
 });
 
