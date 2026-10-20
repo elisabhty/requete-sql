@@ -838,15 +838,15 @@ const COURSES = [
       '✕ Les deux commandes du 2 juillet ont le même cumul', '<div class="lim" id="lim6"><span>Palier&nbsp;: 700&nbsp;€</span></div>',
       '✓ Palier franchi le 1er&nbsp;août']},
   {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '3 min 21', notesAt: 159.3,
-    notes: /notes:\{t:194\.2,y:1291,card:\[64,292,1016,996\],to:\[940,255\]\}/, table: 'inscriptions',
+    notes: /notes:\{t:194\.6,y:1291,card:\[64,292,1016,996\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Le fichier Excel des ateliers mélange tout&nbsp;:<br>à toi de le ranger en tables.',
     chapters: ['Le fichier Excel', 'Les copies', 'Supprimer, ajouter', 'Une table par sujet', 'Les tables remplies', 'À retenir'],
-    traps: ["const INSCR = [[1, 1, '01/09', '2026-09-01'], [4, 1, '02/09', '2026-09-02'], [7, 2, '04/09', '2026-09-04'], [3, 1, '05/09', '2026-09-05']];",
-      "const YOGA = [3, 'Yoga du matin', '03/10', '2026-10-03', 2, '🌅'];", "const COLS = ['client', 'atelier', 'date', 'coach', 'e-mail du coach', 'inscrit le'];",
+    traps: ["const INSCR = [[1, 1, '01/09', '2026-09-01'], [4, 1, '02/09', '2026-09-02'], [5, 2, '03/09', '2026-09-03'], [7, 3, '04/09', '2026-09-04'],",
+      "const YOGA = [5, 'Yoga du matin', '03/10', '2026-10-03', 2, '🌅'];", '<span id="xn1">6 inscriptions</span>', "const COLS = ['client', 'atelier', 'date', 'coach', 'e-mail du coach', 'inscrit le'];",
       // Les six moments : les copies de l’e-mail, la ligne à supprimer, la case client du Yoga, les colonnes à ranger, la table du Yoga, la table sans liens
       "{at: 40.0, kind: 'tap', need: 3,", "{at: 61.6, kind: 'tap', need: 1,", "{label: 'Rien ne convient', ok: true,", "{at: 105.0, kind: 'sort',",
       "{at: 129.8, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}",
-      '<span class="bad hid" id="xn2">5 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
+      '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
   {id: 72, next: 81, titre: 'Relations 1-1, 1-N et N-N', page: 'relations.html', thumb: 'relations-thumb.jpg', duree: '3 min 32', notesAt: 190.3,
     notes: /notes:\{t:203\.1,y:1286,card:\[64,292,1016,991\],to:\[940,255\]\}/, table: 'clients',
@@ -1207,6 +1207,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
   /* Le récit : trois mails (Salma Haddad, Léa Simon, Moussa Diallo) font découvrir les trois anomalies, chacune tamponnée, puis réunies.
      Chaque mail arrive en notification : l’app s’arrête dessus (OPENS) jusqu’à ce que l’élève le touche, puis il se déplie. */
   assert.deepEqual(D.MAILS.map(m => m[0][1] + ' ' + m[0][2] + ' · ' + m[2]), ['Salma Haddad · coach', 'Léa Simon · cliente', 'Moussa Diallo · coach'], 'qui écrit, coachs désignés comme tels');
+  assert.ok(D.COACHS.every(c => !Object.values(D.CLIENTS).some(([p, n]) => p === c[1] || n === c[2])), 'aucun coach ne porte le prénom ou le nom d’un client');
   assert.deepEqual(D.MAILS.map(m => m[4].join(' ')), ['J’ai changé d’adresse e-mail. Tu peux la mettre à jour dans le fichier ?',
     'Je ne pourrai pas venir à l’atelier Cuisine saine prévu le 19 septembre. Tu peux annuler mon inscription ?',
     'Je propose un nouvel atelier Yoga du matin pour le 3 octobre. Tu peux l’ajouter au fichier ? Il n’y a pas encore d’inscrits.'], 'les textes des mails');
@@ -1245,10 +1246,13 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
   for (const [id, [prenom, nom]] of Object.entries(D.CLIENTS))
     assert.equal(JSON.stringify(db.exec(`SELECT prenom, nom FROM clients WHERE id = ${id}`)[0].values), JSON.stringify([[prenom, nom]]), `client ${id}`);
   db.close();
-  /* Deux ateliers bien-être, un coach par atelier ; Moussa Diallo propose ensuite Yoga du matin. Mêmes coachs que la vidéo UML. */
-  assert.deepEqual(D.ATELIERS.map(a => [a[1], a[4]]), [['Récupération', 1], ['Cuisine saine', 2]], 'un coach par atelier');
-  assert.equal(D.YOGA[4], 2, 'Yoga du matin : proposé par Moussa Diallo');
-  assert.deepEqual(D.INSCR.map(r => [r[0], r[1]]).sort(), [[1, 1], [3, 1], [4, 1], [7, 2]], 'inscriptions du cas');
+  /* Quatre ateliers bien-être, un coach par atelier, sauf Moussa Diallo : il anime le Pilates et propose ensuite Yoga du matin. */
+  assert.deepEqual(D.ATELIERS.map(a => [a[1], a[4]]), [['Récupération', 1], ['Pilates', 2], ['Cuisine saine', 3], ['Méditation', 4]], 'un coach par atelier');
+  assert.equal(new Set(D.ATELIERS.map(a => a[4])).size, D.ATELIERS.length, 'chaque atelier a son coach');
+  assert.equal(D.YOGA[4], D.ATELIERS.find(a => a[1] === 'Pilates')[4], 'Yoga du matin : proposé par le coach du Pilates');
+  assert.ok(D.ATELIERS.every(a => D.INSCR.some(r => r[1] === a[0])), 'chaque atelier a au moins un inscrit : il figure dans le fichier');
+  assert.deepEqual(D.INSCR.map(r => [r[0], r[1]]).sort(), [[1, 1], [3, 1], [4, 1], [5, 2], [6, 4], [7, 3]], 'inscriptions du cas');
+  assert.equal(new Set(D.INSCR.map(r => r[2])).size, D.INSCR.length, 'une date d’inscription par ligne : le 4 septembre désigne une seule inscription');
   const uml = fs.readFileSync(path.join(ROOT, 'assets/anim/uml.html'), 'utf8');
   assert.ok(uml.includes("const COACHS = [[1, 'Salma', 'Haddad'], [2, 'Moussa', 'Diallo']];"), 'mêmes coachs que la vidéo UML');
 });
