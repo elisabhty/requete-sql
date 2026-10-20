@@ -43,7 +43,7 @@ const glueShort = t => t.replace(/(\S+)( +)(?=\S|$)/g, (m, w) => shortWord(w) ? 
 /* Un court libellé entre guillemets (« Nom du produit ») ne se coupe pas d’une ligne à l’autre. */
 const glueQuotes = t => t.replace(/«([^«»]{1,28})»/g, (m, q) => '«' + q.replace(/ /g, NB) + '»');
 /* Le prénom et le nom d’un client (« Sophie Martin ») restent ensemble sur la même ligne. */
-const glueNames = t => t.replace(/(^|[^\p{L}])(Sophie|Lucas|Emma|Nathan|Chloé|Hugo|Léa|Gabriel|Inès) (?=\p{Lu})/gu, '$1$2' + NB);
+const glueNames = t => t.replace(/(^|[^\p{L}])(Sophie|Lucas|Emma|Nathan|Chloé|Hugo|Léa|Gabriel|Inès|Salma|Moussa) (?=\p{Lu})/gu, '$1$2' + NB);
 const frText = t => glueNames(glueQuotes(glueShort(t.replace(/ ([:?!;»])/g, NB + '$1').replace(/« /g, '«' + NB).replace(/(\d) (?=\S)/g, '$1' + NB))));
 /* Légendes : une expression ne se coupe pas d’une ligne à l’autre. Certains mots ne terminent jamais une ligne
    (« du plus / cher », « la même / ville », « les deux / colonnes », « puis / le nouveau nom »),
