@@ -48,7 +48,8 @@ test('chaque cours a un réflexe de trois cartes bien formées', () => {
         assert.ok(subLines.length <= 8, `${l.titre} : liste de ${subLines.length} lignes dans la précision`);
         for (const ln of subLines) assert.ok(text(ln).length <= 80, `${l.titre} : ligne de liste trop longue : ${text(ln)}`);
       } else if (sub) assert.ok(text(sub).length <= 180, `${l.titre} : précision trop longue : ${text(sub)}`);
-      if (code) assert.ok(decode(code).length <= 46, `${l.titre} : code trop long pour une puce : ${decode(code)}`);
+      /* Code : deux lignes au plus dans la puce, même sur un écran de 375 px (48 caractères, « ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW »). */
+      if (code) assert.ok(decode(code).length <= 48, `${l.titre} : code trop long pour une puce : ${decode(code)}`);
     }
     /* Espace insécable avant : ? ! ; (hors code), comme dans les autres textes des cours. */
     const plain = r.extra.replace(/<code[\s\S]*?<\/code>/g, '|').replace(/<[^>]+>/g, '|').replace(/&nbsp;/g, ' ');
