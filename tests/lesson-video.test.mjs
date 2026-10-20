@@ -705,8 +705,8 @@ const COURSES = [
       '✓ 2 commandes pour le coursier', '<span class="c">Lyon ✕</span>', '"À ne pas confondre : 13 est le numéro de la commande, 1 celui de la cliente."',
       '"Première condition :<br>la commande n°13 appartient-elle<br>à la cliente Sophie Martin ?"', '"Deuxième condition :<br>Sophie Martin habite-t-elle à Paris ?<br>Oui, sa ville est Paris."',
       '<span class="bike" id="bike6"><span class="emo">🛵</span></span>', '<span class="lvr">✓ Livrée</span>']},
-  {id: 44, next: 45, titre: 'Quel JOIN choisir ?', page: 'quel-join-choisir.html', thumb: 'quel-join-choisir-thumb.jpg', duree: '4 min 14', notesAt: 218.5,
-    notes: /notes:\{t:245\.7,y:1396,card:\[64,292,1016,1101\],to:\[940,255\]\}/, table: 'clients',
+  {id: 44, next: 45, titre: 'Quel JOIN choisir ?', page: 'quel-join-choisir.html', thumb: 'quel-join-choisir-thumb.jpg', duree: '3 min 45', notesAt: 218.5,
+    notes: /notes:\{t:216\.7,y:1396,card:\[64,292,1016,1101\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Six situations de la vie courante&nbsp;:<br>à toi de choisir le bon <span class="ic">JOIN</span>.',
     chapters: ['Le cabinet des Tilleuls', 'L’aquarium de l’Atlas', 'La bibliothèque des Lumières', 'L’hôtel des Cimes', 'Le glacier parisien', 'L’agence Horizon', 'À retenir'],
     traps: ["const SAL = [[1, 'Nadia Benali', N], [2, 'Hugo Lefèvre', 1], [3, 'Inès Fabre', 2], [4, 'Théo Petit', 2]];",
@@ -837,8 +837,8 @@ const COURSES = [
       '<span class="b"><span class="glow" id="p4"><span class="kw">2 PRECEDING</span></span></span>', '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> date_commande</span>',
       '✕ Les deux commandes du 2 juillet ont le même cumul', '<div class="lim" id="lim6"><span>Palier&nbsp;: 700&nbsp;€</span></div>',
       '✓ Palier franchi le 1er&nbsp;août']},
-  {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '3 min 01', notesAt: 159.3,
-    notes: /notes:\{t:174\.3,y:1194,card:\[64,292,1016,899\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '2 min 40', notesAt: 159.3,
+    notes: /notes:\{t:153\.6,y:1194,card:\[64,292,1016,899\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Le tableur des ateliers mélange tout&nbsp;:<br>à toi de le ranger en tables.',
     chapters: ['Le tableur', 'Les copies', 'Supprimer, ajouter', 'Une table par sujet', 'Les tables remplies', 'À retenir'],
     traps: ["const INSCR = [[1, 1, '01/09', '2026-09-01'], [4, 1, '02/09', '2026-09-02'], [7, 2, '04/09', '2026-09-04'], [1, 3, '05/09', '2026-09-05']];",
@@ -1129,7 +1129,8 @@ test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la 
   assert.ok(cut('function lvPkClose(answered){', 'function lvReplay(){').includes('IX.leave(P.i,!!answered)'), 'à la reprise, la page laisse la timeline reprendre la même image');
   assert.ok(html.includes("o['p'+i]={first:first?1:0}") && html.includes('.lv-pk-t code{'), 'premier essai gardé pour le score ; code du prompt en étiquette');
   const core = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
-  assert.ok(core.includes("picks: picks.map(p => ({t: unwarp(p.at), kind: p.kind || 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', need: p.need || 0,")
+  assert.ok(core.includes("picks: picks.map(p => ({t: unwarp(p.at), kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', need: p.need || 0,")
+    && core.includes("const GESTURES = ['tap', 'sort', 'link'];")
     && core.includes('options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok}))}))')
     && core.includes('clashes: holdClashes(picks.map(p => p.at))') && core.includes('if (cfg.onRender) cfg.onRender(T);'), 'moteur : moments exportés, aucune animation coupée par un arrêt, rendu suivi par la page');
 });
@@ -1168,7 +1169,7 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
 
 test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six moments sur l’image, clients de la base', async () => {
   const l56 = cut('guide({ id:56, titre:"Normaliser les inscriptions"', 'guide({ id:72,');
-  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'3 min 01',moments:6,") && !l56.includes('seuil:'), 'leçon seule, 6 moments, validée à la fin de la vidéo');
+  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'2 min 40',moments:6,") && !l56.includes('seuil:'), 'leçon seule, 6 moments, validée à la fin de la vidéo');
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/projet-normaliser.html'), 'utf8');
   const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
   assert.ok(a > 0 && b > a, 'données de la page localisées');
@@ -1198,9 +1199,39 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
   assert.deepEqual(D.INSCR.map(r => [r[0], r[1]]).sort(), [[1, 1], [1, 3], [4, 1], [7, 2]], 'inscriptions du cas');
 });
 
+test('moments « À toi » : la légende annonce le moment sans répéter la consigne de la carte, l’attente est coupée', () => {
+  /* Moteur : une coupe (durée négative) saute un passage de la timeline ; pauses et coupes se combinent. */
+  const core = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
+  const ctx = vm.createContext({location: {search: ''}, URLSearchParams, gsap: {config() {}, timeline: () => ({})}, document: {}});
+  vm.runInContext(core, ctx);
+  const got = vm.runInContext('HOLDS = [[10, 2], [20, -3], [30, 1]]; CUTS.push([20, -3]);'
+    + 'JSON.stringify([warp(5), warp(11), warp(13), warp(22), warp(22.5), warp(29.5), warp(31), unwarp(5), unwarp(21), unwarp(25), unwarp(31), cutIn(19, 24), inCut(21), inCut(23.5)])', ctx);
+  assert.equal(got, JSON.stringify([5, 10, 11, 20, 23.5, 30, 31, 5, 22, 24, 31, 3, true, false]), 'temps de la vidéo ↔ temps de la timeline, pauses et coupes comprises');
+  assert.ok(core.includes('cues: CUES.filter(c => !inCut(c.t))') && core.includes('readTime(text) - ((b - 0.2) - (a + 0.3) - cutIn(a + 0.3, b - 0.2))')
+    && core.includes('.concat(CUTS).sort((x, y) => x[0] - y[0]);'), 'sons du passage coupé retirés ; temps de lecture des légendes sans le passage coupé');
+  assert.ok(core.includes('out.push({cut: h, at: +a.toFixed(2), to: +b.toFixed(2), el: name(c)})'), 'aucune animation dans un passage coupé (?check)');
+  /* Pages : une légende « À toi ! » par moment, juste avant l’arrêt ; la consigne n’est que sur la carte du lecteur. */
+  for (const f of ['quel-join-choisir.html', 'projet-normaliser.html']) {
+    const page = fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8');
+    const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
+    const c = vm.createContext({APP: true, $: () => null, $$: () => []});
+    vm.runInContext(page.slice(a, b) + ';this.D = {CAPTIONS, PICKS};', c);
+    const {CAPTIONS, PICKS} = c.D;
+    const atoi = CAPTIONS.filter(x => /^À toi/.test(x[2]));
+    assert.ok(atoi.every(x => x[2] === 'À toi !'), `${f} : « À toi ! », sans la consigne`);
+    assert.equal(atoi.length, PICKS.length, `${f} : une légende « À toi ! » par moment`);
+    PICKS.forEach((P, i) => assert.ok(atoi[i][0] < P.at && P.at < atoi[i][1], `${f}, moment ${i + 1} : arrêt pendant « À toi ! »`));
+    assert.ok(page.includes('.forEach(([t0, i]) => cut(t0, +(PICKS[i].at - 0.1 - t0).toFixed(2)));'), `${f} : l’attente avant chaque arrêt est coupée`);
+    /* Geste envoyé au lecteur : les « kind » propres à Quel JOIN (on, join, tbl) restent des étiquettes à placer dans la requête. */
+    const G = vm.runInContext('GESTURES', ctx), sent = [...PICKS].map(P => G.includes(P.kind) ? P.kind : 'pick');
+    assert.deepEqual(sent, f === 'quel-join-choisir.html' ? Array(9).fill('pick') : ['tap', 'tap', 'pick', 'sort', 'tap', 'pick'], `${f} : gestes envoyés au lecteur`);
+  }
+  assert.ok(cut('function lvPkShow(i,p){', 'function lvPkTry(k){').includes("kind=LV_PK_ICO[p.kind]?p.kind:'pick'"), 'lecteur : un geste inconnu reste un choix d’étiquette');
+});
+
 test('leçon seule (Quel JOIN choisir ?) : la vidéo interactive valide la leçon, sans exercice, quiz ni révision', () => {
   const l44 = cut('guide({ id:44, titre:"Quel JOIN choisir ?"', 'guide({ id:45,');
-  assert.ok(l44.includes('leconSeule:true,') && l44.includes(",duree:'4 min 14',moments:9,"), 'leçon 44 : leçon seule, 9 moments');
+  assert.ok(l44.includes('leconSeule:true,') && l44.includes(",duree:'3 min 45',moments:9,"), 'leçon 44 : leçon seule, 9 moments');
   assert.ok(html.includes("'joinRecap','leconSeule','exoNeeds','video']"), 'drapeau copié par guide()');
   assert.ok(html.includes('function dueList(){ return allLessons.filter(l=>isDue(l.id)&&!l.leconSeule); }'), 'pas de révision « De mémoire » sans exercice');
   assert.ok(html.includes("if(current.leconSeule)return [{i:0,l:'Leçon'") && html.includes("if(leconSeule(id))return !!(state.lessons[id]&&state.lessons[id].done);"), 'une seule étape : la leçon');
