@@ -844,8 +844,8 @@ const COURSES = [
     traps: ["const INSCR = [[1, 1, '01/09', '2026-09-01'], [4, 1, '02/09', '2026-09-02'], [5, 2, '03/09', '2026-09-03'], [7, 3, '04/09', '2026-09-04'],",
       "const YOGA = [5, 'Yoga du matin', '03/10', '2026-10-03', 2, '🌅'];", '<span id="xn1">6 inscriptions</span>', "const COLS = ['client', 'atelier', 'date', 'coach', 'e-mail du coach', 'inscrit le'];",
       // Les six moments : les copies de l’e-mail, la ligne à supprimer, la case client du Yoga, les colonnes à ranger, la table du Yoga, la table sans liens
-      "{at: 40.0, kind: 'tap', need: 3,", "{at: 61.6, kind: 'tap', need: 1,", "{label: 'Tu crées une ligne d’atelier dans un tableau censé contenir des inscriptions.', ok: true,", "{at: 105.0, kind: 'sort',",
-      "{at: 129.8, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}",
+      "{at: 40.0, from: 34.6, kind: 'tap', need: 3,", "{at: 61.6, from: 52.1, kind: 'tap', need: 1,", "{label: 'Tu crées une ligne d’atelier dans un tableau censé contenir des inscriptions.', ok: true,",
+      "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 129.8, from: 119.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}",
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
   {id: 72, next: 81, titre: 'Relations 1-1, 1-N et N-N', page: 'relations.html', thumb: 'relations-thumb.jpg', duree: '3 min 32', notesAt: 190.3,
@@ -1121,15 +1121,15 @@ test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la 
   assert.ok(tr.includes('IX.pick(P.i,k)') && tr.includes('lvPkFly(btn,rect,land)'), 'l’étiquette s’envole jusqu’au trou, puis la page montre le résultat de ce choix');
   assert.ok(tr.includes('lvPkVerdict(P,k,btn,ok,r||{})'), 'la page renvoie le verdict et la correction de ce choix');
   const vd = cut('function lvPkVerdict(', '/* L’étiquette quitte le plateau');
-  for (const part of ['lvPkSet(LV.id,P.i,first)', "LvSfx.play('chord',0,.55,0)", 'lvPkBurst(rect)', "kick.textContent='✕ Essaie un autre choix';", "btn.classList.add('is-out')",
+  for (const part of ['lvPkSet(LV.id,P.i,first,P.tries-1)', "LvSfx.play('chord',0,.55,0)", 'lvPkBurst(rect)', "kick.textContent='✕ Essaie un autre choix';", "btn.classList.add('is-out')",
     "const why=r.why||r.say||''", "wEl.innerHTML=lvNw(why); wEl.className='lv-pk-why '+(ok?'ok':'ko'); wEl.hidden=false;", "P.box.querySelector('.lv-pk-t').hidden=true;"])
     assert.ok(vd.includes(part), `verdict : ${part}`);
   assert.ok(html.includes('.lv-pk-hole{') && html.includes('.lv-pk-why.ok{') && html.includes('.lv-pk-why.ko{'), 'case jaune du prompt, correction verte ou rouge');
   assert.ok(html.includes('.lv.is-pk .lv-bottom{visibility:hidden}') && html.includes('const a=lvPt(0,1496);'), 'le plateau couvre la légende et les commandes, jamais le résultat');
   assert.ok(cut('function lvPkClose(answered){', 'function lvReplay(){').includes('IX.leave(P.i,!!answered)'), 'à la reprise, la page laisse la timeline reprendre la même image');
-  assert.ok(html.includes("o['p'+i]={first:first?1:0}") && html.includes('.lv-pk-t code{'), 'premier essai gardé pour le score ; code du prompt en étiquette');
+  assert.ok(html.includes("o['p'+i]={first:first?1:0,err:Math.max(0,err|0)}") && html.includes('.lv-pk-t code{'), 'premier essai gardé pour le score ; code du prompt en étiquette');
   const core = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
-  assert.ok(core.includes("picks: picks.map(p => ({t: unwarp(p.at), kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', need: p.need || 0,")
+  assert.ok(core.includes("picks: picks.map(p => ({t: unwarp(p.at), from: p.from != null ? unwarp(p.from) : null, kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', need: p.need || 0,")
     && core.includes("const GESTURES = ['tap', 'sort', 'link'];")
     && core.includes("options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || ''}))}))")
     && core.includes('clashes: holdClashes(picks.concat(opens).map(p => p.at))') && core.includes('if (cfg.onRender) cfg.onRender(T);'), 'moteur : moments exportés, aucune animation coupée par un arrêt, rendu suivi par la page');
@@ -1148,7 +1148,7 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
     assert.ok(layer.includes(part), `gestes : ${part}`);
   const acted = cut('function lvPkActed(', 'function lvReplay(){');
   for (const part of ['if(r.done){ lvPkWin(P,why,r.at||(el&&el._s)||null); return; }', 'P.miss++;', "kick.textContent='✕ Essaie encore';",
-    'const first=P.miss===0', 'lvPkSet(LV.id,P.i,first);', "wEl.innerHTML=lvNw(why); wEl.className='lv-pk-why ko';", "if(P.layer)P.layer.classList.add('is-done');"])
+    'const first=P.miss===0', 'lvPkSet(LV.id,P.i,first,P.miss);', "wEl.innerHTML=lvNw(why); wEl.className='lv-pk-why ko';", "if(P.layer)P.layer.classList.add('is-done');"])
     assert.ok(acted.includes(part), `verdict des gestes : ${part}`);
   /* Toucher, relier : les zones se voient sur l’image (contour qui s’allume deux fois, puis discret) ; plus léger sur un tableau entier. */
   assert.ok(html.includes('.lv-pk-layer.is-tap .lv-pk-spot:not(:disabled):not(.is-ko),.lv-pk-layer.is-link .lv-pk-spot:not(:disabled):not(.is-ko):not(.is-sel){')
@@ -1331,7 +1331,8 @@ test('leçon seule (Quel JOIN choisir ?) : la vidéo interactive valide la leço
   assert.ok(end.includes('markDone(id,false)') && end.includes('🎯 Du premier coup'), 'fin de la vidéo : leçon validée, score des moments');
   assert.ok(cut('function lvGoExercise(){', 'function lvFail(){').includes('leconSeuleBilan(first)'), '« Terminer la leçon » ouvre le bilan');
   assert.ok(html.includes("${l.leconSeule?'Leçon terminée&nbsp;!':'À toi de jouer&nbsp;!'}") && html.includes("${l.leconSeule?'Terminer la leçon':'Passer à l’exercice'}"), 'écran de fin propre à la leçon seule');
-  assert.ok(html.includes('<i>🎯</i> ${ok}/${n} du premier coup'), 'bilan : moments trouvés du premier coup');
+  assert.ok(html.includes("const score=lvErreursMax(l)!=null?(e?`${e} erreur${e>1?'s':''}`:'Aucune erreur'):`${ok}/${n} du premier coup`;"),
+    'bilan : les erreurs (règle des erreurs) ou les moments trouvés du premier coup');
 });
 
 test('leçon seule : on n’avance pas au-delà d’un moment « À toi » pas réussi ; la leçon se valide avec au moins 6 sur 9', () => {
@@ -1341,7 +1342,7 @@ test('leçon seule : on n’avance pas au-delà d’un moment « À toi » pas r
   const ctx = vm.createContext({LV, LV_ANS: {}, lvAnsSave() {}, lvSyncSeek() {}, lvNoteSync() {}, lvQClose() {}, prefersReduceMotion: () => true, navigator: {},
     lvPkShow(i, p) { shown.push(i); LV.pk = {i, p, done: false}; }, lvPkClose() { LV.pk = null; }, Math, Object, Promise});
   vm.runInContext(cut('function lvPkGet(id,i){', 'function lvPkIX(){') + cut('/* Saut de ±5 s', 'function lvSpeedMenu(open){') + cut('function lvPlay(){', 'function lvToggle(){')
-    + ';this.api={lvPkSet,lvPkScore,lvPkReset,lvReussi,lvPkGate,lvSkip,lvPlay};', ctx);
+    + ';this.api={lvPkSet,lvPkScore,lvPkErrs,lvPkRates,lvPkReset,lvReussi,lvPkGate,lvSkip,lvPlay};', ctx);
   const {api} = ctx;
   assert.equal(api.lvPkGate(9.9), -1, 'avant le premier moment : rien ne bloque');
   assert.equal(api.lvPkGate(25), 0, 'au-delà : le premier moment pas encore réussi');
@@ -1364,17 +1365,58 @@ test('leçon seule : on n’avance pas au-delà d’un moment « À toi » pas r
   api.lvPkReset(44);
   assert.equal(Object.keys(ctx.LV_ANS[44]).join(), '0', 'nouvelle tentative : seuls les moments sont remis à zéro');
   assert.ok(!api.lvReussi(l) && api.lvReussi({id: 44, video: {moments: 3}}), 'sous le seuil : pas validée ; sans seuil, la fin suffit');
+  /* Règle des erreurs (leçon 56 : 2 au plus, tous moments confondus) ; les moments ratés sont ceux à rejouer. */
+  api.lvPkSet(56, 0, false, 2); api.lvPkSet(56, 1, true, 0); api.lvPkSet(56, 2, false, 1);
+  const l56r = {id: 56, video: {moments: 3, erreurs: 2}};
+  assert.ok(api.lvPkErrs(56, 3) === 3 && !api.lvReussi(l56r), '3 erreurs, 2 au plus : pas validée');
+  assert.equal(api.lvPkRates(56, 3).join(), '0,2', 'à rejouer : les moments avec au moins une erreur');
+  delete ctx.LV_ANS[56].p2; api.lvPkSet(56, 2, true, 0);
+  assert.ok(api.lvPkErrs(56, 3) === 2 && api.lvReussi(l56r), 'moment rejoué sans erreur : 2 erreurs, validée');
+  ctx.LV_ANS[57] = {p0: {first: 0}};
+  assert.equal(api.lvPkErrs(57, 1), 1, 'réponse gardée sans le détail : 1 erreur par moment raté');
   const player = cut('function openLessonVideo(){', 'function lvPlay(){');
   assert.ok(player.includes('LV.gate=lvPkGate(t);') && player.includes('if(g>=0)lvPkStop(g); else if(again)lvPlay();'), 'barre : le curseur s’arrête avant le moment, son plateau s’ouvre au relâchement');
   assert.ok(player.includes('const g=lvPkGate(r); if(g>=0)r=Math.max(0,video.picks[g].t-.08);'), 'reprise : jamais au-delà d’un moment pas réussi');
   const end = cut('function lvEnded(){', '/* ---------- « Ajouter dans notes »');
-  for (const part of ['LV.retry=!was&&ok<need;', 'if(LV.firstDone){ markDone(id,false);', 'Il en faut au moins ${need} pour valider la leçon.',
-    "LV.retry?'Recommencer la vidéo':'Terminer la leçon'", 'if(LV.retry)lvPkReset(id);', "root.classList.toggle('is-retry',LV.retry);"])
+  for (const part of ['LV.retry=!was&&(max!=null?errs>max:ok<need);', 'if(LV.firstDone){ markDone(id,false);', 'Il en faut au moins ${need} pour valider la leçon.',
+    'Il en faut ${max} au plus pour valider la leçon.', 'if(LV.retry)LV.rates=lvPkRates(id,n);', "`Rejouer les ${nr} moments ratés`", "LV.retry?'Tout recommencer':'Revoir la vidéo'",
+    "root.classList.toggle('is-retry',LV.retry);"])
     assert.ok(end.includes(part), `fin de la vidéo : ${part}`);
-  assert.ok(cut('function lvGoExercise(){', 'function lvFail(){').includes('if(LV&&LV.retry){ lvReplay(); return; }'), 'sous le seuil : « Recommencer la vidéo »');
+  assert.ok(cut('function lvGoExercise(){', 'function lvFail(){').includes('if(LV&&LV.retry){ if(LV.rates&&LV.rates.length)lvRedo(LV.rates); else lvReplay(); return; }'), 'pas assez : rejouer les moments ratés');
+  assert.ok(cut('function lvReplay(){', 'function lvGoExercise(){').includes('if(LV.retry)lvPkReset(LV.id);'), '« Tout recommencer » : tous les moments sont à refaire');
   assert.ok(cut('function leconSeuleBilan(first){', 'function lvFail(){').includes('if(!lvReussi(current))return;'), 'ni bilan ni validation sous le seuil');
   assert.ok(cut('guide({ id:44,', 'guide({ id:45,').includes(',moments:9,seuil:6,'), 'leçon 44 : au moins 6 moments sur 9');
-  assert.ok(html.includes('Obtiens ${lvSeuil(l)}/${v.moments} pour valider la leçon'), 'le bouton du cours annonce la règle');
+  assert.ok(html.includes('Obtiens ${lvSeuil(l)}/${v.moments} pour valider la leçon') && html.includes('Termine la vidéo avec ${lvErreursMax(l)} erreur'), 'le bouton du cours annonce la règle');
+  assert.ok(cut('guide({ id:56,', 'guide({ id:72,').includes(",moments:6,erreurs:2,"), 'leçon 56 : 2 erreurs au plus');
+});
+
+test('rejouer les moments ratés, revoir le passage : la vidéo saute d’un moment raté au suivant, puis refait le compte', () => {
+  const video = {picks: [{t: 10, from: 4}, {t: 20}, {t: 30, from: 25}], duration: 40, currentTime: 33, paused: true, plays: 0,
+    pause() { this.paused = true; }, play() { this.plays++; this.paused = false; return Promise.resolve(); }};
+  const cls = new Set(['is-end', 'end-in', 'is-retry']), endEl = {hidden: false}, ended = [];
+  const LV = {id: 56, video, pk: null, q: null, redo: null, retry: true, root: {classList: {remove: (...c) => c.forEach(x => cls.delete(x))}, querySelector: () => endEl}};
+  const ctx = vm.createContext({LV, LV_ANS: {56: {p0: {first: 0, err: 2}, p1: {first: 1, err: 0}, p2: {first: 0, err: 1}}}, lvAnsSave() {}, lvSyncSeek() {}, lvNoteSync() {},
+    navigator: {}, lvEnded() { ended.push(video.currentTime); }, lvPkClose() { LV.pk = null; }, Math});
+  vm.runInContext(cut('function lvPkFrom(i){', '/* L’étiquette quitte le plateau') + cut('function lvEndHide(){', '/* « Revoir la vidéo »')
+    + cut('function lvPlay(){', 'function lvToggle(){') + ';this.api={lvPkFrom,lvPkBack,lvRedo,lvRedoNext};', ctx);
+  const {api} = ctx;
+  assert.deepEqual([api.lvPkFrom(0), api.lvPkFrom(1), api.lvPkFrom(2)], [4, 12, 25], 'début du passage : donné par la page, sinon 8 s avant');
+  api.lvRedo([0, 2]);
+  assert.deepEqual(Object.keys(ctx.LV_ANS[56]), ['p1'], 'les moments ratés repartent de zéro, les autres restent réussis');
+  assert.ok(video.currentTime === 4 && video.plays === 1 && endEl.hidden && !cls.size && LV.redo.k === 0, 'la vidéo reprend au début du passage du premier moment raté');
+  assert.equal(api.lvRedoNext(1), false, 'un autre moment ne fait pas avancer « Rejouer »');
+  assert.ok(api.lvRedoNext(0) && video.currentTime === 25 && video.plays === 2, 'moment rejoué : saut au passage du moment raté suivant');
+  assert.ok(api.lvRedoNext(2) && LV.redo === null && ended.join() === '40', 'dernier moment rejoué : l’écran de fin refait le compte');
+  LV.pk = {i: 1}; video.currentTime = 20;
+  api.lvPkBack(1);
+  assert.ok(LV.pk === null && video.currentTime === 12 && video.plays === 3, '« ↺ Revoir » : la carte se ferme, la vidéo repart du début du passage');
+  /* Le lecteur : la vidéo ne s’arrête que sur les moments à rejouer ; la carte a son bouton « ↺ Revoir ». */
+  assert.ok(cut('class LvAnim{', 'function lessonVideoOn(l){').includes('if(this.skip&&this.skip(i))continue;')
+    && html.includes('if(video instanceof LvAnim)video.skip=i=>!!(LV&&LV.video===video&&LV.redo&&!LV.redo.list.includes(i));'), 'pendant « Rejouer », les moments réussis sont passés');
+  const show = cut('function lvPkShow(i,p){', 'function lvPkTry(k){');
+  assert.ok(show.includes('<button type="button" class="lv-pk-back" aria-label="Revoir le passage avant ce moment">') && show.includes("box.querySelector('.lv-pk-back').addEventListener('click',()=>lvPkBack(i));")
+    && show.includes('if(!lvRedoNext(i))lvPlay();'), 'carte : « ↺ Revoir », et « Continuer » enchaîne pendant « Rejouer »');
+  assert.ok(html.includes('.lv-pk-back{margin-left:auto;') && html.includes('.lv-pk.is-ok .lv-pk-back{display:none}'), 'bouton « ↺ Revoir » discret, retiré une fois le moment réussi');
 });
 
 test('Quel JOIN choisir ? : chaque étiquette montre le résultat de SQLite (ordre compris), lignes en trop et manquantes', () => {
