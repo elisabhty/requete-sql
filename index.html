@@ -6520,6 +6520,15 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-pk.is-ok .lv-pk-kick{background:#E2F6EA;color:#0F7A3A}
 .lv-pk.is-ko .lv-pk-kick{background:#FDEBEC;color:#C2323A}
 .lv-pk-dots{margin-left:auto;display:flex;gap:5px}
+/* « ↺ Revoir » : revoir le passage qui amène le moment */
+.lv-pk-back{margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 10px;border:1.5px solid var(--line,#E6E1F6);border-radius:999px;background:#fff;color:var(--ink-2,#4E4872);font:700 12.5px/1 var(--display);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background-color .15s,transform .12s}
+.lv-pk-back span:first-child{font-size:14px}
+.lv-pk-back:active{background:var(--accent-soft,#EEE9FF);transform:scale(.96)}
+.lv-pk-back:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(106,77,244,.35)}
+.lv-pk-back+.lv-pk-dots{margin-left:8px}
+.lv-pk.is-ok .lv-pk-back{display:none}
+.lv-pk.is-ok .lv-pk-back+.lv-pk-dots{margin-left:auto}
+@media (max-width:359px){.lv-pk-back span+span{display:none}}
 .lv-pk-dots i{width:9px;height:9px;border-radius:50%;background:#E2DCF5;transition:background-color .3s,box-shadow .3s}
 .lv-pk-dots i.ok{background:#169447}
 .lv-pk-dots i.try{background:#B9A8FF}
@@ -12689,10 +12698,11 @@ guide({ id:56, titre:"Normaliser les inscriptions", résumé:"Du fichier Excel d
      Moussa Diallo (un nouvel atelier) ; l’image s’arrête sur chaque notification, l’élève la touche pour ouvrir le mail. Ils font
      découvrir les trois anomalies (mise à jour, suppression, insertion). À chacun des 6 moments « À toi », l’image s’arrête et
      l’élève agit sur l’image (toucher les copies de l’e-mail, la ligne à supprimer, glisser chaque colonne dans sa table…), avec le
-     résultat aussitôt ; après deux erreurs, un indice. On ne peut pas avancer au-delà d’un moment tant qu’il n’est pas réussi. Leçon seule : ni exercice ni quiz, la fin de la vidéo valide la leçon (sans seuil).
+     résultat aussitôt ; après deux erreurs, un indice. On ne peut pas avancer au-delà d’un moment tant qu’il n’est pas réussi. Leçon seule : ni exercice ni quiz ;
+     la leçon se valide avec 2 erreurs au plus en tout (erreurs:2), sinon on rejoue les moments ratés.
      Le texte ci-dessous, gardé pour le cas où la vidéo ne se charge pas, suit encore l’ancien cours (la grande table des commandes). */
   leconSeule:true,
-  video:{anim:'assets/anim/projet-normaliser.html?app&embed',thumb:'assets/anim/projet-normaliser-thumb.jpg',duree:'3 min 15',moments:6,
+  video:{anim:'assets/anim/projet-normaliser.html?app&embed',thumb:'assets/anim/projet-normaliser-thumb.jpg',duree:'3 min 15',moments:6,erreurs:2,
     /* « Ajouter dans notes » : apparaît à 3 min 08 (188,0 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
     notes:{t:188.0,y:1291,card:[64,292,1016,996],to:[940,255]}},
   sit:{
@@ -19874,7 +19884,7 @@ class LvAnim{
       const dt=Math.min(.25,Math.max(0,(now-this.last)/1000)); this.last=now;
       let t=this.t+dt*this._rate, q=-1, pk=-1, op=-1;
       for(let i=0;i<this.questions.length;i++){ const qt=this.questions[i].t; if(qt>this.t&&qt<=t){ t=qt; q=i; break; } }
-      for(let i=0;i<this.picks.length;i++){ const pt=this.picks[i].t; if(pt>this.t&&pt<=t){ if(q<0||pt<t){ t=pt; pk=i; q=-1; } break; } }
+      for(let i=0;i<this.picks.length;i++){ const pt=this.picks[i].t; if(pt>this.t&&pt<=t){ if(this.skip&&this.skip(i))continue; if(q<0||pt<t){ t=pt; pk=i; q=-1; } break; } }
       /* Mail reçu : l’image s’arrête sur la notification, le temps que l’élève la touche. */
       for(let i=0;i<this.opens.length;i++){ const ot=this.opens[i].t; if(ot>this.t&&ot<=t){ if((q<0&&pk<0)||ot<t){ t=ot; op=i; q=-1; pk=-1; } break; } }
       const end=t>=this.duration; if(end)t=this.duration;
@@ -19912,7 +19922,7 @@ function lessonVideoSlide(l){
   const v=l.video, m=moduleDeLecon(l.id), locked=jcGateLocked(l);
   return `
       <div class="ls-nav">
-        ${l.leconSeule?(state.lessons[l.id]&&state.lessons[l.id].done?'<button class="ls-next" type="button" onclick="setLessonStep(3)">Voir le bilan</button>':`<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">${lvSeuil(l)?`Obtiens ${lvSeuil(l)}/${v.moments} pour valider la leçon`:'Termine la vidéo pour valider la leçon'}</button>`)
+        ${l.leconSeule?(state.lessons[l.id]&&state.lessons[l.id].done?'<button class="ls-next" type="button" onclick="setLessonStep(3)">Voir le bilan</button>':`<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">${lvErreursMax(l)!=null?`Termine la vidéo avec ${lvErreursMax(l)} erreur${lvErreursMax(l)>1?'s':''} au plus`:lvSeuil(l)?`Obtiens ${lvSeuil(l)}/${v.moments} pour valider la leçon`:'Termine la vidéo pour valider la leçon'}</button>`)
           :locked?'<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">Termine la vidéo pour continuer</button>':'<button class="ls-next" type="button" onclick="setLessonStep(1)">Passer à l’exercice</button>'}
       </div>
       <div class="ls-main">
@@ -19978,7 +19988,9 @@ function openLessonVideo(){
     </div>`;
   document.body.appendChild(root);
   const video=v.anim?new LvAnim(root.querySelector('.lv-anim')):root.querySelector('video'), seek=root.querySelector('.lv-seek');
-  LV={id:l.id,root,video,seek,seeking:false,gate:-1,gateResume:false,retry:false,note:null,q:null,cap:null,saved:0,tap:{t:0,side:0,timer:0,total:0,burst:0}};
+  LV={id:l.id,root,video,seek,seeking:false,gate:-1,gateResume:false,retry:false,redo:null,note:null,q:null,cap:null,saved:0,tap:{t:0,side:0,timer:0,total:0,burst:0}};
+  /* « Rejouer les moments ratés » : la vidéo ne s’arrête que sur eux. */
+  if(video instanceof LvAnim)video.skip=i=>!!(LV&&LV.video===video&&LV.redo&&!LV.redo.list.includes(i));
   const noteEl=root.querySelector('.lv-note');
   if(noteEl){
     LV.note={el:noteEl,cfg:v.notes,shown:false,done:false,timer:0};
@@ -20189,22 +20201,28 @@ function lvEnded(){
   if(LV.q)lvQClose(true);
   if(LV.pk)lvPkClose(true);
   if(LV.op)lvOpClose();
-  /* Leçon seule : la fin de la vidéo valide la leçon si assez de moments « À toi » ont été réussis du premier coup
-     (seuil du cours : 6 sur 9) ; l’écran de fin donne ce score. En dessous, il propose de recommencer la vidéo :
-     les moments sont remis à zéro pour une nouvelle tentative. Une leçon déjà validée le reste. */
-  LV.retry=false;
+  /* Leçon seule : la fin de la vidéo valide la leçon selon sa règle — au plus N erreurs en tout (video.erreurs), ou assez de
+     moments réussis du premier coup (video.seuil : 6 sur 9) ; l’écran de fin donne ce compte. Sinon, il propose de rejouer
+     seulement les moments ratés (lvRedo), ou de tout recommencer. Une leçon déjà validée le reste. */
+  LV.retry=false; LV.redo=null; LV.rates=[];
   if(current&&current.id===id&&current.leconSeule){
-    const n=(LV.video.picks||[]).length, ok=n?lvPkScore(id,n):0, need=lvSeuil(current), was=lecCompletee(id);
-    LV.retry=!was&&ok<need;
+    const n=(LV.video.picks||[]).length, ok=n?lvPkScore(id,n):0, need=lvSeuil(current), max=lvErreursMax(current), errs=n?lvPkErrs(id,n):0, was=lecCompletee(id);
+    LV.retry=!was&&(max!=null?errs>max:ok<need);
     LV.firstDone=!was&&!LV.retry;
     if(!LV.retry)jcMarkPassed(id);
     if(LV.firstDone){ markDone(id,false); renderModules();renderProgress();renderCollection();renderPlanning(); lvNavSync(id); }
     const sc=root.querySelector('.lv-end-score');
-    if(sc&&n){ sc.innerHTML=`🎯 Du premier coup&nbsp;: <b>${ok}&nbsp;sur&nbsp;${n}</b>${LV.retry?`<span class="lv-end-need">Il en faut au moins ${need} pour valider la leçon.</span>`:''}`; sc.hidden=false; }
+    if(sc&&n){
+      sc.innerHTML=max!=null
+        ?`🎯 ${errs?`<b>${errs}&nbsp;erreur${errs>1?'s':''}</b> sur les ${n}&nbsp;moments`:'<b>Aucune erreur</b> sur les '+n+'&nbsp;moments'}${LV.retry?`<span class="lv-end-need">Il en faut ${max} au plus pour valider la leçon.</span>`:''}`
+        :`🎯 Du premier coup&nbsp;: <b>${ok}&nbsp;sur&nbsp;${n}</b>${LV.retry?`<span class="lv-end-need">Il en faut au moins ${need} pour valider la leçon.</span>`:''}`;
+      sc.hidden=false;
+    }
+    if(LV.retry)LV.rates=lvPkRates(id,n);
+    const nr=LV.rates.length;
     root.querySelector('#lv-end-h').innerHTML=LV.retry?'Encore un effort&nbsp;!':'Leçon terminée&nbsp;!';
-    root.querySelector('.lv-go').textContent=LV.retry?'Recommencer la vidéo':'Terminer la leçon';
-    root.querySelector('.lv-again').hidden=LV.retry;
-    if(LV.retry)lvPkReset(id);
+    root.querySelector('.lv-go').textContent=LV.retry?(nr>1?`Rejouer les ${nr} moments ratés`:nr?'Rejouer le moment raté':'Recommencer la vidéo'):'Terminer la leçon';
+    root.querySelector('.lv-again span').textContent=LV.retry?'Tout recommencer':'Revoir la vidéo';
   }else{
     jcMarkPassed(id);
     jcUnlockExo();
@@ -20506,13 +20524,20 @@ function lvQPlace(){
    Sinon : rouge, l’étiquette se barre, l’explication reste sur le résultat et on réessaie. Le premier essai est gardé
    (score de fin) ; le plateau couvre la légende et les commandes, jamais le résultat. */
 function lvPkGet(id,i){ const a=LV_ANS[id]&&LV_ANS[id]['p'+i]; return a&&typeof a.first==='number'?a:null; }
-function lvPkSet(id,i,first){ const o=LV_ANS[id]||(LV_ANS[id]={}); if(!o['p'+i]){ o['p'+i]={first:first?1:0}; lvAnsSave(); } }
+function lvPkSet(id,i,first,err){ const o=LV_ANS[id]||(LV_ANS[id]={}); if(!o['p'+i]){ o['p'+i]={first:first?1:0,err:Math.max(0,err|0)}; lvAnsSave(); } }
 function lvPkScore(id,n){ let ok=0; for(let i=0;i<n;i++){ const a=lvPkGet(id,i); if(a&&a.first)ok++; } return ok; }
+/* Erreurs de la tentative : chaque case, ligne ou réponse refusée, tous moments confondus (sans le détail : 1 par moment raté). */
+const lvPkErr=a=>a.err!=null?a.err:(a.first?0:1);
+function lvPkErrs(id,n){ let e=0; for(let i=0;i<n;i++){ const a=lvPkGet(id,i); if(a)e+=lvPkErr(a); } return e; }
+/* Moments ratés (au moins une erreur) : ceux que « Rejouer » propose de refaire. */
+function lvPkRates(id,n){ const out=[]; for(let i=0;i<n;i++){ const a=lvPkGet(id,i); if(a&&lvPkErr(a)>0)out.push(i); } return out; }
 /* Nouvelle tentative : les moments sont à refaire, le score du premier essai repart de zéro. */
 function lvPkReset(id){ const o=LV_ANS[id]; if(!o)return; Object.keys(o).forEach(k=>{ if(/^p\d+$/.test(k))delete o[k]; }); lvAnsSave(); }
-/* Seuil de validation d’une leçon seule (video.seuil : 6 moments sur 9 réussis du premier coup ; 0 = la fin suffit). */
+/* Validation d’une leçon seule : video.erreurs (au plus N erreurs en tout, tous moments confondus), sinon video.seuil
+   (N moments réussis du premier coup, par exemple 6 sur 9) ; sans règle, la fin de la vidéo suffit. */
 function lvSeuil(l){ return (l&&l.video&&l.video.seuil)||0; }
-function lvReussi(l){ const s=lvSeuil(l); return !s||lvPkScore(l.id,(l.video&&l.video.moments)||0)>=s; }
+function lvErreursMax(l){ const v=l&&l.video; return v&&v.erreurs!=null?v.erreurs:null; }
+function lvReussi(l){ const n=(l&&l.video&&l.video.moments)||0, m=lvErreursMax(l); if(m!=null)return lvPkErrs(l.id,n)<=m; const s=lvSeuil(l); return !s||lvPkScore(l.id,n)>=s; }
 /* On n’avance pas au-delà d’un moment tant qu’il n’est pas réussi : premier moment pas encore réussi placé avant `to`
    (−1 s’il n’y en a pas). La barre, les sauts de 5 s et la reprise s’arrêtent juste avant lui. */
 function lvPkGate(to){
@@ -20545,7 +20570,7 @@ function lvPkShow(i,p){
   /* Réponses longues (une phrase) : l’une sous l’autre, sur toute la largeur, le texte sur deux lignes au besoin. */
   box.className='lv-pk'+(kind==='pick'?'':' is-'+kind)+(p.text?' is-text':'')+(kind==='pick'&&opts.some(o=>String(o.label).length>30)?' is-long':'');
   box.innerHTML=`<div class="lv-pk-card" role="group" aria-labelledby="lv-pk-t" tabindex="-1">
-    <div class="lv-pk-top"><span class="lv-pk-kick">À toi · ${i+1}/${n}</span>${total>1?`<span class="lv-pk-cnt">0 / ${total}</span>`:''}<span class="lv-pk-dots" aria-hidden="true">${lvPkDots(i,n)}</span></div>
+    <div class="lv-pk-top"><span class="lv-pk-kick">À toi · ${i+1}/${n}</span>${total>1?`<span class="lv-pk-cnt">0 / ${total}</span>`:''}<button type="button" class="lv-pk-back" aria-label="Revoir le passage avant ce moment"><span aria-hidden="true">↺</span><span>Revoir</span></button><span class="lv-pk-dots" aria-hidden="true">${lvPkDots(i,n)}</span></div>
     <p class="lv-pk-t" id="lv-pk-t">${kind==='pick'?`<span class="lv-pk-hole" aria-hidden="true">?</span>${p.prompt}`:`<span class="lv-pk-ico" aria-hidden="true">${LV_PK_ICO[kind]||LV_PK_ICO.tap}</span>${p.prompt}`}</p>
     <p class="lv-pk-why" hidden></p>
     ${opts.length?`<div class="lv-pk-opts">${opts.map((o,k)=>kind==='sort'
@@ -20568,7 +20593,8 @@ function lvPkShow(i,p){
       if(slot)lvPkDrag(P,b,()=>lvPkSlotZone(P),()=>{ P.dropped=true; lvPkTry(+b.dataset.k); });
     });
   }else lvPkLayer(P);
-  box.querySelector('.lv-pk-go').addEventListener('click',()=>{ lvPkClose(true); lvPlay(); });
+  box.querySelector('.lv-pk-go').addEventListener('click',()=>{ lvPkClose(true); if(!lvRedoNext(i))lvPlay(); });
+  box.querySelector('.lv-pk-back').addEventListener('click',()=>lvPkBack(i));
   if(prefersReduceMotion())box.classList.add('on');
   else requestAnimationFrame(()=>requestAnimationFrame(()=>box.classList.add('on')));
   LvSfx.play('pop',5,.55,0);
@@ -20612,7 +20638,7 @@ function lvPkVerdict(P,k,btn,ok,r){
   if(ok){
     const first=P.tries===1;
     P.done=true;
-    lvPkSet(LV.id,P.i,first);
+    lvPkSet(LV.id,P.i,first,P.tries-1);
     btn.classList.add('is-ok');
     P.box.classList.add('is-ok');
     kick.textContent=first?'✓ Bien vu !':'✓ Trouvé !'; lvPkBump(kick,1.12);
@@ -20643,6 +20669,48 @@ function lvPkVerdict(P,k,btn,ok,r){
     setTimeout(()=>{ btn.classList.remove('is-ko'); btn.classList.add('is-out'); btn.setAttribute('aria-disabled','true'); },460);
   }
   if(sr)sr.textContent=(ok?'Bien vu : ':'Pas tout à fait : ')+plain;
+}
+/* Début du passage qui amène un moment (le mail, les tables…) : donné par la page (from), sinon 8 s avant ;
+   jamais avant la fin du moment précédent. */
+function lvPkFrom(i){
+  const ps=(LV&&LV.video.picks)||[], p=ps[i]; if(!p)return 0;
+  return Math.max(i>0?ps[i-1].t+.05:0, p.from!=null?p.from:p.t-8, 0);
+}
+/* « ↺ Revoir » : la carte se ferme, la vidéo repart du début du passage ; elle s’arrête de nouveau sur le moment. */
+function lvPkBack(i){
+  if(!LV||!LV.pk)return;
+  lvPkClose(false);
+  LV.video.currentTime=lvPkFrom(i);
+  lvSyncSeek(); lvNoteSync();
+  if(navigator.vibrate)navigator.vibrate(6);
+  lvPlay();
+}
+/* Pas assez pour valider : on rejoue seulement les moments ratés. Leurs réponses repartent de zéro ; la vidéo reprend au début
+   du passage du premier, passe les moments réussis sans s’arrêter (LvAnim.skip) et saute d’un moment raté au suivant ;
+   après le dernier, l’écran de fin refait le compte. */
+function lvRedo(list){
+  if(!LV||!list||!list.length)return;
+  const o=LV_ANS[LV.id]; if(o){ list.forEach(i=>{ delete o['p'+i]; }); lvAnsSave(); }
+  LV.redo={list:list.slice(),k:0};
+  lvEndHide();
+  lvRedoGo();
+}
+function lvRedoGo(){
+  const R=LV&&LV.redo; if(!R)return;
+  LV.video.currentTime=lvPkFrom(R.list[R.k]);
+  lvSyncSeek(); lvNoteSync();
+  lvPlay();
+}
+/* « Continuer » sur le moment rejoué : le moment raté suivant, ou l’écran de fin (rend false hors de « Rejouer »). */
+function lvRedoNext(i){
+  const R=LV&&LV.redo; if(!R||R.list[R.k]!==i)return false;
+  R.k++;
+  if(R.k<R.list.length){ lvRedoGo(); return true; }
+  LV.redo=null;
+  LV.video.currentTime=LV.video.duration;
+  lvSyncSeek();
+  lvEnded();
+  return true;
 }
 /* L’étiquette quitte le plateau et file en arc jusqu’au trou de la requête (repère de la scène 1080 × 1920). */
 function lvPkFly(btn,rect,done){
@@ -21002,7 +21070,7 @@ function lvPkActed(P,r,el,chip,el2){
 function lvPkWin(P,why,rect){
   const first=P.miss===0, kick=P.box.querySelector('.lv-pk-kick'), wEl=P.box.querySelector('.lv-pk-why');
   P.done=true;
-  lvPkSet(LV.id,P.i,first);
+  lvPkSet(LV.id,P.i,first,P.miss);
   P.box.classList.remove('is-ko'); P.box.classList.add('is-ok');
   if(P.layer)P.layer.classList.add('is-done');
   kick.textContent=first?'✓ Bien vu !':'✓ Trouvé !'; lvPkBump(kick,1.12);
@@ -21026,17 +21094,23 @@ function lvPkWin(P,why,rect){
     try{go.focus({preventScroll:true});}catch(e){}
   },prefersReduceMotion()?0:720);
 }
-function lvReplay(){
-  if(!LV)return;
+function lvEndHide(){
   LV.retry=false;
   LV.root.classList.remove('is-end','end-in','is-retry');
   LV.root.querySelector('.lv-end').hidden=true;
+}
+/* « Revoir la vidéo » ; sous la règle de validation, « Tout recommencer » : tous les moments sont à refaire. */
+function lvReplay(){
+  if(!LV)return;
+  if(LV.retry)lvPkReset(LV.id);
+  LV.redo=null;
+  lvEndHide();
   try{LV.video.currentTime=0;}catch(e){}
   lvPlay();
 }
 function lvGoExercise(){
-  /* Score sous le seuil : « Recommencer la vidéo » relance une tentative depuis le début. */
-  if(LV&&LV.retry){ lvReplay(); return; }
+  /* Pas assez pour valider : « Rejouer les moments ratés » (ou toute la vidéo s’il n’y en a pas). */
+  if(LV&&LV.retry){ if(LV.rates&&LV.rates.length)lvRedo(LV.rates); else lvReplay(); return; }
   if(LV&&current&&current.id===LV.id&&current.leconSeule){ const first=!!LV.firstDone; closeLessonVideo(true); leconSeuleBilan(first); return; }
   closeLessonVideo(true);
   setLessonStep(1);
@@ -21214,8 +21288,9 @@ function bravoStatsHtml(){
 }
 function bravoStepsHtml(l){
   if(l&&l.leconSeule){
-    const n=(l.video&&l.video.moments)||0, ok=n?lvPkScore(l.id,n):0;
-    return `<div class="bravo-steps"><span class="bravo-step"><i>✓</i> Leçon interactive</span>${n?`<span class="bravo-step"><i>🎯</i> ${ok}/${n} du premier coup</span>`:''}</div>`;
+    const n=(l.video&&l.video.moments)||0, ok=n?lvPkScore(l.id,n):0, e=n?lvPkErrs(l.id,n):0;
+    const score=lvErreursMax(l)!=null?(e?`${e} erreur${e>1?'s':''}`:'Aucune erreur'):`${ok}/${n} du premier coup`;
+    return `<div class="bravo-steps"><span class="bravo-step"><i>✓</i> Leçon interactive</span>${n?`<span class="bravo-step"><i>🎯</i> ${score}</span>`:''}</div>`;
   }
   return `<div class="bravo-steps">
     <span class="bravo-step"><i>✓</i> Cours</span>
@@ -28657,7 +28732,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1913';
+  const SW_CACHE='requete-2026-10-12-ludique-v1914';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
