@@ -85,7 +85,6 @@
 .nyo{position:absolute;left:-3px;right:-3px;top:2px;bottom:2px;z-index:3;border-radius:14px;border:4px dashed var(--danger-fill);opacity:0;visibility:hidden}
 /* Bandes de couleur : les sujets mélangés sur chaque ligne */
 .sband{position:absolute;z-index:0;border-radius:12px;background:var(--cs);box-shadow:inset 0 0 0 3px var(--c);opacity:0;visibility:hidden}
-.colb{position:absolute;z-index:0;border-radius:12px;background:rgba(124,92,255,.14);box-shadow:inset 0 0 0 3px rgba(124,92,255,.5);opacity:0;visibility:hidden}
 /* Colonne rangée : coche sur son en-tête */
 .ck{position:absolute;left:2px;top:-13px;z-index:2;width:28px;height:28px;border-radius:50%;background:#169447;color:#fff;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px #fff;opacity:0;visibility:hidden}
 .xh>span.done{color:#A8A2C6}
@@ -283,7 +282,6 @@ const CAPTIONS = [
   [5.3, 11.5,    "<b>Quatre ateliers bien-être</b> arrivent<br>chez NutriBoost : récupération,<br>cuisine saine, Pilates et méditation."],
   [11.6, 16.9,   "Chaque atelier est animé par un <b>coach</b>, et tous les clients peuvent s’y inscrire."],
   [17.0, 23.0,   "Pour l’instant, les inscriptions sont notées dans un <b>fichier Excel</b> : une ligne par inscription."],
-  [23.1, 29.3,   "Chaque ligne indique le client, l’atelier et sa date, le coach et son e-mail, puis la date d’inscription."],
   [29.8, 34.3,   "C’est toi qui gères ce fichier : clients et coachs t’écrivent pour le modifier."],
   [37.2, 40.2,   "À toi !"],
   [40.3, 46.3,   "Son adresse apparaît sur <b>trois lignes</b> :<br>il faut donc la modifier à chaque endroit."],
@@ -368,7 +366,7 @@ function dom(){
   $('#pg').insertAdjacentHTML('beforeend', ATELIERS.map(a => `<div class="pgr" id="pr${a[0]}"><span class="emo">${a[5]}</span><b>${a[1]}</b>` +
     `<span class="pgd">${a[2]}</span>${coachTag(co(a[4]), 'pgc')}</div>`).join(''));
   // Le fichier : lettres des colonnes, en-têtes (avec la coche des colonnes rangées), quatre inscriptions, l’atelier sans inscrit
-  let h = COLS.map((c, j) => `<i class="colb" id="cb${j}"></i>`).join('') + SUBJ.map(([k, , , cs], q) => `<i class="sband ${k}" id="bd${q}" data-c="${cs.join(',')}"></i>`).join('');
+  let h = SUBJ.map(([k, , , cs], q) => `<i class="sband ${k}" id="bd${q}" data-c="${cs.join(',')}"></i>`).join('');
   h += `<div class="xr xa" id="xa">${COLS.map((c, j) => `<span>${'ABCDEF'[j]}</span>`).join('')}</div>`;
   h += `<div class="xr xh" id="xh">${COLS.map((l, j) => `<span><i class="v">${l}</i><i class="ck" id="ck${j}">✓</i></span>`).join('')}</div>`;
   SHEET.forEach((r, i) => {
@@ -428,7 +426,6 @@ const MH = [];   // hauteur de chaque mail déplié
 function layout(){
   const cell = (r, j) => $(r < 0 ? '#xh' : '#xd' + r).children[j + (r < 0 ? 0 : 1)];
   const y0 = $('#xh').offsetTop, yEnd = $('#xd' + (SHEET.length - 1)).offsetTop + 84;
-  COLS.forEach((c, j) => { const a = cell(-1, j); place($('#cb' + j), cx(a) + 4, y0 + 4, a.offsetWidth - 8, yEnd - y0 - 8); });
   $$('.sband').forEach(el => {
     const cs = el.dataset.c.split(',').map(Number), a = cell(-1, cs[0]), z = cell(-1, cs[cs.length - 1]);
     place(el, cx(a) + 4, y0 + 2, cx(z) + z.offsetWidth - cx(a) - 8, yEnd - y0 - 4);
@@ -459,7 +456,6 @@ function layout(){
 const pulse = (el, t, n = 3, c = 'rgba(201,188,255,.55)') => tl.to(el, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
 const bump = (el, t, s = 1.06) => tl.to(el, {scale: s, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, t);
 const pop = (el, t, s = 0.4) => { show(el, t, {y: 0, scale: s}, 0.4, 'back.out(2.2)'); cue(t, 'pop', 0.7, 3); };
-function colIn(j, t, d = 1.4){ tl.to('#cb' + j, {autoAlpha: 1, duration: 0.25}, t); tl.to('#cb' + j, {autoAlpha: 0, duration: 0.3}, t + d); cue(t, 'tick', 0.5, j); }
 function cellsPulse(list, t, c){ list.forEach(([r, j], k) => pulse('#c' + r + '_' + j, t + k * 0.12, 3, c)); cue(t, 'tick', 0.5, 2); }
 function rowsIn(rows, t, step = 0.12){
   gsap.set(rows, {autoAlpha: 0, x: -30});
@@ -545,8 +541,8 @@ function build(){
   const rows = SHEET.map((r, i) => $('#xd' + i));
   rowsIn(rows, 17.8, 0.1);
   rows.forEach((r, k) => { tl.to(r.querySelector('.hl'), {opacity: 1, duration: 0.25, yoyo: true, repeat: 1}, 19.6 + k * 0.4); cue(19.6 + k * 0.4, 'tick', 0.5, k); });
-  // les colonnes, une à une
-  [[0, 23.5], [1, 24.4], [2, 25.1], [3, 25.8], [4, 26.5], [5, 27.3]].forEach(([j, t]) => colIn(j, t, 0.9));
+  // (rien ne se passe ensuite jusqu’à la remontée du fichier : passage coupé)
+  cut(23.2, 6.0);
 
   /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
      la consigne, la légende ne la répète pas. Le passage d’attente est coupé (rien ne s’y anime). */
