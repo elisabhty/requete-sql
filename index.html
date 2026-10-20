@@ -6578,6 +6578,15 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-pk-spot.is-ok{pointer-events:none;background:transparent;box-shadow:none}
 .lv-pk-spot.is-ko{background:rgba(239,79,85,.2);box-shadow:inset 0 0 0 3px #EF4F55;animation:lvShake .42s ease}
 .lv-pk-layer.is-done .lv-pk-spot{pointer-events:none}
+/* Toucher (tap) et relier (link) : les zones à toucher se voient sur l’image — leur contour s’allume deux fois à l’ouverture,
+   puis reste discret ; il s’efface quand le moment est réussi. */
+.lv-pk-layer.is-tap .lv-pk-spot:not(:disabled):not(.is-ko),.lv-pk-layer.is-link .lv-pk-spot:not(:disabled):not(.is-ko):not(.is-sel){background:rgba(106,77,244,.06);box-shadow:inset 0 0 0 2px rgba(106,77,244,.5);animation:lvSpot 1.2s ease-in-out 2}
+.lv-pk-layer.is-tap .lv-pk-spot:not(:disabled):not(.is-ko):active,.lv-pk-layer.is-link .lv-pk-spot:not(:disabled):not(.is-ko):not(.is-sel):active{background:rgba(106,77,244,.2)}
+@keyframes lvSpot{50%{background:rgba(106,77,244,.18);box-shadow:inset 0 0 0 4px var(--accent,#6A4DF4)}}
+/* Beaucoup de zones (toutes les cases d’un tableau) : après l’appel, un contour très léger, pour ne pas charger l’image. */
+.lv-pk-layer.is-many .lv-pk-spot:not(:disabled):not(.is-ko){background:transparent;box-shadow:inset 0 0 0 2px rgba(106,77,244,.2)}
+.lv-pk-layer.is-done .lv-pk-spot{background:transparent!important;box-shadow:none!important;animation:none!important}
+@media (prefers-reduced-motion:reduce){.lv-pk-spot{animation:none!important}}
 .lv-pk-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
 .lv-pk-svg path{fill:none;stroke:var(--accent,#6A4DF4);stroke-width:4;stroke-linecap:round;stroke-dasharray:1 9}
 .lv-ctrls{position:relative;display:flex;align-items:center;justify-content:space-between;height:62px}
@@ -20654,7 +20663,7 @@ function lvPkLayer(P){
   const IX=lvPkIX(); let spots=[];
   try{ spots=(IX&&IX.spots&&IX.spots(P.i))||[]; }catch(e){ spots=[]; }
   const layer=document.createElement('div');
-  layer.className='lv-pk-layer is-'+P.kind;
+  layer.className='lv-pk-layer is-'+P.kind+(spots.length>8?' is-many':'');
   layer.innerHTML=`<svg class="lv-pk-svg" aria-hidden="true"></svg>`;
   spots.forEach(s=>{
     const b=document.createElement('button');
@@ -28484,7 +28493,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1902';
+  const SW_CACHE='requete-2026-10-12-ludique-v1903';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
