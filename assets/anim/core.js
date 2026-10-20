@@ -195,14 +195,6 @@ function hide(el, t, to = {}, dur = 0.42, ease = 'power2.in'){
   tl.to(el, Object.assign({autoAlpha: 0, y: -40, duration: dur, ease}, to), t);
 }
 function sceneOn(sel, t){ tl.set(sel, {autoAlpha: 1}, t); }
-/* Message d’un personnage (.ping) : l’avatar arrive, la bulle écrit, puis le message est reçu (son texte : la légende). */
-function pingIn(sel, t, write = 0.7){
-  show(sel, t, {y: 30, scale: 0.9}, 0.4, 'back.out(1.8)');
-  cue(t, 'pop', 0.6, 5);
-  tl.to(sel + ' .pdots', {autoAlpha: 0, duration: 0.15}, t + write);
-  tl.fromTo(sel + ' .pmsg', {autoAlpha: 0, scale: 0.4}, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.4)', immediateRender: false}, t + write);
-  cue(t + write, 'tick', 0.6, 4);
-}
 /* Tampon (.stamp) qui tombe et se pose. */
 function stampIn(sel, t, rot = 7){
   gsap.set(sel, {autoAlpha: 0, scale: 1.9, rotation: 24});
@@ -592,7 +584,7 @@ function holdClashes(extra = []){
 /* ---------- Le cours ---------- */
 /* cfg : {duration, chapters, captions, questions, picks, notesAt, glyphs, dom(), build(), onRender(T)} */
 function Course(cfg){
-  const {duration, chapters, captions, questions = [], picks = [], notesAt = null} = cfg;
+  const {duration, chapters, captions, questions = [], picks = [], opens = [], notesAt = null} = cfg;
   let out = 0;
   function renderAt(T){
     tl.seek(warp(T), true);
@@ -624,7 +616,7 @@ function Course(cfg){
     renderAt(0);
     if (EMBED) dispatchEvent(new Event('resize'));
     return {duration: out, fps: FPS, cues: CUES.filter(c => !inCut(c.t)).map(c => Object.assign({}, c, {t: unwarp(c.t)})), overflow: checkCaptions(captions),
-      notesT: notesAt != null ? unwarp(notesAt) : null, holds: +total.toFixed(3), holdList: HOLDS, clashes: holdClashes(picks.map(p => p.at)),
+      notesT: notesAt != null ? unwarp(notesAt) : null, holds: +total.toFixed(3), holdList: HOLDS, clashes: holdClashes(picks.concat(opens).map(p => p.at)),
       textIssues: QS.has('check') ? textIssues() : undefined,
       layoutIssues: QS.has('check') ? layoutIssues(renderAt, out) : undefined,
       chapters: chapters.map(c => ({t: unwarp(c.a), n: c.n, label: c.label})),
@@ -637,6 +629,8 @@ function Course(cfg){
          text : étiquettes en texte courant (une réponse en mots), et non en code ; tag : repère de l’étiquette à glisser (lettre de colonne). */
       picks: picks.map(p => ({t: unwarp(p.at), kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', need: p.need || 0,
         options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || ''}))})),
+      /* Mail reçu (opens) : l’image s’arrête, l’élève touche l’élément sel pour l’ouvrir ; rien n’est noté. */
+      opens: opens.map(o => ({t: unwarp(o.at), sel: o.sel, prompt: fr(o.prompt), label: o.label})),
       /* Légendes en texte : le lecteur les annonce à VoiceOver au fil de l’animation. */
       captions: captions.map(c => ({a: unwarp(c[0]), b: unwarp(Math.min(c[1], duration)), text: plain(c[2])}))};
   })();

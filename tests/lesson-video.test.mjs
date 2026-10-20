@@ -837,16 +837,16 @@ const COURSES = [
       '<span class="b"><span class="glow" id="p4"><span class="kw">2 PRECEDING</span></span></span>', '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> date_commande</span>',
       '✕ Les deux commandes du 2 juillet ont le même cumul', '<div class="lim" id="lim6"><span>Palier&nbsp;: 700&nbsp;€</span></div>',
       '✓ Palier franchi le 1er&nbsp;août']},
-  {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '2 min 45', notesAt: 159.3,
-    notes: /notes:\{t:158\.2,y:1194,card:\[64,292,1016,899\],to:\[940,255\]\}/, table: 'inscriptions',
-    bubble: 'Le tableur des ateliers mélange tout&nbsp;:<br>à toi de le ranger en tables.',
-    chapters: ['Le tableur', 'Les copies', 'Supprimer, ajouter', 'Une table par sujet', 'Les tables remplies', 'À retenir'],
-    traps: ["const INSCR = [[1, 1, '01/09', '2026-09-01'], [4, 1, '02/09', '2026-09-02'], [7, 2, '04/09', '2026-09-04'], [1, 3, '05/09', '2026-09-05']];",
-      "const YOGA = [4, 'Yoga du matin', '03/10', '2026-10-03', 2, '🌅'];", "const COLS = ['client', 'atelier', 'date', 'coach', 'e-mail du coach', 'inscrit le'];",
+  {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '3 min 21', notesAt: 159.3,
+    notes: /notes:\{t:194\.2,y:1291,card:\[64,292,1016,996\],to:\[940,255\]\}/, table: 'inscriptions',
+    bubble: 'Le fichier Excel des ateliers mélange tout&nbsp;:<br>à toi de le ranger en tables.',
+    chapters: ['Le fichier Excel', 'Les copies', 'Supprimer, ajouter', 'Une table par sujet', 'Les tables remplies', 'À retenir'],
+    traps: ["const INSCR = [[1, 1, '01/09', '2026-09-01'], [4, 1, '02/09', '2026-09-02'], [7, 2, '04/09', '2026-09-04'], [3, 1, '05/09', '2026-09-05']];",
+      "const YOGA = [3, 'Yoga du matin', '03/10', '2026-10-03', 2, '🌅'];", "const COLS = ['client', 'atelier', 'date', 'coach', 'e-mail du coach', 'inscrit le'];",
       // Les six moments : les copies de l’e-mail, la ligne à supprimer, la case client du Yoga, les colonnes à ranger, la table du Yoga, la table sans liens
       "{at: 40.0, kind: 'tap', need: 3,", "{at: 61.6, kind: 'tap', need: 1,", "{label: 'Rien ne convient', ok: true,", "{at: 105.0, kind: 'sort',",
       "{at: 129.8, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}",
-      '<span class="bad hid" id="xn2">5 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="nc0">0 inscrit</span>', 'Chapitre 2 · Clés et relations',
+      '<span class="bad hid" id="xn2">5 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
   {id: 72, next: 81, titre: 'Relations 1-1, 1-N et N-N', page: 'relations.html', thumb: 'relations-thumb.jpg', duree: '3 min 32', notesAt: 190.3,
     notes: /notes:\{t:203\.1,y:1286,card:\[64,292,1016,991\],to:\[940,255\]\}/, table: 'clients',
@@ -1132,7 +1132,7 @@ test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la 
   assert.ok(core.includes("picks: picks.map(p => ({t: unwarp(p.at), kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', need: p.need || 0,")
     && core.includes("const GESTURES = ['tap', 'sort', 'link'];")
     && core.includes("options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || ''}))}))")
-    && core.includes('clashes: holdClashes(picks.map(p => p.at))') && core.includes('if (cfg.onRender) cfg.onRender(T);'), 'moteur : moments exportés, aucune animation coupée par un arrêt, rendu suivi par la page');
+    && core.includes('clashes: holdClashes(picks.concat(opens).map(p => p.at))') && core.includes('if (cfg.onRender) cfg.onRender(T);'), 'moteur : moments exportés, aucune animation coupée par un arrêt, rendu suivi par la page');
 });
 
 test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme à la souris, sans couper « e-mail »', () => {
@@ -1195,29 +1195,43 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
 
 test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six moments sur l’image, clients de la base', async () => {
   const l56 = cut('guide({ id:56, titre:"Normaliser les inscriptions"', 'guide({ id:72,');
-  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'2 min 45',moments:6,") && !l56.includes('seuil:'), 'leçon seule, 6 moments, validée à la fin de la vidéo');
+  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'3 min 21',moments:6,") && !l56.includes('seuil:'), 'leçon seule, 6 moments, validée à la fin de la vidéo');
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/projet-normaliser.html'), 'utf8');
   const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
   assert.ok(a > 0 && b > a, 'données de la page localisées');
   const ctx = vm.createContext({APP: true});
-  vm.runInContext(page.slice(a, b) + ';this.D = {COACHS, ATELIERS, YOGA, CLIENTS, INSCR, COLS, SORT, BINS, PICKS, SHEET};', ctx);
+  vm.runInContext(page.slice(a, b) + ';this.D = {COACHS, ATELIERS, YOGA, CLIENTS, INSCR, COLS, SORT, BINS, PICKS, SHEET, MAILS, OPENS, NEWMAIL};', ctx);
   const D = JSON.parse(JSON.stringify(ctx.D));
   assert.deepEqual(D.PICKS.map(p => p.kind), ['tap', 'tap', 'pick', 'sort', 'tap', 'pick'], 'toucher, choisir, glisser');
   assert.ok(D.PICKS.filter(p => p.kind === 'tap').every(p => /^Touche /.test(p.prompt)), 'chaque moment à toucher dit qu’il faut toucher l’image');
-  /* Le récit : trois demandes (Salma Haddad, Léa Simon, Moussa Diallo) font découvrir les trois anomalies, chacune tamponnée, puis réunies. */
+  /* Le récit : trois mails (Salma Haddad, Léa Simon, Moussa Diallo) font découvrir les trois anomalies, chacune tamponnée, puis réunies.
+     Chaque mail arrive en notification : l’app s’arrête dessus (OPENS) jusqu’à ce que l’élève le touche, puis il se déplie. */
+  assert.deepEqual(D.MAILS.map(m => m[0][1] + ' ' + m[0][2] + ' · ' + m[2]), ['Salma Haddad · coach', 'Léa Simon · cliente', 'Moussa Diallo · coach'], 'qui écrit, coachs désignés comme tels');
+  assert.deepEqual(D.MAILS.map(m => m[4].join(' ')), ['J’ai changé d’adresse e-mail. Tu peux la mettre à jour dans le fichier ?',
+    'Je ne pourrai pas venir à l’atelier Cuisine saine prévu le 19 septembre. Tu peux annuler mon inscription ?',
+    'Je propose un nouvel atelier Yoga du matin pour le 3 octobre. Tu peux l’ajouter au fichier ? Il n’y a pas encore d’inscrits.'], 'les textes des mails');
+  assert.equal(D.MAILS[0][3], D.NEWMAIL, 'Salma Haddad écrit depuis sa nouvelle adresse');
+  D.OPENS.forEach((o, n) => {
+    assert.equal(o.sel, '#ml' + (n + 1)); assert.equal(o.prompt, 'Touche le mail pour l’ouvrir.');
+    assert.ok(o.at < D.PICKS[n].at && (n === 0 || o.at > D.PICKS[n - 1].at), `mail ${n + 1} : ouvert avant son moment « À toi »`);
+  });
+  assert.ok(page.includes('Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 159.3, picks: PICKS, opens: OPENS,'), 'mails envoyés au lecteur');
   const caps = page.slice(page.indexOf('const CAPTIONS = ['), page.indexOf('const QUESTIONS = []'));
-  for (const who of ['<b>Salma Haddad</b> : « ', '<b>Léa Simon</b> : « ', '<b>Moussa Diallo</b> : « ']) assert.ok(caps.includes(who), `message : ${who}`);
+  assert.ok(!caps.includes('tableur') && !/<b>(Salma Haddad|Léa Simon|Moussa Diallo)<\/b> : « /.test(caps), 'les demandes sont dans les mails, pas dans les légendes ; « le fichier »');
   for (const part of ["['an1', 'Anomalie de mise à jour'], ['an2', 'Anomalie de suppression'], ['an3', 'Anomalie d’insertion']", "['Mise à jour', 'Suppression', 'Insertion']",
-    "pingIn('#pcm', 33.6, 0.7);", "pingIn('#pla', 52.1, 0.6);", "stampIn('#an1', 49.4, -5);", "stampIn('#an2', 65.5, -5);", '<i class="you">Toi</i>', "pop('#rcm', 122.5, 0.4);"])
+    "mailIn(1, 34.7, OPENS[0].at);", "mailIn(2, 52.2, OPENS[1].at);", "mailIn(3, 68.75, OPENS[2].at);", "stampIn('#an1', 49.6, -5);", "stampIn('#an2', 65.5, -5);",
+    "SALMA.slice(0, 2).forEach((r, k) => fixMail(r, 46.9 + k * 0.6));", '<i class="you">Toi</i>', "pop('#rcm', 122.5, 0.4);"])
     assert.ok(page.includes(part), `récit : ${part}`);
   assert.ok(page.includes('spots, act, pick, hint,') && page.includes("if (i === 0) return {text: 'L’e-mail du coach est dans la colonne E.'"), 'un indice par moment à toucher ou à glisser');
   const coreJs = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8'), coreCss = fs.readFileSync(path.join(ROOT, 'assets/anim/core.css'), 'utf8');
-  assert.ok(coreJs.includes('function pingIn(sel, t, write = 0.7){') && coreJs.includes('function stampIn(sel, t, rot = 7){') && coreCss.includes('.ping .pdots i{') && coreCss.includes('.stamp.warn{'),
-    'moteur : message d’un personnage et tampon d’alerte, pour tous les chapitres');
+  assert.ok(coreJs.includes('function stampIn(sel, t, rot = 7){') && coreCss.includes('.stamp.warn{'), 'moteur : tampon d’alerte, pour tous les chapitres');
+  assert.ok(coreJs.includes('opens: opens.map(o => ({t: unwarp(o.at), sel: o.sel, prompt: fr(o.prompt), label: o.label})),') && coreJs.includes('clashes: holdClashes(picks.concat(opens).map(p => p.at)),'),
+    'moteur : mails à ouvrir envoyés au lecteur, sans animation en cours à l’arrêt');
   assert.deepEqual(D.PICKS.map(p => p.at), [...D.PICKS.map(p => p.at)].sort((x, y) => x - y), 'moments dans l’ordre');
   for (const p of D.PICKS.filter(x => x.kind === 'pick')) assert.equal(p.options.filter(o => o.ok).length, 1, `${p.prompt} : une seule bonne réponse`);
   assert.deepEqual(D.SORT.map(r => r[0]), D.COLS, 'chaque colonne du tableur est à ranger, dans l’ordre du tableur');
-  assert.equal(D.PICKS[3].options.map(o => o.tag + ' ' + o.label).join(', '), 'A client, B atelier, C date, D coach, E e-mail du coach, F inscrit le', 'chaque étiquette porte la lettre de sa colonne dans le tableur');
+  assert.equal(D.PICKS[3].options.map(o => o.tag + ' ' + o.label).join(', '), 'A nom du client, B titre de l’atelier, C date de l’atelier, D nom du coach, E e-mail du coach, F date d’inscription',
+    'chaque étiquette dit ce que contient sa colonne, avec la lettre de la colonne dans le fichier');
   assert.ok(D.SORT.every(r => D.BINS.some(x => x[0] === r[1])), 'chaque colonne a sa table parmi les quatre');
   assert.equal(D.SHEET.filter(r => r[4] === 'salma@mail.fr').length, D.PICKS[0].need, 'l’e-mail de Salma Haddad, autant de fois que de cases à toucher');
   assert.equal(D.SHEET.filter(r => r[1] === 'Cuisine saine').length, 1, 'Cuisine saine : une seule ligne, effacée avec la désinscription');
@@ -1231,10 +1245,12 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
   for (const [id, [prenom, nom]] of Object.entries(D.CLIENTS))
     assert.equal(JSON.stringify(db.exec(`SELECT prenom, nom FROM clients WHERE id = ${id}`)[0].values), JSON.stringify([[prenom, nom]]), `client ${id}`);
   db.close();
-  /* Mêmes coachs, ateliers et inscriptions que la vidéo UML (le chapitre 3 du projet). */
+  /* Deux ateliers bien-être, un coach par atelier ; Moussa Diallo propose ensuite Yoga du matin. Mêmes coachs que la vidéo UML. */
+  assert.deepEqual(D.ATELIERS.map(a => [a[1], a[4]]), [['Récupération', 1], ['Cuisine saine', 2]], 'un coach par atelier');
+  assert.equal(D.YOGA[4], 2, 'Yoga du matin : proposé par Moussa Diallo');
+  assert.deepEqual(D.INSCR.map(r => [r[0], r[1]]).sort(), [[1, 1], [3, 1], [4, 1], [7, 2]], 'inscriptions du cas');
   const uml = fs.readFileSync(path.join(ROOT, 'assets/anim/uml.html'), 'utf8');
-  assert.ok(uml.includes("const COACHS = [[1, 'Salma', 'Haddad'], [2, 'Moussa', 'Diallo']];") && uml.includes("const ATELIERS = [[1, 'Récupération', 1], [2, 'Cuisine saine', 1], [3, 'Gainage doux', 2]];"), 'coachs et ateliers du cas');
-  assert.deepEqual(D.INSCR.map(r => [r[0], r[1]]).sort(), [[1, 1], [1, 3], [4, 1], [7, 2]], 'inscriptions du cas');
+  assert.ok(uml.includes("const COACHS = [[1, 'Salma', 'Haddad'], [2, 'Moussa', 'Diallo']];"), 'mêmes coachs que la vidéo UML');
 });
 
 test('mise en page (?check) : un élément ou un texte qui sort de son cadre est signalé (pastille, colonnes)', () => {
@@ -1248,7 +1264,24 @@ test('mise en page (?check) : un élément ou un texte qui sort de son cadre est
   const cols = /\.xr\{[^}]*grid-template-columns:([^;]+);/.exec(page)[1].trim().split(/\s+/).map(parseFloat);
   assert.ok(cols.length === 6 && cols.reduce((a, b) => a + b, 0) <= 1016 - 2 * 3 - 2 * 10, `colonnes : ${cols.join(' + ')}`);
   assert.ok(page.includes('.xr>span:last-of-type{box-shadow:none}'), 'pas de trait après la dernière colonne, même sur la ligne barrée');
-  assert.ok(page.includes('.nc{left:64px;width:952px;height:132px;padding:0 26px;display:flex;align-items:center;gap:14px}'), 'fiche du Yoga du matin : la pastille « 0 inscrit » tient dans la carte');
+  assert.ok(page.includes('.ml{left:64px;width:952px;height:150px;padding:0 30px;overflow:hidden}') && page.includes('.mh{height:144px;'), 'mail replié : l’en-tête seul, dans la carte');
+});
+
+test('mail reçu : l’image s’arrête sur la notification, le toucher l’ouvre et la lecture reprend, sans note', () => {
+  const anim = cut('class LvAnim{', 'function lessonVideoOn(l){');
+  assert.ok(anim.includes('this.opens=info.opens||[];') && anim.includes("this._emit('open',{i:op,o:this.opens[op]});"), 'le lecteur s’arrête sur chaque mail');
+  const show = cut('function lvOpShow(i,o){', 'function lvOpPlace(){');
+  for (const part of ["layer.className='lv-op';", "LV.root.classList.add('is-q','is-op');", 'lvOpClose(); lvPlay();', 'r=w.rel(el);', "b.addEventListener('pointerdown',e=>lvPkRipple(e.clientX,e.clientY));"])
+    assert.ok(show.includes(part), `mail : ${part}`);
+  assert.ok(!show.includes('lvPkSet'), 'rien n’est noté');
+  assert.ok(html.includes("video.addEventListener('open',e=>{ if(LV&&LV.video===video&&e.detail)lvOpShow(e.detail.i,e.detail.o); });") && html.includes('if(LV&&LV.op)lvOpClose();'),
+    'ouvert par l’animation, fermé dès que la lecture reprend');
+  assert.ok(html.includes('.lv-op-spot{position:absolute;') && html.includes('@keyframes lvOpRing{') && html.includes('.lv-op-tip{position:absolute;'), 'zone qui s’entoure d’une onde, bulle « Touche le mail »');
+  assert.ok(html.includes("case 'mail':{"), 'son du mail reçu');
+  /* Moment réussi sans correction écrite : seule la bonne étiquette reste, séparée de « Continuer ». */
+  assert.ok(html.includes("if(why)opts.hidden=true; else opts.classList.add('is-won');") && html.includes('.lv-pk-opts.is-won .lv-pk-opt.is-gone{display:none}')
+    && html.includes('.lv-pk-opts:not([hidden])~.lv-pk-go{margin-top:14px}'), 'plateau réussi : la bonne étiquette, puis « Continuer », bien séparés');
+  assert.ok(html.includes('.lv-pk.is-sort .lv-pk-opts:not([hidden]){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}'), 'étiquettes à glisser sur deux colonnes');
 });
 
 test('moments « À toi » : la légende annonce le moment sans répéter la consigne de la carte, l’attente est coupée', () => {

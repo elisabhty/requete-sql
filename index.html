@@ -6547,6 +6547,9 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-pk-opt.is-ko{opacity:1;transform:none;border-style:solid;background:#FDEBEC;border-color:#F3B7BB;color:#C2323A;box-shadow:0 4px 0 #F6CDD0;animation:lvShake .42s ease}
 .lv-pk-opt.is-out{opacity:.42;border-style:solid;text-decoration:line-through;text-decoration-thickness:2px;box-shadow:none;transform:translateY(4px);pointer-events:none}
 .lv-pk-opt.is-gone{opacity:.3}
+/* Réussi, sans correction écrite : les autres étiquettes partent, la bonne reste au-dessus de « Continuer » */
+.lv-pk-opts.is-won .lv-pk-opt.is-gone{display:none}
+.lv-pk-opts:not([hidden])~.lv-pk-go{margin-top:14px}
 .lv-pk-go{display:flex;align-items:center;justify-content:center;width:100%;cursor:pointer}
 .lv-pk-go[hidden]{display:none}
 .lv-pk-fly{position:absolute;z-index:8;display:flex;align-items:center;justify-content:center;border-radius:15px;border:2px solid #C9BCFF;background:#fff;color:var(--accent-ink,#5335E0);box-shadow:0 12px 26px -10px rgba(40,20,120,.45);font:700 15.5px/1 var(--mono);white-space:nowrap;pointer-events:none;transform-origin:50% 50%}
@@ -6562,10 +6565,13 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-pk-hint[hidden]{display:none}
 .lv-pk.is-text .lv-pk-opt{font-family:var(--ui);font-weight:700;letter-spacing:-.01em}
 .lv-pk.is-sort .lv-pk-opts{gap:8px}
-.lv-pk.is-sort .lv-pk-opt{display:inline-flex;align-items:center;gap:6px;padding:0 13px 0 9px;background:#fff;border-color:#D4C8FB;color:var(--ink,#221C46);font-family:var(--ui);font-size:15px;font-weight:700;letter-spacing:-.01em;box-shadow:0 4px 0 #CBBEFB,0 10px 18px -12px rgba(40,20,120,.45)}
+/* Étiquettes à glisser, au nom explicite (« date de l’atelier ») : sur deux colonnes, un nom long passe sur deux lignes */
+.lv-pk.is-sort .lv-pk-opts:not([hidden]){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.lv-pk.is-sort .lv-pk-opt{min-height:44px}
+.lv-pk.is-sort .lv-pk-opt{display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 8px;text-align:left;line-height:1.15;background:#fff;border-color:#D4C8FB;color:var(--ink,#221C46);font-family:var(--ui);font-size:15px;font-weight:700;letter-spacing:-.01em;box-shadow:0 4px 0 #CBBEFB,0 10px 18px -12px rgba(40,20,120,.45)}
 .lv-pk-grip{width:9px;height:15px;flex:none;fill:#A496E8}
 .lv-pk-tag{flex:none;min-width:23px;height:23px;padding:0 5px;border-radius:7px;background:#F1EEFC;color:#6F66A0;font:800 12.5px/23px var(--ui);text-align:center}
-.lv-pk-fly.is-sort{gap:6px;padding:0 13px 0 9px;justify-content:flex-start;font-family:var(--ui);font-size:15px;color:var(--ink,#221C46);border-color:#B8A8FF}
+.lv-pk-fly.is-sort{gap:6px;padding:5px 10px 5px 8px;white-space:normal;text-align:left;line-height:1.15;justify-content:flex-start;font-family:var(--ui);font-size:15px;color:var(--ink,#221C46);border-color:#B8A8FF}
 .lv-pk-opt.can-drag{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .lv-pk-opt.is-sel{background:#fff;border-color:var(--accent,#6A4DF4);box-shadow:0 4px 0 var(--accent,#6A4DF4);transform:translateY(-2px)}
 .lv-pk-opt.is-placed,.lv-pk.is-sort .lv-pk-opt.is-placed{display:none}
@@ -6603,6 +6609,18 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-pk-go.is-ready::after{content:"";position:absolute;inset:0;border-radius:16px;pointer-events:none;animation:lvGoGlow 2.4s ease-out 1.2s infinite}
 @keyframes lvGoGlow{0%{box-shadow:0 0 0 0 rgba(106,77,244,.42)}70%,100%{box-shadow:0 0 0 13px rgba(106,77,244,0)}}
 @media (prefers-reduced-motion:reduce){.lv-pk-spot{animation:none!important}.lv-pk-go.is-ready::after{animation:none}}
+/* Mail reçu : la notification à toucher (une onde en part), et la bulle qui le dit */
+.lv-op{position:absolute;inset:0;z-index:5;pointer-events:none;transition:opacity .2s ease}
+.lv-op.off{opacity:0}
+.lv-op-spot{position:absolute;margin:0;padding:0;border:0;background:transparent;pointer-events:auto;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;animation:lvOpRing 1.5s ease-out infinite}
+.lv-op-spot:active{background:rgba(106,77,244,.1)}
+.lv-op-spot:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(106,77,244,.6)}
+@keyframes lvOpRing{0%{box-shadow:0 0 0 0 rgba(106,77,244,.5)}75%,100%{box-shadow:0 0 0 14px rgba(106,77,244,0)}}
+.lv-op-tip{position:absolute;margin:0;display:flex;align-items:center;gap:7px;padding:8px 14px 8px 11px;border-radius:999px;background:var(--accent,#6A4DF4);color:#fff;font:700 14px/1.2 var(--display);white-space:nowrap;box-shadow:0 4px 0 var(--accent-lip,#4B30CC),0 14px 26px -12px rgba(40,20,120,.55);opacity:0;transform:translate(-50%,8px) scale(.9);transition:opacity .22s ease,transform .4s cubic-bezier(.2,.9,.3,1.3)}
+.lv-op.on .lv-op-tip{opacity:1;transform:translate(-50%,0)}
+.lv-op-hand{display:inline-block;font-size:16px;animation:lvOpHand 1.5s ease-in-out infinite}
+@keyframes lvOpHand{0%,55%,100%{transform:none}25%{transform:translateY(-4px) scale(.9)}}
+@media (prefers-reduced-motion:reduce){.lv-op-spot,.lv-op-hand{animation:none}.lv-op-spot{box-shadow:0 0 0 3px rgba(106,77,244,.45)}}
 .lv-pk-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
 .lv-pk-svg path{fill:none;stroke:var(--accent,#6A4DF4);stroke-width:4;stroke-linecap:round;stroke-dasharray:1 9}
 .lv-ctrls{position:relative;display:flex;align-items:center;justify-content:space-between;height:62px}
@@ -12661,18 +12679,19 @@ guide({ id:79, titre:"Fenêtres glissantes", résumé:"Suivre l’évolution des
 })
 ]},
 { titre:"Modéliser", sous:"Normalisation, cardinalités et UML", lessons:[
-guide({ id:56, titre:"Normaliser les inscriptions", résumé:"Du tableur des ateliers aux tables",
+guide({ id:56, titre:"Normaliser les inscriptions", résumé:"Du fichier Excel des ateliers aux tables",
   /* Projet, chapitre 1, en vidéo interactive : l’animation (assets/anim/projet-normaliser.html, moteur commun assets/anim/core.js)
-     remplace le texte du cours. Le tableur des inscriptions aux ateliers de NutriBoost mélange les clients, les ateliers et les coachs :
-     les demandes de Salma Haddad (son e-mail change), de Léa Simon (elle se désinscrit) et de Moussa Diallo (un nouvel atelier)
-     font découvrir les trois anomalies (mise à jour, suppression, insertion). À chacun des 6 moments « À toi », l’image s’arrête et
+     remplace le texte du cours. Le fichier Excel des inscriptions aux deux ateliers de NutriBoost (un coach par atelier) mélange
+     les clients, les ateliers et les coachs. Trois mails arrivent : Salma Haddad (son adresse change), Léa Simon (elle se désinscrit),
+     Moussa Diallo (un nouvel atelier) ; l’image s’arrête sur chaque notification, l’élève la touche pour ouvrir le mail. Ils font
+     découvrir les trois anomalies (mise à jour, suppression, insertion). À chacun des 6 moments « À toi », l’image s’arrête et
      l’élève agit sur l’image (toucher les copies de l’e-mail, la ligne à supprimer, glisser chaque colonne dans sa table…), avec le
      résultat aussitôt ; après deux erreurs, un indice. On ne peut pas avancer au-delà d’un moment tant qu’il n’est pas réussi. Leçon seule : ni exercice ni quiz, la fin de la vidéo valide la leçon (sans seuil).
      Le texte ci-dessous, gardé pour le cas où la vidéo ne se charge pas, suit encore l’ancien cours (la grande table des commandes). */
   leconSeule:true,
-  video:{anim:'assets/anim/projet-normaliser.html?app&embed',thumb:'assets/anim/projet-normaliser-thumb.jpg',duree:'2 min 45',moments:6,
-    /* « Ajouter dans notes » : apparaît à 2 min 38 (158,2 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:158.2,y:1194,card:[64,292,1016,899],to:[940,255]}},
+  video:{anim:'assets/anim/projet-normaliser.html?app&embed',thumb:'assets/anim/projet-normaliser-thumb.jpg',duree:'3 min 21',moments:6,
+    /* « Ajouter dans notes » : apparaît à 3 min 14 (194,2 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:194.2,y:1291,card:[64,292,1016,996],to:[940,255]}},
   sit:{
     blocks:[
       "L’équipe data construit <b>un tableau de bord Power BI</b> pour analyser les ventes : nombre de commandes, produits vendus et répartition des clients par ville.",
@@ -12750,9 +12769,9 @@ guide({ id:56, titre:"Normaliser les inscriptions", résumé:"Du tableur des ate
   ],
   reflex:[
     {recap:[
-      ["📋","Un tableur qui <b>mélange les sujets</b> recopie les informations : modifier, supprimer ou ajouter devient risqué."],
-      ["🗂️","<b>Normaliser</b>, c’est écrire une seule fois chaque information, dans la table de ce qu’elle décrit."],
-      ["📝","Une information qui décrit un <b>lien</b>, comme la date d’inscription, va dans la table de ce lien."]
+      ["📋","Tout regrouper dans <b>une seule table</b> entraîne des répétitions et peut provoquer des erreurs lors des ajouts, modifications ou suppressions."],
+      ["🗂️","<b>Normaliser</b>, c’est répartir les informations dans des tables reliées, chacune consacrée à un sujet, pour limiter ces répétitions."],
+      ["📝","La <b>table inscriptions</b> relie les clients aux ateliers.","Elle contient aussi la date de chaque inscription, car cette date concerne la participation d’un client à un atelier précis."]
     ],label:"Les trois idées à retenir"}
   ],
   anatomie:[{tok:"clients (id, prenom, ville)",txt:"Tout ce qui décrit le client, écrit une seule fois."},{tok:"produits (id, nom, prix)",txt:"Tout ce qui décrit le produit, écrit une seule fois."},{tok:"commandes (id, client_id, produit_id, quantite)",txt:"Ce qui décrit la commande, plus deux clés étrangères vers les tables voisines."}],
@@ -19714,6 +19733,7 @@ const LvSfx=(()=>{
       case 'success':{ o=new Float32Array(N(1.1)); [1046.5,1318.5,1568,2093].forEach((f,k)=>marimba(o,N(k*.085),f,.7,.22,.18,.24*(.85+.05*k),SR)); break; }
       case 'error':{ o=new Float32Array(N(.45)); [220,174.6].forEach((f,k)=>{ const off=N(k*.13), n=N(.2); for(let i=0;i<n&&off+i<o.length;i++){ const t=T(i); o[off+i]+=.38*(Math.sin(2*Math.PI*f*t)+.3*Math.sin(6*Math.PI*f*t)+.12*Math.sin(10*Math.PI*f*t))*env(t,.004,.07); } }); break; }
       case 'empty':{ o=new Float32Array(N(.35)); for(let i=0;i<o.length;i++){ const t=T(i); ph+=2*Math.PI*(760*Math.exp(-t/.16)+260)/SR; o[i]=.38*Math.sin(ph)*env(t,.003,.09); } break; }
+      case 'mail':{ o=new Float32Array(N(.62)); marimba(o,0,1568,.45,.13,.12,.24,SR); marimba(o,N(.13),1174.7,.48,.17,.12,.22,SR); break; }
       case 'stamp':{ o=new Float32Array(N(.3)); const nz=noise(o.length,200,1800,SR); for(let i=0;i<o.length;i++){ const t=T(i); ph+=2*Math.PI*140*(1+.6*Math.exp(-t/.02))/SR; o[i]=.4*(Math.sin(ph)*env(t,.001,.08)+.5*nz[i]*env(t,.0005,.025)); } break; }
       default: o=new Float32Array(1);
     }
@@ -19796,7 +19816,7 @@ class LvAnim{
     this.t=0; this.duration=NaN; this.paused=true; this.ended=false; this.videoWidth=1080; this.videoHeight=1920;
     this._rate=1; this.defaultPlaybackRate=1; this._muted=false;
     this.raf=0; this.last=0; this.ci=0; this.lastTU=0; this.wantPlay=false; this.dead=false;
-    this.cues=[]; this.chapters=[]; this.questions=[]; this.picks=[]; this.captions=[]; this.answered=new Set();
+    this.cues=[]; this.chapters=[]; this.questions=[]; this.picks=[]; this.opens=[]; this.captions=[]; this.answered=new Set();
     const fail=()=>{ if(this.dead||this.info)return; this.dead=true; this._emit('error'); };
     this.timer=setTimeout(fail,12000);
     frame.addEventListener('load',async()=>{
@@ -19807,7 +19827,7 @@ class LvAnim{
         clearTimeout(this.timer);
         this.win=w; this.info=info; this.duration=info.duration;
         this.cues=(info.cues||[]).slice().sort((a,b)=>a.t-b.t);
-        this.chapters=info.chapters||[]; this.questions=info.questions||[]; this.picks=info.picks||[]; this.captions=info.captions||[];
+        this.chapters=info.chapters||[]; this.questions=info.questions||[]; this.picks=info.picks||[]; this.opens=info.opens||[]; this.captions=info.captions||[];
         /* Moments « À toi » : la page joue ses sons d’aperçu par le lecteur (bouton son respecté). */
         try{ w.__sfx=(k,p,g)=>LvSfx.play(k,p||0,g==null?1:g,0); }catch(e){}
         this._render();
@@ -19849,15 +19869,18 @@ class LvAnim{
     this.raf=requestAnimationFrame(now=>{
       if(this.paused||this.dead)return;
       const dt=Math.min(.25,Math.max(0,(now-this.last)/1000)); this.last=now;
-      let t=this.t+dt*this._rate, q=-1, pk=-1;
+      let t=this.t+dt*this._rate, q=-1, pk=-1, op=-1;
       for(let i=0;i<this.questions.length;i++){ const qt=this.questions[i].t; if(qt>this.t&&qt<=t){ t=qt; q=i; break; } }
       for(let i=0;i<this.picks.length;i++){ const pt=this.picks[i].t; if(pt>this.t&&pt<=t){ if(q<0||pt<t){ t=pt; pk=i; q=-1; } break; } }
+      /* Mail reçu : l’image s’arrête sur la notification, le temps que l’élève la touche. */
+      for(let i=0;i<this.opens.length;i++){ const ot=this.opens[i].t; if(ot>this.t&&ot<=t){ if((q<0&&pk<0)||ot<t){ t=ot; op=i; q=-1; pk=-1; } break; } }
       const end=t>=this.duration; if(end)t=this.duration;
       while(this.ci<this.cues.length&&this.cues[this.ci].t<=t){ const c=this.cues[this.ci]; if(c.t>this.t)LvSfx.play(c.type,c.pitch||0,c.gain==null?1:c.gain,.36*Math.sin(this.ci*2.399)); this.ci++; }
       this.t=t; this._render();
-      if(now-this.lastTU>=80||end||q>=0||pk>=0){ this.lastTU=now; this._emit('timeupdate'); }
+      if(now-this.lastTU>=80||end||q>=0||pk>=0||op>=0){ this.lastTU=now; this._emit('timeupdate'); }
       if(q>=0){ this.paused=true; this._emit('pause'); this._emit('question',{i:q,q:this.questions[q]}); return; }
       if(pk>=0){ this.paused=true; this._emit('pause'); this._emit('pick',{i:pk,p:this.picks[pk]}); return; }
+      if(op>=0){ this.paused=true; this._emit('pause'); this._emit('open',{i:op,o:this.opens[op]}); return; }
       if(end){ this.paused=true; this.ended=true; LvSfx.idle(); this._emit('pause'); this._emit('ended'); return; }
       this._loop();
     });
@@ -19960,7 +19983,7 @@ function openLessonVideo(){
     if(lvNoteExisting(l))lvNoteMark('already');
   }
   /* Bouton des notes et question : replacés sur l’image quand la taille de l’écran change. */
-  const place=()=>{ lvNotePlace(); lvQPlace(); lvPkPlace(); };
+  const place=()=>{ lvNotePlace(); lvQPlace(); lvPkPlace(); lvOpPlace(); };
   LV.place=place;
   video.addEventListener('loadedmetadata',place);
   if(window.ResizeObserver){ LV.ro=new ResizeObserver(place); LV.ro.observe(root.querySelector('.lv-stage')); }
@@ -19982,12 +20005,12 @@ function openLessonVideo(){
     if(!LV||LV.video!==video||!(resume>2&&resume<video.duration-2))return;
     let r=resume;
     (video.questions||[]).forEach(q=>{ if(r>=q.t-.02&&r<=q.t+.3)r=Math.max(0,q.t-.08); });
-    (video.picks||[]).forEach(q=>{ if(r>=q.t-.02&&r<=q.t+.3)r=Math.max(0,q.t-.08); });
+    (video.picks||[]).concat(video.opens||[]).forEach(q=>{ if(r>=q.t-.02&&r<=q.t+.3)r=Math.max(0,q.t-.08); });
     /* Jamais au-delà d’un moment « À toi » pas encore réussi : la reprise se fait juste avant lui. */
     const g=lvPkGate(r); if(g>=0)r=Math.max(0,video.picks[g].t-.08);
     video.currentTime=r;
   },{once:true});
-  video.addEventListener('play',()=>{ root.classList.remove('is-paused'); if(video.playbackRate!==LV_RATE)video.playbackRate=LV_RATE; if(LV&&LV.q)lvQClose(true); if(LV&&LV.pk)lvPkClose(true); lvSyncPP(); });
+  video.addEventListener('play',()=>{ root.classList.remove('is-paused'); if(video.playbackRate!==LV_RATE)video.playbackRate=LV_RATE; if(LV&&LV.q)lvQClose(true); if(LV&&LV.pk)lvPkClose(true); if(LV&&LV.op)lvOpClose(); lvSyncPP(); });
   video.addEventListener('pause',()=>{ if(!video.ended)root.classList.add('is-paused'); lvSyncPP(); lvPosKeep(); });
   video.addEventListener('timeupdate',()=>{
     if(!LV||LV.video!==video)return;
@@ -19997,6 +20020,7 @@ function openLessonVideo(){
   });
   video.addEventListener('question',e=>{ if(LV&&LV.video===video&&e.detail)lvQShow(e.detail.i,e.detail.q); });
   video.addEventListener('pick',e=>{ if(LV&&LV.video===video&&e.detail)lvPkShow(e.detail.i,e.detail.p); });
+  video.addEventListener('open',e=>{ if(LV&&LV.video===video&&e.detail)lvOpShow(e.detail.i,e.detail.o); });
   video.addEventListener('seeked',()=>{ if(LV&&LV.video===video)lvNoteSync(); });
   video.addEventListener('ended',lvEnded);
   video.addEventListener('error',lvFail);
@@ -20005,6 +20029,7 @@ function openLessonVideo(){
     const d=video.duration;
     if(LV.q)lvQClose(false);
     if(LV.pk)lvPkClose(false);
+    if(LV.op)lvOpClose();
     if(d){
       /* Pas au-delà d’un moment « À toi » pas encore réussi : le curseur et la vidéo s’arrêtent juste avant,
          et le plateau du moment s’ouvre quand on relâche (change). */
@@ -20113,6 +20138,7 @@ function lvSkip(d){
   if(d>0&&LV.pk&&!LV.pk.done)return false;
   if(LV.q)lvQClose(false);
   if(LV.pk)lvPkClose(false);
+  if(LV.op)lvOpClose();
   const to=Math.max(0,Math.min(dur-0.15,V.currentTime+d)), g=lvPkGate(to);
   if(g>=0){ lvPkStop(g); return false; }
   V.currentTime=to;
@@ -20159,6 +20185,7 @@ function lvEnded(){
   LV_POS.delete(id); lvPosSave();
   if(LV.q)lvQClose(true);
   if(LV.pk)lvPkClose(true);
+  if(LV.op)lvOpClose();
   /* Leçon seule : la fin de la vidéo valide la leçon si assez de moments « À toi » ont été réussis du premier coup
      (seuil du cours : 6 sur 9) ; l’écran de fin donne ce score. En dessous, il propose de recommencer la vidéo :
      les moments sont remis à zéro pour une nouvelle tentative. Une leçon déjà validée le reste. */
@@ -20597,7 +20624,8 @@ function lvPkVerdict(P,k,btn,ok,r){
       if(!LV||LV.pk!==P)return;
       const opts=P.box.querySelector('.lv-pk-opts'), go=P.box.querySelector('.lv-pk-go');
       /* Sans correction écrite (la légende qui suit l’explique), la bonne étiquette reste visible au-dessus de « Continuer ». */
-      if(why)opts.hidden=true; go.hidden=false; go.classList.add('is-ready');
+      if(why)opts.hidden=true; else opts.classList.add('is-won');
+      go.hidden=false; go.classList.add('is-ready');
       if(!prefersReduceMotion()&&go.animate)go.animate([{opacity:0,transform:'translateY(8px) scale(.96)'},{opacity:1,transform:'none'}],{duration:280,easing:'cubic-bezier(.2,.9,.3,1.2)'});
       try{go.focus({preventScroll:true});}catch(e){}
     },prefersReduceMotion()?0:720);
@@ -20671,6 +20699,48 @@ function lvPkClose(answered){
   const box=P.box, card=box.querySelector('.lv-pk-card');
   if(prefersReduceMotion()||!card.animate){ box.remove(); return; }
   card.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateY(18px)'}],{duration:200,easing:'ease-in',fill:'forwards'}).onfinish=()=>box.remove();
+}
+/* ---------- Mail reçu : toucher la notification pour l’ouvrir ----------
+   L’image s’arrête sur la notification (moment « opens » de la page) : une onde en part, une bulle dit de la toucher.
+   Le toucher (ou la lecture relancée) ferme la bulle et la lecture reprend aussitôt : la page déplie le mail.
+   Ce n’est pas un moment « À toi » : rien n’est noté, rien n’empêche d’avancer. */
+function lvOpShow(i,o){
+  if(!LV||!o)return;
+  if(LV.q)lvQClose(false);
+  if(LV.pk)lvPkClose(false);
+  lvOpClose();
+  let r=null, rad=0;
+  try{ const w=LV.video.win, el=w.document.querySelector(o.sel); if(el){ r=w.rel(el); rad=parseFloat(w.getComputedStyle(el).borderTopLeftRadius)||0; } }catch(e){ r=null; }
+  if(!r||!r.w){ lvPlay(); return; }
+  const layer=document.createElement('div');
+  layer.className='lv-op';
+  layer.innerHTML=`<button type="button" class="lv-op-spot" aria-label="${esc(o.label||'')}"></button><p class="lv-op-tip" aria-hidden="true"><span class="lv-op-hand">👆</span><span>${o.prompt}</span></p>`;
+  LV.root.appendChild(layer);
+  LV.root.classList.add('is-q','is-op');
+  LV.op={i,o,r,rad,layer};
+  lvOpPlace();
+  const b=layer.querySelector('.lv-op-spot');
+  b.addEventListener('pointerdown',e=>lvPkRipple(e.clientX,e.clientY));
+  b.addEventListener('click',()=>{ if(!LV||!LV.op||LV.op.layer!==layer)return; LvSfx.play('pop',4,.6,0); lvOpClose(); lvPlay(); });
+  if(prefersReduceMotion())layer.classList.add('on');
+  else requestAnimationFrame(()=>requestAnimationFrame(()=>layer.classList.add('on')));
+  if(navigator.vibrate)navigator.vibrate(8);
+  const sr=LV.root.querySelector('.lv-sr'); if(sr)sr.textContent=`${o.label||''}. ${String(o.prompt).replace(/<[^>]+>/g,'')}`;
+  try{ b.focus({preventScroll:true}); }catch(e){}
+}
+/* La zone épouse la notification (même arrondi) ; la bulle se pose juste dessous, le doigt pointé vers elle. */
+function lvOpPlace(){
+  const P=LV&&LV.op; if(!P)return;
+  const a=lvPt(P.r.x,P.r.y), c=lvPt(P.r.x+P.r.w,P.r.y+P.r.h); if(!a||!c)return;
+  const k=(c.x-a.x)/P.r.w, b=P.layer.querySelector('.lv-op-spot'), tip=P.layer.querySelector('.lv-op-tip');
+  Object.assign(b.style,{left:a.x.toFixed(1)+'px',top:a.y.toFixed(1)+'px',width:(c.x-a.x).toFixed(1)+'px',height:(c.y-a.y).toFixed(1)+'px',borderRadius:(P.rad*k).toFixed(1)+'px'});
+  Object.assign(tip.style,{left:((a.x+c.x)/2).toFixed(1)+'px',top:(c.y+12).toFixed(1)+'px'});
+}
+function lvOpClose(){
+  const P=LV&&LV.op; if(!P)return;
+  LV.op=null; LV.root.classList.remove('is-q','is-op');
+  const L=P.layer; L.classList.remove('on'); L.classList.add('off');
+  setTimeout(()=>L.remove(),prefersReduceMotion()?0:220);
 }
 /* ---------- Moments « À toi » joués sur l’image ----------
    kind : tap (toucher les bons endroits : des cases, une ligne, une table), sort (glisser chaque étiquette du plateau
@@ -28583,7 +28653,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1907';
+  const SW_CACHE='requete-2026-10-12-ludique-v1908';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
