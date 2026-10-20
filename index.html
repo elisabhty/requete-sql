@@ -12541,7 +12541,7 @@ guide({ id:79, titre:"Fenêtres glissantes", résumé:"Suivre l’évolution des
           {k:"R3",c:[["i3","3"],["m3","34.9"],["c3","?","q"]]},
           {k:"R4",c:[["i4","4"],["m4","119.7"],["c4","?","q"]]},
           {k:"R5",c:[["i5","5"],["m5","29.9"],["c5","?","q"]]}],
-        caps:["<b>Les commandes</b> · Cinq commandes, rangées de la plus ancienne à la plus récente.","<b>Commande n°1</b> · Le cadre commence à la première ligne (UNBOUNDED PRECEDING) et s’arrête à la ligne actuelle (CURRENT ROW) : il ne contient qu’elle.","<b>Commande n°3</b> · Le cadre s’agrandit : il contient les lignes 1 à 3, soit 59.8 + 19.9 + 34.9 = 114.6.","<b>Résultat</b> · Chaque commande a son propre cadre, qui part toujours de la première ligne : le total grossit à chaque ligne."],
+        caps:["<b>Les commandes</b> · Cinq commandes, rangées de la plus ancienne à la plus récente.","<b>Commande n°1</b> · Le cadre commence à la première ligne (UNBOUNDED PRECEDING) et s’arrête à la ligne actuelle (CURRENT ROW) : il ne contient qu’elle.","<b>Commande n°3</b> · Le cadre s’agrandit : il contient les lignes 1 à 3, soit 59.8 + 19.9 + 34.9 = 114.6.","<b>Résultat</b> · Chaque commande a son propre cadre, qui part toujours de la première ligne : le total augmente à chaque ligne."],
         steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5"],on:["m1"],text:{c1:"59.8"},d:2600},{cap:2,on:["m2","m3"],text:{c3:"114.6"},d:2800},{cap:3,off:["m1","m2","m3"],text:{c2:"79.7",c4:"234.3",c5:"264.2"},stagger:450,d:3000}]}}
     ]
   },
@@ -12549,7 +12549,7 @@ guide({ id:79, titre:"Fenêtres glissantes", résumé:"Suivre l’évolution des
     {h:"Cumuler avec un cadre qui s’agrandit",blocks:[
       "Applique d’abord ce cadre aux quantités commandées.",
       {say:"👇 Exécute cette requête pour lire le cumul des quantités commandées :",run:"SELECT id, date_commande, quantite,\n       SUM(quantite) OVER (\n         ORDER BY date_commande, id\n         ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n       ) AS quantite_cumulee\nFROM commandes\nORDER BY date_commande, id;"},
-      {arrow:"Le cumul grossit à chaque ligne et finit à 28, le total des quantités commandées. Les deux commandes du 2 juillet sont départagées par <code>id</code> : le cumul passe de 2 à 3."}
+      {arrow:"Le cumul augmente à chaque ligne et finit à 28, le total des quantités commandées. Les deux commandes du 2 juillet sont départagées par <code>id</code> : le cumul passe de 2 à 3."}
     ]},
     {h:"Un cadre qui se déplace : la moyenne mobile",blocks:[
       "Un cadre n’est pas obligé de partir de la première ligne. Avec <code>2 PRECEDING</code>, il ne remonte que de deux lignes : chaque moyenne porte sur la commande actuelle et les deux précédentes.",
@@ -12578,7 +12578,7 @@ guide({ id:79, titre:"Fenêtres glissantes", résumé:"Suivre l’évolution des
         funnel:[
           {n:16,t:"commandes au départ",s:"chacune avec son montant : prix × quantité",dots:"0000000000000000"},
           {step:"SUM(montant) OVER (… UNBOUNDED PRECEDING AND CURRENT ROW)",s:"ajoute à chaque commande le total des ventes jusqu’à elle"},
-          {n:16,t:"⭐ commandes avec leur cumul",s:"aucune ligne n’a disparu : le cumul grossit de commande en commande",dots:"1111111111111111",out:true}
+          {n:16,t:"⭐ commandes avec leur cumul",s:"aucune ligne n’a disparu : le cumul augmente de commande en commande",dots:"1111111111111111",out:true}
         ],
         board:{ico:"📈",h:"Suivi du palier de 700 €",aria:"Le chiffre d’affaires cumulé monte commande après commande et franchit 700 € le 1er août, à 732,60 €",kpi:"Commandes suivies",chart:"cumul par commande",bar:2,hl:{"col": 0, "val": "2026-08-01"},show:4,tail:3,moreT:"… et 9 autres commandes",cols:["date_commande", "montant", "cumul"],
           rows:[["2026-07-02", 59.8, 59.8], ["2026-07-02", 19.9, 79.69999999999999], ["2026-07-05", 34.9, 114.6], ["2026-07-08", 119.69999999999999, 234.29999999999998], ["2026-07-11", 29.9, 264.2], ["2026-07-12", 29.8, 294], ["2026-07-15", 24.9, 318.9], ["2026-07-18", 119.6, 438.5], ["2026-07-18", 25, 463.5], ["2026-07-20", 39.8, 503.29999999999995], ["2026-07-22", 34.9, 538.1999999999999], ["2026-07-25", 39.9, 578.1], ["2026-07-28", 15, 593.1], ["2026-07-30", 49.8, 642.9], ["2026-08-01", 89.69999999999999, 732.5999999999999], ["2026-08-03", 14.9, 747.5]],done:"✓ 700 € dépassés à la 15ᵉ commande sur 16"},
@@ -15159,7 +15159,7 @@ const QCM={
  78:[{q:"Quelle fonction lit la ligne suivante ?",o:["LAG()","NEXT()","LEAD()"],b:2,e:"LAG regarde avant, LEAD regarde après."},
   {q:"Pourquoi ajouter <code>PARTITION BY client_id</code> ?",o:["Pour ne pas comparer deux clients différents","Pour trier les dates","Pour supprimer les NULL"],b:0,e:"Sans partition, la première commande d’un client serait comparée à la dernière du client précédent."},
   {q:"Que renvoie <code>julianday('2026-07-20') - julianday('2026-07-05')</code> ?",o:["20","15","5"],b:1,e:"julianday transforme une date en nombre de jours : la différence donne 15 jours."}],
- 79:[{q:"Quel cadre donne un cumul depuis la première ligne ?",o:["ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW","ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING","ROWS BETWEEN 1 PRECEDING AND CURRENT ROW"],b:0,e:"Le cadre part de la première ligne et s’arrête à la ligne actuelle : le total grossit à chaque ligne."},
+ 79:[{q:"Quel cadre donne un cumul depuis la première ligne ?",o:["ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW","ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING","ROWS BETWEEN 1 PRECEDING AND CURRENT ROW"],b:0,e:"Le cadre part de la première ligne et s’arrête à la ligne actuelle : le total augmente à chaque ligne."},
   {q:"<code>ROWS BETWEEN 2 PRECEDING AND CURRENT ROW</code> contient au plus :",o:["2 lignes","3 lignes","toutes les lignes"],b:1,e:"Les 2 lignes précédentes et la ligne actuelle."},
   {q:"<code>NTILE(4)</code> sur 8 produits forme :",o:["2 groupes de 4 produits","8 groupes","4 groupes de 2 produits"],b:2,e:"NTILE(n) répartit les lignes en n groupes aussi équilibrés que possible."}]
 };
@@ -28223,7 +28223,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1892';
+  const SW_CACHE='requete-2026-10-12-ludique-v1893';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
