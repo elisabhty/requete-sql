@@ -546,8 +546,13 @@ function Course(cfg){
       chapters: chapters.map(c => ({t: unwarp(c.a), n: c.n, label: c.label})),
       questions: questions.map(q => ({t: unwarp(q.at), kicker: q.kicker, ctx: fr(q.ctx || ''), q: fr(q.q), options: q.options.map(o => ({label: o.label, ok: o.ok})), okTitle: fr(q.okTitle), koTitle: fr(q.koTitle), why: fr(q.why)})),
       /* Moments « À toi » : l’animation s’arrête, l’élève place une étiquette dans la requête ; la page montre aussitôt
-         le résultat de son choix (window.IX : slot, pick, leave), le lecteur gère le plateau, le son et la reprise. */
-      picks: picks.map(p => ({t: unwarp(p.at), prompt: fr(p.prompt), options: p.options.map(o => ({label: o.label, ok: !!o.ok}))})),
+         le résultat de son choix (window.IX : slot, pick, leave), le lecteur gère le plateau, le son et la reprise.
+         Autres gestes (kind) : tap (toucher les bons endroits de l’image), sort (glisser chaque étiquette vers sa place),
+         link (relier deux éléments) ; la page décrit les endroits (IX.spots) et juge chaque geste (IX.act).
+         need : nombre de bons gestes attendus (tap, link) ; hint : consigne du geste, sous le plateau ;
+         text : étiquettes en texte courant (une réponse en mots), et non en code. */
+      picks: picks.map(p => ({t: unwarp(p.at), kind: p.kind || 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', need: p.need || 0,
+        options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok}))})),
       /* Légendes en texte : le lecteur les annonce à VoiceOver au fil de l’animation. */
       captions: captions.map(c => ({a: unwarp(c[0]), b: unwarp(Math.min(c[1], duration)), text: plain(c[2])}))};
   })();
