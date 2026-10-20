@@ -124,10 +124,11 @@
 .mdot{position:relative;width:22px;height:22px}
 .mdot::before{content:"";position:absolute;inset:0;border-radius:50%;background:#2F80ED;animation:mdot 1.3s ease-in-out infinite}
 @keyframes mdot{50%{transform:scale(.72);opacity:.65}}
-.mb{padding:28px 4px 34px;box-shadow:inset 0 3px 0 var(--line-2)}
-.mb p{margin:0;font-size:40px;line-height:1.34;font-weight:500;color:var(--ink)}
+.mb{padding:24px 4px 28px;box-shadow:inset 0 3px 0 var(--line-2)}
+.mb p{margin:0;font-size:34px;line-height:1.3;font-weight:500;color:var(--ink)}
 .mb .sn{display:block}
-.mb .sn+.sn{margin-top:8px}
+.mb .sn+.sn{margin-top:12px}
+.mb .sn.s{margin-top:0}
 /* Hors de l’app : le doigt qui touche la notification */
 .tapf{z-index:20;font-size:120px;margin:-8px 0 0 -44px;opacity:0;visibility:hidden}
 /* Les trois anomalies réunies */
@@ -283,10 +284,10 @@ const CAPTIONS = [
   [11.6, 16.9,   "Chaque atelier est animé par un <b>coach</b>, et tous les clients peuvent s’y inscrire."],
   [17.0, 23.0,   "Pour l’instant, les inscriptions sont notées dans un <b>fichier Excel</b> : une ligne par inscription."],
   [29.8, 34.3,   "C’est toi qui gères ce fichier : clients et coachs t’écrivent pour le modifier."],
-  [37.2, 40.2,   "À toi !"],
+  [37.65, 40.2,  "À toi !"],
   [40.3, 46.3,   "Son adresse apparaît sur <b>trois lignes</b> :<br>il faut donc la modifier à chaque endroit."],
   [46.4, 51.6,   "Si tu en oublies une, le fichier<br>contiendra deux adresses différentes<br>pour la même personne."],
-  [54.7, 61.8,   "À toi !"],
+  [55.15, 61.8,  "À toi !"],
   [61.9, 68.4,   "Cette ligne est la seule où figure Cuisine saine : l’atelier, sa date et sa coach disparaîtraient avec elle."],
   [74.7, 80.5,   "À toi !"],
   [80.6, 83.0,   "Chaque ligne regroupe des informations sur un client, un atelier, un coach et une inscription."],
@@ -348,13 +349,15 @@ const PICKS = [
     {label: 'Sophie Martin', why: 'Rien dans cette table ne l’indique.'}]}
 ];
 
-/* Les trois mails reçus : [qui (avatar, prénom, nom), sujet (couleur), étiquette, adresse d’envoi, phrases]. Chacun arrive en notification ;
-   l’app s’arrête dessus (OPENS) jusqu’à ce que l’élève le touche ; il se déplie alors, phrase après phrase. Rien n’est noté. */
+/* Les trois mails reçus : [qui (avatar, prénom, nom), sujet (couleur), étiquette, adresse d’envoi, demande]. Chacun arrive en notification ;
+   l’app s’arrête dessus (OPENS) jusqu’à ce que l’élève le touche ; il se déplie alors : « Bonjour, », la demande, « Merci ! », la signature.
+   Rien n’est noté. */
 const MAILS = [
-  [COACHS[0], 'k-co', 'coach', NEWMAIL, ['J’ai changé d’adresse e-mail.', 'Tu peux la mettre à jour dans le fichier ?']],
-  [[7, 'Léa', 'Simon', 'lea@mail.fr', 'LS'], 'k-cl', 'cliente', 'lea@mail.fr', ['Je ne pourrai pas venir à l’atelier Cuisine saine prévu le 19 septembre.', 'Tu peux annuler mon inscription ?']],
-  [COACHS[1], 'k-co', 'coach', COACHS[1][3], ['Je propose un nouvel atelier Yoga du matin pour le 3 octobre.', 'Tu peux l’ajouter au fichier ?', 'Il n’y a pas encore d’inscrits.']]
+  [COACHS[0], 'k-co', 'coach', NEWMAIL, 'Mon adresse e-mail est désormais salma@pro.fr. Peux-tu remplacer l’ancienne adresse salma@mail.fr dans le fichier des inscriptions aux ateliers ?'],
+  [[7, 'Léa', 'Simon', 'lea@mail.fr', 'LS'], 'k-cl', 'cliente', 'lea@mail.fr', 'Je ne pourrai pas venir à l’atelier Cuisine saine prévu le 19 septembre. Peux-tu annuler mon inscription ?'],
+  [COACHS[1], 'k-co', 'coach', COACHS[1][3], 'Je propose un nouvel atelier Yoga du matin pour le 3 octobre. Peux-tu l’ajouter au fichier ? Il&nbsp;n’y&nbsp;a&nbsp;pas encore d’inscrits.']
 ];
+const mailText = ([w, , , , ask]) => ['Bonjour,', ask, 'Merci !', w[1]];
 const OPENS = [35.8, 53.3, 69.8].map((t, n) => ({at: t, sel: '#ml' + (n + 1), prompt: 'Touche le mail pour l’ouvrir.', label: `Ouvrir le mail de ${MAILS[n][0][1]} ${MAILS[n][0][2]}`}));
 
 /* ---------- Gabarits ---------- */
@@ -385,7 +388,7 @@ function dom(){
   // Sous le fichier : les mails reçus, ce que la ligne emporterait, les anomalies, les sujets
   let u = MAILS.map(([w, k, tag, from, body], n) => `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[4]}<b class="mbg emo">✉️</b></i>` +
     `<div class="mw"><div class="mn"><b>${w[1]} ${w[2]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
-    `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${body.map(x => `<span class="sn">${x}</span>`).join('')}</p></div></div>`).join('');
+    `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${mailText([w, k, tag, from, body]).map((x, j) => `<span class="sn${j === 3 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('');
   const A2 = at(INSCR[LEA][1]), C2 = co(A2[4]);
   u += `<div class="abs card lc" id="lc"><div class="lch"><span class="emo">🗑️</span>Effacé avec la ligne</div><div class="lcc">` +
     `<span class="lchip"><span class="emo">${A2[5]}</span>${A2[1]}<i class="x">✕</i></span><span class="lchip">${A2[2]}<i class="x">✕</i></span>` +
@@ -467,7 +470,7 @@ const capOff = t => tl.to('#cap', {autoAlpha: 0, y: 30, duration: 0.3, ease: 'po
 const capOn = t => tl.to('#cap', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, t);
 /* Un mail arrive : la notification tombe (avatar, enveloppe, pastille « non lu »). À T, l’élève la touche (l’app s’arrête là,
    moment OPENS ; hors de l’app, un doigt le montre) : elle s’enfonce, l’adresse de l’expéditeur remplace « Nouveau mail »,
-   puis elle se déplie en mail, phrase après phrase. L’image reste le temps de le lire. */
+   puis elle se déplie en mail, ligne après ligne. L’image reste le temps de lire la demande. */
 function mailIn(n, t, T){
   const m = '#ml' + n, sn = $$(m + ' .sn');
   show(m, t, {y: -36, scale: 0.94}, 0.55, 'back.out(1.7)');
@@ -487,7 +490,7 @@ function mailIn(n, t, T){
   gsap.set(sn, {autoAlpha: 0, y: 14});
   sn.forEach((s, k) => { tl.to(s, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, T + 0.4 + k * 0.28); cue(T + 0.4 + k * 0.28, 'tick', 0.4, k + 2); });
   const end = T + 0.4 + (sn.length - 1) * 0.28 + 0.35;
-  hold(end + 0.05, Math.ceil(readTime(sn.map(s => s.textContent).join(' ')) * 20) / 20);
+  hold(end + 0.05, Math.ceil(readTime(sn[1].textContent) * 20) / 20);
   return end;
 }
 /* Le mail lu se replie sur son en-tête (le contenu est passé dans le fichier), ou part sur le côté, rangé. */
@@ -546,7 +549,7 @@ function build(){
 
   /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
      la consigne, la légende ne la répète pas. Le passage d’attente est coupé (rien ne s’y anime). */
-  [[38.2, 0], [55.7, 1], [75.7, 2], [101.7, 3], [126.4, 4], [137.3, 5]].forEach(([t0, i]) => cut(t0, +(PICKS[i].at - 0.1 - t0).toFixed(2)));
+  [[38.65, 0], [56.15, 1], [75.7, 2], [101.7, 3], [126.4, 4], [137.3, 5]].forEach(([t0, i]) => cut(t0, +(PICKS[i].at - 0.1 - t0).toFixed(2)));
 
   /* ===== 2 · Les copies ===== */
   // c’est toi qui gères ce fichier : ton avatar, dans la barre du fichier
@@ -555,7 +558,7 @@ function build(){
   // le mail de Salma Haddad
   capOff(34.45);
   mailIn(1, 34.7, OPENS[0].at);
-  capOn(36.95);
+  capOn(37.5);
   // À toi : les cases de son e-mail (la réponse, juste après l’arrêt)
   const a0 = +(PICKS[0].at + 0.02).toFixed(2);
   tl.set(SALMA.map(r => '#rg' + r), {autoAlpha: 1}, a0);
@@ -580,7 +583,7 @@ function build(){
   /* ===== 3 · Supprimer, ajouter ===== */
   // le mail de Léa Simon
   mailIn(2, 52.2, OPENS[1].at);
-  capOn(54.5);
+  capOn(55.0);
   // À toi : la ligne à supprimer (réponse : la ligne de Léa Simon, barrée)
   const a1 = +(PICKS[1].at + 0.02).toFixed(2);
   tl.set('#delb', {autoAlpha: 1}, a1);
@@ -601,17 +604,17 @@ function build(){
   // le mail de Moussa Diallo, puis sa ligne dans le fichier : le mail se replie, la ligne se remplit case après case
   capOff(68.45);
   mailIn(3, 68.75, OPENS[2].at);
-  tl.to('#xdy', {height: 84, duration: 0.35, ease: 'power2.out'}, 71.4);
-  tl.to('#ml3', {y: 84, duration: 0.35, ease: 'power2.out'}, 71.4);
-  mailFold(3, 71.4);
-  show('#xdy', 71.45, {y: 0, x: -40}, 0.45, 'power3.out');
-  cue(71.45, 'whoosh', 0.4);
-  let ty = 72.0;
+  tl.to('#xdy', {height: 84, duration: 0.35, ease: 'power2.out'}, 71.55);
+  tl.to('#ml3', {y: 84, duration: 0.35, ease: 'power2.out'}, 71.55);
+  mailFold(3, 71.55);
+  show('#xdy', 71.6, {y: 0, x: -40}, 0.45, 'power3.out');
+  cue(71.6, 'whoosh', 0.4);
+  let ty = 72.15;
   [1, 2, 3, 4].forEach(j => { ty = typeLine($('#cy_' + j + ' .v'), ty, 32) + 0.12; });
   gsap.set(['#ask0', '#ask5'], {autoAlpha: 0, scale: 0.5});
-  tl.to(['#ask0', '#ask5'], {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.4)'}, 74.0);
-  cue(74.0, 'pop', 0.7, 4);
-  capOn(74.35);
+  tl.to(['#ask0', '#ask5'], {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.4)'}, 74.1);
+  cue(74.1, 'pop', 0.7, 4);
+  capOn(74.4);
   // À toi : que mettre dans la case client ? (réponse : rien ne convient)
   const a2 = +(PICKS[2].at + 0.02).toFixed(2);
   tl.set(['#ask0', '#ask5'], {autoAlpha: 0}, a2);
