@@ -837,8 +837,8 @@ const COURSES = [
       '<span class="b"><span class="glow" id="p4"><span class="kw">2 PRECEDING</span></span></span>', '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> date_commande</span>',
       '✕ Les deux commandes du 2 juillet ont le même cumul', '<div class="lim" id="lim6"><span>Palier&nbsp;: 700&nbsp;€</span></div>',
       '✓ Palier franchi le 1er&nbsp;août']},
-  {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '3 min 15', notesAt: 159.3,
-    notes: /notes:\{t:188\.1,y:1291,card:\[64,292,1016,996\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '3 min 20', notesAt: 159.3,
+    notes: /notes:\{t:193\.3,y:1291,card:\[64,292,1016,996\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Le fichier Excel des ateliers mélange tout&nbsp;:<br>à toi de le ranger en tables.',
     chapters: ['Le fichier Excel', 'Les copies', 'Supprimer, ajouter', 'Une table par sujet', 'Les tables remplies', 'À retenir'],
     traps: ["const INSCR = [[1, 1, '01/09', '2026-09-01'], [4, 1, '02/09', '2026-09-02'], [5, 2, '03/09', '2026-09-03'], [7, 3, '04/09', '2026-09-04'],",
@@ -1195,7 +1195,7 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
 
 test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six moments sur l’image, clients de la base', async () => {
   const l56 = cut('guide({ id:56, titre:"Normaliser les inscriptions"', 'guide({ id:72,');
-  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'3 min 15',moments:6,") && !l56.includes('seuil:'), 'leçon seule, 6 moments, validée à la fin de la vidéo');
+  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'3 min 20',moments:6,") && !l56.includes('seuil:'), 'leçon seule, 6 moments, validée à la fin de la vidéo');
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/projet-normaliser.html'), 'utf8');
   const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
   assert.ok(a > 0 && b > a, 'données de la page localisées');
@@ -1208,9 +1208,10 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
      Chaque mail arrive en notification : l’app s’arrête dessus (OPENS) jusqu’à ce que l’élève le touche, puis il se déplie. */
   assert.deepEqual(D.MAILS.map(m => m[0][1] + ' ' + m[0][2] + ' · ' + m[2]), ['Salma Haddad · coach', 'Léa Simon · cliente', 'Moussa Diallo · coach'], 'qui écrit, coachs désignés comme tels');
   assert.ok(D.COACHS.every(c => !Object.values(D.CLIENTS).some(([p, n]) => p === c[1] || n === c[2])), 'aucun coach ne porte le prénom ou le nom d’un client');
-  assert.deepEqual(D.MAILS.map(m => m[4].join(' ')), ['J’ai changé d’adresse e-mail. Tu peux la mettre à jour dans le fichier ?',
-    'Je ne pourrai pas venir à l’atelier Cuisine saine prévu le 19 septembre. Tu peux annuler mon inscription ?',
-    'Je propose un nouvel atelier Yoga du matin pour le 3 octobre. Tu peux l’ajouter au fichier ? Il n’y a pas encore d’inscrits.'], 'les textes des mails');
+  assert.deepEqual(D.MAILS.map(m => m[4].replace(/&nbsp;/g, ' ')), ['Mon adresse e-mail est désormais salma@pro.fr. Peux-tu remplacer l’ancienne adresse salma@mail.fr dans le fichier des inscriptions aux ateliers ?',
+    'Je ne pourrai pas venir à l’atelier Cuisine saine prévu le 19 septembre. Peux-tu annuler mon inscription ?',
+    'Je propose un nouvel atelier Yoga du matin pour le 3 octobre. Peux-tu l’ajouter au fichier ? Il n’y a pas encore d’inscrits.'], 'les demandes des mails');
+  assert.ok(page.includes("const mailText = ([w, , , , ask]) => ['Bonjour,', ask, 'Merci !', w[1]];"), 'chaque mail : « Bonjour, », la demande, « Merci ! », la signature');
   assert.equal(D.MAILS[0][3], D.NEWMAIL, 'Salma Haddad écrit depuis sa nouvelle adresse');
   D.OPENS.forEach((o, n) => {
     assert.equal(o.sel, '#ml' + (n + 1)); assert.equal(o.prompt, 'Touche le mail pour l’ouvrir.');
