@@ -1199,6 +1199,20 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
   assert.deepEqual(D.INSCR.map(r => [r[0], r[1]]).sort(), [[1, 1], [1, 3], [4, 1], [7, 2]], 'inscriptions du cas');
 });
 
+test('mise en page (?check) : un élément ou un texte qui sort de son cadre est signalé (pastille, colonnes)', () => {
+  const core = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
+  for (const part of ["keep(key, {kind: 'débordement',", "const clips = el => getComputedStyle(el).overflowX !== 'visible'",
+    "if (!/^(absolute|fixed)$/.test(pos(el)) && isBox(el)) { const f = frameOf(el); if (f) flows.push({el, f}); }",
+    'const lead = t ? parseFloat(getComputedStyle(el).fontSize) * k / 3 : 0;', 'if (over <= 3) return;'])
+    assert.ok(core.includes(part), `contrôle : ${part}`);
+  /* Chapitre 1 du projet : les six colonnes tiennent dans la ligne du tableur (carte de 1016 px, bordures de 3 px, marges de 10 px). */
+  const page = fs.readFileSync(path.join(ROOT, 'assets/anim/projet-normaliser.html'), 'utf8');
+  const cols = /\.xr\{[^}]*grid-template-columns:([^;]+);/.exec(page)[1].trim().split(/\s+/).map(parseFloat);
+  assert.ok(cols.length === 6 && cols.reduce((a, b) => a + b, 0) <= 1016 - 2 * 3 - 2 * 10, `colonnes : ${cols.join(' + ')}`);
+  assert.ok(page.includes('.xr>span:last-of-type{box-shadow:none}'), 'pas de trait après la dernière colonne, même sur la ligne barrée');
+  assert.ok(page.includes('.nc{left:64px;width:952px;height:132px;padding:0 26px;display:flex;align-items:center;gap:14px}'), 'fiche du Yoga du matin : la pastille « 0 inscrit » tient dans la carte');
+});
+
 test('moments « À toi » : la légende annonce le moment sans répéter la consigne de la carte, l’attente est coupée', () => {
   /* Moteur : une coupe (durée négative) saute un passage de la timeline ; pauses et coupes se combinent. */
   const core = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
