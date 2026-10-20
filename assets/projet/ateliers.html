@@ -1,0 +1,1495 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F4F2FC">
+<meta name="robots" content="noindex">
+<title>La base des ateliers · Requête</title>
+<link rel="icon" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<!-- Prototype du module « Projet : la base des ateliers » (chapitres 1 et 2).
+     Page autonome : styles et script ici, polices et mascotte reprises de l’app.
+     Chaque étape se joue au doigt (glisser ou toucher deux fois) comme à la souris. -->
+<style>
+@font-face{font-family:'Bricolage Grotesque';src:url(../fonts/bricolage-grotesque-regular.woff2) format('woff2');font-weight:300 550;font-style:normal;font-display:swap}
+@font-face{font-family:'Bricolage Grotesque';src:url(../fonts/bricolage-grotesque-bold.woff2) format('woff2');font-weight:551 900;font-style:normal;font-display:swap}
+@font-face{font-family:'JetBrains Mono';src:url(../fonts/jetbrains-mono.woff2) format('woff2');font-weight:100 900;font-style:normal;font-display:swap}
+
+:root{
+  --bg:#F4F2FC;--surface:#fff;--surface-2:#F1EEFC;--head:#F7F5FE;
+  --ink:#221C46;--ink-2:#4E4872;--ink-3:#6A6490;
+  --line:#E6E1F6;--line-2:#EFECFA;--lip:#DCD5F2;
+  --accent:#6A4DF4;--accent-2:#8B6CFF;--accent-soft:#EEE9FF;--accent-ink:#5335E0;--accent-lip:#4B30CC;--accent-line:#C9BEF7;
+  --success:#0F7A3A;--success-fill:#169447;--success-lip:#0F7337;--success-soft:#E2F6EA;--success-line:#BFE6CF;
+  --danger:#C2323A;--danger-fill:#EF4F55;--danger-lip:#C4363B;--danger-soft:#FDEBEC;--danger-line:#F6C9CC;
+  --fk:#94480A;--fk-soft:#FFF3DC;--fk-line:#F3D19B;--fk-lip:#EBC27F;
+  --display:'Bricolage Grotesque',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  --ui:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Plus Jakarta Sans',system-ui,sans-serif;
+  --mono:'SF Mono','JetBrains Mono',ui-monospace,Menlo,Monaco,monospace;
+  --press:cubic-bezier(.3,.7,.4,1.5);--pop:cubic-bezier(.34,1.56,.64,1);--out:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;min-height:100vh;min-height:100dvh;background:var(--bg);color:var(--ink);font:400 17px/1.6 var(--ui);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+a{color:inherit}
+code{font-family:var(--mono)}
+.lead code,.fb code,.q-t code,.sub code,.recap code,.memo code,.how code,.cover-goal code{font:600 .84em/1 var(--mono);background:var(--accent-soft);color:var(--accent-ink);padding:3px 7px;border-radius:8px;white-space:nowrap}
+.fb.ok code{background:rgba(255,255,255,.7);color:var(--success)}
+.fb.err code{background:rgba(255,255,255,.7);color:var(--danger)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- En-tête ---------- */
+.top{position:sticky;top:0;z-index:30;background:rgba(244,242,252,.94);-webkit-backdrop-filter:saturate(1.4) blur(12px);backdrop-filter:saturate(1.4) blur(12px);padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px}
+.top-in{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.ibtn{flex:none;width:44px;height:44px;border-radius:14px;border:2px solid var(--line);background:#fff;box-shadow:0 3px 0 var(--lip);display:grid;place-items:center;color:var(--accent);cursor:pointer;text-decoration:none;transition:transform .12s var(--press),box-shadow .12s var(--press)}
+.ibtn:active{transform:translateY(3px);box-shadow:0 0 0 var(--lip)}
+.top-app{font:700 19px/1 var(--display);color:var(--accent-ink)}
+.top-mid{flex:1;min-width:0}
+.top-lbl{font:600 12.5px/1.2 var(--ui);color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0 0 1px 1px}
+.prog{display:flex;gap:4px}
+.prog button{flex:1;min-width:0;height:22px;border:0;padding:0;background:none;position:relative;cursor:default}
+.prog button::before{content:'';position:absolute;left:0;right:0;top:7px;height:8px;border-radius:99px;background:var(--line);transition:background .35s}
+.prog button.reach{cursor:pointer}
+.prog button.ahead::before{background:var(--success-line)}
+.prog button.done::before{background:var(--success-fill)}
+.prog button.cur::before{background:var(--accent)}
+
+/* ---------- Page ---------- */
+.wrap{max-width:560px;margin:0 auto;padding:6px 16px calc(132px + env(safe-area-inset-bottom,0px))}
+.step{animation:stepIn .34s var(--out) both}
+.step.leave{animation:stepOut .17s ease-in both}
+@keyframes stepIn{from{opacity:0;transform:translateX(22px)}to{opacity:1;transform:none}}
+@keyframes stepOut{to{opacity:0;transform:translateX(-18px)}}
+.step-title{font:700 27px/1.12 var(--display);letter-spacing:-.02em;margin:14px 0 10px;text-wrap:balance}
+.lead{margin:0 0 18px;color:var(--ink-2);text-wrap:pretty}
+.lead b{color:var(--ink)}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font:700 14px/1.1 var(--display)}
+.pill.ok{background:var(--success-soft);color:var(--success)}
+.h1{font:700 34px/1.04 var(--display);letter-spacing:-.025em;margin:14px 0 10px;text-wrap:balance}
+.sub{font-size:16px;line-height:1.5;color:var(--ink-2);margin:0 0 22px;text-wrap:pretty}
+.sec{font:700 20px/1.2 var(--display);letter-spacing:-.01em;margin:28px 0 12px}
+.how{margin:-4px 0 14px;font-size:13.5px;line-height:1.45;color:var(--ink-3)}
+.swipe{display:flex;align-items:center;gap:6px;margin:10px 2px 0;font-size:13.5px;color:var(--ink-3)}
+.swipe[hidden]{display:none}
+
+/* ---------- Bouton principal ---------- */
+.cta-bar{position:fixed;left:0;right:0;bottom:0;z-index:40;padding:16px 16px calc(14px + env(safe-area-inset-bottom,0px));background:linear-gradient(to bottom,rgba(244,242,252,0),var(--bg) 32%);pointer-events:none}
+.cta-bar[hidden]{display:none}
+.cta{pointer-events:auto;display:block;width:100%;max-width:528px;margin:0 auto;min-height:56px;padding:0 18px;border-radius:16px;border:0;font:700 17px/1.2 var(--display);cursor:pointer;transition:transform .12s var(--press),box-shadow .12s var(--press),background .2s,color .2s}
+.cta.go{background:var(--accent);color:#fff;box-shadow:0 4px 0 var(--accent-lip)}
+.cta.go:active{transform:translateY(4px);box-shadow:0 0 0 var(--accent-lip)}
+.cta.ok{background:var(--success-fill);color:#fff;box-shadow:0 4px 0 var(--success-lip)}
+.cta.ok:active{transform:translateY(4px);box-shadow:0 0 0 var(--success-lip)}
+.cta.hint{background:#fff;color:var(--accent-ink);border:2px solid var(--accent-line);box-shadow:0 10px 24px -14px rgba(75,48,204,.45);cursor:default}
+.cta.pop{animation:ctaPop .5s var(--pop)}
+@keyframes ctaPop{0%{transform:scale(.96)}55%{transform:scale(1.03)}100%{transform:scale(1)}}
+.btn-2{display:block;width:100%;min-height:52px;margin-top:12px;border-radius:16px;border:2px solid var(--line);background:#fff;box-shadow:0 4px 0 var(--lip);color:var(--accent-ink);font:700 16px/1.2 var(--display);cursor:pointer;transition:transform .12s var(--press),box-shadow .12s var(--press)}
+.btn-2:active{transform:translateY(4px);box-shadow:0 0 0 var(--lip)}
+.btn-3{display:block;margin:14px auto 0;padding:8px 12px;border:0;background:none;color:var(--ink-3);font:600 14.5px/1.2 var(--ui);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
+/* ---------- Accueil du module ---------- */
+.hero{position:relative;overflow:hidden;border-radius:28px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);color:#fff;padding:20px 20px 18px;box-shadow:0 6px 0 var(--accent-lip)}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(70% 90% at 85% 0%,rgba(255,255,255,.22),transparent 70%);pointer-events:none}
+.hero-row{position:relative;display:flex;gap:12px;align-items:center}
+.hero-k{display:block;font:700 14px/1.2 var(--display);opacity:.86}
+.hero-t{display:block;font:700 26px/1.08 var(--display);letter-spacing:-.02em;margin:6px 0 6px;text-wrap:balance}
+.hero-s{display:block;font-size:14.5px;line-height:1.4;opacity:.9}
+.hero-m{flex:none;width:92px;height:92px;border-radius:50%;object-fit:cover;object-position:50% 12%;background:rgba(255,255,255,.18);border:3px solid rgba(255,255,255,.35)}
+.hero-go{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:56px;margin-top:16px;border:0;border-radius:18px;background:#fff;color:var(--accent-ink);font:700 18px/1.2 var(--display);box-shadow:0 5px 0 rgba(43,24,140,.45);cursor:pointer;transition:transform .12s var(--press),box-shadow .12s var(--press)}
+.hero-go:active{transform:translateY(5px);box-shadow:0 0 0 rgba(43,24,140,.45)}
+.hero-go .pl{width:30px;height:30px;border-radius:50%;background:var(--accent);display:grid;place-items:center}
+.hero-bar{position:relative;height:8px;border-radius:99px;background:rgba(255,255,255,.25);margin-top:14px;overflow:hidden}
+.hero-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:#fff}
+.ch-list{position:relative;display:flex;flex-direction:column;gap:12px}
+.ch-list::before{content:'';position:absolute;left:36px;top:34px;bottom:34px;width:3px;margin-left:-1.5px;border-radius:3px;background:var(--lip)}
+.ch-row{position:relative;display:flex;align-items:center;gap:14px;width:100%;padding:14px;border-radius:20px;background:#fff;border:2px solid var(--line);box-shadow:0 4px 0 var(--lip);text-align:left;cursor:pointer;transition:transform .12s var(--press),box-shadow .12s var(--press)}
+button.ch-row:active{transform:translateY(4px);box-shadow:0 0 0 var(--lip)}
+.ch-num{flex:none;width:40px;height:40px;border-radius:13px;background:var(--accent-soft);color:var(--accent-ink);font:700 17px/40px var(--display);text-align:center}
+.ch-row.done .ch-num{background:var(--success-fill);color:#fff}
+.ch-row.next{border-color:var(--accent-line)}
+.ch-row.next .ch-num{background:var(--accent);color:#fff;box-shadow:0 3px 0 var(--accent-lip)}
+.ch-txt{flex:1;min-width:0}
+.ch-t{display:block;font:700 16.5px/1.25 var(--display);color:var(--ink)}
+.ch-s{display:block;font-size:13.5px;line-height:1.4;color:var(--ink-3);margin-top:2px}
+.ch-st{flex:none;font:700 13.5px/1.2 var(--display);color:var(--accent-ink)}
+.ch-row.done .ch-st{color:var(--success)}
+.ch-row.soon{cursor:default;background:#FAF9FE;box-shadow:none;border-style:dashed}
+.ch-row.soon .ch-num{background:#EEEBF8;color:#9A95BC}
+.ch-row.soon .ch-t{color:var(--ink-2)}
+.ch-row.soon .ch-st{color:#9A95BC;font-weight:600}
+
+/* ---------- Couverture d’un chapitre ---------- */
+.cover-card{display:flex;align-items:center;gap:14px;padding:16px;border-radius:22px;background:#fff;border:2px solid var(--line);box-shadow:0 4px 0 var(--lip)}
+.cover-m{flex:none;width:96px;height:auto}
+.cover-k{display:block;font:700 13.5px/1.2 var(--display);color:var(--accent-ink);margin-bottom:4px}
+.cover-goal{margin:0;font-size:16px;line-height:1.5;color:var(--ink)}
+.cover-meta{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0;padding:0;list-style:none}
+.cover-meta li{padding:7px 12px;border-radius:999px;background:#fff;border:2px solid var(--line);font:600 13.5px/1.2 var(--ui);color:var(--ink-2)}
+
+/* ---------- Tableur ---------- */
+.xl{position:relative;background:#fff;border:2px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 4px 0 var(--lip)}
+.xl-bar{display:flex;align-items:center;gap:9px;padding:9px 12px;border-bottom:2px solid var(--line-2);font:600 13px/1.2 var(--ui);color:var(--ink-2)}
+.xl-ico{flex:none;width:22px;height:22px;border-radius:6px;background:#1E7B4B;color:#fff;font:800 12px/22px var(--ui);text-align:center}
+.xl-sc{overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+.xl-t{border-collapse:separate;border-spacing:0;font:500 13.5px/1.3 var(--ui);color:var(--ink)}
+.xl-t th,.xl-t td{padding:0;border-right:1px solid var(--line-2);border-bottom:1px solid var(--line-2);white-space:nowrap;text-align:left;background:#fff;transition:background .2s}
+.xl-t th:last-child,.xl-t td:last-child{border-right:0}
+.xl-t tbody tr:last-child td{border-bottom:0}
+.xl-t .cell{display:block;padding:9px 11px;max-height:64px;overflow:hidden;transition:max-height .3s ease,padding .3s ease,opacity .25s,background .2s,box-shadow .2s,color .2s}
+.xl-t thead th{background:var(--head);font-weight:700;font-size:12.5px;color:var(--ink-2)}
+.xl-t .rn{position:sticky;left:0;z-index:2;width:30px;min-width:30px;max-width:30px;background:var(--head);text-align:center}
+.xl-t .rn,.xl-t .rn .cell{color:var(--ink-3);font:600 11px/1.3 var(--mono);padding-left:0;padding-right:0}
+.xl-t .c1{position:sticky;left:30px;z-index:2;box-shadow:inset -1px 0 0 var(--line)}
+.xl-fade{position:absolute;top:43px;right:0;bottom:0;width:30px;background:linear-gradient(to right,rgba(255,255,255,0),#fff 85%);pointer-events:none;transition:opacity .2s}
+.xl.at-end .xl-fade{opacity:0}
+.xl-t td.tap{cursor:pointer}
+.xl-t td.tap:active .cell{background:var(--surface-2)}
+.xl-t td.hit .cell{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--accent);color:var(--accent-ink);font-weight:700;animation:cellHit .45s var(--pop)}
+.xl-t td.miss .cell{animation:cellMiss .5s ease}
+@keyframes cellHit{0%{transform:scale(.92)}60%{transform:scale(1.04)}100%{transform:scale(1)}}
+@keyframes cellMiss{0%,100%{background:#fff;transform:none}20%{background:var(--danger-soft);transform:translateX(-4px)}45%{transform:translateX(4px)}70%{transform:translateX(-2px)}}
+.xl-t tr.row-tap{cursor:pointer}
+.xl-t tr.row-tap:active td{background:var(--surface-2)}
+.xl-t tr.shake-row td{animation:rowShake .45s ease}
+@keyframes rowShake{0%,100%{background:#fff}30%{background:var(--danger-soft)}}
+.xl-t tr.del td{background:var(--danger-soft)}
+.xl-t tr.del .cell{color:var(--danger);text-decoration:line-through}
+.xl-t tr.gone td{border-bottom-color:transparent}
+.xl-t tr.gone .cell{max-height:0;padding-top:0;padding-bottom:0;opacity:0}
+.xl-t tr.row-new td{background:#FBFAFF;animation:rowIn .5s var(--out) both}
+@keyframes rowIn{from{opacity:0}to{opacity:1}}
+.xl-t td.ask .cell{color:var(--accent-ink);font-weight:800;text-align:center;box-shadow:inset 0 0 0 2px var(--accent);border-radius:4px;background:var(--accent-soft);animation:askPulse 1.6s ease-in-out infinite}
+@keyframes askPulse{0%,100%{box-shadow:inset 0 0 0 2px var(--accent)}50%{box-shadow:inset 0 0 0 2px var(--accent-line)}}
+.counter{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:7px 13px;border-radius:999px;background:#fff;border:2px solid var(--line);font:600 14px/1.2 var(--ui);color:var(--ink-2)}
+.counter b{font:700 16px/1 var(--display);color:var(--accent-ink)}
+.counter.bump b{animation:cellHit .4s var(--pop)}
+.counter.full{background:var(--success-soft);border-color:var(--success-line);color:var(--success)}
+.counter.full b{color:var(--success)}
+
+/* ---------- Tables de la base ---------- */
+.tables{display:flex;flex-direction:column;gap:14px}
+.tb{background:#fff;border:2px solid var(--line);border-radius:18px;box-shadow:0 4px 0 var(--lip);overflow:hidden;transition:border-color .2s,background .2s,transform .2s var(--out),box-shadow .2s}
+.tb-h{display:flex;align-items:center;gap:8px;padding:10px 12px 9px;font:700 15px/1.2 var(--display)}
+.tb-e{font-size:17px;line-height:1}
+.tb-l{color:var(--ink-3);font-weight:600}
+.tb-h code{font:700 14.5px/1 var(--mono);color:var(--ink)}
+.tb-b{margin-left:auto;padding:4px 9px;border-radius:999px;background:var(--surface-2);color:var(--ink-3);font:600 11.5px/1.2 var(--ui);white-space:nowrap}
+.tb-sc{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tb-t{border-collapse:collapse;width:100%;font:500 13px/1.3 var(--ui)}
+.tb-t th{font:600 12px/1.2 var(--mono);color:var(--ink-2);text-align:left;padding:7px 9px;background:var(--head);border-top:1px solid var(--line-2);white-space:nowrap}
+.tb-t td{padding:8px 9px;border-top:1px solid var(--line-2);white-space:nowrap;transition:background .25s}
+.tb-t td.num{font:600 12.5px/1.3 var(--mono)}
+.tb-t th.pk{color:var(--accent-ink)}
+.tb-t th.fk{color:var(--fk)}
+.tb-t th .ki{margin-right:3px;font-size:11px}
+.tb-t th .ki+.ki{margin-left:-1px}
+.tb-t th .uq{margin-left:6px;padding:1px 6px;border-radius:6px;background:var(--fk-soft);border:1px solid var(--fk-line);color:var(--fk);font:700 10.5px/1.4 var(--ui);letter-spacing:.02em}
+.tb-t .nb{display:inline-block;min-width:22px;padding:1px 6px;margin-right:4px;border-radius:7px;background:var(--fk-soft);border:1px solid var(--fk-line);color:var(--fk);font:700 12.5px/18px var(--mono);text-align:center}
+.tb-t .mute{color:#B4AFD2;font-family:var(--mono)}
+.tb-key{margin:0 12px 9px;padding:6px 10px;border-radius:10px;background:var(--accent-soft);color:var(--accent-ink);font:600 13px/1.3 var(--ui);animation:tdIn .45s var(--pop) both}
+.tb-key code{font:700 12px/1 var(--mono)}
+.tb-t th.pkc{box-shadow:inset 0 -3px 0 var(--accent-line)}
+.tb-more{padding:7px 12px 9px;border-top:1px solid var(--line-2);font-size:12.5px;color:var(--ink-3)}
+.tb-t th.nc{animation:thIn .55s ease both}
+.tb-t td.nc{animation:tdIn .5s var(--pop) both}
+@keyframes thIn{0%{opacity:0;background:var(--accent-soft)}40%{opacity:1;background:var(--accent-soft)}100%{background:var(--head)}}
+@keyframes tdIn{0%{opacity:0;transform:scale(.4)}100%{opacity:1;transform:none}}
+.tb-t .nc.out{animation:colOut .25s ease forwards}
+@keyframes colOut{to{opacity:0}}
+.tb-t td.over{background:var(--danger-soft);position:relative}
+.tb-t td.over .nb{background:var(--danger-fill);border-color:var(--danger-fill);color:#fff;animation:nbShake .45s ease}
+.tb-t td.over .x{display:inline-grid;place-items:center;width:20px;height:20px;margin-left:2px;border-radius:50%;background:var(--danger-fill);color:#fff;font:800 12px/1 var(--ui);vertical-align:-4px;animation:tdIn .4s var(--pop) both}
+@keyframes nbShake{0%,100%{transform:none}25%{transform:translateX(-3px)}50%{transform:translateX(3px)}75%{transform:translateX(-2px)}}
+.tb-t tr.add td{animation:rowAdd .7s var(--out) both}
+@keyframes rowAdd{0%{opacity:0;background:var(--success-soft)}35%{opacity:1;background:var(--success-soft)}100%{background:#fff}}
+.tb-t tr.try td{background:#FBFAFF;color:var(--ink-2);border-top:2px dashed var(--accent-line)}
+.tb-t tr.try.refused td{background:var(--danger-soft);color:var(--danger);text-decoration:line-through}
+.tb-t tr.try.refused .nb{background:var(--danger-fill);border-color:var(--danger-fill);color:#fff}
+[hidden]{display:none!important}
+.tb-t tr.focus td{background:var(--accent-soft)}
+.tb.pick{cursor:pointer}
+.tb.pick:active{transform:translateY(3px);box-shadow:0 1px 0 var(--lip)}
+.tb.armed{border-style:dashed;border-color:var(--accent-line)}
+.tb.over{border-color:var(--accent);background:var(--accent-soft);transform:scale(1.015)}
+.tb.nope{animation:lqShake .45s ease;border-color:var(--danger-fill)}
+.tb.yes{border-color:var(--success-fill);box-shadow:0 4px 0 var(--success-line)}
+.tb-t .slot{padding:5px 8px}
+.slot-in{display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:30px;padding:0 8px;border-radius:9px;border:2px dashed var(--accent-line);background:#FBFAFF;color:var(--accent-ink);font:700 13px/1 var(--mono);transition:background .15s,border-color .15s,transform .15s}
+.slot.armed .slot-in{border-color:var(--accent);background:var(--accent-soft)}
+.slot.over .slot-in{border-style:solid;border-color:var(--accent);background:var(--accent-soft);transform:scale(1.08)}
+.slot.nope .slot-in{animation:lqShake .45s ease;border-color:var(--danger-fill);background:var(--danger-soft)}
+.slot.filled .slot-in{border:1px solid var(--fk-line);background:var(--fk-soft);color:var(--fk);min-width:28px;height:22px;animation:cellHit .45s var(--pop)}
+
+/* ---------- Étiquettes à glisser ---------- */
+.tray{display:flex;flex-wrap:wrap;gap:10px;margin:2px 0 14px;min-height:46px}
+.chip{display:inline-flex;align-items:center;gap:7px;min-height:46px;padding:9px 15px;border-radius:15px;border:2px solid var(--line);background:#fff;box-shadow:0 3px 0 var(--lip);font:600 15.5px/1.2 var(--ui);color:var(--ink);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:transform .12s var(--press),box-shadow .12s var(--press),border-color .15s,background .15s,opacity .2s}
+.chip:active{transform:translateY(2px);box-shadow:0 1px 0 var(--lip)}
+.chip.sel{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 3px 0 var(--accent)}
+.chip.dragging{opacity:.28}
+.chip.used{animation:chipOut .28s ease forwards;pointer-events:none}
+@keyframes chipOut{to{opacity:0;transform:scale(.6)}}
+.chip.key{background:var(--fk-soft);border-color:var(--fk-line);color:#7A3B05;box-shadow:0 3px 0 var(--fk-lip)}
+.chip.key.sel{border-color:var(--accent);box-shadow:0 3px 0 var(--accent)}
+.chip .ki{font-size:15px}
+.chip.num{flex-direction:column;align-items:flex-start;gap:1px;min-height:52px;padding:7px 12px}
+.chip.num b{font:700 16px/1 var(--mono);color:var(--fk)}
+.chip.num small{font:500 12px/1.2 var(--ui);color:var(--ink-3)}
+.chip:disabled{cursor:default}
+.ghost{position:fixed!important;left:0;top:0;z-index:100;margin:0!important;pointer-events:none;opacity:1!important;box-shadow:0 18px 32px -12px rgba(34,28,70,.45)!important;border-color:var(--accent)!important}
+.shake{animation:lqShake .45s ease}
+.grp{margin:18px 0 6px;font:700 12.5px/1.2 var(--ui);color:var(--ink-3);letter-spacing:.01em}
+.grp+.tray{margin-bottom:4px}
+.solo{justify-content:center;margin:4px 0 18px}
+
+/* ---------- Bacs (tri des colonnes) ---------- */
+.bins{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bin{position:relative;min-height:128px;padding:11px 11px 12px;border-radius:18px;border:2px dashed #D5CCF3;background:rgba(255,255,255,.7);cursor:pointer;transition:border-color .15s,background .15s,transform .15s var(--out)}
+.bin.armed{border-color:#B9A9F5;background:#fff}
+.bin.over{border-color:var(--accent);border-style:solid;background:var(--accent-soft);transform:scale(1.02)}
+.bin.nope{animation:lqShake .45s ease;border-color:var(--danger-fill)}
+.bin.yes{border-color:var(--success-fill);border-style:solid}
+.bin-h{display:flex;align-items:center;gap:7px;font:700 15px/1.2 var(--display)}
+.bin-h code{font:700 14px/1 var(--mono);color:var(--ink)}
+.bin-s{font-size:12.5px;line-height:1.35;color:var(--ink-3);margin-top:3px}
+.bin-cols{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.col{display:inline-block;font:600 12px/1 var(--mono);padding:5px 7px;border-radius:8px;background:var(--surface-2);color:var(--ink);border:1px solid var(--line)}
+.col.old{color:var(--ink-3);background:var(--head)}
+.col.new{animation:tdIn .45s var(--pop) both;background:var(--success-soft);border-color:var(--success-line);color:#0B5A2C}
+.col.flash{animation:colFlash .7s ease}
+@keyframes colFlash{0%,100%{background:var(--head)}40%{background:var(--success-soft)}}
+.col.pk{background:var(--accent-soft);border-color:#D9CFFF;color:var(--accent-ink)}
+.col.fk{background:var(--fk-soft);border-color:var(--fk-line);color:var(--fk)}
+
+/* ---------- Questions ---------- */
+.q{margin-top:22px}
+.q-t{font:700 19px/1.3 var(--display);letter-spacing:-.01em;margin:0 0 12px;text-wrap:pretty}
+.opts{display:flex;flex-direction:column;gap:12px}
+.opt{display:flex;align-items:center;gap:12px;width:100%;min-height:58px;padding:12px 14px;border-radius:18px;border:2px solid var(--line);background:#fff;box-shadow:0 4px 0 var(--lip);font:500 16px/1.35 var(--ui);color:var(--ink);text-align:left;cursor:pointer;transition:transform .12s var(--press),box-shadow .12s var(--press),border-color .15s,background .15s,opacity .2s}
+.opt:active{transform:translateY(4px);box-shadow:0 0 0 var(--lip)}
+.opt .ql{flex:none;width:32px;height:32px;border-radius:11px;background:var(--surface-2);border:2px solid var(--line);color:var(--ink-2);font:700 14px/28px var(--display);text-align:center}
+.opt.bon{border-color:var(--success-fill);background:var(--success-soft);box-shadow:0 4px 0 var(--success-fill);animation:lqCorrect .5s var(--pop)}
+.opt.bon .ql{background:var(--success-fill);border-color:var(--success-fill);color:#fff}
+.opt.faux{border-color:var(--danger-fill);background:var(--danger-soft);box-shadow:0 4px 0 var(--danger-fill);animation:lqShake .45s ease}
+.opt.faux .ql{background:var(--danger-fill);border-color:var(--danger-fill);color:#fff}
+.opt:disabled{cursor:default}
+.opt:disabled:not(.bon):not(.faux){opacity:.5}
+.opt:disabled:active{transform:none;box-shadow:0 4px 0 var(--lip)}
+.opt.bon:disabled:active{box-shadow:0 4px 0 var(--success-fill)}
+.opt.faux:disabled:active{box-shadow:0 4px 0 var(--danger-fill)}
+
+/* ---------- Retours ---------- */
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:16px;padding:14px 15px;border-radius:20px;border:2px solid transparent;font-size:15.5px;line-height:1.55;text-wrap:pretty}
+.fb .fi{flex:none;width:30px;height:30px;border-radius:10px;display:grid;place-items:center;color:#fff;font:800 16px/1 var(--ui);box-shadow:0 3px 0 rgba(0,0,0,.14)}
+.fb .ft{display:block;font:700 16.5px/1.3 var(--display);margin-bottom:2px}
+.fb.ok{background:var(--success-soft);border-color:var(--success-line);color:#0D4A26;animation:lqCorrect .5s var(--pop)}
+.fb.ok .fi{background:var(--success-fill)}
+.fb.ok .ft{color:var(--success)}
+.fb.err{background:var(--danger-soft);border-color:var(--danger-line);color:#6E1D22;animation:lqShake .45s ease}
+.fb.err .fi{background:var(--danger-fill)}
+.fb.err .ft{color:var(--danger)}
+.fb.mini{padding:10px 13px;font-size:14.5px;align-items:center}
+.fb.mini .fi{width:24px;height:24px;border-radius:8px;font-size:13px}
+@keyframes lqCorrect{0%{transform:scale(1)}35%{transform:scale(1.04)}70%{transform:scale(.99)}100%{transform:scale(1)}}
+@keyframes lqShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+.memo{display:flex;gap:10px;align-items:flex-start;margin:0 0 16px;padding:12px 14px;border-radius:16px;background:var(--fk-soft);border:2px solid var(--fk-line);color:#5E3105;font-size:14.5px;line-height:1.5}
+.memo .me{font-size:18px;line-height:1.3}
+
+/* ---------- Liens à tracer ---------- */
+.lk{margin-top:4px}
+.lk-head{display:grid;grid-template-columns:minmax(0,1fr) clamp(44px,12vw,96px) minmax(0,1fr);align-items:center;margin:0 0 10px}
+.lk-head code{font:700 13.5px/1 var(--mono);color:var(--ink-2);background:#fff;border:2px solid var(--line);border-radius:9px;padding:5px 8px}
+.lk-hl{text-align:left}
+.lk-hr{text-align:right}
+.lk-rel{justify-self:center;padding:4px 7px;border-radius:9px;background:var(--success-fill);color:#fff;font:800 13px/1.2 var(--display);white-space:nowrap;box-shadow:0 3px 0 var(--success-lip);opacity:0;transform:scale(.5)}
+.lk-rel.on{opacity:1;transform:none;transition:opacity .2s,transform .45s var(--pop)}
+.lk-body{position:relative;display:grid;grid-template-columns:minmax(0,1fr) clamp(44px,12vw,96px) minmax(0,1fr)}
+.lk-col{position:relative;z-index:1;display:flex;flex-direction:column;justify-content:space-around;gap:12px}
+.lk-l{grid-column:1}
+.lk-r{grid-column:3}
+.lk-node{position:relative;display:flex;align-items:center;gap:8px;width:100%;min-height:58px;padding:9px 9px 9px 10px;border-radius:16px;border:2px solid var(--line);background:#fff;box-shadow:0 3px 0 var(--lip);text-align:left;font:600 14.5px/1.25 var(--ui);color:var(--ink);cursor:pointer;touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:border-color .15s,background .15s,box-shadow .15s,transform .12s var(--press)}
+.lk-node:active{transform:translateY(2px)}
+.lk-node .dot{position:absolute;top:50%;width:16px;height:16px;margin-top:-8px;border-radius:50%;background:#fff;border:3px solid var(--accent-line);transition:background .15s,border-color .15s}
+.lk-l .lk-node .dot{right:-10px}
+.lk-r .lk-node .dot{left:-10px}
+.lk-node .nt{display:flex;flex-direction:column;min-width:0}
+.lk-node .nt b{font-weight:700;-webkit-hyphens:auto;hyphens:auto}
+.lk-node small{display:block;margin-top:2px;font:500 12px/1.3 var(--ui);color:var(--ink-3)}
+.lk-node .emo{flex:none;font-size:18px;line-height:1}
+.lk-node .av{flex:none;width:30px;height:30px;border-radius:50%;background:var(--accent-soft);color:var(--accent-ink);font:700 12px/30px var(--display);text-align:center}
+.lk-node .av.b{background:#E3F1FF;color:#1D5FA8}
+.lk-node .av.c{background:#FFE9E3;color:#A8401D}
+.lk-node.sel{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 3px 0 var(--accent)}
+.lk-node.sel .dot,.lk-node.hot .dot{border-color:var(--accent);background:var(--accent)}
+.lk-node.hot{border-color:var(--accent);background:var(--accent-soft)}
+.lk-node.done{border-color:var(--success-line)}
+.lk-node.done .dot{border-color:var(--success-fill);background:var(--success-fill)}
+.lk.picking .lk-node:not(.sel){border-color:#D9D0F8}
+.lk.ro .lk-node,.lk.locked .lk-node{cursor:default}
+.lk.ro .lk-node:active,.lk.locked .lk-node:active{transform:none}
+.lk-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:2}
+.lk-svg path{fill:none;stroke-width:3.5;stroke-linecap:round}
+.lk-svg .ln{stroke:var(--success-fill)}
+.lk-svg .rb{stroke:var(--accent);stroke-dasharray:1 8;stroke-width:4}
+.lk-svg .bad{stroke:var(--danger-fill);animation:badFade .7s ease forwards}
+@keyframes badFade{0%,55%{opacity:1}100%{opacity:0}}
+
+/* ---------- Schéma final ---------- */
+.chain{margin-top:4px}
+.sc{background:#fff;border:2px solid var(--line);border-radius:18px;box-shadow:0 4px 0 var(--lip);padding:11px 12px 12px;animation:stepIn .4s var(--out) both}
+.sc-h{display:flex;align-items:center;gap:8px;font:700 15px/1.2 var(--display)}
+.sc-h code{font:700 14.5px/1 var(--mono)}
+.sc-cols{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.cn{position:relative;height:54px;animation:cnIn .4s var(--out) both}
+@keyframes cnIn{from{opacity:0;transform:scaleY(.3)}to{opacity:1;transform:none}}
+.cn::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:3px;margin-left:-1.5px;border-radius:2px;background:var(--accent-line)}
+.cn .m{position:absolute;left:calc(50% + 9px);min-width:24px;height:22px;padding:0 6px;border-radius:7px;background:#fff;border:2px solid var(--accent-line);color:var(--accent-ink);font:800 12.5px/18px var(--display);text-align:center}
+.cn .m.t{top:3px}
+.cn .m.b{bottom:3px}
+.cn .v{position:absolute;right:calc(50% + 12px);top:50%;transform:translateY(-50%);font:600 12.5px/1.2 var(--ui);color:var(--ink-3);white-space:nowrap}
+
+/* ---------- Fin de chapitre ---------- */
+.end-hero{display:flex;align-items:center;gap:14px;margin-top:10px}
+.end-m{flex:none;width:104px;height:auto;animation:mascot 1.1s var(--pop) both}
+@keyframes mascot{0%{opacity:0;transform:translateY(16px) scale(.85)}60%{opacity:1;transform:translateY(-4px) scale(1.03)}100%{transform:none}}
+.end-t{font:700 28px/1.1 var(--display);letter-spacing:-.02em;margin:10px 0 6px;text-wrap:balance}
+.end-s{margin:0;color:var(--ink-2);font-size:16px;line-height:1.45}
+.recap{margin-top:22px;padding:16px;border-radius:22px;background:#fff;border:2px solid var(--line);box-shadow:0 4px 0 var(--lip)}
+.recap-h{font:700 18px/1.2 var(--display);margin:2px 0 12px}
+.rr{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:2px solid var(--line-2)}
+.rr:first-of-type{border-top:0;padding-top:4px}
+.rr .re{flex:none;width:40px;height:40px;border-radius:13px;background:var(--surface-2);display:grid;place-items:center;font-size:20px}
+.rr p{margin:0;font-size:15.5px;line-height:1.55;color:var(--ink);text-wrap:pretty}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden}
+.confetti i{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;animation:fall 1.9s cubic-bezier(.25,.6,.5,1) forwards}
+@keyframes fall{to{transform:translate(var(--dx),110vh) rotate(var(--r));opacity:.9}}
+
+.fb-host:empty{display:none}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.bin:focus-visible,.tb:focus-visible{outline-offset:3px}
+@media (max-width:400px){
+  .tb-t th{padding:7px 6px;font-size:11.5px}
+  .tb-t td{padding:8px 6px}
+  .tb-t th:first-child,.tb-t td:first-child{padding-left:10px}
+}
+@media (min-width:720px){
+  .wrap{padding-top:16px}
+  .step-title{font-size:30px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="cta-bar" class="cta-bar" hidden><button id="cta" class="cta" type="button"></button></div>
+<div id="live" class="sr" aria-live="polite"></div>
+<noscript><p style="padding:24px">Ce cours interactif a besoin de JavaScript.</p></noscript>
+<script>
+(() => {
+'use strict';
+
+/* ================================================================
+   Outils
+   ================================================================ */
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const NS = 'http://www.w3.org/2000/svg';
+/* Typographie française : espace insécable avant « : ; ! ? » et dans les guillemets,
+   autour des flèches de relation (1 → N) et entre un jour et son mois (5 septembre),
+   pour que rien de tout cela ne se coupe en fin de ligne. */
+const fr = s => String(s)
+  .replace(/ ([:;!?»])/g, '\u00a0$1')
+  .replace(/« /g, '«\u00a0')
+  .replace(/ ([→↔]) /g, '\u00a0$1\u00a0')
+  .replace(/(\d|1er) (janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)/g, '$1\u00a0$2');
+const h = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = fr(html); return e; };
+const wait = ms => new Promise(r => setTimeout(r, RM ? Math.min(ms, 40) : ms));
+const buzz = n => { try { if (navigator.vibrate) navigator.vibrate(n); } catch (e) {} };
+const restart = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
+const say = t => { const l = document.getElementById('live'); l.textContent = ''; setTimeout(() => { l.textContent = t.replace(/<[^>]+>/g, ''); }, 30); };
+const I_BACK = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>';
+const I_CLOSE = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const I_PLAY = '<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5v9l7.5-4.5z" fill="#fff"/></svg>';
+const I_SWIPE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+
+/* ================================================================
+   Le cas : les ateliers NutriBoost
+   ================================================================ */
+const COACHS = [
+  {id: 1, prenom: 'Camille', nom: 'Roux', email: 'camille@nutriboost.fr', ini: 'CR'},
+  {id: 2, prenom: 'Thomas', nom: 'Girard', email: 'thomas@nutriboost.fr', ini: 'TG'},
+];
+/* Yoga du matin (id 4) n’existe qu’à partir de l’étape où on l’ajoute à la table ateliers. */
+const ATELIERS = [
+  {id: 1, titre: 'Récupération', jour: '12/09', date: '2026-09-12', coach: 1, emo: '🥗'},
+  {id: 2, titre: 'Cuisine saine', jour: '19/09', date: '2026-09-19', coach: 1, emo: '🍳'},
+  {id: 3, titre: 'Gainage doux', jour: '26/09', date: '2026-09-26', coach: 2, emo: '🧘'},
+  {id: 4, titre: 'Yoga du matin', jour: '03/10', date: '2026-10-03', coach: 2, emo: '🌅'},
+];
+const CLIENTS = [
+  {id: 1, prenom: 'Sophie', nom: 'Martin', ini: 'SM', av: ''},
+  {id: 4, prenom: 'Nathan', nom: 'Petit', ini: 'NP', av: 'b'},
+  {id: 7, prenom: 'Léa', nom: 'Simon', ini: 'LS', av: 'c'},
+];
+const INSCR = [
+  {client: 1, atelier: 1, jour: '01/09', date: '2026-09-01'},
+  {client: 4, atelier: 1, jour: '02/09', date: '2026-09-02'},
+  {client: 7, atelier: 2, jour: '04/09', date: '2026-09-04'},
+  {client: 1, atelier: 3, jour: '05/09', date: '2026-09-05'},
+];
+const CO = id => COACHS.find(x => x.id === id);
+const AT = id => ATELIERS.find(x => x.id === id);
+const CL = id => CLIENTS.find(x => x.id === id);
+const full = p => p.prenom + ' ' + p.nom;
+const ICON = {clients: '👥', coachs: '🧑‍🏫', ateliers: '📅', inscriptions: '📝', profils: '🪪'};
+
+/* ================================================================
+   Composants
+   ================================================================ */
+
+/* --- Le tableur des inscriptions --- */
+const SHEET_COLS = [['client', 'client'], ['atelier', 'atelier'], ['jour', 'date'], ['coach', 'coach'], ['email', 'e-mail du coach'], ['le', 'inscrit le']];
+function sheetRows() {
+  return INSCR.map(i => {
+    const a = AT(i.atelier), c = CO(a.coach), cl = CL(i.client);
+    return {client: full(cl), atelier: a.titre, jour: a.jour, coach: full(c), email: c.email, le: i.jour, cid: cl.id, aid: a.id, coachId: c.id};
+  });
+}
+function sheet(rows) {
+  const box = h('div', 'xl');
+  box.innerHTML = '<div class="xl-bar"><span class="xl-ico" aria-hidden="true">X</span><span>inscriptions-ateliers.xlsx</span></div>';
+  const sc = h('div', 'xl-sc');
+  const t = document.createElement('table'); t.className = 'xl-t';
+  t.innerHTML = '<thead><tr><th class="rn"><span class="cell">1</span></th>' +
+    SHEET_COLS.map(([, l], j) => `<th class="${j ? '' : 'c1'}" scope="col"><span class="cell">${l}</span></th>`).join('') + '</tr></thead><tbody>' +
+    rows.map((r, i) => `<tr data-r="${i}"><td class="rn"><span class="cell">${i + 2}</span></td>` +
+      SHEET_COLS.map(([k], j) => `<td class="${j ? '' : 'c1'}" data-c="${k}"><span class="cell">${r[k]}</span></td>`).join('') + '</tr>').join('') +
+    '</tbody>';
+  sc.append(t); box.append(sc, h('div', 'xl-fade'));
+  const upd = () => box.classList.toggle('at-end', sc.scrollLeft + sc.clientWidth >= sc.scrollWidth - 4);
+  sc.addEventListener('scroll', upd, {passive: true});
+  requestAnimationFrame(upd);
+  return {box, sc, t};
+}
+
+/* --- Une table de la base --- */
+const colHead = c => (/pk/.test(c.k || '') ? '<span class="ki">🔑</span>' : '') + (/fk/.test(c.k || '') ? '<span class="ki">🔗</span>' : '') + c.n + (c.u ? '<span class="uq">UNIQUE</span>' : '');
+function dbTable(name, cols, rows, o = {}) {
+  const card = h('div', 'tb');
+  card.dataset.t = name;
+  card.innerHTML = fr(`<div class="tb-h"><span class="tb-e" aria-hidden="true">${ICON[name]}</span><span class="tb-l">table</span><code>${name}</code>${o.badge ? `<span class="tb-b">${o.badge}</span>` : ''}</div>` +
+    `<div class="tb-sc"><table class="tb-t"><thead><tr>${cols.map(c => `<th class="${c.k || ''}" scope="col">${colHead(c)}</th>`).join('')}</tr></thead>` +
+    `<tbody>${rows.map(r => `<tr>${r.map((v, j) => `<td class="${cols[j].k || cols[j].num ? 'num' : ''}">${v}</td>`).join('')}</tr>`).join('')}</tbody></table></div>` +
+    (o.more ? `<div class="tb-more">${o.more}</div>` : ''));
+  return card;
+}
+const nb = v => `<b class="nb">${v}</b>`;
+/* Les tables du cas, selon l’avancée du projet. */
+const T = {
+  coachs: (o = {}) => dbTable('coachs',
+    [...(o.id ? [{n: 'id', k: 'pk'}] : []), {n: 'prenom'}, {n: 'nom'}, {n: 'email'}],
+    COACHS.map(c => [...(o.id ? [c.id] : []), c.prenom, c.nom, c.email])),
+  ateliers: (o = {}) => dbTable('ateliers',
+    [...(o.id ? [{n: 'id', k: 'pk'}] : []), {n: 'titre'}, {n: 'date_atelier'}, ...(o.fk ? [{n: 'coach_id', k: 'fk'}] : [])],
+    ATELIERS.slice(0, o.yoga ? 4 : 3).map(a => [...(o.id ? [a.id] : []), a.titre, a.date, ...(o.fk ? [nb(a.coach)] : [])])),
+  inscriptions: (o = {}) => dbTable('inscriptions',
+    [{n: 'date_inscription'}, ...(o.fk ? [{n: 'client_id', k: 'fk'}, {n: 'atelier_id', k: 'fk'}] : [])],
+    INSCR.map(i => [i.date, ...(o.fk ? (o.fk === 'full' ? [nb(i.client), nb(i.atelier)] : ['<span class="mute">?</span>', '<span class="mute">?</span>']) : [])]),
+    {badge: o.badge}),
+  clients: () => dbTable('clients', [{n: 'id', k: 'pk'}, {n: 'prenom'}, {n: 'nom'}],
+    CLIENTS.map(c => [c.id, c.prenom, c.nom]), {badge: 'déjà dans la base', more: 'et les autres clients de la boutique'}),
+};
+/* Ajoute une colonne (animée) ; `at` : position, par défaut à la fin. */
+function addCol(card, col, vals, at) {
+  const t = card.querySelector('table');
+  const put = (row, cell) => { const ref = at == null ? null : row.children[at] || null; row.insertBefore(cell, ref); };
+  const th = document.createElement('th'); th.className = 'nc ' + (col.k || ''); th.scope = 'col'; th.innerHTML = colHead(col); put(t.tHead.rows[0], th);
+  const cells = [...t.tBodies[0].rows].map((tr, i) => {
+    const td = document.createElement('td'); td.className = 'nc num'; td.innerHTML = vals[i] == null ? '' : vals[i];
+    td.style.animationDelay = (160 + i * 110) + 'ms'; put(tr, td); return td;
+  });
+  return {th, cells};
+}
+function removeCol(col) {
+  [col.th, ...col.cells].forEach(c => { c.style.animationDelay = '0ms'; c.classList.add('out'); });
+  setTimeout(() => [col.th, ...col.cells].forEach(c => c.remove()), 260);
+}
+
+/* --- Défilement automatique pendant un glisser --- */
+let asRaf = 0, asY = 0, asCb = null;
+function autoScroll(y, cb) { asY = y; asCb = cb; if (!asRaf) asRaf = requestAnimationFrame(asTick); }
+function asTick() {
+  asRaf = 0;
+  const top = 96, bot = innerHeight - 112;
+  let d = 0;
+  if (asY < top) d = -Math.min(16, (top - asY) / 4 + 2);
+  else if (asY > bot) d = Math.min(16, (asY - bot) / 4 + 2);
+  if (d) {
+    const before = scrollY; scrollBy(0, d);
+    if (scrollY !== before) { if (asCb) asCb(); asRaf = requestAnimationFrame(asTick); }
+  }
+}
+function stopAutoScroll() { cancelAnimationFrame(asRaf); asRaf = 0; asCb = null; }
+
+/* --- Glisser-déposer, ou toucher l’étiquette puis la cible --- */
+function dnd({items, targets, onDrop}) {
+  let sel = null;
+  const arm = on => targets.forEach(t => t.classList.toggle('armed', on));
+  const select = it => {
+    if (sel) { sel.classList.remove('sel'); sel.setAttribute('aria-pressed', 'false'); }
+    sel = it && it !== sel ? it : null;
+    if (sel) { sel.classList.add('sel'); sel.setAttribute('aria-pressed', 'true'); }
+    arm(!!sel);
+  };
+  items.forEach(it => {
+    it.setAttribute('aria-pressed', 'false');
+    it.addEventListener('pointerdown', e => {
+      if ((e.pointerType === 'mouse' && e.button !== 0) || it.disabled) return;
+      const sx = e.clientX, sy = e.clientY, r0 = it.getBoundingClientRect();
+      let ghost = null, over = null, lx = sx, ly = sy;
+      try { it.setPointerCapture(e.pointerId); } catch (err) {}
+      const hover = () => {
+        const el = document.elementFromPoint(lx, ly);
+        const t = el && el.closest('[data-drop]');
+        const tt = targets.includes(t) ? t : null;
+        if (tt !== over) { if (over) over.classList.remove('over'); over = tt; if (over) over.classList.add('over'); }
+      };
+      const place = () => { ghost.style.transform = `translate(${lx - r0.width / 2}px,${ly - r0.height / 2 - 10}px) rotate(-3deg) scale(1.06)`; };
+      const move = ev => {
+        lx = ev.clientX; ly = ev.clientY;
+        if (!ghost) {
+          if (Math.hypot(lx - sx, ly - sy) < 8) return;
+          select(null);
+          ghost = it.cloneNode(true); ghost.classList.add('ghost'); ghost.classList.remove('sel');
+          ghost.style.width = r0.width + 'px'; ghost.removeAttribute('id');
+          document.body.append(ghost); it.classList.add('dragging'); arm(true);
+        }
+        place(); hover(); autoScroll(ly, hover);
+      };
+      const end = cancel => {
+        it.removeEventListener('pointermove', move); it.removeEventListener('pointerup', up); it.removeEventListener('pointercancel', cc);
+        stopAutoScroll();
+        if (!ghost) return;
+        it._noClick = performance.now() + 450;
+        it.classList.remove('dragging'); arm(false);
+        if (over) over.classList.remove('over');
+        const gr = ghost.getBoundingClientRect();
+        if (over && !cancel) { ghost.remove(); onDrop(it, over, gr); }
+        else {
+          const r = it.getBoundingClientRect();
+          ghost.style.transition = 'transform .25s cubic-bezier(.2,.8,.2,1)';
+          ghost.style.transform = `translate(${r.left}px,${r.top}px)`;
+          setTimeout(() => ghost.remove(), 260);
+        }
+      };
+      const up = () => end(false), cc = () => end(true);
+      it.addEventListener('pointermove', move); it.addEventListener('pointerup', up); it.addEventListener('pointercancel', cc);
+    });
+    it.addEventListener('click', () => {
+      if (it._noClick && performance.now() < it._noClick) return;
+      if (it.disabled) return;
+      select(it);
+    });
+  });
+  targets.forEach(t => {
+    t.dataset.drop = '1';
+    if (!t.matches('button')) { t.tabIndex = 0; t.setAttribute('role', 'button'); }
+    const act = () => { if (!sel) return; const it = sel; const r = it.getBoundingClientRect(); select(null); onDrop(it, t, r); };
+    t.addEventListener('click', act);
+    t.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } });
+  });
+  return {select};
+}
+/* Une copie de l’étiquette vole jusqu’à sa cible. */
+function fly(fromRect, toEl, srcEl) {
+  if (RM || !fromRect || !toEl) return;
+  const to = toEl.getBoundingClientRect();
+  const g = srcEl.cloneNode(true); g.classList.add('ghost'); g.classList.remove('sel', 'dragging', 'used');
+  g.style.width = fromRect.width + 'px'; document.body.append(g);
+  const tx = to.left + Math.min(to.width, 120) / 2 - fromRect.width / 2, ty = to.top + Math.min(to.height, 40) / 2 - fromRect.height / 2;
+  g.animate([
+    {transform: `translate(${fromRect.left}px,${fromRect.top}px) scale(1.04)`, opacity: 1},
+    {transform: `translate(${tx}px,${ty}px) scale(.55)`, opacity: .15},
+  ], {duration: 380, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'forwards'}).finished.then(() => g.remove(), () => g.remove());
+}
+
+/* --- Question à choix --- */
+function qcm(ctx, host, spec) {
+  const box = h('div', 'q');
+  box.append(h('p', 'q-t', spec.q));
+  const list = h('div', 'opts');
+  spec.o.forEach(([txt, why, good], i) => {
+    const b = h('button', 'opt', `<span class="ql" aria-hidden="true">${'ABCD'[i]}</span><span class="ot">${txt}</span>`);
+    b.type = 'button';
+    b.addEventListener('click', () => {
+      if (b.disabled) return;
+      if (good) {
+        b.classList.add('bon');
+        list.querySelectorAll('.opt').forEach(x => { x.disabled = true; });
+        buzz(12); ctx.ok(why, spec.title);
+        if (spec.then) spec.then();
+        ctx.unlock('Continuer', 'ok');
+      } else {
+        b.classList.add('faux'); b.disabled = true; ctx.err(why);
+      }
+    });
+    list.append(b);
+  });
+  box.append(list); host.append(box);
+  ctx.lock(spec.hint || 'Réponds à la question ↑');
+  return box;
+}
+
+/* --- Liens à tracer entre deux colonnes --- */
+function linker(ctx, host, o) {
+  const box = h('div', 'lk' + (o.ro ? ' ro' : ''));
+  const head = h('div', 'lk-head', `<span class="lk-hl"><code>${o.lh}</code></span><span class="lk-rel"></span><span class="lk-hr"><code>${o.rh}</code></span>`);
+  const body = h('div', 'lk-body');
+  const L = h('div', 'lk-col lk-l'), R = h('div', 'lk-col lk-r');
+  const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('class', 'lk-svg'); svg.setAttribute('aria-hidden', 'true');
+  body.append(L, R, svg); box.append(head, body); host.append(box);
+  const node = (side, it) => {
+    const b = h('button', 'lk-node', `${it.html}<i class="dot" aria-hidden="true"></i>`);
+    b.type = 'button'; b.dataset.side = side; b.dataset.k = it.k;
+    if (o.ro) b.tabIndex = -1;
+    (side === 'l' ? L : R).append(b); return b;
+  };
+  const LN = o.left.map(it => node('l', it)), RN = o.right.map(it => node('r', it));
+  const byK = k => [...LN, ...RN].find(n => n.dataset.k === k);
+  const links = [];
+  const pt = n => { const d = n.querySelector('.dot').getBoundingClientRect(), bb = body.getBoundingClientRect(); return [d.left + d.width / 2 - bb.left, d.top + d.height / 2 - bb.top]; };
+  const curve = (p, q) => { const dx = Math.max(16, (q[0] - p[0]) * .55); return `M${p[0].toFixed(1)},${p[1].toFixed(1)} C${(p[0] + dx).toFixed(1)},${p[1].toFixed(1)} ${(q[0] - dx).toFixed(1)},${q[1].toFixed(1)} ${q[0].toFixed(1)},${q[1].toFixed(1)}`; };
+  const path = cls => { const p = document.createElementNS(NS, 'path'); p.setAttribute('class', cls); svg.append(p); return p; };
+  const redraw = () => links.forEach(l => l.p.setAttribute('d', curve(pt(l.a), pt(l.b))));
+  if (window.ResizeObserver) new ResizeObserver(redraw).observe(body);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(redraw);
+  const addLink = (a, b, anim) => {
+    const p = path('ln'); links.push({a, b, p});
+    p.setAttribute('d', curve(pt(a), pt(b)));
+    if (anim && !RM && p.getTotalLength) {
+      const len = p.getTotalLength();
+      p.style.strokeDasharray = len; p.style.strokeDashoffset = len;
+      p.getBoundingClientRect();
+      p.style.transition = 'stroke-dashoffset .38s ease-out'; p.style.strokeDashoffset = '0';
+      setTimeout(() => { p.style.strokeDasharray = ''; p.style.strokeDashoffset = ''; p.style.transition = ''; }, 420);
+    }
+    a.classList.add('done'); b.classList.add('done');
+  };
+  const api = {box, rel(txt) { const r = head.querySelector('.lk-rel'); r.textContent = fr(txt); r.classList.add('on'); }};
+  if (o.preset) requestAnimationFrame(() => o.preset.forEach(([l, r], i) => setTimeout(() => addLink(byK(l), byK(r), true), 120 + i * 160)));
+  if (o.ro) return api;
+
+  const total = o.valid.size;
+  const attempt = (x, y) => {
+    if (x.dataset.side === y.dataset.side) return;
+    const a = x.dataset.side === 'l' ? x : y, b = a === x ? y : x;
+    if (links.some(l => l.a === a && l.b === b)) return;
+    if (o.valid.has(a.dataset.k + ':' + b.dataset.k)) {
+      addLink(a, b, true); buzz(8); ctx.clear();
+      if (links.length === total) { box.classList.add('locked'); if (o.onDone) setTimeout(o.onDone, RM ? 0 : 380); }
+    } else {
+      const p = path('bad'); p.setAttribute('d', curve(pt(a), pt(b)));
+      restart(a, 'shake'); restart(b, 'shake');
+      ctx.err(o.wrong(a.dataset.k, b.dataset.k), 'Pas ce lien.');
+      setTimeout(() => p.remove(), 720);
+    }
+  };
+  let sel = null;
+  const setSel = n => { if (sel) sel.classList.remove('sel'); sel = n; if (sel) sel.classList.add('sel'); box.classList.toggle('picking', !!sel); };
+  [...LN, ...RN].forEach(n => {
+    n.addEventListener('click', () => {
+      if (box.classList.contains('locked') || (n._noClick && performance.now() < n._noClick)) return;
+      if (!sel) return setSel(n);
+      if (sel === n) return setSel(null);
+      if (sel.dataset.side === n.dataset.side) return setSel(n);
+      const a = sel; setSel(null); attempt(a, n);
+    });
+    n.addEventListener('pointerdown', e => {
+      if (box.classList.contains('locked') || (e.pointerType === 'mouse' && e.button !== 0)) return;
+      const sx = e.clientX, sy = e.clientY;
+      let rub = null, hot = null, lx = sx, ly = sy;
+      try { n.setPointerCapture(e.pointerId); } catch (err) {}
+      const hover = () => {
+        const el = document.elementFromPoint(lx, ly);
+        const t = el && el.closest('.lk-node');
+        const tt = t && t.parentNode.parentNode === body && t.dataset.side !== n.dataset.side ? t : null;
+        if (tt !== hot) { if (hot) hot.classList.remove('hot'); hot = tt; if (hot) hot.classList.add('hot'); }
+        if (rub) { const bb = body.getBoundingClientRect(), p0 = pt(n), p1 = [lx - bb.left, ly - bb.top]; rub.setAttribute('d', n.dataset.side === 'l' ? curve(p0, p1) : curve(p1, p0)); }
+      };
+      const move = ev => {
+        lx = ev.clientX; ly = ev.clientY;
+        if (!rub) { if (Math.hypot(lx - sx, ly - sy) < 8) return; setSel(null); rub = path('rb'); n.classList.add('sel'); }
+        hover(); autoScroll(ly, hover);
+      };
+      const end = cancel => {
+        n.removeEventListener('pointermove', move); n.removeEventListener('pointerup', up); n.removeEventListener('pointercancel', cc);
+        stopAutoScroll();
+        if (!rub) return;
+        n._noClick = performance.now() + 450;
+        rub.remove(); n.classList.remove('sel');
+        const t = hot; if (hot) hot.classList.remove('hot');
+        if (t && !cancel) attempt(n, t);
+      };
+      const up = () => end(false), cc = () => end(true);
+      n.addEventListener('pointermove', move); n.addEventListener('pointerup', up); n.addEventListener('pointercancel', cc);
+    });
+  });
+  return api;
+}
+const coachNode = (c, withAteliers) => ({k: 'c' + c.id, html: `<span class="av">${c.ini}</span><span class="nt"><b>${full(c)}</b>${withAteliers ? `<small>${ATELIERS.filter(a => a.coach === c.id).map(a => a.titre).join(', ')}</small>` : ''}</span>`});
+const atelierNode = a => ({k: 'a' + a.id, html: `<span class="emo" aria-hidden="true">${a.emo}</span><span class="nt"><b>${a.titre}</b></span>`});
+const clientNode = c => ({k: 'k' + c.id, html: `<span class="av ${c.av}">${c.ini}</span><span class="nt"><b>${full(c)}</b></span>`});
+
+/* --- La clé étrangère à glisser dans une table --- */
+function keyDrop(ctx, host, cards, handle) {
+  const tray = h('div', 'tray solo');
+  const chip = h('button', 'chip key', '<span class="ki" aria-hidden="true">🔗</span>clé étrangère'); chip.type = 'button';
+  tray.append(chip);
+  host.append(tray, h('p', 'how', 'Glisse-la, ou touche-la puis une table.'));
+  const list = h('div', 'tables'); cards.forEach(c => list.append(c)); host.append(list);
+  dnd({items: [chip], targets: cards, onDrop: async (it, card, from) => {
+    if (it.disabled) return;
+    it.disabled = true;
+    const ok = await handle(card, from, chip);
+    if (!ok && ctx.alive()) it.disabled = false;
+  }});
+  return chip;
+}
+/* Une case qui devrait garder deux numéros : démonstration, puis retour en arrière. */
+async function overflow(ctx, card, name, vals) {
+  card.classList.add('nope');
+  setTimeout(() => card.classList.remove('nope'), 500);
+  const col = addCol(card, {n: name, k: 'fk'}, vals.map(v => v.map(nb).join('')), 1);
+  await wait(560 + vals.length * 110); if (!ctx.alive()) return;
+  col.cells.forEach((td, i) => { if (vals[i].length > 1) { td.classList.add('over'); td.insertAdjacentHTML('beforeend', '<i class="x" aria-hidden="true">✕</i>'); } });
+  buzz(30);
+  await wait(1900); if (!ctx.alive()) return;
+  removeCol(col); await wait(280);
+}
+
+/* --- Le schéma complet --- */
+function schemaChain() {
+  const tables = [
+    {n: 'clients', cols: [['id', 'pk'], ['prenom'], ['nom'], ['…']], badge: 'déjà dans la base'},
+    {n: 'inscriptions', cols: [['client_id', 'fk'], ['atelier_id', 'fk'], ['date_inscription'], ['(client_id, atelier_id)', 'pk']], badge: 'table de jointure'},
+    {n: 'ateliers', cols: [['id', 'pk'], ['titre'], ['date_atelier'], ['coach_id', 'fk']]},
+    {n: 'coachs', cols: [['id', 'pk'], ['prenom'], ['nom'], ['email']]},
+    {n: 'profils', cols: [['id', 'pk'], ['coach_id', 'fk', 'UNIQUE'], ['specialite'], ['bio']]},
+  ];
+  const marks = [['1', 'N'], ['N', '1'], ['N', '1'], ['1', '1']];
+  const box = h('div', 'chain');
+  tables.forEach((t, i) => {
+    const c = h('div', 'sc');
+    c.style.animationDelay = (i * 140) + 'ms';
+    c.innerHTML = fr(`<div class="sc-h"><span aria-hidden="true">${ICON[t.n]}</span><code>${t.n}</code>${t.badge ? `<span class="tb-b">${t.badge}</span>` : ''}</div><div class="sc-cols">` +
+      t.cols.map(([n, k, u]) => `<span class="col ${k && k.includes('pk') ? 'pk' : k ? 'fk' : ''}">${k && k.includes('pk') ? '🔑 ' : ''}${k && k.includes('fk') ? '🔗 ' : ''}${n}${u ? ' · ' + u : ''}</span>`).join('') + '</div>');
+    box.append(c);
+    if (i < marks.length) {
+      const cn = h('div', 'cn', `<span class="m t">${marks[i][0]}</span><span class="m b">${marks[i][1]}</span>`);
+      cn.style.animationDelay = (i * 140 + 90) + 'ms';
+      cn.setAttribute('aria-label', `${t.n} ${marks[i][0]}, ${tables[i + 1].n} ${marks[i][1]}`);
+      box.append(cn);
+    }
+  });
+  return box;
+}
+
+function confetti() {
+  if (RM) return;
+  const box = h('div', 'confetti');
+  const cols = ['#6A4DF4', '#8B6CFF', '#169447', '#FFB020', '#EF4F55', '#C9BCFF'];
+  for (let i = 0; i < 34; i++) {
+    const p = document.createElement('i');
+    p.style.left = (Math.random() * 100) + '%';
+    p.style.background = cols[i % cols.length];
+    p.style.setProperty('--dx', ((Math.random() - .5) * 160) + 'px');
+    p.style.setProperty('--r', ((Math.random() - .5) * 900) + 'deg');
+    p.style.animationDelay = (Math.random() * .35) + 's';
+    p.style.animationDuration = (1.5 + Math.random() * .9) + 's';
+    box.append(p);
+  }
+  document.body.append(box);
+  setTimeout(() => box.remove(), 2800);
+}
+
+/* ================================================================
+   Chapitre 1 · Normaliser les inscriptions
+   ================================================================ */
+const C1 = [
+  {
+    title: 'Le tableur des inscriptions',
+    lead: 'NutriBoost lance des ateliers animés par des coachs. Pour l’instant, l’équipe note les inscriptions dans un tableur : une ligne par inscription.',
+    build(ctx) {
+      const s = sheet(sheetRows());
+      const hint = h('p', 'swipe', I_SWIPE + 'Fais glisser le tableau pour voir la suite.');
+      ctx.area.append(s.box, hint);
+      requestAnimationFrame(() => { hint.hidden = s.sc.scrollWidth <= s.sc.clientWidth + 2; });
+      ctx.unlock();
+    },
+  },
+  {
+    title: 'Une information recopiée',
+    lead: 'Touche chaque case où l’e-mail de Camille Roux est écrit.',
+    build(ctx) {
+      const rows = sheetRows(), s = sheet(rows);
+      const cnt = h('div', 'counter', '<b>0</b> sur 3');
+      ctx.area.append(s.box, cnt);
+      let found = 0;
+      s.t.querySelectorAll('tbody td[data-c]').forEach(td => {
+        td.classList.add('tap'); td.tabIndex = 0; td.setAttribute('role', 'button');
+        const act = () => {
+          if (td.classList.contains('hit') || found === 3) return;
+          const r = rows[+td.parentNode.dataset.r], c = td.dataset.c;
+          if (c === 'email' && r.coachId === 1) {
+            td.classList.add('hit'); found++; buzz(8);
+            cnt.innerHTML = fr(`<b>${found}</b> sur 3`); restart(cnt, 'bump');
+            if (found === 3) {
+              cnt.classList.add('full');
+              ctx.ok('Son e-mail est recopié 3 fois, et le sera encore à chaque nouvel inscrit. S’il change, il faudra corriger chaque copie.', 'Bien vu !');
+              ctx.unlock('Continuer', 'ok');
+            } else ctx.clear();
+          } else {
+            restart(td, 'miss');
+            ctx.err(c === 'email' ? 'C’est l’e-mail de Thomas Girard.' : c === 'coach' && r.coachId === 1 ? 'Ici, c’est son nom. Cherche son e-mail.' : 'Pas d’e-mail de Camille Roux dans cette case.', 'Pas ici.');
+          }
+        };
+        td.addEventListener('click', act);
+        td.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } });
+      });
+      ctx.lock('Trouve les 3 cases ↑');
+    },
+  },
+  {
+    title: 'Une désinscription',
+    lead: 'Et si Léa Simon se désinscrivait de l’atelier Cuisine saine ? Touche sa ligne pour la supprimer.',
+    build(ctx) {
+      const rows = sheetRows(), s = sheet(rows);
+      ctx.area.append(s.box);
+      let gone = false;
+      s.t.querySelectorAll('tbody tr').forEach(tr => {
+        tr.classList.add('row-tap'); tr.tabIndex = 0; tr.setAttribute('role', 'button');
+        const act = async () => {
+          if (gone) return;
+          if (rows[+tr.dataset.r].cid === 7) {
+            gone = true; ctx.clear(); buzz(15);
+            tr.classList.add('del'); await wait(480); if (!ctx.alive()) return;
+            tr.classList.add('gone'); await wait(360); if (!ctx.alive()) return;
+            tr.remove();
+            const q = qcm(ctx, ctx.area, {
+              q: 'Que reste-t-il de l’atelier Cuisine saine dans le tableur ?',
+              o: [
+                ['Son titre, sur une autre ligne', 'Aucune autre ligne ne mentionne Cuisine saine.'],
+                ['Rien : il a disparu avec la ligne', 'En supprimant une inscription, on a aussi effacé l’atelier : sa date et sa coach ne sont plus écrites nulle part.', true],
+                ['Sa date et sa coach', 'Elles ont disparu avec la ligne.'],
+              ],
+            });
+            ctx.reveal(q);
+          } else {
+            restart(tr, 'shake-row');
+            ctx.err('Ce n’est pas la ligne de Léa Simon.', 'Pas celle-ci.');
+          }
+        };
+        tr.addEventListener('click', act);
+        tr.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } });
+      });
+      ctx.lock('Supprime la ligne de Léa Simon ↑');
+    },
+  },
+  {
+    title: 'Un nouvel atelier',
+    lead: 'Un atelier Yoga du matin est prévu le 3 octobre avec Thomas Girard. Personne ne s’y est encore inscrit.',
+    build(ctx) {
+      const y = AT(4), th = CO(2);
+      const rows = [...sheetRows(), {client: '?', atelier: y.titre, jour: y.jour, coach: full(th), email: th.email, le: '?'}];
+      const s = sheet(rows);
+      ctx.area.append(s.box);
+      const last = s.t.querySelector('tbody tr:last-child');
+      last.classList.add('row-new');
+      last.querySelectorAll('td[data-c="client"],td[data-c="le"]').forEach(td => td.classList.add('ask'));
+      qcm(ctx, ctx.area, {
+        q: 'Que mettre dans la case client ?',
+        o: [
+          ['Thomas Girard', 'Il anime l’atelier : il ne s’y inscrit pas.'],
+          ['Rien : la case reste vide', 'La ligne compterait alors comme une inscription : il y en aurait une de trop.'],
+          ['Aucune valeur ne convient', 'Sans inscrit, pas de ligne : le tableur ne peut pas enregistrer cet atelier.', true],
+        ],
+      });
+    },
+  },
+  {
+    title: 'Une table par sujet',
+    lead: 'Pour régler ces trois problèmes, on écrit chaque information une seule fois, dans la table de ce qu’elle décrit. Range les colonnes du tableur dans leur table.',
+    build(ctx) {
+      const BINS = [
+        {k: 'clients', s: 'déjà dans la base', cols: ['id', 'prenom', 'nom']},
+        {k: 'ateliers', s: 'les ateliers proposés'},
+        {k: 'coachs', s: 'les coachs'},
+        {k: 'inscriptions', s: 'qui s’inscrit à quel atelier'},
+      ];
+      const CHIPS = [
+        {l: 'client', to: 'clients', cols: [], ok: 'Les clients ont déjà leur table : rien à recréer.'},
+        {l: 'atelier', to: 'ateliers', cols: ['titre'], ok: 'Le titre décrit l’atelier.'},
+        {l: 'date', to: 'ateliers', cols: ['date_atelier'], ok: 'Une date par atelier, écrite une seule fois.',
+          bad: {inscriptions: 'Tous les inscrits d’un atelier ont la même date : elle décrit l’atelier.'}},
+        {l: 'coach', to: 'coachs', cols: ['prenom', 'nom'], ok: 'Le nom est rangé en deux colonnes, prenom et nom, comme dans la table clients.',
+          bad: {ateliers: 'Camille Roux anime deux ateliers : son nom y serait recopié.', inscriptions: 'Le coach dépend de l’atelier : son nom serait recopié pour chaque inscrit.'}},
+        {l: 'e-mail du coach', to: 'coachs', cols: ['email'], ok: 'Chaque coach n’a qu’un e-mail : il ne sera plus recopié.',
+          bad: {ateliers: 'L’e-mail décrit le coach, pas l’atelier.', clients: 'C’est l’e-mail du coach, pas celui d’un client.', inscriptions: 'L’e-mail décrit le coach : il serait recopié pour chaque inscrit.'}},
+        {l: 'inscrit le', to: 'inscriptions', cols: ['date_inscription'], ok: 'Chaque inscription a sa propre date : elle décrit le lien entre un client et un atelier.',
+          bad: {clients: 'Sophie Martin s’est inscrite le 1er et le 5 septembre : cette date décrit chaque inscription, pas le client.', ateliers: 'Nathan Petit et Sophie Martin ne se sont pas inscrits à Récupération le même jour.'}},
+      ];
+      const tray = h('div', 'tray');
+      const chips = CHIPS.map(c => { const b = h('button', 'chip', c.l); b.type = 'button'; b._c = c; tray.append(b); return b; });
+      const grid = h('div', 'bins');
+      const bins = BINS.map(b => {
+        const el = h('div', 'bin', `<div class="bin-h"><span aria-hidden="true">${ICON[b.k]}</span><code>${b.k}</code></div><div class="bin-s">${b.s}</div><div class="bin-cols">${(b.cols || []).map(n => `<span class="col old">${n}</span>`).join('')}</div>`);
+        el.dataset.t = b.k; el.setAttribute('aria-label', 'table ' + b.k); grid.append(el); return el;
+      });
+      const how = h('p', 'how', 'Glisse une colonne, ou touche-la puis sa table.');
+      ctx.area.append(tray, how, grid);
+      let placed = 0;
+      dnd({items: chips, targets: bins, onDrop(chip, bin, from) {
+        const c = chip._c, k = bin.dataset.t;
+        if (c.to === k) {
+          const holder = bin.querySelector('.bin-cols');
+          fly(from, holder, chip);
+          chip.disabled = true; chip.classList.add('used');
+          setTimeout(() => chip.remove(), 280);
+          restart(bin, 'yes'); setTimeout(() => bin.classList.remove('yes'), 700);
+          if (c.cols.length) c.cols.forEach((n, i) => setTimeout(() => holder.append(h('span', 'col new', n)), 220 + i * 120));
+          else holder.querySelectorAll('.col').forEach(x => restart(x, 'flash'));
+          buzz(8); placed++;
+          if (placed === CHIPS.length) {
+            tray.hidden = true; how.hidden = true;
+            ctx.ok('Les six colonnes sont rangées, et plus rien n’est recopié.', 'Bien joué !');
+            ctx.unlock('Continuer', 'ok');
+          } else ctx.mini(c.ok);
+        } else {
+          restart(chip, 'shake'); restart(bin, 'nope'); setTimeout(() => bin.classList.remove('nope'), 500);
+          ctx.err((c.bad && c.bad[k]) || 'Cette information ne décrit pas ce sujet.', 'Pas ici.');
+        }
+      }});
+      ctx.lock('Range les 6 colonnes ↑');
+    },
+  },
+  {
+    title: 'Un atelier sans inscrit',
+    lead: 'Voici les tables remplies : l’e-mail de Camille Roux n’est plus écrit qu’une fois. Touche la table où ajouter l’atelier Yoga du matin.',
+    build(ctx) {
+      const cards = [T.coachs(), T.ateliers(), T.inscriptions()];
+      const list = h('div', 'tables'); cards.forEach(c => list.append(c)); ctx.area.append(list);
+      let ok = false;
+      cards.forEach(card => {
+        card.classList.add('pick'); card.tabIndex = 0; card.setAttribute('role', 'button');
+        const act = () => {
+          if (ok) return;
+          const k = card.dataset.t;
+          if (k === 'ateliers') {
+            ok = true; restart(card, 'yes'); buzz(12);
+            const tr = document.createElement('tr'); tr.className = 'add';
+            tr.innerHTML = `<td>${AT(4).titre}</td><td>${AT(4).date}</td>`;
+            card.querySelector('tbody').append(tr);
+            ctx.ok('Une ligne dans la table ateliers suffit : il existe désormais, sans attendre une inscription.', 'Exactement.');
+            ctx.unlock('Continuer', 'ok');
+          } else {
+            restart(card, 'nope'); setTimeout(() => card.classList.remove('nope'), 500);
+            ctx.err(k === 'coachs' ? 'Cette table range les coachs, pas les ateliers.' : 'Personne ne s’est encore inscrit à cet atelier.', 'Pas ici.');
+          }
+        };
+        card.addEventListener('click', act);
+        card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } });
+      });
+      ctx.lock('Touche une table ↑');
+    },
+  },
+  {
+    title: 'Lire la table inscriptions',
+    build(ctx) {
+      const card = T.inscriptions();
+      card.querySelectorAll('tbody tr')[2].classList.add('focus');
+      ctx.area.append(card);
+      qcm(ctx, ctx.area, {
+        q: 'D’après la table inscriptions, qui s’est inscrit le 4 septembre ?',
+        o: [
+          ['Léa Simon', 'Le tableur l’indiquait, mais pas cette table.'],
+          ['Impossible à savoir', 'La table inscriptions ne garde que des dates : rien ne la relie encore aux clients ni aux ateliers.', true],
+          ['Sophie Martin', 'Rien dans cette table ne l’indique.'],
+        ],
+      });
+    },
+  },
+  {
+    end: true,
+    title: 'Les tables sont rangées',
+    sub: 'Prochaine étape : relier les tables avec des clés.',
+    recap: [
+      ['📋', 'Un tableur qui mélange les sujets recopie les informations : une modification oubliée, une ligne supprimée ou un atelier sans inscrit posent problème.'],
+      ['🗂️', 'Normaliser, c’est écrire chaque information une seule fois, dans la table de ce qu’elle décrit.'],
+      ['📝', 'Une information qui décrit un lien, comme la date d’inscription, va dans la table de ce lien.'],
+    ],
+  },
+];
+
+/* ================================================================
+   Chapitre 2 · Clés et relations
+   ================================================================ */
+const C2 = [
+  {
+    title: 'Une clé pour chaque ligne',
+    lead: 'Pour relier les tables, il faut désigner chaque ligne sans ambiguïté : c’est le rôle de la clé primaire. La table clients a déjà la sienne : <code>id</code>.',
+    build(ctx) {
+      const co = T.coachs();
+      const list = h('div', 'tables'); list.append(co); ctx.area.append(list);
+      qcm(ctx, ctx.area, {
+        q: 'Que choisir comme clé primaire de la table coachs ?',
+        o: [
+          ['Le nom', 'Deux coachs peuvent porter le même nom.'],
+          ['Un numéro, <code>id</code>', 'Un numéro unique et fixe pour chaque coach. Les tables coachs et ateliers reçoivent chacune leur colonne <code>id</code>.', true],
+          ['L’e-mail', 'Il est unique, mais il peut changer. Une clé primaire ne change jamais.'],
+        ],
+        then() {
+          addCol(co, {n: 'id', k: 'pk'}, COACHS.map(c => c.id), 0);
+          setTimeout(() => {
+            if (!ctx.alive()) return;
+            const at = T.ateliers({yoga: true}); list.append(at);
+            addCol(at, {n: 'id', k: 'pk'}, ATELIERS.map(a => a.id), 0);
+          }, RM ? 0 : 420);
+        },
+      });
+    },
+  },
+  {
+    title: 'Qui anime quoi ?',
+    lead: 'Relie chaque coach à ses ateliers : glisse de l’un vers l’autre, ou touche les deux.',
+    build(ctx) {
+      ctx.area.append(h('div', 'memo', '<span class="me" aria-hidden="true">📅</span><span><b>Planning</b> · Camille Roux anime Récupération et Cuisine saine ; Thomas Girard, Gainage doux et Yoga du matin.</span>'));
+      const valid = new Set(ATELIERS.map(a => `c${a.coach}:a${a.id}`));
+      const lk = linker(ctx, ctx.area, {
+        lh: 'coachs', rh: 'ateliers',
+        left: COACHS.map(c => coachNode(c)), right: ATELIERS.map(atelierNode), valid,
+        wrong: (l, r) => `L’atelier ${AT(+r.slice(1)).titre} n’est pas animé par ${full(CO(+l.slice(1)))}.`,
+        onDone() {
+          if (!ctx.alive()) return;
+          const q = qcm(ctx, ctx.area, {
+            q: 'Un coach anime combien d’ateliers ? Et un atelier, combien de coachs ?',
+            o: [
+              ['1 ↔ 1 : un seul de chaque côté', 'Camille Roux anime deux ateliers.'],
+              ['1 → N : un coach, plusieurs ateliers', 'Un coach anime plusieurs ateliers, et chaque atelier n’a qu’un coach : c’est une relation 1 → N, « un à plusieurs ».', true],
+              ['N ↔ N : plusieurs de chaque côté', 'Chaque atelier n’a qu’un coach.'],
+            ],
+            then() { lk.rel('1 → N'); },
+          });
+          ctx.reveal(q);
+        },
+      });
+      ctx.lock('Relie les 4 ateliers ↑');
+    },
+  },
+  {
+    title: 'La clé étrangère',
+    lead: 'Pour garder ce lien, une table range le numéro d’une ligne de l’autre table : c’est une clé étrangère. Glisse-la dans la bonne table.',
+    build(ctx) {
+      const co = T.coachs({id: true}), at = T.ateliers({id: true, yoga: true});
+      keyDrop(ctx, ctx.area, [co, at], async (card, from, chip) => {
+        if (card === at) {
+          fly(from, card.querySelector('thead'), chip);
+          chip.classList.add('used'); restart(card, 'yes'); buzz(12);
+          addCol(at, {n: 'coach_id', k: 'fk'}, ATELIERS.map(a => nb(a.coach)));
+          ctx.ok('Chaque atelier garde le numéro de son coach. En 1 → N, la clé étrangère va du côté « plusieurs ».', 'Bien joué !');
+          ctx.unlock('Continuer', 'ok');
+          return true;
+        }
+        ctx.err('Camille Roux et Thomas Girard animent chacun deux ateliers : chaque case devrait ranger deux numéros, et une case n’en garde qu’un.', 'Pas dans cette table.');
+        await overflow(ctx, co, 'atelier_id', [[1, 2], [3, 4]]);
+        return false;
+      });
+      ctx.lock('Glisse la clé étrangère ↑');
+    },
+  },
+  {
+    title: 'Clients et ateliers',
+    lead: 'Sophie Martin s’est inscrite à deux ateliers, et l’atelier Récupération accueille deux clients.',
+    build(ctx) {
+      const lk = linker(ctx, ctx.area, {
+        ro: true, lh: 'clients', rh: 'ateliers',
+        left: CLIENTS.map(clientNode), right: ATELIERS.map(atelierNode),
+        preset: INSCR.map(i => ['k' + i.client, 'a' + i.atelier]),
+      });
+      qcm(ctx, ctx.area, {
+        q: 'Quelle forme a ce lien ?',
+        o: [
+          ['1 → N : un client, plusieurs ateliers', 'Et dans l’autre sens ? Regarde l’atelier Récupération.'],
+          ['1 ↔ 1 : un seul de chaque côté', 'Regarde Sophie Martin : deux liens partent de sa carte.'],
+          ['N ↔ N : plusieurs de chaque côté', 'Plusieurs ateliers par client, plusieurs clients par atelier : c’est une relation N ↔ N, « plusieurs à plusieurs ».', true],
+        ],
+        then() { lk.rel('N ↔ N'); },
+      });
+    },
+  },
+  {
+    title: 'Une table pour le lien',
+    lead: 'Où ranger ce lien ? Glisse la clé étrangère dans la bonne table.',
+    build(ctx) {
+      const cl = T.clients(), at = T.ateliers({id: true, fk: true, yoga: true}), ins = T.inscriptions();
+      keyDrop(ctx, ctx.area, [cl, at, ins], async (card, from, chip) => {
+        if (card === ins) {
+          fly(from, card.querySelector('thead'), chip);
+          chip.classList.add('used'); restart(card, 'yes'); buzz(12);
+          addCol(ins, {n: 'client_id', k: 'fk'}, INSCR.map(() => '<span class="mute">?</span>'));
+          setTimeout(() => { if (ctx.alive()) addCol(ins, {n: 'atelier_id', k: 'fk'}, INSCR.map(() => '<span class="mute">?</span>')); }, RM ? 0 : 320);
+          ctx.ok('La table inscriptions reçoit deux clés étrangères, <code>client_id</code> et <code>atelier_id</code> : chaque ligne relie un client à un atelier. C’est une table de jointure.', 'Bien joué !');
+          ctx.unlock('Continuer', 'ok');
+          return true;
+        }
+        if (card === cl) {
+          ctx.err('Sophie Martin suit deux ateliers : sa case ne peut pas garder les deux numéros.', 'Pas dans cette table.');
+          await overflow(ctx, cl, 'atelier_id', [[1, 3], [1], [2]]);
+        } else {
+          ctx.err('Récupération accueille deux clients : sa case devrait ranger deux numéros.', 'Pas dans cette table.');
+          await overflow(ctx, at, 'client_id', [[1, 4], [7], [1], []]);
+        }
+        return false;
+      });
+      ctx.lock('Glisse la clé étrangère ↑');
+    },
+  },
+  {
+    title: 'Remplir la table inscriptions',
+    lead: 'L’inscription du 5 septembre : Sophie Martin à l’atelier Gainage doux. Glisse les bons numéros dans sa ligne.',
+    build(ctx) {
+      const card = dbTable('inscriptions', [{n: 'date_inscription'}, {n: 'client_id', k: 'fk'}, {n: 'atelier_id', k: 'fk'}],
+        INSCR.map((i, r) => [i.date, ...(r === 3 ? ['', ''] : ['<span class="mute">?</span>', '<span class="mute">?</span>'])]));
+      const row = card.querySelectorAll('tbody tr')[3]; row.classList.add('focus');
+      const slots = [...row.children].slice(1).map((td, j) => {
+        td.className = 'slot'; td.dataset.t = j ? 'atelier_id' : 'client_id';
+        td.setAttribute('aria-label', (j ? 'atelier_id' : 'client_id') + ' de l’inscription du 5 septembre');
+        td.innerHTML = '<span class="slot-in">?</span>'; return td;
+      });
+      ctx.area.append(card);
+      const mk = (g, id, name) => { const b = h('button', 'chip num', `<b>${id}</b><small>${name}</small>`); b.type = 'button'; b._g = g; b._id = id; b._name = name; return b; };
+      const cChips = CLIENTS.map(c => mk('client_id', c.id, full(c)));
+      const aChips = ATELIERS.map(a => mk('atelier_id', a.id, a.titre));
+      const t1 = h('div', 'tray'), t2 = h('div', 'tray');
+      cChips.forEach(b => t1.append(b)); aChips.forEach(b => t2.append(b));
+      ctx.area.append(h('p', 'grp', 'Numéros des clients'), t1, h('p', 'grp', 'Numéros des ateliers'), t2,
+        h('p', 'how', 'Glisse un numéro, ou touche-le puis sa case.'));
+      const want = {client_id: 1, atelier_id: 3};
+      let filled = 0;
+      dnd({items: [...cChips, ...aChips], targets: slots, onDrop(chip, slot, from) {
+        const col = slot.dataset.t;
+        if (slot.classList.contains('filled')) return;
+        if (chip._g !== col) {
+          restart(chip, 'shake'); restart(slot, 'nope');
+          ctx.err(col === 'client_id' ? 'Cette colonne garde le numéro d’un client.' : 'Cette colonne garde le numéro d’un atelier.', 'Pas dans cette case.');
+          return;
+        }
+        if (chip._id !== want[col]) {
+          restart(chip, 'shake'); restart(slot, 'nope');
+          ctx.err(col === 'client_id' ? `C’est le numéro de ${chip._name}.` : `C’est le numéro de l’atelier ${chip._name}.`, 'Pas ce numéro.');
+          return;
+        }
+        fly(from, slot, chip);
+        slot.classList.add('filled'); slot.querySelector('.slot-in').textContent = chip._id;
+        (col === 'client_id' ? cChips : aChips).forEach(b => { b.disabled = true; b.style.opacity = b === chip ? '.35' : '.5'; });
+        buzz(10); filled++;
+        if (filled < 2) { ctx.mini(col === 'client_id' ? 'Sophie Martin est la cliente 1.' : 'Gainage doux est l’atelier 3.'); return; }
+        ctx.clear();
+        [t1, t2, ...ctx.area.querySelectorAll('.grp,.how')].forEach(e => { e.hidden = true; });
+        const trs = card.querySelectorAll('tbody tr');
+        INSCR.slice(0, 3).forEach((i, r) => setTimeout(() => {
+          if (!ctx.alive()) return;
+          const tds = trs[r].children;
+          tds[1].innerHTML = nb(i.client); tds[2].innerHTML = nb(i.atelier);
+          tds[1].className = tds[2].className = 'nc num';
+        }, (RM ? 0 : 260) + r * 160));
+        setTimeout(() => {
+          if (!ctx.alive()) return;
+          ctx.ok('Sophie Martin apparaît sur deux lignes, une par atelier. Yoga du matin n’apparaît nulle part : personne ne s’y est inscrit.', 'Bien joué !');
+          ctx.unlock('Continuer', 'ok');
+        }, RM ? 0 : 820);
+      }});
+      ctx.lock('Complète la ligne du 5 septembre ↑');
+    },
+  },
+  {
+    title: 'Une seule fois par atelier',
+    lead: 'Sophie Martin s’inscrit une seconde fois à l’atelier Récupération.',
+    build(ctx) {
+      const card = T.inscriptions({fk: 'full'});
+      const tr = document.createElement('tr'); tr.className = 'try';
+      tr.innerHTML = `<td>2026-09-09</td><td class="num">${nb(1)}</td><td class="num">${nb(1)}</td>`;
+      card.querySelector('tbody').append(tr);
+      ctx.area.append(card);
+      qcm(ctx, ctx.area, {
+        q: 'La base doit-elle accepter cette nouvelle ligne ?',
+        o: [
+          ['Non : le couple (1, 1) existe déjà', 'La clé primaire de la table inscriptions porte sur le couple <code>(client_id, atelier_id)</code> : un couple déjà présent est refusé.', true],
+          ['Oui : la date est différente', 'Sophie Martin occuperait alors deux places dans le même atelier.'],
+          ['Non : un seul atelier par client', 'Sophie Martin en suit déjà deux : c’est le même atelier qui pose problème.'],
+        ],
+        then() {
+          /* Une seule clé primaire, posée sur deux colonnes : elle s’affiche une fois, sous le nom de la table. */
+          card.querySelectorAll('thead th').forEach((th, j) => { if (j) th.classList.add('pkc'); });
+          card.querySelector('.tb-h').insertAdjacentHTML('afterend', fr('<div class="tb-key"><span aria-hidden="true">🔑</span> Clé primaire : <code>(client_id, atelier_id)</code></div>'));
+          card.querySelector('tbody tr').classList.add('focus');
+          setTimeout(() => tr.classList.add('refused'), RM ? 0 : 300);
+        },
+      });
+    },
+  },
+  {
+    title: 'Les profils des coachs',
+    lead: 'Le site présentera chaque coach sur une page : sa spécialité et une courte bio, rangées dans la table profils. Relie chaque profil à son coach.',
+    build(ctx) {
+      const P = [
+        {k: 'p1', html: '<span class="emo" aria-hidden="true">🪪</span><span class="nt"><b>Nutrition sportive</b><small>Repas de récupération, cuisine du quotidien</small></span>'},
+        {k: 'p2', html: '<span class="emo" aria-hidden="true">🪪</span><span class="nt"><b>Mobilité douce</b><small>Gainage, étirements, yoga</small></span>'},
+      ];
+      const lk = linker(ctx, ctx.area, {
+        lh: 'coachs', rh: 'profils',
+        left: COACHS.map(c => coachNode(c, true)), right: P, valid: new Set(['c1:p1', 'c2:p2']),
+        wrong: () => 'Cette spécialité ne correspond pas à ses ateliers.',
+        onDone() {
+          if (!ctx.alive()) return;
+          const q = qcm(ctx, ctx.area, {
+            q: 'Un coach a combien de pages ? Et une page présente combien de coachs ?',
+            o: [
+              ['1 ↔ 1 : une seule de chaque côté', 'Une page par coach, un coach par page : c’est une relation 1 ↔ 1. La table profils garde la clé étrangère <code>coach_id</code>, déclarée <code>UNIQUE</code> : une seconde page pour le même coach serait refusée.', true],
+              ['1 → N : un coach, plusieurs pages', 'Chaque coach n’a qu’une page.'],
+              ['N ↔ N : plusieurs de chaque côté', 'Chaque page ne présente qu’un coach.'],
+            ],
+            then() {
+              lk.rel('1 ↔ 1');
+              const pr = dbTable('profils', [{n: 'id', k: 'pk'}, {n: 'coach_id', k: 'fk', u: true}, {n: 'specialite'}],
+                [[1, nb(1), 'Nutrition sportive'], [2, nb(2), 'Mobilité douce']]);
+              pr.style.marginTop = '16px'; pr.style.animation = 'stepIn .4s var(--out) both';
+              q.after(pr);
+            },
+          });
+          ctx.reveal(q);
+        },
+      });
+      ctx.lock('Relie les 2 profils ↑');
+    },
+  },
+  {
+    end: true, schema: true,
+    title: 'Les tables sont reliées',
+    sub: 'Prochain chapitre : le même schéma, dessiné en UML.',
+    recap: [
+      ['🔑', 'La clé primaire désigne chaque ligne : un numéro unique, qui ne change jamais.'],
+      ['🔗', 'En 1 → N, la clé étrangère va du côté « plusieurs ». En 1 ↔ 1, elle est déclarée <code>UNIQUE</code>.'],
+      ['🧩', 'En N ↔ N, le lien a sa propre table : deux clés étrangères, et une clé primaire sur le couple.'],
+    ],
+  },
+];
+
+/* ================================================================
+   Le module
+   ================================================================ */
+const CHAPTERS = [
+  {n: 1, t: 'Normaliser les inscriptions', s: 'Du tableur aux tables', goal: 'Ranger les inscriptions en tables, sans rien recopier.', min: 5, steps: C1},
+  {n: 2, t: 'Clés et relations', s: 'Clé primaire, clé étrangère, 1 ↔ 1, 1 → N, N ↔ N', goal: 'Relier les tables avec des clés, selon la forme de chaque lien.', min: 6, steps: C2},
+  {n: 3, t: 'Le schéma UML', s: 'Classes, associations, multiplicités'},
+  {n: 4, t: 'Créer les tables', s: 'CREATE TABLE, ALTER TABLE, DROP TABLE'},
+  {n: 5, t: 'Écrire les données', s: 'INSERT, UPDATE, DELETE, conflits'},
+  {n: 6, t: 'Les contraintes', s: 'NOT NULL, UNIQUE, CHECK, ON DELETE'},
+  {n: 7, t: 'Les transactions', s: 'BEGIN, COMMIT, ROLLBACK, SAVEPOINT'},
+  {n: 8, t: 'Triggers et concurrence', s: 'Automatiser et isoler les écritures'},
+  {n: 9, t: 'Vues et index', s: 'CREATE VIEW, index, EXPLAIN'},
+  {n: 10, t: 'Les droits', s: 'Qui peut lire ou modifier quoi'},
+];
+
+/* Avancée : étape la plus loin atteinte et chapitres terminés (ce navigateur seulement). */
+const KEY = 'requete-projet-ateliers-v1';
+let store = {};
+try { store = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { store = {}; }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
+const prog = c => (store['c' + c.n] = store['c' + c.n] || {max: -1, done: false});
+
+const app = document.getElementById('app');
+const ctaBar = document.getElementById('cta-bar'), cta = document.getElementById('cta');
+let token = 0;
+
+function setHash(hsh) { try { history.replaceState(null, '', hsh ? '#' + hsh : location.pathname + location.search); } catch (e) {} }
+function setCta(kind, label, fn) {
+  ctaBar.hidden = false;
+  cta.className = 'cta ' + kind;
+  cta.disabled = kind === 'hint';
+  cta.innerHTML = fr(label);
+  cta.onclick = kind === 'hint' ? null : fn;
+  if (kind !== 'hint') restart(cta, 'pop');
+}
+function reveal(el) {
+  requestAnimationFrame(() => {
+    const r = el.getBoundingClientRect(), limit = innerHeight - (ctaBar.hidden ? 20 : 104);
+    if (r.bottom > limit) scrollBy({top: Math.min(r.bottom - limit, r.top - 80), behavior: RM ? 'auto' : 'smooth'});
+  });
+}
+function topBar(back, label, mid) {
+  const top = h('header', 'top');
+  const inner = h('div', 'top-in');
+  inner.append(back);
+  if (mid) inner.append(mid); else if (label) inner.append(h('div', 'top-app', label));
+  top.append(inner);
+  return top;
+}
+function backBtn(icon, aria, fn, href) {
+  const b = href ? document.createElement('a') : document.createElement('button');
+  b.className = 'ibtn'; b.innerHTML = icon; b.setAttribute('aria-label', aria);
+  if (href) b.href = href; else { b.type = 'button'; b.onclick = fn; }
+  return b;
+}
+
+/* ---------- Accueil du module ---------- */
+function renderHome() {
+  token++; setHash(''); ctaBar.hidden = true; window.scrollTo(0, 0);
+  app.innerHTML = '';
+  app.append(topBar(backBtn(I_BACK, 'Revenir à Requête', null, '../../index.html'), 'Requête'));
+  const w = h('main', 'wrap');
+  const ready = CHAPTERS.filter(c => c.steps);
+  const doneN = ready.filter(c => prog(c).done).length;
+  const next = ready.find(c => !prog(c).done);
+  w.append(h('span', 'pill', 'Module 8 · Projet'), h('h1', 'h1', 'La base des ateliers'),
+    h('p', 'sub', 'Un seul cas suivi de bout en bout : de la modélisation à la sécurité, chaque chapitre ajoute une pièce.'));
+  const hero = h('div', 'hero');
+  const hc = next || ready[ready.length - 1];
+  const p = prog(hc);
+  hero.innerHTML = fr(`<div class="hero-row"><div><span class="hero-k">${next ? `Chapitre ${hc.n} sur ${CHAPTERS.length}` : 'Chapitres 1 et 2 terminés'}</span><b class="hero-t">${next ? hc.t : 'La suite arrive bientôt'}</b><span class="hero-s">${next ? hc.s : 'Tu peux revoir chaque chapitre à tout moment.'}</span></div><img class="hero-m" src="../anim/mascotte.webp" alt=""></div>` +
+    `<div class="hero-bar" aria-hidden="true"><i style="width:${Math.round(doneN / CHAPTERS.length * 100)}%"></i></div>`);
+  const go = h('button', 'hero-go', `<span class="pl">${I_PLAY}</span>${next ? (p.max >= 0 ? 'Reprendre le chapitre' : 'Commencer le chapitre') : 'Revoir le chapitre 2'}`);
+  go.type = 'button'; go.onclick = () => renderCover(CHAPTERS.indexOf(hc));
+  hero.append(go); w.append(hero);
+  w.append(h('h2', 'sec', 'Les chapitres'));
+  const list = h('div', 'ch-list');
+  CHAPTERS.forEach((c, i) => {
+    const pr = c.steps ? prog(c) : null;
+    const state = !c.steps ? 'soon' : pr.done ? 'done' : c === next ? 'next' : '';
+    const lbl = !c.steps ? 'Bientôt' : pr.done ? 'Terminé ✓' : pr.max >= 0 ? 'Reprendre' : 'Commencer';
+    const row = h(c.steps ? 'button' : 'div', 'ch-row ' + state,
+      `<span class="ch-num">${pr && pr.done ? '✓' : c.n}</span><span class="ch-txt"><span class="ch-t">${c.t}</span><span class="ch-s">${c.s}</span></span><span class="ch-st">${lbl}</span>`);
+    if (c.steps) { row.type = 'button'; row.onclick = () => renderCover(i); row.setAttribute('aria-label', `Chapitre ${c.n} : ${c.t}. ${lbl}`); }
+    list.append(row);
+  });
+  w.append(list);
+  app.append(w);
+}
+
+/* ---------- Couverture d’un chapitre ---------- */
+function renderCover(ci) {
+  token++; const c = CHAPTERS[ci], p = prog(c);
+  setHash('c' + c.n); window.scrollTo(0, 0);
+  app.innerHTML = '';
+  app.append(topBar(backBtn(I_BACK, 'Revenir aux chapitres', renderHome), 'Chapitres'));
+  const w = h('main', 'wrap');
+  const sec = h('section', 'step');
+  sec.append(h('span', 'pill', `Chapitre ${c.n}`), h('h1', 'h1', c.t), h('p', 'sub', c.s));
+  const card = h('div', 'cover-card', `<img class="cover-m" src="../anim/mascotte.webp" alt=""><div><span class="cover-k">🎯 Objectif</span><p class="cover-goal">${c.goal}</p></div>`);
+  sec.append(card);
+  const n = c.steps.filter(s => !s.end).length;
+  sec.append(h('ul', 'cover-meta', `<li>${n} étapes interactives</li><li>Environ ${c.min} min</li><li>Au doigt ou à la souris</li>`));
+  if (p.max >= 0) {
+    const again = h('button', 'btn-3', 'Recommencer depuis le début'); again.type = 'button';
+    again.onclick = () => { p.max = -1; p.done = false; save(); renderStep(ci, 0); };
+    sec.append(again);
+  }
+  w.append(sec); app.append(w);
+  const resume = p.max >= 0 && !p.done ? Math.min(p.max, c.steps.length - 1) : 0;
+  setCta('go', p.done ? 'Revoir le chapitre' : p.max >= 0 ? 'Reprendre' : 'Commencer', () => renderStep(ci, resume));
+}
+
+/* ---------- Une étape ---------- */
+function renderStep(ci, si) {
+  const my = ++token, c = CHAPTERS[ci], S = c.steps[si], p = prog(c);
+  p.max = Math.max(p.max, si); save();
+  setHash(`c${c.n}/${si + 1}`); window.scrollTo(0, 0);
+  app.innerHTML = '';
+  const mid = h('div', 'top-mid');
+  mid.append(h('div', 'top-lbl', `Chapitre ${c.n} · ${c.t}`));
+  const bar = h('div', 'prog');
+  c.steps.forEach((_, i) => {
+    const b = document.createElement('button'); b.type = 'button';
+    b.className = (i < si || S.end ? 'done' : i === si ? 'cur' : i <= p.max ? 'ahead' : '') + (i <= p.max && i !== si ? ' reach' : '');
+    b.setAttribute('aria-label', `Étape ${i + 1} sur ${c.steps.length}` + (i === si ? ' (en cours)' : ''));
+    if (i <= p.max && i !== si) b.onclick = () => renderStep(ci, i); else b.tabIndex = -1;
+    bar.append(b);
+  });
+  mid.append(bar);
+  app.append(topBar(backBtn(I_CLOSE, 'Quitter le chapitre', renderHome), null, mid));
+  const w = h('main', 'wrap');
+  const sec = h('section', 'step');
+  w.append(sec); app.append(w);
+  if (S.end) return renderEnd(ci, S, sec);
+  sec.append(h('h2', 'step-title', S.title));
+  if (S.lead) sec.append(h('p', 'lead', S.lead));
+  const area = h('div', 'area');
+  const fbHost = h('div', 'fb-host');
+  sec.append(area, fbHost);
+  const alive = () => my === token;
+  const fb = (kind, html, title) => {
+    if (!alive()) return;
+    fbHost.innerHTML = '';
+    const box = h('div', 'fb ' + kind, `<span class="fi" aria-hidden="true">${/err/.test(kind) ? '!' : '✓'}</span><div>${title ? `<b class="ft">${title}</b>` : ''}${html}</div>`);
+    fbHost.append(box); reveal(box); say((title ? title + ' ' : '') + html);
+  };
+  const ctx = {
+    area, alive, reveal,
+    ok: (html, title) => fb('ok', html, title || 'Bonne réponse.'),
+    err: (html, title) => { fb('err', html, title || 'Pas tout à fait.'); buzz(30); },
+    mini: html => fb('ok mini', html),
+    clear: () => { if (alive()) fbHost.innerHTML = ''; },
+    lock: hint => { if (alive()) setCta('hint', hint); },
+    unlock: (label, kind) => { if (alive()) setCta(kind || 'go', label || 'Continuer', () => goNext(ci, si, sec)); },
+  };
+  S.build(ctx);
+}
+async function goNext(ci, si, sec) {
+  const my = token;
+  cta.disabled = true;
+  sec.classList.add('leave');
+  await wait(170);
+  if (my !== token) return;
+  renderStep(ci, si + 1);
+}
+
+/* ---------- Fin de chapitre ---------- */
+function renderEnd(ci, S, sec) {
+  const c = CHAPTERS[ci], p = prog(c);
+  p.done = true; save();
+  sec.append(h('div', 'end-hero', `<img class="end-m" src="../anim/mascotte.webp" alt=""><div><span class="pill ok">Chapitre ${c.n} terminé</span><h2 class="end-t">${S.title}</h2><p class="end-s">${S.sub}</p></div>`));
+  if (S.schema) sec.append(h('h3', 'sec', 'Le schéma des ateliers'), schemaChain());
+  const rc = h('div', 'recap', '<h3 class="recap-h">Les trois idées à retenir</h3>');
+  S.recap.forEach(([e, t]) => rc.append(h('div', 'rr', `<span class="re" aria-hidden="true">${e}</span><p>${t}</p>`)));
+  sec.append(rc);
+  const nextC = CHAPTERS[ci + 1];
+  if (nextC && nextC.steps) {
+    const back = h('button', 'btn-2', 'Revenir aux chapitres'); back.type = 'button'; back.onclick = renderHome;
+    sec.append(back);
+    setCta('ok', `Passer au chapitre ${nextC.n}`, () => renderCover(ci + 1));
+  } else {
+    setCta('ok', 'Revenir aux chapitres', renderHome);
+  }
+  buzz([10, 40, 10]);
+  setTimeout(confetti, RM ? 0 : 250);
+}
+
+/* ---------- Démarrage : #c2/5 ouvre directement l’étape 5 du chapitre 2 ---------- */
+function route() {
+  const m = location.hash.match(/^#c(\d+)(?:\/(\d+))?$/);
+  if (m) {
+    const ci = CHAPTERS.findIndex(c => c.n === +m[1] && c.steps);
+    if (ci >= 0) {
+      if (m[2]) return renderStep(ci, Math.max(0, Math.min(+m[2] - 1, CHAPTERS[ci].steps.length - 1)));
+      return renderCover(ci);
+    }
+  }
+  renderHome();
+}
+window.addEventListener('hashchange', route);
+route();
+})();
+</script>
+</body>
+</html>
