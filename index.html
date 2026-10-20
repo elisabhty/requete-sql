@@ -6561,9 +6561,14 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-pk-hint{margin:10px 2px 0;font:600 13px/1.35 var(--ui);color:var(--ink-3,#6A6490);text-align:center;text-wrap:balance}
 .lv-pk-hint[hidden]{display:none}
 .lv-pk.is-text .lv-pk-opt{font-family:var(--ui);font-weight:700;letter-spacing:-.01em}
+.lv-pk.is-sort .lv-pk-opts{gap:8px}
+.lv-pk.is-sort .lv-pk-opt{display:inline-flex;align-items:center;gap:6px;padding:0 13px 0 9px;background:#fff;border-color:#D4C8FB;color:var(--ink,#221C46);font-family:var(--ui);font-size:15px;font-weight:700;letter-spacing:-.01em;box-shadow:0 4px 0 #CBBEFB,0 10px 18px -12px rgba(40,20,120,.45)}
+.lv-pk-grip{width:9px;height:15px;flex:none;fill:#A496E8}
+.lv-pk-tag{flex:none;min-width:23px;height:23px;padding:0 5px;border-radius:7px;background:#F1EEFC;color:#6F66A0;font:800 12.5px/23px var(--ui);text-align:center}
+.lv-pk-fly.is-sort{gap:6px;padding:0 13px 0 9px;justify-content:flex-start;font-family:var(--ui);font-size:15px;color:var(--ink,#221C46);border-color:#B8A8FF}
 .lv-pk-opt.can-drag{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .lv-pk-opt.is-sel{background:#fff;border-color:var(--accent,#6A4DF4);box-shadow:0 4px 0 var(--accent,#6A4DF4);transform:translateY(-2px)}
-.lv-pk-opt.is-placed{display:none}
+.lv-pk-opt.is-placed,.lv-pk.is-sort .lv-pk-opt.is-placed{display:none}
 .lv-pk-opt.is-hint{animation:lvShake .42s ease}
 .lv-pk-fly.is-drag{z-index:9;box-shadow:0 16px 30px -10px rgba(40,20,120,.5)}
 .lv-pk-target{position:absolute;z-index:5;border-radius:12px;pointer-events:none;transition:box-shadow .15s,background-color .15s}
@@ -20500,7 +20505,9 @@ function lvPkShow(i,p){
     <div class="lv-pk-top"><span class="lv-pk-kick">À toi · ${i+1}/${n}</span>${total>1?`<span class="lv-pk-cnt">0 / ${total}</span>`:''}<span class="lv-pk-dots" aria-hidden="true">${lvPkDots(i,n)}</span></div>
     <p class="lv-pk-t" id="lv-pk-t">${kind==='pick'?`<span class="lv-pk-hole" aria-hidden="true">?</span>${p.prompt}`:`<span class="lv-pk-ico" aria-hidden="true">${LV_PK_ICO[kind]||LV_PK_ICO.tap}</span>${p.prompt}`}</p>
     <p class="lv-pk-why" hidden></p>
-    ${opts.length?`<div class="lv-pk-opts">${opts.map((o,k)=>`<button type="button" class="lv-pk-opt" data-k="${k}">${esc(o.label)}</button>`).join('')}</div>`:''}
+    ${opts.length?`<div class="lv-pk-opts">${opts.map((o,k)=>kind==='sort'
+      ?`<button type="button" class="lv-pk-opt" data-k="${k}"${o.tag?` aria-label="Colonne ${esc(o.tag)} : ${esc(o.label)}"`:''}>${LV_PK_GRIP}${o.tag?`<span class="lv-pk-tag">${esc(o.tag)}</span>`:''}${esc(o.label)}</button>`
+      :`<button type="button" class="lv-pk-opt" data-k="${k}">${esc(o.label)}</button>`).join('')}</div>`:''}
     ${p.hint?`<p class="lv-pk-hint">${p.hint}</p>`:''}
     <button type="button" class="lq-btn lv-pk-go" hidden>Continuer</button>
   </div>`;
@@ -20643,7 +20650,7 @@ function lvPkPlace(){
 function lvPkClose(answered){
   const P=LV&&LV.pk; if(!P)return;
   LV.pk=null;
-  clearTimeout(P.timer);
+  clearTimeout(P.timer); clearTimeout(P.demo); if(P.demoEl)P.demoEl.remove();
   LV.root.classList.remove('is-q','is-pk');
   if(P.layer)P.layer.remove();
   const IX=lvPkIX(); try{ if(IX&&IX.leave)IX.leave(P.i,!!answered); }catch(e){}
@@ -20659,6 +20666,31 @@ function lvPkClose(answered){
    done}) ; le lecteur pose les zones tactiles par-dessus l’image, tient le compte, et gère le verdict et la reprise.
    Réussi du premier coup : aucun geste refusé pendant le moment. */
 const LV_PK_ICO={tap:'👆',sort:'✋',link:'🔗'};
+/* Poignée des étiquettes à glisser (six points) : elles se soulèvent et se déplacent. */
+const LV_PK_GRIP='<svg class="lv-pk-grip" viewBox="0 0 10 16" aria-hidden="true"><circle cx="2.5" cy="3" r="1.6"/><circle cx="7.5" cy="3" r="1.6"/><circle cx="2.5" cy="8" r="1.6"/><circle cx="7.5" cy="8" r="1.6"/><circle cx="2.5" cy="13" r="1.6"/><circle cx="7.5" cy="13" r="1.6"/></svg>';
+/* Glisser : à l’ouverture, la première étiquette se soulève et une copie monte vers les tables, puis s’efface (deux fois) ;
+   le geste est montré sans désigner la bonne table. Le premier appui de l’élève arrête la démonstration. */
+function lvPkDemo(P){
+  if(prefersReduceMotion())return;
+  const stop=()=>{ P.touched=true; clearTimeout(P.demo); if(P.demoEl){ P.demoEl.remove(); P.demoEl=null; } P.box.querySelectorAll('.lv-pk-opt.is-demo').forEach(b=>b.classList.remove('is-demo','is-lift')); };
+  P.box.addEventListener('pointerdown',stop,{capture:true,once:true});
+  if(P.layer)P.layer.addEventListener('pointerdown',stop,{capture:true,once:true});
+  const run=n=>{
+    if(!LV||LV.pk!==P||P.done||P.touched)return;
+    const btn=P.box.querySelector('.lv-pk-opt:not(.is-placed)'); if(!btn||!P.spots.length)return;
+    const R=LV.root.getBoundingClientRect(), b=btn.getBoundingClientRect(), zs=P.spots.map(lvPkZone);
+    const cx=(Math.min(...zs.map(z=>z.x1))+Math.max(...zs.map(z=>z.x2)))/2, cy=(Math.min(...zs.map(z=>z.y1))+Math.max(...zs.map(z=>z.y2)))/2;
+    const x0=b.left-R.left, y0=b.top-R.top, dx=cx-(x0+b.width/2), dy=cy-(y0+b.height/2);
+    const g=document.createElement('div'); g.className='lv-pk-fly is-drag is-sort'; g.innerHTML=btn.innerHTML; g.setAttribute('aria-hidden','true');
+    Object.assign(g.style,{left:x0+'px',top:y0+'px',width:b.width+'px',height:b.height+'px'});
+    LV.root.appendChild(g); P.demoEl=g; btn.classList.add('is-demo','is-lift');
+    const anim=g.animate([{transform:'none',opacity:0},{transform:'translate(0,-8px) scale(1.06)',opacity:1,offset:.15},
+      {transform:`translate(${(dx*.82).toFixed(1)}px,${(dy*.82).toFixed(1)}px) rotate(-4deg) scale(1.06)`,opacity:1,offset:.72},
+      {transform:`translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px) rotate(-4deg) scale(.94)`,opacity:0}],{duration:1600,easing:'cubic-bezier(.45,0,.25,1)'});
+    anim.onfinish=()=>{ g.remove(); if(P.demoEl===g)P.demoEl=null; btn.classList.remove('is-demo','is-lift'); if(n>1)P.demo=setTimeout(()=>run(n-1),600); };
+  };
+  P.demo=setTimeout(()=>run(2),700);
+}
 function lvPkLayer(P){
   const IX=lvPkIX(); let spots=[];
   try{ spots=(IX&&IX.spots&&IX.spots(P.i))||[]; }catch(e){ spots=[]; }
@@ -20677,6 +20709,7 @@ function lvPkLayer(P){
   lvPkLayerPlace();
   if(P.kind==='tap')P.spots.forEach(b=>b.addEventListener('click',()=>lvPkAct(P,[b.dataset.k],b)));
   if(P.kind==='sort'){
+    lvPkDemo(P);
     const zones=()=>P.spots.filter(b=>!b.disabled).map(b=>lvPkZone(b));
     P.box.querySelectorAll('.lv-pk-opt').forEach(c=>{
       c.addEventListener('click',()=>{ if(c._noClick&&performance.now()<c._noClick)return; lvPkSel(P,P.sel===c?null:c); });
@@ -20735,7 +20768,7 @@ function lvPkDrag(P,btn,zonesFn,onDrop){
       if(!fly){
         if(Math.hypot(ev.clientX-sx,ev.clientY-sy)<8)return;
         R=LV.root.getBoundingClientRect(); b=btn.getBoundingClientRect(); zs=zonesFn()||[];
-        fly=document.createElement('div'); fly.className='lv-pk-fly is-drag'; fly.textContent=btn.textContent; fly.setAttribute('aria-hidden','true');
+        fly=document.createElement('div'); fly.className='lv-pk-fly is-drag'+(P.kind==='sort'?' is-sort':''); fly.innerHTML=btn.innerHTML; fly.setAttribute('aria-hidden','true');
         Object.assign(fly.style,{left:(b.left-R.left)+'px',top:(b.top-R.top)+'px',width:b.width+'px',height:b.height+'px'});
         LV.root.appendChild(fly); btn.classList.add('is-lift'); lvPkSel(P,null);
         if(P.layer)P.layer.classList.add('is-armed');
@@ -28493,7 +28526,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1903';
+  const SW_CACHE='requete-2026-10-12-ludique-v1904';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

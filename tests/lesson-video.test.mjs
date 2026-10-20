@@ -1131,7 +1131,7 @@ test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la 
   const core = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
   assert.ok(core.includes("picks: picks.map(p => ({t: unwarp(p.at), kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', need: p.need || 0,")
     && core.includes("const GESTURES = ['tap', 'sort', 'link'];")
-    && core.includes('options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok}))}))')
+    && core.includes("options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || ''}))}))")
     && core.includes('clashes: holdClashes(picks.map(p => p.at))') && core.includes('if (cfg.onRender) cfg.onRender(T);'), 'moteur : moments exportés, aucune animation coupée par un arrêt, rendu suivi par la page');
 });
 
@@ -1155,6 +1155,17 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
     && html.includes('animation:lvSpot 1.2s ease-in-out 2}') && html.includes('@keyframes lvSpot{') && html.includes(".lv-pk-layer.is-many .lv-pk-spot:not(:disabled):not(.is-ko){")
     && html.includes("layer.className='lv-pk-layer is-'+P.kind+(spots.length>8?' is-many':'');") && html.includes('.lv-pk-layer.is-done .lv-pk-spot{background:transparent!important;'),
     'zones à toucher visibles sur l’image, effacées une fois le moment réussi');
+  /* Glisser : chaque étiquette est une colonne du tableur (poignée, lettre, nom) ; à l’ouverture, une copie monte vers les tables. */
+  const show2 = cut('function lvPkShow(i,p){', 'function lvPkTry(k){');
+  assert.ok(show2.includes('>${LV_PK_GRIP}${o.tag?`<span class="lv-pk-tag">${esc(o.tag)}</span>`:\'\'}${esc(o.label)}</button>`')
+    && show2.includes('aria-label="Colonne ${esc(o.tag)} : ${esc(o.label)}"'), 'étiquette à glisser : poignée, lettre de la colonne, nom');
+  const demo = cut('function lvPkDemo(P){', 'function lvPkLayer(P){');
+  for (const part of ["P.box.addEventListener('pointerdown',stop,{capture:true,once:true});", "btn.classList.add('is-demo','is-lift');", 'P.demo=setTimeout(()=>run(2),700);', 'if(prefersReduceMotion())return;'])
+    assert.ok(demo.includes(part), `démonstration du geste : ${part}`);
+  assert.ok(cut('function lvPkLayer(P){', 'function lvPkLayerPlace(){').includes("if(P.kind==='sort'){\n    lvPkDemo(P);") && cut('function lvPkClose(answered){', 'function lvReplay(){').includes('clearTimeout(P.demo); if(P.demoEl)P.demoEl.remove();'),
+    'la démonstration part avec le moment et s’arrête avec lui');
+  assert.ok(html.includes("fly.className='lv-pk-fly is-drag'+(P.kind==='sort'?' is-sort':''); fly.innerHTML=btn.innerHTML;"), 'la copie qui suit le doigt garde la poignée et la lettre');
+  assert.ok(html.includes('.lv-pk-opt.is-placed,.lv-pk.is-sort .lv-pk-opt.is-placed{display:none}'), 'une étiquette posée quitte le plateau');
   assert.ok(html.includes('.lv-pk-opt.can-drag{touch-action:none;') && html.includes('.lv-pk-spot{position:absolute;') && html.includes('.lv-pk-layer{position:absolute;inset:0;z-index:5;pointer-events:none}'),
     'le doigt ne fait pas défiler la page en glissant ; seules les zones de l’image captent les appuis');
   /* Relier : la page reçoit toujours l’élément de gauche en premier, quel que soit le sens du geste. */
@@ -1186,6 +1197,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
   assert.deepEqual(D.PICKS.map(p => p.at), [...D.PICKS.map(p => p.at)].sort((x, y) => x - y), 'moments dans l’ordre');
   for (const p of D.PICKS.filter(x => x.kind === 'pick')) assert.equal(p.options.filter(o => o.ok).length, 1, `${p.prompt} : une seule bonne réponse`);
   assert.deepEqual(D.SORT.map(r => r[0]), D.COLS, 'chaque colonne du tableur est à ranger, dans l’ordre du tableur');
+  assert.equal(D.PICKS[3].options.map(o => o.tag + ' ' + o.label).join(', '), 'A client, B atelier, C date, D coach, E e-mail du coach, F inscrit le', 'chaque étiquette porte la lettre de sa colonne dans le tableur');
   assert.ok(D.SORT.every(r => D.BINS.some(x => x[0] === r[1])), 'chaque colonne a sa table parmi les quatre');
   assert.equal(D.SHEET.filter(r => r[4] === 'camille@mail.fr').length, D.PICKS[0].need, 'l’e-mail de Camille Roux, autant de fois que de cases à toucher');
   assert.equal(D.SHEET.filter(r => r[1] === 'Cuisine saine').length, 1, 'Cuisine saine : une seule ligne, effacée avec la désinscription');
