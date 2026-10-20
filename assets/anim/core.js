@@ -467,12 +467,55 @@ function layoutIssues(render, total){
     const host = el.closest('[id]');
     return {el, name: (host && host !== el ? '#' + host.id + ' ' : '') + (el.id ? '#' + el.id : '') + '.' + [...el.classList].join('.')};
   });
+  /* Débordement : un élément ou un texte qui sort du cadre qui le contient (une pastille qui dépasse de sa carte, des colonnes
+     plus larges que leur ligne). Chaque élément « dans le flux » est comparé au premier cadre visible qui l’entoure ; les repères
+     posés exprès en surplomb (position absolue : coches, crayons, anneaux) ne comptent pas. */
+  const pos = el => getComputedStyle(el).position;
+  const CHROME = '#cap, #chapter, #progress, #header, .blob, .mascot, svg';
+  /* Un cadre qui rogne son contenu (overflow hidden : volet qui défile, bande d’images) n’est pas un cadre de référence. */
+  const clips = el => getComputedStyle(el).overflowX !== 'visible' || getComputedStyle(el).overflowY !== 'visible';
+  const frameOf = el => {
+    for (let n = el; n && n !== stage; n = n.parentElement) {
+      if (n !== el && clips(n)) return null;
+      if (n !== el && isBox(n)) return n;
+      if (/^(absolute|fixed)$/.test(pos(n))) return n !== el && isBox(n) ? n : null;
+    }
+    return null;
+  };
+  const flows = [];
+  $$('*', stage).forEach(el => {
+    if (el.closest(CHROME) || el.tagName === 'BR' || el.tagName === 'IMG') return;
+    /* Élément : seulement s’il se voit (fond, bordure, ombre) ; un simple conteneur invisible est jugé par ses textes. */
+    if (!/^(absolute|fixed)$/.test(pos(el)) && isBox(el)) { const f = frameOf(el); if (f) flows.push({el, f}); }
+    [...el.childNodes].forEach(t => {
+      if (t.nodeType !== 3 || !t.textContent.trim()) return;
+      const f = isBox(el) && !clips(el) ? el : frameOf(el);
+      if (f && !(f !== el && /^(absolute|fixed)$/.test(pos(el)))) flows.push({el, f, t});
+    });
+  });
+  const label = el => { const sc = el.closest('section'); return (sc && sc.id ? sc.id + ' ' : '') + (el.id ? '#' + el.id : '') + (el.classList.length ? '.' + [...el.classList].filter(c => c !== 'abs').join('.') : el.tagName.toLowerCase()); };
+  const seen = el => el.checkVisibility ? el.checkVisibility({opacityProperty: true, visibilityProperty: true}) : shown(el) > 0.3;
+  const range = document.createRange();
   const found = new Map();
   let prev = new Set();
   const keep = (key, f) => { if (prev.has(key)) { const g = found.get(key) || f; g.gap = Math.min(g.gap, f.gap); found.set(key, g); } };
   for (let T = 0; T <= total; T += 0.2) {
     render(T);
-    const sr = stage.getBoundingClientRect(), now = new Set();
+    const sr = stage.getBoundingClientRect(), now = new Set(), k = sr.width / 1080 || 1;
+    if (Math.round(T * 10) % 10 === 0) flows.forEach(({el, f, t}) => {
+      if (!seen(el) || !seen(f)) return;
+      let r; if (t) { range.selectNodeContents(t); r = range.getBoundingClientRect(); } else r = el.getBoundingClientRect();
+      if (r.width < 1 || r.height < 1) return;
+      const b = f.getBoundingClientRect();
+      /* Un texte se juge sur sa largeur ; en hauteur, sa ligne déborde un peu de l’encre des lettres (interligne) : tolérance d’un tiers de corps. */
+      const lead = t ? parseFloat(getComputedStyle(el).fontSize) * k / 3 : 0;
+      const over = Math.max(b.left - r.left, r.right - b.right, b.top - r.top - lead, r.bottom - b.bottom - lead) / k;
+      if (over <= 3) return;
+      const key = 'débordement ' + label(f) + ' ← ' + (t ? '« ' + t.textContent.trim().slice(0, 24) + ' »' : label(el));
+      now.add(key);
+      keep(key, {kind: 'débordement', where: key.slice(12), gap: -Math.round(over), at: +T.toFixed(1)});
+    });
+    else prev.forEach(key => { if (key.startsWith('débordement ')) now.add(key); });   // vérifié une fois par seconde : le constat reste jusqu’au suivant
     hls.forEach(h => {
       if (shown(h.el) < 0.3) return;
       const cs = getComputedStyle(h.el);
