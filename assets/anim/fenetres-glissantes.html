@@ -294,10 +294,11 @@ const CAPTIONS = [
   [58.0, 63.6,   "Pour un cumul, le cadre part de la première ligne et va jusqu’à la ligne actuelle."],
   [63.7, 69.3,   "Pour la troisième commande, le cadre réunit les lignes 1 à 3 : 114,60 €."],
   [69.4, 77.5,   "À chaque ligne, le cadre s’agrandit, et le cumul augmente jusqu’à 747,50 €."],
-  [78.3, 83.9,   "Un cadre peut aussi <b>glisser</b> : avec <code>2 PRECEDING</code>, il ne remonte que de deux lignes."],
+  [78.3, 83.9,   "La moyenne porte sur la commande<br>actuelle et les deux précédentes."],
   [84.0, 89.6,   "Avec <code>AVG()</code>, on obtient<br>une <b>moyenne mobile</b> :<br>elle se déplace avec le cadre."],
   [89.7, 95.3,   "Pour la commande du 8 juillet, la moyenne des trois dernières commandes vaut 58,17 €."],
-  [95.4, 103.5,  "Au début, le cadre est plus court : une ligne, puis deux lignes."],
+  [95.4, 98.4,   "Au début, elle utilise seulement<br>les commandes disponibles :"],
+  [98.5, 103.5,  "une à la première ligne,<br>deux à la deuxième,<br>puis trois à partir de la troisième."],
   [104.3, 109.8, "Attention : ici, <code>OVER</code> trie seulement par date, sans <code>ROWS BETWEEN</code>."],
   [109.9, 115.5, "Le cadre par défaut va alors jusqu’à la dernière commande <b>du même jour</b>."],
   [115.6, 121.2, "Les deux commandes du 2 juillet affichent le même cumul : 79,70 €."],
@@ -459,7 +460,7 @@ function build(){
 
   /* ===== 4 · La moyenne mobile ===== */
   tl.to('#frm3', {opacity: 0, duration: 0.3}, 77.4);
-  // SUM devient AVG, UNBOUNDED devient 2 : le cadre glisse
+  // SUM devient AVG, UNBOUNDED devient 2 : la moyenne porte sur la commande actuelle et les deux précédentes
   swapLayer([$('#w3a')], 'a', 'b', 78.5);
   swapLayer([$('#w3b')], 'a', 'b', 78.8);
   swapLayer([$('#w3c')], 'a', 'b', 79.1);
@@ -481,13 +482,19 @@ function build(){
   show('#av4', 90.6, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
   cue(90.6, 'pop', 0.6, 2);
   hide('#av4', 95.3, {y: 0, scale: 0.8}, 0.25);
-  // Un cadre plus court pour les deux premières commandes
+  // Au début, seulement les commandes disponibles : le cadre remonte en haut du tableau
   cadre(0, 0, 95.8);
-  pulse(r3[0].querySelector('.b .vv'), 96.3, 1, 'rgba(255,214,140,.85)');
-  cue(96.3, 'tick', 0.5, 1);
-  cadre(0, 1, 97.6);
-  pulse(r3[1].querySelector('.b .vv'), 98.1, 1, 'rgba(255,214,140,.85)');
-  cue(98.1, 'tick', 0.5, 2);
+  // une à la première ligne…
+  pulse(r3[0].querySelector('.b .vv'), 98.8, 1, 'rgba(255,214,140,.85)');
+  cue(98.8, 'tick', 0.5, 1);
+  // … deux à la deuxième…
+  cadre(0, 1, 99.9);
+  pulse(r3[1].querySelector('.b .vv'), 100.4, 1, 'rgba(255,214,140,.85)');
+  cue(100.4, 'tick', 0.5, 2);
+  // … puis trois à partir de la troisième
+  cadre(0, 2, 101.3);
+  pulse(r3[2].querySelector('.b .vv'), 101.8, 1, 'rgba(255,214,140,.85)');
+  cue(101.8, 'tick', 0.5, 3);
   hide(['#m3', '#tb3'], 103.5, {y: -40});
   sceneOff('#s3', 104.0);
 
