@@ -1150,6 +1150,11 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
   for (const part of ['if(r.done){ lvPkWin(P,why,r.at||(el&&el._s)||null); return; }', 'P.miss++;', "kick.textContent='✕ Essaie encore';",
     'const first=P.miss===0', 'lvPkSet(LV.id,P.i,first);', "wEl.innerHTML=lvNw(why); wEl.className='lv-pk-why ko';", "if(P.layer)P.layer.classList.add('is-done');"])
     assert.ok(acted.includes(part), `verdict des gestes : ${part}`);
+  /* Toucher, relier : les zones se voient sur l’image (contour qui s’allume deux fois, puis discret) ; plus léger sur un tableau entier. */
+  assert.ok(html.includes('.lv-pk-layer.is-tap .lv-pk-spot:not(:disabled):not(.is-ko),.lv-pk-layer.is-link .lv-pk-spot:not(:disabled):not(.is-ko):not(.is-sel){')
+    && html.includes('animation:lvSpot 1.2s ease-in-out 2}') && html.includes('@keyframes lvSpot{') && html.includes(".lv-pk-layer.is-many .lv-pk-spot:not(:disabled):not(.is-ko){")
+    && html.includes("layer.className='lv-pk-layer is-'+P.kind+(spots.length>8?' is-many':'');") && html.includes('.lv-pk-layer.is-done .lv-pk-spot{background:transparent!important;'),
+    'zones à toucher visibles sur l’image, effacées une fois le moment réussi');
   assert.ok(html.includes('.lv-pk-opt.can-drag{touch-action:none;') && html.includes('.lv-pk-spot{position:absolute;') && html.includes('.lv-pk-layer{position:absolute;inset:0;z-index:5;pointer-events:none}'),
     'le doigt ne fait pas défiler la page en glissant ; seules les zones de l’image captent les appuis');
   /* Relier : la page reçoit toujours l’élément de gauche en premier, quel que soit le sens du geste. */
@@ -1177,6 +1182,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
   vm.runInContext(page.slice(a, b) + ';this.D = {COACHS, ATELIERS, YOGA, CLIENTS, INSCR, COLS, SORT, BINS, PICKS, SHEET};', ctx);
   const D = JSON.parse(JSON.stringify(ctx.D));
   assert.deepEqual(D.PICKS.map(p => p.kind), ['tap', 'tap', 'pick', 'sort', 'tap', 'pick'], 'toucher, choisir, glisser');
+  assert.ok(D.PICKS.filter(p => p.kind === 'tap').every(p => /^Touche /.test(p.prompt)), 'chaque moment à toucher dit qu’il faut toucher l’image');
   assert.deepEqual(D.PICKS.map(p => p.at), [...D.PICKS.map(p => p.at)].sort((x, y) => x - y), 'moments dans l’ordre');
   for (const p of D.PICKS.filter(x => x.kind === 'pick')) assert.equal(p.options.filter(o => o.ok).length, 1, `${p.prompt} : une seule bonne réponse`);
   assert.deepEqual(D.SORT.map(r => r[0]), D.COLS, 'chaque colonne du tableur est à ranger, dans l’ordre du tableur');
