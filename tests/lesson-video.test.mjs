@@ -837,8 +837,8 @@ const COURSES = [
       '<span class="b"><span class="glow" id="p4"><span class="kw">2 PRECEDING</span></span></span>', '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> date_commande</span>',
       '✕ Les deux commandes du 2 juillet ont le même cumul', '<div class="lim" id="lim6"><span>Palier&nbsp;: 700&nbsp;€</span></div>',
       '✓ Palier franchi le 1er&nbsp;août']},
-  {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '2 min 40', notesAt: 159.3,
-    notes: /notes:\{t:153\.6,y:1194,card:\[64,292,1016,899\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '2 min 44', notesAt: 159.3,
+    notes: /notes:\{t:157\.6,y:1194,card:\[64,292,1016,899\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Le tableur des ateliers mélange tout&nbsp;:<br>à toi de le ranger en tables.',
     chapters: ['Le tableur', 'Les copies', 'Supprimer, ajouter', 'Une table par sujet', 'Les tables remplies', 'À retenir'],
     traps: ["const INSCR = [[1, 1, '01/09', '2026-09-01'], [4, 1, '02/09', '2026-09-02'], [7, 2, '04/09', '2026-09-04'], [1, 3, '05/09', '2026-09-05']];",
@@ -1166,6 +1166,16 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
     'la démonstration part avec le moment et s’arrête avec lui');
   assert.ok(html.includes("fly.className='lv-pk-fly is-drag'+(P.kind==='sort'?' is-sort':''); fly.innerHTML=btn.innerHTML;"), 'la copie qui suit le doigt garde la poignée et la lettre');
   assert.ok(html.includes('.lv-pk-opt.is-placed,.lv-pk.is-sort .lv-pk-opt.is-placed{display:none}'), 'une étiquette posée quitte le plateau');
+  /* Micro-interactions : onde au toucher, rebond du compteur, de la pastille et du badge, « Continuer » qui invite, dépôt qui file dans sa table. */
+  assert.ok(cut('function lvPkLayer(P){', 'function lvPkLayerPlace(){').includes("if(b&&!b.disabled&&!P.done&&!P.busy)lvPkRipple(e.clientX,e.clientY);"), 'onde au toucher des zones');
+  assert.ok(html.includes('lvPkBump(cnt,1.2);') && html.includes("if(dot){ dot.className=first?'ok':'try'; lvPkBump(dot,1.8); }") && html.includes("go.hidden=false; go.classList.add('is-ready');")
+    && html.includes('.lv-pk-go.is-ready::after{') && html.includes('@keyframes lvRipple{'), 'rebonds, onde, bouton qui invite');
+  assert.ok(html.includes('/* Lâchée sur une place : la copie y file et s’y fond. */') && html.includes('if(navigator.vibrate)navigator.vibrate(4);'), 'dépôt animé, vibration à l’entrée d’une table');
+  /* Indice après deux erreurs : la page le donne (IX.hint), il prend la place de la ligne d’aide ; les zones à regarder ressortent. */
+  const hintFn = cut('function lvPkHint(P){', '/* Poignée des étiquettes à glisser');
+  for (const part of ['h=IX&&IX.hint?IX.hint(P.i):null;', "el.className='lv-pk-tip';", "const gh=P.box.querySelector('.lv-pk-hint'); if(gh)gh.hidden=true;", "b.classList.add('is-tip');"])
+    assert.ok(hintFn.includes(part), `indice : ${part}`);
+  assert.ok(html.includes('if(P.miss===2)lvPkHint(P);') && html.includes('if(P.tries===2)lvPkHint(P);') && html.includes('.lv-pk-layer .lv-pk-spot.is-tip:not(:disabled):not(.is-ko){'), 'indice au deuxième essai manqué, zones en jaune');
   assert.ok(html.includes('.lv-pk-opt.can-drag{touch-action:none;') && html.includes('.lv-pk-spot{position:absolute;') && html.includes('.lv-pk-layer{position:absolute;inset:0;z-index:5;pointer-events:none}'),
     'le doigt ne fait pas défiler la page en glissant ; seules les zones de l’image captent les appuis');
   /* Relier : la page reçoit toujours l’élément de gauche en premier, quel que soit le sens du geste. */
@@ -1185,7 +1195,7 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
 
 test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six moments sur l’image, clients de la base', async () => {
   const l56 = cut('guide({ id:56, titre:"Normaliser les inscriptions"', 'guide({ id:72,');
-  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'2 min 40',moments:6,") && !l56.includes('seuil:'), 'leçon seule, 6 moments, validée à la fin de la vidéo');
+  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'2 min 44',moments:6,") && !l56.includes('seuil:'), 'leçon seule, 6 moments, validée à la fin de la vidéo');
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/projet-normaliser.html'), 'utf8');
   const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
   assert.ok(a > 0 && b > a, 'données de la page localisées');
@@ -1194,6 +1204,16 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
   const D = JSON.parse(JSON.stringify(ctx.D));
   assert.deepEqual(D.PICKS.map(p => p.kind), ['tap', 'tap', 'pick', 'sort', 'tap', 'pick'], 'toucher, choisir, glisser');
   assert.ok(D.PICKS.filter(p => p.kind === 'tap').every(p => /^Touche /.test(p.prompt)), 'chaque moment à toucher dit qu’il faut toucher l’image');
+  /* Le récit : trois demandes (Camille Roux, Léa Simon, Thomas Girard) font découvrir les trois anomalies, chacune tamponnée, puis réunies. */
+  const caps = page.slice(page.indexOf('const CAPTIONS = ['), page.indexOf('const QUESTIONS = []'));
+  for (const who of ['<b>Camille Roux</b> : « ', '<b>Léa Simon</b> : « ', '<b>Thomas Girard</b> : « ']) assert.ok(caps.includes(who), `message : ${who}`);
+  for (const part of ["['an1', 'Anomalie de mise à jour'], ['an2', 'Anomalie de suppression'], ['an3', 'Anomalie d’insertion']", "['Mise à jour', 'Suppression', 'Insertion']",
+    "pingIn('#pcm', 33.6, 0.7);", "pingIn('#pla', 52.1, 0.6);", "stampIn('#an1', 49.4, -5);", "stampIn('#an2', 65.5, -5);", '<i class="you">Toi</i>', "pop('#rcm', 122.5, 0.4);"])
+    assert.ok(page.includes(part), `récit : ${part}`);
+  assert.ok(page.includes('spots, act, pick, hint,') && page.includes("if (i === 0) return {text: 'L’e-mail du coach est dans la colonne E.'"), 'un indice par moment à toucher ou à glisser');
+  const coreJs = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8'), coreCss = fs.readFileSync(path.join(ROOT, 'assets/anim/core.css'), 'utf8');
+  assert.ok(coreJs.includes('function pingIn(sel, t, write = 0.7){') && coreJs.includes('function stampIn(sel, t, rot = 7){') && coreCss.includes('.ping .pdots i{') && coreCss.includes('.stamp.warn{'),
+    'moteur : message d’un personnage et tampon d’alerte, pour tous les chapitres');
   assert.deepEqual(D.PICKS.map(p => p.at), [...D.PICKS.map(p => p.at)].sort((x, y) => x - y), 'moments dans l’ordre');
   for (const p of D.PICKS.filter(x => x.kind === 'pick')) assert.equal(p.options.filter(o => o.ok).length, 1, `${p.prompt} : une seule bonne réponse`);
   assert.deepEqual(D.SORT.map(r => r[0]), D.COLS, 'chaque colonne du tableur est à ranger, dans l’ordre du tableur');

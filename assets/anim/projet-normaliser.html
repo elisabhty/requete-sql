@@ -112,6 +112,29 @@
 .subj{height:64px;padding:0 22px;border-radius:999px;display:flex;align-items:center;gap:10px;background:var(--cs);color:var(--ci);box-shadow:inset 0 0 0 3px var(--c);font-size:28px;font-weight:800;white-space:nowrap}
 .subj .emo{font-size:30px}
 
+/* Toi : celui qui tient le tableur (comme un éditeur en ligne montre qui est là) */
+.you{position:relative;flex:none;width:50px;height:50px;margin-left:4px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--display);font-size:18px;font-weight:800;font-style:normal;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px #fff}
+.you::after{content:"";position:absolute;right:-3px;bottom:-3px;width:15px;height:15px;border-radius:50%;background:#22C55E;box-shadow:0 0 0 3px #fff}
+/* Messages des personnages, sous le tableur ; tampons des anomalies, sous la carte de chaque cas */
+.ping{left:64px}
+.anst{right:auto;font-size:34px;padding:12px 26px}
+/* Les trois anomalies réunies */
+.anoms{left:64px;width:952px;display:flex;justify-content:center;gap:16px}
+.anom{height:64px;padding:0 22px 0 16px;border-radius:999px;display:flex;align-items:center;gap:10px;background:#FFF4F4;color:var(--danger);box-shadow:inset 0 0 0 3px #F6C9CD;font-size:28px;font-weight:800;white-space:nowrap}
+.anom .emo{font-size:30px}
+/* Réaction de Camille Roux, dans sa ligne de la table coachs */
+.gr>span.react{position:absolute;right:18px;top:8px;z-index:2;height:52px;padding:0 16px 0 6px;border-radius:26px;background:#fff;box-shadow:inset 0 0 0 3px var(--line),0 5px 0 var(--lip);display:flex;align-items:center;gap:8px;font-size:30px;opacity:0;visibility:hidden}
+.gr>span.react .av{width:40px;height:40px;font-size:16px}
+/* Gestes de l’élève, montrés tout de suite sur l’image */
+@keyframes popIn{0%{transform:scale(.5)}70%{transform:scale(1.07)}100%{transform:none}}
+.ring.pvs,.col.nw.pvs,.ck.pvs,.miss.pvs{animation:popIn .4s cubic-bezier(.2,.9,.3,1.3)}
+.delb.pvs::after{transform-origin:0 50%;animation:strike .4s cubic-bezier(.4,0,.2,1)}
+@keyframes strike{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.r.yg.pvs{animation:rowIn .45s cubic-bezier(.2,.9,.3,1.1)}
+@keyframes rowIn{from{transform:translateX(-40px)}to{transform:none}}
+.anst.pvs{animation:stampDrop .36s cubic-bezier(.6,0,.9,.6)}
+@keyframes stampDrop{from{transform:scale(1.9) rotate(24deg)}to{transform:rotate(-5deg)}}
+
 /* ---------- 4 · Les quatre tables où ranger les colonnes ---------- */
 .bin{width:456px;height:340px;padding:24px 26px;border-radius:40px;border:4px dashed var(--c);background:rgba(255,255,255,.75)}
 .bin.old{border-style:solid;background:#fff;box-shadow:0 9px 0 var(--lip)}
@@ -182,7 +205,7 @@
   <section class="scene" id="sx">
     <div class="abs card pg" id="pg"><div class="pgh"><span class="emo">🗓️</span>Les ateliers de la rentrée</div></div>
     <div class="abs card xl" id="xl">
-      <div class="xlt"><span class="emo">📊</span><span class="xfn">inscriptions-ateliers.xlsx</span><span class="xn"><span id="xn1">4 inscriptions</span><span class="bad hid" id="xn2">5 inscriptions&nbsp;?</span></span></div>
+      <div class="xlt"><span class="emo">📊</span><span class="xfn">inscriptions-ateliers.xlsx</span><i class="you">Toi</i><span class="xn"><span id="xn1">4 inscriptions</span><span class="bad hid" id="xn2">5 inscriptions&nbsp;?</span></span></div>
       <div class="xg" id="xg"></div>
     </div>
   </section>
@@ -242,14 +265,15 @@ const CAPTIONS = [
   [11.6, 16.9,   "Chaque atelier est animé par un <b>coach</b>, et les clients peuvent s’y inscrire."],
   [17.0, 23.0,   "Pour l’instant, les inscriptions sont notées dans un <b>tableur</b> : une ligne par inscription."],
   [23.1, 29.3,   "Chaque ligne indique le client, l’atelier et sa date, le coach et son e-mail, puis la date d’inscription."],
-  [29.8, 35.0,   "Camille Roux anime deux ateliers : Récupération et Cuisine saine."],
-  [35.1, 40.2,   "À toi !"],
+  [29.8, 34.2,   "Camille Roux anime deux ateliers : Récupération et Cuisine saine."],
+  [34.3, 35.3,   "<b>Camille Roux</b> : « Mon e-mail change,<br>il faudra le corriger dans le tableur. »"],
+  [35.4, 40.2,   "À toi !"],
   [40.3, 46.3,   "Son e-mail est recopié sur trois lignes,<br>et le sera encore à chaque inscription."],
-  [46.4, 51.7,   "S’il change, il faudra corriger<br>chaque copie, sans en oublier aucune."],
-  [52.3, 57.4,   "Et si Léa Simon se désinscrivait de l’atelier Cuisine saine ?"],
+  [46.4, 51.7,   "Il faudra corriger chaque copie :<br>une oubliée, et le tableur se contredit."],
+  [52.3, 57.4,   "<b>Léa Simon</b> : « Tu peux me désinscrire<br>de Cuisine saine ? Je ne viendrai pas. »"],
   [57.5, 61.8,   "À toi !"],
   [61.9, 68.6,   "Cette ligne est la seule où figure Cuisine saine : l’atelier, sa date et sa coach disparaîtraient avec elle."],
-  [68.7, 74.6,   "Autre cas : un atelier Yoga du matin est prévu le 3 octobre avec Thomas Girard."],
+  [68.7, 74.6,   "<b>Thomas Girard</b> : « J’ouvre un nouvel<br>atelier, tu peux l’ajouter au tableur ? »"],
   [74.7, 80.5,   "À toi !"],
   [80.6, 86.9,   "Recopier, perdre, ne pas pouvoir ajouter : tout vient des sujets mélangés sur chaque ligne."],
   [87.8, 94.3,   "Pour <b>normaliser</b>, chaque information<br>est écrite une seule fois, dans la table<br>de ce qu’elle décrit."],
@@ -336,6 +360,12 @@ function dom(){
     `<span class="lchip">${av(co(1))}animé par Camille Roux<i class="x">✕</i></span></div></div>`;
   u += `<div class="abs card nc" id="nc"><span class="emo">${YOGA[5]}</span><b>${YOGA[1]}</b><span class="pgd">${YOGA[2]}</span>` +
     `<span class="ncc">${av(co(2))}Thomas Girard</span><span class="nc0">0 inscrit</span></div>`;
+  // Les messages de Camille Roux et de Léa Simon (l’avatar écrit, puis le message est reçu : son texte est dans la légende)
+  const ping = (id, k, ini) => `<div class="abs ping" id="${id}"><i class="pav ${k}">${ini}</i><span class="pbub"><span class="pdots"><i></i><i></i><i></i></span><span class="pmsg">💬</span></span></div>`;
+  u += ping('pcm', 'k-co', 'CR') + ping('pla', 'k-cl', 'LS');
+  // Les trois anomalies : un tampon sous la carte de chaque cas, puis les trois réunies
+  u += [['an1', 'Anomalie de mise à jour'], ['an2', 'Anomalie de suppression'], ['an3', 'Anomalie d’insertion']].map(([id, l]) => `<div class="abs stamp warn anst" id="${id}">${l}</div>`).join('');
+  u += `<div class="abs anoms" id="anoms">${['Mise à jour', 'Suppression', 'Insertion'].map((l, q) => `<span class="anom" id="am${q + 1}"><span class="emo">⚠️</span>${l}</span>`).join('')}</div>`;
   u += `<div class="abs leg" id="leg">${SUBJ.map(([k, e, l], q) => `<span class="subj ${k}" id="sj${q}"><span class="emo">${e}</span>${l}</span>`).join('')}</div>`;
   // Les quatre tables où ranger les colonnes, chacune de la couleur de son sujet
   BINS.forEach(([n, e, k, old], q) => {
@@ -354,6 +384,8 @@ function dom(){
   t += '<div class="abs mq" id="mq"><span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span></div>';
   t += '<div class="abs keyc hid" id="keyc"><span><span class="emo">🔑</span>Chapitre 2 · Clés et relations</span></div>';
   $('#s5').innerHTML = t;
+  // Camille Roux réagit : son e-mail n’est plus écrit qu’une fois
+  $('#tbc .r').insertAdjacentHTML('beforeend', `<span class="react" id="rcm">${av(co(1))}<span class="emo">👍</span></span>`);
   // Yoga du matin : sa ligne dans la table ateliers (montrée quand l’élève l’y ajoute)
   $('#tba').insertAdjacentHTML('beforeend', `<div class="gr r yg" id="ryg"><i class="hl"></i><span>${YOGA[1]}</span><span>${YOGA[3]}</span></div>`);
 }
@@ -372,8 +404,13 @@ function layout(){
   });
   // Sous le tableur (sans la ligne de Yoga du matin, sauf pour la carte du nouvel atelier, qui arrive avec elle)
   const below = 236 + $('#xl').offsetHeight + 44;
-  ['#cp', '#lc', '#leg'].forEach(s => { $(s).style.top = below + 'px'; });
+  ['#cp', '#lc', '#pcm', '#pla', '#anoms'].forEach(s => { $(s).style.top = below + 'px'; });
+  $('#leg').style.top = (below + 96) + 'px';
   $('#nc').style.top = (below + 84) + 'px';
+  // Chaque tampon, centré sous la carte de son cas
+  [['#an1', '#cp', 0], ['#an2', '#lc', 0], ['#an3', '#nc', 84]].forEach(([s, c, dy]) => {
+    const el = $(s); el.style.left = Math.round((1080 - el.offsetWidth) / 2) + 'px'; el.style.top = (below + dy + $(c).offsetHeight + 46) + 'px';
+  });
   // Les quatre tables : sous l’en-tête du tableur replié (titre, lettres, en-têtes)
   const top = 236 + 70 + 38 + 56 + 10 + 48;
   $$('.bin').forEach((b, q) => { b.style.left = (64 + (q % 2) * 496) + 'px'; b.style.top = (top + Math.floor(q / 2) * 380) + 'px'; });
@@ -405,7 +442,8 @@ function build(){
   gsap.set('#xdy', {height: 0});
   gsap.set('#ryg', {height: 0});
   layout();
-  gsap.set(['#s5', '.bin', '#xl', '#cp', '#lc', '#nc', '.subj', '.tile', '.lchip'], {autoAlpha: 0});
+  gsap.set(['#s5', '.bin', '#xl', '#cp', '#lc', '#nc', '.subj', '.tile', '.lchip', '#pcm', '#pla', '.anom', '#an3'], {autoAlpha: 0});
+  gsap.set('#an3', {rotation: -5});
 
   /* ===== 1 · Le tableur ===== */
   sceneOn('#sx', 5.0);
@@ -434,10 +472,13 @@ function build(){
   /* ===== 2 · Les copies ===== */
   cellsPulse(CAMILLE.map(r => [r, 3]), 30.4);
   cellsPulse([[0, 1], [2, 1]], 32.6);
+  // Camille Roux écrit : son e-mail va changer
+  pingIn('#pcm', 33.6, 0.7);
   // À toi : les cases de son e-mail (la réponse, juste après l’arrêt)
   const a0 = +(PICKS[0].at + 0.02).toFixed(2);
   tl.set(CAMILLE.map(r => '#rg' + r), {autoAlpha: 1}, a0);
   // recopié sur trois lignes, et encore à chaque inscription
+  hide('#pcm', 40.2, {y: 0}, 0.25);
   show('#cp', 40.5, {y: 50}, 0.55);
   cue(40.5, 'whoosh', 0.6);
   [0, 1, 2].forEach(k => { show('#tl' + k, 41.1 + k * 0.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)'); cue(41.1 + k * 0.3, 'pop', 0.7, k); });
@@ -445,9 +486,13 @@ function build(){
   cue(43.8, 'pop', 0.6, 4);
   // chaque copie à corriger
   [0, 1, 2, 3].forEach(k => pop('#tp' + k, 47.0 + k * 0.3, 0.3));
-  hide(['#cp'].concat(CAMILLE.map(r => '#rg' + r)), 51.4, {y: 0}, 0.3);
+  // une copie oubliée, et le tableur se contredit : anomalie de mise à jour
+  stampIn('#an1', 49.4, -5);
+  hide(['#cp', '#an1'].concat(CAMILLE.map(r => '#rg' + r)), 51.4, {y: 0}, 0.3);
 
   /* ===== 3 · Supprimer, ajouter ===== */
+  // Léa Simon écrit : elle se désinscrit
+  pingIn('#pla', 52.1, 0.6);
   cellsPulse([[LEA, 0]], 52.8);
   cellsPulse([[LEA, 1]], 55.0);
   // À toi : la ligne à supprimer (réponse : la ligne de Léa Simon, barrée)
@@ -455,6 +500,7 @@ function build(){
   tl.set('#delb', {autoAlpha: 1}, a1);
   // la seule ligne où figure Cuisine saine : l’atelier, sa date et sa coach partiraient avec elle
   tl.to('#delb', {autoAlpha: 0.35, duration: 0.3}, 62.4);
+  hide('#pla', 61.95, {y: 0}, 0.25);
   show('#lc', 62.4, {y: 50}, 0.55);
   cue(62.4, 'whoosh', 0.6);
   [1, 2, 3].forEach((j, k) => {
@@ -463,7 +509,9 @@ function build(){
     show($$('#lc .lchip')[k], t, {y: 20}, 0.4, 'back.out(1.8)');
     pop($$('#lc .x')[k], t + 0.3, 0.3);
   });
-  hide(['#lc', '#ls1', '#ls2', '#ls3', '#delb'], 67.8, {y: 0}, 0.3);
+  // l’atelier disparaît avec la ligne : anomalie de suppression
+  stampIn('#an2', 65.5, -5);
+  hide(['#lc', '#an2', '#ls1', '#ls2', '#ls3', '#delb'], 67.8, {y: 0}, 0.3);
   // Yoga du matin, sans inscrit : sa fiche, puis sa ligne dans le tableur
   show('#nc', 69.0, {y: 40}, 0.5);
   cue(69.0, 'whoosh', 0.6);
@@ -477,9 +525,12 @@ function build(){
   // À toi : que mettre dans la case client ? (réponse : rien ne convient)
   const a2 = +(PICKS[2].at + 0.02).toFixed(2);
   tl.set(['#ask0', '#ask5'], {autoAlpha: 0}, a2);
-  tl.set(['#op3', '#op3b', '#nyo'], {autoAlpha: 1}, a2);
+  tl.set(['#op3', '#op3b', '#nyo', '#an3'], {autoAlpha: 1}, a2);
   // tout vient des sujets mélangés : les sujets se colorent, chacun avec son étiquette
-  hide(['#xdy', '#nc'], 81.0, {y: 0, x: 40}, 0.45);
+  hide(['#xdy', '#nc', '#an3'], 81.0, {y: 0, x: 40}, 0.45);
+  // recopier, perdre, ne pas pouvoir ajouter : les trois anomalies réunies
+  tl.set('#anoms', {autoAlpha: 1}, 81.5);
+  [1, 2, 3].forEach((q, k) => pop('#am' + q, 81.5 + k * 0.25, 0.5));
   tl.to('#xdy', {height: 0, duration: 0.35, ease: 'power2.inOut'}, 81.45);
   SUBJ.forEach((s, q) => {
     tl.to('#bd' + q, {autoAlpha: 1, duration: 0.35}, 82.4 + q * 0.35);
@@ -488,7 +539,7 @@ function build(){
 
   /* ===== 4 · Une table par sujet ===== */
   // le tableur se replie sur ses en-têtes ; les quatre tables arrivent, chacune de la couleur de son sujet
-  hide(SUBJ.map((s, q) => '#bd' + q).concat(SUBJ.map((s, q) => '#sj' + q)), 88.0, {y: 0}, 0.3);
+  hide(SUBJ.map((s, q) => '#bd' + q).concat(SUBJ.map((s, q) => '#sj' + q), ['#anoms']), 88.0, {y: 0}, 0.3);
   tl.to($$('#xd0, #xd1, #xd2, #xd3'), {autoAlpha: 0, height: 0, duration: 0.5, ease: 'power2.inOut', stagger: 0.05}, 88.4);
   cue(88.4, 'whoosh', 0.6);
   $$('.bin').forEach((b, q) => { show(b, 89.5 + q * 0.18, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(89.5 + q * 0.18, 'pop', 0.6, q); });
@@ -512,6 +563,7 @@ function build(){
   // l’e-mail de Camille Roux, une seule fois
   pulse($$('#tbc .r')[0].children[3], 121.6, 3);
   cue(121.6, 'tick', 0.5, 2);
+  pop('#rcm', 122.5, 0.4);
   // À toi : la table où ajouter Yoga du matin (réponse : la table ateliers)
   const a4 = +(PICKS[4].at + 0.02).toFixed(2);
   tl.set('#ryg', {autoAlpha: 1, height: 68}, a4);
@@ -609,15 +661,23 @@ const IX = (() => {
       mark($('#ask0'), 'pvh');
       if (k === 0) mark($('#op1'), 'pvs');
       if (k === 1) { mark($('#op2'), 'pvs'); mark($('#xn1'), 'pvh'); mark($('#xn2'), 'pvs'); }
-      if (ok) { mark($('#ask5'), 'pvh'); ['#op3', '#op3b', '#nyo'].forEach(s => mark($(s), 'pvs')); }
+      if (ok) { mark($('#ask5'), 'pvh'); ['#op3', '#op3b', '#nyo', '#an3'].forEach(s => mark($(s), 'pvs')); }
       sfx(ok ? 'stamp' : 'miss', 0, 0.5);
     }
     if (i === 5) { if (ok) ['#ms1', '#ms2'].forEach(s => mark($(s), 'pvs')); else flash($('#tbi'), 'kob', 480); sfx(ok ? 'pop' : 'miss', 2, 0.5); }
     return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));
   }
+  /* Indice, après deux erreurs : une piste, et les endroits à regarder. */
+  function hint(i){
+    if (i === 0) return {text: 'L’e-mail du coach est dans la colonne E.', keys: SHEET.map((r, ri) => ri + '_4')};
+    if (i === 1) return {text: 'Léa Simon n’apparaît que sur une seule ligne.', keys: ['r' + LEA]};
+    if (i === 3) return {text: 'Que décrit la colonne : un client, un atelier, un coach ou une inscription ?'};
+    if (i === 4) return {text: 'Yoga du matin est un atelier.', keys: ['ateliers']};
+    return null;
+  }
   return {
     enter: i => { clear(); start(i); },
-    spots, act, pick,
+    spots, act, pick, hint,
     slot: () => null,
     /* Moment réussi : l’aperçu reste jusqu’à ce que la timeline affiche la même image ; sinon il part tout de suite. */
     leave(i, answered){ if (answered && X && X.i === i) wait = i; else clear(); },

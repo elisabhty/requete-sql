@@ -117,8 +117,7 @@ function splitChars(root){
 }
 
 /* ---------- Pauses de lecture ---------- */
-/* [instant de la timeline, durée] : l’image reste affichée le temps de lire. Une durée négative est une coupe :
-   ce passage de la timeline n’est pas joué, l’image saute directement à sa fin. */
+/* [instant, durée] : l’image reste affichée le temps de lire ; durée négative : passage coupé (cut). */
 let HOLDS = [];
 const EXTRA_HOLDS = [];
 const CUTS = [];
@@ -141,12 +140,9 @@ function unwarp(t){
   }
   return +(t + s).toFixed(3);
 }
-/* Coupe un passage de la timeline (instant, durée) : l’image saute directement à sa fin. Resserre un moment « À toi » :
-   la légende « À toi ! » s’affiche, puis l’image s’arrête aussitôt, et la carte du lecteur donne la consigne.
-   Rien ne doit s’animer pendant le passage coupé (vérifié avec ?check, comme les pauses). */
+/* Coupe (instant, durée) : l’image saute à la fin du passage ; rien ne doit s’y animer (?check). */
 function cut(t, d){ CUTS.push([+t.toFixed(2), -Math.abs(+d.toFixed(2))]); }
 const inCut = t => CUTS.some(([h, d]) => t > h + 0.001 && t < h - d - 0.001);
-/* Temps coupé entre a et b (timeline). */
 const cutIn = (a, b) => CUTS.reduce((s, [h, d]) => s + Math.max(0, Math.min(b, h - d) - Math.max(a, h)), 0);
 /* Temps de lecture d’une légende : 17 caractères par seconde, le rythme du cours WHERE
    une fois ses pauses ajoutées (jugé confortable). */
@@ -199,6 +195,20 @@ function hide(el, t, to = {}, dur = 0.42, ease = 'power2.in'){
   tl.to(el, Object.assign({autoAlpha: 0, y: -40, duration: dur, ease}, to), t);
 }
 function sceneOn(sel, t){ tl.set(sel, {autoAlpha: 1}, t); }
+/* Message d’un personnage (.ping) : l’avatar arrive, la bulle écrit, puis le message est reçu (son texte : la légende). */
+function pingIn(sel, t, write = 0.7){
+  show(sel, t, {y: 30, scale: 0.9}, 0.4, 'back.out(1.8)');
+  cue(t, 'pop', 0.6, 5);
+  tl.to(sel + ' .pdots', {autoAlpha: 0, duration: 0.15}, t + write);
+  tl.fromTo(sel + ' .pmsg', {autoAlpha: 0, scale: 0.4}, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.4)', immediateRender: false}, t + write);
+  cue(t + write, 'tick', 0.6, 4);
+}
+/* Tampon (.stamp) qui tombe et se pose. */
+function stampIn(sel, t, rot = 7){
+  gsap.set(sel, {autoAlpha: 0, scale: 1.9, rotation: 24});
+  tl.to(sel, {autoAlpha: 1, scale: 1, rotation: rot, duration: 0.36, ease: 'power4.in'}, t);
+  cue(t + 0.35, 'stamp');
+}
 function sceneOff(sel, t){ tl.set(sel, {autoAlpha: 0}, t); }
 /* Carte posée sous une autre carte, souvent inclinée (la liste « Les informations à récupérer » sous la carte de la situation) :
    son bord haut se cale à `gap` px sous le point le plus bas de la carte du dessus une fois celle-ci à sa place
@@ -467,12 +477,11 @@ function layoutIssues(render, total){
     const host = el.closest('[id]');
     return {el, name: (host && host !== el ? '#' + host.id + ' ' : '') + (el.id ? '#' + el.id : '') + '.' + [...el.classList].join('.')};
   });
-  /* Débordement : un élément ou un texte qui sort du cadre qui le contient (une pastille qui dépasse de sa carte, des colonnes
-     plus larges que leur ligne). Chaque élément « dans le flux » est comparé au premier cadre visible qui l’entoure ; les repères
-     posés exprès en surplomb (position absolue : coches, crayons, anneaux) ne comptent pas. */
+  /* Débordement : élément ou texte qui sort de son cadre (le premier cadre visible autour de lui) ; les repères en surplomb
+     (position absolue) ne comptent pas. */
   const pos = el => getComputedStyle(el).position;
   const CHROME = '#cap, #chapter, #progress, #header, .blob, .mascot, svg';
-  /* Un cadre qui rogne son contenu (overflow hidden : volet qui défile, bande d’images) n’est pas un cadre de référence. */
+  /* Un cadre qui rogne son contenu (volet qui défile) n’est pas une référence. */
   const clips = el => getComputedStyle(el).overflowX !== 'visible' || getComputedStyle(el).overflowY !== 'visible';
   const frameOf = el => {
     for (let n = el; n && n !== stage; n = n.parentElement) {
@@ -485,7 +494,7 @@ function layoutIssues(render, total){
   const flows = [];
   $$('*', stage).forEach(el => {
     if (el.closest(CHROME) || el.tagName === 'BR' || el.tagName === 'IMG') return;
-    /* Élément : seulement s’il se voit (fond, bordure, ombre) ; un simple conteneur invisible est jugé par ses textes. */
+    /* Élément : seulement s’il se voit ; un conteneur invisible est jugé par ses textes. */
     if (!/^(absolute|fixed)$/.test(pos(el)) && isBox(el)) { const f = frameOf(el); if (f) flows.push({el, f}); }
     [...el.childNodes].forEach(t => {
       if (t.nodeType !== 3 || !t.textContent.trim()) return;
@@ -507,7 +516,7 @@ function layoutIssues(render, total){
       let r; if (t) { range.selectNodeContents(t); r = range.getBoundingClientRect(); } else r = el.getBoundingClientRect();
       if (r.width < 1 || r.height < 1) return;
       const b = f.getBoundingClientRect();
-      /* Un texte se juge sur sa largeur ; en hauteur, sa ligne déborde un peu de l’encre des lettres (interligne) : tolérance d’un tiers de corps. */
+      /* Texte : en hauteur, tolérance d’un tiers de corps (interligne). */
       const lead = t ? parseFloat(getComputedStyle(el).fontSize) * k / 3 : 0;
       const over = Math.max(b.left - r.left, r.right - b.right, b.top - r.top - lead, r.bottom - b.bottom - lead) / k;
       if (over <= 3) return;
@@ -515,7 +524,7 @@ function layoutIssues(render, total){
       now.add(key);
       keep(key, {kind: 'débordement', where: key.slice(12), gap: -Math.round(over), at: +T.toFixed(1)});
     });
-    else prev.forEach(key => { if (key.startsWith('débordement ')) now.add(key); });   // vérifié une fois par seconde : le constat reste jusqu’au suivant
+    else prev.forEach(key => { if (key.startsWith('débordement ')) now.add(key); });   // vérifié chaque seconde
     hls.forEach(h => {
       if (shown(h.el) < 0.3) return;
       const cs = getComputedStyle(h.el);
@@ -555,7 +564,7 @@ function layoutIssues(render, total){
 /* Une pause de lecture fige l’image : rien ne doit être en plein mouvement à cet instant
    (hors mouvements d’ambiance). Liste les animations interrompues, pour la mise au point.
    Les moments « À toi » (picks) arrêtent aussi l’image : ils sont vérifiés de la même façon. */
-/* Gestes des moments « À toi » joués sur l’image ; tout autre « kind » (propre à la page : on, join, tbl…) reste un choix d’étiquette. */
+/* Gestes joués sur l’image ; tout autre kind (on, join… de Quel JOIN) reste un choix d’étiquette. */
 const GESTURES = ['tap', 'sort', 'link'];
 function holdClashes(extra = []){
   const out = [];
@@ -567,7 +576,7 @@ function holdClashes(extra = []){
       if (b - a > 0.002 && a < h - 0.001 && b > h + 0.001) out.push({hold: h, at: +a.toFixed(2), to: +b.toFixed(2), el: name(c)});
     });
   });
-  /* Passage coupé : aucune animation, pause, moment « À toi » ni son ne doit s’y trouver (il serait sauté). */
+  /* Passage coupé : ni animation, ni pause, ni moment, ni son. */
   CUTS.forEach(([h, d]) => {
     const e = h - d;
     tweens.forEach(c => {
