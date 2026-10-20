@@ -8,8 +8,8 @@
    - le rendu d’une image à un instant donné (window.renderAt), piloté par le lecteur.
 
    Temps : la timeline GSAP est écrite en « temps de la timeline ». Les pauses de lecture (HOLDS) figent
-   l’image un moment ; le lecteur, lui, compte en « temps de la vidéo » (pauses comprises) : warp / unwarp
-   passent de l’un à l’autre. */
+   l’image un moment, les coupes (cut) sautent un passage ; le lecteur, lui, compte en « temps de la vidéo »
+   (pauses comprises, coupes retirées) : warp / unwarp passent de l’un à l’autre. */
 'use strict';
 const FPS = 30;
 const QS = new URLSearchParams(location.search);
@@ -117,15 +117,37 @@ function splitChars(root){
 }
 
 /* ---------- Pauses de lecture ---------- */
-/* [instant de la timeline, durée] : l’image reste affichée le temps de lire. */
+/* [instant de la timeline, durée] : l’image reste affichée le temps de lire. Une durée négative est une coupe :
+   ce passage de la timeline n’est pas joué, l’image saute directement à sa fin. */
 let HOLDS = [];
 const EXTRA_HOLDS = [];
+const CUTS = [];
 function warp(T){
   let shift = 0;
-  for (const [t, d] of HOLDS) { if (T <= t + shift) break; if (T < t + shift + d) return t; shift += d; }
+  for (const [t, d] of HOLDS) {
+    if (T <= t + shift) break;
+    if (d < 0) { shift += d; continue; }
+    if (T < t + shift + d) return t;
+    shift += d;
+  }
   return T - shift;
 }
-function unwarp(t){ let s = 0; for (const [h, d] of HOLDS) { if (t > h) s += d; else break; } return +(t + s).toFixed(3); }
+function unwarp(t){
+  let s = 0;
+  for (const [h, d] of HOLDS) {
+    if (t <= h) break;
+    if (d < 0 && t < h - d) return +(h + s).toFixed(3);   // instant coupé : rendu au début de la coupe
+    s += d;
+  }
+  return +(t + s).toFixed(3);
+}
+/* Coupe un passage de la timeline (instant, durée) : l’image saute directement à sa fin. Resserre un moment « À toi » :
+   la légende « À toi ! » s’affiche, puis l’image s’arrête aussitôt, et la carte du lecteur donne la consigne.
+   Rien ne doit s’animer pendant le passage coupé (vérifié avec ?check, comme les pauses). */
+function cut(t, d){ CUTS.push([+t.toFixed(2), -Math.abs(+d.toFixed(2))]); }
+const inCut = t => CUTS.some(([h, d]) => t > h + 0.001 && t < h - d - 0.001);
+/* Temps coupé entre a et b (timeline). */
+const cutIn = (a, b) => CUTS.reduce((s, [h, d]) => s + Math.max(0, Math.min(b, h - d) - Math.max(a, h)), 0);
 /* Temps de lecture d’une légende : 17 caractères par seconde, le rythme du cours WHERE
    une fois ses pauses ajoutées (jugé confortable). */
 const READ_CPS = 17;
@@ -138,7 +160,7 @@ function captionHolds(captions, end){
   const out = [];
   captions.forEach(([a, b, text]) => {
     if (b >= end) return;
-    const miss = readTime(text) - ((b - 0.2) - (a + 0.3));
+    const miss = readTime(text) - ((b - 0.2) - (a + 0.3) - cutIn(a + 0.3, b - 0.2));
     if (miss > 0.05) out.push([+(b - 0.25).toFixed(2), Math.ceil(miss * 20) / 20]);
   });
   return out;
@@ -490,17 +512,27 @@ function layoutIssues(render, total){
 /* Une pause de lecture fige l’image : rien ne doit être en plein mouvement à cet instant
    (hors mouvements d’ambiance). Liste les animations interrompues, pour la mise au point.
    Les moments « À toi » (picks) arrêtent aussi l’image : ils sont vérifiés de la même façon. */
+/* Gestes des moments « À toi » joués sur l’image ; tout autre « kind » (propre à la page : on, join, tbl…) reste un choix d’étiquette. */
+const GESTURES = ['tap', 'sort', 'link'];
 function holdClashes(extra = []){
   const out = [];
   const tweens = tl.getChildren(true, true, false).filter(c => !(c.vars && c.vars.data === 'amb'));
-  HOLDS.map(h => [h[0]]).concat(extra.map(t => [t])).forEach(([h]) => {
+  const name = c => { const tg = c.targets()[0]; return tg && tg.id ? '#' + tg.id : (tg && tg.className ? '.' + String(tg.className).split(' ')[0] : '?'); };
+  HOLDS.filter(h => h[1] > 0).map(h => [h[0]]).concat(extra.map(t => [t])).forEach(([h]) => {
     tweens.forEach(c => {
       const a = c.startTime(), b = a + c.totalDuration();
-      if (b - a > 0.002 && a < h - 0.001 && b > h + 0.001) {
-        const tg = c.targets()[0];
-        out.push({hold: h, at: +a.toFixed(2), to: +b.toFixed(2), el: tg && tg.id ? '#' + tg.id : (tg && tg.className ? '.' + String(tg.className).split(' ')[0] : '?')});
-      }
+      if (b - a > 0.002 && a < h - 0.001 && b > h + 0.001) out.push({hold: h, at: +a.toFixed(2), to: +b.toFixed(2), el: name(c)});
     });
+  });
+  /* Passage coupé : aucune animation, pause, moment « À toi » ni son ne doit s’y trouver (il serait sauté). */
+  CUTS.forEach(([h, d]) => {
+    const e = h - d;
+    tweens.forEach(c => {
+      const a = c.startTime(), b = a + c.totalDuration();
+      if (b - a > 0.002 && a < e - 0.001 && b > h + 0.001) out.push({cut: h, at: +a.toFixed(2), to: +b.toFixed(2), el: name(c)});
+    });
+    HOLDS.filter(x => x[1] > 0).map(x => x[0]).concat(extra).filter(t => t > h - 0.001 && t < e + 0.001).forEach(t => out.push({cut: h, inside: t}));
+    CUES.filter(c => c.t > h - 0.001 && c.t < e + 0.001).forEach(c => out.push({cut: h, cue: c.t, type: c.type}));
   });
   return out;
 }
@@ -534,12 +566,12 @@ function Course(cfg){
     chromeTimeline(chapters, captions, duration);
     cfg.build();
     tl.set({}, {}, duration);
-    HOLDS = mergeHolds(captionHolds(captions, duration).concat(EXTRA_HOLDS));
+    HOLDS = mergeHolds(captionHolds(captions, duration).concat(EXTRA_HOLDS)).concat(CUTS).sort((x, y) => x[0] - y[0]);
     const total = HOLDS.reduce((a, h) => a + h[1], 0);
     out = +(duration + total).toFixed(3);
     renderAt(0);
     if (EMBED) dispatchEvent(new Event('resize'));
-    return {duration: out, fps: FPS, cues: CUES.map(c => Object.assign({}, c, {t: unwarp(c.t)})), overflow: checkCaptions(captions),
+    return {duration: out, fps: FPS, cues: CUES.filter(c => !inCut(c.t)).map(c => Object.assign({}, c, {t: unwarp(c.t)})), overflow: checkCaptions(captions),
       notesT: notesAt != null ? unwarp(notesAt) : null, holds: +total.toFixed(3), holdList: HOLDS, clashes: holdClashes(picks.map(p => p.at)),
       textIssues: QS.has('check') ? textIssues() : undefined,
       layoutIssues: QS.has('check') ? layoutIssues(renderAt, out) : undefined,
@@ -551,7 +583,7 @@ function Course(cfg){
          link (relier deux éléments) ; la page décrit les endroits (IX.spots) et juge chaque geste (IX.act).
          need : nombre de bons gestes attendus (tap, link) ; hint : consigne du geste, sous le plateau ;
          text : étiquettes en texte courant (une réponse en mots), et non en code. */
-      picks: picks.map(p => ({t: unwarp(p.at), kind: p.kind || 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', need: p.need || 0,
+      picks: picks.map(p => ({t: unwarp(p.at), kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', need: p.need || 0,
         options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok}))})),
       /* Légendes en texte : le lecteur les annonce à VoiceOver au fil de l’animation. */
       captions: captions.map(c => ({a: unwarp(c[0]), b: unwarp(Math.min(c[1], duration)), text: plain(c[2])}))};
