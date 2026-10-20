@@ -6591,7 +6591,18 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 /* Beaucoup de zones (toutes les cases d’un tableau) : après l’appel, un contour très léger, pour ne pas charger l’image. */
 .lv-pk-layer.is-many .lv-pk-spot:not(:disabled):not(.is-ko){background:transparent;box-shadow:inset 0 0 0 2px rgba(106,77,244,.2)}
 .lv-pk-layer.is-done .lv-pk-spot{background:transparent!important;box-shadow:none!important;animation:none!important}
-@media (prefers-reduced-motion:reduce){.lv-pk-spot{animation:none!important}}
+/* Indice (deux erreurs) : la phrase sous la consigne, les zones à regarder en jaune */
+.lv-pk-tip{display:flex;gap:8px;align-items:flex-start;margin:0 2px 11px;padding:9px 12px;border-radius:13px;background:#FFF6DC;color:#6E4A00;font:600 14px/1.38 var(--ui);letter-spacing:-.005em;text-wrap:pretty}
+.lv-pk-tip[hidden]{display:none}
+.lv-pk-layer .lv-pk-spot.is-tip:not(:disabled):not(.is-ko){background:rgba(255,201,74,.2);box-shadow:inset 0 0 0 3px #F2B529;animation:lvSpotTip 1.1s ease-in-out infinite}
+@keyframes lvSpotTip{50%{background:rgba(255,201,74,.36);box-shadow:inset 0 0 0 5px #F2B529}}
+/* Onde au point touché */
+.lv-pk-ripple{position:absolute;z-index:7;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:rgba(106,77,244,.32);pointer-events:none;animation:lvRipple .52s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes lvRipple{to{transform:scale(7.5);opacity:0}}
+/* « Continuer » invite à reprendre : une onde part du bouton, régulièrement */
+.lv-pk-go.is-ready::after{content:"";position:absolute;inset:0;border-radius:16px;pointer-events:none;animation:lvGoGlow 2.4s ease-out 1.2s infinite}
+@keyframes lvGoGlow{0%{box-shadow:0 0 0 0 rgba(106,77,244,.42)}70%,100%{box-shadow:0 0 0 13px rgba(106,77,244,0)}}
+@media (prefers-reduced-motion:reduce){.lv-pk-spot{animation:none!important}.lv-pk-go.is-ready::after{animation:none}}
 .lv-pk-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
 .lv-pk-svg path{fill:none;stroke:var(--accent,#6A4DF4);stroke-width:4;stroke-linecap:round;stroke-dasharray:1 9}
 .lv-ctrls{position:relative;display:flex;align-items:center;justify-content:space-between;height:62px}
@@ -12653,14 +12664,15 @@ guide({ id:79, titre:"Fenêtres glissantes", résumé:"Suivre l’évolution des
 guide({ id:56, titre:"Normaliser les inscriptions", résumé:"Du tableur des ateliers aux tables",
   /* Projet, chapitre 1, en vidéo interactive : l’animation (assets/anim/projet-normaliser.html, moteur commun assets/anim/core.js)
      remplace le texte du cours. Le tableur des inscriptions aux ateliers de NutriBoost mélange les clients, les ateliers et les coachs :
-     à chacun des 6 moments « À toi », l’image s’arrête et l’élève agit sur l’image (toucher les copies de l’e-mail de Camille Roux,
-     la ligne à supprimer, glisser chaque colonne dans sa table…), avec le résultat aussitôt. On ne peut pas avancer au-delà d’un
-     moment tant qu’il n’est pas réussi. Leçon seule : ni exercice ni quiz, la fin de la vidéo valide la leçon (sans seuil).
+     les demandes de Camille Roux (son e-mail change), de Léa Simon (elle se désinscrit) et de Thomas Girard (un nouvel atelier)
+     font découvrir les trois anomalies (mise à jour, suppression, insertion). À chacun des 6 moments « À toi », l’image s’arrête et
+     l’élève agit sur l’image (toucher les copies de l’e-mail, la ligne à supprimer, glisser chaque colonne dans sa table…), avec le
+     résultat aussitôt ; après deux erreurs, un indice. On ne peut pas avancer au-delà d’un moment tant qu’il n’est pas réussi. Leçon seule : ni exercice ni quiz, la fin de la vidéo valide la leçon (sans seuil).
      Le texte ci-dessous, gardé pour le cas où la vidéo ne se charge pas, suit encore l’ancien cours (la grande table des commandes). */
   leconSeule:true,
-  video:{anim:'assets/anim/projet-normaliser.html?app&embed',thumb:'assets/anim/projet-normaliser-thumb.jpg',duree:'2 min 40',moments:6,
-    /* « Ajouter dans notes » : apparaît à 2 min 34 (153,6 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:153.6,y:1194,card:[64,292,1016,899],to:[940,255]}},
+  video:{anim:'assets/anim/projet-normaliser.html?app&embed',thumb:'assets/anim/projet-normaliser-thumb.jpg',duree:'2 min 44',moments:6,
+    /* « Ajouter dans notes » : apparaît à 2 min 38 (157,6 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:157.6,y:1194,card:[64,292,1016,899],to:[940,255]}},
   sit:{
     blocks:[
       "L’équipe data construit <b>un tableau de bord Power BI</b> pour analyser les ventes : nombre de commandes, produits vendus et répartition des clients par ville.",
@@ -20572,8 +20584,9 @@ function lvPkVerdict(P,k,btn,ok,r){
     lvPkSet(LV.id,P.i,first);
     btn.classList.add('is-ok');
     P.box.classList.add('is-ok');
-    kick.textContent=first?'✓ Bien vu !':'✓ Trouvé !';
-    const dot=P.box.querySelectorAll('.lv-pk-dots i')[P.i]; if(dot)dot.className=first?'ok':'try';
+    kick.textContent=first?'✓ Bien vu !':'✓ Trouvé !'; lvPkBump(kick,1.12);
+    const dot=P.box.querySelectorAll('.lv-pk-dots i')[P.i]; if(dot){ dot.className=first?'ok':'try'; lvPkBump(dot,1.8); }
+    const tip=P.box.querySelector('.lv-pk-tip'); if(tip)tip.hidden=true;
     P.box.querySelectorAll('.lv-pk-opt').forEach(b=>{ if(b!==btn)b.classList.add('is-gone'); });
     LV.video.sfx('true');
     if(first)setTimeout(()=>{ if(LV&&LV.pk===P)LvSfx.play('chord',0,.55,0); },160);
@@ -20584,7 +20597,7 @@ function lvPkVerdict(P,k,btn,ok,r){
       if(!LV||LV.pk!==P)return;
       const opts=P.box.querySelector('.lv-pk-opts'), go=P.box.querySelector('.lv-pk-go');
       /* Sans correction écrite (la légende qui suit l’explique), la bonne étiquette reste visible au-dessus de « Continuer ». */
-      if(why)opts.hidden=true; go.hidden=false;
+      if(why)opts.hidden=true; go.hidden=false; go.classList.add('is-ready');
       if(!prefersReduceMotion()&&go.animate)go.animate([{opacity:0,transform:'translateY(8px) scale(.96)'},{opacity:1,transform:'none'}],{duration:280,easing:'cubic-bezier(.2,.9,.3,1.2)'});
       try{go.focus({preventScroll:true});}catch(e){}
     },prefersReduceMotion()?0:720);
@@ -20592,6 +20605,7 @@ function lvPkVerdict(P,k,btn,ok,r){
     btn.classList.add('is-ko');
     P.box.classList.add('is-ko');
     kick.textContent='✕ Essaie un autre choix';
+    if(P.tries===2)lvPkHint(P);
     LV.video.sfx('false');
     if(navigator.vibrate)navigator.vibrate([20,60,20]);
     setTimeout(()=>{ btn.classList.remove('is-ko'); btn.classList.add('is-out'); btn.setAttribute('aria-disabled','true'); },460);
@@ -20666,6 +20680,38 @@ function lvPkClose(answered){
    done}) ; le lecteur pose les zones tactiles par-dessus l’image, tient le compte, et gère le verdict et la reprise.
    Réussi du premier coup : aucun geste refusé pendant le moment. */
 const LV_PK_ICO={tap:'👆',sort:'✋',link:'🔗'};
+/* Onde au point touché (et petite vibration) : le geste est reçu tout de suite, avant même le verdict. */
+function lvPkRipple(x,y){
+  if(navigator.vibrate)navigator.vibrate(6);
+  if(prefersReduceMotion())return;
+  const R=LV.root.getBoundingClientRect(), i=document.createElement('i');
+  i.className='lv-pk-ripple'; i.setAttribute('aria-hidden','true');
+  Object.assign(i.style,{left:(x-R.left)+'px',top:(y-R.top)+'px'});
+  LV.root.appendChild(i); setTimeout(()=>i.remove(),560);
+}
+/* Petit rebond (compteur, pastille du moment, badge du verdict). */
+function lvPkBump(el,s){
+  if(!el||prefersReduceMotion()||!el.animate)return;
+  el.animate([{transform:'scale(1)'},{transform:`scale(${s||1.18})`},{transform:'scale(1)'}],{duration:340,easing:'cubic-bezier(.2,.9,.3,1.3)'});
+}
+/* Deux erreurs : la page donne un indice (IX.hint) — une phrase sous la consigne, et les zones à regarder qui ressortent. */
+function lvPkHint(P){
+  if(P.hinted)return;
+  const IX=lvPkIX(); let h=null; try{ h=IX&&IX.hint?IX.hint(P.i):null; }catch(e){ h=null; }
+  if(!h)return;
+  P.hinted=true;
+  if(h.text){
+    const el=document.createElement('p'); el.className='lv-pk-tip';
+    el.innerHTML=`<span aria-hidden="true">💡</span><span>${lvNw(h.text)}</span>`;
+    const ref=P.box.querySelector('.lv-pk-opts')||P.box.querySelector('.lv-pk-hint')||P.box.querySelector('.lv-pk-go');
+    ref.parentNode.insertBefore(el,ref);
+    /* L’indice prend la place de la ligne d’aide sur le geste : le plateau ne grandit pas jusqu’à couvrir l’image. */
+    const gh=P.box.querySelector('.lv-pk-hint'); if(gh)gh.hidden=true;
+    if(!prefersReduceMotion()&&el.animate)el.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:280,easing:'ease-out'});
+    const sr=LV.root.querySelector('.lv-sr'); if(sr)sr.textContent='Indice : '+String(h.text).replace(/<[^>]+>/g,'');
+  }
+  (h.keys||[]).forEach(k=>{ const b=(P.spots||[]).find(x=>x.dataset.k===String(k)); if(b&&!b.disabled)b.classList.add('is-tip'); });
+}
 /* Poignée des étiquettes à glisser (six points) : elles se soulèvent et se déplacent. */
 const LV_PK_GRIP='<svg class="lv-pk-grip" viewBox="0 0 10 16" aria-hidden="true"><circle cx="2.5" cy="3" r="1.6"/><circle cx="7.5" cy="3" r="1.6"/><circle cx="2.5" cy="8" r="1.6"/><circle cx="7.5" cy="8" r="1.6"/><circle cx="2.5" cy="13" r="1.6"/><circle cx="7.5" cy="13" r="1.6"/></svg>';
 /* Glisser : à l’ouverture, la première étiquette se soulève et une copie monte vers les tables, puis s’efface (deux fois) ;
@@ -20707,6 +20753,7 @@ function lvPkLayer(P){
   LV.root.appendChild(layer);
   P.layer=layer; P.spots=[...layer.querySelectorAll('.lv-pk-spot')];
   lvPkLayerPlace();
+  layer.addEventListener('pointerdown',e=>{ const b=e.target.closest('.lv-pk-spot'); if(b&&!b.disabled&&!P.done&&!P.busy)lvPkRipple(e.clientX,e.clientY); },true);
   if(P.kind==='tap')P.spots.forEach(b=>b.addEventListener('click',()=>lvPkAct(P,[b.dataset.k],b)));
   if(P.kind==='sort'){
     lvPkDemo(P);
@@ -20777,7 +20824,7 @@ function lvPkDrag(P,btn,zonesFn,onDrop){
       const x=ev.clientX-R.left, y=ev.clientY-R.top;
       fly.style.transform=`translate(${(ev.clientX-sx).toFixed(1)}px,${(ev.clientY-sy-10).toFixed(1)}px) rotate(-4deg) scale(1.06)`;
       const z=zs.find(q=>x>=q.x1&&x<=q.x2&&y>=q.y1&&y<=q.y2)||null;
-      if(z!==over){ if(over)over.el.classList.remove('is-over'); over=z; if(over)over.el.classList.add('is-over'); }
+      if(z!==over){ if(over)over.el.classList.remove('is-over'); over=z; if(over){ over.el.classList.add('is-over'); if(navigator.vibrate)navigator.vibrate(4); } }
     };
     const end=cancel=>{
       btn.removeEventListener('pointermove',move); btn.removeEventListener('pointerup',up); btn.removeEventListener('pointercancel',cc);
@@ -20787,7 +20834,15 @@ function lvPkDrag(P,btn,zonesFn,onDrop){
       if(P.layer)P.layer.classList.remove('is-armed');
       const hit=!cancel&&over;
       (zs||[]).forEach(q=>{ if(q.tmp)q.el.remove(); });
-      if(hit){ fly.remove(); btn.classList.remove('is-lift'); onDrop(over); return; }
+      if(hit){
+        const z=over; btn.classList.remove('is-lift'); onDrop(z);
+        if(prefersReduceMotion()||!fly.animate){ fly.remove(); return; }
+        /* Lâchée sur une place : la copie y file et s’y fond. */
+        const fx=parseFloat(fly.style.left)+parseFloat(fly.style.width)/2, fy=parseFloat(fly.style.top)+parseFloat(fly.style.height)/2;
+        fly.animate([{transform:fly.style.transform,opacity:1},{transform:`translate(${((z.x1+z.x2)/2-fx).toFixed(1)}px,${((z.y1+z.y2)/2-fy).toFixed(1)}px) scale(.35)`,opacity:0}],
+          {duration:260,easing:'cubic-bezier(.4,0,.6,1)',fill:'forwards'}).onfinish=()=>fly.remove();
+        return;
+      }
       if(prefersReduceMotion()||!fly.animate){ fly.remove(); btn.classList.remove('is-lift'); return; }
       fly.animate([{transform:fly.style.transform},{transform:'none'}],{duration:220,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'}).onfinish=()=>{ fly.remove(); btn.classList.remove('is-lift'); };
     };
@@ -20846,7 +20901,7 @@ function lvPkActed(P,r,el,chip,el2){
   const sr=LV.root.querySelector('.lv-sr'), plain=String(why).replace(/<[^>]+>/g,''), n=(LV.video.picks||[]).length;
   if(r.ok){
     P.count++;
-    const cnt=P.box.querySelector('.lv-pk-cnt'); if(cnt)cnt.textContent=`${Math.min(P.count,P.total)} / ${P.total}`;
+    const cnt=P.box.querySelector('.lv-pk-cnt'); if(cnt){ cnt.textContent=`${Math.min(P.count,P.total)} / ${P.total}`; lvPkBump(cnt,1.2); }
     if(P.kind==='tap'&&el){ el.classList.add('is-ok'); el.disabled=true; }
     if(P.kind==='link'){ [el,el2].forEach(x=>x&&x.classList.add('is-linked')); }
     if(chip){ chip.classList.add('is-placed'); chip.disabled=true; }
@@ -20862,6 +20917,7 @@ function lvPkActed(P,r,el,chip,el2){
   P.miss++;
   P.box.classList.add('is-ko');
   kick.textContent='✕ Essaie encore';
+  if(P.miss===2)lvPkHint(P);
   if(why&&wEl){ wEl.innerHTML=lvNw(why); wEl.className='lv-pk-why ko'; wEl.hidden=false; tEl.hidden=true; }
   [el,el2,chip].forEach(x=>{ if(!x)return; x.classList.remove('is-ko'); void x.offsetWidth; x.classList.add('is-ko'); setTimeout(()=>x.classList.remove('is-ko'),460); });
   LV.video.sfx('false');
@@ -20875,8 +20931,9 @@ function lvPkWin(P,why,rect){
   lvPkSet(LV.id,P.i,first);
   P.box.classList.remove('is-ko'); P.box.classList.add('is-ok');
   if(P.layer)P.layer.classList.add('is-done');
-  kick.textContent=first?'✓ Bien vu !':'✓ Trouvé !';
-  const dot=P.box.querySelectorAll('.lv-pk-dots i')[P.i]; if(dot)dot.className=first?'ok':'try';
+  kick.textContent=first?'✓ Bien vu !':'✓ Trouvé !'; lvPkBump(kick,1.12);
+  const dot=P.box.querySelectorAll('.lv-pk-dots i')[P.i]; if(dot){ dot.className=first?'ok':'try'; lvPkBump(dot,1.8); }
+  const tip=P.box.querySelector('.lv-pk-tip'); if(tip)tip.hidden=true;
   if(why&&wEl){
     wEl.innerHTML=lvNw(why); wEl.className='lv-pk-why ok'; wEl.hidden=false;
     P.box.querySelector('.lv-pk-t').hidden=true;
@@ -20890,7 +20947,7 @@ function lvPkWin(P,why,rect){
   P.timer=setTimeout(()=>{
     if(!LV||LV.pk!==P)return;
     const opts=P.box.querySelector('.lv-pk-opts'), hint=P.box.querySelector('.lv-pk-hint'), go=P.box.querySelector('.lv-pk-go');
-    if(opts)opts.hidden=true; if(hint)hint.hidden=true; go.hidden=false;
+    if(opts)opts.hidden=true; if(hint)hint.hidden=true; go.hidden=false; go.classList.add('is-ready');
     if(!prefersReduceMotion()&&go.animate)go.animate([{opacity:0,transform:'translateY(8px) scale(.96)'},{opacity:1,transform:'none'}],{duration:280,easing:'cubic-bezier(.2,.9,.3,1.2)'});
     try{go.focus({preventScroll:true});}catch(e){}
   },prefersReduceMotion()?0:720);
@@ -28526,7 +28583,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1904';
+  const SW_CACHE='requete-2026-10-12-ludique-v1905';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
