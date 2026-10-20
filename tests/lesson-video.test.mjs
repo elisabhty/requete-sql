@@ -837,16 +837,17 @@ const COURSES = [
       '<span class="b"><span class="glow" id="p4"><span class="kw">2 PRECEDING</span></span></span>', '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> date_commande</span>',
       '✕ Les deux commandes du 2 juillet ont le même cumul', '<div class="lim" id="lim6"><span>Palier&nbsp;: 700&nbsp;€</span></div>',
       '✓ Palier franchi le 1er&nbsp;août']},
-  {id: 56, next: 72, titre: 'Normalisation', page: 'normalisation.html', thumb: 'normalisation-thumb.jpg', duree: '3 min 15', notesAt: 174.9,
-    notes: /notes:\{t:186\.2,y:1304,card:\[64,292,1016,1009\],to:\[940,255\]\}/, table: 'produits',
-    bubble: 'Normaliser, c’est écrire chaque information<br>une seule fois, dans la bonne table.',
-    chapters: ['Situation', 'Le problème', 'La normalisation', 'Une seule fois', 'Le piège', 'Le résultat', 'À retenir'],
-    traps: ["const COUPE = [['Collagène Marin', 4], ['Fibre Prébiotique', 6], ['Fibre prebiotique', 1], ['Fibres Prébiotiques', 3], ['Magnésium', 3],",
-      "const VENTES = [['Collagène Marin', 4], ['Fibre Prébiotique', 10], ['Magnésium', 3], ['Oméga 3', 3], ['Protéine Végétale', 2], ['Shaker Inox', 1], ['Tisane Détox', 2], ['Vitamine D', 3]];",
-      "'Fibre <i class=\"ty\">p</i>r<i class=\"ty\">e</i>biotique'", '<span class="cl">🧮 Vrai total</span>',
-      '<div class="sr fk" id="sl-produit_id"><span class="v"><span class="emo">🔗</span>produit_id</span></div>',
-      '<span class="w x st">Fibres Prébiotiques</span>', '<span class="n1">produit_id = 1</span>', '<span class="emo">🔗</span>commandes.produit_id = produits.id',
-      '<span class="c rg" id="rg5">région</span>', '<span class="glow" id="g6"><span class="kw">GROUP BY</span> produits.nom</span>', '✓ Une seule barre par produit']},
+  {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '3 min 01', notesAt: 159.3,
+    notes: /notes:\{t:174\.3,y:1194,card:\[64,292,1016,899\],to:\[940,255\]\}/, table: 'inscriptions',
+    bubble: 'Le tableur des ateliers mélange tout&nbsp;:<br>à toi de le ranger en tables.',
+    chapters: ['Le tableur', 'Les copies', 'Supprimer, ajouter', 'Une table par sujet', 'Les tables remplies', 'À retenir'],
+    traps: ["const INSCR = [[1, 1, '01/09', '2026-09-01'], [4, 1, '02/09', '2026-09-02'], [7, 2, '04/09', '2026-09-04'], [1, 3, '05/09', '2026-09-05']];",
+      "const YOGA = [4, 'Yoga du matin', '03/10', '2026-10-03', 2, '🌅'];", "const COLS = ['client', 'atelier', 'date', 'coach', 'e-mail du coach', 'inscrit le'];",
+      // Les six moments : les copies de l’e-mail, la ligne à supprimer, la case client du Yoga, les colonnes à ranger, la table du Yoga, la table sans liens
+      "{at: 40.0, kind: 'tap', need: 3,", "{at: 61.6, kind: 'tap', need: 1,", "{label: 'Rien ne convient', ok: true,", "{at: 105.0, kind: 'sort',",
+      "{at: 129.8, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}",
+      '<span class="bad hid" id="xn2">5 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="nc0">0 inscrit</span>', 'Chapitre 2 · Clés et relations',
+      '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
   {id: 72, next: 81, titre: 'Relations 1-1, 1-N et N-N', page: 'relations.html', thumb: 'relations-thumb.jpg', duree: '3 min 32', notesAt: 190.3,
     notes: /notes:\{t:203\.1,y:1286,card:\[64,292,1016,991\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avant de relier deux tables, demande-toi&nbsp;: combien de lignes en face&nbsp;?',
@@ -897,7 +898,7 @@ for (const c of COURSES) {
     assert.ok(page.includes(c.bubble), 'bulle de la mascotte');
     for (const label of c.chapters) assert.ok(page.includes(`label:'${label}'`), `chapitre ${label}`);
     for (const t of c.traps) assert.ok(page.includes(t), `piège : ${t}`);
-    if (!['between.html', 'limit-offset.html'].includes(c.page)) assert.ok(page.includes("stackBelow('#s1 .need', "), 'la liste des informations se cale sous la carte de la situation, sans la toucher');
+    if (!['between.html', 'limit-offset.html'].includes(c.page) && !c.page.startsWith('projet-')) assert.ok(page.includes("stackBelow('#s1 .need', "), 'la liste des informations se cale sous la carte de la situation, sans la toucher');
     assert.ok(!/SQL (voit|comprend|sait|lit)\b/.test(page), 'SQL n’est jamais personnifié');
     assert.ok(page.includes(`la <b>table ${c.table}</b>`) && !new RegExp(`dans ${c.table}\\b`).test(page), `toujours « table ${c.table} »`);
   });
@@ -1121,15 +1122,80 @@ test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la 
   assert.ok(tr.includes('lvPkVerdict(P,k,btn,ok,r||{})'), 'la page renvoie le verdict et la correction de ce choix');
   const vd = cut('function lvPkVerdict(', '/* L’étiquette quitte le plateau');
   for (const part of ['lvPkSet(LV.id,P.i,first)', "LvSfx.play('chord',0,.55,0)", 'lvPkBurst(rect)', "kick.textContent='✕ Essaie un autre choix';", "btn.classList.add('is-out')",
-    "const why=r.why||r.say||''", "wEl.innerHTML=why; wEl.className='lv-pk-why '+(ok?'ok':'ko'); wEl.hidden=false;", "P.box.querySelector('.lv-pk-t').hidden=true;"])
+    "const why=r.why||r.say||''", "wEl.innerHTML=lvNw(why); wEl.className='lv-pk-why '+(ok?'ok':'ko'); wEl.hidden=false;", "P.box.querySelector('.lv-pk-t').hidden=true;"])
     assert.ok(vd.includes(part), `verdict : ${part}`);
   assert.ok(html.includes('.lv-pk-hole{') && html.includes('.lv-pk-why.ok{') && html.includes('.lv-pk-why.ko{'), 'case jaune du prompt, correction verte ou rouge');
   assert.ok(html.includes('.lv.is-pk .lv-bottom{visibility:hidden}') && html.includes('const a=lvPt(0,1496);'), 'le plateau couvre la légende et les commandes, jamais le résultat');
   assert.ok(cut('function lvPkClose(answered){', 'function lvReplay(){').includes('IX.leave(P.i,!!answered)'), 'à la reprise, la page laisse la timeline reprendre la même image');
   assert.ok(html.includes("o['p'+i]={first:first?1:0}") && html.includes('.lv-pk-t code{'), 'premier essai gardé pour le score ; code du prompt en étiquette');
   const core = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
-  assert.ok(core.includes('picks: picks.map(p => ({t: unwarp(p.at), prompt: fr(p.prompt), options: p.options.map(o => ({label: o.label, ok: !!o.ok}))}))')
+  assert.ok(core.includes("picks: picks.map(p => ({t: unwarp(p.at), kind: p.kind || 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', need: p.need || 0,")
+    && core.includes('options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok}))}))')
     && core.includes('clashes: holdClashes(picks.map(p => p.at))') && core.includes('if (cfg.onRender) cfg.onRender(T);'), 'moteur : moments exportés, aucune animation coupée par un arrêt, rendu suivi par la page');
+});
+
+test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme à la souris, sans couper « e-mail »', () => {
+  const show = cut('function lvPkShow(i,p){', 'function lvPkTry(k){');
+  for (const part of ["const total=kind==='sort'?opts.length:(p.need||0);", "box.className='lv-pk'+(kind==='pick'?'':' is-'+kind)+(p.text?' is-text':'');",
+    '<span class="lv-pk-cnt">0 / ${total}</span>', '<span class="lv-pk-ico" aria-hidden="true">${LV_PK_ICO[kind]||LV_PK_ICO.tap}</span>${p.prompt}',
+    '<p class="lv-pk-hint">${p.hint}</p>', '}else lvPkLayer(P);', "p={...p,prompt:lvNw(p.prompt),hint:p.hint?lvNw(p.hint):''};"])
+    assert.ok(show.includes(part), `plateau : ${part}`);
+  const layer = cut('function lvPkLayer(P){', 'function lvPkActed(');
+  for (const part of ['spots=(IX&&IX.spots&&IX.spots(P.i))||[]', "if(P.kind==='tap')P.spots.forEach(b=>b.addEventListener('click',()=>lvPkAct(P,[b.dataset.k],b)));",
+    'lvPkDrag(P,c,zones,z=>{ lvPkSel(P,null); lvPkAct(P,[+c.dataset.k,z.el.dataset.k],z.el,c); });', 'btn.setPointerCapture(e.pointerId);', 'a.setPointerCapture(e.pointerId);',
+    "btn.addEventListener('pointercancel',cc);", 'btn._noClick=performance.now()+450;', 'res=IX&&IX.act?IX.act(P.i,...args):null;', "b.setAttribute('aria-label',"])
+    assert.ok(layer.includes(part), `gestes : ${part}`);
+  const acted = cut('function lvPkActed(', 'function lvReplay(){');
+  for (const part of ['if(r.done){ lvPkWin(P,why,r.at||(el&&el._s)||null); return; }', 'P.miss++;', "kick.textContent='✕ Essaie encore';",
+    'const first=P.miss===0', 'lvPkSet(LV.id,P.i,first);', "wEl.innerHTML=lvNw(why); wEl.className='lv-pk-why ko';", "if(P.layer)P.layer.classList.add('is-done');"])
+    assert.ok(acted.includes(part), `verdict des gestes : ${part}`);
+  assert.ok(html.includes('.lv-pk-opt.can-drag{touch-action:none;') && html.includes('.lv-pk-spot{position:absolute;') && html.includes('.lv-pk-layer{position:absolute;inset:0;z-index:5;pointer-events:none}'),
+    'le doigt ne fait pas défiler la page en glissant ; seules les zones de l’image captent les appuis');
+  /* Relier : la page reçoit toujours l’élément de gauche en premier, quel que soit le sens du geste. */
+  const calls = [];
+  const ctx = vm.createContext({lvPkAct: (P, args) => calls.push(args.join('→'))});
+  vm.runInContext(cut('function lvPkLink(P,a,b){', '/* Un geste : la page le juge'), ctx);
+  const el = (k, side) => ({dataset: {k, side}});
+  ctx.lvPkLink({}, el('coach1', 'l'), el('atelier2', 'r'));
+  ctx.lvPkLink({}, el('atelier2', 'r'), el('coach1', 'l'));
+  assert.equal(calls.join(' '), 'coach1→atelier2 coach1→atelier2', 'lien dans les deux sens');
+  /* Mots à trait d’union : jamais coupés en fin de ligne, balises intactes. */
+  vm.runInContext(cut('function lvNw(h){', 'function lvPkShow(i,p){') + ';this.lvNw=lvNw;', ctx);
+  assert.equal(ctx.lvNw('Touche chaque case où l’e-mail de Camille Roux est écrit.'), 'Touche chaque case où l’<span class="lv-nw">e-mail</span> de Camille Roux est écrit.');
+  assert.equal(ctx.lvNw('d’après la table <code class="a-b">inscriptions</code> ?'), 'd’après la table <code class="a-b">inscriptions</code> ?', 'balises et attributs intacts');
+  assert.ok(html.includes('.lv-nw{white-space:nowrap}'), 'mot gardé entier');
+});
+
+test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six moments sur l’image, clients de la base', async () => {
+  const l56 = cut('guide({ id:56, titre:"Normaliser les inscriptions"', 'guide({ id:72,');
+  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'3 min 01',moments:6,") && !l56.includes('seuil:'), 'leçon seule, 6 moments, validée à la fin de la vidéo');
+  const page = fs.readFileSync(path.join(ROOT, 'assets/anim/projet-normaliser.html'), 'utf8');
+  const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
+  assert.ok(a > 0 && b > a, 'données de la page localisées');
+  const ctx = vm.createContext({APP: true});
+  vm.runInContext(page.slice(a, b) + ';this.D = {COACHS, ATELIERS, YOGA, CLIENTS, INSCR, COLS, SORT, BINS, PICKS, SHEET};', ctx);
+  const D = JSON.parse(JSON.stringify(ctx.D));
+  assert.deepEqual(D.PICKS.map(p => p.kind), ['tap', 'tap', 'pick', 'sort', 'tap', 'pick'], 'toucher, choisir, glisser');
+  assert.deepEqual(D.PICKS.map(p => p.at), [...D.PICKS.map(p => p.at)].sort((x, y) => x - y), 'moments dans l’ordre');
+  for (const p of D.PICKS.filter(x => x.kind === 'pick')) assert.equal(p.options.filter(o => o.ok).length, 1, `${p.prompt} : une seule bonne réponse`);
+  assert.deepEqual(D.SORT.map(r => r[0]), D.COLS, 'chaque colonne du tableur est à ranger, dans l’ordre du tableur');
+  assert.ok(D.SORT.every(r => D.BINS.some(x => x[0] === r[1])), 'chaque colonne a sa table parmi les quatre');
+  assert.equal(D.SHEET.filter(r => r[4] === 'camille@mail.fr').length, D.PICKS[0].need, 'l’e-mail de Camille Roux, autant de fois que de cases à toucher');
+  assert.equal(D.SHEET.filter(r => r[1] === 'Cuisine saine').length, 1, 'Cuisine saine : une seule ligne, effacée avec la désinscription');
+  assert.ok(!D.INSCR.some(r => r[1] === D.YOGA[0]), 'Yoga du matin : aucun inscrit');
+  const data = vm.createContext({});
+  vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), data);
+  const {createRequire} = await import('node:module');
+  const SQL = await createRequire(import.meta.url)(path.join(ROOT, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(ROOT, 'vendor/sqljs', f)});
+  const db = new SQL.Database();
+  db.run(vm.runInContext('SCHEMA_SQL', data));
+  for (const [id, [prenom, nom]] of Object.entries(D.CLIENTS))
+    assert.equal(JSON.stringify(db.exec(`SELECT prenom, nom FROM clients WHERE id = ${id}`)[0].values), JSON.stringify([[prenom, nom]]), `client ${id}`);
+  db.close();
+  /* Mêmes coachs, ateliers et inscriptions que la vidéo UML (le chapitre 3 du projet). */
+  const uml = fs.readFileSync(path.join(ROOT, 'assets/anim/uml.html'), 'utf8');
+  assert.ok(uml.includes("const COACHS = [[1, 'Camille', 'Roux'], [2, 'Thomas', 'Girard']];") && uml.includes("const ATELIERS = [[1, 'Récupération', 1], [2, 'Cuisine saine', 1], [3, 'Gainage doux', 2]];"), 'coachs et ateliers du cas');
+  assert.deepEqual(D.INSCR.map(r => [r[0], r[1]]).sort(), [[1, 1], [1, 3], [4, 1], [7, 2]], 'inscriptions du cas');
 });
 
 test('leçon seule (Quel JOIN choisir ?) : la vidéo interactive valide la leçon, sans exercice, quiz ni révision', () => {

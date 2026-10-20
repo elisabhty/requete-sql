@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Projet, chapitre 1 : normaliser les inscriptions</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:142px;top:440px;letter-spacing:-3px}
+#s0 .hilite{top:520px;height:48px}
+#s0 .sub{top:624px;font-size:62px}
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+.hid{opacity:0;visibility:hidden}
+/* Aperçu d’un geste (moment « À toi ») : il prend le pas sur la timeline, le temps de l’arrêt ; il montre exactement
+   l’image que la timeline affiche juste après l’arrêt, qui reprend donc sans saut. */
+.pvs{opacity:1!important;visibility:visible!important}
+.pvh{opacity:0!important;visibility:hidden!important}
+
+/* Couleur de chaque sujet : client, atelier, coach, inscription */
+.k-cl{--c:#6A4DF4;--cs:#EEE9FF;--ci:#5335E0}
+.k-at{--c:#E8892B;--cs:#FFF1E2;--ci:#9A5B00}
+.k-co{--c:#2F80ED;--cs:#E6F0FD;--ci:#1D5FA8}
+.k-in{--c:#169447;--cs:#E2F6EA;--ci:#0F7A3A}
+
+/* ---------- 1 · Le programme des ateliers ---------- */
+.pg{left:64px;width:952px;top:480px;padding:30px 0 14px}
+.pgh{display:flex;align-items:center;gap:16px;padding:0 40px 18px;font-family:var(--display);font-size:46px;font-weight:800;letter-spacing:-1px;color:var(--ink)}
+.pgh .emo{font-size:48px}
+.pgr{height:124px;display:flex;align-items:center;gap:22px;padding:0 40px;box-shadow:inset 0 2px 0 var(--line-2)}
+.pgr .emo{flex:none;width:76px;height:76px;border-radius:24px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:44px}
+.pgr b{font-size:40px;font-weight:700;color:var(--ink)}
+.pgd{height:48px;padding:0 16px;border-radius:14px;background:#FFF1E2;color:#9A5B00;font-size:28px;font-weight:800;display:flex;align-items:center}
+.pgc{margin-left:auto;display:flex;align-items:center;gap:12px;font-size:32px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.av{flex:none;width:56px;height:56px;border-radius:50%;background:#E6F0FD;color:#1D5FA8;font-family:var(--display);font-size:24px;font-weight:800;display:flex;align-items:center;justify-content:center}
+
+/* ---------- Le tableur ---------- */
+.xl{left:32px;width:1016px;top:236px;padding:0 0 10px;overflow:visible}
+.xlt{height:70px;display:flex;align-items:center;gap:12px;padding:0 16px 0 28px;border-radius:45px 45px 0 0;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);white-space:nowrap}
+.xlt .emo{font-size:34px}
+.xfn{font-size:30px;font-weight:700;color:var(--ink)}
+.xn{margin-left:auto;position:relative;height:46px;width:300px}
+.xn>span{position:absolute;right:0;top:0;height:46px;padding:0 20px;border-radius:999px;background:#fff;color:var(--ink-2);font-size:25px;font-weight:800;display:flex;align-items:center;white-space:nowrap;box-shadow:inset 0 0 0 3px var(--line)}
+.xn>span.bad{background:var(--danger-soft);color:var(--danger);box-shadow:inset 0 0 0 3px #F6C9CD}
+.xg{position:relative;padding:0 10px}
+.xr{position:relative;display:grid;grid-template-columns:190px 196px 92px 200px 212px 106px;white-space:nowrap}
+.xr>span{position:relative;display:flex;align-items:center;padding:0 8px;box-shadow:inset -2px 0 0 var(--line-2)}
+.xr>span:last-child{box-shadow:none}
+.xa{height:38px;font-size:20px;font-weight:700;color:#9A94BD;box-shadow:inset 0 -2px 0 var(--line)}
+.xa>span{justify-content:center;background:#F8F6FE}
+.xh{height:56px;font-size:22px;font-weight:700;color:var(--ink-2);box-shadow:inset 0 -2px 0 var(--line)}
+.xd{height:84px;font-size:26px;font-weight:500;color:var(--ink);box-shadow:inset 0 -2px 0 var(--line-2)}
+.xd.last{box-shadow:none}
+.xd .hl{position:absolute;left:0;top:0;right:0;bottom:0;background:#EEE9FF;opacity:0}
+.xr .v{position:relative;z-index:1;font-style:normal}
+/* Repères posés sur une case : anneau (l’e-mail recopié), case touchée par erreur */
+.ring{position:absolute;left:3px;right:5px;top:6px;bottom:6px;border-radius:10px;box-shadow:inset 0 0 0 4px var(--accent);background:rgba(124,92,255,.1);opacity:0;visibility:hidden}
+.xr>span.kof::after{content:"";position:absolute;left:3px;right:5px;top:6px;bottom:6px;border-radius:10px;background:rgba(239,79,85,.18);box-shadow:inset 0 0 0 4px var(--danger-fill);animation:kof .55s ease forwards}
+@keyframes kof{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+/* Ligne à supprimer : barrée en rouge */
+.delb{position:absolute;left:0;top:0;right:0;bottom:0;z-index:2;background:rgba(253,235,236,.82);opacity:0;visibility:hidden}
+.delb::after{content:"";position:absolute;left:14px;right:14px;top:50%;height:5px;margin-top:-2px;border-radius:3px;background:var(--danger-fill)}
+.xd.kor{animation:kor .5s ease}
+@keyframes kor{0%,100%{background:transparent}30%{background:rgba(239,79,85,.16)}}
+/* Les cases qui disparaîtraient avec la ligne */
+.lost{position:absolute;left:3px;right:5px;top:6px;bottom:6px;z-index:3;border-radius:10px;box-shadow:inset 0 0 0 4px var(--danger-fill);opacity:0;visibility:hidden}
+/* La ligne de l’atelier sans inscrit */
+.xd.ny{background:#FBFAFF}
+.ask{position:absolute;left:3px;right:5px;top:8px;bottom:8px;z-index:2;border-radius:10px;border:3px solid #F2B529;background:#FFF3CF;color:#9A6400;font-family:var(--mono);font-weight:800;font-size:30px;display:flex;align-items:center;justify-content:center}
+.op1,.op2,.op3{position:absolute;left:3px;right:5px;top:8px;bottom:8px;z-index:2;border-radius:10px;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden}
+.op1{padding:0 6px;background:var(--danger-soft);color:var(--danger);font-weight:700;font-size:24px;justify-content:flex-start}
+.op2{border:3px dashed var(--danger-fill);background:#fff}
+.op3{background:#F1EEFC;color:var(--ink-3);font-family:var(--mono);font-weight:800;font-size:30px}
+.nyo{position:absolute;left:-3px;right:-3px;top:2px;bottom:2px;z-index:3;border-radius:14px;border:4px dashed var(--danger-fill);opacity:0;visibility:hidden}
+/* Bandes de couleur : les sujets mélangés sur chaque ligne */
+.sband{position:absolute;z-index:0;border-radius:12px;background:var(--cs);box-shadow:inset 0 0 0 3px var(--c);opacity:0;visibility:hidden}
+.colb{position:absolute;z-index:0;border-radius:12px;background:rgba(124,92,255,.14);box-shadow:inset 0 0 0 3px rgba(124,92,255,.5);opacity:0;visibility:hidden}
+/* Colonne rangée : coche sur son en-tête */
+.ck{position:absolute;left:2px;top:-13px;z-index:2;width:28px;height:28px;border-radius:50%;background:#169447;color:#fff;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px #fff;opacity:0;visibility:hidden}
+.xh>span.done{color:#A8A2C6}
+
+/* ---------- Sous le tableur : les copies, ce qui serait perdu, le nouvel atelier, les sujets ---------- */
+.cp{left:64px;width:952px;padding:26px 30px 30px}
+.cph{display:flex;align-items:center;gap:16px}
+.cph .emo{font-size:40px}
+.cph code{font-size:34px;padding:6px 16px;border-radius:14px}
+.cpn{margin-left:auto;height:54px;padding:0 22px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--display);font-size:32px;font-weight:800;display:flex;align-items:center}
+.cpt{margin-top:24px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.tile{position:relative;height:118px;border-radius:26px;background:var(--surface-2);box-shadow:inset 0 0 0 3px var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center}
+.tile .tn{font-size:22px;font-weight:700;color:var(--ink-3)}
+.tile b{font-size:26px;font-weight:700;color:var(--ink);white-space:nowrap}
+.tile.ghost{background:transparent;box-shadow:none;border:4px dashed #CFC4F5}
+.tile.ghost b{color:var(--ink-3)}
+.tpen{position:absolute;right:-10px;top:-12px;width:44px;height:44px;border-radius:50%;background:#FFB020;box-shadow:0 4px 0 #E0901A;color:#fff;font-size:24px;font-style:normal;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden}
+.lc{left:64px;width:952px;padding:26px 30px 30px}
+.lch{display:flex;align-items:center;gap:14px;font-size:32px;font-weight:700;color:var(--danger)}
+.lch .emo{font-size:38px}
+.lcc{margin-top:22px;display:flex;gap:16px;justify-content:center}
+.lchip{position:relative;height:72px;padding:0 26px;border-radius:20px;background:var(--danger-soft);box-shadow:inset 0 0 0 3px #F6C9CD;color:var(--ink);font-size:28px;font-weight:700;display:flex;align-items:center;gap:12px;white-space:nowrap}
+.lchip .emo{font-size:32px}
+.lchip .x{position:absolute;right:-12px;top:-14px;width:40px;height:40px;border-radius:50%;background:var(--danger-fill);color:#fff;font-size:20px;font-style:normal;font-weight:800;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden}
+.nc{left:64px;width:952px;height:132px;padding:0 30px;display:flex;align-items:center;gap:20px}
+.nc .emo{flex:none;width:80px;height:80px;border-radius:24px;background:#FFF1E2;display:flex;align-items:center;justify-content:center;font-size:46px}
+.nc b{font-size:36px;font-weight:700;color:var(--ink);white-space:nowrap}
+.nc .pgd{flex:none}
+.ncc{display:flex;align-items:center;gap:10px;font-size:28px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.ncc .av{width:48px;height:48px;font-size:20px}
+.nc0{margin-left:auto;flex:none;height:52px;padding:0 20px;border-radius:999px;background:#FFF3CF;color:#9A6400;box-shadow:inset 0 0 0 3px #F2B529;font-size:26px;font-weight:800;display:flex;align-items:center;white-space:nowrap}
+.leg{left:64px;width:952px;display:flex;justify-content:center;gap:16px}
+.subj{height:64px;padding:0 22px;border-radius:999px;display:flex;align-items:center;gap:10px;background:var(--cs);color:var(--ci);box-shadow:inset 0 0 0 3px var(--c);font-size:28px;font-weight:800;white-space:nowrap}
+.subj .emo{font-size:30px}
+
+/* ---------- 4 · Les quatre tables où ranger les colonnes ---------- */
+.bin{width:456px;height:340px;padding:24px 26px;border-radius:40px;border:4px dashed var(--c);background:rgba(255,255,255,.75)}
+.bin.old{border-style:solid;background:#fff;box-shadow:0 9px 0 var(--lip)}
+.bin .bh{display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:34px;font-weight:800;color:var(--ci)}
+.bin .bh .emo{flex:none;width:62px;height:62px;border-radius:18px;background:var(--cs);display:flex;align-items:center;justify-content:center;font-size:34px}
+.bin .bc{margin-top:24px;display:flex;flex-wrap:wrap;gap:12px}
+.col{position:relative;height:56px;padding:0 18px;border-radius:16px;font-family:var(--mono);font-size:26px;font-weight:700;display:flex;align-items:center;white-space:nowrap;background:var(--surface-2);color:var(--ink);box-shadow:inset 0 0 0 3px var(--line)}
+.col.was{color:var(--ink-3)}
+.col.nw{background:var(--cs);color:var(--ci);box-shadow:inset 0 0 0 3px var(--c);opacity:0;visibility:hidden}
+.bin .ko{position:absolute;left:0;top:0;right:0;bottom:0;border-radius:36px;background:rgba(239,79,85,.12);box-shadow:inset 0 0 0 4px var(--danger-fill);opacity:0}
+.bin.kob .ko{animation:kof .6s ease forwards}
+.bin.okb{animation:okb .5s cubic-bezier(.2,.9,.3,1.3)}
+@keyframes okb{40%{transform:scale(1.035)}}
+
+/* ---------- 5 · Les tables remplies ---------- */
+.tb3{border-radius:40px;padding:0 0 10px;overflow:hidden}
+.tb3 .h{height:72px;display:flex;align-items:center;gap:12px;padding:0 24px;background:var(--cs);font-family:var(--mono);font-size:30px;font-weight:800;color:var(--ci);white-space:nowrap}
+.tb3 .h .emo{font-size:32px}
+.gr{display:grid;grid-template-columns:var(--g);align-items:center;padding:0 12px}
+.gr>span{position:relative;z-index:1;padding:0 10px;white-space:nowrap;overflow:hidden}
+.hd{height:52px;font-family:var(--mono);font-size:25px;font-weight:700;color:var(--ink-3)}
+.r{position:relative;height:68px;font-family:var(--mono);font-size:30px;font-weight:600;color:var(--ink);box-shadow:inset 0 2px 0 var(--line-2)}
+.r .hl{position:absolute;left:0;top:0;right:0;bottom:0;background:#EEE9FF;box-shadow:inset 6px 0 0 var(--accent);opacity:0}
+.r.yg{opacity:0;visibility:hidden;overflow:hidden}
+.r.yg.pvs{height:68px!important}
+.r.yg .hl{opacity:1;background:#E2F6EA;box-shadow:inset 6px 0 0 #169447}
+.tb3.okb{animation:okb .5s cubic-bezier(.2,.9,.3,1.3)}
+.tb3.kob{animation:kob .45s ease}
+@keyframes kob{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+.mq{left:576px;width:440px;display:flex;justify-content:center;gap:14px}
+.miss{display:inline-flex;align-items:center;height:54px;padding:0 18px;border-radius:14px;border:3px dashed #F2A65A;background:#FFF4E5;color:#9A5B00;font-size:26px;font-weight:800;white-space:nowrap;opacity:0;visibility:hidden}
+.keyc{left:0;width:1080px;display:flex;justify-content:center}
+.keyc>span{height:96px;padding:0 40px 0 26px;border-radius:999px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 9px 0 #4B30CC;color:#fff;font-size:36px;font-weight:700;display:flex;align-items:center;gap:16px;white-space:nowrap}
+.keyc .emo{font-size:44px}
+
+/* ---------- 6 · À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:22px;padding:22px 32px}
+#s7 .rico{width:88px;height:88px;border-radius:26px;font-size:46px}
+#s7 .rtxt{font-size:37px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 1</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>N</span><span>O</span><span>R</span><span>M</span><span>A</span><span>L</span><span>I</span><span>S</span><span>E</span><span>R</span></div>
+    <div class="abs sub">Les inscriptions aux ateliers</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Le tableur des ateliers mélange tout&nbsp;:<br>à toi de le ranger en tables.</div>
+  </section>
+
+  <!-- 1 à 4 · Le programme, le tableur et ce qu’il montre, puis les quatre tables où ranger ses colonnes (construits par dom()) -->
+  <section class="scene" id="sx">
+    <div class="abs card pg" id="pg"><div class="pgh"><span class="emo">🗓️</span>Les ateliers de la rentrée</div></div>
+    <div class="abs card xl" id="xl">
+      <div class="xlt"><span class="emo">📊</span><span class="xfn">inscriptions-ateliers.xlsx</span><span class="xn"><span id="xn1">4 inscriptions</span><span class="bad hid" id="xn2">5 inscriptions&nbsp;?</span></span></div>
+      <div class="xg" id="xg"></div>
+    </div>
+  </section>
+
+  <!-- 5 · Les tables remplies -->
+  <section class="scene" id="s5"></section>
+
+  <!-- 6 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">📋</div><div class="rtxt">Un tableur qui <b>mélange les sujets</b><br>recopie les informations : modifier,<br>supprimer ou ajouter devient risqué.</div></div>
+      <div class="rrow"><div class="rico emo">🗂️</div><div class="rtxt"><b>Normaliser</b>, c’est écrire une seule fois<br>chaque information, dans la table<br>de ce qu’elle décrit.</div></div>
+      <div class="rrow"><div class="rico emo">📝</div><div class="rtxt">Une information qui décrit un <b>lien</b>,<br>comme la date d’inscription,<br>va dans la table de ce lien.</div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 166.0;
+
+/* ---------- Le cas : les ateliers NutriBoost (le même dans tous les chapitres du projet) ---------- */
+const COACHS = [[1, 'Camille', 'Roux', 'camille@mail.fr', 'CR'], [2, 'Thomas', 'Girard', 'thomas@mail.fr', 'TG']];
+/* Ateliers : [id, titre, date (tableur), date (base), coach, emoji]. Yoga du matin arrive plus tard, sans inscrit. */
+const ATELIERS = [[1, 'Récupération', '12/09', '2026-09-12', 1, '🥗'], [2, 'Cuisine saine', '19/09', '2026-09-19', 1, '🍳'], [3, 'Gainage doux', '26/09', '2026-09-26', 2, '🧘']];
+const YOGA = [4, 'Yoga du matin', '03/10', '2026-10-03', 2, '🌅'];
+/* Clients de la base de l’app : id → [prénom, nom]. */
+const CLIENTS = {1: ['Sophie', 'Martin'], 4: ['Nathan', 'Petit'], 7: ['Léa', 'Simon']};
+/* Inscriptions : [client_id, atelier_id, date (tableur), date (base)]. */
+const INSCR = [[1, 1, '01/09', '2026-09-01'], [4, 1, '02/09', '2026-09-02'], [7, 2, '04/09', '2026-09-04'], [1, 3, '05/09', '2026-09-05']];
+/* Le tableur : une ligne par inscription, le client, l’atelier et son coach recopiés. */
+const COLS = ['client', 'atelier', 'date', 'coach', 'e-mail du coach', 'inscrit le'];
+const SUBJ = [['k-cl', '👥', 'client', [0]], ['k-at', '📅', 'atelier', [1, 2]], ['k-co', '🧑‍🏫', 'coach', [3, 4]], ['k-in', '📝', 'inscription', [5]]];
+const at = id => ATELIERS.find(a => a[0] === id), co = id => COACHS.find(c => c[0] === id);
+const SHEET = INSCR.map(([c, a, d]) => { const A = at(a), C = co(A[4]); return [CLIENTS[c].join(' '), A[1], A[2], C[1] + ' ' + C[2], C[3], d]; });
+const CAMILLE = SHEET.map((r, i) => r[3] === 'Camille Roux' ? i : -1).filter(i => i >= 0);
+const LEA = 2;
+
+const CHAPTERS = [
+  {n:1, label:'Le tableur',          a:5.0,   b:29.6},
+  {n:2, label:'Les copies',          a:29.6,  b:52.0},
+  {n:3, label:'Supprimer, ajouter',  a:52.0,  b:87.4},
+  {n:4, label:'Une table par sujet', a:87.4,  b:118.8},
+  {n:5, label:'Les tables remplies', a:118.8, b:154.0},
+  {n:6, label:'À retenir',           a:154.0, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 11.5,    "NutriBoost lance des <b>ateliers</b> : récupération après le sport, cuisine saine, gainage en douceur."],
+  [11.6, 16.9,   "Chaque atelier est animé par un <b>coach</b>, et les clients peuvent s’y inscrire."],
+  [17.0, 23.0,   "Pour l’instant, les inscriptions sont notées dans un <b>tableur</b> : une ligne par inscription."],
+  [23.1, 29.3,   "Chaque ligne indique le client, l’atelier et sa date, le coach et son e-mail, puis la date d’inscription."],
+  [29.8, 35.0,   "Camille Roux anime deux ateliers : Récupération et Cuisine saine."],
+  [35.1, 40.2,   "À toi : touche chaque case<br>où son <b>e-mail</b> est écrit."],
+  [40.3, 46.3,   "Son e-mail est recopié sur trois lignes,<br>et le sera encore à chaque inscription."],
+  [46.4, 51.7,   "S’il change, il faudra corriger<br>chaque copie, sans en oublier aucune."],
+  [52.3, 57.4,   "Et si Léa Simon se désinscrivait de l’atelier Cuisine saine ?"],
+  [57.5, 61.8,   "À toi : touche la ligne<br>qu’il faudrait supprimer."],
+  [61.9, 68.6,   "Cette ligne est la seule où figure Cuisine saine : l’atelier, sa date et sa coach disparaîtraient avec elle."],
+  [68.7, 74.6,   "Autre cas : un atelier Yoga du matin est prévu le 3 octobre avec Thomas Girard."],
+  [74.7, 80.5,   "À toi : personne ne s’y est encore inscrit. Que mettre dans la case client ?"],
+  [80.6, 86.9,   "Recopier, perdre, ne pas pouvoir ajouter : tout vient des sujets mélangés sur chaque ligne."],
+  [87.8, 94.3,   "Pour <b>normaliser</b>, chaque information<br>est écrite une seule fois, dans la table<br>de ce qu’elle décrit."],
+  [94.4, 100.3,  "Les clients ont déjà leur table. Il en faut trois nouvelles : ateliers, coachs et inscriptions."],
+  [100.4, 105.2, "À toi : glisse chaque colonne<br>du tableur dans sa table."],
+  [105.3, 111.6, "Le titre et la date décrivent l’atelier ; le nom et l’e-mail décrivent le coach."],
+  [111.7, 118.4, "La date d’inscription décrit le lien entre un client et un atelier : elle va dans la <b>table inscriptions</b>."],
+  [119.2, 125.0, "Dans les tables, l’e-mail de Camille Roux<br>n’est plus écrit qu’une seule fois."],
+  [125.1, 130.0, "À toi : dans quelle table ajouter l’atelier Yoga du matin ?"],
+  [130.1, 135.9, "Une ligne dans la table <code>ateliers</code> suffit : il existe, même sans inscrit."],
+  [136.0, 141.6, "À toi : d’après la table <code>inscriptions</code>, qui s’est inscrit le 4 septembre ?"],
+  [141.7, 148.3, "Cette table ne garde que des dates :<br>rien ne la relie aux clients ni aux ateliers."],
+  [148.4, 153.6, "Au prochain chapitre, des <b>clés</b> relieront les tables entre elles."],
+  [154.4, 159.2, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [159.3, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [159.3, 999, "Une information, une table : c’est tout le principe de la normalisation."]
+];
+
+/* Pas de question du lecteur : les moments « À toi » (PICKS) font participer l’élève. */
+const QUESTIONS = [];
+
+/* Les colonnes du tableur et leur table : [étiquette, table, nouvelles colonnes, bonne place, mauvaises places]. */
+const SORT = [
+  ['client', 'clients', [], 'Les clients ont déjà leur table : rien à recréer.', {}],
+  ['atelier', 'ateliers', ['titre'], 'Le titre décrit l’atelier.', {}],
+  ['date', 'ateliers', ['date_atelier'], 'Une date par atelier, écrite une seule fois.',
+    {inscriptions: 'Tous les inscrits d’un atelier ont la même date : elle décrit l’atelier.'}],
+  ['coach', 'coachs', ['prenom', 'nom'], 'Le nom est rangé en deux colonnes, prenom et nom, comme dans la table <code>clients</code>.',
+    {ateliers: 'Camille Roux anime deux ateliers : son nom y serait recopié.', inscriptions: 'Le coach dépend de l’atelier : son nom serait recopié pour chaque inscrit.'}],
+  ['e-mail du coach', 'coachs', ['email'], 'Chaque coach n’a qu’un e-mail : il ne sera plus recopié.',
+    {ateliers: 'L’e-mail décrit le coach, pas l’atelier.', clients: 'C’est l’e-mail du coach, pas celui d’un client.', inscriptions: 'L’e-mail décrit le coach : il serait recopié pour chaque inscrit.'}],
+  ['inscrit le', 'inscriptions', ['date_inscription'], 'Chaque inscription a sa propre date.',
+    {clients: 'Sophie Martin s’est inscrite le 1er et le 5 septembre : une seule case ne suffirait pas.', ateliers: 'Nathan Petit et Sophie Martin ne se sont pas inscrits à Récupération le même jour.'}]
+];
+const BINS = [['clients', '👥', 'k-cl', ['id', 'prenom', 'nom']], ['ateliers', '📅', 'k-at', []],
+  ['coachs', '🧑‍🏫', 'k-co', []], ['inscriptions', '📝', 'k-in', []]];
+
+/* Les six moments « À toi » : l’image s’arrête, l’élève touche, glisse ou choisit ; la page montre aussitôt le résultat. */
+const PICKS = [
+  {at: 40.0, kind: 'tap', need: 3, prompt: 'Touche chaque case où l’e-mail de Camille Roux est écrit.', hint: 'Touche directement le tableur.'},
+  {at: 61.6, kind: 'tap', need: 1, prompt: 'Touche la ligne qu’il faudrait supprimer.'},
+  {at: 80.3, kind: 'pick', text: true, prompt: 'Que mettre dans la case client de cette ligne ?', options: [
+    {label: 'Thomas Girard', why: 'Il anime l’atelier : il ne s’y inscrit pas.'},
+    {label: 'Laisser vide', why: 'La ligne compterait alors comme une inscription : il y en aurait une de trop.'},
+    {label: 'Rien ne convient', ok: true, why: 'Sans inscrit, pas de ligne : le tableur ne peut pas enregistrer cet atelier.'}]},
+  {at: 105.0, kind: 'sort', prompt: 'Glisse chaque colonne du tableur dans sa table.', hint: 'Ou touche une colonne, puis sa table.',
+    options: SORT.map(([label]) => ({label}))},
+  {at: 129.8, kind: 'tap', need: 1, prompt: 'Dans quelle table ajouter l’atelier Yoga du matin ?'},
+  {at: 141.4, kind: 'pick', text: true, prompt: 'Qui s’est inscrit le 4 septembre, d’après la table <code>inscriptions</code> ?', options: [
+    {label: 'Léa Simon', why: 'Le tableur l’indiquait, mais pas cette table.'},
+    {label: 'Impossible à savoir', ok: true},
+    {label: 'Sophie Martin', why: 'Rien dans cette table ne l’indique.'}]}
+];
+
+/* ---------- Gabarits ---------- */
+const av = c => `<i class="av">${c[4]}</i>`;
+function dom(){
+  // Le programme des ateliers
+  $('#pg').insertAdjacentHTML('beforeend', ATELIERS.map(a => `<div class="pgr" id="pr${a[0]}"><span class="emo">${a[5]}</span><b>${a[1]}</b>` +
+    `<span class="pgd">${a[2]}</span><span class="pgc">${av(co(a[4]))}${co(a[4])[1]} ${co(a[4])[2]}</span></div>`).join(''));
+  // Le tableur : lettres des colonnes, en-têtes (avec la coche des colonnes rangées), quatre inscriptions, l’atelier sans inscrit
+  let h = COLS.map((c, j) => `<i class="colb" id="cb${j}"></i>`).join('') + SUBJ.map(([k, , , cs], q) => `<i class="sband ${k}" id="bd${q}" data-c="${cs.join(',')}"></i>`).join('');
+  h += `<div class="xr xa" id="xa">${COLS.map((c, j) => `<span>${'ABCDEF'[j]}</span>`).join('')}</div>`;
+  h += `<div class="xr xh" id="xh">${COLS.map((l, j) => `<span><i class="v">${l}</i><i class="ck" id="ck${j}">✓</i></span>`).join('')}</div>`;
+  SHEET.forEach((r, i) => {
+    h += `<div class="xr xd" id="xd${i}"><i class="hl"></i>` + r.map((v, j) => `<span id="c${i}_${j}"><i class="v">${v}</i>` +
+      (j === 4 && CAMILLE.includes(i) ? `<i class="ring" id="rg${i}"></i>` : '') +
+      (i === LEA && j >= 1 && j <= 3 ? `<i class="lost" id="ls${j}"></i>` : '') + '</span>').join('') +
+      (i === LEA ? '<i class="delb" id="delb"></i>' : '') + '</div>';
+  });
+  const Y = ['?', YOGA[1], YOGA[2], 'Thomas Girard', 'thomas@mail.fr', '?'];
+  h += '<div class="xr xd ny last hid" id="xdy">' + Y.map((v, j) => `<span id="cy_${j}">` + (j === 0 || j === 5 ? `<i class="ask" id="ask${j}">?</i>` : `<i class="v">${v}</i>`) +
+    (j === 0 ? '<i class="op1" id="op1">Thomas Girard</i><i class="op2" id="op2"></i><i class="op3" id="op3">—</i>' : '') +
+    (j === 5 ? '<i class="op3" id="op3b">—</i>' : '') + '</span>').join('') +
+    '<i class="nyo" id="nyo"></i></div>';
+  $('#xg').innerHTML = h;
+  // Sous le tableur : les copies de l’e-mail, ce que la ligne emporterait, le nouvel atelier, les sujets
+  let u = `<div class="abs card cp" id="cp"><div class="cph"><span class="emo">📧</span><code>${COACHS[0][3]}</code><span class="cpn" id="cpn">× 3</span></div><div class="cpt">` +
+    CAMILLE.map((r, k) => `<div class="tile" id="tl${k}"><span class="tn">ligne ${r + 2}</span><b>${SHEET[r][0]}</b><i class="tpen" id="tp${k}">✎</i></div>`).join('') +
+    '<div class="tile ghost" id="tl3"><span class="tn">et ensuite</span><b>+ 1 inscrit</b><i class="tpen" id="tp3">✎</i></div></div></div>';
+  const A2 = at(2);
+  u += `<div class="abs card lc" id="lc"><div class="lch"><span class="emo">🗑️</span>Effacé avec la ligne</div><div class="lcc">` +
+    `<span class="lchip"><span class="emo">${A2[5]}</span>${A2[1]}<i class="x">✕</i></span><span class="lchip">${A2[2]}<i class="x">✕</i></span>` +
+    `<span class="lchip">${av(co(1))}animé par Camille Roux<i class="x">✕</i></span></div></div>`;
+  u += `<div class="abs card nc" id="nc"><span class="emo">${YOGA[5]}</span><b>${YOGA[1]}</b><span class="pgd">${YOGA[2]}</span>` +
+    `<span class="ncc">${av(co(2))}Thomas Girard</span><span class="nc0">0 inscrit</span></div>`;
+  u += `<div class="abs leg" id="leg">${SUBJ.map(([k, e, l], q) => `<span class="subj ${k}" id="sj${q}"><span class="emo">${e}</span>${l}</span>`).join('')}</div>`;
+  // Les quatre tables où ranger les colonnes, chacune de la couleur de son sujet
+  BINS.forEach(([n, e, k, old], q) => {
+    const news = SORT.filter(x => x[1] === n).flatMap(x => x[2].map(c => [c, SORT.indexOf(x)]));
+    u += `<div class="abs bin ${k}${old.length ? ' old' : ''}" id="bn${q}" data-t="${n}"><i class="ko"></i><div class="bh"><span class="emo">${e}</span>${n}</div>` +
+      `<div class="bc">${old.map(c => `<span class="col was">${c}</span>`).join('')}${news.map(([c, j]) => `<span class="col nw" data-k="${j}">${c}</span>`).join('')}</div></div>`;
+  });
+  $('#sx').insertAdjacentHTML('beforeend', u);
+  // Les tables remplies
+  const tb = (id, k, name, emo, cols, g, rows, x, w) => `<div class="abs card tb3 ${k}" id="${id}" style="left:${x}px;width:${w}px;--g:${g}">` +
+    `<div class="h"><span class="emo">${emo}</span>${name}</div><div class="gr hd">${cols.map(c => `<span>${c}</span>`).join('')}</div>` +
+    rows.map(r => `<div class="gr r"><i class="hl"></i>${r.map(v => `<span>${v}</span>`).join('')}</div>`).join('') + '</div>';
+  let t = tb('tbc', 'k-co', 'coachs', '🧑‍🏫', ['prenom', 'nom', 'email'], '210px 210px 1fr', COACHS.map(c => [c[1], c[2], c[3]]), 64, 952);
+  t += tb('tba', 'k-at', 'ateliers', '📅', ['titre', 'date_atelier'], '1fr 206px', ATELIERS.map(a => [a[1], a[3]]), 64, 492);
+  t += tb('tbi', 'k-in', 'inscriptions', '📝', ['date_inscription'], '1fr', INSCR.map(i => [i[3]]), 576, 440);
+  t += '<div class="abs mq" id="mq"><span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span></div>';
+  t += '<div class="abs keyc hid" id="keyc"><span><span class="emo">🔑</span>Chapitre 2 · Clés et relations</span></div>';
+  $('#s5').innerHTML = t;
+  // Yoga du matin : sa ligne dans la table ateliers (montrée quand l’élève l’y ajoute)
+  $('#tba').insertAdjacentHTML('beforeend', `<div class="gr r yg" id="ryg"><i class="hl"></i><span>${YOGA[1]}</span><span>${YOGA[3]}</span></div>`);
+}
+
+/* ---------- Mise en page ---------- */
+function place(el, x, y, w, h){ Object.assign(el.style, {left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px'}); }
+/* Abscisse d’une case dans le tableur (sa ligne, puis sa place dans la ligne). */
+const cx = el => el.offsetLeft + el.parentElement.offsetLeft;
+function layout(){
+  const cell = (r, j) => $(r < 0 ? '#xh' : '#xd' + r).children[j + (r < 0 ? 0 : 1)];
+  const y0 = $('#xh').offsetTop, yEnd = $('#xd' + (SHEET.length - 1)).offsetTop + 84;
+  COLS.forEach((c, j) => { const a = cell(-1, j); place($('#cb' + j), cx(a) + 4, y0 + 4, a.offsetWidth - 8, yEnd - y0 - 8); });
+  $$('.sband').forEach(el => {
+    const cs = el.dataset.c.split(',').map(Number), a = cell(-1, cs[0]), z = cell(-1, cs[cs.length - 1]);
+    place(el, cx(a) + 4, y0 + 2, cx(z) + z.offsetWidth - cx(a) - 8, yEnd - y0 - 4);
+  });
+  // Sous le tableur (sans la ligne de Yoga du matin, sauf pour la carte du nouvel atelier, qui arrive avec elle)
+  const below = 236 + $('#xl').offsetHeight + 44;
+  ['#cp', '#lc', '#leg'].forEach(s => { $(s).style.top = below + 'px'; });
+  $('#nc').style.top = (below + 84) + 'px';
+  // Les quatre tables : sous l’en-tête du tableur replié (titre, lettres, en-têtes)
+  const top = 236 + 70 + 38 + 56 + 10 + 48;
+  $$('.bin').forEach((b, q) => { b.style.left = (64 + (q % 2) * 496) + 'px'; b.style.top = (top + Math.floor(q / 2) * 380) + 'px'; });
+  // Les tables remplies
+  const tbc = $('#tbc'), tba = $('#tba'), tbi = $('#tbi');
+  tbc.style.top = '236px';
+  tba.style.top = tbi.style.top = (236 + tbc.offsetHeight + 30) + 'px';
+  const low = 236 + tbc.offsetHeight + 30 + Math.max(tba.offsetHeight + 68, tbi.offsetHeight);   // ateliers : + la ligne de Yoga du matin
+  $('#mq').style.top = (236 + tbc.offsetHeight + 30 + tbi.offsetHeight + 24) + 'px';
+  $('#keyc').style.top = (low + 120) + 'px';
+}
+
+/* ---------- Petits gestes de la timeline ---------- */
+const pulse = (el, t, n = 3, c = 'rgba(201,188,255,.55)') => tl.to(el, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (el, t, s = 1.06) => tl.to(el, {scale: s, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, t);
+const pop = (el, t, s = 0.4) => { show(el, t, {y: 0, scale: s}, 0.4, 'back.out(2.2)'); cue(t, 'pop', 0.7, 3); };
+function colIn(j, t, d = 1.4){ tl.to('#cb' + j, {autoAlpha: 1, duration: 0.25}, t); tl.to('#cb' + j, {autoAlpha: 0, duration: 0.3}, t + d); cue(t, 'tick', 0.5, j); }
+function cellsPulse(list, t, c){ list.forEach(([r, j], k) => pulse('#c' + r + '_' + j, t + k * 0.12, 3, c)); cue(t, 'tick', 0.5, 2); }
+function rowsIn(rows, t, step = 0.12){
+  gsap.set(rows, {autoAlpha: 0, x: -30});
+  tl.to(rows, {autoAlpha: 1, x: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
+  gsap.set('#xdy', {height: 0});
+  gsap.set('#ryg', {height: 0});
+  layout();
+  gsap.set(['#s5', '.bin', '#xl', '#cp', '#lc', '#nc', '.subj', '.tile', '.lchip'], {autoAlpha: 0});
+
+  /* ===== 1 · Le tableur ===== */
+  sceneOn('#sx', 5.0);
+  // Les ateliers de la rentrée : récupération, cuisine saine, gainage
+  show('#pg', 5.3, {y: 60}, 0.6);
+  cue(5.3, 'whoosh', 0.7);
+  const pr = $$('#pg .pgr');
+  gsap.set(pr, {autoAlpha: 0, x: -36});
+  [7.0, 8.7, 9.7].forEach((t, k) => { tl.to(pr[k], {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, t); cue(t, 'pop', 0.7, k); });
+  // un coach par atelier
+  $$('#pg .av').forEach((a, k) => { bump(a, 12.4 + k * 0.25, 1.18); cue(12.4 + k * 0.25, 'tick', 0.5, k); });
+  // le tableur des inscriptions : une ligne par inscription
+  hide('#pg', 16.6, {y: -30}, 0.4);
+  tl.fromTo('#xl', {autoAlpha: 0, y: 360}, {autoAlpha: 1, y: 300, duration: 0.6, ease: 'expo.out', immediateRender: false}, 17.2);
+  cue(17.2, 'whoosh', 0.7);
+  tl.to('#xl', {y: 0, duration: 0.6, ease: 'power2.inOut'}, 29.6);
+  rowsIn($$('#xd0, #xd1, #xd2, #xd3'), 17.8);
+  $$('#xd0, #xd1, #xd2, #xd3').forEach((r, k) => { tl.to(r.querySelector('.hl'), {opacity: 1, duration: 0.25, yoyo: true, repeat: 1}, 19.8 + k * 0.45); cue(19.8 + k * 0.45, 'tick', 0.5, k); });
+  // les colonnes, une à une
+  [[0, 23.5], [1, 24.4], [2, 25.1], [3, 25.8], [4, 26.5], [5, 27.3]].forEach(([j, t]) => colIn(j, t, 0.9));
+
+  /* ===== 2 · Les copies ===== */
+  cellsPulse(CAMILLE.map(r => [r, 3]), 30.4);
+  cellsPulse([[0, 1], [2, 1]], 32.6);
+  // À toi : les cases de son e-mail (la réponse, juste après l’arrêt)
+  const a0 = +(PICKS[0].at + 0.02).toFixed(2);
+  tl.set(CAMILLE.map(r => '#rg' + r), {autoAlpha: 1}, a0);
+  // recopié sur trois lignes, et encore à chaque inscription
+  show('#cp', 40.5, {y: 50}, 0.55);
+  cue(40.5, 'whoosh', 0.6);
+  [0, 1, 2].forEach(k => { show('#tl' + k, 41.1 + k * 0.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)'); cue(41.1 + k * 0.3, 'pop', 0.7, k); });
+  show('#tl3', 43.8, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(43.8, 'pop', 0.6, 4);
+  // chaque copie à corriger
+  [0, 1, 2, 3].forEach(k => pop('#tp' + k, 47.0 + k * 0.3, 0.3));
+  hide(['#cp'].concat(CAMILLE.map(r => '#rg' + r)), 51.4, {y: 0}, 0.3);
+
+  /* ===== 3 · Supprimer, ajouter ===== */
+  cellsPulse([[LEA, 0]], 52.8);
+  cellsPulse([[LEA, 1]], 55.0);
+  // À toi : la ligne à supprimer (réponse : la ligne de Léa Simon, barrée)
+  const a1 = +(PICKS[1].at + 0.02).toFixed(2);
+  tl.set('#delb', {autoAlpha: 1}, a1);
+  // la seule ligne où figure Cuisine saine : l’atelier, sa date et sa coach partiraient avec elle
+  tl.to('#delb', {autoAlpha: 0.35, duration: 0.3}, 62.4);
+  show('#lc', 62.4, {y: 50}, 0.55);
+  cue(62.4, 'whoosh', 0.6);
+  [1, 2, 3].forEach((j, k) => {
+    const t = 63.4 + k * 0.45;
+    tl.to('#ls' + j, {autoAlpha: 1, duration: 0.3}, t);
+    show($$('#lc .lchip')[k], t, {y: 20}, 0.4, 'back.out(1.8)');
+    pop($$('#lc .x')[k], t + 0.3, 0.3);
+  });
+  hide(['#lc', '#ls1', '#ls2', '#ls3', '#delb'], 67.8, {y: 0}, 0.3);
+  // Yoga du matin, sans inscrit : sa fiche, puis sa ligne dans le tableur
+  show('#nc', 69.0, {y: 40}, 0.5);
+  cue(69.0, 'whoosh', 0.6);
+  tl.to('#xdy', {height: 84, duration: 0.35, ease: 'power2.out'}, 70.6);
+  show('#xdy', 70.8, {y: 0, x: -40}, 0.5, 'power3.out');
+  cue(70.8, 'type', 0.7, 2);
+  bump('#nc .nc0', 76.2, 1.12);
+  gsap.set(['#ask0', '#ask5'], {autoAlpha: 0, scale: 0.5});
+  tl.to(['#ask0', '#ask5'], {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.4)'}, 75.2);
+  cue(75.2, 'pop', 0.7, 4);
+  // À toi : que mettre dans la case client ? (réponse : rien ne convient)
+  const a2 = +(PICKS[2].at + 0.02).toFixed(2);
+  tl.set(['#ask0', '#ask5'], {autoAlpha: 0}, a2);
+  tl.set(['#op3', '#op3b', '#nyo'], {autoAlpha: 1}, a2);
+  // tout vient des sujets mélangés : les sujets se colorent, chacun avec son étiquette
+  hide(['#xdy', '#nc'], 81.0, {y: 0, x: 40}, 0.45);
+  tl.to('#xdy', {height: 0, duration: 0.35, ease: 'power2.inOut'}, 81.45);
+  SUBJ.forEach((s, q) => {
+    tl.to('#bd' + q, {autoAlpha: 1, duration: 0.35}, 82.4 + q * 0.35);
+    pop('#sj' + q, 82.5 + q * 0.35, 0.6);
+  });
+
+  /* ===== 4 · Une table par sujet ===== */
+  // le tableur se replie sur ses en-têtes ; les quatre tables arrivent, chacune de la couleur de son sujet
+  hide(SUBJ.map((s, q) => '#bd' + q).concat(SUBJ.map((s, q) => '#sj' + q)), 88.0, {y: 0}, 0.3);
+  tl.to($$('#xd0, #xd1, #xd2, #xd3'), {autoAlpha: 0, height: 0, duration: 0.5, ease: 'power2.inOut', stagger: 0.05}, 88.4);
+  cue(88.4, 'whoosh', 0.6);
+  $$('.bin').forEach((b, q) => { show(b, 89.5 + q * 0.18, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(89.5 + q * 0.18, 'pop', 0.6, q); });
+  // les clients ont déjà leur table ; trois nouvelles
+  bump('#bn0', 95.0, 1.04);
+  cue(95.0, 'tick', 0.5, 1);
+  [1, 2, 3].forEach((q, k) => { bump('#bn' + q, 97.0 + k * 0.6, 1.04); cue(97.0 + k * 0.6, 'tick', 0.5, q + 1); });
+  // À toi : glisser chaque colonne dans sa table (réponse : toutes rangées)
+  const a3 = +(PICKS[3].at + 0.02).toFixed(2);
+  tl.set($$('.col.nw').concat(COLS.map((c, j) => '#ck' + j)), {autoAlpha: 1}, a3);
+  tl.set($$('#xh > span'), {color: '#A8A2C6'}, a3);
+  // titre et date → ateliers ; nom et e-mail → coachs ; date d’inscription → inscriptions
+  bump('#bn1', 106.0, 1.04); bump('#bn2', 108.6, 1.04); bump('#bn3', 112.6, 1.04);
+  cue(106.0, 'tick', 0.5, 1); cue(108.6, 'tick', 0.5, 2); cue(112.6, 'tick', 0.5, 3);
+  hide($$('#sx > *'), 118.3, {y: -30}, 0.4);
+  sceneOff('#sx', 118.8);
+
+  /* ===== 5 · Les tables remplies ===== */
+  sceneOn('#s5', 118.9);
+  [['#tbc', 119.1], ['#tba', 119.4], ['#tbi', 119.7]].forEach(([s, t]) => { show(s, t, {y: 50}, 0.55); cue(t, 'whoosh', 0.5); rowsIn($$(s + ' .r:not(.yg)'), t + 0.3, 0.09); });
+  // l’e-mail de Camille Roux, une seule fois
+  pulse($$('#tbc .r')[0].children[3], 121.6, 3);
+  cue(121.6, 'tick', 0.5, 2);
+  // À toi : la table où ajouter Yoga du matin (réponse : la table ateliers)
+  const a4 = +(PICKS[4].at + 0.02).toFixed(2);
+  tl.set('#ryg', {autoAlpha: 1, height: 68}, a4);
+  tl.to('#ryg .hl', {opacity: 0, duration: 0.6}, 131.2);
+  // À toi : qui s’est inscrit le 4 septembre ?
+  tl.to($$('#tbi .r')[2].querySelector('.hl'), {opacity: 1, duration: 0.3}, 136.6);
+  cue(136.6, 'tick', 0.5, 3);
+  const a5 = +(PICKS[5].at + 0.02).toFixed(2);
+  // (réponse : impossible à savoir) rien ne la relie encore : ni client, ni atelier
+  tl.set(['#ms1', '#ms2'], {autoAlpha: 1}, a5);
+  // des clés au prochain chapitre
+  show('#keyc', 148.9, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)');
+  cue(148.9, 'whoosh', 0.6);
+  tl.to('#keyc .emo', {rotation: -18, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, 149.5);
+  hide($$('#s5 > *'), 153.4, {y: -30}, 0.4);
+  sceneOff('#s5', 153.9);
+
+  /* ===== 6 · À retenir ===== */
+  recapScene(154.0, [154.7, 156.5, 158.3]);
+  hold(156.3, 5.5);
+  hold(158.1, 6.5);
+  if (APP) cue(159.35, 'pop', 0.85, 5);
+}
+
+/* ---------- Moments « À toi » : ce que montre chaque geste ----------
+   Le lecteur arrête l’image à chaque moment (PICKS) et pose ses zones tactiles sur les endroits que la page décrit
+   (IX.spots). Chaque geste est jugé ici (IX.act, IX.pick) et montré aussitôt sur l’image : les bons gestes affichent
+   les mêmes éléments que la timeline juste après l’arrêt (classe pvs, sans toucher aux styles de la timeline) ;
+   ils restent jusqu’à ce que la timeline affiche la même image (IX.tick), puis s’effacent : la reprise est invisible. */
+const IX = (() => {
+  let X = null, wait = -1;
+  /* Après une bonne réponse, la carte n’ajoute pas d’explication quand la légende qui suit la donne déjà (rien n’est dit deux fois). */
+  const SAY = {coachs: 'Cette table range les coachs, pas les ateliers.', inscriptions: 'Personne ne s’est encore inscrit à cet atelier.'};
+  function start(i){ if (!X || X.i !== i) { clear(); X = {i, cls: [], tm: [], n: 0, got: new Set()}; } }
+  function clear(){
+    if (!X) return;
+    X.tm.forEach(clearTimeout);
+    X.cls.forEach(([e, c]) => e.classList.remove(c));
+    X = null; wait = -1;
+  }
+  const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
+  const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
+  const name = (r, j) => `${SHEET[r][0]}, ${COLS[j]} : ${SHEET[r][j]}`;
+  function spots(i){
+    if (i === 0) return SHEET.flatMap((r, ri) => r.map((v, j) => Object.assign({k: ri + '_' + j, label: name(ri, j)}, rel($('#c' + ri + '_' + j)))));
+    if (i === 1) return SHEET.map((r, ri) => Object.assign({k: 'r' + ri, label: `Ligne de ${r[0]}, atelier ${r[1]}`}, rel($('#xd' + ri))));
+    if (i === 3) return $$('.bin').map(b => Object.assign({k: b.dataset.t, label: 'table ' + b.dataset.t}, rel(b)));
+    if (i === 4) return [['tbc', 'coachs'], ['tba', 'ateliers'], ['tbi', 'inscriptions']].map(([id, n]) => Object.assign({k: n, label: 'table ' + n}, rel($('#' + id))));
+    return [];
+  }
+  function act(i, a, b){
+    start(i);
+    if (i === 0) {
+      const [r, j] = a.split('_').map(Number), cellEl = $('#c' + a);
+      if (j === 4 && CAMILLE.includes(r)) {
+        if (!X.got.has(r)) { X.got.add(r); mark($('#rg' + r), 'pvs'); sfx('tick', X.got.size, 0.6); }
+        return {ok: true, done: X.got.size === CAMILLE.length, why: '', at: rel(cellEl)};
+      }
+      flash(cellEl, 'kof');
+      return {ok: false, why: fr(j === 4 ? 'C’est l’e-mail de Thomas Girard.' : j === 3 && SHEET[r][3] === 'Camille Roux' ? 'Ici, c’est son nom. Cherche son e-mail.' : 'Pas d’e-mail de Camille Roux dans cette case.')};
+    }
+    if (i === 1) {
+      const r = +a.slice(1);
+      if (r === LEA) { mark($('#delb'), 'pvs'); sfx('stamp', 0, 0.5); return {ok: true, done: true, why: '', at: rel($('#xd' + r))}; }
+      flash($('#xd' + r), 'kor');
+      return {ok: false, why: fr(`C’est la ligne de ${SHEET[r][0]}.`)};
+    }
+    if (i === 3) {
+      const [, to, , ok, bad] = SORT[a], bin = $(`.bin[data-t="${b}"]`);
+      if (to === b) {
+        $$(`.col.nw[data-k="${a}"]`).forEach(c => mark(c, 'pvs'));
+        mark($('#ck' + a), 'pvs');
+        mark($('#xh').children[a], 'done');
+        flash(bin, 'okb', 520);
+        X.n++;
+        sfx('pop', X.n, 0.6);
+        return {ok: true, done: X.n === SORT.length, why: X.n === SORT.length ? '' : fr(ok), at: rel(bin)};
+      }
+      flash(bin, 'kob', 650);
+      return {ok: false, why: fr(bad[b] || 'Cette information ne décrit pas ce sujet.')};
+    }
+    if (i === 4) {
+      const card = $({coachs: '#tbc', ateliers: '#tba', inscriptions: '#tbi'}[a]);
+      if (a === 'ateliers') { mark($('#ryg'), 'pvs'); flash(card, 'okb', 520); sfx('pop', 4, 0.6); return {ok: true, done: true, why: '', at: rel(card)}; }
+      flash(card, 'kob', 480);
+      return {ok: false, why: fr(SAY[a])};
+    }
+    return {ok: false};
+  }
+  /* Choix d’une étiquette (moments 3 et 6) : la case client de l’atelier sans inscrit, ou le verdict sous les tables. */
+  function pick(i, k){
+    clear(); start(i);
+    const P = PICKS[i], o = P.options[k], ok = !!o.ok;
+    if (i === 2) {
+      mark($('#ask0'), 'pvh');
+      if (k === 0) mark($('#op1'), 'pvs');
+      if (k === 1) { mark($('#op2'), 'pvs'); mark($('#xn1'), 'pvh'); mark($('#xn2'), 'pvs'); }
+      if (ok) { mark($('#ask5'), 'pvh'); ['#op3', '#op3b', '#nyo'].forEach(s => mark($(s), 'pvs')); }
+      sfx(ok ? 'stamp' : 'miss', 0, 0.5);
+    }
+    if (i === 5) { if (ok) ['#ms1', '#ms2'].forEach(s => mark($(s), 'pvs')); else flash($('#tbi'), 'kob', 480); sfx(ok ? 'pop' : 'miss', 2, 0.5); }
+    return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));
+  }
+  return {
+    enter: i => { clear(); start(i); },
+    spots, act, pick,
+    slot: () => null,
+    /* Moment réussi : l’aperçu reste jusqu’à ce que la timeline affiche la même image ; sinon il part tout de suite. */
+    leave(i, answered){ if (answered && X && X.i === i) wait = i; else clear(); },
+    tick(){ if (wait < 0) return; const a = PICKS[wait].at, t = tl.time(); if (t >= a + 0.0199 || t < a - 0.001) clear(); }
+  };
+})();
+window.IX = IX;
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 159.3, picks: PICKS,
+  glyphs: '📊📅🧑‍🏫👥📝🔑🔎🗂️📋🗓️📧🗑️🥗🍳🧘🌅✓✕✎?—→×', dom, build, onRender: () => IX.tick()});
+</script>
+</body>
+</html>

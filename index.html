@@ -6527,6 +6527,7 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-pk-t{margin:9px 2px 12px;font:700 17px/1.25 var(--display);letter-spacing:-.01em;color:var(--ink,#221C46);text-wrap:balance}
 .lv-pk-t code{font:700 .86em/1 var(--mono);color:var(--accent-ink,#5335E0);background:var(--accent-soft,#EEE9FF);padding:.12em .34em;border-radius:.32em;white-space:nowrap}
 .lv-pk-t[hidden]{display:none}
+.lv-nw{white-space:nowrap}
 /* La case jaune : la même que le trou à remplir dans la requête */
 .lv-pk-hole{display:inline-flex;align-items:center;justify-content:center;width:25px;height:22px;margin-right:7px;border-radius:7px;border:2px solid #F2B529;background:#FFF3CF;color:#9A6400;font:800 13px/1 var(--mono);vertical-align:2px}
 /* La correction : ce que fait ce choix, et pourquoi il convient ou non */
@@ -6553,6 +6554,32 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-pk-burst i,.lv-pk-burst b{position:absolute;left:0;top:0;display:block}
 .lv-pk-burst b{width:70px;height:70px;border-radius:50%;border:4px solid #22C55E}
 @keyframes lvShake{0%,100%{transform:none}20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(2px)}}
+/* Moments joués sur l’image : compteur, icône du geste, consigne, zones tactiles posées sur l’image */
+.lv-pk-cnt{flex:none;height:26px;padding:0 10px;border-radius:999px;background:#F1EEFC;color:var(--ink-2,#4E4872);font:800 13px/26px var(--display);white-space:nowrap;transition:background-color .2s,color .2s}
+.lv-pk.is-ok .lv-pk-cnt{background:#E2F6EA;color:#0F7A3A}
+.lv-pk-ico{display:inline-flex;align-items:center;justify-content:center;width:26px;height:24px;margin-right:7px;border-radius:7px;background:var(--accent-soft,#EEE9FF);font-size:14px;line-height:1;vertical-align:1px}
+.lv-pk-hint{margin:10px 2px 0;font:600 13px/1.35 var(--ui);color:var(--ink-3,#6A6490);text-align:center;text-wrap:balance}
+.lv-pk-hint[hidden]{display:none}
+.lv-pk.is-text .lv-pk-opt{font-family:var(--ui);font-weight:700;letter-spacing:-.01em}
+.lv-pk-opt.can-drag{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.lv-pk-opt.is-sel{background:#fff;border-color:var(--accent,#6A4DF4);box-shadow:0 4px 0 var(--accent,#6A4DF4);transform:translateY(-2px)}
+.lv-pk-opt.is-placed{display:none}
+.lv-pk-opt.is-hint{animation:lvShake .42s ease}
+.lv-pk-fly.is-drag{z-index:9;box-shadow:0 16px 30px -10px rgba(40,20,120,.5)}
+.lv-pk-target{position:absolute;z-index:5;border-radius:12px;pointer-events:none;transition:box-shadow .15s,background-color .15s}
+.lv-pk-target.is-over{background:rgba(255,201,74,.25);box-shadow:0 0 0 4px #F2B529}
+.lv-pk-layer{position:absolute;inset:0;z-index:5;pointer-events:none}
+.lv-pk-spot{position:absolute;margin:0;padding:0;border:0;border-radius:12px;background:transparent;pointer-events:auto;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;transition:background-color .15s,box-shadow .15s}
+.lv-pk-spot:active{background:rgba(106,77,244,.12)}
+.lv-pk-spot:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(106,77,244,.55)}
+.lv-pk-layer.is-armed .lv-pk-spot:not(:disabled){background:rgba(106,77,244,.05);box-shadow:inset 0 0 0 2px rgba(106,77,244,.45)}
+.lv-pk-spot.is-over{background:rgba(106,77,244,.18)!important;box-shadow:inset 0 0 0 3px var(--accent,#6A4DF4)!important}
+.lv-pk-spot.is-sel{background:rgba(106,77,244,.14);box-shadow:inset 0 0 0 3px var(--accent,#6A4DF4)}
+.lv-pk-spot.is-ok{pointer-events:none;background:transparent;box-shadow:none}
+.lv-pk-spot.is-ko{background:rgba(239,79,85,.2);box-shadow:inset 0 0 0 3px #EF4F55;animation:lvShake .42s ease}
+.lv-pk-layer.is-done .lv-pk-spot{pointer-events:none}
+.lv-pk-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.lv-pk-svg path{fill:none;stroke:var(--accent,#6A4DF4);stroke-width:4;stroke-linecap:round;stroke-dasharray:1 9}
 .lv-ctrls{position:relative;display:flex;align-items:center;justify-content:space-between;height:62px}
 .lv-c{width:50px;height:50px;padding:0;border:0;border-radius:50%;background:none;color:var(--ink,#221C46);display:grid;place-items:center;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background-color .15s,transform .12s,box-shadow .12s}
 .lv-c:active{background:rgba(106,77,244,.1)}
@@ -12609,13 +12636,17 @@ guide({ id:79, titre:"Fenêtres glissantes", résumé:"Suivre l’évolution des
 })
 ]},
 { titre:"Modéliser", sous:"Normalisation, cardinalités et UML", lessons:[
-guide({ id:56, titre:"Normalisation", résumé:"Répartir les données dans des tables reliées",
-  /* Cours en vidéo : l’animation (assets/anim/normalisation.html, moteur commun assets/anim/core.js) remplace le texte du cours.
-     La vidéo suit le tableau de bord Power BI alimenté par une grande table où le nom du produit est retapé à chaque commande
-     (la Fibre Prébiotique coupée en trois barres) ; le texte ci-dessous, gardé pour le cas où la vidéo ne se charge pas, suit le déménagement de Sophie. */
-  video:{anim:'assets/anim/normalisation.html?app&embed',thumb:'assets/anim/normalisation-thumb.jpg',duree:'3 min 15',
-    /* « Ajouter dans notes » : apparaît à 3 min 06 (186,2 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:186.2,y:1304,card:[64,292,1016,1009],to:[940,255]}},
+guide({ id:56, titre:"Normaliser les inscriptions", résumé:"Du tableur des ateliers aux tables",
+  /* Projet, chapitre 1, en vidéo interactive : l’animation (assets/anim/projet-normaliser.html, moteur commun assets/anim/core.js)
+     remplace le texte du cours. Le tableur des inscriptions aux ateliers de NutriBoost mélange les clients, les ateliers et les coachs :
+     à chacun des 6 moments « À toi », l’image s’arrête et l’élève agit sur l’image (toucher les copies de l’e-mail de Camille Roux,
+     la ligne à supprimer, glisser chaque colonne dans sa table…), avec le résultat aussitôt. On ne peut pas avancer au-delà d’un
+     moment tant qu’il n’est pas réussi. Leçon seule : ni exercice ni quiz, la fin de la vidéo valide la leçon (sans seuil).
+     Le texte ci-dessous, gardé pour le cas où la vidéo ne se charge pas, suit encore l’ancien cours (la grande table des commandes). */
+  leconSeule:true,
+  video:{anim:'assets/anim/projet-normaliser.html?app&embed',thumb:'assets/anim/projet-normaliser-thumb.jpg',duree:'3 min 01',moments:6,
+    /* « Ajouter dans notes » : apparaît à 2 min 54 (174,3 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:174.3,y:1194,card:[64,292,1016,899],to:[940,255]}},
   sit:{
     blocks:[
       "L’équipe data construit <b>un tableau de bord Power BI</b> pour analyser les ventes : nombre de commandes, produits vendus et répartition des clients par ville.",
@@ -12693,9 +12724,9 @@ guide({ id:56, titre:"Normalisation", résumé:"Répartir les données dans des 
   ],
   reflex:[
     {recap:[
-      ["🗂️","Chaque information est rangée <b>dans la table de ce qu’elle décrit</b>.","Elle n’est écrite qu’une fois : plus de copies qui se contredisent."],
-      ["🔗","Les tables se relient par des <b>identifiants</b>.","Une jointure les rassemble au moment de lire :","commandes.produit_id = produits.id"],
-      ["⚖️","Normaliser n’est pas <b>découper à l’infini</b>.","Une table, seulement pour un sujet qui a ses propres informations."]
+      ["📋","Un tableur qui <b>mélange les sujets</b> recopie les informations : modifier, supprimer ou ajouter devient risqué."],
+      ["🗂️","<b>Normaliser</b>, c’est écrire une seule fois chaque information, dans la table de ce qu’elle décrit."],
+      ["📝","Une information qui décrit un <b>lien</b>, comme la date d’inscription, va dans la table de ce lien."]
     ],label:"Les trois idées à retenir"}
   ],
   anatomie:[{tok:"clients (id, prenom, ville)",txt:"Tout ce qui décrit le client, écrit une seule fois."},{tok:"produits (id, nom, prix)",txt:"Tout ce qui décrit le produit, écrit une seule fois."},{tok:"commandes (id, client_id, produit_id, quantite)",txt:"Ce qui décrit la commande, plus deux clés étrangères vers les tables voisines."}],
@@ -14915,8 +14946,8 @@ const CARTES={
     m:"Dans <code>FROM</code>, la sous-requête produit un résultat que la requête principale utilise comme une table. On l’appelle <b>table dérivée</b> : donne-lui toujours un alias."},
  55:{k:"EXISTS",t:"Présence ou absence d’une ligne",s:"WHERE EXISTS (\n  SELECT 1 FROM commandes\n  WHERE client_id = clients.id\n)",
     m:"Avec <code>IN</code>, tu cherches une valeur dans une liste. Avec <code>EXISTS</code>, tu vérifies qu’une correspondance existe. Vérifie toujours que la sous-requête est bien reliée à la ligne en cours."},
- 56:{k:"Normalisation",t:"Répartir les données",s:"clients · produits · commandes",
-    m:"Ranger chaque information dans la table qui correspond à ce qu’elle décrit. <b>1NF</b> une seule valeur, <b>2NF</b> toute la clé, <b>3NF</b> directement de la clé."},
+ 56:{k:"Normalisation",t:"Répartir les données",s:"ateliers · coachs · inscriptions",
+    m:"Chaque information est écrite <b>une seule fois</b>, dans la table de ce qu’elle décrit : l’atelier, le coach ou le client. La date d’inscription décrit un <b>lien</b> : elle va dans la table <code>inscriptions</code>."},
  57:{k:"INDEX · EXPLAIN",t:"Retrouver plus vite, et vérifier",s:"CREATE INDEX idx_clients_ville\nON clients(ville);\n\nEXPLAIN QUERY PLAN\nSELECT * FROM clients\nWHERE ville = 'Paris';",
     m:"Un index est un chemin d’accès supplémentaire. Il n’ajoute pas de colonne. Utile sur les colonnes souvent cherchées ou reliées — pas partout, car il occupe de l’espace et doit être maintenu. <code>EXPLAIN QUERY PLAN</code> montre la méthode choisie : <code>SCAN</code> lit toute la table, <code>SEARCH … USING INDEX</code> passe par l’index. On observe d’abord, on optimise, puis on relance le plan."},
  59:{k:"WITH (CTE)",t:"Créer et réutiliser un résultat intermédiaire",s:"WITH totaux AS (\n  SELECT client_id, COUNT(*) AS nb_commandes\n  FROM commandes\n  GROUP BY client_id\n)\nSELECT * FROM totaux;",
@@ -20445,26 +20476,40 @@ function lvPkIX(){ try{ const w=LV&&LV.video&&LV.video.win; return w&&w.IX||null
 function lvPkDots(i,n){
   return Array.from({length:n},(_,j)=>{ const a=lvPkGet(LV.id,j); return `<i class="${j===i?'cur':a?(a.first?'ok':'try'):''}"></i>`; }).join('');
 }
+/* Mots à trait d’union (e-mail, peut-être) : jamais coupés au trait d’union dans le plateau, ni dans la consigne ni dans la correction. */
+function lvNw(h){ return String(h||'').replace(/(<[^>]*>)|([0-9A-Za-zÀ-ÖØ-öø-ÿŒœ]+(?:-[0-9A-Za-zÀ-ÖØ-öø-ÿŒœ]+)+)/g,(m,tag,w)=>tag?m:`<span class="lv-nw">${w}</span>`); }
 function lvPkShow(i,p){
   if(!LV||!p)return;
+  p={...p,prompt:lvNw(p.prompt),hint:p.hint?lvNw(p.hint):''};
   if(LV.q)lvQClose(false);
   if(LV.pk)lvPkClose(false);
-  const n=(LV.video.picks||[]).length, box=document.createElement('div');
-  box.className='lv-pk';
+  const n=(LV.video.picks||[]).length, box=document.createElement('div'), kind=p.kind||'pick', opts=p.options||[];
+  /* Compteur des gestes attendus : une étiquette par place (sort), sinon le nombre de bons gestes (need). */
+  const total=kind==='sort'?opts.length:(p.need||0);
+  box.className='lv-pk'+(kind==='pick'?'':' is-'+kind)+(p.text?' is-text':'');
   box.innerHTML=`<div class="lv-pk-card" role="group" aria-labelledby="lv-pk-t" tabindex="-1">
-    <div class="lv-pk-top"><span class="lv-pk-kick">À toi · ${i+1}/${n}</span><span class="lv-pk-dots" aria-hidden="true">${lvPkDots(i,n)}</span></div>
-    <p class="lv-pk-t" id="lv-pk-t"><span class="lv-pk-hole" aria-hidden="true">?</span>${p.prompt}</p>
+    <div class="lv-pk-top"><span class="lv-pk-kick">À toi · ${i+1}/${n}</span>${total>1?`<span class="lv-pk-cnt">0 / ${total}</span>`:''}<span class="lv-pk-dots" aria-hidden="true">${lvPkDots(i,n)}</span></div>
+    <p class="lv-pk-t" id="lv-pk-t">${kind==='pick'?`<span class="lv-pk-hole" aria-hidden="true">?</span>${p.prompt}`:`<span class="lv-pk-ico" aria-hidden="true">${LV_PK_ICO[kind]||LV_PK_ICO.tap}</span>${p.prompt}`}</p>
     <p class="lv-pk-why" hidden></p>
-    <div class="lv-pk-opts">${p.options.map((o,k)=>`<button type="button" class="lv-pk-opt" data-k="${k}">${esc(o.label)}</button>`).join('')}</div>
+    ${opts.length?`<div class="lv-pk-opts">${opts.map((o,k)=>`<button type="button" class="lv-pk-opt" data-k="${k}">${esc(o.label)}</button>`).join('')}</div>`:''}
+    ${p.hint?`<p class="lv-pk-hint">${p.hint}</p>`:''}
     <button type="button" class="lq-btn lv-pk-go" hidden>Continuer</button>
   </div>`;
   LV.root.appendChild(box);
   LV.root.classList.add('is-q','is-pk');
-  LV.pk={i,p,box,tries:0,busy:false,done:false};
+  LV.pk={i,p,box,kind,tries:0,miss:0,count:0,total,busy:false,done:false,sel:null,layer:null,spots:[]};
+  const P=LV.pk;
   lvPkPlace();
-  box.querySelectorAll('.lv-pk-opt').forEach(b=>b.addEventListener('click',()=>lvPkTry(+b.dataset.k)));
-  box.querySelector('.lv-pk-go').addEventListener('click',()=>{ lvPkClose(true); lvPlay(); });
   const IX=lvPkIX(); try{ if(IX&&IX.enter)IX.enter(i); }catch(e){}
+  if(kind==='pick'){
+    let slot=null; try{ slot=IX&&IX.slot?IX.slot(i):null; }catch(e){}
+    box.querySelectorAll('.lv-pk-opt').forEach(b=>{
+      b.addEventListener('click',()=>{ if(b._noClick&&performance.now()<b._noClick)return; lvPkTry(+b.dataset.k); });
+      /* Avec un trou dans la requête, l’étiquette s’y glisse aussi du doigt. */
+      if(slot)lvPkDrag(P,b,()=>lvPkSlotZone(P),()=>{ P.dropped=true; lvPkTry(+b.dataset.k); });
+    });
+  }else lvPkLayer(P);
+  box.querySelector('.lv-pk-go').addEventListener('click',()=>{ lvPkClose(true); lvPlay(); });
   if(prefersReduceMotion())box.classList.add('on');
   else requestAnimationFrame(()=>requestAnimationFrame(()=>box.classList.add('on')));
   LvSfx.play('pop',5,.55,0);
@@ -20489,6 +20534,8 @@ function lvPkTry(k){
     Promise.resolve(res).then(r=>lvPkVerdict(P,k,btn,ok,r||{})).catch(()=>lvPkVerdict(P,k,btn,ok,{}));
   };
   let rect=null; try{ rect=IX&&IX.slot?IX.slot(P.i):null; }catch(e){}
+  /* Étiquette glissée jusqu’au trou : elle y est déjà, pas d’envol. */
+  if(P.dropped){ P.dropped=false; btn.classList.add('is-lift'); land(); return; }
   lvPkFly(btn,rect,land);
 }
 function lvPkVerdict(P,k,btn,ok,r){
@@ -20499,10 +20546,10 @@ function lvPkVerdict(P,k,btn,ok,r){
   /* La correction prend la place de la question : ce que fait ce choix, et pourquoi il convient ou non. */
   const wEl=P.box.querySelector('.lv-pk-why');
   if(why&&wEl){
-    wEl.innerHTML=why; wEl.className='lv-pk-why '+(ok?'ok':'ko'); wEl.hidden=false;
+    wEl.innerHTML=lvNw(why); wEl.className='lv-pk-why '+(ok?'ok':'ko'); wEl.hidden=false;
     P.box.querySelector('.lv-pk-t').hidden=true;
     if(!prefersReduceMotion()&&wEl.animate)wEl.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:260,easing:'ease-out'});
-  }
+  }else if(wEl){ wEl.hidden=true; P.box.querySelector('.lv-pk-t').hidden=false; }   // pas de correction : la question revient (jamais la correction d’un essai précédent)
   if(ok){
     const first=P.tries===1;
     P.done=true;
@@ -20520,7 +20567,8 @@ function lvPkVerdict(P,k,btn,ok,r){
     P.timer=setTimeout(()=>{
       if(!LV||LV.pk!==P)return;
       const opts=P.box.querySelector('.lv-pk-opts'), go=P.box.querySelector('.lv-pk-go');
-      opts.hidden=true; go.hidden=false;
+      /* Sans correction écrite (la légende qui suit l’explique), la bonne étiquette reste visible au-dessus de « Continuer ». */
+      if(why)opts.hidden=true; go.hidden=false;
       if(!prefersReduceMotion()&&go.animate)go.animate([{opacity:0,transform:'translateY(8px) scale(.96)'},{opacity:1,transform:'none'}],{duration:280,easing:'cubic-bezier(.2,.9,.3,1.2)'});
       try{go.focus({preventScroll:true});}catch(e){}
     },prefersReduceMotion()?0:720);
@@ -20581,16 +20629,229 @@ function lvPkPlace(){
   const a=lvPt(0,1496); if(!a)return;
   const R=LV.root.getBoundingClientRect(), pb=parseFloat(getComputedStyle(LV.root).paddingBottom)||0;
   P.box.querySelector('.lv-pk-card').style.minHeight=Math.max(0,R.height-pb-10-a.y).toFixed(1)+'px';
+  lvPkLayerPlace();
 }
 function lvPkClose(answered){
   const P=LV&&LV.pk; if(!P)return;
   LV.pk=null;
   clearTimeout(P.timer);
   LV.root.classList.remove('is-q','is-pk');
+  if(P.layer)P.layer.remove();
   const IX=lvPkIX(); try{ if(IX&&IX.leave)IX.leave(P.i,!!answered); }catch(e){}
   const box=P.box, card=box.querySelector('.lv-pk-card');
   if(prefersReduceMotion()||!card.animate){ box.remove(); return; }
   card.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateY(18px)'}],{duration:200,easing:'ease-in',fill:'forwards'}).onfinish=()=>box.remove();
+}
+/* ---------- Moments « À toi » joués sur l’image ----------
+   kind : tap (toucher les bons endroits : des cases, une ligne, une table), sort (glisser chaque étiquette du plateau
+   vers sa place, ou la toucher puis toucher la place), link (relier deux éléments d’un glisser du doigt, ou en touchant
+   l’un puis l’autre). La page décrit les endroits (IX.spots : rectangles de la scène 1080 × 1920, avec leur nom pour
+   VoiceOver et, pour link, leur côté) et juge chaque geste en le montrant aussitôt sur l’image (IX.act → {ok, why,
+   done}) ; le lecteur pose les zones tactiles par-dessus l’image, tient le compte, et gère le verdict et la reprise.
+   Réussi du premier coup : aucun geste refusé pendant le moment. */
+const LV_PK_ICO={tap:'👆',sort:'✋',link:'🔗'};
+function lvPkLayer(P){
+  const IX=lvPkIX(); let spots=[];
+  try{ spots=(IX&&IX.spots&&IX.spots(P.i))||[]; }catch(e){ spots=[]; }
+  const layer=document.createElement('div');
+  layer.className='lv-pk-layer is-'+P.kind;
+  layer.innerHTML=`<svg class="lv-pk-svg" aria-hidden="true"></svg>`;
+  spots.forEach(s=>{
+    const b=document.createElement('button');
+    b.type='button'; b.className='lv-pk-spot'; b.dataset.k=s.k;
+    if(s.side)b.dataset.side=s.side;
+    b.setAttribute('aria-label',String(s.label||s.k).replace(/<[^>]+>/g,''));
+    b._s=s; layer.appendChild(b);
+  });
+  LV.root.appendChild(layer);
+  P.layer=layer; P.spots=[...layer.querySelectorAll('.lv-pk-spot')];
+  lvPkLayerPlace();
+  if(P.kind==='tap')P.spots.forEach(b=>b.addEventListener('click',()=>lvPkAct(P,[b.dataset.k],b)));
+  if(P.kind==='sort'){
+    const zones=()=>P.spots.filter(b=>!b.disabled).map(b=>lvPkZone(b));
+    P.box.querySelectorAll('.lv-pk-opt').forEach(c=>{
+      c.addEventListener('click',()=>{ if(c._noClick&&performance.now()<c._noClick)return; lvPkSel(P,P.sel===c?null:c); });
+      lvPkDrag(P,c,zones,z=>{ lvPkSel(P,null); lvPkAct(P,[+c.dataset.k,z.el.dataset.k],z.el,c); });
+    });
+    P.spots.forEach(b=>b.addEventListener('click',()=>{
+      const c=P.sel;
+      if(!c){ P.box.querySelectorAll('.lv-pk-opt:not(.is-placed)').forEach(o=>{ o.classList.remove('is-hint'); void o.offsetWidth; o.classList.add('is-hint'); }); return; }
+      lvPkSel(P,null); lvPkAct(P,[+c.dataset.k,b.dataset.k],b,c);
+    }));
+  }
+  if(P.kind==='link')P.spots.forEach(b=>{
+    b.addEventListener('click',()=>{
+      if(b._noClick&&performance.now()<b._noClick)return;
+      const a=P.sel;
+      if(!a||a===b||(a.dataset.side&&a.dataset.side===b.dataset.side)){ lvPkSel(P,a===b?null:b); return; }
+      lvPkSel(P,null); lvPkLink(P,a,b);
+    });
+    lvPkRubber(P,b);
+  });
+}
+/* Zones tactiles placées sur l’image, et leur rectangle dans le lecteur (repère de LV.root). */
+function lvPkLayerPlace(){
+  const P=LV&&LV.pk; if(!P||!P.layer)return;
+  P.spots.forEach(b=>{
+    const s=b._s, a=lvPt(s.x,s.y), c=lvPt(s.x+s.w,s.y+s.h); if(!a||!c)return;
+    Object.assign(b.style,{left:a.x.toFixed(1)+'px',top:a.y.toFixed(1)+'px',width:(c.x-a.x).toFixed(1)+'px',height:(c.y-a.y).toFixed(1)+'px'});
+  });
+}
+function lvPkZone(el){ const x=parseFloat(el.style.left)||0, y=parseFloat(el.style.top)||0; return {x1:x,y1:y,x2:x+(parseFloat(el.style.width)||0),y2:y+(parseFloat(el.style.height)||0),el}; }
+/* Le trou de la requête, comme cible d’une étiquette glissée (un peu plus large que lui, pour le doigt). */
+function lvPkSlotZone(P){
+  const IX=lvPkIX(); let r=null; try{ r=IX&&IX.slot?IX.slot(P.i):null; }catch(e){}
+  if(!r)return [];
+  const a=lvPt(r.x,r.y), c=lvPt(r.x+r.w,r.y+r.h); if(!a||!c)return [];
+  const el=document.createElement('div'); el.className='lv-pk-target';
+  Object.assign(el.style,{left:(a.x-6)+'px',top:(a.y-6)+'px',width:(c.x-a.x+12)+'px',height:(c.y-a.y+12)+'px'});
+  LV.root.appendChild(el);
+  return [{x1:a.x-16,y1:a.y-16,x2:c.x+16,y2:c.y+16,el,tmp:true}];
+}
+/* Étiquette ou élément choisi en premier (toucher, puis toucher la place ou l’autre élément). */
+function lvPkSel(P,el){
+  if(P.sel)P.sel.classList.remove('is-sel');
+  P.sel=el; if(el)el.classList.add('is-sel');
+  if(P.layer)P.layer.classList.toggle('is-armed',!!el);
+}
+/* Glisser une étiquette du plateau : une copie suit le doigt ; lâchée sur une place, elle s’y pose, sinon elle revient. */
+function lvPkDrag(P,btn,zonesFn,onDrop){
+  btn.classList.add('can-drag');
+  btn.addEventListener('pointerdown',e=>{
+    if((e.pointerType==='mouse'&&e.button!==0)||P.busy||P.done||btn.disabled||btn.classList.contains('is-out')||btn.classList.contains('is-placed'))return;
+    const sx=e.clientX, sy=e.clientY;
+    let fly=null, over=null, zs=null, R=null, b=null;
+    try{ btn.setPointerCapture(e.pointerId); }catch(err){}
+    const move=ev=>{
+      if(!fly){
+        if(Math.hypot(ev.clientX-sx,ev.clientY-sy)<8)return;
+        R=LV.root.getBoundingClientRect(); b=btn.getBoundingClientRect(); zs=zonesFn()||[];
+        fly=document.createElement('div'); fly.className='lv-pk-fly is-drag'; fly.textContent=btn.textContent; fly.setAttribute('aria-hidden','true');
+        Object.assign(fly.style,{left:(b.left-R.left)+'px',top:(b.top-R.top)+'px',width:b.width+'px',height:b.height+'px'});
+        LV.root.appendChild(fly); btn.classList.add('is-lift'); lvPkSel(P,null);
+        if(P.layer)P.layer.classList.add('is-armed');
+        LvSfx.play('pop',3,.4,0);
+      }
+      const x=ev.clientX-R.left, y=ev.clientY-R.top;
+      fly.style.transform=`translate(${(ev.clientX-sx).toFixed(1)}px,${(ev.clientY-sy-10).toFixed(1)}px) rotate(-4deg) scale(1.06)`;
+      const z=zs.find(q=>x>=q.x1&&x<=q.x2&&y>=q.y1&&y<=q.y2)||null;
+      if(z!==over){ if(over)over.el.classList.remove('is-over'); over=z; if(over)over.el.classList.add('is-over'); }
+    };
+    const end=cancel=>{
+      btn.removeEventListener('pointermove',move); btn.removeEventListener('pointerup',up); btn.removeEventListener('pointercancel',cc);
+      if(!fly)return;
+      btn._noClick=performance.now()+450;
+      if(over)over.el.classList.remove('is-over');
+      if(P.layer)P.layer.classList.remove('is-armed');
+      const hit=!cancel&&over;
+      (zs||[]).forEach(q=>{ if(q.tmp)q.el.remove(); });
+      if(hit){ fly.remove(); btn.classList.remove('is-lift'); onDrop(over); return; }
+      if(prefersReduceMotion()||!fly.animate){ fly.remove(); btn.classList.remove('is-lift'); return; }
+      fly.animate([{transform:fly.style.transform},{transform:'none'}],{duration:220,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'}).onfinish=()=>{ fly.remove(); btn.classList.remove('is-lift'); };
+    };
+    const up=()=>end(false), cc=()=>end(true);
+    btn.addEventListener('pointermove',move); btn.addEventListener('pointerup',up); btn.addEventListener('pointercancel',cc);
+  });
+}
+/* Relier : un fil suit le doigt depuis l’élément touché ; lâché sur un élément de l’autre côté, le lien est proposé. */
+function lvPkRubber(P,a){
+  a.addEventListener('pointerdown',e=>{
+    if((e.pointerType==='mouse'&&e.button!==0)||P.busy||P.done)return;
+    const sx=e.clientX, sy=e.clientY; let line=null, over=null, R=null, zs=null, c0=null;
+    try{ a.setPointerCapture(e.pointerId); }catch(err){}
+    const move=ev=>{
+      if(!line){
+        if(Math.hypot(ev.clientX-sx,ev.clientY-sy)<8)return;
+        R=LV.root.getBoundingClientRect(); const z=lvPkZone(a); c0=[(z.x1+z.x2)/2,(z.y1+z.y2)/2];
+        zs=P.spots.filter(b=>b!==a&&(!a.dataset.side||b.dataset.side!==a.dataset.side)).map(lvPkZone);
+        line=document.createElementNS('http://www.w3.org/2000/svg','path'); P.layer.querySelector('.lv-pk-svg').appendChild(line);
+        lvPkSel(P,a);
+      }
+      const x=ev.clientX-R.left, y=ev.clientY-R.top;
+      line.setAttribute('d',`M${c0[0].toFixed(1)} ${c0[1].toFixed(1)} L${x.toFixed(1)} ${y.toFixed(1)}`);
+      const z=zs.find(q=>x>=q.x1&&x<=q.x2&&y>=q.y1&&y<=q.y2)||null;
+      if(z!==over){ if(over)over.el.classList.remove('is-over'); over=z; if(over)over.el.classList.add('is-over'); }
+    };
+    const end=cancel=>{
+      a.removeEventListener('pointermove',move); a.removeEventListener('pointerup',up); a.removeEventListener('pointercancel',cc);
+      if(!line)return;
+      a._noClick=performance.now()+450;
+      line.remove(); lvPkSel(P,null);
+      if(over)over.el.classList.remove('is-over');
+      if(!cancel&&over)lvPkLink(P,a,over.el);
+    };
+    const up=()=>end(false), cc=()=>end(true);
+    a.addEventListener('pointermove',move); a.addEventListener('pointerup',up); a.addEventListener('pointercancel',cc);
+  });
+}
+function lvPkLink(P,a,b){
+  /* La page reçoit toujours l’élément de gauche en premier. */
+  if(b.dataset.side==='l'||a.dataset.side==='r')[a,b]=[b,a];
+  lvPkAct(P,[a.dataset.k,b.dataset.k],b,null,a);
+}
+/* Un geste : la page le juge et le montre sur l’image. */
+function lvPkAct(P,args,el,chip,el2){
+  if(!LV||LV.pk!==P||P.busy||P.done)return;
+  const IX=lvPkIX();
+  P.busy=true; P.box.classList.add('is-busy');
+  let res; try{ res=IX&&IX.act?IX.act(P.i,...args):null; }catch(e){ res=null; }
+  Promise.resolve(res).then(r=>lvPkActed(P,r||{},el,chip,el2)).catch(()=>lvPkActed(P,{},el,chip,el2));
+}
+function lvPkActed(P,r,el,chip,el2){
+  if(!LV||LV.pk!==P)return;
+  P.busy=false; P.box.classList.remove('is-busy');
+  const why=r.why||'', wEl=P.box.querySelector('.lv-pk-why'), tEl=P.box.querySelector('.lv-pk-t'), kick=P.box.querySelector('.lv-pk-kick');
+  const sr=LV.root.querySelector('.lv-sr'), plain=String(why).replace(/<[^>]+>/g,''), n=(LV.video.picks||[]).length;
+  if(r.ok){
+    P.count++;
+    const cnt=P.box.querySelector('.lv-pk-cnt'); if(cnt)cnt.textContent=`${Math.min(P.count,P.total)} / ${P.total}`;
+    if(P.kind==='tap'&&el){ el.classList.add('is-ok'); el.disabled=true; }
+    if(P.kind==='link'){ [el,el2].forEach(x=>x&&x.classList.add('is-linked')); }
+    if(chip){ chip.classList.add('is-placed'); chip.disabled=true; }
+    if(r.done){ lvPkWin(P,why,r.at||(el&&el._s)||null); return; }
+    LvSfx.play('tick',P.count%5,.7,0);
+    if(navigator.vibrate)navigator.vibrate(8);
+    /* Bon geste, la suite reste à faire : la consigne revient si une correction l’avait remplacée. */
+    P.box.classList.remove('is-ko'); kick.textContent=`À toi · ${P.i+1}/${n}`;
+    if(wEl){ wEl.hidden=true; } tEl.hidden=false;
+    if(sr)sr.textContent=`Oui. ${plain||(P.total>1?`${P.count} sur ${P.total}.`:'')}`;
+    return;
+  }
+  P.miss++;
+  P.box.classList.add('is-ko');
+  kick.textContent='✕ Essaie encore';
+  if(why&&wEl){ wEl.innerHTML=lvNw(why); wEl.className='lv-pk-why ko'; wEl.hidden=false; tEl.hidden=true; }
+  [el,el2,chip].forEach(x=>{ if(!x)return; x.classList.remove('is-ko'); void x.offsetWidth; x.classList.add('is-ko'); setTimeout(()=>x.classList.remove('is-ko'),460); });
+  LV.video.sfx('false');
+  if(navigator.vibrate)navigator.vibrate([20,60,20]);
+  if(sr)sr.textContent='Pas tout à fait : '+plain;
+}
+/* Tous les gestes faits : verdict, score du premier essai, puis « Continuer ». */
+function lvPkWin(P,why,rect){
+  const first=P.miss===0, kick=P.box.querySelector('.lv-pk-kick'), wEl=P.box.querySelector('.lv-pk-why');
+  P.done=true;
+  lvPkSet(LV.id,P.i,first);
+  P.box.classList.remove('is-ko'); P.box.classList.add('is-ok');
+  if(P.layer)P.layer.classList.add('is-done');
+  kick.textContent=first?'✓ Bien vu !':'✓ Trouvé !';
+  const dot=P.box.querySelectorAll('.lv-pk-dots i')[P.i]; if(dot)dot.className=first?'ok':'try';
+  if(why&&wEl){
+    wEl.innerHTML=lvNw(why); wEl.className='lv-pk-why ok'; wEl.hidden=false;
+    P.box.querySelector('.lv-pk-t').hidden=true;
+    if(!prefersReduceMotion()&&wEl.animate)wEl.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:260,easing:'ease-out'});
+  }else if(wEl){ wEl.hidden=true; P.box.querySelector('.lv-pk-t').hidden=false; }   // la légende qui suit explique : la consigne revient, sans la correction d’une erreur
+  LV.video.sfx('true');
+  if(first)setTimeout(()=>{ if(LV&&LV.pk===P)LvSfx.play('chord',0,.55,0); },160);
+  if(navigator.vibrate)navigator.vibrate([10,60,20]);
+  if(!prefersReduceMotion()&&rect&&rect.w)lvPkBurst(rect);
+  const sr=LV.root.querySelector('.lv-sr'); if(sr)sr.textContent='Bien vu : '+String(why).replace(/<[^>]+>/g,'');
+  P.timer=setTimeout(()=>{
+    if(!LV||LV.pk!==P)return;
+    const opts=P.box.querySelector('.lv-pk-opts'), hint=P.box.querySelector('.lv-pk-hint'), go=P.box.querySelector('.lv-pk-go');
+    if(opts)opts.hidden=true; if(hint)hint.hidden=true; go.hidden=false;
+    if(!prefersReduceMotion()&&go.animate)go.animate([{opacity:0,transform:'translateY(8px) scale(.96)'},{opacity:1,transform:'none'}],{duration:280,easing:'cubic-bezier(.2,.9,.3,1.2)'});
+    try{go.focus({preventScroll:true});}catch(e){}
+  },prefersReduceMotion()?0:720);
 }
 function lvReplay(){
   if(!LV)return;
@@ -28223,7 +28484,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1899';
+  const SW_CACHE='requete-2026-10-12-ludique-v1900';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
