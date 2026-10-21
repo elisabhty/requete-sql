@@ -6457,20 +6457,39 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-big{position:absolute;left:50%;top:50%;width:84px;height:84px;margin:-42px 0 0 -42px;padding:0;border:0;border-radius:50%;background:var(--accent,#6A4DF4);color:#fff;display:grid;place-items:center;
   box-shadow:0 5px 0 var(--accent-lip,#4B30CC),0 18px 40px -16px rgba(40,20,120,.55);opacity:0;pointer-events:none;transform:scale(.82);transition:opacity .2s ease,transform .26s cubic-bezier(.34,1.56,.64,1);cursor:pointer}
 .lv-big svg{width:38px;height:38px;margin-left:5px}
+.lv.is-paused:not(.is-end) .lv-big:active{transform:scale(.92)}
 .lv.is-paused:not(.is-end) .lv-big{opacity:1;pointer-events:auto;transform:none}
 .lv-bottom{flex:none;padding:2px 14px 8px;transition:opacity .2s}
 .lv-seekrow{display:flex;align-items:center;gap:10px;height:30px;padding:0 4px}
 .lv-time{flex:none;min-width:30px;font:600 12.5px/1 var(--ui);font-variant-numeric:tabular-nums;color:var(--ink-3,#6A6490)}
 .lv-time.lv-dur{text-align:right}
 .lv-track{position:relative;flex:1;min-width:0;display:flex;align-items:center}
-.lv-track .lv-seek{flex:1;min-width:0}
-/* Exercices « À toi » sur la barre : de petits points ronds posés sur la barre, plus hauts qu’elle et un peu en relief
-   (pas aplatis), liserés de blanc, sans anneau violet pour ne pas ressembler au curseur — doré comme le « ? » des exercices
-   tant qu’il est à faire, vert une fois fait. Le curseur posé sur un exercice le montre en son centre. */
+/* La barre est dessinée sous le curseur (rail), les points des exercices entre les deux : le curseur passe toujours dessus. */
+.lv-track .lv-seek{flex:1;min-width:0;position:relative;z-index:1}
+.lv-rail{position:absolute;left:0;right:0;top:50%;height:6px;margin-top:-3px;border-radius:6px;pointer-events:none;background:var(--gaps,linear-gradient(transparent,transparent)),linear-gradient(var(--accent,#6A4DF4),var(--accent,#6A4DF4)) 0 0/calc(9px + var(--pf,0) * (100% - 18px)) 100% no-repeat,#E2DCF5}
+/* Exercices « À toi » sur la barre : de petits points ronds posés sur la barre, plus hauts qu’elle et un peu en relief,
+   liserés de blanc, sans anneau violet pour ne pas ressembler au curseur — doré comme le « ? » des exercices tant qu’il
+   est à faire, badge vert coché une fois fait. Deux exercices proches ne se chevauchent pas ; en glissant, celui sous le
+   doigt grossit ; un exercice qu’on vient de réussir apparaît d’un rebond, la coche se trace. */
 .lv-pkm{position:absolute;left:0;right:0;top:50%;height:0;pointer-events:none}
-.lv-pkm i{position:absolute;top:0;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;background:#F2B529;box-shadow:0 0 0 1.5px #fff,0 1px 3px rgba(40,20,120,.3);transition:background-color .2s}
-.lv-pkm i.ok{background:#169447}
-.lv-tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(4px);white-space:nowrap;padding:7px 12px;border-radius:12px;background:var(--ink,#221C46);color:#fff;font:700 13px/1 var(--display);box-shadow:0 8px 20px -10px rgba(20,10,60,.5);opacity:0;transition:opacity .15s ease,transform .15s ease;pointer-events:none}
+.lv-pkm i{position:absolute;top:0;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#F2B529;box-shadow:0 0 0 1.5px #fff,0 1px 3px rgba(40,20,120,.3);transition:transform .2s cubic-bezier(.2,.9,.3,1.4)}
+.lv-pkm i.ok{width:15px;height:15px;margin:-7.5px 0 0 -7.5px;background:#169447}
+.lv-pkm svg{display:block;width:100%;height:100%}
+.lv-pkm path{fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.lv-pkm i.is-hot{transform:scale(1.3)}
+.lv-pkm i.is-new{animation:lvPkmNew .55s cubic-bezier(.2,.9,.3,1.4) .1s backwards}
+.lv-pkm i.is-new path{stroke-dasharray:10;stroke-dashoffset:10;animation:lvPkmTick .3s ease-out .4s forwards}
+@keyframes lvPkmNew{0%{transform:scale(.4)}55%{transform:scale(1.4)}100%{transform:none}}
+@keyframes lvPkmTick{to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){.lv-pkm i{transition:none!important}.lv-seek::-webkit-slider-thumb{transition:none!important}}
+/* Curseur : il grossit sous le doigt pendant qu’on glisse */
+.lv-seek::-webkit-slider-thumb{transition:transform .16s cubic-bezier(.2,.9,.3,1.3),border-color .25s,box-shadow .25s}
+/* Exercice qu’on vient de réussir : le curseur, posé sur son badge, s’entoure de vert un instant */
+.lv.is-valid .lv-seek::-webkit-slider-thumb{border-color:#169447;box-shadow:0 0 0 6px rgba(22,148,71,.22),0 2px 6px rgba(40,20,120,.25)}
+.lv.is-valid .lv-seek::-moz-range-thumb{border-color:#169447}
+.lv.is-seeking .lv-seek::-webkit-slider-thumb{transform:scale(1.25)}
+.lv.is-seeking .lv-seek::-moz-range-thumb{transform:scale(1.25)}
+.lv-tip{position:absolute;z-index:2;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(4px);white-space:nowrap;padding:7px 12px;border-radius:12px;background:var(--ink,#221C46);color:#fff;font:700 13px/1 var(--display);box-shadow:0 8px 20px -10px rgba(20,10,60,.5);opacity:0;transition:opacity .15s ease,transform .15s ease;pointer-events:none}
 .lv-tip[hidden]{display:none}
 .lv-tip.on{opacity:1;transform:translateX(-50%)}
 .lv-tip::after{content:"";position:absolute;left:50%;top:100%;margin-left:-6px;border:6px solid transparent;border-top-color:var(--ink,#221C46)}
@@ -6686,10 +6705,10 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv.is-end .lv-bottom{opacity:0;visibility:hidden;pointer-events:none;transition:none}
 .lv-seek{-webkit-appearance:none;appearance:none;width:100%;height:30px;margin:0;background:transparent;cursor:pointer;--p:0%}
 .lv-seek:focus{outline:none}
-.lv-seek::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:var(--gaps,linear-gradient(transparent,transparent)),linear-gradient(var(--accent,#6A4DF4),var(--accent,#6A4DF4)) 0 0/calc(9px + var(--pf,0) * (100% - 18px)) 100% no-repeat,#E2DCF5}
+.lv-seek::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:transparent}
 .lv-seek::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-6px;border-radius:50%;background:#fff;border:3px solid var(--accent,#6A4DF4);box-shadow:0 2px 6px rgba(40,20,120,.25)}
-.lv-seek::-moz-range-track{height:6px;border-radius:6px;background:var(--gaps,linear-gradient(transparent,transparent)),#E2DCF5}
-.lv-seek::-moz-range-progress{height:6px;border-radius:6px;background:var(--accent,#6A4DF4)}
+.lv-seek::-moz-range-track{height:6px;border-radius:6px;background:transparent}
+.lv-seek::-moz-range-progress{height:6px;border-radius:6px;background:transparent}
 .lv-seek::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--accent,#6A4DF4)}
 .lv-seek:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 4px rgba(106,77,244,.28)}
 /* Fin : « À toi de jouer », la consigne, puis l’exercice */
@@ -19996,7 +20015,7 @@ function openLessonVideo(){
     <div class="lv-bottom">
       <div class="lv-seekrow">
         <span class="lv-time lv-cur" aria-hidden="true">0:00</span>
-        <div class="lv-track"><input class="lv-seek" type="range" min="0" max="1000" step="1" value="0" aria-label="Avancement de la vidéo"><div class="lv-pkm" aria-hidden="true"></div><div class="lv-tip" aria-hidden="true" hidden></div></div>
+        <div class="lv-track"><div class="lv-rail" aria-hidden="true"></div><div class="lv-pkm" aria-hidden="true"></div><input class="lv-seek" type="range" min="0" max="1000" step="1" value="0" aria-label="Avancement de la vidéo"><div class="lv-tip" aria-hidden="true" hidden></div></div>
         <span class="lv-time lv-dur" aria-hidden="true">${v.duree?'':'0:00'}</span>
       </div>
       <div class="lv-ctrls">
@@ -20022,7 +20041,7 @@ function openLessonVideo(){
     if(lvNoteExisting(l))lvNoteMark('already');
   }
   /* Bouton des notes et question : replacés sur l’image quand la taille de l’écran change. */
-  const place=()=>{ lvNotePlace(); lvQPlace(); lvPkPlace(); lvOpPlace(); };
+  const place=()=>{ lvNotePlace(); lvQPlace(); lvPkPlace(); lvOpPlace(); lvPkMarks(); };
   LV.place=place;
   video.addEventListener('loadedmetadata',place);
   if(window.ResizeObserver){ LV.ro=new ResizeObserver(place); LV.ro.observe(root.querySelector('.lv-stage')); }
@@ -20063,8 +20082,11 @@ function openLessonVideo(){
   video.addEventListener('seeked',()=>{ if(LV&&LV.video===video)lvNoteSync(); });
   video.addEventListener('ended',lvEnded);
   video.addEventListener('error',lvFail);
+  /* En glissant, la vidéo n’est redessinée qu’une fois par image (le doigt envoie souvent plus d’événements). */
+  const seekTo=t=>{ LV.seekTo=t; if(!LV.seekRaf)LV.seekRaf=requestAnimationFrame(()=>{ LV.seekRaf=0; if(LV&&LV.seekTo!=null){ video.currentTime=LV.seekTo; LV.seekTo=null; lvNoteSync(); } }); };
+  const seekFlush=()=>{ if(LV.seekRaf){ cancelAnimationFrame(LV.seekRaf); LV.seekRaf=0; } if(LV.seekTo!=null){ video.currentTime=LV.seekTo; LV.seekTo=null; } };
   seek.addEventListener('input',()=>{
-    LV.seeking=true;
+    LV.seeking=true; root.classList.add('is-seeking');
     const d=video.duration;
     if(LV.q)lvQClose(false);
     if(LV.pk)lvPkClose(false);
@@ -20079,16 +20101,17 @@ function openLessonVideo(){
         if(!video.paused){ video.pause(); LV.gateResume=true; }
         seek.value=String(Math.floor(t/d*1000));
       }
-      video.currentTime=t;
+      seekTo(t);
     }
-    seek.style.setProperty('--pf',(seek.value/1000).toFixed(4));
+    seek.parentElement.style.setProperty('--pf',(seek.value/1000).toFixed(4));
     root.querySelector('.lv-cur').textContent=lvFmt(seek.value/1000*(d||0));
     lvTip(true);
     lvNoteSync();
   });
   seek.addEventListener('change',()=>{
     if(!LV)return;
-    LV.seeking=false; lvTip(false);
+    seekFlush();
+    LV.seeking=false; root.classList.remove('is-seeking'); lvTip(false);
     const g=LV.gate, again=LV.gateResume; LV.gate=-1; LV.gateResume=false;
     if(g>=0)lvPkStop(g); else if(again)lvPlay();
     lvPosKeep();
@@ -20112,8 +20135,8 @@ function openLessonVideo(){
   });
   root.querySelector('.lv-big').addEventListener('click',()=>lvPlay());
   root.querySelector('.lv-pp').addEventListener('click',()=>lvToggle());
-  root.querySelector('.lv-back').addEventListener('click',()=>lvSkip(-LV_SKIP));
-  root.querySelector('.lv-fwd').addEventListener('click',()=>lvSkip(LV_SKIP));
+  root.querySelector('.lv-back').addEventListener('click',e=>{ lvSpin(e.currentTarget,-1); lvSkip(-LV_SKIP); });
+  root.querySelector('.lv-fwd').addEventListener('click',e=>{ lvSpin(e.currentTarget,1); lvSkip(LV_SKIP); });
   root.querySelector('.lv-speed').addEventListener('click',()=>lvSpeedMenu());
   root.querySelectorAll('.lv-rate').forEach(b=>b.addEventListener('click',()=>{ lvSetRate(+b.dataset.rate); lvSpeedMenu(false); }));
   /* Menu des vitesses ouvert : un appui ailleurs le referme seulement (sans mettre en pause). */
@@ -20158,15 +20181,25 @@ function lvToggle(){
 function lvSyncSeek(){
   const V=LV.video, d=V.duration||0, p=d?Math.min(1,V.currentTime/d):0;
   LV.seek.value=String(Math.round(p*1000));
-  LV.seek.style.setProperty('--pf',p.toFixed(4));
+  LV.seek.parentElement.style.setProperty('--pf',p.toFixed(4));
   const c=LV.root.querySelector('.lv-cur'); if(c)c.textContent=lvFmt(V.currentTime);
 }
 function lvSyncPP(){
   const b=LV&&LV.root.querySelector('.lv-pp'); if(!b)return;
-  const playing=!LV.video.paused&&!LV.video.ended;
+  const playing=!LV.video.paused&&!LV.video.ended, was=b.classList.contains('is-play')?'play':'pause', now=playing?'pause':'play';
+  if(b.dataset.ico===now)return;
+  b.dataset.ico=now;
   b.innerHTML=playing?LV_ICO.pause:LV_ICO.play;
   b.setAttribute('aria-label',playing?'Mettre en pause':'Lire');
   b.classList.toggle('is-play',!playing);
+  /* L’icône change d’un petit rebond (lecture ↔ pause). */
+  const svg=b.querySelector('svg');
+  if(was!==now&&svg&&svg.animate&&!prefersReduceMotion())svg.animate([{transform:'scale(.5) rotate(-12deg)',opacity:.3},{transform:'none',opacity:1}],{duration:260,easing:'cubic-bezier(.2,.9,.3,1.4)'});
+}
+/* Bouton ±5 s : la flèche tourne dans le sens du saut. */
+function lvSpin(btn,dir){
+  const svg=btn&&btn.querySelector('svg');
+  if(svg&&svg.animate&&!prefersReduceMotion())svg.animate([{transform:'none'},{transform:`rotate(${dir*42}deg)`},{transform:'none'}],{duration:380,easing:'cubic-bezier(.2,.9,.3,1.2)'});
 }
 /* Saut de ±5 s (boutons, double appui, flèches). Vers l’avant, il s’arrête sur le premier moment « À toi » pas encore
    réussi et ouvre son plateau ; rend false dans ce cas (ou si rien ne bouge). */
@@ -20411,23 +20444,31 @@ function lvMarks(){
   const ch=LV.video.chapters||[], d=LV.video.duration;
   if(!ch.length||!(d>0))return;
   const stops=ch.filter(c=>c.t>.5&&c.t<d-.5).map(c=>{ const P=`9px + ${(c.t/d).toFixed(4)} * (100% - 18px)`; return `transparent calc(${P} - 1.5px),#F4F2FC calc(${P} - 1.5px),#F4F2FC calc(${P} + 1.5px),transparent calc(${P} + 1.5px)`; });
-  LV.seek.style.setProperty('--gaps',`linear-gradient(90deg,transparent 0,${stops.join(',')},transparent 100%)`);
+  LV.seek.parentElement.style.setProperty('--gaps',`linear-gradient(90deg,transparent 0,${stops.join(',')},transparent 100%)`);
 }
-/* Repères des moments « À toi » : où sont les exercices sur la barre (doré : à faire, vert : fait). */
-function lvPkMarks(){
+/* Repères des moments « À toi » : où sont les exercices sur la barre (doré : à faire, vert coché : fait).
+   fresh : le moment qu’on vient de réussir (son badge apparaît d’un rebond). */
+const LV_PKM_OK='<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M4 7.3l2 2 4.2-4.6"/></svg>';
+function lvPkMarks(fresh){
   const box=LV&&LV.root.querySelector('.lv-pkm'); if(!box)return;
   const ps=LV.video.picks||[], d=LV.video.duration;
-  box.innerHTML=d>0?ps.map((p,i)=>{ const a=lvPkGet(LV.id,i), f=Math.min(1,p.t/d).toFixed(4);
-    return `<i class="${a?'ok':''}" data-f="${f}" style="left:calc(9px + ${f} * (100% - 18px))"></i>`; }).join(''):'';
+  if(!(d>0)){ box.innerHTML=''; return; }
+  const L=Math.max(0,LV.seek.clientWidth-18);
+  const ms=ps.map((p,i)=>{ const a=lvPkGet(LV.id,i), f=Math.min(1,p.t/d); return {i,a,f,s:a?15:10,x:9+f*L}; });
+  /* Deux exercices proches : le second se décale juste assez pour ne pas chevaucher le premier. */
+  if(L>0)ms.forEach((m,j)=>{ const q=ms[j-1]; if(q&&m.x-q.x<(m.s+q.s)/2+2)m.x=q.x+(m.s+q.s)/2+2; });
+  box.innerHTML=ms.map(m=>`<i class="${m.a?'ok':''}${m.i===fresh?' is-new':''}" data-f="${m.f.toFixed(4)}" style="left:${L>0?m.x.toFixed(1)+'px':`calc(9px + ${m.f.toFixed(4)} * (100% - 18px))`}">${m.a?LV_PKM_OK:''}</i>`).join('');
 }
 /* En glissant sur la barre : le nom du chapitre et le temps, au-dessus du doigt. */
 function lvTip(on){
   if(!LV)return;
   const tip=LV.root.querySelector('.lv-tip'); if(!tip)return;
   clearTimeout(tip._t);
-  if(!on){ tip._t=setTimeout(()=>{ tip.classList.remove('on'); tip._t=setTimeout(()=>{tip.hidden=true;},180); },450); return; }
+  const hot=k=>LV.root.querySelectorAll('.lv-pkm i').forEach((m,j)=>m.classList.toggle('is-hot',j===k));
+  if(!on){ hot(-1); tip._t=setTimeout(()=>{ tip.classList.remove('on'); tip._t=setTimeout(()=>{tip.hidden=true;},180); },450); return; }
   const V=LV.video, d=V.duration||0, f=LV.seek.value/1000, t=f*d, c=lvChapterAt(t);
   const W=LV.seek.getBoundingClientRect().width, ps=V.picks||[], k=d?ps.findIndex(q=>Math.abs(q.t/d-f)*(W-18)<8):-1;
+  hot(k);
   /* Sur un point : l’exercice (« À toi 4/6 », coché s’il est fait) ; ailleurs : le chapitre. */
   tip.textContent=(k>=0?`À toi ${k+1}/${ps.length}${lvPkGet(LV.id,k)?' ✓':''}`:c?`${c.n} · ${c.label}`:'Intro')+' · '+lvFmt(t);
   const x=9+f*(W-18), half=tip.offsetWidth/2||60;
@@ -20632,6 +20673,8 @@ function lvPkShow(i,p){
   /* Moment déjà réussi (vidéo revue, retour en arrière) : il s’ouvre résolu, comme les questions déjà répondues. */
   const kept=lvPkGet(LV.id,i);
   if(kept)lvPkKept(P,kept);
+  /* Les réponses arrivent l’une après l’autre, juste après la carte. */
+  else if(!prefersReduceMotion())box.querySelectorAll('.lv-pk-opt').forEach((o,k)=>{ if(o.animate)o.animate([{opacity:0,transform:'translateY(10px) scale(.96)'},{opacity:1,transform:'none'}],{duration:300,delay:140+k*45,easing:'cubic-bezier(.2,.9,.3,1.2)',fill:'backwards'}); });
   if(prefersReduceMotion())box.classList.add('on');
   else requestAnimationFrame(()=>requestAnimationFrame(()=>box.classList.add('on')));
   if(!kept){ LvSfx.play('pop',5,.55,0); if(navigator.vibrate)navigator.vibrate(8); }
@@ -20641,7 +20684,7 @@ function lvPkShow(i,p){
 /* La réponse gardée s’affiche telle quelle, comme à la fin de l’exercice, sans son ni nouvel essai : la bonne réponse
    sur l’image (la timeline la pose juste après l’arrêt), le badge du premier essai, l’explication, puis « Continuer ». */
 function lvPkKept(P,a){
-  P.done=true;
+  P.done=true; P.kept=true;
   const box=P.box, opts=box.querySelector('.lv-pk-opts'), hint=box.querySelector('.lv-pk-hint'), cnt=box.querySelector('.lv-pk-cnt'), go=box.querySelector('.lv-pk-go');
   box.classList.add('is-ok','is-kept');
   box.querySelector('.lv-pk-kick').textContent=a.first?'✓ Bien vu !':'✓ Trouvé !';
@@ -20830,6 +20873,11 @@ function lvPkClose(answered){
   /* Une étiquette en plein glisser (ou le trou qu’elle visait) ne survit pas au plateau. */
   LV.root.querySelectorAll('.lv-pk-fly.is-drag,.lv-pk-target').forEach(e=>e.remove());
   const IX=lvPkIX(); try{ if(IX&&IX.leave)IX.leave(P.i,!!answered); }catch(e){}
+  /* Moment réussi à l’instant : son badge vert apparaît d’un rebond sur la barre, qui réapparaît. */
+  if(answered&&P.done&&!P.kept&&!prefersReduceMotion()){
+    lvPkMarks(P.i);
+    LV.root.classList.add('is-valid'); clearTimeout(LV.validT); LV.validT=setTimeout(()=>{ if(LV)LV.root.classList.remove('is-valid'); },1100);
+  }
   const box=P.box, card=box.querySelector('.lv-pk-card');
   if(prefersReduceMotion()||!card.animate){ box.remove(); return; }
   /* Pendant le fondu, la carte ne retient plus le doigt : les commandes du dessous répondent tout de suite. */
@@ -28823,7 +28871,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1932';
+  const SW_CACHE='requete-2026-10-12-ludique-v1933';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
