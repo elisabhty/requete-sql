@@ -1131,7 +1131,7 @@ test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la 
   const core = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
   assert.ok(core.includes("picks: picks.map(p => ({t: unwarp(p.at), from: p.from != null ? unwarp(p.from) : null, kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', need: p.need || 0,")
     && core.includes("const GESTURES = ['tap', 'sort', 'link'];")
-    && core.includes("options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || ''}))}))")
+    && core.includes("options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''}))}))")
     && core.includes('clashes: holdClashes(picks.concat(opens).map(p => p.at))') && core.includes('if (cfg.onRender) cfg.onRender(T);'), 'moteur : moments exportés, aucune animation coupée par un arrêt, rendu suivi par la page');
 });
 
@@ -1330,6 +1330,21 @@ test('mise en page (?check) : un élément ou un texte qui sort de son cadre est
   assert.ok(cols.length === 6 && cols.reduce((a, b) => a + b, 0) <= 1016 - 2 * 3 - 2 * 10, `colonnes : ${cols.join(' + ')}`);
   assert.ok(page.includes('.xr>span:last-of-type{box-shadow:none}'), 'pas de trait après la dernière colonne, même sur la ligne barrée');
   assert.ok(page.includes('.ml{left:64px;width:952px;height:150px;padding:0 30px;overflow:hidden}') && page.includes('.mh{height:144px;'), 'mail replié : l’en-tête seul, dans la carte');
+});
+
+test('moment déjà réussi (vidéo revue, retour en arrière) : il s’ouvre résolu, avec la réponse, sans son ni nouvel essai', () => {
+  const show = cut('function lvPkShow(i,p){', 'function lvPkKept(P,a){');
+  for (const part of ['const kept=lvPkGet(LV.id,i);', 'if(kept)lvPkKept(P,kept);', "if(!kept){ LvSfx.play('pop',5,.55,0); if(navigator.vibrate)navigator.vibrate(8); }",
+    "sr.textContent=`${kept?'Déjà fait':'À toi'} : ", "box.querySelector(kept?'.lv-pk-go':'.lv-pk-card').focus("])
+    assert.ok(show.includes(part), `ouverture : ${part}`);
+  const kept = cut('function lvPkKept(P,a){', 'function lvPkTry(k){');
+  for (const part of ['P.done=true;', "box.classList.add('is-ok','is-kept');", "a.first?'✓ Bien vu !':'✓ Trouvé !'", "if(dot)dot.className=a.first?'ok':'try';",
+    'if(cnt)cnt.textContent=`${P.total} / ${P.total}`;', "b.classList.add(j===k?'is-ok':'is-gone')", "w.className='lv-pk-why ok'; w.hidden=false;", "else opts.classList.add('is-won');",
+    "if(P.layer)P.layer.classList.add('is-done');", "go.hidden=false; go.classList.add('is-ready');", 'LV.video.currentTime=Math.min(P.p.t+.05,'])
+    assert.ok(kept.includes(part), `résolu : ${part}`);
+  assert.ok(!kept.includes('lvPkSet') && !kept.includes('LvSfx'), 'rien n’est noté de nouveau, aucun son');
+  /* « Rejouer les moments ratés » et « Tout recommencer » effacent d’abord les réponses : ces moments-là repartent de zéro. */
+  assert.ok(cut('function lvRedo(list){', 'function lvRedoGo(){').includes("list.forEach(i=>{ delete o['p'+i]; });") && html.includes('function lvPkReset(id){'), 'refaire : moments vierges');
 });
 
 test('mail reçu : l’image s’arrête sur la notification, le toucher l’ouvre et la lecture reprend, sans note', () => {

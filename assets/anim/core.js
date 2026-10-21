@@ -629,7 +629,8 @@ function Course(cfg){
          text : étiquettes en texte courant (une réponse en mots), et non en code ; tag : repère de l’étiquette à glisser (lettre de colonne) ;
          from : début du passage qui amène le moment (revoir, rejouer). */
       picks: picks.map(p => ({t: unwarp(p.at), from: p.from != null ? unwarp(p.from) : null, kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', need: p.need || 0,
-        options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || ''}))})),
+        /* L’explication de la bonne réponse : le lecteur la remontre quand le moment, déjà réussi, s’ouvre résolu. */
+        options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''}))})),
       /* Mail reçu (opens) : l’image s’arrête, l’élève touche l’élément sel pour l’ouvrir ; rien n’est noté. */
       opens: opens.map(o => ({t: unwarp(o.at), sel: o.sel, prompt: fr(o.prompt), label: o.label})),
       /* Légendes en texte : le lecteur les annonce à VoiceOver au fil de l’animation. */

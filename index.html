@@ -20612,12 +20612,37 @@ function lvPkShow(i,p){
   }else lvPkLayer(P);
   box.querySelector('.lv-pk-go').addEventListener('click',()=>{ lvPkClose(true); if(!lvRedoNext(i))lvPlay(); });
   box.querySelector('.lv-pk-back').addEventListener('click',()=>lvPkBack(i));
+  /* Moment déjà réussi (vidéo revue, retour en arrière) : il s’ouvre résolu, comme les questions déjà répondues. */
+  const kept=lvPkGet(LV.id,i);
+  if(kept)lvPkKept(P,kept);
   if(prefersReduceMotion())box.classList.add('on');
   else requestAnimationFrame(()=>requestAnimationFrame(()=>box.classList.add('on')));
-  LvSfx.play('pop',5,.55,0);
-  if(navigator.vibrate)navigator.vibrate(8);
-  const sr=LV.root.querySelector('.lv-sr'); if(sr)sr.textContent=`À toi : ${String(p.prompt).replace(/<[^>]+>/g,'')}`;
-  try{box.querySelector('.lv-pk-card').focus({preventScroll:true});}catch(e){}
+  if(!kept){ LvSfx.play('pop',5,.55,0); if(navigator.vibrate)navigator.vibrate(8); }
+  const sr=LV.root.querySelector('.lv-sr'); if(sr)sr.textContent=`${kept?'Déjà fait':'À toi'} : ${String(p.prompt).replace(/<[^>]+>/g,'')}`;
+  try{box.querySelector(kept?'.lv-pk-go':'.lv-pk-card').focus({preventScroll:true});}catch(e){}
+}
+/* La réponse gardée s’affiche telle quelle, comme à la fin de l’exercice, sans son ni nouvel essai : la bonne réponse
+   sur l’image (la timeline la pose juste après l’arrêt), le badge du premier essai, l’explication, puis « Continuer ». */
+function lvPkKept(P,a){
+  P.done=true;
+  const box=P.box, opts=box.querySelector('.lv-pk-opts'), hint=box.querySelector('.lv-pk-hint'), cnt=box.querySelector('.lv-pk-cnt'), go=box.querySelector('.lv-pk-go');
+  box.classList.add('is-ok','is-kept');
+  box.querySelector('.lv-pk-kick').textContent=a.first?'✓ Bien vu !':'✓ Trouvé !';
+  const dot=box.querySelectorAll('.lv-pk-dots i')[P.i]; if(dot)dot.className=a.first?'ok':'try';
+  if(cnt)cnt.textContent=`${P.total} / ${P.total}`;
+  if(P.kind==='pick'){
+    const k=P.p.options.findIndex(o=>o.ok), why=k>=0?P.p.options[k].why:'';
+    box.querySelectorAll('.lv-pk-opt').forEach((b,j)=>b.classList.add(j===k?'is-ok':'is-gone'));
+    if(why){ const w=box.querySelector('.lv-pk-why'); w.innerHTML=lvNw(why); w.className='lv-pk-why ok'; w.hidden=false; box.querySelector('.lv-pk-t').hidden=true; opts.hidden=true; }
+    else opts.classList.add('is-won');
+  }else{
+    if(opts)opts.hidden=true;
+    if(hint)hint.hidden=true;
+    if(P.layer)P.layer.classList.add('is-done');
+  }
+  go.hidden=false; go.classList.add('is-ready');
+  LV.video.currentTime=Math.min(P.p.t+.05,LV.video.duration||P.p.t+.05);
+  lvSyncSeek(); lvNoteSync();
 }
 function lvPkTry(k){
   const P=LV&&LV.pk; if(!P||P.busy||P.done)return;
@@ -28775,7 +28800,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1925';
+  const SW_CACHE='requete-2026-10-12-ludique-v1926';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
