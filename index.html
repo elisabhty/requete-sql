@@ -6464,6 +6464,13 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-time.lv-dur{text-align:right}
 .lv-track{position:relative;flex:1;min-width:0;display:flex;align-items:center}
 .lv-track .lv-seek{flex:1;min-width:0}
+/* Un point sur la barre par moment « À toi » : blanc cerclé à faire, vert réussi du premier coup, lilas réussi après une erreur ;
+   il s’efface sous le curseur */
+.lv-pkm{position:absolute;left:0;right:0;top:50%;height:0;pointer-events:none}
+.lv-pkm i{position:absolute;top:0;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#fff;border:2px solid var(--accent,#6A4DF4);transition:opacity .15s}
+.lv-pkm i.ok{background:#169447;border-color:#fff;box-shadow:0 0 0 1px rgba(22,148,71,.5)}
+.lv-pkm i.try{background:#B9A8FF;border-color:#fff;box-shadow:0 0 0 1px rgba(106,77,244,.5)}
+.lv-pkm i.is-under{opacity:0}
 .lv-tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(4px);white-space:nowrap;padding:7px 12px;border-radius:12px;background:var(--ink,#221C46);color:#fff;font:700 13px/1 var(--display);box-shadow:0 8px 20px -10px rgba(20,10,60,.5);opacity:0;transition:opacity .15s ease,transform .15s ease;pointer-events:none}
 .lv-tip[hidden]{display:none}
 .lv-tip.on{opacity:1;transform:translateX(-50%)}
@@ -19989,7 +19996,7 @@ function openLessonVideo(){
     <div class="lv-bottom">
       <div class="lv-seekrow">
         <span class="lv-time lv-cur" aria-hidden="true">0:00</span>
-        <div class="lv-track"><input class="lv-seek" type="range" min="0" max="1000" step="1" value="0" aria-label="Avancement de la vidéo"><div class="lv-tip" aria-hidden="true" hidden></div></div>
+        <div class="lv-track"><input class="lv-seek" type="range" min="0" max="1000" step="1" value="0" aria-label="Avancement de la vidéo"><div class="lv-pkm" aria-hidden="true"></div><div class="lv-tip" aria-hidden="true" hidden></div></div>
         <span class="lv-time lv-dur" aria-hidden="true">${v.duree?'':'0:00'}</span>
       </div>
       <div class="lv-ctrls">
@@ -20029,7 +20036,7 @@ function openLessonVideo(){
     video.playbackRate=LV_RATE;
     root.querySelector('.lv-dur').textContent=lvFmt(Math.round(video.duration));
     root.classList.remove('is-loading'); root.classList.add('is-ready');
-    lvMarks(); lvSyncSeek();
+    lvMarks(); lvPkMarks(); lvSyncSeek();
   });
   /* Reprise là où on s’était arrêté (même après avoir fermé l’app). */
   const resume=LV_POS.get(l.id);
@@ -20152,6 +20159,8 @@ function lvSyncSeek(){
   const V=LV.video, d=V.duration||0, p=d?Math.min(1,V.currentTime/d):0;
   LV.seek.value=String(Math.round(p*1000));
   LV.seek.style.setProperty('--pf',p.toFixed(4));
+  const w=LV.seek.clientWidth-18;
+  LV.root.querySelectorAll('.lv-pkm i').forEach(m=>m.classList.toggle('is-under',Math.abs(+m.dataset.f-p)*w<9));
   const c=LV.root.querySelector('.lv-cur'); if(c)c.textContent=lvFmt(V.currentTime);
 }
 function lvSyncPP(){
@@ -20405,6 +20414,13 @@ function lvMarks(){
   if(!ch.length||!(d>0))return;
   const stops=ch.filter(c=>c.t>.5&&c.t<d-.5).map(c=>{ const P=`9px + ${(c.t/d).toFixed(4)} * (100% - 18px)`; return `transparent calc(${P} - 1.5px),#F4F2FC calc(${P} - 1.5px),#F4F2FC calc(${P} + 1.5px),transparent calc(${P} + 1.5px)`; });
   LV.seek.style.setProperty('--gaps',`linear-gradient(90deg,transparent 0,${stops.join(',')},transparent 100%)`);
+}
+/* Repères des moments « À toi » : où sont les exercices sur la barre, et lesquels sont déjà faits. */
+function lvPkMarks(){
+  const box=LV&&LV.root.querySelector('.lv-pkm'); if(!box)return;
+  const ps=LV.video.picks||[], d=LV.video.duration;
+  box.innerHTML=d>0?ps.map((p,i)=>{ const a=lvPkGet(LV.id,i), f=Math.min(1,p.t/d).toFixed(4);
+    return `<i class="${a?(a.first?'ok':'try'):''}" data-f="${f}" style="left:calc(9px + ${f} * (100% - 18px))"></i>`; }).join(''):'';
 }
 /* En glissant sur la barre : le nom du chapitre et le temps, au-dessus du doigt. */
 function lvTip(on){
@@ -20680,7 +20696,7 @@ function lvPkVerdict(P,k,btn,ok,r){
   if(ok){
     const first=P.tries===1;
     P.done=true;
-    lvPkSet(LV.id,P.i,first,P.tries-1);
+    lvPkSet(LV.id,P.i,first,P.tries-1); lvPkMarks();
     btn.classList.add('is-ok');
     P.box.classList.add('is-ok');
     kick.textContent=first?'✓ Bien vu !':'✓ Trouvé !'; lvPkBump(kick,1.12);
@@ -20733,6 +20749,7 @@ function lvPkBack(i){
 function lvRedo(list){
   if(!LV||!list||!list.length)return;
   const o=LV_ANS[LV.id]; if(o){ list.forEach(i=>{ delete o['p'+i]; }); lvAnsSave(); }
+  lvPkMarks();
   LV.redo={list:list.slice(),k:0};
   lvEndHide();
   lvRedoGo();
@@ -21138,7 +21155,7 @@ function lvPkActed(P,r,el,chip,el2){
 function lvPkWin(P,why,rect){
   const first=P.miss===0, kick=P.box.querySelector('.lv-pk-kick'), wEl=P.box.querySelector('.lv-pk-why');
   P.done=true;
-  lvPkSet(LV.id,P.i,first,P.miss);
+  lvPkSet(LV.id,P.i,first,P.miss); lvPkMarks();
   P.box.classList.remove('is-ko'); P.box.classList.add('is-ok');
   if(P.layer)P.layer.classList.add('is-done');
   kick.textContent=first?'✓ Bien vu !':'✓ Trouvé !'; lvPkBump(kick,1.12);
@@ -21170,7 +21187,7 @@ function lvEndHide(){
 /* « Revoir la vidéo » ; sous la règle de validation, « Tout recommencer » : tous les moments sont à refaire. */
 function lvReplay(){
   if(!LV)return;
-  if(LV.retry)lvPkReset(LV.id);
+  if(LV.retry){ lvPkReset(LV.id); lvPkMarks(); }
   LV.redo=null;
   lvEndHide();
   try{LV.video.currentTime=0;}catch(e){}
@@ -28800,7 +28817,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1926';
+  const SW_CACHE='requete-2026-10-12-ludique-v1927';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
