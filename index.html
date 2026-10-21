@@ -6468,8 +6468,6 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-track .lv-seek{flex:1;min-width:0;position:relative;z-index:1}
 .lv-rail{position:absolute;left:0;right:0;top:50%;height:6px;margin-top:-3px;border-radius:6px;pointer-events:none;overflow:hidden;background:#E2DCF5}
 .lv-fill{position:absolute;left:0;top:0;bottom:0;width:9px;background:var(--accent,#6A4DF4)}
-/* Coupures entre chapitres, par-dessus la partie lue */
-.lv-rail::after{content:"";position:absolute;left:0;top:0;right:0;bottom:0;background:var(--gaps,none)}
 /* Exercices « À toi » sur la barre : de petits points ronds posés sur la barre, plus hauts qu’elle et un peu en relief,
    liserés de blanc, sans anneau violet pour ne pas ressembler au curseur — doré comme le « ? » des exercices tant qu’il
    est à faire ; une fois fait, badge vert coché s’il est réussi du premier coup, rouge avec une croix sinon. Deux exercices
@@ -20129,7 +20127,7 @@ function openLessonVideo(){
     video.playbackRate=LV_RATE;
     root.querySelector('.lv-dur').textContent=lvFmt(Math.round(video.duration));
     root.classList.remove('is-loading'); root.classList.add('is-ready');
-    lvMarks(); lvPkMarks(); lvSyncSeek();
+    lvPkMarks(); lvSyncSeek();
   });
   /* Reprise là où on s’était arrêté (même après avoir fermé l’app). */
   const resume=LV_POS.get(l.id);
@@ -20532,18 +20530,12 @@ function lvPosKeep(){
   if(t>2&&d>0&&t<d-2)LV_POS.set(LV.id,+t.toFixed(1)); else LV_POS.delete(LV.id);
   lvPosSave();
 }
-/* Repères des chapitres : la barre est coupée au début de chaque chapitre. */
+/* Chapitre en cours : affiché en haut de l’image et, en glissant, au-dessus du doigt. La barre reste d’un seul trait : des
+   coupures entre chapitres, à côté des points des exercices, la faisaient paraître cassée. */
 function lvChapterAt(t){
   const ch=(LV&&LV.video.chapters)||[]; let c=null;
   ch.forEach(x=>{ if(t>=x.t-.05)c=x; });
   return c;
-}
-function lvMarks(){
-  if(!LV)return;
-  const ch=LV.video.chapters||[], d=LV.video.duration;
-  if(!ch.length||!(d>0))return;
-  const stops=ch.filter(c=>c.t>.5&&c.t<d-.5).map(c=>{ const P=`9px + ${(c.t/d).toFixed(4)} * (100% - 18px)`; return `transparent calc(${P} - 1.5px),#F4F2FC calc(${P} - 1.5px),#F4F2FC calc(${P} + 1.5px),transparent calc(${P} + 1.5px)`; });
-  LV.seek.parentElement.style.setProperty('--gaps',`linear-gradient(90deg,transparent 0,${stops.join(',')},transparent 100%)`);
 }
 /* Repères des moments « À toi » : où sont les exercices sur la barre (doré : à faire ; vert coché : réussi du premier coup ;
    rouge avec une croix : raté au premier essai, même trouvé ensuite). fresh : le moment qu’on vient de finir (son badge
@@ -20556,8 +20548,8 @@ function lvPkMarks(fresh){
   if(!(d>0)){ box.innerHTML=''; return; }
   const L=Math.max(0,LV.seek.clientWidth-18);
   const ms=ps.map((p,i)=>{ const a=lvPkGet(LV.id,i), f=Math.min(1,p.t/d); return {i,a,f,s:a?15:10,x:9+f*L}; });
-  /* Deux exercices proches : le second se décale juste assez pour ne pas chevaucher le premier. */
-  if(L>0)ms.forEach((m,j)=>{ const q=ms[j-1]; if(q&&m.x-q.x<(m.s+q.s)/2+2)m.x=q.x+(m.s+q.s)/2+2; });
+  /* Deux exercices proches : le second se décale juste assez pour que leurs liserés blancs ne se touchent pas. */
+  if(L>0)ms.forEach((m,j)=>{ const q=ms[j-1]; if(q&&m.x-q.x<(m.s+q.s)/2+4)m.x=q.x+(m.s+q.s)/2+4; });
   box.innerHTML=ms.map(m=>`<i class="${m.a?(m.a.first?'ok':'ko'):''}${m.i===fresh?' is-new':''}" data-f="${m.f.toFixed(4)}" style="left:${L>0?m.x.toFixed(1)+'px':`calc(9px + ${m.f.toFixed(4)} * (100% - 18px))`}">${m.a?(m.a.first?LV_PKM_OK:LV_PKM_KO):''}</i>`).join('');
 }
 /* En glissant sur la barre : le nom du chapitre et le temps, au-dessus du doigt. */
@@ -29069,7 +29061,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1947';
+  const SW_CACHE='requete-2026-10-12-ludique-v1948';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
