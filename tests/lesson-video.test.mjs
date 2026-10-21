@@ -1141,6 +1141,8 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
     '<span class="lv-pk-cnt">0 / ${total}</span>', '<span class="lv-pk-ico" aria-hidden="true">${LV_PK_ICO[kind]||LV_PK_ICO.tap}</span>${p.prompt}',
     '<p class="lv-pk-hint">${p.hint}</p>', '}else lvPkLayer(P);', "p={...p,prompt:lvNw(p.prompt),hint:p.hint?lvNw(p.hint):''};"])
     assert.ok(show.includes(part), `plateau : ${part}`);
+  assert.ok(show.includes('<p class="lv-pk-why" hidden></p>\n    ${p.hint?`<p class="lv-pk-hint">${p.hint}</p>`:\'\'}\n    ${opts.length?`<div class="lv-pk-opts">')
+    && html.includes('.lv-pk-hint{margin:-5px 2px 11px;font:600 14px/1.35 var(--ui);color:var(--ink-3,#6A6490);text-align:left;'), 'les consignes au même endroit : la ligne d’aide suit la consigne, au-dessus des étiquettes');
   const layer = cut('function lvPkLayer(P){', 'function lvPkActed(');
   for (const part of ['spots=(IX&&IX.spots&&IX.spots(P.i))||[]', "if(P.kind==='tap')P.spots.forEach(b=>b.addEventListener('click',()=>lvPkAct(P,[b.dataset.k],b)));",
     'lvPkDrag(P,c,zones,z=>{ lvPkSel(P,null); lvPkAct(P,[+c.dataset.k,z.el.dataset.k],z.el,c); });', 'lvGlisse(btn,', 'lvGlisse(a,',
