@@ -6750,6 +6750,18 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv.end-in .lv-end-card{transform:none}
 .lv-end-top{display:flex;align-items:center;gap:14px;margin-bottom:20px}
 .lv-end-top .mascot-medal{width:70px;height:70px}
+/* Leçon terminée avec le score requis : le chat saute de joie, puis se balance doucement ; sa bulle « Bravo ! » arrive
+   d’un rebond, la pointe vers lui. Les confettis et le son partent de lvWin. */
+.lv-end-cat{position:relative;flex:none;display:block;transform-origin:50% 100%}
+.lv-end-bravo{display:none;position:absolute;left:-60px;right:-60px;bottom:calc(100% + 10px);width:max-content;margin:0 auto;padding:8px 14px;border-radius:15px;background:var(--accent,#6A4DF4);color:#fff;font:800 17px/1 var(--display);letter-spacing:-.01em;white-space:nowrap;box-shadow:0 3px 0 var(--accent-ink,#5335E0),0 8px 18px rgba(83,53,224,.28);transform-origin:50% 100%;pointer-events:none;z-index:1}
+.lv-end-bravo::after{content:"";position:absolute;left:50%;bottom:-5px;width:12px;height:12px;margin-left:-6px;border-radius:2px;background:inherit;transform:rotate(45deg);z-index:-1}
+.lv.is-win.end-in .lv-end-bravo{display:block;animation:lvBravoIn .6s cubic-bezier(.2,.9,.3,1.4) .5s both}
+.lv.is-win.end-in .lv-end-cat{animation:lvCatJoy 1s cubic-bezier(.3,.7,.4,1) .3s both,lvCatBob 2.8s ease-in-out 1.6s infinite}
+@keyframes lvBravoIn{0%{opacity:0;transform:scale(.2) rotate(-14deg)}55%{opacity:1;transform:scale(1.15) rotate(5deg)}78%{transform:scale(.95) rotate(-2deg)}100%{opacity:1;transform:none}}
+@keyframes lvCatJoy{0%{transform:none}24%{transform:translateY(-18px) rotate(-5deg) scale(1.06)}44%{transform:translateY(0) scale(1.06,.94)}60%{transform:translateY(-9px) rotate(4deg)}78%{transform:translateY(0) rotate(-2deg)}100%{transform:none}}
+@keyframes lvCatBob{0%,100%{transform:none}50%{transform:translateY(-4px) rotate(-2deg)}}
+@media (prefers-reduced-motion:reduce){.lv-end-cat,.lv-end-bravo{animation:none!important}}
+html[data-motion="reduce"] .lv-end-cat,html[data-motion="reduce"] .lv-end-bravo{animation:none!important}
 .lv-end h2{margin:0;font:800 30px/1.05 var(--display);letter-spacing:-.02em;color:var(--ink,#221C46)}
 .lv-end .lv-go{display:flex;align-items:center;justify-content:center;width:100%;cursor:pointer}
 /* Leçon seule : le score des moments « À toi », trouvés du premier coup */
@@ -20037,7 +20049,7 @@ function openLessonVideo(){
       </div>`:''}
       <div class="lv-end" hidden>
         <div class="lv-end-card" role="group" aria-labelledby="lv-end-h">
-          <div class="lv-end-top">${mascotMedalHtml()}<h2 id="lv-end-h">${l.leconSeule?'Leçon terminée&nbsp;!':'À toi de jouer&nbsp;!'}</h2></div>
+          <div class="lv-end-top"><span class="lv-end-cat">${mascotMedalHtml()}${l.leconSeule?'<span class="lv-end-bravo" aria-hidden="true">Bravo&nbsp;!</span>':''}</span><h2 id="lv-end-h">${l.leconSeule?'Leçon terminée&nbsp;!':'À toi de jouer&nbsp;!'}</h2></div>
           ${l.leconSeule?'<p class="lv-end-score" hidden></p>':''}
           <button type="button" class="lq-btn lv-go">${l.leconSeule?'Terminer la leçon':'Passer à l’exercice'}</button>
           <button type="button" class="lq-btn-2 lv-again">${LV_ICO.replay}<span>Revoir la vidéo</span></button>
@@ -20328,14 +20340,30 @@ function lvEnded(){
     jcUnlockExo();
   }
   root.classList.toggle('is-retry',LV.retry);
+  /* Leçon seule terminée avec le score requis : la fête (lvWin). */
+  const win=!!(current&&current.id===id&&current.leconSeule&&!LV.retry);
+  root.classList.toggle('is-win',win);
   lvCardSync(id);
   root.classList.add('is-end');
   root.querySelector('.lv-end').hidden=false;
   if(prefersReduceMotion())root.classList.add('end-in');
   else requestAnimationFrame(()=>requestAnimationFrame(()=>root.classList.add('end-in')));
   try{root.querySelector('.lv-go').focus({preventScroll:true});}catch(e){}
-  if(!mascotReduced())mascotWave(root.querySelector('.lv-end .mascot-medal'));
-  if(navigator.vibrate)navigator.vibrate(12);
+  const cat=root.querySelector('.lv-end .mascot-medal'), vid=cat&&cat.querySelector('video');
+  if(vid)vid.loop=win;
+  if(!mascotReduced())mascotWave(cat);
+  if(win)lvWin(root);
+  else if(navigator.vibrate)navigator.vibrate(12);
+}
+/* La fête : deux salves de confettis, l’arpège de réussite et une vibration ; le chat fait coucou en boucle tant que
+   l’écran est là (CSS : il saute, sa bulle « Bravo ! » arrive). Rien ne part si l’écran a déjà été quitté. */
+function lvWin(root){
+  const still=()=>!!(LV&&LV.root===root&&root.classList.contains('is-win'));
+  if(navigator.vibrate)navigator.vibrate([12,40,12,40,24]);
+  setTimeout(()=>{ if(still())LvSfx.play('success',0,.6,0); },280);
+  if(prefersReduceMotion())return;
+  setTimeout(()=>{ if(still())lqConfetti({n:56}); },320);
+  setTimeout(()=>{ if(still())lqConfetti({n:36}); },980);
 }
 /* ---------- « Ajouter dans notes » pendant « Les trois idées à retenir » ----------
    Même note que le bouton du cours texte (contexte « Leçon · titre · Le réflexe à retenir », texte du réflexe),
@@ -21359,8 +21387,9 @@ function lvPkWin(P,why,rect){
 }
 function lvEndHide(){
   LV.retry=false;
-  LV.root.classList.remove('is-end','end-in','is-retry');
+  LV.root.classList.remove('is-end','end-in','is-retry','is-win');
   LV.root.querySelector('.lv-end').hidden=true;
+  const v=LV.root.querySelector('.lv-end .mascot-vid'); if(v&&v.pause){ v.loop=false; try{ v.pause(); }catch(e){} }
 }
 /* « Revoir la vidéo » ; sous la règle de validation, « Tout recommencer » : tous les moments sont à refaire. */
 function lvReplay(){
@@ -29009,7 +29038,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1939';
+  const SW_CACHE='requete-2026-10-12-ludique-v1940';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
