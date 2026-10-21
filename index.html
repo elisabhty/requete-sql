@@ -6571,13 +6571,28 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-pk-ok.is-anim .k{stroke-dashoffset:26;animation:lvOkTick .32s ease-out .28s forwards}
 .lv-pk-ok.is-anim .r{animation:lvOkRing .9s ease-out .3s}
 .lv-pk-ok.is-anim b{animation:lvOkTxt .35s cubic-bezier(.2,.9,.3,1.3) .18s both}
-/* Raté au premier essai : la même arrivée, en rouge, avec une croix qui se trace trait après trait */
-.lv-pk-ok.is-ko{color:#C2323A}
-.lv-pk-ok.is-ko .c{fill:#DE3F46}
-.lv-pk-ok.is-ko .r{stroke:#DE3F46}
+/* Trouvé après une erreur : le moment reste raté (point rouge, seul le premier essai compte), mais la bonne réponse est saluée.
+   La même arrivée, en rouge : la croix du premier essai se trace, puis s’efface ; le rond passe à l’orange, une coche s’y trace
+   et le badge acquiesce ; « Raté » laisse la place à « Bien rattrapé ! ». Sans animation : directement l’état orange. */
+.lv-pk-ok.is-late{color:#B45309}
+.lv-pk-ok.is-late .c{fill:#EE8A1A}
+.lv-pk-ok.is-late .r{stroke:#EE8A1A}
+.lv-pk-ok .was{display:none}
+.lv-pk-ok.is-late.is-anim .was{display:inline}
+.lv-pk-ok.is-late b{position:relative}
 .lv-pk-ok .x{stroke-dasharray:18}
 .lv-pk-ok.is-anim .x{stroke-dashoffset:18}
 .lv-pk-ok.is-anim .x+.x{animation-delay:.44s}
+.lv-pk-ok.is-late.is-anim .c{animation:lvLateFill .95s ease both}
+.lv-pk-ok.is-late.is-anim g.was{transform-box:fill-box;transform-origin:center;animation:lvLateOut .22s ease-in .78s forwards}
+.lv-pk-ok.is-late.is-anim .k:not(.x){animation-delay:.95s}
+.lv-pk-ok.is-late.is-anim .r{animation-delay:1s}
+.lv-pk-ok.is-late.is-anim svg{animation:lvOkPop .5s cubic-bezier(.2,.9,.3,1.5) both,lvLateNod .5s ease-in-out 1.05s}
+.lv-pk-ok.is-late.is-anim span.was{position:absolute;left:0;top:0;color:#C2323A;animation:lvLateOut .2s ease-in .78s forwards}
+.lv-pk-ok.is-late.is-anim span.now{animation:lvOkTxt .35s cubic-bezier(.2,.9,.3,1.3) .92s both}
+@keyframes lvLateFill{0%,72%{fill:#DE3F46}100%{fill:#EE8A1A}}
+@keyframes lvLateOut{to{opacity:0;transform:scale(.5) rotate(45deg)}}
+@keyframes lvLateNod{30%{transform:rotate(-12deg) scale(1.08)}65%{transform:rotate(7deg)}100%{transform:none}}
 @keyframes lvOkPop{0%{transform:scale(.2) rotate(-25deg);opacity:0}60%{transform:scale(1.15);opacity:1}100%{transform:none;opacity:1}}
 @keyframes lvOkTick{to{stroke-dashoffset:0}}
 @keyframes lvOkRing{0%{opacity:.55;transform:scale(1)}100%{opacity:0;transform:scale(1.75)}}
@@ -12891,15 +12906,16 @@ guide({ id:72, titre:"Clés et relations", résumé:"Relier les tables entre ell
   /* Projet, chapitre 2, en vidéo interactive : l’animation (assets/anim/projet-cles.html, moteur commun assets/anim/core.js)
      remplace le texte du cours. Les tables du chapitre 1 (coachs, ateliers, inscriptions) ne sont pas reliées : qui s’est inscrit
      le 4 septembre ? Chaque table reçoit sa clé primaire (un numéro, ni le prénom ni l’e-mail), la table inscriptions ses deux
-     clés étrangères (client_id, atelier_id), la table ateliers son coach_id : 1 → N. Deux mails arrivent : Sophie Martin s’inscrit
-     aussi à Méditation (une ligne de plus : N ↔ N, la table de jointure), l’équipe NutriBoost lance une carte membre (une par
-     client, client_id unique : 1 ↔ 1). Six moments « À toi », comme au chapitre 1 ; leçon seule : ni exercice ni quiz,
+     clés étrangères (client_id, atelier_id), la table ateliers son coach_id : 1 → N (Pilates et Yoga du matin ont coach_id = 2,
+     l’id de Moussa Diallo ; rangée dans la table coachs, la clé lui demanderait deux numéros). Deux mails arrivent : Sophie Martin
+     s’inscrit aussi à Méditation (une ligne de plus : N ↔ N, la table d’association), l’équipe NutriBoost lance une carte membre
+     (une par client, client_id unique : 1 ↔ 1). La vidéo commence par rappeler le projet (les ateliers bien-être de NutriBoost). Six moments « À toi », comme au chapitre 1 ; leçon seule : ni exercice ni quiz,
      validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments ratés.
      Le texte ci-dessous, gardé pour le cas où la vidéo ne se charge pas, suit encore l’ancien cours (les échantillons gratuits). */
   leconSeule:true,
-  video:{anim:'assets/anim/projet-cles.html?app&embed',thumb:'assets/anim/projet-cles-thumb.jpg',duree:'3 min 14',moments:6,seuil:4,
-    /* « Ajouter dans notes » : apparaît à 3 min 07 (187,35 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:187.35,y:1070,card:[64,292,1016,775],to:[940,255]}},
+  video:{anim:'assets/anim/projet-cles.html?app&embed',thumb:'assets/anim/projet-cles-thumb.jpg',duree:'3 min 29',moments:6,seuil:4,
+    /* « Ajouter dans notes » : apparaît à 3 min 21 (201,95 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:201.95,y:1070,card:[64,292,1016,775],to:[940,255]}},
   sit:{
     blocks:[
       "L’équipe marketing prépare <b>une opération d’échantillons gratuits</b> : chaque client pourra recevoir des échantillons de plusieurs produits, et un même produit pourra être offert à plusieurs clients.",
@@ -12913,7 +12929,7 @@ guide({ id:72, titre:"Clés et relations", résumé:"Relier les tables entre ell
           {k:"P",l:"produits",c:[["p1","Fibre Prébiotique"],["p2","Magnésium"]]}],
         caps:["<b>Nos tables</b> · Les clients d’un côté, les produits de l’autre.","<b>Un client, plusieurs produits</b> · Un même client peut recevoir plusieurs produits.","<b>Un produit, plusieurs clients</b> · Un même produit peut être offert à plusieurs clients.","<b>Résultat</b> · Chaque lien entre un client et un produit doit être enregistré."],
         steps:[{cap:0,on:["C","P"],d:1900},{cap:1,off:["C","P"],on:["c1","p1","p2"],d:2400},{cap:2,off:["p2"],on:["c2"],d:2400},{cap:3,on:["C","P"],d:2400}]},
-      then:["Il faut donc <b>une table de plus</b>, où chaque ligne relie un client à un produit.","C’est exactement le rôle d’une <b>table de jointure</b>."]
+      then:["Il faut donc <b>une table de plus</b>, où chaque ligne relie un client à un produit.","C’est exactement le rôle d’une <b>table d’association</b>."]
     },
     mission:"Aide l’équipe marketing à créer la table <code>echantillons</code>, qui relie chaque <b>client</b> au <b>produit</b> qu’il reçoit, avec la <b>date d’envoi</b>, afin de ne jamais offrir deux fois le même échantillon au même client."
   },
@@ -12952,7 +12968,7 @@ guide({ id:72, titre:"Clés et relations", résumé:"Relier les tables entre ell
         {say:"👇 Teste par toi-même :",run:"INSERT INTO fidelite (client_id, points)\nVALUES (4, 10);"}
       ]}}
     ]},
-    {h:"N ↔ N : une table de jointure",blocks:[
+    {h:"N ↔ N : une table d’association",blocks:[
       "Les commandes de Nathan portent sur les produits 1 et 2. Mais un produit peut aussi être commandé par plusieurs clients : regarde qui a commandé la Fibre Prébiotique, le produit 1.",
       {say:"👇 Exécute cette requête pour voir les commandes de la Fibre Prébiotique :",run:"SELECT id, client_id\nFROM commandes\nWHERE produit_id = 1;"},
       {arrow:"Quatre commandes, passées par quatre clients différents : les clients 1, 4, 7 et 5."},
@@ -12972,7 +12988,7 @@ guide({ id:72, titre:"Clés et relations", résumé:"Relier les tables entre ell
       ]}}
     ]},
     {h:"Une clé primaire sur le couple",blocks:[
-      "Dans la table de jointure, un même envoi ne doit exister qu’une fois : c’est le couple client + produit, et non chaque colonne, qui doit rester unique. On déclare donc une <b>clé primaire sur les deux colonnes</b> :",
+      "Dans la table d’association, un même envoi ne doit exister qu’une fois : c’est le couple client + produit, et non chaque colonne, qui doit rester unique. On déclare donc une <b>clé primaire sur les deux colonnes</b> :",
       {syntax:"PRIMARY KEY ⟦(client_id, produit_id)⟧"},
       {scene:{h:"🔒 Un couple, une seule fois",cols:"1fr 1.1fr 1.4fr",
         lanes:[{c:[["h1","client_id","t"],["h2","produit_id","t"],["h3","date_envoi","t"]]},
@@ -12988,14 +13004,14 @@ guide({ id:72, titre:"Clés et relations", résumé:"Relier les tables entre ell
       ]}}
     ]},
     {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à créer la table de jointure : une colonne pour chaque clé étrangère, une clé primaire sur le couple, et la date d’envoi. Elle décrit le lien lui-même, ni le client ni le produit : sa place est donc dans cette table.",
+      "Il ne reste plus qu’à créer la table d’association : une colonne pour chaque clé étrangère, une clé primaire sur le couple, et la date d’envoi. Elle décrit le lien lui-même, ni le client ni le produit : sa place est donc dans cette table.",
       {say:"👇 Exécute la requête pour créer la table <code>echantillons</code> et y enregistrer trois envois :",run:"CREATE TABLE echantillons (\n  client_id INTEGER REFERENCES clients(id),\n  produit_id INTEGER REFERENCES produits(id),\n  date_envoi TEXT,\n  PRIMARY KEY (client_id, produit_id)\n);\nINSERT INTO echantillons\nVALUES (1, 1, '2026-09-01'),\n       (1, 3, '2026-09-01'),\n       (2, 1, '2026-09-02');\nSELECT client_id, produit_id, date_envoi\nFROM echantillons;"},
       {done:{
         label:"De trois envois à une table qui les relie",
         unit:"free",
         funnel:[
           {n:3,t:"envois à enregistrer",s:"deux pour Sophie, un pour Lucas",dots:"000"},
-          {step:"CREATE TABLE echantillons, INSERT",s:"crée la table de jointure, puis y range les envois"},
+          {step:"CREATE TABLE echantillons, INSERT",s:"crée la table d’association, puis y range les envois"},
           {n:3,t:"⭐ envois dans la table",s:"un seul par couple client + produit",dots:"111",out:true}
         ],
         board:{ico:"🎁",h:"Table echantillons",aria:"La table echantillons est créée et reçoit trois envois : les produits 1 et 3 pour le client 1, le produit 1 pour le client 2, sans doublon possible",tiles:false,cols:["client_id", "produit_id", "date_envoi"],
@@ -13016,7 +13032,7 @@ guide({ id:72, titre:"Clés et relations", résumé:"Relier les tables entre ell
   anatomie:[{tok:"CREATE TABLE echantillons",txt:"La table qui porte le lien, et rien d’autre."},{tok:"client_id INTEGER REFERENCES clients(id)",txt:"Le premier côté de la relation : le client."},{tok:"produit_id INTEGER REFERENCES produits(id)",txt:"Le second côté : le produit."},{tok:"date_envoi TEXT",txt:"Une information qui décrit le lien lui-même."},{tok:"PRIMARY KEY (client_id, produit_id)",txt:"Le couple est unique : un seul envoi par client et par produit."}],
   exemple:"CREATE TABLE echantillons (\n  client_id INTEGER REFERENCES clients(id),\n  produit_id INTEGER REFERENCES produits(id),\n  date_envoi TEXT,\n  PRIMARY KEY (client_id, produit_id)\n);\n\nINSERT INTO echantillons\nVALUES (1, 1, '2026-09-01'),\n       (1, 3, '2026-09-01'),\n       (2, 1, '2026-09-02');\n\nSELECT client_id, produit_id, date_envoi\nFROM echantillons;",
   attendu:"<b>3 envois</b> : Sophie reçoit deux produits, Lucas en reçoit un, et le produit 1 est offert à deux clients. Les deux « plusieurs » coexistent.",
-  retenir:"La <b>cardinalité</b> se lit en demandant, de chaque côté, combien de lignes peuvent correspondre.<br><br><b>1-N</b> : une clé étrangère, du côté « plusieurs ». <b>1-1</b> : la même, avec <code>UNIQUE</code>. <b>N-N</b> : une <b>table de jointure</b> qui porte les deux clés.<br><br>Sa clé primaire porte sur les deux colonnes : c’est le couple qui doit être unique, pas chaque colonne.",
+  retenir:"La <b>cardinalité</b> se lit en demandant, de chaque côté, combien de lignes peuvent correspondre.<br><br><b>1-N</b> : une clé étrangère, du côté « plusieurs ». <b>1-1</b> : la même, avec <code>UNIQUE</code>. <b>N-N</b> : une <b>table d’association</b> qui porte les deux clés.<br><br>Sa clé primaire porte sur les deux colonnes : c’est le couple qui doit être unique, pas chaque colonne.",
   consigne:"Les clients veulent pouvoir suivre des produits : chacun en suit plusieurs, et chaque produit est suivi par plusieurs clients. Crée la table <code>favoris</code> avec les colonnes <code>client_id</code> (qui renvoie à <code>clients</code>) puis <code>produit_id</code> (qui renvoie à <code>produits</code>), et une clé primaire qui interdit d’enregistrer deux fois le même couple.",
   solution:"CREATE TABLE favoris (\n  client_id INTEGER\n    REFERENCES clients(id),\n  produit_id INTEGER\n    REFERENCES produits(id),\n  PRIMARY KEY (client_id,\n               produit_id)\n);",
   verif:"SELECT name, pk FROM pragma_table_info('favoris') ORDER BY cid; SELECT \"from\", \"table\", \"to\" FROM pragma_foreign_key_list('favoris') ORDER BY \"from\";",
@@ -13024,7 +13040,7 @@ guide({ id:72, titre:"Clés et relations", résumé:"Relier les tables entre ell
   write:true,
   petitDefi:[{p:"Un auteur écrit plusieurs livres, et un livre peut être écrit par plusieurs auteurs. Quelle est la forme de cette relation ?",sql:"auteurs ←→ livres : __________",a:"N-N",answers:["N-N","n-n","NN","plusieurs-à-plusieurs","many-to-many","N,N"]}],
   testeVariants:[{k:"nn",label:"Table de jointure",sql:"CREATE TABLE echantillons (\n  client_id INTEGER,\n  produit_id INTEGER,\n  date_envoi TEXT,\n  PRIMARY KEY (client_id, produit_id)\n);\n\nINSERT INTO echantillons VALUES (1, 1, '2026-09-01');\nINSERT INTO echantillons VALUES (1, 3, '2026-09-01');\nINSERT INTO echantillons VALUES (2, 1, '2026-09-02');\n\nSELECT client_id, produit_id, date_envoi FROM echantillons;",out:"Sophie reçoit deux produits, et le produit 1 est offert à deux clients.",tone:"good"},{k:"doublon",label:"Deux fois le même couple",sql:"CREATE TABLE echantillons (\n  client_id INTEGER,\n  produit_id INTEGER,\n  date_envoi TEXT,\n  PRIMARY KEY (client_id, produit_id)\n);\n\nINSERT INTO echantillons VALUES (1, 1, '2026-09-01');\nINSERT INTO echantillons VALUES (1, 1, '2026-09-05');",out:"Refusé : la clé primaire porte sur le couple.",tone:"bad"},{k:"unun",label:"1-1",sql:"CREATE TABLE cartes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER UNIQUE\n    REFERENCES clients(id)\n);\n\nINSERT INTO cartes VALUES (1, 1);\nINSERT INTO cartes VALUES (2, 1);",out:"Refusé : UNIQUE interdit une deuxième carte au même client.",tone:"bad"}],
-  learningCheck:{question:"La clé primaire composée d’une table de jointure remplace-t-elle les deux clés étrangères ?",options:["Non","Oui","Seulement pour les clients"],answer:0,explanation:"La clé composée interdit un lien en double. Les clés étrangères imposent que le client et le produit existent."}
+  learningCheck:{question:"La clé primaire composée d’une table d’association remplace-t-elle les deux clés étrangères ?",options:["Non","Oui","Seulement pour les clients"],answer:0,explanation:"La clé composée interdit un lien en double. Les clés étrangères imposent que le client et le produit existent."}
 }),
 guide({ id:81, titre:"Modéliser avec UML", résumé:"Du diagramme de classes aux tables",
   /* Projet, chapitre 3, en vidéo interactive : l’animation (assets/anim/projet-uml.html, moteur commun assets/anim/core.js)
@@ -13032,13 +13048,14 @@ guide({ id:81, titre:"Modéliser avec UML", résumé:"Du diagramme de classes au
      (Coach, Atelier, Client, Carte, sans aucune clé), les associations anime, s’inscrit à et possède, leurs multiplicités (écrites
      à côté de la classe qu’elles comptent : 1, 0..*, 0..1), la classe d’association Inscription (la date d’inscription) ; puis la
      traduction : chaque classe devient une table, seul le maximum compte (coach_id du côté *, client_id unique, la table
-     d’association inscriptions), et trois nouvelles associations à traduire. Six moments « À toi », comme aux chapitres 1 et 2 ;
+     d’association inscriptions), puis le diagramme de la boutique (Client 0..1 — 0..* Commande 0..* — 1 Produit) : ses deux clés
+     étrangères vont dans commandes, comme dans la base. Six moments « À toi », comme aux chapitres 1 et 2 ;
      leçon seule : ni exercice ni quiz, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les
      moments ratés. Le texte ci-dessous, gardé pour le cas où la vidéo ne se charge pas, suit encore l’ancien cours. */
   leconSeule:true,
-  video:{anim:'assets/anim/projet-uml.html?app&embed',thumb:'assets/anim/projet-uml-thumb.jpg',duree:'3 min 28',moments:6,seuil:4,
-    /* « Ajouter dans notes » : apparaît à 3 min 21 (201,5 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:201.5,y:1115,card:[64,292,1016,820],to:[940,255]}},
+  video:{anim:'assets/anim/projet-uml.html?app&embed',thumb:'assets/anim/projet-uml-thumb.jpg',duree:'3 min 32',moments:6,seuil:4,
+    /* « Ajouter dans notes » : apparaît à 3 min 25 (205,5 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:205.5,y:1115,card:[64,292,1016,820],to:[940,255]}},
   sit:{
     blocks:[
       "NutriBoost lance des <b>ateliers</b> : récupération après le sport, cuisine saine, gainage en douceur… Chaque atelier est animé par un coach, et les clients peuvent s’y inscrire.",
@@ -15321,9 +15338,9 @@ const QCM={
    {q:"Que fait <code>BEGIN IMMEDIATE</code> de plus que <code>BEGIN</code> ?",o:["Il valide la transaction sans COMMIT","Il prend le verrou d’écriture dès l’ouverture","Il empêche toute lecture concurrente"],b:1,e:"<code>BEGIN</code> seul vaut <code>DEFERRED</code> : rien n’est verrouillé tant qu’on ne fait que lire, et la transaction peut échouer plus tard."},
    {q:"Quel niveau d’isolation SQLite applique-t-il ?",o:["READ COMMITTED, comme PostgreSQL par défaut","Le comportement de SERIALIZABLE, sans réglage possible","Aucun : les transactions ne sont pas isolées"],b:1,e:"Le moteur verrouille la base entière et n’autorise qu’un seul écrivain à la fois. Il n’existe pas de <code>SET TRANSACTION ISOLATION LEVEL</code>."}],
  72:[{q:"Nathan peut avoir plusieurs commandes. Quelle relation existe entre <code>clients</code> et <code>commandes</code>&nbsp;?",o:["1 ↔ 1","1 → N","N ↔ N"],b:1,e:"Un client a plusieurs commandes, mais une commande n’a qu’un client : c’est 1 → N."},
-   {q:"Comment transformer une relation 1-N en 1-1 ?",o:["En ajoutant UNIQUE sur la clé étrangère","En déplaçant la clé dans l’autre table","En ajoutant une table de jointure"],b:0,e:"Sans <code>UNIQUE</code>, un client pourrait recevoir deux cartes. Avec, la seconde est refusée."},
-   {q:"Un client peut suivre plusieurs produits, et un produit être suivi par plusieurs clients. Comment écrire ce lien ?",o:["Une clé étrangère dans clients","Une clé étrangère dans produits","Une troisième table qui porte les deux clés"],b:2,e:"Les deux côtés sont « plusieurs » : aucune colonne ne peut retenir plusieurs valeurs. Il faut une table de jointure."},
-   {q:"Dans une table de jointure, à quoi sert <code>PRIMARY KEY (client_id, produit_id)</code> ?",o:["À interdire deux fois le même couple","À rendre chaque colonne unique","À accélérer les jointures"],b:0,e:"Chaque colonne se répète librement ; c’est la paire qui doit être unique."}],
+   {q:"Comment transformer une relation 1-N en 1-1 ?",o:["En ajoutant UNIQUE sur la clé étrangère","En déplaçant la clé dans l’autre table","En ajoutant une table d’association"],b:0,e:"Sans <code>UNIQUE</code>, un client pourrait recevoir deux cartes. Avec, la seconde est refusée."},
+   {q:"Un client peut suivre plusieurs produits, et un produit être suivi par plusieurs clients. Comment écrire ce lien ?",o:["Une clé étrangère dans clients","Une clé étrangère dans produits","Une troisième table qui porte les deux clés"],b:2,e:"Les deux côtés sont « plusieurs » : aucune colonne ne peut retenir plusieurs valeurs. Il faut une table d’association."},
+   {q:"Dans une table d’association, à quoi sert <code>PRIMARY KEY (client_id, produit_id)</code> ?",o:["À interdire deux fois le même couple","À rendre chaque colonne unique","À accélérer les jointures"],b:0,e:"Chaque colonne se répète librement ; c’est la paire qui doit être unique."}],
  81:[{q:"Dans un diagramme de classes, que devient une <b>classe</b> quand on crée la base ?",o:["Une colonne","Une table","Une clé étrangère"],b:1,e:"Une classe décrit un sujet : elle devient une table, et ses attributs deviennent ses colonnes."},
    {q:"Coach 1 — 0..* Atelier : que signifie le <code>0..*</code>, écrit à côté d’Atelier ?",o:["Un atelier a plusieurs coachs","Un coach anime zéro, un ou plusieurs ateliers","Un atelier peut n’avoir aucun coach"],b:1,e:"Une multiplicité se lit à côté de la classe qu’elle compte : pour un coach, 0..* ateliers."},
    {q:"Client 0..* — 0..* Atelier : comment traduire cette association ?",o:["Une clé étrangère dans clients","Une clé étrangère dans ateliers","Une table d’association avec les deux clés"],b:2,e:"Les deux bouts sont « plusieurs » : aucune colonne ne peut ranger plusieurs numéros. La table inscriptions porte client_id et atelier_id."},
@@ -20785,13 +20802,15 @@ function lvPkShow(i,p){
   const sr=LV.root.querySelector('.lv-sr'); if(sr)sr.textContent=`${kept?'Déjà fait':'À toi'} : ${String(p.prompt).replace(/<[^>]+>/g,'')}`;
   try{box.querySelector(kept?'.lv-pk-go':'.lv-pk-card').focus({preventScroll:true});}catch(e){}
 }
-/* Moment fini : le verdict du premier essai prend la place du petit badge et du compteur — coche verte animée et « Bien vu ! »
-   du premier coup ; sinon croix rouge et « Raté » (le premier coup compte, même si la réponse a été trouvée ensuite). */
+/* Moment fini : le verdict prend la place du petit badge et du compteur — coche verte animée et « Bien vu ! » du premier coup.
+   Trouvé après une erreur : la croix rouge du premier essai se change en coche orange, « Raté » en « Bien rattrapé ! » ; la
+   réponse est saluée, mais le moment reste raté (point rouge : seul le premier essai compte). */
 function lvPkValid(P,first,anim){
   const top=P.box.querySelector('.lv-pk-top'); if(!top||top.querySelector('.lv-pk-ok'))return;
-  const el=document.createElement('span');
-  el.className='lv-pk-ok'+(first?'':' is-ko')+(anim&&!prefersReduceMotion()?' is-anim':'');
-  el.innerHTML=`<svg viewBox="0 0 42 42" aria-hidden="true"><circle class="r" cx="21" cy="21" r="19"/><circle class="c" cx="21" cy="21" r="19"/>${first?'<path class="k" d="M12.5 21.5l6 6L30 15.5"/>':'<path class="k x" d="M15 15l12 12"/><path class="k x" d="M27 15L15 27"/>'}</svg><b>${first?'Bien vu&nbsp;!':'Raté'}</b>`;
+  const el=document.createElement('span'), tick='<path class="k" d="M12.5 21.5l6 6L30 15.5"/>';
+  el.className='lv-pk-ok'+(first?'':' is-late')+(anim&&!prefersReduceMotion()?' is-anim':'');
+  el.innerHTML=`<svg viewBox="0 0 42 42" aria-hidden="true"><circle class="r" cx="21" cy="21" r="19"/><circle class="c" cx="21" cy="21" r="19"/>${first?tick:`<g class="was"><path class="k x" d="M15 15l12 12"/><path class="k x" d="M27 15L15 27"/></g>${tick}`}</svg>`+
+    `<b>${first?'Bien vu&nbsp;!':'<span class="was" aria-hidden="true">Raté</span><span class="now">Bien rattrapé&nbsp;!</span>'}</b>`;
   top.querySelectorAll('.lv-pk-kick,.lv-pk-cnt').forEach(e=>{ e.hidden=true; });
   top.insertBefore(el,top.firstChild);
 }
@@ -20916,7 +20935,7 @@ function lvPkVerdict(P,k,btn,ok,r){
     if(navigator.vibrate)navigator.vibrate([20,60,20]);
     setTimeout(()=>{ btn.classList.remove('is-ko'); btn.classList.add('is-out'); btn.setAttribute('aria-disabled','true'); },460);
   }
-  if(sr)sr.textContent=(ok?(P.tries===1?'Bien vu : ':'Trouvé, mais raté au premier coup. '):'Pas tout à fait : ')+plain;
+  if(sr)sr.textContent=(ok?(P.tries===1?'Bien vu : ':'Bien rattrapé, mais seul le premier essai compte : moment raté. '):'Pas tout à fait : ')+plain;
 }
 /* Début du passage qui amène un moment (le mail, les tables…) : donné par la page (from), sinon 8 s avant ;
    jamais avant la fin du moment précédent. */
@@ -21387,7 +21406,7 @@ function lvPkWin(P,why,rect){
   if(first)setTimeout(()=>{ if(LV&&LV.pk===P)LvSfx.play('chord',0,.55,0); },160);
   if(navigator.vibrate)navigator.vibrate([10,60,20]);
   if(!prefersReduceMotion()&&rect&&rect.w)lvPkBurst(rect);
-  const sr=LV.root.querySelector('.lv-sr'); if(sr)sr.textContent=(first?'Bien vu : ':'Trouvé, mais raté au premier coup. ')+String(why).replace(/<[^>]+>/g,'');
+  const sr=LV.root.querySelector('.lv-sr'); if(sr)sr.textContent=(first?'Bien vu : ':'Bien rattrapé, mais seul le premier essai compte : moment raté. ')+String(why).replace(/<[^>]+>/g,'');
   P.timer=setTimeout(()=>{
     if(!LV||LV.pk!==P)return;
     const opts=P.box.querySelector('.lv-pk-opts'), hint=P.box.querySelector('.lv-pk-hint'), go=P.box.querySelector('.lv-pk-go');
@@ -29049,7 +29068,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1943';
+  const SW_CACHE='requete-2026-10-12-ludique-v1944';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
