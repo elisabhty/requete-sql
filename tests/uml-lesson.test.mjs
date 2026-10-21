@@ -1,5 +1,5 @@
 /* Cours « Modéliser avec UML » (leçon 81) : le diagramme de classes des ateliers NutriBoost, traduit en tables.
-   Placé dans le module Modéliser, après « Relations 1-1, 1-N et N-N » et avant CREATE TABLE. */
+   Placé dans le module Modéliser, après « Clés et relations » et avant CREATE TABLE. */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -21,7 +21,7 @@ const run = (sql, verif) => {
   finally { db.close(); }
 };
 
-test('Modéliser avec UML : dans le module Modéliser, après Relations et avant CREATE TABLE', () => {
+test('Modéliser avec UML : dans le module Modéliser, après Clés et relations et avant CREATE TABLE', () => {
   const m = modules.find(x => x.titre === 'Modéliser');
   assert.deepEqual([...m.lessons.map(l => l.id)], [56, 72, 81]);
   assert.equal(m.sous, 'Normalisation, cardinalités et UML');

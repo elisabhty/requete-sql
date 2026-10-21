@@ -848,19 +848,21 @@ const COURSES = [
       "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 129.8, from: 119.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}", "{at: 141.4, from: 135.95, kind: 'pick',",
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
-  {id: 72, next: 81, titre: 'Relations 1-1, 1-N et N-N', page: 'relations.html', thumb: 'relations-thumb.jpg', duree: '3 min 32', notesAt: 190.3,
-    notes: /notes:\{t:203\.1,y:1286,card:\[64,292,1016,991\],to:\[940,255\]\}/, table: 'clients',
-    bubble: 'Avant de relier deux tables, demande-toi&nbsp;: combien de lignes en face&nbsp;?',
-    chapters: ['Situation', 'Le problème', 'Combien en face ?', '1 → N', '1 ↔ 1', 'N ↔ N', 'Le couple unique', 'Le résultat', 'À retenir'],
-    traps: ["const COMMANDES = [[4, 3, 2], [5, 4, 1], [6, 5, 4], [12, 4, 2]];", "const FIDELITE = [[1, 1, 120], [2, 2, 80], [3, 4, 250], [4, 7, 160]];",
-      "const ENVOIS = [[1, 1, '2026-09-01'], [1, 3, '2026-09-01'], [2, 1, '2026-09-02']];",
-      // Une case ne range qu’un seul numéro : deux produits pour Sophie Martin, deux clients pour la Fibre, deux commandes pour Nathan Petit
-      "row([1, 'Sophie', essai(1, 3, 'k-pr')])", "row([1, PRODUITS[1], essai(1, 2, 'k-cl')])", "id === 4 ? essai(5, 12, 'k-co') : ''",
-      '<span class="tx3">Combien de lignes en face&nbsp;?</span>', "cb: '1 ↔ 1'}", "cb: '1 → N'}", "cb: 'N ↔ N'}",
-      '<span class="glow" id="un5"><span class="kw">UNIQUE</span></span>', '<span class="m">UNIQUE constraint failed: fidelite.client_id</span>',
-      'table de jointure</span>', '<span class="kw">PRIMARY KEY</span> (client_id, produit_id)', 'echantillons.client_id, echantillons.produit_id</span>',
-      "row([fk(1, 'k-cl'), fk(1, 'k-pr'), '2026-09-05', st('ko', '✕ refusé')], ' nw')", "row([fk(2, 'k-cl'), fk(1, 'k-pr'), '2026-09-02', st('ok', '✓ accepté')], ' nw')",
-      '✓ 3 envois, aucun doublon possible']},
+  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '3 min 14', notesAt: 167.9,
+    notes: /notes:\{t:187\.35,y:1070,card:\[64,292,1016,775\],to:\[940,255\]\}/, table: 'inscriptions',
+    bubble: 'Tes tables sont prêtes&nbsp;:<br>à toi de les relier avec des clés.',
+    chapters: ['Le problème', 'La clé primaire', 'La clé étrangère', '1 → N', 'N ↔ N', '1 ↔ 1', 'À retenir'],
+    traps: ["const INSCR = [[1, 1, 1, '2026-09-01'], [2, 4, 1, '2026-09-02'], [3, 5, 2, '2026-09-03'], [4, 7, 3, '2026-09-04'],",
+      "const NOUVELLE = [7, 1, 4, '2026-09-07'];", 'const CARTES = [[1, 1, 10], [2, 4, 5], [3, 6, 8]];', 'const DOUBLON = [4, 1, 10];',
+      '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>',
+      // Les six moments : l’identifiant des coachs, la cliente et l’atelier d’une inscription, où ranger coach_id, les ateliers de Moussa Diallo,
+      // la deuxième inscription de Sophie Martin, la forme de chaque lien
+      "{at: 31.0, from: 22.6, kind: 'pick', text: true,", "{label: 'Aucune : on ajoute un numéro', ok: true}]},", "{at: 68.6, from: 55.1, kind: 'tap', need: 2,",
+      "{at: 82.6, from: 75.0, kind: 'pick', text: true,", "{label: 'Dans la table ateliers : une colonne coach_id', ok: true},", "{at: 91.0, from: 82.9, kind: 'tap', need: 2,",
+      "{at: 110.45, from: 103.6, kind: 'pick', text: true,", "{label: 'Une nouvelle ligne dans la table inscriptions', ok: true},", "{at: 149.6, from: 133.3, kind: 'sort',",
+      "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
+      '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
+      'Chapitre 3 · Modéliser avec UML']},
   {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'uml.html', thumb: 'uml-thumb.jpg', duree: '3 min 43', notesAt: 195.45,
     notes: /notes:\{t:214\.9,y:1289,card:\[64,292,1016,994\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Dessine les classes et leurs liens<br>avant de créer les tables.',
@@ -1316,6 +1318,92 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
   assert.equal(new Set(D.INSCR.map(r => r[2])).size, D.INSCR.length, 'une date d’inscription par ligne : le 4 septembre désigne une seule inscription');
   const uml = fs.readFileSync(path.join(ROOT, 'assets/anim/uml.html'), 'utf8');
   assert.ok(uml.includes("const COACHS = [[1, 'Salma', 'Haddad'], [2, 'Moussa', 'Diallo']];"), 'mêmes coachs que la vidéo UML');
+});
+
+test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre 1 relié par des clés, chaque réponse vérifiée dans SQLite', async () => {
+  const l72 = cut('guide({ id:72, titre:"Clés et relations"', 'guide({ id:81,');
+  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'3 min 14',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  const load = (file, names) => {
+    const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
+    const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
+    assert.ok(a > 0 && b > a, `données de ${file} localisées`);
+    const ctx = vm.createContext({APP: true});
+    vm.runInContext(page.slice(a, b) + `;this.D = {${names}};`, ctx);
+    return [page, JSON.parse(JSON.stringify(ctx.D))];
+  };
+  const [page, D] = load('projet-cles.html', 'COACHS, ATELIERS, CLIENTS, INSCR, NOUVELLE, CARTES, DOUBLON, CAPTIONS, RELS, CAS, BAD, PICKS, MAILS, OPENS');
+  const [ch1, C1] = load('projet-normaliser.html', 'COACHS, ATELIERS, YOGA, INSCR, NEWMAIL');
+  /* Le cas du chapitre 1, tel qu’il l’a laissé : mêmes coachs (Salma Haddad avec sa nouvelle adresse), mêmes ateliers (Yoga du matin compris), mêmes inscriptions. */
+  assert.deepEqual(D.COACHS.map(c => c.slice(0, 3)), C1.COACHS.map(c => c.slice(0, 3)), 'les quatre coachs du chapitre 1');
+  assert.deepEqual(D.COACHS.map(c => c[3]), C1.COACHS.map((c, i) => i === 0 ? C1.NEWMAIL : c[3]), 'leurs adresses, celle de Salma Haddad mise à jour');
+  assert.deepEqual(D.ATELIERS, C1.ATELIERS.concat([C1.YOGA]).map(a => [a[0], a[1], a[3], a[4]]), 'les cinq ateliers et leur coach');
+  assert.deepEqual(D.INSCR, C1.INSCR.map((r, i) => [i + 1, r[0], r[1], r[3]]), 'les six inscriptions, dans le même ordre');
+  assert.ok(ch1.includes('</span>Chapitre 2 · Clés et relations</span>') && page.includes('</span>Chapitre 3 · Modéliser avec UML</span>') && html.includes('guide({ id:81, titre:"Modéliser avec UML"'), 'chaque chapitre annonce le suivant sous son vrai titre');
+  /* Les six moments */
+  assert.deepEqual(D.PICKS.map(p => p.kind), ['pick', 'tap', 'pick', 'tap', 'pick', 'sort'], 'choisir, toucher, ranger');
+  assert.ok(D.PICKS.filter(p => p.kind === 'tap').every(p => /^Touche /.test(p.prompt)), 'chaque moment à toucher dit qu’il faut toucher l’image');
+  for (const p of D.PICKS.filter(x => x.kind === 'pick')) {
+    assert.equal(p.options.filter(o => o.ok).length, 1, `${p.prompt} : une seule bonne réponse`);
+    assert.ok(p.options.every(o => o.ok || o.why), `${p.prompt} : chaque mauvaise réponse est expliquée`);
+  }
+  D.PICKS.forEach((p, i) => assert.ok(p.from < p.at && (i === 0 || p.from > D.PICKS[i - 1].at), `moment ${i + 1} : « Revoir » repart après le moment précédent`));
+  D.OPENS.forEach((o, n) => {
+    assert.equal(o.sel, '#ml' + (n + 1)); assert.equal(o.prompt, 'Touche le mail pour l’ouvrir.');
+    assert.ok(o.at > D.PICKS[n + 3].at && o.at < D.PICKS[n + 4].at, `mail ${n + 1} : ouvert avant le moment qui en parle`);
+  });
+  assert.deepEqual(D.MAILS.map(m => m[0][0] + ' ' + m[0][1] + ' · ' + m[2]), ['Sophie Martin · cliente', 'L’équipe NutriBoost · équipe'], 'qui écrit');
+  const name = id => D.CLIENTS.find(c => c[0] === id).slice(1).join(' '), atl = id => D.ATELIERS.find(a => a[0] === id);
+  const caps = D.CAPTIONS.map(c => c[2]).join('\n');
+  // Moment 2 : l’inscription du 4 septembre, une seule ce jour-là
+  const r4 = D.INSCR.filter(r => r[3] === '2026-09-04');
+  assert.equal(r4.length, 1, 'une seule inscription le 4 septembre');
+  const [[n4, c4, a4]] = r4;
+  assert.ok(page.includes(`const M2_ANS = {c${c4}: [ring('tb-in', ${n4}, 1), ring('tb-cl', ${c4}, 0), hl('tb-cl', ${c4})], a${a4}: [ring('tb-in', ${n4}, 2), ring('tb-at', ${a4}, 0), hl('tb-at', ${a4})]};`), 'réponse du moment 2 : la cliente et l’atelier de cette inscription');
+  assert.ok(caps.includes(`C’est donc <b>${name(c4)}</b> qui s’est inscrite le 4 septembre, à l’atelier ${atl(a4)[1]}.`), 'la légende nomme la bonne cliente et le bon atelier');
+  // Moment 4 : les ateliers de Moussa Diallo
+  const moussa = D.COACHS.find(c => c[1] === 'Moussa'), siens = D.ATELIERS.filter(a => a[3] === moussa[0]).map(a => a[0]);
+  assert.equal(D.PICKS[3].need, siens.length, 'autant d’ateliers à toucher que Moussa Diallo en anime');
+  assert.ok(page.includes(`const M4_ANS = {${siens.map(i => `a${i}: [hl('tc-at', ${i}), ring('tc-at', ${i}, 3)]`).join(', ')}, co: [hl('tc-co', ${moussa[0]}), ring('tc-co', ${moussa[0]}, 0)]};`)
+    && page.includes(`<i class="two">${siens.join(', ')}</i>`), 'réponse du moment 4, et la case à deux numéros de la mauvaise idée du moment 3');
+  // Moment 5 : la nouvelle inscription de Sophie Martin, celle que demande son mail
+  assert.deepEqual([name(D.NOUVELLE[1]), atl(D.NOUVELLE[2])[1]], ['Sophie Martin', 'Méditation'], 'la nouvelle inscription : Sophie Martin, à Méditation');
+  assert.ok(D.MAILS[0][4].includes(`l’atelier ${atl(D.NOUVELLE[2])[1]} du ${+atl(D.NOUVELLE[2])[2].slice(8)} septembre`), 'le mail demande cet atelier, à sa date');
+  assert.equal(D.NOUVELLE[0], D.INSCR.length + 1, 'une ligne de plus, avec le numéro suivant');
+  // Moment 6 : chaque cas dans sa forme ; une explication pour chaque mauvaise case
+  assert.deepEqual(D.RELS.map(r => [r[1], D.CAS[r[3]]]), [['1 ↔ 1', 'Un client et sa carte membre'], ['1 → N', 'Un coach et ses ateliers'], ['N ↔ N', 'Un client et ses ateliers']]);
+  assert.deepEqual(D.PICKS[5].options.map(o => o.label), D.CAS, 'les trois cas à ranger');
+  D.BAD.forEach((b, c) => assert.deepEqual(Object.keys(b).sort(), D.RELS.filter(r => r[3] !== c).map(r => r[0]).sort(), `${D.CAS[c]} : les deux mauvaises cases expliquées`));
+  assert.ok(page.includes('spots, act, pick, hint,') && page.includes(`if (i === 1) return {text: 'Cherche l’id ${c4} dans la table clients, puis l’id ${a4} dans la table ateliers.', keys: ['c${c4}', 'a${a4}']};`)
+    && page.includes(`if (i === 3) return {text: 'Moussa Diallo a l’id ${moussa[0]} : cherche les ateliers dont coach_id vaut ${moussa[0]}.', keys: [${siens.map(i => `'a${i}'`).join(', ')}]};`), 'un indice par moment à toucher ou à ranger');
+  /* Le modèle de la vidéo, créé dans la base de l’app : les clés acceptent toutes les lignes montrées, refusent la deuxième carte,
+     et chaque réponse se retrouve par une jointure. */
+  const data = vm.createContext({});
+  vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), data);
+  const {createRequire} = await import('node:module');
+  const SQL = await createRequire(import.meta.url)(path.join(ROOT, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(ROOT, 'vendor/sqljs', f)});
+  const db = new SQL.Database();
+  db.run(vm.runInContext('SCHEMA_SQL', data));
+  const q = s => JSON.stringify(db.exec(s)[0].values), v = x => typeof x === 'string' ? `'${x}'` : x, rows = a => a.map(r => `(${r.map(v).join(', ')})`).join(', ');
+  for (const [id, prenom, nom] of D.CLIENTS) assert.equal(q(`SELECT prenom, nom FROM clients WHERE id = ${id}`), JSON.stringify([[prenom, nom]]), `client ${id}`);
+  assert.equal(q('SELECT email FROM clients WHERE id = 1'), JSON.stringify([[D.MAILS[0][3]]]), 'Sophie Martin écrit depuis son adresse de la base');
+  assert.equal(q("SELECT COUNT(*) FROM clients WHERE prenom = 'Nathan'"), '[[2]]', 'deux Nathan : un prénom n’identifie personne');
+  db.run('PRAGMA foreign_keys = ON;');
+  db.run(`CREATE TABLE coachs (id INTEGER PRIMARY KEY, prenom TEXT, nom TEXT, email TEXT);
+    CREATE TABLE ateliers (id INTEGER PRIMARY KEY, titre TEXT, date_atelier TEXT, coach_id INTEGER REFERENCES coachs(id));
+    CREATE TABLE inscriptions (id INTEGER PRIMARY KEY, client_id INTEGER REFERENCES clients(id), atelier_id INTEGER REFERENCES ateliers(id), date_inscription TEXT);
+    CREATE TABLE cartes (id INTEGER PRIMARY KEY, client_id INTEGER UNIQUE REFERENCES clients(id), seances INTEGER);`);
+  db.run(`INSERT INTO coachs VALUES ${rows(D.COACHS.map(c => c.slice(0, 4)))}; INSERT INTO ateliers VALUES ${rows(D.ATELIERS)};
+    INSERT INTO inscriptions VALUES ${rows(D.INSCR)}; INSERT INTO cartes VALUES ${rows(D.CARTES)};`);
+  assert.equal(q(`SELECT clients.prenom || ' ' || clients.nom, ateliers.titre FROM inscriptions JOIN clients ON clients.id = inscriptions.client_id
+    JOIN ateliers ON ateliers.id = inscriptions.atelier_id WHERE inscriptions.date_inscription = '2026-09-04'`), JSON.stringify([[name(c4), atl(a4)[1]]]), 'moment 2 : la jointure retrouve l’inscription du 4 septembre');
+  assert.equal(q("SELECT ateliers.titre FROM ateliers JOIN coachs ON coachs.id = ateliers.coach_id WHERE coachs.prenom = 'Moussa' ORDER BY ateliers.id"), '[["Pilates"],["Yoga du matin"]]', 'moment 4 : Moussa Diallo anime deux ateliers (1 → N)');
+  db.run(`INSERT INTO inscriptions VALUES ${rows([D.NOUVELLE])};`);
+  assert.equal(q('SELECT COUNT(*) FROM inscriptions WHERE client_id = 1'), '[[2]]', 'moment 5 : Sophie Martin suit deux ateliers…');
+  assert.equal(q("SELECT COUNT(*) FROM inscriptions JOIN ateliers ON ateliers.id = inscriptions.atelier_id WHERE ateliers.titre = 'Récupération'"), '[[3]]', '… et Récupération accueille trois clients (N ↔ N)');
+  assert.ok(caps.includes('Sophie Martin suit deux ateliers, et Récupération accueille trois clients'), 'comme le dit la légende');
+  assert.throws(() => db.run(`INSERT INTO cartes VALUES ${rows([D.DOUBLON])};`), /UNIQUE constraint failed: cartes\.client_id/, 'une deuxième carte pour Sophie Martin est refusée (1 ↔ 1)');
+  assert.equal(name(D.DOUBLON[1]), 'Sophie Martin');
+  db.close();
 });
 
 test('mise en page (?check) : un élément ou un texte qui sort de son cadre est signalé (pastille, colonnes)', () => {

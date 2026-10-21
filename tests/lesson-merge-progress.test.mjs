@@ -24,7 +24,7 @@ assert.equal(titre(6), 'AND et OR');
 assert.equal(titre(11), 'ORDER BY');
 assert.equal(titre(12), 'LIMIT et OFFSET');
 assert.equal(titre(57), 'Les index et EXPLAIN');
-assert.equal(titre(72), 'Relations 1-1, 1-N et N-N');
+assert.equal(titre(72), 'Clés et relations');
 const quiz = vm.runInContext('QCM', ctx);
 for (const id of [6, 11, 12, 57, 72]) assert.equal(quiz[id].length, 4, `quiz du cours ${id} : les questions des deux cours`);
 assert.equal(quiz[0].length, 11, 'quiz du cours 0 : tables, clés, SELECT, l’étoile, la virgule, la déclaration des clés, puis le SGBD');

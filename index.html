@@ -12887,14 +12887,19 @@ guide({ id:56, titre:"Normaliser les inscriptions", résumé:"Du fichier Excel d
   noExecWhy:"La table <code>commandes</code> existe déjà : SQLite refuserait de la recréer.",
   learningCheck:{question:"Dans quelle table ranger la ville du client pour éviter de la recopier à chaque commande ?",options:["produits","clients","commandes"],answer:1,explanation:"La ville décrit le client. Le prix décrit le produit. La quantité achetée décrit la commande : chaque information a son sujet."}
 }),
-guide({ id:72, titre:"Relations 1-1, 1-N et N-N", résumé:"Les trois formes de lien entre deux tables",
-  /* Cours en vidéo : l’animation (assets/anim/relations.html, moteur commun assets/anim/core.js) remplace le texte du cours.
-     La vidéo suit l’opération échantillons gratuits (Sophie Martin reçoit deux produits, la Fibre Prébiotique va à deux clients) :
-     combien de lignes en face, 1 → N (commandes), 1 ↔ 1 (fidelite, UNIQUE), N ↔ N (la table de jointure echantillons, clé sur le couple) ;
-     le texte ci-dessous est gardé pour le cas où la vidéo ne se charge pas. */
-  video:{anim:'assets/anim/relations.html?app&embed',thumb:'assets/anim/relations-thumb.jpg',duree:'3 min 32',
-    /* « Ajouter dans notes » : apparaît à 3 min 23 (203,1 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:203.1,y:1286,card:[64,292,1016,991],to:[940,255]}},
+guide({ id:72, titre:"Clés et relations", résumé:"Relier les tables entre elles",
+  /* Projet, chapitre 2, en vidéo interactive : l’animation (assets/anim/projet-cles.html, moteur commun assets/anim/core.js)
+     remplace le texte du cours. Les tables du chapitre 1 (coachs, ateliers, inscriptions) ne sont pas reliées : qui s’est inscrit
+     le 4 septembre ? Chaque table reçoit sa clé primaire (un numéro, ni le prénom ni l’e-mail), la table inscriptions ses deux
+     clés étrangères (client_id, atelier_id), la table ateliers son coach_id : 1 → N. Deux mails arrivent : Sophie Martin s’inscrit
+     aussi à Méditation (une ligne de plus : N ↔ N, la table de jointure), l’équipe NutriBoost lance une carte membre (une par
+     client, client_id unique : 1 ↔ 1). Six moments « À toi », comme au chapitre 1 ; leçon seule : ni exercice ni quiz,
+     validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments ratés.
+     Le texte ci-dessous, gardé pour le cas où la vidéo ne se charge pas, suit encore l’ancien cours (les échantillons gratuits). */
+  leconSeule:true,
+  video:{anim:'assets/anim/projet-cles.html?app&embed',thumb:'assets/anim/projet-cles-thumb.jpg',duree:'3 min 14',moments:6,seuil:4,
+    /* « Ajouter dans notes » : apparaît à 3 min 07 (187,35 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:187.35,y:1070,card:[64,292,1016,775],to:[940,255]}},
   sit:{
     blocks:[
       "L’équipe marketing prépare <b>une opération d’échantillons gratuits</b> : chaque client pourra recevoir des échantillons de plusieurs produits, et un même produit pourra être offert à plusieurs clients.",
@@ -13003,9 +13008,9 @@ guide({ id:72, titre:"Relations 1-1, 1-N et N-N", résumé:"Les trois formes de 
   ],
   reflex:[
     {recap:[
-      ["🔢","Pour trouver la forme d’une relation, demande de chaque côté : <b>combien de lignes en face ?</b>"],
-      ["🔗","<b>1 → N</b> : une clé étrangère, du côté « plusieurs ». <b>1 ↔ 1</b> : la même clé, avec <code>UNIQUE</code> en plus."],
-      ["🧩","<b>N ↔ N</b> : une table de jointure, avec les deux clés et une clé primaire sur le couple :",null,"PRIMARY KEY (client_id, produit_id)"]
+      ["🔑","La <b>clé primaire</b> identifie chaque ligne d’une table : unique, elle ne change jamais."],
+      ["🔗","Une <b>clé étrangère</b> reprend la clé primaire d’une autre table : elle relie les deux tables."],
+      ["🔀","Un lien est <b>1 ↔ 1</b>, <b>1 → N</b> ou <b>N ↔ N</b>. En 1 → N, la clé étrangère va du côté « plusieurs » ; en N ↔ N, le lien a sa propre table."]
     ],label:"Les trois idées à retenir"}
   ],
   anatomie:[{tok:"CREATE TABLE echantillons",txt:"La table qui porte le lien, et rien d’autre."},{tok:"client_id INTEGER REFERENCES clients(id)",txt:"Le premier côté de la relation : le client."},{tok:"produit_id INTEGER REFERENCES produits(id)",txt:"Le second côté : le produit."},{tok:"date_envoi TEXT",txt:"Une information qui décrit le lien lui-même."},{tok:"PRIMARY KEY (client_id, produit_id)",txt:"Le couple est unique : un seul envoi par client et par produit."}],
@@ -18247,7 +18252,7 @@ const SQ_ALIASES={
   78:'lag lead precedente suivante valeur precedente comparer ligne precedente decalage evolution',
   79:'fenetres glissantes cumul moyenne mobile rows between unbounded preceding following cadre running total ntile',
   56:'normalisation formes normales 1fn 2fn 3fn redondance modelisation',
-  72:'relations 1-1 1-n n-n modelisation cardinalite association table de liaison un a plusieurs plusieurs a plusieurs liens tables',
+  72:'cles relations cle primaire cle etrangere primary key foreign key identifiant 1-1 1-n n-n modelisation cardinalite association table de jointure table de liaison un a plusieurs plusieurs a plusieurs liens tables unique',
   81:'uml diagramme de classes classe attribut association multiplicite 0..* modelisation conception schema merise mcd table d association',
   61:'create table creer table structure types colonnes contraintes',
   65:'alter table ajouter colonne modifier structure renommer add column',
@@ -29038,7 +29043,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1940';
+  const SW_CACHE='requete-2026-10-12-ludique-v1941';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
