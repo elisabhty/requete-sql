@@ -1210,6 +1210,7 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
   /* Ranger au doigt : toucher d’abord (la ligne d’aide dit quelle table toucher), glisser en option, lâcher au bord d’une table compte. */
   const sel = cut('function lvPkSel(P,el){', 'function lvPkDrag(');
   assert.ok(sel.includes('Touche maintenant la table de <b>${lvNw(esc(o.label))}</b>.') && sel.includes('function lvPkNear(zs,x,y,m){'), 'étiquette choisie : l’aide guide ; place la plus proche');
+  assert.ok(sel.includes("if(!h.style.minHeight&&h.offsetHeight)h.style.minHeight=h.offsetHeight+'px';"), 'la ligne d’aide garde sa hauteur : la consigne ne bouge pas');
   assert.ok(html.includes('||lvPkNear(zs,x,y,32);') && html.includes('@keyframes lvSpotArm{') && html.includes("const LV_PK_ICO={tap:'👆',sort:'👆',link:'🔗'};"), 'glisser tolérant, tables qui appellent le doigt');
   const ctxN = vm.createContext({Math}); vm.runInContext(cut('function lvPkNear(zs,x,y,m){', 'function lvPkDrag(') + ';this.f=lvPkNear;', ctxN);
   const zs = [{x1: 0, y1: 0, x2: 100, y2: 100, n: 'a'}, {x1: 200, y1: 0, x2: 300, y2: 100, n: 'b'}];
@@ -1286,6 +1287,8 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
   assert.deepEqual(D.SORT.map(r => r[0]), D.COLS.slice(1), 'chaque colonne du fichier est à ranger, dans l’ordre du fichier, sauf le client : sa table existe déjà');
   assert.equal(D.PICKS[3].options.map(o => o.tag + ' ' + o.label).join(', '), 'B titre de l’atelier, C date de l’atelier, D nom du coach, E e-mail du coach, F date d’inscription',
     'chaque étiquette dit ce que contient sa colonne, avec la lettre de la colonne dans le fichier');
+  assert.deepEqual([D.PICKS[3].prompt, D.PICKS[3].hint], ['Associe chaque colonne du fichier à la table qui lui correspond.',
+    'Touche une colonne ci-dessous, puis la bonne table. Tu peux aussi la faire glisser directement dans la table.'], 'consigne du moment 4, puis la ligne d’aide');
   assert.ok(page.includes("show(['#bok', '#ck0'], 95.0, {y: 0, scale: 0.4}, 0.4, 'back.out(2.2)');") && page.includes("${old.length ? '<i class=\"bok\" id=\"bok\">✓</i>' : ''}")
     && page.includes("if (i === 3) return {text: 'Que décrit la colonne : un atelier, un coach ou une inscription ?'};")
     && page.includes('const [col, to, , ok, bad] = SORT[a], j = COLS.indexOf(col),'), 'la table clients et la colonne client se cochent dès que la légende dit que la table existe ; rien à ranger côté client');
