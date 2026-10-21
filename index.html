@@ -19961,7 +19961,7 @@ class LvAnim{
       for(let i=0;i<this.questions.length;i++){ const qt=this.questions[i].t; if(qt>this.t&&qt<=t){ t=qt; q=i; break; } }
       for(let i=0;i<this.picks.length;i++){ const pt=this.picks[i].t; if(pt>this.t&&pt<=t){ if(this.skip&&this.skip(i))continue; if(q<0||pt<t){ t=pt; pk=i; q=-1; } break; } }
       /* Mail reçu : l’image s’arrête sur la notification, le temps que l’élève la touche. */
-      for(let i=0;i<this.opens.length;i++){ const ot=this.opens[i].t; if(ot>this.t&&ot<=t){ if((q<0&&pk<0)||ot<t){ t=ot; op=i; q=-1; pk=-1; } break; } }
+      for(let i=0;i<this.opens.length;i++){ const ot=this.opens[i].t; if(ot>this.t&&ot<=t){ if(this.skipOpen&&this.skipOpen(i))continue; if((q<0&&pk<0)||ot<t){ t=ot; op=i; q=-1; pk=-1; } break; } }
       const end=t>=this.duration; if(end)t=this.duration;
       while(this.ci<this.cues.length&&this.cues[this.ci].t<=t){ const c=this.cues[this.ci]; if(c.t>this.t)LvSfx.play(c.type,c.pitch||0,c.gain==null?1:c.gain,.36*Math.sin(this.ci*2.399)); this.ci++; }
       this.t=t; this._render();
@@ -20066,6 +20066,8 @@ function openLessonVideo(){
   LV={id:l.id,root,video,seek,fill:root.querySelector('.lv-fill'),seeking:false,gate:-1,gateResume:false,retry:false,redo:null,note:null,q:null,cap:null,saved:0,tap:{t:0,side:0,timer:0,total:0,burst:0}};
   /* « Rejouer les moments ratés » : la vidéo ne s’arrête que sur eux. */
   if(video instanceof LvAnim)video.skip=i=>!!(LV&&LV.video===video&&LV.redo&&!LV.redo.list.includes(i));
+  /* Mail déjà ouvert : pas d’arrêt, il s’ouvre tout seul (lvOpDone). */
+  if(video instanceof LvAnim)video.skipOpen=i=>!!(LV&&LV.video===video&&lvOpDone(LV.id,i));
   const noteEl=root.querySelector('.lv-note');
   if(noteEl){
     LV.note={el:noteEl,cfg:v.notes,shown:false,done:false,timer:0};
@@ -20100,7 +20102,7 @@ function openLessonVideo(){
     const g=lvPkGate(r); if(g>=0)r=Math.max(0,video.picks[g].t-.08);
     video.currentTime=r;
   },{once:true});
-  video.addEventListener('play',()=>{ root.classList.remove('is-paused'); if(video.playbackRate!==LV_RATE)video.playbackRate=LV_RATE; if(LV&&LV.q)lvQClose(true); if(LV&&LV.pk)lvPkClose(true); if(LV&&LV.op)lvOpClose(); lvSyncPP(); });
+  video.addEventListener('play',()=>{ root.classList.remove('is-paused'); if(video.playbackRate!==LV_RATE)video.playbackRate=LV_RATE; if(LV&&LV.q)lvQClose(true); if(LV&&LV.pk)lvPkClose(true); if(LV&&LV.op)lvOpClose(true); lvSyncPP(); });
   video.addEventListener('pause',()=>{ if(!video.ended)root.classList.add('is-paused'); lvSyncPP(); lvPosKeep(); });
   video.addEventListener('timeupdate',()=>{
     if(!LV||LV.video!==video)return;
@@ -20662,8 +20664,9 @@ const lvPkErr=a=>a.err!=null?a.err:(a.first?0:1);
 function lvPkErrs(id,n){ let e=0; for(let i=0;i<n;i++){ const a=lvPkGet(id,i); if(a)e+=lvPkErr(a); } return e; }
 /* Moments ratés (au moins une erreur) : ceux que « Rejouer » propose de refaire. */
 function lvPkRates(id,n){ const out=[]; for(let i=0;i<n;i++){ const a=lvPkGet(id,i); if(a&&lvPkErr(a)>0)out.push(i); } return out; }
-/* Nouvelle tentative : les moments sont à refaire, le score du premier essai repart de zéro. */
-function lvPkReset(id){ const o=LV_ANS[id]; if(!o)return; Object.keys(o).forEach(k=>{ if(/^[pd]\d+$/.test(k))delete o[k]; }); lvAnsSave(); }
+/* Nouvelle tentative : les moments sont à refaire (brouillons compris), le score du premier essai repart de zéro et les
+   mails se referment. */
+function lvPkReset(id){ const o=LV_ANS[id]; if(!o)return; Object.keys(o).forEach(k=>{ if(/^[pdo]\d+$/.test(k))delete o[k]; }); lvAnsSave(); }
 /* Validation d’une leçon seule : video.erreurs (au plus N erreurs en tout, tous moments confondus), sinon video.seuil
    (N moments réussis du premier coup, par exemple 6 sur 9) ; sans règle, la fin de la vidéo suffit. */
 function lvSeuil(l){ return (l&&l.video&&l.video.seuil)||0; }
@@ -20994,7 +20997,15 @@ function lvPkClose(answered){
 /* ---------- Mail reçu : toucher la notification pour l’ouvrir ----------
    L’image s’arrête sur la notification (moment « opens » de la page) : une onde en part, une bulle dit de la toucher.
    Le toucher (ou la lecture relancée) ferme la bulle et la lecture reprend aussitôt : la page déplie le mail.
-   Ce n’est pas un moment « À toi » : rien n’est noté, rien n’empêche d’avancer. */
+   Ce n’est pas un moment « À toi » : rien n’est compté, rien n’empêche d’avancer. Un mail déjà ouvert (ou passé : un
+   moment « À toi » plus loin est déjà fait) ne s’arrête plus quand on revient en arrière ou qu’on revoit la vidéo :
+   il s’ouvre tout seul, comme les moments déjà faits rouvrent résolus. « Tout recommencer » les referme. */
+function lvOpDone(id,i){
+  const o=LV_ANS[id]; if(o&&o['o'+i])return true;
+  const V=LV&&LV.video, op=V&&V.opens&&V.opens[i]; if(!op)return false;
+  return (V.picks||[]).some((p,k)=>p.t>op.t&&!!lvPkGet(id,k));
+}
+function lvOpSet(id,i){ const o=LV_ANS[id]||(LV_ANS[id]={}); if(!o['o'+i]){ o['o'+i]=1; lvAnsSave(); } }
 function lvOpShow(i,o){
   if(!LV||!o)return;
   if(LV.q)lvQClose(false);
@@ -21012,7 +21023,7 @@ function lvOpShow(i,o){
   lvOpPlace();
   const b=layer.querySelector('.lv-op-spot');
   b.addEventListener('pointerdown',e=>lvPkRipple(e.clientX,e.clientY));
-  b.addEventListener('click',()=>{ if(!LV||!LV.op||LV.op.layer!==layer)return; LvSfx.play('pop',4,.6,0); lvOpClose(); lvPlay(); });
+  b.addEventListener('click',()=>{ if(!LV||!LV.op||LV.op.layer!==layer)return; LvSfx.play('pop',4,.6,0); lvOpClose(true); lvPlay(); });
   if(prefersReduceMotion())layer.classList.add('on');
   else requestAnimationFrame(()=>requestAnimationFrame(()=>layer.classList.add('on')));
   if(navigator.vibrate)navigator.vibrate(8);
@@ -21027,9 +21038,11 @@ function lvOpPlace(){
   Object.assign(b.style,{left:a.x.toFixed(1)+'px',top:a.y.toFixed(1)+'px',width:(c.x-a.x).toFixed(1)+'px',height:(c.y-a.y).toFixed(1)+'px',borderRadius:(P.rad*k).toFixed(1)+'px'});
   Object.assign(tip.style,{left:((a.x+c.x)/2).toFixed(1)+'px',top:(c.y+12).toFixed(1)+'px'});
 }
-function lvOpClose(){
+/* opened : la lecture reprend sur la notification (toucher, bouton lecture) — le mail s’ouvre, il est noté comme ouvert. */
+function lvOpClose(opened){
   const P=LV&&LV.op; if(!P)return;
   LV.op=null; LV.root.classList.remove('is-q','is-op');
+  if(opened)lvOpSet(LV.id,P.i);
   const L=P.layer; L.classList.remove('on'); L.classList.add('off');
   setTimeout(()=>L.remove(),prefersReduceMotion()?0:220);
 }
@@ -28995,7 +29008,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1937';
+  const SW_CACHE='requete-2026-10-12-ludique-v1938';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
