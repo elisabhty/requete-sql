@@ -1512,10 +1512,10 @@ test('mail reçu : l’image s’arrête sur la notification, le toucher l’ouv
   const anim = cut('class LvAnim{', 'function lessonVideoOn(l){');
   assert.ok(anim.includes('this.opens=info.opens||[];') && anim.includes("this._emit('open',{i:op,o:this.opens[op]});"), 'le lecteur s’arrête sur chaque mail');
   const show = cut('function lvOpShow(i,o){', 'function lvOpPlace(){');
-  for (const part of ["layer.className='lv-op';", "LV.root.classList.add('is-q','is-op');", 'lvOpClose(); lvPlay();', 'r=w.rel(el);', "b.addEventListener('pointerdown',e=>lvPkRipple(e.clientX,e.clientY));"])
+  for (const part of ["layer.className='lv-op';", "LV.root.classList.add('is-q','is-op');", 'lvOpClose(true); lvPlay();', 'r=w.rel(el);', "b.addEventListener('pointerdown',e=>lvPkRipple(e.clientX,e.clientY));"])
     assert.ok(show.includes(part), `mail : ${part}`);
   assert.ok(!show.includes('lvPkSet'), 'rien n’est noté');
-  assert.ok(html.includes("video.addEventListener('open',e=>{ if(LV&&LV.video===video&&e.detail)lvOpShow(e.detail.i,e.detail.o); });") && html.includes('if(LV&&LV.op)lvOpClose();'),
+  assert.ok(html.includes("video.addEventListener('open',e=>{ if(LV&&LV.video===video&&e.detail)lvOpShow(e.detail.i,e.detail.o); });") && html.includes('if(LV&&LV.op)lvOpClose(true);'),
     'ouvert par l’animation, fermé dès que la lecture reprend');
   assert.ok(html.includes('.lv-op-spot{position:absolute;') && html.includes('@keyframes lvOpRing{') && html.includes('.lv-op-tip{position:absolute;'), 'zone qui s’entoure d’une onde, bulle « Touche le mail »');
   assert.ok(html.includes("case 'mail':{"), 'son du mail reçu');
@@ -1526,6 +1526,26 @@ test('mail reçu : l’image s’arrête sur la notification, le toucher l’ouv
     && html.includes('.lv-pk.is-sort .lv-pk-opt{min-height:44px;flex:0 0 calc(50% - 3.5px);min-width:0}'), 'étiquettes à glisser deux par ligne, une étiquette seule centrée');
   assert.ok(html.includes("(kind==='pick'&&opts.some(o=>String(o.label).length>30)?' is-long':'')") && html.includes('.lv-pk.is-long .lv-pk-opts:not([hidden]){flex-direction:column;align-items:stretch;gap:8px}'),
     'réponses longues (une phrase) : l’une sous l’autre, sur deux lignes au besoin');
+});
+
+test('mail déjà ouvert (ou passé) : en revenant en arrière, il s’ouvre tout seul, sans arrêt ni bulle', () => {
+  const LV = {id: 56, video: {opens: [{t: 33.1}, {t: 58.65}, {t: 76.45}], picks: [{t: 44.6}, {t: 67.85}, {t: 89.75}]}};
+  const ctx = vm.createContext({LV, LV_ANS: {}, lvAnsSave() {}, Object});
+  vm.runInContext(cut('function lvPkGet(id,i){', 'function lvPkSet(') + cut('function lvOpDone(id,i){', 'function lvOpShow(i,o){') + cut('function lvPkReset(id){', '/* Validation d’une leçon seule')
+    + ';this.api={lvOpDone,lvOpSet,lvPkReset};', ctx);
+  const {api} = ctx;
+  assert.ok(!api.lvOpDone(56, 0) && !api.lvOpDone(56, 1), 'jamais ouverts : l’image s’arrête sur la notification');
+  api.lvOpSet(56, 0);
+  assert.ok(api.lvOpDone(56, 0) && !api.lvOpDone(56, 1), 'ouvert une fois : il s’ouvre tout seul ensuite');
+  ctx.LV_ANS[56].p1 = {first: 1, err: 0};
+  assert.ok(api.lvOpDone(56, 1) && !api.lvOpDone(56, 2), 'un moment plus loin déjà fait : le mail d’avant est passé');
+  api.lvPkReset(56);
+  assert.ok(!api.lvOpDone(56, 0) && !api.lvOpDone(56, 1), '« Tout recommencer » : les mails se referment');
+  assert.ok(cut('class LvAnim{', 'function lessonVideoOn(l){').includes('if(this.skipOpen&&this.skipOpen(i))continue;')
+    && html.includes('video.skipOpen=i=>!!(LV&&LV.video===video&&lvOpDone(LV.id,i));'), 'la lecture ne s’arrête plus sur un mail déjà ouvert');
+  const close = cut('function lvOpClose(opened){', '/* ---------- Moments « À toi » joués sur l’image');
+  assert.ok(close.includes('if(opened)lvOpSet(LV.id,P.i);'), 'noté ouvert quand la lecture reprend sur la notification');
+  assert.ok(cut('/* Saut de ±5 s', 'function lvSpeedMenu(open){').includes('if(LV.op)lvOpClose();'), 'sauter par-dessus ne l’ouvre pas');
 });
 
 test('moments « À toi » : la légende annonce le moment sans répéter la consigne de la carte, l’attente est coupée', () => {
