@@ -587,7 +587,11 @@ function Course(cfg){
   const {duration, chapters, captions, questions = [], picks = [], opens = [], notesAt = null} = cfg;
   let out = 0;
   function renderAt(T){
-    tl.seek(warp(T), true);
+    const t = warp(T);
+    /* Avant de dessiner l’image, la page retire l’aperçu d’un moment « À toi » que la timeline va montrer : la timeline
+       ne doit jamais lire l’aperçu comme l’état de départ de ses éléments (la réponse réapparaîtrait en reculant). */
+    if (cfg.beforeRender) cfg.beforeRender(t);
+    tl.seek(t, true);
     const stage = document.getElementById('stage');
     stage.style.setProperty('--blink', Math.floor(T * 1.9) % 2 === 0 ? 1 : 0);
     if (!EMBED) {

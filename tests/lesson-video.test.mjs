@@ -726,7 +726,7 @@ const COURSES = [
       "return new Promise(res => later(tv, () => res({ok, say: fr(o.say), why: fr(o.why || o.say)})));",
       '<span class="cm hid" id="q5c">-- sans ON</span>', "if (out.length + rest.length <= 6) rest.forEach(s => { out.push(JSON.parse(s)); mk.push('m'); });",
       "leave(i, answered){ if (answered && X && X.ok && X.i === i) wait = i; else clear(); },",
-      "tick(){ if (wait < 0) return; const a = PICKS[wait].at, t = tl.time(); if (t >= a + 0.0199 || t < a - 0.001) clear(); }"]},
+      "tick(t = tl.time()){ if (wait < 0) return; const a = PICKS[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear(); }"]},
   {id: 45, next: 47, titre: 'Sous-requête dans WHERE avec IN', page: 'sous-requete-in.html', thumb: 'sous-requete-in-thumb.jpg', duree: '3 min 57', notesAt: 213.5,
     notes: /notes:\{t:231\.9,y:1286,card:\[64,292,1016,991\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avec une sous-requête, la liste de <span class="ic">IN</span><br>est fabriquée par une autre requête.',
@@ -1357,6 +1357,17 @@ test('barre de lecture : un petit point par moment « À toi », doré à faire,
     assert.ok(marks.includes(part), `points : ${part}`);
   assert.ok(html.includes('lvMarks(); lvPkMarks(); lvSyncSeek();') && html.includes('lvPkSet(LV.id,P.i,first,P.tries-1); lvPkMarks();') && html.includes('lvPkSet(LV.id,P.i,first,P.miss); lvPkMarks();'),
     'placés au chargement, mis à jour à chaque moment réussi');
+});
+
+test('moment réussi puis vidéo reculée : la réponse ne réapparaît pas avant l’heure ; un glisser ne survit pas au plateau', () => {
+  const core = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
+  assert.ok(core.includes('if (cfg.beforeRender) cfg.beforeRender(t);\n    tl.seek(t, true);'), 'la page retire l’aperçu avant que la timeline ne dessine l’image');
+  for (const f of ['projet-normaliser.html', 'quel-join-choisir.html']) {
+    const page = fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8');
+    assert.ok(page.includes('tick(t = tl.time()){') && page.includes('beforeRender: t => IX.tick(t)});') && !page.includes('onRender: () => IX.tick()'), `${f} : aperçu retiré avant le rendu`);
+  }
+  assert.ok(cut('function lvPkClose(answered){', '/* ---------- Mail reçu').includes("LV.root.querySelectorAll('.lv-pk-fly.is-drag,.lv-pk-target').forEach(e=>e.remove());"), 'plateau fermé : plus de copie en plein glisser');
+  assert.ok(html.includes("lvGlisse(btn,()=>!!LV&&LV.pk===P&&") && html.includes("lvGlisse(a,()=>!!LV&&LV.pk===P&&") && html.includes('if(!can()){ g=null; return; }'), 'pas de glisser sur un plateau fermé');
 });
 
 test('mail reçu : l’image s’arrête sur la notification, le toucher l’ouvre et la lecture reprend, sans note', () => {

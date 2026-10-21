@@ -837,13 +837,13 @@ const IX = (() => {
     pick,
     /* Bonne réponse : l’aperçu reste jusqu’à ce que la timeline affiche la même image ; sinon il part tout de suite. */
     leave(i, answered){ if (answered && X && X.ok && X.i === i) wait = i; else clear(); },
-    tick(){ if (wait < 0) return; const a = PICKS[wait].at, t = tl.time(); if (t >= a + 0.0199 || t < a - 0.001) clear(); }
+    tick(t = tl.time()){ if (wait < 0) return; const a = PICKS[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear(); }
   };
 })();
 window.IX = IX;
 
 Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 218.5, picks: PICKS,
-  glyphs: '🩺📅👤🐠🌊🐟📚🔖📖🛎️🛏️🍦🍓🏢👥🔎🔗🪞🧭📍✓✕?→×…', dom, build, onRender: () => IX.tick()});
+  glyphs: '🩺📅👤🐠🌊🐟📚🔖📖🛎️🛏️🍦🍓🏢👥🔎🔗🪞🧭📍✓✕?→×…', dom, build, beforeRender: t => IX.tick(t)});
 </script>
 </body>
 </html>
