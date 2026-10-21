@@ -20827,6 +20827,8 @@ function lvPkClose(answered){
   clearTimeout(P.timer); clearTimeout(P.demo); if(P.demoEl)P.demoEl.remove();
   LV.root.classList.remove('is-q','is-pk');
   if(P.layer)P.layer.remove();
+  /* Une étiquette en plein glisser (ou le trou qu’elle visait) ne survit pas au plateau. */
+  LV.root.querySelectorAll('.lv-pk-fly.is-drag,.lv-pk-target').forEach(e=>e.remove());
   const IX=lvPkIX(); try{ if(IX&&IX.leave)IX.leave(P.i,!!answered); }catch(e){}
   const box=P.box, card=box.querySelector('.lv-pk-card');
   if(prefersReduceMotion()||!card.animate){ box.remove(); return; }
@@ -21016,7 +21018,7 @@ function lvPkNear(zs,x,y,m){ let best=null, bd=m; zs.forEach(q=>{ const d=Math.h
 function lvPkDrag(P,btn,zonesFn,onDrop){
   btn.classList.add('can-drag');
   let fly=null, over=null, zs=[], R=null, sx=0, sy=0;
-  lvGlisse(btn,()=>!(P.busy||P.done||btn.disabled||btn.classList.contains('is-out')||btn.classList.contains('is-placed')),6,{
+  lvGlisse(btn,()=>!!LV&&LV.pk===P&&!(P.busy||P.done||btn.disabled||btn.classList.contains('is-out')||btn.classList.contains('is-placed')),6,{
     start(x,y){
       sx=x; sy=y; over=null;
       R=LV.root.getBoundingClientRect(); const b=btn.getBoundingClientRect(); zs=zonesFn()||[];
@@ -21054,7 +21056,7 @@ function lvPkDrag(P,btn,zonesFn,onDrop){
 /* Relier : un fil suit le doigt depuis l’élément touché ; lâché sur un élément de l’autre côté, le lien est proposé. */
 function lvPkRubber(P,a){
   let line=null, over=null, R=null, zs=[], c0=null;
-  lvGlisse(a,()=>!(P.busy||P.done),8,{
+  lvGlisse(a,()=>!!LV&&LV.pk===P&&!(P.busy||P.done),8,{
     start(){
       R=LV.root.getBoundingClientRect(); const z=lvPkZone(a); c0=[(z.x1+z.x2)/2,(z.y1+z.y2)/2]; over=null;
       zs=P.spots.filter(b=>b!==a&&(!a.dataset.side||b.dataset.side!==a.dataset.side)).map(lvPkZone);
@@ -21082,7 +21084,8 @@ function lvPkRubber(P,a){
 function lvGlisse(el,can,slop,on){
   const tactile='ontouchstart' in window;
   let g=null;
-  const go=(x,y)=>{ if(!g.on){ if(Math.hypot(x-g.sx,y-g.sy)<g.slop)return; g.on=true; on.start(g.sx,g.sy); } on.move(x,y); };
+  /* Le glisser ne démarre que si le geste est encore possible (plateau toujours ouvert, étiquette libre). */
+  const go=(x,y)=>{ if(!g.on){ if(Math.hypot(x-g.sx,y-g.sy)<g.slop)return; if(!can()){ g=null; return; } g.on=true; on.start(g.sx,g.sy); } on.move(x,y); };
   const stop=cancel=>{ const G=g; g=null; if(G&&G.on){ el._noClick=performance.now()+450; on.end(cancel); } return G; };
   el.addEventListener('pointerdown',e=>{
     if((tactile&&e.pointerType!=='mouse')||e.button!==0||!can())return;
@@ -28820,7 +28823,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1928';
+  const SW_CACHE='requete-2026-10-12-ludique-v1929';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
