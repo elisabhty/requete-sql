@@ -837,15 +837,15 @@ const COURSES = [
       '<span class="b"><span class="glow" id="p4"><span class="kw">2 PRECEDING</span></span></span>', '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> date_commande</span>',
       '✕ Les deux commandes du 2 juillet ont le même cumul', '<div class="lim" id="lim6"><span>Palier&nbsp;: 700&nbsp;€</span></div>',
       '✓ Palier franchi le 1er&nbsp;août']},
-  {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '3 min 15', notesAt: 159.3,
-    notes: /notes:\{t:188\.0,y:1291,card:\[64,292,1016,996\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '3 min 20', notesAt: 159.3,
+    notes: /notes:\{t:193\.3,y:1291,card:\[64,292,1016,996\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Le fichier Excel des ateliers mélange tout&nbsp;:<br>à toi de le ranger en tables.',
     chapters: ['Le fichier Excel', 'Les copies', 'Supprimer, ajouter', 'Une table par sujet', 'Les tables remplies', 'À retenir'],
     traps: ["const INSCR = [[1, 1, '01/09', '2026-09-01'], [4, 1, '02/09', '2026-09-02'], [5, 2, '03/09', '2026-09-03'], [7, 3, '04/09', '2026-09-04'],",
       "const YOGA = [5, 'Yoga du matin', '03/10', '2026-10-03', 2, '🌅'];", '<span id="xn1">6 inscriptions</span>', "const COLS = ['client', 'atelier', 'date', 'coach', 'e-mail du coach', 'inscrit le'];",
       // Les six moments : les copies de l’e-mail, la ligne à supprimer, la case client du Yoga, les colonnes à ranger, la table du Yoga, la table sans liens
       "{at: 40.0, from: 34.6, kind: 'tap', need: 3,", "{at: 61.6, from: 52.1, kind: 'tap', need: 1,", "{label: 'Tu crées une ligne d’atelier dans un tableau censé contenir des inscriptions.', ok: true,",
-      "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 129.8, from: 119.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}",
+      "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 129.8, from: 119.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}", "{at: 141.4, from: 135.95, kind: 'pick',",
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
   {id: 72, next: 81, titre: 'Relations 1-1, 1-N et N-N', page: 'relations.html', thumb: 'relations-thumb.jpg', duree: '3 min 32', notesAt: 190.3,
@@ -1195,7 +1195,7 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
 
 test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six moments sur l’image, clients de la base', async () => {
   const l56 = cut('guide({ id:56, titre:"Normaliser les inscriptions"', 'guide({ id:72,');
-  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'3 min 15',moments:6,") && !l56.includes('seuil:'), 'leçon seule, 6 moments, validée à la fin de la vidéo');
+  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'3 min 20',moments:6,") && !l56.includes('seuil:'), 'leçon seule, 6 moments, validée à la fin de la vidéo');
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/projet-normaliser.html'), 'utf8');
   const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
   assert.ok(a > 0 && b > a, 'données de la page localisées');
