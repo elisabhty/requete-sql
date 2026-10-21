@@ -1160,8 +1160,15 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
   assert.ok(show2.includes('>${LV_PK_GRIP}${o.tag?`<span class="lv-pk-tag">${esc(o.tag)}</span>`:\'\'}${esc(o.label)}</button>`')
     && show2.includes('aria-label="Colonne ${esc(o.tag)} : ${esc(o.label)}"'), 'étiquette à glisser : poignée, lettre de la colonne, nom');
   const demo = cut('function lvPkDemo(P){', 'function lvPkLayer(P){');
-  for (const part of ["P.box.addEventListener('pointerdown',stop,{capture:true,once:true});", "btn.classList.add('is-demo','is-lift');", 'P.demo=setTimeout(()=>run(2),700);', 'if(prefersReduceMotion())return;'])
-    assert.ok(demo.includes(part), `démonstration du geste : ${part}`);
+  for (const part of ["P.box.addEventListener('pointerdown',stop,{capture:true,once:true});", "btn.classList.add('is-demo'); P.layer.classList.add('is-armed');", 'P.demo=setTimeout(()=>run(2),700);', 'if(prefersReduceMotion())return;'])
+    assert.ok(demo.includes(part), `démonstration du geste (toucher une étiquette, les tables s’allument) : ${part}`);
+  /* Ranger au doigt : toucher d’abord (la ligne d’aide dit quelle table toucher), glisser en option, lâcher au bord d’une table compte. */
+  const sel = cut('function lvPkSel(P,el){', 'function lvPkDrag(');
+  assert.ok(sel.includes('Touche maintenant la table de <b>${lvNw(esc(o.label))}</b>.') && sel.includes('function lvPkNear(zs,x,y,m){'), 'étiquette choisie : l’aide guide ; place la plus proche');
+  assert.ok(html.includes('||lvPkNear(zs,x,y,32);') && html.includes('@keyframes lvSpotArm{') && html.includes("const LV_PK_ICO={tap:'👆',sort:'👆',link:'🔗'};"), 'glisser tolérant, tables qui appellent le doigt');
+  const ctxN = vm.createContext({Math}); vm.runInContext(cut('function lvPkNear(zs,x,y,m){', 'function lvPkDrag(') + ';this.f=lvPkNear;', ctxN);
+  const zs = [{x1: 0, y1: 0, x2: 100, y2: 100, n: 'a'}, {x1: 200, y1: 0, x2: 300, y2: 100, n: 'b'}];
+  assert.ok(ctxN.f(zs, 120, 50, 32).n === 'a' && ctxN.f(zs, 185, 50, 32).n === 'b' && ctxN.f(zs, 150, 50, 32) === null, 'à moins de 32 px d’une table : elle est prise ; au milieu : rien');
   assert.ok(cut('function lvPkLayer(P){', 'function lvPkLayerPlace(){').includes("if(P.kind==='sort'){\n    lvPkDemo(P);") && cut('function lvPkClose(answered){', 'function lvReplay(){').includes('clearTimeout(P.demo); if(P.demoEl)P.demoEl.remove();'),
     'la démonstration part avec le moment et s’arrête avec lui');
   assert.ok(html.includes("fly.className='lv-pk-fly is-drag'+(P.kind==='sort'?' is-sort':''); fly.innerHTML=btn.innerHTML;"), 'la copie qui suit le doigt garde la poignée et la lettre');
