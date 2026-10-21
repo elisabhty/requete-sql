@@ -848,8 +848,8 @@ const COURSES = [
       "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 129.8, from: 119.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}", "{at: 141.4, from: 135.95, kind: 'pick',",
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
-  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '3 min 29', notesAt: 167.9,
-    notes: /notes:\{t:201\.95,y:1070,card:\[64,292,1016,775\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '3 min 28', notesAt: 167.9,
+    notes: /notes:\{t:201\.65,y:1070,card:\[64,292,1016,775\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Tes tables sont prêtes&nbsp;:<br>à toi de les relier avec des clés.',
     chapters: ['Le problème', 'La clé primaire', 'La clé étrangère', '1 → N', 'N ↔ N', '1 ↔ 1', 'À retenir'],
     traps: ["const INSCR = [[1, 1, 1, '2026-09-01'], [2, 4, 1, '2026-09-02'], [3, 5, 2, '2026-09-03'], [4, 7, 3, '2026-09-04'],",
@@ -1288,7 +1288,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
 
 test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre 1 relié par des clés, chaque réponse vérifiée dans SQLite', async () => {
   const l72 = cut('guide({ id:72, titre:"Clés et relations"', 'guide({ id:81,');
-  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'3 min 29',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'3 min 28',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1320,8 +1320,8 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.deepEqual(D.MAILS.map(m => m[0][0] + ' ' + m[0][1] + ' · ' + m[2]), ['Sophie Martin · cliente', 'L’équipe NutriBoost · équipe'], 'qui écrit');
   const name = id => D.CLIENTS.find(c => c[0] === id).slice(1).join(' '), atl = id => D.ATELIERS.find(a => a[0] === id);
   const caps = D.CAPTIONS.map(c => c[2]).join('\n');
-  /* La vidéo rappelle d’abord le projet, puis ce que le chapitre 1 a produit. */
-  assert.ok(D.CAPTIONS[0][2].startsWith('Le projet : NutriBoost lance des ateliers bien-être') && D.CAPTIONS[1][2].startsWith('Au chapitre 1, tu as rangé le fichier Excel des inscriptions'), 'le contexte avant tout');
+  /* La vidéo rappelle d’abord le contexte, puis ce que le chapitre 1 a produit. */
+  assert.ok(D.CAPTIONS[0][2].startsWith('NutriBoost lance des ateliers bien-être') && D.CAPTIONS[1][2].startsWith('Au chapitre 1, tu as rangé le fichier Excel des inscriptions'), 'le contexte avant tout');
   /* Une seule façon de nommer la table d’un lien N ↔ N, dans les trois chapitres. */
   for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html'])
     assert.ok(!fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8').includes('table de jointure'), `${f} : « table d’association », jamais « table de jointure »`);
