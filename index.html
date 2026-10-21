@@ -6533,6 +6533,16 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-pk-dots i.ok{background:#169447}
 .lv-pk-dots i.try{background:#B9A8FF}
 .lv-pk-dots i.cur{background:var(--accent,#6A4DF4);box-shadow:0 0 0 3px rgba(106,77,244,.2)}
+/* Téléphone standard : la ligne du haut tient même avec « ✕ Essaie un autre choix » (pastilles et espaces resserrés) */
+@media (max-width:420px){
+  .lv-pk-top{gap:6px}
+  .lv-pk-kick{padding:0 9px}
+  .lv-pk-cnt,.lv-pk-back{padding:0 8px}
+  .lv-pk-back+.lv-pk-dots{margin-left:2px}
+  .lv-pk-dots{gap:4px}
+  .lv-pk-dots i{width:7px;height:7px}
+}
+@media (max-width:380px){.lv-pk-kick,.lv-pk-cnt,.lv-pk-back{padding:0 7px}}
 .lv-pk-t{margin:9px 2px 12px;font:700 17px/1.25 var(--display);letter-spacing:-.01em;color:var(--ink,#221C46);text-wrap:balance}
 .lv-pk-t code{font:700 .86em/1 var(--mono);color:var(--accent-ink,#5335E0);background:var(--accent-soft,#EEE9FF);padding:.12em .34em;border-radius:.32em;white-space:nowrap}
 .lv-pk-t[hidden]{display:none}
@@ -6570,7 +6580,8 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-pk-cnt{flex:none;height:26px;padding:0 10px;border-radius:999px;background:#F1EEFC;color:var(--ink-2,#4E4872);font:800 13px/26px var(--display);white-space:nowrap;transition:background-color .2s,color .2s}
 .lv-pk.is-ok .lv-pk-cnt{background:#E2F6EA;color:#0F7A3A}
 .lv-pk-ico{display:inline-flex;align-items:center;justify-content:center;width:26px;height:24px;margin-right:7px;border-radius:7px;background:var(--accent-soft,#EEE9FF);font-size:14px;line-height:1;vertical-align:1px}
-.lv-pk-hint{margin:10px 2px 0;font:600 13px/1.35 var(--ui);color:var(--ink-3,#6A6490);text-align:center;text-wrap:balance}
+/* Ligne d’aide sous la consigne (les consignes au même endroit, au-dessus des étiquettes) */
+.lv-pk-hint{margin:-5px 2px 11px;font:600 14px/1.35 var(--ui);color:var(--ink-3,#6A6490);text-align:left;text-wrap:pretty}
 .lv-pk-hint[hidden]{display:none}
 .lv-pk.is-text .lv-pk-opt{font-family:var(--ui);font-weight:700;letter-spacing:-.01em}
 .lv-pk.is-long .lv-pk-opts:not([hidden]){flex-direction:column;align-items:stretch;gap:8px}
@@ -20579,10 +20590,10 @@ function lvPkShow(i,p){
     <div class="lv-pk-top"><span class="lv-pk-kick">À toi · ${i+1}/${n}</span>${total>1?`<span class="lv-pk-cnt">0 / ${total}</span>`:''}<button type="button" class="lv-pk-back" aria-label="Revoir le passage avant ce moment"><span aria-hidden="true">↺</span><span>Revoir</span></button><span class="lv-pk-dots" aria-hidden="true">${lvPkDots(i,n)}</span></div>
     <p class="lv-pk-t" id="lv-pk-t">${kind==='pick'?`<span class="lv-pk-hole" aria-hidden="true">?</span>${p.prompt}`:`<span class="lv-pk-ico" aria-hidden="true">${LV_PK_ICO[kind]||LV_PK_ICO.tap}</span>${p.prompt}`}</p>
     <p class="lv-pk-why" hidden></p>
+    ${p.hint?`<p class="lv-pk-hint">${p.hint}</p>`:''}
     ${opts.length?`<div class="lv-pk-opts">${opts.map((o,k)=>kind==='sort'
       ?`<button type="button" class="lv-pk-opt" data-k="${k}"${o.tag?` aria-label="Colonne ${esc(o.tag)} : ${esc(o.label)}"`:''}>${LV_PK_GRIP}${o.tag?`<span class="lv-pk-tag">${esc(o.tag)}</span>`:''}${esc(o.label)}</button>`
       :`<button type="button" class="lv-pk-opt" data-k="${k}">${esc(o.label)}</button>`).join('')}</div>`:''}
-    ${p.hint?`<p class="lv-pk-hint">${p.hint}</p>`:''}
     <button type="button" class="lq-btn lv-pk-go" hidden>Continuer</button>
   </div>`;
   LV.root.appendChild(box);
@@ -28760,7 +28771,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1922';
+  const SW_CACHE='requete-2026-10-12-ludique-v1923';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
