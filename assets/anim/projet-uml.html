@@ -119,12 +119,20 @@
 .tapf{z-index:20;font-size:120px;margin:-8px 0 0 -44px;opacity:0;visibility:hidden}
 
 /* ---------- Ce que devient chaque association ---------- */
-.rbin{width:296px;height:500px;padding:34px 18px 24px;border-radius:40px;border:4px dashed #C9BCFF;background:rgba(255,255,255,.85);display:flex;flex-direction:column;align-items:center}
-.rbin .ri{font-size:66px}
-.rbin .rt{margin-top:20px;font-size:31px;font-weight:800;line-height:1.22;color:var(--accent-ink);text-align:center}
-.rbin .rc{margin-top:auto;width:100%;padding:14px 12px;border-radius:18px;background:var(--accent-soft);color:var(--accent-ink);box-shadow:inset 0 0 0 3px #C9BCFF;text-align:center;opacity:0;visibility:hidden}
-.rbin .rc b{display:block;font-size:27px;font-weight:800;line-height:1.25}
-.rbin .rc span{display:block;margin:4px 0;font-family:var(--mono);font-size:25px;font-weight:700;line-height:1.25;white-space:nowrap}
+/* La boutique (moment 6) : les classes, réduites à leur nom ; les clés étrangères proposées */
+.k-cm{--c:#0E9F9A;--cs:#DDF5F3;--ci:#0B6E6A}
+.k-pr{--c:#D9468F;--cs:#FCE8F2;--ci:#A3216A}
+.shtit{display:flex;align-items:center;gap:16px;font-family:var(--display);font-size:46px;font-weight:800;letter-spacing:-.8px;color:var(--ink);white-space:nowrap}
+.shtit .emo{font-size:46px}
+.cls.shc{padding:0}
+.cls.shc .ch{box-shadow:none}
+.fkc{width:546px;height:96px;padding:0 24px;border-radius:24px;background:#fff;border:3px solid var(--line);box-shadow:0 7px 0 var(--lip);display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:30px;font-weight:700;color:var(--ink);white-space:nowrap}
+.fkc .emo{font-size:28px;margin-right:8px}
+.fkc .t{font-weight:600;color:var(--ink-3)}
+.fkc .okl{position:absolute;left:-3px;right:-3px;top:-3px;bottom:-3px;border-radius:24px;box-shadow:inset 0 0 0 4px #169447;background:rgba(22,148,71,.10);opacity:0;visibility:hidden}
+.fkc .okl svg{position:absolute;right:20px;top:50%;width:40px;height:40px;margin-top:-20px;overflow:visible}
+.fkc .okl circle{fill:#169447}
+.fkc .okl path{fill:none;stroke:#fff;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
 .keyc{left:0;width:1080px;display:flex;justify-content:center}
 .keyc>span{height:96px;padding:0 40px 0 26px;border-radius:999px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 9px 0 #4B30CC;color:#fff;font-size:36px;font-weight:700;display:flex;align-items:center;gap:16px;white-space:nowrap}
 .keyc .emo{font-size:44px}
@@ -166,8 +174,8 @@
   <section class="scene" id="sm"></section>
   <!-- 2 à 5 · Le diagramme de classes, puis les tables qu’il donne -->
   <section class="scene" id="sb"></section>
-  <!-- 5 · Ce que devient chaque association, puis la suite -->
-  <section class="scene" id="se"></section>
+  <!-- 5 · Le diagramme de la boutique, puis la suite -->
+  <section class="scene" id="sh"></section>
   <section class="scene" id="sk"></section>
 
   <!-- 6 · À retenir -->
@@ -214,18 +222,15 @@ const SUJET = {co: ['coachs', 'd’un coach', '🧑‍🏫'], at: ['ateliers', '
 /* Fond de l’en-tête une fois la classe devenue table (couleur claire de chaque sujet). */
 const CS = {co: '#E6F0FD', at: '#FFF1E2', cl: '#EEE9FF', ca: '#FFF6DA', in: '#E2F6EA'};
 const KC = {co: 'k-co', at: 'k-at', cl: 'k-cl', ca: 'k-nb', in: 'k-in'};
-/* Trois nouvelles associations à traduire (moment 6) : deux viennent de la boutique, dont les tables existent déjà. */
-/* [classe A, multiplicité à côté de A, multiplicité à côté de B, classe B, traduction] */
-const TRANSFERT = [['Atelier', '0..*', '0..*', 'Produit', 'tab'], ['Client', '1', '0..*', 'Commande', 'fk'], ['Client', '1', '0..1', 'Fidélité', 'uq']];
-/* Écrite d’un seul tenant de chaque côté du tiret : « Client 1 — » puis « 0..* Commande », jamais une classe sans sa multiplicité. */
-const asso = ([a, ma, mb, b]) => `${a}\u00a0${ma} — ${mb}\u00a0${b}`;
-const BINS = [['fk', '🔗', 'Une clé<br>étrangère'], ['uq', '🔒', 'Une clé étrangère<br>unique'], ['tab', '📝', 'Une table<br>d’association']];
-/* Ce que répond chaque mauvaise case : association × traduction. */
-const BAD6 = [
-  {fk: '* des deux côtés : une case ne garde qu’un seul numéro, ni d’un côté ni de l’autre.', uq: 'Un produit sert dans plusieurs ateliers : rien ne peut y être unique.'},
-  {uq: '0..* : un client passe plusieurs commandes, son numéro s’y répète.', tab: 'Un seul côté est * : une clé étrangère, du côté Commande, suffit.'},
-  {fk: '0..1 : un client n’a qu’une fiche ; sans unique, il pourrait en avoir deux.', tab: 'Aucun côté n’est * : une clé étrangère suffit.'}
-];
+/* Le diagramme de la boutique (moment 6), fidèle à la base de l’app : une commande a au plus un client (client_id peut rester
+   vide), et un seul produit (produit_id obligatoire) ; un client passe zéro, une ou plusieurs commandes, un produit figure dans
+   zéro, une ou plusieurs commandes. [clé, nom, couleur] puis [clé, nom, sens, classe A, multiplicité à côté de A, classe B, à côté de B]. */
+const SHOP = [['cl', 'Client', 'k-cl'], ['co', 'Commande', 'k-cm'], ['pr', 'Produit', 'k-pr']];
+const SHOP_ASSOCS = [['pa', 'passe', '▾', 'cl', '0..1', 'co', '0..*'], ['ce', 'concerne', '▾', 'co', '0..*', 'pr', '1']];
+/* Les clés étrangères proposées : [table, colonne, sujet désigné, bonne réponse, réponse à une erreur]. */
+const FKS = [['clients', 'commande_id', 'co', false, 'Un client passe plusieurs commandes : une seule case ne suffirait pas.'],
+  ['commandes', 'client_id', 'cl', true], ['produits', 'commande_id', 'co', false, 'Un produit figure dans plusieurs commandes : une seule case ne suffirait pas.'],
+  ['commandes', 'produit_id', 'pr', true]];
 /* Multiplicités de l’association anime à placer (moment 2) : [étiquette, classe qu’elle compte, réponse à une erreur]. */
 const PLACE = [['1', 'co', 'À côté d’Atelier, on compte les ateliers d’un coach : Moussa Diallo en anime deux.'],
   ['0..*', 'at', 'À côté de Coach, on compte les coachs d’un atelier : chaque atelier n’en a qu’un.']];
@@ -241,7 +246,8 @@ const CHAPTERS = [
 
 /* Légendes : [début, fin, texte] (temps de la timeline). Pendant le mail, la légende s’efface : le mail a la parole. */
 const CAPTIONS = [
-  [5.3, 10.8,    "Au chapitre 2, tu as relié tes cinq tables par des clés étrangères."],
+  [5.3, 8.0,     "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost."],
+  [8.1, 10.8,    "Au chapitre 2, tu as relié ses cinq tables par des clés étrangères."],
   [10.9, 16.0,   "Mais pour voir les liens, il faut chercher ces clés, table par table."],
   [21.7, 27.4,   "Pour dessiner ce plan, on utilise un <b class=\"nw\">diagramme de classes UML</b>."],
   [27.7, 33.4,   "Chaque sujet devient une <b>classe</b> : une boîte qui porte son nom, puis la liste de ses <b>attributs</b>."],
@@ -267,10 +273,10 @@ const CAPTIONS = [
   [133.3, 139.1, "<b>possède</b>, 1 — 0..1 : <code>client_id</code> va dans la <b>table cartes</b>, et devient unique."],
   [139.2, 145.25, "<b>s’inscrit à</b>, * des deux côtés : elle devient une <b>table d’association</b>, la table inscriptions."],
   [145.35, 147.9, "À toi !"],
-  [148.0, 153.9, "Ses deux clés étrangères, plus l’attribut de la classe d’association : c’est la table de jointure du chapitre 2."],
-  [154.0, 159.95, "Et avec d’autres classes ? Les règles restent exactement les mêmes."],
+  [148.0, 153.9, "Ses deux clés étrangères, plus l’attribut de la classe d’association : c’est bien la table du chapitre 2."],
+  [154.0, 159.95, "Les règles valent pour tout diagramme, par exemple celui de la boutique : clients, commandes et produits."],
   [160.05, 162.6, "À toi !"],
-  [162.7, 168.6, "Un côté * donne une clé étrangère ; aucun côté *, une clé étrangère unique ; deux côtés *, une table d’association."],
+  [162.7, 168.6, "Commande porte les deux 0..* : elle reçoit <code>client_id</code> et <code>produit_id</code>, comme la table commandes de la base."],
   [168.7, 174.2, "Dans le prochain module, tu créeras ces tables avec <code>CREATE TABLE</code>."],
   [174.8, 179.6, "Pour finir, voici les <b>trois idées à retenir</b>."],
   APP ? [179.7, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
@@ -299,9 +305,7 @@ const PICKS = [
     {label: 'id, date_inscription', why: 'Sans clés étrangères, impossible de savoir qui s’est inscrit où : c’était le problème du chapitre 2.'},
     {label: 'id, client_id, atelier_id, date_inscription', ok: true},
     {label: 'id, client_id, atelier_id', why: 'date_inscription, l’attribut de la classe d’association, devient aussi une colonne.'}]},
-  {at: 162.4, from: 154.0, kind: 'sort', prompt: 'Range chaque association selon ce qu’elle devient.',
-    hint: 'Touche une association ci-dessous, puis ce qu’elle devient. Tu peux aussi la faire glisser.', next: '{x} : touche maintenant ce qu’elle devient.',
-    options: TRANSFERT.map(t => ({label: asso(t)}))}
+  {at: 162.4, from: 154.0, kind: 'tap', need: 2, prompt: 'Touche les deux clés étrangères que crée ce diagramme.'}
 ];
 
 /* Le mail reçu : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse d’envoi, demande, signature].
@@ -351,11 +355,17 @@ function dom(){
   b += '<div class="abs xbad hid" id="xm1">coach_id</div><div class="abs xghost hid" id="xm2">Animation</div><div class="abs mp bad hid" id="xm3"><i>?</i></div>';
   b += '<div class="abs mq hid" id="xm5"><span class="miss">? client</span><span class="miss">? atelier</span></div>';
   $('#sb').innerHTML = b;
-  /* 5 · Ce que devient chaque association : trois cases, chacune reçoit son exemple */
-  /* l’exemple rangé : la classe A, les deux multiplicités, la classe B, l’une sous l’autre */
-  $('#se').innerHTML = BINS.map(([k, ico, t], q) => { const n = TRANSFERT.findIndex(x => x[4] === k), [a, ma, mb, c] = TRANSFERT[n];
-    return `<div class="abs rbin" id="rb-${k}" data-k="${k}" style="left:${64 + q * 328}px;top:560px"><div class="ri emo">${ico}</div><div class="rt">${t}</div>` +
-      `<div class="rc" id="rc${n}"><b>${a}</b><span>${ma} — ${mb}</span><b>${c}</b></div></div>`; }).join('');
+  /* 5 · La boutique : ses trois classes (leur nom seul), ses deux associations, puis les clés étrangères proposées */
+  let h = '<div class="abs shtit" id="sh-t"><span class="emo">🛒</span>Le diagramme de la boutique</div>';
+  h += '<svg class="abs lns" width="1080" height="1920" viewBox="0 0 1080 1920" aria-hidden="true"><line id="ls-pa"/><line id="ls-ce"/></svg>';
+  h += SHOP.map(([k, name, c]) => `<div class="abs card cls shc ${c}" id="sh-${k}"><div class="ch"><span class="cn">${name}</span></div></div>`).join('');
+  h += SHOP_ASSOCS.map(([k, name, dir]) => `<div class="abs asn" id="sn-${k}">${name}<i>${dir}</i></div>`).join('');
+  h += SHOP_ASSOCS.map(([k, , , a, ma, c, mc]) => [[a, ma], [c, mc]].map(([x, m]) =>
+    `<div class="abs mp" id="ms-${k}-${x}">${m.length > 1 ? `<i class="mn">${m.slice(0, -1)}</i><i class="mx">${m.slice(-1)}</i>` : `<i class="mx">${m}</i>`}</div>`).join('')).join('');
+  const FKCOL = {cl: '#5335E0', co: '#0B6E6A', pr: '#A3216A'};
+  h += FKS.map(([t, c, to], j) => `<div class="abs fkc" id="fk${j}"><span class="emo">🔗</span><span><span class="t">${t}.</span><b style="color:${FKCOL[to]}">${c}</b></span>` +
+    '<i class="okl"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18"/><path d="M11.5 20.5l5.5 5.5L28.5 14"/></svg></i></div>').join('');
+  $('#sh').innerHTML = h;
   $('#sk').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🛠️</span>Prochaine leçon · CREATE TABLE</span></div>';
 }
 
@@ -399,6 +409,22 @@ function layout(){
   at2('#xm5', A.x + A.w / 2 - $('#xm5').offsetWidth / 2, A.y + A.h + 14);
   // Les multiplicités, rappelées sous le diagramme
   $('#leg').style.top = (cl.y + cl.h + 9 + 40) + 'px';
+  // La boutique : Client, Commande et Produit l’un sous l’autre, chaque nom d’association à droite de son trait, chaque
+  // multiplicité à gauche ; à droite, les quatre clés étrangères proposées
+  at2('#sh-t', 64, 236);
+  [['#sh-cl', 330], ['#sh-co', 640], ['#sh-pr', 950]].forEach(([q, y]) => at2(q, 64, y));
+  const s1 = box('#sh-cl'), s2 = box('#sh-co'), s3 = box('#sh-pr'), xs = s1.x + s1.w / 2;
+  line('#ls-pa', xs, s1.y + s1.h, xs, s2.y);
+  line('#ls-ce', xs, s2.y + s2.h, xs, s3.y);
+  at2('#sn-pa', xs + 20, (s1.y + s1.h + s2.y) / 2 - $('#sn-pa').offsetHeight / 2);
+  at2('#sn-ce', xs + 20, (s2.y + s2.h + s3.y) / 2 - $('#sn-ce').offsetHeight / 2);
+  const ms = id => $('#ms-' + id);
+  at2('#ms-pa-cl', xs - 22 - ms('pa-cl').offsetWidth, s1.y + s1.h + 9 + 24);
+  at2('#ms-pa-co', xs - 22 - ms('pa-co').offsetWidth, s2.y - 24 - 5 - ms('pa-co').offsetHeight);
+  at2('#ms-ce-co', xs - 22 - ms('ce-co').offsetWidth, s2.y + s2.h + 9 + 24);
+  at2('#ms-ce-pr', xs - 22 - ms('ce-pr').offsetWidth, s3.y - 24 - 5 - ms('ce-pr').offsetHeight);
+  const top0 = (s1.y + s3.y + s3.h) / 2 - (FKS.length * 96 + (FKS.length - 1) * 30) / 2;
+  FKS.forEach((f, j) => at2('#fk' + j, 470, top0 + j * 126));
   // Le mail : hauteur une fois déplié
   $$('.ml').forEach((el, n) => { el.style.height = 'auto'; MH[n + 1] = el.offsetHeight; el.style.height = ''; });
 }
@@ -476,7 +502,7 @@ function build(){
   gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
   hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
   layout();
-  gsap.set(['.sch', '.ml', '.cls', '.asn', '.mp', '.lg', '.rbin', '#keyc', '#tapf', '.lns line'], {autoAlpha: 0});
+  gsap.set(['.sch', '.ml', '.cls', '.asn', '.mp', '.lg', '.shtit', '.fkc', '#keyc', '#tapf', '.lns line'], {autoAlpha: 0});
   gsap.set('.ar.ini', {height: 0, autoAlpha: 0});
 
   /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
@@ -547,7 +573,7 @@ function build(){
   tl.to('#mp-an-co', {y: 52, duration: 0.4, ease: 'power2.inOut'}, 116.75);
   tl.to('#mp-po-ca', {y: 52, duration: 0.4, ease: 'power2.inOut'}, 117.05);
   // seul le maximum compte
-  tl.to('.mp .mn', {opacity: 0.28, duration: 0.4, ease: 'power2.out'}, 122.7);
+  tl.to('#sb .mp .mn', {opacity: 0.28, duration: 0.4, ease: 'power2.out'}, 122.7);
   $$('#sb .mp:not(.bad)').forEach((m, q) => bump(m, 123.3 + q * 0.12, 1.12));
   // anime : coach_id dans la table ateliers
   off(['#ln-an', '#an-an', '#mp-an-co', '#mp-an-at'], 128.6, 0.35);
@@ -568,14 +594,20 @@ function build(){
   tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25, yoyo: true, repeat: 3}, 150.6);
   hide(['#cb-co', '#cb-ca', '#cb-at', '#cb-cl', '#ab'], 154.0, {y: -40}, 0.4);
   sceneOff('#sb', 154.45);
-  // trois nouvelles associations à traduire
-  sceneOn('#se', 154.45);
-  $$('.rbin').forEach((b, q) => { show(b, 154.55 + q * 0.15, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(154.55 + q * 0.15, 'pop', 0.6, q); });
-  // À toi : chaque association à sa place
+  // le diagramme de la boutique : trois classes, deux associations, leurs multiplicités, puis les clés étrangères proposées
+  sceneOn('#sh', 154.45);
+  show('#sh-t', 154.55, {y: 30}, 0.5); cue(154.55, 'whoosh', 0.5);
+  [['#sh-cl', 154.75], ['#sh-co', 154.9], ['#sh-pr', 155.05]].forEach(([q, t], k) => { show(q, t, {y: 40, scale: 0.94}, 0.45, 'back.out(1.6)'); cue(t, 'pop', 0.5, k); });
+  draw('#ls-pa', 155.45); show('#sn-pa', 155.75, {y: 12}, 0.4);
+  draw('#ls-ce', 155.95); show('#sn-ce', 156.25, {y: 12}, 0.4);
+  [['#ms-pa-cl', 156.6], ['#ms-pa-co', 156.8], ['#ms-ce-co', 157.0], ['#ms-ce-pr', 157.2]].forEach(([q, t]) => pop(q, t, 0.5));
+  $$('.fkc').forEach((c, q) => { show(c, 157.6 + q * 0.18, {x: 40, y: 0}, 0.45, 'back.out(1.6)'); cue(157.6 + q * 0.18, 'tick', 0.45, q); });
+  // À toi : les deux clés étrangères (réponse : client_id et produit_id, dans commandes)
   const a5 = +(PICKS[5].at + 0.02).toFixed(2);
-  tl.set('.rbin .rc', {autoAlpha: 1}, a5);
-  hide($$('.rbin'), 168.7, {y: -40}, 0.4);
-  sceneOff('#se', 169.15);
+  tl.set(FKS.map((f, j) => f[3] ? `#fk${j} .okl` : null).filter(Boolean), {autoAlpha: 1}, a5);
+  bump('#sh-co', 163.3, 1.06);
+  hide(['#sh-t', '#sh-cl', '#sh-co', '#sh-pr', '#sn-pa', '#sn-ce', '#ls-pa', '#ls-ce', '#ms-pa-cl', '#ms-pa-co', '#ms-ce-co', '#ms-ce-pr', '.fkc'], 168.7, {y: -40}, 0.4);
+  sceneOff('#sh', 169.15);
   // la suite : créer les tables
   sceneOn('#sk', 169.15);
   show('#keyc', 169.25, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)');
@@ -620,7 +652,7 @@ const IX = (() => {
       return [{k: 'co', label: 'Classe Coach', x: A.x, y: A.y, w: A.w, h: mid - A.y}, {k: 'at', label: 'Classe Atelier', x: B.x, y: mid, w: B.w, h: B.y + B.h - mid}];
     }
     if (i === 3) return MPS.map(([k, m, s]) => Object.assign({k, label: `${m}, à côté de ${NOM[s]}`}, pad(rel($('#mp-' + k)), 16)));
-    if (i === 5) return BINS.map(([k, , t]) => Object.assign({k, label: t.replace(/<br>/g, ' ')}, rel($('#rb-' + k))));
+    if (i === 5) return FKS.map(([t, c], j) => Object.assign({k: 'fk' + j, label: `${t}.${c}`}, pad(rel($('#fk' + j)), 4)));
     return [];
   }
   function act(i, a, b){
@@ -641,13 +673,13 @@ const IX = (() => {
       return {ok: false, why: fr(`Ce ${m} compte les ${SUJET[s][0]} ${SUJET[o][1]}.`)};
     }
     if (i === 5) {
-      const bin = $('#rb-' + b);
-      if (TRANSFERT[a][4] === b) {
-        mark($('#rc' + a)); flash(bin, 'okb', 520); X.got.add(a); sfx('pop', X.got.size, 0.6);
-        return {ok: true, done: X.got.size === TRANSFERT.length, why: '', at: rel(bin)};
+      const j = +a.slice(2), [, , , ok, why] = FKS[j];
+      if (ok) {
+        if (!X.got.has(j)) { X.got.add(j); mark($(`#fk${j} .okl`)); sfx('tick', X.got.size, 0.6); }
+        return {ok: true, done: X.got.size === FKS.filter(f => f[3]).length, why: '', at: rel($('#fk' + j))};
       }
-      flash(bin, 'kob', 650);
-      return {ok: false, why: fr(BAD6[a][b])};
+      flash($('#fk' + j), 'kof', 650);
+      return {ok: false, why: fr(why)};
     }
     return {ok: false};
   }
@@ -677,7 +709,7 @@ const IX = (() => {
   function hint(i){
     if (i === 1) return {text: 'Pour un atelier, combien de coachs ? Ce nombre s’écrit à côté de Coach.'};
     if (i === 3) return {text: 'Cherche la multiplicité écrite à côté de Carte.', keys: ['po-ca']};
-    if (i === 5) return {text: 'Regarde le maximum de chaque côté : 1 ou * ?'};
+    if (i === 5) return {text: 'Une clé étrangère va du côté * : cherche la classe qui porte les deux 0..*.', keys: FKS.map((f, j) => f[3] ? 'fk' + j : '').filter(Boolean)};
     return null;
   }
   return {
@@ -692,7 +724,7 @@ const IX = (() => {
 window.IX = IX;
 
 Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 179.7, picks: PICKS, opens: OPENS,
-  glyphs: '📐🔢🧩🔑🔗🔒📝👥📅🧑‍🏫💳🛠️✉️👆▾▴◂—…«»', dom, build, beforeRender: t => IX.tick(t)});
+  glyphs: '📐🔢🧩🔑🔗📝👥📅🧑‍🏫💳🛒🛠️✉️👆▾▴◂—…«»', dom, build, beforeRender: t => IX.tick(t)});
 </script>
 </body>
 </html>

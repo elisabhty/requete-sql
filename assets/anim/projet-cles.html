@@ -207,7 +207,8 @@ const CHAPTERS = [
 
 /* Légendes : [début, fin, texte] (temps de la timeline). Pendant un mail, la légende s’efface : le mail a la parole. */
 const CAPTIONS = [
-  [5.3, 10.8,    "Au chapitre 1, tu as créé trois tables : <code>coachs</code>, <code>ateliers</code> et <code>inscriptions</code>."],
+  [5.3, 8.0,     "Le projet : NutriBoost lance des ateliers bien-être, animés par des coachs, ouverts à ses clients."],
+  [8.1, 10.8,    "Au chapitre 1, tu as rangé le fichier Excel des inscriptions en trois tables : <code>coachs</code>, <code>ateliers</code> et <code>inscriptions</code>."],
   [10.9, 16.6,   "Mais la <b>table inscriptions</b> ne garde que des dates : qui s’est inscrit le 4 septembre ?"],
   [16.7, 22.2,   "Rien ne relie cette table aux clients ni aux ateliers : il manque des <b>clés</b>."],
   [22.7, 28.5,   "D’abord, chaque ligne a besoin d’un <b>identifiant</b> : une valeur unique, qui ne désigne qu’elle."],
@@ -224,16 +225,17 @@ const CAPTIONS = [
   [80.25, 82.8,  "À toi !"],
   [82.9, 88.5,   "Un atelier n’a qu’un coach : on range donc son numéro dans la <b>table ateliers</b>, colonne <code>coach_id</code>."],
   [88.65, 91.2,  "À toi !"],
-  [91.3, 97.4,   "Un coach anime <b>plusieurs</b> ateliers, et chaque atelier n’a qu’<b>un seul</b> coach : c’est un lien <b>1 → N</b>."],
-  [97.5, 103.2,  "Dans un lien 1 → N, la clé étrangère se place toujours du côté « plusieurs »."],
+  [91.3, 95.2,   "Ces deux ateliers ont <code>coach_id = 2</code> : c’est justement l’<code>id</code> de <b>Moussa Diallo</b> dans la table coachs."],
+  [95.3, 99.2,   "Un coach, plusieurs ateliers ; un atelier, un seul coach : c’est un lien <b>1 → N</b>."],
+  [99.3, 103.2,  "Dans la table coachs, Moussa Diallo aurait deux numéros d’atelier : la clé va donc du côté « plusieurs »."],
   [108.1, 110.65, "À toi !"],
   [110.75, 116.4, "Il suffit d’une ligne de plus : client 1, atelier 4, et la date de cette inscription."],
   [116.5, 122.6, "Sophie Martin suit deux ateliers, et Récupération accueille trois clients : « plusieurs » des deux côtés."],
-  [122.7, 129.0, "C’est un lien <b>N ↔ N</b>. Il a sa propre table, qui porte les deux clés étrangères : une <b>table de jointure</b>."],
+  [122.7, 129.0, "C’est un lien <b>N ↔ N</b>. Il a sa propre table, qui porte les deux clés étrangères : une <b>table d’association</b>."],
   [133.5, 139.6, "Un client n’a qu’une carte, et une carte n’a qu’un seul client : c’est un lien <b>1 ↔ 1</b>."],
   [139.7, 146.0, "La clé étrangère <code>client_id</code> devient <b>unique</b> : une deuxième carte pour Sophie Martin est refusée."],
   [147.25, 149.8, "À toi !"],
-  [149.9, 156.2, "En 1 ↔ 1 et en 1 → N, une clé étrangère suffit ; en N ↔ N, le lien a besoin d’une table de jointure."],
+  [149.9, 156.2, "En 1 ↔ 1 et en 1 → N, une clé étrangère suffit ; en N ↔ N, le lien a besoin d’une table d’association."],
   [156.8, 162.2, "Dans le prochain chapitre, tu dessineras ce modèle avec un <b>diagramme UML</b>."],
   [163.0, 167.8, "Pour finir, voici les <b>trois idées à retenir</b>."],
   APP ? [167.9, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
@@ -522,8 +524,12 @@ function build(){
   const a3 = +(PICKS[3].at + 0.02).toFixed(2);
   tl.set(M4_ANS.co.concat(M4_ANS.a2, M4_ANS.a5), {autoAlpha: 1}, a3);
   // un coach, plusieurs ateliers : 1 → N
-  pop('#tc-rel', 92.4, 0.6);
-  bump($$('#tc-at .hd .c3')[0], 98.0, 1.2);
+  pop('#tc-rel', 95.5, 0.6);
+  // rangée dans la table coachs, la clé devrait garder deux numéros pour Moussa Diallo : elle va du côté « plusieurs »
+  tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 99.6);
+  tl.to('#tc-co .c4', {autoAlpha: 1, duration: 0.3, ease: 'power2.out'}, 99.95);
+  cue(100.0, 'miss', 0.45);
+  bump($$('#tc-at .hd .c3')[0], 101.6, 1.2);
   hide(['#tc-co', '#tc-at', '#tc-rel'], 103.1, {y: -40}, 0.4);
   sceneOff('#sc', 103.6);
 
