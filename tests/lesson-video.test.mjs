@@ -227,7 +227,7 @@ test('reprise, repères de chapitres, double appui, question et légendes dans l
   assert.ok(keep.includes('if(t>2&&d>0&&t<d-2)LV_POS.set(LV.id,+t.toFixed(1)); else LV_POS.delete(LV.id);'));
   assert.ok(cut('function lvEnded(){', 'function lvReplay(){').includes('LV_POS.delete(id); lvPosSave();'), 'vidéo finie : la prochaine fois, elle repart du début');
   const marks = cut('function lvMarks(){', '/* En glissant sur la barre');
-  assert.ok(marks.includes("LV.seek.parentElement.style.setProperty('--gaps'") && html.includes('background:var(--gaps,linear-gradient(transparent,transparent))'), 'barre coupée au début de chaque chapitre');
+  assert.ok(marks.includes("LV.seek.parentElement.style.setProperty('--gaps'") && html.includes('.lv-rail::after{content:"";position:absolute;left:0;top:0;right:0;bottom:0;background:var(--gaps,none)}'), 'barre coupée au début de chaque chapitre');
   assert.ok(cut('function lvTip(on){', '/* Double appui').includes(":c?`${c.n} · ${c.label}`:'Intro')+' · '+lvFmt(t);"), 'nom du chapitre en glissant');
   assert.ok(player.includes('if(side&&T.side===side&&now-T.t<330){') && player.includes('if(lvSkip(side*LV_SKIP))lvDtFx(side,T.total);'), 'double appui à gauche / à droite');
   assert.ok(player.includes("T.timer=setTimeout(()=>{ T.timer=0; if(LV&&LV.root===root)lvToggle(); },300);"), 'un seul appui sur le côté : pause après un court délai');
@@ -1338,14 +1338,14 @@ test('moment déjà réussi (vidéo revue, retour en arrière) : il s’ouvre r�
   for (const part of ['const kept=lvPkGet(LV.id,i);', 'if(kept)lvPkKept(P,kept);', "if(!kept){ LvSfx.play('pop',5,.55,0); if(navigator.vibrate)navigator.vibrate(8); }",
     "sr.textContent=`${kept?'Déjà fait':'À toi'} : ", "box.querySelector(kept?'.lv-pk-go':'.lv-pk-card').focus("])
     assert.ok(show.includes(part), `ouverture : ${part}`);
-  const kept = cut('function lvPkKept(P,a){', 'function lvPkTry(k){');
-  for (const part of ['P.done=true;', "box.classList.add('is-ok','is-kept');", "a.first?'✓ Bien vu !':'✓ Trouvé !'", "if(dot)dot.className=a.first?'ok':'try';",
+  const kept = cut('function lvPkKept(P,a){', 'function lvPkRestore(P,d){');
+  for (const part of ['P.done=true;', "box.classList.add('is-ok','is-kept');", 'lvPkValid(P,a.first,true);', "if(dot)dot.className=a.first?'ok':'try';",
     'if(cnt)cnt.textContent=`${P.total} / ${P.total}`;', "b.classList.add(j===k?'is-ok':'is-gone')", "w.className='lv-pk-why ok'; w.hidden=false;", "else opts.classList.add('is-won');",
     "if(P.layer)P.layer.classList.add('is-done');", "go.hidden=false; go.classList.add('is-ready');", 'LV.video.currentTime=Math.min(P.p.t+.05,'])
     assert.ok(kept.includes(part), `résolu : ${part}`);
   assert.ok(!kept.includes('lvPkSet') && !kept.includes('LvSfx'), 'rien n’est noté de nouveau, aucun son');
   /* « Rejouer les moments ratés » et « Tout recommencer » effacent d’abord les réponses : ces moments-là repartent de zéro. */
-  assert.ok(cut('function lvRedo(list){', 'function lvRedoGo(){').includes("list.forEach(i=>{ delete o['p'+i]; });") && html.includes('function lvPkReset(id){'), 'refaire : moments vierges');
+  assert.ok(cut('function lvRedo(list){', 'function lvRedoGo(){').includes("list.forEach(i=>{ delete o['p'+i]; delete o['d'+i]; });") && html.includes('function lvPkReset(id){'), 'refaire : moments vierges');
 });
 
 test('barre de lecture : un point par moment « À toi », doré à faire, badge vert coché fait, sans chevauchement, vivant au doigt', () => {
@@ -1355,17 +1355,21 @@ test('barre de lecture : un point par moment « À toi », doré à faire, badge
     'points sur la barre, liserés de blanc ; badge vert avec une coche blanche');
   assert.ok(html.includes('.lv-pkm i.is-hot{transform:scale(1.3)}') && html.includes('@keyframes lvPkmNew{') && html.includes('@keyframes lvPkmTick{to{stroke-dashoffset:0}}'), 'le point sous le doigt grossit ; un badge neuf rebondit, sa coche se trace');
   const tip = cut('function lvTip(on){', 'function lvDtFx(side,total){');
-  assert.ok(tip.includes("`À toi ${k+1}/${ps.length}${lvPkGet(LV.id,k)?' ✓':''}`") && tip.includes('hot(k);') && tip.includes('if(!on){ hot(-1);'), 'en glissant sur un point : le numéro de l’exercice, le point grossit');
+  assert.ok(tip.includes("`À toi ${k+1}/${ps.length}${a?(a.first?' ✓':' ✕'):''}`") && tip.includes('hot(k);') && tip.includes('if(!on){ hot(-1);'), 'en glissant sur un point : le numéro de l’exercice, le point grossit');
   const marks = cut('function lvPkMarks(fresh){', '/* En glissant sur la barre');
   for (const part of ['const L=Math.max(0,LV.seek.clientWidth-18);', 'return {i,a,f,s:a?15:10,x:9+f*L};', 'if(q&&m.x-q.x<(m.s+q.s)/2+2)m.x=q.x+(m.s+q.s)/2+2;',
-    "${m.i===fresh?' is-new':''}", "${m.a?LV_PKM_OK:''}"])
+    "${m.i===fresh?' is-new':''}", "${m.a?(m.a.first?LV_PKM_OK:LV_PKM_KO):''}"])
     assert.ok(marks.includes(part), `points : ${part}`);
   /* Deux exercices à 9 px l’un de l’autre : le second est décalé, plus de chevauchement. */
-  const ctxM = vm.createContext({lvPkGet: (id, i) => (i < 2 ? {first: 1} : null), LV_PKM_OK: '✓'});
+  const ctxM = vm.createContext({lvPkGet: (id, i) => (i < 2 ? {first: 1} : i === 2 ? {first: 0} : null), LV_PKM_OK: '✓', LV_PKM_KO: '✕'});
   vm.runInContext('let LV;' + cut('function lvPkMarks(fresh){', '/* En glissant sur la barre') + ';this.run=(w,ts,d,fresh)=>{ const box={innerHTML:""}; LV={id:1,root:{querySelector:()=>box},seek:{clientWidth:w},video:{picks:ts.map(t=>({t})),duration:d}}; lvPkMarks(fresh); return box.innerHTML; };', ctxM);
   const out = ctxM.run(290, [100, 103.4, 150, 152.5], 200, 1);
   const xs = [...out.matchAll(/left:([\d.]+)px/g)].map(m => +m[1]);
   assert.ok(xs[1] - xs[0] >= 17 && xs[3] - xs[2] >= 12 && out.includes('class="ok is-new"'), `écarts : ${xs.join(', ')}`);
+  assert.ok(out.includes('class="ko"') && out.includes('>✕</i>') && (out.match(/>✓</g) || []).length === 2, 'raté au premier essai : badge à croix, réussis du premier coup : coche');
+  assert.ok(html.includes('.lv-pkm i.ko{width:15px;height:15px;margin:-7.5px 0 0 -7.5px;background:#DE3F46}')
+    && html.includes(`const LV_PKM_KO='<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M4.7 4.7l4.6 4.6"/><path d="M9.3 4.7l-4.6 4.6"/></svg>';`)
+    && html.includes('.lv-pkm i.is-new path+path{animation-delay:.55s}'), 'croix blanche sur badge rouge, tracée trait après trait');
   assert.ok(html.includes('lvMarks(); lvPkMarks(); lvSyncSeek();') && html.includes('lvPkSet(LV.id,P.i,first,P.tries-1); lvPkMarks();') && html.includes('lvPkSet(LV.id,P.i,first,P.miss); lvPkMarks();')
     && html.includes('if(answered&&P.done&&!P.kept&&!prefersReduceMotion()){\n    lvPkMarks(P.i);\n    LV.root.classList.add(\'is-valid\');') && html.includes('.lv.is-valid .lv-seek::-webkit-slider-thumb{border-color:#169447;')
     && html.includes('lvPkPlace(); lvOpPlace(); lvPkMarks(); };'),
@@ -1373,7 +1377,7 @@ test('barre de lecture : un point par moment « À toi », doré à faire, badge
 });
 
 test('micro-interactions du lecteur : curseur qui grossit, un rendu par image en glissant, ±5 s qui tourne, lecture/pause qui rebondit, réponses en cascade', () => {
-  assert.ok(html.includes('<div class="lv-track"><div class="lv-rail" aria-hidden="true"></div><div class="lv-pkm" aria-hidden="true"></div><input class="lv-seek"')
+  assert.ok(html.includes('<div class="lv-track"><div class="lv-rail" aria-hidden="true"><i class="lv-fill"></i></div><div class="lv-pkm" aria-hidden="true"></div><input class="lv-seek"')
     && html.includes('.lv-track .lv-seek{flex:1;min-width:0;position:relative;z-index:1}') && html.includes('.lv-seek::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:transparent}'),
     'la barre est dessinée sous les points, le curseur passe au-dessus');
   assert.ok(html.includes('.lv.is-seeking .lv-seek::-webkit-slider-thumb{transform:scale(1.25)}') && html.includes("LV.seeking=true; root.classList.add('is-seeking');")
@@ -1382,7 +1386,7 @@ test('micro-interactions du lecteur : curseur qui grossit, un rendu par image en
   assert.ok(html.includes('lvSpin(e.currentTarget,-1); lvSkip(-LV_SKIP);') && html.includes('lvSpin(e.currentTarget,1); lvSkip(LV_SKIP);') && html.includes('function lvSpin(btn,dir){'), '±5 s : la flèche tourne');
   const pp = cut('function lvSyncPP(){', 'function lvSpin(btn,dir){');
   assert.ok(pp.includes('if(b.dataset.ico===now)return;') && pp.includes("svg.animate([{transform:'scale(.5) rotate(-12deg)',opacity:.3},{transform:'none',opacity:1}]"), 'lecture ↔ pause : l’icône rebondit, sans redessiner pour rien');
-  assert.ok(cut('function lvPkShow(i,p){', 'function lvPkKept(P,a){').includes("else if(!prefersReduceMotion())box.querySelectorAll('.lv-pk-opt').forEach((o,k)=>{"), 'les réponses arrivent en cascade');
+  assert.ok(cut('function lvPkShow(i,p){', 'function lvPkKept(P,a){').includes("    if(!prefersReduceMotion())box.querySelectorAll('.lv-pk-opt').forEach((o,k)=>{"), 'les réponses arrivent en cascade');
 });
 
 test('moment réussi puis vidéo reculée : la réponse ne réapparaît pas avant l’heure ; un glisser ne survit pas au plateau', () => {
@@ -1398,13 +1402,87 @@ test('moment réussi puis vidéo reculée : la réponse ne réapparaît pas avan
 
 test('moment réussi : la validation bien en avant, coche verte animée et « Bien vu ! » à la place du petit badge', () => {
   const valid = cut('function lvPkValid(P,first,anim){', '/* La réponse gardée s’affiche telle quelle');
-  for (const part of ["el.className='lv-pk-ok'+(anim&&!prefersReduceMotion()?' is-anim':'');", '<path class="k" d="M12.5 21.5l6 6L30 15.5"/>', "${first?'Bien vu&nbsp;!':'Trouvé&nbsp;!'}",
+  for (const part of ["el.className='lv-pk-ok'+(first?'':' is-ko')+(anim&&!prefersReduceMotion()?' is-anim':'');", '<path class="k" d="M12.5 21.5l6 6L30 15.5"/>',
+    '<path class="k x" d="M15 15l12 12"/><path class="k x" d="M27 15L15 27"/>', "${first?'Bien vu&nbsp;!':'Raté au 1er&nbsp;coup'}",
     "top.querySelectorAll('.lv-pk-kick,.lv-pk-cnt').forEach(e=>{ e.hidden=true; });"])
     assert.ok(valid.includes(part), `coche : ${part}`);
-  assert.ok(html.includes("kick.textContent=first?'✓ Bien vu !':'✓ Trouvé !'; lvPkValid(P,first,true);") && html.includes("textContent=a.first?'✓ Bien vu !':'✓ Trouvé !'; lvPkValid(P,a.first,true);"),
-    'au choix, aux gestes, et pour un moment déjà réussi');
+  assert.ok(cut('function lvPkVerdict(', 'function lvPkFrom(i){').includes("P.box.classList.add('is-ok');\n    lvPkValid(P,first,true);") && cut('function lvPkWin(', 'function lvEndHide(){').includes('lvPkValid(P,first,true);')
+    && cut('function lvPkKept(P,a){', 'function lvPkRestore(P,d){').includes('lvPkValid(P,a.first,true);') && !html.includes('✓ Trouvé !'),
+    'au choix, aux gestes, et pour un moment déjà fait ; plus de « Trouvé ! »');
+  for (const part of ['.lv-pk-ok.is-ko{color:#C2323A}', '.lv-pk-ok.is-ko .c{fill:#DE3F46}', '.lv-pk-ok.is-anim .x{stroke-dashoffset:18}', '.lv-pk-ok.is-anim .x+.x{animation-delay:.44s}', '.lv-pk-dots i.try{background:#DE3F46}'])
+    assert.ok(html.includes(part), `raté au premier essai : ${part}`);
   for (const part of ['.lv-pk-kick[hidden],.lv-pk-cnt[hidden]{display:none}', '@keyframes lvOkPop{', '@keyframes lvOkTick{to{stroke-dashoffset:0}}', '@keyframes lvOkRing{', '.lv-pk-ok.is-anim .k{stroke-dashoffset:26;'])
     assert.ok(html.includes(part), `animation : ${part}`);
+});
+
+test('« ↺ Revoir » (ou tout retour en arrière) : le moment reprend là où on l’a laissé, les erreurs restent comptées', () => {
+  /* Brouillon du moment : gardé à chaque geste, effacé quand le moment est fini, par « Rejouer » et par « Tout recommencer ». */
+  const ctx = vm.createContext({LV: {id: 56}, LV_ANS: {}, lvAnsSave() {}, Math, Object, Array});
+  vm.runInContext(cut('function lvPkGet(id,i){', 'function lvPkScore(id,n){') + cut('function lvPkReset(id){', '/* Validation d’une leçon seule')
+    + ';this.api={lvPkGet,lvPkSet,lvPkDraft,lvPkKeep,lvPkReset};', ctx);
+  const {api} = ctx;
+  api.lvPkKeep({i: 0, done: false, acts: [['0_4']], outs: [], miss: 1, tries: 0});
+  assert.deepEqual(JSON.parse(JSON.stringify(api.lvPkDraft(56, 0))), {a: [['0_4']], o: [], m: 1, t: 0}, 'bons gestes et erreurs gardés tout de suite');
+  assert.equal(api.lvPkGet(56, 0), null, 'un moment en cours n’est pas un moment fait');
+  api.lvPkSet(56, 0, false, 1);
+  assert.ok(api.lvPkDraft(56, 0) === null && !('d0' in ctx.LV_ANS[56]) && api.lvPkGet(56, 0).first === 0, 'moment fini : le brouillon s’efface, le premier essai raté reste');
+  api.lvPkKeep({i: 1, done: false, acts: [], outs: [0], miss: 0, tries: 1});
+  api.lvPkReset(56);
+  assert.deepEqual(Object.keys(ctx.LV_ANS[56]), [], '« Tout recommencer » : brouillons effacés aussi');
+  /* Reprise : la page rejoue les bons gestes sans son, la carte les montre ; erreurs, réponses écartées et indice reviennent. */
+  const mk = k => ({dataset: {k: String(k)}, disabled: false, attrs: {}, cls: new Set(), setAttribute(n, v) { this.attrs[n] = v; },
+    get classList() { const c = this.cls; return {add: x => c.add(x), contains: x => c.has(x)}; }});
+  const played = [], heard = [], sfx = (...a) => heard.push(a), win = {__sfx: sfx};
+  const IX = {act(i, a, b) { win.__sfx('pop'); played.push([i, a, b]); return {ok: true, done: false}; }};
+  const ctxR = vm.createContext({LV: {video: {win}}, lvPkIX: () => IX, lvPkHint(P) { P.hinted = true; }, Array, Math, String});
+  vm.runInContext(cut('function lvPkRestore(P,d){', 'function lvPkTry(k){') + ';this.lvPkRestore=lvPkRestore;', ctxR);
+  const chips = [0, 1, 2, 3, 4].map(mk), cnt = {textContent: '0 / 5'};
+  const box = {querySelector: sel => { const m = sel.match(/data-k="(\d+)"/); return m ? chips[+m[1]] || null : sel === '.lv-pk-cnt' ? cnt : null; }};
+  const S = {i: 3, kind: 'sort', box, spots: [], acts: [], outs: [], count: 0, total: 5, miss: 0, tries: 0};
+  ctxR.lvPkRestore(S, {a: [[0, 'ateliers'], [2, 'coachs']], o: [], m: 2, t: 0});
+  assert.deepEqual(JSON.parse(JSON.stringify(played)), [[3, 0, 'ateliers'], [3, 2, 'coachs']], 'la page rejoue les bons gestes');
+  assert.ok(!heard.length && win.__sfx === sfx, 'sans son, puis les sons de la page reviennent');
+  assert.ok(chips[0].cls.has('is-placed') && chips[0].disabled && chips[2].cls.has('is-placed') && !chips[1].disabled, 'étiquettes déjà rangées');
+  assert.ok(S.count === 2 && cnt.textContent === '2 / 5' && S.miss === 2 && S.hinted && S.acts.length === 2, 'compteur, erreurs et indice repris');
+  const spots = ['0_4', '1_4', '4_4'].map(mk);
+  const T = {i: 0, kind: 'tap', box: {querySelector: () => null}, spots, acts: [], outs: [], count: 0, total: 3, miss: 0, tries: 0};
+  ctxR.lvPkRestore(T, {a: [['1_4']], o: [], m: 1, t: 0});
+  assert.ok(spots[1].cls.has('is-ok') && spots[1].disabled && !spots[0].disabled && T.miss === 1 && !T.hinted, 'case déjà trouvée ; une erreur gardée, pas encore d’indice');
+  const opts = [0, 1, 2].map(mk);
+  const Q = {i: 2, kind: 'pick', box: {querySelector: sel => { const m = sel.match(/data-k="(\d+)"/); return m ? opts[+m[1]] : null; }}, spots: [], acts: [], outs: [], count: 0, total: 0, miss: 0, tries: 0};
+  ctxR.lvPkRestore(Q, {a: [], o: [0], m: 0, t: 1});
+  assert.ok(opts[0].cls.has('is-out') && opts[0].attrs['aria-disabled'] === 'true' && Q.tries === 1 && !Q.hinted, 'réponse déjà écartée : barrée, et l’essai raté compte toujours');
+  /* Branché : chaque bon geste, chaque erreur et chaque réponse écartée est gardé ; la carte reprend le brouillon. */
+  const show = cut('function lvPkShow(i,p){', 'function lvPkValid(P,first,anim){');
+  assert.ok(show.includes('const draft=lvPkDraft(LV.id,i);') && show.includes('acts:[],outs:[],touched:!!draft};') && show.includes('if(draft)lvPkRestore(P,draft);'), 'carte : reprise du brouillon, sans démonstration');
+  const acted = cut('function lvPkActed(', 'function lvPkWin(');
+  assert.ok(acted.includes('if(args){ P.acts.push(args); lvPkKeep(P); }') && acted.includes('P.miss++; lvPkKeep(P);'), 'gestes : bons gestes et erreurs gardés');
+  assert.ok(cut('function lvPkVerdict(', 'function lvPkFrom(i){').includes('P.outs.push(k); lvPkKeep(P);'), 'choix : réponse écartée gardée');
+  assert.ok(html.includes('function lvPkBack(i){\n  if(!LV||!LV.pk||LV.pk.busy)return;'), '« ↺ Revoir » attend la fin d’un essai en cours');
+});
+
+test('barre de lecture : relâcher le curseur la remet toujours en marche, même sans « change » (Safari)', () => {
+  const seg = cut('  /* En glissant, la vidéo n’est redessinée', '  /* Un appui met en pause ou relance');
+  const on = {}, seek = {value: '100', addEventListener(t, f) { (on[t] ||= []).push(f); }};
+  const cls = new Set(), root = {classList: {add: c => cls.add(c), remove: c => cls.delete(c)}, querySelector: () => ({textContent: ''})};
+  const video = {duration: 200, currentTime: 20, paused: false, picks: [{t: 44.6}], pause() { this.paused = true; }};
+  const stops = [], later = [];
+  const LV = {root, video, seek, seeking: false, gate: -1, gateResume: false, q: null, pk: null, op: null};
+  const ctx = vm.createContext({LV, seek, video, root, Math, String,
+    requestAnimationFrame: f => { later.push(f); return 1; }, cancelAnimationFrame() {}, setTimeout: f => { later.push(f); return 1; },
+    lvPkGate: t => (t >= 44.6 ? 0 : -1), lvPkStop: g => stops.push(g), lvPlay() {}, lvPosKeep() {}, lvTip() {}, lvFill() {}, lvFmt: String,
+    lvNoteSync() {}, lvQClose() {}, lvPkClose() {}, lvOpClose() {}});
+  vm.runInContext(seg, ctx);
+  const fire = t => (on[t] || []).forEach(f => f());
+  seek.value = '600'; fire('input');
+  assert.ok(LV.seeking && LV.gate === 0 && +seek.value < 224 && video.paused, 'curseur retenu juste avant le moment pas encore fait');
+  fire('touchend'); later.splice(0).forEach(f => f());
+  assert.ok(!LV.seeking && !cls.has('is-seeking') && stops.join() === '0', 'doigt levé sans « change » : le glisser se termine, le moment s’ouvre');
+  fire('change'); later.splice(0).forEach(f => f());
+  assert.equal(stops.length, 1, '« change » arrivé ensuite : rien n’est refait');
+  assert.ok(['pointerup', 'pointercancel', 'touchend', 'touchcancel', 'mouseup', 'blur'].every(t => on[t] && on[t].length === 1), 'toutes les façons de lâcher');
+  assert.ok(html.includes('function lvFill(p){ if(LV&&LV.fill)LV.fill.style.width=') && html.includes('  lvFill(p);\n') && !html.includes("setProperty('--pf'")
+    && html.includes('.lv-fill{position:absolute;left:0;top:0;bottom:0;width:9px;background:var(--accent,#6A4DF4)}'), 'partie lue posée sur son propre élément');
 });
 
 test('lien ?reset=56 : la leçon repart de zéro sur l’appareil, le reste de la progression intact', () => {
