@@ -20959,7 +20959,11 @@ function lvPkSel(P,el){
   if(P.layer)P.layer.classList.toggle('is-armed',!!el);
   /* Ranger : une étiquette choisie, la ligne d’aide dit quoi toucher ensuite (la consigne revient sinon). */
   const h=P.kind==='sort'?P.box.querySelector('.lv-pk-hint'):null;
-  if(h){ const o=el?P.p.options[+el.dataset.k]:null; h.innerHTML=o?`Touche maintenant la table de <b>${lvNw(esc(o.label))}</b>.`:P.p.hint; h.classList.toggle('is-next',!!o); }
+  if(h){
+    /* La ligne garde la hauteur de l’aide : la consigne au-dessus ne bouge pas quand on choisit une étiquette. */
+    if(!h.style.minHeight&&h.offsetHeight)h.style.minHeight=h.offsetHeight+'px';
+    const o=el?P.p.options[+el.dataset.k]:null; h.innerHTML=o?`Touche maintenant la table de <b>${lvNw(esc(o.label))}</b>.`:P.p.hint; h.classList.toggle('is-next',!!o);
+  }
 }
 /* Lâcher au bord d’une place compte aussi : la plus proche, à moins de m px du doigt. */
 function lvPkNear(zs,x,y,m){ let best=null, bd=m; zs.forEach(q=>{ const d=Math.hypot(Math.max(q.x1-x,0,x-q.x2),Math.max(q.y1-y,0,y-q.y2)); if(d<=bd){ bd=d; best=q; } }); return best; }
@@ -28771,7 +28775,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1923';
+  const SW_CACHE='requete-2026-10-12-ludique-v1924';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
