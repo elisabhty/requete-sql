@@ -629,10 +629,11 @@ function Course(cfg){
          le résultat de son choix (window.IX : slot, pick, leave), le lecteur gère le plateau, le son et la reprise.
          Autres gestes (kind) : tap (toucher les bons endroits de l’image), sort (glisser chaque étiquette vers sa place),
          link (relier deux éléments) ; la page décrit les endroits (IX.spots) et juge chaque geste (IX.act).
-         need : nombre de bons gestes attendus (tap, link) ; hint : consigne du geste, sous le plateau ;
+         need : nombre de bons gestes attendus (tap, link) ; hint : consigne du geste, sous le plateau ; next : la ligne d’aide
+         une fois une étiquette choisie ({x} : l’étiquette ; à défaut, « Touche maintenant la table de … ») ;
          text : étiquettes en texte courant (une réponse en mots), et non en code ; tag : repère de l’étiquette à glisser (lettre de colonne) ;
          from : début du passage qui amène le moment (revoir, rejouer). */
-      picks: picks.map(p => ({t: unwarp(p.at), from: p.from != null ? unwarp(p.from) : null, kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', need: p.need || 0,
+      picks: picks.map(p => ({t: unwarp(p.at), from: p.from != null ? unwarp(p.from) : null, kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', next: p.next ? fr(p.next) : '', need: p.need || 0,
         /* L’explication de la bonne réponse : le lecteur la remontre quand le moment, déjà réussi, s’ouvre résolu. */
         options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''}))})),
       /* Mail reçu (opens) : l’image s’arrête, l’élève touche l’élément sel pour l’ouvrir ; rien n’est noté. */

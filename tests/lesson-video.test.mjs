@@ -1131,7 +1131,7 @@ test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la 
   assert.ok(cut('function lvPkClose(answered){', 'function lvReplay(){').includes('IX.leave(P.i,!!answered)'), 'à la reprise, la page laisse la timeline reprendre la même image');
   assert.ok(html.includes("o['p'+i]={first:first?1:0,err:Math.max(0,err|0)}") && html.includes('.lv-pk-t code{'), 'premier essai gardé pour le score ; code du prompt en étiquette');
   const core = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
-  assert.ok(core.includes("picks: picks.map(p => ({t: unwarp(p.at), from: p.from != null ? unwarp(p.from) : null, kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', need: p.need || 0,")
+  assert.ok(core.includes("picks: picks.map(p => ({t: unwarp(p.at), from: p.from != null ? unwarp(p.from) : null, kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', next: p.next ? fr(p.next) : '', need: p.need || 0,")
     && core.includes("const GESTURES = ['tap', 'sort', 'link'];")
     && core.includes("options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''}))}))")
     && core.includes('clashes: holdClashes(picks.concat(opens).map(p => p.at))') && core.includes('if (cfg.onRender) cfg.onRender(T);'), 'moteur : moments exportés, aucune animation coupée par un arrêt, rendu suivi par la page');
@@ -1211,7 +1211,7 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
     assert.ok(demo.includes(part), `démonstration du geste (toucher une étiquette, les tables s’allument) : ${part}`);
   /* Ranger au doigt : toucher d’abord (la ligne d’aide dit quelle table toucher), glisser en option, lâcher au bord d’une table compte. */
   const sel = cut('function lvPkSel(P,el){', 'function lvPkDrag(');
-  assert.ok(sel.includes('Touche maintenant la table de <b>${lvNw(esc(o.label))}</b>.') && sel.includes('function lvPkNear(zs,x,y,m){'), 'étiquette choisie : l’aide guide ; place la plus proche');
+  assert.ok(sel.includes("h.innerHTML=o?(P.p.next?P.p.next.replace('{x}',x):`Touche maintenant la table de ${x}.`):P.p.hint;") && sel.includes('function lvPkNear(zs,x,y,m){'), 'étiquette choisie : l’aide guide (la phrase du moment, sinon « la table de … ») ; place la plus proche');
   assert.ok(sel.includes("if(!h.style.minHeight&&h.offsetHeight)h.style.minHeight=h.offsetHeight+'px';"), 'la ligne d’aide garde sa hauteur : la consigne ne bouge pas');
   assert.ok(html.includes('||lvPkNear(zs,x,y,32);') && html.includes('@keyframes lvSpotArm{') && html.includes("const LV_PK_ICO={tap:'👆',sort:'👆',link:'🔗'};"), 'glisser tolérant, tables qui appellent le doigt');
   const ctxN = vm.createContext({Math}); vm.runInContext(cut('function lvPkNear(zs,x,y,m){', 'function lvPkDrag(') + ';this.f=lvPkNear;', ctxN);
@@ -1372,6 +1372,8 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   // Moment 6 : chaque cas dans sa forme ; une explication pour chaque mauvaise case
   assert.deepEqual(D.RELS.map(r => [r[1], D.CAS[r[3]]]), [['1 ↔ 1', 'Un client et sa carte membre'], ['1 → N', 'Un coach et ses ateliers'], ['N ↔ N', 'Un client et ses ateliers']]);
   assert.deepEqual(D.PICKS[5].options.map(o => o.label), D.CAS, 'les trois cas à ranger');
+  assert.equal(D.PICKS[5].next, '{x} : touche maintenant sa forme.', 'un cas choisi, la ligne d’aide parle de sa forme (pas d’une table)');
+  assert.ok(fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8').includes("next: p.next ? fr(p.next) : '',"), 'moteur : la ligne d’aide du moment envoyée au lecteur');
   D.BAD.forEach((b, c) => assert.deepEqual(Object.keys(b).sort(), D.RELS.filter(r => r[3] !== c).map(r => r[0]).sort(), `${D.CAS[c]} : les deux mauvaises cases expliquées`));
   assert.ok(page.includes('spots, act, pick, hint,') && page.includes(`if (i === 1) return {text: 'Cherche l’id ${c4} dans la table clients, puis l’id ${a4} dans la table ateliers.', keys: ['c${c4}', 'a${a4}']};`)
     && page.includes(`if (i === 3) return {text: 'Moussa Diallo a l’id ${moussa[0]} : cherche les ateliers dont coach_id vaut ${moussa[0]}.', keys: [${siens.map(i => `'a${i}'`).join(', ')}]};`), 'un indice par moment à toucher ou à ranger');
