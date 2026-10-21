@@ -20647,9 +20647,13 @@ function lvPkSet(id,i,first,err){ const o=LV_ANS[id]||(LV_ANS[id]={}); if(!o['p'
    arrivent. « ↺ Revoir », un retour en arrière ou le lecteur fermé ne les effacent pas : le moment rouvre là où on l’a laissé,
    et une erreur faite reste comptée (le premier coup compte). Effacés quand le moment est fini. */
 function lvPkDraft(id,i){ const d=LV_ANS[id]&&LV_ANS[id]['d'+i]; return d&&typeof d==='object'&&!lvPkGet(id,i)?d:null; }
+function lvPkDrop(id,i){ const o=LV_ANS[id]; if(o&&o['d'+i]){ delete o['d'+i]; lvAnsSave(); } }
+/* Empreinte du moment (geste, consigne, réponses et la bonne, nombre de gestes) : un brouillon d’une autre version du
+   moment n’est pas repris. */
+function lvPkSig(p){ const s=[p.kind,p.prompt,p.need||0,...(p.options||[]).map(o=>`${o.label}${o.ok?'*':''}`)].join('|'); let h=5381; for(let k=0;k<s.length;k++)h=(h*33+s.charCodeAt(k))|0; return h; }
 function lvPkKeep(P){
   if(!LV||P.done)return;
-  (LV_ANS[LV.id]||(LV_ANS[LV.id]={}))['d'+P.i]={a:P.acts.slice(),o:P.outs.slice(),m:P.miss,t:P.tries};
+  (LV_ANS[LV.id]||(LV_ANS[LV.id]={}))['d'+P.i]={a:P.acts.slice(),o:P.outs.slice(),w:P.wrong.slice(),m:P.miss,t:P.tries,f:lvPkSig(P.p)};
   lvAnsSave();
 }
 function lvPkScore(id,n){ let ok=0; for(let i=0;i<n;i++){ const a=lvPkGet(id,i); if(a&&a.first)ok++; } return ok; }
@@ -20709,8 +20713,9 @@ function lvPkShow(i,p){
   LV.root.appendChild(box);
   LV.root.classList.add('is-q','is-pk');
   /* Moment commencé puis laissé : pas de démonstration, il reprend là où on l’a laissé (lvPkRestore, plus bas). */
-  const draft=lvPkDraft(LV.id,i);
-  LV.pk={i,p,box,kind,tries:0,miss:0,count:0,total,busy:false,done:false,sel:null,layer:null,spots:[],acts:[],outs:[],touched:!!draft};
+  let draft=lvPkDraft(LV.id,i);
+  if(draft&&draft.f!==lvPkSig(p)){ lvPkDrop(LV.id,i); draft=null; }
+  LV.pk={i,p,box,kind,tries:0,miss:0,count:0,total,busy:false,done:false,sel:null,layer:null,spots:[],acts:[],outs:[],wrong:[],touched:!!draft};
   const P=LV.pk;
   lvPkPlace();
   const IX=lvPkIX(); try{ if(IX&&IX.enter)IX.enter(i); }catch(e){}
@@ -20774,23 +20779,28 @@ function lvPkKept(P,a){
 /* Reprise d’un moment laissé en cours (lvPkDraft) : les bons gestes reviennent sur l’image (la page les rejoue, sans son) et
    sur la carte, les réponses écartées restent barrées, les erreurs restent comptées et l’indice déjà donné revient. */
 function lvPkRestore(P,d){
-  const IX=lvPkIX(); let w=null, snd=null;
+  const IX=lvPkIX(), acts=(Array.isArray(d.a)?d.a:[]).filter(Array.isArray); let w=null, snd=null, bad=false;
   try{ w=LV.video.win; snd=w.__sfx; w.__sfx=()=>{}; }catch(e){ w=null; }
-  (Array.isArray(d.a)?d.a:[]).forEach(args=>{
-    if(!Array.isArray(args))return;
+  for(const args of acts){
     let r=null; try{ r=IX&&IX.act?IX.act(P.i,...args):null; }catch(e){ r=null; }
-    if(r&&r.ok===false)return;
+    /* Un geste qui ne passe plus, ou qui finirait le moment : le brouillon ne correspond pas, on repart de zéro. */
+    if(r&&(r.ok===false||r.done)){ bad=true; break; }
+  }
+  try{ if(w)w.__sfx=snd; }catch(e){}
+  if(bad){ try{ if(IX&&IX.enter)IX.enter(P.i); }catch(e){} lvPkDrop(LV.id,P.i); return; }
+  const spot=k=>P.spots.find(b=>b.dataset.k===String(k));
+  acts.forEach(args=>{
     P.acts.push(args); P.count++;
-    const spot=k=>P.spots.find(b=>b.dataset.k===String(k));
     if(P.kind==='tap'){ const el=spot(args[0]); if(el){ el.classList.add('is-ok'); el.disabled=true; } }
     if(P.kind==='sort'){ const c=P.box.querySelector(`.lv-pk-opt[data-k="${+args[0]}"]`); if(c){ c.classList.add('is-placed'); c.disabled=true; } }
     if(P.kind==='link')args.forEach(k=>{ const el=spot(k); if(el)el.classList.add('is-linked'); });
   });
-  try{ if(w)w.__sfx=snd; }catch(e){}
+  /* Réponses déjà écartées : barrées (jamais la bonne). */
   (Array.isArray(d.o)?d.o:[]).forEach(k=>{
-    const b=P.box.querySelector(`.lv-pk-opt[data-k="${+k}"]`); if(!b)return;
+    const o=(P.p.options||[])[+k], b=P.box.querySelector(`.lv-pk-opt[data-k="${+k}"]`); if(!b||!o||o.ok||P.outs.includes(+k))return;
     b.classList.add('is-out'); b.setAttribute('aria-disabled','true'); P.outs.push(+k);
   });
+  P.wrong=(Array.isArray(d.w)?d.w:[]).map(String);
   P.miss=Math.max(0,d.m|0); P.tries=Math.max(P.outs.length,d.t|0);
   const cnt=P.box.querySelector('.lv-pk-cnt'); if(cnt)cnt.textContent=`${Math.min(P.count,P.total)} / ${P.total}`;
   if(P.kind==='pick'?P.tries>=2:P.miss>=2)lvPkHint(P);
@@ -20798,9 +20808,12 @@ function lvPkRestore(P,d){
 function lvPkTry(k){
   const P=LV&&LV.pk; if(!P||P.busy||P.done)return;
   const btn=P.box.querySelector(`.lv-pk-opt[data-k="${k}"]`);
-  if(!btn||btn.classList.contains('is-out'))return;
+  if(!btn||btn.classList.contains('is-out')||P.outs.includes(k)){ P.dropped=false; return; }
   const ok=!!(P.p.options[k]&&P.p.options[k].ok), IX=lvPkIX();
   P.busy=true; P.tries++;
+  /* Mauvaise réponse : gardée dès l’essai, avant son verdict (fermer la carte pendant l’envol ne l’efface pas) ; la même
+     réponse ne peut plus être retentée, même pendant qu’elle tremble. */
+  if(!ok){ P.outs.push(k); lvPkKeep(P); }
   P.box.classList.add('is-busy'); P.box.classList.remove('is-ko');
   P.box.querySelector('.lv-pk-kick').textContent=`À toi · ${P.i+1}/${(LV.video.picks||[]).length}`;
   LvSfx.play('pop',2,.7,0);
@@ -20856,7 +20869,6 @@ function lvPkVerdict(P,k,btn,ok,r){
     btn.classList.add('is-ko');
     P.box.classList.add('is-ko');
     kick.textContent='✕ Essaie un autre choix';
-    P.outs.push(k); lvPkKeep(P);
     if(P.tries===2)lvPkHint(P);
     LV.video.sfx('false');
     if(navigator.vibrate)navigator.vibrate([20,60,20]);
@@ -20966,10 +20978,12 @@ function lvPkClose(answered){
   /* Une étiquette en plein glisser (ou le trou qu’elle visait) ne survit pas au plateau. */
   LV.root.querySelectorAll('.lv-pk-fly.is-drag,.lv-pk-target').forEach(e=>e.remove());
   const IX=lvPkIX(); try{ if(IX&&IX.leave)IX.leave(P.i,!!answered); }catch(e){}
-  /* Moment réussi à l’instant : son badge vert apparaît d’un rebond sur la barre, qui réapparaît. */
+  /* Moment fini à l’instant : son badge apparaît d’un rebond sur la barre, qui réapparaît ; réussi du premier coup,
+     le curseur s’entoure aussi de vert un instant (raté : le badge à croix suffit). */
   if(answered&&P.done&&!P.kept&&!prefersReduceMotion()){
     lvPkMarks(P.i);
-    LV.root.classList.add('is-valid'); clearTimeout(LV.validT); LV.validT=setTimeout(()=>{ if(LV)LV.root.classList.remove('is-valid'); },1100);
+    const a=lvPkGet(LV.id,P.i);
+    if(a&&a.first){ LV.root.classList.add('is-valid'); clearTimeout(LV.validT); LV.validT=setTimeout(()=>{ if(LV)LV.root.classList.remove('is-valid'); },1100); }
   }
   const box=P.box, card=box.querySelector('.lv-pk-card');
   if(prefersReduceMotion()||!card.animate){ box.remove(); return; }
@@ -21289,10 +21303,12 @@ function lvPkActed(P,r,el,chip,el2,args){
     if(sr)sr.textContent=`Oui. ${plain||(P.total>1?`${P.count} sur ${P.total}.`:'')}`;
     return;
   }
-  P.miss++; lvPkKeep(P);
+  /* La même erreur refaite (double appui, même étiquette dans la même table) ne compte qu’une fois. */
+  const key=(args||[]).join('|');
+  if(!P.wrong.includes(key)){ P.wrong.push(key); P.miss++; lvPkKeep(P); }
   P.box.classList.add('is-ko');
   kick.textContent='✕ Essaie encore';
-  if(P.miss===2)lvPkHint(P);
+  if(P.miss>=2)lvPkHint(P);
   if(why&&wEl){ wEl.innerHTML=lvNw(why); wEl.className='lv-pk-why ko'; wEl.hidden=false; tEl.hidden=true; }
   [el,el2,chip].forEach(x=>{ if(!x)return; x.classList.remove('is-ko'); void x.offsetWidth; x.classList.add('is-ko'); setTimeout(()=>x.classList.remove('is-ko'),460); });
   LV.video.sfx('false');
@@ -28979,7 +28995,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1936';
+  const SW_CACHE='requete-2026-10-12-ludique-v1937';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
