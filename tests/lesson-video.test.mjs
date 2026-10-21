@@ -1350,7 +1350,7 @@ test('moment déjà réussi (vidéo revue, retour en arrière) : il s’ouvre r�
 
 test('barre de lecture : un petit point par moment « À toi », doré à faire, blanc fait, nommé en glissant', () => {
   assert.ok(html.includes('<div class="lv-pkm" aria-hidden="true"></div>') && html.includes('.lv-pkm{position:absolute;left:0;right:0;top:50%;height:0;pointer-events:none}')
-    && html.includes('.lv-pkm i{position:absolute;top:0;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:#F2B529;')
+    && html.includes('.lv-pkm i{position:absolute;top:0;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;background:#F2B529;box-shadow:0 0 0 1.5px #fff,')
     && html.includes('.lv-pkm i.ok{background:#fff;'), 'points dans la barre, sans contour, sans gêner le doigt');
   assert.ok(cut('function lvTip(on){', 'function lvDtFx(side,total){').includes("`À toi ${k+1}/${ps.length}${lvPkGet(LV.id,k)?' ✓':''}`"), 'en glissant sur un point : le numéro de l’exercice');
   const marks = cut('function lvPkMarks(){', '/* En glissant sur la barre');
