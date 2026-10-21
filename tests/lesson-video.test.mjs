@@ -1407,6 +1407,14 @@ test('moment réussi : la validation bien en avant, coche verte animée et « Bi
     assert.ok(html.includes(part), `animation : ${part}`);
 });
 
+test('lien ?reset=56 : la leçon repart de zéro sur l’appareil, le reste de la progression intact', () => {
+  const fn = cut('function resetLeconFromUrl(){', 'function recommencerLecon(){');
+  for (const part of ["id=+new URLSearchParams(location.search).get('reset')||0;", 'if(!id||!allLessons.some(l=>l.id===id))return;', 's.etapes={}; s.done=false; s.level=0;', 'save();', 'lvForget(id);',
+    "history.replaceState(null,'',location.pathname+location.hash);", 'if(state.onboarded)openLesson(id);'])
+    assert.ok(fn.includes(part), `remise à zéro : ${part}`);
+  assert.ok(html.includes('    jeuFromUrl();\n    resetLeconFromUrl();'), 'appliquée au démarrage');
+});
+
 test('mail reçu : l’image s’arrête sur la notification, le toucher l’ouvre et la lecture reprend, sans note', () => {
   const anim = cut('class LvAnim{', 'function lessonVideoOn(l){');
   assert.ok(anim.includes('this.opens=info.opens||[];') && anim.includes("this._emit('open',{i:op,o:this.opens[op]});"), 'le lecteur s’arrête sur chaque mail');
