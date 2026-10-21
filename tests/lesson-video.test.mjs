@@ -849,8 +849,8 @@ const COURSES = [
       "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 129.8, from: 119.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}", "{at: 141.4, from: 135.95, kind: 'pick',",
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
-  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '3 min 44', notesAt: 167.9,
-    notes: /notes:\{t:217\.65,y:1070,card:\[64,292,1016,775\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '3 min 51', notesAt: 167.9,
+    notes: /notes:\{t:224\.5,y:1070,card:\[64,292,1016,775\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Tes tables sont prêtes&nbsp;:<br>à toi de les relier avec des clés.',
     chapters: ['Le problème', 'La clé primaire', 'La clé étrangère', '1 → N', 'N ↔ N', '1 ↔ 1', 'À retenir'],
     traps: ["const INSCR = [[1, 1, 1, '2026-09-01'], [2, 4, 1, '2026-09-02'], [3, 5, 2, '2026-09-03'], [4, 7, 3, '2026-09-04'],",
@@ -1289,7 +1289,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
 
 test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre 1 relié par des clés, chaque réponse vérifiée dans SQLite', async () => {
   const l72 = cut('guide({ id:72, titre:"Clés et relations"', 'guide({ id:81,');
-  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'3 min 44',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'3 min 51',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1339,14 +1339,16 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.ok(caps.includes(`C’est donc <b>${name(c4)}</b> qui s’est inscrite le 4 septembre, à l’atelier ${atl(a4)[1]}.`), 'la légende nomme la bonne cliente et le bon atelier');
   // Moment 4 : les ateliers de Moussa Diallo
   const moussa = D.COACHS.find(c => c[1] === 'Moussa'), siens = D.ATELIERS.filter(a => a[3] === moussa[0]).map(a => a[0]);
-  /* D’où vient la règle du 1 → N, juste après le moment 3 : rangée dans la table coachs, la case de Moussa Diallo devrait garder
-     deux numéros (la colonne atelier_id s’ouvre, sa case en rouge) ; or une case ne contient qu’une seule valeur ; un atelier
-     n’a qu’un coach, une seule case suffit. Après le moment 4 : le coach_id de ces ateliers est l’id de Moussa Diallo, puis la règle. */
+  /* D’où vient la règle du 1 → N, juste après le moment 3 : Moussa anime deux ateliers ; avec une colonne atelier_id dans la table
+     coachs (elle s’ouvre), il faudrait inscrire ses deux identifiants dans la même case (en rouge) ; impossible, une case ne contient
+     qu’une seule valeur ; on place donc coach_id dans la table ateliers. Après le moment 4 : le coach_id de ces ateliers est l’id
+     de Moussa Diallo, puis la règle. */
   assert.equal(siens.length, 2);
-  const why = ['Dans la table coachs, la case de Moussa Diallo devrait garder deux numéros d’atelier : ' + siens.join(' et ') + '.', 'Impossible : une case ne contient qu’une seule valeur.',
-    'Dans la <b>table ateliers</b>, en revanche, chaque atelier n’a qu’un coach : une seule case suffit, <code>coach_id</code>.'];
+  const why = ['Moussa anime deux ateliers : le ' + siens.join(' et le ') + '. Avec une colonne <code>atelier_id</code> dans la table coachs,',
+    'il faudrait inscrire ces deux identifiants dans la même case.', 'Impossible : une case ne contient qu’une seule valeur.',
+    'Pour garder une seule valeur par case, on place plutôt <code>coach_id</code>', 'dans la <b>table ateliers</b> : chaque atelier indique ainsi le coach qui l’anime.'];
   const iw = D.CAPTIONS.findIndex(c => c[2] === why[0]);
-  assert.ok(iw > 0 && D.CAPTIONS[iw - 1][2] === 'À toi !' && D.CAPTIONS[iw][0] > D.PICKS[2].at && why.every((w, k) => D.CAPTIONS[iw + k][2] === w) && D.CAPTIONS[iw + 3][2] === 'À toi !',
+  assert.ok(iw > 0 && D.CAPTIONS[iw - 1][2] === 'À toi !' && D.CAPTIONS[iw][0] > D.PICKS[2].at && why.every((w, k) => D.CAPTIONS[iw + k][2] === w) && D.CAPTIONS[iw + why.length][2] === 'À toi !',
     'juste après le moment 3, avant le moment 4 : pourquoi la clé ne va pas dans la table coachs');
   assert.ok(caps.includes(`Ces deux ateliers ont <code>coach_id = ${moussa[0]}</code> : c’est justement l’<code>id</code> de <b>${moussa[1]} ${moussa[2]}</b> dans la table coachs.`)
     && caps.includes('La règle : en 1 → N, la clé étrangère va du côté « plusieurs », où chaque ligne n’a qu’un seul numéro à garder.'), 'le moment 4 expliqué, puis la règle et sa raison');
