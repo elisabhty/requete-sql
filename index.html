@@ -6591,7 +6591,7 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-pk-hint b{font-weight:800}
 .lv-pk-opt.is-placed,.lv-pk.is-sort .lv-pk-opt.is-placed{display:none}
 .lv-pk-opt.is-hint{animation:lvShake .42s ease}
-.lv-pk-fly.is-drag{z-index:9;box-shadow:0 16px 30px -10px rgba(40,20,120,.5)}
+.lv-pk-fly.is-drag{z-index:9;box-shadow:0 16px 30px -10px rgba(40,20,120,.5);will-change:transform}
 .lv-pk-target{position:absolute;z-index:5;border-radius:12px;pointer-events:none;transition:box-shadow .15s,background-color .15s}
 .lv-pk-target.is-over{background:rgba(255,201,74,.25);box-shadow:0 0 0 4px #F2B529}
 .lv-pk-layer{position:absolute;inset:0;z-index:5;pointer-events:none}
@@ -20954,80 +20954,101 @@ function lvPkNear(zs,x,y,m){ let best=null, bd=m; zs.forEach(q=>{ const d=Math.h
 /* Glisser une étiquette du plateau : une copie suit le doigt ; lâchée sur une place, elle s’y pose, sinon elle revient. */
 function lvPkDrag(P,btn,zonesFn,onDrop){
   btn.classList.add('can-drag');
-  btn.addEventListener('pointerdown',e=>{
-    if((e.pointerType==='mouse'&&e.button!==0)||P.busy||P.done||btn.disabled||btn.classList.contains('is-out')||btn.classList.contains('is-placed'))return;
-    const sx=e.clientX, sy=e.clientY;
-    let fly=null, over=null, zs=null, R=null, b=null;
-    try{ btn.setPointerCapture(e.pointerId); }catch(err){}
-    const move=ev=>{
-      if(!fly){
-        if(Math.hypot(ev.clientX-sx,ev.clientY-sy)<6)return;
-        R=LV.root.getBoundingClientRect(); b=btn.getBoundingClientRect(); zs=zonesFn()||[];
-        fly=document.createElement('div'); fly.className='lv-pk-fly is-drag'+(P.kind==='sort'?' is-sort':''); fly.innerHTML=btn.innerHTML; fly.setAttribute('aria-hidden','true');
-        Object.assign(fly.style,{left:(b.left-R.left)+'px',top:(b.top-R.top)+'px',width:b.width+'px',height:b.height+'px'});
-        LV.root.appendChild(fly); btn.classList.add('is-lift'); lvPkSel(P,null);
-        if(P.layer)P.layer.classList.add('is-armed');
-        LvSfx.play('pop',3,.4,0);
-      }
-      const x=ev.clientX-R.left, y=ev.clientY-R.top;
-      fly.style.transform=`translate(${(ev.clientX-sx).toFixed(1)}px,${(ev.clientY-sy-10).toFixed(1)}px) rotate(-4deg) scale(1.06)`;
+  let fly=null, over=null, zs=[], R=null, sx=0, sy=0;
+  lvGlisse(btn,()=>!(P.busy||P.done||btn.disabled||btn.classList.contains('is-out')||btn.classList.contains('is-placed')),6,{
+    start(x,y){
+      sx=x; sy=y; over=null;
+      R=LV.root.getBoundingClientRect(); const b=btn.getBoundingClientRect(); zs=zonesFn()||[];
+      fly=document.createElement('div'); fly.className='lv-pk-fly is-drag'+(P.kind==='sort'?' is-sort':''); fly.innerHTML=btn.innerHTML; fly.setAttribute('aria-hidden','true');
+      Object.assign(fly.style,{left:(b.left-R.left)+'px',top:(b.top-R.top)+'px',width:b.width+'px',height:b.height+'px'});
+      LV.root.appendChild(fly); btn.classList.add('is-lift'); lvPkSel(P,null);
+      if(P.layer)P.layer.classList.add('is-armed');
+      LvSfx.play('pop',3,.4,0);
+    },
+    move(cx,cy){
+      const x=cx-R.left, y=cy-R.top;
+      fly.style.transform=`translate3d(${(cx-sx).toFixed(1)}px,${(cy-sy-10).toFixed(1)}px,0) rotate(-4deg) scale(1.06)`;
       const z=zs.find(q=>x>=q.x1&&x<=q.x2&&y>=q.y1&&y<=q.y2)||lvPkNear(zs,x,y,32);
       if(z!==over){ if(over)over.el.classList.remove('is-over'); over=z; if(over){ over.el.classList.add('is-over'); if(navigator.vibrate)navigator.vibrate(4); } }
-    };
-    const end=cancel=>{
-      btn.removeEventListener('pointermove',move); btn.removeEventListener('pointerup',up); btn.removeEventListener('pointercancel',cc);
-      if(!fly)return;
-      btn._noClick=performance.now()+450;
+    },
+    end(cancel){
+      const f=fly, z=!cancel&&over; fly=null;
       if(over)over.el.classList.remove('is-over');
       if(P.layer)P.layer.classList.remove('is-armed');
-      const hit=!cancel&&over;
-      (zs||[]).forEach(q=>{ if(q.tmp)q.el.remove(); });
-      if(hit){
-        const z=over; btn.classList.remove('is-lift'); onDrop(z);
-        if(prefersReduceMotion()||!fly.animate){ fly.remove(); return; }
+      zs.forEach(q=>{ if(q.tmp)q.el.remove(); });
+      if(z){
+        btn.classList.remove('is-lift'); onDrop(z);
+        if(prefersReduceMotion()||!f.animate){ f.remove(); return; }
         /* Lâchée sur une place : la copie y file et s’y fond. */
-        const fx=parseFloat(fly.style.left)+parseFloat(fly.style.width)/2, fy=parseFloat(fly.style.top)+parseFloat(fly.style.height)/2;
-        fly.animate([{transform:fly.style.transform,opacity:1},{transform:`translate(${((z.x1+z.x2)/2-fx).toFixed(1)}px,${((z.y1+z.y2)/2-fy).toFixed(1)}px) scale(.35)`,opacity:0}],
-          {duration:260,easing:'cubic-bezier(.4,0,.6,1)',fill:'forwards'}).onfinish=()=>fly.remove();
+        const fx=parseFloat(f.style.left)+parseFloat(f.style.width)/2, fy=parseFloat(f.style.top)+parseFloat(f.style.height)/2;
+        f.animate([{transform:f.style.transform,opacity:1},{transform:`translate(${((z.x1+z.x2)/2-fx).toFixed(1)}px,${((z.y1+z.y2)/2-fy).toFixed(1)}px) scale(.35)`,opacity:0}],
+          {duration:260,easing:'cubic-bezier(.4,0,.6,1)',fill:'forwards'}).onfinish=()=>f.remove();
         return;
       }
-      if(prefersReduceMotion()||!fly.animate){ fly.remove(); btn.classList.remove('is-lift'); return; }
-      fly.animate([{transform:fly.style.transform},{transform:'none'}],{duration:220,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'}).onfinish=()=>{ fly.remove(); btn.classList.remove('is-lift'); };
-    };
-    const up=()=>end(false), cc=()=>end(true);
-    btn.addEventListener('pointermove',move); btn.addEventListener('pointerup',up); btn.addEventListener('pointercancel',cc);
+      if(prefersReduceMotion()||!f.animate){ f.remove(); btn.classList.remove('is-lift'); return; }
+      f.animate([{transform:f.style.transform},{transform:'none'}],{duration:220,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'}).onfinish=()=>{ f.remove(); btn.classList.remove('is-lift'); };
+    }
   });
 }
 /* Relier : un fil suit le doigt depuis l’élément touché ; lâché sur un élément de l’autre côté, le lien est proposé. */
 function lvPkRubber(P,a){
-  a.addEventListener('pointerdown',e=>{
-    if((e.pointerType==='mouse'&&e.button!==0)||P.busy||P.done)return;
-    const sx=e.clientX, sy=e.clientY; let line=null, over=null, R=null, zs=null, c0=null;
-    try{ a.setPointerCapture(e.pointerId); }catch(err){}
-    const move=ev=>{
-      if(!line){
-        if(Math.hypot(ev.clientX-sx,ev.clientY-sy)<8)return;
-        R=LV.root.getBoundingClientRect(); const z=lvPkZone(a); c0=[(z.x1+z.x2)/2,(z.y1+z.y2)/2];
-        zs=P.spots.filter(b=>b!==a&&(!a.dataset.side||b.dataset.side!==a.dataset.side)).map(lvPkZone);
-        line=document.createElementNS('http://www.w3.org/2000/svg','path'); P.layer.querySelector('.lv-pk-svg').appendChild(line);
-        lvPkSel(P,a);
-      }
-      const x=ev.clientX-R.left, y=ev.clientY-R.top;
+  let line=null, over=null, R=null, zs=[], c0=null;
+  lvGlisse(a,()=>!(P.busy||P.done),8,{
+    start(){
+      R=LV.root.getBoundingClientRect(); const z=lvPkZone(a); c0=[(z.x1+z.x2)/2,(z.y1+z.y2)/2]; over=null;
+      zs=P.spots.filter(b=>b!==a&&(!a.dataset.side||b.dataset.side!==a.dataset.side)).map(lvPkZone);
+      line=document.createElementNS('http://www.w3.org/2000/svg','path'); P.layer.querySelector('.lv-pk-svg').appendChild(line);
+      lvPkSel(P,a);
+    },
+    move(cx,cy){
+      const x=cx-R.left, y=cy-R.top;
       line.setAttribute('d',`M${c0[0].toFixed(1)} ${c0[1].toFixed(1)} L${x.toFixed(1)} ${y.toFixed(1)}`);
       const z=zs.find(q=>x>=q.x1&&x<=q.x2&&y>=q.y1&&y<=q.y2)||null;
       if(z!==over){ if(over)over.el.classList.remove('is-over'); over=z; if(over)over.el.classList.add('is-over'); }
-    };
-    const end=cancel=>{
-      a.removeEventListener('pointermove',move); a.removeEventListener('pointerup',up); a.removeEventListener('pointercancel',cc);
-      if(!line)return;
-      a._noClick=performance.now()+450;
+    },
+    end(cancel){
       line.remove(); lvPkSel(P,null);
       if(over)over.el.classList.remove('is-over');
       if(!cancel&&over)lvPkLink(P,a,over.el);
-    };
-    const up=()=>end(false), cc=()=>end(true);
-    a.addEventListener('pointermove',move); a.addEventListener('pointerup',up); a.addEventListener('pointercancel',cc);
+    }
   });
+}
+/* Glisser au doigt ou à la souris (étiquettes, fils). Le doigt passe par les événements tactiles, qui bloquent le défilement
+   dès le premier mouvement : sur iPhone, Safari n’applique pas toujours touch-action et prenait parfois le geste pour un
+   défilement, qu’il annulait (il fallait s’y reprendre à plusieurs fois). La souris passe par les événements pointeur.
+   Toucher sans glisser reste un toucher (un doigt qui tremble de moins de 10 px aussi) : le clic part tout de suite ;
+   après un glisser, le clic qui suit est ignoré. */
+function lvGlisse(el,can,slop,on){
+  const tactile='ontouchstart' in window;
+  let g=null;
+  const go=(x,y)=>{ if(!g.on){ if(Math.hypot(x-g.sx,y-g.sy)<g.slop)return; g.on=true; on.start(g.sx,g.sy); } on.move(x,y); };
+  const stop=cancel=>{ const G=g; g=null; if(G&&G.on){ el._noClick=performance.now()+450; on.end(cancel); } return G; };
+  el.addEventListener('pointerdown',e=>{
+    if((tactile&&e.pointerType!=='mouse')||e.button!==0||!can())return;
+    if(g)stop(true);
+    g={sx:e.clientX,sy:e.clientY,on:false,slop};
+    try{ el.setPointerCapture(e.pointerId); }catch(err){}
+    const mv=ev=>{ if(g)go(ev.clientX,ev.clientY); };
+    const up=ev=>{ el.removeEventListener('pointermove',mv); el.removeEventListener('pointerup',up); el.removeEventListener('pointercancel',up); stop(ev.type==='pointercancel'); };
+    el.addEventListener('pointermove',mv); el.addEventListener('pointerup',up); el.addEventListener('pointercancel',up);
+  });
+  const doigt=e=>g&&g.id!=null?[...e.changedTouches].find(t=>t.identifier===g.id):null;
+  el.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1||!can())return;
+    if(g)stop(true);
+    const t=e.changedTouches[0]; g={sx:t.clientX,sy:t.clientY,on:false,id:t.identifier,slop:Math.max(slop,10)};
+  },{passive:true});
+  el.addEventListener('touchmove',e=>{
+    if(!g||g.id==null)return;
+    if(e.cancelable)e.preventDefault();
+    const t=doigt(e); if(t)go(t.clientX,t.clientY);
+  },{passive:false});
+  el.addEventListener('touchend',e=>{
+    if(!doigt(e))return;
+    const G=stop(false);
+    if(G&&!G.on&&e.cancelable){ e.preventDefault(); el._noClick=0; el.click(); el._noClick=performance.now()+600; }
+  });
+  el.addEventListener('touchcancel',()=>{ if(g&&g.id!=null)stop(true); });
 }
 function lvPkLink(P,a,b){
   /* La page reçoit toujours l’élément de gauche en premier. */
@@ -28738,7 +28759,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1919';
+  const SW_CACHE='requete-2026-10-12-ludique-v1920';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
