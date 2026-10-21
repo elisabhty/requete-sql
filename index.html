@@ -13027,13 +13027,18 @@ guide({ id:72, titre:"Clés et relations", résumé:"Relier les tables entre ell
   learningCheck:{question:"La clé primaire composée d’une table de jointure remplace-t-elle les deux clés étrangères ?",options:["Non","Oui","Seulement pour les clients"],answer:0,explanation:"La clé composée interdit un lien en double. Les clés étrangères imposent que le client et le produit existent."}
 }),
 guide({ id:81, titre:"Modéliser avec UML", résumé:"Du diagramme de classes aux tables",
-  /* Cours en vidéo : l’animation (assets/anim/uml.html, moteur commun assets/anim/core.js) remplace le texte du cours.
-     La vidéo suit les ateliers NutriBoost (un coach anime plusieurs ateliers, un client s’inscrit à plusieurs ateliers) :
-     la règle lue dans un seul sens, le diagramme de classes, les multiplicités, la classe Coach devenue la table coachs,
-     coach_id du côté 0..*, puis la table d’association inscriptions ; le texte ci-dessous est gardé pour le cas où la vidéo ne se charge pas. */
-  video:{anim:'assets/anim/uml.html?app&embed',thumb:'assets/anim/uml-thumb.jpg',duree:'3 min 43',
-    /* « Ajouter dans notes » : apparaît à 3 min 34 (214,9 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:214.9,y:1289,card:[64,292,1016,994],to:[940,255]}},
+  /* Projet, chapitre 3, en vidéo interactive : l’animation (assets/anim/projet-uml.html, moteur commun assets/anim/core.js)
+     remplace le texte du cours. Karim Benali, le développeur, demande le plan de la base du chapitre 2 : le diagramme de classes
+     (Coach, Atelier, Client, Carte, sans aucune clé), les associations anime, s’inscrit à et possède, leurs multiplicités (écrites
+     à côté de la classe qu’elles comptent : 1, 0..*, 0..1), la classe d’association Inscription (la date d’inscription) ; puis la
+     traduction : chaque classe devient une table, seul le maximum compte (coach_id du côté *, client_id unique, la table
+     d’association inscriptions), et trois nouvelles associations à traduire. Six moments « À toi », comme aux chapitres 1 et 2 ;
+     leçon seule : ni exercice ni quiz, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les
+     moments ratés. Le texte ci-dessous, gardé pour le cas où la vidéo ne se charge pas, suit encore l’ancien cours. */
+  leconSeule:true,
+  video:{anim:'assets/anim/projet-uml.html?app&embed',thumb:'assets/anim/projet-uml-thumb.jpg',duree:'3 min 28',moments:6,seuil:4,
+    /* « Ajouter dans notes » : apparaît à 3 min 21 (201,5 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:201.5,y:1115,card:[64,292,1016,820],to:[940,255]}},
   sit:{
     blocks:[
       "NutriBoost lance des <b>ateliers</b> : récupération après le sport, cuisine saine, gainage en douceur… Chaque atelier est animé par un coach, et les clients peuvent s’y inscrire.",
@@ -13123,9 +13128,9 @@ guide({ id:81, titre:"Modéliser avec UML", résumé:"Du diagramme de classes au
   ],
   reflex:[
     {recap:[
-      ["🧩","Dans un diagramme de classes, chaque <b>classe</b> devient une table, et chaque <b>attribut</b> une colonne."],
-      ["🔗","<b>1 — 0..*</b> : la clé étrangère va dans la table du côté <code>0..*</code>.","Comme <code>coach_id</code>, rangée dans <code>ateliers</code>."],
-      ["🗂️","<b>0..* — 0..*</b> : une table d’association, avec les deux clés étrangères et une clé primaire sur le couple :",null,"PRIMARY KEY (client_id, atelier_id)"]
+      ["📐","Un <b>diagramme de classes</b> est le plan de la base : des classes et leurs attributs, reliées par des associations."],
+      ["🔢","Une <b>multiplicité</b> s’écrit à côté de la classe qu’elle compte : 1, 0..1, 0..* ou 1..*."],
+      ["🧩","Une classe devient une table. <b>1 — *</b> : une clé étrangère du côté * ; <b>* — *</b> : une table d’association."]
     ],label:"Les trois idées à retenir"}
   ],
   anatomie:[{tok:"CREATE TABLE inscriptions",txt:"La table d’association : elle porte le lien entre Client et Atelier."},{tok:"client_id INTEGER REFERENCES clients(id)",txt:"Un bout de l’association : le client."},{tok:"atelier_id INTEGER REFERENCES ateliers(id)",txt:"L’autre bout : l’atelier."},{tok:"PRIMARY KEY (client_id, atelier_id)",txt:"Le couple est unique : une seule inscription par client et par atelier."}],
@@ -18253,7 +18258,7 @@ const SQ_ALIASES={
   79:'fenetres glissantes cumul moyenne mobile rows between unbounded preceding following cadre running total ntile',
   56:'normalisation formes normales 1fn 2fn 3fn redondance modelisation',
   72:'cles relations cle primaire cle etrangere primary key foreign key identifiant 1-1 1-n n-n modelisation cardinalite association table de jointure table de liaison un a plusieurs plusieurs a plusieurs liens tables unique',
-  81:'uml diagramme de classes classe attribut association multiplicite 0..* modelisation conception schema merise mcd table d association',
+  81:'uml diagramme de classes classe attribut association multiplicite 0..* 0..1 modelisation conception schema merise mcd classe d association table d association plan de la base',
   61:'create table creer table structure types colonnes contraintes',
   65:'alter table ajouter colonne modifier structure renommer add column',
   66:'drop supprimer table structure drop table vue index vider table',
@@ -29044,7 +29049,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1942';
+  const SW_CACHE='requete-2026-10-12-ludique-v1943';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
