@@ -1500,6 +1500,20 @@ test('barre de lecture : relâcher le curseur la remet toujours en marche, même
     && html.includes('.lv-fill{position:absolute;left:0;top:0;bottom:0;width:9px;background:var(--accent,#6A4DF4)}'), 'partie lue posée sur son propre élément');
 });
 
+test('leçon terminée avec le score requis : confettis, son de réussite, le chat saute et dit « Bravo ! »', () => {
+  const end = cut('function lvEnded(){', 'function lvWin(root){');
+  assert.ok(end.includes('const win=!!(current&&current.id===id&&current.leconSeule&&!LV.retry);') && end.includes("root.classList.toggle('is-win',win);")
+    && end.includes('if(vid)vid.loop=win;') && end.includes('if(win)lvWin(root);'), 'seulement quand la leçon seule est validée ; le chat fait coucou en boucle');
+  const win = cut('function lvWin(root){', '/* ---------- « Ajouter dans notes »');
+  assert.ok(win.includes("LvSfx.play('success',0,.6,0)") && win.includes('lqConfetti({n:56})') && win.includes('lqConfetti({n:36})') && win.includes('if(prefersReduceMotion())return;')
+    && win.includes("const still=()=>!!(LV&&LV.root===root&&root.classList.contains('is-win'));"), 'deux salves de confettis, arpège de réussite ; rien en mouvement réduit ni après avoir quitté l’écran');
+  assert.ok(html.includes(`<span class="lv-end-cat">\${mascotMedalHtml()}\${l.leconSeule?'<span class="lv-end-bravo" aria-hidden="true">Bravo&nbsp;!</span>':''}</span>`), 'bulle « Bravo ! » du chat');
+  for (const part of ['.lv.is-win.end-in .lv-end-bravo{display:block;animation:lvBravoIn', '.lv.is-win.end-in .lv-end-cat{animation:lvCatJoy', '@keyframes lvCatBob{',
+    'html[data-motion="reduce"] .lv-end-cat,html[data-motion="reduce"] .lv-end-bravo{animation:none!important}'])
+    assert.ok(html.includes(part), `chat : ${part}`);
+  assert.ok(cut('function lvEndHide(){', '/* « Revoir la vidéo »').includes("LV.root.classList.remove('is-end','end-in','is-retry','is-win');"), 'écran quitté : fin de la fête');
+});
+
 test('lien ?reset=56 : la leçon repart de zéro sur l’appareil, le reste de la progression intact', () => {
   const fn = cut('function resetLeconFromUrl(){', 'function recommencerLecon(){');
   for (const part of ["id=+new URLSearchParams(location.search).get('reset')||0;", 'if(!id||!allLessons.some(l=>l.id===id))return;', 's.etapes={}; s.done=false; s.level=0;', 'save();', 'lvForget(id);',
