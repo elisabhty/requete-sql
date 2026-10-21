@@ -1347,6 +1347,17 @@ test('moment déjà réussi (vidéo revue, retour en arrière) : il s’ouvre r�
   assert.ok(cut('function lvRedo(list){', 'function lvRedoGo(){').includes("list.forEach(i=>{ delete o['p'+i]; });") && html.includes('function lvPkReset(id){'), 'refaire : moments vierges');
 });
 
+test('barre de lecture : un point par moment « À toi », selon son état, effacé sous le curseur', () => {
+  assert.ok(html.includes('<div class="lv-pkm" aria-hidden="true"></div>') && html.includes('.lv-pkm{position:absolute;left:0;right:0;top:50%;height:0;pointer-events:none}')
+    && html.includes('.lv-pkm i.ok{background:#169447;') && html.includes('.lv-pkm i.try{background:#B9A8FF;') && html.includes('.lv-pkm i.is-under{opacity:0}'), 'points sur la barre, sans gêner le doigt');
+  const marks = cut('function lvPkMarks(){', '/* En glissant sur la barre');
+  for (const part of ['const a=lvPkGet(LV.id,i), f=Math.min(1,p.t/d).toFixed(4);', "class=\"${a?(a.first?'ok':'try'):''}\"", 'style="left:calc(9px + ${f} * (100% - 18px))"'])
+    assert.ok(marks.includes(part), `points : ${part}`);
+  assert.ok(html.includes('lvMarks(); lvPkMarks(); lvSyncSeek();') && html.includes('lvPkSet(LV.id,P.i,first,P.tries-1); lvPkMarks();') && html.includes('lvPkSet(LV.id,P.i,first,P.miss); lvPkMarks();'),
+    'placés au chargement, mis à jour à chaque moment réussi');
+  assert.ok(cut('function lvSyncSeek(){', 'function lvSyncPP(){').includes("m.classList.toggle('is-under',Math.abs(+m.dataset.f-p)*w<9)"), 'le point sous le curseur s’efface');
+});
+
 test('mail reçu : l’image s’arrête sur la notification, le toucher l’ouvre et la lecture reprend, sans note', () => {
   const anim = cut('class LvAnim{', 'function lessonVideoOn(l){');
   assert.ok(anim.includes('this.opens=info.opens||[];') && anim.includes("this._emit('open',{i:op,o:this.opens[op]});"), 'le lecteur s’arrête sur chaque mail');
@@ -1459,7 +1470,7 @@ test('leçon seule : on n’avance pas au-delà d’un moment « À toi » pas r
     "root.classList.toggle('is-retry',LV.retry);"])
     assert.ok(end.includes(part), `fin de la vidéo : ${part}`);
   assert.ok(cut('function lvGoExercise(){', 'function lvFail(){').includes('if(LV&&LV.retry){ if(LV.rates&&LV.rates.length)lvRedo(LV.rates); else lvReplay(); return; }'), 'pas assez : rejouer les moments ratés');
-  assert.ok(cut('function lvReplay(){', 'function lvGoExercise(){').includes('if(LV.retry)lvPkReset(LV.id);'), '« Tout recommencer » : tous les moments sont à refaire');
+  assert.ok(cut('function lvReplay(){', 'function lvGoExercise(){').includes('if(LV.retry){ lvPkReset(LV.id); lvPkMarks(); }'), '« Tout recommencer » : tous les moments sont à refaire');
   assert.ok(cut('function leconSeuleBilan(first){', 'function lvFail(){').includes('if(!lvReussi(current))return;'), 'ni bilan ni validation sous le seuil');
   assert.ok(cut('guide({ id:44,', 'guide({ id:45,').includes(',moments:9,erreurs:2,'), 'leçon 44 : 2 erreurs au plus, comme le chapitre 1 du projet');
   assert.ok(html.includes('Obtiens ${lvSeuil(l)}/${v.moments} pour valider la leçon') && html.includes('Termine la vidéo avec ${lvErreursMax(l)} erreur'), 'le bouton du cours annonce la règle');
@@ -1472,7 +1483,7 @@ test('rejouer les moments ratés, revoir le passage : la vidéo saute d’un mom
   const cls = new Set(['is-end', 'end-in', 'is-retry']), endEl = {hidden: false}, ended = [];
   const LV = {id: 56, video, pk: null, q: null, redo: null, retry: true, root: {classList: {remove: (...c) => c.forEach(x => cls.delete(x))}, querySelector: () => endEl}};
   const ctx = vm.createContext({LV, LV_ANS: {56: {p0: {first: 0, err: 2}, p1: {first: 1, err: 0}, p2: {first: 0, err: 1}}}, lvAnsSave() {}, lvSyncSeek() {}, lvNoteSync() {},
-    navigator: {}, lvEnded() { ended.push(video.currentTime); }, lvPkClose() { LV.pk = null; }, Math});
+    navigator: {}, lvEnded() { ended.push(video.currentTime); }, lvPkClose() { LV.pk = null; }, lvPkMarks() {}, Math});
   vm.runInContext(cut('function lvPkFrom(i){', '/* L’étiquette quitte le plateau') + cut('function lvEndHide(){', '/* « Revoir la vidéo »')
     + cut('function lvPlay(){', 'function lvToggle(){') + ';this.api={lvPkFrom,lvPkBack,lvRedo,lvRedoNext};', ctx);
   const {api} = ctx;
