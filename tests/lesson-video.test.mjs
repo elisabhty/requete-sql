@@ -1281,9 +1281,11 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
     'moteur : mails à ouvrir envoyés au lecteur, sans animation en cours à l’arrêt');
   assert.deepEqual(D.PICKS.map(p => p.at), [...D.PICKS.map(p => p.at)].sort((x, y) => x - y), 'moments dans l’ordre');
   for (const p of D.PICKS.filter(x => x.kind === 'pick')) assert.equal(p.options.filter(o => o.ok).length, 1, `${p.prompt} : une seule bonne réponse`);
-  assert.deepEqual(D.SORT.map(r => r[0]), D.COLS, 'chaque colonne du tableur est à ranger, dans l’ordre du tableur');
-  assert.equal(D.PICKS[3].options.map(o => o.tag + ' ' + o.label).join(', '), 'A nom du client, B titre de l’atelier, C date de l’atelier, D nom du coach, E e-mail du coach, F date d’inscription',
+  assert.deepEqual(D.SORT.map(r => r[0]), D.COLS.slice(1), 'chaque colonne du fichier est à ranger, dans l’ordre du fichier, sauf le client : sa table existe déjà');
+  assert.equal(D.PICKS[3].options.map(o => o.tag + ' ' + o.label).join(', '), 'B titre de l’atelier, C date de l’atelier, D nom du coach, E e-mail du coach, F date d’inscription',
     'chaque étiquette dit ce que contient sa colonne, avec la lettre de la colonne dans le fichier');
+  assert.ok(page.includes("show('#ck0', 95.0, {y: 0, scale: 0.4}, 0.4, 'back.out(2.2)');") && page.includes("if (i === 3) return {text: 'Que décrit la colonne : un atelier, un coach ou une inscription ?'};")
+    && page.includes('const [col, to, , ok, bad] = SORT[a], j = COLS.indexOf(col),'), 'la colonne client est cochée dès que la légende dit que sa table existe ; rien à ranger côté client');
   assert.ok(D.SORT.every(r => D.BINS.some(x => x[0] === r[1])), 'chaque colonne a sa table parmi les quatre');
   assert.equal(D.SHEET.filter(r => r[4] === 'salma@mail.fr').length, D.PICKS[0].need, 'l’e-mail de Salma Haddad, autant de fois que de cases à toucher');
   assert.equal(D.SHEET.filter(r => r[1] === 'Cuisine saine').length, 1, 'Cuisine saine : une seule ligne, effacée avec la désinscription');
@@ -1336,7 +1338,8 @@ test('mail reçu : l’image s’arrête sur la notification, le toucher l’ouv
   /* Moment réussi sans correction écrite : seule la bonne étiquette reste, séparée de « Continuer ». */
   assert.ok(html.includes("if(why)opts.hidden=true; else opts.classList.add('is-won');") && html.includes('.lv-pk-opts.is-won .lv-pk-opt.is-gone{display:none}')
     && html.includes('.lv-pk-opts:not([hidden])~.lv-pk-go{margin-top:14px}'), 'plateau réussi : la bonne étiquette, puis « Continuer », bien séparés');
-  assert.ok(html.includes('.lv-pk.is-sort .lv-pk-opts:not([hidden]){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}'), 'étiquettes à glisser sur deux colonnes');
+  assert.ok(html.includes('.lv-pk.is-sort .lv-pk-opts:not([hidden]){display:flex;flex-wrap:wrap;justify-content:center;gap:7px}')
+    && html.includes('.lv-pk.is-sort .lv-pk-opt{min-height:44px;flex:0 0 calc(50% - 3.5px);min-width:0}'), 'étiquettes à glisser deux par ligne, une étiquette seule centrée');
   assert.ok(html.includes("(kind==='pick'&&opts.some(o=>String(o.label).length>30)?' is-long':'')") && html.includes('.lv-pk.is-long .lv-pk-opts:not([hidden]){flex-direction:column;align-items:stretch;gap:8px}'),
     'réponses longues (une phrase) : l’une sous l’autre, sur deux lignes au besoin');
 });

@@ -315,9 +315,9 @@ const CAPTIONS = [
 /* Pas de question du lecteur : les moments « À toi » (PICKS) font participer l’élève. */
 const QUESTIONS = [];
 
-/* Les colonnes du fichier et leur table : [colonne, table, nouvelles colonnes, bonne place, mauvaises places, ce qu’elle contient]. */
+/* Les colonnes du fichier à ranger et leur table : [colonne, table, nouvelles colonnes, bonne place, mauvaises places, ce qu’elle contient].
+   Pas la colonne client : la table clients existe déjà (sa coche s’allume quand la légende le dit). */
 const SORT = [
-  ['client', 'clients', [], 'Les clients ont déjà leur table : rien à recréer.', {}, 'nom du client'],
   ['atelier', 'ateliers', ['titre'], 'Le titre décrit l’atelier.', {}, 'titre de l’atelier'],
   ['date', 'ateliers', ['date_atelier'], 'Une date par atelier, écrite une seule fois.',
     {inscriptions: 'Tous les inscrits d’un atelier ont la même date : elle décrit l’atelier.'}, 'date de l’atelier'],
@@ -343,7 +343,7 @@ const PICKS = [
     {label: 'Tu dois ajouter le coach comme client.', why: 'Moussa Diallo anime l’atelier : il ne s’y inscrit pas.'}]},
   /* Chaque étiquette dit ce que contient sa colonne, avec la lettre de la colonne dans le fichier. */
   {at: 105.0, from: 94.3, kind: 'sort', prompt: 'Touche une colonne du fichier, puis la table où elle va.', hint: 'Tu peux aussi la faire glisser jusqu’à sa table.',
-    options: SORT.map((r, j) => ({label: r[5], tag: 'ABCDEF'[j]}))},
+    options: SORT.map(r => ({label: r[5], tag: 'ABCDEF'[COLS.indexOf(r[0])]}))},
   {at: 129.8, from: 119.0, kind: 'tap', need: 1, prompt: 'Touche la table où ajouter l’atelier Yoga du matin.'},
   {at: 141.4, from: 135.95, kind: 'pick', text: true, prompt: 'Qui s’est inscrit le 4 septembre, d’après la table <code>inscriptions</code> ?', options: [
     {label: 'Léa Simon', why: 'Le fichier l’indiquait, mais pas cette table.'},
@@ -639,9 +639,11 @@ function build(){
   tl.to(rows, {autoAlpha: 0, height: 0, duration: 0.5, ease: 'power2.inOut', stagger: 0.04}, 88.4);
   cue(88.4, 'whoosh', 0.6);
   $$('.bin').forEach((b, q) => { show(b, 89.5 + q * 0.18, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(89.5 + q * 0.18, 'pop', 0.6, q); });
-  // la table clients existe déjà ; trois tables à ajouter : ateliers, coachs, inscriptions
+  // la table clients existe déjà (la colonne client est cochée) ; trois tables à ajouter : ateliers, coachs, inscriptions
   bump('#bn0', 95.0, 1.04);
   cue(95.0, 'tick', 0.5, 1);
+  show('#ck0', 95.0, {y: 0, scale: 0.4}, 0.4, 'back.out(2.2)');
+  tl.to($('#xh').children[0], {color: '#A8A2C6', duration: 0.3}, 95.0);
   [[1, 96.8], [2, 97.5], [3, 98.8]].forEach(([q, t]) => { bump('#bn' + q, t, 1.04); cue(t, 'tick', 0.5, q + 1); });
   // À toi : glisser chaque colonne dans sa table (réponse : toutes rangées)
   const a3 = +(PICKS[3].at + 0.02).toFixed(2);
@@ -730,11 +732,11 @@ const IX = (() => {
       return {ok: false, why: fr(`C’est la ligne de ${SHEET[r][0]}.`)};
     }
     if (i === 3) {
-      const [, to, , ok, bad] = SORT[a], bin = $(`.bin[data-t="${b}"]`);
+      const [col, to, , ok, bad] = SORT[a], j = COLS.indexOf(col), bin = $(`.bin[data-t="${b}"]`);
       if (to === b) {
         $$(`.col.nw[data-k="${a}"]`).forEach(c => mark(c, 'pvs'));
-        mark($('#ck' + a), 'pvs');
-        mark($('#xh').children[a], 'done');
+        mark($('#ck' + j), 'pvs');
+        mark($('#xh').children[j], 'done');
         flash(bin, 'okb', 520);
         X.n++;
         sfx('pop', X.n, 0.6);
@@ -769,7 +771,7 @@ const IX = (() => {
   function hint(i){
     if (i === 0) return {text: 'L’e-mail du coach est dans la colonne E.', keys: SHEET.map((r, ri) => ri + '_4')};
     if (i === 1) return {text: 'Léa Simon n’apparaît que sur une seule ligne.', keys: ['r' + LEA]};
-    if (i === 3) return {text: 'Que décrit la colonne : un client, un atelier, un coach ou une inscription ?'};
+    if (i === 3) return {text: 'Que décrit la colonne : un atelier, un coach ou une inscription ?'};
     if (i === 4) return {text: 'Yoga du matin est un atelier.', keys: ['ateliers']};
     return null;
   }
