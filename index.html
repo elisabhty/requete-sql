@@ -15521,6 +15521,7 @@ async function boot(){
     maybeOnboard();
     restoreNav();
     jeuFromUrl();
+    resetLeconFromUrl();
     tickRappel();
     setInterval(tickRappel,30000);
     document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') tickRappel(); });
@@ -21417,6 +21418,20 @@ function setLessonStep(n){
   if(navigator.vibrate)navigator.vibrate(8);
   saveNav();
   if(n===0&&lessonVideoOn(current))openLessonVideo();
+}
+/* Lien « ?reset=56 » : remet une leçon à zéro sur cet appareil (sa progression, ses moments « À toi », la position de
+   sa vidéo), puis l’ouvre, pour la refaire comme la première fois. Le reste de la progression n’est pas touché. */
+function resetLeconFromUrl(){
+  let id=0; try{ id=+new URLSearchParams(location.search).get('reset')||0; }catch(e){}
+  if(!id||!allLessons.some(l=>l.id===id))return;
+  const s=state.lessons[id]||{level:0};
+  s.etapes={}; s.done=false; s.level=0; delete s.due; delete s.draft;
+  state.lessons[id]=s;
+  save();
+  lvForget(id);
+  try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e){}
+  renderModules(); renderProgress(); renderCollection(); renderPlanning();
+  if(state.onboarded)openLesson(id);
 }
 function recommencerLecon(){
   if(!current||mode!=='lesson')return;
@@ -28897,7 +28912,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1934';
+  const SW_CACHE='requete-2026-10-12-ludique-v1935';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
