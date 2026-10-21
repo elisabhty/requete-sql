@@ -1396,6 +1396,17 @@ test('moment réussi puis vidéo reculée : la réponse ne réapparaît pas avan
   assert.ok(html.includes("lvGlisse(btn,()=>!!LV&&LV.pk===P&&") && html.includes("lvGlisse(a,()=>!!LV&&LV.pk===P&&") && html.includes('if(!can()){ g=null; return; }'), 'pas de glisser sur un plateau fermé');
 });
 
+test('moment réussi : la validation bien en avant, coche verte animée et « Bien vu ! » à la place du petit badge', () => {
+  const valid = cut('function lvPkValid(P,first,anim){', '/* La réponse gardée s’affiche telle quelle');
+  for (const part of ["el.className='lv-pk-ok'+(anim&&!prefersReduceMotion()?' is-anim':'');", '<path class="k" d="M12.5 21.5l6 6L30 15.5"/>', "${first?'Bien vu&nbsp;!':'Trouvé&nbsp;!'}",
+    "top.querySelectorAll('.lv-pk-kick,.lv-pk-cnt').forEach(e=>{ e.hidden=true; });"])
+    assert.ok(valid.includes(part), `coche : ${part}`);
+  assert.ok(html.includes("kick.textContent=first?'✓ Bien vu !':'✓ Trouvé !'; lvPkValid(P,first,true);") && html.includes("textContent=a.first?'✓ Bien vu !':'✓ Trouvé !'; lvPkValid(P,a.first,true);"),
+    'au choix, aux gestes, et pour un moment déjà réussi');
+  for (const part of ['.lv-pk-kick[hidden],.lv-pk-cnt[hidden]{display:none}', '@keyframes lvOkPop{', '@keyframes lvOkTick{to{stroke-dashoffset:0}}', '@keyframes lvOkRing{', '.lv-pk-ok.is-anim .k{stroke-dashoffset:26;'])
+    assert.ok(html.includes(part), `animation : ${part}`);
+});
+
 test('mail reçu : l’image s’arrête sur la notification, le toucher l’ouvre et la lecture reprend, sans note', () => {
   const anim = cut('class LvAnim{', 'function lessonVideoOn(l){');
   assert.ok(anim.includes('this.opens=info.opens||[];') && anim.includes("this._emit('open',{i:op,o:this.opens[op]});"), 'le lecteur s’arrête sur chaque mail');
