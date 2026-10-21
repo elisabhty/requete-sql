@@ -1248,7 +1248,7 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
 
 test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six moments sur l’image, clients de la base', async () => {
   const l56 = cut('guide({ id:56, titre:"Normaliser les inscriptions"', 'guide({ id:72,');
-  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'3 min 24',moments:6,") && !l56.includes('seuil:'), 'leçon seule, 6 moments, validée à la fin de la vidéo');
+  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'3 min 24',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/projet-normaliser.html'), 'utf8');
   const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
   assert.ok(a > 0 && b > a, 'données de la page localisées');
@@ -1403,7 +1403,7 @@ test('moment réussi puis vidéo reculée : la réponse ne réapparaît pas avan
 test('moment réussi : la validation bien en avant, coche verte animée et « Bien vu ! » à la place du petit badge', () => {
   const valid = cut('function lvPkValid(P,first,anim){', '/* La réponse gardée s’affiche telle quelle');
   for (const part of ["el.className='lv-pk-ok'+(first?'':' is-ko')+(anim&&!prefersReduceMotion()?' is-anim':'');", '<path class="k" d="M12.5 21.5l6 6L30 15.5"/>',
-    '<path class="k x" d="M15 15l12 12"/><path class="k x" d="M27 15L15 27"/>', "${first?'Bien vu&nbsp;!':'Raté au 1er&nbsp;coup'}",
+    '<path class="k x" d="M15 15l12 12"/><path class="k x" d="M27 15L15 27"/>', "${first?'Bien vu&nbsp;!':'Raté'}",
     "top.querySelectorAll('.lv-pk-kick,.lv-pk-cnt').forEach(e=>{ e.hidden=true; });"])
     assert.ok(valid.includes(part), `coche : ${part}`);
   assert.ok(cut('function lvPkVerdict(', 'function lvPkFrom(i){').includes("P.box.classList.add('is-ok');\n    lvPkValid(P,first,true);") && cut('function lvPkWin(', 'function lvEndHide(){').includes('lvPkValid(P,first,true);')
@@ -1585,10 +1585,10 @@ test('leçon seule (Quel JOIN choisir ?) : la vidéo interactive valide la leço
   assert.ok(html.includes('function dueList(){ return allLessons.filter(l=>isDue(l.id)&&!l.leconSeule); }'), 'pas de révision « De mémoire » sans exercice');
   assert.ok(html.includes("if(current.leconSeule)return [{i:0,l:'Leçon'") && html.includes("if(leconSeule(id))return !!(state.lessons[id]&&state.lessons[id].done);"), 'une seule étape : la leçon');
   const end = cut('function lvEnded(){', 'function lvReplay(){');
-  assert.ok(end.includes('markDone(id,false)') && end.includes('🎯 Du premier coup'), 'fin de la vidéo : leçon validée, score des moments');
+  assert.ok(end.includes('markDone(id,false)') && end.includes('🎯 Tu as réussi <b>${ok}&nbsp;exercice${ok>1?\'s\':\'\'} sur&nbsp;${n}</b>&nbsp;!'), 'fin de la vidéo : leçon validée, exercices réussis');
   assert.ok(cut('function lvGoExercise(){', 'function lvFail(){').includes('leconSeuleBilan(first)'), '« Terminer la leçon » ouvre le bilan');
   assert.ok(html.includes("${l.leconSeule?'Leçon terminée&nbsp;!':'À toi de jouer&nbsp;!'}") && html.includes("${l.leconSeule?'Terminer la leçon':'Passer à l’exercice'}"), 'écran de fin propre à la leçon seule');
-  assert.ok(html.includes("const score=lvErreursMax(l)!=null?(e?`${e} erreur${e>1?'s':''}`:'Aucune erreur'):`${ok}/${n} du premier coup`;"),
+  assert.ok(html.includes("const score=lvErreursMax(l)!=null?(e?`${e} erreur${e>1?'s':''}`:'Aucune erreur'):`${ok} exercice${ok>1?'s':''} réussi${ok>1?'s':''} sur ${n}`;"),
     'bilan : les erreurs (règle des erreurs) ou les moments trouvés du premier coup');
 });
 
@@ -1635,16 +1635,16 @@ test('leçon seule : on n’avance pas au-delà d’un moment « À toi » pas r
   assert.ok(player.includes('LV.gate=lvPkGate(t);') && player.includes('if(g>=0)lvPkStop(g); else if(again)lvPlay();'), 'barre : le curseur s’arrête avant le moment, son plateau s’ouvre au relâchement');
   assert.ok(player.includes('const g=lvPkGate(r); if(g>=0)r=Math.max(0,video.picks[g].t-.08);'), 'reprise : jamais au-delà d’un moment pas réussi');
   const end = cut('function lvEnded(){', '/* ---------- « Ajouter dans notes »');
-  for (const part of ['LV.retry=!was&&(max!=null?errs>max:ok<need);', 'if(LV.firstDone){ markDone(id,false);', 'Il en faut au moins ${need} pour valider la leçon.',
+  for (const part of ['LV.retry=!was&&(max!=null?errs>max:ok<need);', 'if(LV.firstDone){ markDone(id,false);', 'Encore ${need-ok}&nbsp;exercice${need-ok>1?\'s\':\'\'} à réussir pour valider la leçon.',
     'Il en faut ${max} au plus pour valider la leçon.', 'if(LV.retry)LV.rates=lvPkRates(id,n);', "`Rejouer les ${nr} moments ratés`", "LV.retry?'Tout recommencer':'Revoir la vidéo'",
     "root.classList.toggle('is-retry',LV.retry);"])
     assert.ok(end.includes(part), `fin de la vidéo : ${part}`);
   assert.ok(cut('function lvGoExercise(){', 'function lvFail(){').includes('if(LV&&LV.retry){ if(LV.rates&&LV.rates.length)lvRedo(LV.rates); else lvReplay(); return; }'), 'pas assez : rejouer les moments ratés');
   assert.ok(cut('function lvReplay(){', 'function lvGoExercise(){').includes('if(LV.retry){ lvPkReset(LV.id); lvPkMarks(); }'), '« Tout recommencer » : tous les moments sont à refaire');
   assert.ok(cut('function leconSeuleBilan(first){', 'function lvFail(){').includes('if(!lvReussi(current))return;'), 'ni bilan ni validation sous le seuil');
-  assert.ok(cut('guide({ id:44,', 'guide({ id:45,').includes(',moments:9,erreurs:2,'), 'leçon 44 : 2 erreurs au plus, comme le chapitre 1 du projet');
-  assert.ok(html.includes('Obtiens ${lvSeuil(l)}/${v.moments} pour valider la leçon') && html.includes('Termine la vidéo avec ${lvErreursMax(l)} erreur'), 'le bouton du cours annonce la règle');
-  assert.ok(cut('guide({ id:56,', 'guide({ id:72,').includes(",moments:6,erreurs:2,"), 'leçon 56 : 2 erreurs au plus');
+  assert.ok(cut('guide({ id:44,', 'guide({ id:45,').includes(',moments:9,seuil:7,'), 'leçon 44 : 7 exercices réussis sur 9 (deux ratés au plus), comme le chapitre 1 du projet');
+  assert.ok(html.includes('Réussis ${lvSeuil(l)} exercices sur ${v.moments} pour valider la leçon') && html.includes('Termine la vidéo avec ${lvErreursMax(l)} erreur'), 'le bouton du cours annonce la règle');
+  assert.ok(cut('guide({ id:56,', 'guide({ id:72,').includes(",moments:6,seuil:4,"), 'leçon 56 : 4 exercices réussis sur 6 (deux ratés au plus)');
 });
 
 test('rejouer les moments ratés, revoir le passage : la vidéo saute d’un moment raté au suivant, puis refait le compte', () => {

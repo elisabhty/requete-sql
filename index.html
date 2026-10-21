@@ -11327,10 +11327,10 @@ guide({ id:44, titre:"Quel JOIN choisir ?", résumé:"Choisir la bonne jointure
      La vidéo interactive suit six situations de la vie courante (Le cabinet des Tilleuls, L’aquarium de l’Atlas, La bibliothèque des Lumières,
      L’hôtel des Cimes, Le glacier parisien, L’agence Horizon) : à chacun des 9 moments « À toi », l’image s’arrête et l’élève place
      l’étiquette qui complète la requête, avec le résultat aussitôt. On ne peut pas avancer au-delà d’un moment tant qu’il n’est pas réussi.
-     Leçon seule : ni exercice ni quiz. La fin de la vidéo valide la leçon avec 2 erreurs au plus en tout (erreurs:2) ;
-     sinon, on rejoue les moments ratés. Le texte ci-dessous reste pour le cas où la vidéo ne se charge pas. */
+     Leçon seule : ni exercice ni quiz. La fin de la vidéo valide la leçon avec 7 exercices réussis du premier coup sur 9
+     (seuil:7, deux ratés au plus) ; sinon, on rejoue les moments ratés. Le texte ci-dessous reste pour le cas où la vidéo ne se charge pas. */
   leconSeule:true,
-  video:{anim:'assets/anim/quel-join-choisir.html?app&embed',thumb:'assets/anim/quel-join-choisir-thumb.jpg',duree:'3 min 45',moments:9,erreurs:2,
+  video:{anim:'assets/anim/quel-join-choisir.html?app&embed',thumb:'assets/anim/quel-join-choisir-thumb.jpg',duree:'3 min 45',moments:9,seuil:7,
     /* « Ajouter dans notes » : apparaît à 3 min 37 (216,7 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
     notes:{t:216.7,y:1396,card:[64,292,1016,1101],to:[940,255]}},
   sit:{
@@ -12773,10 +12773,10 @@ guide({ id:56, titre:"Normaliser les inscriptions", résumé:"Du fichier Excel d
      découvrir les trois anomalies (mise à jour, suppression, insertion). À chacun des 6 moments « À toi », l’image s’arrête et
      l’élève agit sur l’image (toucher les copies de l’e-mail, la ligne à supprimer, glisser chaque colonne dans sa table…), avec le
      résultat aussitôt ; après deux erreurs, un indice. On ne peut pas avancer au-delà d’un moment tant qu’il n’est pas réussi. Leçon seule : ni exercice ni quiz ;
-     la leçon se valide avec 2 erreurs au plus en tout (erreurs:2), sinon on rejoue les moments ratés.
+     la leçon se valide avec 4 exercices réussis du premier coup sur 6 (seuil:4, deux ratés au plus), sinon on rejoue les moments ratés.
      Le texte ci-dessous, gardé pour le cas où la vidéo ne se charge pas, suit encore l’ancien cours (la grande table des commandes). */
   leconSeule:true,
-  video:{anim:'assets/anim/projet-normaliser.html?app&embed',thumb:'assets/anim/projet-normaliser-thumb.jpg',duree:'3 min 24',moments:6,erreurs:2,
+  video:{anim:'assets/anim/projet-normaliser.html?app&embed',thumb:'assets/anim/projet-normaliser-thumb.jpg',duree:'3 min 24',moments:6,seuil:4,
     /* « Ajouter dans notes » : apparaît à 3 min 17 (197,35 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
     notes:{t:197.35,y:1291,card:[64,292,1016,996],to:[940,255]}},
   sit:{
@@ -19997,7 +19997,7 @@ function lessonVideoSlide(l){
   const v=l.video, m=moduleDeLecon(l.id), locked=jcGateLocked(l);
   return `
       <div class="ls-nav">
-        ${l.leconSeule?(state.lessons[l.id]&&state.lessons[l.id].done?'<button class="ls-next" type="button" onclick="setLessonStep(3)">Voir le bilan</button>':`<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">${lvErreursMax(l)!=null?`Termine la vidéo avec ${lvErreursMax(l)} erreur${lvErreursMax(l)>1?'s':''} au plus`:lvSeuil(l)?`Obtiens ${lvSeuil(l)}/${v.moments} pour valider la leçon`:'Termine la vidéo pour valider la leçon'}</button>`)
+        ${l.leconSeule?(state.lessons[l.id]&&state.lessons[l.id].done?'<button class="ls-next" type="button" onclick="setLessonStep(3)">Voir le bilan</button>':`<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">${lvErreursMax(l)!=null?`Termine la vidéo avec ${lvErreursMax(l)} erreur${lvErreursMax(l)>1?'s':''} au plus`:lvSeuil(l)?`Réussis ${lvSeuil(l)} exercices sur ${v.moments} pour valider la leçon`:'Termine la vidéo pour valider la leçon'}</button>`)
           :locked?'<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">Termine la vidéo pour continuer</button>':'<button class="ls-next" type="button" onclick="setLessonStep(1)">Passer à l’exercice</button>'}
       </div>
       <div class="ls-main">
@@ -20300,8 +20300,9 @@ function lvEnded(){
   if(LV.q)lvQClose(true);
   if(LV.pk)lvPkClose(true);
   if(LV.op)lvOpClose();
-  /* Leçon seule : la fin de la vidéo valide la leçon selon sa règle — au plus N erreurs en tout (video.erreurs), ou assez de
-     moments réussis du premier coup (video.seuil : 6 sur 9) ; l’écran de fin donne ce compte. Sinon, il propose de rejouer
+  /* Leçon seule : la fin de la vidéo valide la leçon selon sa règle — assez d’exercices réussis du premier coup (video.seuil :
+     4 sur 6), ou au plus N erreurs en tout (video.erreurs) ; l’écran de fin donne ce compte (« Tu as réussi 3 exercices
+     sur 6 ! Encore 1 exercice à réussir pour valider la leçon. »). Sinon, il propose de rejouer
      seulement les moments ratés (lvRedo), ou de tout recommencer. Une leçon déjà validée le reste. */
   LV.retry=false; LV.redo=null; LV.rates=[];
   if(current&&current.id===id&&current.leconSeule){
@@ -20314,7 +20315,7 @@ function lvEnded(){
     if(sc&&n){
       sc.innerHTML=max!=null
         ?`🎯 ${errs?`<b>${errs}&nbsp;erreur${errs>1?'s':''}</b> sur les ${n}&nbsp;moments`:'<b>Aucune erreur</b> sur les '+n+'&nbsp;moments'}${LV.retry?`<span class="lv-end-need">Il en faut ${max} au plus pour valider la leçon.</span>`:''}`
-        :`🎯 Du premier coup&nbsp;: <b>${ok}&nbsp;sur&nbsp;${n}</b>${LV.retry?`<span class="lv-end-need">Il en faut au moins ${need} pour valider la leçon.</span>`:''}`;
+        :`🎯 Tu as réussi <b>${ok}&nbsp;exercice${ok>1?'s':''} sur&nbsp;${n}</b>&nbsp;!${LV.retry?`<span class="lv-end-need">Encore ${need-ok}&nbsp;exercice${need-ok>1?'s':''} à réussir pour valider la leçon.</span>`:''}`;
       sc.hidden=false;
     }
     if(LV.retry)LV.rates=lvPkRates(id,n);
@@ -20747,12 +20748,12 @@ function lvPkShow(i,p){
   try{box.querySelector(kept?'.lv-pk-go':'.lv-pk-card').focus({preventScroll:true});}catch(e){}
 }
 /* Moment fini : le verdict du premier essai prend la place du petit badge et du compteur — coche verte animée et « Bien vu ! »
-   du premier coup ; sinon croix rouge et « Raté au 1er coup » (le premier coup compte, même si la réponse a été trouvée ensuite). */
+   du premier coup ; sinon croix rouge et « Raté » (le premier coup compte, même si la réponse a été trouvée ensuite). */
 function lvPkValid(P,first,anim){
   const top=P.box.querySelector('.lv-pk-top'); if(!top||top.querySelector('.lv-pk-ok'))return;
   const el=document.createElement('span');
   el.className='lv-pk-ok'+(first?'':' is-ko')+(anim&&!prefersReduceMotion()?' is-anim':'');
-  el.innerHTML=`<svg viewBox="0 0 42 42" aria-hidden="true"><circle class="r" cx="21" cy="21" r="19"/><circle class="c" cx="21" cy="21" r="19"/>${first?'<path class="k" d="M12.5 21.5l6 6L30 15.5"/>':'<path class="k x" d="M15 15l12 12"/><path class="k x" d="M27 15L15 27"/>'}</svg><b>${first?'Bien vu&nbsp;!':'Raté au 1er&nbsp;coup'}</b>`;
+  el.innerHTML=`<svg viewBox="0 0 42 42" aria-hidden="true"><circle class="r" cx="21" cy="21" r="19"/><circle class="c" cx="21" cy="21" r="19"/>${first?'<path class="k" d="M12.5 21.5l6 6L30 15.5"/>':'<path class="k x" d="M15 15l12 12"/><path class="k x" d="M27 15L15 27"/>'}</svg><b>${first?'Bien vu&nbsp;!':'Raté'}</b>`;
   top.querySelectorAll('.lv-pk-kick,.lv-pk-cnt').forEach(e=>{ e.hidden=true; });
   top.insertBefore(el,top.firstChild);
 }
@@ -21565,7 +21566,7 @@ function bravoStatsHtml(){
 function bravoStepsHtml(l){
   if(l&&l.leconSeule){
     const n=(l.video&&l.video.moments)||0, ok=n?lvPkScore(l.id,n):0, e=n?lvPkErrs(l.id,n):0;
-    const score=lvErreursMax(l)!=null?(e?`${e} erreur${e>1?'s':''}`:'Aucune erreur'):`${ok}/${n} du premier coup`;
+    const score=lvErreursMax(l)!=null?(e?`${e} erreur${e>1?'s':''}`:'Aucune erreur'):`${ok} exercice${ok>1?'s':''} réussi${ok>1?'s':''} sur ${n}`;
     return `<div class="bravo-steps"><span class="bravo-step"><i>✓</i> Leçon interactive</span>${n?`<span class="bravo-step"><i>🎯</i> ${score}</span>`:''}</div>`;
   }
   return `<div class="bravo-steps">
@@ -29008,7 +29009,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1938';
+  const SW_CACHE='requete-2026-10-12-ludique-v1939';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
