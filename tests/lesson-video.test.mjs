@@ -228,7 +228,7 @@ test('reprise, repères de chapitres, double appui, question et légendes dans l
   assert.ok(cut('function lvEnded(){', 'function lvReplay(){').includes('LV_POS.delete(id); lvPosSave();'), 'vidéo finie : la prochaine fois, elle repart du début');
   const marks = cut('function lvMarks(){', '/* En glissant sur la barre');
   assert.ok(marks.includes("LV.seek.style.setProperty('--gaps'") && html.includes('background:var(--gaps,linear-gradient(transparent,transparent))'), 'barre coupée au début de chaque chapitre');
-  assert.ok(cut('function lvTip(on){', '/* Double appui').includes("tip.textContent=(c?`${c.n} · ${c.label}`:'Intro')+' · '+lvFmt(t);"), 'nom du chapitre en glissant');
+  assert.ok(cut('function lvTip(on){', '/* Double appui').includes(":c?`${c.n} · ${c.label}`:'Intro')+' · '+lvFmt(t);"), 'nom du chapitre en glissant');
   assert.ok(player.includes('if(side&&T.side===side&&now-T.t<330){') && player.includes('if(lvSkip(side*LV_SKIP))lvDtFx(side,T.total);'), 'double appui à gauche / à droite');
   assert.ok(player.includes("T.timer=setTimeout(()=>{ T.timer=0; if(LV&&LV.root===root)lvToggle(); },300);"), 'un seul appui sur le côté : pause après un court délai');
   const ans = cut('function lvQAnswer(k){', 'function lvQClose(answered){');
@@ -1347,15 +1347,16 @@ test('moment déjà réussi (vidéo revue, retour en arrière) : il s’ouvre r�
   assert.ok(cut('function lvRedo(list){', 'function lvRedoGo(){').includes("list.forEach(i=>{ delete o['p'+i]; });") && html.includes('function lvPkReset(id){'), 'refaire : moments vierges');
 });
 
-test('barre de lecture : un point par moment « À toi », selon son état, effacé sous le curseur', () => {
+test('barre de lecture : un petit point par moment « À toi », doré à faire, blanc fait, nommé en glissant', () => {
   assert.ok(html.includes('<div class="lv-pkm" aria-hidden="true"></div>') && html.includes('.lv-pkm{position:absolute;left:0;right:0;top:50%;height:0;pointer-events:none}')
-    && html.includes('.lv-pkm i.ok{background:#169447;') && html.includes('.lv-pkm i.try{background:#B9A8FF;') && html.includes('.lv-pkm i.is-under{opacity:0}'), 'points sur la barre, sans gêner le doigt');
+    && html.includes('.lv-pkm i{position:absolute;top:0;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:#F2B529;')
+    && html.includes('.lv-pkm i.ok{background:#fff;'), 'points dans la barre, sans contour, sans gêner le doigt');
+  assert.ok(cut('function lvTip(on){', 'function lvDtFx(side,total){').includes("`À toi ${k+1}/${ps.length}${lvPkGet(LV.id,k)?' ✓':''}`"), 'en glissant sur un point : le numéro de l’exercice');
   const marks = cut('function lvPkMarks(){', '/* En glissant sur la barre');
-  for (const part of ['const a=lvPkGet(LV.id,i), f=Math.min(1,p.t/d).toFixed(4);', "class=\"${a?(a.first?'ok':'try'):''}\"", 'style="left:calc(9px + ${f} * (100% - 18px))"'])
+  for (const part of ['const a=lvPkGet(LV.id,i), f=Math.min(1,p.t/d).toFixed(4);', "class=\"${a?'ok':''}\"", 'style="left:calc(9px + ${f} * (100% - 18px))"'])
     assert.ok(marks.includes(part), `points : ${part}`);
   assert.ok(html.includes('lvMarks(); lvPkMarks(); lvSyncSeek();') && html.includes('lvPkSet(LV.id,P.i,first,P.tries-1); lvPkMarks();') && html.includes('lvPkSet(LV.id,P.i,first,P.miss); lvPkMarks();'),
     'placés au chargement, mis à jour à chaque moment réussi');
-  assert.ok(cut('function lvSyncSeek(){', 'function lvSyncPP(){').includes("m.classList.toggle('is-under',Math.abs(+m.dataset.f-p)*w<9)"), 'le point sous le curseur s’efface');
 });
 
 test('mail reçu : l’image s’arrête sur la notification, le toucher l’ouvre et la lecture reprend, sans note', () => {
