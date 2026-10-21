@@ -6464,13 +6464,12 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-time.lv-dur{text-align:right}
 .lv-track{position:relative;flex:1;min-width:0;display:flex;align-items:center}
 .lv-track .lv-seek{flex:1;min-width:0}
-/* Un point sur la barre par moment « À toi » : blanc cerclé à faire, vert réussi du premier coup, lilas réussi après une erreur ;
-   il s’efface sous le curseur */
+/* Exercices « À toi » sur la barre : de petits points posés dans la barre, sans contour, pour que le curseur reste le seul
+   rond — doré comme le « ? » des exercices tant qu’il est à faire, blanc une fois fait. Le curseur posé sur un exercice
+   le montre en son centre. */
 .lv-pkm{position:absolute;left:0;right:0;top:50%;height:0;pointer-events:none}
-.lv-pkm i{position:absolute;top:0;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#fff;border:2px solid var(--accent,#6A4DF4);transition:opacity .15s}
-.lv-pkm i.ok{background:#169447;border-color:#fff;box-shadow:0 0 0 1px rgba(22,148,71,.5)}
-.lv-pkm i.try{background:#B9A8FF;border-color:#fff;box-shadow:0 0 0 1px rgba(106,77,244,.5)}
-.lv-pkm i.is-under{opacity:0}
+.lv-pkm i{position:absolute;top:0;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:#F2B529;transition:background-color .2s}
+.lv-pkm i.ok{background:#fff;box-shadow:inset 0 0 0 1px rgba(106,77,244,.35)}
 .lv-tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(4px);white-space:nowrap;padding:7px 12px;border-radius:12px;background:var(--ink,#221C46);color:#fff;font:700 13px/1 var(--display);box-shadow:0 8px 20px -10px rgba(20,10,60,.5);opacity:0;transition:opacity .15s ease,transform .15s ease;pointer-events:none}
 .lv-tip[hidden]{display:none}
 .lv-tip.on{opacity:1;transform:translateX(-50%)}
@@ -6647,6 +6646,7 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 /* Mail reçu : la notification à toucher (une onde en part), et la bulle qui le dit */
 .lv-op{position:absolute;inset:0;z-index:5;pointer-events:none;transition:opacity .2s ease}
 .lv-op.off{opacity:0}
+.lv-op.off .lv-op-spot{pointer-events:none}
 .lv-op-spot{position:absolute;margin:0;padding:0;border:0;background:transparent;pointer-events:auto;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;animation:lvOpRing 1.5s ease-out infinite}
 .lv-op-spot:active{background:rgba(106,77,244,.1)}
 .lv-op-spot:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(106,77,244,.6)}
@@ -20159,8 +20159,6 @@ function lvSyncSeek(){
   const V=LV.video, d=V.duration||0, p=d?Math.min(1,V.currentTime/d):0;
   LV.seek.value=String(Math.round(p*1000));
   LV.seek.style.setProperty('--pf',p.toFixed(4));
-  const w=LV.seek.clientWidth-18;
-  LV.root.querySelectorAll('.lv-pkm i').forEach(m=>m.classList.toggle('is-under',Math.abs(+m.dataset.f-p)*w<9));
   const c=LV.root.querySelector('.lv-cur'); if(c)c.textContent=lvFmt(V.currentTime);
 }
 function lvSyncPP(){
@@ -20415,12 +20413,12 @@ function lvMarks(){
   const stops=ch.filter(c=>c.t>.5&&c.t<d-.5).map(c=>{ const P=`9px + ${(c.t/d).toFixed(4)} * (100% - 18px)`; return `transparent calc(${P} - 1.5px),#F4F2FC calc(${P} - 1.5px),#F4F2FC calc(${P} + 1.5px),transparent calc(${P} + 1.5px)`; });
   LV.seek.style.setProperty('--gaps',`linear-gradient(90deg,transparent 0,${stops.join(',')},transparent 100%)`);
 }
-/* Repères des moments « À toi » : où sont les exercices sur la barre, et lesquels sont déjà faits. */
+/* Repères des moments « À toi » : où sont les exercices sur la barre (doré : à faire, blanc : fait). */
 function lvPkMarks(){
   const box=LV&&LV.root.querySelector('.lv-pkm'); if(!box)return;
   const ps=LV.video.picks||[], d=LV.video.duration;
   box.innerHTML=d>0?ps.map((p,i)=>{ const a=lvPkGet(LV.id,i), f=Math.min(1,p.t/d).toFixed(4);
-    return `<i class="${a?(a.first?'ok':'try'):''}" data-f="${f}" style="left:calc(9px + ${f} * (100% - 18px))"></i>`; }).join(''):'';
+    return `<i class="${a?'ok':''}" data-f="${f}" style="left:calc(9px + ${f} * (100% - 18px))"></i>`; }).join(''):'';
 }
 /* En glissant sur la barre : le nom du chapitre et le temps, au-dessus du doigt. */
 function lvTip(on){
@@ -20429,8 +20427,10 @@ function lvTip(on){
   clearTimeout(tip._t);
   if(!on){ tip._t=setTimeout(()=>{ tip.classList.remove('on'); tip._t=setTimeout(()=>{tip.hidden=true;},180); },450); return; }
   const V=LV.video, d=V.duration||0, f=LV.seek.value/1000, t=f*d, c=lvChapterAt(t);
-  tip.textContent=(c?`${c.n} · ${c.label}`:'Intro')+' · '+lvFmt(t);
-  const W=LV.seek.getBoundingClientRect().width, x=9+f*(W-18), half=tip.offsetWidth/2||60;
+  const W=LV.seek.getBoundingClientRect().width, ps=V.picks||[], k=d?ps.findIndex(q=>Math.abs(q.t/d-f)*(W-18)<8):-1;
+  /* Sur un point : l’exercice (« À toi 4/6 », coché s’il est fait) ; ailleurs : le chapitre. */
+  tip.textContent=(k>=0?`À toi ${k+1}/${ps.length}${lvPkGet(LV.id,k)?' ✓':''}`:c?`${c.n} · ${c.label}`:'Intro')+' · '+lvFmt(t);
+  const x=9+f*(W-18), half=tip.offsetWidth/2||60;
   tip.style.left=Math.max(half,Math.min(W-half,x)).toFixed(1)+'px';
   tip.hidden=false; tip.classList.add('on');
 }
@@ -20539,6 +20539,7 @@ function lvQClose(answered){
   LV.root.classList.remove('is-q');
   const box=Q.box;
   if(prefersReduceMotion()||!box.animate){ box.remove(); return; }
+  box.style.pointerEvents='none';
   box.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateY(14px)'}],{duration:200,easing:'ease-in',fill:'forwards'}).onfinish=()=>box.remove();
 }
 function lvQPlace(){
@@ -20829,6 +20830,8 @@ function lvPkClose(answered){
   const IX=lvPkIX(); try{ if(IX&&IX.leave)IX.leave(P.i,!!answered); }catch(e){}
   const box=P.box, card=box.querySelector('.lv-pk-card');
   if(prefersReduceMotion()||!card.animate){ box.remove(); return; }
+  /* Pendant le fondu, la carte ne retient plus le doigt : les commandes du dessous répondent tout de suite. */
+  box.style.pointerEvents='none';
   card.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateY(18px)'}],{duration:200,easing:'ease-in',fill:'forwards'}).onfinish=()=>box.remove();
 }
 /* ---------- Mail reçu : toucher la notification pour l’ouvrir ----------
@@ -28817,7 +28820,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1927';
+  const SW_CACHE='requete-2026-10-12-ludique-v1928';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
