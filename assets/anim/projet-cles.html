@@ -224,11 +224,13 @@ const CAPTIONS = [
   [68.9, 74.6,   "C’est donc <b>Léa Simon</b> qui s’est inscrite le 4 septembre, à l’atelier Cuisine saine."],
   [75.2, 80.1,   "Reste un dernier lien : chaque atelier est animé par un coach de la <b>table coachs</b>."],
   [80.25, 82.8,  "À toi !"],
-  [82.9, 88.5,   "Un atelier n’a qu’un coach : on range donc son numéro dans la <b>table ateliers</b>, colonne <code>coach_id</code>."],
+  [82.9, 84.7,   "Dans la table coachs, la case de Moussa Diallo devrait garder deux numéros d’atelier : 2 et 5."],
+  [84.8, 86.6,   "Impossible : une case ne contient qu’une seule valeur."],
+  [86.7, 88.5,   "Dans la <b>table ateliers</b>, en revanche, chaque atelier n’a qu’un coach : une seule case suffit, <code>coach_id</code>."],
   [88.65, 91.2,  "À toi !"],
   [91.3, 95.2,   "Ces deux ateliers ont <code>coach_id = 2</code> : c’est justement l’<code>id</code> de <b>Moussa Diallo</b> dans la table coachs."],
   [95.3, 99.2,   "Un coach, plusieurs ateliers ; un atelier, un seul coach : c’est un lien <b>1 → N</b>."],
-  [99.3, 103.2,  "Dans la table coachs, Moussa Diallo aurait deux numéros d’atelier : la clé va donc du côté « plusieurs »."],
+  [99.3, 103.2,  "La règle : en 1 → N, la clé étrangère va du côté « plusieurs », où chaque ligne n’a qu’un seul numéro à garder."],
   [108.1, 110.65, "À toi !"],
   [110.75, 116.4, "Il suffit d’une ligne de plus : client 1, atelier 4, et la date de cette inscription."],
   [116.5, 122.6, "Sophie Martin suit deux ateliers, et Récupération accueille trois clients : « plusieurs » des deux côtés."],
@@ -519,17 +521,23 @@ function build(){
   const a2 = +(PICKS[2].at + 0.02).toFixed(2);
   tl.set('#tc-at', {'--w3': '180px'}, a2);
   tl.set('#tc-at .c3', {autoAlpha: 1}, a2);
-  $$('#tc-at .r .c3').forEach((c, k) => pulse(c, 83.3 + k * 0.15, 1));
-  cue(83.3, 'tick', 0.5, 2);
+  // pourquoi pas dans la table coachs : la case de Moussa Diallo devrait garder deux numéros, 2 et 5 — impossible, une case ne
+  // contient qu’une seule valeur ; dans la table ateliers, chaque atelier n’a qu’un coach : une seule case suffit
+  tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.0);
+  tl.to('#tc-co .c4', {autoAlpha: 1, duration: 0.3, ease: 'power2.out'}, 83.35);
+  cue(83.4, 'miss', 0.45);
+  tl.to('#tc-co-r2 .c4 .two', {x: -9, duration: 0.07, yoyo: true, repeat: 5, ease: 'power1.inOut'}, 84.95);
+  cue(84.95, 'miss', 0.35);
+  tl.to('#tc-co .c4', {autoAlpha: 0, duration: 0.25, ease: 'power2.in'}, 86.75);
+  tl.to('#tc-co', {'--w4': '0px', duration: 0.45, ease: 'power2.inOut'}, 86.9);
+  $$('#tc-at .r .c3').forEach((c, k) => pulse(c, 87.0 + k * 0.1, 1));
+  cue(87.0, 'tick', 0.5, 2);
   // À toi : les ateliers de Moussa Diallo (réponse : Pilates et Yoga du matin)
   const a3 = +(PICKS[3].at + 0.02).toFixed(2);
   tl.set(M4_ANS.co.concat(M4_ANS.a2, M4_ANS.a5), {autoAlpha: 1}, a3);
   // un coach, plusieurs ateliers : 1 → N
   pop('#tc-rel', 95.5, 0.6);
-  // rangée dans la table coachs, la clé devrait garder deux numéros pour Moussa Diallo : elle va du côté « plusieurs »
-  tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 99.6);
-  tl.to('#tc-co .c4', {autoAlpha: 1, duration: 0.3, ease: 'power2.out'}, 99.95);
-  cue(100.0, 'miss', 0.45);
+  // la règle : la clé étrangère va du côté « plusieurs », dans la table ateliers
   bump($$('#tc-at .hd .c3')[0], 101.6, 1.2);
   hide(['#tc-co', '#tc-at', '#tc-rel'], 103.1, {y: -40}, 0.4);
   sceneOff('#sc', 103.6);
