@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Projet, chapitre 3 : modéliser avec UML</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .sub{font-size:66px}
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+.hid{opacity:0;visibility:hidden}
+/* Aperçu d’un geste (moment « À toi ») : il prend le pas sur la timeline, le temps de l’arrêt ; il montre exactement
+   l’image que la timeline affiche juste après l’arrêt, qui reprend donc sans saut. */
+.pvs{opacity:1!important;visibility:visible!important}
+
+/* Couleur de chaque sujet : coach, atelier, client, carte membre, inscription ; le développeur qui écrit */
+.k-co{--c:#2F80ED;--cs:#E6F0FD;--ci:#1D5FA8}
+.k-at{--c:#E8892B;--cs:#FFF1E2;--ci:#9A5B00}
+.k-cl{--c:#6A4DF4;--cs:#EEE9FF;--ci:#5335E0}
+.k-nb{--c:#D99A0B;--cs:#FFF6DA;--ci:#8A6200}
+.k-in{--c:#169447;--cs:#E2F6EA;--ci:#0F7A3A}
+.k-dv{--c:#0E9F9A;--cs:#DDF5F3;--ci:#0B6E6A}
+
+/* ---------- Les tables du chapitre 2 ---------- */
+.sch{left:64px;width:952px;top:236px;padding:14px 0}
+.srow{padding:16px 36px}
+.srow+.srow{box-shadow:inset 0 2px 0 var(--line-2)}
+.sn{display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:31px;font-weight:800;color:var(--ci)}
+.sn .emo{font-size:32px}
+.sc{margin-top:8px;display:flex;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:25px;font-weight:600;color:var(--ink-3)}
+.sc span{position:relative;height:42px;padding:0 12px;border-radius:12px;background:var(--line-2);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.sc .emo{font-size:20px}
+.sc span.fk{color:var(--ci);background:var(--cs);box-shadow:inset 0 0 0 3px var(--c)}
+
+/* ---------- Le diagramme de classes ---------- */
+.lns{left:0;top:0;overflow:visible}
+.lns line{stroke:#4B4570;stroke-width:5;stroke-linecap:round}
+.lns line.dash{stroke-width:4;stroke-dasharray:14 11;stroke-linecap:butt}
+.cls{width:330px;border-radius:32px;overflow:hidden;padding:0 0 14px}
+.ch{position:relative;height:80px;background:#fff;box-shadow:inset 0 -3px 0 var(--line)}
+.ch .cn{position:absolute;left:0;right:0;top:0;height:80px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:42px;font-weight:800;color:var(--ci);letter-spacing:-.5px}
+.ch .tn{position:absolute;left:24px;right:16px;top:0;height:80px;display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:30px;font-weight:800;color:var(--ci);white-space:nowrap;opacity:0;visibility:hidden}
+.ch .tn .emo{font-size:31px}
+.ars{padding-top:10px}
+.ar{position:relative;isolation:isolate;height:var(--rh,52px);display:flex;align-items:center;gap:8px;padding:0 26px;font-family:var(--mono);font-size:28px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden}
+.ar .emo{font-size:21px}
+.ar.ini{height:0;opacity:0;visibility:hidden}
+.ar.pvs{height:var(--rh,52px)!important}
+.ar.fk{color:var(--fc)}
+.ar .hl{position:absolute;left:10px;right:10px;top:5px;bottom:5px;z-index:-1;border-radius:12px;background:var(--fs);opacity:0}
+.uq{margin-left:8px;height:32px;padding:0 10px;border-radius:9px;background:var(--cs);color:var(--ci);font-family:var(--ui);font-size:17px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;display:inline-flex;align-items:center}
+/* La classe d’association : plus petite, reliée au trait en pointillés */
+.acl{width:300px;border-radius:28px;padding-bottom:12px}
+.acl .ch{height:64px}
+.acl .ch .cn{height:64px;font-size:34px}
+.acl .ch .tn{height:64px;left:18px;font-size:27px}
+.acl .ch .tn .emo{font-size:27px}
+.acl .ars{padding-top:8px}
+.acl .ar{--rh:46px;padding:0 18px;font-size:25px}
+/* Nom d’une association, avec le sens de lecture */
+.asn{display:flex;align-items:center;gap:8px;font-size:30px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.asn i{font-style:normal;font-size:26px;color:var(--accent)}
+#an-po{font-size:28px}
+/* Multiplicité : une pastille à chaque bout */
+.mp{height:58px;padding:0 13px;border-radius:16px;background:#fff;border:3px solid var(--line);box-shadow:0 5px 0 var(--lip);display:flex;align-items:center;font-family:var(--mono);font-size:31px;font-weight:800;color:var(--accent-ink);white-space:nowrap}
+.mp i{font-style:normal}
+.mp.bad{border-color:var(--danger-fill);color:var(--danger);background:var(--danger-soft);box-shadow:0 5px 0 #F6C9CD}
+.mrg{position:absolute;left:-12px;right:-12px;top:-12px;bottom:-12px;border-radius:22px;box-shadow:0 0 0 5px var(--accent);background:rgba(106,77,244,.08);opacity:0;visibility:hidden}
+/* Ce que donnerait une mauvaise idée (moments 1 et 5) */
+.xbad{height:48px;padding:0 14px;border-radius:12px;background:var(--danger-soft);box-shadow:inset 0 0 0 3px var(--danger-fill);color:var(--danger);font-family:var(--mono);font-size:26px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.xghost{width:250px;height:110px;border-radius:26px;border:4px dashed var(--danger-fill);background:#FFF4F4;color:var(--danger);font-family:var(--display);font-size:34px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.miss{display:inline-flex;align-items:center;height:48px;padding:0 14px;border-radius:12px;border:3px dashed #F2A65A;background:#FFF4E5;color:#9A5B00;font-size:23px;font-weight:800;white-space:nowrap}
+.mq{display:flex;justify-content:center;gap:10px}
+/* Gestes : case refusée, boîte qui refuse, case barrée */
+.kof::after{content:"";position:absolute;left:-6px;right:-6px;top:-6px;bottom:-6px;z-index:3;border-radius:18px;background:rgba(239,79,85,.18);box-shadow:inset 0 0 0 4px var(--danger-fill);animation:kof .6s ease forwards}
+@keyframes kof{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+.kob{animation:kob .45s ease}
+@keyframes kob{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+.okb{animation:okb .5s cubic-bezier(.2,.9,.3,1.3)}
+@keyframes okb{40%{transform:scale(1.035)}}
+.ar.strk{color:var(--danger)}
+.ar.strk::after{content:"";position:absolute;left:18px;right:18px;top:50%;height:4px;margin-top:-2px;border-radius:2px;background:var(--danger-fill)}
+@keyframes popIn{0%{transform:scale(.5)}70%{transform:scale(1.07)}100%{transform:none}}
+.mp.pvs,.rc.pvs{animation:popIn .4s cubic-bezier(.2,.9,.3,1.3)}
+
+/* ---------- Les multiplicités ---------- */
+.leg{left:64px;width:952px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.lg{height:84px;padding:0 24px;border-radius:24px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);display:flex;align-items:center;gap:18px;white-space:nowrap}
+.lg b{min-width:84px;font-family:var(--mono);font-size:34px;font-weight:800;color:var(--accent-ink)}
+.lg span{font-size:28px;font-weight:600;color:var(--ink-2)}
+
+/* ---------- Les mails reçus : la notification (l’en-tête seul), puis le mail déplié ---------- */
+.ml{left:64px;width:952px;top:560px;height:184px;padding:0 30px;overflow:hidden}
+.mh{height:178px;display:flex;align-items:center;gap:26px}
+.mav{position:relative;flex:none;width:100px;height:100px;border-radius:50%;background:var(--cs);color:var(--ci);font-family:var(--display);font-size:36px;font-weight:800;font-style:normal;display:flex;align-items:center;justify-content:center}
+.mbg{position:absolute;right:-10px;bottom:-8px;width:44px;height:44px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px var(--line);font-size:23px;display:flex;align-items:center;justify-content:center}
+.mw{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
+.mn{display:flex;align-items:center;gap:14px;white-space:nowrap}
+.mn b{font-size:36px;font-weight:700;color:var(--ink)}
+.mtg{height:36px;padding:0 12px;border-radius:10px;background:var(--cs);color:var(--ci);font-size:20px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center}
+.ms{position:relative;height:38px;white-space:nowrap}
+.ms>span{position:absolute;left:0;top:0;line-height:38px}
+.m0{font-size:29px;font-weight:700;color:var(--accent-ink)}
+.m1{font-family:var(--mono);font-size:27px;font-weight:600;color:var(--ink-3);opacity:0;visibility:hidden}
+.mr{flex:none;align-self:stretch;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:18px}
+.mt{font-size:24px;font-weight:600;color:var(--ink-3)}
+.mdot{position:relative;width:22px;height:22px}
+.mdot::before{content:"";position:absolute;inset:0;border-radius:50%;background:#2F80ED;animation:mdot 1.3s ease-in-out infinite}
+@keyframes mdot{50%{transform:scale(.72);opacity:.65}}
+.mb{padding:24px 4px 28px;box-shadow:inset 0 3px 0 var(--line-2)}
+.mb p{margin:0;font-size:34px;line-height:1.3;font-weight:500;color:var(--ink)}
+.mb .sn2{display:block}
+.mb .sn2+.sn2{margin-top:12px}
+.mb .sn2.s{margin-top:0}
+/* Hors de l’app : le doigt qui touche la notification */
+.tapf{z-index:20;font-size:120px;margin:-8px 0 0 -44px;opacity:0;visibility:hidden}
+
+/* ---------- Ce que devient chaque association ---------- */
+.rbin{width:296px;height:500px;padding:34px 18px 24px;border-radius:40px;border:4px dashed #C9BCFF;background:rgba(255,255,255,.85);display:flex;flex-direction:column;align-items:center}
+.rbin .ri{font-size:66px}
+.rbin .rt{margin-top:20px;font-size:31px;font-weight:800;line-height:1.22;color:var(--accent-ink);text-align:center}
+.rbin .rc{margin-top:auto;width:100%;padding:14px 12px;border-radius:18px;background:var(--accent-soft);color:var(--accent-ink);box-shadow:inset 0 0 0 3px #C9BCFF;text-align:center;opacity:0;visibility:hidden}
+.rbin .rc b{display:block;font-size:27px;font-weight:800;line-height:1.25}
+.rbin .rc span{display:block;margin:4px 0;font-family:var(--mono);font-size:25px;font-weight:700;line-height:1.25;white-space:nowrap}
+.keyc{left:0;width:1080px;display:flex;justify-content:center}
+.keyc>span{height:96px;padding:0 40px 0 26px;border-radius:999px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 9px 0 #4B30CC;color:#fff;font-size:36px;font-weight:700;display:flex;align-items:center;gap:16px;white-space:nowrap}
+.keyc .emo{font-size:44px}
+
+/* ---------- À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:22px;padding:22px 32px}
+#s7 .rico{width:88px;height:88px;border-radius:26px;font-size:46px}
+#s7 .rtxt{font-size:34px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 3</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>U</span><span>M</span><span>L</span></div>
+    <div class="abs sub">Le plan de la base</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Tes tables sont reliées&nbsp;:<br>dessine maintenant leur plan.</div>
+  </section>
+
+  <!-- 1 · Les tables du chapitre 2 -->
+  <section class="scene" id="sa"></section>
+  <!-- Le mail reçu -->
+  <section class="scene" id="sm"></section>
+  <!-- 2 à 5 · Le diagramme de classes, puis les tables qu’il donne -->
+  <section class="scene" id="sb"></section>
+  <!-- 5 · Ce que devient chaque association, puis la suite -->
+  <section class="scene" id="se"></section>
+  <section class="scene" id="sk"></section>
+
+  <!-- 6 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">📐</div><div class="rtxt">Un <b>diagramme de classes</b> est le plan<br>de la base : des classes et leurs attributs,<br>reliées par des associations.</div></div>
+      <div class="rrow"><div class="rico emo">🔢</div><div class="rtxt">Une <b>multiplicité</b> s’écrit à côté de la classe<br>qu’elle compte : 1, 0..1, 0..* ou 1..*.</div></div>
+      <div class="rrow"><div class="rico emo">🧩</div><div class="rtxt">Une classe devient une table. <b>1 — *</b> : une clé<br>étrangère du côté * ; <b>* — *</b> : une table<br>d’association.</div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 187.0;
+
+/* ---------- Le cas : les ateliers NutriBoost (le même dans tous les chapitres du projet) ---------- */
+/* Les tables du chapitre 2 : [clé, emoji, nom, colonnes] ; une clé étrangère s’écrit [colonne, sujet désigné]. */
+const TABLES2 = [
+  ['co', '🧑‍🏫', 'coachs', ['id', 'prenom', 'nom', 'email']],
+  ['at', '📅', 'ateliers', ['id', 'titre', 'date_atelier', ['coach_id', 'co']]],
+  ['cl', '👥', 'clients', ['id', 'prenom', 'nom', 'email', '…']],
+  ['in', '📝', 'inscriptions', ['id', ['client_id', 'cl'], ['atelier_id', 'at'], 'date_inscription']],
+  ['ca', '💳', 'cartes', ['id', ['client_id', 'cl'], 'seances']]
+];
+/* Les classes du diagramme : [clé, nom, attributs] ; chacune devient la table du même sujet. Aucune clé n’y figure. */
+const CLASSES = [['co', 'Coach', ['prenom', 'nom', 'email']], ['ca', 'Carte', ['seances']],
+  ['at', 'Atelier', ['titre', 'date_atelier']], ['cl', 'Client', ['prenom', 'nom', 'email', '…']]];
+/* Les associations : [clé, nom, sens de lecture, classe A, multiplicité à côté de A, classe B, multiplicité à côté de B].
+   Une multiplicité compte les objets de la classe à côté de laquelle elle s’écrit, pour un seul objet de l’autre. */
+const ASSOCS = [['an', 'anime', '▾', 'co', '1', 'at', '0..*'], ['in', 's’inscrit à', '◂', 'cl', '0..*', 'at', '0..*'],
+  ['po', 'possède', '▴', 'cl', '1', 'ca', '0..1']];
+/* La classe d’association : la date décrit l’inscription elle-même, ni le client ni l’atelier. */
+const ACLASS = ['Inscription', ['date_inscription']];
+/* Ce que devient chaque association : la colonne ajoutée, dans quelle table ; s’inscrit à donne sa propre table. */
+const TRAD = {an: ['coach_id', 'at', 'co'], po: ['client_id', 'ca', 'cl'], in: 'inscriptions'};
+const SUJET = {co: ['coachs', 'd’un coach', '🧑‍🏫'], at: ['ateliers', 'd’un atelier', '📅'], cl: ['clients', 'd’un client', '👥'], ca: ['cartes', 'd’une carte', '💳'], in: ['inscriptions', 'd’une inscription', '📝']};
+/* Fond de l’en-tête une fois la classe devenue table (couleur claire de chaque sujet). */
+const CS = {co: '#E6F0FD', at: '#FFF1E2', cl: '#EEE9FF', ca: '#FFF6DA', in: '#E2F6EA'};
+const KC = {co: 'k-co', at: 'k-at', cl: 'k-cl', ca: 'k-nb', in: 'k-in'};
+/* Trois nouvelles associations à traduire (moment 6) : deux viennent de la boutique, dont les tables existent déjà. */
+/* [classe A, multiplicité à côté de A, multiplicité à côté de B, classe B, traduction] */
+const TRANSFERT = [['Atelier', '0..*', '0..*', 'Produit', 'tab'], ['Client', '1', '0..*', 'Commande', 'fk'], ['Client', '1', '0..1', 'Fidélité', 'uq']];
+/* Écrite d’un seul tenant de chaque côté du tiret : « Client 1 — » puis « 0..* Commande », jamais une classe sans sa multiplicité. */
+const asso = ([a, ma, mb, b]) => `${a}\u00a0${ma} — ${mb}\u00a0${b}`;
+const BINS = [['fk', '🔗', 'Une clé<br>étrangère'], ['uq', '🔒', 'Une clé étrangère<br>unique'], ['tab', '📝', 'Une table<br>d’association']];
+/* Ce que répond chaque mauvaise case : association × traduction. */
+const BAD6 = [
+  {fk: '* des deux côtés : une case ne garde qu’un seul numéro, ni d’un côté ni de l’autre.', uq: 'Un produit sert dans plusieurs ateliers : rien ne peut y être unique.'},
+  {uq: '0..* : un client passe plusieurs commandes, son numéro s’y répète.', tab: 'Un seul côté est * : une clé étrangère, du côté Commande, suffit.'},
+  {fk: '0..1 : un client n’a qu’une fiche ; sans unique, il pourrait en avoir deux.', tab: 'Aucun côté n’est * : une clé étrangère suffit.'}
+];
+/* Multiplicités de l’association anime à placer (moment 2) : [étiquette, classe qu’elle compte, réponse à une erreur]. */
+const PLACE = [['1', 'co', 'À côté d’Atelier, on compte les ateliers d’un coach : Moussa Diallo en anime deux.'],
+  ['0..*', 'at', 'À côté de Coach, on compte les coachs d’un atelier : chaque atelier n’en a qu’un.']];
+
+const CHAPTERS = [
+  {n:1, label:'Le plan',                 a:5.0,   b:27.5},
+  {n:2, label:'Les classes',             a:27.5,  b:53.7},
+  {n:3, label:'Les multiplicités',       a:53.7,  b:100.8},
+  {n:4, label:'Lire le diagramme',       a:100.8, b:115.5},
+  {n:5, label:'Du diagramme aux tables', a:115.5, b:174.4},
+  {n:6, label:'À retenir',               a:174.4, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). Pendant le mail, la légende s’efface : le mail a la parole. */
+const CAPTIONS = [
+  [5.3, 10.8,    "Au chapitre 2, tu as relié tes cinq tables par des clés étrangères."],
+  [10.9, 16.0,   "Mais pour voir les liens, il faut chercher ces clés, table par table."],
+  [21.7, 27.4,   "Pour dessiner ce plan, on utilise un <b class=\"nw\">diagramme de classes UML</b>."],
+  [27.7, 33.4,   "Chaque sujet devient une <b>classe</b> : une boîte qui porte son nom, puis la liste de ses <b>attributs</b>."],
+  [33.5, 39.35,  "Aucune clé ici : le diagramme décrit les sujets, pas la façon de les ranger."],
+  [39.45, 42.0,  "À toi !"],
+  [42.1, 47.9,   "Ce trait est une <b>association</b>. Elle se lit dans le sens du triangle : un coach anime des ateliers."],
+  [48.0, 53.5,   "Deux autres associations suivent : un client <b>s’inscrit à</b> des ateliers, et <b>possède</b> une carte membre."],
+  [53.9, 59.5,   "Aux deux bouts d’une association, une <b>multiplicité</b> indique combien d’objets sont reliés."],
+  [59.6, 65.65,  "On l’écrit à côté de la classe qu’elle compte : combien de ses objets, pour un seul objet en face ?"],
+  [65.75, 68.3,  "À toi !"],
+  [68.4, 74.3,   "Un atelier a un seul coach : <b>1</b>, à côté de Coach. Un coach anime zéro, un ou plusieurs ateliers : <b>0..*</b>."],
+  [74.4, 80.25,  "Pour <b>s’inscrit à</b> : un client suit zéro, un ou plusieurs ateliers, donc <b>0..*</b> à côté d’Atelier."],
+  [80.35, 82.9,  "À toi !"],
+  [83.0, 88.8,   "Yoga du matin n’a encore aucun inscrit, Récupération en a trois : on écrit <b>0..*</b> à côté de Client."],
+  [88.9, 94.7,   "La date d’inscription décrit le lien : elle va dans une <b>classe d’association</b>, accrochée au trait par des pointillés."],
+  [94.8, 100.6,  "Enfin, un client possède une carte membre ou aucune : <b>0..1</b> ; une carte a un seul client : <b>1</b>."],
+  [101.0, 106.65, "Le plan est complet : il se lit sans ouvrir une seule table."],
+  [106.75, 109.3, "À toi !"],
+  [109.4, 115.3, "Le maximum de 0..1 vaut 1 : pas de deuxième carte. C’est le <code>client_id</code> unique du chapitre 2."],
+  [115.7, 121.6, "Pour créer la base, chaque classe devient une <b>table</b>, avec sa clé primaire <code>id</code> ; chaque attribut, une colonne."],
+  [121.7, 127.3, "Pour une association, seul le <b>maximum</b> de chaque bout compte : 1 ou *."],
+  [127.4, 133.2, "<b>anime</b>, 1 — 0..* : la clé étrangère <code>coach_id</code> se range du côté *, dans la <b>table ateliers</b>."],
+  [133.3, 139.1, "<b>possède</b>, 1 — 0..1 : <code>client_id</code> va dans la <b>table cartes</b>, et devient unique."],
+  [139.2, 145.25, "<b>s’inscrit à</b>, * des deux côtés : elle devient une <b>table d’association</b>, la table inscriptions."],
+  [145.35, 147.9, "À toi !"],
+  [148.0, 153.9, "Ses deux clés étrangères, plus l’attribut de la classe d’association : c’est la table de jointure du chapitre 2."],
+  [154.0, 159.95, "Et avec d’autres classes ? Les règles restent exactement les mêmes."],
+  [160.05, 162.6, "À toi !"],
+  [162.7, 168.6, "Un côté * donne une clé étrangère ; aucun côté *, une clé étrangère unique ; deux côtés *, une table d’association."],
+  [168.7, 174.2, "Dans le prochain module, tu créeras ces tables avec <code>CREATE TABLE</code>."],
+  [174.8, 179.6, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [179.7, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [179.7, 999, "Un plan d’abord, les tables ensuite : c’est ainsi qu’on conçoit une base."]
+];
+
+/* Pas de question du lecteur : les moments « À toi » (PICKS) font participer l’élève. */
+const QUESTIONS = [];
+
+/* Les six moments « À toi » : l’image s’arrête, l’élève choisit, place ou touche ; la page montre aussitôt le résultat.
+   from : début du passage qui amène chaque moment, d’où repartent « ↺ Revoir » et « Rejouer ». */
+const PICKS = [
+  {at: 41.8, from: 27.5, kind: 'pick', text: true, prompt: 'Comment montrer qu’un coach anime des ateliers ?', options: [
+    {label: 'Un attribut coach_id dans la classe Atelier', why: 'Le diagramme ne montre aucune clé : coach_id n’apparaîtra qu’en créant les tables.'},
+    {label: 'Un trait entre Coach et Atelier, nommé «\u00a0anime\u00a0»', ok: true},
+    {label: 'Une nouvelle classe Animation', why: 'Une classe décrit un sujet, avec ses attributs : ici, il n’y a qu’un lien entre deux classes.'}]},
+  {at: 68.1, from: 53.7, kind: 'sort', prompt: 'Place chaque multiplicité au bon bout de l’association « anime ».',
+    hint: 'Touche une multiplicité ci-dessous, puis la classe qu’elle compte. Tu peux aussi la faire glisser.', next: '{x} : touche maintenant la classe qu’elle compte.',
+    options: PLACE.map(p => ({label: p[0]}))},
+  {at: 82.7, from: 74.4, kind: 'pick', prompt: 'Et à côté de Client : combien de clients pour un atelier ?', options: [
+    {label: '1..*', why: 'Yoga du matin n’a encore aucun inscrit : le minimum est 0.'},
+    {label: '0..1', why: 'Récupération accueille trois clients : le maximum est *.'},
+    {label: '0..*', ok: true}]},
+  {at: 109.1, from: 100.8, kind: 'tap', need: 1, prompt: 'Touche la multiplicité qui interdit à un client d’avoir deux cartes.'},
+  {at: 147.7, from: 139.2, kind: 'pick', text: true, prompt: 'Quelles colonnes pour la table inscriptions ?', options: [
+    {label: 'id, date_inscription', why: 'Sans clés étrangères, impossible de savoir qui s’est inscrit où : c’était le problème du chapitre 2.'},
+    {label: 'id, client_id, atelier_id, date_inscription', ok: true},
+    {label: 'id, client_id, atelier_id', why: 'date_inscription, l’attribut de la classe d’association, devient aussi une colonne.'}]},
+  {at: 162.4, from: 154.0, kind: 'sort', prompt: 'Range chaque association selon ce qu’elle devient.',
+    hint: 'Touche une association ci-dessous, puis ce qu’elle devient. Tu peux aussi la faire glisser.', next: '{x} : touche maintenant ce qu’elle devient.',
+    options: TRANSFERT.map(t => ({label: asso(t)}))}
+];
+
+/* Le mail reçu : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse d’envoi, demande, signature].
+   Il arrive en notification ; l’app s’arrête dessus (OPENS) jusqu’à ce que l’élève le touche ; il se déplie alors. */
+const MAILS = [
+  [['Karim', 'Benali', 'KB'], 'k-dv', 'développeur', 'karim@nutriboost.fr', 'Je vais créer la base des ateliers. Peux-tu m’envoyer son plan, avec ses sujets et leurs liens, lisible d’un coup d’œil ?', 'Karim']
+];
+const OPENS = [17.7].map((t, n) => ({at: t, sel: '#ml' + (n + 1), prompt: 'Touche le mail pour l’ouvrir.', label: `Ouvrir le mail de ${MAILS[n][0][0]} ${MAILS[n][0][1]}`}));
+
+/* ---------- Gabarits ---------- */
+const col = c => Array.isArray(c) ? `<span class="fk ${KC[c[1]]}"><span class="emo">🔗</span>${c[0]}</span>`
+  : `<span>${c === 'id' ? '<span class="emo">🔑</span>' : ''}${c}</span>`;
+/* Une ligne d’attribut ; ini : ajoutée en devenant table (cachée au départ) ; fk : clé étrangère (couleur du sujet désigné). */
+const arow = (id, txt, o = {}) => `<div class="ar${o.ini ? ' ini' : ''}${o.pk ? ' pk' : ''}${o.fk ? ' fk' : ''}" id="${id}"${o.fk ? ` style="--fc:${o.fk[0]};--fs:${o.fk[1]}"` : ''}>` +
+  `${o.fk ? '<i class="hl"></i>' : ''}${o.pk ? '<span class="emo">🔑</span>' : o.fk ? '<span class="emo">🔗</span>' : ''}${txt}${o.uq ? '<b class="uq" id="uq">unique</b>' : ''}</div>`;
+const FKC = {co: ['#1D5FA8', '#E6F0FD'], cl: ['#5335E0', '#EEE9FF'], at: ['#9A5B00', '#FFF1E2']};
+/* Une classe : son nom (puis, devenue table, l’emoji et le nom de la table), ses attributs ; la clé primaire et la clé étrangère, cachées. */
+function classBox([k, name, attrs]){
+  let h = `<div class="abs card cls ${KC[k]}" id="cb-${k}"><div class="ch"><span class="cn">${name}</span><span class="tn"><span class="emo">${SUJET[k][2]}</span>${SUJET[k][0]}</span></div><div class="ars">`;
+  h += arow(`cb-${k}-pk`, 'id', {ini: true, pk: true});
+  h += attrs.map((a, j) => arow(`cb-${k}-a${j}`, a)).join('');
+  const fk = Object.entries(TRAD).find(([, v]) => Array.isArray(v) && v[1] === k);
+  if (fk) h += arow(`cb-${k}-fk`, fk[1][0], {ini: true, fk: FKC[fk[1][2]], uq: fk[0] === 'po'});
+  return h + '</div></div>';
+}
+function dom(){
+  /* 1 · Les tables du chapitre 2 : chaque clé étrangère, de la couleur de la table qu’elle désigne */
+  $('#sa').innerHTML = '<div class="abs card sch" id="sch">' + TABLES2.map(([k, emo, name, cols]) =>
+    `<div class="srow ${KC[k]}" id="sr-${k}"><div class="sn"><span class="emo">${emo}</span>${name}</div><div class="sc">${cols.map(col).join('')}</div></div>`).join('') + '</div>';
+  /* Le mail */
+  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
+    `<div class="mw"><div class="mn"><b>${w[0]} ${w[1]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
+    `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', body, 'Merci !', sign].map((x, j) => `<span class="sn2${j === 3 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
+    '<div class="abs emo tapf" id="tapf">👆</div>';
+  /* 2 à 5 · Le diagramme : les traits (sous les boîtes), les classes, la classe d’association, les noms et les multiplicités */
+  let b = '<svg class="abs lns" width="1080" height="1920" viewBox="0 0 1080 1920" aria-hidden="true"><line id="ln-an"/><line id="ln-po"/><line id="ln-in"/><line id="ln-cx" class="dash"/></svg>';
+  b += CLASSES.map(classBox).join('');
+  b += `<div class="abs card cls acl k-in" id="ab"><div class="ch"><span class="cn">${ACLASS[0]}</span><span class="tn"><span class="emo">📝</span>inscriptions</span></div><div class="ars">` +
+    arow('ib-r0', 'id', {ini: true, pk: true}) + arow('ib-r1', 'client_id', {ini: true, fk: FKC.cl}) + arow('ib-r2', 'atelier_id', {ini: true, fk: FKC.at}) +
+    arow('ib-r3', ACLASS[1][0]) + '</div></div>';
+  b += ASSOCS.map(([k, name, dir]) => `<div class="abs asn" id="an-${k}">${dir === '◂' ? `<i>${dir}</i>${name}` : `${name}<i>${dir}</i>`}</div>`).join('');
+  b += ASSOCS.map(([k, , , a, ma, c, mc]) => [[a, ma], [c, mc]].map(([s, m]) =>
+    `<div class="abs mp" id="mp-${k}-${s}">${m.length > 1 ? `<i class="mn">${m.slice(0, -1)}</i><i class="mx">${m.slice(-1)}</i>` : `<i class="mx">${m}</i>`}<span class="mrg" id="rg-${k}-${s}"></span></div>`).join('')).join('');
+  b += '<div class="abs leg" id="leg">' + [['1', 'exactement un'], ['0..1', 'zéro ou un'], ['0..*', 'zéro ou plusieurs'], ['1..*', 'au moins un']]
+    .map(([m, t]) => `<div class="lg"><b>${m}</b><span>${t}</span></div>`).join('') + '</div>';
+  /* Ce que donneraient les mauvaises idées : coach_id dans la classe Atelier, une classe Animation, une autre multiplicité, des clés oubliées */
+  b += '<div class="abs xbad hid" id="xm1">coach_id</div><div class="abs xghost hid" id="xm2">Animation</div><div class="abs mp bad hid" id="xm3"><i>?</i></div>';
+  b += '<div class="abs mq hid" id="xm5"><span class="miss">? client</span><span class="miss">? atelier</span></div>';
+  $('#sb').innerHTML = b;
+  /* 5 · Ce que devient chaque association : trois cases, chacune reçoit son exemple */
+  /* l’exemple rangé : la classe A, les deux multiplicités, la classe B, l’une sous l’autre */
+  $('#se').innerHTML = BINS.map(([k, ico, t], q) => { const n = TRANSFERT.findIndex(x => x[4] === k), [a, ma, mb, c] = TRANSFERT[n];
+    return `<div class="abs rbin" id="rb-${k}" data-k="${k}" style="left:${64 + q * 328}px;top:560px"><div class="ri emo">${ico}</div><div class="rt">${t}</div>` +
+      `<div class="rc" id="rc${n}"><b>${a}</b><span>${ma} — ${mb}</span><b>${c}</b></div></div>`; }).join('');
+  $('#sk').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🛠️</span>Prochaine leçon · CREATE TABLE</span></div>';
+}
+
+/* ---------- Mise en page ---------- */
+const MH = [];   // hauteur du mail déplié
+const G = {};    // géométrie du diagramme
+const box = s => { const el = $(s); return {x: el.offsetLeft, y: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight}; };
+const at2 = (s, x, y) => { const el = $(s); el.style.left = Math.round(x) + 'px'; el.style.top = Math.round(y) + 'px'; return el; };
+function layout(){
+  // Les classes : Coach et Carte en haut, Atelier et Client en bas ; la classe d’association entre les deux rangées
+  at2('#cb-co', 64, 236); at2('#cb-ca', 686, 236); at2('#cb-at', 64, 900); at2('#cb-cl', 686, 900);
+  const co = box('#cb-co'), ca = box('#cb-ca'), atl = box('#cb-at'), cl = box('#cb-cl');
+  at2('#ab', 540 - 150, 590);
+  const A = box('#ab');
+  const xa = co.x + co.w / 2, xp = ca.x + ca.w / 2, yi = atl.y + atl.h / 2;
+  Object.assign(G, {co, ca, atl, cl, A, xa, xp, yi});
+  const line = (id, x1, y1, x2, y2) => { const l = $(id); [['x1', x1], ['y1', y1], ['x2', x2], ['y2', y2]].forEach(([k, v]) => l.setAttribute(k, Math.round(v))); };
+  line('#ln-an', xa, co.y + co.h, xa, atl.y);
+  line('#ln-po', xp, ca.y + ca.h, xp, cl.y);
+  line('#ln-in', atl.x + atl.w, yi, cl.x, yi);
+  line('#ln-cx', 540, A.y + A.h, 540, yi);
+  // Noms : anime à gauche de son trait, possède à droite du sien, s’inscrit à sous le trait
+  const an = $('#an-an'), ap = $('#an-po'), ai = $('#an-in');
+  at2('#an-an', xa - 20 - an.offsetWidth, (co.y + co.h + atl.y) / 2 - an.offsetHeight / 2);
+  at2('#an-po', xp + 20, (ca.y + ca.h + cl.y) / 2 - ap.offsetHeight / 2);
+  at2('#an-in', 540 - ai.offsetWidth / 2, yi + 16);
+  // Multiplicités : au bout de chaque trait, à côté de la classe qu’elles comptent
+  const mp = id => $('#mp-' + id);
+  // (écart d’au moins 24 px avec chaque boîte, ombre comprise : 9 px sous une carte, 5 px sous une pastille)
+  at2('#mp-an-co', xa + 22, co.y + co.h + 9 + 24);
+  at2('#mp-an-at', xa + 22, atl.y - 24 - 5 - mp('an-at').offsetHeight);
+  at2('#mp-po-ca', xp - 22 - mp('po-ca').offsetWidth, ca.y + ca.h + 9 + 24);
+  at2('#mp-po-cl', xp - 22 - mp('po-cl').offsetWidth, cl.y - 24 - 5 - mp('po-cl').offsetHeight);
+  at2('#mp-in-at', atl.x + atl.w + 24, yi - 18 - 5 - mp('in-at').offsetHeight);
+  at2('#mp-in-cl', cl.x - 24 - mp('in-cl').offsetWidth, yi - 18 - 5 - mp('in-cl').offsetHeight);
+  // Mauvaises idées : la multiplicité essayée à la place de celle de Client, coach_id dans Atelier, la classe Animation sur le trait
+  const r = box('#mp-in-cl'), x3 = $('#xm3');
+  at2('#xm3', r.x + r.w - x3.offsetWidth, r.y);
+  at2('#xm1', atl.x + 26, atl.y + atl.h + 9 + 22);
+  at2('#xm2', xa - 125, (co.y + co.h + atl.y) / 2 - 55);
+  at2('#xm5', A.x + A.w / 2 - $('#xm5').offsetWidth / 2, A.y + A.h + 14);
+  // Les multiplicités, rappelées sous le diagramme
+  $('#leg').style.top = (cl.y + cl.h + 9 + 40) + 'px';
+  // Le mail : hauteur une fois déplié
+  $$('.ml').forEach((el, n) => { el.style.height = 'auto'; MH[n + 1] = el.offsetHeight; el.style.height = ''; });
+}
+
+/* ---------- Petits gestes de la timeline ---------- */
+const bump = (el, t, s = 1.04) => tl.to(el, {scale: s, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, t);
+const pop = (el, t, s = 0.4) => { show(el, t, {y: 0, scale: s}, 0.4, 'back.out(2.2)'); cue(t, 'pop', 0.7, 3); };
+const on = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 1, duration: d, ease: 'power2.out'}, t);
+const off = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 0, duration: d, ease: 'power2.in'}, t);
+const pulse = (el, t, n = 3, c = 'rgba(201,188,255,.55)') => tl.to(el, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+/* Un trait qui se dessine depuis son premier bout. */
+function draw(id, t, d = 0.5){
+  const l = $(id), x1 = +l.getAttribute('x1'), y1 = +l.getAttribute('y1'), x2 = +l.getAttribute('x2'), y2 = +l.getAttribute('y2');
+  tl.set(id, {autoAlpha: 1}, t);
+  tl.fromTo(id, {attr: {x2: x1, y2: y1}}, {attr: {x2, y2}, duration: d, ease: 'power2.inOut', immediateRender: false}, t);
+  cue(t, 'whoosh', 0.35);
+}
+/* Une ligne ajoutée à une table : elle s’ouvre, puis s’allume. */
+function addRow(id, t, h = 52){
+  tl.to(id, {height: h, autoAlpha: 1, duration: 0.4, ease: 'power2.inOut'}, t);
+  cue(t + 0.1, 'tick', 0.5, 2);
+}
+/* La classe devient table : l’en-tête prend la couleur du sujet, le nom de la table remplace celui de la classe, la clé primaire arrive. */
+function toTable(k, t){
+  const s = k === 'in' ? '#ab' : '#cb-' + k;
+  tl.to(s + ' .ch', {backgroundColor: CS[k], duration: 0.4, ease: 'power2.out'}, t);
+  tl.to(s + ' .cn', {autoAlpha: 0, y: -18, duration: 0.25, ease: 'power2.in'}, t);
+  tl.fromTo(s + ' .tn', {autoAlpha: 0, y: 18}, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out', immediateRender: false}, t + 0.15);
+  cue(t + 0.15, 'pop', 0.5, 2);
+}
+const capOff = t => tl.to('#cap', {autoAlpha: 0, y: 30, duration: 0.3, ease: 'power2.in'}, t);
+const capOn = t => tl.to('#cap', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, t);
+/* Un mail arrive : la notification tombe (avatar, enveloppe, pastille « non lu »). À T, l’élève la touche (l’app s’arrête là,
+   moment OPENS ; hors de l’app, un doigt le montre) : elle s’enfonce, l’adresse de l’expéditeur remplace « Nouveau mail »,
+   puis elle se déplie en mail, ligne après ligne. L’image reste le temps de lire la demande. */
+function mailIn(n, t, T){
+  const m = '#ml' + n, sn = $$(m + ' .sn2');
+  show(m, t, {y: -36, scale: 0.94}, 0.55, 'back.out(1.7)');
+  cue(t, 'mail', 0.8);
+  show(m + ' .mav', t + 0.12, {y: 0, scale: 0.5}, 0.4, 'back.out(2.4)');
+  show(m + ' .mbg', t + 0.3, {y: 0, scale: 0, rotation: -30}, 0.4, 'back.out(3)');
+  show(m + ' .mdot', t + 0.42, {y: 0, scale: 0}, 0.3, 'back.out(3)');
+  if (!APP) fingerTap($(m), T);
+  tl.to(m, {scale: 0.975, duration: 0.09, ease: 'power2.out'}, T);
+  tl.to(m, {scale: 1, duration: 0.3, ease: 'back.out(2.5)'}, T + 0.09);
+  cue(T, 'click', 0.5);
+  tl.to(m + ' .mdot', {autoAlpha: 0, scale: 0, duration: 0.2}, T + 0.05);
+  tl.to(m + ' .m0', {autoAlpha: 0, y: -16, duration: 0.2}, T + 0.1);
+  tl.fromTo(m + ' .m1', {autoAlpha: 0, y: 16}, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power3.out', immediateRender: false}, T + 0.2);
+  tl.to(m, {height: MH[n], duration: 0.5, ease: 'power3.inOut'}, T + 0.12);
+  cue(T + 0.12, 'whoosh', 0.35);
+  gsap.set(sn, {autoAlpha: 0, y: 14});
+  sn.forEach((s, k) => { tl.to(s, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, T + 0.4 + k * 0.28); cue(T + 0.4 + k * 0.28, 'tick', 0.4, k + 2); });
+  const end = T + 0.4 + (sn.length - 1) * 0.28 + 0.35;
+  hold(end + 0.05, Math.ceil(readTime(sn[1].textContent) * 20) / 20);
+  return end;
+}
+function mailOut(n, t){ hide('#ml' + n, t, {x: 140, y: 0, rotation: 2}, 0.4, 'power2.in'); cue(t, 'whoosh', 0.4); }
+/* Hors de l’app (vidéo seule), un doigt montre le geste : il touche la notification. */
+function fingerTap(M, T){
+  const f = '#tapf';
+  tl.set(f, {left: M.offsetLeft + M.offsetWidth * 0.6, top: M.offsetTop + 92}, T - 0.8);
+  tl.fromTo(f, {autoAlpha: 0, x: 90, y: 170}, {autoAlpha: 1, x: 0, y: 0, duration: 0.5, ease: 'power3.out', immediateRender: false}, T - 0.75);
+  tl.to(f, {scale: 0.86, duration: 0.1, ease: 'power2.in'}, T - 0.15);
+  tl.to(f, {scale: 1, duration: 0.15}, T);
+  tl.to(f, {autoAlpha: 0, y: 70, duration: 0.3}, T + 0.2);
+}
+
+/* Réponses des moments « À toi » : ce que la timeline montre juste après l’arrêt (et que l’aperçu montre pendant l’arrêt). */
+const M1_ANS = ['#ln-an', '#an-an'];
+const M5_ANS = ['#ib-r0', '#ib-r1', '#ib-r2'];
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
+  layout();
+  gsap.set(['.sch', '.ml', '.cls', '.asn', '.mp', '.lg', '.rbin', '#keyc', '#tapf', '.lns line'], {autoAlpha: 0});
+  gsap.set('.ar.ini', {height: 0, autoAlpha: 0});
+
+  /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
+     la consigne, la légende ne la répète pas. Le passage d’attente est coupé (rien ne s’y anime). */
+  PICKS.forEach(p => cut(p.at - 1.35, 1.25));
+
+  /* ===== 1 · Le plan ===== */
+  sceneOn('#sa', 5.0);
+  show('#sch', 5.3, {y: 60}, 0.6); cue(5.3, 'whoosh', 0.5);
+  gsap.set('.srow', {autoAlpha: 0, x: -30});
+  $$('.srow').forEach((r, q) => { tl.to(r, {autoAlpha: 1, x: 0, duration: 0.4, ease: 'power3.out'}, 5.6 + q * 0.22); cue(5.6 + q * 0.22, 'tick', 0.4, q); });
+  // les liens sont cachés dans les clés étrangères
+  $$('.sc span.fk').forEach((f, q) => { bump(f, 11.6 + q * 0.5, 1.12); cue(11.6 + q * 0.5, 'tick', 0.5, q + 2); });
+  hide('#sch', 15.9, {y: -40}, 0.4);
+  sceneOff('#sa', 16.4);
+  // le mail de Karim Benali
+  capOff(16.1);
+  sceneOn('#sm', 16.4);
+  mailIn(1, 16.5, OPENS[0].at);
+  mailOut(1, 20.0);
+  sceneOff('#sm', 20.5);
+  capOn(21.5);
+  // le diagramme : quatre classes, encore sans liens
+  sceneOn('#sb', 20.6);
+  [['#cb-co', 21.8], ['#cb-ca', 22.0], ['#cb-at', 22.2], ['#cb-cl', 22.4]].forEach(([s, t], q) => { show(s, t, {y: 50, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(t, 'pop', 0.55, q); });
+
+  /* ===== 2 · Les classes ===== */
+  CLASSES.forEach(([k], q) => { bump(`#cb-${k} .cn`, 28.6 + q * 0.3, 1.12); cue(28.6 + q * 0.3, 'tick', 0.45, q); });
+  $$('#sb .ar:not(.ini)').forEach((r, q) => pulse(r, 30.4 + q * 0.07, 1));
+  // À toi : comment montrer le lien (réponse : un trait nommé « anime »)
+  const a0 = +(PICKS[0].at + 0.02).toFixed(2);
+  tl.set(M1_ANS, {autoAlpha: 1}, a0);
+  // les deux autres associations
+  draw('#ln-in', 48.6); show('#an-in', 49.0, {y: 12}, 0.4);
+  draw('#ln-po', 50.6); show('#an-po', 51.0, {y: 12}, 0.4);
+
+  /* ===== 3 · Les multiplicités ===== */
+  gsap.set('.lg', {autoAlpha: 0, y: 30});
+  $$('.lg').forEach((g, q) => { tl.to(g, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'back.out(1.6)'}, 54.6 + q * 0.25); cue(54.6 + q * 0.25, 'pop', 0.5, q); });
+  // À toi : 1 à côté de Coach, 0..* à côté d’Atelier
+  const a1 = +(PICKS[1].at + 0.02).toFixed(2);
+  tl.set(['#mp-an-co', '#mp-an-at'], {autoAlpha: 1}, a1);
+  hide('.lg', 74.45, {y: 30}, 0.35);
+  // s’inscrit à : 0..* à côté d’Atelier
+  pop('#mp-in-at', 77.4, 0.5);
+  // À toi : à côté de Client (réponse : 0..*)
+  const a2 = +(PICKS[2].at + 0.02).toFixed(2);
+  tl.set('#mp-in-cl', {autoAlpha: 1}, a2);
+  // la classe d’association, accrochée au trait en pointillés
+  draw('#ln-cx', 89.8, 0.35);
+  show('#ab', 90.1, {y: 30, scale: 0.92}, 0.5, 'back.out(1.6)'); cue(90.1, 'pop', 0.55, 4);
+  tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25, yoyo: true, repeat: 3}, 91.2);
+  // possède : 1 à côté de Client, 0..1 à côté de Carte
+  pop('#mp-po-cl', 97.0, 0.5);
+  pop('#mp-po-ca', 98.4, 0.5);
+
+  /* ===== 4 · Lire le diagramme ===== */
+  bump(['#cb-co', '#cb-ca', '#cb-at', '#cb-cl', '#ab'], 101.6, 1.03);
+  // À toi : la multiplicité qui interdit deux cartes (réponse : 0..1, à côté de Carte)
+  const a3 = +(PICKS[3].at + 0.02).toFixed(2);
+  tl.set('#rg-po-ca', {autoAlpha: 1}, a3);
+  tl.to('#rg-po-ca', {autoAlpha: 0, duration: 0.35}, 115.2);
+
+  /* ===== 5 · Du diagramme aux tables ===== */
+  // chaque classe devient une table, avec sa clé primaire
+  [['co', 116.4], ['ca', 116.7], ['at', 117.0], ['cl', 117.3]].forEach(([k, t]) => { toTable(k, t); addRow(`#cb-${k}-pk`, t + 0.35); });
+  // les deux multiplicités du haut descendent avec leur table
+  tl.to('#mp-an-co', {y: 52, duration: 0.4, ease: 'power2.inOut'}, 116.75);
+  tl.to('#mp-po-ca', {y: 52, duration: 0.4, ease: 'power2.inOut'}, 117.05);
+  // seul le maximum compte
+  tl.to('.mp .mn', {opacity: 0.28, duration: 0.4, ease: 'power2.out'}, 122.7);
+  $$('#sb .mp:not(.bad)').forEach((m, q) => bump(m, 123.3 + q * 0.12, 1.12));
+  // anime : coach_id dans la table ateliers
+  off(['#ln-an', '#an-an', '#mp-an-co', '#mp-an-at'], 128.6, 0.35);
+  addRow('#cb-at-fk', 129.0);
+  tl.to('#cb-at-fk .hl', {opacity: 1, duration: 0.25, yoyo: true, repeat: 3}, 129.5);
+  // possède : client_id unique dans la table cartes
+  off(['#ln-po', '#an-po', '#mp-po-cl', '#mp-po-ca'], 134.5, 0.35);
+  addRow('#cb-ca-fk', 134.9);
+  tl.to('#cb-ca-fk .hl', {opacity: 1, duration: 0.25, yoyo: true, repeat: 3}, 135.4);
+  bump('#uq', 136.4, 1.2); cue(136.4, 'pop', 0.6, 4);
+  // s’inscrit à : sa propre table, d’après la classe d’association
+  off(['#ln-in', '#an-in', '#mp-in-at', '#mp-in-cl', '#ln-cx'], 140.4, 0.35);
+  toTable('in', 141.0);
+  // À toi : les colonnes de la table inscriptions (réponse : id, client_id, atelier_id, date_inscription)
+  const a4 = +(PICKS[4].at + 0.02).toFixed(2);
+  tl.set(M5_ANS, {height: 46, autoAlpha: 1}, a4);
+  tl.to(['#ib-r1 .hl', '#ib-r2 .hl'], {opacity: 1, duration: 0.25, yoyo: true, repeat: 3}, 148.6);
+  tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25, yoyo: true, repeat: 3}, 150.6);
+  hide(['#cb-co', '#cb-ca', '#cb-at', '#cb-cl', '#ab'], 154.0, {y: -40}, 0.4);
+  sceneOff('#sb', 154.45);
+  // trois nouvelles associations à traduire
+  sceneOn('#se', 154.45);
+  $$('.rbin').forEach((b, q) => { show(b, 154.55 + q * 0.15, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(154.55 + q * 0.15, 'pop', 0.6, q); });
+  // À toi : chaque association à sa place
+  const a5 = +(PICKS[5].at + 0.02).toFixed(2);
+  tl.set('.rbin .rc', {autoAlpha: 1}, a5);
+  hide($$('.rbin'), 168.7, {y: -40}, 0.4);
+  sceneOff('#se', 169.15);
+  // la suite : créer les tables
+  sceneOn('#sk', 169.15);
+  show('#keyc', 169.25, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)');
+  cue(169.25, 'whoosh', 0.6);
+  tl.to('#keyc .emo', {rotation: -18, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, 169.85);
+  hide('#keyc', 173.9, {y: -30}, 0.4);
+  sceneOff('#sk', 174.4);
+
+  /* ===== 6 · À retenir ===== */
+  recapScene(174.4, [175.1, 176.9, 178.7]);
+  // le temps de lire chaque idée avant la suivante
+  const rt = $$('#s7 .rtxt');
+  hold(176.7, Math.ceil(readTime(rt[0].innerHTML) * 20) / 20);
+  hold(178.5, Math.ceil(readTime(rt[1].innerHTML) * 20) / 20);
+  if (APP) cue(179.75, 'pop', 0.85, 5);
+}
+
+/* ---------- Moments « À toi » : ce que montre chaque geste ----------
+   Le lecteur arrête l’image à chaque moment (PICKS) et pose ses zones tactiles sur les endroits que la page décrit
+   (IX.spots). Chaque geste est jugé ici (IX.act, IX.pick) et montré aussitôt sur l’image : les bons gestes affichent
+   les mêmes éléments que la timeline juste après l’arrêt (classe pvs, sans toucher aux styles de la timeline) ;
+   ils restent jusqu’à ce que la timeline affiche la même image (IX.tick), puis s’effacent : la reprise est invisible. */
+const IX = (() => {
+  let X = null, wait = -1;
+  function start(i){ if (!X || X.i !== i) { clear(); X = {i, cls: [], tm: [], got: new Set()}; } }
+  function clear(){
+    if (!X) return;
+    X.tm.forEach(clearTimeout);
+    X.cls.forEach(([e, c]) => e.classList.remove(c));
+    X = null; wait = -1;
+  }
+  const mark = (e, c = 'pvs') => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
+  const marks = (sels, c = 'pvs') => sels.forEach(s => $$(s).forEach(e => mark(e, c)));
+  const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
+  const pad = (r, p) => ({x: r.x - p, y: r.y - p, w: r.w + 2 * p, h: r.h + 2 * p});
+  /* Les six multiplicités du diagramme : [clé de la zone, valeur, classe comptée, l’autre classe]. */
+  const MPS = ASSOCS.flatMap(([k, , , a, ma, c, mc]) => [[`${k}-${a}`, ma, a, c], [`${k}-${c}`, mc, c, a]]);
+  const NOM = Object.fromEntries(CLASSES.map(c => [c[0], c[1]]));
+  function spots(i){
+    if (i === 1) {
+      const A = rel($('#cb-co')), B = rel($('#cb-at')), mid = (A.y + A.h + B.y) / 2;
+      return [{k: 'co', label: 'Classe Coach', x: A.x, y: A.y, w: A.w, h: mid - A.y}, {k: 'at', label: 'Classe Atelier', x: B.x, y: mid, w: B.w, h: B.y + B.h - mid}];
+    }
+    if (i === 3) return MPS.map(([k, m, s]) => Object.assign({k, label: `${m}, à côté de ${NOM[s]}`}, pad(rel($('#mp-' + k)), 16)));
+    if (i === 5) return BINS.map(([k, , t]) => Object.assign({k, label: t.replace(/<br>/g, ' ')}, rel($('#rb-' + k))));
+    return [];
+  }
+  function act(i, a, b){
+    start(i);
+    if (i === 1) {
+      const [m, k, why] = PLACE[a];
+      if (b === k) {
+        mark($(`#mp-an-${k}`)); X.got.add(a); sfx('pop', X.got.size, 0.6);
+        return {ok: true, done: X.got.size === PLACE.length, why: '', at: rel($(`#mp-an-${k}`))};
+      }
+      flash($('#cb-' + b), 'kob', 480);
+      return {ok: false, why: fr(why)};
+    }
+    if (i === 3) {
+      if (a === 'po-ca') { mark($('#rg-po-ca')); sfx('tick', 2, 0.6); return {ok: true, done: true, why: '', at: rel($('#mp-po-ca'))}; }
+      const [, m, s, o] = MPS.find(x => x[0] === a);
+      flash($('#mp-' + a), 'kof', 650);
+      return {ok: false, why: fr(`Ce ${m} compte les ${SUJET[s][0]} ${SUJET[o][1]}.`)};
+    }
+    if (i === 5) {
+      const bin = $('#rb-' + b);
+      if (TRANSFERT[a][4] === b) {
+        mark($('#rc' + a)); flash(bin, 'okb', 520); X.got.add(a); sfx('pop', X.got.size, 0.6);
+        return {ok: true, done: X.got.size === TRANSFERT.length, why: '', at: rel(bin)};
+      }
+      flash(bin, 'kob', 650);
+      return {ok: false, why: fr(BAD6[a][b])};
+    }
+    return {ok: false};
+  }
+  /* Choix d’une réponse (moments 1, 3 et 5) : ce que deviendrait le diagramme, ou la table, avec ce choix. */
+  function pick(i, k){
+    clear(); start(i);
+    const P = PICKS[i], o = P.options[k], ok = !!o.ok;
+    if (i === 0) {
+      if (ok) marks(M1_ANS);
+      else flash($(k === 0 ? '#xm1' : '#xm2'), 'pvs', 1100);
+      sfx(ok ? 'pop' : 'miss', 2, 0.5);
+    }
+    if (i === 2) {
+      if (ok) mark($('#mp-in-cl'));
+      else { $('#xm3 i').textContent = o.label; flash($('#xm3'), 'pvs', 1100); }
+      sfx(ok ? 'pop' : 'miss', 2, 0.5);
+    }
+    if (i === 4) {
+      if (k === 0) { mark($('#ib-r0')); const A = $('#ab'), x = $('#xm5'); x.style.top = (A.offsetTop + A.offsetHeight + 14) + 'px'; flash(x, 'pvs', 1300); }
+      if (k === 1) marks(M5_ANS);
+      if (k === 2) { marks(M5_ANS); flash($('#ib-r3'), 'strk', 1100); }
+      sfx(ok ? 'stamp' : 'miss', 0, 0.5);
+    }
+    return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));
+  }
+  /* Indice, après deux erreurs : une piste, et les endroits à regarder. */
+  function hint(i){
+    if (i === 1) return {text: 'Pour un atelier, combien de coachs ? Ce nombre s’écrit à côté de Coach.'};
+    if (i === 3) return {text: 'Cherche la multiplicité écrite à côté de Carte.', keys: ['po-ca']};
+    if (i === 5) return {text: 'Regarde le maximum de chaque côté : 1 ou * ?'};
+    return null;
+  }
+  return {
+    enter: i => { clear(); start(i); },
+    spots, act, pick, hint,
+    slot: () => null,
+    /* Moment réussi : l’aperçu reste jusqu’à ce que la timeline affiche la même image ; sinon il part tout de suite. */
+    leave(i, answered){ if (answered && X && X.i === i) wait = i; else clear(); },
+    tick(t = tl.time()){ if (wait < 0) return; const a = PICKS[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear(); }
+  };
+})();
+window.IX = IX;
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 179.7, picks: PICKS, opens: OPENS,
+  glyphs: '📐🔢🧩🔑🔗🔒📝👥📅🧑‍🏫💳🛠️✉️👆▾▴◂—…«»', dom, build, beforeRender: t => IX.tick(t)});
+</script>
+</body>
+</html>

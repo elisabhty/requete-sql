@@ -863,18 +863,21 @@ const COURSES = [
       "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
       'Chapitre 3 · Modéliser avec UML']},
-  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'uml.html', thumb: 'uml-thumb.jpg', duree: '3 min 43', notesAt: 195.45,
-    notes: /notes:\{t:214\.9,y:1289,card:\[64,292,1016,994\],to:\[940,255\]\}/, table: 'clients',
-    bubble: 'Dessine les classes et leurs liens<br>avant de créer les tables.',
-    chapters: ['Situation', 'Le problème', 'Le diagramme', 'Les multiplicités', 'Classe → table', '1 — 0..*', '0..* — 0..*', 'Le résultat', 'À retenir'],
-    traps: ["const COACHS = [[1, 'Salma', 'Haddad'], [2, 'Moussa', 'Diallo']];", "const ATELIERS = [[1, 'Récupération', 1], [2, 'Cuisine saine', 1], [3, 'Gainage doux', 2]];",
-      'const INSCRIPTIONS = [[1, 1], [1, 3], [4, 1], [7, 2]];', '<span class="pc qq">? coach</span>', '<span class="pc qq">? client</span>',
-      // Le diagramme : trois classes, deux associations, une multiplicité à chaque bout
-      '<div class="un">Coach</div>', '<div class="un">Atelier</div>', '<div class="un">Client</div>', '<span class="ux" id="ux1">anime<i>▾</i></span>',
-      '<span class="ux" id="ux2">s’inscrit à<i>▴</i></span>', '<span class="um" id="um1a">1</span><span class="um" id="um1b">0..*</span>',
-      // Traduction : la classe devient une table, coach_id du côté 0..*, la table d’association
-      '<span class="abs fl fly k-ch" id="fl6">coach_id</span>', "essai(1, 2, 'k-at')", '<span class="emo">🔑</span>clé primaire sur le couple',
-      '<span class="kw">PRIMARY KEY</span> (client_id, atelier_id)', '✓ 3 nouvelles tables, chaque lien à sa place']},
+  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '3 min 28', notesAt: 179.7,
+    notes: /notes:\{t:201\.5,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
+    bubble: 'Tes tables sont reliées&nbsp;:<br>dessine maintenant leur plan.',
+    chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
+    traps: ["const CLASSES = [['co', 'Coach', ['prenom', 'nom', 'email']], ['ca', 'Carte', ['seances']],",
+      "const ASSOCS = [['an', 'anime', '▾', 'co', '1', 'at', '0..*'], ['in', 's’inscrit à', '◂', 'cl', '0..*', 'at', '0..*'],",
+      "const ACLASS = ['Inscription', ['date_inscription']];",
+      // Les six moments : le trait de l’association, les multiplicités d’anime, celle de Client, celle qui interdit deux cartes,
+      // les colonnes de la table inscriptions, trois nouvelles associations à traduire
+      "{at: 41.8, from: 27.5, kind: 'pick', text: true,", "{label: 'Un trait entre Coach et Atelier, nommé «\\u00a0anime\\u00a0»', ok: true},", "{at: 68.1, from: 53.7, kind: 'sort',",
+      "{at: 82.7, from: 74.4, kind: 'pick',", "{label: '0..*', ok: true}]},", "{at: 109.1, from: 100.8, kind: 'tap', need: 1,", "if (a === 'po-ca') {",
+      "{at: 147.7, from: 139.2, kind: 'pick', text: true,", "{label: 'id, client_id, atelier_id, date_inscription', ok: true},", "{at: 162.4, from: 154.0, kind: 'sort',",
+      "const TRANSFERT = [['Atelier', '0..*', '0..*', 'Produit', 'tab'], ['Client', '1', '0..*', 'Commande', 'fk'], ['Client', '1', '0..1', 'Fidélité', 'uq']];",
+      '<line id="ln-an"/><line id="ln-po"/><line id="ln-in"/><line id="ln-cx" class="dash"/>', "tl.to('.mp .mn', {opacity: 0.28,",
+      'Prochaine leçon · CREATE TABLE']},
 ];
 
 for (const c of COURSES) {
@@ -959,41 +962,6 @@ test('Les bases de données relationnelles : la feuille Excel, la table clients,
   assert.throws(() => db.run(`INSERT INTO commandes (client_id, produit_id, quantite) VALUES (${ctx.CLIENT_INCONNU}, 1, 1)`), /FOREIGN KEY constraint failed/, 'aucun client 99 : la commande est refusée');
   db.close();
   assert.ok(!/SELECT(<\/span>)? nom, prix/.test(page), 'la vidéo ne montre pas la requête de l’exercice (le nom et le prix des produits)');
-});
-
-test('Modéliser avec UML : les clients inscrits sont ceux de la base, et les tables de la vidéo celles que crée la requête du cours', async () => {
-  const page = fs.readFileSync(path.join(ROOT, 'assets/anim/uml.html'), 'utf8');
-  const a = page.indexOf('const COACHS = '), b = page.indexOf('const CHAPTERS = ');
-  assert.ok(a > 0 && b > a, 'données de la page localisées');
-  const ctx = vm.createContext({});
-  vm.runInContext(page.slice(a, b) + ';this.D = {COACHS, ATELIERS, CLIENTS, INSCRIPTIONS, TABLES};', ctx);
-  const D = JSON.parse(JSON.stringify(ctx.D));
-  const data = vm.createContext({});
-  vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), data);
-  const lesson = vm.runInContext('MODULES.flatMap(m=>m.lessons).find(l=>l.id===81)', data);
-  const {createRequire} = await import('node:module');
-  const SQL = await createRequire(import.meta.url)(path.join(ROOT, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(ROOT, 'vendor/sqljs', f)});
-  const db = new SQL.Database();
-  db.run(vm.runInContext('SCHEMA_SQL', data));
-  for (const [id, [prenom, nom]] of Object.entries(D.CLIENTS))
-    assert.equal(JSON.stringify(db.exec(`SELECT prenom, nom FROM clients WHERE id = ${id}`)[0].values), JSON.stringify([[prenom, nom]]), `client ${id}`);
-  assert.ok(D.INSCRIPTIONS.every(([c, at]) => D.CLIENTS[c] && D.ATELIERS.some(x => x[0] === at)), 'chaque inscription désigne un client et un atelier montrés');
-  /* La requête complète du cours crée les trois tables, puis on y range les données de la vidéo : les clés étrangères les acceptent. */
-  db.run('PRAGMA foreign_keys = ON;');
-  const res = db.exec(lesson.missionSql);
-  assert.equal(JSON.stringify(res.at(-1).values.map(r => r[0])), JSON.stringify(D.TABLES), 'les 7 tables du résultat');
-  db.run(`INSERT INTO coachs VALUES ${D.COACHS.map(([i, p, n]) => `(${i}, '${p}', '${n}')`).join(', ')};`);
-  db.run(`INSERT INTO ateliers VALUES ${D.ATELIERS.map(([i, t, c]) => `(${i}, '${t}', ${c})`).join(', ')};`);
-  db.run(`INSERT INTO inscriptions VALUES ${D.INSCRIPTIONS.map(([c, at]) => `(${c}, ${at})`).join(', ')};`);
-  assert.equal(JSON.stringify(db.exec('SELECT coach_id, COUNT(*) FROM ateliers GROUP BY coach_id')[0].values), '[[1,2],[2,1]]', 'Salma Haddad anime deux ateliers, Moussa Diallo un seul');
-  assert.equal(JSON.stringify(db.exec('SELECT client_id, COUNT(*) FROM inscriptions GROUP BY client_id HAVING COUNT(*) > 1')[0].values), '[[1,2]]', 'Sophie Martin suit deux ateliers');
-  assert.equal(JSON.stringify(db.exec('SELECT atelier_id, COUNT(*) FROM inscriptions GROUP BY atelier_id HAVING COUNT(*) > 1')[0].values), '[[1,2]]', 'l’atelier Récupération accueille deux clients');
-  assert.throws(() => db.run('INSERT INTO inscriptions VALUES (1, 1);'), /UNIQUE constraint failed/, 'clé primaire sur le couple');
-  db.close();
-  /* Mêmes coachs et mêmes ateliers que dans le cours (étape 1 et onglet Teste). */
-  assert.ok(lesson.studio.uses.body.includes('VALUES (1, &#39;Salma&#39;, &#39;Haddad&#39;),') || lesson.studio.uses.body.includes("VALUES (1, 'Salma', 'Haddad'),"), 'les deux coachs du cours');
-  assert.ok(lesson.testeVariants[0].sql.includes("VALUES (1, 'Récupération', 1),\n       (2, 'Cuisine saine', 1);"), 'les ateliers de Salma Haddad');
-  assert.ok(!page.includes('programme') && !page.includes('seance'), 'la vidéo ne montre pas l’exercice');
 });
 
 test('moteur commun des animations : mode intégré, rendu net, pauses de lecture calculées d’après chaque légende', () => {
@@ -1316,8 +1284,6 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
   assert.ok(D.ATELIERS.every(a => D.INSCR.some(r => r[1] === a[0])), 'chaque atelier a au moins un inscrit : il figure dans le fichier');
   assert.deepEqual(D.INSCR.map(r => [r[0], r[1]]).sort(), [[1, 1], [3, 1], [4, 1], [5, 2], [6, 4], [7, 3]], 'inscriptions du cas');
   assert.equal(new Set(D.INSCR.map(r => r[2])).size, D.INSCR.length, 'une date d’inscription par ligne : le 4 septembre désigne une seule inscription');
-  const uml = fs.readFileSync(path.join(ROOT, 'assets/anim/uml.html'), 'utf8');
-  assert.ok(uml.includes("const COACHS = [[1, 'Salma', 'Haddad'], [2, 'Moussa', 'Diallo']];"), 'mêmes coachs que la vidéo UML');
 });
 
 test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre 1 relié par des clés, chaque réponse vérifiée dans SQLite', async () => {
@@ -1405,6 +1371,95 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.ok(caps.includes('Sophie Martin suit deux ateliers, et Récupération accueille trois clients'), 'comme le dit la légende');
   assert.throws(() => db.run(`INSERT INTO cartes VALUES ${rows([D.DOUBLON])};`), /UNIQUE constraint failed: cartes\.client_id/, 'une deuxième carte pour Sophie Martin est refusée (1 ↔ 1)');
   assert.equal(name(D.DOUBLON[1]), 'Sophie Martin');
+  db.close();
+});
+
+test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des tables du chapitre 2, chaque multiplicité et chaque traduction vérifiées', async () => {
+  const l81 = cut('guide({ id:81, titre:"Modéliser avec UML"', 'guide({ id:61,');
+  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'3 min 28',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  const load = (file, names) => {
+    const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
+    const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
+    assert.ok(a > 0 && b > a, `données de ${file} localisées`);
+    const ctx = vm.createContext({APP: true});
+    vm.runInContext(page.slice(a, b) + `;this.D = {${names}};`, ctx);
+    return [page, JSON.parse(JSON.stringify(ctx.D))];
+  };
+  const [page, D] = load('projet-uml.html', 'TABLES2, CLASSES, ASSOCS, ACLASS, TRAD, TRANSFERT, BINS, BAD6, PLACE, CAPTIONS, PICKS, MAILS, OPENS');
+  const [ch2, C2] = load('projet-cles.html', 'COACHS, ATELIERS, CLIENTS, INSCR, NOUVELLE, CARTES, DOUBLON');
+  const [, C1] = load('projet-normaliser.html', 'COACHS');
+  const T = Object.fromEntries(D.TABLES2.map(([k, , name, cols]) => [k, {name, cols}]));
+  const isFk = c => Array.isArray(c);
+  /* Le plan dessiné est celui des tables du chapitre 2 : mêmes tables, mêmes colonnes. */
+  assert.deepEqual(D.TABLES2.map(t => t[2]), ['coachs', 'ateliers', 'clients', 'inscriptions', 'cartes'], 'les cinq tables du chapitre 2');
+  for (const k of ['co', 'at', 'in', 'ca']) for (const c of T[k].cols.filter(c => c !== 'id'))
+    assert.ok(ch2.includes(`{h: '${isFk(c) ? c[0] : c}'`), `${T[k].name}.${isFk(c) ? c[0] : c} : une colonne du chapitre 2`);
+  assert.deepEqual([C2.COACHS[0].length - 1, C2.ATELIERS[0].length, C2.INSCR[0].length, C2.CARTES[0].length], [T.co.cols.length, T.at.cols.length, T.in.cols.length, T.ca.cols.length],
+    'autant de colonnes que de valeurs par ligne au chapitre 2');
+  /* Chaque classe porte les colonnes de sa table, sans aucune clé ; la date d’inscription va dans la classe d’association. */
+  for (const [k, , attrs] of D.CLASSES) assert.deepEqual(attrs, T[k].cols.filter(c => c !== 'id' && !isFk(c)), `classe ${k} : ses attributs, sans clé`);
+  assert.deepEqual(D.ACLASS[1], T.in.cols.filter(c => c !== 'id' && !isFk(c)), 'classe d’association : la date d’inscription');
+  /* La traduction de chaque association redonne exactement les clés étrangères du chapitre 2 :
+     un côté * → la clé étrangère va dans la table de ce côté ; aucun côté * → clé étrangère unique ; deux côtés * → une table d’association. */
+  const max = m => m.slice(-1);
+  for (const [k, , , a, ma, b, mb] of D.ASSOCS) {
+    if (max(ma) === '*' && max(mb) === '*') {
+      assert.equal(D.TRAD[k], T.in.name, `${k} : * des deux côtés, sa propre table`);
+      assert.deepEqual(T.in.cols.filter(isFk).map(c => c[1]).sort(), [a, b].sort(), `${k} : la table d’association porte une clé vers chaque classe`);
+    } else {
+      const [colName, where, to] = D.TRAD[k], side = max(ma) === '*' ? a : max(mb) === '*' ? b : (ma === '1' ? b : a);
+      assert.equal(where, side, `${k} : la clé étrangère va du côté * (ou du côté 0..1)`);
+      assert.ok(T[where].cols.some(c => isFk(c) && c[0] === colName && c[1] === to), `${k} : ${colName} dans la table ${T[where].name}, comme au chapitre 2`);
+    }
+  }
+  /* Les multiplicités disent vrai sur les données du chapitre 2. */
+  const ins = C2.INSCR.concat([C2.NOUVELLE]);
+  const count = (rows, j, v) => rows.filter(r => r[j] === v).length;
+  const assocs = Object.fromEntries(D.ASSOCS.map(x => [x[0], x]));
+  assert.ok(C2.ATELIERS.every(r => r[3] != null) && Math.max(...C2.COACHS.map(c => count(C2.ATELIERS, 3, c[0]))) > 1 && assocs.an[4] === '1' && assocs.an[6] === '0..*', 'anime : 1 coach par atelier, plusieurs ateliers pour Moussa Diallo');
+  const parAtelier = C2.ATELIERS.map(a => count(ins, 2, a[0])), parClient = C2.CLIENTS.map(c => count(ins, 1, c[0]));
+  assert.ok(Math.min(...parAtelier) === 0 && Math.max(...parAtelier) > 1 && assocs.in[4] === '0..*', 's’inscrit à, côté Client : Yoga du matin sans inscrit, Récupération avec plusieurs');
+  assert.ok(Math.min(...parClient) === 0 && Math.max(...parClient) > 1 && assocs.in[6] === '0..*', 's’inscrit à, côté Atelier : Lucas Bernard sans atelier, Sophie Martin avec deux');
+  const cartes = C2.CLIENTS.map(c => count(C2.CARTES, 1, c[0]));
+  assert.ok(Math.min(...cartes) === 0 && Math.max(...cartes) === 1 && C2.CARTES.some(c => c[1] === C2.DOUBLON[1]) && assocs.po[6] === '0..1' && assocs.po[4] === '1', 'possède : une carte au plus (la deuxième est refusée), aucune pour certains');
+  const caps = D.CAPTIONS.map(c => c[2]).join('\n');
+  assert.ok(caps.includes('Yoga du matin n’a encore aucun inscrit, Récupération en a trois') && count(ins, 2, 1) === 3 && count(ins, 2, 5) === 0, 'la légende cite les bons ateliers');
+  /* Les six moments */
+  assert.deepEqual(D.PICKS.map(p => p.kind), ['pick', 'sort', 'pick', 'tap', 'pick', 'sort'], 'choisir, placer, toucher, ranger');
+  assert.ok(D.PICKS.filter(p => p.kind === 'tap').every(p => /^Touche /.test(p.prompt)), 'chaque moment à toucher dit qu’il faut toucher l’image');
+  for (const p of D.PICKS.filter(x => x.kind === 'pick')) {
+    assert.equal(p.options.filter(o => o.ok).length, 1, `${p.prompt} : une seule bonne réponse`);
+    assert.ok(p.options.every(o => o.ok || o.why), `${p.prompt} : chaque mauvaise réponse est expliquée`);
+  }
+  D.PICKS.forEach((p, i) => assert.ok(p.from < p.at && (i === 0 || p.from > D.PICKS[i - 1].at), `moment ${i + 1} : « Revoir » repart après le moment précédent`));
+  assert.deepEqual(D.PLACE.map(p => [p[0], p[1]]), [[assocs.an[4], assocs.an[3]], [assocs.an[6], assocs.an[5]]], 'moment 2 : chaque multiplicité d’anime, à côté de la classe qu’elle compte');
+  assert.equal(D.PICKS[2].options.find(o => o.ok).label, assocs.in[4], 'moment 3 : la multiplicité à côté de Client');
+  assert.equal(assocs.po[5], 'ca', 'moment 4 : la multiplicité qui interdit deux cartes est écrite à côté de Carte (zone po-ca)');
+  assert.equal(D.PICKS[4].options.find(o => o.ok).label, T.in.cols.map(c => isFk(c) ? c[0] : c).join(', '), 'moment 5 : les colonnes de la table inscriptions');
+  assert.deepEqual(D.PICKS.filter(p => p.kind === 'sort').map(p => p.next), ['{x} : touche maintenant la classe qu’elle compte.', '{x} : touche maintenant ce qu’elle devient.'], 'une ligne d’aide propre à chaque moment à ranger');
+  /* Moment 6 : trois associations nouvelles ; la règle donne leur traduction, et une explication pour chaque mauvaise case. */
+  const rule = ([, ma, mb]) => max(ma) === '*' && max(mb) === '*' ? 'tab' : max(ma) === '*' || max(mb) === '*' ? 'fk' : 'uq';
+  assert.deepEqual(D.TRANSFERT.map(rule), D.TRANSFERT.map(t => t[4]), 'chaque traduction suit la règle du maximum');
+  assert.deepEqual(D.TRANSFERT.map(t => t[4]).sort(), D.BINS.map(b => b[0]).sort(), 'une association par case');
+  D.BAD6.forEach((b, i) => assert.deepEqual(Object.keys(b).sort(), D.BINS.map(x => x[0]).filter(k => k !== D.TRANSFERT[i][4]).sort(), `${D.TRANSFERT[i].join(' ')} : les deux mauvaises cases expliquées`));
+  /* Le mail, la suite */
+  assert.deepEqual(D.MAILS.map(m => m[0][0] + ' ' + m[0][1] + ' · ' + m[2]), ['Karim Benali · développeur'], 'qui écrit');
+  assert.ok(D.OPENS.length === 1 && D.OPENS[0].at < D.PICKS[0].at && D.OPENS[0].prompt === 'Touche le mail pour l’ouvrir.', 'le mail s’ouvre avant le premier moment');
+  assert.ok(![...C2.CLIENTS, ...C1.COACHS].some(p => p[1] === 'Karim' || p[2] === 'Benali'), 'le développeur ne porte le nom d’aucun client ni coach');
+  assert.ok(page.includes('</span>Prochaine leçon · CREATE TABLE</span>') && html.includes('guide({ id:61, titre:"CREATE TABLE"'), 'la suite annoncée sous son vrai titre');
+  /* Dans la base de l’app : les deux associations de la boutique sont bien traduites ainsi (commandes.client_id, fidelite.client_id unique). */
+  const data = vm.createContext({});
+  vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), data);
+  const {createRequire} = await import('node:module');
+  const SQL = await createRequire(import.meta.url)(path.join(ROOT, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(ROOT, 'vendor/sqljs', f)});
+  const db = new SQL.Database();
+  db.run(vm.runInContext('SCHEMA_SQL', data));
+  const q = s => JSON.stringify(db.exec(s).map(r => r.values));
+  assert.equal(q("SELECT \"from\", \"table\" FROM pragma_foreign_key_list('commandes') WHERE \"from\" = 'client_id'"), '[[["client_id","clients"]]]', 'Client 1 — 0..* Commande : client_id dans commandes');
+  assert.notEqual(q('SELECT client_id FROM commandes GROUP BY client_id HAVING COUNT(*) > 1'), '[]', '… qui s’y répète : plusieurs commandes par client');
+  assert.equal(q("SELECT \"from\", \"table\" FROM pragma_foreign_key_list('fidelite')"), '[[["client_id","clients"]]]', 'Client 1 — 0..1 Fidélité : client_id dans fidelite…');
+  assert.ok(db.exec("SELECT name FROM pragma_index_list('fidelite') WHERE \"unique\" = 1")[0].values.some(([n]) => JSON.stringify(db.exec(`SELECT name FROM pragma_index_info('${n}')`)[0].values) === '[["client_id"]]'), '… et unique');
+  for (const c of T.cl.cols.filter(c => c !== '…')) assert.equal(q(`SELECT COUNT(*) FROM pragma_table_info('clients') WHERE name = '${c}'`), '[[[1]]]', `clients.${c} : une colonne de la base`);
   db.close();
 });
 
