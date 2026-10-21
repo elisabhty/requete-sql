@@ -1329,7 +1329,8 @@ test('mise en page (?check) : un élément ou un texte qui sort de son cadre est
   const cols = /\.xr\{[^}]*grid-template-columns:([^;]+);/.exec(page)[1].trim().split(/\s+/).map(parseFloat);
   assert.ok(cols.length === 6 && cols.reduce((a, b) => a + b, 0) <= 1016 - 2 * 3 - 2 * 10, `colonnes : ${cols.join(' + ')}`);
   assert.ok(page.includes('.xr>span:last-of-type{box-shadow:none}'), 'pas de trait après la dernière colonne, même sur la ligne barrée');
-  assert.ok(page.includes('.ml{left:64px;width:952px;height:150px;padding:0 30px;overflow:hidden}') && page.includes('.mh{height:144px;'), 'mail replié : l’en-tête seul, dans la carte');
+  assert.ok(page.includes('.ml{left:64px;width:952px;height:184px;padding:0 30px;overflow:hidden}') && page.includes('.mh{height:178px;')
+    && page.includes("function mailFold(n, t){ tl.to('#ml' + n, {height: 184,"), 'mail replié : l’en-tête seul, dans la carte, aux proportions d’une notification');
 });
 
 test('moment déjà réussi (vidéo revue, retour en arrière) : il s’ouvre résolu, avec la réponse, sans son ni nouvel essai', () => {
