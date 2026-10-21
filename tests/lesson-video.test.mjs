@@ -223,11 +223,12 @@ test('reprise, repères de chapitres, double appui, question et légendes dans l
   assert.ok(html.includes("const LV_POS_KEY='rq-video-pos';") && html.includes('localStorage.setItem(LV_POS_KEY'), 'position gardée après fermeture de l’app');
   assert.ok(player.includes("lvPosKeep(); });") && player.includes('resume>2&&resume<video.duration-2'), 'gardée à la pause, reprise au lancement');
   assert.ok(cut('function closeLessonVideo(instant){', 'function lessonStepMeta(){').includes('lvPosKeep();'));
-  const keep = cut('function lvPosKeep(){', '/* Repères des chapitres');
+  const keep = cut('function lvPosKeep(){', '/* Chapitre en cours');
   assert.ok(keep.includes('if(t>2&&d>0&&t<d-2)LV_POS.set(LV.id,+t.toFixed(1)); else LV_POS.delete(LV.id);'));
   assert.ok(cut('function lvEnded(){', 'function lvReplay(){').includes('LV_POS.delete(id); lvPosSave();'), 'vidéo finie : la prochaine fois, elle repart du début');
-  const marks = cut('function lvMarks(){', '/* En glissant sur la barre');
-  assert.ok(marks.includes("LV.seek.parentElement.style.setProperty('--gaps'") && html.includes('.lv-rail::after{content:"";position:absolute;left:0;top:0;right:0;bottom:0;background:var(--gaps,none)}'), 'barre coupée au début de chaque chapitre');
+  /* La barre reste d’un seul trait : plus de coupures entre chapitres (à côté des points des exercices, elle paraissait cassée) ;
+     le chapitre se lit en haut de l’image et, en glissant, au-dessus du doigt. */
+  assert.ok(!html.includes('function lvMarks(') && !html.includes('--gaps') && !html.includes('.lv-rail::after'), 'barre d’un seul trait, sans coupures');
   assert.ok(cut('function lvTip(on){', '/* Double appui').includes(":c?`${c.n} · ${c.label}`:'Intro')+' · '+lvFmt(t);"), 'nom du chapitre en glissant');
   assert.ok(player.includes('if(side&&T.side===side&&now-T.t<330){') && player.includes('if(lvSkip(side*LV_SKIP))lvDtFx(side,T.total);'), 'double appui à gauche / à droite');
   assert.ok(player.includes("T.timer=setTimeout(()=>{ T.timer=0; if(LV&&LV.root===root)lvToggle(); },300);"), 'un seul appui sur le côté : pause après un court délai');
@@ -1534,7 +1535,7 @@ test('barre de lecture : un point par moment « À toi », doré à faire, badge
   const tip = cut('function lvTip(on){', 'function lvDtFx(side,total){');
   assert.ok(tip.includes("`À toi ${k+1}/${ps.length}${a?(a.first?' ✓':' ✕'):''}`") && tip.includes('hot(k);') && tip.includes('if(!on){ hot(-1);'), 'en glissant sur un point : le numéro de l’exercice, le point grossit');
   const marks = cut('function lvPkMarks(fresh){', '/* En glissant sur la barre');
-  for (const part of ['const L=Math.max(0,LV.seek.clientWidth-18);', 'return {i,a,f,s:a?15:10,x:9+f*L};', 'if(q&&m.x-q.x<(m.s+q.s)/2+2)m.x=q.x+(m.s+q.s)/2+2;',
+  for (const part of ['const L=Math.max(0,LV.seek.clientWidth-18);', 'return {i,a,f,s:a?15:10,x:9+f*L};', 'if(q&&m.x-q.x<(m.s+q.s)/2+4)m.x=q.x+(m.s+q.s)/2+4;',
     "${m.i===fresh?' is-new':''}", "${m.a?(m.a.first?LV_PKM_OK:LV_PKM_KO):''}"])
     assert.ok(marks.includes(part), `points : ${part}`);
   /* Deux exercices à 9 px l’un de l’autre : le second est décalé, plus de chevauchement. */
@@ -1547,7 +1548,7 @@ test('barre de lecture : un point par moment « À toi », doré à faire, badge
   assert.ok(html.includes('.lv-pkm i.ko{width:15px;height:15px;margin:-7.5px 0 0 -7.5px;background:#DE3F46}')
     && html.includes(`const LV_PKM_KO='<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M4.7 4.7l4.6 4.6"/><path d="M9.3 4.7l-4.6 4.6"/></svg>';`)
     && html.includes('.lv-pkm i.is-new path+path{animation-delay:.55s}'), 'croix blanche sur badge rouge, tracée trait après trait');
-  assert.ok(html.includes('lvMarks(); lvPkMarks(); lvSyncSeek();') && html.includes('lvPkSet(LV.id,P.i,first,P.tries-1); lvPkMarks();') && html.includes('lvPkSet(LV.id,P.i,first,P.miss); lvPkMarks();')
+  assert.ok(html.includes('lvPkMarks(); lvSyncSeek();') && html.includes('lvPkSet(LV.id,P.i,first,P.tries-1); lvPkMarks();') && html.includes('lvPkSet(LV.id,P.i,first,P.miss); lvPkMarks();')
     && html.includes('if(answered&&P.done&&!P.kept&&!prefersReduceMotion()){\n    lvPkMarks(P.i);\n    const a=lvPkGet(LV.id,P.i);\n    if(a&&a.first){ LV.root.classList.add(\'is-valid\');') && html.includes('.lv.is-valid .lv-seek::-webkit-slider-thumb{border-color:#169447;')
     && html.includes('lvPkPlace(); lvOpPlace(); lvPkMarks(); };'),
     'placés au chargement et au redimensionnement, mis à jour à chaque moment réussi, rebond au retour sur la vidéo');
