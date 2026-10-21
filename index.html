@@ -6552,6 +6552,23 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-pk-back:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(106,77,244,.35)}
 .lv-pk-back+.lv-pk-dots{margin-left:8px}
 .lv-pk.is-ok .lv-pk-back{display:none}
+/* Réussi : la validation bien en avant, à la place du petit badge — une coche verte qui arrive d’un rebond, se trace,
+   lance une onde, puis « Bien vu ! » */
+.lv-pk-kick[hidden],.lv-pk-cnt[hidden]{display:none}
+.lv-pk-ok{display:inline-flex;align-items:center;gap:10px;min-height:42px;font:800 20px/1.1 var(--display);letter-spacing:-.01em;color:#0F7A3A}
+.lv-pk-ok svg{flex:none;width:42px;height:42px;overflow:visible}
+.lv-pk-ok .c{fill:#169447}
+.lv-pk-ok .r{fill:none;stroke:#169447;stroke-width:2.5;opacity:0;transform-box:fill-box;transform-origin:center}
+.lv-pk-ok .k{fill:none;stroke:#fff;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:26;stroke-dashoffset:0}
+.lv-pk-ok.is-anim svg{animation:lvOkPop .5s cubic-bezier(.2,.9,.3,1.5) both}
+.lv-pk-ok.is-anim .k{stroke-dashoffset:26;animation:lvOkTick .32s ease-out .28s forwards}
+.lv-pk-ok.is-anim .r{animation:lvOkRing .9s ease-out .3s}
+.lv-pk-ok.is-anim b{animation:lvOkTxt .35s cubic-bezier(.2,.9,.3,1.3) .18s both}
+@keyframes lvOkPop{0%{transform:scale(.2) rotate(-25deg);opacity:0}60%{transform:scale(1.15);opacity:1}100%{transform:none;opacity:1}}
+@keyframes lvOkTick{to{stroke-dashoffset:0}}
+@keyframes lvOkRing{0%{opacity:.55;transform:scale(1)}100%{opacity:0;transform:scale(1.75)}}
+@keyframes lvOkTxt{0%{opacity:0;transform:translateX(-8px)}100%{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.lv-pk-ok svg,.lv-pk-ok .r,.lv-pk-ok b{animation:none!important}.lv-pk-ok .k{animation:none!important;stroke-dashoffset:0!important}}
 .lv-pk.is-ok .lv-pk-back+.lv-pk-dots{margin-left:auto}
 @media (max-width:359px){.lv-pk-back span+span{display:none}}
 .lv-pk-dots i{width:9px;height:9px;border-radius:50%;background:#E2DCF5;transition:background-color .3s,box-shadow .3s}
@@ -20681,13 +20698,22 @@ function lvPkShow(i,p){
   const sr=LV.root.querySelector('.lv-sr'); if(sr)sr.textContent=`${kept?'Déjà fait':'À toi'} : ${String(p.prompt).replace(/<[^>]+>/g,'')}`;
   try{box.querySelector(kept?'.lv-pk-go':'.lv-pk-card').focus({preventScroll:true});}catch(e){}
 }
+/* Moment réussi : la coche verte animée et « Bien vu ! » (ou « Trouvé ! ») prennent la place du petit badge et du compteur. */
+function lvPkValid(P,first,anim){
+  const top=P.box.querySelector('.lv-pk-top'); if(!top||top.querySelector('.lv-pk-ok'))return;
+  const el=document.createElement('span');
+  el.className='lv-pk-ok'+(anim&&!prefersReduceMotion()?' is-anim':'');
+  el.innerHTML=`<svg viewBox="0 0 42 42" aria-hidden="true"><circle class="r" cx="21" cy="21" r="19"/><circle class="c" cx="21" cy="21" r="19"/><path class="k" d="M12.5 21.5l6 6L30 15.5"/></svg><b>${first?'Bien vu&nbsp;!':'Trouvé&nbsp;!'}</b>`;
+  top.querySelectorAll('.lv-pk-kick,.lv-pk-cnt').forEach(e=>{ e.hidden=true; });
+  top.insertBefore(el,top.firstChild);
+}
 /* La réponse gardée s’affiche telle quelle, comme à la fin de l’exercice, sans son ni nouvel essai : la bonne réponse
    sur l’image (la timeline la pose juste après l’arrêt), le badge du premier essai, l’explication, puis « Continuer ». */
 function lvPkKept(P,a){
   P.done=true; P.kept=true;
   const box=P.box, opts=box.querySelector('.lv-pk-opts'), hint=box.querySelector('.lv-pk-hint'), cnt=box.querySelector('.lv-pk-cnt'), go=box.querySelector('.lv-pk-go');
   box.classList.add('is-ok','is-kept');
-  box.querySelector('.lv-pk-kick').textContent=a.first?'✓ Bien vu !':'✓ Trouvé !';
+  box.querySelector('.lv-pk-kick').textContent=a.first?'✓ Bien vu !':'✓ Trouvé !'; lvPkValid(P,a.first,true);
   const dot=box.querySelectorAll('.lv-pk-dots i')[P.i]; if(dot)dot.className=a.first?'ok':'try';
   if(cnt)cnt.textContent=`${P.total} / ${P.total}`;
   if(P.kind==='pick'){
@@ -20743,7 +20769,7 @@ function lvPkVerdict(P,k,btn,ok,r){
     lvPkSet(LV.id,P.i,first,P.tries-1); lvPkMarks();
     btn.classList.add('is-ok');
     P.box.classList.add('is-ok');
-    kick.textContent=first?'✓ Bien vu !':'✓ Trouvé !'; lvPkBump(kick,1.12);
+    kick.textContent=first?'✓ Bien vu !':'✓ Trouvé !'; lvPkValid(P,first,true);
     const dot=P.box.querySelectorAll('.lv-pk-dots i')[P.i]; if(dot){ dot.className=first?'ok':'try'; lvPkBump(dot,1.8); }
     const tip=P.box.querySelector('.lv-pk-tip'); if(tip)tip.hidden=true;
     P.box.querySelectorAll('.lv-pk-opt').forEach(b=>{ if(b!==btn)b.classList.add('is-gone'); });
@@ -21212,7 +21238,7 @@ function lvPkWin(P,why,rect){
   lvPkSet(LV.id,P.i,first,P.miss); lvPkMarks();
   P.box.classList.remove('is-ko'); P.box.classList.add('is-ok');
   if(P.layer)P.layer.classList.add('is-done');
-  kick.textContent=first?'✓ Bien vu !':'✓ Trouvé !'; lvPkBump(kick,1.12);
+  kick.textContent=first?'✓ Bien vu !':'✓ Trouvé !'; lvPkValid(P,first,true);
   const dot=P.box.querySelectorAll('.lv-pk-dots i')[P.i]; if(dot){ dot.className=first?'ok':'try'; lvPkBump(dot,1.8); }
   const tip=P.box.querySelector('.lv-pk-tip'); if(tip)tip.hidden=true;
   if(why&&wEl){
@@ -28871,7 +28897,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1933';
+  const SW_CACHE='requete-2026-10-12-ludique-v1934';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
