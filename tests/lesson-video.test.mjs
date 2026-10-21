@@ -1284,8 +1284,11 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
   assert.deepEqual(D.SORT.map(r => r[0]), D.COLS.slice(1), 'chaque colonne du fichier est à ranger, dans l’ordre du fichier, sauf le client : sa table existe déjà');
   assert.equal(D.PICKS[3].options.map(o => o.tag + ' ' + o.label).join(', '), 'B titre de l’atelier, C date de l’atelier, D nom du coach, E e-mail du coach, F date d’inscription',
     'chaque étiquette dit ce que contient sa colonne, avec la lettre de la colonne dans le fichier');
-  assert.ok(page.includes("show('#ck0', 95.0, {y: 0, scale: 0.4}, 0.4, 'back.out(2.2)');") && page.includes("if (i === 3) return {text: 'Que décrit la colonne : un atelier, un coach ou une inscription ?'};")
-    && page.includes('const [col, to, , ok, bad] = SORT[a], j = COLS.indexOf(col),'), 'la colonne client est cochée dès que la légende dit que sa table existe ; rien à ranger côté client');
+  assert.ok(page.includes("show(['#bok', '#ck0'], 95.0, {y: 0, scale: 0.4}, 0.4, 'back.out(2.2)');") && page.includes("${old.length ? '<i class=\"bok\" id=\"bok\">✓</i>' : ''}")
+    && page.includes("if (i === 3) return {text: 'Que décrit la colonne : un atelier, un coach ou une inscription ?'};")
+    && page.includes('const [col, to, , ok, bad] = SORT[a], j = COLS.indexOf(col),'), 'la table clients et la colonne client se cochent dès que la légende dit que la table existe ; rien à ranger côté client');
+  assert.ok(page.includes("if (i === 3) return $$('.bin:not(.old)').map(") && D.SORT.every(r => r[1] !== 'clients' && !('clients' in r[4])),
+    'la table clients n’est pas une table où ranger : ni surlignée, ni cible, ni correction');
   assert.ok(D.SORT.every(r => D.BINS.some(x => x[0] === r[1])), 'chaque colonne a sa table parmi les quatre');
   assert.equal(D.SHEET.filter(r => r[4] === 'salma@mail.fr').length, D.PICKS[0].need, 'l’e-mail de Salma Haddad, autant de fois que de cases à toucher');
   assert.equal(D.SHEET.filter(r => r[1] === 'Cuisine saine').length, 1, 'Cuisine saine : une seule ligne, effacée avec la désinscription');

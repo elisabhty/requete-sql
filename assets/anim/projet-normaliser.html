@@ -153,6 +153,8 @@
 .bin.old{border-style:solid;background:#fff;box-shadow:0 9px 0 var(--lip)}
 .bin .bh{display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:34px;font-weight:800;color:var(--ci)}
 .bin .bh .emo{flex:none;width:62px;height:62px;border-radius:18px;background:var(--cs);display:flex;align-items:center;justify-content:center;font-size:34px}
+/* La table clients existe déjà : validée d’une coche, elle n’est pas une table à remplir */
+.bin .bok{flex:none;margin-left:auto;width:54px;height:54px;border-radius:50%;background:#169447;color:#fff;font-family:var(--ui);font-size:30px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 0 #0F7A37;opacity:0;visibility:hidden}
 .bin .bc{margin-top:24px;display:flex;flex-wrap:wrap;gap:12px}
 .col{position:relative;height:56px;padding:0 18px;border-radius:16px;font-family:var(--mono);font-size:26px;font-weight:700;display:flex;align-items:center;white-space:nowrap;background:var(--surface-2);color:var(--ink);box-shadow:inset 0 0 0 3px var(--line)}
 .col.was{color:var(--ink-3)}
@@ -316,7 +318,8 @@ const CAPTIONS = [
 const QUESTIONS = [];
 
 /* Les colonnes du fichier à ranger et leur table : [colonne, table, nouvelles colonnes, bonne place, mauvaises places, ce qu’elle contient].
-   Pas la colonne client : la table clients existe déjà (sa coche s’allume quand la légende le dit). */
+   Pas la colonne client : la table clients existe déjà. Quand la légende le dit, elle se coche, comme la colonne client du fichier ;
+   elle n’est pas une table où ranger. */
 const SORT = [
   ['atelier', 'ateliers', ['titre'], 'Le titre décrit l’atelier.', {}, 'titre de l’atelier'],
   ['date', 'ateliers', ['date_atelier'], 'Une date par atelier, écrite une seule fois.',
@@ -324,9 +327,9 @@ const SORT = [
   ['coach', 'coachs', ['prenom', 'nom'], 'Le nom est rangé en deux colonnes, prenom et nom, comme dans la table <code>clients</code>.',
     {ateliers: 'Moussa Diallo anime aussi Yoga du matin : son nom y serait recopié.', inscriptions: 'Le coach dépend de l’atelier : son nom serait recopié pour chaque inscrit.'}, 'nom du coach'],
   ['e-mail du coach', 'coachs', ['email'], 'Chaque coach n’a qu’un e-mail : il ne sera plus recopié.',
-    {ateliers: 'L’e-mail décrit le coach, pas l’atelier.', clients: 'C’est l’e-mail du coach, pas celui d’un client.', inscriptions: 'L’e-mail décrit le coach : il serait recopié pour chaque inscrit.'}, 'e-mail du coach'],
+    {ateliers: 'L’e-mail décrit le coach, pas l’atelier.', inscriptions: 'L’e-mail décrit le coach : il serait recopié pour chaque inscrit.'}, 'e-mail du coach'],
   ['inscrit le', 'inscriptions', ['date_inscription'], 'Chaque inscription a sa propre date.',
-    {clients: 'Un client peut s’inscrire à plusieurs ateliers : une seule date ne suffirait pas.', ateliers: 'Nathan Petit et Sophie Martin ne se sont pas inscrits à Récupération le même jour.'}, 'date d’inscription']
+    {ateliers: 'Nathan Petit et Sophie Martin ne se sont pas inscrits à Récupération le même jour.'}, 'date d’inscription']
 ];
 const BINS = [['clients', '👥', 'k-cl', ['id', 'prenom', 'nom']], ['ateliers', '📅', 'k-at', []],
   ['coachs', '🧑‍🏫', 'k-co', []], ['inscriptions', '📝', 'k-in', []]];
@@ -402,7 +405,7 @@ function dom(){
   // Les quatre tables où ranger les colonnes, chacune de la couleur de son sujet
   BINS.forEach(([n, e, k, old], q) => {
     const news = SORT.filter(x => x[1] === n).flatMap(x => x[2].map(c => [c, SORT.indexOf(x)]));
-    u += `<div class="abs bin ${k}${old.length ? ' old' : ''}" id="bn${q}" data-t="${n}"><i class="ko"></i><div class="bh"><span class="emo">${e}</span>${n}</div>` +
+    u += `<div class="abs bin ${k}${old.length ? ' old' : ''}" id="bn${q}" data-t="${n}"><i class="ko"></i><div class="bh"><span class="emo">${e}</span>${n}${old.length ? '<i class="bok" id="bok">✓</i>' : ''}</div>` +
       `<div class="bc">${old.map(c => `<span class="col was">${c}</span>`).join('')}${news.map(([c, j]) => `<span class="col nw" data-k="${j}">${c}</span>`).join('')}</div></div>`;
   });
   u += '<div class="abs emo tapf" id="tapf">👆</div>';
@@ -639,10 +642,10 @@ function build(){
   tl.to(rows, {autoAlpha: 0, height: 0, duration: 0.5, ease: 'power2.inOut', stagger: 0.04}, 88.4);
   cue(88.4, 'whoosh', 0.6);
   $$('.bin').forEach((b, q) => { show(b, 89.5 + q * 0.18, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(89.5 + q * 0.18, 'pop', 0.6, q); });
-  // la table clients existe déjà (la colonne client est cochée) ; trois tables à ajouter : ateliers, coachs, inscriptions
+  // la table clients existe déjà : elle se coche, comme la colonne client du fichier ; trois tables à ajouter : ateliers, coachs, inscriptions
   bump('#bn0', 95.0, 1.04);
   cue(95.0, 'tick', 0.5, 1);
-  show('#ck0', 95.0, {y: 0, scale: 0.4}, 0.4, 'back.out(2.2)');
+  show(['#bok', '#ck0'], 95.0, {y: 0, scale: 0.4}, 0.4, 'back.out(2.2)');
   tl.to($('#xh').children[0], {color: '#A8A2C6', duration: 0.3}, 95.0);
   [[1, 96.8], [2, 97.5], [3, 98.8]].forEach(([q, t]) => { bump('#bn' + q, t, 1.04); cue(t, 'tick', 0.5, q + 1); });
   // À toi : glisser chaque colonne dans sa table (réponse : toutes rangées)
@@ -710,7 +713,7 @@ const IX = (() => {
   function spots(i){
     if (i === 0) return SHEET.flatMap((r, ri) => r.map((v, j) => Object.assign({k: ri + '_' + j, label: name(ri, j)}, rel($('#c' + ri + '_' + j)))));
     if (i === 1) return SHEET.map((r, ri) => Object.assign({k: 'r' + ri, label: `Ligne de ${r[0]}, atelier ${r[1]}`}, rel($('#xd' + ri))));
-    if (i === 3) return $$('.bin').map(b => Object.assign({k: b.dataset.t, label: 'table ' + b.dataset.t}, rel(b)));
+    if (i === 3) return $$('.bin:not(.old)').map(b => Object.assign({k: b.dataset.t, label: 'table ' + b.dataset.t}, rel(b)));   // les trois tables à remplir
     if (i === 4) return [['tbc', 'coachs'], ['tba', 'ateliers'], ['tbi', 'inscriptions']].map(([id, n]) => Object.assign({k: n, label: 'table ' + n}, rel($('#' + id))));
     return [];
   }
