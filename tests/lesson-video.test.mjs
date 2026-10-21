@@ -1143,9 +1143,52 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
     assert.ok(show.includes(part), `plateau : ${part}`);
   const layer = cut('function lvPkLayer(P){', 'function lvPkActed(');
   for (const part of ['spots=(IX&&IX.spots&&IX.spots(P.i))||[]', "if(P.kind==='tap')P.spots.forEach(b=>b.addEventListener('click',()=>lvPkAct(P,[b.dataset.k],b)));",
-    'lvPkDrag(P,c,zones,z=>{ lvPkSel(P,null); lvPkAct(P,[+c.dataset.k,z.el.dataset.k],z.el,c); });', 'btn.setPointerCapture(e.pointerId);', 'a.setPointerCapture(e.pointerId);',
-    "btn.addEventListener('pointercancel',cc);", 'btn._noClick=performance.now()+450;', 'res=IX&&IX.act?IX.act(P.i,...args):null;', "b.setAttribute('aria-label',"])
+    'lvPkDrag(P,c,zones,z=>{ lvPkSel(P,null); lvPkAct(P,[+c.dataset.k,z.el.dataset.k],z.el,c); });', 'lvGlisse(btn,', 'lvGlisse(a,',
+    'res=IX&&IX.act?IX.act(P.i,...args):null;', "b.setAttribute('aria-label',"])
     assert.ok(layer.includes(part), `gestes : ${part}`);
+  /* Glisser du premier coup sur iPhone : le doigt passe par les événements tactiles, qui bloquent le défilement dès le premier
+     mouvement (Safari n’applique pas toujours touch-action et annulait le geste) ; la souris par les événements pointeur ;
+     un toucher reste un toucher, avec un seul clic. */
+  const gl = cut('function lvGlisse(el,can,slop,on){', 'function lvPkLink(P,a,b){');
+  for (const part of ["el.addEventListener('touchmove',e=>{", 'if(e.cancelable)e.preventDefault();', '},{passive:false});', "if((tactile&&e.pointerType!=='mouse')||e.button!==0||!can())return;",
+    'el.setPointerCapture(e.pointerId);', 'el._noClick=performance.now()+450;', 'if(G&&!G.on&&e.cancelable){ e.preventDefault(); el._noClick=0; el.click(); el._noClick=performance.now()+600; }'])
+    assert.ok(gl.includes(part), `geste : ${part}`);
+  let now = 1000;
+  const geste = tactile => {
+    const ctxG = vm.createContext({Math, window: tactile ? {ontouchstart: null} : {}, performance: {now: () => now}});
+    vm.runInContext(gl + ';this.f=lvGlisse;', ctxG);
+    const L = {}, log = [];
+    const el = {clicks: 0, addEventListener(t, f){ (L[t] = L[t] || []).push(f); }, removeEventListener(t, f){ L[t] = (L[t] || []).filter(x => x !== f); }, setPointerCapture(){}, click(){ this.clicks++; }};
+    ctxG.f(el, () => true, 6, {start: (x, y) => log.push(`start ${x},${y}`), move: (x, y) => log.push(`move ${x},${y}`), end: c => log.push(`end ${c}`)});
+    const fire = (t, e) => { (L[t] || []).slice().forEach(f => f(e)); return e; };
+    return {el, log, fire};
+  };
+  const pt = (x, y, id = 1) => ({identifier: id, clientX: x, clientY: y});
+  const tev = (touches, changed) => ({touches, changedTouches: changed, cancelable: true, prevented: false, preventDefault(){ this.prevented = true; }});
+  { const {el, log, fire} = geste(true);
+    fire('touchstart', tev([pt(100, 200)], [pt(100, 200)]));
+    const m1 = fire('touchmove', tev([pt(106, 205)], [pt(106, 205)]));
+    assert.ok(m1.prevented && log.length === 0, 'doigt : défilement bloqué dès le premier mouvement, sans glisser sous 10 px');
+    fire('touchmove', tev([pt(110, 190)], [pt(110, 190)]));
+    fire('touchend', tev([], [pt(110, 190)]));
+    assert.deepEqual(log, ['start 100,200', 'move 110,190', 'end false'], 'doigt : la copie part du point touché et se pose au lâcher');
+    assert.ok(el.clicks === 0 && el._noClick === now + 450, 'après un glisser, pas de clic'); }
+  { const {el, log, fire} = geste(true);
+    fire('touchstart', tev([pt(50, 50)], [pt(50, 50)]));
+    fire('touchmove', tev([pt(56, 54)], [pt(56, 54)]));
+    const up = fire('touchend', tev([], [pt(56, 54)]));
+    assert.ok(log.length === 0 && el.clicks === 1 && up.prevented && el._noClick === now + 600, 'toucher qui tremble de 7 px : un seul clic, tout de suite'); }
+  { const {log, fire} = geste(true);
+    fire('touchstart', tev([pt(50, 50)], [pt(50, 50)])); fire('touchmove', tev([pt(80, 50)], [pt(80, 50)])); fire('touchcancel', tev([], [pt(80, 50)]));
+    fire('touchstart', tev([pt(0, 0, 1), pt(9, 9, 2)], [pt(9, 9, 2)]));
+    fire('pointerdown', {pointerType: 'touch', button: 0, clientX: 5, clientY: 5, pointerId: 3});
+    assert.deepEqual(log, ['start 50,50', 'move 80,50', 'end true'], 'geste interrompu : l’étiquette revient ; deuxième doigt et événements pointeur du doigt ignorés'); }
+  for (const tactile of [true, false]) {
+    const {log, fire} = geste(tactile);
+    fire('pointerdown', {pointerType: 'mouse', button: 0, clientX: 10, clientY: 10, pointerId: 1});
+    fire('pointermove', {clientX: 30, clientY: 12}); fire('pointerup', {type: 'pointerup'});
+    assert.deepEqual(log, ['start 10,10', 'move 30,12', 'end false'], `souris${tactile ? ' (écran tactile)' : ''} : glisser par les événements pointeur`);
+  }
   const acted = cut('function lvPkActed(', 'function lvReplay(){');
   for (const part of ['if(r.done){ lvPkWin(P,why,r.at||(el&&el._s)||null); return; }', 'P.miss++;', "kick.textContent='✕ Essaie encore';",
     'const first=P.miss===0', 'lvPkSet(LV.id,P.i,first,P.miss);', "wEl.innerHTML=lvNw(why); wEl.className='lv-pk-why ko';", "if(P.layer)P.layer.classList.add('is-done');"])
