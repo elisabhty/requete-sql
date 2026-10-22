@@ -850,7 +850,7 @@ const COURSES = [
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
   {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '3 min 49', notesAt: 167.9,
-    notes: /notes:\{t:222\.05,y:1070,card:\[64,292,1016,775\],to:\[940,255\]\}/, table: 'inscriptions',
+    notes: /notes:\{t:222\.35,y:1070,card:\[64,292,1016,775\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Tes tables sont prêtes&nbsp;:<br>à toi de les relier avec des clés.',
     chapters: ['Le problème', 'La clé primaire', 'La clé étrangère', '1 → N', 'N ↔ N', '1 ↔ 1', 'À retenir'],
     traps: ["const INSCR = [[1, 1, 1, '2026-09-01'], [2, 4, 1, '2026-09-02'], [3, 5, 2, '2026-09-03'], [4, 7, 3, '2026-09-04'],",
@@ -1347,7 +1347,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
      de Moussa Diallo, puis la règle. */
   assert.equal(siens.length, 2);
   const why = ['Moussa anime deux ateliers : le ' + siens.join(' et le ') + '. Avec une colonne <code>atelier_id</code> dans la table coachs,',
-    'il faudrait inscrire ces deux identifiants dans la même case.', 'Impossible : une case ne contient qu’une seule valeur.',
+    'il faudrait inscrire ces deux identifiants dans la même case.', 'Impossible : une case ne doit contenir qu’une seule valeur.',
     'Pour garder une seule valeur par case, on place plutôt <code>coach_id</code>', 'dans la <b>table ateliers</b> : chaque atelier indique ainsi le coach qui l’anime.'];
   const iw = D.CAPTIONS.findIndex(c => c[2] === why[0]);
   assert.ok(iw > 0 && D.CAPTIONS[iw - 1][2] === 'À toi !' && D.CAPTIONS[iw][0] > D.PICKS[2].at && why.every((w, k) => D.CAPTIONS[iw + k][2] === w) && D.CAPTIONS[iw + why.length][2] === 'À toi !',
