@@ -860,8 +860,8 @@ const COURSES = [
       "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 129.8, from: 119.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}", "{at: 141.4, from: 135.95, kind: 'pick',",
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
-  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 56', notesAt: 167.9,
-    notes: /notes:\{t:289\.3,y:1193,card:\[64,292,1016,898\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 59', notesAt: 167.9,
+    notes: /notes:\{t:292\.0,y:1193,card:\[64,292,1016,898\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Tes tables sont prêtes&nbsp;:<br>à toi de les relier avec des clés.',
     chapters: ['Le problème', 'La clé primaire', 'La clé étrangère', '1 → N', 'N ↔ N', '1 ↔ 1', 'À retenir'],
     traps: ["const INSCR = [[1, 1, 1, '2026-09-01'], [2, 4, 1, '2026-09-02'], [3, 5, 2, '2026-09-03'], [4, 7, 3, '2026-09-04'],",
@@ -1295,7 +1295,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
 
 test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre 1 relié par des clés, chaque réponse vérifiée dans SQLite', async () => {
   const l72 = cut('guide({ id:72, titre:"Clés et relations"', 'guide({ id:81,');
-  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'4 min 56',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'4 min 59',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1304,7 +1304,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
     vm.runInContext(page.slice(a, b) + `;this.D = {${names}};`, ctx);
     return [page, JSON.parse(JSON.stringify(ctx.D))];
   };
-  const [page, D] = load('projet-cles.html', 'COACHS, ATELIERS, CLIENTS, INSCR, NOUVELLE, CARTES, DOUBLON, CAPTIONS, RELS, CAS, WHY, PICKS, MAILS, OPENS');
+  const [page, D] = load('projet-cles.html', 'COACHS, ATELIERS, CLIENTS, INSCR, NOUVELLE, CARTES, DOUBLON, CAPTIONS, RELS, CAS, WHY, PICKS, MAILS, OPENS, SQL');
   const [ch1, C1] = load('projet-normaliser.html', 'COACHS, ATELIERS, YOGA, INSCR, NEWMAIL');
   /* Le cas du chapitre 1, tel qu’il l’a laissé : mêmes coachs (Salma Haddad avec sa nouvelle adresse), mêmes ateliers (Yoga du matin compris), mêmes inscriptions. */
   assert.deepEqual(D.COACHS.map(c => c.slice(0, 3)), C1.COACHS.map(c => c.slice(0, 3)), 'les quatre coachs du chapitre 1');
@@ -1357,9 +1357,36 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   const iPk = D.CAPTIONS.findIndex(c => c[2] === 'C’est la <b>clé primaire</b> de la table : chaque table reçoit la sienne.');
   assert.ok(iPk > 0 && D.CAPTIONS[iPk + 1][2] === 'Une clé primaire<br>ne peut pas être vide (<code>NULL</code>).' && D.CAPTIONS[iPk + 1][1] < 43.2, 'clé primaire : jamais vide, dans son chapitre');
   assert.ok(caps.includes('une valeur qui ne désigne qu’elle.') && caps.includes('un numéro unique, qui reste stable.') && !/changera jamais|ne change jamais/.test(page), 'clé primaire : unique et stable, sans « jamais »');
-  /* Avant 1 ↔ 1 : la table cartes et sa clé étrangère sont présentées (les anneaux relient chaque carte à son propriétaire). */
+  /* Avant 1 ↔ 1 : la table cartes et sa clé étrangère sont présentées (sa requête la déclare : tapée, puis surlignée) ; les anneaux
+     relient ensuite chaque carte à son propriétaire, pendant « Un client n’a qu’une carte, et une carte n’a qu’un seul client ». */
   const iCa = D.CAPTIONS.findIndex(c => c[2] === 'On crée une <b>table cartes</b> :<br>sa clé étrangère <code>client_id</code> désigne le propriétaire de chaque carte.');
-  assert.ok(iCa > 0 && D.CAPTIONS[iCa + 1][2].startsWith('Un client n’a qu’une carte') && D.CAPTIONS[iCa][0] <= 134.8 && D.CAPTIONS[iCa][1] >= 136.1, 'la table cartes présentée pendant que ses clés se relient');
+  assert.ok(iCa > 0 && D.CAPTIONS[iCa + 1][2].startsWith('Un client n’a qu’une carte') && page.includes("sqType('ca5', 134.3, 40);") && page.includes("band('ca5', 135.6);")
+    && D.CAPTIONS[iCa][0] <= 134.3 && D.CAPTIONS[iCa][1] >= 136.1
+    && page.includes("on([ring('td-ca', id, 1), ring('td-cl', c, 0)], 136.6 + k * 0.5)") && D.CAPTIONS[iCa + 1][0] <= 136.6 && D.CAPTIONS[iCa + 1][1] >= 137.9,
+    'la table cartes présentée avec sa clé étrangère ; une carte par client, un client par carte, pendant la légende qui le dit');
+  /* Chaque clé se déclare aussi en SQL : une carte de code (schema.sql), tapée au fil des légendes, avec la syntaxe du cours sur les
+     bases relationnelles (FOREIGN KEY … REFERENCES). Chaque mot-clé arrive pendant la légende qui en parle. */
+  const capAt = t => D.CAPTIONS.find(c => c[0] <= t && t <= c[1])[2];
+  const when = (what, re) => { const m = page.match(re); assert.ok(m, what); return +m[1]; };
+  assert.ok(capAt(when('PRIMARY KEY', /sqMore\('pkm', ([\d.]+)\)/)).startsWith('C’est la <b>clé primaire</b>'), 'PRIMARY KEY s’ajoute à la colonne id quand la légende nomme la clé primaire');
+  assert.ok(capAt(when('FOREIGN KEY', /sqType\('fk6', ([\d.]+)/)).includes('est une <b>clé étrangère</b>'), 'FOREIGN KEY se tape pendant la définition de la clé étrangère');
+  assert.ok(capAt(when('atelier_id', /sqType\('fk8', ([\d.]+)/)).startsWith('De même, <code>atelier_id</code>'), 'la clé étrangère d’atelier_id pendant « De même »');
+  assert.ok(capAt(when('1 → N', /band\('at3', ([\d.]+)\)/)).startsWith('La règle : en 1 → N'), 'la clé étrangère déclarée dans la table ateliers, surlignée avec la règle');
+  assert.ok(capAt(when('N ↔ N', /band\('nn3', ([\d.]+)\)/)).includes('sont des <b>clés étrangères</b>'), 'les deux clés étrangères de la table d’association surlignées quand la légende les nomme');
+  assert.ok(capAt(when('UNIQUE', /sqMore\('cau', ([\d.]+)\)/)).startsWith('On ajoute la contrainte <code>UNIQUE</code>'), 'UNIQUE s’ajoute quand la légende ajoute la contrainte');
+  assert.ok(fs.readFileSync(path.join(ROOT, 'assets/anim/bases-relationnelles.html'), 'utf8').includes('<span class="kw">FOREIGN KEY</span>')
+    && Object.values(D.SQL).every(card => card.every(([, l]) => !/REFERENCES/.test(l) || /^\s*(FOREIGN KEY \(\w+\) )?REFERENCES \w+\(id\)/.test(l.replace(/[{[]\w+\||[}\]]/g, '')))),
+    'FOREIGN KEY (colonne) REFERENCES table(id), comme au cours sur les bases relationnelles');
+  /* Jamais de carte de légende vide : entre deux légendes éloignées (un mail, le passage au moment 6), la carte s’efface avec la
+     légende et revient juste avant la suivante. */
+  const offs = [...page.matchAll(/capOff\(([\d.]+)\)/g)].map(m => +m[1]), ons = [...page.matchAll(/capOn\(([\d.]+)\)/g)].map(m => +m[1]);
+  D.CAPTIONS.slice(1).forEach((c, i) => {
+    const b = D.CAPTIONS[i][1], a = c[0];
+    if (a - b > 1) assert.ok(offs.some(t => Math.abs(t - (b - 0.2)) < 0.11) && ons.some(t => t >= a - 0.3 && t <= a), `légende vide entre ${b} et ${a}`);
+  });
+  /* N ↔ N : la table ateliers revient avec sa colonne coach_id (sa 3e colonne, c2), valeurs comprises. */
+  assert.ok(page.includes("tl.set('#tb-at', {'--w3': '150px'}, 107.3);") && page.includes("tl.set('#tb-at .c2', {autoAlpha: 1}, 107.3);") && page.includes("{h: 'titre', w: '1fr'}, {h: 'coach_id', w: 'var(--w3)', k: 'k-co', ini: true}],\n    ATELIERS.map(x => ({id: x[0], v: [x[0], x[1], x[3]]}))"),
+    'la colonne coach_id de la table ateliers, visible au retour des tables');
   assert.ok(caps.includes('Reste une relation à créer :<br>') && !caps.includes('dernière relation'), '« Reste une relation à créer » : la carte de membre en ajoute une plus tard');
   // Moment 2 : l’inscription du 4 septembre, une seule ce jour-là
   const r4 = D.INSCR.filter(r => r[3] === '2026-09-04');
@@ -1466,12 +1493,20 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.equal(q('SELECT email FROM clients WHERE id = 1'), JSON.stringify([[D.MAILS[0][3]]]), 'Sophie Martin écrit depuis son adresse de la base');
   assert.equal(q("SELECT COUNT(*) FROM clients WHERE prenom = 'Nathan'"), '[[2]]', 'deux Nathan : un prénom n’identifie personne');
   db.run('PRAGMA foreign_keys = ON;');
-  db.run(`CREATE TABLE coachs (id INTEGER PRIMARY KEY, prenom TEXT, nom TEXT, email TEXT);
-    CREATE TABLE ateliers (id INTEGER PRIMARY KEY, titre TEXT, date_atelier TEXT, coach_id INTEGER REFERENCES coachs(id));
-    CREATE TABLE inscriptions (id INTEGER PRIMARY KEY, client_id INTEGER REFERENCES clients(id), atelier_id INTEGER REFERENCES ateliers(id), date_inscription TEXT);
-    CREATE TABLE cartes (id INTEGER PRIMARY KEY, client_id INTEGER UNIQUE REFERENCES clients(id), seances INTEGER);`);
+  /* Les tables sont créées par les requêtes montrées dans la vidéo (« … » : les autres colonnes de la table, écrites ici). Celles
+     d’inscriptions et de cartes sont complètes ; la table d’association reprend les deux clés étrangères d’inscriptions. */
+  const sqlText = k => D.SQL[k].map(([, l]) => l.replace(/[{[]\w+\||[}\]]/g, '')).join('\n');
+  const autres = {pk: '  prenom TEXT, nom TEXT, email TEXT', at: '  id INTEGER PRIMARY KEY, titre TEXT, date_atelier TEXT, coach_id INTEGER,'};
+  const ddl = k => sqlText(k).replace('  …', autres[k]);
+  assert.ok(!sqlText('fk').includes('…') && !sqlText('ca').includes('…') && sqlText('pk').includes('…') && sqlText('at').includes('…'), 'requêtes complètes, ou « … » pour les autres colonnes');
+  const fkLines = k => sqlText(k).split('\n').filter(l => /FOREIGN KEY|REFERENCES/.test(l)).map(l => l.trim().replace(/,$/, ''));
+  assert.deepEqual(fkLines('nn'), fkLines('fk'), 'la table d’association : les deux clés étrangères de la table inscriptions');
+  db.run([ddl('pk'), ddl('at'), ddl('fk'), ddl('ca')].join('\n'));
+  assert.deepEqual(['inscriptions', 'cartes'].map(t => JSON.parse(q(`SELECT group_concat(name) FROM pragma_table_info('${t}')`))[0][0]), ['id,client_id,atelier_id,date_inscription', 'id,client_id,seances'],
+    'les colonnes des tables montrées à l’image');
   db.run(`INSERT INTO coachs VALUES ${rows(D.COACHS.map(c => c.slice(0, 4)))}; INSERT INTO ateliers VALUES ${rows(D.ATELIERS)};
     INSERT INTO inscriptions VALUES ${rows(D.INSCR)}; INSERT INTO cartes VALUES ${rows(D.CARTES)};`);
+  assert.throws(() => db.run("INSERT INTO inscriptions VALUES (99, 99, 1, '2026-09-30');"), /FOREIGN KEY constraint failed/, 'la clé étrangère refuse un client qui n’existe pas');
   assert.equal(q(`SELECT clients.prenom || ' ' || clients.nom, ateliers.titre FROM inscriptions JOIN clients ON clients.id = inscriptions.client_id
     JOIN ateliers ON ateliers.id = inscriptions.atelier_id WHERE inscriptions.date_inscription = '2026-09-04'`), JSON.stringify([[name(c4), atl(a4)[1]]]), 'moment 2 : la jointure retrouve l’inscription du 4 septembre');
   assert.equal(q("SELECT ateliers.titre FROM ateliers JOIN coachs ON coachs.id = ateliers.coach_id WHERE coachs.prenom = 'Moussa' ORDER BY ateliers.id"), '[["Pilates"],["Yoga du matin"]]', 'l’explication du moment 3 : Moussa Diallo anime deux ateliers (1 → N)');

@@ -77,6 +77,20 @@
 .relp b{font-family:var(--display);font-size:44px;font-weight:800;color:var(--accent-ink);letter-spacing:-.5px}
 .relp i{font-style:normal;font-size:30px;font-weight:700;color:var(--ink-2)}
 
+/* ---------- La requête qui déclare les clés : une carte de code, tapée au fil des légendes ---------- */
+.sq{border-radius:34px;box-shadow:0 9px 0 #110E27}
+.sq .top{height:52px;gap:12px;padding:0 30px}
+.sq .dot{width:14px;height:14px}
+.sq .fname{margin-left:8px;font-size:22px}
+.sq .body{padding:18px 30px;font-size:28px;line-height:42px}
+.sq .ln{height:42px}
+.sq .cmt{color:var(--t-com)}
+.sq .caret i{top:-31px;width:4px;height:37px}
+/* Le surlignage d’une ligne, ou de deux (bd2 : FOREIGN KEY et sa référence) */
+.sq .band{left:-14px;right:-14px;top:0;height:42px;border-radius:12px;z-index:-1}
+.sq .band.bd2{height:84px}
+.sq .glow{border-radius:8px;padding:0 3px;margin:0 -3px}
+
 /* ---------- Les mails reçus : la notification (l’en-tête seul), puis le mail déplié ---------- */
 .ml{left:64px;width:952px;top:560px;height:184px;padding:0 30px;overflow:hidden}
 .mh{height:178px;display:flex;align-items:center;gap:26px}
@@ -204,6 +218,21 @@ const NOUVELLE = [7, 1, 4, '2026-09-07'];
 const CARTES = [[1, 1, 10], [2, 4, 5], [3, 6, 8]];
 const DOUBLON = [4, 1, 10];
 const cl = id => CLIENTS.find(c => c[0] === id), at = id => ATELIERS.find(a => a[0] === id), co = id => COACHS.find(c => c[0] === id);
+/* Les requêtes qui déclarent les clés, une carte de code par scène : [repère, texte, 2 si son surlignage couvre aussi la ligne
+   suivante]. Dans le texte : {id|…} un passage repéré (il pulse), [id|…] un passage tapé plus tard, « … » les autres colonnes. */
+const SQL = {
+  pk: [['pk1', 'CREATE TABLE coachs ('], ['pk2', '  id INTEGER[pkm| {pkk|PRIMARY KEY}],'], ['pk3', '  …'], ['pk4', ');']],
+  fk: [['fk1', 'CREATE TABLE inscriptions ('], ['fk2', '  id INTEGER PRIMARY KEY,'], ['fk3', '  client_id INTEGER,'], ['fk4', '  atelier_id INTEGER,'],
+    ['fk5', '  date_inscription TEXT[fkm1|,]'], ['fk6', '  FOREIGN KEY {fkc|(client_id)}', 2], ['fk7', '    REFERENCES {fkr|clients(id)}[fkm2|,]'],
+    ['fk8', '  FOREIGN KEY (atelier_id)', 2], ['fk9', '    REFERENCES ateliers(id)'], ['fk10', ');']],
+  at: [['at1', 'CREATE TABLE {atn|ateliers} ('], ['at2', '  …'], ['at3', '  FOREIGN KEY (coach_id) REFERENCES coachs(id)'], ['at4', ');']],
+  nn: [['nn1', 'CREATE TABLE inscriptions ('], ['nn2', '  …'], ['nn3', '  FOREIGN KEY (client_id)', 2], ['nn4', '    REFERENCES clients(id),'],
+    ['nn5', '  FOREIGN KEY (atelier_id)', 2], ['nn6', '    REFERENCES ateliers(id)'], ['nn7', ');']],
+  ca: [['ca1', 'CREATE TABLE cartes ('], ['ca2', '  id INTEGER PRIMARY KEY,'], ['ca3', '  client_id INTEGER[cau| {cuq|UNIQUE}],'], ['ca4', '  seances INTEGER,'],
+    ['ca5', '  FOREIGN KEY (client_id) REFERENCES clients(id)'], ['ca6', ');']]
+};
+/* Scène 4 : hauteur des lignes des deux tables, puis une fois resserrées pour faire place à la requête. */
+const RH4 = {co: [62, 56], at: [70, 58]};
 
 const CHAPTERS = [
   {n:1, label:'Le problème',      a:5.0,   b:22.6},
@@ -335,6 +364,18 @@ function table(id, k, name, emo, cols, rows, x, w, rh, extra = ''){
   return h + extra + '</div>';
 }
 const ID = (k, ini, w = '90px') => ({h: 'id', w: ini ? 'var(--w0)' : w, k, pk: true, ini});
+/* Carte de code (SQL) : chaque ligne a son curseur (en fin de ligne, et après chaque passage tapé plus tard) et son surlignage. */
+const SQL_KW = /CREATE TABLE|PRIMARY KEY|FOREIGN KEY|REFERENCES|UNIQUE/g, CARET = '<span class="caret"><i></i></span>';
+function sqlCard(id, lines, x, w){
+  const body = lines.map(([lid, s, n]) => {
+    const cmt = s.trim() === '…';
+    const h = s.replace(/\{(\w+)\|([^{}]*)\}/g, '<span class="glow" id="$1">$2</span>')
+      .replace(/\[(\w+)\|([^[\]]*)\]/g, `<span class="lat" id="$1">$2</span>${CARET}`).replace(SQL_KW, '<span class="kw">$&</span>');
+    return `<span class="ln${cmt ? ' cmt' : ''}" id="${lid}">${h}${cmt ? '' : CARET}<i class="band${n === 2 ? ' bd2' : ''}"></i></span>`;
+  }).join('');
+  return `<div class="abs code sq" id="${id}" style="left:${x}px;width:${w}px"><div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i>` +
+    `<span class="fname">schema.sql</span></div><div class="body">${body}</div></div>`;
+}
 function dom(){
   /* 1 et 2 · Les trois tables du chapitre 1 (leur clé primaire arrive au chapitre 2) */
   let a = table('ta-co', 'k-co', 'coachs', '🧑‍🏫', [ID('k-co', true), {h: 'prenom', w: '210px'}, {h: 'nom', w: '210px'}, {h: 'email', w: '1fr'}],
@@ -344,6 +385,7 @@ function dom(){
   a += table('ta-in', 'k-in', 'inscriptions', '📝', [ID('k-in', true), {h: 'date_inscription', w: '1fr'}],
     INSCR.map(x => ({id: x[0], v: [x[0], x[3]]})), 634, 382, 58);
   a += '<div class="abs mq" id="ta-mq" style="left:634px;width:382px"><span class="miss" id="ms1"><i class="mi"><b class="q">?</b><b class="k">🔑</b></i>client</span><span class="miss" id="ms2"><i class="mi"><b class="q">?</b><b class="k">🔑</b></i>atelier</span></div>';
+  a += sqlCard('sq-pk', SQL.pk, 64, 952);   // la clé primaire, en SQL
   $('#sa').innerHTML = a;
   /* 3 et 5 · Les inscriptions, reliées aux clients et aux ateliers (client_id, atelier_id ajoutées au chapitre 3) */
   let b = table('tb-cl', 'k-cl', 'clients', '👥', [ID('k-cl', false, '80px'), {h: 'prenom', w: '128px'}, {h: 'nom', w: '1fr'}],
@@ -354,15 +396,18 @@ function dom(){
     {h: 'atelier_id', w: 'var(--w2)', k: 'k-at', ini: true}, {h: 'date_inscription', w: '1fr'}],
     INSCR.concat([NOUVELLE]).map((x, i) => ({id: x[0], v: x, cls: i === INSCR.length ? 'new' : ''})), 64, 952, 64);
   b += '<div class="abs relp" id="tb-rel" style="left:476px;width:540px"><span><b>N ↔ N</b><i>plusieurs à plusieurs</i></span></div>';
+  // les clés étrangères d’inscriptions, en SQL, à la place de la table ateliers (3, puis 5)
+  b += sqlCard('sq-fk', SQL.fk, 476, 540) + sqlCard('sq-nn', SQL.nn, 476, 540);
   $('#sb').innerHTML = b;
   /* « 1, 4 » dans une seule case : ce que donnerait la mauvaise idée du moment 5 */
   $('#tb-in-r1 .c2').insertAdjacentHTML('beforeend', '<i class="two hid" id="two14">1, 4</i>');
   /* 4 · Les coachs et leurs ateliers ; dans la table coachs, la colonne atelier_id d’une mauvaise idée (moment 3) */
   let c = table('tc-co', 'k-co', 'coachs', '🧑‍🏫', [ID('k-co'), {h: 'prenom', w: '200px'}, {h: 'nom', w: '200px'}, {h: 'email', w: '1fr'},
-    {h: 'atelier_id', w: 'var(--w4)', ini: true}], COACHS.map(x => ({id: x[0], v: [x[0], x[1], x[2], x[3], ATELIERS.filter(a => a[3] === x[0]).map(a => a[0]).join(', ')]})), 64, 952, 62);
+    {h: 'atelier_id', w: 'var(--w4)', ini: true}], COACHS.map(x => ({id: x[0], v: [x[0], x[1], x[2], x[3], ATELIERS.filter(a => a[3] === x[0]).map(a => a[0]).join(', ')]})), 64, 952, RH4.co[0]);
   c += table('tc-at', 'k-at', 'ateliers', '📅', [ID('k-at'), {h: 'titre', w: '1fr'}, {h: 'date_atelier', w: '230px'}, {h: 'coach_id', w: 'var(--w3)', k: 'k-co', ini: true}],
-    ATELIERS.map(x => ({id: x[0], v: x})), 64, 952, 70);
+    ATELIERS.map(x => ({id: x[0], v: x})), 64, 952, RH4.at[0]);
   c += '<div class="abs relp" id="tc-rel" style="left:64px;width:952px"><span><b>1 → N</b><i>un à plusieurs</i></span></div>';
+  c += sqlCard('sq-at', SQL.at, 64, 952);   // la clé étrangère du côté « plusieurs », en SQL
   $('#sc').innerHTML = c;
   $('#tc-co-r2 .c4').insertAdjacentHTML('beforeend', '<i class="two">2, 5</i>');
   /* Les mails */
@@ -377,6 +422,7 @@ function dom(){
     CARTES.concat([DOUBLON]).map((x, i) => ({id: x[0], v: x, cls: i === CARTES.length ? 'dup' : ''})), 476, 540, 64);
   d += '<div class="abs relp" id="td-rel" style="left:476px;width:540px"><span><b>1 ↔ 1</b><i>un à un</i></span></div>';
   d += '<div class="abs stamp warn refus" id="td-st">Refusé</div>';
+  d += sqlCard('sq-ca', SQL.ca, 64, 952);   // la clé étrangère unique, en SQL
   $('#sd').innerHTML = d;
   /* Les trois formes de relation : un petit schéma (une ligne à gauche, une ou plusieurs à droite), puis le cas rangé */
   const dots = (ys, x, col) => ys.map(y => `<circle cx="${x}" cy="${y}" r="13" fill="${col}"/>`).join('');
@@ -389,6 +435,8 @@ function dom(){
     `<svg viewBox="0 0 200 120">${SVG[k]}</svg><div class="rc" id="rc${c}">${CAS[c]}</div></div>`).join('') +
     RELS.map(([k], q) => `<div class="abs rrule" id="rr-${k}" style="left:${64 + q * 328}px;top:1004px"><span class="emo">${RULES[k][0]}</span><b>${RULES[k][1]}</b><i>${RULES[k][2]}</i></div>`).join('');
   $('#sk').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">📐</span>Chapitre 3 · Modéliser avec UML</span></div>';
+  // les requêtes, découpées en caractères pour la frappe
+  $$('.sq .ln').forEach(splitChars);
 }
 
 /* ---------- Mise en page ---------- */
@@ -418,7 +466,17 @@ function layout(){
   st.style.top = (236 + dup.offsetTop + Math.round((64 - st.offsetHeight) / 2)) + 'px';
   // Les mails : hauteur une fois dépliés
   $$('.ml').forEach((el, n) => { el.style.height = 'auto'; MH[n + 1] = el.offsetHeight; el.style.height = ''; });
+  // Les requêtes : sous les tables (1 et 2, la carte de membre) ; à la place de la table ateliers (3, puis 5)
+  $('#sq-pk').style.top = (bottom('#ta-in') + 9 + 40) + 'px';
+  $('#sq-fk').style.top = $('#sq-nn').style.top = '236px';
+  $('#sq-ca').style.top = (bottom('#td-cl') + 9 + 40) + 'px';
+  // 4 : sous les deux tables resserrées ; SC4 : où vont alors la pastille et les ateliers
+  const dco = COACHS.length * (RH4.co[0] - RH4.co[1]), dat = ATELIERS.length * (RH4.at[0] - RH4.at[1]);
+  SC4.rel = $('#tc-rel').offsetTop - dco;
+  SC4.at = $('#tc-at').offsetTop - dco;
+  $('#sq-at').style.top = (bottom('#tc-at') - dco - dat + 9 + 34) + 'px';
 }
+const SC4 = {};
 
 /* ---------- Petits gestes de la timeline ---------- */
 const pulse = (el, t, n = 3, c = 'rgba(201,188,255,.55)') => tl.to(el, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
@@ -440,6 +498,21 @@ function keyChip(el, t){
   tl.set(el, {borderStyle: 'solid'}, t + 0.15);
   tl.to(el, {borderColor: '#8B6CFF', backgroundColor: '#F1EDFF', color: '#5335E0', duration: 0.3}, t + 0.15);
 }
+/* Frappe d’une ligne de code (sans ses passages gardés), puis d’un passage gardé ; lead : avance du curseur (courte sur une ligne
+   qui vient de s’ouvrir). Renvoient l’instant de fin. */
+function sqType(lid, t, cps = 36, lead = 0.25){
+  const ln = $('#' + lid), caret = $$(':scope > .caret', ln).pop();
+  tl.set(caret, {autoAlpha: 1}, t - lead);
+  const end = typeChars($$('.ch', ln).filter(c => !c.closest('.lat')), t, cps);
+  tl.set(caret, {autoAlpha: 0}, end + 0.12);
+  return end;
+}
+const sqMore = (pid, t, cps = 24) => typeChars($$('#' + pid + ' .ch'), t, cps, $('#' + pid).nextElementSibling);
+/* Une ligne s’insère dans la requête : elle s’ouvre, les suivantes descendent. */
+const sqOpen = (lids, t) => tl.to(lids.map(l => '#' + l), {height: 42, duration: 0.25, ease: 'power2.out', stagger: 0.06}, t);
+/* Une ligne (ou deux, bd2) de la requête se surligne. */
+const band = (lid, t, sound = true) => { tl.to(`#${lid} > .band`, {scaleX: 1, duration: 0.5, ease: 'expo.out'}, t); if (sound) cue(t, 'pop', 0.7, 3); };
+const unband = (lid, t) => tl.to(`#${lid} > .band`, {opacity: 0, duration: 0.3, ease: 'power2.in'}, t);
 const ring = (t, id, j) => `#${t}-r${id} .c${j} .ring`;
 const hl = (t, id) => `#${t}-r${id} .hl`;
 /* Une colonne ajoutée : elle s’ouvre, puis ses valeurs arrivent de haut en bas. */
@@ -507,8 +580,12 @@ function build(){
   gsap.set(['#tb-at', '#tc-at'], {'--w3': '0px'});
   gsap.set('#tc-co', {'--w4': '0px'});
   gsap.set(['#tb-in-r7', '#td-ca-r4'], {height: 0, autoAlpha: 0});
-  gsap.set(['.tb', '.relp', '.ml', '.rbin', '.rrule', '#keyc', '.miss', '#td-st', '#tapf'], {autoAlpha: 0});
-  gsap.set(TA.map(t => t[0]), {boxShadow: GLOW_OFF});
+  gsap.set(['.tb', '.relp', '.ml', '.rbin', '.rrule', '#keyc', '.miss', '#td-st', '#tapf', '.sq'], {autoAlpha: 0});
+  gsap.set(TA.map(t => t[0]).concat(['#tb-in', '#tc-at']), {boxShadow: GLOW_OFF});
+  // les requêtes : les lignes qui s’insèrent plus tard sont fermées, les surlignages repliés
+  gsap.set(['#fk3', '#fk4', '#fk6', '#fk7', '#fk8', '#fk9'], {height: 0});
+  gsap.set('.sq .band', {scaleX: 0});
+  let te;
 
   /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
      la consigne, la légende ne la répète pas. Le passage d’attente est coupé (rien ne s’y anime). */
@@ -550,32 +627,71 @@ function build(){
   tl.set('#ta-co .c0', {autoAlpha: 1}, a0);
   $$('#ta-co .r .c0').forEach((c, k) => pulse(c, 31.8 + k * 0.15, 1));
   cue(31.8, 'tick', 0.5, 1);
+  // en SQL : la requête de la table coachs se tape ; la table s’allume quand elle est nommée
+  show('#sq-pk', 33.0, {y: 40}, 0.5); cue(33.0, 'whoosh', 0.45, 1);
+  te = sqType('pk1', 33.35, 34);
+  glowOn('#ta-co', TA[0][1], 33.75); glowOff('#ta-co', 35.0);
+  te = sqType('pk2', te + 0.12, 30);
+  gsap.set(['#pk3', '#pk4'], {autoAlpha: 0});
+  tl.to(['#pk3', '#pk4'], {autoAlpha: 1, duration: 0.3, stagger: 0.12}, te + 0.1);
+  // c’est la clé primaire : PRIMARY KEY s’ajoute à la colonne id, qui se surligne
+  sqMore('pkm', 37.25);
+  band('pk2', 37.85);
+  pulse('#pkk', 38.0, 3, 'rgba(255,224,138,.35)');
   // chaque table reçoit la sienne
   tl.to(['#ta-at', '#ta-in'], {opacity: 1, duration: 0.4}, 37.4);
-  addCol('ta-at', 0, 76, 37.9, 0.1);
+  addCol('ta-at', 0, 76, 38.5, 0.1);
   addCol('ta-in', 0, 76, 39.2, 0.1);
   $$('#sa .hd .key').forEach((k, q) => { bump(k, 41.0 + q * 0.2, 1.4); cue(41.0 + q * 0.2, 'pop', 0.6, q); });
   // une clé primaire ne peut pas être vide : chaque id a sa valeur
   TA.forEach(([s], q) => { $$(s + ' .r .c0').forEach(c => pulse(c, 41.75 + q * 0.05, 1)); cue(41.75 + q * 0.05, 'tick', 0.45, 4 + q); });
-  hide(['#ta-co', '#ta-at', '#ta-in'], 42.7, {y: -40}, 0.4);
+  hide(['#ta-co', '#ta-at', '#ta-in', '#sq-pk'], 42.7, {y: -40}, 0.4);
   sceneOff('#sa', 43.2);
 
   /* ===== 3 · La clé étrangère ===== */
   sceneOn('#sb', 43.2);
-  [['#tb-cl', 43.3], ['#tb-at', 43.5], ['#tb-in', 43.7]].forEach(([s, t], q) => { show(s, t, {y: 60}, 0.55); cue(t, 'whoosh', 0.5, q); });
+  // clients et inscriptions ; la requête d’inscriptions occupe la place de la table ateliers, qui arrive avec atelier_id
+  [['#tb-cl', 43.3], ['#tb-in', 43.5]].forEach(([s, t], q) => { show(s, t, {y: 60}, 0.55); cue(t, 'whoosh', 0.5, q); });
   // la table clients avait déjà sa clé primaire
   $$('#tb-cl .r .c0').forEach((c, k) => pulse(c, 45.2 + k * 0.12, 1));
   cue(45.2, 'tick', 0.5, 1);
-  // client_id : le numéro du client de chaque inscription
-  addCol('tb-in', 1, 210, 49.8, 0.12);
-  // une clé étrangère, et à quoi elle sert : le client 1 de l’inscription 1, c’est Sophie Martin
-  on([ring('tb-in', 1, 1), ring('tb-cl', 1, 0), hl('tb-cl', 1)], 55.7);
-  cue(55.7, 'tick', 0.6, 3);
+  // la requête de la table inscriptions s’affiche, la table s’allume
+  show('#sq-fk', 46.6, {y: 40}, 0.5); cue(46.6, 'whoosh', 0.45, 2);
+  te = sqType('fk1', 46.95);
+  glowOn('#tb-in', '22,148,71', 47.3); glowOff('#tb-in', 48.3);
+  gsap.set(['#fk2', '#fk5', '#fk10'], {autoAlpha: 0});
+  tl.to(['#fk2', '#fk5', '#fk10'], {autoAlpha: 1, duration: 0.3, stagger: 0.1}, te + 0.1);
+  // client_id : sa ligne s’insère dans la requête, puis la colonne s’ouvre dans la table
+  sqOpen(['fk3'], 49.45);
+  sqType('fk3', 49.75, 34, 0.05);
+  addCol('tb-in', 1, 210, 50.45, 0.12);
+  // la clé étrangère s’écrit sous les colonnes, puis se surligne avec les anneaux (inscription 1 → Sophie Martin)
+  sqMore('fkm1', 55.2);
+  sqOpen(['fk6', 'fk7'], 55.3);
+  te = sqType('fk6', 55.65, 40, 0.05);
+  sqType('fk7', te + 0.05, 40, 0.05);
+  on([ring('tb-in', 1, 1), ring('tb-cl', 1, 0), hl('tb-cl', 1)], 57.1);
+  band('fk6', 57.1);
+  // à quoi elle sert : (client_id), puis clients(id), pulsent avec leur case
+  pulse('#fkc', 58.2, 1, 'rgba(201,188,255,.45)'); bump(ring('tb-in', 1, 1), 58.2, 1.12); cue(58.2, 'tick', 0.5, 2);
+  pulse('#fkr', 58.8, 1, 'rgba(255,224,138,.4)'); bump(ring('tb-cl', 1, 0), 58.8, 1.12); cue(58.8, 'tick', 0.5, 4);
   off([ring('tb-in', 1, 1), ring('tb-cl', 1, 0), hl('tb-cl', 1)], 60.65);
-  // atelier_id : le numéro de l’atelier
-  addCol('tb-in', 2, 220, 61.3, 0.12);
-  tl.to(hl('tb-in', 4), {opacity: 1, duration: 0.3}, 64.4);
-  cue(64.4, 'tick', 0.5, 2);
+  // de même pour atelier_id : sa ligne s’insère et la colonne s’ouvre, puis sa clé étrangère s’écrit et se surligne
+  unband('fk6', 60.95);
+  sqOpen(['fk4'], 61.0);
+  sqType('fk4', 61.3, 38, 0.05);
+  addCol('tb-in', 2, 220, 61.95, 0.1);
+  sqMore('fkm2', 63.15);
+  sqOpen(['fk8', 'fk9'], 63.2);
+  te = sqType('fk8', 63.55, 40, 0.05);
+  sqType('fk9', te + 0.05, 40, 0.05);
+  band('fk8', 65.0);
+  hold(65.55, 1.4);   // le temps de lire la requête entière
+  // la table ateliers prend la place de la requête ; la ligne du 4 septembre s’allume
+  hide('#sq-fk', 65.6, {y: 0, scale: 0.96}, 0.3);
+  show('#tb-at', 65.75, {y: 60}, 0.55); cue(65.75, 'whoosh', 0.5, 1);
+  tl.to(hl('tb-in', 4), {opacity: 1, duration: 0.3}, 66.15);
+  cue(66.15, 'tick', 0.5, 2);
   // À toi : la cliente et l’atelier de l’inscription du 4 septembre (réponse : Léa Simon, Cuisine saine)
   const a1 = +(PICKS[1].at + 0.02).toFixed(2);
   tl.set(M2_ANS.c7.concat(M2_ANS.a3), {autoAlpha: 1}, a1);
@@ -612,22 +728,34 @@ function build(){
   tl.to(M4_ANS.co.concat(M4_ANS.a4), {autoAlpha: 0, duration: 0.25, ease: 'power2.in'}, 95.3);
   tl.to(N_ANS, {autoAlpha: 1, duration: 0.3, ease: 'power2.out'}, 95.45);
   pop('#tc-rel', 97.6, 0.6);
-  // la règle : la clé étrangère va du côté « plusieurs », dans la table ateliers
-  bump($$('#tc-at .hd .c3')[0], 101.6, 1.2);
-  hide(['#tc-co', '#tc-at', '#tc-rel'], 103.1, {y: -40}, 0.4);
+  // la règle, dans la table ateliers : les tables se resserrent, sa requête se tape dessous, sa clé étrangère se surligne
+  tl.to('#tc-co', {'--rh': RH4.co[1] + 'px', duration: 0.45, ease: 'power2.inOut'}, 99.35);
+  tl.to('#tc-rel', {top: SC4.rel, duration: 0.45, ease: 'power2.inOut'}, 99.35);
+  tl.to('#tc-at', {top: SC4.at, '--rh': RH4.at[1] + 'px', duration: 0.45, ease: 'power2.inOut'}, 99.35);
+  show('#sq-at', 99.65, {y: 30}, 0.5); cue(99.65, 'whoosh', 0.45, 3);
+  te = sqType('at1', 100.0, 38);
+  glowOn('#tc-at', '232,137,43', 100.35); glowOff('#tc-at', 101.4);
+  gsap.set(['#at2', '#at4'], {autoAlpha: 0});
+  tl.to(['#at2', '#at4'], {autoAlpha: 1, duration: 0.3, stagger: 0.1}, te + 0.08);
+  sqType('at3', te + 0.2, 40);
+  band('at3', 102.0);
+  bump($$('#tc-at .hd .c3')[0], 102.0, 1.2);
+  pulse('#atn', 102.3, 1, 'rgba(255,224,138,.4)'); cue(102.3, 'tick', 0.5, 4);
+  hold(102.95, 1.6);   // le temps de lire la requête
+  hide(['#tc-co', '#tc-at', '#tc-rel', '#sq-at'], 103.1, {y: -40}, 0.4);
   sceneOff('#sc', 103.6);
 
   /* ===== 5 · N ↔ N ===== */
   // le mail de Sophie Martin
   sceneOn('#sm', 103.6);
-  capOff(103.4);
+  capOff(103.0);   // avec la légende : jamais de carte vide
   mailIn(1, 103.7, OPENS[0].at);
   mailOut(1, 107.0);
-  capOn(107.6);
+  capOn(108.0);   // juste avant la légende suivante
   // les tables reviennent ; l’atelier garde désormais son coach_id
   sceneOn('#sb', 107.3);
   tl.set('#tb-at', {'--w3': '150px'}, 107.3);
-  tl.set('#tb-at .c3', {autoAlpha: 1}, 107.3);
+  tl.set('#tb-at .c2', {autoAlpha: 1}, 107.3);   // coach_id : la 3e colonne de cette table (c2)
   [['#tb-cl', 107.35], ['#tb-at', 107.45], ['#tb-in', 107.55]].forEach(([s, t]) => tl.fromTo(s, {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, t));
   cue(107.35, 'whoosh', 0.5);
   // À toi : enregistrer la deuxième inscription (réponse : une ligne de plus dans la table inscriptions)
@@ -649,33 +777,49 @@ function build(){
   bump('#tb-in .h', 125.2, 1.06);
   off([ring('tb-cl', 1, 0), hl('tb-cl', 1), ring('tb-at', 1, 0), hl('tb-at', 1)], 126.15);
   INSCR.concat([NOUVELLE]).forEach((x, k) => { on([ring('tb-in', x[0], 1), ring('tb-in', x[0], 2)], 126.3 + k * 0.08, 0.25); cue(126.3 + k * 0.08, 'tick', 0.45, k % 5); });
+  // sa requête prend la place de la table ateliers ; ses deux clés étrangères se surlignent avec leurs colonnes
+  hide('#tb-at', 126.2, {y: -30}, 0.35);
+  show('#sq-nn', 126.45, {y: 40}, 0.5);
   bump('#tb-in .hd .c1', 127.6, 1.12); bump('#tb-in .hd .c2', 127.85, 1.12);
-  hide(['#tb-cl', '#tb-at', '#tb-in', '#tb-rel'], 128.9, {y: -40}, 0.4);
+  band('nn3', 127.6); band('nn5', 127.85);
+  hide(['#tb-cl', '#tb-at', '#tb-in', '#tb-rel', '#sq-nn'], 128.9, {y: -40}, 0.4);
   sceneOff('#sb', 129.4);
 
   /* ===== 6 · 1 ↔ 1 ===== */
   // le mail de l’équipe NutriBoost
-  capOff(129.15);
+  capOff(128.65);
   mailIn(2, 129.5, OPENS[1].at);
   mailOut(2, 132.8);
   sceneOff('#sm', 133.3);
   capOn(133.3);
   sceneOn('#sd', 133.3);
   [['#td-cl', 133.4], ['#td-ca', 133.6]].forEach(([s, t], q) => { show(s, t, {y: 60}, 0.55); cue(t, 'whoosh', 0.5, q); });
+  // la table cartes en SQL, sous les tables : sa clé étrangère se tape, puis se surligne
+  show('#sq-ca', 133.85, {y: 40}, 0.5); cue(133.85, 'whoosh', 0.35, 3);
+  sqType('ca5', 134.3, 40);
+  band('ca5', 135.6);
   // une carte par client, un client par carte
-  CARTES.forEach(([id, c], k) => { on([ring('td-ca', id, 1), ring('td-cl', c, 0)], 134.8 + k * 0.5); cue(134.8 + k * 0.5, 'tick', 0.5, k + 1); });
-  pop('#td-rel', 137.2, 0.6);
-  // client_id unique : la deuxième carte de Sophie Martin est refusée
+  CARTES.forEach(([id, c], k) => { on([ring('td-ca', id, 1), ring('td-cl', c, 0)], 136.6 + k * 0.5); cue(136.6 + k * 0.5, 'tick', 0.5, k + 1); });
+  pop('#td-rel', 138.25, 0.6);
+  // client_id unique : UNIQUE s’ajoute dans la requête (surligné), son badge dans la table
+  unband('ca5', 139.75);
+  sqMore('cau', 139.85);
   pop('#uq', 140.2, 0.5);
+  band('ca3', 140.2, false);
+  pulse('#cuq', 140.3, 1, 'rgba(255,224,138,.4)');
   // « Sophie ayant déjà une carte, l’ajout d’une deuxième est refusé » : la ligne arrive, puis le tampon
   tl.to('#td-ca-r4', {autoAlpha: 1, height: 64, duration: 0.35, ease: 'power2.out'}, 142.85);
   cue(142.85, 'whoosh', 0.4);
   stampIn('#td-st', 143.8, -5);
   cue(143.8, 'miss', 0.5);
+  pulse('#cuq', 143.95, 1, 'rgba(239,79,85,.45)');   // la contrainte qui refuse
+  // rien n’est dit jusqu’au moment « À toi » : la légende s’efface (jamais de carte vide)
+  capOff(145.0);
   off(['#td-st'], 145.3);
   tl.to('#td-ca-r4', {autoAlpha: 0, height: 0, duration: 0.35, ease: 'power2.inOut'}, 145.5);
-  hide(['#td-cl', '#td-ca', '#td-rel'], 146.0, {y: -40}, 0.4);
+  hide(['#td-cl', '#td-ca', '#td-rel', '#sq-ca'], 146.0, {y: -40}, 0.4);
   sceneOff('#sd', 146.5);
+  capOn(147.1);
   // À toi : ranger chaque situation selon son type de relation
   sceneOn('#se', 146.5);
   $$('.rbin').forEach((b, q) => { show(b, 146.6 + q * 0.15, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(146.6 + q * 0.15, 'pop', 0.6, q); });
