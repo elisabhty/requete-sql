@@ -46,6 +46,8 @@
 .ch .tn{position:absolute;left:24px;right:16px;top:0;height:80px;display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:30px;font-weight:800;color:var(--ci);white-space:nowrap;opacity:0;visibility:hidden}
 .ch .tn .emo{font-size:31px}
 .ars{padding-top:10px}
+/* Surlignage d’une classe : un liseré à l’intérieur de la carte, de la couleur de son sujet (« clients, coachs, ateliers et cartes ») */
+.hlo{position:absolute;left:0;right:0;top:0;bottom:0;border-radius:32px;box-shadow:inset 0 0 0 7px var(--c);opacity:0;visibility:hidden;pointer-events:none}
 .ar{position:relative;isolation:isolate;height:var(--rh,52px);display:flex;align-items:center;gap:8px;padding:0 26px;font-family:var(--mono);font-size:28px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden}
 .ar .emo{font-size:21px}
 .ar.ini{height:0;opacity:0;visibility:hidden}
@@ -166,7 +168,7 @@
     <div class="abs title"><span>U</span><span>M</span><span>L</span></div>
     <div class="abs sub">Le plan de la base</div>
     <img class="abs mascot" src="mascotte.webp" alt="">
-    <div class="abs bubble">Tes tables sont reliées&nbsp;:<br>dessine maintenant leur plan.</div>
+    <div class="abs bubble">Tu vas représenter la structure de la base avec un diagramme UML pour visualiser plus&nbsp;facilement les relations entre les tables.</div>
   </section>
 
   <!-- 1 · Les tables du chapitre 2 -->
@@ -252,9 +254,10 @@ const CAPTIONS = [
   [10.9, 12.6,   "Pour comprendre comment<br>les tables sont reliées,"],
   [12.7, 14.3,   "il faut repérer leurs clés étrangères"],
   [14.4, 16.0,   "et identifier les tables<br>auxquelles elles renvoient."],
-  [21.7, 27.4,   "Pour dessiner ce plan, on utilise un <b class=\"nw\">diagramme de classes UML</b>."],
-  [27.7, 33.4,   "Chaque sujet devient une <b>classe</b> : une boîte qui porte son nom, puis la liste de ses <b>attributs</b>."],
-  [33.5, 39.35,  "Aucune clé ici : le diagramme décrit les sujets, pas la façon de les ranger."],
+  [22.0, 24.6,   "Pour répondre à Karim, on utilise un <b class=\"nw\">diagramme de classes UML</b>."],
+  [24.7, 27.4,   "Il représente les éléments à gérer :<br>clients, coachs, ateliers et cartes."],
+  [27.7, 33.4,   "Chaque élément devient une <b>classe</b> : une boîte qui porte son nom, puis la liste de ses <b>attributs</b>."],
+  [33.5, 39.35,  "Aucune clé ici : le diagramme décrit les éléments, pas la façon de les ranger."],
   [39.45, 42.0,  "À toi !"],
   [42.1, 47.9,   "Ce trait est une <b>association</b>. Elle se lit dans le sens du triangle : un coach anime des ateliers."],
   [48.0, 53.5,   "Deux autres associations suivent : un client <b>s’inscrit à</b> des ateliers, et <b>possède</b> une carte de membre."],
@@ -295,7 +298,7 @@ const PICKS = [
   {at: 41.8, from: 27.5, kind: 'pick', text: true, prompt: 'Comment montrer qu’un coach anime des ateliers ?', options: [
     {label: 'Un attribut coach_id dans la classe Atelier', why: 'Le diagramme ne montre aucune clé : coach_id n’apparaîtra qu’en créant les tables.'},
     {label: 'Un trait entre Coach et Atelier, nommé «\u00a0anime\u00a0»', ok: true},
-    {label: 'Une nouvelle classe Animation', why: 'Une classe décrit un sujet, avec ses attributs : ici, il n’y a qu’une relation entre deux classes.'}]},
+    {label: 'Une nouvelle classe Animation', why: 'Une classe décrit un élément, avec ses attributs : ici, il n’y a qu’une relation entre deux classes.'}]},
   {at: 68.1, from: 53.7, kind: 'sort', prompt: 'Place chaque multiplicité au bon bout de l’association « anime ».',
     hint: 'Touche une multiplicité ci-dessous, puis la classe qu’elle compte. Tu peux aussi la faire glisser.', next: '{x} : touche maintenant la classe qu’elle compte.',
     options: PLACE.map(p => ({label: p[0]}))},
@@ -311,10 +314,15 @@ const PICKS = [
   {at: 162.4, from: 154.0, kind: 'tap', need: 2, prompt: 'Touche les deux clés étrangères que crée ce diagramme.'}
 ];
 
-/* Le mail reçu : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse d’envoi, demande, signature].
-   Il arrive en notification ; l’app s’arrête dessus (OPENS) jusqu’à ce que l’élève le touche ; il se déplie alors. */
+/* Le mail reçu : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse d’envoi, demande (un texte, ou ses paragraphes), signature].
+   Il arrive en notification ; l’app s’arrête dessus (OPENS) jusqu’à ce que l’élève le touche ; il se déplie alors.
+   Karim se présente, dit pourquoi il a besoin du diagramme (il va créer la base) et ce qu’il y cherche : la légende qui suit n’a plus
+   qu’à nommer le diagramme de classes UML et les éléments qu’il représente, sans redire la demande. */
 const MAILS = [
-  [['Karim', 'Benali', 'KB'], 'k-dv', 'développeur', 'karim@nutriboost.fr', 'Je vais créer la base des ateliers. Peux-tu m’envoyer son plan, avec ses sujets et leurs relations, lisible d’un coup d’œil ?', 'Karim']
+  [['Karim', 'Benali', 'KB'], 'k-dv', 'développeur', 'karim@nutriboost.fr', [
+    'Je suis Karim, le développeur back end.',
+    'Je vais créer la base de données dans le SGBD de l’entreprise pour gérer les ateliers. Peux-tu me transmettre un diagramme UML présentant les tables, leurs colonnes et les relations entre elles ?',
+    'Ce schéma me servira de référence pour créer les tables et les relier.'], 'Karim']
 ];
 const OPENS = [17.7].map((t, n) => ({at: t, sel: '#ml' + (n + 1), prompt: 'Touche le mail pour l’ouvrir.', label: `Ouvrir le mail de ${MAILS[n][0][0]} ${MAILS[n][0][1]}`}));
 
@@ -332,7 +340,7 @@ function classBox([k, name, attrs]){
   h += attrs.map((a, j) => arow(`cb-${k}-a${j}`, a)).join('');
   const fk = Object.entries(TRAD).find(([, v]) => Array.isArray(v) && v[1] === k);
   if (fk) h += arow(`cb-${k}-fk`, fk[1][0], {ini: true, fk: FKC[fk[1][2]], uq: fk[0] === 'po'});
-  return h + '</div></div>';
+  return h + '</div><i class="hlo"></i></div>';
 }
 function dom(){
   /* 1 · Les tables du chapitre 2 : chaque clé étrangère, de la couleur de la table qu’elle désigne */
@@ -341,7 +349,7 @@ function dom(){
   /* Le mail */
   $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
     `<div class="mw"><div class="mn"><b>${w[0]} ${w[1]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
-    `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', body, 'Merci !', sign].map((x, j) => `<span class="sn2${j === 3 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
+    `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), 'Merci !', sign].map((x, j, a) => `<span class="sn2${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
     '<div class="abs emo tapf" id="tapf">👆</div>';
   /* 2 à 5 · Le diagramme : les traits (sous les boîtes), les classes, la classe d’association, les noms et les multiplicités */
   let b = '<svg class="abs lns" width="1080" height="1920" viewBox="0 0 1080 1920" aria-hidden="true"><line id="ln-an"/><line id="ln-po"/><line id="ln-in"/><line id="ln-cx" class="dash"/></svg>';
@@ -488,7 +496,8 @@ function mailIn(n, t, T){
   gsap.set(sn, {autoAlpha: 0, y: 14});
   sn.forEach((s, k) => { tl.to(s, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, T + 0.4 + k * 0.28); cue(T + 0.4 + k * 0.28, 'tick', 0.4, k + 2); });
   const end = T + 0.4 + (sn.length - 1) * 0.28 + 0.35;
-  hold(end + 0.05, Math.ceil(readTime(sn[1].textContent) * 20) / 20);
+  // le temps de lire la demande, tous ses paragraphes (entre « Bonjour, » et « Merci ! »)
+  hold(end + 0.05, Math.ceil(readTime(sn.slice(1, -2).map(s => s.textContent).join(' ')) * 20) / 20);
   return end;
 }
 function mailOut(n, t){ hide('#ml' + n, t, {x: 140, y: 0, rotation: 2}, 0.4, 'power2.in'); cue(t, 'whoosh', 0.4); }
@@ -509,7 +518,7 @@ const M5_ANS = ['#ib-r0', '#ib-r1', '#ib-r2'];
 function build(){
   introScene();
   gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
-  hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
+  hold(2.3, 5.4);   // le temps de lire la bulle de la mascotte (trois lignes)
   layout();
   gsap.set(['.sch', '.ml', '.cls', '.asn', '.mp', '.lg', '.shtit', '.fkc', '#keyc', '#tapf', '.lns line'], {autoAlpha: 0});
   gsap.set('.ar.ini', {height: 0, autoAlpha: 0});
@@ -544,12 +553,20 @@ function build(){
   capOff(16.1);
   sceneOn('#sm', 16.4);
   mailIn(1, 16.5, OPENS[0].at);
-  mailOut(1, 20.0);
-  sceneOff('#sm', 20.5);
-  capOn(21.5);
-  // le diagramme : quatre classes, encore sans relations
-  sceneOn('#sb', 20.6);
-  [['#cb-co', 21.8], ['#cb-ca', 22.0], ['#cb-at', 22.2], ['#cb-cl', 22.4]].forEach(([s, t], q) => { show(s, t, {y: 50, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(t, 'pop', 0.55, q); });
+  mailOut(1, 20.3);
+  sceneOff('#sm', 20.8);
+  capOn(21.8);
+  // « on utilise un diagramme de classes UML » : le diagramme arrive, avec ses quatre classes, encore sans relations
+  sceneOn('#sb', 20.9);
+  [['#cb-co', 22.1], ['#cb-ca', 22.3], ['#cb-at', 22.5], ['#cb-cl', 22.7]].forEach(([s, t], q) => { show(s, t, {y: 50, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(t, 'pop', 0.55, q); });
+  // « clients, coachs, ateliers et cartes » : chaque classe s’entoure à son tour, de sa couleur, dans l’ordre de la légende
+  ['cl', 'co', 'at', 'ca'].forEach((k, q) => {
+    const t = 25.0 + q * 0.32;
+    tl.fromTo(`#cb-${k} .hlo`, {autoAlpha: 0}, {autoAlpha: 1, duration: 0.15, ease: 'power2.out', immediateRender: false}, t);
+    tl.to(`#cb-${k} .hlo`, {autoAlpha: 0, duration: 0.25, ease: 'power2.in'}, t + 0.45);
+    bump(`#cb-${k}`, t, 1.05);
+    cue(t, 'tick', 0.5, q);
+  });
 
   /* ===== 2 · Les classes ===== */
   CLASSES.forEach(([k], q) => { bump(`#cb-${k} .cn`, 28.6 + q * 0.3, 1.12); cue(28.6 + q * 0.3, 'tick', 0.45, q); });
