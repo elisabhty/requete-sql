@@ -18184,19 +18184,20 @@ const tabScrollPositions={};
 /* Sur mobile, un glissement vertical qui commence sur la barre de navigation
    du bas fait défiler l’écran en dessous (la barre n’est pas dans la zone qui
    défile). Un simple toucher reste un clic ; un glissement horizontal garde le
-   défilement propre de la barre. */
+   défilement propre de la barre.
+   Les écouteurs sont posés sur les barres elles-mêmes, jamais sur tout le document : un écouteur tactile non passif
+   sur le document oblige l’iPhone à attendre le script avant chaque défilement, partout dans l’app. */
 (function(){
   const BARS='.tabbar,.kbar';
   let st=null;
   const scroller=()=>document.querySelector('.screen.active');
   const reduce=()=>window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-  document.addEventListener('touchstart',e=>{
-    const bar=e.target.closest&&e.target.closest(BARS);
-    if(!bar||e.touches.length!==1){st=null;return;}
+  const start=e=>{
+    if(e.touches.length!==1){st=null;return;}
     const t=e.touches[0];
     st={x:t.clientX,y:t.clientY,ly:t.clientY,lt:performance.now(),v:0,mode:null,el:scroller()};
-  },{passive:true});
-  document.addEventListener('touchmove',e=>{
+  };
+  const move=e=>{
     if(!st||!st.el)return;
     const t=e.touches[0],dx=t.clientX-st.x,dy=t.clientY-st.y;
     if(!st.mode){
@@ -18204,13 +18205,13 @@ const tabScrollPositions={};
       st.mode=Math.abs(dy)>Math.abs(dx)?'y':'x';
     }
     if(st.mode!=='y')return;
-    e.preventDefault();
+    if(e.cancelable)e.preventDefault();
     const now=performance.now(),d=st.ly-t.clientY;
     st.el.scrollTop+=d;
     st.v=d/Math.max(1,now-st.lt);
     st.ly=t.clientY;st.lt=now;
-  },{passive:false});
-  document.addEventListener('touchend',()=>{
+  };
+  const end=()=>{
     if(!st)return;
     if(st.mode==='y'){
       const el=st.el;let v=st.v*16;
@@ -18220,14 +18221,19 @@ const tabScrollPositions={};
       setTimeout(()=>document.removeEventListener('click',kill,{capture:true}),350);
     }
     st=null;
-  },{passive:true});
-  document.addEventListener('touchcancel',()=>{st=null;},{passive:true});
-  document.addEventListener('wheel',e=>{
-    const bar=e.target.closest&&e.target.closest(BARS);
-    if(!bar||Math.abs(e.deltaY)<=Math.abs(e.deltaX))return;
+  };
+  const wheel=e=>{
+    if(Math.abs(e.deltaY)<=Math.abs(e.deltaX))return;
     const el=scroller();if(!el)return;
     e.preventDefault();el.scrollTop+=e.deltaY;
-  },{passive:false});
+  };
+  document.querySelectorAll(BARS).forEach(bar=>{
+    bar.addEventListener('touchstart',start,{passive:true});
+    bar.addEventListener('touchmove',move,{passive:false});
+    bar.addEventListener('touchend',end,{passive:true});
+    bar.addEventListener('touchcancel',()=>{st=null;},{passive:true});
+    bar.addEventListener('wheel',wheel,{passive:false});
+  });
 })();
 function navigateMainTabs(event){
   if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
@@ -18724,8 +18730,11 @@ function switchTab(name){
     if(e.target.closest&&e.target.closest('.stk-board'))return;
     const tg=target();if(!tg)return;
     g=Object.assign(tg,{x0:t.clientX,y0:t.clientY,t0:performance.now(),dx:0,lock:null,w:innerWidth});
+    addEventListener('touchmove',move,{passive:false});
   },{passive:true});
-  addEventListener('touchmove',e=>{
+  /* Posé seulement pendant un geste parti du bord : en permanence sur la page, un écouteur tactile non passif ferait
+     attendre le script à chaque défilement, partout dans l’app. */
+  const move=e=>{
     if(!g)return;
     const t=e.touches[0],dx=t.clientX-g.x0,dy=t.clientY-g.y0;
     if(g.lock===null){
@@ -18740,8 +18749,9 @@ function switchTab(name){
     g.dx=Math.max(0,dx);
     g.cur.style.transform=`translate3d(${g.dx}px,0,0)`;
     if(g.under)g.under.style.transform=`translate3d(${-30+30*g.dx/g.w}%,0,0)`;
-  },{passive:false});
+  };
   const end=()=>{
+    removeEventListener('touchmove',move,{passive:false});
     if(!g)return;const G=g;g=null;
     if(G.lock!=='x'){return;}
     const v=G.dx/Math.max(1,performance.now()-G.t0),commit=G.dx>G.w*.33||(v>.5&&G.dx>40),d=200;
@@ -30070,7 +30080,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1978';
+  const SW_CACHE='requete-2026-10-12-ludique-v1979';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
