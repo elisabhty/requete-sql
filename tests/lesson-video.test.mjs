@@ -865,7 +865,7 @@ const COURSES = [
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
       "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.0);", 'Chapitre 3 · Modéliser avec UML']},
   {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '3 min 36', notesAt: 179.7,
-    notes: /notes:\{t:208\.95,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
+    notes: /notes:\{t:209\.2,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
     bubble: 'Tes tables sont reliées&nbsp;:<br>dessine maintenant leur plan.',
     chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
     traps: ["const CLASSES = [['co', 'Coach', ['prenom', 'nom', 'email']], ['ca', 'Carte', ['seances']],",
@@ -1394,8 +1394,9 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.ok(page.includes('on(neuf.cl, 113.2);') && page.includes('on(neuf.at, 113.75);') && page.includes('off(neuf.at, 116.5);')
     && D.CAPTIONS[i5 + 1][0] <= 113.2 && D.CAPTIONS[i5 + 1][1] >= 113.75, 'les deux numéros entourés pendant la légende qui les nomme');
   // Moment 6 : chaque cas dans sa forme ; une explication pour chaque mauvaise case
-  assert.deepEqual(D.RELS.map(r => [r[1], D.CAS[r[3]]]), [['1 ↔ 1', 'Un client et sa carte membre'], ['1 → N', 'Un coach et ses ateliers'], ['N ↔ N', 'Un client et ses ateliers']]);
-  assert.deepEqual(D.PICKS[5].options.map(o => o.label), D.CAS, 'les trois cas à ranger');
+  assert.deepEqual(D.RELS.map(r => [r[1], D.CAS[r[3]]]), [['1 ↔ 1', 'Un client et sa carte de membre'], ['1 → N', 'Un coach et ses ateliers'], ['N ↔ N', 'Un client et ses ateliers']]);
+  assert.deepEqual(D.PICKS[5].options.map(o => o.label.replace(/\u00a0/g, ' ')), D.CAS, 'les trois cas à ranger');
+  assert.equal(D.PICKS[5].options[D.CAS.indexOf('Un client et sa carte de membre')].label, 'Un client et sa carte\u00a0de\u00a0membre', 'dans la carte du lecteur, « carte de membre » ne se coupe pas');
   assert.equal(D.PICKS[5].next, '{x} : touche maintenant sa forme.', 'un cas choisi, la ligne d’aide parle de sa forme (pas d’une table)');
   assert.ok(fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8').includes("next: p.next ? fr(p.next) : '',"), 'moteur : la ligne d’aide du moment envoyée au lecteur');
   D.BAD.forEach((b, c) => assert.deepEqual(Object.keys(b).sort(), D.RELS.filter(r => r[3] !== c).map(r => r[0]).sort(), `${D.CAS[c]} : les deux mauvaises cases expliquées`));
@@ -1515,7 +1516,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   /* Moment 4 : sa réponse n’est pas donnée avant. La légende décrit la carte sans nommer ses multiplicités ; la réponse nomme le 0..1,
      et le client_id unique n’est annoncé qu’une fois, à la traduction en tables. */
   const before4 = D.CAPTIONS.filter(c => c[0] > D.PICKS[2].at && c[0] < D.PICKS[3].at).map(c => c[2]);
-  assert.ok(before4.includes('Enfin, un client possède une carte membre ou aucune, et une carte n’a qu’un seul client.') && before4.every(c => !c.includes('0..1')), 'moment 4 : le 0..1 n’est pas nommé avant');
+  assert.ok(before4.includes('Enfin, un client possède une carte de membre ou aucune, et une carte n’a qu’un seul client.') && before4.every(c => !c.includes('0..1')), 'moment 4 : le 0..1 n’est pas nommé avant');
   assert.ok(caps.includes('C’est le <b>0..1</b>, à côté de Carte : zéro ou une carte par client. Son maximum vaut 1 : pas de deuxième carte.')
     && (caps.match(/devient unique|unique du chapitre/g) || []).length === 1, 'moment 4 expliqué ; client_id unique dit une seule fois');
   assert.ok(page.includes("pop('#mp-po-ca', 97.0, 0.5);\n  pop('#mp-po-cl', 98.4, 0.5);"), 'le 0..1 puis le 1, dans l’ordre de la légende');
