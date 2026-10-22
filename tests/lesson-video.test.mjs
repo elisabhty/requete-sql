@@ -1298,7 +1298,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
     vm.runInContext(page.slice(a, b) + `;this.D = {${names}};`, ctx);
     return [page, JSON.parse(JSON.stringify(ctx.D))];
   };
-  const [page, D] = load('projet-cles.html', 'COACHS, ATELIERS, CLIENTS, INSCR, NOUVELLE, CARTES, DOUBLON, CAPTIONS, RELS, CAS, BAD, PICKS, MAILS, OPENS');
+  const [page, D] = load('projet-cles.html', 'COACHS, ATELIERS, CLIENTS, INSCR, NOUVELLE, CARTES, DOUBLON, CAPTIONS, RELS, CAS, WHY, PICKS, MAILS, OPENS');
   const [ch1, C1] = load('projet-normaliser.html', 'COACHS, ATELIERS, YOGA, INSCR, NEWMAIL');
   /* Le cas du chapitre 1, tel qu’il l’a laissé : mêmes coachs (Salma Haddad avec sa nouvelle adresse), mêmes ateliers (Yoga du matin compris), mêmes inscriptions. */
   assert.deepEqual(D.COACHS.map(c => c.slice(0, 3)), C1.COACHS.map(c => c.slice(0, 3)), 'les quatre coachs du chapitre 1');
@@ -1405,9 +1405,14 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.deepEqual(D.RELS.map(r => [r[1], D.CAS[r[3]]]), [['1 ↔ 1', 'Un client et sa carte de membre'], ['1 → N', 'Un coach et ses ateliers'], ['N ↔ N', 'Un client et ses ateliers']]);
   assert.deepEqual(D.PICKS[5].options.map(o => o.label.replace(/\u00a0/g, ' ')), D.CAS, 'les trois cas à ranger');
   assert.equal(D.PICKS[5].options[D.CAS.indexOf('Un client et sa carte de membre')].label, 'Un client et sa carte\u00a0de\u00a0membre', 'dans la carte du lecteur, « carte de membre » ne se coupe pas');
-  assert.equal(D.PICKS[5].next, '{x} : touche maintenant sa forme.', 'un cas choisi, la ligne d’aide parle de sa forme (pas d’une table)');
+  assert.ok(D.PICKS[5].prompt === 'Range chaque situation selon son type de relation.' && D.PICKS[5].hint.startsWith('Touche une situation, puis le type de relation qui lui correspond.'),
+    'la consigne parle de situations et de types de relation');
+  assert.equal(D.PICKS[5].next, '« {x} » : quel est le type de relation ?', 'une situation choisie, la ligne d’aide demande son type de relation');
   assert.ok(fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8').includes("next: p.next ? fr(p.next) : '',"), 'moteur : la ligne d’aide du moment envoyée au lecteur');
-  D.BAD.forEach((b, c) => assert.deepEqual(Object.keys(b).sort(), D.RELS.filter(r => r[3] !== c).map(r => r[0]).sort(), `${D.CAS[c]} : les deux mauvaises cases expliquées`));
+  /* Une explication par situation, montrée quand elle est mal rangée : les deux côtés de sa relation. */
+  assert.deepEqual(D.WHY, ['Un coach anime plusieurs ateliers. Chaque atelier est animé par un seul coach.', 'Un client participe à plusieurs ateliers. Chaque atelier accueille plusieurs clients.',
+    'Un client possède une seule carte. Chaque carte appartient à un seul client.'], 'l’explication de chaque situation');
+  assert.ok(page.includes('return {ok: false, why: fr(WHY[a])};'), 'la même explication, quelle que soit la mauvaise case');
   assert.ok(page.includes('spots, act, pick, hint,') && page.includes(`if (i === 1) return {text: 'Cherche l’id ${c4} dans la table clients, puis l’id ${a4} dans la table ateliers.', keys: ['c${c4}', 'a${a4}']};`)
     && page.includes(`if (i === 3) return {text: '${diego[1]} ${diego[2]} a l’id ${diego[0]} : cherche l’atelier dont coach_id vaut ${diego[0]}.', keys: [${sien.map(a => `'a${a[0]}'`).join(', ')}]};`), 'un indice par moment à toucher ou à ranger');
   /* Le modèle de la vidéo, créé dans la base de l’app : les clés acceptent toutes les lignes montrées, refusent la deuxième carte,
