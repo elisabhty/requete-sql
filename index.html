@@ -25811,7 +25811,8 @@ function stkPaint(root){
   root.querySelectorAll('canvas[data-stk]').forEach(cv=>{
     const w=cv.offsetWidth;if(!w)return;
     const px=Math.round(w*dpr);
-    if(cv.width!==px){cv.width=cv.height=px;}
+    /* Les deux côtés : un canvas neuf mesure 300 × 150, et 300 tombe juste (100 px affichés sur un écran ×3). */
+    if(cv.width!==px||cv.height!==px){cv.width=px;cv.height=px;}
     const ctx=cv.getContext('2d');ctx.clearRect(0,0,px,px);
     stkDraw(ctx,cv.dataset.stk,px,cv.dataset.mode||'art');
   });
@@ -25850,7 +25851,7 @@ function renderStickers(){
   const cell=s=>{
     const placed=onBoard.has(s.id),state=!s.got?'lock':placed?'placed':'got';
     const label=(!s.got?`${s.name}, à gagner`:placed?`${s.name}, sur le tableau`:s.name)+(S.fresh[s.id]?', nouveau':'');
-    return `<li><button type="button" class="stk-cell is-${state}" data-id="${s.id}" aria-label="${escAttr(label)}" onclick="stkCellClick(this)">${stkArtHtml(s.id,!s.got?'lock':placed?'spot':'art')}${!s.got?STK_LOCK_SVG:''}${S.fresh[s.id]?'<em class="stk-new">Nouveau</em>':''}</button></li>`;
+    return `<li><button type="button" class="stk-cell is-${state}" data-id="${s.id}" aria-label="${escAttr(label)}" onclick="stkCellClick(this)">${stkArtHtml(s.id,s.got?'art':'lock')}${!s.got?STK_LOCK_SVG:''}${placed?'<em class="stk-on" aria-hidden="true">Sur le tableau</em>':''}${S.fresh[s.id]?'<em class="stk-new">Nouveau</em>':''}</button></li>`;
   };
   const group=(title,items)=>`<div class="stk-group"><h3>${title}</h3><span>${items.filter(s=>s.got).length} sur ${items.length}</span></div><ul class="stk-grid">${items.map(cell).join('')}</ul>`;
   host.innerHTML=`
@@ -30048,7 +30049,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1972';
+  const SW_CACHE='requete-2026-10-12-ludique-v1973';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
