@@ -850,7 +850,7 @@ const COURSES = [
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
   {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 41', notesAt: 167.9,
-    notes: /notes:\{t:274\.75,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'inscriptions',
+    notes: /notes:\{t:274\.4,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Tes tables sont prêtes&nbsp;:<br>à toi de les relier avec des clés.',
     chapters: ['Le problème', 'La clé primaire', 'La clé étrangère', '1 → N', 'N ↔ N', '1 ↔ 1', 'À retenir'],
     traps: ["const INSCR = [[1, 1, 1, '2026-09-01'], [2, 4, 1, '2026-09-02'], [3, 5, 2, '2026-09-03'], [4, 7, 3, '2026-09-04'],",
@@ -1327,7 +1327,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   /* Une seule façon de nommer la table d’une relation N ↔ N, dans les trois chapitres. */
   for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html'])
     assert.ok(!fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8').includes('table de jointure'), `${f} : « table d’association », jamais « table de jointure »`);
-  assert.ok(caps.includes('une <b>table d’association</b>'), 'le chapitre 2 la nomme comme le chapitre 3');
+  assert.ok(caps.includes('Une <b>table d’association</b>'), 'le chapitre 2 la nomme comme le chapitre 3');
   /* La clé étrangère : sa définition, puis à quoi elle sert, sur l’exemple entouré (inscription 1, client_id 1, Sophie Martin). */
   const def = D.CAPTIONS.findIndex(c => c[2].includes('est une <b>clé étrangère</b>'));
   assert.equal(D.CAPTIONS[def + 1][2], 'Elle sert à relier chaque inscription à son client : ici, <code>client_id</code> vaut 1, le numéro de Sophie Martin.', 'à quoi sert une clé étrangère, sur un exemple expliqué');
@@ -1452,14 +1452,16 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.equal(q("SELECT COUNT(*) FROM inscriptions JOIN ateliers ON ateliers.id = inscriptions.atelier_id WHERE ateliers.titre = 'Récupération'"), '[[3]]', '… et Récupération accueille trois clients (N ↔ N)');
   /* N ↔ N dit en toutes lettres, chaque moitié avec son exemple entouré (Sophie Martin, puis l’atelier Récupération), puis la relation
      nommée avec sa pastille. */
-  const nn = ['Un client peut s’inscrire à plusieurs ateliers,', 'et un atelier peut accueillir plusieurs clients :', 'c’est une relation<br>« plusieurs à plusieurs », notée <b>N ↔ N</b>.'];
+  const nn = ['Un client peut participer à plusieurs ateliers,', 'et un atelier peut accueillir plusieurs clients :', 'c’est une relation<br>« plusieurs à plusieurs », notée <b>N ↔ N</b>.'];
   const inn = D.CAPTIONS.findIndex(c => c[2] === nn[0]);
   assert.ok(inn > 0 && nn.every((w, k) => D.CAPTIONS[inn + k][2] === w) && D.CAPTIONS[inn][0] <= 117.0 && D.CAPTIONS[inn + 1][0] <= 119.6 && D.CAPTIONS[inn + 2][0] <= 123.2
     && page.includes('on(sophie, 117.0);') && page.includes('on(recup, 119.6);') && page.includes("pop('#tb-rel', 123.2, 0.6);"), 'N ↔ N : chaque légende avec ce qu’elle montre');
-  /* Puis la table d’association (son titre souligné) et ses deux clés étrangères (leurs colonnes soulignées). */
-  const ta = ['Pour représenter cette relation, on utilise une <b>table d’association</b> : la table <code>inscriptions</code>.', 'Chaque ligne relie un client à un atelier grâce aux deux clés étrangères <code>client_id</code> et <code>atelier_id</code>.'];
-  assert.ok(D.CAPTIONS[inn + 3][2] === ta[0] && D.CAPTIONS[inn + 4][2] === ta[1] && page.includes("bump('#tb-in .h', 125.2, 1.06);")
-    && page.includes("bump('#tb-in .hd .c1', 127.2, 1.12); bump('#tb-in .hd .c2', 127.45, 1.12);"), 'la table d’association, puis ses deux clés étrangères');
+  /* Puis la table d’association (son titre souligné), l’identifiant d’un client et celui d’un atelier entourés dans chaque ligne, et ses
+     deux clés étrangères (leurs colonnes soulignées). Les mots d’Elisa. */
+  const ta = ['Une <b>table d’association</b> enregistre ces participations :', 'chaque ligne contient l’identifiant d’un client et celui d’un atelier.', 'Ces deux identifiants<br>sont des <b>clés étrangères</b>.'];
+  assert.ok(ta.every((w, k) => D.CAPTIONS[inn + 3 + k][2] === w) && page.includes("bump('#tb-in .h', 125.2, 1.06);")
+    && page.includes("INSCR.concat([NOUVELLE]).forEach((x, k) => { on([ring('tb-in', x[0], 1), ring('tb-in', x[0], 2)], 126.3 + k * 0.08, 0.25);")
+    && page.includes("bump('#tb-in .hd .c1', 127.6, 1.12); bump('#tb-in .hd .c2', 127.85, 1.12);"), 'la table d’association, chaque ligne avec ses deux identifiants, puis ses deux clés étrangères');
   /* « N ↔ N » : ni Bricolage Grotesque ni Inter n’ont la flèche ; la police système la dessine, en texte. Sans elle, l’iPhone prenait
      l’émoji (un carré bleu) dans la pastille ; avec la variante texte U+FE0E, une flèche minuscule dans l’étiquette du chapitre. */
   const coreCss = fs.readFileSync(path.join(ROOT, 'assets/anim/core.css'), 'utf8'), coreSrc = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
