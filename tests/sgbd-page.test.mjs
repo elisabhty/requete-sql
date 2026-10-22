@@ -35,7 +35,7 @@ test('chaque renvoi des cours mène à un thème de la page, et s’ouvre dans u
 test('la page est une entrée de la Bibliothèque', () => {
   assert.ok(html.includes("['sgbd','Selon le SGBD','SQLite comparé à PostgreSQL, MySQL, SQL Server et Oracle.',\"switchTab('sgbd')\"]"));
   assert.ok(html.includes('<section id="scr-sgbd" class="screen">') && html.includes('<h1>Selon le SGBD</h1>'));
-  assert.ok(html.includes("if(['notes','collection','entretien','sgbd','library'].includes(tab))return 'library';"), 'onglet Bibliothèque allumé');
+  assert.ok(html.includes("if(['notes','collection','stickers','entretien','sgbd','library'].includes(tab))return 'library';"), 'onglet Bibliothèque allumé');
   assert.equal((html.match(/entretien:'scr-entretien',sgbd:'scr-sgbd',/g) || []).length, 2, 'écran connu de switchTab et de screenForTab');
   assert.ok(html.includes("else if(tab==='sgbd') renderSgbdScreen();"));
 });

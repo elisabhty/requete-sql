@@ -10,7 +10,7 @@ const context=vm.createContext({
   document:{getElementById:()=>screen(),querySelectorAll:()=>[...screens.values()],body:screen()},
   screenForTab:tab=>screens.get(tab),annulerBilanAuto:()=>cancelled++,closeSchemaSheet:()=>closed++,
   showKbar(){},syncTabUI(){},refreshTabScreen:tab=>refreshed=tab,saveNav:nav=>saved=nav,
-  prefersReduceMotion:()=>true,restoringNav:false,
+  prefersReduceMotion:()=>true,restoringNav:false,stkLeaveLesson(){},
   setLessonStep(){throw new Error('Le retour annoncé ne doit pas changer l’étape');}
 });
 vm.runInContext(html.slice(html.indexOf('function leaveLessonScreen('),html.indexOf('const SQL_COPY_SVG=')),context);

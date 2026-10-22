@@ -6314,7 +6314,7 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 <script>if(/[?&]perf=1(&|$)/.test(location.search)){var pp=document.createElement("script");pp.src="perf-probe.js";pp.defer=true;document.head.appendChild(pp);}</script>
 <link rel="stylesheet" href="home-journey.css?v=1131">
 <link rel="stylesheet" href="design-premium.css?v=1236">
-<script src="design-premium.js?v=1401" defer></script>
+<script src="design-premium.js?v=1402" defer></script>
 <script>
 /* ---------- App iOS (Capacitor) ----------
    Dans l’app native, window.Capacitor est présent dès le chargement.
@@ -6434,7 +6434,7 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=17">
+<link rel="stylesheet" href="ludique.css?v=18">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -7024,6 +7024,14 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
       <div id="cards-grid" class="group-stack"></div>
     </section>
 
+    <!-- STICKERS -->
+    <section id="scr-stickers" class="screen">
+      <button type="button" class="home-back root-home-back" onclick="returnToParent()" aria-label="Retour à la bibliothèque"><svg viewBox="0 0 12 20" fill="none" aria-hidden="true"><path d="M10 2L3 10l7 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Bibliothèque</span></button>
+      <div class="lgtitle"><div class="eyebrow">Tes récompenses</div><h1>Stickers</h1>
+        <p class="sub">Gagne-les en avançant, colle-les où tu veux et imprime-les.</p></div>
+      <div id="stk-body"></div>
+    </section>
+
     <!-- CONSOLE -->
     <section id="scr-console" class="screen">
       <button type="button" class="home-back" id="console-back" onclick="returnToParent()" aria-label="Retour à Pratiquer"><svg viewBox="0 0 12 20" fill="none" aria-hidden="true"><path d="M10 2L3 10l7 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> <span id="console-back-lab">Pratiquer</span></button>
@@ -7185,6 +7193,13 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
   <div class="viz" id="sgbd-sheet" role="dialog" aria-modal="true" aria-labelledby="sgbd-sheet-title">
     <div class="viz-head"><div class="grab"></div><b id="sgbd-sheet-title">Selon le SGBD</b><button type="button" onclick="closeSgbdSheet()" aria-label="Fermer">✕</button></div>
     <div class="viz-body" id="sgbd-sheet-body"></div>
+  </div>
+
+  <!-- Fiche d’un sticker -->
+  <div class="viz-back" id="stk-back" onclick="stkClose()"></div>
+  <div class="viz" id="stk-sheet" role="dialog" aria-modal="true" aria-labelledby="stk-name">
+    <div class="viz-head"><div class="grab"></div><b>Sticker</b><button type="button" onclick="stkClose()" aria-label="Fermer">✕</button></div>
+    <div class="viz-body" id="stk-sheet-body"></div>
   </div>
 
   <!-- Import de données -->
@@ -15561,6 +15576,7 @@ async function boot(){
     normaliserPlan();
     /* Un cours fusionné ou retiré ne doit pas rester dans le parcours enregistré : l'accueil s'en sert avant l'affichage du planning. */
     nettoyerPlan();
+    stkSync();
     if(!Array.isArray(state.notes)){
       const old=state.notes&&typeof state.notes==='object'?state.notes:{};
       state.notes=Object.keys(old).filter(k=>old[k]&&String(old[k]).trim()).map(k=>({
@@ -17547,7 +17563,20 @@ function normalizeState(raw){
     Object.keys(studySrc.days).filter(k=>/^\d{4}-\d{2}-\d{2}$/.test(k)).sort().slice(-400).forEach(k=>{const n=secsOf(studySrc.days[k]);if(n)study.days[k]=Math.min(n,86400);});
   if(studySrc.items&&typeof studySrc.items==='object'&&!Array.isArray(studySrc.items))
     Object.keys(studySrc.items).filter(k=>/^[\w-]{1,40}$/.test(k)).slice(0,500).forEach(k=>{const n=secsOf(studySrc.items[k]);if(n)study.items[k]=Math.min(n,1e8);});
-  return {lessons,defis,notes,plan,onboarded,name,profile,accountMode,entretien,preferences,actDays,actSince,salle,study};
+  /* Stickers : gagnés (id → date, 1 si gagné avant leur arrivée), pas encore vus, posés sur le tableau (centre x et y
+     de 0 à 1, rotation en degrés, taille de 0,5 à 2 ; du dessous au dessus), et date de mise en route. */
+  const stkSrc=source.stickers&&typeof source.stickers==='object'&&!Array.isArray(source.stickers)?source.stickers:{};
+  const stkKey=k=>/^[a-z0-9]{2,16}$/.test(k);
+  const stickers={got:{},fresh:{},board:[],since:0};
+  if(stkSrc.got&&typeof stkSrc.got==='object')Object.keys(stkSrc.got).filter(stkKey).slice(0,60).forEach(k=>{const t=Math.floor(Number(stkSrc.got[k]));if(t>0)stickers.got[k]=t;});
+  if(stkSrc.fresh&&typeof stkSrc.fresh==='object')Object.keys(stkSrc.fresh).filter(k=>stickers.got[k]).forEach(k=>{stickers.fresh[k]=1;});
+  if(Array.isArray(stkSrc.board))stkSrc.board.forEach(b=>{
+    if(!b||typeof b!=='object'||!stickers.got[b.id]||stickers.board.some(q=>q.id===b.id))return;
+    const n=(v,a,z,d)=>{v=Number(v);return Number.isFinite(v)?Math.min(z,Math.max(a,v)):d;};
+    stickers.board.push({id:b.id,x:n(b.x,0,1,.5),y:n(b.y,0,1,.5),r:n(b.r,-180,180,0),s:n(b.s,.5,2,1)});
+  });
+  const since=Math.floor(Number(stkSrc.since));if(since>0)stickers.since=since;
+  return {lessons,defis,notes,plan,onboarded,name,profile,accountMode,entretien,preferences,actDays,actSince,salle,study,stickers};
 }
 function normalize(result,ordered){
   if(!result||result.length===0)return "∅";
@@ -18570,7 +18599,7 @@ if(typeof document!=='undefined'&&typeof document.addEventListener==='function')
 /* Mon compte est une destination de la barre du bas (onglet « Compte »). */
 function primaryTabFor(tab){
   if(['console','defis','jeu','practice'].includes(tab))return 'practice';
-  if(['notes','collection','entretien','sgbd','library'].includes(tab))return 'library';
+  if(['notes','collection','stickers','entretien','sgbd','library'].includes(tab))return 'library';
   return tab;
 }
 function syncTabUI(tab){
@@ -18584,10 +18613,10 @@ function syncTabUI(tab){
     if(on)requestAnimationFrame(()=>t.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'}));
   });
   const quickFab=document.getElementById('fab');
-  if(quickFab)quickFab.classList.toggle('context-hide',['learn','defis','planning','console','notes','collection','entretien','sgbd','compte','practice','library','jeu'].includes(tab));
+  if(quickFab)quickFab.classList.toggle('context-hide',['learn','defis','planning','console','notes','collection','stickers','entretien','sgbd','compte','practice','library','jeu'].includes(tab));
 }
 function screenForTab(tab){
-  const map={practice:'scr-practice',library:'scr-library',jeu:'scr-defis',learn:'scr-learn',defis:'scr-defis',planning:'scr-planning',notes:'scr-notes',collection:'scr-collection',console:'scr-console',entretien:'scr-entretien',sgbd:'scr-sgbd',compte:'scr-compte'};
+  const map={practice:'scr-practice',library:'scr-library',jeu:'scr-defis',learn:'scr-learn',defis:'scr-defis',planning:'scr-planning',notes:'scr-notes',collection:'scr-collection',console:'scr-console',entretien:'scr-entretien',sgbd:'scr-sgbd',stickers:'scr-stickers',compte:'scr-compte'};
   return document.getElementById(map[tab]||'scr-learn');
 }
 function refreshTabScreen(tab){
@@ -18599,6 +18628,7 @@ function refreshTabScreen(tab){
   else if(tab==='notes'){ notesEnter=true; renderNotesScreen(); }
   else if(tab==='compte') renderCompte();
   else if(tab==='collection') renderCollection();
+  else if(tab==='stickers') renderStickers();
   else if(tab==='console') renderConsoleScreen();
   else if(tab==='entretien') renderEntretien();
   else if(tab==='sgbd') renderSgbdScreen();
@@ -18610,11 +18640,12 @@ function switchTab(name){
   closeSchemaSheet();
   if(activeTab==='console'&&name!=='console') persistEditor('ed-console');
   if(activeTab==='compte'&&name!=='compte')document.querySelectorAll('#scr-compte .plus-details[open]').forEach(d=>{d.open=false;});
+  if(activeTab==='stickers'&&name!=='stickers'){stkClose();stkSeen();}
   if(name==='console'&&activeTab==='console'&&consoleView==='work'){
     closeConsoleProject();
     return;
   }
-  const map={practice:'scr-practice',library:'scr-library',jeu:'scr-defis',learn:'scr-learn',defis:'scr-defis',planning:'scr-planning',notes:'scr-notes',collection:'scr-collection',console:'scr-console',entretien:'scr-entretien',sgbd:'scr-sgbd',compte:'scr-compte'};
+  const map={practice:'scr-practice',library:'scr-library',jeu:'scr-defis',learn:'scr-learn',defis:'scr-defis',planning:'scr-planning',notes:'scr-notes',collection:'scr-collection',console:'scr-console',entretien:'scr-entretien',sgbd:'scr-sgbd',stickers:'scr-stickers',compte:'scr-compte'};
   if(name==='schema') name='console';
   const prevCur=document.querySelector('.screen.active');
   if(prevCur&&activeTab){
@@ -18689,6 +18720,8 @@ function switchTab(name){
     const t=e.touches[0];if(t.clientX>EDGE)return;
     /* Un tableau déjà défilé vers la droite garde la main : le doigt le ramène. */
     for(let n=e.target;n&&n!==document.body;n=n.parentElement){if(n.scrollLeft>0&&n.scrollWidth>n.clientWidth)return;}
+    /* Sur le tableau de stickers, le doigt déplace un sticker. */
+    if(e.target.closest&&e.target.closest('.stk-board'))return;
     const tg=target();if(!tg)return;
     g=Object.assign(tg,{x0:t.clientX,y0:t.clientY,t0:performance.now(),dx:0,lock:null,w:innerWidth});
   },{passive:true});
@@ -18977,7 +19010,8 @@ function homeToolIcon(kind){
     cards:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="6" width="13" height="14" rx="2.5"/><path d="M8 6V4h10a2 2 0 0 1 2 2v11h-3"/></svg>',
     jeu:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7.5 7.5h9a4.5 4.5 0 0 1 4.4 5.6l-.8 3.2a2.2 2.2 0 0 1-3.8 1L14.6 15.5H9.4l-1.7 1.8a2.2 2.2 0 0 1-3.8-1l-.8-3.2A4.5 4.5 0 0 1 7.5 7.5Z"/><path d="M8 10.2v3M6.5 11.7h3M15.3 11h.01M17.2 12.8h.01"/></svg>',
     sgbd:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><ellipse cx="8" cy="6" rx="5" ry="2.2"/><path d="M3 6v5c0 1.2 2.2 2.2 5 2.2s5-1 5-2.2V6"/><ellipse cx="16" cy="13" rx="5" ry="2.2"/><path d="M11 13v5c0 1.2 2.2 2.2 5 2.2s5-1 5-2.2v-5"/></svg>',
-    interview:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 4.5h14A1.5 1.5 0 0 1 20.5 6v8A1.5 1.5 0 0 1 19 15.5H9l-4.5 4V6A1.5 1.5 0 0 1 5 4.5Z"/><path d="M9.5 9.2c.3-1 1.2-1.6 2.2-1.6 1.3 0 2.3.8 2.3 2 0 1.4-2 1.7-2 2.7M11.8 14.8h.01"/></svg>'
+    interview:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 4.5h14A1.5 1.5 0 0 1 20.5 6v8A1.5 1.5 0 0 1 19 15.5H9l-4.5 4V6A1.5 1.5 0 0 1 5 4.5Z"/><path d="M9.5 9.2c.3-1 1.2-1.6 2.2-1.6 1.3 0 2.3.8 2.3 2 0 1.4-2 1.7-2 2.7M11.8 14.8h.01"/></svg>',
+    stickers:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 20H7.5A3.5 3.5 0 0 1 4 16.5v-9A3.5 3.5 0 0 1 7.5 4h9A3.5 3.5 0 0 1 20 7.5V14"/><path d="M14 20c0-3.3 2.7-6 6-6l-6 6Z"/><path d="M9 10h.01M15 10h.01M9.5 13.8c1.4 1 3.6 1 5 0"/></svg>'
   };
   return icons[kind]||icons.console;
 }
@@ -19133,6 +19167,7 @@ function renderJourneyHub(tab){
     ['console','Console SQL','Écris et exécute tes propres requêtes.',"switchTab('console')"]
   ]:[
     ['cards','Cartes mémo',`${stats.cards} débloquée${stats.cards>1?'s':''} · Révise à ton rythme.`,"switchTab('collection')"],
+    stkHubEntry(),
     ['notes','Mes notes','Ton carnet et tes requêtes à retenir.',"switchTab('notes')"],
     ['interview','Entretien SQL','Prépare tes réponses et teste tes acquis.',"switchTab('entretien')"],
     ['sgbd','Selon le SGBD','SQLite comparé à PostgreSQL, MySQL, SQL Server et Oracle.',"switchTab('sgbd')"],
@@ -19152,6 +19187,11 @@ function renderJourneyHub(tab){
   }
   /* Un cinquième élément optionnel : un pourcentage, dessiné en barre de progression. */
   document.getElementById(hostId).innerHTML=lead+tools.map(([kind,title,detail,action,pct])=>`<button type="button" class="journey-resource" data-kind="${kind}" onclick="${action}"><span class="journey-tool-icon">${journeyIcon(kind)}</span><span><b>${title}</b><small>${esc(detail)}</small>${pct!=null?`<i class="journey-resource-bar" aria-hidden="true"><i style="width:${Math.max(0,Math.min(100,pct))}%"></i></i>`:''}</span>${DEF_CHEV_SVG}</button>`).join('');
+}
+/* L’entrée Stickers de la Bibliothèque : combien sont gagnés, et les nouveaux pas encore vus. */
+function stkHubEntry(){
+  const list=stkList(),n=list.filter(s=>s.got).length,fresh=Object.keys(stkState().fresh).length;
+  return ['stickers',`Stickers${fresh?`<em class="journey-new">${fresh} nouveau${fresh>1?'x':''}</em>`:''}`,`${n} gagné${n>1?'s':''} sur ${list.length} · Colle-les, imprime-les.`,"switchTab('stickers')",Math.round(n/list.length*100)];
 }
 function journeyIcon(kind){
   if(kind==='notes')return JOURNEY_NOTES_ICON;
@@ -19541,6 +19581,7 @@ function showScreen(){
 }
 function leaveLessonScreen(toTab){
   annulerBilanAuto();
+  stkLeaveLesson();
   if(mode==='jeu')jeuStop();
   const tab=toTab||activeTab||'learn';
   activeTab=tab;
@@ -19696,6 +19737,7 @@ let somScrollUntil=0; // fenêtre où les layouts SQL ne doivent pas écraser le
 function lessonBackLabel(){return ({planning:'Planning',defis:'Défis',practice:'Pratiquer',library:'Bibliothèque',jeu:'Défis',compte:'Compte',notes:'Mes notes',collection:'Cartes mémo',console:'Console',entretien:'Entretien',sgbd:'Selon le SGBD'})[activeTab]||'Accueil';}
 function openLesson(id, restoreStep){
   const l=allLessons.find(x=>x.id===id); if(!l)return;
+  stkLeaveLesson();
   closeLessonVideo(true);
   annulerBilanAuto();
   current=l; mode='lesson';
@@ -21770,6 +21812,7 @@ function renderBravoSlide(l){
         <p class="bravo-lesson">${esc(l.titre)}<small>${l.leconSeule?'Leçon interactive au complet':'Exercice et quiz au complet'}</small></p>
         ${bravoStepsHtml(l)}
       </div>
+      ${stkBravoHtml()}
       ${bravoRecapHtml(l)}
       ${bravoNextHtml()}
       ${bravoActionsHtml(l)}
@@ -23184,7 +23227,7 @@ function renderLessonFlow(){
     if(d!=null){const ta=document.getElementById('ed-lesson');if(ta){ta.value=d;syncHL('ed-lesson','hl-lesson');fitSqlEditor(ta);}}
   }
   if(lessonStep===2) renderValidation();
-  if(lessonStep===3) requestAnimationFrame(revealBravoCard);
+  if(lessonStep===3){ requestAnimationFrame(revealBravoCard); stkPaint(document.getElementById('lesson-body')); }
   if(lessonStep===0&&!lessonVideoOn(l)){
     buildSommaire();
     initTesteEditor();
@@ -25371,6 +25414,947 @@ function toastWithAction(msg,sub,label,fn){
   clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.classList.remove('on');toastAction=null;},5200);
 }
 /* ============================================================
+   8bis. STICKERS — gagnés en avançant, à coller et à imprimer
+   ============================================================
+   Un sticker par module terminé, et un par accomplissement (la même liste que dans Mon compte) ; un sticker gagné le
+   reste. Dans la Bibliothèque, on les colle sur un tableau (déplacer, tourner, agrandir) et on les télécharge en PNG
+   détouré : fond transparent et bord blanc de découpe, prêt pour Photos, Fichiers ou une imprimante à stickers.
+   Les trois plus rares sont holographiques à l’écran.
+   Chaque dessin est une liste de calques dans un carré de 200 : tracés SVG (Path2D) et textes en Bricolage. Le même
+   rendu sert à l’écran (canvas) et au fichier, où le bord de découpe suit la silhouette comme sur une planche
+   prédécoupée. */
+const STK_INK='#221C46';
+const STK_C={vio:'#7C5CFF',vio2:'#A993FF',yel:'#FFD23F',yel2:'#FFE795',ora:'#FF9A3D',cor:'#FF6B6B',pnk:'#FF8FC7',pnk2:'#FFC6E2',
+  min:'#3ED6A0',sky:'#5EC2FF',sky2:'#C4EAFF',blu:'#3D7BFF',grn:'#22B868',grn2:'#62D89A',gold:'#FFC83D',crm:'#FFF6E3',steel:'#CFCAE4'};
+const STK_P={
+  c:(x,y,r)=>`M${x-r} ${y}a${r} ${r} 0 1 0 ${2*r} 0a${r} ${r} 0 1 0 ${-2*r} 0Z`,
+  e:(x,y,a,b)=>`M${x-a} ${y}a${a} ${b} 0 1 0 ${2*a} 0a${a} ${b} 0 1 0 ${-2*a} 0Z`,
+  r:(x,y,w,h,r)=>`M${x+r} ${y}h${w-2*r}a${r} ${r} 0 0 1 ${r} ${r}v${h-2*r}a${r} ${r} 0 0 1 ${-r} ${r}h${2*r-w}a${r} ${r} 0 0 1 ${-r} ${-r}v${2*r-h}a${r} ${r} 0 0 1 ${r} ${-r}Z`,
+  star:(x,y,R,r,n,rot=-90)=>{let s='';for(let i=0;i<2*n;i++){const a=(rot+i*180/n)*Math.PI/180,q=i%2?r:R;s+=(i?'L':'M')+(x+q*Math.cos(a)).toFixed(1)+' '+(y+q*Math.sin(a)).toFixed(1);}return s+'Z';},
+  /* Cercle festonné (rosette) : n bosses. */
+  roset:(x,y,R,n)=>{const st=2*Math.PI/n,rr=(R*Math.sin(st/2)*1.25).toFixed(1);let s='';for(let i=0;i<=n;i++){const a=i*st-Math.PI/2,px=(x+R*Math.cos(a)).toFixed(1),py=(y+R*Math.sin(a)).toFixed(1);s+=i?`A${rr} ${rr} 0 0 1 ${px} ${py}`:`M${px} ${py}`;}return s+'Z';},
+  /* Timbre : rectangle aux bords dentelés (demi-cercles creusés). */
+  stamp:(x,y,w,h,r,nx,ny)=>{let s=`M${x} ${y}`;
+    for(let i=0;i<nx;i++){const c=x+w*(i+.5)/nx;s+=`H${c-r}A${r} ${r} 0 0 0 ${c+r} ${y}`;}s+=`H${x+w}`;
+    for(let i=0;i<ny;i++){const c=y+h*(i+.5)/ny;s+=`V${c-r}A${r} ${r} 0 0 0 ${x+w} ${c+r}`;}s+=`V${y+h}`;
+    for(let i=nx-1;i>=0;i--){const c=x+w*(i+.5)/nx;s+=`H${c+r}A${r} ${r} 0 0 0 ${c-r} ${y+h}`;}s+=`H${x}`;
+    for(let i=ny-1;i>=0;i--){const c=y+h*(i+.5)/ny;s+=`V${c+r}A${r} ${r} 0 0 0 ${x} ${c-r}`;}return s+'Z';}
+};
+/* Flamme de série (3 et 7 jours) et poupée gigogne : dessins paramétrés. */
+const STK_FLAME='M100 14C126 48 156 72 156 118C156 156 131 182 100 182C69 182 44 156 44 118C44 93 57 76 70 62C72 83 80 95 92 99C86 69 90 41 100 14Z';
+const STK_FLAME_IN='M100 70C115 90 134 105 134 132C134 155 119 170 100 170C81 170 66 155 66 132C66 115 75 104 84 96C86 109 90 117 98 119C96 102 96 87 100 70Z';
+function stkDoll(x,yb,s,col){
+  const P=STK_P,y=v=>yb-v*s,q=v=>v*s;
+  return [
+    {p:P.e(x,y(46),q(42),q(46)),f:col,w:6},
+    {p:P.c(x,y(98),q(31)),f:col,w:6},
+    {p:P.e(x,y(96),q(20),q(18)),f:STK_C.crm,w:4.5},
+    {p:P.c(x-q(7),y(98),q(2.8))+P.c(x+q(7),y(98),q(2.8)),f:STK_INK},
+    {p:P.c(x-q(12),y(91),q(3.6))+P.c(x+q(12),y(91),q(3.6)),f:STK_C.pnk},
+    {p:`M${x-q(4)} ${y(89)}Q${x} ${y(85)} ${x+q(4)} ${y(89)}`,w:3},
+    {p:P.c(x,y(42),q(15)),f:'#fff',w:4.5},
+    {p:P.c(x,y(42),q(6)),f:STK_C.yel}
+  ];
+}
+const STK_ART={
+  intro:[
+    {p:'M38 60V146A62 22 0 0 0 162 146V60Z',f:STK_C.vio,w:6},
+    {p:'M38 130A62 22 0 0 0 162 130',w:5},
+    {p:STK_P.e(100,60,62,22),f:STK_C.vio2,w:6},
+    {p:'M54 92V140',s:'rgba(255,255,255,.32)',w:9},
+    {p:STK_P.e(82,100,6,8)+STK_P.e(118,100,6,8),f:STK_INK},
+    {p:STK_P.c(84,97,2.2)+STK_P.c(120,97,2.2),f:'#fff'},
+    {p:'M88 112Q100 124 112 112',w:5},
+    {p:STK_P.e(68,113,8,5)+STK_P.e(132,113,8,5),f:STK_C.pnk,op:.85},
+    {g:[{p:STK_P.r(112,140,66,34,11),f:STK_C.yel,w:5},{t:'SQL',x:145,y:164,z:21}],rot:-12,ox:145,oy:157}
+  ],
+  lire:[
+    {p:'M52 42H148A34 34 0 0 1 182 76V104A34 34 0 0 1 148 138H86L38 172L52 138A34 34 0 0 1 18 104V76A34 34 0 0 1 52 42Z',f:STK_C.yel,w:6},
+    {t:'SELECT',x:100,y:104,z:38},
+    {p:'M166 18V54M150.4 27L181.6 45M150.4 45L181.6 27',w:18},
+    {p:'M166 18V54M150.4 27L181.6 45M150.4 45L181.6 27',s:STK_C.cor,w:9}
+  ],
+  fonctions:[
+    {p:STK_P.star(100,100,86,70,14),f:STK_C.min,w:6},
+    {t:'f(x)',x:100,y:121,z:60,f:'#fff',w:9},
+    {p:STK_P.star(148,58,11,3.5,4),f:'#fff'},
+    {p:STK_P.star(56,146,8,2.6,4),f:'#fff'}
+  ],
+  agregats:[
+    {p:STK_P.r(32,24,136,136,30),f:STK_C.sky,w:6,rot:-6},
+    {g:[{p:STK_P.r(54,94,26,48,7),f:'#fff',w:5},{p:STK_P.r(87,70,26,72,7),f:STK_C.yel,w:5},{p:STK_P.r(120,46,26,96,7),f:'#fff',w:5}],rot:-6},
+    {g:[{p:STK_P.r(18,136,164,42,14),f:STK_INK},{t:'GROUP BY',x:100,y:165,z:24,f:'#fff'}],rot:3}
+  ],
+  jointures:[
+    {p:STK_P.c(74,94,60),f:STK_C.vio},
+    {p:STK_P.c(126,94,60),f:STK_C.cor},
+    {p:STK_P.c(126,94,60),f:STK_C.yel,clip:STK_P.c(74,94,60)},
+    {p:STK_P.c(74,94,60),w:6},
+    {p:STK_P.c(126,94,60),w:6},
+    {t:'JOIN',x:100,y:106,z:31,w:8,s:'#fff'}
+  ],
+  sousreq:[
+    ...stkDoll(58,178,1,STK_C.pnk),
+    ...stkDoll(118,178,.72,STK_C.ora),
+    ...stkDoll(162,178,.5,STK_C.yel)
+  ],
+  fenetre:[
+    {p:'M40 166V88A60 60 0 0 1 160 88V166Z',f:STK_C.sky2},
+    {p:STK_P.c(128,76,13),f:STK_C.yel,w:4},
+    {p:'M58 112L82 88M58 136L70 124',s:'#fff',w:6},
+    {p:'M40 166V88A60 60 0 0 1 160 88V166Z',w:24},
+    {p:'M40 166V88A60 60 0 0 1 160 88V166Z',s:'#fff',w:13},
+    {p:'M100 28V166M40 114H160',w:15},
+    {p:'M100 28V166M40 114H160',s:'#fff',w:6},
+    {p:STK_P.r(22,156,156,36,12),f:STK_C.vio,w:6},
+    {t:'OVER ()',x:100,y:182,z:23,f:'#fff'}
+  ],
+  modeliser:[
+    {p:STK_P.r(14,30,172,140,24),f:STK_C.blu,w:6},
+    {p:'M14 58H186M14 86H186M14 114H186M14 142H186M42 30V170M70 30V170M98 30V170M126 30V170M154 30V170',s:'rgba(255,255,255,.15)',w:2,clip:STK_P.r(14,30,172,140,24)},
+    {p:'M90 80H100V124H110M101 124L110 115M101 124L110 133',w:11},
+    {p:'M90 80H100V124H110M101 124L110 115M101 124L110 133',s:STK_C.yel,w:5},
+    {p:STK_P.r(26,44,64,76,10),f:'#fff',w:5},
+    {p:'M26 68V54A10 10 0 0 1 36 44H80A10 10 0 0 1 90 54V68Z',f:STK_C.yel,w:5},
+    {p:'M36 86H80M36 102H66',s:'rgba(34,28,70,.3)',w:4},
+    {p:STK_P.r(110,86,64,76,10),f:'#fff',w:5},
+    {p:'M110 110V96A10 10 0 0 1 120 86H164A10 10 0 0 1 174 96V110Z',f:STK_C.pnk,w:5},
+    {p:'M120 128H164M120 144H150',s:'rgba(34,28,70,.3)',w:4},
+    {t:'1',x:104,y:68,z:19,f:STK_C.yel,w:5},
+    {t:'N',x:96,y:156,z:19,f:STK_C.yel,w:5}
+  ],
+  creer:[
+    {p:STK_P.r(38,156,40,24,5)+STK_P.r(82,156,40,24,5)+STK_P.r(126,156,40,24,5),f:STK_C.cor,w:5},
+    {p:'M34 128C34 70 62 40 100 40C138 40 166 70 166 128Z',f:STK_C.yel,w:6},
+    {p:STK_P.r(88,40,24,76,8),f:STK_C.yel2,w:5},
+    {p:'M54 104C56 82 66 66 80 56',s:'rgba(255,255,255,.6)',w:7},
+    {p:STK_P.r(14,122,172,30,15),f:STK_C.yel,w:6},
+    {p:STK_P.r(52,90,96,30,9),f:'#fff',w:5},
+    {t:'CREATE',x:100,y:112,z:20}
+  ],
+  ecrire:[{g:[
+    {p:'M30 80H44V120H30A10 10 0 0 1 20 110V90A10 10 0 0 1 30 80Z',f:STK_C.pnk,w:6},
+    {p:'M44 80H62V120H44Z',f:STK_C.steel,w:6},
+    {p:'M50 82V118M56 82V118',s:'rgba(34,28,70,.35)',w:3},
+    {p:'M62 80H144V120H62Z',f:STK_C.yel,w:6},
+    {p:'M64 112H142',s:'rgba(34,28,70,.1)',w:8},
+    {t:'INSERT',x:103,y:107,z:21},
+    {p:'M144 80L182 100L144 120Z',f:'#FFDDB0',w:6},
+    {p:'M168 93.5L182 100L168 106.5Z',f:STK_INK}
+  ],rot:-32}],
+  contraintes:[
+    {p:'M100 16L166 40V92C166 136 138 164 100 180C62 164 34 136 34 92V40Z',f:STK_C.grn,w:6},
+    {p:'M100 32L152 51V93C152 126 131 148 100 162C69 148 48 126 48 93V51Z',f:STK_C.grn2},
+    {p:'M72 86L92 106L130 66',w:22},
+    {p:'M72 86L92 106L130 66',s:'#fff',w:11},
+    {p:'M16 124H36V158L26 150L16 158Z',f:'#16804A',w:5},
+    {p:'M184 124H164V158L174 150L184 158Z',f:'#16804A',w:5},
+    {p:STK_P.r(26,118,148,36,10),f:STK_INK},
+    {t:'NOT NULL',x:100,y:144,z:21,f:'#fff'}
+  ],
+  transactions:[
+    {p:STK_P.stamp(24,28,152,144,7,6,6),f:'#fff',w:5},
+    {p:STK_P.r(40,44,120,112,8),f:STK_C.vio},
+    {p:STK_P.c(100,86,24),f:'#fff'},
+    {p:'M88 86L97 95L114 77',s:STK_C.vio,w:7},
+    {t:'COMMIT',x:100,y:141,z:24,f:'#fff'}
+  ],
+  triggers:[
+    {p:'M106 14L46 110H94L78 186L158 80H110L140 14Z',f:STK_C.yel,w:6},
+    {p:'M112 26L72 98H108L100 140L138 92H100L120 26Z',f:STK_C.yel2},
+    {g:[{p:STK_P.r(96,140,92,32,16),f:STK_INK},{t:'TRIGGER',x:142,y:162,z:17,f:'#fff'}],rot:-8,ox:142,oy:156}
+  ],
+  index:[{g:[
+    {p:'M68 102L40 132C37 141 44 146 52 142L70 132Z',f:STK_C.vio,w:6},
+    {p:'M132 102L160 132C163 141 156 146 148 142L130 132Z',f:STK_C.vio,w:6},
+    {p:'M84 140C84 166 96 178 100 188C104 178 116 166 116 140Z',f:STK_C.ora,w:5},
+    {p:'M92 140C92 156 98 166 100 174C102 166 108 156 108 140Z',f:STK_C.yel},
+    {p:STK_P.r(80,128,40,15,4),f:STK_C.steel,w:5},
+    {p:'M100 14C126 34 136 70 134 130H66C64 70 74 34 100 14Z',f:STK_C.cor,w:6},
+    {p:STK_P.c(100,70,17),f:STK_C.sky2,w:6},
+    {p:'M92 64A10 10 0 0 1 104 59',s:'#fff',w:4},
+    {t:'INDEX',x:100,y:118,z:17,f:'#fff'}
+  ],rot:28}],
+  securite:[
+    {p:'M64 98V66A36 36 0 0 1 136 66V98',w:27,cap:'butt'},
+    {p:'M64 98V66A36 36 0 0 1 136 66V98',s:'#B9B2D9',w:14,cap:'butt'},
+    {p:STK_P.r(36,88,128,94,24),f:STK_C.gold,w:6},
+    {p:'M52 104V160',s:'rgba(255,255,255,.45)',w:8},
+    {p:STK_P.c(100,116,11)+'M95 120H105L108 140H92Z',f:STK_INK},
+    {t:'GRANT',x:100,y:170,z:20}
+  ],
+  requete:[
+    {p:STK_P.r(20,32,160,122,18),f:STK_INK,w:6},
+    {p:STK_P.c(40,49,5),f:STK_C.cor},{p:STK_P.c(56,49,5),f:STK_C.yel},{p:STK_P.c(72,49,5),f:STK_C.min},
+    {t:'>_',x:100,y:122,z:56,f:STK_C.min},
+    {p:STK_P.r(30,140,140,38,12),f:STK_C.yel,w:6},
+    {t:'1re requête',x:100,y:166,z:21}
+  ],
+  lecons10:[
+    {p:'M100 72C80 60 50 58 22 64V162C50 156 80 158 100 170C120 158 150 156 178 162V64C150 58 120 60 100 72Z',f:STK_C.vio,w:6},
+    {p:'M100 66C82 54 54 52 30 56V152C54 148 82 150 100 162Z',f:STK_C.crm,w:5},
+    {p:'M100 66C118 54 146 52 170 56V152C146 148 118 150 100 162Z',f:STK_C.crm,w:5},
+    {p:'M42 96C58 94 74 96 88 102M42 116C58 114 74 116 88 122M42 136C58 134 74 136 88 142M158 96C142 94 126 96 112 102M158 116C142 114 126 116 112 122M158 136C142 134 126 136 112 142',s:'rgba(34,28,70,.22)',w:4},
+    {p:STK_P.c(100,50,31),f:STK_C.cor,w:6},
+    {t:'10',x:100,y:62,z:32,f:'#fff'},
+    {p:STK_P.r(58,154,84,32,12),f:STK_C.yel,w:6},
+    {t:'leçons',x:100,y:176,z:19}
+  ],
+  serie3:[
+    {p:STK_FLAME,f:STK_C.ora,w:6},
+    {p:STK_FLAME_IN,f:STK_C.yel},
+    {t:'3',x:100,y:156,z:62,f:'#fff',w:9},
+    {p:STK_P.r(56,158,88,30,12),f:'#fff',w:6},
+    {t:'jours',x:100,y:179,z:18}
+  ],
+  defis10:[
+    {p:'M64 118L44 182L66 172L80 190L96 126Z',f:STK_C.cor,w:6},
+    {p:'M136 118L156 182L134 172L120 190L104 126Z',f:STK_C.cor,w:6},
+    {p:STK_P.roset(100,88,76,16),f:STK_C.vio,w:6},
+    {p:STK_P.c(100,88,54),f:'#fff',w:5},
+    {t:'10',x:100,y:100,z:44,f:STK_C.vio},
+    {t:'défis',x:100,y:124,z:18}
+  ],
+  serie7:[
+    {p:STK_FLAME,f:STK_C.cor,w:6},
+    {p:'M100 44C120 70 144 88 144 124C144 152 125 174 100 174C75 174 56 152 56 124C56 106 66 94 76 84C78 99 84 108 94 111C90 88 93 64 100 44Z',f:STK_C.ora},
+    {p:STK_FLAME_IN,f:STK_C.yel},
+    {t:'7',x:100,y:156,z:62,f:'#fff',w:9},
+    {p:STK_P.r(56,158,88,30,12),f:'#fff',w:6},
+    {t:'jours',x:100,y:179,z:18},
+    {p:STK_P.star(50,56,10,3.4,4),f:STK_C.yel,w:3},
+    {p:STK_P.star(150,56,8,2.8,4),f:STK_C.yel,w:3}
+  ],
+  parcours:[
+    {p:'M58 58C28 58 28 106 64 108',w:16},
+    {p:'M58 58C28 58 28 106 64 108',s:STK_C.gold,w:7},
+    {p:'M142 58C172 58 172 106 136 108',w:16},
+    {p:'M142 58C172 58 172 106 136 108',s:STK_C.gold,w:7},
+    {p:'M54 34H146V66C146 104 126 126 100 128C74 126 54 104 54 66Z',f:STK_C.gold,w:6},
+    {p:'M70 48V70C70 86 76 98 84 106',s:'rgba(255,255,255,.55)',w:8},
+    {p:'M90 126H110V148H90Z',f:STK_C.gold,w:6},
+    {p:STK_P.r(54,146,92,36,9),f:STK_C.vio,w:6},
+    {t:'SQL',x:100,y:172,z:21,f:'#fff'},
+    {p:STK_P.star(100,80,21,9.5,5),f:'#fff',w:4},
+    {p:STK_P.star(36,32,10,3.4,4),f:STK_C.yel,w:3},
+    {p:STK_P.star(166,30,8,2.8,4),f:STK_C.yel,w:3}
+  ]
+};
+const STK_B=8;
+const stkPathCache=new Map();
+function stkPath(d){let p=stkPathCache.get(d);if(!p){p=new Path2D(d);stkPathCache.set(d,p);}return p;}
+function stkFont(z,fw){return `${fw||800} ${z}px "Bricolage Grotesque",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif`;}
+/* Calques : {p:tracé SVG, f:remplissage, s:trait (encre par défaut), w:épaisseur}, {t:texte, x, y, z:taille, f, s, w},
+   {g:[calques]} ; rot en degrés autour de ox,oy (100,100 par défaut), clip (tracé qui limite le calque), op (opacité).
+   Passe « cut » : la silhouette élargie de b, d’une seule couleur (bord de découpe, sticker à gagner, emplacement vide). */
+function stkLayers(ctx,list,cut,b){
+  for(const L of list){
+    if(cut&&L.clip)continue;
+    ctx.save();
+    if(L.rot){const ox=L.ox??100,oy=L.oy??100;ctx.translate(ox,oy);ctx.rotate(L.rot*Math.PI/180);ctx.translate(-ox,-oy);}
+    if(L.g){stkLayers(ctx,L.g,cut,b);ctx.restore();continue;}
+    if(L.t){ctx.font=stkFont(L.z,L.fw);ctx.textAlign='center';ctx.textBaseline='alphabetic';}
+    if(cut){
+      ctx.lineWidth=(L.w||0)+2*b;
+      if(L.t){ctx.strokeText(L.t,L.x,L.y);ctx.fillText(L.t,L.x,L.y);}
+      else{const p=stkPath(L.p);if(L.f)ctx.fill(p);ctx.stroke(p);}
+    }else{
+      if(L.clip)ctx.clip(stkPath(L.clip));
+      if(L.op!=null)ctx.globalAlpha=L.op;
+      ctx.lineCap=L.cap||'round';
+      if(L.t){
+        if(L.w){ctx.strokeStyle=L.s||STK_INK;ctx.lineWidth=L.w;ctx.strokeText(L.t,L.x,L.y);}
+        ctx.fillStyle=L.f||STK_INK;ctx.fillText(L.t,L.x,L.y);
+      }else{
+        const p=stkPath(L.p);
+        if(L.f){ctx.fillStyle=L.f;ctx.fill(p);}
+        if(L.w){ctx.strokeStyle=L.s||STK_INK;ctx.lineWidth=L.w;ctx.stroke(p);}
+      }
+    }
+    ctx.restore();
+  }
+}
+/* mode : art (sticker gagné), lock (silhouette à gagner), spot (emplacement vide sur la planche : la fente de découpe). */
+function stkDraw(ctx,id,px,mode){
+  const art=STK_ART[id];if(!art)return;
+  ctx.save();ctx.scale(px/200,px/200);ctx.lineJoin='round';ctx.lineCap='round';
+  const one=(col,b)=>{ctx.fillStyle=ctx.strokeStyle=col;stkLayers(ctx,art,true,b);};
+  if(mode==='lock')one('#DCD5F2',STK_B);
+  else if(mode==='spot'){one('#CBC2EC',STK_B);one('#EEEAFB',STK_B-1.6);}
+  else{one('#fff',STK_B);stkLayers(ctx,art,false,0);}
+  ctx.restore();
+}
+/* Dans l’ordre de MODULES : un dessin par module (le nom affiché reste celui du module). */
+const STK_MODULE_IDS=['intro','lire','fonctions','agregats','jointures','sousreq','fenetre','modeliser','creer','ecrire','contraintes','transactions','triggers','index','securite'];
+/* Les plus rares sont holographiques à l’écran (2 : avec des paillettes). */
+const STK_HOLO={defis10:1,serie7:2,parcours:2};
+/* Accomplissements : une seule liste, pour Mon compte et pour les stickers. now et goal mesurent l’avancée ; une série
+   compte dès qu’elle a été atteinte une fois (le record), même si elle s’est arrêtée depuis. */
+function accomplissements(){
+  const st=compteStats(),rec=streakRecord();
+  const modules=MODULES.filter(m=>m.lessons.every(l=>itemDone(l.id))).length;
+  return [
+    {id:'requete',label:'Première requête',now:Math.min(progressContinuer().done,1),goal:1,how:'Valide ta première activité.'},
+    {id:'lecons10',label:'10 leçons',now:Math.min(st.lessons,10),goal:10,unit:'leçon',how:'Valide 10 leçons.'},
+    {id:'serie3',label:'Série de 3 jours',now:Math.min(st.streak,3),goal:3,ok:rec>=3,unit:'jour',how:'Atteins une série de 3 jours.'},
+    {id:'defis10',label:'10 défis',now:Math.min(st.defis,10),goal:10,unit:'défi',how:'Réussis 10 défis.'},
+    {id:'serie7',label:'Série de 7 jours',now:Math.min(st.streak,7),goal:7,ok:rec>=7,unit:'jour',how:'Atteins une série de 7 jours.'},
+    {id:'parcours',label:'Parcours terminé',now:modules,goal:MODULES.length,unit:'module',how:'Termine tous les modules.'}
+  ].map(a=>({...a,ok:a.ok??a.now>=a.goal}));
+}
+/* state.stickers : got (id → date de gain, 1 si gagné avant l’arrivée des stickers), fresh (pas encore vus),
+   board (posés sur le tableau, du dessous au dessus : centre x et y de 0 à 1, rotation r en degrés, taille s),
+   since (première mise en route). */
+function stkState(){
+  if(!state.stickers||typeof state.stickers!=='object')state.stickers={got:{},fresh:{},board:[],since:0};
+  const S=state.stickers;
+  if(!S.got)S.got={};if(!S.fresh)S.fresh={};if(!Array.isArray(S.board))S.board=[];
+  return S;
+}
+/* Tous les stickers, dans l’ordre de la planche : modules, puis accomplissements. */
+function stkList(){
+  const S=stkState();
+  const mods=MODULES.map((m,i)=>{
+    const now=m.lessons.filter(l=>itemDone(l.id)).length;
+    return {id:STK_MODULE_IDS[i],kind:'module',num:i+1,name:m.titre,now,goal:m.lessons.length,unit:'leçon',ok:now===m.lessons.length};
+  });
+  const acc=accomplissements().map(a=>({id:a.id,kind:'acc',name:a.label,now:a.now,goal:a.goal,unit:a.unit,how:a.how,ok:a.ok}));
+  return mods.concat(acc).filter(s=>s.id&&STK_ART[s.id]).map(s=>({...s,got:S.got[s.id]||0,holo:STK_HOLO[s.id]||0}));
+}
+function stkInfo(id){return stkList().find(s=>s.id===id)||null;}
+/* Ce qui est atteint et pas encore gagné devient un sticker, marqué « Nouveau ». La toute première fois, ceux déjà
+   mérités sont gagnés sans date. Renvoie les stickers gagnés à l’instant. */
+function stkSync(){
+  if(typeof MODULES==='undefined')return [];
+  const S=stkState(),t=S.since?Date.now():1,won=[];
+  stkList().forEach(s=>{if(s.ok&&!s.got){S.got[s.id]=t;S.fresh[s.id]=1;won.push(s.id);}});
+  if(!S.since)S.since=Date.now();
+  if(won.length)save();
+  return won;
+}
+/* Après chaque avancée (noteActivityDay) : pendant une leçon, les stickers gagnés attendent son bilan ; ailleurs, un toast. */
+let stkLessonNew=[],stkLessonShown=false;
+function stkAfterProgress(){
+  const won=stkSync();
+  if(!won.length)return;
+  if(mode==='lesson'&&document.body.classList.contains('in-lesson')){stkLessonNew.push(...won);return;}
+  stkAnnounce(won);
+}
+/* En quittant une leçon : ce que son bilan n’a pas montré est annoncé par un toast. */
+function stkLeaveLesson(){
+  const won=stkLessonNew,shown=stkLessonShown;
+  stkLessonNew=[];stkLessonShown=false;
+  if(won.length&&!shown)setTimeout(()=>stkAnnounce(won),450);
+}
+function stkAnnounce(ids,tries=0){
+  const t=document.getElementById('toast');
+  if(!t||!ids.length)return;
+  if(t.classList.contains('on')&&tries<6){clearTimeout(stkAnnounce.t);stkAnnounce.t=setTimeout(()=>stkAnnounce(ids,tries+1),1500);return;}
+  const items=ids.map(stkInfo).filter(Boolean);
+  if(!items.length)return;
+  toastWithAction(items.length>1?`${items.length} nouveaux stickers`:items[0].name,'Ajouté à ta planche','Voir',()=>openStickers(items[0].id));
+  const k=document.getElementById('toast-kicker');
+  if(k){k.textContent='Nouveau sticker';k.classList.add('on');}
+  const mini=document.getElementById('toast-mini');
+  if(mini){mini.className='tmini stk';mini.style.background='';mini.innerHTML=stkArtHtml(items[0].id,'art');stkPaint(mini);}
+}
+/* Le bilan d’une leçon qui fait gagner un sticker (fin de module, accomplissement). */
+function stkBravoHtml(){
+  const items=stkLessonNew.map(stkInfo).filter(s=>s&&s.got);
+  if(!items.length)return '';
+  const first=!stkLessonShown;stkLessonShown=true;
+  const mod=items.some(s=>s.kind==='module');
+  return `<button type="button" class="bravo-stk${first?' is-new':''}" onclick="openStickers('${items[0].id}')">
+    <span class="bravo-stk-art n${Math.min(items.length,3)}">${items.slice(0,3).map(s=>stkArtHtml(s.id,'art')).join('')}</span>
+    <span class="bravo-stk-copy"><small>${mod?'Module terminé':'Accomplissement'}</small><b>${items.length>1?`${items.length} nouveaux stickers`:'Nouveau sticker'}</b><em>${esc(items.map(s=>s.name).join(' · '))}</em></span>
+    ${DEF_CHEV_SVG}
+  </button>`;
+}
+/* ---------- Rendu à l’écran ---------- */
+/* Un sticker : canvas peint à sa taille affichée (stkPaint), voiles holographiques par-dessus si besoin. */
+function stkArtHtml(id,mode,cls){
+  const holo=mode==='art'?STK_HOLO[id]||0:0;
+  const veils=holo?`<i class="stk-v1"></i><i class="stk-v2"></i>${holo>1?'<i class="stk-v3"></i>':''}<i class="stk-v4"></i>`:'';
+  return `<span class="stk-art${holo?' is-holo':''}${cls?' '+cls:''}"${holo?` data-holo="${id}"`:''}><canvas data-stk="${id}"${mode!=='art'?` data-mode="${mode}"`:''} aria-hidden="true"></canvas>${veils}</span>`;
+}
+const stkMasks={};
+function stkMask(id){
+  if(!stkMasks[id]){const c=document.createElement('canvas');c.width=c.height=256;stkDraw(c.getContext('2d'),id,256,'lock');stkMasks[id]=c.toDataURL();}
+  return stkMasks[id];
+}
+/* Paillettes : une tuile tirée une fois pour toutes (même graine : mêmes paillettes à chaque visite). */
+let stkGlitUrl='';
+function stkGlitter(){
+  if(stkGlitUrl)return stkGlitUrl;
+  const c=document.createElement('canvas');c.width=c.height=180;
+  const x=c.getContext('2d');let seed=7;const rnd=()=>(seed=seed*16807%2147483647)/2147483647;
+  for(let i=0;i<260;i++){
+    const r=rnd()<.85?.6+rnd()*.9:1.4+rnd()*1.2;
+    x.fillStyle=`hsla(${[0,45,160,200,270][Math.floor(rnd()*5)]},100%,${80+rnd()*20}%,${.35+rnd()*.65})`;
+    x.beginPath();x.arc(rnd()*180,rnd()*180,r,0,7);x.fill();
+  }
+  x.strokeStyle='rgba(255,255,255,.95)';x.lineWidth=1;
+  for(let i=0;i<14;i++){const px=rnd()*180,py=rnd()*180,L=3+rnd()*4;x.beginPath();x.moveTo(px-L,py);x.lineTo(px+L,py);x.moveTo(px,py-L);x.lineTo(px,py+L);x.stroke();}
+  return stkGlitUrl=c.toDataURL();
+}
+/* La police des stickers (Bricolage) peut arriver après le premier dessin : on repeint alors tout. */
+let stkFontOk=false;
+function stkFontWatch(){
+  if(stkFontOk||typeof document==='undefined'||!document.fonts||!document.fonts.load)return;
+  const f='800 20px "Bricolage Grotesque"';
+  if(document.fonts.check(f)){stkFontOk=true;return;}
+  if(!stkFontWatch.p)stkFontWatch.p=document.fonts.load(f).then(()=>{stkFontOk=true;stkPaint(document);},()=>{});
+}
+function stkPaint(root){
+  if(!root||!root.querySelectorAll)return;
+  const dpr=Math.min(3,window.devicePixelRatio||1);
+  root.querySelectorAll('canvas[data-stk]').forEach(cv=>{
+    const w=cv.offsetWidth;if(!w)return;
+    const px=Math.round(w*dpr);
+    if(cv.width!==px){cv.width=cv.height=px;}
+    const ctx=cv.getContext('2d');ctx.clearRect(0,0,px,px);
+    stkDraw(ctx,cv.dataset.stk,px,cv.dataset.mode||'art');
+  });
+  root.querySelectorAll('.stk-art.is-holo').forEach(el=>{
+    el.style.setProperty('--m',`url(${stkMask(el.dataset.holo)})`);
+    if(STK_HOLO[el.dataset.holo]>1)el.style.setProperty('--glit',`url(${stkGlitter()})`);
+  });
+  stkFontWatch();
+}
+/* ---------- Écran Stickers ---------- */
+const STK_DL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m-4.5-4.5L12 15l4.5-4.5M5 19.5h14"/></svg>';
+const STK_LOCK_SVG='<span class="stk-lock" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9.5" rx="2.6"/><path d="M8.5 11V8.2a3.5 3.5 0 0 1 7 0V11"/></svg></span>';
+const STK_HANDLES='<span class="stk-hd stk-hd-del" data-h="del" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"/></svg></span><span class="stk-hd stk-hd-rot" data-h="rot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12.5A7 7 0 1 1 16.9 7.5M19 4.5V8h-3.5"/></svg></span>';
+const STK_TACTILE=typeof window!=='undefined'&&'ontouchstart' in window;
+let stkSel=null,stkJust=null,stkFocus=null,stkOpenId=null,stkReturn=null;
+/* Ouvrir l’espace Stickers, éventuellement sur la fiche d’un sticker. */
+function openStickers(id){
+  stkFocus=id||null;
+  if(document.body.classList.contains('in-lesson'))exitLessonToTab('stickers');
+  else if(activeTab==='stickers'){renderStickers();}
+  else switchTab('stickers');
+}
+function stkItemHtml(b,i,name){
+  return `<button type="button" class="stk-item${stkSel===b.id?' is-sel':''}${stkJust===b.id?' is-drop':''}" data-id="${b.id}" style="--x:${b.x};--y:${b.y};--r:${b.r}deg;--s:${b.s};z-index:${i+1}" aria-label="${escAttr(name+', sur le tableau')}" aria-pressed="${stkSel===b.id}" aria-describedby="stk-kbd">${stkArtHtml(b.id,'art')}${STK_HANDLES}</button>`;
+}
+function renderStickers(){
+  const host=document.getElementById('stk-body');
+  if(!host)return;
+  stkSync();
+  const S=stkState(),list=stkList();
+  const won=list.filter(s=>s.got),onBoard=new Set(S.board.map(b=>b.id)),names=Object.fromEntries(list.map(s=>[s.id,s.name]));
+  if(stkSel&&!onBoard.has(stkSel))stkSel=null;
+  const empty=!won.length
+    ?`<div class="stk-empty"><b>Ton tableau t’attend</b><span>Ton premier sticker arrive avec ta première activité validée.</span></div>`
+    :!S.board.length?`<div class="stk-empty"><b>Colle tes stickers ici</b><span>Touche un sticker de ta planche${STK_TACTILE?', ou maintiens-le et fais-le glisser jusqu’ici':', ou fais-le glisser jusqu’ici'}.</span></div>`:'';
+  const cell=s=>{
+    const placed=onBoard.has(s.id),state=!s.got?'lock':placed?'placed':'got';
+    const label=(!s.got?`${s.name}, à gagner`:placed?`${s.name}, sur le tableau`:s.name)+(S.fresh[s.id]?', nouveau':'');
+    return `<li><button type="button" class="stk-cell is-${state}" data-id="${s.id}" aria-label="${escAttr(label)}" onclick="stkCellClick(this)">${stkArtHtml(s.id,!s.got?'lock':placed?'spot':'art')}${!s.got?STK_LOCK_SVG:''}${S.fresh[s.id]?'<em class="stk-new">Nouveau</em>':''}</button></li>`;
+  };
+  const group=(title,items)=>`<div class="stk-group"><h3>${title}</h3><span>${items.filter(s=>s.got).length} sur ${items.length}</span></div><ul class="stk-grid">${items.map(cell).join('')}</ul>`;
+  host.innerHTML=`
+    <section class="stk-board-sec" aria-label="Ton tableau">
+      <div class="stk-board${S.board.length?'':' is-empty'}" id="stk-board" role="group" aria-label="Ton tableau de stickers">
+        <span class="stk-board-logo" aria-hidden="true">&gt;_</span>
+        ${S.board.map((b,i)=>stkItemHtml(b,i,names[b.id]||b.id)).join('')}${empty}
+      </div>
+      <p class="acct-sr" id="stk-kbd">Au clavier : les flèches déplacent, [ et ] tournent, + et − changent la taille, Suppr décolle.</p>
+      ${S.board.length?`<div class="stk-board-bar">
+        <p>${STK_TACTILE?'Glisse pour déplacer, pince ou tire la poignée pour tourner et agrandir.':'Glisse pour déplacer, tire la poignée pour tourner et agrandir.'}</p>
+        <div class="stk-board-actions">
+          <button type="button" class="lq-btn-2 stk-btn" onclick="stkClearBoard()">Tout décoller</button>
+          <button type="button" class="lq-btn stk-btn" onclick="stkExportBoard()">${STK_DL_SVG}<span>Télécharger</span></button>
+        </div>
+      </div>`:''}
+    </section>
+    <section class="stk-sheet-sec" aria-labelledby="stk-sheet-t">
+      <div class="acct-head"><h2 id="stk-sheet-t">Ta planche</h2><span>${won.length} sur ${list.length}</span></div>
+      <div class="stk-sheet" id="stk-sheet-grid">
+        ${group('Modules',list.filter(s=>s.kind==='module'))}
+        ${group('Accomplissements',list.filter(s=>s.kind==='acc'))}
+      </div>
+    </section>`;
+  stkJust=null;
+  stkPaint(host);
+  stkBindBoard(document.getElementById('stk-board'));
+  stkBindSheet(document.getElementById('stk-sheet-grid'));
+  stkScrollHolo();
+  if(stkFocus){const f=stkFocus;stkFocus=null;setTimeout(()=>{if(activeTab==='stickers')stkOpen(f);},prefersReduceMotion()?0:340);}
+}
+/* En quittant l’écran, les nouveaux stickers ont été vus. */
+function stkSeen(){
+  const S=stkState();
+  if(Object.keys(S.fresh).length){S.fresh={};save();}
+}
+function stkCellClick(btn){
+  if(btn._noClick&&performance.now()<btn._noClick)return;
+  stkOpen(btn.dataset.id);
+}
+/* Le reflet des stickers holo bouge quand on fait défiler la planche, comme une carte qu’on incline. */
+function stkScrollHolo(){
+  const scr=document.getElementById('scr-stickers');
+  if(!scr||scr.dataset.holo)return;
+  scr.dataset.holo='1';
+  let raf=0;
+  scr.addEventListener('scroll',()=>{
+    if(raf||prefersReduceMotion())return;
+    raf=requestAnimationFrame(()=>{
+      raf=0;const t=scr.scrollTop/160;
+      scr.querySelectorAll('.stk-art.is-holo').forEach(el=>{el.style.setProperty('--px',(50+Math.sin(t)*45).toFixed(1)+'%');el.style.setProperty('--py',(50+Math.cos(t*.8)*45).toFixed(1)+'%');});
+    });
+  },{passive:true});
+}
+/* ---------- Le tableau : déplacer, tourner, agrandir ---------- */
+function stkEntry(id){return stkState().board.find(b=>b.id===id);}
+/* Le centre reste assez loin des bords pour que le sticker, même tourné, tienne sur le tableau. */
+function stkClampPos(x,y,s,R,r=0){
+  const a=r*Math.PI/180,w=.13*s*(Math.abs(Math.cos(a))+Math.abs(Math.sin(a))),h=w*R.width/R.height;
+  const c=(v,m)=>Math.min(Math.max(v,Math.min(m,.5)),Math.max(1-m,.5));
+  return [c(x,w),c(y,h)];
+}
+function stkAngle(r){r=((r+180)%360+360)%360-180;return Math.abs(r)<4?0:Math.round(r*10)/10;}
+function stkApply(item,b){
+  item.style.setProperty('--x',b.x);item.style.setProperty('--y',b.y);
+  item.style.setProperty('--r',b.r+'deg');item.style.setProperty('--s',b.s);
+}
+function stkSelect(id){
+  stkSel=id;
+  document.querySelectorAll('#stk-board .stk-item').forEach(el=>{const on=el.dataset.id===id;el.classList.toggle('is-sel',on);el.setAttribute('aria-pressed',on?'true':'false');});
+}
+function stkToFront(id){
+  const S=stkState(),i=S.board.findIndex(b=>b.id===id);
+  if(i<0||i===S.board.length-1)return;
+  S.board.push(S.board.splice(i,1)[0]);
+  document.querySelectorAll('#stk-board .stk-item').forEach(el=>{el.style.zIndex=String(S.board.findIndex(b=>b.id===el.dataset.id)+1);});
+}
+let stkG=null;
+function stkGStart(item,kind,pts){
+  const b=stkEntry(item.dataset.id);
+  if(!b)return;
+  stkToFront(b.id);
+  const R=item.parentElement.getBoundingClientRect();
+  const G=stkG={item,id:b.id,kind,R,b0:{...b},cur:{...b},pts:new Map(pts.map(p=>[p.id,p])),start:new Map(pts.map(p=>[p.id,p])),moved:false,vx:0,vy:0,lx:pts[0].x,ly:pts[0].y,lt:performance.now(),art:item.querySelector('.stk-art')};
+  if(kind==='rot'){G.cx=R.left+b.x*R.width;G.cy=R.top+b.y*R.height;G.a0=Math.atan2(pts[0].y-G.cy,pts[0].x-G.cx);G.d0=Math.max(12,Math.hypot(pts[0].x-G.cx,pts[0].y-G.cy));}
+  item.classList.add('is-drag');
+}
+/* Un deuxième doigt, où qu’il se pose sur le tableau : on pince (tourner, agrandir, déplacer à deux doigts). */
+function stkGAdd(pts){
+  const G=stkG;
+  if(!G||G.kind==='rot'||G.pts.size>=2||!pts.length)return;
+  G.pts.set(pts[0].id,pts[0]);
+  const [p1,p2]=[...G.pts.values()];
+  Object.assign(G,{kind:'pinch',pb:{...G.cur},pa:Math.atan2(p2.y-p1.y,p2.x-p1.x),pd:Math.max(12,Math.hypot(p2.x-p1.x,p2.y-p1.y)),pmx:(p1.x+p2.x)/2,pmy:(p1.y+p2.y)/2,moved:true});
+  G.item.classList.add('is-lift');
+}
+function stkGMove(pts){
+  const G=stkG;
+  if(!G)return;
+  pts.forEach(p=>{if(G.pts.has(p.id))G.pts.set(p.id,p);});
+  const P=[...G.pts.values()];
+  let {x,y,r,s}=G.cur;
+  if(G.kind==='move'){
+    const p=P[0],p0=G.start.get(p.id)||p;
+    if(!G.moved){if(Math.hypot(p.x-p0.x,p.y-p0.y)<5)return;G.moved=true;G.item.classList.add('is-lift');}
+    [x,y]=stkClampPos(G.b0.x+(p.x-p0.x)/G.R.width,G.b0.y+(p.y-p0.y)/G.R.height,s,G.R,r);
+    /* Le sticker s’incline dans le sens du mouvement, comme décollé du tableau. */
+    const now=performance.now(),dt=Math.max(16,now-G.lt);
+    G.vx=G.vx*.6+(p.x-G.lx)/dt*.4;G.vy=G.vy*.6+(p.y-G.ly)/dt*.4;G.lx=p.x;G.ly=p.y;G.lt=now;
+    if(!prefersReduceMotion()){
+      G.art.style.setProperty('--ty',Math.max(-16,Math.min(16,G.vx*20)).toFixed(1)+'deg');
+      G.art.style.setProperty('--tx',Math.max(-16,Math.min(16,-G.vy*20)).toFixed(1)+'deg');
+    }
+  }else if(G.kind==='rot'){
+    const p=P[0];
+    r=stkAngle(G.b0.r+(Math.atan2(p.y-G.cy,p.x-G.cx)-G.a0)*180/Math.PI);
+    s=Math.min(2,Math.max(.5,G.b0.s*Math.hypot(p.x-G.cx,p.y-G.cy)/G.d0));
+    [x,y]=stkClampPos(G.b0.x,G.b0.y,s,G.R,r);
+    G.moved=true;
+  }else if(P.length>=2){
+    const [p1,p2]=P;
+    r=stkAngle(G.pb.r+(Math.atan2(p2.y-p1.y,p2.x-p1.x)-G.pa)*180/Math.PI);
+    s=Math.min(2,Math.max(.5,G.pb.s*Math.hypot(p2.x-p1.x,p2.y-p1.y)/G.pd));
+    [x,y]=stkClampPos(G.pb.x+((p1.x+p2.x)/2-G.pmx)/G.R.width,G.pb.y+((p1.y+p2.y)/2-G.pmy)/G.R.height,s,G.R,r);
+  }
+  G.cur={x,y,r,s};
+  stkApply(G.item,G.cur);
+  if(G.art.classList.contains('is-holo')){const p=P[0];G.art.style.setProperty('--px',(50+(p.x-G.R.left-G.R.width/2)/G.R.width*90).toFixed(1)+'%');G.art.style.setProperty('--py',(50+(p.y-G.R.top-G.R.height/2)/G.R.height*90).toFixed(1)+'%');}
+}
+function stkGEnd(ids,cancel){
+  const G=stkG;
+  if(!G)return;
+  ids.forEach(id=>G.pts.delete(id));
+  if(G.pts.size&&!cancel){
+    /* Un doigt se lève pendant le pincement : l’autre continue à déplacer. */
+    if(G.kind==='pinch'){const p=[...G.pts.values()][0];Object.assign(G,{kind:'move',b0:{...G.cur},start:new Map([[p.id,p]]),lx:p.x,ly:p.y});}
+    return;
+  }
+  stkG=null;
+  G.item.classList.remove('is-drag','is-lift');
+  G.art.style.removeProperty('--tx');G.art.style.removeProperty('--ty');
+  if(cancel){stkApply(G.item,G.b0);return;}
+  if(!G.moved)return;
+  G.item._noClick=performance.now()+450;
+  const b=stkEntry(G.id);
+  if(!b)return;
+  Object.assign(b,{x:+G.cur.x.toFixed(4),y:+G.cur.y.toFixed(4),r:G.cur.r,s:+G.cur.s.toFixed(3)});
+  save();
+  stkSelect(G.id);
+  if(b.s>G.b0.s)stkPaint(G.item);
+  if(G.kind==='move'){stkSlap(G.item);buzz('light');}
+}
+/* Posé : une petite pression, comme un sticker qu’on lisse du doigt. */
+function stkSlap(item){
+  if(prefersReduceMotion())return;
+  item.classList.remove('is-drop');void item.offsetWidth;item.classList.add('is-drop');
+  setTimeout(()=>item.classList.remove('is-drop'),600);
+}
+function stkBindBoard(board){
+  if(!board)return;
+  board.addEventListener('pointerdown',e=>{
+    if((STK_TACTILE&&e.pointerType!=='mouse')||e.button!==0)return;
+    const item=e.target.closest('.stk-item');
+    if(!item){stkSelect(null);return;}
+    const h=e.target.closest('[data-h]');
+    if(h&&h.dataset.h==='del')return;
+    e.preventDefault();
+    try{item.setPointerCapture(e.pointerId);}catch(err){}
+    stkGStart(item,h?'rot':'move',[{id:e.pointerId,x:e.clientX,y:e.clientY}]);
+    const mv=ev=>{if(ev.pointerId===e.pointerId)stkGMove([{id:ev.pointerId,x:ev.clientX,y:ev.clientY}]);};
+    const up=ev=>{
+      if(ev.pointerId!==e.pointerId)return;
+      item.removeEventListener('pointermove',mv);item.removeEventListener('pointerup',up);item.removeEventListener('pointercancel',up);
+      stkGEnd([ev.pointerId],ev.type==='pointercancel');
+    };
+    item.addEventListener('pointermove',mv);item.addEventListener('pointerup',up);item.addEventListener('pointercancel',up);
+  });
+  /* Au doigt : les événements tactiles, qui bloquent le défilement dès le premier mouvement (voir lvGlisse). */
+  const pts=list=>[...list].map(t=>({id:t.identifier,x:t.clientX,y:t.clientY}));
+  board.addEventListener('touchstart',e=>{
+    if(stkG){stkGAdd(pts(e.changedTouches));return;}
+    const item=e.target.closest&&e.target.closest('.stk-item');
+    if(!item){stkSelect(null);return;}
+    const h=e.target.closest('[data-h]');
+    if(h&&h.dataset.h==='del')return;
+    stkGStart(item,h?'rot':'move',pts(e.changedTouches).slice(0,1));
+  },{passive:true});
+  board.addEventListener('touchmove',e=>{
+    if(!stkG)return;
+    if(e.cancelable)e.preventDefault();
+    stkGMove(pts(e.touches));
+  },{passive:false});
+  const end=e=>{if(stkG)stkGEnd(pts(e.changedTouches).map(p=>p.id),e.type==='touchcancel');};
+  board.addEventListener('touchend',end);
+  board.addEventListener('touchcancel',end);
+  board.addEventListener('click',e=>{
+    const item=e.target.closest('.stk-item');
+    if(!item||(item._noClick&&performance.now()<item._noClick))return;
+    const h=e.target.closest('[data-h]');
+    if(h){if(h.dataset.h==='del')stkRemove(item.dataset.id);return;}
+    stkSelect(stkSel===item.dataset.id?null:item.dataset.id);
+  });
+  board.addEventListener('keydown',stkBoardKey);
+}
+function stkBoardKey(e){
+  const item=e.target.closest&&e.target.closest('.stk-item');
+  const b=item&&stkEntry(item.dataset.id);
+  if(!b)return;
+  const k=e.shiftKey?.06:.02;
+  switch(e.key){
+    case 'ArrowLeft':b.x-=k;break;
+    case 'ArrowRight':b.x+=k;break;
+    case 'ArrowUp':b.y-=k;break;
+    case 'ArrowDown':b.y+=k;break;
+    case '[':b.r=stkAngle(b.r-15);break;
+    case ']':b.r=stkAngle(b.r+15);break;
+    case '+':case '=':b.s=Math.min(2,+(b.s+.1).toFixed(2));break;
+    case '-':case '−':b.s=Math.max(.5,+(b.s-.1).toFixed(2));break;
+    case 'Delete':case 'Backspace':e.preventDefault();stkRemove(b.id);return;
+    case 'Escape':if(stkSel){e.preventDefault();e.stopPropagation();stkSelect(null);}return;
+    default:return;
+  }
+  e.preventDefault();
+  [b.x,b.y]=stkClampPos(b.x,b.y,b.s,item.parentElement.getBoundingClientRect(),b.r);
+  b.x=+b.x.toFixed(4);b.y=+b.y.toFixed(4);
+  stkApply(item,b);stkSelect(b.id);save();
+}
+/* Une place libre : la plus éloignée des stickers déjà posés, parmi quelques tirages. */
+function stkFreeSpot(R){
+  const S=stkState(),asp=R.width/R.height;
+  let best=[.5,.5],bd=-1;
+  for(let i=0;i<40;i++){
+    const x=.18+Math.random()*.64,y=.22+Math.random()*.56;
+    const d=S.board.reduce((m,b)=>Math.min(m,Math.hypot((b.x-x)*asp,b.y-y)),9);
+    if(d>bd){bd=d;best=[x,y];}
+  }
+  return best;
+}
+function stkPlace(id,x,y){
+  const S=stkState();
+  if(!S.got[id]||S.board.some(b=>b.id===id))return;
+  const board=document.getElementById('stk-board'),R=board?board.getBoundingClientRect():{width:4,height:3};
+  const r=Math.round(Math.random()*24-12);
+  if(x==null)[x,y]=stkFreeSpot(R);
+  [x,y]=stkClampPos(x,y,1,R,r);
+  S.board.push({id,x:+x.toFixed(4),y:+y.toFixed(4),r,s:1});
+  delete S.fresh[id];
+  stkJust=id;stkSel=id;
+  save();renderStickers();buzz('light');
+}
+function stkRemove(id){
+  const S=stkState(),i=S.board.findIndex(b=>b.id===id);
+  if(i<0)return;
+  const b=S.board.splice(i,1)[0];
+  if(stkSel===id)stkSel=null;
+  save();renderStickers();
+  const s=stkInfo(id);
+  toastWithAction('Sticker décollé',s?`${s.name} · revenu sur ta planche`:'','Annuler',()=>{
+    const T=stkState();
+    if(T.board.some(q=>q.id===id))return;
+    T.board.splice(Math.min(i,T.board.length),0,b);save();renderStickers();
+  });
+}
+function stkClearBoard(){
+  const S=stkState();
+  if(!S.board.length)return;
+  const prev=S.board.slice();
+  S.board=[];stkSel=null;save();renderStickers();
+  toastWithAction('Tableau vidé','Tes stickers sont revenus sur ta planche.','Annuler',()=>{stkState().board=prev;save();renderStickers();});
+}
+/* ---------- La planche : toucher ouvre la fiche, glisser décolle le sticker jusqu’au tableau ---------- */
+let stkPeel=null;
+function stkBindSheet(sheet){
+  if(!sheet)return;
+  sheet.addEventListener('pointerdown',e=>{
+    if((STK_TACTILE&&e.pointerType!=='mouse')||e.button!==0)return;
+    const cell=e.target.closest('.stk-cell.is-got');
+    if(!cell)return;
+    e.preventDefault();
+    const P={cell,id:cell.dataset.id,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,on:false};
+    const mv=ev=>{
+      P.x=ev.clientX;P.y=ev.clientY;
+      if(!P.on){if(Math.hypot(P.x-P.x0,P.y-P.y0)<6)return;stkPeelStart(P);}
+      stkPeelMove(P);
+    };
+    const up=ev=>{
+      removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);
+      if(P.on)stkPeelEnd(P,ev.type==='pointercancel');
+      else if(ev.type==='pointerup'&&cell.contains(ev.target))cell.focus({preventScroll:true});
+    };
+    addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up);
+  });
+  /* Au doigt, un appui long décolle le sticker (un glisser franc reste un défilement de la page). */
+  sheet.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1)return;
+    const cell=e.target.closest&&e.target.closest('.stk-cell.is-got');
+    if(!cell)return;
+    const t=e.changedTouches[0];
+    const P=stkPeel={cell,id:cell.dataset.id,tid:t.identifier,x0:t.clientX,y0:t.clientY,x:t.clientX,y:t.clientY,on:false};
+    P.timer=setTimeout(()=>{if(stkPeel===P&&!P.on){stkPeelStart(P);buzz('medium');}},320);
+  },{passive:true});
+  sheet.addEventListener('touchmove',e=>{
+    const P=stkPeel;
+    if(!P)return;
+    const t=[...e.changedTouches].find(q=>q.identifier===P.tid);
+    if(!t)return;
+    P.x=t.clientX;P.y=t.clientY;
+    if(P.on){if(e.cancelable)e.preventDefault();stkPeelMove(P);return;}
+    if(Math.hypot(P.x-P.x0,P.y-P.y0)>10){clearTimeout(P.timer);stkPeel=null;}
+  },{passive:false});
+  const end=e=>{
+    const P=stkPeel;
+    if(!P||![...e.changedTouches].some(q=>q.identifier===P.tid))return;
+    clearTimeout(P.timer);stkPeel=null;
+    if(P.on){if(e.cancelable)e.preventDefault();stkPeelEnd(P,e.type==='touchcancel');}
+  };
+  sheet.addEventListener('touchend',end);
+  sheet.addEventListener('touchcancel',end);
+  sheet.addEventListener('contextmenu',e=>{if(e.target.closest('.stk-cell'))e.preventDefault();});
+}
+function stkPeelStart(P){
+  P.on=true;
+  const art=P.cell.querySelector('.stk-art'),r=art.getBoundingClientRect();
+  P.w=r.width;P.ox=P.x-(r.left+r.width/2);P.oy=P.y-(r.top+r.height/2);
+  const g=P.g=document.createElement('div');
+  g.className='stk-ghost';g.setAttribute('aria-hidden','true');g.style.width=r.width+'px';
+  g.innerHTML=stkArtHtml(P.id,'art');
+  document.body.appendChild(g);stkPaint(g);
+  /* Sur la planche, il ne reste que la découpe vide. */
+  const cv=P.cell.querySelector('canvas[data-stk]');cv.dataset.mode='spot';stkPaint(P.cell);
+  P.cell.classList.add('is-peeling');
+  P.board=document.getElementById('stk-board');
+  stkPeelMove(P);
+  /* Près du haut ou du bas de l’écran, la page défile pour atteindre le tableau. */
+  const scr=document.getElementById('scr-stickers');
+  const step=()=>{
+    if(!P.on)return;
+    const R=scr.getBoundingClientRect();
+    const v=P.y<R.top+90?-Math.min(16,(R.top+90-P.y)/5+3):P.y>R.bottom-90?Math.min(16,(P.y-R.bottom+90)/5+3):0;
+    if(v){const before=scr.scrollTop;scr.scrollTop+=v;if(scr.scrollTop!==before)stkPeelMove(P);}
+    P.raf=requestAnimationFrame(step);
+  };
+  P.raf=requestAnimationFrame(step);
+}
+function stkPeelMove(P){
+  P.g.style.transform=`translate3d(${(P.x-P.ox-P.w/2).toFixed(1)}px,${(P.y-P.oy-P.w/2).toFixed(1)}px,0)`;
+  const R=P.board&&P.board.getBoundingClientRect();
+  const over=!!R&&P.x>=R.left&&P.x<=R.right&&P.y>=R.top&&P.y<=R.bottom;
+  if(over!==P.over){P.over=over;P.board.classList.toggle('is-target',over);if(over)buzz('selection');}
+}
+function stkPeelEnd(P,cancel){
+  P.on=false;cancelAnimationFrame(P.raf);
+  P.cell._noClick=performance.now()+450;
+  if(P.board)P.board.classList.remove('is-target');
+  const R=P.board&&P.board.getBoundingClientRect();
+  if(!cancel&&P.over&&R){
+    P.g.remove();
+    stkPlace(P.id,(P.x-P.ox-R.left)/R.width,(P.y-P.oy-R.top)/R.height);
+    return;
+  }
+  const cv=P.cell.querySelector('canvas[data-stk]');
+  const back=()=>{P.g.remove();delete cv.dataset.mode;P.cell.classList.remove('is-peeling');stkPaint(P.cell);};
+  if(prefersReduceMotion()||!P.g.animate){back();return;}
+  const r=P.cell.querySelector('.stk-art').getBoundingClientRect();
+  P.g.classList.add('is-back');
+  P.g.animate([{transform:P.g.style.transform},{transform:`translate3d(${r.left.toFixed(1)}px,${r.top.toFixed(1)}px,0)`}],{duration:260,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'}).onfinish=back;
+}
+/* ---------- La fiche d’un sticker ---------- */
+function stkOpen(id){
+  const s=stkInfo(id);
+  const body=document.getElementById('stk-sheet-body');
+  if(!s||!body)return;
+  stkOpenId=id;
+  stkReturn=document.activeElement;
+  const S=stkState(),placed=S.board.some(b=>b.id===id);
+  if(S.fresh[id]){delete S.fresh[id];save();document.querySelector(`.stk-cell[data-id="${id}"] .stk-new`)?.remove();}
+  const kicker=(s.kind==='module'?`Module ${s.num}`:'Accomplissement')+(s.holo?' · Holo':'');
+  const unit=n=>`${n} ${s.unit}${n>1?'s':''}`;
+  if(s.got){
+    const when=s.got>1?`Gagné le ${new Date(s.got).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}`:s.kind==='module'?'Module terminé':'Accomplissement atteint';
+    body.innerHTML=`
+      <div class="stk-stage">${stkArtHtml(id,'art','is-big')}</div>
+      <p class="stk-kicker">${kicker}</p>
+      <h2 class="stk-name" id="stk-name">${esc(s.name)}</h2>
+      <p class="stk-when">${when}</p>
+      <div class="stk-actions">
+        <button type="button" class="lq-btn stk-btn" onclick="stkDownload('${id}')">${STK_DL_SVG}<span>Télécharger</span></button>
+        <button type="button" class="lq-btn-2 stk-btn" onclick="stkTogglePlace('${id}')">${placed?'Retirer du tableau':'Coller sur le tableau'}</button>
+      </div>
+      <p class="stk-note">Une image PNG détourée, sur fond transparent : sur iPhone, choisis Photos, Fichiers ou l’appli de ton imprimante à stickers ; sur ordinateur, elle arrive dans Téléchargements.${s.holo?' L’effet holo reste à l’écran : imprime-le sur du papier holographique pour le retrouver.':''}</p>`;
+  }else{
+    const how=s.kind==='module'?'Termine ce module pour gagner ce sticker.':s.how;
+    const prog=s.goal>1?`<div class="stk-prog" role="progressbar" aria-label="${escAttr(`${unit(s.now)} sur ${s.goal}`)}" aria-valuemin="0" aria-valuemax="${s.goal}" aria-valuenow="${s.now}"><i style="width:${Math.round(s.now/s.goal*100)}%"></i></div><p class="stk-prog-t">${unit(s.now)} sur ${s.goal}</p>`:'';
+    const go=s.kind==='module'?`<button type="button" class="lq-btn stk-btn" onclick="stkGoModule(${s.num-1})">Continuer le module</button>`
+      :s.id==='defis10'?`<button type="button" class="lq-btn stk-btn" onclick="stkClose();switchTab('defis')">Voir les défis</button>`:'';
+    body.innerHTML=`
+      <div class="stk-stage is-lock">${stkArtHtml(id,'lock','is-big')}${STK_LOCK_SVG}</div>
+      <p class="stk-kicker">${kicker} · À gagner</p>
+      <h2 class="stk-name" id="stk-name">${esc(s.name)}</h2>
+      <p class="stk-when">${esc(how)}</p>
+      ${prog}${go?`<div class="stk-actions">${go}</div>`:''}`;
+  }
+  document.getElementById('stk-back').classList.add('on');
+  document.getElementById('stk-sheet').classList.add('on');
+  document.getElementById('fab')?.classList.add('hide');
+  body.scrollTop=0;
+  stkPaint(body);
+  stkTilt(body.querySelector('.stk-stage'));
+  requestAnimationFrame(()=>document.querySelector('#stk-sheet .viz-head button')?.focus({preventScroll:true}));
+}
+function stkClose(){
+  document.getElementById('stk-back')?.classList.remove('on');
+  document.getElementById('stk-sheet')?.classList.remove('on');
+  if(!document.querySelector('.viz.on'))document.getElementById('fab')?.classList.remove('hide');
+  stkOpenId=null;
+  const r=stkReturn;stkReturn=null;
+  if(r&&r.isConnected)try{r.focus({preventScroll:true});}catch(e){}
+}
+/* Le sticker s’incline sous le doigt ou la souris ; l’holographie suit. À l’ouverture, un reflet le traverse. */
+function stkTilt(stage){
+  const art=stage&&stage.querySelector('.stk-art');
+  if(!art||prefersReduceMotion())return;
+  const set=e=>{
+    const r=art.getBoundingClientRect(),px=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),py=Math.min(1,Math.max(0,(e.clientY-r.top)/r.height));
+    art.style.setProperty('--px',(px*100).toFixed(1)+'%');art.style.setProperty('--py',(py*100).toFixed(1)+'%');
+    art.style.setProperty('--ty',((px-.5)*24).toFixed(1)+'deg');art.style.setProperty('--tx',((.5-py)*24).toFixed(1)+'deg');
+  };
+  const reset=()=>{art.style.removeProperty('--tx');art.style.removeProperty('--ty');};
+  stage.addEventListener('pointermove',set);
+  stage.addEventListener('pointerdown',set);
+  stage.addEventListener('pointerleave',reset);
+  stage.addEventListener('pointercancel',reset);
+  stage.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')reset();});
+  if(art.classList.contains('is-holo')){art.classList.add('is-sweep');setTimeout(()=>art.classList.remove('is-sweep'),1400);}
+}
+function stkTogglePlace(id){
+  const placed=stkState().board.some(b=>b.id===id);
+  stkClose();
+  if(placed){stkRemove(id);return;}
+  stkPlace(id);
+  document.querySelector(`#stk-board .stk-item[data-id="${id}"]`)?.focus({preventScroll:true});
+  const board=document.getElementById('stk-board'),scr=document.getElementById('scr-stickers');
+  if(board&&scr&&board.getBoundingClientRect().top<scr.getBoundingClientRect().top+40)scr.scrollTo({top:0,behavior:prefersReduceMotion()?'auto':'smooth'});
+}
+/* Continuer un module : sa première leçon pas encore validée. */
+function stkGoModule(i){
+  const m=MODULES[i];
+  const l=m&&(m.lessons.find(x=>!itemDone(x.id))||m.lessons[0]);
+  stkClose();stkSeen();
+  if(l)openLesson(l.id);
+}
+/* ---------- Télécharger : PNG détouré (fond transparent, bord blanc de découpe) ---------- */
+/* Rogne le transparent autour du dessin, en gardant une petite marge. */
+function stkTrim(cv,pad){
+  const w=cv.width,h=cv.height,d=cv.getContext('2d').getImageData(0,0,w,h).data;
+  let x0=w,y0=h,x1=-1,y1=-1;
+  for(let y=0;y<h;y++){const o=y*w*4;for(let x=0;x<w;x++)if(d[o+x*4+3]>6){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;y1=y;}}
+  if(x1<0)return cv;
+  x0=Math.max(0,x0-pad);y0=Math.max(0,y0-pad);x1=Math.min(w-1,x1+pad);y1=Math.min(h-1,y1+pad);
+  const out=document.createElement('canvas');out.width=x1-x0+1;out.height=y1-y0+1;
+  out.getContext('2d').drawImage(cv,-x0,-y0);
+  return out;
+}
+/* Sans attente : la feuille de partage doit s’ouvrir dans le geste qui l’a demandée (Safari). */
+function stkBlob(cv){
+  const u=cv.toDataURL('image/png'),b=atob(u.slice(u.indexOf(',')+1)),a=new Uint8Array(b.length);
+  for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);
+  return new Blob([a],{type:'image/png'});
+}
+function stkSlug(s){return String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
+async function stkDownload(id){
+  const s=stkInfo(id);
+  if(!s||!s.got)return;
+  const cv=document.createElement('canvas');cv.width=cv.height=1200;
+  stkDraw(cv.getContext('2d'),id,1200,'art');
+  const name=`requete-sticker-${stkSlug(s.name)}.png`;
+  const how=await saveFile(stkBlob(stkTrim(cv,12)),name,`Sticker ${s.name}`);
+  if(how==='download')toast('Sticker téléchargé',name);
+}
+/* Le tableau entier, tel qu’il est composé, sans le fond : une planche prête à imprimer. */
+async function stkExportBoard(){
+  const S=stkState();
+  if(!S.board.length)return;
+  const board=document.getElementById('stk-board'),R=board?board.getBoundingClientRect():{width:4,height:3};
+  const W=2000,H=Math.round(W*R.height/R.width),base=W*.26;
+  let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+  const items=S.board.map(b=>{
+    const size=base*b.s,a=b.r*Math.PI/180,half=size/2*(Math.abs(Math.cos(a))+Math.abs(Math.sin(a))),cx=b.x*W,cy=b.y*H;
+    x0=Math.min(x0,cx-half);y0=Math.min(y0,cy-half);x1=Math.max(x1,cx+half);y1=Math.max(y1,cy+half);
+    return {b,size,a,cx,cy};
+  });
+  const cv=document.createElement('canvas');cv.width=Math.ceil(x1-x0);cv.height=Math.ceil(y1-y0);
+  const ctx=cv.getContext('2d');
+  items.forEach(({b,size,a,cx,cy})=>{ctx.save();ctx.translate(cx-x0,cy-y0);ctx.rotate(a);ctx.translate(-size/2,-size/2);stkDraw(ctx,b.id,size,'art');ctx.restore();});
+  const how=await saveFile(stkBlob(stkTrim(cv,16)),'requete-stickers.png','Mes stickers Requête');
+  if(how==='download')toast('Tableau téléchargé','requete-stickers.png · sans le fond, prêt à imprimer');
+}
+/* Après une rotation de l’écran ou un changement de taille de fenêtre, les stickers sont repeints net. */
+if(typeof window!=='undefined')window.addEventListener('resize',()=>{
+  clearTimeout(stkPaint.t);
+  stkPaint.t=setTimeout(()=>{if(activeTab==='stickers')stkPaint(document.getElementById('stk-body'));},200);
+});
+
+/* ============================================================
    9. PLANNING — vue semaine, dates explicites
    ============================================================ */
 const NIVEAUX=[
@@ -26090,6 +27074,7 @@ function noteActivityDay(){
     if(!state.actSince)state.actSince=iso;
     if(first&&typeof lqStreakToast==='function')setTimeout(lqStreakToast,900);
   }catch(e){}
+  stkAfterProgress();
 }
 /* ---------- Temps d’apprentissage ----------
    Compté seulement quand l’app est à l’écran et qu’on s’en sert (un geste dans les 2 dernières minutes), dans un cours,
@@ -28546,6 +29531,7 @@ document.addEventListener('keydown',e=>{
     if(document.getElementById('note-sheet')?.classList.contains('on')){closeNote();return;}
     if(document.getElementById('viz')?.classList.contains('on')){closeViz();return;}
     if(document.getElementById('sgbd-sheet')?.classList.contains('on')){closeSgbdSheet();return;}
+    if(document.getElementById('stk-sheet')?.classList.contains('on')){stkClose();return;}
     if(document.getElementById('schema-sheet')?.classList.contains('on')){closeSchemaSheet();return;}
     if(document.getElementById('move-sheet')?.classList.contains('on')){closeMoveSheet();return;}
     if(document.getElementById('imp-sheet')?.classList.contains('on')){closeImportSheet();return;}
@@ -28746,18 +29732,14 @@ function renderCompte(){
   const weekFoot=!state.plan
     ?`<button type="button" class="acct-card-go" onclick="switchTab('planning')">Créer mon parcours</button>`
     :`<p class="acct-card-foot">${!weekPlanned?'Pas de séance prévue cette semaine.':weekLeft?`Encore ${plural(weekLeft,'séance')} cette semaine.`:'Semaine accomplie. Bravo !'}</p>`;
-  /* Accomplissements : le pictogramme de chaque étape, pas d’emoji. */
-  const BADGE_ICONS={query:'<b class="acct-badge-code">&gt;_</b>',lessons:accountStatIcon('lessons'),streak:accountStatIcon('streak')};
-  const badges=[
-    {icon:'query',label:'Première requête',now:Math.min(progress.done,1),goal:1},
-    {icon:'lessons',label:'10 leçons',now:Math.min(st.lessons,10),goal:10},
-    {icon:'streak',label:'Série de 3 jours',now:Math.min(st.streak,3),goal:3}
-  ].map(b=>({...b,unlocked:b.now>=b.goal}));
+  /* Accomplissements : la même liste que les stickers d’accomplissement ; chacun montre son sticker et ouvre sa fiche. */
+  const stkGot=stkState().got;
+  const badges=accomplissements().map(a=>({...a,unlocked:!!stkGot[a.id]||a.ok}));
   const unlockedN=badges.filter(b=>b.unlocked).length;
   const badgesHTML=badges.map(b=>{
     const status=b.unlocked?'Débloqué':b.goal===1?'À débloquer':`${b.now} sur ${b.goal}`;
     const bar=b.unlocked||b.goal===1?'':`<i class="acct-badge-bar" aria-hidden="true"><i style="width:${Math.round(b.now/b.goal*100)}%"></i></i>`;
-    return `<li class="acct-badge${b.unlocked?' is-on':''}"><span class="acct-badge-ico" aria-hidden="true">${BADGE_ICONS[b.icon]}</span><b>${b.label}</b><small>${status}</small>${bar}</li>`;
+    return `<li><button type="button" class="acct-badge${b.unlocked?' is-on':''}" onclick="openStickers('${b.id}')"><span class="acct-badge-stk" aria-hidden="true">${stkArtHtml(b.id,b.unlocked?'art':'lock')}</span><b>${b.label}</b><small>${status}</small>${bar}</button></li>`;
   }).join('');
   const readingSummary=[state.preferences?.largeText?'Texte agrandi':null,state.preferences?.reduceMotion?'Animations réduites':null].filter(Boolean).join(' · ')||'Texte et animations par défaut';
   /* Tes données : l’état du stockage et l’action utile tout de suite. */
@@ -28891,6 +29873,7 @@ function renderCompte(){
     </details>
     <p class="app-version-note">${esc(appVersionLabel())}</p>
     <button type="button" class="account-sheet-backdrop" onclick="closePlusDetails()" aria-label="Fermer les réglages ouverts"></button>`;
+  stkPaint(host.querySelector('.acct-badges'));
   if(keptId){
     const again=document.getElementById(keptId);
     if(again){
@@ -28956,29 +29939,31 @@ function replayOnboarding(){
   state.onboarded=false; save();
   startOnboarding();
 }
-async function exportProgress(){
-  const payload={v:1,exportedAt:new Date().toISOString(),state};
-  const fileName='requete-sql-progression.json';
-  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
-  /* Sur téléphone, la feuille de partage permet d’enregistrer le fichier
-     (Fichiers, iCloud, mail…) ; ailleurs, un simple téléchargement. */
+/* Enregistrer un fichier : sur téléphone (ou dans l’app), la feuille de partage — Photos, Fichiers, imprimer… ;
+   ailleurs, un téléchargement. Renvoie 'share', 'download', ou null si la personne a renoncé. */
+async function saveFile(blob,fileName,title){
   const touch=document.documentElement.classList.contains('is-native')||!!(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
   if(touch&&typeof File==='function'&&navigator.canShare&&navigator.share){
     try{
-      const file=new File([blob],fileName,{type:'application/json'});
+      const file=new File([blob],fileName,{type:blob.type});
       if(navigator.canShare({files:[file]})){
-        await navigator.share({files:[file],title:'Ma progression Requête'});
-        toast('Progression exportée','Garde ce fichier de ton côté.');
-        return;
+        await navigator.share({files:[file],title});
+        return 'share';
       }
-    }catch(e){if(e&&e.name==='AbortError')return;}
+    }catch(e){if(e&&e.name==='AbortError')return null;}
   }
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
   a.download=fileName;
   document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-  toast('Progression exportée',fileName);
+  return 'download';
+}
+async function exportProgress(){
+  const payload={v:1,exportedAt:new Date().toISOString(),state};
+  const fileName='requete-sql-progression.json';
+  const how=await saveFile(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),fileName,'Ma progression Requête');
+  if(how)toast('Progression exportée',how==='share'?'Garde ce fichier de ton côté.':fileName);
 }
 async function resetAllProgress(){
   if(!confirm('Effacer toute ta progression ? Cette action est définitive (sauf si tu as exporté avant).'))return;
@@ -29063,7 +30048,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1970';
+  const SW_CACHE='requete-2026-10-12-ludique-v1971';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
