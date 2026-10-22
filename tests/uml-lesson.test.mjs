@@ -48,7 +48,7 @@ test('la requête complète crée les trois tables du diagramme : le tableau de 
   assert.ok(l81.missionSql.startsWith('CREATE TABLE coachs (') && l81.missionSql.endsWith("SELECT name FROM sqlite_master\nWHERE type = 'table';"));
   const res = JSON.parse(run(l81.missionSql));
   assert.deepEqual(res.at(-1).values, [['clients'], ['produits'], ['commandes'], ['fidelite'], ['coachs'], ['ateliers'], ['inscriptions']]);
-  assert.ok(html.includes('rows:[["clients"], ["produits"], ["commandes"], ["fidelite"], ["coachs"], ["ateliers"], ["inscriptions"]],done:"✓ Le diagramme est traduit : chaque lien à sa place"'));
+  assert.ok(html.includes('rows:[["clients"], ["produits"], ["commandes"], ["fidelite"], ["coachs"], ["ateliers"], ["inscriptions"]],done:"✓ Le diagramme est traduit : chaque relation à sa place"'));
   assert.deepEqual(JSON.parse(run(l81.missionSql, "SELECT \"from\", \"table\" FROM pragma_foreign_key_list('inscriptions') ORDER BY \"from\"; SELECT name, pk FROM pragma_table_info('inscriptions') ORDER BY cid;")).map(r => r.values),
     [[['atelier_id', 'ateliers'], ['client_id', 'clients']], [['client_id', 1], ['atelier_id', 2]]], 'table d’association : deux clés étrangères, clé primaire sur le couple');
   for (const line of l81.missionSql.split('\n')) assert.ok(line.length <= 34, `ligne lisible sur un téléphone : ${line}`);
