@@ -849,8 +849,8 @@ const COURSES = [
       "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 129.8, from: 119.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}", "{at: 141.4, from: 135.95, kind: 'pick',",
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
-  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 35', notesAt: 167.9,
-    notes: /notes:\{t:268\.35,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 41', notesAt: 167.9,
+    notes: /notes:\{t:274\.75,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Tes tables sont prêtes&nbsp;:<br>à toi de les relier avec des clés.',
     chapters: ['Le problème', 'La clé primaire', 'La clé étrangère', '1 → N', 'N ↔ N', '1 ↔ 1', 'À retenir'],
     traps: ["const INSCR = [[1, 1, 1, '2026-09-01'], [2, 4, 1, '2026-09-02'], [3, 5, 2, '2026-09-03'], [4, 7, 3, '2026-09-04'],",
@@ -1289,7 +1289,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
 
 test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre 1 relié par des clés, chaque réponse vérifiée dans SQLite', async () => {
   const l72 = cut('guide({ id:72, titre:"Clés et relations"', 'guide({ id:81,');
-  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'4 min 35',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'4 min 41',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1414,6 +1414,14 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
     'Un client possède une seule carte. Chaque carte appartient à un seul client.'], 'l’explication de chaque situation');
   assert.ok(page.includes('return {ok: false, why: fr(WHY[a])};'), 'la même explication, quelle que soit la mauvaise case');
   assert.ok(page.includes("if (i === 5) return {text: 'Pour un élément d’un côté, combien peuvent lui être associés de l’autre : un seul ou plusieurs ? Pose-toi la question dans les deux sens.'};"), 'l’indice du moment 6 : la question à se poser, dans les deux sens');
+  /* Le bilan, une relation par légende : sa case se soulève, sa règle apparaît dessous et reste. */
+  const bil = ['En <b>1 ↔ 1</b>, une clé étrangère unique relie les deux tables.', 'En <b>1 → N</b>, la clé étrangère se place du côté « plusieurs ».',
+    'En <b>N ↔ N</b>, une table d’association enregistre chaque lien entre les tables.'];
+  const ib = D.CAPTIONS.findIndex(c => c[2] === bil[0]);
+  assert.ok(ib > 0 && bil.every((w, k) => D.CAPTIONS[ib + k][2] === w) && D.CAPTIONS[ib][0] > D.PICKS[5].at, 'le bilan, juste après le moment 6');
+  assert.ok(page.includes("const BILAN = [['11', 150.0], ['1n', 152.1], ['nn', 154.2]];") && [0, 1, 2].every(k => D.CAPTIONS[ib + k][0] <= [150.0, 152.1, 154.2][k])
+    && page.includes("const RULES = {'11': ['🔗', 'Clé étrangère', 'unique'], '1n': ['🔗', 'Clé étrangère', 'côté « plusieurs »'], nn: ['📝', 'Table d’association', 'deux clés étrangères']};"),
+    'chaque relation, sa case soulevée et sa règle, pendant la légende qui la dit');
   assert.ok(page.includes('spots, act, pick, hint,') && page.includes(`if (i === 1) return {text: 'Cherche l’id ${c4} dans la table clients, puis l’id ${a4} dans la table ateliers.', keys: ['c${c4}', 'a${a4}']};`)
     && page.includes(`if (i === 3) return {text: '${diego[1]} ${diego[2]} a l’id ${diego[0]} : cherche l’atelier dont coach_id vaut ${diego[0]}.', keys: [${sien.map(a => `'a${a[0]}'`).join(', ')}]};`), 'un indice par moment à toucher ou à ranger');
   /* Le modèle de la vidéo, créé dans la base de l’app : les clés acceptent toutes les lignes montrées, refusent la deuxième carte,
