@@ -19734,7 +19734,7 @@ let lessonStepDir=1; // 1 forward · -1 back
 let exoFails=0; // défis : 1→aide · 2→solution
 let somScrollUntil=0; // fenêtre où les layouts SQL ne doivent pas écraser le scroll du sommaire
 /* Le bouton retour annonce l’écran d’où l’on vient, quel qu’il soit. */
-function lessonBackLabel(){return ({planning:'Planning',defis:'Défis',practice:'Pratiquer',library:'Bibliothèque',jeu:'Défis',compte:'Compte',notes:'Mes notes',collection:'Cartes mémo',console:'Console',entretien:'Entretien',sgbd:'Selon le SGBD'})[activeTab]||'Accueil';}
+function lessonBackLabel(){return ({planning:'Planning',defis:'Défis',practice:'Pratiquer',library:'Bibliothèque',jeu:'Défis',compte:'Compte',notes:'Mes notes',collection:'Cartes mémo',stickers:'Stickers',console:'Console',entretien:'Entretien',sgbd:'Selon le SGBD'})[activeTab]||'Accueil';}
 function openLesson(id, restoreStep){
   const l=allLessons.find(x=>x.id===id); if(!l)return;
   stkLeaveLesson();
@@ -25499,15 +25499,15 @@ const STK_ART={
     ...stkDoll(162,178,.5,STK_C.yel)
   ],
   fenetre:[
-    {p:'M40 166V88A60 60 0 0 1 160 88V166Z',f:STK_C.sky2},
-    {p:STK_P.c(128,76,13),f:STK_C.yel,w:4},
-    {p:'M58 112L82 88M58 136L70 124',s:'#fff',w:6},
-    {p:'M40 166V88A60 60 0 0 1 160 88V166Z',w:24},
-    {p:'M40 166V88A60 60 0 0 1 160 88V166Z',s:'#fff',w:13},
-    {p:'M100 28V166M40 114H160',w:15},
-    {p:'M100 28V166M40 114H160',s:'#fff',w:6},
-    {p:STK_P.r(22,156,156,36,12),f:STK_C.vio,w:6},
-    {t:'OVER ()',x:100,y:182,z:23,f:'#fff'}
+    {p:'M40 162V84A60 60 0 0 1 160 84V162Z',f:STK_C.sky2},
+    {p:STK_P.c(128,72,13),f:STK_C.yel,w:4},
+    {p:'M58 108L82 84M58 132L70 120',s:'#fff',w:6},
+    {p:'M40 162V84A60 60 0 0 1 160 84V162Z',w:24},
+    {p:'M40 162V84A60 60 0 0 1 160 84V162Z',s:'#fff',w:13},
+    {p:'M100 24V162M40 110H160',w:15},
+    {p:'M100 24V162M40 110H160',s:'#fff',w:6},
+    {p:STK_P.r(22,152,156,36,12),f:STK_C.vio,w:6},
+    {t:'OVER ()',x:100,y:178,z:23,f:'#fff'}
   ],
   modeliser:[
     {p:STK_P.r(14,30,172,140,24),f:STK_C.blu,w:6},
@@ -25608,12 +25608,12 @@ const STK_ART={
     {t:'jours',x:100,y:179,z:18}
   ],
   defis10:[
-    {p:'M64 118L44 182L66 172L80 190L96 126Z',f:STK_C.cor,w:6},
-    {p:'M136 118L156 182L134 172L120 190L104 126Z',f:STK_C.cor,w:6},
-    {p:STK_P.roset(100,88,76,16),f:STK_C.vio,w:6},
-    {p:STK_P.c(100,88,54),f:'#fff',w:5},
-    {t:'10',x:100,y:100,z:44,f:STK_C.vio},
-    {t:'défis',x:100,y:124,z:18}
+    {p:'M66 116L48 176L68 167L81 183L96 124Z',f:STK_C.cor,w:6},
+    {p:'M134 116L152 176L132 167L119 183L104 124Z',f:STK_C.cor,w:6},
+    {p:STK_P.roset(100,88,68,16),f:STK_C.vio,w:6},
+    {p:STK_P.c(100,88,50),f:'#fff',w:5},
+    {t:'10',x:100,y:99,z:41,f:STK_C.vio},
+    {t:'défis',x:100,y:121,z:17}
   ],
   serie7:[
     {p:STK_FLAME,f:STK_C.cor,w:6},
@@ -25694,7 +25694,7 @@ function accomplissements(){
   const st=compteStats(),rec=streakRecord();
   const modules=MODULES.filter(m=>m.lessons.every(l=>itemDone(l.id))).length;
   return [
-    {id:'requete',label:'Première requête',now:Math.min(progressContinuer().done,1),goal:1,how:'Valide ta première activité.'},
+    {id:'requete',label:'Première requête',now:Math.min(st.lessons+st.defis,1),goal:1,how:'Valide ta première leçon ou ton premier défi.'},
     {id:'lecons10',label:'10 leçons',now:Math.min(st.lessons,10),goal:10,unit:'leçon',how:'Valide 10 leçons.'},
     {id:'serie3',label:'Série de 3 jours',now:Math.min(st.streak,3),goal:3,ok:rec>=3,unit:'jour',how:'Atteins une série de 3 jours.'},
     {id:'defis10',label:'10 défis',now:Math.min(st.defis,10),goal:10,unit:'défi',how:'Réussis 10 défis.'},
@@ -25732,15 +25732,16 @@ function stkSync(){
   if(won.length)save();
   return won;
 }
-/* Après chaque avancée (noteActivityDay) : pendant une leçon, les stickers gagnés attendent son bilan ; ailleurs, un toast. */
+/* Après chaque avancée (noteActivityDay) : pendant une leçon ou une partie de Jouer, les stickers gagnés attendent (le bilan de
+   la leçon les montre ; sinon, un toast en sortant) ; ailleurs, un toast tout de suite. */
 let stkLessonNew=[],stkLessonShown=false;
 function stkAfterProgress(){
   const won=stkSync();
   if(!won.length)return;
-  if(mode==='lesson'&&document.body.classList.contains('in-lesson')){stkLessonNew.push(...won);return;}
+  if((mode==='lesson'||mode==='jeu')&&document.body.classList.contains('in-lesson')){stkLessonNew.push(...won);return;}
   stkAnnounce(won);
 }
-/* En quittant une leçon : ce que son bilan n’a pas montré est annoncé par un toast. */
+/* En quittant une leçon ou une partie : ce que le bilan n’a pas montré est annoncé par un toast. */
 function stkLeaveLesson(){
   const won=stkLessonNew,shown=stkLessonShown;
   stkLessonNew=[];stkLessonShown=false;
@@ -25779,7 +25780,7 @@ function stkArtHtml(id,mode,cls){
 }
 const stkMasks={};
 function stkMask(id){
-  if(!stkMasks[id]){const c=document.createElement('canvas');c.width=c.height=256;stkDraw(c.getContext('2d'),id,256,'lock');stkMasks[id]=c.toDataURL();}
+  if(!stkMasks[id]){const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');if(!x)return '';stkDraw(x,id,256,'lock');stkMasks[id]=c.toDataURL();}
   return stkMasks[id];
 }
 /* Paillettes : une tuile tirée une fois pour toutes (même graine : mêmes paillettes à chaque visite). */
@@ -25813,11 +25814,13 @@ function stkPaint(root){
     const px=Math.round(w*dpr);
     /* Les deux côtés : un canvas neuf mesure 300 × 150, et 300 tombe juste (100 px affichés sur un écran ×3). */
     if(cv.width!==px||cv.height!==px){cv.width=px;cv.height=px;}
-    const ctx=cv.getContext('2d');ctx.clearRect(0,0,px,px);
+    const ctx=cv.getContext('2d');if(!ctx)return;
+    ctx.clearRect(0,0,px,px);
     stkDraw(ctx,cv.dataset.stk,px,cv.dataset.mode||'art');
   });
   root.querySelectorAll('.stk-art.is-holo').forEach(el=>{
-    el.style.setProperty('--m',`url(${stkMask(el.dataset.holo)})`);
+    const m=stkMask(el.dataset.holo);if(!m)return;
+    el.style.setProperty('--m',`url(${m})`);
     if(STK_HOLO[el.dataset.holo]>1)el.style.setProperty('--glit',`url(${stkGlitter()})`);
   });
   stkFontWatch();
@@ -25830,9 +25833,13 @@ const STK_TACTILE=typeof window!=='undefined'&&'ontouchstart' in window;
 let stkSel=null,stkJust=null,stkFocus=null,stkOpenId=null,stkReturn=null;
 /* Ouvrir l’espace Stickers, éventuellement sur la fiche d’un sticker. */
 function openStickers(id){
+  if(document.body.classList.contains('in-lesson')){
+    /* Pendant une partie de Jouer, partir demande confirmation, comme le bouton retour. */
+    if(mode==='jeu'&&!jeuLeaveOk())return;
+    stkFocus=id||null;exitLessonToTab('stickers');return;
+  }
   stkFocus=id||null;
-  if(document.body.classList.contains('in-lesson'))exitLessonToTab('stickers');
-  else if(activeTab==='stickers'){renderStickers();}
+  if(activeTab==='stickers')renderStickers();
   else switchTab('stickers');
 }
 function stkItemHtml(b,i,name){
@@ -25935,7 +25942,7 @@ function stkGStart(item,kind,pts){
   if(!b)return;
   stkToFront(b.id);
   const R=item.parentElement.getBoundingClientRect();
-  const G=stkG={item,id:b.id,kind,R,b0:{...b},cur:{...b},pts:new Map(pts.map(p=>[p.id,p])),start:new Map(pts.map(p=>[p.id,p])),moved:false,vx:0,vy:0,lx:pts[0].x,ly:pts[0].y,lt:performance.now(),art:item.querySelector('.stk-art')};
+  const G=stkG={item,id:b.id,kind,R,s0:b.s,b0:{...b},cur:{...b},pts:new Map(pts.map(p=>[p.id,p])),start:new Map(pts.map(p=>[p.id,p])),moved:false,vx:0,vy:0,lx:pts[0].x,ly:pts[0].y,lt:performance.now(),art:item.querySelector('.stk-art')};
   if(kind==='rot'){G.cx=R.left+b.x*R.width;G.cy=R.top+b.y*R.height;G.a0=Math.atan2(pts[0].y-G.cy,pts[0].x-G.cx);G.d0=Math.max(12,Math.hypot(pts[0].x-G.cx,pts[0].y-G.cy));}
   item.classList.add('is-drag');
 }
@@ -26001,7 +26008,7 @@ function stkGEnd(ids,cancel){
   Object.assign(b,{x:+G.cur.x.toFixed(4),y:+G.cur.y.toFixed(4),r:G.cur.r,s:+G.cur.s.toFixed(3)});
   save();
   stkSelect(G.id);
-  if(b.s>G.b0.s)stkPaint(G.item);
+  if(b.s!==G.s0)stkPaint(G.item);
   if(G.kind==='move'){stkSlap(G.item);buzz('light');}
 }
 /* Posé : une petite pression, comme un sticker qu’on lisse du doigt. */
@@ -26019,6 +26026,7 @@ function stkBindBoard(board){
     const h=e.target.closest('[data-h]');
     if(h&&h.dataset.h==='del')return;
     e.preventDefault();
+    item.focus({preventScroll:true});
     try{item.setPointerCapture(e.pointerId);}catch(err){}
     stkGStart(item,h?'rot':'move',[{id:e.pointerId,x:e.clientX,y:e.clientY}]);
     const mv=ev=>{if(ev.pointerId===e.pointerId)stkGMove([{id:ev.pointerId,x:ev.clientX,y:ev.clientY}]);};
@@ -26057,6 +26065,7 @@ function stkBindBoard(board){
   board.addEventListener('keydown',stkBoardKey);
 }
 function stkBoardKey(e){
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
   const item=e.target.closest&&e.target.closest('.stk-item');
   const b=item&&stkEntry(item.dataset.id);
   if(!b)return;
@@ -26078,6 +26087,7 @@ function stkBoardKey(e){
   [b.x,b.y]=stkClampPos(b.x,b.y,b.s,item.parentElement.getBoundingClientRect(),b.r);
   b.x=+b.x.toFixed(4);b.y=+b.y.toFixed(4);
   stkApply(item,b);stkSelect(b.id);save();
+  if(/^[-+=−]$/.test(e.key))stkPaint(item);
 }
 /* Une place libre : la plus éloignée des stickers déjà posés, parmi quelques tirages. */
 function stkFreeSpot(R){
@@ -26108,6 +26118,7 @@ function stkRemove(id){
   const b=S.board.splice(i,1)[0];
   if(stkSel===id)stkSel=null;
   save();renderStickers();
+  document.querySelector(`.stk-cell[data-id="${id}"]`)?.focus({preventScroll:true});
   const s=stkInfo(id);
   toastWithAction('Sticker décollé',s?`${s.name} · revenu sur ta planche`:'','Annuler',()=>{
     const T=stkState();
@@ -26120,7 +26131,12 @@ function stkClearBoard(){
   if(!S.board.length)return;
   const prev=S.board.slice();
   S.board=[];stkSel=null;save();renderStickers();
-  toastWithAction('Tableau vidé','Tes stickers sont revenus sur ta planche.','Annuler',()=>{stkState().board=prev;save();renderStickers();});
+  document.querySelector('.stk-cell.is-got')?.focus({preventScroll:true});
+  toastWithAction('Tableau vidé','Tes stickers sont revenus sur ta planche.','Annuler',()=>{
+    const T=stkState();
+    T.board=prev.filter(b=>!T.board.some(q=>q.id===b.id)).concat(T.board);
+    save();renderStickers();
+  });
 }
 /* ---------- La planche : toucher ouvre la fiche, glisser décolle le sticker jusqu’au tableau ---------- */
 let stkPeel=null;
@@ -26325,10 +26341,11 @@ function stkSlug(s){return String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toL
 async function stkDownload(id){
   const s=stkInfo(id);
   if(!s||!s.got)return;
-  const cv=document.createElement('canvas');cv.width=cv.height=1200;
-  stkDraw(cv.getContext('2d'),id,1200,'art');
   const name=`requete-sticker-${stkSlug(s.name)}.png`;
-  const how=await saveFile(stkBlob(stkTrim(cv,12)),name,`Sticker ${s.name}`);
+  let blob;
+  try{const cv=document.createElement('canvas');cv.width=cv.height=1200;stkDraw(cv.getContext('2d'),id,1200,'art');blob=stkBlob(stkTrim(cv,12));}
+  catch(e){toast('Téléchargement impossible','Réessaie dans un instant.');return;}
+  const how=await saveFile(blob,name,`Sticker ${s.name}`);
   if(how==='download')toast('Sticker téléchargé',name);
 }
 /* Le tableau entier, tel qu’il est composé, sans le fond : une planche prête à imprimer. */
@@ -26343,10 +26360,14 @@ async function stkExportBoard(){
     x0=Math.min(x0,cx-half);y0=Math.min(y0,cy-half);x1=Math.max(x1,cx+half);y1=Math.max(y1,cy+half);
     return {b,size,a,cx,cy};
   });
-  const cv=document.createElement('canvas');cv.width=Math.ceil(x1-x0);cv.height=Math.ceil(y1-y0);
-  const ctx=cv.getContext('2d');
-  items.forEach(({b,size,a,cx,cy})=>{ctx.save();ctx.translate(cx-x0,cy-y0);ctx.rotate(a);ctx.translate(-size/2,-size/2);stkDraw(ctx,b.id,size,'art');ctx.restore();});
-  const how=await saveFile(stkBlob(stkTrim(cv,16)),'requete-stickers.png','Mes stickers Requête');
+  let blob;
+  try{
+    const cv=document.createElement('canvas');cv.width=Math.ceil(x1-x0);cv.height=Math.ceil(y1-y0);
+    const ctx=cv.getContext('2d');
+    items.forEach(({b,size,a,cx,cy})=>{ctx.save();ctx.translate(cx-x0,cy-y0);ctx.rotate(a);ctx.translate(-size/2,-size/2);stkDraw(ctx,b.id,size,'art');ctx.restore();});
+    blob=stkBlob(stkTrim(cv,16));
+  }catch(e){toast('Téléchargement impossible','Réessaie dans un instant.');return;}
+  const how=await saveFile(blob,'requete-stickers.png','Mes stickers Requête');
   if(how==='download')toast('Tableau téléchargé','requete-stickers.png · sans le fond, prêt à imprimer');
 }
 /* Après une rotation de l’écran ou un changement de taille de fenêtre, les stickers sont repeints net. */
@@ -27075,7 +27096,7 @@ function noteActivityDay(){
     if(!state.actSince)state.actSince=iso;
     if(first&&typeof lqStreakToast==='function')setTimeout(lqStreakToast,900);
   }catch(e){}
-  stkAfterProgress();
+  try{stkAfterProgress();}catch(e){}
 }
 /* ---------- Temps d’apprentissage ----------
    Compté seulement quand l’app est à l’écran et qu’on s’en sert (un geste dans les 2 dernières minutes), dans un cours,
@@ -29970,7 +29991,7 @@ async function resetAllProgress(){
   if(!confirm('Effacer toute ta progression ? Cette action est définitive (sauf si tu as exporté avant).'))return;
   if(!confirm('Dernière confirmation : leçons, défis, notes et planning seront vidés.'))return;
   state={lessons:{},defis:{},notes:[],plan:null,onboarded:true,name:state.name||'',profile:state.profile||{},accountMode:state.accountMode||'guest',accountProvider:state.accountProvider,accountLabel:state.accountLabel,entretien:state.entretien||{}};
-  save(); buildDb(); baseBytes=db.export(); attachDateFns(db); /* voir boot : export() perd les fonctions ajoutées au moteur */
+  save(); stkSync(); buildDb(); baseBytes=db.export(); attachDateFns(db); /* voir boot : export() perd les fonctions ajoutées au moteur */
   renderModules(); renderDefis(); renderProgress();
   renderCollection(); renderNotes(); renderPlanning(); renderCompte(); renderGreeting();
 }
@@ -30049,7 +30070,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1973';
+  const SW_CACHE='requete-2026-10-12-ludique-v1974';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

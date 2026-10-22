@@ -43,7 +43,7 @@ function world() {
   });
   ctx.compteStats = () => ({ lessons: done.size, defis: ctx.defis, streak: ctx.streak });
   ctx.streakRecord = () => ctx.record;
-  ctx.progressContinuer = () => ({ done: done.size });
+  ctx.progressContinuer = () => ({ done: 0 }); /* hors parcours : « Première requête » ne doit pas en dépendre */
   ctx.save = () => { ctx.saves++; };
   vm.runInContext(take('const STK_INK=', '/* ---------- Rendu à l’écran ---------- */'), ctx);
   return { ctx, done, run: src => vm.runInContext(src, ctx) };
@@ -54,7 +54,7 @@ test('gagner : un sticker par module terminé et par accomplissement ; une fois 
   assert.deepEqual([...w.run('stkSync()')], [], 'rien de mérité au départ');
   assert.equal(w.ctx.state.stickers.since, 5000, 'première mise en route datée');
   w.done.add(0); w.ctx.clock = 9000;
-  assert.deepEqual([...w.run('stkSync()')], ['intro', 'requete'], 'premier module et première activité');
+  assert.deepEqual([...w.run('stkSync()')], ['intro', 'requete'], 'premier module et première leçon, même hors du parcours');
   assert.equal(w.ctx.state.stickers.got.intro, 9000, 'gagné maintenant : daté');
   assert.deepEqual(Object.keys(w.ctx.state.stickers.fresh), ['intro', 'requete'], 'marqués « Nouveau »');
   w.done.add(2);
@@ -156,14 +156,22 @@ test('gestes : au doigt par les événements tactiles (le défilement est bloqu�
   assert.ok(block.includes("if(Math.hypot(P.x-P.x0,P.y-P.y0)>10){clearTimeout(P.timer);stkPeel=null;}"), 'un glisser franc reste un défilement');
   assert.ok(block.includes("if((STK_TACTILE&&e.pointerType!=='mouse')||e.button!==0)return;"), 'la souris passe par les pointeurs');
   assert.ok(css.includes('html.lq .stk-item{') && /\.stk-item\{[^}]*touch-action:none/.test(css) && /\.stk-board\{[^}]*touch-action:pan-y/.test(css), 'tableau vide : la page défile ; sur un sticker : non');
+  assert.ok(block.includes('if(b.s!==G.s0)stkPaint(G.item);') && block.includes("if(/^[-+=−]$/.test(e.key))stkPaint(item);"), 'agrandi (pincement, poignée, clavier) : repeint net');
+  assert.ok(block.includes('item.focus({preventScroll:true});') && block.includes('if(e.ctrlKey||e.metaKey||e.altKey)return;'), 'cliqué : il prend le focus ; Ctrl, Cmd, Alt restent au navigateur');
+  assert.ok(block.includes('document.querySelector(`.stk-cell[data-id="${id}"]`)?.focus({preventScroll:true});'), 'décollé : le focus revient sur sa case');
+  assert.ok(block.includes('T.board=prev.filter(b=>!T.board.some(q=>q.id===b.id)).concat(T.board);'), '« Annuler » garde les stickers posés depuis');
 });
 
-test('gagner pendant une leçon : son bilan le montre ; ailleurs, un toast', () => {
+test('gagner pendant une leçon ou une partie : le bilan le montre, ou un toast en sortant ; ailleurs, un toast', () => {
   assert.ok(take('function noteActivityDay(', '\n}\n').includes('stkAfterProgress();'), 'après chaque avancée');
+  assert.ok(take('async function resetAllProgress(', '\n}\n').includes('save(); stkSync();'), 'après l’effacement, les stickers regagnés sont datés');
+  assert.ok(html.includes("collection:'Cartes mémo',stickers:'Stickers',"), 'une leçon ouverte depuis Stickers y ramène');
   assert.ok(take('async function boot(', 'function initSpotlight(').includes('stkSync();'), 'au démarrage, ce qui est déjà mérité');
   assert.ok(take('function renderBravoSlide(', '\n}\n').includes('${stkBravoHtml()}'), 'bilan de la leçon');
   assert.ok(take('function openLesson(', '\n}\n').includes('stkLeaveLesson();') && take('function leaveLessonScreen(', '\n}\n').includes('stkLeaveLesson();'), 'en quittant la leçon avant son bilan, un toast');
-  assert.ok(block.includes("if(mode==='lesson'&&document.body.classList.contains('in-lesson')){stkLessonNew.push(...won);return;}"));
+  assert.ok(block.includes("if((mode==='lesson'||mode==='jeu')&&document.body.classList.contains('in-lesson')){stkLessonNew.push(...won);return;}"), 'pendant une partie de Jouer, pas de toast qui ferait quitter la manche');
+  assert.ok(take('function openStickers(', '\n}\n').includes("if(mode==='jeu'&&!jeuLeaveOk())return;"), 'partir d’une partie demande confirmation');
+  assert.ok(take('function noteActivityDay(', '\n}\n').includes('try{stkAfterProgress();}catch(e){}'), 'un dessin qui échoue ne casse pas la validation');
   assert.ok(block.includes("if(t.classList.contains('on')&&tries<6)"), 'le toast attend que le précédent soit parti');
   assert.ok(block.includes("k.textContent='Nouveau sticker'") && block.includes("'Ajouté à ta planche','Voir',()=>openStickers(items[0].id)"));
 });
