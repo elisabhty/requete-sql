@@ -3,8 +3,8 @@
      la reprend aussitôt après (même texte, rien entre les deux), elle ne reste que dans le cadre « Exécuter », avec son
      surlignage ; quand un repère ou un texte sépare les deux, chaque cadre garde sa requête (aucun cadre « Exécuter »
      sans requête) ;
-   - l'écran de fin (« Ce que tu retiens · Le réflexe de cette leçon ») affiche la requête de la mission,
-     plus la solution de l'exercice (qui porte sur une autre table). */
+   - l'écran de fin (« Ce que tu retiens · Le réflexe de cette leçon ») affiche la requête de la mission d'un cours texte,
+     plus la solution de l'exercice (qui porte sur une autre table) ; pour un cours en vidéo, les trois idées à retenir. */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -22,7 +22,7 @@ const fnSrc = name => {
 const lessons = (() => {
   const ctx = vm.createContext({});
   vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), ctx);
-  return JSON.parse(vm.runInContext('JSON.stringify(MODULES.flatMap(m=>m.lessons).map(l=>({id:l.id,missionSql:l.missionSql,solution:l.solution,body:(l.studio&&l.studio.uses&&l.studio.uses.body)||""})))', ctx));
+  return JSON.parse(vm.runInContext('JSON.stringify(MODULES.flatMap(m=>m.lessons).map(l=>({id:l.id,video:!!l.video,missionSql:l.missionSql,solution:l.solution,body:(l.studio&&l.studio.uses&&l.studio.uses.body)||""})))', ctx));
 })();
 
 test('cadre surligné + cadre « Exécuter » qui se suivent : la requête ne s’affiche qu’une fois, dans le cadre « Exécuter »', () => {
@@ -37,11 +37,7 @@ test('cadre surligné + cadre « Exécuter » qui se suivent : la requête ne s�
   /* Aucun cadre « Exécuter » sans requête ; les requêtes fusionnées sont celles qui suivaient aussitôt leur cadre surligné. */
   assert.equal(lessons.reduce((n, l) => n + (l.body.match(/data-compact=/g) || []).length, 0), 0, 'plus de cadre compact');
   const merged = lessons.reduce((n, l) => n + (l.body.match(/ data-hit="/g) || []).length, 0);
-  assert.equal(merged, 24, '24 requêtes montrées deux fois de suite, désormais une seule fois');
-  /* Le cours 0 (qui a repris le cours SELECT) : un seul cas, SELECT * FROM produits ; neuf exécutions, toutes avec leur requête. */
-  const intro = lessons.find(l => l.id === 0);
-  assert.equal((intro.body.match(/ data-hit="/g) || []).length, 1, 'cours 0 : un seul cas (SELECT * FROM produits)');
-  assert.equal((intro.body.match(/<div class="ij-run"/g) || []).length, 9, 'cours 0 : 9 exécutions, toutes avec leur requête');
+  assert.equal(merged, 2, '2 requêtes montrées deux fois de suite, désormais une seule fois (cours 50 et 57)');
   assert.equal(lessons.find(l => l.id === 1), undefined, 'le cours SELECT a rejoint le cours 0');
 });
 
@@ -58,9 +54,10 @@ test('requête surlignée dans le cadre « Exécuter » : mêmes couleurs que la
   assert.equal((hit.match(/<span/g) || []).length, (hit.match(/<\/span>/g) || []).length, 'balises équilibrées');
 });
 
-test('écran de fin : « Le réflexe de cette leçon » = la requête de la mission', () => {
+test('écran de fin : « Le réflexe de cette leçon » = les trois idées (cours en vidéo) ou la requête de la mission (cours texte)', () => {
   const recap = fnSrc('bravoRecapHtml');
+  assert.ok(recap.indexOf('lessonHasVideo(l)') > 0 && recap.indexOf('lessonHasVideo(l)') < recap.indexOf('l.missionSql'), 'cours en vidéo : les trois idées, comme à la fin de la vidéo');
   assert.ok(recap.indexOf('l.missionSql') > 0 && recap.indexOf('l.missionSql') < recap.indexOf('l.solution'), 'la mission passe avant la solution de l’exercice');
-  for (const l of lessons) assert.ok(l.missionSql && l.missionSql.trim(), `cours ${l.id} : requête de mission`);
-  assert.equal(lessons.find(l => l.id === 0).missionSql, 'SELECT prenom, nom, email\nFROM clients;');
+  for (const l of lessons) assert.ok(l.video ? !l.missionSql : l.missionSql && l.missionSql.trim(), `cours ${l.id} : ${l.video ? 'pas de mission (vidéo)' : 'requête de mission'}`);
+  assert.equal(lessons.find(l => l.id === 26).missionSql, "INSERT INTO produits (nom, categorie, prix, stock)\nVALUES ('Zinc', 'Bien-être', 17.90, 70);\nSELECT *\nFROM produits;");
 });

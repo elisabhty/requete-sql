@@ -24,9 +24,9 @@ test('la page compare SQLite à quatre SGBD, besoin par besoin', () => {
 test('chaque renvoi des cours mène à un thème de la page, et s’ouvre dans une feuille', () => {
   const ids = new Set(page.map(s => s.id));
   const links = [...html.matchAll(/<button type='button' class='sgbd-link' data-sgbd='(\w+)'>Selon le SGBD<\/button>/g)].map(m => m[1]);
-  assert.ok(links.length >= 12, `${links.length} renvois`);
+  assert.ok(links.length >= 7, `${links.length} renvois`);   // cours texte et cartes mémo (les cours en vidéo n’ont plus de texte)
   for (const id of links) assert.ok(ids.has(id), `thème inconnu : ${id}`);
-  for (const id of ['dates', 'nombres', 'conversion', 'agregats', 'requetes', 'tables', 'transactions']) assert.ok(links.includes(id), `renvoi vers ${id}`);
+  for (const id of ['dates', 'nombres', 'conversion', 'agregats', 'tables', 'transactions']) assert.ok(links.includes(id), `renvoi vers ${id}`);
   assert.ok(html.includes('<div class="viz" id="sgbd-sheet" role="dialog" aria-modal="true" aria-labelledby="sgbd-sheet-title">'));
   assert.ok(html.includes("const link=t.closest('.sgbd-link[data-sgbd]');") && html.includes('openSgbdSheet(link.dataset.sgbd)'), 'clic sur un renvoi');
   assert.ok(html.includes("if(document.getElementById('sgbd-sheet')?.classList.contains('on')){closeSgbdSheet();return;}"), 'Échap ferme la feuille');

@@ -29,12 +29,20 @@ test('WHERE : le cours a son animation, son image fixe et sa vignette, présente
   assert.ok(html.includes("'exoNeeds','video']"), 'guide() garde le champ video sur la leçon');
 });
 
-test('le cours en vidéo remplace le texte du cours, sans lancer les outils du cours texte', () => {
+test('le cours en vidéo est la vidéo, sans texte de secours ni outils du cours texte', () => {
   const flow = cut('function renderLessonFlow(){', '/* ---------- Requête à trous');
-  const iVideo = flow.indexOf('lessonStep===0&&lessonVideoOn(l)'), iText = flow.indexOf('const rich=l.richLesson||l.studio');
-  assert.ok(iVideo > 0 && iVideo < iText, 'la branche vidéo passe avant le cours texte');
+  const iVideo = flow.indexOf('lessonStep===0&&lessonHasVideo(l)'), iText = flow.indexOf('const rich=l.richLesson||l.studio');
+  assert.ok(iVideo > 0 && iVideo < iText, 'la branche vidéo passe avant le cours texte, même quand la vidéo n’a pas pu se charger');
   assert.ok(flow.includes('slide=lessonVideoSlide(l)'));
-  assert.ok(flow.includes('if(lessonStep===0&&!lessonVideoOn(l)){\n    buildSommaire();'), 'sommaire et activités du texte seulement sans vidéo');
+  assert.ok(flow.includes('if(lessonStep===0&&!lessonHasVideo(l)){\n    buildSommaire();'), 'sommaire et activités du texte seulement sans vidéo');
+  assert.ok(!html.includes('ne se charge pas'), 'aucun texte « gardé pour le cas où la vidéo ne se charge pas »');
+  /* guide() : un cours en vidéo ne garde que le réflexe (et l’exercice), pas de situation, d’étapes ni d’exemple. */
+  const g = cut('function guide(spec){', '/* ============================================================\n   2. PROGRAMME');
+  assert.ok(g.indexOf('if(spec.video){') > 0 && g.indexOf('if(spec.video){') < g.indexOf('const memoP=sit&&sit.problem;'), 'cours en vidéo : retour avant le texte du cours');
+  /* L’exercice reste verrouillé jusqu’à la fin de la vidéo (plus de requête à trous du texte pour le faire). */
+  assert.ok(cut('function jcGateLocked(l){', '/* Bouton verrouillé').includes('lessonHasFill(l)||lessonHasVideo(l)'), 'verrou : la vidéo');
+  /* Échec de chargement : toucher la carte (openLessonVideo) recharge la vidéo. */
+  assert.ok(cut('function openLessonVideo(){', 'function lvPlay(){').includes('if(LV_FAILED.delete(l.id)&&lessonStep===0)renderLessonFlow();'), 'réessayer');
 });
 
 test('la vidéo démarre à l’ouverture du cours, au retour sur « Cours » et au redémarrage de la leçon, pas lors d’une reprise automatique', () => {
@@ -56,7 +64,7 @@ test('lecteur plein écran : lecture dans la page, fin « À toi de jouer », ex
   assert.ok(ended.includes('jcMarkPassed(id);') && ended.includes('jcUnlockExo();'), 'la fin de la vidéo débloque l’exercice');
   assert.ok(cut('function lvGoExercise(){', 'function lvFail(){').includes('setLessonStep(1);'));
   const fail = cut('function lvFail(){', 'function lvKey(e){');
-  assert.ok(fail.includes('LV_FAILED.add(id);') && fail.includes('renderLessonFlow();'), 'vidéo illisible : retour au cours texte');
+  assert.ok(fail.includes('LV_FAILED.add(id);') && fail.includes('renderLessonFlow();'), 'vidéo illisible : sa carte le dit (pas de cours texte)');
   assert.ok(html.includes("#schema-sheet.on,#lesson-video.on,"), 'pas de retour par glissement pendant la vidéo');
   assert.ok(html.includes("if(typeof lessonVideoOpen==='function'&&lessonVideoOpen()){closeLessonVideo();return;}"), 'le retour ferme d’abord la vidéo');
 });
@@ -81,7 +89,10 @@ test('vignette du cours : verrou tant que la vidéo n’est pas finie, puis « P
   assert.equal(ctx.on(l), true);
   assert.equal(ctx.on({id: 6, video: {src: 'x.mp4'}}), true, 'une vidéo MP4 reste possible');
   ctx.fail.add(4);
-  assert.equal(ctx.on(l), false, 'après un échec de lecture, le cours texte revient');
+  assert.equal(ctx.on(l), false, 'après un échec de lecture, la vidéo ne se relance pas toute seule');
+  h = ctx.slide(l);
+  assert.ok(h.includes('class="lv-card is-failed" onclick="openLessonVideo()" aria-label="La vidéo n’a pas pu se charger. Réessayer"')
+    && h.includes('<b>La vidéo n’a pas pu se charger.</b>') && h.includes('<span class="lv-card-meta">Réessayer</span>'), 'la carte le dit et propose de réessayer, sans texte de secours');
   assert.equal(ctx.on({id: 5, video: null}), false);
 });
 
@@ -849,8 +860,8 @@ const COURSES = [
       "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 129.8, from: 119.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}", "{at: 141.4, from: 135.95, kind: 'pick',",
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
-  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 42', notesAt: 167.9,
-    notes: /notes:\{t:275\.0,y:1193,card:\[64,292,1016,898\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 51', notesAt: 167.9,
+    notes: /notes:\{t:283\.4,y:1193,card:\[64,292,1016,898\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Tes tables sont prêtes&nbsp;:<br>à toi de les relier avec des clés.',
     chapters: ['Le problème', 'La clé primaire', 'La clé étrangère', '1 → N', 'N ↔ N', '1 ↔ 1', 'À retenir'],
     traps: ["const INSCR = [[1, 1, 1, '2026-09-01'], [2, 4, 1, '2026-09-02'], [3, 5, 2, '2026-09-03'], [4, 7, 3, '2026-09-04'],",
@@ -996,12 +1007,7 @@ test('moteur commun des animations : préchargé et jamais servi périmé', () =
   assert.ok(sw.slice(i, i + 700).includes("fetch(req, { cache: 'no-cache' })"), 'revalidé auprès du serveur');
 });
 
-test('SELECT sans virgule : le cours texte (cours 0) et le quiz expliquent l’alias (AS facultatif), comme l’animation', () => {
-  const sel = cut('guide({ id:0, titre:"Les bases de données relationnelles"', 'guide({ id:2,');
-  assert.ok(sel.includes('Sans virgule, <code>email</code> est lu comme un <b>alias</b> : le titre donné à la colonne dans le résultat. Le mot-clé <code>AS</code> étant facultatif, cette requête équivaut à :'));
-  assert.ok(sel.includes('{syntax:"SELECT prenom AS email\\nFROM clients;"}'), 'la requête équivalente avec AS');
-  assert.ok(sel.includes('il faut la virgule : <code>SELECT prenom, email</code>'), 'la correction');
-  assert.ok(!/SQL ne comprend pas|Il interprète|SQL voit|Il s’attend/.test(sel), 'SQL n’est pas personnifié');
+test('SELECT sans virgule : l’animation (cours 0) et le quiz expliquent l’alias (AS facultatif)', () => {
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/bases-relationnelles.html'), 'utf8');
   assert.ok(page.includes('Sans virgule, <code>email</code> est lu comme un <b>alias</b> : le titre donné à la colonne dans le résultat.'), 'même explication dans la vidéo');
   const qcm = cut('const QCM={', '\n};');
@@ -1289,7 +1295,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
 
 test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre 1 relié par des clés, chaque réponse vérifiée dans SQLite', async () => {
   const l72 = cut('guide({ id:72, titre:"Clés et relations"', 'guide({ id:81,');
-  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'4 min 42',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'4 min 51',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1332,6 +1338,18 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   const def = D.CAPTIONS.findIndex(c => c[2].includes('est une <b>clé étrangère</b>'));
   assert.equal(D.CAPTIONS[def + 1][2], 'Elle sert à relier chaque inscription à son client : ici, <code>client_id</code> vaut 1, le numéro de Sophie Martin.', 'à quoi sert une clé étrangère, sur un exemple expliqué');
   assert.deepEqual(D.INSCR[0].slice(0, 2), [1, 1]); assert.equal(name(1), 'Sophie Martin');
+  /* La clé étrangère « fait référence à » la clé primaire (comme REFERENCES), dans la vidéo comme dans le récapitulatif. */
+  assert.ok(!caps.includes('reprend la clé primaire') && caps.includes('Une colonne qui fait référence<br>à la clé primaire d’une autre table<br>est une <b>clé étrangère</b>.')
+    && caps.includes('De même, <code>atelier_id</code> fait référence à la clé primaire de la <b>table ateliers</b>.'), 'clé étrangère : « fait référence à »');
+  /* La clé primaire : une valeur qui ne désigne qu’une ligne, qui reste stable (jamais « ne changera jamais ») et qui ne peut pas être vide,
+     comme le dit le récapitulatif. */
+  const iPk = D.CAPTIONS.findIndex(c => c[2] === 'C’est la <b>clé primaire</b> de la table : chaque table reçoit la sienne.');
+  assert.ok(iPk > 0 && D.CAPTIONS[iPk + 1][2] === 'Une clé primaire<br>ne peut pas être vide (<code>NULL</code>).' && D.CAPTIONS[iPk + 1][1] < 43.2, 'clé primaire : jamais vide, dans son chapitre');
+  assert.ok(caps.includes('une valeur qui ne désigne qu’elle.') && caps.includes('un numéro unique, qui reste stable.') && !/changera jamais|ne change jamais/.test(page), 'clé primaire : unique et stable, sans « jamais »');
+  /* Avant 1 ↔ 1 : la table cartes et sa clé étrangère sont présentées (les anneaux relient chaque carte à son propriétaire). */
+  const iCa = D.CAPTIONS.findIndex(c => c[2] === 'On crée une <b>table cartes</b> :<br>sa clé étrangère <code>client_id</code> désigne le propriétaire de chaque carte.');
+  assert.ok(iCa > 0 && D.CAPTIONS[iCa + 1][2].startsWith('Un client n’a qu’une carte') && D.CAPTIONS[iCa][0] <= 134.8 && D.CAPTIONS[iCa][1] >= 136.1, 'la table cartes présentée pendant que ses clés se relient');
+  assert.ok(caps.includes('Reste une relation à créer :<br>') && !caps.includes('dernière relation'), '« Reste une relation à créer » : la carte de membre en ajoute une plus tard');
   // Moment 2 : l’inscription du 4 septembre, une seule ce jour-là
   const r4 = D.INSCR.filter(r => r[3] === '2026-09-04');
   assert.equal(r4.length, 1, 'une seule inscription le 4 septembre');
@@ -1416,7 +1434,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.ok(page.includes("if (i === 5) return {text: 'Pour un élément d’un côté, combien peuvent lui être associés de l’autre : un seul ou plusieurs ? Pose-toi la question dans les deux sens.'};"), 'l’indice du moment 6 : la question à se poser, dans les deux sens');
   /* Le bilan, une relation par légende : sa case se soulève, sa règle apparaît dessous et reste. */
   const bil = ['En <b>1 ↔ 1</b>, une clé étrangère unique relie les deux tables.', 'En <b>1 → N</b>, la clé étrangère se place du côté « plusieurs ».',
-    'En <b>N ↔ N</b>, une table d’association enregistre chaque lien entre les tables.'];
+    'En <b>N ↔ N</b>, une table d’association relie les deux tables, avec une ligne par lien.'];
   const ib = D.CAPTIONS.findIndex(c => c[2] === bil[0]);
   assert.ok(ib > 0 && bil.every((w, k) => D.CAPTIONS[ib + k][2] === w) && D.CAPTIONS[ib][0] > D.PICKS[5].at, 'le bilan, juste après le moment 6');
   assert.ok(page.includes("const BILAN = [['11', 150.0], ['1n', 152.1], ['nn', 154.2]];") && [0, 1, 2].every(k => D.CAPTIONS[ib + k][0] <= [150.0, 152.1, 154.2][k])

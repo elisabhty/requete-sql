@@ -1,4 +1,4 @@
-/* Question mise en évidence (bloc « ask » des cours guide) : le HTML produit pour le cours WHERE,
+/* Question mise en évidence (bloc « ask » des cours guide) : le HTML produit pour chaque cours texte,
    et le petit « pop » qui se joue une seule fois quand la carte arrive à l'écran. */
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -8,16 +8,14 @@ import test from 'node:test';
 const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const dataCtx = vm.createContext({});
 vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), dataCtx);
-const lesson = vm.runInContext('MODULES.flatMap(m=>m.lessons).find(l=>l.id===4)', dataCtx);
-const concept = lesson.studio.problem.extra;
+const lessons = vm.runInContext('MODULES.flatMap(m=>m.lessons)', dataCtx).filter(l => !l.video);
+const concept = lessons.find(l => l.id === 26).studio.problem.extra;
 const src = html.slice(html.indexOf('function initAskCards()'), html.indexOf('const RT_TIME='));
 assert.ok(src.includes('function initAskCards()'), 'animation localisée');
 
-test('le cours WHERE met la question en évidence dans une carte avec un « ? »', () => {
-  assert.match(concept, /<p class="gd-ask"><i aria-hidden="true">\?<\/i><span>Est-ce que sa ville est Paris \?<\/span><\/p>/);
-  assert.equal((concept.match(/gd-ask/g) || []).length, 1, 'une seule carte');
-  assert.ok(concept.indexOf('Pour chaque client, SQL doit vérifier une condition') < concept.indexOf('gd-ask') && concept.indexOf('gd-ask') < concept.indexOf('En SQL, cette condition s’écrit'), 'la carte est entre l’intro et la syntaxe');
-  assert.ok(!/<b>Est-ce que sa ville est Paris/.test(concept), 'l’ancien simple gras a disparu');
+test('chaque cours texte met sa question en évidence dans une seule carte avec un « ? » (INSERT : « À quelle colonne appartient cette valeur ? »)', () => {
+  assert.match(concept, /<p class="gd-ask"><i aria-hidden="true">\?<\/i><span>À quelle colonne appartient cette valeur.\?<\/span><\/p>/);
+  for (const l of lessons) assert.equal((l.studio.problem.extra.match(/gd-ask/g) || []).length, 1, `${l.titre} : une seule carte`);
 });
 
 function setup({ reduce = false, withIO = true } = {}) {

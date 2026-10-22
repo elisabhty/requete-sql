@@ -8,7 +8,18 @@ const root = path.resolve(import.meta.dirname, '..');
 const env = await guideEnv(root);
 const {html, ctx} = env;
 const allLessons = vm.runInContext('MODULES.flatMap(m=>m.lessons)', ctx);
-const lessons = allLessons.filter(l => l.guided);
+/* Cours en vidéo : la vidéo est le cours, sans texte de secours (ni situation, ni étapes, ni exemple…) ; il garde le réflexe à
+   retenir (fin de la vidéo, bilan, note). Les vérifications du cours texte portent sur les autres cours. */
+const videos = allLessons.filter(l => l.video);
+assert.equal(videos.length, 48, '48 cours en vidéo');
+for (const l of videos) {
+  assert.ok(!l.situation && !l.missionSql && !l.studio.problem && !l.studio.uses, `${l.titre} : pas de texte de secours`);
+  for (const k of ['anatomie', 'exemple', 'attendu', 'retenir', 'learningCheck', 'testeVariants', 'joinRecap'])
+    assert.equal(l[k], undefined, `${l.titre} : pas de « ${k} » (texte de secours)`);
+  if (l.leconSeule) for (const k of ['consigne', 'solution', 'indice', 'petitDefi']) assert.equal(l[k], undefined, `${l.titre} : leçon seule, sans exercice (« ${k} »)`);
+  assert.ok(l.studio.reflex.extra.includes('<ol class="fk-syn-map is-recap"'), `${l.titre} : le réflexe à retenir reste`);
+}
+const lessons = allLessons.filter(l => l.guided && !l.video);
 assert.ok(lessons.length >= 1, 'au moins un cours guide');
 /* Tous les cours suivent le modèle « guide » : situation, problème animé, mission, concept, étapes, carte « Mission accomplie », réflexe. */
 const notGuided = allLessons.filter(l => !l.guided).map(l => l.id);

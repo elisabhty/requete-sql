@@ -21,6 +21,8 @@ ctx.SQL=SQL;ctx.allLessons=lessons;ctx.stripNoteHtml=s=>String(s).replace(/<[^>]
 function query(sql,verify){const db=new SQL.Database();try{db.run(schema);ctx.attachDateFns(db);const result=db.exec(sql);return verify?db.exec(verify):result;}finally{db.close();}}
 let solved=0,variants=0;
 for(const l of lessons){
+ /* Leçon seule (vidéo interactive) : ni exercice ni quiz. */
+ if(l.leconSeule){assert.ok(l.video&&!l.consigne&&!l.solution,l.titre+' : leçon seule, sans exercice');continue;}
  assert.ok(l.consigne?.trim()&&l.solution?.trim(),l.titre);
  if(l.learningCheck){
   assert.equal(l.learningCheck.options.length,3,l.titre);
@@ -63,9 +65,8 @@ assert.equal(ctx.checkNoExecExo('REVOKE SELECT ON "commandes" FROM "stagiaire";'
 assert.equal(ctx.checkNoExecExo(lesson(50).solution,lesson(50)).ok,true);
 assert.match(ctx.checkNoExecExo('GRANT SELECT ON commandes TO stagiaire;',lesson(50)).diag,/GRANT accorde un droit/);
 assert.equal(ctx.checkNoExecExo(lesson(61).solution.replace('stock >= 0','stock > 0'),lesson(61)).ok,false,'stock zéro autorisé');
-assert.equal(ctx.checkNoExecExo(lesson(56).solution.replace('REFERENCES clients(id)','REFERENCES produits(id)'),lesson(56)).ok,false,'cible de clé étrangère');
-for(const [id,wrong]of [[72,lesson(72).solution.replace(/REFERENCES \w+\(id\)/g,'')],[70,lesson(70).solution.replace('NEW.produit_id','1')],[26,lesson(26).solution+' UPDATE produits SET stock=0 WHERE id=1;']])assert.equal(ctx.exerciseResultsMatch(query(wrong,lesson(id).verif),query(lesson(id).solution,lesson(id).verif),lesson(id)),false,'solution incomplète '+id);
-const frame={dataset:{},classList:{remove(){},add(){}},querySelectorAll:()=>[],querySelector:s=>s==='.xf-expect'?{remove(){}}:null};ctx.current=lesson(77);
-ctx.paintTesteVariant(frame,ctx.current.testeVariants,2);assert.equal(frame.dataset.noExec,'1');ctx.paintTesteVariant(frame,ctx.current.testeVariants,0);assert.equal(frame.dataset.noExec,'0');
+for(const [id,wrong]of [[70,lesson(70).solution.replace('NEW.produit_id','1')],[26,lesson(26).solution+' UPDATE produits SET stock=0 WHERE id=1;']])assert.equal(ctx.exerciseResultsMatch(query(wrong,lesson(id).verif),query(lesson(id).solution,lesson(id).verif),lesson(id)),false,'solution incomplète '+id);
+const frame={dataset:{},classList:{remove(){},add(){}},querySelectorAll:()=>[],querySelector:s=>s==='.xf-expect'?{remove(){}}:null};ctx.current=lesson(50);
+ctx.paintTesteVariant(frame,ctx.current.testeVariants,0);assert.equal(frame.dataset.noExec,'1');ctx.current=lesson(26);ctx.paintTesteVariant(frame,ctx.current.testeVariants,0);assert.equal(frame.dataset.noExec,'0');
 console.log(`${lessons.length} cours, ${solved} solutions SQLite, ${variants} variantes exécutables : OK.`);
 console.log('Progression, ordre, alias, contraintes, transactions, trigger, GRANT et récursion : OK.');

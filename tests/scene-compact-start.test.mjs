@@ -1,5 +1,5 @@
-/* Animation du cours « Renommer avec AS » (« De la table au résultat ») : le résultat est replié au début, donc plus d'espace
-   vide sous la table avant que les valeurs n'arrivent. Les vols vers des lignes repliées attendent leur ouverture (flyDelay). */
+/* Scènes animées des cours texte : un résultat replié au début ne laisse pas d'espace vide sous la table avant que les valeurs
+   n'arrivent ; les vols vers des lignes repliées attendent leur ouverture (flyDelay). */
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -14,16 +14,6 @@ const OPEN_MS = 1100;   /* durée de la transition d'ouverture d'une ligne (max-
 test('moteur des scènes : les vols peuvent être retardés (flyDelay) le temps que les lignes repliées s’ouvrent', () => {
   assert.ok(html.includes('(s.flyDelay||0)+i*(st||150)'), 'flyDelay s’ajoute au décalage de chaque vol');
   assert.ok(/\.pr-lane\{[^}]*transition:[^}]*max-height 1\.1s/.test(html), 'une ligne s’ouvre en 1,1 s');
-});
-
-test('cours 2, scène du concept : le résultat (en-têtes et lignes) est replié au début, puis s’ouvre avant le vol des valeurs', () => {
-  const sc = env.xscenes[2][0];
-  const lane = k => sc.lanes.find(l => l.k === k);
-  for (const k of ['G0', 'G1', 'G2']) assert.equal(lane(k).fold, true, `ligne ${k} repliée au départ`);
-  assert.ok(!lane('R1').fold && !lane('R2').fold, 'la table de départ reste visible');
-  const st = sc.steps.find(s => s.fly);
-  assert.equal(JSON.stringify(st.unfold), '["G0","G1","G2"]', 'les trois lignes du résultat s’ouvrent à l’étape du vol');
-  assert.ok(st.flyDelay >= OPEN_MS, 'les vols attendent la fin de l’ouverture');
 });
 
 test('toute scène qui fait voler des valeurs vers une ligne repliée l’ouvre d’abord et attend son ouverture', () => {
@@ -43,12 +33,6 @@ test('toute scène qui fait voler des valeurs vers une ligne repliée l’ouvre 
       for (const k of st.fold || []) folded.add(k);
     });
   }
-});
-
-test('cours 2, scène du concept : le résultat s’ouvre sur des cases vides en pointillés (pas de vide), légende sans code coupé', () => {
-  const sc = env.xscenes[2][0];
-  for (const k of ['G1', 'G2']) assert.ok(sc.lanes.find(l => l.k === k).c.every(c => c[2] === 'q'), `ligne ${k} : cases à remplir visibles (q)`);
-  assert.ok(!/"/.test(sc.caps[1]), 'la légende du vol ne contient pas de nom entre guillemets, qui se couperait en fin de ligne');
 });
 
 test('légendes des scènes : l’ancienne s’efface avant que la nouvelle n’apparaisse (jamais deux textes superposés)', () => {

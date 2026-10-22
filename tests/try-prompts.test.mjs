@@ -1,4 +1,4 @@
-/* Consignes des cadres Exécuter (« 👇 Exécute cette requête… », « 👇 Teste par toi-même… ») : dans tous les cours, elles
+/* Consignes des cadres Exécuter (« 👇 Exécute cette requête… », « 👇 Teste par toi-même… ») : dans tous les cours texte, elles
    sont l'en-tête lilas du cadre, collé à lui (p.gd-try), avec l'emoji dans une pastille qui reste affichée une fois la requête
    exécutée. Le deux-points final est retiré. */
 import path from 'node:path';
@@ -9,7 +9,7 @@ import {guideEnv} from './helpers/guide-checks.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const {html, ctx} = await guideEnv(root);
-const lessons = vm.runInContext('MODULES.flatMap(m=>m.lessons)', ctx);
+const lessons = vm.runInContext('MODULES.flatMap(m=>m.lessons)', ctx).filter(l => !l.video);   // les cours en vidéo n’ont pas de cours texte
 const bodyOf = l => [l.situation, l.studio.problem.extra, l.studio.uses.body, (l.studio.reflex || {}).extra].join('\n');
 
 test('chaque cadre Exécuter des cours a sa consigne en en-tête (p.gd-try juste au-dessus), sans deux-points final', () => {
@@ -23,12 +23,12 @@ test('chaque cadre Exécuter des cours a sa consigne en en-tête (p.gd-try juste
     assert.ok(!/<p>👇/.test(b), `${l.titre} : une consigne « 👇 » est restée un simple paragraphe`);
     heads += ok.length;
   }
-  assert.ok(heads >= 350, `au moins 350 consignes en en-tête (${heads})`);
+  assert.ok(heads >= 98, `au moins 98 consignes en en-tête (${heads})`);
 });
 
 test('« Teste par toi-même » et « Exécute cette requête… » : même en-tête, l’emoji passe dans la pastille', () => {
-  const l = lessons.find(x => x.id === 2), b = bodyOf(l);
-  assert.ok(b.includes('<p class="gd-try"><i aria-hidden="true"><b>👇</b></i><span>Exécute cette requête pour voir la colonne renommée</span></p><div class="ij-run"'));
+  const l = lessons.find(x => x.id === 26), b = bodyOf(l);
+  assert.ok(b.includes('<p class="gd-try"><i aria-hidden="true"><b>👇</b></i><span>Exécute cette requête pour ajouter Camille, puis afficher les clients</span></p><div class="ij-run"'));
   assert.ok(b.includes('<p class="gd-try"><i aria-hidden="true"><b>👇</b></i><span>Teste par toi-même</span></p><div class="ij-run" data-warn="1"'));
 });
 

@@ -1,7 +1,7 @@
-/* Cours WHERE : le tableau « La condition est-elle vraie ? » est testé ligne par ligne.
-   Le vrai HTML du cours est lu dans un mini-DOM, puis initRowTest (index.html) tourne
-   avec une horloge virtuelle : balayage automatique, cartes vraie / fausse, toucher une
-   ligne pour la retester, « Rejouer », mouvement réduit. */
+/* Tableau « La condition est-elle vraie ? » (initRowTest), testé ligne par ligne. Exemple : le tableau de l’ancien cours texte
+   WHERE (ville = 'Paris', tests/fixtures/row-test-where.html), lu dans un mini-DOM ; initRowTest (index.html) tourne avec une
+   horloge virtuelle : balayage automatique, cartes vraie / fausse, toucher une ligne pour la retester, « Rejouer », mouvement
+   réduit. Le cours texte DELETE l’utilise (id = 10). */
 import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
@@ -10,8 +10,8 @@ import test from 'node:test';
 const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const dataCtx = vm.createContext({});
 vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), dataCtx);
-const lesson = vm.runInContext('MODULES.flatMap(m=>m.lessons).find(l=>l.id===4)', dataCtx);
-const markup = lesson.studio.problem.extra;
+const markup = fs.readFileSync(new URL('./fixtures/row-test-where.html', import.meta.url), 'utf8');
+const deleteMarkup = vm.runInContext('MODULES.flatMap(m=>m.lessons).find(l=>l.id===28)', dataCtx).studio.problem.extra;
 const src = html.slice(html.indexOf('const RT_TIME='), html.indexOf('/* ---------- Sommaire interactif du cours'));
 assert.ok(src.includes('function initRowTest()') && markup.includes('class="rt-wrap"'), 'animation et tableau localisés');
 
@@ -57,8 +57,8 @@ function layout(wrap) {
   grid.offsetHeight = 30 + (cells.length / n - 1) * 40; wrap.find('ij-tmore').offsetHeight = 30;
 }
 
-function setup({ reduce = false, val } = {}) {
-  const root = parse(val ? markup.replace(/data-rt-val="[\d,]+"/, `data-rt-val="${val}"`) : markup), wrap = root.find('rt-wrap'); layout(wrap);
+function setup({ reduce = false, val, from = markup } = {}) {
+  const root = parse(val ? from.replace(/data-rt-val="[\d,]+"/, `data-rt-val="${val}"`) : from), wrap = root.find('rt-wrap'); layout(wrap);
   let now = 0, seq = 0, q = [];
   const clock = {
     setT: (f, ms) => { const id = ++seq; q.push({ id, t: now + (ms || 0), f }); return id; },
@@ -84,7 +84,14 @@ function setup({ reduce = false, val } = {}) {
   };
 }
 
-test('le tableau du cours WHERE est branché : colonnes, 4 lignes, cartes vraie / fausse', () => {
+test('cours DELETE : son tableau est branché (id, prénom, nom, verdict ; seule la ligne id = 10 disparaît)', () => {
+  const t = setup({ from: deleteMarkup.slice(deleteMarkup.indexOf('<div class="rt-wrap"')) });
+  assert.equal(t.n, 4); assert.equal(+t.wrap.dataset.rtVal, 0, 'la condition porte sur la colonne id'); assert.equal(t.rows.length, 4);
+  assert.deepEqual(t.rows.map(r => r[t.n - 1].cls.has('is-hit')), [false, false, false, true], 'seul le client 10 est supprimé');
+  assert.ok(t.legend.cls.has('win-look') && t.legend.cls.has('rt-legend') && t.legend.children[0].cls.has('is-yes') && t.legend.children[1].cls.has('is-no'), 'sa légende oui / non s’allume');
+});
+
+test('le tableau d’exemple (WHERE) est branché : colonnes, 4 lignes, cartes vraie / fausse', () => {
   const t = setup();
   assert.equal(t.n, 4, 'prénom, nom, ville, verdict'); assert.equal(+t.wrap.dataset.rtVal, 2, 'la condition porte sur la colonne ville'); assert.equal(t.rows.length, 4);
   assert.deepEqual(t.rows.map(r => r[t.n - 1].cls.has('is-hit')), [true, false, false, true], 'Sophie et Nathan (Paris) sont vraies');
