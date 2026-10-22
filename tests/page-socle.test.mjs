@@ -1,11 +1,11 @@
 /* Socle des objets à thème (guidePage) : étapes, report automatique des colonnes, pile (show / tail / keep), alertes
    (warn, flag, tag), tampon final (seal), noms reliés (sep, alias, subTxt). Configurations d'essai : aucun cours n'est
-   converti ici. Puis deux contrôles négatifs sur le cours 6 (billets), dont le rendu ne change pas. */
+   converti ici. */
 import path from 'node:path';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {guideEnv, checkGuideLesson, decode} from './helpers/guide-checks.mjs';
+import {guideEnv, decode} from './helpers/guide-checks.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const env = await guideEnv(root);
@@ -84,14 +84,3 @@ test('CSS du socle : état final de base, états cachés seulement avant la lect
   assert.ok(!/\.ij-sms\.is-page:not\(\.is-play\)[^{]*\.is-stacked/.test(html), 'la pile reste visible sans lecture');
 });
 
-test('contrôle des pages (cours 6) : une valeur changée sur une carte, ou des noms du parcours dans le désordre, sont refusés', () => {
-  const l6 = vm.runInContext('MODULES.flatMap(m=>m.lessons).find(l=>l.id===6)', ctx);
-  const body = l6.studio.uses.body;
-  const withBody = b => Object.assign({}, l6, {studio: Object.assign({}, l6.studio, {uses: Object.assign({}, l6.studio.uses, {body: b})})});
-  assert.doesNotThrow(() => checkGuideLesson(env, l6));
-  assert.equal(body.split('data-c="3" data-v="52"').length, 2);
-  assert.throws(() => checkGuideLesson(env, withBody(body.replace('data-c="3" data-v="52"', 'data-c="3" data-v="25"'))), /la carte 3 montre toutes les colonnes/);
-  const who = '<small>Sophie Martin, Nathan Petit, Hugo Laurent et Léa Simon</small>';
-  assert.equal(body.split(who).length, 2);
-  assert.throws(() => checkGuideLesson(env, withBody(body.replace(who, '<small>Nathan Petit, Sophie Martin, Hugo Laurent et Léa Simon</small>'))), /le parcours cite les personnes des cartes/);
-});

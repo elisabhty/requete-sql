@@ -1,32 +1,13 @@
-/* Objet à thème « doc » (guidePage, layout doc) : un document sur porte-bloc. Cours 5 (Comparer des valeurs) :
-   le bon de commande, une jauge de stock par produit (seuil en pointillés), la ligne du Shaker Inox barrée mais gardée. */
+/* Objet à thème « doc » (guidePage, layout doc) : un document sur porte-bloc (le bon de commande du cours 5 était dans son
+   cours texte, retiré : le cours est en vidéo). Reste le CSS du document. */
 import path from 'node:path';
-import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {guideEnv, checkGuideLesson} from './helpers/guide-checks.mjs';
+import {guideEnv} from './helpers/guide-checks.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const env = await guideEnv(root);
-const {html, ctx} = env;
-const lessonOf = id => vm.runInContext(`MODULES.flatMap(m=>m.lessons).find(l=>l.id===${id})`, ctx);
-const cardOf = l => { const b = l.studio.uses.body; return b.slice(b.lastIndexOf('<div class="ij-done is-locked"')); };
-const withBody = (l, b) => Object.assign({}, l, {studio: Object.assign({}, l.studio, {uses: Object.assign({}, l.studio.uses, {body: b})})});
-
-test('cours 5 (Comparer des valeurs) : bon de commande avec jauges de stock, le Shaker Inox barré mais gardé', () => {
-  const l5 = lessonOf(5), c = cardOf(l5);
-  assert.ok(c.includes('style="--n:3;--sg:0.45s" data-total="3"'));
-  assert.ok(c.includes('<div class="dc-th" role="row" aria-hidden="true"><span>Produit</span><span>Stock</span></div>'));
-  assert.equal((c.match(/<div class="pg-card is-line( is-skip)?" role="row"/g) || []).length, 3, 'trois lignes, le produit écarté compris');
-  assert.ok(c.includes('<span class="dc-qty" role="cell"><b class="db-x dc-num" data-c="1" data-v="60">60</b></span><i class="dc-gauge" style="--v:0.75;--lim:0.75" aria-hidden="true"></i>'), 'la jauge de la Tisane Détox touche le seuil');
-  assert.ok(c.includes('<div class="pg-card is-line is-skip" role="row"'), 'ligne barrée');
-  assert.equal((c.match(/class="pg-card is-line is-skip"/g) || []).length, 1, 'seul le Shaker Inox est barré');
-  assert.ok(/data-v="Shaker Inox">Shaker Inox<\/b>[\s\S]*?<small class="dc-note" role="cell">↪ Accessoire\u00a0: commandé ailleurs<\/small><\/div><\/div><em class="pg-seal" aria-hidden="true">Envoyé<\/em>/.test(c), 'note en marge, puis le tampon');
-  assert.ok(!c.includes('dc-foot') && !c.includes('Ailleurs'), 'ni pied ni ancien statut « Ailleurs »');
-  assert.doesNotThrow(() => checkGuideLesson(env, l5));
-  /* Le contrôle des pages lit les données des lignes : une valeur changée est refusée. */
-  assert.throws(() => checkGuideLesson(env, withBody(l5, l5.studio.uses.body.replace('data-c="1" data-v="30"', 'data-c="1" data-v="35"'))), /la carte 3 montre toutes les colonnes/);
-});
+const {html} = env;
 
 test('CSS du document : état final de base, états cachés seulement avant la lecture, pied après le camion', () => {
   for (const s of [

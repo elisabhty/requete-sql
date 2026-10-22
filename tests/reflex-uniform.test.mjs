@@ -64,6 +64,7 @@ test('un seul titre et un seul bouton de note, rendus par reflexBlock', () => {
   for (const l of lessons) {
     assert.ok(!l.reflexTitle && !(l.studio && l.studio.reflexTitle), `${l.titre} : pas de titre propre au cours`);
     assert.ok(!l.noReflex, `${l.titre} : pas de cours sans réflexe`);
+    if (l.video) continue;   // cours en vidéo : pas de cours texte, seulement le réflexe
     const body = [l.situation, l.studio.problem.extra, l.studio.uses.body, (l.studio.why || {}).extra].join('\n');
     assert.ok(!body.includes('coda-note'), `${l.titre} : le bouton « Ajouter à mes notes » n'est que dans le réflexe`);
   }
