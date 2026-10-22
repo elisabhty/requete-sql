@@ -875,8 +875,8 @@ const COURSES = [
       "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
       "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.0);", 'Chapitre 3 · Modéliser avec UML']},
-  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '4 min 32', notesAt: 179.7,
-    notes: /notes:\{t:265\.0,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
+  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '4 min 31', notesAt: 179.7,
+    notes: /notes:\{t:263\.6,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
     bubble: 'Tu vas représenter la structure de la base avec un diagramme UML pour visualiser plus&nbsp;facilement les relations entre les tables.',
     chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
     traps: ["const CLASSES = [['co', 'Coach', ['prenom', 'nom', 'email']], ['ca', 'Carte', ['seances']],",
@@ -1557,7 +1557,7 @@ test('« Identifiant », jamais « numéro », pour la valeur d’une clé : vid
 
 test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des tables du chapitre 2, chaque multiplicité et chaque traduction vérifiées', async () => {
   const l81 = cut('guide({ id:81, titre:"Modéliser avec UML"', 'guide({ id:61,');
-  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'4 min 32',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'4 min 31',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1626,15 +1626,17 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.ok(page.includes('.sch{left:64px;width:952px;top:236px;padding:14px 0;overflow:hidden}'), 'le fond d’une table allumée suit les angles arrondis de la carte');
   /* Le diagramme arrive après le mail de Karim. Chaque texte a son rôle et ne répète pas les autres : la bulle dit la mission et l’intérêt
      du diagramme (sans nommer Karim, que le mail seul présente) ; le mail dit qui demande, pourquoi, et ce qu’il y cherche ; la légende
-     nomme le diagramme de classes et les éléments qu’il représente, sans redire la demande (ni « colonnes », ni « relations »). */
+     nomme le diagramme de classes et ce qu’il comporte, sans redire la demande (ni « colonnes », ni « relations ») et sans devancer la phrase suivante
+     (« Chaque élément à gérer est représenté par une classe »). */
   const bubble = /<div class="abs bubble">([^<]+)<\/div>/.exec(page)[1];
   assert.ok(!bubble.includes('Karim') && !/<br>/.test(bubble) && bubble.startsWith('Tu vas représenter la structure de la base avec un diagramme UML pour visualiser'), 'la bulle : la mission et son intérêt, sans Karim');
   assert.ok(page.includes('hold(2.3, 5.4);') && Math.abs(bubble.replace(/&nbsp;/g, ' ').length / 17 - 7.53) < 0.01, 'la bulle (128 caractères) reste affichée le temps de la lire');
   const ic = D.CAPTIONS.findIndex(c => c[2].startsWith('Pour répondre à Karim, on utilise un <b class="nw">diagramme de classes UML</b>.'));
-  assert.ok(ic > 0 && D.CAPTIONS[ic + 1][2] === 'Il représente les éléments à gérer :<br>clients, coachs, ateliers et cartes.', 'la légende après le mail : le diagramme, puis ce qu’il représente');
+  assert.ok(ic > 0 && D.CAPTIONS[ic + 1][2] === 'Il comporte quatre éléments :<br>clients, coachs, ateliers et cartes.', 'la légende après le mail : le diagramme, puis ce qu’il comporte');
   assert.ok(D.CAPTIONS[ic - 1][1] < D.OPENS[0].at && D.CAPTIONS[ic][0] > D.OPENS[0].at + 3 && D.CAPTIONS[ic][1] < D.CAPTIONS[ic + 1][0] && D.CAPTIONS[ic + 1][1] < D.CHAPTERS[1].a && D.CAPTIONS[ic + 2][0] >= D.CHAPTERS[1].a,
     'deux légendes qui se suivent, sans se chevaucher, dans le chapitre « Le plan »');
   assert.ok(!/colonnes|relations|création de la base|créer la base|Pour dessiner ce plan/.test([D.CAPTIONS[ic][2], D.CAPTIONS[ic + 1][2]].join(' ')), 'la légende ne redit pas la demande de Karim');
+  assert.ok(!/représent|à gérer/.test(flat(ic + 1)), 'la légende d’avant ne dit pas deux fois la même chose que la réf 1 (« représenté », « élément à gérer »)');
   assert.ok(!/sujet/.test(JSON.stringify([D.CAPTIONS, D.PICKS, D.MAILS, bubble])), 'un « élément » (pas un « sujet ») devient une classe : même mot dans les légendes, les réponses et le mail');
   assert.ok(D.CAPTIONS[ic + 2][2].startsWith('Chaque élément à gérer est représenté par une <b>classe</b>.') && D.CAPTIONS[ic + 4][2] === 'Aucune clé ici : le diagramme décrit les éléments, pas la façon de les ranger.', 'la suite reprend « éléments »');
   /* Chaque geste suit sa légende : les quatre classes arrivent pendant « on utilise un diagramme de classes UML », puis s’entourent
@@ -1658,6 +1660,8 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.equal(said('La date d’inscription', 3), 'La date d’inscription indique quand un client s’est inscrit à un atelier précis. On la place dans Inscription, une classe d’association reliée par des pointillés à la relation entre Client et Atelier.');
   assert.equal(said('Le diagramme est maintenant complet', 2), 'Le diagramme est maintenant complet : il présente les informations à conserver et les relations entre les classes. Karim pourra s’appuyer dessus pour créer la base de données.');
   assert.equal(said('Pour traduire une association', 3), 'Pour traduire une association en tables, on regarde d’abord le maximum de chaque côté : 1 ou plusieurs (*). Cela permet de reconnaître une relation un à un, un à plusieurs ou plusieurs à plusieurs.');
+  assert.equal(flat(idx('Chaque classe devient une table')), 'Chaque classe devient une table, avec sa clé primaire id ; chaque attribut, une colonne.');
+  assert.equal(D.CAPTIONS.filter(c => /créer la base/.test(c[2])).length, 1, '« créer la base » est dit une seule fois dans les légendes (réf 6), pas répété quelques secondes plus tard');
   assert.ok(!/à côté (de|d’)/.test(JSON.stringify([D.CAPTIONS, D.PLACE])) && !/\blien\b/.test(JSON.stringify(D.CAPTIONS)), 'une multiplicité est « du côté de la classe X » ; « relation » entre tables, jamais « lien »');
   /* Chaque phrase a son geste et son son, pendant sa légende : après son fondu d’entrée, avant la pause de lecture qui tombe à sa fin. */
   const during = (t, i, d) => D.CAPTIONS[i][0] + 0.3 - 1e-9 <= t && t + d <= D.CAPTIONS[i][1] - 0.25 + 1e-9;
