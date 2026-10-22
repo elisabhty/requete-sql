@@ -849,8 +849,8 @@ const COURSES = [
       "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 129.8, from: 119.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}", "{at: 141.4, from: 135.95, kind: 'pick',",
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
-  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 06', notesAt: 167.9,
-    notes: /notes:\{t:238\.95,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 11', notesAt: 167.9,
+    notes: /notes:\{t:244\.6,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Tes tables sont prêtes&nbsp;:<br>à toi de les relier avec des clés.',
     chapters: ['Le problème', 'La clé primaire', 'La clé étrangère', '1 → N', 'N ↔ N', '1 ↔ 1', 'À retenir'],
     traps: ["const INSCR = [[1, 1, 1, '2026-09-01'], [2, 4, 1, '2026-09-02'], [3, 5, 2, '2026-09-03'], [4, 7, 3, '2026-09-04'],",
@@ -1289,7 +1289,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
 
 test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre 1 relié par des clés, chaque réponse vérifiée dans SQLite', async () => {
   const l72 = cut('guide({ id:72, titre:"Clés et relations"', 'guide({ id:81,');
-  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'4 min 06',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'4 min 11',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1427,6 +1427,14 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   const inn = D.CAPTIONS.findIndex(c => c[2] === nn[0]);
   assert.ok(inn > 0 && nn.every((w, k) => D.CAPTIONS[inn + k][2] === w) && D.CAPTIONS[inn][0] <= 117.0 && D.CAPTIONS[inn + 1][0] <= 119.6 && D.CAPTIONS[inn + 2][0] <= 123.2
     && page.includes('on(sophie, 117.0);') && page.includes('on(recup, 119.6);') && page.includes("pop('#tb-rel', 123.2, 0.6);"), 'N ↔ N : chaque légende avec ce qu’elle montre');
+  /* Puis la table d’association (son titre souligné) et ses deux clés étrangères (leurs colonnes soulignées). */
+  const ta = ['Pour représenter cette relation, on crée une <b>table d’association</b> : <code>inscriptions</code>.', 'Chaque ligne relie un client à un atelier grâce aux deux clés étrangères <code>client_id</code> et <code>atelier_id</code>.'];
+  assert.ok(D.CAPTIONS[inn + 3][2] === ta[0] && D.CAPTIONS[inn + 4][2] === ta[1] && page.includes("bump('#tb-in .h', 125.2, 1.06);")
+    && page.includes("bump('#tb-in .hd .c1', 127.2, 1.12); bump('#tb-in .hd .c2', 127.45, 1.12);"), 'la table d’association, puis ses deux clés étrangères');
+  /* « N ↔ N » : la flèche reste du texte. Sans la variante texte (U+FE0E), l’iPhone la dessinait en émoji (un carré bleu) dans la pastille. */
+  const coreSrc = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
+  assert.ok(coreSrc.includes("const ARROW_TXT = t => t.replace(/↔\\uFE0E?/g, '↔\\uFE0E');") && coreSrc.includes('glueShort(ARROW_TXT(t)')
+    && coreSrc.includes("fr(h).replace(/\\uFE0E/g, '')"), '↔ toujours en texte, sans compter dans le temps de lecture');
   assert.throws(() => db.run(`INSERT INTO cartes VALUES ${rows([D.DOUBLON])};`), /UNIQUE constraint failed: cartes\.client_id/, 'une deuxième carte pour Sophie Martin est refusée (1 ↔ 1)');
   assert.equal(name(D.DOUBLON[1]), 'Sophie Martin');
   db.close();

@@ -44,7 +44,9 @@ const glueShort = t => t.replace(/(\S+)( +)(?=\S|$)/g, (m, w) => shortWord(w) ? 
 const glueQuotes = t => t.replace(/«([^«»]{1,28})»/g, (m, q) => '«' + q.replace(/ /g, NB) + '»');
 /* Le prénom et le nom d’un client (« Sophie Martin ») restent ensemble sur la même ligne. */
 const glueNames = t => t.replace(/(^|[^\p{L}])(Sophie|Lucas|Emma|Nathan|Chloé|Hugo|Léa|Gabriel|Inès|Salma|Moussa) (?=\p{Lu})/gu, '$1$2' + NB);
-const frText = t => glueNames(glueQuotes(glueShort(t.replace(/ ([:?!;»])/g, NB + '$1').replace(/« /g, '«' + NB).replace(/(\d) (?=\S)/g, '$1' + NB))));
+/* ↔ existe aussi en émoji : sans la variante texte (U+FE0E), l’iPhone le dessine en carré bleu quand la police n’a pas la flèche. */
+const ARROW_TXT = t => t.replace(/↔\uFE0E?/g, '↔\uFE0E');
+const frText = t => glueNames(glueQuotes(glueShort(ARROW_TXT(t).replace(/ ([:?!;»])/g, NB + '$1').replace(/« /g, '«' + NB).replace(/(\d) (?=\S)/g, '$1' + NB))));
 /* Légendes : une expression ne se coupe pas d’une ligne à l’autre. Certains mots ne terminent jamais une ligne
    (« du plus / cher », « la même / ville », « les deux / colonnes », « puis / le nouveau nom »),
    d’autres ne la commencent jamais (« ne livre / pas », « la valeur / suivante »), et un nombre reste collé au mot
@@ -94,7 +96,7 @@ function frDom(root){
   });
 }
 /* Texte brut d’une légende (lu par VoiceOver, et mesuré pour le temps de lecture) : <code>stock &lt;= 60</code> → « stock <= 60 ». */
-const plain = h => fr(h).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, NB)
+const plain = h => fr(h).replace(/\uFE0E/g, '').replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, NB)
   .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&[a-z]+;/g, 'x');
 
 /* Découpe un élément en caractères (pour l’effet de frappe). */
