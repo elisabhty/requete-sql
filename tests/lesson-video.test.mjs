@@ -875,8 +875,8 @@ const COURSES = [
       "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
       "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.0);", 'Chapitre 3 · Modéliser avec UML']},
-  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '3 min 59', notesAt: 179.7,
-    notes: /notes:\{t:231\.6,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
+  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '4 min 32', notesAt: 179.7,
+    notes: /notes:\{t:265\.0,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
     bubble: 'Tu vas représenter la structure de la base avec un diagramme UML pour visualiser plus&nbsp;facilement les relations entre les tables.',
     chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
     traps: ["const CLASSES = [['co', 'Coach', ['prenom', 'nom', 'email']], ['ca', 'Carte', ['seances']],",
@@ -888,7 +888,7 @@ const COURSES = [
       "{at: 82.7, from: 74.4, kind: 'pick',", "{label: '0..*', ok: true}]},", "{at: 109.1, from: 100.8, kind: 'tap', need: 1,", "if (a === 'po-ca') {",
       "{at: 147.7, from: 139.2, kind: 'pick', text: true,", "{label: 'id, client_id, atelier_id, date_inscription', ok: true},", "{at: 162.4, from: 154.0, kind: 'tap', need: 2,",
       "const SHOP_ASSOCS = [['pa', 'passe', '▾', 'cl', '0..1', 'co', '0..*'], ['ce', 'concerne', '▾', 'co', '0..*', 'pr', '1']];",
-      '<line id="ln-an"/><line id="ln-po"/><line id="ln-in"/><line id="ln-cx" class="dash"/>', "tl.to('#sb .mp .mn', {opacity: 0.28,",
+      '<line id="ln-an"/><line id="ln-po"/><line id="ln-in"/><line id="ln-cx" class="dash"/>', "tl.to('#sb .mp:not(.ask) .mn', {opacity: 0.28,",
       'Prochaine leçon · CREATE TABLE']},
 ];
 
@@ -1557,7 +1557,7 @@ test('« Identifiant », jamais « numéro », pour la valeur d’une clé : vid
 
 test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des tables du chapitre 2, chaque multiplicité et chaque traduction vérifiées', async () => {
   const l81 = cut('guide({ id:81, titre:"Modéliser avec UML"', 'guide({ id:61,');
-  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'3 min 59',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'4 min 32',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1604,7 +1604,12 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   const cartes = C2.CLIENTS.map(c => count(C2.CARTES, 1, c[0]));
   assert.ok(Math.min(...cartes) === 0 && Math.max(...cartes) === 1 && C2.CARTES.some(c => c[1] === C2.DOUBLON[1]) && assocs.po[6] === '0..1' && assocs.po[4] === '1', 'possède : une carte au plus (la deuxième est refusée), aucune pour certains');
   const caps = D.CAPTIONS.map(c => c[2]).join('\n');
-  assert.ok(caps.includes('L’atelier Yoga du matin n’a encore aucun inscrit, l’atelier Récupération en a trois') && count(ins, 2, 1) === 3 && count(ins, 2, 5) === 0, 'la légende cite les bons ateliers');
+  /* Légendes lues à plat (sans balises ; un retour à la ligne voulu devient une espace) : les phrases d’Elisa se retrouvent mot pour mot. */
+  const flat = i => D.CAPTIONS[i][2].replace(/<br>/g, ' ').replace(/<[^>]+>/g, '');
+  const idx = start => { const i = D.CAPTIONS.findIndex((c, k) => flat(k).startsWith(start)); assert.ok(i >= 0, `légende « ${start} »`); return i; };
+  const said = (start, n) => Array.from({length: n}, (_, k) => flat(idx(start) + k)).join(' ');
+  assert.ok(said('L’atelier Yoga du matin', 2) === 'L’atelier Yoga du matin n’a encore aucun inscrit, l’atelier Récupération en a trois : on écrit 0..* du côté de la classe Client.'
+    && count(ins, 2, 1) === 3 && count(ins, 2, 5) === 0, 'la légende cite les bons ateliers');
   /* L’ouverture : la phrase demandée, mot pour mot, en trois légendes qui se suivent ; chaque partie a son geste pendant sa légende :
      les cinq tables s’allument, les quatre clés étrangères s’entourent, puis les trois tables qu’elles désignent s’allument. */
   const io = D.CAPTIONS.findIndex(c => c[2] === 'Pour comprendre comment<br>les tables sont reliées,');
@@ -1631,7 +1636,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
     'deux légendes qui se suivent, sans se chevaucher, dans le chapitre « Le plan »');
   assert.ok(!/colonnes|relations|création de la base|créer la base|Pour dessiner ce plan/.test([D.CAPTIONS[ic][2], D.CAPTIONS[ic + 1][2]].join(' ')), 'la légende ne redit pas la demande de Karim');
   assert.ok(!/sujet/.test(JSON.stringify([D.CAPTIONS, D.PICKS, D.MAILS, bubble])), 'un « élément » (pas un « sujet ») devient une classe : même mot dans les légendes, les réponses et le mail');
-  assert.ok(D.CAPTIONS[ic + 2][2].startsWith('Chaque élément devient une <b>classe</b>') && D.CAPTIONS[ic + 3][2] === 'Aucune clé ici : le diagramme décrit les éléments, pas la façon de les ranger.', 'la suite reprend « éléments »');
+  assert.ok(D.CAPTIONS[ic + 2][2].startsWith('Chaque élément à gérer est représenté par une <b>classe</b>.') && D.CAPTIONS[ic + 4][2] === 'Aucune clé ici : le diagramme décrit les éléments, pas la façon de les ranger.', 'la suite reprend « éléments »');
   /* Chaque geste suit sa légende : les quatre classes arrivent pendant « on utilise un diagramme de classes UML », puis s’entourent
      chacune à son tour, dans l’ordre où la légende les nomme (clients, coachs, ateliers, cartes), pendant « Il représente… ». */
   const cls = Object.fromEntries(D.CLASSES.map(([k, name]) => [name.toLowerCase(), k]));
@@ -1642,6 +1647,70 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.ok(page.includes("[['#cb-co', 22.1], ['#cb-ca', 22.3], ['#cb-at', 22.5], ['#cb-cl', 22.7]]") && D.CAPTIONS[ic][0] <= 22.1 && 22.7 < D.CAPTIONS[ic][1], 'les quatre classes arrivent pendant la première légende');
   assert.ok(page.includes("tl.fromTo(`#cb-${k} .hlo`, {autoAlpha: 0}, {autoAlpha: 1,") && page.includes('bump(`#cb-${k}`, t, 1.05);') && page.includes("return h + '</div><i class=\"hlo\"></i></div>';")
     && page.includes('.hlo{position:absolute;left:0;right:0;top:0;bottom:0;border-radius:32px;box-shadow:inset 0 0 0 7px var(--c);'), 'le liseré de couleur et le rebond de la classe');
+  /* Les textes d’Elisa (réfs du 22 octobre), mot pour mot : « du côté de la classe X » dit où s’écrit une multiplicité, « relation » (pas « lien »)
+     entre les tables ; 0..* corrige « 0.. » et « Atelier* ». */
+  assert.equal(said('Chaque élément à gérer', 2), 'Chaque élément à gérer est représenté par une classe. Elle porte un nom et contient des attributs : les informations qui le décrivent, comme le prénom, le nom et l’e-mail d’un client.');
+  assert.equal(said('La multiplicité indique', 2), 'La multiplicité indique combien d’éléments d’une classe peuvent être liés à un seul élément de l’autre. Par exemple, pour un coach, combien d’ateliers ? On écrit la réponse du côté de la classe Atelier.');
+  assert.equal(D.PICKS[1].prompt, 'Place les multiplicités 1 et 0..* aux bonnes extrémités de l’association « anime ».');
+  assert.equal(D.PICKS[1].hint, 'Touche une multiplicité, puis la classe à côté de laquelle tu veux la placer. Tu peux aussi la faire glisser.');
+  assert.equal(said('Chaque atelier est animé', 2), 'Chaque atelier est animé par un seul coach : on place 1 du côté de la classe Coach. Un coach peut animer zéro, un ou plusieurs ateliers : on place 0..* du côté de la classe Atelier.');
+  assert.equal(flat(idx('Chaque atelier est animé') + 2), 'Pour s’inscrit à : un client suit zéro, un ou plusieurs ateliers, donc 0..* du côté de la classe Atelier.');
+  assert.equal(said('La date d’inscription', 3), 'La date d’inscription indique quand un client s’est inscrit à un atelier précis. On la place dans Inscription, une classe d’association reliée par des pointillés à la relation entre Client et Atelier.');
+  assert.equal(said('Le diagramme est maintenant complet', 2), 'Le diagramme est maintenant complet : il présente les informations à conserver et les relations entre les classes. Karim pourra s’appuyer dessus pour créer la base de données.');
+  assert.equal(said('Pour traduire une association', 3), 'Pour traduire une association en tables, on regarde d’abord le maximum de chaque côté : 1 ou plusieurs (*). Cela permet de reconnaître une relation un à un, un à plusieurs ou plusieurs à plusieurs.');
+  assert.ok(!/à côté (de|d’)/.test(JSON.stringify([D.CAPTIONS, D.PLACE])) && !/\blien\b/.test(JSON.stringify(D.CAPTIONS)), 'une multiplicité est « du côté de la classe X » ; « relation » entre tables, jamais « lien »');
+  /* Chaque phrase a son geste et son son, pendant sa légende : après son fondu d’entrée, avant la pause de lecture qui tombe à sa fin. */
+  const during = (t, i, d) => D.CAPTIONS[i][0] + 0.3 - 1e-9 <= t && t + d <= D.CAPTIONS[i][1] - 0.25 + 1e-9;
+  const BEATS = [   // [début de la légende, extraits de la page (geste, son), début du geste, durée du geste]
+    ['Chaque élément à gérer', ["['co', 'ca', 'at', 'cl'].forEach(k => lite(k, 28.8, 0.55));", "cue(28.8, 'pop', 0.6, 2);"], 28.8, 0.8],
+    ['Chaque élément à gérer', ["bump(`#cb-${k} .cn`, 31.3 + q * 0.25, 1.12); cue(31.3 + q * 0.25, 'tick', 0.45, q);"], 31.3, 1.15],
+    ['Chaque élément à gérer', ["$$('#sb .cls:not(.acl) .ar:not(.ini)').forEach((r, q) => pulse(r, 32.45 + q * 0.03, 1));", "cue(32.45, 'tick', 0.5, 3); cue(32.65, 'tick', 0.5, 5);"], 32.45, 0.8],
+    ['les informations qui le décrivent', ["lite('cl', 35.2, 0.7, 1.03);", "cue(35.2, 'tick', 0.5, 1);"], 35.2, 0.95],
+    ['les informations qui le décrivent', ["pulse(`#cb-cl-${a}`, 36.0 + q * 0.6, 1); cue(36.0 + q * 0.6, 'tick', 0.5, q + 2);"], 36.0, 1.7],
+    ['Par exemple', ["lite('co', 60.9, 0.6); cue(60.9, 'tick', 0.5, 1);", "lite('at', 62.0, 0.6); cue(62.0, 'tick', 0.5, 3);"], 60.9, 1.95],
+    ['Par exemple', ["pop('#ph-an', 63.9, 0.5);", "hide('#ph-an', 65.0, {y: 0, scale: 0.6}, 0.3);"], 63.9, 1.4],
+    ['Chaque atelier est animé', ["lite('at', 69.2, 0.5); cue(69.2, 'tick', 0.5, 1);", "lite('co', 70.2, 0.5); cue(70.2, 'tick', 0.5, 3);", "bump('#mp-an-co', 70.5, 1.3); cue(70.5, 'pop', 0.6, 4);"], 69.2, 1.75],
+    ['Un coach peut animer', ["lite('co', 71.9, 0.5); cue(71.9, 'tick', 0.5, 1);", "lite('at', 72.8, 0.5); cue(72.8, 'tick', 0.5, 3);", "bump('#mp-an-at', 73.3, 1.3); cue(73.3, 'pop', 0.6, 4);"], 71.9, 1.8],
+    ['Pour s’inscrit à', ["glow('#ln-in', 74.9); bump('#an-in', 74.9, 1.1); cue(74.9, 'tick', 0.5, 2);", "lite('cl', 75.8, 0.6); cue(75.8, 'tick', 0.5, 1);", "lite('at', 77.2, 0.6); cue(77.2, 'tick', 0.5, 3);", "pop('#mp-in-at', 78.6, 0.5);"], 74.9, 4.2],
+    ['L’atelier Yoga du matin', ["lite('at', 83.4, 0.7); cue(83.4, 'tick', 0.5, 1);"], 83.4, 0.95],
+    ['L’atelier Yoga du matin', ["lite('cl', 85.2, 2.1); cue(85.2, 'tick', 0.5, 3);"], 85.2, 0.15],
+    ['on écrit 0..*', ["bump('#mp-in-cl', 87.5, 1.3); cue(87.5, 'pop', 0.6, 4);"], 87.5, 0.4],
+    ['La date d’inscription', ["glow('#ln-in', 89.3); cue(89.3, 'tick', 0.5, 2);"], 89.3, 0.4],
+    ['La date d’inscription', ["lite('cl', 89.6, 1.5); lite('at', 89.6, 1.5); cue(89.6, 'tick', 0.5, 1);"], 89.6, 0.2],
+    ['On la place dans Inscription', ["show('#ab', 91.6, {y: 30, scale: 0.92}, 0.5, 'back.out(1.6)'); cue(91.6, 'pop', 0.55, 4);", "tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25}, 92.2);", "cue(92.2, 'tick', 0.5, 4);"], 91.6, 0.9],
+    ['reliée par des pointillés', ["draw('#ln-cx', 93.55, 0.35);", "glow('#ln-in', 93.95); bump('#an-in', 93.95, 1.1); cue(93.95, 'tick', 0.5, 2);"], 93.55, 0.85],
+    ['Le diagramme est maintenant complet', ["], 101.5, 1.03); cue(101.5, 'stamp', 0.6);"], 101.5, 0.4],
+    ['Le diagramme est maintenant complet', ["$$('#sb .ar:not(.ini)').forEach((r, q) => pulse(r, 102.4 + q * 0.04, 1));", "cue(102.4, 'tick', 0.5, 3); cue(102.6, 'tick', 0.5, 5);"], 102.4, 0.95],
+    ['Le diagramme est maintenant complet', ["{stroke: '#6A4DF4', strokeWidth: 8, duration: 0.25, ease: 'power1.inOut'}, 103.6);", "bump(['#an-an', '#an-in', '#an-po'], 103.6, 1.1); cue(103.6, 'tick', 0.5, 2); cue(103.75, 'tick', 0.5, 4);"], 103.6, 0.4],
+    ['Karim pourra s’appuyer dessus', ["lite(k, 105.1 + q * 0.15, 0.45, 1.03); cue(105.1 + q * 0.15, 'tick', 0.5, q);"], 105.1, 1.2],
+    ['C’est le 0..1', ["bump('#mp-po-ca', 109.8, 1.25); lite('ca', 109.8, 0.6); cue(109.8, 'pop', 0.6, 4);"], 109.8, 0.9],
+    ['C’est le 0..1', ["lite('cl', 111.2, 0.6); cue(111.2, 'tick', 0.5, 2);"], 111.2, 0.9],
+    ['Son maximum vaut 1', ["tl.to('#mp-po-ca .mn', {opacity: 0.28, duration: 0.4, ease: 'power2.out'}, 113.0);", "bump('#mp-po-ca', 113.0, 1.25); cue(113.0, 'tick', 0.5, 4);"], 113.0, 0.45],
+    ['Pour traduire une association', ["glow('#ln-' + k, 122.0 + q * 0.2); bump('#an-' + k, 122.0 + q * 0.2, 1.1); cue(122.0 + q * 0.2, 'tick', 0.5, q);"], 122.0, 0.85],
+    ['le maximum de chaque côté', ["tl.to('#sb .mp:not(.ask) .mn', {opacity: 0.28, duration: 0.4, ease: 'power2.out'}, 123.7);", "bump(m, 123.9 + q * 0.06, 1.12); cue(123.9 + q * 0.06, 'tick', 0.35, q);"], 123.7, 0.9],
+    ['Cela permet de reconnaître', ["{autoAlpha: 1, y: 0, duration: 0.4, ease: 'back.out(1.6)'}, 125.5 + q * 0.4); cue(125.5 + q * 0.4, 'pop', 0.55, q);"], 125.5, 1.25],
+    ['anime, 1', ["rlOn(1, 127.7); glow('#ln-an', 127.8); bump(['#mp-an-co', '#mp-an-at'], 127.8, 1.15); rlOff(1, 133.35);"], 127.7, 0.55],
+    ['possède, 1', ["rlOn(0, 133.65); glow('#ln-po', 133.75); bump(['#mp-po-ca', '#mp-po-cl'], 133.75, 1.15); rlOff(0, 139.25);"], 133.65, 0.55],
+    ['s’inscrit à, *', ["rlOn(2, 139.55); glow('#ln-in', 139.65); bump(['#mp-in-at', '#mp-in-cl'], 139.65, 1.15);"], 139.55, 0.55]
+  ];
+  for (const [start, code, t, d] of BEATS) {
+    for (const c of code) assert.ok(page.includes(c), `geste de « ${start} » : ${c}`);
+    assert.ok(during(t, idx(start), d), `« ${start} » : le geste (${t} s, ${d} s) tombe pendant la légende, avant sa pause de lecture`);
+  }
+  assert.ok(page.includes("const rlOn = (q, t) => { tl.to(RL[q].querySelector('.rlo'), {autoAlpha: 1, duration: 0.2}, t); tl.to(RL[q], {scale: 1.06, duration: 0.2, ease: 'back.out(2)'}, t); cue(t, 'tick', 0.5, q + 2); };"),
+    'chaque sorte de relation s’allume avec un son quand son association est traduite');
+  /* Ce qui s’efface ou revient à son aspect le fait après la pause de lecture, jamais à cheval dessus ; la pastille « ? » et les trois sortes de relations
+     disparaissent avant l’arrêt du moment suivant. */
+  const hold = start => D.CAPTIONS[idx(start)][1] - 0.25;
+  assert.ok(104.4 > hold('Le diagramme est maintenant complet') && page.includes("{stroke: '#4B4570', strokeWidth: 5, duration: 0.3, ease: 'power1.inOut'}, 104.4);"), 'les traits retrouvent leur aspect après la pause de lecture');
+  assert.ok(115.2 > hold('Son maximum vaut 1') && page.includes("tl.to('#mp-po-ca .mn', {opacity: 1, duration: 0.3}, 115.2);"), 'le 0.. de la pastille revient avec la suite du plan');
+  assert.ok(65.0 + 0.3 <= D.PICKS[1].at - 1.35 && 144.9 + 0.3 <= D.PICKS[4].at - 1.35 && page.includes('tl.to(RL, {autoAlpha: 0, y: 24, duration: 0.3, ease: \'power2.in\'}, 144.9);'),
+    'la pastille « ? » et les trois sortes de relations sont retirées avant l’arrêt du moment suivant');
+  assert.ok(page.includes('<div class="abs mp ask" id="ph-an"><i>?</i></div>') && page.includes('.mp.ask{border-style:dashed;border-color:var(--accent);background:var(--accent-soft)}')
+    && page.includes("at2('#ph-an', xa + 22, atl.y - 24 - 5 - $('#ph-an').offsetHeight);"), 'la pastille « ? » se pose là où s’écrira la multiplicité d’Atelier');
+  assert.ok(page.includes(`['un à un', 'un à plusieurs', 'plusieurs à plusieurs'].map(t => \`<div class="rl">\${t}<i class="rlo"></i></div>\`)`) && page.includes('.rlo{position:absolute;')
+    && page.includes("$('#rel').style.top = (cl.y + cl.h + 52 + 9 + 40) + 'px';"), 'les trois sortes de relations, sous les tables, avec leur liseré');
+  assert.ok(page.includes('Une <b>multiplicité</b> s’écrit du côté de la classe<br>qu’elle compte : 1, 0..1, 0..* ou 1..*.'), 'le récapitulatif reprend « du côté de la classe »');
   /* Les six moments */
   assert.deepEqual(D.PICKS.map(p => p.kind), ['pick', 'sort', 'pick', 'tap', 'pick', 'tap'], 'choisir, placer, toucher ; jamais deux fois de suite le même geste');
   assert.ok(D.PICKS.filter(p => p.kind === 'tap').every(p => /^Touche /.test(p.prompt)), 'chaque moment à toucher dit qu’il faut toucher l’image');
@@ -1651,24 +1720,24 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
     assert.ok(p.options.every(o => o.ok || o.why || (p === D.PICKS[2] && !o.why)), `${p.prompt} : chaque mauvaise réponse est expliquée`);
   }
   D.PICKS.forEach((p, i) => assert.ok(p.from < p.at && (i === 0 || p.from > D.PICKS[i - 1].at), `moment ${i + 1} : « Revoir » repart après le moment précédent`));
-  assert.deepEqual(D.PLACE.map(p => [p[0], p[1]]), [[assocs.an[4], assocs.an[3]], [assocs.an[6], assocs.an[5]]], 'moment 2 : chaque multiplicité d’anime, à côté de la classe qu’elle compte');
-  assert.equal(D.PICKS[2].options.find(o => o.ok).label, assocs.in[4], 'moment 3 : la multiplicité à côté de Client');
-  assert.equal(assocs.po[5], 'ca', 'moment 4 : la multiplicité qui interdit deux cartes est écrite à côté de Carte (zone po-ca)');
+  assert.deepEqual(D.PLACE.map(p => [p[0], p[1]]), [[assocs.an[4], assocs.an[3]], [assocs.an[6], assocs.an[5]]], 'moment 2 : chaque multiplicité d’anime, du côté de la classe qu’elle compte');
+  assert.equal(D.PICKS[2].options.find(o => o.ok).label, assocs.in[4], 'moment 3 : la multiplicité du côté de la classe Client');
+  assert.equal(assocs.po[5], 'ca', 'moment 4 : la multiplicité qui interdit deux cartes est écrite du côté de la classe Carte (zone po-ca)');
   /* Moment 3 : pas de correction écrite pour les deux mauvaises multiplicités, la légende qui suit explique le minimum et le maximum. */
   const c3 = D.CAPTIONS.find(c => c[0] > D.PICKS[2].at);
-  assert.ok(D.PICKS[2].options.filter(o => !o.ok).every(o => !o.why) && c3[2].startsWith('L’atelier Yoga du matin n’a encore aucun inscrit, l’atelier Récupération en a trois'),
+  assert.ok(D.PICKS[2].options.filter(o => !o.ok).every(o => !o.why) && c3[2].replace(/<br>/g, ' ').startsWith('L’atelier Yoga du matin n’a encore aucun inscrit, l’atelier Récupération en a trois'),
     'moment 3 : la légende qui suit dit pourquoi ni 1..* ni 0..1');
   /* Moment 4 : sa réponse n’est pas donnée avant. La légende décrit la carte sans nommer ses multiplicités ; la réponse nomme le 0..1,
      et le client_id unique n’est annoncé qu’une fois, à la traduction en tables. */
   const before4 = D.CAPTIONS.filter(c => c[0] > D.PICKS[2].at && c[0] < D.PICKS[3].at).map(c => c[2]);
   assert.ok(before4.includes('Enfin, un client possède une carte de membre ou aucune, et une carte n’a qu’un seul client.') && before4.every(c => !c.includes('0..1')), 'moment 4 : le 0..1 n’est pas nommé avant');
-  assert.ok(caps.includes('C’est le <b>0..1</b>, à côté de Carte : zéro ou une carte par client. Son maximum vaut 1 : pas de deuxième carte.')
-    && (caps.match(/devient unique|unique du chapitre/g) || []).length === 1, 'moment 4 expliqué ; client_id unique dit une seule fois');
+  assert.ok(said('C’est le 0..1', 2) === 'C’est le 0..1, du côté de la classe Carte : zéro ou une carte par client. Son maximum vaut 1 : pas de deuxième carte.'
+    && (caps.match(/devient unique|unique du chapitre/g) || []).length === 1, 'moment 4 expliqué (deux légendes de trois lignes au plus) ; client_id unique dit une seule fois');
   assert.ok(page.includes("pop('#mp-po-ca', 97.0, 0.5);\n  pop('#mp-po-cl', 98.4, 0.5);"), 'le 0..1 puis le 1, dans l’ordre de la légende');
   /* D’où vient la règle du côté * : chaque atelier n’a qu’un coach à indiquer. */
   assert.ok(caps.includes('<b>anime</b>, 1 — 0..* : <code>coach_id</code> va du côté *, dans la <b>table ateliers</b> : chaque atelier n’a qu’un coach à indiquer.'), 'la règle du côté *, avec sa raison');
   assert.equal(D.PICKS[4].options.find(o => o.ok).label, T.in.cols.map(c => isFk(c) ? c[0] : c).join(', '), 'moment 5 : les colonnes de la table inscriptions');
-  assert.deepEqual(D.PICKS.filter(p => p.kind === 'sort').map(p => p.next), ['{x} : touche maintenant la classe qu’elle compte.'], 'une ligne d’aide propre au moment à placer');
+  assert.deepEqual(D.PICKS.filter(p => p.kind === 'sort').map(p => p.next), ['{x} : touche maintenant la classe à côté de laquelle tu veux la placer.'], 'une ligne d’aide propre au moment à placer');
   /* Moment 6 : le diagramme de la boutique ; la règle du maximum place ses deux clés étrangères dans commandes. Ce n’est plus
      un classement en trois cases : celui-là est au chapitre 2. */
   const sides = D.SHOP_ASSOCS.map(([, , , a, ma, b, mb]) => max(ma) === '*' ? a : b);
@@ -1928,10 +1997,10 @@ test('mail reçu : l’image s’arrête sur la notification, le toucher l’ouv
   const anim = cut('class LvAnim{', 'function lessonVideoOn(l){');
   assert.ok(anim.includes('this.opens=info.opens||[];') && anim.includes("this._emit('open',{i:op,o:this.opens[op]});"), 'le lecteur s’arrête sur chaque mail');
   const show = cut('function lvOpShow(i,o){', 'function lvOpPlace(){');
-  for (const part of ["layer.className='lv-op';", "LV.root.classList.add('is-q','is-op');", 'lvOpClose(true); lvPlay();', 'r=w.rel(el);', "b.addEventListener('pointerdown',e=>lvPkRipple(e.clientX,e.clientY));"])
+  for (const part of ["layer.className='lv-op';", "LV.root.classList.add('is-q','is-op');", 'lvOpClose(); lvPlay();', 'r=w.rel(el);', "b.addEventListener('pointerdown',e=>lvPkRipple(e.clientX,e.clientY));"])
     assert.ok(show.includes(part), `mail : ${part}`);
   assert.ok(!show.includes('lvPkSet'), 'rien n’est noté');
-  assert.ok(html.includes("video.addEventListener('open',e=>{ if(LV&&LV.video===video&&e.detail)lvOpShow(e.detail.i,e.detail.o); });") && html.includes('if(LV&&LV.op)lvOpClose(true);'),
+  assert.ok(html.includes("video.addEventListener('open',e=>{ if(LV&&LV.video===video&&e.detail)lvOpShow(e.detail.i,e.detail.o); });") && html.includes('if(LV&&LV.op)lvOpClose();'),
     'ouvert par l’animation, fermé dès que la lecture reprend');
   assert.ok(html.includes('.lv-op-spot{position:absolute;') && html.includes('@keyframes lvOpRing{') && html.includes('.lv-op-tip{position:absolute;'), 'zone qui s’entoure d’une onde, bulle « Touche le mail »');
   assert.ok(html.includes("case 'mail':{"), 'son du mail reçu');
@@ -1944,24 +2013,28 @@ test('mail reçu : l’image s’arrête sur la notification, le toucher l’ouv
     'réponses longues (une phrase) : l’une sous l’autre, sur deux lignes au besoin');
 });
 
-test('mail déjà ouvert (ou passé) : en revenant en arrière, il s’ouvre tout seul, sans arrêt ni bulle', () => {
-  const LV = {id: 56, video: {opens: [{t: 33.1}, {t: 58.65}, {t: 76.45}], picks: [{t: 44.6}, {t: 67.85}, {t: 89.75}]}};
-  const ctx = vm.createContext({LV, LV_ANS: {}, lvAnsSave() {}, Object});
-  vm.runInContext(cut('function lvPkGet(id,i){', 'function lvPkSet(') + cut('function lvOpDone(id,i){', 'function lvOpShow(i,o){') + cut('function lvPkReset(id){', '/* Validation d’une leçon seule')
-    + ';this.api={lvOpDone,lvOpSet,lvPkReset};', ctx);
-  const {api} = ctx;
-  assert.ok(!api.lvOpDone(56, 0) && !api.lvOpDone(56, 1), 'jamais ouverts : l’image s’arrête sur la notification');
-  api.lvOpSet(56, 0);
-  assert.ok(api.lvOpDone(56, 0) && !api.lvOpDone(56, 1), 'ouvert une fois : il s’ouvre tout seul ensuite');
-  ctx.LV_ANS[56].p1 = {first: 1, err: 0};
-  assert.ok(api.lvOpDone(56, 1) && !api.lvOpDone(56, 2), 'un moment plus loin déjà fait : le mail d’avant est passé');
-  api.lvPkReset(56);
-  assert.ok(!api.lvOpDone(56, 0) && !api.lvOpDone(56, 1), '« Tout recommencer » : les mails se referment');
-  assert.ok(cut('class LvAnim{', 'function lessonVideoOn(l){').includes('if(this.skipOpen&&this.skipOpen(i))continue;')
-    && html.includes('video.skipOpen=i=>!!(LV&&LV.video===video&&lvOpDone(LV.id,i));'), 'la lecture ne s’arrête plus sur un mail déjà ouvert');
-  const close = cut('function lvOpClose(opened){', '/* ---------- Moments « À toi » joués sur l’image');
-  assert.ok(close.includes('if(opened)lvOpSet(LV.id,P.i);'), 'noté ouvert quand la lecture reprend sur la notification');
-  assert.ok(cut('/* Saut de ±5 s', 'function lvSpeedMenu(open){').includes('if(LV.op)lvOpClose();'), 'sauter par-dessus ne l’ouvre pas');
+test('mail à toucher : le bouton lecture ne l’ouvre pas, et l’image s’arrête dessus à chaque visionnage', () => {
+  /* Bouton lecture (ou barre d’espace) pressé pendant que la notification attend : rien ne repart, la notification remue. */
+  const plays = [], nudges = [];
+  const LV = {video: {play() { plays.push(1); return Promise.resolve(); }}, pk: null, op: {i: 0}};
+  const ctx = vm.createContext({LV, Promise, lvOpNudge: () => nudges.push(1)});
+  vm.runInContext(cut('function lvPlay(){', 'function lvToggle(){') + ';this.play=lvPlay;', ctx);
+  ctx.play();
+  assert.ok(plays.length === 0 && nudges.length === 1, 'notification en attente : lecture sans effet, la zone remue');
+  LV.op = null; ctx.play();
+  assert.ok(plays.length === 1 && nudges.length === 1, 'notification touchée (fermée) : la lecture repart');
+  /* Même quand le mail a déjà été ouvert : aucun arrêt n’est sauté, plus de mémoire « déjà ouvert ». */
+  const anim = cut('class LvAnim{', 'function lessonVideoOn(l){');
+  assert.ok(anim.includes('if(ot>this.t&&ot<=t){ if((q<0&&pk<0)||ot<t){ t=ot; op=i; q=-1; pk=-1; } break; }') && !anim.includes('skipOpen'), 'la lecture s’arrête sur chaque mail, à chaque fois');
+  assert.ok(!html.includes('skipOpen') && !html.includes('lvOpDone') && !html.includes('lvOpSet'), 'plus de « mail déjà ouvert » qui s’ouvre tout seul');
+  const close = cut('function lvOpClose(){', '/* ---------- Moments « À toi » joués sur l’image');
+  assert.ok(close.includes('LV.op=null;') && !close.includes('opened'), 'fermer la notification n’ouvre rien : seule la lecture qui reprend déplie le mail');
+  const nudge = cut('function lvOpNudge(){', 'function lvOpClose(){');
+  for (const part of ['if(navigator.vibrate)navigator.vibrate([10,50,10]);', "e.classList.add('is-nudge')", "classList.remove('is-nudge')"])
+    assert.ok(nudge.includes(part), `notification qui remue : ${part}`);
+  for (const part of ['.lv-op-spot.is-nudge{animation:lvOpPulse', '.lv-op-tip.is-nudge{animation:lvOpWiggle', '@keyframes lvOpWiggle{', 'html[data-motion="reduce"] .lv-op-spot.is-nudge'])
+    assert.ok(html.includes(part), `style : ${part}`);
+  assert.ok(cut('/* Saut de ±5 s', 'function lvSpeedMenu(open){').includes('if(LV.op)lvOpClose();'), 'sauter par-dessus (barre, ±5 s) ne l’ouvre pas non plus');
 });
 
 test('moments « À toi » : la légende annonce le moment sans répéter la consigne de la carte, l’attente est coupée', () => {
@@ -2143,4 +2216,24 @@ test('Quel JOIN choisir ? : chaque étiquette montre le résultat de SQLite (ord
   const [r, mk] = ctx.diff(rows(2, 'RIGHT'), rows(2, 'LEFT'));
   assert.equal(JSON.stringify(mk), '["","","","x","m"]', 'aquarium avec RIGHT : la tortue en trop, les Abysses manquantes');
   assert.equal(JSON.stringify(r[4]), '["Abysses",null]');
+});
+
+test('deux réponses enchaînées aux moments « À toi » : la pastille rouge du mauvais geste ne reste pas, clear() retire la classe de flash() sans attendre le minuteur', () => {
+  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html']) {
+    const src = fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8');
+    const clearSrc = src.match(/function clear\(\)\{\n[\s\S]*?\n  \}/)?.[0], flashSrc = src.match(/const flash = \(e, c, ms = 600\) => \{[^\n]*\};/)?.[0];
+    assert.ok(clearSrc && flashSrc, `${f} : clear() et flash() trouvés`);
+    const stopped = [];
+    let id = 0;
+    const ctx = vm.createContext({setTimeout: () => ++id, clearTimeout: n => stopped.push(n)});
+    const api = vm.runInContext(`let X = {cls: [], tm: []}, wait = 0; ${clearSrc}\n${flashSrc}\n({flash, clear, left: () => X})`, ctx);
+    const classes = new Set();
+    const el = {offsetWidth: 1, classList: {add: c => classes.add(c), remove: c => classes.delete(c), contains: c => classes.has(c)}};
+    api.flash(el, 'kof', 650);
+    assert.ok(classes.has('kof'), `${f} : le mauvais geste allume la pastille`);
+    api.clear();                 // le moment change (bonne réponse aussitôt après) avant la fin du minuteur de 650 ms
+    assert.ok(!classes.has('kof'), `${f} : la pastille rouge est retirée tout de suite`);
+    assert.deepEqual(stopped, [1], `${f} : le minuteur est arrêté`);
+    assert.equal(api.left(), null, `${f} : plus rien à nettoyer ensuite`);
+  }
 });

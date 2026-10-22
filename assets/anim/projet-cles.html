@@ -872,7 +872,8 @@ const IX = (() => {
   }
   const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
   const marks = (sels, c = 'pvs') => sels.forEach(s => $$(s).forEach(e => mark(e, c)));
-  const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
+  /* La classe est aussi notée dans X.cls : si le moment change avant la fin du minuteur (deux réponses enchaînées), clear() la retire. */
+  const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
   const row = (t, id) => $(`#${t}-r${id}`);
   function spots(i){
     if (i === 1) return CLIENTS.map(c => Object.assign({k: 'c' + c[0], label: `Cliente ou client ${c[0]} : ${c[1]} ${c[2]}`}, rel(row('tb-cl', c[0]))))

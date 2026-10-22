@@ -710,7 +710,8 @@ const IX = (() => {
     X = null; wait = -1;
   }
   const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
-  const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
+  /* La classe est aussi notée dans X.cls : si le moment change avant la fin du minuteur (deux réponses enchaînées), clear() la retire. */
+  const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
   const name = (r, j) => `${SHEET[r][0]}, ${COLS[j]} : ${SHEET[r][j]}`;
   function spots(i){
     if (i === 0) return SHEET.flatMap((r, ri) => r.map((v, j) => Object.assign({k: ri + '_' + j, label: name(ri, j)}, rel($('#c' + ri + '_' + j)))));

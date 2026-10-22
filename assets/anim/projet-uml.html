@@ -71,6 +71,7 @@
 .mp{height:58px;padding:0 13px;border-radius:16px;background:#fff;border:3px solid var(--line);box-shadow:0 5px 0 var(--lip);display:flex;align-items:center;font-family:var(--mono);font-size:31px;font-weight:800;color:var(--accent-ink);white-space:nowrap}
 .mp i{font-style:normal}
 .mp.bad{border-color:var(--danger-fill);color:var(--danger);background:var(--danger-soft);box-shadow:0 5px 0 #F6C9CD}
+.mp.ask{border-style:dashed;border-color:var(--accent);background:var(--accent-soft)}
 .mrg{position:absolute;left:-12px;right:-12px;top:-12px;bottom:-12px;border-radius:22px;box-shadow:0 0 0 5px var(--accent);background:rgba(106,77,244,.08);opacity:0;visibility:hidden}
 /* Ce que donnerait une mauvaise idée (moments 1 et 5) */
 .xbad{height:48px;padding:0 14px;border-radius:12px;background:var(--danger-soft);box-shadow:inset 0 0 0 3px var(--danger-fill);color:var(--danger);font-family:var(--mono);font-size:26px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
@@ -94,6 +95,9 @@
 .lg{height:84px;padding:0 24px;border-radius:24px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);display:flex;align-items:center;gap:18px;white-space:nowrap}
 .lg b{min-width:84px;font-family:var(--mono);font-size:34px;font-weight:800;color:var(--accent-ink)}
 .lg span{font-size:28px;font-weight:600;color:var(--ink-2)}
+.rel{left:64px;width:952px;display:flex;justify-content:center;gap:14px}
+.rl{position:relative;height:84px;padding:0 24px;border-radius:24px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);display:flex;align-items:center;font-size:28px;font-weight:700;color:var(--accent-ink);white-space:nowrap}
+.rlo{position:absolute;left:-3px;right:-3px;top:-3px;bottom:-3px;border-radius:24px;box-shadow:inset 0 0 0 5px var(--accent);background:rgba(106,77,244,.10);opacity:0;visibility:hidden;pointer-events:none}
 
 /* ---------- Les mails reçus : la notification (l’en-tête seul), puis le mail déplié ---------- */
 .ml{left:64px;width:952px;top:560px;height:184px;padding:0 30px;overflow:hidden}
@@ -186,7 +190,7 @@
     <div class="abs rtitle">Les trois idées à retenir</div>
     <div class="abs card recap" id="recap">
       <div class="rrow"><div class="rico emo">📐</div><div class="rtxt">Un <b>diagramme de classes</b> est le plan<br>de la base : des classes et leurs attributs,<br>reliées par des associations.</div></div>
-      <div class="rrow"><div class="rico emo">🔢</div><div class="rtxt">Une <b>multiplicité</b> s’écrit à côté de la classe<br>qu’elle compte : 1, 0..1, 0..* ou 1..*.</div></div>
+      <div class="rrow"><div class="rico emo">🔢</div><div class="rtxt">Une <b>multiplicité</b> s’écrit du côté de la classe<br>qu’elle compte : 1, 0..1, 0..* ou 1..*.</div></div>
       <div class="rrow"><div class="rico emo">🧩</div><div class="rtxt">Une classe devient une table. <b>1 — *</b> : une clé<br>étrangère du côté * ; <b>* — *</b> : une table<br>d’association.</div></div>
     </div>
   </section>
@@ -235,8 +239,8 @@ const FKS = [['clients', 'commande_id', 'co', false, 'Un client passe plusieurs 
   ['commandes', 'client_id', 'cl', true], ['produits', 'commande_id', 'co', false, 'Un produit figure dans plusieurs commandes : une seule case ne suffirait pas.'],
   ['commandes', 'produit_id', 'pr', true]];
 /* Multiplicités de l’association anime à placer (moment 2) : [étiquette, classe qu’elle compte, réponse à une erreur]. */
-const PLACE = [['1', 'co', 'À côté d’Atelier, on compte les ateliers d’un coach : Moussa Diallo en anime deux.'],
-  ['0..*', 'at', 'À côté de Coach, on compte les coachs d’un atelier : chaque atelier n’en a qu’un.']];
+const PLACE = [['1', 'co', 'Du côté de la classe Atelier, on compte les ateliers d’un coach : Moussa Diallo en anime deux.'],
+  ['0..*', 'at', 'Du côté de la classe Coach, on compte les coachs d’un atelier : chaque atelier n’en a qu’un.']];
 
 const CHAPTERS = [
   {n:1, label:'Le plan',                 a:5.0,   b:27.5},
@@ -256,25 +260,34 @@ const CAPTIONS = [
   [14.4, 16.0,   "et identifier les tables<br>auxquelles elles renvoient."],
   [22.0, 24.6,   "Pour répondre à Karim, on utilise un <b class=\"nw\">diagramme de classes UML</b>."],
   [24.7, 27.4,   "Il représente les éléments à gérer :<br>clients, coachs, ateliers et cartes."],
-  [27.7, 33.4,   "Chaque élément devient une <b>classe</b> : une boîte qui porte son nom, puis la liste de ses <b>attributs</b>."],
-  [33.5, 39.35,  "Aucune clé ici : le diagramme décrit les éléments, pas la façon de les ranger."],
+  [27.7, 33.6,   "Chaque élément à gérer est représenté par une <b>classe</b>. Elle porte un nom et contient des <b>attributs</b> :"],
+  [33.7, 38.2,   "les informations qui le décrivent,<br>comme le prénom, le nom<br>et l’e-mail d’un client."],
+  [38.3, 39.35,  "Aucune clé ici : le diagramme décrit les éléments, pas la façon de les ranger."],
   [39.45, 42.0,  "À toi !"],
   [42.1, 47.9,   "Ce trait est une <b>association</b>. Elle se lit dans le sens du triangle : un coach anime des ateliers."],
   [48.0, 53.5,   "Deux autres associations suivent : un client <b>s’inscrit à</b> des ateliers, et <b>possède</b> une carte de membre."],
-  [53.9, 59.5,   "Aux deux bouts d’une association, une <b>multiplicité</b> indique combien d’objets sont reliés."],
-  [59.6, 65.65,  "On l’écrit à côté de la classe qu’elle compte : combien de ses objets, pour un seul objet en face ?"],
+  [53.9, 59.5,   "La <b>multiplicité</b> indique combien d’éléments d’une classe peuvent être liés à un seul élément de l’autre."],
+  [59.6, 65.65,  "Par exemple, pour un coach, combien d’ateliers ? On écrit la réponse du côté de la classe Atelier."],
   [65.75, 68.3,  "À toi !"],
-  [68.4, 74.3,   "Un atelier a un seul coach : <b>1</b>, à côté de Coach. Un coach anime zéro, un ou plusieurs ateliers : <b>0..*</b>."],
-  [74.4, 80.25,  "Pour <b>s’inscrit à</b> : un client suit zéro, un ou plusieurs ateliers, donc <b>0..*</b> à côté d’Atelier."],
+  [68.4, 71.3,   "Chaque atelier est animé<br>par un seul coach : on place <b>1</b><br>du côté de la classe Coach."],
+  [71.4, 74.3,   "Un coach peut animer zéro,<br>un ou plusieurs ateliers : on place <b>0..*</b><br>du côté de la classe Atelier."],
+  [74.4, 80.25,  "Pour <b>s’inscrit à</b> : un client suit zéro, un ou plusieurs ateliers, donc <b>0..*</b> du côté de la classe Atelier."],
   [80.35, 82.9,  "À toi !"],
-  [83.0, 88.8,   "L’atelier Yoga du matin n’a encore aucun inscrit, l’atelier Récupération en a trois : on écrit <b>0..*</b> à côté de Client."],
-  [88.9, 94.7,   "La date d’inscription décrit la relation : elle va dans une <b>classe d’association</b>, accrochée au trait par des pointillés."],
+  [83.0, 87.0,   "L’atelier Yoga du matin<br>n’a encore aucun inscrit,<br>l’atelier Récupération en a trois :"],
+  [87.1, 88.8,   "on écrit <b>0..*</b> du côté de la classe Client."],
+  [88.9, 91.1,   "La date d’inscription indique quand un client s’est inscrit à un atelier précis."],
+  [91.2, 93.1,   "On la place dans Inscription, une <b class=\"nw\">classe d’association</b>"],
+  [93.2, 94.7,   "reliée par des pointillés à la relation entre Client et Atelier."],
   [94.8, 100.6,  "Enfin, un client possède une carte de membre ou aucune, et une carte n’a qu’un seul client."],
-  [101.0, 106.65, "Le plan est complet : il se lit sans ouvrir une seule table."],
+  [101.0, 104.6, "Le diagramme est maintenant complet : il présente les informations à conserver et les relations entre les classes."],
+  [104.7, 106.65, "Karim pourra s’appuyer dessus pour créer la base de données."],
   [106.75, 109.3, "À toi !"],
-  [109.4, 115.3, "C’est le <b>0..1</b>, à côté de Carte : zéro ou une carte par client. Son maximum vaut 1 : pas de deuxième carte."],
+  [109.4, 112.4, "C’est le <b>0..1</b>, du côté de la classe Carte : zéro ou une carte par client."],
+  [112.5, 115.3, "Son maximum vaut 1 :<br>pas de deuxième carte."],
   [115.7, 121.6, "Pour créer la base, chaque classe devient une <b>table</b>, avec sa clé primaire <code>id</code> ; chaque attribut, une colonne."],
-  [121.7, 127.3, "Pour une association, seul le <b>maximum</b> de chaque bout compte : 1 ou *."],
+  [121.7, 123.3, "Pour traduire une association en tables, on regarde d’abord"],
+  [123.4, 125.0, "le <b>maximum</b> de chaque côté : <b>1</b> ou plusieurs (<b>*</b>)."],
+  [125.1, 127.3, "Cela permet de reconnaître une relation<br>un à un, un à plusieurs<br>ou plusieurs à plusieurs."],
   [127.4, 133.2, "<b>anime</b>, 1 — 0..* : <code>coach_id</code> va du côté *, dans la <b>table ateliers</b> : chaque atelier n’a qu’un coach à indiquer."],
   [133.3, 139.1, "<b>possède</b>, 1 — 0..1 : <code>client_id</code> va dans la <b>table cartes</b>, et devient unique."],
   [139.2, 145.25, "<b>s’inscrit à</b>, * des deux côtés : elle devient une <b>table d’association</b>, la table inscriptions."],
@@ -299,10 +312,10 @@ const PICKS = [
     {label: 'Un attribut coach_id dans la classe Atelier', why: 'Le diagramme ne montre aucune clé : coach_id n’apparaîtra qu’en créant les tables.'},
     {label: 'Un trait entre Coach et Atelier, nommé «\u00a0anime\u00a0»', ok: true},
     {label: 'Une nouvelle classe Animation', why: 'Une classe décrit un élément, avec ses attributs : ici, il n’y a qu’une relation entre deux classes.'}]},
-  {at: 68.1, from: 53.7, kind: 'sort', prompt: 'Place chaque multiplicité au bon bout de l’association « anime ».',
-    hint: 'Touche une multiplicité ci-dessous, puis la classe qu’elle compte. Tu peux aussi la faire glisser.', next: '{x} : touche maintenant la classe qu’elle compte.',
+  {at: 68.1, from: 53.7, kind: 'sort', prompt: 'Place les multiplicités 1 et 0..* aux bonnes extrémités de l’association « anime ».',
+    hint: 'Touche une multiplicité, puis la classe à côté de laquelle tu veux la placer. Tu peux aussi la faire glisser.', next: '{x} : touche maintenant la classe à côté de laquelle tu veux la placer.',
     options: PLACE.map(p => ({label: p[0]}))},
-  {at: 82.7, from: 74.4, kind: 'pick', prompt: 'Et à côté de Client : combien de clients pour un atelier ?', options: [
+  {at: 82.7, from: 74.4, kind: 'pick', prompt: 'Et du côté de la classe Client : combien de clients pour un atelier ?', options: [
     {label: '1..*'},   // pas de correction écrite : la légende qui suit l’explique (Yoga du matin, aucun inscrit)
     {label: '0..1'},   // (Récupération, trois inscrits)
     {label: '0..*', ok: true}]},
@@ -365,6 +378,9 @@ function dom(){
   /* Ce que donneraient les mauvaises idées : coach_id dans la classe Atelier, une classe Animation, une autre multiplicité, des clés oubliées */
   b += '<div class="abs xbad hid" id="xm1">coach_id</div><div class="abs xghost hid" id="xm2">Animation</div><div class="abs mp bad hid" id="xm3"><i>?</i></div>';
   b += '<div class="abs mq hid" id="xm5"><span class="miss">? client</span><span class="miss">? atelier</span></div>';
+  /* La pastille « ? » montre où s’écrit la réponse ; sous le diagramme, les trois sortes de relations. */
+  b += '<div class="abs mp ask" id="ph-an"><i>?</i></div>';
+  b += '<div class="abs rel" id="rel">' + ['un à un', 'un à plusieurs', 'plusieurs à plusieurs'].map(t => `<div class="rl">${t}<i class="rlo"></i></div>`).join('') + '</div>';
   $('#sb').innerHTML = b;
   /* 5 · La boutique : ses trois classes (leur nom seul), ses deux associations, puis les clés étrangères proposées */
   let h = '<div class="abs shtit" id="sh-t"><span class="emo">🛒</span>Le diagramme de la boutique</div>';
@@ -403,7 +419,7 @@ function layout(){
   at2('#an-an', xa - 20 - an.offsetWidth, (co.y + co.h + atl.y) / 2 - an.offsetHeight / 2);
   at2('#an-po', xp + 20, (ca.y + ca.h + cl.y) / 2 - ap.offsetHeight / 2);
   at2('#an-in', 540 - ai.offsetWidth / 2, yi + 16);
-  // Multiplicités : au bout de chaque trait, à côté de la classe qu’elles comptent
+  // Multiplicités : au bout de chaque trait, du côté de la classe qu’elles comptent
   const mp = id => $('#mp-' + id);
   // (écart d’au moins 24 px avec chaque boîte, ombre comprise : 9 px sous une carte, 5 px sous une pastille)
   at2('#mp-an-co', xa + 22, co.y + co.h + 9 + 24);
@@ -420,6 +436,9 @@ function layout(){
   at2('#xm5', A.x + A.w / 2 - $('#xm5').offsetWidth / 2, A.y + A.h + 14);
   // Les multiplicités, rappelées sous le diagramme
   $('#leg').style.top = (cl.y + cl.h + 9 + 40) + 'px';
+  // La pastille « ? » à la place de la multiplicité d’Atelier ; les trois sortes de relations, sous les tables (qui ont gagné leur clé primaire : 52 px)
+  at2('#ph-an', xa + 22, atl.y - 24 - 5 - $('#ph-an').offsetHeight);
+  $('#rel').style.top = (cl.y + cl.h + 52 + 9 + 40) + 'px';
   // La boutique : Client, Commande et Produit l’un sous l’autre, chaque nom d’association à droite de son trait, chaque
   // multiplicité à gauche ; à droite, les quatre clés étrangères proposées
   at2('#sh-t', 64, 236);
@@ -452,6 +471,14 @@ const tint = (k, t, d = 0.15) => tl.fromTo('#sr-' + k, {backgroundColor: `rgba($
 const untint = (k, t, d = 0.2) => tl.to('#sr-' + k, {backgroundColor: `rgba(${RGB[k]},0)`, duration: d, ease: 'power2.in'}, t);
 const halo = (el, k, t) => tl.fromTo(el, {boxShadow: `inset 0 0 0 3px rgb(${RGB[k]}), 0 0 0 0px rgba(${RGB[k]},0)`},
   {boxShadow: `inset 0 0 0 3px rgb(${RGB[k]}), 0 0 0 7px rgba(${RGB[k]},.25)`, duration: 0.25, ease: 'power2.out', immediateRender: false}, t);
+/* Une classe s’entoure de sa couleur (le liseré .hlo) et rebondit. */
+const lite = (k, t, d = 0.45, s = 1.04) => {
+  tl.fromTo(`#cb-${k} .hlo`, {autoAlpha: 0}, {autoAlpha: 1, duration: 0.15, ease: 'power2.out', immediateRender: false}, t);
+  tl.to(`#cb-${k} .hlo`, {autoAlpha: 0, duration: 0.25, ease: 'power2.in'}, t + d);
+  bump(`#cb-${k}`, t, s);
+};
+/* Un trait d’association s’allume un instant. */
+const glow = (id, t) => tl.to(id, {stroke: '#6A4DF4', strokeWidth: 9, duration: 0.2, yoyo: true, repeat: 1, ease: 'power1.inOut'}, t);
 /* Un trait qui se dessine depuis son premier bout. */
 function draw(id, t, d = 0.5){
   const l = $(id), x1 = +l.getAttribute('x1'), y1 = +l.getAttribute('y1'), x2 = +l.getAttribute('x2'), y2 = +l.getAttribute('y2');
@@ -569,8 +596,18 @@ function build(){
   });
 
   /* ===== 2 · Les classes ===== */
-  CLASSES.forEach(([k], q) => { bump(`#cb-${k} .cn`, 28.6 + q * 0.3, 1.12); cue(28.6 + q * 0.3, 'tick', 0.45, q); });
-  $$('#sb .ar:not(.ini)').forEach((r, q) => pulse(r, 30.4 + q * 0.07, 1));
+  // « une classe » : les quatre classes s’entourent
+  ['co', 'ca', 'at', 'cl'].forEach(k => lite(k, 28.8, 0.55));
+  cue(28.8, 'pop', 0.6, 2);
+  // « un nom » : chaque nom rebondit
+  CLASSES.forEach(([k], q) => { bump(`#cb-${k} .cn`, 31.3 + q * 0.25, 1.12); cue(31.3 + q * 0.25, 'tick', 0.45, q); });
+  // « des attributs » : les lignes s’allument en vague
+  $$('#sb .cls:not(.acl) .ar:not(.ini)').forEach((r, q) => pulse(r, 32.45 + q * 0.03, 1));
+  cue(32.45, 'tick', 0.5, 3); cue(32.65, 'tick', 0.5, 5);
+  // « le prénom, le nom et l’e-mail d’un client » : Client s’entoure, puis ses trois lignes s’allument
+  lite('cl', 35.2, 0.7, 1.03);
+  cue(35.2, 'tick', 0.5, 1);
+  ['a0', 'a1', 'a2'].forEach((a, q) => { pulse(`#cb-cl-${a}`, 36.0 + q * 0.6, 1); cue(36.0 + q * 0.6, 'tick', 0.5, q + 2); });
   // À toi : comment montrer la relation (réponse : un trait nommé « anime »)
   const a0 = +(PICKS[0].at + 0.02).toFixed(2);
   tl.set(M1_ANS, {autoAlpha: 1}, a0);
@@ -581,30 +618,73 @@ function build(){
   /* ===== 3 · Les multiplicités ===== */
   gsap.set('.lg', {autoAlpha: 0, y: 30});
   $$('.lg').forEach((g, q) => { tl.to(g, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'back.out(1.6)'}, 54.6 + q * 0.25); cue(54.6 + q * 0.25, 'pop', 0.5, q); });
-  // À toi : 1 à côté de Coach, 0..* à côté d’Atelier
+  // « pour un coach, combien d’ateliers ? » : Coach, puis Atelier s’entourent ; « du côté de la classe Atelier » : la pastille « ? » marque la place (retirée avant « À toi »)
+  lite('co', 60.9, 0.6); cue(60.9, 'tick', 0.5, 1);
+  lite('at', 62.0, 0.6); cue(62.0, 'tick', 0.5, 3);
+  pop('#ph-an', 63.9, 0.5);
+  hide('#ph-an', 65.0, {y: 0, scale: 0.6}, 0.3);
+  // À toi : 1 du côté de la classe Coach, 0..* du côté de la classe Atelier
   const a1 = +(PICKS[1].at + 0.02).toFixed(2);
   tl.set(['#mp-an-co', '#mp-an-at'], {autoAlpha: 1}, a1);
+  // « on place 1 du côté de la classe Coach » : Atelier, Coach s’entourent, le 1 rebondit
+  lite('at', 69.2, 0.5); cue(69.2, 'tick', 0.5, 1);
+  lite('co', 70.2, 0.5); cue(70.2, 'tick', 0.5, 3);
+  bump('#mp-an-co', 70.5, 1.3); cue(70.5, 'pop', 0.6, 4);
+  // « on place 0..* du côté de la classe Atelier » : Coach, Atelier s’entourent, le 0..* rebondit
+  lite('co', 71.9, 0.5); cue(71.9, 'tick', 0.5, 1);
+  lite('at', 72.8, 0.5); cue(72.8, 'tick', 0.5, 3);
+  bump('#mp-an-at', 73.3, 1.3); cue(73.3, 'pop', 0.6, 4);
+  // « Pour s’inscrit à… » : le trait, Client, Atelier s’allument, puis le 0..* se pose
+  glow('#ln-in', 74.9); bump('#an-in', 74.9, 1.1); cue(74.9, 'tick', 0.5, 2);
+  lite('cl', 75.8, 0.6); cue(75.8, 'tick', 0.5, 1);
+  lite('at', 77.2, 0.6); cue(77.2, 'tick', 0.5, 3);
   hide('.lg', 74.45, {y: 30}, 0.35);
-  // s’inscrit à : 0..* à côté d’Atelier
-  pop('#mp-in-at', 77.4, 0.5);
-  // À toi : à côté de Client (réponse : 0..*)
+  pop('#mp-in-at', 78.6, 0.5);
+  // À toi : du côté de la classe Client (réponse : 0..*)
   const a2 = +(PICKS[2].at + 0.02).toFixed(2);
   tl.set('#mp-in-cl', {autoAlpha: 1}, a2);
-  // la classe d’association, accrochée au trait en pointillés
-  draw('#ln-cx', 89.8, 0.35);
-  show('#ab', 90.1, {y: 30, scale: 0.92}, 0.5, 'back.out(1.6)'); cue(90.1, 'pop', 0.55, 4);
-  tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25, yoyo: true, repeat: 3}, 91.2);
-  // possède, dans l’ordre de la légende : 0..1 à côté de Carte, puis 1 à côté de Client (la légende ne les nomme pas :
-  // c’est le moment 4 qui demande lequel interdit une deuxième carte)
+  // « Yoga du matin… aucun inscrit… trois » : Client reste entouré le temps de lire ; « on écrit 0..* » : la pastille rebondit
+  lite('at', 83.4, 0.7); cue(83.4, 'tick', 0.5, 1);
+  lite('cl', 85.2, 2.1); cue(85.2, 'tick', 0.5, 3);
+  bump('#mp-in-cl', 87.5, 1.3); cue(87.5, 'pop', 0.6, 4);
+  // « La date d’inscription indique quand un client s’est inscrit à un atelier » : l’association s’allume, Client et Atelier restent entourés
+  glow('#ln-in', 89.3); cue(89.3, 'tick', 0.5, 2);
+  lite('cl', 89.6, 1.5); lite('at', 89.6, 1.5); cue(89.6, 'tick', 0.5, 1);
+  // « On la place dans Inscription » : la classe arrive, sa ligne date_inscription s’allume (et le reste)
+  show('#ab', 91.6, {y: 30, scale: 0.92}, 0.5, 'back.out(1.6)'); cue(91.6, 'pop', 0.55, 4);
+  tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25}, 92.2);
+  cue(92.2, 'tick', 0.5, 4);
+  // « reliée par des pointillés » : le trait en pointillés se dessine, l’association s’allume
+  draw('#ln-cx', 93.55, 0.35);
+  glow('#ln-in', 93.95); bump('#an-in', 93.95, 1.1); cue(93.95, 'tick', 0.5, 2);
+  tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,0)', duration: 0.3}, 94.6);
+  // possède, dans l’ordre de la légende : 0..1 (Carte), puis 1 (Client) ; le moment 4 demande lequel interdit une deuxième carte
   pop('#mp-po-ca', 97.0, 0.5);
   pop('#mp-po-cl', 98.4, 0.5);
 
   /* ===== 4 · Lire le diagramme ===== */
-  bump(['#cb-co', '#cb-ca', '#cb-at', '#cb-cl', '#ab'], 101.6, 1.03);
-  // À toi : la multiplicité qui interdit deux cartes (réponse : 0..1, à côté de Carte)
+  // « complet » : les cinq classes rebondissent, un tampon sonne
+  bump(['#cb-co', '#cb-ca', '#cb-at', '#cb-cl', '#ab'], 101.5, 1.03); cue(101.5, 'stamp', 0.6);
+  // « les informations » : les attributs s’allument en vague
+  $$('#sb .ar:not(.ini)').forEach((r, q) => pulse(r, 102.4 + q * 0.04, 1));
+  cue(102.4, 'tick', 0.5, 3); cue(102.6, 'tick', 0.5, 5);
+  // « les relations » : les trois traits et leurs noms s’allument, et le restent le temps de lire
+  tl.to(['#ln-an', '#ln-in', '#ln-po'], {stroke: '#6A4DF4', strokeWidth: 8, duration: 0.25, ease: 'power1.inOut'}, 103.6);
+  bump(['#an-an', '#an-in', '#an-po'], 103.6, 1.1); cue(103.6, 'tick', 0.5, 2); cue(103.75, 'tick', 0.5, 4);
+  tl.to(['#ln-an', '#ln-in', '#ln-po'], {stroke: '#4B4570', strokeWidth: 5, duration: 0.3, ease: 'power1.inOut'}, 104.4);
+  // « Karim pourra s’appuyer dessus » : les classes s’entourent l’une après l’autre
+  ['co', 'at', 'cl', 'ca'].forEach((k, q) => { lite(k, 105.1 + q * 0.15, 0.45, 1.03); cue(105.1 + q * 0.15, 'tick', 0.5, q); });
+  // À toi : la multiplicité qui interdit deux cartes (réponse : 0..1, du côté de la classe Carte)
   const a3 = +(PICKS[3].at + 0.02).toFixed(2);
   tl.set('#rg-po-ca', {autoAlpha: 1}, a3);
+  // « C’est le 0..1, du côté de la classe Carte… par client » : la pastille rebondit, Carte puis Client s’entourent
+  bump('#mp-po-ca', 109.8, 1.25); lite('ca', 109.8, 0.6); cue(109.8, 'pop', 0.6, 4);
+  lite('cl', 111.2, 0.6); cue(111.2, 'tick', 0.5, 2);
+  // « Son maximum vaut 1 » : le 0.. s’estompe (il revient avec la suite)
+  tl.to('#mp-po-ca .mn', {opacity: 0.28, duration: 0.4, ease: 'power2.out'}, 113.0);
+  bump('#mp-po-ca', 113.0, 1.25); cue(113.0, 'tick', 0.5, 4);
   tl.to('#rg-po-ca', {autoAlpha: 0, duration: 0.35}, 115.2);
+  tl.to('#mp-po-ca .mn', {opacity: 1, duration: 0.3}, 115.2);
 
   /* ===== 5 · Du diagramme aux tables ===== */
   // chaque classe devient une table, avec sa clé primaire
@@ -612,9 +692,22 @@ function build(){
   // les deux multiplicités du haut descendent avec leur table
   tl.to('#mp-an-co', {y: 52, duration: 0.4, ease: 'power2.inOut'}, 116.75);
   tl.to('#mp-po-ca', {y: 52, duration: 0.4, ease: 'power2.inOut'}, 117.05);
-  // seul le maximum compte
-  tl.to('#sb .mp .mn', {opacity: 0.28, duration: 0.4, ease: 'power2.out'}, 122.7);
-  $$('#sb .mp:not(.bad)').forEach((m, q) => bump(m, 123.3 + q * 0.12, 1.12));
+  // « traduire une association » : les trois associations s’allument
+  ['an', 'in', 'po'].forEach((k, q) => { glow('#ln-' + k, 122.0 + q * 0.2); bump('#an-' + k, 122.0 + q * 0.2, 1.1); cue(122.0 + q * 0.2, 'tick', 0.5, q); });
+  // « le maximum de chaque côté » : le minimum s’estompe, chaque pastille rebondit
+  tl.to('#sb .mp:not(.ask) .mn', {opacity: 0.28, duration: 0.4, ease: 'power2.out'}, 123.7);
+  $$('#sb .mp:not(.bad):not(.ask)').forEach((m, q) => { bump(m, 123.9 + q * 0.06, 1.12); cue(123.9 + q * 0.06, 'tick', 0.35, q); });
+  // « un à un, un à plusieurs, plusieurs à plusieurs » : les trois sortes de relations se posent sous le diagramme, puis chacune
+  // s’allume avec son association (anime : un à plusieurs, possède : un à un, s’inscrit à : plusieurs à plusieurs)
+  const RL = $$('.rl');
+  gsap.set(RL, {autoAlpha: 0, y: 24});
+  RL.forEach((p, q) => { tl.to(p, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'back.out(1.6)'}, 125.5 + q * 0.4); cue(125.5 + q * 0.4, 'pop', 0.55, q); });
+  const rlOn = (q, t) => { tl.to(RL[q].querySelector('.rlo'), {autoAlpha: 1, duration: 0.2}, t); tl.to(RL[q], {scale: 1.06, duration: 0.2, ease: 'back.out(2)'}, t); cue(t, 'tick', 0.5, q + 2); };
+  const rlOff = (q, t) => { tl.to(RL[q].querySelector('.rlo'), {autoAlpha: 0, duration: 0.25}, t); tl.to(RL[q], {scale: 1, duration: 0.25}, t); };
+  rlOn(1, 127.7); glow('#ln-an', 127.8); bump(['#mp-an-co', '#mp-an-at'], 127.8, 1.15); rlOff(1, 133.35);
+  rlOn(0, 133.65); glow('#ln-po', 133.75); bump(['#mp-po-ca', '#mp-po-cl'], 133.75, 1.15); rlOff(0, 139.25);
+  rlOn(2, 139.55); glow('#ln-in', 139.65); bump(['#mp-in-at', '#mp-in-cl'], 139.65, 1.15);
+  tl.to(RL, {autoAlpha: 0, y: 24, duration: 0.3, ease: 'power2.in'}, 144.9);
   // anime : coach_id dans la table ateliers
   off(['#ln-an', '#an-an', '#mp-an-co', '#mp-an-at'], 128.6, 0.35);
   addRow('#cb-at-fk', 129.0);
@@ -681,7 +774,8 @@ const IX = (() => {
   }
   const mark = (e, c = 'pvs') => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
   const marks = (sels, c = 'pvs') => sels.forEach(s => $$(s).forEach(e => mark(e, c)));
-  const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
+  /* La classe est aussi notée dans X.cls : si le moment change avant la fin du minuteur (deux réponses enchaînées), clear() la retire. */
+  const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
   const pad = (r, p) => ({x: r.x - p, y: r.y - p, w: r.w + 2 * p, h: r.h + 2 * p});
   /* Les six multiplicités du diagramme : [clé de la zone, valeur, classe comptée, l’autre classe]. */
   const MPS = ASSOCS.flatMap(([k, , , a, ma, c, mc]) => [[`${k}-${a}`, ma, a, c], [`${k}-${c}`, mc, c, a]]);
@@ -691,7 +785,7 @@ const IX = (() => {
       const A = rel($('#cb-co')), B = rel($('#cb-at')), mid = (A.y + A.h + B.y) / 2;
       return [{k: 'co', label: 'Classe Coach', x: A.x, y: A.y, w: A.w, h: mid - A.y}, {k: 'at', label: 'Classe Atelier', x: B.x, y: mid, w: B.w, h: B.y + B.h - mid}];
     }
-    if (i === 3) return MPS.map(([k, m, s]) => Object.assign({k, label: `${m}, à côté de ${NOM[s]}`}, pad(rel($('#mp-' + k)), 16)));
+    if (i === 3) return MPS.map(([k, m, s]) => Object.assign({k, label: `${m}, du côté de la classe ${NOM[s]}`}, pad(rel($('#mp-' + k)), 16)));
     if (i === 5) return FKS.map(([t, c], j) => Object.assign({k: 'fk' + j, label: `${t}.${c}`}, pad(rel($('#fk' + j)), 4)));
     return [];
   }
@@ -747,8 +841,8 @@ const IX = (() => {
   }
   /* Indice, après deux erreurs : une piste, et les endroits à regarder. */
   function hint(i){
-    if (i === 1) return {text: 'Pour un atelier, combien de coachs ? Ce nombre s’écrit à côté de Coach.'};
-    if (i === 3) return {text: 'Cherche la multiplicité écrite à côté de Carte.', keys: ['po-ca']};
+    if (i === 1) return {text: 'Pour un atelier, combien de coachs ? Ce nombre s’écrit du côté de la classe Coach.'};
+    if (i === 3) return {text: 'Cherche la multiplicité écrite du côté de la classe Carte.', keys: ['po-ca']};
     if (i === 5) return {text: 'Une clé étrangère va du côté * : cherche la classe qui porte les deux 0..*.', keys: FKS.map((f, j) => f[3] ? 'fk' + j : '').filter(Boolean)};
     return null;
   }
