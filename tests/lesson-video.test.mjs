@@ -1531,7 +1531,7 @@ test('moment déjà réussi (vidéo revue, retour en arrière) : il s’ouvre r�
     "sr.textContent=`${kept?'Déjà fait':'À toi'} : ", "box.querySelector(kept?'.lv-pk-go':'.lv-pk-card').focus("])
     assert.ok(show.includes(part), `ouverture : ${part}`);
   const kept = cut('function lvPkKept(P,a){', 'function lvPkRestore(P,d){');
-  for (const part of ['P.done=true;', "box.classList.add('is-ok','is-kept');", 'lvPkValid(P,a.first,true);', "if(dot)dot.className=a.first?'ok':'try';",
+  for (const part of ['P.done=true;', "box.classList.add('is-ok','is-kept');", 'lvPkValid(P,a.first,false);', "if(dot)dot.className=a.first?'ok':'try';",
     'if(cnt)cnt.textContent=`${P.total} / ${P.total}`;', "b.classList.add(j===k?'is-ok':'is-gone')", "w.className='lv-pk-why ok'; w.hidden=false;", "else opts.classList.add('is-won');",
     "if(P.layer)P.layer.classList.add('is-done');", "go.hidden=false; go.classList.add('is-ready');", 'LV.video.currentTime=Math.min(P.p.t+.05,'])
     assert.ok(kept.includes(part), `résolu : ${part}`);
@@ -1600,8 +1600,8 @@ test('moment réussi : la validation bien en avant, coche verte animée et « Bi
     "top.querySelectorAll('.lv-pk-kick,.lv-pk-cnt').forEach(e=>{ e.hidden=true; });"])
     assert.ok(valid.includes(part), `badge : ${part}`);
   assert.ok(cut('function lvPkVerdict(', 'function lvPkFrom(i){').includes("P.box.classList.add('is-ok');\n    lvPkValid(P,first,true);") && cut('function lvPkWin(', 'function lvEndHide(){').includes('lvPkValid(P,first,true);')
-    && cut('function lvPkKept(P,a){', 'function lvPkRestore(P,d){').includes('lvPkValid(P,a.first,true);') && !html.includes('✓ Trouvé !'),
-    'au choix, aux gestes, et pour un moment déjà fait ; plus de « Trouvé ! »');
+    && cut('function lvPkKept(P,a){', 'function lvPkRestore(P,d){').includes('lvPkValid(P,a.first,false);') && !html.includes('✓ Trouvé !'),
+    'au choix, aux gestes, et pour un moment déjà fait : là, le badge final sans animation (« Bien rattrapé ! » sans repasser par « Raté ») ; plus de « Trouvé ! »');
   /* Trouvé après une erreur : la croix rouge du premier essai se trace puis s’efface, le rond passe à l’orange, la coche se trace,
      « Raté » laisse la place à « Bien rattrapé ! » ; sans animation, directement l’état orange. Le point du moment reste rouge. */
   for (const part of ['.lv-pk-ok.is-late{color:#B45309}', '.lv-pk-ok.is-late .c{fill:#EE8A1A}', '.lv-pk-ok .was{display:none}', '.lv-pk-ok.is-late.is-anim .was{display:inline}',
