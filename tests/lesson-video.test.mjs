@@ -849,8 +849,8 @@ const COURSES = [
       "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 129.8, from: 119.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}", "{at: 141.4, from: 135.95, kind: 'pick',",
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
-  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 11', notesAt: 167.9,
-    notes: /notes:\{t:244\.6,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 26', notesAt: 167.9,
+    notes: /notes:\{t:259\.25,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Tes tables sont prêtes&nbsp;:<br>à toi de les relier avec des clés.',
     chapters: ['Le problème', 'La clé primaire', 'La clé étrangère', '1 → N', 'N ↔ N', '1 ↔ 1', 'À retenir'],
     traps: ["const INSCR = [[1, 1, 1, '2026-09-01'], [2, 4, 1, '2026-09-02'], [3, 5, 2, '2026-09-03'], [4, 7, 3, '2026-09-04'],",
@@ -1289,7 +1289,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
 
 test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre 1 relié par des clés, chaque réponse vérifiée dans SQLite', async () => {
   const l72 = cut('guide({ id:72, titre:"Clés et relations"', 'guide({ id:81,');
-  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'4 min 11',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'4 min 26',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1379,6 +1379,12 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.ok(D.MAILS[0][4].includes(`l’atelier ${atl(D.NOUVELLE[2])[1]} du ${+atl(D.NOUVELLE[2])[2].slice(8)} septembre`), 'le mail demande cet atelier, à sa date');
   assert.equal(D.NOUVELLE[0], D.INSCR.length + 1, 'une ligne de plus, avec le numéro suivant');
   assert.equal(D.PICKS[4].prompt, `Sophie Martin s’inscrit aussi à l’atelier ${atl(D.NOUVELLE[2])[1]}. Comment l’enregistrer ?`, 'la question nomme l’atelier comme tel');
+  /* Le mail de l’équipe, en trois paragraphes : un forfait de 10 séances qui diminue, une carte par client, et ce que la base doit garder
+     (la carte, son propriétaire, les séances restantes : les colonnes de la table cartes). Aucune carte au-dessus du forfait. */
+  const m2 = [].concat(D.MAILS[1][4]);
+  assert.ok(m2.length === 3 && m2[0].includes('un forfait de 10 séances') && m2[0].includes('après 3 séances, il en reste 7') && m2[1].includes('une seule carte')
+    && m2[2].includes('chaque carte, son propriétaire et le nombre de séances restantes') && D.CARTES.every(c => c[2] <= 10), 'le mail de l’équipe NutriBoost');
+  assert.ok(page.includes("readTime(sn.slice(1, -2).map(s => s.textContent).join(' '))"), 'le temps de lire tous les paragraphes du mail');
   /* La réponse expliquée : une ligne dans inscriptions, avec l’identifiant de la cliente, celui de l’atelier (entourés à l’image,
      avec ce qu’ils désignent) et la date. */
   const m5 = [`Pour inscrire ${D.CLIENTS.find(c => c[0] === D.NOUVELLE[1])[1]} à l’atelier ${atl(D.NOUVELLE[2])[1]}, on ajoute une ligne dans <code>inscriptions</code> :`,
