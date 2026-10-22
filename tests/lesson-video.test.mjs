@@ -849,8 +849,8 @@ const COURSES = [
       "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 129.8, from: 119.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}", "{at: 141.4, from: 135.95, kind: 'pick',",
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
-  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 02', notesAt: 167.9,
-    notes: /notes:\{t:234\.9,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 06', notesAt: 167.9,
+    notes: /notes:\{t:239\.4,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Tes tables sont prêtes&nbsp;:<br>à toi de les relier avec des clés.',
     chapters: ['Le problème', 'La clé primaire', 'La clé étrangère', '1 → N', 'N ↔ N', '1 ↔ 1', 'À retenir'],
     traps: ["const INSCR = [[1, 1, 1, '2026-09-01'], [2, 4, 1, '2026-09-02'], [3, 5, 2, '2026-09-03'], [4, 7, 3, '2026-09-04'],",
@@ -1289,7 +1289,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
 
 test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre 1 relié par des clés, chaque réponse vérifiée dans SQLite', async () => {
   const l72 = cut('guide({ id:72, titre:"Clés et relations"', 'guide({ id:81,');
-  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'4 min 02',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'4 min 06',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1379,6 +1379,14 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.ok(D.MAILS[0][4].includes(`l’atelier ${atl(D.NOUVELLE[2])[1]} du ${+atl(D.NOUVELLE[2])[2].slice(8)} septembre`), 'le mail demande cet atelier, à sa date');
   assert.equal(D.NOUVELLE[0], D.INSCR.length + 1, 'une ligne de plus, avec le numéro suivant');
   assert.equal(D.PICKS[4].prompt, `Sophie Martin s’inscrit aussi à l’atelier ${atl(D.NOUVELLE[2])[1]}. Comment l’enregistrer ?`, 'la question nomme l’atelier comme tel');
+  /* La réponse expliquée : une ligne dans inscriptions, avec l’identifiant de la cliente, celui de l’atelier (entourés à l’image,
+     avec ce qu’ils désignent) et la date. */
+  const m5 = [`Pour inscrire ${D.CLIENTS.find(c => c[0] === D.NOUVELLE[1])[1]} à l’atelier ${atl(D.NOUVELLE[2])[1]}, on ajoute une ligne dans <code>inscriptions</code> :`,
+    `son identifiant (${D.NOUVELLE[1]}), celui de l’atelier (${D.NOUVELLE[2]}) et la date d’inscription.`];
+  const i5 = D.CAPTIONS.findIndex(c => c[2] === m5[0]);
+  assert.ok(i5 > 0 && D.CAPTIONS[i5 - 1][2] === 'À toi !' && D.CAPTIONS[i5][0] > D.PICKS[4].at && D.CAPTIONS[i5 + 1][2] === m5[1], 'moment 5 expliqué : la nouvelle ligne, ses deux numéros et la date');
+  assert.ok(page.includes('on(neuf.cl, 113.2);') && page.includes('on(neuf.at, 113.75);') && page.includes('off(neuf.at, 116.5);')
+    && D.CAPTIONS[i5 + 1][0] <= 113.2 && D.CAPTIONS[i5 + 1][1] >= 113.75, 'les deux numéros entourés pendant la légende qui les nomme');
   // Moment 6 : chaque cas dans sa forme ; une explication pour chaque mauvaise case
   assert.deepEqual(D.RELS.map(r => [r[1], D.CAS[r[3]]]), [['1 ↔ 1', 'Un client et sa carte membre'], ['1 → N', 'Un coach et ses ateliers'], ['N ↔ N', 'Un client et ses ateliers']]);
   assert.deepEqual(D.PICKS[5].options.map(o => o.label), D.CAS, 'les trois cas à ranger');
