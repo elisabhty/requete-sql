@@ -866,7 +866,7 @@ const COURSES = [
     chapters: ['Le problème', 'La clé primaire', 'La clé étrangère', '1 → N', 'N ↔ N', '1 ↔ 1', 'À retenir'],
     traps: ["const INSCR = [[1, 1, 1, '2026-09-01'], [2, 4, 1, '2026-09-02'], [3, 5, 2, '2026-09-03'], [4, 7, 3, '2026-09-04'],",
       "const NOUVELLE = [7, 1, 4, '2026-09-07'];", 'const CARTES = [[1, 1, 10], [2, 4, 5], [3, 6, 8]];', 'const DOUBLON = [4, 1, 10];',
-      '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>',
+      '<span class="miss" id="ms1"><i class="mi"><b class="q">?</b><b class="k">🔑</b></i>client</span><span class="miss" id="ms2"><i class="mi"><b class="q">?</b><b class="k">🔑</b></i>atelier</span>',
       // Les six moments : l’identifiant des coachs, la cliente et l’atelier d’une inscription, où ranger coach_id, l’atelier de Diego Ramos,
       // la deuxième inscription de Sophie Martin, la forme de chaque relation
       "{at: 31.0, from: 22.6, kind: 'pick', text: true,", "{label: 'Aucune : on ajoute un numéro', ok: true}]},", "{at: 68.6, from: 55.1, kind: 'tap', need: 2,",
@@ -1331,6 +1331,12 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   /* La vidéo rappelle d’abord le contexte, puis ce que le chapitre 1 a produit. */
   assert.ok(D.CAPTIONS[0][2].startsWith('NutriBoost lance des ateliers bien-être') && D.CAPTIONS[1][2] === 'Au chapitre 1, tu as réparti les informations du fichier Excel' && D.CAPTIONS[2][2] === 'dans trois tables :<br><code>coachs</code>, <code>ateliers</code> et <code>inscriptions</code>.', 'le contexte avant tout');
   /* Le problème : la table inscriptions ne contient que des dates ; la question arrive avec la ligne du 4 septembre et les deux « ? ». */
+  /* Animations et sons des légendes du début : les trois tables s’allument à leur couleur quand elles sont nommées, toutes
+     les dates s’allument, puis seule la ligne du 4 septembre ; le « ? » des puces devient une clé ; chaque id pulse quand la
+     légende dit qu’une clé primaire ne peut pas être vide. */
+  assert.ok(page.includes("TA.forEach(([s, rgb], q) => { glowOn(s, rgb, 9.6 + q * 0.3); cue(9.6 + q * 0.3, 'pop', 0.6, q * 2); });")
+    && page.includes("INSCR.forEach(([n], k) => { tl.to(hl('ta-in', n), {opacity: 1, duration: 0.3}, 11.55 + k * 0.06); cue(11.55 + k * 0.06, 'tick', 0.4, k); });")
+    && page.includes("keyChip('#ms1', 20.6); keyChip('#ms2', 20.8);") && page.includes("cue(41.75 + q * 0.05, 'tick', 0.45, 4 + q)"), 'chaque légende reprise a son animation et son son');
   const iq = D.CAPTIONS.findIndex(c => c[2] === 'Mais la <b>table inscriptions</b> contient seulement les dates d’inscription.');
   assert.ok(iq === 3 && D.CAPTIONS[iq + 1][2] === 'Impossible de savoir quel client s’est inscrit le 4 septembre, ni à quel atelier.'
     && D.CAPTIONS[iq + 1][0] <= 12.6 && D.CAPTIONS[iq + 1][1] >= 14.3 && D.CAPTIONS[iq + 2][2] === 'Pour savoir quel client s’est inscrit à quel atelier, il faut relier les tables grâce à des <b>clés</b>.'
@@ -1668,7 +1674,8 @@ test('barre de lecture : un point par moment « À toi », doré à faire, badge
 test('micro-interactions du lecteur : curseur qui grossit, un rendu par image en glissant, ±5 s qui tourne, lecture/pause qui rebondit, réponses en cascade', () => {
   assert.ok(html.includes('<div class="lv-track"><div class="lv-rail" aria-hidden="true"><i class="lv-fill"></i></div><div class="lv-pkm" aria-hidden="true"></div><input class="lv-seek"')
     && html.includes('.lv-track .lv-seek{flex:1;min-width:0;position:relative;z-index:1}') && html.includes('.lv-seek::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:transparent}'),
-    'la barre est dessinée sous les points, le curseur passe au-dessus');
+    'la barre est dessinée sous les points');
+  assert.ok(html.includes('.lv-pkm i.ok,.lv-pkm i.ko{z-index:2}') && !/\.lv-pkm\{[^}]*z-index/.test(html), 'le curseur passe sur les exercices à faire, sous les exercices faits (vert ou rouge)');
   assert.ok(html.includes('.lv.is-seeking .lv-seek::-webkit-slider-thumb{transform:scale(1.25)}') && html.includes("LV.seeking=true; root.classList.add('is-seeking');")
     && html.includes("LV.seeking=false; root.classList.remove('is-seeking'); lvTip(false);"), 'le curseur grossit pendant qu’on glisse');
   assert.ok(html.includes('if(!LV.seekRaf)LV.seekRaf=requestAnimationFrame(') && html.includes('      seekTo(t);\n') && html.includes('    seekFlush();\n'), 'en glissant : un seul rendu par image, le dernier appliqué au lâcher');
