@@ -363,9 +363,9 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '5 min 55', notesAt: 327.35,
-    notes: /notes:\{t:346\.5,y:1404,card:\[64,292,1016,1109\],to:\[940,255\]\}/, table: 'clients',
-    bubble: 'Chaque sujet a sa table,<br>et des numéros relient les tables.',
+  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '5 min 56', notesAt: 327.35,
+    notes: /notes:\{t:347\.6,y:1404,card:\[64,292,1016,1109\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Chaque sujet a sa table,<br>et des identifiants relient les tables.',
     chapters: ['Situation', 'Le problème', 'Le découpage', 'Base de données et SGBD', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],
     traps: [
       // Le fichier Excel : une ligne par commande, le client et le produit recopiés
@@ -385,10 +385,10 @@ const COURSES = [
       'Ensemble, ces tables forment<br>une <b>base de données</b>.', 'Elle est gérée par un <b>SGBD</b> : un système de gestion de base de données.',
       'Ici, le SGBD est <b>SQLite</b>.', 'Les équipes lui envoient des requêtes en <b>SQL</b> : il les exécute et contrôle chaque modification.',
       '<div class="sgs" id="sgs">Système de gestion de base de données</div>', '<span class="sgq" id="sgq">SQLite</span>', '<span>Base de données</span>',
-      // La clé primaire : son nom complet, les deux Nathan, un numéro déjà pris refusé, un client sans numéro qui reçoit le suivant
+      // La clé primaire : son nom complet, les deux Nathan, un identifiant déjà pris refusé, un client sans identifiant qui reçoit le suivant
       '<span class="emo">🔑</span>clé primaire', '<b class="nq k-cl">clients</b><i class="ndot">.</i><b class="nq nqc">id</b><span class="nlb">la table</span>',
       'Lequel des deux&nbsp;?', 'Le client 4&nbsp;: Nathan Petit', "const NOUVEAUX = [[4, 'Yanis', 'Roche'], [null, 'Lina', 'Garnier']];",
-      'UNIQUE constraint failed: clients.id', '<span class="tys ko">✕ refusé</span>', 'Le SGBD y veille : un numéro déjà pris est <b>refusé</b>',
+      'UNIQUE constraint failed: clients.id', '<span class="tys ko">✕ refusé</span>', 'Le SGBD y veille : un identifiant déjà pris est <b>refusé</b>',
       // … et sa déclaration : id INTEGER PRIMARY KEY, à la création de la table
       '<span class="fname">schema.sql</span>', 'id <span class="glow" id="pkt">INTEGER</span> <span class="glow" id="pkk"><span class="kw">PRIMARY KEY</span></span>,', 'avec <code>PRIMARY KEY</code> placé juste après le type de la colonne',
       // La clé étrangère : commandes.client_id → clients.id, puis la commande pour le client 99 refusée
@@ -396,7 +396,7 @@ const COURSES = [
       '<div class="stamp" id="stamp4">Relationnelle</div>', 'const CLIENT_INCONNU = 99;', '<span class="m">FOREIGN KEY constraint failed</span>',
       // … et sa déclaration : FOREIGN KEY (client_id) REFERENCES clients(id), rappelée quand la commande est refusée
       '<span class="kw">FOREIGN KEY</span> <span class="glow" id="fka">(client_id)</span>', '<span class="kw">REFERENCES</span> <span class="glow" id="fkb">clients(id)</span>',
-      '<div class="abs fkp" id="fkp"><span class="codepill"><span class="kw">FOREIGN KEY</span> (client_id) <span class="kw">REFERENCES</span> clients(id)</span></div>', 'Le SGBD vérifie alors chaque lien : existe-t-il un client numéro 99 ?',
+      '<div class="abs fkp" id="fkp"><span class="codepill"><span class="kw">FOREIGN KEY</span> (client_id) <span class="kw">REFERENCES</span> clients(id)</span></div>', 'Le SGBD vérifie alors chaque lien : existe-t-il un client d’identifiant 99 ?',
       // Lire une table : SELECT * FROM clients, les 10 clients et leurs 9 colonnes
       '<span class="star glow" id="star6">*</span>', '10 lignes · 9 colonnes', '✓ La table est lue, jamais modifiée',
       // Choisir les colonnes : l’étoile devient prenom, nom, email ; les six autres colonnes se replient ; Sophie Martin, une seule fois ; la jointure, plus tard
@@ -458,13 +458,13 @@ const COURSES = [
       '<span class="str">\'<span class="glow" id="us5">_</span>a%\'</span>', "[['_', 0, 0], ['a', 1, 1], ['%', 2, 'end']]",
       'n’importe quelle suite, <b>même vide</b>', '<b>exactement un</b> caractère']},
   {id: 9, next: 10, titre: 'IN', page: 'in.html', thumb: 'in-thumb.jpg', duree: '2 min 10', notesAt: 92.1,
-    notes: /notes:\{t:122\.2,y:1359,card:\[64,356,1016,1064\],to:\[940,255\]\}/, table: 'clients',
+    notes: /notes:\{t:122\.5,y:1359,card:\[64,356,1016,1064\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avec <span class="ic">IN</span>, compare une colonne à toute une liste de valeurs.',
     chapters: ['Situation', 'Le problème', 'IN en action', 'Écrire la liste', 'Une seule colonne', 'Le résultat', 'À retenir'],
     traps: ['<span class="ball">2</span><span class="ball">5</span><span class="ball">9</span>',
       '<span class="ln" id="ql4">   <span class="kw">OR</span> <span class="rep" id="r2">id =<i class="mbox"></i></span> 5', '<span class="x3" id="x3">× 3</span>',
       '<span class="kw glow" id="inA">IN</span> <span id="opA">(</span>2<span id="restA">, <span id="v5">5</span>, <span id="v9">9</span></span><span id="cpA">)</span>',
-      'Son numéro est-il dans la liste ?', '<div class="tg" id="tgP"><i>( )</i>entre parenthèses</div>',
+      'Son identifiant est-il dans la liste ?', '<div class="tg" id="tgP"><i>( )</i>entre parenthèses</div>',
       '(<span class="hv str" id="hS1">\'Paris\'<i class="mbox"></i></span>, <span class="hv str" id="hS2">\'Nantes\'<i class="mbox"></i></span>)',
       '<span class="ln5" id="m5b">  <span class="kw">AND</span> age &gt; 35;', '✓ 3 lots prêts à partir']},
   {id: 10, next: 11, titre: 'BETWEEN', page: 'between.html', thumb: 'between-thumb.jpg', duree: '2 min 19', notesAt: 98.4,
@@ -617,8 +617,8 @@ const COURSES = [
       '<span class="emo">🎂</span>&nbsp;7 clients de 30 ans ou plus</span>', '<span class="kw">WHERE</span> <span class="glow" id="cw5"><span class="kw">COUNT</span>(*) &gt;= 2</span>',
       '<b>Erreur SQL</b><span class="m">misuse of aggregate: COUNT()</span>', '<span class="sk">HAVING</span><span class="sx">trie les groupes</span><span class="sc ok" id="sc5c">COUNT(*) ✓</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> nb_clients</span>', '✓ 2 ateliers&nbsp;: Paris et Lyon']},
-  {id: 76, next: 18, titre: 'GROUP_CONCAT', page: 'group-concat.html', thumb: 'group-concat-thumb.jpg', duree: '2 min 46', notesAt: 150.2,
-    notes: /notes:\{t:158\.5,y:1367,card:\[64,300,1016,1072\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 76, next: 18, titre: 'GROUP_CONCAT', page: 'group-concat.html', thumb: 'group-concat-thumb.jpg', duree: '2 min 48', notesAt: 150.2,
+    notes: /notes:\{t:159\.9,y:1367,card:\[64,300,1016,1072\],to:\[940,255\]\}/, table: 'commandes',
     bubble: 'Avec <span class="ic">GROUP_CONCAT</span>, liste les valeurs de chaque groupe.',
     chapters: ['Situation', 'Le problème', 'GROUP_CONCAT en action', 'Séparateur et NULL', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span>Entrepôt · Suivi des commandes</span>', '<span class="nl">La liste de ses commandes</span><span class="tag calc">à calculer</span>',
@@ -628,8 +628,8 @@ const COURSES = [
       '<span class="snote" id="sn4">une virgule sans espace</span>', '<span class="vc nul" id="vn4"><small>commande n°16</small><b>NULL</b>', '<span class="b">4, 1, 3, 5</span>',
       '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> statut <span class="kw">DESC</span></span>', '<span class="b">16, 15, 14, 13, 12</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> commandes</span>', '✓ 16 commandes, chacune sous son statut']},
-  {id: 18, next: 20, titre: 'INNER JOIN', page: 'inner-join.html', thumb: 'inner-join-thumb.jpg', duree: '2 min 20', notesAt: 120.9,
-    notes: /notes:\{t:132\.5,y:1365,card:\[64,300,1016,1070\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 18, next: 20, titre: 'INNER JOIN', page: 'inner-join.html', thumb: 'inner-join-thumb.jpg', duree: '2 min 21', notesAt: 120.9,
+    notes: /notes:\{t:133\.3,y:1365,card:\[64,300,1016,1070\],to:\[940,255\]\}/, table: 'commandes',
     bubble: 'Avec <span class="ic">INNER JOIN</span>, seules les lignes<br>qui ont une correspondance<br>dans l’autre table sont conservées.',
     chapters: ['Situation', 'Le problème', 'INNER JOIN en action', 'Sans correspondance', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span>Entrepôt · Étiquettes d’expédition</span><span class="tb" id="tb1">table commandes</span>', 'const PREP = [[12, 4], [13, 1], [14, 3], [15, 5], [16, null]];',
@@ -676,7 +676,7 @@ const COURSES = [
       '<span id="d4" class="glow"><span class="kw">DISTINCT</span> </span>', '<span class="ic blk sm">6 villes × 8 produits = 48 combinaisons</span>',
       '✓ Chaque produit, dans chaque ville']},
   {id: 19, next: 41, titre: 'Jointure de 3 tables', page: 'jointure-3-tables.html', thumb: 'jointure-3-tables-thumb.jpg', duree: '3 min 38', notesAt: '196.7',
-    notes: /notes:\{t:210\.3,y:1149,card:\[64,292,1016,854\],to:\[940,255\]\}/, table: 'clients',
+    notes: /notes:\{t:210\.4,y:1149,card:\[64,292,1016,854\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Pour relier trois tables, enchaîne<br>les jointures&nbsp;: chaque <span class="ic">JOIN</span> ajoute une table.',
     chapters: ['Situation', 'Le problème', 'Deux JOIN en action', 'Filtrer', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span class="pn">Magnésium</span><span class="ps" id="ps1"><span class="emo">⚠️</span>lot défectueux</span>', "const PIEGE = [[3, '2026-07-08'], [3, '2026-07-30']];",
@@ -687,7 +687,7 @@ const COURSES = [
       '<span class="qx" id="qx6">sa qualité est compromise</span>', '<span class="of" id="of6a"><span class="emo">💶</span>Le remboursement du produit</span>',
       '✓ 2 emails envoyés']},
   {id: 41, next: 42, titre: 'JOIN + GROUP BY', page: 'join-group-by.html', thumb: 'join-group-by-thumb.jpg', duree: '2 min 50', notesAt: 150.7,
-    notes: /notes:\{t:162\.0,y:1346,card:\[64,292,1016,1051\],to:\[940,255\]\}/, table: 'clients',
+    notes: /notes:\{t:162\.2,y:1346,card:\[64,292,1016,1051\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Relie d’abord les tables avec <span class="ic">JOIN</span>,<br>puis regroupe avec <span class="ic">GROUP BY</span>.',
     chapters: ['Situation', 'Le problème', 'JOIN + GROUP BY en action', 'Le bon ordre', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span>Rapport commercial</span><span class="tb" id="tb1">table clients</span>', "const GROUPES = [['Bordeaux', 2], ['Lyon', 3], ['Marseille', 2], ['Paris', 7], ['Toulouse', 1]];",
@@ -704,8 +704,8 @@ const COURSES = [
       '<span class="glow" id="d3"><span class="kw">AND</span> c1.date_commande = c2.date_commande</span>', '<span class="dp rd">elle-même</span>',
       '<span class="sw" id="op5"><span class="a">&lt;&gt;</span><span class="b">&lt;</span></span>',
       '<span class="glow" id="w6"><span class="kw">AND</span> c1.id &lt; c2.id</span>', '✓ 2 colis au lieu de 4']},
-  {id: 49, next: 44, titre: 'Plusieurs conditions dans ON', page: 'plusieurs-conditions-on.html', thumb: 'plusieurs-conditions-on-thumb.jpg', duree: '3 min 16', notesAt: 177.6,
-    notes: /notes:\{t:190\.8,y:1340,card:\[64,292,1016,1045\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 49, next: 44, titre: 'Plusieurs conditions dans ON', page: 'plusieurs-conditions-on.html', thumb: 'plusieurs-conditions-on-thumb.jpg', duree: '3 min 17', notesAt: 177.6,
+    notes: /notes:\{t:191\.8,y:1340,card:\[64,292,1016,1045\],to:\[940,255\]\}/, table: 'commandes',
     bubble: 'Avec <span class="ic">AND</span>, une jointure peut vérifier<br>plusieurs conditions à la fois.',
     chapters: ['Situation', 'Le problème', 'AND en action', 'Une troisième condition', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span>Coursier express</span><span class="tb tc" id="tb1">table commandes</span>', "const PARIS = LIGNES.filter(l => l[3] === 'Paris');",
@@ -714,7 +714,7 @@ const COURSES = [
       '<span class="ck-out no"><span class="sw"><span class="a">?</span><span class="b">✕ Pas reliées</span></span></span>',
       '<span class="glow" id="w4"><span class="kw">AND</span> commandes.statut = <span class="str">\'en_preparation\'</span></span>',
       '<span class="glow" id="or5"><span class="kw">OR</span> clients.ville = <span class="str">\'Paris\'</span></span>', '<span class="n5">72 lignes</span>',
-      '✓ 2 commandes pour le coursier', '<span class="c">Lyon ✕</span>', '"À ne pas confondre : 13 est le numéro de la commande, 1 celui de la cliente."',
+      '✓ 2 commandes pour le coursier', '<span class="c">Lyon ✕</span>', '"À ne pas confondre : 13 est l’identifiant de la commande, 1 celui de la cliente."',
       '"Première condition :<br>la commande n°13 appartient-elle<br>à la cliente Sophie Martin ?"', '"Deuxième condition :<br>Sophie Martin habite-t-elle à Paris ?<br>Oui, sa ville est Paris."',
       '<span class="bike" id="bike6"><span class="emo">🛵</span></span>', '<span class="lvr">✓ Livrée</span>']},
   {id: 44, next: 45, titre: 'Quel JOIN choisir ?', page: 'quel-join-choisir.html', thumb: 'quel-join-choisir-thumb.jpg', duree: '3 min 45', notesAt: 218.5,
@@ -861,7 +861,7 @@ const COURSES = [
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
   {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 59', notesAt: 167.9,
-    notes: /notes:\{t:292\.0,y:1193,card:\[64,292,1016,898\],to:\[940,255\]\}/, table: 'inscriptions',
+    notes: /notes:\{t:291\.7,y:1193,card:\[64,292,1016,898\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Tes tables sont prêtes&nbsp;:<br>à toi de les relier avec des clés.',
     chapters: ['Le problème', 'La clé primaire', 'La clé étrangère', '1 → N', 'N ↔ N', '1 ↔ 1', 'À retenir'],
     traps: ["const INSCR = [[1, 1, 1, '2026-09-01'], [2, 4, 1, '2026-09-02'], [3, 5, 2, '2026-09-03'], [4, 7, 3, '2026-09-04'],",
@@ -869,7 +869,7 @@ const COURSES = [
       '<span class="miss" id="ms1"><i class="mi"><b class="q">?</b><b class="k">🔑</b></i>client</span><span class="miss" id="ms2"><i class="mi"><b class="q">?</b><b class="k">🔑</b></i>atelier</span>',
       // Les six moments : l’identifiant des coachs, la cliente et l’atelier d’une inscription, où ranger coach_id, l’atelier de Diego Ramos,
       // la deuxième inscription de Sophie Martin, la forme de chaque relation
-      "{at: 31.0, from: 22.6, kind: 'pick', text: true,", "{label: 'Aucune : on ajoute un numéro', ok: true}]},", "{at: 68.6, from: 55.1, kind: 'tap', need: 2,",
+      "{at: 31.0, from: 22.6, kind: 'pick', text: true,", "{label: 'Aucune : on ajoute un identifiant', ok: true}]},", "{at: 68.6, from: 55.1, kind: 'tap', need: 2,",
       "{at: 82.6, from: 75.0, kind: 'pick', text: true,", "{label: 'Dans la table ateliers : une colonne coach_id', ok: true},", "{at: 91.0, from: 82.9, kind: 'tap', need: 1,",
       "{at: 110.45, from: 103.6, kind: 'pick', text: true,", "{label: 'Une nouvelle ligne dans la table inscriptions', ok: true},", "{at: 149.6, from: 133.3, kind: 'sort',",
       "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
@@ -965,11 +965,11 @@ test('Les bases de données relationnelles : la feuille Excel, la table clients,
   /* Les déclarations montrées (schema.sql) sont celles de la base : id, clé primaire de clients ; client_id → clients(id). */
   assert.equal(q("SELECT name, type FROM pragma_table_info('clients') WHERE pk = 1"), '[["id","INTEGER"]]', 'id INTEGER PRIMARY KEY');
   assert.equal(q("SELECT \"table\", \"to\" FROM pragma_foreign_key_list('commandes') WHERE \"from\" = 'client_id'"), '[["clients","id"]]', 'FOREIGN KEY (client_id) REFERENCES clients(id)');
-  /* Ce que la base vérifie : un numéro déjà pris est refusé, un client sans numéro reçoit le suivant, un client inconnu est refusé. */
+  /* Ce que la base vérifie : un identifiant déjà pris est refusé, un client sans identifiant reçoit le suivant, un client inconnu est refusé. */
   const [[idPris, p1, n1], [, p2, n2]] = JSON.parse(JSON.stringify(ctx.NOUVEAUX));
-  assert.throws(() => db.run(`INSERT INTO clients (id, prenom, nom) VALUES (${idPris}, '${p1}', '${n1}')`), /UNIQUE constraint failed: clients\.id/, 'le numéro 4 est déjà pris');
+  assert.throws(() => db.run(`INSERT INTO clients (id, prenom, nom) VALUES (${idPris}, '${p1}', '${n1}')`), /UNIQUE constraint failed: clients\.id/, 'l’identifiant 4 est déjà pris');
   db.run(`INSERT INTO clients (prenom, nom) VALUES ('${p2}', '${n2}')`);
-  assert.equal(q(`SELECT id FROM clients WHERE prenom = '${p2}'`), '[[11]]', 'sans numéro, le client reçoit le suivant : 11');
+  assert.equal(q(`SELECT id FROM clients WHERE prenom = '${p2}'`), '[[11]]', 'sans identifiant, le client reçoit le suivant : 11');
   db.run('PRAGMA foreign_keys = ON;');
   assert.throws(() => db.run(`INSERT INTO commandes (client_id, produit_id, quantite) VALUES (${ctx.CLIENT_INCONNU}, 1, 1)`), /FOREIGN KEY constraint failed/, 'aucun client 99 : la commande est refusée');
   db.close();
@@ -1336,10 +1336,13 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
      légende dit qu’une clé primaire ne peut pas être vide. */
   assert.ok(page.includes("TA.forEach(([s, rgb], q) => { glowOn(s, rgb, 9.6 + q * 0.3); cue(9.6 + q * 0.3, 'pop', 0.6, q * 2); });")
     && page.includes("INSCR.forEach(([n], k) => { tl.to(hl('ta-in', n), {opacity: 1, duration: 0.3}, 11.55 + k * 0.06); cue(11.55 + k * 0.06, 'tick', 0.4, k); });")
-    && page.includes("keyChip('#ms1', 20.6); keyChip('#ms2', 20.8);") && page.includes("cue(41.75 + q * 0.05, 'tick', 0.45, 4 + q)"), 'chaque légende reprise a son animation et son son');
+    && page.includes("keyChip('#ms1', 20.6); keyChip('#ms2', 20.8);") && page.includes("cue(41.75 + q * 0.05, 'tick', 0.45, 4 + q)")
+    && page.includes("bump(['#ms1', '#ms2'], 17.55, 1.12);") && page.includes("TA.forEach(([s, rgb], q) => { glowOn(s, rgb, 18.7 + q * 0.15);"), 'chaque légende reprise a son animation et son son');
+  /* « Identifiant », jamais « numéro », pour la valeur d’une clé : dans la vidéo comme dans les moments « À toi ». */
+  assert.ok(!page.includes('numéro'), 'chapitre 2 : « identifiant », jamais « numéro »');
   const iq = D.CAPTIONS.findIndex(c => c[2] === 'Mais la <b>table inscriptions</b> contient seulement les dates d’inscription.');
   assert.ok(iq === 3 && D.CAPTIONS[iq + 1][2] === 'Impossible de savoir quel client s’est inscrit le 4 septembre, ni à quel atelier.'
-    && D.CAPTIONS[iq + 1][0] <= 12.6 && D.CAPTIONS[iq + 1][1] >= 14.3 && D.CAPTIONS[iq + 2][2] === 'Pour savoir quel client s’est inscrit à quel atelier, il faut relier les tables grâce à des <b>clés</b>.'
+    && D.CAPTIONS[iq + 1][0] <= 12.6 && D.CAPTIONS[iq + 1][1] >= 14.3 && D.CAPTIONS[iq + 2][2] === 'Pour le savoir, il faut relier les tables grâce à des <b>clés</b>.'
     && page.includes("pop('#ms1', 14.0, 0.5); pop('#ms2', 14.3, 0.5);"), 'la question du 4 septembre, pendant que la ligne s’allume et que « ? client » et « ? atelier » apparaissent');
   /* Une seule façon de nommer la table d’une relation N ↔ N, dans les trois chapitres. */
   for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html'])
@@ -1347,7 +1350,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.ok(caps.includes('Une <b>table d’association</b>'), 'le chapitre 2 la nomme comme le chapitre 3');
   /* La clé étrangère : sa définition, puis à quoi elle sert, sur l’exemple entouré (inscription 1, client_id 1, Sophie Martin). */
   const def = D.CAPTIONS.findIndex(c => c[2].includes('est une <b>clé étrangère</b>'));
-  assert.equal(D.CAPTIONS[def + 1][2], 'Elle sert à relier chaque inscription à son client : ici, <code>client_id</code> vaut 1, le numéro de Sophie Martin.', 'à quoi sert une clé étrangère, sur un exemple expliqué');
+  assert.equal(D.CAPTIONS[def + 1][2], 'Elle sert à relier chaque inscription à son client : ici, <code>client_id</code> vaut 1, l’identifiant de Sophie Martin.', 'à quoi sert une clé étrangère, sur un exemple expliqué');
   assert.deepEqual(D.INSCR[0].slice(0, 2), [1, 1]); assert.equal(name(1), 'Sophie Martin');
   /* La clé étrangère « fait référence à » la clé primaire (comme REFERENCES), dans la vidéo comme dans le récapitulatif. */
   assert.ok(!caps.includes('reprend la clé primaire') && caps.includes('Une colonne qui fait référence<br>à la clé primaire d’une autre table<br>est une <b>clé étrangère</b>.')
@@ -1356,7 +1359,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
      comme le dit le récapitulatif. */
   const iPk = D.CAPTIONS.findIndex(c => c[2] === 'C’est la <b>clé primaire</b> de la table : chaque table reçoit la sienne.');
   assert.ok(iPk > 0 && D.CAPTIONS[iPk + 1][2] === 'Une clé primaire<br>ne peut pas être vide (<code>NULL</code>).' && D.CAPTIONS[iPk + 1][1] < 43.2, 'clé primaire : jamais vide, dans son chapitre');
-  assert.ok(caps.includes('une valeur qui ne désigne qu’elle.') && caps.includes('un numéro unique, qui reste stable.') && !/changera jamais|ne change jamais/.test(page), 'clé primaire : unique et stable, sans « jamais »');
+  assert.ok(caps.includes('une valeur qui ne désigne qu’elle.') && caps.includes('un identifiant unique, qui reste stable.') && !/changera jamais|ne change jamais/.test(page), 'clé primaire : unique et stable, sans « jamais »');
   /* Avant 1 ↔ 1 : la table cartes et sa clé étrangère sont présentées (sa requête la déclare : tapée, puis surlignée) ; les anneaux
      relient ensuite chaque carte à son propriétaire, pendant « Un client n’a qu’une carte, et une carte n’a qu’un seul client ». */
   const iCa = D.CAPTIONS.findIndex(c => c[2] === 'On crée une <b>table cartes</b> :<br>sa clé étrangère <code>client_id</code> désigne le propriétaire de chaque carte.');
@@ -1419,7 +1422,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   const cap4 = D.CAPTIONS.findIndex(c => c[2].startsWith(`L’atelier ${sien[0][1]} a <code>coach_id`));
   assert.ok(D.CAPTIONS[cap4][0] > D.PICKS[3].at && D.CAPTIONS[cap4 - 1][2] === 'À toi !', 'juste après le moment 4');
   assert.ok(page.includes(`const M4_ANS = {${sien.map(a => `a${a[0]}: [hl('tc-at', ${a[0]}), ring('tc-at', ${a[0]}, 3)]`).join(', ')}, co: [hl('tc-co', ${diego[0]}), ring('tc-co', ${diego[0]}, 0)]};`)
-    && page.includes(`<i class="two">${siens.join(', ')}</i>`), 'réponse du moment 4, et la case à deux numéros de la mauvaise idée du moment 3');
+    && page.includes(`<i class="two">${siens.join(', ')}</i>`), 'réponse du moment 4, et la case à deux identifiants de la mauvaise idée du moment 3');
   /* « Un coach peut animer plusieurs ateliers » : Moussa Diallo et ses deux ateliers reviennent à l’image, à la place de la réponse du moment 4. */
   assert.ok(page.includes(`const N_ANS = [hl('tc-co', ${moussa[0]}), ring('tc-co', ${moussa[0]}, 0), ${siens.map(i => `hl('tc-at', ${i}), ring('tc-at', ${i}, 3)`).join(', ')}];`)
     && page.includes("tl.to(M4_ANS.co.concat(M4_ANS.a4), {autoAlpha: 0, duration: 0.25, ease: 'power2.in'}, 95.3);") && page.includes("tl.to(N_ANS, {autoAlpha: 1, duration: 0.3, ease: 'power2.out'}, 95.45);")
@@ -1433,7 +1436,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   // Moment 5 : la nouvelle inscription de Sophie Martin, celle que demande son mail
   assert.deepEqual([name(D.NOUVELLE[1]), atl(D.NOUVELLE[2])[1]], ['Sophie Martin', 'Méditation'], 'la nouvelle inscription : Sophie Martin, à Méditation');
   assert.ok(D.MAILS[0][4].includes(`l’atelier ${atl(D.NOUVELLE[2])[1]} du ${+atl(D.NOUVELLE[2])[2].slice(8)} septembre`), 'le mail demande cet atelier, à sa date');
-  assert.equal(D.NOUVELLE[0], D.INSCR.length + 1, 'une ligne de plus, avec le numéro suivant');
+  assert.equal(D.NOUVELLE[0], D.INSCR.length + 1, 'une ligne de plus, avec l’identifiant suivant');
   assert.equal(D.PICKS[4].prompt, `Sophie Martin s’inscrit aussi à l’atelier ${atl(D.NOUVELLE[2])[1]}. Comment l’enregistrer ?`, 'la question nomme l’atelier comme tel');
   /* Le mail de l’équipe, en trois paragraphes : un forfait de 10 séances qui diminue, une carte par client, et ce que la base doit garder
      (la carte, son propriétaire, les séances restantes : les colonnes de la table cartes). Aucune carte au-dessus du forfait. */
@@ -1454,9 +1457,9 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   const m5 = [`Pour inscrire ${D.CLIENTS.find(c => c[0] === D.NOUVELLE[1])[1]} à l’atelier ${atl(D.NOUVELLE[2])[1]}, on ajoute une ligne dans <code>inscriptions</code> :`,
     `son identifiant (${D.NOUVELLE[1]}), celui de l’atelier (${D.NOUVELLE[2]}) et la date d’inscription.`];
   const i5 = D.CAPTIONS.findIndex(c => c[2] === m5[0]);
-  assert.ok(i5 > 0 && D.CAPTIONS[i5 - 1][2] === 'À toi !' && D.CAPTIONS[i5][0] > D.PICKS[4].at && D.CAPTIONS[i5 + 1][2] === m5[1], 'moment 5 expliqué : la nouvelle ligne, ses deux numéros et la date');
+  assert.ok(i5 > 0 && D.CAPTIONS[i5 - 1][2] === 'À toi !' && D.CAPTIONS[i5][0] > D.PICKS[4].at && D.CAPTIONS[i5 + 1][2] === m5[1], 'moment 5 expliqué : la nouvelle ligne, ses deux identifiants et la date');
   assert.ok(page.includes('on(neuf.cl, 113.2);') && page.includes('on(neuf.at, 113.75);') && page.includes('off(neuf.at, 116.5);')
-    && D.CAPTIONS[i5 + 1][0] <= 113.2 && D.CAPTIONS[i5 + 1][1] >= 113.75, 'les deux numéros entourés pendant la légende qui les nomme');
+    && D.CAPTIONS[i5 + 1][0] <= 113.2 && D.CAPTIONS[i5 + 1][1] >= 113.75, 'les deux identifiants entourés pendant la légende qui les nomme');
   // Moment 6 : chaque cas dans sa forme ; une explication pour chaque mauvaise case
   assert.deepEqual(D.RELS.map(r => [r[1], D.CAS[r[3]]]), [['1 ↔ 1', 'Un client et sa carte de membre'], ['1 → N', 'Un coach et ses ateliers'], ['N ↔ N', 'Un client et ses ateliers']]);
   assert.deepEqual(D.PICKS[5].options.map(o => o.label.replace(/\u00a0/g, ' ')), D.CAS, 'les trois cas à ranger');
@@ -1534,6 +1537,19 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.throws(() => db.run(`INSERT INTO cartes VALUES ${rows([D.DOUBLON])};`), /UNIQUE constraint failed: cartes\.client_id/, 'une deuxième carte pour Sophie Martin est refusée (1 ↔ 1)');
   assert.equal(name(D.DOUBLON[1]), 'Sophie Martin');
   db.close();
+});
+
+test('« Identifiant », jamais « numéro », pour la valeur d’une clé : vidéos, cours et quiz', () => {
+  /* « Numéro » reste pour ce qui en est un : numero_commande (CMD-2026-…), un téléphone, une chambre, ROW_NUMBER, le jour du mois. */
+  const strip = s => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!--[\s\S]*?-->/g, '').replace(/(^|[^:'"\\])\/\/.*$/gm, '$1');
+  const read = f => strip(fs.readFileSync(path.join(ROOT, f), 'utf8'));
+  // vidéos où « numéro » ne désignait que des identifiants : il n’y en a plus
+  for (const f of ['bases-relationnelles', 'exists', 'group-concat', 'in', 'inner-join', 'join-group-by', 'jointure-3-tables', 'normalisation', 'plusieurs-conditions-on', 'projet-cles'])
+    assert.ok(!/num[ée]ros?\b/i.test(read(`assets/anim/${f}.html`)), `${f}.html : « identifiant », pas « numéro »`);
+  // ailleurs, les identifiants seulement (le numéro d’une chambre, d’un téléphone ou d’une commande reste un numéro)
+  const bad = {'index.html': /Affiche le num[ée]ro \(<code>id|client num[ée]ro|attribue le num[ée]ro|son propre num[ée]ro|num[ée]ros? déjà pris|num[ée]ro de client|plusieurs num[ée]ros/,
+    'assets/anim/quel-join-choisir.html': /contient (un|le) num[ée]ro|num[ée]ro n’est jamais/, 'assets/anim/sous-requete-in.html': /num[ée]ros? de (son )?clients?/};
+  for (const [f, re] of Object.entries(bad)) { const m = read(f).match(re); assert.ok(!m, `${f} : « ${m && m[0]} » : c’est un identifiant`); }
 });
 
 test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des tables du chapitre 2, chaque multiplicité et chaque traduction vérifiées', async () => {
