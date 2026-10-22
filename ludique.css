@@ -1126,11 +1126,10 @@ html.lq .acct-day.is-today small{color:var(--ink)}
 
 /* Accomplissements : médaille violette une fois débloquée */
 html.lq .acct-badges{margin:0;padding:16px 10px;list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;border:2px solid var(--line);border-radius:22px;background:#fff}
-html.lq .acct-badge{display:flex;flex-direction:column;align-items:center;min-width:0;text-align:center}
-html.lq .acct-badge-ico{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);color:#7A739F}
-html.lq .acct-badge-ico svg{width:26px;height:26px;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-html.lq .acct-badge-code{font:700 18px/1 var(--mono);letter-spacing:-.02em}
-html.lq .acct-badge.is-on .acct-badge-ico{background:var(--accent);color:#fff;box-shadow:0 4px 0 var(--accent-lip)}
+html.lq .acct-badges>li{display:flex;min-width:0}
+html.lq .acct-badge{display:flex;flex-direction:column;align-items:center;width:100%;min-width:0;margin:0;padding:2px 0;border:0;border-radius:16px;background:none;color:inherit;font:inherit;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+html.lq .acct-badge-stk{display:block;width:64px;transition:transform .15s var(--press)}
+html.lq .acct-badge:active .acct-badge-stk{transform:scale(.92)}
 html.lq .acct-badge>b{margin-top:12px;font:700 14px/1.2 var(--display);color:var(--ink);overflow-wrap:anywhere}
 html.lq .acct-badge>small{margin-top:4px;font-size:13px;font-weight:600;color:var(--ink-2)}
 html.lq .acct-badge.is-on>small{color:var(--accent-ink)}
@@ -2318,3 +2317,125 @@ html.lq #app .planning-progress>summary,html.lq #app .plan-modules>summary{row-g
 }
 @media (prefers-reduced-motion:reduce){.pgr-arc,.pgr-bars li>i,.pgr-mod.is-flash{animation:none!important}.pgr-meter b,.pgr-chip,.pgr-tile{transition:none!important}}
 html[data-motion="reduce"] .pgr-arc,html[data-motion="reduce"] .pgr-bars li>i,html[data-motion="reduce"] .pgr-mod.is-flash{animation:none!important}
+
+/* ---------- 30. Stickers ----------
+   Le tableau, couleur encre comme un capot d'ordinateur : on y colle les stickers gagnés, on les déplace, les tourne
+   et les agrandit. Dessous, la planche (papier de protection lilas) : les stickers gagnés, les découpes vides de ceux
+   qui sont sur le tableau, les silhouettes de ceux à gagner. Chaque sticker est un canvas ; une ombre le décolle du
+   fond. Les holographiques ont des voiles masqués par leur silhouette (irisation, éclat, paillettes, reflet). */
+html.lq .stk-art{position:relative;display:block;width:100%;aspect-ratio:1/1;--px:50%;--py:50%;--tx:0deg;--ty:0deg;--k:1;
+  transform:perspective(700px) rotateX(var(--tx)) rotateY(var(--ty)) scale(var(--k))}
+html.lq .stk-art>canvas{display:block;width:100%;height:100%;filter:drop-shadow(0 1px 1px rgba(34,28,70,.24)) drop-shadow(0 3px 6px rgba(34,28,70,.12))}
+html.lq .stk-art>i{position:absolute;inset:0;pointer-events:none;-webkit-mask:var(--m) center/100% 100% no-repeat;mask:var(--m) center/100% 100% no-repeat}
+html.lq .stk-v1{background:linear-gradient(115deg,#FFB3D1 0%,#FFE7A3 16%,#B8F5CF 32%,#AEE4FF 48%,#D4C2FF 64%,#FFB3D1 80%,#FFE7A3 100%) var(--px) var(--py)/300% 300%;mix-blend-mode:multiply;opacity:.55}
+html.lq .stk-v2{background:repeating-linear-gradient(115deg,#FF4FA3 0%,#FFC94F 6%,#4FFFA0 12%,#4FC8FF 18%,#A34FFF 24%,#FF4FA3 30%) var(--px) var(--py)/250% 250%;mix-blend-mode:color-dodge;opacity:.32}
+html.lq .stk-v3{background:var(--glit) calc(var(--px) * -.6) calc(var(--py) * -.6)/90px 90px;mix-blend-mode:screen;opacity:.85}
+html.lq .stk-v4{background:radial-gradient(circle at var(--px) var(--py),rgba(255,255,255,.75) 0%,rgba(255,255,255,.18) 22%,rgba(255,255,255,0) 48%);mix-blend-mode:soft-light}
+html.lq .stk-art.is-sweep>.stk-v1,html.lq .stk-art.is-sweep>.stk-v2{animation:stkSweep 1.3s cubic-bezier(.3,.1,.3,1)}
+@keyframes stkSweep{from{background-position:0% 0%}to{background-position:100% 100%}}
+
+/* Le tableau */
+html.lq #stk-body{padding:4px 20px 32px}
+html.lq .stk-board-sec{margin:0 0 26px}
+html.lq .stk-board{position:relative;aspect-ratio:4/3;border-radius:26px;overflow:hidden;isolation:isolate;
+  background:radial-gradient(140% 100% at 18% 0%,#3B3274 0%,#2B2458 46%,#221C46 100%);
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.05),0 6px 0 #16112E;touch-action:pan-y;-webkit-user-select:none;user-select:none;
+  transition:box-shadow .2s}
+html.lq .stk-board.is-target{box-shadow:inset 0 0 0 3px #B8A6FF,0 6px 0 #16112E}
+html.lq .stk-board-logo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:800 64px/1 var(--display);letter-spacing:-.03em;color:rgba(255,255,255,.07);pointer-events:none}
+html.lq .stk-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:24px;text-align:center;pointer-events:none}
+html.lq .stk-empty b{font:700 20px/1.2 var(--display);letter-spacing:-.01em;color:#fff}
+html.lq .stk-empty span{max-width:30ch;font-size:14.5px;line-height:1.4;color:rgba(255,255,255,.74)}
+html.lq .stk-item{position:absolute;left:calc(var(--x) * 100%);top:calc(var(--y) * 100%);width:calc(26% * var(--s));margin:0;padding:0;border:0;border-radius:16px;background:none;
+  transform:translate(-50%,-50%) rotate(var(--r));touch-action:none;cursor:grab;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+html.lq .stk-item:focus{outline:none}
+html.lq .stk-item.is-sel::before,html.lq .stk-item:focus-visible::before{content:'';position:absolute;inset:-6%;border:2px dashed rgba(255,255,255,.72);border-radius:20px;pointer-events:none}
+html.lq .stk-item.is-drag{cursor:grabbing}
+html.lq .stk-item .stk-art{transition:transform .25s var(--pop)}
+html.lq .stk-item.is-lift .stk-art{--k:1.08}
+html.lq .stk-item.is-lift .stk-art>canvas{filter:drop-shadow(0 14px 14px rgba(0,0,0,.45))}
+html.lq .stk-item.is-drop .stk-art{animation:stkDrop .5s var(--pop)}
+@keyframes stkDrop{0%{transform:scale(1.12)}45%{transform:scale(.95)}100%{transform:none}}
+html.lq .stk-hd{position:absolute;z-index:2;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;display:none;place-items:center;
+  background:#fff;color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.3);touch-action:none}
+html.lq .stk-hd svg{width:17px;height:17px}
+html.lq .stk-hd-del{left:7%;top:7%;cursor:pointer}
+html.lq .stk-hd-rot{left:93%;top:93%;background:var(--accent);color:#fff;box-shadow:0 3px 0 var(--accent-lip);cursor:nwse-resize}
+html.lq .stk-item.is-sel .stk-hd{display:grid}
+html.lq .stk-item.is-lift .stk-hd-del{opacity:0}
+html.lq .stk-board-bar{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+html.lq .stk-board-bar>p{margin:0 6px;font-size:13.5px;line-height:1.4;color:var(--ink-3);text-align:center}
+html.lq .stk-board-actions{display:flex;gap:10px}
+html.lq .stk-board-actions .stk-btn{flex:1 1 0;min-width:0}
+html.lq .stk-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 14px;font-size:17px;cursor:pointer}
+html.lq .stk-btn svg{flex:none;width:20px;height:20px}
+
+/* La planche */
+html.lq .stk-sheet{padding:14px 10px 4px;border:2px solid var(--line);border-radius:24px;
+  background:repeating-linear-gradient(135deg,rgba(106,77,244,.045) 0 2px,transparent 2px 16px),#F8F6FF}
+html.lq .stk-group{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:0 8px 4px}
+html.lq .stk-group h3{margin:0;font:700 16px/1.25 var(--display);letter-spacing:-.01em;color:var(--ink)}
+html.lq .stk-group span{font-size:13.5px;color:var(--ink-3);white-space:nowrap}
+html.lq .stk-grid{list-style:none;margin:0 0 12px;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px 6px}
+@media (min-width:600px){html.lq .stk-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+html.lq .stk-cell{position:relative;display:block;width:100%;margin:0;padding:9px;border:0;border-radius:20px;background:none;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;transition:transform .15s var(--press)}
+html.lq .stk-cell:active{transform:scale(.96)}
+html.lq .stk-cell:focus{outline:none}
+html.lq .stk-cell:focus-visible{box-shadow:inset 0 0 0 3px var(--accent)}
+html.lq .stk-cell.is-got{cursor:grab}
+html.lq .stk-cell.is-lock .stk-art>canvas,html.lq .stk-cell.is-placed .stk-art>canvas,html.lq .stk-cell.is-peeling .stk-art>canvas{filter:none}
+html.lq .stk-cell.is-peeling{transform:none}
+html.lq .stk-lock{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;display:grid;place-items:center;
+  background:#fff;color:#8C85B3;box-shadow:0 2px 0 var(--lip);pointer-events:none}
+html.lq .stk-lock svg{width:15px;height:15px}
+html.lq .stk-new{position:absolute;top:2px;right:0;padding:4px 8px;border-radius:99px;background:var(--accent);color:#fff;font:700 11px/1 var(--display);font-style:normal;
+  box-shadow:0 2px 0 var(--accent-lip);pointer-events:none}
+
+/* Le sticker décollé qui suit le doigt */
+html.lq .stk-ghost{position:fixed;left:0;top:0;z-index:200;pointer-events:none;will-change:transform}
+html.lq .stk-ghost .stk-art{transform:rotate(-6deg) scale(1.14);animation:stkLift .2s var(--pop)}
+html.lq .stk-ghost .stk-art>canvas{filter:drop-shadow(0 16px 16px rgba(34,28,70,.35))}
+html.lq .stk-ghost.is-back .stk-art{transform:none;transition:transform .26s}
+@keyframes stkLift{from{transform:none}}
+
+/* La fiche */
+html.lq #stk-sheet{top:auto;max-height:calc(100% - max(48px,calc(var(--safe-top) + 20px)))}
+html.lq #stk-sheet .viz-body{padding-top:0;text-align:center}
+html.lq .stk-stage{position:relative;display:grid;place-items:center;margin:0 -18px 16px;padding:28px 0 24px;touch-action:none;
+  background:radial-gradient(70% 70% at 50% 45%,#fff 0%,rgba(255,255,255,0) 100%)}
+html.lq .stk-stage .stk-art{width:min(56vw,236px)}
+html.lq .stk-stage .stk-lock{width:50px;height:50px;margin:-25px 0 0 -25px;box-shadow:0 3px 0 var(--lip)}
+html.lq .stk-stage .stk-lock svg{width:24px;height:24px}
+html.lq .stk-kicker{margin:0;font:700 14px/1.3 var(--display);color:var(--accent-ink)}
+html.lq .stk-name{margin:4px 0 4px;font:700 27px/1.12 var(--display);letter-spacing:-.02em;color:var(--ink);overflow-wrap:anywhere}
+html.lq .stk-when{margin:0 auto;max-width:34ch;font-size:15px;line-height:1.45;color:var(--ink-2)}
+html.lq .stk-actions{display:grid;gap:12px;margin:20px 0 0}
+html.lq .stk-note{margin:16px 2px 0;font-size:13.5px;line-height:1.45;color:var(--ink-3);text-align:left}
+html.lq .stk-prog{max-width:260px;height:10px;margin:16px auto 0;border-radius:99px;background:var(--accent-soft);overflow:hidden}
+html.lq .stk-prog i{display:block;height:100%;min-width:10px;border-radius:99px;background:var(--accent)}
+html.lq .stk-prog-t{margin:8px 0 0;font-size:14px;font-weight:650;color:var(--ink-2)}
+
+/* Nouveau sticker : dans le bilan d'une leçon, le toast et la Bibliothèque */
+html.lq .bravo-stk{display:flex;align-items:center;gap:14px;width:100%;margin:14px 0 0;padding:12px 16px 12px 10px;border:2px solid var(--line);border-radius:22px;
+  background:#fff;box-shadow:0 4px 0 var(--lip);color:var(--ink);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:transform .12s var(--press),box-shadow .12s var(--press)}
+html.lq .bravo-stk:active{transform:translateY(4px);box-shadow:0 0 0 var(--lip)}
+html.lq .bravo-stk-art{position:relative;flex:none;width:80px;height:80px}
+html.lq .bravo-stk-art .stk-art{position:absolute;inset:0;transform:rotate(-4deg)}
+html.lq .bravo-stk-art.n2 .stk-art:first-child{transform:translate(-9px,3px) rotate(-12deg) scale(.82)}
+html.lq .bravo-stk-art.n2 .stk-art+.stk-art{transform:translate(9px,-2px) rotate(6deg) scale(.82)}
+html.lq .bravo-stk-art.n3 .stk-art:nth-child(1){transform:translate(-12px,4px) rotate(-14deg) scale(.72)}
+html.lq .bravo-stk-art.n3 .stk-art:nth-child(2){transform:translate(0,-6px) rotate(2deg) scale(.72)}
+html.lq .bravo-stk-art.n3 .stk-art:nth-child(3){transform:translate(12px,5px) rotate(12deg) scale(.72)}
+html.lq .bravo-stk-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+html.lq .bravo-stk-copy small{font:700 13.5px/1.2 var(--display);color:var(--accent-ink)}
+html.lq .bravo-stk-copy b{font:700 19px/1.15 var(--display);letter-spacing:-.01em;color:var(--ink)}
+html.lq .bravo-stk-copy em{font-style:normal;font-size:14px;line-height:1.35;color:var(--ink-2)}
+html.lq .bravo-stk>svg{flex:none;width:18px;height:18px;color:#B3ACD4}
+html.lq .bravo-stk.is-new .bravo-stk-art{animation:stkSlap .75s var(--pop) .45s both}
+@keyframes stkSlap{0%{opacity:0;transform:scale(1.8) rotate(-18deg)}55%{opacity:1;transform:scale(.92) rotate(3deg)}100%{opacity:1;transform:none}}
+html.lq .toast .tmini.stk{width:44px!important;height:44px!important;background:none!important;box-shadow:none!important;border-radius:0!important}
+html.lq .toast .tmini.stk .stk-art{width:44px}
+html.lq .journey-new{display:inline-block;margin-left:8px;padding:3px 8px;border-radius:99px;background:var(--accent);color:#fff;font:700 11.5px/1.2 var(--display);font-style:normal;vertical-align:2px;box-shadow:0 2px 0 var(--accent-lip)}
+
