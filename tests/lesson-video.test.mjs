@@ -1378,6 +1378,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.deepEqual([name(D.NOUVELLE[1]), atl(D.NOUVELLE[2])[1]], ['Sophie Martin', 'Méditation'], 'la nouvelle inscription : Sophie Martin, à Méditation');
   assert.ok(D.MAILS[0][4].includes(`l’atelier ${atl(D.NOUVELLE[2])[1]} du ${+atl(D.NOUVELLE[2])[2].slice(8)} septembre`), 'le mail demande cet atelier, à sa date');
   assert.equal(D.NOUVELLE[0], D.INSCR.length + 1, 'une ligne de plus, avec le numéro suivant');
+  assert.equal(D.PICKS[4].prompt, `Sophie Martin s’inscrit aussi à l’atelier ${atl(D.NOUVELLE[2])[1]}. Comment l’enregistrer ?`, 'la question nomme l’atelier comme tel');
   // Moment 6 : chaque cas dans sa forme ; une explication pour chaque mauvaise case
   assert.deepEqual(D.RELS.map(r => [r[1], D.CAS[r[3]]]), [['1 ↔ 1', 'Un client et sa carte membre'], ['1 → N', 'Un coach et ses ateliers'], ['N ↔ N', 'Un client et ses ateliers']]);
   assert.deepEqual(D.PICKS[5].options.map(o => o.label), D.CAS, 'les trois cas à ranger');
