@@ -875,8 +875,8 @@ const COURSES = [
       "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
       "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.0);", 'Chapitre 3 · Modéliser avec UML']},
-  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '3 min 37', notesAt: 179.7,
-    notes: /notes:\{t:209\.2,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
+  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '3 min 41', notesAt: 179.7,
+    notes: /notes:\{t:214\.0,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
     bubble: 'Tes tables sont reliées&nbsp;:<br>dessine maintenant leur plan.',
     chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
     traps: ["const CLASSES = [['co', 'Coach', ['prenom', 'nom', 'email']], ['ca', 'Carte', ['seances']],",
@@ -1557,7 +1557,7 @@ test('« Identifiant », jamais « numéro », pour la valeur d’une clé : vid
 
 test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des tables du chapitre 2, chaque multiplicité et chaque traduction vérifiées', async () => {
   const l81 = cut('guide({ id:81, titre:"Modéliser avec UML"', 'guide({ id:61,');
-  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'3 min 37',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'3 min 41',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1605,6 +1605,20 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.ok(Math.min(...cartes) === 0 && Math.max(...cartes) === 1 && C2.CARTES.some(c => c[1] === C2.DOUBLON[1]) && assocs.po[6] === '0..1' && assocs.po[4] === '1', 'possède : une carte au plus (la deuxième est refusée), aucune pour certains');
   const caps = D.CAPTIONS.map(c => c[2]).join('\n');
   assert.ok(caps.includes('L’atelier Yoga du matin n’a encore aucun inscrit, l’atelier Récupération en a trois') && count(ins, 2, 1) === 3 && count(ins, 2, 5) === 0, 'la légende cite les bons ateliers');
+  /* L’ouverture : la phrase demandée, mot pour mot, en trois légendes qui se suivent ; chaque partie a son geste pendant sa légende :
+     les cinq tables s’allument, les quatre clés étrangères s’entourent, puis les trois tables qu’elles désignent s’allument. */
+  const io = D.CAPTIONS.findIndex(c => c[2] === 'Pour comprendre comment<br>les tables sont reliées,');
+  assert.ok(io >= 0 && D.CAPTIONS.slice(io, io + 3).map(c => c[2].replace(/<br>/g, ' ')).join(' ')
+    === 'Pour comprendre comment les tables sont reliées, il faut repérer leurs clés étrangères et identifier les tables auxquelles elles renvoient.', 'la phrase d’ouverture, mot pour mot');
+  assert.ok(D.CAPTIONS[io][1] < D.CAPTIONS[io + 1][0] && D.CAPTIONS[io + 1][1] < D.CAPTIONS[io + 2][0], 'trois légendes qui se suivent, sans se chevaucher');
+  const fkt = D.TABLES2.flatMap(t => t[3].filter(isFk).map(c => c[1]));
+  assert.deepEqual(fkt, ['co', 'cl', 'at', 'cl'], 'les quatre clés étrangères, dans l’ordre d’affichage, et la table que chacune désigne');
+  assert.equal(new Set(fkt).size, 3, 'trois tables désignées : coachs, clients, ateliers');
+  assert.ok(page.includes("TABLES2.forEach(([k], q) => { tint(k, 11.22 + q * 0.14); untint(k, 11.5 + q * 0.14);") && D.CAPTIONS[io][0] < 11.22 && 11.22 < D.CAPTIONS[io][1]
+    && page.includes("bump(f, 13.02 + q * 0.2, 1.12); halo(f, FKT[q], 13.02 + q * 0.2);") && D.CAPTIONS[io + 1][0] < 13.02 && 13.02 < D.CAPTIONS[io + 1][1]
+    && page.includes("const t = 14.7 + q * 0.22, k = FKT[q];") && D.CAPTIONS[io + 2][0] < 14.7 && 14.7 < D.CAPTIONS[io + 2][1],
+    'les tables, les clés étrangères, puis les tables désignées s’animent chacune pendant sa légende');
+  assert.ok(page.includes('.sch{left:64px;width:952px;top:236px;padding:14px 0;overflow:hidden}'), 'le fond d’une table allumée suit les angles arrondis de la carte');
   /* Les six moments */
   assert.deepEqual(D.PICKS.map(p => p.kind), ['pick', 'sort', 'pick', 'tap', 'pick', 'tap'], 'choisir, placer, toucher ; jamais deux fois de suite le même geste');
   assert.ok(D.PICKS.filter(p => p.kind === 'tap').every(p => /^Touche /.test(p.prompt)), 'chaque moment à toucher dit qu’il faut toucher l’image');

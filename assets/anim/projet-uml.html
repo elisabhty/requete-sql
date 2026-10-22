@@ -25,7 +25,7 @@
 .k-dv{--c:#0E9F9A;--cs:#DDF5F3;--ci:#0B6E6A}
 
 /* ---------- Les tables du chapitre 2 ---------- */
-.sch{left:64px;width:952px;top:236px;padding:14px 0}
+.sch{left:64px;width:952px;top:236px;padding:14px 0;overflow:hidden}   /* le fond d’une ligne allumée suit les angles arrondis de la carte */
 .srow{padding:16px 36px}
 .srow+.srow{box-shadow:inset 0 2px 0 var(--line-2)}
 .sn{display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:31px;font-weight:800;color:var(--ci)}
@@ -249,7 +249,9 @@ const CHAPTERS = [
 const CAPTIONS = [
   [5.3, 8.0,     "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost."],
   [8.1, 10.8,    "Au chapitre 2, tu as relié ses cinq tables par des clés étrangères."],
-  [10.9, 16.0,   "Mais pour voir les relations, il faut chercher ces clés, table par table."],
+  [10.9, 12.6,   "Pour comprendre comment<br>les tables sont reliées,"],
+  [12.7, 14.3,   "il faut repérer leurs clés étrangères"],
+  [14.4, 16.0,   "et identifier les tables<br>auxquelles elles renvoient."],
   [21.7, 27.4,   "Pour dessiner ce plan, on utilise un <b class=\"nw\">diagramme de classes UML</b>."],
   [27.7, 33.4,   "Chaque sujet devient une <b>classe</b> : une boîte qui porte son nom, puis la liste de ses <b>attributs</b>."],
   [33.5, 39.35,  "Aucune clé ici : le diagramme décrit les sujets, pas la façon de les ranger."],
@@ -436,6 +438,12 @@ const pop = (el, t, s = 0.4) => { show(el, t, {y: 0, scale: s}, 0.4, 'back.out(2
 const on = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 1, duration: d, ease: 'power2.out'}, t);
 const off = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 0, duration: d, ease: 'power2.in'}, t);
 const pulse = (el, t, n = 3, c = 'rgba(201,188,255,.55)') => tl.to(el, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+/* Une table ou une clé étrangère « s’allume » à la couleur de son sujet (celle de --c) : fond de la ligne, halo autour de la puce. */
+const RGB = {co: '47,128,237', at: '232,137,43', cl: '106,77,244', ca: '217,154,11', in: '22,148,71'};
+const tint = (k, t, d = 0.15) => tl.fromTo('#sr-' + k, {backgroundColor: `rgba(${RGB[k]},0)`}, {backgroundColor: `rgba(${RGB[k]},.16)`, duration: d, ease: 'power2.out', immediateRender: false}, t);
+const untint = (k, t, d = 0.2) => tl.to('#sr-' + k, {backgroundColor: `rgba(${RGB[k]},0)`, duration: d, ease: 'power2.in'}, t);
+const halo = (el, k, t) => tl.fromTo(el, {boxShadow: `inset 0 0 0 3px rgb(${RGB[k]}), 0 0 0 0px rgba(${RGB[k]},0)`},
+  {boxShadow: `inset 0 0 0 3px rgb(${RGB[k]}), 0 0 0 7px rgba(${RGB[k]},.25)`, duration: 0.25, ease: 'power2.out', immediateRender: false}, t);
 /* Un trait qui se dessine depuis son premier bout. */
 function draw(id, t, d = 0.5){
   const l = $(id), x1 = +l.getAttribute('x1'), y1 = +l.getAttribute('y1'), x2 = +l.getAttribute('x2'), y2 = +l.getAttribute('y2');
@@ -515,8 +523,21 @@ function build(){
   show('#sch', 5.3, {y: 60}, 0.6); cue(5.3, 'whoosh', 0.5);
   gsap.set('.srow', {autoAlpha: 0, x: -30});
   $$('.srow').forEach((r, q) => { tl.to(r, {autoAlpha: 1, x: 0, duration: 0.4, ease: 'power3.out'}, 5.6 + q * 0.22); cue(5.6 + q * 0.22, 'tick', 0.4, q); });
-  // les relations sont cachées dans les clés étrangères
-  $$('.sc span.fk').forEach((f, q) => { bump(f, 11.6 + q * 0.5, 1.12); cue(11.6 + q * 0.5, 'tick', 0.5, q + 2); });
+  // « Pour comprendre comment les tables sont reliées, » : les cinq tables s’allument l’une après l’autre, chacune à sa couleur
+  TABLES2.forEach(([k], q) => { tint(k, 11.22 + q * 0.14); untint(k, 11.5 + q * 0.14); cue(11.22 + q * 0.14, 'tick', 0.45, q); });
+  // « il faut repérer leurs clés étrangères » : chaque clé rebondit et s’entoure de la couleur de la table qu’elle désigne
+  const FKT = [];   // la table désignée par chaque clé étrangère, dans l’ordre d’affichage
+  TABLES2.forEach(([, , , cols]) => cols.forEach(c => { if (Array.isArray(c)) FKT.push(c[1]); }));
+  $$('.sc span.fk').forEach((f, q) => { bump(f, 13.02 + q * 0.2, 1.12); halo(f, FKT[q], 13.02 + q * 0.2); cue(13.02 + q * 0.2, 'pop', 0.5, q); });
+  // « et identifier les tables auxquelles elles renvoient » : chaque clé rebondit de nouveau, la table qu’elle désigne s’allume et reste allumée
+  const lit = new Set();
+  $$('.sc span.fk').forEach((f, q) => {
+    const t = 14.7 + q * 0.22, k = FKT[q];
+    bump(f, t, 1.12);
+    if (!lit.has(k)) { lit.add(k); tint(k, t); }
+    tl.to(`#sr-${k} .sn`, {scale: 1.1, transformOrigin: '0% 50%', duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, t);
+    cue(t, 'tick', 0.5, q + 3);
+  });
   hide('#sch', 15.9, {y: -40}, 0.4);
   sceneOff('#sa', 16.4);
   // le mail de Karim Benali
