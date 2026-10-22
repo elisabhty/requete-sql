@@ -16,7 +16,7 @@
    l’image que la timeline affiche juste après l’arrêt, qui reprend donc sans saut. */
 .pvs{opacity:1!important;visibility:visible!important}
 
-/* Couleur de chaque sujet : client, atelier, coach, inscription, carte membre */
+/* Couleur de chaque sujet : client, atelier, coach, inscription, carte de membre */
 .k-cl{--c:#6A4DF4;--cs:#EEE9FF;--ci:#5335E0;--cr:rgba(106,77,244,.12)}
 .k-at{--c:#E8892B;--cs:#FFF1E2;--ci:#9A5B00;--cr:rgba(232,137,43,.14)}
 .k-co{--c:#2F80ED;--cs:#E6F0FD;--ci:#1D5FA8;--cr:rgba(47,128,237,.12)}
@@ -150,7 +150,7 @@
   <section class="scene" id="sc"></section>
   <!-- Les mails reçus -->
   <section class="scene" id="sm"></section>
-  <!-- 6 · La carte membre, puis les trois formes de relation -->
+  <!-- 6 · La carte de membre, puis les trois formes de relation -->
   <section class="scene" id="sd"></section>
   <section class="scene" id="se"></section>
   <section class="scene" id="sk"></section>
@@ -190,7 +190,7 @@ const INSCR = [[1, 1, 1, '2026-09-01'], [2, 4, 1, '2026-09-02'], [3, 5, 2, '2026
   [5, 3, 1, '2026-09-05'], [6, 6, 4, '2026-09-06']];
 /* Le mail de Sophie Martin : une inscription de plus, à Méditation. */
 const NOUVELLE = [7, 1, 4, '2026-09-07'];
-/* Cartes membre : [id, client_id, séances] ; une deuxième carte pour Sophie Martin est refusée. */
+/* Cartes de membre : [id, client_id, séances] ; une deuxième carte pour Sophie Martin est refusée. */
 const CARTES = [[1, 1, 10], [2, 4, 5], [3, 6, 8]];
 const DOUBLON = [4, 1, 10];
 const cl = id => CLIENTS.find(c => c[0] === id), at = id => ATELIERS.find(a => a[0] === id), co = id => COACHS.find(c => c[0] === id);
@@ -258,7 +258,7 @@ const QUESTIONS = [];
 
 /* Les trois formes de relation, et les cas à y ranger : [clé de la case, forme, nom, cas qui y va]. */
 const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];
-const CAS = ['Un coach et ses ateliers', 'Un client et ses ateliers', 'Un client et sa carte membre'];
+const CAS = ['Un coach et ses ateliers', 'Un client et ses ateliers', 'Un client et sa carte de membre'];
 /* Ce que répond chaque mauvaise case : CAS × forme. */
 const BAD = [
   {'11': 'Moussa Diallo anime deux ateliers : c’est « plusieurs » du côté des ateliers.', nn: 'Un atelier n’a qu’un coach : c’est « un » de ce côté-là.'},
@@ -284,7 +284,7 @@ const PICKS = [
     {label: 'Une nouvelle ligne dans la table inscriptions', ok: true},
     {label: 'Deux numéros dans la même case atelier_id', why: 'Une case ne doit contenir qu’une seule valeur : « 1, 4 » ne désigne aucun atelier.'}]},
   {at: 149.6, from: 133.3, kind: 'sort', prompt: 'Range chaque relation selon sa forme.',
-    hint: 'Touche une relation ci-dessous, puis sa forme. Tu peux aussi la faire glisser directement.', next: '{x} : touche maintenant sa forme.', options: CAS.map(c => ({label: c}))}
+    hint: 'Touche une relation ci-dessous, puis sa forme. Tu peux aussi la faire glisser directement.', next: '{x} : touche maintenant sa forme.', options: CAS.map(c => ({label: c.replace('carte de membre', 'carte\u00a0de\u00a0membre')}))}
 ];
 
 /* Les deux mails reçus : [qui (avatar, prénom, nom, initiales), sujet (couleur), étiquette, adresse d’envoi, demande (un texte, ou ses
@@ -349,7 +349,7 @@ function dom(){
     `<div class="mw"><div class="mn"><b>${w[0]} ${w[1]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
     `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), 'Merci !', sign].map((x, j, a) => `<span class="sn${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
     '<div class="abs emo tapf" id="tapf">👆</div>';
-  /* 6 · La carte membre : une par client */
+  /* 6 · La carte de membre : une par client */
   let d = table('td-cl', 'k-cl', 'clients', '👥', [ID('k-cl', false, '80px'), {h: 'prenom', w: '128px'}, {h: 'nom', w: '1fr'}],
     CLIENTS.map(x => ({id: x[0], v: x})), 64, 382, 64);
   d += table('td-ca', 'k-nb', 'cartes', '💳', [ID('k-nb', false, '80px'), {h: 'client_id', w: '270px', k: 'k-cl', uq: true}, {h: 'seances', w: '1fr'}],
