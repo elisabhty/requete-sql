@@ -13,7 +13,7 @@
 'use strict';
 const FPS = 30;
 const QS = new URLSearchParams(location.search);
-/* ?app : version du cours dans l’app (le bouton « Ajouter dans notes » et l’écran « À toi de jouer » sont ceux de l’app). */
+/* ?app : version du cours dans l’app (le bouton « Ajouter à mes notes » et l’écran « À toi de jouer » sont ceux de l’app). */
 const APP = QS.has('app');
 /* ?embed : jouée dans le lecteur de l’app, qui pilote le temps (renderAt) ; la scène remplit la fenêtre sans être rognée. */
 const EMBED = QS.has('embed');

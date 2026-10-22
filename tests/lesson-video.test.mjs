@@ -25,7 +25,7 @@ test('WHERE : le cours a son animation, son image fixe et sa vignette, présente
   assert.equal(m[1], 'assets/anim/where.html?app&embed');
   for (const f of m.slice(1, 3)) assert.ok(fs.statSync(path.join(ROOT, f.split('?')[0])).size > 1000, `fichier présent : ${f}`);
   assert.equal(m[3], '2 min 02');
-  assert.ok(/notes:\{t:114\.8,y:1330,card:\[64,356,1016,1017\],to:\[940,255\]\}/.test(where), 'bouton « Ajouter dans notes » à 1 min 55, sous le récapitulatif ; la note part du récapitulatif vers le carnet');
+  assert.ok(/notes:\{t:114\.8,y:1330,card:\[64,356,1016,1017\],to:\[940,255\]\}/.test(where), 'bouton « Ajouter à mes notes » à 1 min 55, sous le récapitulatif ; la note part du récapitulatif vers le carnet');
   assert.ok(html.includes("'exoNeeds','video']"), 'guide() garde le champ video sur la leçon');
 });
 
@@ -95,9 +95,9 @@ test('l’animation part dans l’app iOS et reste légère (plus de MP4 pour WH
   assert.ok(sw.includes("url.pathname.endsWith('.mp4')"));
 });
 
-test('« Ajouter dans notes » dans la vidéo : même note que le cours texte, un seul appui, sans doublon ni toast', () => {
+test('« Ajouter à mes notes » dans la vidéo : même note que le cours texte, un seul appui, sans doublon ni toast', () => {
   const player = cut('function openLessonVideo(){', 'function lvPlay(){');
-  assert.ok(player.includes('class="lv-note-btn"') && player.includes('Ajouter dans notes') && player.includes('class="lv-note-arrow"'), 'bouton et flèche dans le lecteur');
+  assert.ok(player.includes('class="lv-note-btn"') && player.includes('Ajouter à mes notes') && player.includes('class="lv-note-arrow"'), 'bouton et flèche dans le lecteur');
   assert.ok(player.includes('class="lv-a-halo"') && html.includes('.lv-note-arrow{position:absolute;z-index:1;') && html.includes('.lv-note-arrow .lv-a-halo{'),
     'flèche bien visible : trait épais sur un halo, dessinée au-dessus du bouton');
   assert.ok(player.includes("e.target.closest('.lv-end,.lv-big,.lv-note-btn')"), 'toucher le bouton ne met pas la vidéo en pause');
@@ -768,7 +768,7 @@ const COURSES = [
       '<span class="glow" id="nn3"><span class="kw">WHERE</span> client_id <span class="kw">IS NOT NULL</span></span>',
       '<span class="glow" id="wh4"><span class="kw">WHERE</span> nb_commandes &gt;= 2</span>;', '<span class="m">no such table: totaux</span>',
       '<span class="glow" id="j6"><span class="kw">JOIN</span> totaux</span>', '✓ 6 invitations envoyées']},
-  {id: 73, next: 80, titre: 'UNION et UNION ALL', page: 'union.html', thumb: 'union-thumb.jpg', duree: '3 min 49', notesAt: 155.7,
+  {id: 73, next: 80, titre: 'UNION et UNION ALL', page: 'union.html', thumb: 'union-thumb.jpg', duree: '3 min 48', notesAt: 155.7,
     notes: /notes:\{t:223\.3,y:1391,card:\[64,292,1016,1096\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avec <span class="ic">UNION</span>, empile les lignes<br>de plusieurs requêtes en un seul résultat.',
     chapters: ['Situation', 'Le problème', 'UNION ALL', 'Les noms de colonnes', 'Le piège', 'Le résultat', 'À retenir'],
@@ -778,7 +778,7 @@ const COURSES = [
       '<span class="m">SELECTs to the left and right of UNION ALL do not have the same number of result columns</span>',
       '<span class="k ko">3 colonnes</span>', '✓ Un indicateur de plus = une ligne de plus', '✓ Tableau de bord à jour',
       '<div class="mn-l"><span class="ic">UNION</span> rallonge</div>']},
-  {id: 80, next: 77, titre: 'INTERSECT et EXCEPT', page: 'intersect-except.html', thumb: 'intersect-except-thumb.jpg', duree: '3 min 04', notesAt: 159.2,
+  {id: 80, next: 77, titre: 'INTERSECT et EXCEPT', page: 'intersect-except.html', thumb: 'intersect-except-thumb.jpg', duree: '3 min 03', notesAt: 159.2,
     notes: /notes:\{t:178\.5,y:1356,card:\[64,292,1016,1061\],to:\[940,255\]\}/, table: 'produits',
     bubble: 'Avec <span class="ic">INTERSECT</span> et <span class="ic">EXCEPT</span>,<br>compare les lignes de deux requêtes.',
     chapters: ['Situation', 'Le problème', 'INTERSECT', 'EXCEPT', 'Le piège', 'Le résultat', 'À retenir'],
@@ -788,7 +788,7 @@ const COURSES = [
       '🏷️ Tisane Détox&nbsp;: à écouler en promotion', "tl.to(blocB, {y: -4 * LH, duration: 0.6, ease: 'power2.inOut'}, 113.0);",
       '✕ Des stocks confortables&nbsp;: 120, 500 et 150 unités', '✓ Commande envoyée au fournisseur',
       '<div class="mn-l"><span class="ic">EXCEPT</span><span>retire la seconde</span></div>']},
-  {id: 77, next: 60, titre: 'WITH RECURSIVE (CTE RECURSIVE)', page: 'with-recursive.html', thumb: 'with-recursive-thumb.jpg', duree: '3 min 29', notesAt: 159.2,
+  {id: 77, next: 60, titre: 'WITH RECURSIVE (CTE RECURSIVE)', page: 'with-recursive.html', thumb: 'with-recursive-thumb.jpg', duree: '3 min 28', notesAt: 159.2,
     notes: /notes:\{t:203\.2,y:1391,card:\[64,292,1016,1096\],to:\[940,255\]\}/, table: 'commandes',
     bubble: 'Avec <span class="ic">WITH RECURSIVE</span>, fabrique une suite de lignes à partir d’une seule ligne.',
     chapters: ['Situation', 'Le problème', 'L’ancre', 'La partie récursive', 'Le piège', 'Le résultat', 'À retenir'],
@@ -798,7 +798,7 @@ const COURSES = [
       '<span class="glow" id="wh3"><span class="kw">WHERE</span> jour &lt; <span class="str">\'2026-07-31\'</span></span><i class="strike" id="sk5"></i>',
       '⏳ Exécution en cours…', '✕ Sans condition d’arrêt, la requête ne s’arrête jamais',
       '<span class="glow" id="ex6"><span class="kw">EXCEPT</span></span>', '✓ 19 promotions programmées']},
-  {id: 60, next: 74, titre: 'OVER()', page: 'over.html', thumb: 'over-thumb.jpg', duree: '3 min 28', notesAt: 159.2,
+  {id: 60, next: 74, titre: 'OVER()', page: 'over.html', thumb: 'over-thumb.jpg', duree: '3 min 27', notesAt: 159.2,
     notes: /notes:\{t:202\.2,y:1391,card:\[64,292,1016,1096\],to:\[940,255\]\}/, table: 'produits',
     bubble: 'Avec <span class="ic">OVER()</span>, un calcul porte sur plusieurs lignes sans les regrouper.',
     chapters: ['Situation', 'Le problème', 'OVER ()', 'PARTITION BY', 'Le piège', 'Le résultat', 'À retenir'],
@@ -807,7 +807,7 @@ const COURSES = [
       '<span class="glow" id="pb3"><span class="kw">PARTITION BY</span> categorie</span>', '<b class="v8">8</b><b class="vp">${nbDans(c)}</b>',
       '<span class="m">misuse of window function COUNT()</span>', '<div class="st ko" id="sw5"><b>2</b><span>WHERE</span></div>',
       '<span class="glow" id="wh6"><span class="kw">WHERE</span> nb_produits = 1</span>', '✓ 3 catégories à étoffer']},
-  {id: 74, next: 78, titre: 'Fonctions de rang', page: 'fonctions-rang.html', thumb: 'fonctions-rang-thumb.jpg', duree: '3 min 12', notesAt: 162.7,
+  {id: 74, next: 78, titre: 'Fonctions de rang', page: 'fonctions-rang.html', thumb: 'fonctions-rang-thumb.jpg', duree: '3 min 11', notesAt: 162.7,
     notes: /notes:\{t:186\.5,y:1411,card:\[64,292,1016,1116\],to:\[940,255\]\}/, table: 'commandes',
     bubble: 'Avec <span class="ic">RANK()</span>, chaque ligne reçoit une place&nbsp;: la même pour les ex&nbsp;æquo.',
     chapters: ['Situation', 'Le problème', 'ROW_NUMBER()', 'PARTITION BY', 'Le piège', 'Le résultat', 'À retenir'],
@@ -818,7 +818,7 @@ const COURSES = [
       '<div class="fc" id="f5c"><div class="fn">DENSE_RANK()</div><b class="ok">1</b><b class="ok">1</b><b>2</b></div>',
       '<span class="glow" id="rk6"><span class="kw">RANK</span>() <span class="kw">OVER</span> (</span>', '🥇 Premier achat de 3 clients',
       '✓ Mise en avant pour les nouveaux clients']},
-  {id: 78, next: 79, titre: 'LAG et LEAD', page: 'lag-lead.html', thumb: 'lag-lead-thumb.jpg', duree: '3 min 29', notesAt: 163.2,
+  {id: 78, next: 79, titre: 'LAG et LEAD', page: 'lag-lead.html', thumb: 'lag-lead-thumb.jpg', duree: '3 min 28', notesAt: 163.2,
     notes: /notes:\{t:203\.3,y:1357,card:\[64,292,1016,1062\],to:\[940,255\]\}/, table: 'commandes',
     bubble: 'Avec <span class="ic">LAG()</span> et <span class="ic">LEAD()</span>, chaque ligne lit la valeur d’une ligne voisine.',
     chapters: ['Situation', 'Le problème', 'LAG() et LEAD()', 'Le délai en jours', 'Le piège', 'Le résultat', 'À retenir'],
@@ -829,7 +829,7 @@ const COURSES = [
       '<span class="glow" id="nb5"><span class="kw">ORDER BY</span> client_id, date_commande, id</span>', '<span class="jr" id="j5b">−23</span>',
       '✕ Lucas Bernard lit la commande de Sophie Martin', '<span class="glow" id="av6"><span class="kw">COALESCE</span>(<span class="kw">AVG</span>(jours_depuis), 10)</span>',
       '🔔 Hugo Laurent et Gabriel Michel&nbsp;: 10 jours par défaut', '✓ 8 rappels programmés']},
-  {id: 79, next: 56, titre: 'Fenêtres glissantes', page: 'fenetres-glissantes.html', thumb: 'fenetres-glissantes-thumb.jpg', duree: '3 min 08', notesAt: 162.7,
+  {id: 79, next: 56, titre: 'Fenêtres glissantes', page: 'fenetres-glissantes.html', thumb: 'fenetres-glissantes-thumb.jpg', duree: '3 min 07', notesAt: 162.7,
     notes: /notes:\{t:182\.2,y:1380,card:\[64,292,1016,1085\],to:\[940,255\]\}/, table: 'commandes',
     bubble: 'Avec <span class="ic">ROWS BETWEEN</span>, choisis les lignes qui entrent dans chaque calcul.',
     chapters: ['Situation', 'Le problème', 'Le cumul', 'La moyenne mobile', 'Le piège', 'Le résultat', 'À retenir'],
@@ -838,8 +838,8 @@ const COURSES = [
       '<span class="b"><span class="glow" id="p4"><span class="kw">2 PRECEDING</span></span></span>', '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> date_commande</span>',
       '✕ Les deux commandes du 2 juillet ont le même cumul', '<div class="lim" id="lim6"><span>Palier&nbsp;: 700&nbsp;€</span></div>',
       '✓ Palier franchi le 1er&nbsp;août']},
-  {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '3 min 24', notesAt: 159.3,
-    notes: /notes:\{t:198,y:1291,card:\[64,292,1016,996\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '3 min 25', notesAt: 159.3,
+    notes: /notes:\{t:198\.0,y:1291,card:\[64,292,1016,996\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Le fichier Excel des ateliers mélange tout&nbsp;:<br>à toi de le ranger en tables.',
     chapters: ['Le fichier Excel', 'Les copies', 'Supprimer, ajouter', 'Une table par sujet', 'Les tables remplies', 'À retenir'],
     traps: ["const INSCR = [[1, 1, '01/09', '2026-09-01'], [4, 1, '02/09', '2026-09-02'], [5, 2, '03/09', '2026-09-03'], [7, 3, '04/09', '2026-09-04'],",
@@ -849,8 +849,8 @@ const COURSES = [
       "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 129.8, from: 119.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}", "{at: 141.4, from: 135.95, kind: 'pick',",
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
-  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 41', notesAt: 167.9,
-    notes: /notes:\{t:274\.4,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 42', notesAt: 167.9,
+    notes: /notes:\{t:275\.0,y:1193,card:\[64,292,1016,898\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Tes tables sont prêtes&nbsp;:<br>à toi de les relier avec des clés.',
     chapters: ['Le problème', 'La clé primaire', 'La clé étrangère', '1 → N', 'N ↔ N', '1 ↔ 1', 'À retenir'],
     traps: ["const INSCR = [[1, 1, 1, '2026-09-01'], [2, 4, 1, '2026-09-02'], [3, 5, 2, '2026-09-03'], [4, 7, 3, '2026-09-04'],",
@@ -864,7 +864,7 @@ const COURSES = [
       "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
       "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.0);", 'Chapitre 3 · Modéliser avec UML']},
-  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '3 min 36', notesAt: 179.7,
+  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '3 min 37', notesAt: 179.7,
     notes: /notes:\{t:209\.2,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
     bubble: 'Tes tables sont reliées&nbsp;:<br>dessine maintenant leur plan.',
     chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
@@ -882,7 +882,7 @@ const COURSES = [
 ];
 
 for (const c of COURSES) {
-  test(`${c.titre} : le cours a son animation et sa vignette, avec le bouton « Ajouter dans notes » sous le récapitulatif`, () => {
+  test(`${c.titre} : le cours a son animation et sa vignette, avec le bouton « Ajouter à mes notes » sous le récapitulatif`, () => {
     const lesson = cut(`guide({ id:${c.id}, titre:"${c.titre}"`, `guide({ id:${c.next},`);
     const m = lesson.match(/video:\{anim:'([^']+)',thumb:'([^']+)',duree:'([^']+)',/);
     assert.ok(m, `champ video du cours ${c.titre}`);
@@ -890,7 +890,7 @@ for (const c of COURSES) {
     assert.equal(m[2], `assets/anim/${c.thumb}`);
     for (const f of m.slice(1, 3)) assert.ok(fs.statSync(path.join(ROOT, f.split('?')[0])).size > 1000, `fichier présent : ${f}`);
     assert.equal(m[3], c.duree);
-    assert.ok(c.notes.test(lesson), 'bouton « Ajouter dans notes » sous « Les trois idées à retenir »');
+    assert.ok(c.notes.test(lesson), 'bouton « Ajouter à mes notes » sous « Les trois idées à retenir »');
   });
 
   test(`${c.titre} : page de l’animation sur le moteur commun, ressources locales, chapitres et pièges, sans question en pleine vidéo`, () => {
@@ -1219,7 +1219,7 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
 
 test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six moments sur l’image, clients de la base', async () => {
   const l56 = cut('guide({ id:56, titre:"Normaliser les inscriptions"', 'guide({ id:72,');
-  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'3 min 24',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'3 min 25',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/projet-normaliser.html'), 'utf8');
   const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
   assert.ok(a > 0 && b > a, 'données de la page localisées');
@@ -1289,7 +1289,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
 
 test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre 1 relié par des clés, chaque réponse vérifiée dans SQLite', async () => {
   const l72 = cut('guide({ id:72, titre:"Clés et relations"', 'guide({ id:81,');
-  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'4 min 41',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'4 min 42',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1474,7 +1474,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
 
 test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des tables du chapitre 2, chaque multiplicité et chaque traduction vérifiées', async () => {
   const l81 = cut('guide({ id:81, titre:"Modéliser avec UML"', 'guide({ id:61,');
-  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'3 min 36',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'3 min 37',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1780,7 +1780,7 @@ test('leçon terminée avec le score requis : confettis, son de réussite, le ch
   const end = cut('function lvEnded(){', 'function lvWin(root){');
   assert.ok(end.includes('const win=!!(current&&current.id===id&&current.leconSeule&&!LV.retry);') && end.includes("root.classList.toggle('is-win',win);")
     && end.includes('if(vid)vid.loop=win;') && end.includes('if(win)lvWin(root);'), 'seulement quand la leçon seule est validée ; le chat fait coucou en boucle');
-  const win = cut('function lvWin(root){', '/* ---------- « Ajouter dans notes »');
+  const win = cut('function lvWin(root){', '/* ---------- « Ajouter à mes notes »');
   assert.ok(win.includes("LvSfx.play('success',0,.6,0)") && win.includes('lqConfetti({n:56})') && win.includes('lqConfetti({n:36})') && win.includes('if(prefersReduceMotion())return;')
     && win.includes("const still=()=>!!(LV&&LV.root===root&&root.classList.contains('is-win'));"), 'deux salves de confettis, arpège de réussite ; rien en mouvement réduit ni après avoir quitté l’écran');
   assert.ok(html.includes(`<span class="lv-end-cat">\${mascotMedalHtml()}\${l.leconSeule?'<span class="lv-end-bravo" aria-hidden="true">Bravo&nbsp;!</span>':''}</span>`), 'bulle « Bravo ! » du chat');
@@ -1924,7 +1924,7 @@ test('leçon seule : on n’avance pas au-delà d’un moment « À toi » pas r
   const player = cut('function openLessonVideo(){', 'function lvPlay(){');
   assert.ok(player.includes('LV.gate=lvPkGate(t);') && player.includes('if(g>=0)lvPkStop(g); else if(again)lvPlay();'), 'barre : le curseur s’arrête avant le moment, son plateau s’ouvre au relâchement');
   assert.ok(player.includes('const g=lvPkGate(r); if(g>=0)r=Math.max(0,video.picks[g].t-.08);'), 'reprise : jamais au-delà d’un moment pas réussi');
-  const end = cut('function lvEnded(){', '/* ---------- « Ajouter dans notes »');
+  const end = cut('function lvEnded(){', '/* ---------- « Ajouter à mes notes »');
   for (const part of ['LV.retry=!was&&(max!=null?errs>max:ok<need);', 'if(LV.firstDone){ markDone(id,false);', 'Encore ${need-ok}&nbsp;exercice${need-ok>1?\'s\':\'\'} à réussir pour valider la leçon.',
     'Il en faut ${max} au plus pour valider la leçon.', 'if(LV.retry)LV.rates=lvPkRates(id,n);', "`Rejouer les ${nr} moments ratés`", "LV.retry?'Tout recommencer':'Revoir la vidéo'",
     "root.classList.toggle('is-retry',LV.retry);"])

@@ -1,6 +1,6 @@
 /* « Le réflexe à retenir » est identique dans les 64 cours (modèle de l’ancien cours Clé primaire) : trois cartes
    (emoji, phrase, précision facultative — une phrase, ou une liste « mot-clé → rôle » ou d’exemples —, code facultatif sur une ligne), un seul titre, un seul bouton
-   « Ajouter dans notes ». Les 22 anciens cours ne gardent ni leur résumé libre, ni leurs règles en
+   « Ajouter à mes notes ». Les 22 anciens cours ne gardent ni leur résumé libre, ni leurs règles en
    colonnes, ni l'encadré « À retenir » de fin de cours. */
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -65,7 +65,7 @@ test('un seul titre et un seul bouton de note, rendus par reflexBlock', () => {
     assert.ok(!l.reflexTitle && !(l.studio && l.studio.reflexTitle), `${l.titre} : pas de titre propre au cours`);
     assert.ok(!l.noReflex, `${l.titre} : pas de cours sans réflexe`);
     const body = [l.situation, l.studio.problem.extra, l.studio.uses.body, (l.studio.why || {}).extra].join('\n');
-    assert.ok(!body.includes('coda-note'), `${l.titre} : le bouton « Ajouter dans notes » n'est que dans le réflexe`);
+    assert.ok(!body.includes('coda-note'), `${l.titre} : le bouton « Ajouter à mes notes » n'est que dans le réflexe`);
   }
 });
 
