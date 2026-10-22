@@ -287,11 +287,15 @@ const PICKS = [
     hint: 'Touche une relation ci-dessous, puis sa forme. Tu peux aussi la faire glisser directement.', next: '{x} : touche maintenant sa forme.', options: CAS.map(c => ({label: c}))}
 ];
 
-/* Les deux mails reçus : [qui (avatar, prénom, nom, initiales), sujet (couleur), étiquette, adresse d’envoi, demande, signature].
+/* Les deux mails reçus : [qui (avatar, prénom, nom, initiales), sujet (couleur), étiquette, adresse d’envoi, demande (un texte, ou ses
+   paragraphes), signature].
    Chacun arrive en notification ; l’app s’arrête dessus (OPENS) jusqu’à ce que l’élève le touche ; il se déplie alors. */
 const MAILS = [
   [['Sophie', 'Martin', 'SM'], 'k-cl', 'cliente', 'sophie@mail.fr', 'Je voudrais aussi participer à l’atelier Méditation du 24 septembre. Peux-tu m’y inscrire ?', 'Sophie'],
-  [['L’équipe', 'NutriBoost', 'NB'], 'k-nb', 'équipe', 'equipe@nutriboost.fr', 'Nous lançons une carte membre : une seule par client, avec ses séances restantes. Peux-tu l’ajouter à la base ?', 'L’équipe NutriBoost']
+  [['L’équipe', 'NutriBoost', 'NB'], 'k-nb', 'équipe', 'equipe@nutriboost.fr', [
+    'Nous lançons une carte de membre avec un forfait de 10 séances pour participer à nos ateliers. À chaque séance utilisée, le solde diminue : après 3 séances, il en reste 7.',
+    'Chaque client pourra avoir une seule carte, qui lui sera personnelle.',
+    'Peux-tu adapter la base de données pour enregistrer chaque carte, son propriétaire et le nombre de séances restantes ?'], 'L’équipe NutriBoost']
 ];
 const OPENS = [104.8, 130.6].map((t, n) => ({at: t, sel: '#ml' + (n + 1), prompt: 'Touche le mail pour l’ouvrir.', label: `Ouvrir le mail de ${MAILS[n][0][0]} ${MAILS[n][0][1]}`}));
 
@@ -343,7 +347,7 @@ function dom(){
   /* Les mails */
   $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
     `<div class="mw"><div class="mn"><b>${w[0]} ${w[1]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
-    `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', body, 'Merci !', sign].map((x, j) => `<span class="sn${j === 3 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
+    `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), 'Merci !', sign].map((x, j, a) => `<span class="sn${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
     '<div class="abs emo tapf" id="tapf">👆</div>';
   /* 6 · La carte membre : une par client */
   let d = table('td-cl', 'k-cl', 'clients', '👥', [ID('k-cl', false, '80px'), {h: 'prenom', w: '128px'}, {h: 'nom', w: '1fr'}],
@@ -432,7 +436,8 @@ function mailIn(n, t, T){
   gsap.set(sn, {autoAlpha: 0, y: 14});
   sn.forEach((s, k) => { tl.to(s, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, T + 0.4 + k * 0.28); cue(T + 0.4 + k * 0.28, 'tick', 0.4, k + 2); });
   const end = T + 0.4 + (sn.length - 1) * 0.28 + 0.35;
-  hold(end + 0.05, Math.ceil(readTime(sn[1].textContent) * 20) / 20);
+  // le temps de lire la demande, tous ses paragraphes (entre « Bonjour, » et « Merci ! »)
+  hold(end + 0.05, Math.ceil(readTime(sn.slice(1, -2).map(s => s.textContent).join(' ')) * 20) / 20);
   return end;
 }
 function mailOut(n, t){ hide('#ml' + n, t, {x: 140, y: 0, rotation: 2}, 0.4, 'power2.in'); cue(t, 'whoosh', 0.4); }
