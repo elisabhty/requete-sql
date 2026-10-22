@@ -115,7 +115,9 @@ test('rendu : chaque dessin se trace (silhouette de découpe, puis couleurs), le
     assert.ok(calls.includes('fill') && calls.includes('stroke'), `${id} : tracé`);
     assert.ok(calls.some(c => /^lw:1[6-9]|^lw:2\d/.test(c)), `${id} : bord de découpe (deux fois 8 de marge)`);
   }
-  assert.ok(block.includes("if(mode==='lock')one('#DCD5F2',STK_B);") && block.includes("one('#CBC2EC',STK_B);one('#EEEAFB',STK_B-1.6)"), 'silhouette à gagner, découpe vide quand il est sur le tableau');
+  assert.ok(block.includes("if(mode==='lock')one('#DCD5F2',STK_B);") && block.includes("one('#CBC2EC',STK_B);one('#EEEAFB',STK_B-1.6)"), 'silhouette à gagner, découpe vide pendant qu’on le décolle');
+  assert.ok(block.includes('if(cv.width!==px||cv.height!==px){cv.width=px;cv.height=px;}'), 'les deux côtés du canvas : un canvas neuf mesure 300 × 150 (100 px affichés sur un écran ×3)');
+  assert.ok(block.includes("${stkArtHtml(s.id,s.got?'art':'lock')}") && block.includes('<em class="stk-on" aria-hidden="true">Sur le tableau</em>') && css.includes('html.lq .stk-cell.is-placed .stk-art{opacity:.42}'), 'sur la planche, un sticker collé reste visible, estompé');
 });
 
 test('tableau : le sticker, même tourné, reste sur le tableau ; la rotation s’aimante à l’horizontale', () => {
