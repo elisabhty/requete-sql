@@ -54,7 +54,7 @@
 .pv-w0{--w0:90px!important}
 .pv-w3{--w3:180px!important}
 .pv-w4{--w4:170px!important}
-/* La relation d’un coach rangée dans la table coachs : la case de Moussa Diallo devrait porter deux numéros */
+/* La relation d’un coach rangée dans la table coachs : la case de Moussa Diallo devrait porter deux identifiants */
 .r .two{position:absolute;left:3px;right:3px;top:6px;bottom:6px;z-index:2;border-radius:12px;display:flex;align-items:center;padding:0 10px;background:var(--danger-soft);box-shadow:inset 0 0 0 4px var(--danger-fill);color:var(--danger);font-style:normal}
 /* La nouvelle inscription de Sophie Martin, et la deuxième carte refusée */
 .r.new{overflow:hidden}
@@ -251,16 +251,16 @@ const CAPTIONS = [
   [9.5, 10.8,    "dans trois tables :<br><code>coachs</code>, <code>ateliers</code> et <code>inscriptions</code>."],
   [10.9, 12.45,  "Mais la <b>table inscriptions</b> contient seulement les dates d’inscription."],
   [12.55, 16.6,  "Impossible de savoir quel client s’est inscrit le 4 septembre, ni à quel atelier."],
-  [16.7, 22.2,   "Pour savoir quel client s’est inscrit à quel atelier, il faut relier les tables grâce à des <b>clés</b>."],
+  [16.7, 22.2,   "Pour le savoir, il faut relier les tables grâce à des <b>clés</b>."],
   [22.7, 28.5,   "D’abord, chaque ligne a besoin d’un <b>identifiant</b> : une valeur qui ne désigne qu’elle."],
   [28.65, 31.2,  "À toi !"],
-  [31.3, 37.0,   "On ajoute une colonne <code>id</code> : chaque coach y reçoit un numéro unique, qui reste stable."],
+  [31.3, 37.0,   "On ajoute une colonne <code>id</code> :<br>chaque coach y reçoit un identifiant unique, qui reste stable."],
   [37.1, 40.75,  "C’est la <b>clé primaire</b> de la table : chaque table reçoit la sienne."],
   [40.85, 42.8,  "Une clé primaire<br>ne peut pas être vide (<code>NULL</code>)."],
   [43.4, 49.2,   "La <b>table clients</b> avait déjà sa clé primaire, <code>id</code>. Reste à relier chaque inscription à son client."],
-  [49.3, 55.0,   "On ajoute à la <b>table inscriptions</b> une colonne <code>client_id</code> : le numéro du client de chaque ligne."],
+  [49.3, 55.0,   "On ajoute à la <b>table inscriptions</b> une colonne <code>client_id</code> : l’identifiant du client de chaque ligne."],
   [55.1, 57.9,   "Une colonne qui fait référence<br>à la clé primaire d’une autre table<br>est une <b>clé étrangère</b>."],
-  [58.0, 60.8,   "Elle sert à relier chaque inscription à son client : ici, <code>client_id</code> vaut 1, le numéro de Sophie Martin."],
+  [58.0, 60.8,   "Elle sert à relier chaque inscription à son client : ici, <code>client_id</code> vaut 1, l’identifiant de Sophie Martin."],
   [60.9, 66.1,   "De même, <code>atelier_id</code> fait référence à la clé primaire de la <b>table ateliers</b>."],
   [66.25, 68.8,  "À toi !"],
   [68.9, 74.6,   "C’est donc <b>Léa Simon</b> qui s’est inscrite le 4 septembre, à l’atelier Cuisine saine."],
@@ -322,17 +322,17 @@ const PICKS = [
   {at: 31.0, from: 22.6, kind: 'pick', text: true, prompt: 'Quelle colonne peut servir d’identifiant à chaque coach ?', options: [
     {label: 'prenom', why: 'Deux personnes peuvent avoir le même prénom : la table clients compte deux Nathan.'},
     {label: 'email', why: 'Un e-mail peut changer : Salma Haddad vient justement de changer d’adresse.'},
-    {label: 'Aucune : on ajoute un numéro', ok: true}]},
+    {label: 'Aucune : on ajoute un identifiant', ok: true}]},
   {at: 68.6, from: 55.1, kind: 'tap', need: 2, prompt: 'Touche la cliente et l’atelier de l’inscription du 4 septembre.'},
   {at: 82.6, from: 75.0, kind: 'pick', text: true, prompt: 'Où ranger la relation entre un atelier et son coach ?', options: [
     {label: 'Dans la table coachs : une colonne atelier_id'},   // pas de correction écrite : la vidéo l’explique juste après
     {label: 'Dans la table ateliers : une colonne coach_id', ok: true},
-    {label: 'Dans la table inscriptions : une colonne coach_id', why: 'Le coach dépend de l’atelier : son numéro serait recopié pour chaque inscrit.'}]},
+    {label: 'Dans la table inscriptions : une colonne coach_id', why: 'Le coach dépend de l’atelier : son identifiant serait recopié pour chaque inscrit.'}]},
   {at: 91.0, from: 82.9, kind: 'tap', need: 1, prompt: 'Touche l’atelier animé par Diego Ramos.'},
   {at: 110.45, from: 103.6, kind: 'pick', text: true, prompt: 'Sophie Martin s’inscrit aussi à l’atelier Méditation. Comment l’enregistrer ?', options: [
     {label: 'Une colonne atelier_2 dans la table clients', why: 'Et pour un troisième atelier ? Il faudrait encore une colonne, vide pour presque tous.'},
     {label: 'Une nouvelle ligne dans la table inscriptions', ok: true},
-    {label: 'Deux numéros dans la même case atelier_id', why: 'Une case ne doit contenir qu’une seule valeur : « 1, 4 » ne désigne aucun atelier.'}]},
+    {label: 'Deux identifiants dans la même case atelier_id', why: 'Une case ne doit contenir qu’une seule valeur : « 1, 4 » ne désigne aucun atelier.'}]},
   {at: 149.6, from: 133.3, kind: 'sort', prompt: 'Range chaque situation selon son type de relation.',
     hint: 'Touche une situation, puis le type de relation qui lui correspond. Tu peux aussi la faire glisser directement.', next: '« {x} » : quel est le type de relation ?', options: CAS.map(c => ({label: c.replace('carte de membre', 'carte\u00a0de\u00a0membre')}))}
 ];
@@ -608,9 +608,12 @@ function build(){
   tl.to(INSCR.filter(([n]) => n !== 4).map(([n]) => hl('ta-in', n)), {opacity: 0, duration: 0.3}, 12.35);
   cue(12.6, 'tick', 0.5, 2);
   pop('#ms1', 14.0, 0.5); pop('#ms2', 14.3, 0.5);
-  // pour savoir quel client s’est inscrit à quel atelier, il faut relier les tables grâce à des clés : le « ? » devient une clé
-  bump('#ms1', 17.9, 1.12); cue(17.9, 'pop', 0.55, 2);
-  bump('#ms2', 19.2, 1.12); cue(19.2, 'pop', 0.55, 4);
+  // pour le savoir (les deux « ? » se soulèvent), il faut relier les tables (les trois s’allument, chacune à sa couleur)
+  // grâce à des clés (le « ? » devient une clé)
+  bump(['#ms1', '#ms2'], 17.55, 1.12); cue(17.55, 'pop', 0.55, 2);
+  tl.to(['#ta-co', '#ta-at'], {opacity: 1, duration: 0.4}, 18.6);
+  TA.forEach(([s, rgb], q) => { glowOn(s, rgb, 18.7 + q * 0.15); cue(18.7 + q * 0.15, 'tick', 0.5, q * 2); });
+  glowOff(TA.map(t => t[0]), 19.9);
   keyChip('#ms1', 20.6); keyChip('#ms2', 20.8);
   cue(20.75, 'chord', 0.6);
   hide(['#ms1', '#ms2'], 22.25, {y: 0, scale: 0.6}, 0.3);
@@ -619,9 +622,9 @@ function build(){
   /* ===== 2 · La clé primaire ===== */
   // les coachs : quelle colonne pour les identifier ?
   tl.to('#ta-co', {opacity: 1, duration: 0.3}, 22.6);
-  tl.to('#ta-in', {opacity: 0.35, duration: 0.3}, 22.6);
+  tl.to(['#ta-at', '#ta-in'], {opacity: 0.35, duration: 0.3}, 22.6);
   bump('#ta-co', 23.1, 1.02);
-  // À toi : la clé des coachs (réponse : un numéro, la colonne id)
+  // À toi : la clé des coachs (réponse : un identifiant, la colonne id)
   const a0 = +(PICKS[0].at + 0.02).toFixed(2);
   tl.set('#ta-co', {'--w0': '90px'}, a0);
   tl.set('#ta-co .c0', {autoAlpha: 1}, a0);
@@ -761,7 +764,7 @@ function build(){
   // À toi : enregistrer la deuxième inscription (réponse : une ligne de plus dans la table inscriptions)
   const a4 = +(PICKS[4].at + 0.02).toFixed(2);
   tl.set('#tb-in-r7', {autoAlpha: 1, height: 64}, a4);
-  // « son identifiant (1), celui de l’atelier (4) » : les deux numéros de la nouvelle ligne, et ce qu’ils désignent
+  // « son identifiant (1), celui de l’atelier (4) » : les deux identifiants de la nouvelle ligne, et ce qu’ils désignent
   const neuf = {cl: [ring('tb-in', NOUVELLE[0], 1), ring('tb-cl', NOUVELLE[1], 0), hl('tb-cl', NOUVELLE[1])],
     at: [ring('tb-in', NOUVELLE[0], 2), ring('tb-at', NOUVELLE[2], 0), hl('tb-at', NOUVELLE[2])]};
   on(neuf.cl, 113.2); cue(113.2, 'tick', 0.6, 1);
