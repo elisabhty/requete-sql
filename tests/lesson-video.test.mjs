@@ -396,8 +396,8 @@ const COURSES = [
       'Les prénoms, sous le titre <span class="ic">email</span>', 'near "FROM": syntax error',
       // Les trois idées : les tables, les clés (et leur déclaration), SELECT
       '<span class="ic blk">FOREIGN KEY (client_id)<br>&nbsp;&nbsp;REFERENCES clients(id)</span>', '<span class="ic blk">SELECT prenom, nom, email</span>']},
-  {id: 2, next: 13, titre: 'Renommer avec AS', page: 'as.html', thumb: 'as-thumb.jpg', duree: '2 min 02', notesAt: 92.4,
-    notes: /notes:\{t:114\.1,y:1330,card:\[64,356,1016,1017\],to:\[940,255\]\}/, table: 'produits',
+  {id: 2, next: 13, titre: 'Renommer avec AS', page: 'as.html', thumb: 'as-thumb.jpg', duree: '2 min 03', notesAt: 92.4,
+    notes: /notes:\{t:115\.3,y:1330,card:\[64,356,1016,1017\],to:\[940,255\]\}/, table: 'produits',
     bubble: 'Avec <span class="ic">AS</span>, donne à une colonne un nom plus clair dans le résultat.',
     chapters: ['Situation', 'Le problème', 'Renommer une colonne', 'Plusieurs colonnes', 'Le piège des guillemets', 'Le résultat', 'À retenir'],
     traps: ['near "du": syntax error', 'near "(": syntax error', '"Nom du produit"']},
