@@ -67,6 +67,10 @@
 
 /* ---------- Ce qui manque, et la forme de chaque relation ---------- */
 .mq{display:flex;justify-content:center;gap:14px}
+/* « ? client », « ? atelier » : le « ? » et la clé qui le remplace (« il faut relier les tables grâce à des clés »), empilés. */
+.miss .mi{display:inline-grid;margin-right:9px;font-style:normal}
+.miss .mi b{grid-area:1/1;display:flex;align-items:center;justify-content:center;font-weight:inherit}
+.miss .k{opacity:0;visibility:hidden;font-size:.92em}
 .miss{display:inline-flex;align-items:center;height:54px;padding:0 18px;border-radius:14px;border:3px dashed #F2A65A;background:#FFF4E5;color:#9A5B00;font-size:26px;font-weight:800;white-space:nowrap}
 .relp{display:flex;justify-content:center}
 .relp>span{height:86px;padding:0 34px 0 30px;border-radius:999px;background:#fff;border:3px solid var(--line);box-shadow:0 7px 0 var(--lip);display:flex;align-items:center;gap:18px;white-space:nowrap}
@@ -339,7 +343,7 @@ function dom(){
     ATELIERS.map(x => ({id: x[0], v: [x[0], x[1], x[2]]})), 64, 540, 58);
   a += table('ta-in', 'k-in', 'inscriptions', '📝', [ID('k-in', true), {h: 'date_inscription', w: '1fr'}],
     INSCR.map(x => ({id: x[0], v: [x[0], x[3]]})), 634, 382, 58);
-  a += '<div class="abs mq" id="ta-mq" style="left:634px;width:382px"><span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span></div>';
+  a += '<div class="abs mq" id="ta-mq" style="left:634px;width:382px"><span class="miss" id="ms1"><i class="mi"><b class="q">?</b><b class="k">🔑</b></i>client</span><span class="miss" id="ms2"><i class="mi"><b class="q">?</b><b class="k">🔑</b></i>atelier</span></div>';
   $('#sa').innerHTML = a;
   /* 3 et 5 · Les inscriptions, reliées aux clients et aux ateliers (client_id, atelier_id ajoutées au chapitre 3) */
   let b = table('tb-cl', 'k-cl', 'clients', '👥', [ID('k-cl', false, '80px'), {h: 'prenom', w: '128px'}, {h: 'nom', w: '1fr'}],
@@ -422,6 +426,20 @@ const bump = (el, t, s = 1.04) => tl.to(el, {scale: s, duration: 0.18, yoyo: tru
 const pop = (el, t, s = 0.4) => { show(el, t, {y: 0, scale: s}, 0.4, 'back.out(2.2)'); cue(t, 'pop', 0.7, 3); };
 const on = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 1, duration: d, ease: 'power2.out'}, t);
 const off = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 0, duration: d, ease: 'power2.in'}, t);
+/* Les trois tables du chapitre 1 (scène 1 et 2) et la couleur de chacune (celle de son en-tête). */
+const TA = [['#ta-co', '47,128,237'], ['#ta-at', '232,137,43'], ['#ta-in', '22,148,71']];
+/* Une table nommée par la légende s’allume à sa couleur : cadre et halo ; puis tout revient. L’ombre garde deux couches
+   (la lèvre de la carte, un halo) pour passer d’un état à l’autre en douceur. */
+const GLOW_OFF = '0 9px 0 rgba(220,213,242,1), 0 0 0 0px rgba(220,213,242,0)';
+const glowOn = (el, rgb, t) => tl.to(el, {borderColor: `rgb(${rgb})`, boxShadow: `0 9px 0 rgba(${rgb},.45), 0 0 0 10px rgba(${rgb},.16)`, duration: 0.3, ease: 'power2.out'}, t);
+const glowOff = (els, t) => tl.to(els, {borderColor: 'rgb(230,225,246)', boxShadow: GLOW_OFF, duration: 0.35, ease: 'power2.inOut'}, t);
+/* Puce « ? client » : le « ? » s’efface, une clé prend sa place, la puce passe en violet plein (les clés vont relier les tables). */
+function keyChip(el, t){
+  tl.to(el + ' .q', {autoAlpha: 0, scale: 0.4, duration: 0.2, ease: 'power2.in'}, t);
+  tl.to(el + ' .k', {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.2)', startAt: {scale: 0.4}}, t + 0.15);
+  tl.set(el, {borderStyle: 'solid'}, t + 0.15);
+  tl.to(el, {borderColor: '#8B6CFF', backgroundColor: '#F1EDFF', color: '#5335E0', duration: 0.3}, t + 0.15);
+}
 const ring = (t, id, j) => `#${t}-r${id} .c${j} .ring`;
 const hl = (t, id) => `#${t}-r${id} .hl`;
 /* Une colonne ajoutée : elle s’ouvre, puis ses valeurs arrivent de haut en bas. */
@@ -490,6 +508,7 @@ function build(){
   gsap.set('#tc-co', {'--w4': '0px'});
   gsap.set(['#tb-in-r7', '#td-ca-r4'], {height: 0, autoAlpha: 0});
   gsap.set(['.tb', '.relp', '.ml', '.rbin', '.rrule', '#keyc', '.miss', '#td-st', '#tapf'], {autoAlpha: 0});
+  gsap.set(TA.map(t => t[0]), {boxShadow: GLOW_OFF});
 
   /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
      la consigne, la légende ne la répète pas. Le passage d’attente est coupé (rien ne s’y anime). */
@@ -498,13 +517,25 @@ function build(){
   /* ===== 1 · Le problème ===== */
   sceneOn('#sa', 5.0);
   [['#ta-co', 5.3], ['#ta-at', 5.55], ['#ta-in', 5.8]].forEach(([s, t], q) => { show(s, t, {y: 60}, 0.55); cue(t, 'whoosh', 0.5, q); });
-  // la table inscriptions contient seulement les dates d’inscription : quel client s’est inscrit le 4 septembre, à quel atelier ?
+  // au chapitre 1, tu as réparti les informations du fichier Excel : chaque table en a reçu une part
+  TA.forEach(([s], q) => { bump(s, 8.35 + q * 0.15, 1.025); cue(8.35 + q * 0.15, 'tick', 0.45, q * 2); });
+  // dans trois tables : coachs, ateliers et inscriptions — chacune s’allume à sa couleur quand la légende la nomme
+  TA.forEach(([s, rgb], q) => { glowOn(s, rgb, 9.6 + q * 0.3); cue(9.6 + q * 0.3, 'pop', 0.6, q * 2); });
+  glowOff(['#ta-co', '#ta-at'], 10.75);
+  // la table inscriptions contient seulement les dates d’inscription : toutes ses lignes s’allument
   tl.to(['#ta-co', '#ta-at'], {opacity: 0.35, duration: 0.4}, 11.2);
   bump('#ta-in', 11.4);
-  tl.to(hl('ta-in', 4), {opacity: 1, duration: 0.3}, 12.6);
+  INSCR.forEach(([n], k) => { tl.to(hl('ta-in', n), {opacity: 1, duration: 0.3}, 11.55 + k * 0.06); cue(11.55 + k * 0.06, 'tick', 0.4, k); });
+  glowOff('#ta-in', 12.3);
+  // impossible de savoir quel client s’est inscrit le 4 septembre, ni à quel atelier : seule la ligne du 4 reste allumée
+  tl.to(INSCR.filter(([n]) => n !== 4).map(([n]) => hl('ta-in', n)), {opacity: 0, duration: 0.3}, 12.35);
   cue(12.6, 'tick', 0.5, 2);
   pop('#ms1', 14.0, 0.5); pop('#ms2', 14.3, 0.5);
-  // pour savoir quel client s’est inscrit à quel atelier, il faut relier les tables grâce à des clés
+  // pour savoir quel client s’est inscrit à quel atelier, il faut relier les tables grâce à des clés : le « ? » devient une clé
+  bump('#ms1', 17.9, 1.12); cue(17.9, 'pop', 0.55, 2);
+  bump('#ms2', 19.2, 1.12); cue(19.2, 'pop', 0.55, 4);
+  keyChip('#ms1', 20.6); keyChip('#ms2', 20.8);
+  cue(20.75, 'chord', 0.6);
   hide(['#ms1', '#ms2'], 22.25, {y: 0, scale: 0.6}, 0.3);
   tl.to(hl('ta-in', 4), {opacity: 0, duration: 0.3}, 22.25);
 
@@ -524,6 +555,8 @@ function build(){
   addCol('ta-at', 0, 76, 37.9, 0.1);
   addCol('ta-in', 0, 76, 39.2, 0.1);
   $$('#sa .hd .key').forEach((k, q) => { bump(k, 41.0 + q * 0.2, 1.4); cue(41.0 + q * 0.2, 'pop', 0.6, q); });
+  // une clé primaire ne peut pas être vide : chaque id a sa valeur
+  TA.forEach(([s], q) => { $$(s + ' .r .c0').forEach(c => pulse(c, 41.75 + q * 0.05, 1)); cue(41.75 + q * 0.05, 'tick', 0.45, 4 + q); });
   hide(['#ta-co', '#ta-at', '#ta-in'], 42.7, {y: -40}, 0.4);
   sceneOff('#sa', 43.2);
 
