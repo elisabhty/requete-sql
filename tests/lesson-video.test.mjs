@@ -864,8 +864,8 @@ const COURSES = [
       "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
       "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.0);", 'Chapitre 3 · Modéliser avec UML']},
-  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '3 min 34', notesAt: 179.7,
-    notes: /notes:\{t:207\.15,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
+  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '3 min 36', notesAt: 179.7,
+    notes: /notes:\{t:208\.95,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
     bubble: 'Tes tables sont reliées&nbsp;:<br>dessine maintenant leur plan.',
     chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
     traps: ["const CLASSES = [['co', 'Coach', ['prenom', 'nom', 'email']], ['ca', 'Carte', ['seances']],",
@@ -1429,7 +1429,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
 
 test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des tables du chapitre 2, chaque multiplicité et chaque traduction vérifiées', async () => {
   const l81 = cut('guide({ id:81, titre:"Modéliser avec UML"', 'guide({ id:61,');
-  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'3 min 34',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'3 min 36',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1482,12 +1482,26 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.ok(D.PICKS.filter(p => p.kind === 'tap').every(p => /^Touche /.test(p.prompt)), 'chaque moment à toucher dit qu’il faut toucher l’image');
   for (const p of D.PICKS.filter(x => x.kind === 'pick')) {
     assert.equal(p.options.filter(o => o.ok).length, 1, `${p.prompt} : une seule bonne réponse`);
-    assert.ok(p.options.every(o => o.ok || o.why), `${p.prompt} : chaque mauvaise réponse est expliquée`);
+    /* Sauf les deux mauvaises multiplicités du moment 3 : la légende qui suit les explique (Yoga du matin, Récupération). */
+    assert.ok(p.options.every(o => o.ok || o.why || (p === D.PICKS[2] && !o.why)), `${p.prompt} : chaque mauvaise réponse est expliquée`);
   }
   D.PICKS.forEach((p, i) => assert.ok(p.from < p.at && (i === 0 || p.from > D.PICKS[i - 1].at), `moment ${i + 1} : « Revoir » repart après le moment précédent`));
   assert.deepEqual(D.PLACE.map(p => [p[0], p[1]]), [[assocs.an[4], assocs.an[3]], [assocs.an[6], assocs.an[5]]], 'moment 2 : chaque multiplicité d’anime, à côté de la classe qu’elle compte');
   assert.equal(D.PICKS[2].options.find(o => o.ok).label, assocs.in[4], 'moment 3 : la multiplicité à côté de Client');
   assert.equal(assocs.po[5], 'ca', 'moment 4 : la multiplicité qui interdit deux cartes est écrite à côté de Carte (zone po-ca)');
+  /* Moment 3 : pas de correction écrite pour les deux mauvaises multiplicités, la légende qui suit explique le minimum et le maximum. */
+  const c3 = D.CAPTIONS.find(c => c[0] > D.PICKS[2].at);
+  assert.ok(D.PICKS[2].options.filter(o => !o.ok).every(o => !o.why) && c3[2].startsWith('L’atelier Yoga du matin n’a encore aucun inscrit, l’atelier Récupération en a trois'),
+    'moment 3 : la légende qui suit dit pourquoi ni 1..* ni 0..1');
+  /* Moment 4 : sa réponse n’est pas donnée avant. La légende décrit la carte sans nommer ses multiplicités ; la réponse nomme le 0..1,
+     et le client_id unique n’est annoncé qu’une fois, à la traduction en tables. */
+  const before4 = D.CAPTIONS.filter(c => c[0] > D.PICKS[2].at && c[0] < D.PICKS[3].at).map(c => c[2]);
+  assert.ok(before4.includes('Enfin, un client possède une carte membre ou aucune, et une carte n’a qu’un seul client.') && before4.every(c => !c.includes('0..1')), 'moment 4 : le 0..1 n’est pas nommé avant');
+  assert.ok(caps.includes('C’est le <b>0..1</b>, à côté de Carte : zéro ou une carte par client. Son maximum vaut 1 : pas de deuxième carte.')
+    && (caps.match(/devient unique|unique du chapitre/g) || []).length === 1, 'moment 4 expliqué ; client_id unique dit une seule fois');
+  assert.ok(page.includes("pop('#mp-po-ca', 97.0, 0.5);\n  pop('#mp-po-cl', 98.4, 0.5);"), 'le 0..1 puis le 1, dans l’ordre de la légende');
+  /* D’où vient la règle du côté * : chaque atelier n’a qu’un coach à indiquer. */
+  assert.ok(caps.includes('<b>anime</b>, 1 — 0..* : <code>coach_id</code> va du côté *, dans la <b>table ateliers</b> : chaque atelier n’a qu’un coach à indiquer.'), 'la règle du côté *, avec sa raison');
   assert.equal(D.PICKS[4].options.find(o => o.ok).label, T.in.cols.map(c => isFk(c) ? c[0] : c).join(', '), 'moment 5 : les colonnes de la table inscriptions');
   assert.deepEqual(D.PICKS.filter(p => p.kind === 'sort').map(p => p.next), ['{x} : touche maintenant la classe qu’elle compte.'], 'une ligne d’aide propre au moment à placer');
   /* Moment 6 : le diagramme de la boutique ; la règle du maximum place ses deux clés étrangères dans commandes. Ce n’est plus
