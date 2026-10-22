@@ -1397,6 +1397,8 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   const [[n4, c4, a4]] = r4;
   assert.ok(page.includes(`const M2_ANS = {c${c4}: [ring('tb-in', ${n4}, 1), ring('tb-cl', ${c4}, 0), hl('tb-cl', ${c4})], a${a4}: [ring('tb-in', ${n4}, 2), ring('tb-at', ${a4}, 0), hl('tb-at', ${a4})]};`), 'réponse du moment 2 : la cliente et l’atelier de cette inscription');
   assert.ok(caps.includes(`C’est donc <b>${name(c4)}</b> qui s’est inscrite le 4 septembre, à l’atelier ${atl(a4)[1]}.`), 'la légende nomme la bonne cliente et le bon atelier');
+  assert.equal(D.PICKS[1].prompt, 'Touche le client/la cliente et l’atelier correspondant à l’inscription du 4 septembre.',
+    'la consigne ne dit pas si c’est une femme ou un homme : le genre de la personne fait déjà partie de la réponse');
   // Moment 4 : l’atelier de Diego Ramos ; l’explication du moment 3 prend l’exemple de Moussa Diallo
   const moussa = D.COACHS.find(c => c[1] === 'Moussa'), siens = D.ATELIERS.filter(a => a[3] === moussa[0]).map(a => a[0]);
   const diego = D.COACHS.find(c => c[1] === 'Diego'), sien = D.ATELIERS.filter(a => a[3] === diego[0]);
