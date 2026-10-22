@@ -860,8 +860,8 @@ const COURSES = [
       "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 129.8, from: 119.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}", "{at: 141.4, from: 135.95, kind: 'pick',",
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
-  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 59', notesAt: 167.9,
-    notes: /notes:\{t:291\.7,y:1193,card:\[64,292,1016,898\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '5 min 01', notesAt: 167.9,
+    notes: /notes:\{t:294\.2,y:1193,card:\[64,292,1016,898\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Tes tables sont prêtes&nbsp;:<br>à toi de les relier avec des clés.',
     chapters: ['Le problème', 'La clé primaire', 'La clé étrangère', '1 → N', 'N ↔ N', '1 ↔ 1', 'À retenir'],
     traps: ["const INSCR = [[1, 1, 1, '2026-09-01'], [2, 4, 1, '2026-09-02'], [3, 5, 2, '2026-09-03'], [4, 7, 3, '2026-09-04'],",
@@ -1295,7 +1295,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
 
 test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre 1 relié par des clés, chaque réponse vérifiée dans SQLite', async () => {
   const l72 = cut('guide({ id:72, titre:"Clés et relations"', 'guide({ id:81,');
-  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'4 min 59',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'5 min 01',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1374,7 +1374,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.ok(capAt(when('PRIMARY KEY', /sqMore\('pkm', ([\d.]+)\)/)).startsWith('C’est la <b>clé primaire</b>'), 'PRIMARY KEY s’ajoute à la colonne id quand la légende nomme la clé primaire');
   assert.ok(capAt(when('FOREIGN KEY', /sqType\('fk6', ([\d.]+)/)).includes('est une <b>clé étrangère</b>'), 'FOREIGN KEY se tape pendant la définition de la clé étrangère');
   assert.ok(capAt(when('atelier_id', /sqType\('fk8', ([\d.]+)/)).startsWith('De même, <code>atelier_id</code>'), 'la clé étrangère d’atelier_id pendant « De même »');
-  assert.ok(capAt(when('1 → N', /band\('at3', ([\d.]+)\)/)).startsWith('La règle : en 1 → N'), 'la clé étrangère déclarée dans la table ateliers, surlignée avec la règle');
+  assert.ok(capAt(when('1 → N', /band\('at3', ([\d.]+)\)/)).startsWith('La règle : dans une relation 1 → N'), 'la clé étrangère déclarée dans la table ateliers, surlignée avec la règle');
   assert.ok(capAt(when('N ↔ N', /band\('nn3', ([\d.]+)\)/)).includes('sont des <b>clés étrangères</b>'), 'les deux clés étrangères de la table d’association surlignées quand la légende les nomme');
   assert.ok(capAt(when('UNIQUE', /sqMore\('cau', ([\d.]+)\)/)).startsWith('On ajoute la contrainte <code>UNIQUE</code>'), 'UNIQUE s’ajoute quand la légende ajoute la contrainte');
   assert.ok(fs.readFileSync(path.join(ROOT, 'assets/anim/bases-relationnelles.html'), 'utf8').includes('<span class="kw">FOREIGN KEY</span>')
@@ -1418,7 +1418,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.ok(sien.length === 1 && !why.some(w => w.includes(diego[1])), 'moment 4 : un autre coach que Moussa Diallo, absent de l’explication');
   assert.equal(D.PICKS[3].need, sien.length, 'autant d’ateliers à toucher que Diego Ramos en anime');
   assert.ok(caps.includes(`L’atelier ${sien[0][1]} a <code>coach_id = ${diego[0]}</code> : c’est justement l’<code>id</code> de <b>${diego[1]} ${diego[2]}</b> dans la table coachs.`)
-    && caps.includes('La règle : en 1 → N, la clé étrangère va du côté « plusieurs ».'), 'le moment 4 expliqué, puis la règle');
+    && caps.includes('La règle : dans une relation 1 → N, la clé étrangère va du côté « plusieurs ».'), 'le moment 4 expliqué, puis la règle');
   const cap4 = D.CAPTIONS.findIndex(c => c[2].startsWith(`L’atelier ${sien[0][1]} a <code>coach_id`));
   assert.ok(D.CAPTIONS[cap4][0] > D.PICKS[3].at && D.CAPTIONS[cap4 - 1][2] === 'À toi !', 'juste après le moment 4');
   assert.ok(page.includes(`const M4_ANS = {${sien.map(a => `a${a[0]}: [hl('tc-at', ${a[0]}), ring('tc-at', ${a[0]}, 3)]`).join(', ')}, co: [hl('tc-co', ${diego[0]}), ring('tc-co', ${diego[0]}, 0)]};`)
@@ -1431,7 +1431,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
      « 1 → N · un à plusieurs » arrive avec la légende qui la nomme ; puis la règle. */
   const one = ['Un coach peut animer plusieurs ateliers,', 'mais chaque atelier est animé par un seul coach.', 'C’est une relation « un à plusieurs », notée <b>1 → N</b> : le N signifie « plusieurs ».'];
   const i1 = D.CAPTIONS.findIndex(c => c[2] === one[0]);
-  assert.ok(i1 === cap4 + 1 && one.every((w, k) => D.CAPTIONS[i1 + k][2] === w) && D.CAPTIONS[i1 + 3][2].startsWith('La règle : en 1 → N'), '1 → N : la relation expliquée, puis la règle');
+  assert.ok(i1 === cap4 + 1 && one.every((w, k) => D.CAPTIONS[i1 + k][2] === w) && D.CAPTIONS[i1 + 3][2].startsWith('La règle : dans une relation 1 → N'), '1 → N : la relation expliquée, puis la règle');
   assert.ok(page.includes("pop('#tc-rel', 97.6, 0.6);") && D.CAPTIONS[i1 + 2][0] <= 97.6 && D.CAPTIONS[i1 + 1][1] < 97.6, 'la pastille 1 → N arrive avec sa légende');
   // Moment 5 : la nouvelle inscription de Sophie Martin, celle que demande son mail
   assert.deepEqual([name(D.NOUVELLE[1]), atl(D.NOUVELLE[2])[1]], ['Sophie Martin', 'Méditation'], 'la nouvelle inscription : Sophie Martin, à Méditation');
@@ -1474,10 +1474,11 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.ok(page.includes('return {ok: false, why: fr(WHY[a])};'), 'la même explication, quelle que soit la mauvaise case');
   assert.ok(page.includes("if (i === 5) return {text: 'Pour un élément d’un côté, combien peuvent lui être associés de l’autre : un seul ou plusieurs ? Pose-toi la question dans les deux sens.'};"), 'l’indice du moment 6 : la question à se poser, dans les deux sens');
   /* Le bilan, une relation par légende : sa case se soulève, sa règle apparaît dessous et reste. */
-  const bil = ['En <b>1 ↔ 1</b>, une clé étrangère unique relie les deux tables.', 'En <b>1 → N</b>, la clé étrangère se place du côté « plusieurs ».',
-    'En <b>N ↔ N</b>, une table d’association relie les deux tables, avec une ligne par lien.'];
+  const bil = ['Dans une relation <b>1 ↔ 1</b>, une clé étrangère unique relie les deux tables.', 'Dans une relation <b>1 → N</b>, la clé étrangère se place du côté « plusieurs ».',
+    'Dans une relation <b>N ↔ N</b>, une table d’association relie les deux tables, avec une ligne par lien.'];
   const ib = D.CAPTIONS.findIndex(c => c[2] === bil[0]);
   assert.ok(ib > 0 && bil.every((w, k) => D.CAPTIONS[ib + k][2] === w) && D.CAPTIONS[ib][0] > D.PICKS[5].at, 'le bilan, juste après le moment 6');
+  assert.ok(D.CAPTIONS.every(c => !/\b[Ee]n (<b>)?[1N] [↔→]/.test(c[2])), 'chapitre 2 : « Dans une relation 1 → N », jamais « En 1 → N »');
   assert.ok(page.includes("const BILAN = [['11', 150.0], ['1n', 152.1], ['nn', 154.2]];") && [0, 1, 2].every(k => D.CAPTIONS[ib + k][0] <= [150.0, 152.1, 154.2][k])
     && page.includes("const RULES = {'11': ['🔗', 'Clé étrangère', 'unique'], '1n': ['🔗', 'Clé étrangère', 'côté « plusieurs »'], nn: ['📝', 'Table d’association', 'deux clés étrangères']};"),
     'chaque relation, sa case soulevée et sa règle, pendant la légende qui la dit');
