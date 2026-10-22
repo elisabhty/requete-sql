@@ -839,7 +839,7 @@ const COURSES = [
       '✕ Les deux commandes du 2 juillet ont le même cumul', '<div class="lim" id="lim6"><span>Palier&nbsp;: 700&nbsp;€</span></div>',
       '✓ Palier franchi le 1er&nbsp;août']},
   {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '3 min 24', notesAt: 159.3,
-    notes: /notes:\{t:197\.35,y:1291,card:\[64,292,1016,996\],to:\[940,255\]\}/, table: 'inscriptions',
+    notes: /notes:\{t:197\.55,y:1291,card:\[64,292,1016,996\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Le fichier Excel des ateliers mélange tout&nbsp;:<br>à toi de le ranger en tables.',
     chapters: ['Le fichier Excel', 'Les copies', 'Supprimer, ajouter', 'Une table par sujet', 'Les tables remplies', 'À retenir'],
     traps: ["const INSCR = [[1, 1, '01/09', '2026-09-01'], [4, 1, '02/09', '2026-09-02'], [5, 2, '03/09', '2026-09-03'], [7, 3, '04/09', '2026-09-04'],",
@@ -849,23 +849,23 @@ const COURSES = [
       "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 129.8, from: 119.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}", "{at: 141.4, from: 135.95, kind: 'pick',",
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
-  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '3 min 56', notesAt: 167.9,
-    notes: /notes:\{t:229\.55,y:1070,card:\[64,292,1016,775\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 02', notesAt: 167.9,
+    notes: /notes:\{t:234\.9,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Tes tables sont prêtes&nbsp;:<br>à toi de les relier avec des clés.',
     chapters: ['Le problème', 'La clé primaire', 'La clé étrangère', '1 → N', 'N ↔ N', '1 ↔ 1', 'À retenir'],
     traps: ["const INSCR = [[1, 1, 1, '2026-09-01'], [2, 4, 1, '2026-09-02'], [3, 5, 2, '2026-09-03'], [4, 7, 3, '2026-09-04'],",
       "const NOUVELLE = [7, 1, 4, '2026-09-07'];", 'const CARTES = [[1, 1, 10], [2, 4, 5], [3, 6, 8]];', 'const DOUBLON = [4, 1, 10];',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>',
       // Les six moments : l’identifiant des coachs, la cliente et l’atelier d’une inscription, où ranger coach_id, l’atelier de Diego Ramos,
-      // la deuxième inscription de Sophie Martin, la forme de chaque lien
+      // la deuxième inscription de Sophie Martin, la forme de chaque relation
       "{at: 31.0, from: 22.6, kind: 'pick', text: true,", "{label: 'Aucune : on ajoute un numéro', ok: true}]},", "{at: 68.6, from: 55.1, kind: 'tap', need: 2,",
       "{at: 82.6, from: 75.0, kind: 'pick', text: true,", "{label: 'Dans la table ateliers : une colonne coach_id', ok: true},", "{at: 91.0, from: 82.9, kind: 'tap', need: 1,",
       "{at: 110.45, from: 103.6, kind: 'pick', text: true,", "{label: 'Une nouvelle ligne dans la table inscriptions', ok: true},", "{at: 149.6, from: 133.3, kind: 'sort',",
       "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
       "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.0);", 'Chapitre 3 · Modéliser avec UML']},
-  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '3 min 32', notesAt: 179.7,
-    notes: /notes:\{t:205\.5,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
+  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '3 min 33', notesAt: 179.7,
+    notes: /notes:\{t:206,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
     bubble: 'Tes tables sont reliées&nbsp;:<br>dessine maintenant leur plan.',
     chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
     traps: ["const CLASSES = [['co', 'Coach', ['prenom', 'nom', 'email']], ['ca', 'Carte', ['seances']],",
@@ -1289,7 +1289,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
 
 test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre 1 relié par des clés, chaque réponse vérifiée dans SQLite', async () => {
   const l72 = cut('guide({ id:72, titre:"Clés et relations"', 'guide({ id:81,');
-  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'3 min 56',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'4 min 02',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1324,7 +1324,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   const caps = D.CAPTIONS.map(c => c[2]).join('\n');
   /* La vidéo rappelle d’abord le contexte, puis ce que le chapitre 1 a produit. */
   assert.ok(D.CAPTIONS[0][2].startsWith('NutriBoost lance des ateliers bien-être') && D.CAPTIONS[1][2].startsWith('Au chapitre 1, tu as rangé le fichier Excel des inscriptions'), 'le contexte avant tout');
-  /* Une seule façon de nommer la table d’un lien N ↔ N, dans les trois chapitres. */
+  /* Une seule façon de nommer la table d’une relation N ↔ N, dans les trois chapitres. */
   for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html'])
     assert.ok(!fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8').includes('table de jointure'), `${f} : « table d’association », jamais « table de jointure »`);
   assert.ok(caps.includes('une <b>table d’association</b>'), 'le chapitre 2 la nomme comme le chapitre 3');
@@ -1421,7 +1421,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
 
 test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des tables du chapitre 2, chaque multiplicité et chaque traduction vérifiées', async () => {
   const l81 = cut('guide({ id:81, titre:"Modéliser avec UML"', 'guide({ id:61,');
-  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'3 min 32',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'3 min 33',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
