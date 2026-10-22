@@ -1413,6 +1413,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.deepEqual(D.WHY, ['Un coach anime plusieurs ateliers. Chaque atelier est animé par un seul coach.', 'Un client participe à plusieurs ateliers. Chaque atelier accueille plusieurs clients.',
     'Un client possède une seule carte. Chaque carte appartient à un seul client.'], 'l’explication de chaque situation');
   assert.ok(page.includes('return {ok: false, why: fr(WHY[a])};'), 'la même explication, quelle que soit la mauvaise case');
+  assert.ok(page.includes("if (i === 5) return {text: 'Pour un élément d’un côté, combien peuvent lui être associés de l’autre : un seul ou plusieurs ? Pose-toi la question dans les deux sens.'};"), 'l’indice du moment 6 : la question à se poser, dans les deux sens');
   assert.ok(page.includes('spots, act, pick, hint,') && page.includes(`if (i === 1) return {text: 'Cherche l’id ${c4} dans la table clients, puis l’id ${a4} dans la table ateliers.', keys: ['c${c4}', 'a${a4}']};`)
     && page.includes(`if (i === 3) return {text: '${diego[1]} ${diego[2]} a l’id ${diego[0]} : cherche l’atelier dont coach_id vaut ${diego[0]}.', keys: [${sien.map(a => `'a${a[0]}'`).join(', ')}]};`), 'un indice par moment à toucher ou à ranger');
   /* Le modèle de la vidéo, créé dans la base de l’app : les clés acceptent toutes les lignes montrées, refusent la deuxième carte,
