@@ -261,11 +261,11 @@ const QUESTIONS = [];
 /* Les trois formes de relation, et les cas à y ranger : [clé de la case, forme, nom, cas qui y va]. */
 const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];
 const CAS = ['Un coach et ses ateliers', 'Un client et ses ateliers', 'Un client et sa carte de membre'];
-/* Ce que répond chaque mauvaise case : CAS × forme. */
-const BAD = [
-  {'11': 'Moussa Diallo anime deux ateliers : c’est « plusieurs » du côté des ateliers.', nn: 'Un atelier n’a qu’un coach : c’est « un » de ce côté-là.'},
-  {'11': 'Sophie Martin suit deux ateliers, et un atelier accueille plusieurs clients.', '1n': 'L’atelier Récupération accueille trois clients : c’est « plusieurs » des deux côtés.'},
-  {'1n': 'Un client n’a qu’une carte : la deuxième est refusée.', nn: 'Une carte n’appartient qu’à un client, et un client n’en a qu’une.'}
+/* L’explication de chaque situation, montrée quand elle est rangée dans le mauvais type de relation. */
+const WHY = [
+  'Un coach anime plusieurs ateliers. Chaque atelier est animé par un seul coach.',
+  'Un client participe à plusieurs ateliers. Chaque atelier accueille plusieurs clients.',
+  'Un client possède une seule carte. Chaque carte appartient à un seul client.'
 ];
 
 /* Les six moments « À toi » : l’image s’arrête, l’élève choisit ou touche ; la page montre aussitôt le résultat.
@@ -285,8 +285,8 @@ const PICKS = [
     {label: 'Une colonne atelier_2 dans la table clients', why: 'Et pour un troisième atelier ? Il faudrait encore une colonne, vide pour presque tous.'},
     {label: 'Une nouvelle ligne dans la table inscriptions', ok: true},
     {label: 'Deux numéros dans la même case atelier_id', why: 'Une case ne doit contenir qu’une seule valeur : « 1, 4 » ne désigne aucun atelier.'}]},
-  {at: 149.6, from: 133.3, kind: 'sort', prompt: 'Range chaque relation selon sa forme.',
-    hint: 'Touche une relation ci-dessous, puis sa forme. Tu peux aussi la faire glisser directement.', next: '{x} : touche maintenant sa forme.', options: CAS.map(c => ({label: c.replace('carte de membre', 'carte\u00a0de\u00a0membre')}))}
+  {at: 149.6, from: 133.3, kind: 'sort', prompt: 'Range chaque situation selon son type de relation.',
+    hint: 'Touche une situation, puis le type de relation qui lui correspond. Tu peux aussi la faire glisser directement.', next: '« {x} » : quel est le type de relation ?', options: CAS.map(c => ({label: c.replace('carte de membre', 'carte\u00a0de\u00a0membre')}))}
 ];
 
 /* Les deux mails reçus : [qui (avatar, prénom, nom, initiales), sujet (couleur), étiquette, adresse d’envoi, demande (un texte, ou ses
@@ -622,7 +622,7 @@ function build(){
   tl.to('#td-ca-r4', {autoAlpha: 0, height: 0, duration: 0.35, ease: 'power2.inOut'}, 145.5);
   hide(['#td-cl', '#td-ca', '#td-rel'], 146.0, {y: -40}, 0.4);
   sceneOff('#sd', 146.5);
-  // À toi : ranger chaque relation selon sa forme
+  // À toi : ranger chaque situation selon son type de relation
   sceneOn('#se', 146.5);
   $$('.rbin').forEach((b, q) => { show(b, 146.6 + q * 0.15, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(146.6 + q * 0.15, 'pop', 0.6, q); });
   const a5 = +(PICKS[5].at + 0.02).toFixed(2);
@@ -703,7 +703,7 @@ const IX = (() => {
         return {ok: true, done: X.got.size === CAS.length, why: '', at: rel(bin)};
       }
       flash(bin, 'kob', 650);
-      return {ok: false, why: fr(BAD[a][b])};
+      return {ok: false, why: fr(WHY[a])};
     }
     return {ok: false};
   }
@@ -734,7 +734,7 @@ const IX = (() => {
   function hint(i){
     if (i === 1) return {text: 'Cherche l’id 7 dans la table clients, puis l’id 3 dans la table ateliers.', keys: ['c7', 'a3']};
     if (i === 3) return {text: 'Diego Ramos a l’id 4 : cherche l’atelier dont coach_id vaut 4.', keys: ['a4']};
-    if (i === 5) return {text: 'Pour chaque relation, demande-toi : combien de lignes en face, d’un côté puis de l’autre ?'};
+    if (i === 5) return {text: 'Pour chaque situation, demande-toi : combien de lignes en face, d’un côté puis de l’autre ?'};
     return null;
   }
   return {
