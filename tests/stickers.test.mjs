@@ -88,6 +88,7 @@ test('accomplissements : une seule liste, pour Mon compte et pour les stickers',
   const account = take('function renderCompte(){', 'function openLegal(');
   assert.ok(account.includes('accomplissements().map(') && account.includes("stkArtHtml(b.id,b.unlocked?'art':'lock')") && account.includes("onclick=\"openStickers('${b.id}')\""), 'Mon compte montre le sticker de chaque accomplissement et ouvre sa fiche');
   assert.ok(account.includes('!!stkGot[a.id]||a.ok'), 'un accomplissement gagné reste débloqué');
+  assert.ok(account.includes(`<li class="acct-badges-more"><button type="button" onclick="switchTab('stickers')">Voir mes stickers\${CHEV}</button></li>`), 'un lien vers l’espace Stickers sous les accomplissements');
   assert.ok(!account.includes('BADGE_ICONS') && !css.includes('.acct-badge-ico'), 'plus d’anciens pictogrammes');
 });
 
