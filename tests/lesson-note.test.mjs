@@ -1,4 +1,4 @@
-/* « Ajouter dans notes » (bouton du réflexe) : la note n'est jamais vide, y compris pour les cours guide
+/* « Ajouter à mes notes » (bouton du réflexe) : la note n'est jamais vide, y compris pour les cours guide
    dont le réflexe est un récapitulatif en cartes. */
 import fs from 'node:fs';
 import vm from 'node:vm';
