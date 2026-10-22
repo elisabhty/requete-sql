@@ -849,8 +849,8 @@ const COURSES = [
       "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 129.8, from: 119.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}", "{at: 141.4, from: 135.95, kind: 'pick',",
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
-  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 27', notesAt: 167.9,
-    notes: /notes:\{t:260\.5,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 35', notesAt: 167.9,
+    notes: /notes:\{t:268\.35,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Tes tables sont prêtes&nbsp;:<br>à toi de les relier avec des clés.',
     chapters: ['Le problème', 'La clé primaire', 'La clé étrangère', '1 → N', 'N ↔ N', '1 ↔ 1', 'À retenir'],
     traps: ["const INSCR = [[1, 1, 1, '2026-09-01'], [2, 4, 1, '2026-09-02'], [3, 5, 2, '2026-09-03'], [4, 7, 3, '2026-09-04'],",
@@ -1289,7 +1289,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
 
 test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre 1 relié par des clés, chaque réponse vérifiée dans SQLite', async () => {
   const l72 = cut('guide({ id:72, titre:"Clés et relations"', 'guide({ id:81,');
-  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'4 min 27',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'4 min 35',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1385,6 +1385,14 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.ok(m2.length === 3 && m2[0].includes('un forfait de 10 séances') && m2[0].includes('après 3 séances, il en reste 7') && m2[1].includes('une seule carte')
     && m2[2].includes('chaque carte, son propriétaire et le nombre de séances restantes') && D.CARTES.every(c => c[2] <= 10), 'le mail de l’équipe NutriBoost');
   assert.ok(page.includes("readTime(sn.slice(1, -2).map(s => s.textContent).join(' '))"), 'le temps de lire tous les paragraphes du mail');
+  /* 1 ↔ 1 : la contrainte UNIQUE sur client_id (son badge apparaît), ce qu’elle interdit, puis la deuxième carte de Sophie Martin,
+     qui arrive et se fait refuser pendant la légende qui le dit. */
+  const uq = ['On ajoute la contrainte <code>UNIQUE</code> à la clé étrangère <code>client_id</code> :', 'un même client ne peut apparaître qu’une seule fois dans la <b>table cartes</b>.',
+    'Sophie ayant déjà une carte, l’ajout d’une deuxième est refusé.'];
+  const iu = D.CAPTIONS.findIndex(c => c[2] === uq[0]);
+  assert.ok(iu > 0 && uq.every((w, k) => D.CAPTIONS[iu + k][2] === w) && page.includes("pop('#uq', 140.2, 0.5);") && D.CAPTIONS[iu][0] <= 140.2
+    && page.includes("tl.to('#td-ca-r4', {autoAlpha: 1, height: 64, duration: 0.35, ease: 'power2.out'}, 142.85);") && page.includes("stampIn('#td-st', 143.8, -5);")
+    && D.CAPTIONS[iu + 2][0] <= 142.85 && D.CAPTIONS[iu + 2][1] >= 143.8 && D.DOUBLON[1] === D.CARTES[0][1], '1 ↔ 1 : la contrainte UNIQUE, puis la deuxième carte refusée');
   /* La réponse expliquée : une ligne dans inscriptions, avec l’identifiant de la cliente, celui de l’atelier (entourés à l’image,
      avec ce qu’ils désignent) et la date. */
   const m5 = [`Pour inscrire ${D.CLIENTS.find(c => c[0] === D.NOUVELLE[1])[1]} à l’atelier ${atl(D.NOUVELLE[2])[1]}, on ajoute une ligne dans <code>inscriptions</code> :`,
@@ -1438,10 +1446,11 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   const ta = ['Pour représenter cette relation, on utilise une <b>table d’association</b> : la table <code>inscriptions</code>.', 'Chaque ligne relie un client à un atelier grâce aux deux clés étrangères <code>client_id</code> et <code>atelier_id</code>.'];
   assert.ok(D.CAPTIONS[inn + 3][2] === ta[0] && D.CAPTIONS[inn + 4][2] === ta[1] && page.includes("bump('#tb-in .h', 125.2, 1.06);")
     && page.includes("bump('#tb-in .hd .c1', 127.2, 1.12); bump('#tb-in .hd .c2', 127.45, 1.12);"), 'la table d’association, puis ses deux clés étrangères');
-  /* « N ↔ N » : la flèche reste du texte. Sans la variante texte (U+FE0E), l’iPhone la dessinait en émoji (un carré bleu) dans la pastille. */
-  const coreSrc = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
-  assert.ok(coreSrc.includes("const ARROW_TXT = t => t.replace(/↔\\uFE0E?/g, '↔\\uFE0E');") && coreSrc.includes('glueShort(ARROW_TXT(t)')
-    && coreSrc.includes("fr(h).replace(/\\uFE0E/g, '')"), '↔ toujours en texte, sans compter dans le temps de lecture');
+  /* « N ↔ N » : ni Bricolage Grotesque ni Inter n’ont la flèche ; la police système la dessine, en texte. Sans elle, l’iPhone prenait
+     l’émoji (un carré bleu) dans la pastille ; avec la variante texte U+FE0E, une flèche minuscule dans l’étiquette du chapitre. */
+  const coreCss = fs.readFileSync(path.join(ROOT, 'assets/anim/core.css'), 'utf8'), coreSrc = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
+  assert.ok(coreCss.includes("--display:'Bricolage Grotesque','Inter',-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',system-ui,sans-serif;")
+    && /--ui:'Inter',-apple-system/.test(coreCss) && !coreSrc.includes('uFE0E'), '↔ dessinée par la police système, jamais en émoji');
   assert.throws(() => db.run(`INSERT INTO cartes VALUES ${rows([D.DOUBLON])};`), /UNIQUE constraint failed: cartes\.client_id/, 'une deuxième carte pour Sophie Martin est refusée (1 ↔ 1)');
   assert.equal(name(D.DOUBLON[1]), 'Sophie Martin');
   db.close();
