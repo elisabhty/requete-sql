@@ -1,0 +1,749 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Projet, chapitre 6 : DROP TABLE</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .sub{font-size:66px}
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+.hid{opacity:0;visibility:hidden}
+/* Aperçu d’un geste (moment « À toi ») : il prend le pas sur la timeline, le temps de l’arrêt ; il montre exactement
+   l’image que la timeline affiche juste après l’arrêt, qui reprend donc sans saut. */
+.pvs{opacity:1!important;visibility:visible!important}
+
+/* Couleur de chaque sujet : coach, atelier, client, carte de membre, inscription, développeur, copie du fichier Excel */
+.k-co{--c:#2F80ED;--cs:#E6F0FD;--ci:#1D5FA8}
+.k-at{--c:#E8892B;--cs:#FFF1E2;--ci:#9A5B00}
+.k-cl{--c:#6A4DF4;--cs:#EEE9FF;--ci:#5335E0}
+.k-nb{--c:#D99A0B;--cs:#FFF6DA;--ci:#8A6200}
+.k-in{--c:#169447;--cs:#E2F6EA;--ci:#0F7A3A}
+.k-dv{--c:#0E9F9A;--cs:#DDF5F3;--ci:#0B6E6A}
+.k-xl{--c:#64748B;--cs:#EEF1F5;--ci:#475569}
+
+/* ---------- La base : une ligne par table (son nom, son nombre de lignes, ses colonnes) ---------- */
+.bc{left:64px;width:952px;top:236px;padding:0 0 12px;overflow:hidden}
+.bh{height:72px;display:flex;align-items:center;gap:14px;padding:0 34px;background:var(--surface-2);font-family:var(--display);font-size:34px;font-weight:800;color:var(--ink);letter-spacing:-.4px;white-space:nowrap}
+.bh .emo{font-size:34px}
+.ttl{display:inline-grid}
+.ttl>span{grid-area:1/1;white-space:nowrap}
+.bn{margin-left:auto;display:inline-grid;font-family:var(--ui);font-size:25px;font-weight:700;letter-spacing:0}
+.bn>span{grid-area:1/1;height:44px;padding:0 20px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;white-space:nowrap}
+.srow{position:relative;padding:12px 34px}
+.srow+.srow{box-shadow:inset 0 2px 0 var(--line-2)}
+#rw-xl{overflow:hidden}
+.srow>div{position:relative;z-index:1}
+.srow .hl,.srow .xx{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;opacity:0;visibility:hidden}
+.srow .hl{background:var(--cs);box-shadow:inset 8px 0 0 var(--c)}
+.srow .xx{background:rgba(239,79,85,.13);box-shadow:inset 8px 0 0 var(--danger-fill)}
+.sn{display:flex;align-items:center;gap:14px;height:40px;font-family:var(--mono);font-size:31px;font-weight:800;color:var(--ci)}
+.sn .emo{font-size:32px}
+.sn .sp{flex:1}
+.nm{position:relative;display:inline-block;white-space:nowrap}
+.sfx{position:relative;display:inline-block}
+/* Barre rouge sur le nom d’une table qui va être supprimée */
+.nm .sk{position:absolute;left:-4px;right:-4px;top:55%;height:5px;border-radius:3px;background:var(--danger-fill);transform-origin:0 50%;transform:scaleX(0)}
+.nm .sk.pvs{transform:scaleX(1)!important}
+.nb{display:inline-grid;font-family:var(--ui);font-size:23px;font-weight:700;color:var(--ink-3)}
+.nb>span{grid-area:1/1;display:flex;align-items:center;justify-content:flex-end;height:36px;padding:0 14px;border-radius:999px;background:var(--line-2);white-space:nowrap}
+.tg{height:36px;padding:0 14px;border-radius:10px;background:var(--cs);color:var(--ci);font-family:var(--ui);font-size:19px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;white-space:nowrap}
+.lk{font-size:30px!important}
+.sc{margin-top:8px;display:flex;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:25px;font-weight:600;color:var(--ink-3)}
+.sc>span{position:relative;height:40px;padding:0 12px;border-radius:12px;background:var(--line-2);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.sc .emo{font-size:20px}
+.sc>span.fk{color:var(--ci);background:var(--cs);box-shadow:inset 0 0 0 3px var(--c)}
+/* Anneau posé sur une colonne, ou sur un nom (ambre par défaut : la même information à deux endroits) */
+.rg{position:absolute;left:-4px;right:-4px;top:-4px;bottom:-4px;z-index:2;border-radius:15px;box-shadow:inset 0 0 0 4px var(--rc,#E8892B);background:var(--rb,rgba(232,137,43,.2));opacity:0;visibility:hidden;pointer-events:none}
+/* Gestes de l’élève : ligne refusée, carte ou case qui refuse, case rangée */
+.srow.kor{animation:kor .55s ease}
+@keyframes kor{0%,100%{background:transparent}30%{background:rgba(239,79,85,.18)}}
+.srow.kob,.sq.kob,.dbin.kob{animation:kob .45s ease}
+@keyframes kob{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+.dbin.okb{animation:okb .5s cubic-bezier(.2,.9,.3,1.3)}
+@keyframes okb{40%{transform:scale(1.035)}}
+
+/* ---------- Les requêtes : une carte de code à deux lignes (un commentaire, la requête) ---------- */
+.sq{border-radius:34px;box-shadow:0 9px 0 #110E27}
+.sq .top{height:52px;gap:12px;padding:0 30px}
+.sq .dot{width:14px;height:14px}
+.sq .fname{margin-left:8px;font-size:22px}
+.sq .body{padding:18px 30px;font-size:28px;line-height:42px}
+.sq .ln{height:42px}
+.sq .cmt{color:var(--t-com)}
+.sq .caret i{top:-31px;width:4px;height:37px}
+.sq .glow{border-radius:8px;padding:0 3px;margin:0 -3px}
+
+/* ---------- Le résultat d’une requête ---------- */
+.abs.out{left:64px;width:952px;margin:0}
+.out.ok{background:#E7F7EE;border:3px solid #A7E3C0}
+.out.ok .oi{background:#34C27A;color:#fff}
+.out.ok .ot b{color:#1B7A45}
+.out.warn{background:#FFF4E5;border:3px solid #F6D9A8}
+.out.warn .oi{background:#F29A2E;color:#fff}
+.out.warn .ot b{color:#9A5B00}
+
+/* ---------- Les deux requêtes : où ranger chaque situation ---------- */
+.dbin{top:400px;width:464px;height:640px;padding:34px 22px 26px;border-radius:40px;border:4px dashed #C9BCFF;background:rgba(255,255,255,.85);display:flex;flex-direction:column;align-items:center}
+.dbin .dn{font-family:var(--mono);font-size:50px;font-weight:800;color:var(--accent-ink);letter-spacing:-1px;white-space:nowrap}
+.dbin .dd{margin-top:6px;font-size:30px;font-weight:700;color:var(--ink-3);white-space:nowrap}
+.dbin svg{margin-top:30px;width:240px;height:144px;overflow:visible}
+.dbin .cs{margin-top:auto;width:100%;display:flex;flex-direction:column;gap:12px}
+.dbin .rc{padding:14px 16px;border-radius:18px;background:var(--accent-soft);color:var(--accent-ink);box-shadow:inset 0 0 0 3px #C9BCFF;font-size:26px;font-weight:700;line-height:1.25;text-align:center;opacity:0;visibility:hidden}
+
+/* ---------- Le mail reçu : la notification (l’en-tête seul), puis le mail déplié ---------- */
+.ml{left:64px;width:952px;top:560px;height:184px;padding:0 30px;overflow:hidden}
+.mh{height:178px;display:flex;align-items:center;gap:26px}
+.mav{position:relative;flex:none;width:100px;height:100px;border-radius:50%;background:var(--cs);color:var(--ci);font-family:var(--display);font-size:36px;font-weight:800;font-style:normal;display:flex;align-items:center;justify-content:center}
+.mbg{position:absolute;right:-10px;bottom:-8px;width:44px;height:44px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px var(--line);font-size:23px;display:flex;align-items:center;justify-content:center}
+.mw{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
+.mn{display:flex;align-items:center;gap:14px;white-space:nowrap}
+.mn b{font-size:36px;font-weight:700;color:var(--ink)}
+.mtg{height:36px;padding:0 12px;border-radius:10px;background:var(--cs);color:var(--ci);font-size:20px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center}
+.ms{position:relative;height:38px;white-space:nowrap}
+.ms>span{position:absolute;left:0;top:0;line-height:38px}
+.m0{font-size:29px;font-weight:700;color:var(--accent-ink)}
+.m1{font-family:var(--mono);font-size:27px;font-weight:600;color:var(--ink-3);opacity:0;visibility:hidden}
+.mr{flex:none;align-self:stretch;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:18px}
+.mt{font-size:24px;font-weight:600;color:var(--ink-3)}
+.mdot{position:relative;width:22px;height:22px}
+.mdot::before{content:"";position:absolute;inset:0;border-radius:50%;background:#2F80ED;animation:mdot 1.3s ease-in-out infinite}
+@keyframes mdot{50%{transform:scale(.72);opacity:.65}}
+.mb{padding:24px 4px 28px;box-shadow:inset 0 3px 0 var(--line-2)}
+.mb p{margin:0;font-size:34px;line-height:1.3;font-weight:500;color:var(--ink)}
+.mb .sn{display:block;height:auto;font-family:var(--ui);font-size:34px;font-weight:500;color:var(--ink)}
+.mb .sn+.sn{margin-top:12px}
+.mb .sn.s{margin-top:0}
+/* Hors de l’app : le doigt qui touche la notification */
+.tapf{z-index:20;font-size:120px;margin:-8px 0 0 -44px;opacity:0;visibility:hidden}
+
+/* La suite : la prochaine leçon */
+.keyc{left:0;width:1080px;display:flex;justify-content:center}
+.keyc>span{height:96px;padding:0 40px 0 26px;border-radius:999px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 9px 0 #4B30CC;color:#fff;font-size:36px;font-weight:700;display:flex;align-items:center;gap:16px;white-space:nowrap}
+.keyc .emo{font-size:44px}
+
+/* ---------- À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px;padding:8px 0}
+#s7 .rrow{gap:22px;padding:18px 32px}
+#s7 .rico{width:88px;height:88px;border-radius:26px;font-size:46px}
+#s7 .rtxt{font-size:34px;line-height:1.25}
+#s7 .rtxt .rs{margin-top:2px;font-size:31px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 6</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>D</span><span>R</span><span>O</span><span>P</span></div>
+    <div class="abs sub">Supprimer une table</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Une table est de trop dans la base&nbsp;:<br>à toi de la retirer.</div>
+  </section>
+
+  <!-- La base, ses tables et les requêtes qui les touchent -->
+  <section class="scene" id="sa"></section>
+  <!-- DELETE FROM ou DROP TABLE : où ranger chaque situation -->
+  <section class="scene" id="sb"></section>
+  <!-- Le mail de Karim -->
+  <section class="scene" id="sm"></section>
+  <!-- La suite : la prochaine leçon -->
+  <section class="scene" id="sk"></section>
+
+  <!-- À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🗑️</div><div class="rtxt"><code>DROP TABLE</code> supprime la <b>table elle-même</b>,<br>avec ses lignes et ses colonnes.<span class="rs"><code>DELETE FROM</code> retire seulement les lignes :<br>la table reste, vide.</span></div></div>
+      <div class="rrow"><div class="rico emo">🔗</div><div class="rtxt">Une table à laquelle une <b>clé étrangère</b><br>fait référence ne peut pas être supprimée.<span class="rs">Sans référence, la suppression réussit,<br>même par erreur : une table supprimée<br>ne se récupère pas.</span></div></div>
+      <div class="rrow"><div class="rico emo">🛟</div><div class="rtxt"><code>IF EXISTS</code> évite l’erreur quand la table<br>n’existe pas :<span class="rs"><code>DROP TABLE IF EXISTS inscriptions_excel;</code></span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+
+/* ---------- Le déroulé : chaque légende arrive à la suite de la précédente ----------
+   cap(clé, texte, durée) pose une légende [début, fin] ; A[clé] et B[clé] donnent son début et sa fin (temps de la timeline). */
+const SCH = {t: 5.0, caps: [], chaps: [{label:'La table de trop', a: 5.0}], A: {}, B: {}};
+function chap(c){ SCH.t = +(SCH.t + 0.4).toFixed(2); SCH.chaps.push({label: c.label, a: SCH.t}); }
+function cap(key, html, dur, gap = 0.1){
+  const a = +(SCH.t + gap).toFixed(2), b = +(a + dur).toFixed(2);
+  SCH.caps.push([a, b, html]); SCH.A[key] = a; SCH.B[key] = b; SCH.t = b;
+}
+/* « À toi ! » : la légende reste un instant, puis l’image s’arrête à a + 2,35 s (le passage d’attente est coupé). */
+const toi = key => cap(key, 'À toi !', 2.55);
+const {A, B} = SCH;
+
+/* 1 · La table de trop : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) */
+cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
+cap('r2', "Au chapitre 5, tu as fait évoluer les tables avec <code>ALTER TABLE</code>.", 2.9);
+cap('c2', "Pour tester la base, Karim,<br>le développeur back end, a importé<br>le fichier Excel tel quel.", 3.0);
+cap('c3', "Cette copie répète des informations<br>déjà rangées dans les autres tables.", 2.6);
+cap('c4', "Si l’adresse e-mail de la coach<br>Salma Haddad change, il faudra<br>la corriger dans deux tables.", 2.6);
+const MAIL = SCH.t; SCH.t = +(SCH.t + 4.8).toFixed(2);   // le mail de Karim : la légende s’efface le temps du mail
+toi('p1');
+cap('c5', "C’est la copie du fichier Excel :<br>la table <code>inscriptions_excel</code>.", 2.6);
+/* 2 · Vider ou supprimer */
+chap({label:'Vider ou supprimer'});
+cap('c6', "On pourrait d’abord la vider<br>avec <code>DELETE FROM</code>.", 2.6);
+cap('c7', "Il ne reste aucune ligne, mais la table<br>est toujours là, avec ses six colonnes.", 3.0);
+cap('c8', "Pour retirer la table elle-même,<br>il faut <code>DROP TABLE</code>.", 2.6);
+toi('p2');
+/* 3 · La requête */
+chap({label:'La requête'});
+cap('c9', "Reste à écrire la requête<br>qui retire la copie.", 2.6);
+toi('p3');
+cap('c10', "On écrit <code>DROP TABLE</code>,<br>puis le nom de la table.", 2.8);
+/* 4 · Une table liée */
+chap({label:'Une table liée'});
+cap('c11', "Avant de l’exécuter, imaginons<br>une faute de nom :<br><code>DROP TABLE clients</code>.", 3.0);
+cap('c11b', "La suppression est refusée.", 1.8);
+toi('p4');
+cap('c12', "Les tables <code>inscriptions</code> et <code>cartes</code><br>font référence à la <b>table clients</b>.", 3.0);
+cap('c13', "Tant qu’une clé étrangère<br>y fait référence, une table<br>ne peut pas être supprimée.", 2.8);
+/* 5 · Noms proches */
+chap({label:'Noms proches'});
+cap('c14', "Autre faute possible :<br>oublier la fin du nom,<br><code>DROP TABLE inscriptions</code>.", 3.0);
+cap('c15', "Aucune table ne fait référence<br>à la <b>table inscriptions</b>.", 2.6);
+toi('p5');
+cap('c16', "Elle serait supprimée, avec ses sept<br>inscriptions, sans la moindre erreur.", 2.8);
+cap('c17', "Une table supprimée<br>ne se récupère pas :<br>relis toujours le nom avant d’exécuter.", 2.8);
+/* 6 · IF EXISTS */
+chap({label:'IF EXISTS'});
+cap('c18', "Karim ajoute la requête<br>à son script de mise en ligne.", 2.6);
+cap('c19', "Sur la base de NutriBoost,<br>la copie est supprimée.", 2.4);
+cap('c20', "Le script tourne aussi sur le serveur<br>de test, où la copie n’existe pas.", 2.8);
+cap('c21', "La requête échoue,<br>et la mise en ligne s’arrête.", 2.4);
+toi('p6');
+cap('c22', "<code>IF EXISTS</code> se place entre <code>TABLE</code><br>et le nom de la table.", 2.8);
+cap('c23', "Si la table n’existe pas, rien n’est<br>supprimé et aucune erreur n’apparaît.", 2.8);
+/* la suite : la prochaine leçon */
+cap('c24', "Dans la prochaine leçon,<br>tu ajouteras des lignes avec <code>INSERT</code>.", 3.0);
+/* 7 · À retenir */
+chap({label:'À retenir'});
+const RECAP = SCH.t;
+cap('c25', "Pour finir, voici les <b>trois idées à retenir</b>.", 4.8, 0.4);
+/* NOTES (le bouton « Ajouter à mes notes ») est écrit en clair dans Course(…) plus bas : tests/drop-lesson.test.mjs vérifie qu’il suit le déroulé. */
+const NOTES = +(SCH.t + 0.1).toFixed(2);
+const DURATION = +(NOTES + 7.2).toFixed(2);
+SCH.caps.push([NOTES, 999, APP ? "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."
+  : "Une table se supprime en une seule ligne :<br>mieux vaut bien la choisir."]);
+
+const CAPTIONS = SCH.caps;
+const CHAPTERS = SCH.chaps.map((c, i) => ({n: i + 1, label: c.label, a: c.a, b: i + 1 < SCH.chaps.length ? SCH.chaps[i + 1].a : DURATION}));
+
+/* Pas de question du lecteur : les moments « À toi » (PICKS) font participer l’élève. */
+const QUESTIONS = [];
+
+/* ---------- Le cas : la base des ateliers NutriBoost (le même dans tous les chapitres du projet) ---------- */
+/* Les tables, telles que le chapitre 5 les laisse : [clé, couleur, emoji, nom, lignes, colonnes] ; colonne : [nom, 'pk' | 'fk', couleur de la table désignée].
+   ateliers a reçu places, cartes a renommé seances en seances_restantes ; inscriptions compte la 7e inscription (le mail de Sophie Martin, chapitre 2) ;
+   clients est la table de la boutique (10 clients). La copie du fichier Excel (inscriptions_excel) garde les six colonnes et les six lignes du fichier
+   du chapitre 1 : client, atelier, date, coach, e-mail du coach, inscrit le. */
+const TB = [
+  ['co', 'k-co', '🧑‍🏫', 'coachs', 4, [['id', 'pk'], ['prenom'], ['nom'], ['email']]],
+  ['at', 'k-at', '📅', 'ateliers', 5, [['id', 'pk'], ['titre'], ['date_atelier'], ['coach_id', 'fk', 'k-co'], ['places']]],
+  ['cl', 'k-cl', '👥', 'clients', 10, [['id', 'pk'], ['prenom'], ['nom'], ['adresse'], ['ville'], ['age'], ['email'], ['telephone'], ['date_inscription']]],
+  ['in', 'k-in', '📝', 'inscriptions', 7, [['id', 'pk'], ['client_id', 'fk', 'k-cl'], ['atelier_id', 'fk', 'k-at'], ['date_inscription']]],
+  ['ca', 'k-nb', '💳', 'cartes', 3, [['id', 'pk'], ['client_id', 'fk', 'k-cl'], ['seances_restantes']]],
+  ['xl', 'k-xl', '📄', 'inscriptions_excel', 6, [['client'], ['atelier'], ['date'], ['coach'], ['email_coach'], ['inscrit_le']]]
+];
+/* Les situations à ranger (moment 2) : [situation, requête qui convient, pourquoi pas l’autre]. */
+const BINS = [['del', 'DELETE FROM', 'retire des lignes'], ['drop', 'DROP TABLE', 'retire la table']];
+const CASES = [
+  ['Retirer les inscriptions annulées', 'del', 'Une inscription annulée est une ligne : la table doit rester dans la base.'],
+  ['Retirer la copie du fichier Excel', 'drop', 'La copie doit disparaître de la base : <code>DELETE FROM</code> la laisserait, vide.'],
+  ['Vider une table avant un nouvel import', 'del', 'La table doit rester pour recevoir le nouvel import : seules ses lignes sont retirées.'],
+  ['Retirer une table d’essai, devenue inutile', 'drop', 'C’est la table elle-même qu’on retire, pas seulement ses lignes.']
+];
+/* Moment 1 : pourquoi telle table n’est pas la copie. Moment 4 : pourquoi telle table ne fait pas référence à la table clients. */
+const WHY0 = {
+  co: 'La <b>table&nbsp;coachs</b> enregistre chaque coach une seule fois : ce n’est pas une copie.',
+  at: 'La <b>table&nbsp;ateliers</b> enregistre chaque atelier une seule fois : ce n’est pas une copie.',
+  cl: 'La <b>table&nbsp;clients</b> enregistre chaque client une seule fois : ce n’est pas une copie.',
+  ca: 'La <b>table&nbsp;cartes</b> enregistre les cartes de membre : ce n’est pas une copie.',
+  in: 'La <b>table&nbsp;inscriptions</b> relie les clients aux ateliers par leurs identifiants : ce n’est pas une copie.'
+};
+const WHY3 = {
+  co: 'La <b>table&nbsp;coachs</b> n’a aucune colonne qui fait référence à la <b>table&nbsp;clients</b>.',
+  at: 'La <b>table&nbsp;ateliers</b> fait référence à la <b>table&nbsp;coachs</b> (<code>coach_id</code>), pas à la <b>table&nbsp;clients</b>.',
+  cl: 'C’est la table que la requête voulait supprimer : cherche celles qui font référence à elle.',
+  xl: 'La copie du fichier Excel garde le nom des clients en texte : aucune clé étrangère ne la relie à la <b>table&nbsp;clients</b>.'
+};
+
+/* Les six moments « À toi » : l’image s’arrête, l’élève choisit ou touche ; la page montre aussitôt le résultat.
+   from : début du passage qui amène chaque moment, d’où repartent « ↺ Revoir » et « Rejouer ». */
+const atp = k => +(A[k] + 2.35).toFixed(2);
+const PICKS = [
+  {at: atp('p1'), from: 5.0, kind: 'tap', need: 1, prompt: 'Touche la table à retirer de la base.'},
+  {at: atp('p2'), from: A.c6, kind: 'sort', prompt: 'Range chaque situation avec la requête qui convient.',
+    hint: 'Touche une situation, puis la requête qui convient. Tu peux aussi la faire glisser directement.', next: '« {x} » : quelle requête faut-il ?',
+    options: CASES.map(c => ({label: c[0]}))},
+  {at: atp('p3'), from: A.c9, kind: 'pick', prompt: 'Quelle requête retire la copie ?', options: [
+    {label: 'DROP inscriptions_excel;', why: 'Le mot <code>TABLE</code> manque : <code>DROP</code> doit préciser ce qu’il supprime.'},
+    {label: 'DROP\u00a0TABLE\u00a0FROM inscriptions_excel;', why: '<code>FROM</code> appartient à <code>DELETE</code> : ici, le nom suit directement <code>DROP TABLE</code>.'},
+    {label: 'DROP TABLE inscriptions_excel;', ok: true}]},
+  {at: atp('p4'), from: A.c11, kind: 'tap', need: 2, prompt: 'Touche les tables qui font référence à la table clients.'},
+  {at: atp('p5'), from: A.c14, kind: 'pick', text: true, prompt: 'Que se passe-t-il avec <code>DROP\u00a0TABLE inscriptions</code> ?', options: [
+    {label: 'La suppression est refusée, comme pour la table clients', why: 'Aucune table ne fait référence à la <b>table&nbsp;inscriptions</b> : rien ne s’oppose à sa suppression.'},
+    {label: 'La table inscriptions est supprimée, avec ses sept lignes', ok: true},
+    {label: 'La copie est supprimée, car son nom commence de la même façon', why: 'Le nom doit être exact : <code>inscriptions</code> et <code>inscriptions_excel</code> sont deux tables différentes.'}]},
+  {at: atp('p6'), from: A.c18, kind: 'pick', prompt: 'Quelle ligne réussit même si la copie n’existe pas ?', options: [
+    {label: 'DROP\u00a0TABLE\u00a0IF\u00a0EXISTS inscriptions_excel;', ok: true},
+    {label: 'DROP\u00a0IF\u00a0EXISTS\u00a0TABLE inscriptions_excel;', why: '<code>IF EXISTS</code> vient après <code>TABLE</code>, juste avant le nom de la table.'},
+    {label: 'DROP\u00a0TABLE inscriptions_excel IF\u00a0EXISTS;', why: '<code>IF EXISTS</code> se place avant le nom de la table, pas après.'}]}
+];
+
+/* Le mail reçu : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (texte ou paragraphes), signature].
+   Il arrive en notification ; l’app s’arrête dessus (OPENS) jusqu’au toucher. */
+const MAILS = [
+  [['Karim', 'Benali', 'KB'], 'k-dv', 'développeur', 'karim@nutriboost.fr', [
+    'La base est presque prête pour la mise en ligne. Peux-tu retirer la copie du fichier Excel, sans toucher aux autres tables ?'], 'Karim']
+];
+const OPENS = [+(MAIL + 1.6).toFixed(2)].map((t, n) => ({at: t, sel: '#ml' + (n + 1), prompt: 'Touche le mail pour l’ouvrir.', label: `Ouvrir le mail de ${MAILS[n][0][0]} ${MAILS[n][0][1]}`}));
+
+/* ---------- Gabarits ---------- */
+/* Une ligne de la base : emoji et nom, nombre de lignes, colonnes (🔑 clé primaire, 🔗 clé étrangère aux couleurs de la table désignée). */
+function row([k, kc, emo, name, n, cols]){
+  const chips = cols.map(([c, t, tgt], j) => {
+    const ico = t === 'pk' ? '<span class="emo">🔑</span>' : t === 'fk' ? '<span class="emo">🔗</span>' : '';
+    const ring = t === 'fk' && tgt === 'k-cl' ? ' style="--rc:#6A4DF4;--rb:rgba(106,77,244,.18)"' : '';
+    return `<span id="ch-${k}-${j}"${t === 'fk' ? ` class="fk ${tgt}"` : ''}>${ico}${c}<i class="rg"${ring}></i></span>`;
+  }).join('');
+  const nb = k === 'xl' ? `<b class="nb" id="nb-xl"><span class="n1">${n} lignes</span><span class="n0">0 ligne</span></b>` : `<b class="nb"><span>${n} lignes</span></b>`;
+  const label = k === 'xl' ? `inscriptions<span class="sfx">_excel<i class="rg"></i></span>` : name;
+  return `<div class="srow ${kc}" id="rw-${k}"><i class="hl"></i><i class="xx"></i><div class="sn"><span class="emo">${emo}</span>` +
+    `<span class="nm">${label}<i class="rg"></i><i class="sk"></i></span>${k === 'cl' ? '<span class="emo lk" id="lk">🔒</span>' : ''}<i class="sp"></i>` +
+    `${k === 'in' ? '<b class="tg" id="tg-in">aucune référence</b>' : ''}${nb}</div><div class="sc">${chips}</div></div>`;
+}
+/* Carte de code : une ligne par [repère, texte]. Dans le texte : {id|…} un passage repéré (il pulse). Un commentaire (--) n’a pas de curseur. */
+const SQL_KW = /\b(?:DROP|TABLE|IF EXISTS|DELETE|FROM)\b/g, CARET = '<span class="caret"><i></i></span>';
+function editor(id, fname, lines){
+  const body = lines.map(([lid, s]) => {
+    const cmt = s.trim().startsWith('--');
+    let h = s.replace(/\{(\w+)\|([^{}]*)\}/g, '<span class="glow" id="$1">$2</span>');
+    if (!cmt) h = h.replace(SQL_KW, '<span class="kw">$&</span>');
+    return `<span class="ln${cmt ? ' cmt' : ''}" id="${lid}">${h}${cmt ? '' : CARET}</span>`;
+  }).join('');
+  return `<div class="abs code sq" id="${id}" style="left:64px;width:952px"><div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i>` +
+    `<span class="fname">${fname}</span></div><div class="body">${body}</div></div>`;
+}
+const out = (id, kind, title, msg, cls = 's') => `<div class="abs out ${kind}" id="${id}"><span class="oi">${kind === 'ok' ? '✓' : kind === 'warn' ? '!' : '✕'}</span>` +
+  `<div class="ot"><b>${title}</b><span class="${cls}">${msg}</span></div></div>`;
+const CMT = '-- Retirer la copie du fichier Excel';
+function dom(){
+  let a = `<div class="abs card bc" id="bc"><div class="bh"><span class="emo">🗄️</span><span class="ttl"><span id="bt-a">Base NutriBoost</span><span id="bt-b">Serveur de test</span></span><span class="bn"><span id="bn-a">5 tables</span><span id="bn-b">6 tables</span><span id="bn-c">5 tables</span></span></div>` +
+    TB.map(row).join('') + '</div>';
+  // moment 2 : DELETE FROM, la requête d’essai
+  a += editor('ed2', 'essai.sql', [['ed2c', '-- Vider la copie'], ['ed2q', '{k2|DELETE FROM} inscriptions_excel;']]);
+  a += out('o2', 'ok', 'Requête exécutée', '6 lignes retirées.');
+  // moment 3 : la requête qui retire la copie (la bonne, puis les deux autres aperçus)
+  a += editor('ed3', 'mise_en_ligne.sql', [['ed3c', CMT], ['ed3q', '{k3|DROP TABLE} {n3|inscriptions_excel};']]);
+  a += editor('pv3-0', 'mise_en_ligne.sql', [['pv30c', CMT], ['pv30q', 'DROP inscriptions_excel;']]);
+  a += editor('pv3-1', 'mise_en_ligne.sql', [['pv31c', CMT], ['pv31q', 'DROP TABLE FROM inscriptions_excel;']]);
+  a += out('pvo3-0', 'err', 'Erreur SQL', 'near "inscriptions_excel": syntax error', 'm');
+  a += out('pvo3-1', 'err', 'Erreur SQL', 'near "FROM": syntax error', 'm');
+  // chapitre 4 : une faute de nom, la table clients ; chapitre 5 : un nom incomplet, la table inscriptions
+  a += editor('ed4', 'essai.sql', [['ed4c', '-- Faute de nom'], ['ed4q', '{k4|DROP TABLE} {n4|clients};']]);
+  a += out('o4', 'err', 'Requête refusée', 'FOREIGN KEY constraint failed', 'm');
+  a += editor('ed5', 'essai.sql', [['ed5c', '-- Nom incomplet'], ['ed5q', '{k5|DROP TABLE} {n5|inscriptions};']]);
+  a += out('o5', 'warn', 'Exécutée sans erreur', 'La table inscriptions n’existe plus.');
+  // chapitre 6 : le script de mise en ligne, sur le serveur de test ; puis la ligne avec IF EXISTS (la bonne, puis les deux autres aperçus)
+  a += editor('ed6', 'mise_en_ligne.sql', [['ed6c', CMT], ['ed6q', 'DROP TABLE inscriptions_excel;']]);
+  a += out('o6', 'err', 'Erreur SQL', 'no such table: inscriptions_excel', 'm');
+  a += editor('ed6k', 'mise_en_ligne.sql', [['ed6kc', CMT], ['ed6kq', 'DROP {tb6|TABLE} {ie6|IF EXISTS} {nn6|inscriptions_excel};']]);
+  a += out('o6k', 'ok', 'Requête exécutée', 'Aucune erreur : rien à supprimer.');
+  a += editor('pv6-1', 'mise_en_ligne.sql', [['pv61c', CMT], ['pv61q', 'DROP IF EXISTS TABLE inscriptions_excel;']]);
+  a += editor('pv6-2', 'mise_en_ligne.sql', [['pv62c', CMT], ['pv62q', 'DROP TABLE inscriptions_excel IF EXISTS;']]);
+  a += out('pvo6-1', 'err', 'Erreur SQL', 'near "IF": syntax error', 'm');
+  a += out('pvo6-2', 'err', 'Erreur SQL', 'near "IF": syntax error', 'm');
+  $('#sa').innerHTML = a;
+  // DELETE FROM ou DROP TABLE : deux cases où ranger les situations (un schéma de la table avant la case)
+  const SVG = {
+    del: '<rect x="30" y="10" width="180" height="30" rx="9" fill="#8B6CFF"/>' + [54, 86, 118].map(y => `<rect x="30" y="${y}" width="180" height="22" rx="7" fill="none" stroke="#C9BCFF" stroke-width="4" stroke-dasharray="8 7"/>`).join(''),
+    drop: '<rect x="30" y="10" width="180" height="130" rx="14" fill="none" stroke="#F4A0A5" stroke-width="4" stroke-dasharray="9 8"/>' +
+      '<line x1="95" y1="55" x2="145" y2="95" stroke="#EF4F55" stroke-width="7" stroke-linecap="round"/><line x1="145" y1="55" x2="95" y2="95" stroke="#EF4F55" stroke-width="7" stroke-linecap="round"/>'
+  };
+  $('#sb').innerHTML = BINS.map(([k, n, d], q) => `<div class="abs dbin" id="db-${k}" data-k="${k}" style="left:${64 + q * 488}px"><div class="dn">${n}</div><div class="dd">${d}</div>` +
+    `<svg viewBox="0 0 240 144">${SVG[k]}</svg><div class="cs">${CASES.map((c, i) => c[1] === k ? `<div class="rc" id="rc${i}">${c[0]}</div>` : '').join('')}</div></div>`).join('');
+  // le mail
+  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
+    `<div class="mw"><div class="mn"><b>${w[0]} ${w[1]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
+    `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), 'Merci !', sign].map((x, j, a) => `<span class="sn${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
+    '<div class="abs emo tapf" id="tapf">👆</div>';
+  // la suite : la prochaine leçon
+  $('#sk').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">✍️</span>Prochaine leçon · INSERT</span></div>';
+  // les requêtes, découpées en caractères pour la frappe
+  $$('.sq .ln').forEach(splitChars);
+}
+
+/* ---------- Mise en page ---------- */
+const MH = [];   // hauteur de chaque mail déplié
+const bottom = s => { const el = $(s); return el.offsetTop + el.offsetHeight; };
+let ED6 = 0, ED5 = 0, RHX = 0;
+function layout(){
+  RHX = $('#rw-xl').offsetHeight;                  // la ligne de la copie, telle qu’elle s’affiche
+  const EDH = $('#ed3').offsetHeight;
+  ED6 = bottom('#bc') + 9 + 40;                    // les requêtes, sous la base à six tables
+  ED5 = ED6 - RHX;                                 // … et sous la base une fois la copie retirée
+  ['#ed2', '#ed3', '#pv3-0', '#pv3-1', '#ed4', '#ed5', '#ed6'].forEach(s => { $(s).style.top = ED6 + 'px'; });
+  ['#ed6k', '#pv6-1', '#pv6-2'].forEach(s => { $(s).style.top = ED5 + 'px'; });
+  const O6 = ED6 + EDH + 9 + 32, O5 = ED5 + EDH + 9 + 32;
+  ['#o2', '#pvo3-0', '#pvo3-1', '#o4', '#o5'].forEach(s => { $(s).style.top = O6 + 'px'; });
+  ['#o6', '#o6k', '#pvo6-1', '#pvo6-2'].forEach(s => { $(s).style.top = O5 + 'px'; });
+  // Les mails : hauteur une fois dépliés
+  $$('.ml').forEach((el, n) => { el.style.height = 'auto'; MH[n + 1] = el.offsetHeight; el.style.height = ''; });
+}
+
+/* ---------- Petits gestes de la timeline ---------- */
+const pulse = (el, t, n = 3, c = 'rgba(201,188,255,.55)') => tl.to(el, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (el, t, s = 1.04) => tl.to(el, {scale: s, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, t);
+const pop = (el, t, s = 0.4) => { show(el, t, {y: 0, scale: s}, 0.4, 'back.out(2.2)'); cue(t, 'pop', 0.7, 3); };
+const on = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 1, duration: d, ease: 'power2.out'}, t);
+const off = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 0, duration: d, ease: 'power2.in'}, t);
+const shake = (el, t, x = 10) => tl.to(el, {x: -x, duration: 0.07, yoyo: true, repeat: 5, ease: 'power1.inOut'}, t);
+/* Frappe d’une ligne de code (sans ses passages gardés). Renvoie l’instant de fin. */
+function sqType(lid, t, cps = 36, lead = 0.25){
+  const ln = $('#' + lid), caret = $$(':scope > .caret', ln).pop();
+  tl.set(caret, {autoAlpha: 1}, t - lead);
+  const end = typeChars($$('.ch', ln).filter(c => !c.closest('.lat')), t, cps);
+  tl.set(caret, {autoAlpha: 0}, end + 0.12);
+  return end;
+}
+/* La légende s’efface le temps d’un mail, puis revient. */
+const capOff = t => tl.to('#cap', {autoAlpha: 0, y: 30, duration: 0.3, ease: 'power2.in'}, t);
+const capOn = t => tl.to('#cap', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, t);
+/* Un mail arrive : la notification tombe (avatar, enveloppe, pastille « non lu »). À T, l’élève la touche (l’app s’arrête là,
+   moment OPENS ; hors de l’app, un doigt le montre) : elle s’enfonce, l’adresse de l’expéditeur remplace « Nouveau mail »,
+   puis elle se déplie en mail, ligne après ligne. L’image reste le temps de lire la demande. */
+function mailIn(n, t, T){
+  const m = '#ml' + n, sn = $$(m + ' .sn');
+  show(m, t, {y: -36, scale: 0.94}, 0.55, 'back.out(1.7)');
+  cue(t, 'mail', 0.8);
+  show(m + ' .mav', t + 0.12, {y: 0, scale: 0.5}, 0.4, 'back.out(2.4)');
+  show(m + ' .mbg', t + 0.3, {y: 0, scale: 0, rotation: -30}, 0.4, 'back.out(3)');
+  show(m + ' .mdot', t + 0.42, {y: 0, scale: 0}, 0.3, 'back.out(3)');
+  if (!APP) fingerTap($(m), T);
+  tl.to(m, {scale: 0.975, duration: 0.09, ease: 'power2.out'}, T);
+  tl.to(m, {scale: 1, duration: 0.3, ease: 'back.out(2.5)'}, T + 0.09);
+  cue(T, 'click', 0.5);
+  tl.to(m + ' .mdot', {autoAlpha: 0, scale: 0, duration: 0.2}, T + 0.05);
+  tl.to(m + ' .m0', {autoAlpha: 0, y: -16, duration: 0.2}, T + 0.1);
+  tl.fromTo(m + ' .m1', {autoAlpha: 0, y: 16}, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power3.out', immediateRender: false}, T + 0.2);
+  tl.to(m, {height: MH[n], duration: 0.5, ease: 'power3.inOut'}, T + 0.12);
+  cue(T + 0.12, 'whoosh', 0.35);
+  gsap.set(sn, {autoAlpha: 0, y: 14});
+  sn.forEach((s, k) => { tl.to(s, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, T + 0.4 + k * 0.28); cue(T + 0.4 + k * 0.28, 'tick', 0.4, k + 2); });
+  const end = T + 0.4 + (sn.length - 1) * 0.28 + 0.35;
+  // le temps de lire la demande, tous ses paragraphes (entre « Bonjour, » et « Merci ! »)
+  hold(end + 0.05, Math.ceil(readTime(sn.slice(1, -2).map(s => s.textContent).join(' ')) * 20) / 20);
+  return end;
+}
+function mailOut(n, t){ hide('#ml' + n, t, {x: 140, y: 0, rotation: 2}, 0.4, 'power2.in'); cue(t, 'whoosh', 0.4); }
+/* Hors de l’app (vidéo seule), un doigt montre le geste : il touche la notification. */
+function fingerTap(M, T){
+  const f = '#tapf';
+  tl.set(f, {left: M.offsetLeft + M.offsetWidth * 0.6, top: M.offsetTop + 92}, T - 0.8);
+  tl.fromTo(f, {autoAlpha: 0, x: 90, y: 170}, {autoAlpha: 1, x: 0, y: 0, duration: 0.5, ease: 'power3.out', immediateRender: false}, T - 0.75);
+  tl.to(f, {scale: 0.86, duration: 0.1, ease: 'power2.in'}, T - 0.15);
+  tl.to(f, {scale: 1, duration: 0.15}, T);
+  tl.to(f, {autoAlpha: 0, y: 70, duration: 0.3}, T + 0.2);
+}
+
+/* Réponses des moments « À toi » : ce que la timeline montre juste après l’arrêt (et que l’aperçu montre pendant l’arrêt). */
+const M1_ANS = ['#rw-xl .hl'];
+const M4_ANS = {in: ['#rw-in .hl', '#ch-in-1 .rg'], ca: ['#rw-ca .hl', '#ch-ca-1 .rg']};
+/* « Cette copie répète des informations » : chaque colonne de la copie et la colonne qui garde la même information ailleurs. */
+const DUP = ['xl-0', 'xl-1', 'xl-2', 'xl-3', 'xl-4', 'xl-5', 'cl-1', 'cl-2', 'at-1', 'at-2', 'co-1', 'co-2', 'co-3', 'in-3'].map(s => `#ch-${s} .rg`);
+const EMAIL = ['#ch-xl-4 .rg', '#ch-co-3 .rg'];
+const OTHERS = ['#rw-co', '#rw-at', '#rw-cl', '#rw-ca', '#rw-xl'];
+const set2 = t => +(t + 0.02).toFixed(2);
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
+  layout();
+  gsap.set(['.sq', '.out', '.dbin', '#bc', '#keyc'], {autoAlpha: 0});
+  gsap.set('#rw-xl', {height: 0, paddingTop: 0, paddingBottom: 0, autoAlpha: 0});
+  gsap.set(['#bn-b', '#bn-c', '#bt-b', '#nb-xl .n0', '#lk', '#tg-in'], {autoAlpha: 0});
+  gsap.set('#ed3q', {autoAlpha: 0});
+
+  /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
+     la consigne, la légende ne la répète pas. Le passage d’attente est coupé (rien ne s’y anime). */
+  PICKS.forEach(p => cut(p.at - 1.35, 1.25));
+
+  /* ===== 1 · La table de trop ===== */
+  sceneOn('#sa', 5.0);
+  show('#bc', A.r1, {y: 60}, 0.55); cue(A.r1, 'whoosh', 0.5);
+  ['co', 'at', 'cl', 'in', 'ca'].forEach((k, q) => { const t = A.r1 + 0.3 + q * 0.17; show('#rw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q); });
+  // « Au chapitre 5, tu as fait évoluer les tables » : les deux colonnes que ALTER TABLE a changées (places ajoutée, seances_restantes renommée)
+  on(['#ch-at-4 .rg', '#ch-ca-2 .rg'], A.r2 + 0.5); cue(A.r2 + 0.5, 'tick', 0.5, 1); cue(A.r2 + 0.85, 'tick', 0.5, 3);
+  off(['#ch-at-4 .rg', '#ch-ca-2 .rg'], B.r2 - 0.1, 0.3);
+  // Karim a importé le fichier Excel tel quel : sa copie s’ajoute à la base (6 tables)
+  tl.to('#rw-xl', {height: RHX, paddingTop: 12, paddingBottom: 12, duration: 0.5, ease: 'power2.out'}, A.c2 + 0.1);
+  tl.fromTo('#rw-xl', {x: 100}, {x: 0, autoAlpha: 1, duration: 0.55, ease: 'power3.out', immediateRender: false}, A.c2 + 0.15);
+  cue(A.c2 + 0.15, 'whoosh', 0.5); cue(A.c2 + 0.65, 'pop', 0.7, 1);
+  off('#bn-a', A.c2 + 0.4, 0.2); on('#bn-b', A.c2 + 0.45, 0.2); bump('#bn-b', A.c2 + 0.7, 1.12);
+  // cette copie répète des informations : chaque colonne de la copie, et la colonne qui garde la même information ailleurs
+  tl.to(DUP, {autoAlpha: 1, duration: 0.25, ease: 'power2.out', stagger: 0.07}, A.c3 + 0.3);
+  DUP.forEach((_, k) => { if (k % 2 === 0) cue(A.c3 + 0.3 + k * 0.07, 'tick', 0.4, k % 5); });
+  // l’adresse e-mail de Salma Haddad : à deux endroits (la table coachs, la copie)
+  off(DUP.filter(s => !EMAIL.includes(s)), A.c4, 0.3);
+  bump('#ch-co-3', A.c4 + 1.2, 1.12); cue(A.c4 + 1.2, 'tick', 0.6, 1);
+  bump('#ch-xl-4', A.c4 + 1.7, 1.12); cue(A.c4 + 1.7, 'tick', 0.6, 3);
+  off(EMAIL, MAIL - 0.1, 0.2);
+  // le mail de Karim
+  capOff(MAIL - 0.2);   // avec la légende : jamais de carte vide
+  hide('#bc', MAIL, {y: -30}, 0.35);
+  sceneOff('#sa', MAIL + 0.4);
+  sceneOn('#sm', MAIL + 0.4);
+  mailIn(1, MAIL + 0.5, OPENS[0].at);
+  mailOut(1, MAIL + 3.8);
+  sceneOff('#sm', MAIL + 4.1);
+  sceneOn('#sa', MAIL + 4.1);
+  tl.fromTo('#bc', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL + 4.15);
+  cue(MAIL + 4.15, 'whoosh', 0.5);
+  capOn(MAIL + 4.8);   // juste avant la légende suivante
+  // À toi : la table à retirer (réponse : la copie du fichier Excel)
+  tl.set(M1_ANS, {autoAlpha: 1}, set2(PICKS[0].at));
+  cue(A.c5 + 0.3, 'tick', 0.5, 2);
+
+  /* ===== 2 · Vider ou supprimer ===== */
+  // DELETE FROM : la requête se tape, ses lignes disparaissent… mais la table reste, avec ses six colonnes
+  show('#ed2', A.c6 + 0.1, {y: 40}, 0.5); cue(A.c6 + 0.1, 'whoosh', 0.45, 1);
+  sqType('ed2q', A.c6 + 0.7, 36);
+  pulse('#k2', A.c6 + 1.65, 1, 'rgba(255,224,138,.4)'); cue(A.c6 + 1.65, 'tick', 0.5, 2);
+  show('#o2', A.c7 + 0.15, {y: 20}, 0.4); cue(A.c7 + 0.15, 'pop', 0.7, 3);
+  off('#nb-xl .n1', A.c7 + 0.5, 0.2); on('#nb-xl .n0', A.c7 + 0.5, 0.2);
+  bump('#nb-xl', A.c7 + 0.55, 1.2); cue(A.c7 + 0.5, 'tick', 0.6, 1);
+  $$('#rw-xl .sc>span').forEach((c, k) => { pulse(c, A.c7 + 1.3 + k * 0.1, 1, 'rgba(201,188,255,.55)'); cue(A.c7 + 1.3 + k * 0.1, 'tick', 0.4, k % 5); });
+  // pour retirer la table elle-même : DROP TABLE ; deux cases, une par requête
+  hide(['#bc', '#ed2', '#o2'], A.c8, {y: -40}, 0.4);
+  sceneOff('#sa', A.c8 + 0.45); sceneOn('#sb', A.c8 + 0.45);
+  show('#db-del', A.c8 + 0.5, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(A.c8 + 0.5, 'pop', 0.6, 0);
+  show('#db-drop', A.c8 + 0.65, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(A.c8 + 0.65, 'pop', 0.6, 2);
+  bump('#db-drop', A.c8 + 1.3, 1.04); cue(A.c8 + 1.3, 'tick', 0.55, 3);
+  // À toi : ranger chaque situation ; remplies, les cases ne sont plus des zones où déposer
+  tl.set('.dbin .rc', {autoAlpha: 1}, set2(PICKS[1].at));
+  tl.set('.dbin', {borderStyle: 'solid'}, set2(PICKS[1].at));
+
+  /* ===== 3 · La requête ===== */
+  hide('.dbin', A.c9, {y: -40}, 0.4);
+  sceneOff('#sb', A.c9 + 0.45); sceneOn('#sa', A.c9 + 0.45);
+  tl.fromTo('#bc', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, A.c9 + 0.5);
+  cue(A.c9 + 0.5, 'whoosh', 0.5);
+  show('#ed3', A.c9 + 1.0, {y: 40}, 0.5); cue(A.c9 + 1.0, 'whoosh', 0.4, 1);
+  // À toi : la requête (réponse : DROP TABLE, puis le nom de la table)
+  tl.set('#ed3q', {autoAlpha: 1}, set2(PICKS[2].at));
+  pulse('#k3', A.c10 + 0.3, 1, 'rgba(255,224,138,.4)'); cue(A.c10 + 0.3, 'tick', 0.5, 2);
+  pulse('#n3', A.c10 + 1.3, 1, 'rgba(255,224,138,.4)'); cue(A.c10 + 1.3, 'tick', 0.5, 4);
+  on('#rw-xl .nm .rg', A.c10 + 1.3); // le même nom, dans la liste des tables
+
+  /* ===== 4 · Une table liée ===== */
+  off(['#rw-xl .nm .rg', '#rw-xl .hl'], A.c11, 0.2);
+  hide('#ed3', A.c11, {y: 30}, 0.3);
+  show('#ed4', A.c11 + 0.4, {y: 40}, 0.5); cue(A.c11 + 0.4, 'whoosh', 0.4, 2);
+  sqType('ed4q', A.c11 + 0.95, 34);
+  on('#rw-cl .hl', A.c11 + 1.55); cue(A.c11 + 1.55, 'tick', 0.5, 2);
+  // la suppression est refusée : la table clients reste
+  show('#o4', A.c11b + 0.1, {y: 20}, 0.4); cue(A.c11b + 0.1, 'miss', 0.45);
+  shake('#rw-cl .sn, #rw-cl .sc', A.c11b + 0.2);
+  // À toi : les tables qui font référence à la table clients (réponse : inscriptions et cartes)
+  tl.set(M4_ANS.in.concat(M4_ANS.ca), {autoAlpha: 1}, set2(PICKS[3].at));
+  bump('#ch-in-1', A.c12 + 1.2, 1.12); cue(A.c12 + 1.2, 'tick', 0.6, 1);
+  bump('#ch-ca-1', A.c12 + 1.7, 1.12); cue(A.c12 + 1.7, 'tick', 0.6, 3);
+  bump('#rw-cl .nm', A.c12 + 2.2, 1.1); cue(A.c12 + 2.2, 'tick', 0.6, 5);
+  // tant qu’une clé étrangère y fait référence : la table clients est verrouillée
+  off(M4_ANS.in.concat(M4_ANS.ca), A.c13 + 0.1, 0.3);
+  pop('#lk', A.c13 + 0.5, 0.3);
+
+  /* ===== 5 · Noms proches ===== */
+  off(['#lk', '#rw-cl .hl'], A.c14, 0.25);
+  hide(['#ed4', '#o4'], A.c14, {y: 30}, 0.3);
+  show('#ed5', A.c14 + 0.4, {y: 40}, 0.5); cue(A.c14 + 0.4, 'whoosh', 0.4, 3);
+  sqType('ed5q', A.c14 + 0.95, 34);
+  on('#rw-xl .sfx .rg', A.c14 + 1.9); cue(A.c14 + 1.9, 'tick', 0.6, 4);   // la fin du nom oubliée : « _excel »
+  // aucune table ne fait référence à la table inscriptions : les autres s’estompent
+  off('#rw-xl .sfx .rg', A.c15, 0.2);
+  tl.to(OTHERS, {opacity: 0.4, duration: 0.3}, A.c15 + 0.2);
+  on('#rw-in .hl', A.c15 + 0.3);
+  pop('#tg-in', A.c15 + 0.8, 0.5);
+  // À toi : ce que donne la requête (réponse : la table inscriptions disparaît, avec ses lignes, sans erreur)
+  tl.set(['#rw-in .sk'], {scaleX: 1}, set2(PICKS[4].at));
+  tl.set(['#rw-in .xx', '#o5'], {autoAlpha: 1}, set2(PICKS[4].at));
+  bump('#rw-in .nb', A.c16 + 0.4, 1.2); cue(A.c16 + 0.4, 'miss', 0.4);
+  pulse('#n5', A.c17 + 1.6, 1, 'rgba(255,224,138,.4)'); cue(A.c17 + 1.6, 'tick', 0.5, 2);
+
+  /* ===== 6 · IF EXISTS ===== */
+  // l’hypothèse est terminée : la table inscriptions reprend sa place
+  tl.to(OTHERS, {opacity: 1, duration: 0.3}, A.c18 - 0.1);
+  off(['#rw-in .xx', '#rw-in .hl', '#tg-in'], A.c18 - 0.1, 0.3);
+  tl.to('#rw-in .sk', {scaleX: 0, duration: 0.3, ease: 'power2.in'}, A.c18 - 0.1);
+  hide(['#ed5', '#o5'], A.c18 - 0.1, {y: 30}, 0.3);
+  tl.fromTo('#ed6', {autoAlpha: 0, x: 120}, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', immediateRender: false}, A.c18 + 0.4);
+  cue(A.c18 + 0.4, 'whoosh', 0.45, 1);
+  on('#rw-xl .hl', A.c18 + 0.9); cue(A.c18 + 0.9, 'tick', 0.5, 2);
+  // sur la base : la copie est supprimée (nom barré, ligne retirée, 5 tables) ; la requête remonte avec la liste
+  tl.to('#rw-xl .sk', {scaleX: 1, duration: 0.3, ease: 'power2.out'}, A.c19 + 0.2); cue(A.c19 + 0.2, 'stamp', 0.5);
+  tl.to('#rw-xl', {height: 0, paddingTop: 0, paddingBottom: 0, autoAlpha: 0, duration: 0.5, ease: 'power2.inOut'}, A.c19 + 0.8);
+  tl.to('#ed6', {top: ED5, duration: 0.5, ease: 'power2.inOut'}, A.c19 + 0.8);
+  off('#bn-b', A.c19 + 1.0, 0.2); on('#bn-c', A.c19 + 1.0, 0.2); bump('#bn-c', A.c19 + 1.25, 1.12); cue(A.c19 + 1.0, 'tick', 0.6, 2);
+  // sur le serveur de test : la copie n’existe pas, la requête échoue
+  off('#bt-a', A.c20 + 0.15, 0.25); on('#bt-b', A.c20 + 0.2, 0.25); cue(A.c20 + 0.2, 'tick', 0.5, 3);
+  show('#o6', A.c20 + 1.0, {y: 20}, 0.4); cue(A.c20 + 1.0, 'miss', 0.45);
+  shake('#o6', A.c21 + 0.3, 9); cue(A.c21 + 0.3, 'miss', 0.35);
+  // À toi : la ligne qui réussit même si la copie n’existe pas (réponse : IF EXISTS, entre TABLE et le nom)
+  tl.set(['#ed6', '#o6'], {autoAlpha: 0}, set2(PICKS[5].at));
+  tl.set(['#ed6k', '#o6k'], {autoAlpha: 1}, set2(PICKS[5].at));
+  pulse('#ie6', A.c22 + 0.3, 1, 'rgba(255,224,138,.4)'); cue(A.c22 + 0.3, 'tick', 0.5, 2);
+  pulse('#tb6', A.c22 + 1.2, 1, 'rgba(255,224,138,.4)'); cue(A.c22 + 1.2, 'tick', 0.5, 3);
+  pulse('#nn6', A.c22 + 1.9, 1, 'rgba(255,224,138,.4)'); cue(A.c22 + 1.9, 'tick', 0.5, 4);
+  bump('#o6k', A.c23 + 0.4, 1.03); cue(A.c23 + 0.4, 'chord', 0.6);
+  hide(['#bc', '#ed6k', '#o6k'], B.c23 - 0.1, {y: -40}, 0.4);
+  sceneOff('#sa', A.c24 + 0.3);
+  // la suite : la prochaine leçon
+  sceneOn('#sk', A.c24);
+  show('#keyc', A.c24 + 0.1, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)'); cue(A.c24 + 0.1, 'whoosh', 0.6);
+  tl.to('#keyc .emo', {rotation: -18, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.c24 + 0.7);
+  hide('#keyc', B.c24 - 0.1, {y: -30}, 0.4);
+  sceneOff('#sk', RECAP);
+
+  /* ===== 7 · À retenir ===== */
+  // chaque idée : sa phrase, puis son détail
+  recapScene(RECAP, [RECAP + 0.7, RECAP + 2.1, RECAP + 3.5]);
+  const rt = $$('#s7 .rtxt'), rs = $$('#s7 .rs'), rd = (h, n = 20) => Math.ceil(readTime(h) * n) / n;
+  gsap.set(rs, {autoAlpha: 0, y: 10});
+  [[RECAP + 0.7, RECAP + 1.45], [RECAP + 2.1, RECAP + 2.85], [RECAP + 3.5, RECAP + 4.25]].forEach(([r, d], i) => {
+    tl.to(rs[i], {autoAlpha: 1, y: 0, duration: 0.45, ease: 'power2.out'}, d);
+    cue(d, 'tick', 0.5, i * 2 + 1);
+    hold(r + 0.6, rd(rt[i].innerHTML.split('<span')[0]));
+    hold(d + 0.5, rd(rs[i].innerHTML));
+  });
+  if (APP) cue(NOTES + 0.05, 'pop', 0.85, 5);
+}
+
+/* ---------- Moments « À toi » : ce que montre chaque geste ----------
+   Le lecteur arrête l’image à chaque moment (PICKS) et pose ses zones tactiles sur les endroits que la page décrit
+   (IX.spots). Chaque geste est jugé ici (IX.act, IX.pick) et montré aussitôt sur l’image : les bons gestes affichent
+   les mêmes éléments que la timeline juste après l’arrêt (classe pvs, sans toucher aux styles de la timeline) ;
+   ils restent jusqu’à ce que la timeline affiche la même image (IX.tick), puis s’effacent : la reprise est invisible. */
+const IX = (() => {
+  let X = null, wait = -1;
+  function start(i){ if (!X || X.i !== i) { clear(); X = {i, cls: [], tm: [], got: new Set()}; } }
+  function clear(){
+    if (!X) return;
+    X.tm.forEach(clearTimeout);
+    X.cls.forEach(([e, c]) => e.classList.remove(c));
+    X = null; wait = -1;
+  }
+  const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
+  const marks = (sels, c = 'pvs') => sels.forEach(s => $$(s).forEach(e => mark(e, c)));
+  /* La classe est aussi notée dans X.cls : si le moment change avant la fin du minuteur (deux réponses enchaînées), clear() la retire. */
+  const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
+  const rowOf = k => $('#rw-' + k);
+  function spots(i){
+    if (i === 0 || i === 3) return TB.map(t => Object.assign({k: t[0], label: `Table ${t[3]}`}, rel(rowOf(t[0]))));
+    if (i === 1) return BINS.map(([k, n, d]) => Object.assign({k, label: `${n} : ${d}`}, rel($('#db-' + k))));
+    return [];
+  }
+  function act(i, a, b){
+    start(i);
+    if (i === 0) {
+      if (a === 'xl') {
+        if (!X.got.has(a)) { X.got.add(a); marks(M1_ANS); sfx('tick', 1, 0.6); }
+        return {ok: true, done: true, why: '', at: rel(rowOf(a))};
+      }
+      flash(rowOf(a), 'kor');
+      return {ok: false, why: fr(WHY0[a])};
+    }
+    if (i === 3) {
+      if (a === 'in' || a === 'ca') {
+        if (!X.got.has(a)) { X.got.add(a); marks(M4_ANS[a]); sfx('tick', X.got.size, 0.6); }
+        return {ok: true, done: X.got.size === PICKS[3].need, why: '', at: rel(rowOf(a))};
+      }
+      flash(rowOf(a), 'kor');
+      return {ok: false, why: fr(WHY3[a])};
+    }
+    if (i === 1) {
+      const n = +a, bin = $('#db-' + b);
+      if (CASES[n][1] === b) {
+        mark($('#rc' + n), 'pvs');
+        flash(bin, 'okb', 520);
+        X.got.add(n);
+        sfx('pop', X.got.size, 0.6);
+        return {ok: true, done: X.got.size === CASES.length, why: '', at: rel(bin)};
+      }
+      flash(bin, 'kob', 650);
+      return {ok: false, why: fr(CASES[n][2])};
+    }
+    return {ok: false};
+  }
+  /* Choix d’une réponse (moments 3, 5 et 6) : ce que donnerait la requête avec ce choix. */
+  function pick(i, k){
+    clear(); start(i);
+    const P = PICKS[i], o = P.options[k], ok = !!o.ok;
+    if (i === 2) {
+      if (ok) mark($('#ed3q'), 'pvs');
+      else marks(['#pv3-' + k, '#pvo3-' + k]);
+      sfx(ok ? 'pop' : 'miss', 2, 0.5);
+    }
+    if (i === 4) {
+      if (k === 1) marks(['#rw-in .sk', '#rw-in .xx', '#o5']);
+      if (k === 0) flash(rowOf('in'), 'kob', 480);
+      if (k === 2) flash($('#ed5'), 'kob', 480);
+      sfx(ok ? 'stamp' : 'miss', 0, 0.5);
+    }
+    if (i === 5) {
+      if (ok) marks(['#ed6k', '#o6k']);
+      else marks(['#pv6-' + k, '#pvo6-' + k]);
+      sfx(ok ? 'pop' : 'miss', 2, 0.5);
+    }
+    return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));
+  }
+  /* Indice, après deux erreurs : une piste, et les endroits à regarder. */
+  function hint(i){
+    if (i === 0) return {text: 'La copie a les six colonnes du fichier Excel : <code>client</code>, <code>atelier</code>, <code>date</code>, <code>coach</code>, <code>email_coach</code> et <code>inscrit_le</code>.', keys: ['xl']};
+    if (i === 1) return {text: 'Dans quel cas la table doit-elle rester dans la base, et dans quel cas doit-elle disparaître ?'};
+    if (i === 3) return {text: 'Cherche les colonnes <code>client_id</code> : chacune fait référence à l’identifiant d’un client.', keys: ['in', 'ca']};
+    return null;
+  }
+  return {
+    enter: i => { clear(); start(i); },
+    spots, act, pick, hint,
+    slot: () => null,
+    /* Moment réussi : l’aperçu reste jusqu’à ce que la timeline affiche la même image ; sinon il part tout de suite. */
+    leave(i, answered){ if (answered && X && X.i === i) wait = i; else clear(); },
+    tick(t = tl.time()){ if (wait < 0) return; const a = PICKS[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear(); }
+  };
+})();
+window.IX = IX;
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 106.8, picks: PICKS, opens: OPENS,
+  glyphs: '🗄️🧑‍🏫📅👥💳📝📄🔑🔗🔒🗑️🛟✉️👆✓✕!…«»', dom, build, beforeRender: t => IX.tick(t)});
+</script>
+</body>
+</html>
