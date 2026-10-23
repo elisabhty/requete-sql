@@ -831,10 +831,23 @@ const IX = (() => {
     anim(v, [{opacity: 0, transform: 'scale(.7)'}, {opacity: 1, transform: 'none'}], {delay: tv, duration: 380});
     return new Promise(res => later(tv, () => res({ok, say: fr(o.say), why: fr(o.why || o.say)})));
   }
+  /* Deux erreurs : une phrase pour orienter le raisonnement, sous la consigne. */
+  function hint(i){
+    if (i === 0) return {text: fr('Pour Julie Roy, medecin_id vaut 1 : quelle colonne de medecins contient cet identifiant ?')};
+    if (i === 1) return {text: fr('Ni Sarah Lopez, sans médecin, ni le Dr Anne Roux, sans patient, ne doivent apparaître.')};
+    if (i === 2) return {text: fr('Les bassins sont à gauche, après FROM ; la tortue, sans bassin, ne doit pas apparaître.')};
+    if (i === 3) return {text: fr('Ici, la table livres n’est pas après FROM, mais après JOIN : elle est à droite.')};
+    if (i === 4) return {text: fr('Les tables ont échangé leur place : les livres, avant à droite, sont maintenant à gauche.')};
+    if (i === 5) return {text: fr('Ali Koné, sans chambre, et la chambre 103, libre, doivent apparaître tous les deux.')};
+    if (i === 6) return {text: fr('Ici, il n’y a aucune correspondance à vérifier : il faut un JOIN qui s’écrit sans ON.')};
+    if (i === 7) return {text: fr('Le manager_id de Hugo Lefèvre vaut 1 : qui a l’identifiant 1, et dans quelle table ?')};
+    if (i === 8) return {text: fr('Le manager_id de s identifie le manager : dans m, quelle colonne identifie chaque salarié ?')};
+    return null;
+  }
   return {
     enter: clear,
     slot: i => rel($('#sl' + i)),
-    pick,
+    pick, hint,
     /* Bonne réponse : l’aperçu reste jusqu’à ce que la timeline affiche la même image ; sinon il part tout de suite. */
     leave(i, answered){ if (answered && X && X.ok && X.i === i) wait = i; else clear(); },
     tick(t = tl.time()){ if (wait < 0) return; const a = PICKS[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear(); }

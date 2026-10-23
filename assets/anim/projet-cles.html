@@ -948,12 +948,19 @@ const IX = (() => {
     }
     return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));
   }
-  /* Indice, après deux erreurs : une piste, et les endroits à regarder. */
+  /* Indice, après deux erreurs : une piste, et les endroits à regarder. Chaque texte passe par fr() à la sortie
+     (espaces insécables avant : ? ! ;). */
   function hint(i){
-    if (i === 1) return {text: 'Cherche l’id 7 dans la table clients, puis l’id 3 dans la table ateliers.', keys: ['c7', 'a3']};
-    if (i === 3) return {text: 'Diego Ramos a l’id 4 : cherche l’atelier dont coach_id vaut 4.', keys: ['a4']};
-    if (i === 5) return {text: 'Pour un élément d’un côté, combien peuvent lui être associés de l’autre : un seul ou plusieurs ? Pose-toi la question dans les deux sens.'};
-    return null;
+    const h = (() => {
+      if (i === 0) return {text: 'Il faut une valeur unique et stable : un prénom ou un e-mail l’est-il toujours ?'};
+      if (i === 1) return {text: 'Cherche l’id 7 dans la table clients, puis l’id 3 dans la table ateliers.', keys: ['c7', 'a3']};
+      if (i === 2) return {text: 'Un atelier n’a qu’un coach, mais un coach peut en animer plusieurs, comme Moussa Diallo.'};
+      if (i === 3) return {text: 'Diego Ramos a l’id 4 : cherche l’atelier dont coach_id vaut 4.', keys: ['a4']};
+      if (i === 4) return {text: 'Où est enregistrée la première inscription de Sophie Martin, à l’atelier Récupération ?'};
+      if (i === 5) return {text: 'Pour un élément d’un côté, combien peuvent lui être associés de l’autre : un seul ou plusieurs ? Pose-toi la question dans les deux sens.'};
+      return null;
+    })();
+    return h && Object.assign(h, {text: fr(h.text)});
   }
   return {
     enter: i => { clear(); start(i); },
