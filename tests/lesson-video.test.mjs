@@ -875,8 +875,8 @@ const COURSES = [
       "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
       "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.0);", 'Chapitre 3 · Modéliser avec UML']},
-  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '4 min 59', notesAt: 215.85,
-    notes: /notes:\{t:291\.5,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
+  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '5 min 02', notesAt: 215.85,
+    notes: /notes:\{t:294\.9,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
     bubble: 'Tu vas représenter la structure de la base avec un diagramme UML pour visualiser plus&nbsp;facilement les relations entre les tables.',
     chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
     traps: ["const CLASSES = [['co', 'Coach', ['prenom', 'nom', 'email']], ['ca', 'Carte', ['seances']],",
@@ -1570,7 +1570,7 @@ test('« Identifiant », jamais « numéro », pour la valeur d’une clé : vid
 
 test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des tables du chapitre 2, chaque multiplicité et chaque traduction vérifiées', async () => {
   const l81 = cut('guide({ id:81, titre:"Modéliser avec UML"', 'guide({ id:61,');
-  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'4 min 59',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'5 min 02',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1653,7 +1653,19 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.ok(!/représent|à gérer/.test(flat(ic + 1)), 'la légende d’avant ne dit pas deux fois la même chose que la réf 1 (« représenté », « élément à gérer »)');
   assert.ok(!/sujet/.test(JSON.stringify([D.CAPTIONS, D.PICKS, D.MAILS, bubble])), 'un « élément » (pas un « sujet ») devient une classe : même mot dans les légendes, les réponses et le mail');
   assert.ok(html.includes('e:"Une classe décrit un élément à gérer : elle devient une table, et ses attributs deviennent ses colonnes."') && !html.includes('Une classe décrit un sujet'), 'le quiz dit aussi « élément », pas « sujet »');
-  assert.ok(D.CAPTIONS[ic + 2][2].startsWith('Chaque élément à gérer est représenté par une <b>classe</b>.') && D.CAPTIONS[ic + 4][2] === 'Aucune clé ici : le diagramme décrit les éléments, pas la façon de les ranger.', 'la suite reprend « éléments »');
+  assert.ok(D.CAPTIONS[ic + 2][2].startsWith('Chaque élément à gérer est représenté par une <b>classe</b>.'), 'la suite reprend « éléments »');
+  /* La transition vers les tables (texte d’Elisa du 23 octobre, 11:02), en deux bulles, avant le premier moment « À toi » : à cette étape, on décrit les classes
+     et leurs attributs ; les clés (primaires et étrangères) viennent au passage aux tables. Elles sont lues avant « À toi ! », sans que la coupe du moment
+     (1,35 s avant l’arrêt) ni un autre fondu ne les touche. */
+  assert.deepEqual([flat(ic + 4), flat(ic + 5)], ['À cette étape, on décrit les classes et leurs attributs.', 'Les clés primaires et étrangères seront ajoutées lors du passage aux tables.'],
+    'la transition vers les tables : une phrase complète par bulle, les mots d’Elisa');
+  assert.equal(flat(ic + 6), 'À toi !');
+  assert.ok(D.CAPTIONS[ic + 3][1] < D.CAPTIONS[ic + 4][0] && D.CAPTIONS[ic + 4][1] < D.CAPTIONS[ic + 5][0] && D.CAPTIONS[ic + 5][1] < D.CAPTIONS[ic + 6][0]
+    && D.CAPTIONS[ic + 6][0] + 0.5 <= D.PICKS[0].at - 1.35 && D.CAPTIONS[ic + 5][1] - 0.25 >= D.CAPTIONS[ic + 5][0] + 0.5 && D.CAPTIONS[ic + 4][1] - 0.25 >= D.CAPTIONS[ic + 4][0] + 0.5,
+    'les deux bulles se suivent sans se chevaucher, chacune entièrement apparue avant sa pause de lecture, puis « À toi ! » apparaît avant la coupe du moment 1');
+  assert.ok(!/Aucune clé ici|pas la façon de les ranger/.test(caps), 'l’ancienne légende « Aucune clé ici » est remplacée');
+  /* Le moment 1 reprend les mots de la transition : la clé étrangère coach_id vient au passage aux tables. */
+  assert.equal(D.PICKS[0].options.find(o => /coach_id/.test(o.label)).why, 'Le diagramme ne montre aucune clé : la clé étrangère coach_id sera ajoutée lors du passage aux tables.');
   /* Chaque geste suit sa légende : les quatre classes arrivent pendant « on utilise un diagramme de classes UML », puis s’entourent
      chacune à son tour, dans l’ordre où la légende les nomme (clients, coachs, ateliers, cartes), pendant « Il représente… ». */
   const cls = Object.fromEntries(D.CLASSES.map(([k, name]) => [name.toLowerCase(), k]));
@@ -1812,6 +1824,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   D.PICKS.forEach((p, i) => assert.ok(p.from < p.at && (i === 0 || p.from > D.PICKS[i - 1].at), `moment ${i + 1} : « Revoir » repart après le moment précédent`));
   assert.deepEqual(D.PLACE.map(p => [p[0], p[1]]), [[assocs.an[4], assocs.an[3]], [assocs.an[6], assocs.an[5]]], 'moment 2 : chaque multiplicité d’anime, du côté de la classe qu’elle compte');
   assert.equal(D.PICKS[2].options.find(o => o.ok).label, assocs.in[4], 'moment 3 : la multiplicité du côté de la classe Client');
+  assert.equal(D.PICKS[2].prompt, 'Combien de clients peuvent s’inscrire à un même atelier ?', 'moment 3 : la question d’Elisa (23 octobre, 11:02), mot pour mot');
   assert.equal(assocs.po[5], 'ca', 'moment 4 : la multiplicité qui interdit deux cartes est écrite du côté de la classe Carte (zone po-ca)');
   /* Moment 3 : pas de correction écrite pour les deux mauvaises multiplicités, la légende qui suit explique le minimum et le maximum. */
   const c3 = D.CAPTIONS.find(c => c[0] > D.PICKS[2].at);
