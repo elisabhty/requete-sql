@@ -64,7 +64,6 @@ for(const sql of ['REVOKE SELECT ON produits FROM stagiaire; -- commandes','REVO
 assert.equal(ctx.checkNoExecExo('REVOKE SELECT ON "commandes" FROM "stagiaire";',lesson(50)).ok,true);
 assert.equal(ctx.checkNoExecExo(lesson(50).solution,lesson(50)).ok,true);
 assert.match(ctx.checkNoExecExo('GRANT SELECT ON commandes TO stagiaire;',lesson(50)).diag,/GRANT accorde un droit/);
-assert.equal(ctx.checkNoExecExo(lesson(61).solution.replace('stock >= 0','stock > 0'),lesson(61)).ok,false,'stock zéro autorisé');
 for(const [id,wrong]of [[70,lesson(70).solution.replace('NEW.produit_id','1')],[26,lesson(26).solution+' UPDATE produits SET stock=0 WHERE id=1;']])assert.equal(ctx.exerciseResultsMatch(query(wrong,lesson(id).verif),query(lesson(id).solution,lesson(id).verif),lesson(id)),false,'solution incomplète '+id);
 const frame={dataset:{},classList:{remove(){},add(){}},querySelectorAll:()=>[],querySelector:s=>s==='.xf-expect'?{remove(){}}:null};ctx.current=lesson(50);
 ctx.paintTesteVariant(frame,ctx.current.testeVariants,0);assert.equal(frame.dataset.noExec,'1');ctx.current=lesson(26);ctx.paintTesteVariant(frame,ctx.current.testeVariants,0);assert.equal(frame.dataset.noExec,'0');

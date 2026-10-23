@@ -8787,218 +8787,51 @@ guide({ id:81, titre:"Modéliser avec UML", résumé:"Du diagramme de classes au
 ]},
 { titre:"Créer et faire évoluer les tables", sous:"CREATE, ALTER et DROP TABLE", lessons:[
 guide({ id:61, titre:"CREATE TABLE", résumé:"Créer la structure d’une table",
-  sit:{
-    blocks:[
-      "L’équipe e-commerce lance les <b>avis clients</b> : après un achat, chaque client pourra noter un produit et laisser un commentaire.",
-      "La base contient <b>4 tables</b>. Pour enregistrer les avis, l’équipe doit d’abord créer une table et décrire ses colonnes :",
-      {need:[["🆔","L’identifiant de l’avis","id"],["🏷️","Le produit noté","produit_id"],["⭐","Une note de 1 à 5","note"],["💬","Un commentaire","commentaire"]],label:"Les informations de chaque avis"}
-    ],
-    problem:{
-      p:["Avec <code>SELECT</code>, SQL sait lire les tables de la base, mais seulement celles qui <b>existent déjà</b>.","Or, ici, aucune table ne peut accueillir les avis."],
-      scene:{h:"📝 Des avis à enregistrer",
-        lanes:[{k:"A",l:"Un avis à enregistrer",c:[["a1","produit : Magnésium"],["a2","note : 5"],["a3","« Très efficace »"]]},
-          {k:"B",l:"La table qui doit l’accueillir",c:[["b1","?","q"],["b2","?","q"],["b3","?","q"],["b4","?","q"]]}],
-        caps:["<b>Un avis</b> · Un client note le Magnésium et laisse un commentaire.","<b>Besoin</b> · Aucune table de la base n’a de place pour ces informations.","<b>Résultat</b> · Une nouvelle table avis, avec une colonne par information."],
-        steps:[{cap:0,on:["A"],d:1900},{cap:1,off:["A"],mark:{B:"is-miss"},d:2300},{cap:2,unmark:{B:"is-miss"},text:{b1:"id",b2:"produit_id",b3:"note",b4:"commentaire"},stagger:260,d:3000}]},
-      then:["Il faut donc indiquer à SQL <b>la structure</b> de la nouvelle table : son nom, puis chaque colonne.","C’est exactement le rôle de <code>CREATE TABLE</code>."]
-    },
-    mission:"Aide l’équipe e-commerce à créer la table <b>avis</b>, avec un <b>identifiant</b>, le <b>produit noté</b>, une <b>note de 1 à 5</b> et un <b>commentaire</b>, afin d’enregistrer les avis des clients."
-  },
-  concept:{
-    title:"Comment SQL peut-il savoir ce que contient la table ?",
-    blocks:[
-      "Pour chaque colonne, SQL a besoin d’un <b>nom</b>, d’un <b>type</b> et, souvent, d’une <b>règle</b> :",
-      {ask:"Quel nom, quel type, quelle règle ?"},
-      "En SQL, on écrit ces trois informations à la suite, dans cet ordre :",
-      {syntax:"⟦note INTEGER CHECK (note BETWEEN 1 AND 5)⟧"},
-      {scene:{h:"🧱 Une colonne, trois informations",
-        lanes:[{k:"D",l:"Définition de la colonne",c:[["d1","note","h"],["d2","INTEGER","h"],["d3","CHECK (note BETWEEN 1 AND 5)","h"]]},
-          {k:"V",l:"Valeurs proposées",c:[["v1","5","h"],["v2","3","h"],["v3","9","h"],["v4","0","h"]]}],
-        caps:["<b>Le nom</b> · « note » dit quelle information la colonne contient.","<b>Le type</b> · INTEGER dit qu’elle contient des nombres entiers.","<b>La règle</b> · CHECK impose que la note reste entre 1 et 5.","<b>Résultat</b> · Les notes 5 et 3 sont acceptées ; 9 et 0 sont refusées."],
-        steps:[{cap:0,show:["d1"],on:["d1"],d:2200},{cap:1,off:["d1"],show:["d2"],on:["d2"],d:2200},{cap:2,off:["d2"],show:["d3"],on:["d3"],d:2400},{cap:3,off:["d3"],show:["v1","v2","v3","v4"],on:["v1","v2"],mark:{v3:"is-miss",v4:"is-miss"},stagger:250,d:3200}]}}
-    ]
-  },
-  steps:[
-    {h:"Créer une table",blocks:[
-      "<code>CREATE TABLE</code> est suivi du nom de la table, puis de la liste de ses colonnes entre parenthèses : chacune avec son nom et son type, séparées par des virgules :",
-      {syntax:"⟦CREATE TABLE marques⟧ (\n    ⟦id INTEGER,\n    nom TEXT⟧\n);"},
-      {looks:[["CREATE TABLE marques","crée une table nommée marques"],["id INTEGER, nom TEXT","décrit deux colonnes"]]},
-      {say:"👇 Exécute cette requête pour créer la table, puis lire sa structure avec <code>pragma_table_info</code> :",run:"CREATE TABLE marques (\n    id INTEGER,\n    nom TEXT\n);\nSELECT name, type\nFROM pragma_table_info('marques');"},
-      {arrow:"La table existe, avec ses deux colonnes."},
-      {tip:{t:"Deux rôles distincts",blocks:["<code>CREATE TABLE</code> construit la table. C’est <code>INSERT</code> qui y ajoute ensuite des lignes."]}},
-      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux créer des tables sans rien encombrer. À chaque essai, la table <code>marques</code> n’existe plus."]}}
-    ]},
-    {h:"Choisir le type de chaque colonne",blocks:[
-      "Le type annonce quelle sorte de valeur la colonne accepte :",
-      {table:{label:"Les types de SQLite",cols:"minmax(0,1fr) minmax(0,1.4fr)",head:["Type","Exemple de valeur"],rows:[["INTEGER","34"],["REAL","29.90"],["TEXT","'Sophie'"],["BLOB","X'89504E47'"]]}},
-      "Dans cette base, les dates sont enregistrées en <code>TEXT</code>, au format <code>AAAA-MM-JJ</code>, par exemple <code>2023-01-15</code>. <code>BLOB</code> sert aux données binaires, comme une image : aucune colonne de cette base n’en utilise.",
-      {say:"👇 Exécute cette requête pour créer une table qui mélange les types :",run:"CREATE TABLE livraisons (\n    id INTEGER,\n    ville TEXT,\n    poids REAL,\n    expediee_le TEXT\n);\nSELECT name, type\nFROM pragma_table_info('livraisons');"},
-      {arrow:"Chaque colonne a son type : un entier, du texte, un nombre décimal, puis une date écrite en texte."}
-    ]},
-    {h:"Poser des règles avec les contraintes",blocks:[
-      "Sans règle, une colonne accepte presque n’importe quelle valeur. Une <b>contrainte</b> impose ce que les données doivent respecter ; elle se place après le type de la colonne :",
-      {table:{label:"Les contraintes",cols:"minmax(0,1fr) minmax(0,1.4fr)",head:["Contrainte","Rôle"],rows:[["PRIMARY KEY","identifie chaque ligne"],["NOT NULL","interdit l’absence de valeur"],["UNIQUE","interdit les doublons"],["CHECK (…)","impose une condition"],["DEFAULT …","prévoit une valeur de départ"],["FOREIGN KEY","relie à une autre table"]]}},
-      {syntax:"CREATE TABLE marques (\n    id INTEGER ⟦PRIMARY KEY⟧,\n    nom TEXT ⟦NOT NULL⟧,\n    creation INTEGER ⟦CHECK (creation >= 1900)⟧\n);"},
-      {say:"👇 Exécute cette requête : la table est créée, puis une première marque y est ajoutée avec <code>INSERT</code>.",run:"CREATE TABLE marques (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    creation INTEGER CHECK (creation >= 1900)\n);\nINSERT INTO marques (nom, creation)\nVALUES ('NutriBoost', 2019);\nSELECT *\nFROM marques;"},
-      {arrow:"La ligne respecte les règles : elle est acceptée, et la base attribue elle-même l’identifiant 1."},
-      {warn:{t:"Une règle enfreinte",blocks:[
-        "Si on essaie d’ajouter une marque créée en 1800 :",
-        {syntax:"INSERT INTO marques (nom, creation)\nVALUES ('NutriBoost', 1800);"},
-        "L’année ne respecte pas la règle <code>CHECK</code> : la base refuse la ligne, et rien n’est écrit.",
-        {say:"👇 Teste par toi-même :",run:"CREATE TABLE marques (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    creation INTEGER CHECK (creation >= 1900)\n);\nINSERT INTO marques (nom, creation)\nVALUES ('NutriBoost', 1800);"}
-      ]}},
-      {tip:{t:"L’ordre de création compte",blocks:["Une clé étrangère désigne une table qui doit déjà exister. On crée donc d’abord les tables indépendantes (<code>clients</code>, <code>produits</code>), puis celles qui s’y réfèrent (<code>commandes</code>, <code>avis</code>)."]}}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : nommer la table, décrire chaque colonne avec son type, puis poser les règles. Le produit est obligatoire et relié à la table <code>produits</code>, la note reste entre 1 et 5.",
-      {say:"👇 Exécute la requête pour créer la table des avis :",run:"CREATE TABLE avis (\n    id INTEGER PRIMARY KEY,\n    produit_id INTEGER NOT NULL,\n    note INTEGER CHECK (note BETWEEN 1 AND 5),\n    commentaire TEXT,\n    FOREIGN KEY (produit_id) REFERENCES produits(id)\n);\nSELECT name, type\nFROM pragma_table_info('avis');"},
-      {done:{
-        label:"De 4 tables à 5 tables",
-        unit:"free",
-        funnel:[
-          {n:4,t:"tables au départ",s:"<code>clients</code>, <code>produits</code>, <code>commandes</code> et <code>fidelite</code>",dots:"0000"},
-          {step:"CREATE TABLE avis (…)",s:"construit une nouvelle table, colonne par colonne"},
-          {n:5,t:"⭐ tables dans la base",s:"les 4 d’origine et <code>avis</code>, avec ses 4 colonnes",dots:"00001",out:true}
-        ],
-        board:{ico:"🗄️",h:"Nouvelle table avis",aria:"La table avis est créée avec ses 4 colonnes : id, produit_id, note et commentaire",kpi:"Colonnes",cols:["name", "type"],
-          rows:[["id", "INTEGER"], ["produit_id", "INTEGER"], ["note", "INTEGER"], ["commentaire", "TEXT"]],done:"✓ Règles en place : identifiant unique, produit obligatoire, note de 1 à 5"},
-        fill:["CREATE TABLE","PRIMARY KEY","NOT NULL","CHECK"],
-        ui:{t:"Une table prête pour les avis",s:"La table avis existe, avec ses règles : elle peut recevoir les premiers avis.",n:["CREATE TABLE","PRIMARY KEY","NOT NULL","CHECK"]},
-        rows:4
-      }}
-    ]}
-  ],
+  /* Projet, chapitre 4, en vidéo interactive : l’animation (assets/anim/projet-create.html, moteur commun assets/anim/core.js)
+     est le cours. Le plan du chapitre 3 (diagramme de classes, puis ses cinq tables) ; la table clients existe déjà. Karim Benali,
+     le développeur, demande d’écrire soi-même les requêtes (il les relira, puis les exécutera dans le SGBD) : le fichier schema.sql,
+     une requête CREATE TABLE par table, chaque table dessinée en aperçu sous sa requête. La table coachs (nom et type de chaque
+     colonne : INTEGER, REAL, TEXT ; PRIMARY KEY, NOT NULL, UNIQUE) ; l’ordre des tables (une clé étrangère fait référence à une
+     table qui existe déjà : coachs, ateliers, inscriptions, cartes) ; la table ateliers (une date en TEXT, FOREIGN KEY … REFERENCES,
+     coach_id NOT NULL lu sur le 1 du côté de la classe Coach), puis la table inscriptions ; la carte de membre (mail de l’équipe :
+     DEFAULT 10 et CHECK (seances >= 0), avec UNIQUE) ; Karim exécute le fichier : 4 tables créées, 8 dans la base, toutes vides
+     (c’est INSERT qui ajoutera les lignes). Six moments « À toi », comme aux chapitres 1 à 3 ; leçon seule : ni exercice ni quiz,
+     validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments ratés. */
+  leconSeule:true,
+  video:{anim:'assets/anim/projet-create.html?app&embed',thumb:'assets/anim/projet-create-thumb.webp',duree:'4 min 42',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 4 min 35 (274,6 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:274.6,y:1185,card:[64,292,1016,890],to:[940,255]}},
   reflex:[
     {recap:[
       ["🏗️","<code>CREATE TABLE</code> construit la <b>structure</b> d’une table : son nom, puis ses colonnes.","Elle ne crée aucune ligne : c’est <code>INSERT</code> qui en ajoute."],
-      ["🔤","Chaque colonne a un <b>nom</b> et un <b>type</b> :",null,"note INTEGER"],
-      ["🛡️","Les <b>contraintes</b> posent les règles que les données doivent respecter :",null,"PRIMARY KEY · NOT NULL · CHECK"]
+      ["🔤","Chaque colonne a un <b>nom</b> et un <b>type</b> :",null,"seances INTEGER"],
+      ["🛡️","Les <b>contraintes</b> posent les règles que les données doivent respecter :","Une table se crée après celles auxquelles ses clés étrangères font référence.","PRIMARY KEY · NOT NULL · UNIQUE · CHECK"]
     ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"CREATE TABLE marques",txt:"Crée une table appelée marques."},{tok:"id",plain:1,txt:"Le nom de la première colonne."},{tok:"INTEGER",txt:"Le type accepté par cette colonne."},{tok:",",punc:1,txt:"La virgule passe à la colonne suivante. Toute la définition tient entre parenthèses."},{tok:"nom",plain:1,txt:"Le nom de la seconde colonne."},{tok:"TEXT",txt:"Son type : du texte."}],
-  exemple:"CREATE TABLE marques (\n    id INTEGER,\n    nom TEXT\n);",
-  attendu:"La table <code>marques</code> existe, avec deux colonnes : <code>id</code> et <code>nom</code>. Elle est vide : aucune ligne n’a encore été ajoutée.",
-  retenir:"<code>CREATE TABLE</code> définit la structure d’une nouvelle table. Une colonne possède au minimum un <b>nom</b> et un <b>type</b>.<br><br>Elle peut aussi porter une contrainte : <code>PRIMARY KEY</code>, <code>NOT NULL</code>, <code>UNIQUE</code>, <code>CHECK</code>, <code>DEFAULT</code>, <code>FOREIGN KEY</code>.<br><br>Le mémo : <b>CREATE TABLE → colonnes → types → contraintes</b>.",
-  consigne:"Crée la table <code>produits</code> telle qu’elle existe dans cette base : un identifiant qui identifie chaque ligne, un nom obligatoire, une catégorie en texte, un prix décimal, et un stock entier qui ne peut jamais devenir négatif.",
-  solution:"CREATE TABLE produits (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    categorie TEXT,\n    prix REAL,\n    stock INTEGER CHECK (stock >= 0)\n);",
-  indice:"Chaque colonne s’écrit <code>nom type</code>, séparée par une virgule. <code>PRIMARY KEY</code> sur l’identifiant, <code>NOT NULL</code> sur le nom, et <code>CHECK (stock &gt;= 0)</code> sur le stock.",
-  noExec:true,
-  createExo:true,
-  noExecNote:"Cette table existe déjà dans la base : la recréer déclencherait une erreur. Écris-la pour toi, on compare la structure.",
-  noExecWhy:"La table <code>produits</code> existe déjà : SQLite refuserait de la recréer.",
-  noExecOk:{b:"✓ Correct — la structure est complète",t:"Les cinq colonnes sont là, avec leurs types et leurs trois contraintes. C’est mot pour mot la table <code>produits</code> de cette base."},
-  petitDefi:[{p:"Complète la création de cette table pour que le <code>nom</code> soit obligatoire.",sql:"CREATE TABLE categories (\n    id INTEGER PRIMARY KEY,\n    nom TEXT __________\n);",a:"NOT NULL",answers:["NOT NULL","not null"]}],
-  testeVariants:[{k:"base",label:"Structure simple",sql:"CREATE TABLE marques (\n    id INTEGER,\n    nom TEXT\n);\nSELECT name, type\nFROM pragma_table_info('marques');",expectRows:2},{k:"regles",label:"Avec des règles",sql:"CREATE TABLE marques (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    creation INTEGER CHECK (creation >= 1900)\n);\nINSERT INTO marques (nom, creation)\nVALUES ('NutriBoost', 2019);\nSELECT *\nFROM marques;",out:"La ligne respecte les règles : elle est acceptée.",expectRows:1},{k:"check",label:"Règle enfreinte",sql:"CREATE TABLE marques (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    creation INTEGER CHECK (creation >= 1900)\n);\nINSERT INTO marques (nom, creation)\nVALUES ('NutriBoost', 1800);",out:"Refusé : l’année 1800 enfreint la règle CHECK.",tone:"bad"}],
-  learningCheck:{question:"CHECK(stock >= 0) doit-il accepter un stock nul ?",options:["Non","Seulement avec un prix nul","Oui"],answer:2,explanation:"Zéro est une valeur autorisée. Le contrôle rejette un stock négatif, pas une rupture de stock."}
+  ]
 }),
 guide({ id:65, titre:"ALTER TABLE", résumé:"Faire évoluer la structure d’une table",
-  sit:{
-    blocks:[
-      "L’équipe e-commerce ouvre la boutique à <b>l’international</b> : elle veut maintenant enregistrer le <b>pays</b> de chaque client.",
-      "La table <code>clients</code> contient déjà <b>10 clients</b> et <b>9 colonnes</b>, mais aucune n’indique leur pays. Tous les clients actuels vivent en France. Pour accueillir cette nouvelle information, l’équipe souhaite ajouter :",
-      {need:[["🌍","Une colonne pays","table clients"],["📍","Une valeur de départ","France"]],label:"Ce qu’il faut ajouter"}
-    ],
-    problem:{
-      p:["Avec <code>CREATE TABLE</code>, SQL sait construire une table, mais ici la table <code>clients</code> existe déjà, remplie de données.","Or, la recréer avec une <b>colonne</b> de plus ferait perdre les clients déjà enregistrés."],
-      scene:{h:"🌍 Table clients",cols:"1fr 1.2fr 0fr",
-        lanes:[{c:[["h1","prenom","t"],["h2","ville","t"],["h3","pays","th"]]},
-          {k:"R1",c:[["a1","Sophie"],["a2","Paris"],["a3","?","qh"]]},
-          {k:"R2",c:[["b1","Lucas"],["b2","Lyon"],["b3","?","qh"]]},
-          {k:"R3",c:[["c1","Emma"],["c2","Marseille"],["c3","?","qh"]]},
-          {k:"R4",c:[["d1","Nathan"],["d2","Paris"],["d3","?","qh"]]},
-          {k:"R5",c:[["e1","Chloé"],["e2","Bordeaux"],["e3","?","qh"]]}],
-        caps:["<b>Notre table</b> · Chaque client a un prénom et une ville, mais aucun pays.","<b>Besoin</b> · Il faut une colonne de plus, sans effacer aucun client.","<b>Résultat</b> · La colonne existe, et chaque client déjà enregistré y reçoit une valeur de départ."],
-        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5"],cols:"1fr 1.2fr 1fr",show:["h3","a3","b3","c3","d3","e3"],stagger:120,d:2800},{cap:2,text:{a3:"France",b3:"France",c3:"France",d3:"France",e3:"France"},stagger:200,d:3000}]},
-      then:["Il faut donc indiquer à SQL de <b>modifier la structure</b> de la table, sans la recréer : lui ajouter une colonne.","C’est exactement le rôle de <code>ALTER TABLE</code>."]
-    },
-    mission:"Aide l’équipe e-commerce à ajouter à la table clients une colonne <b>pays</b>, avec <b>France</b> comme valeur de départ pour les clients déjà enregistrés, afin de préparer l’ouverture à l’international."
-  },
-  concept:{
-    title:"Comment SQL peut-il savoir quelle modification apporter à la table ?",
-    blocks:[
-      "Pour changer la structure d’une table, SQL doit savoir quelle <b>opération</b> effectuer :",
-      {ask:"Ajouter, renommer ou supprimer une colonne ?"},
-      "En SQL, on écrit <code>ALTER TABLE</code> et le nom de la table, puis l’opération :",
-      {syntax:"ALTER TABLE produits ⟦ADD COLUMN …⟧\nALTER TABLE produits ⟦RENAME COLUMN … TO …⟧\nALTER TABLE produits ⟦DROP COLUMN …⟧"},
-      {scene:{h:"🏗️ Trois façons de changer la structure",cols:"1.35fr .8fr .8fr 0fr",
-        lanes:[{c:[["h1","nom","t"],["h2","prix","t"],["h3","stock","t"],["h4","marque","th"]]},
-          {k:"R1",c:[["a1","Magnésium"],["a2","19.9"],["a3","500"],["a4","vide","nh"]]},
-          {k:"R2",c:[["b1","Vitamine D"],["b2","14.9"],["b3","150"],["b4","vide","nh"]]},
-          {k:"R3",c:[["c1","Oméga 3"],["c2","24.9"],["c3","90"],["c4","vide","nh"]]}],
-        caps:["<b>Table produits</b> · Trois colonnes : nom, prix et stock.","<b>ADD COLUMN marque</b> · Une colonne apparaît. Les produits existants n’ont pas encore de valeur : NULL.","<b>RENAME COLUMN nom TO produit</b> · La colonne change de nom ; ses valeurs restent.","<b>DROP COLUMN stock</b> · La colonne disparaît, avec toutes ses valeurs."],
-        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,off:["R1","R2","R3"],cols:"1.35fr .8fr .8fr 1fr",show:["h4","a4","b4","c4"],stagger:120,d:3300},{cap:2,text:{h1:"produit"},d:2600},{cap:3,gone:["h3","a3","b3","c3"],cols:"1.35fr .8fr 0fr 1fr",d:2800}]}}
-    ]
-  },
-  steps:[
-    {h:"Ajouter une colonne",blocks:[
-      "<code>ADD COLUMN</code> ajoute une colonne à la table, avec son nom et son type :",
-      {syntax:"ALTER TABLE produits\n⟦ADD COLUMN marque TEXT⟧;"},
-      {looks:[["ALTER TABLE produits","désigne la table à modifier"],["ADD COLUMN marque TEXT","ajoute une colonne nommée marque, de type texte"]]},
-      {say:"👇 Exécute cette requête pour ajouter la colonne, puis afficher les produits :",run:"ALTER TABLE produits\nADD COLUMN marque TEXT;\nSELECT id, nom, marque\nFROM produits;"},
-      {arrow:"La colonne <code>marque</code> existe, mais les 8 produits n’ont aucune valeur : <code>NULL</code>."},
-      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : la colonne ajoutée n’existe plus à l’essai suivant."]}}
-    ]},
-    {h:"Donner une valeur de départ",blocks:[
-      "Avec <code>DEFAULT</code>, les lignes déjà présentes reçoivent la valeur par défaut au lieu de <code>NULL</code>. Les prochaines lignes l’auront aussi, tant qu’aucune autre valeur n’est donnée :",
-      {syntax:"ALTER TABLE produits\nADD COLUMN origine TEXT ⟦DEFAULT 'France'⟧;"},
-      {say:"👇 Exécute cette requête pour voir la valeur par défaut :",run:"ALTER TABLE produits\nADD COLUMN origine TEXT DEFAULT 'France';\nSELECT id, nom, origine\nFROM produits;"},
-      {arrow:"Les 8 produits ont reçu la valeur <code>France</code>."},
-      {warn:{t:"Écrire dans une colonne qui n’existe pas",blocks:[
-        "<code>UPDATE</code> modifie les <b>valeurs</b> des lignes, mais il ne sait pas créer de colonne : c’est le travail d’<code>ALTER TABLE</code>.",
-        {say:"👇 Teste par toi-même :",run:"UPDATE produits\nSET origine = 'France';"}
-      ]}}
-    ]},
-    {h:"Renommer ou supprimer",blocks:[
-      "<code>RENAME COLUMN</code> change le nom d’une colonne, sans toucher à ses valeurs :",
-      {syntax:"ALTER TABLE produits\n⟦RENAME COLUMN categorie TO rayon⟧;"},
-      {say:"👇 Exécute cette requête pour renommer la colonne, puis afficher les produits :",run:"ALTER TABLE produits\nRENAME COLUMN categorie TO rayon;\nSELECT id, nom, rayon\nFROM produits;"},
-      {arrow:"Les catégories sont toujours là, sous le nom <code>rayon</code>."},
-      {tip:{t:"Renommer la table",blocks:["<code>ALTER TABLE clients RENAME TO utilisateurs</code> renomme la table elle-même : toutes les requêtes suivantes doivent alors employer le nouveau nom."]}},
-      {warn:{t:"Supprimer une colonne",blocks:[
-        "Contrairement au renommage, <code>DROP COLUMN</code> supprime aussi les données que la colonne contenait.",
-        {say:"👇 Teste par toi-même :",run:"ALTER TABLE clients\nDROP COLUMN date_inscription;\nSELECT *\nFROM clients;"},
-        {arrow:"La colonne <code>date_inscription</code> a disparu, avec les dix dates."}
-      ]}},
-      {tip:{t:"Ce que SQLite ne fait pas",blocks:["SQLite ne sait pas changer le type d’une colonne. Pour une transformation plus profonde, il faut recréer la table avec la nouvelle structure et y recopier les données. Pour les autres SGBD, voir la page <button type='button' class='sgbd-link' data-sgbd='tables'>Selon le SGBD</button> de la Bibliothèque."]}}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : désigner la table, ajouter la colonne, puis donner la valeur de départ des clients déjà enregistrés.",
-      {say:"👇 Exécute la requête pour ajouter la colonne pays :",run:"ALTER TABLE clients\nADD COLUMN pays TEXT DEFAULT 'France';\nSELECT id, prenom, ville, pays\nFROM clients;"},
-      {done:{
-        label:"De 9 colonnes à 10 colonnes",
-        unit:"free",
-        funnel:[
-          {n:9,t:"colonnes au départ",s:"toute la <code>table clients</code>",dots:"000000000"},
-          {step:"ALTER TABLE … ADD COLUMN pays",s:"ajoute une colonne, sans effacer aucun client"},
-          {n:10,t:"⭐ colonnes dans la table",s:"les 9 d’origine et <code>pays</code>",dots:"0000000001",out:true}
-        ],
-        board:{ico:"🌍",h:"Table clients",aria:"La colonne pays s’ajoute à la table clients, avec France pour chacun des 10 clients",kpi:"Colonnes de la table",count:{t:"Colonnes de la table",from:9,to:10},kpi2:{t:"Clients conservés",v:10},newCol:3,show:5,moreT:"… et 5 autres clients",cols:["id", "prenom", "ville", "pays"],
-          rows:[[1, "Sophie", "Paris", "France"], [2, "Lucas", "Lyon", "France"], [3, "Emma", "Marseille", "France"], [4, "Nathan", "Paris", "France"], [5, "Chloé", "Bordeaux", "France"], [6, "Hugo", "Lyon", "France"], [7, "Léa", "Paris", "France"], [8, "Gabriel", "Toulouse", "France"], [9, "Inès", "Nantes", "France"], [10, "Nathan", "Paris", "France"]],done:"✓ Chaque client a reçu France comme valeur de départ"},
-        fill:["ALTER TABLE","ADD COLUMN","TEXT","'France'"],
-        ui:{t:"10 colonnes, 10 clients conservés",s:"La colonne pays est ajoutée, et aucun client n’a été perdu.",n:["ALTER TABLE","ADD COLUMN","DEFAULT"]},
-        rows:10
-      }}
-    ]}
-  ],
+  /* Projet, chapitre 5, en vidéo interactive : l’animation (assets/anim/projet-alter.html, moteur commun assets/anim/core.js) est le cours.
+     Les ateliers ont commencé : Karim Benali a rempli les tables du chapitre 4 (4 coachs, 5 ateliers, 7 inscriptions, 3 cartes ;
+     INSERT nommé seulement), et trois mails demandent des changements. Julie Nguyen (salles de 12 personnes) : recréer la table
+     ateliers est refusé (table ateliers already exists), on la modifie : ALTER TABLE ateliers ADD COLUMN places INTEGER DEFAULT 12
+     (les cinq ateliers reçoivent 12, aucune ligne perdue) ; Diego Ramos (les numéros des coachs) : la colonne va dans la table coachs,
+     ADD COLUMN telephone TEXT sans DEFAULT donne NULL, puis Karim enregistre les numéros avec UPDATE (nommé seulement) ; l’équipe
+     NutriBoost (« seances » prête à confusion) : RENAME COLUMN seances TO seances_restantes (soldes gardés, la contrainte CHECK suit),
+     RENAME TO montré seul ; les coachs préfèrent passer par l’accueil : DROP COLUMN telephone (colonne et valeurs effacées, sans retour) ;
+     enfin structure ou valeurs : Cuisine saine passe de 12 à 8 places par UPDATE, aucune colonne ne change. Six moments « À toi », comme
+     aux chapitres 1 à 4 ; leçon seule : ni exercice ni quiz, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on
+     rejoue les moments ratés. */
+  leconSeule:true,
+  video:{anim:'assets/anim/projet-alter.html?app&embed',thumb:'assets/anim/projet-alter-thumb.webp',duree:'3 min 57',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 3 min 50 (229,7 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:229.7,y:1189,card:[64,292,1016,894],to:[940,255]}},
   reflex:[
     {recap:[
-      ["🏗️","<code>ALTER TABLE</code> fait évoluer la <b>structure</b> d’une table qui existe déjà, sans la recréer ni perdre ses données."],
-      ["➕","<code>ADD COLUMN</code> ajoute une colonne : les lignes existantes reçoivent <code>NULL</code>, ou la valeur de <code>DEFAULT</code> :",null,"ADD COLUMN pays TEXT DEFAULT 'France'"],
-      ["🔀","<code>ALTER TABLE</code> change les colonnes, <code>UPDATE</code> change les valeurs. Renommer garde les données ; <b>supprimer</b> une colonne les efface."]
+      ["🏗️","<code>ALTER TABLE</code> fait évoluer la <b>structure</b> d’une table qui existe déjà, sans la recréer ni perdre ses lignes."],
+      ["➕","<code>ADD COLUMN</code> ajoute une colonne : les lignes existantes reçoivent <code>NULL</code>, ou la valeur de <code>DEFAULT</code> :",null,"ADD COLUMN places INTEGER DEFAULT 12"],
+      ["🔀","<code>ALTER TABLE</code> change les colonnes, <code>UPDATE</code> change les valeurs.","Renommer une colonne garde ses données ; la supprimer les efface."]
     ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"ALTER TABLE produits",txt:"La table à modifier."},{tok:"RENAME COLUMN",txt:"L’opération à effectuer : renommer une colonne."},{tok:"categorie",plain:1,txt:"L’ancien nom de la colonne."},{tok:"TO",txt:"Sépare l’ancien nom du nouveau."},{tok:"rayon",plain:1,txt:"Le nouveau nom de la colonne."}],
-  exemple:"ALTER TABLE produits\nRENAME COLUMN categorie TO rayon;",
-  attendu:"La colonne <code>categorie</code> s’appelle désormais <code>rayon</code> : les 8 produits gardent leurs valeurs.",
-  retenir:"<code>ALTER TABLE</code> fait évoluer la structure d’une table existante, sans la recréer ni perdre ses données.<br><br><code>ADD COLUMN</code> ajoute une colonne (les lignes existantes reçoivent <code>NULL</code> ou la valeur de <code>DEFAULT</code>), <code>RENAME COLUMN</code> la renomme, <code>RENAME TO</code> renomme la table, <code>DROP COLUMN</code> la supprime avec ses données.<br><br><code>ALTER TABLE</code> change les colonnes, <code>UPDATE</code> change les valeurs.",
-  consigne:"Dans la table <code>clients</code>, la colonne <code>telephone</code> doit désormais s’appeler <code>mobile</code>. Renomme-la, sans toucher aux valeurs.",
-  solution:"ALTER TABLE clients\nRENAME COLUMN telephone TO mobile;",
-  verif:"SELECT id, prenom, mobile FROM clients ORDER BY id;",
-  indice:"Écris <code>ALTER TABLE clients</code>, puis <code>RENAME COLUMN</code> suivi de l’ancien nom, du mot <code>TO</code> et du nouveau nom.",
-  write:true,
-  petitDefi:[{p:"La table <code>produits</code> existe déjà. Quel mot-clé remplace les tirets pour lui ajouter une colonne <code>marque</code> de type <code>TEXT</code> ?",sql:"ALTER TABLE produits\n__________ marque TEXT;",a:"ADD COLUMN",answers:["ADD COLUMN","add column","ADD"]}],
-  testeVariants:[{k:"avant",label:"Avant ALTER",sql:"SELECT id, prenom\nFROM clients\nORDER BY id;",out:"La colonne pays n’existe pas encore.",expectRows:10},{k:"apres",label:"Après ALTER",sql:"ALTER TABLE clients\nADD COLUMN pays TEXT DEFAULT 'France';\nSELECT id, prenom, pays\nFROM clients\nORDER BY id;",out:"Les dix clients existants affichent France.",expectRows:10},{k:"rename",label:"Renommer",sql:"ALTER TABLE clients\nRENAME COLUMN telephone TO mobile;\nSELECT id, prenom, mobile\nFROM clients\nORDER BY id;",out:"Les numéros sont toujours là, sous le nom mobile.",expectRows:10}],
-  learningCheck:{question:"Avec ADD COLUMN pays TEXT DEFAULT 'France', quelle valeur reçoivent les clients déjà enregistrés ?",options:["NULL","France","Aucune : la base refuse d’ajouter la colonne"],answer:1,explanation:"La valeur par défaut s’applique aux lignes déjà présentes, puis aux prochaines tant qu’aucune autre valeur n’est donnée."}
+  ]
 }),
 guide({ id:66, titre:"DROP", résumé:"Supprimer une structure de la base",
   sit:{
@@ -13916,8 +13749,8 @@ const SQ_ALIASES={
   56:'normalisation formes normales 1fn 2fn 3fn redondance modelisation',
   72:'cles relations cle primaire cle etrangere primary key foreign key identifiant 1-1 1-n n-n modelisation cardinalite association table de jointure table de liaison un a plusieurs plusieurs a plusieurs liens tables unique',
   81:'uml diagramme de classes classe attribut association multiplicite 0..* 0..1 modelisation conception schema merise mcd classe d association table d association plan de la base',
-  61:'create table creer table structure types colonnes contraintes',
-  65:'alter table ajouter colonne modifier structure renommer add column',
+  61:'create table creer table creer une table structure types colonnes contraintes integer real text type de colonne primary key cle primaire not null obligatoire unique doublon default valeur par defaut check condition foreign key references cle etrangere ordre de creation schema.sql schema nutriboost coachs ateliers inscriptions cartes de membre',
+  65:'alter table ajouter colonne modifier structure renommer add column rename column rename to drop column supprimer colonne default valeur par defaut null update structure ou valeurs faire evoluer les tables',
   66:'drop supprimer table structure drop table vue index vider table',
   26:'insert into ajouter ligne insertion values nouvelle ligne',
   27:'update modifier mettre a jour set lignes valeurs changer',
@@ -25746,7 +25579,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2010';
+  const SW_CACHE='requete-2026-10-12-ludique-v2011';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

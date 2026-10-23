@@ -23,7 +23,7 @@ test('chaque cadre Exécuter des cours a sa consigne en en-tête (p.gd-try juste
     assert.ok(!/<p>👇/.test(b), `${l.titre} : une consigne « 👇 » est restée un simple paragraphe`);
     heads += ok.length;
   }
-  assert.ok(heads >= 98, `au moins 98 consignes en en-tête (${heads})`);
+  assert.ok(heads >= 87, `au moins 87 consignes en en-tête (${heads})`);   // 61 CREATE TABLE et 65 ALTER TABLE sont devenus des cours en vidéo
 });
 
 test('« Teste par toi-même » et « Exécute cette requête… » : même en-tête, l’emoji passe dans la pastille', () => {
