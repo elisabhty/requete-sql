@@ -2357,8 +2357,26 @@ html.lq .stk-item.is-drag{cursor:grabbing}
 html.lq .stk-item .stk-art{transition:transform .25s var(--pop)}
 html.lq .stk-item.is-lift .stk-art{--k:1.08}
 html.lq .stk-item.is-lift .stk-art>canvas{filter:drop-shadow(0 14px 14px rgba(0,0,0,.45))}
-html.lq .stk-item.is-drop .stk-art{animation:stkDrop .5s var(--pop)}
-@keyframes stkDrop{0%{transform:scale(1.12)}45%{transform:scale(.95)}100%{transform:none}}
+/* Collé : le sticker arrive soulevé, s’écrase contre le tableau (l’ombre se resserre), rebondit à peine et se pose */
+html.lq .stk-item.is-drop .stk-art{animation:stkDrop .6s cubic-bezier(.3,.7,.3,1)}
+@keyframes stkDrop{0%{transform:scale(1.14)}28%{transform:scale(.93)}52%{transform:scale(1.025)}76%{transform:scale(.992)}100%{transform:none}}
+html.lq .stk-item.is-drop .stk-art>canvas{animation:stkPress .6s ease-out}
+@keyframes stkPress{0%{filter:drop-shadow(0 16px 14px rgba(0,0,0,.42)) drop-shadow(0 4px 8px rgba(0,0,0,.18))}
+  28%{filter:drop-shadow(0 0 1px rgba(20,14,48,.6)) drop-shadow(0 1px 2px rgba(20,14,48,.3))}
+  100%{filter:drop-shadow(0 1px 1px rgba(34,28,70,.24)) drop-shadow(0 3px 6px rgba(34,28,70,.12))}}
+/* Le reflet qui balaie le sticker au contact (masqué à sa découpe par --m) */
+html.lq .stk-art>.stk-shine{background:linear-gradient(112deg,rgba(255,255,255,0) 40%,rgba(255,255,255,.7) 50%,rgba(255,255,255,0) 60%) 0 0/300% 100% no-repeat;
+  mix-blend-mode:screen;animation:stkShine .6s .13s cubic-bezier(.3,.1,.3,1) both}
+@keyframes stkShine{from{background-position:100% 0}to{background-position:0% 0}}
+/* L’air chassé : une onde et quelques poussières autour du sticker, sous lui */
+html.lq .stk-puff{position:absolute;left:calc(var(--x) * 100%);top:calc(var(--y) * 100%);width:var(--w);aspect-ratio:1/1;transform:translate(-50%,-50%);pointer-events:none}
+html.lq .stk-puff>b{position:absolute;inset:2%;border-radius:50%;border:3px solid rgba(255,255,255,.75);box-shadow:0 0 22px rgba(184,166,255,.55),inset 0 0 14px rgba(184,166,255,.35);
+  animation:stkRing .58s .12s cubic-bezier(.2,.7,.3,1) both}
+@keyframes stkRing{from{transform:scale(.92);opacity:1}to{transform:scale(1.55);opacity:0}}
+html.lq .stk-puff>i{position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px;border-radius:50%;background:#fff;box-shadow:0 0 8px rgba(184,166,255,.9);
+  animation:stkDust .52s .13s cubic-bezier(.2,.7,.3,1) both}
+@keyframes stkDust{from{transform:rotate(var(--a)) translateY(calc(var(--w) * -.44)) scale(1);opacity:1}
+  to{transform:rotate(var(--a)) translateY(calc(var(--w) * -.8)) scale(.25);opacity:0}}
 html.lq .stk-hd{position:absolute;z-index:2;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;display:none;place-items:center;
   background:#fff;color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.3);touch-action:none}
 html.lq .stk-hd svg{width:17px;height:17px}

@@ -6448,7 +6448,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=18">
+<link rel="stylesheet" href="ludique.css?v=19">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -21667,7 +21667,24 @@ function stkGEnd(ids,cancel){
 function stkSlap(item){
   if(prefersReduceMotion())return;
   item.classList.remove('is-drop');void item.offsetWidth;item.classList.add('is-drop');
-  setTimeout(()=>item.classList.remove('is-drop'),600);
+  clearTimeout(item._dropT);item._dropT=setTimeout(()=>item.classList.remove('is-drop'),700);
+  stkStick(item);
+}
+/* Collé au tableau : pendant que le sticker s’écrase (is-drop : son ombre se resserre, il rebondit à peine), un reflet
+   le balaie, masqué à sa découpe, et l’air chassé fait une onde sur le tableau, avec quelques poussières ; vibration au contact. */
+function stkStick(item){
+  const board=item&&item.closest('.stk-board'),art=item&&item.querySelector('.stk-art');
+  if(!board||!art||prefersReduceMotion())return;
+  const m=stkMask(item.dataset.id);
+  if(m&&!art.style.getPropertyValue('--m'))art.style.setProperty('--m',`url(${m})`);
+  art.querySelector('.stk-shine')?.remove();
+  const sh=document.createElement('i');sh.className='stk-shine';art.appendChild(sh);
+  const puff=document.createElement('span');puff.className='stk-puff';puff.setAttribute('aria-hidden','true');
+  puff.style.cssText=`--x:${item.style.getPropertyValue('--x')};--y:${item.style.getPropertyValue('--y')};--w:${item.offsetWidth}px;z-index:${item.style.zIndex||1}`;
+  puff.innerHTML='<b></b>'+Array.from({length:8},(_,i)=>`<i style="--a:${i*45+(i*29)%15-7}deg"></i>`).join('');
+  board.insertBefore(puff,item);
+  setTimeout(()=>{sh.remove();puff.remove();},900);
+  setTimeout(()=>buzz('medium'),150);
 }
 function stkBindBoard(board){
   if(!board)return;
@@ -21763,6 +21780,7 @@ function stkPlace(id,x,y){
   delete S.fresh[id];
   stkJust=id;stkSel=id;
   save();renderStickers();buzz('light');
+  stkStick(document.querySelector(`#stk-board .stk-item[data-id="${id}"]`));
 }
 function stkRemove(id){
   const S=stkState(),i=S.board.findIndex(b=>b.id===id);
@@ -25728,7 +25746,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2008';
+  const SW_CACHE='requete-2026-10-12-ludique-v2009';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
