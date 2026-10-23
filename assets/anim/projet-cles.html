@@ -257,7 +257,8 @@ const CAPTIONS = [
   [31.3, 37.0,   "On ajoute une colonne <code>id</code> :<br>chaque coach y reçoit un identifiant unique, qui reste stable."],
   [37.1, 40.75,  "C’est la <b>clé primaire</b> de la table : chaque table reçoit la sienne."],
   [40.85, 42.8,  "Une clé primaire<br>ne peut pas être vide (<code>NULL</code>)."],
-  [43.4, 49.2,   "La <b>table clients</b> avait déjà sa clé primaire, <code>id</code>. Reste à relier chaque inscription à son client."],
+  [43.4, 46.3,   "La <b>table clients</b> avait déjà<br>sa clé primaire, <code>id</code>."],
+  [46.4, 49.2,   "Reste à relier chaque inscription<br>à son client."],
   [49.3, 55.0,   "On ajoute à la <b>table inscriptions</b> une colonne <code>client_id</code> : l’identifiant du client de chaque ligne."],
   [55.1, 57.9,   "Une colonne qui fait référence<br>à la clé primaire d’une autre table<br>est une <b>clé étrangère</b>."],
   [58.0, 60.8,   "Elle sert à relier chaque inscription à son client : ici, <code>client_id</code> vaut 1, l’identifiant de Sophie Martin."],
@@ -266,14 +267,16 @@ const CAPTIONS = [
   [68.9, 74.6,   "C’est donc <b>Léa Simon</b> qui s’est inscrite le 4 septembre, à l’atelier Cuisine saine."],
   [75.2, 80.1,   "Reste une relation à créer :<br>chaque atelier est animé par un coach de la <b>table coachs</b>."],
   [80.25, 82.8,  "À toi !"],
-  [82.9, 83.95,  "Moussa anime deux ateliers :<br>le 2 et le 5. Imaginons une colonne<br><code>atelier_id</code> dans la table coachs."],
-  [84.05, 84.85, "Il faudrait inscrire ces deux<br>identifiants dans la même case."],
-  [84.95, 86.0,  "Impossible : une case ne doit contenir qu’une seule valeur."],
-  [86.1, 87.0,   "Pour garder une seule valeur par case,<br>on place plutôt <code>coach_id</code><br>dans la <b>table ateliers</b>."],
-  [87.1, 88.5,   "Chaque atelier indique ainsi<br>le coach qui l’anime."],
-  [88.65, 91.2,  "À toi !"],
+  [82.9, 83.7,   "Moussa anime deux ateliers :<br>le 2 et le 5."],
+  [83.8, 84.85,  "Imaginons une colonne <code>atelier_id</code><br>dans la table coachs."],
+  [84.95, 85.75, "Il faudrait inscrire ces deux<br>identifiants dans la même case."],
+  [85.85, 86.65, "Impossible : une case ne doit contenir qu’une seule valeur."],
+  [86.75, 87.65, "Pour garder une seule valeur par case,<br>on place plutôt <code>coach_id</code><br>dans la <b>table ateliers</b>."],
+  [87.75, 89.0,  "Chaque atelier indique ainsi<br>le coach qui l’anime."],
+  [89.1, 91.2,   "À toi !"],
   [91.3, 95.2,   "L’atelier Méditation a <code>coach_id = 4</code> : c’est justement l’<code>id</code> de <b>Diego Ramos</b> dans la table coachs."],
-  [95.3, 97.4,   "Un coach peut animer plusieurs ateliers,<br>mais chaque atelier est animé<br>par un seul coach."],
+  [95.3, 96.4,   "Un coach peut animer<br>plusieurs ateliers."],
+  [96.5, 97.4,   "Chaque atelier est animé<br>par un seul coach."],
   [97.5, 99.2,   "C’est une relation « un à plusieurs », notée <b>1 → N</b> : le N signifie « plusieurs »."],
   [99.3, 103.2,  "La règle : dans une relation 1 → N, la clé étrangère va du côté « plusieurs »."],
   [108.1, 110.65, "À toi !"],
@@ -655,8 +658,8 @@ function build(){
   // clients et inscriptions ; la requête d’inscriptions occupe la place de la table ateliers, qui arrive avec atelier_id
   [['#tb-cl', 43.3], ['#tb-in', 43.5]].forEach(([s, t], q) => { show(s, t, {y: 60}, 0.55); cue(t, 'whoosh', 0.5, q); });
   // la table clients avait déjà sa clé primaire
-  $$('#tb-cl .r .c0').forEach((c, k) => pulse(c, 45.2 + k * 0.12, 1));
-  cue(45.2, 'tick', 0.5, 1);
+  $$('#tb-cl .r .c0').forEach((c, k) => pulse(c, 45.05 + k * 0.07, 1));
+  cue(45.05, 'tick', 0.5, 1);
   // la requête de la table inscriptions s’affiche, la table s’allume
   show('#sq-fk', 46.6, {y: 40}, 0.5); cue(46.6, 'whoosh', 0.45, 2);
   te = sqType('fk1', 46.95);
@@ -710,19 +713,22 @@ function build(){
   const a2 = +(PICKS[2].at + 0.02).toFixed(2);
   tl.set('#tc-at', {'--w3': '180px'}, a2);
   tl.set('#tc-at .c3', {autoAlpha: 1}, a2);
-  // pourquoi pas dans la table coachs : Moussa anime deux ateliers, le 2 et le 5 ; une colonne atelier_id s’ouvre, puis ses deux
-  // identifiants arrivent dans la même case (en rouge) — impossible, une case ne doit contenir qu’une seule valeur ; la colonne se
-  // referme : c’est coach_id, dans la table ateliers, qui indique le coach de chaque atelier
-  tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.0);
-  tl.to('#tc-co .hd .c4', {autoAlpha: 1, duration: 0.3, ease: 'power2.out'}, 83.35);
-  tl.to('#tc-co .r .c4', {autoAlpha: 1, duration: 0.3, ease: 'power2.out'}, 84.15);
-  cue(84.2, 'miss', 0.45);
-  tl.to('#tc-co-r2 .c4 .two', {x: -9, duration: 0.07, yoyo: true, repeat: 5, ease: 'power1.inOut'}, 84.95);
-  cue(84.95, 'miss', 0.35);
-  tl.to('#tc-co .c4', {autoAlpha: 0, duration: 0.25, ease: 'power2.in'}, 86.15);
-  tl.to('#tc-co', {'--w4': '0px', duration: 0.45, ease: 'power2.inOut'}, 86.25);
-  $$('#tc-at .r .c3').forEach((c, k) => pulse(c, 87.15 + k * 0.1, 1));
-  cue(87.15, 'tick', 0.5, 2);
+  // pourquoi pas dans la table coachs : Moussa anime deux ateliers, le 2 et le 5 (lui et ses deux ateliers s’allument) ; une colonne
+  // atelier_id s’ouvre, puis ses deux identifiants arrivent dans la même case (en rouge) — impossible, une case ne doit contenir qu’une
+  // seule valeur ; la colonne se referme : c’est coach_id, dans la table ateliers, qui indique le coach de chaque atelier
+  tl.to(N_ANS, {autoAlpha: 1, duration: 0.25, ease: 'power2.out'}, 82.95);   // « Moussa anime deux ateliers : le 2 et le 5 »
+  cue(82.95, 'tick', 0.5, 2);
+  tl.to(N_ANS, {autoAlpha: 0, duration: 0.2, ease: 'power2.in'}, 83.8);
+  tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.9);
+  tl.to('#tc-co .hd .c4', {autoAlpha: 1, duration: 0.3, ease: 'power2.out'}, 84.25);
+  tl.to('#tc-co .r .c4', {autoAlpha: 1, duration: 0.3, ease: 'power2.out'}, 85.05);
+  cue(85.1, 'miss', 0.45);
+  tl.to('#tc-co-r2 .c4 .two', {x: -9, duration: 0.07, yoyo: true, repeat: 5, ease: 'power1.inOut'}, 85.85);
+  cue(85.85, 'miss', 0.35);
+  tl.to('#tc-co .c4', {autoAlpha: 0, duration: 0.25, ease: 'power2.in'}, 86.8);
+  tl.to('#tc-co', {'--w4': '0px', duration: 0.45, ease: 'power2.inOut'}, 86.9);
+  $$('#tc-at .r .c3').forEach((c, k) => pulse(c, 87.8 + k * 0.1, 1));
+  cue(87.8, 'tick', 0.5, 2);
   // À toi : l’atelier de Diego Ramos (réponse : Méditation)
   const a3 = +(PICKS[3].at + 0.02).toFixed(2);
   tl.set(M4_ANS.co.concat(M4_ANS.a4), {autoAlpha: 1}, a3);
@@ -730,6 +736,8 @@ function build(){
   // la pastille 1 → N arrive avec « C’est une relation « un à plusieurs », notée 1 → N »
   tl.to(M4_ANS.co.concat(M4_ANS.a4), {autoAlpha: 0, duration: 0.25, ease: 'power2.in'}, 95.3);
   tl.to(N_ANS, {autoAlpha: 1, duration: 0.3, ease: 'power2.out'}, 95.45);
+  bump(['#tc-at-r2 .c3 .v', '#tc-at-r5 .c3 .v'], 96.6, 1.3);   // « chaque atelier est animé par un seul coach » : leur coach_id
+  cue(96.6, 'tick', 0.5, 3);
   pop('#tc-rel', 97.6, 0.6);
   // la règle, dans la table ateliers : les tables se resserrent, sa requête se tape dessous, sa clé étrangère se surligne
   tl.to('#tc-co', {'--rh': RH4.co[1] + 'px', duration: 0.45, ease: 'power2.inOut'}, 99.35);

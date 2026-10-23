@@ -850,7 +850,7 @@ const COURSES = [
       '✕ Les deux commandes du 2 juillet ont le même cumul', '<div class="lim" id="lim6"><span>Palier&nbsp;: 700&nbsp;€</span></div>',
       '✓ Palier franchi le 1er&nbsp;août']},
   {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '3 min 28', notesAt: 159.3,
-    notes: /notes:\{t:201\.2,y:1291,card:\[64,292,1016,996\],to:\[940,255\]\}/, table: 'inscriptions',
+    notes: /notes:\{t:201\.8,y:1291,card:\[64,292,1016,996\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Le fichier Excel des ateliers mélange tout&nbsp;:<br>à toi de le ranger en tables.',
     chapters: ['Le fichier Excel', 'Les copies', 'Supprimer, ajouter', 'Une table par sujet', 'Les tables remplies', 'À retenir'],
     traps: ["const INSCR = [[1, 1, '01/09', '2026-09-01'], [4, 1, '02/09', '2026-09-02'], [5, 2, '03/09', '2026-09-03'], [7, 3, '04/09', '2026-09-04'],",
@@ -860,8 +860,8 @@ const COURSES = [
       "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 129.8, from: 119.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}", "{at: 141.4, from: 135.95, kind: 'pick',",
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
-  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '5 min 03', notesAt: 167.9,
-    notes: /notes:\{t:296\.1,y:1193,card:\[64,292,1016,898\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '5 min 04', notesAt: 167.9,
+    notes: /notes:\{t:297\.2,y:1193,card:\[64,292,1016,898\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Tes tables sont prêtes&nbsp;:<br>à toi de les relier avec des clés.',
     chapters: ['Le problème', 'La clé primaire', 'La clé étrangère', '1 → N', 'N ↔ N', '1 ↔ 1', 'À retenir'],
     traps: ["const INSCR = [[1, 1, 1, '2026-09-01'], [2, 4, 1, '2026-09-02'], [3, 5, 2, '2026-09-03'], [4, 7, 3, '2026-09-04'],",
@@ -874,9 +874,9 @@ const COURSES = [
       "{at: 110.45, from: 103.6, kind: 'pick', text: true,", "{label: 'Une nouvelle ligne dans la table inscriptions', ok: true},", "{at: 149.6, from: 133.3, kind: 'sort',",
       "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
-      "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.0);", 'Chapitre 3 · Modéliser avec UML']},
-  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '5 min 02', notesAt: 215.85,
-    notes: /notes:\{t:294\.9,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
+      "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.9);", 'Chapitre 3 · Modéliser avec UML']},
+  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '5 min 05', notesAt: 215.85,
+    notes: /notes:\{t:298\.0,y:1155,card:\[64,292,1016,860\],to:\[940,255\]\}/, table: 'ateliers',
     bubble: 'Tu vas représenter la structure de la base avec un diagramme UML pour visualiser plus&nbsp;facilement les relations entre les tables.',
     chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
     traps: ["const CLASSES = [['co', 'Coach', ['prenom', 'nom', 'email']], ['ca', 'Carte', ['seances']],",
@@ -1243,7 +1243,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
   const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
   assert.ok(a > 0 && b > a, 'données de la page localisées');
   const ctx = vm.createContext({APP: true});
-  vm.runInContext(page.slice(a, b) + ';this.D = {COACHS, ATELIERS, YOGA, CLIENTS, INSCR, COLS, SORT, BINS, PICKS, SHEET, MAILS, OPENS, NEWMAIL};', ctx);
+  vm.runInContext(page.slice(a, b) + ';this.D = {COACHS, ATELIERS, YOGA, CLIENTS, INSCR, COLS, SORT, BINS, PICKS, SHEET, MAILS, OPENS, NEWMAIL, CAPTIONS};', ctx);
   const D = JSON.parse(JSON.stringify(ctx.D));
   assert.deepEqual(D.PICKS.map(p => p.kind), ['tap', 'tap', 'pick', 'sort', 'tap', 'pick'], 'toucher, choisir, glisser');
   assert.ok(D.PICKS.filter(p => p.kind === 'tap').every(p => /^Touche /.test(p.prompt)), 'chaque moment à toucher dit qu’il faut toucher l’image');
@@ -1279,9 +1279,16 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
     'chaque étiquette dit ce que contient sa colonne, avec la lettre de la colonne dans le fichier');
   assert.deepEqual([D.PICKS[3].prompt, D.PICKS[3].hint], ['Associe chaque colonne du fichier à la table qui lui correspond.',
     'Touche une colonne ci-dessous, puis la bonne table. Tu peux aussi la faire glisser directement dans la table.'], 'consigne du moment 4, puis la ligne d’aide');
-  assert.ok(page.includes("show(['#bok', '#ck0'], 95.0, {y: 0, scale: 0.4}, 0.4, 'back.out(2.2)');") && page.includes("${old.length ? '<i class=\"bok\" id=\"bok\">✓</i>' : ''}")
+  assert.ok(page.includes("show(['#bok', '#ck0'], 94.85, {y: 0, scale: 0.4}, 0.4, 'back.out(2.2)');") && page.includes("${old.length ? '<i class=\"bok\" id=\"bok\">✓</i>' : ''}")
     && page.includes("if (i === 3) return {text: 'Que décrit la colonne : un atelier, un coach ou une inscription ?'};")
     && page.includes('const [col, to, , ok, bad] = SORT[a], j = COLS.indexOf(col),'), 'la table clients et la colonne client se cochent dès que la légende dit que la table existe ; rien à ranger côté client');
+  /* Une phrase par bulle (Elisa, 23 octobre : des bulles courtes, pas trop d’info d’un coup) : la coche tombe pendant « La table clients existe déjà. »,
+     les trois autres noms rebondissent ensemble pendant « On ajoute donc trois tables. », puis chacun à son tour avec sa légende. */
+  const ie = D.CAPTIONS.findIndex(c => c[2] === 'La table <code>clients</code> existe déjà.');
+  assert.ok(ie > 0 && D.CAPTIONS[ie + 1][2] === 'On ajoute donc trois tables.' && D.CAPTIONS[ie + 2][2].startsWith('Les tables <code>ateliers</code> et <code>coachs</code>')
+    && D.CAPTIONS[ie][1] < D.CAPTIONS[ie + 1][0] && D.CAPTIONS[ie + 1][1] < D.CAPTIONS[ie + 2][0], 'deux bulles courtes qui se suivent, avant les tables à ajouter');
+  assert.ok(D.CAPTIONS[ie][0] + 0.3 <= 94.85 && 94.85 + 0.4 <= D.CAPTIONS[ie][1] - 0.25 + 1e-9 && D.CAPTIONS[ie + 1][0] <= 95.75 && 95.75 + 0.4 <= D.CAPTIONS[ie + 1][1] - 0.25 + 1e-9
+    && page.includes("bump(['#bn1', '#bn2', '#bn3'], 95.75, 1.04);") && page.includes("[[1, 96.8], [2, 97.5], [3, 98.8]].forEach(([q, t]) => { bump('#bn' + q, t, 1.04);"), 'chaque geste tombe pendant sa bulle, avant sa pause de lecture');
   assert.ok(page.includes("if (i === 3) return $$('.bin:not(.old)').map(") && D.SORT.every(r => r[1] !== 'clients' && !('clients' in r[4])),
     'la table clients n’est pas une table où ranger : ni surlignée, ni cible, ni correction');
   assert.ok(D.SORT.every(r => D.BINS.some(x => x[0] === r[1])), 'chaque colonne a sa table parmi les quatre');
@@ -1308,7 +1315,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
 
 test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre 1 relié par des clés, chaque réponse vérifiée dans SQLite', async () => {
   const l72 = cut('guide({ id:72, titre:"Clés et relations"', 'guide({ id:81,');
-  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'5 min 03',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'5 min 04',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1420,12 +1427,22 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
      qu’une seule valeur ; on place donc coach_id dans la table ateliers. Après le moment 4 : le coach_id de ces ateliers est l’id
      de Moussa Diallo, puis la règle. */
   assert.equal(siens.length, 2);
-  const why = ['Moussa anime deux ateliers :<br>le ' + siens.join(' et le ') + '. Imaginons une colonne<br><code>atelier_id</code> dans la table coachs.',
+  const why = ['Moussa anime deux ateliers :<br>le ' + siens.join(' et le ') + '.', 'Imaginons une colonne <code>atelier_id</code><br>dans la table coachs.',
     'Il faudrait inscrire ces deux<br>identifiants dans la même case.', 'Impossible : une case ne doit contenir qu’une seule valeur.',
     'Pour garder une seule valeur par case,<br>on place plutôt <code>coach_id</code><br>dans la <b>table ateliers</b>.', 'Chaque atelier indique ainsi<br>le coach qui l’anime.'];
   const iw = D.CAPTIONS.findIndex(c => c[2] === why[0]);
   assert.ok(iw > 0 && D.CAPTIONS[iw - 1][2] === 'À toi !' && D.CAPTIONS[iw][0] > D.PICKS[2].at && why.every((w, k) => D.CAPTIONS[iw + k][2] === w) && D.CAPTIONS[iw + why.length][2] === 'À toi !',
     'juste après le moment 3, avant le moment 4 : pourquoi la clé ne va pas dans la table coachs');
+  /* Une phrase par légende, et chaque geste tombe dans la légende qui le dit : Moussa et ses deux ateliers s’allument, la colonne
+     atelier_id s’ouvre, ses deux identifiants arrivent dans la même case, la case tremble, la colonne se referme, les coach_id pulsent. */
+  const mw = (k, t) => D.CAPTIONS[iw + k][0] <= t && t < D.CAPTIONS[iw + k][1] - 0.25;
+  assert.ok(mw(0, 82.95) && mw(1, 83.8) && mw(1, 83.9) && mw(1, 84.25) && mw(2, 85.05) && mw(3, 85.85) && mw(4, 86.8) && mw(4, 86.9) && mw(5, 87.8), 'chaque geste de l’explication est dans sa légende');
+  assert.ok(page.includes("tl.to(N_ANS, {autoAlpha: 1, duration: 0.25, ease: 'power2.out'}, 82.95);") && page.includes("tl.to(N_ANS, {autoAlpha: 0, duration: 0.2, ease: 'power2.in'}, 83.8);")
+    && page.includes("tl.to('#tc-co .hd .c4', {autoAlpha: 1, duration: 0.3, ease: 'power2.out'}, 84.25);") && page.includes("tl.to('#tc-co .r .c4', {autoAlpha: 1, duration: 0.3, ease: 'power2.out'}, 85.05);")
+    && page.includes("tl.to('#tc-co-r2 .c4 .two', {x: -9, duration: 0.07, yoyo: true, repeat: 5, ease: 'power1.inOut'}, 85.85);") && page.includes("tl.to('#tc-co .c4', {autoAlpha: 0, duration: 0.25, ease: 'power2.in'}, 86.8);")
+    && page.includes("tl.to('#tc-co', {'--w4': '0px', duration: 0.45, ease: 'power2.inOut'}, 86.9);") && page.includes("$$('#tc-at .r .c3').forEach((c, k) => pulse(c, 87.8 + k * 0.1, 1));"), 'minutage des gestes de l’explication');
+  /* « À toi ! » commence au plus tard 0,5 s avant la coupure du moment 4 : sa carte est entièrement affichée quand l’image s’arrête. */
+  assert.ok(D.CAPTIONS[iw + why.length][0] + 0.5 <= D.PICKS[3].at - 1.35 + 1e-9, 'la légende « À toi ! » du moment 4 est affichée avant la coupure');
   assert.ok(D.PICKS[2].options[0].label === 'Dans la table coachs : une colonne atelier_id' && !D.PICKS[2].options[0].why,
     'moment 3 : la colonne atelier_id dans la table coachs n’a pas de correction écrite, l’explication qui suit la donne');
   /* Le moment 4 porte sur un autre coach que celui de l’explication : sa réponse n’est pas donnée d’avance. */
@@ -1441,13 +1458,15 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   /* « Un coach peut animer plusieurs ateliers » : Moussa Diallo et ses deux ateliers reviennent à l’image, à la place de la réponse du moment 4. */
   assert.ok(page.includes(`const N_ANS = [hl('tc-co', ${moussa[0]}), ring('tc-co', ${moussa[0]}, 0), ${siens.map(i => `hl('tc-at', ${i}), ring('tc-at', ${i}, 3)`).join(', ')}];`)
     && page.includes("tl.to(M4_ANS.co.concat(M4_ANS.a4), {autoAlpha: 0, duration: 0.25, ease: 'power2.in'}, 95.3);") && page.includes("tl.to(N_ANS, {autoAlpha: 1, duration: 0.3, ease: 'power2.out'}, 95.45);")
-    && D.CAPTIONS.find(c => c[2].startsWith('Un coach peut animer plusieurs ateliers'))[0] <= 95.3, '1 → N : Moussa Diallo et ses ateliers, dès « Un coach peut animer plusieurs ateliers »');
+    && D.CAPTIONS.find(c => c[2].startsWith('Un coach peut animer<br>plusieurs ateliers.'))[0] <= 95.3, '1 → N : Moussa Diallo et ses ateliers, dès « Un coach peut animer plusieurs ateliers »');
   /* Le 1 → N dit en toutes lettres : un coach, plusieurs ateliers ; un atelier, un seul coach ; le N signifie « plusieurs ». La pastille
      « 1 → N · un à plusieurs » arrive avec la légende qui la nomme ; puis la règle. */
-  const one = ['Un coach peut animer plusieurs ateliers,<br>mais chaque atelier est animé<br>par un seul coach.', 'C’est une relation « un à plusieurs », notée <b>1 → N</b> : le N signifie « plusieurs ».'];
+  const one = ['Un coach peut animer<br>plusieurs ateliers.', 'Chaque atelier est animé<br>par un seul coach.', 'C’est une relation « un à plusieurs », notée <b>1 → N</b> : le N signifie « plusieurs ».'];
   const i1 = D.CAPTIONS.findIndex(c => c[2] === one[0]);
-  assert.ok(i1 === cap4 + 1 && one.every((w, k) => D.CAPTIONS[i1 + k][2] === w) && D.CAPTIONS[i1 + 2][2].startsWith('La règle : dans une relation 1 → N'), '1 → N : la relation expliquée, puis la règle');
-  assert.ok(page.includes("pop('#tc-rel', 97.6, 0.6);") && D.CAPTIONS[i1 + 1][0] <= 97.6 && D.CAPTIONS[i1][1] < 97.6, 'la pastille 1 → N arrive avec sa légende');
+  assert.ok(i1 === cap4 + 1 && one.every((w, k) => D.CAPTIONS[i1 + k][2] === w) && D.CAPTIONS[i1 + 3][2].startsWith('La règle : dans une relation 1 → N'), '1 → N : la relation expliquée, puis la règle');
+  assert.ok(page.includes("pop('#tc-rel', 97.6, 0.6);") && D.CAPTIONS[i1 + 2][0] <= 97.6 && D.CAPTIONS[i1 + 1][1] < 97.6, 'la pastille 1 → N arrive avec sa légende');
+  assert.ok(page.includes("bump(['#tc-at-r2 .c3 .v', '#tc-at-r5 .c3 .v'], 96.6, 1.3);") && D.CAPTIONS[i1 + 1][0] <= 96.6 && 96.6 < D.CAPTIONS[i1 + 1][1] - 0.25,
+    '« chaque atelier est animé par un seul coach » : le coach_id de ces deux ateliers rebondit pendant cette légende');
   // Moment 5 : la nouvelle inscription de Sophie Martin, celle que demande son mail
   assert.deepEqual([name(D.NOUVELLE[1]), atl(D.NOUVELLE[2])[1]], ['Sophie Martin', 'Méditation'], 'la nouvelle inscription : Sophie Martin, à Méditation');
   assert.ok(D.MAILS[0][4].includes(`l’atelier ${atl(D.NOUVELLE[2])[1]} du ${+atl(D.NOUVELLE[2])[2].slice(8)} septembre`), 'le mail demande cet atelier, à sa date');
@@ -1570,7 +1589,7 @@ test('« Identifiant », jamais « numéro », pour la valeur d’une clé : vid
 
 test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des tables du chapitre 2, chaque multiplicité et chaque traduction vérifiées', async () => {
   const l81 = cut('guide({ id:81, titre:"Modéliser avec UML"', 'guide({ id:61,');
-  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'5 min 02',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'5 min 05',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1653,15 +1672,16 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.ok(!/représent|à gérer/.test(flat(ic + 1)), 'la légende d’avant ne dit pas deux fois la même chose que la réf 1 (« représenté », « élément à gérer »)');
   assert.ok(!/sujet/.test(JSON.stringify([D.CAPTIONS, D.PICKS, D.MAILS, bubble])), 'un « élément » (pas un « sujet ») devient une classe : même mot dans les légendes, les réponses et le mail');
   assert.ok(html.includes('e:"Une classe décrit un élément à gérer : elle devient une table, et ses attributs deviennent ses colonnes."') && !html.includes('Une classe décrit un sujet'), 'le quiz dit aussi « élément », pas « sujet »');
-  assert.ok(D.CAPTIONS[ic + 2][2].startsWith('Chaque élément à gérer est représenté par une <b>classe</b>.'), 'la suite reprend « éléments »');
+  assert.equal(flat(ic + 2), 'Chaque élément à gérer est représenté par une classe.', 'la suite reprend « éléments » : une phrase, une bulle');
+  assert.equal(flat(ic + 3), 'Elle porte un nom et contient des attributs.', 'la phrase suivante, dans sa propre bulle (Elisa, 23 octobre : des bulles courtes, pas trop d’info d’un coup)');
   /* La transition vers les tables (texte d’Elisa du 23 octobre, 11:02), en deux bulles, avant le premier moment « À toi » : à cette étape, on décrit les classes
      et leurs attributs ; les clés (primaires et étrangères) viennent au passage aux tables. Elles sont lues avant « À toi ! », sans que la coupe du moment
      (1,35 s avant l’arrêt) ni un autre fondu ne les touche. */
-  assert.deepEqual([flat(ic + 4), flat(ic + 5)], ['À cette étape, on décrit les classes et leurs attributs.', 'Les clés primaires et étrangères seront ajoutées lors du passage aux tables.'],
+  assert.deepEqual([flat(ic + 5), flat(ic + 6)], ['À cette étape, on décrit les classes et leurs attributs.', 'Les clés primaires et étrangères seront ajoutées lors du passage aux tables.'],
     'la transition vers les tables : une phrase complète par bulle, les mots d’Elisa');
-  assert.equal(flat(ic + 6), 'À toi !');
-  assert.ok(D.CAPTIONS[ic + 3][1] < D.CAPTIONS[ic + 4][0] && D.CAPTIONS[ic + 4][1] < D.CAPTIONS[ic + 5][0] && D.CAPTIONS[ic + 5][1] < D.CAPTIONS[ic + 6][0]
-    && D.CAPTIONS[ic + 6][0] + 0.5 <= D.PICKS[0].at - 1.35 && D.CAPTIONS[ic + 5][1] - 0.25 >= D.CAPTIONS[ic + 5][0] + 0.5 && D.CAPTIONS[ic + 4][1] - 0.25 >= D.CAPTIONS[ic + 4][0] + 0.5,
+  assert.equal(flat(ic + 7), 'À toi !');
+  assert.ok(D.CAPTIONS[ic + 4][1] < D.CAPTIONS[ic + 5][0] && D.CAPTIONS[ic + 5][1] < D.CAPTIONS[ic + 6][0] && D.CAPTIONS[ic + 6][1] < D.CAPTIONS[ic + 7][0]
+    && D.CAPTIONS[ic + 7][0] + 0.5 <= D.PICKS[0].at - 1.35 && D.CAPTIONS[ic + 6][1] - 0.25 >= D.CAPTIONS[ic + 6][0] + 0.5 && D.CAPTIONS[ic + 5][1] - 0.25 >= D.CAPTIONS[ic + 5][0] + 0.5,
     'les deux bulles se suivent sans se chevaucher, chacune entièrement apparue avant sa pause de lecture, puis « À toi ! » apparaît avant la coupe du moment 1');
   assert.ok(!/Aucune clé ici|pas la façon de les ranger/.test(caps), 'l’ancienne légende « Aucune clé ici » est remplacée');
   /* Le moment 1 reprend les mots de la transition : la clé étrangère coach_id vient au passage aux tables ; sa question nomme le diagramme (Elisa, 23 octobre, 11:15). */
@@ -1679,8 +1699,8 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
     && page.includes('.hlo{position:absolute;left:0;right:0;top:0;bottom:0;border-radius:32px;box-shadow:inset 0 0 0 7px var(--c);'), 'le liseré de couleur et le rebond de la classe');
   /* Les textes d’Elisa (réfs du 22 octobre), mot pour mot : « du côté de la classe X » dit où s’écrit une multiplicité, « relation » (pas « lien »)
      entre les tables ; 0..* corrige « 0.. » et « Atelier* ». */
-  assert.equal(said('Chaque élément à gérer', 2), 'Chaque élément à gérer est représenté par une classe. Elle porte un nom et contient des attributs. Les attributs sont les informations qui le décrivent, comme le prénom, le nom et l’e-mail d’un client.');
-  assert.equal(said('La multiplicité indique', 2), 'La multiplicité indique combien d’éléments d’une classe peuvent être liés à un seul élément de l’autre. Par exemple, pour un coach, combien d’ateliers ? On écrit la réponse du côté de la classe Atelier.');
+  assert.equal(said('Chaque élément à gérer', 3), 'Chaque élément à gérer est représenté par une classe. Elle porte un nom et contient des attributs. Les attributs sont les informations qui le décrivent, comme le prénom, le nom et l’e-mail d’un client.');
+  assert.equal(said('La multiplicité indique', 3), 'La multiplicité indique combien d’éléments d’une classe peuvent être liés à un seul élément de l’autre. Par exemple, pour un coach, combien d’ateliers ? On écrit la réponse du côté de la classe Atelier.');
   assert.equal(D.PICKS[1].prompt, 'Place les multiplicités 1 et 0..* aux bonnes extrémités de l’association « anime ».');
   assert.equal(D.PICKS[1].hint, 'Touche une multiplicité, puis la classe à côté de laquelle tu veux la placer. Tu peux aussi la faire glisser.');
   assert.equal(said('Chaque atelier est animé', 2), 'Chaque atelier est animé par un seul coach : on place 1 du côté de la classe Coach. Un coach peut animer zéro, un ou plusieurs ateliers : on place 0..* du côté de la classe Atelier.');
@@ -1716,13 +1736,16 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   /* Chaque phrase a son geste et son son, pendant sa légende : après son fondu d’entrée, avant la pause de lecture qui tombe à sa fin. */
   const during = (t, i, d) => D.CAPTIONS[i][0] + 0.3 - 1e-9 <= t && t + d <= D.CAPTIONS[i][1] - 0.25 + 1e-9;
   const BEATS = [   // [début de la légende, extraits de la page (geste, son), début du geste, durée du geste]
-    ['Chaque élément à gérer', ["['co', 'ca', 'at', 'cl'].forEach(k => lite(k, 28.8, 0.55));", "cue(28.8, 'pop', 0.6, 2);"], 28.8, 0.8],
-    ['Chaque élément à gérer', ["bump(`#cb-${k} .cn`, 31.3 + q * 0.25, 1.12); cue(31.3 + q * 0.25, 'tick', 0.45, q);"], 31.3, 1.15],
-    ['Chaque élément à gérer', ["$$('#sb .cls:not(.acl) .ar:not(.ini)').forEach((r, q) => pulse(r, 32.45 + q * 0.03, 1));", "cue(32.45, 'tick', 0.5, 3); cue(32.65, 'tick', 0.5, 5);"], 32.45, 0.8],
+    ['Chaque élément à gérer', ["['co', 'ca', 'at', 'cl'].forEach(k => lite(k, 29.45, 0.5));", "cue(29.45, 'pop', 0.6, 2);"], 29.45, 0.8],
+    ['Elle porte un nom', ["bump(`#cb-${k} .cn`, 31.3 + q * 0.25, 1.12); cue(31.3 + q * 0.25, 'tick', 0.45, q);"], 31.3, 1.15],
+    ['Elle porte un nom', ["$$('#sb .cls:not(.acl) .ar:not(.ini)').forEach((r, q) => pulse(r, 32.45 + q * 0.03, 1));", "cue(32.45, 'tick', 0.5, 3); cue(32.65, 'tick', 0.5, 5);"], 32.45, 0.8],
+    // Le trait s’allume avec « association », le nom de l’association rebondit avec « dans le sens du triangle »
+    ['Ce trait est une association', ["glow('#ln-an', 43.1); cue(43.1, 'tick', 0.5, 2);"], 43.1, 0.4],
+    ['Elle se lit dans le sens du triangle', ["bump('#an-an', 46.3, 1.1); cue(46.3, 'tick', 0.5, 4);"], 46.3, 0.4],
     ['Les attributs sont les informations', ["lite('cl', 35.4, 0.7, 1.03);", "cue(35.4, 'tick', 0.5, 1);"], 35.4, 0.95],
     ['Les attributs sont les informations', ["pulse(`#cb-cl-${a}`, 36.5 + q * 0.45, 1); cue(36.5 + q * 0.45, 'tick', 0.5, q + 2);"], 36.5, 1.4],
     ['Par exemple', ["lite('co', 60.9, 0.6); cue(60.9, 'tick', 0.5, 1);", "lite('at', 62.0, 0.6); cue(62.0, 'tick', 0.5, 3);"], 60.9, 1.95],
-    ['Par exemple', ["pop('#ph-an', 63.9, 0.5);", "hide('#ph-an', 65.0, {y: 0, scale: 0.6}, 0.3);"], 63.9, 1.4],
+    ['On écrit la réponse', ["pop('#ph-an', 64.7, 0.5);", "hide('#ph-an', 65.45, {y: 0, scale: 0.6}, 0.3);"], 64.7, 0.5],
     ['Chaque atelier est animé', ["lite('at', 69.2, 0.5); cue(69.2, 'tick', 0.5, 1);", "lite('co', 70.2, 0.5); cue(70.2, 'tick', 0.5, 3);", "bump('#mp-an-co', 70.5, 1.3); cue(70.5, 'pop', 0.6, 4);"], 69.2, 1.75],
     ['Un coach peut animer', ["lite('co', 71.9, 0.5); cue(71.9, 'tick', 0.5, 1);", "lite('at', 72.8, 0.5); cue(72.8, 'tick', 0.5, 3);", "bump('#mp-an-at', 73.3, 1.3); cue(73.3, 'pop', 0.6, 4);"], 71.9, 1.8],
     ['Pour s’inscrit à', ["glow('#ln-in', 74.9); bump('#an-in', 74.9, 1.1); cue(74.9, 'tick', 0.5, 2);", "lite('cl', 75.8, 0.6); cue(75.8, 'tick', 0.5, 1);", "lite('at', 77.2, 0.6); cue(77.2, 'tick', 0.5, 3);", "pop('#mp-in-at', 78.6, 0.5);"], 74.9, 4.2],
@@ -1783,8 +1806,9 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
     ['On crée donc la table inscriptions', ["tl.to('#ib-r2 .hl', {opacity: 1, duration: 0.25, yoyo: true, repeat: 1}, 180.25); cue(180.25, 'pop', 0.6, 3);"], 180.25, 0.5],
     ['On crée donc la table inscriptions', ["tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25, yoyo: true, repeat: 1}, 181.05); cue(181.05, 'pop', 0.6, 4);"], 181.05, 0.5],
     ['On crée donc la table inscriptions', ["bump('#ab', 182.3, 1.04); cue(182.3, 'stamp', 0.6);"], 182.3, 0.4],
-    ['Ses deux clés étrangères', ["tl.to(['#ib-r1 .hl', '#ib-r2 .hl'], {opacity: 1, duration: 0.25, yoyo: true, repeat: 3}, 184.75);"], 184.75, 1.0],
-    ['Ses deux clés étrangères', ["tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25, yoyo: true, repeat: 3}, 186.75);"], 186.75, 1.0],
+    ['Elle contient deux clés', ["tl.to(['#ib-r1 .hl', '#ib-r2 .hl'], {opacity: 1, duration: 0.25, yoyo: true, repeat: 3}, 184.85); cue(184.85, 'pop', 0.6, 2);"], 184.85, 1.0],
+    ['Elle contient deux clés', ["tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25, yoyo: true, repeat: 3}, 186.0); cue(186.0, 'pop', 0.6, 4);"], 186.0, 1.0],
+    ['C’est bien la table du chapitre 2', ["bump('#ab', 187.8, 1.04); cue(187.8, 'stamp', 0.6);"], 187.8, 0.4],
     // La boutique entière : les classes arrivent, puis chaque association (trait, nom, multiplicités) ; la légende suivante lit passe et concerne
     ['Les règles valent pour tout diagramme', ["['#sh-co', '#sh-at', '#sh-in', '#qm-cl', '#qm-ca', '#qm-cm', '#qm-pr'].forEach((q, k) => { const t = 190.8 + k * 0.15;"], 190.8, 1.35],
     ['Les règles valent pour tout diagramme', ["const t = 192.0 + q * 0.5;", "draw('#ls-' + k, t, 0.4); show('#sn-' + k, t + 0.3, {y: 12}, 0.35);", "cue(t + 0.45, 'pop', 0.6, q);"], 192.0, 2.93],
@@ -1807,13 +1831,18 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   const hold = start => D.CAPTIONS[idx(start)][1] - 0.25;
   assert.ok(104.4 > hold('Le diagramme est maintenant complet') && page.includes("{stroke: '#4B4570', strokeWidth: 5, duration: 0.3, ease: 'power1.inOut'}, 104.4);"), 'les traits retrouvent leur aspect après la pause de lecture');
   assert.ok(115.2 > hold('Son maximum vaut 1') && page.includes("tl.to('#mp-po-ca .mn', {opacity: 1, duration: 0.3}, 115.2);"), 'le 0.. de la pastille revient avec la suite du plan');
-  assert.ok(65.0 + 0.3 <= D.PICKS[1].at - 1.35 && 174.5 + 0.3 <= D.PICKS[4].at - 1.35 && page.includes('tl.to(RL, {autoAlpha: 0, y: 24, duration: 0.3, ease: \'power2.in\'}, 174.5);'),
+  assert.ok(65.45 >= hold('On écrit la réponse') && 65.45 + 0.3 <= D.CAPTIONS[idx('On écrit la réponse') + 1][0] + 1e-9 && 65.45 + 0.3 <= D.PICKS[1].at - 1.35 && 174.5 + 0.3 <= D.PICKS[4].at - 1.35 && page.includes('tl.to(RL, {autoAlpha: 0, y: 24, duration: 0.3, ease: \'power2.in\'}, 174.5);'),
     'la pastille « ? » et les trois sortes de relations sont retirées avant l’arrêt du moment suivant');
   assert.ok(page.includes('<div class="abs mp ask" id="ph-an"><i>?</i></div>') && page.includes('.mp.ask{border-style:dashed;border-color:var(--accent);background:var(--accent-soft)}')
     && page.includes("at2('#ph-an', xa + 22, atl.y - 24 - 5 - $('#ph-an').offsetHeight);"), 'la pastille « ? » se pose là où s’écrira la multiplicité d’Atelier');
   assert.ok(page.includes(`['un à un', 'un à plusieurs', 'plusieurs à plusieurs'].map(t => \`<div class="rl">\${t}<i class="rlo"></i></div>\`)`) && page.includes('.rlo{position:absolute;')
     && page.includes("$('#rel').style.top = (cl.y + cl.h + 52 + 9 + 40) + 'px';"), 'les trois sortes de relations, sous les tables, avec leur liseré');
   assert.ok(page.includes('Une <b>multiplicité</b> s’écrit du côté de la classe<br>qu’elle compte : 1, 0..1, 0..* ou 1..*.'), 'le récapitulatif reprend « du côté de la classe »');
+  /* La 3e idée du récapitulatif parle comme le cours : « un à plusieurs », « plusieurs à plusieurs » (les trois sortes de relations du chapitre 5), plus de « 1 — * » ;
+     la fiche de la leçon dit la même chose que la vidéo. */
+  assert.ok(page.includes('Une classe devient une <b>table</b>.<span class="rs"><b>Un à plusieurs</b>&nbsp;: une clé étrangère<br>du côté «&nbsp;plusieurs&nbsp;».</span><span class="rs"><b>Plusieurs à plusieurs</b>&nbsp;: une table d’association.</span>')
+    && page.includes('#s7 .rtxt .rs{margin-top:4px;font-size:31px}') && !/1 — \*|\* — \*/.test(page + l81), 'récapitulatif : « un à plusieurs », « plusieurs à plusieurs » (plus de « 1 — * »)');
+  assert.ok(l81.includes('["🧩","Une classe devient une <b>table</b>.","<b>Un à plusieurs</b> : une clé étrangère du côté « plusieurs ».<br><b>Plusieurs à plusieurs</b> : une table d’association."]'), 'la fiche de la leçon dit la même chose que la vidéo');
   /* Les six moments */
   assert.deepEqual(D.PICKS.map(p => p.kind), ['pick', 'sort', 'pick', 'tap', 'pick', 'sort'], 'choisir, placer, choisir, toucher, choisir, placer ; jamais deux fois de suite le même geste');
   assert.ok(D.PICKS.filter(p => p.kind === 'tap').every(p => /^Touche /.test(p.prompt)), 'chaque moment à toucher dit qu’il faut toucher l’image');
@@ -1917,7 +1946,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   db.close();
 });
 
-test('chapitres 1 à 3 et « Quel JOIN choisir ? » : une phrase complète par bulle, jamais une phrase coupée entre deux légendes', () => {
+test('chapitres 1 à 3 et « Quel JOIN choisir ? » : une seule phrase complète par bulle, jamais une phrase coupée entre deux légendes', () => {
   for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'quel-join-choisir.html']) {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1932,6 +1961,8 @@ test('chapitres 1 à 3 et « Quel JOIN choisir ? » : une phrase complète par b
          de table en code, comme <code>medecin_id</code>) et finit comme une phrase (point, ! ? ou guillemet fermant). */
       assert.ok(/^[A-ZÀ-ÖØ-Þ0-9«]/.test(txt) || /^(<b[^>]*>)?<code>/.test(t), `${f} · légende ${k + 1} : une phrase qui commence (« ${txt.slice(0, 50)} »)`);
       assert.ok(/[.!?»]$/.test(txt), `${f} · légende ${k + 1} : une phrase qui finit (« …${txt.slice(-50)} »)`);
+      /* Et une seule : des bulles courtes, pas trop d’information d’un coup (Elisa, 23 octobre). « 0..* » n’est pas une fin de phrase. */
+      assert.ok(!/[.!?»] ?[A-ZÀ-ÖØ-Þ«]/.test(txt.replace(/\.\.\*?/g, '')), `${f} · légende ${k + 1} : une seule phrase par bulle (« ${txt.slice(0, 70)} »)`);
     });
   }
 });
