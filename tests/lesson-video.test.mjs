@@ -875,8 +875,8 @@ const COURSES = [
       "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
       "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.9);", 'Chapitre 3 · Modéliser avec UML']},
-  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '5 min 34', notesAt: 224.15,
-    notes: /notes:\{t:327\.05,y:1389,card:\[64,292,1016,1094\],to:\[940,255\]\}/, table: 'ateliers',
+  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '5 min 40', notesAt: 224.15,
+    notes: /notes:\{t:332\.85,y:1389,card:\[64,292,1016,1094\],to:\[940,255\]\}/, table: 'ateliers',
     bubble: 'Tu vas dessiner le plan de ta base, puis&nbsp;apprendre à le traduire en tables.',
     chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
     traps: ["const CLASSES = [['co', 'Coach', ['prenom', 'nom', 'email']], ['ca', 'Carte', ['seances']],",
@@ -1589,7 +1589,7 @@ test('« Identifiant », jamais « numéro », pour la valeur d’une clé : vid
 
 test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des tables du chapitre 2, chaque multiplicité et chaque traduction vérifiées', async () => {
   const l81 = cut('guide({ id:81, titre:"Modéliser avec UML"', 'guide({ id:61,');
-  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'5 min 34',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'5 min 40',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1703,7 +1703,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.equal(D.PICKS[1].hint, 'Touche une multiplicité, puis la classe à côté de laquelle tu veux la placer. Tu peux aussi la faire glisser.');
   assert.equal(said('Chaque atelier est animé', 2), 'Chaque atelier est animé par un seul coach : on place 1 du côté de la classe Coach. Un coach peut animer zéro, un ou plusieurs ateliers : on place 0..* du côté de la classe Atelier.');
   assert.equal(flat(idx('Chaque atelier est animé') + 2), 'Pour s’inscrit à : un client suit zéro, un ou plusieurs ateliers, donc 0..* du côté de la classe Atelier.');
-  assert.equal(said('La date d’inscription', 3), 'La date d’inscription indique quand un client s’est inscrit à un atelier précis. On la place dans Inscription, une classe d’association. Elle est reliée par des pointillés à l’association entre Client et Atelier.');
+  assert.equal(said('La date d’inscription', 3), 'La date d’inscription indique quand un client s’est inscrit à un atelier précis. On place la date d’inscription dans Inscription, une classe d’association : elle contient les informations propres au lien entre un client et un atelier. Elle est reliée par des pointillés à l’association entre Client et Atelier.');
   assert.equal(said('Le diagramme est maintenant complet', 2), 'Le diagramme est maintenant complet : il présente les informations à conserver et les relations entre les classes. Karim pourra s’appuyer dessus pour créer la base de données.');
   /* Chapitre 5 (texte d’Elisa du 23 octobre) : une phrase complète par bulle, mot pour mot ; « À toi ! » s’intercale avant la dernière bulle. */
   const S5 = ['Chaque classe devient une table, et ses attributs deviennent des colonnes.', 'Ici, on ajoute une clé primaire id pour identifier chaque ligne de façon unique.',
@@ -1718,8 +1718,8 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.deepEqual(S5.map((_, k) => flat(i5 + k)), S5, 'chapitre 5 : les douze phrases d’Elisa, mot pour mot, une par bulle');
   /* Aucune des douze bulles ne fige la vidéo : chacune reste affichée au moins le temps de la lire (17 caractères par seconde). */
   S5.forEach((t, k) => { const [a, b] = D.CAPTIONS[i5 + k]; assert.ok(t.length / 17 <= (b - 0.2) - (a + 0.3) + 1e-9, `« ${t} » : lue sans pause`); });
-  /* Quatre bulles ne tiennent pas en trois lignes à la taille du cours (expressions collées, ou 134 caractères d’un coup pour la boutique) : leur 4e valeur autorise quatre lignes. */
-  assert.deepEqual(D.CAPTIONS.map((c, k) => [flat(k).split(' ').slice(0, 3).join(' '), c[3]]).filter(x => x[1]), [['On regarde d’abord', 4], ['On ajoute donc', 4], ['On crée donc', 4], ['Tu peux appliquer', 4]], 'les quatre bulles de quatre lignes');
+  /* Cinq bulles ne tiennent pas en trois lignes à la taille du cours (expressions collées, la classe d’association et son rôle en une phrase, ou 134 caractères d’un coup pour la boutique) : leur 4e valeur autorise quatre lignes. */
+  assert.deepEqual(D.CAPTIONS.map((c, k) => [flat(k).split(' ').slice(0, 3).join(' '), c[3]]).filter(x => x[1]), [['On place la', 4], ['On regarde d’abord', 4], ['On ajoute donc', 4], ['On crée donc', 4], ['Tu peux appliquer', 4]], 'les cinq bulles de quatre lignes');
   /* Le texte colle aux données : la clé ajoutée et sa table pour chaque association, les colonnes de la table d’association. */
   const flatAll = D.CAPTIONS.map((_, k) => flat(k)).join('\n');
   for (const k of ['an', 'po']) { const [col, where] = D.TRAD[k]; assert.ok(flatAll.includes(`${col} dans la table ${T[where].name}`), `${col} dans la table ${T[where].name}`); }
@@ -1738,7 +1738,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.ok(!/table du chapitre 2/.test(caps) && flat(iLast + 4) === 'À toi !', 'plus de « C’est bien la table du chapitre 2 » ; « À toi ! » vient juste après la phrase sur la boutique');
   E5.forEach((t, k) => { const [a, b] = D.CAPTIONS[iLast + 1 + k]; assert.ok(t.length / 17 <= (b - 0.2) - (a + 0.3) + 0.05, `« ${t} » : lue sans pause (à 0,05 s près : en dessous, le lecteur n’insère pas de pause)`); });
   assert.ok(D.CAPTIONS[iLast][1] < D.CAPTIONS[iLast + 1][0] && D.CAPTIONS[iLast + 1][1] < D.CAPTIONS[iLast + 2][0] && D.CAPTIONS[iLast + 2][1] < D.CAPTIONS[iLast + 3][0], 'les bulles se suivent sans se chevaucher');
-  assert.ok(!/à côté (de|d’)/.test(JSON.stringify([D.CAPTIONS, D.PLACE])) && !/\blien\b/.test(JSON.stringify(D.CAPTIONS)), 'une multiplicité est « du côté de la classe X » ; « relation » entre tables (sauf « liens entre ces tables », phrase d’Elisa gardée telle quelle)');
+  assert.ok(!/à côté (de|d’)/.test(JSON.stringify([D.CAPTIONS, D.PLACE])) && !/\blien\b/.test(JSON.stringify(D.CAPTIONS).replace('propres<br>au lien entre un client et un atelier', '')), 'une multiplicité est « du côté de la classe X » ; « relation » entre tables (sauf « liens entre ces tables » et « propres au lien entre un client et un atelier », phrases d’Elisa gardées telles quelles)');
   /* Chaque phrase a son geste et son son, pendant sa légende : après son fondu d’entrée, avant la pause de lecture qui tombe à sa fin. */
   const during = (t, i, d) => D.CAPTIONS[i][0] + 0.3 - 1e-9 <= t && t + d <= D.CAPTIONS[i][1] - 0.25 + 1e-9;
   const BEATS = [   // [début de la légende, extraits de la page (geste, son), début du geste, durée du geste]
@@ -1760,7 +1760,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
     ['On écrit donc 0..*', ["bump('#mp-in-cl', 87.5, 1.3); cue(87.5, 'pop', 0.6, 4);"], 87.5, 0.4],
     ['La date d’inscription', ["glow('#ln-in', 89.3); cue(89.3, 'tick', 0.5, 2);"], 89.3, 0.4],
     ['La date d’inscription', ["lite('cl', 89.6, 1.5); lite('at', 89.6, 1.5); cue(89.6, 'tick', 0.5, 1);"], 89.6, 0.2],
-    ['On la place dans Inscription', ["show('#ab', 91.6, {y: 30, scale: 0.92}, 0.5, 'back.out(1.6)'); cue(91.6, 'pop', 0.55, 4);", "tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25}, 92.2);", "cue(92.2, 'tick', 0.5, 4);"], 91.6, 0.9],
+    ['On place la date d’inscription', ["show('#ab', 91.6, {y: 30, scale: 0.92}, 0.5, 'back.out(1.6)'); cue(91.6, 'pop', 0.55, 4);", "tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25}, 92.2);", "cue(92.2, 'tick', 0.5, 4);"], 91.6, 0.9],
     ['Elle est reliée par des pointillés', ["draw('#ln-cx', 93.55, 0.35);", "glow('#ln-in', 93.95); bump('#an-in', 93.95, 1.1); cue(93.95, 'tick', 0.5, 2);"], 93.55, 0.85],
     ['Le diagramme est maintenant complet', ["], 101.5, 1.03); cue(101.5, 'stamp', 0.6);"], 101.5, 0.4],
     ['Le diagramme est maintenant complet', ["$$('#sb .ar:not(.ini)').forEach((r, q) => pulse(r, 102.4 + q * 0.04, 1));", "cue(102.4, 'tick', 0.5, 3); cue(102.6, 'tick', 0.5, 5);"], 102.4, 0.95],
