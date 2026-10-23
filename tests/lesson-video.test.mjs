@@ -875,9 +875,9 @@ const COURSES = [
       "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
       "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.9);", 'Chapitre 3 · Modéliser avec UML']},
-  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '5 min 38', notesAt: 224.15,
-    notes: /notes:\{t:330\.4,y:1389,card:\[64,292,1016,1094\],to:\[940,255\]\}/, table: 'ateliers',
-    bubble: 'Tu vas représenter la structure de la base avec un diagramme UML pour visualiser plus&nbsp;facilement les relations entre les tables.',
+  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '5 min 34', notesAt: 224.15,
+    notes: /notes:\{t:326\.5,y:1389,card:\[64,292,1016,1094\],to:\[940,255\]\}/, table: 'ateliers',
+    bubble: 'Tu vas dessiner le plan de ta base, puis&nbsp;apprendre à le traduire en tables.',
     chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
     traps: ["const CLASSES = [['co', 'Coach', ['prenom', 'nom', 'email']], ['ca', 'Carte', ['seances']],",
       "const ASSOCS = [['an', 'anime', '▾', 'co', '1', 'at', '0..*'], ['in', 's’inscrit à', '◂', 'cl', '0..*', 'at', '0..*'],",
@@ -1589,7 +1589,7 @@ test('« Identifiant », jamais « numéro », pour la valeur d’une clé : vid
 
 test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des tables du chapitre 2, chaque multiplicité et chaque traduction vérifiées', async () => {
   const l81 = cut('guide({ id:81, titre:"Modéliser avec UML"', 'guide({ id:61,');
-  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'5 min 38',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'5 min 34',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1660,10 +1660,10 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
      nomme le diagramme de classes et ce qu’il comporte, sans redire la demande (ni « colonnes », ni « relations ») et sans devancer la phrase suivante
      (« Chaque élément à gérer est représenté par une classe »). */
   const bubble = /<div class="abs bubble">([^<]+)<\/div>/.exec(page)[1];
-  assert.ok(!bubble.includes('Karim') && !/<br>/.test(bubble) && bubble.startsWith('Tu vas représenter la structure de la base avec un diagramme UML pour visualiser'), 'la bulle : la mission et son intérêt, sans Karim');
-  assert.ok(page.includes('hold(2.3, 5.4);') && Math.abs(bubble.replace(/&nbsp;/g, ' ').length / 17 - 7.53) < 0.01, 'la bulle (128 caractères) reste affichée le temps de la lire');
-  const ic = D.CAPTIONS.findIndex(c => c[2] === 'Pour visualiser ces relations plus facilement, nous allons construire un <b class="nw">diagramme UML</b>.');
-  assert.ok(ic > 0 && D.CAPTIONS[ic + 1][2] === 'Commençons par représenter les clients, les coachs, les ateliers et les cartes, avec leurs informations.', 'la légende après le mail : le diagramme, puis ce qu’on représente d’abord (texte d’Elisa du 23 octobre, 11:59)');
+  assert.ok(!bubble.includes('Karim') && !/<br>/.test(bubble) && bubble.startsWith('Tu vas dessiner le plan de ta base,'), 'la bulle : la mission en deux temps, sans UML ni Karim');
+  assert.ok(page.includes('hold(2.3, 2.3);') && Math.abs(bubble.replace(/&nbsp;/g, ' ').length / 17 - 4.41) < 0.01, 'la bulle (75 caractères) reste affichée le temps de la lire');
+  const ic = D.CAPTIONS.findIndex(c => c[2] === 'Pour visualiser ces relations plus facilement, on va construire un <b class="nw">diagramme de classes UML</b>.');
+  assert.ok(ic > 0 && D.CAPTIONS[ic + 1][2] === 'On commence par les clients, les coachs, les ateliers et les cartes.', 'la légende après le mail : le diagramme, puis ce qu’on représente d’abord (texte d’Elisa du 23 octobre, 11:59)');
   assert.ok(D.CAPTIONS[ic - 1][1] < D.OPENS[0].at && D.CAPTIONS[ic][0] > D.OPENS[0].at + 3 && D.CAPTIONS[ic][1] < D.CAPTIONS[ic + 1][0] && D.CAPTIONS[ic + 1][1] < D.CHAPTERS[1].a && D.CAPTIONS[ic + 2][0] >= D.CHAPTERS[1].a,
     'deux légendes qui se suivent, sans se chevaucher, dans le chapitre « Le plan »');
   assert.ok(!/colonnes|création de la base|créer la base|Pour dessiner ce plan|Karim/.test([D.CAPTIONS[ic][2], D.CAPTIONS[ic + 1][2]].join(' ')), 'la légende ne redit pas la demande de Karim');
@@ -1688,7 +1688,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   /* Chaque geste suit sa légende : les quatre classes arrivent pendant « on utilise un diagramme de classes UML », puis s’entourent
      chacune à son tour, dans l’ordre où la légende les nomme (clients, coachs, ateliers, cartes), pendant « Il représente… ». */
   const cls = Object.fromEntries(D.CLASSES.map(([k, name]) => [name.toLowerCase(), k]));
-  const named = /représenter (.*), avec/.exec(D.CAPTIONS[ic + 1][2])[1].split(/, | et /).map(w => cls[w.replace(/^les /, '').replace(/s$/, '')]);
+  const named = /commence par (.*)\./.exec(D.CAPTIONS[ic + 1][2])[1].split(/, | et /).map(w => cls[w.replace(/^les /, '').replace(/s$/, '')]);
   assert.deepEqual(named, ['cl', 'co', 'at', 'ca'], 'les quatre éléments nommés, dans l’ordre de la légende');
   assert.ok(page.includes("['cl', 'co', 'at', 'ca'].forEach((k, q) => {\n    const t = 25.0 + q * 0.32;") && D.CAPTIONS[ic + 1][0] + 0.3 <= 25.0 && 25.0 + 3 * 0.32 + 0.45 + 0.25 < D.CAPTIONS[ic + 1][1] - 0.25,
     'chaque classe s’entoure pendant la légende qui la nomme, avant la pause de lecture');
@@ -1697,13 +1697,13 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
     && page.includes('.hlo{position:absolute;left:0;right:0;top:0;bottom:0;border-radius:32px;box-shadow:inset 0 0 0 7px var(--c);'), 'le liseré de couleur et le rebond de la classe');
   /* Les textes d’Elisa (réfs du 22 octobre), mot pour mot : « du côté de la classe X » dit où s’écrit une multiplicité, « relation » (pas « lien »)
      entre les tables ; 0..* corrige « 0.. » et « Atelier* ». */
-  assert.equal(said('Chaque élément à gérer', 3), 'Chaque élément à gérer est représenté par une classe. Elle porte un nom et contient des attributs. Les attributs sont les informations qui le décrivent, comme le prénom, le nom et l’e-mail d’un client.');
+  assert.equal(said('Chaque élément à gérer', 3), 'Chaque élément à gérer est représenté par une classe. Elle porte un nom et contient des attributs. Les attributs sont les informations qui la décrivent, comme le prénom, le nom et l’e-mail d’un client.');
   assert.equal(said('La multiplicité indique', 3), 'La multiplicité indique combien d’éléments d’une classe peuvent être liés à un seul élément de l’autre. Par exemple, pour un coach, combien d’ateliers ? On écrit la réponse du côté de la classe Atelier.');
   assert.equal(D.PICKS[1].prompt, 'Place les multiplicités 1 et 0..* aux bonnes extrémités de l’association « anime ».');
   assert.equal(D.PICKS[1].hint, 'Touche une multiplicité, puis la classe à côté de laquelle tu veux la placer. Tu peux aussi la faire glisser.');
   assert.equal(said('Chaque atelier est animé', 2), 'Chaque atelier est animé par un seul coach : on place 1 du côté de la classe Coach. Un coach peut animer zéro, un ou plusieurs ateliers : on place 0..* du côté de la classe Atelier.');
   assert.equal(flat(idx('Chaque atelier est animé') + 2), 'Pour s’inscrit à : un client suit zéro, un ou plusieurs ateliers, donc 0..* du côté de la classe Atelier.');
-  assert.equal(said('La date d’inscription', 3), 'La date d’inscription indique quand un client s’est inscrit à un atelier précis. On la place dans Inscription, une classe d’association. Elle est reliée par des pointillés à la relation entre Client et Atelier.');
+  assert.equal(said('La date d’inscription', 3), 'La date d’inscription indique quand un client s’est inscrit à un atelier précis. On la place dans Inscription, une classe d’association. Elle est reliée par des pointillés à l’association entre Client et Atelier.');
   assert.equal(said('Le diagramme est maintenant complet', 2), 'Le diagramme est maintenant complet : il présente les informations à conserver et les relations entre les classes. Karim pourra s’appuyer dessus pour créer la base de données.');
   /* Chapitre 5 (texte d’Elisa du 23 octobre) : une phrase complète par bulle, mot pour mot ; « À toi ! » s’intercale avant la dernière bulle. */
   const S5 = ['Chaque classe devient une table, et ses attributs deviennent des colonnes.', 'Ici, on ajoute une clé primaire id pour identifier chaque ligne de façon unique.',
@@ -1711,7 +1711,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
     'On regarde d’abord le maximum de chaque côté : 1 signifie « au maximum un », et * signifie « plusieurs possibles ».',
     'Ces maximums permettent de distinguer trois cas : un à un, un à plusieurs et plusieurs à plusieurs.',
     'Chaque atelier a un seul coach.', 'On ajoute donc coach_id dans la table ateliers : cette clé étrangère indique quel coach anime chaque atelier.',
-    'On ajoute client_id dans la table cartes pour identifier son propriétaire.', 'La contrainte UNIQUE empêche d’attribuer plusieurs cartes au même client.',
+    'On ajoute client_id dans la table cartes pour indiquer son propriétaire.', 'La contrainte UNIQUE empêche d’attribuer plusieurs cartes au même client.',
     'Un client peut s’inscrire à plusieurs ateliers, et un atelier accueillir plusieurs clients.', 'À toi !',
     'On crée donc la table inscriptions, avec client_id, atelier_id et date_inscription : une ligne par inscription.'];
   const i5 = idx('Chaque classe devient une table');
@@ -1940,9 +1940,9 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.ok(Math.max(...SY) + 86 + 12 < 1264 - 100, `emplacements : le plus bas finit à ${Math.max(...SY) + 86 + 12}`);
   /* Le mail, la suite */
   assert.deepEqual(D.MAILS.map(m => m[0][0] + ' ' + m[0][1] + ' · ' + m[2]), ['Karim Benali · développeur'], 'qui écrit');
-  assert.deepEqual(D.MAILS[0].slice(4), [['Je suis Karim, le développeur back end.',
-    'Je vais créer la base de données dans le SGBD de l’entreprise pour gérer les ateliers. Peux-tu me transmettre un diagramme UML présentant les tables, leurs colonnes et les relations entre elles ?',
-    'Ce schéma me servira de référence pour créer les tables et les relier.'], 'Karim'], 'le mail : qui il est, ce qu’il va faire et demande, à quoi le schéma lui servira ; « relier », pas « liens » (relation entre tables), sans redire « relations entre elles »');
+  assert.deepEqual(D.MAILS[0].slice(4), [['Je suis Karim, le développeur back-end.',
+    'Je vais créer la base de données dans le SGBD de l’entreprise pour gérer les ateliers. Peux-tu me transmettre un diagramme UML présentant les éléments à gérer, leurs informations et les relations entre eux ?',
+    'Ce diagramme me servira de référence pour créer les tables et les relier.'], 'Karim'], 'le mail : qui il est, ce qu’il va faire et demande, à quoi le schéma lui servira ; « relier », pas « liens » (relation entre tables), sans redire « relations entre elles »');
   assert.ok(page.includes("...[].concat(body), 'Merci !', sign].map((x, j, a) => `<span class=\"sn2${j === a.length - 1 ? ' s' : ''}\">${x}</span>`)")
     && page.includes("readTime(sn.slice(1, -2).map(s => s.textContent).join(' '))"), 'le mail déplie tous ses paragraphes, et l’image reste le temps de les lire');
   assert.ok(D.OPENS.length === 1 && D.OPENS[0].at < D.PICKS[0].at && D.OPENS[0].prompt === 'Touche le mail pour l’ouvrir.', 'le mail s’ouvre avant le premier moment');
