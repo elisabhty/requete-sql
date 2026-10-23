@@ -876,7 +876,7 @@ const COURSES = [
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
       "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.9);", 'Chapitre 3 · Modéliser avec UML']},
   {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '5 min 34', notesAt: 224.15,
-    notes: /notes:\{t:326\.5,y:1389,card:\[64,292,1016,1094\],to:\[940,255\]\}/, table: 'ateliers',
+    notes: /notes:\{t:327\.05,y:1389,card:\[64,292,1016,1094\],to:\[940,255\]\}/, table: 'ateliers',
     bubble: 'Tu vas dessiner le plan de ta base, puis&nbsp;apprendre à le traduire en tables.',
     chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
     traps: ["const CLASSES = [['co', 'Coach', ['prenom', 'nom', 'email']], ['ca', 'Carte', ['seances']],",
@@ -1698,7 +1698,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   /* Les textes d’Elisa (réfs du 22 octobre), mot pour mot : « du côté de la classe X » dit où s’écrit une multiplicité, « relation » (pas « lien »)
      entre les tables ; 0..* corrige « 0.. » et « Atelier* ». */
   assert.equal(said('Chaque élément à gérer', 3), 'Chaque élément à gérer est représenté par une classe. Elle porte un nom et contient des attributs. Les attributs sont les informations qui la décrivent, comme le prénom, le nom et l’e-mail d’un client.');
-  assert.equal(said('La multiplicité indique', 3), 'La multiplicité indique combien d’éléments d’une classe peuvent être liés à un seul élément de l’autre. Par exemple, pour un coach, combien d’ateliers ? On écrit la réponse du côté de la classe Atelier.');
+  assert.equal(said('La multiplicité indique', 3), 'La multiplicité indique combien d’éléments d’une classe peuvent être liés à un seul élément de l’autre. Par exemple, combien d’ateliers un même coach peut-il animer ? On écrit la réponse du côté de la classe Atelier.');
   assert.equal(D.PICKS[1].prompt, 'Place les multiplicités 1 et 0..* aux bonnes extrémités de l’association « anime ».');
   assert.equal(D.PICKS[1].hint, 'Touche une multiplicité, puis la classe à côté de laquelle tu veux la placer. Tu peux aussi la faire glisser.');
   assert.equal(said('Chaque atelier est animé', 2), 'Chaque atelier est animé par un seul coach : on place 1 du côté de la classe Coach. Un coach peut animer zéro, un ou plusieurs ateliers : on place 0..* du côté de la classe Atelier.');
@@ -1750,7 +1750,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
     ['Elle se lit dans le sens du triangle', ["bump('#an-an', 46.3, 1.1); cue(46.3, 'tick', 0.5, 4);"], 46.3, 0.4],
     ['Les attributs sont les informations', ["lite('cl', 35.4, 0.7, 1.03);", "cue(35.4, 'tick', 0.5, 1);"], 35.4, 0.95],
     ['Les attributs sont les informations', ["pulse(`#cb-cl-${a}`, 36.5 + q * 0.45, 1); cue(36.5 + q * 0.45, 'tick', 0.5, q + 2);"], 36.5, 1.4],
-    ['Par exemple', ["lite('co', 60.9, 0.6); cue(60.9, 'tick', 0.5, 1);", "lite('at', 62.0, 0.6); cue(62.0, 'tick', 0.5, 3);"], 60.9, 1.95],
+    ['Par exemple', ["lite('at', 60.9, 0.6); cue(60.9, 'tick', 0.5, 1);", "lite('co', 62.0, 0.6); cue(62.0, 'tick', 0.5, 3);"], 60.9, 1.95],
     ['On écrit la réponse', ["pop('#ph-an', 64.7, 0.5);", "hide('#ph-an', 65.45, {y: 0, scale: 0.6}, 0.3);"], 64.7, 0.5],
     ['Chaque atelier est animé', ["lite('at', 69.2, 0.5); cue(69.2, 'tick', 0.5, 1);", "lite('co', 70.2, 0.5); cue(70.2, 'tick', 0.5, 3);", "bump('#mp-an-co', 70.5, 1.3); cue(70.5, 'pop', 0.6, 4);"], 69.2, 1.75],
     ['Un coach peut animer', ["lite('co', 71.9, 0.5); cue(71.9, 'tick', 0.5, 1);", "lite('at', 72.8, 0.5); cue(72.8, 'tick', 0.5, 3);", "bump('#mp-an-at', 73.3, 1.3); cue(73.3, 'pop', 0.6, 4);"], 71.9, 1.8],
