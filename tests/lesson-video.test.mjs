@@ -1102,7 +1102,20 @@ test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la 
     "const why=r.why||r.say||''", "wEl.innerHTML=lvNw(why); wEl.className='lv-pk-why '+(ok?'ok':'ko'); wEl.hidden=false;", "P.box.querySelector('.lv-pk-t').hidden=true;"])
     assert.ok(vd.includes(part), `verdict : ${part}`);
   assert.ok(html.includes('.lv-pk-hole{') && html.includes('.lv-pk-why.ok{') && html.includes('.lv-pk-why.ko{'), 'case jaune du prompt, correction verte ou rouge');
-  assert.ok(html.includes('.lv.is-pk .lv-bottom{visibility:hidden}') && html.includes('const a=lvPt(0,1496);'), 'le plateau couvre la légende et les commandes, jamais le résultat');
+  assert.ok(html.includes('.lv.is-pk .lv-bottom{visibility:hidden}'), 'le plateau cache les commandes');
+  /* Le plateau part du haut de la légende et couvre la légende restée affichée à l’arrêt (jusqu’à y = 1830), pas davantage :
+     au-delà, la carte suit sa question (aucun blanc), et remonte seulement si elle manque de place sous elle. */
+  const place = cut('function lvPkPlace(){', 'function lvPkClose(answered){');
+  assert.ok(place.includes('const a=lvPt(0,1496), z=lvPt(0,1830);') && place.includes('Math.min(z.y,lim)-a.y'),
+    'le plateau couvre la légende, jamais le résultat : haut de la légende (y = 1496), jusqu’à y = 1830');
+  assert.ok(place.includes("P.box.style.top=Math.max(0,Math.min(a.y,lim-card.offsetHeight)).toFixed(1)+'px'") && !place.includes('R.height-pb-10-a.y'),
+    'la carte suit son contenu : plus de hauteur forcée jusqu’en bas de l’écran, elle remonte seulement s’il lui manque de la place');
+  assert.ok(cut('function lvPkShow(i,p){', 'function lvPkValid(').includes('new ResizeObserver(lvPkPlace)') && cut('function lvPkClose(answered){', 'function lvReplay(){').includes('P.ro.disconnect()'),
+    'la carte se replace quand son contenu change (réponse, explication, bouton) ; l’observateur est libéré à la fermeture');
+  assert.ok(html.includes('.lv-pk-card>p:nth-last-child(1 of :not([hidden])){margin-bottom:0}'),
+    'le blanc du bas de la carte égale celui du haut : le dernier bloc de texte visible (consigne seule, indice, correction) n’a pas de marge dessous');
+  assert.ok(/\.lv-pk\.is-long \.lv-pk-opt\{[^}]*text-wrap:balance\}/.test(html) && /\.lv-pk\.is-sort \.lv-pk-opt\{[^}]*text-wrap:balance[^}]*\}/.test(html),
+    'réponses longues et étiquettes à ranger : les lignes s’équilibrent, jamais un mot seul sur la deuxième ligne');
   assert.ok(cut('function lvPkClose(answered){', 'function lvReplay(){').includes('IX.leave(P.i,!!answered)'), 'à la reprise, la page laisse la timeline reprendre la même image');
   assert.ok(html.includes("o['p'+i]={first:first?1:0,err:Math.max(0,err|0)}") && html.includes('.lv-pk-t code{'), 'premier essai gardé pour le score ; code du prompt en étiquette');
   const core = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
