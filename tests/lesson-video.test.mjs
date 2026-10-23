@@ -717,8 +717,8 @@ const COURSES = [
       '✓ 2 commandes pour le coursier', '<span class="c">Lyon ✕</span>', '"À ne pas confondre : 13 est l’identifiant de la commande, 1 celui de la cliente."',
       '"Première condition :<br>la commande n°13 appartient-elle<br>à la cliente Sophie Martin ?"', '"Deuxième condition :<br>Sophie Martin habite-t-elle à Paris ?<br>Oui, sa ville est Paris."',
       '<span class="bike" id="bike6"><span class="emo">🛵</span></span>', '<span class="lvr">✓ Livrée</span>']},
-  {id: 44, next: 45, titre: 'Quel JOIN choisir ?', page: 'quel-join-choisir.html', thumb: 'quel-join-choisir-thumb.jpg', duree: '3 min 45', notesAt: 218.5,
-    notes: /notes:\{t:216\.7,y:1396,card:\[64,292,1016,1101\],to:\[940,255\]\}/, table: 'clients',
+  {id: 44, next: 45, titre: 'Quel JOIN choisir ?', page: 'quel-join-choisir.html', thumb: 'quel-join-choisir-thumb.jpg', duree: '3 min 46', notesAt: 218.5,
+    notes: /notes:\{t:217\.5,y:1396,card:\[64,292,1016,1101\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Six situations de la vie courante&nbsp;:<br>à toi de choisir le bon <span class="ic">JOIN</span>.',
     chapters: ['Le cabinet des Tilleuls', 'L’aquarium de l’Atlas', 'La bibliothèque des Lumières', 'L’hôtel des Cimes', 'Le glacier parisien', 'L’agence Horizon', 'À retenir'],
     traps: ["const SAL = [[1, 'Nadia Benali', N], [2, 'Hugo Lefèvre', 1], [3, 'Inès Fabre', 2], [4, 'Théo Petit', 2]];",
@@ -849,8 +849,8 @@ const COURSES = [
       '<span class="b"><span class="glow" id="p4"><span class="kw">2 PRECEDING</span></span></span>', '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> date_commande</span>',
       '✕ Les deux commandes du 2 juillet ont le même cumul', '<div class="lim" id="lim6"><span>Palier&nbsp;: 700&nbsp;€</span></div>',
       '✓ Palier franchi le 1er&nbsp;août']},
-  {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '3 min 25', notesAt: 159.3,
-    notes: /notes:\{t:198\.0,y:1291,card:\[64,292,1016,996\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '3 min 28', notesAt: 159.3,
+    notes: /notes:\{t:201\.2,y:1291,card:\[64,292,1016,996\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Le fichier Excel des ateliers mélange tout&nbsp;:<br>à toi de le ranger en tables.',
     chapters: ['Le fichier Excel', 'Les copies', 'Supprimer, ajouter', 'Une table par sujet', 'Les tables remplies', 'À retenir'],
     traps: ["const INSCR = [[1, 1, '01/09', '2026-09-01'], [4, 1, '02/09', '2026-09-02'], [5, 2, '03/09', '2026-09-03'], [7, 3, '04/09', '2026-09-04'],",
@@ -860,8 +860,8 @@ const COURSES = [
       "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 129.8, from: 119.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}", "{at: 141.4, from: 135.95, kind: 'pick',",
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
-  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '5 min 01', notesAt: 167.9,
-    notes: /notes:\{t:294\.2,y:1193,card:\[64,292,1016,898\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '5 min 03', notesAt: 167.9,
+    notes: /notes:\{t:296\.1,y:1193,card:\[64,292,1016,898\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Tes tables sont prêtes&nbsp;:<br>à toi de les relier avec des clés.',
     chapters: ['Le problème', 'La clé primaire', 'La clé étrangère', '1 → N', 'N ↔ N', '1 ↔ 1', 'À retenir'],
     traps: ["const INSCR = [[1, 1, 1, '2026-09-01'], [2, 4, 1, '2026-09-02'], [3, 5, 2, '2026-09-03'], [4, 7, 3, '2026-09-04'],",
@@ -875,8 +875,8 @@ const COURSES = [
       "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
       "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.0);", 'Chapitre 3 · Modéliser avec UML']},
-  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '4 min 57', notesAt: 215.85,
-    notes: /notes:\{t:289\.5,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
+  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '4 min 59', notesAt: 215.85,
+    notes: /notes:\{t:291\.5,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
     bubble: 'Tu vas représenter la structure de la base avec un diagramme UML pour visualiser plus&nbsp;facilement les relations entre les tables.',
     chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
     traps: ["const CLASSES = [['co', 'Coach', ['prenom', 'nom', 'email']], ['ca', 'Carte', ['seances']],",
@@ -1238,7 +1238,7 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
 
 test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six moments sur l’image, clients de la base', async () => {
   const l56 = cut('guide({ id:56, titre:"Normaliser les inscriptions"', 'guide({ id:72,');
-  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'3 min 25',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'3 min 28',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/projet-normaliser.html'), 'utf8');
   const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
   assert.ok(a > 0 && b > a, 'données de la page localisées');
@@ -1308,7 +1308,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
 
 test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre 1 relié par des clés, chaque réponse vérifiée dans SQLite', async () => {
   const l72 = cut('guide({ id:72, titre:"Clés et relations"', 'guide({ id:81,');
-  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'5 min 01',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'5 min 03',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1342,7 +1342,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   const name = id => D.CLIENTS.find(c => c[0] === id).slice(1).join(' '), atl = id => D.ATELIERS.find(a => a[0] === id);
   const caps = D.CAPTIONS.map(c => c[2]).join('\n');
   /* La vidéo rappelle d’abord le contexte, puis ce que le chapitre 1 a produit. */
-  assert.ok(D.CAPTIONS[0][2].startsWith('NutriBoost lance des ateliers bien-être') && D.CAPTIONS[1][2] === 'Au chapitre 1, tu as réparti les informations du fichier Excel' && D.CAPTIONS[2][2] === 'dans trois tables :<br><code>coachs</code>, <code>ateliers</code> et <code>inscriptions</code>.', 'le contexte avant tout');
+  assert.ok(D.CAPTIONS[0][2].startsWith('NutriBoost lance des ateliers bien-être') && D.CAPTIONS[1][2] === 'Au chapitre 1, tu as réparti<br>les informations du fichier Excel<br>dans trois tables.' && D.CAPTIONS[2][2] === 'Ce sont les tables <code>coachs</code>,<br><code>ateliers</code> et <code>inscriptions</code>.', 'le contexte avant tout');
   /* Le problème : la table inscriptions ne contient que des dates ; la question arrive avec la ligne du 4 septembre et les deux « ? ». */
   /* Animations et sons des légendes du début : les trois tables s’allument à leur couleur quand elles sont nommées, toutes
      les dates s’allument, puis seule la ligne du 4 septembre ; le « ? » des puces devient une clé ; chaque id pulse quand la
@@ -1420,9 +1420,9 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
      qu’une seule valeur ; on place donc coach_id dans la table ateliers. Après le moment 4 : le coach_id de ces ateliers est l’id
      de Moussa Diallo, puis la règle. */
   assert.equal(siens.length, 2);
-  const why = ['Moussa anime deux ateliers : le ' + siens.join(' et le ') + '. Avec une colonne <code>atelier_id</code> dans la table coachs,',
-    'il faudrait inscrire ces deux identifiants dans la même case.', 'Impossible : une case ne doit contenir qu’une seule valeur.',
-    'Pour garder une seule valeur par case, on place plutôt <code>coach_id</code>', 'dans la <b>table ateliers</b> : chaque atelier indique ainsi le coach qui l’anime.'];
+  const why = ['Moussa anime deux ateliers :<br>le ' + siens.join(' et le ') + '. Imaginons une colonne<br><code>atelier_id</code> dans la table coachs.',
+    'Il faudrait inscrire ces deux<br>identifiants dans la même case.', 'Impossible : une case ne doit contenir qu’une seule valeur.',
+    'Pour garder une seule valeur par case,<br>on place plutôt <code>coach_id</code><br>dans la <b>table ateliers</b>.', 'Chaque atelier indique ainsi<br>le coach qui l’anime.'];
   const iw = D.CAPTIONS.findIndex(c => c[2] === why[0]);
   assert.ok(iw > 0 && D.CAPTIONS[iw - 1][2] === 'À toi !' && D.CAPTIONS[iw][0] > D.PICKS[2].at && why.every((w, k) => D.CAPTIONS[iw + k][2] === w) && D.CAPTIONS[iw + why.length][2] === 'À toi !',
     'juste après le moment 3, avant le moment 4 : pourquoi la clé ne va pas dans la table coachs');
@@ -1444,10 +1444,10 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
     && D.CAPTIONS.find(c => c[2].startsWith('Un coach peut animer plusieurs ateliers'))[0] <= 95.3, '1 → N : Moussa Diallo et ses ateliers, dès « Un coach peut animer plusieurs ateliers »');
   /* Le 1 → N dit en toutes lettres : un coach, plusieurs ateliers ; un atelier, un seul coach ; le N signifie « plusieurs ». La pastille
      « 1 → N · un à plusieurs » arrive avec la légende qui la nomme ; puis la règle. */
-  const one = ['Un coach peut animer plusieurs ateliers,', 'mais chaque atelier est animé par un seul coach.', 'C’est une relation « un à plusieurs », notée <b>1 → N</b> : le N signifie « plusieurs ».'];
+  const one = ['Un coach peut animer plusieurs ateliers,<br>mais chaque atelier est animé<br>par un seul coach.', 'C’est une relation « un à plusieurs », notée <b>1 → N</b> : le N signifie « plusieurs ».'];
   const i1 = D.CAPTIONS.findIndex(c => c[2] === one[0]);
-  assert.ok(i1 === cap4 + 1 && one.every((w, k) => D.CAPTIONS[i1 + k][2] === w) && D.CAPTIONS[i1 + 3][2].startsWith('La règle : dans une relation 1 → N'), '1 → N : la relation expliquée, puis la règle');
-  assert.ok(page.includes("pop('#tc-rel', 97.6, 0.6);") && D.CAPTIONS[i1 + 2][0] <= 97.6 && D.CAPTIONS[i1 + 1][1] < 97.6, 'la pastille 1 → N arrive avec sa légende');
+  assert.ok(i1 === cap4 + 1 && one.every((w, k) => D.CAPTIONS[i1 + k][2] === w) && D.CAPTIONS[i1 + 2][2].startsWith('La règle : dans une relation 1 → N'), '1 → N : la relation expliquée, puis la règle');
+  assert.ok(page.includes("pop('#tc-rel', 97.6, 0.6);") && D.CAPTIONS[i1 + 1][0] <= 97.6 && D.CAPTIONS[i1][1] < 97.6, 'la pastille 1 → N arrive avec sa légende');
   // Moment 5 : la nouvelle inscription de Sophie Martin, celle que demande son mail
   assert.deepEqual([name(D.NOUVELLE[1]), atl(D.NOUVELLE[2])[1]], ['Sophie Martin', 'Méditation'], 'la nouvelle inscription : Sophie Martin, à Méditation');
   assert.ok(D.MAILS[0][4].includes(`l’atelier ${atl(D.NOUVELLE[2])[1]} du ${+atl(D.NOUVELLE[2])[2].slice(8)} septembre`), 'le mail demande cet atelier, à sa date');
@@ -1461,7 +1461,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.ok(page.includes("readTime(sn.slice(1, -2).map(s => s.textContent).join(' '))"), 'le temps de lire tous les paragraphes du mail');
   /* 1 ↔ 1 : la contrainte UNIQUE sur client_id (son badge apparaît), ce qu’elle interdit, puis la deuxième carte de Sophie Martin,
      qui arrive et se fait refuser pendant la légende qui le dit. */
-  const uq = ['On ajoute la contrainte <code>UNIQUE</code> à la clé étrangère <code>client_id</code> :', 'un même client ne peut apparaître qu’une seule fois dans la <b>table cartes</b>.',
+  const uq = ['On ajoute la contrainte <code>UNIQUE</code> à la clé étrangère <code>client_id</code>.', 'Un même client ne peut ainsi apparaître qu’une seule fois dans la <b>table cartes</b>.',
     'Sophie ayant déjà une carte, l’ajout d’une deuxième est refusé.'];
   const iu = D.CAPTIONS.findIndex(c => c[2] === uq[0]);
   assert.ok(iu > 0 && uq.every((w, k) => D.CAPTIONS[iu + k][2] === w) && page.includes("pop('#uq', 140.2, 0.5);") && D.CAPTIONS[iu][0] <= 140.2
@@ -1469,8 +1469,8 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
     && D.CAPTIONS[iu + 2][0] <= 142.85 && D.CAPTIONS[iu + 2][1] >= 143.8 && D.DOUBLON[1] === D.CARTES[0][1], '1 ↔ 1 : la contrainte UNIQUE, puis la deuxième carte refusée');
   /* La réponse expliquée : une ligne dans inscriptions, avec l’identifiant de la cliente, celui de l’atelier (entourés à l’image,
      avec ce qu’ils désignent) et la date. */
-  const m5 = [`Pour inscrire ${D.CLIENTS.find(c => c[0] === D.NOUVELLE[1])[1]} à l’atelier ${atl(D.NOUVELLE[2])[1]}, on ajoute une ligne dans <code>inscriptions</code> :`,
-    `son identifiant (${D.NOUVELLE[1]}), celui de l’atelier (${D.NOUVELLE[2]}) et la date d’inscription.`];
+  const m5 = [`Pour inscrire ${D.CLIENTS.find(c => c[0] === D.NOUVELLE[1])[1]} à l’atelier ${atl(D.NOUVELLE[2])[1]}, on ajoute une ligne dans <code>inscriptions</code>.`,
+    `Elle contient l’identifiant<br>de ${D.CLIENTS.find(c => c[0] === D.NOUVELLE[1])[1]} (${D.NOUVELLE[1]}), celui de l’atelier (${D.NOUVELLE[2]})<br>et la date d’inscription.`];
   const i5 = D.CAPTIONS.findIndex(c => c[2] === m5[0]);
   assert.ok(i5 > 0 && D.CAPTIONS[i5 - 1][2] === 'À toi !' && D.CAPTIONS[i5][0] > D.PICKS[4].at && D.CAPTIONS[i5 + 1][2] === m5[1], 'moment 5 expliqué : la nouvelle ligne, ses deux identifiants et la date');
   assert.ok(page.includes('on(neuf.cl, 113.2);') && page.includes('on(neuf.at, 113.75);') && page.includes('off(neuf.at, 116.5);')
@@ -1535,13 +1535,13 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.equal(q("SELECT COUNT(*) FROM inscriptions JOIN ateliers ON ateliers.id = inscriptions.atelier_id WHERE ateliers.titre = 'Récupération'"), '[[3]]', '… et Récupération accueille trois clients (N ↔ N)');
   /* N ↔ N dit en toutes lettres, chaque moitié avec son exemple entouré (Sophie Martin, puis l’atelier Récupération), puis la relation
      nommée avec sa pastille. */
-  const nn = ['Un client peut participer à plusieurs ateliers,', 'et un atelier peut accueillir plusieurs clients :', 'c’est une relation<br>« plusieurs à plusieurs », notée <b>N ↔ N</b>.'];
+  const nn = ['Un client peut participer à plusieurs ateliers.', 'Un atelier peut accueillir plusieurs clients.', 'C’est une relation<br>« plusieurs à plusieurs », notée <b>N ↔ N</b>.'];
   const inn = D.CAPTIONS.findIndex(c => c[2] === nn[0]);
   assert.ok(inn > 0 && nn.every((w, k) => D.CAPTIONS[inn + k][2] === w) && D.CAPTIONS[inn][0] <= 117.0 && D.CAPTIONS[inn + 1][0] <= 119.6 && D.CAPTIONS[inn + 2][0] <= 123.2
     && page.includes('on(sophie, 117.0);') && page.includes('on(recup, 119.6);') && page.includes("pop('#tb-rel', 123.2, 0.6);"), 'N ↔ N : chaque légende avec ce qu’elle montre');
   /* Puis la table d’association (son titre souligné), l’identifiant d’un client et celui d’un atelier entourés dans chaque ligne, et ses
      deux clés étrangères (leurs colonnes soulignées). Les mots d’Elisa. */
-  const ta = ['Une <b>table d’association</b> enregistre ces participations :', 'chaque ligne contient l’identifiant d’un client et celui d’un atelier.', 'Ces deux identifiants<br>sont des <b>clés étrangères</b>.'];
+  const ta = ['Une <b>table d’association</b> enregistre ces participations.', 'Chaque ligne contient l’identifiant d’un client et celui d’un atelier.', 'Ces deux identifiants<br>sont des <b>clés étrangères</b>.'];
   assert.ok(ta.every((w, k) => D.CAPTIONS[inn + 3 + k][2] === w) && page.includes("bump('#tb-in .h', 125.2, 1.06);")
     && page.includes("INSCR.concat([NOUVELLE]).forEach((x, k) => { on([ring('tb-in', x[0], 1), ring('tb-in', x[0], 2)], 126.3 + k * 0.08, 0.25);")
     && page.includes("bump('#tb-in .hd .c1', 127.6, 1.12); bump('#tb-in .hd .c2', 127.85, 1.12);"), 'la table d’association, chaque ligne avec ses deux identifiants, puis ses deux clés étrangères');
@@ -1570,7 +1570,7 @@ test('« Identifiant », jamais « numéro », pour la valeur d’une clé : vid
 
 test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des tables du chapitre 2, chaque multiplicité et chaque traduction vérifiées', async () => {
   const l81 = cut('guide({ id:81, titre:"Modéliser avec UML"', 'guide({ id:61,');
-  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'4 min 57',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'4 min 59',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1621,21 +1621,22 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   const flat = i => D.CAPTIONS[i][2].replace(/<br>/g, ' ').replace(/<[^>]+>/g, '');
   const idx = start => { const i = D.CAPTIONS.findIndex((c, k) => flat(k).startsWith(start)); assert.ok(i >= 0, `légende « ${start} »`); return i; };
   const said = (start, n) => Array.from({length: n}, (_, k) => flat(idx(start) + k)).join(' ');
-  assert.ok(said('L’atelier Yoga du matin', 2) === 'L’atelier Yoga du matin n’a encore aucun inscrit, l’atelier Récupération en a trois : on écrit 0..* du côté de la classe Client.'
+  assert.ok(said('L’atelier Yoga du matin', 2) === 'L’atelier Yoga du matin n’a encore aucun inscrit, l’atelier Récupération en a trois. On écrit donc 0..* du côté de la classe Client.'
     && count(ins, 2, 1) === 3 && count(ins, 2, 5) === 0, 'la légende cite les bons ateliers');
-  /* L’ouverture : la phrase demandée, mot pour mot, en trois légendes qui se suivent ; chaque partie a son geste pendant sa légende :
-     les cinq tables s’allument, les quatre clés étrangères s’entourent, puis les trois tables qu’elles désignent s’allument. */
-  const io = D.CAPTIONS.findIndex(c => c[2] === 'Pour comprendre comment<br>les tables sont reliées,');
-  assert.ok(io >= 0 && D.CAPTIONS.slice(io, io + 3).map(c => c[2].replace(/<br>/g, ' ')).join(' ')
-    === 'Pour comprendre comment les tables sont reliées, il faut repérer leurs clés étrangères et identifier les tables auxquelles elles renvoient.', 'la phrase d’ouverture, mot pour mot');
-  assert.ok(D.CAPTIONS[io][1] < D.CAPTIONS[io + 1][0] && D.CAPTIONS[io + 1][1] < D.CAPTIONS[io + 2][0], 'trois légendes qui se suivent, sans se chevaucher');
+  /* L’ouverture : la phrase demandée, en deux légendes qui se suivent (une phrase complète par bulle : « Il faut aussi » relie la seconde à la première) ;
+     chaque partie a son geste pendant sa légende : les cinq tables s’allument et les quatre clés étrangères s’entourent pendant la première,
+     puis les trois tables qu’elles désignent s’allument pendant la seconde. */
+  const io = D.CAPTIONS.findIndex(c => c[2] === 'Pour comprendre comment les tables<br>sont reliées, il faut repérer<br>leurs clés étrangères.');
+  assert.ok(io >= 0 && D.CAPTIONS.slice(io, io + 2).map(c => c[2].replace(/<br>/g, ' ')).join(' ')
+    === 'Pour comprendre comment les tables sont reliées, il faut repérer leurs clés étrangères. Il faut aussi identifier les tables auxquelles elles renvoient.', 'la phrase d’ouverture, en deux phrases complètes');
+  assert.ok(D.CAPTIONS[io][1] < D.CAPTIONS[io + 1][0], 'deux légendes qui se suivent, sans se chevaucher');
   const fkt = D.TABLES2.flatMap(t => t[3].filter(isFk).map(c => c[1]));
   assert.deepEqual(fkt, ['co', 'cl', 'at', 'cl'], 'les quatre clés étrangères, dans l’ordre d’affichage, et la table que chacune désigne');
   assert.equal(new Set(fkt).size, 3, 'trois tables désignées : coachs, clients, ateliers');
   assert.ok(page.includes("TABLES2.forEach(([k], q) => { tint(k, 11.22 + q * 0.14); untint(k, 11.5 + q * 0.14);") && D.CAPTIONS[io][0] < 11.22 && 11.22 < D.CAPTIONS[io][1]
-    && page.includes("bump(f, 13.02 + q * 0.2, 1.12); halo(f, FKT[q], 13.02 + q * 0.2);") && D.CAPTIONS[io + 1][0] < 13.02 && 13.02 < D.CAPTIONS[io + 1][1]
-    && page.includes("const t = 14.7 + q * 0.22, k = FKT[q];") && D.CAPTIONS[io + 2][0] < 14.7 && 14.7 < D.CAPTIONS[io + 2][1],
-    'les tables, les clés étrangères, puis les tables désignées s’animent chacune pendant sa légende');
+    && page.includes("bump(f, 13.02 + q * 0.2, 1.12); halo(f, FKT[q], 13.02 + q * 0.2);") && D.CAPTIONS[io][0] < 13.02 && 13.02 + 3 * 0.2 < D.CAPTIONS[io][1]
+    && page.includes("const t = 14.7 + q * 0.22, k = FKT[q];") && D.CAPTIONS[io + 1][0] < 14.7 && 14.7 + 3 * 0.22 < D.CAPTIONS[io + 1][1],
+    'les tables et les clés étrangères s’animent pendant la première légende, les tables désignées pendant la seconde');
   assert.ok(page.includes('.sch{left:64px;width:952px;top:236px;padding:14px 0;overflow:hidden}'), 'le fond d’une table allumée suit les angles arrondis de la carte');
   /* Le diagramme arrive après le mail de Karim. Chaque texte a son rôle et ne répète pas les autres : la bulle dit la mission et l’intérêt
      du diagramme (sans nommer Karim, que le mail seul présente) ; le mail dit qui demande, pourquoi, et ce qu’il y cherche ; la légende
@@ -1665,13 +1666,13 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
     && page.includes('.hlo{position:absolute;left:0;right:0;top:0;bottom:0;border-radius:32px;box-shadow:inset 0 0 0 7px var(--c);'), 'le liseré de couleur et le rebond de la classe');
   /* Les textes d’Elisa (réfs du 22 octobre), mot pour mot : « du côté de la classe X » dit où s’écrit une multiplicité, « relation » (pas « lien »)
      entre les tables ; 0..* corrige « 0.. » et « Atelier* ». */
-  assert.equal(said('Chaque élément à gérer', 2), 'Chaque élément à gérer est représenté par une classe. Elle porte un nom et contient des attributs : les informations qui le décrivent, comme le prénom, le nom et l’e-mail d’un client.');
+  assert.equal(said('Chaque élément à gérer', 2), 'Chaque élément à gérer est représenté par une classe. Elle porte un nom et contient des attributs. Les attributs sont les informations qui le décrivent, comme le prénom, le nom et l’e-mail d’un client.');
   assert.equal(said('La multiplicité indique', 2), 'La multiplicité indique combien d’éléments d’une classe peuvent être liés à un seul élément de l’autre. Par exemple, pour un coach, combien d’ateliers ? On écrit la réponse du côté de la classe Atelier.');
   assert.equal(D.PICKS[1].prompt, 'Place les multiplicités 1 et 0..* aux bonnes extrémités de l’association « anime ».');
   assert.equal(D.PICKS[1].hint, 'Touche une multiplicité, puis la classe à côté de laquelle tu veux la placer. Tu peux aussi la faire glisser.');
   assert.equal(said('Chaque atelier est animé', 2), 'Chaque atelier est animé par un seul coach : on place 1 du côté de la classe Coach. Un coach peut animer zéro, un ou plusieurs ateliers : on place 0..* du côté de la classe Atelier.');
   assert.equal(flat(idx('Chaque atelier est animé') + 2), 'Pour s’inscrit à : un client suit zéro, un ou plusieurs ateliers, donc 0..* du côté de la classe Atelier.');
-  assert.equal(said('La date d’inscription', 3), 'La date d’inscription indique quand un client s’est inscrit à un atelier précis. On la place dans Inscription, une classe d’association reliée par des pointillés à la relation entre Client et Atelier.');
+  assert.equal(said('La date d’inscription', 3), 'La date d’inscription indique quand un client s’est inscrit à un atelier précis. On la place dans Inscription, une classe d’association. Elle est reliée par des pointillés à la relation entre Client et Atelier.');
   assert.equal(said('Le diagramme est maintenant complet', 2), 'Le diagramme est maintenant complet : il présente les informations à conserver et les relations entre les classes. Karim pourra s’appuyer dessus pour créer la base de données.');
   /* Chapitre 5 (texte d’Elisa du 23 octobre) : une phrase complète par bulle, mot pour mot ; « À toi ! » s’intercale avant la dernière bulle. */
   const S5 = ['Chaque classe devient une table, et ses attributs deviennent des colonnes.', 'Ici, on ajoute une clé primaire id pour identifier chaque ligne de façon unique.',
@@ -1705,8 +1706,8 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
     ['Chaque élément à gérer', ["['co', 'ca', 'at', 'cl'].forEach(k => lite(k, 28.8, 0.55));", "cue(28.8, 'pop', 0.6, 2);"], 28.8, 0.8],
     ['Chaque élément à gérer', ["bump(`#cb-${k} .cn`, 31.3 + q * 0.25, 1.12); cue(31.3 + q * 0.25, 'tick', 0.45, q);"], 31.3, 1.15],
     ['Chaque élément à gérer', ["$$('#sb .cls:not(.acl) .ar:not(.ini)').forEach((r, q) => pulse(r, 32.45 + q * 0.03, 1));", "cue(32.45, 'tick', 0.5, 3); cue(32.65, 'tick', 0.5, 5);"], 32.45, 0.8],
-    ['les informations qui le décrivent', ["lite('cl', 35.2, 0.7, 1.03);", "cue(35.2, 'tick', 0.5, 1);"], 35.2, 0.95],
-    ['les informations qui le décrivent', ["pulse(`#cb-cl-${a}`, 36.0 + q * 0.6, 1); cue(36.0 + q * 0.6, 'tick', 0.5, q + 2);"], 36.0, 1.7],
+    ['Les attributs sont les informations', ["lite('cl', 35.4, 0.7, 1.03);", "cue(35.4, 'tick', 0.5, 1);"], 35.4, 0.95],
+    ['Les attributs sont les informations', ["pulse(`#cb-cl-${a}`, 36.5 + q * 0.45, 1); cue(36.5 + q * 0.45, 'tick', 0.5, q + 2);"], 36.5, 1.4],
     ['Par exemple', ["lite('co', 60.9, 0.6); cue(60.9, 'tick', 0.5, 1);", "lite('at', 62.0, 0.6); cue(62.0, 'tick', 0.5, 3);"], 60.9, 1.95],
     ['Par exemple', ["pop('#ph-an', 63.9, 0.5);", "hide('#ph-an', 65.0, {y: 0, scale: 0.6}, 0.3);"], 63.9, 1.4],
     ['Chaque atelier est animé', ["lite('at', 69.2, 0.5); cue(69.2, 'tick', 0.5, 1);", "lite('co', 70.2, 0.5); cue(70.2, 'tick', 0.5, 3);", "bump('#mp-an-co', 70.5, 1.3); cue(70.5, 'pop', 0.6, 4);"], 69.2, 1.75],
@@ -1714,11 +1715,11 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
     ['Pour s’inscrit à', ["glow('#ln-in', 74.9); bump('#an-in', 74.9, 1.1); cue(74.9, 'tick', 0.5, 2);", "lite('cl', 75.8, 0.6); cue(75.8, 'tick', 0.5, 1);", "lite('at', 77.2, 0.6); cue(77.2, 'tick', 0.5, 3);", "pop('#mp-in-at', 78.6, 0.5);"], 74.9, 4.2],
     ['L’atelier Yoga du matin', ["lite('at', 83.4, 0.7); cue(83.4, 'tick', 0.5, 1);"], 83.4, 0.95],
     ['L’atelier Yoga du matin', ["lite('cl', 85.2, 2.1); cue(85.2, 'tick', 0.5, 3);"], 85.2, 0.15],
-    ['on écrit 0..*', ["bump('#mp-in-cl', 87.5, 1.3); cue(87.5, 'pop', 0.6, 4);"], 87.5, 0.4],
+    ['On écrit donc 0..*', ["bump('#mp-in-cl', 87.5, 1.3); cue(87.5, 'pop', 0.6, 4);"], 87.5, 0.4],
     ['La date d’inscription', ["glow('#ln-in', 89.3); cue(89.3, 'tick', 0.5, 2);"], 89.3, 0.4],
     ['La date d’inscription', ["lite('cl', 89.6, 1.5); lite('at', 89.6, 1.5); cue(89.6, 'tick', 0.5, 1);"], 89.6, 0.2],
     ['On la place dans Inscription', ["show('#ab', 91.6, {y: 30, scale: 0.92}, 0.5, 'back.out(1.6)'); cue(91.6, 'pop', 0.55, 4);", "tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25}, 92.2);", "cue(92.2, 'tick', 0.5, 4);"], 91.6, 0.9],
-    ['reliée par des pointillés', ["draw('#ln-cx', 93.55, 0.35);", "glow('#ln-in', 93.95); bump('#an-in', 93.95, 1.1); cue(93.95, 'tick', 0.5, 2);"], 93.55, 0.85],
+    ['Elle est reliée par des pointillés', ["draw('#ln-cx', 93.55, 0.35);", "glow('#ln-in', 93.95); bump('#an-in', 93.95, 1.1); cue(93.95, 'tick', 0.5, 2);"], 93.55, 0.85],
     ['Le diagramme est maintenant complet', ["], 101.5, 1.03); cue(101.5, 'stamp', 0.6);"], 101.5, 0.4],
     ['Le diagramme est maintenant complet', ["$$('#sb .ar:not(.ini)').forEach((r, q) => pulse(r, 102.4 + q * 0.04, 1));", "cue(102.4, 'tick', 0.5, 3); cue(102.6, 'tick', 0.5, 5);"], 102.4, 0.95],
     ['Le diagramme est maintenant complet', ["{stroke: '#6A4DF4', strokeWidth: 8, duration: 0.25, ease: 'power1.inOut'}, 103.6);", "bump(['#an-an', '#an-in', '#an-po'], 103.6, 1.1); cue(103.6, 'tick', 0.5, 2); cue(103.75, 'tick', 0.5, 4);"], 103.6, 0.4],
@@ -1900,6 +1901,25 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.equal(D.SHOP_ASSOCS[3][4], '0..1'); assert.equal(D.SHOP_ASSOCS[4][6], '1');
   for (const c of T.cl.cols.filter(c => c !== '…')) assert.equal(q(`SELECT COUNT(*) FROM pragma_table_info('clients') WHERE name = '${c}'`), '[[[1]]]', `clients.${c} : une colonne de la base`);
   db.close();
+});
+
+test('chapitres 1 à 3 et « Quel JOIN choisir ? » : une phrase complète par bulle, jamais une phrase coupée entre deux légendes', () => {
+  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'quel-join-choisir.html']) {
+    const page = fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8');
+    const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
+    assert.ok(a > 0 && b > a, `données de ${f} localisées`);
+    const ctx = vm.createContext({APP: true});
+    vm.runInContext(page.slice(a, b) + ';this.C = CAPTIONS;', ctx);
+    const caps = JSON.parse(JSON.stringify(ctx.C));
+    assert.ok(caps.length > 20, `${f} : ses légendes`);
+    caps.forEach(([, , t], k) => {
+      const txt = t.replace(/<br>/g, ' ').replace(/<[^>]+>/g, '').trim();
+      /* Chaque bulle se lit seule : elle commence comme une phrase (majuscule, chiffre, guillemet ; une minuscule seulement pour un nom de colonne ou
+         de table en code, comme <code>medecin_id</code>) et finit comme une phrase (point, ! ? ou guillemet fermant). */
+      assert.ok(/^[A-ZÀ-ÖØ-Þ0-9«]/.test(txt) || /^(<b[^>]*>)?<code>/.test(t), `${f} · légende ${k + 1} : une phrase qui commence (« ${txt.slice(0, 50)} »)`);
+      assert.ok(/[.!?»]$/.test(txt), `${f} · légende ${k + 1} : une phrase qui finit (« …${txt.slice(-50)} »)`);
+    });
+  }
 });
 
 test('légendes : une 4e valeur [début, fin, texte, 4] autorise quatre lignes, la carte monte le temps de cette légende, et le contrôle de mise en page la respecte', () => {
@@ -2205,7 +2225,7 @@ test('moments « À toi » : la légende annonce le moment sans répéter la con
 
 test('leçon seule (Quel JOIN choisir ?) : la vidéo interactive valide la leçon, sans exercice, quiz ni révision', () => {
   const l44 = cut('guide({ id:44, titre:"Quel JOIN choisir ?"', 'guide({ id:45,');
-  assert.ok(l44.includes('leconSeule:true,') && l44.includes(",duree:'3 min 45',moments:9,"), 'leçon 44 : leçon seule, 9 moments');
+  assert.ok(l44.includes('leconSeule:true,') && l44.includes(",duree:'3 min 46',moments:9,"), 'leçon 44 : leçon seule, 9 moments');
   assert.ok(html.includes("'joinRecap','leconSeule','exoNeeds','video']"), 'drapeau copié par guide()');
   assert.ok(html.includes('function dueList(){ return allLessons.filter(l=>isDue(l.id)&&!l.leconSeule); }'), 'pas de révision « De mémoire » sans exercice');
   assert.ok(html.includes("if(current.leconSeule)return [{i:0,l:'Leçon'") && html.includes("if(leconSeule(id))return !!(state.lessons[id]&&state.lessons[id].done);"), 'une seule étape : la leçon');
