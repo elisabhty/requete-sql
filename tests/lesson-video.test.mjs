@@ -875,19 +875,19 @@ const COURSES = [
       "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
       "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.0);", 'Chapitre 3 · Modéliser avec UML']},
-  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '4 min 58', notesAt: 215.85,
-    notes: /notes:\{t:291\.0,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
+  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '4 min 57', notesAt: 215.85,
+    notes: /notes:\{t:289\.5,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
     bubble: 'Tu vas représenter la structure de la base avec un diagramme UML pour visualiser plus&nbsp;facilement les relations entre les tables.',
     chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
     traps: ["const CLASSES = [['co', 'Coach', ['prenom', 'nom', 'email']], ['ca', 'Carte', ['seances']],",
       "const ASSOCS = [['an', 'anime', '▾', 'co', '1', 'at', '0..*'], ['in', 's’inscrit à', '◂', 'cl', '0..*', 'at', '0..*'],",
       "const ACLASS = ['Inscription', ['date_inscription']];",
       // Les six moments : le trait de l’association, les multiplicités d’anime, celle de Client, celle qui interdit deux cartes,
-      // les colonnes de la table inscriptions, les deux clés étrangères du diagramme de la boutique
+      // les colonnes de la table inscriptions, les quatre classes à placer dans le diagramme de toute la boutique
       "{at: 41.8, from: 27.5, kind: 'pick', text: true,", "{label: 'Un trait entre Coach et Atelier, nommé «\\u00a0anime\\u00a0»', ok: true},", "{at: 68.1, from: 53.7, kind: 'sort',",
       "{at: 82.7, from: 74.4, kind: 'pick',", "{label: '0..*', ok: true}]},", "{at: 109.1, from: 100.8, kind: 'tap', need: 1,", "if (a === 'po-ca') {",
-      "{at: 176.55, from: 168.1, kind: 'pick', text: true,", "{label: 'id, client_id, atelier_id, date_inscription', ok: true, why: 'Chaque ligne indique quel client s’est inscrit à quel atelier, et à quelle date. La colonne <code>id</code> identifie cette inscription.'},", "{at: 198.55, from: 190.15, kind: 'tap', need: 2,",
-      "const SHOP_ASSOCS = [['pa', 'passe', '▾', 'cl', '0..1', 'co', '0..*'], ['ce', 'concerne', '▾', 'co', '0..*', 'pr', '1']];",
+      "{at: 176.55, from: 168.1, kind: 'pick', text: true,", "{label: 'id, client_id, atelier_id, date_inscription', ok: true, why: 'Chaque ligne indique quel client s’est inscrit à quel atelier, et à quelle date. La colonne <code>id</code> identifie cette inscription.'},", "{at: 198.55, from: 190.15, kind: 'sort',",
+      "const SHOP_ASSOCS = ASSOCS.concat([['pa', 'passe', '▾', 'cl', '0..1', 'cm', '0..*'], ['ce', 'concerne', '◂', 'cm', '0..*', 'pr', '1']]);",
       '<line id="ln-an"/><line id="ln-po"/><line id="ln-in"/><line id="ln-cx" class="dash"/>', "tl.to('#sb .mp:not(.ask) .mn', {opacity: 0.28,",
       'Prochaine leçon · CREATE TABLE']},
 ];
@@ -1570,7 +1570,7 @@ test('« Identifiant », jamais « numéro », pour la valeur d’une clé : vid
 
 test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des tables du chapitre 2, chaque multiplicité et chaque traduction vérifiées', async () => {
   const l81 = cut('guide({ id:81, titre:"Modéliser avec UML"', 'guide({ id:61,');
-  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'4 min 58',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'4 min 57',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1579,7 +1579,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
     vm.runInContext(page.slice(a, b) + `;this.D = {${names}};`, ctx);
     return [page, JSON.parse(JSON.stringify(ctx.D))];
   };
-  const [page, D] = load('projet-uml.html', 'TABLES2, CLASSES, ASSOCS, ACLASS, TRAD, SHOP, SHOP_ASSOCS, FKS, PLACE, CHAPTERS, CAPTIONS, PICKS, MAILS, OPENS');
+  const [page, D] = load('projet-uml.html', 'TABLES2, CLASSES, ASSOCS, ACLASS, TRAD, SHOP, SHOP_ASSOCS, FIND, PLACE, CHAPTERS, CAPTIONS, PICKS, MAILS, OPENS');
   const [ch2, C2] = load('projet-cles.html', 'COACHS, ATELIERS, CLIENTS, INSCR, NOUVELLE, CARTES, DOUBLON');
   const [, C1] = load('projet-normaliser.html', 'COACHS');
   const T = Object.fromEntries(D.TABLES2.map(([k, , name, cols]) => [k, {name, cols}]));
@@ -1770,7 +1770,17 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
     ['On crée donc la table inscriptions', ["tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25, yoyo: true, repeat: 1}, 181.05); cue(181.05, 'pop', 0.6, 4);"], 181.05, 0.5],
     ['On crée donc la table inscriptions', ["bump('#ab', 182.3, 1.04); cue(182.3, 'stamp', 0.6);"], 182.3, 0.4],
     ['Ses deux clés étrangères', ["tl.to(['#ib-r1 .hl', '#ib-r2 .hl'], {opacity: 1, duration: 0.25, yoyo: true, repeat: 3}, 184.75);"], 184.75, 1.0],
-    ['Ses deux clés étrangères', ["tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25, yoyo: true, repeat: 3}, 186.75);"], 186.75, 1.0]
+    ['Ses deux clés étrangères', ["tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25, yoyo: true, repeat: 3}, 186.75);"], 186.75, 1.0],
+    // La boutique entière : les classes arrivent, puis chaque association (trait, nom, multiplicités) ; la légende suivante lit passe et concerne
+    ['Les règles valent pour tout diagramme', ["['#sh-co', '#sh-at', '#sh-in', '#qm-cl', '#qm-ca', '#qm-cm', '#qm-pr'].forEach((q, k) => { const t = 190.8 + k * 0.15;"], 190.8, 1.35],
+    ['Les règles valent pour tout diagramme', ["const t = 192.0 + q * 0.5;", "draw('#ls-' + k, t, 0.4); show('#sn-' + k, t + 0.3, {y: 12}, 0.35);", "cue(t + 0.45, 'pop', 0.6, q);"], 192.0, 2.93],
+    ['Les règles valent pour tout diagramme', ["draw('#ls-cx', 192.95, 0.3);"], 192.95, 0.3],
+    ['Un client passe des commandes', ["lite('cl', 199.4, 0.5, 1.05, 'sh'); cue(199.4, 'tick', 0.5, 1);"], 199.4, 0.75],
+    ['Un client passe des commandes', ["glow('#ls-pa', 199.9); bump('#sn-pa', 199.9, 1.1); cue(199.9, 'tick', 0.5, 2);"], 199.9, 0.4],
+    ['Un client passe des commandes', ["lite('cm', 200.3, 0.5, 1.05, 'sh'); cue(200.3, 'tick', 0.5, 3);"], 200.3, 0.75],
+    ['Un client passe des commandes', ["lite('cm', 201.6, 0.5, 1.05, 'sh'); cue(201.6, 'tick', 0.5, 1);"], 201.6, 0.75],
+    ['Un client passe des commandes', ["glow('#ls-ce', 202.1); bump('#sn-ce', 202.1, 1.1); cue(202.1, 'tick', 0.5, 2);"], 202.1, 0.4],
+    ['Un client passe des commandes', ["lite('pr', 202.6, 0.5, 1.05, 'sh'); cue(202.6, 'tick', 0.5, 4);"], 202.6, 0.75]
   ];
   for (const [start, code, t, d] of BEATS) {
     for (const c of code) assert.ok(page.includes(c), `geste de « ${start} » : ${c}`);
@@ -1791,7 +1801,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
     && page.includes("$('#rel').style.top = (cl.y + cl.h + 52 + 9 + 40) + 'px';"), 'les trois sortes de relations, sous les tables, avec leur liseré');
   assert.ok(page.includes('Une <b>multiplicité</b> s’écrit du côté de la classe<br>qu’elle compte : 1, 0..1, 0..* ou 1..*.'), 'le récapitulatif reprend « du côté de la classe »');
   /* Les six moments */
-  assert.deepEqual(D.PICKS.map(p => p.kind), ['pick', 'sort', 'pick', 'tap', 'pick', 'tap'], 'choisir, placer, toucher ; jamais deux fois de suite le même geste');
+  assert.deepEqual(D.PICKS.map(p => p.kind), ['pick', 'sort', 'pick', 'tap', 'pick', 'sort'], 'choisir, placer, choisir, toucher, choisir, placer ; jamais deux fois de suite le même geste');
   assert.ok(D.PICKS.filter(p => p.kind === 'tap').every(p => /^Touche /.test(p.prompt)), 'chaque moment à toucher dit qu’il faut toucher l’image');
   for (const p of D.PICKS.filter(x => x.kind === 'pick')) {
     assert.equal(p.options.filter(o => o.ok).length, 1, `${p.prompt} : une seule bonne réponse`);
@@ -1822,17 +1832,47 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.equal(D.PICKS[4].options.find(o => o.ok).why.replace(/<\/?code>/g, ''), 'Chaque ligne indique quel client s’est inscrit à quel atelier, et à quelle date. La colonne id identifie cette inscription.');
   assert.ok(D.PICKS[4].options.find(o => o.ok).why.includes('La colonne <code>id</code> identifie'), 'moment 5 : la colonne id est en code');
   assert.ok(D.PICKS[4].options.filter(o => !o.ok).every(o => o.why && !/<code>/.test(o.why)), 'moment 5 : chaque mauvaise réponse est expliquée, en texte courant');
-  assert.deepEqual(D.PICKS.filter(p => p.kind === 'sort').map(p => p.next), ['{x} : touche maintenant la classe à côté de laquelle tu veux la placer.'], 'une ligne d’aide propre au moment à placer');
-  /* Moment 6 : le diagramme de la boutique ; la règle du maximum place ses deux clés étrangères dans commandes. Ce n’est plus
-     un classement en trois cases : celui-là est au chapitre 2. */
-  const sides = D.SHOP_ASSOCS.map(([, , , a, ma, b, mb]) => max(ma) === '*' ? a : b);
-  assert.deepEqual(sides, ['co', 'co'], 'les deux 0..* sont du côté de Commande');
-  const okFks = D.FKS.filter(f => f[3]);
-  assert.deepEqual(okFks.map(f => f[0]), ['commandes', 'commandes'], 'les bonnes réponses sont dans la table commandes');
-  assert.deepEqual(okFks.map(f => f[2]).sort(), D.SHOP_ASSOCS.map(([, , , a, , b]) => a === 'co' ? b : a).sort(), 'une clé vers chaque classe reliée à Commande');
-  assert.ok(D.FKS.every(f => f[3] || f[4]), 'chaque mauvaise clé est expliquée');
-  assert.equal(D.PICKS[5].need, okFks.length, 'autant de clés à toucher que de bonnes réponses');
-  assert.ok(caps.includes('Commande porte les deux 0..* : elle reçoit <code>client_id</code> et <code>produit_id</code>, comme la table commandes de la base.'), 'la légende qui suit le moment 6');
+  assert.deepEqual(D.PICKS.filter(p => p.kind === 'sort').map(p => p.next), ['{x} : touche maintenant la classe à côté de laquelle tu veux la placer.', '{x} : touche maintenant son emplacement dans le diagramme.'], 'une ligne d’aide propre à chaque moment à placer');
+  /* Moment 6 (texte d’Elisa du 23 octobre, 09:29) : le diagramme de toute la boutique. Trois classes gardent leur nom (Coach, Atelier, Inscription) ;
+     les quatre autres (Client, Carte, Commande, Produit) sont des emplacements vides que l’élève retrouve en lisant les associations, et remplit
+     en glissant les étiquettes. Passe et concerne sont les deux associations de plus, celles de la base de l’app. */
+  assert.deepEqual(D.SHOP.map(s => s[1]), ['Coach', 'Atelier', 'Carte', 'Client', 'Commande', 'Produit'], 'toute la boutique : les six classes, plus Inscription (classe d’association)');
+  assert.deepEqual(D.SHOP_ASSOCS.slice(0, 3), D.ASSOCS, 'les trois associations du chapitre figurent à l’identique dans la boutique');
+  assert.deepEqual(D.SHOP_ASSOCS.slice(3).map(a => a[1]), ['passe', 'concerne'], 'deux associations de plus : passe et concerne');
+  assert.deepEqual([...new Set(D.SHOP_ASSOCS.flatMap(a => [a[3], a[5]]))].sort(), D.SHOP.map(s => s[0]).sort(), 'chaque classe de la boutique est au bout d’une association');
+  const sides = D.SHOP_ASSOCS.slice(3).map(([, , , a, ma, b, mb]) => max(ma) === '*' ? a : b);
+  assert.deepEqual(sides, ['cm', 'cm'], 'les deux 0..* de passe et de concerne sont du côté de Commande');
+  const shopName = Object.fromEntries(D.SHOP);
+  assert.deepEqual(D.FIND.map(f => f[1]), ['Produit', 'Client', 'Commande', 'Carte'], 'les quatre étiquettes, Produit et Client d’abord (l’ordre d’Elisa)');
+  assert.deepEqual(D.FIND.map(f => f[0]).sort(), ['ca', 'cl', 'cm', 'pr'], 'quatre classes à retrouver ; Coach, Atelier et Inscription gardent leur nom');
+  for (const [k, name, a, why] of D.FIND) {
+    const as = D.SHOP_ASSOCS.find(x => x[0] === a);
+    assert.equal(name, shopName[k], `${k} : l’étiquette porte le nom de sa classe`);
+    assert.ok(as && (as[3] === k || as[5] === k), `${name} : l’association « ${as && as[1]} » désigne bien cette classe`);
+    assert.ok(why.includes(as[1]) && why.endsWith('.'), `${name} : la correction dit l’association en toutes lettres (« ${as[1]} ») sans donner la place`);
+  }
+  assert.deepEqual(D.PICKS[5].options.map(o => o.label), D.FIND.map(f => f[1]), 'une étiquette par classe à retrouver');
+  assert.ok(D.PICKS[5].options.every(o => !o.ok && !o.why), 'le moment 6 se juge à chaque geste (IX.act), pas sur une réponse');
+  assert.equal(D.PICKS[5].prompt, 'Place chaque étiquette sur sa classe, en lisant les associations.');
+  assert.equal(D.PICKS[5].hint, 'Touche une étiquette, puis son emplacement dans le diagramme. Tu peux aussi la faire glisser.');
+  /* Les légendes : la première nomme le diagramme entier, « À toi ! » vient ensuite, l’image s’arrête, et la dernière lit les deux associations
+     nouvelles en même temps que le diagramme les allume. Plus aucune clé étrangère à toucher : ce moment-là est remplacé. */
+  const iShop = idx('Les règles valent pour tout diagramme');
+  assert.equal(flat(iShop), 'Les règles valent pour tout diagramme, par exemple celui de toute la boutique.');
+  assert.equal(flat(iShop + 1), 'À toi !');
+  assert.equal(flat(iShop + 2), 'Un client passe des commandes, et chaque commande concerne un seul produit.');
+  assert.ok(D.PICKS[5].from === D.CAPTIONS[iShop][0] && D.CAPTIONS[iShop + 1][0] < D.PICKS[5].at && D.PICKS[5].at < D.CAPTIONS[iShop + 2][0], 'le moment 6 vient après « À toi ! » et avant la légende qui lit les associations');
+  assert.ok(!/Commande porte|client_id|produit_id|clés étrangères que crée/.test(JSON.stringify([D.CAPTIONS.slice(iShop), D.PICKS[5]])), 'plus de clé étrangère dans ce moment ni dans ses légendes');
+  assert.ok(flat(iShop + 2).length / 17 <= (D.CAPTIONS[iShop + 2][1] - 0.2) - (D.CAPTIONS[iShop + 2][0] + 0.3) + 1e-9 && flat(iShop).length / 17 <= (D.CAPTIONS[iShop][1] - 0.2) - (D.CAPTIONS[iShop][0] + 0.3) + 1e-9, 'les deux légendes se lisent sans pause');
+  for (const part of ['FIND.map(([k]) => `<div class="abs qm" id="qm-${k}">?</div>`)', '.qm{width:330px;height:86px;border-radius:32px;border:4px dashed var(--accent);', '.gone{opacity:0!important;visibility:hidden!important}',
+    "cbox('in', ACLASS[0], ' acl')", "tl.set(FIND.map(f => '#sh-' + f[0]), {autoAlpha: 1}, a5);", "tl.set('.qm', {autoAlpha: 0}, a5);",
+    "mark($('#sh-' + k)); mark($('#qm-' + k), 'gone'); flash($('#sh-' + k), 'okb', 520);", "[$('#qm-' + b), $('#sh-' + b)].forEach(e => flash(e, 'kob', 480));", "pad(rel($('#qm-' + k)), 12)",
+    "hide(['#sh .cls', '#sh .asn', '#sh .mp', '#sh line'], 204.85, {y: -40}, 0.4);"])
+    assert.ok(page.includes(part), `moment 6 : ${part}`);
+  assert.ok(204.85 > hold('Un client passe des commandes'), 'la boutique s’efface après la pause de lecture');
+  /* Les emplacements restent au-dessus de la carte de réponse, même sur un petit écran (375 × 667 : elle monte jusqu’à 1264 environ, indice compris). */
+  const SY = /SY = \{([^}]*)\}/.exec(page)[1].match(/\d+/g).map(Number);
+  assert.ok(Math.max(...SY) + 86 + 12 < 1264 - 100, `emplacements : le plus bas finit à ${Math.max(...SY) + 86 + 12}`);
   /* Le mail, la suite */
   assert.deepEqual(D.MAILS.map(m => m[0][0] + ' ' + m[0][1] + ' · ' + m[2]), ['Karim Benali · développeur'], 'qui écrit');
   assert.deepEqual(D.MAILS[0].slice(4), [['Je suis Karim, le développeur back end.',
@@ -1844,7 +1884,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.ok(![...C2.CLIENTS, ...C1.COACHS].some(p => p[1] === 'Karim' || p[2] === 'Benali'), 'le développeur ne porte le nom d’aucun client ni coach');
   assert.ok(page.includes('</span>Prochaine leçon · CREATE TABLE</span>') && html.includes('guide({ id:61, titre:"CREATE TABLE"'), 'la suite annoncée sous son vrai titre');
   /* Dans la base de l’app, le diagramme de la boutique est exact : client_id peut rester vide (0..1, une commande sans client),
-     produit_id est obligatoire (1) ; les deux sont des clés étrangères de commandes, et aucune autre table n’a de commande_id. */
+     produit_id est obligatoire (1) ; les deux sont des clés étrangères de commandes. */
   const data = vm.createContext({});
   vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), data);
   const {createRequire} = await import('node:module');
@@ -1855,10 +1895,9 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.equal(q("SELECT \"from\", \"table\" FROM pragma_foreign_key_list('commandes') ORDER BY \"from\""), '[[["client_id","clients"],["produit_id","produits"]]]', 'commandes : client_id et produit_id');
   assert.equal(q("SELECT name, \"notnull\" FROM pragma_table_info('commandes') WHERE name IN ('client_id', 'produit_id') ORDER BY name"), '[[["client_id",0],["produit_id",1]]]', 'client_id facultatif (0..1), produit_id obligatoire (1)');
   assert.equal(q('SELECT COUNT(*) FROM commandes WHERE client_id IS NULL'), '[[[1]]]', 'une commande sans client : le 0 de 0..1');
-  for (const [t, c] of D.FKS.filter(f => !f[3])) assert.equal(q(`SELECT COUNT(*) FROM pragma_table_info('${t}') WHERE name = '${c}'`), '[[[0]]]', `${t}.${c} n’existe pas`);
   assert.notEqual(q('SELECT client_id FROM commandes GROUP BY client_id HAVING COUNT(*) > 1'), '[]', 'plusieurs commandes par client : 0..* côté Commande');
   assert.notEqual(q('SELECT produit_id FROM commandes GROUP BY produit_id HAVING COUNT(*) > 1'), '[]', 'plusieurs commandes par produit : 0..* côté Commande');
-  assert.equal(D.SHOP_ASSOCS[0][4], '0..1'); assert.equal(D.SHOP_ASSOCS[1][6], '1');
+  assert.equal(D.SHOP_ASSOCS[3][4], '0..1'); assert.equal(D.SHOP_ASSOCS[4][6], '1');
   for (const c of T.cl.cols.filter(c => c !== '…')) assert.equal(q(`SELECT COUNT(*) FROM pragma_table_info('clients') WHERE name = '${c}'`), '[[[1]]]', `clients.${c} : une colonne de la base`);
   db.close();
 });
