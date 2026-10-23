@@ -1664,7 +1664,8 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
     && D.CAPTIONS[ic + 6][0] + 0.5 <= D.PICKS[0].at - 1.35 && D.CAPTIONS[ic + 5][1] - 0.25 >= D.CAPTIONS[ic + 5][0] + 0.5 && D.CAPTIONS[ic + 4][1] - 0.25 >= D.CAPTIONS[ic + 4][0] + 0.5,
     'les deux bulles se suivent sans se chevaucher, chacune entièrement apparue avant sa pause de lecture, puis « À toi ! » apparaît avant la coupe du moment 1');
   assert.ok(!/Aucune clé ici|pas la façon de les ranger/.test(caps), 'l’ancienne légende « Aucune clé ici » est remplacée');
-  /* Le moment 1 reprend les mots de la transition : la clé étrangère coach_id vient au passage aux tables. */
+  /* Le moment 1 reprend les mots de la transition : la clé étrangère coach_id vient au passage aux tables ; sa question nomme le diagramme (Elisa, 23 octobre, 11:15). */
+  assert.equal(D.PICKS[0].prompt, 'Dans ce diagramme UML, comment montrer qu’un coach anime des ateliers ?');
   assert.equal(D.PICKS[0].options.find(o => /coach_id/.test(o.label)).why, 'Le diagramme ne montre aucune clé : la clé étrangère coach_id sera ajoutée lors du passage aux tables.');
   /* Chaque geste suit sa légende : les quatre classes arrivent pendant « on utilise un diagramme de classes UML », puis s’entourent
      chacune à son tour, dans l’ordre où la légende les nomme (clients, coachs, ateliers, cartes), pendant « Il représente… ». */
