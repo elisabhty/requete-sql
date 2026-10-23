@@ -875,8 +875,8 @@ const COURSES = [
       "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
       "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.9);", 'Chapitre 3 · Modéliser avec UML']},
-  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '5 min 05', notesAt: 215.85,
-    notes: /notes:\{t:298\.0,y:1155,card:\[64,292,1016,860\],to:\[940,255\]\}/, table: 'ateliers',
+  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '5 min 38', notesAt: 224.15,
+    notes: /notes:\{t:330\.4,y:1389,card:\[64,292,1016,1094\],to:\[940,255\]\}/, table: 'ateliers',
     bubble: 'Tu vas représenter la structure de la base avec un diagramme UML pour visualiser plus&nbsp;facilement les relations entre les tables.',
     chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
     traps: ["const CLASSES = [['co', 'Coach', ['prenom', 'nom', 'email']], ['ca', 'Carte', ['seances']],",
@@ -886,7 +886,7 @@ const COURSES = [
       // les colonnes de la table inscriptions, les quatre classes à placer dans le diagramme de toute la boutique
       "{at: 41.8, from: 27.5, kind: 'pick', text: true,", "{label: 'Un trait entre Coach et Atelier, nommé «\\u00a0anime\\u00a0»', ok: true},", "{at: 68.1, from: 53.7, kind: 'sort',",
       "{at: 82.7, from: 74.4, kind: 'pick',", "{label: '0..*', ok: true}]},", "{at: 109.1, from: 100.8, kind: 'tap', need: 1,", "if (a === 'po-ca') {",
-      "{at: 176.55, from: 168.1, kind: 'pick', text: true,", "{label: 'id, client_id, atelier_id, date_inscription', ok: true, why: 'Chaque ligne indique quel client s’est inscrit à quel atelier, et à quelle date. La colonne <code>id</code> identifie cette inscription.'},", "{at: 198.55, from: 190.15, kind: 'sort',",
+      "{at: 176.55, from: 168.1, kind: 'pick', text: true,", "{label: 'id, client_id, atelier_id, date_inscription', ok: true, why: 'Chaque ligne indique quel client s’est inscrit à quel atelier, et à quelle date. La colonne <code>id</code> identifie cette inscription.'},", "{at: 206.85, from: 196.0, kind: 'sort',",
       "const SHOP_ASSOCS = ASSOCS.concat([['pa', 'passe', '▾', 'cl', '0..1', 'cm', '0..*'], ['ce', 'concerne', '◂', 'cm', '0..*', 'pr', '1']]);",
       '<line id="ln-an"/><line id="ln-po"/><line id="ln-in"/><line id="ln-cx" class="dash"/>', "tl.to('#sb .mp:not(.ask) .mn', {opacity: 0.28,",
       'Prochaine leçon · CREATE TABLE']},
@@ -1589,7 +1589,7 @@ test('« Identifiant », jamais « numéro », pour la valeur d’une clé : vid
 
 test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des tables du chapitre 2, chaque multiplicité et chaque traduction vérifiées', async () => {
   const l81 = cut('guide({ id:81, titre:"Modéliser avec UML"', 'guide({ id:61,');
-  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'5 min 05',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'5 min 38',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1718,8 +1718,8 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.deepEqual(S5.map((_, k) => flat(i5 + k)), S5, 'chapitre 5 : les douze phrases d’Elisa, mot pour mot, une par bulle');
   /* Aucune des douze bulles ne fige la vidéo : chacune reste affichée au moins le temps de la lire (17 caractères par seconde). */
   S5.forEach((t, k) => { const [a, b] = D.CAPTIONS[i5 + k]; assert.ok(t.length / 17 <= (b - 0.2) - (a + 0.3) + 1e-9, `« ${t} » : lue sans pause`); });
-  /* Trois bulles ne tiennent pas en trois lignes à la taille du cours (expressions collées) : leur 4e valeur autorise quatre lignes. */
-  assert.deepEqual(D.CAPTIONS.map((c, k) => [flat(k).split(' ').slice(0, 3).join(' '), c[3]]).filter(x => x[1]), [['On regarde d’abord', 4], ['On ajoute donc', 4], ['On crée donc', 4]], 'les trois bulles de quatre lignes');
+  /* Quatre bulles ne tiennent pas en trois lignes à la taille du cours (expressions collées, ou 134 caractères d’un coup pour la boutique) : leur 4e valeur autorise quatre lignes. */
+  assert.deepEqual(D.CAPTIONS.map((c, k) => [flat(k).split(' ').slice(0, 3).join(' '), c[3]]).filter(x => x[1]), [['On regarde d’abord', 4], ['On ajoute donc', 4], ['On crée donc', 4], ['Tu peux appliquer', 4]], 'les quatre bulles de quatre lignes');
   /* Le texte colle aux données : la clé ajoutée et sa table pour chaque association, les colonnes de la table d’association. */
   const flatAll = D.CAPTIONS.map((_, k) => flat(k)).join('\n');
   for (const k of ['an', 'po']) { const [col, where] = D.TRAD[k]; assert.ok(flatAll.includes(`${col} dans la table ${T[where].name}`), `${col} dans la table ${T[where].name}`); }
@@ -1730,6 +1730,14 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.ok(iLast === iCl + 2 && flat(iCl + 1) === 'À toi !' && D.CAPTIONS[iCl][1] < D.CAPTIONS[iCl + 1][0] && D.PICKS[4].from === D.CAPTIONS[iCl][0]
     && D.CAPTIONS[iCl + 1][0] < D.PICKS[4].at && D.PICKS[4].at < D.CAPTIONS[iLast][0], 'le moment 5 vient après « À toi ! » et avant la bulle qui donne les colonnes');
   assert.ok(D.CAPTIONS.slice(i5, iLast).every(c => !/atelier_id|date_inscription/.test(c[2])), 'aucune bulle ne donne la réponse avant le moment 5');
+  /* La fin du chapitre 5 (textes d’Elisa du 23 octobre, 11:57), mot pour mot, une phrase complète par bulle, chacune lue sans pause ;
+     « C’est bien la table du chapitre 2 » est retiré. La phrase sur la boutique tient sur quatre lignes (134 caractères) et reste affichée le temps de la lire. */
+  const E5 = ['La table inscriptions relie chaque client à un atelier grâce aux clés étrangères client_id et atelier_id.', 'Elle conserve aussi la date d’inscription, issue de la classe d’association.',
+    'Tu peux appliquer ces mêmes règles pour créer les tables de toute la boutique, en ajoutant les commandes et les produits au diagramme.'];
+  assert.deepEqual(E5.map((_, k) => flat(iLast + 1 + k)), E5, 'fin du chapitre 5 : les trois phrases d’Elisa, mot pour mot');
+  assert.ok(!/table du chapitre 2/.test(caps) && flat(iLast + 4) === 'À toi !', 'plus de « C’est bien la table du chapitre 2 » ; « À toi ! » vient juste après la phrase sur la boutique');
+  E5.forEach((t, k) => { const [a, b] = D.CAPTIONS[iLast + 1 + k]; assert.ok(t.length / 17 <= (b - 0.2) - (a + 0.3) + 0.05, `« ${t} » : lue sans pause (à 0,05 s près : en dessous, le lecteur n’insère pas de pause)`); });
+  assert.ok(D.CAPTIONS[iLast][1] < D.CAPTIONS[iLast + 1][0] && D.CAPTIONS[iLast + 1][1] < D.CAPTIONS[iLast + 2][0] && D.CAPTIONS[iLast + 2][1] < D.CAPTIONS[iLast + 3][0], 'les bulles se suivent sans se chevaucher');
   assert.ok(!/à côté (de|d’)/.test(JSON.stringify([D.CAPTIONS, D.PLACE])) && !/\blien\b/.test(JSON.stringify(D.CAPTIONS)), 'une multiplicité est « du côté de la classe X » ; « relation » entre tables (sauf « liens entre ces tables », phrase d’Elisa gardée telle quelle)');
   /* Chaque phrase a son geste et son son, pendant sa légende : après son fondu d’entrée, avant la pause de lecture qui tombe à sa fin. */
   const during = (t, i, d) => D.CAPTIONS[i][0] + 0.3 - 1e-9 <= t && t + d <= D.CAPTIONS[i][1] - 0.25 + 1e-9;
@@ -1804,19 +1812,24 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
     ['On crée donc la table inscriptions', ["tl.to('#ib-r2 .hl', {opacity: 1, duration: 0.25, yoyo: true, repeat: 1}, 180.25); cue(180.25, 'pop', 0.6, 3);"], 180.25, 0.5],
     ['On crée donc la table inscriptions', ["tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25, yoyo: true, repeat: 1}, 181.05); cue(181.05, 'pop', 0.6, 4);"], 181.05, 0.5],
     ['On crée donc la table inscriptions', ["bump('#ab', 182.3, 1.04); cue(182.3, 'stamp', 0.6);"], 182.3, 0.4],
-    ['Elle contient deux clés', ["tl.to(['#ib-r1 .hl', '#ib-r2 .hl'], {opacity: 1, duration: 0.25, yoyo: true, repeat: 3}, 184.85); cue(184.85, 'pop', 0.6, 2);"], 184.85, 1.0],
-    ['Elle contient deux clés', ["tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25, yoyo: true, repeat: 3}, 186.0); cue(186.0, 'pop', 0.6, 4);"], 186.0, 1.0],
-    ['C’est bien la table du chapitre 2', ["bump('#ab', 187.8, 1.04); cue(187.8, 'stamp', 0.6);"], 187.8, 0.4],
-    // La boutique entière : les classes arrivent, puis chaque association (trait, nom, multiplicités) ; la légende suivante lit passe et concerne
-    ['Les règles valent pour tout diagramme', ["['#sh-co', '#sh-at', '#sh-in', '#qm-cl', '#qm-ca', '#qm-cm', '#qm-pr'].forEach((q, k) => { const t = 190.8 + k * 0.15;"], 190.8, 1.35],
-    ['Les règles valent pour tout diagramme', ["const t = 192.0 + q * 0.5;", "draw('#ls-' + k, t, 0.4); show('#sn-' + k, t + 0.3, {y: 12}, 0.35);", "cue(t + 0.45, 'pop', 0.6, q);"], 192.0, 2.93],
-    ['Les règles valent pour tout diagramme', ["draw('#ls-cx', 192.95, 0.3);"], 192.95, 0.3],
-    ['Un client passe des commandes', ["lite('cl', 199.4, 0.5, 1.05, 'sh'); cue(199.4, 'tick', 0.5, 1);"], 199.4, 0.75],
-    ['Un client passe des commandes', ["glow('#ls-pa', 199.9); bump('#sn-pa', 199.9, 1.1); cue(199.9, 'tick', 0.5, 2);"], 199.9, 0.4],
-    ['Un client passe des commandes', ["lite('cm', 200.3, 0.5, 1.05, 'sh'); cue(200.3, 'tick', 0.5, 3);"], 200.3, 0.75],
-    ['Un client passe des commandes', ["lite('cm', 201.6, 0.5, 1.05, 'sh'); cue(201.6, 'tick', 0.5, 1);"], 201.6, 0.75],
-    ['Un client passe des commandes', ["glow('#ls-ce', 202.1); bump('#sn-ce', 202.1, 1.1); cue(202.1, 'tick', 0.5, 2);"], 202.1, 0.4],
-    ['Un client passe des commandes', ["lite('pr', 202.6, 0.5, 1.05, 'sh'); cue(202.6, 'tick', 0.5, 4);"], 202.6, 0.75]
+    // Fin du chapitre 5 (textes d’Elisa du 23 octobre, 11:57) : la table inscriptions relie un client à un atelier par ses deux clés étrangères, puis conserve la date
+    ['La table inscriptions relie', ["bump('#ab', 185.0, 1.04); cue(185.0, 'tick', 0.5, 1);"], 185.0, 0.4],
+    ['La table inscriptions relie', ["lite('cl', 186.1, 0.5); cue(186.1, 'tick', 0.5, 1);"], 186.1, 0.75],
+    ['La table inscriptions relie', ["lite('at', 187.05, 0.5); cue(187.05, 'tick', 0.5, 3);"], 187.05, 0.75],
+    ['La table inscriptions relie', ["tl.to('#ib-r1 .hl', {opacity: 1, duration: 0.25, yoyo: true, repeat: 1}, 189.25); cue(189.25, 'pop', 0.6, 2);"], 189.25, 0.5],
+    ['La table inscriptions relie', ["tl.to('#ib-r2 .hl', {opacity: 1, duration: 0.25, yoyo: true, repeat: 1}, 190.0); cue(190.0, 'pop', 0.6, 3);"], 190.0, 0.5],
+    ['Elle conserve aussi', ["tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25, yoyo: true, repeat: 3}, 192.45); cue(192.45, 'pop', 0.6, 4);"], 192.45, 1.0],
+    // La boutique entière : les classes déjà vues arrivent, puis chaque association à son tour ; « les commandes » et « les produits » arrivent quand la bulle les nomme
+    ['Tu peux appliquer', ["['#sh-co', '#sh-at', '#sh-in', '#qm-cl', '#qm-ca'].forEach((q, k) => { const t = 197.0 + k * 0.15;"], 197.0, 1.05],
+    ['Tu peux appliquer', ["[['#qm-cm', 201.65], ['#qm-pr', 202.65]].forEach(([q, t], k) => {"], 201.65, 1.45],
+    ['Tu peux appliquer', ["const AT = [198.5, 199.3, 200.1, 201.8, 202.9];", "draw('#ls-' + k, t, 0.4); show('#sn-' + k, t + 0.3, {y: 12}, 0.35);", "cue(t + 0.45, 'pop', 0.6, q);"], 198.5, 5.38],
+    ['Tu peux appliquer', ["draw('#ls-cx', 199.75, 0.3);"], 199.75, 0.3],
+    ['Un client passe des commandes', ["lite('cl', 207.7, 0.5, 1.05, 'sh'); cue(207.7, 'tick', 0.5, 1);"], 207.7, 0.75],
+    ['Un client passe des commandes', ["glow('#ls-pa', 208.2); bump('#sn-pa', 208.2, 1.1); cue(208.2, 'tick', 0.5, 2);"], 208.2, 0.4],
+    ['Un client passe des commandes', ["lite('cm', 208.6, 0.5, 1.05, 'sh'); cue(208.6, 'tick', 0.5, 3);"], 208.6, 0.75],
+    ['Un client passe des commandes', ["lite('cm', 209.9, 0.5, 1.05, 'sh'); cue(209.9, 'tick', 0.5, 1);"], 209.9, 0.75],
+    ['Un client passe des commandes', ["glow('#ls-ce', 210.4); bump('#sn-ce', 210.4, 1.1); cue(210.4, 'tick', 0.5, 2);"], 210.4, 0.4],
+    ['Un client passe des commandes', ["lite('pr', 210.9, 0.5, 1.05, 'sh'); cue(210.9, 'tick', 0.5, 4);"], 210.9, 0.75]
   ];
   for (const [start, code, t, d] of BEATS) {
     for (const c of code) assert.ok(page.includes(c), `geste de « ${start} » : ${c}`);
@@ -1835,12 +1848,22 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
     && page.includes("at2('#ph-an', xa + 22, atl.y - 24 - 5 - $('#ph-an').offsetHeight);"), 'la pastille « ? » se pose là où s’écrira la multiplicité d’Atelier');
   assert.ok(page.includes(`['un à un', 'un à plusieurs', 'plusieurs à plusieurs'].map(t => \`<div class="rl">\${t}<i class="rlo"></i></div>\`)`) && page.includes('.rlo{position:absolute;')
     && page.includes("$('#rel').style.top = (cl.y + cl.h + 52 + 9 + 40) + 'px';"), 'les trois sortes de relations, sous les tables, avec leur liseré');
-  assert.ok(page.includes('Une <b>multiplicité</b> s’écrit du côté de la classe<br>qu’elle compte : 1, 0..1, 0..* ou 1..*.'), 'le récapitulatif reprend « du côté de la classe »');
-  /* La 3e idée du récapitulatif parle comme le cours : « un à plusieurs », « plusieurs à plusieurs » (les trois sortes de relations du chapitre 5), plus de « 1 — * » ;
-     la fiche de la leçon dit la même chose que la vidéo. */
-  assert.ok(page.includes('Une classe devient une <b>table</b>.<span class="rs"><b>Un à plusieurs</b>&nbsp;: une clé étrangère<br>du côté «&nbsp;plusieurs&nbsp;».</span><span class="rs"><b>Plusieurs à plusieurs</b>&nbsp;: une table d’association.</span>')
-    && page.includes('#s7 .rtxt .rs{margin-top:4px;font-size:31px}') && !/1 — \*|\* — \*/.test(page + l81), 'récapitulatif : « un à plusieurs », « plusieurs à plusieurs » (plus de « 1 — * »)');
-  assert.ok(l81.includes('["🧩","Une classe devient une <b>table</b>.","<b>Un à plusieurs</b> : une clé étrangère du côté « plusieurs ».<br><b>Plusieurs à plusieurs</b> : une table d’association."]'), 'la fiche de la leçon dit la même chose que la vidéo');
+  /* Le récapitulatif (texte d’Elisa du 23 octobre, 11:57), mot pour mot, dans la vidéo comme dans la fiche de la leçon : trois idées, chacune avec sa phrase puis sa précision.
+     Les retours à la ligne et les espaces insécables de la vidéo n’y changent rien ; plus de « 1 — * ». */
+  const strip = h => h.replace(/<br>/g, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+  const rows = [...page.matchAll(/<div class="rrow"><div class="rico emo">([^<]+)<\/div><div class="rtxt">(.*?)<\/div><\/div>/g)]
+    .map(m => { const [phrase, detail] = m[2].split('<span class="rs">'); return [m[1], strip(phrase), strip(detail.replace(/<\/span>$/, ''))]; });
+  const RECAP = [['📐', 'Le diagramme de classes UML représente les classes, leurs attributs et les associations entre elles.', 'Il sert de référence pour créer la base de données.'],
+    ['🔢', 'Les multiplicités indiquent combien d’éléments peuvent être associés à un élément de l’autre classe.', 'Par exemple, 0..* côté Atelier signifie qu’un coach peut animer zéro, un ou plusieurs ateliers.'],
+    ['🧩', 'Pour passer aux tables, chaque classe devient une table et ses attributs deviennent des colonnes.', 'Une relation « un à plusieurs » nécessite une clé étrangère du côté « plusieurs » ; une relation « plusieurs à plusieurs » nécessite une table d’association.']];
+  assert.deepEqual(rows, RECAP, 'la vidéo : les trois idées d’Elisa, mot pour mot');
+  const fiche = [...l81.matchAll(/\["(📐|🔢|🧩)","([^"]*)","([^"]*)"\]/g)].map(m => [m[1], strip(m[2]), strip(m[3])]);
+  assert.deepEqual(fiche, RECAP, 'la fiche de la leçon dit la même chose que la vidéo');
+  assert.ok(!/1 — \*|\* — \*/.test(page + l81), 'plus de « 1 — * » dans le récapitulatif');
+  /* Chaque idée se révèle en deux temps : la phrase, puis sa précision, chacune gardée à l’image le temps de la lire. */
+  assert.ok(page.includes('recapScene(218.85, [219.55, 220.95, 222.35]);') && page.includes('[[219.55, 220.3], [220.95, 221.7], [222.35, 223.1]].forEach(([r, d], i) => {')
+    && page.includes("hold(r + 0.6, rd(rt[i].innerHTML.split('<span')[0]));") && page.includes('hold(d + 0.5, rd(rs[i].innerHTML));'), 'récapitulatif : la phrase puis sa précision, chacune lue en entier');
+  assert.ok(D.CAPTIONS[idx('Pour finir')][0] < 219.55 && flat(idx('Pour finir')) === 'Pour finir, voici les trois idées à retenir.', 'la légende annonce les trois idées avant la première');
   /* Les six moments */
   assert.deepEqual(D.PICKS.map(p => p.kind), ['pick', 'sort', 'pick', 'tap', 'pick', 'sort'], 'choisir, placer, choisir, toucher, choisir, placer ; jamais deux fois de suite le même geste');
   assert.ok(D.PICKS.filter(p => p.kind === 'tap').every(p => /^Touche /.test(p.prompt)), 'chaque moment à toucher dit qu’il faut toucher l’image');
@@ -1897,10 +1920,10 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.ok(D.PICKS[5].options.every(o => !o.ok && !o.why), 'le moment 6 se juge à chaque geste (IX.act), pas sur une réponse');
   assert.equal(D.PICKS[5].prompt, 'Place chaque étiquette sur sa classe, en lisant les associations.');
   assert.equal(D.PICKS[5].hint, 'Touche une étiquette, puis son emplacement dans le diagramme. Tu peux aussi la faire glisser.');
-  /* Les légendes : la première nomme le diagramme entier, « À toi ! » vient ensuite, l’image s’arrête, et la dernière lit les deux associations
-     nouvelles en même temps que le diagramme les allume. Plus aucune clé étrangère à toucher : ce moment-là est remplacé. */
-  const iShop = idx('Les règles valent pour tout diagramme');
-  assert.equal(flat(iShop), 'Les règles valent pour tout diagramme, par exemple celui de toute la boutique.');
+  /* Les légendes (texte d’Elisa du 23 octobre, 11:57) : la première dit d’appliquer les mêmes règles à toute la boutique et nomme les commandes et les produits, « À toi ! » vient ensuite,
+     l’image s’arrête, et la dernière lit les deux associations nouvelles en même temps que le diagramme les allume. Plus aucune clé étrangère à toucher : ce moment-là est remplacé. */
+  const iShop = idx('Tu peux appliquer ces mêmes règles');
+  assert.equal(flat(iShop), 'Tu peux appliquer ces mêmes règles pour créer les tables de toute la boutique, en ajoutant les commandes et les produits au diagramme.');
   assert.equal(flat(iShop + 1), 'À toi !');
   assert.equal(flat(iShop + 2), 'Un client passe des commandes, et chaque commande concerne un seul produit.');
   assert.ok(D.PICKS[5].from === D.CAPTIONS[iShop][0] && D.CAPTIONS[iShop + 1][0] < D.PICKS[5].at && D.PICKS[5].at < D.CAPTIONS[iShop + 2][0], 'le moment 6 vient après « À toi ! » et avant la légende qui lit les associations');
@@ -1909,9 +1932,9 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   for (const part of ['FIND.map(([k]) => `<div class="abs qm" id="qm-${k}">?</div>`)', '.qm{width:330px;height:86px;border-radius:32px;border:4px dashed var(--accent);', '.gone{opacity:0!important;visibility:hidden!important}',
     "cbox('in', ACLASS[0], ' acl')", "tl.set(FIND.map(f => '#sh-' + f[0]), {autoAlpha: 1}, a5);", "tl.set('.qm', {autoAlpha: 0}, a5);",
     "mark($('#sh-' + k)); mark($('#qm-' + k), 'gone'); flash($('#sh-' + k), 'okb', 520);", "[$('#qm-' + b), $('#sh-' + b)].forEach(e => flash(e, 'kob', 480));", "pad(rel($('#qm-' + k)), 12)",
-    "hide(['#sh .cls', '#sh .asn', '#sh .mp', '#sh line'], 204.85, {y: -40}, 0.4);"])
+    "hide(['#sh .cls', '#sh .asn', '#sh .mp', '#sh line'], 213.15, {y: -40}, 0.4);"])
     assert.ok(page.includes(part), `moment 6 : ${part}`);
-  assert.ok(204.85 > hold('Un client passe des commandes'), 'la boutique s’efface après la pause de lecture');
+  assert.ok(213.15 > hold('Un client passe des commandes'), 'la boutique s’efface après la pause de lecture');
   /* Les emplacements restent au-dessus de la carte de réponse, même sur un petit écran (375 × 667 : elle monte jusqu’à 1264 environ, indice compris). */
   const SY = /SY = \{([^}]*)\}/.exec(page)[1].match(/\d+/g).map(Number);
   assert.ok(Math.max(...SY) + 86 + 12 < 1264 - 100, `emplacements : le plus bas finit à ${Math.max(...SY) + 86 + 12}`);
@@ -2047,6 +2070,52 @@ test('micro-interactions du lecteur : curseur qui grossit, un rendu par image en
   const pp = cut('function lvSyncPP(){', 'function lvSpin(btn,dir){');
   assert.ok(pp.includes('if(b.dataset.ico===now)return;') && pp.includes("svg.animate([{transform:'scale(.5) rotate(-12deg)',opacity:.3},{transform:'none',opacity:1}]"), 'lecture ↔ pause : l’icône rebondit, sans redessiner pour rien');
   assert.ok(cut('function lvPkShow(i,p){', 'function lvPkKept(P,a){').includes("    if(!prefersReduceMotion())box.querySelectorAll('.lv-pk-opt').forEach((o,k)=>{"), 'les réponses arrivent en cascade');
+});
+
+test('gros ▶ du lecteur : au centre tant que la vidéo n’a pas démarré, puis un simple retour d’appui qui s’efface — jamais sur le récapitulatif ni sur « Ajouter à mes notes »', () => {
+  /* Elisa, 23 octobre 11:57 : le ▶ était sous le bouton des notes et mal placé. Il passe au-dessus du bouton (z-index 3 > 2) et ne reste plus posé
+     sur le contenu : après une pause il apparaît un instant, puis s’efface ; le ▶ de la barre du bas reprend la lecture. */
+  assert.ok(html.includes('.lv-big{position:absolute;left:50%;top:50%;z-index:3;') && /\.lv-note\{[^}]*z-index:2/.test(html), 'le ▶ est au-dessus du bouton des notes');
+  assert.ok(html.includes('.lv.is-paused:not(.is-end):not(.has-played) .lv-big,.lv.is-paused:not(.is-end).is-flash .lv-big{opacity:1;pointer-events:auto;transform:none}')
+    && !html.includes('.lv.is-paused:not(.is-end) .lv-big{opacity:1'), 'visible avant la première lecture ou juste après une pause, plus en permanence');
+  assert.ok(html.includes("video.addEventListener('play',()=>{ root.classList.remove('is-paused','is-flash'); root.classList.add('has-played');"), 'la première lecture retire l’invitation, toute lecture retire le ▶');
+  assert.ok(cut('function lvToggle(){', 'function lvBigFlash(){').includes('else{ V.pause(); lvBigFlash(); }'), 'un appui de pause (image, bouton du bas, espace) fait apparaître le ▶ un instant');
+  assert.ok(html.includes("else if(LV.video.paused&&!LV.root.classList.contains('is-q'))lvBigFlash(); }"), 'retour dans l’app après une pause : le ▶ réapparaît un instant');
+  assert.ok(html.includes("e.target.closest('.lv-end,.lv-big,.lv-note-btn')") && html.includes("root.querySelector('.lv-big').addEventListener('click',()=>lvPlay());"), 'toucher le ▶ relance la lecture');
+  assert.ok(cut('function closeLessonVideo(instant){', 'lvCardSync(id);').includes('clearTimeout(LV.flashT);'), 'fermer la vidéo coupe le minuteur du ▶');
+  /* Comportement de lvBigFlash : apparaît 1,1 s ; jamais pendant que « Ajouter à mes notes » est affiché (même une fois la note ajoutée) ; une pause de plus relance les 1,1 s. */
+  const src = cut('function lvBigFlash(){', '/* Partie lue de la barre');
+  const run = note => {
+    const cls = new Set(), timers = [];
+    const ctx = vm.createContext({clearTimeout: () => {}, setTimeout: (f, ms) => { timers.push([f, ms]); return timers.length; },
+      LV: {root: {classList: {add: c => cls.add(c), remove: c => cls.delete(c), contains: c => cls.has(c)}}, note}});
+    vm.runInContext(src, ctx);
+    return {cls, timers, flash: () => ctx.lvBigFlash(), ctx};
+  };
+  let r = run(null); r.flash();
+  assert.ok(r.cls.has('is-flash') && r.timers.length === 1 && r.timers[0][1] === 1100, 'le ▶ apparaît pendant 1,1 s');
+  r.timers[0][0](); assert.ok(!r.cls.has('is-flash'), '… puis s’efface');
+  r = run({shown: true, done: false}); r.flash(); assert.ok(!r.cls.has('is-flash') && r.timers.length === 0, 'pas de ▶ sur le bouton des notes');
+  r = run({shown: true, done: true}); r.flash(); assert.ok(!r.cls.has('is-flash'), 'ni sur le bouton « Ajouté à mes notes »');
+  r = run({shown: false, done: false}); r.flash(); assert.ok(r.cls.has('is-flash'), 'bouton des notes pas encore affiché : le ▶ apparaît');
+});
+
+test('bouton verrouillé de la leçon (« Valide la leçon : … ») : il s’enfonce et se teinte à l’appui, vibre, et sa flèche ↑ s’élance vers la vidéo', () => {
+  /* Elisa, 23 octobre 11:57 : « Pour le bouton, améliore la micro-interaction ». Le bouton est cliquable (il ouvre la vidéo) mais porte aria-disabled : il vibre quand même. */
+  const css = cut('#lesson-body .ls-nav .ls-next[data-jc-gate]{background:#fff!important;', 'Parcours : « Validé » devient');
+  assert.ok(css.includes('#lesson-body .ls-nav .ls-next[data-jc-gate]::after{content:"\\00a0↑";display:inline;position:relative;top:0;font-weight:700}'), 'la flèche est collée au dernier mot par une espace insécable : jamais seule sur une ligne');
+  assert.ok(css.includes('#lesson-body .ls-nav .ls-next[data-jc-gate]:active{transform:translateY(3px) scale(.985);opacity:1;transition-duration:.07s,.07s,.07s;background:var(--accent-soft)!important;')
+    && css.includes('box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--accent) 72%,transparent),0 2px 6px -4px rgba(40,40,90,.4)!important}'), 'à l’appui : il s’enfonce, se teinte, l’ombre se resserre');
+  assert.ok(css.includes('transition:transform .38s cubic-bezier(.34,1.56,.64,1),box-shadow .22s ease,background-color .22s ease') && css.includes('-webkit-tap-highlight-color:transparent'), 'relâché, il revient en rebondissant');
+  assert.ok(css.includes('animation:lsGateNudge 3.4s ease-in-out 1.8s infinite') && css.includes('@keyframes lsGateNudge{0%,72%,100%{top:0}78%{top:-4px}84%{top:0}90%{top:-2px}}'), 'au repos, la flèche fait signe d’un petit saut de temps en temps');
+  assert.ok(css.includes(':active::after{top:-3px;animation:none}') && css.includes('.is-go::after{animation:lsGateGo .64s cubic-bezier(.3,.7,.3,1) both}')
+    && css.includes('@keyframes lsGateGo{0%{top:0;opacity:1}42%{top:-15px;opacity:0}43%{top:9px;opacity:0}100%{top:0;opacity:1}}'), 'à l’appui la flèche monte d’un cran, au toucher elle s’élance puis revient par le bas');
+  assert.ok(css.includes('@media (prefers-reduced-motion:reduce){#lesson-body .ls-nav .ls-next[data-jc-gate],#lesson-body .ls-nav .ls-next[data-jc-gate]::after{animation:none!important;transition:none!important}}')
+    && css.includes('html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate]::after{animation:none!important;transition:none!important}'), 'mouvement réduit : ni saut ni élan');
+  assert.ok(html.includes("if(!el||el.disabled||(el.getAttribute('aria-disabled')==='true'&&!el.hasAttribute('data-jc-gate')))return;")
+    && html.includes("if(b&&!b.disabled&&(b.getAttribute('aria-disabled')!=='true'||b.hasAttribute('data-jc-gate')))buzz('light');"), 'le bouton verrouillé vibre à l’appui, comme un bouton actif');
+  assert.ok(html.includes("e.target.closest('.ls-next[data-jc-gate]'); if(!b)return;\n  b.classList.remove('is-go'); void b.offsetWidth; b.classList.add('is-go');\n  clearTimeout(b._goT); b._goT=setTimeout(()=>b.classList.remove('is-go'),720);\n},true);"), 'au toucher (ou au clavier), la flèche s’élance, puis la classe est retirée');
+  assert.ok(html.includes('class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">'), 'le bouton ouvre toujours la vidéo');
 });
 
 test('moment réussi puis vidéo reculée : la réponse ne réapparaît pas avant l’heure ; un glisser ne survit pas au plateau', () => {
@@ -2331,7 +2400,11 @@ test('leçon seule : on n’avance pas au-delà d’un moment « À toi » pas r
   assert.ok(cut('function lvReplay(){', 'function lvGoExercise(){').includes('if(LV.retry){ lvPkReset(LV.id); lvPkMarks(); }'), '« Tout recommencer » : tous les moments sont à refaire');
   assert.ok(cut('function leconSeuleBilan(first){', 'function lvFail(){').includes('if(!lvReussi(current))return;'), 'ni bilan ni validation sous le seuil');
   assert.ok(cut('guide({ id:44,', 'guide({ id:45,').includes(',moments:9,seuil:7,'), 'leçon 44 : 7 exercices réussis sur 9 (deux ratés au plus), comme le chapitre 1 du projet');
-  assert.ok(html.includes('Réussis ${lvSeuil(l)} exercices sur ${v.moments} pour valider la leçon') && html.includes('Termine la vidéo avec ${lvErreursMax(l)} erreur'), 'le bouton du cours annonce la règle');
+  /* Le bouton annonce la règle avec les mots d’Elisa (23 octobre, 11:57 : « Valide la leçon : réussis au moins 4 exercices sur 6 »), sans point final (c’est un bouton) :
+     retour à la ligne après les deux-points, espaces insécables avant « : », dans « 4 exercices » et « sur 6 ». Les deux autres règles gardent leurs mots. */
+  assert.ok(html.includes('Valide la leçon&nbsp;: <br>réussis au moins ${lvSeuil(l)}&nbsp;exercices sur&nbsp;${v.moments}') && !html.includes('Réussis ${lvSeuil(l)} exercices sur') && !html.includes('exercices sur ${v.moments} pour valider la leçon'),
+    'le bouton du cours annonce la règle : « Valide la leçon : réussis au moins N exercices sur M »');
+  assert.ok(html.includes('Termine la vidéo avec ${lvErreursMax(l)} erreur') && html.includes("'Termine la vidéo pour valider la leçon'"), 'les règles à erreurs au plus et sans seuil gardent leurs mots');
   assert.ok(cut('guide({ id:56,', 'guide({ id:72,').includes(",moments:6,seuil:4,"), 'leçon 56 : 4 exercices réussis sur 6 (deux ratés au plus)');
 });
 

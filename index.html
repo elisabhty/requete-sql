@@ -6422,7 +6422,19 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
    l’activité à terminer. Il en a maintenant l’air (contour violet + flèche). */
 #lesson-body .ls-nav .ls-next[data-jc-gate]{background:#fff!important;color:var(--accent-ink)!important;box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--accent) 45%,transparent),0 10px 24px -14px rgba(40,40,90,.35)!important}
 #lesson-body .ls-nav .ls-next[data-jc-gate]{font-size:15px!important;letter-spacing:-.25px}
-#lesson-body .ls-nav .ls-next[data-jc-gate]::after{content:"↑";display:inline-block;margin-left:6px;font-weight:700}
+#lesson-body .ls-nav .ls-next[data-jc-gate]::after{content:"\00a0↑";display:inline;position:relative;top:0;font-weight:700}
+/* Micro-interaction : à l’appui, le bouton s’enfonce, se teinte et le téléphone vibre ; la flèche ↑ monte d’un cran puis s’élance vers la vidéo (au-dessus)
+   quand on le touche. Au repos, elle fait signe d’un petit saut de temps en temps. La flèche est collée au dernier mot (espace insécable), jamais seule sur une ligne. */
+#lesson-body .ls-nav .ls-next[data-jc-gate]{transition:transform .38s cubic-bezier(.34,1.56,.64,1),box-shadow .22s ease,background-color .22s ease;-webkit-tap-highlight-color:transparent}
+#lesson-body .ls-nav .ls-next[data-jc-gate]:active{transform:translateY(3px) scale(.985);opacity:1;transition-duration:.07s,.07s,.07s;background:var(--accent-soft)!important;
+  box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--accent) 72%,transparent),0 2px 6px -4px rgba(40,40,90,.4)!important}
+#lesson-body .ls-nav .ls-next[data-jc-gate]::after{transition:top .3s cubic-bezier(.34,1.56,.64,1);animation:lsGateNudge 3.4s ease-in-out 1.8s infinite}
+#lesson-body .ls-nav .ls-next[data-jc-gate]:active::after{top:-3px;animation:none}
+#lesson-body .ls-nav .ls-next[data-jc-gate].is-go::after{animation:lsGateGo .64s cubic-bezier(.3,.7,.3,1) both}
+@keyframes lsGateNudge{0%,72%,100%{top:0}78%{top:-4px}84%{top:0}90%{top:-2px}}
+@keyframes lsGateGo{0%{top:0;opacity:1}42%{top:-15px;opacity:0}43%{top:9px;opacity:0}100%{top:0;opacity:1}}
+@media (prefers-reduced-motion:reduce){#lesson-body .ls-nav .ls-next[data-jc-gate],#lesson-body .ls-nav .ls-next[data-jc-gate]::after{animation:none!important;transition:none!important}}
+html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate]::after{animation:none!important;transition:none!important}
 /* Parcours : « Validé » devient une pastille ✓ (le mot reste lu par VoiceOver),
    pour laisser la place au titre de l’activité. */
 #app .pl-chip-valid{font-size:0!important;gap:0!important;width:24px;height:24px;padding:0!important;justify-content:center;border-radius:50%!important}
@@ -6456,11 +6468,13 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv.is-loading .lv-big,.lv.is-q .lv-big{opacity:0!important;pointer-events:none!important}
 .lv-stage{touch-action:manipulation}
 .lv-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
-.lv-big{position:absolute;left:50%;top:50%;width:84px;height:84px;margin:-42px 0 0 -42px;padding:0;border:0;border-radius:50%;background:var(--accent,#6A4DF4);color:#fff;display:grid;place-items:center;
+.lv-big{position:absolute;left:50%;top:50%;z-index:3;width:84px;height:84px;margin:-42px 0 0 -42px;padding:0;border:0;border-radius:50%;background:var(--accent,#6A4DF4);color:#fff;display:grid;place-items:center;
   box-shadow:0 5px 0 var(--accent-lip,#4B30CC),0 18px 40px -16px rgba(40,20,120,.55);opacity:0;pointer-events:none;transform:scale(.82);transition:opacity .2s ease,transform .26s cubic-bezier(.34,1.56,.64,1);cursor:pointer}
 .lv-big svg{width:38px;height:38px;margin-left:5px}
 .lv.is-paused:not(.is-end) .lv-big:active{transform:scale(.92)}
-.lv.is-paused:not(.is-end) .lv-big{opacity:1;pointer-events:auto;transform:none}
+/* Le gros ▶ invite à lancer la vidéo tant qu’elle n’a pas démarré. Ensuite il ne fait que répondre à l’appui de mise en pause : il apparaît puis s’efface,
+   au lieu de rester posé sur le récapitulatif, un schéma ou le bouton « Ajouter à mes notes » ; le ▶ de la barre du bas reprend la lecture. */
+.lv.is-paused:not(.is-end):not(.has-played) .lv-big,.lv.is-paused:not(.is-end).is-flash .lv-big{opacity:1;pointer-events:auto;transform:none}
 .lv-bottom{flex:none;padding:2px 14px 8px;transition:opacity .2s}
 .lv-seekrow{display:flex;align-items:center;gap:10px;height:30px;padding:0 4px}
 .lv-time{flex:none;min-width:30px;font:600 12.5px/1 var(--ui);font-variant-numeric:tabular-nums;color:var(--ink-3,#6A6490)}
@@ -8759,14 +8773,14 @@ guide({ id:81, titre:"Modéliser avec UML", résumé:"Du diagramme de classes au
      leçon seule : ni exercice ni quiz, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les
      moments ratés. */
   leconSeule:true,
-  video:{anim:'assets/anim/projet-uml.html?app&embed',thumb:'assets/anim/projet-uml-thumb.jpg',duree:'5 min 05',moments:6,seuil:4,
-    /* « Ajouter à mes notes » : apparaît à 4 min 58 (298,0 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:298.0,y:1155,card:[64,292,1016,860],to:[940,255]}},
+  video:{anim:'assets/anim/projet-uml.html?app&embed',thumb:'assets/anim/projet-uml-thumb.jpg',duree:'5 min 38',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 5 min 30 (330,4 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:330.4,y:1389,card:[64,292,1016,1094],to:[940,255]}},
   reflex:[
     {recap:[
-      ["📐","Un <b>diagramme de classes</b> est le plan de la base : des classes et leurs attributs, reliées par des associations."],
-      ["🔢","Une <b>multiplicité</b> s’écrit du côté de la classe qu’elle compte : 1, 0..1, 0..* ou 1..*."],
-      ["🧩","Une classe devient une <b>table</b>.","<b>Un à plusieurs</b> : une clé étrangère du côté « plusieurs ».<br><b>Plusieurs à plusieurs</b> : une table d’association."]
+      ["📐","Le <b>diagramme de classes UML</b> représente les classes, leurs attributs et les associations entre elles.","Il sert de référence pour créer la base de données."],
+      ["🔢","Les <b>multiplicités</b> indiquent combien d’éléments peuvent être associés à un élément de l’autre classe.","Par exemple, <b>0..*</b> côté Atelier signifie qu’un coach peut animer zéro, un ou plusieurs ateliers."],
+      ["🧩","Pour passer aux <b>tables</b>, chaque classe devient une table et ses attributs deviennent des colonnes.","Une relation « un à plusieurs » nécessite une clé étrangère du côté « plusieurs » ; une relation « plusieurs à plusieurs » nécessite une table d’association."]
     ],label:"Les trois idées à retenir"}
   ]
 })
@@ -15694,7 +15708,7 @@ function lessonVideoSlide(l){
           </button>`;
   return `
       <div class="ls-nav">
-        ${l.leconSeule?(state.lessons[l.id]&&state.lessons[l.id].done?'<button class="ls-next" type="button" onclick="setLessonStep(3)">Voir le bilan</button>':`<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">${lvErreursMax(l)!=null?`Termine la vidéo avec ${lvErreursMax(l)} erreur${lvErreursMax(l)>1?'s':''} au plus`:lvSeuil(l)?`Réussis ${lvSeuil(l)} exercices sur ${v.moments} pour valider la leçon`:'Termine la vidéo pour valider la leçon'}</button>`)
+        ${l.leconSeule?(state.lessons[l.id]&&state.lessons[l.id].done?'<button class="ls-next" type="button" onclick="setLessonStep(3)">Voir le bilan</button>':`<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">${lvErreursMax(l)!=null?`Termine la vidéo avec ${lvErreursMax(l)} erreur${lvErreursMax(l)>1?'s':''} au plus`:lvSeuil(l)?`Valide la leçon&nbsp;: <br>réussis au moins ${lvSeuil(l)}&nbsp;exercices sur&nbsp;${v.moments}`:'Termine la vidéo pour valider la leçon'}</button>`)
           :locked?'<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">Termine la vidéo pour continuer</button>':'<button class="ls-next" type="button" onclick="setLessonStep(1)">Passer à l’exercice</button>'}
       </div>
       <div class="ls-main">
@@ -15796,7 +15810,7 @@ function openLessonVideo(){
     const g=lvPkGate(r); if(g>=0)r=Math.max(0,video.picks[g].t-.08);
     video.currentTime=r;
   },{once:true});
-  video.addEventListener('play',()=>{ root.classList.remove('is-paused'); if(video.playbackRate!==LV_RATE)video.playbackRate=LV_RATE; if(LV&&LV.q)lvQClose(true); if(LV&&LV.pk)lvPkClose(true); if(LV&&LV.op)lvOpClose(); lvSyncPP(); });
+  video.addEventListener('play',()=>{ root.classList.remove('is-paused','is-flash'); root.classList.add('has-played'); if(video.playbackRate!==LV_RATE)video.playbackRate=LV_RATE; if(LV&&LV.q)lvQClose(true); if(LV&&LV.pk)lvPkClose(true); if(LV&&LV.op)lvOpClose(); lvSyncPP(); });
   video.addEventListener('pause',()=>{ if(!video.ended)root.classList.add('is-paused'); lvSyncPP(); lvPosKeep(); });
   video.addEventListener('timeupdate',()=>{
     if(!LV||LV.video!==video)return;
@@ -15912,7 +15926,15 @@ function lvPlay(){
 function lvToggle(){
   if(!LV||LV.root.classList.contains('is-end'))return;
   const V=LV.video;
-  if(V.paused||V.ended)lvPlay();else V.pause();
+  if(V.paused||V.ended)lvPlay();else{ V.pause(); lvBigFlash(); }
+}
+/* Après une pause : le gros ▶ apparaît un instant au centre, puis s’efface. Pas pendant que « Ajouter à mes notes » est affiché : il le recouvrirait. */
+function lvBigFlash(){
+  const r=LV&&LV.root; if(!r)return;
+  clearTimeout(LV.flashT);
+  if(LV.note&&LV.note.shown){ r.classList.remove('is-flash'); return; }
+  r.classList.add('is-flash');
+  LV.flashT=setTimeout(()=>{ if(LV&&LV.root===r)r.classList.remove('is-flash'); },1100);
 }
 /* Partie lue de la barre, jusqu’au centre du curseur (18 px de large) : la largeur est posée sur l’élément lui-même. */
 function lvFill(p){ if(LV&&LV.fill)LV.fill.style.width=`calc(9px + ${Math.max(0,Math.min(1,+p||0)).toFixed(4)} * (100% - 18px))`; }
@@ -17129,12 +17151,13 @@ function lvKey(e){
   if((e.key===' '||e.key==='k')&&!(e.target&&e.target.closest&&e.target.closest('button,input'))){e.preventDefault();lvToggle();}
   if((e.key==='ArrowLeft'||e.key==='ArrowRight')&&!(e.target&&e.target.closest&&e.target.closest('input'))){e.preventDefault();lvSkip(e.key==='ArrowLeft'?-LV_SKIP:LV_SKIP);}
 }
-function lvHidden(){ if(document.hidden&&LV)LV.video.pause(); }
+function lvHidden(){ if(!LV)return; if(document.hidden)LV.video.pause(); else if(LV.video.paused&&!LV.root.classList.contains('is-q'))lvBigFlash(); }
 /* Un appui pendant la lecture réveille le son s’il est resté muet (lecture lancée sans appui, son coupé par iOS). */
 function lvWake(){ if(LV&&LV.video instanceof LvAnim&&!LV.video.paused)LvSfx.wake(); }
 function closeLessonVideo(instant){
   if(!LV)return;
   lvPosKeep();
+  clearTimeout(LV.flashT);
   const {id,root,video,note,ro,place,tap}=LV;
   LV=null;
   if(note)clearTimeout(note.timer);
@@ -25138,7 +25161,7 @@ if(typeof document!=='undefined'){
   document.addEventListener('pointerdown',e=>{
     if(!document.documentElement.classList.contains('lq'))return;
     const el=e.target&&e.target.closest&&e.target.closest(LQ_PRESS);
-    if(!el||el.disabled||el.getAttribute('aria-disabled')==='true')return;
+    if(!el||el.disabled||(el.getAttribute('aria-disabled')==='true'&&!el.hasAttribute('data-jc-gate')))return;
     try{if(navigator.vibrate&&navigator.userActivation?.hasBeenActive)navigator.vibrate(5);}catch(err){}
   },{passive:true});
 }
@@ -25161,7 +25184,13 @@ function buzz(type='light'){
 document.addEventListener('touchstart',()=>{},{passive:true});
 document.addEventListener('pointerdown',e=>{
   const b=e.target&&e.target.closest&&e.target.closest('button,[role="button"]');
-  if(b&&!b.disabled&&b.getAttribute('aria-disabled')!=='true')buzz('light');
+  if(b&&!b.disabled&&(b.getAttribute('aria-disabled')!=='true'||b.hasAttribute('data-jc-gate')))buzz('light');
+},true);
+/* Bouton verrouillé (data-jc-gate) : il amène à la vidéo ou à l’activité à terminer, au-dessus de lui ; la flèche ↑ s’élance au toucher, puis revient. */
+document.addEventListener('click',e=>{
+  const b=e.target&&e.target.closest&&e.target.closest('.ls-next[data-jc-gate]'); if(!b)return;
+  b.classList.remove('is-go'); void b.offsetWidth; b.classList.add('is-go');
+  clearTimeout(b._goT); b._goT=setTimeout(()=>b.classList.remove('is-go'),720);
 },true);
 document.addEventListener('keydown',e=>{
   /* Onboarding ouvert : il capte le clavier en priorité — Entrée valide
@@ -25699,7 +25728,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2002';
+  const SW_CACHE='requete-2026-10-12-ludique-v2003';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
