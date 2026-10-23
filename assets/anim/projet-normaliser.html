@@ -777,13 +777,18 @@ const IX = (() => {
     if (i === 5) { if (ok) ['#ms1', '#ms2'].forEach(s => mark($(s), 'pvs')); else flash($('#tbi'), 'kob', 480); sfx(ok ? 'pop' : 'miss', 2, 0.5); }
     return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));
   }
-  /* Indice, après deux erreurs : une piste, et les endroits à regarder. */
+  /* Indice, après deux erreurs : une piste, et les endroits à regarder ; chaque texte passe par fr() à la sortie. */
   function hint(i){
-    if (i === 0) return {text: 'L’e-mail du coach est dans la colonne E.', keys: SHEET.map((r, ri) => ri + '_4')};
-    if (i === 1) return {text: 'Léa Simon n’apparaît que sur une seule ligne.', keys: ['r' + LEA]};
-    if (i === 3) return {text: 'Que décrit la colonne : un atelier, un coach ou une inscription ?'};
-    if (i === 4) return {text: 'Yoga du matin est un atelier.', keys: ['ateliers']};
-    return null;
+    const h = (() => {
+      if (i === 0) return {text: 'L’e-mail du coach est dans la colonne E.', keys: SHEET.map((r, ri) => ri + '_4')};
+      if (i === 1) return {text: 'Léa Simon n’apparaît que sur une seule ligne.', keys: ['r' + LEA]};
+      if (i === 2) return {text: 'Chaque ligne du fichier est une inscription : que décrit la ligne de Yoga du matin ?'};
+      if (i === 3) return {text: 'Que décrit la colonne : un atelier, un coach ou une inscription ?'};
+      if (i === 4) return {text: 'Yoga du matin est un atelier.', keys: ['ateliers']};
+      if (i === 5) return {text: 'Regarde les colonnes de la table inscriptions : laquelle indique le client ?'};
+      return null;
+    })();
+    return h && Object.assign(h, {text: fr(h.text)});
   }
   return {
     enter: i => { clear(); start(i); },
