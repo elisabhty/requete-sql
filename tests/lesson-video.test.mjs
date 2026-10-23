@@ -875,8 +875,8 @@ const COURSES = [
       "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
       "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.9);", 'Chapitre 3 · Modéliser avec UML']},
-  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '5 min 40', notesAt: 224.15,
-    notes: /notes:\{t:332\.85,y:1389,card:\[64,292,1016,1094\],to:\[940,255\]\}/, table: 'ateliers',
+  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '5 min 37', notesAt: 224.15,
+    notes: /notes:\{t:329\.2,y:1317,card:\[64,292,1016,1022\],to:\[940,255\]\}/, table: 'ateliers',
     bubble: 'Tu vas dessiner le plan de ta base, puis&nbsp;apprendre à le traduire en tables.',
     chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
     traps: ["const CLASSES = [['co', 'Coach', ['prenom', 'nom', 'email']], ['ca', 'Carte', ['seances']],",
@@ -1589,7 +1589,7 @@ test('« Identifiant », jamais « numéro », pour la valeur d’une clé : vid
 
 test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des tables du chapitre 2, chaque multiplicité et chaque traduction vérifiées', async () => {
   const l81 = cut('guide({ id:81, titre:"Modéliser avec UML"', 'guide({ id:61,');
-  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'5 min 40',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'5 min 37',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1855,7 +1855,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
     .map(m => { const [phrase, detail] = m[2].split('<span class="rs">'); return [m[1], strip(phrase), strip(detail.replace(/<\/span>$/, ''))]; });
   const RECAP = [['📐', 'Le diagramme de classes UML représente les classes, leurs attributs et les associations entre elles.', 'Il sert de référence pour créer la base de données.'],
     ['🔢', 'Les multiplicités indiquent combien d’éléments peuvent être associés à un élément de l’autre classe.', 'Par exemple, 0..* côté Atelier signifie qu’un coach peut animer zéro, un ou plusieurs ateliers.'],
-    ['🧩', 'Pour passer aux tables, chaque classe devient une table et ses attributs deviennent des colonnes.', 'Une relation « un à plusieurs » nécessite une clé étrangère du côté « plusieurs » ; une relation « plusieurs à plusieurs » nécessite une table d’association.']];
+    ['🧩', 'Pour passer aux tables, chaque classe devient une table et ses attributs deviennent des colonnes.', 'Un à plusieurs → clé étrangère côté « plusieurs ». Plusieurs à plusieurs → table d’association.']];
   assert.deepEqual(rows, RECAP, 'la vidéo : les trois idées d’Elisa, mot pour mot');
   const fiche = [...l81.matchAll(/\["(📐|🔢|🧩)","([^"]*)","([^"]*)"\]/g)].map(m => [m[1], strip(m[2]), strip(m[3])]);
   assert.deepEqual(fiche, RECAP, 'la fiche de la leçon dit la même chose que la vidéo');
