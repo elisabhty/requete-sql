@@ -6657,15 +6657,17 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 /* Ligne d’aide sous la consigne (les consignes au même endroit, au-dessus des étiquettes) */
 .lv-pk-hint{margin:-5px 2px 11px;font:600 14px/1.35 var(--ui);color:var(--ink-3,#6A6490);text-align:left;text-wrap:pretty}
 .lv-pk-hint[hidden]{display:none}
+/* Le dernier bloc de texte visible de la carte (consigne seule, indice, correction) n’a pas de marge dessous : le blanc du bas égale celui du haut. */
+.lv-pk-card>p:nth-last-child(1 of :not([hidden])){margin-bottom:0}
 .lv-pk.is-text .lv-pk-opt{font-family:var(--ui);font-weight:700;letter-spacing:-.01em}
 .lv-pk.is-long .lv-pk-opts:not([hidden]){flex-direction:column;align-items:stretch;gap:8px}
-.lv-pk.is-long .lv-pk-opt{min-height:44px;padding:9px 14px;font-size:14.5px;line-height:1.28;text-align:left}
+.lv-pk.is-long .lv-pk-opt{min-height:44px;padding:9px 14px;font-size:14.5px;line-height:1.28;text-align:left;text-wrap:balance}
 .lv-pk.is-sort .lv-pk-opts{gap:8px}
 /* Étiquettes à glisser, au nom explicite (« date de l’atelier ») : deux par ligne, un nom long passe sur deux lignes ;
    une étiquette seule sur sa ligne (nombre impair, ou au fil des étiquettes posées) se centre */
 .lv-pk.is-sort .lv-pk-opts:not([hidden]){display:flex;flex-wrap:wrap;justify-content:center;gap:7px}
 .lv-pk.is-sort .lv-pk-opt{min-height:44px;flex:0 0 calc(50% - 3.5px);min-width:0}
-.lv-pk.is-sort .lv-pk-opt{display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 8px;text-align:left;line-height:1.15;background:#fff;border-color:#D4C8FB;color:var(--ink,#221C46);font-family:var(--ui);font-size:15px;font-weight:700;letter-spacing:-.01em;box-shadow:0 4px 0 #CBBEFB,0 10px 18px -12px rgba(40,20,120,.45)}
+.lv-pk.is-sort .lv-pk-opt{display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 8px;text-align:left;text-wrap:balance;line-height:1.15;background:#fff;border-color:#D4C8FB;color:var(--ink,#221C46);font-family:var(--ui);font-size:15px;font-weight:700;letter-spacing:-.01em;box-shadow:0 4px 0 #CBBEFB,0 10px 18px -12px rgba(40,20,120,.45)}
 .lv-pk-grip{width:9px;height:15px;flex:none;fill:#A496E8}
 .lv-pk-tag{flex:none;min-width:23px;height:23px;padding:0 5px;border-radius:7px;background:#F1EEFC;color:#6F66A0;font:800 12.5px/23px var(--ui);text-align:center}
 .lv-pk-fly.is-sort{gap:6px;padding:5px 10px 5px 8px;white-space:normal;text-align:left;line-height:1.15;justify-content:flex-start;font-family:var(--ui);font-size:15px;color:var(--ink,#221C46);border-color:#B8A8FF}
@@ -16426,6 +16428,7 @@ function lvPkShow(i,p){
   LV.pk={i,p,box,kind,tries:0,miss:0,count:0,total,busy:false,done:false,sel:null,layer:null,spots:[],acts:[],outs:[],wrong:[],touched:!!draft};
   const P=LV.pk;
   lvPkPlace();
+  if(window.ResizeObserver){ P.ro=new ResizeObserver(lvPkPlace); P.ro.observe(box.querySelector('.lv-pk-card')); }   // le plateau suit son contenu (réponse, explication, bouton)
   const IX=lvPkIX(); try{ if(IX&&IX.enter)IX.enter(i); }catch(e){}
   if(kind==='pick'){
     let slot=null; try{ slot=IX&&IX.slot?IX.slot(i):null; }catch(e){}
@@ -16672,17 +16675,22 @@ function lvPkBurst(rect){
   }
   setTimeout(()=>layer.remove(),1100);
 }
-/* Le plateau couvre la légende (sous y = 1496 de la maquette) et les commandes : le résultat, au-dessus, reste visible. */
+/* Le plateau prend la place de la légende (bord haut à y = 1496 de la maquette) : assez haut pour cacher la légende restée affichée
+   à l’arrêt (jusqu’à y = 1830), pas davantage ; au-delà, il suit son contenu, sans blanc, et remonte s’il manque de place dessous.
+   Le résultat, au-dessus, reste visible. */
 function lvPkPlace(){
   const P=LV&&LV.pk; if(!P)return;
-  const a=lvPt(0,1496); if(!a)return;
-  const R=LV.root.getBoundingClientRect(), pb=parseFloat(getComputedStyle(LV.root).paddingBottom)||0;
-  P.box.querySelector('.lv-pk-card').style.minHeight=Math.max(0,R.height-pb-10-a.y).toFixed(1)+'px';
+  const a=lvPt(0,1496), z=lvPt(0,1830); if(!a||!z)return;
+  const R=LV.root.getBoundingClientRect(), pb=parseFloat(getComputedStyle(LV.root).paddingBottom)||0, lim=R.height-pb-10;
+  const card=P.box.querySelector('.lv-pk-card');
+  card.style.minHeight=Math.max(0,Math.min(z.y,lim)-a.y).toFixed(1)+'px';
+  P.box.style.bottom='auto'; P.box.style.top=Math.max(0,Math.min(a.y,lim-card.offsetHeight)).toFixed(1)+'px';
   lvPkLayerPlace();
 }
 function lvPkClose(answered){
   const P=LV&&LV.pk; if(!P)return;
   LV.pk=null;
+  if(P.ro)P.ro.disconnect();
   clearTimeout(P.timer); clearTimeout(P.demo); if(P.demoEl)P.demoEl.remove();
   LV.root.classList.remove('is-q','is-pk');
   if(P.layer)P.layer.remove();
@@ -25691,7 +25699,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1996';
+  const SW_CACHE='requete-2026-10-12-ludique-v1997';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
