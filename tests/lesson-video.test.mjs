@@ -886,7 +886,7 @@ const COURSES = [
       // les colonnes de la table inscriptions, les deux clés étrangères du diagramme de la boutique
       "{at: 41.8, from: 27.5, kind: 'pick', text: true,", "{label: 'Un trait entre Coach et Atelier, nommé «\\u00a0anime\\u00a0»', ok: true},", "{at: 68.1, from: 53.7, kind: 'sort',",
       "{at: 82.7, from: 74.4, kind: 'pick',", "{label: '0..*', ok: true}]},", "{at: 109.1, from: 100.8, kind: 'tap', need: 1,", "if (a === 'po-ca') {",
-      "{at: 176.55, from: 168.1, kind: 'pick', text: true,", "{label: 'id, client_id, atelier_id, date_inscription', ok: true},", "{at: 198.55, from: 190.15, kind: 'tap', need: 2,",
+      "{at: 176.55, from: 168.1, kind: 'pick', text: true,", "{label: 'id, client_id, atelier_id, date_inscription', ok: true, why: 'Chaque ligne indique quel client s’est inscrit à quel atelier, et à quelle date. La colonne <code>id</code> identifie cette inscription.'},", "{at: 198.55, from: 190.15, kind: 'tap', need: 2,",
       "const SHOP_ASSOCS = [['pa', 'passe', '▾', 'cl', '0..1', 'co', '0..*'], ['ce', 'concerne', '▾', 'co', '0..*', 'pr', '1']];",
       '<line id="ln-an"/><line id="ln-po"/><line id="ln-in"/><line id="ln-cx" class="dash"/>', "tl.to('#sb .mp:not(.ask) .mn', {opacity: 0.28,",
       'Prochaine leçon · CREATE TABLE']},
@@ -1680,7 +1680,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   for (const k of ['an', 'po']) { const [col, where] = D.TRAD[k]; assert.ok(flatAll.includes(`${col} dans la table ${T[where].name}`), `${col} dans la table ${T[where].name}`); }
   const colsIn = T.in.cols.filter(c => c !== 'id').map(c => isFk(c) ? c[0] : c);
   assert.ok(flatAll.includes(`la table ${D.TRAD.in}, avec ${colsIn.slice(0, -1).join(', ')} et ${colsIn.slice(-1)}`), 'la table d’association et ses colonnes');
-  /* L’exercice « Quelles colonnes pour la table inscriptions ? » arrête l’image avant la dernière bulle, qui donne la réponse. */
+  /* L’exercice des colonnes arrête l’image avant la dernière bulle, qui donne la réponse. */
   const iCl = idx('Un client peut s’inscrire'), iLast = idx('On crée donc la table inscriptions');
   assert.ok(iLast === iCl + 2 && flat(iCl + 1) === 'À toi !' && D.CAPTIONS[iCl][1] < D.CAPTIONS[iCl + 1][0] && D.PICKS[4].from === D.CAPTIONS[iCl][0]
     && D.CAPTIONS[iCl + 1][0] < D.PICKS[4].at && D.PICKS[4].at < D.CAPTIONS[iLast][0], 'le moment 5 vient après « À toi ! » et avant la bulle qui donne les colonnes');
@@ -1804,6 +1804,11 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.ok(flat(idx('Chaque atelier a un seul coach') + 1).startsWith('On ajoute donc coach_id dans la table ateliers : cette clé étrangère indique quel coach'), 'la règle du côté * : un seul coach par atelier, donc coach_id dans ateliers');
   assert.ok(page.includes("pop('#uq', 164.2, 0.5);") && !page.includes("gsap.set('#uq'") && D.CAPTIONS[idx('La contrainte UNIQUE')][0] < 164.2, 'l’étiquette unique n’apparaît qu’avec la phrase qui la nomme');
   assert.equal(D.PICKS[4].options.find(o => o.ok).label, T.in.cols.map(c => isFk(c) ? c[0] : c).join(', '), 'moment 5 : les colonnes de la table inscriptions');
+  /* Moment 5 (texte d’Elisa du 23 octobre, 08:32), mot pour mot : la question, puis l’explication de la bonne réponse (id en code : « id identifie » se lit mal sans). */
+  assert.equal(D.PICKS[4].prompt, 'Quelles colonnes faut-il dans la table inscriptions pour identifier chaque inscription, la relier à un client et à un atelier, et conserver sa date ?');
+  assert.equal(D.PICKS[4].options.find(o => o.ok).why.replace(/<\/?code>/g, ''), 'Chaque ligne indique quel client s’est inscrit à quel atelier, et à quelle date. La colonne id identifie cette inscription.');
+  assert.ok(D.PICKS[4].options.find(o => o.ok).why.includes('La colonne <code>id</code> identifie'), 'moment 5 : la colonne id est en code');
+  assert.ok(D.PICKS[4].options.filter(o => !o.ok).every(o => o.why && !/<code>/.test(o.why)), 'moment 5 : chaque mauvaise réponse est expliquée, en texte courant');
   assert.deepEqual(D.PICKS.filter(p => p.kind === 'sort').map(p => p.next), ['{x} : touche maintenant la classe à côté de laquelle tu veux la placer.'], 'une ligne d’aide propre au moment à placer');
   /* Moment 6 : le diagramme de la boutique ; la règle du maximum place ses deux clés étrangères dans commandes. Ce n’est plus
      un classement en trois cases : celui-là est au chapitre 2. */
