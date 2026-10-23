@@ -8833,110 +8833,33 @@ guide({ id:65, titre:"ALTER TABLE", résumé:"Faire évoluer la structure d’un
     ],label:"Les trois idées à retenir"}
   ]
 }),
-guide({ id:66, titre:"DROP", résumé:"Supprimer une structure de la base",
-  sit:{
-    blocks:[
-      "La boutique abandonne son <b>programme de fidélité</b>. L’équipe technique veut faire le ménage dans la base de données, pour qu’elle ne garde que ce qui sert encore.",
-      "La base contient au total <b>4 tables</b> : <code>clients</code>, <code>produits</code>, <code>commandes</code> et <code>fidelite</code>. Pour terminer le ménage, l’équipe souhaite retirer uniquement :",
-      {need:[["🗑️","La table fidelite","4 lignes"]],label:"Ce qu’il faut retirer"}
-    ],
-    problem:{
-      p:["Retirer les <b>lignes</b> d’une table (c’est le rôle de <code>DELETE</code>) ne suffit pas : la table reste dans la base, vide, avec ses colonnes et ses règles.","Or, ici, c’est la <b>table entière</b> qui ne sert plus : elle doit disparaître de la base."],
-      scene:{h:"🗄️ Tables de la base",
-        lanes:[{k:"A",l:"Les tables de la base",c:[["t1","clients"],["t2","produits"],["t3","commandes"],["t4","fidelite"]]}],
-        caps:["<b>Notre base</b> · Elle contient 4 tables.","<b>Besoin</b> · La table fidelite ne sert plus : le programme de fidélité est arrêté.","<b>Résultat</b> · Elle disparaît de la base, avec tout son contenu."],
-        steps:[{cap:0,on:["A"],d:1900},{cap:1,off:["A"],mark:{t4:"is-miss"},d:2300},{cap:2,unmark:{t4:"is-miss"},gone:["t4"],d:2600}]},
-      then:["Il faut donc indiquer à SQL de <b>supprimer la table elle-même</b>, et non plus seulement son contenu.","C’est exactement le rôle de <code>DROP</code>."]
-    },
-    mission:"Aide l’équipe technique à supprimer la table <b>fidelite</b> de la base de données, afin de terminer le ménage après l’arrêt du programme de fidélité."
-  },
-  concept:{
-    title:"Comment SQL peut-il savoir ce qu’il faut supprimer ?",
-    blocks:[
-      "Pour supprimer, SQL doit savoir quel est l’<b>objet</b> visé :",
-      {ask:"Veut-on retirer les lignes, ou la table elle-même ?"},
-      "En SQL, <code>DELETE FROM</code> retire les lignes, et <code>DROP TABLE</code> supprime la table :",
-      {syntax:"DELETE FROM fidelite;\n⟦DROP TABLE fidelite;⟧"},
-      {scene:{h:"🗄️ Vider ou supprimer",cols:"1fr 1fr 1fr",
-        lanes:[{k:"H",l:"Table fidelite",c:[["h1","id","t"],["h2","client_id","t"],["h3","points","t"]]},
-          {k:"R1",c:[["a1","1"],["a2","1"],["a3","120"]]},
-          {k:"R2",c:[["b1","2"],["b2","2"],["b3","80"]]},
-          {k:"R3",c:[["c1","3"],["c2","4"],["c3","250"]]},
-          {k:"R4",c:[["d1","4"],["d2","7"],["d3","160"]]},
-          {k:"X",fold:true,cols:"1fr",c:[["x1","la table n’existe plus","n"]]}],
-        caps:["<b>Table fidelite</b> · Elle contient ses colonnes et 4 lignes.","<b>DELETE FROM fidelite</b> · Les 4 lignes disparaissent, mais la table et ses colonnes restent.","<b>DROP TABLE fidelite</b> · La table disparaît à son tour, avec ses colonnes."],
-        steps:[{cap:0,on:["R1","R2","R3","R4"],d:1900},{cap:1,fold:["R1","R2","R3","R4"],d:3000},{cap:2,fold:["H"],unfold:["X"],d:3000}]}}
-    ]
-  },
-  steps:[
-    {h:"Vider une table, est-ce la supprimer ?",aside:"Bon à savoir",blocks:[
-      "Non : retirer toutes les lignes avec <code>DELETE FROM</code> laisse la table en place, vide :",
-      {say:"👇 Exécute cette requête : les lignes sont retirées, puis on les compte.",run:"DELETE FROM fidelite;\nSELECT COUNT(*) AS lignes\nFROM fidelite;"},
-      {arrow:"Zéro ligne, mais SQL a pu interroger <code>fidelite</code> : la table existe toujours."},
-      {tip:{t:"Et TRUNCATE ?",blocks:["SQLite ne connaît pas <code>TRUNCATE TABLE</code> : pour vider une table, on y écrit <code>DELETE FROM</code>. Pour les autres SGBD, voir la page <button type='button' class='sgbd-link' data-sgbd='tables'>Selon le SGBD</button> de la Bibliothèque."]}},
-      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux supprimer des tables sans rien casser. À chaque essai, <code>fidelite</code> retrouve ses 4 lignes."]}}
-    ]},
-    {h:"Supprimer une table avec DROP TABLE",blocks:[
-      "<code>DROP TABLE</code> retire la table de la base, avec ses lignes, ses colonnes et ses règles :",
-      {syntax:"⟦DROP TABLE⟧ essai;"},
-      "Pour s’entraîner, on crée d’abord une table d’essai. Pour vérifier qu’elle a disparu, on interroge <code>sqlite_master</code>, la table interne où SQLite note toutes les tables de la base :",
-      {say:"👇 Exécute cette requête pour créer la table d’essai, la supprimer, puis la chercher :",run:"CREATE TABLE essai (id INTEGER);\nDROP TABLE essai;\nSELECT COUNT(*) AS tables_essai\nFROM sqlite_master\nWHERE name = 'essai';"},
-      {arrow:"Zéro : la base ne connaît plus la table <code>essai</code>."},
-      {tip:{t:"Tables, vues et index",blocks:["<code>DROP TABLE</code> supprime une table, <code>DROP VIEW</code> une vue, <code>DROP INDEX</code> un index. Seul <code>DROP TABLE</code> emporte des lignes : supprimer une vue ou un index ne retire aucune donnée."]}}
-    ]},
-    {h:"Et si DROP TABLE échoue ?",aside:"Bon à savoir",blocks:[
-      "Cela arrive dans deux cas : la table est encore utilisée, ou elle n’existe pas.",
-      {warn:{t:"Une table encore utilisée",blocks:[
-        "Des lignes de <code>commandes</code> et de <code>fidelite</code> pointent encore vers <code>clients</code> par une clé étrangère. Supprimer cette table les laisserait sans repère : la base refuse.",
-        {say:"👇 Teste par toi-même :",run:"DROP TABLE clients;"}
-      ]}},
-      {warn:{t:"Une table qui n’existe pas",blocks:[
-        "Si aucune table ne porte le nom demandé, la requête échoue.",
-        {say:"👇 Teste par toi-même :",run:"DROP TABLE paniers;"}
-      ]}},
-      {tip:{t:"Éviter l’erreur avec IF EXISTS",blocks:[
-        "Avec <code>IF EXISTS</code>, la table est supprimée si elle est là, et rien ne se passe si elle n’y est pas : aucune erreur dans les deux cas.",
-        {say:"👇 Teste par toi-même :",run:"DROP TABLE IF EXISTS paniers;\nSELECT name\nFROM sqlite_master\nWHERE type = 'table'\nORDER BY name;"}
-      ]}}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : supprimer la table <code>fidelite</code>, puis vérifier qu’elle a disparu de la liste des tables.",
-      {say:"👇 Exécute la requête pour terminer le ménage :",run:"DROP TABLE fidelite;\nSELECT name\nFROM sqlite_master\nWHERE type = 'table'\nORDER BY name;"},
-      {done:{
-        label:"De 4 tables à 3 tables",
-        unit:"free",
-        funnel:[
-          {n:4,t:"tables au départ",s:"<code>clients</code>, <code>produits</code>, <code>commandes</code> et <code>fidelite</code>",dots:"0000"},
-          {step:"DROP TABLE fidelite",s:"supprime la table, avec ses lignes et ses colonnes"},
-          {n:3,t:"⭐ tables dans la base",s:"<code>clients</code>, <code>produits</code> et <code>commandes</code>",dots:"111",out:true}
-        ],
-        board:{ico:"🧹",h:"Tables de la base",aria:"La table fidelite disparaît de la base : il reste clients, commandes et produits",kpi:"Tables",count:{"t": "Tables", "from": 4, "to": 3},gone:[{"at": 2, "row": ["fidelite"]}],cols:["name"],
-          rows:[["clients"], ["commandes"], ["produits"]],done:"✓ Ménage terminé : la base ne garde que ce qui sert encore"},
-        fill:["DROP TABLE","fidelite","FROM","sqlite_master"],
-        ui:{t:"3 tables dans la base",s:"La table fidelite a disparu avec ses lignes.",n:["DROP TABLE","SELECT","WHERE"]},
-        rows:3
-      }}
-    ]}
-  ],
+guide({ id:66, titre:"DROP", résumé:"Supprimer une table de la base",
+  /* Projet, chapitre 6, en vidéo interactive : l’animation (assets/anim/projet-drop.html, moteur commun assets/anim/core.js)
+     est le cours. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 5, tu as fait évoluer les tables avec
+     ALTER TABLE »), sur la base que le chapitre 5 laisse : coachs (4), ateliers (5, avec places), clients (10), inscriptions (7), cartes (3,
+     avec seances_restantes). Karim Benali, le développeur back end, a importé le fichier Excel du chapitre 1 tel quel pour tester la base :
+     la table inscriptions_excel (six lignes, six colonnes) répète des informations déjà rangées dans les autres tables (l’e-mail d’un coach
+     serait à corriger dans deux tables). Son mail demande de la retirer sans toucher aux autres tables. Moment 1 : l’élève touche la copie.
+     Vider (DELETE FROM : 0 ligne, mais la table reste, avec ses six colonnes) ou supprimer (DROP TABLE) : il range quatre situations sous la
+     requête qui convient (moment 2), puis choisit DROP TABLE inscriptions_excel; (moment 3). Deux fautes de nom sont imaginées avant
+     l’exécution : DROP TABLE clients est refusé, car les tables inscriptions et cartes y font référence par une clé étrangère (moment 4) ;
+     DROP TABLE inscriptions réussirait sans erreur, avec ses sept lignes : une table supprimée ne se récupère pas (moment 5). Enfin le
+     script de mise en ligne de Karim tourne aussi sur le serveur de test, où la copie n’existe pas : « no such table » arrête la mise en
+     ligne, d’où DROP TABLE IF EXISTS (moment 6). La fin annonce la prochaine leçon du cours, INSERT. Six moments « À toi », comme aux
+     chapitres du projet ; leçon seule : ni exercice ni quiz, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on
+     rejoue les moments ratés. Elle remplace l’ancien cours texte (DELETE vide / DROP supprime, DROP VIEW et DROP INDEX, TRUNCATE,
+     exercice sur la table commandes). */
+  leconSeule:true,
+  video:{anim:'assets/anim/projet-drop.html?app&embed',thumb:'assets/anim/projet-drop-thumb.jpg',duree:'3 min 01',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 2 min 54 (173,6 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:173.6,y:1223,card:[64,292,1016,928],to:[940,255]}},
   reflex:[
     {recap:[
-      ["🗄️","<code>DROP TABLE</code> supprime la <b>table elle-même</b> : ses lignes, ses colonnes et ses règles."],
-      ["🧹","<code>DELETE</code> vide la table, <code>DROP TABLE</code> la fait disparaître.","Une table supprimée ne se récupère pas."],
-      ["🛟","<code>IF EXISTS</code> évite l’erreur quand la table n’existe pas :",null,"DROP TABLE IF EXISTS paniers"]
+      ["🗑️","<code>DROP TABLE</code> supprime la <b>table elle-même</b>, avec ses lignes et ses colonnes.","<code>DELETE FROM</code> retire seulement les lignes : la table reste, vide."],
+      ["🔗","Une table à laquelle une <b>clé étrangère</b> fait référence ne peut pas être supprimée.","Sans référence, la suppression réussit, même par erreur : une table supprimée ne se récupère pas."],
+      ["🛟","<code>IF EXISTS</code> évite l’erreur quand la table n’existe pas :",null,"DROP TABLE IF EXISTS inscriptions_excel;"]
     ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"DROP",txt:"Annonce la suppression d’un objet de la base."},{tok:"TABLE",txt:"Le type d’objet supprimé : TABLE, VIEW ou INDEX."},{tok:"IF EXISTS",txt:"Facultatif : évite l’erreur si l’objet n’existe pas."},{tok:"paniers",plain:1,txt:"Le nom de l’objet à supprimer."}],
-  exemple:"DROP TABLE IF EXISTS paniers;",
-  attendu:"Aucune erreur, même si la table <code>paniers</code> n’existe pas : <code>IF EXISTS</code> rend la suppression silencieuse.",
-  retenir:"<code>DELETE</code> supprime des <b>lignes</b>. <code>DROP</code> supprime l’<b>objet</b> lui-même : la table, avec ses colonnes, ses contraintes et ses index.<br><br>Trois objets, trois commandes : <code>DROP TABLE</code>, <code>DROP VIEW</code>, <code>DROP INDEX</code>. <code>IF EXISTS</code> évite l’erreur quand l’objet n’existe pas.<br><br>Le mémo : <b>DELETE vide, DROP fait disparaître</b>.",
-  consigne:"Cette base de travail est une copie : tu peux y supprimer ce que tu veux. Fais disparaître la table <code>commandes</code> de la base — pas seulement ses lignes — sans provoquer d’erreur si elle en est déjà absente.",
-  solution:"DROP TABLE IF EXISTS commandes;",
-  verif:"SELECT type, name FROM sqlite_master WHERE type = 'table' ORDER BY name;",
-  indice:"Écris <code>DROP TABLE</code> suivi du nom de la table, et place <code>IF EXISTS</code> entre <code>TABLE</code> et le nom.",
-  write:true,
-  petitDefi:[{p:"La vue <code>ventes_2026</code> ne sert plus. Quels mots-clés remplacent les tirets pour la retirer de la base ?",sql:"__________ ventes_2026;",a:"DROP VIEW",answers:["DROP VIEW","drop view","DROP VIEW ventes_2026","drop view ventes_2026"]}],
-  testeVariants:[{k:"tables",label:"Les tables",sql:"SELECT type, name\nFROM sqlite_master\nWHERE type = 'table'\nORDER BY name;",out:"Les tables de la base : c’est cette liste que DROP TABLE raccourcit.",expectRows:4},{k:"vider",label:"Vider sans supprimer",sql:"DELETE FROM commandes;\nSELECT name\nFROM sqlite_master\nWHERE type = 'table' AND name = 'commandes';",out:"La table existe toujours après DELETE : elle est seulement vide.",expectRows:1},{k:"fk",label:"Table encore utilisée",sql:"DROP TABLE clients;",out:"Refusé : des lignes de commandes et de fidelite pointent encore vers clients.",tone:"bad"}],
-  learningCheck:{question:"Quelle différence entre DELETE FROM commandes et DROP TABLE commandes ?",options:["DELETE vide la table ; DROP la supprime","Aucune : les deux font la même chose","DROP conserve les lignes"],answer:0,explanation:"DELETE retire les lignes mais conserve la structure. DROP supprime aussi la table elle-même. Ici, chaque essai se fait sur une copie jetable de la base."}
+  ]
 })
 ]},
 { titre:"Écrire et modifier les données", sous:"INSERT, UPDATE, DELETE", lessons:[
@@ -13751,7 +13674,7 @@ const SQ_ALIASES={
   81:'uml diagramme de classes classe attribut association multiplicite 0..* 0..1 modelisation conception schema merise mcd classe d association table d association plan de la base',
   61:'create table creer table creer une table structure types colonnes contraintes integer real text type de colonne primary key cle primaire not null obligatoire unique doublon default valeur par defaut check condition foreign key references cle etrangere ordre de creation schema.sql schema nutriboost coachs ateliers inscriptions cartes de membre',
   65:'alter table ajouter colonne modifier structure renommer add column rename column rename to drop column supprimer colonne default valeur par defaut null update structure ou valeurs faire evoluer les tables',
-  66:'drop supprimer table structure drop table vue index vider table',
+  66:'drop table supprimer une table retirer table delete from vider table copie fichier excel inscriptions_excel cle etrangere foreign key constraint failed no such table if exists drop table if exists table liee nom de table nutriboost serveur de test',
   26:'insert into ajouter ligne insertion values nouvelle ligne',
   27:'update modifier mettre a jour set lignes valeurs changer',
   28:'delete supprimer lignes effacer from where vider une table vider table supprimer toutes les lignes',
@@ -25579,7 +25502,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2011';
+  const SW_CACHE='requete-2026-10-12-ludique-v2012';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
