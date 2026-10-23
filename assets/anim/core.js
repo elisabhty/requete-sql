@@ -1,15 +1,10 @@
 /* Requête · moteur commun des cours animés (assets/anim/*.html).
-
-   Une page de cours contient ses scènes (HTML + CSS), charge gsap.min.js puis ce fichier,
-   et décrit son déroulé avec Course({...}). Le moteur s’occupe du reste :
-   - l’habillage : étiquette du chapitre en haut à droite, carte des légendes en bas ;
-   - les pauses de lecture, calculées d’après la longueur de chaque légende ;
-   - les sons, les chapitres, les questions et les légendes, exportés pour le lecteur de l’app (window.__ready) ;
-   - le rendu d’une image à un instant donné (window.renderAt), piloté par le lecteur.
-
-   Temps : la timeline GSAP est écrite en « temps de la timeline ». Les pauses de lecture (HOLDS) figent
-   l’image un moment, les coupes (cut) sautent un passage ; le lecteur, lui, compte en « temps de la vidéo »
-   (pauses comprises, coupes retirées) : warp / unwarp passent de l’un à l’autre. */
+   Une page contient ses scènes (HTML + CSS), charge gsap.min.js puis ce fichier, et décrit son déroulé avec Course({...}).
+   Le moteur gère l’habillage (chapitre en haut à droite, légendes en bas), les pauses de lecture (d’après la longueur
+   des légendes), l’export pour le lecteur de l’app (window.__ready : sons, chapitres, questions, légendes) et le rendu
+   à un instant donné (window.renderAt).
+   Temps : la timeline GSAP est en « temps de la timeline » ; les pauses (HOLDS) figent l’image, les coupes (cut) sautent
+   un passage ; le lecteur compte en « temps de la vidéo » : warp / unwarp passent de l’un à l’autre. */
 'use strict';
 const FPS = 30;
 const QS = new URLSearchParams(location.search);
@@ -33,9 +28,8 @@ const NB = '\u00a0';
 const $ = s => document.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
-/* Typographie française : espace insécable avant : ; ! ? et dans « », après un nombre, et après les mots courts
-   (articles, prépositions, conjonctions : « la », « un », « avec »…) pour qu’une ligne ne se termine jamais sur l’un d’eux
-   (« il faut la / virgule »). Hors balises et hors <code>. */
+/* Typographie française : espace insécable avant : ; ! ? et dans « », après un nombre et après les mots courts
+   (articles, prépositions, conjonctions) pour qu’une ligne ne se termine jamais sur l’un d’eux. Hors balises et <code>. */
 const SHORT_WORDS = new Set(('à au aux de du des d le la les l un une en et ou ni par sur sous pour dans avec sans chez vers entre ' +
   'ce cet cette ces son sa ses leur leurs mon ma mes ton ta tes notre votre nos vos chaque il elle on ils elles se ne que qu qui si y').split(' '));
 const shortWord = w => SHORT_WORDS.has(w.toLowerCase().replace(/^[(«“"']+/, ''));
@@ -46,9 +40,8 @@ const glueQuotes = t => t.replace(/«([^«»]{1,28})»/g, (m, q) => '«' + q.rep
 const glueNames = t => t.replace(/(^|[^\p{L}])(Sophie|Lucas|Emma|Nathan|Chloé|Hugo|Léa|Gabriel|Inès|Salma|Moussa) (?=\p{Lu})/gu, '$1$2' + NB);
 const frText = t => glueNames(glueQuotes(glueShort(t.replace(/ ([:?!;»])/g, NB + '$1').replace(/« /g, '«' + NB).replace(/(\d) (?=\S)/g, '$1' + NB))));
 /* Légendes : une expression ne se coupe pas d’une ligne à l’autre. Certains mots ne terminent jamais une ligne
-   (« du plus / cher », « la même / ville », « les deux / colonnes », « puis / le nouveau nom »),
-   d’autres ne la commencent jamais (« ne livre / pas », « la valeur / suivante »), et un nombre reste collé au mot
-   qui le précède (« donne / 24 », « il reste / 2 produits », « la commande / n°16 »). */
+   (« du plus / cher »), d’autres ne la commencent jamais (« ne livre / pas »), un nombre reste collé au mot qui le
+   précède (« donne / 24 »). */
 const CAP_GLUE_NEXT = new Set(('très tout tous toute toutes deux trois quatre cinq six autre autres même mêmes plusieurs certains certaines quelques ' +
   'seul seule seuls seules aucun aucune propre premier première premiers premières dernier dernière nulle tel telle ' +
   'puis qu’un qu’une d’un d’une l’un l’une').split(' '));
@@ -173,8 +166,7 @@ function mergeHolds(list){
 }
 
 /* ---------- Timeline ---------- */
-/* Transformations en 2D uniquement : sans calques GPU, le texte est dessiné directement à sa taille finale
-   (la scène est réduite dans le lecteur) et reste net, au lieu d’être agrandi puis réduit. */
+/* Transformations en 2D uniquement : sans calques GPU, le texte est dessiné à sa taille finale et reste net. */
 gsap.config({force3D: false});
 const tl = gsap.timeline({paused: true});
 const CUES = [];
@@ -202,10 +194,8 @@ function stampIn(sel, t, rot = 7){
   cue(t + 0.35, 'stamp');
 }
 function sceneOff(sel, t){ tl.set(sel, {autoAlpha: 0}, t); }
-/* Carte posée sous une autre carte, souvent inclinée (la liste « Les informations à récupérer » sous la carte de la situation) :
-   son bord haut se cale à `gap` px sous le point le plus bas de la carte du dessus une fois celle-ci à sa place
-   (inclinaison finale `rot`, en degrés, autour du centre), ombre portée comprise. Les deux cadres ne se touchent jamais,
-   quelle que soit la hauteur du contenu. */
+/* Carte posée sous une autre carte (souvent inclinée) : son bord haut se cale à `gap` px sous le point le plus bas
+   de la carte du dessus, une fois celle-ci à sa place (inclinaison finale `rot`, ombre comprise). */
 const STACK_GAP = 40;
 function stackBelow(lower, upper, rot = 0, gap = STACK_GAP){
   const up = $(upper), lo = $(lower);
@@ -262,6 +252,7 @@ function buildChrome(chapters, captions){
   captions.forEach(c => {
     const d = document.createElement('div');
     d.className = 'c';
+    if (c[3] > 3) d.dataset.lines = c[3];   // 4e valeur d’une légende : nombre de lignes (4 au plus), la carte monte le temps de la lire
     d.innerHTML = `<p>${fr(c[2])}</p>`;
     cap.append(d);
   });
@@ -288,6 +279,11 @@ function chromeTimeline(chapters, captions, duration){
     gsap.set(el, {autoAlpha: 0, y: 26});
     tl.to(el, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'power3.out'}, a);
     if (b < duration) tl.to(el, {autoAlpha: 0, y: -18, duration: 0.25, ease: 'power2.in'}, b - 0.2);
+    if (captions[i][3] > 3) {
+      const up = Math.round(44 * 1.32);
+      tl.to(capCard, {top: capCard.offsetTop - up, height: capCard.offsetHeight + up, duration: 0.3, ease: 'power2.out'}, a);
+      tl.to(capCard, {top: capCard.offsetTop, height: capCard.offsetHeight, duration: 0.3, ease: 'power2.in'}, b - 0.2);
+    }
   });
 }
 
@@ -297,8 +293,7 @@ function stageScale(){ const sr = $('#stage').getBoundingClientRect(); return {s
 function rel(el, ref){ const {sr, k} = stageScale(), r = el.getBoundingClientRect(), o = ref ? ref.getBoundingClientRect() : sr;
   return {x: (r.left - o.left) / k, y: (r.top - o.top) / k, w: r.width / k, h: r.height / k}; }
 
-/* Intro : le titre est déjà en place sur la première image (elle sert de vignette), puis les lettres sautillent,
-   le surligneur passe dessous, la mascotte arrive avec sa bulle ; tout s’en va à 4,4 s. */
+/* Intro : titre déjà en place sur la première image (vignette), lettres qui sautillent, surligneur, mascotte et bulle ; tout s’en va à 4,4 s. */
 function introScene(){
   const ls = $$('#s0 .title span'), a = rel(ls[0]), b = rel(ls[ls.length - 1]);
   const hl = $('#s0 .hilite');
@@ -346,13 +341,12 @@ function checkCaptions(captions){
     el.style.visibility = 'visible';
     const lines = Math.round(p.getBoundingClientRect().height / stageScale().k / (44 * 1.32));
     el.style.visibility = prev;
-    if (lines > 3) out.push({i, lines, text: captions[i][2]});
+    if (lines > (captions[i][3] || 3)) out.push({i, lines, text: captions[i][2]});
   });
   return out;
 }
-/* Mise en forme du texte (page ouverte avec ?check) : pour chaque bloc de texte, les lignes telles qu’elles s’affichent.
-   Signale une ligne qui ne garde qu’un seul mot (mot orphelin), une ligne qui s’arrête trop tôt (trou), un bloc
-   resserré sur moins de 70 % de la largeur, une légende de plus de 3 lignes et un mot coupé en fin de ligne. Comme la police est livrée avec l’animation, l’iPhone affiche exactement les mêmes lignes. */
+/* Mise en forme du texte (?check) : pour chaque bloc, les lignes telles qu’elles s’affichent (police livrée : mêmes lignes sur iPhone).
+   Signale : mot orphelin, ligne trop courte (trou), bloc serré (< 70 % de la largeur), légende de plus de 3 lignes, mot coupé. */
 const TEXT_BLOCKS = '#cap .c p, .bubble, .rtxt, .lt, .nl, .mnote, .tx, .trap-h, .ot, .need-h, .inv-title, .inv-place, .qlabel, .glbl, .badge span, .tp-h, .sub, .tagpill, .ask, .wl, .resl';
 function textLines(el){
   const toks = [], r = document.createRange(), walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
@@ -383,10 +377,9 @@ function textLines(el){
   lines.forEach(l => l.toks.sort((a, b) => a.left - b.left));
   return lines;
 }
-/* Une ligne (sauf la dernière) qui s’arrête avant 70 % de la largeur (78 % dans une légende, lue d’un coup d’œil sous l’image),
-   nettement plus courte qu’une ligne voisine, laisse un trou : un groupe de mots collés trop long (mots courts et espaces
-   insécables à la suite) est parti d’un bloc à la ligne suivante. Une dernière ligne de moins de 36 % de la largeur reste
-   un bout de phrase isolé. Une expression en gras de quatre mots au plus ne se coupe pas. */
+/* Une ligne (sauf la dernière) qui s’arrête avant 70 % de la largeur (78 % dans une légende) et nettement plus courte
+   qu’une voisine laisse un trou : un groupe de mots collés trop long est parti à la ligne suivante. Une dernière ligne
+   sous 36 % de la largeur est un bout de phrase isolé. Une expression en gras de quatre mots au plus ne se coupe pas. */
 const SHORT_LINE = 0.7, SHORT_LINE_CAP = 0.78, NARROW_BLOCK = 0.7, STUB_LINE = 0.36, BOLD_WORDS = 4;
 function textIssues(){
   const out = [];
@@ -409,7 +402,7 @@ function textIssues(){
       if (i < lines.length - 1 && last && shortWord(last.w)) out.push({kind: 'ligne finie par un mot court', where: isCap ? 'légende' : el.className || el.tagName, line: i + 1, text});
       if (l.toks.some(t => t.split)) out.push({kind: 'mot coupé', where: el.className || el.tagName, line: i + 1, text});
     });
-    if (isCap && lines.length > 3) out.push({kind: 'plus de 3 lignes', where: 'légende', line: lines.length, text});
+    if (isCap && lines.length > (+el.closest('.c').dataset.lines || 3)) out.push({kind: 'plus de 3 lignes', where: 'légende', line: lines.length, text});
     if (lines.length > 1) {
       const cs = getComputedStyle(el), k = el.getBoundingClientRect().width / (el.offsetWidth || 1);
       const avail = (el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)) * k;
@@ -442,11 +435,10 @@ function textIssues(){
   return out;
 }
 
-/* Cadres collés (?check) : deux cadres visibles en même temps — cartes, éditeurs de code, encadrés posés dans une scène,
-   pastilles, légende, puce de chapitre — gardent au moins 20 px d’écart, ombre portée comprise. Les tampons, posés exprès
-   sur une carte, et ce qui s’envole par-dessus (.fly : l’enveloppe d’un email envoyé) ne comptent pas. Surlignages coupés : un surlignage visible (cadre autour d’un mot, fond d’un mot-clé…)
-   n’est jamais rogné par un parent qui masque ce qui dépasse (cellule de tableau, ligne de code qui s’ouvre…).
-   La timeline est parcourue par pas de 0,2 s ; un défaut qui ne dure qu’un instant (rebond, ouverture) est ignoré. */
+/* Cadres collés (?check) : deux cadres visibles en même temps (cartes, éditeurs, encadrés, pastilles, légende, puce de
+   chapitre) gardent 20 px d’écart, ombre comprise ; les tampons et ce qui s’envole (.fly) ne comptent pas.
+   Surlignages coupés : un surlignage visible n’est jamais rogné par un parent qui masque ce qui dépasse.
+   La timeline est parcourue par pas de 0,2 s ; un défaut d’un instant (rebond, ouverture) est ignoré. */
 const CARD_GAP = 20;
 function layoutIssues(render, total){
   const stage = $('#stage');
@@ -553,9 +545,8 @@ function layoutIssues(render, total){
   return [...found.values()];
 }
 
-/* Une pause de lecture fige l’image : rien ne doit être en plein mouvement à cet instant
-   (hors mouvements d’ambiance). Liste les animations interrompues, pour la mise au point.
-   Les moments « À toi » (picks) arrêtent aussi l’image : ils sont vérifiés de la même façon. */
+/* Une pause de lecture fige l’image : rien ne doit être en plein mouvement à cet instant (hors ambiance) ; les moments
+   « À toi » (picks) arrêtent aussi l’image et sont vérifiés de même. Liste les animations interrompues. */
 /* Gestes joués sur l’image ; tout autre kind (on, join… de Quel JOIN) reste un choix d’étiquette. */
 const GESTURES = ['tap', 'sort', 'link'];
 function holdClashes(extra = []){
@@ -588,8 +579,7 @@ function Course(cfg){
   let out = 0;
   function renderAt(T){
     const t = warp(T);
-    /* Avant de dessiner l’image, la page retire l’aperçu d’un moment « À toi » que la timeline va montrer : la timeline
-       ne doit jamais lire l’aperçu comme l’état de départ de ses éléments (la réponse réapparaîtrait en reculant). */
+    /* Avant de dessiner l’image, la page retire l’aperçu d’un moment « À toi » que la timeline va montrer (sinon la réponse réapparaîtrait en reculant). */
     if (cfg.beforeRender) cfg.beforeRender(t);
     tl.seek(t, true);
     const stage = document.getElementById('stage');
@@ -625,13 +615,11 @@ function Course(cfg){
       layoutIssues: QS.has('check') ? layoutIssues(renderAt, out) : undefined,
       chapters: chapters.map(c => ({t: unwarp(c.a), n: c.n, label: c.label})),
       questions: questions.map(q => ({t: unwarp(q.at), kicker: q.kicker, ctx: fr(q.ctx || ''), q: fr(q.q), options: q.options.map(o => ({label: o.label, ok: o.ok})), okTitle: fr(q.okTitle), koTitle: fr(q.koTitle), why: fr(q.why)})),
-      /* Moments « À toi » : l’animation s’arrête, l’élève place une étiquette dans la requête ; la page montre aussitôt
-         le résultat de son choix (window.IX : slot, pick, leave), le lecteur gère le plateau, le son et la reprise.
-         Autres gestes (kind) : tap (toucher les bons endroits de l’image), sort (glisser chaque étiquette vers sa place),
-         link (relier deux éléments) ; la page décrit les endroits (IX.spots) et juge chaque geste (IX.act).
-         need : nombre de bons gestes attendus (tap, link) ; hint : consigne du geste, sous le plateau ; next : la ligne d’aide
-         une fois une étiquette choisie ({x} : l’étiquette ; à défaut, « Touche maintenant la table de … ») ;
-         text : étiquettes en texte courant (une réponse en mots), et non en code ; tag : repère de l’étiquette à glisser (lettre de colonne) ;
+      /* Moments « À toi » : l’animation s’arrête, l’élève agit ; la page montre aussitôt le résultat (window.IX : slot, pick,
+         leave), le lecteur gère le plateau, le son et la reprise. Gestes (kind) : tap (toucher les bons endroits), sort (glisser
+         chaque étiquette), link (relier deux éléments) ; la page décrit les endroits (IX.spots) et juge chaque geste (IX.act).
+         need : bons gestes attendus (tap, link) ; hint : consigne sous le plateau ; next : ligne d’aide une fois une étiquette
+         choisie ({x} : l’étiquette) ; text : étiquettes en texte courant ; tag : repère de l’étiquette à glisser ;
          from : début du passage qui amène le moment (revoir, rejouer). */
       picks: picks.map(p => ({t: unwarp(p.at), from: p.from != null ? unwarp(p.from) : null, kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', next: p.next ? fr(p.next) : '', need: p.need || 0,
         /* L’explication de la bonne réponse : le lecteur la remontre quand le moment, déjà réussi, s’ouvre résolu. */
