@@ -875,8 +875,8 @@ const COURSES = [
       "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
       "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.0);", 'Chapitre 3 · Modéliser avec UML']},
-  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '4 min 31', notesAt: 179.7,
-    notes: /notes:\{t:263\.6,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
+  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '4 min 39', notesAt: 179.7,
+    notes: /notes:\{t:271\.7,y:1115,card:\[64,292,1016,820\],to:\[940,255\]\}/, table: 'ateliers',
     bubble: 'Tu vas représenter la structure de la base avec un diagramme UML pour visualiser plus&nbsp;facilement les relations entre les tables.',
     chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
     traps: ["const CLASSES = [['co', 'Coach', ['prenom', 'nom', 'email']], ['ca', 'Carte', ['seances']],",
@@ -1557,7 +1557,7 @@ test('« Identifiant », jamais « numéro », pour la valeur d’une clé : vid
 
 test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des tables du chapitre 2, chaque multiplicité et chaque traduction vérifiées', async () => {
   const l81 = cut('guide({ id:81, titre:"Modéliser avec UML"', 'guide({ id:61,');
-  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'4 min 31',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'4 min 39',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1638,6 +1638,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.ok(!/colonnes|relations|création de la base|créer la base|Pour dessiner ce plan/.test([D.CAPTIONS[ic][2], D.CAPTIONS[ic + 1][2]].join(' ')), 'la légende ne redit pas la demande de Karim');
   assert.ok(!/représent|à gérer/.test(flat(ic + 1)), 'la légende d’avant ne dit pas deux fois la même chose que la réf 1 (« représenté », « élément à gérer »)');
   assert.ok(!/sujet/.test(JSON.stringify([D.CAPTIONS, D.PICKS, D.MAILS, bubble])), 'un « élément » (pas un « sujet ») devient une classe : même mot dans les légendes, les réponses et le mail');
+  assert.ok(html.includes('e:"Une classe décrit un élément à gérer : elle devient une table, et ses attributs deviennent ses colonnes."') && !html.includes('Une classe décrit un sujet'), 'le quiz dit aussi « élément », pas « sujet »');
   assert.ok(D.CAPTIONS[ic + 2][2].startsWith('Chaque élément à gérer est représenté par une <b>classe</b>.') && D.CAPTIONS[ic + 4][2] === 'Aucune clé ici : le diagramme décrit les éléments, pas la façon de les ranger.', 'la suite reprend « éléments »');
   /* Chaque geste suit sa légende : les quatre classes arrivent pendant « on utilise un diagramme de classes UML », puis s’entourent
      chacune à son tour, dans l’ordre où la légende les nomme (clients, coachs, ateliers, cartes), pendant « Il représente… ». */
@@ -1660,8 +1661,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.equal(said('La date d’inscription', 3), 'La date d’inscription indique quand un client s’est inscrit à un atelier précis. On la place dans Inscription, une classe d’association reliée par des pointillés à la relation entre Client et Atelier.');
   assert.equal(said('Le diagramme est maintenant complet', 2), 'Le diagramme est maintenant complet : il présente les informations à conserver et les relations entre les classes. Karim pourra s’appuyer dessus pour créer la base de données.');
   assert.equal(said('Pour traduire une association', 3), 'Pour traduire une association en tables, on regarde d’abord le maximum de chaque côté : 1 ou plusieurs (*). Cela permet de reconnaître une relation un à un, un à plusieurs ou plusieurs à plusieurs.');
-  assert.equal(flat(idx('Chaque classe devient une table')), 'Chaque classe devient une table, avec sa clé primaire id ; chaque attribut, une colonne.');
-  assert.equal(D.CAPTIONS.filter(c => /créer la base/.test(c[2])).length, 1, '« créer la base » est dit une seule fois dans les légendes (réf 6), pas répété quelques secondes plus tard');
+  assert.equal(said('Pour créer la base', 4), 'Pour créer la base, chaque classe devient une table et ses attributs deviennent des colonnes. Ici, on ajoute une colonne id, utilisée comme clé primaire pour identifier chaque ligne de façon unique.');
   assert.ok(!/à côté (de|d’)/.test(JSON.stringify([D.CAPTIONS, D.PLACE])) && !/\blien\b/.test(JSON.stringify(D.CAPTIONS)), 'une multiplicité est « du côté de la classe X » ; « relation » entre tables, jamais « lien »');
   /* Chaque phrase a son geste et son son, pendant sa légende : après son fondu d’entrée, avant la pause de lecture qui tombe à sa fin. */
   const during = (t, i, d) => D.CAPTIONS[i][0] + 0.3 - 1e-9 <= t && t + d <= D.CAPTIONS[i][1] - 0.25 + 1e-9;
@@ -1690,6 +1690,11 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
     ['C’est le 0..1', ["bump('#mp-po-ca', 109.8, 1.25); lite('ca', 109.8, 0.6); cue(109.8, 'pop', 0.6, 4);"], 109.8, 0.9],
     ['C’est le 0..1', ["lite('cl', 111.2, 0.6); cue(111.2, 'tick', 0.5, 2);"], 111.2, 0.9],
     ['Son maximum vaut 1', ["tl.to('#mp-po-ca .mn', {opacity: 0.28, duration: 0.4, ease: 'power2.out'}, 113.0);", "bump('#mp-po-ca', 113.0, 1.25); cue(113.0, 'tick', 0.5, 4);"], 113.0, 0.45],
+    ['Pour créer la base', ["[['co', 116.0], ['ca', 116.2], ['at', 116.4], ['cl', 116.6]].forEach(([k, t]) => toTable(k, t));"], 116.0, 1.1],
+    ['et ses attributs', ["$$('#sb .cls:not(.acl) .ar:not(.ini)').forEach((r, q) => pulse(r, 117.75 + q * 0.015, 1));", "cue(117.75, 'tick', 0.5, 3); cue(117.95, 'tick', 0.5, 5);"], 117.75, 0.7],
+    ['Ici, on ajoute une colonne', ["[['co', 119.15], ['ca', 119.21], ['at', 119.27], ['cl', 119.33]].forEach(([k, t]) => addRow(`#cb-${k}-pk`, t));",
+      "tl.to('#mp-an-co', {y: 52, duration: 0.4, ease: 'power2.inOut'}, 119.15);", "tl.to('#mp-po-ca', {y: 52, duration: 0.4, ease: 'power2.inOut'}, 119.21);"], 119.15, 0.58],
+    ['pour identifier chaque ligne', ["['co', 'ca', 'at', 'cl'].forEach((k, q) => { pulse(`#cb-${k}-pk`, 120.5 + q * 0.08, 1); cue(120.5 + q * 0.08, 'tick', 0.5, q + 2); });"], 120.5, 0.74],
     ['Pour traduire une association', ["glow('#ln-' + k, 122.0 + q * 0.2); bump('#an-' + k, 122.0 + q * 0.2, 1.1); cue(122.0 + q * 0.2, 'tick', 0.5, q);"], 122.0, 0.85],
     ['le maximum de chaque côté', ["tl.to('#sb .mp:not(.ask) .mn', {opacity: 0.28, duration: 0.4, ease: 'power2.out'}, 123.7);", "bump(m, 123.9 + q * 0.06, 1.12); cue(123.9 + q * 0.06, 'tick', 0.35, q);"], 123.7, 0.9],
     ['Cela permet de reconnaître', ["{autoAlpha: 1, y: 0, duration: 0.4, ease: 'back.out(1.6)'}, 125.5 + q * 0.4); cue(125.5 + q * 0.4, 'pop', 0.55, q);"], 125.5, 1.25],
