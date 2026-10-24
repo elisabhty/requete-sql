@@ -54,7 +54,7 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
     '"On l’ajoute donc dans une colonne<br><code>telephone</code> de la <b>table coachs</b>."',
     '"Le numéro est renseigné<br>une seule fois par coach."',
     '"Les coachs reçoivent de nombreux<br>appels et messages pendant les cours."',
-    '"Ce sont des questions<br>que l’accueil peut gérer."',
+    '"Ce sont des questions<br>que le service client peut gérer."',
     '"Dans le prochain chapitre,<br>tu apprendras à supprimer<br>une table entière."',
     '"Tu le feras avec <code>DROP TABLE</code> :<br>la table disparaît<br>avec toutes ses données."'])
     assert.ok(page.includes(s), `légende découpée : ${s.slice(0, 60)}`);
@@ -180,7 +180,7 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
     'La contrainte CHECK suit le nouveau nom : seances_restantes >= 0.',
     'Sur le même modèle, ALTER TABLE cartes RENAME TO cartes_membre renommerait la table elle-même.',
     'Les coachs reçoivent de nombreux appels et messages pendant les cours.',
-    'Ce sont des questions que l’accueil peut gérer.',
+    'Ce sont des questions que le service client peut gérer.',
     'Ils souhaitent pouvoir se concentrer sur leurs séances.',
     'DROP COLUMN supprime la colonne, et toutes ses valeurs avec elle.',
     'Une colonne supprimée ne se récupère pas : il faudrait redemander leurs numéros aux coachs.',
@@ -195,16 +195,16 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
     'Ajoute ce résumé à tes notes pour le retrouver facilement.'];
   assert.deepEqual(D.CAPTIONS.map(c => flat(c[2])).filter(t => t !== 'À toi !'), BULLES, 'les bulles du scénario, mot pour mot');
   /* Les quatre mails : Julie Nguyen (12 places), Diego Ramos (les numéros des coachs), l’équipe NutriBoost (seances prête à confusion), puis de nouveau
-     l’équipe NutriBoost (l’accueil centralise les demandes : les numéros des coachs ne sont plus conservés). Chaque mail, le dernier aussi, se termine par « Merci ! » et sa signature. */
+     l’équipe NutriBoost (le service client centralise les demandes : les numéros des coachs ne sont plus conservés ; Elisa, 25 octobre : « le service client », plus « l’accueil »). Chaque mail, le dernier aussi, se termine par « Merci ! » et sa signature. */
   assert.deepEqual(D.MAILS.map(m => [m[0][0] + ' ' + m[0][1], m[1], m[2], m[3], m[5]]), [['Julie Nguyen', 'k-co', 'coach', 'julie@mail.fr', 'Julie'],
     ['Diego Ramos', 'k-co', 'coach', 'diego@mail.fr', 'Diego'], ['L’équipe NutriBoost', 'k-nb', 'équipe', 'equipe@nutriboost.fr', 'L’équipe NutriBoost'],
     ['L’équipe NutriBoost', 'k-nb', 'équipe', 'equipe@nutriboost.fr', 'L’équipe NutriBoost']], 'expéditeurs');
   assert.deepEqual(D.MAILS.map(m => m[4]), [
     ['Je suis Julie, la coach de l’atelier Cuisine saine.', 'Nos salles accueillent au maximum 12 personnes. Peux-tu enregistrer le nombre de places de chaque atelier ?'],
     ['Je suis Diego, le coach de l’atelier Méditation.', 'Les clients aimeraient pouvoir appeler leur coach avant la séance. Peux-tu ajouter nos numéros de téléphone dans la base ?'],
-    ['La colonne seances indique le nombre de séances qu’un client peut encore utiliser. Son nom prête à confusion : l’équipe d’accueil pense parfois qu’il s’agit des séances déjà suivies.',
+    ['La colonne seances indique le nombre de séances qu’un client peut encore utiliser. Son nom prête à confusion : le service client pense parfois qu’il s’agit des séances déjà suivies.',
       'Peux-tu la renommer seances_restantes, en conservant les valeurs actuelles ?'],
-    ['Désormais, l’accueil centralise les demandes des clients. Nous ne souhaitons plus conserver les numéros personnels des coachs dans cette base.']], 'demandes, mot pour mot');
+    ['Désormais, le service client centralise les demandes des clients. Nous ne souhaitons plus conserver les numéros personnels des coachs dans cette base.']], 'demandes, mot pour mot');
   assert.ok(page.includes("['<span class=\"sn2\">Merci !</span>', `<span class=\"sn2 s\">${sign}</span>`]).join('');") && !page.includes('sign ? ['), 'chaque mail : « Merci ! » et sa signature');
   /* Chaque mail arrive avant le moment qui s’en sert ; le quatrième, juste avant le moment 5 (la requête qui retire les numéros),
      et « Revoir » du moment 5 repart avant lui pour que le mail se relise. */
@@ -319,7 +319,7 @@ test(`${FILE} : le téléphone d’un coach (deux vagues de notifications, messa
   assert.deepEqual(T.NOTIF2, [['Hugo Laurent', 'm', 'Le cours est dans quelle salle ?'], ['Chloé Moreau', 'c', 'Appel entrant…'], ['Lucas Bernard', 'm', 'Il faut apporter un tapis ?'],
     ['Nathan Petit', 'x', '3 appels manqués'], ['Emma Dubois', 'm', 'Je peux venir avec une amie ?']], 'seconde vague');
   assert.ok(T.NOTIF1.concat(T.NOTIF2).every(n => /^\S+ \S+$/.test(n[0])), 'chaque client avec son prénom et son nom');
-  /* « …pour des questions que l’accueil peut gérer » : les trois messages de la seconde vague s’entourent, de haut en bas (le plus récent est en haut). */
+  /* « …des questions que le service client peut gérer » : les trois messages de la seconde vague s’entourent, de haut en bas (le plus récent est en haut). */
   assert.deepEqual(T.NOTIF2.map((n, k) => [k, n[1]]).filter(([, kind]) => kind === 'm').map(([k]) => k).reverse(), [4, 2, 0], 'les trois messages de questions');
   /* Le téléphone entre au centre ; l’image reste le temps de lire le message de Léa Simon ; la légende revient avec la première bulle. */
   for (const s of ["show('#ph', p, {y: 170, scale: 0.92}, 0.7, 'back.out(1.3)');", 'hold(p + 5.5, Math.ceil(readTime(PHONE_MSG) * 20) / 20);', '[4, 2, 0].forEach((k, q) =>',
@@ -327,8 +327,8 @@ test(`${FILE} : le téléphone d’un coach (deux vagues de notifications, messa
     assert.ok(page.includes(s), `téléphone : ${s.slice(0, 70)}`);
   const [c1, cq, c2] = ['Les coachs reçoivent de nombreux', 'Ce sont des questions', 'Ils souhaitent pouvoir'].map(s => D.CAPTIONS.find(c => flat(c[2]).startsWith(s)));
   assert.ok(c1 && cq && c2 && c1[0] >= 141.4 + 9.5 && c2[1] <= 162.95 && c1[1] < cq[0] && cq[1] < c2[0], 'les trois bulles du téléphone (appels et messages, questions, concentration) sont lues dans l’ordre pendant la scène, après les deux vagues');
-  /* La phrase coupée en deux : les trois messages de questions s’entourent pendant « Ce sont des questions que l’accueil peut gérer. », pas avant. */
-  assert.ok(141.4 + 14.9 >= cq[0] && 141.4 + 14.9 + 2 * 0.55 <= cq[1], 'les trois messages s’entourent pendant « Ce sont des questions que l’accueil peut gérer. »');
+  /* La phrase coupée en deux : les trois messages de questions s’entourent pendant « Ce sont des questions que le service client peut gérer. », pas avant. */
+  assert.ok(141.4 + 14.9 >= cq[0] && 141.4 + 14.9 + 2 * 0.55 <= cq[1], 'les trois messages s’entourent pendant « Ce sont des questions que le service client peut gérer. »');
   /* Le téléphone vibre à chaque notification : un nombre pair de mouvements (répétition impaire + 1), pour qu’il revienne exactement à sa place. */
   const buzzes = [...page.matchAll(/\bbuzz\(([^()]*)\);/g)].map(m => m[1].split(', ')).map(a => a.length > 1 ? +a[1] : 5);
   assert.ok(buzzes.length === 3 && buzzes.every(n => n % 2 === 1), `vibrations : ${buzzes}`);

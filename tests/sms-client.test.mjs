@@ -1,9 +1,10 @@
 /* Un client écrit par SMS : la notification de l’iPhone, puis la conversation de Messages (assets/anim/core.js et core.css).
    Elisa, 24 octobre : « Quand c’est des clients, faire plutôt des messages SMS immersifs, crédibles, iPhone iOS. »
-   Un coach, l’équipe ou le développeur écrivent toujours par mail ; l’accueil, qui centralise les demandes des clients depuis le chapitre 5,
-   écrit par SMS quand la page le décide (7e élément du message : {sms: true}), sinon par mail (Elisa, 25 octobre : « c’est un message de
-   l’accueil qui dit qu’elle ne pourra pas venir »). La règle « client-par-sms » de la charte (tests/helpers/redaction.mjs) vérifie que
-   chaque chapitre du projet, y compris ceux à venir, la respecte. */
+   Un coach, l’équipe ou le développeur écrivent toujours par mail ; le service client, qui centralise les demandes des clients depuis le
+   chapitre 5, écrit par SMS quand la page le décide (7e élément du message : {sms: true}), sinon par mail (Elisa, 25 octobre : « c’est un
+   message de l’accueil qui dit qu’elle ne pourra pas venir », puis « plus l’accueil mais le service client »). Depuis le chapitre 6, aucun
+   client n’écrit lui-même. Les règles « client-par-sms » et « service-client-relaie » de la charte (tests/helpers/redaction.mjs) vérifient que
+   chaque chapitre du projet, y compris ceux à venir, les respecte. */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -18,16 +19,17 @@ const core = lire('core.js'), css = lire('core.css'), index = fs.readFileSync(pa
 const a = core.indexOf('/* ---------- Un client écrit : SMS'), b = core.indexOf('/* ---------- Habillage : chapitres et légendes');
 assert.ok(a > 0 && b > a, 'repères de la partie SMS de core.js introuvables');
 const ctx = vm.createContext({});
-vm.runInContext("const NB = '\\u00a0';" + core.slice(a, b) + ';this.S = {isSms, smsTime, smsParts, smsCard, SMS_ICO};', ctx);
+vm.runInContext("const NB = '\\u00a0';" + core.slice(a, b) + ';this.S = {isSms, smsTime, smsRank, smsParts, smsCard, SMS_ICO};', ctx);
 const S = ctx.S;
 const parts = body => [...S.smsParts(body)];   // un tableau du moteur (autre contexte) ne se compare pas tel quel
 
-test('qui écrit par SMS : un client ou une cliente ; l’accueil seulement quand la page le décide ({sms: true})', () => {
+test('qui écrit par SMS : un client ou une cliente ; le service client seulement quand la page le décide ({sms: true})', () => {
   for (const t of ['client', 'cliente']) assert.equal(S.isSms(t), true, t);
-  for (const t of ['coach', 'équipe', 'accueil', 'développeur']) assert.equal(S.isSms(t), false, t);
-  assert.equal(S.isSms('accueil', {sms: true}), true, 'l’accueil qui relaie une demande écrit par SMS');
-  assert.equal(S.isSms('accueil', {}), false);
-  assert.equal(S.isSms('accueil', undefined), false);
+  for (const t of ['coach', 'équipe', 'service client', 'développeur']) assert.equal(S.isSms(t), false, t);
+  assert.equal(S.isSms('équipe', {sms: true}), true, 'le service client qui relaie une demande écrit par SMS');
+  assert.equal(S.isSms('équipe', {}), false);
+  assert.equal(S.isSms('équipe', undefined), false);
+  assert.equal(S.isSms('équipe', {bye: 'Merci pour ton aide !'}), false, 'une formule de fin ne change pas le support : c’est un mail');
   assert.equal(S.isSms('coach', {sms: false}), false);
 });
 
@@ -46,6 +48,28 @@ test('l’heure d’envoi : « 07:00 » à « 18:59 », la même pour un même e
     assert.equal(S.smsTime(n), h);
   }
   assert.notEqual(S.smsTime('Léa Simon'), S.smsTime('Nathan Dupont'), 'deux expéditeurs, deux heures');
+});
+
+test('deux SMS du même expéditeur (le service client, aux chapitres 9 et 10) : sept minutes d’écart, jamais la même heure', () => {
+  const nom = 'Le service client NutriBoost', min = h => +h.slice(0, 2) * 60 + +h.slice(3);
+  assert.equal(S.smsTime(nom, 0), S.smsTime(nom), 'le premier SMS garde l’heure de l’expéditeur');
+  assert.equal(min(S.smsTime(nom, 1)) - min(S.smsTime(nom, 0)), 7);
+  assert.equal(min(S.smsTime(nom, 2)) - min(S.smsTime(nom, 0)), 14);
+  for (const n of [0, 1, 2]) assert.match(S.smsTime(nom, n), /^(0[7-9]|1[0-9]|2[0-3]):[0-5]\d$/, `heure ${n}`);
+});
+test('le rang d’un SMS parmi ceux du même expéditeur : 0 pour le premier, un mail ou un autre expéditeur ne compte pas', () => {
+  const L = (nom, tag, opt) => [[nom, 'NutriBoost', 'SC'], 'k-in', tag, 'x@y.fr', ['Bonjour.'], 'x', opt];
+  const liste = [L('Le service client', 'équipe', {sms: true}), L('Karim', 'développeur'), L('Le service client', 'équipe', {sms: true}), L('Le service client', 'équipe', {bye: 'Merci !'}), L('Le service client', 'équipe', {sms: true})];
+  assert.deepEqual([0, 2, 4].map(n => S.smsRank(liste, n)), [0, 1, 2], 'les trois SMS du service client : rangs 0, 1 et 2 ; son mail (n°4) ne décale pas le rang du dernier SMS');
+  assert.equal(S.smsRank(liste, 1), 0, 'un autre expéditeur repart de 0');
+});
+
+test('la carte d’un SMS : son rang décale l’heure d’envoi, sans toucher au reste', () => {
+  const corps = ['Léa ne pourra pas venir.', 'Peux-tu annuler son inscription ?'];
+  const a = S.smsCard(1, 'k-in', 'Le service client', 'NutriBoost', 'SC', corps), b = S.smsCard(2, 'k-in', 'Le service client', 'NutriBoost', 'SC', corps, false, 1);
+  const nom = 'Le service client NutriBoost';
+  assert.ok(a.includes('<b>Aujourd’hui</b> ' + S.smsTime(nom, 0)) && b.includes('<b>Aujourd’hui</b> ' + S.smsTime(nom, 1)) && S.smsTime(nom, 0) !== S.smsTime(nom, 1), 'deux SMS du service client, deux heures');
+  assert.equal(a.replace(/id="ml1"/, 'id="ml2"').replace(S.smsTime(nom, 0), S.smsTime(nom, 1)), b, 'seuls l’identifiant et l’heure changent');
 });
 
 test('la carte d’un SMS : bannière de notification, conversation, bulles, barre de saisie', () => {
@@ -95,38 +119,77 @@ test('la cadence : la bannière, le toucher, « … », puis une bulle toutes le
 
 /* ---------- Les chapitres ---------- */
 const PAGES = R.pagesProjet();
-const AVEC_CLIENT = PAGES.filter(f => R.donnees(f).MAILS.some(m => /^client/.test(m[2])));
-test('les chapitres où un client écrit : 1, 2, 9 et 10 (ceux à venir s’ajoutent seuls)', () => {
-  assert.deepEqual(['projet-cles.html', 'projet-delete.html', 'projet-normaliser.html', 'projet-ondelete.html'].filter(f => !AVEC_CLIENT.includes(f)), [], 'les quatre chapitres déjà faits');
+const estSms = m => /^client/.test(m[2]) || !!(m[6] && m[6].sms);   // un client, ou le service client quand le message le dit
+const AVEC_SMS = PAGES.filter(f => R.donnees(f).MAILS.some(estSms));
+test('les chapitres où un SMS arrive : 1 et 2 (un client), 9 et 10 (le service client) ; ceux à venir s’ajoutent seuls', () => {
+  assert.deepEqual(['projet-cles.html', 'projet-delete.html', 'projet-normaliser.html', 'projet-ondelete.html'].filter(f => !AVEC_SMS.includes(f)), [], 'les quatre chapitres déjà faits');
+  const clients = PAGES.filter(f => R.donnees(f).MAILS.some(m => /^client/.test(m[2])));
+  assert.deepEqual(clients, ['projet-cles.html', 'projet-normaliser.html'], 'un client écrit lui-même aux chapitres 1 et 2 seulement : depuis le chapitre 5, le service client centralise les demandes');
 });
-for (const f of AVEC_CLIENT) {
-  test(`${f} : le message d’un client est un SMS (smsCard, smsIn), celui d’un coach ou de l’équipe reste un mail`, () => {
+for (const f of AVEC_SMS) {
+  test(`${f} : un SMS est rendu en SMS (smsCard, smsIn), celui d’un coach, de l’équipe ou du service client (sans option) reste un mail`, () => {
     const src = lire(f), M = R.donnees(f).MAILS;
-    assert.ok(R.rendEnSms(src), 'smsCard pour une étiquette de client, smsIn dans mailIn');
+    assert.ok(R.rendEnSms(src), 'smsCard pour un SMS, smsIn dans mailIn');
     assert.ok(/isSms\(tag, MAILS\[n\]\[6\]\) \? smsCard\(n \+ 1, k, /.test(src) && /function mailIn\(n, t, T\)\{\n  if \(isSms\(MAILS\[n - 1\]\[2\], MAILS\[n - 1\]\[6\]\)\) \{ if \(!APP\) fingerTap\(\$\('#ml' \+ n\), T\); return smsIn\(n, t, T/.test(src), 'même câblage dans chaque page');
-    assert.ok(M.some(m => !/^client/.test(m[2])), 'au moins un mail resté un mail');
-    /* La page garde le code du mail (coach, équipe, accueil) : avatar à enveloppe, adresse, signature. */
+    assert.ok(M.some(m => !estSms(m)), 'au moins un mail resté un mail');
+    /* La page garde le code du mail (coach, équipe, service client) : avatar à enveloppe, adresse, signature. */
     assert.ok(src.includes('<i class="mav">') && src.includes('Nouveau mail'), 'la carte de mail existe toujours');
     /* L’app s’arrête sur la notification : « Touche le message… » pour un client, « Touche le mail… » sinon. */
-    assert.ok(src.includes("msg = /^client/.test(MAILS[n][2]) || (MAILS[n][6] || {}).sms ? 'message' : 'mail'") && src.includes('prompt: `Touche le ${msg} pour l’ouvrir.`') && src.includes('label: `Ouvrir le ${msg} '), 'consigne et étiquette du toucher');
+    assert.ok(/msg = (?:\/\^client\/\.test\(MAILS\[n\]\[2\]\) \|\| \(MAILS\[n\]\[6\] \|\| \{\}\)\.sms|mailSms\(n\)) \? 'message' : 'mail'/.test(src) && src.includes('prompt: `Touche le ${msg} pour l’ouvrir.`') && src.includes('label: `Ouvrir le ${msg} '), 'consigne et étiquette du toucher');
   });
 }
 test('chapitre 1 : la conversation est compacte et serrée (elle tient sous le fichier, avant que la légende ne revienne)', () => {
   const src = lire('projet-normaliser.html');
   assert.ok(src.includes('smsCard(n + 1, k, w[1], w[2], w[4], body, true)') && src.includes('return smsIn(n, t, T, true);'), 'version compacte et cadence serrée');
 });
-test('chapitre 9 : l’accueil relaie la demande de Léa Simon par SMS (« Léa ne pourra pas venir. » en aperçu) ; Nathan écrit par SMS ; Hugo reste un mail de l’accueil', () => {
+test('chapitre 9 : le service client relaie les trois demandes : deux SMS (« Léa ne pourra pas venir. », « Nathan Dupont veut qu’on supprime son compte. »), puis le mail d’Hugo Laurent', () => {
   const src = lire('projet-delete.html'), M = R.donnees('projet-delete.html').MAILS;
-  assert.deepEqual(M.map(m => `${m[0][0]} ${m[0][1]} [${m[2]}]`), ['L’accueil NutriBoost [accueil]', 'Nathan Dupont [client]', 'L’accueil NutriBoost [accueil]']);
-  assert.deepEqual(M.map(m => !!(m[6] && m[6].sms)), [true, false, false], 'seul le premier message de l’accueil porte l’option {sms: true}');
+  assert.deepEqual(M.map(m => `${m[0][0]} ${m[0][1]} [${m[2]}]`), Array(3).fill('Le service client NutriBoost [équipe]'));
+  assert.deepEqual(M.map(m => !!(m[6] && m[6].sms)), [true, true, false], 'les deux premiers messages du service client portent l’option {sms: true}, le dernier est un mail');
   assert.deepEqual(parts(M[0][4]), ['Bonjour,', 'Léa ne pourra pas venir.', 'Elle est inscrite à l’atelier Cuisine saine du 19 septembre.', 'Peux-tu annuler son inscription ?', 'Merci !'],
     'une bulle par phrase ; la première phrase est l’aperçu de la notification');
-  const h = S.smsCard(1, 'k-in', 'L’accueil', 'NutriBoost', 'AC', M[0][4]);
-  const ban = h.slice(h.indexOf('sms-n'), h.indexOf('sms-v'));
-  assert.ok(ban.includes('<b>L’accueil NutriBoost</b>') && ban.includes('<div class="sms-np">Léa ne pourra pas venir.</div>'), 'bannière : « L’accueil NutriBoost », « Léa ne pourra pas venir. »');
-  assert.ok(h.includes('<i class="sms-av">AC</i>') && h.includes('L’accueil NutriBoost<i>›</i>'), 'conversation : avatar AC, nom de l’accueil');
+  assert.deepEqual(parts(M[1][4]), ['Bonjour,', 'Nathan Dupont veut qu’on supprime son compte.', 'Il ne souhaite finalement plus participer aux ateliers.', 'Il n’en aura plus l’utilité.',
+    'Peux-tu le supprimer et me confirmer quand c’est fait ?', 'Merci !'], 'Nathan : « Nathan Dupont veut qu’on supprime… » (Elisa, Réf 2), quatre phrases');
+  const nom = 'Le service client NutriBoost';
+  const h0 = S.smsCard(1, 'k-in', 'Le service client', 'NutriBoost', 'SC', M[0][4], false, S.smsRank(M, 0)), h1 = S.smsCard(2, 'k-in', 'Le service client', 'NutriBoost', 'SC', M[1][4], false, S.smsRank(M, 1));
+  const ban = h => h.slice(h.indexOf('sms-n'), h.indexOf('sms-v'));
+  assert.ok(ban(h0).includes('<b>Le service client NutriBoost</b>') && ban(h0).includes('<div class="sms-np">Léa ne pourra pas venir.</div>'), 'bannière : « Le service client NutriBoost », « Léa ne pourra pas venir. »');
+  assert.ok(ban(h1).includes('<b>Le service client NutriBoost</b>') && ban(h1).includes('<div class="sms-np">Nathan Dupont veut qu’on supprime son compte.</div>'), 'bannière : « Nathan Dupont veut qu’on supprime son compte. »');
+  assert.ok(h0.includes('<i class="sms-av">SC</i>') && h0.includes('Le service client NutriBoost<i>›</i>'), 'conversation : avatar SC, nom du service client');
+  assert.ok(h0.includes('<b>Aujourd’hui</b> ' + S.smsTime(nom, 0)) && h1.includes('<b>Aujourd’hui</b> ' + S.smsTime(nom, 1)) && S.smsTime(nom, 0) !== S.smsTime(nom, 1), 'deux SMS du même expéditeur : deux heures');
+  assert.ok(src.includes('body, false, smsRank(MAILS, n)) : `'), 'la page donne le rang du SMS : l’heure d’envoi du second est plus tardive');
+  assert.equal(M[2][6].bye, 'Merci pour ton aide !', 'le mail d’Hugo se termine par les mots d’Elisa (Réf 3)');
+  assert.ok(src.includes("(MAILS[n][6] || {}).bye || 'Merci !', sign]"), 'la formule de fin du mail vient du message');
   assert.ok(src.includes('Elisa, 25 octobre'), 'la page garde la trace de la demande d’Elisa');
 });
+test('chapitre 10 : le service client relaie la demande d’Inès Lefebvre par SMS (« Inès Lefebvre ne reviendra plus aux ateliers. » en aperçu), puis écrit le mail des avis', () => {
+  const src = lire('projet-ondelete.html'), M = R.donnees('projet-ondelete.html').MAILS;
+  assert.deepEqual(M.map(m => `${m[0][0]} ${m[0][1]} [${m[2]}]`), Array(2).fill('Le service client NutriBoost [équipe]'));
+  assert.deepEqual(M.map(m => !!(m[6] && m[6].sms)), [true, false]);
+  assert.deepEqual(parts(M[0][4]), ['Bonjour,', 'Inès Lefebvre ne reviendra plus aux ateliers.', 'Peux-tu supprimer son compte ?', 'Merci !']);
+  const h = S.smsCard(1, 'k-in', 'Le service client', 'NutriBoost', 'SC', M[0][4], false, S.smsRank(M, 0));
+  assert.ok(h.slice(h.indexOf('sms-n'), h.indexOf('sms-v')).includes('<div class="sms-np">Inès Lefebvre ne reviendra plus aux ateliers.</div>'), 'l’aperçu de la notification');
+  assert.ok(src.includes('body, false, smsRank(MAILS, n)) : `') && src.includes('Elisa, 25 octobre'));
+});
+
+/* La durée d’un message suit sa longueur : une bulle (SMS) ou une ligne (mail) toutes les 0,28 s ; le départ juste après la pause de lecture, 0,06 s après sa fin. */
+for (const f of ['projet-delete.html', 'projet-ondelete.html']) {
+  test(`${f} : le temps d’un message suit son nombre de lignes, et le message ne part qu’après sa pause de lecture`, () => {
+    const src = lire(f), a = src.indexOf('const SCH = '), b = src.indexOf('/* ---------- Gabarits');
+    const D = vm.createContext({APP: true});
+    vm.runInContext(src.slice(a, b) + ';this.X = {MAILS, MAILS_ROWS: MAILS.map((m, n) => mailRows(n)), MO, SMS: MAILS.map((m, n) => mailSms(n)), BLOC: MAILS.map((m, n) => +(mailOutAt(n) + 1).toFixed(2))};', D);
+    const X = JSON.parse(JSON.stringify(D.X));
+    X.MAILS.forEach((m, n) => {
+      const lignes = X.SMS[n] ? S.smsParts(m[4]).length : 1 + [].concat(m[4]).length + 2;   // « Bonjour, », ses phrases, « Merci ! » ; ou : ses paragraphes, la formule de fin, la signature
+      assert.equal(X.MAILS_ROWS[n], lignes, `message ${n + 1} : ${lignes} lignes`);
+      /* Le toucher à +1,6 s ; la dernière ligne arrive à T + 0,4 + 0,28 k (mail) ou T + 0,62 + 0,28 k (SMS), le départ est après la pause (fin + 0,05). */
+      const fin = 1.6 + (X.SMS[n] ? 0.62 : 0.4) + 0.28 * (lignes - 1) + 0.35;
+      assert.ok(X.MO[n] > fin + 0.05 && X.MO[n] <= fin + 0.05 + 0.4, `message ${n + 1} : part à +${X.MO[n]} s, après sa pause de lecture (+${(fin + 0.05).toFixed(2)} s)`);
+      assert.equal(X.BLOC[n], +(X.MO[n] + 1).toFixed(2), 'le bloc finit 1 s après le départ');
+    });
+    assert.ok(/mailOut\(\d, MAIL\d \+ MO\[\d\]\);/.test(src) && !/MAIL\d \+ (?:3\.8|4\.1|4\.15)\b/.test(src), 'le départ de chaque message suit sa longueur (plus de 3,8 s, 4,1 s ou 4,15 s écrits en dur)');
+  });
+}
 test('chapitres 9 et 10 : la légende annonce les SMS', () => {
   assert.ok(lire('projet-delete.html').includes('cap(\'c2\', "Trois demandes arrivent :<br>deux SMS et un mail.", 2.8);'));
   assert.ok(lire('projet-ondelete.html').includes('cap(\'c2\', "Deux demandes arrivent :<br>un SMS et un mail.", 2.8);'));

@@ -243,27 +243,52 @@ function cap(key, html, dur, gap = 0.1){
 /* « À toi ! » : la légende reste un instant, puis l’image s’arrête à a + 2,35 s (le passage d’attente est coupé). */
 const toi = key => cap(key, 'À toi !', 2.55);
 const {A, B} = SCH;
-/* Un mail : la légende s’efface le temps du mail (notification, toucher, lecture, départ). */
-const mailBlock = () => { const t = SCH.t; SCH.t = +(SCH.t + 4.8).toFixed(2); return t; };
+/* Les trois messages reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses paragraphes), signature, option].
+   Depuis le chapitre 5, le service client centralise les demandes des clients : aucun client n’écrit plus lui-même (Elisa, 25 octobre :
+   « doit être de l’accueil », puis « plus l’accueil mais le service client »). Il écrit par SMS (smsCard, smsIn) quand l’option vaut {sms: true},
+   sinon par mail ({bye: …} : sa formule de fin). Chacun arrive en notification ; l’app s’arrête dessus (OPENS) jusqu’au toucher. */
+const MAILS = [
+  [['Le service client', 'NutriBoost', 'SC'], 'k-in', 'équipe', 'service.client@nutriboost.fr', [
+    'Léa ne pourra pas venir.',
+    'Elle est inscrite à l’atelier Cuisine saine du 19 septembre.',
+    'Peux-tu annuler son inscription ?'], 'Le service client NutriBoost', {sms: true}],
+  [['Le service client', 'NutriBoost', 'SC'], 'k-in', 'équipe', 'service.client@nutriboost.fr', [
+    'Nathan Dupont veut qu’on supprime son compte.',
+    'Il ne souhaite finalement plus participer aux ateliers.',
+    'Il n’en aura plus l’utilité.',
+    'Peux-tu le supprimer et me confirmer quand c’est fait ?'], 'Le service client NutriBoost', {sms: true}],
+  [['Le service client', 'NutriBoost', 'SC'], 'k-in', 'équipe', 'service.client@nutriboost.fr', [
+    'Hugo Laurent nous a informés de son déménagement. Il ne pourra donc plus participer aux ateliers auxquels il est inscrit.',
+    'Peux-tu supprimer toutes ses inscriptions afin de libérer les places pour d’autres participants ?'], 'Le service client NutriBoost', {bye: 'Merci pour ton aide !'}]
+];
+/* Un message : la légende s’efface le temps du message (notification, toucher, lecture, départ). Plus il a de lignes (de bulles, pour un SMS),
+   plus il reste : le toucher à +1,6 s, une ligne toutes les 0,28 s, le départ juste après la pause de lecture (+3,8 s pour cinq lignes), et le
+   bloc finit 1 s après le départ. Un SMS : « Bonjour, », une bulle par phrase, « Merci ! » (comme smsParts). */
+const mailSms = n => /^client/.test(MAILS[n][2]) || !!(MAILS[n][6] || {}).sms;
+const mailRows = n => mailSms(n) ? 2 + [].concat(MAILS[n][4]).flatMap(p => p.split(/(?<=[.!?])\s+(?=[A-ZÀÂÉÈÊÎÔÛÇ])/)).length
+  : 1 + [].concat(MAILS[n][4]).length + 1 + 1;   // « Bonjour, », ses paragraphes, la formule de fin, la signature
+const mailOutAt = n => +(2.68 + 0.28 * (mailRows(n) - 1)).toFixed(2);
+const mailBlock = n => { const t = SCH.t; SCH.t = +(SCH.t + mailOutAt(n) + 1).toFixed(2); return t; };
+const MO = MAILS.map((m, n) => mailOutAt(n));   // le départ de chaque message, depuis le début de son bloc
 
 /* 1 · Trois demandes : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) */
 cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
 cap('r2', "Au chapitre 8, tu as modifié<br>des lignes avec <code>UPDATE</code>.", 3.0);
 cap('c2', "Trois demandes arrivent :<br>deux SMS et un mail.", 2.8);
 cap('c3', "Cette fois, toutes demandent<br>de supprimer des lignes.", 3.2);
-const MAIL1 = mailBlock();
+const MAIL1 = mailBlock(0);
 /* 2 · Supprimer une ligne */
 chap({label:'Supprimer une ligne'});
 cap('c4', "Chaque inscription est une ligne<br>de la <b>table inscriptions</b>.", 3.4);
 toi('p1');
-cap('c5', "Avec <code>DELETE FROM</code>, tu choisis<br>la table où supprimer des lignes.", 3.4);
+cap('c5', "Avec <code>DELETE FROM inscriptions</code>,<br>tu indiques que tu veux supprimer<br>des lignes dans la <b>table inscriptions</b>.", 5.4);
 cap('c6', "Avec <code>WHERE</code>, tu sélectionnes<br>la ligne à supprimer.", 3.0);
 toi('p2');
 cap('c7', "Seule la ligne dont l’identifiant<br>vaut 4 est supprimée.", 3.8);
 cap('c8', "L’atelier Cuisine saine existe<br>toujours dans la <b>table ateliers</b>.", 3.8);
 /* 3 · Le bon client */
 chap({label:'Le bon client'});
-const MAIL2 = mailBlock();
+const MAIL2 = mailBlock(1);
 cap('c9', "Le compte de Nathan Dupont<br>est une ligne de la <b>table clients</b>.", 3.6);
 cap('c10', "Cette table contient deux Nathan :<br>le prénom seul ne suffit pas.", 3.6);
 toi('p3');
@@ -272,7 +297,7 @@ cap('c12', "Aucune autre table<br>ne fait référence à Nathan Dupont.", 4.0);
 cap('c13', "Sa ligne peut donc être supprimée.", 3.0);
 /* 4 · Plusieurs lignes */
 chap({label:'Plusieurs lignes'});
-const MAIL3 = mailBlock();
+const MAIL3 = mailBlock(2);
 cap('c14', "Hugo Laurent a deux inscriptions<br>dans la <b>table inscriptions</b>.", 3.4);
 cap('c15', "Dans les deux lignes, l’identifiant<br>du client est 6.", 3.8);
 toi('p4');
@@ -281,10 +306,10 @@ cap('c17', "Ce sont bien les deux inscriptions<br>d’Hugo Laurent : tu peux ex�
 cap('c18', "Deux lignes sont supprimées<br>par une seule requête.", 3.2);
 /* 5 · L’oubli du WHERE */
 chap({label:'L’oubli du WHERE'});
-cap('c19', "Imagine que tu oublies le <code>WHERE</code>.", 2.8);
+cap('c19', "Et si tu oublies <code>WHERE</code> ?", 2.8);
 cap('c20', "La requête est exécutée<br>sans la moindre erreur.", 2.6);
 toi('p5');
-cap('c21', "Sans <code>WHERE</code>, toutes les lignes<br>sont supprimées : les inscriptions<br>restantes disparaissent.", 4.0);
+cap('c21', "Sans condition, toutes les lignes<br>de la <b>table inscriptions</b><br>seront supprimées.", 4.0);
 cap('c22', "La table existe toujours,<br>mais elle est vide.", 3.2);
 cap('c23', "Au chapitre 6, c’est <code>DROP TABLE</code><br>qui supprimait la table elle-même.", 4.0);
 /* 6 · Trois mots-clés */
@@ -384,26 +409,10 @@ const PICKS = [
     options: ITEMS.map(x => ({label: x[0]}))}
 ];
 
-/* Les trois messages reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses paragraphes), signature, option].
-   Un client écrit par SMS (smsCard, smsIn) ; l’accueil écrit par SMS quand l’option vaut {sms: true}, sinon par mail. Chacun arrive en
-   notification ; l’app s’arrête dessus (OPENS) jusqu’au toucher. Le premier relaie la demande de Léa Simon, celle du chapitre 1 :
-   depuis le chapitre 5, l’accueil centralise les demandes des clients (Elisa, 25 octobre : « c’est un message de l’accueil qui dit qu’elle
-   ne pourra pas venir », « Léa ne pourra pas venir » en aperçu). */
-const MAILS = [
-  [['L’accueil', 'NutriBoost', 'AC'], 'k-in', 'accueil', 'accueil@nutriboost.fr', [
-    'Léa ne pourra pas venir.',
-    'Elle est inscrite à l’atelier Cuisine saine du 19 septembre.',
-    'Peux-tu annuler son inscription ?'], 'L’accueil NutriBoost', {sms: true}],
-  [['Nathan', 'Dupont', 'ND'], 'k-cl', 'client', 'nathan.dupont@mail.fr', [
-    'Je ne viendrai finalement à aucun atelier.',
-    'Peux-tu supprimer mon compte ?'], 'Nathan'],
-  [['L’accueil', 'NutriBoost', 'AC'], 'k-in', 'accueil', 'accueil@nutriboost.fr', [
-    'Hugo Laurent déménage : il ne viendra plus aux ateliers.',
-    'Peux-tu supprimer toutes ses inscriptions ?'], 'L’accueil NutriBoost']
-];
 const OPENS = [MAIL1, MAIL2, MAIL3].map((t, n) => {
-  const [prenom, nom] = MAILS[n][0], msg = /^client/.test(MAILS[n][2]) || (MAILS[n][6] || {}).sms ? 'message' : 'mail';   // un client écrit par SMS, l’accueil aussi quand le message le dit ({sms: true})
-  return {at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: `Touche le ${msg} pour l’ouvrir.`, label: `Ouvrir le ${msg} ${/^[AEIOUHÉÈ]/.test(prenom) ? 'd’' : 'de '}${prenom} ${nom}`};
+  const [prenom, nom] = MAILS[n][0], msg = mailSms(n) ? 'message' : 'mail';   // le service client écrit par SMS quand le message le dit ({sms: true})
+  const de = /^Le /.test(prenom) ? 'du ' + prenom.slice(3) : /^[AEIOUHÉÈ]/.test(prenom) ? 'd’' + prenom : 'de ' + prenom;   // « du service client », « d’Inès »
+  return {at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: `Touche le ${msg} pour l’ouvrir.`, label: `Ouvrir le ${msg} ${de} ${nom}`};
 });
 
 /* ---------- Gabarits ---------- */
@@ -490,9 +499,9 @@ function dom(){
     `<div class="cs">${ITEMS.map((x, i) => x[1] === k ? `<div class="rc" id="sbu${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
     '<div class="abs pack" id="bpack"><span><span class="emo">📬</span>6 demandes à ranger</span></div>';
   /* Les SMS et les mails */
-  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body) : `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
+  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body, false, smsRank(MAILS, n)) : `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
     `<div class="mw"><div class="mn"><b>${w[0]} ${w[1]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
-    `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), 'Merci !', sign].map((x, j, a) => `<span class="sn${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
+    `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), (MAILS[n][6] || {}).bye || 'Merci !', sign].map((x, j, a) => `<span class="sn${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
     '<div class="abs emo tapf" id="tapf">👆</div>';
   /* La suite : la prochaine leçon */
   $('#sk').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🔗</span>Prochaine leçon · ON DELETE</span></div>';
@@ -639,17 +648,17 @@ function build(){
   on('#bw-in .hl', A.c3 + 0.5, 0.25); cue(A.c3 + 0.5, 'tick', 0.5, 1);
   on('#bw-cl .hl', A.c3 + 1.2, 0.25); cue(A.c3 + 1.2, 'tick', 0.5, 3);
   off(['#bw-in .hl', '#bw-cl .hl'], B.c3 - 0.7, 0.3);
-  // le SMS de l’accueil : Léa Simon ne pourra pas venir
+  // le SMS du service client : Léa Simon ne pourra pas venir
   capOff(MAIL1 - 0.2);   // avec la légende : jamais de carte vide
   hide(['#bc', '#dem'], MAIL1, {y: -30}, 0.35);
   sceneOff('#sa', MAIL1 + 0.4);
   sceneOn('#sm', MAIL1 + 0.4);
   mailIn(1, MAIL1 + 0.5, OPENS[0].at);
-  mailOut(1, MAIL1 + 3.8);
-  sceneOff('#sm', MAIL1 + 4.1);
-  sceneOn('#sb', MAIL1 + 4.1);
-  tl.fromTo('#tb', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL1 + 4.15);
-  cue(MAIL1 + 4.15, 'whoosh', 0.5);
+  mailOut(1, MAIL1 + MO[0]);
+  sceneOff('#sm', MAIL1 + MO[0] + 0.3);
+  sceneOn('#sb', MAIL1 + MO[0] + 0.3);
+  tl.fromTo('#tb', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL1 + MO[0] + 0.35);
+  cue(MAIL1 + MO[0] + 0.35, 'whoosh', 0.5);
   capOn(A.c4 - 0.3);   // juste avant la légende suivante
 
   /* ===== 2 · Supprimer une ligne ===== */
@@ -657,12 +666,13 @@ function build(){
   bump('#tbn', A.c4 + 0.7, 1.12); cue(A.c4 + 0.7, 'tick', 0.5, 2);
   // À toi : la ligne à supprimer (réponse : l’inscription de Léa Simon, entourée)
   tl.set(M1_ANS, {autoAlpha: 1}, set2(PICKS[0].at));
-  // avec DELETE FROM, tu choisis la table où supprimer des lignes
+  // avec DELETE FROM inscriptions, tu indiques que tu veux supprimer des lignes dans la table inscriptions
   off('#ri4 .hl', A.c5, 0.3);
   show('#e1', A.c5 + 0.1, {y: 40}, 0.5); cue(A.c5 + 0.1, 'whoosh', 0.45, 1);
   sqType('e1b', A.c5 + 0.8, 28);
   pulse('#ku1', A.c5 + 1.7, 1, GLOW); cue(A.c5 + 1.7, 'tick', 0.5, 2);
-  pulse('#tn1', A.c5 + 2.4, 1, GLOW); bump('#tbn', A.c5 + 2.4, 1.12); cue(A.c5 + 2.4, 'tick', 0.5, 3);
+  pulse('#tn1', A.c5 + 2.4, 1, GLOW); cue(A.c5 + 2.4, 'tick', 0.5, 3);
+  bump('#tbn', A.c5 + 4.2, 1.12); cue(A.c5 + 4.2, 'tick', 0.5, 4);   // « dans la table inscriptions »
   // avec WHERE, tu sélectionnes la ligne à supprimer : le trou attend la fin de la requête
   on('#hole1', A.c6 + 0.4, 0.3); cue(A.c6 + 0.4, 'tick', 0.5, 2);
   // À toi : la fin de la requête (réponse : WHERE id = 4, la ligne de l’inscription de Léa Simon)
@@ -682,17 +692,17 @@ function build(){
   off('#rt3 .hl', B.c8 - 0.8, 0.3);
 
   /* ===== 3 · Le bon client ===== */
-  // le SMS de Nathan Dupont : pendant qu’il est affiché, la table inscriptions s’en va
+  // le SMS du service client : Nathan Dupont veut qu’on supprime son compte ; pendant qu’il est affiché, la table inscriptions s’en va
   capOff(MAIL2 - 0.2);
   hide(['#tb', '#keep'], MAIL2, {y: -30}, 0.35);
   sceneOff('#sb', MAIL2 + 0.4);
   sceneOn('#sm', MAIL2 + 0.4);
   mailIn(2, MAIL2 + 0.5, OPENS[1].at);
-  mailOut(2, MAIL2 + 3.8);
-  sceneOff('#sm', MAIL2 + 4.1);
-  sceneOn('#sc', MAIL2 + 4.1);
-  tl.fromTo('#tcl', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL2 + 4.15);
-  cue(MAIL2 + 4.15, 'whoosh', 0.5);
+  mailOut(2, MAIL2 + MO[1]);
+  sceneOff('#sm', MAIL2 + MO[1] + 0.3);
+  sceneOn('#sc', MAIL2 + MO[1] + 0.3);
+  tl.fromTo('#tcl', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL2 + MO[1] + 0.35);
+  cue(MAIL2 + MO[1] + 0.35, 'whoosh', 0.5);
   capOn(A.c9 - 0.3);
   // le compte de Nathan Dupont est une ligne de la table clients ; la requête commence
   bump('#tcn', A.c9 + 0.6, 1.12); cue(A.c9 + 0.6, 'tick', 0.5, 2);
@@ -715,17 +725,17 @@ function build(){
   show('#o-2', A.c13 + 1.2, {y: 20}, 0.4); cue(A.c13 + 1.2, 'chord', 0.6);
 
   /* ===== 4 · Plusieurs lignes ===== */
-  // le mail de l’accueil : pendant qu’il est affiché, la table clients s’en va
+  // le mail du service client : Hugo Laurent déménage ; pendant qu’il est affiché, la table clients s’en va
   capOff(MAIL3 - 0.2);
   hide(['#tcl', '#e2', '#o-2', '#refs'], MAIL3, {y: -30}, 0.35);
   sceneOff('#sc', MAIL3 + 0.4);
   sceneOn('#sm', MAIL3 + 0.4);
   mailIn(3, MAIL3 + 0.5, OPENS[2].at);
-  mailOut(3, MAIL3 + 3.8);
-  sceneOff('#sm', MAIL3 + 4.1);
-  sceneOn('#sb', MAIL3 + 4.1);
-  tl.fromTo('#tb', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL3 + 4.15);
-  cue(MAIL3 + 4.15, 'whoosh', 0.5);
+  mailOut(3, MAIL3 + MO[2]);
+  sceneOff('#sm', MAIL3 + MO[2] + 0.3);
+  sceneOn('#sb', MAIL3 + MO[2] + 0.3);
+  tl.fromTo('#tb', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL3 + MO[2] + 0.35);
+  cue(MAIL3 + MO[2] + 0.35, 'whoosh', 0.5);
   capOn(A.c14 - 0.3);
   // Hugo Laurent a deux inscriptions : les deux lignes, l’une après l’autre
   [6, 9].forEach((n, q) => { const t = A.c14 + 0.7 + q * 0.7; on(`#ri${n} .hl`, t, 0.25); bump(`#ri${n} .c1`, t, 1.06); cue(t, 'tick', 0.5, q * 2 + 1); });
@@ -756,7 +766,7 @@ function build(){
   pulse('#o-3', A.c18 + 0.4, 1, 'rgba(52,194,122,.3)'); cue(A.c18 + 0.4, 'tick', 0.5, 3);
 
   /* ===== 5 · L’oubli du WHERE ===== */
-  // imagine que tu oublies le WHERE : le commentaire change, la ligne WHERE s’en va, le point-virgule remonte
+  // et si tu oublies WHERE : le commentaire change, la ligne WHERE s’en va, le point-virgule remonte
   hide('#o-3', A.c19, {y: -10}, 0.3);
   swap('#cmt3 .a0', '#cmt3 .a1', A.c19 + 0.1, false);
   pulse('#kw3', A.c19 + 0.5, 1, GLOW); cue(A.c19 + 0.5, 'tick', 0.5, 2);
@@ -767,8 +777,8 @@ function build(){
   // À toi : les inscriptions qui seraient supprimées (réponse : les huit lignes restantes ; le résultat devient « 8 lignes supprimées »)
   tl.set(M5_ANS, {autoAlpha: 1}, set2(PICKS[4].at));
   tl.set(M5_HIDE, {autoAlpha: 0}, set2(PICKS[4].at));
-  // sans WHERE, toutes les lignes sont supprimées : le résultat pulse quand la légende le dit
-  pulse('#o-8', A.c21 + 0.6, 1, 'rgba(242,154,46,.35)'); cue(A.c21 + 0.6, 'miss', 0.4);
+  // sans condition, toutes les lignes de la table inscriptions seront supprimées : le résultat pulse quand la légende le dit
+  pulse('#o-8', A.c21 + 1.4, 1, 'rgba(242,154,46,.35)'); cue(A.c21 + 1.4, 'miss', 0.4);
   // la table existe toujours, mais elle est vide
   bump('#tbn', A.c22 + 0.4, 1.12); cue(A.c22 + 0.4, 'tick', 0.5, 2);
   bump('#bn3', A.c22 + 1.0, 1.15); cue(A.c22 + 1.0, 'tick', 0.5, 4);
@@ -920,7 +930,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 142.2, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 144.48, picks: PICKS, opens: OPENS,
   glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝🔑🔗✉️👆📬🗑️⚠️🎯✓✕!…«»·−',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>

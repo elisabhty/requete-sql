@@ -267,15 +267,34 @@ function cap(key, html, dur, gap = 0.1){
 /* « À toi ! » : la légende reste un instant, puis l’image s’arrête à a + 2,35 s (le passage d’attente est coupé). */
 const toi = key => cap(key, 'À toi !', 2.55);
 const {A, B} = SCH;
-/* Un mail : la légende s’efface le temps du mail (notification, toucher, lecture, départ). */
-const mailBlock = () => { const t = SCH.t; SCH.t = +(SCH.t + 4.8).toFixed(2); return t; };
+/* Les deux messages reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses paragraphes), signature, option].
+   Depuis le chapitre 5, le service client centralise les demandes des clients : aucun client n’écrit plus lui-même (Elisa, 25 octobre :
+   « plus l’accueil mais le service client »). Il écrit par SMS (smsCard, smsIn) quand l’option vaut {sms: true}, sinon par mail. Chacun arrive
+   en notification ; l’app s’arrête dessus (OPENS) jusqu’au toucher. Le premier relaie la demande d’Inès Lefebvre, celle du chapitre 1. */
+const MAILS = [
+  [['Le service client', 'NutriBoost', 'SC'], 'k-in', 'équipe', 'service.client@nutriboost.fr', [
+    'Inès Lefebvre ne reviendra plus aux ateliers.',
+    'Peux-tu supprimer son compte ?'], 'Le service client NutriBoost', {sms: true}],
+  [['Le service client', 'NutriBoost', 'SC'], 'k-in', 'équipe', 'service.client@nutriboost.fr', [
+    'Les clients ont déjà donné sept avis sur papier.',
+    'Peux-tu créer la table des avis ?'], 'Le service client NutriBoost']
+];
+/* Un message : la légende s’efface le temps du message (notification, toucher, lecture, départ). Plus il a de lignes (de bulles, pour un SMS),
+   plus il reste : le toucher à +1,6 s, une ligne toutes les 0,28 s, le départ juste après la pause de lecture (+3,8 s pour cinq lignes), et le
+   bloc finit 1 s après le départ. Un SMS : « Bonjour, », une bulle par phrase, « Merci ! » (comme smsParts). */
+const mailSms = n => /^client/.test(MAILS[n][2]) || !!(MAILS[n][6] || {}).sms;
+const mailRows = n => mailSms(n) ? 2 + [].concat(MAILS[n][4]).flatMap(p => p.split(/(?<=[.!?])\s+(?=[A-ZÀÂÉÈÊÎÔÛÇ])/)).length
+  : 1 + [].concat(MAILS[n][4]).length + 1 + 1;   // « Bonjour, », ses paragraphes, la formule de fin, la signature
+const mailOutAt = n => +(2.68 + 0.28 * (mailRows(n) - 1)).toFixed(2);
+const mailBlock = n => { const t = SCH.t; SCH.t = +(SCH.t + mailOutAt(n) + 1).toFixed(2); return t; };
+const MO = MAILS.map((m, n) => mailOutAt(n));   // le départ de chaque message, depuis le début de son bloc
 
 /* 1 · Deux demandes : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) */
 cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
 cap('r2', "Au chapitre 9, tu as supprimé<br>des lignes avec <code>DELETE</code>.", 3.0);
 cap('c2', "Deux demandes arrivent :<br>un SMS et un mail.", 2.8);
 cap('c3', "La première concerne un compte,<br>la seconde une nouvelle table.", 3.6);
-const MAIL1 = mailBlock();
+const MAIL1 = mailBlock(0);
 /* 2 · Une suppression refusée */
 chap({label:'Une suppression refusée'});
 cap('c4', "Le compte d’Inès Lefebvre est<br>une ligne de la <b>table clients</b>.", 3.6);
@@ -287,7 +306,7 @@ toi('p1');
 cap('c9', "Tant que cette inscription existe,<br>Inès Lefebvre ne peut pas<br>être supprimée.", 4.0);
 /* 3 · Trois sorts possibles : le second mail en ouvre le chapitre ; les trois sorts sont montrés sur la table avis (sa colonne du client accepte NULL) */
 chap({label:'Trois sorts possibles'});
-const MAIL2 = mailBlock();
+const MAIL2 = mailBlock(1);
 cap('n1', "Chaque avis est une ligne<br>de la nouvelle <b>table avis</b>.", 3.4);
 cap('n2', "Il désigne le client qui l’a donné,<br>avec une clé étrangère.", 3.6);
 cap('c10', "<code>ON DELETE</code> choisit ce que deviennent<br>les lignes liées au client supprimé.", 4.2);
@@ -423,20 +442,10 @@ const PICKS = [
     options: ITEMS.map(x => ({label: x[0]}))}
 ];
 
-/* Les deux messages reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses paragraphes), signature].
-   Un client écrit par SMS (smsCard, smsIn), l’accueil par mail. Chacun arrive en notification ; l’app s’arrête dessus (OPENS)
-   jusqu’au toucher. Le premier est celui du chapitre 1. */
-const MAILS = [
-  [['Inès', 'Lefebvre', 'IL'], 'k-cl', 'cliente', 'ines@mail.fr', [
-    'Je ne reviendrai plus aux ateliers.',
-    'Peux-tu supprimer mon compte ?'], 'Inès'],
-  [['L’accueil', 'NutriBoost', 'AC'], 'k-in', 'accueil', 'accueil@nutriboost.fr', [
-    'Les clients ont déjà donné sept avis sur papier.',
-    'Peux-tu créer la table des avis ?'], 'L’accueil NutriBoost']
-];
 const OPENS = [MAIL1, MAIL2].map((t, n) => {
-  const [prenom, nom] = MAILS[n][0], msg = /^client/.test(MAILS[n][2]) || (MAILS[n][6] || {}).sms ? 'message' : 'mail';   // un client écrit par SMS, l’accueil aussi quand le message le dit ({sms: true})
-  return {at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: `Touche le ${msg} pour l’ouvrir.`, label: `Ouvrir le ${msg} ${/^[AEIOUHÉÈ]/.test(prenom) ? 'd’' : 'de '}${prenom} ${nom}`};
+  const [prenom, nom] = MAILS[n][0], msg = mailSms(n) ? 'message' : 'mail';   // le service client écrit par SMS quand le message le dit ({sms: true})
+  const de = /^Le /.test(prenom) ? 'du ' + prenom.slice(3) : /^[AEIOUHÉÈ]/.test(prenom) ? 'd’' + prenom : 'de ' + prenom;   // « du service client », « d’Inès »
+  return {at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: `Touche le ${msg} pour l’ouvrir.`, label: `Ouvrir le ${msg} ${de} ${nom}`};
 });
 
 /* ---------- Gabarits ---------- */
@@ -551,9 +560,9 @@ function dom(){
     `<div class="cs">${ITEMS.map((x, i) => x[1] === k ? `<div class="rc" id="sbu${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
     '<div class="abs pack" id="bpack"><span><span class="emo">📬</span>6 situations à ranger</span></div>';
   /* Le SMS et le mail */
-  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body) : `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
+  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body, false, smsRank(MAILS, n)) : `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
     `<div class="mw"><div class="mn"><b>${w[0]} ${w[1]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
-    `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), 'Merci !', sign].map((x, j, a) => `<span class="sn${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
+    `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), (MAILS[n][6] || {}).bye || 'Merci !', sign].map((x, j, a) => `<span class="sn${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
     '<div class="abs emo tapf" id="tapf">👆</div>';
   /* La suite : la prochaine leçon */
   $('#sk').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🔄</span>Prochaine leçon · Transactions</span></div>';
@@ -722,17 +731,17 @@ function build(){
   cue(A.c3 + 1.9, 'pop', 0.7, 3);
   on('#bw-av .hl', A.c3 + 2.5, 0.25); cue(A.c3 + 2.5, 'tick', 0.5, 3);
   off('#bw-av .hl', B.c3 - 0.5, 0.3);
-  // le SMS d’Inès Lefebvre
+  // le SMS du service client : Inès Lefebvre ne reviendra plus aux ateliers
   capOff(MAIL1 - 0.2);   // avec la légende : jamais de carte vide
   hide(['#bc', '#dem'], MAIL1, {y: -30}, 0.35);
   sceneOff('#sa', MAIL1 + 0.4);
   sceneOn('#sm', MAIL1 + 0.4);
   mailIn(1, MAIL1 + 0.5, OPENS[0].at);
-  mailOut(1, MAIL1 + 3.8);
-  sceneOff('#sm', MAIL1 + 4.1);
-  sceneOn('#sc', MAIL1 + 4.1);
-  tl.fromTo('#tcl', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL1 + 4.15);
-  cue(MAIL1 + 4.15, 'whoosh', 0.5);
+  mailOut(1, MAIL1 + MO[0]);
+  sceneOff('#sm', MAIL1 + MO[0] + 0.3);
+  sceneOn('#sc', MAIL1 + MO[0] + 0.3);
+  tl.fromTo('#tcl', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL1 + MO[0] + 0.35);
+  cue(MAIL1 + MO[0] + 0.35, 'whoosh', 0.5);
   capOn(A.c4 - 0.3);   // juste avant la légende suivante
 
   /* ===== 2 · Une suppression refusée ===== */
@@ -766,16 +775,16 @@ function build(){
   bump('#ri11 .c1', A.c9 + 0.6, 1.1); cue(A.c9 + 0.6, 'tick', 0.5, 3);
 
   /* ===== 3 · Trois sorts possibles ===== */
-  // le mail de l’accueil ouvre le chapitre : pendant qu’il est affiché, la table inscriptions s’en va
+  // le mail du service client ouvre le chapitre : pendant qu’il est affiché, la table inscriptions s’en va
   off('#ri11 .hl', B.c9 - 0.5, 0.3);
   capOff(MAIL2 - 0.2);
   hide('#tb', MAIL2, {y: -30}, 0.35);
   sceneOff('#sb', MAIL2 + 0.4);
   sceneOn('#sm', MAIL2 + 0.4);
   mailIn(2, MAIL2 + 0.5, OPENS[1].at);
-  mailOut(2, MAIL2 + 3.8);
-  sceneOff('#sm', MAIL2 + 4.1);
-  sceneOn('#sw', MAIL2 + 4.1);
+  mailOut(2, MAIL2 + MO[1]);
+  sceneOff('#sm', MAIL2 + MO[1] + 0.3);
+  sceneOn('#sw', MAIL2 + MO[1] + 0.3);
   capOn(A.n1 - 0.3);
   // chaque avis est une ligne de la nouvelle table avis : celle de l’avis d’Inès Lefebvre
   show('#wi', A.n1 + 0.2, {y: 40}, 0.5); cue(A.n1 + 0.2, 'whoosh', 0.45, 1);
@@ -1066,7 +1075,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 211.3, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 211.02, picks: PICKS, opens: OPENS,
   glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝🔑🔗✉️👆📬🔄🛑🔀📍💬✓✕!…«»·−',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>

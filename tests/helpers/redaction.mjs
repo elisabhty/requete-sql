@@ -483,6 +483,19 @@ export const REGLES = [
     mauvais: ['Veuillez prendre le relais durant mon absence.', 'Il convient de relire les valeurs avant l’exécution.', 'Afin d’enregistrer l’inscription, procédez à l’ajout d’une ligne.', 'Je vous prie de bien vouloir ajouter cette ligne.', 'Le cas échéant, relis les valeurs.',
       'Reste à écrire la requête qui retire la copie.', 'Ici, pas de <code>WHERE</code> :<br>on modifie toutes les cartes.', 'Le solde est de 7. Or le retrait est de 8.', '<code>DELETE FROM</code> indique la table<br>dont on supprime des lignes.',
       'La ligne est la bonne :<br>l’<code>UPDATE</code> peut être exécuté.', {genre: 'recap', html: '<code>SET</code> indique la colonne et la nouvelle valeur ; <code>WHERE</code> désigne les lignes concernées.'}]
+  },
+  {
+    id: 'service-client',
+    titre: 'Le service client, jamais « l’accueil » : c’est lui qui centralise les demandes des clients',
+    demande: 'Elisa, 25 octobre (00 h 32, Réf 3) : « Finalement ce sera plus l’accueil mais le service client », à corriger partout. Au chapitre 5, l’équipe l’annonce (« Désormais, le service client centralise ' +
+      'les demandes des clients ») ; aux chapitres 8, 9 et 10, c’est le service client qui écrit. « Accueillir » et « une page d’accueil » restent des mots comme les autres.',
+    genres: [...prose, 'option', 'etiquette'],
+    projetSeulement: true,   // posée le 25 octobre pour les chapitres du projet (les anciens cours seront remplacés par les chapitres 11 à 16)
+    verifie: ({plain}) => /(?<![\p{L}-])(?<!page d’)(?<!écran d’)accueil(?![\p{L}-])/iu.test(plain) ? ['« l’accueil » : écrire « le service client »'] : [],
+    bon: ['Désormais, le service client centralise les demandes des clients.', 'Ce sont des questions que le service client peut gérer.', 'Le service client NutriBoost',
+      'Nos salles accueillent au maximum 12 personnes.', 'Un atelier peut accueillir plusieurs clients.', 'Le site a une page d’accueil.'],
+    mauvais: ['Désormais, l’accueil centralise les demandes des clients.', 'Ce sont des questions que l’accueil peut gérer.', 'Son nom prête à confusion : l’équipe d’accueil pense parfois qu’il s’agit des séances déjà suivies.',
+      {genre: 'etiquette', html: 'Le mail de l’accueil'}]
   }
 ];
 
@@ -506,8 +519,8 @@ export const REGLES_DE_PAGE = [
   {
     id: 'client-par-sms',
     titre: 'Un client écrit par SMS (notification, puis conversation de l’iPhone), jamais par mail',
-    demande: 'Elisa, 24 octobre : « Quand c’est des clients, faire plutôt des messages SMS immersifs, crédibles, iPhone iOS. » Un coach, l’équipe, l’accueil ou le développeur écrivent par mail ; ' +
-      'un client écrit par SMS : la page crée sa carte avec smsCard() et la joue avec smsIn() (assets/anim/core.js), à la place de la carte de mail.',
+    demande: 'Elisa, 24 octobre : « Quand c’est des clients, faire plutôt des messages SMS immersifs, crédibles, iPhone iOS. » Un coach, l’équipe ou le développeur écrivent par mail ; le service client écrit par SMS ' +
+      'quand la page le décide ({sms: true}) ; un client écrit par SMS : la page crée sa carte avec smsCard() et la joue avec smsIn() (assets/anim/core.js), à la place de la carte de mail.',
     genres: ['mail'],
     verifie(textes) {
       const vus = new Set();
@@ -518,6 +531,20 @@ export const REGLES_DE_PAGE = [
       [{genre: 'mail', html: 'Nous lançons une carte de membre.', etiquette: 'équipe', sms: false}, {genre: 'mail', html: 'Peux-tu supprimer mon compte ?', etiquette: 'client', sms: true}]],
     mauvais: [[{genre: 'mail', html: 'Je ne pourrai pas venir à l’atelier.', etiquette: 'cliente', sms: false}],
       [{genre: 'mail', html: 'Peux-tu supprimer mon compte ?', etiquette: 'client', sms: false}, {genre: 'mail', html: 'Mon adresse e-mail a changé.', etiquette: 'coach', sms: false}]]
+  },
+  {
+    id: 'service-client-relaie',
+    titre: 'Depuis le chapitre 6, aucun client n’écrit lui-même : le service client relaie sa demande (SMS ou mail)',
+    demande: 'Elisa, 25 octobre (00 h 32, Réf 2 et 3) : le message de Nathan Dupont « doit être de l’accueil », refait « en mode Nathan Dupont veut qu’on supprime… », puis « plus l’accueil mais le service client ». ' +
+      'Le chapitre 5 l’annonce (« Désormais, le service client centralise les demandes des clients ») : à partir du chapitre 6, la demande d’un client arrive par le service client, jamais de lui directement.',
+    genres: ['mail'],
+    verifie(textes) {
+      const vus = new Set();
+      return textes.filter(t => t.genre === 'mail' && /^client/.test(t.etiquette || '') && chapitreDe(t.page) >= 6 && !vus.has(t.page + t.ou.split(',')[0]) && vus.add(t.page + t.ou.split(',')[0]))
+        .map(t => ({texte: t, probleme: `le message d’un client (« ${t.etiquette} ») arrive directement : depuis le chapitre 6, le service client centralise les demandes et les relaie`}));
+    },
+    bon: [[{genre: 'mail', html: 'Léa ne pourra pas venir.', etiquette: 'équipe', sms: true}, {genre: 'mail', html: 'Nathan Dupont veut qu’on supprime son compte.', etiquette: 'équipe', sms: true}]],
+    mauvais: [[{genre: 'mail', html: 'Peux-tu supprimer mon compte ?', etiquette: 'client', sms: true}], [{genre: 'mail', html: 'Je ne reviendrai plus aux ateliers.', etiquette: 'cliente', sms: true}]]
   }
 ];
 
@@ -543,9 +570,11 @@ export const EXCEPTIONS = [
   {regle: 'client', page: 'projet-insert', contient: 'Pour enregistrer l’inscription de Lucas,',
     raison: 'Mots d’Elisa (24 octobre, Réf 4), confirmés par elle le soir même (« Lucas seul ») : juste après le mail de Karim qui nomme Lucas Bernard en entier.'},
   {regle: 'client', page: 'projet-update', contient: 'Nathan conserve ses 7 séances',
-    raison: 'Mots d’Elisa (24 octobre, 22 h 29, Réf 6) : « Nathan conserve ses 7 séances », juste après « Nathan Petit » (légende et mail de l’accueil).'},
+    raison: 'Mots d’Elisa (24 octobre, 22 h 29, Réf 6) : « Nathan conserve ses 7 séances », juste après « Nathan Petit » (légende et mail du service client).'},
   {regle: 'client', page: 'projet-delete', contient: 'Léa ne pourra pas venir.',
-    raison: 'Mots d’Elisa (25 octobre, 00 h 21) : le SMS de l’accueil dit « Léa ne pourra pas venir », et c’est l’aperçu de la notification ; les moments qui suivent nomment Léa Simon en entier.'},
+    raison: 'Mots d’Elisa (25 octobre, 00 h 21) : le SMS du service client (l’accueil, avant sa correction de 00 h 32) dit « Léa ne pourra pas venir », et c’est l’aperçu de la notification ; les moments qui suivent nomment Léa Simon en entier.'},
+  {regle: 'registre-parle', page: 'projet-delete', contient: 'afin de libérer les places',
+    raison: 'Mots d’Elisa (25 octobre, 00 h 32, Réf 3), le mail du service client : « Peux-tu supprimer toutes ses inscriptions afin de libérer les places pour d’autres participants ? ».'},
   /* Les mots d’Elisa écrits avant sa consigne : à lui redemander */
   {regle: 'client', page: 'projet-cles', contient: 'Pour inscrire Sophie à l’atelier Méditation', aConfirmer: '« Sophie Martin » ?',
     raison: 'Mots d’Elisa (22 octobre, réponse du moment 5), juste après la question qui nomme Sophie Martin en entier.'},
