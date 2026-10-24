@@ -252,7 +252,7 @@ test('moment 6 : retirer 8 séances à Nathan Petit (7 séances après le cadeau
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.ok(caps.includes('La règle <code>CHECK</code> du chapitre 4<br>s’applique aussi quand<br>tu modifies une ligne.') && caps.includes('Une modification refusée<br>n’est pas écrite :<br>Nathan conserve ses 7 séances.'), 'les légendes disent la même chose');
   const mail = val('MAILS')[2][4].join(' ');
-  assert.ok(mail.includes('Nathan Petit s’inscrit à un stage de 8 séances.') && mail.includes('retirer ces 8 séances de sa carte'), 'le mail de l’accueil NutriBoost');
+  assert.ok(mail.includes('Nathan Petit s’inscrit à un stage de 8 séances.') && mail.includes('retirer ces 8 séances de sa carte'), 'le mail du service client NutriBoost');
 });
 
 test('la page montre la base : huit tables, leurs nombres de lignes (les inscriptions passent de 7 à 11) et la table ateliers', () => {
@@ -272,17 +272,17 @@ test('la page montre la base : huit tables, leurs nombres de lignes (les inscrip
     'deuxième bulle d’Elisa, mot pour mot : trop longue pour trois lignes à 44 px, elle prend la classe « dense » (police 42 px)');
 });
 
-test('les trois mails : Moussa Diallo, l’équipe NutriBoost, puis l’accueil ; l’app s’arrête sur chacun jusqu’au toucher', () => {
+test('les trois mails : Moussa Diallo, l’équipe NutriBoost, puis le service client ; l’app s’arrête sur chacun jusqu’au toucher', () => {
   const mails = val('MAILS'), opens = val('OPENS'), picks = val('PICKS'), mail = val('[MAIL1, MAIL2, MAIL3]');
-  assert.deepEqual(mails.map(m => [m[0][0], m[0][1], m[3]]), [['Moussa', 'Diallo', 'moussa@mail.fr'], ['L’équipe', 'NutriBoost', 'equipe@nutriboost.fr'], ['L’accueil', 'NutriBoost', 'accueil@nutriboost.fr']]);
+  assert.deepEqual(mails.map(m => [m[0][0], m[0][1], m[3]]), [['Moussa', 'Diallo', 'moussa@mail.fr'], ['L’équipe', 'NutriBoost', 'equipe@nutriboost.fr'], ['Le service client', 'NutriBoost', 'service.client@nutriboost.fr']]);
   const coach = base().exec("SELECT email FROM coachs WHERE prenom = 'Moussa' AND nom = 'Diallo'")[0].values[0][0];
   assert.equal(mails[0][3], coach, 'l’adresse de Moussa Diallo est celle de la table coachs');
   assert.equal(base().exec("SELECT c.nom FROM ateliers a JOIN coachs c ON c.id = a.coach_id WHERE a.titre = 'Pilates'")[0].values[0][0], 'Diallo', 'Moussa Diallo anime l’atelier Pilates');
-  assert.deepEqual(mails.map(m => m[5]), ['Moussa', 'L’équipe NutriBoost', 'L’accueil NutriBoost']);
+  assert.deepEqual(mails.map(m => m[5]), ['Moussa', 'L’équipe NutriBoost', 'Le service client NutriBoost']);
   assert.equal(opens.length, 3);
   opens.forEach((o, n) => { assert.ok(o.at > mail[n] && o.at < mail[n] + 4.8, `mail ${n + 1} : l’app s’arrête pendant le mail`); assert.equal(o.sel, '#ml' + (n + 1)); });
   assert.ok(mail[0] < picks[0].at && mail[1] > picks[3].at && mail[1] < picks[4].at && mail[2] > picks[4].at && mail[2] < picks[5].at, 'mail 1 avant le moment 1, mail 2 entre les moments 4 et 5, mail 3 entre les moments 5 et 6');
-  assert.ok(opens.map(o => o.label).join('|') === 'Ouvrir le mail de Moussa Diallo|Ouvrir le mail de L’équipe NutriBoost|Ouvrir le mail de L’accueil NutriBoost');
+  assert.ok(opens.map(o => o.label).join('|') === 'Ouvrir le mail de Moussa Diallo|Ouvrir le mail de L’équipe NutriBoost|Ouvrir le mail du service client NutriBoost');
 });
 
 /* ---------- Propre au chapitre 8 : la suite du chapitre 7, l’annonce de la leçon DELETE ---------- */

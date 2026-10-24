@@ -1,6 +1,7 @@
 /* Projet NutriBoost, chapitre 10 (leçon 68 « ON DELETE ») : la vidéo interactive assets/anim/projet-ondelete.html, testée aussi dans lesson-video.test.mjs.
-   Deux mails : Inès Lefebvre demande la suppression de son compte (la base la refuse tant qu’une inscription la désigne), l’accueil demande de créer la
-   table des avis. Les trois règles ON DELETE (CASCADE, SET NULL, RESTRICT) sont montrées sur cette table, dont la colonne du client accepte NULL.
+   Deux messages du service client (qui centralise les demandes des clients depuis le chapitre 5 : Elisa, 25 octobre, « plus l’accueil mais le service client ») :
+   un SMS dit qu’Inès Lefebvre ne reviendra plus et demande la suppression de son compte (la base la refuse tant qu’une inscription la désigne), un mail demande
+   de créer la table des avis. Les trois règles ON DELETE (CASCADE, SET NULL, RESTRICT) sont montrées sur cette table, dont la colonne du client accepte NULL.
    Seul cours du module « Contraintes et intégrité » : il remplace l’ancien cours ON DELETE (la table satisfaction, les paniers) et le cours
    « Les contraintes en action » (67, supprimé). Leçon seule : ni cours texte, ni exercice.
    Ce que la vidéo montre (FOREIGN KEY constraint failed, les trois règles, NOT NULL qui s’y oppose, ON DELETE écrit dans le DELETE, NULL que la clé
@@ -100,9 +101,9 @@ test('recherche, et leçon seule sans texte de secours ni exercice', () => {
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
   /* Le bouton des notes est écrit en clair dans Course(…) : il suit la dernière légende. */
-  assert.equal(val('NOTES'), 211.3);
-  assert.ok(page.includes('notesAt: 211.3,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 218.5);
+  assert.equal(val('NOTES'), 211.02);
+  assert.ok(page.includes('notesAt: 211.02,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 218.22);
   /* Des légendes qui se suivent sans se chevaucher, chaque chapitre commençant 0,4 s après la légende précédente. */
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
@@ -180,7 +181,7 @@ test('moment 1 : supprimer le compte d’Inès Lefebvre est refusé (FOREIGN KEY
   assert.ok(caps.includes('Pourtant, la requête est refusée.') && caps.includes('La règle <code>FOREIGN KEY</code> interdit<br>de supprimer une ligne<br>encore désignée.')
     && caps.includes('Une seule table fait référence<br>à Inès Lefebvre :<br>la <b>table inscriptions</b>.'), 'les légendes disent la même chose');
   const mail = val('MAILS')[0];
-  assert.ok(mail[4].join(' ').includes('Je ne reviendrai plus aux ateliers.') && mail[4].join(' ').includes('Peux-tu supprimer mon compte ?'), 'le mail d’Inès Lefebvre');
+  assert.ok(mail[4].join(' ').includes('Inès Lefebvre ne reviendra plus aux ateliers.') && mail[4].join(' ').includes('Peux-tu supprimer son compte ?'), 'le SMS du service client sur Inès Lefebvre');
 });
 
 test('moments 2 et 3 : CASCADE supprime l’avis avec le client, SET NULL le garde en mettant NULL dans la case du client, RESTRICT refuse la suppression — comme sans règle', () => {
@@ -237,7 +238,7 @@ test('écrire la règle : la requête CREATE TABLE affichée crée la table avis
   for (const c of ['Un avis n’a aucun sens sans atelier :<br>avec <code>CASCADE</code>, il disparaît<br>avec son atelier.', 'La règle se déclare<br>dans <code>CREATE TABLE</code>,<br>à côté de la clé étrangère.',
     'Avec SQLite, elle ne peut plus<br>être modifiée ensuite.', 'Les sept avis sont ensuite ajoutés,<br>dont celui d’Inès Lefebvre.']) assert.ok(caps.includes(c), `légende : ${c}`);
   const mail = val('MAILS')[1];
-  assert.ok(mail[4].join(' ').includes('Les clients ont déjà donné sept avis sur papier.') && mail[4].join(' ').includes('Peux-tu créer la table des avis ?'), 'le mail de l’accueil NutriBoost');
+  assert.ok(mail[4].join(' ').includes('Les clients ont déjà donné sept avis sur papier.') && mail[4].join(' ').includes('Peux-tu créer la table des avis ?'), 'le mail du service client NutriBoost');
 });
 
 test('moment 4 : avec NOT NULL sur la colonne du client, SET NULL ne peut plus détacher les avis, et la suppression du client est refusée', () => {
@@ -304,19 +305,26 @@ test('moment 6 : chaque situation est rangée sous la bonne règle ; SET NULL ne
     '<code>RESTRICT</code> convient à une ligne liée<br>à traiter d’abord à la main.', 'Attention : <code>CASCADE</code> supprime<br>sans demander de confirmation.']) assert.ok(caps.includes(c), `légende : ${c}`);
 });
 
-test('les deux mails : Inès Lefebvre, puis l’accueil ; l’app s’arrête sur chacun jusqu’au toucher', () => {
-  const mails = val('MAILS'), opens = val('OPENS'), picks = val('PICKS'), mail = val('[MAIL1, MAIL2]');
-  assert.deepEqual(mails.map(m => [m[0][0], m[0][1], m[3]]), [['Inès', 'Lefebvre', 'ines@mail.fr'], ['L’accueil', 'NutriBoost', 'accueil@nutriboost.fr']]);
+test('les deux messages : le service client relaie Inès Lefebvre (SMS), puis demande la table des avis (mail) ; l’app s’arrête sur chacun jusqu’au toucher', () => {
+  const mails = val('MAILS'), opens = val('OPENS'), picks = val('PICKS'), mail = val('[MAIL1, MAIL2]'), sorties = val('MO'), lignes = val('MAILS.map((m, n) => mailRows(n))');
+  const SC = ['Le service client', 'NutriBoost', 'service.client@nutriboost.fr'];
+  assert.deepEqual(mails.map(m => [m[0][0], m[0][1], m[3]]), [SC, SC], 'les deux messages sont du service client : un client n’écrit plus lui-même depuis le chapitre 5 (Elisa, 25 octobre)');
   assert.deepEqual(base().exec("SELECT prenom, nom FROM clients WHERE id = 9")[0].values[0], ['Inès', 'Lefebvre'], 'Inès Lefebvre est la cliente 9');
-  assert.deepEqual(mails.map(m => m[5]), ['Inès', 'L’accueil NutriBoost']);
+  assert.deepEqual(mails[0][4], ['Inès Lefebvre ne reviendra plus aux ateliers.', 'Peux-tu supprimer son compte ?'], 'le SMS : la notification dit « Inès Lefebvre ne reviendra plus aux ateliers. »');
+  assert.deepEqual(mails.map(m => m[2]), ['équipe', 'équipe']);
+  assert.deepEqual(mails.map(m => !!(m[6] && m[6].sms)), [true, false], 'un SMS (option {sms: true}), puis un mail');
+  assert.deepEqual(mails.map(m => m[5]), ['Le service client NutriBoost', 'Le service client NutriBoost']);
   assert.equal(opens.length, 2);
-  opens.forEach((o, n) => { assert.ok(o.at > mail[n] && o.at < mail[n] + 4.8, `mail ${n + 1} : l’app s’arrête pendant le mail`); assert.equal(o.sel, '#ml' + (n + 1)); });
-  assert.ok(mail[0] < picks[0].at && mail[1] > picks[0].at && mail[1] < picks[1].at, 'mail 1 avant le moment 1, mail 2 entre les moments 1 et 2');
-  assert.equal(opens.map(o => o.label).join('|'), 'Ouvrir le message d’Inès Lefebvre|Ouvrir le mail de L’accueil NutriBoost', 'élision : « d’Inès », jamais « de Inès » ; une cliente écrit par SMS, l’accueil par mail');
+  opens.forEach((o, n) => { assert.ok(o.at > mail[n] && o.at < mail[n] + sorties[n], `message ${n + 1} : l’app s’arrête pendant le message`); assert.equal(o.sel, '#ml' + (n + 1)); });
+  assert.ok(mail[0] < picks[0].at && mail[1] > picks[0].at && mail[1] < picks[1].at, 'message 1 avant le moment 1, message 2 entre les moments 1 et 2');
+  assert.equal(opens.map(o => o.label).join('|'), 'Ouvrir le message du service client NutriBoost|Ouvrir le mail du service client NutriBoost', 'un SMS, puis un mail du service client');
   assert.deepEqual(opens.map(o => o.prompt), ['Touche le message pour l’ouvrir.', 'Touche le mail pour l’ouvrir.']);
   assert.ok(mails.every(m => m[4].length === 2), 'une phrase de contexte, une demande');
-  /* Le second mail arrive juste après le refus : la table avis ouvre le chapitre 3 de la vidéo. */
-  assert.ok(mail[1] === val('SCH.chaps')[2].a, 'le mail de l’accueil ouvre le chapitre « Trois sorts possibles »');
+  /* Le message reste le temps de ses lignes : une bulle (SMS) ou une ligne (mail) toutes les 0,28 s, le départ juste après la pause de lecture. */
+  assert.deepEqual(lignes, [4, 5], 'lignes de chaque message : Bonjour, ses deux phrases, Merci ! (SMS) ; Bonjour, ses deux paragraphes, la fin, la signature (mail)');
+  assert.deepEqual(sorties, [3.52, 3.8], 'le départ : +2,68 s + 0,28 s par ligne après la première');
+  /* Le second message arrive juste après le refus : la table avis ouvre le chapitre 3 de la vidéo. */
+  assert.ok(mail[1] === val('SCH.chaps')[2].a, 'le mail du service client ouvre le chapitre « Trois sorts possibles »');
 });
 
 /* ---------- Propre au chapitre 10 : la suite du chapitre 9, l’annonce de la leçon Transactions ---------- */

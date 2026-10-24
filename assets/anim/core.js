@@ -240,12 +240,18 @@ function typeMore(part, t, cps = 24, keepCaret = false){
 }
 
 /* ---------- Un client écrit : SMS (Messages de l’iPhone) ---------- */
-/* Un coach, l’équipe ou le développeur écrivent par mail ; un client écrit par SMS (le style est dans core.css) ; l’accueil, qui relaie
-   les demandes des clients, écrit par SMS quand la page le dit (7e élément du message : {sms: true}), sinon par mail.
-   La page crée la carte avec smsCard(), puis appelle smsIn() là où elle appellerait son mailIn(). */
+/* Un coach, l’équipe ou le développeur écrivent par mail ; un client écrit par SMS (le style est dans core.css) ; le service client, qui
+   centralise les demandes des clients depuis le chapitre 5, écrit par SMS quand la page le dit (7e élément du message : {sms: true}),
+   sinon par mail. La page crée la carte avec smsCard(), puis appelle smsIn() là où elle appellerait son mailIn(). */
 const isSms = (tag, opt) => /^client/.test(tag) || !!(opt && opt.sms);
-/* Heure d’envoi écrite en tête de la conversation : propre à chaque expéditeur, entre 07:00 et 18:59. */
-const smsTime = name => { const h = [...name].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 997, 7); return String(7 + h % 12).padStart(2, '0') + ':' + String((h * 7) % 60).padStart(2, '0'); };
+/* Heure d’envoi écrite en tête de la conversation : propre à chaque expéditeur, entre 07:00 et 18:59 ; un SMS de plus du même
+   expéditeur (nth : son rang dans la page) arrive sept minutes plus tard, jamais à la même minute. */
+const smsTime = (name, nth = 0) => {
+  const h = [...name].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 997, 7), m = (7 + h % 12) * 60 + (h * 7) % 60 + nth * 7;
+  return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+};
+/* Le rang du SMS n parmi ceux du même expéditeur dans la liste des messages de la page (0 pour le premier). */
+const smsRank = (list, n) => list.slice(0, n).filter(m => m[0][0] === list[n][0][0] && m[0][1] === list[n][0][1] && isSms(m[2], m[6])).length;
 /* Les bulles : « Bonjour, », une bulle par phrase de la demande, « Merci ! ». Pas de signature : le nom est en haut de la conversation. */
 function smsParts(body){
   const sentences = [].concat(body).flatMap(p => String(p).split(/(?<=[.!?])\s+(?=[A-ZÀÂÉÈÊÎÔÛÇ])/));
@@ -259,11 +265,11 @@ const SMS_ICO = {
   mic: '<svg viewBox="0 0 34 44"><rect x="10" y="2" width="14" height="26" rx="7" fill="#8A8A8E"/><path d="M4 21c0 8 5 13 13 13s13-5 13-13M17 34v8" fill="none" stroke="#8A8A8E" stroke-width="3.6" stroke-linecap="round"/></svg>'
 };
 /* La carte d’un SMS (#ml + id, comme un mail) : la bannière de notification, et la conversation qui s’ouvre à sa place.
-   cmp : version compacte (sans date ni barre de saisie), là où la place manque. */
-function smsCard(id, k, first, last, ini, body, cmp = false){
+   cmp : version compacte (sans date ni barre de saisie), là où la place manque ; nth : rang parmi les SMS du même expéditeur (smsRank). */
+function smsCard(id, k, first, last, ini, body, cmp = false, nth = 0){
   const parts = smsParts(body), name = first + ' ' + last;
   const bubbles = parts.map((p, j) => `<p class="sms-m${j === parts.length - 1 ? ' last' : ''}">${p}</p>`).join('');
-  const date = cmp ? '' : `<div class="sms-d">Message texte · SMS<br><b>Aujourd’hui</b> ${smsTime(name)}</div>`;
+  const date = cmp ? '' : `<div class="sms-d">Message texte · SMS<br><b>Aujourd’hui</b> ${smsTime(name, nth)}</div>`;
   const bar = cmp ? '' : `<div class="sms-i"><i class="sms-pl">${SMS_ICO.plus}</i><div class="sms-in">Message texte · SMS${SMS_ICO.mic}</div></div>`;
   return `<div class="abs ml sms${cmp ? ' cmp' : ''} ${k}" id="ml${id}">` +
     `<div class="card sms-n"><i class="sms-ic">${SMS_ICO.bubble}</i><div class="sms-nt"><div class="sms-nr"><b>${name}</b><span>maintenant</span></div><div class="sms-np">${parts[1].replace(/ ([:?!;»])/g, NB + '$1')}</div></div></div>` +
