@@ -23,12 +23,12 @@ test('chaque cadre Exécuter des cours a sa consigne en en-tête (p.gd-try juste
     assert.ok(!/<p>👇/.test(b), `${l.titre} : une consigne « 👇 » est restée un simple paragraphe`);
     heads += ok.length;
   }
-  assert.ok(heads >= 81, `au moins 81 consignes en en-tête (${heads})`);   // 61 CREATE TABLE, 65 ALTER TABLE et 66 DROP sont devenus des cours en vidéo
+  assert.ok(heads >= 56, `au moins 56 consignes en en-tête (${heads})`);   // 26 INSERT, 27 UPDATE, 61 CREATE TABLE, 65 ALTER TABLE et 66 DROP sont devenus des cours en vidéo ; 69 est fusionné dans 26
 });
 
 test('« Teste par toi-même » et « Exécute cette requête… » : même en-tête, l’emoji passe dans la pastille', () => {
-  const l = lessons.find(x => x.id === 26), b = bodyOf(l);
-  assert.ok(b.includes('<p class="gd-try"><i aria-hidden="true"><b>👇</b></i><span>Exécute cette requête pour ajouter Camille, puis afficher les clients</span></p><div class="ij-run"'));
+  const l = lessons.find(x => x.id === 70), b = bodyOf(l);
+  assert.ok(b.includes('<p class="gd-try"><i aria-hidden="true"><b>👇</b></i><span>Exécute cette requête pour supprimer deux clients et lire le journal rempli par le trigger</span></p><div class="ij-run"'));
   assert.ok(b.includes('<p class="gd-try"><i aria-hidden="true"><b>👇</b></i><span>Teste par toi-même</span></p><div class="ij-run" data-warn="1"'));
 });
 

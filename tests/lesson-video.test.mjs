@@ -933,6 +933,28 @@ const COURSES = [
       "{at: atp('p4'), from: A.c11, kind: 'tap', need: 4,", "{label: 'La table inscriptions est supprimée, avec ses sept lignes', ok: true},", "{label: 'DROP\\u00a0TABLE\\u00a0IF\\u00a0EXISTS inscriptions_excel;', ok: true},",
       "a += out('o4', 'err', 'Requête refusée', 'FOREIGN KEY constraint failed', 'm');", "a += out('o5', 'warn', 'Exécutée sans erreur', 'La table inscriptions n’existe plus.');",
       "a += out('o6', 'err', 'Erreur SQL', 'no such table: inscriptions_excel', 'm');", "<span id=\"bt-b\">Serveur de test</span>", 'Prochaine leçon · INSERT INTO']},
+  {id: 26, next: 27, titre: 'INSERT', page: 'projet-insert.html', thumb: 'projet-insert-thumb.webp', duree: '4 min 05', notesAt: 154.7,
+    notes: /notes:\{t:237\.9,y:1261,card:\[64,292,1016,966\],to:\[940,255\]\}/, table: 'inscriptions',
+    bubble: 'Les inscriptions arrivent&nbsp;:<br>à toi de les ajouter à la base.',
+    chapters: ['Karim passe la main', 'Une inscription', 'L’ordre des valeurs', 'Une règle enfreinte', 'Un groupe', 'Créer ou recharger', 'À retenir'],
+    traps: ["const ATELIERS = [[1, 'Récupération', '2026-09-12'], [2, 'Pilates', '2026-09-17'], [3, 'Cuisine saine', '2026-09-19'],",
+      "const BINS = [['cr', 'Carte créée', 'le client n’a pas de carte'], ['rc', 'Carte rechargée', 'le client a déjà une carte']];",
+      // Les six moments : les trois valeurs à ranger, les valeurs inversées, l’atelier oublié, la ligne fautive du groupe, la fin de requête qui recharge, la carte créée ou rechargée
+      "{at: atp('p1'), from: A.c4, kind: 'sort',", "{label: 'Emma Dubois, à l’atelier Pilates', ok: true},", "{label: 'L’atelier n’est pas indiqué, or il est obligatoire', ok: true}]},",
+      "{at: atp('p4'), from: A.c20, kind: 'tap', need: 1,", "{label: 'DO\u00a0UPDATE SET seances_restantes\u00a0= seances_restantes\u00a0+\u00a010', ok: true},",
+      "{at: atp('p6'), from: A.c30, kind: 'sort',", "b += out('o-fk', 'err', 'Requête refusée', 'FOREIGN KEY constraint failed', 'm');",
+      "c += out('o-un', 'err', 'Requête refusée', 'UNIQUE constraint failed:<br>cartes.client_id', 'm', true);", 'Prochaine leçon · UPDATE']},
+  {id: 27, next: 28, titre: 'UPDATE', page: 'projet-update.html', thumb: 'projet-update-thumb.webp', duree: '3 min 20', notesAt: 132.8,
+    notes: /notes:\{t:193\.05,y:1261,card:\[64,292,1016,966\],to:\[940,255\]\}/, table: 'ateliers',
+    bubble: 'Les informations changent&nbsp;:<br>à toi de les modifier dans la base.',
+    chapters: ['Trois demandes', 'Cibler une ligne', 'L’oubli du WHERE', 'Lire avant d’écrire', 'Une valeur calculée', 'Une règle de la table', 'À retenir'],
+    traps: ["const ATELIERS = [[1, 'Récupération', '2026-09-12'], [2, 'Pilates', '2026-09-17'], [3, 'Cuisine saine', '2026-09-19'],",
+      "const CARTES = [[1, 1, 'Sophie Martin', 10, 12], [2, 4, 'Nathan Petit', 5, 7], [3, 6, 'Hugo Laurent', 18, 20]];",
+      // Les six moments : la case à modifier, la fin de la requête, les cinq ateliers touchés, la requête qui lit, la fin qui calcule, pourquoi la modification est refusée
+      "{at: atp('p1'), from: A.c4, kind: 'tap', need: 1,", "{label: 'WHERE\u00a0id\u00a0=\u00a02', ok: true}]},", "{at: atp('p3'), from: A.c9, kind: 'tap', need: 5,",
+      "{label: 'SELECT\u00a0*\u00a0FROM\u00a0ateliers WHERE\u00a0id\u00a0=\u00a02', ok: true},", "{label: 'SET seances_restantes\u00a0= seances_restantes\u00a0+\u00a02', ok: true},",
+      "{label: 'Le solde passerait sous 0, ce que la règle de la table interdit', ok: true}]}",
+      "b += out('o-5', 'warn', 'Requête exécutée', '5 lignes modifiées.');", "c += out('o-ck', 'err', 'Requête refusée', 'CHECK constraint failed:<br>seances_restantes &gt;= 0', 'm', true);", 'Prochaine leçon · DELETE']},
 ];
 
 for (const c of COURSES) {
@@ -1408,7 +1430,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
     && D.CAPTIONS[iq + 1][0] <= 12.6 && D.CAPTIONS[iq + 1][1] >= 14.3 && D.CAPTIONS[iq + 2][2] === 'Pour le savoir, il faut relier les tables grâce à des <b>clés</b>.'
     && page.includes("pop('#ms1', 14.0, 0.5); pop('#ms2', 14.3, 0.5);"), 'la question du 4 septembre, pendant que la ligne s’allume et que « ? client » et « ? atelier » apparaissent');
   /* Une seule façon de nommer la table d’une relation N ↔ N, dans les trois chapitres. */
-  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html'])
+  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html'])
     assert.ok(!fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8').includes('table de jointure'), `${f} : « table d’association », jamais « table de jointure »`);
   assert.ok(caps.includes('Une <b>table d’association</b>'), 'le chapitre 2 la nomme comme le chapitre 3');
   /* La clé étrangère : sa définition, puis à quoi elle sert, sur l’exemple entouré (inscription 1, client_id 1, Sophie Martin). */
@@ -2535,7 +2557,7 @@ test('Quel JOIN choisir ? : chaque étiquette montre le résultat de SQLite (ord
 });
 
 test('deux réponses enchaînées aux moments « À toi » : la pastille rouge du mauvais geste ne reste pas, clear() retire la classe de flash() sans attendre le minuteur', () => {
-  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html']) {
+  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html']) {
     const src = fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8');
     const clearSrc = src.match(/function clear\(\)\{\n[\s\S]*?\n  \}/)?.[0], flashSrc = src.match(/const flash = \(e, c, ms = 600\) => \{[^\n]*\};/)?.[0];
     assert.ok(clearSrc && flashSrc, `${f} : clear() et flash() trouvés`);
