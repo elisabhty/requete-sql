@@ -181,9 +181,9 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
   /* L’annonce du chapitre suivant, sous son vrai titre. */
   assert.ok(page.includes('<span class="emo">🗑️</span>Chapitre 6 · DROP</span>'), 'pilule « 🗑️ Chapitre 6 · DROP »');
   /* La suite de la fin du chapitre 4 : une table qui vient d’être créée affiche « 0 ligne » ; Karim arrive dans la même pilule
-     (KB, ✍️, la commande) : INSERT quand il remplit les tables, puis UPDATE quand il change des valeurs. */
+     (KB, ✍️, la commande) : INSERT INTO quand il remplit les tables, puis UPDATE quand il change des valeurs. */
   assert.ok(page.includes('<i class="e">0 ligne</i>') && !page.includes('<i class="e">vide</i>'), '« 0 ligne », comme au chapitre 4');
-  assert.ok(["kbp('kb1', 'INSERT')", "kbp('kb2', 'UPDATE', 'up2')", "kbp('kb6', 'UPDATE', 'up6')"].every(s => page.includes(s)) && !page.includes("who('kb"), 'Karim : la pilule du chapitre 4, INSERT puis UPDATE');
+  assert.ok(["kbp('kb1', 'INSERT INTO')", "kbp('kb2', 'UPDATE', 'up2')", "kbp('kb6', 'UPDATE', 'up6')"].every(s => page.includes(s)) && !page.includes("who('kb"), 'Karim : la pilule du chapitre 4, INSERT INTO puis UPDATE');
   /* Les trois idées à retenir : la phrase, puis sa précision (aucune pour la première). */
   const recap = page.slice(page.indexOf('<div class="abs card recap" id="recap">'), page.indexOf('</section>', page.indexOf('id="recap"')));
   const rows = [...recap.matchAll(/<div class="rtxt">([\s\S]*?)<\/div><\/div>/g)].map(m => m[1]);

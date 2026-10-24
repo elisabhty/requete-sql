@@ -248,9 +248,9 @@
   <section class="scene" id="s7">
     <div class="abs rtitle">Les trois idées à retenir</div>
     <div class="abs card recap" id="recap">
-      <div class="rrow"><div class="rico emo">🏗️</div><div class="rtxt"><span class="ic">CREATE TABLE</span> construit la <b>structure</b><br>d’une table&nbsp;: son nom, puis ses colonnes.<span class="rs">Elle ne crée aucune ligne&nbsp;:<br>c’est <span class="ic">INSERT</span> qui en ajoute.</span></div></div>
-      <div class="rrow"><div class="rico emo">🔤</div><div class="rtxt">Chaque colonne a un <b>nom</b> et un <b>type</b>&nbsp;:<span class="rs"><span class="ic">seances INTEGER</span></span></div></div>
-      <div class="rrow"><div class="rico emo">🛡️</div><div class="rtxt">Les <b>contraintes</b> posent les règles<br>que les données doivent respecter&nbsp;:<br><span class="ic">PRIMARY KEY · NOT NULL · UNIQUE · CHECK</span><span class="rs">Une table se crée après celles auxquelles<br>ses clés étrangères font référence.</span></div></div>
+      <div class="rrow"><div class="rico emo">🏗️</div><div class="rtxt">1. Créer une <b>table</b><span class="rs"><span class="ic">CREATE TABLE</span> définit son nom et ses colonnes.<br>Pour y ajouter des lignes, on utilise <span class="ic">INSERT INTO</span>.</span></div></div>
+      <div class="rrow"><div class="rico emo">🔤</div><div class="rtxt">2. Définir les <b>colonnes</b><span class="rs">Chaque colonne possède<br>un nom et un type de données.<br>Par exemple, <span class="ic">seances INTEGER</span> permet de stocker un nombre entier de séances.</span></div></div>
+      <div class="rrow"><div class="rico emo">🛡️</div><div class="rtxt">3. Définir les <b>règles</b><span class="rs">Les contraintes encadrent les données&nbsp;:<br>identifiant unique (<span class="ic">PRIMARY KEY</span>),<br>valeur obligatoire (<span class="ic">NOT NULL</span>),<br>absence de doublons (<span class="ic">UNIQUE</span>),<br>condition à respecter (<span class="ic">CHECK</span>)<br>et lien vers une autre table (<span class="ic">FOREIGN KEY</span>).</span></div></div>
     </div>
   </section>
 
@@ -380,12 +380,14 @@ const CAPTIONS = [
   [160.7, 165.2, "On écrit <code>CHECK (seances &gt;= 0)</code> :<br>le solde peut tomber à 0,<br>mais pas en dessous."],
   [165.9, 170.0, "Ton fichier <code>schema.sql</code> est complet :<br>quatre requêtes, dans le bon ordre."],
   [170.1, 175.0, "Karim le relit,<br>puis l’exécute dans le SGBD."],
-  [175.1, 180.0, "La base compte maintenant huit tables :<br>celles de la boutique<br>et celles des ateliers."],
+  [175.1, 177.6, "Les quatre nouvelles<br>tables sont créées !"],
+  [177.7, 180.0, "Ta base compte désormais huit tables<br>pour gérer la boutique et les ateliers."],
   [180.1, 182.65, "À toi !"],
   [182.75, 186.4, "Une table neuve est vide :<br><code>CREATE TABLE</code> ne crée que sa structure."],
-  [186.5, 190.4, "C’est <code>INSERT</code> qui ajoute les lignes :<br>Karim s’en chargera ensuite."],
-  [190.5, 196.0, "Dans le prochain chapitre, tu feras<br>évoluer ces tables avec <code>ALTER TABLE</code>."],
-  [196.5, 201.3, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  [186.5, 188.5, "Les quatre nouvelles<br>tables sont encore vides."],
+  [188.6, 191.2, "Karim y ajoutera les données<br>avec la commande <code>INSERT INTO</code>,<br>qui permet d’insérer de nouvelles<br>lignes dans une table.", 4],
+  [191.3, 196.0, "Dans le prochain chapitre, tu feras<br>évoluer ces tables avec <code>ALTER TABLE</code>."],
+  [196.5, 201.3, "Créer une table, c’est définir<br>ses colonnes, les données<br>qu’elles peuvent contenir<br>et les règles à respecter.", 4],
   APP ? [201.4, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
       : [201.4, 999, "Un plan d’abord,<br>puis une requête par table :<br>c’est ainsi qu’une base prend forme."]
 ];
@@ -523,12 +525,12 @@ function dom(){
   $('#se').innerHTML = sqlCard('sq-ca', SQL.ca, 64, 952) + tbox('pv-ca', 'ca', 64, 460) +
     '<div class="abs card kwc" id="kw-df"><b>DEFAULT</b><span>valeur par défaut</span></div><div class="abs card kwc" id="kw-ck"><b>CHECK</b><span>condition à vérifier</span></div>' +
     REGLES.map(([k, r]) => `<div class="abs rul" id="ru-${k}"><p>${r}</p><div class="rsl">${KW5.map(([w, c], j) => c === k ? `<div class="rc" id="rc5-${j}">${w}</div>` : '').join('')}</div></div>`).join('');
-  /* 6 · Exécuter : les quatre tables, la base et ses huit tables, INSERT */
+  /* 6 · Exécuter : les quatre tables, la base (son badge compte de 4 à 8 tables), INSERT INTO */
   $('#sx').innerHTML = ORDRE.map((k, q) => tbox('gx-' + k, k, q % 2 ? 555 : 64, 461, true)).join('') +
-    '<div class="abs card dbc" id="db"><div class="dbh"><span class="emo">🗄️</span>Base de données<span class="dbn"><i class="n4">4 tables</i><i class="n8">8 tables</i></span></div>' +
+    '<div class="abs card dbc" id="db"><div class="dbh"><span class="emo">🗄️</span>Base de données<span class="dbn">' + [4, 5, 6, 7, 8].map(n => `<i class="n${n}">${n} tables</i>`).join('') + '</span></div>' +
     `<div class="dbr"><small>Boutique</small>${BOUTIQUE.map(([, e, n]) => `<span><i class="emo">${e}</i>${n}</span>`).join('')}</div>` +
     `<div class="dbr"><small>Ateliers</small>${ORDRE.map(k => `<span class="k ${KC[k]}" id="db-${k}"><i class="emo">${TABLES[k][0]}</i>${TABLES[k][1]}</span>`).join('')}</div></div>` +
-    '<div class="abs insp" id="ins"><span><i>KB</i><span class="emo">✍️</span><code>INSERT</code></span></div>';
+    '<div class="abs insp" id="ins"><span><i>KB</i><span class="emo">✍️</span><code>INSERT INTO</code></span></div>';
   $('#sk').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🔧</span>Chapitre 5 · ALTER TABLE</span></div>';
   // les requêtes, découpées en caractères pour la frappe
   $$('.sq .ln').forEach(ln => { if (!ln.classList.contains('fl')) splitChars(ln); });
@@ -1010,16 +1012,22 @@ function build(){
     tl.to(s + ' .apc', {autoAlpha: 0, scale: 0.6, duration: 0.25, ease: 'power2.in'}, t);
     bump(s, t, 1.03); cue(t, 'tick', 0.5, q + 1);
   });
-  // « La base compte maintenant huit tables : celles de la boutique et celles des ateliers »
-  hide('#fc', 175.3, {y: -30}, 0.35);
+  // « Les quatre nouvelles tables sont créées ! » : le fichier s’efface, la base arrive avec ses quatre tables de départ (« 4 tables »),
+  // puis les quatre nouvelles s’y ajoutent une à une et le badge compte avec elles : 5, 6, 7, 8
+  hide('#fc', 175.2, {y: -30}, 0.35);
   gsap.set(ORDRE.map(k => '#db-' + k), {autoAlpha: 0});
-  gsap.set('#db .n8', {autoAlpha: 0});
-  show('#db', 175.7, {y: 40}, 0.5); cue(175.7, 'whoosh', 0.5, 2);
-  ORDRE.forEach((k, q) => { tl.fromTo('#db-' + k, {autoAlpha: 0, scale: 0.6}, {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)', immediateRender: false}, 176.6 + q * 0.15); cue(176.6 + q * 0.15, 'pop', 0.55, q + 2); });
-  tl.to('#db .n4', {autoAlpha: 0, y: -14, duration: 0.2, ease: 'power2.in'}, 177.5);
-  tl.fromTo('#db .n8', {autoAlpha: 0, y: 14}, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power3.out', immediateRender: false}, 177.6); cue(177.6, 'pop', 0.7, 5);
-  bump('#db .dbr:nth-child(2) span', 178.3, 1.06); cue(178.3, 'tick', 0.5, 1);
-  bump('#db .dbr:nth-child(3) span', 179.0, 1.06); cue(179.0, 'tick', 0.5, 3);
+  gsap.set(['#db .n5', '#db .n6', '#db .n7', '#db .n8'], {autoAlpha: 0});
+  show('#db', 175.6, {y: 40}, 0.5); cue(175.6, 'whoosh', 0.5, 2);
+  ORDRE.forEach((k, q) => {
+    const t = 176.2 + q * 0.2;
+    tl.fromTo('#db-' + k, {autoAlpha: 0, scale: 0.6}, {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)', immediateRender: false}, t); cue(t, 'pop', 0.55, q + 2);
+    tl.to(`#db .n${4 + q}`, {autoAlpha: 0, y: -14, duration: 0.1, ease: 'power2.in'}, t);   // le compte change quand la table entre, pas après
+    tl.fromTo(`#db .n${5 + q}`, {autoAlpha: 0, y: 14}, {autoAlpha: 1, y: 0, duration: 0.16, ease: 'power3.out', immediateRender: false}, t + 0.04);
+  });   // la dernière finit à 177,2 : avant la pause de la bulle (177,35) ; « 8 tables » est affiché avant que la bulle suivante parle de huit tables
+  // « Ta base compte désormais huit tables pour gérer la boutique et les ateliers » : le badge, puis chaque rangée de la base
+  bump('#db .dbn', 178.05, 1.18); cue(178.05, 'pop', 0.7, 5);
+  bump('#db .dbr:nth-child(2) span', 178.6, 1.06); cue(178.6, 'tick', 0.5, 1);
+  bump('#db .dbr:nth-child(3) span', 179.15, 1.06); cue(179.15, 'tick', 0.5, 3);
   // À toi : ce que contient la table ateliers (réponse : ses colonnes, mais aucune ligne)
   glowOn('#gx-at', RGB.at, 180.4);
   const a5 = +(PICKS[5].at + 0.02).toFixed(2);
@@ -1029,16 +1037,20 @@ function build(){
   ['co', 'in', 'ca'].forEach((k, q) => { on([`#gx-${k}-f`, `#gx-${k}-f .z0`], 183.3 + q * 0.2, 0.3); cue(183.3 + q * 0.2, 'tick', 0.5, q + 2); });
   ORDRE.forEach((k, q) => $$(`#gx-${k} .pr`).forEach((r, j) => pulse(r, 185.0 + q * 0.06 + j * 0.04, 1)));
   cue(185.0, 'tick', 0.5, 3); cue(185.2, 'tick', 0.5, 5);
-  // « C’est INSERT qui ajoute les lignes : Karim s’en chargera ensuite »
-  show('#ins', 186.9, {y: 30, scale: 0.9}, 0.45, 'back.out(1.8)'); cue(186.9, 'pop', 0.7, 3);
-  bump(ORDRE.map(k => `#gx-${k}-f`), 187.8, 1.06); cue(187.8, 'tick', 0.5, 2);
-  bump('#ins i', 189.0, 1.25); cue(189.0, 'tick', 0.5, 4);
+  // « Les quatre nouvelles tables sont encore vides » : les « 0 ligne » battent ensemble
+  bump(ORDRE.map(k => `#gx-${k}-f`), 186.85, 1.06); cue(186.85, 'tick', 0.5, 2);
+  // « Karim y ajoutera les données avec la commande INSERT INTO, qui permet d’insérer de nouvelles lignes dans une table » :
+  // Karim et sa commande arrivent, Karim s’anime, puis INSERT INTO, puis le stylo écrit
+  show('#ins', 188.85, {y: 30, scale: 0.9}, 0.45, 'back.out(1.8)'); cue(188.85, 'pop', 0.7, 3);
+  bump('#ins i', 189.5, 1.25); cue(189.5, 'tick', 0.5, 4);
+  bump('#ins code', 189.95, 1.15); cue(189.95, 'tick', 0.5, 5);
+  tl.to('#ins .emo', {rotation: -14, duration: 0.14, yoyo: true, repeat: 3, ease: 'sine.inOut'}, 190.25);   // fini à 190,81 : avant la pause de la bulle (190,95)
   // la suite : ALTER TABLE
-  hide(['#db', '#ins', '#sx .pb'], 190.55, {y: -40}, 0.4);
-  sceneOff(['#sx', '#sf'], 191.0);
-  sceneOn('#sk', 191.0);
-  show('#keyc', 191.1, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)'); cue(191.1, 'whoosh', 0.6);
-  tl.to('#keyc .emo', {rotation: -18, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, 191.7);
+  hide(['#db', '#ins', '#sx .pb'], 191.3, {y: -40}, 0.4);
+  sceneOff(['#sx', '#sf'], 191.75);
+  sceneOn('#sk', 191.75);
+  show('#keyc', 191.85, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)'); cue(191.85, 'whoosh', 0.6);
+  tl.to('#keyc .emo', {rotation: -18, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, 192.45);
   hide('#keyc', 195.55, {y: -30}, 0.4);
   sceneOff('#sk', 196.1);
 
@@ -1047,7 +1059,7 @@ function build(){
   recapScene(196.1, [196.8, 198.2, 199.6]);
   const rt = $$('#s7 .rtxt'), rs = $$('#s7 .rs'), rd = (h, n = 20) => Math.ceil(readTime(h) * n) / n;
   gsap.set(rs, {autoAlpha: 0, y: 10});
-  [[196.8, 197.55], [198.2, 198.95], [199.6, 200.35]].forEach(([r, d], i) => {
+  [[196.8, 197.55], [198.2, 198.95], [199.6, 200.55]].forEach(([r, d], i) => {   // la dernière pause (201,05) est aussi celle de la bulle : une seule pause, la plus longue
     tl.to(rs[i], {autoAlpha: 1, y: 0, duration: 0.45, ease: 'power2.out'}, d);
     cue(d, 'tick', 0.5, i * 2 + 1);
     hold(r + 0.6, rd(rt[i].innerHTML.split('<span class="rs"')[0]));
