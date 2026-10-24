@@ -38,7 +38,9 @@ const glueShort = t => t.replace(/(\S+)( +)(?=\S|$)/g, (m, w) => shortWord(w) ? 
 const glueQuotes = t => t.replace(/«([^«»]{1,28})»/g, (m, q) => '«' + q.replace(/ /g, NB) + '»');
 /* Le prénom et le nom d’un client (« Sophie Martin ») restent ensemble sur la même ligne. */
 const glueNames = t => t.replace(/(^|[^\p{L}])(Sophie|Lucas|Emma|Nathan|Chloé|Hugo|Léa|Gabriel|Inès|Salma|Moussa) (?=\p{Lu})/gu, '$1$2' + NB);
-const frText = t => glueNames(glueQuotes(glueShort(t.replace(/ ([:?!;»])/g, NB + '$1').replace(/« /g, '«' + NB).replace(/(\d) (?=\S)/g, '$1' + NB))));
+/* « l’atelier Pilates », « Cuisine saine », « Yoga du matin » ne se coupent pas. */
+const glueAteliers = t => t.replace(/Cuisine saine|Yoga du[  ]matin|\batelier (?=Récup|Pil|Cuis|Méd|Yoga)/g, m => m.replace(/ /g, NB));
+const frText = t => glueAteliers(glueNames(glueQuotes(glueShort(t.replace(/ ([:?!;»])/g, NB + '$1').replace(/« /g, '«' + NB).replace(/(\d) (?=\S)/g, '$1' + NB)))));
 /* Légendes : une expression ne se coupe pas d’une ligne à l’autre. Certains mots ne terminent jamais une ligne
    (« du plus / cher »), d’autres ne la commencent jamais (« ne livre / pas »), un nombre reste collé au mot qui le
    précède (« donne / 24 »). */

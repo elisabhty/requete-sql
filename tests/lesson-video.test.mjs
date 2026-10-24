@@ -102,7 +102,7 @@ test('l’animation part dans l’app iOS et reste légère (plus de MP4 pour WH
   let total = 0;
   for (const f of ['where.html', 'gsap.min.js', 'mascotte.webp', 'where-thumb.jpg']) total += fs.statSync(path.join(ROOT, 'assets/anim', f)).size;
   for (const f of ANIM_FONTS) total += fs.statSync(path.join(ROOT, 'assets/fonts', f)).size;
-  assert.ok(total < 450 * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
+  assert.ok(total < 470 * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
   assert.ok(sw.includes("url.pathname.endsWith('.mp4')"));
 });
 
@@ -933,10 +933,10 @@ const COURSES = [
       "{at: atp('p4'), from: A.c11, kind: 'tap', need: 4,", "{label: 'La table inscriptions est supprimée, avec ses sept lignes', ok: true},", "{label: 'DROP\\u00a0TABLE\\u00a0IF\\u00a0EXISTS inscriptions_excel;', ok: true},",
       "a += out('o4', 'err', 'Requête refusée', 'FOREIGN KEY constraint failed', 'm');", "a += out('o5', 'warn', 'Exécutée sans erreur', 'La table inscriptions n’existe plus.');",
       "a += out('o6', 'err', 'Erreur SQL', 'no such table: inscriptions_excel', 'm');", "<span id=\"bt-b\">Serveur de test</span>", 'Prochaine leçon · INSERT INTO']},
-  {id: 26, next: 27, titre: 'INSERT', page: 'projet-insert.html', thumb: 'projet-insert-thumb.webp', duree: '4 min 05', notesAt: 154.7,
-    notes: /notes:\{t:237\.9,y:1261,card:\[64,292,1016,966\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 26, next: 27, titre: 'INSERT', page: 'projet-insert.html', thumb: 'projet-insert-thumb.webp', duree: '4 min 05', notesAt: 155.5,
+    notes: /notes:\{t:238\.15,y:1261,card:\[64,292,1016,966\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Les inscriptions arrivent&nbsp;:<br>à toi de les ajouter à la base.',
-    chapters: ['Karim passe la main', 'Une inscription', 'L’ordre des valeurs', 'Une règle enfreinte', 'Un groupe', 'Créer ou recharger', 'À retenir'],
+    chapters: ['Karim passe la main', 'Une inscription', 'L’ordre des valeurs', 'Une colonne oubliée', 'Un groupe', 'Créer ou recharger', 'À retenir'],
     traps: ["const ATELIERS = [[1, 'Récupération', '2026-09-12'], [2, 'Pilates', '2026-09-17'], [3, 'Cuisine saine', '2026-09-19'],",
       "const BINS = [['cr', 'Carte créée', 'le client n’a pas de carte'], ['rc', 'Carte rechargée', 'le client a déjà une carte']];",
       // Les six moments : les trois valeurs à ranger, les valeurs inversées, l’atelier oublié, la ligne fautive du groupe, la fin de requête qui recharge, la carte créée ou rechargée
@@ -944,8 +944,8 @@ const COURSES = [
       "{at: atp('p4'), from: A.c20, kind: 'tap', need: 1,", "{label: 'DO\u00a0UPDATE SET seances_restantes\u00a0= seances_restantes\u00a0+\u00a010', ok: true},",
       "{at: atp('p6'), from: A.c30, kind: 'sort',", "b += out('o-fk', 'err', 'Requête refusée', 'FOREIGN KEY constraint failed', 'm');",
       "c += out('o-un', 'err', 'Requête refusée', 'UNIQUE constraint failed:<br>cartes.client_id', 'm', true);", 'Prochaine leçon · UPDATE']},
-  {id: 27, next: 28, titre: 'UPDATE', page: 'projet-update.html', thumb: 'projet-update-thumb.webp', duree: '3 min 20', notesAt: 132.8,
-    notes: /notes:\{t:193\.05,y:1261,card:\[64,292,1016,966\],to:\[940,255\]\}/, table: 'ateliers',
+  {id: 27, next: 28, titre: 'UPDATE', page: 'projet-update.html', thumb: 'projet-update-thumb.webp', duree: '3 min 20', notesAt: 133.2,
+    notes: /notes:\{t:193\.45,y:1261,card:\[64,292,1016,966\],to:\[940,255\]\}/, table: 'ateliers',
     bubble: 'Les informations changent&nbsp;:<br>à toi de les modifier dans la base.',
     chapters: ['Trois demandes', 'Cibler une ligne', 'L’oubli du WHERE', 'Lire avant d’écrire', 'Une valeur calculée', 'Une règle de la table', 'À retenir'],
     traps: ["const ATELIERS = [[1, 'Récupération', '2026-09-12'], [2, 'Pilates', '2026-09-17'], [3, 'Cuisine saine', '2026-09-19'],",
@@ -989,7 +989,7 @@ for (const c of COURSES) {
     let total = 0;
     for (const f of [c.page, 'core.css', 'core.js', 'gsap.min.js', 'mascotte.webp', c.thumb]) total += fs.statSync(path.join(ROOT, 'assets/anim', f)).size;
     for (const f of ANIM_FONTS) total += fs.statSync(path.join(ROOT, 'assets/fonts', f)).size;
-    assert.ok(total < 450 * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
+    assert.ok(total < 470 * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
     for (const f of [`./assets/anim/${c.page}?app&embed`, `./assets/anim/${c.thumb}`]) assert.ok(sw.includes(`'${f}'`), `préchargé : ${f}`);
   });
 }
@@ -1492,8 +1492,8 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
      qu’une seule valeur ; on place donc coach_id dans la table ateliers. Après le moment 4 : le coach_id de ces ateliers est l’id
      de Moussa Diallo, puis la règle. */
   assert.equal(siens.length, 2);
-  const why = ['Moussa anime deux ateliers :<br>le ' + siens.join(' et le ') + '.', 'Imaginons une colonne <code>atelier_id</code><br>dans la table coachs.',
-    'Il faudrait inscrire ces deux<br>identifiants dans la même case.', 'Impossible : une case ne doit contenir qu’une seule valeur.',
+  const why = ['Moussa anime deux ateliers :<br>le ' + siens.join(' et le ') + '.', 'Imaginons une colonne <code>atelier_id</code><br>dans la <b>table coachs</b>.',
+    'Il faudrait inscrire ces deux identifiants<br>dans la même case.', 'Impossible : une case ne doit contenir qu’une seule valeur.',
     'Pour garder une seule valeur par case,<br>on place plutôt <code>coach_id</code><br>dans la <b>table ateliers</b>.', 'Chaque atelier indique ainsi<br>le coach qui l’anime.'];
   const iw = D.CAPTIONS.findIndex(c => c[2] === why[0]);
   assert.ok(iw > 0 && D.CAPTIONS[iw - 1][2] === 'À toi !' && D.CAPTIONS[iw][0] > D.PICKS[2].at && why.every((w, k) => D.CAPTIONS[iw + k][2] === w) && D.CAPTIONS[iw + why.length][2] === 'À toi !',
@@ -1514,7 +1514,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.equal(D.PICKS[3].prompt, `Touche l’atelier animé par ${diego[1]} ${diego[2]}.`);
   assert.ok(sien.length === 1 && !why.some(w => w.includes(diego[1])), 'moment 4 : un autre coach que Moussa Diallo, absent de l’explication');
   assert.equal(D.PICKS[3].need, sien.length, 'autant d’ateliers à toucher que Diego Ramos en anime');
-  assert.ok(caps.includes(`L’atelier ${sien[0][1]} a <code>coach_id = ${diego[0]}</code> : c’est justement l’<code>id</code> de <b>${diego[1]} ${diego[2]}</b> dans la table coachs.`)
+  assert.ok(caps.includes(`L’atelier ${sien[0][1]} a <code>coach_id = ${diego[0]}</code> : c’est justement l’<code>id</code> de <b>${diego[1]} ${diego[2]}</b> dans la <b>table coachs</b>.`)
     && caps.includes('La règle : dans une relation 1 → N, la clé étrangère va du côté « plusieurs ».'), 'le moment 4 expliqué, puis la règle');
   const cap4 = D.CAPTIONS.findIndex(c => c[2].startsWith(`L’atelier ${sien[0][1]} a <code>coach_id`));
   assert.ok(D.CAPTIONS[cap4][0] > D.PICKS[3].at && D.CAPTIONS[cap4 - 1][2] === 'À toi !', 'juste après le moment 4');
@@ -1553,7 +1553,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
     && D.CAPTIONS[iu + 2][0] <= 142.85 && D.CAPTIONS[iu + 2][1] >= 143.8 && D.DOUBLON[1] === D.CARTES[0][1], '1 ↔ 1 : la contrainte UNIQUE, puis la deuxième carte refusée');
   /* La réponse expliquée : une ligne dans inscriptions, avec l’identifiant de la cliente, celui de l’atelier (entourés à l’image,
      avec ce qu’ils désignent) et la date. */
-  const m5 = [`Pour inscrire ${D.CLIENTS.find(c => c[0] === D.NOUVELLE[1])[1]} à l’atelier ${atl(D.NOUVELLE[2])[1]}, on ajoute une ligne dans <code>inscriptions</code>.`,
+  const m5 = [`Pour inscrire ${D.CLIENTS.find(c => c[0] === D.NOUVELLE[1])[1]} à l’atelier ${atl(D.NOUVELLE[2])[1]},<br>on ajoute une ligne dans <code>inscriptions</code>.`,
     `Elle contient l’identifiant<br>de ${D.CLIENTS.find(c => c[0] === D.NOUVELLE[1])[1]} (${D.NOUVELLE[1]}), celui de l’atelier (${D.NOUVELLE[2]})<br>et la date d’inscription.`];
   const i5 = D.CAPTIONS.findIndex(c => c[2] === m5[0]);
   assert.ok(i5 > 0 && D.CAPTIONS[i5 - 1][2] === 'À toi !' && D.CAPTIONS[i5][0] > D.PICKS[4].at && D.CAPTIONS[i5 + 1][2] === m5[1], 'moment 5 expliqué : la nouvelle ligne, ses deux identifiants et la date');

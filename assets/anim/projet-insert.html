@@ -84,7 +84,6 @@
 .sw{display:inline-grid}
 .sw>*{grid-area:1/1;font-style:normal;white-space:pre}
 .sw>.nul{color:var(--ink-3);font-style:italic;font-weight:500}
-#s11c2{color:var(--danger)}
 /* Le nom de la personne ou de l’atelier, à côté de son identifiant */
 .nt{flex:none;height:38px;padding:0 14px;border-radius:11px;background:var(--cs);color:var(--ci);font-family:var(--ui);font-size:24px;font-weight:700;font-style:normal;display:inline-flex;align-items:center;white-space:nowrap}
 /* La case qui attend sa valeur (moment 1), ou qui manque (chapitre 4) */
@@ -143,7 +142,8 @@
 /* Le trou de la requête (moment 5) : la fin de la requête, à choisir */
 .sq .hole{position:absolute;left:30px;right:30px;top:186px;height:78px;border:3px dashed #FFC94A;border-radius:14px;background:rgba(255,201,74,.12);color:#FFD66B;font-family:var(--mono);font-size:34px;font-weight:800;display:flex;align-items:center;justify-content:center}
 .sq .str{color:var(--t-str)}
-.sq .bad{color:#FF8A8F}
+.pvr{color:#FF8A8F!important}
+#s11c2.pvr{color:#C2323A!important}
 .sw.cm>*{white-space:pre}
 
 /* ---------- Le résultat d’une requête ---------- */
@@ -253,7 +253,7 @@
   <section class="scene" id="s7">
     <div class="abs rtitle">Les trois idées à retenir</div>
     <div class="abs card recap" id="recap">
-      <div class="rrow"><div class="rico emo">✍️</div><div class="rtxt"><code>INSERT INTO</code> ajoute <b>une ligne</b> :<br>une valeur pour chaque colonne citée.<span class="rs">Une colonne non citée vaut <code>NULL</code><br>ou sa valeur par défaut ; si elle est obligatoire,<br>la requête est refusée.</span></div></div>
+      <div class="rrow"><div class="rico emo">✍️</div><div class="rtxt"><code>INSERT INTO</code> ajoute <b>une ligne</b> :<br>les valeurs suivent l’ordre des colonnes.<span class="rs">Une colonne non citée vaut <code>NULL</code><br>ou sa valeur par défaut ; si elle est obligatoire,<br>la requête est refusée.</span></div></div>
       <div class="rrow"><div class="rico emo">📚</div><div class="rtxt">Avec <code>VALUES</code>, on ajoute <b>plusieurs lignes</b><br>d’un coup : une parenthèse par ligne.<span class="rs">Si une seule ligne est refusée,<br>aucune des lignes n’est ajoutée.</span></div></div>
       <div class="rrow"><div class="rico emo">🔁</div><div class="rtxt"><code>ON CONFLICT</code> permet de choisir quoi faire<br>quand la ligne <b>existe déjà</b>.<span class="rs"><code>DO UPDATE</code> modifie la ligne existante ;<br><code>DO NOTHING</code> la laisse telle quelle.</span></div></div>
     </div>
@@ -285,13 +285,13 @@ const mailBlock = () => { const t = SCH.t; SCH.t = +(SCH.t + 4.8).toFixed(2); re
 /* 1 · Karim passe la main : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) */
 cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
 cap('r2', "Au chapitre 6, tu as retiré la copie du fichier Excel avec <code>DROP TABLE</code>.", 3.0);
-cap('c2', "Jusqu’ici, Karim, le développeur<br>back end, a rempli les tables.", 2.8);
+cap('c2', "Jusqu’ici, Karim,<br>le développeur back end,<br>a rempli les tables.", 2.8);
 cap('c3', "Il te passe la main : c’est toi<br>qui ajoutes les nouvelles lignes.", 2.8);
 const MAIL1 = mailBlock();
 /* 2 · Une inscription */
 chap({label:'Une inscription'});
 cap('c4', "Une inscription est une ligne<br>de la <b>table inscriptions</b>.", 2.8);
-cap('c5', "Le client et l’atelier sont<br>repérés par leur identifiant.", 2.8);
+cap('c5', "Le client et l’atelier<br>sont repérés par leur identifiant.", 2.8);
 cap('c6', "On les trouve dans la <b>table clients</b><br>et dans la <b>table ateliers</b>.", 3.2);
 toi('p1');
 cap('c7', "Reste à écrire cette ligne<br>avec <code>INSERT INTO</code>.", 2.8);
@@ -305,8 +305,8 @@ cap('c12', "La requête est exécutée<br>sans la moindre erreur.", 2.6);
 toi('p2');
 cap('c13', "Les valeurs suivent l’ordre<br>des colonnes : <b>Emma Dubois</b><br>est inscrite à l’atelier Pilates.", 3.8);
 cap('c14', "Rien n’avertit de l’inversion :<br>relis toujours l’ordre des valeurs<br>avant d’exécuter.", 3.4);
-/* 4 · Une règle enfreinte */
-chap({label:'Une règle enfreinte'});
+/* 4 · Une colonne oubliée */
+chap({label:'Une colonne oubliée'});
 cap('c15', "Imagine maintenant<br>que tu oublies la date.", 2.8);
 cap('c16', "Une colonne non citée vaut <code>NULL</code><br>ou sa valeur par défaut.", 3.2);
 cap('c17', "Imagine enfin<br>que tu oublies l’atelier.", 2.8);
@@ -320,18 +320,18 @@ cap('c20', "On peut ajouter plusieurs lignes<br>d’un coup, avec une seule requ
 cap('c21', "Après <code>VALUES</code>, on écrit une parenthèse<br>par ligne, séparées par des virgules.", 4.0);
 cap('c22', "Une faute de frappe s’est glissée<br>dans l’une des trois lignes.", 2.8);
 toi('p4');
-cap('c23', "Aucun atelier n’a l’identifiant 15 :<br>cette ligne est refusée.", 3.0);
+cap('c23', "Aucun atelier n’a l’identifiant 15 :<br>cette ligne enfreint<br>la règle <code>FOREIGN KEY</code>.", 3.4);
 cap('c24', "Une seule ligne refusée suffit :<br>aucune des trois n’est ajoutée.", 3.0);
 cap('c25', "Une fois la faute corrigée,<br>les trois inscriptions sont ajoutées.", 3.2);
 /* 6 · Créer ou recharger */
 chap({label:'Créer ou recharger'});
 const MAIL3 = mailBlock();
 cap('c26', "Hugo Laurent a déjà une carte,<br>et une seule carte par client<br>est autorisée dans la <b>table cartes</b>.", 4.0);
-cap('c27', "Ajouter une seconde carte<br>est donc refusé.", 3.6);
-cap('c28', "Avec <code>ON CONFLICT</code>, tu choisis quoi faire<br>quand la ligne existe déjà.", 3.4);
+cap('c27', "Une seconde carte pour Hugo Laurent<br>enfreint la règle <code>UNIQUE</code>.", 3.6);
+cap('c28', "Avec <code>ON CONFLICT (client_id)</code>,<br>tu choisis quoi faire si ce client<br>a déjà une carte.", 3.8);
 toi('p5');
-cap('c29', "La carte d’Hugo Laurent passe<br>de 8 à 18 séances : aucune<br>seconde carte n’est créée.", 3.6);
-cap('c30', "Quatre clients achètent<br>un pack de 10 séances.", 2.8);
+cap('c29', "La carte d’Hugo Laurent passe<br>de 8 à 18 séances :<br>aucune seconde carte n’est créée.", 3.6);
+cap('c30', "Imagine que quatre clients achètent<br>un pack de 10 séances.", 2.8);
 toi('p6');
 cap('c31', "Avec la même requête, les cartes<br>qui manquent sont créées<br>et les autres sont rechargées.", 3.6);
 /* la suite : la prochaine leçon */
@@ -410,10 +410,9 @@ const PICKS = [
    Chacun arrive en notification ; l’app s’arrête dessus (OPENS) jusqu’au toucher. */
 const MAILS = [
   [['Karim', 'Benali', 'KB'], 'k-dv', 'développeur', 'karim@nutriboost.fr', [
-    'Je te laisse la main sur la base à partir d’aujourd’hui.',
     'Pour commencer, Lucas Bernard s’inscrit à l’atelier Cuisine saine, le 8 septembre. Peux-tu l’enregistrer ?'], 'Karim'],
   [['Moussa', 'Diallo', 'MD'], 'k-co', 'coach', 'moussa@mail.fr', [
-    'Trois personnes se sont inscrites aujourd’hui à l’atelier Yoga du matin : Hugo Laurent, Gabriel Michel et Inès Lefebvre.',
+    'Trois personnes se sont inscrites le 9 septembre à l’atelier Yoga du matin : Hugo Laurent, Gabriel Michel et Inès Lefebvre.',
     'Peux-tu les enregistrer toutes les trois ?'], 'Moussa'],
   [['L’équipe', 'NutriBoost', 'NB'], 'k-nb', 'équipe', 'equipe@nutriboost.fr', [
     'Le pack de 10 séances est en vente !',
@@ -496,7 +495,7 @@ function dom(){
     ['eg2', '  (client_id, atelier_id, date_inscription)'],
     ['eg3', "VALUES {gp1|(6, 5, '2026-09-09')},", 'vl'],
     ['eg4', "       {gp2|(8, 5, '2026-09-09')},", 'vl'],
-    ['eg5', "       {gp3|(9, <span class=\"bad\" id=\"fxb\"><span class=\"sg\" id=\"fx1\">1</span>5</span>, '2026-09-09')};", 'vl']
+    ['eg5', "       {gp3|(9, <span id=\"fxb\"><span class=\"sg\" id=\"fx1\">1</span>5</span>, '2026-09-09')};", 'vl']
   ]);
   b += out('o-ok', 'ok', 'Requête exécutée', '1 ligne ajoutée.');
   b += out('o-nn', 'err', 'Requête refusée', '<i id="nn1">NOT NULL constraint failed:</i><br><i id="nn2">inscriptions.atelier_id</i>', 'm', true);
@@ -696,6 +695,7 @@ function build(){
     '#hu .a1', '#hu .a2', '#pgs2 .a1', '#ell .e1', '#ell .e2', '#ell .e3', '#ell .e4'], {autoAlpha: 0});
   gsap.set(['#sc1b', '#calc', '#ec5', '#ec6', '#rul', '#pack', '#tgl-cr', '#tgl-rc'], {autoAlpha: 0});
   gsap.set('#edc', {height: H3});
+  gsap.set('#rul', {height: 0, marginTop: 0, marginBottom: 0});   // pas de bande vide sous la table avant l’arrivée du badge
   gsap.set('#ec4', {autoAlpha: 0});
 
   /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
@@ -791,7 +791,7 @@ function build(){
   on('#r8 .wn', A.c14 + 0.2); cue(A.c14 + 0.2, 'miss', 0.4);
   pulse('#r8 .wn', A.c14 + 0.9, 1, 'rgba(242,154,46,.35)');
 
-  /* ===== 4 · Une règle enfreinte ===== */
+  /* ===== 4 · Une colonne oubliée ===== */
   // imagine que tu oublies la date : tout revient à la normale, puis la date et sa valeur se replient
   off('#r8 .wn', A.c15, 0.3);
   hide('#o-ok', A.c15, {y: 20}, 0.3);
@@ -860,6 +860,7 @@ function build(){
   tl.set(M4_ANS, {autoAlpha: 1}, set2(PICKS[3].at));
   // aucun atelier n’a l’identifiant 15 : la table ateliers ne trouve rien, la requête est refusée
   swap('#pgs2 .a0', '#pgs2 .a1', A.c23 + 0.2, false); cue(A.c23 + 0.3, 'miss', 0.4);
+  tl.to('#fxb', {color: '#FF8A8F', duration: 0.3}, A.c23 + 0.2); tl.to('#s11c2', {color: '#C2323A', duration: 0.3}, A.c23 + 0.2);
   show('#o-fk', A.c23 + 1.0, {y: 20}, 0.4); cue(A.c23 + 1.0, 'miss', 0.45);
   shake('#o-fk', A.c23 + 1.5, 9);
   // une seule ligne refusée suffit : aucune des trois n’est ajoutée (les lignes rougissent, puis s’en vont)
@@ -896,7 +897,8 @@ function build(){
   capOn(A.c26 - 0.3);
   // Hugo Laurent a déjà une carte, une seule par client : la ligne d’Hugo Laurent, puis la règle UNIQUE
   on('#rc3 .hl', A.c26 + 0.4); cue(A.c26 + 0.4, 'tick', 0.5, 2);
-  pop('#rul', A.c26 + 1.6, 0.6);
+  pop('#rul', A.c26 + 2.0, 0.6);
+  tl.to('#rul', {height: 58, marginTop: 8, marginBottom: 4, duration: 0.4, ease: 'power2.out'}, A.c26 + 2.0);
   // ajouter une seconde carte : la requête, puis son refus (la règle UNIQUE)
   show('#edc', A.c27 + 0.1, {y: 40}, 0.5); cue(A.c27 + 0.1, 'whoosh', 0.45, 1);
   sqType('ec2', A.c27 + 0.7, 60);
@@ -904,7 +906,7 @@ function build(){
   show('#o-un', A.c27 + 2.1, {y: 20}, 0.4); cue(A.c27 + 2.1, 'miss', 0.45);
   shake('#o-un', A.c27 + 2.4, 9);
   on('#rc3 .xx', A.c27 + 2.1, 0.2); off('#rc3 .hl', A.c27 + 2.1, 0.2);
-  pulse('#rul', A.c27 + 2.6, 1, 'rgba(239,79,85,.25)'); cue(A.c27 + 2.6, 'tick', 0.5, 2);
+  pulse('#rul', A.c27 + 2.8, 1, 'rgba(239,79,85,.25)'); cue(A.c27 + 2.8, 'tick', 0.5, 2);
   // avec ON CONFLICT : la requête s’allonge, le commentaire change, la fin attend d’être choisie
   hide('#o-un', A.c28 - 0.05, {y: 20}, 0.25);
   off('#rc3 .xx', A.c28, 0.2); on('#rc3 .hl', A.c28, 0.2);
@@ -1008,11 +1010,11 @@ const IX = (() => {
     if (i === 3) {
       const g = +a.slice(1);
       if (g === 3) {
-        if (!X.got.has(a)) { X.got.add(a); marks(M4_ANS); sfx('tick', 1, 0.6); }
+        if (!X.got.has(a)) { X.got.add(a); marks(M4_ANS); marks(['#fxb', '#s11c2'], 'pvr'); sfx('tick', 1, 0.6); }
         return {ok: true, done: true, why: '', at: rel($('#eg5'))};
       }
       flash($('#eg' + (g + 2)), 'kol', 600);
-      return {ok: false, why: fr(g === 1 ? 'La ligne d’Hugo Laurent est valide : le client 6 et l’atelier 5 existent.' : 'La ligne de Gabriel Michel est valide : le client 8 et l’atelier 5 existent.')};
+      return {ok: false, why: fr(g === 1 ? 'La ligne d’Hugo Laurent est valide : l’atelier d’identifiant 5 existe bien.' : 'La ligne de Gabriel Michel est valide : l’atelier d’identifiant 5 existe bien.')};
     }
     if (i === 5) {
       const n = +a, bin = $('#db-' + b);
@@ -1057,8 +1059,8 @@ const IX = (() => {
   function hint(i){
     const h = (() => {
       if (i === 0) return {text: 'Cherche Lucas Bernard dans la <b>table&nbsp;clients</b>, et l’atelier Cuisine saine dans la <b>table&nbsp;ateliers</b> : chaque identifiant est écrit à côté du nom.'};
-      if (i === 1) return {text: 'Les valeurs suivent l’ordre des colonnes : la première est l’identifiant du client, la deuxième celui de l’atelier. Cherche-les dans les deux tables.'};
-      if (i === 2) return {text: 'La requête précédente, sans la date, était acceptée : regarde ce qui change ici.'};
+      if (i === 1) return {text: 'Cherche 3 dans la <b>table&nbsp;clients</b> et 2 dans la <b>table&nbsp;ateliers</b> : qui est inscrit, et à quel atelier ?'};
+      if (i === 2) return {text: 'Quelle colonne n’est pas citée, et peut-elle rester vide ?'};
       if (i === 3) return {text: 'Compare l’identifiant d’atelier de chaque ligne avec ceux de la <b>table&nbsp;ateliers</b>.', keys: ['g3']};
       if (i === 4) return {text: 'On veut ajouter 10 séances à celles de la carte : la nouvelle valeur se calcule à partir de l’ancienne.'};
       if (i === 5) return {text: 'Regarde la <b>table&nbsp;cartes</b> : le client a-t-il déjà une carte ?'};
@@ -1077,7 +1079,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 154.7, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 155.5, picks: PICKS, opens: OPENS,
   glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝📄🔑🔗🔒🎟️✉️👆✓✕!…«»✍️📚🔁✏️·', dom, build, beforeRender: t => IX.tick(t)});
 </script>
 </body>

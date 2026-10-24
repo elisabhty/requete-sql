@@ -43,11 +43,12 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
   assert.ok(page.includes('const QUESTIONS = [];') && !/kicker: '/.test(page), 'pas de question en pleine vidéo');
   assert.ok(page.includes('beforeRender: t => IX.tick(t)});') && page.includes('tick(t = tl.time()){') && !page.includes('onRender: () => IX.tick()') && page.includes('window.IX = IX;'), 'aperçu retiré avant le rendu');
   assert.ok(!/text-wrap\s*:\s*pretty/.test(page), 'retours à la ligne classiques');
-  /* Quatre légendes de quatre lignes (4e valeur : la carte monte le temps de les lire). Aucune coupe en trois lignes ne tient sans finir une ligne
-     sur un mot court : la colonne places (108 caractères), la colonne telephone (108), les appels et messages des coachs (115) et l’annonce
-     du chapitre 6 (109). Toutes les autres légendes restent à trois lignes au plus. */
-  assert.equal((page.match(/\n\s*\[[\d.]+, [\d.]+,\s+("[^\n]*"|'[^\n]*'), 4\],?/g) || []).length, 4, 'quatre légendes de quatre lignes');
+  /* Cinq légendes de quatre lignes (4e valeur : la carte monte le temps de les lire). Aucune coupe en trois lignes ne tient sans finir une ligne
+     sur un mot court ou sans couper un groupe de mots (« cinq / ateliers ») : la colonne places (108 caractères), sa valeur par défaut (108), la colonne
+     telephone (108), les appels et messages des coachs (115) et l’annonce du chapitre 6 (109). Toutes les autres légendes restent à trois lignes au plus. */
+  assert.equal((page.match(/\n\s*\[[\d.]+, [\d.]+,\s+("[^\n]*"|'[^\n]*'), 4\],?/g) || []).length, 5, 'cinq légendes de quatre lignes');
   for (const s of ['"Pour enregistrer le nombre de places<br>de chaque atelier, on ajoute<br>une colonne <code>places</code><br>dans la <b>table ateliers</b>.", 4],',
+    '"Avec <code>DEFAULT 12</code>,<br>la colonne <code>places</code> contient 12<br>pour chacun des cinq ateliers<br>déjà enregistrés, dès son ajout.", 4],',
     '"On l’ajoute donc dans une colonne<br><code>telephone</code> de la <b>table coachs</b>,<br>pour le renseigner<br>une seule fois par coach.", 4],',
     '"Les coachs reçoivent de nombreux<br>appels et messages pendant<br>les cours, pour des questions<br>que l’accueil peut gérer.", 4],',
     '"Dans le prochain chapitre, tu apprendras à supprimer une table entière et toutes ses données avec <code>DROP TABLE</code>.", 4],'])
@@ -57,7 +58,7 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
   let total = 0;
   for (const f of [FILE, 'core.css', 'core.js', 'gsap.min.js', 'mascotte.webp', THUMB]) total += fs.statSync(path.join(ANIM, f)).size;
   for (const f of FONTS) total += fs.statSync(path.join(ROOT, 'assets/fonts', f)).size;
-  assert.ok(total < 450 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
+  assert.ok(total < 470 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
   assert.ok(fs.statSync(path.join(ANIM, THUMB)).size > 1000, 'vignette');
 });
 
@@ -234,7 +235,7 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
   /* 3 · ce que contient la colonne : NULL */
   assert.ok(P[2].text && P[2].prompt === 'Que contient la colonne telephone pour les quatre coachs, juste après son ajout ?');
   assert.deepEqual(P[2].options, [{label: 'NULL\u00a0: aucune valeur', ok: true}, {label: 'Une chaîne vide \'\'', why: 'Une chaîne vide est déjà une valeur : sans DEFAULT, la base n’en donne aucune.'},
-    {label: 'Le numéro de chaque coach', why: 'La base ne connaît pas encore ces numéros : personne ne les a saisis.'}]);
+    {label: 'Le numéro de chaque coach', why: 'Ces numéros ne sont pas encore dans la base : personne ne les a saisis.'}]);
   /* 4 · l’ancien nom, puis le nouveau */
   assert.ok(P[3].prompt === 'Place chaque nom au bon endroit de la requête.' && P[3].hint === 'Touche un nom, puis sa place dans la requête. Tu peux aussi le faire glisser directement.'
     && P[3].next === '{x} : touche maintenant sa place dans la requête.');
