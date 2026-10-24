@@ -250,7 +250,7 @@
     <div class="abs card recap" id="recap">
       <div class="rrow"><div class="rico emo">🏗️</div><div class="rtxt">1. Créer une <b>table</b><span class="rs"><span class="ic">CREATE TABLE</span> définit son nom et ses colonnes.<br>Pour y ajouter des lignes, on utilise <span class="ic">INSERT INTO</span>.</span></div></div>
       <div class="rrow"><div class="rico emo">🔤</div><div class="rtxt">2. Définir les <b>colonnes</b><span class="rs">Chaque colonne possède<br>un nom et un type de données.<br>Par exemple, <span class="ic">seances INTEGER</span> permet de stocker un nombre entier de séances.</span></div></div>
-      <div class="rrow"><div class="rico emo">🛡️</div><div class="rtxt">3. Définir les <b>règles</b><span class="rs">Les contraintes encadrent les données&nbsp;:<br>identifiant unique (<span class="ic">PRIMARY KEY</span>),<br>valeur obligatoire (<span class="ic">NOT NULL</span>),<br>absence de doublons (<span class="ic">UNIQUE</span>),<br>condition à respecter (<span class="ic">CHECK</span>)<br>et lien vers une autre table (<span class="ic">FOREIGN KEY</span>).</span></div></div>
+      <div class="rrow"><div class="rico emo">🛡️</div><div class="rtxt">3. Définir les <b>règles</b><span class="rs">Les contraintes encadrent les données&nbsp;:<br>identifiant unique (<span class="ic">PRIMARY KEY</span>),<br>valeur obligatoire (<span class="ic">NOT NULL</span>),<br>absence de doublons (<span class="ic">UNIQUE</span>),<br>condition à respecter (<span class="ic">CHECK</span>)<br>et relation avec une autre table (<span class="ic">FOREIGN KEY</span>).</span></div></div>
     </div>
   </section>
 
@@ -262,7 +262,7 @@
 <script src="core.js"></script>
 <script>
 'use strict';
-const DURATION = 208.6;
+const DURATION = 206.1;
 
 /* ---------- Le cas : les ateliers NutriBoost (le même dans tous les chapitres du projet) ---------- */
 /* Coachs : [id, prénom, nom, e-mail, initiales] — l’adresse de Salma Haddad est la nouvelle (chapitre 1). */
@@ -334,8 +334,8 @@ const CHAPTERS = [
   {n:3, label:'L’ordre des tables',  a:68.1,  b:89.9},
   {n:4, label:'La table ateliers',   a:89.9,  b:134.1},
   {n:5, label:'La carte de membre',  a:134.1, b:165.7},
-  {n:6, label:'Exécuter',            a:165.7, b:196.1},
-  {n:7, label:'À retenir',           a:196.1, b:DURATION}
+  {n:6, label:'Exécuter',            a:165.7, b:193.6},
+  {n:7, label:'À retenir',           a:193.6, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). Pendant un mail, la légende s’efface : le mail a la parole. */
@@ -383,13 +383,12 @@ const CAPTIONS = [
   [175.1, 177.6, "Les quatre nouvelles<br>tables sont créées !"],
   [177.7, 180.0, "Ta base compte désormais huit tables<br>pour gérer la boutique et les ateliers."],
   [180.1, 182.65, "À toi !"],
-  [182.75, 186.4, "Une table neuve est vide :<br><code>CREATE TABLE</code> ne crée que sa structure."],
-  [186.5, 188.5, "Les quatre nouvelles<br>tables sont encore vides."],
-  [188.6, 191.2, "Karim y ajoutera les données<br>avec la commande <code>INSERT INTO</code>,<br>qui permet d’insérer de nouvelles<br>lignes dans une table.", 4],
-  [191.3, 196.0, "Dans le prochain chapitre, tu feras<br>évoluer ces tables avec <code>ALTER TABLE</code>."],
-  [196.5, 201.3, "Créer une table, c’est définir<br>ses colonnes, les données<br>qu’elles peuvent contenir<br>et les règles à respecter.", 4],
-  APP ? [201.4, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
-      : [201.4, 999, "Un plan d’abord,<br>puis une requête par table :<br>c’est ainsi qu’une base prend forme."]
+  [182.75, 186.0, "Les quatre nouvelles<br>tables sont encore vides."],
+  [186.1, 188.7, "Karim y ajoutera les données<br>avec la commande <code>INSERT INTO</code>,<br>qui permet d’insérer de nouvelles<br>lignes dans une table.", 4],
+  [188.8, 193.5, "Dans le prochain chapitre, tu feras<br>évoluer ces tables avec <code>ALTER TABLE</code>."],
+  [194.0, 198.8, "Créer une table, c’est définir<br>ses colonnes, les données<br>qu’elles peuvent contenir<br>et les règles à respecter.", 4],
+  APP ? [198.9, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
+      : [198.9, 999, "Un plan d’abord,<br>puis une requête par table :<br>c’est ainsi qu’une base prend forme."]
 ];
 
 /* Pas de question du lecteur : les moments « À toi » (PICKS) font participer l’élève. */
@@ -1032,40 +1031,38 @@ function build(){
   glowOn('#gx-at', RGB.at, 180.4);
   const a5 = +(PICKS[5].at + 0.02).toFixed(2);
   tl.set(M6_ANS, {autoAlpha: 1}, a5);
-  // « Une table neuve est vide » : chaque table affiche « 0 ligne » ; « CREATE TABLE ne crée que sa structure »
+  // « Les quatre nouvelles tables sont encore vides » : le halo de la table ateliers s’éteint, chaque autre table affiche « 0 ligne »,
+  // puis les quatre « 0 ligne » battent ensemble
   glowOff('#gx-at', 183.0, '230,225,246');
   ['co', 'in', 'ca'].forEach((k, q) => { on([`#gx-${k}-f`, `#gx-${k}-f .z0`], 183.3 + q * 0.2, 0.3); cue(183.3 + q * 0.2, 'tick', 0.5, q + 2); });
-  ORDRE.forEach((k, q) => $$(`#gx-${k} .pr`).forEach((r, j) => pulse(r, 185.0 + q * 0.06 + j * 0.04, 1)));
-  cue(185.0, 'tick', 0.5, 3); cue(185.2, 'tick', 0.5, 5);
-  // « Les quatre nouvelles tables sont encore vides » : les « 0 ligne » battent ensemble
-  bump(ORDRE.map(k => `#gx-${k}-f`), 186.85, 1.06); cue(186.85, 'tick', 0.5, 2);
+  bump(ORDRE.map(k => `#gx-${k}-f`), 184.6, 1.06); cue(184.6, 'tick', 0.5, 2);
   // « Karim y ajoutera les données avec la commande INSERT INTO, qui permet d’insérer de nouvelles lignes dans une table » :
   // Karim et sa commande arrivent, Karim s’anime, puis INSERT INTO, puis le stylo écrit
-  show('#ins', 188.85, {y: 30, scale: 0.9}, 0.45, 'back.out(1.8)'); cue(188.85, 'pop', 0.7, 3);
-  bump('#ins i', 189.5, 1.25); cue(189.5, 'tick', 0.5, 4);
-  bump('#ins code', 189.95, 1.15); cue(189.95, 'tick', 0.5, 5);
-  tl.to('#ins .emo', {rotation: -14, duration: 0.14, yoyo: true, repeat: 3, ease: 'sine.inOut'}, 190.25);   // fini à 190,81 : avant la pause de la bulle (190,95)
+  show('#ins', 186.35, {y: 30, scale: 0.9}, 0.45, 'back.out(1.8)'); cue(186.35, 'pop', 0.7, 3);
+  bump('#ins i', 187.0, 1.25); cue(187.0, 'tick', 0.5, 4);
+  bump('#ins code', 187.45, 1.15); cue(187.45, 'tick', 0.5, 5);
+  tl.to('#ins .emo', {rotation: -14, duration: 0.14, yoyo: true, repeat: 3, ease: 'sine.inOut'}, 187.75);   // fini à 188,31 : avant la pause de la bulle (188,45)
   // la suite : ALTER TABLE
-  hide(['#db', '#ins', '#sx .pb'], 191.3, {y: -40}, 0.4);
-  sceneOff(['#sx', '#sf'], 191.75);
-  sceneOn('#sk', 191.75);
-  show('#keyc', 191.85, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)'); cue(191.85, 'whoosh', 0.6);
-  tl.to('#keyc .emo', {rotation: -18, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, 192.45);
-  hide('#keyc', 195.55, {y: -30}, 0.4);
-  sceneOff('#sk', 196.1);
+  hide(['#db', '#ins', '#sx .pb'], 188.8, {y: -40}, 0.4);
+  sceneOff(['#sx', '#sf'], 189.25);
+  sceneOn('#sk', 189.25);
+  show('#keyc', 189.35, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)'); cue(189.35, 'whoosh', 0.6);
+  tl.to('#keyc .emo', {rotation: -18, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, 189.95);
+  hide('#keyc', 193.05, {y: -30}, 0.4);
+  sceneOff('#sk', 193.6);
 
   /* ===== 7 · À retenir ===== */
   /* chaque idée arrive, puis sa précision ; une pause de lecture pour chacune */
-  recapScene(196.1, [196.8, 198.2, 199.6]);
+  recapScene(193.6, [194.3, 195.7, 197.1]);
   const rt = $$('#s7 .rtxt'), rs = $$('#s7 .rs'), rd = (h, n = 20) => Math.ceil(readTime(h) * n) / n;
   gsap.set(rs, {autoAlpha: 0, y: 10});
-  [[196.8, 197.55], [198.2, 198.95], [199.6, 200.55]].forEach(([r, d], i) => {   // la dernière pause (201,05) est aussi celle de la bulle : une seule pause, la plus longue
+  [[194.3, 195.05], [195.7, 196.45], [197.1, 198.05]].forEach(([r, d], i) => {   // la dernière pause (198,55) est aussi celle de la bulle : une seule pause, la plus longue
     tl.to(rs[i], {autoAlpha: 1, y: 0, duration: 0.45, ease: 'power2.out'}, d);
     cue(d, 'tick', 0.5, i * 2 + 1);
     hold(r + 0.6, rd(rt[i].innerHTML.split('<span class="rs"')[0]));
     hold(d + 0.5, rd(rs[i].innerHTML));
   });
-  if (APP) cue(201.45, 'pop', 0.85, 5);
+  if (APP) cue(198.95, 'pop', 0.85, 5);
 }
 
 /* ---------- Moments « À toi » : ce que montre chaque geste ----------
@@ -1183,7 +1180,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 201.4, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 198.9, picks: PICKS, opens: OPENS,
   glyphs: '🏗️🔤🛡️🔑🔗📝👥📅🧑‍🏫💳🛒📦⭐🗄️✍️🔧👍✉️👆▾▴◂✓✎·…«»', dom, build, beforeRender: t => IX.tick(t)});
 </script>
 </body>

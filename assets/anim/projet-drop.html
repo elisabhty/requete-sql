@@ -16,7 +16,8 @@
    l’image que la timeline affiche juste après l’arrêt, qui reprend donc sans saut. */
 .pvs{opacity:1!important;visibility:visible!important}
 
-/* Couleur de chaque sujet : coach, atelier, client, carte de membre, inscription, développeur, copie du fichier Excel */
+/* Couleur de chaque sujet : coach, atelier, client, carte de membre, inscription, développeur, copie du fichier Excel,
+   puis les tables de la boutique que la base compte aussi : commande (comme au chapitre 3), produit, fidélité */
 .k-co{--c:#2F80ED;--cs:#E6F0FD;--ci:#1D5FA8}
 .k-at{--c:#E8892B;--cs:#FFF1E2;--ci:#9A5B00}
 .k-cl{--c:#6A4DF4;--cs:#EEE9FF;--ci:#5335E0}
@@ -24,8 +25,14 @@
 .k-in{--c:#169447;--cs:#E2F6EA;--ci:#0F7A3A}
 .k-dv{--c:#0E9F9A;--cs:#DDF5F3;--ci:#0B6E6A}
 .k-xl{--c:#64748B;--cs:#EEF1F5;--ci:#475569}
+.k-cm{--c:#0E9F9A;--cs:#DDF5F3;--ci:#0B6E6A}
+.k-pr{--c:#D9468F;--cs:#FCE8F2;--ci:#A3216A}
+.k-fi{--c:#9C6B3F;--cs:#F5ECE3;--ci:#7A4F27}
 
-/* ---------- La base : une ligne par table (son nom, son nombre de lignes, ses colonnes) ---------- */
+/* ---------- La base : une ligne par table (son nom, son nombre de lignes, ses colonnes) ----------
+   Neuf lignes avec leurs colonnes ne laissent pas de place aux requêtes : pendant celles-ci, chaque ligne se replie sur
+   son nom et son nombre de lignes (la hauteur de la ligne passe de HX[clé] à RHC) ; les colonnes reviennent là où on les lit
+   (moments 1 et 4, copie répétée). */
 .bc{left:64px;width:952px;top:236px;padding:0 0 12px;overflow:hidden}
 .bh{height:72px;display:flex;align-items:center;gap:14px;padding:0 34px;background:var(--surface-2);font-family:var(--display);font-size:34px;font-weight:800;color:var(--ink);letter-spacing:-.4px;white-space:nowrap}
 .bh .emo{font-size:34px}
@@ -33,9 +40,8 @@
 .ttl>span{grid-area:1/1;white-space:nowrap}
 .bn{margin-left:auto;display:inline-grid;font-family:var(--ui);font-size:25px;font-weight:700;letter-spacing:0}
 .bn>span{grid-area:1/1;height:44px;padding:0 20px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;white-space:nowrap}
-.srow{position:relative;padding:12px 34px}
+.srow{position:relative;padding:12px 34px;overflow:hidden}
 .srow+.srow{box-shadow:inset 0 2px 0 var(--line-2)}
-#rw-xl{overflow:hidden}
 .srow>div{position:relative;z-index:1}
 .srow .hl,.srow .xx{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;opacity:0;visibility:hidden}
 .srow .hl{background:var(--cs);box-shadow:inset 8px 0 0 var(--c)}
@@ -222,7 +228,7 @@ chap({label:'Une table liée'});
 cap('c11', "Avant de l’exécuter, imaginons<br>une faute de nom :<br><code>DROP TABLE clients</code>.", 3.0);
 cap('c11b', "La suppression est refusée.", 1.8);
 toi('p4');
-cap('c12', "Les tables <code>inscriptions</code> et <code>cartes</code><br>font référence à la <b>table clients</b>.", 3.0);
+cap('c12', "Les tables <code>commandes</code>, <code>fidelite</code>,<br><code>inscriptions</code> et <code>cartes</code><br>font référence à la <b>table clients</b>.", 4.0);
 cap('c13', "Tant qu’une clé étrangère<br>y fait référence, une table<br>ne peut pas être supprimée.", 2.8);
 /* 5 · Noms proches */
 chap({label:'Noms proches'});
@@ -259,18 +265,26 @@ const CHAPTERS = SCH.chaps.map((c, i) => ({n: i + 1, label: c.label, a: c.a, b: 
 const QUESTIONS = [];
 
 /* ---------- Le cas : la base des ateliers NutriBoost (le même dans tous les chapitres du projet) ---------- */
-/* Les tables, telles que le chapitre 5 les laisse : [clé, couleur, emoji, nom, lignes, colonnes] ; colonne : [nom, 'pk' | 'fk', couleur de la table désignée].
-   ateliers a reçu places, cartes a renommé seances en seances_restantes ; inscriptions compte la 7e inscription (le mail de Sophie Martin, chapitre 2) ;
-   clients est la table de la boutique (10 clients). La copie du fichier Excel (inscriptions_excel) garde les six colonnes et les six lignes du fichier
-   du chapitre 1 : client, atelier, date, coach, e-mail du coach, inscrit le. */
+/* Les tables de la base, telle que le chapitre 5 la laisse (huit tables, puis la copie du fichier Excel : neuf) :
+   [clé, couleur, emoji, nom, lignes, colonnes] ; colonne : [nom, 'pk' | 'fk', couleur de la table désignée].
+   Les quatre tables de la boutique viennent d’abord (clients, commandes, fidelite, produits : les mêmes colonnes et les mêmes lignes que dans l’app),
+   puis les quatre tables des ateliers, créées au chapitre 4 (CREATE TABLE). ateliers a reçu places, cartes a renommé seances en seances_restantes ;
+   inscriptions compte la 7e inscription (le mail de Sophie Martin, chapitre 2). La copie du fichier Excel (inscriptions_excel) garde les six colonnes
+   et les six lignes du fichier du chapitre 1 : client, atelier, date, coach, e-mail du coach, inscrit le.
+   Quatre tables font référence à clients (client_id) : commandes, fidelite, inscriptions et cartes. */
 const TB = [
+  ['cl', 'k-cl', '👥', 'clients', 10, [['id', 'pk'], ['prenom'], ['nom'], ['adresse'], ['ville'], ['age'], ['email'], ['telephone'], ['date_inscription']]],
+  ['cm', 'k-cm', '🛒', 'commandes', 16, [['id', 'pk'], ['numero_commande'], ['client_id', 'fk', 'k-cl'], ['produit_id', 'fk', 'k-pr'], ['quantite'], ['date_commande'], ['statut']]],
+  ['fi', 'k-fi', '⭐', 'fidelite', 4, [['id', 'pk'], ['client_id', 'fk', 'k-cl'], ['points']]],
+  ['pr', 'k-pr', '📦', 'produits', 8, [['id', 'pk'], ['nom'], ['categorie'], ['prix'], ['stock']]],
   ['co', 'k-co', '🧑‍🏫', 'coachs', 4, [['id', 'pk'], ['prenom'], ['nom'], ['email']]],
   ['at', 'k-at', '📅', 'ateliers', 5, [['id', 'pk'], ['titre'], ['date_atelier'], ['coach_id', 'fk', 'k-co'], ['places']]],
-  ['cl', 'k-cl', '👥', 'clients', 10, [['id', 'pk'], ['prenom'], ['nom'], ['adresse'], ['ville'], ['age'], ['email'], ['telephone'], ['date_inscription']]],
   ['in', 'k-in', '📝', 'inscriptions', 7, [['id', 'pk'], ['client_id', 'fk', 'k-cl'], ['atelier_id', 'fk', 'k-at'], ['date_inscription']]],
   ['ca', 'k-nb', '💳', 'cartes', 3, [['id', 'pk'], ['client_id', 'fk', 'k-cl'], ['seances_restantes']]],
   ['xl', 'k-xl', '📄', 'inscriptions_excel', 6, [['client'], ['atelier'], ['date'], ['coach'], ['email_coach'], ['inscrit_le']]]
 ];
+/* Les tables qui font référence à clients : l’ordre de la liste (moment 4). */
+const REFS = ['cm', 'fi', 'in', 'ca'];
 /* Les situations à ranger (moment 2) : [situation, requête qui convient, pourquoi pas l’autre]. */
 const BINS = [['del', 'DELETE FROM', 'retire des lignes'], ['drop', 'DROP TABLE', 'retire la table']];
 const CASES = [
@@ -284,12 +298,16 @@ const WHY0 = {
   co: 'La <b>table&nbsp;coachs</b> enregistre chaque coach une seule fois : ce n’est pas une copie.',
   at: 'La <b>table&nbsp;ateliers</b> enregistre chaque atelier une seule fois : ce n’est pas une copie.',
   cl: 'La <b>table&nbsp;clients</b> enregistre chaque client une seule fois : ce n’est pas une copie.',
+  cm: 'La <b>table&nbsp;commandes</b> enregistre chaque commande une seule fois : ce n’est pas une copie.',
+  fi: 'La <b>table&nbsp;fidelite</b> enregistre les points de chaque client : ce n’est pas une copie.',
+  pr: 'La <b>table&nbsp;produits</b> enregistre chaque produit une seule fois : ce n’est pas une copie.',
   ca: 'La <b>table&nbsp;cartes</b> enregistre les cartes de membre : ce n’est pas une copie.',
   in: 'La <b>table&nbsp;inscriptions</b> relie les clients aux ateliers par leurs identifiants : ce n’est pas une copie.'
 };
 const WHY3 = {
   co: 'La <b>table&nbsp;coachs</b> n’a aucune colonne qui fait référence à la <b>table&nbsp;clients</b>.',
   at: 'La <b>table&nbsp;ateliers</b> fait référence à la <b>table&nbsp;coachs</b> (<code>coach_id</code>), pas à la <b>table&nbsp;clients</b>.',
+  pr: 'La <b>table&nbsp;produits</b> n’a aucune colonne qui fait référence à la <b>table&nbsp;clients</b>.',
   cl: 'C’est la table que la requête voulait supprimer : cherche celles qui font référence à elle.',
   xl: 'La copie du fichier Excel garde le nom des clients en texte : aucune clé étrangère ne la relie à la <b>table&nbsp;clients</b>.'
 };
@@ -306,7 +324,7 @@ const PICKS = [
     {label: 'DROP inscriptions_excel;', why: 'Le mot <code>TABLE</code> manque : <code>DROP</code> doit préciser ce qu’il supprime.'},
     {label: 'DROP\u00a0TABLE\u00a0FROM inscriptions_excel;', why: '<code>FROM</code> appartient à <code>DELETE</code> : ici, le nom suit directement <code>DROP TABLE</code>.'},
     {label: 'DROP TABLE inscriptions_excel;', ok: true}]},
-  {at: atp('p4'), from: A.c11, kind: 'tap', need: 2, prompt: 'Touche les tables qui font référence à la table clients.'},
+  {at: atp('p4'), from: A.c11, kind: 'tap', need: 4, prompt: 'Touche les tables qui font référence à la table clients.'},
   {at: atp('p5'), from: A.c14, kind: 'pick', text: true, prompt: 'Que se passe-t-il avec <code>DROP\u00a0TABLE inscriptions</code> ?', options: [
     {label: 'La suppression est refusée, comme pour la table clients', why: 'Aucune table ne fait référence à la <b>table&nbsp;inscriptions</b> : rien ne s’oppose à sa suppression.'},
     {label: 'La table inscriptions est supprimée, avec ses sept lignes', ok: true},
@@ -355,7 +373,7 @@ const out = (id, kind, title, msg, cls = 's') => `<div class="abs out ${kind}" i
   `<div class="ot"><b>${title}</b><span class="${cls}">${msg}</span></div></div>`;
 const CMT = '-- Retirer la copie du fichier Excel';
 function dom(){
-  let a = `<div class="abs card bc" id="bc"><div class="bh"><span class="emo">🗄️</span><span class="ttl"><span id="bt-a">Base NutriBoost</span><span id="bt-b">Serveur de test</span></span><span class="bn"><span id="bn-a">5 tables</span><span id="bn-b">6 tables</span><span id="bn-c">5 tables</span></span></div>` +
+  let a = `<div class="abs card bc" id="bc"><div class="bh"><span class="emo">🗄️</span><span class="ttl"><span id="bt-a">Base NutriBoost</span><span id="bt-b">Serveur de test</span></span><span class="bn"><span id="bn-a">8 tables</span><span id="bn-b">9 tables</span><span id="bn-c">8 tables</span></span></div>` +
     TB.map(row).join('') + '</div>';
   // moment 2 : DELETE FROM, la requête d’essai
   a += editor('ed2', 'essai.sql', [['ed2c', '-- Vider la copie'], ['ed2q', '{k2|DELETE FROM} inscriptions_excel;']]);
@@ -403,17 +421,27 @@ function dom(){
 /* ---------- Mise en page ---------- */
 const MH = [];   // hauteur de chaque mail déplié
 const bottom = s => { const el = $(s); return el.offsetTop + el.offsetHeight; };
-let ED6 = 0, ED5 = 0, RHX = 0;
+/* La liste a deux états. Dépliée, chaque ligne montre ses colonnes (hauteur HX[clé]) : on la lit ainsi aux moments 1 et 4 et pendant
+   la copie répétée. Repliée, chaque ligne ne garde que son nom et son nombre de lignes (RHC : le nom, 40 px, et 12 px de remplissage
+   de chaque côté) : il reste alors la place des requêtes et de leurs résultats sous les neuf lignes. */
+const ROWS = TB.map(t => t[0]);
+const RHC = 64, HX = {};
+let ED9 = 0, EDX = 0, ED8 = 0, RHX = 0;
 function layout(){
-  RHX = $('#rw-xl').offsetHeight;                  // la ligne de la copie, telle qu’elle s’affiche
+  ROWS.forEach(k => { HX[k] = $('#rw-' + k).offsetHeight; });   // chaque ligne dépliée, telle qu’elle s’affiche
+  RHX = HX.xl;
   const EDH = $('#ed3').offsetHeight;
-  ED6 = bottom('#bc') + 9 + 40;                    // les requêtes, sous la base à six tables
-  ED5 = ED6 - RHX;                                 // … et sous la base une fois la copie retirée
-  ['#ed2', '#ed3', '#pv3-0', '#pv3-1', '#ed4', '#ed5', '#ed6'].forEach(s => { $(s).style.top = ED6 + 'px'; });
-  ['#ed6k', '#pv6-1', '#pv6-2'].forEach(s => { $(s).style.top = ED5 + 'px'; });
-  const O6 = ED6 + EDH + 9 + 32, O5 = ED5 + EDH + 9 + 32;
-  ['#o2', '#pvo3-0', '#pvo3-1', '#o4', '#o5'].forEach(s => { $(s).style.top = O6 + 'px'; });
-  ['#o6', '#o6k', '#pvo6-1', '#pvo6-2'].forEach(s => { $(s).style.top = O5 + 'px'; });
+  const F9 = bottom('#bc') - ROWS.reduce((s, k) => s + HX[k] - RHC, 0);   // le bas de la base : neuf lignes repliées
+  ED9 = F9 + 9 + 40;                               // les requêtes, sous la base repliée
+  EDX = ED9 + (HX.xl - RHC);                       // … sous la base dont seule la copie reste dépliée (DELETE FROM)
+  ED8 = ED9 - RHC;                                 // … et sous la base repliée une fois la copie retirée
+  ['#ed2'].forEach(s => { $(s).style.top = EDX + 'px'; });
+  ['#ed3', '#pv3-0', '#pv3-1', '#ed4', '#ed5', '#ed6'].forEach(s => { $(s).style.top = ED9 + 'px'; });
+  ['#ed6k', '#pv6-1', '#pv6-2'].forEach(s => { $(s).style.top = ED8 + 'px'; });
+  const OX = EDX + EDH + 9 + 32, O9 = ED9 + EDH + 9 + 32, O8 = ED8 + EDH + 9 + 32;
+  ['#o2'].forEach(s => { $(s).style.top = OX + 'px'; });
+  ['#pvo3-0', '#pvo3-1', '#o4', '#o5'].forEach(s => { $(s).style.top = O9 + 'px'; });
+  ['#o6', '#o6k', '#pvo6-1', '#pvo6-2'].forEach(s => { $(s).style.top = O8 + 'px'; });
   // Les mails : hauteur une fois dépliés
   $$('.ml').forEach((el, n) => { el.style.height = 'auto'; MH[n + 1] = el.offsetHeight; el.style.height = ''; });
 }
@@ -425,6 +453,15 @@ const pop = (el, t, s = 0.4) => { show(el, t, {y: 0, scale: s}, 0.4, 'back.out(2
 const on = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 1, duration: d, ease: 'power2.out'}, t);
 const off = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 0, duration: d, ease: 'power2.in'}, t);
 const shake = (el, t, x = 10) => tl.to(el, {x: -x, duration: 0.07, yoyo: true, repeat: 5, ease: 'power1.inOut'}, t);
+/* Replier / déplier des lignes de la liste : de HX[clé] à RHC, ou l’inverse. Ni l’un ni l’autre ne chevauche une requête visible
+   (elles apparaissent après le repli et partent avant le dépliage). Les colonnes s’effacent pendant que la ligne se replie
+   (sinon le haut des colonnes dépasse sous le nom) et reviennent pendant qu’elle se déplie. */
+const rowH = (keys, t, from, to, d, ease, a0, a1, t1) => keys.forEach(k => {
+  tl.fromTo('#rw-' + k, {height: from(k)}, {height: to(k), duration: d, ease, immediateRender: false}, t);
+  tl.fromTo('#rw-' + k + ' .sc', {autoAlpha: a0}, {autoAlpha: a1, duration: d * 0.6, ease: 'power1.inOut', immediateRender: false}, t + t1 * d);
+});
+const fold = (keys, t, d = 0.45) => { rowH(keys, t, k => HX[k], () => RHC, d, 'power2.inOut', 1, 0, 0); cue(t + 0.05, 'whoosh', 0.4, 1); };
+const unfold = (keys, t, d = 0.6) => { rowH(keys, t, () => RHC, k => HX[k], d, 'power2.out', 0, 1, 0.4); cue(t + 0.05, 'whoosh', 0.45, 2); };
 /* Frappe d’une ligne de code (sans ses passages gardés). Renvoie l’instant de fin. */
 function sqType(lid, t, cps = 36, lead = 0.25){
   const ln = $('#' + lid), caret = $$(':scope > .caret', ln).pop();
@@ -475,11 +512,12 @@ function fingerTap(M, T){
 
 /* Réponses des moments « À toi » : ce que la timeline montre juste après l’arrêt (et que l’aperçu montre pendant l’arrêt). */
 const M1_ANS = ['#rw-xl .hl'];
-const M4_ANS = {in: ['#rw-in .hl', '#ch-in-1 .rg'], ca: ['#rw-ca .hl', '#ch-ca-1 .rg']};
+const M4_ANS = {cm: ['#rw-cm .hl', '#ch-cm-2 .rg'], fi: ['#rw-fi .hl', '#ch-fi-1 .rg'], in: ['#rw-in .hl', '#ch-in-1 .rg'], ca: ['#rw-ca .hl', '#ch-ca-1 .rg']};
+const M4_ALL = REFS.flatMap(k => M4_ANS[k]);
 /* « Cette copie répète des informations » : chaque colonne de la copie et la colonne qui garde la même information ailleurs. */
 const DUP = ['xl-0', 'xl-1', 'xl-2', 'xl-3', 'xl-4', 'xl-5', 'cl-1', 'cl-2', 'at-1', 'at-2', 'co-1', 'co-2', 'co-3', 'in-3'].map(s => `#ch-${s} .rg`);
 const EMAIL = ['#ch-xl-4 .rg', '#ch-co-3 .rg'];
-const OTHERS = ['#rw-co', '#rw-at', '#rw-cl', '#rw-ca', '#rw-xl'];
+const OTHERS = ROWS.filter(k => k !== 'in').map(k => '#rw-' + k);   // toutes les tables, sauf inscriptions
 const set2 = t => +(t + 0.02).toFixed(2);
 
 function build(){
@@ -499,11 +537,11 @@ function build(){
   /* ===== 1 · La table de trop ===== */
   sceneOn('#sa', 5.0);
   show('#bc', A.r1, {y: 60}, 0.55); cue(A.r1, 'whoosh', 0.5);
-  ['co', 'at', 'cl', 'in', 'ca'].forEach((k, q) => { const t = A.r1 + 0.3 + q * 0.17; show('#rw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q); });
+  ROWS.filter(k => k !== 'xl').forEach((k, q) => { const t = A.r1 + 0.3 + q * 0.17; show('#rw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q % 5); });
   // « Au chapitre 5, tu as fait évoluer les tables » : les deux colonnes que ALTER TABLE a changées (places ajoutée, seances_restantes renommée)
   on(['#ch-at-4 .rg', '#ch-ca-2 .rg'], A.r2 + 0.5); cue(A.r2 + 0.5, 'tick', 0.5, 1); cue(A.r2 + 0.85, 'tick', 0.5, 3);
   off(['#ch-at-4 .rg', '#ch-ca-2 .rg'], B.r2 - 0.1, 0.3);
-  // Karim a importé le fichier Excel tel quel : sa copie s’ajoute à la base (6 tables)
+  // Karim a importé le fichier Excel tel quel : sa copie s’ajoute à la base (9 tables)
   tl.to('#rw-xl', {height: RHX, paddingTop: 12, paddingBottom: 12, duration: 0.5, ease: 'power2.out'}, A.c2 + 0.1);
   tl.fromTo('#rw-xl', {x: 100}, {x: 0, autoAlpha: 1, duration: 0.55, ease: 'power3.out', immediateRender: false}, A.c2 + 0.15);
   cue(A.c2 + 0.15, 'whoosh', 0.5); cue(A.c2 + 0.65, 'pop', 0.7, 1);
@@ -533,6 +571,8 @@ function build(){
   cue(A.c5 + 0.3, 'tick', 0.5, 2);
 
   /* ===== 2 · Vider ou supprimer ===== */
+  // la liste se replie sur les noms pour laisser la place à la requête ; seule la copie garde ses colonnes (on les reverra plus bas)
+  fold(ROWS.filter(k => k !== 'xl'), B.c5 + 0.05, 0.4);
   // DELETE FROM : la requête se tape, ses lignes disparaissent… mais la table reste, avec ses six colonnes
   show('#ed2', A.c6 + 0.1, {y: 40}, 0.5); cue(A.c6 + 0.1, 'whoosh', 0.45, 1);
   sqType('ed2q', A.c6 + 0.7, 36);
@@ -543,6 +583,8 @@ function build(){
   $$('#rw-xl .sc>span').forEach((c, k) => { pulse(c, A.c7 + 1.3 + k * 0.1, 1, 'rgba(201,188,255,.55)'); cue(A.c7 + 1.3 + k * 0.1, 'tick', 0.4, k % 5); });
   // pour retirer la table elle-même : DROP TABLE ; deux cases, une par requête
   hide(['#bc', '#ed2', '#o2'], A.c8, {y: -40}, 0.4);
+  tl.set('#rw-xl', {height: RHC}, A.c8 + 0.42);   // la base est cachée : la copie se replie à son tour, comme les autres lignes
+  tl.set('#rw-xl .sc', {autoAlpha: 0}, A.c8 + 0.42);
   sceneOff('#sa', A.c8 + 0.45); sceneOn('#sb', A.c8 + 0.45);
   show('#db-del', A.c8 + 0.5, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(A.c8 + 0.5, 'pop', 0.6, 0);
   show('#db-drop', A.c8 + 0.65, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(A.c8 + 0.65, 'pop', 0.6, 2);
@@ -572,20 +614,23 @@ function build(){
   // la suppression est refusée : la table clients reste
   show('#o4', A.c11b + 0.1, {y: 20}, 0.4); cue(A.c11b + 0.1, 'miss', 0.45);
   shake('#rw-cl .sn, #rw-cl .sc', A.c11b + 0.2);
-  // À toi : les tables qui font référence à la table clients (réponse : inscriptions et cartes)
-  tl.set(M4_ANS.in.concat(M4_ANS.ca), {autoAlpha: 1}, set2(PICKS[3].at));
-  bump('#ch-in-1', A.c12 + 1.2, 1.12); cue(A.c12 + 1.2, 'tick', 0.6, 1);
-  bump('#ch-ca-1', A.c12 + 1.7, 1.12); cue(A.c12 + 1.7, 'tick', 0.6, 3);
-  bump('#rw-cl .nm', A.c12 + 2.2, 1.1); cue(A.c12 + 2.2, 'tick', 0.6, 5);
+  // À toi : la requête et son refus s’effacent, la liste se déplie pour qu’on lise les colonnes client_id
+  // (le dépliage finit avant l’arrêt : le passage d’attente est coupé à partir de A.p4 + 1)
+  hide(['#ed4', '#o4'], A.p4, {y: 30}, 0.3);
+  unfold(ROWS, A.p4 + 0.35, 0.6);
+  // réponse : les quatre tables qui font référence à la table clients (une bosse sur chaque colonne client_id, dans l’ordre de la phrase)
+  tl.set(M4_ALL, {autoAlpha: 1}, set2(PICKS[3].at));
+  [['#ch-cm-2', 0.9, 1.12], ['#ch-fi-1', 1.4, 1.12], ['#ch-in-1', 2.0, 1.12], ['#ch-ca-1', 2.5, 1.12], ['#rw-cl .nm', 3.1, 1.1]]
+    .forEach(([el, d, s], q) => { bump(el, A.c12 + d, s); cue(A.c12 + d, 'tick', 0.6, q + 1); });
   // tant qu’une clé étrangère y fait référence : la table clients est verrouillée
-  off(M4_ANS.in.concat(M4_ANS.ca), A.c13 + 0.1, 0.3);
+  off(M4_ALL, A.c13 + 0.1, 0.3);
   pop('#lk', A.c13 + 0.5, 0.3);
 
   /* ===== 5 · Noms proches ===== */
   off(['#lk', '#rw-cl .hl'], A.c14, 0.25);
-  hide(['#ed4', '#o4'], A.c14, {y: 30}, 0.3);
-  show('#ed5', A.c14 + 0.4, {y: 40}, 0.5); cue(A.c14 + 0.4, 'whoosh', 0.4, 3);
-  sqType('ed5q', A.c14 + 0.95, 34);
+  fold(ROWS, A.c14, 0.45);   // la liste se replie de nouveau : la place de la requête
+  show('#ed5', A.c14 + 0.55, {y: 40}, 0.5); cue(A.c14 + 0.55, 'whoosh', 0.4, 3);
+  sqType('ed5q', A.c14 + 1.1, 34);
   on('#rw-xl .sfx .rg', A.c14 + 1.9); cue(A.c14 + 1.9, 'tick', 0.6, 4);   // la fin du nom oubliée : « _excel »
   // aucune table ne fait référence à la table inscriptions : les autres s’estompent
   off('#rw-xl .sfx .rg', A.c15, 0.2);
@@ -607,10 +652,10 @@ function build(){
   tl.fromTo('#ed6', {autoAlpha: 0, x: 120}, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', immediateRender: false}, A.c18 + 0.4);
   cue(A.c18 + 0.4, 'whoosh', 0.45, 1);
   on('#rw-xl .hl', A.c18 + 0.9); cue(A.c18 + 0.9, 'tick', 0.5, 2);
-  // sur la base : la copie est supprimée (nom barré, ligne retirée, 5 tables) ; la requête remonte avec la liste
+  // sur la base : la copie est supprimée (nom barré, ligne retirée, 8 tables) ; la requête remonte avec la liste
   tl.to('#rw-xl .sk', {scaleX: 1, duration: 0.3, ease: 'power2.out'}, A.c19 + 0.2); cue(A.c19 + 0.2, 'stamp', 0.5);
   tl.to('#rw-xl', {height: 0, paddingTop: 0, paddingBottom: 0, autoAlpha: 0, duration: 0.5, ease: 'power2.inOut'}, A.c19 + 0.8);
-  tl.to('#ed6', {top: ED5, duration: 0.5, ease: 'power2.inOut'}, A.c19 + 0.8);
+  tl.to('#ed6', {top: ED8, duration: 0.5, ease: 'power2.inOut'}, A.c19 + 0.8);
   off('#bn-b', A.c19 + 1.0, 0.2); on('#bn-c', A.c19 + 1.0, 0.2); bump('#bn-c', A.c19 + 1.25, 1.12); cue(A.c19 + 1.0, 'tick', 0.6, 2);
   // sur le serveur de test : la copie n’existe pas, la requête échoue
   off('#bt-a', A.c20 + 0.15, 0.25); on('#bt-b', A.c20 + 0.2, 0.25); cue(A.c20 + 0.2, 'tick', 0.5, 3);
@@ -681,7 +726,7 @@ const IX = (() => {
       return {ok: false, why: fr(WHY0[a])};
     }
     if (i === 3) {
-      if (a === 'in' || a === 'ca') {
+      if (REFS.includes(a)) {
         if (!X.got.has(a)) { X.got.add(a); marks(M4_ANS[a]); sfx('tick', X.got.size, 0.6); }
         return {ok: true, done: X.got.size === PICKS[3].need, why: '', at: rel(rowOf(a))};
       }
@@ -728,7 +773,7 @@ const IX = (() => {
   function hint(i){
     if (i === 0) return {text: 'La copie a les six colonnes du fichier Excel : <code>client</code>, <code>atelier</code>, <code>date</code>, <code>coach</code>, <code>email_coach</code> et <code>inscrit_le</code>.', keys: ['xl']};
     if (i === 1) return {text: 'Dans quel cas la table doit-elle rester dans la base, et dans quel cas doit-elle disparaître ?'};
-    if (i === 3) return {text: 'Cherche les colonnes <code>client_id</code> : chacune fait référence à l’identifiant d’un client.', keys: ['in', 'ca']};
+    if (i === 3) return {text: 'Cherche les colonnes <code>client_id</code> : chacune fait référence à l’identifiant d’un client.', keys: REFS};
     return null;
   }
   return {
@@ -742,8 +787,8 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 106.8, picks: PICKS, opens: OPENS,
-  glyphs: '🗄️🧑‍🏫📅👥💳📝📄🔑🔗🔒🗑️🛟✉️👆✓✕!…«»', dom, build, beforeRender: t => IX.tick(t)});
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 107.8, picks: PICKS, opens: OPENS,
+  glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝📄🔑🔗🔒🗑️🛟✉️👆✓✕!…«»', dom, build, beforeRender: t => IX.tick(t)});
 </script>
 </body>
 </html>
