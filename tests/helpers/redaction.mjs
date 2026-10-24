@@ -186,6 +186,18 @@ export function leconsDuProjet() {
   }).filter(Boolean);
 }
 
+/* Le numéro de chapitre d’une page du projet (« Projet · Chapitre 8 » sur son écran titre) ou de la fiche d’une leçon du projet ;
+   99 pour tout autre texte (les exemples des règles) : une règle posée « à partir du chapitre N » les regarde. */
+const NUMEROS_DE_CHAPITRE = new Map();
+export function chapitreDe(page) {
+  if (NUMEROS_DE_CHAPITRE.has(page)) return NUMEROS_DE_CHAPITRE.get(page);
+  const f = /^leçon \d+$/.test(page) ? leconsDuProjet().find(l => l.id === +page.slice(6))?.page : /^projet-[a-z-]+$/.test(page) ? `${page}.html` : null;
+  const m = f && fs.existsSync(path.join(ANIM, f)) ? lire(path.join(ANIM, f)).match(/<div class="tagpill">Projet · Chapitre (\d+)<\/div>/) : null;
+  const n = m ? +m[1] : 99;
+  NUMEROS_DE_CHAPITRE.set(page, n);
+  return n;
+}
+
 /* ---------- Les règles ---------- */
 /* Une règle : id, titre, demande (ce qu’Elisa a dit, et quand), genres (où elle s’applique ; tous si absent), verifie(texte) → liste de problèmes,
    bon / mauvais : des textes {genre, html} ou des chaînes (genre = le premier de la règle). */
@@ -431,20 +443,41 @@ export const REGLES = [
   },
   {
     id: 'registre-parle',
-    titre: 'Un ton parlé : on s’adresse à l’élève à voix haute, pas avec des tournures administratives',
+    titre: 'Un ton parlé : on s’adresse à l’élève à voix haute (« tu », des verbes d’action), pas avec des tournures écrites ou administratives',
     demande: 'Elisa, 24 octobre : « j’ai les phrases un peu plus parlées » : « Jusqu’ici, Karim, le développeur, s’est chargé d’ajouter les données dans les tables de NutriBoost. À ton tour de prendre la main ! », ' +
-      '« Est-ce que tu pourrais prendre le relais pendant mon absence ? », « Et si tu oublies de préciser l’atelier dans ta requête ? ». Tutoiement, questions, exclamations, mots de tous les jours ; ' +
-      'ni « veuillez », ni « il convient de », ni « afin de », ni « procéder à »…',
+      '« Est-ce que tu pourrais prendre le relais pendant mon absence ? », « Et si tu oublies de préciser l’atelier dans ta requête ? ». Puis, à 22 h 29, sur le chapitre 8 : « Tu n’écris pas comme moi j’aime, j’ai l’impression (parlé) », ' +
+      'avec ses mots : « Pour les traiter, tu vas modifier des informations dans des lignes existantes avec la commande SQL UPDATE. », « Résultat : les cinq ateliers sont désormais programmés le 18 septembre ! », ' +
+      '« Pense à vérifier ce nombre après chaque mise à jour ! », « SET précise les colonnes à modifier et leurs nouvelles valeurs ; WHERE sélectionne les lignes concernées. ». ' +
+      'Tutoiement, questions, exclamations, mots de tous les jours : ni « veuillez », ni « il convient de », ni « afin de », ni « procéder à »… ' +
+      'À partir du chapitre 7 : pas de phrase qui commence par « Reste à », « Ici, pas de » ou « Or » ; un mot SQL ne « indique » ni ne « désigne » (« SET précise », « WHERE sélectionne ») ; pas de « peut être exécuté » (« tu peux exécuter »).',
     genres: [...prose, 'option'],
     projetSeulement: true,   // une règle prudente, posée le 24 octobre : elle ne regarde que les chapitres du projet (les anciens cours seront remplacés par les chapitres 11 à 16)
-    verifie: ({plain}) => {
+    depuisChapitre: 7,       // la partie « stricte » : les chapitres 1 à 6 seront repassés avec Elisa ; les chapitres 7 et suivants (et ceux à venir) la respectent déjà
+    verifie(t) {
       const pb = [];
-      for (const m of plain.matchAll(/(?<![\p{L}-])(?:veuillez|il convient|afin (?:de|d’|que|qu’)|procéd(?:er|ez|ons)|nous vous|je vous|ci-joint|ci-après|susmentionn\p{L}*|dudit|ledit|préalablement|ultérieurement|le cas échéant|en vue de|au sein de|il est (?:nécessaire|impératif|recommandé|préférable) de)(?![\p{L}-])/giu)) pb.push(`« ${m[0]} » : une tournure écrite, à dire autrement`);
+      for (const m of t.plain.matchAll(/(?<![\p{L}-])(?:veuillez|il convient|afin (?:de|d’|que|qu’)|procéd(?:er|ez|ons)|nous vous|je vous|ci-joint|ci-après|susmentionn\p{L}*|dudit|ledit|préalablement|ultérieurement|le cas échéant|en vue de|au sein de|il est (?:nécessaire|impératif|recommandé|préférable) de)(?![\p{L}-])/giu)) pb.push(`« ${m[0]} » : une tournure écrite, à dire autrement`);
+      if (chapitreDe(t.page) < this.depuisChapitre || t.genre === 'mail') return pb;   // un mail est écrit par son auteur, pas dit à l’élève
+      /* Une phrase écrite plutôt que dite : « Reste à écrire… », « Ici, pas de WHERE », « Or… ». */
+      for (const m of t.plain.matchAll(/(?:^|[.!?:;»] )(Reste à|Ici, pas d(?:e|’)|Or(?=[ ,]))/gu)) pb.push(`« ${m[1]}… » en début de phrase : une phrase écrite, à dire avec « tu » (« Maintenant, tu écris… », « Avec WHERE, tu… »)`);
+      /* Un mot SQL fait quelque chose : « SET précise », « WHERE sélectionne ». Il n’« indique » ni ne « désigne » (mots d’Elisa, récapitulatif du chapitre 8). */
+      const brut = String(t.html).replace(/&nbsp;|[\u00a0\u202f]/g, ' ').replace(/<br\s*\/?>/g, ' ');
+      for (const m of brut.matchAll(/<code>(WHERE|SET|UPDATE|DELETE FROM|INSERT INTO|VALUES|SELECT|DROP TABLE|ALTER TABLE|CREATE TABLE|ON DELETE|CASCADE|SET NULL|RESTRICT)<\/code> (?:ne |n’)?(indique|indiquent|désigne|désignent|représente|représentent)(?![\p{L}-])/giu))
+        pb.push(`« ${m[1]} ${m[2]} » : un mot SQL agit (« SET précise… », « WHERE sélectionne… »), il n’« indique » ni ne « désigne »`);
+      /* Un passif à la place d’un « tu » : « peut être exécuté » → « tu peux exécuter ». */
+      if (['legende', 'recap', 'consigne'].includes(t.genre))
+        for (const m of t.plain.matchAll(/(?<![\p{L}-])(?:peut|peuvent|doit|doivent) être (?:\p{L}+(?:é|ée|és|ées)|fait|faite|faits|faites|écrit|écrite|écrits|écrites|pris|prise|prises|mis|mise|mises|lu|lue|lus|lues|vu|vue|vus|vues|ouvert|ouverte|ouverts|ouvertes|compris|comprise|comprises|inclus|incluse|incluses|perdu|perdue|perdus|perdues|rendu|rendue|rendus|rendues|choisi|choisie|choisis|choisies|rempli|remplie|remplis|remplies)(?![\p{L}-])/giu))
+          pb.push(`« ${m[0]} » : un passif, à dire avec « tu » ou avec l’action (« tu peux exécuter… »)`);
       return pb;
     },
     bon: ['Jusqu’ici, Karim, le développeur, s’est chargé d’ajouter les données dans les tables de NutriBoost.', 'À ton tour de prendre la main !', 'Est-ce que tu pourrais prendre le relais pendant mon absence ?',
-      'Et si tu oublies de préciser l’atelier dans ta requête ?', 'Je te confie une première tâche, encore en attente dans mon planning et assez urgente.', 'Merci pour ton aide !'],
-    mauvais: ['Veuillez prendre le relais durant mon absence.', 'Il convient de relire les valeurs avant l’exécution.', 'Afin d’enregistrer l’inscription, procédez à l’ajout d’une ligne.', 'Je vous prie de bien vouloir ajouter cette ligne.', 'Le cas échéant, relis les valeurs.']
+      'Et si tu oublies de préciser l’atelier dans ta requête ?', 'Je te confie une première tâche, encore en attente dans mon planning et assez urgente.', 'Merci pour ton aide !',
+      'Pour les traiter, tu vas modifier des informations dans des lignes existantes avec la commande SQL <code>UPDATE</code>.', 'Résultat : les cinq ateliers sont désormais programmés le 18 septembre !',
+      'Pense à vérifier ce nombre après chaque mise à jour !', 'La ligne est la bonne :<br>tu peux exécuter l’<code>UPDATE</code>.', 'Avec <code>WHERE</code>, tu sélectionnes<br>la ligne à supprimer.',
+      '<code>NULL</code> ne désigne aucun client :<br>la clé étrangère n’a rien à vérifier.', 'Une colonne unique peut être vide.',
+      {genre: 'recap', html: '<code>UPDATE</code> modifie les valeurs de lignes déjà présentes. <code>SET</code> précise les colonnes à modifier et leurs nouvelles valeurs ; <code>WHERE</code> sélectionne les lignes concernées.'}],
+    mauvais: ['Veuillez prendre le relais durant mon absence.', 'Il convient de relire les valeurs avant l’exécution.', 'Afin d’enregistrer l’inscription, procédez à l’ajout d’une ligne.', 'Je vous prie de bien vouloir ajouter cette ligne.', 'Le cas échéant, relis les valeurs.',
+      'Reste à écrire la requête qui retire la copie.', 'Ici, pas de <code>WHERE</code> :<br>on modifie toutes les cartes.', 'Le solde est de 7. Or le retrait est de 8.', '<code>DELETE FROM</code> indique la table<br>dont on supprime des lignes.',
+      'La ligne est la bonne :<br>l’<code>UPDATE</code> peut être exécuté.', {genre: 'recap', html: '<code>SET</code> indique la colonne et la nouvelle valeur ; <code>WHERE</code> désigne les lignes concernées.'}]
   }
 ];
 
@@ -485,11 +518,11 @@ export const EXCEPTIONS = [
     raison: 'Mots d’Elisa : « le lien entre un client et un atelier » est une inscription (une ligne), pas la relation entre deux tables.'},
   {regle: 'client', page: 'projet-delete', contient: "WHERE prenom = 'Nathan'",
     raison: 'Une fin de requête SQL (réponse fausse du moment 3), pas une phrase : la condition sur le prénom seul désigne les deux Nathan, c’est justement le piège.'},
-  /* Des mots d’Elisa qui dérogent à une règle, à lui redemander */
-  {regle: 'client', page: 'projet-insert', contient: 'Pour enregistrer l’inscription de Lucas,', aConfirmer: '« Lucas Bernard » ?',
-    raison: 'Mots d’Elisa (24 octobre, Réf 4), juste après le mail de Karim qui nomme Lucas Bernard en entier.'},
-  {regle: 'imagine-une-fois', page: 'projet-drop', contient: 'Imagine maintenant que tu oublies la fin du nom', aConfirmer: '« Et si tu oublies la fin du nom ? » pour la seconde faute ?',
-    raison: 'Mots d’Elisa (chapitre 6) : les deux fautes commencent par « Imagine » ; sa consigne « répétition de imagine » date du 24 octobre, après ce texte.'},
+  /* Des mots d’Elisa qu’elle a confirmés */
+  {regle: 'client', page: 'projet-insert', contient: 'Pour enregistrer l’inscription de Lucas,',
+    raison: 'Mots d’Elisa (24 octobre, Réf 4), confirmés par elle le soir même (« Lucas seul ») : juste après le mail de Karim qui nomme Lucas Bernard en entier.'},
+  {regle: 'client', page: 'projet-update', contient: 'Nathan conserve ses 7 séances',
+    raison: 'Mots d’Elisa (24 octobre, 22 h 29, Réf 6) : « Nathan conserve ses 7 séances », juste après « Nathan Petit » (légende et mail de l’accueil).'},
   /* Les mots d’Elisa écrits avant sa consigne : à lui redemander */
   {regle: 'client', page: 'projet-cles', contient: 'Pour inscrire Sophie à l’atelier Méditation', aConfirmer: '« Sophie Martin » ?',
     raison: 'Mots d’Elisa (22 octobre, réponse du moment 5), juste après la question qui nomme Sophie Martin en entier.'},

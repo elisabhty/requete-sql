@@ -80,9 +80,9 @@ test('recherche, et leçon seule sans texte de secours ni exercice', () => {
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
   /* Le bouton des notes est écrit en clair dans Course(…) : il suit la dernière légende. */
-  assert.equal(val('NOTES'), 133.2);
-  assert.ok(page.includes('notesAt: 133.2,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 140.4);
+  assert.equal(val('NOTES'), 173.4);
+  assert.ok(page.includes('notesAt: 173.4,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 180.6);
   /* Des légendes qui se suivent sans se chevaucher, chaque chapitre commençant 0,4 s après la légende précédente. */
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
@@ -133,6 +133,7 @@ test('règles d’écriture : « l’atelier » avant un nom d’atelier, nom et
     assert.ok(!/(?<!la )table (clients|ateliers|inscriptions|cartes)\b/.test(t), `« la table … » devant le nom d’une table : ${t}`);
     /* Un prénom de client est toujours suivi de son nom (« Moussa » n’est pas un client). */
     for (const prenom of new Set(clients.map(c => c[0]))) for (const m of t.matchAll(new RegExp(`(?<![\\wÀ-ÿ])${prenom}(?![\\wÀ-ÿ])`, 'g'))) {
+      if (t.slice(m.index).startsWith('Nathan conserve ses 7 séances')) continue;   // mots d’Elisa (24 octobre, Réf 6), juste après « Nathan Petit » : exception de la charte
       const suite = t.slice(m.index + prenom.length).match(/^ (\p{L}+)/u)?.[1];
       assert.ok(suite && clients.filter(c => c[0] === prenom).map(c => c[1]).includes(suite), `« ${prenom} » toujours suivi de son nom : ${t}`);
     }
@@ -183,7 +184,8 @@ test('moment 3 : sans WHERE, la requête est exécutée sans la moindre erreur e
   assert.deepEqual(dates(db), Array(5).fill(NOUVELLE));
   assert.equal(count(db, 'ateliers'), 5, 'aucune ligne ajoutée ni retirée');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.ok(caps.includes('La requête est exécutée<br>sans la moindre erreur.') && caps.includes('Sans <code>WHERE</code>, toutes les lignes<br>sont modifiées : les cinq ateliers<br>passent au 18 septembre.'), 'les légendes disent la même chose');
+  assert.ok(caps.includes('Sans <code>WHERE</code>, la modification s’applique<br>à toutes les lignes de la table.') && caps.includes('Résultat : les cinq ateliers<br>sont désormais programmés<br>le 18 septembre !'), 'les légendes disent la même chose');
+  assert.ok(caps.includes('La requête s’exécute sans erreur,<br>mais 5 lignes ont été modifiées<br>au lieu d’une.') && caps.includes('Pense à vérifier ce nombre<br>après chaque mise à jour !'), 'sans erreur, mais cinq lignes modifiées au lieu d’une : le nombre est à vérifier');
   assert.ok(caps.includes('Imagine que tu oublies le <code>WHERE</code>.'), 'l’oubli du WHERE est imaginé : rien n’est écrit pour de bon');
   assert.ok(page.includes("out('o-5', 'warn', 'Requête exécutée', '5 lignes modifiées.')") && page.includes("out('o-ex', 'ok', 'Requête exécutée', 'Aucune erreur.')"), 'la page montre les deux résultats');
 });
@@ -203,8 +205,9 @@ test('moment 4 : le SELECT garde le même WHERE ; il lit la ligne de l’atelier
   assert.equal(lire(opts[2]).length, 1, 'ensuite, l’atelier Pilates a la date du 18 septembre');
   /* Dans la vidéo, la date de l’atelier Pilates ne change qu’après la relecture : l’UPDATE n’est exécuté qu’à la légende « La ligne est la bonne ». */
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.ok(caps.indexOf('La ligne est la bonne :<br>l’<code>UPDATE</code> peut être exécuté.') > caps.findIndex(c => c.includes('le <code>SELECT</code>')), 'la relecture, puis l’exécution');
-  assert.ok(page.includes("show('#o-1', A.c15 + 1.0,") && page.includes("swap('#ds2 .a0', '#ds2 .a1', A.c15 + 1.3);"), 'le résultat « 1 ligne modifiée » et la nouvelle date arrivent après la légende de la relecture');
+  assert.ok(caps.indexOf('La ligne est la bonne :<br>tu peux exécuter l’<code>UPDATE</code>.') > caps.findIndex(c => c.includes('le <code>SELECT</code>')), 'la relecture, puis l’exécution');
+  assert.ok(page.includes("show('#o-1', A.c15b + 2.5,") && page.includes("swap('#ds2 .a0', '#ds2 .a1', A.c15b + 3.9);"), 'le résultat « 1 ligne modifiée » et la nouvelle date arrivent après la légende de la relecture');
+  assert.ok(caps.includes('Avec <code>WHERE id = 2</code>,<br>seul l’atelier Pilates a été modifié :<br>il est désormais prévu le 18 septembre.'), 'avec WHERE id = 2, seul l’atelier Pilates est modifié');
   assert.ok(page.includes("out('o-sel', 'ok', 'Requête exécutée', '1 ligne trouvée.')") && page.includes("out('o-1', 'ok', 'Requête exécutée', '1 ligne modifiée.')"), 'la page montre les deux résultats');
 });
 
@@ -247,7 +250,7 @@ test('moment 6 : retirer 8 séances à Nathan Petit (7 séances après le cadeau
   for (const t of ["out('o-ck', 'err', 'Requête refusée', 'CHECK constraint failed:<br>seances_restantes &gt;= 0', 'm', true)", '<span><b>CHECK</b> (seances_restantes &gt;= 0)</span>', '<i class="calc bad" id="cx">7 − 8 = −1</i>'])
     assert.ok(page.includes(t), `la page montre : ${t}`);
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.ok(caps.includes('La règle <code>CHECK</code> du chapitre 4<br>s’applique aussi aux modifications.') && caps.includes('Une modification refusée<br>n’est pas écrite : la carte<br>garde ses 7 séances.'), 'les légendes disent la même chose');
+  assert.ok(caps.includes('La règle <code>CHECK</code> du chapitre 4<br>s’applique aussi quand<br>tu modifies une ligne.') && caps.includes('Une modification refusée<br>n’est pas écrite :<br>Nathan conserve ses 7 séances.'), 'les légendes disent la même chose');
   const mail = val('MAILS')[2][4].join(' ');
   assert.ok(mail.includes('Nathan Petit s’inscrit à un stage de 8 séances.') && mail.includes('retirer ces 8 séances de sa carte'), 'le mail de l’accueil NutriBoost');
 });
@@ -264,7 +267,9 @@ test('la page montre la base : huit tables, leurs nombres de lignes (les inscrip
   assert.deepEqual(db.exec("SELECT name FROM pragma_table_info('ateliers')")[0].values.flat().slice(0, 3), ['id', 'titre', 'date_atelier'], 'les colonnes de l’en-tête de la table ateliers');
   for (const t of ['<span class="emo">🔑</span>id', '<span class="c1">titre</span>', '<span class="c2">date_atelier</span>', '<span class="c2">seances_restantes</span>', '<span class="emo">🔗</span>client_id']) assert.ok(page.includes(t), `en-tête : ${t}`);
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.equal(caps[3], 'Aucune n’ajoute de ligne :<br>toutes modifient des lignes<br>qui existent déjà.', 'aucune demande n’ajoute de ligne');
+  assert.equal(caps[2], 'À la rentrée, tu reçois trois demandes<br>par mail pour mettre à jour<br>les données de NutriBoost.', 'les trois demandes : première bulle d’Elisa');
+  assert.equal(caps[3], '<span class="dense">Pour les traiter, tu vas modifier<br>des informations dans des lignes<br>existantes avec la commande SQL <code>UPDATE</code>.</span>',
+    'deuxième bulle d’Elisa, mot pour mot : trop longue pour trois lignes à 44 px, elle prend la classe « dense » (police 42 px)');
 });
 
 test('les trois mails : Moussa Diallo, l’équipe NutriBoost, puis l’accueil ; l’app s’arrête sur chacun jusqu’au toucher', () => {
@@ -303,14 +308,36 @@ test('le récapitulatif, mot pour mot, dans la vidéo comme dans la fiche de la 
     const [phrase, detail] = m[2].split('<span class="rs">');
     return [m[1], strip(phrase), strip(detail.replace(/<\/span>$/, ''))];
   });
-  const RECAP = [['✏️', 'UPDATE modifie des valeurs dans des lignes qui existent déjà.', 'SET indique la colonne et la nouvelle valeur ; WHERE désigne les lignes concernées.'],
-    ['⚠️', 'Sans WHERE, toutes les lignes de la table sont modifiées.', 'Avant d’exécuter, lis les lignes concernées avec un SELECT qui a le même WHERE.'],
-    ['🔢', 'La nouvelle valeur peut se calculer à partir de l’ancienne.', 'Les règles de la table s’appliquent aussi aux modifications : une valeur refusée n’est pas écrite.']];
+  /* Les mots d’Elisa (24 octobre, Réf 7), sans « 1. », « 2. », « 3. ». */
+  const RECAP = [['✏️', 'Modifier des données existantes', 'UPDATE modifie les valeurs de lignes déjà présentes. SET précise les colonnes à modifier et leurs nouvelles valeurs ; WHERE sélectionne les lignes concernées.'],
+    ['⚠️', 'Vérifier les lignes avant de modifier', 'Sans WHERE, la modification s’applique à toute la table. Avant d’exécuter ton UPDATE, vérifie les lignes ciblées avec un SELECT utilisant le même WHERE.'],
+    ['🔢', 'Calculer une nouvelle valeur', 'Tu peux partir de la valeur actuelle, par exemple pour ajouter 2 séances. La nouvelle valeur doit respecter les règles de la table, sinon la modification est refusée.']];
   assert.deepEqual(rows, RECAP, 'la vidéo : les trois idées');
   const fiche = html.slice(html.indexOf('guide({ id:27,'), html.indexOf('guide({ id:28,'));
   const idees = [...fiche.matchAll(/\["(✏️|⚠️|🔢)","([^"]*)","([^"]*)"(?:,"([^"]*)")?\]/g)].map(m => [m[1], strip(m[2]), strip(m[3])]);
   assert.deepEqual(idees, RECAP, 'la fiche de la leçon dit la même chose que la vidéo');
   assert.ok(page.includes('recapScene(RECAP, [RECAP + 0.7, RECAP + 2.1, RECAP + 3.5]);'), 'chaque idée se révèle à son tour');
+});
+
+test('les mots d’Elisa (24 octobre, 22 h 29), mot pour mot : une phrase par bulle, dans l’ordre de la vidéo', () => {
+  /* Ses phrases, corrigées seulement de la ponctuation et de l’orthographe (« À la rentrée, tu reçois… »). Chacune est une bulle à elle seule :
+     jamais coupée en deux, jamais collée à une autre. */
+  const dits = val('CAPTIONS').map(c => sp(strip(c[2])));
+  const ELISA = ['À la rentrée, tu reçois trois demandes par mail pour mettre à jour les données de NutriBoost.',          // Réf 2 et 3, première bulle
+    'Pour les traiter, tu vas modifier des informations dans des lignes existantes avec la commande SQL UPDATE.',          // deuxième bulle
+    'Sans WHERE, la modification s’applique à toutes les lignes de la table.',                                              // Réf 1
+    'Résultat : les cinq ateliers sont désormais programmés le 18 septembre !',
+    'La requête s’exécute sans erreur, mais 5 lignes ont été modifiées au lieu d’une.',                                     // Réf 4
+    'Pense à vérifier ce nombre après chaque mise à jour !',
+    'Avec WHERE id = 2, seul l’atelier Pilates a été modifié : il est désormais prévu le 18 septembre.',                   // Réf 5
+    'Une modification refusée n’est pas écrite : Nathan conserve ses 7 séances.'];                                          // Réf 6
+  const places = ELISA.map(t => { assert.ok(dits.includes(t), `bulle d’Elisa : « ${t} »`); return dits.indexOf(t); });
+  assert.ok(places.every((n, k) => !k || n > places[k - 1]), 'dans l’ordre : demandes, oubli du WHERE, résultat, vérification, modification refusée');
+  /* Les mots restent les siens : ni « on » ni « il convient », « tu » partout. */
+  assert.ok(!dits.some(t => /\b(veuillez|il convient|afin de|ledit)\b/i.test(t)), 'des phrases parlées');
+  /* La phrase trop longue pour trois lignes à 44 px prend la classe « dense » (police 42 px) ; aucune autre bulle n’en a besoin. */
+  assert.equal([...page.matchAll(/class=\\?"dense\\?"/g)].length, 1, 'une seule bulle « dense »');
+  assert.ok(/#cap \.c p \.dense\{[^}]*font-size:42px/.test(fs.readFileSync(path.join(root, 'assets/anim/core.css'), 'utf8')), 'la classe « dense » : 42 px, sans retour à la ligne automatique');
 });
 
 test('ce que la vidéo ne reprend pas de l’ancien cours : plus de changes(), de sous-requête, de CASE, de UPDATE … FROM ni de SET sur plusieurs colonnes ; le chapitre ne parle pas de SQL comme d’une personne', () => {
