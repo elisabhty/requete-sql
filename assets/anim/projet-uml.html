@@ -243,7 +243,7 @@ const CHAPTERS = [
   {n:6, label:'À retenir',               a:218.85, b:DURATION}
 ];
 
-/* Légendes : [début, fin, texte, 4 si quatre lignes] (temps de la timeline). Pendant le mail, la légende s’efface. */
+/* Légendes : [début, fin, texte] (temps de la timeline), trois lignes au plus : une phrase plus longue devient deux bulles. Pendant le mail, la légende s’efface. */
 const CAPTIONS = [
   [5.3, 8.0,     "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost."],
   [8.1, 10.8,    "Au chapitre 2, tu as organisé<br>les données dans cinq tables,<br>reliées par des clés étrangères."],
@@ -270,7 +270,8 @@ const CAPTIONS = [
   [83.0, 87.0,   "L’atelier Yoga du matin<br>n’a encore aucun inscrit,<br>l’atelier Récupération en a trois."],
   [87.1, 88.8,   "On écrit donc <b>0..*</b><br>du côté de la classe Client."],
   [88.9, 91.1,   "La date d’inscription indique quand un client s’est inscrit à un atelier précis."],
-  [91.2, 93.1,   "On place la date d’inscription dans<br>Inscription, une <b class=\"nw\">classe d’association</b> :<br>elle contient les informations propres<br>au lien entre un client et un atelier.", 4],
+  [91.2, 92.2,   "On place la date d’inscription<br>dans Inscription,<br>une <b class=\"nw\">classe d’association</b>."],
+  [92.3, 93.1,   "Elle contient les informations propres<br>au lien entre un client et un atelier."],
   [93.2, 94.7,   "Elle est reliée par des pointillés à l’association entre Client et Atelier."],
   [94.8, 100.6,  "Enfin, un client possède une carte de membre ou aucune, et une carte n’a qu’un seul client."],
   [101.0, 104.6, "Le diagramme est maintenant complet : il présente les informations à conserver et les relations entre les classes."],
@@ -282,18 +283,22 @@ const CAPTIONS = [
   [120.8, 126.2, "Ici, on ajoute une <b class=\"nw\">clé primaire</b> <code>id</code><br>pour identifier chaque ligne<br>de façon unique."],
   [126.3, 128.45, "Les tables sont définies."],
   [128.55, 133.95, "Il faut maintenant traduire<br>les relations du diagramme<br>en liens entre ces tables."],
-  [134.05, 141.45, "On regarde d’abord le <b>maximum</b><br>de chaque côté : <b>1</b> signifie<br>« au maximum un », et <b>*</b> signifie<br>« plusieurs possibles ».", 4],
+  [134.05, 136.9, "On regarde d’abord le <b>maximum</b><br>de chaque côté."],
+  [137.0, 141.45, "<b>1</b> signifie « au maximum un »,<br>et <b>*</b> signifie « plusieurs possibles »."],
   [141.55, 148.05, "Ces maximums permettent de distinguer trois cas : un à un, un à plusieurs et plusieurs à plusieurs."],
   [148.15, 150.65, "Chaque atelier a un seul coach."],
-  [150.75, 157.85, "On ajoute donc <code>coach_id</code><br>dans la <b>table ateliers</b> :<br>cette clé étrangère indique<br>quel coach anime chaque atelier.", 4],
+  [150.75, 153.8, "On ajoute donc <code>coach_id</code><br>dans la <b>table ateliers</b>."],
+  [153.9, 157.85, "Cette clé étrangère indique<br>quel coach anime chaque atelier."],
   [157.95, 162.95, "On ajoute <code>client_id</code><br>dans la <b>table cartes</b><br>pour indiquer son propriétaire."],
   [163.05, 168.0, "La contrainte <code>UNIQUE</code> empêche d’attribuer plusieurs cartes au même client."],
   [168.1, 174.1, "Un client peut s’inscrire<br>à plusieurs ateliers, et un atelier<br>accueillir plusieurs clients."],
   [174.2, 176.75, "À toi !"],
-  [176.85, 184.05, "On crée donc la <b>table inscriptions</b>,<br>avec <code>client_id</code>, <code>atelier_id</code><br>et <code>date_inscription</code> :<br>une ligne par inscription.", 4],
+  [176.85, 181.95, "On crée donc la <b>table inscriptions</b>,<br>avec <code>client_id</code>, <code>atelier_id</code><br>et <code>date_inscription</code>."],
+  [182.05, 184.05, "Elle contient une ligne<br>par inscription."],
   [184.15, 190.8, "La <b>table inscriptions</b> relie chaque client<br>à un atelier grâce aux clés étrangères<br><code>client_id</code> et <code>atelier_id</code>."],
   [190.9, 195.9, "Elle conserve aussi la date d’inscription,<br>issue de la classe d’association."],
-  [196.0, 204.4, "Tu peux appliquer ces mêmes règles<br>pour créer les tables de toute<br>la boutique, en ajoutant les commandes<br>et les produits au diagramme.", 4],
+  [196.0, 201.55, "Tu peux appliquer ces mêmes règles<br>pour créer les tables<br>de toute la boutique."],
+  [201.65, 204.4, "Pour cela, ajoute les commandes<br>et les produits au diagramme."],
   [204.5, 207.05, "À toi !"],
   [207.15, 213.05, "Un client passe des commandes, et chaque commande concerne un seul produit."],
   [213.15, 218.65, "Dans le prochain module, tu créeras ces tables avec <code>CREATE TABLE</code>."],
@@ -654,9 +659,10 @@ function build(){
   glow('#ln-in', 89.3); cue(89.3, 'tick', 0.5, 2);
   lite('cl', 89.6, 1.5); lite('at', 89.6, 1.5); cue(89.6, 'tick', 0.5, 1);
   // « On la place dans Inscription »
-  show('#ab', 91.6, {y: 30, scale: 0.92}, 0.5, 'back.out(1.6)'); cue(91.6, 'pop', 0.55, 4);
-  tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25}, 92.2);
-  cue(92.2, 'tick', 0.5, 4);
+  show('#ab', 91.5, {y: 30, scale: 0.92}, 0.45, 'back.out(1.6)'); cue(91.5, 'pop', 0.55, 4);
+  // « Elle contient les informations propres au lien » : la ligne de la date s’allume avec cette bulle, juste avant sa pause de lecture (92,85)
+  tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25}, 92.6);
+  cue(92.6, 'tick', 0.5, 4);
   // « reliée par des pointillés »
   draw('#ln-cx', 93.55, 0.35);
   glow('#ln-in', 93.95); bump('#an-in', 93.95, 1.1); cue(93.95, 'tick', 0.5, 2);
@@ -710,7 +716,7 @@ function build(){
   tl.to('#sb .mp:not(.ask) .mn', {opacity: 0.28, duration: 0.4, ease: 'power2.out'}, 135.5);
   $$('#sb .mp:not(.bad):not(.ask)').forEach((m, q) => { bump(m, 135.7 + q * 0.06, 1.12); cue(135.7 + q * 0.06, 'tick', 0.35, q); });
   const MX1 = ['#mp-an-co', '#mp-po-ca', '#mp-po-cl'], MXN = ['#mp-an-at', '#mp-in-at', '#mp-in-cl'];
-  bump(MX1, 137.2, 1.25); pulse(MX1, 137.2, 1); cue(137.2, 'pop', 0.6, 1);
+  bump(MX1, 137.3, 1.25); pulse(MX1, 137.3, 1); cue(137.3, 'pop', 0.6, 1);
   bump(MXN, 139.1, 1.25); pulse(MXN, 139.1, 1); cue(139.1, 'pop', 0.6, 5);
   // 6 les trois cas, chacun à son mot
   const RL = $$('.rl');
@@ -726,7 +732,7 @@ function build(){
   off(['#ln-an', '#an-an', '#mp-an-co', '#mp-an-at'], 151.1, 0.35);
   addRow('#cb-at-fk', 152.0);
   lite('at', 152.55, 0.55); cue(152.55, 'tick', 0.5, 3);
-  tl.to('#cb-at-fk .hl', {opacity: 1, duration: 0.25, yoyo: true, repeat: 3}, 154.05); cue(154.05, 'pop', 0.6, 4);
+  tl.to('#cb-at-fk .hl', {opacity: 1, duration: 0.25, yoyo: true, repeat: 3}, 154.2); cue(154.2, 'pop', 0.6, 4);
   lite('co', 155.7, 0.5); cue(155.7, 'tick', 0.5, 1);
   lite('at', 156.5, 0.5); cue(156.5, 'tick', 0.5, 3);
   rlOff(1, 157.3);
@@ -759,7 +765,7 @@ function build(){
   tl.to('#ib-r1 .hl', {opacity: 1, duration: 0.25, yoyo: true, repeat: 1}, 179.6); cue(179.6, 'pop', 0.6, 2);
   tl.to('#ib-r2 .hl', {opacity: 1, duration: 0.25, yoyo: true, repeat: 1}, 180.25); cue(180.25, 'pop', 0.6, 3);
   tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25, yoyo: true, repeat: 1}, 181.05); cue(181.05, 'pop', 0.6, 4);
-  bump('#ab', 182.3, 1.04); cue(182.3, 'stamp', 0.6);
+  bump('#ab', 182.35, 1.04); cue(182.35, 'stamp', 0.6);
   // « La table inscriptions », « chaque client », « un atelier », « client_id », « atelier_id »
   bump('#ab', 185.0, 1.04); cue(185.0, 'tick', 0.5, 1);
   lite('cl', 186.1, 0.5); cue(186.1, 'tick', 0.5, 1);
@@ -773,8 +779,8 @@ function build(){
   // la boutique : les classes déjà vues, leurs associations, puis « les commandes » et « les produits »
   sceneOn('#sh', 196.45);
   ['#sh-co', '#sh-at', '#sh-in', '#qm-cl', '#qm-ca'].forEach((q, k) => { const t = 197.0 + k * 0.15; show(q, t, {y: 40, scale: 0.94}, 0.45, 'back.out(1.6)'); cue(t, 'pop', 0.5, k); });
-  [['#qm-cm', 201.65], ['#qm-pr', 202.65]].forEach(([q, t], k) => { show(q, t, {y: 40, scale: 0.94}, 0.45, 'back.out(1.6)'); cue(t, 'pop', 0.5, k + 5); });
-  const AT = [198.5, 199.3, 200.1, 201.8, 202.9];
+  [['#qm-cm', 201.95], ['#qm-pr', 202.95]].forEach(([q, t], k) => { show(q, t, {y: 40, scale: 0.94}, 0.45, 'back.out(1.6)'); cue(t, 'pop', 0.5, k + 5); });
+  const AT = [198.5, 199.3, 200.1, 202.1, 203.2];
   SHOP_ASSOCS.forEach(([k, , , a, , c], q) => {
     const t = AT[q];
     draw('#ls-' + k, t, 0.4); show('#sn-' + k, t + 0.3, {y: 12}, 0.35);

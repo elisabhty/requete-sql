@@ -377,12 +377,19 @@ export const REGLES = [
   },
   {
     id: 'legende-lignes',
-    titre: 'Une bulle tient en trois lignes (quatre seulement avec la 4e valeur)',
-    demande: 'Elisa, 23 octobre : pas de bulle de plus de trois lignes ; une bulle de quatre lignes doit être voulue (4e valeur de la légende : la carte monte le temps de la lire).',
+    titre: 'Une bulle tient en trois lignes au plus : une phrase plus longue devient deux bulles (jamais de bulle de quatre lignes)',
+    demande: 'Elisa, 23 octobre : pas de bulle de plus de trois lignes. ' +
+      'Elisa, 24 octobre (Réf 2) : « t’aurais pu découper en plusieurs bulles → modifier le contrôle » : la 4e valeur de la légende (la bulle de quatre lignes) n’existe plus ; ' +
+      'une phrase trop longue se coupe en deux bulles, une phrase complète chacune, avec ses mots à elle.',
     genres: ['legende'],
-    verifie: ({html: h, lignes: n}) => lignes(h).length > (n || 3) ? [`${lignes(h).length} lignes pour ${n || 3} permises`] : [],
-    bon: [{genre: 'legende', html: 'a<br>b<br>c', lignes: 3}, {genre: 'legende', html: 'a<br>b<br>c<br>d', lignes: 4}],
-    mauvais: [{genre: 'legende', html: 'a<br>b<br>c<br>d', lignes: 3}]
+    verifie: ({html: h, lignes: n}) => {
+      const pb = [];
+      if (lignes(h).length > 3) pb.push(`${lignes(h).length} lignes : trois au plus, sinon deux bulles`);
+      if ((n || 3) > 3) pb.push('la 4e valeur de la légende (quatre lignes) n’existe plus : découper en deux bulles');
+      return pb;
+    },
+    bon: [{genre: 'legende', html: 'a<br>b<br>c', lignes: 3}, {genre: 'legende', html: 'a<br>b', lignes: 3}, 'a'],
+    mauvais: [{genre: 'legende', html: 'a<br>b<br>c<br>d', lignes: 3}, {genre: 'legende', html: 'a<br>b<br>c<br>d', lignes: 4}, {genre: 'legende', html: 'a<br>b<br>c', lignes: 4}]
   },
   {
     id: 'coupes',
@@ -478,11 +485,7 @@ export const EXCEPTIONS = [
     raison: 'Mots d’Elisa : « le lien entre un client et un atelier » est une inscription (une ligne), pas la relation entre deux tables.'},
   {regle: 'client', page: 'projet-delete', contient: "WHERE prenom = 'Nathan'",
     raison: 'Une fin de requête SQL (réponse fausse du moment 3), pas une phrase : la condition sur le prénom seul désigne les deux Nathan, c’est justement le piège.'},
-  /* Des coupes que le texte d’Elisa impose : en quatre lignes, rien de mieux sans changer un mot */
-  {regle: 'coupes', page: 'projet-uml', contient: 'On place la date d’inscription dans Inscription',
-    raison: 'Mots d’Elisa, quatre lignes : « dans Inscription, une classe d’association : » est trop long pour une seule ligne ; avec le saut avant « dans », la bulle passerait à cinq lignes.'},
-  {regle: 'coupes', page: 'projet-uml', contient: 'Tu peux appliquer ces mêmes règles',
-    raison: 'Mots d’Elisa (134 caractères), quatre lignes : « pour créer les tables de toute la boutique, » ne tient pas sur une ligne ; sans la coupe après « toute », la bulle passerait à cinq lignes.'},
+  /* Des mots d’Elisa qui dérogent à une règle, à lui redemander */
   {regle: 'client', page: 'projet-insert', contient: 'Pour enregistrer l’inscription de Lucas,', aConfirmer: '« Lucas Bernard » ?',
     raison: 'Mots d’Elisa (24 octobre, Réf 4), juste après le mail de Karim qui nomme Lucas Bernard en entier.'},
   {regle: 'imagine-une-fois', page: 'projet-drop', contient: 'Imagine maintenant que tu oublies la fin du nom', aConfirmer: '« Et si tu oublies la fin du nom ? » pour la seconde faute ?',

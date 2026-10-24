@@ -41,15 +41,19 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
   assert.ok(page.includes('const QUESTIONS = [];') && !/kicker: '/.test(page), 'pas de question en pleine vidéo');
   assert.ok(page.includes('beforeRender: t => IX.tick(t)});') && page.includes('tick(t = tl.time()){') && !page.includes('onRender: () => IX.tick()') && page.includes('window.IX = IX;'), 'aperçu retiré avant le rendu');
   assert.ok(!/text-wrap\s*:\s*pretty/.test(page), 'retours à la ligne classiques');
-  /* Quatre légendes de quatre lignes (4e valeur : la carte monte le temps de les lire) : la phrase sur le 1 du côté de Coach (123 caractères),
-     celle sur les deux clés étrangères NOT NULL (98 caractères, mais « NOT NULL » est large), celle sur INSERT INTO (113) et celle du récapitulatif
-     (109). Aucune coupe en trois lignes ne tient sans écraser les lettres, finir une ligne sur un mot court ou couper « ses deux / clés étrangères ». */
-  assert.equal((page.match(/\n\s*\[[\d.]+, [\d.]+, ("[^\n]*"|'[^\n]*'), 4\],?/g) || []).length, 4, 'quatre légendes de quatre lignes');
-  for (const s of ['[115.95, 120.6, "Le <code>1</code> du côté de Coach signifie<br>que chaque atelier est animé<br>par un seul coach :<br>il ne peut en avoir ni zéro ni plusieurs.", 4],',
-    '[128.7, 133.6, "Une inscription concerne toujours<br>un client et un atelier :<br>ses deux clés étrangères<br>sont <code>NOT NULL</code>.", 4],',
-    '[186.1, 188.7, "Karim y ajoutera les données<br>avec la commande <code>INSERT INTO</code>,<br>qui permet d’insérer de nouvelles<br>lignes dans une table.", 4],',
-    '[194.0, 198.8, "Créer une table, c’est définir<br>ses colonnes, les données<br>qu’elles peuvent contenir<br>et les règles à respecter.", 4],'])
-    assert.ok(page.includes(s), `légende en quatre lignes : ${s.slice(0, 60)}`);
+  /* Aucune bulle de quatre lignes : une phrase trop longue devient deux bulles (demande d’Elisa, 23 et 24 oct.). Les quatre phrases qui tenaient en quatre lignes
+     (le 1 du côté de Coach, les deux clés étrangères NOT NULL, INSERT INTO, le récapitulatif) sont donc coupées en deux bulles, chacune d’au plus trois lignes. */
+  assert.equal((page.match(/\n\s*\[[\d.]+, [\d.]+, ("[^\n]*"|'[^\n]*'), 4\],?/g) || []).length, 0, 'aucune légende de quatre lignes');
+  assert.ok(D.CAPTIONS.every(c => c[2].split('<br>').length <= 3 && (c[3] || 3) <= 3), 'trois lignes au plus, 4e valeur absente');
+  for (const s of ['[115.95, 119.6, "Le <code>1</code> du côté de Coach signifie<br>que chaque atelier est animé<br>par un seul coach."],',
+    '[119.7, 120.6, "Un atelier ne peut avoir<br>ni zéro ni plusieurs coachs."],',
+    '[128.7, 131.7, "Une inscription concerne toujours<br>un client et un atelier."],',
+    '[131.8, 133.6, "Ses deux clés étrangères<br>sont donc <code>NOT NULL</code>."],',
+    '[186.1, 187.15, "Karim y ajoutera les données<br>avec la commande <code>INSERT INTO</code>."],',
+    '[187.25, 188.7, "Elle permet d’insérer<br>de nouvelles lignes dans une table."],',
+    '[194.0, 197.95, "Créer une table, c’est définir<br>ses colonnes et les données<br>qu’elles peuvent contenir."],',
+    '[198.05, 198.8, "C’est aussi définir<br>les règles à respecter."],'])
+    assert.ok(page.includes(s), `légende découpée : ${s.slice(0, 60)}`);
   /* Même budget que le test COURSES : page + vignette + moteur + GSAP + mascotte + 5 polices < 450 Kio. */
   const FONTS = ['jetbrains-mono.woff2', 'inter-medium.woff2', 'inter-semibold.woff2', 'inter-bold.woff2', 'inter-extrabold.woff2'];
   let total = 0;
@@ -74,8 +78,10 @@ test(`${FILE} : chapitres, légendes d’une seule phrase, vocabulaire du projet
   });
   const last = caps[caps.length - 1], before = caps[caps.length - 2];
   assert.ok(last[0] === notesAt && last[1] === 999 && last[2] === '<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement.', 'dernière légende (app) à notesAt');
-  /* La bulle du récapitulatif résume les trois idées (à la demande d’Elisa) : elle ne dit plus « Pour finir, voici les trois idées à retenir ». */
-  assert.equal(before[2], 'Créer une table, c’est définir<br>ses colonnes, les données<br>qu’elles peuvent contenir<br>et les règles à respecter.');
+  /* Les bulles du récapitulatif résument les trois idées (à la demande d’Elisa) : elles ne disent plus « Pour finir, voici les trois idées à retenir ».
+     La phrase, trop longue pour trois lignes, est coupée en deux bulles (jamais de bulle de quatre lignes). */
+  assert.equal(caps[caps.length - 3][2], 'Créer une table, c’est définir<br>ses colonnes et les données<br>qu’elles peuvent contenir.');
+  assert.equal(before[2], 'C’est aussi définir<br>les règles à respecter.');
   /* Jamais de carte de légende vide : entre deux légendes éloignées de plus d’une seconde, la carte s’efface (capOff) puis revient (capOn). */
   const offs = [...page.matchAll(/capOff\(([\d.]+)\)/g)].map(m => +m[1]), ons = [...page.matchAll(/capOn\(([\d.]+)\)/g)].map(m => +m[1]);
   caps.slice(1).forEach(([a], k) => {
@@ -170,10 +176,12 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
     'La clé étrangère se déclare avec FOREIGN KEY et REFERENCES, comme au chapitre 2.',
     'Reste à savoir si coach_id peut rester vide.',
     'À toi !',
-    'Le 1 du côté de Coach signifie que chaque atelier est animé par un seul coach : il ne peut en avoir ni zéro ni plusieurs.',
+    'Le 1 du côté de Coach signifie que chaque atelier est animé par un seul coach.',
+    'Un atelier ne peut avoir ni zéro ni plusieurs coachs.',
     'Pas d’atelier sans coach : coach_id ne doit jamais être vide, on ajoute NOT NULL.',
     'Vient ensuite la table inscriptions, écrite sur le même modèle.',
-    'Une inscription concerne toujours un client et un atelier : ses deux clés étrangères sont NOT NULL.',
+    'Une inscription concerne toujours un client et un atelier.',
+    'Ses deux clés étrangères sont donc NOT NULL.',
     'Reste la table cartes, celle des cartes de membre.',
     'Comme coach_id, client_id est obligatoire : une carte a toujours un propriétaire.',
     'DEFAULT donne une valeur à la colonne quand on n’en précise aucune.',
@@ -187,9 +195,11 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
     'Ta base compte désormais huit tables pour gérer la boutique et les ateliers.',
     'À toi !',
     'Les quatre nouvelles tables sont encore vides.',
-    'Karim y ajoutera les données avec la commande INSERT INTO, qui permet d’insérer de nouvelles lignes dans une table.',
+    'Karim y ajoutera les données avec la commande INSERT INTO.',
+    'Elle permet d’insérer de nouvelles lignes dans une table.',
     'Dans le prochain chapitre, tu feras évoluer ces tables avec ALTER TABLE.',
-    'Créer une table, c’est définir ses colonnes, les données qu’elles peuvent contenir et les règles à respecter.',
+    'Créer une table, c’est définir ses colonnes et les données qu’elles peuvent contenir.',
+    'C’est aussi définir les règles à respecter.',
     'Ajoute ce résumé à tes notes pour le retrouver facilement.'];
   assert.deepEqual(D.CAPTIONS.map(c => flat(c[2])), BULLES, 'les bulles du scénario, mot pour mot et dans l’ordre');
   /* Les deux premières légendes, communes aux chapitres 4 à 6 (contrat de continuité), et la devise hors de l’app. */
@@ -219,8 +229,9 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
     ['Définir les règles', 'Les contraintes encadrent les données : identifiant unique (PRIMARY KEY), valeur obligatoire (NOT NULL), absence de doublons (UNIQUE), condition à respecter (CHECK) et relation avec une autre table (FOREIGN KEY).']], 'récapitulatif');
   assert.ok(['🏗️', '🔤', '🛡️'].every(e => recap.includes(`<div class="rico emo">${e}</div>`)), 'emoji des trois idées');
   assert.ok(rows[0].includes('Créer une <b>table</b>') && rows[1].includes('Définir les <b>colonnes</b>') && rows[2].includes('Définir les <b>règles</b>'), 'les notions en gras');
-  /* La dernière précision arrive à 198,05 s : sa pause de lecture (198,55) est aussi celle de la bulle (fin à 198,8), une seule pause. */
-  assert.ok(page.includes('[[194.3, 195.05], [195.7, 196.45], [197.1, 198.05]].forEach(([r, d], i) => {') && D.CAPTIONS.some(c => c[1] === 198.8 && c[3] === 4), 'une seule pause à la fin : celle du récapitulatif');
+  /* La dernière précision arrive à 198,05 s : sa pause de lecture (198,55) est aussi celle de la dernière bulle « C’est aussi définir les règles à respecter. »
+     (198,05 → 198,8), une seule pause. La bulle d’avant (194,0 → 197,95) s’arrête à 197,7, entre deux précisions : aucun mouvement en cours. */
+  assert.ok(page.includes('[[194.3, 195.05], [195.7, 196.45], [197.1, 198.05]].forEach(([r, d], i) => {') && D.CAPTIONS.some(c => c[0] === 198.05 && c[1] === 198.8 && flat(c[2]) === 'C’est aussi définir les règles à respecter.'), 'une seule pause à la fin : celle du récapitulatif');
 });
 
 test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices, la réponse posée juste après l’arrêt`, () => {
@@ -323,9 +334,11 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
   assert.ok(derniere + 0.4 < creees[1] - 0.25, 'la dernière table a fini d’entrer avant la pause de la bulle « créées »');
   assert.ok(!/huit tables/.test(D.CAPTIONS.filter(c => c[0] < huit[0]).map(c => c[2]).join(' ')), 'aucune bulle ne parle de huit tables avant le badge à 8');
   /* « Karim y ajoutera… INSERT INTO » : la puce porte la commande en entier, ses gestes finissent avant la pause de la bulle (fin 188,7). */
-  const ins = D.CAPTIONS.find(c => /INSERT INTO/.test(c[2]));
+  const ins = D.CAPTIONS.find(c => /INSERT INTO/.test(c[2])), ins2 = D.CAPTIONS.find(c => flat(c[2]) === 'Elle permet d’insérer de nouvelles lignes dans une table.');
   assert.ok(page.includes('<span class="emo">✍️</span><code>INSERT INTO</code></span></div>') && !page.includes('<code>INSERT</code>'), 'la puce dit INSERT INTO, comme la bulle');
-  assert.ok(187.75 + 0.14 * 4 < ins[1] - 0.25 && 186.35 > ins[0], 'le stylo a fini d’écrire avant la pause de la bulle');
+  /* La phrase est coupée en deux bulles : la puce entre pendant la première (elle a fini d’entrer, 186,35 + 0,45, avant sa pause à 186,9), le stylo écrit pendant la seconde. */
+  assert.ok(ins && ins2 && 186.35 > ins[0] && 186.35 + 0.45 < ins[1] - 0.25 && ins[1] < ins2[0], 'la puce INSERT INTO entre pendant la première bulle, avant sa pause');
+  assert.ok(187.75 > ins2[0] && 187.75 + 0.14 * 4 < ins2[1] - 0.25, 'le stylo a fini d’écrire avant la pause de la seconde bulle');
   /* Une seule bulle sur le contenu des nouvelles tables : « Les quatre nouvelles tables sont encore vides » (plus de « Une table neuve est vide »).
      Les « 0 ligne » des trois autres tables entrent un à un, puis les quatre battent ensemble, avant la fin de la bulle. */
   const vides = D.CAPTIONS.filter(c => /nouvelles tables sont encore vides|table neuve est vide/.test(flat(c[2])));

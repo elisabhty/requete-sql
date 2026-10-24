@@ -43,16 +43,21 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
   assert.ok(page.includes('const QUESTIONS = [];') && !/kicker: '/.test(page), 'pas de question en pleine vidéo');
   assert.ok(page.includes('beforeRender: t => IX.tick(t)});') && page.includes('tick(t = tl.time()){') && !page.includes('onRender: () => IX.tick()') && page.includes('window.IX = IX;'), 'aperçu retiré avant le rendu');
   assert.ok(!/text-wrap\s*:\s*pretty/.test(page), 'retours à la ligne classiques');
-  /* Cinq légendes de quatre lignes (4e valeur : la carte monte le temps de les lire). Aucune coupe en trois lignes ne tient sans finir une ligne
-     sur un mot court ou sans couper un groupe de mots (« cinq / ateliers ») : la colonne places (108 caractères), sa valeur par défaut (108), la colonne
-     telephone (108), les appels et messages des coachs (115) et l’annonce du chapitre 6 (109). Toutes les autres légendes restent à trois lignes au plus. */
-  assert.equal((page.match(/\n\s*\[[\d.]+, [\d.]+,\s+("[^\n]*"|'[^\n]*'), 4\],?/g) || []).length, 5, 'cinq légendes de quatre lignes');
-  for (const s of ['"Pour enregistrer le nombre de places<br>de chaque atelier, on ajoute<br>une colonne <code>places</code><br>dans la <b>table ateliers</b>.", 4],',
-    '"Avec <code>DEFAULT 12</code>,<br>la colonne <code>places</code> contient 12<br>pour chacun des cinq ateliers<br>déjà enregistrés, dès son ajout.", 4],',
-    '"On l’ajoute donc dans une colonne<br><code>telephone</code> de la <b>table coachs</b>,<br>pour le renseigner<br>une seule fois par coach.", 4],',
-    '"Les coachs reçoivent de nombreux<br>appels et messages pendant<br>les cours, pour des questions<br>que l’accueil peut gérer.", 4],',
-    '"Dans le prochain chapitre, tu apprendras à supprimer une table entière et toutes ses données avec <code>DROP TABLE</code>.", 4],'])
-    assert.ok(page.includes(s), `légende en quatre lignes : ${s.slice(0, 60)}`);
+  /* Aucune bulle de quatre lignes : une phrase trop longue devient deux bulles (demande d’Elisa, 23 et 24 oct.). Les cinq phrases qui tenaient en quatre lignes
+     sont donc coupées en deux bulles, chacune d’au plus trois lignes, et plus aucune légende n’a de 4e valeur. */
+  assert.equal((page.match(/\n\s*\[[\d.]+, [\d.]+,\s+("[^\n]*"|'[^\n]*'), 4\],?/g) || []).length, 0, 'aucune légende de quatre lignes');
+  assert.ok(D.CAPTIONS.every(c => c[2].split('<br>').length <= 3 && (c[3] || 3) <= 3), 'trois lignes au plus, 4e valeur absente');
+  for (const s of ['"Pour enregistrer le nombre de places<br>de chaque atelier, on ajoute<br>une colonne <code>places</code>."',
+    '"Cette colonne s’ajoute<br>dans la <b>table ateliers</b>."',
+    '"Avec <code>DEFAULT 12</code>, la colonne <code>places</code><br>contient 12 dès son ajout."',
+    '"Cela vaut pour chacun<br>des cinq ateliers déjà enregistrés."',
+    '"On l’ajoute donc dans une colonne<br><code>telephone</code> de la <b>table coachs</b>."',
+    '"Le numéro est renseigné<br>une seule fois par coach."',
+    '"Les coachs reçoivent de nombreux<br>appels et messages pendant les cours."',
+    '"Ce sont des questions<br>que l’accueil peut gérer."',
+    '"Dans le prochain chapitre,<br>tu apprendras à supprimer<br>une table entière."',
+    '"Tu le feras avec <code>DROP TABLE</code> :<br>la table disparaît<br>avec toutes ses données."'])
+    assert.ok(page.includes(s), `légende découpée : ${s.slice(0, 60)}`);
   /* Même budget que le test COURSES : page + vignette + moteur + GSAP + mascotte + 5 polices < 450 Kio. */
   const FONTS = ['jetbrains-mono.woff2', 'inter-medium.woff2', 'inter-semibold.woff2', 'inter-bold.woff2', 'inter-extrabold.woff2'];
   let total = 0;
@@ -151,15 +156,18 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
     'Au chapitre 4, tu as créé les tables des ateliers avec CREATE TABLE.',
     'Karim y a enregistré les coachs, les ateliers, les inscriptions et les premières cartes de membre.',
     'Les premières séances amènent aussi des demandes de changement.',
-    'Pour enregistrer le nombre de places de chaque atelier, on ajoute une colonne places dans la table ateliers.',
+    'Pour enregistrer le nombre de places de chaque atelier, on ajoute une colonne places.',
+    'Cette colonne s’ajoute dans la table ateliers.',
     'CREATE TABLE sert à créer une nouvelle table.',
     'Ici, la table ateliers existe déjà : pour lui ajouter une colonne en conservant ses données, on utilise ALTER TABLE.',
     'On la modifie donc avec ALTER TABLE, qui change la structure d’une table existante.',
     'ADD COLUMN ajoute une colonne, avec son nom et son type.',
-    'Avec DEFAULT 12, la colonne places contient 12 pour chacun des cinq ateliers déjà enregistrés, dès son ajout.',
+    'Avec DEFAULT 12, la colonne places contient 12 dès son ajout.',
+    'Cela vaut pour chacun des cinq ateliers déjà enregistrés.',
     'Leurs titres, dates et coachs restent intacts : aucune ligne n’est perdue.',
     'Le numéro de téléphone est une information sur le coach.',
-    'On l’ajoute donc dans une colonne telephone de la table coachs, pour le renseigner une seule fois par coach.',
+    'On l’ajoute donc dans une colonne telephone de la table coachs.',
+    'Le numéro est renseigné une seule fois par coach.',
     'Chaque coach a son propre numéro : on n’écrit donc pas de DEFAULT.',
     'Sans DEFAULT, les lignes existantes reçoivent NULL : la case reste vide.',
     'Quelques jours plus tard, Karim y enregistre le numéro de chaque coach.',
@@ -171,7 +179,8 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
     'Chaque carte conserve son nombre de séances : 10, 5 et 8.',
     'La contrainte CHECK suit le nouveau nom : seances_restantes >= 0.',
     'Sur le même modèle, ALTER TABLE cartes RENAME TO cartes_membre renommerait la table elle-même.',
-    'Les coachs reçoivent de nombreux appels et messages pendant les cours, pour des questions que l’accueil peut gérer.',
+    'Les coachs reçoivent de nombreux appels et messages pendant les cours.',
+    'Ce sont des questions que l’accueil peut gérer.',
     'Ils souhaitent pouvoir se concentrer sur leurs séances.',
     'DROP COLUMN supprime la colonne, et toutes ses valeurs avec elle.',
     'Une colonne supprimée ne se récupère pas : il faudrait redemander leurs numéros aux coachs.',
@@ -180,7 +189,8 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
     'Comme pour les numéros des coachs, Karim s’en charge avec UPDATE.',
     'Avec DROP COLUMN, on supprime la colonne age et tous les âges qu’elle contient.',
     'UPDATE permet de modifier les valeurs en conservant la colonne.',
-    'Dans le prochain chapitre, tu apprendras à supprimer une table entière et toutes ses données avec DROP TABLE.',
+    'Dans le prochain chapitre, tu apprendras à supprimer une table entière.',
+    'Tu le feras avec DROP TABLE : la table disparaît avec toutes ses données.',
     'Pour finir, voici les trois idées à retenir.',
     'Ajoute ce résumé à tes notes pour le retrouver facilement.'];
   assert.deepEqual(D.CAPTIONS.map(c => flat(c[2])).filter(t => t !== 'À toi !'), BULLES, 'les bulles du scénario, mot pour mot');
@@ -315,8 +325,10 @@ test(`${FILE} : le téléphone d’un coach (deux vagues de notifications, messa
   for (const s of ["show('#ph', p, {y: 170, scale: 0.92}, 0.7, 'back.out(1.3)');", 'hold(p + 5.5, Math.ceil(readTime(PHONE_MSG) * 20) / 20);', '[4, 2, 0].forEach((k, q) =>',
     "sceneOn('#sp', 141.35);\n  phoneScene(141.4);\n  capOn(151.05);\n  capOff(162.3);\n  sceneOff('#sp', 162.95);"])
     assert.ok(page.includes(s), `téléphone : ${s.slice(0, 70)}`);
-  const [c1, c2] = ['Les coachs reçoivent de nombreux', 'Ils souhaitent pouvoir'].map(s => D.CAPTIONS.find(c => flat(c[2]).startsWith(s)));
-  assert.ok(c1 && c2 && c1[0] >= 141.4 + 9.5 && c2[1] <= 162.95, 'les deux bulles du téléphone sont lues pendant la scène, après les deux vagues');
+  const [c1, cq, c2] = ['Les coachs reçoivent de nombreux', 'Ce sont des questions', 'Ils souhaitent pouvoir'].map(s => D.CAPTIONS.find(c => flat(c[2]).startsWith(s)));
+  assert.ok(c1 && cq && c2 && c1[0] >= 141.4 + 9.5 && c2[1] <= 162.95 && c1[1] < cq[0] && cq[1] < c2[0], 'les trois bulles du téléphone (appels et messages, questions, concentration) sont lues dans l’ordre pendant la scène, après les deux vagues');
+  /* La phrase coupée en deux : les trois messages de questions s’entourent pendant « Ce sont des questions que l’accueil peut gérer. », pas avant. */
+  assert.ok(141.4 + 14.9 >= cq[0] && 141.4 + 14.9 + 2 * 0.55 <= cq[1], 'les trois messages s’entourent pendant « Ce sont des questions que l’accueil peut gérer. »');
   /* Le téléphone vibre à chaque notification : un nombre pair de mouvements (répétition impaire + 1), pour qu’il revienne exactement à sa place. */
   const buzzes = [...page.matchAll(/\bbuzz\(([^()]*)\);/g)].map(m => m[1].split(', ')).map(a => a.length > 1 ? +a[1] : 5);
   assert.ok(buzzes.length === 3 && buzzes.every(n => n % 2 === 1), `vibrations : ${buzzes}`);
