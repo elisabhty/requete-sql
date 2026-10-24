@@ -80,9 +80,9 @@ test('recherche, et leçon seule sans texte de secours ni exercice', () => {
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
   /* Le bouton des notes est écrit en clair dans Course(…) : il suit la dernière légende. */
-  assert.equal(val('NOTES'), 132.8);
-  assert.ok(page.includes('notesAt: 132.8,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 140);
+  assert.equal(val('NOTES'), 133.2);
+  assert.ok(page.includes('notesAt: 133.2,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 140.4);
   /* Des légendes qui se suivent sans se chevaucher, chaque chapitre commençant 0,4 s après la légende précédente. */
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
@@ -184,7 +184,7 @@ test('moment 3 : sans WHERE, la requête est exécutée sans la moindre erreur e
   assert.equal(count(db, 'ateliers'), 5, 'aucune ligne ajoutée ni retirée');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.ok(caps.includes('La requête est exécutée<br>sans la moindre erreur.') && caps.includes('Sans <code>WHERE</code>, toutes les lignes<br>sont modifiées : les cinq ateliers<br>passent au 18 septembre.'), 'les légendes disent la même chose');
-  assert.ok(caps.includes('Imagine que tu oublies<br>le <code>WHERE</code>.'), 'l’oubli du WHERE est imaginé : rien n’est écrit pour de bon');
+  assert.ok(caps.includes('Imagine que tu oublies le <code>WHERE</code>.'), 'l’oubli du WHERE est imaginé : rien n’est écrit pour de bon');
   assert.ok(page.includes("out('o-5', 'warn', 'Requête exécutée', '5 lignes modifiées.')") && page.includes("out('o-ex', 'ok', 'Requête exécutée', 'Aucune erreur.')"), 'la page montre les deux résultats');
 });
 
@@ -201,9 +201,9 @@ test('moment 4 : le SELECT garde le même WHERE ; il lit la ligne de l’atelier
   db.run(`UPDATE ateliers SET date_atelier = '${NOUVELLE}' WHERE id = 2;`);
   assert.equal(db.getRowsModified(), 1);
   assert.equal(lire(opts[2]).length, 1, 'ensuite, l’atelier Pilates a la date du 18 septembre');
-  /* Dans la vidéo, la date de l’atelier Pilates ne change qu’après la relecture : l’UPDATE n’est exécuté qu’à la légende « Les lignes sont les bonnes ». */
+  /* Dans la vidéo, la date de l’atelier Pilates ne change qu’après la relecture : l’UPDATE n’est exécuté qu’à la légende « La ligne est la bonne ». */
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.ok(caps.indexOf('Les lignes sont les bonnes :<br>l’<code>UPDATE</code> peut être exécuté.') > caps.findIndex(c => c.includes('le <code>SELECT</code>')), 'la relecture, puis l’exécution');
+  assert.ok(caps.indexOf('La ligne est la bonne :<br>l’<code>UPDATE</code> peut être exécuté.') > caps.findIndex(c => c.includes('le <code>SELECT</code>')), 'la relecture, puis l’exécution');
   assert.ok(page.includes("show('#o-1', A.c15 + 1.0,") && page.includes("swap('#ds2 .a0', '#ds2 .a1', A.c15 + 1.3);"), 'le résultat « 1 ligne modifiée » et la nouvelle date arrivent après la légende de la relecture');
   assert.ok(page.includes("out('o-sel', 'ok', 'Requête exécutée', '1 ligne trouvée.')") && page.includes("out('o-1', 'ok', 'Requête exécutée', '1 ligne modifiée.')"), 'la page montre les deux résultats');
 });
@@ -264,7 +264,7 @@ test('la page montre la base : huit tables, leurs nombres de lignes (les inscrip
   assert.deepEqual(db.exec("SELECT name FROM pragma_table_info('ateliers')")[0].values.flat().slice(0, 3), ['id', 'titre', 'date_atelier'], 'les colonnes de l’en-tête de la table ateliers');
   for (const t of ['<span class="emo">🔑</span>id', '<span class="c1">titre</span>', '<span class="c2">date_atelier</span>', '<span class="c2">seances_restantes</span>', '<span class="emo">🔗</span>client_id']) assert.ok(page.includes(t), `en-tête : ${t}`);
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.equal(caps[3], 'Aucune n’ajoute de ligne : toutes<br>modifient des lignes qui existent déjà.', 'aucune demande n’ajoute de ligne');
+  assert.equal(caps[3], 'Aucune n’ajoute de ligne :<br>toutes modifient des lignes<br>qui existent déjà.', 'aucune demande n’ajoute de ligne');
 });
 
 test('les trois mails : Moussa Diallo, l’équipe NutriBoost, puis l’accueil ; l’app s’arrête sur chacun jusqu’au toucher', () => {

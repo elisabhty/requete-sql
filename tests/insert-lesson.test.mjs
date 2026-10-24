@@ -77,13 +77,13 @@ test('recherche, et leçon seule sans texte de secours ni exercice', () => {
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
   /* Le bouton des notes est écrit en clair dans Course(…) : il suit la dernière légende. */
-  assert.equal(val('NOTES'), 154.7);
-  assert.ok(page.includes('notesAt: 154.7,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 161.9);
+  assert.equal(val('NOTES'), 155.5);
+  assert.ok(page.includes('notesAt: 155.5,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 162.7);
   /* Des légendes qui se suivent sans se chevaucher, chaque chapitre commençant après la fin de la légende précédente. */
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999 || val('[MAIL1, MAIL2, MAIL3]').some(t => caps[k][0] >= t + 4.8 - 1e-9), `légende ${k + 1} : après la précédente (ou après un mail)`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
-  assert.deepEqual(chaps.map(c => c.label), ['Karim passe la main', 'Une inscription', 'L’ordre des valeurs', 'Une règle enfreinte', 'Un groupe', 'Créer ou recharger', 'À retenir']);
+  assert.deepEqual(chaps.map(c => c.label), ['Karim passe la main', 'Une inscription', 'L’ordre des valeurs', 'Une colonne oubliée', 'Un groupe', 'Créer ou recharger', 'À retenir']);
   /* Une seule phrase complète par bulle (Elisa, 23 octobre) ; aucune bulle de plus de trois lignes. */
   caps.forEach(([, , t, lines], k) => {
     const txt = strip(t);
@@ -152,7 +152,7 @@ test('moment 1 : les trois valeurs de l’inscription de Lucas Bernard, chacune 
   assert.deepEqual(db.exec('SELECT c.prenom || \' \' || c.nom, a.titre FROM inscriptions i JOIN clients c ON c.id = i.client_id JOIN ateliers a ON a.id = i.atelier_id WHERE i.id = 8')[0].values, [['Lucas Bernard', 'Cuisine saine']]);
   /* Les phrases du mail et de la légende disent la même chose que la requête. */
   const mails = val('MAILS');
-  assert.ok(mails[0][4][1].includes('Lucas Bernard s’inscrit à l’atelier Cuisine saine, le 8 septembre.'), 'le mail de Karim');
+  assert.ok(mails[0][4][0].includes('Lucas Bernard s’inscrit à l’atelier Cuisine saine, le 8 septembre.'), 'le mail de Karim');
   for (const t of ["({v1|2}", "{v2|3}", "{v3|'2026-09-08'}", '{co1|client_id}', '{co2|atelier_id}', '{co3|date_inscription}']) assert.ok(page.includes(t), `la requête montrée : ${t}`);
 });
 
@@ -194,7 +194,7 @@ test('moment 4 : un groupe de trois inscriptions ; une faute (atelier 15) fait t
   for (const nom of ['Hugo Laurent', 'Gabriel Michel', 'Inès Lefebvre']) assert.ok(mail.includes(nom), `le mail de Moussa Diallo nomme ${nom}`);
   assert.ok(mail.includes('à l’atelier Yoga du matin'), 'Yoga du matin, l’atelier 5');
   assert.equal(db.exec('SELECT titre FROM ateliers WHERE id = 5')[0].values[0][0], 'Yoga du matin');
-  for (const t of ["{gp1|(6, 5, '2026-09-09')}", "{gp2|(8, 5, '2026-09-09')}", "{gp3|(9, <span class=\\\"bad\\\" id=\\\"fxb\\\"><span class=\\\"sg\\\" id=\\\"fx1\\\">1</span>5</span>, '2026-09-09')}",
+  for (const t of ["{gp1|(6, 5, '2026-09-09')}", "{gp2|(8, 5, '2026-09-09')}", "{gp3|(9, <span id=\\\"fxb\\\"><span class=\\\"sg\\\" id=\\\"fx1\\\">1</span>5</span>, '2026-09-09')}",
     "tg('t9c1', 'k-cl', ['Hugo Laurent'])", "tg('t10c1', 'k-cl', ['Gabriel Michel'])", "tg('t11c1', 'k-cl', ['Inès Lefebvre'])", '<span id="cn-a">7 lignes</span><span id="cn-b">8 lignes</span><span id="cn-c">11 lignes</span>',
     '15 : aucun atelier'])
     assert.ok(page.includes(t), `la page montre : ${t}`);
@@ -304,7 +304,7 @@ test('le récapitulatif, mot pour mot, dans la vidéo comme dans la fiche de la 
     const [phrase, detail] = m[2].split('<span class="rs">');
     return [m[1], strip(phrase), strip(detail.replace(/<\/span>$/, ''))];
   });
-  const RECAP = [['✍️', 'INSERT INTO ajoute une ligne : une valeur pour chaque colonne citée.', 'Une colonne non citée vaut NULL ou sa valeur par défaut ; si elle est obligatoire, la requête est refusée.'],
+  const RECAP = [['✍️', 'INSERT INTO ajoute une ligne : les valeurs suivent l’ordre des colonnes.', 'Une colonne non citée vaut NULL ou sa valeur par défaut ; si elle est obligatoire, la requête est refusée.'],
     ['📚', 'Avec VALUES, on ajoute plusieurs lignes d’un coup : une parenthèse par ligne.', 'Si une seule ligne est refusée, aucune des lignes n’est ajoutée.'],
     ['🔁', 'ON CONFLICT permet de choisir quoi faire quand la ligne existe déjà.', 'DO UPDATE modifie la ligne existante ; DO NOTHING la laisse telle quelle.']];
   assert.deepEqual(rows, RECAP, 'la vidéo : les trois idées');

@@ -230,11 +230,11 @@ const mailBlock = () => { const t = SCH.t; SCH.t = +(SCH.t + 4.8).toFixed(2); re
 cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
 cap('r2', "Au chapitre 7, tu as ajouté des lignes avec <code>INSERT INTO</code>.", 3.0);
 cap('c2', "À la rentrée, trois demandes<br>arrivent par mail.", 2.8);
-cap('c3', "Aucune n’ajoute de ligne : toutes<br>modifient des lignes qui existent déjà.", 3.4);
+cap('c3', "Aucune n’ajoute de ligne :<br>toutes modifient des lignes<br>qui existent déjà.", 3.4);
 const MAIL1 = mailBlock();
 /* 2 · Cibler une ligne */
 chap({label:'Cibler une ligne'});
-cap('c4', "La date de l’atelier Pilates est<br>écrite dans la <b>table ateliers</b>.", 3.0);
+cap('c4', "La date de l’atelier Pilates<br>est écrite dans la <b>table ateliers</b>.", 3.0);
 toi('p1');
 cap('c5', "<code>UPDATE</code> indique<br>la table à modifier.", 2.6);
 cap('c6', "<code>SET</code> indique la colonne à changer<br>et sa nouvelle valeur.", 3.4);
@@ -243,17 +243,17 @@ toi('p2');
 cap('c8', "Seule la ligne où <code>id</code><br>vaut 2 sera modifiée.", 3.0);
 /* 3 · L’oubli du WHERE */
 chap({label:'L’oubli du WHERE'});
-cap('c9', "Imagine que tu oublies<br>le <code>WHERE</code>.", 2.8);
+cap('c9', "Imagine que tu oublies le <code>WHERE</code>.", 2.8);
 cap('c10', "La requête est exécutée<br>sans la moindre erreur.", 2.6);
 toi('p3');
 cap('c11', "Sans <code>WHERE</code>, toutes les lignes<br>sont modifiées : les cinq ateliers<br>passent au 18 septembre.", 3.8);
-cap('c12', "Aucune erreur n’avertit :<br>l’oubli passe inaperçu.", 3.0);
+cap('c12', "Seul le nombre de lignes modifiées<br>permet de repérer l’oubli.", 3.4);
 /* 4 · Lire avant d’écrire */
 chap({label:'Lire avant d’écrire'});
 cap('c13', "Pour éviter ce risque, lis d’abord<br>les lignes qui vont être modifiées.", 3.4);
 toi('p4');
 cap('c14', "Avec le même <code>WHERE</code>, le <code>SELECT</code><br>montre la ligne concernée<br>sans rien modifier.", 4.0);
-cap('c15', "Les lignes sont les bonnes :<br>l’<code>UPDATE</code> peut être exécuté.", 3.4);
+cap('c15', "La ligne est la bonne :<br>l’<code>UPDATE</code> peut être exécuté.", 3.4);
 /* 5 · Une valeur calculée */
 chap({label:'Une valeur calculée'});
 const MAIL2 = mailBlock();
@@ -262,7 +262,7 @@ cap('c17', "Reste à écrire la requête<br>qui modifie les trois cartes.", 3.0)
 toi('p5');
 cap('c18', "À droite du <code>=</code>, le nom de la colonne<br>représente la valeur actuelle<br>de chaque ligne.", 3.6);
 cap('c19', "Chaque solde augmente de 2 :<br>10 devient 12, 5 devient 7<br>et 18 devient 20.", 4.0);
-cap('c20', "Ici, pas de <code>WHERE</code> : toutes<br>les cartes doivent être modifiées.", 3.4);
+cap('c20', "Ici, pas de <code>WHERE</code> :<br>toutes les cartes doivent être modifiées.", 3.4);
 /* 6 · Une règle de la table */
 chap({label:'Une règle de la table'});
 const MAIL3 = mailBlock();
@@ -319,7 +319,7 @@ const PICKS = [
   {at: atp('p1'), from: A.c4, kind: 'tap', need: 1, prompt: 'Touche la case à modifier pour décaler l’atelier Pilates d’un jour.'},
   {at: atp('p2'), from: A.c5, kind: 'pick', text: true, prompt: 'Quelle fin de requête modifie seulement l’atelier Pilates ?', options: [
     {label: 'WHERE id = 18', why: 'Aucun atelier n’a l’identifiant 18 : la requête serait exécutée, mais aucune ligne ne serait modifiée.'},
-    {label: 'WHERE id > 2', why: 'Cette condition désigne les ateliers 3, 4 et 5 : l’atelier Pilates ne serait pas modifié.'},
+    {label: 'WHERE id > 2', why: 'Cette condition désigne les ateliers d’identifiant 3, 4 et 5 : l’atelier Pilates ne serait pas modifié.'},
     {label: 'WHERE id = 2', ok: true}]},
   {at: atp('p3'), from: A.c9, kind: 'tap', need: 5, prompt: 'Sans <code>WHERE</code>, touche les ateliers dont la date va changer.'},
   {at: atp('p4'), from: A.c13, kind: 'pick', text: true, prompt: 'Quelle requête montre les lignes que l’<code>UPDATE</code> va modifier ?', options: [
@@ -332,7 +332,7 @@ const PICKS = [
     {label: 'SET seances_restantes = seances_restantes + 2 WHERE id = 1', why: 'Avec ce <code>WHERE</code>, seule la carte d’identifiant 1 recevrait ses 2 séances.'}]},
   {at: atp('p6'), from: A.c21, kind: 'pick', text: true, prompt: 'Pourquoi retirer 8 séances à Nathan Petit est-il refusé ?', options: [
     {label: 'Une modification ne peut pas retirer de séances', why: 'Une modification peut très bien diminuer une valeur : ici, c’est le résultat, −1, qui est refusé.'},
-    {label: 'La condition ne désigne aucune carte', why: 'La carte de Nathan Petit existe : elle appartient au client 4.'},
+    {label: 'La condition ne désigne aucune carte', why: 'La condition <code>client_id = 4</code> désigne bien la carte de Nathan Petit.'},
     {label: 'Le solde passerait sous 0, ce que la règle de la table interdit', ok: true}]}
 ];
 
@@ -618,8 +618,8 @@ function build(){
   tl.set(M3_ANS, {autoAlpha: 1}, set2(PICKS[2].at));
   tl.set(M3_HIDE, {autoAlpha: 0}, set2(PICKS[2].at));
   NUMS.forEach((n, q) => { const t = A.c11 + 0.3 + q * 0.3; bump('#ds' + n, t, 1.12); cue(t, 'tick', 0.5, q); });
-  // rien n’avertit : l’oubli passe inaperçu
-  pulse('#o-5', A.c12 + 0.3, 1, 'rgba(242,154,46,.35)'); cue(A.c12 + 0.3, 'miss', 0.4);
+  // seul le nombre de lignes modifiées permet de repérer l’oubli : « 5 lignes modifiées » pulse quand la légende le dit
+  pulse('#o-5', A.c12 + 1.2, 1, 'rgba(242,154,46,.35)'); cue(A.c12 + 1.2, 'miss', 0.4);
 
   /* ===== 4 · Lire avant d’écrire ===== */
   // tout revient à la normale : les dates, le commentaire, la ligne WHERE
@@ -841,7 +841,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 132.8, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 133.2, picks: PICKS, opens: OPENS,
   glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝🔑🔗🛡️✉️👆📬🗑️✏️⚠️🔢✓✕!…«»·−',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>

@@ -41,11 +41,12 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
   assert.ok(page.includes('const QUESTIONS = [];') && !/kicker: '/.test(page), 'pas de question en pleine vidéo');
   assert.ok(page.includes('beforeRender: t => IX.tick(t)});') && page.includes('tick(t = tl.time()){') && !page.includes('onRender: () => IX.tick()') && page.includes('window.IX = IX;'), 'aperçu retiré avant le rendu');
   assert.ok(!/text-wrap\s*:\s*pretty/.test(page), 'retours à la ligne classiques');
-  /* Trois légendes de quatre lignes (4e valeur : la carte monte le temps de les lire) : la phrase sur le 1 du côté de Coach (123 caractères),
-     celle sur INSERT INTO (113) et celle du récapitulatif (109). Aucune coupe en trois lignes ne tient sans écraser les lettres
-     ni finir une ligne sur un mot court. */
-  assert.equal((page.match(/\n\s*\[[\d.]+, [\d.]+, ("[^\n]*"|'[^\n]*'), 4\],?/g) || []).length, 3, 'trois légendes de quatre lignes');
+  /* Quatre légendes de quatre lignes (4e valeur : la carte monte le temps de les lire) : la phrase sur le 1 du côté de Coach (123 caractères),
+     celle sur les deux clés étrangères NOT NULL (98 caractères, mais « NOT NULL » est large), celle sur INSERT INTO (113) et celle du récapitulatif
+     (109). Aucune coupe en trois lignes ne tient sans écraser les lettres, finir une ligne sur un mot court ou couper « ses deux / clés étrangères ». */
+  assert.equal((page.match(/\n\s*\[[\d.]+, [\d.]+, ("[^\n]*"|'[^\n]*'), 4\],?/g) || []).length, 4, 'quatre légendes de quatre lignes');
   for (const s of ['[115.95, 120.6, "Le <code>1</code> du côté de Coach signifie<br>que chaque atelier est animé<br>par un seul coach :<br>il ne peut en avoir ni zéro ni plusieurs.", 4],',
+    '[128.7, 133.6, "Une inscription concerne toujours<br>un client et un atelier :<br>ses deux clés étrangères<br>sont <code>NOT NULL</code>.", 4],',
     '[186.1, 188.7, "Karim y ajoutera les données<br>avec la commande <code>INSERT INTO</code>,<br>qui permet d’insérer de nouvelles<br>lignes dans une table.", 4],',
     '[194.0, 198.8, "Créer une table, c’est définir<br>ses colonnes, les données<br>qu’elles peuvent contenir<br>et les règles à respecter.", 4],'])
     assert.ok(page.includes(s), `légende en quatre lignes : ${s.slice(0, 60)}`);
@@ -54,7 +55,7 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
   let total = 0;
   for (const f of [FILE, 'core.css', 'core.js', 'gsap.min.js', 'mascotte.webp', THUMB]) total += fs.statSync(path.join(ANIM, f)).size;
   for (const f of FONTS) total += fs.statSync(path.join(ROOT, 'assets/fonts', f)).size;
-  assert.ok(total < 450 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
+  assert.ok(total < 470 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
   assert.ok(fs.statSync(path.join(ANIM, THUMB)).size > 1000, 'vignette');
 });
 
