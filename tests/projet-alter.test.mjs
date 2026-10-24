@@ -1,7 +1,7 @@
 /* Projet NutriBoost, chapitre 5 (leçon 65 « ALTER TABLE ») : la vidéo interactive assets/anim/projet-alter.html.
    Tests propres à la page. Les trois tests communs (fiche de la leçon dans index.html, sw.js, poids) arrivent avec l’entrée
    COURSES que l’orchestrateur ajoute à tests/lesson-video.test.mjs lors de l’intégration : ce fichier ne lit ni index.html
-   (sauf la base SCHEMA_SQL de l’app), ni sw.js. */
+   (sauf la base SCHEMA_SQL de l’app et le son « buzz » du téléphone), ni sw.js. */
 import fs from 'node:fs';
 import vm from 'node:vm';
 import path from 'node:path';
@@ -43,7 +43,15 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
   assert.ok(page.includes('const QUESTIONS = [];') && !/kicker: '/.test(page), 'pas de question en pleine vidéo');
   assert.ok(page.includes('beforeRender: t => IX.tick(t)});') && page.includes('tick(t = tl.time()){') && !page.includes('onRender: () => IX.tick()') && page.includes('window.IX = IX;'), 'aperçu retiré avant le rendu');
   assert.ok(!/text-wrap\s*:\s*pretty/.test(page), 'retours à la ligne classiques');
-  assert.ok(!/\n\s*\[[\d.]+, [\d.]+, ("[^\n]*"|'[^\n]*'), 4\],?/.test(page), 'aucune légende de quatre lignes');
+  /* Quatre légendes de quatre lignes (4e valeur : la carte monte le temps de les lire). Aucune coupe en trois lignes ne tient sans finir une ligne
+     sur un mot court : la colonne places (108 caractères), la colonne telephone (108), les appels et messages des coachs (115) et l’annonce
+     du chapitre 6 (109). Toutes les autres légendes restent à trois lignes au plus. */
+  assert.equal((page.match(/\n\s*\[[\d.]+, [\d.]+,\s+("[^\n]*"|'[^\n]*'), 4\],?/g) || []).length, 4, 'quatre légendes de quatre lignes');
+  for (const s of ['"Pour enregistrer le nombre de places<br>de chaque atelier, on ajoute<br>une colonne <code>places</code><br>dans la <b>table ateliers</b>.", 4],',
+    '"On l’ajoute donc dans une colonne<br><code>telephone</code> de la <b>table coachs</b>,<br>pour le renseigner<br>une seule fois par coach.", 4],',
+    '"Les coachs reçoivent de nombreux<br>appels et messages pendant<br>les cours, pour des questions<br>que l’accueil peut gérer.", 4],',
+    '"Dans le prochain chapitre, tu apprendras à supprimer une table entière et toutes ses données avec <code>DROP TABLE</code>.", 4],'])
+    assert.ok(page.includes(s), `légende en quatre lignes : ${s.slice(0, 60)}`);
   /* Même budget que le test COURSES : page + vignette + moteur + GSAP + mascotte + 5 polices < 450 Kio. */
   const FONTS = ['jetbrains-mono.woff2', 'inter-medium.woff2', 'inter-semibold.woff2', 'inter-bold.woff2', 'inter-extrabold.woff2'];
   let total = 0;
@@ -80,7 +88,7 @@ test(`${FILE} : chapitres, légendes d’une seule phrase, vocabulaire du projet
   const strip = s => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!--[\s\S]*?-->/g, '').replace(/(^|[^:'"\\])\/\/.*$/gm, '$1');
   /* « Numéro » ne reste que pour ce qui en est un : le téléphone des coachs (et celui des clients). Jamais pour la valeur d’une clé. */
   const code = strip(page);
-  assert.ok(code.includes('numéros de téléphone') && code.includes('Le numéro décrit un coach'), 'le numéro de téléphone des coachs');
+  assert.ok(code.includes('numéros de téléphone') && code.includes('Le numéro de téléphone est une information sur le coach.'), 'le numéro de téléphone des coachs');
   assert.ok(!/num[ée]ros? (de |d’|du )(client|atelier|carte|ligne|inscription)s?\b|num[ée]ros? d[’']identifiant|\bid\b.{0,12}num[ée]ro|num[ée]ro.{0,12}\bid\b/i.test(code), '« identifiant », jamais « numéro », pour une valeur de clé');
   assert.ok(!page.includes('table de jointure'), '« table d’association »');
   assert.ok(!/\bEn 1 → N\b/.test(page), '« Dans une relation 1 → N »');
@@ -142,57 +150,70 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
     'Au chapitre 4, tu as créé les tables des ateliers avec CREATE TABLE.',
     'Karim y a enregistré les coachs, les ateliers, les inscriptions et les premières cartes de membre.',
     'Les premières séances amènent aussi des demandes de changement.',
-    'Il faut une colonne de plus dans la table ateliers : places.',
-    'Recréer la table avec CREATE TABLE est impossible : elle existe déjà, avec ses cinq ateliers.',
+    'Pour enregistrer le nombre de places de chaque atelier, on ajoute une colonne places dans la table ateliers.',
+    'CREATE TABLE sert à créer une nouvelle table.',
+    'Ici, la table ateliers existe déjà : pour lui ajouter une colonne en conservant ses données, on utilise ALTER TABLE.',
     'On la modifie donc avec ALTER TABLE, qui change la structure d’une table existante.',
     'ADD COLUMN ajoute une colonne, avec son nom et son type.',
-    'Les lignes existantes reçoivent la valeur de DEFAULT dès l’ajout de la colonne.',
+    'Avec DEFAULT 12, la colonne places contient 12 pour chacun des cinq ateliers déjà enregistrés, dès son ajout.',
     'Leurs titres, dates et coachs restent intacts : aucune ligne n’est perdue.',
-    'Le numéro décrit un coach : il a sa place dans la table coachs, une seule fois par coach.',
+    'Le numéro de téléphone est une information sur le coach.',
+    'On l’ajoute donc dans une colonne telephone de la table coachs, pour le renseigner une seule fois par coach.',
     'Chaque coach a son propre numéro : on n’écrit donc pas de DEFAULT.',
     'Sans DEFAULT, les lignes existantes reçoivent NULL : la case reste vide.',
     'Quelques jours plus tard, Karim y enregistre le numéro de chaque coach.',
     'Il utilise pour cela UPDATE, qui change des valeurs : tu le découvriras bientôt.',
     'Pour renommer une colonne, on écrit RENAME COLUMN.',
-    'On écrit l’ancien nom, puis TO, puis le nouveau.',
-    'Les soldes 10, 5 et 8 restent en place : seul le nom de la colonne change.',
+    'Après RENAME COLUMN, on indique le nom actuel, seances, puis TO suivi du nouveau nom, seances_restantes.',
+    'Les valeurs restent inchangées.',
+    'La colonne s’appelle maintenant seances_restantes.',
+    'Chaque carte conserve son nombre de séances : 10, 5 et 8.',
     'La contrainte CHECK suit le nouveau nom : seances_restantes >= 0.',
     'Sur le même modèle, ALTER TABLE cartes RENAME TO cartes_membre renommerait la table elle-même.',
-    'Finalement, les coachs préfèrent être joints par l’accueil : leurs numéros doivent disparaître.',
+    'Les coachs reçoivent de nombreux appels et messages pendant les cours, pour des questions que l’accueil peut gérer.',
+    'Ils souhaitent pouvoir se concentrer sur leurs séances.',
     'DROP COLUMN supprime la colonne, et toutes ses valeurs avec elle.',
     'Une colonne supprimée ne se récupère pas : il faudrait redemander leurs numéros aux coachs.',
     'Julie prévient que l’atelier Cuisine saine déménage dans une cuisine plus petite, de 8 places.',
     'Cette fois, aucune colonne ne change : seule la valeur de l’atelier Cuisine saine passe de 12 à 8.',
     'Comme pour les numéros des coachs, Karim s’en charge avec UPDATE.',
-    'Ne plus conserver l’âge des clients, c’est retirer la colonne age : DROP COLUMN, pas UPDATE.',
-    'Dans le prochain chapitre, tu supprimeras ce qui ne sert plus avec DROP TABLE.',
+    'Avec DROP COLUMN, on supprime la colonne age et tous les âges qu’elle contient.',
+    'UPDATE permet de modifier les valeurs en conservant la colonne.',
+    'Dans le prochain chapitre, tu apprendras à supprimer une table entière et toutes ses données avec DROP TABLE.',
     'Pour finir, voici les trois idées à retenir.',
     'Ajoute ce résumé à tes notes pour le retrouver facilement.'];
   assert.deepEqual(D.CAPTIONS.map(c => flat(c[2])).filter(t => t !== 'À toi !'), BULLES, 'les bulles du scénario, mot pour mot');
-  /* Les trois mails : Julie Nguyen (12 places), Diego Ramos (les numéros des coachs), l’équipe NutriBoost (seances prête à confusion). */
+  /* Les quatre mails : Julie Nguyen (12 places), Diego Ramos (les numéros des coachs), l’équipe NutriBoost (seances prête à confusion), puis de nouveau
+     l’équipe NutriBoost (l’accueil centralise les demandes : les numéros des coachs ne sont plus conservés). Le dernier n’a ni « Merci ! » ni signature. */
   assert.deepEqual(D.MAILS.map(m => [m[0][0] + ' ' + m[0][1], m[1], m[2], m[3], m[5]]), [['Julie Nguyen', 'k-co', 'coach', 'julie@mail.fr', 'Julie'],
-    ['Diego Ramos', 'k-co', 'coach', 'diego@mail.fr', 'Diego'], ['L’équipe NutriBoost', 'k-nb', 'équipe', 'equipe@nutriboost.fr', 'L’équipe NutriBoost']], 'expéditeurs');
+    ['Diego Ramos', 'k-co', 'coach', 'diego@mail.fr', 'Diego'], ['L’équipe NutriBoost', 'k-nb', 'équipe', 'equipe@nutriboost.fr', 'L’équipe NutriBoost'],
+    ['L’équipe NutriBoost', 'k-nb', 'équipe', 'equipe@nutriboost.fr', null]], 'expéditeurs');
   assert.deepEqual(D.MAILS.map(m => m[4]), [
     ['Je suis Julie, la coach de l’atelier Cuisine saine.', 'Nos salles accueillent au maximum 12 personnes. Peux-tu enregistrer le nombre de places de chaque atelier ?'],
     ['Je suis Diego, le coach de l’atelier Méditation.', 'Les clients aimeraient pouvoir appeler leur coach avant la séance. Peux-tu ajouter nos numéros de téléphone dans la base ?'],
-    ['À l’accueil, la colonne seances prête à confusion : certains y voient le nombre de séances déjà suivies.', 'Peux-tu la renommer seances_restantes ?']], 'demandes, mot pour mot');
-  /* Chaque mail arrive avant le moment qui s’en sert. */
-  assert.ok(D.OPENS[0].at < D.PICKS[0].from && D.OPENS[1].at < D.PICKS[1].at && D.OPENS[1].at > D.PICKS[0].at && D.OPENS[2].at < D.PICKS[3].at && D.OPENS[2].at > D.PICKS[2].at, 'chaque mail avant son moment');
+    ['La colonne seances indique le nombre de séances qu’un client peut encore utiliser. Son nom prête à confusion : l’équipe d’accueil pense parfois qu’il s’agit des séances déjà suivies.',
+      'Peux-tu la renommer seances_restantes, en conservant les valeurs actuelles ?'],
+    ['Désormais, l’accueil centralise les demandes des clients. Nous ne souhaitons plus conserver les numéros personnels des coachs dans cette base.']], 'demandes, mot pour mot');
+  assert.ok(page.includes("sign ? ['<span class=\"sn2\">Merci !</span>', `<span class=\"sn2 s\">${sign}</span>`] : []"), 'mail sans signature : ni « Merci ! » ni signature');
+  /* Chaque mail arrive avant le moment qui s’en sert ; le quatrième, juste avant le moment 5 (la requête qui retire les numéros),
+     et « Revoir » du moment 5 repart avant lui pour que le mail se relise. */
+  assert.ok(D.OPENS[0].at < D.PICKS[0].from && D.OPENS[1].at < D.PICKS[1].at && D.OPENS[1].at > D.PICKS[0].at && D.OPENS[2].at < D.PICKS[3].at && D.OPENS[2].at > D.PICKS[2].at
+    && D.OPENS[3].at < D.PICKS[4].at && D.OPENS[3].at > D.PICKS[3].at && D.PICKS[4].from < D.OPENS[3].at, 'chaque mail avant son moment');
   /* L’annonce du chapitre suivant, sous son vrai titre. */
   assert.ok(page.includes('<span class="emo">🗑️</span>Chapitre 6 · DROP</span>'), 'pilule « 🗑️ Chapitre 6 · DROP »');
   /* La suite de la fin du chapitre 4 : une table qui vient d’être créée affiche « 0 ligne » ; Karim arrive dans la même pilule
      (KB, ✍️, la commande) : INSERT INTO quand il remplit les tables, puis UPDATE quand il change des valeurs. */
   assert.ok(page.includes('<i class="e">0 ligne</i>') && !page.includes('<i class="e">vide</i>'), '« 0 ligne », comme au chapitre 4');
   assert.ok(["kbp('kb1', 'INSERT INTO')", "kbp('kb2', 'UPDATE', 'up2')", "kbp('kb6', 'UPDATE', 'up6')"].every(s => page.includes(s)) && !page.includes("who('kb"), 'Karim : la pilule du chapitre 4, INSERT INTO puis UPDATE');
-  /* Les trois idées à retenir : la phrase, puis sa précision (aucune pour la première). */
+  /* Les trois idées à retenir : un titre, puis sa précision (chaque ligne en a une). */
   const recap = page.slice(page.indexOf('<div class="abs card recap" id="recap">'), page.indexOf('</section>', page.indexOf('id="recap"')));
   const rows = [...recap.matchAll(/<div class="rtxt">([\s\S]*?)<\/div><\/div>/g)].map(m => m[1]);
   const phrase = r => flat(r.split('<span class="rs">')[0]), prec = r => r.includes('<span class="rs">') ? flat(r.slice(r.indexOf('<span class="rs">'))) : null;
   assert.deepEqual(rows.map(r => [phrase(r), prec(r)]), [
-    ['ALTER TABLE fait évoluer la structure d’une table qui existe déjà, sans la recréer ni perdre ses lignes.', null],
-    ['ADD COLUMN ajoute une colonne : les lignes existantes reçoivent NULL, ou la valeur de DEFAULT :', 'ADD COLUMN places INTEGER DEFAULT 12'],
-    ['ALTER TABLE change les colonnes, UPDATE change les valeurs.', 'Renommer une colonne garde ses données ; la supprimer les efface.']], 'récapitulatif');
-  assert.ok(['🏗️', '➕', '🔀'].every(e => recap.includes(`<div class="rico emo">${e}</div>`)), 'emoji des trois idées');
+    ['Modifier une table', 'ALTER TABLE permet d’ajouter, de renommer ou de supprimer une colonne d’une table existante.'],
+    ['Ajouter une colonne', 'Avec ADD COLUMN, les lignes déjà présentes reçoivent la valeur définie par DEFAULT, ou NULL si aucune valeur par défaut n’est prévue et que la colonne l’autorise.'],
+    ['Distinguer structure et valeurs', 'ALTER TABLE modifie la structure ; UPDATE modifie les valeurs. Renommer une colonne conserve son contenu. La supprimer efface toutes les données de cette colonne.']], 'récapitulatif');
+  assert.ok(['🛠️', '➕', '🔄'].every(e => recap.includes(`<div class="rico emo">${e}</div>`)), 'emoji des trois idées');
 });
 
 test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices, la réponse posée juste après l’arrêt`, () => {
@@ -236,7 +257,11 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
     ['Donner le nom email_pro à la colonne email des coachs', 'ren', 'La colonne garde ses valeurs, sous un autre nom.']]);
   /* Le plateau range les demandes deux par deux, comme les cases : aucune demande n’est à la place de sa case. */
   assert.ok(W.DEMANDES.every((d, q) => d[1] !== W.OPS[q][0]), 'moment 6 : les demandes ne suivent pas l’ordre des cases');
-  assert.ok(page.includes("pulse('#rc' + DEMANDES.findIndex(d => d[1] === 'drop'), 155.6,"), 'la demande « âge » pulse, où qu’elle soit dans la liste');
+  /* Pendant « Avec DROP COLUMN, on supprime la colonne age… » : la case DROP COLUMN s’allume et la demande sur l’âge pulse (où qu’elle soit dans la liste) ;
+     pendant « UPDATE permet de modifier les valeurs… » : la case UPDATE s’allume à son tour, avec la demande qui lui revient. */
+  assert.ok(page.includes("const cdrop = '#rc' + DEMANDES.findIndex(d => d[1] === 'drop'), cupd = '#rc' + DEMANDES.findIndex(d => d[1] === 'upd');")
+    && page.includes("pulse(cdrop, 201.4, 1, 'rgba(201,188,255,.8)');") && page.includes("pulse(cupd, 206.7, 1, 'rgba(201,188,255,.8)');")
+    && page.includes("tl.to('#rb-drop', {scale: 1.04,") && page.includes("tl.to('#rb-upd', {scale: 1.04,"), 'moment 6 : la case et la demande de chaque bulle s’allument');
   /* Une case remplie passe en trait plein pendant l’arrêt, comme la timeline juste après : la reprise ne saute pas. */
   assert.ok(page.includes('.rbin.pvb{border-style:solid!important}') && page.includes("mark(bin, 'pvb');") && page.includes("tl.set('.rbin', {borderStyle: 'solid'}, a5);"), 'moment 6 : trait plein dans l’aperçu');
   /* L’indice 💡 de chaque moment, après deux erreurs : une piste, passée par la typographie française. */
@@ -251,8 +276,11 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
   /* La réponse de chaque moment, posée par la timeline juste après l’arrêt (aN = at + 0,02), la même que l’aperçu. */
   for (const s of ["tl.set(M1_ANS.on, {autoAlpha: 1}, a0); tl.set(M1_ANS.off, {autoAlpha: 0}, a0);", 'tl.set(M2_ANS, {autoAlpha: 1}, a1);',
     "tl.set('#tc-co', {'--w4': '260px'}, a2);", 'tl.set(M3_ANS, {autoAlpha: 1}, a2);', "tl.set(M4_ANS.on, {autoAlpha: 1}, a3); tl.set(M4_ANS.off, {autoAlpha: 0}, a3);",
-    'tl.set(M5_ANS, {autoAlpha: 1}, a4);', 'tl.set(M6_ANS, {autoAlpha: 1}, a5);', "if (ok) { mark($('#tc-co'), 'pv-w4'); marks(M3_ANS); }", 'if (ok) marks(M5_ANS);', "#tc-co.pv-w4{--w4:260px!important}"])
+    'tl.set(M5_ANS, {autoAlpha: 1}, a4);', 'tl.set(M6_ANS, {autoAlpha: 1}, a5);', "if (ok) { mark($('#tc-co'), 'pv-w4'); marks(M3_ANS); mark($('#mtl'), 'pvh'); }", 'if (ok) marks(M5_ANS);', "#tc-co.pv-w4{--w4:260px!important}"])
     assert.ok(page.includes(s), `réponse : ${s}`);
+  /* Moment 3 : la puce « + telephone » (la colonne qui manque) s’efface avec la réponse, comme « + places » au moment 1 ; elle revient dans l’aperçu d’une mauvaise réponse. */
+  for (const s of ["tl.set('#mtl', {autoAlpha: 0}, a2);", "flash($('#tc-co'), 'pv-w4', 1300); flashAll(M3_ANS, 'pvs', 1300); flash($('#mtl'), 'pvh', 1300);"])
+    assert.ok(page.includes(s), `moment 3 : ${s}`);
   /* Moment 1, CHECK : l’aperçu ouvre la colonne places (vide) ; « + places » (la colonne qui manque) s’efface avec. */
   assert.ok(page.includes("flashAll(['#tb-at .r .c4 .p0'], 'pvh', 1300); flash($('#mpl'), 'pvh', 1300); }"), 'moment 1 : aperçu de CHECK cohérent');
   /* Moment 2 : juste avant l’arrêt, rien n’attire l’œil sur une mauvaise table (la puce places de la table ateliers ne bouge pas). */
@@ -260,10 +288,43 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
   [0, 1, 2, 3, 4, 5].forEach(i => assert.ok(page.includes(`const a${i} = +(PICKS[${i}].at + 0.02).toFixed(2);`), `a${i}`));
   /* Les gestes de la timeline, chacun pendant la bulle qui en parle. */
   /* La colonne telephone s’effrite de bas en haut, son nom en dernier : chaque case tombe sur une case déjà vide. */
-  for (const s of ["addCol('tb-at', 4, 150, 44.7, 0.16);", "swap(`#lc-${k} .e`, `#lc-${k} .f`, t, false);",
-    "crumble(COACHS.map(([id]) => `#tc-co-r${id} .c4 .l1`).reverse().concat('#tc-co .hd .c4 .h0').map(s => $(s)), 125.9);", "swap('#hsw .o', '#hsw .n', 102.5);",
-    "swap('#cksw .o', '#cksw .n', 108.0);", "swap(`#tb-at-r${CUISINE[0]} .c4 .p0`, `#tb-at-r${CUISINE[0]} .c4 .p2`, 144.2);", "COACHS.forEach(([id], k) => swap(`#tc-co-r${id} .c4 .l0`, `#tc-co-r${id} .c4 .l1`, 79.2 + k * 0.4));"])
+  for (const s of ["addCol('tb-at', 4, 150, 53.7, 0.16);", "swap(`#lc-${k} .e`, `#lc-${k} .f`, t, false);",
+    "crumble(COACHS.map(([id]) => `#tc-co-r${id} .c4 .l1`).reverse().concat('#tc-co .hd .c4 .h0').map(s => $(s)), 172);", "swap('#hsw .o', '#hsw .n', 125.4);",
+    "swap('#cksw .o', '#cksw .n', 132.75);", "swap(`#tb-at-r${CUISINE[0]} .c4 .p0`, `#tb-at-r${CUISINE[0]} .c4 .p2`, 190.3);", "COACHS.forEach(([id], k) => swap(`#tc-co-r${id} .c4 .l0`, `#tc-co-r${id} .c4 .l1`, 95.5 + k * 0.4));"])
     assert.ok(page.includes(s), `geste : ${s}`);
+  /* … et chacun tombe pendant la bulle qui le dit (début de la bulle ≤ geste ≤ fin). */
+  const during = (t, start) => { const c = D.CAPTIONS.find(c => flat(c[2]).startsWith(start)); assert.ok(c && t >= c[0] && t <= c[1], `geste à ${t} s pendant « ${start}… »`); };
+  during(53.7, 'Avec DEFAULT 12'); during(95.5, 'Quelques jours plus tard'); during(125.4, 'La colonne s’appelle maintenant'); during(132.75, 'La contrainte CHECK');
+  during(172, 'DROP COLUMN supprime la colonne'); during(190.3, 'Cette fois, aucune colonne ne change');
+});
+
+test(`${FILE} : le téléphone d’un coach (deux vagues de notifications, message de Léa Simon), puis le quatrième mail`, () => {
+  const T = load(FILE, 'NOTIF1, PHONE_MSG, NOTIF2');
+  /* Première vague : six notifications (message : m, appel manqué : x), la plus ancienne en bas ; le message de Léa Simon s’ouvre. */
+  assert.deepEqual(T.NOTIF1, [['Léa Simon', 'm', 'Message'], ['Sophie Martin', 'x', 'Appel manqué'], ['Nathan Petit', 'm', 'Message'],
+    ['Lucas Bernard', 'x', 'Appel manqué'], ['Chloé Moreau', 'm', 'Message'], ['Emma Dubois', 'm', 'Message']], 'première vague');
+  assert.equal(T.PHONE_MSG, 'Bonjour coach, je suis dans les bouchons… J’arrive dans 15 minutes. Je sais que le cours a commencé, mais j’aimerais beaucoup y participer. Pouvez-vous m’attendre ?');
+  /* Seconde vague : 💬 une question, 📞 un appel entrant, 💬, 📞 3 appels manqués, 💬. Chaque client porte son prénom et son nom. */
+  assert.deepEqual(T.NOTIF2, [['Hugo Laurent', 'm', 'Le cours est dans quelle salle ?'], ['Chloé Moreau', 'c', 'Appel entrant…'], ['Lucas Bernard', 'm', 'Il faut apporter un tapis ?'],
+    ['Nathan Petit', 'x', '3 appels manqués'], ['Emma Dubois', 'm', 'Je peux venir avec une amie ?']], 'seconde vague');
+  assert.ok(T.NOTIF1.concat(T.NOTIF2).every(n => /^\S+ \S+$/.test(n[0])), 'chaque client avec son prénom et son nom');
+  /* « …pour des questions que l’accueil peut gérer » : les trois messages de la seconde vague s’entourent, de haut en bas (le plus récent est en haut). */
+  assert.deepEqual(T.NOTIF2.map((n, k) => [k, n[1]]).filter(([, kind]) => kind === 'm').map(([k]) => k).reverse(), [4, 2, 0], 'les trois messages de questions');
+  /* Le téléphone entre au centre ; l’image reste le temps de lire le message de Léa Simon ; la légende revient avec la première bulle. */
+  for (const s of ["show('#ph', p, {y: 170, scale: 0.92}, 0.7, 'back.out(1.3)');", 'hold(p + 5.5, Math.ceil(readTime(PHONE_MSG) * 20) / 20);', '[4, 2, 0].forEach((k, q) =>',
+    "sceneOn('#sp', 141.35);\n  phoneScene(141.4);\n  capOn(151.05);\n  capOff(162.3);\n  sceneOff('#sp', 162.95);"])
+    assert.ok(page.includes(s), `téléphone : ${s.slice(0, 70)}`);
+  const [c1, c2] = ['Les coachs reçoivent de nombreux', 'Ils souhaitent pouvoir'].map(s => D.CAPTIONS.find(c => flat(c[2]).startsWith(s)));
+  assert.ok(c1 && c2 && c1[0] >= 141.4 + 9.5 && c2[1] <= 162.95, 'les deux bulles du téléphone sont lues pendant la scène, après les deux vagues');
+  /* Le téléphone vibre à chaque notification : un nombre pair de mouvements (répétition impaire + 1), pour qu’il revienne exactement à sa place. */
+  const buzzes = [...page.matchAll(/\bbuzz\(([^()]*)\);/g)].map(m => m[1].split(', ')).map(a => a.length > 1 ? +a[1] : 5);
+  assert.ok(buzzes.length === 3 && buzzes.every(n => n % 2 === 1), `vibrations : ${buzzes}`);
+  assert.ok(page.includes("cue(t, 'buzz', 0.55);") && fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').includes("case 'buzz':{"), 'le son « buzz » existe dans l’app (un son inconnu resterait muet)');
+  /* Le message de l’équipe arrive juste après le téléphone ; l’app s’arrête dessus 1,1 s après son entrée, comme pour les trois autres mails. */
+  assert.ok(page.includes("sceneOn('#sm', 163.05);\n  mailIn(4, 163.15, OPENS[3].at);"), 'quatrième mail');
+  assert.deepEqual([...page.matchAll(/mailIn\((\d), ([\d.]+), OPENS\[(\d)\]\.at\)/g)].map(m => [+m[1] - 1 === +m[3], +(+m[2] + 1.1).toFixed(2)]),
+    D.OPENS.map(o => [true, o.at]), 'mailIn(n, t, OPENS[n - 1].at) : l’arrêt 1,1 s après l’entrée du mail');
+  assert.ok(D.OPENS[3].at > 162.95, 'le mail vient après le téléphone');
 });
 
 test(`${FILE} : le cas NutriBoost des chapitres 2 à 4, et chaque requête montrée vérifiée dans SQLite`, async () => {
