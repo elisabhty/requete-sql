@@ -1050,7 +1050,7 @@ const COURSES = [
       "{label: 'Le solde passerait sous 0, ce que la règle de la table interdit', ok: true}]}",
       "b += out('o-5', 'warn', 'Requête exécutée', '5 lignes modifiées.');", "c += out('o-ck', 'err', 'Requête refusée', 'CHECK constraint failed:<br>seances_restantes &gt;= 0', 'm', true);", 'Prochaine leçon · DELETE']},
   {id: 28, next: 68, titre: 'DELETE', page: 'projet-delete.html', thumb: 'projet-delete-thumb.webp', duree: '3 min 21', notesAt: 142.2,
-    notes: /notes:\{t:193\.5,y:1261,card:\[64,292,1016,966\],to:\[940,255\]\}/, table: 'inscriptions',
+    notes: /notes:\{t:194\.2,y:1261,card:\[64,292,1016,966\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Des lignes ne servent plus&nbsp;:<br>à toi de les supprimer de la base.',
     chapters: ['Trois demandes', 'Supprimer une ligne', 'Le bon client', 'Plusieurs lignes', 'L’oubli du WHERE', 'Trois mots-clés', 'À retenir'],
     traps: ["const REST = [1, 2, 3, 5, 7, 8, 10, 11];",
