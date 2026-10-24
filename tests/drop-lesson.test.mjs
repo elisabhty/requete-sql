@@ -49,9 +49,9 @@ test('recherche, et leçon seule sans texte de secours ni exercice', () => {
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
   /* Le bouton des notes est écrit en clair dans Course(…) : il suit la dernière légende. */
-  assert.equal(val('NOTES'), 107.8);
-  assert.ok(page.includes('notesAt: 107.8,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 115);
+  assert.equal(val('NOTES'), 120);
+  assert.ok(page.includes('notesAt: 120,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 127.2);
   /* Des légendes qui se suivent sans se chevaucher, chaque chapitre commençant après la fin de la légende précédente. */
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
@@ -232,10 +232,47 @@ test('chapitre 6 : écran titre, ouverture comme aux autres chapitres, annonce d
   /* La fin du chapitre 5 annonce « Chapitre 6 · DROP » et « DROP TABLE » : c’est ce chapitre. */
   const alter = fs.readFileSync(path.join(root, 'assets/anim/projet-alter.html'), 'utf8');
   assert.ok(alter.includes('Chapitre 6 · DROP') && alter.includes('avec <code>DROP TABLE</code>.'), 'le chapitre 5 annonce celui-ci');
-  /* Il annonce à son tour la leçon suivante du cours : INSERT. */
-  assert.ok(caps.includes('Dans la prochaine leçon,<br>tu ajouteras des lignes avec <code>INSERT</code>.') && page.includes('Prochaine leçon · INSERT</span>'), 'annonce de la prochaine leçon');
+  /* Il annonce à son tour la leçon suivante du cours : INSERT (texte d’Elisa, 24 octobre, 10:15). */
+  assert.ok(caps.includes('Dans la prochaine leçon, tu apprendras à ajouter des données dans tes tables avec <code>INSERT INTO</code>.') && page.includes('Prochaine leçon · INSERT INTO</span>'), 'annonce de la prochaine leçon');
   assert.equal(lessons[lessons.findIndex(l => l.id === 66) + 1].id, 26);
   assert.equal(lessons.find(l => l.id === 26).titre, 'INSERT');
+});
+
+/* ---------- Les deux fautes de nom et le récapitulatif (Elisa, 24 octobre, 10:15) ---------- */
+const strip = h => h.replace(/<br>/g, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+
+test('les deux fautes de nom rappellent l’objectif (supprimer la copie), puis disent ce que l’élève tape ; l’image suit la phrase', () => {
+  const caps = val('CAPTIONS'), A = val('A'), B = val('B');
+  const c11 = caps.find(c => c[0] === A.c11), c14 = caps.find(c => c[0] === A.c14), c24 = caps.find(c => c[0] === A.c24);
+  assert.equal(strip(c11[2]), 'Imagine que tu te trompes de nom : tu veux supprimer la table inscriptions_excel, mais tu tapes clients à la place.', 'faute 1 : le texte d’Elisa, mot pour mot');
+  assert.equal(strip(c14[2]), 'Imagine maintenant que tu oublies la fin du nom : tu veux supprimer la table inscriptions_excel, mais tu tapes inscriptions.', 'faute 2 : même phrase, l’objectif est rappelé');
+  assert.equal(strip(c24[2]), 'Dans la prochaine leçon, tu apprendras à ajouter des données dans tes tables avec INSERT INTO.');
+  /* Ces phrases font quatre lignes (4e valeur) ; chacune dure le temps de la lire (17 caractères par seconde, 0,5 s de fondus) : aucune pause supplémentaire. */
+  assert.equal(c11[3], 4); assert.equal(c14[3], 4); assert.equal(c24[3], undefined, 'la bulle de fin tient en trois lignes');
+  for (const c of [c11, c14, c24]) assert.ok(c[1] - c[0] >= strip(c[2]).length / 17 + 0.5 - 1e-9, `« ${strip(c[2]).slice(0, 30)}… » : le temps de la lire sans pause`);
+  /* L’image suit la phrase : la bonne requête reste à l’écran tant que la phrase parle de la copie, puis le nom change à « mais tu tapes… ». */
+  assert.ok(page.includes('const X4 = A.c11 + 4.7;') && page.includes('const X5 = A.c14 + 5.3;'), 'le nom change au milieu de la phrase');
+  assert.ok(4.7 + 1.55 + 0.3 < B.c11 - A.c11 && 5.3 + 1.0 + 0.8 < B.c14 - A.c14, 'la requête fautive est tapée avant la fin de la légende');
+  assert.ok(page.includes("hide('#ed3', X4, {y: 30}, 0.3);") && page.includes("hide('#ed3', X5, {y: 30}, 0.3);"), 'la bonne requête s’efface au moment de la faute');
+  assert.ok(page.includes("on('#rw-xl .sfx .rg', X5 + 0.1);"), 'le bout de nom oublié (_excel) est repéré dans la liste');
+  assert.ok(page.includes("off(['#rw-xl .sfx .rg', '#rw-xl .hl'], A.c15, 0.2);"), 'la copie n’est plus repérée quand la légende suivante parle de la table inscriptions');
+});
+
+test('le récapitulatif, mot pour mot, dans la vidéo comme dans la fiche de la leçon : trois idées, chacune avec sa phrase puis sa précision', () => {
+  const rows = [...page.matchAll(/<div class="rrow"><div class="rico emo">([^<]+)<\/div><div class="rtxt">(.*?)<\/div><\/div>/g)].map(m => {
+    const [phrase, detail] = m[2].split('<span class="rs">');
+    const code = (detail.match(/<code class="blk">([^<]*)<\/code>/) || [])[1];
+    return [m[1], strip(phrase), strip(detail.replace(/<code class="blk">[^<]*<\/code>/, '').replace(/<\/span>$/, '')), ...(code ? [code] : [])];
+  });
+  const RECAP = [['🗑️', 'DROP TABLE supprime toute la table : ses lignes et ses colonnes.', 'DELETE FROM sans WHERE supprime toutes les lignes, mais conserve la structure.'],
+    ['🔗', 'Une clé étrangère peut bloquer la suppression si une autre table fait référence à celle-ci.', 'Vérifie toujours le nom de la table avant de la supprimer.'],
+    ['🛟', 'IF EXISTS évite une erreur si la table n’existe pas.', 'Il ne protège pas contre la suppression de la mauvaise table.', 'DROP TABLE IF EXISTS inscriptions_excel;']];
+  assert.deepEqual(rows, RECAP, 'la vidéo : les trois idées d’Elisa, mot pour mot');
+  const fiche = html.slice(html.indexOf('guide({ id:66,'), html.indexOf('guide({ id:26,'));
+  const idees = [...fiche.matchAll(/\["(🗑️|🔗|🛟)","([^"]*)","([^"]*)"(?:,"([^"]*)")?\]/g)].map(m => [m[1], strip(m[2]), strip(m[3]), ...(m[4] ? [m[4]] : [])]);
+  assert.deepEqual(idees, RECAP, 'la fiche de la leçon dit la même chose que la vidéo');
+  assert.ok(page.includes('recapScene(RECAP, [RECAP + 0.7, RECAP + 2.1, RECAP + 3.5]);') && page.includes("hold(r + 0.6, rd(rt[i].innerHTML.split('<span')[0]));") && page.includes('hold(d + 0.5, rd(rs[i].innerHTML));'),
+    'chaque idée se révèle en deux temps : la phrase, puis sa précision, chacune lue en entier');
 });
 
 test('les tables des ateliers sont celles que le chapitre 5 laisse (mêmes colonnes, mêmes nombres de lignes, même ordre) ; la copie est le fichier du chapitre 1', () => {

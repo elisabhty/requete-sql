@@ -184,17 +184,17 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
     'Ajoute ce résumé à tes notes pour le retrouver facilement.'];
   assert.deepEqual(D.CAPTIONS.map(c => flat(c[2])).filter(t => t !== 'À toi !'), BULLES, 'les bulles du scénario, mot pour mot');
   /* Les quatre mails : Julie Nguyen (12 places), Diego Ramos (les numéros des coachs), l’équipe NutriBoost (seances prête à confusion), puis de nouveau
-     l’équipe NutriBoost (l’accueil centralise les demandes : les numéros des coachs ne sont plus conservés). Le dernier n’a ni « Merci ! » ni signature. */
+     l’équipe NutriBoost (l’accueil centralise les demandes : les numéros des coachs ne sont plus conservés). Chaque mail, le dernier aussi, se termine par « Merci ! » et sa signature. */
   assert.deepEqual(D.MAILS.map(m => [m[0][0] + ' ' + m[0][1], m[1], m[2], m[3], m[5]]), [['Julie Nguyen', 'k-co', 'coach', 'julie@mail.fr', 'Julie'],
     ['Diego Ramos', 'k-co', 'coach', 'diego@mail.fr', 'Diego'], ['L’équipe NutriBoost', 'k-nb', 'équipe', 'equipe@nutriboost.fr', 'L’équipe NutriBoost'],
-    ['L’équipe NutriBoost', 'k-nb', 'équipe', 'equipe@nutriboost.fr', null]], 'expéditeurs');
+    ['L’équipe NutriBoost', 'k-nb', 'équipe', 'equipe@nutriboost.fr', 'L’équipe NutriBoost']], 'expéditeurs');
   assert.deepEqual(D.MAILS.map(m => m[4]), [
     ['Je suis Julie, la coach de l’atelier Cuisine saine.', 'Nos salles accueillent au maximum 12 personnes. Peux-tu enregistrer le nombre de places de chaque atelier ?'],
     ['Je suis Diego, le coach de l’atelier Méditation.', 'Les clients aimeraient pouvoir appeler leur coach avant la séance. Peux-tu ajouter nos numéros de téléphone dans la base ?'],
     ['La colonne seances indique le nombre de séances qu’un client peut encore utiliser. Son nom prête à confusion : l’équipe d’accueil pense parfois qu’il s’agit des séances déjà suivies.',
       'Peux-tu la renommer seances_restantes, en conservant les valeurs actuelles ?'],
     ['Désormais, l’accueil centralise les demandes des clients. Nous ne souhaitons plus conserver les numéros personnels des coachs dans cette base.']], 'demandes, mot pour mot');
-  assert.ok(page.includes("sign ? ['<span class=\"sn2\">Merci !</span>', `<span class=\"sn2 s\">${sign}</span>`] : []"), 'mail sans signature : ni « Merci ! » ni signature');
+  assert.ok(page.includes("['<span class=\"sn2\">Merci !</span>', `<span class=\"sn2 s\">${sign}</span>`]).join('');") && !page.includes('sign ? ['), 'chaque mail : « Merci ! » et sa signature');
   /* Chaque mail arrive avant le moment qui s’en sert ; le quatrième, juste avant le moment 5 (la requête qui retire les numéros),
      et « Revoir » du moment 5 repart avant lui pour que le mail se relise. */
   assert.ok(D.OPENS[0].at < D.PICKS[0].from && D.OPENS[1].at < D.PICKS[1].at && D.OPENS[1].at > D.PICKS[0].at && D.OPENS[2].at < D.PICKS[3].at && D.OPENS[2].at > D.PICKS[2].at
@@ -260,7 +260,7 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
   /* Pendant « Avec DROP COLUMN, on supprime la colonne age… » : la case DROP COLUMN s’allume et la demande sur l’âge pulse (où qu’elle soit dans la liste) ;
      pendant « UPDATE permet de modifier les valeurs… » : la case UPDATE s’allume à son tour, avec la demande qui lui revient. */
   assert.ok(page.includes("const cdrop = '#rc' + DEMANDES.findIndex(d => d[1] === 'drop'), cupd = '#rc' + DEMANDES.findIndex(d => d[1] === 'upd');")
-    && page.includes("pulse(cdrop, 201.4, 1, 'rgba(201,188,255,.8)');") && page.includes("pulse(cupd, 206.7, 1, 'rgba(201,188,255,.8)');")
+    && page.includes("pulse(cdrop, 202, 1, 'rgba(201,188,255,.8)');") && page.includes("pulse(cupd, 207.3, 1, 'rgba(201,188,255,.8)');")
     && page.includes("tl.to('#rb-drop', {scale: 1.04,") && page.includes("tl.to('#rb-upd', {scale: 1.04,"), 'moment 6 : la case et la demande de chaque bulle s’allument');
   /* Une case remplie passe en trait plein pendant l’arrêt, comme la timeline juste après : la reprise ne saute pas. */
   assert.ok(page.includes('.rbin.pvb{border-style:solid!important}') && page.includes("mark(bin, 'pvb');") && page.includes("tl.set('.rbin', {borderStyle: 'solid'}, a5);"), 'moment 6 : trait plein dans l’aperçu');
@@ -289,13 +289,13 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
   /* Les gestes de la timeline, chacun pendant la bulle qui en parle. */
   /* La colonne telephone s’effrite de bas en haut, son nom en dernier : chaque case tombe sur une case déjà vide. */
   for (const s of ["addCol('tb-at', 4, 150, 53.7, 0.16);", "swap(`#lc-${k} .e`, `#lc-${k} .f`, t, false);",
-    "crumble(COACHS.map(([id]) => `#tc-co-r${id} .c4 .l1`).reverse().concat('#tc-co .hd .c4 .h0').map(s => $(s)), 172);", "swap('#hsw .o', '#hsw .n', 125.4);",
-    "swap('#cksw .o', '#cksw .n', 132.75);", "swap(`#tb-at-r${CUISINE[0]} .c4 .p0`, `#tb-at-r${CUISINE[0]} .c4 .p2`, 190.3);", "COACHS.forEach(([id], k) => swap(`#tc-co-r${id} .c4 .l0`, `#tc-co-r${id} .c4 .l1`, 95.5 + k * 0.4));"])
+    "crumble(COACHS.map(([id]) => `#tc-co-r${id} .c4 .l1`).reverse().concat('#tc-co .hd .c4 .h0').map(s => $(s)), 172.6);", "swap('#hsw .o', '#hsw .n', 125.4);",
+    "swap('#cksw .o', '#cksw .n', 132.75);", "swap(`#tb-at-r${CUISINE[0]} .c4 .p0`, `#tb-at-r${CUISINE[0]} .c4 .p2`, 190.9);", "COACHS.forEach(([id], k) => swap(`#tc-co-r${id} .c4 .l0`, `#tc-co-r${id} .c4 .l1`, 95.5 + k * 0.4));"])
     assert.ok(page.includes(s), `geste : ${s}`);
   /* … et chacun tombe pendant la bulle qui le dit (début de la bulle ≤ geste ≤ fin). */
   const during = (t, start) => { const c = D.CAPTIONS.find(c => flat(c[2]).startsWith(start)); assert.ok(c && t >= c[0] && t <= c[1], `geste à ${t} s pendant « ${start}… »`); };
   during(53.7, 'Avec DEFAULT 12'); during(95.5, 'Quelques jours plus tard'); during(125.4, 'La colonne s’appelle maintenant'); during(132.75, 'La contrainte CHECK');
-  during(172, 'DROP COLUMN supprime la colonne'); during(190.3, 'Cette fois, aucune colonne ne change');
+  during(172.6, 'DROP COLUMN supprime la colonne'); during(190.9, 'Cette fois, aucune colonne ne change');
 });
 
 test(`${FILE} : le téléphone d’un coach (deux vagues de notifications, message de Léa Simon), puis le quatrième mail`, () => {
