@@ -1049,8 +1049,8 @@ const COURSES = [
       "{label: 'SELECT\u00a0*\u00a0FROM\u00a0ateliers WHERE\u00a0id\u00a0=\u00a02', ok: true},", "{label: 'SET seances_restantes\u00a0= seances_restantes\u00a0+\u00a02', ok: true},",
       "{label: 'Le solde passerait sous 0, ce que la règle de la table interdit', ok: true}]}",
       "b += out('o-5', 'warn', 'Requête exécutée', '5 lignes modifiées.');", "c += out('o-ck', 'err', 'Requête refusée', 'CHECK constraint failed:<br>seances_restantes &gt;= 0', 'm', true);", 'Prochaine leçon · DELETE']},
-  {id: 28, next: 68, titre: 'DELETE', page: 'projet-delete.html', thumb: 'projet-delete-thumb.webp', duree: '3 min 20', notesAt: 142.2,
-    notes: /notes:\{t:193\.3,y:1261,card:\[64,292,1016,966\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 28, next: 68, titre: 'DELETE', page: 'projet-delete.html', thumb: 'projet-delete-thumb.webp', duree: '3 min 21', notesAt: 142.2,
+    notes: /notes:\{t:193\.5,y:1261,card:\[64,292,1016,966\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Des lignes ne servent plus&nbsp;:<br>à toi de les supprimer de la base.',
     chapters: ['Trois demandes', 'Supprimer une ligne', 'Le bon client', 'Plusieurs lignes', 'L’oubli du WHERE', 'Trois mots-clés', 'À retenir'],
     traps: ["const REST = [1, 2, 3, 5, 7, 8, 10, 11];",
@@ -1059,7 +1059,7 @@ const COURSES = [
       "{at: atp('p1'), from: A.c4, kind: 'tap', need: 1,", "{label: 'WHERE id = 4', ok: true},", "{label: 'WHERE id = 10', ok: true}]},", "{label: 'WHERE client_id = 6', ok: true},",
       "{at: atp('p5'), from: A.c19, kind: 'tap', need: 8,", "{at: atp('p6'), from: A.c24, kind: 'sort',",
       "b += out('o-8', 'warn', 'Requête exécutée', '8 lignes supprimées.');", "c += out('o-2', 'ok', 'Requête exécutée', '1 ligne supprimée.');", 'Prochaine leçon · ON DELETE']},
-  {id: 68, next: 62, titre: 'ON DELETE', page: 'projet-ondelete.html', thumb: 'projet-ondelete-thumb.webp', duree: '4 min 05', notesAt: 211.25,
+  {id: 68, next: 62, titre: 'ON DELETE', page: 'projet-ondelete.html', thumb: 'projet-ondelete-thumb.webp', duree: '4 min 05', notesAt: 211.3,
     notes: /notes:\{t:237\.4,y:1261,card:\[64,292,1016,966\],to:\[940,255\]\}/, table: 'avis',
     bubble: 'Un compte ne peut pas être supprimé&nbsp;:<br>à toi de décider du sort des lignes liées.',
     chapters: ['Deux demandes', 'Une suppression refusée', 'Trois sorts possibles', 'Écrire la règle', 'Le compte supprimé', 'Quelle règle choisir ?', 'À retenir'],
@@ -1436,7 +1436,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
   assert.ok(page.includes("const mailText = ([w, , , , ask]) => ['Bonjour,', ask, 'Merci !', w[1]];"), 'chaque mail : « Bonjour, », la demande, « Merci ! », la signature');
   assert.equal(D.MAILS[0][3], D.NEWMAIL, 'Salma Haddad écrit depuis sa nouvelle adresse');
   D.OPENS.forEach((o, n) => {
-    assert.equal(o.sel, '#ml' + (n + 1)); assert.equal(o.prompt, 'Touche le mail pour l’ouvrir.');
+    assert.equal(o.sel, '#ml' + (n + 1)); assert.equal(o.prompt, `Touche le ${['mail', 'message', 'mail'][n]} pour l’ouvrir.`, 'un client (Léa Simon) écrit par SMS : un message, pas un mail');
     assert.ok(o.at < D.PICKS[n].at && (n === 0 || o.at > D.PICKS[n - 1].at), `mail ${n + 1} : ouvert avant son moment « À toi »`);
   });
   assert.ok(page.includes('Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 159.3, picks: PICKS, opens: OPENS,'), 'mails envoyés au lecteur');
@@ -1521,7 +1521,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   }
   D.PICKS.forEach((p, i) => assert.ok(p.from < p.at && (i === 0 || p.from > D.PICKS[i - 1].at), `moment ${i + 1} : « Revoir » repart après le moment précédent`));
   D.OPENS.forEach((o, n) => {
-    assert.equal(o.sel, '#ml' + (n + 1)); assert.equal(o.prompt, 'Touche le mail pour l’ouvrir.');
+    assert.equal(o.sel, '#ml' + (n + 1)); assert.equal(o.prompt, `Touche le ${['message', 'mail'][n]} pour l’ouvrir.`, 'un client (Sophie Martin) écrit par SMS : un message, pas un mail');
     assert.ok(o.at > D.PICKS[n + 3].at && o.at < D.PICKS[n + 4].at, `mail ${n + 1} : ouvert avant le moment qui en parle`);
   });
   assert.deepEqual(D.MAILS.map(m => m[0][0] + ' ' + m[0][1] + ' · ' + m[2]), ['Sophie Martin · cliente', 'L’équipe NutriBoost · équipe'], 'qui écrit');
@@ -2467,6 +2467,7 @@ test('mail reçu : l’image s’arrête sur la notification, le toucher l’ouv
     'ouvert par l’animation, fermé dès que la lecture reprend');
   assert.ok(html.includes('.lv-op-spot{position:absolute;') && html.includes('@keyframes lvOpRing{') && html.includes('.lv-op-tip{position:absolute;'), 'zone qui s’entoure d’une onde, bulle « Touche le mail »');
   assert.ok(html.includes("case 'mail':{"), 'son du mail reçu');
+  assert.ok(html.includes("case 'sms':{"), 'son du SMS reçu (la notification d’un client)');
   /* Moment réussi sans correction écrite : seule la bonne étiquette reste, séparée de « Continuer ». */
   assert.ok(html.includes("if(why)opts.hidden=true; else opts.classList.add('is-won');") && html.includes('.lv-pk-opts.is-won .lv-pk-opt.is-gone{display:none}')
     && html.includes('.lv-pk-opts:not([hidden])~.lv-pk-go{margin-top:14px}'), 'plateau réussi : la bonne étiquette, puis « Continuer », bien séparés');

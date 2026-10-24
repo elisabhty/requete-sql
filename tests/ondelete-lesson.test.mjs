@@ -100,9 +100,9 @@ test('recherche, et leçon seule sans texte de secours ni exercice', () => {
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
   /* Le bouton des notes est écrit en clair dans Course(…) : il suit la dernière légende. */
-  assert.equal(val('NOTES'), 211.25);
-  assert.ok(page.includes('notesAt: 211.25,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 218.45);
+  assert.equal(val('NOTES'), 211.3);
+  assert.ok(page.includes('notesAt: 211.3,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 218.5);
   /* Des légendes qui se suivent sans se chevaucher, chaque chapitre commençant 0,4 s après la légende précédente. */
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
@@ -312,7 +312,8 @@ test('les deux mails : Inès Lefebvre, puis l’accueil ; l’app s’arrête su
   assert.equal(opens.length, 2);
   opens.forEach((o, n) => { assert.ok(o.at > mail[n] && o.at < mail[n] + 4.8, `mail ${n + 1} : l’app s’arrête pendant le mail`); assert.equal(o.sel, '#ml' + (n + 1)); });
   assert.ok(mail[0] < picks[0].at && mail[1] > picks[0].at && mail[1] < picks[1].at, 'mail 1 avant le moment 1, mail 2 entre les moments 1 et 2');
-  assert.equal(opens.map(o => o.label).join('|'), 'Ouvrir le mail d’Inès Lefebvre|Ouvrir le mail de L’accueil NutriBoost', 'élision : « d’Inès », jamais « de Inès »');
+  assert.equal(opens.map(o => o.label).join('|'), 'Ouvrir le message d’Inès Lefebvre|Ouvrir le mail de L’accueil NutriBoost', 'élision : « d’Inès », jamais « de Inès » ; une cliente écrit par SMS, l’accueil par mail');
+  assert.deepEqual(opens.map(o => o.prompt), ['Touche le message pour l’ouvrir.', 'Touche le mail pour l’ouvrir.']);
   assert.ok(mails.every(m => m[4].length === 2), 'une phrase de contexte, une demande');
   /* Le second mail arrive juste après le refus : la table avis ouvre le chapitre 3 de la vidéo. */
   assert.ok(mail[1] === val('SCH.chaps')[2].a, 'le mail de l’accueil ouvre le chapitre « Trois sorts possibles »');

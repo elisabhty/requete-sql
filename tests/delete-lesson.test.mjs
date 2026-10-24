@@ -268,7 +268,8 @@ test('les trois mails : Léa Simon, Nathan Dupont, puis l’accueil ; l’app s�
   assert.equal(opens.length, 3);
   opens.forEach((o, n) => { assert.ok(o.at > mail[n] && o.at < mail[n] + 4.8, `mail ${n + 1} : l’app s’arrête pendant le mail`); assert.equal(o.sel, '#ml' + (n + 1)); });
   assert.ok(mail[0] < picks[0].at && mail[1] > picks[1].at && mail[1] < picks[2].at && mail[2] > picks[2].at && mail[2] < picks[3].at, 'mail 1 avant le moment 1, mail 2 entre les moments 2 et 3, mail 3 entre les moments 3 et 4');
-  assert.equal(opens.map(o => o.label).join('|'), 'Ouvrir le mail de Léa Simon|Ouvrir le mail de Nathan Dupont|Ouvrir le mail de L’accueil NutriBoost');
+  assert.equal(opens.map(o => o.label).join('|'), 'Ouvrir le message de Léa Simon|Ouvrir le message de Nathan Dupont|Ouvrir le mail de L’accueil NutriBoost', 'deux clients écrivent par SMS, l’accueil par mail');
+  assert.deepEqual(opens.map(o => o.prompt), ['Touche le message pour l’ouvrir.', 'Touche le message pour l’ouvrir.', 'Touche le mail pour l’ouvrir.']);
   /* Aucun mail n’est paresseux : deux paragraphes au plus, pour que le mail se referme après sa lecture. */
   assert.ok(mails.every(m => m[4].length === 2), 'une phrase de contexte, une demande');
 });
