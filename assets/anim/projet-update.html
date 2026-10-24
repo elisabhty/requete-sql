@@ -16,6 +16,9 @@
    l’image que la timeline affiche juste après l’arrêt, qui reprend donc sans saut. */
 .pvs{opacity:1!important;visibility:visible!important}
 .pvh{opacity:0!important;visibility:hidden!important}
+/* Aperçu en douceur : une carte d’erreur qui accompagne une bonne réponse n’apparaît jamais d’un coup, ni avant le verdict « Bien vu ! » */
+.pvf{visibility:visible!important;animation:pvf .45s ease-out both}
+@keyframes pvf{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 
 /* Couleur de chaque sujet : coach, atelier, client, équipe NutriBoost (et carte de membre), inscription,
    puis les tables de la boutique que la base compte aussi : commande, produit, fidélité */
@@ -743,6 +746,9 @@ const IX = (() => {
   }
   const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
   const marks = (sels, c = 'pvs') => sels.forEach(s => $$(s).forEach(e => mark(e, c)));
+  /* Une bonne réponse dont l’aperçu montre une erreur ou une perte (carte rouge) : le verdict arrive 260 ms après le choix ;
+     l’aperçu n’apparaît qu’après lui, en fondu (Elisa, 24 octobre : « un truc rouge rapide puis le bien vu »). */
+  const soft = (sels, ms = 450) => { const i = X.i; X.tm.push(setTimeout(() => { if (X && X.i === i) marks(sels, 'pvf'); }, ms)); };
   /* La classe est aussi notée dans X.cls : si le moment change avant la fin du minuteur (deux réponses enchaînées), clear() la retire. */
   const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
   function spots(i){
@@ -810,7 +816,7 @@ const IX = (() => {
       sfx(ok ? 'pop' : 'miss', 2, 0.5);
     }
     if (i === 5) {
-      if (ok) marks(M6_ANS);
+      if (ok) soft(M6_ANS);   // CHECK : le message d’erreur, la règle et la ligne refusée, après le verdict
       else if (k === 0) flash($('#edn'), 'kob', 480);
       else flash($('#rc2'), 'kor', 600);
       sfx(ok ? 'pop' : 'miss', 2, 0.5);

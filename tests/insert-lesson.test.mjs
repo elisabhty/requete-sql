@@ -1,5 +1,6 @@
 /* Projet NutriBoost, chapitre 7 (leçon 26 « INSERT ») : la vidéo interactive assets/anim/projet-insert.html, testée aussi dans lesson-video.test.mjs.
-   Karim Benali passe la main : trois mails demandent d’ajouter des lignes (une inscription, un groupe de trois inscriptions, des séances sur une carte).
+   Karim Benali passe la main : quatre mails demandent d’ajouter des lignes (une inscription, puis la correction de Karim, un groupe de trois inscriptions,
+   des séances sur une carte). Les mails de Karim et de l’équipe NutriBoost, la légende « Jusqu’ici, Karim… » et la fin du récapitulatif sont les mots d’Elisa (24 octobre).
    Premier cours du module « Écrire et modifier les données ». Leçon seule : ni cours texte, ni exercice. Elle remplace l’ancien cours INSERT et
    fusionne l’ancien cours 69 « INSERT multiple et gestion de conflit ».
    Ce que la vidéo montre (valeurs dans l’ordre, valeurs inversées, date ou atelier oublié, groupe refusé, carte en double, ON CONFLICT)
@@ -77,22 +78,29 @@ test('recherche, et leçon seule sans texte de secours ni exercice', () => {
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
   /* Le bouton des notes est écrit en clair dans Course(…) : il suit la dernière légende. */
-  assert.equal(val('NOTES'), 155.5);
-  assert.ok(page.includes('notesAt: 155.5,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 162.7);
-  /* Des légendes qui se suivent sans se chevaucher, chaque chapitre commençant après la fin de la légende précédente. */
-  for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999 || val('[MAIL1, MAIL2, MAIL3]').some(t => caps[k][0] >= t + 4.8 - 1e-9), `légende ${k + 1} : après la précédente (ou après un mail)`);
+  assert.equal(val('NOTES'), 163.54);
+  assert.ok(page.includes('notesAt: 163.54,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 170.74);
+  /* Des légendes qui se suivent sans se chevaucher, chaque chapitre commençant après la fin de la légende précédente ; le mail occupe l’écran le temps de sa lecture
+     (plus il a de lignes, plus il reste), la légende suivante commence après son départ. */
+  const finsDeMail = val('[[MAIL1, 0], [MAIL2, 1], [MAIL3, 2], [MAIL4, 3]].map(([t, n]) => +(t + mailOutAt(n)).toFixed(2))');
+  for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999 || finsDeMail.some(t => caps[k][0] >= t - 1e-9), `légende ${k + 1} : après la précédente (ou après un mail)`);
+  assert.deepEqual(val('MAILS.map((m, n) => mailRows(n))'), [6, 3, 5, 5], 'lignes de chaque mail : bonjour, demande, merci, signature');
+  assert.ok(val('MAILS.map((m, n) => mailOutAt(n))').every((t, n, all) => !n || t <= all[0]) && val('mailOutAt(0)') > val('mailOutAt(1)'), 'le long mail de Karim reste plus longtemps à l’écran que sa correction');
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   assert.deepEqual(chaps.map(c => c.label), ['Karim passe la main', 'Une inscription', 'L’ordre des valeurs', 'Une colonne oubliée', 'Un groupe', 'Créer ou recharger', 'À retenir']);
-  /* Une seule phrase complète par bulle (Elisa, 23 octobre) ; aucune bulle de plus de trois lignes. */
+  /* Une seule phrase complète par bulle (Elisa, 23 octobre) ; aucune bulle de plus de trois lignes, sauf sa légende « Pour enregistrer l’inscription de Lucas… » (quatre lignes). */
   caps.forEach(([, , t, lines], k) => {
-    const txt = strip(t);
+    const txt = strip(t), sienne = txt.startsWith('Pour enregistrer l’inscription de Lucas');
     assert.ok(/^[A-ZÀ-ÖØ-Þ0-9«]/.test(txt) || /^(<b[^>]*>)?<code>/.test(t), `légende ${k + 1} : une phrase qui commence (« ${txt.slice(0, 50)} »)`);
     assert.ok(/[.!?»]$/.test(txt), `légende ${k + 1} : une phrase qui finit (« …${txt.slice(-50)} »)`);
     assert.ok(!/[.!?»] ?[A-ZÀ-ÖØ-Þ«]/.test(txt), `légende ${k + 1} : une seule phrase par bulle (« ${txt.slice(0, 70)} »)`);
-    assert.equal(lines, undefined, `légende ${k + 1} : trois lignes au plus`);
-    assert.ok(t.split('<br>').length <= 3, `légende ${k + 1} : trois lignes au plus`);
+    assert.equal(lines, sienne ? 4 : undefined, `légende ${k + 1} : trois lignes au plus (quatre pour la légende d’Elisa)`);
+    assert.ok(t.split('<br>').length <= (sienne ? 4 : 3), `légende ${k + 1} : trois lignes au plus`);
   });
+  /* Un seul « Imagine » dans toute la vidéo (Elisa : « répétition de imagine ») : ensuite, une question ou « Et si… ? ». */
+  const imagine = [...caps.map(c => c[2]), ...picks.flatMap(p => [p.prompt, p.hint, p.next])].filter(t => /\bImagine\b/.test(strip(t || '')));
+  assert.equal(imagine.length, 1, `« Imagine » une seule fois : ${imagine.map(strip).join(' | ')}`);
   /* Six moments, dans l’ordre des chapitres ; chacun s’arrête 2,35 s après le début de sa légende « À toi ! ». */
   assert.deepEqual(picks.map(p => p.kind), ['sort', 'pick', 'pick', 'tap', 'pick', 'sort']);
   assert.deepEqual(picks.map(p => p.at), ['p1', 'p2', 'p3', 'p4', 'p5', 'p6'].map(k => +(val(`A.${k}`) + 2.35).toFixed(2)));
@@ -119,12 +127,14 @@ test('règles d’écriture : « l’atelier » avant un nom d’atelier, nom et
   assert.ok(hints.length >= 6 && valid.length === 2, 'les six aides et les deux corrections du moment 4 sont lues');
   for (const t of [...texts, ...hints, ...valid]) {
     for (const nom of ['Pilates', 'Cuisine saine', 'Yoga du matin']) for (const m of t.matchAll(new RegExp(nom, 'g')))
-      assert.ok(/l’atelier $/.test(t.slice(Math.max(0, m.index - 10), m.index)), `« ${nom} » toujours après « l’atelier » : ${t}`);
+      assert.ok(/l’atelier $/i.test(t.slice(Math.max(0, m.index - 10), m.index)), `« ${nom} » toujours après « l’atelier » : ${t}`);
     assert.ok(!/\bnuméros?\b/i.test(t), `« identifiant », jamais « numéro » : ${t}`);
     assert.ok(!/\bliens?\b/i.test(t), `« relation », jamais « lien » : ${t}`);
     assert.ok(!/(la table|la base|la requête|SQL) (accepte|crée|lit|refuse|voit|comprend|sait|ajoute)\b/.test(t), `aucune personnification : ${t}`);
     assert.ok(!/(?<!la )table (clients|ateliers|inscriptions|cartes)\b/.test(t), `« la table … » devant le nom d’une table : ${t}`);
-    /* Un prénom de client est toujours suivi de son nom (« Karim » et « Moussa » ne sont pas des clients). */
+    /* Un prénom de client est toujours suivi de son nom (« Karim » et « Moussa » ne sont pas des clients). Seule exception : sa légende « Pour enregistrer l’inscription
+       de Lucas… » (Elisa, 24 octobre, Réf 4), juste après le mail de Karim qui nomme Lucas Bernard en entier. */
+    if (t.startsWith('Pour enregistrer l’inscription de Lucas,')) continue;
     for (const [, prenom, nom] of val('CLIENTS')) for (const m of t.matchAll(new RegExp(`(?<![\\wÀ-ÿ])${prenom}(?![\\wÀ-ÿ])`, 'g'))) {
       const suite = t.slice(m.index + prenom.length).match(/^ (\p{L}+)/u)?.[1];
       const noms = val('CLIENTS').filter(c => c[1] === prenom).map(c => c[2]);
@@ -152,7 +162,7 @@ test('moment 1 : les trois valeurs de l’inscription de Lucas Bernard, chacune 
   assert.deepEqual(db.exec('SELECT c.prenom || \' \' || c.nom, a.titre FROM inscriptions i JOIN clients c ON c.id = i.client_id JOIN ateliers a ON a.id = i.atelier_id WHERE i.id = 8')[0].values, [['Lucas Bernard', 'Cuisine saine']]);
   /* Les phrases du mail et de la légende disent la même chose que la requête. */
   const mails = val('MAILS');
-  assert.ok(mails[0][4][0].includes('Lucas Bernard s’inscrit à l’atelier Cuisine saine, le 8 septembre.'), 'le mail de Karim');
+  assert.ok(mails[0][4][2].includes('enregistrer l’inscription de Lucas Bernard à l’atelier Cuisine saine du 8 septembre'), 'le mail de Karim');
   for (const t of ["({v1|2}", "{v2|3}", "{v3|'2026-09-08'}", '{co1|client_id}', '{co2|atelier_id}', '{co3|date_inscription}']) assert.ok(page.includes(t), `la requête montrée : ${t}`);
 });
 
@@ -190,7 +200,7 @@ test('moment 4 : un groupe de trois inscriptions ; une faute (atelier 15) fait t
   assert.deepEqual(db.exec('SELECT id, client_id, atelier_id FROM inscriptions WHERE id > 8 ORDER BY id')[0].values, [[9, 6, 5], [10, 8, 5], [11, 9, 5]]);
   assert.deepEqual(db.exec('SELECT c.prenom || \' \' || c.nom FROM inscriptions i JOIN clients c ON c.id = i.client_id WHERE i.id > 8 ORDER BY i.id')[0].values.flat(), ['Hugo Laurent', 'Gabriel Michel', 'Inès Lefebvre']);
   /* La page : le mail de Moussa Diallo nomme les mêmes trois clients ; le tableau montre les lignes 9 à 11 et les compteurs 7, 8, 11. */
-  const mail = val('MAILS')[1][4].join(' ');
+  const mail = val('MAILS')[2][4].join(' ');
   for (const nom of ['Hugo Laurent', 'Gabriel Michel', 'Inès Lefebvre']) assert.ok(mail.includes(nom), `le mail de Moussa Diallo nomme ${nom}`);
   assert.ok(mail.includes('à l’atelier Yoga du matin'), 'Yoga du matin, l’atelier 5');
   assert.equal(db.exec('SELECT titre FROM ateliers WHERE id = 5')[0].values[0][0], 'Yoga du matin');
@@ -221,8 +231,8 @@ test('chapitre 7, cartes : une seule carte par client (UNIQUE) ; ON CONFLICT …
   for (const t of ['UNIQUE constraint failed:<br>cartes.client_id', 'La carte d’Hugo Laurent passe à 18 séances.', 'La carte d’Hugo Laurent reste à 8 séances.', 'La carte d’Hugo Laurent passe à 10 séances.',
     "const cartes = [[1, 1, 'Sophie Martin', 10], [2, 4, 'Nathan Petit', 5], [3, 6, 'Hugo Laurent', 8]];", '<i class="a0">8</i><i class="a1">10</i><i class="a2">18</i>', '<i class="calc" id="calc">8 + 10</i>'])
     assert.ok(page.includes(t), `la page montre : ${t}`);
-  const mail = val('MAILS')[2][4].join(' ');
-  assert.ok(mail.includes('Hugo Laurent en a acheté un.') && mail.includes('10 séances'), 'le mail de l’équipe NutriBoost');
+  const mail = val('MAILS')[3][4].join(' ');
+  assert.ok(mail.includes('Hugo Laurent vient d’acheter un pack de 10 séances') && mail.includes('avec un solde de 10 séances'), 'le mail de l’équipe NutriBoost');
 });
 
 test('moment 6 : quatre clients achètent un pack ; la même requête crée les cartes qui manquent et recharge les autres', () => {
@@ -269,16 +279,49 @@ test('la page montre la base : huit tables (la copie du fichier Excel s’en va)
   assert.deepEqual(fks, [['atelier_id', 'ateliers'], ['client_id', 'clients']], 'les deux 🔗 sont les clés étrangères de la table inscriptions');
 });
 
-test('les trois mails : Karim Benali, Moussa Diallo, puis l’équipe NutriBoost ; l’app s’arrête sur chacun jusqu’au toucher', () => {
-  const mails = val('MAILS'), opens = val('OPENS'), picks = val('PICKS'), mail = val('[MAIL1, MAIL2, MAIL3]');
-  assert.deepEqual(mails.map(m => [m[0][0], m[0][1], m[3]]), [['Karim', 'Benali', 'karim@nutriboost.fr'], ['Moussa', 'Diallo', 'moussa@mail.fr'], ['L’équipe', 'NutriBoost', 'equipe@nutriboost.fr']]);
+test('les quatre mails : Karim Benali (puis sa correction), Moussa Diallo, puis l’équipe NutriBoost ; l’app s’arrête sur chacun jusqu’au toucher', () => {
+  const mails = val('MAILS'), opens = val('OPENS'), picks = val('PICKS'), mail = val('[MAIL1, MAIL2, MAIL3, MAIL4]'), fins = val('MAILS.map((m, n) => mailOutAt(n))');
+  assert.deepEqual(mails.map(m => [m[0][0], m[0][1], m[3]]), [['Karim', 'Benali', 'karim@nutriboost.fr'], ['Karim', 'Benali', 'karim@nutriboost.fr'], ['Moussa', 'Diallo', 'moussa@mail.fr'], ['L’équipe', 'NutriBoost', 'equipe@nutriboost.fr']]);
   const coach = base().exec("SELECT email FROM coachs WHERE prenom = 'Moussa' AND nom = 'Diallo'")[0].values[0][0];
-  assert.equal(mails[1][3], coach, 'l’adresse de Moussa Diallo est celle de la table coachs');
-  assert.deepEqual(mails.map(m => m[5]), ['Karim', 'Moussa', 'L’équipe NutriBoost']);
-  assert.equal(opens.length, 3);
-  opens.forEach((o, n) => { assert.ok(o.at > mail[n] && o.at < mail[n] + 4.8, `mail ${n + 1} : l’app s’arrête pendant le mail`); assert.equal(o.sel, '#ml' + (n + 1)); });
-  assert.ok(mail[0] < picks[0].at && mail[1] > picks[2].at && mail[1] < picks[3].at && mail[2] > picks[3].at && mail[2] < picks[4].at, 'mail 1 avant le moment 1, mail 2 entre les moments 3 et 4, mail 3 entre les moments 4 et 5');
-  assert.ok(opens.map(o => o.label).join('|') === 'Ouvrir le mail de Karim Benali|Ouvrir le mail de Moussa Diallo|Ouvrir le mail de L’équipe NutriBoost');
+  assert.equal(mails[2][3], coach, 'l’adresse de Moussa Diallo est celle de la table coachs');
+  assert.deepEqual(mails.map(m => m[5]), ['Karim', 'Karim', 'Moussa', 'L’équipe NutriBoost']);
+  assert.equal(opens.length, 4);
+  opens.forEach((o, n) => { assert.ok(o.at > mail[n] && o.at < mail[n] + fins[n], `mail ${n + 1} : l’app s’arrête pendant le mail`); assert.equal(o.sel, '#ml' + (n + 1)); });
+  assert.ok(mail[0] < picks[0].at && mail[1] > mail[0] && mail[1] < picks[0].at && mail[2] > picks[2].at && mail[2] < picks[3].at && mail[3] > picks[3].at && mail[3] < picks[4].at,
+    'mail 1 et sa correction avant le moment 1, mail 3 entre les moments 3 et 4, mail 4 entre les moments 4 et 5');
+  assert.ok(opens.map(o => o.label).join('|') === 'Ouvrir le mail de Karim Benali|Ouvrir le mail de Karim Benali|Ouvrir le mail de Moussa Diallo|Ouvrir le mail de L’équipe NutriBoost');
+});
+
+/* ---------- Les mots d’Elisa (24 octobre, Réf 2 à 5, 7 et 8), repris tels quels ---------- */
+test('Réf 2 à 5, 7 et 8 : les phrases d’Elisa, mot pour mot', () => {
+  const caps = val('CAPTIONS').map(c => strip(c[2])), mails = val('MAILS');
+  assert.ok(caps.includes('Jusqu’ici, Karim, le développeur, s’est chargé d’ajouter les données dans les tables de NutriBoost.'), 'Réf 2 : première bulle');
+  assert.ok(caps.includes('À ton tour de prendre la main !'), 'Réf 2 : seconde bulle');
+  /* Réf 3 : le mail de Karim, ligne par ligne ; Réf 4 : sa correction. */
+  assert.deepEqual(mails[0][4].concat(mails[0][6].bye), ['J’espère que tu vas bien !',
+    'Je serai en congé à partir de lundi prochain. Est-ce que tu pourrais prendre le relais pendant mon absence ?',
+    'Je te confie une première tâche, encore en attente dans mon planning et assez urgente : pourrais-tu enregistrer l’inscription de Lucas Bernard à l’atelier Cuisine saine du 8 septembre ?',
+    'Merci pour ton aide !']);
+  assert.equal(mails[0][5], 'Karim');
+  assert.ok(caps.includes('Pour enregistrer l’inscription de Lucas, tu vas ajouter une nouvelle ligne dans la table inscriptions avec la commande SQL INSERT INTO.'), 'Réf 4 : la légende');
+  assert.deepEqual(mails[1][4], ['Petite correction dans le mail précédent : le 8 septembre est la date d’inscription.', 'L’atelier Cuisine saine a lieu le 19 septembre.'], 'Réf 4 : le second mail de Karim');
+  assert.deepEqual([mails[1][6].hi, mails[1][6].bye], [null, null], 'une correction : ni « Bonjour, » ni « Merci ! »');
+  assert.equal(base().exec("SELECT date_atelier FROM ateliers WHERE titre = 'Cuisine saine'")[0].values[0][0], '2026-09-19', 'l’atelier Cuisine saine a bien lieu le 19 septembre');
+  /* Réf 5 : « Imagine » une seule fois ; Réf 8 : « Et si… ? ». */
+  assert.ok(caps.includes('Et si tu oublies de préciser l’atelier dans ta requête ?'), 'Réf 5');
+  assert.ok(caps.includes('Et si quatre clients achètent un pack de 10 séances ?'), 'Réf 8');
+  /* Réf 7 : le mail de l’équipe NutriBoost. */
+  assert.deepEqual(mails[3][4], ['Hugo Laurent vient d’acheter un pack de 10 séances pour participer aux ateliers.',
+    'Peux-tu ajouter ces séances à sa carte ? S’il n’en possède pas encore, il faudra lui en créer une avec un solde de 10 séances.'], 'Réf 7');
+  assert.equal(mails[3][5], 'L’équipe NutriBoost');
+  assert.equal(mails[3][6], undefined, 'Bonjour, … Merci !');
+});
+
+test('Réf 9 : la requête qui crée ou recharge reste affichée pendant la dernière légende du moment 6', () => {
+  assert.ok(page.includes("hide('#tc', A.c31, {y: -30}, 0.35);") && page.includes("tl.fromTo('#edc', {autoAlpha: 0, y: 236 - EDC + 40}, {autoAlpha: 1, y: 236 - EDC, duration: 0.5, ease: 'expo.out', immediateRender: false}, A.c31 + 0.1);"),
+    'la requête (l’éditeur) prend la place du tableau des cartes dès la légende « Avec la même requête… »');
+  assert.ok(page.includes("hide('#edc', B.c31 - 0.1, {y: 236 - EDC - 40}, 0.4);"), 'elle repart avec la légende, sans sauter');
+  assert.ok(page.includes("pulse('#ec2', A.c31 + 0.5, 1,") && page.includes("pulse(['#ec5', '#ec6'], A.c31 + 1.5, 1,"), 'les deux endroits qui créent et qui rechargent sont surlignés à tour de rôle');
 });
 
 /* ---------- Propre au chapitre 7 : la suite du chapitre 6, l’annonce du chapitre 8 ---------- */
@@ -299,19 +342,23 @@ test('chapitre 7 : écran titre, ouverture comme aux autres chapitres, annonce d
   assert.equal(caps[caps.length - 2], 'Pour finir, voici les <b>trois idées à retenir</b>.');
 });
 
-test('le récapitulatif, mot pour mot, dans la vidéo comme dans la fiche de la leçon : trois idées, chacune avec sa phrase puis sa précision', () => {
+test('le récapitulatif, mot pour mot, dans la vidéo comme dans la fiche de la leçon : trois idées, sans numéro, chacune avec son titre puis sa précision', () => {
   const rows = [...page.matchAll(/<div class="rrow"><div class="rico emo">([^<]+)<\/div><div class="rtxt">(.*?)<\/div><\/div>/g)].map(m => {
     const [phrase, detail] = m[2].split('<span class="rs">');
     return [m[1], strip(phrase), strip(detail.replace(/<\/span>$/, ''))];
   });
-  const RECAP = [['✍️', 'INSERT INTO ajoute une ligne : les valeurs suivent l’ordre des colonnes.', 'Une colonne non citée vaut NULL ou sa valeur par défaut ; si elle est obligatoire, la requête est refusée.'],
-    ['📚', 'Avec VALUES, on ajoute plusieurs lignes d’un coup : une parenthèse par ligne.', 'Si une seule ligne est refusée, aucune des lignes n’est ajoutée.'],
-    ['🔁', 'ON CONFLICT permet de choisir quoi faire quand la ligne existe déjà.', 'DO UPDATE modifie la ligne existante ; DO NOTHING la laisse telle quelle.']];
+  /* Les mots d’Elisa (24 octobre, Réf 1 et 10) : ni « 1. », « 2. », « 3. » devant les titres. */
+  const RECAP = [['✍️', 'Ajouter une ligne', 'INSERT INTO ajoute une ligne dans une table. Les valeurs suivent l’ordre des colonnes indiquées. Une colonne omise reçoit sa valeur par défaut ou NULL. Si elle est obligatoire et sans valeur par défaut, l’ajout est refusé.'],
+    ['📚', 'Ajouter plusieurs lignes', 'Après VALUES, écris un groupe de valeurs entre parenthèses par ligne, séparé par une virgule.'],
+    ['🔁', 'Gérer un doublon', 'ON CONFLICT précise quoi faire si une valeur existe déjà dans une colonne qui doit rester unique : • DO UPDATE met à jour la ligne existante. • DO NOTHING ignore l’ajout et conserve la ligne existante.']];
   assert.deepEqual(rows, RECAP, 'la vidéo : les trois idées');
+  assert.ok(rows.every(r => !/^\d+[.)]/.test(r[1])), 'aucun titre numéroté');
   const fiche = html.slice(html.indexOf('guide({ id:26,'), html.indexOf('guide({ id:27,'));
   const idees = [...fiche.matchAll(/\["(✍️|📚|🔁)","([^"]*)","([^"]*)"(?:,"([^"]*)")?\]/g)].map(m => [m[1], strip(m[2]), strip(m[3])]);
   assert.deepEqual(idees, RECAP, 'la fiche de la leçon dit la même chose que la vidéo');
   assert.ok(page.includes('recapScene(RECAP, [RECAP + 0.7, RECAP + 2.1, RECAP + 3.5]);'), 'chaque idée se révèle à son tour');
+  /* Dans la vidéo, chaque puce de « Gérer un doublon » commence sa propre ligne. */
+  assert.ok((page.match(/<span class="bl">• /g) || []).length === 2 && page.includes('#s7 .rtxt .rs .bl{display:block;'), 'une ligne par puce');
 });
 
 test('ce que la vidéo ne reprend pas des deux anciens cours : plus de RETURNING, de INSERT … SELECT, de OR IGNORE ni de OR REPLACE ; le chapitre ne parle pas de SQL comme d’une personne', () => {

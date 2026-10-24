@@ -324,6 +324,100 @@ test('son de l’animation : contexte neuf à chaque cours, remplacé s’il ne 
   assert.ok(close.includes("document.removeEventListener('touchend',lvWake,{capture:true});") && close.includes("document.removeEventListener('click',lvWake,true);"));
 });
 
+test('son de l’animation : jamais de lecture silencieuse par surprise (cours ouvert sans appui, son bloqué en cours de route)', async () => {
+  /* Sur iPhone, un contexte audio créé sans appui reste muet jusqu’au prochain appui : un cours ouvert par un lien jouait donc
+     sans son, et l’élève n’avait aucun moyen de le deviner. La vidéo attend maintenant son premier appui sur Lire. */
+  const sfx = cut('const LvSfx=', 'class LvAnim{');
+  const made = [];
+  class AC {
+    constructor() { this.state = 'suspended'; this.sampleRate = 8000; this.destination = {}; made.push(this); }
+    createDynamicsCompressor() { return {threshold: {}, knee: {}, ratio: {}, attack: {}, release: {}, connect() {}}; }
+    createGain() { return {gain: {value: 1}, connect() {}}; }
+    createBuffer(c, n) { return {getChannelData: () => new Float32Array(n)}; }
+    createConvolver() { return {connect() {}}; }
+    createBufferSource() { return {connect() {}, start() {}, stop() {}}; }
+    resume() { if (AC.gesture) this.state = 'running'; return Promise.resolve(); }
+    close() { this.state = 'closed'; return Promise.resolve(); }
+  }
+  AC.gesture = false;
+  const frames = [];
+  let now = 0;
+  const nav = {userAgent: 'test', userActivation: {isActive: false}};
+  const ctx = vm.createContext({
+    window: {AudioContext: AC}, navigator: nav,
+    requestAnimationFrame: cb => { frames.push(cb); return frames.length; }, cancelAnimationFrame: () => { frames.length = 0; },
+    performance: {now: () => now}, setTimeout, clearTimeout, Promise, Math, Number, Set, Map, Error,
+  });
+  vm.runInContext(cut('const LvSfx=', 'function lessonVideoOn(l)') + ';this.LvSfx=LvSfx;this.LvAnim=LvAnim;', ctx);
+  const info = {duration: 30, cues: [], chapters: [], captions: [], questions: []};
+  const frame = {addEventListener(type, fn) { this.load = fn; }, contentWindow: {__ready: Promise.resolve(info), renderAt() {}}, src: ''};
+  const a = new ctx.LvAnim(frame), log = [];
+  for (const ev of ['play', 'pause', 'blocked']) a.addEventListener(ev, () => log.push(ev));
+  await frame.load();
+  const step = dt => { now += dt * 1000; const f = frames.shift(); f && f(now); };
+
+  /* 1. Ouvert sans appui : contexte suspendu, aucune activation → la lecture est refusée, la vidéo reste à l’arrêt. */
+  await assert.rejects(a.play(), e => e.name === 'NotAllowedError' && e.audio === true, 'lecture refusée tant que le son ne peut pas démarrer');
+  assert.ok(a.paused && log.length === 0, 'rien ne joue, aucun événement « play »');
+  assert.equal(ctx.LvSfx.canStart(), false);
+  /* 2. Même chose pour une animation pas encore chargée : le refus est immédiat, elle n’attend pas de démarrer toute seule. */
+  assert.equal(a.wantPlay, false, 'pas de lecture en attente');
+
+  /* 3. Dans un appui : le son peut démarrer, la lecture part. */
+  nav.userActivation.isActive = true; AC.gesture = true;
+  await a.play();
+  assert.deepEqual(log, ['play']); assert.equal(ctx.LvSfx.stats().state, 'running');
+  assert.equal(ctx.LvSfx.stuck(), false);
+  for (let i = 0; i < 60; i++) step(0.1);
+  assert.ok(!a.paused && log.length === 1, 'son en marche : la vidéo joue sans interruption');
+
+  /* 4. Contexte interrompu en route : 2 s plus tard, la vidéo se met en pause d’elle-même et le dit au lecteur. */
+  made.at(-1).state = 'interrupted';
+  assert.equal(ctx.LvSfx.stuck(), true);
+  for (let i = 0; i < 15; i++) step(0.1);
+  assert.ok(!a.paused, 'une brève interruption n’arrête pas la vidéo');
+  for (let i = 0; i < 10; i++) step(0.1);
+  assert.ok(a.paused && log.slice(-2).join() === 'pause,blocked', `pause automatique après 2 s sans son : ${log}`);
+  /* 5. Un retour du son avant les 2 s remet le compteur à zéro. */
+  nav.userActivation.isActive = true; AC.gesture = true;
+  await a.play();
+  made.at(-1).state = 'interrupted';
+  for (let i = 0; i < 15; i++) step(0.1);
+  made.at(-1).state = 'running';
+  for (let i = 0; i < 40; i++) step(0.1);
+  assert.ok(!a.paused, 'son revenu à temps : la vidéo continue');
+
+  /* 6. Son coupé par l’élève : plus rien à attendre, ni au départ ni en route. */
+  a.pause(); a.muted = true;
+  made.at(-1).state = 'suspended'; nav.userActivation.isActive = false; AC.gesture = false;
+  await a.play();
+  for (let i = 0; i < 40; i++) step(0.1);
+  assert.ok(!a.paused, 'muet : la vidéo joue sans attendre le son');
+
+  /* 7. Navigateur sans Web Audio, ou sans information sur l’activation : on ne bloque jamais. */
+  const bare = vm.createContext({window: {}, navigator: {userAgent: 'test'}, Blob: class {}, ArrayBuffer, DataView});
+  vm.runInContext(sfx + ';this.LvSfx=LvSfx;', bare);
+  assert.equal(bare.LvSfx.canStart(), true, 'pas de Web Audio : rien à attendre');
+  assert.equal(bare.LvSfx.stuck(), false);
+  const noUa = vm.createContext({window: {AudioContext: AC}, navigator: {userAgent: 'test'}, Blob: class {}, ArrayBuffer, DataView});
+  vm.runInContext(sfx + ';this.LvSfx=LvSfx;', noUa);
+  assert.equal(noUa.LvSfx.canStart(), true, 'activation inconnue : on laisse jouer comme avant');
+});
+
+test('lecteur : si le son ne peut pas démarrer, la vidéo attend sur le gros ▶ ; si le son se bloque en route, elle s’arrête', () => {
+  const play = cut('function lvPlay(){', 'function lvToggle(){');
+  const iAudio = play.indexOf('if(err&&err.audio){ LV.root.classList.add(\'is-paused\'); lvSyncPP(); return; }');
+  assert.ok(iAudio > 0 && iAudio < play.indexOf("err.name==='NotAllowedError'"), 'refus « son » traité avant le repli « on relance sans le son »');
+  assert.ok(!play.slice(iAudio, iAudio + 140).includes('muted=true'), 'l’élève n’est pas mis en muet à sa place');
+  const open = cut('function openLessonVideo(){', 'function lvPlay(){');
+  assert.ok(open.includes("video.addEventListener('blocked',()=>{ if(LV&&LV.video===video)lvBigFlash(); });"), 'pause automatique : le gros ▶ apparaît un instant');
+  const anim = cut('class LvAnim{', 'function lessonVideoOn(l)');
+  assert.ok(anim.includes("if(!this._muted&&!LvSfx.canStart()){ const e=new Error('audio'); e.name='NotAllowedError'; e.audio=true; return Promise.reject(e); }"));
+  assert.ok(anim.indexOf('LvSfx.canStart()') < anim.indexOf('if(this.ended){ this.ended=false;'), 'refus avant de rembobiner une vidéo finie');
+  assert.ok(anim.includes('now-this.deaf>2000') && anim.includes("this._emit('blocked')"), 'son bloqué plus de 2 s : pause');
+  assert.ok(html.includes('document.addEventListener(\'touchend\',lvWake,{capture:true,passive:true});'), 'un appui réveille toujours le son');
+});
+
 test('carte de la question : pas de coupure dans « sera-t-elle », aucun bouton présélectionné, alignée sur le tableau', () => {
   const show = cut('function lvQShow(i,q){', 'function lvQAnswer(k){');
   assert.ok(show.includes(`const nw=t=>String(t||'').replace(/([^\\s<>]+-[^\\s<>]+)/g,'<span class="lv-nw">$1</span>');`) && html.includes('.lv-nw{white-space:nowrap}'));
@@ -933,14 +1027,14 @@ const COURSES = [
       "{at: atp('p4'), from: A.c11, kind: 'tap', need: 4,", "{label: 'La table inscriptions est supprimée, avec ses sept lignes', ok: true},", "{label: 'DROP\\u00a0TABLE\\u00a0IF\\u00a0EXISTS inscriptions_excel;', ok: true},",
       "a += out('o4', 'err', 'Requête refusée', 'FOREIGN KEY constraint failed', 'm');", "a += out('o5', 'warn', 'Exécutée sans erreur', 'La table inscriptions n’existe plus.');",
       "a += out('o6', 'err', 'Erreur SQL', 'no such table: inscriptions_excel', 'm');", "<span id=\"bt-b\">Serveur de test</span>", 'Prochaine leçon · INSERT INTO']},
-  {id: 26, next: 27, titre: 'INSERT', page: 'projet-insert.html', thumb: 'projet-insert-thumb.webp', duree: '4 min 05', notesAt: 155.5,
-    notes: /notes:\{t:238\.15,y:1261,card:\[64,292,1016,966\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 26, next: 27, titre: 'INSERT', page: 'projet-insert.html', thumb: 'projet-insert-thumb.webp', duree: '4 min 50', notesAt: 163.54,
+    notes: /notes:\{t:282\.4,y:1336,card:\[64,292,1016,1041\],to:\[940,255\]\}/, table: 'inscriptions',
     bubble: 'Les inscriptions arrivent&nbsp;:<br>à toi de les ajouter à la base.',
     chapters: ['Karim passe la main', 'Une inscription', 'L’ordre des valeurs', 'Une colonne oubliée', 'Un groupe', 'Créer ou recharger', 'À retenir'],
     traps: ["const ATELIERS = [[1, 'Récupération', '2026-09-12'], [2, 'Pilates', '2026-09-17'], [3, 'Cuisine saine', '2026-09-19'],",
       "const BINS = [['cr', 'Carte créée', 'le client n’a pas de carte'], ['rc', 'Carte rechargée', 'le client a déjà une carte']];",
       // Les six moments : les trois valeurs à ranger, les valeurs inversées, l’atelier oublié, la ligne fautive du groupe, la fin de requête qui recharge, la carte créée ou rechargée
-      "{at: atp('p1'), from: A.c4, kind: 'sort',", "{label: 'Emma Dubois, à l’atelier Pilates', ok: true},", "{label: 'L’atelier n’est pas indiqué, or il est obligatoire', ok: true}]},",
+      "{at: atp('p1'), from: A.c5, kind: 'sort',", "{label: 'Emma Dubois, à l’atelier Pilates', ok: true},", "{label: 'L’atelier n’est pas indiqué, or il est obligatoire', ok: true}]},",
       "{at: atp('p4'), from: A.c20, kind: 'tap', need: 1,", "{label: 'DO\u00a0UPDATE SET seances_restantes\u00a0= seances_restantes\u00a0+\u00a010', ok: true},",
       "{at: atp('p6'), from: A.c30, kind: 'sort',", "b += out('o-fk', 'err', 'Requête refusée', 'FOREIGN KEY constraint failed', 'm');",
       "c += out('o-un', 'err', 'Requête refusée', 'UNIQUE constraint failed:<br>cartes.client_id', 'm', true);", 'Prochaine leçon · UPDATE']},
@@ -965,8 +1059,8 @@ const COURSES = [
       "{at: atp('p1'), from: A.c4, kind: 'tap', need: 1,", "{label: 'WHERE id = 4', ok: true},", "{label: 'WHERE id = 10', ok: true}]},", "{label: 'WHERE client_id = 6', ok: true},",
       "{at: atp('p5'), from: A.c19, kind: 'tap', need: 8,", "{at: atp('p6'), from: A.c24, kind: 'sort',",
       "b += out('o-8', 'warn', 'Requête exécutée', '8 lignes supprimées.');", "c += out('o-2', 'ok', 'Requête exécutée', '1 ligne supprimée.');", 'Prochaine leçon · ON DELETE']},
-  {id: 68, next: 62, titre: 'ON DELETE', page: 'projet-ondelete.html', thumb: 'projet-ondelete-thumb.webp', duree: '4 min 05', notesAt: 211.35,
-    notes: /notes:\{t:237\.45,y:1261,card:\[64,292,1016,966\],to:\[940,255\]\}/, table: 'avis',
+  {id: 68, next: 62, titre: 'ON DELETE', page: 'projet-ondelete.html', thumb: 'projet-ondelete-thumb.webp', duree: '4 min 05', notesAt: 211.25,
+    notes: /notes:\{t:237\.4,y:1261,card:\[64,292,1016,966\],to:\[940,255\]\}/, table: 'avis',
     bubble: 'Un compte ne peut pas être supprimé&nbsp;:<br>à toi de décider du sort des lignes liées.',
     chapters: ['Deux demandes', 'Une suppression refusée', 'Trois sorts possibles', 'Écrire la règle', 'Le compte supprimé', 'Quelle règle choisir ?', 'À retenir'],
     traps: ["const AVIS = [", "const BINS = [['ca', 'CASCADE', 'supprime les lignes liées'], ['sn', 'SET NULL', 'détache les lignes liées'], ['re', 'RESTRICT', 'refuse la suppression']];",
