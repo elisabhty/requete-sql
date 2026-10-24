@@ -240,9 +240,10 @@ function typeMore(part, t, cps = 24, keepCaret = false){
 }
 
 /* ---------- Un client écrit : SMS (Messages de l’iPhone) ---------- */
-/* Un coach, l’équipe ou le développeur écrivent par mail ; un client écrit par SMS (le style est dans core.css).
+/* Un coach, l’équipe ou le développeur écrivent par mail ; un client écrit par SMS (le style est dans core.css) ; l’accueil, qui relaie
+   les demandes des clients, écrit par SMS quand la page le dit (7e élément du message : {sms: true}), sinon par mail.
    La page crée la carte avec smsCard(), puis appelle smsIn() là où elle appellerait son mailIn(). */
-const isSms = tag => /^client/.test(tag);
+const isSms = (tag, opt) => /^client/.test(tag) || !!(opt && opt.sms);
 /* Heure d’envoi écrite en tête de la conversation : propre à chaque expéditeur, entre 07:00 et 18:59. */
 const smsTime = name => { const h = [...name].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 997, 7); return String(7 + h % 12).padStart(2, '0') + ':' + String((h * 7) % 60).padStart(2, '0'); };
 /* Les bulles : « Bonjour, », une bulle par phrase de la demande, « Merci ! ». Pas de signature : le nom est en haut de la conversation. */

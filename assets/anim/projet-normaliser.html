@@ -368,7 +368,7 @@ const MAILS = [
 ];
 const mailText = ([w, , , , ask]) => ['Bonjour,', ask, 'Merci !', w[1]];
 const OPENS = [35.8, 53.3, 69.8].map((t, n) => {
-  const [, prenom, nom] = MAILS[n][0], msg = /^client/.test(MAILS[n][2]) ? 'message' : 'mail';   // un client écrit par SMS
+  const [, prenom, nom] = MAILS[n][0], msg = /^client/.test(MAILS[n][2]) || (MAILS[n][6] || {}).sms ? 'message' : 'mail';   // un client écrit par SMS, l’accueil aussi quand le message le dit ({sms: true})
   return {at: t, sel: '#ml' + (n + 1), prompt: `Touche le ${msg} pour l’ouvrir.`, label: `Ouvrir le ${msg} ${/^[AEIOUHÉÈ]/.test(prenom) ? 'd’' : 'de '}${prenom} ${nom}`};
 });
 
@@ -398,7 +398,7 @@ function dom(){
     '<i class="nyo" id="nyo"></i></div>';
   $('#xg').innerHTML = h;
   // Sous le fichier : les messages reçus, ce que la ligne emporterait, les anomalies, les sujets
-  let u = MAILS.map(([w, k, tag, from, body], n) => isSms(tag) ? smsCard(n + 1, k, w[1], w[2], w[4], body, true) : `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[4]}<b class="mbg emo">✉️</b></i>` +
+  let u = MAILS.map(([w, k, tag, from, body], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[1], w[2], w[4], body, true) : `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[4]}<b class="mbg emo">✉️</b></i>` +
     `<div class="mw"><div class="mn"><b>${w[1]} ${w[2]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
     `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${mailText([w, k, tag, from, body]).map((x, j) => `<span class="sn${j === 3 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('');
   const A2 = at(INSCR[LEA][1]), C2 = co(A2[4]);
@@ -484,7 +484,7 @@ const capOn = t => tl.to('#cap', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'pow
    moment OPENS ; hors de l’app, un doigt le montre) : elle s’enfonce, l’adresse de l’expéditeur remplace « Nouveau mail »,
    puis elle se déplie en mail, ligne après ligne. L’image reste le temps de lire la demande. */
 function mailIn(n, t, T){
-  if (isSms(MAILS[n - 1][2])) { if (!APP) fingerTap($('#ml' + n), T); return smsIn(n, t, T, true); }
+  if (isSms(MAILS[n - 1][2], MAILS[n - 1][6])) { if (!APP) fingerTap($('#ml' + n), T); return smsIn(n, t, T, true); }
   const m = '#ml' + n, sn = $$(m + ' .sn');
   show(m, t, {y: -36, scale: 0.94}, 0.55, 'back.out(1.7)');
   cue(t, 'mail', 0.8);

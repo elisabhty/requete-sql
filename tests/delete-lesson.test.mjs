@@ -1,6 +1,7 @@
 /* Projet NutriBoost, chapitre 9 (leçon 28 « DELETE ») : la vidéo interactive assets/anim/projet-delete.html, testée aussi dans lesson-video.test.mjs.
-   Trois mails demandent de supprimer des lignes : l’inscription de Léa Simon, le compte de Nathan Dupont (il y a deux Nathan), puis les deux
-   inscriptions d’Hugo Laurent. Troisième cours du module « Écrire et modifier les données ». Leçon seule : ni cours texte, ni exercice. Elle remplace
+   Trois messages demandent de supprimer des lignes : l’accueil prévient que Léa Simon ne pourra pas venir (l’accueil centralise les demandes
+   des clients depuis le chapitre 5, et écrit ici par SMS), Nathan Dupont demande la suppression de son compte (il y a deux Nathan), puis
+   l’accueil annonce qu’Hugo Laurent déménage (deux inscriptions). Troisième cours du module « Écrire et modifier les données ». Leçon seule : ni cours texte, ni exercice. Elle remplace
    l’ancien cours DELETE (le compte de Nathan Dupont et la table fidelite, la sous-requête dans le WHERE).
    Ce que la vidéo montre (DELETE FROM … WHERE …, un prénom partagé par deux clients, plusieurs lignes d’un coup, l’oubli du WHERE, la table qui existe
    encore, vide) est ici rejoué dans SQLite : c’est ce que la base répond vraiment. */
@@ -156,7 +157,7 @@ test('moments 1 et 2 : l’inscription de Léa Simon est celle d’identifiant 4
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.ok(caps.includes('Seule la ligne dont l’identifiant<br>vaut 4 est supprimée.') && caps.includes('L’atelier Cuisine saine existe<br>toujours dans la <b>table ateliers</b>.'), 'les légendes disent la même chose');
   const mail = val('MAILS')[0];
-  assert.ok(mail[4].join(' ').includes('Je ne pourrai pas venir à l’atelier Cuisine saine prévu le 19 septembre.') && mail[4].join(' ').includes('Peux-tu annuler mon inscription ?'), 'le mail de Léa Simon');
+  assert.ok(mail[4].join(' ').includes('Léa ne pourra pas venir.') && mail[4].join(' ').includes('Elle est inscrite à l’atelier Cuisine saine du 19 septembre.') && mail[4].join(' ').includes('Peux-tu annuler son inscription ?'), 'le message de l’accueil sur Léa Simon');
   assert.equal(base().exec("SELECT date_atelier FROM ateliers WHERE titre = 'Cuisine saine'")[0].values[0][0], '2026-09-19', 'le 19 septembre est bien la date de l’atelier');
 });
 
@@ -259,19 +260,23 @@ test('moment 6 : chaque demande est rangée sous le bon mot-clé, et la base fai
   assert.ok(page.includes('<span class="emo">📬</span>6 demandes à ranger'), 'six demandes');
 });
 
-test('les trois mails : Léa Simon, Nathan Dupont, puis l’accueil ; l’app s’arrête sur chacun jusqu’au toucher', () => {
+test('les trois messages : l’accueil (Léa Simon), Nathan Dupont, puis l’accueil (Hugo Laurent) ; l’app s’arrête sur chacun jusqu’au toucher', () => {
   const mails = val('MAILS'), opens = val('OPENS'), picks = val('PICKS'), mail = val('[MAIL1, MAIL2, MAIL3]');
-  assert.deepEqual(mails.map(m => [m[0][0], m[0][1], m[3]]), [['Léa', 'Simon', 'lea@mail.fr'], ['Nathan', 'Dupont', 'nathan.dupont@mail.fr'], ['L’accueil', 'NutriBoost', 'accueil@nutriboost.fr']]);
+  assert.deepEqual(mails.map(m => [m[0][0], m[0][1], m[3]]), [['L’accueil', 'NutriBoost', 'accueil@nutriboost.fr'], ['Nathan', 'Dupont', 'nathan.dupont@mail.fr'], ['L’accueil', 'NutriBoost', 'accueil@nutriboost.fr']]);
   const db = base();
-  assert.equal(mails[0][3], db.exec("SELECT email FROM clients WHERE prenom = 'Léa' AND nom = 'Simon'")[0].values[0][0], 'l’adresse de Léa Simon est celle de la table clients');
-  assert.deepEqual(mails.map(m => m[5]), ['Léa', 'Nathan', 'L’accueil NutriBoost']);
+  /* Le premier message est celui de l’accueil (Elisa, 25 octobre) : il ne donne que le prénom, « Léa », et une seule cliente le porte. */
+  assert.equal(db.exec("SELECT COUNT(*) FROM clients WHERE prenom = 'Léa'")[0].values[0][0], 1, 'une seule cliente s’appelle Léa : le prénom suffit à la désigner');
+  assert.equal(mails[0][4][0], 'Léa ne pourra pas venir.', 'la notification n’affiche que « Léa ne pourra pas venir. »');
+  assert.deepEqual(mails.map(m => m[2]), ['accueil', 'client', 'accueil']);
+  assert.deepEqual(mails.map(m => !!(m[6] && m[6].sms)), [true, false, false], 'l’accueil écrit par SMS pour Léa (option {sms: true}), par mail pour Hugo ; un client écrit toujours par SMS');
+  assert.deepEqual(mails.map(m => m[5]), ['L’accueil NutriBoost', 'Nathan', 'L’accueil NutriBoost']);
   assert.equal(opens.length, 3);
   opens.forEach((o, n) => { assert.ok(o.at > mail[n] && o.at < mail[n] + 4.8, `mail ${n + 1} : l’app s’arrête pendant le mail`); assert.equal(o.sel, '#ml' + (n + 1)); });
   assert.ok(mail[0] < picks[0].at && mail[1] > picks[1].at && mail[1] < picks[2].at && mail[2] > picks[2].at && mail[2] < picks[3].at, 'mail 1 avant le moment 1, mail 2 entre les moments 2 et 3, mail 3 entre les moments 3 et 4');
-  assert.equal(opens.map(o => o.label).join('|'), 'Ouvrir le message de Léa Simon|Ouvrir le message de Nathan Dupont|Ouvrir le mail de L’accueil NutriBoost', 'deux clients écrivent par SMS, l’accueil par mail');
+  assert.equal(opens.map(o => o.label).join('|'), 'Ouvrir le message de L’accueil NutriBoost|Ouvrir le message de Nathan Dupont|Ouvrir le mail de L’accueil NutriBoost', 'deux SMS (l’accueil, puis un client), puis un mail de l’accueil');
   assert.deepEqual(opens.map(o => o.prompt), ['Touche le message pour l’ouvrir.', 'Touche le message pour l’ouvrir.', 'Touche le mail pour l’ouvrir.']);
-  /* Aucun mail n’est paresseux : deux paragraphes au plus, pour que le mail se referme après sa lecture. */
-  assert.ok(mails.every(m => m[4].length === 2), 'une phrase de contexte, une demande');
+  /* Aucun message n’est paresseux : deux ou trois phrases (une bulle chacune), pour que l’image ne reste pas trop longtemps sur la lecture. */
+  assert.ok(mails.every(m => m[4].length >= 2 && m[4].length <= 3), 'une ou deux phrases de contexte, une demande');
 });
 
 /* ---------- Propre au chapitre 9 : la suite du chapitre 8, l’annonce de la leçon ON DELETE ---------- */

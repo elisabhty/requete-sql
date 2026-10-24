@@ -384,13 +384,16 @@ const PICKS = [
     options: ITEMS.map(x => ({label: x[0]}))}
 ];
 
-/* Les trois messages reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses paragraphes), signature].
-   Un client écrit par SMS (smsCard, smsIn), l’accueil par mail. Chacun arrive en notification ; l’app s’arrête dessus (OPENS)
-   jusqu’au toucher. Le premier est celui du chapitre 1. */
+/* Les trois messages reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses paragraphes), signature, option].
+   Un client écrit par SMS (smsCard, smsIn) ; l’accueil écrit par SMS quand l’option vaut {sms: true}, sinon par mail. Chacun arrive en
+   notification ; l’app s’arrête dessus (OPENS) jusqu’au toucher. Le premier relaie la demande de Léa Simon, celle du chapitre 1 :
+   depuis le chapitre 5, l’accueil centralise les demandes des clients (Elisa, 25 octobre : « c’est un message de l’accueil qui dit qu’elle
+   ne pourra pas venir », « Léa ne pourra pas venir » en aperçu). */
 const MAILS = [
-  [['Léa', 'Simon', 'LS'], 'k-cl', 'cliente', 'lea@mail.fr', [
-    'Je ne pourrai pas venir à l’atelier Cuisine saine prévu le 19 septembre.',
-    'Peux-tu annuler mon inscription ?'], 'Léa'],
+  [['L’accueil', 'NutriBoost', 'AC'], 'k-in', 'accueil', 'accueil@nutriboost.fr', [
+    'Léa ne pourra pas venir.',
+    'Elle est inscrite à l’atelier Cuisine saine du 19 septembre.',
+    'Peux-tu annuler son inscription ?'], 'L’accueil NutriBoost', {sms: true}],
   [['Nathan', 'Dupont', 'ND'], 'k-cl', 'client', 'nathan.dupont@mail.fr', [
     'Je ne viendrai finalement à aucun atelier.',
     'Peux-tu supprimer mon compte ?'], 'Nathan'],
@@ -399,7 +402,7 @@ const MAILS = [
     'Peux-tu supprimer toutes ses inscriptions ?'], 'L’accueil NutriBoost']
 ];
 const OPENS = [MAIL1, MAIL2, MAIL3].map((t, n) => {
-  const [prenom, nom] = MAILS[n][0], msg = /^client/.test(MAILS[n][2]) ? 'message' : 'mail';   // un client écrit par SMS
+  const [prenom, nom] = MAILS[n][0], msg = /^client/.test(MAILS[n][2]) || (MAILS[n][6] || {}).sms ? 'message' : 'mail';   // un client écrit par SMS, l’accueil aussi quand le message le dit ({sms: true})
   return {at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: `Touche le ${msg} pour l’ouvrir.`, label: `Ouvrir le ${msg} ${/^[AEIOUHÉÈ]/.test(prenom) ? 'd’' : 'de '}${prenom} ${nom}`};
 });
 
@@ -487,7 +490,7 @@ function dom(){
     `<div class="cs">${ITEMS.map((x, i) => x[1] === k ? `<div class="rc" id="sbu${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
     '<div class="abs pack" id="bpack"><span><span class="emo">📬</span>6 demandes à ranger</span></div>';
   /* Les SMS et les mails */
-  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag) ? smsCard(n + 1, k, w[0], w[1], w[2], body) : `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
+  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body) : `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
     `<div class="mw"><div class="mn"><b>${w[0]} ${w[1]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
     `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), 'Merci !', sign].map((x, j, a) => `<span class="sn${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
     '<div class="abs emo tapf" id="tapf">👆</div>';
@@ -562,7 +565,7 @@ const capOn = t => tl.to('#cap', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'pow
    moment OPENS ; hors de l’app, un doigt le montre) : elle s’enfonce, l’adresse de l’expéditeur remplace « Nouveau mail »,
    puis elle se déplie en mail, ligne après ligne. L’image reste le temps de lire la demande. */
 function mailIn(n, t, T){
-  if (isSms(MAILS[n - 1][2])) { if (!APP) fingerTap($('#ml' + n), T); return smsIn(n, t, T); }
+  if (isSms(MAILS[n - 1][2], MAILS[n - 1][6])) { if (!APP) fingerTap($('#ml' + n), T); return smsIn(n, t, T); }
   const m = '#ml' + n, sn = $$(m + ' .sn');
   show(m, t, {y: -36, scale: 0.94}, 0.55, 'back.out(1.7)');
   cue(t, 'mail', 0.8);
@@ -636,7 +639,7 @@ function build(){
   on('#bw-in .hl', A.c3 + 0.5, 0.25); cue(A.c3 + 0.5, 'tick', 0.5, 1);
   on('#bw-cl .hl', A.c3 + 1.2, 0.25); cue(A.c3 + 1.2, 'tick', 0.5, 3);
   off(['#bw-in .hl', '#bw-cl .hl'], B.c3 - 0.7, 0.3);
-  // le SMS de Léa Simon
+  // le SMS de l’accueil : Léa Simon ne pourra pas venir
   capOff(MAIL1 - 0.2);   // avec la légende : jamais de carte vide
   hide(['#bc', '#dem'], MAIL1, {y: -30}, 0.35);
   sceneOff('#sa', MAIL1 + 0.4);

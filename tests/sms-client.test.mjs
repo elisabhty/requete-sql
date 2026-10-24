@@ -1,7 +1,9 @@
 /* Un client écrit par SMS : la notification de l’iPhone, puis la conversation de Messages (assets/anim/core.js et core.css).
    Elisa, 24 octobre : « Quand c’est des clients, faire plutôt des messages SMS immersifs, crédibles, iPhone iOS. »
-   Un coach, l’équipe, l’accueil ou le développeur écrivent toujours par mail. La règle « client-par-sms » de la charte
-   (tests/helpers/redaction.mjs) vérifie que chaque chapitre du projet, y compris ceux à venir, la respecte. */
+   Un coach, l’équipe ou le développeur écrivent toujours par mail ; l’accueil, qui centralise les demandes des clients depuis le chapitre 5,
+   écrit par SMS quand la page le décide (7e élément du message : {sms: true}), sinon par mail (Elisa, 25 octobre : « c’est un message de
+   l’accueil qui dit qu’elle ne pourra pas venir »). La règle « client-par-sms » de la charte (tests/helpers/redaction.mjs) vérifie que
+   chaque chapitre du projet, y compris ceux à venir, la respecte. */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -20,9 +22,13 @@ vm.runInContext("const NB = '\\u00a0';" + core.slice(a, b) + ';this.S = {isSms, 
 const S = ctx.S;
 const parts = body => [...S.smsParts(body)];   // un tableau du moteur (autre contexte) ne se compare pas tel quel
 
-test('qui écrit par SMS : un client ou une cliente, personne d’autre', () => {
+test('qui écrit par SMS : un client ou une cliente ; l’accueil seulement quand la page le décide ({sms: true})', () => {
   for (const t of ['client', 'cliente']) assert.equal(S.isSms(t), true, t);
   for (const t of ['coach', 'équipe', 'accueil', 'développeur']) assert.equal(S.isSms(t), false, t);
+  assert.equal(S.isSms('accueil', {sms: true}), true, 'l’accueil qui relaie une demande écrit par SMS');
+  assert.equal(S.isSms('accueil', {}), false);
+  assert.equal(S.isSms('accueil', undefined), false);
+  assert.equal(S.isSms('coach', {sms: false}), false);
 });
 
 test('les bulles : « Bonjour, », une bulle par phrase de la demande, « Merci ! », jamais de signature', () => {
@@ -97,17 +103,29 @@ for (const f of AVEC_CLIENT) {
   test(`${f} : le message d’un client est un SMS (smsCard, smsIn), celui d’un coach ou de l’équipe reste un mail`, () => {
     const src = lire(f), M = R.donnees(f).MAILS;
     assert.ok(R.rendEnSms(src), 'smsCard pour une étiquette de client, smsIn dans mailIn');
-    assert.ok(/isSms\(tag\) \? smsCard\(n \+ 1, k, /.test(src) && /function mailIn\(n, t, T\)\{\n  if \(isSms\(MAILS\[n - 1\]\[2\]\)\) \{ if \(!APP\) fingerTap\(\$\('#ml' \+ n\), T\); return smsIn\(n, t, T/.test(src), 'même câblage dans chaque page');
+    assert.ok(/isSms\(tag, MAILS\[n\]\[6\]\) \? smsCard\(n \+ 1, k, /.test(src) && /function mailIn\(n, t, T\)\{\n  if \(isSms\(MAILS\[n - 1\]\[2\], MAILS\[n - 1\]\[6\]\)\) \{ if \(!APP\) fingerTap\(\$\('#ml' \+ n\), T\); return smsIn\(n, t, T/.test(src), 'même câblage dans chaque page');
     assert.ok(M.some(m => !/^client/.test(m[2])), 'au moins un mail resté un mail');
     /* La page garde le code du mail (coach, équipe, accueil) : avatar à enveloppe, adresse, signature. */
     assert.ok(src.includes('<i class="mav">') && src.includes('Nouveau mail'), 'la carte de mail existe toujours');
     /* L’app s’arrête sur la notification : « Touche le message… » pour un client, « Touche le mail… » sinon. */
-    assert.ok(src.includes("msg = /^client/.test(MAILS[n][2]) ? 'message' : 'mail'") && src.includes('prompt: `Touche le ${msg} pour l’ouvrir.`') && src.includes('label: `Ouvrir le ${msg} '), 'consigne et étiquette du toucher');
+    assert.ok(src.includes("msg = /^client/.test(MAILS[n][2]) || (MAILS[n][6] || {}).sms ? 'message' : 'mail'") && src.includes('prompt: `Touche le ${msg} pour l’ouvrir.`') && src.includes('label: `Ouvrir le ${msg} '), 'consigne et étiquette du toucher');
   });
 }
 test('chapitre 1 : la conversation est compacte et serrée (elle tient sous le fichier, avant que la légende ne revienne)', () => {
   const src = lire('projet-normaliser.html');
   assert.ok(src.includes('smsCard(n + 1, k, w[1], w[2], w[4], body, true)') && src.includes('return smsIn(n, t, T, true);'), 'version compacte et cadence serrée');
+});
+test('chapitre 9 : l’accueil relaie la demande de Léa Simon par SMS (« Léa ne pourra pas venir. » en aperçu) ; Nathan écrit par SMS ; Hugo reste un mail de l’accueil', () => {
+  const src = lire('projet-delete.html'), M = R.donnees('projet-delete.html').MAILS;
+  assert.deepEqual(M.map(m => `${m[0][0]} ${m[0][1]} [${m[2]}]`), ['L’accueil NutriBoost [accueil]', 'Nathan Dupont [client]', 'L’accueil NutriBoost [accueil]']);
+  assert.deepEqual(M.map(m => !!(m[6] && m[6].sms)), [true, false, false], 'seul le premier message de l’accueil porte l’option {sms: true}');
+  assert.deepEqual(parts(M[0][4]), ['Bonjour,', 'Léa ne pourra pas venir.', 'Elle est inscrite à l’atelier Cuisine saine du 19 septembre.', 'Peux-tu annuler son inscription ?', 'Merci !'],
+    'une bulle par phrase ; la première phrase est l’aperçu de la notification');
+  const h = S.smsCard(1, 'k-in', 'L’accueil', 'NutriBoost', 'AC', M[0][4]);
+  const ban = h.slice(h.indexOf('sms-n'), h.indexOf('sms-v'));
+  assert.ok(ban.includes('<b>L’accueil NutriBoost</b>') && ban.includes('<div class="sms-np">Léa ne pourra pas venir.</div>'), 'bannière : « L’accueil NutriBoost », « Léa ne pourra pas venir. »');
+  assert.ok(h.includes('<i class="sms-av">AC</i>') && h.includes('L’accueil NutriBoost<i>›</i>'), 'conversation : avatar AC, nom de l’accueil');
+  assert.ok(src.includes('Elisa, 25 octobre'), 'la page garde la trace de la demande d’Elisa');
 });
 test('chapitres 9 et 10 : la légende annonce les SMS', () => {
   assert.ok(lire('projet-delete.html').includes('cap(\'c2\', "Trois demandes arrivent :<br>deux SMS et un mail.", 2.8);'));

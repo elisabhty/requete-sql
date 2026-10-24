@@ -435,7 +435,7 @@ const MAILS = [
     'Peux-tu créer la table des avis ?'], 'L’accueil NutriBoost']
 ];
 const OPENS = [MAIL1, MAIL2].map((t, n) => {
-  const [prenom, nom] = MAILS[n][0], msg = /^client/.test(MAILS[n][2]) ? 'message' : 'mail';   // un client écrit par SMS
+  const [prenom, nom] = MAILS[n][0], msg = /^client/.test(MAILS[n][2]) || (MAILS[n][6] || {}).sms ? 'message' : 'mail';   // un client écrit par SMS, l’accueil aussi quand le message le dit ({sms: true})
   return {at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: `Touche le ${msg} pour l’ouvrir.`, label: `Ouvrir le ${msg} ${/^[AEIOUHÉÈ]/.test(prenom) ? 'd’' : 'de '}${prenom} ${nom}`};
 });
 
@@ -551,7 +551,7 @@ function dom(){
     `<div class="cs">${ITEMS.map((x, i) => x[1] === k ? `<div class="rc" id="sbu${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
     '<div class="abs pack" id="bpack"><span><span class="emo">📬</span>6 situations à ranger</span></div>';
   /* Le SMS et le mail */
-  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag) ? smsCard(n + 1, k, w[0], w[1], w[2], body) : `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
+  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body) : `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
     `<div class="mw"><div class="mn"><b>${w[0]} ${w[1]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
     `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), 'Merci !', sign].map((x, j, a) => `<span class="sn${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
     '<div class="abs emo tapf" id="tapf">👆</div>';
@@ -648,7 +648,7 @@ const capOn = t => tl.to('#cap', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'pow
    moment OPENS ; hors de l’app, un doigt le montre) : elle s’enfonce, l’adresse de l’expéditeur remplace « Nouveau mail »,
    puis elle se déplie en mail, ligne après ligne. L’image reste le temps de lire la demande. */
 function mailIn(n, t, T){
-  if (isSms(MAILS[n - 1][2])) { if (!APP) fingerTap($('#ml' + n), T); return smsIn(n, t, T); }
+  if (isSms(MAILS[n - 1][2], MAILS[n - 1][6])) { if (!APP) fingerTap($('#ml' + n), T); return smsIn(n, t, T); }
   const m = '#ml' + n, sn = $$(m + ' .sn');
   show(m, t, {y: -36, scale: 0.94}, 0.55, 'back.out(1.7)');
   cue(t, 'mail', 0.8);

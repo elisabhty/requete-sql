@@ -544,6 +544,8 @@ export const EXCEPTIONS = [
     raison: 'Mots d’Elisa (24 octobre, Réf 4), confirmés par elle le soir même (« Lucas seul ») : juste après le mail de Karim qui nomme Lucas Bernard en entier.'},
   {regle: 'client', page: 'projet-update', contient: 'Nathan conserve ses 7 séances',
     raison: 'Mots d’Elisa (24 octobre, 22 h 29, Réf 6) : « Nathan conserve ses 7 séances », juste après « Nathan Petit » (légende et mail de l’accueil).'},
+  {regle: 'client', page: 'projet-delete', contient: 'Léa ne pourra pas venir.',
+    raison: 'Mots d’Elisa (25 octobre, 00 h 21) : le SMS de l’accueil dit « Léa ne pourra pas venir », et c’est l’aperçu de la notification ; les moments qui suivent nomment Léa Simon en entier.'},
   /* Les mots d’Elisa écrits avant sa consigne : à lui redemander */
   {regle: 'client', page: 'projet-cles', contient: 'Pour inscrire Sophie à l’atelier Méditation', aConfirmer: '« Sophie Martin » ?',
     raison: 'Mots d’Elisa (22 octobre, réponse du moment 5), juste après la question qui nomme Sophie Martin en entier.'},
