@@ -46,8 +46,8 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
      ni finir une ligne sur un mot court. */
   assert.equal((page.match(/\n\s*\[[\d.]+, [\d.]+, ("[^\n]*"|'[^\n]*'), 4\],?/g) || []).length, 3, 'trois légendes de quatre lignes');
   for (const s of ['[115.95, 120.6, "Le <code>1</code> du côté de Coach signifie<br>que chaque atelier est animé<br>par un seul coach :<br>il ne peut en avoir ni zéro ni plusieurs.", 4],',
-    '[188.6, 191.2, "Karim y ajoutera les données<br>avec la commande <code>INSERT INTO</code>,<br>qui permet d’insérer de nouvelles<br>lignes dans une table.", 4],',
-    '[196.5, 201.3, "Créer une table, c’est définir<br>ses colonnes, les données<br>qu’elles peuvent contenir<br>et les règles à respecter.", 4],'])
+    '[186.1, 188.7, "Karim y ajoutera les données<br>avec la commande <code>INSERT INTO</code>,<br>qui permet d’insérer de nouvelles<br>lignes dans une table.", 4],',
+    '[194.0, 198.8, "Créer une table, c’est définir<br>ses colonnes, les données<br>qu’elles peuvent contenir<br>et les règles à respecter.", 4],'])
     assert.ok(page.includes(s), `légende en quatre lignes : ${s.slice(0, 60)}`);
   /* Même budget que le test COURSES : page + vignette + moteur + GSAP + mascotte + 5 polices < 450 Kio. */
   const FONTS = ['jetbrains-mono.woff2', 'inter-medium.woff2', 'inter-semibold.woff2', 'inter-bold.woff2', 'inter-extrabold.woff2'];
@@ -185,7 +185,6 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
     'Les quatre nouvelles tables sont créées !',
     'Ta base compte désormais huit tables pour gérer la boutique et les ateliers.',
     'À toi !',
-    'Une table neuve est vide : CREATE TABLE ne crée que sa structure.',
     'Les quatre nouvelles tables sont encore vides.',
     'Karim y ajoutera les données avec la commande INSERT INTO, qui permet d’insérer de nouvelles lignes dans une table.',
     'Dans le prochain chapitre, tu feras évoluer ces tables avec ALTER TABLE.',
@@ -194,7 +193,7 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
   assert.deepEqual(D.CAPTIONS.map(c => flat(c[2])), BULLES, 'les bulles du scénario, mot pour mot et dans l’ordre');
   /* Les deux premières légendes, communes aux chapitres 4 à 6 (contrat de continuité), et la devise hors de l’app. */
   assert.ok(page.includes('"Au chapitre 3, tu as dessiné<br>le plan de la base<br>avec un <b class=\\"nw\\">diagramme de classes UML</b>."'), 'le diagramme de classes UML, insécable');
-  assert.ok(page.includes(': [201.4, 999, "Un plan d’abord,<br>puis une requête par table :<br>c’est ainsi qu’une base prend forme."]'), 'devise (hors de l’app)');
+  assert.ok(page.includes(': [198.9, 999, "Un plan d’abord,<br>puis une requête par table :<br>c’est ainsi qu’une base prend forme."]'), 'devise (hors de l’app)');
   /* La seule légende trop longue pour trois lignes ordinaires : interlettrage un peu serré, mots intacts. */
   assert.ok(page.includes('#cap .ser{letter-spacing:-1.2px}') && page.includes('"<span class=\\"ser\\">On écrit <code>CREATE TABLE</code>, le nom de la table,<br>'), 'légende de CREATE TABLE en trois lignes');
   /* Les deux mails : Karim Benali (écrire les requêtes), l’équipe NutriBoost (deux règles pour les cartes de membre). */
@@ -216,11 +215,11 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
   assert.deepEqual(rows.map(r => [phrase(r), prec(r)]), [
     ['1. Créer une table', 'CREATE TABLE définit son nom et ses colonnes. Pour y ajouter des lignes, on utilise INSERT INTO.'],
     ['2. Définir les colonnes', 'Chaque colonne possède un nom et un type de données. Par exemple, seances INTEGER permet de stocker un nombre entier de séances.'],
-    ['3. Définir les règles', 'Les contraintes encadrent les données : identifiant unique (PRIMARY KEY), valeur obligatoire (NOT NULL), absence de doublons (UNIQUE), condition à respecter (CHECK) et lien vers une autre table (FOREIGN KEY).']], 'récapitulatif');
+    ['3. Définir les règles', 'Les contraintes encadrent les données : identifiant unique (PRIMARY KEY), valeur obligatoire (NOT NULL), absence de doublons (UNIQUE), condition à respecter (CHECK) et relation avec une autre table (FOREIGN KEY).']], 'récapitulatif');
   assert.ok(['🏗️', '🔤', '🛡️'].every(e => recap.includes(`<div class="rico emo">${e}</div>`)), 'emoji des trois idées');
   assert.ok(rows[0].includes('1. Créer une <b>table</b>') && rows[1].includes('2. Définir les <b>colonnes</b>') && rows[2].includes('3. Définir les <b>règles</b>'), 'les notions en gras');
-  /* La dernière précision arrive à 200,55 s : sa pause de lecture (201,05) est aussi celle de la bulle (fin à 201,3), une seule pause. */
-  assert.ok(page.includes('[[196.8, 197.55], [198.2, 198.95], [199.6, 200.55]].forEach(([r, d], i) => {') && D.CAPTIONS.some(c => c[1] === 201.3 && c[3] === 4), 'une seule pause à la fin : celle du récapitulatif');
+  /* La dernière précision arrive à 198,05 s : sa pause de lecture (198,55) est aussi celle de la bulle (fin à 198,8), une seule pause. */
+  assert.ok(page.includes('[[194.3, 195.05], [195.7, 196.45], [197.1, 198.05]].forEach(([r, d], i) => {') && D.CAPTIONS.some(c => c[1] === 198.8 && c[3] === 4), 'une seule pause à la fin : celle du récapitulatif');
 });
 
 test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices, la réponse posée juste après l’arrêt`, () => {
@@ -309,7 +308,7 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
   /* Les gestes de la timeline, chacun pendant la bulle qui en parle. */
   for (const s of ["show('#st-cl', 21.3,", "slotIn('sl0', 46.6);", "FLECHES.forEach(([id], q) => draw('#' + id, 73.0 + q * 0.6, 0.5));", "pop('#od-co', 86.5, 0.5);",
     "bump('#tb-date .ex', 101.45, 1.12);", "sqMore('an1', 123.1);", "sqMore('cdf', 157.3);", "sqMore('cck', 161.0, 30);", "press($('#run'), 171.6);", "show('#okm', 172.4,",
-    "show('#ins', 188.85,", "show('#keyc', 191.85,", "bump('#db .dbn', 178.05, 1.18);", "bump('#ins code', 189.95, 1.15);"])
+    "show('#ins', 186.35,", "show('#keyc', 189.35,", "bump('#db .dbn', 178.05, 1.18);", "bump('#ins code', 187.45, 1.15);"])
     assert.ok(page.includes(s), `geste : ${s}`);
   /* Le badge de la base compte avec les tables : 4, 5, 6, 7, 8, chaque nombre quand la table entre ; « 8 tables » est là avant que la bulle ne dise huit. */
   assert.ok(page.includes("Base de données<span class=\"dbn\">' + [4, 5, 6, 7, 8].map(n => `<i class=\"n${n}\">${n} tables</i>`).join('') + '</span></div>'"), 'le badge a cinq états, de 4 à 8 tables');
@@ -322,10 +321,17 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
   assert.ok(creees[0] < 176.2 && fini < huit[0] + 0.3, 'le compte atteint 8 avant que la bulle « huit tables » soit lisible');
   assert.ok(derniere + 0.4 < creees[1] - 0.25, 'la dernière table a fini d’entrer avant la pause de la bulle « créées »');
   assert.ok(!/huit tables/.test(D.CAPTIONS.filter(c => c[0] < huit[0]).map(c => c[2]).join(' ')), 'aucune bulle ne parle de huit tables avant le badge à 8');
-  /* « Karim y ajoutera… INSERT INTO » : la puce porte la commande en entier, ses gestes finissent avant la pause de la bulle (fin 191,2). */
+  /* « Karim y ajoutera… INSERT INTO » : la puce porte la commande en entier, ses gestes finissent avant la pause de la bulle (fin 188,7). */
   const ins = D.CAPTIONS.find(c => /INSERT INTO/.test(c[2]));
   assert.ok(page.includes('<span class="emo">✍️</span><code>INSERT INTO</code></span></div>') && !page.includes('<code>INSERT</code>'), 'la puce dit INSERT INTO, comme la bulle');
-  assert.ok(190.25 + 0.14 * 4 < ins[1] - 0.25 && 188.85 > ins[0], 'le stylo a fini d’écrire avant la pause de la bulle');
+  assert.ok(187.75 + 0.14 * 4 < ins[1] - 0.25 && 186.35 > ins[0], 'le stylo a fini d’écrire avant la pause de la bulle');
+  /* Une seule bulle sur le contenu des nouvelles tables : « Les quatre nouvelles tables sont encore vides » (plus de « Une table neuve est vide »).
+     Les « 0 ligne » des trois autres tables entrent un à un, puis les quatre battent ensemble, avant la fin de la bulle. */
+  const vides = D.CAPTIONS.filter(c => /nouvelles tables sont encore vides|table neuve est vide/.test(flat(c[2])));
+  assert.equal(vides.length, 1, 'une seule bulle sur les tables vides');
+  assert.equal(flat(vides[0][2]), 'Les quatre nouvelles tables sont encore vides.');
+  assert.ok(vides[0][0] === 182.75 && vides[0][1] === 186.0 && ins[0] === +(vides[0][1] + 0.1).toFixed(2), 'la bulle INSERT INTO suit tout de suite');
+  assert.ok(page.includes("bump(ORDRE.map(k => `#gx-${k}-f`), 184.6, 1.06);") && !page.includes('#gx-${k} .pr'), 'les « 0 ligne » battent ensemble, sans les rangées de colonnes de la bulle retirée');
 });
 
 test(`${FILE} : le cas NutriBoost des chapitres 2 et 3, et chaque requête montrée vérifiée dans SQLite`, async () => {
@@ -390,7 +396,7 @@ test(`${FILE} : le cas NutriBoost des chapitres 2 et 3, et chaque requête montr
   /* Les flèches du plan : une par clé étrangère, de la table qui fait référence vers la table désignée. */
   assert.deepEqual(H.FLECHES.map(f => [T[f[1]], H.SUJET[f[2]][0]]).sort(),
     JSON.parse(q("SELECT m.name, f.\"table\" FROM sqlite_master m, pragma_foreign_key_list(m.name) f WHERE m.name IN ('ateliers', 'cartes', 'inscriptions') ORDER BY 1, 2")), 'les flèches du plan');
-  /* Moment 6 et bulle 37 : une table neuve est vide (aucune ligne, pas même une ligne vide). */
+  /* Moment 6 et bulle 37 : les quatre nouvelles tables sont encore vides (aucune ligne, pas même une ligne vide). */
   for (const name of Object.values(T)) assert.equal(q(`SELECT COUNT(*) FROM ${name}`), '[[0]]', `la table ${name} ne contient aucune ligne`);
   /* Moment 1 : UNIQUE laisse l’id vide (NULL), NOT NULL laisse deux fois le même id ; PRIMARY KEY : unique, et jamais vide. */
   db.run('SAVEPOINT m1');
