@@ -78,7 +78,7 @@ function fr(h){
   return out.map(p => p.t).join('');
 }
 /* Même typographie pour les textes écrits directement dans la page (bulle, récapitulatif, cartes…), hors code. */
-const NO_FR = 'code, .ic, .code, .mini, .codepill, .lk, .colchip, .th, .tr, .mt, .chips, .cnt, .emo, #cap';
+const NO_FR = 'code, .ic, .code, .mini, .codepill, .lk, .colchip, .th, .tr, .mt, .chips, .cnt, .emo, #cap, .sms-np';
 function frDom(root){
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), nodes = [];
   while (walker.nextNode()) nodes.push(walker.currentNode);
@@ -239,6 +239,81 @@ function typeMore(part, t, cps = 24, keepCaret = false){
   return typeChars($$('.ch', part), t, cps, line.querySelector('.caret'), keepCaret);
 }
 
+/* ---------- Un client écrit : SMS (Messages de l’iPhone) ---------- */
+/* Un coach, l’équipe ou le développeur écrivent par mail ; un client écrit par SMS (le style est dans core.css).
+   La page crée la carte avec smsCard(), puis appelle smsIn() là où elle appellerait son mailIn(). */
+const isSms = tag => /^client/.test(tag);
+/* Heure d’envoi écrite en tête de la conversation : propre à chaque expéditeur, entre 07:00 et 18:59. */
+const smsTime = name => { const h = [...name].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 997, 7); return String(7 + h % 12).padStart(2, '0') + ':' + String((h * 7) % 60).padStart(2, '0'); };
+/* Les bulles : « Bonjour, », une bulle par phrase de la demande, « Merci ! ». Pas de signature : le nom est en haut de la conversation. */
+function smsParts(body){
+  const sentences = [].concat(body).flatMap(p => String(p).split(/(?<=[.!?])\s+(?=[A-ZÀÂÉÈÊÎÔÛÇ])/));
+  return ['Bonjour,', ...sentences, 'Merci !'];
+}
+const SMS_ICO = {
+  bubble: '<svg viewBox="0 0 24 24"><path fill="#fff" d="M12 3C6.5 3 2 6.6 2 11c0 2.5 1.3 4.7 3.4 6.1L4.4 21l4.3-2.3c1.1.3 2.2.5 3.3.5 5.5 0 10-3.6 10-8.2S17.5 3 12 3z"/></svg>',
+  back: '<svg class="sms-bk" viewBox="0 0 34 68"><path d="M27 6 7 34l20 28" fill="none" stroke="#007AFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  video: '<svg class="sms-vd" viewBox="0 0 68 50"><rect x="2" y="3" width="42" height="44" rx="12" fill="#007AFF"/><path d="M48 19.5 61.5 9.4c2.2-1.6 4.5-.5 4.5 2.2v27c0 2.7-2.3 3.8-4.5 2.2L48 30.5z" fill="#007AFF"/></svg>',
+  plus: '<svg viewBox="0 0 38 38"><path d="M19 5v28M5 19h28" stroke="#8A8A8E" stroke-width="5.5" stroke-linecap="round"/></svg>',
+  mic: '<svg viewBox="0 0 34 44"><rect x="10" y="2" width="14" height="26" rx="7" fill="#8A8A8E"/><path d="M4 21c0 8 5 13 13 13s13-5 13-13M17 34v8" fill="none" stroke="#8A8A8E" stroke-width="3.6" stroke-linecap="round"/></svg>'
+};
+/* La carte d’un SMS (#ml + id, comme un mail) : la bannière de notification, et la conversation qui s’ouvre à sa place.
+   cmp : version compacte (sans date ni barre de saisie), là où la place manque. */
+function smsCard(id, k, first, last, ini, body, cmp = false){
+  const parts = smsParts(body), name = first + ' ' + last;
+  const bubbles = parts.map((p, j) => `<p class="sms-m${j === parts.length - 1 ? ' last' : ''}">${p}</p>`).join('');
+  const date = cmp ? '' : `<div class="sms-d">Message texte · SMS<br><b>Aujourd’hui</b> ${smsTime(name)}</div>`;
+  const bar = cmp ? '' : `<div class="sms-i"><i class="sms-pl">${SMS_ICO.plus}</i><div class="sms-in">Message texte · SMS${SMS_ICO.mic}</div></div>`;
+  return `<div class="abs ml sms${cmp ? ' cmp' : ''} ${k}" id="ml${id}">` +
+    `<div class="card sms-n"><i class="sms-ic">${SMS_ICO.bubble}</i><div class="sms-nt"><div class="sms-nr"><b>${name}</b><span>maintenant</span></div><div class="sms-np">${parts[1].replace(/ ([:?!;»])/g, NB + '$1')}</div></div></div>` +
+    `<div class="card sms-v"><div class="sms-h">${SMS_ICO.back}${SMS_ICO.video}<i class="sms-av">${ini}</i><div class="sms-who">${name}<i>›</i></div></div>${date}` +
+    `<div class="sms-b"><div class="sms-t"><i></i><i></i><i></i></div>${bubbles}</div>${bar}</div></div>`;
+}
+/* Chaque bulle se resserre sur sa ligne la plus longue : un texte qui passe à la ligne garderait sinon la largeur maximale de la bulle,
+   avec du vide à droite. Appelée une fois, polices chargées, avant la timeline (aucune transformation en cours). */
+function smsFit(){
+  const {k} = stageScale(), range = document.createRange();
+  $$('.sms-m').forEach(p => {
+    p.style.width = '';
+    range.selectNodeContents(p);
+    const lines = [...range.getClientRects()].filter(x => x.width > 0);
+    if (lines.length < 2) return;   // une seule ligne : la bulle est déjà à sa taille
+    const cs = getComputedStyle(p);
+    p.style.width = Math.ceil(Math.max(...lines.map(x => x.width)) / k) + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + 2 + 'px';
+  });
+}
+/* Un SMS arrive : la bannière tombe (icône Messages, nom, début du message). À T, l’élève la touche (l’app s’arrête là, moment
+   OPENS ; hors de l’app, la page montre un doigt) : elle s’enfonce, la conversation s’ouvre à sa place, « … » (il écrit), puis les
+   bulles arrivent une à une, à la cadence des lignes d’un mail. L’image reste le temps de lire la demande. Renvoie l’instant de fin.
+   fast : cadence serrée (conversation compacte), là où la légende suivante revient tout de suite. */
+function smsIn(n, t, T, fast = false){
+  const m = '#ml' + n, bubbles = $$(m + ' .sms-m'), dots = $(m + ' .sms-t');
+  const open = fast ? 0.4 : 0.5, first = T + (fast ? 0.5 : 0.62), step = fast ? 0.25 : 0.28;   // la première bulle prend la place de « … »
+  show(m, t, {y: -36, scale: 0.94}, 0.55, 'back.out(1.7)');
+  cue(t, 'sms', 0.8);
+  show(m + ' .sms-ic', t + 0.12, {y: 0, scale: 0.5}, 0.4, 'back.out(2.4)');
+  tl.to(m, {scale: 0.975, duration: 0.09, ease: 'power2.out'}, T);
+  tl.to(m, {scale: 1, duration: 0.3, ease: 'back.out(2.5)'}, T + 0.09);
+  cue(T, 'click', 0.5);
+  tl.to(m + ' .sms-n', {autoAlpha: 0, duration: 0.14, ease: 'power2.in'}, T + 0.12);
+  gsap.set(m + ' .sms-v', {autoAlpha: 0, scaleX: 0.9, scaleY: 0.15});
+  tl.to(m + ' .sms-v', {autoAlpha: 1, scaleX: 1, scaleY: 1, duration: open, ease: 'power3.out'}, T + 0.12);
+  cue(T + 0.12, 'whoosh', 0.35);
+  gsap.set(dots, {autoAlpha: 0, scale: 0.6, transformOrigin: '0% 100%'});
+  tl.to(dots, {autoAlpha: 1, scale: 1, duration: 0.18, ease: 'back.out(2)'}, first - 0.22);
+  tl.to($$('i', dots), {y: -9, duration: 0.12, stagger: 0.06, yoyo: true, repeat: 1, ease: 'sine.inOut', data: 'amb'}, first - 0.18);
+  tl.set(dots, {autoAlpha: 0}, first);
+  gsap.set(bubbles, {autoAlpha: 0, scale: 0.6, y: 14, transformOrigin: '0% 100%'});
+  bubbles.forEach((b, k) => {
+    const at = first + k * step;
+    tl.to(b, {autoAlpha: 1, scale: 1, y: 0, duration: 0.32, ease: 'back.out(1.8)'}, at);
+    cue(at, 'tick', 0.4, k + 2);
+  });
+  const end = first + (bubbles.length - 1) * step + 0.35;
+  // le temps de lire la demande : toutes les bulles entre « Bonjour, » et « Merci ! »
+  hold(end + 0.05, Math.ceil(readTime(bubbles.slice(1, -1).map(b => b.textContent).join(' ')) * 20) / 20);
+  return end;
+}
 /* ---------- Habillage : chapitres et légendes ---------- */
 function buildChrome(chapters, captions){
   const prog = $('#progress');
@@ -627,6 +702,7 @@ function Course(cfg){
       '500 40px Inter', '600 40px Inter', '700 40px Inter', '800 40px Inter', '400 40px "Noto Color Emoji"'];
     await Promise.all(fams.map(f => document.fonts.load(f, 'Aàé’' + (cfg.glyphs || ''))));
     await document.fonts.ready;
+    smsFit();
     chromeTimeline(chapters, captions, duration);
     cfg.build();
     tl.set({}, {}, duration);

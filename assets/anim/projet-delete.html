@@ -204,7 +204,7 @@
   <section class="scene" id="sa"></section>
   <!-- La table inscriptions, les requêtes DELETE et SELECT -->
   <section class="scene" id="sb"></section>
-  <!-- Les trois mails -->
+  <!-- Les trois messages : deux SMS, un mail -->
   <section class="scene" id="sm"></section>
   <!-- La table clients, la requête DELETE, les tables qui font référence à un client -->
   <section class="scene" id="sc"></section>
@@ -249,7 +249,7 @@ const mailBlock = () => { const t = SCH.t; SCH.t = +(SCH.t + 4.8).toFixed(2); re
 /* 1 · Trois demandes : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) */
 cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
 cap('r2', "Au chapitre 8, tu as modifié<br>des lignes avec <code>UPDATE</code>.", 3.0);
-cap('c2', "Trois nouvelles demandes<br>arrivent par mail.", 2.8);
+cap('c2', "Trois demandes arrivent :<br>deux SMS et un mail.", 2.8);
 cap('c3', "Cette fois, toutes demandent<br>de supprimer des lignes.", 3.2);
 const MAIL1 = mailBlock();
 /* 2 · Supprimer une ligne */
@@ -384,8 +384,9 @@ const PICKS = [
     options: ITEMS.map(x => ({label: x[0]}))}
 ];
 
-/* Les trois mails reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses paragraphes), signature].
-   Chacun arrive en notification ; l’app s’arrête dessus (OPENS) jusqu’au toucher. Le premier est celui du chapitre 1. */
+/* Les trois messages reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses paragraphes), signature].
+   Un client écrit par SMS (smsCard, smsIn), l’accueil par mail. Chacun arrive en notification ; l’app s’arrête dessus (OPENS)
+   jusqu’au toucher. Le premier est celui du chapitre 1. */
 const MAILS = [
   [['Léa', 'Simon', 'LS'], 'k-cl', 'cliente', 'lea@mail.fr', [
     'Je ne pourrai pas venir à l’atelier Cuisine saine prévu le 19 septembre.',
@@ -397,7 +398,10 @@ const MAILS = [
     'Hugo Laurent déménage : il ne viendra plus aux ateliers.',
     'Peux-tu supprimer toutes ses inscriptions ?'], 'L’accueil NutriBoost']
 ];
-const OPENS = [MAIL1, MAIL2, MAIL3].map((t, n) => ({at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: 'Touche le mail pour l’ouvrir.', label: `Ouvrir le mail ${/^[AEIOUHÉÈ]/.test(MAILS[n][0][0]) ? 'd’' : 'de '}${MAILS[n][0][0]} ${MAILS[n][0][1]}`}));
+const OPENS = [MAIL1, MAIL2, MAIL3].map((t, n) => {
+  const [prenom, nom] = MAILS[n][0], msg = /^client/.test(MAILS[n][2]) ? 'message' : 'mail';   // un client écrit par SMS
+  return {at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: `Touche le ${msg} pour l’ouvrir.`, label: `Ouvrir le ${msg} ${/^[AEIOUHÉÈ]/.test(prenom) ? 'd’' : 'de '}${prenom} ${nom}`};
+});
 
 /* ---------- Gabarits ---------- */
 /* Une case à valeurs empilées (une seule se voit). */
@@ -482,8 +486,8 @@ function dom(){
   $('#sd').innerHTML = BINS.map(([k, n, d], q) => `<div class="abs dbn" id="db-${k}" data-k="${k}" style="top:${340 + q * 232}px"><div class="hh"><span class="dn">${n}</span><span class="dd">${d}</span></div>` +
     `<div class="cs">${ITEMS.map((x, i) => x[1] === k ? `<div class="rc" id="sbu${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
     '<div class="abs pack" id="bpack"><span><span class="emo">📬</span>6 demandes à ranger</span></div>';
-  /* Les mails */
-  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
+  /* Les SMS et les mails */
+  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag) ? smsCard(n + 1, k, w[0], w[1], w[2], body) : `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
     `<div class="mw"><div class="mn"><b>${w[0]} ${w[1]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
     `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), 'Merci !', sign].map((x, j, a) => `<span class="sn${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
     '<div class="abs emo tapf" id="tapf">👆</div>';
@@ -558,6 +562,7 @@ const capOn = t => tl.to('#cap', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'pow
    moment OPENS ; hors de l’app, un doigt le montre) : elle s’enfonce, l’adresse de l’expéditeur remplace « Nouveau mail »,
    puis elle se déplie en mail, ligne après ligne. L’image reste le temps de lire la demande. */
 function mailIn(n, t, T){
+  if (isSms(MAILS[n - 1][2])) { if (!APP) fingerTap($('#ml' + n), T); return smsIn(n, t, T); }
   const m = '#ml' + n, sn = $$(m + ' .sn');
   show(m, t, {y: -36, scale: 0.94}, 0.55, 'back.out(1.7)');
   cue(t, 'mail', 0.8);
@@ -625,13 +630,13 @@ function build(){
   on('#bw-at .hl', A.r2 + 0.3, 0.2); cue(A.r2 + 0.3, 'tick', 0.5, 1);
   on('#bw-ca .hl', A.r2 + 0.9, 0.2); cue(A.r2 + 0.9, 'tick', 0.5, 3);
   off(['#bw-at .hl', '#bw-ca .hl'], A.r2 + 2.2, 0.3);
-  // trois demandes arrivent par mail
+  // trois demandes arrivent : deux SMS, un mail
   show('#dem', A.c2 + 0.3, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.c2 + 0.3, 'pop', 0.7, 1);
   // toutes demandent de supprimer des lignes : deux tables sont concernées, les inscriptions et les clients
   on('#bw-in .hl', A.c3 + 0.5, 0.25); cue(A.c3 + 0.5, 'tick', 0.5, 1);
   on('#bw-cl .hl', A.c3 + 1.2, 0.25); cue(A.c3 + 1.2, 'tick', 0.5, 3);
   off(['#bw-in .hl', '#bw-cl .hl'], B.c3 - 0.7, 0.3);
-  // le mail de Léa Simon
+  // le SMS de Léa Simon
   capOff(MAIL1 - 0.2);   // avec la légende : jamais de carte vide
   hide(['#bc', '#dem'], MAIL1, {y: -30}, 0.35);
   sceneOff('#sa', MAIL1 + 0.4);
@@ -674,7 +679,7 @@ function build(){
   off('#rt3 .hl', B.c8 - 0.8, 0.3);
 
   /* ===== 3 · Le bon client ===== */
-  // le mail de Nathan Dupont : pendant qu’il est affiché, la table inscriptions s’en va
+  // le SMS de Nathan Dupont : pendant qu’il est affiché, la table inscriptions s’en va
   capOff(MAIL2 - 0.2);
   hide(['#tb', '#keep'], MAIL2, {y: -30}, 0.35);
   sceneOff('#sb', MAIL2 + 0.4);

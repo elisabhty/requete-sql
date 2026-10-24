@@ -112,6 +112,10 @@ export function textesDuBalisage(src) {
   return out;
 }
 
+/* Une page rend-elle en SMS le message d’un client ? Son constructeur de messages passe par smsCard() quand l’étiquette est celle d’un client
+   (isSms), et son mailIn() par smsIn(). */
+export const rendEnSms = src => /isSms\([^)]*\)\s*\?\s*smsCard\(/.test(src) && /isSms\([^)]*\)[^\n]*\bsmsIn\(/.test(src);
+
 /* Tous les textes d’une page du projet : la structure (légendes, consignes, réponses, corrections, mails, chapitres, récapitulatif),
    puis tout ce que la page écrit d’autre à l’élève (indices, corrections calculées, bulles…), sans doublon. */
 export function textes(file) {
@@ -130,7 +134,8 @@ export function textes(file) {
     ajoute('indice', p.hint, `moment ${i + 1}, aide`); ajoute('indice', p.next, `moment ${i + 1}, ligne d’aide`);
     (p.options || []).forEach((o, k) => { ajoute('option', o.label, `moment ${i + 1}, réponse ${k + 1}`); ajoute('correction', o.why, `moment ${i + 1}, correction ${k + 1}`); });
   });
-  D.MAILS.forEach((m, k) => [].concat(m[4]).forEach((p, j) => ajoute('mail', p, `mail ${k + 1}, paragraphe ${j + 1}`)));
+  const sms = rendEnSms(src);
+  D.MAILS.forEach((m, k) => [].concat(m[4]).forEach((p, j) => ajoute('mail', p, `message ${k + 1}, paragraphe ${j + 1}`, {etiquette: m[2], sms})));
   for (const m of src.matchAll(/<div class="rrow"><div class="rico emo">[^<]*<\/div><div class="rtxt">([\s\S]*?)<\/div><\/div>/g)) {
     const [phrase, precision] = m[1].split('<span class="rs">');
     ajoute('recap', phrase, 'récapitulatif'); if (precision) ajoute('recap', precision.replace(/<\/span>[\s\S]*$/, ''), 'récapitulatif, précision');
@@ -497,6 +502,22 @@ export const REGLES_DE_PAGE = [
     bon: [[{genre: 'legende', html: 'Imagine que tu inverses<br>les deux premières valeurs.'}, {genre: 'legende', html: 'Et si tu oublies de préciser<br>l’atelier dans ta requête ?'}, {genre: 'legende', html: 'Que se passe-t-il<br>si tu oublies la date ?'}]],
     mauvais: [[{genre: 'legende', html: 'Imagine que tu inverses les deux premières valeurs.'}, {genre: 'legende', html: 'Imagine que tu oublies l’atelier.'}],
       [{genre: 'legende', html: 'Imaginons une colonne atelier_id.'}, {genre: 'consigne', html: 'Imagine une valeur pour chaque colonne.'}]]
+  },
+  {
+    id: 'client-par-sms',
+    titre: 'Un client écrit par SMS (notification, puis conversation de l’iPhone), jamais par mail',
+    demande: 'Elisa, 24 octobre : « Quand c’est des clients, faire plutôt des messages SMS immersifs, crédibles, iPhone iOS. » Un coach, l’équipe, l’accueil ou le développeur écrivent par mail ; ' +
+      'un client écrit par SMS : la page crée sa carte avec smsCard() et la joue avec smsIn() (assets/anim/core.js), à la place de la carte de mail.',
+    genres: ['mail'],
+    verifie(textes) {
+      const vus = new Set();
+      return textes.filter(t => t.genre === 'mail' && /^client/.test(t.etiquette || '') && !t.sms && !vus.has(t.ou.split(',')[0]) && vus.add(t.ou.split(',')[0]))
+        .map(t => ({texte: t, probleme: `le message d’un client (« ${t.etiquette} ») est une carte de mail : il s’écrit par SMS (smsCard, smsIn)`}));
+    },
+    bon: [[{genre: 'mail', html: 'Je ne pourrai pas venir à l’atelier.', etiquette: 'cliente', sms: true}, {genre: 'mail', html: 'Mon adresse e-mail a changé.', etiquette: 'coach', sms: false}],
+      [{genre: 'mail', html: 'Nous lançons une carte de membre.', etiquette: 'équipe', sms: false}, {genre: 'mail', html: 'Peux-tu supprimer mon compte ?', etiquette: 'client', sms: true}]],
+    mauvais: [[{genre: 'mail', html: 'Je ne pourrai pas venir à l’atelier.', etiquette: 'cliente', sms: false}],
+      [{genre: 'mail', html: 'Peux-tu supprimer mon compte ?', etiquette: 'client', sms: false}, {genre: 'mail', html: 'Mon adresse e-mail a changé.', etiquette: 'coach', sms: false}]]
   }
 ];
 
