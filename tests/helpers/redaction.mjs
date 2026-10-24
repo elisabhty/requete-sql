@@ -357,7 +357,9 @@ export const REGLES = [
   {
     id: 'legende-phrase',
     titre: 'Une bulle : une phrase courte et complète, qui commence comme une phrase et finit par . ! ? ou »',
-    demande: 'Elisa, 23 octobre : une seule phrase courte et complète par bulle ; elle commence comme une phrase (majuscule) et finit par . ! ? ou ».',
+    demande: 'Elisa, 23 octobre : une seule phrase courte et complète par bulle ; elle commence comme une phrase (majuscule) et finit par . ! ? ou ». ' +
+      'Elisa, 24 octobre : plusieurs bulles courtes plutôt qu’un long texte (« pas à lire tout d’un coup mais séparé en plusieurs bulles pour améliorer la lecture et la concentration ») : ' +
+      '« complète » ne veut pas dire « longue » ; une explication se découpe en une phrase par bulle, jamais en morceaux d’une même phrase.',
     genres: ['legende'],
     verifie: ({plain, html: h}) => {
       const pb = [];
