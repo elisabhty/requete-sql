@@ -903,8 +903,8 @@ const COURSES = [
       "{at: 80.05, from: 68.1, kind: 'tap', need: 2, prompt: 'Touche les deux tables que tu peux écrire juste après coachs.'},", "const M2_ANS = {at: ['#p-at .hlo'], ca: ['#p-ca .hlo']};",
       "{at: 97.85, from: 89.9, kind: 'sort',", "{at: 115.65, from: 110.5, kind: 'tap', need: 1,", "{at: 155.85, from: 145.8, kind: 'sort',",
       "{at: 182.45, from: 165.7, kind: 'pick', text: true,", "{label: 'Ses colonnes, mais aucune ligne', ok: true},", 'Chapitre 5 · ALTER TABLE']},
-  {id: 65, next: 66, titre: 'ALTER TABLE', page: 'projet-alter.html', thumb: 'projet-alter-thumb.webp', duree: '3 min 57', notesAt: 170.6,
-    notes: /notes:\{t:229\.7,y:1189,card:\[64,292,1016,894\],to:\[940,255\]\}/, table: 'ateliers',
+  {id: 65, next: 66, titre: 'ALTER TABLE', page: 'projet-alter.html', thumb: 'projet-alter-thumb.webp', duree: '5 min 17', notesAt: 221.95,
+    notes: /notes:\{t:309\.9,y:1289,card:\[64,292,1016,994\],to:\[940,255\]\}/, table: 'ateliers',
     bubble: 'Les ateliers ont commencé&nbsp;:<br>à toi d’adapter les tables sans les recréer.',
     chapters: ['Les demandes', 'Ajouter une colonne', 'Une colonne sans DEFAULT', 'Renommer une colonne', 'Supprimer une colonne', 'Structure ou valeurs', 'À retenir'],
     traps: ["const PLACES = 12, CUISINE = [3, 8];", "const TELS = ['06 39 98 02 31', '06 39 98 14 76', '06 39 98 25 93', '06 39 98 36 58'];",
@@ -912,14 +912,14 @@ const COURSES = [
       "  pl: [['pl1', 'ALTER TABLE ateliers'], ['pl2', '  ADD COLUMN {plc|places} {pli|INTEGER} <sl0|DEFAULT 12>;']],",
       "  rn: [['rn1', 'ALTER TABLE cartes'], ['rn2', '  {rnk|RENAME COLUMN} <sl3a|seances>', 2], ['rn3', '  {rto|TO} <sl3b|seances_restantes>;']],",
       // Les six moments : DEFAULT 12 dans le trou, la table des numéros, NULL, l’ancien et le nouveau nom, DROP COLUMN, structure ou valeurs
-      "{at: 43.05, from: 22.9, kind: 'pick', prompt:", "{label: 'DEFAULT 12', ok: true},", "{at: 59.55, from: 52.85, kind: 'tap', need: 1,", "if (a === 'co') {",
-      "{at: 73.05, from: 65.6, kind: 'pick', text: true,", "{label: 'NULL\\u00a0: aucune valeur', ok: true},", "{at: 98.05, from: 87.4, kind: 'sort',",
+      "{at: 51.95, from: 22.9, kind: 'pick', prompt:", "{label: 'DEFAULT 12', ok: true},", "{at: 70.7, from: 64.0, kind: 'tap', need: 1,", "if (a === 'co') {",
+      "{at: 89.35, from: 81.9, kind: 'pick', text: true,", "{label: 'NULL\\u00a0: aucune valeur', ok: true},", "{at: 114.35, from: 103.7, kind: 'sort',",
       "const NOMS = [['seances_restantes', 'new', 'seances_restantes est le nouveau nom : il vient après TO.'],",
-      "{at: 124.45, from: 116.6, kind: 'pick', text: true,", "{label: 'ALTER TABLE coachs DROP COLUMN telephone', ok: true}]},", "{at: 153.45, from: 134.6, kind: 'sort',",
+      "{at: 170.55, from: 163.12, kind: 'pick', text: true,", "{label: 'ALTER TABLE coachs DROP COLUMN telephone', ok: true}]},", "{at: 199.55, from: 180.7, kind: 'sort',",
       "const OPS = [['add', 'ALTER TABLE', 'ADD COLUMN'], ['ren', 'ALTER TABLE', 'RENAME COLUMN'], ['drop', 'ALTER TABLE', 'DROP COLUMN'], ['upd', '', 'UPDATE']];",
       "  ['Passer l’atelier Pilates à 10 places', 'upd', 'Aucune colonne ne change : seule une valeur change.'],",
       '<span class="lc2" id="lc-${k}"><i class="e">0 ligne</i><i class="f">${n} lignes</i></span>', "kbp('kb1', 'INSERT INTO')", "kbp('kb2', 'UPDATE', 'up2')",
-      "addCol('tb-at', 4, 150, 44.7, 0.16);", "crumble(COACHS.map(([id]) => `#tc-co-r${id} .c4 .l1`).reverse().concat('#tc-co .hd .c4 .h0').map(s => $(s)), 125.9);",
+      "addCol('tb-at', 4, 150, 53.7, 0.16);", "crumble(COACHS.map(([id]) => `#tc-co-r${id} .c4 .l1`).reverse().concat('#tc-co .hd .c4 .h0').map(s => $(s)), 172);",
       'Effacé avec la colonne', 'Chapitre 6 · DROP']},
   {id: 66, next: 26, titre: 'DROP', page: 'projet-drop.html', thumb: 'projet-drop-thumb.jpg', duree: '3 min 01', notesAt: 106.8,
     notes: /notes:\{t:173\.6,y:1223,card:\[64,292,1016,928\],to:\[940,255\]\}/, table: 'clients',
@@ -2039,9 +2039,9 @@ test('légendes : une 4e valeur [début, fin, texte, 4] autorise quatre lignes, 
     "if (lines > (captions[i][3] || 3)) out.push({i, lines, text: captions[i][2]});", "lines.length > (+el.closest('.c').dataset.lines || 3)"])
     assert.ok(core.includes(part), `quatre lignes : ${part}`);
   /* Sans 4e valeur, une légende reste limitée à trois lignes dans toutes les autres leçons
-     (projet-create.html en a une seule : la phrase sur le 1 du côté de Coach, épinglée dans son propre test). */
+     (projet-uml.html, projet-create.html et projet-alter.html ont les leurs, épinglées chacune dans son propre test). */
   for (const f of fs.readdirSync(path.join(ROOT, 'assets/anim')).filter(f => f.endsWith('.html')))
-    if (f !== 'projet-uml.html' && f !== 'projet-create.html') assert.ok(!/\n\s*\[[\d.]+, [\d.]+, ("[^\n]*"|'[^\n]*'), 4\],?/.test(fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8')), `${f} : aucune légende de quatre lignes`);
+    if (!['projet-uml.html', 'projet-create.html', 'projet-alter.html'].includes(f)) assert.ok(!/\n\s*\[[\d.]+, [\d.]+, ("[^\n]*"|'[^\n]*'), 4\],?/.test(fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8')), `${f} : aucune légende de quatre lignes`);
 });
 
 test('mise en page (?check) : un élément ou un texte qui sort de son cadre est signalé (pastille, colonnes)', () => {
