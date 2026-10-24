@@ -9,12 +9,12 @@ const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const dataCtx = vm.createContext({});
 vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), dataCtx);
 const lessons = vm.runInContext('MODULES.flatMap(m=>m.lessons)', dataCtx).filter(l => !l.video);
-const concept = lessons.find(l => l.id === 26).studio.problem.extra;
+const concept = lessons.find(l => l.id === 50).studio.problem.extra;
 const src = html.slice(html.indexOf('function initAskCards()'), html.indexOf('const RT_TIME='));
 assert.ok(src.includes('function initAskCards()'), 'animation localisée');
 
-test('chaque cours texte met sa question en évidence dans une seule carte avec un « ? » (INSERT : « À quelle colonne appartient cette valeur ? »)', () => {
-  assert.match(concept, /<p class="gd-ask"><i aria-hidden="true">\?<\/i><span>À quelle colonne appartient cette valeur.\?<\/span><\/p>/);
+test('chaque cours texte met sa question en évidence dans une seule carte avec un « ? » (Sécurité et droits : « Ce compte a-t-il le droit de faire cela, sur cette table ? »)', () => {
+  assert.match(concept, /<p class="gd-ask"><i aria-hidden="true">\?<\/i><span>Ce compte a-t-il le droit de faire cela, sur cette table.\?<\/span><\/p>/);
   for (const l of lessons) assert.equal((l.studio.problem.extra.match(/gd-ask/g) || []).length, 1, `${l.titre} : une seule carte`);
 });
 

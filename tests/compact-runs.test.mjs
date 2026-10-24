@@ -59,5 +59,5 @@ test('écran de fin : « Le réflexe de cette leçon » = les trois idées (cour
   assert.ok(recap.indexOf('lessonHasVideo(l)') > 0 && recap.indexOf('lessonHasVideo(l)') < recap.indexOf('l.missionSql'), 'cours en vidéo : les trois idées, comme à la fin de la vidéo');
   assert.ok(recap.indexOf('l.missionSql') > 0 && recap.indexOf('l.missionSql') < recap.indexOf('l.solution'), 'la mission passe avant la solution de l’exercice');
   for (const l of lessons) assert.ok(l.video ? !l.missionSql : l.missionSql && l.missionSql.trim(), `cours ${l.id} : ${l.video ? 'pas de mission (vidéo)' : 'requête de mission'}`);
-  assert.equal(lessons.find(l => l.id === 26).missionSql, "INSERT INTO produits (nom, categorie, prix, stock)\nVALUES ('Zinc', 'Bien-être', 17.90, 70);\nSELECT *\nFROM produits;");
+  assert.equal(lessons.find(l => l.id === 50).missionSql, "GRANT SELECT\nON clients\nTO app_user;");
 });

@@ -1,0 +1,1084 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Projet, chapitre 7 : INSERT INTO</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .sub{font-size:66px}
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+.hid{opacity:0;visibility:hidden}
+/* Aperçu d’un geste (moment « À toi ») : il prend le pas sur la timeline, le temps de l’arrêt ; il montre exactement
+   l’image que la timeline affiche juste après l’arrêt, qui reprend donc sans saut. */
+.pvs{opacity:1!important;visibility:visible!important}
+.pvh{opacity:0!important;visibility:hidden!important}
+
+/* Couleur de chaque sujet : coach, atelier, client, carte de membre, inscription, développeur, copie du fichier Excel,
+   puis les tables de la boutique que la base compte aussi : commande (comme au chapitre 3), produit, fidélité ; et l’élève */
+.k-co{--c:#2F80ED;--cs:#E6F0FD;--ci:#1D5FA8}
+.k-at{--c:#E8892B;--cs:#FFF1E2;--ci:#9A5B00}
+.k-cl{--c:#6A4DF4;--cs:#EEE9FF;--ci:#5335E0}
+.k-nb{--c:#D99A0B;--cs:#FFF6DA;--ci:#8A6200}
+.k-in{--c:#169447;--cs:#E2F6EA;--ci:#0F7A3A}
+.k-dv{--c:#0E9F9A;--cs:#DDF5F3;--ci:#0B6E6A}
+.k-xl{--c:#64748B;--cs:#EEF1F5;--ci:#475569}
+.k-cm{--c:#0E9F9A;--cs:#DDF5F3;--ci:#0B6E6A}
+.k-pr{--c:#D9468F;--cs:#FCE8F2;--ci:#A3216A}
+.k-fi{--c:#9C6B3F;--cs:#F5ECE3;--ci:#7A4F27}
+.k-me{--c:#6A4DF4;--cs:#EEE9FF;--ci:#5335E0}
+
+/* ---------- La base : une ligne par table (son nom, son nombre de lignes) ---------- */
+.bc{left:64px;width:952px;top:236px;padding:0 0 12px;overflow:hidden}
+.bh{height:72px;display:flex;align-items:center;gap:14px;padding:0 34px;background:var(--surface-2);font-family:var(--display);font-size:34px;font-weight:800;color:var(--ink);letter-spacing:-.4px;white-space:nowrap}
+.bh .emo{font-size:34px}
+.bn{margin-left:auto;display:inline-grid;font-family:var(--ui);font-size:25px;font-weight:700;letter-spacing:0}
+.bn>span{grid-area:1/1;height:44px;padding:0 20px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;white-space:nowrap}
+.srow{position:relative;height:64px;padding:12px 34px;overflow:hidden}
+.srow+.srow{box-shadow:inset 0 2px 0 var(--line-2)}
+.srow>div{position:relative;z-index:1}
+.srow .hl,.srow .xx{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;opacity:0;visibility:hidden}
+.srow .hl{background:var(--cs);box-shadow:inset 8px 0 0 var(--c)}
+.srow .xx{background:rgba(239,79,85,.13);box-shadow:inset 8px 0 0 var(--danger-fill)}
+.sn{display:flex;align-items:center;gap:14px;height:40px;font-family:var(--mono);font-size:31px;font-weight:800;color:var(--ci)}
+.sn .emo{font-size:32px}
+.sn .sp{flex:1}
+.nm{position:relative;display:inline-block;white-space:nowrap}
+/* Barre rouge sur le nom d’une table retirée */
+.nm .sk{position:absolute;left:-4px;right:-4px;top:55%;height:5px;border-radius:3px;background:var(--danger-fill);transform-origin:0 50%;transform:scaleX(0)}
+.nb{display:inline-grid;font-family:var(--ui);font-size:23px;font-weight:700;color:var(--ink-3)}
+.nb>span{grid-area:1/1;display:flex;align-items:center;justify-content:flex-end;height:36px;padding:0 14px;border-radius:999px;background:var(--line-2);white-space:nowrap}
+
+/* Karim, puis l’élève : qui écrit dans la base */
+.who{height:84px;padding:0 30px 0 12px;border-radius:999px;display:flex;align-items:center;gap:14px;white-space:nowrap;box-shadow:0 6px 0 var(--lip)}
+.who .av{flex:none;width:60px;height:60px;border-radius:50%;background:var(--cs);color:var(--ci);font-family:var(--display);font-size:24px;font-weight:800;font-style:normal;display:flex;align-items:center;justify-content:center}
+.who b{font-size:32px;font-weight:700;color:var(--ink)}
+.who .mtg{height:34px;padding:0 12px;border-radius:10px;background:var(--cs);color:var(--ci);font-size:19px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center}
+.who .emo{font-size:40px}
+
+/* ---------- Les tables : lignes, colonnes, valeurs empilées ---------- */
+.tb,.st{padding:0 0 10px;overflow:hidden}
+.tb{border-radius:40px}
+.tb .h,.st .h{display:flex;align-items:center;gap:12px;background:var(--cs);font-family:var(--mono);font-weight:800;color:var(--ci);white-space:nowrap}
+.tb .h{height:64px;padding:0 24px;font-size:30px}
+.tb .h .emo{font-size:32px}
+.tb .bn>span{height:40px;font-size:23px;background:#fff;color:var(--ci);box-shadow:inset 0 0 0 3px var(--c)}
+.gr{display:grid;grid-template-columns:var(--g);align-items:stretch;padding:0 12px}
+.gr>span{position:relative;z-index:1;display:flex;align-items:center;gap:10px;min-width:0;padding:0 10px;white-space:nowrap;overflow:hidden}
+.hd{height:44px;font-family:var(--mono);font-size:24px;font-weight:700;color:var(--ink-3)}
+.hd .emo{font-size:21px}
+.gr>span.kc{color:var(--ci)}
+.r{position:relative;height:54px;font-family:var(--mono);font-size:30px;font-weight:600;color:var(--ink);box-shadow:inset 0 2px 0 var(--line-2);overflow:hidden}
+.r .hl,.r .wn,.r .xx,.r .gd{position:absolute;pointer-events:none;opacity:0;visibility:hidden}
+.r .hl,.r .wn,.r .xx{left:0;top:0;right:0;bottom:0;z-index:0}
+.r .hl{background:var(--cs);box-shadow:inset 6px 0 0 var(--c)}
+.r .wn{background:rgba(242,154,46,.2);box-shadow:inset 6px 0 0 #F29A2E}
+.r .xx{background:rgba(239,79,85,.15);box-shadow:inset 6px 0 0 var(--danger-fill)}
+/* Ligne pas encore ajoutée : un cadre en pointillés */
+.r .gd{left:6px;right:6px;top:4px;bottom:4px;z-index:0;border:3px dashed var(--c);border-radius:14px;background:var(--cs)}
+.r .v{position:relative;z-index:1;font-style:normal}
+/* Une case peut changer de valeur : les valeurs successives sont empilées, une seule se voit */
+.sw{display:inline-grid}
+.sw>*{grid-area:1/1;font-style:normal;white-space:pre}
+.sw>.nul{color:var(--ink-3);font-style:italic;font-weight:500}
+#s11c2{color:var(--danger)}
+/* Le nom de la personne ou de l’atelier, à côté de son identifiant */
+.nt{flex:none;height:38px;padding:0 14px;border-radius:11px;background:var(--cs);color:var(--ci);font-family:var(--ui);font-size:24px;font-weight:700;font-style:normal;display:inline-flex;align-items:center;white-space:nowrap}
+/* La case qui attend sa valeur (moment 1), ou qui manque (chapitre 4) */
+.phc{position:absolute;left:6px;right:6px;top:6px;bottom:6px;z-index:2;display:grid;font-family:var(--mono);font-size:26px;font-weight:800}
+.phc>*{grid-area:1/1;display:flex;align-items:center;justify-content:center;border-radius:10px;font-style:normal;white-space:nowrap}
+.phc .se{border:3px dashed #F2A65A;background:#FFF4E5;color:#9A5B00}
+.phc .sx{background:rgba(239,79,85,.16);box-shadow:inset 0 0 0 3px var(--danger-fill);color:var(--danger);opacity:0;visibility:hidden}
+.phc .nn{background:#FDEBEC;box-shadow:inset 0 0 0 3px var(--danger-fill);color:var(--danger);font-size:22px;opacity:0;visibility:hidden}
+/* Les deux colonnes qui désignent une autre table */
+.col{position:absolute;z-index:3;top:66px;bottom:12px;border-radius:16px;opacity:0;visibility:hidden;pointer-events:none}
+#col-cl{left:106px;width:282px;box-shadow:inset 0 0 0 4px #6A4DF4;background:rgba(106,77,244,.1)}
+#col-at{left:396px;width:282px;box-shadow:inset 0 0 0 4px #E8892B;background:rgba(232,137,43,.12)}
+/* Les lignes qu’on ne voit pas : trois points et leur nombre */
+.ell{position:relative;z-index:4;height:44px;display:flex;align-items:center;gap:14px;padding:0 24px 0 34px;font-family:var(--ui);font-size:24px;font-weight:600;color:var(--ink-3);box-shadow:inset 0 2px 0 var(--line-2)}
+.ell .dots{display:inline-flex;gap:6px}
+.ell .dots i{width:8px;height:8px;border-radius:50%;background:#B7B0D6}
+/* Gestes de l’élève : case ou ligne refusée, carte qui refuse, case rangée */
+.r.kor{animation:kor .55s ease}
+@keyframes kor{0%,100%{background:transparent}30%{background:rgba(239,79,85,.18)}}
+.gr>span.kof::after{content:"";position:absolute;left:3px;right:3px;top:6px;bottom:6px;z-index:3;border-radius:12px;background:rgba(239,79,85,.16);box-shadow:inset 0 0 0 4px var(--danger-fill);animation:kof .6s ease forwards}
+@keyframes kof{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+.sq.kob,.dbin.kob{animation:kob .45s ease}
+@keyframes kob{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+.dbin.okb{animation:okb .5s cubic-bezier(.2,.9,.3,1.3)}
+@keyframes okb{40%{transform:scale(1.035)}}
+.sq .ln.kol{animation:kol .55s ease}
+@keyframes kol{0%,100%{background:transparent}30%{background:rgba(239,79,85,.34)}}
+
+/* Les deux tables où l’on cherche un identifiant : un extrait de chacune */
+.st{border-radius:36px}
+.st .h{height:54px;padding:0 18px;font-size:28px;gap:10px}
+.st .h .emo{font-size:28px}
+.st .pgs{margin-left:auto}
+.pg{height:34px;padding:0 14px;border-radius:999px;background:#fff;color:var(--ink-3);font-family:var(--ui);font-size:21px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.pg.bad{color:var(--danger);box-shadow:inset 0 0 0 3px var(--danger-fill);background:var(--danger-soft)}
+.st .hd{height:40px;font-size:21px}
+.st .r{height:42px;font-size:26px}
+
+/* ---------- Les requêtes : une carte de code (un commentaire, puis la requête) ---------- */
+.sq{border-radius:34px;box-shadow:0 9px 0 #110E27}
+.sq .top{height:52px;gap:12px;padding:0 30px}
+.sq .dot{width:14px;height:14px}
+.sq .fname{margin-left:8px;font-size:22px}
+.sq .body{padding:18px 30px;font-size:28px;line-height:42px}
+.sq .ln{height:42px}
+.sq .ln.vl{height:64px;line-height:64px}
+.sq .cmt{color:var(--t-com)}
+.sq .caret i{top:-31px;width:4px;height:37px}
+.sq .ln.vl .caret i{top:-20px}
+.sq .glow{border-radius:8px;padding:0 3px;margin:0 -3px}
+#v1,#v2{display:inline-block}
+/* Un morceau de la requête qui se replie quand on l’oublie (virgule comprise) */
+.sg{display:inline-block;vertical-align:top;white-space:pre}
+/* La ligne refusée de la requête */
+.sq .fl{position:absolute;left:-14px;right:-14px;top:0;bottom:0;border-radius:12px;background:rgba(239,79,85,.28);box-shadow:inset 0 0 0 3px var(--danger-fill);z-index:-1;opacity:0;visibility:hidden}
+/* Le trou de la requête (moment 5) : la fin de la requête, à choisir */
+.sq .hole{position:absolute;left:30px;right:30px;top:186px;height:78px;border:3px dashed #FFC94A;border-radius:14px;background:rgba(255,201,74,.12);color:#FFD66B;font-family:var(--mono);font-size:34px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.sq .str{color:var(--t-str)}
+.sq .bad{color:#FF8A8F}
+.sw.cm>*{white-space:pre}
+
+/* ---------- Le résultat d’une requête ---------- */
+.abs.out{left:64px;width:952px;margin:0}
+.abs.out.t2{height:150px}
+.out.ok{background:#E7F7EE;border:3px solid #A7E3C0}
+.out.ok .oi{background:#34C27A;color:#fff}
+.out.ok .ot b{color:#1B7A45}
+.out.warn{background:#FFF4E5;border:3px solid #F6D9A8}
+.out.warn .oi{background:#F29A2E;color:#fff}
+.out.warn .ot b{color:#9A5B00}
+.ot .m i{font-style:normal;border-radius:8px;padding:0 4px;margin:0 -4px}
+
+/* ---------- La table cartes : un nom à côté de chaque identifiant, la règle UNIQUE ---------- */
+.tb .rul{height:58px;margin:8px 22px 4px;padding:0 20px;border-radius:16px;background:var(--line-2);display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:26px;font-weight:600;color:var(--ink-2);white-space:pre;font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
+.tb .rul .emo{font-size:26px}
+.tb .rul b{color:var(--accent-ink);font-weight:800}
+.calc{flex:none;height:34px;padding:0 12px;border-radius:10px;background:var(--line-2);color:var(--ink-3);font-family:var(--mono);font-size:20px;font-weight:700;font-style:normal;display:inline-flex;align-items:center;white-space:nowrap}
+
+/* ---------- Deux cases où ranger les clients : carte créée, carte rechargée ---------- */
+.dbin{width:464px;height:440px;padding:30px 22px 24px;border-radius:40px;border:4px dashed #C9BCFF;background:rgba(255,255,255,.85);display:flex;flex-direction:column;align-items:center}
+.dbin .dn{font-family:var(--display);font-size:46px;font-weight:800;color:var(--accent-ink);letter-spacing:-.8px;white-space:nowrap}
+.dbin .dd{margin-top:6px;font-size:26px;font-weight:700;color:var(--ink-3);white-space:nowrap}
+.dbin svg{margin-top:20px;width:220px;height:110px;overflow:visible}
+.dbin .tgl{position:absolute;right:22px;top:-26px;height:46px;padding:0 18px;border-radius:999px;background:var(--accent);color:#fff;font-family:var(--mono);font-size:24px;font-weight:800;display:flex;align-items:center;box-shadow:0 5px 0 var(--accent-lip);opacity:0;visibility:hidden}
+.dbin .cs{margin-top:auto;width:100%;display:flex;flex-direction:column;gap:12px}
+.dbin .rc{padding:14px 16px;border-radius:18px;background:var(--accent-soft);color:var(--accent-ink);box-shadow:inset 0 0 0 3px #C9BCFF;font-size:26px;font-weight:700;line-height:1.25;text-align:center;opacity:0;visibility:hidden}
+.pack{left:0;width:1080px;display:flex;justify-content:center}
+.pack>span{height:84px;padding:0 34px 0 22px;border-radius:999px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);font-size:32px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:14px;white-space:nowrap}
+.pack .emo{font-size:40px}
+
+/* ---------- Le mail reçu : la notification (l’en-tête seul), puis le mail déplié ---------- */
+.ml{left:64px;width:952px;top:560px;height:184px;padding:0 30px;overflow:hidden}
+.mh{height:178px;display:flex;align-items:center;gap:26px}
+.mav{position:relative;flex:none;width:100px;height:100px;border-radius:50%;background:var(--cs);color:var(--ci);font-family:var(--display);font-size:36px;font-weight:800;font-style:normal;display:flex;align-items:center;justify-content:center}
+.mbg{position:absolute;right:-10px;bottom:-8px;width:44px;height:44px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px var(--line);font-size:23px;display:flex;align-items:center;justify-content:center}
+.mw{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
+.mn{display:flex;align-items:center;gap:14px;white-space:nowrap}
+.mn b{font-size:36px;font-weight:700;color:var(--ink)}
+.mtg{height:36px;padding:0 12px;border-radius:10px;background:var(--cs);color:var(--ci);font-size:20px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center}
+.ms{position:relative;height:38px;white-space:nowrap}
+.ms>span{position:absolute;left:0;top:0;line-height:38px}
+.m0{font-size:29px;font-weight:700;color:var(--accent-ink)}
+.m1{font-family:var(--mono);font-size:27px;font-weight:600;color:var(--ink-3);opacity:0;visibility:hidden}
+.mr{flex:none;align-self:stretch;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:18px}
+.mt{font-size:24px;font-weight:600;color:var(--ink-3)}
+.mdot{position:relative;width:22px;height:22px}
+.mdot::before{content:"";position:absolute;inset:0;border-radius:50%;background:#2F80ED;animation:mdot 1.3s ease-in-out infinite}
+@keyframes mdot{50%{transform:scale(.72);opacity:.65}}
+.mb{padding:24px 4px 28px;box-shadow:inset 0 3px 0 var(--line-2)}
+.mb p{margin:0;font-size:34px;line-height:1.3;font-weight:500;color:var(--ink)}
+.mb .sn{display:block;height:auto;font-family:var(--ui);font-size:34px;font-weight:500;color:var(--ink)}
+.mb .sn+.sn{margin-top:12px}
+.mb .sn.s{margin-top:0}
+/* Hors de l’app : le doigt qui touche la notification */
+.tapf{z-index:20;font-size:120px;margin:-8px 0 0 -44px;opacity:0;visibility:hidden}
+
+/* La suite : la prochaine leçon */
+.keyc{left:0;width:1080px;display:flex;justify-content:center}
+.keyc>span{height:96px;padding:0 40px 0 26px;border-radius:999px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 9px 0 #4B30CC;color:#fff;font-size:36px;font-weight:700;display:flex;align-items:center;gap:16px;white-space:nowrap}
+.keyc .emo{font-size:44px}
+
+/* ---------- À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px;padding:8px 0}
+#s7 .rrow{gap:22px;padding:18px 32px}
+#s7 .rico{width:88px;height:88px;border-radius:26px;font-size:46px}
+#s7 .rtxt{font-size:34px;line-height:1.25}
+#s7 .rtxt .rs{margin-top:2px;font-size:31px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 7</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>I</span><span>N</span><span>S</span><span>E</span><span>R</span><span>T</span></div>
+    <div class="abs sub">Ajouter des lignes</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Les inscriptions arrivent&nbsp;:<br>à toi de les ajouter à la base.</div>
+  </section>
+
+  <!-- La base, Karim, puis l’élève -->
+  <section class="scene" id="sa"></section>
+  <!-- La table inscriptions, les deux tables où chercher un identifiant, les requêtes INSERT INTO -->
+  <section class="scene" id="sb"></section>
+  <!-- Les trois mails -->
+  <section class="scene" id="sm"></section>
+  <!-- La table cartes, ON CONFLICT, carte créée ou rechargée -->
+  <section class="scene" id="sc"></section>
+  <!-- La suite : la prochaine leçon -->
+  <section class="scene" id="sk"></section>
+
+  <!-- À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">✍️</div><div class="rtxt"><code>INSERT INTO</code> ajoute <b>une ligne</b> :<br>une valeur pour chaque colonne citée.<span class="rs">Une colonne non citée vaut <code>NULL</code><br>ou sa valeur par défaut ; si elle est obligatoire,<br>la requête est refusée.</span></div></div>
+      <div class="rrow"><div class="rico emo">📚</div><div class="rtxt">Avec <code>VALUES</code>, on ajoute <b>plusieurs lignes</b><br>d’un coup : une parenthèse par ligne.<span class="rs">Si une seule ligne est refusée,<br>aucune des lignes n’est ajoutée.</span></div></div>
+      <div class="rrow"><div class="rico emo">🔁</div><div class="rtxt"><code>ON CONFLICT</code> permet de choisir quoi faire<br>quand la ligne <b>existe déjà</b>.<span class="rs"><code>DO UPDATE</code> modifie la ligne existante ;<br><code>DO NOTHING</code> la laisse telle quelle.</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+
+/* ---------- Le déroulé : chaque légende arrive à la suite de la précédente ----------
+   cap(clé, texte, durée) pose une légende [début, fin] ; A[clé] et B[clé] donnent son début et sa fin (temps de la timeline). */
+const SCH = {t: 5.0, caps: [], chaps: [{label:'Karim passe la main', a: 5.0}], A: {}, B: {}};
+function chap(c){ SCH.t = +(SCH.t + 0.4).toFixed(2); SCH.chaps.push({label: c.label, a: SCH.t}); }
+function cap(key, html, dur, gap = 0.1, lines = 0){
+  const a = +(SCH.t + gap).toFixed(2), b = +(a + dur).toFixed(2);
+  SCH.caps.push(lines ? [a, b, html, lines] : [a, b, html]); SCH.A[key] = a; SCH.B[key] = b; SCH.t = b;   // lines : 4 pour une légende de quatre lignes
+}
+/* « À toi ! » : la légende reste un instant, puis l’image s’arrête à a + 2,35 s (le passage d’attente est coupé). */
+const toi = key => cap(key, 'À toi !', 2.55);
+const {A, B} = SCH;
+/* Un mail : la légende s’efface le temps du mail (notification, toucher, lecture, départ). */
+const mailBlock = () => { const t = SCH.t; SCH.t = +(SCH.t + 4.8).toFixed(2); return t; };
+
+/* 1 · Karim passe la main : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) */
+cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
+cap('r2', "Au chapitre 6, tu as retiré la copie du fichier Excel avec <code>DROP TABLE</code>.", 3.0);
+cap('c2', "Jusqu’ici, Karim, le développeur<br>back end, a rempli les tables.", 2.8);
+cap('c3', "Il te passe la main : c’est toi<br>qui ajoutes les nouvelles lignes.", 2.8);
+const MAIL1 = mailBlock();
+/* 2 · Une inscription */
+chap({label:'Une inscription'});
+cap('c4', "Une inscription est une ligne<br>de la <b>table inscriptions</b>.", 2.8);
+cap('c5', "Le client et l’atelier sont<br>repérés par leur identifiant.", 2.8);
+cap('c6', "On les trouve dans la <b>table clients</b><br>et dans la <b>table ateliers</b>.", 3.2);
+toi('p1');
+cap('c7', "Reste à écrire cette ligne<br>avec <code>INSERT INTO</code>.", 2.8);
+cap('c8', "On ajoute le nom de la table,<br>puis les colonnes entre parenthèses.", 3.4);
+cap('c9', "Après <code>VALUES</code>, on écrit les valeurs,<br>dans le même ordre que les colonnes.", 4.0);
+cap('c10', "L’identifiant de la nouvelle ligne, le 8,<br>est attribué automatiquement.", 3.6);
+/* 3 · L’ordre des valeurs */
+chap({label:'L’ordre des valeurs'});
+cap('c11', "Imagine que tu inverses<br>les deux premières valeurs.", 3.0);
+cap('c12', "La requête est exécutée<br>sans la moindre erreur.", 2.6);
+toi('p2');
+cap('c13', "Les valeurs suivent l’ordre<br>des colonnes : <b>Emma Dubois</b><br>est inscrite à l’atelier Pilates.", 3.8);
+cap('c14', "Rien n’avertit de l’inversion :<br>relis toujours l’ordre des valeurs<br>avant d’exécuter.", 3.4);
+/* 4 · Une règle enfreinte */
+chap({label:'Une règle enfreinte'});
+cap('c15', "Imagine maintenant<br>que tu oublies la date.", 2.8);
+cap('c16', "Une colonne non citée vaut <code>NULL</code><br>ou sa valeur par défaut.", 3.2);
+cap('c17', "Imagine enfin<br>que tu oublies l’atelier.", 2.8);
+toi('p3');
+cap('c18', "Dans la <b>table inscriptions</b>, l’atelier<br>est obligatoire (<code>NOT NULL</code>).", 3.2);
+cap('c19', "Le message d’erreur indique la règle<br>et la colonne concernées.", 3.4);
+/* 5 · Un groupe */
+chap({label:'Un groupe'});
+const MAIL2 = mailBlock();
+cap('c20', "On peut ajouter plusieurs lignes<br>d’un coup, avec une seule requête.", 3.0);
+cap('c21', "Après <code>VALUES</code>, on écrit une parenthèse<br>par ligne, séparées par des virgules.", 4.0);
+cap('c22', "Une faute de frappe s’est glissée<br>dans l’une des trois lignes.", 2.8);
+toi('p4');
+cap('c23', "Aucun atelier n’a l’identifiant 15 :<br>cette ligne est refusée.", 3.0);
+cap('c24', "Une seule ligne refusée suffit :<br>aucune des trois n’est ajoutée.", 3.0);
+cap('c25', "Une fois la faute corrigée,<br>les trois inscriptions sont ajoutées.", 3.2);
+/* 6 · Créer ou recharger */
+chap({label:'Créer ou recharger'});
+const MAIL3 = mailBlock();
+cap('c26', "Hugo Laurent a déjà une carte,<br>et une seule carte par client<br>est autorisée dans la <b>table cartes</b>.", 4.0);
+cap('c27', "Ajouter une seconde carte<br>est donc refusé.", 3.6);
+cap('c28', "Avec <code>ON CONFLICT</code>, tu choisis quoi faire<br>quand la ligne existe déjà.", 3.4);
+toi('p5');
+cap('c29', "La carte d’Hugo Laurent passe<br>de 8 à 18 séances : aucune<br>seconde carte n’est créée.", 3.6);
+cap('c30', "Quatre clients achètent<br>un pack de 10 séances.", 2.8);
+toi('p6');
+cap('c31', "Avec la même requête, les cartes<br>qui manquent sont créées<br>et les autres sont rechargées.", 3.6);
+/* la suite : la prochaine leçon */
+cap('c32', "Dans la prochaine leçon, tu apprendras<br>à modifier les données avec <code>UPDATE</code>.", 6.1);
+/* 7 · À retenir */
+chap({label:'À retenir'});
+const RECAP = SCH.t;
+cap('c33', "Pour finir, voici les <b>trois idées à retenir</b>.", 4.8, 0.4);
+/* NOTES (le bouton « Ajouter à mes notes ») est écrit en clair dans Course(…) plus bas : tests/insert-lesson.test.mjs vérifie qu’il suit le déroulé. */
+const NOTES = +(SCH.t + 0.1).toFixed(2);
+const DURATION = +(NOTES + 7.2).toFixed(2);
+SCH.caps.push([NOTES, 999, APP ? "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."
+  : "Une requête ajoute des lignes :<br>relis les valeurs avant d’exécuter."]);
+
+const CAPTIONS = SCH.caps;
+const CHAPTERS = SCH.chaps.map((c, i) => ({n: i + 1, label: c.label, a: c.a, b: i + 1 < SCH.chaps.length ? SCH.chaps[i + 1].a : DURATION}));
+
+/* Pas de question du lecteur : les moments « À toi » (PICKS) font participer l’élève. */
+const QUESTIONS = [];
+
+/* ---------- Le cas : la base des ateliers NutriBoost (le même dans tous les chapitres du projet) ---------- */
+/* La base telle que le chapitre 6 la laisse : huit tables, après la copie du fichier Excel (inscriptions_excel, retirée au chapitre 6).
+   [clé, couleur, emoji, nom, lignes] : les mêmes lignes que dans l’app (clients 10, commandes 16, fidelite 4, produits 8) et au chapitre 5
+   (coachs 4, ateliers 5, inscriptions 7, cartes 3). */
+const TB = [
+  ['cl', 'k-cl', '👥', 'clients', 10], ['cm', 'k-cm', '🛒', 'commandes', 16], ['fi', 'k-fi', '⭐', 'fidelite', 4], ['pr', 'k-pr', '📦', 'produits', 8],
+  ['co', 'k-co', '🧑‍🏫', 'coachs', 4], ['at', 'k-at', '📅', 'ateliers', 5], ['in', 'k-in', '📝', 'inscriptions', 7], ['ca', 'k-nb', '💳', 'cartes', 3],
+  ['xl', 'k-xl', '📄', 'inscriptions_excel', 6]
+];
+/* Les extraits des tables clients (deux pages de cinq) et ateliers : [id, prénom, nom] et [id, titre, date]. */
+const CLIENTS = [[1, 'Sophie', 'Martin'], [2, 'Lucas', 'Bernard'], [3, 'Emma', 'Dubois'], [4, 'Nathan', 'Petit'], [5, 'Chloé', 'Moreau'],
+  [6, 'Hugo', 'Laurent'], [7, 'Léa', 'Simon'], [8, 'Gabriel', 'Michel'], [9, 'Inès', 'Lefebvre'], [10, 'Nathan', 'Dupont']];
+const ATELIERS = [[1, 'Récupération', '2026-09-12'], [2, 'Pilates', '2026-09-17'], [3, 'Cuisine saine', '2026-09-19'],
+  [4, 'Méditation', '2026-09-24'], [5, 'Yoga du matin', '2026-10-03']];
+/* Moment 1 : les trois valeurs à ranger dans la ligne de Lucas Bernard (client 2, atelier Cuisine saine 3, le 8 septembre) : [valeur, colonne, pourquoi pas ailleurs]. */
+const VALS = [
+  {label: '3', col: 'at', why: {cl: 'Dans la <b>table&nbsp;clients</b>, 3 est l’identifiant d’Emma Dubois : Lucas Bernard a l’identifiant 2.', da: 'Cette colonne contient la date d’inscription, pas un identifiant.'}},
+  {label: '2026-09-08', col: 'da', why: {cl: 'Une date n’identifie pas un client : elle va dans la colonne de la date d’inscription.', at: 'Une date n’identifie pas un atelier : elle va dans la colonne de la date d’inscription.'}},
+  {label: '2', col: 'cl', why: {at: 'Dans la <b>table&nbsp;ateliers</b>, 2 est l’identifiant de l’atelier Pilates : l’atelier Cuisine saine a l’identifiant 3.', da: 'Cette colonne contient la date d’inscription, pas un identifiant.'}}
+];
+/* Moment 6 : la carte créée ou rechargée pour chacun des quatre clients qui achètent un pack : [nom, case, pourquoi pas l’autre case]. */
+const BINS = [['cr', 'Carte créée', 'le client n’a pas de carte'], ['rc', 'Carte rechargée', 'le client a déjà une carte']];
+const BUY = [
+  ['Sophie Martin', 'rc', 'Sophie Martin a déjà une carte, de 10 séances : sa carte est rechargée.'],
+  ['Chloé Moreau', 'cr', 'Chloé Moreau n’a pas encore de carte : une nouvelle carte est créée.'],
+  ['Lucas Bernard', 'cr', 'Lucas Bernard n’a pas encore de carte : une nouvelle carte est créée.'],
+  ['Nathan Petit', 'rc', 'Nathan Petit a déjà une carte, de 5 séances : sa carte est rechargée.']
+];
+
+/* Les six moments « À toi » : l’image s’arrête, l’élève range, choisit ou touche ; la page montre aussitôt le résultat.
+   from : début du passage qui amène chaque moment, d’où repartent « ↺ Revoir » et « Rejouer ». */
+const atp = k => +(A[k] + 2.35).toFixed(2);
+const PICKS = [
+  {at: atp('p1'), from: A.c4, kind: 'sort', prompt: 'Place chaque valeur de l’inscription de Lucas Bernard à l’atelier Cuisine saine.',
+    hint: 'Touche une valeur, puis sa colonne. Tu peux aussi la faire glisser directement.', next: 'La valeur {x} : touche maintenant sa colonne.',
+    options: VALS.map(v => ({label: v.label}))},
+  {at: atp('p2'), from: A.c11, kind: 'pick', text: true, prompt: 'Avec les valeurs inversées, qui est inscrit, et à quel atelier ?', options: [
+    {label: 'Lucas Bernard, à l’atelier Cuisine saine', why: 'Les valeurs sont lues dans l’ordre des colonnes : ici, 3 est l’identifiant du client, et 2 celui de l’atelier.'},
+    {label: 'Emma Dubois, à l’atelier Pilates', ok: true},
+    {label: 'Personne : la requête est refusée', why: 'Les identifiants 3 et 2 existent dans les deux tables : la requête est exécutée, sans la moindre erreur.'}]},
+  {at: atp('p3'), from: A.c17, kind: 'pick', text: true, prompt: 'Pourquoi l’inscription de Lucas Bernard est-elle refusée ?', options: [
+    {label: 'L’identifiant de l’inscription n’est pas indiqué', why: 'L’identifiant est attribué automatiquement : on ne l’écrit pas.'},
+    {label: 'Une ligne doit contenir une valeur pour chaque colonne', why: 'Sans la date, la requête précédente était acceptée : une colonne non citée vaut <code>NULL</code> ou sa valeur par défaut.'},
+    {label: 'L’atelier n’est pas indiqué, or il est obligatoire', ok: true}]},
+  {at: atp('p4'), from: A.c20, kind: 'tap', need: 1, prompt: 'Touche la ligne qui fait refuser la requête.'},
+  {at: atp('p5'), from: A.c28, kind: 'pick', text: true, prompt: 'Quelle fin de requête ajoute 10 séances à la carte d’Hugo Laurent ?', options: [
+    {label: 'DO UPDATE SET seances_restantes = seances_restantes + 10', ok: true},
+    {label: 'DO NOTHING', why: 'Avec <code>DO NOTHING</code>, la carte reste telle quelle : Hugo Laurent aurait toujours 8 séances.'},
+    {label: 'DO UPDATE SET seances_restantes = 10', why: 'Avec cette fin, le solde est remplacé : Hugo Laurent aurait 10 séances, et non 18.'}]},
+  {at: atp('p6'), from: A.c30, kind: 'sort', prompt: 'Range chaque client selon ce qui arrive à sa carte.',
+    hint: 'Touche un client, puis la case qui convient. Tu peux aussi le faire glisser directement.', next: '« {x} » : sa carte est créée ou rechargée ?',
+    options: BUY.map(b => ({label: b[0]}))}
+];
+
+/* Les trois mails reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses paragraphes), signature].
+   Chacun arrive en notification ; l’app s’arrête dessus (OPENS) jusqu’au toucher. */
+const MAILS = [
+  [['Karim', 'Benali', 'KB'], 'k-dv', 'développeur', 'karim@nutriboost.fr', [
+    'Je te laisse la main sur la base à partir d’aujourd’hui.',
+    'Pour commencer, Lucas Bernard s’inscrit à l’atelier Cuisine saine, le 8 septembre. Peux-tu l’enregistrer ?'], 'Karim'],
+  [['Moussa', 'Diallo', 'MD'], 'k-co', 'coach', 'moussa@mail.fr', [
+    'Trois personnes se sont inscrites aujourd’hui à l’atelier Yoga du matin : Hugo Laurent, Gabriel Michel et Inès Lefebvre.',
+    'Peux-tu les enregistrer toutes les trois ?'], 'Moussa'],
+  [['L’équipe', 'NutriBoost', 'NB'], 'k-nb', 'équipe', 'equipe@nutriboost.fr', [
+    'Le pack de 10 séances est en vente !',
+    'Hugo Laurent en a acheté un. Peux-tu ajouter ses 10 séances à sa carte ?'], 'L’équipe NutriBoost']
+];
+const OPENS = [MAIL1, MAIL2, MAIL3].map((t, n) => ({at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: 'Touche le mail pour l’ouvrir.', label: `Ouvrir le mail de ${MAILS[n][0][0]} ${MAILS[n][0][1]}`}));
+
+/* ---------- Gabarits ---------- */
+const RH = 54;   // hauteur d’une ligne de la table inscriptions
+const pill = (id, av, name, tag, k) => `<div class="abs card who ${k}" id="${id}"><i class="av">${av}</i><b>${name}</b>${tag ? `<small class="mtg">${tag}</small>` : ''}<span class="emo">✍️</span></div>`;
+/* Une case à valeurs empilées (une seule se voit) ; une étiquette de nom, empilée de même. */
+const sw = (id, vals, k = 'v') => `<span class="sw ${k}" id="${id}">${vals.map((v, j) => `<i class="a${j}${v[1] ? ' ' + v[1] : ''}">${v[0]}</i>`).join('')}</span>`;
+const tg = (id, k, names) => `<span class="sw tg" id="${id}">${names.map((n, j) => `<i class="nt ${k} a${j}">${n}</i>`).join('')}</span>`;
+const ph = (n, extra = '') => `<b class="phc" id="ph${n}"><i class="se">?</i><i class="sx"></i>${extra}</b>`;
+const cell = (j, inner) => `<span class="c${j}">${inner}</span>`;
+const line = (id, cells) => `<div class="gr r" id="r${id}"><i class="hl"></i><i class="wn"></i><i class="xx"></i><i class="gd"></i>${cells}</div>`;
+const rowOf = (id, a, b, c, d) => line(id, [a, b, c, d].map((v, j) => cell(j, `<i class="v">${v}</i>`)).join(''));
+/* La table inscriptions : trois lignes toujours visibles (les dernières) ; les autres sont repliées sous « N autres lignes ». */
+function inscriptions(){
+  return `<div class="abs card tb k-in" id="tb" style="left:64px;width:952px;top:236px;--g:90px 290px 290px 252px">` +
+    `<div class="h"><span class="emo">📝</span><span id="tbn">inscriptions</span><span class="bn"><span id="cn-a">7 lignes</span><span id="cn-b">8 lignes</span><span id="cn-c">11 lignes</span></span></div>` +
+    `<div class="gr hd"><span class="c0 kc"><span class="emo">🔑</span>id</span><span class="c1 kc k-cl"><span class="emo">🔗</span>client_id</span><span class="c2 kc k-at"><span class="emo">🔗</span>atelier_id</span><span class="c3">date_inscription</span></div>` +
+    `<div class="ell"><span class="dots"><i></i><i></i><i></i></span>${sw('ell', [['4 autres lignes'], ['5 autres lignes'], ['6 autres lignes'], ['7 autres lignes'], ['8 autres lignes']], 'e').replace(/class="a(\d)/g, 'class="e$1')}</div>` +
+    rowOf(5, 5, 3, 1, '2026-09-05') + rowOf(6, 6, 6, 4, '2026-09-06') + rowOf(7, 7, 1, 4, '2026-09-07') +
+    // la ligne de Lucas Bernard : d’abord à remplir, puis ajoutée ; les valeurs inversées, la date oubliée, l’atelier oublié se jouent sur elle
+    line(8, cell(0, '<i class="v" id="id8">8</i>') +
+      cell(1, sw('s8c1', [['2'], ['3']]) + tg('t8c1', 'k-cl', ['Lucas Bernard', 'Emma Dubois']) + ph(1)) +
+      cell(2, sw('s8c2', [['3'], ['2']]) + tg('t8c2', 'k-at', ['Cuisine saine', 'Pilates']) + ph(2, '<i class="nn">🔒 NOT NULL</i>')) +
+      cell(3, sw('s8c3', [['2026-09-08'], ['NULL', 'nul']]) + ph(3))) +
+    // le groupe de trois inscriptions (chapitre 5)
+    line(9, cell(0, '<i class="v" id="id9">9</i>') + cell(1, sw('s9c1', [['6']]) + tg('t9c1', 'k-cl', ['Hugo Laurent'])) + cell(2, sw('s9c2', [['5']]) + tg('t9c2', 'k-at', ['Yoga du matin'])) + cell(3, '<i class="v">2026-09-09</i>')) +
+    line(10, cell(0, '<i class="v" id="id10">10</i>') + cell(1, sw('s10c1', [['8']]) + tg('t10c1', 'k-cl', ['Gabriel Michel'])) + cell(2, sw('s10c2', [['5']]) + tg('t10c2', 'k-at', ['Yoga du matin'])) + cell(3, '<i class="v">2026-09-09</i>')) +
+    line(11, cell(0, '<i class="v" id="id11">11</i>') + cell(1, sw('s11c1', [['9']]) + tg('t11c1', 'k-cl', ['Inès Lefebvre'])) + cell(2, '<i class="v" id="s11c2"><span class="sg" id="tx1">1</span>5</i>' + tg('t11c2', 'k-at', ['Yoga du matin'])) + cell(3, '<i class="v">2026-09-09</i>')) +
+    '<i class="col" id="col-cl"></i><i class="col" id="col-at"></i></div>';
+}
+/* Un extrait d’une table : son nom, la page (lignes 1 à 5…), les colonnes, les lignes. */
+function strip(id, k, emo, name, pages, cols, g, rows, x, w){
+  return `<div class="abs card st ${k}" id="${id}" style="left:${x}px;width:${w}px;--g:${g}"><div class="h"><span class="emo">${emo}</span>${name}${pages}</div>` +
+    `<div class="gr hd">${cols.map((c, j) => `<span class="c${j}">${c}</span>`).join('')}</div>` +
+    rows.map(r => `<div class="gr r" id="${id}-r${r[0]}"><i class="hl"></i>${r.map((v, j) => `<span class="c${j}"><i class="v">${v}</i></span>`).join('')}</div>`).join('') + '</div>';
+}
+/* Carte de code : une ligne par [repère, texte, classe]. Dans le texte : {id|…} un passage repéré (il pulse). Un commentaire (--) n’a pas de curseur ; 'texte entre apostrophes' : une chaîne. */
+const SQL_KW = /\b(?:INSERT INTO|VALUES|ON CONFLICT|DO UPDATE|DO NOTHING|SET)\b/g, CARET = '<span class="caret"><i></i></span>';
+function editor(id, fname, lines, extra = ''){
+  const body = lines.map(([lid, s, cls = '']) => {
+    const cmt = s.trim().startsWith('--');
+    let h = s.replace(/\{(\w+)\|([^{}]*)\}/g, '<span class="glow" id="$1">$2</span>');
+    if (!cmt) h = h.replace(/'[^'<>]*'/g, '<span class="str">$&</span>').replace(SQL_KW, '<span class="kw">$&</span>');
+    return `<span class="ln${cmt ? ' cmt' : ''}${cls ? ' ' + cls : ''}" id="${lid}">${h}${cmt ? '' : CARET}${cls.includes('vl') ? '<i class="fl"></i>' : ''}</span>`;
+  }).join('');
+  return `<div class="abs code sq" id="${id}" style="left:64px;width:952px"><div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i>` +
+    `<span class="fname">${fname}</span></div><div class="body">${body}${extra}</div></div>`;
+}
+const out = (id, kind, title, msg, cls = 's', t2 = false) => `<div class="abs out ${kind}${t2 ? ' t2' : ''}" id="${id}"><span class="oi">${kind === 'ok' ? '✓' : kind === 'warn' ? '!' : '✕'}</span>` +
+  `<div class="ot"><b>${title}</b><span class="${cls}">${msg}</span></div></div>`;
+const cmtStack = (id, items) => `-- <span class="sw cm" id="${id}">${items.map((x, j) => `<i class="a${j}">${x}</i>`).join('')}</span>`;
+function dom(){
+  /* La base et ses neuf tables (la copie du fichier Excel s’en va : huit tables) ; Karim, puis toi */
+  $('#sa').innerHTML = `<div class="abs card bc" id="bc"><div class="bh"><span class="emo">🗄️</span><span>Base NutriBoost</span><span class="bn"><span id="bn-a">9 tables</span><span id="bn-b">8 tables</span></span></div>` +
+    TB.map(([k, kc, emo, name, n]) => `<div class="srow ${kc}" id="bw-${k}"><i class="hl"></i><i class="xx"></i><div class="sn"><span class="emo">${emo}</span>` +
+      `<span class="nm">${name}<i class="sk"></i></span><i class="sp"></i><b class="nb"><span>${n} lignes</span></b></div></div>`).join('') + '</div>' +
+    pill('wk', 'KB', 'Karim Benali', 'développeur', 'k-dv') + pill('wt', 'Toi', 'Toi', '', 'k-me');
+  /* La table inscriptions, deux extraits à côté, et les requêtes qui y ajoutent des lignes */
+  let b = inscriptions();
+  const pg = (t) => `<small class="pg pgs">${t}</small>`;
+  b += strip('sc1a', 'k-cl', '👥', 'clients', pg('lignes 1 à 5'), ['id', 'prenom', 'nom'], '56px 1fr 1fr', CLIENTS.slice(0, 5), 64, 430);
+  b += strip('sc1b', 'k-cl', '👥', 'clients', pg('lignes 6 à 10'), ['id', 'prenom', 'nom'], '56px 1fr 1fr', CLIENTS.slice(5), 64, 430);
+  b += strip('sc2', 'k-at', '📅', 'ateliers', `<span class="sw pgs" id="pgs2"><small class="pg a0">lignes 1 à 5</small><small class="pg bad a1">15 : aucun atelier</small></span>`,
+    ['id', 'titre', 'date_atelier'], '56px 1fr 180px', ATELIERS, 518, 498);
+  // la requête d’une inscription, modifiée au fil des hypothèses : le commentaire, les colonnes et les valeurs qui se replient
+  b += editor('ed', 'inscription.sql', [
+    ['ed1', cmtStack('cmt', ['Inscription de Lucas Bernard', 'Valeurs inversées', 'Date oubliée', 'Atelier oublié'])],
+    ['ed2', '{k2|INSERT INTO}<span class="lat" id="l2b"> {tn|inscriptions}</span>'],
+    ['ed3', '  ({co1|client_id}<span class="sg" id="sg-at">, {co2|atelier_id}</span><span class="sg" id="sg-da">, {co3|date_inscription}</span>)'],
+    ['ed4', "{kv|VALUES} ({v1|2}<span class=\"sg\" id=\"sg-vat\">, {v2|3}</span><span class=\"sg\" id=\"sg-vda\">, {v3|'2026-09-08'}</span>);"]
+  ]);
+  // trois inscriptions d’un coup : une parenthèse par ligne ; la troisième porte la faute (atelier 15)
+  b += editor('edg', 'inscriptions.sql', [
+    ['eg1', 'INSERT INTO inscriptions'],
+    ['eg2', '  (client_id, atelier_id, date_inscription)'],
+    ['eg3', "VALUES {gp1|(6, 5, '2026-09-09')},", 'vl'],
+    ['eg4', "       {gp2|(8, 5, '2026-09-09')},", 'vl'],
+    ['eg5', "       {gp3|(9, <span class=\"bad\" id=\"fxb\"><span class=\"sg\" id=\"fx1\">1</span>5</span>, '2026-09-09')};", 'vl']
+  ]);
+  b += out('o-ok', 'ok', 'Requête exécutée', '1 ligne ajoutée.');
+  b += out('o-nn', 'err', 'Requête refusée', '<i id="nn1">NOT NULL constraint failed:</i><br><i id="nn2">inscriptions.atelier_id</i>', 'm', true);
+  b += out('o-fk', 'err', 'Requête refusée', 'FOREIGN KEY constraint failed', 'm');
+  b += out('o-ok3', 'ok', 'Requête exécutée', '3 lignes ajoutées.');
+  $('#sb').innerHTML = b;
+  /* La table cartes : un nom à côté de chaque identifiant de client, la règle UNIQUE ; la requête qui devient ON CONFLICT ; les deux cases */
+  const cartes = [[1, 1, 'Sophie Martin', 10], [2, 4, 'Nathan Petit', 5], [3, 6, 'Hugo Laurent', 8]];
+  let c = `<div class="abs card tb k-nb" id="tc" style="left:64px;width:952px;top:236px;--g:110px 340px 1fr">` +
+    `<div class="h"><span class="emo">💳</span>cartes<span class="bn"><span>3 lignes</span></span></div>` +
+    `<div class="gr hd"><span class="c0 kc"><span class="emo">🔑</span>id</span><span class="c1 kc k-cl"><span class="emo">🔗</span>client_id</span><span class="c2">seances_restantes</span></div>` +
+    cartes.map(([id, cl, nom, n]) => line('c' + id, cell(0, `<i class="v">${id}</i>`) + cell(1, `<i class="v">${cl}</i><i class="nt k-cl">${nom}</i>`) +
+      cell(2, id === 3 ? `<span class="sw v" id="hu"><i class="a0">8</i><i class="a1">10</i><i class="a2">18</i></span><i class="calc" id="calc">8 + 10</i>` : `<i class="v">${n}</i>`))).join('') +
+    `<div class="rul" id="rul"><span class="emo">🔒</span><span><b>UNIQUE</b> (client_id)</span></div></div>`;
+  const ec = [
+    ['ec1', cmtStack('cmt2', ['Une carte de plus pour Hugo Laurent', 'Ajouter 10 séances à la carte d’Hugo Laurent'])],
+    ['ec2', 'INSERT INTO cartes (client_id, seances_restantes)'],
+    ['ec3', 'VALUES (6, 10)<span class="sg" id="semi">;</span>'],
+    ['ec4', '{kc|ON CONFLICT} (client_id)'],
+    ['ec5', 'DO UPDATE'],
+    ['ec6', 'SET seances_restantes = seances_restantes + 10;']
+  ];
+  c += editor('edc', 'carte.sql', ec, '<div class="hole" id="hole">?</div>');
+  // les deux autres fins, pour l’aperçu d’une mauvaise réponse (moment 5) : la même requête, sans le point-virgule du « VALUES »
+  const pv = (id, l5, l6) => editor(id, 'carte.sql', [[id + '1', '-- Ajouter 10 séances à la carte d’Hugo Laurent'], [id + '2', 'INSERT INTO cartes (client_id, seances_restantes)'],
+    [id + '3', 'VALUES (6, 10)'], [id + '4', 'ON CONFLICT (client_id)'], [id + '5', l5], [id + '6', l6]]);
+  c += pv('pv5-1', 'DO NOTHING;', '');
+  c += pv('pv5-2', 'DO UPDATE', 'SET seances_restantes = 10;');
+  c += out('o-un', 'err', 'Requête refusée', 'UNIQUE constraint failed:<br>cartes.client_id', 'm', true);
+  c += out('o-c1', 'ok', 'Requête exécutée', 'La carte d’Hugo Laurent passe à 18 séances.');
+  c += out('pvo5-1', 'warn', 'Exécutée sans erreur', 'La carte d’Hugo Laurent reste à 8 séances.');
+  c += out('pvo5-2', 'warn', 'Exécutée sans erreur', 'La carte d’Hugo Laurent passe à 10 séances.');
+  // carte créée ou rechargée : un schéma de la table avant chaque case
+  const SVG = {
+    cr: [0, 1, 2].map(i => `<rect x="20" y="${8 + i * 26}" width="180" height="20" rx="7" fill="#8B6CFF" opacity="${0.35 + i * 0.1}"/>`).join('') + '<rect x="20" y="86" width="180" height="20" rx="7" fill="#E2F6EA" stroke="#169447" stroke-width="4" stroke-dasharray="8 6"/>',
+    rc: [0, 1, 2].map(i => `<rect x="20" y="${8 + i * 26}" width="180" height="20" rx="7" fill="#8B6CFF" opacity="${i === 1 ? 1 : 0.35}"/>`).join('') + '<rect x="14" y="30" width="192" height="32" rx="10" fill="none" stroke="#6A4DF4" stroke-width="4"/>'
+  };
+  c += BINS.map(([k, n, d], q) => `<div class="abs dbin" id="db-${k}" data-k="${k}" style="left:${64 + q * 488}px"><div class="tgl" id="tgl-${k}">${k === 'cr' ? 'INSERT' : 'DO UPDATE'}</div><div class="dn">${n}</div><div class="dd">${d}</div>` +
+    `<svg viewBox="0 0 220 110">${SVG[k]}</svg><div class="cs">${BUY.map((x, i) => x[1] === k ? `<div class="rc" id="bu${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('');
+  c += '<div class="abs pack" id="pack"><span><span class="emo">🎟️</span>Pack de 10 séances</span></div>';
+  $('#sc').innerHTML = c;
+  /* Les mails */
+  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
+    `<div class="mw"><div class="mn"><b>${w[0]} ${w[1]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
+    `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), 'Merci !', sign].map((x, j, a) => `<span class="sn${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
+    '<div class="abs emo tapf" id="tapf">👆</div>';
+  /* La suite : la prochaine leçon */
+  $('#sk').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">✏️</span>Prochaine leçon · UPDATE</span></div>';
+  // les requêtes, découpées en caractères pour la frappe
+  $$('.sq .ln').forEach(splitChars);
+}
+
+/* ---------- Mise en page ---------- */
+const MH = [];   // hauteur de chaque mail déplié
+const W = {};    // largeurs mesurées : les morceaux qui se replient, l’écart entre les deux premières valeurs
+const bottom = s => { const el = $(s); return el.offsetTop + el.offsetHeight; };
+let ED = 0, EDC = 0, H3 = 0, H6 = 0;
+function layout(){
+  // la table inscriptions garde toujours trois lignes visibles : les extraits, la requête et son résultat se calent dessous
+  const ST = bottom('#tb') + 9 + 36;
+  ['#sc1a', '#sc1b', '#sc2'].forEach(s => { $(s).style.top = ST + 'px'; });
+  ED = Math.max(bottom('#sc1a'), bottom('#sc2')) + 9 + 36;
+  ['#ed', '#edg'].forEach(s => { $(s).style.top = ED + 'px'; });
+  const O1 = ED + $('#ed').offsetHeight + 9 + 32, OG = ED + $('#edg').offsetHeight + 9 + 32;
+  ['#o-ok', '#o-nn'].forEach(s => { $(s).style.top = O1 + 'px'; });
+  ['#o-fk', '#o-ok3'].forEach(s => { $(s).style.top = OG + 'px'; });
+  // la table cartes : la requête dessous, d’abord sur trois lignes, puis sur six ; les deux cases au même endroit
+  EDC = bottom('#tc') + 9 + 40;
+  H6 = $('#edc').offsetHeight; H3 = H6 - 3 * 42;
+  ['#edc', '#pv5-1', '#pv5-2'].forEach(s => { $(s).style.top = EDC + 'px'; });
+  $('#o-un').style.top = (EDC + H3 + 9 + 32) + 'px';
+  ['#o-c1', '#pvo5-1', '#pvo5-2'].forEach(s => { $(s).style.top = (EDC + H6 + 9 + 32) + 'px'; });
+  $$('.dbin').forEach(el => { el.style.top = EDC + 'px'; });
+  $('#pack').style.top = (EDC + $('.dbin').offsetHeight + 9 + 40) + 'px';
+  // Karim et toi, sous la base repliée sur huit tables
+  const wy = bottom('#bc') - $('#bw-xl').offsetHeight + 9 + 44;
+  ['#wk', '#wt'].forEach(s => { $(s).style.top = wy + 'px'; $(s).style.left = '64px'; });
+  // les morceaux de la requête qui se replient (virgule comprise), et l’écart entre les deux premières valeurs
+  ['sg-at', 'sg-da', 'sg-vat', 'sg-vda', 'fx1', 'tx1'].forEach(id => { W[id] = $('#' + id).offsetWidth; });
+  W.dx = rel($('#v2')).x - rel($('#v1')).x;
+  // Les mails : hauteur une fois dépliés
+  $$('.ml').forEach((el, n) => { el.style.height = 'auto'; MH[n + 1] = el.offsetHeight; el.style.height = ''; });
+}
+
+/* ---------- Petits gestes de la timeline ---------- */
+const pulse = (el, t, n = 3, c = 'rgba(201,188,255,.55)') => tl.to(el, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (el, t, s = 1.04) => tl.to(el, {scale: s, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, t);
+const pop = (el, t, s = 0.4) => { show(el, t, {y: 0, scale: s}, 0.4, 'back.out(2.2)'); cue(t, 'pop', 0.7, 3); };
+const on = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 1, duration: d, ease: 'power2.out'}, t);
+const off = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 0, duration: d, ease: 'power2.in'}, t);
+const shake = (el, t, x = 10) => tl.to(el, {x: -x, duration: 0.07, yoyo: true, repeat: 5, ease: 'power1.inOut'}, t);
+const GLOW = 'rgba(255,224,138,.4)';
+/* Une valeur en remplace une autre : l’ancienne monte et s’efface, la nouvelle arrive par en dessous. */
+function swap(o, n, t, sound = true){
+  tl.to(o, {autoAlpha: 0, y: -14, duration: 0.2, ease: 'power2.in'}, t);
+  tl.fromTo(n, {autoAlpha: 0, y: 14}, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power3.out', immediateRender: false}, t + 0.12);
+  if (sound) cue(t + 0.12, 'type', 0.8, 2);
+}
+/* La fenêtre de la table glisse : une ligne se replie, une autre se déplie (trois lignes restent visibles). */
+function roll(outs, ins, t, d = 0.45){
+  outs.forEach(s => tl.to(s, {height: 0, autoAlpha: 0, duration: d, ease: 'power2.inOut'}, t));
+  ins.forEach(s => tl.to(s, {height: RH, autoAlpha: 1, duration: d, ease: 'power2.inOut'}, t));
+  cue(t + 0.05, 'whoosh', 0.35, 1);
+}
+/* Un morceau de la requête se replie (ou revient) : sa largeur passe de W à 0. */
+function fold(id, t, d = 0.45){
+  tl.set('#' + id, {overflow: 'hidden'}, t - 0.01);
+  tl.to('#' + id, {width: 0, duration: d, ease: 'power2.inOut'}, t);
+  cue(t, 'whoosh', 0.35, 2);
+}
+function unfold(id, t, d = 0.45){
+  tl.to('#' + id, {width: W[id], duration: d, ease: 'power2.inOut'}, t);
+  tl.set('#' + id, {overflow: 'visible'}, t + d + 0.01);
+  cue(t, 'whoosh', 0.35, 3);
+}
+/* Les deux premières valeurs échangent leurs places (les chiffres se croisent), ou reprennent les leurs. */
+function cross(t, back = false){
+  const a = back ? 0 : 1, d = back ? -1 : 1;
+  tl.to('#v1', {x: a * W.dx, duration: 0.7, ease: 'power2.inOut'}, t);
+  tl.to('#v2', {x: -a * W.dx, duration: 0.7, ease: 'power2.inOut'}, t);
+  tl.to('#v1', {y: -9 * d, duration: 0.35, yoyo: true, repeat: 1, ease: 'sine.out'}, t);
+  tl.to('#v2', {y: 9 * d, duration: 0.35, yoyo: true, repeat: 1, ease: 'sine.out'}, t);
+  cue(t, 'whoosh', 0.4, 2);
+}
+/* Frappe d’une ligne de code (sans ses passages gardés pour plus tard). Renvoie l’instant de fin. */
+function sqType(lid, t, cps = 36, lead = 0.25){
+  const ln = $('#' + lid), caret = $$(':scope > .caret', ln).pop();
+  tl.set(caret, {autoAlpha: 1}, t - lead);
+  const end = typeChars($$('.ch', ln).filter(c => !c.closest('.lat')), t, cps);
+  tl.set(caret, {autoAlpha: 0}, end + 0.12);
+  return end;
+}
+/* La légende s’efface le temps d’un mail, puis revient. */
+const capOff = t => tl.to('#cap', {autoAlpha: 0, y: 30, duration: 0.3, ease: 'power2.in'}, t);
+const capOn = t => tl.to('#cap', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, t);
+/* Un mail arrive : la notification tombe (avatar, enveloppe, pastille « non lu »). À T, l’élève la touche (l’app s’arrête là,
+   moment OPENS ; hors de l’app, un doigt le montre) : elle s’enfonce, l’adresse de l’expéditeur remplace « Nouveau mail »,
+   puis elle se déplie en mail, ligne après ligne. L’image reste le temps de lire la demande. */
+function mailIn(n, t, T){
+  const m = '#ml' + n, sn = $$(m + ' .sn');
+  show(m, t, {y: -36, scale: 0.94}, 0.55, 'back.out(1.7)');
+  cue(t, 'mail', 0.8);
+  show(m + ' .mav', t + 0.12, {y: 0, scale: 0.5}, 0.4, 'back.out(2.4)');
+  show(m + ' .mbg', t + 0.3, {y: 0, scale: 0, rotation: -30}, 0.4, 'back.out(3)');
+  show(m + ' .mdot', t + 0.42, {y: 0, scale: 0}, 0.3, 'back.out(3)');
+  if (!APP) fingerTap($(m), T);
+  tl.to(m, {scale: 0.975, duration: 0.09, ease: 'power2.out'}, T);
+  tl.to(m, {scale: 1, duration: 0.3, ease: 'back.out(2.5)'}, T + 0.09);
+  cue(T, 'click', 0.5);
+  tl.to(m + ' .mdot', {autoAlpha: 0, scale: 0, duration: 0.2}, T + 0.05);
+  tl.to(m + ' .m0', {autoAlpha: 0, y: -16, duration: 0.2}, T + 0.1);
+  tl.fromTo(m + ' .m1', {autoAlpha: 0, y: 16}, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power3.out', immediateRender: false}, T + 0.2);
+  tl.to(m, {height: MH[n], duration: 0.5, ease: 'power3.inOut'}, T + 0.12);
+  cue(T + 0.12, 'whoosh', 0.35);
+  gsap.set(sn, {autoAlpha: 0, y: 14});
+  sn.forEach((s, k) => { tl.to(s, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, T + 0.4 + k * 0.28); cue(T + 0.4 + k * 0.28, 'tick', 0.4, k + 2); });
+  const end = T + 0.4 + (sn.length - 1) * 0.28 + 0.35;
+  // le temps de lire la demande, tous ses paragraphes (entre « Bonjour, » et « Merci ! »)
+  hold(end + 0.05, Math.ceil(readTime(sn.slice(1, -2).map(s => s.textContent).join(' ')) * 20) / 20);
+  return end;
+}
+function mailOut(n, t){ hide('#ml' + n, t, {x: 140, y: 0, rotation: 2}, 0.4, 'power2.in'); cue(t, 'whoosh', 0.4); }
+/* Hors de l’app (vidéo seule), un doigt montre le geste : il touche la notification. */
+function fingerTap(M, T){
+  const f = '#tapf';
+  tl.set(f, {left: M.offsetLeft + M.offsetWidth * 0.6, top: M.offsetTop + 92}, T - 0.8);
+  tl.fromTo(f, {autoAlpha: 0, x: 90, y: 170}, {autoAlpha: 1, x: 0, y: 0, duration: 0.5, ease: 'power3.out', immediateRender: false}, T - 0.75);
+  tl.to(f, {scale: 0.86, duration: 0.1, ease: 'power2.in'}, T - 0.15);
+  tl.to(f, {scale: 1, duration: 0.15}, T);
+  tl.to(f, {autoAlpha: 0, y: 70, duration: 0.3}, T + 0.2);
+}
+
+/* Réponses des moments « À toi » : ce que la timeline montre juste après l’arrêt (et que l’aperçu montre pendant l’arrêt). */
+const ZONE = {   // moment 1 : ce qui se remplit quand une valeur est rangée dans sa colonne
+  cl: {v: '#s8c1', t: '#t8c1', ph: '#ph1', hl: '#sc1a-r2 .hl'},
+  at: {v: '#s8c2', t: '#t8c2', ph: '#ph2', hl: '#sc2-r3 .hl'},
+  da: {v: '#s8c3', t: null, ph: '#ph3', hl: null}
+};
+const M1_SHOW = Object.values(ZONE).flatMap(z => [z.v, z.t, z.hl]).filter(Boolean), M1_HIDE = Object.values(ZONE).map(z => z.ph);
+const M2_ANS = ['#t8c1', '#t8c2', '#sc1a-r3 .hl', '#sc2-r2 .hl'];   // Emma Dubois (client 3), atelier Pilates (2)
+const M3_ANS = ['#o-nn'];
+const M4_ANS = ['#eg5 .fl', '#r11 .xx'];
+const M5_SHOW = ['#ec5', '#ec6', '#o-c1'], M5_HIDE = ['#hole'];
+const set2 = t => +(t + 0.02).toFixed(2);
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
+  // la table inscriptions : r5 à r7 d’abord ; la ligne de Lucas Bernard et le groupe sont repliés (avant la mise en page : tout se cale sous trois lignes)
+  gsap.set(['#r8', '#r9', '#r10', '#r11'], {height: 0, autoAlpha: 0});
+  layout();
+  gsap.set(['.sq', '.out', '.dbin', '.st', '.pack', '#bc', '#tb', '#tc', '#keyc', '#wk', '#wt'], {autoAlpha: 0});
+  gsap.set(['#r8 .gd', '#r9 .gd', '#r10 .gd', '#r11 .gd'], {autoAlpha: 1});
+  gsap.set(['#s8c1', '#s8c2', '#s8c3', '#t8c1', '#t8c2', '#id8', '#id9', '#id10', '#id11', '#t11c2', '#cn-b', '#cn-c', '#bn-b'], {autoAlpha: 0});
+  gsap.set(['#s8c1 .a1', '#s8c2 .a1', '#s8c3 .a1', '#t8c1 .a1', '#t8c2 .a1', '#cmt .a1', '#cmt .a2', '#cmt .a3', '#cmt2 .a1',
+    '#hu .a1', '#hu .a2', '#pgs2 .a1', '#ell .e1', '#ell .e2', '#ell .e3', '#ell .e4'], {autoAlpha: 0});
+  gsap.set(['#sc1b', '#calc', '#ec5', '#ec6', '#rul', '#pack', '#tgl-cr', '#tgl-rc'], {autoAlpha: 0});
+  gsap.set('#edc', {height: H3});
+  gsap.set('#ec4', {autoAlpha: 0});
+
+  /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
+     la consigne, la légende ne la répète pas. Le passage d’attente est coupé (rien ne s’y anime). */
+  PICKS.forEach(p => cut(p.at - 1.35, 1.25));
+
+  /* ===== 1 · Karim passe la main ===== */
+  sceneOn('#sa', 5.0);
+  show('#bc', A.r1, {y: 60}, 0.55); cue(A.r1, 'whoosh', 0.5);
+  TB.forEach(([k], q) => { const t = A.r1 + 0.3 + q * 0.15; show('#bw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q % 5); });
+  // « Au chapitre 6, tu as retiré la copie du fichier Excel » : la copie est barrée, retirée de la liste (neuf tables, puis huit)
+  tl.to('#bw-xl .sk', {scaleX: 1, duration: 0.3, ease: 'power2.out'}, A.r2 + 0.7); cue(A.r2 + 0.7, 'stamp', 0.5);
+  on('#bw-xl .xx', A.r2 + 0.7, 0.2);
+  tl.to('#bw-xl', {height: 0, paddingTop: 0, paddingBottom: 0, autoAlpha: 0, duration: 0.5, ease: 'power2.inOut'}, A.r2 + 1.4);
+  off('#bn-a', A.r2 + 1.6, 0.2); on('#bn-b', A.r2 + 1.65, 0.2); bump('#bn-b', A.r2 + 1.9, 1.12); cue(A.r2 + 1.6, 'tick', 0.6, 2);
+  // Karim a rempli les tables : le nombre de lignes de chaque table s’allume
+  show('#wk', A.c2 + 0.1, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.c2 + 0.1, 'pop', 0.7, 1);
+  TB.filter(t => t[0] !== 'xl').forEach(([k], q) => { bump('#bw-' + k + ' .nb', A.c2 + 0.8 + q * 0.12, 1.12); cue(A.c2 + 0.8 + q * 0.12, 'tick', 0.5, q % 5); });
+  // il te passe la main : sa pastille s’en va, la tienne arrive
+  tl.to('#wk', {x: 140, autoAlpha: 0, duration: 0.35, ease: 'power2.in'}, A.c3 + 0.3); cue(A.c3 + 0.3, 'whoosh', 0.4);
+  tl.fromTo('#wt', {autoAlpha: 0, x: -140}, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'back.out(1.4)', immediateRender: false}, A.c3 + 0.6); cue(A.c3 + 0.6, 'pop', 0.7, 3);
+  tl.to('#wt .emo', {rotation: -18, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.c3 + 1.3);
+  // le mail de Karim
+  capOff(MAIL1 - 0.2);   // avec la légende : jamais de carte vide
+  hide(['#bc', '#wt'], MAIL1, {y: -30}, 0.35);
+  sceneOff('#sa', MAIL1 + 0.4);
+  sceneOn('#sm', MAIL1 + 0.4);
+  mailIn(1, MAIL1 + 0.5, OPENS[0].at);
+  mailOut(1, MAIL1 + 3.8);
+  sceneOff('#sm', MAIL1 + 4.1);
+  sceneOn('#sb', MAIL1 + 4.1);
+  tl.fromTo('#tb', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL1 + 4.15);
+  cue(MAIL1 + 4.15, 'whoosh', 0.5);
+  capOn(A.c4 - 0.3);   // juste avant la légende suivante
+
+  /* ===== 2 · Une inscription ===== */
+  // une inscription est une ligne de la table inscriptions
+  on('#r7 .hl', A.c4 + 0.3); cue(A.c4 + 0.3, 'tick', 0.5, 2);
+  off('#r7 .hl', B.c4 - 0.6);
+  // le client et l’atelier sont repérés par leur identifiant : les deux colonnes
+  on('#col-cl', A.c5 + 0.3); cue(A.c5 + 0.3, 'tick', 0.5, 1);
+  on('#col-at', A.c5 + 0.8); cue(A.c5 + 0.8, 'tick', 0.5, 3);
+  off(['#col-cl', '#col-at'], B.c5 - 0.7);
+  // on les trouve dans la table clients et dans la table ateliers
+  show('#sc1a', A.c6 + 0.1, {y: 40}, 0.5); cue(A.c6 + 0.1, 'whoosh', 0.45, 1);
+  show('#sc2', A.c6 + 1.0, {y: 40}, 0.5); cue(A.c6 + 1.0, 'whoosh', 0.45, 2);
+  // À toi : la ligne de Lucas Bernard attend ses trois valeurs (r5 se replie, r8 se déplie, en pointillés)
+  roll(['#r5'], ['#r8'], A.p1 + 0.05);
+  swap('#ell .e0', '#ell .e1', A.p1 + 0.1, false);
+  // réponse : les trois valeurs dans leur colonne, les noms à côté des identifiants, et les lignes repérées dans les deux tables
+  tl.set(M1_SHOW, {autoAlpha: 1}, set2(PICKS[0].at));
+  tl.set(M1_HIDE, {autoAlpha: 0}, set2(PICKS[0].at));
+  // Reste à écrire cette ligne avec INSERT INTO
+  off(['#sc1a-r2 .hl', '#sc2-r3 .hl'], A.c7, 0.3);
+  show('#ed', A.c7 + 0.1, {y: 40}, 0.5); cue(A.c7 + 0.1, 'whoosh', 0.45, 1);
+  sqType('ed2', A.c7 + 0.8, 28);
+  pulse('#k2', A.c7 + 1.6, 1, GLOW); cue(A.c7 + 1.6, 'tick', 0.5, 2);
+  // le nom de la table, puis les colonnes entre parenthèses
+  typeMore($('#l2b'), A.c8 + 0.2, 30);
+  bump('#tbn', A.c8 + 0.8, 1.1); cue(A.c8 + 0.8, 'tick', 0.5, 4);
+  sqType('ed3', A.c8 + 1.2, 36);
+  // après VALUES : les valeurs, dans le même ordre que les colonnes (chaque colonne, puis sa valeur)
+  sqType('ed4', A.c9 + 0.2, 32);
+  [1, 2, 3].forEach((k, q) => {
+    const t = A.c9 + 1.4 + q * 0.6;
+    pulse('#co' + k, t, 1, GLOW); pulse('#v' + k, t, 1, GLOW); cue(t, 'tick', 0.55, q * 2);
+  });
+  // la requête est exécutée : une ligne de plus, son identifiant s’attribue tout seul
+  show('#o-ok', A.c10 + 0.1, {y: 20}, 0.4); cue(A.c10 + 0.1, 'pop', 0.7, 3);
+  tl.to('#r8 .gd', {autoAlpha: 0, duration: 0.3}, A.c10 + 0.6);
+  off('#cn-a', A.c10 + 0.7, 0.2); on('#cn-b', A.c10 + 0.75, 0.2); bump('#cn-b', A.c10 + 1.0, 1.12); cue(A.c10 + 0.7, 'tick', 0.6, 2);
+  pop('#id8', A.c10 + 1.1, 0.3);
+  on('#r8 .hl', A.c10 + 1.1); off('#r8 .hl', A.c10 + 2.6);
+
+  /* ===== 3 · L’ordre des valeurs ===== */
+  // imagine que tu inverses les deux premières valeurs : 2 et 3 se croisent
+  hide('#o-ok', A.c11, {y: 20}, 0.3);
+  swap('#cmt .a0', '#cmt .a1', A.c11 + 0.1, false);
+  pulse(['#v1', '#v2'], A.c11 + 0.8, 1, GLOW);
+  cross(A.c11 + 1.2);
+  // exécutée sans la moindre erreur : la ligne reçoit 3 et 2 (les noms s’effacent : à toi de les retrouver)
+  show('#o-ok', A.c12 + 0.1, {y: 20}, 0.4); cue(A.c12 + 0.1, 'chord', 0.6);
+  off(['#t8c1', '#t8c2'], A.c12 + 0.4, 0.2);
+  tl.set(['#t8c1 .a0', '#t8c2 .a0'], {autoAlpha: 0}, A.c12 + 0.65); tl.set(['#t8c1 .a1', '#t8c2 .a1'], {autoAlpha: 1}, A.c12 + 0.65);
+  swap('#s8c1 .a0', '#s8c1 .a1', A.c12 + 0.6); swap('#s8c2 .a0', '#s8c2 .a1', A.c12 + 0.6);
+  on('#r8 .hl', A.c12 + 0.6, 0.2); off('#r8 .hl', A.c12 + 1.8);
+  // À toi : qui est inscrit ? (réponse : les noms reviennent, et les deux lignes des tables sont repérées)
+  tl.set(M2_ANS, {autoAlpha: 1}, set2(PICKS[1].at));
+  [['#t8c1', 0.3], ['#t8c2', 1.0]].forEach(([s, d], q) => { bump(s, A.c13 + d, 1.12); cue(A.c13 + d, 'tick', 0.6, 2 + q * 2); });
+  [1, 2].forEach((k, q) => { const t = A.c13 + 1.6 + q * 0.5; pulse('#co' + k, t, 1, GLOW); pulse('#v' + k, t, 1, GLOW); cue(t, 'tick', 0.5, q * 2); });
+  // rien n’avertit : la ligne passe à l’orange
+  off(['#sc1a-r3 .hl', '#sc2-r2 .hl'], A.c14, 0.3);
+  on('#r8 .wn', A.c14 + 0.2); cue(A.c14 + 0.2, 'miss', 0.4);
+  pulse('#r8 .wn', A.c14 + 0.9, 1, 'rgba(242,154,46,.35)');
+
+  /* ===== 4 · Une règle enfreinte ===== */
+  // imagine que tu oublies la date : tout revient à la normale, puis la date et sa valeur se replient
+  off('#r8 .wn', A.c15, 0.3);
+  hide('#o-ok', A.c15, {y: 20}, 0.3);
+  cross(A.c15 + 0.1, true);
+  swap('#cmt .a1', '#cmt .a2', A.c15 + 0.1, false);
+  swap('#s8c1 .a1', '#s8c1 .a0', A.c15 + 0.2); swap('#s8c2 .a1', '#s8c2 .a0', A.c15 + 0.2);
+  tl.set(['#t8c1 .a1', '#t8c2 .a1'], {autoAlpha: 0}, A.c15 + 0.2); tl.set(['#t8c1 .a0', '#t8c2 .a0'], {autoAlpha: 1}, A.c15 + 0.2);
+  on(['#t8c1', '#t8c2'], A.c15 + 0.4, 0.3);
+  pulse('#co3', A.c15 + 1.0, 1, GLOW); pulse('#v3', A.c15 + 1.0, 1, GLOW); cue(A.c15 + 1.0, 'tick', 0.5, 2);
+  fold('sg-da', A.c15 + 1.6); fold('sg-vda', A.c15 + 1.6);
+  // une colonne non citée reçoit NULL : la case de la date change
+  show('#o-ok', A.c16 + 0.1, {y: 20}, 0.4); cue(A.c16 + 0.1, 'chord', 0.6);
+  swap('#s8c3 .a0', '#s8c3 .a1', A.c16 + 0.5);
+  on('#r8 .hl', A.c16 + 0.5, 0.2); off('#r8 .hl', A.c16 + 2.0);
+  // imagine enfin que tu oublies l’atelier : la date revient, l’atelier se replie ; rien n’est encore ajouté (une ligne à remplir)
+  swap('#s8c3 .a1', '#s8c3 .a0', A.c17 + 0.1);
+  unfold('sg-da', A.c17 + 0.2); unfold('sg-vda', A.c17 + 0.2);
+  swap('#cmt .a2', '#cmt .a3', A.c17 + 0.2, false);
+  fold('sg-at', A.c17 + 0.9); fold('sg-vat', A.c17 + 0.9);
+  hide('#o-ok', A.c17 + 0.2, {y: 20}, 0.3);
+  off(['#id8', '#s8c2', '#t8c2'], A.c17 + 0.9, 0.3);
+  on(['#r8 .gd', '#ph2'], A.c17 + 1.2, 0.3); cue(A.c17 + 1.2, 'tick', 0.5, 3);
+  off('#cn-b', A.c17 + 1.2, 0.2); on('#cn-a', A.c17 + 1.25, 0.2);
+  // À toi : pourquoi la requête est-elle refusée ? (réponse : le message d’erreur)
+  tl.set(M3_ANS, {autoAlpha: 1}, set2(PICKS[2].at));
+  // l’atelier est obligatoire : la case porte la règle NOT NULL
+  shake('#o-nn', A.c18 + 0.2, 9); cue(A.c18 + 0.2, 'miss', 0.4);
+  on('#col-at', A.c18 + 0.5); cue(A.c18 + 0.5, 'tick', 0.5, 2);
+  on('#ph2 .nn', A.c18 + 0.8, 0.25); off('#ph2 .se', A.c18 + 0.8, 0.25); cue(A.c18 + 0.8, 'stamp', 0.5);
+  // le message d’erreur nomme la règle, puis la colonne
+  off('#col-at', A.c19, 0.3);
+  pulse('#nn1', A.c19 + 0.4, 1, 'rgba(239,79,85,.28)'); cue(A.c19 + 0.4, 'tick', 0.6, 1);
+  pulse('#nn2', A.c19 + 1.4, 1, 'rgba(239,79,85,.28)'); cue(A.c19 + 1.4, 'tick', 0.6, 3);
+  bump('#tb .hd .c2', A.c19 + 1.4, 1.1);
+
+  /* ===== 5 · Un groupe ===== */
+  // le mail de Moussa Diallo : pendant qu’il est affiché, la table retrouve la ligne de Lucas Bernard, ajoutée
+  capOff(MAIL2 - 0.2);
+  hide(['#tb', '#sc1a', '#sc2', '#ed', '#o-nn'], MAIL2, {y: -30}, 0.35);
+  sceneOff('#sb', MAIL2 + 0.4);
+  tl.set(['#r8 .gd', '#ph2', '#cn-a'], {autoAlpha: 0}, MAIL2 + 0.45);
+  tl.set(['#id8', '#s8c2', '#t8c2', '#cn-b'], {autoAlpha: 1}, MAIL2 + 0.45);
+  sceneOn('#sm', MAIL2 + 0.4);
+  mailIn(2, MAIL2 + 0.5, OPENS[1].at);
+  mailOut(2, MAIL2 + 3.8);
+  sceneOff('#sm', MAIL2 + 4.1);
+  sceneOn('#sb', MAIL2 + 4.1);
+  tl.fromTo(['#tb', '#sc1b', '#sc2'], {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL2 + 4.15);
+  cue(MAIL2 + 4.15, 'whoosh', 0.5);
+  capOn(A.c20 - 0.3);
+  // une seule requête, plusieurs lignes : le début de la requête
+  show('#edg', A.c20 + 0.1, {y: 40}, 0.5); cue(A.c20 + 0.1, 'whoosh', 0.45, 1);
+  sqType('eg1', A.c20 + 0.7, 40);
+  sqType('eg2', A.c20 + 1.4, 40);
+  // une parenthèse par ligne : chaque ligne tapée ajoute une ligne en pointillés à la table
+  [['eg3', '#gp1', '#r6', '#r9', 'e1', 'e2'], ['eg4', '#gp2', '#r7', '#r10', 'e2', 'e3'], ['eg5', '#gp3', '#r8', '#r11', 'e3', 'e4']].forEach(([lid, gp, o, n, e0, e1], q) => {
+    const t = A.c21 + 0.1 + q * 0.95;
+    sqType(lid, t, 45);
+    pulse(gp, t + 0.75, 1, GLOW);
+    roll([o], [n], t + 0.8, 0.4);
+    swap('#ell .' + e0, '#ell .' + e1, t + 0.85, false);
+  });
+  // une faute de frappe : les trois lignes sont passées en revue, sans rien montrer
+  ['#eg3', '#eg4', '#eg5'].forEach((s, q) => { tl.to(s, {backgroundColor: 'rgba(201,188,255,.22)', duration: 0.2, yoyo: true, repeat: 1, ease: 'power1.inOut'}, A.c22 + 0.4 + q * 0.5); cue(A.c22 + 0.4 + q * 0.5, 'tick', 0.45, q * 2); });
+  // À toi : la ligne refusée (réponse : l’atelier 15)
+  tl.set(M4_ANS, {autoAlpha: 1}, set2(PICKS[3].at));
+  // aucun atelier n’a l’identifiant 15 : la table ateliers ne trouve rien, la requête est refusée
+  swap('#pgs2 .a0', '#pgs2 .a1', A.c23 + 0.2, false); cue(A.c23 + 0.3, 'miss', 0.4);
+  show('#o-fk', A.c23 + 1.0, {y: 20}, 0.4); cue(A.c23 + 1.0, 'miss', 0.45);
+  shake('#o-fk', A.c23 + 1.5, 9);
+  // une seule ligne refusée suffit : aucune des trois n’est ajoutée (les lignes rougissent, puis s’en vont)
+  on(['#r9 .xx', '#r10 .xx'], A.c24 + 0.2, 0.25); cue(A.c24 + 0.2, 'miss', 0.4);
+  off(['#r9 .gd', '#r10 .gd', '#r11 .gd'], A.c24 + 1.0, 0.3);
+  roll(['#r9', '#r10', '#r11'], ['#r6', '#r7', '#r8'], A.c24 + 1.3, 0.5);
+  swap('#ell .e4', '#ell .e1', A.c24 + 1.35, false);
+  swap('#pgs2 .a1', '#pgs2 .a0', A.c24 + 1.8, false);
+  // la faute corrigée : 15 devient 5, l’erreur s’en va, les trois lignes sont ajoutées (identifiants 9, 10, 11)
+  hide('#o-fk', A.c25 + 0.1, {y: 20}, 0.3);
+  fold('fx1', A.c25 + 0.2); tl.to('#fxb', {color: '#EFEBFF', duration: 0.3}, A.c25 + 0.2);
+  tl.set('#eg5 .fl', {autoAlpha: 0}, A.c25 + 0.2);
+  tl.set(['#r9 .xx', '#r10 .xx', '#r11 .xx', '#r9 .gd', '#r10 .gd', '#r11 .gd'], {autoAlpha: 0}, A.c25 + 0.3);
+  tl.set(['#id9', '#id10', '#id11', '#t11c2'], {autoAlpha: 1}, A.c25 + 0.3);
+  fold('tx1', A.c25 + 0.3); tl.to('#s11c2', {color: '#221C46', duration: 0.3}, A.c25 + 0.3);
+  show('#o-ok3', A.c25 + 0.6, {y: 20}, 0.4); cue(A.c25 + 0.6, 'pop', 0.7, 3);
+  roll(['#r6', '#r7', '#r8'], ['#r9', '#r10', '#r11'], A.c25 + 0.9, 0.5);
+  swap('#ell .e1', '#ell .e4', A.c25 + 0.95, false);
+  off('#cn-b', A.c25 + 1.2, 0.2); on('#cn-c', A.c25 + 1.25, 0.2); bump('#cn-c', A.c25 + 1.5, 1.12); cue(A.c25 + 1.2, 'tick', 0.6, 2);
+  [9, 10, 11].forEach((id, q) => { on('#r' + id + ' .hl', A.c25 + 1.6 + q * 0.25, 0.2); off('#r' + id + ' .hl', A.c25 + 2.3 + q * 0.1, 0.3); cue(A.c25 + 1.6 + q * 0.25, 'tick', 0.5, q * 2 + 1); });
+  // la fin du chapitre : tout s’en va, la carte arrive
+  capOff(MAIL3 - 0.2);
+  hide(['#tb', '#sc1b', '#sc2', '#edg', '#o-ok3'], MAIL3, {y: -30}, 0.35);
+  sceneOff('#sb', MAIL3 + 0.4);
+
+  /* ===== 6 · Créer ou recharger ===== */
+  sceneOn('#sm', MAIL3 + 0.4);
+  mailIn(3, MAIL3 + 0.5, OPENS[2].at);
+  mailOut(3, MAIL3 + 3.8);
+  sceneOff('#sm', MAIL3 + 4.1);
+  sceneOn('#sc', MAIL3 + 4.1);
+  tl.fromTo('#tc', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL3 + 4.15);
+  cue(MAIL3 + 4.15, 'whoosh', 0.5);
+  capOn(A.c26 - 0.3);
+  // Hugo Laurent a déjà une carte, une seule par client : la ligne d’Hugo Laurent, puis la règle UNIQUE
+  on('#rc3 .hl', A.c26 + 0.4); cue(A.c26 + 0.4, 'tick', 0.5, 2);
+  pop('#rul', A.c26 + 1.6, 0.6);
+  // ajouter une seconde carte : la requête, puis son refus (la règle UNIQUE)
+  show('#edc', A.c27 + 0.1, {y: 40}, 0.5); cue(A.c27 + 0.1, 'whoosh', 0.45, 1);
+  sqType('ec2', A.c27 + 0.7, 60);
+  sqType('ec3', A.c27 + 1.6, 60);
+  show('#o-un', A.c27 + 2.1, {y: 20}, 0.4); cue(A.c27 + 2.1, 'miss', 0.45);
+  shake('#o-un', A.c27 + 2.4, 9);
+  on('#rc3 .xx', A.c27 + 2.1, 0.2); off('#rc3 .hl', A.c27 + 2.1, 0.2);
+  pulse('#rul', A.c27 + 2.6, 1, 'rgba(239,79,85,.25)'); cue(A.c27 + 2.6, 'tick', 0.5, 2);
+  // avec ON CONFLICT : la requête s’allonge, le commentaire change, la fin attend d’être choisie
+  hide('#o-un', A.c28 - 0.05, {y: 20}, 0.25);
+  off('#rc3 .xx', A.c28, 0.2); on('#rc3 .hl', A.c28, 0.2);
+  swap('#cmt2 .a0', '#cmt2 .a1', A.c28 + 0.1, false);
+  tl.to('#edc', {height: H6, duration: 0.5, ease: 'power2.inOut'}, A.c28 + 0.2); cue(A.c28 + 0.2, 'whoosh', 0.4);
+  off('#semi', A.c28 + 0.25, 0.2);
+  tl.to('#semi', {width: 0, duration: 0.3}, A.c28 + 0.25);
+  tl.set('#ec4', {autoAlpha: 1}, A.c28 + 0.6);
+  sqType('ec4', A.c28 + 0.7, 30);
+  pulse('#kc', A.c28 + 1.7, 1, GLOW); cue(A.c28 + 1.7, 'tick', 0.5, 2);
+  on('#hole', A.c28 + 1.9, 0.3);
+  // À toi : la fin de la requête (réponse : DO UPDATE, 10 séances de plus ; le résultat)
+  tl.set(M5_SHOW, {autoAlpha: 1}, set2(PICKS[4].at));
+  tl.set(M5_HIDE, {autoAlpha: 0}, set2(PICKS[4].at));
+  // la carte d’Hugo Laurent passe de 8 à 18 : aucune seconde carte
+  swap('#hu .a0', '#hu .a2', A.c29 + 0.3);
+  pop('#calc', A.c29 + 0.8, 0.5);
+  bump('#hu', A.c29 + 0.9, 1.15);
+  pulse('#ec6', A.c29 + 1.6, 1, GLOW); cue(A.c29 + 1.6, 'tick', 0.5, 3);
+  off('#rc3 .hl', B.c29 - 0.8, 0.3);
+  // quatre clients achètent un pack : la requête s’efface, les deux cases arrivent
+  hide(['#edc', '#o-c1', '#calc'], A.c30, {y: -30}, 0.4);
+  show('#pack', A.c30 + 0.4, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.c30 + 0.4, 'pop', 0.7, 1);
+  show('#db-cr', A.c30 + 0.8, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(A.c30 + 0.8, 'pop', 0.6, 0);
+  show('#db-rc', A.c30 + 0.95, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(A.c30 + 0.95, 'pop', 0.6, 2);
+  // À toi : les clients rangés dans leur case ; remplies, les cases ne sont plus des zones où déposer
+  tl.set('.dbin .rc', {autoAlpha: 1}, set2(PICKS[5].at));
+  tl.set('.dbin', {borderStyle: 'solid'}, set2(PICKS[5].at));
+  // la même requête, deux effets : une ligne ajoutée, une ligne modifiée
+  on('#tgl-cr', A.c31 + 0.3, 0.3); cue(A.c31 + 0.3, 'stamp', 0.5);
+  on('#tgl-rc', A.c31 + 1.3, 0.3); cue(A.c31 + 1.3, 'stamp', 0.5);
+  [0, 1, 2, 3].forEach((i, q) => { const id = ['#bu2', '#bu1', '#bu0', '#bu3'][q]; bump(id, A.c31 + 1.9 + q * 0.2, 1.06); cue(A.c31 + 1.9 + q * 0.2, 'tick', 0.45, q); });
+  hide(['#tc', '.dbin', '#pack'], B.c31 - 0.1, {y: -40}, 0.4);
+  sceneOff('#sc', A.c32 + 0.3);
+  // la suite : la prochaine leçon
+  sceneOn('#sk', A.c32);
+  show('#keyc', A.c32 + 0.1, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)'); cue(A.c32 + 0.1, 'whoosh', 0.6);
+  tl.to('#keyc .emo', {rotation: -18, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.c32 + 0.7);
+  hide('#keyc', B.c32 - 0.1, {y: -30}, 0.4);
+  sceneOff('#sk', RECAP);
+
+  /* ===== 7 · À retenir ===== */
+  // chaque idée : sa phrase, puis son détail
+  recapScene(RECAP, [RECAP + 0.7, RECAP + 2.1, RECAP + 3.5]);
+  const rt = $$('#s7 .rtxt'), rs = $$('#s7 .rs'), rd = (h, n = 20) => Math.ceil(readTime(h) * n) / n;
+  gsap.set(rs, {autoAlpha: 0, y: 10});
+  [[RECAP + 0.7, RECAP + 1.45], [RECAP + 2.1, RECAP + 2.85], [RECAP + 3.5, RECAP + 4.25]].forEach(([r, d], i) => {
+    tl.to(rs[i], {autoAlpha: 1, y: 0, duration: 0.45, ease: 'power2.out'}, d);
+    cue(d, 'tick', 0.5, i * 2 + 1);
+    hold(r + 0.6, rd(rt[i].innerHTML.split('<span')[0]));
+    hold(d + 0.5, rd(rs[i].innerHTML));
+  });
+  if (APP) cue(NOTES + 0.05, 'pop', 0.85, 5);
+}
+
+/* ---------- Moments « À toi » : ce que montre chaque geste ----------
+   Le lecteur arrête l’image à chaque moment (PICKS) et pose ses zones tactiles sur les endroits que la page décrit
+   (IX.spots). Chaque geste est jugé ici (IX.act, IX.pick) et montré aussitôt sur l’image : les bons gestes affichent
+   les mêmes éléments que la timeline juste après l’arrêt (classe pvs, sans toucher aux styles de la timeline) ;
+   ils restent jusqu’à ce que la timeline affiche la même image (IX.tick), puis s’effacent : la reprise est invisible. */
+const IX = (() => {
+  let X = null, wait = -1;
+  function start(i){ if (!X || X.i !== i) { clear(); X = {i, cls: [], tm: [], got: new Set()}; } }
+  function clear(){
+    if (!X) return;
+    X.tm.forEach(clearTimeout);
+    X.cls.forEach(([e, c]) => e.classList.remove(c));
+    X = null; wait = -1;
+  }
+  const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
+  const marks = (sels, c = 'pvs') => sels.forEach(s => $$(s).forEach(e => mark(e, c)));
+  /* La classe est aussi notée dans X.cls : si le moment change avant la fin du minuteur (deux réponses enchaînées), clear() la retire. */
+  const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
+  function spots(i){
+    // moment 1 : les trois colonnes de la ligne à remplir, de leur titre jusqu’à elle
+    if (i === 0) return [['cl', 'Colonne du client', 1], ['at', 'Colonne de l’atelier', 2], ['da', 'Colonne de la date d’inscription', 3]].map(([k, label, j]) => {
+      const h = rel($(`#tb .hd .c${j}`)), r = rel($('#r8'));
+      return {k, label, x: h.x, y: h.y, w: h.w, h: r.y + r.h - h.y};
+    });
+    // moment 4 : les trois lignes de valeurs de la requête
+    if (i === 3) { const c = rel($('#edg')); return ['eg3', 'eg4', 'eg5'].map((id, q) => { const l = rel($('#' + id)); return {k: 'g' + (q + 1), label: `Ligne ${q + 1} de la requête`, x: c.x + 10, y: l.y, w: c.w - 20, h: l.h}; }); }
+    // moment 6 : les deux cases
+    if (i === 5) return BINS.map(([k, n, d]) => Object.assign({k, label: `${n} : ${d}`}, rel($('#db-' + k))));
+    return [];
+  }
+  function act(i, a, b){
+    start(i);
+    if (i === 0) {
+      const v = VALS[a], z = ZONE[b];
+      if (v.col === b) {
+        marks([z.v, z.t, z.hl].filter(Boolean)); mark($(z.ph), 'pvh');
+        X.got.add(a); sfx('pop', X.got.size, 0.6);
+        return {ok: true, done: X.got.size === VALS.length, why: '', at: rel($(z.v))};
+      }
+      // une mauvaise colonne : la valeur s’y montre en rouge, la case tremble, puis la case revient
+      const ph = $(z.ph), sx = ph.querySelector('.sx');
+      sx.textContent = v.label;
+      flash(sx, 'pvs', 1300); flash(ph.querySelector('.se'), 'pvh', 1300); flash($(z.v).parentElement, 'kof', 650);
+      return {ok: false, why: fr(v.why[b])};
+    }
+    if (i === 3) {
+      const g = +a.slice(1);
+      if (g === 3) {
+        if (!X.got.has(a)) { X.got.add(a); marks(M4_ANS); sfx('tick', 1, 0.6); }
+        return {ok: true, done: true, why: '', at: rel($('#eg5'))};
+      }
+      flash($('#eg' + (g + 2)), 'kol', 600);
+      return {ok: false, why: fr(g === 1 ? 'La ligne d’Hugo Laurent est valide : le client 6 et l’atelier 5 existent.' : 'La ligne de Gabriel Michel est valide : le client 8 et l’atelier 5 existent.')};
+    }
+    if (i === 5) {
+      const n = +a, bin = $('#db-' + b);
+      if (BUY[n][1] === b) {
+        mark($('#bu' + n), 'pvs');
+        flash(bin, 'okb', 520);
+        X.got.add(n);
+        sfx('pop', X.got.size, 0.6);
+        return {ok: true, done: X.got.size === BUY.length, why: '', at: rel(bin)};
+      }
+      flash(bin, 'kob', 650);
+      return {ok: false, why: fr(BUY[n][2])};
+    }
+    return {ok: false};
+  }
+  /* Choix d’une réponse (moments 2, 3 et 5) : ce que donnerait la requête avec ce choix. */
+  function pick(i, k){
+    clear(); start(i);
+    const P = PICKS[i], o = P.options[k], ok = !!o.ok;
+    if (i === 1) {
+      if (ok) marks(M2_ANS);
+      else flash($('#r8'), 'kor', 600);
+      sfx(ok ? 'pop' : 'miss', 2, 0.5);
+    }
+    if (i === 2) {
+      if (ok) marks(M3_ANS);
+      else flash($('#ed'), 'kob', 480);
+      sfx(ok ? 'pop' : 'miss', 2, 0.5);
+    }
+    if (i === 4) {
+      if (ok) { marks(M5_SHOW); marks(M5_HIDE, 'pvh'); }
+      else {
+        marks(['#pv5-' + k, '#pvo5-' + k]);
+        // = 10 : le solde est remplacé, la case d’Hugo Laurent affiche 10
+        if (k === 2) { flash($('#hu .a0'), 'pvh', 1300); flash($('#hu .a1'), 'pvs', 1300); }
+      }
+      sfx(ok ? 'pop' : 'miss', 2, 0.5);
+    }
+    return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));
+  }
+  /* Indice, après deux erreurs : une piste, et les endroits à regarder. */
+  function hint(i){
+    const h = (() => {
+      if (i === 0) return {text: 'Cherche Lucas Bernard dans la <b>table&nbsp;clients</b>, et l’atelier Cuisine saine dans la <b>table&nbsp;ateliers</b> : chaque identifiant est écrit à côté du nom.'};
+      if (i === 1) return {text: 'Les valeurs suivent l’ordre des colonnes : la première est l’identifiant du client, la deuxième celui de l’atelier. Cherche-les dans les deux tables.'};
+      if (i === 2) return {text: 'La requête précédente, sans la date, était acceptée : regarde ce qui change ici.'};
+      if (i === 3) return {text: 'Compare l’identifiant d’atelier de chaque ligne avec ceux de la <b>table&nbsp;ateliers</b>.', keys: ['g3']};
+      if (i === 4) return {text: 'On veut ajouter 10 séances à celles de la carte : la nouvelle valeur se calcule à partir de l’ancienne.'};
+      if (i === 5) return {text: 'Regarde la <b>table&nbsp;cartes</b> : le client a-t-il déjà une carte ?'};
+      return null;
+    })();
+    return h && Object.assign(h, {text: fr(h.text)});
+  }
+  return {
+    enter: i => { clear(); start(i); },
+    spots, act, pick, hint,
+    slot: () => null,
+    /* Moment réussi : l’aperçu reste jusqu’à ce que la timeline affiche la même image ; sinon il part tout de suite. */
+    leave(i, answered){ if (answered && X && X.i === i) wait = i; else clear(); },
+    tick(t = tl.time()){ if (wait < 0) return; const a = PICKS[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear(); }
+  };
+})();
+window.IX = IX;
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 154.7, picks: PICKS, opens: OPENS,
+  glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝📄🔑🔗🔒🎟️✉️👆✓✕!…«»✍️📚🔁✏️·', dom, build, beforeRender: t => IX.tick(t)});
+</script>
+</body>
+</html>

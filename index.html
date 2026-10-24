@@ -8870,246 +8870,73 @@ guide({ id:66, titre:"DROP", résumé:"Supprimer une table de la base",
 })
 ]},
 { titre:"Écrire et modifier les données", sous:"INSERT, UPDATE, DELETE", lessons:[
-guide({ id:26, titre:"INSERT", résumé:"Ajouter une ligne",
-  sit:{
-    blocks:[
-      "L’équipe catalogue reçoit <b>un nouveau produit</b> de son fournisseur : le <b>Zinc</b>. Il doit rejoindre le catalogue de la boutique.",
-      "La table <code>produits</code> contient au total <b>8 produits</b>. Pour enregistrer le Zinc, l’équipe dispose de ces informations :",
-      {need:[["🏷️","Son nom","Zinc"],["🗂️","Sa catégorie","Bien-être"],["💶","Son prix","17,90 €"],["📦","Son stock","70 unités"]],label:"Les informations à enregistrer"}
-    ],
-    problem:{
-      p:["Avec <code>SELECT</code>, SQL sait <b>lire</b> les lignes d’une table, mais il ne modifie jamais son contenu.","Or, ici, l’équipe doit <b>ajouter une ligne</b>."],
-      scene:{h:"📦 Catalogue des produits",cols:"1.5fr 1.3fr .8fr",
-        lanes:[{c:[["h1","nom","t"],["h2","categorie","t"],["h3","prix","t"]]},
-          {k:"R1",c:[["a1","Magnésium"],["a2","Bien-être"],["a3","19.9"]]},
-          {k:"R2",c:[["b1","Vitamine D"],["b2","Nutrition"],["b3","14.9"]]},
-          {k:"R3",c:[["c1","Oméga 3"],["c2","Bien-être"],["c3","24.9"]]},
-          {k:"N",fold:true,c:[["n1","?","q"],["n2","?","q"],["n3","?","q"]]}],
-        caps:["<b>Notre catalogue</b> · La table contient 8 produits : le Zinc n’en fait pas encore partie.","<b>Besoin</b> · Le Zinc doit être enregistré sur une <b>nouvelle ligne</b>.","<b>Résultat</b> · La table compte une ligne de plus."],
-        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,off:["R1","R2","R3"],unfold:["N"],d:2300},{cap:2,text:{n1:"Zinc",n2:"Bien-être",n3:"17.9"},stagger:260,d:3000}]},
-      then:["Il faut donc indiquer à SQL <b>dans quelle table</b> ajouter la ligne, et <b>quelles valeurs</b> y écrire.","C’est exactement le rôle de <code>INSERT</code>."]
-    },
-    mission:"Aide l’équipe catalogue à ajouter le <b>Zinc</b> à la table produits, avec son <b>nom</b>, sa <b>catégorie</b>, son <b>prix</b> et son <b>stock</b>, afin de compléter le catalogue de la boutique."
-  },
-  concept:{
-    title:"Comment SQL peut-il savoir dans quelle colonne ranger chaque valeur ?",
-    blocks:[
-      "Pour écrire une ligne, SQL doit relier chaque valeur à une colonne :",
-      {ask:"À quelle colonne appartient cette valeur ?"},
-      "En SQL, on cite d’abord les colonnes, puis on donne les valeurs <b>dans le même ordre</b> :",
-      {syntax:"⟦(nom, categorie, prix, stock)⟧\n⟦VALUES ('Zinc', 'Bien-être', 17.90, 70)⟧"},
-      {scene:{h:"🧩 Une valeur pour chaque colonne",cols:"1.2fr 1.3fr .8fr .7fr",
-        lanes:[{k:"V",l:"Les valeurs",c:[["v1","Zinc"],["v2","Bien-être"],["v3","17.9"],["v4","70"]]},
-          {k:"H",c:[["h1","nom","t"],["h2","categorie","t"],["h3","prix","t"],["h4","stock","t"]]},
-          {k:"N",c:[["n1","?","q"],["n2","?","q"],["n3","?","q"],["n4","?","q"]]}],
-        caps:["<b>(nom, categorie, prix, stock)</b> · SQL prépare une ligne avec ces quatre colonnes.","<b>VALUES (…)</b> · La 1ʳᵉ valeur va dans la 1ʳᵉ colonne, la 2ᵉ dans la 2ᵉ, et ainsi de suite.","<b>Résultat</b> · Chaque valeur est rangée dans la colonne de même rang."],
-        steps:[{cap:0,on:["N"],d:1900},{cap:1,off:["N"],on:["V"],fly:[["v1","n1"],["v2","n2"],["v3","n3"],["v4","n4"]],stagger:380,d:3600},{cap:2,off:["V"],on:["N"],d:2400}]}}
-    ]
-  },
-  steps:[
-    {h:"Ajouter une ligne",blocks:[
-      "Pour ajouter une ligne, on écrit <code>INSERT INTO</code>, suivi de la <b>table</b> et de la liste de ses colonnes, puis <code>VALUES</code> et les valeurs :",
-      {syntax:"⟦INSERT INTO clients (prenom, nom, ville)⟧\n⟦VALUES ('Camille', 'Roux', 'Lille')⟧;"},
-      {looks:[["INSERT INTO clients (…)","désigne la table qui reçoit la ligne et les colonnes à remplir"],["VALUES (…)","donne les valeurs"]]},
-      {say:"👇 Exécute cette requête pour ajouter Camille, puis afficher les clients :",run:"INSERT INTO clients (prenom, nom, ville)\nVALUES ('Camille', 'Roux', 'Lille');\nSELECT id, prenom, nom, ville\nFROM clients;"},
-      {arrow:"La table compte maintenant 11 clients : Camille arrive en dernier."},
-      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux ajouter des lignes sans rien abîmer. À chaque essai, tu retrouves les 10 clients d’origine."]}}
-    ]},
-    {h:"Les colonnes qu’on ne cite pas",blocks:[
-      "Une colonne qu’on ne cite pas reçoit <code>NULL</code>, ou sa valeur par défaut si la table en prévoit une. L’<code>id</code>, lui, se remplit tout seul : la base attribue l’identifiant suivant.",
-      {say:"👇 Exécute cette requête : seul le nom du produit est donné.",run:"INSERT INTO produits (nom)\nVALUES ('Vitamine C');\nSELECT *\nFROM produits\nWHERE nom = 'Vitamine C';"},
-      {arrow:"Le produit a reçu l’identifiant 9 ; sa catégorie, son prix et son stock valent <code>NULL</code>."},
-      {tip:{t:"Voir la ligne écrite",blocks:[
-        "Ajoute <code>RETURNING</code> à la fin de l’<code>INSERT</code> : la base renvoie la ligne telle qu’elle vient d’être enregistrée, identifiant compris.",
-        {say:"👇 Teste par toi-même :",run:"INSERT INTO produits (nom, prix)\nVALUES ('Spiruline', 18.50)\nRETURNING id, nom, prix;"}
-      ]}},
-      {warn:{t:"Une colonne obligatoire",blocks:[
-        "Si tu écris :",
-        {syntax:"INSERT INTO produits (categorie, prix)"},
-        "La colonne <code>nom</code> est obligatoire (<code>NOT NULL</code>). Comme elle n’est pas citée, elle recevrait <code>NULL</code> : la base refuse la ligne. Avant d’écrire, elle contrôle toujours les règles de la table.",
-        {say:"👇 Teste par toi-même :",run:"INSERT INTO produits (categorie, prix)\nVALUES ('Nutrition', 9.90);"}
-      ]}}
-    ]},
-    {h:"Respecter l’ordre des valeurs",blocks:[
-      "La base associe chaque valeur à une colonne <b>par sa position</b>, sans jamais en vérifier le sens.",
-      {warn:{t:"Valeurs inversées",blocks:[
-        "Si tu écris :",
-        {syntax:"VALUES ('Bien-être', 'Zinc', 17.90, 70)"},
-        "<code>nom</code> et <code>categorie</code> attendent tous deux du texte : la base accepte la ligne, mais elle est fausse.",
-        {say:"👇 Teste par toi-même :",run:"INSERT INTO produits (nom, categorie, prix, stock)\nVALUES ('Bien-être', 'Zinc', 17.90, 70);\nSELECT *\nFROM produits\nWHERE id = 9;"},
-        {arrow:"Aucune erreur, mais le produit s’appelle « Bien-être » et sa catégorie est « Zinc »."}
-      ]}},
-      {tip:{t:"Sans liste de colonnes",blocks:["<code>INSERT INTO produits VALUES (…)</code> est permis, mais il faut alors donner <b>toutes</b> les valeurs, dans l’ordre exact des colonnes de la table. La requête casse dès qu’une colonne est ajoutée : mieux vaut toujours nommer les colonnes."]}}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : indiquer la table, nommer les colonnes, puis donner les valeurs du Zinc dans le même ordre.",
-      {say:"👇 Exécute la requête pour ajouter le Zinc au catalogue :",run:"INSERT INTO produits (nom, categorie, prix, stock)\nVALUES ('Zinc', 'Bien-être', 17.90, 70);\nSELECT *\nFROM produits;"},
-      {done:{
-        label:"Du catalogue de 8 produits à 9 produits",
-        unit:"free",
-        funnel:[
-          {n:8,t:"produits au départ",s:"toute la <code>table produits</code>",dots:"00000000"},
-          {step:"INSERT INTO produits … VALUES …",s:"ajoute une ligne, sans toucher aux autres"},
-          {n:9,t:"⭐ produits dans le catalogue",s:"les 8 d’origine et le Zinc",dots:"000000001",out:true}
-        ],
-        board:{wide:true,ico:"🛒",h:"Catalogue de la boutique",aria:"Le Zinc s’ajoute à la table produits : le catalogue passe de 8 à 9 produits, les autres n’ont pas changé",kpi:"Produits",count:{"t": "Produits", "from": 8, "to": 9},ops:{"8": {"op": "add"}},show:3,tail:1,moreT:"… et 5 autres produits",cols:["id", "nom", "categorie", "prix", "stock"],
-          rows:[[1, "Fibre Prébiotique", "Bien-être", 29.9, 120], [2, "Collagène Marin", "Beauté", 39.9, 80], [3, "Magnésium", "Bien-être", 19.9, 500], [4, "Vitamine D", "Nutrition", 14.9, 150], [5, "Tisane Détox", "Boisson", 12.5, 60], [6, "Protéine Végétale", "Nutrition", 34.9, 45], [7, "Oméga 3", "Bien-être", 24.9, 90], [8, "Shaker Inox", "Accessoire", 15, 30], [9, "Zinc", "Bien-être", 17.9, 70]],done:"✓ Zinc enregistré, avec l’identifiant 9 attribué par la base"},
-        fill:["INSERT INTO","nom","VALUES","'Zinc'"],
-        ui:{t:"9 produits dans le catalogue",s:"Le Zinc rejoint le catalogue : les 8 autres produits n’ont pas changé.",n:["INSERT INTO","VALUES"]},
-        rows:9
-      }}
-    ]}
-  ],
+guide({ id:26, titre:"INSERT", résumé:"Ajouter des lignes",
+  /* Projet, chapitre 7, en vidéo interactive : l’animation (assets/anim/projet-insert.html, moteur commun assets/anim/core.js)
+     est le cours. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 6, tu as retiré la copie du fichier
+     Excel avec DROP TABLE »), sur la base que le chapitre 6 laisse : huit tables, dont inscriptions (7 lignes) et cartes (3 lignes).
+     Karim Benali, le développeur back end, a rempli les tables jusqu’ici et passe la main : trois mails, trois situations.
+     Mail de Karim : Lucas Bernard s’inscrit à l’atelier Cuisine saine le 8 septembre. Une inscription est une ligne de la table
+     inscriptions ; le client et l’atelier y sont repérés par leur identifiant, qu’on trouve dans les tables clients et ateliers. Moment 1 :
+     l’élève place les trois valeurs sous la colonne qui convient ; l’identifiant 8 de la nouvelle ligne est attribué automatiquement.
+     Trois fautes sont ensuite imaginées avant l’exécution : les deux premières valeurs inversées, ce qui s’exécute sans erreur et
+     inscrit Emma Dubois à l’atelier Pilates (moment 2) ; la date oubliée, qui vaut NULL, sans erreur ; l’atelier oublié, refusé
+     parce qu’il est obligatoire, NOT NULL (moment 3). Mail de Moussa Diallo : Hugo Laurent, Gabriel Michel et Inès Lefebvre s’inscrivent
+     au Yoga du matin ; une seule requête, une parenthèse par ligne après VALUES. Une faute de frappe (l’atelier 15 n’existe pas)
+     fait refuser le groupe entier, aucune des trois lignes n’est ajoutée (moment 4 : l’élève touche la ligne fautive) ; corrigé,
+     le groupe ajoute les identifiants 9 à 11. Mail de l’équipe NutriBoost : Hugo Laurent a acheté un pack de 10 séances, or une seule
+     carte par client est autorisée dans la table cartes (UNIQUE sur client_id) : une seconde carte est refusée ; ON CONFLICT (client_id)
+     DO UPDATE SET seances_restantes = seances_restantes + 10 recharge la carte, de 8 à 18 séances (moment 5), tandis que DO NOTHING
+     la laisserait telle quelle. Moment 6 : quatre clients achètent un pack, l’élève range chacun selon ce qui arrive à sa carte
+     (créée pour Chloé Moreau et Lucas Bernard, rechargée pour Sophie Martin et Nathan Petit). La fin annonce la prochaine leçon du
+     cours : « tu apprendras à modifier les données avec UPDATE ». Six moments « À toi », comme aux chapitres du projet ; leçon
+     seule : ni exercice ni quiz, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments
+     ratés. Elle remplace l’ancien cours texte INSERT (colonnes nommées ou non, valeurs inversées, RETURNING, exercice sur le Fer) et
+     l’ancien cours « INSERT multiple et gestion de conflit » (supprimé : plusieurs lignes d’un coup, ON CONFLICT repris ici ;
+     INSERT … SELECT, OR IGNORE, OR REPLACE et excluded laissés de côté). */
+  leconSeule:true,
+  video:{anim:'assets/anim/projet-insert.html?app&embed',thumb:'assets/anim/projet-insert-thumb.webp',duree:'4 min 05',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 3 min 58 (237,9 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:237.9,y:1261,card:[64,292,1016,966],to:[940,255]}},
   reflex:[
     {recap:[
-      ["➕","<code>INSERT INTO</code> <b>ajoute une ligne</b> à une table.","Contrairement à <code>SELECT</code>, il modifie la table."],
-      ["🧩","Les valeurs se rangent <b>dans l’ordre des colonnes</b> citées :",null,"(nom, prix) VALUES ('Zinc', 17.90)"],
-      ["📝","Nomme toujours les colonnes : celles qu’on ne cite pas reçoivent <code>NULL</code> ou leur valeur par défaut."]
+      ["✍️","<code>INSERT INTO</code> ajoute <b>une ligne</b> : une valeur pour chaque colonne citée.","Une colonne non citée vaut <code>NULL</code> ou sa valeur par défaut ; si elle est obligatoire, la requête est refusée."],
+      ["📚","Avec <code>VALUES</code>, on ajoute <b>plusieurs lignes</b> d’un coup : une parenthèse par ligne.","Si une seule ligne est refusée, aucune des lignes n’est ajoutée."],
+      ["🔁","<code>ON CONFLICT</code> permet de choisir quoi faire quand la ligne <b>existe déjà</b>.","<code>DO UPDATE</code> modifie la ligne existante ; <code>DO NOTHING</code> la laisse telle quelle."]
     ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"INSERT INTO clients",txt:"La table qui reçoit la nouvelle ligne."},{tok:"(prenom, nom, ville)",plain:1,txt:"Les colonnes à remplir. L’id n’est pas cité : la base l’attribue."},{tok:"VALUES",txt:"Annonce les valeurs à écrire."},{tok:"('Camille', 'Roux', 'Lille')",plain:1,txt:"Une valeur par colonne, dans le même ordre."}],
-  exemple:"INSERT INTO clients (prenom, nom, ville)\nVALUES ('Camille', 'Roux', 'Lille');",
-  attendu:"<b>1 ligne ajoutée</b> : Camille Roux arrive dans la table <code>clients</code>, avec l’identifiant 11 attribué par la base.",
-  retenir:"<code>INSERT INTO</code> ajoute une ligne à une table : contrairement à <code>SELECT</code>, il modifie la table.<br><br>Les valeurs se rangent dans l’ordre des colonnes citées : <code>(nom, prix) VALUES ('Zinc', 17.90)</code>.<br><br>Nomme toujours les colonnes : celles qu’on ne cite pas reçoivent <code>NULL</code> ou leur valeur par défaut.",
-  consigne:"Le fournisseur annonce le <b>Fer</b> au prix de <code>19.90</code>, mais ne donne pas encore sa catégorie ni son stock. Enregistre-le dans la table <code>produits</code> avec son nom et son prix seulement, en laissant la base attribuer l’identifiant.",
-  solution:"INSERT INTO produits (nom, prix)\nVALUES ('Fer', 19.90);",
-  verif:"SELECT id, nom, categorie, prix, stock FROM produits ORDER BY id;",
-  indice:"Cite seulement les colonnes <code>nom</code> et <code>prix</code>, puis donne leurs deux valeurs dans le même ordre. Les colonnes oubliées recevront <code>NULL</code>.",
-  write:true,
-  petitDefi:[{p:"Complète la requête pour donner les valeurs de la nouvelle ligne.",sql:"INSERT INTO produits (nom, prix)\n__________ ('Zinc', 17.90);",a:"VALUES",answers:["VALUES","values","Values"]}],
-  testeVariants:[{k:"nomme",label:"Colonnes nommées",sql:"INSERT INTO produits (nom, categorie, prix, stock)\nVALUES ('Zinc', 'Bien-être', 17.90, 70);\nSELECT *\nFROM produits\nWHERE id = 9;",out:"La ligne est juste : l’identifiant 9 a été attribué par la base.",tone:"good"},{k:"ordre",label:"Valeurs inversées",sql:"INSERT INTO produits (nom, categorie, prix, stock)\nVALUES ('Bien-être', 'Zinc', 17.90, 70);\nSELECT *\nFROM produits\nWHERE id = 9;",out:"Accepté sans erreur : « Bien-être » est devenu le nom du produit.",tone:"bad"},{k:"partiel",label:"Colonnes omises",sql:"INSERT INTO produits (id, nom)\nVALUES (20, 'Zinc');\nSELECT *\nFROM produits\nWHERE id = 20;",out:"categorie, prix et stock valent NULL : rien ne les a renseignés."}],
-  learningCheck:{question:"On écrit INSERT INTO produits (nom, categorie, prix, stock) VALUES ('Bien-être', 'Zinc', 17.90, 70). Que se passe-t-il ?",options:["La base refuse la ligne","La ligne est écrite, avec le nom et la catégorie inversés","SQL remet les valeurs dans le bon ordre"],answer:1,explanation:"La base associe les valeurs aux colonnes par leur position et ne vérifie pas leur sens : deux textes inversés ne déclenchent aucune erreur."}
+  ]
 }),
 guide({ id:27, titre:"UPDATE", résumé:"Modifier des lignes",
-  sit:{
-    blocks:[
-      "Le fournisseur augmente de <b>10 %</b> le tarif de sa <b>gamme Bien-être</b>. L’équipe catalogue doit répercuter cette hausse sur les prix de la boutique.",
-      "La table <code>produits</code> contient au total <b>8 produits</b>, dont <b>3</b> de la catégorie Bien-être. Pour mettre le catalogue à jour, l’équipe souhaite modifier uniquement :",
-      {need:[["🗂️","Les produits Bien-être","3 produits"],["💶","Leur prix","+ 10 %"]],label:"Ce qu’il faut modifier"}
-    ],
-    problem:{
-      p:["Avec <code>INSERT</code>, SQL sait <b>ajouter</b> des lignes, mais il ne peut pas changer celles qui existent déjà.","Or, ici, l’équipe doit <b>modifier une valeur</b> : le prix de trois produits précis, sans toucher aux autres."],
-      scene:{h:"🏷️ Prix du catalogue",cols:"2.05fr 1.2fr .75fr",
-        lanes:[{c:[["h1","nom","t"],["h2","categorie","t"],["h3","prix","t"]]},
-          {k:"R1",c:[["a1","Fibre Prébiotique"],["a2","Bien-être"],["a3","29.9"]]},
-          {k:"R2",c:[["b1","Collagène Marin"],["b2","Beauté"],["b3","39.9"]]},
-          {k:"R3",c:[["c1","Magnésium"],["c2","Bien-être"],["c3","19.9"]]},
-          {k:"R4",c:[["d1","Vitamine D"],["d2","Nutrition"],["d3","14.9"]]},
-          {k:"R5",c:[["e1","Oméga 3"],["e2","Bien-être"],["e3","24.9"]]}],
-        caps:["<b>Notre catalogue</b> · Chaque produit a son prix actuel.","<b>Besoin</b> · Seuls les produits de la catégorie <b>Bien-être</b> sont concernés.","<b>Résultat</b> · Leur prix augmente de 10 % ; les autres lignes restent telles quelles."],
-        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R2","R4"],dim:["R2","R4"],d:2300},{cap:2,undim:["R2","R4"],text:{a3:"+10 %",c3:"+10 %",e3:"+10 %"},stagger:300,d:3000}]},
-      then:["Il faut donc indiquer à SQL <b>quelle nouvelle valeur</b> écrire, et dans <b>quelles lignes</b> : uniquement les produits Bien-être.","C’est exactement le rôle de <code>UPDATE</code>."]
-    },
-    mission:"Aide l’équipe catalogue à augmenter de <b>10 %</b> le <b>prix</b> des produits de la catégorie <b>Bien-être</b>, afin de mettre à jour le catalogue de la boutique."
-  },
-  concept:{
-    title:"Comment SQL peut-il savoir quelle valeur modifier, et dans quelle ligne ?",
-    blocks:[
-      "Pour modifier une ligne, SQL a besoin de deux informations :",
-      {ask:"Quelle ligne change, et quelle est sa nouvelle valeur ?"},
-      "En SQL, <code>SET</code> donne la nouvelle valeur, et <code>WHERE</code> désigne la ligne :",
-      {syntax:"⟦SET prix = 36.90⟧\n⟦WHERE id = 2⟧"},
-      {scene:{h:"✏️ Une valeur remplacée",cols:".5fr 1.9fr .9fr",
-        lanes:[{c:[["h1","id","t"],["h2","nom","t"],["h3","prix","t"]]},
-          {k:"R1",c:[["a1","1"],["a2","Fibre Prébiotique"],["a3","29.9"]]},
-          {k:"R2",c:[["b1","2"],["b2","Collagène Marin"],["b3","39.9"]]},
-          {k:"R3",c:[["c1","3"],["c2","Magnésium"],["c3","19.9"]]}],
-        caps:["<b>Table produits</b> · Les produits et leurs prix actuels.","<b>WHERE id = 2</b> · SQL repère la ligne concernée : le Collagène Marin.","<b>SET prix = 36.90</b> · Il remplace l’ancienne valeur par la nouvelle, dans cette ligne seulement."],
-        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,off:["R1","R3"],dim:["R1","R3"],d:2300},{cap:2,undim:["R1","R3"],text:{b3:"36.9"},d:2800}]}}
-    ]
-  },
-  steps:[
-    {h:"Modifier une valeur avec SET",blocks:[
-      "Une requête <code>UPDATE</code> commence par la <b>table</b> à modifier, puis enchaîne <code>SET</code> et <code>WHERE</code> :",
-      {syntax:"⟦UPDATE clients⟧\nSET ville = 'Nice'\nWHERE id = 1;"},
-      {looks:[["UPDATE clients","désigne la table à modifier"],["SET ville = 'Nice'","donne la nouvelle valeur"],["WHERE id = 1","choisit la ligne concernée"]]},
-      {say:"👇 Exécute cette requête pour changer la ville de Sophie, puis afficher les clients :",run:"UPDATE clients\nSET ville = 'Nice'\nWHERE id = 1;\nSELECT id, prenom, ville\nFROM clients;"},
-      {arrow:"Sophie habite maintenant à Nice ; les neuf autres clients n’ont pas changé."},
-      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux modifier des valeurs sans rien abîmer. À chaque essai, Sophie est de nouveau à Paris."]}},
-      {tip:{t:"Plusieurs colonnes à la fois",blocks:[
-        "Sépare les affectations par une virgule : elles s’appliquent aux mêmes lignes.",
-        {say:"👇 Teste par toi-même :",run:"UPDATE clients\nSET ville = 'Nice', age = 35\nWHERE id = 1;\nSELECT id, prenom, ville, age\nFROM clients\nWHERE id = 1;"}
-      ]}}
-    ]},
-    {h:"Cibler les bonnes lignes",blocks:[
-      "Avant d’écrire, le bon réflexe est de lancer un <code>SELECT</code> avec le <b>même</b> <code>WHERE</code> : les lignes affichées sont exactement celles que l’<code>UPDATE</code> va modifier.",
-      {say:"👇 Exécute cette requête pour voir les produits Bien-être :",run:"SELECT id, nom, prix\nFROM produits\nWHERE categorie = 'Bien-être';"},
-      {arrow:"Trois produits sont concernés."},
-      {tip:{t:"Compter après coup",blocks:[
-        "<code>SELECT changes()</code> indique combien de lignes la dernière instruction a réellement modifiées.",
-        {say:"👇 Teste par toi-même :",run:"UPDATE clients\nSET ville = 'Nice'\nWHERE ville = 'Paris';\nSELECT changes() AS lignes_modifiees;"}
-      ]}},
-      {tip:{t:"Choisir les lignes avec une sous-requête",blocks:[
-        "Le <code>WHERE</code> accepte tout ce qu’un <code>SELECT</code> accepte, sous-requête comprise. Ici, les commandes encore en préparation des clients parisiens passent en priorité :",
-        {say:"👇 Teste par toi-même :",run:"UPDATE commandes\nSET statut = 'prioritaire'\nWHERE client_id IN (\n    SELECT id\n    FROM clients\n    WHERE ville = 'Paris'\n)\n  AND statut = 'en_preparation';\nSELECT id, client_id, statut\nFROM commandes\nWHERE statut = 'prioritaire';"},
-        {arrow:"Deux commandes sont concernées : celles de Sophie et de Nathan Petit."}
-      ]}},
-      {warn:{t:"Sans WHERE",blocks:[
-        "La base n’impose pas de <code>WHERE</code>. Si tu l’oublies, la condition manque : toutes les lignes sont modifiées, sans avertissement ni confirmation.",
-        {say:"👇 Teste par toi-même :",run:"UPDATE clients\nSET ville = 'Nice';\nSELECT id, prenom, ville\nFROM clients;"},
-        {arrow:"Les dix clients habitent maintenant à Nice."}
-      ]}}
-    ]},
-    {h:"Calculer la nouvelle valeur",blocks:[
-      "La nouvelle valeur peut être un calcul. À droite du signe <code>=</code>, le nom d’une colonne désigne la valeur <b>actuelle</b> de la ligne :",
-      {syntax:"UPDATE produits\nSET stock = ⟦stock - 1⟧\nWHERE id = 8;"},
-      {say:"👇 Exécute cette requête : une unité du Shaker Inox vient d’être vendue.",run:"UPDATE produits\nSET stock = stock - 1\nWHERE id = 8;\nSELECT id, nom, stock\nFROM produits\nWHERE id = 8;"},
-      {arrow:"Le stock passe de 30 à 29 : la base a calculé la nouvelle valeur à partir de l’ancienne."},
-      {tip:{t:"Une valeur différente selon la ligne",blocks:[
-        "Avec <code>CASE</code>, une seule instruction applique un traitement différent selon la ligne : ici, les produits dont le stock dépasse 100 baissent de 10 %, les autres ne bougent pas.",
-        {say:"👇 Teste par toi-même :",run:"UPDATE produits\nSET prix = CASE\n  WHEN stock > 100 THEN ROUND(prix * 0.9, 2)\n  ELSE prix\nEND;\nSELECT id, nom, stock, prix\nFROM produits;"}
-      ]}},
-      {tip:{t:"Une valeur venue d’une autre table",blocks:[
-        "Le <code>SET</code> peut aussi contenir une sous-requête : elle est évaluée <b>pour chaque ligne</b> et voit la ligne en cours. Ici, chaque produit perd les unités déjà commandées :",
-        {say:"👇 Teste par toi-même :",run:"UPDATE produits\nSET stock = stock - (\n    SELECT COALESCE(SUM(quantite), 0)\n    FROM commandes\n    WHERE commandes.produit_id = produits.id\n);\nSELECT id, nom, stock\nFROM produits;"},
-        {arrow:"Le stock du produit 1 passe de 120 à 110 : 10 unités ont été commandées."},
-        "Depuis la version 3.33 de SQLite, <code>UPDATE … FROM</code> calcule ce résultat une seule fois, puis le rapproche des lignes à modifier :",
-        {say:"👇 Teste aussi cette version :",run:"UPDATE produits\nSET stock = stock - v.total\nFROM (\n    SELECT produit_id, SUM(quantite) AS total\n    FROM commandes\n    GROUP BY produit_id\n) AS v\nWHERE produits.id = v.produit_id;\nSELECT id, nom, stock\nFROM produits;"}
-      ]}},
-      {warn:{t:"Une règle de la table",blocks:[
-        "Comme pour un <code>INSERT</code>, la base contrôle les règles de la table avant d’écrire. Donner à Lucas l’adresse de Sophie se heurte à la règle <code>UNIQUE</code> de la colonne <code>email</code>.",
-        {say:"👇 Teste par toi-même :",run:"UPDATE clients\nSET email = 'sophie@mail.fr'\nWHERE id = 2;"},
-        {arrow:"La modification est refusée : aucune ligne n’est changée."}
-      ]}}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : indiquer la table, calculer le nouveau prix, puis limiter la modification aux produits Bien-être.",
-      {say:"👇 Exécute la requête pour mettre le catalogue à jour :",run:"UPDATE produits\nSET prix = ROUND(prix * 1.1, 2)\nWHERE categorie = 'Bien-être';\nSELECT id, nom, categorie, prix\nFROM produits;"},
-      {done:{
-        label:"Des anciens prix aux prix à jour",
-        unit:"free",
-        funnel:[
-          {n:8,t:"produits au départ",s:"toute la <code>table produits</code>",dots:"00000000"},
-          {step:"UPDATE … WHERE categorie = 'Bien-être'",s:"recalcule le prix des produits Bien-être, sans toucher aux autres"},
-          {n:8,t:"⭐ produits dans le catalogue",s:"dont 3 avec un prix à jour",dots:"10100010",out:true}
-        ],
-        board:{ico:"🏷️",h:"Prix du catalogue",aria:"Les trois produits Bien-être coûtent 10 % de plus ; les cinq autres prix ne changent pas",kpi:"Prix augmentés",count:{"t": "Prix augmentés", "from": 0, "to": 3},ops:{"0": {"op": "upd", "from": {"3": 29.9}}, "2": {"op": "upd", "from": {"3": 19.9}}, "6": {"op": "upd", "from": {"3": 24.9}}},cols:["id", "nom", "categorie", "prix"],
-          rows:[[1, "Fibre Prébiotique", "Bien-être", 32.89], [2, "Collagène Marin", "Beauté", 39.9], [3, "Magnésium", "Bien-être", 21.89], [4, "Vitamine D", "Nutrition", 14.9], [5, "Tisane Détox", "Boisson", 12.5], [6, "Protéine Végétale", "Nutrition", 34.9], [7, "Oméga 3", "Bien-être", 27.39], [8, "Shaker Inox", "Accessoire", 15]],done:"✓ Hausse du fournisseur répercutée sur les prix de la boutique"},
-        fill:["SET","prix * 1.1","WHERE","'Bien-être'"],
-        ui:{t:"3 prix à jour",s:"Les produits Bien-être coûtent 10 % de plus ; les cinq autres n’ont pas bougé.",n:["UPDATE","SET","WHERE"]},
-        rows:8
-      }}
-    ]}
-  ],
+  /* Projet, chapitre 8, en vidéo interactive : l’animation (assets/anim/projet-update.html, moteur commun assets/anim/core.js)
+     est le cours. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 7, tu as ajouté des lignes
+     avec INSERT INTO »), sur la base que le chapitre 7 laisse : huit tables, dont inscriptions (11 lignes) et cartes (3 lignes,
+     Hugo Laurent à 18 séances). À la rentrée, trois mails arrivent : aucune demande n’ajoute de ligne, toutes modifient des lignes
+     qui existent déjà. Mail de Moussa Diallo : l’atelier Pilates est décalé d’un jour, du 17 au 18 septembre. Moment 1 : l’élève
+     touche la case à modifier (la date de l’atelier Pilates). UPDATE indique la table, SET la colonne et sa nouvelle valeur ;
+     moment 2 : la fin de la requête, WHERE id = 2 (WHERE id = 18 ne modifierait aucune ligne, WHERE id > 2 modifierait les ateliers
+     3, 4 et 5). Rien n’est exécuté tant que la requête n’a pas été relue. L’oubli du WHERE est d’abord imaginé : la requête est exécutée
+     sans la moindre erreur et les cinq ateliers passent au 18 septembre (moment 3 : l’élève touche les cinq lignes modifiées).
+     Pour s’en protéger, un SELECT avec le même WHERE lit les lignes concernées (moment 4) ; la ligne est la bonne, l’UPDATE est
+     alors exécuté : une ligne modifiée. Mail de l’équipe NutriBoost : 2 séances offertes à toutes les cartes ; la nouvelle valeur
+     se calcule à partir de l’ancienne, SET seances_restantes = seances_restantes + 2, sans WHERE (moment 5 : 10, 5 et 18 deviennent
+     12, 7 et 20 ; « = 2 » remplacerait les soldes, « … WHERE id = 1 » ne modifierait que la carte 1). Mail de l’accueil : Nathan Petit
+     s’inscrit à un stage de 8 séances, on retire 8 séances à sa carte, qui n’en compte que 7 : 7 − 8 = −1, la règle CHECK
+     (seances_restantes >= 0) du chapitre 4 refuse la modification et la carte garde ses 7 séances (moment 6). La fin annonce la
+     prochaine leçon du cours : « tu apprendras à supprimer des lignes avec DELETE ». Six moments « À toi », comme aux chapitres du
+     projet ; leçon seule : ni exercice ni quiz, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue
+     les moments ratés. Elle remplace l’ancien cours texte UPDATE (hausse de 10 % des prix de la table produits ; laissés de côté :
+     plusieurs colonnes dans le SET, changes(), sous-requête dans le WHERE ou dans le SET, CASE, UPDATE … FROM, règle UNIQUE sur
+     email, exercice sur la commande 12). */
+  leconSeule:true,
+  video:{anim:'assets/anim/projet-update.html?app&embed',thumb:'assets/anim/projet-update-thumb.webp',duree:'3 min 20',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 3 min 13 (193,05 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:193.05,y:1261,card:[64,292,1016,966],to:[940,255]}},
   reflex:[
     {recap:[
-      ["✏️","<code>UPDATE … SET</code> <b>modifie des valeurs</b> dans des lignes qui existent déjà.","Il n’ajoute ni ne supprime aucune ligne."],
-      ["🎯","<code>WHERE</code> choisit les lignes à modifier : sans lui, <b>toute la table change</b>.",null,"UPDATE … SET … WHERE …"],
-      ["🔎","Avant d’écrire, lis : un <code>SELECT</code> avec le même <code>WHERE</code> montre les lignes qui seront touchées."]
+      ["✏️","<code>UPDATE</code> modifie des valeurs dans des <b>lignes qui existent déjà</b>.","<code>SET</code> indique la colonne et la nouvelle valeur ; <code>WHERE</code> désigne les lignes concernées."],
+      ["⚠️","Sans <code>WHERE</code>, <b>toutes les lignes</b> de la table sont modifiées.","Avant d’exécuter, lis les lignes concernées avec un <code>SELECT</code> qui a le même <code>WHERE</code>."],
+      ["🔢","La nouvelle valeur peut se <b>calculer</b> à partir de l’ancienne.","Les règles de la table s’appliquent aussi aux modifications : une valeur refusée n’est pas écrite."]
     ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"UPDATE clients",txt:"La table à modifier."},{tok:"SET",txt:"Introduit la nouvelle valeur."},{tok:"ville = 'Nice'",plain:1,txt:"La colonne modifiée et sa nouvelle valeur."},{tok:"WHERE",txt:"Introduit le filtre : seules les lignes concernées changent."},{tok:"id = 1",plain:1,txt:"La condition : la ligne dont l’identifiant est 1."}],
-  exemple:"UPDATE clients\nSET ville = 'Nice'\nWHERE id = 1;",
-  attendu:"<b>1 ligne modifiée</b> : Sophie habite à Nice. Les neuf autres clients gardent leur ville.",
-  retenir:"<code>UPDATE … SET</code> modifie des valeurs dans des lignes qui existent déjà, sans en ajouter ni en supprimer.<br><br><code>WHERE</code> choisit les lignes concernées : sans lui, toute la table change.<br><br>La nouvelle valeur peut être un calcul : <code>SET stock = stock - 1</code>. Avant d’écrire, un <code>SELECT</code> avec le même <code>WHERE</code> montre les lignes touchées.",
-  consigne:"La commande dont l’identifiant est 12 vient d’être expédiée. Passe son <code>statut</code> à <code>'expédiée'</code>, sans toucher aux autres commandes.",
-  solution:"UPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 12;",
-  verif:"SELECT id, numero_commande, statut FROM commandes ORDER BY id;",
-  indice:"Écris <code>UPDATE commandes</code>, puis <code>SET statut = …</code> avec la nouvelle valeur entre guillemets simples, et un <code>WHERE</code> sur l’identifiant de la commande.",
-  write:true,
-  petitDefi:[{p:"Vingt unités viennent d’arriver pour le produit 3. Complète la requête pour <b>ajouter</b> 20 au stock actuel, sans écrire la valeur finale.",sql:"UPDATE produits\nSET stock = __________\nWHERE id = 3;",a:"stock + 20",answers:["stock + 20","stock+20","stock +20","stock+ 20"]}],
-  testeVariants:[{k:"sans",label:"Sans WHERE",sql:"UPDATE produits\nSET stock = 100;\nSELECT id, nom, stock\nFROM produits;",out:"Les huit stocks valent 100 : l’instruction a touché toute la table.",tone:"bad"},{k:"avec",label:"Avec WHERE",sql:"UPDATE produits\nSET stock = 100\nWHERE id = 5;\nSELECT id, nom, stock\nFROM produits;",out:"Seule la Tisane Détox change : les sept autres gardent leur stock.",tone:"good"},{k:"calcul",label:"Calcul",sql:"UPDATE produits\nSET prix = ROUND(prix * 1.1, 2)\nWHERE categorie = 'Bien-être';\nSELECT id, nom, categorie, prix\nFROM produits;",out:"Chaque produit Bien-être augmente à partir de son propre prix."},{k:"case",label:"CASE",sql:"UPDATE produits\nSET prix = CASE\n  WHEN stock > 100 THEN ROUND(prix * 0.9, 2)\n  ELSE prix\nEND;\nSELECT id, nom, stock, prix\nFROM produits;",out:"Un traitement différent selon le stock de chaque ligne.",expectRows:8},{k:"from",label:"UPDATE … FROM",sql:"UPDATE produits\nSET stock = stock - v.total\nFROM (\n    SELECT produit_id, SUM(quantite) AS total\n    FROM commandes\n    GROUP BY produit_id\n) AS v\nWHERE produits.id = v.produit_id;\nSELECT id, nom, stock\nFROM produits;",out:"Chaque stock est diminué des quantités commandées : 120 devient 110.",expectRows:8},{k:"rec_scope",label:"Avant UPDATE",sql:"SELECT id, nom, prix\nFROM produits\nWHERE categorie = 'Bien-être';",out:"Trois produits seront concernés par la mise à jour.",expectRows:3}],
-  learningCheck:{question:"On écrit UPDATE produits SET stock = 0 sans WHERE. Combien de lignes sont modifiées ?",options:["Aucune : la base exige une condition","Les 8 produits","Seulement le premier produit"],answer:1,explanation:"Sans WHERE, aucune ligne n’est écartée : toutes sont modifiées, sans avertissement."}
+  ]
 }),
 guide({ id:28, titre:"DELETE", résumé:"Supprimer des lignes",
   sit:{
@@ -9218,123 +9045,6 @@ guide({ id:28, titre:"DELETE", résumé:"Supprimer des lignes",
   petitDefi:[{p:"On veut oublier la date de la commande n°1, sans supprimer la commande. Quel mot-clé remplace les tirets ?",sql:"__________ commandes\nSET date_commande = NULL\nWHERE id = 1;",a:"UPDATE",answers:["UPDATE","update","UPDATE commandes"]}],
   testeVariants:[{k:"sans",label:"Sans WHERE",sql:"DELETE FROM commandes;\nSELECT COUNT(*) AS restantes\nFROM commandes;",out:"Zéro : les seize commandes ont disparu d’un coup.",tone:"bad"},{k:"avec",label:"Avec WHERE",sql:"DELETE FROM commandes\nWHERE quantite = 1;\nSELECT COUNT(*) AS restantes\nFROM commandes;",out:"Huit restantes : seules les commandes d’une unité sont parties.",tone:"good"},{k:"sousreq",label:"Sous-requête",sql:"DELETE FROM commandes\nWHERE client_id IN (\n    SELECT id\n    FROM clients\n    WHERE ville = 'Paris'\n);\nSELECT COUNT(*) AS restantes\nFROM commandes;",out:"Neuf restantes : les sept commandes des clients parisiens sont parties."},{k:"prenom",label:"Même prénom",sql:"SELECT id, prenom, nom\nFROM clients\nWHERE prenom = 'Nathan';",out:"Deux clients portent ce prénom : l’id est la seule condition qui n’en vise qu’un.",expectRows:2},{k:"fk",label:"Clé étrangère",sql:"DELETE FROM clients\nWHERE id = 1;",out:"Refusé : Sophie a trois commandes qui la référencent.",tone:"bad"}],
   learningCheck:{question:"Pourquoi vise-t-on la ligne de Nathan Dupont avec son id plutôt qu’avec son prénom ?",options:["L’id est unique : il ne désigne qu’une seule ligne","Un prénom est interdit dans un WHERE","DELETE ne fonctionne qu’avec un id"],answer:0,explanation:"Un prénom peut se répéter : deux clients s’appellent Nathan. L’identifiant est unique, donc la condition ne désigne qu’une ligne."}
-}),
-guide({ id:69, titre:"INSERT multiple et gestion de conflit", résumé:"Insérer plusieurs lignes et réagir aux doublons",
-  sit:{
-    blocks:[
-      "Le fournisseur envoie à l’équipe catalogue <b>un fichier de produits</b> à importer : un <b>nouveau produit</b>, et le <b>nouveau prix</b> d’un produit déjà en vente.",
-      "La table <code>produits</code> contient au total <b>8 produits</b>. Pour importer le fichier en une seule fois, l’équipe dispose de ces deux lignes :",
-      {need:[["🆕","Fer","à ajouter"],["🔁","Tisane Détox","prix à corriger"]],label:"Les lignes du fichier"}
-    ],
-    problem:{
-      p:["Avec <code>INSERT</code>, SQL sait ajouter <b>une ligne</b> à la fois, et il refuse toute ligne dont l’identifiant existe déjà.","Or, ici, le fichier contient <b>plusieurs lignes</b>, et l’une d’elles concerne un produit <b>déjà présent</b> : il faut corriger son prix, pas créer un doublon."],
-      scene:{h:"📥 Import du fichier",cols:".5fr 1.8fr .9fr",
-        lanes:[{k:"F1",l:"Fichier du fournisseur",c:[["f1","9"],["f2","Fer"],["f3","19.9"]]},
-          {k:"F2",c:[["g1","5"],["g2","Tisane Détox"],["g3","13.5"]]},
-          {k:"H",cls:"is-goal",l:"Table produits",c:[["h1","id","t"],["h2","nom","t"],["h3","prix","t"]]},
-          {k:"R4",c:[["a1","4"],["a2","Vitamine D"],["a3","14.9"]]},
-          {k:"R5",c:[["b1","5"],["b2","Tisane Détox"],["b3","12.5"]]},
-          {k:"R6",c:[["c1","6"],["c2","Protéine Végétale"],["c3","34.9"]]},
-          {k:"N",fold:true,c:[["n1","?","q"],["n2","?","q"],["n3","?","q"]]}],
-        caps:["<b>Le fichier</b> · Deux lignes à importer.","<b>Ligne 1</b> · Ce produit n’existe pas encore dans la table : il doit être <b>ajouté</b>.","<b>Ligne 2</b> · Ce produit existe déjà dans la table : son prix doit être <b>corrigé</b>.","<b>Résultat</b> · Chaque ligne du fichier doit être ajoutée ou corrigée, sans créer de doublon."],
-        steps:[{cap:0,on:["F1","F2"],d:1900},{cap:1,off:["F2"],unfold:["N"],text:{n1:"9",n2:"Fer",n3:"19.9"},stagger:260,d:3000},{cap:2,off:["F1"],on:["F2","R5"],text:{b3:"13.5"},d:2800},{cap:3,off:["F2"],on:["N","R5"],d:2400}]},
-      then:["Il faut donc donner à SQL <b>plusieurs lignes à la fois</b>, et lui dire <b>quoi faire quand l’identifiant existe déjà</b>.","C’est exactement le rôle de <code>VALUES</code> avec plusieurs lignes, et de <code>ON CONFLICT</code>."]
-    },
-    mission:"Aide l’équipe catalogue à importer le fichier du fournisseur en <b>une seule requête</b> : ajouter le <b>Fer</b> et corriger le <b>prix</b> de la <b>Tisane Détox</b>, afin de mettre le catalogue à jour sans créer de doublon."
-  },
-  concept:{
-    title:"Comment SQL peut-il savoir quoi faire quand la ligne existe déjà ?",
-    blocks:[
-      "Pour chaque ligne du fichier, SQL vérifie si son identifiant est déjà dans la table :",
-      {ask:"Cet identifiant est-il déjà pris ?"},
-      "Si oui, c’est un <b>conflit</b>. En SQL, <code>ON CONFLICT</code> indique alors quoi faire :",
-      {syntax:"⟦ON CONFLICT(id) DO UPDATE\n    SET prix = excluded.prix⟧"},
-      {scene:{h:"🔀 Quand l’identifiant existe déjà",cols:".5fr 1.8fr .9fr",
-        lanes:[{k:"F",l:"Ligne du fichier",c:[["f1","4"],["f2","Vitamine D"],["f3","15.9"]]},
-          {k:"H",cls:"is-goal",l:"Table produits",c:[["h1","id","t"],["h2","nom","t"],["h3","prix","t"]]},
-          {k:"R4",c:[["a1","4"],["a2","Vitamine D"],["a3","14.9"]]},
-          {k:"R5",c:[["b1","5"],["b2","Tisane Détox"],["b3","12.5"]]}],
-        caps:["<b>Conflit</b> · La ligne du fichier a le même identifiant qu’une ligne de la table.","<b>DO NOTHING</b> · SQL ignore la ligne du fichier : la table ne change pas.","<b>DO UPDATE SET prix = excluded.prix</b> · Le prix de la ligne du fichier remplace l’ancien prix."],
-        steps:[{cap:0,on:["F","R4"],d:2200},{cap:1,off:["F","R4"],dim:["F"],d:2300},{cap:2,undim:["F"],on:["F","R4"],fly:[["f3","a3"]],d:3200}]}}
-    ]
-  },
-  steps:[
-    {h:"Insérer plusieurs lignes d’un coup",blocks:[
-      "Après <code>VALUES</code>, on écrit autant de parenthèses que de lignes, séparées par des virgules. La liste des colonnes n’est donnée qu’une fois :",
-      {syntax:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (9, 'Calcium', 'Bien-être', 12.90, 80),\n       ⟦(10, 'Curcuma', 'Bien-être', 14.50, 65)⟧;"},
-      {say:"👇 Exécute cette requête pour ajouter deux produits d’un coup :",run:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (9, 'Calcium', 'Bien-être', 12.90, 80),\n       (10, 'Curcuma', 'Bien-être', 14.50, 65);\nSELECT *\nFROM produits;"},
-      {arrow:"Une seule instruction a ajouté deux lignes : le catalogue compte maintenant 10 produits."},
-      {tip:{t:"Insérer le résultat d’une requête",blocks:[
-        "Les lignes à insérer peuvent aussi venir d’un <code>SELECT</code>, à la place de <code>VALUES</code> : filtrer, calculer ou joindre y est permis. Les colonnes se correspondent <b>par position</b>.",
-        {say:"👇 Teste par toi-même : les produits à moins de 20 € sont recopiés dans une table archive.",run:"CREATE TABLE archive (nom TEXT, prix REAL);\nINSERT INTO archive (nom, prix)\nSELECT nom, prix\nFROM produits\nWHERE prix < 20;\nSELECT *\nFROM archive;"}
-      ]}},
-      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux importer des lignes sans rien abîmer. À chaque essai, tu retrouves les 8 produits d’origine."]}}
-    ]},
-    {h:"Quand l’identifiant existe déjà",blocks:[
-      "Les lignes d’un même <code>INSERT</code> forment un tout : si l’une enfreint une règle de la table, la base refuse <b>toute</b> l’instruction.",
-      {warn:{t:"Un identifiant déjà pris",blocks:[
-        "Si le fichier contient une ligne dont l’identifiant existe déjà, comme le 4 de la Vitamine D, la base refuse l’instruction : le Calcium n’est pas ajouté non plus.",
-        {say:"👇 Teste par toi-même :",run:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (9, 'Calcium', 'Bien-être', 12.90, 80),\n       (4, 'Vitamine D', 'Nutrition', 15.90, 150);"}
-      ]}},
-      "Pour réimporter un fichier sans erreur, on précise ce qui doit se passer en cas de conflit :",
-      {syntax:"INSERT INTO produits (…)\nVALUES (9, …),\n       (4, …)\n⟦ON CONFLICT(id) DO NOTHING⟧;"},
-      {looks:[["ON CONFLICT(id)","surveille l’identifiant : c’est lui qui peut créer un conflit"],["DO NOTHING","ignore la ligne en conflit, sans erreur"]]},
-      {say:"👇 Exécute cette requête : le Calcium est ajouté, la Vitamine D est ignorée.",run:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (9, 'Calcium', 'Bien-être', 12.90, 80),\n       (4, 'Vitamine D', 'Nutrition', 15.90, 150)\nON CONFLICT(id) DO NOTHING;\nSELECT id, nom, prix\nFROM produits;"},
-      {arrow:"Le catalogue compte 9 produits : la Vitamine D garde son ancien prix, 14.9."},
-      {tip:{t:"La forme courte",blocks:["<code>INSERT OR IGNORE INTO …</code> est l’écriture abrégée de <code>DO NOTHING</code> : la ligne qui enfreint une règle est ignorée, sans erreur."]}}
-    ]},
-    {h:"Mettre à jour au lieu d’ignorer",blocks:[
-      "Avec <code>DO UPDATE</code>, la ligne existante est <b>modifiée</b> à la place. Le mot <code>excluded</code> désigne la ligne que l’<code>INSERT</code> n’a pas pu écrire, avec ses valeurs :",
-      {syntax:"ON CONFLICT(id) DO UPDATE\n    SET prix = ⟦excluded.prix⟧;"},
-      {looks:[["DO UPDATE SET …","modifie la ligne existante au lieu d’échouer"],["excluded.prix","est le prix de la ligne du fichier, celle qui a été refusée"]]},
-      {say:"👇 Exécute cette requête : la Vitamine D change de prix, le Calcium est ajouté.",run:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (9, 'Calcium', 'Bien-être', 12.90, 80),\n       (4, 'Vitamine D', 'Nutrition', 15.90, 150)\nON CONFLICT(id) DO UPDATE\n    SET prix = excluded.prix;\nSELECT id, nom, prix, stock\nFROM produits;"},
-      {arrow:"La Vitamine D passe à 15.9 ; son stock n’a pas bougé, car seule la colonne <code>prix</code> est mise à jour."},
-      {warn:{t:"Avec OR REPLACE",blocks:[
-        "Si tu écris :",
-        {syntax:"INSERT OR REPLACE INTO clients (id, prenom, ville)"},
-        "<code>OR REPLACE</code> ne modifie pas la ligne existante : il la <b>supprime</b>, puis en insère une neuve. Les colonnes qu’on ne cite pas repartent à <code>NULL</code>.",
-        {say:"👇 Teste par toi-même :",run:"INSERT OR REPLACE INTO clients (id, prenom, ville)\nVALUES (1, 'Sophie', 'Nice');\nSELECT id, prenom, ville, age, email\nFROM clients\nWHERE id = 1;"},
-        {arrow:"La ville est changée, mais l’âge et l’email de Sophie ont disparu. <code>DO UPDATE</code> évite ce piège : il ne touche qu’aux colonnes nommées."}
-      ]}}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : les deux lignes du fichier dans un seul <code>VALUES</code>, puis <code>ON CONFLICT</code> pour corriger le prix quand le produit existe déjà.",
-      {say:"👇 Exécute la requête pour importer le fichier du fournisseur :",run:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (5, 'Tisane Détox', 'Boisson', 13.50, 60),\n       (9, 'Fer', 'Bien-être', 19.90, 55)\nON CONFLICT(id) DO UPDATE\n    SET prix = excluded.prix;\nSELECT id, nom, prix\nFROM produits;"},
-      {done:{
-        label:"Du fichier du fournisseur au catalogue à jour",
-        unit:"free",
-        funnel:[
-          {n:8,t:"produits au départ",s:"toute la <code>table produits</code>",dots:"00000000"},
-          {step:"INSERT … ON CONFLICT(id) DO UPDATE",s:"ajoute les lignes nouvelles et met à jour les lignes existantes"},
-          {n:9,t:"⭐ produits dans le catalogue",s:"le Fer est ajouté, le prix de la Tisane Détox est corrigé",dots:"000010001",out:true}
-        ],
-        board:{ico:"📥",h:"Catalogue après l’import",aria:"L’import ajoute le Fer et corrige le prix de la Tisane Détox, sans créer de doublon",kpi:"Produits",count:{"t": "Produits", "from": 8, "to": 9},ops:{"4": {"op": "upd", "from": {"2": 12.5}}, "8": {"op": "add"}},cols:["id", "nom", "prix"],
-          rows:[[1, "Fibre Prébiotique", 29.9], [2, "Collagène Marin", 39.9], [3, "Magnésium", 19.9], [4, "Vitamine D", 14.9], [5, "Tisane Détox", 13.5], [6, "Protéine Végétale", 34.9], [7, "Oméga 3", 24.9], [8, "Shaker Inox", 15], [9, "Fer", 19.9]],done:"✓ Fer ajouté, prix de la Tisane Détox corrigé : aucun doublon"},
-        fill:["VALUES","ON CONFLICT","DO UPDATE","excluded.prix"],
-        ui:{t:"9 produits, fichier importé",s:"Le catalogue est à jour : l’import peut être rejoué sans erreur.",n:["INSERT INTO","VALUES","ON CONFLICT","DO UPDATE"]},
-        rows:9
-      }}
-    ]}
-  ],
-  reflex:[
-    {recap:[
-      ["📦","<code>VALUES (…), (…)</code> insère <b>plusieurs lignes</b> en une instruction. Si l’une est refusée, aucune n’est écrite.",null,"VALUES (9, …), (10, …)"],
-      ["🔁","<code>ON CONFLICT(id)</code> dit quoi faire quand l’identifiant existe déjà : <code>DO NOTHING</code> ignore la ligne, <code>DO UPDATE</code> la met à jour."],
-      ["🪞","Dans <code>DO UPDATE</code>, <code>excluded</code> désigne la ligne refusée :",null,"SET prix = excluded.prix"]
-    ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"INSERT INTO produits (…)",txt:"La table et les colonnes renseignées."},{tok:"VALUES (4, …)",txt:"La ligne proposée. L’identifiant 4 est déjà pris."},{tok:"ON CONFLICT(id)",txt:"La règle surveillée : l’identifiant doit rester unique."},{tok:"DO UPDATE SET",txt:"L’action de repli : modifier la ligne existante au lieu d’échouer."},{tok:"excluded.prix",plain:1,txt:"Le prix de la ligne refusée, 15.90."}],
-  exemple:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (4, 'Vitamine D', 'Nutrition', 15.90, 150)\nON CONFLICT(id) DO UPDATE\n    SET prix = excluded.prix;",
-  attendu:"La Vitamine D passe de 14.9 à 15.9 et garde ses 150 unités en stock. Aucune ligne n’est ajoutée : celle qui existait a été mise à jour.",
-  retenir:"<code>VALUES (…), (…)</code> insère plusieurs lignes en une instruction, et les refuse toutes si l’une est fautive.<br><br><code>INSERT … SELECT</code> insère le résultat d’une requête, colonne par colonne, dans l’ordre.<br><br><code>ON CONFLICT(colonne)</code> dit quoi faire quand la ligne existe : <code>DO NOTHING</code> l’ignore, <code>DO UPDATE</code> la met à jour. <code>excluded</code> désigne la ligne refusée.",
-  consigne:"Le fournisseur renvoie le produit d’<code>id</code> 3 au prix de <code>21.90</code>. Écris un seul <code>INSERT</code> qui l’ajoute s’il n’existe pas, et se contente de corriger son <code>prix</code> s’il existe déjà.",
-  solution:"INSERT INTO produits\n    (id, nom, categorie,\n     prix, stock)\nVALUES (3, 'Magnésium',\n        'Bien-être', 21.90, 500)\nON CONFLICT(id) DO UPDATE\n    SET prix = excluded.prix;",
-  verif:"SELECT id, nom, categorie, prix, stock FROM produits WHERE id = 3;",
-  indice:"Après le <code>VALUES</code>, ajoute <code>ON CONFLICT(id) DO UPDATE</code>, puis indique la colonne à corriger avec la valeur de <code>excluded</code>.",
-  write:true,
-  petitDefi:[{p:"Dans <code>ON CONFLICT … DO UPDATE</code>, quel mot désigne la ligne que l’<code>INSERT</code> a tenté d’écrire ?",sql:"ON CONFLICT(id) DO UPDATE\n    SET prix = __________.prix;",a:"excluded",answers:["excluded","EXCLUDED","excluded.prix"]}],
-  testeVariants:[{k:"multi",label:"Plusieurs lignes",sql:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (20, 'Zinc', 'Bien-être', 17.90, 70),\n       (21, 'Fer', 'Bien-être', 19.90, 55);\nSELECT COUNT(*) AS produits\nFROM produits;",out:"Huit produits plus deux : dix."},{k:"select",label:"INSERT … SELECT",sql:"CREATE TABLE archive (nom TEXT, prix REAL);\nINSERT INTO archive (nom, prix)\nSELECT nom, prix\nFROM produits\nWHERE prix < 20;\nSELECT nom, prix\nFROM archive\nORDER BY prix;",out:"Les quatre produits à moins de 20 €, recopiés sans être écrits à la main."},{k:"conflit",label:"Sans ON CONFLICT",sql:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (3, 'Magnésium', 'Bien-être', 21.90, 200);",out:"Refusé : l’identifiant 3 est déjà pris.",tone:"bad"},{k:"upsert",label:"DO UPDATE",sql:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (3, 'Magnésium', 'Bien-être', 21.90, 200)\nON CONFLICT(id) DO UPDATE\n    SET prix = excluded.prix;\nSELECT id, nom, prix, stock\nFROM produits\nWHERE id = 3;",out:"Le prix passe à 21.9, le stock reste à 200.",tone:"good"},{k:"email",label:"Autre conflit",sql:"INSERT INTO clients (id, prenom, email)\nVALUES (500, 'Test', 'sophie@mail.fr')\nON CONFLICT(id) DO NOTHING;",out:"Refusé : le conflit porte sur email, pas sur id.",tone:"bad"}],
-  learningCheck:{question:"ON CONFLICT(id) gère-t-il aussi un doublon sur la colonne email, qui est UNIQUE ?",options:["Non : il ne surveille que id","Oui : il surveille toutes les règles","Seulement avec DO UPDATE"],answer:0,explanation:"La cible du conflit compte : ON CONFLICT(id) ne surveille que l’identifiant. Un doublon sur une autre colonne UNIQUE est refusé comme d’habitude."}
 })
 ]},
 { titre:"Contraintes et intégrité", sous:"Ce que la base refuse ou impose", lessons:[
@@ -10711,9 +10421,6 @@ const QCM={
  68:[{q:"Où se déclare <code>ON DELETE CASCADE</code> ?",o:["Dans le DELETE, au moment de supprimer","Dans le CREATE TABLE, à côté de la clé étrangère","Dans un PRAGMA, au début de la session"],b:1,e:"C’est une propriété de la table, posée une fois pour toutes. Au moment du <code>DELETE</code>, il n’y a rien à préciser."},
    {q:"Une commande garde-t-elle un sens sans son client ? Quelle action choisir ?",o:["CASCADE : la commande disparaît avec lui","SET NULL : la commande reste, détachée","RESTRICT : la suppression est impossible pour toujours"],b:1,e:"Le chiffre d’affaires est préservé, le lien vers la personne est coupé. <code>CASCADE</code> conviendrait à une ligne de panier, qui n’a aucun sens seule."},
    {q:"Sans aucune action déclarée, supprimer un client encore référencé :",o:["Supprime aussi ses commandes","Est refusé : FOREIGN KEY constraint failed","Met leurs client_id à NULL"],b:1,e:"C’est le comportement le plus prudent, et c’est pour cela qu’il est celui par défaut."}],
- 69:[{q:"Dans <code>ON CONFLICT(id) DO UPDATE SET prix = excluded.prix</code>, que désigne <code>excluded</code> ?",o:["La ligne déjà présente dans la table","La ligne qui a tenté d’être insérée","La contrainte qui a été violée"],b:1,e:"<code>excluded.prix</code> vaut la valeur refusée. <code>produits.prix</code> désignerait l’ancienne."},
-   {q:"<code>INSERT INTO archive (nom, prix) SELECT nom, prix FROM produits;</code> :",o:["Est invalide : il manque VALUES","Insère autant de lignes que le SELECT en renvoie","N’insère qu’une seule ligne"],b:1,e:"Le <code>SELECT</code> remplace le <code>VALUES</code> : les colonnes se correspondent par position."},
-   {q:"Pourquoi éviter <code>INSERT OR REPLACE</code> pour corriger une seule colonne ?",o:["Il est plus lent que DO UPDATE","Il supprime l’ancienne ligne : les colonnes non citées repartent vides","Il ne fonctionne que sur les clés primaires"],b:1,e:"Corriger la ville de Sophie ainsi effacerait son âge, son email et son téléphone. <code>DO UPDATE</code> ne touche que les colonnes nommées."}],
  70:[{q:"Un trigger <code>AFTER INSERT</code> sur une table se déclenche :",o:["Une fois par instruction","Une fois par ligne insérée","Une fois par session"],b:1,e:"SQLite ne connaît que le déclenchement ligne par ligne. Un <code>DELETE</code> qui retire cinq lignes déclenche le trigger cinq fois."},
    {q:"Dans un trigger <code>AFTER DELETE</code>, quel nom désigne la ligne supprimée ?",o:["NEW","OLD","DELETED"],b:1,e:"<code>NEW</code> est la version qui arrive, <code>OLD</code> celle qui s’en va. Un DELETE n’a que <code>OLD</code>."},
    {q:"Peut-on corriger une valeur dans un trigger <code>BEFORE</code> avec <code>SET NEW.stock = 0</code> ?",o:["Oui, c’est l’usage principal de BEFORE","Non : en SQLite c’est une erreur de syntaxe","Oui, mais seulement sur une colonne NOT NULL"],b:1,e:"Un trigger <code>BEFORE</code> n’a que deux réponses : laisser passer, ou refuser avec <code>RAISE(ABORT, …)</code>."}],
@@ -13682,10 +13389,9 @@ const SQ_ALIASES={
   61:'create table creer table creer une table structure types colonnes contraintes integer real text type de colonne primary key cle primaire not null obligatoire unique doublon default valeur par defaut check condition foreign key references cle etrangere ordre de creation schema.sql schema nutriboost coachs ateliers inscriptions cartes de membre',
   65:'alter table ajouter colonne modifier structure renommer add column rename column rename to drop column supprimer colonne default valeur par defaut null update structure ou valeurs faire evoluer les tables',
   66:'drop table supprimer une table retirer table delete from vider table copie fichier excel inscriptions_excel cle etrangere foreign key constraint failed no such table if exists drop table if exists table liee nom de table nutriboost serveur de test',
-  26:'insert into ajouter ligne insertion values nouvelle ligne',
-  27:'update modifier mettre a jour set lignes valeurs changer',
+  26:'insert into ajouter des lignes ligne insertion inserer values nouvelle ligne plusieurs lignes en une requete on conflict upsert do update do nothing doublon doublons conflit inscription inscriptions atelier carte pack seances colonne obligatoire not null unique ordre des valeurs valeurs inversees nutriboost',
+  27:'update modifier mettre a jour set lignes valeurs changer where oubli du where sans where toutes les lignes select avant de modifier lire calculer valeur calculee ancienne valeur regle de la table check modification refusee atelier date carte cartes seances nutriboost',
   28:'delete supprimer lignes effacer from where vider une table vider table supprimer toutes les lignes',
-  69:'insert multiple on conflict upsert doublons or ignore replace inserer plusieurs lignes',
   67:'contraintes not null unique check default refuser regles integrite',
   68:'on delete cascade set null restrict supprimer lignes liees',
   62:'transaction begin commit rollback valider annuler acid atomicite',
@@ -25565,7 +25271,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2019';
+  const SW_CACHE='requete-2026-10-12-ludique-v2020';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

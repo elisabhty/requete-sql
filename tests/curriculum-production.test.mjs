@@ -46,7 +46,7 @@ for(const l of lessons){
  }
 }
 const lesson=id=>lessons.find(l=>l.id===id);
-assert.equal(lessons.length,64);
+assert.equal(lessons.length,63);
 assert.equal(ctx.exerciseResultsMatch(query('SELECT nom,stock FROM produits'),query(lesson(2).solution),lesson(2)),false,'alias requis');
 assert.equal(ctx.exerciseResultsMatch(query(lesson(0).solution+' SELECT 99;'),query(lesson(0).solution),lesson(0)),false,'résultats multiples');
 assert.equal(ctx.exerciseResultsMatch(query("SELECT nom,prix FROM produits WHERE categorie='Nutrition' OR categorie='Boisson' AND prix<20"),query(lesson(6).solution),lesson(6)),false,'parenthèses requises avec AND et OR');
@@ -64,8 +64,8 @@ for(const sql of ['REVOKE SELECT ON produits FROM stagiaire; -- commandes','REVO
 assert.equal(ctx.checkNoExecExo('REVOKE SELECT ON "commandes" FROM "stagiaire";',lesson(50)).ok,true);
 assert.equal(ctx.checkNoExecExo(lesson(50).solution,lesson(50)).ok,true);
 assert.match(ctx.checkNoExecExo('GRANT SELECT ON commandes TO stagiaire;',lesson(50)).diag,/GRANT accorde un droit/);
-for(const [id,wrong]of [[70,lesson(70).solution.replace('NEW.produit_id','1')],[26,lesson(26).solution+' UPDATE produits SET stock=0 WHERE id=1;']])assert.equal(ctx.exerciseResultsMatch(query(wrong,lesson(id).verif),query(lesson(id).solution,lesson(id).verif),lesson(id)),false,'solution incomplète '+id);
+for(const [id,wrong]of [[70,lesson(70).solution.replace('NEW.produit_id','1')],[63,lesson(63).solution+' UPDATE produits SET stock=0 WHERE id=1;']])assert.equal(ctx.exerciseResultsMatch(query(wrong,lesson(id).verif),query(lesson(id).solution,lesson(id).verif),lesson(id)),false,'solution incomplète '+id);
 const frame={dataset:{},classList:{remove(){},add(){}},querySelectorAll:()=>[],querySelector:s=>s==='.xf-expect'?{remove(){}}:null};ctx.current=lesson(50);
-ctx.paintTesteVariant(frame,ctx.current.testeVariants,0);assert.equal(frame.dataset.noExec,'1');ctx.current=lesson(26);ctx.paintTesteVariant(frame,ctx.current.testeVariants,0);assert.equal(frame.dataset.noExec,'0');
+ctx.paintTesteVariant(frame,ctx.current.testeVariants,0);assert.equal(frame.dataset.noExec,'1');ctx.current=lesson(63);ctx.paintTesteVariant(frame,ctx.current.testeVariants,0);assert.equal(frame.dataset.noExec,'0');
 console.log(`${lessons.length} cours, ${solved} solutions SQLite, ${variants} variantes exécutables : OK.`);
 console.log('Progression, ordre, alias, contraintes, transactions, trigger, GRANT et récursion : OK.');
