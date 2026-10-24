@@ -8939,347 +8939,78 @@ guide({ id:27, titre:"UPDATE", résumé:"Modifier des lignes",
   ]
 }),
 guide({ id:28, titre:"DELETE", résumé:"Supprimer des lignes",
-  sit:{
-    blocks:[
-      "Un client de la boutique, <b>Nathan Dupont</b>, demande la <b>suppression de son compte</b>. L’équipe support doit retirer sa fiche de la base de données.",
-      "La table <code>clients</code> contient au total <b>10 clients</b>, dont <b>deux Nathan</b>. Pour supprimer le bon compte, l’équipe souhaite retirer uniquement :",
-      {need:[["👤","Nathan Dupont","table clients"]],label:"La ligne à supprimer"}
-    ],
-    problem:{
-      p:["Avec <code>UPDATE</code>, SQL sait <b>modifier</b> les informations d’un client, mais sa ligne reste dans la table.","Or, ici, le client ne doit <b>plus figurer</b> dans la table : sa ligne entière doit disparaître."],
-      scene:{h:"🗑️ Comptes clients",cols:"1fr 1.2fr",
-        lanes:[{c:[["h2","prenom","t"],["h3","nom","t"]]},
-          {k:"R1",c:[["a2","Sophie"],["a3","Martin"]]},
-          {k:"R2",c:[["b2","Nathan"],["b3","Petit"]]},
-          {k:"R3",c:[["c2","Léa"],["c3","Simon"]]},
-          {k:"R4",c:[["d2","Inès"],["d3","Lefebvre"]]},
-          {k:"R5",c:[["e2","Nathan"],["e3","Dupont"]]}],
-        caps:["<b>Notre liste</b> · Elle contient tous les clients, dont les deux Nathan.","<b>Demande</b> · Seul <b>Nathan Dupont</b> souhaite que son compte soit supprimé.","<b>Résultat</b> · Sa ligne disparaît entièrement de la table ; les autres clients sont conservés."],
-        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5"],dim:["R1","R2","R3","R4"],mark:{R5:"is-miss"},d:2300},{cap:2,undim:["R1","R2","R3","R4"],fold:["R5"],d:3000}]},
-      then:["Il faut donc indiquer à SQL <b>quelle ligne retirer</b> de la table : uniquement celle de ce client.","C’est exactement le rôle de <code>DELETE</code>."]
-    },
-    mission:"Aide l’équipe support à supprimer la ligne de <b>Nathan Dupont</b> dans la table clients, sans toucher aux autres clients, afin de respecter sa demande."
-  },
-  concept:{
-    title:"Comment SQL peut-il savoir quelles lignes supprimer ?",
-    blocks:[
-      "Pour chaque client, SQL vérifie une condition :",
-      {ask:"Cette ligne doit-elle disparaître ?"},
-      "En SQL, cette condition s’écrit avec <code>WHERE</code>, après le nom de la table :",
-      {syntax:"DELETE FROM clients\n⟦WHERE id = 10⟧;"},
-      {table:{label:"clients",cols:"minmax(0,.45fr) minmax(0,.85fr) minmax(0,1fr) minmax(0,1.6fr)",head:["id","prenom","nom","La ligne doit-elle disparaître ?"],rows:[["1","Sophie","Martin","❌ non → conservée"],["4","Nathan","Petit","❌ non → conservée"],["9","Inès","Lefebvre","❌ non → conservée"],["10","Nathan","Dupont","✅ oui → supprimée"]],hit:[[3,3]],more:"… et 6 autres clients",test:{cond:"id = 10",val:0}}},
-      {looks:[["oui","la condition est vraie : la ligne est supprimée"],["non","la condition est fausse : la ligne est conservée"]],label:"Supprimée ou conservée"}
-    ]
-  },
-  steps:[
-    {h:"Supprimer des lignes avec DELETE",blocks:[
-      "Une requête <code>DELETE FROM</code> nomme la <b>table</b> concernée, puis un <code>WHERE</code> désigne les lignes à retirer :",
-      {syntax:"⟦DELETE FROM fidelite⟧\n⟦WHERE points < 100⟧;"},
-      {looks:[["DELETE FROM fidelite","désigne la table dans laquelle retirer des lignes"],["WHERE","choisit les lignes à supprimer : ici, celles de moins de 100 points"]]},
-      {say:"👇 Exécute cette requête pour retirer les lignes de moins de 100 points, puis afficher la table :",run:"DELETE FROM fidelite\nWHERE points < 100;\nSELECT *\nFROM fidelite;"},
-      {arrow:"La ligne de 80 points a disparu : il reste 3 lignes sur 4."},
-      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : la ligne supprimée est de retour à l’essai suivant."]}}
-    ]},
-    {h:"Cibler la bonne ligne",blocks:[
-      "Pour supprimer <b>une seule</b> ligne, il faut une condition qui ne désigne qu’elle. Un prénom ne suffit pas toujours :",
-      {say:"👇 Exécute cette requête pour chercher les clients prénommés Nathan :",run:"SELECT id, prenom, nom\nFROM clients\nWHERE prenom = 'Nathan';"},
-      {arrow:"Deux clients s’appellent Nathan : une suppression d’après le prénom les viserait tous les deux."},
-      "L’<code>id</code>, lui, est <b>unique</b> : c’est la condition la plus sûre. Le bon réflexe est de l’essayer d’abord dans un <code>SELECT</code>, avant de supprimer :",
-      {say:"👇 Exécute cette requête pour vérifier la ligne visée :",run:"SELECT id, prenom, nom\nFROM clients\nWHERE id = 10;"},
-      {arrow:"Une seule ligne : c’est bien Nathan Dupont."},
-      {tip:{t:"Choisir les lignes avec une sous-requête",blocks:[
-        "Le <code>WHERE</code> accepte tout ce qu’un <code>SELECT</code> accepte, sous-requête comprise. Ici, les commandes des clients parisiens disparaissent :",
-        {say:"👇 Teste par toi-même :",run:"DELETE FROM commandes\nWHERE client_id IN (\n    SELECT id\n    FROM clients\n    WHERE ville = 'Paris'\n);\nSELECT COUNT(*) AS commandes_restantes\nFROM commandes;"},
-        {arrow:"Sept commandes sont parties : il en reste 9 sur 16."}
-      ]}}
-    ]},
-    {h:"Que peut-il mal se passer ?",aside:"Bon à savoir",blocks:[
-      "Une suppression ne se rattrape pas, et la base peut aussi la refuser.",
-      {warn:{t:"Sans WHERE",blocks:[
-        "Si tu oublies le <code>WHERE</code>, la condition manque : toutes les lignes sont supprimées, sans avertissement. La table existe toujours, mais elle est vide.",
-        {say:"👇 Teste par toi-même :",run:"DELETE FROM commandes;\nSELECT COUNT(*) AS commandes_restantes\nFROM commandes;"},
-        {arrow:"Zéro ligne : les seize commandes ont disparu d’un coup."}
-      ]}},
-      {warn:{t:"Une ligne encore utilisée",blocks:[
-        "Sophie a passé trois commandes. Supprimer sa ligne laisserait ces commandes sans client : la clé étrangère de la table <code>commandes</code> l’interdit.",
-        {say:"👇 Teste par toi-même :",run:"DELETE FROM clients\nWHERE id = 1;"},
-        {arrow:"La suppression est refusée. Nathan Dupont, lui, n’a passé aucune commande : sa ligne peut partir."}
-      ]}},
-      {tip:{t:"Effacer une valeur, pas une ligne",blocks:["<code>DELETE</code> retire toujours une ligne entière. Pour oublier une seule information en gardant la ligne, on utilise un <code>UPDATE</code> qui met la colonne à <code>NULL</code> : <code>UPDATE clients SET telephone = NULL WHERE id = 1</code>."]}}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : indiquer la table, puis viser la ligne de Nathan Dupont avec son identifiant.",
-      {say:"👇 Exécute la requête pour supprimer son compte :",run:"DELETE FROM clients\nWHERE id = 10;\nSELECT id, prenom, nom\nFROM clients;"},
-      {done:{
-        label:"De 10 clients à 9 clients",
-        unit:"free",
-        funnel:[
-          {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
-          {step:"DELETE FROM clients WHERE id = 10",s:"retire la seule ligne qui respecte la condition"},
-          {n:9,t:"⭐ clients restants",s:"Nathan Dupont n’est plus dans la table",dots:"111111111",out:true}
-        ],
-        board:{ico:"🗑️",h:"Table clients",aria:"La ligne de Nathan Dupont (id 10) est supprimée ; les neuf autres clients, dont Nathan Petit, restent",kpi:"Clients",count:{"t": "Clients", "from": 10, "to": 9},gone:[{"at": 9, "row": [10, "Nathan", "Dupont"]}],show:4,moreT:"… et 5 autres clients",cols:["id", "prenom", "nom"],
-          rows:[[1, "Sophie", "Martin"], [2, "Lucas", "Bernard"], [3, "Emma", "Dubois"], [4, "Nathan", "Petit"], [5, "Chloé", "Moreau"], [6, "Hugo", "Laurent"], [7, "Léa", "Simon"], [8, "Gabriel", "Michel"], [9, "Inès", "Lefebvre"]],done:"✓ Compte de Nathan Dupont supprimé, Nathan Petit reste"},
-        fill:["DELETE FROM","clients","WHERE","id"],
-        ui:{t:"9 clients restants",s:"La ligne demandée a disparu ; les autres clients n’ont pas changé.",n:["DELETE FROM","WHERE"]},
-        rows:9
-      }}
-    ]}
-  ],
+  /* Projet, chapitre 9, en vidéo interactive : l’animation (assets/anim/projet-delete.html, moteur commun assets/anim/core.js)
+     est le cours. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 8, tu as modifié des lignes
+     avec UPDATE »), sur la base que le chapitre 8 laisse : huit tables, dont clients (10 lignes, deux Nathan) et inscriptions
+     (11 lignes). Trois mails arrivent, et toutes les demandes sont des suppressions. Mail de Léa Simon : elle ne viendra pas à
+     l’atelier Cuisine saine du 19 septembre, son inscription est annulée. Moment 1 : l’élève touche cette inscription dans la
+     table inscriptions ; DELETE FROM indique la table, WHERE désigne la ligne (moment 2 : WHERE id = 4 ; WHERE id = 7 est
+     l’identifiant de Léa Simon dans la table clients, WHERE atelier_id = 3 supprimerait aussi l’inscription de Lucas Bernard).
+     L’atelier Cuisine saine existe toujours dans la table ateliers. Mail de Nathan Dupont : il ferme son compte. La table clients
+     contient deux Nathan, le prénom seul ne suffit pas (moment 3 : WHERE id = 10 ; WHERE prenom = 'Nathan' supprimerait aussi
+     Nathan Petit, WHERE id = 4 est l’identifiant de Nathan Petit). Aucune autre table ne fait référence à Nathan Dupont : sa
+     ligne peut être supprimée. Mail de l’accueil : Hugo Laurent déménage, ses deux inscriptions (identifiants 6 et 9, client 6)
+     sont supprimées par une seule requête, après leur lecture par un SELECT qui a le même WHERE, comme au chapitre 8 (moment 4 :
+     WHERE client_id = 6 ; WHERE id = 6 ne supprimerait qu’une inscription, WHERE client_id > 6 celles de Gabriel Michel et d’Inès
+     Lefebvre). L’oubli du WHERE est d’abord imaginé : la requête est exécutée sans la moindre erreur et les huit inscriptions
+     restantes disparaissent (moment 5 : l’élève touche ces huit lignes) ; la table existe encore, mais elle est vide, alors qu’au
+     chapitre 6 DROP TABLE supprimait la table elle-même. Moment 6 : INSERT INTO, UPDATE ou DELETE FROM, l’élève range six demandes.
+     La fin annonce la prochaine leçon du cours : « tu apprendras à supprimer une ligne que d’autres tables référencent, avec ON
+     DELETE ». Six moments « À toi », comme aux chapitres du projet ; leçon seule : ni exercice ni quiz, validée avec 4 exercices
+     réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments ratés. Elle remplace l’ancien cours texte DELETE (le compte
+     de Nathan Dupont et la table fidelite, la sous-requête dans le WHERE, l’exercice sur les commandes d’une seule unité) ; la clé
+     étrangère qui refuse la suppression est reprise au chapitre 10. */
+  leconSeule:true,
+  video:{anim:'assets/anim/projet-delete.html?app&embed',thumb:'assets/anim/projet-delete-thumb.webp',duree:'3 min 20',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 3 min 13 (192,95 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:192.95,y:1261,card:[64,292,1016,966],to:[940,255]}},
   reflex:[
     {recap:[
-      ["🗑️","<code>DELETE FROM</code> retire des <b>lignes entières</b> d’une table.","La table, elle, reste en place, même vide."],
-      ["🎯","<code>WHERE</code> choisit les lignes à retirer : <b>sans lui, la table se vide</b>. Vise une ligne avec une valeur unique, comme l’<code>id</code> :",null,"DELETE FROM clients WHERE id = 10"],
-      ["🔎","Une suppression ne se rattrape pas : lis d’abord avec un <code>SELECT</code> et le même <code>WHERE</code>."]
+      ["🗑️","<code>DELETE FROM</code> supprime des <b>lignes entières</b>.","<code>WHERE</code> désigne les lignes à supprimer ; les autres lignes ne changent pas."],
+      ["⚠️","Sans <code>WHERE</code>, <b>toutes les lignes</b> de la table sont supprimées.","La table existe encore, mais elle est vide. Lis d’abord les lignes avec un <code>SELECT</code>."],
+      ["🎯","La condition peut désigner <b>une ou plusieurs lignes</b>.","Un identifiant désigne une seule ligne ; un prénom ou un identifiant de client peut en désigner plusieurs."]
     ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"DELETE FROM fidelite",txt:"La table dans laquelle on retire des lignes."},{tok:"WHERE",txt:"Introduit le filtre : seules les lignes concernées disparaissent."},{tok:"points < 100",plain:1,txt:"La condition : les lignes dont les points sont inférieurs à 100."}],
-  exemple:"DELETE FROM fidelite\nWHERE points < 100;",
-  attendu:"<b>1 ligne supprimée</b> : celle du client qui avait 80 points. Les trois autres lignes de la table restent.",
-  retenir:"<code>DELETE FROM table WHERE …</code> retire des <b>lignes entières</b>. Sans <code>WHERE</code>, la table se vide.<br><br>Pour viser une seule ligne, utilise une valeur unique comme l’<code>id</code>. <code>DELETE</code> ne sait pas effacer une seule colonne : pour cela, <code>UPDATE … SET colonne = NULL</code>.<br><br>Avant de supprimer, un <code>SELECT</code> avec le même <code>WHERE</code> montre les lignes qui disparaîtront.",
-  consigne:"Le registre doit être allégé des commandes ne portant qu’une seule unité. Supprime les commandes dont la <code>quantite</code> est égale à 1.",
-  solution:"DELETE FROM commandes\nWHERE quantite = 1;",
-  verif:"SELECT id, client_id, produit_id, quantite FROM commandes ORDER BY id;",
-  indice:"Écris <code>DELETE FROM commandes</code>, puis un <code>WHERE</code> sur la colonne <code>quantite</code>. Pense à compter les lignes concernées avec <code>SELECT COUNT(*)</code> avant d’écrire.",
-  write:true,
-  petitDefi:[{p:"On veut oublier la date de la commande n°1, sans supprimer la commande. Quel mot-clé remplace les tirets ?",sql:"__________ commandes\nSET date_commande = NULL\nWHERE id = 1;",a:"UPDATE",answers:["UPDATE","update","UPDATE commandes"]}],
-  testeVariants:[{k:"sans",label:"Sans WHERE",sql:"DELETE FROM commandes;\nSELECT COUNT(*) AS restantes\nFROM commandes;",out:"Zéro : les seize commandes ont disparu d’un coup.",tone:"bad"},{k:"avec",label:"Avec WHERE",sql:"DELETE FROM commandes\nWHERE quantite = 1;\nSELECT COUNT(*) AS restantes\nFROM commandes;",out:"Huit restantes : seules les commandes d’une unité sont parties.",tone:"good"},{k:"sousreq",label:"Sous-requête",sql:"DELETE FROM commandes\nWHERE client_id IN (\n    SELECT id\n    FROM clients\n    WHERE ville = 'Paris'\n);\nSELECT COUNT(*) AS restantes\nFROM commandes;",out:"Neuf restantes : les sept commandes des clients parisiens sont parties."},{k:"prenom",label:"Même prénom",sql:"SELECT id, prenom, nom\nFROM clients\nWHERE prenom = 'Nathan';",out:"Deux clients portent ce prénom : l’id est la seule condition qui n’en vise qu’un.",expectRows:2},{k:"fk",label:"Clé étrangère",sql:"DELETE FROM clients\nWHERE id = 1;",out:"Refusé : Sophie a trois commandes qui la référencent.",tone:"bad"}],
-  learningCheck:{question:"Pourquoi vise-t-on la ligne de Nathan Dupont avec son id plutôt qu’avec son prénom ?",options:["L’id est unique : il ne désigne qu’une seule ligne","Un prénom est interdit dans un WHERE","DELETE ne fonctionne qu’avec un id"],answer:0,explanation:"Un prénom peut se répéter : deux clients s’appellent Nathan. L’identifiant est unique, donc la condition ne désigne qu’une ligne."}
+  ]
 })
 ]},
-{ titre:"Contraintes et intégrité", sous:"Ce que la base refuse ou impose", lessons:[
-guide({ id:67, titre:"Les contraintes en action", résumé:"NOT NULL, UNIQUE, CHECK : ce que la base refuse d’écrire",
-  sit:{
-    blocks:[
-      "L’équipe accueil tient <b>un stand de la boutique</b> lors d’un salon. Elle ajoute à la main chaque nouvelle inscription dans la base, mais certaines fiches contiennent des erreurs.",
-      "La table <code>clients</code> contient au total <b>10 clients</b>. Pour enregistrer une inscription, l’équipe souhaite saisir :",
-      {need:[["👤","Le prénom du client","table clients"],["🎂","Son âge","table clients"],["✉️","Son email","table clients"]],label:"Les informations à saisir"}
-    ],
-    problem:{
-      p:["Avec <code>INSERT</code>, SQL sait <b>ajouter une ligne</b> dans une table, mais cette instruction ne dit pas ce qui est permis ou non.","Or, une fiche sans prénom, avec un âge négatif ou avec l’email d’un autre client ne doit jamais entrer dans notre table."],
-      scene:{h:"📝 Fiches du salon",cols:"1fr .55fr 1.8fr",
-        lanes:[{c:[["h1","prenom","t"],["h2","age","t"],["h3","email","t"]]},
-          {k:"R1",c:[["a1","Zoé"],["a2","27"],["a3","zoe@mail.fr"]]},
-          {k:"R2",c:[["b1","vide","n"],["b2","31"],["b3","karim@mail.fr"]]},
-          {k:"R3",c:[["c1","Tom"],["c2","-3"],["c3","tom@mail.fr"]]},
-          {k:"R4",c:[["d1","Jade"],["d2","29"],["d3","sophie@mail.fr"]]}],
-        caps:["<b>Notre liste</b> · Quatre fiches remplies au salon, prêtes à être ajoutées à la table clients.","<b>Règles</b> · Une fiche n’a de sens que si elle a un prénom, un âge qui n’est pas négatif et un email que personne d’autre n’utilise.","<b>Résultat</b> · Seule la fiche correcte doit être ajoutée : les trois autres doivent être refusées."],
-        steps:[{cap:0,on:["R1","R2","R3","R4"],d:1900},{cap:1,off:["R2","R3","R4"],mark:{b1:"is-miss",c2:"is-miss",d3:"is-miss"},d:2600},{cap:2,unmark:{b1:"is-miss",c2:"is-miss",d3:"is-miss"},dim:["R2","R3","R4"],fold:["R2","R3","R4"],d:2600}]},
-      then:["Il faut donc que la table <b>refuse les fiches</b> qui ne respectent pas ses règles.","C’est exactement le rôle des <b>contraintes</b> : <code>NOT NULL</code>, <code>UNIQUE</code>, <code>CHECK</code> et <code>FOREIGN KEY</code>."]
-    },
-    mission:"Aide l’équipe accueil à enregistrer l’inscription de <b>Zoé</b> (<b>27 ans</b>, <b>zoe@mail.fr</b>), afin que la fiche respecte toutes les règles de la table et soit acceptée par la base."
-  },
-  concept:{
-    title:"Comment SQL peut-il savoir qu’une fiche doit être refusée ?",
-    blocks:[
-      "Pour chaque ligne à écrire, la base vérifie les règles de la table, l’une après l’autre :",
-      {ask:"Cette ligne respecte-t-elle toutes les règles ?"},
-      "Ces règles se déclarent à côté des colonnes, dans <code>CREATE TABLE</code> (extrait de la table clients) :",
-      {syntax:"CREATE TABLE clients (\n  id INTEGER PRIMARY KEY,\n  prenom TEXT ⟦NOT NULL⟧,\n  age INTEGER ⟦CHECK (age >= 0)⟧,\n  email TEXT ⟦UNIQUE⟧\n);"},
-      {scene:{h:"🛡️ Une règle après l’autre",cols:"1fr .8fr 1.4fr",
-        lanes:[{c:[["h1","prenom","t"],["h2","age","t"],["h3","email","t"]]},
-          {k:"R",c:[["r1","Tom"],["r2","-3"],["r3","tom@mail.fr"]]},
-          {k:"K",cls:"is-goal",l:"Les règles de la table",c:[["k1","NOT NULL","h"],["k2","CHECK","h"],["k3","UNIQUE","h"]]}],
-        caps:["<b>La fiche de Tom</b> · Avant de l’écrire, la base la compare aux règles de la table.","<b>NOT NULL</b> · Le prénom est bien renseigné : cette règle est respectée.","<b>CHECK</b> · L’âge vaut −3, alors que la règle exige un âge positif ou nul : elle est enfreinte.","<b>Résultat</b> · Une seule règle enfreinte suffit : toute la ligne est refusée."],
-        steps:[{cap:0,on:["R"],d:1900},{cap:1,off:["R"],on:["r1","k1"],show:["k1"],d:2300},{cap:2,off:["r1","k1"],mark:{r2:"is-miss",k2:"is-miss"},show:["k2"],d:2600},{cap:3,mark:{R:"is-miss"},dim:["R"],fold:["R"],foldDelay:1500,d:2600}]}},
-      {looks:[["NOT NULL","une valeur absente"],["UNIQUE","une valeur déjà prise"],["CHECK","une valeur qui ne respecte pas la condition"],["FOREIGN KEY","une référence à une ligne qui n’existe pas"]],label:"Ce que chaque règle interdit"}
-    ]
-  },
-  steps:[
-    {h:"Une fiche conforme",blocks:[
-      "Quand une fiche respecte toutes les règles, la base l’écrit sans rien dire. Ici, seul le <b>prénom</b> est obligatoire : les autres colonnes peuvent rester vides.",
-      {syntax:"INSERT INTO clients (⟦prenom⟧, ville)\nVALUES ('Samir', 'Lille');"},
-      {say:"👇 Exécute cette requête pour ajouter une première fiche :",run:"INSERT INTO clients (prenom, ville)\nVALUES ('Samir', 'Lille');\nSELECT id, prenom, ville, age\nFROM clients\nWHERE prenom = 'Samir';"},
-      {arrow:"La fiche est écrite avec l’identifiant 11. Son âge, laissé vide, vaut <code>NULL</code>."},
-      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux ajouter des fiches sans rien abîmer. À chaque essai, Samir n’existe plus et le prochain client reçoit de nouveau l’identifiant 11."]}}
-    ]},
-    {h:"Une règle enfreinte",blocks:[
-      "Dès qu’une règle est enfreinte, la base <b>refuse l’écriture</b> et nomme la règle dans son message.",
-      {warn:{t:"Un prénom absent",blocks:[
-        "Si tu écris :",
-        {syntax:"INSERT INTO clients (age, email)\nVALUES (31, 'karim@mail.fr');"},
-        "La colonne <code>prenom</code> est déclarée <code>NOT NULL</code> : sans valeur pour elle, la base refuse la ligne.",
-        {say:"👇 Teste par toi-même :",run:"INSERT INTO clients (age, email)\nVALUES (31, 'karim@mail.fr');"}
-      ]}},
-      {warn:{t:"Une seule fiche fautive",blocks:[
-        "Si tu écris deux fiches dans la même instruction :",
-        {syntax:"INSERT INTO clients (prenom, age)\nVALUES ('Zoé', 27),\n       ('Tom', -3);"},
-        "La règle <code>CHECK (age &gt;= 0)</code> refuse la fiche de Tom, et avec elle l’instruction tout entière : celle de Zoé, pourtant correcte, n’est pas écrite non plus.",
-        {say:"👇 Teste par toi-même :",run:"INSERT INTO clients (prenom, age)\nVALUES ('Zoé', 27),\n       ('Tom', -3);"}
-      ]}}
-    ]},
-    {h:"Une valeur déjà prise, un client inconnu",blocks:[
-      "Deux autres règles comparent la fiche aux lignes déjà écrites : <code>UNIQUE</code> et <code>FOREIGN KEY</code>.",
-      {warn:{t:"Un email ou un identifiant déjà pris",blocks:[
-        "Si tu écris :",
-        {syntax:"INSERT INTO clients (prenom, email)\nVALUES ('Jade', 'sophie@mail.fr');"},
-        "Cette adresse est déjà celle de Sophie, et la colonne <code>email</code> est déclarée <code>UNIQUE</code> : la base refuse la fiche.",
-        {say:"👇 Teste par toi-même :",run:"INSERT INTO clients (prenom, email)\nVALUES ('Jade', 'sophie@mail.fr');"},
-        "Un identifiant déjà pris est refusé de la même façon, et le message parle bien d’<code>UNIQUE</code> : une clé primaire est avant tout une colonne dont les valeurs ne peuvent pas se répéter.",
-        {say:"👇 Teste aussi avec l’identifiant de Sophie :",run:"INSERT INTO clients (id, prenom)\nVALUES (1, 'Jade');"}
-      ]}},
-      {warn:{t:"Un client qui n’existe pas",blocks:[
-        "Si tu écris :",
-        {syntax:"INSERT INTO commandes (client_id, produit_id, quantite)\nVALUES (5000, 3, 2);"},
-        "Aucun client ne porte l’identifiant 5000 : la clé étrangère <code>client_id</code> refuse une commande qui ne désignerait personne. Son message ne nomme pas la colonne. SQLite ne contrôle les clés étrangères que si <code>PRAGMA foreign_keys = ON</code> est activé : c’est déjà le cas ici.",
-        {say:"👇 Teste par toi-même :",run:"INSERT INTO commandes (client_id, produit_id, quantite)\nVALUES (5000, 3, 2);"}
-      ]}},
-      {tip:{t:"Et NULL ?",blocks:[
-        "<code>NULL</code> n’est pas une valeur : <code>UNIQUE</code> et <code>FOREIGN KEY</code> n’ont rien à comparer. Deux clients peuvent donc rester sans email, et une commande peut exister sans client.",
-        {say:"👇 Exécute cette requête pour voir la commande sans client :",run:"SELECT numero_commande, client_id\nFROM commandes\nWHERE client_id IS NULL;"},
-        {arrow:"La commande n°16 existe sans client : son <code>client_id</code> vaut <code>NULL</code>."}
-      ]}}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à écrire la fiche de Zoé en respectant chaque règle.",
-      {say:"👇 Exécute la requête pour enregistrer l’inscription :",run:"INSERT INTO clients (prenom, age, email)\nVALUES ('Zoé', 27, 'zoe@mail.fr');\nSELECT id, prenom, age, email\nFROM clients\nWHERE prenom = 'Zoé';"},
-      {done:{
-        label:"De la fiche de Zoé à une ligne enregistrée",
-        unit:"free",
-        funnel:[
-          {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
-          {step:"INSERT INTO clients",s:"contrôle chaque règle, puis écrit la fiche"},
-          {n:11,t:"⭐ clients après l’inscription",s:"Zoé est la nouvelle cliente, avec l’identifiant 11",dots:"00000000001",out:true}
-        ],
-        board:{ico:"📝",h:"Table clients",aria:"La fiche de Zoé respecte toutes les règles : elle entre dans la table clients avec l’identifiant 11",kpi:"Clients",count:{"t": "Clients", "from": 10, "to": 11},lead:"… 10 clients déjà inscrits",ops:{"0": {"op": "add"}},cols:["id", "prenom", "age", "email"],
-          rows:[[11, "Zoé", 27, "zoe@mail.fr"]],done:"✓ Fiche acceptée : Zoé est enregistrée"},
-        fill:["INSERT INTO","clients","VALUES","27"],
-        ui:{t:"Une fiche conforme, une ligne de plus",s:"Toutes les règles sont respectées : la base a écrit la fiche.",n:["INSERT INTO","VALUES","NOT NULL","CHECK","UNIQUE"]},
-        rows:11
-      }}
-    ]}
-  ],
-  reflex:[
-    {recap:[
-      ["🛡️","Une <b>contrainte</b> est une règle de la table : la base la vérifie à chaque écriture.",null,"NOT NULL · UNIQUE · CHECK · FOREIGN KEY"],
-      ["🚫","Une seule règle enfreinte suffit : l’instruction est refusée <b>en entier</b>. Tout passe, ou rien ne passe."],
-      ["🔎","Le message nomme la règle, et le plus souvent la colonne : lis-le avant de réessayer.",null,"NOT NULL constraint failed: commandes.quantite"]
-    ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"INSERT INTO commandes",txt:"L’écriture visée : une nouvelle ligne dans la table commandes."},{tok:"(id, client_id, produit_id)",plain:1,txt:"Les colonnes renseignées. La colonne quantite manque à l’appel."},{tok:"VALUES (17, 1, 3)",txt:"Les valeurs, dans l’ordre des colonnes ci-dessus."},{tok:"quantite",plain:1,txt:"Déclarée NOT NULL : sans valeur, la base refuse toute la ligne."}],
-  exemple:"INSERT INTO clients (prenom, ville)\nVALUES ('Samir', 'Lille');\n\nSELECT id, prenom, ville\nFROM clients\nWHERE prenom = 'Samir';",
-  attendu:"<b>1 ligne</b> : Samir, de Lille, avec l’identifiant 11. La fiche respecte toutes les règles ; si l’une était enfreinte, la base refuserait l’écriture et nommerait la règle dans son message.",
-  retenir:"Une contrainte n’est pas un commentaire : la base la vérifie à chaque écriture et <b>refuse l’instruction entière</b> si elle est enfreinte.<br><br>Quatre règles : <code>NOT NULL</code> (valeur obligatoire), <code>UNIQUE</code> (valeur jamais répétée, clé primaire comprise), <code>CHECK</code> (condition à respecter), <code>FOREIGN KEY</code> (la ligne désignée doit exister). <code>NULL</code> échappe à <code>UNIQUE</code> et à <code>FOREIGN KEY</code>.<br><br>Le message nomme la règle enfreinte : lis-le avant de réessayer.",
-  consigne:"Cette commande est refusée par la base : <code>INSERT INTO commandes (id, client_id, produit_id) VALUES (17, 1, 3);</code> répond <code>NOT NULL constraint failed: commandes.quantite</code>. Corrige-la pour qu’elle soit enregistrée avec 2 unités, à la date <code>2026-08-31</code>.",
-  solution:"INSERT INTO commandes\n    (id, client_id, produit_id,\n     quantite, date_commande)\nVALUES (17, 1, 3, 2,\n        '2026-08-31');",
-  verif:"SELECT id, client_id, produit_id, quantite, date_commande FROM commandes WHERE id = 17;",
-  indice:"Le message cite la colonne <code>quantite</code> : elle est obligatoire. Ajoute-la à la liste des colonnes, puis sa valeur au même rang dans <code>VALUES</code> ; fais de même pour la date.",
-  write:true,
-  petitDefi:[{p:"La table <code>commandes</code> déclare <code>quantite INTEGER NOT NULL CHECK (quantite &gt; 0)</code>. Tu essaies d’y enregistrer une quantité de 0. Quel mot-clé la base cite-t-elle dans son message de refus ?",sql:"__________ constraint failed: quantite > 0",a:"CHECK",answers:["CHECK","check","CHECK constraint","contrainte CHECK"]}],
-  testeVariants:[{k:"pk",label:"PRIMARY KEY",sql:"INSERT INTO clients\n    (id, prenom, ville)\nVALUES (1, 'Doublon', 'Nice');",out:"Refusé : l’identifiant 1 est celui de Sophie.",tone:"bad"},{k:"un",label:"UNIQUE",sql:"INSERT INTO clients\n    (id, prenom, email)\nVALUES (20, 'Sophie B.',\n        'sophie@mail.fr');",out:"Refusé : cette adresse est déjà celle de Sophie.",tone:"bad"},{k:"ck",label:"CHECK",sql:"INSERT INTO commandes\n    (id, client_id,\n     produit_id, quantite)\nVALUES (17, 1, 3, 0);",out:"Refusé : la quantité doit être strictement positive.",tone:"bad"},{k:"fk",label:"FOREIGN KEY",sql:"INSERT INTO commandes\n    (id, client_id,\n     produit_id, quantite)\nVALUES (17, 5000, 3, 2);",out:"Refusé : aucun client ne porte l’identifiant 5000.",tone:"bad"},{k:"ok",label:"Accepté",sql:"INSERT INTO commandes\n    (id, client_id,\n     produit_id, quantite)\nVALUES (17, 1, 3, 2);\n\nSELECT id, client_id, produit_id\nFROM commandes\nWHERE id = 17;",out:"Toutes les règles sont respectées : la ligne est écrite.",tone:"good"}],
-  learningCheck:{question:"Une commande a un client valide, mais une quantité de 0. La base l’accepte-t-elle ?",options:["Oui : le client existe, cela suffit","Oui, si l’identifiant de la commande est neuf","Non : la règle CHECK sur la quantité est enfreinte"],answer:2,explanation:"Toutes les règles doivent être respectées en même temps : une seule règle enfreinte suffit à refuser la ligne."}
-}),
+{ titre:"Contraintes et intégrité", sous:"Les règles que les données doivent respecter", lessons:[
 guide({ id:68, titre:"ON DELETE", résumé:"Décider du sort des lignes liées",
-  sit:{
-    blocks:[
-      "L’équipe service client prépare une nouvelle table pour la <b>satisfaction</b> des clients : après un achat, chacun peut donner une note. Quand un client demande la suppression de son compte, ses notes comptent encore dans la satisfaction moyenne de la boutique : l’équipe veut les <b>conserver</b>.",
-      "La table <code>clients</code> contient au total <b>10 clients</b>, et chaque note doit désigner celui qui l’a donnée. Pour créer la table <code>satisfaction</code>, l’équipe souhaite définir :",
-      {need:[["🔢","L’identifiant de la note","colonne id"],["👤","Le client qui l’a donnée","colonne client_id"],["⭐","La note donnée","colonne note"],["🧹","Le sort de la note si le client est supprimé","règle ON DELETE"]],label:"Les informations à définir"}
-    ],
-    problem:{
-      p:["Avec une <b>clé étrangère</b>, SQL sait relier chaque note à son client, et il protège ce lien : un client encore désigné par une note ne peut pas être supprimé.","Or, l’équipe ne veut ni bloquer la suppression d’un compte, ni perdre les notes : elles doivent <b>rester</b>, sans client."],
-      scene:{h:"⭐ Notes de satisfaction",cols:"1fr 1fr .8fr",
-        lanes:[{c:[["h1","id","t"],["h2","client_id","t"],["h3","note","t"]]},
-          {k:"R1",c:[["a1","1"],["a2","9"],["a3","5"]]},
-          {k:"R2",c:[["b1","2"],["b2","9"],["b3","4"]]},
-          {k:"R3",c:[["c1","3"],["c2","4"],["c3","5"]]}],
-        caps:["<b>Notre table</b> · Chaque note garde l’identifiant du client qui l’a donnée : Inès, cliente 9, en a donné deux.","<b>Besoin</b> · Inès demande la suppression de son compte : ses deux notes désigneraient alors un client qui n’existe plus.","<b>Résultat</b> · Ses notes doivent rester dans la table, mais sans client."],
-        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,off:["R1","R2","R3"],mark:{a2:"is-miss",b2:"is-miss"},d:2600},{cap:2,unmark:{a2:"is-miss",b2:"is-miss"},text:{a2:"NULL",b2:"NULL"},on:["R1","R2"],d:2600}]},
-      then:["Il faut donc indiquer à SQL <b>ce que deviennent les notes</b> quand leur client est supprimé.","C’est exactement le rôle de <code>ON DELETE</code>."]
-    },
-    mission:"Aide l’équipe service client à créer la table <b>satisfaction</b> de façon que les notes d’un client supprimé soient <b>conservées, mais détachées de lui</b>, afin de garder la satisfaction moyenne de la boutique."
-  },
-  concept:{
-    title:"Comment SQL peut-il savoir ce que deviennent les lignes liées ?",
-    blocks:[
-      "Quand on supprime une ligne, la base cherche les lignes qui la désignent, puis applique la règle prévue :",
-      {ask:"Que deviennent les lignes qui désignent ce client ?"},
-      "Cette règle se déclare à la création de la table, juste après la clé étrangère, avec <code>ON DELETE</code> :",
-      {syntax:"REFERENCES clients(id)\n⟦ON DELETE …⟧"},
-      {scene:{h:"🔗 Trois réponses possibles",cols:"1fr 1fr .7fr",
-        lanes:[{k:"P",cols:"1fr",c:[["p1","Inès · client 9"]]},
-          {c:[["h1","id","t"],["h2","client_id","t"],["h3","note","t"]]},
-          {k:"R1",c:[["a1","1"],["a2","9"],["a3","5"]]},
-          {k:"R2",c:[["b1","2"],["b2","9"],["b3","4"]]}],
-        caps:["<b>DELETE FROM clients WHERE id = 9</b> · Inès va être supprimée, mais deux notes désignent encore le client 9.","<b>ON DELETE CASCADE</b> · Les notes disparaissent avec elle.","<b>ON DELETE SET NULL</b> · Les notes restent, mais ne désignent plus personne.","<b>ON DELETE RESTRICT</b> · La suppression est refusée tant que ces notes existent : rien ne change."],
-        steps:[{cap:0,on:["P","R1","R2"],d:2200},{cap:1,fold:["P","R1","R2"],d:2600},{cap:2,unfold:["R1","R2"],text:{a2:"NULL",b2:"NULL"},d:2800},{cap:3,unfold:["P"],off:["P"],mark:{P:"is-miss"},text:{a2:"9",b2:"9"},d:2800}]}},
-      {looks:[["CASCADE","la ligne liée n’a aucun sens seule : une alerte, un panier"],["SET NULL","la ligne liée garde une valeur propre : une note, une commande"],["RESTRICT","les lignes liées doivent être traitées à la main"]],label:"Laquelle choisir ?"}
-    ]
-  },
-  steps:[
-    {h:"Sans règle, la base refuse",blocks:[
-      "La table <code>commandes</code> ne précise aucune règle : voici ce que donne la suppression d’un client qui a déjà des commandes.",
-      {warn:{t:"Supprimer un client qui a des commandes",blocks:[
-        "Si tu écris :",
-        {syntax:"DELETE FROM clients\nWHERE id = 1;"},
-        "Sophie a trois commandes : la suppression est refusée.",
-        {say:"👇 Teste par toi-même :",run:"DELETE FROM clients\nWHERE id = 1;"}
-      ]}},
-      {warn:{t:"Chercher la règle dans le DELETE",blocks:[
-        "Si tu écris :",
-        {syntax:"DELETE FROM clients\nWHERE id = 9 ON DELETE CASCADE;"},
-        "<code>ON DELETE</code> n’est pas une option du <code>DELETE</code> : la base ne comprend pas cette suite, et la requête provoque une erreur.",
-        {say:"👇 Teste par toi-même :",run:"DELETE FROM clients\nWHERE id = 9 ON DELETE CASCADE;"}
-      ]}},
-      {tip:{t:"Le refus par défaut",blocks:["Par défaut (<code>NO ACTION</code>), la suppression est refusée de la même façon : <code>ON DELETE RESTRICT</code> demande ce refus par écrit. SQLite ne contrôle les clés étrangères que si <code>PRAGMA foreign_keys = ON</code> est activé : c’est déjà le cas ici."]}}
-    ]},
-    {h:"Supprimer en chaîne : CASCADE",blocks:[
-      "Avec <code>CASCADE</code>, supprimer une ligne supprime aussi toutes les lignes qui la désignent :",
-      {syntax:"client_id INTEGER\n  REFERENCES clients(id)\n  ⟦ON DELETE CASCADE⟧"},
-      {say:"👇 Exécute cette requête pour voir ce que deviennent les deux alertes de retour en stock d’Inès quand son compte est supprimé :",run:"CREATE TABLE alertes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER\n    REFERENCES clients(id)\n    ON DELETE CASCADE,\n  produit_id INTEGER\n);\nINSERT INTO alertes (client_id, produit_id)\nVALUES (9, 3), (9, 5);\nDELETE FROM clients\nWHERE id = 9;\nSELECT COUNT(*) AS alertes_restantes\nFROM alertes;"},
-      {arrow:"Les deux alertes d’Inès ont disparu avec elle, sans être citées dans le <code>DELETE</code>."},
-      {tip:{t:"À manier avec précaution",blocks:["La suppression se propage sans confirmation, et de proche en proche si les lignes supprimées sont elles-mêmes désignées par d’autres : vérifie bien tout ce qu’elle emporte."]}}
-    ]},
-    {h:"Détacher sans supprimer : SET NULL",blocks:[
-      "Avec <code>SET NULL</code>, les lignes liées restent, mais la valeur qui désignait la ligne supprimée devient <code>NULL</code> :",
-      {syntax:"client_id INTEGER\n  REFERENCES clients(id)\n  ⟦ON DELETE SET NULL⟧"},
-      {say:"👇 Exécute cette requête pour refaire la même suppression, avec <code>SET NULL</code> :",run:"CREATE TABLE alertes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER\n    REFERENCES clients(id)\n    ON DELETE SET NULL,\n  produit_id INTEGER\n);\nINSERT INTO alertes (client_id, produit_id)\nVALUES (9, 3), (9, 5);\nDELETE FROM clients\nWHERE id = 9;\nSELECT id, client_id, produit_id\nFROM alertes;"},
-      {arrow:"Les deux alertes sont toujours là, avec un <code>client_id</code> vide (<code>NULL</code>)."},
-      {warn:{t:"Une colonne NOT NULL",blocks:[
-        "Si tu déclares :",
-        {syntax:"client_id INTEGER NOT NULL\n  REFERENCES clients(id)\n  ON DELETE SET NULL"},
-        "La colonne ne peut pas recevoir <code>NULL</code> : détacher les lignes devient impossible, et la suppression du client est refusée.",
-        {say:"👇 Teste par toi-même :",run:"CREATE TABLE alertes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER NOT NULL\n    REFERENCES clients(id)\n    ON DELETE SET NULL,\n  produit_id INTEGER\n);\nINSERT INTO alertes (client_id, produit_id)\nVALUES (9, 3), (9, 5);\nDELETE FROM clients\nWHERE id = 9;"}
-      ]}}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : créer la table <code>satisfaction</code> avec la bonne règle, puis supprimer Inès pour vérifier que ses notes sont conservées, et que celles des autres clients ne bougent pas. SQLite ne permet pas de modifier la règle d’une clé étrangère déjà créée.",
-      {say:"👇 Exécute la requête pour créer la table des notes et tester la suppression :",run:"CREATE TABLE satisfaction (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER\n    REFERENCES clients(id)\n    ON DELETE SET NULL,\n  note INTEGER\n);\nINSERT INTO satisfaction (client_id, note)\nVALUES (9, 5), (9, 4), (4, 5);\nDELETE FROM clients\nWHERE id = 9;\nSELECT id, client_id, note\nFROM satisfaction;"},
-      {done:{
-        label:"Des notes d’Inès aux notes conservées sans client",
-        unit:"free",
-        funnel:[
-          {n:3,t:"notes dans la table",s:"dont deux données par Inès",dots:"111"},
-          {step:"DELETE FROM clients WHERE id = 9",s:"supprime Inès, et la règle détache ses notes"},
-          {n:3,t:"⭐ notes conservées",s:"les deux notes d’Inès n’ont plus de client",dots:"111",out:true}
-        ],
-        board:{ico:"⭐",h:"Table satisfaction",aria:"Inès supprime son compte : ses deux notes restent dans la table, détachées d’elle, et la satisfaction moyenne ne change pas",kpi:"Notes dans la table",count:{t:"Notes dans la table",from:3,to:3},lead:"🗑️ Inès (client 9) supprime son compte",ops:{"0": {"op": "upd", "from": {"1": 9}}, "1": {"op": "upd", "from": {"1": 9}}},cols:["id", "client_id", "note"],
-          rows:[[1, null, 5], [2, null, 4], [3, 4, 5]],done:"✓ Les 2 notes d’Inès restent, sans client"},
-        fill:["REFERENCES","clients","ON DELETE","SET NULL"],
-        ui:{t:"Les notes sont conservées",s:"La satisfaction moyenne reste intacte.",n:["CREATE TABLE","REFERENCES","ON DELETE","SET NULL"]},
-        rows:3
-      }}
-    ]}
-  ],
+  /* Projet, chapitre 10, en vidéo interactive : l’animation (assets/anim/projet-ondelete.html, moteur commun assets/anim/core.js)
+     est le cours. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 9, tu as supprimé des lignes
+     avec DELETE »), sur la base que le chapitre 9 laisse : huit tables, avec 9 clients et 8 inscriptions, puisque Nathan Dupont,
+     l’inscription de Léa Simon et les deux d’Hugo Laurent ont été supprimés. Deux mails arrivent. Mail d’Inès Lefebvre : elle ne reviendra plus aux ateliers, son compte est à supprimer. La requête DELETE FROM
+     clients WHERE id = 9 est refusée, FOREIGN KEY constraint failed : une seule table fait référence à Inès Lefebvre, la table
+     inscriptions, par l’inscription d’identifiant 11 (moment 1 : l’élève touche cette inscription). Mail de l’accueil : sept avis
+     ont été donnés sur papier, la table avis est à créer. Chaque avis désigne le client qui l’a donné par une clé étrangère, et les
+     trois règles ON DELETE sont montrées sur cette table, dont la colonne du client accepte NULL (client_id est NOT NULL dans la
+     table inscriptions : SET NULL y serait refusé). CASCADE supprime l’avis avec le client ; SET NULL le conserve, la case du client
+     passe à NULL (moment 2 : l’élève touche cette case) ; RESTRICT refuse la suppression du client, ce que fait déjà une clé
+     étrangère sans règle. La requête CREATE TABLE avis écrit la règle à côté de la clé étrangère (moment 3 : ON DELETE SET NULL
+     conserve les avis, CASCADE les supprimerait, RESTRICT interdirait de supprimer le client). Avec NOT NULL ajouté à la colonne du
+     client, la suppression d’un client qui a des avis est refusée, NOT NULL constraint failed: avis.client_id (moment 4). La colonne
+     atelier_id est en ON DELETE CASCADE, car un avis n’a aucun sens sans son atelier. La règle se déclare dans CREATE TABLE et
+     SQLite ne permet plus de la modifier ensuite ; les sept avis sont ensuite ajoutés, dont celui d’Inès Lefebvre. Retour à la
+     demande d’Inès Lefebvre : son inscription est supprimée d’abord, comme au chapitre 9 ; écrire la règle à la fin du DELETE du
+     compte (… WHERE id = 9 ON DELETE SET NULL) donne near "ON": syntax error (moment 5 : ON DELETE n’est pas une option du DELETE) ;
+     le DELETE simple supprime le compte, l’avis d’Inès Lefebvre reste dans la table avis avec un client NULL (NULL ne désigne
+     aucun client : la clé étrangère n’a rien à vérifier). Moment 6 : CASCADE, SET NULL ou RESTRICT, l’élève range six situations (inscriptions, commandes et cartes
+     d’un client, avis d’un atelier ou d’un client, commandes d’un produit) ; CASCADE supprime sans demander de confirmation. La fin
+     annonce la prochaine leçon du cours : « tu apprendras à tout valider ou tout annuler avec une transaction ». Six moments « À toi »,
+     comme aux chapitres du projet ; leçon seule : ni exercice ni quiz, validée avec 4 exercices réussis du premier coup sur 6
+     (seuil:4), sinon on rejoue les moments ratés. Elle remplace l’ancien cours texte ON DELETE (la table satisfaction, les paniers)
+     et le cours « Les contraintes en action » (supprimé : NOT NULL, UNIQUE et CHECK sont vus aux chapitres 4, 7 et 8, la clé
+     étrangère qui refuse au chapitre 10 ; laissé de côté : NULL qui échappe aussi à UNIQUE). */
+  leconSeule:true,
+  video:{anim:'assets/anim/projet-ondelete.html?app&embed',thumb:'assets/anim/projet-ondelete-thumb.webp',duree:'4 min 05',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 3 min 57 (237,45 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:237.45,y:1261,card:[64,292,1016,966],to:[940,255]}},
   reflex:[
     {recap:[
-      ["🛑","Sans règle, une clé étrangère <b>bloque</b> la suppression d’une ligne encore désignée.",null,"FOREIGN KEY constraint failed"],
-      ["🔀","<code>ON DELETE</code> choisit le sort des lignes liées : <code>CASCADE</code> les supprime, <code>SET NULL</code> les détache, <code>RESTRICT</code> refuse."],
-      ["📍","La règle se déclare dans <code>CREATE TABLE</code>, à côté de la clé étrangère, jamais dans le <code>DELETE</code> :",null,"REFERENCES clients(id) ON DELETE SET NULL"]
+      ["🛑","Sans règle, la suppression d’une ligne <b>encore désignée</b> est refusée.","Le message d’erreur est <code>FOREIGN KEY constraint failed</code>."],
+      ["🔀","<code>ON DELETE</code> choisit le sort des <b>lignes liées</b>.","<code>CASCADE</code> les supprime, <code>SET NULL</code> les détache, <code>RESTRICT</code> refuse la suppression."],
+      ["📍","La règle se déclare dans <code>CREATE TABLE</code>, jamais dans le <code>DELETE</code>.","Elle se place à côté de la clé étrangère : <code>REFERENCES clients(id) ON DELETE SET NULL</code>."]
     ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"client_id INTEGER",txt:"La colonne qui porte le lien."},{tok:"REFERENCES clients(id)",txt:"La colonne désignée dans l’autre table."},{tok:"ON DELETE",txt:"Ce qui suit s’applique quand le client est supprimé."},{tok:"CASCADE",plain:1,txt:"L’action retenue : supprimer aussi les lignes liées."}],
-  exemple:"CREATE TABLE alertes (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER\n        REFERENCES clients(id)\n        ON DELETE SET NULL,\n    produit_id INTEGER\n);\n\nINSERT INTO alertes (client_id, produit_id)\nVALUES (9, 3);\n\nDELETE FROM clients WHERE id = 9;\n\nSELECT id, client_id, produit_id\nFROM alertes;",
-  attendu:"<b>1 ligne</b> : l’alerte reste dans la table, mais son <code>client_id</code> vaut <code>NULL</code>. Avec <code>CASCADE</code>, elle aurait disparu avec le client.",
-  retenir:"Une clé étrangère seule <b>bloque</b> la suppression d’une ligne encore désignée. <code>ON DELETE</code> choisit un autre comportement.<br><br>Trois actions : <code>CASCADE</code> supprime les lignes liées, <code>SET NULL</code> les détache, <code>RESTRICT</code> refuse la suppression.<br><br>La règle s’écrit dans <code>CREATE TABLE</code>, à côté de la clé étrangère : SQLite ne permet pas de la modifier ensuite.",
-  consigne:"Crée la table <code>paniers</code> : un <code>id</code> comme clé primaire et un <code>client_id</code> qui référence <code>clients(id)</code>. Quand un client est supprimé, ses paniers doivent disparaître avec lui.",
-  solution:"CREATE TABLE paniers (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER\n        REFERENCES clients(id)\n        ON DELETE CASCADE\n);",
-  verif:"INSERT INTO paniers (id, client_id) VALUES (1, 9);\nDELETE FROM clients WHERE id = 9;\nSELECT COUNT(*) AS paniers_restants FROM paniers;",
-  indice:"La règle se place après <code>REFERENCES clients(id)</code>. Pour supprimer les paniers avec leur client, écris <code>ON DELETE CASCADE</code>.",
-  write:true,
-  petitDefi:[{p:"Une ligne de panier n’a aucun sens sans son panier : elle doit disparaître avec lui. Quels mots-clés remplacent les tirets ?",sql:"panier_id INTEGER\n    REFERENCES paniers(id) __________ __________;",a:"ON DELETE CASCADE",answers:["ON DELETE CASCADE","on delete cascade","ON DELETE / CASCADE","ON DELETE, CASCADE"]}],
-  testeVariants:[{k:"defaut",label:"Sans action",sql:"DELETE FROM clients WHERE id = 1;",out:"Refusé : Sophie a trois commandes et la table ne déclare aucune action.",tone:"bad"},{k:"cascade",label:"CASCADE",sql:"CREATE TABLE paniers (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER\n        REFERENCES clients(id)\n        ON DELETE CASCADE\n);\n\nINSERT INTO paniers (id, client_id) VALUES (1, 9);\n\nDELETE FROM clients WHERE id = 9;\n\nSELECT COUNT(*) AS paniers_restants FROM paniers;",out:"Zéro : le panier est parti avec Inès.",tone:"good"},{k:"setnull",label:"SET NULL",sql:"CREATE TABLE paniers (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER\n        REFERENCES clients(id)\n        ON DELETE SET NULL\n);\n\nINSERT INTO paniers (id, client_id) VALUES (1, 9);\n\nDELETE FROM clients WHERE id = 9;\n\nSELECT id, client_id FROM paniers;",out:"Le panier reste, détaché : client_id vaut NULL."},{k:"restrict",label:"RESTRICT",sql:"CREATE TABLE paniers (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER\n        REFERENCES clients(id)\n        ON DELETE RESTRICT\n);\n\nINSERT INTO paniers (id, client_id) VALUES (1, 9);\n\nDELETE FROM clients WHERE id = 9;",out:"Refusé : Inès a un panier, la suppression est bloquée.",tone:"bad"}],
-  learningCheck:{question:"Avec ON DELETE SET NULL, que devient un panier dont le client est supprimé ?",options:["La suppression est toujours refusée","Il reste, avec client_id à NULL","Il disparaît"],answer:1,explanation:"CASCADE supprime les lignes liées ; SET NULL les détache ; RESTRICT empêche la suppression du client."}
+  ]
 })
 ]},
 { titre:"Transactions", sous:"Tout valider ou tout annuler", lessons:[
@@ -10415,9 +10146,6 @@ const QCM={
  66:[{q:"<code>DELETE FROM commandes;</code> puis <code>DROP TABLE commandes;</code> — quelle différence ?",o:["Aucune, les deux vident la table","DELETE laisse la table vide, DROP la retire de la base","DROP est plus rapide mais fait la même chose"],b:1,e:"DELETE agit sur le contenu, DROP sur l’objet. Après DELETE la table répond encore ; après DROP, <code>no such table</code>."},
    {q:"À quoi sert <code>IF EXISTS</code> dans <code>DROP TABLE IF EXISTS paniers;</code> ?",o:["À ne rien faire si la table n’existe pas, sans erreur","À supprimer la table seulement si elle est vide","À demander confirmation avant de supprimer"],b:0,e:"Sans lui, supprimer une table absente échoue sur <code>no such table</code>. Avec lui, l’instruction passe dans les deux cas."},
    {q:"<code>TRUNCATE TABLE commandes;</code> dans cette application :",o:["Vide la table plus vite que DELETE","Renvoie une erreur de syntaxe : SQLite ne la connaît pas","Supprime la table comme DROP"],b:1,e:"PostgreSQL et MySQL la proposent, pas SQLite. Pour vider une table ici, on écrit <code>DELETE FROM commandes;</code>."}],
- 67:[{q:"Un <code>INSERT</code> de deux lignes dont la seconde viole une contrainte :",o:["Écrit la première et refuse la seconde","N’écrit aucune des deux","Écrit les deux en signalant un avertissement"],b:1,e:"L’instruction est indivisible : tout passe, ou rien ne passe. La ligne valide n’est pas conservée."},
-   {q:"Ajouter un client avec l’<code>id</code> 1, déjà celui de Sophie, renvoie :",o:["PRIMARY KEY constraint failed","UNIQUE constraint failed: clients.id","DUPLICATE KEY error"],b:1,e:"SQLite parle d’<code>UNIQUE</code> : une clé primaire est avant tout une valeur qui ne peut pas se répéter."},
-   {q:"Une commande avec <code>client_id = NULL</code> est-elle acceptée ?",o:["Oui : NULL ne désigne aucun client, il n’y a rien à vérifier","Non : la clé étrangère l’interdit","Oui, mais seulement si la table est vide"],b:0,e:"C’est le cas de la commande n°16 de cette base. Pour rendre le client obligatoire, il faudrait ajouter <code>NOT NULL</code> à côté de la clé étrangère."}],
  68:[{q:"Où se déclare <code>ON DELETE CASCADE</code> ?",o:["Dans le DELETE, au moment de supprimer","Dans le CREATE TABLE, à côté de la clé étrangère","Dans un PRAGMA, au début de la session"],b:1,e:"C’est une propriété de la table, posée une fois pour toutes. Au moment du <code>DELETE</code>, il n’y a rien à préciser."},
    {q:"Une commande garde-t-elle un sens sans son client ? Quelle action choisir ?",o:["CASCADE : la commande disparaît avec lui","SET NULL : la commande reste, détachée","RESTRICT : la suppression est impossible pour toujours"],b:1,e:"Le chiffre d’affaires est préservé, le lien vers la personne est coupé. <code>CASCADE</code> conviendrait à une ligne de panier, qui n’a aucun sens seule."},
    {q:"Sans aucune action déclarée, supprimer un client encore référencé :",o:["Supprime aussi ses commandes","Est refusé : FOREIGN KEY constraint failed","Met leurs client_id à NULL"],b:1,e:"C’est le comportement le plus prudent, et c’est pour cela qu’il est celui par défaut."}],
@@ -13391,9 +13119,8 @@ const SQ_ALIASES={
   66:'drop table supprimer une table retirer table delete from vider table copie fichier excel inscriptions_excel cle etrangere foreign key constraint failed no such table if exists drop table if exists table liee nom de table nutriboost serveur de test',
   26:'insert into ajouter des lignes ligne insertion inserer values nouvelle ligne plusieurs lignes en une requete on conflict upsert do update do nothing doublon doublons conflit inscription inscriptions atelier carte pack seances colonne obligatoire not null unique ordre des valeurs valeurs inversees nutriboost',
   27:'update modifier mettre a jour set lignes valeurs changer where oubli du where sans where toutes les lignes select avant de modifier lire calculer valeur calculee ancienne valeur regle de la table check modification refusee atelier date carte cartes seances nutriboost',
-  28:'delete supprimer lignes effacer from where vider une table vider table supprimer toutes les lignes',
-  67:'contraintes not null unique check default refuser regles integrite',
-  68:'on delete cascade set null restrict supprimer lignes liees',
+  28:'delete from supprimer effacer lignes ligne supprimer une ligne where oubli du where sans where toutes les lignes vider une table vider table select avant de supprimer lire identifiant client_id plusieurs lignes annuler inscription inscriptions compte atelier nutriboost insert update',
+  68:'on delete cascade set null restrict supprimer lignes liees cle etrangere foreign key constraint failed suppression refusee client compte avis not null create table regle detacher syntax error nutriboost',
   62:'transaction begin commit rollback valider annuler acid atomicite',
   63:'savepoint point de sauvegarde rollback to partiel transaction',
   70:'trigger declencheur reagir automatiquement before after evenement',
@@ -25271,7 +24998,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2021';
+  const SW_CACHE='requete-2026-10-12-ludique-v2022';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

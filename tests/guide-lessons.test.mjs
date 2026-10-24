@@ -11,7 +11,7 @@ const allLessons = vm.runInContext('MODULES.flatMap(m=>m.lessons)', ctx);
 /* Cours en vidéo : la vidéo est le cours, sans texte de secours (ni situation, ni étapes, ni exemple…) ; il garde le réflexe à
    retenir (fin de la vidéo, bilan, note). Les vérifications du cours texte portent sur les autres cours. */
 const videos = allLessons.filter(l => l.video);
-assert.equal(videos.length, 53, '53 cours en vidéo');
+assert.equal(videos.length, 55, '55 cours en vidéo');
 for (const l of videos) {
   assert.ok(!l.situation && !l.missionSql && !l.studio.problem && !l.studio.uses, `${l.titre} : pas de texte de secours`);
   for (const k of ['anatomie', 'exemple', 'attendu', 'retenir', 'learningCheck', 'testeVariants', 'joinRecap'])
@@ -26,7 +26,8 @@ const notGuided = allLessons.filter(l => !l.guided).map(l => l.id);
 assert.equal(notGuided.length, 0, `tous les cours sont au format « guide » (à convertir : ${notGuided.join(', ')})`);
 let runs = 0, testedTables = 0;
 for (const l of lessons) { const r = checkGuideLesson(env, l); runs += r.runs; testedTables += r.testedTables; }
-assert.ok(testedTables >= 1, 'au moins un tableau à tester (cours WHERE)');
+/* Plus aucun cours texte n’utilise le tableau « à tester » (WHERE, DISTINCT et DELETE sont devenus des vidéos) : si l’un d’eux en reçoit un, ses verdicts sont vérifiés
+   ci-dessus ; le moteur du tableau reste testé dans row-test-animation.test.mjs, sur une maquette. */
 /* Moteur des scènes : plusieurs animations par cours, grille de colonnes qui se referme, mise en forme « fiche ». */
 for (const frag of ['function mountProbScene(cfg,slot,memo)', "if(s.cols)root.style.setProperty('--cols',s.cols)", 'if(s.order){', ".pr-slot[data-xscene]", '.pr-scene.has-cols .pr-cells{gap:4px;transition:grid-template-columns', '.pr-scene.is-form .pr-c.pr-th', '.pr-c.is-gone{max-width:0!important', 'cardText(a)===cardText(b)'])
   assert.ok(html.includes(frag), `moteur : « ${frag} » présent`);
