@@ -41,10 +41,14 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
   assert.ok(page.includes('const QUESTIONS = [];') && !/kicker: '/.test(page), 'pas de question en pleine vidéo');
   assert.ok(page.includes('beforeRender: t => IX.tick(t)});') && page.includes('tick(t = tl.time()){') && !page.includes('onRender: () => IX.tick()') && page.includes('window.IX = IX;'), 'aperçu retiré avant le rendu');
   assert.ok(!/text-wrap\s*:\s*pretty/.test(page), 'retours à la ligne classiques');
-  /* Une seule légende de quatre lignes (4e valeur : la carte monte le temps de la lire) : la phrase sur le 1 du côté de Coach,
-     123 caractères dont aucune coupe en trois lignes ne tient sans écraser les lettres ni finir une ligne sur un mot court. */
-  assert.equal((page.match(/\n\s*\[[\d.]+, [\d.]+, ("[^\n]*"|'[^\n]*'), 4\],?/g) || []).length, 1, 'une seule légende de quatre lignes');
-  assert.ok(page.includes('[115.95, 120.6, "Le <code>1</code> du côté de Coach signifie<br>que chaque atelier est animé<br>par un seul coach :<br>il ne peut en avoir ni zéro ni plusieurs.", 4],'), 'la légende du 1 côté Coach, en quatre lignes');
+  /* Trois légendes de quatre lignes (4e valeur : la carte monte le temps de les lire) : la phrase sur le 1 du côté de Coach (123 caractères),
+     celle sur INSERT INTO (113) et celle du récapitulatif (109). Aucune coupe en trois lignes ne tient sans écraser les lettres
+     ni finir une ligne sur un mot court. */
+  assert.equal((page.match(/\n\s*\[[\d.]+, [\d.]+, ("[^\n]*"|'[^\n]*'), 4\],?/g) || []).length, 3, 'trois légendes de quatre lignes');
+  for (const s of ['[115.95, 120.6, "Le <code>1</code> du côté de Coach signifie<br>que chaque atelier est animé<br>par un seul coach :<br>il ne peut en avoir ni zéro ni plusieurs.", 4],',
+    '[188.6, 191.2, "Karim y ajoutera les données<br>avec la commande <code>INSERT INTO</code>,<br>qui permet d’insérer de nouvelles<br>lignes dans une table.", 4],',
+    '[196.5, 201.3, "Créer une table, c’est définir<br>ses colonnes, les données<br>qu’elles peuvent contenir<br>et les règles à respecter.", 4],'])
+    assert.ok(page.includes(s), `légende en quatre lignes : ${s.slice(0, 60)}`);
   /* Même budget que le test COURSES : page + vignette + moteur + GSAP + mascotte + 5 polices < 450 Kio. */
   const FONTS = ['jetbrains-mono.woff2', 'inter-medium.woff2', 'inter-semibold.woff2', 'inter-bold.woff2', 'inter-extrabold.woff2'];
   let total = 0;
@@ -69,7 +73,8 @@ test(`${FILE} : chapitres, légendes d’une seule phrase, vocabulaire du projet
   });
   const last = caps[caps.length - 1], before = caps[caps.length - 2];
   assert.ok(last[0] === notesAt && last[1] === 999 && last[2] === '<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement.', 'dernière légende (app) à notesAt');
-  assert.equal(before[2], 'Pour finir, voici les <b>trois idées à retenir</b>.');
+  /* La bulle du récapitulatif résume les trois idées (à la demande d’Elisa) : elle ne dit plus « Pour finir, voici les trois idées à retenir ». */
+  assert.equal(before[2], 'Créer une table, c’est définir<br>ses colonnes, les données<br>qu’elles peuvent contenir<br>et les règles à respecter.');
   /* Jamais de carte de légende vide : entre deux légendes éloignées de plus d’une seconde, la carte s’efface (capOff) puis revient (capOn). */
   const offs = [...page.matchAll(/capOff\(([\d.]+)\)/g)].map(m => +m[1]), ons = [...page.matchAll(/capOn\(([\d.]+)\)/g)].map(m => +m[1]);
   caps.slice(1).forEach(([a], k) => {
@@ -177,12 +182,14 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
     'On écrit CHECK (seances >= 0) : le solde peut tomber à 0, mais pas en dessous.',
     'Ton fichier schema.sql est complet : quatre requêtes, dans le bon ordre.',
     'Karim le relit, puis l’exécute dans le SGBD.',
-    'La base compte maintenant huit tables : celles de la boutique et celles des ateliers.',
+    'Les quatre nouvelles tables sont créées !',
+    'Ta base compte désormais huit tables pour gérer la boutique et les ateliers.',
     'À toi !',
     'Une table neuve est vide : CREATE TABLE ne crée que sa structure.',
-    'C’est INSERT qui ajoute les lignes : Karim s’en chargera ensuite.',
+    'Les quatre nouvelles tables sont encore vides.',
+    'Karim y ajoutera les données avec la commande INSERT INTO, qui permet d’insérer de nouvelles lignes dans une table.',
     'Dans le prochain chapitre, tu feras évoluer ces tables avec ALTER TABLE.',
-    'Pour finir, voici les trois idées à retenir.',
+    'Créer une table, c’est définir ses colonnes, les données qu’elles peuvent contenir et les règles à respecter.',
     'Ajoute ce résumé à tes notes pour le retrouver facilement.'];
   assert.deepEqual(D.CAPTIONS.map(c => flat(c[2])), BULLES, 'les bulles du scénario, mot pour mot et dans l’ordre');
   /* Les deux premières légendes, communes aux chapitres 4 à 6 (contrat de continuité), et la devise hors de l’app. */
@@ -202,16 +209,18 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
   assert.ok(D.OPENS[0].at < D.CHAPTERS[1].a && D.OPENS[1].at > D.PICKS[3].at && D.OPENS[1].at < D.PICKS[4].from, 'chaque mail avant le moment qui s’en sert');
   /* L’annonce du chapitre suivant, sous son vrai titre. */
   assert.ok(page.includes('<span class="emo">🔧</span>Chapitre 5 · ALTER TABLE</span>'), 'pilule « 🔧 Chapitre 5 · ALTER TABLE »');
-  /* Les trois idées à retenir : la phrase, puis sa précision. */
+  /* Les trois idées à retenir : un titre numéroté, puis sa précision (comme dans la leçon « Quel JOIN choisir ? »). */
   const recap = page.slice(page.indexOf('<div class="abs card recap" id="recap">'), page.indexOf('</section>', page.indexOf('id="recap"')));
   const rows = [...recap.matchAll(/<div class="rtxt">([\s\S]*?)<\/div><\/div>/g)].map(m => m[1]);
   const phrase = r => flat(r.split('<span class="rs">')[0]), prec = r => r.includes('<span class="rs">') ? flat(r.slice(r.indexOf('<span class="rs">'))) : null;
   assert.deepEqual(rows.map(r => [phrase(r), prec(r)]), [
-    ['CREATE TABLE construit la structure d’une table : son nom, puis ses colonnes.', 'Elle ne crée aucune ligne : c’est INSERT qui en ajoute.'],
-    ['Chaque colonne a un nom et un type :', 'seances INTEGER'],
-    ['Les contraintes posent les règles que les données doivent respecter : PRIMARY KEY · NOT NULL · UNIQUE · CHECK', 'Une table se crée après celles auxquelles ses clés étrangères font référence.']], 'récapitulatif');
+    ['1. Créer une table', 'CREATE TABLE définit son nom et ses colonnes. Pour y ajouter des lignes, on utilise INSERT INTO.'],
+    ['2. Définir les colonnes', 'Chaque colonne possède un nom et un type de données. Par exemple, seances INTEGER permet de stocker un nombre entier de séances.'],
+    ['3. Définir les règles', 'Les contraintes encadrent les données : identifiant unique (PRIMARY KEY), valeur obligatoire (NOT NULL), absence de doublons (UNIQUE), condition à respecter (CHECK) et lien vers une autre table (FOREIGN KEY).']], 'récapitulatif');
   assert.ok(['🏗️', '🔤', '🛡️'].every(e => recap.includes(`<div class="rico emo">${e}</div>`)), 'emoji des trois idées');
-  assert.ok(rows[0].includes('la <b>structure</b>') && rows[1].includes('un <b>nom</b> et un <b>type</b>') && rows[2].includes('Les <b>contraintes</b>'), 'les notions en gras');
+  assert.ok(rows[0].includes('1. Créer une <b>table</b>') && rows[1].includes('2. Définir les <b>colonnes</b>') && rows[2].includes('3. Définir les <b>règles</b>'), 'les notions en gras');
+  /* La dernière précision arrive à 200,55 s : sa pause de lecture (201,05) est aussi celle de la bulle (fin à 201,3), une seule pause. */
+  assert.ok(page.includes('[[196.8, 197.55], [198.2, 198.95], [199.6, 200.55]].forEach(([r, d], i) => {') && D.CAPTIONS.some(c => c[1] === 201.3 && c[3] === 4), 'une seule pause à la fin : celle du récapitulatif');
 });
 
 test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices, la réponse posée juste après l’arrêt`, () => {
@@ -300,8 +309,23 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
   /* Les gestes de la timeline, chacun pendant la bulle qui en parle. */
   for (const s of ["show('#st-cl', 21.3,", "slotIn('sl0', 46.6);", "FLECHES.forEach(([id], q) => draw('#' + id, 73.0 + q * 0.6, 0.5));", "pop('#od-co', 86.5, 0.5);",
     "bump('#tb-date .ex', 101.45, 1.12);", "sqMore('an1', 123.1);", "sqMore('cdf', 157.3);", "sqMore('cck', 161.0, 30);", "press($('#run'), 171.6);", "show('#okm', 172.4,",
-    "tl.fromTo('#db .n8',", "show('#ins', 186.9,", "show('#keyc', 191.1,"])
+    "show('#ins', 188.85,", "show('#keyc', 191.85,", "bump('#db .dbn', 178.05, 1.18);", "bump('#ins code', 189.95, 1.15);"])
     assert.ok(page.includes(s), `geste : ${s}`);
+  /* Le badge de la base compte avec les tables : 4, 5, 6, 7, 8, chaque nombre quand la table entre ; « 8 tables » est là avant que la bulle ne dise huit. */
+  assert.ok(page.includes("Base de données<span class=\"dbn\">' + [4, 5, 6, 7, 8].map(n => `<i class=\"n${n}\">${n} tables</i>`).join('') + '</span></div>'"), 'le badge a cinq états, de 4 à 8 tables');
+  for (const s of ["const t = 176.2 + q * 0.2;", "tl.to(`#db .n${4 + q}`, {autoAlpha: 0, y: -14, duration: 0.1, ease: 'power2.in'}, t);",
+    "tl.fromTo(`#db .n${5 + q}`, {autoAlpha: 0, y: 14}, {autoAlpha: 1, y: 0, duration: 0.16, ease: 'power3.out', immediateRender: false}, t + 0.04);",
+    "gsap.set(['#db .n5', '#db .n6', '#db .n7', '#db .n8'], {autoAlpha: 0});"])
+    assert.ok(page.includes(s), `compteur : ${s.slice(0, 60)}`);
+  const huit = D.CAPTIONS.find(c => /huit tables/.test(c[2])), creees = D.CAPTIONS.find(c => /sont créées/.test(c[2]));
+  const derniere = 176.2 + 0.2 * 3, fini = derniere + 0.04 + 0.16;
+  assert.ok(creees[0] < 176.2 && fini < huit[0] + 0.3, 'le compte atteint 8 avant que la bulle « huit tables » soit lisible');
+  assert.ok(derniere + 0.4 < creees[1] - 0.25, 'la dernière table a fini d’entrer avant la pause de la bulle « créées »');
+  assert.ok(!/huit tables/.test(D.CAPTIONS.filter(c => c[0] < huit[0]).map(c => c[2]).join(' ')), 'aucune bulle ne parle de huit tables avant le badge à 8');
+  /* « Karim y ajoutera… INSERT INTO » : la puce porte la commande en entier, ses gestes finissent avant la pause de la bulle (fin 191,2). */
+  const ins = D.CAPTIONS.find(c => /INSERT INTO/.test(c[2]));
+  assert.ok(page.includes('<span class="emo">✍️</span><code>INSERT INTO</code></span></div>') && !page.includes('<code>INSERT</code>'), 'la puce dit INSERT INTO, comme la bulle');
+  assert.ok(190.25 + 0.14 * 4 < ins[1] - 0.25 && 188.85 > ins[0], 'le stylo a fini d’écrire avant la pause de la bulle');
 });
 
 test(`${FILE} : le cas NutriBoost des chapitres 2 et 3, et chaque requête montrée vérifiée dans SQLite`, async () => {
