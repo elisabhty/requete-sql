@@ -171,7 +171,7 @@ export function textesVideo(file) {
 }
 
 /* Le compte des écarts d’une liste de textes, par règle : {règle: nombre}. Les exceptions de la charte ne comptent pas. */
-export function compteParRegle(liste, regles = REGLES) {
+export function compteParRegle(liste, regles = REGLES.filter(r => !r.projetSeulement)) {
   const compte = {};
   for (const t of liste) for (const r of regles) for (const pb of probleme(r, t)) if (!excepte(r, t, pb)) compte[r.id] = (compte[r.id] || 0) + 1;
   return compte;
@@ -371,7 +371,8 @@ export const REGLES = [
       if (/^À toi/.test(plain) && plain !== 'À toi !') pb.push('« À toi ! » annonce le moment, sans autre mot (la consigne est dans la carte)');
       return pb;
     },
-    bon: ['Une inscription est une ligne de la table inscriptions.', 'À toi !', '<code>UPDATE</code> indique la table à modifier.', 'Imagine que tu oublies le <code>WHERE</code>.'],
+    bon: ['Une inscription est une ligne de la table inscriptions.', 'À toi !', '<code>UPDATE</code> indique la table à modifier.', 'Imagine que tu oublies le <code>WHERE</code>.',
+      'Jusqu’ici, Karim, le développeur, s’est chargé d’ajouter les données dans les tables de NutriBoost.', 'À ton tour de prendre la main !', 'Et si tu oublies de préciser l’atelier dans ta requête ?'],
     mauvais: ['une inscription est une ligne.', 'Une inscription est une ligne', 'Une inscription est une ligne. Elle contient une date.', 'À toi de jouer !']
   },
   {
@@ -408,8 +409,54 @@ export const REGLES = [
       for (const m of h.matchAll(/<b\b[^>]*>([\s\S]*?)<\/b>/g)) if (/<br\s*\/?>/.test(m[1])) pb.push('un saut de ligne dans un passage en gras');
       return pb;
     },
-    bon: ['Hugo Laurent a déjà une carte,<br>et une seule carte par client<br>est autorisée.', 'Jusqu’ici, Karim,<br>le développeur back end,<br>a rempli les tables.', 'La date de l’atelier Pilates<br>est écrite dans la <b>table ateliers</b>.'],
+    bon: ['Hugo Laurent a déjà une carte,<br>et une seule carte par client<br>est autorisée.', 'Jusqu’ici, Karim,<br>le développeur back end,<br>a rempli les tables.', 'La date de l’atelier Pilates<br>est écrite dans la <b>table ateliers</b>.',
+      'Jusqu’ici, Karim, le développeur,<br>s’est chargé d’ajouter les données<br>dans les tables de NutriBoost.', 'Et si tu oublies de préciser<br>l’atelier dans ta requête ?'],
     mauvais: ['Il faut la<br>virgule.', 'Chaque solde augmente de 2 :<br>10 devient 12<br>, puis 5.', 'Pour inscrire Sophie<br>Martin à l’atelier Pilates.', 'Une carte pour l’atelier<br>Pilates est créée.', 'On lit la<br>table clients.', 'Le développeur back<br>end a rempli les tables.', 'Elle contient 12 pour chacun des cinq<br>ateliers déjà enregistrés.', 'Une <b>table<br>clients</b> existe.', 'Il a acheté 10<br>séances.']
+  },
+  {
+    id: 'recap-sans-numero',
+    titre: 'Un récapitulatif : des titres sans numéro (« 1. », « 2. », « 3. »)',
+    demande: 'Elisa, 24 octobre (Réf 1 et 10) : « dans cette partie, ne jamais mettre les 1. 2. 3. » : les trois idées à retenir se lisent à la suite, chacune avec son titre (« Ajouter une ligne », « Ajouter plusieurs lignes », « Gérer un doublon »), sans la numéroter.',
+    genres: ['recap', 'fiche', 'autre'],   // « autre » : le récapitulatif des vidéos qui ne sont pas des chapitres du projet (« Quel JOIN choisir ? » était numéroté)
+    verifie: ({plain}) => /^\d+ ?[.)] /.test(plain) ? ['le titre commence par un numéro : l’enlever'] : [],
+    bon: ['Ajouter une ligne', 'Créer une table', 'Définir les règles', '3 colonnes suffisent pour cette table.'],
+    mauvais: ['1. Ajouter une ligne', '2) Ajouter plusieurs lignes', '3. Gérer un doublon']
+  },
+  {
+    id: 'registre-parle',
+    titre: 'Un ton parlé : on s’adresse à l’élève à voix haute, pas avec des tournures administratives',
+    demande: 'Elisa, 24 octobre : « j’ai les phrases un peu plus parlées » : « Jusqu’ici, Karim, le développeur, s’est chargé d’ajouter les données dans les tables de NutriBoost. À ton tour de prendre la main ! », ' +
+      '« Est-ce que tu pourrais prendre le relais pendant mon absence ? », « Et si tu oublies de préciser l’atelier dans ta requête ? ». Tutoiement, questions, exclamations, mots de tous les jours ; ' +
+      'ni « veuillez », ni « il convient de », ni « afin de », ni « procéder à »…',
+    genres: [...prose, 'option'],
+    projetSeulement: true,   // une règle prudente, posée le 24 octobre : elle ne regarde que les chapitres du projet (les anciens cours seront remplacés par les chapitres 11 à 16)
+    verifie: ({plain}) => {
+      const pb = [];
+      for (const m of plain.matchAll(/(?<![\p{L}-])(?:veuillez|il convient|afin (?:de|d’|que|qu’)|procéd(?:er|ez|ons)|nous vous|je vous|ci-joint|ci-après|susmentionn\p{L}*|dudit|ledit|préalablement|ultérieurement|le cas échéant|en vue de|au sein de|il est (?:nécessaire|impératif|recommandé|préférable) de)(?![\p{L}-])/giu)) pb.push(`« ${m[0]} » : une tournure écrite, à dire autrement`);
+      return pb;
+    },
+    bon: ['Jusqu’ici, Karim, le développeur, s’est chargé d’ajouter les données dans les tables de NutriBoost.', 'À ton tour de prendre la main !', 'Est-ce que tu pourrais prendre le relais pendant mon absence ?',
+      'Et si tu oublies de préciser l’atelier dans ta requête ?', 'Je te confie une première tâche, encore en attente dans mon planning et assez urgente.', 'Merci pour ton aide !'],
+    mauvais: ['Veuillez prendre le relais durant mon absence.', 'Il convient de relire les valeurs avant l’exécution.', 'Afin d’enregistrer l’inscription, procédez à l’ajout d’une ligne.', 'Je vous prie de bien vouloir ajouter cette ligne.', 'Le cas échéant, relis les valeurs.']
+  }
+];
+
+/* ---------- Les règles qui regardent toute la vidéo d’un coup ---------- */
+/* Une règle de page : verifie(textes de la page) → [{texte, probleme}] (le texte fautif est celui qui répète), bon / mauvais : des listes de textes {genre, html}. */
+export const REGLES_DE_PAGE = [
+  {
+    id: 'imagine-une-fois',
+    titre: '« Imagine » une seule fois par vidéo : ensuite, « Et si… ? » ou une question',
+    demande: 'Elisa, 24 octobre (Réf 5) : « répétition de imagine » : « Et si tu oublies de préciser l’atelier dans ta requête ? » à la place d’un deuxième « Imagine que… » ; ' +
+      'la même idée, dite autrement : « Et si quatre clients achètent un pack de 10 séances ? », « Que se passe-t-il si tu oublies la date ? ».',
+    genres: ['legende', 'consigne', 'indice', 'correction'],
+    verifie(textes) {
+      const vus = textes.filter(t => this.genres.includes(t.genre) && /(?<![\p{L}-])imagin(?:e|ons|ez)(?![\p{L}-])/iu.test(t.plain));
+      return vus.slice(1).map(t => ({texte: t, probleme: `« Imagine » déjà écrit (« ${vus[0].plain.slice(0, 45)}… ») : écrire « Et si… ? » ou une question`}));
+    },
+    bon: [[{genre: 'legende', html: 'Imagine que tu inverses<br>les deux premières valeurs.'}, {genre: 'legende', html: 'Et si tu oublies de préciser<br>l’atelier dans ta requête ?'}, {genre: 'legende', html: 'Que se passe-t-il<br>si tu oublies la date ?'}]],
+    mauvais: [[{genre: 'legende', html: 'Imagine que tu inverses les deux premières valeurs.'}, {genre: 'legende', html: 'Imagine que tu oublies l’atelier.'}],
+      [{genre: 'legende', html: 'Imaginons une colonne atelier_id.'}, {genre: 'consigne', html: 'Imagine une valeur pour chaque colonne.'}]]
   }
 ];
 
@@ -436,6 +483,10 @@ export const EXCEPTIONS = [
     raison: 'Mots d’Elisa, quatre lignes : « dans Inscription, une classe d’association : » est trop long pour une seule ligne ; avec le saut avant « dans », la bulle passerait à cinq lignes.'},
   {regle: 'coupes', page: 'projet-uml', contient: 'Tu peux appliquer ces mêmes règles',
     raison: 'Mots d’Elisa (134 caractères), quatre lignes : « pour créer les tables de toute la boutique, » ne tient pas sur une ligne ; sans la coupe après « toute », la bulle passerait à cinq lignes.'},
+  {regle: 'client', page: 'projet-insert', contient: 'Pour enregistrer l’inscription de Lucas,', aConfirmer: '« Lucas Bernard » ?',
+    raison: 'Mots d’Elisa (24 octobre, Réf 4), juste après le mail de Karim qui nomme Lucas Bernard en entier.'},
+  {regle: 'imagine-une-fois', page: 'projet-drop', contient: 'Imagine maintenant que tu oublies la fin du nom', aConfirmer: '« Et si tu oublies la fin du nom ? » pour la seconde faute ?',
+    raison: 'Mots d’Elisa (chapitre 6) : les deux fautes commencent par « Imagine » ; sa consigne « répétition de imagine » date du 24 octobre, après ce texte.'},
   /* Les mots d’Elisa écrits avant sa consigne : à lui redemander */
   {regle: 'client', page: 'projet-cles', contient: 'Pour inscrire Sophie à l’atelier Méditation', aConfirmer: '« Sophie Martin » ?',
     raison: 'Mots d’Elisa (22 octobre, réponse du moment 5), juste après la question qui nomme Sophie Martin en entier.'},
@@ -523,4 +574,7 @@ export const texteDExemple = (regle, ex) => {
   return {page: 'exemple', ou: 'exemple', lignes: 3, ...t, plain: lisible(t.html)};
 };
 export const probleme = (regle, texte) => (regle.genres && !regle.genres.includes(texte.genre)) ? [] : regle.verifie(texte);
+/* Les écarts d’une règle de page : [{texte, probleme}], pour une liste de textes {genre, html, plain, page, ou}. */
+export const problemesDePage = (regle, textes) => regle.verifie(textes);
+export const textesDExemple = (regle, liste) => liste.map(ex => texteDExemple(regle, ex));
 export const excepte = (regle, texte, pb) => EXCEPTIONS.find(e => e.regle === regle.id && e.page === texte.page && (!e.contient || texte.plain.includes(e.contient)) && (!e.probleme || pb.includes(e.probleme)));

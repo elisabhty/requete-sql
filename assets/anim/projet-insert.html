@@ -16,6 +16,9 @@
    l’image que la timeline affiche juste après l’arrêt, qui reprend donc sans saut. */
 .pvs{opacity:1!important;visibility:visible!important}
 .pvh{opacity:0!important;visibility:hidden!important}
+/* Aperçu en douceur : une carte d’erreur qui accompagne une bonne réponse n’apparaît jamais d’un coup, ni avant le verdict « Bien vu ! » */
+.pvf{visibility:visible!important;animation:pvf .45s ease-out both}
+@keyframes pvf{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 
 /* Couleur de chaque sujet : coach, atelier, client, carte de membre, inscription, développeur, copie du fichier Excel,
    puis les tables de la boutique que la base compte aussi : commande (comme au chapitre 3), produit, fidélité ; et l’élève */
@@ -197,7 +200,7 @@
 .mb p{margin:0;font-size:34px;line-height:1.3;font-weight:500;color:var(--ink)}
 .mb .sn{display:block;height:auto;font-family:var(--ui);font-size:34px;font-weight:500;color:var(--ink)}
 .mb .sn+.sn{margin-top:12px}
-.mb .sn.s{margin-top:0}
+.mb .sn.z+.sn.s{margin-top:0}
 /* Hors de l’app : le doigt qui touche la notification */
 .tapf{z-index:20;font-size:120px;margin:-8px 0 0 -44px;opacity:0;visibility:hidden}
 
@@ -213,6 +216,8 @@
 #s7 .rico{width:88px;height:88px;border-radius:26px;font-size:46px}
 #s7 .rtxt{font-size:34px;line-height:1.25}
 #s7 .rtxt .rs{margin-top:2px;font-size:31px}
+/* « • DO UPDATE … » : un cas par ligne, la suite décalée sous la puce */
+#s7 .rtxt .rs .bl{display:block;margin-top:4px;padding-left:24px;text-indent:-24px}
 </style>
 </head>
 <body>
@@ -253,9 +258,9 @@
   <section class="scene" id="s7">
     <div class="abs rtitle">Les trois idées à retenir</div>
     <div class="abs card recap" id="recap">
-      <div class="rrow"><div class="rico emo">✍️</div><div class="rtxt"><code>INSERT INTO</code> ajoute <b>une ligne</b> :<br>les valeurs suivent l’ordre des colonnes.<span class="rs">Une colonne non citée vaut <code>NULL</code><br>ou sa valeur par défaut ; si elle est obligatoire,<br>la requête est refusée.</span></div></div>
-      <div class="rrow"><div class="rico emo">📚</div><div class="rtxt">Avec <code>VALUES</code>, on ajoute <b>plusieurs lignes</b><br>d’un coup : une parenthèse par ligne.<span class="rs">Si une seule ligne est refusée,<br>aucune des lignes n’est ajoutée.</span></div></div>
-      <div class="rrow"><div class="rico emo">🔁</div><div class="rtxt"><code>ON CONFLICT</code> permet de choisir quoi faire<br>quand la ligne <b>existe déjà</b>.<span class="rs"><code>DO UPDATE</code> modifie la ligne existante ;<br><code>DO NOTHING</code> la laisse telle quelle.</span></div></div>
+      <div class="rrow"><div class="rico emo">✍️</div><div class="rtxt">Ajouter une <b>ligne</b><span class="rs"><code>INSERT INTO</code> ajoute une ligne dans une table. Les valeurs suivent l’ordre des colonnes indiquées. Une colonne omise reçoit sa valeur par défaut ou <code>NULL</code>. Si elle est obligatoire et sans valeur par défaut, l’ajout est refusé.</span></div></div>
+      <div class="rrow"><div class="rico emo">📚</div><div class="rtxt">Ajouter <b>plusieurs lignes</b><span class="rs">Après <code>VALUES</code>, écris un groupe de valeurs entre parenthèses par ligne, séparé par une virgule.</span></div></div>
+      <div class="rrow"><div class="rico emo">🔁</div><div class="rtxt">Gérer un <b>doublon</b><span class="rs"><code>ON CONFLICT</code> précise quoi faire si une valeur existe déjà dans une colonne qui doit rester unique&nbsp;: <span class="bl">• <code>DO UPDATE</code> met à jour la ligne existante.</span> <span class="bl">• <code>DO NOTHING</code> ignore l’ajout<br>et conserve la ligne existante.</span></span></div></div>
     </div>
   </section>
 
@@ -279,43 +284,68 @@ function cap(key, html, dur, gap = 0.1, lines = 0){
 /* « À toi ! » : la légende reste un instant, puis l’image s’arrête à a + 2,35 s (le passage d’attente est coupé). */
 const toi = key => cap(key, 'À toi !', 2.55);
 const {A, B} = SCH;
-/* Un mail : la légende s’efface le temps du mail (notification, toucher, lecture, départ). */
-const mailBlock = () => { const t = SCH.t; SCH.t = +(SCH.t + 4.8).toFixed(2); return t; };
+
+/* Les quatre mails reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses paragraphes), signature, formules].
+   Chacun arrive en notification ; l’app s’arrête dessus (OPENS) jusqu’au toucher. Le mail commence par « Bonjour, » et se termine par « Merci ! »
+   avant la signature, sauf indication : formules {hi, bye} (null : aucune). Les mots des mails de Karim et de l’équipe NutriBoost sont ceux d’Elisa. */
+const MAILS = [
+  [['Karim', 'Benali', 'KB'], 'k-dv', 'développeur', 'karim@nutriboost.fr', [
+    'J’espère que tu vas bien !',
+    'Je serai en congé à partir de lundi prochain. Est-ce que tu pourrais prendre le relais pendant mon absence ?',
+    'Je te confie une première tâche, encore en attente dans mon planning et assez urgente : pourrais-tu enregistrer l’inscription de Lucas Bernard à l’atelier Cuisine saine du 8 septembre ?'],
+    'Karim', {bye: 'Merci pour ton aide !'}],
+  [['Karim', 'Benali', 'KB'], 'k-dv', 'développeur', 'karim@nutriboost.fr', [
+    'Petite correction dans le mail précédent : le 8 septembre est la date d’inscription.',
+    'L’atelier Cuisine saine a lieu le 19 septembre.'],
+    'Karim', {hi: null, bye: null}],
+  [['Moussa', 'Diallo', 'MD'], 'k-co', 'coach', 'moussa@mail.fr', [
+    'Trois personnes se sont inscrites le 9 septembre à l’atelier Yoga du matin : Hugo Laurent, Gabriel Michel et Inès Lefebvre.',
+    'Peux-tu les enregistrer toutes les trois ?'], 'Moussa'],
+  [['L’équipe', 'NutriBoost', 'NB'], 'k-nb', 'équipe', 'equipe@nutriboost.fr', [
+    'Hugo Laurent vient d’acheter un pack de 10 séances pour participer aux ateliers.',
+    'Peux-tu ajouter ces séances à sa carte ? S’il n’en possède pas encore, il faudra lui en créer une avec un solde de 10 séances.'], 'L’équipe NutriBoost']
+];
+/* Un mail : la légende s’efface le temps du mail (notification, toucher, lecture, départ). Plus il a de lignes, plus il reste : le toucher à +1,6 s,
+   une ligne toutes les 0,28 s, le départ 0,61 s après la dernière (+3,8 s pour un mail de quatre lignes), et le bloc finit 1 s après le départ. */
+const mailRows = n => { const f = MAILS[n][6] || {}; return (f.hi === null ? 0 : 1) + [].concat(MAILS[n][4]).length + (f.bye === null ? 0 : 1) + 1; };
+const mailOutAt = n => +(2.35 + 0.28 * (mailRows(n) - 1) + 0.61).toFixed(2);
+const mailBlock = n => { const t = SCH.t; SCH.t = +(SCH.t + mailOutAt(n) + 1).toFixed(2); return t; };
 
 /* 1 · Karim passe la main : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) */
 cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
 cap('r2', "Au chapitre 6, tu as retiré la copie du fichier Excel avec <code>DROP TABLE</code>.", 3.0);
-cap('c2', "Jusqu’ici, Karim,<br>le développeur back end,<br>a rempli les tables.", 2.8);
-cap('c3', "Il te passe la main : c’est toi<br>qui ajoutes les nouvelles lignes.", 2.8);
-const MAIL1 = mailBlock();
+cap('c2', "Jusqu’ici, Karim, le développeur,<br>s’est chargé d’ajouter les données<br>dans les tables de NutriBoost.", 3.6);
+cap('c3', "À ton tour de prendre la main !", 2.8);
+const MAIL1 = mailBlock(0);
 /* 2 · Une inscription */
 chap({label:'Une inscription'});
-cap('c4', "Une inscription est une ligne<br>de la <b>table inscriptions</b>.", 2.8);
+cap('c4', "Pour enregistrer l’inscription de Lucas,<br>tu vas ajouter une nouvelle ligne<br>dans la <b>table inscriptions</b><br>avec la commande SQL <code>INSERT INTO</code>.", 4.4, 0.1, 4);
+const MAIL2 = mailBlock(1);
 cap('c5', "Le client et l’atelier<br>sont repérés par leur identifiant.", 2.8);
 cap('c6', "On les trouve dans la <b>table clients</b><br>et dans la <b>table ateliers</b>.", 3.2);
 toi('p1');
-cap('c7', "Reste à écrire cette ligne<br>avec <code>INSERT INTO</code>.", 2.8);
+cap('c7', "Voici la requête<br>qui ajoute cette ligne.", 2.6);
 cap('c8', "On ajoute le nom de la table,<br>puis les colonnes entre parenthèses.", 3.4);
 cap('c9', "Après <code>VALUES</code>, on écrit les valeurs,<br>dans le même ordre que les colonnes.", 4.0);
 cap('c10', "L’identifiant de la nouvelle ligne, le 8,<br>est attribué automatiquement.", 3.6);
 /* 3 · L’ordre des valeurs */
 chap({label:'L’ordre des valeurs'});
-cap('c11', "Imagine que tu inverses<br>les deux premières valeurs.", 3.0);
+cap('c11', "Imagine que tu inverses<br>les deux premières valeurs.", 3.0);   // le seul « Imagine » de la vidéo : ensuite « Et si… ? » ou une question (Elisa, 24 octobre : « répétition de imagine »)
 cap('c12', "La requête est exécutée<br>sans la moindre erreur.", 2.6);
 toi('p2');
 cap('c13', "Les valeurs suivent l’ordre<br>des colonnes : <b>Emma Dubois</b><br>est inscrite à l’atelier Pilates.", 3.8);
 cap('c14', "Rien n’avertit de l’inversion :<br>relis toujours l’ordre des valeurs<br>avant d’exécuter.", 3.4);
 /* 4 · Une colonne oubliée */
 chap({label:'Une colonne oubliée'});
-cap('c15', "Imagine maintenant<br>que tu oublies la date.", 2.8);
+cap('c15', "Que se passe-t-il<br>si tu oublies la date ?", 2.8);
 cap('c16', "Une colonne non citée vaut <code>NULL</code><br>ou sa valeur par défaut.", 3.2);
-cap('c17', "Imagine enfin<br>que tu oublies l’atelier.", 2.8);
+cap('c17', "Et si tu oublies de préciser<br>l’atelier dans ta requête ?", 3.0);
 toi('p3');
 cap('c18', "Dans la <b>table inscriptions</b>, l’atelier<br>est obligatoire (<code>NOT NULL</code>).", 3.2);
 cap('c19', "Le message d’erreur indique la règle<br>et la colonne concernées.", 3.4);
 /* 5 · Un groupe */
 chap({label:'Un groupe'});
-const MAIL2 = mailBlock();
+const MAIL3 = mailBlock(2);
 cap('c20', "On peut ajouter plusieurs lignes<br>d’un coup, avec une seule requête.", 3.0);
 cap('c21', "Après <code>VALUES</code>, on écrit une parenthèse<br>par ligne, séparées par des virgules.", 4.0);
 cap('c22', "Une faute de frappe s’est glissée<br>dans l’une des trois lignes.", 2.8);
@@ -325,13 +355,13 @@ cap('c24', "Une seule ligne refusée suffit :<br>aucune des trois n’est ajout�
 cap('c25', "Une fois la faute corrigée,<br>les trois inscriptions sont ajoutées.", 3.2);
 /* 6 · Créer ou recharger */
 chap({label:'Créer ou recharger'});
-const MAIL3 = mailBlock();
+const MAIL4 = mailBlock(3);
 cap('c26', "Hugo Laurent a déjà une carte,<br>et une seule carte par client<br>est autorisée dans la <b>table cartes</b>.", 4.0);
 cap('c27', "Une seconde carte pour Hugo Laurent<br>enfreint la règle <code>UNIQUE</code>.", 3.6);
 cap('c28', "Avec <code>ON CONFLICT (client_id)</code>,<br>tu choisis quoi faire si ce client<br>a déjà une carte.", 3.8);
 toi('p5');
 cap('c29', "La carte d’Hugo Laurent passe<br>de 8 à 18 séances :<br>aucune seconde carte n’est créée.", 3.6);
-cap('c30', "Imagine que quatre clients achètent<br>un pack de 10 séances.", 2.8);
+cap('c30', "Et si quatre clients achètent<br>un pack de 10 séances ?", 2.8);
 toi('p6');
 cap('c31', "Avec la même requête, les cartes<br>qui manquent sont créées<br>et les autres sont rechargées.", 3.6);
 /* la suite : la prochaine leçon */
@@ -385,7 +415,7 @@ const BUY = [
    from : début du passage qui amène chaque moment, d’où repartent « ↺ Revoir » et « Rejouer ». */
 const atp = k => +(A[k] + 2.35).toFixed(2);
 const PICKS = [
-  {at: atp('p1'), from: A.c4, kind: 'sort', prompt: 'Place chaque valeur de l’inscription de Lucas Bernard à l’atelier Cuisine saine.',
+  {at: atp('p1'), from: A.c5, kind: 'sort', prompt: 'Place chaque valeur de l’inscription de Lucas Bernard à l’atelier Cuisine saine.',
     hint: 'Touche une valeur, puis sa colonne. Tu peux aussi la faire glisser directement.', next: 'La valeur {x} : touche maintenant sa colonne.',
     options: VALS.map(v => ({label: v.label}))},
   {at: atp('p2'), from: A.c11, kind: 'pick', text: true, prompt: 'Avec les valeurs inversées, qui est inscrit, et à quel atelier ?', options: [
@@ -406,19 +436,9 @@ const PICKS = [
     options: BUY.map(b => ({label: b[0]}))}
 ];
 
-/* Les trois mails reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses paragraphes), signature].
-   Chacun arrive en notification ; l’app s’arrête dessus (OPENS) jusqu’au toucher. */
-const MAILS = [
-  [['Karim', 'Benali', 'KB'], 'k-dv', 'développeur', 'karim@nutriboost.fr', [
-    'Pour commencer, Lucas Bernard s’inscrit à l’atelier Cuisine saine, le 8 septembre. Peux-tu l’enregistrer ?'], 'Karim'],
-  [['Moussa', 'Diallo', 'MD'], 'k-co', 'coach', 'moussa@mail.fr', [
-    'Trois personnes se sont inscrites le 9 septembre à l’atelier Yoga du matin : Hugo Laurent, Gabriel Michel et Inès Lefebvre.',
-    'Peux-tu les enregistrer toutes les trois ?'], 'Moussa'],
-  [['L’équipe', 'NutriBoost', 'NB'], 'k-nb', 'équipe', 'equipe@nutriboost.fr', [
-    'Le pack de 10 séances est en vente !',
-    'Hugo Laurent en a acheté un. Peux-tu ajouter ses 10 séances à sa carte ?'], 'L’équipe NutriBoost']
-];
-const OPENS = [MAIL1, MAIL2, MAIL3].map((t, n) => ({at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: 'Touche le mail pour l’ouvrir.', label: `Ouvrir le mail de ${MAILS[n][0][0]} ${MAILS[n][0][1]}`}));
+/* Les quatre mails (MAILS, plus haut) : l’app s’arrête sur chaque notification jusqu’au toucher. */
+const MO = MAILS.map((m, n) => mailOutAt(n));   // le départ de chaque mail, depuis le début de son bloc
+const OPENS = [MAIL1, MAIL2, MAIL3, MAIL4].map((t, n) => ({at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: 'Touche le mail pour l’ouvrir.', label: `Ouvrir le mail de ${MAILS[n][0][0]} ${MAILS[n][0][1]}`}));
 
 /* ---------- Gabarits ---------- */
 const RH = 54;   // hauteur d’une ligne de la table inscriptions
@@ -538,9 +558,11 @@ function dom(){
   c += '<div class="abs pack" id="pack"><span><span class="emo">🎟️</span>Pack de 10 séances</span></div>';
   $('#sc').innerHTML = c;
   /* Les mails */
-  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
+  /* Un mail : le salut (g), ses paragraphes (b), le remerciement (z), la signature (s). */
+  const mailRowsOf = ([, , , , body, sign, f = {}]) => [[f.hi === null ? null : f.hi || 'Bonjour,', 'g'], ...[].concat(body).map(x => [x, 'b']), [f.bye === null ? null : f.bye || 'Merci !', 'z'], [sign, 's']].filter(r => r[0] !== null);
+  $('#sm').innerHTML = MAILS.map((m, n) => { const [w, k, tag, from] = m; return `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
     `<div class="mw"><div class="mn"><b>${w[0]} ${w[1]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
-    `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), 'Merci !', sign].map((x, j, a) => `<span class="sn${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
+    `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${mailRowsOf(m).map(([x, c]) => `<span class="sn ${c}">${x}</span>`).join('')}</p></div></div>`; }).join('') +
     '<div class="abs emo tapf" id="tapf">👆</div>';
   /* La suite : la prochaine leçon */
   $('#sk').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">✏️</span>Prochaine leçon · UPDATE</span></div>';
@@ -653,8 +675,8 @@ function mailIn(n, t, T){
   gsap.set(sn, {autoAlpha: 0, y: 14});
   sn.forEach((s, k) => { tl.to(s, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, T + 0.4 + k * 0.28); cue(T + 0.4 + k * 0.28, 'tick', 0.4, k + 2); });
   const end = T + 0.4 + (sn.length - 1) * 0.28 + 0.35;
-  // le temps de lire la demande, tous ses paragraphes (entre « Bonjour, » et « Merci ! »)
-  hold(end + 0.05, Math.ceil(readTime(sn.slice(1, -2).map(s => s.textContent).join(' ')) * 20) / 20);
+  // le temps de lire la demande, tous ses paragraphes (sans le salut, le remerciement et la signature)
+  hold(end + 0.05, Math.ceil(readTime($$(m + ' .sn.b').map(s => s.textContent).join(' ')) * 20) / 20);
   return end;
 }
 function mailOut(n, t){ hide('#ml' + n, t, {x: 140, y: 0, rotation: 2}, 0.4, 'power2.in'); cue(t, 'whoosh', 0.4); }
@@ -724,17 +746,29 @@ function build(){
   sceneOff('#sa', MAIL1 + 0.4);
   sceneOn('#sm', MAIL1 + 0.4);
   mailIn(1, MAIL1 + 0.5, OPENS[0].at);
-  mailOut(1, MAIL1 + 3.8);
-  sceneOff('#sm', MAIL1 + 4.1);
-  sceneOn('#sb', MAIL1 + 4.1);
-  tl.fromTo('#tb', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL1 + 4.15);
-  cue(MAIL1 + 4.15, 'whoosh', 0.5);
+  mailOut(1, MAIL1 + MO[0]);
+  sceneOff('#sm', MAIL1 + MO[0] + 0.3);
+  sceneOn('#sb', MAIL1 + MO[0] + 0.3);
+  tl.fromTo('#tb', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL1 + MO[0] + 0.35);
+  cue(MAIL1 + MO[0] + 0.35, 'whoosh', 0.5);
   capOn(A.c4 - 0.3);   // juste avant la légende suivante
 
   /* ===== 2 · Une inscription ===== */
-  // une inscription est une ligne de la table inscriptions
+  // pour enregistrer l’inscription : une nouvelle ligne dans la table inscriptions, la dernière ligne montre à quoi elle ressemble
   on('#r7 .hl', A.c4 + 0.3); cue(A.c4 + 0.3, 'tick', 0.5, 2);
   off('#r7 .hl', B.c4 - 0.6);
+  // le deuxième mail de Karim, une correction : la table attend pendant qu’il est affiché
+  capOff(MAIL2 - 0.2);
+  hide('#tb', MAIL2, {y: -30}, 0.35);
+  sceneOff('#sb', MAIL2 + 0.4);
+  sceneOn('#sm', MAIL2 + 0.4);
+  mailIn(2, MAIL2 + 0.5, OPENS[1].at);
+  mailOut(2, MAIL2 + MO[1]);
+  sceneOff('#sm', MAIL2 + MO[1] + 0.3);
+  sceneOn('#sb', MAIL2 + MO[1] + 0.3);
+  tl.fromTo('#tb', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL2 + MO[1] + 0.35);
+  cue(MAIL2 + MO[1] + 0.35, 'whoosh', 0.5);
+  capOn(A.c5 - 0.3);
   // le client et l’atelier sont repérés par leur identifiant : les deux colonnes
   on('#col-cl', A.c5 + 0.3); cue(A.c5 + 0.3, 'tick', 0.5, 1);
   on('#col-at', A.c5 + 0.8); cue(A.c5 + 0.8, 'tick', 0.5, 3);
@@ -829,18 +863,18 @@ function build(){
 
   /* ===== 5 · Un groupe ===== */
   // le mail de Moussa Diallo : pendant qu’il est affiché, la table retrouve la ligne de Lucas Bernard, ajoutée
-  capOff(MAIL2 - 0.2);
-  hide(['#tb', '#sc1a', '#sc2', '#ed', '#o-nn'], MAIL2, {y: -30}, 0.35);
-  sceneOff('#sb', MAIL2 + 0.4);
-  tl.set(['#r8 .gd', '#ph2', '#cn-a'], {autoAlpha: 0}, MAIL2 + 0.45);
-  tl.set(['#id8', '#s8c2', '#t8c2', '#cn-b'], {autoAlpha: 1}, MAIL2 + 0.45);
-  sceneOn('#sm', MAIL2 + 0.4);
-  mailIn(2, MAIL2 + 0.5, OPENS[1].at);
-  mailOut(2, MAIL2 + 3.8);
-  sceneOff('#sm', MAIL2 + 4.1);
-  sceneOn('#sb', MAIL2 + 4.1);
-  tl.fromTo(['#tb', '#sc1b', '#sc2'], {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL2 + 4.15);
-  cue(MAIL2 + 4.15, 'whoosh', 0.5);
+  capOff(MAIL3 - 0.2);
+  hide(['#tb', '#sc1a', '#sc2', '#ed', '#o-nn'], MAIL3, {y: -30}, 0.35);
+  sceneOff('#sb', MAIL3 + 0.4);
+  tl.set(['#r8 .gd', '#ph2', '#cn-a'], {autoAlpha: 0}, MAIL3 + 0.45);
+  tl.set(['#id8', '#s8c2', '#t8c2', '#cn-b'], {autoAlpha: 1}, MAIL3 + 0.45);
+  sceneOn('#sm', MAIL3 + 0.4);
+  mailIn(3, MAIL3 + 0.5, OPENS[2].at);
+  mailOut(3, MAIL3 + MO[2]);
+  sceneOff('#sm', MAIL3 + MO[2] + 0.3);
+  sceneOn('#sb', MAIL3 + MO[2] + 0.3);
+  tl.fromTo(['#tb', '#sc1b', '#sc2'], {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL3 + MO[2] + 0.35);
+  cue(MAIL3 + MO[2] + 0.35, 'whoosh', 0.5);
   capOn(A.c20 - 0.3);
   // une seule requête, plusieurs lignes : le début de la requête
   show('#edg', A.c20 + 0.1, {y: 40}, 0.5); cue(A.c20 + 0.1, 'whoosh', 0.45, 1);
@@ -882,18 +916,18 @@ function build(){
   off('#cn-b', A.c25 + 1.2, 0.2); on('#cn-c', A.c25 + 1.25, 0.2); bump('#cn-c', A.c25 + 1.5, 1.12); cue(A.c25 + 1.2, 'tick', 0.6, 2);
   [9, 10, 11].forEach((id, q) => { on('#r' + id + ' .hl', A.c25 + 1.6 + q * 0.25, 0.2); off('#r' + id + ' .hl', A.c25 + 2.3 + q * 0.1, 0.3); cue(A.c25 + 1.6 + q * 0.25, 'tick', 0.5, q * 2 + 1); });
   // la fin du chapitre : tout s’en va, la carte arrive
-  capOff(MAIL3 - 0.2);
-  hide(['#tb', '#sc1b', '#sc2', '#edg', '#o-ok3'], MAIL3, {y: -30}, 0.35);
-  sceneOff('#sb', MAIL3 + 0.4);
+  capOff(MAIL4 - 0.2);
+  hide(['#tb', '#sc1b', '#sc2', '#edg', '#o-ok3'], MAIL4, {y: -30}, 0.35);
+  sceneOff('#sb', MAIL4 + 0.4);
 
   /* ===== 6 · Créer ou recharger ===== */
-  sceneOn('#sm', MAIL3 + 0.4);
-  mailIn(3, MAIL3 + 0.5, OPENS[2].at);
-  mailOut(3, MAIL3 + 3.8);
-  sceneOff('#sm', MAIL3 + 4.1);
-  sceneOn('#sc', MAIL3 + 4.1);
-  tl.fromTo('#tc', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL3 + 4.15);
-  cue(MAIL3 + 4.15, 'whoosh', 0.5);
+  sceneOn('#sm', MAIL4 + 0.4);
+  mailIn(4, MAIL4 + 0.5, OPENS[3].at);
+  mailOut(4, MAIL4 + MO[3]);
+  sceneOff('#sm', MAIL4 + MO[3] + 0.3);
+  sceneOn('#sc', MAIL4 + MO[3] + 0.3);
+  tl.fromTo('#tc', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL4 + MO[3] + 0.35);
+  cue(MAIL4 + MO[3] + 0.35, 'whoosh', 0.5);
   capOn(A.c26 - 0.3);
   // Hugo Laurent a déjà une carte, une seule par client : la ligne d’Hugo Laurent, puis la règle UNIQUE
   on('#rc3 .hl', A.c26 + 0.4); cue(A.c26 + 0.4, 'tick', 0.5, 2);
@@ -935,11 +969,18 @@ function build(){
   // À toi : les clients rangés dans leur case ; remplies, les cases ne sont plus des zones où déposer
   tl.set('.dbin .rc', {autoAlpha: 1}, set2(PICKS[5].at));
   tl.set('.dbin', {borderStyle: 'solid'}, set2(PICKS[5].at));
-  // la même requête, deux effets : une ligne ajoutée, une ligne modifiée
+  // « la même requête » : la table s’efface, la requête revient à sa place, tout en haut (Elisa, 24 octobre : « montre la requête à l’utilisateur »)
+  hide('#tc', A.c31, {y: -30}, 0.35);
+  tl.fromTo('#edc', {autoAlpha: 0, y: 236 - EDC + 40}, {autoAlpha: 1, y: 236 - EDC, duration: 0.5, ease: 'expo.out', immediateRender: false}, A.c31 + 0.1);
+  cue(A.c31 + 0.1, 'whoosh', 0.45, 2);
+  // la même requête, deux effets : une ligne ajoutée (INSERT), une ligne modifiée (DO UPDATE)
   on('#tgl-cr', A.c31 + 0.3, 0.3); cue(A.c31 + 0.3, 'stamp', 0.5);
+  pulse('#ec2', A.c31 + 0.5, 1, 'rgba(201,188,255,.22)');
   on('#tgl-rc', A.c31 + 1.3, 0.3); cue(A.c31 + 1.3, 'stamp', 0.5);
+  pulse(['#ec5', '#ec6'], A.c31 + 1.5, 1, 'rgba(201,188,255,.22)');
   [0, 1, 2, 3].forEach((i, q) => { const id = ['#bu2', '#bu1', '#bu0', '#bu3'][q]; bump(id, A.c31 + 1.9 + q * 0.2, 1.06); cue(A.c31 + 1.9 + q * 0.2, 'tick', 0.45, q); });
-  hide(['#tc', '.dbin', '#pack'], B.c31 - 0.1, {y: -40}, 0.4);
+  hide(['.dbin', '#pack'], B.c31 - 0.1, {y: -40}, 0.4);
+  hide('#edc', B.c31 - 0.1, {y: 236 - EDC - 40}, 0.4);
   sceneOff('#sc', A.c32 + 0.3);
   // la suite : la prochaine leçon
   sceneOn('#sk', A.c32);
@@ -978,6 +1019,9 @@ const IX = (() => {
   }
   const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
   const marks = (sels, c = 'pvs') => sels.forEach(s => $$(s).forEach(e => mark(e, c)));
+  /* Une bonne réponse dont l’aperçu montre une erreur (la carte rouge « Requête refusée ») : le verdict arrive 260 ms après le choix ;
+     l’erreur n’apparaît qu’après lui, en fondu (Elisa, 24 octobre : « un truc rouge rapide puis le bien vu »). */
+  const soft = (sels, ms = 450) => { const i = X.i; X.tm.push(setTimeout(() => { if (X && X.i === i) marks(sels, 'pvf'); }, ms)); };
   /* La classe est aussi notée dans X.cls : si le moment change avant la fin du minuteur (deux réponses enchaînées), clear() la retire. */
   const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
   function spots(i){
@@ -1040,7 +1084,7 @@ const IX = (() => {
       sfx(ok ? 'pop' : 'miss', 2, 0.5);
     }
     if (i === 2) {
-      if (ok) marks(M3_ANS);
+      if (ok) soft(M3_ANS);   // la carte « Requête refusée » : après le verdict
       else flash($('#ed'), 'kob', 480);
       sfx(ok ? 'pop' : 'miss', 2, 0.5);
     }
@@ -1079,8 +1123,8 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 155.5, picks: PICKS, opens: OPENS,
-  glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝📄🔑🔗🔒🎟️✉️👆✓✕!…«»✍️📚🔁✏️·', dom, build, beforeRender: t => IX.tick(t)});
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 163.54, picks: PICKS, opens: OPENS,
+  glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝📄🔑🔗🔒🎟️✉️👆✓✕!…«»✍️📚🔁✏️·•', dom, build, beforeRender: t => IX.tick(t)});
 </script>
 </body>
 </html>

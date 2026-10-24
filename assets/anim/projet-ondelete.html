@@ -19,6 +19,9 @@
    l’image que la timeline affiche juste après l’arrêt, qui reprend donc sans saut. */
 .pvs{opacity:1!important;visibility:visible!important}
 .pvh{opacity:0!important;visibility:hidden!important}
+/* Aperçu en douceur : une carte d’erreur qui accompagne une bonne réponse n’apparaît jamais d’un coup, ni avant le verdict « Bien vu ! » */
+.pvf{visibility:visible!important;animation:pvf .45s ease-out both}
+@keyframes pvf{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 
 /* Couleur de chaque sujet : coach, atelier, client, équipe NutriBoost (et carte de membre), inscription,
    puis les tables de la boutique que la base compte aussi : commande, produit, fidélité */
@@ -311,7 +314,7 @@ cap('c26', "Les sept avis sont ensuite ajoutés,<br>dont celui d’Inès Lefebvr
 chap({label:'Le compte supprimé'});
 cap('c27', "Revenons à la demande<br>d’Inès Lefebvre.", 2.8);
 cap('c28', "On supprime d’abord son inscription,<br>comme au chapitre 9.", 3.8);
-cap('c29', "Imagine que tu écrives la règle<br>à la fin du <code>DELETE</code> du compte.", 4.0);
+cap('c29', "Et si tu écris la règle<br>à la fin du <code>DELETE</code> du compte ?", 4.0);   // le seul « Imagine » est c21 (Elisa, 24 octobre : « répétition de imagine »)
 toi('p5');
 cap('c30', "<code>ON DELETE</code> n’est pas une option<br>du <code>DELETE</code> : la règle ne s’écrit<br>jamais ici.", 4.4);
 cap('c31', "Le compte se supprime<br>avec un simple <code>DELETE</code>.", 3.6);
@@ -964,6 +967,9 @@ const IX = (() => {
   }
   const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
   const marks = (sels, c = 'pvs') => sels.forEach(s => $$(s).forEach(e => mark(e, c)));
+  /* Une bonne réponse dont l’aperçu montre une erreur ou une perte (carte rouge) : le verdict arrive 260 ms après le choix ;
+     l’aperçu n’apparaît qu’après lui, en fondu (Elisa, 24 octobre : « un truc rouge rapide puis le bien vu »). */
+  const soft = (sels, ms = 450) => { const i = X.i; X.tm.push(setTimeout(() => { if (X && X.i === i) marks(sels, 'pvf'); }, ms)); };
   /* La classe est aussi notée dans X.cls : si le moment change avant la fin du minuteur (deux réponses enchaînées), clear() la retire. */
   const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
   const row = id => { const r = INSCR.find(x => x[0] === id); return Object.assign({k: 'r' + id, label: `Inscription ${/^[AEIOUHÉÈ]/.test(r[2]) ? 'd’' : 'de '}${r[2]} à l’atelier ${r[4]}`}, rel($('#ri' + id))); };
@@ -1023,11 +1029,11 @@ const IX = (() => {
       sfx(ok ? 'pop' : 'miss', 2, 0.5);
     }
     if (i === 3) {
-      if (ok) marks(M4_ANS);   // NOT NULL : le message d’erreur
+      if (ok) soft(M4_ANS);   // NOT NULL : le message d’erreur, après le verdict
       sfx(ok ? 'pop' : 'miss', 2, 0.5);
     }
     if (i === 4) {
-      if (ok) marks(M5_ANS);   // la règle au bout du DELETE : l’erreur de syntaxe
+      if (ok) soft(M5_ANS);   // la règle au bout du DELETE : l’erreur de syntaxe, après le verdict
       sfx(ok ? 'pop' : 'miss', 2, 0.5);
     }
     return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));
@@ -1055,7 +1061,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 211.35, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 211.25, picks: PICKS, opens: OPENS,
   glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝🔑🔗✉️👆📬🔄🛑🔀📍💬✓✕!…«»·−',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>

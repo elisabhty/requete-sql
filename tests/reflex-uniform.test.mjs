@@ -24,8 +24,13 @@ test('62 cours, tous dans le même format', () => {
   assert.equal(lessons.length, 62);
 });
 
+/* Exception : le récapitulatif d’INSERT reprend mot pour mot celui qu’Elisa a écrit (24 octobre, Réf 10) : des précisions plus longues
+   (260 caractères au plus, 100 par ligne de liste) ; tous les autres cours gardent 180 et 80. */
+const SIENNE = {INSERT: {precision: 260, ligne: 100}};
+
 test('chaque cours a un réflexe de trois cartes bien formées', () => {
   for (const l of lessons) {
+    const lim = SIENNE[l.titre] || {precision: 180, ligne: 80};
     const r = l.studio && l.studio.reflex;
     assert.ok(r && r.extra, `${l.titre} : réflexe absent`);
     assert.deepEqual(Object.keys(r), ['extra'], `${l.titre} : le réflexe ne contient que « extra » (ni a/b/c, ni note, ni chaîne)`);
@@ -46,8 +51,8 @@ test('chaque cours a un réflexe de trois cartes bien formées', () => {
       const subLines = sub ? sub.split(/<br\s*\/?>/) : [];
       if (subLines.length > 1) {
         assert.ok(subLines.length <= 8, `${l.titre} : liste de ${subLines.length} lignes dans la précision`);
-        for (const ln of subLines) assert.ok(text(ln).length <= 80, `${l.titre} : ligne de liste trop longue : ${text(ln)}`);
-      } else if (sub) assert.ok(text(sub).length <= 180, `${l.titre} : précision trop longue : ${text(sub)}`);
+        for (const ln of subLines) assert.ok(text(ln).length <= lim.ligne, `${l.titre} : ligne de liste trop longue : ${text(ln)}`);
+      } else if (sub) assert.ok(text(sub).length <= lim.precision, `${l.titre} : précision trop longue : ${text(sub)}`);
       /* Code : deux lignes au plus dans la puce, même sur un écran de 375 px (48 caractères, « ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW »). */
       if (code) assert.ok(decode(code).length <= 48, `${l.titre} : code trop long pour une puce : ${decode(code)}`);
     }

@@ -20,6 +20,15 @@ function ecarts(textes, regles = R.REGLES) {
   }
   return out;
 }
+/* Les écarts aux règles de page (« Imagine » une seule fois par vidéo…) : [{regle, texte, probleme}], le texte fautif étant celui qui répète. */
+function ecartsDePage(textes) {
+  const out = [];
+  for (const r of R.REGLES_DE_PAGE) for (const {texte, probleme} of R.problemesDePage(r, textes)) {
+    const e = R.excepte(r, texte, probleme);
+    if (e) utilisees.add(e); else out.push({regle: r, texte, probleme});
+  }
+  return out;
+}
 /* Un rapport lisible : par règle, ce qu’Elisa a demandé, puis chaque texte fautif. */
 function rapport(liste) {
   const parRegle = new Map();
@@ -30,7 +39,7 @@ function rapport(liste) {
 /* Pour une page des anciens cours : pour chaque règle, les écarts au-delà du plafond de la dette. */
 function auDessusDuPlafond(textes, plafond = {}) {
   const out = [];
-  for (const r of R.REGLES) {
+  for (const r of R.REGLES.filter(x => !x.projetSeulement)) {   // les règles posées le 24 octobre « pour le projet » ne regardent pas les anciens cours
     const fautifs = ecarts(textes, [r]).map(e => ({texte: e.texte, probleme: e.probleme}));
     if (fautifs.length > (plafond[r.id] || 0)) out.push({regle: r, plafond: plafond[r.id] || 0, fautifs});
   }
@@ -63,6 +72,15 @@ for (const r of R.REGLES) {
   });
 }
 
+for (const r of R.REGLES_DE_PAGE) {
+  test(`règle de page « ${r.id} » : ses bons exemples passent, ses mauvais exemples sont refusés`, () => {
+    assert.ok(r.titre && r.demande && typeof r.verifie === 'function' && r.bon?.length >= 1 && r.mauvais?.length >= 1, `${r.id} : titre, demande, vérification, exemples`);
+    assert.ok(!R.REGLES.some(x => x.id === r.id), `${r.id} : un identifiant à part des règles de texte`);
+    for (const ex of r.bon) assert.deepEqual(R.problemesDePage(r, R.textesDExemple(r, ex)).map(e => e.probleme), [], `bon exemple refusé : ${ex.map(t => t.html).join(' | ')}`);
+    for (const ex of r.mauvais) assert.ok(R.problemesDePage(r, R.textesDExemple(r, ex)).length > 0, `mauvais exemple accepté : ${ex.map(t => t.html).join(' | ')}`);
+  });
+}
+
 /* ---------- 2. Chaque chapitre du projet : toutes les règles, sans tolérance ---------- */
 const PAGES = R.pagesProjet();
 test('les chapitres du projet sont tous trouvés, avec de quoi lire', () => {
@@ -76,7 +94,7 @@ test('les chapitres du projet sont tous trouvés, avec de quoi lire', () => {
 });
 for (const f of PAGES) {
   test(`${f} : toutes les règles d’écriture d’Elisa`, () => {
-    const liste = ecarts(R.textes(f));
+    const textes = R.textes(f), liste = [...ecarts(textes), ...ecartsDePage(textes)];
     assert.equal(liste.length, 0, rapport(liste));
   });
 }
@@ -148,7 +166,7 @@ test('chaque exception de la charte correspond à un texte qui existe encore', (
 });
 test('chaque exception dit pourquoi', () => {
   for (const e of R.EXCEPTIONS) assert.ok(e.raison && e.raison.length > 20, `${e.regle} · ${e.page} : une raison est demandée`);
-  for (const e of R.EXCEPTIONS) assert.ok(R.REGLES.some(r => r.id === e.regle), `${e.regle} : règle inconnue`);
+  for (const e of R.EXCEPTIONS) assert.ok([...R.REGLES, ...R.REGLES_DE_PAGE].some(r => r.id === e.regle), `${e.regle} : règle inconnue`);
 });
 test('à confirmer avec Elisa : ses propres mots qui dérogent à une de ses règles', t => {
   for (const e of R.EXCEPTIONS.filter(x => x.aConfirmer)) t.diagnostic(`${e.page} · « ${e.contient} » → ${e.aConfirmer}`);

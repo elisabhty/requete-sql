@@ -8480,9 +8480,9 @@ guide({ id:44, titre:"Quel JOIN choisir ?", résumé:"Choisir la bonne jointure
     notes:{t:217.5,y:1396,card:[64,292,1016,1101],to:[940,255]}},
   reflex:[
     {recap:[
-      ["🔗","1. Repère les <b>cas particuliers</b>","<code>CROSS JOIN</code> → obtenir toutes les combinaisons entre les lignes de deux tables.<br><code>SELF JOIN</code> → rapprocher des lignes d’une même table."],
-      ["🧭","2. Choisis les <b>lignes à conserver</b>","<code>INNER JOIN</code> → uniquement les lignes qui correspondent.<br><code>LEFT JOIN</code> → toutes les lignes de gauche, avec leurs correspondances à droite.<br><code>RIGHT JOIN</code> → toutes les lignes de droite, avec leurs correspondances à gauche.<br><code>FULL JOIN</code> → toutes les lignes des deux tables, avec ou sans correspondance."],
-      ["📍","3. Repère <b>la gauche et la droite</b>","Avec deux tables, celle après <code>FROM</code> est à gauche<br>et celle après <code>JOIN</code> est à droite.<br>Leur ordre dans <code>ON</code> ne change pas ces positions."]
+      ["🔗","Repère les <b>cas particuliers</b>","<code>CROSS JOIN</code> → obtenir toutes les combinaisons entre les lignes de deux tables.<br><code>SELF JOIN</code> → rapprocher des lignes d’une même table."],
+      ["🧭","Choisis les <b>lignes à conserver</b>","<code>INNER JOIN</code> → uniquement les lignes qui correspondent.<br><code>LEFT JOIN</code> → toutes les lignes de gauche, avec leurs correspondances à droite.<br><code>RIGHT JOIN</code> → toutes les lignes de droite, avec leurs correspondances à gauche.<br><code>FULL JOIN</code> → toutes les lignes des deux tables, avec ou sans correspondance."],
+      ["📍","Repère <b>la gauche et la droite</b>","Avec deux tables, celle après <code>FROM</code> est à gauche<br>et celle après <code>JOIN</code> est à droite.<br>Leur ordre dans <code>ON</code> ne change pas ces positions."]
     ],label:"Les trois idées à retenir"}
   ]
 })
@@ -8803,9 +8803,9 @@ guide({ id:61, titre:"CREATE TABLE", résumé:"Créer la structure d’une table
     notes:{t:287.4,y:1328,card:[64,292,1016,1033],to:[940,255]}},
   reflex:[
     {recap:[
-      ["🏗️","1. Créer une <b>table</b>","<code>CREATE TABLE</code> définit son nom et ses colonnes.<br>Pour y ajouter des lignes, on utilise <code>INSERT INTO</code>."],
-      ["🔤","2. Définir les <b>colonnes</b>","Chaque colonne possède un nom et un type de données.<br>Par exemple, <code>seances INTEGER</code> permet de stocker un nombre entier de séances."],
-      ["🛡️","3. Définir les <b>règles</b>","Les contraintes encadrent les données :<br>identifiant unique (<code>PRIMARY KEY</code>),<br>valeur obligatoire (<code>NOT NULL</code>),<br>absence de doublons (<code>UNIQUE</code>),<br>condition à respecter (<code>CHECK</code>)<br>et relation avec une autre table (<code>FOREIGN KEY</code>)."]
+      ["🏗️","Créer une <b>table</b>","<code>CREATE TABLE</code> définit son nom et ses colonnes.<br>Pour y ajouter des lignes, on utilise <code>INSERT INTO</code>."],
+      ["🔤","Définir les <b>colonnes</b>","Chaque colonne possède un nom et un type de données.<br>Par exemple, <code>seances INTEGER</code> permet de stocker un nombre entier de séances."],
+      ["🛡️","Définir les <b>règles</b>","Les contraintes encadrent les données :<br>identifiant unique (<code>PRIMARY KEY</code>),<br>valeur obligatoire (<code>NOT NULL</code>),<br>absence de doublons (<code>UNIQUE</code>),<br>condition à respecter (<code>CHECK</code>)<br>et relation avec une autre table (<code>FOREIGN KEY</code>)."]
     ],label:"Les trois idées à retenir"}
   ]
 }),
@@ -8874,34 +8874,37 @@ guide({ id:26, titre:"INSERT", résumé:"Ajouter des lignes",
   /* Projet, chapitre 7, en vidéo interactive : l’animation (assets/anim/projet-insert.html, moteur commun assets/anim/core.js)
      est le cours. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 6, tu as retiré la copie du fichier
      Excel avec DROP TABLE »), sur la base que le chapitre 6 laisse : huit tables, dont inscriptions (7 lignes) et cartes (3 lignes).
-     Karim Benali, le développeur back end, a rempli les tables jusqu’ici et passe la main : trois mails, trois situations.
-     Mail de Karim : Lucas Bernard s’inscrit à l’atelier Cuisine saine le 8 septembre. Une inscription est une ligne de la table
-     inscriptions ; le client et l’atelier y sont repérés par leur identifiant, qu’on trouve dans les tables clients et ateliers. Moment 1 :
-     l’élève place les trois valeurs sous la colonne qui convient ; l’identifiant 8 de la nouvelle ligne est attribué automatiquement.
-     Trois fautes sont ensuite imaginées avant l’exécution : les deux premières valeurs inversées, ce qui s’exécute sans erreur et
-     inscrit Emma Dubois à l’atelier Pilates (moment 2) ; la date oubliée, qui vaut NULL, sans erreur ; l’atelier oublié, refusé
-     parce qu’il est obligatoire, NOT NULL (moment 3). Mail de Moussa Diallo : Hugo Laurent, Gabriel Michel et Inès Lefebvre s’inscrivent
-     au Yoga du matin ; une seule requête, une parenthèse par ligne après VALUES. Une faute de frappe (l’atelier 15 n’existe pas)
-     fait refuser le groupe entier, aucune des trois lignes n’est ajoutée (moment 4 : l’élève touche la ligne fautive) ; corrigé,
-     le groupe ajoute les identifiants 9 à 11. Mail de l’équipe NutriBoost : Hugo Laurent a acheté un pack de 10 séances, or une seule
-     carte par client est autorisée dans la table cartes (UNIQUE sur client_id) : une seconde carte est refusée ; ON CONFLICT (client_id)
-     DO UPDATE SET seances_restantes = seances_restantes + 10 recharge la carte, de 8 à 18 séances (moment 5), tandis que DO NOTHING
-     la laisserait telle quelle. Moment 6 : on imagine que quatre clients achètent un pack, l’élève range chacun selon sa carte
-     (créée pour Chloé Moreau et Lucas Bernard, rechargée pour Sophie Martin et Nathan Petit). La fin annonce la prochaine leçon du
-     cours : « tu apprendras à modifier les données avec UPDATE ». Six moments « À toi », comme aux chapitres du projet ; leçon
-     seule : ni exercice ni quiz, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments
-     ratés. Elle remplace l’ancien cours texte INSERT (colonnes nommées ou non, valeurs inversées, RETURNING, exercice sur le Fer) et
-     l’ancien cours « INSERT multiple et gestion de conflit » (supprimé : plusieurs lignes d’un coup, ON CONFLICT repris ici ;
-     INSERT … SELECT, OR IGNORE, OR REPLACE et excluded laissés de côté). */
+     Karim Benali, le développeur back end, a rempli les tables jusqu’ici et passe la main (« Jusqu’ici, Karim, le développeur, s’est chargé
+     d’ajouter les données dans les tables de NutriBoost. À ton tour de prendre la main ! », mots d’Elisa) : quatre mails, trois situations.
+     Mail de Karim (congé, relais, première tâche urgente) : enregistrer l’inscription de Lucas Bernard à l’atelier Cuisine saine du
+     8 septembre. Une inscription est une ligne de la table inscriptions ; le client et l’atelier y sont repérés par leur identifiant, qu’on
+     trouve dans les tables clients et ateliers. Un second mail de Karim corrige : le 8 septembre est la date d’inscription, l’atelier Cuisine
+     saine a lieu le 19 septembre. Moment 1 : l’élève place les trois valeurs sous la colonne qui convient ; l’identifiant 8 de la nouvelle
+     ligne est attribué automatiquement. Trois fautes sont ensuite imaginées avant l’exécution : les deux premières valeurs inversées, ce qui
+     s’exécute sans erreur et inscrit Emma Dubois à l’atelier Pilates (moment 2) ; la date oubliée, qui vaut NULL, sans erreur ; l’atelier
+     oublié (« Et si tu oublies de préciser l’atelier dans ta requête ? »), refusé parce qu’il est obligatoire, NOT NULL (moment 3). Mail de
+     Moussa Diallo : Hugo Laurent, Gabriel Michel et Inès Lefebvre s’inscrivent à l’atelier Yoga du matin ; une seule requête, une parenthèse par
+     ligne après VALUES. Une faute de frappe (l’atelier 15 n’existe pas) fait refuser le groupe entier, aucune des trois lignes n’est ajoutée
+     (moment 4 : l’élève touche la ligne fautive) ; corrigé, le groupe ajoute les identifiants 9 à 11. Mail de l’équipe NutriBoost : Hugo Laurent
+     vient d’acheter un pack de 10 séances, or une seule carte par client est autorisée dans la table cartes (UNIQUE sur client_id) : une
+     seconde carte est refusée ; ON CONFLICT (client_id) DO UPDATE SET seances_restantes = seances_restantes + 10 recharge la carte, de 8 à 18
+     séances (moment 5), tandis que DO NOTHING la laisserait telle quelle. Moment 6 (« Et si quatre clients achètent un pack de 10 séances ? ») :
+     l’élève range chaque client selon sa carte (créée pour Chloé Moreau et Lucas Bernard, rechargée pour Sophie Martin et Nathan Petit) ;
+     la requête qui crée ou recharge reste affichée pendant la dernière légende. La fin annonce la prochaine leçon du cours : « tu apprendras
+     à modifier les données avec UPDATE ». Six moments « À toi », comme aux chapitres du projet ; leçon seule : ni exercice ni quiz, validée avec
+     4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments ratés. Elle remplace l’ancien cours texte INSERT (colonnes
+     nommées ou non, valeurs inversées, RETURNING, exercice sur le Fer) et l’ancien cours « INSERT multiple et gestion de conflit » (supprimé :
+     plusieurs lignes d’un coup, ON CONFLICT repris ici ; INSERT … SELECT, OR IGNORE, OR REPLACE et excluded laissés de côté). Récapitulatif
+     (24 octobre, mots d’Elisa) : trois titres sans numéro, chacun suivi de sa précision. */
   leconSeule:true,
-  video:{anim:'assets/anim/projet-insert.html?app&embed',thumb:'assets/anim/projet-insert-thumb.webp',duree:'4 min 05',moments:6,seuil:4,
-    /* « Ajouter à mes notes » : apparaît à 3 min 58 (238,15 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:238.15,y:1261,card:[64,292,1016,966],to:[940,255]}},
+  video:{anim:'assets/anim/projet-insert.html?app&embed',thumb:'assets/anim/projet-insert-thumb.webp',duree:'4 min 50',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 4 min 42 (282,4 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:282.4,y:1336,card:[64,292,1016,1041],to:[940,255]}},
   reflex:[
     {recap:[
-      ["✍️","<code>INSERT INTO</code> ajoute <b>une ligne</b> : les valeurs suivent l’ordre des colonnes.","Une colonne non citée vaut <code>NULL</code> ou sa valeur par défaut ; si elle est obligatoire, la requête est refusée."],
-      ["📚","Avec <code>VALUES</code>, on ajoute <b>plusieurs lignes</b> d’un coup : une parenthèse par ligne.","Si une seule ligne est refusée, aucune des lignes n’est ajoutée."],
-      ["🔁","<code>ON CONFLICT</code> permet de choisir quoi faire quand la ligne <b>existe déjà</b>.","<code>DO UPDATE</code> modifie la ligne existante ; <code>DO NOTHING</code> la laisse telle quelle."]
+      ["✍️","Ajouter une <b>ligne</b>","<code>INSERT INTO</code> ajoute une ligne dans une table. Les valeurs suivent l’ordre des colonnes indiquées. Une colonne omise reçoit sa valeur par défaut ou <code>NULL</code>. Si elle est obligatoire et sans valeur par défaut, l’ajout est refusé."],
+      ["📚","Ajouter <b>plusieurs lignes</b>","Après <code>VALUES</code>, écris un groupe de valeurs entre parenthèses par ligne, séparé par une virgule."],
+      ["🔁","Gérer un <b>doublon</b>","<code>ON CONFLICT</code> précise quoi faire si une valeur existe déjà dans une colonne qui doit rester unique&nbsp;:<br>• <code>DO UPDATE</code> met à jour la ligne existante.<br>• <code>DO NOTHING</code> ignore l’ajout et conserve la ligne existante."]
     ],label:"Les trois idées à retenir"}
   ]
 }),
@@ -9002,8 +9005,8 @@ guide({ id:68, titre:"ON DELETE", résumé:"Décider du sort des lignes liées",
      étrangère qui refuse au chapitre 10 ; laissé de côté : NULL qui échappe aussi à UNIQUE). */
   leconSeule:true,
   video:{anim:'assets/anim/projet-ondelete.html?app&embed',thumb:'assets/anim/projet-ondelete-thumb.webp',duree:'4 min 05',moments:6,seuil:4,
-    /* « Ajouter à mes notes » : apparaît à 3 min 57 (237,45 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:237.45,y:1261,card:[64,292,1016,966],to:[940,255]}},
+    /* « Ajouter à mes notes » : apparaît à 3 min 57 (237,4 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:237.4,y:1261,card:[64,292,1016,966],to:[940,255]}},
   reflex:[
     {recap:[
       ["🛑","Sans règle, la suppression d’une ligne <b>encore désignée</b> est refusée.","Le message d’erreur est <code>FOREIGN KEY constraint failed</code>."],
@@ -14767,6 +14770,17 @@ const LvSfx=(()=>{
     /* En pause : la balise silencieuse s’arrête (pas de lecteur sur l’écran verrouillé). À la fermeture : session rendue. */
     /* Appui pendant une lecture restée muette : le son se réveille. */
     wake(){ if(!ctx||ctx.state!=='running')this.resume(); },
+    /* Le son peut-il démarrer maintenant ? Oui si le contexte tourne déjà ou si l’on est dans un appui. Sur iPhone, un contexte
+       créé sans appui (cours ouvert par un lien, par exemple) reste muet jusqu’au prochain appui : la vidéo attend alors cet appui
+       au lieu de jouer sans son. Sans Web Audio, ou si le navigateur ne dit rien de l’activation, il n’y a rien à attendre. */
+    canStart(){
+      const c=ctx||init(); if(!c)return true;
+      if(c.state==='running')return true;
+      const ua=typeof navigator!=='undefined'?navigator.userActivation:null;
+      return !ua||!!ua.isActive;
+    },
+    /* Son demandé mais contexte bloqué (interrompu par un appel, une notification, un changement de sortie audio). */
+    stuck(){ return !muted&&!!ctx&&ctx.state!=='running'; },
     idle(){ if(silentEl)try{ silentEl.pause(); }catch(e){} },
     /* Fermeture du cours : session rendue et contexte fermé ; le cours suivant repart d’un contexte neuf,
        créé après la session « lecture » (sinon, sur iPhone, il pouvait rester muet en mode silencieux). */
@@ -14836,6 +14850,9 @@ class LvAnim{
   play(){
     LvSfx.resume(); LvSfx.setMuted(this._muted);
     if(this.dead)return Promise.reject(new Error('animation'));
+    /* Jamais de lecture silencieuse par surprise : si le son ne peut pas démarrer (cours ouvert sans appui), la vidéo attend
+       le premier appui sur Lire, qui la lance avec le son. Son coupé par l’élève : rien à attendre. */
+    if(!this._muted&&!LvSfx.canStart()){ const e=new Error('audio'); e.name='NotAllowedError'; e.audio=true; return Promise.reject(e); }
     if(this.ended){ this.ended=false; this.t=0; this._seekCues(); }
     if(!this.info){ this.wantPlay=true; return Promise.resolve(); }
     this._start(); return Promise.resolve();
@@ -14847,10 +14864,16 @@ class LvAnim{
   destroy(){ this.dead=true; this.paused=true; cancelAnimationFrame(this.raf); clearTimeout(this.timer); if(typeof LV==='undefined'||!LV){ LvSfx.stop(); LvSfx.idle(); LvSfx.release(); } this._l={}; try{ this.frame.src='about:blank'; }catch(e){} }
   _render(){ if(this.win)try{ this.win.renderAt(this.t); }catch(e){} }
   _seekCues(){ let i=0; while(i<this.cues.length&&this.cues[i].t<=this.t)i++; this.ci=i; }
-  _start(){ this.wantPlay=false; if(!this.paused||this.dead)return; this.paused=false; this.last=performance.now(); this._emit('play'); this._loop(); }
+  _start(){ this.wantPlay=false; if(!this.paused||this.dead)return; this.paused=false; this.last=performance.now(); this.deaf=0; this._emit('play'); this._loop(); }
   _loop(){
     this.raf=requestAnimationFrame(now=>{
       if(this.paused||this.dead)return;
+      /* Son bloqué en cours de lecture (interruption) : au bout de 2 s sans retour, la vidéo se met en pause plutôt que de continuer sans son ;
+         un appui sur Lire repart avec un contexte neuf. */
+      if(!this._muted&&LvSfx.stuck()){
+        if(!this.deaf)this.deaf=now;
+        else if(now-this.deaf>2000){ this.deaf=0; this.pause(); this._emit('blocked'); return; }
+      }else this.deaf=0;
       const dt=Math.min(.25,Math.max(0,(now-this.last)/1000)); this.last=now;
       let t=this.t+dt*this._rate, q=-1, pk=-1, op=-1;
       for(let i=0;i<this.questions.length;i++){ const qt=this.questions[i].t; if(qt>this.t&&qt<=t){ t=qt; q=i; break; } }
@@ -15009,6 +15032,8 @@ function openLessonVideo(){
   },{once:true});
   video.addEventListener('play',()=>{ root.classList.remove('is-paused','is-flash'); root.classList.add('has-played'); if(video.playbackRate!==LV_RATE)video.playbackRate=LV_RATE; if(LV&&LV.q)lvQClose(true); if(LV&&LV.pk)lvPkClose(true); if(LV&&LV.op)lvOpClose(); lvSyncPP(); });
   video.addEventListener('pause',()=>{ if(!video.ended)root.classList.add('is-paused'); lvSyncPP(); lvPosKeep(); });
+  /* Son bloqué en cours de lecture : la vidéo s’est mise en pause d’elle-même, le gros ▶ apparaît un instant. */
+  video.addEventListener('blocked',()=>{ if(LV&&LV.video===video)lvBigFlash(); });
   video.addEventListener('timeupdate',()=>{
     if(!LV||LV.video!==video)return;
     if(!LV.seeking)lvSyncSeek();
@@ -15113,6 +15138,8 @@ function lvPlay(){
   const p=V.play();
   if(p&&p.catch)p.catch(err=>{
     if(!LV||LV.video!==V)return;
+    /* Le son ne peut pas démarrer (cours ouvert sans appui) : la vidéo attend, le gros ▶ invite à toucher ; l’appui la lance avec le son. */
+    if(err&&err.audio){ LV.root.classList.add('is-paused'); lvSyncPP(); return; }
     /* Lecture automatique avec le son refusée (web, sans geste) : on relance sans le son, le bouton permet de le remettre. */
     if(err&&err.name==='NotAllowedError'&&!V.muted){
       V.muted=true;lvSyncMute();
@@ -24998,7 +25025,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2022';
+  const SW_CACHE='requete-2026-10-12-ludique-v2023';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

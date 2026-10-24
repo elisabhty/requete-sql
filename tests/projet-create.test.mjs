@@ -209,16 +209,16 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
   assert.ok(D.OPENS[0].at < D.CHAPTERS[1].a && D.OPENS[1].at > D.PICKS[3].at && D.OPENS[1].at < D.PICKS[4].from, 'chaque mail avant le moment qui s’en sert');
   /* L’annonce du chapitre suivant, sous son vrai titre. */
   assert.ok(page.includes('<span class="emo">🔧</span>Chapitre 5 · ALTER TABLE</span>'), 'pilule « 🔧 Chapitre 5 · ALTER TABLE »');
-  /* Les trois idées à retenir : un titre numéroté, puis sa précision (comme dans la leçon « Quel JOIN choisir ? »). */
+  /* Les trois idées à retenir : un titre (sans numéro), puis sa précision (comme dans la leçon « Quel JOIN choisir ? »). */
   const recap = page.slice(page.indexOf('<div class="abs card recap" id="recap">'), page.indexOf('</section>', page.indexOf('id="recap"')));
   const rows = [...recap.matchAll(/<div class="rtxt">([\s\S]*?)<\/div><\/div>/g)].map(m => m[1]);
   const phrase = r => flat(r.split('<span class="rs">')[0]), prec = r => r.includes('<span class="rs">') ? flat(r.slice(r.indexOf('<span class="rs">'))) : null;
   assert.deepEqual(rows.map(r => [phrase(r), prec(r)]), [
-    ['1. Créer une table', 'CREATE TABLE définit son nom et ses colonnes. Pour y ajouter des lignes, on utilise INSERT INTO.'],
-    ['2. Définir les colonnes', 'Chaque colonne possède un nom et un type de données. Par exemple, seances INTEGER permet de stocker un nombre entier de séances.'],
-    ['3. Définir les règles', 'Les contraintes encadrent les données : identifiant unique (PRIMARY KEY), valeur obligatoire (NOT NULL), absence de doublons (UNIQUE), condition à respecter (CHECK) et relation avec une autre table (FOREIGN KEY).']], 'récapitulatif');
+    ['Créer une table', 'CREATE TABLE définit son nom et ses colonnes. Pour y ajouter des lignes, on utilise INSERT INTO.'],
+    ['Définir les colonnes', 'Chaque colonne possède un nom et un type de données. Par exemple, seances INTEGER permet de stocker un nombre entier de séances.'],
+    ['Définir les règles', 'Les contraintes encadrent les données : identifiant unique (PRIMARY KEY), valeur obligatoire (NOT NULL), absence de doublons (UNIQUE), condition à respecter (CHECK) et relation avec une autre table (FOREIGN KEY).']], 'récapitulatif');
   assert.ok(['🏗️', '🔤', '🛡️'].every(e => recap.includes(`<div class="rico emo">${e}</div>`)), 'emoji des trois idées');
-  assert.ok(rows[0].includes('1. Créer une <b>table</b>') && rows[1].includes('2. Définir les <b>colonnes</b>') && rows[2].includes('3. Définir les <b>règles</b>'), 'les notions en gras');
+  assert.ok(rows[0].includes('Créer une <b>table</b>') && rows[1].includes('Définir les <b>colonnes</b>') && rows[2].includes('Définir les <b>règles</b>'), 'les notions en gras');
   /* La dernière précision arrive à 198,05 s : sa pause de lecture (198,55) est aussi celle de la bulle (fin à 198,8), une seule pause. */
   assert.ok(page.includes('[[194.3, 195.05], [195.7, 196.45], [197.1, 198.05]].forEach(([r, d], i) => {') && D.CAPTIONS.some(c => c[1] === 198.8 && c[3] === 4), 'une seule pause à la fin : celle du récapitulatif');
 });

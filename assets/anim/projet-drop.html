@@ -15,6 +15,9 @@
 /* Aperçu d’un geste (moment « À toi ») : il prend le pas sur la timeline, le temps de l’arrêt ; il montre exactement
    l’image que la timeline affiche juste après l’arrêt, qui reprend donc sans saut. */
 .pvs{opacity:1!important;visibility:visible!important}
+/* Aperçu en douceur : une ligne barrée en rouge qui accompagne une bonne réponse n’apparaît jamais d’un coup, ni avant le verdict « Bien vu ! » */
+.pvf{visibility:visible!important;animation:pvf .45s ease-out both}
+@keyframes pvf{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 
 /* Couleur de chaque sujet : coach, atelier, client, carte de membre, inscription, développeur, copie du fichier Excel,
    puis les tables de la boutique que la base compte aussi : commande (comme au chapitre 3), produit, fidélité */
@@ -54,6 +57,7 @@
 /* Barre rouge sur le nom d’une table qui va être supprimée */
 .nm .sk{position:absolute;left:-4px;right:-4px;top:55%;height:5px;border-radius:3px;background:var(--danger-fill);transform-origin:0 50%;transform:scaleX(0)}
 .nm .sk.pvs{transform:scaleX(1)!important}
+.nm .sk.pvf{transform:scaleX(1)!important}   /* la barre apparaît tracée en entier, en fondu */
 .nb{display:inline-grid;font-family:var(--ui);font-size:23px;font-weight:700;color:var(--ink-3)}
 .nb>span{grid-area:1/1;display:flex;align-items:center;justify-content:flex-end;height:36px;padding:0 14px;border-radius:999px;background:var(--line-2);white-space:nowrap}
 .tg{height:36px;padding:0 14px;border-radius:10px;background:var(--cs);color:var(--ci);font-family:var(--ui);font-size:19px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;white-space:nowrap}
@@ -720,6 +724,9 @@ const IX = (() => {
   }
   const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
   const marks = (sels, c = 'pvs') => sels.forEach(s => $$(s).forEach(e => mark(e, c)));
+  /* Une bonne réponse dont l’aperçu montre une perte (la ligne barrée en rouge) : le verdict arrive 260 ms après le choix ;
+     l’aperçu n’apparaît qu’après lui, en fondu (Elisa, 24 octobre : « un truc rouge rapide puis le bien vu »). */
+  const soft = (sels, ms = 450) => { const i = X.i; X.tm.push(setTimeout(() => { if (X && X.i === i) marks(sels, 'pvf'); }, ms)); };
   /* La classe est aussi notée dans X.cls : si le moment change avant la fin du minuteur (deux réponses enchaînées), clear() la retire. */
   const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
   const rowOf = k => $('#rw-' + k);
@@ -770,7 +777,7 @@ const IX = (() => {
       sfx(ok ? 'pop' : 'miss', 2, 0.5);
     }
     if (i === 4) {
-      if (k === 1) marks(['#rw-in .sk', '#rw-in .xx', '#o5']);
+      if (k === 1) soft(['#rw-in .sk', '#rw-in .xx', '#o5']);   // la table disparaît : après le verdict
       if (k === 0) flash(rowOf('in'), 'kob', 480);
       if (k === 2) flash($('#ed5'), 'kob', 480);
       sfx(ok ? 'pop' : 'miss', 2, 0.5);
