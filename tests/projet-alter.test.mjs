@@ -291,7 +291,7 @@ test(`${FILE} : le cas NutriBoost des chapitres 2 à 4, et chaque requête montr
 CREATE TABLE ateliers (
   id INTEGER PRIMARY KEY,
   titre TEXT NOT NULL,
-  date_atelier TEXT,
+  date_atelier DATE,
   coach_id INTEGER NOT NULL,
   FOREIGN KEY (coach_id) REFERENCES coachs(id)
 );
@@ -299,7 +299,7 @@ CREATE TABLE inscriptions (
   id INTEGER PRIMARY KEY,
   client_id INTEGER NOT NULL,
   atelier_id INTEGER NOT NULL,
-  date_inscription TEXT,
+  date_inscription DATE,
   FOREIGN KEY (client_id) REFERENCES clients(id),
   FOREIGN KEY (atelier_id) REFERENCES ateliers(id)
 );
@@ -326,7 +326,7 @@ CREATE TABLE cartes (
   for (const k of Object.keys(H.SQL)) for (const [, l] of H.SQL[k]) assert.ok(l.replace(/<sl\w+\|([^<>]*)>/g, '$1').replace(/<gh\|([^<>]*)>/g, '$1').replace(/[{}]|\w+\|/g, '').length <= 53, `ligne de ${k} : 53 caractères au plus`);
   /* 2 · Recréer la table : refusé, avec le message montré. */
   assert.equal(H.RECREE[1], 'table ateliers already exists');
-  assert.throws(() => db.run('CREATE TABLE ateliers (id INTEGER PRIMARY KEY, titre TEXT NOT NULL, date_atelier TEXT, coach_id INTEGER NOT NULL, FOREIGN KEY (coach_id) REFERENCES coachs(id));'),
+  assert.throws(() => db.run('CREATE TABLE ateliers (id INTEGER PRIMARY KEY, titre TEXT NOT NULL, date_atelier DATE, coach_id INTEGER NOT NULL, FOREIGN KEY (coach_id) REFERENCES coachs(id));'),
     new RegExp(H.RECREE[1]), 'la table existe déjà');
   /* Moment 1 : NOT NULL est refusé ; CHECK ne donne aucune valeur ; DEFAULT 12 donne 12 aux cinq ateliers, sans perdre une ligne. */
   assert.throws(() => db.run('ALTER TABLE ateliers ADD COLUMN places INTEGER NOT NULL;'), /Cannot add a NOT NULL column with default value NULL/, 'NOT NULL : la requête serait refusée');

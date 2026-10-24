@@ -890,8 +890,8 @@ const COURSES = [
       "const SHOP_ASSOCS = ASSOCS.concat([['pa', 'passe', '▾', 'cl', '0..1', 'cm', '0..*'], ['ce', 'concerne', '◂', 'cm', '0..*', 'pr', '1']]);",
       '<line id="ln-an"/><line id="ln-po"/><line id="ln-in"/><line id="ln-cx" class="dash"/>', "tl.to('#sb .mp:not(.ask) .mn', {opacity: 0.28,",
       'Prochaine leçon · CREATE TABLE']},
-  {id: 61, next: 65, titre: 'CREATE TABLE', page: 'projet-create.html', thumb: 'projet-create-thumb.webp', duree: '4 min 42', notesAt: 201.4,
-    notes: /notes:\{t:274\.6,y:1185,card:\[64,292,1016,890\],to:\[940,255\]\}/, table: 'coachs',
+  {id: 61, next: 65, titre: 'CREATE TABLE', page: 'projet-create.html', thumb: 'projet-create-thumb.webp', duree: '4 min 43', notesAt: 201.4,
+    notes: /notes:\{t:276\.2,y:1185,card:\[64,292,1016,890\],to:\[940,255\]\}/, table: 'coachs',
     bubble: 'Le plan est prêt&nbsp;: à toi de construire<br>les tables avec <span class="ic">CREATE TABLE</span>.',
     chapters: ['Le plan', 'La table coachs', 'L’ordre des tables', 'La table ateliers', 'La carte de membre', 'Exécuter', 'À retenir'],
     traps: ["co: ['🧑‍🏫', 'coachs', [['id', 'INTEGER', 'pk'], ['prenom', 'TEXT', '', 1], ['nom', 'TEXT', '', 1], ['email', 'TEXT', '', 1]]],",
@@ -1577,7 +1577,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   /* Les tables sont créées par les requêtes montrées dans la vidéo (« … » : les autres colonnes de la table, écrites ici). Celles
      d’inscriptions et de cartes sont complètes ; la table d’association reprend les deux clés étrangères d’inscriptions. */
   const sqlText = k => D.SQL[k].map(([, l]) => l.replace(/[{[]\w+\||[}\]]/g, '')).join('\n');
-  const autres = {pk: '  prenom TEXT, nom TEXT, email TEXT', at: '  id INTEGER PRIMARY KEY, titre TEXT, date_atelier TEXT, coach_id INTEGER,'};
+  const autres = {pk: '  prenom TEXT, nom TEXT, email TEXT', at: '  id INTEGER PRIMARY KEY, titre TEXT, date_atelier DATE, coach_id INTEGER,'};
   const ddl = k => sqlText(k).replace('  …', autres[k]);
   assert.ok(!sqlText('fk').includes('…') && !sqlText('ca').includes('…') && sqlText('pk').includes('…') && sqlText('at').includes('…'), 'requêtes complètes, ou « … » pour les autres colonnes');
   const fkLines = k => sqlText(k).split('\n').filter(l => /FOREIGN KEY|REFERENCES/.test(l)).map(l => l.trim().replace(/,$/, ''));
@@ -2038,9 +2038,10 @@ test('légendes : une 4e valeur [début, fin, texte, 4] autorise quatre lignes, 
     "tl.to(capCard, {top: capCard.offsetTop, height: capCard.offsetHeight, duration: 0.3, ease: 'power2.in'}, b - 0.2);",
     "if (lines > (captions[i][3] || 3)) out.push({i, lines, text: captions[i][2]});", "lines.length > (+el.closest('.c').dataset.lines || 3)"])
     assert.ok(core.includes(part), `quatre lignes : ${part}`);
-  /* Sans 4e valeur, une légende reste limitée à trois lignes dans toutes les autres leçons. */
+  /* Sans 4e valeur, une légende reste limitée à trois lignes dans toutes les autres leçons
+     (projet-create.html en a une seule : la phrase sur le 1 du côté de Coach, épinglée dans son propre test). */
   for (const f of fs.readdirSync(path.join(ROOT, 'assets/anim')).filter(f => f.endsWith('.html')))
-    if (f !== 'projet-uml.html') assert.ok(!/\n\s*\[[\d.]+, [\d.]+, ("[^\n]*"|'[^\n]*'), 4\],?/.test(fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8')), `${f} : aucune légende de quatre lignes`);
+    if (f !== 'projet-uml.html' && f !== 'projet-create.html') assert.ok(!/\n\s*\[[\d.]+, [\d.]+, ("[^\n]*"|'[^\n]*'), 4\],?/.test(fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8')), `${f} : aucune légende de quatre lignes`);
 });
 
 test('mise en page (?check) : un élément ou un texte qui sort de son cadre est signalé (pastille, colonnes)', () => {

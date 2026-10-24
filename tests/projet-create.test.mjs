@@ -41,7 +41,10 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
   assert.ok(page.includes('const QUESTIONS = [];') && !/kicker: '/.test(page), 'pas de question en pleine vidéo');
   assert.ok(page.includes('beforeRender: t => IX.tick(t)});') && page.includes('tick(t = tl.time()){') && !page.includes('onRender: () => IX.tick()') && page.includes('window.IX = IX;'), 'aperçu retiré avant le rendu');
   assert.ok(!/text-wrap\s*:\s*pretty/.test(page), 'retours à la ligne classiques');
-  assert.ok(!/\n\s*\[[\d.]+, [\d.]+, ("[^\n]*"|'[^\n]*'), 4\],?/.test(page), 'aucune légende de quatre lignes');
+  /* Une seule légende de quatre lignes (4e valeur : la carte monte le temps de la lire) : la phrase sur le 1 du côté de Coach,
+     123 caractères dont aucune coupe en trois lignes ne tient sans écraser les lettres ni finir une ligne sur un mot court. */
+  assert.equal((page.match(/\n\s*\[[\d.]+, [\d.]+, ("[^\n]*"|'[^\n]*'), 4\],?/g) || []).length, 1, 'une seule légende de quatre lignes');
+  assert.ok(page.includes('[115.95, 120.6, "Le <code>1</code> du côté de Coach signifie<br>que chaque atelier est animé<br>par un seul coach :<br>il ne peut en avoir ni zéro ni plusieurs.", 4],'), 'la légende du 1 côté Coach, en quatre lignes');
   /* Même budget que le test COURSES : page + vignette + moteur + GSAP + mascotte + 5 polices < 450 Kio. */
   const FONTS = ['jetbrains-mono.woff2', 'inter-medium.woff2', 'inter-semibold.woff2', 'inter-bold.woff2', 'inter-extrabold.woff2'];
   let total = 0;
@@ -156,12 +159,12 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
     'La table inscriptions viendra après la table ateliers, à laquelle elle fait référence.',
     'La table ateliers a un titre obligatoire, une date et le coach qui anime l’atelier.',
     'À toi !',
-    'Dans cette base, une date s’écrit en texte, au format année-mois-jour : \'2026-09-12\'.',
+    'Une date a son propre type : DATE, au format année-mois-jour, comme \'2026-09-12\'.',
     'coach_id est un entier, comme l’identifiant auquel il fait référence.',
     'La clé étrangère se déclare avec FOREIGN KEY et REFERENCES, comme au chapitre 2.',
     'Reste à savoir si coach_id peut rester vide.',
     'À toi !',
-    'C’est le 1 du côté de la classe Coach : chaque atelier a exactement un coach, jamais zéro.',
+    'Le 1 du côté de Coach signifie que chaque atelier est animé par un seul coach : il ne peut en avoir ni zéro ni plusieurs.',
     'Pas d’atelier sans coach : coach_id ne doit jamais être vide, on ajoute NOT NULL.',
     'Vient ensuite la table inscriptions, écrite sur le même modèle.',
     'Une inscription concerne toujours un client et un atelier : ses deux clés étrangères sont NOT NULL.',
@@ -213,7 +216,7 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
 
 test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices, la réponse posée juste après l’arrêt`, () => {
   const P = D.PICKS;
-  const W = load(FILE, 'TYPES, COLS3, KW5, REGLES, ORDRE_WHY, ASSOCS, SQL');
+  const W = load(FILE, 'TYPES, TYPES3, COLS3, KW5, REGLES, ORDRE_WHY, ASSOCS, SQL');
   /* 1 · le trou de la requête des coachs : PRIMARY KEY */
   assert.ok(!P[0].text && flat(P[0].prompt) === 'Quelle contrainte permet à id d’identifier chaque coach ?');
   assert.deepEqual(P[0].options, [{label: 'UNIQUE', why: 'UNIQUE interdit les doublons, mais l’id d’un coach pourrait rester vide (NULL).'},
@@ -228,8 +231,10 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
   /* 3 · ranger les colonnes de la table ateliers selon leur type (la case REAL reste vide) */
   assert.ok(P[2].prompt === 'Range chaque colonne de la table ateliers selon son type : une case peut rester vide.'
     && P[2].hint === 'Touche une colonne, puis le type qui lui correspond. Tu peux aussi la faire glisser directement.' && P[2].next === '{x} : touche maintenant son type.');
-  assert.deepEqual(W.TYPES.map(t => [t[0], t[1]]), [['int', 'INTEGER'], ['real', 'REAL'], ['text', 'TEXT']], 'les trois cases : INTEGER, REAL, TEXT');
-  assert.deepEqual(W.COLS3, [['titre', 'text', 'Un titre est du texte.'], ['date_atelier', 'text', '\'2026-09-12\' contient des tirets : ce n’est pas un nombre.'],
+  assert.deepEqual(W.TYPES.map(t => [t[0], t[1]]), [['int', 'INTEGER'], ['real', 'REAL'], ['text', 'TEXT']], 'les trois types du chapitre 2 : INTEGER, REAL, TEXT');
+  assert.deepEqual(W.TYPES3.map(t => [t[0], t[1], t[2], t[3]]), [['int', 'INTEGER', 'nombre entier', '10'], ['real', 'REAL', 'nombre à virgule', '29.90'], ['text', 'TEXT', 'texte', '\'Salma\''],
+    ['date', 'DATE', 'date', '\'2026-09-12\'']], 'les quatre cases du moment 3 : INTEGER, REAL, TEXT, et DATE en plus');
+  assert.deepEqual(W.COLS3, [['titre', 'text', 'Un titre est du texte.'], ['date_atelier', 'date', 'date_atelier contient une date, comme \'2026-09-12\' : une date a son propre type.'],
     ['coach_id', 'int', 'coach_id contient l’identifiant d’un coach : un nombre entier, comme id.']]);
   assert.deepEqual(P[2].options.map(o => o.label), ['titre', 'date_atelier', 'coach_id']);
   assert.ok(!W.COLS3.some(c => c[1] === 'real'), 'la case REAL reste vide');
@@ -254,7 +259,7 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
   assert.ok(page.includes('<i class="z0">0 ligne</i><i class="z1">${ATELIERS.length} lignes ?</i><i class="z2">1 ligne vide ?</i>'), 'chaque réponse se voit sur la table ateliers');
   /* L’indice 💡 de chaque moment, après deux erreurs : une piste, passée par la typographie française. */
   for (const h of ["'Il faut une valeur à la fois unique et jamais vide : la clé du chapitre 2.',", "'Suis les flèches : chaque table vise-t-elle une table déjà là ?',",
-    "'Pour chaque colonne, imagine une valeur : des lettres, des chiffres, des tirets ?',", "'Pour un atelier donné, combien de coachs ? Ce nombre s’écrit du côté de la classe Coach.',",
+    "'Pour chaque colonne, imagine une valeur : des lettres, un nombre, une date ?',", "'Pour un atelier donné, combien de coachs ? Ce nombre s’écrit du côté de la classe Coach.',",
     "'Valeur de départ, condition à vérifier, pas de doublon : à chaque règle son mot-clé.',", "'CREATE TABLE décrit les colonnes : qui a déjà enregistré des ateliers dans cette table ?'][i];",
     'return h ? {text: fr(h)} : null;'])
     assert.ok(page.includes(h), `indice : ${h.slice(0, 60)}`);
@@ -267,7 +272,7 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
     assert.ok(page.includes(s), `réponse : ${s}`);
   [0, 1, 2, 3, 4, 5].forEach(i => assert.ok(page.includes(`const a${i} = +(PICKS[${i}].at + 0.02).toFixed(2);`), `a${i}`));
   /* Moment 3 : le « ? » prêtait à confusion. Chaque trou du code et de l’aperçu dit « type », en jaune, et les trois noms de types
-     (INTEGER, REAL, TEXT) sont surlignés de la même couleur ; ils clignotent à l’ouverture du moment et ne sont plus surlignés une fois la réponse posée. */
+     (INTEGER, REAL, TEXT, DATE) sont surlignés de la même couleur ; ils clignotent à l’ouverture du moment et ne sont plus surlignés une fois la réponse posée. */
   assert.ok(['at3', 'at4', 'at5'].every((id, q) => W.SQL.at.some(([lid, l]) => lid === id && l.includes(`<sl2${'abc'[q]}|`))), 'les trois trous du moment 3 : titre, date_atelier, coach_id');
   for (const s of ["<span class=\"se\">${/^sl2/.test(id) ? 'type' : '?'}</span>",                                  // le trou du code : « type » au moment 3, « ? » au moment 1
     "${k === 'at' ? '<i class=\"t0\">type</i>' : ''}",                                                              // la case de l’aperçu : « type », seulement pour la table ateliers
@@ -282,12 +287,19 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
     "if (X && X.hot && t >= PICKS[2].at + 0.0199) { X.hot = false; M3_HOT.forEach(s => $$(s).forEach(e => e.classList.remove('hot'))); }"])   // rouvert déjà réussi : plus de clignotement
     assert.ok(page.includes(s), `types surlignés : ${s.slice(0, 70)}`);
   assert.ok(!page.includes('<i class="t0">?</i>'), 'plus de « ? » dans l’aperçu');
-  assert.ok(96.12 > 95.8 + 0.12 * 2 && 96.12 + 2 * 0.18 < D.PICKS[2].at - 1.35, 'le battement des cases « type » se voit : après l’arrivée des types, fini avant le passage coupé');
+  assert.ok(96.12 > 95.8 + 0.09 * 3 && 96.12 + 2 * 0.18 < D.PICKS[2].at - 1.35, 'le battement des cases « type » se voit : après l’arrivée des types, fini avant le passage coupé');
+  assert.ok(95.8 + 0.09 * (W.TYPES3.length - 1) + 0.4 < D.PICKS[2].at - 1.35, 'la quatrième carte de type a fini d’arriver avant le passage coupé');
+  /* DATE : une quatrième carte, un exemple qui se voit tout de suite (plus de TEXT qui change d’exemple), animée quand la bulle la nomme. */
+  for (const s of ["TYPES3.map(([k, ty, d, ex]) => `<div class=\"abs tyc tyb\" id=\"tb-${k}\" style=\"left:556px\"><div class=\"tyl\"><b>${ty}</b><span>${d}</span><i class=\"ex\">${ex}</i></div><div class=\"rcs\">`",
+    "if (i === 2) return TYPES3.map(([k, ty]) => Object.assign({k, label: `Type ${ty}`}, rel($('#tb-' + k))));", "stack(TYPES3.map(t => '#tb-' + t[0]), G.pvAt[0]);",
+    "TYPES3.forEach(([k], q) => { show('#tb-' + k, 95.8 + q * 0.09,", "bump('#tb-date', 100.05, 1.05);", "bump('#tb-date .ex', 101.45, 1.12);"])
+    assert.ok(page.includes(s), `carte DATE : ${s.slice(0, 70)}`);
+  assert.ok(!/class="sw|\.sw\b|\.ex[01]\b|tb-text \./.test(page), 'plus de TEXT qui change d’exemple');
   /* Les noms des types gardent leur surlignage pendant tout l’arrêt : rien dans IX.act ne l’efface avant la dernière colonne rangée. */
   assert.ok(page.includes("if (X.got.size === COLS3.length) marks(['.tyb'], 'pvb');"), 'le surlignage s’efface avec la dernière colonne rangée');
   /* Les gestes de la timeline, chacun pendant la bulle qui en parle. */
   for (const s of ["show('#st-cl', 21.3,", "slotIn('sl0', 46.6);", "FLECHES.forEach(([id], q) => draw('#' + id, 73.0 + q * 0.6, 0.5));", "pop('#od-co', 86.5, 0.5);",
-    "tl.fromTo('#tb-text .ex1',", "sqMore('an1', 123.1);", "sqMore('cdf', 157.3);", "sqMore('cck', 161.0, 30);", "press($('#run'), 171.6);", "show('#okm', 172.4,",
+    "bump('#tb-date .ex', 101.45, 1.12);", "sqMore('an1', 123.1);", "sqMore('cdf', 157.3);", "sqMore('cck', 161.0, 30);", "press($('#run'), 171.6);", "show('#okm', 172.4,",
     "tl.fromTo('#db .n8',", "show('#ins', 186.9,", "show('#keyc', 191.1,"])
     assert.ok(page.includes(s), `geste : ${s}`);
 });
@@ -317,8 +329,8 @@ test(`${FILE} : le cas NutriBoost des chapitres 2 et 3, et chaque requête montr
   /* Le schéma canonique de la fin du chapitre 4 (le chapitre 5 en part) : mot pour mot le SQL du scénario. */
   assert.deepEqual(H.ORDRE.map(sqlText), [
     'CREATE TABLE coachs (\n  id INTEGER PRIMARY KEY,\n  prenom TEXT NOT NULL,\n  nom TEXT NOT NULL,\n  email TEXT UNIQUE\n);',
-    'CREATE TABLE ateliers (\n  id INTEGER PRIMARY KEY,\n  titre TEXT NOT NULL,\n  date_atelier TEXT,\n  coach_id INTEGER NOT NULL,\n  FOREIGN KEY (coach_id) REFERENCES coachs(id)\n);',
-    'CREATE TABLE inscriptions (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER NOT NULL,\n  atelier_id INTEGER NOT NULL,\n  date_inscription TEXT,\n  FOREIGN KEY (client_id) REFERENCES clients(id),\n  FOREIGN KEY (atelier_id) REFERENCES ateliers(id)\n);',
+    'CREATE TABLE ateliers (\n  id INTEGER PRIMARY KEY,\n  titre TEXT NOT NULL,\n  date_atelier DATE,\n  coach_id INTEGER NOT NULL,\n  FOREIGN KEY (coach_id) REFERENCES coachs(id)\n);',
+    'CREATE TABLE inscriptions (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER NOT NULL,\n  atelier_id INTEGER NOT NULL,\n  date_inscription DATE,\n  FOREIGN KEY (client_id) REFERENCES clients(id),\n  FOREIGN KEY (atelier_id) REFERENCES ateliers(id)\n);',
     'CREATE TABLE cartes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER NOT NULL UNIQUE,\n  seances INTEGER DEFAULT 10 CHECK (seances >= 0),\n  FOREIGN KEY (client_id) REFERENCES clients(id)\n);'],
     'les quatre requêtes de schema.sql, dans l’ordre du fichier');
   for (const k of H.ORDRE) for (const [, l] of H.SQL[k]) assert.ok(l.replace(/<sl\w+\|([^<>]*)>/g, '$1').replace(/[{[]\w+\||[}\]]/g, '').length <= 53, `ligne de ${k} : 53 caractères au plus (« ${l} »)`);
@@ -378,8 +390,11 @@ test(`${FILE} : le cas NutriBoost des chapitres 2 et 3, et chaque requête montr
   db.run(`INSERT INTO coachs VALUES ${rows(H.COACHS.map(c => c.slice(0, 4)))}; INSERT INTO ateliers VALUES ${rows(H.ATELIERS)};
     INSERT INTO inscriptions VALUES ${rows(H.INSCR.concat([H.NOUVELLE]))}; INSERT INTO cartes VALUES ${rows(H.CARTES)};`);
   assert.equal(q('SELECT (SELECT COUNT(*) FROM coachs), (SELECT COUNT(*) FROM ateliers), (SELECT COUNT(*) FROM inscriptions), (SELECT COUNT(*) FROM cartes)'), '[[4,5,7,3]]');
-  /* Moment 3 et bulle 20 : une date s’écrit en texte ; coach_id est un entier. */
+  /* Moment 3 et bulle 20 : date_atelier est de type DATE, coach_id un entier. SQLite n’a pas de stockage propre aux dates : la valeur « année-mois-jour » est gardée en texte. */
+  assert.equal(q("SELECT name, type FROM pragma_table_info('ateliers') WHERE name IN ('date_atelier', 'coach_id') ORDER BY name"), '[["coach_id","INTEGER"],["date_atelier","DATE"]]');
+  assert.equal(q("SELECT type FROM pragma_table_info('inscriptions') WHERE name = 'date_inscription'"), '[["DATE"]]', 'la date d’une inscription aussi');
   assert.equal(q('SELECT DISTINCT typeof(date_atelier), typeof(coach_id) FROM ateliers'), '[["text","integer"]]');
+  assert.equal(q("SELECT strftime('%d/%m/%Y', date_atelier) FROM ateliers WHERE id = 1"), q("SELECT strftime('%d/%m/%Y', '" + H.ATELIERS[0][2] + "')"), 'une date « année-mois-jour » se lit comme une date');
   /* Moment 4 et bulle 25 : pas d’atelier sans coach (ni avec un coach qui n’existe pas). */
   assert.throws(() => db.run("INSERT INTO ateliers (id, titre, date_atelier) VALUES (6, 'Stretching', '2026-10-10');"), /NOT NULL constraint failed: ateliers\.coach_id/, 'coach_id obligatoire');
   assert.throws(() => db.run("INSERT INTO ateliers VALUES (6, 'Stretching', '2026-10-10', 9);"), /FOREIGN KEY constraint failed/, 'un coach qui existe');

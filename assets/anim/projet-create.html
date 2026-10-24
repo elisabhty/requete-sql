@@ -127,7 +127,7 @@
 .pbf{position:relative;height:44px;margin:6px 14px 0;border-radius:14px;background:var(--line-2);display:grid;font-size:22px;font-weight:700;color:var(--ink-3);opacity:0;visibility:hidden}
 .pbf i{grid-area:1/1;display:flex;align-items:center;justify-content:center;font-style:normal;opacity:0;visibility:hidden}
 .pbf.zb{background:var(--danger-soft);color:var(--danger);box-shadow:inset 0 0 0 3px var(--danger-fill)}
-/* Les types : INTEGER, REAL, TEXT (au chapitre 4, des cases où ranger les colonnes) */
+/* Les types : INTEGER, REAL, TEXT (au chapitre 4, des cases où ranger les colonnes, avec DATE en plus) */
 .tyc{width:460px;min-height:90px;padding:0 24px;border-radius:28px;display:flex;flex-direction:column;justify-content:center;gap:10px}
 .tyl{display:flex;align-items:center;gap:16px;white-space:nowrap}
 .tyc b{font-family:var(--mono);font-size:30px;font-weight:800;color:var(--accent-ink)}
@@ -140,8 +140,6 @@
 .hot{animation:hot 1.2s ease-in-out 2}
 @keyframes hot{50%{box-shadow:0 0 0 5px rgba(255,205,70,.85)}}
 .rcs{display:flex;gap:10px;height:42px}
-.sw{display:inline-grid}
-.sw>*{grid-area:1/1;font-style:normal;white-space:pre}
 .rc{padding:0 14px;height:42px;display:flex;align-items:center;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);box-shadow:inset 0 0 0 3px #C9BCFF;font-family:var(--mono);font-size:22px;font-weight:700;white-space:nowrap;opacity:0;visibility:hidden}
 /* Les règles de la carte de membre, et le mot-clé de chacune */
 .kwc{width:460px;height:84px;padding:0 26px;border-radius:26px;display:flex;align-items:center;gap:18px;white-space:nowrap}
@@ -305,8 +303,8 @@ const FLECHES = [['fa-at', 'at', 'co'], ['fa-ca', 'ca', 'cl'], ['fa-i1', 'in', '
    1 si une contrainte la protège]. La table clients existe déjà dans la base. */
 const TABLES = {
   co: ['🧑‍🏫', 'coachs', [['id', 'INTEGER', 'pk'], ['prenom', 'TEXT', '', 1], ['nom', 'TEXT', '', 1], ['email', 'TEXT', '', 1]]],
-  at: ['📅', 'ateliers', [['id', 'INTEGER', 'pk'], ['titre', 'TEXT', '', 1], ['date_atelier', 'TEXT'], ['coach_id', 'INTEGER', 'co', 1]]],
-  in: ['📝', 'inscriptions', [['id', 'INTEGER', 'pk'], ['client_id', 'INTEGER', 'cl', 1], ['atelier_id', 'INTEGER', 'at', 1], ['date_inscription', 'TEXT']]],
+  at: ['📅', 'ateliers', [['id', 'INTEGER', 'pk'], ['titre', 'TEXT', '', 1], ['date_atelier', 'DATE'], ['coach_id', 'INTEGER', 'co', 1]]],
+  in: ['📝', 'inscriptions', [['id', 'INTEGER', 'pk'], ['client_id', 'INTEGER', 'cl', 1], ['atelier_id', 'INTEGER', 'at', 1], ['date_inscription', 'DATE']]],
   ca: ['💳', 'cartes', [['id', 'INTEGER', 'pk'], ['client_id', 'INTEGER', 'cl', 1], ['seances', 'INTEGER', '', 1]]]
 };
 /* L’ordre des requêtes dans schema.sql : une table vient après celles auxquelles ses clés étrangères font référence. */
@@ -321,10 +319,10 @@ const SQL = {
     ['co2', '  {c2n|id} {c2t|INTEGER}<sl0| PRIMARY KEY>,'], ['co3', '  prenom TEXT[cn1| NOT NULL],'], ['co4', '  nom TEXT[cn2| NOT NULL],'],
     ['co5', '  email TEXT[cuq| UNIQUE]'], ['co6', '{c6p|)};']],
   at: [['at1', 'CREATE TABLE {atn|ateliers} ('], ['at2', '  id INTEGER PRIMARY KEY,'], ['at3', '  titre<sl2a| TEXT> NOT NULL,'],
-    ['at4', '  date_atelier<sl2b| TEXT>,'], ['at5', '  coach_id<sl2c| INTEGER>[an1| NOT NULL][acm|,]'],
+    ['at4', '  date_atelier<sl2b| DATE>,'], ['at5', '  coach_id<sl2c| INTEGER>[an1| NOT NULL][acm|,]'],
     ['at6', '  FOREIGN KEY (coach_id) REFERENCES coachs(id)'], ['at7', ');']],
   in: [['in1', 'CREATE TABLE inscriptions ('], ['in2', '  id INTEGER PRIMARY KEY,'], ['in3', '  client_id INTEGER[inn1| NOT NULL],'],
-    ['in4', '  atelier_id INTEGER[inn2| NOT NULL],'], ['in5', '  date_inscription TEXT,'],
+    ['in4', '  atelier_id INTEGER[inn2| NOT NULL],'], ['in5', '  date_inscription DATE,'],
     ['in6', '  FOREIGN KEY (client_id) REFERENCES clients(id),'], ['in7', '  FOREIGN KEY (atelier_id) REFERENCES ateliers(id)'], ['in8', ');']],
   ca: [['ca1', 'CREATE TABLE {can|cartes} ('], ['ca2', '  id INTEGER PRIMARY KEY,'], ['ca3', '  client_id INTEGER[cnn| NOT NULL] UNIQUE,'],
     ['ca4', '  seances INTEGER[cdf| {cdk|DEFAULT 10}][cck| {cch|CHECK (seances >= 0)}],'], ['ca5', '  FOREIGN KEY (client_id) REFERENCES clients(id)'], ['ca6', ');']]
@@ -364,12 +362,12 @@ const CAPTIONS = [
   [84.5, 89.4,   "La <b>table inscriptions</b> viendra<br>après la <b>table ateliers</b>,<br>à laquelle elle fait référence."],
   [90.1, 95.4,   "La <b>table ateliers</b> a un titre obligatoire,<br>une date et le coach qui anime l’atelier."],
   [95.5, 98.05,  "À toi !"],
-  [98.15, 102.6, "Dans cette base,<br>une date s’écrit en texte, au format<br>année-mois-jour : <code>'2026-09-12'</code>."],
+  [98.15, 102.6, "Une date a son propre type :<br><code>DATE</code>, au format année-mois-jour,<br>comme <code>'2026-09-12'</code>."],
   [102.7, 106.0, "<code>coach_id</code> est un entier, comme<br>l’identifiant auquel il fait référence."],
   [106.1, 110.4, "La clé étrangère se déclare<br>avec <code>FOREIGN KEY</code> et <code>REFERENCES</code>,<br>comme au chapitre 2."],
   [110.5, 113.2, "Reste à savoir si <code>coach_id</code><br>peut rester vide."],
   [113.3, 115.85, "À toi !"],
-  [115.95, 120.6, "C’est le <code>1</code> du côté de la classe Coach :<br>chaque atelier a exactement<br>un coach, jamais zéro."],
+  [115.95, 120.6, "Le <code>1</code> du côté de Coach signifie<br>que chaque atelier est animé<br>par un seul coach :<br>il ne peut en avoir ni zéro ni plusieurs.", 4],
   [120.7, 124.6, "Pas d’atelier sans coach :<br><code>coach_id</code> ne doit jamais être vide,<br>on ajoute <code>NOT NULL</code>."],
   [124.7, 128.6, "Vient ensuite la <b>table inscriptions</b>,<br>écrite sur le même modèle."],
   [128.7, 133.6, "Une inscription concerne toujours<br>un client et un atelier : ses deux<br>clés étrangères sont <code>NOT NULL</code>."],
@@ -395,9 +393,11 @@ const CAPTIONS = [
 /* Pas de question du lecteur : les moments « À toi » (PICKS) font participer l’élève. */
 const QUESTIONS = [];
 
-/* Moment 3 : les types, et les colonnes de la table ateliers à y ranger : [colonne, type, explication si elle est mal rangée]. */
+/* Les types : [clé, nom, nature, exemple]. Les trois du chapitre 2 (TYPES), puis DATE, qui arrive avec le moment 3 (TYPES3). */
 const TYPES = [['int', 'INTEGER', 'nombre entier', '10'], ['real', 'REAL', 'nombre à virgule', '29.90'], ['text', 'TEXT', 'texte', '\'Salma\'']];
-const COLS3 = [['titre', 'text', 'Un titre est du texte.'], ['date_atelier', 'text', '\'2026-09-12\' contient des tirets : ce n’est pas un nombre.'],
+const TYPES3 = TYPES.concat([['date', 'DATE', 'date', '\'2026-09-12\'']]);
+/* Moment 3 : les colonnes de la table ateliers à ranger dans ces types : [colonne, type, explication si elle est mal rangée]. */
+const COLS3 = [['titre', 'text', 'Un titre est du texte.'], ['date_atelier', 'date', 'date_atelier contient une date, comme \'2026-09-12\' : une date a son propre type.'],
   ['coach_id', 'int', 'coach_id contient l’identifiant d’un coach : un nombre entier, comme id.']];
 /* Moment 5 : les mots-clés, et la règle que chacun traduit : [mot-clé, règle, explication s’il est mal placé]. */
 const KW5 = [['UNIQUE', 'uq', 'UNIQUE interdit les doublons : un même client ne peut pas avoir deux cartes.'],
@@ -515,8 +515,7 @@ function dom(){
     TYPES.map(([k, ty, d, ex]) => `<div class="abs card tyc" id="lg-${k}" style="left:556px"><div class="tyl"><b>${ty}</b><span>${d}</span><i class="ex">${ex}</i></div></div>`).join('');
   /* 4 · La table ateliers (et ses cases de types, moment 3), puis la table inscriptions */
   $('#sd').innerHTML = sqlCard('sq-at', SQL.at, 64, 952) + tbox('pv-at', 'at', 64, 460) + sqlCard('sq-in', SQL.in, 64, 952) + tbox('pv-in', 'in', 64, 460) +
-    TYPES.map(([k, ty, d, ex]) => `<div class="abs tyc tyb" id="tb-${k}" style="left:556px"><div class="tyl"><b>${ty}</b><span>${d}</span>` +
-      (k === 'text' ? `<span class="sw ex"><i class="ex0">${ex}</i><i class="ex1">'2026-09-12'</i></span>` : `<i class="ex">${ex}</i>`) + '</div><div class="rcs">' +
+    TYPES3.map(([k, ty, d, ex]) => `<div class="abs tyc tyb" id="tb-${k}" style="left:556px"><div class="tyl"><b>${ty}</b><span>${d}</span><i class="ex">${ex}</i></div><div class="rcs">` +
       COLS3.map(([c, t], j) => t === k ? `<div class="rc" id="rc3-${j}">${c}</div>` : '').join('') + '</div></div>').join('');
   /* 4 · Le diagramme UML du chapitre 3, avec ses multiplicités */
   $('#su').innerHTML = diagram('u');
@@ -591,7 +590,7 @@ function layout(){
   $('#pv-co').style.top = y2 + 'px'; stack(TYPES.map(t => '#lg-' + t[0]), y2);
   // 4 · tant que la ligne de la clé étrangère n’est pas écrite, l’aperçu remonte sous la requête ; il descend quand elle s’ouvre
   G.pvAt = [bottom('#sq-at') - 42 + 9 + 40, bottom('#sq-at') + 9 + 40];
-  $('#pv-at').style.top = G.pvAt[0] + 'px'; stack(TYPES.map(t => '#tb-' + t[0]), G.pvAt[0]);
+  $('#pv-at').style.top = G.pvAt[0] + 'px'; stack(TYPES3.map(t => '#tb-' + t[0]), G.pvAt[0]);
   $('#pv-in').style.top = (bottom('#sq-in') + 9 + 40) + 'px';
   const y5 = bottom('#sq-ca') + 9 + 40;
   $('#pv-ca').style.top = y5 + 'px';
@@ -868,7 +867,6 @@ function build(){
   gsap.set(['#pv-at-r1 .t1', '#pv-at-r2 .t1', '#pv-at-r3 .t1', '#pv-at-r3 .k1'], {autoAlpha: 0});
   gsap.set(['#pv-at-r1 .t0', '#pv-at-r2 .t0', '#pv-at-r3 .t0'], {autoAlpha: 1});
   gsap.set('#pv-at-r3 .nm', {color: '#221C46'});
-  gsap.set('#tb-text .ex1', {autoAlpha: 0});
   // « La table ateliers a un titre obligatoire, une date et le coach qui anime l’atelier » : chaque colonne s’écrit, son type en blanc
   show('#sq-at', 90.2, {y: 40}, 0.5); cue(90.2, 'whoosh', 0.45, 1);
   show('#pv-at', 90.35, {y: 40}, 0.5); cue(90.35, 'whoosh', 0.4, 3);
@@ -878,8 +876,8 @@ function build(){
     sqOpen([l], t); sqType(l, t + 0.2, 40, 0.05); slotIn(s, t + 0.2); addRow(`#pv-at-r${q + 1}`, t + 0.25, 56);
   });
   pop('#pv-at-r1 .sh', 92.5);
-  // À toi : les cases des types arrivent ; ranger chaque colonne (réponse : titre et date_atelier en TEXT, coach_id en INTEGER)
-  TYPES.forEach(([k], q) => { show('#tb-' + k, 95.8 + q * 0.12, {y: 40, scale: 0.94}, 0.4, 'back.out(1.5)'); cue(95.8 + q * 0.12, 'pop', 0.6, q); });
+  // À toi : les cases des types arrivent ; ranger chaque colonne (réponse : titre en TEXT, date_atelier en DATE, coach_id en INTEGER)
+  TYPES3.forEach(([k], q) => { show('#tb-' + k, 95.8 + q * 0.09, {y: 40, scale: 0.94}, 0.4, 'back.out(1.5)'); cue(95.8 + q * 0.09, 'pop', 0.6, q); });   // la dernière finit à 96,47 : avant le passage coupé (96,5)
   // les cases « type » (code et aperçu) battent quand les types arrivent : ce sont ces trois noms qui iront dans ces cases
   bump(['#sl2a .se', '#sl2b .se', '#sl2c .se', '#pv-at .t0'], 96.12, 1.12); cue(96.12, 'tick', 0.45, 3);   // fini à 96,48 : avant le passage coupé (96,5)
   const a2 = +(PICKS[2].at + 0.02).toFixed(2);
@@ -887,11 +885,11 @@ function build(){
   tl.set(COLS3.flatMap((c, j) => M3_OFF(j)), {autoAlpha: 0}, a2);
   tl.set('.tyb', {borderStyle: 'solid'}, a2);
   tl.set('.tyb b', {backgroundColor: 'rgba(255,225,138,0)'}, a2);   // plus de case « type » : les noms ne sont plus surlignés (aperçu : classe pvb)
-  // « une date s’écrit en texte, au format année-mois-jour : '2026-09-12' »
+  // « Une date a son propre type : DATE, au format année-mois-jour, comme '2026-09-12' » : DATE s’anime quand il est dit, puis l’exemple de sa carte
   pulse('#rc3-1', 98.6, 1); bump('#sl2b', 98.6, 1.12); cue(98.6, 'tick', 0.5, 2);
   hlOn('#pv-at-r2 .hl', 99.1);
-  tl.to('#tb-text .ex0', {autoAlpha: 0, y: -12, duration: 0.2, ease: 'power2.in'}, 101.3);
-  tl.fromTo('#tb-text .ex1', {autoAlpha: 0, y: 12}, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power3.out', immediateRender: false}, 101.45); cue(101.45, 'type', 0.8, 2);
+  bump('#tb-date', 100.05, 1.05); cue(100.05, 'tick', 0.5, 4);
+  bump('#tb-date .ex', 101.45, 1.12); cue(101.45, 'tick', 0.5, 5);
   hlOff('#pv-at-r2 .hl', 101.9);
   // « coach_id est un entier, comme l’identifiant auquel il fait référence »
   pulse('#rc3-2', 103.1, 1); bump('#sl2c', 103.1, 1.12); hlOn('#pv-at-r3 .hl', 103.2); cue(103.1, 'tick', 0.5, 3);
@@ -915,10 +913,10 @@ function build(){
   // À toi : la multiplicité qui dit si un atelier peut exister sans coach (réponse : le 1, du côté de la classe Coach)
   const a3 = +(PICKS[3].at + 0.02).toFixed(2);
   tl.set(M4_ANS, {autoAlpha: 1}, a3);
-  // « C’est le 1 du côté de la classe Coach : chaque atelier a exactement un coach, jamais zéro »
+  // « Le 1 du côté de Coach signifie que chaque atelier est animé par un seul coach : il ne peut en avoir ni zéro ni plusieurs »
   bump('#um-an-co', 116.4, 1.3); cue(116.4, 'pop', 0.6, 4);
-  lite('#u-co', 117.2, 0.5); lite('#u-at', 118.4, 0.5);
-  bump('#um-an-co', 119.0, 1.25); cue(119.0, 'tick', 0.5, 4);
+  lite('#u-co', 117.2, 0.5); lite('#u-at', 118.5, 0.5);
+  bump('#um-an-co', 119.9, 1.25); cue(119.9, 'tick', 0.5, 4);
   // « Pas d’atelier sans coach » : retour à la requête, NOT NULL s’ajoute à coach_id
   off(M4_ANS, 120.8, 0.25);
   fadeTo('#su', 0, 120.9);
@@ -1082,7 +1080,7 @@ const IX = (() => {
   const NOM = Object.fromEntries(CLASSES.map(c => [c[0], c[1]]));
   function spots(i){
     if (i === 1) return ['co', 'ca', 'in', 'at', 'cl'].map(k => Object.assign({k, label: `Table ${SUJET[k][0]}`}, rel($('#p-' + k))));
-    if (i === 2) return TYPES.map(([k, ty]) => Object.assign({k, label: `Type ${ty}`}, rel($('#tb-' + k))));
+    if (i === 2) return TYPES3.map(([k, ty]) => Object.assign({k, label: `Type ${ty}`}, rel($('#tb-' + k))));
     if (i === 3) return MPS.map(([k, m, s]) => Object.assign({k, label: `${m}, du côté de la classe ${NOM[s]}`}, pad(rel($('#um-' + k)), 16)));
     if (i === 4) return REGLES.map(([k, r]) => Object.assign({k, label: r}, rel($('#ru-' + k))));
     return [];
@@ -1148,7 +1146,7 @@ const IX = (() => {
     const h = [
       'Il faut une valeur à la fois unique et jamais vide : la clé du chapitre 2.',
       'Suis les flèches : chaque table vise-t-elle une table déjà là ?',
-      'Pour chaque colonne, imagine une valeur : des lettres, des chiffres, des tirets ?',
+      'Pour chaque colonne, imagine une valeur : des lettres, un nombre, une date ?',
       'Pour un atelier donné, combien de coachs ? Ce nombre s’écrit du côté de la classe Coach.',
       'Valeur de départ, condition à vérifier, pas de doublon : à chaque règle son mot-clé.',
       'CREATE TABLE décrit les colonnes : qui a déjà enregistré des ateliers dans cette table ?'][i];
