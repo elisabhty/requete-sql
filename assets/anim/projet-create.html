@@ -118,7 +118,9 @@
 .pr .sh{font-size:22px;opacity:0;visibility:hidden}
 .pr .ty{margin-left:auto;display:grid;font-size:22px;font-weight:700;color:var(--ink-3)}
 .pr .ty i{grid-area:1/1;font-style:normal;text-align:right}
-.pr .t0{color:var(--accent);opacity:0;visibility:hidden}
+/* Le type encore à placer (moment 3) : une case jaune « type », la même que dans le code */
+.pr .t0{justify-self:end;align-self:center;height:28px;padding:0 10px;border:3px dashed #FFC94A;border-radius:9px;background:rgba(255,201,74,.2);color:#8A6200;font-weight:800;line-height:22px;opacity:0;visibility:hidden}
+.pb.sm .pr .t0{display:none}   /* les aperçus du chapitre 6 n’ont pas de case « type » */
 .pr .hl{position:absolute;left:8px;right:8px;top:4px;bottom:4px;z-index:-1;border-radius:12px;background:var(--cs);opacity:0}
 .pb.sm .pr{height:44px;font-size:24px}
 .pb.sm .pr .ty{font-size:20px}
@@ -132,6 +134,11 @@
 .tyl>span{font-size:23px;font-weight:700;color:var(--ink-3)}
 .tyc .ex{margin-left:auto;font-family:var(--mono);font-size:24px;font-weight:600;font-style:normal;color:var(--ink-2)}
 .tyb{height:124px;padding:0 20px;border:4px dashed #C9BCFF;background:rgba(255,255,255,.85)}
+/* Les noms des types sont surlignés en jaune tant que les cases « type » attendent leur réponse ; ils clignotent à l’ouverture du moment */
+.tyb .tyl b{margin:-2px -8px;padding:2px 8px;border-radius:9px;background:#FFE18A}   /* le surlignage déborde du mot sans le déplacer */
+.tyb.pvb .tyl b{background:transparent!important}
+.hot{animation:hot 1.2s ease-in-out 2}
+@keyframes hot{50%{box-shadow:0 0 0 5px rgba(255,205,70,.85)}}
 .rcs{display:flex;gap:10px;height:42px}
 .sw{display:inline-grid}
 .sw>*{grid-area:1/1;font-style:normal;white-space:pre}
@@ -465,15 +472,16 @@ function tbox(id, k, x, w, sm){
   const [emo, name, cols] = TABLES[k];
   return `<div class="abs card pb ${KC[k]}${sm ? ' sm' : ''}" id="${id}" style="left:${x}px;width:${w}px"><div class="pbh"><span class="emo">${emo}</span>${name}<span class="apc">Aperçu</span></div>` +
     cols.map(([n, t, r], j) => `<div class="pr${r && r !== 'pk' ? ' fk' : ''}" id="${id}-r${j}"${r && r !== 'pk' ? ` style="--fc:${FKC[r][0]}"` : ''}><i class="hl"></i>` +
-      `<span class="ik">${r ? `<i class="emo k1">${r === 'pk' ? '🔑' : '🔗'}</i>` : ''}</span><span class="nm">${n}</span><i class="emo sh">🛡️</i><span class="ty"><i class="t1">${t}</i><i class="t0">?</i></span></div>`).join('') +
+      `<span class="ik">${r ? `<i class="emo k1">${r === 'pk' ? '🔑' : '🔗'}</i>` : ''}</span><span class="nm">${n}</span><i class="emo sh">🛡️</i><span class="ty"><i class="t1">${t}</i>${k === 'at' ? '<i class="t0">type</i>' : ''}</span></div>`).join('') +
     (sm ? `<div class="pbf" id="${id}-f"><i class="z0">0 ligne</i><i class="z1">${ATELIERS.length} lignes ?</i><i class="z2">1 ligne vide ?</i></div>` : '') + '</div>';
 }
 /* Carte de code (SQL) : chaque ligne a son curseur (en fin de ligne, et après chaque passage tapé plus tard) et son surlignage. */
 const SQL_KW = /CREATE TABLE|PRIMARY KEY|FOREIGN KEY|REFERENCES|NOT NULL|UNIQUE|DEFAULT|CHECK/g, CARET = '<span class="caret"><i></i></span>';
-/* <slN|réponse> : le trou d’un moment, aussi large que la plus longue étiquette qui peut s’y poser ; son espace devant est sa marge. */
+/* <slN|réponse> : le trou d’un moment, aussi large que la plus longue étiquette qui peut s’y poser ; son espace devant est sa marge.
+   Au moment 3 (sl2a, sl2b, sl2c), le trou dit ce qu’il attend, « type » ; au moment 1, c’est un « ? ». */
 function slotHTML(id, ans){
   const n = /^sl\d+$/.test(id) ? Math.max(...PICKS[+id.slice(2)].options.map(o => o.label.length)) : Math.max(...TYPES.map(t => t[1].length));
-  return `<span class="slot" id="${id}" style="min-width:calc(${n}ch + 16px)"><span class="se">?</span><span class="sv">${ans.trim()}</span><span class="sx"></span></span>`;
+  return `<span class="slot" id="${id}" style="min-width:calc(${n}ch + 16px)"><span class="se">${/^sl2/.test(id) ? 'type' : '?'}</span><span class="sv">${ans.trim()}</span><span class="sx"></span></span>`;
 }
 function sqlCard(id, lines, x, w){
   const body = lines.map(([lid, s]) => {
@@ -695,6 +703,8 @@ const fadeTo = (sel, a, t, d = 0.3) => tl.to(sel, {autoAlpha: a, duration: d, ea
 /* Réponses des moments « À toi » : ce que la timeline montre juste après l’arrêt (et que l’aperçu montre pendant l’arrêt). */
 const M2_ANS = {at: ['#p-at .hlo'], ca: ['#p-ca .hlo']};
 const M3_ANS = j => [`#rc3-${j}`, `#sl2${'abc'[j]} .sv`, `#pv-at-r${j + 1} .t1`], M3_OFF = j => [`#sl2${'abc'[j]} .se`, `#pv-at-r${j + 1} .t0`];
+/* Ce qui clignote à l’ouverture du moment 3 : les trois cases « type » du code, celles de l’aperçu, les noms des types surlignés. */
+const M3_HOT = ['#sl2a .se', '#sl2b .se', '#sl2c .se', '#pv-at .t0', '.tyb .tyl b'];
 const M4_ANS = ['#rg-an-co'];
 const M6_ANS = ['#gx-at-f', '#gx-at-f .z0'];
 
@@ -870,10 +880,13 @@ function build(){
   pop('#pv-at-r1 .sh', 92.5);
   // À toi : les cases des types arrivent ; ranger chaque colonne (réponse : titre et date_atelier en TEXT, coach_id en INTEGER)
   TYPES.forEach(([k], q) => { show('#tb-' + k, 95.8 + q * 0.12, {y: 40, scale: 0.94}, 0.4, 'back.out(1.5)'); cue(95.8 + q * 0.12, 'pop', 0.6, q); });
+  // les cases « type » (code et aperçu) battent quand les types arrivent : ce sont ces trois noms qui iront dans ces cases
+  bump(['#sl2a .se', '#sl2b .se', '#sl2c .se', '#pv-at .t0'], 96.12, 1.12); cue(96.12, 'tick', 0.45, 3);   // fini à 96,48 : avant le passage coupé (96,5)
   const a2 = +(PICKS[2].at + 0.02).toFixed(2);
   tl.set(COLS3.flatMap((c, j) => M3_ANS(j)), {autoAlpha: 1}, a2);
   tl.set(COLS3.flatMap((c, j) => M3_OFF(j)), {autoAlpha: 0}, a2);
   tl.set('.tyb', {borderStyle: 'solid'}, a2);
+  tl.set('.tyb b', {backgroundColor: 'rgba(255,225,138,0)'}, a2);   // plus de case « type » : les noms ne sont plus surlignés (aperçu : classe pvb)
   // « une date s’écrit en texte, au format année-mois-jour : '2026-09-12' »
   pulse('#rc3-1', 98.6, 1); bump('#sl2b', 98.6, 1.12); cue(98.6, 'tick', 0.5, 2);
   hlOn('#pv-at-r2 .hl', 99.1);
@@ -1142,12 +1155,20 @@ const IX = (() => {
     return h ? {text: fr(h)} : null;
   }
   return {
-    enter: i => { clear(); start(i); },
+    /* Moment 3 : à l’ouverture, les cases « type » (code, aperçu) et les noms des types clignotent deux fois : ce sont eux qui vont ensemble. */
+    enter: i => {
+      clear(); start(i);
+      if (i === 2) { marks(M3_HOT, 'hot'); X.hot = true; }
+    },
     spots, act, pick, hint,
     slot: i => { const s = $('#sl' + i); return s ? rel(s) : null; },
     /* Moment réussi : l’aperçu reste jusqu’à ce que la timeline affiche la même image ; sinon il part tout de suite. */
     leave(i, answered){ if (answered && X && X.i === i) wait = i; else clear(); },
-    tick(t = tl.time()){ if (wait < 0) return; const a = PICKS[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear(); }
+    tick(t = tl.time()){
+      /* Moment 3 rouvert déjà réussi : la timeline montre aussitôt la réponse, plus rien n’attend un type, le clignotement s’arrête. */
+      if (X && X.hot && t >= PICKS[2].at + 0.0199) { X.hot = false; M3_HOT.forEach(s => $$(s).forEach(e => e.classList.remove('hot'))); }
+      if (wait < 0) return; const a = PICKS[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear();
+    }
   };
 })();
 window.IX = IX;

@@ -266,6 +266,25 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
     "const M4_ANS = ['#rg-an-co'];", "const M6_ANS = ['#gx-at-f', '#gx-at-f .z0'];"])
     assert.ok(page.includes(s), `réponse : ${s}`);
   [0, 1, 2, 3, 4, 5].forEach(i => assert.ok(page.includes(`const a${i} = +(PICKS[${i}].at + 0.02).toFixed(2);`), `a${i}`));
+  /* Moment 3 : le « ? » prêtait à confusion. Chaque trou du code et de l’aperçu dit « type », en jaune, et les trois noms de types
+     (INTEGER, REAL, TEXT) sont surlignés de la même couleur ; ils clignotent à l’ouverture du moment et ne sont plus surlignés une fois la réponse posée. */
+  assert.ok(['at3', 'at4', 'at5'].every((id, q) => W.SQL.at.some(([lid, l]) => lid === id && l.includes(`<sl2${'abc'[q]}|`))), 'les trois trous du moment 3 : titre, date_atelier, coach_id');
+  for (const s of ["<span class=\"se\">${/^sl2/.test(id) ? 'type' : '?'}</span>",                                  // le trou du code : « type » au moment 3, « ? » au moment 1
+    "${k === 'at' ? '<i class=\"t0\">type</i>' : ''}",                                                              // la case de l’aperçu : « type », seulement pour la table ateliers
+    '.pr .t0{justify-self:end;align-self:center;height:28px;padding:0 10px;border:3px dashed #FFC94A;',                              // même jaune pointillé que le trou du code
+    '.slot .se{border:3px dashed #FFC94A;background:rgba(255,201,74,.16);color:#FFD66B;',
+    '.tyb .tyl b{margin:-2px -8px;padding:2px 8px;border-radius:9px;background:#FFE18A}', '.tyb.pvb .tyl b{background:transparent!important}',
+    '.hot{animation:hot 1.2s ease-in-out 2}', '@keyframes hot{50%{box-shadow:0 0 0 5px rgba(255,205,70,.85)}}',
+    "bump(['#sl2a .se', '#sl2b .se', '#sl2c .se', '#pv-at .t0'], 96.12, 1.12); cue(96.12, 'tick', 0.45, 3);",         // quand les trois types arrivent
+    "tl.set('.tyb b', {backgroundColor: 'rgba(255,225,138,0)'}, a2);",                                              // la réponse efface le surlignage, comme l’aperçu (pvb)
+    "const M3_HOT = ['#sl2a .se', '#sl2b .se', '#sl2c .se', '#pv-at .t0', '.tyb .tyl b'];",                       // ce qui clignote : cases « type » et noms des types
+    "if (i === 2) { marks(M3_HOT, 'hot'); X.hot = true; }",                                                         // le lecteur ouvre le moment : tout clignote
+    "if (X && X.hot && t >= PICKS[2].at + 0.0199) { X.hot = false; M3_HOT.forEach(s => $$(s).forEach(e => e.classList.remove('hot'))); }"])   // rouvert déjà réussi : plus de clignotement
+    assert.ok(page.includes(s), `types surlignés : ${s.slice(0, 70)}`);
+  assert.ok(!page.includes('<i class="t0">?</i>'), 'plus de « ? » dans l’aperçu');
+  assert.ok(96.12 > 95.8 + 0.12 * 2 && 96.12 + 2 * 0.18 < D.PICKS[2].at - 1.35, 'le battement des cases « type » se voit : après l’arrivée des types, fini avant le passage coupé');
+  /* Les noms des types gardent leur surlignage pendant tout l’arrêt : rien dans IX.act ne l’efface avant la dernière colonne rangée. */
+  assert.ok(page.includes("if (X.got.size === COLS3.length) marks(['.tyb'], 'pvb');"), 'le surlignage s’efface avec la dernière colonne rangée');
   /* Les gestes de la timeline, chacun pendant la bulle qui en parle. */
   for (const s of ["show('#st-cl', 21.3,", "slotIn('sl0', 46.6);", "FLECHES.forEach(([id], q) => draw('#' + id, 73.0 + q * 0.6, 0.5));", "pop('#od-co', 86.5, 0.5);",
     "tl.fromTo('#tb-text .ex1',", "sqMore('an1', 123.1);", "sqMore('cdf', 157.3);", "sqMore('cck', 161.0, 30);", "press($('#run'), 171.6);", "show('#okm', 172.4,",
