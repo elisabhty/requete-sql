@@ -176,9 +176,9 @@
   <section class="scene" id="s7">
     <div class="abs rtitle">Les trois idées à retenir</div>
     <div class="abs card recap" id="recap">
-      <div class="rrow"><div class="rico emo">🗑️</div><div class="rtxt"><code>DROP TABLE</code> supprime la <b>table elle-même</b>,<br>avec ses lignes et ses colonnes.<span class="rs"><code>DELETE FROM</code> retire seulement les lignes :<br>la table reste, vide.</span></div></div>
-      <div class="rrow"><div class="rico emo">🔗</div><div class="rtxt">Une table à laquelle une <b>clé étrangère</b><br>fait référence ne peut pas être supprimée.<span class="rs">Sans référence, la suppression réussit,<br>même par erreur : une table supprimée<br>ne se récupère pas.</span></div></div>
-      <div class="rrow"><div class="rico emo">🛟</div><div class="rtxt"><code>IF EXISTS</code> évite l’erreur quand la table<br>n’existe pas :<span class="rs"><code>DROP TABLE IF EXISTS inscriptions_excel;</code></span></div></div>
+      <div class="rrow"><div class="rico emo">🗑️</div><div class="rtxt"><code>DROP TABLE</code> supprime <b>toute la table</b> :<br>ses lignes et ses colonnes.<span class="rs"><code>DELETE FROM</code> sans <code>WHERE</code> supprime toutes<br>les lignes, mais conserve la structure.</span></div></div>
+      <div class="rrow"><div class="rico emo">🔗</div><div class="rtxt">Une <b>clé étrangère</b> peut bloquer la suppression<br>si une autre table fait référence à celle-ci.<span class="rs">Vérifie toujours le nom de la table<br>avant de la supprimer.</span></div></div>
+      <div class="rrow"><div class="rico emo">🛟</div><div class="rtxt"><code>IF EXISTS</code> évite une erreur<br>si la table n’existe pas.<span class="rs">Il ne protège pas contre la suppression<br>de la mauvaise table.<code class="blk">DROP TABLE IF EXISTS inscriptions_excel;</code></span></div></div>
     </div>
   </section>
 
@@ -195,9 +195,9 @@
    cap(clé, texte, durée) pose une légende [début, fin] ; A[clé] et B[clé] donnent son début et sa fin (temps de la timeline). */
 const SCH = {t: 5.0, caps: [], chaps: [{label:'La table de trop', a: 5.0}], A: {}, B: {}};
 function chap(c){ SCH.t = +(SCH.t + 0.4).toFixed(2); SCH.chaps.push({label: c.label, a: SCH.t}); }
-function cap(key, html, dur, gap = 0.1){
+function cap(key, html, dur, gap = 0.1, lines = 0){
   const a = +(SCH.t + gap).toFixed(2), b = +(a + dur).toFixed(2);
-  SCH.caps.push([a, b, html]); SCH.A[key] = a; SCH.B[key] = b; SCH.t = b;
+  SCH.caps.push(lines ? [a, b, html, lines] : [a, b, html]); SCH.A[key] = a; SCH.B[key] = b; SCH.t = b;   // lines : 4 pour une légende de quatre lignes
 }
 /* « À toi ! » : la légende reste un instant, puis l’image s’arrête à a + 2,35 s (le passage d’attente est coupé). */
 const toi = key => cap(key, 'À toi !', 2.55);
@@ -225,14 +225,14 @@ toi('p3');
 cap('c10', "On écrit <code>DROP TABLE</code>,<br>puis le nom de la table.", 2.8);
 /* 4 · Une table liée */
 chap({label:'Une table liée'});
-cap('c11', "Avant de l’exécuter, imaginons<br>une faute de nom :<br><code>DROP TABLE clients</code>.", 3.0);
+cap('c11', "Imagine que tu te trompes de nom :<br>tu veux supprimer la table<br><code>inscriptions_excel</code>,<br>mais tu tapes <code>clients</code> à la place.", 7.3, 0.1, 4);
 cap('c11b', "La suppression est refusée.", 1.8);
 toi('p4');
 cap('c12', "Les tables <code>commandes</code>, <code>fidelite</code>,<br><code>inscriptions</code> et <code>cartes</code><br>font référence à la <b>table clients</b>.", 4.0);
 cap('c13', "Tant qu’une clé étrangère<br>y fait référence, une table<br>ne peut pas être supprimée.", 2.8);
 /* 5 · Noms proches */
 chap({label:'Noms proches'});
-cap('c14', "Autre faute possible :<br>oublier la fin du nom,<br><code>DROP TABLE inscriptions</code>.", 3.0);
+cap('c14', "Imagine maintenant que tu oublies<br>la fin du nom : tu veux supprimer<br>la table <code>inscriptions_excel</code>,<br>mais tu tapes <code>inscriptions</code>.", 7.8, 0.1, 4);
 cap('c15', "Aucune table ne fait référence<br>à la <b>table inscriptions</b>.", 2.6);
 toi('p5');
 cap('c16', "Elle serait supprimée, avec ses sept<br>inscriptions, sans la moindre erreur.", 2.8);
@@ -247,7 +247,7 @@ toi('p6');
 cap('c22', "<code>IF EXISTS</code> se place entre <code>TABLE</code><br>et le nom de la table.", 2.8);
 cap('c23', "Si la table n’existe pas, rien n’est<br>supprimé et aucune erreur n’apparaît.", 2.8);
 /* la suite : la prochaine leçon */
-cap('c24', "Dans la prochaine leçon,<br>tu ajouteras des lignes avec <code>INSERT</code>.", 3.0);
+cap('c24', "Dans la prochaine leçon, tu apprendras à ajouter des données dans tes tables avec <code>INSERT INTO</code>.", 6.1);
 /* 7 · À retenir */
 chap({label:'À retenir'});
 const RECAP = SCH.t;
@@ -413,7 +413,7 @@ function dom(){
     `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), 'Merci !', sign].map((x, j, a) => `<span class="sn${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
     '<div class="abs emo tapf" id="tapf">👆</div>';
   // la suite : la prochaine leçon
-  $('#sk').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">✍️</span>Prochaine leçon · INSERT</span></div>';
+  $('#sk').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">✍️</span>Prochaine leçon · INSERT INTO</span></div>';
   // les requêtes, découpées en caractères pour la frappe
   $$('.sq .ln').forEach(splitChars);
 }
@@ -603,14 +603,18 @@ function build(){
   tl.set('#ed3q', {autoAlpha: 1}, set2(PICKS[2].at));
   pulse('#k3', A.c10 + 0.3, 1, 'rgba(255,224,138,.4)'); cue(A.c10 + 0.3, 'tick', 0.5, 2);
   pulse('#n3', A.c10 + 1.3, 1, 'rgba(255,224,138,.4)'); cue(A.c10 + 1.3, 'tick', 0.5, 4);
-  on('#rw-xl .nm .rg', A.c10 + 1.3); // le même nom, dans la liste des tables
+  on('#rw-xl .nm > .rg', A.c10 + 1.3); // le même nom, dans la liste des tables
 
   /* ===== 4 · Une table liée ===== */
-  off(['#rw-xl .nm .rg', '#rw-xl .hl'], A.c11, 0.2);
-  hide('#ed3', A.c11, {y: 30}, 0.3);
-  show('#ed4', A.c11 + 0.4, {y: 40}, 0.5); cue(A.c11 + 0.4, 'whoosh', 0.4, 2);
-  sqType('ed4q', A.c11 + 0.95, 34);
-  on('#rw-cl .hl', A.c11 + 1.55); cue(A.c11 + 1.55, 'tick', 0.5, 2);
+  // « tu veux supprimer la table inscriptions_excel » : la bonne requête et la copie, repérée dans la liste, restent à l’écran
+  pulse('#n3', A.c11 + 3.9, 1, 'rgba(255,224,138,.4)'); cue(A.c11 + 3.9, 'tick', 0.5, 4);
+  // « mais tu tapes clients à la place » : le nom change, la table clients est repérée
+  const X4 = A.c11 + 4.7;
+  off(['#rw-xl .nm > .rg', '#rw-xl .hl'], X4, 0.2);
+  hide('#ed3', X4, {y: 30}, 0.3);
+  show('#ed4', X4 + 0.4, {y: 40}, 0.5); cue(X4 + 0.4, 'whoosh', 0.4, 2);
+  sqType('ed4q', X4 + 0.95, 34);
+  on('#rw-cl .hl', X4 + 1.55); cue(X4 + 1.55, 'tick', 0.5, 2);
   // la suppression est refusée : la table clients reste
   show('#o4', A.c11b + 0.1, {y: 20}, 0.4); cue(A.c11b + 0.1, 'miss', 0.45);
   shake('#rw-cl .sn, #rw-cl .sc', A.c11b + 0.2);
@@ -629,11 +633,20 @@ function build(){
   /* ===== 5 · Noms proches ===== */
   off(['#lk', '#rw-cl .hl'], A.c14, 0.25);
   fold(ROWS, A.c14, 0.45);   // la liste se replie de nouveau : la place de la requête
-  show('#ed5', A.c14 + 0.55, {y: 40}, 0.5); cue(A.c14 + 0.55, 'whoosh', 0.4, 3);
-  sqType('ed5q', A.c14 + 1.1, 34);
-  on('#rw-xl .sfx .rg', A.c14 + 1.9); cue(A.c14 + 1.9, 'tick', 0.6, 4);   // la fin du nom oubliée : « _excel »
+  // « tu veux supprimer la table inscriptions_excel » : la bonne requête revient, avec la copie repérée dans la liste
+  tl.fromTo('#ed3', {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false}, A.c14 + 0.7);
+  cue(A.c14 + 0.7, 'whoosh', 0.4, 3);
+  on(['#rw-xl .hl', '#rw-xl .nm > .rg'], A.c14 + 3.3); cue(A.c14 + 3.3, 'tick', 0.5, 2);
+  pulse('#n3', A.c14 + 4.7, 1, 'rgba(255,224,138,.4)'); cue(A.c14 + 4.7, 'tick', 0.5, 4);
+  // « mais tu tapes inscriptions » : la fin du nom (« _excel ») manque, la requête change
+  const X5 = A.c14 + 5.3;
+  off('#rw-xl .nm > .rg', X5, 0.2);
+  on('#rw-xl .sfx .rg', X5 + 0.1); cue(X5 + 0.1, 'tick', 0.6, 4);
+  hide('#ed3', X5, {y: 30}, 0.3);
+  show('#ed5', X5 + 0.4, {y: 40}, 0.5); cue(X5 + 0.4, 'whoosh', 0.4, 3);
+  sqType('ed5q', X5 + 1.0, 34);
   // aucune table ne fait référence à la table inscriptions : les autres s’estompent
-  off('#rw-xl .sfx .rg', A.c15, 0.2);
+  off(['#rw-xl .sfx .rg', '#rw-xl .hl'], A.c15, 0.2);
   tl.to(OTHERS, {opacity: 0.4, duration: 0.3}, A.c15 + 0.2);
   on('#rw-in .hl', A.c15 + 0.3);
   pop('#tg-in', A.c15 + 0.8, 0.5);
@@ -760,7 +773,7 @@ const IX = (() => {
       if (k === 1) marks(['#rw-in .sk', '#rw-in .xx', '#o5']);
       if (k === 0) flash(rowOf('in'), 'kob', 480);
       if (k === 2) flash($('#ed5'), 'kob', 480);
-      sfx(ok ? 'stamp' : 'miss', 0, 0.5);
+      sfx(ok ? 'pop' : 'miss', 2, 0.5);
     }
     if (i === 5) {
       if (ok) marks(['#ed6k', '#o6k']);
@@ -787,7 +800,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 107.8, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 120, picks: PICKS, opens: OPENS,
   glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝📄🔑🔗🔒🗑️🛟✉️👆✓✕!…«»', dom, build, beforeRender: t => IX.tick(t)});
 </script>
 </body>
