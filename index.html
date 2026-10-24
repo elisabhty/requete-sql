@@ -15843,12 +15843,17 @@ function lvNoteExisting(l){
   const norm=x=>String(x||'').replace(/\s+/g,' ').trim(), ctx=lvNoteCtx(l), txt=norm(lessonReflexText(l));
   return (state.notes||[]).find(n=>n.ctx===ctx&&norm(n.txt)===txt&&!norm(n.sql))||null;
 }
-/* Point de la maquette 1080 × 1920 → position dans le lecteur (repère du lecteur plein écran). */
-function lvPt(X,Y){
+/* Point de la maquette 1080 × 1920 → position dans le lecteur (repère du lecteur plein écran).
+   Pendant un moment « À toi », l’image peut être réduite (LV.zoom, autour du milieu de son bord haut, voir lvPkFit) : tout ce qui se
+   pose dessus (zones tactiles, étiquette qui s’envole, gerbe) suit. raw : sans la réduction, pour la place du plateau lui-même. */
+function lvPt(X,Y,raw){
   if(!LV)return null;
   const st=LV.root.querySelector('.lv-stage'), V=LV.video, r=st.getBoundingClientRect(), R=LV.root.getBoundingClientRect();
   const vw=V.videoWidth||1080, vh=V.videoHeight||1920, k=Math.min(r.width/vw,r.height/vh), dw=vw*k, dh=vh*k;
-  return {x:r.left-R.left+(r.width-dw)/2+X/1080*dw, y:r.top-R.top+(r.height-dh)/2+Y/1920*dh, s:dw/390};
+  let x=r.left-R.left+(r.width-dw)/2+X/1080*dw, y=r.top-R.top+(r.height-dh)/2+Y/1920*dh, s=dw/390;
+  const z=raw?1:(LV.zoom||1);
+  if(z!==1){ const ox=r.left-R.left+r.width/2, oy=r.top-R.top; x=ox+(x-ox)*z; y=oy+(y-oy)*z; s*=z; }
+  return {x,y,s};
 }
 function lvNotePlace(){
   const N=LV&&LV.note; if(!N)return;
@@ -16466,18 +16471,68 @@ function lvPkBurst(rect){
    Le résultat, au-dessus, reste visible. */
 function lvPkPlace(){
   const P=LV&&LV.pk; if(!P)return;
-  const a=lvPt(0,1496), z=lvPt(0,1830); if(!a||!z)return;
+  const a=lvPt(0,1496,1), z=lvPt(0,1830,1); if(!a||!z)return;
   const R=LV.root.getBoundingClientRect(), pb=parseFloat(getComputedStyle(LV.root).paddingBottom)||0, lim=R.height-pb-10;
   const card=P.box.querySelector('.lv-pk-card');
   card.style.minHeight=Math.max(0,Math.min(z.y,lim)-a.y).toFixed(1)+'px';
   P.box.style.bottom='auto'; P.box.style.top=Math.max(0,Math.min(a.y,lim-card.offsetHeight)).toFixed(1)+'px';
+  lvPkFit(P);
   lvPkLayerPlace();
+}
+/* Le contenu de l’image reste au-dessus du plateau, à bonne distance : quand le plateau monte (question longue, écran étroit ou court)
+   et manquerait de place, l’image se réduit juste assez, autour du milieu de son bord haut, pour que le bas du contenu laisse LV_PK_GAP px
+   d’écart. Rien ne change tant que l’écart suffit (LV_PK_MIN px), comme sur un grand téléphone. L’image reprend sa taille à la fermeture.
+   Seul compte un état qui dure : pendant un geste ou une réponse (l’étiquette vole, la page anime son résultat), ou quand la bonne
+   réponse est donnée mais que la correction n’est pas encore posée, le plateau et l’image passent par des états de passage qu’on ne mesure
+   pas. Pendant la question, la réduction ne fait que croître (elle ne bat pas à chaque essai raté) ; une fois la bonne réponse donnée,
+   elle se règle sur la correction, qui est plus courte, et l’image peut reprendre de la taille. */
+const LV_PK_GAP=18, LV_PK_MIN=16, LV_PK_ZMIN=.7, LV_PK_WAIT=400;
+function lvPkFit(P,settled){
+  const V=LV&&LV.video, w=V&&V.win; if(!w||typeof w.__contentBottom!=='function')return;
+  const wait=()=>{ clearTimeout(P.fitT); P.fitT=setTimeout(()=>{ if(LV&&LV.pk===P)lvPkFit(P,true); },LV_PK_WAIT); };
+  const go=P.box.querySelector('.lv-pk-go'), calm=!P.busy&&!(P.done&&go&&go.hidden);
+  /* Après l’ouverture : on attend que l’état se pose ; la correction posée, on mesure tout de suite, puis de nouveau un peu plus tard. */
+  if(P.fitDone&&(!calm||(!settled&&!P.done))){ wait(); return; }
+  P.fitDone=true;
+  let B=null; try{ B=w.__contentBottom(); }catch(e){}
+  if(B==null)return;
+  const st=LV.root.querySelector('.lv-stage'), r=st.getBoundingClientRect(), R=LV.root.getBoundingClientRect();
+  const sig=Math.round(r.width)+'x'+Math.round(r.height);
+  if(P.fitSig!==sig){ P.fitSig=sig; P.zoom=1; }
+  const oy=r.top-R.top, yb=lvPt(0,B,1).y, top=parseFloat(P.box.style.top)||0, room=yb-oy;
+  if(!(room>0))return;
+  const z=top-yb<LV_PK_MIN?Math.max(LV_PK_ZMIN,Math.min(1,(top-LV_PK_GAP-oy)/room)):1;
+  P.zoom=P.done?z:Math.min(P.zoom==null?1:P.zoom,z);
+  lvZoomTo(P.zoom);
+  if(!settled)wait();
+}
+/* L’image prend sa taille de réduction en 0,3 s, les zones tactiles posées dessus la suivent à chaque image. */
+function lvZoomTo(z){
+  const V=LV&&LV.video, f=V&&V.frame; if(!f)return;
+  if(LV.zoomEnd!=null&&Math.abs(z-LV.zoomEnd)<.002)return;   // même but : la réduction en cours se poursuit
+  LV.zoomEnd=z; cancelAnimationFrame(LV.zoomRaf);
+  const from=LV.zoom||1;
+  if(z===1&&from===1)return;   // rien à réduire ni à rendre : l’image n’est pas touchée
+  const apply=v=>{
+    LV.zoom=v; f.style.transformOrigin='50% 0'; f.style.transform=v===1?'':`scale(${v.toFixed(4)})`;
+    lvPkLayerPlace();
+  };
+  if(Math.abs(z-from)<.002||prefersReduceMotion()){ apply(z); return; }
+  const t0=performance.now(), D=300;
+  const step=now=>{
+    if(!LV||LV.video!==V)return;
+    const t=Math.min(1,(now-t0)/D), e=1-Math.pow(1-t,3);
+    apply(t<1?from+(z-from)*e:z);
+    if(t<1)LV.zoomRaf=requestAnimationFrame(step);
+  };
+  LV.zoomRaf=requestAnimationFrame(step);
 }
 function lvPkClose(answered){
   const P=LV&&LV.pk; if(!P)return;
   LV.pk=null;
   if(P.ro)P.ro.disconnect();
   clearTimeout(P.timer); clearTimeout(P.demo); if(P.demoEl)P.demoEl.remove();
+  clearTimeout(P.fitT); lvZoomTo(1);   // l’image réduite pour le plateau reprend sa taille
   LV.root.classList.remove('is-q','is-pk');
   if(P.layer)P.layer.remove();
   /* Une étiquette en plein glisser (ou le trou qu’elle visait) ne survit pas au plateau. */
@@ -25510,7 +25565,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2018';
+  const SW_CACHE='requete-2026-10-12-ludique-v2019';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
