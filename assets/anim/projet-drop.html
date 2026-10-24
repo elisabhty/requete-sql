@@ -199,9 +199,9 @@
    cap(clé, texte, durée) pose une légende [début, fin] ; A[clé] et B[clé] donnent son début et sa fin (temps de la timeline). */
 const SCH = {t: 5.0, caps: [], chaps: [{label:'La table de trop', a: 5.0}], A: {}, B: {}};
 function chap(c){ SCH.t = +(SCH.t + 0.4).toFixed(2); SCH.chaps.push({label: c.label, a: SCH.t}); }
-function cap(key, html, dur, gap = 0.1, lines = 0){
+function cap(key, html, dur, gap = 0.1){
   const a = +(SCH.t + gap).toFixed(2), b = +(a + dur).toFixed(2);
-  SCH.caps.push(lines ? [a, b, html, lines] : [a, b, html]); SCH.A[key] = a; SCH.B[key] = b; SCH.t = b;   // lines : 4 pour une légende de quatre lignes
+  SCH.caps.push([a, b, html]); SCH.A[key] = a; SCH.B[key] = b; SCH.t = b;   // trois lignes au plus par bulle : au-delà, deux bulles (Elisa, 24 octobre)
 }
 /* « À toi ! » : la légende reste un instant, puis l’image s’arrête à a + 2,35 s (le passage d’attente est coupé). */
 const toi = key => cap(key, 'À toi !', 2.55);
@@ -229,14 +229,16 @@ toi('p3');
 cap('c10', "On écrit <code>DROP TABLE</code>,<br>puis le nom de la table.", 2.8);
 /* 4 · Une table liée */
 chap({label:'Une table liée'});
-cap('c11', "Imagine que tu te trompes de nom :<br>tu veux supprimer la table<br><code>inscriptions_excel</code>,<br>mais tu tapes <code>clients</code> à la place.", 7.3, 0.1, 4);
+cap('c11', "Imagine que tu te trompes de nom.", 2.5);
+cap('c11a', "Tu veux supprimer la table<br><code>inscriptions_excel</code>,<br>mais tu tapes <code>clients</code> à la place.", 5.6);
 cap('c11b', "La suppression est refusée.", 1.8);
 toi('p4');
 cap('c12', "Les tables <code>commandes</code>, <code>fidelite</code>,<br><code>inscriptions</code> et <code>cartes</code><br>font référence à la <b>table clients</b>.", 4.0);
 cap('c13', "Tant qu’une clé étrangère<br>y fait référence, une table<br>ne peut pas être supprimée.", 2.8);
 /* 5 · Noms proches */
 chap({label:'Noms proches'});
-cap('c14', "Imagine maintenant que tu oublies<br>la fin du nom : tu veux supprimer<br>la table <code>inscriptions_excel</code>,<br>mais tu tapes <code>inscriptions</code>.", 7.8, 0.1, 4);
+cap('c14', "Imagine maintenant que tu oublies<br>la fin du nom.", 3.4);
+cap('c14a', "Tu veux supprimer la table<br><code>inscriptions_excel</code>,<br>mais tu tapes <code>inscriptions</code>.", 5.5);
 cap('c15', "Aucune table ne fait référence<br>à la <b>table inscriptions</b>.", 2.6);
 toi('p5');
 cap('c16', "Elle serait supprimée, avec ses sept<br>inscriptions, sans la moindre erreur.", 2.8);
@@ -611,9 +613,9 @@ function build(){
 
   /* ===== 4 · Une table liée ===== */
   // « tu veux supprimer la table inscriptions_excel » : la bonne requête et la copie, repérée dans la liste, restent à l’écran
-  pulse('#n3', A.c11 + 3.9, 1, 'rgba(255,224,138,.4)'); cue(A.c11 + 3.9, 'tick', 0.5, 4);
+  pulse('#n3', A.c11a + 1.9, 1, 'rgba(255,224,138,.4)'); cue(A.c11a + 1.9, 'tick', 0.5, 4);
   // « mais tu tapes clients à la place » : le nom change, la table clients est repérée
-  const X4 = A.c11 + 4.7;
+  const X4 = A.c11a + 3.0;
   off(['#rw-xl .nm > .rg', '#rw-xl .hl'], X4, 0.2);
   hide('#ed3', X4, {y: 30}, 0.3);
   show('#ed4', X4 + 0.4, {y: 40}, 0.5); cue(X4 + 0.4, 'whoosh', 0.4, 2);
@@ -640,10 +642,10 @@ function build(){
   // « tu veux supprimer la table inscriptions_excel » : la bonne requête revient, avec la copie repérée dans la liste
   tl.fromTo('#ed3', {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false}, A.c14 + 0.7);
   cue(A.c14 + 0.7, 'whoosh', 0.4, 3);
-  on(['#rw-xl .hl', '#rw-xl .nm > .rg'], A.c14 + 3.3); cue(A.c14 + 3.3, 'tick', 0.5, 2);
-  pulse('#n3', A.c14 + 4.7, 1, 'rgba(255,224,138,.4)'); cue(A.c14 + 4.7, 'tick', 0.5, 4);
+  on(['#rw-xl .hl', '#rw-xl .nm > .rg'], A.c14a + 0.6); cue(A.c14a + 0.6, 'tick', 0.5, 2);
+  pulse('#n3', A.c14a + 1.9, 1, 'rgba(255,224,138,.4)'); cue(A.c14a + 1.9, 'tick', 0.5, 4);
   // « mais tu tapes inscriptions » : la fin du nom (« _excel ») manque, la requête change
-  const X5 = A.c14 + 5.3;
+  const X5 = A.c14a + 3.0;
   off('#rw-xl .nm > .rg', X5, 0.2);
   on('#rw-xl .sfx .rg', X5 + 0.1); cue(X5 + 0.1, 'tick', 0.6, 4);
   hide('#ed3', X5, {y: 30}, 0.3);
@@ -807,7 +809,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 120, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 122.1, picks: PICKS, opens: OPENS,
   glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝📄🔑🔗🔒🗑️🛟✉️👆✓✕!…«»', dom, build, beforeRender: t => IX.tick(t)});
 </script>
 </body>

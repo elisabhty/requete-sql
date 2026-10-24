@@ -49,9 +49,9 @@ test('recherche, et leçon seule sans texte de secours ni exercice', () => {
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
   /* Le bouton des notes est écrit en clair dans Course(…) : il suit la dernière légende. */
-  assert.equal(val('NOTES'), 120);
-  assert.ok(page.includes('notesAt: 120,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 127.2);
+  assert.equal(val('NOTES'), 122.1);
+  assert.ok(page.includes('notesAt: 122.1,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 129.3);
   /* Des légendes qui se suivent sans se chevaucher, chaque chapitre commençant après la fin de la légende précédente. */
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
@@ -231,7 +231,7 @@ test('chapitre 6 : écran titre, ouverture comme aux autres chapitres, annonce d
   assert.equal(caps[1], 'Au chapitre 5, tu as fait évoluer les tables avec <code>ALTER TABLE</code>.', 'le chapitre précédent');
   /* La fin du chapitre 5 annonce « Chapitre 6 · DROP » et « DROP TABLE » : c’est ce chapitre. */
   const alter = fs.readFileSync(path.join(root, 'assets/anim/projet-alter.html'), 'utf8');
-  assert.ok(alter.includes('Chapitre 6 · DROP') && alter.includes('avec <code>DROP TABLE</code>.'), 'le chapitre 5 annonce celui-ci');
+  assert.ok(alter.includes('Chapitre 6 · DROP') && alter.includes('Tu le feras avec <code>DROP TABLE</code> :'), 'le chapitre 5 annonce celui-ci');
   /* Il annonce à son tour la leçon suivante du cours : INSERT (texte d’Elisa, 24 octobre, 10:15). */
   assert.ok(caps.includes('Dans la prochaine leçon, tu apprendras à ajouter des données dans tes tables avec <code>INSERT INTO</code>.') && page.includes('Prochaine leçon · INSERT INTO</span>'), 'annonce de la prochaine leçon');
   assert.equal(lessons[lessons.findIndex(l => l.id === 66) + 1].id, 26);
@@ -243,16 +243,19 @@ const strip = h => h.replace(/<br>/g, ' ').replace(/<[^>]+>/g, '').replace(/&nbs
 
 test('les deux fautes de nom rappellent l’objectif (supprimer la copie), puis disent ce que l’élève tape ; l’image suit la phrase', () => {
   const caps = val('CAPTIONS'), A = val('A'), B = val('B');
-  const c11 = caps.find(c => c[0] === A.c11), c14 = caps.find(c => c[0] === A.c14), c24 = caps.find(c => c[0] === A.c24);
-  assert.equal(strip(c11[2]), 'Imagine que tu te trompes de nom : tu veux supprimer la table inscriptions_excel, mais tu tapes clients à la place.', 'faute 1 : le texte d’Elisa, mot pour mot');
-  assert.equal(strip(c14[2]), 'Imagine maintenant que tu oublies la fin du nom : tu veux supprimer la table inscriptions_excel, mais tu tapes inscriptions.', 'faute 2 : même phrase, l’objectif est rappelé');
+  const c11 = caps.find(c => c[0] === A.c11), c11a = caps.find(c => c[0] === A.c11a), c14 = caps.find(c => c[0] === A.c14), c14a = caps.find(c => c[0] === A.c14a), c24 = caps.find(c => c[0] === A.c24);
+  /* Les quatre lignes d’Elisa sont deux bulles (24 octobre au soir, Réf 2 : « t’aurais pu découper en plusieurs bulles ») : « Imagine… » seul, puis ce que l’élève veut et tape. */
+  assert.equal(strip(c11[2]), 'Imagine que tu te trompes de nom.', 'faute 1 : la première bulle');
+  assert.equal(strip(c11a[2]), 'Tu veux supprimer la table inscriptions_excel, mais tu tapes clients à la place.', 'faute 1 : la seconde bulle, les mots d’Elisa');
+  assert.equal(strip(c14[2]), 'Imagine maintenant que tu oublies la fin du nom.', 'faute 2 : la première bulle');
+  assert.equal(strip(c14a[2]), 'Tu veux supprimer la table inscriptions_excel, mais tu tapes inscriptions.', 'faute 2 : même phrase, l’objectif est rappelé');
   assert.equal(strip(c24[2]), 'Dans la prochaine leçon, tu apprendras à ajouter des données dans tes tables avec INSERT INTO.');
-  /* Ces phrases font quatre lignes (4e valeur) ; chacune dure le temps de la lire (17 caractères par seconde, 0,5 s de fondus) : aucune pause supplémentaire. */
-  assert.equal(c11[3], 4); assert.equal(c14[3], 4); assert.equal(c24[3], undefined, 'la bulle de fin tient en trois lignes');
-  for (const c of [c11, c14, c24]) assert.ok(c[1] - c[0] >= strip(c[2]).length / 17 + 0.5 - 1e-9, `« ${strip(c[2]).slice(0, 30)}… » : le temps de la lire sans pause`);
+  /* Aucune n’a plus de trois lignes (plus de 4e valeur) ; chacune dure le temps de la lire (17 caractères par seconde, 0,5 s de fondus) : aucune pause supplémentaire. */
+  for (const c of [c11, c11a, c14, c14a, c24]) assert.equal(c[3], undefined, 'trois lignes au plus');
+  for (const c of [c11, c11a, c14, c14a, c24]) assert.ok(c[1] - c[0] >= strip(c[2]).length / 17 + 0.5 - 1e-9, `« ${strip(c[2]).slice(0, 30)}… » : le temps de la lire sans pause`);
   /* L’image suit la phrase : la bonne requête reste à l’écran tant que la phrase parle de la copie, puis le nom change à « mais tu tapes… ». */
-  assert.ok(page.includes('const X4 = A.c11 + 4.7;') && page.includes('const X5 = A.c14 + 5.3;'), 'le nom change au milieu de la phrase');
-  assert.ok(4.7 + 1.55 + 0.3 < B.c11 - A.c11 && 5.3 + 1.0 + 0.8 < B.c14 - A.c14, 'la requête fautive est tapée avant la fin de la légende');
+  assert.ok(page.includes('const X4 = A.c11a + 3.0;') && page.includes('const X5 = A.c14a + 3.0;'), 'le nom change au milieu de la seconde bulle');
+  assert.ok(3.0 + 1.55 + 0.3 < B.c11a - A.c11a && 3.0 + 1.0 + 0.8 < B.c14a - A.c14a, 'la requête fautive est tapée avant la fin de la légende');
   assert.ok(page.includes("hide('#ed3', X4, {y: 30}, 0.3);") && page.includes("hide('#ed3', X5, {y: 30}, 0.3);"), 'la bonne requête s’efface au moment de la faute');
   assert.ok(page.includes("on('#rw-xl .sfx .rg', X5 + 0.1);"), 'le bout de nom oublié (_excel) est repéré dans la liste');
   assert.ok(page.includes("off(['#rw-xl .sfx .rg', '#rw-xl .hl'], A.c15, 0.2);"), 'la copie n’est plus repérée quand la légende suivante parle de la table inscriptions');

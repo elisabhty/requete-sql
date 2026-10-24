@@ -277,27 +277,26 @@
    cap(clé, texte, durée) pose une légende [début, fin] ; A[clé] et B[clé] donnent son début et sa fin (temps de la timeline). */
 const SCH = {t: 5.0, caps: [], chaps: [{label:'Karim passe la main', a: 5.0}], A: {}, B: {}};
 function chap(c){ SCH.t = +(SCH.t + 0.4).toFixed(2); SCH.chaps.push({label: c.label, a: SCH.t}); }
-function cap(key, html, dur, gap = 0.1, lines = 0){
+function cap(key, html, dur, gap = 0.1){
   const a = +(SCH.t + gap).toFixed(2), b = +(a + dur).toFixed(2);
-  SCH.caps.push(lines ? [a, b, html, lines] : [a, b, html]); SCH.A[key] = a; SCH.B[key] = b; SCH.t = b;   // lines : 4 pour une légende de quatre lignes
+  SCH.caps.push([a, b, html]); SCH.A[key] = a; SCH.B[key] = b; SCH.t = b;   // trois lignes au plus par bulle : au-delà, deux bulles (Elisa, 24 octobre)
 }
 /* « À toi ! » : la légende reste un instant, puis l’image s’arrête à a + 2,35 s (le passage d’attente est coupé). */
 const toi = key => cap(key, 'À toi !', 2.55);
 const {A, B} = SCH;
 
-/* Les quatre mails reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses paragraphes), signature, formules].
+/* Les trois mails reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses paragraphes), signature, formules].
    Chacun arrive en notification ; l’app s’arrête dessus (OPENS) jusqu’au toucher. Le mail commence par « Bonjour, » et se termine par « Merci ! »
-   avant la signature, sauf indication : formules {hi, bye} (null : aucune). Les mots des mails de Karim et de l’équipe NutriBoost sont ceux d’Elisa. */
+   avant la signature, sauf indication : formules {hi, bye} (null : aucune). Les mots des mails de Karim et de l’équipe NutriBoost sont ceux d’Elisa.
+   Le mail de Karim donne les deux dates : le 8 septembre est la date d’inscription, l’atelier Cuisine saine a lieu le 19 septembre
+   (Elisa, 24 octobre : « c’était une correction à faire dans notre premier mail », pas un second mail). */
 const MAILS = [
   [['Karim', 'Benali', 'KB'], 'k-dv', 'développeur', 'karim@nutriboost.fr', [
     'J’espère que tu vas bien !',
     'Je serai en congé à partir de lundi prochain. Est-ce que tu pourrais prendre le relais pendant mon absence ?',
-    'Je te confie une première tâche, encore en attente dans mon planning et assez urgente : pourrais-tu enregistrer l’inscription de Lucas Bernard à l’atelier Cuisine saine du 8 septembre ?'],
+    'Je te confie une première tâche, encore en attente dans mon planning et assez urgente : pourrais-tu enregistrer l’inscription de Lucas Bernard à l’atelier Cuisine saine ?',
+    'Le 8 septembre est la date d’inscription. L’atelier Cuisine saine a lieu le 19 septembre.'],
     'Karim', {bye: 'Merci pour ton aide !'}],
-  [['Karim', 'Benali', 'KB'], 'k-dv', 'développeur', 'karim@nutriboost.fr', [
-    'Petite correction dans le mail précédent : le 8 septembre est la date d’inscription.',
-    'L’atelier Cuisine saine a lieu le 19 septembre.'],
-    'Karim', {hi: null, bye: null}],
   [['Moussa', 'Diallo', 'MD'], 'k-co', 'coach', 'moussa@mail.fr', [
     'Trois personnes se sont inscrites le 9 septembre à l’atelier Yoga du matin : Hugo Laurent, Gabriel Michel et Inès Lefebvre.',
     'Peux-tu les enregistrer toutes les trois ?'], 'Moussa'],
@@ -315,12 +314,12 @@ const mailBlock = n => { const t = SCH.t; SCH.t = +(SCH.t + mailOutAt(n) + 1).to
 cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
 cap('r2', "Au chapitre 6, tu as retiré la copie du fichier Excel avec <code>DROP TABLE</code>.", 3.0);
 cap('c2', "Jusqu’ici, Karim, le développeur,<br>s’est chargé d’ajouter les données<br>dans les tables de NutriBoost.", 3.6);
+const MAIL1 = mailBlock(0);   // le mail de Karim, puis seulement « À ton tour de prendre la main ! » (Elisa, 24 octobre, Réf 1)
 cap('c3', "À ton tour de prendre la main !", 2.8);
-const MAIL1 = mailBlock(0);
 /* 2 · Une inscription */
 chap({label:'Une inscription'});
-cap('c4', "Pour enregistrer l’inscription de Lucas,<br>tu vas ajouter une nouvelle ligne<br>dans la <b>table inscriptions</b><br>avec la commande SQL <code>INSERT INTO</code>.", 4.4, 0.1, 4);
-const MAIL2 = mailBlock(1);
+cap('c4a', "Pour enregistrer l’inscription de Lucas,<br>tu vas ajouter une nouvelle ligne<br>dans la <b>table inscriptions</b>.", 3.8);   // la bulle de quatre lignes d’Elisa, en deux bulles (Réf 2)
+cap('c4b', "Cela se fait avec la commande SQL<br><code>INSERT INTO</code>.", 3.0);
 cap('c5', "Le client et l’atelier<br>sont repérés par leur identifiant.", 2.8);
 cap('c6', "On les trouve dans la <b>table clients</b><br>et dans la <b>table ateliers</b>.", 3.2);
 toi('p1');
@@ -345,7 +344,7 @@ cap('c18', "Dans la <b>table inscriptions</b>, l’atelier<br>est obligatoire (<
 cap('c19', "Le message d’erreur indique la règle<br>et la colonne concernées.", 3.4);
 /* 5 · Un groupe */
 chap({label:'Un groupe'});
-const MAIL3 = mailBlock(2);
+const MAIL2 = mailBlock(1);
 cap('c20', "On peut ajouter plusieurs lignes<br>d’un coup, avec une seule requête.", 3.0);
 cap('c21', "Après <code>VALUES</code>, on écrit une parenthèse<br>par ligne, séparées par des virgules.", 4.0);
 cap('c22', "Une faute de frappe s’est glissée<br>dans l’une des trois lignes.", 2.8);
@@ -355,7 +354,7 @@ cap('c24', "Une seule ligne refusée suffit :<br>aucune des trois n’est ajout�
 cap('c25', "Une fois la faute corrigée,<br>les trois inscriptions sont ajoutées.", 3.2);
 /* 6 · Créer ou recharger */
 chap({label:'Créer ou recharger'});
-const MAIL4 = mailBlock(3);
+const MAIL3 = mailBlock(2);
 cap('c26', "Hugo Laurent a déjà une carte,<br>et une seule carte par client<br>est autorisée dans la <b>table cartes</b>.", 4.0);
 cap('c27', "Une seconde carte pour Hugo Laurent<br>enfreint la règle <code>UNIQUE</code>.", 3.6);
 cap('c28', "Avec <code>ON CONFLICT (client_id)</code>,<br>tu choisis quoi faire si ce client<br>a déjà une carte.", 3.8);
@@ -436,9 +435,9 @@ const PICKS = [
     options: BUY.map(b => ({label: b[0]}))}
 ];
 
-/* Les quatre mails (MAILS, plus haut) : l’app s’arrête sur chaque notification jusqu’au toucher. */
+/* Les trois mails (MAILS, plus haut) : l’app s’arrête sur chaque notification jusqu’au toucher. */
 const MO = MAILS.map((m, n) => mailOutAt(n));   // le départ de chaque mail, depuis le début de son bloc
-const OPENS = [MAIL1, MAIL2, MAIL3, MAIL4].map((t, n) => ({at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: 'Touche le mail pour l’ouvrir.', label: `Ouvrir le mail de ${MAILS[n][0][0]} ${MAILS[n][0][1]}`}));
+const OPENS = [MAIL1, MAIL2, MAIL3].map((t, n) => ({at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: 'Touche le mail pour l’ouvrir.', label: `Ouvrir le mail de ${MAILS[n][0][0]} ${MAILS[n][0][1]}`}));
 
 /* ---------- Gabarits ---------- */
 const RH = 54;   // hauteur d’une ligne de la table inscriptions
@@ -736,39 +735,35 @@ function build(){
   // Karim a rempli les tables : le nombre de lignes de chaque table s’allume
   show('#wk', A.c2 + 0.1, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.c2 + 0.1, 'pop', 0.7, 1);
   TB.filter(t => t[0] !== 'xl').forEach(([k], q) => { bump('#bw-' + k + ' .nb', A.c2 + 0.8 + q * 0.12, 1.12); cue(A.c2 + 0.8 + q * 0.12, 'tick', 0.5, q % 5); });
-  // il te passe la main : sa pastille s’en va, la tienne arrive
-  tl.to('#wk', {x: 140, autoAlpha: 0, duration: 0.35, ease: 'power2.in'}, A.c3 + 0.3); cue(A.c3 + 0.3, 'whoosh', 0.4);
-  tl.fromTo('#wt', {autoAlpha: 0, x: -140}, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'back.out(1.4)', immediateRender: false}, A.c3 + 0.6); cue(A.c3 + 0.6, 'pop', 0.7, 3);
-  tl.to('#wt .emo', {rotation: -18, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.c3 + 1.3);
-  // le mail de Karim
+  // le mail de Karim : il demande de prendre le relais ; la base et sa pastille attendent pendant qu’il est affiché
   capOff(MAIL1 - 0.2);   // avec la légende : jamais de carte vide
-  hide(['#bc', '#wt'], MAIL1, {y: -30}, 0.35);
+  hide(['#bc', '#wk'], MAIL1, {y: -30}, 0.35);
   sceneOff('#sa', MAIL1 + 0.4);
   sceneOn('#sm', MAIL1 + 0.4);
   mailIn(1, MAIL1 + 0.5, OPENS[0].at);
   mailOut(1, MAIL1 + MO[0]);
   sceneOff('#sm', MAIL1 + MO[0] + 0.3);
-  sceneOn('#sb', MAIL1 + MO[0] + 0.3);
-  tl.fromTo('#tb', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL1 + MO[0] + 0.35);
+  // le mail part : la base revient avec Karim, et « À ton tour de prendre la main ! » (Réf 1 : après le mail)
+  sceneOn('#sa', MAIL1 + MO[0] + 0.3);
+  tl.fromTo('#bc', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL1 + MO[0] + 0.35);
+  tl.fromTo('#wk', {autoAlpha: 0, y: 30, scale: 0.94}, {autoAlpha: 1, y: 0, scale: 1, duration: 0.5, ease: 'back.out(1.6)', immediateRender: false}, MAIL1 + MO[0] + 0.45);
   cue(MAIL1 + MO[0] + 0.35, 'whoosh', 0.5);
-  capOn(A.c4 - 0.3);   // juste avant la légende suivante
+  capOn(A.c3 - 0.3);   // juste avant la légende suivante
+  // il te passe la main : sa pastille s’en va, la tienne arrive
+  tl.to('#wk', {x: 140, autoAlpha: 0, duration: 0.35, ease: 'power2.in'}, A.c3 + 0.3); cue(A.c3 + 0.3, 'whoosh', 0.4);
+  tl.fromTo('#wt', {autoAlpha: 0, x: -140}, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'back.out(1.4)', immediateRender: false}, A.c3 + 0.6); cue(A.c3 + 0.6, 'pop', 0.7, 3);
+  tl.to('#wt .emo', {rotation: -18, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.c3 + 1.3);
+  // la table inscriptions prend la place de la base
+  hide(['#bc', '#wt'], B.c3 - 0.15, {y: -30}, 0.35);
+  sceneOff('#sa', B.c3 + 0.2);
+  sceneOn('#sb', B.c3 + 0.2);
+  tl.fromTo('#tb', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, B.c3 + 0.2);
+  cue(B.c3 + 0.2, 'whoosh', 0.5);
 
   /* ===== 2 · Une inscription ===== */
   // pour enregistrer l’inscription : une nouvelle ligne dans la table inscriptions, la dernière ligne montre à quoi elle ressemble
-  on('#r7 .hl', A.c4 + 0.3); cue(A.c4 + 0.3, 'tick', 0.5, 2);
-  off('#r7 .hl', B.c4 - 0.6);
-  // le deuxième mail de Karim, une correction : la table attend pendant qu’il est affiché
-  capOff(MAIL2 - 0.2);
-  hide('#tb', MAIL2, {y: -30}, 0.35);
-  sceneOff('#sb', MAIL2 + 0.4);
-  sceneOn('#sm', MAIL2 + 0.4);
-  mailIn(2, MAIL2 + 0.5, OPENS[1].at);
-  mailOut(2, MAIL2 + MO[1]);
-  sceneOff('#sm', MAIL2 + MO[1] + 0.3);
-  sceneOn('#sb', MAIL2 + MO[1] + 0.3);
-  tl.fromTo('#tb', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL2 + MO[1] + 0.35);
-  cue(MAIL2 + MO[1] + 0.35, 'whoosh', 0.5);
-  capOn(A.c5 - 0.3);
+  on('#r7 .hl', A.c4a + 0.3); cue(A.c4a + 0.3, 'tick', 0.5, 2);
+  off('#r7 .hl', B.c4b - 0.6);
   // le client et l’atelier sont repérés par leur identifiant : les deux colonnes
   on('#col-cl', A.c5 + 0.3); cue(A.c5 + 0.3, 'tick', 0.5, 1);
   on('#col-at', A.c5 + 0.8); cue(A.c5 + 0.8, 'tick', 0.5, 3);
@@ -863,18 +858,18 @@ function build(){
 
   /* ===== 5 · Un groupe ===== */
   // le mail de Moussa Diallo : pendant qu’il est affiché, la table retrouve la ligne de Lucas Bernard, ajoutée
-  capOff(MAIL3 - 0.2);
-  hide(['#tb', '#sc1a', '#sc2', '#ed', '#o-nn'], MAIL3, {y: -30}, 0.35);
-  sceneOff('#sb', MAIL3 + 0.4);
-  tl.set(['#r8 .gd', '#ph2', '#cn-a'], {autoAlpha: 0}, MAIL3 + 0.45);
-  tl.set(['#id8', '#s8c2', '#t8c2', '#cn-b'], {autoAlpha: 1}, MAIL3 + 0.45);
-  sceneOn('#sm', MAIL3 + 0.4);
-  mailIn(3, MAIL3 + 0.5, OPENS[2].at);
-  mailOut(3, MAIL3 + MO[2]);
-  sceneOff('#sm', MAIL3 + MO[2] + 0.3);
-  sceneOn('#sb', MAIL3 + MO[2] + 0.3);
-  tl.fromTo(['#tb', '#sc1b', '#sc2'], {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL3 + MO[2] + 0.35);
-  cue(MAIL3 + MO[2] + 0.35, 'whoosh', 0.5);
+  capOff(MAIL2 - 0.2);
+  hide(['#tb', '#sc1a', '#sc2', '#ed', '#o-nn'], MAIL2, {y: -30}, 0.35);
+  sceneOff('#sb', MAIL2 + 0.4);
+  tl.set(['#r8 .gd', '#ph2', '#cn-a'], {autoAlpha: 0}, MAIL2 + 0.45);
+  tl.set(['#id8', '#s8c2', '#t8c2', '#cn-b'], {autoAlpha: 1}, MAIL2 + 0.45);
+  sceneOn('#sm', MAIL2 + 0.4);
+  mailIn(2, MAIL2 + 0.5, OPENS[1].at);
+  mailOut(2, MAIL2 + MO[1]);
+  sceneOff('#sm', MAIL2 + MO[1] + 0.3);
+  sceneOn('#sb', MAIL2 + MO[1] + 0.3);
+  tl.fromTo(['#tb', '#sc1b', '#sc2'], {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL2 + MO[1] + 0.35);
+  cue(MAIL2 + MO[1] + 0.35, 'whoosh', 0.5);
   capOn(A.c20 - 0.3);
   // une seule requête, plusieurs lignes : le début de la requête
   show('#edg', A.c20 + 0.1, {y: 40}, 0.5); cue(A.c20 + 0.1, 'whoosh', 0.45, 1);
@@ -916,18 +911,18 @@ function build(){
   off('#cn-b', A.c25 + 1.2, 0.2); on('#cn-c', A.c25 + 1.25, 0.2); bump('#cn-c', A.c25 + 1.5, 1.12); cue(A.c25 + 1.2, 'tick', 0.6, 2);
   [9, 10, 11].forEach((id, q) => { on('#r' + id + ' .hl', A.c25 + 1.6 + q * 0.25, 0.2); off('#r' + id + ' .hl', A.c25 + 2.3 + q * 0.1, 0.3); cue(A.c25 + 1.6 + q * 0.25, 'tick', 0.5, q * 2 + 1); });
   // la fin du chapitre : tout s’en va, la carte arrive
-  capOff(MAIL4 - 0.2);
-  hide(['#tb', '#sc1b', '#sc2', '#edg', '#o-ok3'], MAIL4, {y: -30}, 0.35);
-  sceneOff('#sb', MAIL4 + 0.4);
+  capOff(MAIL3 - 0.2);
+  hide(['#tb', '#sc1b', '#sc2', '#edg', '#o-ok3'], MAIL3, {y: -30}, 0.35);
+  sceneOff('#sb', MAIL3 + 0.4);
 
   /* ===== 6 · Créer ou recharger ===== */
-  sceneOn('#sm', MAIL4 + 0.4);
-  mailIn(4, MAIL4 + 0.5, OPENS[3].at);
-  mailOut(4, MAIL4 + MO[3]);
-  sceneOff('#sm', MAIL4 + MO[3] + 0.3);
-  sceneOn('#sc', MAIL4 + MO[3] + 0.3);
-  tl.fromTo('#tc', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL4 + MO[3] + 0.35);
-  cue(MAIL4 + MO[3] + 0.35, 'whoosh', 0.5);
+  sceneOn('#sm', MAIL3 + 0.4);
+  mailIn(3, MAIL3 + 0.5, OPENS[2].at);
+  mailOut(3, MAIL3 + MO[2]);
+  sceneOff('#sm', MAIL3 + MO[2] + 0.3);
+  sceneOn('#sc', MAIL3 + MO[2] + 0.3);
+  tl.fromTo('#tc', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL3 + MO[2] + 0.35);
+  cue(MAIL3 + MO[2] + 0.35, 'whoosh', 0.5);
   capOn(A.c26 - 0.3);
   // Hugo Laurent a déjà une carte, une seule par client : la ligne d’Hugo Laurent, puis la règle UNIQUE
   on('#rc3 .hl', A.c26 + 0.4); cue(A.c26 + 0.4, 'tick', 0.5, 2);
@@ -1123,7 +1118,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 163.54, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 161.8, picks: PICKS, opens: OPENS,
   glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝📄🔑🔗🔒🎟️✉️👆✓✕!…«»✍️📚🔁✏️·•', dom, build, beforeRender: t => IX.tick(t)});
 </script>
 </body>
