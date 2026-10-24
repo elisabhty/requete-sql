@@ -296,7 +296,7 @@ test('le récapitulatif, mot pour mot, dans la vidéo comme dans la fiche de la 
     const [phrase, detail] = m[2].split('<span class="rs">');
     return [m[1], strip(phrase), strip(detail.replace(/<\/span>$/, ''))];
   });
-  const RECAP = [['🗑️', 'DELETE FROM supprime des lignes entières.', 'WHERE désigne les lignes à supprimer ; les autres lignes ne changent pas.'],
+  const RECAP = [['🗑️', 'DELETE FROM supprime des lignes entières.', 'WHERE sélectionne les lignes à supprimer ; les autres lignes ne changent pas.'],
     ['⚠️', 'Sans WHERE, toutes les lignes de la table sont supprimées.', 'La table existe encore, mais elle est vide. Lis d’abord les lignes avec un SELECT.'],
     ['🎯', 'La condition peut désigner une ou plusieurs lignes.', 'Un identifiant désigne une seule ligne ; un prénom ou un identifiant de client peut en désigner plusieurs.']];
   assert.deepEqual(rows, RECAP, 'la vidéo : les trois idées');

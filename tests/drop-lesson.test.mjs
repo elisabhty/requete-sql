@@ -247,7 +247,7 @@ test('les deux fautes de nom rappellent l’objectif (supprimer la copie), puis 
   /* Les quatre lignes d’Elisa sont deux bulles (24 octobre au soir, Réf 2 : « t’aurais pu découper en plusieurs bulles ») : « Imagine… » seul, puis ce que l’élève veut et tape. */
   assert.equal(strip(c11[2]), 'Imagine que tu te trompes de nom.', 'faute 1 : la première bulle');
   assert.equal(strip(c11a[2]), 'Tu veux supprimer la table inscriptions_excel, mais tu tapes clients à la place.', 'faute 1 : la seconde bulle, les mots d’Elisa');
-  assert.equal(strip(c14[2]), 'Imagine maintenant que tu oublies la fin du nom.', 'faute 2 : la première bulle');
+  assert.equal(strip(c14[2]), 'Et si tu oublies la fin du nom ?', 'faute 2 : la première bulle, « Et si… ? » (Elisa, 24 octobre, 22 h 29 : « Changer en et si »), « Imagine » n’est écrit qu’une fois');
   assert.equal(strip(c14a[2]), 'Tu veux supprimer la table inscriptions_excel, mais tu tapes inscriptions.', 'faute 2 : même phrase, l’objectif est rappelé');
   assert.equal(strip(c24[2]), 'Dans la prochaine leçon, tu apprendras à ajouter des données dans tes tables avec INSERT INTO.');
   /* Aucune n’a plus de trois lignes (plus de 4e valeur) ; chacune dure le temps de la lire (17 caractères par seconde, 0,5 s de fondus) : aucune pause supplémentaire. */
