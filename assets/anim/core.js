@@ -572,6 +572,29 @@ function holdClashes(extra = []){
   return out;
 }
 
+/* Bas du contenu visible, sur la maquette 1080 × 1920 : cartes, éditeurs et encadrés (ni la légende, ni la puce de chapitre, ni les
+   tampons ni ce qui s’envole). Le lecteur s’en sert pour que la feuille de réponse ne touche jamais le contenu : quand elle monte trop
+   haut (petit écran, question longue), il réduit l’image juste assez. null quand il n’y a rien à voir. */
+function contentBottom(){
+  const stage = $('#stage'); if (!stage) return null;
+  const sr = stage.getBoundingClientRect(), k = sr.width / 1080 || 1;
+  const shown = el => { let o = 1; for (let n = el; n && n !== document.body; n = n.parentElement) {
+    const cs = getComputedStyle(n); if (cs.display === 'none' || cs.visibility === 'hidden') return 0; o *= parseFloat(cs.opacity); } return o; };
+  const isBox = el => { const cs = getComputedStyle(el); return el.tagName !== 'IMG' && !el.classList.contains('mascot') &&
+    (cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || cs.backgroundImage !== 'none' || parseFloat(cs.borderTopWidth) > 0 || cs.boxShadow !== 'none'); };
+  const set = new Set();
+  const take = el => { if (!el.classList.contains('stamp') && !el.classList.contains('fly') && !el.parentElement.closest('.card, .code')) set.add(el); };
+  $$('.card, .code', stage).forEach(take);
+  $$('section.scene > *', stage).forEach(el => { if (isBox(el)) take(el); });
+  let best = null;
+  set.forEach(el => {
+    if (el.closest('#cap, #chapter, #chap') || shown(el) < 0.3) return;
+    const r = el.getBoundingClientRect(); if (!r.width || !r.height) return;
+    const b = (r.bottom - sr.top) / k; if (best === null || b > best) best = b;
+  });
+  return best === null ? null : +best.toFixed(1);
+}
+
 /* ---------- Le cours ---------- */
 /* cfg : {duration, chapters, captions, questions, picks, notesAt, glyphs, dom(), build(), onRender(T)} */
 function Course(cfg){
@@ -593,6 +616,7 @@ function Course(cfg){
     if (cfg.onRender) cfg.onRender(T);
   }
   window.renderAt = renderAt;
+  window.__contentBottom = contentBottom;
   window.__ready = (async () => {
     buildChrome(chapters, captions);
     if (cfg.dom) cfg.dom();

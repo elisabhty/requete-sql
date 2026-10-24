@@ -162,7 +162,7 @@ test('micro-interaction de l’ajout : halo, mini-note en arc vers « Mes notes 
     assert.ok(fly.includes(part), `étape « ${part} »`);
   assert.ok(fly.includes('<span class="lv-notes-lab">Mes notes</span>') && fly.includes('<span>${before}</span><span>${after}</span>'));
   assert.ok(!/toast\(/.test(fly), 'pas de toast');
-  const pt = cut('function lvPt(X,Y){', 'function lvNotePlace(){');
+  const pt = cut('function lvPt(X,Y,raw){', 'function lvNotePlace(){');
   assert.ok(pt.includes('X/1080*dw') && pt.includes('Y/1920*dh'), 'positions prises sur la maquette de la vidéo');
 });
 
@@ -1149,7 +1149,7 @@ test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la 
   /* Le plateau part du haut de la légende et couvre la légende restée affichée à l’arrêt (jusqu’à y = 1830), pas davantage :
      au-delà, la carte suit sa question (aucun blanc), et remonte seulement si elle manque de place sous elle. */
   const place = cut('function lvPkPlace(){', 'function lvPkClose(answered){');
-  assert.ok(place.includes('const a=lvPt(0,1496), z=lvPt(0,1830);') && place.includes('Math.min(z.y,lim)-a.y'),
+  assert.ok(place.includes('const a=lvPt(0,1496,1), z=lvPt(0,1830,1);') && place.includes('Math.min(z.y,lim)-a.y'),
     'le plateau couvre la légende, jamais le résultat : haut de la légende (y = 1496), jusqu’à y = 1830');
   assert.ok(place.includes("P.box.style.top=Math.max(0,Math.min(a.y,lim-card.offsetHeight)).toFixed(1)+'px'") && !place.includes('R.height-pb-10-a.y'),
     'la carte suit son contenu : plus de hauteur forcée jusqu’en bas de l’écran, elle remonte seulement s’il lui manque de la place');
