@@ -48,7 +48,7 @@ export const CLIENTS = [...INSERT_CLIENTS.matchAll(/\(\d+,'([^']+)','([^']+)'/g)
 /* Les coachs et le développeur ne sont pas des clients : « Karim », « Moussa » seuls sont permis. */
 export const EQUIPE = ['Karim', 'Moussa', 'Salma', 'Julie', 'Diego'];
 export const ATELIERS = ['Récupération', 'Pilates', 'Cuisine saine', 'Méditation', 'Yoga du matin'];
-export const TABLES = ['clients', 'commandes', 'produits', 'fidelite', 'coachs', 'ateliers', 'inscriptions', 'cartes', 'inscriptions_excel'];
+export const TABLES = ['clients', 'commandes', 'produits', 'fidelite', 'coachs', 'ateliers', 'inscriptions', 'cartes', 'avis', 'inscriptions_excel'];
 
 /* ---------- Les listes de mots du moteur (assets/anim/core.js) : les mêmes que celles qui évitent les coupes à l’affichage ---------- */
 const core = lire(path.join(ANIM, 'core.js'));
@@ -145,7 +145,8 @@ export function textes(file) {
 export function textesFiche(idLecon) {
   const a = html.indexOf(`guide({ id:${idLecon},`);
   if (a < 0) throw new Error(`leçon ${idLecon} introuvable dans index.html`);
-  const suite = html.indexOf('guide({ id:', a + 10), bloc = html.slice(a, suite < 0 ? a + 20000 : suite);
+  /* La fiche s’arrête à la ligne « }) » qui ferme le guide : l’en-tête du module suivant (« titre », « sous ») n’en fait pas partie. */
+  const fin = html.indexOf('\n})', a), suite = html.indexOf('guide({ id:', a + 10), bloc = html.slice(a, fin > 0 && (suite < 0 || fin < suite) ? fin + 3 : suite < 0 ? a + 20000 : suite);
   const champs = ['titre', 'résumé'].map(c => [c, bloc.match(new RegExp(`${c}:"((?:[^"\\\\]|\\\\.)*)"`))?.[1]]).filter(c => c[1]);
   const vus = new Set();
   return [...champs.map(([c, h]) => ({ou: c, h})), ...litteraux(bloc).filter(estDeLaProse).map((h, k) => ({ou: `fiche ${k + 1}`, h}))]
@@ -428,6 +429,8 @@ export const EXCEPTIONS = [
     raison: 'Même phrase que dans la vidéo du chapitre 2 (récapitulatif), mots d’Elisa : « lien » désigne une ligne de la table d’association.'},
   {regle: 'relation', page: 'projet-uml', contient: 'au lien entre un client et un atelier',
     raison: 'Mots d’Elisa : « le lien entre un client et un atelier » est une inscription (une ligne), pas la relation entre deux tables.'},
+  {regle: 'client', page: 'projet-delete', contient: "WHERE prenom = 'Nathan'",
+    raison: 'Une fin de requête SQL (réponse fausse du moment 3), pas une phrase : la condition sur le prénom seul désigne les deux Nathan, c’est justement le piège.'},
   /* Des coupes que le texte d’Elisa impose : en quatre lignes, rien de mieux sans changer un mot */
   {regle: 'coupes', page: 'projet-uml', contient: 'On place la date d’inscription dans Inscription',
     raison: 'Mots d’Elisa, quatre lignes : « dans Inscription, une classe d’association : » est trop long pour une seule ligne ; avec le saut avant « dans », la bulle passerait à cinq lignes.'},
@@ -504,9 +507,6 @@ export const DETTE = {
     47: {relation: 1},   // Sous-requête dans SELECT
     55: {relation: 1},   // EXISTS et NOT EXISTS
     74: {identifiant: 2},   // Fonctions de rang
-    28: {'sans-personnification': 2, client: 5},   // DELETE
-    67: {'sans-personnification': 7, client: 4},   // Les contraintes en action
-    68: {relation: 2, 'sans-personnification': 3, client: 17},   // ON DELETE
     62: {client: 22, relation: 1, 'sans-personnification': 1},   // Transactions
     63: {'sans-personnification': 1},   // SAVEPOINT
     70: {client: 1},   // Les triggers

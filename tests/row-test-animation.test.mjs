@@ -1,17 +1,14 @@
 /* Tableau « La condition est-elle vraie ? » (initRowTest), testé ligne par ligne. Exemple : le tableau de l’ancien cours texte
    WHERE (ville = 'Paris', tests/fixtures/row-test-where.html), lu dans un mini-DOM ; initRowTest (index.html) tourne avec une
    horloge virtuelle : balayage automatique, cartes vraie / fausse, toucher une ligne pour la retester, « Rejouer », mouvement
-   réduit. Le cours texte DELETE l’utilise (id = 10). */
+   réduit. */
 import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-const dataCtx = vm.createContext({});
-vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), dataCtx);
 const markup = fs.readFileSync(new URL('./fixtures/row-test-where.html', import.meta.url), 'utf8');
-const deleteMarkup = vm.runInContext('MODULES.flatMap(m=>m.lessons).find(l=>l.id===28)', dataCtx).studio.problem.extra;
 const src = html.slice(html.indexOf('const RT_TIME='), html.indexOf('/* ---------- Sommaire interactif du cours'));
 assert.ok(src.includes('function initRowTest()') && markup.includes('class="rt-wrap"'), 'animation et tableau localisés');
 
@@ -83,13 +80,6 @@ function setup({ reduce = false, val, from = markup } = {}) {
     tap: (r, c = 1) => rows[r][c].click(),
   };
 }
-
-test('cours DELETE : son tableau est branché (id, prénom, nom, verdict ; seule la ligne id = 10 disparaît)', () => {
-  const t = setup({ from: deleteMarkup.slice(deleteMarkup.indexOf('<div class="rt-wrap"')) });
-  assert.equal(t.n, 4); assert.equal(+t.wrap.dataset.rtVal, 0, 'la condition porte sur la colonne id'); assert.equal(t.rows.length, 4);
-  assert.deepEqual(t.rows.map(r => r[t.n - 1].cls.has('is-hit')), [false, false, false, true], 'seul le client 10 est supprimé');
-  assert.ok(t.legend.cls.has('win-look') && t.legend.cls.has('rt-legend') && t.legend.children[0].cls.has('is-yes') && t.legend.children[1].cls.has('is-no'), 'sa légende oui / non s’allume');
-});
 
 test('le tableau d’exemple (WHERE) est branché : colonnes, 4 lignes, cartes vraie / fausse', () => {
   const t = setup();

@@ -955,6 +955,26 @@ const COURSES = [
       "{label: 'SELECT\u00a0*\u00a0FROM\u00a0ateliers WHERE\u00a0id\u00a0=\u00a02', ok: true},", "{label: 'SET seances_restantes\u00a0= seances_restantes\u00a0+\u00a02', ok: true},",
       "{label: 'Le solde passerait sous 0, ce que la règle de la table interdit', ok: true}]}",
       "b += out('o-5', 'warn', 'Requête exécutée', '5 lignes modifiées.');", "c += out('o-ck', 'err', 'Requête refusée', 'CHECK constraint failed:<br>seances_restantes &gt;= 0', 'm', true);", 'Prochaine leçon · DELETE']},
+  {id: 28, next: 68, titre: 'DELETE', page: 'projet-delete.html', thumb: 'projet-delete-thumb.webp', duree: '3 min 20', notesAt: 142.2,
+    notes: /notes:\{t:192\.95,y:1261,card:\[64,292,1016,966\],to:\[940,255\]\}/, table: 'inscriptions',
+    bubble: 'Des lignes ne servent plus&nbsp;:<br>à toi de les supprimer de la base.',
+    chapters: ['Trois demandes', 'Supprimer une ligne', 'Le bon client', 'Plusieurs lignes', 'L’oubli du WHERE', 'Trois mots-clés', 'À retenir'],
+    traps: ["const REST = [1, 2, 3, 5, 7, 8, 10, 11];",
+      "const BINS = [['in', 'INSERT INTO', 'ajoute des lignes'], ['up', 'UPDATE', 'modifie des valeurs'], ['de', 'DELETE FROM', 'supprime des lignes']];",
+      // Les six moments : l’inscription à toucher, la fin de requête (une inscription, un compte, deux inscriptions), les huit inscriptions sans WHERE, les six demandes à ranger
+      "{at: atp('p1'), from: A.c4, kind: 'tap', need: 1,", "{label: 'WHERE id = 4', ok: true},", "{label: 'WHERE id = 10', ok: true}]},", "{label: 'WHERE client_id = 6', ok: true},",
+      "{at: atp('p5'), from: A.c19, kind: 'tap', need: 8,", "{at: atp('p6'), from: A.c24, kind: 'sort',",
+      "b += out('o-8', 'warn', 'Requête exécutée', '8 lignes supprimées.');", "c += out('o-2', 'ok', 'Requête exécutée', '1 ligne supprimée.');", 'Prochaine leçon · ON DELETE']},
+  {id: 68, next: 62, titre: 'ON DELETE', page: 'projet-ondelete.html', thumb: 'projet-ondelete-thumb.webp', duree: '4 min 05', notesAt: 211.35,
+    notes: /notes:\{t:237\.45,y:1261,card:\[64,292,1016,966\],to:\[940,255\]\}/, table: 'avis',
+    bubble: 'Un compte ne peut pas être supprimé&nbsp;:<br>à toi de décider du sort des lignes liées.',
+    chapters: ['Deux demandes', 'Une suppression refusée', 'Trois sorts possibles', 'Écrire la règle', 'Le compte supprimé', 'Quelle règle choisir ?', 'À retenir'],
+    traps: ["const AVIS = [", "const BINS = [['ca', 'CASCADE', 'supprime les lignes liées'], ['sn', 'SET NULL', 'détache les lignes liées'], ['re', 'RESTRICT', 'refuse la suppression']];",
+      // Les six moments : l’inscription qui désigne le client, la case qui devient NULL, la règle qui conserve les avis, NOT NULL, ON DELETE écrit dans le DELETE, les six situations à ranger
+      "{at: atp('p1'), from: A.c4, kind: 'tap', need: 1,", "{at: atp('p2'), from: A.n1, kind: 'tap', need: 1,", "{label: 'ON DELETE SET NULL', ok: true},",
+      "{label: 'La suppression du client est refusée', ok: true}]},", "{label: 'Une erreur de syntaxe', ok: true},", "{at: atp('p6'), from: A.c35, kind: 'sort',",
+      "c += out('o-fk', 'err', 'Requête refusée', 'FOREIGN KEY constraint failed', 'm');", "c += out('o-se', 'err', 'Requête refusée', 'near \"ON\": syntax error', 'm');",
+      "e += out('o-nn', 'err', 'Suppression du client refusée', 'NOT NULL constraint failed:<br>avis.client_id', 'm', true);", 'Prochaine leçon · Transactions']},
 ];
 
 for (const c of COURSES) {
@@ -1430,7 +1450,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
     && D.CAPTIONS[iq + 1][0] <= 12.6 && D.CAPTIONS[iq + 1][1] >= 14.3 && D.CAPTIONS[iq + 2][2] === 'Pour le savoir, il faut relier les tables grâce à des <b>clés</b>.'
     && page.includes("pop('#ms1', 14.0, 0.5); pop('#ms2', 14.3, 0.5);"), 'la question du 4 septembre, pendant que la ligne s’allume et que « ? client » et « ? atelier » apparaissent');
   /* Une seule façon de nommer la table d’une relation N ↔ N, dans les trois chapitres. */
-  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html'])
+  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html'])
     assert.ok(!fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8').includes('table de jointure'), `${f} : « table d’association », jamais « table de jointure »`);
   assert.ok(caps.includes('Une <b>table d’association</b>'), 'le chapitre 2 la nomme comme le chapitre 3');
   /* La clé étrangère : sa définition, puis à quoi elle sert, sur l’exemple entouré (inscription 1, client_id 1, Sophie Martin). */
@@ -2063,7 +2083,7 @@ test('légendes : une 4e valeur [début, fin, texte, 4] autorise quatre lignes, 
   /* Sans 4e valeur, une légende reste limitée à trois lignes dans toutes les autres leçons
      (projet-uml.html, projet-create.html, projet-alter.html et projet-drop.html ont les leurs, épinglées chacune dans son propre test). */
   for (const f of fs.readdirSync(path.join(ROOT, 'assets/anim')).filter(f => f.endsWith('.html')))
-    if (!['projet-uml.html', 'projet-create.html', 'projet-alter.html', 'projet-drop.html'].includes(f)) assert.ok(!/\n\s*\[[\d.]+, [\d.]+, ("[^\n]*"|'[^\n]*'), 4\],?/.test(fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8')), `${f} : aucune légende de quatre lignes`);
+    if (!['projet-uml.html', 'projet-create.html', 'projet-alter.html', 'projet-drop.html'].includes(f)) assert.ok(!/\n\s*\[[\d.]+, [\d.]+, ("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'), 4\],?/.test(fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8')), `${f} : aucune légende de quatre lignes`);
 });
 
 test('mise en page (?check) : un élément ou un texte qui sort de son cadre est signalé (pastille, colonnes)', () => {
@@ -2557,7 +2577,7 @@ test('Quel JOIN choisir ? : chaque étiquette montre le résultat de SQLite (ord
 });
 
 test('deux réponses enchaînées aux moments « À toi » : la pastille rouge du mauvais geste ne reste pas, clear() retire la classe de flash() sans attendre le minuteur', () => {
-  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html']) {
+  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html']) {
     const src = fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8');
     const clearSrc = src.match(/function clear\(\)\{\n[\s\S]*?\n  \}/)?.[0], flashSrc = src.match(/const flash = \(e, c, ms = 600\) => \{[^\n]*\};/)?.[0];
     assert.ok(clearSrc && flashSrc, `${f} : clear() et flash() trouvés`);

@@ -61,7 +61,7 @@ test('encadré « Bon à savoir » : non numéroté, avec son étiquette à la p
   assert.ok(/\.jn-course \.fn-use\.is-aside > \.pt-syntax-h::before\{content:attr\(data-tag\)!important/.test(html), 'étiquette à la place de « Étape N »');
 });
 
-test('apartés « Bon à savoir » (titre en question) dans 3 cours texte ; chaque cours finit par l’étape « La requête complète »', () => {
+test('apartés « Bon à savoir » (titre en question) dans 2 cours texte ; chaque cours finit par l’étape « La requête complète »', () => {
   const ctx = vm.createContext({});
   vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), ctx);
   const lessons = JSON.parse(vm.runInContext('JSON.stringify(MODULES.flatMap(m=>m.lessons).map(l=>({id:l.id,body:(l.studio&&l.studio.uses&&l.studio.uses.body)||""})))', ctx));
@@ -76,6 +76,6 @@ test('apartés « Bon à savoir » (titre en question) dans 3 cours texte ; chaq
     if (a.length) asides[l.id] = a;
   }
   assert.deepEqual(asides, {
-    28: ['Que peut-il mal se passer ?'], 63: ['Que ne fait pas un SAVEPOINT ?'], 70: ['Que ne fait pas un trigger ?'],
+    63: ['Que ne fait pas un SAVEPOINT ?'], 70: ['Que ne fait pas un trigger ?'],
   });
 });
