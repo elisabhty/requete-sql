@@ -6746,13 +6746,22 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 .lv-op.on .lv-op-tip{opacity:1;transform:translate(-50%,0)}
 .lv-op-hand{display:inline-block;font-size:16px;animation:lvOpHand 1.5s ease-in-out infinite}
 @keyframes lvOpHand{0%,55%,100%{transform:none}25%{transform:translateY(-4px) scale(.9)}}
+/* Le doigt seul (hand) : il monte toucher l’élément puis redescend, sans bulle (Elisa, 25 octobre, 16 h 21). Son bout est le point posé (38 %, 8 % du glyphe). */
+.lv-op-finger{position:absolute;margin:0;line-height:1;pointer-events:none;transform-origin:38% 8%;transform:translate(-38%,-8%);filter:drop-shadow(0 5px 7px rgba(40,20,120,.35));opacity:0;transition:opacity .2s ease}
+.lv-op.on .lv-op-finger{opacity:1;animation:lvOpTap 1.15s ease-in-out infinite}
+@keyframes lvOpTap{0%,100%{transform:translate(-38%,14%)}42%,60%{transform:translate(-38%,-8%)}50%{transform:translate(-38%,-8%) scale(.9)}}
+.lv-op.on .lv-op-finger.is-nudge{animation:lvOpTapNudge .5s ease-in-out}
+@keyframes lvOpTapNudge{0%,100%{transform:translate(-38%,-8%) rotate(0)}25%{transform:translate(-38%,-8%) rotate(-12deg)}75%{transform:translate(-38%,-8%) rotate(10deg)}}
+/* L’appui : l’onde s’arrête, la zone fonce un peu, le doigt d’aide s’efface (la page enfonce l’élément) */
+.lv-op.is-down .lv-op-spot{animation:none;background:rgba(30,12,90,.12)}
+.lv-op.is-down .lv-op-finger{opacity:0;transition-duration:.06s}
 /* Bouton lecture pressé alors que le mail attend d’être touché : la bulle remue, l’onde est plus forte */
 .lv-op-spot.is-nudge{animation:lvOpPulse .56s ease-out}
 .lv-op-tip.is-nudge{animation:lvOpWiggle .5s ease-in-out}
 @keyframes lvOpPulse{0%{box-shadow:0 0 0 0 rgba(106,77,244,.8)}100%{box-shadow:0 0 0 24px rgba(106,77,244,0)}}
 @keyframes lvOpWiggle{0%,100%{transform:translate(-50%,0)}20%{transform:translate(calc(-50% - 8px),0)}40%{transform:translate(calc(-50% + 7px),0)}60%{transform:translate(calc(-50% - 5px),0)}80%{transform:translate(calc(-50% + 3px),0)}}
-@media (prefers-reduced-motion:reduce){.lv-op-spot,.lv-op-hand,.lv-op-spot.is-nudge,.lv-op-tip.is-nudge{animation:none}.lv-op-spot{box-shadow:0 0 0 3px rgba(106,77,244,.45)}}
-html[data-motion="reduce"] .lv-op-spot.is-nudge,html[data-motion="reduce"] .lv-op-tip.is-nudge{animation:none}
+@media (prefers-reduced-motion:reduce){.lv-op-spot,.lv-op-hand,.lv-op-spot.is-nudge,.lv-op-tip.is-nudge,.lv-op.on .lv-op-finger{animation:none}.lv-op-spot{box-shadow:0 0 0 3px rgba(106,77,244,.45)}}
+html[data-motion="reduce"] .lv-op-spot.is-nudge,html[data-motion="reduce"] .lv-op-tip.is-nudge,html[data-motion="reduce"] .lv-op.on .lv-op-finger{animation:none}
 .lv-pk-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
 .lv-pk-svg path{fill:none;stroke:var(--accent,#6A4DF4);stroke-width:4;stroke-linecap:round;stroke-dasharray:1 9}
 .lv-ctrls{position:relative;display:flex;align-items:center;justify-content:space-between;height:62px}
@@ -16043,14 +16052,26 @@ function lvOpShow(i,o){
   if(!r||!r.w){ lvPlay(); return; }
   const layer=document.createElement('div');
   layer.className='lv-op';
-  layer.innerHTML=`<button type="button" class="lv-op-spot" aria-label="${esc(o.label||'')}"></button><p class="lv-op-tip" aria-hidden="true"><span class="lv-op-hand">👆</span><span>${o.prompt}</span></p>`;
+  /* hand : un doigt seul qui monte et descend sur l’élément, sans bulle, quand la légende dit déjà quoi faire (le bouton « Supprimer le compte »,
+     Elisa, 25 octobre, 16 h 21 : « met juste un doigt qui monte et descend, sans texte »). La consigne reste dite à VoiceOver. */
+  if(o.hand)layer.classList.add('is-hand');
+  layer.innerHTML=`<button type="button" class="lv-op-spot" aria-label="${esc(o.label||'')}"></button>`+(o.hand?'<span class="lv-op-finger" aria-hidden="true">👆</span>'
+    :`<p class="lv-op-tip" aria-hidden="true"><span class="lv-op-hand">👆</span><span>${o.prompt}</span></p>`);
   LV.root.appendChild(layer);
   LV.root.classList.add('is-q','is-op');
   LV.op={i,o,r,rad,layer};
   lvOpPlace();
   const b=layer.querySelector('.lv-op-spot');
   b.addEventListener('pointerdown',e=>lvPkRipple(e.clientX,e.clientY));
-  b.addEventListener('click',()=>{ if(!LV||!LV.op||LV.op.layer!==layer)return; LvSfx.play('pop',4,.6,0); lvOpClose(); lvPlay(); });
+  /* Micro-interaction (Elisa, 25 octobre, 16 h 22) : dès le toucher, l’élément s’enfonce sous le doigt (la page le montre : __opPress), le doigt
+     d’aide s’efface ; il remonte si le doigt glisse hors de la zone ou si le toucher ne devient pas un appui. Au relâcher, la lecture reprend
+     et la page joue la suite (le bouton rebondit, une onde le traverse). */
+  const down=on=>{ layer.classList.toggle('is-down',on); try{ const w=LV.video.win; if(w&&w.__opPress)w.__opPress(i,on); }catch(e){} };
+  b.addEventListener('pointerdown',()=>{ layer.dataset.up=''; down(true); });
+  b.addEventListener('pointerup',()=>{ layer.dataset.up='1'; setTimeout(()=>{ if(LV&&LV.op&&LV.op.layer===layer&&layer.classList.contains('is-down'))down(false); },400); });
+  b.addEventListener('pointercancel',()=>down(false));
+  b.addEventListener('pointerleave',()=>{ if(!layer.dataset.up&&layer.classList.contains('is-down'))down(false); });
+  b.addEventListener('click',()=>{ if(!LV||!LV.op||LV.op.layer!==layer)return; LV.op.hit=true; try{ const w=LV.video.win; if(w&&w.__opPress)w.__opPress(i,'release'); }catch(e){} LvSfx.play('pop',4,.6,0); lvOpClose(); lvPlay(); });
   if(prefersReduceMotion())layer.classList.add('on');
   else requestAnimationFrame(()=>requestAnimationFrame(()=>layer.classList.add('on')));
   if(navigator.vibrate)navigator.vibrate(8);
@@ -16061,16 +16082,18 @@ function lvOpShow(i,o){
 function lvOpPlace(){
   const P=LV&&LV.op; if(!P)return;
   const a=lvPt(P.r.x,P.r.y), c=lvPt(P.r.x+P.r.w,P.r.y+P.r.h); if(!a||!c)return;
-  const k=(c.x-a.x)/P.r.w, b=P.layer.querySelector('.lv-op-spot'), tip=P.layer.querySelector('.lv-op-tip');
+  const k=(c.x-a.x)/P.r.w, b=P.layer.querySelector('.lv-op-spot'), tip=P.layer.querySelector('.lv-op-tip'), fin=P.layer.querySelector('.lv-op-finger');
   Object.assign(b.style,{left:a.x.toFixed(1)+'px',top:a.y.toFixed(1)+'px',width:(c.x-a.x).toFixed(1)+'px',height:(c.y-a.y).toFixed(1)+'px',borderRadius:(P.rad*k).toFixed(1)+'px'});
-  Object.assign(tip.style,{left:((a.x+c.x)/2).toFixed(1)+'px',top:(c.y+12).toFixed(1)+'px'});
+  if(tip)Object.assign(tip.style,{left:((a.x+c.x)/2).toFixed(1)+'px',top:(c.y+12).toFixed(1)+'px'});
+  /* Le doigt seul : son bout se pose sur l’élément (hand : x, y en fraction de l’élément), à la taille de l’image (96 px de la maquette). */
+  if(fin)Object.assign(fin.style,{left:(a.x+(c.x-a.x)*P.o.hand.x).toFixed(1)+'px',top:(a.y+(c.y-a.y)*P.o.hand.y).toFixed(1)+'px',fontSize:(96*k).toFixed(1)+'px'});
 }
 /* Lecture demandée (bouton, barre d’espace) alors que la notification attend d’être touchée : rien ne repart. La bulle remue,
    la zone s’entoure d’une onde plus forte, le téléphone vibre. */
 function lvOpNudge(){
   const P=LV&&LV.op; if(!P)return;
   if(navigator.vibrate)navigator.vibrate([10,50,10]);
-  const els=[P.layer.querySelector('.lv-op-spot'),P.layer.querySelector('.lv-op-tip')];
+  const els=[P.layer.querySelector('.lv-op-spot'),P.layer.querySelector('.lv-op-tip,.lv-op-finger')];
   els.forEach(e=>{ e.classList.remove('is-nudge'); void e.offsetWidth; e.classList.add('is-nudge'); });
   clearTimeout(P.nudgeT);
   P.nudgeT=setTimeout(()=>els.forEach(e=>e.classList.remove('is-nudge')),560);
@@ -16083,6 +16106,7 @@ function lvOpClose(){
   const P=LV&&LV.op; if(!P)return;
   LV.op=null; LV.root.classList.remove('is-q','is-op');
   clearTimeout(P.nudgeT);
+  if(!P.hit&&P.layer.classList.contains('is-down')){ try{ LV.video.win.__opPress(P.i,false); }catch(e){} }
   const L=P.layer; L.classList.remove('on'); L.classList.add('off');
   setTimeout(()=>L.remove(),prefersReduceMotion()?0:220);
 }
@@ -25076,7 +25100,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2039';
+  const SW_CACHE='requete-2026-10-12-ludique-v2040';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

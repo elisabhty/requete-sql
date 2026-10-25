@@ -714,6 +714,15 @@ function Course(cfg){
   }
   window.renderAt = renderAt;
   window.__contentBottom = contentBottom;
+  /* L’élève appuie sur l’élément d’un arrêt « opens » : le lecteur le signale dès le toucher, avant le relâcher, et l’élément s’enfonce
+     aussitôt (press : l’état enfoncé) ; il revient au repos (rest) si le doigt glisse hors de la zone, et remonte d’un rebond au relâcher
+     ('release'), pendant que la lecture reprend et que la page joue la suite (Elisa, 25 octobre, 16 h 22 : « micro interaction quand on appuie
+     sur le bouton »). Ces deux états ne passent pas par la timeline : revenir en arrière ne montre jamais le bouton enfoncé. */
+  window.__opPress = (i, state) => {
+    const o = opens[i]; if (!o || !o.press) return;
+    if (state === 'release') gsap.to(o.sel, Object.assign({duration: 0.34, ease: 'back.out(2.6)', overwrite: 'auto'}, o.rest || {}));
+    else gsap.set(o.sel, state ? o.press : (o.rest || {}));
+  };
   window.__ready = (async () => {
     buildChrome(chapters, captions);
     if (cfg.dom) cfg.dom();
@@ -747,7 +756,8 @@ function Course(cfg){
         /* L’explication de la bonne réponse : le lecteur la remontre quand le moment, déjà réussi, s’ouvre résolu. */
         options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''}))})),
       /* Mail reçu (opens) : l’image s’arrête, l’élève touche l’élément sel pour l’ouvrir ; rien n’est noté. */
-      opens: opens.map(o => ({t: unwarp(o.at), sel: o.sel, prompt: fr(o.prompt), label: o.label})),
+      /* hand : {x, y}, le bout d’un doigt seul (sans bulle), en fraction de l’élément, quand la légende dit déjà quoi faire (Elisa, 25 octobre, 16 h 21). */
+      opens: opens.map(o => ({t: unwarp(o.at), sel: o.sel, prompt: fr(o.prompt), label: o.label, hand: o.hand || null})),
       /* Légendes en texte : le lecteur les annonce à VoiceOver au fil de l’animation. */
       captions: captions.map(c => ({a: unwarp(c[0]), b: unwarp(Math.min(c[1], duration)), text: plain(c[2])}))};
   })();

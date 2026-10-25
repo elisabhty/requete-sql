@@ -232,6 +232,8 @@
 /* ---------- 4 et 5 · Le bouton « Supprimer le compte », les deux cartes liées, la règle ---------- */
 .bdel{position:absolute;left:260px;width:560px;top:230px;margin:0;height:108px;gap:16px;font-size:36px;background:linear-gradient(135deg,#F2656B,#E0383F);box-shadow:0 9px 0 #A92A31}
 .bdel .emo{font-size:42px}
+/* L’anneau qui s’échappe du bouton quand l’élève le touche (micro-interaction, Elisa, 25 octobre, 16 h 22) */
+.bring{left:260px;top:230px;width:560px;height:108px;border-radius:30px;box-shadow:0 0 0 7px rgba(239,79,85,.55);pointer-events:none;opacity:0;visibility:hidden}
 .sq .rl{vertical-align:top}
 .sq .rl>*{height:42px;display:flex;align-items:center;justify-content:center;padding:0 12px;border-radius:10px}
 .sq .rl>.a0{box-sizing:border-box;border:3px dashed #FFC94A;background:rgba(255,201,74,.12);color:#FFD66B;font-weight:800;min-width:72px}
@@ -528,7 +530,10 @@ const OPENS = [MAIL1].map((t, n) => {
    « demande plutôt à l’utilisateur de cliquer lui sur le bouton »). Hors de l’app, un doigt le montre. Le toucher tombe 2,4 s après le début de la légende : la fin
    de la légende (1,4 s) laisse le temps de voir le bouton s’enfoncer, sans redire une consigne que l’élève vient d’exécuter. */
 const BTN = +(A.d2 + 2.4).toFixed(2);
-OPENS.push({at: BTN, sel: '#bdel', prompt: 'Touche le bouton.', label: 'Supprimer le compte d’Inès Lefebvre'});
+/* hand : le doigt seul qui monte et descend sur le coin du bouton, sans bulle, sans cacher la table clients (Elisa, 25 octobre, 16 h 21) ;
+   press / rest : le bouton s’enfonce dès le toucher, avant le relâcher (16 h 22 : « micro interaction quand on appuie sur le bouton »). */
+OPENS.push({at: BTN, sel: '#bdel', prompt: 'Touche le bouton.', label: 'Supprimer le compte d’Inès Lefebvre', hand: {x: 0.86, y: 0.78},
+  press: {y: 7, boxShadow: '0 2px 0 #A92A31'}, rest: {y: 0, boxShadow: '0 9px 0 #A92A31'}});
 
 /* ---------- Gabarits ---------- */
 /* Une case à valeurs empilées (une seule se voit). */
@@ -607,7 +612,7 @@ function dom(){
     `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), 'Merci !', sign].map((x, j, a) => `<span class="sn${/class="qt"/.test(x) ? ' q' : ''}${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
     '<div class="abs emo tapf" id="tapf">👆</div>';
   /* Le moment de la suppression : le bouton, le compte, la flèche, l’avis ; puis la règle ON DELETE écrite sur la clé étrangère */
-  let w = '<div class="abs run bdel" id="bdel"><span class="emo">🗑️</span>Supprimer le compte<i class="ripple"></i></div>' +
+  let w = '<i class="abs bring" id="bring"></i><div class="abs run bdel" id="bdel"><span class="emo">🗑️</span>Supprimer le compte<i class="ripple"></i></div>' +
     tbl('wc', 'k-cl', '👥', 'clients', '--g:80px 230px 260px 1fr', head([['c0 kc', KEY], ['c1', 'prenom'], ['c2', 'nom'], ['c3', 'ville']]),
       line('wc', cell(0, '<i class="v">9</i>') + cell(1, `<i class="v">${PRENOM}</i>`) + cell(2, '<i class="v">Lefebvre</i>') + cell(3, '<i class="v">Nantes</i>'))) +
     '<div class="abs lkv" id="lkv" style="--ax:258px;height:96px"></div><div class="abs lkv lkr" id="lkr" style="--ax:258px;height:96px"></div><div class="abs fly qm" id="qm">?</div>' +
@@ -958,7 +963,19 @@ function build(){
   // l’élève clique sur le bouton « Supprimer le compte » (l’app s’arrête dessus, moment OPENS ; hors de l’app, un doigt le montre) : le bouton s’enfonce
   show('#bdel', A.d2 + 0.1, {y: 30, scale: 0.94}, 0.5, 'back.out(1.7)'); cue(A.d2 + 0.1, 'pop', 0.7, 1);
   if (!APP) fingerTap($('#bdel'), BTN, '#tapw', 0.6, 62);
-  press($('#bdel'), BTN, '#A92A31', 9);
+  /* La micro-interaction du toucher (Elisa, 25 octobre, 16 h 22). Dans l’app, le bouton s’enfonce sous le doigt dès le toucher et remonte d’un
+     rebond au relâcher (OPENS : press, rest ; le lecteur s’en charge, hors de la timeline) ; hors de l’app, le doigt appuie (press). Puis une onde
+     blanche le traverse, il gonfle un instant, la corbeille remue et un anneau rouge s’en échappe. Rien que des « to » : en revenant en arrière,
+     chaque élément retrouve l’état d’avant le toucher. */
+  if (APP) {
+    const rp = $('#bdel .ripple');
+    tl.to(rp, {scale: 0, opacity: 0.55, duration: 0.001}, BTN + 0.001).to(rp, {scale: 1, opacity: 0, duration: 0.7, ease: 'power2.out'}, BTN + 0.011);
+    cue(BTN + 0.001, 'click');
+  } else press($('#bdel'), BTN, '#A92A31', 9);
+  tl.to('#bdel', {scale: 1.04, duration: 0.14, ease: 'power2.out'}, BTN + 0.1).to('#bdel', {scale: 1, duration: 0.32, ease: 'back.out(2)'}, BTN + 0.24);
+  tl.to('#bdel .emo', {rotation: -16, transformOrigin: '50% 85%', duration: 0.07, yoyo: true, repeat: 3, ease: 'sine.inOut'}, BTN + 0.06);
+  tl.set('#bring', {autoAlpha: 0.9, scale: 1}, BTN + 0.05);
+  tl.to('#bring', {autoAlpha: 0, scale: 1.16, duration: 0.6, ease: 'power2.out'}, BTN + 0.051);
   // on supprime Inès Lefebvre de la table clients : sa ligne devient rouge
   on('#rwc .xx', A.d3 + 0.6, 0.25); cue(A.d3 + 0.6, 'miss', 0.4);
   // son avis ne peut pas continuer à référencer un compte qui n’existe plus : la flèche se brise, la case client_id clignote
