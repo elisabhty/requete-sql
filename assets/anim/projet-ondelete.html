@@ -269,19 +269,19 @@ const toi = key => cap(key, 'À toi !', 2.55);
 const {A, B} = SCH;
 /* Les deux messages reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses paragraphes), signature, option].
    Depuis le chapitre 5, le service client centralise les demandes des clients : aucun client n’écrit plus lui-même (Elisa, 25 octobre :
-   « plus l’accueil mais le service client »). Il écrit par SMS (smsCard, smsIn) quand l’option vaut {sms: true}, sinon par mail. Chacun arrive
-   en notification ; l’app s’arrête dessus (OPENS) jusqu’au toucher. Le premier relaie la demande d’Inès Lefebvre, celle du chapitre 1. */
+   « plus l’accueil mais le service client »). Il écrit par SMS (smsCard, smsIn) quand l’option vaut {sms: true}, sinon par mail ; le SMS s’ouvre sur « Bonjour ! »
+   ({hello: …}, Elisa, 25 octobre) et se ferme sur « Merci ! ». Chacun arrive en notification ; l’app s’arrête dessus (OPENS) jusqu’au toucher. Le premier relaie la demande d’Inès Lefebvre, celle du chapitre 1. */
 const MAILS = [
   [['Le service client', 'NutriBoost', 'SC'], 'k-in', 'équipe', 'service.client@nutriboost.fr', [
     'Inès Lefebvre ne reviendra plus aux ateliers.',
-    'Peux-tu supprimer son compte ?'], 'Le service client NutriBoost', {sms: true}],
+    'Peux-tu supprimer son compte ?'], 'Le service client NutriBoost', {sms: true, hello: 'Bonjour !'}],
   [['Le service client', 'NutriBoost', 'SC'], 'k-in', 'équipe', 'service.client@nutriboost.fr', [
     'Les clients ont déjà donné sept avis sur papier.',
     'Peux-tu créer la table des avis ?'], 'Le service client NutriBoost']
 ];
 /* Un message : la légende s’efface le temps du message (notification, toucher, lecture, départ). Plus il a de lignes (de bulles, pour un SMS),
    plus il reste : le toucher à +1,6 s, une ligne toutes les 0,28 s, le départ juste après la pause de lecture (+3,8 s pour cinq lignes), et le
-   bloc finit 1 s après le départ. Un SMS : « Bonjour, », une bulle par phrase, « Merci ! » (comme smsParts). */
+   bloc finit 1 s après le départ. Un SMS : sa première bulle (hello), une bulle par phrase, « Merci ! » (comme smsParts). */
 const mailSms = n => /^client/.test(MAILS[n][2]) || !!(MAILS[n][6] || {}).sms;
 const mailRows = n => mailSms(n) ? 2 + [].concat(MAILS[n][4]).flatMap(p => p.split(/(?<=[.!?])\s+(?=[A-ZÀÂÉÈÊÎÔÛÇ])/)).length
   : 1 + [].concat(MAILS[n][4]).length + 1 + 1;   // « Bonjour, », ses paragraphes, la formule de fin, la signature
@@ -292,7 +292,7 @@ const MO = MAILS.map((m, n) => mailOutAt(n));   // le départ de chaque message,
 /* 1 · Deux demandes : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) */
 cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
 cap('r2', "Au chapitre 9, tu as supprimé<br>des lignes avec <code>DELETE</code>.", 3.0);
-cap('c2', "Deux demandes arrivent :<br>un SMS et un mail.", 2.8);
+cap('c2', "Deux autres demandes arrivent.", 2.8);
 cap('c3', "La première concerne un compte,<br>la seconde une nouvelle table.", 3.6);
 const MAIL1 = mailBlock(0);
 /* 2 · Une suppression refusée */
@@ -560,7 +560,7 @@ function dom(){
     `<div class="cs">${ITEMS.map((x, i) => x[1] === k ? `<div class="rc" id="sbu${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
     '<div class="abs pack" id="bpack"><span><span class="emo">📬</span>6 situations à ranger</span></div>';
   /* Le SMS et le mail */
-  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body, false, smsRank(MAILS, n)) : `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
+  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body, false, smsRank(MAILS, n), (MAILS[n][6] || {}).hello) : `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
     `<div class="mw"><div class="mn"><b>${w[0]} ${w[1]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
     `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), (MAILS[n][6] || {}).bye || 'Merci !', sign].map((x, j, a) => `<span class="sn${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
     '<div class="abs emo tapf" id="tapf">👆</div>';
@@ -722,7 +722,7 @@ function build(){
   on('#bw-in .hl', A.r2 + 0.3, 0.2); cue(A.r2 + 0.3, 'tick', 0.5, 1);
   on('#bw-cl .hl', A.r2 + 0.9, 0.2); cue(A.r2 + 0.9, 'tick', 0.5, 3);
   off(['#bw-in .hl', '#bw-cl .hl'], A.r2 + 2.2, 0.3);
-  // deux demandes arrivent : un SMS, un mail
+  // deux autres demandes arrivent : le paquet « 2 demandes à traiter » (un SMS, puis un mail)
   show('#dem', A.c2 + 0.3, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.c2 + 0.3, 'pop', 0.7, 1);
   // l’une concerne un compte (la table clients), l’autre une table à créer : sa ligne s’ajoute à la carte de la base
   on('#bw-cl .hl', A.c3 + 0.5, 0.25); cue(A.c3 + 0.5, 'tick', 0.5, 1);
@@ -1075,7 +1075,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 211.02, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 210.77, picks: PICKS, opens: OPENS,
   glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝🔑🔗✉️👆📬🔄🛑🔀📍💬✓✕!…«»·−',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>

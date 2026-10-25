@@ -101,9 +101,9 @@ test('recherche, et leçon seule sans texte de secours ni exercice', () => {
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
   /* Le bouton des notes est écrit en clair dans Course(…) : il suit la dernière légende. */
-  assert.equal(val('NOTES'), 211.02);
-  assert.ok(page.includes('notesAt: 211.02,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 218.22);
+  assert.equal(val('NOTES'), 210.77);
+  assert.ok(page.includes('notesAt: 210.77,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 217.97);
   /* Des légendes qui se suivent sans se chevaucher, chaque chapitre commençant 0,4 s après la légende précédente. */
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
@@ -313,6 +313,7 @@ test('les deux messages : le service client relaie Inès Lefebvre (SMS), puis de
   assert.deepEqual(mails[0][4], ['Inès Lefebvre ne reviendra plus aux ateliers.', 'Peux-tu supprimer son compte ?'], 'le SMS : la notification dit « Inès Lefebvre ne reviendra plus aux ateliers. »');
   assert.deepEqual(mails.map(m => m[2]), ['équipe', 'équipe']);
   assert.deepEqual(mails.map(m => !!(m[6] && m[6].sms)), [true, false], 'un SMS (option {sms: true}), puis un mail');
+  assert.equal(mails[0][6].hello, 'Bonjour !', 'le SMS s’ouvre sur « Bonjour ! », comme au chapitre 9 (Elisa, 25 octobre), et non sur « Bonjour, »');
   assert.deepEqual(mails.map(m => m[5]), ['Le service client NutriBoost', 'Le service client NutriBoost']);
   assert.equal(opens.length, 2);
   opens.forEach((o, n) => { assert.ok(o.at > mail[n] && o.at < mail[n] + sorties[n], `message ${n + 1} : l’app s’arrête pendant le message`); assert.equal(o.sel, '#ml' + (n + 1)); });
