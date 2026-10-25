@@ -6509,14 +6509,17 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 .lv-pkm i.is-new path+path{animation-delay:.55s}
 @keyframes lvPkmNew{0%{transform:scale(.4)}55%{transform:scale(1.4)}100%{transform:none}}
 @keyframes lvPkmTick{to{stroke-dashoffset:0}}
-@media (prefers-reduced-motion:reduce){.lv-pkm i{transition:none!important}.lv-seek::-webkit-slider-thumb{transition:none!important}}
-/* Curseur : il grossit sous le doigt pendant qu’on glisse */
-.lv-seek::-webkit-slider-thumb{transition:transform .16s cubic-bezier(.2,.9,.3,1.3),border-color .25s,box-shadow .25s}
+@media (prefers-reduced-motion:reduce){.lv-pkm i{transition:none!important}.lv-knob::before{transition:none!important}}
+/* Curseur : un vrai rond (.lv-knob) posé par-dessus la glissière ; la poignée native, dessous, reste invisible et ne sert qu’à attraper le doigt.
+   Sur iPhone (iOS 26), Safari repeignait mal la poignée native quand elle grossissait puis bougeait : des filets violets restaient collés
+   au haut et au bas du rond, à sa droite (la ligne de lecture « avec un bug »). Le rond grossit sous le doigt pendant qu’on glisse en changeant de taille,
+   pas par transform : rien n’est mis sur un calque à part, rien ne reste à repeindre. */
+.lv-knob{position:absolute;z-index:1;top:50%;left:9px;width:0;height:0;pointer-events:none}
+.lv-knob::before{content:"";position:absolute;left:-9px;top:-9px;width:18px;height:18px;box-sizing:border-box;border-radius:50%;background:#fff;border:3px solid var(--accent,#6A4DF4);box-shadow:0 2px 6px rgba(40,20,120,.25);
+  transition:left .16s cubic-bezier(.2,.9,.3,1.3),top .16s cubic-bezier(.2,.9,.3,1.3),width .16s cubic-bezier(.2,.9,.3,1.3),height .16s cubic-bezier(.2,.9,.3,1.3),border-color .25s,box-shadow .25s}
+.lv.is-seeking .lv-knob::before{left:-11px;top:-11px;width:22px;height:22px}
 /* Exercice qu’on vient de réussir : le curseur, posé sur son badge, s’entoure de vert un instant */
-.lv.is-valid .lv-seek::-webkit-slider-thumb{border-color:#169447;box-shadow:0 0 0 6px rgba(22,148,71,.22),0 2px 6px rgba(40,20,120,.25)}
-.lv.is-valid .lv-seek::-moz-range-thumb{border-color:#169447}
-.lv.is-seeking .lv-seek::-webkit-slider-thumb{transform:scale(1.25)}
-.lv.is-seeking .lv-seek::-moz-range-thumb{transform:scale(1.25)}
+.lv.is-valid .lv-knob::before{border-color:#169447;box-shadow:0 0 0 6px rgba(22,148,71,.22),0 2px 6px rgba(40,20,120,.25)}
 .lv-tip{position:absolute;z-index:2;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(4px);white-space:nowrap;padding:7px 12px;border-radius:12px;background:var(--ink,#221C46);color:#fff;font:700 13px/1 var(--display);box-shadow:0 8px 20px -10px rgba(20,10,60,.5);opacity:0;transition:opacity .15s ease,transform .15s ease;pointer-events:none}
 .lv-tip[hidden]{display:none}
 .lv-tip.on{opacity:1;transform:translateX(-50%)}
@@ -6781,11 +6784,11 @@ html[data-motion="reduce"] .lv-op-spot.is-nudge,html[data-motion="reduce"] .lv-o
 .lv-seek{-webkit-appearance:none;appearance:none;width:100%;height:30px;margin:0;background:transparent;cursor:pointer;--p:0%}
 .lv-seek:focus{outline:none}
 .lv-seek::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:transparent}
-.lv-seek::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-6px;border-radius:50%;background:#fff;border:3px solid var(--accent,#6A4DF4);box-shadow:0 2px 6px rgba(40,20,120,.25)}
+.lv-seek::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-6px;border:0;border-radius:50%;background:transparent;box-shadow:none}
 .lv-seek::-moz-range-track{height:6px;border-radius:6px;background:transparent}
 .lv-seek::-moz-range-progress{height:6px;border-radius:6px;background:transparent}
-.lv-seek::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--accent,#6A4DF4)}
-.lv-seek:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 4px rgba(106,77,244,.28)}
+.lv-seek::-moz-range-thumb{width:18px;height:18px;box-sizing:border-box;border:0;border-radius:50%;background:transparent}
+.lv-seek:focus-visible~.lv-knob::before{box-shadow:0 0 0 4px rgba(106,77,244,.28)}
 /* Fin : « À toi de jouer », la consigne, puis l’exercice */
 .lv-end{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(244,242,252,.84);opacity:0;transition:opacity .3s ease;cursor:default}
 .lv-end[hidden]{display:none}
@@ -14982,7 +14985,7 @@ function openLessonVideo(){
     <div class="lv-bottom">
       <div class="lv-seekrow">
         <span class="lv-time lv-cur" aria-hidden="true">0:00</span>
-        <div class="lv-track"><div class="lv-rail" aria-hidden="true"><i class="lv-fill"></i></div><div class="lv-pkm" aria-hidden="true"></div><input class="lv-seek" type="range" min="0" max="1000" step="1" value="0" aria-label="Avancement de la vidéo"><div class="lv-tip" aria-hidden="true" hidden></div></div>
+        <div class="lv-track"><div class="lv-rail" aria-hidden="true"><i class="lv-fill"></i></div><div class="lv-pkm" aria-hidden="true"></div><input class="lv-seek" type="range" min="0" max="1000" step="1" value="0" aria-label="Avancement de la vidéo"><i class="lv-knob" aria-hidden="true"></i><div class="lv-tip" aria-hidden="true" hidden></div></div>
         <span class="lv-time lv-dur" aria-hidden="true">${v.duree?'':'0:00'}</span>
       </div>
       <div class="lv-ctrls">
@@ -14998,7 +15001,7 @@ function openLessonVideo(){
     </div>`;
   document.body.appendChild(root);
   const video=v.anim?new LvAnim(root.querySelector('.lv-anim')):root.querySelector('video'), seek=root.querySelector('.lv-seek');
-  LV={id:l.id,root,video,seek,fill:root.querySelector('.lv-fill'),seeking:false,gate:-1,gateResume:false,retry:false,redo:null,note:null,q:null,cap:null,saved:0,tap:{t:0,side:0,timer:0,total:0,burst:0}};
+  LV={id:l.id,root,video,seek,fill:root.querySelector('.lv-fill'),knob:root.querySelector('.lv-knob'),seeking:false,gate:-1,gateResume:false,retry:false,redo:null,note:null,q:null,cap:null,saved:0,tap:{t:0,side:0,timer:0,total:0,burst:0}};
   /* « Rejouer les moments ratés » : la vidéo ne s’arrête que sur eux. */
   if(video instanceof LvAnim)video.skip=i=>!!(LV&&LV.video===video&&LV.redo&&!LV.redo.list.includes(i));
   const noteEl=root.querySelector('.lv-note');
@@ -15165,8 +15168,13 @@ function lvBigFlash(){
   r.classList.add('is-flash');
   LV.flashT=setTimeout(()=>{ if(LV&&LV.root===r)r.classList.remove('is-flash'); },1100);
 }
-/* Partie lue de la barre, jusqu’au centre du curseur (18 px de large) : la largeur est posée sur l’élément lui-même. */
-function lvFill(p){ if(LV&&LV.fill)LV.fill.style.width=`calc(9px + ${Math.max(0,Math.min(1,+p||0)).toFixed(4)} * (100% - 18px))`; }
+/* Partie lue de la barre, jusqu’au centre du curseur (18 px de large), et rond du curseur : la position est posée sur les éléments eux-mêmes. */
+function lvFill(p){
+  if(!LV)return;
+  const x=`calc(9px + ${Math.max(0,Math.min(1,+p||0)).toFixed(4)} * (100% - 18px))`;
+  if(LV.fill)LV.fill.style.width=x;
+  if(LV.knob)LV.knob.style.left=x;
+}
 function lvSyncSeek(){
   const V=LV.video, d=V.duration||0, p=d?Math.min(1,V.currentTime/d):0;
   LV.seek.value=String(Math.round(p*1000));
@@ -25065,7 +25073,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2035';
+  const SW_CACHE='requete-2026-10-12-ludique-v2036';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -2248,7 +2248,7 @@ test('barre de lecture : un point par moment « À toi », doré à faire, badge
     && html.includes(`const LV_PKM_KO='<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M4.7 4.7l4.6 4.6"/><path d="M9.3 4.7l-4.6 4.6"/></svg>';`)
     && html.includes('.lv-pkm i.is-new path+path{animation-delay:.55s}'), 'croix blanche sur badge rouge, tracée trait après trait');
   assert.ok(html.includes('lvPkMarks(); lvSyncSeek();') && html.includes('lvPkSet(LV.id,P.i,first,P.tries-1); lvPkMarks();') && html.includes('lvPkSet(LV.id,P.i,first,P.miss); lvPkMarks();')
-    && html.includes('if(answered&&P.done&&!P.kept&&!prefersReduceMotion()){\n    lvPkMarks(P.i);\n    const a=lvPkGet(LV.id,P.i);\n    if(a&&a.first){ LV.root.classList.add(\'is-valid\');') && html.includes('.lv.is-valid .lv-seek::-webkit-slider-thumb{border-color:#169447;')
+    && html.includes('if(answered&&P.done&&!P.kept&&!prefersReduceMotion()){\n    lvPkMarks(P.i);\n    const a=lvPkGet(LV.id,P.i);\n    if(a&&a.first){ LV.root.classList.add(\'is-valid\');') && html.includes('.lv.is-valid .lv-knob::before{border-color:#169447;')
     && html.includes('lvPkPlace(); lvOpPlace(); lvPkMarks(); };'),
     'placés au chargement et au redimensionnement, mis à jour à chaque moment réussi, rebond au retour sur la vidéo');
 });
@@ -2258,7 +2258,7 @@ test('micro-interactions du lecteur : curseur qui grossit, un rendu par image en
     && html.includes('.lv-track .lv-seek{flex:1;min-width:0;position:relative;z-index:1}') && html.includes('.lv-seek::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:transparent}'),
     'la barre est dessinée sous les points');
   assert.ok(html.includes('.lv-pkm i.ok,.lv-pkm i.ko{z-index:2}') && !/\.lv-pkm\{[^}]*z-index/.test(html), 'le curseur passe sur les exercices à faire, sous les exercices faits (vert ou rouge)');
-  assert.ok(html.includes('.lv.is-seeking .lv-seek::-webkit-slider-thumb{transform:scale(1.25)}') && html.includes("LV.seeking=true; root.classList.add('is-seeking');")
+  assert.ok(html.includes('.lv.is-seeking .lv-knob::before{left:-11px;top:-11px;width:22px;height:22px}') && html.includes("LV.seeking=true; root.classList.add('is-seeking');")
     && html.includes("LV.seeking=false; root.classList.remove('is-seeking'); lvTip(false);"), 'le curseur grossit pendant qu’on glisse');
   assert.ok(html.includes('if(!LV.seekRaf)LV.seekRaf=requestAnimationFrame(') && html.includes('      seekTo(t);\n') && html.includes('    seekFlush();\n'), 'en glissant : un seul rendu par image, le dernier appliqué au lâcher');
   assert.ok(html.includes('lvSpin(e.currentTarget,-1); lvSkip(-LV_SKIP);') && html.includes('lvSpin(e.currentTarget,1); lvSkip(LV_SKIP);') && html.includes('function lvSpin(btn,dir){'), '±5 s : la flèche tourne');
@@ -2430,7 +2430,7 @@ test('barre de lecture : relâcher le curseur la remet toujours en marche, même
   fire('change'); later.splice(0).forEach(f => f());
   assert.equal(stops.length, 1, '« change » arrivé ensuite : rien n’est refait');
   assert.ok(['pointerup', 'pointercancel', 'touchend', 'touchcancel', 'mouseup', 'blur'].every(t => on[t] && on[t].length === 1), 'toutes les façons de lâcher');
-  assert.ok(html.includes('function lvFill(p){ if(LV&&LV.fill)LV.fill.style.width=') && html.includes('  lvFill(p);\n') && !html.includes("setProperty('--pf'")
+  assert.ok(html.includes('function lvFill(p){\n  if(!LV)return;\n') && html.includes('  if(LV.fill)LV.fill.style.width=x;\n  if(LV.knob)LV.knob.style.left=x;\n') && html.includes('  lvFill(p);\n') && !html.includes("setProperty('--pf'")
     && html.includes('.lv-fill{position:absolute;left:0;top:0;bottom:0;width:9px;background:var(--accent,#6A4DF4)}'), 'partie lue posée sur son propre élément');
 });
 
