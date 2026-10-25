@@ -2508,6 +2508,29 @@ test('mail à toucher : le bouton lecture ne l’ouvre pas, et l’image s’arr
   assert.ok(cut('/* Saut de ±5 s', 'function lvSpeedMenu(open){').includes('if(LV.op)lvOpClose();'), 'sauter par-dessus (barre, ±5 s) ne l’ouvre pas non plus');
 });
 
+test('moment « À toi » : la légende de l’image se cache tant que la feuille est ouverte (elle dépassait au-dessus quand l’image est réduite)', () => {
+  /* Elisa, 25 octobre, 16 h 56 : « il y a un cadre en dessous, ça fait bizarre, vérifie ailleurs si on a ça ». Au dernier moment du chapitre 10, l’image
+     réduite pour la feuille garde sa taille quand la feuille raccourcit (étiquettes rangées) : la carte de légende « À toi ! », remontée avec l’image,
+     dépassait au-dessus de la feuille. Le lecteur la cache pendant tous les moments, de toutes les vidéos. */
+  const show = cut('function lvPkShow(i,p){', 'function lvPkValid(');
+  assert.ok(show.includes("LV.root.classList.add('is-q','is-pk');\n  lvCapHide(true);"), 'cachée à l’ouverture de la feuille');
+  const close = cut('function lvPkClose(answered){', 'function lvReplay(){');
+  assert.ok(close.includes("LV.root.classList.remove('is-q','is-pk');\n  lvCapHide(false);"), 'rendue à la fermeture');
+  assert.ok(html.includes("function lvCapHide(on){ try{ const w=LV&&LV.video&&LV.video.win, d=w&&w.document; if(d&&d.body)d.body.classList.toggle('lv-pk-open',on); }catch(e){} }"), 'la page reçoit lv-pk-open');
+  const coreCss = fs.readFileSync(path.join(ROOT, 'assets/anim/core.css'), 'utf8');
+  assert.ok(coreCss.includes('body.lv-pk-open #cap{visibility:hidden!important}'), 'le moteur cache la légende (plus fort que les styles posés par la timeline)');
+});
+
+test('boutons retour en pastille ronde : Safari ne coupe plus leur relief (overflow visible sur le svg)', () => {
+  /* Elisa, 25 octobre, 16 h 56 : « quand on veut retourner à l’accueil, le bouton se coupe en bas ». Le relief (box-shadow) est posé sur le <svg> de la flèche ;
+     Safari le coupe au bord du svg, dont l’overflow est hidden par défaut : la pastille avait un bas plat. */
+  const lq = fs.readFileSync(path.join(ROOT, 'ludique.css'), 'utf8');
+  assert.ok(/html\.lq #app \.home-back svg\{[^}]*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour des écrans : relief entier');
+  assert.ok(/html\.lq #scr-lesson \.navbar \.back svg\{\s*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour de la leçon (« ‹ Accueil ») : relief entier');
+  assert.ok(html.includes('.tab svg{overflow:visible;'), 'onglets : l’ombre de l’onglet actif n’est pas coupée non plus');
+  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=20">'), 'la feuille de style du thème est rechargée');
+});
+
 test('arrêt « toucher » sur un bouton : un doigt seul qui monte et descend, sans bulle ; le bouton s’enfonce dès l’appui et remonte au relâcher', () => {
   /* Elisa, 25 octobre, 16 h 21 : « met juste un doigt qui monte et descend (sans texte) » ; 16 h 22 : « et micro interaction quand on appuie sur le bouton ». */
   const show = cut('function lvOpShow(i,o){', 'function lvOpPlace(){');
