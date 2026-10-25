@@ -41,6 +41,15 @@ test('les bulles : « Bonjour, », une bulle par phrase de la demande, « Merci 
   assert.deepEqual(parts('Je voudrais aussi participer à l’atelier Méditation du 24 septembre.'), ['Bonjour,', 'Je voudrais aussi participer à l’atelier Méditation du 24 septembre.', 'Merci !']);
 });
 
+test('un message qui finit sur son propre merci (bye: null) : pas de « Merci ! » de plus ; la photo vient avant sa dernière phrase', () => {
+  /* Elisa, 25 octobre, 19 h 13 : à la fin du chapitre 12, Léa Simon écrit « Merci pour votre réactivité et pour la protéine, c’est une attention qui fait plaisir ! ». */
+  const body = ['J’ai bien reçu le colis !', 'Merci pour votre réactivité !'];
+  assert.deepEqual([...S.smsParts(body, undefined, null)], ['Bonjour,', 'J’ai bien reçu le colis !', 'Merci pour votre réactivité !']);
+  assert.deepEqual([...S.smsParts(body)], ['Bonjour,', 'J’ai bien reçu le colis !', 'Merci pour votre réactivité !', 'Merci !'], 'sans option : « Merci ! » à la fin');
+  const h = S.smsCard(3, 'k-cl', 'Léa', 'Simon', 'LS', body, false, 0, undefined, {id: 'ph2', src: 'x.webp', alt: 'Le colis'}, null);
+  assert.ok(!h.includes('>Merci !<') && h.includes('<p class="sms-m sms-ph" id="ph2"><img src="x.webp" alt="Le colis"></p><p class="sms-m last">Merci pour votre réactivité !</p>'),
+    'la photo, puis la dernière phrase, qui porte la queue de la bulle');
+});
 test('la première bulle : « Bonjour, » par défaut ; la page peut choisir la sienne (hello : « Bonjour ! »), la bannière montre toujours la première phrase', () => {
   assert.deepEqual(parts('Peux-tu venir ?'), ['Bonjour,', 'Peux-tu venir ?', 'Merci !']);
   assert.deepEqual(parts('Peux-tu venir ?', 'Bonjour !'), ['Bonjour !', 'Peux-tu venir ?', 'Merci !']);
@@ -119,7 +128,8 @@ test('le style : bulles grises iOS, bleu des icônes, queue de la dernière bull
 test('la cadence : la bannière, le toucher, « … », puis une bulle toutes les 0,28 s (0,25 s en version serrée) ; l’image reste le temps de lire', () => {
   const f = core.slice(core.indexOf('function smsIn('), core.indexOf('/* ---------- Habillage'));
   for (const part of ["cue(t, 'sms', 0.8);", "cue(T, 'click', 0.5);", 'first = T + (fast ? 0.5 : 0.62)', 'step = fast ? 0.25 : 0.28', "tl.set(dots, {autoAlpha: 0}, first);",
-    'const end = first + (bubbles.length - 1) * step + 0.35;', 'hold(end + 0.05, Math.ceil(readTime(bubbles.slice(1, -1).map(b => b.textContent).join(\' \')) * 20) / 20);'])
+    'const end = first + (bubbles.length - 1) * step + 0.35;', "const said = bubbles.slice(1, /^Merci\\s*!$/.test(bubbles[bubbles.length - 1].textContent.trim()) ? -1 : undefined);",
+    'hold(end + 0.05, Math.ceil(readTime(said.map(b => b.textContent).join(\' \')) * 20) / 20);'])
     assert.ok(f.includes(part), `smsIn : ${part}`);
   assert.ok(core.includes('await document.fonts.ready;\n    smsFit();'), 'les bulles se resserrent sur leur ligne la plus longue, polices chargées, avant la timeline');
   assert.ok(index.includes("case 'sms':{"), 'le son de la notification existe dans le lecteur');
@@ -133,8 +143,9 @@ test('les chapitres où un SMS arrive : 1 et 2 (un client), 9 (le service client
   assert.deepEqual(['projet-cles.html', 'projet-delete.html', 'projet-normaliser.html'].filter(f => !AVEC_SMS.includes(f)), [], 'les trois chapitres déjà faits');
   assert.ok(!AVEC_SMS.includes('projet-ondelete.html'), 'le chapitre 10 : un seul message, un mail du service client (Elisa, 25 octobre, 12 h 51)');
   const clients = PAGES.filter(f => R.donnees(f).MAILS.some(m => /^client/.test(m[2])));
-  /* Une exception : au chapitre 11, Léa Simon écrit elle-même, avec la photo de son shaker cassé (trame d’Elisa, 25 octobre, 17 h 05) ; le service client écrit ensuite. */
-  assert.deepEqual(clients, ['projet-cles.html', 'projet-normaliser.html', 'projet-transaction.html'], 'un client écrit lui-même aux chapitres 1 et 2, et au chapitre 11 (la trame d’Elisa) : depuis le chapitre 5, le service client centralise les demandes');
+  /* Deux exceptions : au chapitre 11, Léa Simon écrit elle-même, avec la photo de son shaker cassé (trame d’Elisa, 25 octobre, 17 h 05) ; le service client écrit
+     ensuite. Au chapitre 12, à la fin, elle écrit qu’elle a bien reçu son colis (Elisa, 25 octobre, 19 h 13). */
+  assert.deepEqual(clients, ['projet-cles.html', 'projet-normaliser.html', 'projet-savepoint.html', 'projet-transaction.html'], 'un client écrit lui-même aux chapitres 1 et 2, et aux chapitres 11 et 12 (les trames d’Elisa) : depuis le chapitre 5, le service client centralise les demandes');
 });
 for (const f of AVEC_SMS) {
   test(`${f} : un SMS est rendu en SMS (smsCard, smsIn), celui d’un coach, de l’équipe ou du service client (sans option) reste un mail`, () => {

@@ -6585,47 +6585,49 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 .lv-pk.is-ok .lv-pk-back{display:none}
 /* Réussi : la validation bien en avant, à la place du petit badge — une coche verte qui arrive d’un rebond, se trace,
    lance une onde, puis « Bien vu ! ».
-   Le rond et son onde sont des éléments HTML, le dessin SVG ne garde que les traits blancs, dans son cadre : sur iPhone, Safari découpait
-   au carré l’onde dessinée en SVG hors du cadre de l’icône et laissait des bouts de traits autour (Elisa, 25 octobre, 18 h 43 : « des traits
-   sur les icônes, comme des bugs »). Un trait n’apparaît qu’au moment où il se trace : pas de point laissé par son bout arrondi avant. */
+   Rien ne bouge par transform : le rond grandit et l’onde s’élargit par leur taille (inset), les traits se tracent et s’effacent par leur
+   couleur, le texte glisse par sa position. Sur l’iPhone d’Elisa, Safari ne repeint pas tout ce qu’un transform a agrandi, tourné ou déplacé
+   et en laisse des bouts de traits (Elisa, 25 octobre, 18 h 43 : « des traits sur les icônes, comme des bugs » ; 19 h 13 : « ça le fait sur
+   plusieurs endroits » ; déjà le rond de la ligne de lecture, 12 h 28). Un trait n’apparaît qu’au moment où il se trace. */
 .lv-pk-kick[hidden],.lv-pk-cnt[hidden]{display:none}
 .lv-pk-ok{display:inline-flex;align-items:center;gap:10px;min-height:42px;font:800 20px/1.1 var(--display);letter-spacing:-.01em;color:#0F7A3A}
-.lv-pk-ok .ic{position:relative;display:block;flex:none;width:42px;height:42px;border-radius:50%;background:#169447}
-.lv-pk-ok .ic::after{content:"";position:absolute;inset:0;border:2.5px solid #169447;border-radius:50%;opacity:0;pointer-events:none}
-.lv-pk-ok .ic svg{display:block;width:42px;height:42px}
+.lv-pk-ok .ic{position:relative;display:block;flex:none;width:42px;height:42px}
+.lv-pk-ok .lv-ok-disc,.lv-pk-ok .lv-ok-ring{position:absolute;inset:0;border-radius:50%;pointer-events:none}
+.lv-pk-ok .lv-ok-disc{background:#169447}
+.lv-pk-ok .lv-ok-ring{border:2.5px solid rgba(22,148,71,0)}
+.lv-pk-ok .ic svg{position:relative;display:block;width:42px;height:42px}
 .lv-pk-ok .k,.lv-pk-ok .x{fill:none;stroke:#fff;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round}
 .lv-pk-ok .k{stroke-dasharray:26;stroke-dashoffset:0}
-.lv-pk-ok.is-anim .ic{animation:lvOkPop .5s cubic-bezier(.2,.9,.3,1.5) both}
-.lv-pk-ok.is-anim .k{stroke-dashoffset:26;opacity:0;animation:lvOkTick .32s ease-out .28s forwards}
-.lv-pk-ok.is-anim .ic::after{animation:lvOkRing .9s ease-out .3s}
+.lv-pk-ok b{position:relative}
+.lv-pk-ok.is-anim .lv-ok-disc{animation:lvOkPop .5s cubic-bezier(.2,.9,.3,1.5) both}
+.lv-pk-ok.is-anim .k{stroke-dashoffset:26;stroke:rgba(255,255,255,0);animation:lvOkTick .32s ease-out .28s forwards}
+.lv-pk-ok.is-anim .lv-ok-ring{animation:lvOkRing .9s ease-out .3s}
 .lv-pk-ok.is-anim b{animation:lvOkTxt .35s cubic-bezier(.2,.9,.3,1.3) .18s both}
 /* Trouvé après une erreur : le moment reste raté (point rouge, seul le premier essai compte), mais la bonne réponse est saluée.
    La même arrivée, en rouge : la croix du premier essai se trace, puis s’efface ; le rond passe à l’orange, une coche s’y trace
    et le badge acquiesce ; « Raté » laisse la place à « Bien rattrapé ! ». Sans animation : directement l’état orange. */
 .lv-pk-ok.is-late{color:#B45309}
-.lv-pk-ok.is-late .ic{background:#EE8A1A}
-.lv-pk-ok.is-late .ic::after{border-color:#EE8A1A}
+.lv-pk-ok.is-late .lv-ok-disc{background:#EE8A1A}
 .lv-pk-ok .was{display:none}
 .lv-pk-ok.is-late.is-anim .was{display:inline}
-.lv-pk-ok.is-late b{position:relative}
 .lv-pk-ok .x{stroke-dasharray:18}
-.lv-pk-ok.is-anim .x{stroke-dashoffset:18;opacity:0;animation:lvOkTick .32s ease-out .28s forwards}
-.lv-pk-ok.is-anim .x+.x{animation-delay:.44s}
-.lv-pk-ok.is-late.is-anim .ic{animation:lvOkPop .5s cubic-bezier(.2,.9,.3,1.5) both,lvLateFill .95s ease both,lvLateNod .5s ease-in-out 1.05s}
-.lv-pk-ok.is-late.is-anim g.was{animation:lvLateFade .22s ease-in .78s forwards}
+.lv-pk-ok.is-anim .x{stroke-dashoffset:18;stroke:rgba(255,255,255,0);animation:lvOkTick .32s ease-out .28s forwards,lvLateGone .22s ease-in .78s forwards}
+.lv-pk-ok.is-anim .x+.x{animation-delay:.44s,.78s}
+.lv-pk-ok.is-late.is-anim .lv-ok-disc{animation:lvOkPop .5s cubic-bezier(.2,.9,.3,1.5) both,lvLateFill .95s ease both,lvLateNod .5s ease-in-out 1.05s}
 .lv-pk-ok.is-late.is-anim .k{animation-delay:.95s}
-.lv-pk-ok.is-late.is-anim .ic::after{animation-delay:1s}
-.lv-pk-ok.is-late.is-anim span.was{position:absolute;left:0;top:0;color:#C2323A;animation:lvLateOut .2s ease-in .78s forwards}
-.lv-pk-ok.is-late.is-anim span.now{animation:lvOkTxt .35s cubic-bezier(.2,.9,.3,1.3) .92s both}
+.lv-pk-ok.is-late.is-anim .lv-ok-ring{animation:lvLateRing .9s ease-out 1s}
+.lv-pk-ok.is-late.is-anim span.was{position:absolute;left:0;top:0;color:rgba(194,50,58,0);animation:lvLateWas 1s linear both}
+.lv-pk-ok.is-late.is-anim span.now{position:relative;animation:lvOkTxt .35s cubic-bezier(.2,.9,.3,1.3) .92s both}
 @keyframes lvLateFill{0%,72%{background-color:#DE3F46}100%{background-color:#EE8A1A}}
-@keyframes lvLateFade{to{opacity:0}}
-@keyframes lvLateOut{to{opacity:0;transform:scale(.5) rotate(45deg)}}
-@keyframes lvLateNod{30%{transform:rotate(-12deg) scale(1.08)}65%{transform:rotate(7deg)}100%{transform:none}}
-@keyframes lvOkPop{0%{transform:scale(.2) rotate(-25deg);opacity:0}60%{transform:scale(1.15);opacity:1}100%{transform:none;opacity:1}}
-@keyframes lvOkTick{0%{opacity:1}to{opacity:1;stroke-dashoffset:0}}
-@keyframes lvOkRing{0%{opacity:.55;transform:scale(1)}100%{opacity:0;transform:scale(1.75)}}
-@keyframes lvOkTxt{0%{opacity:0;transform:translateX(-8px)}100%{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.lv-pk-ok .ic,.lv-pk-ok .ic::after,.lv-pk-ok b{animation:none!important}.lv-pk-ok .k{animation:none!important;stroke-dashoffset:0!important;opacity:1!important}}
+@keyframes lvLateGone{from{stroke:#fff}to{stroke:rgba(255,255,255,0)}}
+@keyframes lvLateWas{0%,18%{color:rgba(194,50,58,0)}53%,78%{color:#C2323A}98%,100%{color:rgba(194,50,58,0)}}
+@keyframes lvLateNod{30%{inset:-3px}65%{inset:1px}100%{inset:0}}
+@keyframes lvOkPop{0%{inset:21px}60%{inset:-3px}100%{inset:0}}
+@keyframes lvOkTick{0%{stroke:#fff}to{stroke:#fff;stroke-dashoffset:0}}
+@keyframes lvOkRing{0%{inset:0;border-color:rgba(22,148,71,.55)}100%{inset:-16px;border-color:rgba(22,148,71,0)}}
+@keyframes lvLateRing{0%{inset:0;border-color:rgba(238,138,26,.55)}100%{inset:-16px;border-color:rgba(238,138,26,0)}}
+@keyframes lvOkTxt{0%{left:-8px;color:transparent}100%{left:0}}
+@media (prefers-reduced-motion:reduce){.lv-pk-ok .lv-ok-disc,.lv-pk-ok .lv-ok-ring,.lv-pk-ok b,.lv-pk-ok b span{animation:none!important}.lv-pk-ok .k{animation:none!important;stroke-dashoffset:0!important;stroke:#fff!important}}
 .lv-pk.is-ok .lv-pk-back+.lv-pk-dots{margin-left:auto}
 @media (max-width:359px){.lv-pk-back span+span{display:none}}
 .lv-pk-dots i{width:9px;height:9px;border-radius:50%;background:#E2DCF5;transition:background-color .3s,box-shadow .3s}
@@ -6836,8 +6838,9 @@ html[data-motion="reduce"] .lv-end-cat,html[data-motion="reduce"] .lv-end-bravo{
 .lv-end .lv-again[hidden]{display:none}
 .lv-end .lv-again svg{width:18px;height:18px}
 /* Dans le cours : la vignette qui rouvre la vidéo */
-.lv-lesson .lv-card{position:relative;display:block;container-type:inline-size;width:min(100%,420px,max(230px,calc(100svh - 430px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))));aspect-ratio:1/1;margin:18px auto 6px;padding:0;border:2px solid var(--line,#E6E1F6);border-radius:24px;overflow:hidden;background:#F4F2FC;box-shadow:0 5px 0 var(--lip,#DCD5F2);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .12s,box-shadow .12s}
-.lv-lesson .lv-card:active{transform:translateY(4px);box-shadow:0 1px 0 var(--lip,#DCD5F2)}
+.lv-lesson .lv-card{position:relative;display:block;container-type:inline-size;width:min(100%,420px,max(230px,calc(100svh - 430px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))));aspect-ratio:1/1;margin:18px auto 6px;padding:0;border:2px solid var(--line,#E6E1F6);border-radius:24px;overflow:hidden;background:#F4F2FC;box-shadow:0 5px 0 var(--lip,#DCD5F2);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:top .12s,box-shadow .12s}
+/* L’appui enfonce la carte par sa position, sans transform : rien n’est mis sur un calque à part (Safari en laissait des restes, voir lvCardSync). */
+.lv-lesson .lv-card:active{top:4px;box-shadow:0 1px 0 var(--lip,#DCD5F2)}
 .lv-lesson .lv-card img{display:block;width:100%;height:100%;object-fit:contain;object-position:50% 50%}
 .lv-card-bar{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:clamp(8px,3cqw,12px)}
 .lv-card-play{flex:none;width:clamp(44px,15cqw,60px);height:clamp(44px,15cqw,60px);border-radius:50%;background:var(--accent,#6A4DF4);color:#fff;display:grid;place-items:center;box-shadow:0 5px 0 var(--accent-lip,#4B30CC),0 16px 34px -14px rgba(40,20,120,.5)}
@@ -9065,13 +9068,13 @@ guide({ id:62, titre:"Transactions", résumé:"Valider les modifications ensembl
      remplace l’ancien cours texte Transactions (le transfert de points de fidélité). */
   leconSeule:true,
   video:{anim:'assets/anim/projet-transaction.html?app&embed',thumb:'assets/anim/projet-transaction-thumb.webp',duree:'4 min 51',moments:6,seuil:4,
-    /* « Ajouter à mes notes » : apparaît à 4 min 43 (283,3 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:283.3,y:1180,card:[64,292,1016,885],to:[940,255]}},
+    /* « Ajouter à mes notes » : apparaît à 4 min 44 (284,4 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:284.4,y:1138,card:[64,292,1016,843],to:[940,255]}},
   reflex:[
     {recap:[
       ["🚦","<code>BEGIN TRANSACTION</code> démarre la <b>transaction</b>.","Selon le SGBD, tu peux aussi écrire <code>BEGIN</code> ou <code>START TRANSACTION</code>."],
       ["✅","<code>COMMIT</code> valide toutes ses <b>modifications</b>.","Elles deviennent définitives, et la transaction se termine."],
-      ["↩️","<code>ROLLBACK</code> annule toutes ses modifications <b>non validées</b>.","Après <code>COMMIT</code>, tu ne peux plus utiliser <code>ROLLBACK</code> pour annuler cette transaction."]
+      ["↩️","<code>ROLLBACK</code> annule toutes les modifications <b>non validées</b> de la transaction.","Après <code>COMMIT</code>, tu ne peux plus utiliser <code>ROLLBACK</code> pour annuler cette transaction."]
     ],label:"Les trois idées à retenir"}
   ]
 }),
@@ -9080,30 +9083,36 @@ guide({ id:63, titre:"SAVEPOINT", résumé:"Annuler une partie des modifications
      est le cours. La trame est celle d’Elisa (25 octobre, 17 h 05, « Cours 2 — SAVEPOINT : annuler une partie des modifications »),
      ses bulles gardées mot pour mot, une phrase par bulle. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… »,
      « Au chapitre 11, une transaction t’a permis de tout valider ou de tout annuler »), sur la base que le chapitre 11 laisse : dix
-     tables. 1 · Un petit geste pour Léa : on reprend le remplacement de Léa Simon juste avant sa validation (30 shakers, aucun
-     remplacement ; BEGIN TRANSACTION, l’UPDATE du stock, l’INSERT du remplacement, rejoués) ; l’historique de la transaction montre
-     chaque modification, « Non validé » ; le service client demande, par SMS, d’ajouter une tisane gratuite dans son colis.
+     tables. 1 · Un petit geste pour Léa : le service client écrit tout de suite, par SMS (les mots d’Elisa, 25 octobre, 19 h 13 :
+     « Pour nous excuser du shaker arrivé abîmé, peux-tu ajouter une tisane gratuite au colis de remplacement de Léa ? ») ; on reprend
+     le remplacement de Léa Simon juste avant sa validation (30 shakers, aucun remplacement ; BEGIN TRANSACTION, l’UPDATE du stock,
+     l’INSERT du remplacement, rejoués) ; l’historique de la transaction montre chaque modification, « Non validé ».
      2 · Pouvoir revenir en arrière (moment 1 : comment annuler seulement le cadeau) : SAVEPOINT avant_cadeau pose un repère dans
      l’historique, juste après le remplacement. 3 · Ajouter le cadeau : la tisane est le produit 5 (Tisane Détox, 60 en stock) ; son
      stock passe à 59 et la table cadeaux reçoit une ligne, deux modifications après le repère (moment 2 : l’élève touche celles qu’un
-     retour au savepoint annulerait ; moment 3 : rien n’est validé avant COMMIT). 4 · Léa ne souhaite pas de tisane : le service client
-     écrit de nouveau ; un ROLLBACK complet annulerait aussi le remplacement (moment 4 : ROLLBACK TO SAVEPOINT avant_cadeau) ; l’élève
-     touche « Revenir au savepoint ». 5 · Le cadeau et le stock de la tisane sont annulés, le remplacement et le stock du shaker restent ;
-     la transaction reste ouverte (moment 5). 6 · L’élève touche « Valider le remplacement » (COMMIT) : les modifications conservées
-     sont validées, le colis de Léa Simon est à préparer, sans cadeau. 7 · Quelle commande choisir : six situations à ranger sous
-     ROLLBACK TO SAVEPOINT, ROLLBACK ou COMMIT (moment 6) ; un savepoint ne valide rien. La fin annonce la prochaine leçon, les triggers.
-     Choix de scénario : les chiffres de la base du projet (shaker 30 → 29, tisane 60 → 59 → 60), le remplacement 1 comme au chapitre 11.
+     retour au savepoint annulerait ; moment 3 : rien n’est validé avant COMMIT). 4 · Léa préfère un autre cadeau : le service client
+     écrit de nouveau, elle ne boit pas de tisane et préférerait de la protéine végétale, pour tester son nouveau shaker ; un ROLLBACK
+     complet annulerait aussi le remplacement (moment 4 : ROLLBACK TO SAVEPOINT avant_cadeau) ; l’élève touche « Revenir au savepoint ».
+     5 · La tisane et son stock sont annulés, le remplacement et le stock du shaker restent ; la transaction reste ouverte (moment 5).
+     6 · Ajouter la protéine : la Protéine Végétale (produit 6, 45 en stock) prend la place de la tisane dans l’extrait ; son stock passe
+     à 44 et la table cadeaux reçoit sa ligne, après le même repère. 7 · L’élève touche « Valider le remplacement » (COMMIT) : les quatre
+     modifications sont validées, le colis de Léa Simon est à préparer, avec la protéine. 8 · Le colis est arrivé : Léa Simon écrit au
+     service client (ses mots, d’après Elisa : « j’ai bien reçu le colis ! », le papier bulle, « merci pour votre réactivité et pour la
+     protéine ») ; grâce au savepoint, le cadeau a changé sans refaire le remplacement. 9 · Quelle commande choisir : six situations à
+     ranger sous ROLLBACK TO SAVEPOINT, ROLLBACK ou COMMIT (moment 6) ; un savepoint ne valide rien. La fin annonce la prochaine leçon,
+     les triggers. Choix de scénario : les chiffres de la base du projet (shaker 30 → 29, tisane 60 → 59 → 60, protéine 45 → 44), le
+     remplacement 1 comme au chapitre 11, le cadeau 1 (la tisane annulée, la protéine le reprend).
      Six moments « À toi », comme aux chapitres du projet ; leçon seule : ni exercice ni quiz dans la vidéo, validée avec 4 exercices
      réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments ratés. Elle remplace l’ancien cours texte SAVEPOINT (les
      expéditions du jour). */
   leconSeule:true,
-  video:{anim:'assets/anim/projet-savepoint.html?app&embed',thumb:'assets/anim/projet-savepoint-thumb.webp',duree:'3 min 52',moments:6,seuil:4,
-    /* « Ajouter à mes notes » : apparaît à 3 min 45 (225,2 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:225.2,y:1184,card:[64,292,1016,889],to:[940,255]}},
+  video:{anim:'assets/anim/projet-savepoint.html?app&embed',thumb:'assets/anim/projet-savepoint-thumb.webp',duree:'4 min 38',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 4 min 31 (271,1 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:271.1,y:1100,card:[64,292,1016,805],to:[940,255]}},
   reflex:[
     {recap:[
       ["📍","<code>SAVEPOINT nom</code> crée un <b>point de retour</b>.","La syntaxe varie selon le SGBD : celle-ci est notamment celle de PostgreSQL."],
-      ["↩️","<code>ROLLBACK TO SAVEPOINT nom</code> annule les modifications faites <b>après ce point</b>.","La transaction continue. <code>ROLLBACK</code> sans cible annule toute la transaction."],
+      ["↩️","<code>ROLLBACK TO SAVEPOINT nom</code> annule les modifications faites <b>après ce point</b>.","La transaction continue. <code>ROLLBACK</code> seul annule toute la transaction."],
       ["✅","<code>COMMIT</code> valide les modifications <b>conservées</b>.","Et il termine la transaction."]
     ],label:"Les trois idées à retenir"}
   ]
@@ -13016,7 +13025,7 @@ const SQ_ALIASES={
   28:'delete from supprimer effacer lignes ligne supprimer une ligne where oubli du where sans where toutes les lignes vider une table vider table select avant de supprimer lire identifiant client_id plusieurs lignes annuler inscription inscriptions compte atelier nutriboost insert update',
   68:'on delete cascade set null restrict supprimer lignes liees cle etrangere foreign key constraint failed suppression refusee client compte avis ancien client feuille table avis not null create table regle detacher nutriboost',
   62:'transaction transactions begin transaction start transaction commit rollback valider annuler modifications ensemble non valide definitives stock remplacement table remplacements shaker colis personnalisation prenom not null constraint failed nutriboost',
-  63:'savepoint point de retour point de sauvegarde rollback to savepoint rollback to annuler une partie partiel transaction repere historique cadeau cadeaux tisane remplacement colis commit nutriboost',
+  63:'savepoint point de retour point de sauvegarde rollback to savepoint rollback to annuler une partie partiel transaction repere historique cadeau cadeaux tisane proteine proteine vegetale remplacement colis commit nutriboost',
   70:'trigger declencheur reagir automatiquement before after evenement',
   71:'concurrence isolation verrou lock deadlock lectures ecritures simultanees',
   64:'create view vue requete enregistree nommer virtual table',
@@ -14793,22 +14802,10 @@ function lessonVideoMeta(l){
   if(pos>2)return `Reprendre · ${lvFmt(pos)}`;
   return (jcPassed(l.id)||etapesDe(l.id).exo?'Revoir la vidéo':'Regarder la vidéo')+(v.duree?` · ${v.duree}`:'');
 }
-function lvCardSync(id){
-  if(!current||current.id!==id)return;
-  const m=document.querySelector('#lesson-body .lv-card-meta'), c=document.querySelector('#lesson-body .lv-card');
-  if(m)m.textContent=lessonVideoMeta(current);
-  if(c)c.setAttribute('aria-label',`${lessonVideoMeta(current)} : cours ${current.titre} en plein écran`);
-}
-/* Leçon seule validée à la fin de la vidéo : le bouton du haut devient « Voir le bilan » (vu en fermant la vidéo). */
-function lvNavSync(id){
-  if(!current||current.id!==id||!current.leconSeule||!lecCompletee(id))return;
-  const b=document.querySelector('#lesson-body .ls-next[data-jc-gate]');
-  if(b){ b.removeAttribute('aria-disabled'); b.removeAttribute('data-jc-gate'); b.textContent='Voir le bilan'; b.onclick=()=>setLessonStep(3); }
-}
-function lessonVideoSlide(l){
-  const v=l.video, m=moduleDeLecon(l.id), locked=jcGateLocked(l), failed=LV_FAILED.has(l.id);
-  /* La vidéo n’a pas pu se charger : la carte le dit, et la toucher la recharge (openLessonVideo). */
-  const card=failed
+/* La vignette du cours. La vidéo n’a pas pu se charger : la carte le dit, et la toucher la recharge (openLessonVideo). */
+function lvCardHtml(l){
+  const v=l.video;
+  return LV_FAILED.has(l.id)
     ?`<button type="button" class="lv-card is-failed" onclick="openLessonVideo()" aria-label="La vidéo n’a pas pu se charger. Réessayer">
             <img src="${v.thumb||v.poster}" alt="" decoding="async">
             <span class="lv-card-fail" aria-hidden="true"><b>La vidéo n’a pas pu se charger.</b></span>
@@ -14818,6 +14815,27 @@ function lessonVideoSlide(l){
             <img src="${v.thumb||v.poster}" alt="" decoding="async">
             <span class="lv-card-bar" aria-hidden="true"><span class="lv-card-meta">${lessonVideoMeta(l)}</span><span class="lv-card-play">${LV_ICO.play}</span></span>
           </button>`;
+}
+/* L’étiquette de la vignette change (« Reprendre · 0:10 »…) : la carte est refaite en entier, pas seulement son texte. Sur l’iPhone d’Elisa,
+   Safari ne repeignait qu’une partie de la pastille raccourcie : le dernier chiffre coupé et deux filets clairs à droite de la pastille
+   (Elisa, 25 octobre, 19 h 13 : « les traits bugs, ça le fait sur plusieurs endroits »). Une carte neuve est peinte en entier ; elle garde le focus. */
+function lvCardSync(id){
+  if(!current||current.id!==id)return;
+  const c=document.querySelector('#lesson-body .lv-card'); if(!c)return;
+  const t=document.createElement('template'); t.innerHTML=lvCardHtml(current).trim();
+  const n=t.content.firstElementChild; if(!n)return;
+  const had=document.activeElement===c;
+  c.replaceWith(n);
+  if(had)try{n.focus({preventScroll:true});}catch(e){}
+}
+/* Leçon seule validée à la fin de la vidéo : le bouton du haut devient « Voir le bilan » (vu en fermant la vidéo). */
+function lvNavSync(id){
+  if(!current||current.id!==id||!current.leconSeule||!lecCompletee(id))return;
+  const b=document.querySelector('#lesson-body .ls-next[data-jc-gate]');
+  if(b){ b.removeAttribute('aria-disabled'); b.removeAttribute('data-jc-gate'); b.textContent='Voir le bilan'; b.onclick=()=>setLessonStep(3); }
+}
+function lessonVideoSlide(l){
+  const v=l.video, m=moduleDeLecon(l.id), locked=jcGateLocked(l), card=lvCardHtml(l);
   return `
       <div class="ls-nav">
         ${l.leconSeule?(state.lessons[l.id]&&state.lessons[l.id].done?'<button class="ls-next" type="button" onclick="setLessonStep(3)">Voir le bilan</button>':`<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">${lvErreursMax(l)!=null?`Termine la vidéo avec ${lvErreursMax(l)} erreur${lvErreursMax(l)>1?'s':''} au plus`:lvSeuil(l)?`Valide la leçon&nbsp;: <br>réussis au moins ${lvSeuil(l)}&nbsp;exercices sur&nbsp;${v.moments}`:'Termine la vidéo pour valider la leçon'}</button>`)
@@ -15612,7 +15630,7 @@ function lvPkValid(P,first,anim){
   const top=P.box.querySelector('.lv-pk-top'); if(!top||top.querySelector('.lv-pk-ok'))return;
   const el=document.createElement('span'), tick='<path class="k" d="M12.5 21.5l6 6L30 15.5"/>';
   el.className='lv-pk-ok'+(first?'':' is-late')+(anim&&!prefersReduceMotion()?' is-anim':'');
-  el.innerHTML=`<i class="ic" aria-hidden="true"><svg viewBox="0 0 42 42">${first?tick:`<g class="was"><path class="x" d="M15 15l12 12"/><path class="x" d="M27 15L15 27"/></g>${tick}`}</svg></i>`+
+  el.innerHTML=`<i class="ic" aria-hidden="true"><i class="lv-ok-ring"></i><i class="lv-ok-disc"></i><svg viewBox="0 0 42 42">${first?tick:`<g class="was"><path class="x" d="M15 15l12 12"/><path class="x" d="M27 15L15 27"/></g>${tick}`}</svg></i>`+
     `<b>${first?'Bien vu&nbsp;!':'<span class="was" aria-hidden="true">Raté</span><span class="now">Bien rattrapé&nbsp;!</span>'}</b>`;
   top.querySelectorAll('.lv-pk-kick,.lv-pk-cnt').forEach(e=>{ e.hidden=true; });
   top.insertBefore(el,top.firstChild);
@@ -16371,7 +16389,8 @@ function closeLessonVideo(instant){
   document.removeEventListener('touchend',lvWake,{capture:true});
   document.removeEventListener('click',lvWake,true);
   /* Libère la vidéo (mémoire sur iPhone) puis retire le lecteur. */
-  const done=()=>{ try{ if(video.destroy)video.destroy(); else{ video.removeAttribute('src'); video.load(); } }catch(e){} root.remove(); };
+  /* Le lecteur retiré, la vignette est refaite une fois encore : elle est peinte écran visible (voir lvCardSync). */
+  const done=()=>{ try{ if(video.destroy)video.destroy(); else{ video.removeAttribute('src'); video.load(); } }catch(e){} root.remove(); lvCardSync(id); };
   if(instant||prefersReduceMotion())done();
   else{ root.classList.remove('on'); setTimeout(done,320); }
   if(!instant){
@@ -24982,7 +25001,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2047';
+  const SW_CACHE='requete-2026-10-12-ludique-v2048';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

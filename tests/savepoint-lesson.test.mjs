@@ -1,8 +1,9 @@
 /* Projet NutriBoost, chapitre 12 (leçon 63 « SAVEPOINT ») : la vidéo interactive assets/anim/projet-savepoint.html, testée aussi dans lesson-video.test.mjs.
-   La trame est celle d’Elisa (25 octobre, 17 h 05, « Cours 2 — SAVEPOINT : annuler une partie des modifications ») : on reprend le remplacement de
-   Léa Simon juste avant sa validation ; le service client veut aussi lui offrir une tisane. Un point de retour (SAVEPOINT avant_cadeau) est posé
-   avant le cadeau ; Léa Simon ne veut pas de tisane : ROLLBACK TO SAVEPOINT annule le cadeau et le stock de la tisane, garde le remplacement, et
-   la transaction reste ouverte ; COMMIT valide ce qui reste. Ce que la vidéo montre est ici rejoué dans SQLite : c’est ce que la base répond vraiment.
+   La trame est celle d’Elisa (25 octobre, 17 h 05, « Cours 2 — SAVEPOINT : annuler une partie des modifications »), reprise le 25 octobre à 19 h 13 :
+   le service client demande, par SMS, d’ajouter une tisane au colis de remplacement de Léa Simon ; on reprend le remplacement juste avant sa validation.
+   Un point de retour (SAVEPOINT avant_cadeau) est posé avant le cadeau ; Léa Simon préfère un autre cadeau : ROLLBACK TO SAVEPOINT annule la tisane
+   et son stock, garde le remplacement, et la transaction reste ouverte ; la Protéine Végétale s’ajoute après le même repère ; COMMIT valide le tout ;
+   Léa Simon écrit qu’elle a reçu son colis. Ce que la vidéo montre est ici rejoué dans SQLite : c’est ce que la base répond vraiment.
    Leçon seule : ni cours texte, ni exercice ; elle remplace l’ancien cours texte SAVEPOINT (les expéditions du jour). */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -31,7 +32,7 @@ const sp = s => s.replace(/[  ]/g, ' ');
 
 /* Les requêtes que la page tape, telles qu’elle les écrit (gabarits Q_…) : sans le commentaire ni le balisage {repère|texte}. */
 const Q = vm.createContext({});
-vm.runInContext([...page.matchAll(/^const Q_[A-Z0-9]+ = .*$/gm)].map(m => m[0]).join('\n') + ';this.Q = {Q_BEGIN, Q_UP8, Q_INR, Q_SP, Q_UP5, Q_INC, Q_RT, Q_COMMIT};', Q);
+vm.runInContext([...page.matchAll(/^const Q_[A-Z0-9]+ = .*$/gm)].map(m => m[0]).join('\n') + ';this.Q = {Q_BEGIN, Q_UP8, Q_INR, Q_SP, Q_UP5, Q_INC, Q_RT, Q_UP6, Q_INP, Q_COMMIT};', Q);
 const sql = q => Q.Q[q].map(([s]) => s).filter(s => !s.trim().startsWith('--')).join('\n').replace(/\{\w+\|([^{}]*)\}/g, '$1');
 
 /* ---------- La base de la vidéo ---------- */
@@ -101,15 +102,16 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 199.71);
-  assert.ok(page.includes('notesAt: 199.71,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 206.91);
+  assert.equal(val('NOTES'), 229.28);
+  assert.ok(page.includes('notesAt: 229.28,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 236.48);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
-  /* Les sept parties de la trame d’Elisa, avec l’ouverture commune à tous les chapitres du projet dans la première ; « Quelle commande choisir ? »
-     y ajoute le moment où l’élève range les situations, avant le récapitulatif. La partie 2 est raccourcie pour tenir dans la puce du chapitre. */
-  assert.deepEqual(chaps.map(c => c.label), ['Un petit geste pour Léa', 'Pouvoir revenir en arrière', 'Ajouter le cadeau', 'Léa ne souhaite pas de tisane',
-    'Observer ce qui est annulé', 'Valider ce qui reste', 'Quelle commande choisir ?', 'À retenir']);
+  /* Les parties de la trame d’Elisa, avec l’ouverture commune à tous les chapitres du projet dans la première ; le 25 octobre (19 h 13), Léa Simon
+     préfère un autre cadeau : « Ajouter la protéine », puis « Le colis est arrivé » (son message) ; « Quelle commande choisir ? » ajoute le moment où
+     l’élève range les situations, avant le récapitulatif. La partie 2 est raccourcie pour tenir dans la puce du chapitre. */
+  assert.deepEqual(chaps.map(c => c.label), ['Un petit geste pour Léa', 'Pouvoir revenir en arrière', 'Ajouter le cadeau', 'Léa préfère un autre cadeau',
+    'Observer ce qui est annulé', 'Ajouter la protéine', 'Valider ce qui reste', 'Le colis est arrivé', 'Quelle commande choisir ?', 'À retenir']);
   caps.forEach(([, , t, lines], k) => {
     const txt = strip(t);
     assert.ok(/^[A-ZÀ-ÖØ-Þ0-9«]/.test(txt) || /^(<b[^>]*>)?<code>/.test(t), `légende ${k + 1} : une phrase qui commence (« ${txt.slice(0, 50)} »)`);
@@ -135,32 +137,41 @@ test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajo
   assert.ok(picks.every(p => !/cette requête|ci-dessus|ci-dessous/.test(p.prompt)), 'aucune question ne renvoie à une requête de l’image');
 });
 
-test('les phrases d’Elisa (25 octobre, 17 h 05) : sa trame, une phrase par bulle, avec ses mots', () => {
+test('les phrases d’Elisa (25 octobre, 17 h 05 et 19 h 13) : sa trame, une phrase par bulle, avec ses mots', () => {
   const caps = val('CAPTIONS').map(c => c[2]);
   const dit = (...phrases) => phrases.forEach(p => assert.ok(caps.includes(p), `légende : ${p}`));
-  /* 1 · Un petit geste pour Léa (Léa Simon, en entier, comme le veut la charte) */
-  dit('Reprenons le remplacement<br>de Léa Simon juste avant<br>sa validation.', 'Cette fois, le service client<br>souhaite aussi lui offrir une tisane<br>pour s’excuser.',
-    'Aucun <code>COMMIT</code> n’a été exécuté :<br>la transaction est toujours en cours.');
+  /* 1 · Un petit geste pour Léa (Léa Simon, en entier, comme le veut la charte). Le message du service client prend la place de la légende
+     qui annonçait la tisane (Elisa, 19 h 13 : « remplace cette partie par celle du message […] à placer avant ») : il arrive juste après l’ouverture. */
+  dit('Reprenons le remplacement<br>de Léa Simon juste avant<br>sa validation.', 'Aucun <code>COMMIT</code> n’a été exécuté :<br>la transaction est toujours en cours.');
+  assert.ok(!caps.some(c => /souhaite aussi lui offrir une tisane/.test(c)), 'plus de légende pour annoncer la tisane : le message le dit');
+  assert.ok(val('MAIL1') > val('B.r2') - 1e-9 && val('MAIL1') < val('A.a1'), 'le message, entre l’ouverture et la reprise du remplacement');
   /* 2 · Garder la possibilité de revenir en arrière */
-  dit('Le remplacement est prêt.', 'Avant d’ajouter le cadeau,<br>tu peux poser un point de retour<br>dans la transaction : un <code>SAVEPOINT</code>.',
+  dit('Le remplacement est prêt,<br>il reste à ajouter la tisane.', 'Avant d’ajouter le cadeau,<br>tu peux poser un point de retour<br>dans la transaction : un <code>SAVEPOINT</code>.',
     '<code>avant_cadeau</code> est le nom<br>que tu donnes à ce repère.', 'Tu pourras annuler les modifications<br>effectuées après lui, sans annuler<br>celles qui le précèdent.');
   /* 3 · Ajouter le cadeau */
   dit('Les cadeaux offerts sont enregistrés<br>dans la <b>table cadeaux</b>.', 'Tu vas y ajouter la tisane<br>et diminuer son stock.',
     'Les deux modifications s’ajoutent<br>après le repère <code>avant_cadeau</code>.', 'Toutes les modifications restent<br>non validées.');
-  /* 4 · Léa ne souhaite pas de tisane */
-  dit('Un <code>ROLLBACK</code> complet annulerait<br>aussi le remplacement.', 'Ici, tu veux seulement annuler<br>l’ajout du cadeau.', 'Clique sur le bouton<br>« Revenir au savepoint ».');
+  /* 4 · Léa préfère un autre cadeau */
+  dit('Un <code>ROLLBACK</code> complet annulerait<br>aussi le remplacement.', 'Ici, tu veux seulement annuler<br>l’ajout de la tisane.', 'Clique sur le bouton<br>« Revenir au savepoint ».');
   /* 5 · Observer ce qui est annulé */
   dit('La ligne de Léa Simon disparaît<br>de la <b>table cadeaux</b>.', 'Le stock de tisanes revient<br>de 59 à 60.', 'Le remplacement du shaker reste là,<br>et son stock reste à 29.',
     'Le retour au savepoint annule<br>uniquement les modifications<br>effectuées après ce repère.', 'La transaction reste ouverte.');
-  /* 6 · Valider ce qui reste */
-  dit('Il reste à valider<br>le remplacement du shaker<br>et la mise à jour de son stock.', 'Clique sur le bouton<br>« Valider le remplacement ».');
+  /* 6 · Ajouter la protéine */
+  dit('Tu peux maintenant ajouter<br>le cadeau que Léa Simon préfère.', 'La protéine végétale est le produit 6,<br>avec 45 en stock.', 'L’<code>UPDATE</code> fait passer son stock<br>de 45 à 44.',
+    '<code>INSERT INTO</code> ajoute la protéine<br>dans la <b>table cadeaux</b>.', 'Le nouveau cadeau s’ajoute à son tour<br>après le repère <code>avant_cadeau</code>.');
+  /* 7 · Valider ce qui reste */
+  dit('Il reste à valider le remplacement<br>et le nouveau cadeau.', 'Clique sur le bouton<br>« Valider le remplacement ».', 'L’équipe logistique peut préparer<br>le colis de Léa Simon.');
+  /* 8 · Le colis est arrivé */
+  dit('Quelques jours plus tard,<br>Léa Simon écrit au service client.', 'Grâce au savepoint, tu as changé<br>le cadeau sans refaire le remplacement.');
   /* La bulle finale */
   dit('Un savepoint ne valide rien.', 'Il te permet de revenir à une étape<br>de la transaction, avant la validation<br>finale avec <code>COMMIT</code>.');
   assert.ok(page.includes('Léa Simon change d’avis&nbsp;:<br>à toi d’annuler<br>seulement le cadeau !'), 'la bulle de la mascotte');
-  /* Ce que la trame fait afficher : « Cadeau annulé · Remplacement conservé · Transaction en cours », puis le colis. */
-  for (const t of ['<span class="q0"><span class="emo">🎁</span>Cadeau annulé</span>', '<span class="q1"><span class="emo">🔁</span>Remplacement conservé</span>',
-    '<span class="q2"><span class="emo">⏳</span>Transaction en cours</span>', '<b>Léa Simon</b><span class="cst">À préparer</span>', '1 shaker rose personnalisé « Léa »', 'Aucun cadeau ajouté'])
+  /* Ce que la trame fait afficher : « Tisane annulée · Remplacement conservé · Transaction en cours », puis le colis, avec la protéine. */
+  for (const t of ['<span class="q0"><span class="emo">🍵</span>Tisane annulée</span>', '<span class="q1"><span class="emo">🔁</span>Remplacement conservé</span>',
+    '<span class="q2"><span class="emo">⏳</span>Transaction en cours</span>', '<b>Léa Simon</b><span class="cst">À préparer</span>', '1 shaker rose personnalisé « Léa »',
+    '<div class="cl"><span class="emo">🎁</span>1 Protéine Végétale offerte</div>'])
     assert.ok(page.includes(t), `la page montre : ${t}`);
+  assert.ok(!page.includes('Aucun cadeau ajouté'), 'le colis part avec la protéine');
 });
 
 test('la base du chapitre 11 : dix tables ; le shaker (produit 8, 30 en stock) et la tisane (produit 5, Tisane Détox, 60 en stock)', () => {
@@ -171,8 +182,10 @@ test('la base du chapitre 11 : dix tables ; le shaker (produit 8, 30 en stock) e
   assert.ok(page.includes('<span>10 tables</span>'), '10 tables');
   assert.deepEqual(lignes(db, 'remplacements'), [[1, 7, 8, 1, 'Léa']], 'le remplacement de Léa Simon, validé au chapitre 11');
   const d = depart();
-  assert.deepEqual(d.exec('SELECT id, nom, stock FROM produits WHERE id IN (5, 8) ORDER BY id')[0].values, [[5, 'Tisane Détox', 60], [8, 'Shaker Inox', 30]], 'la situation de départ : 60 tisanes, 30 shakers');
+  assert.deepEqual(d.exec('SELECT id, nom, stock FROM produits WHERE id IN (5, 6, 8) ORDER BY id')[0].values, [[5, 'Tisane Détox', 60], [6, 'Protéine Végétale', 45], [8, 'Shaker Inox', 30]],
+    'la situation de départ : 60 tisanes, 45 protéines végétales, 30 shakers');
   assert.deepEqual(val('SHAKER'), {id: 8, nom: 'Shaker Inox', stock: 30}); assert.deepEqual(val('TISANE'), {id: 5, nom: 'Tisane Détox', stock: 60});
+  assert.deepEqual(val('PROTEINE'), {id: 6, nom: 'Protéine Végétale', stock: 45});
   assert.deepEqual(lignes(d, 'remplacements'), [], 'aucun remplacement : on reprend juste avant la validation');
   assert.deepEqual(d.exec('SELECT id, prenom, nom FROM clients WHERE id = 7')[0].values, [[7, 'Léa', 'Simon']]);
 });
@@ -198,7 +211,7 @@ test('le point de retour : SAVEPOINT avant_cadeau, après le remplacement ; le c
   assert.equal(val('PICKS')[1].prompt, 'Touche les deux modifications qu’un retour au savepoint annulerait.');
 });
 
-test('le retour au savepoint : le cadeau et le stock de la tisane sont annulés, le remplacement et le stock du shaker restent, la transaction reste ouverte ; COMMIT valide ce qui reste', () => {
+test('le retour au savepoint : la tisane et son stock sont annulés, le remplacement et le stock du shaker restent, la transaction reste ouverte ; la protéine s’ajoute ; COMMIT valide le tout', () => {
   const db = depart();
   jusquAuCadeau(db);
   db.run(sql('Q_RT'));
@@ -210,14 +223,26 @@ test('le retour au savepoint : le cadeau et le stock de la tisane sont annulés,
   /* La transaction reste ouverte : un ROLLBACK, maintenant, annulerait encore tout (on le vérifie sur une copie). */
   const autre = depart(); jusquAuCadeau(autre); autre.run(sql('Q_RT')); autre.run('ROLLBACK;');
   assert.equal(stock(autre, 8), 30); assert.deepEqual(lignes(autre, 'remplacements'), [], 'après le retour au savepoint, la transaction était toujours ouverte');
-  /* COMMIT valide les modifications conservées et termine la transaction. */
+  /* La protéine, le cadeau que Léa Simon préfère : son stock passe de 45 à 44, la table cadeaux reçoit sa ligne, après le même repère.
+     Le cadeau garde l’identifiant 1 : la ligne de la tisane a été annulée avec tout ce qui suivait le repère. */
+  assert.equal(sql('Q_UP6'), 'UPDATE produits\nSET stock = stock - 1\nWHERE id = 6;');
+  assert.equal(sql('Q_INP'), 'INSERT INTO cadeaux\n  (client_id, produit_id, quantite)\nVALUES (7, 6, 1);');
+  db.run(sql('Q_UP6')); db.run(sql('Q_INP'));
+  assert.equal(stock(db, 6), 44, 'le stock de protéines passe de 45 à 44');
+  assert.deepEqual(lignes(db, 'cadeaux'), [[1, 7, 6, 1]], 'le cadeau 1 : Léa Simon (7), une protéine végétale (6)');
+  /* COMMIT valide les modifications de la transaction et la termine. */
   db.run(sql('Q_COMMIT'));
-  assert.equal(stock(db, 8), 29); assert.equal(stock(db, 5), 60);
-  assert.deepEqual(lignes(db, 'remplacements'), [[1, 7, 8, 1, 'Léa']]); assert.deepEqual(lignes(db, 'cadeaux'), [], 'le colis : un shaker, aucun cadeau');
+  assert.equal(stock(db, 8), 29); assert.equal(stock(db, 5), 60); assert.equal(stock(db, 6), 44);
+  assert.deepEqual(lignes(db, 'remplacements'), [[1, 7, 8, 1, 'Léa']]); assert.deepEqual(lignes(db, 'cadeaux'), [[1, 7, 6, 1]], 'le colis : un shaker et la protéine');
   assert.throws(() => db.run('ROLLBACK;'), /cannot rollback - no transaction is active/, 'COMMIT a terminé la transaction');
-  /* Ce que la page montre, dans l’ordre : le retour au savepoint, puis la validation. */
-  for (const t of ["tapButton('bsav', SAV, '#4B30CC');", "on(['#h4 .xx', '#h5 .xx'], SAV + 0.5, 0.25);", "swap('#sk5 .a1', '#sk5 .a0', A.e2 + 0.4);", "tapButton('bval', VAL, '#157A49');",
-    "swap('#bh1 .st0', '#bh1 .st1', VAL + 0.45, false);", "swap('#hs .hst .h1', '#hs .hst .h2', VAL + 0.85, false);"]) assert.ok(page.includes(t), `la page montre : ${t}`);
+  /* Ce que la page montre, dans l’ordre : le retour au savepoint, la protéine à la place de la tisane, puis la validation des quatre modifications. */
+  for (const t of ["tapButton('bsav', SAV, '#4B30CC');", "on(['#h4 .xx', '#h5 .xx'], SAV + 0.5, 0.25);", "swap('#sk5 .a1', '#sk5 .a0', A.e2 + 0.4);",
+    "rowOut('#rtp5', A.k1 + 1.0); rowIn('#rtp6', A.k1 + 1.05);", "swap('#sk6 .a0', '#sk6 .a1', A.k3 + 0.5);", "rowIn('#h6', A.k3 + 0.7);", "rowOut('#rtc0', k4 + 0.35); rowIn('#rtc2', k4 + 0.4);",
+    "rowIn('#h7', k4 + 0.55);", "tapButton('bval', VAL, '#157A49');",
+    "[['#bh1', 3], ['#bh2', 4], ['#bh6', 5], ['#bh7', 6]].forEach(([b, p], q) => { const t = VAL + 0.45 + q * 0.15; swap(b + ' .st0', b + ' .st1', t, false);",
+    "swap('#hs .hst .h1', '#hs .hst .h2', VAL + 1.15, false);"]) assert.ok(page.includes(t), `la page montre : ${t}`);
+  /* L’historique garde la hauteur de cinq lignes, son plus grand nombre à la fois ; l’extrait de la table produits, deux. */
+  assert.ok(page.includes("const HROWS = ['#h1', '#h2', '#h3', '#h4', '#h5'], HNEW = ['#h6', '#h7'];") && page.includes("$('#rtp6').style.height = '0px';"), 'les hauteurs ne bougent pas');
 });
 
 test('moment 6 : chaque situation est rangée avec ROLLBACK TO SAVEPOINT, ROLLBACK ou COMMIT', () => {
@@ -233,19 +258,30 @@ test('moment 6 : chaque situation est rangée avec ROLLBACK TO SAVEPOINT, ROLLBA
   assert.ok(ITEMS.some(x => /trompé de produit dans le remplacement/.test(x[0]) && x[1] === 'rb'));
 });
 
-test('les messages : le service client écrit deux fois par SMS ; l’app s’arrête sur chacun, et sur les deux boutons de la trame', () => {
+test('les messages : le service client écrit deux fois par SMS, puis Léa Simon ; l’app s’arrête sur chacun, et sur les deux boutons de la trame', () => {
   const mails = val('MAILS'), opens = val('OPENS'), picks = val('PICKS'), caps = val('CAPTIONS');
-  assert.equal(mails.length, 2);
-  for (const m of mails) assert.deepEqual([m[0][0], m[0][1], m[2], m[6]], ['Le service client', 'NutriBoost', 'équipe', {sms: true}]);
-  assert.deepEqual(mails[0][4], ['Peux-tu aussi ajouter une tisane gratuite dans son colis ?']);
-  assert.deepEqual(mails[1][4], ['Je viens d’avoir Léa : elle nous remercie, mais elle ne souhaite pas recevoir de tisane.', 'Garde uniquement le remplacement du shaker.']);
-  assert.deepEqual(opens.map(o => o.sel), ['#ml1', '#ml2', '#bsav', '#bval']);
-  assert.deepEqual(opens.map(o => o.label), ['Ouvrir le message du service client NutriBoost', 'Ouvrir le message du service client NutriBoost', 'Revenir au savepoint', 'Valider le remplacement']);
-  /* Le premier message arrive à la fin de la partie 1, le second ouvre la partie 4 ; la préparation s’efface le temps de chacun, puis revient. */
-  assert.ok(opens[0].at < picks[0].at && opens[1].at > picks[2].at && opens[1].at < picks[3].at, 'le premier message avant le moment 1, le second entre les moments 3 et 4');
-  for (const t of ['workOff(B.a6 - 0.1);', 'workOn(MAIL1 + MO[0] + 0.35);', 'workOff(B.c8 - 0.1);', 'workOn(MAIL2 + MO[1] + 0.35);']) assert.ok(page.includes(t), `la préparation s’efface : ${t}`);
+  assert.equal(mails.length, 3);
+  for (const m of mails.slice(0, 2)) assert.deepEqual([m[0][0], m[0][1], m[2], m[6]], ['Le service client', 'NutriBoost', 'équipe', {sms: true}]);
+  /* Elisa, 25 octobre, 19 h 13 : le premier message, mot pour mot (« Bonjour, » et « Merci ! » sont les bulles de chaque SMS). */
+  assert.deepEqual(mails[0][4], ['Pour nous excuser du shaker arrivé abîmé, peux-tu ajouter une tisane gratuite au colis de remplacement de Léa ? 🌿']);
+  assert.deepEqual(mails[1][4], ['Je viens d’avoir Léa : elle nous remercie, mais elle ne boit pas de tisane.',
+    'Peux-tu remplacer la tisane par de la protéine végétale, pour qu’elle teste son nouveau shaker ?']);
+  /* Le dernier : Léa Simon, colis reçu (ses mots, d’après Elisa : « Bonjour, j’ai bien reçu le colis ! … »), sans « Merci ! » de plus. */
+  assert.deepEqual([mails[2][0], mails[2][2], mails[2][6]], [['Léa', 'Simon', 'LS'], 'cliente', {bye: null}]);
+  assert.deepEqual(mails[2][4], ['J’ai bien reçu le colis !', 'Le shaker est arrivé en parfait état cette fois, avec le papier bulle 😊',
+    'Merci pour votre réactivité et pour la protéine, c’est une attention qui fait plaisir !']);
+  assert.equal(vm.runInContext('mailRows(2)', D), 4, 'quatre bulles : « Bonjour, » et ses trois phrases');
+  assert.deepEqual(opens.map(o => o.sel), ['#ml1', '#ml2', '#bsav', '#bval', '#ml3']);
+  assert.deepEqual(opens.map(o => o.label), ['Ouvrir le message du service client NutriBoost', 'Ouvrir le message du service client NutriBoost', 'Revenir au savepoint', 'Valider le remplacement',
+    'Ouvrir le message de Léa Simon']);
+  /* Le premier message ouvre le chapitre, le deuxième ouvre la partie 4, le troisième suit la validation ; la préparation s’efface le temps de chacun, puis revient. */
+  assert.ok(opens[0].at < picks[0].at && opens[1].at > picks[2].at && opens[1].at < picks[3].at && opens[4].at > opens[3].at && opens[4].at < picks[5].at,
+    'le premier message avant le moment 1, le deuxième entre les moments 3 et 4, le troisième après la validation');
+  for (const t of ['capOff(B.r2 - 0.2);', "hide('#bc', B.r2 - 0.1, {y: -30}, 0.35);", "sceneOn('#sw', MAIL1 + MO[0] + 0.45);", 'workOff(B.c8 - 0.1);', 'workOn(MAIL2 + MO[1] + 0.35);',
+    'workOff(B.h1 - 0.1);', 'workOn(MAIL3 + MO[2] + 0.35);']) assert.ok(page.includes(t), `la préparation s’efface : ${t}`);
+  assert.ok(page.includes('(MAILS[n][6] || {}).hello, (MAILS[n][6] || {}).photo, (MAILS[n][6] || {}).bye)'), 'la page passe au moteur la formule, la photo et la fin de chaque SMS');
   const bulles = {'#bsav': 'Clique sur le bouton<br>« Revenir au savepoint ».', '#bval': 'Clique sur le bouton<br>« Valider le remplacement ».'}, lips = {'#bsav': '#4B30CC', '#bval': '#157A49'};
-  for (const o of opens.slice(2)) {
+  for (const o of opens.slice(2, 4)) {
     assert.deepEqual(o.hand, {x: 0.86, y: 0.78});
     assert.deepEqual([o.press, o.rest], [{y: 7, boxShadow: `0 2px 0 ${lips[o.sel]}`}, {y: 0, boxShadow: `0 9px 0 ${lips[o.sel]}`}]);
     const c = caps.find(x => x[2] === bulles[o.sel]);
@@ -276,7 +312,7 @@ test('le récapitulatif, mot pour mot, dans la vidéo comme dans la fiche de la 
     return [m[1], strip(phrase), strip(detail.replace(/<\/span>$/, ''))];
   });
   const RECAP = [['📍', 'SAVEPOINT nom crée un point de retour.', 'La syntaxe varie selon le SGBD : celle-ci est notamment celle de PostgreSQL.'],
-    ['↩️', 'ROLLBACK TO SAVEPOINT nom annule les modifications faites après ce point.', 'La transaction continue. ROLLBACK sans cible annule toute la transaction.'],
+    ['↩️', 'ROLLBACK TO SAVEPOINT nom annule les modifications faites après ce point.', 'La transaction continue. ROLLBACK seul annule toute la transaction.'],
     ['✅', 'COMMIT valide les modifications conservées.', 'Et il termine la transaction.']];
   assert.deepEqual(rows, RECAP, 'la vidéo : les trois idées');
   const fiche = html.slice(html.indexOf('guide({ id:63,'), html.indexOf('guide({ id:70,'));
@@ -296,5 +332,5 @@ test('zones à toucher : les lignes de l’historique et des tables font 62 px ;
   assert.ok(page.includes('const RH = 62;') && /\.r\{position:relative;height:(6[2-9]|[7-9]\d)px/.test(page), 'lignes de 62 px au moins');
   assert.ok(/return h && Object\.assign\(h, \{text: fr\(h\.text\)\}\);/.test(page));
   assert.equal([...page.matchAll(/return \{text: '([^']+)'/g)].length, 5, 'cinq indices écrits : un par moment à choix ou à toucher');
-  assert.ok(page.includes("const ROWS = [['h1', 'Stock du shaker'], ['h2', 'Remplacement de Léa Simon'], ['h3', 'Repère avant_cadeau'], ['h4', 'Stock de la tisane'], ['h5', 'Cadeau pour Léa Simon']];"));
+  assert.ok(page.includes("const ROWS = [['h1', 'Stock du shaker'], ['h2', 'Remplacement de Léa Simon'], ['h3', 'Repère avant_cadeau'], ['h4', 'Stock de la tisane'], ['h5', 'Tisane offerte à Léa Simon']];"));
 });

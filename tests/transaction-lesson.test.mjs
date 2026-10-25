@@ -334,7 +334,7 @@ test('le récapitulatif, mot pour mot, dans la vidéo comme dans la fiche de la 
   });
   const RECAP = [['🚦', 'BEGIN TRANSACTION démarre la transaction.', 'Selon le SGBD, tu peux aussi écrire BEGIN ou START TRANSACTION.'],
     ['✅', 'COMMIT valide toutes ses modifications.', 'Elles deviennent définitives, et la transaction se termine.'],
-    ['↩️', 'ROLLBACK annule toutes ses modifications non validées.', 'Après COMMIT, tu ne peux plus utiliser ROLLBACK pour annuler cette transaction.']];
+    ['↩️', 'ROLLBACK annule toutes les modifications non validées de la transaction.', 'Après COMMIT, tu ne peux plus utiliser ROLLBACK pour annuler cette transaction.']];
   assert.deepEqual(rows, RECAP, 'la vidéo : les trois idées');
   const fiche = html.slice(html.indexOf('guide({ id:62,'), html.indexOf('guide({ id:63,'));
   const idees = [...fiche.matchAll(/\["(🚦|✅|↩️)","([^"]*)","([^"]*)"(?:,"([^"]*)")?\]/g)].map(m => [m[1], strip(m[2]), strip(m[3])]);

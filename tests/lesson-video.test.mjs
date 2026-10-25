@@ -1070,7 +1070,7 @@ const COURSES = [
       "{at: atp('p6'), from: A.h1, kind: 'sort',",
       "w += out('o-rs', 'err', 'Suppression bloquée', 'FOREIGN KEY constraint failed', 'm');", "out('o-nn', 'err', 'Suppression du compte refusée', 'NOT NULL constraint failed:<br>avis.client_id', 'm', true)", 'Prochaine leçon · Transactions']},
   {id: 62, next: 63, titre: 'Transactions', page: 'projet-transaction.html', thumb: 'projet-transaction-thumb.webp', duree: '4 min 51', notesAt: 245.25,
-    notes: /notes:\{t:283\.3,y:1180,card:\[64,292,1016,885\],to:\[940,255\]\}/, table: 'remplacements',
+    notes: /notes:\{t:284\.4,y:1138,card:\[64,292,1016,843\],to:\[940,255\]\}/, table: 'remplacements',
     bubble: 'Un colis arrive abîmé&nbsp;:<br>à toi de tout valider<br>ou de tout annuler !',
     chapters: ['Un colis abîmé', 'Deux modifications à réaliser', 'Ce qui peut mal se passer', 'Démarrer une transaction', 'Effectuer les modifications', 'Valider avec COMMIT',
       'Et si le remplacement échoue ?', 'COMMIT ou ROLLBACK ?', 'À retenir'],
@@ -1081,12 +1081,13 @@ const COURSES = [
       "{at: atp('p1'), from: A.c1, kind: 'tap', need: 1,", "{at: atp('p2'), from: A.f1, kind: 'pick', text: true,", "{label: '30 : la valeur de départ', ok: true,",
       "{label: 'COMMIT', ok: true,", "{label: 'Annuler avec ROLLBACK', ok: true,", "{label: 'Non, le remplacement reste à enregistrer', ok: true,", "{at: atp('p6'), from: A.i1, kind: 'sort',",
       "w += out('o-i1', 'err', 'Remplacement non enregistré', 'NOT NULL constraint failed:<br>remplacements.personnalisation', 'm', true);", 'Prochaine leçon · SAVEPOINT']},
-  {id: 63, next: 70, titre: 'SAVEPOINT', page: 'projet-savepoint.html', thumb: 'projet-savepoint-thumb.webp', duree: '3 min 52', notesAt: 199.71,
-    notes: /notes:\{t:225\.2,y:1184,card:\[64,292,1016,889\],to:\[940,255\]\}/, table: 'cadeaux',
+  {id: 63, next: 70, titre: 'SAVEPOINT', page: 'projet-savepoint.html', thumb: 'projet-savepoint-thumb.webp', duree: '4 min 38', notesAt: 229.28,
+    notes: /notes:\{t:271\.1,y:1100,card:\[64,292,1016,805\],to:\[940,255\]\}/, table: 'cadeaux',
     bubble: 'Léa Simon change d’avis&nbsp;:<br>à toi d’annuler<br>seulement le cadeau !',
-    chapters: ['Un petit geste pour Léa', 'Pouvoir revenir en arrière', 'Ajouter le cadeau', 'Léa ne souhaite pas de tisane', 'Observer ce qui est annulé', 'Valider ce qui reste',
-      'Quelle commande choisir ?', 'À retenir'],
-    traps: ["const SHAKER = {id: 8, nom: 'Shaker Inox', stock: 30}, TISANE = {id: 5, nom: 'Tisane Détox', stock: 60}, LEA = 7, REMPLACEMENT = 1, CADEAU = 1;",
+    chapters: ['Un petit geste pour Léa', 'Pouvoir revenir en arrière', 'Ajouter le cadeau', 'Léa préfère un autre cadeau', 'Observer ce qui est annulé', 'Ajouter la protéine',
+      'Valider ce qui reste', 'Le colis est arrivé', 'Quelle commande choisir ?', 'À retenir'],
+    traps: ["const SHAKER = {id: 8, nom: 'Shaker Inox', stock: 30}, TISANE = {id: 5, nom: 'Tisane Détox', stock: 60}, PROTEINE = {id: 6, nom: 'Protéine Végétale', stock: 45},",
+      "LEA = 7, REMPLACEMENT = 1, CADEAU = 1;",
       "const BINS = [['rt', 'ROLLBACK TO SAVEPOINT', 'annule après le repère'], ['rb', 'ROLLBACK', 'annule toute la transaction'], ['co', 'COMMIT', 'valide ce qui reste']];",
       // Les six moments : comment annuler seulement le cadeau, les deux modifications d’après le repère, ce qui est validé, la commande qui annule
       // seulement le cadeau, l’état de la transaction après le retour au savepoint, les six situations à ranger
@@ -2357,7 +2358,7 @@ test('moment réussi puis vidéo reculée : la réponse ne réapparaît pas avan
 test('moment réussi : la validation bien en avant, coche verte animée et « Bien vu ! » ; trouvé après une erreur, « Bien rattrapé ! » en orange, mais le point reste rouge', () => {
   const valid = cut('function lvPkValid(P,first,anim){', '/* La réponse gardée s’affiche telle quelle');
   for (const part of ["el.className='lv-pk-ok'+(first?'':' is-late')+(anim&&!prefersReduceMotion()?' is-anim':'');", "tick='<path class=\"k\" d=\"M12.5 21.5l6 6L30 15.5\"/>'",
-    '<i class="ic" aria-hidden="true"><svg viewBox="0 0 42 42">', '<g class="was"><path class="x" d="M15 15l12 12"/><path class="x" d="M27 15L15 27"/></g>${tick}`}</svg></i>`',
+    '<i class="ic" aria-hidden="true"><i class="lv-ok-ring"></i><i class="lv-ok-disc"></i><svg viewBox="0 0 42 42">', '<g class="was"><path class="x" d="M15 15l12 12"/><path class="x" d="M27 15L15 27"/></g>${tick}`}</svg></i>`',
     "${first?'Bien vu&nbsp;!':'<span class=\"was\" aria-hidden=\"true\">Raté</span><span class=\"now\">Bien rattrapé&nbsp;!</span>'}",
     "top.querySelectorAll('.lv-pk-kick,.lv-pk-cnt').forEach(e=>{ e.hidden=true; });"])
     assert.ok(valid.includes(part), `badge : ${part}`);
@@ -2366,37 +2367,56 @@ test('moment réussi : la validation bien en avant, coche verte animée et « Bi
     'au choix, aux gestes, et pour un moment déjà fait : là, le badge final sans animation (« Bien rattrapé ! » sans repasser par « Raté ») ; plus de « Trouvé ! »');
   /* Trouvé après une erreur : la croix rouge du premier essai se trace puis s’efface, le rond passe à l’orange, la coche se trace,
      « Raté » laisse la place à « Bien rattrapé ! » ; sans animation, directement l’état orange. Le point du moment reste rouge. */
-  for (const part of ['.lv-pk-ok.is-late{color:#B45309}', '.lv-pk-ok.is-late .ic{background:#EE8A1A}', '.lv-pk-ok .was{display:none}', '.lv-pk-ok.is-late.is-anim .was{display:inline}',
-    '.lv-pk-ok.is-late.is-anim .ic{animation:lvOkPop .5s cubic-bezier(.2,.9,.3,1.5) both,lvLateFill .95s ease both,lvLateNod .5s ease-in-out 1.05s}',
+  for (const part of ['.lv-pk-ok.is-late{color:#B45309}', '.lv-pk-ok.is-late .lv-ok-disc{background:#EE8A1A}', '.lv-pk-ok .was{display:none}', '.lv-pk-ok.is-late.is-anim .was{display:inline}',
+    '.lv-pk-ok.is-late.is-anim .lv-ok-disc{animation:lvOkPop .5s cubic-bezier(.2,.9,.3,1.5) both,lvLateFill .95s ease both,lvLateNod .5s ease-in-out 1.05s}',
     '@keyframes lvLateFill{0%,72%{background-color:#DE3F46}100%{background-color:#EE8A1A}}',
-    '.lv-pk-ok.is-late.is-anim g.was{animation:lvLateFade .22s ease-in .78s forwards}', '@keyframes lvLateFade{to{opacity:0}}',
-    '.lv-pk-ok.is-late.is-anim .k{animation-delay:.95s}', '.lv-pk-ok.is-late.is-anim span.now{animation:lvOkTxt .35s cubic-bezier(.2,.9,.3,1.3) .92s both}',
-    '.lv-pk-ok.is-anim .x{stroke-dashoffset:18;opacity:0;animation:lvOkTick .32s ease-out .28s forwards}', '.lv-pk-ok.is-anim .x+.x{animation-delay:.44s}',
+    '@keyframes lvLateGone{from{stroke:#fff}to{stroke:rgba(255,255,255,0)}}', '@keyframes lvLateWas{0%,18%{color:rgba(194,50,58,0)}53%,78%{color:#C2323A}98%,100%{color:rgba(194,50,58,0)}}',
+    '.lv-pk-ok.is-late.is-anim .k{animation-delay:.95s}', '.lv-pk-ok.is-late.is-anim span.now{position:relative;animation:lvOkTxt .35s cubic-bezier(.2,.9,.3,1.3) .92s both}',
+    '.lv-pk-ok.is-anim .x{stroke-dashoffset:18;stroke:rgba(255,255,255,0);animation:lvOkTick .32s ease-out .28s forwards,lvLateGone .22s ease-in .78s forwards}', '.lv-pk-ok.is-anim .x+.x{animation-delay:.44s,.78s}',
     '.lv-pk-dots i.try{background:#DE3F46}', '.lv-pkm i.ko{'])
     assert.ok(html.includes(part), `rattrapé : ${part}`);
   assert.ok(!html.includes('.lv-pk-ok.is-ko'), 'plus de badge rouge « Raté » une fois la bonne réponse trouvée');
   for (const f of ['function lvPkVerdict(', 'function lvPkWin(']) assert.ok(cut(f, f === 'function lvPkWin(' ? 'function lvEndHide(){' : 'function lvPkFrom(i){').includes("'Bien rattrapé, mais seul le premier essai compte : moment raté. '"), `${f} VoiceOver : rattrapé, mais raté`);
   assert.ok(cut('function lvPkWin(', 'function lvEndHide(){').includes("dot.className=first?'ok':'try';") && cut('function lvPkVerdict(', 'function lvPkFrom(i){').includes("dot.className=first?'ok':'try';"), 'le point du moment : vert du premier coup, rouge sinon');
-  for (const part of ['.lv-pk-kick[hidden],.lv-pk-cnt[hidden]{display:none}', '@keyframes lvOkPop{', '@keyframes lvOkTick{0%{opacity:1}to{opacity:1;stroke-dashoffset:0}}', '@keyframes lvOkRing{',
-    '.lv-pk-ok.is-anim .k{stroke-dashoffset:26;opacity:0;animation:lvOkTick .32s ease-out .28s forwards}'])
+  for (const part of ['.lv-pk-kick[hidden],.lv-pk-cnt[hidden]{display:none}', '@keyframes lvOkPop{', '@keyframes lvOkTick{0%{stroke:#fff}to{stroke:#fff;stroke-dashoffset:0}}', '@keyframes lvOkRing{',
+    '.lv-pk-ok.is-anim .k{stroke-dashoffset:26;stroke:rgba(255,255,255,0);animation:lvOkTick .32s ease-out .28s forwards}'])
     assert.ok(html.includes(part), `animation : ${part}`);
 });
 
-test('badge du verdict : rien ne se dessine hors du cadre du SVG, aucune transformation sur ses traits (Safari laissait des bouts de traits)', () => {
-  /* Elisa, 25 octobre, 18 h 43 : « des traits sur les icônes, comme des bugs ». L’onde était un cercle SVG qui grandissait hors du cadre de l’icône
-     (overflow visible) : Safari la découpait au carré ; la croix tournait sur elle-même dans le SVG. Le rond et son onde sont désormais des éléments HTML,
-     le SVG ne garde que les traits blancs, dans son cadre ; la croix s’efface sans tourner ; un trait n’apparaît qu’au moment où il se trace. */
+test('badge du verdict : aucune transformation ni calque à part (Safari laissait des bouts de traits), noms de classes à lui', () => {
+  /* Elisa, 25 octobre, 18 h 43 : « des traits sur les icônes, comme des bugs » ; 19 h 13 : « ça le fait sur plusieurs endroits ». Safari, sur son iPhone,
+     ne repeint pas tout ce qu’un transform a agrandi, tourné ou déplacé (déjà le rond de la ligne de lecture, 12 h 28). Le rond grandit et l’onde
+     s’élargit par leur taille (inset), les traits se tracent et s’effacent par leur couleur, le texte glisse par sa position : ni transform ni opacité. */
   const css = cut('.lv-pk-kick[hidden],.lv-pk-cnt[hidden]{display:none}', '.lv-pk.is-ok .lv-pk-back+.lv-pk-dots{margin-left:auto}');
-  assert.ok(!css.includes('overflow:visible') && !css.includes('transform-box') && !css.includes('transform-origin'), 'ni débord du SVG, ni transformation de ses traits');
-  for (const part of ['.lv-pk-ok .ic{position:relative;display:block;flex:none;width:42px;height:42px;border-radius:50%;background:#169447}',
-    '.lv-pk-ok .ic::after{content:"";position:absolute;inset:0;border:2.5px solid #169447;border-radius:50%;opacity:0;pointer-events:none}',
-    '.lv-pk-ok .ic svg{display:block;width:42px;height:42px}', '.lv-pk-ok.is-anim .ic{animation:lvOkPop .5s cubic-bezier(.2,.9,.3,1.5) both}',
-    '.lv-pk-ok.is-anim .ic::after{animation:lvOkRing .9s ease-out .3s}', '.lv-pk-ok.is-late .ic::after{border-color:#EE8A1A}', '.lv-pk-ok.is-late.is-anim .ic::after{animation-delay:1s}',
+  assert.ok(!/transform|opacity|overflow:visible/.test(css), 'ni transform, ni opacité, ni débord du SVG');
+  for (const part of ['.lv-pk-ok .ic{position:relative;display:block;flex:none;width:42px;height:42px}',
+    '.lv-pk-ok .lv-ok-disc,.lv-pk-ok .lv-ok-ring{position:absolute;inset:0;border-radius:50%;pointer-events:none}', '.lv-pk-ok .lv-ok-disc{background:#169447}',
+    '.lv-pk-ok .lv-ok-ring{border:2.5px solid rgba(22,148,71,0)}', '.lv-pk-ok .ic svg{position:relative;display:block;width:42px;height:42px}',
+    '.lv-pk-ok.is-anim .lv-ok-disc{animation:lvOkPop .5s cubic-bezier(.2,.9,.3,1.5) both}', '@keyframes lvOkPop{0%{inset:21px}60%{inset:-3px}100%{inset:0}}',
+    '.lv-pk-ok.is-anim .lv-ok-ring{animation:lvOkRing .9s ease-out .3s}', '@keyframes lvOkRing{0%{inset:0;border-color:rgba(22,148,71,.55)}100%{inset:-16px;border-color:rgba(22,148,71,0)}}',
+    '.lv-pk-ok.is-late.is-anim .lv-ok-ring{animation:lvLateRing .9s ease-out 1s}', '@keyframes lvLateNod{30%{inset:-3px}65%{inset:1px}100%{inset:0}}',
+    '.lv-pk-ok b{position:relative}', '@keyframes lvOkTxt{0%{left:-8px;color:transparent}100%{left:0}}',
     '.lv-pk-ok .k,.lv-pk-ok .x{fill:none;stroke:#fff;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round}',
-    '@media (prefers-reduced-motion:reduce){.lv-pk-ok .ic,.lv-pk-ok .ic::after,.lv-pk-ok b{animation:none!important}.lv-pk-ok .k{animation:none!important;stroke-dashoffset:0!important;opacity:1!important}}'])
+    '@media (prefers-reduced-motion:reduce){.lv-pk-ok .lv-ok-disc,.lv-pk-ok .lv-ok-ring,.lv-pk-ok b,.lv-pk-ok b span{animation:none!important}.lv-pk-ok .k{animation:none!important;stroke-dashoffset:0!important;stroke:#fff!important}}'])
     assert.ok(css.includes(part), `badge : ${part}`);
   const valid = cut('function lvPkValid(P,first,anim){', '/* La réponse gardée s’affiche telle quelle');
   assert.ok(!valid.includes('<circle'), 'plus de cercle dessiné en SVG');
+  /* Des noms à lui : la classe .ring de l’app (anneau de progression, 54 px, qui pulse) se posait sur l’onde. */
+  assert.equal(html.split('.lv-ok-ring').length - 1, css.split('.lv-ok-ring').length - 1, 'lv-ok-ring : seulement dans le badge');
+  assert.equal(html.split('.lv-ok-disc').length - 1, css.split('.lv-ok-disc').length - 1, 'lv-ok-disc : seulement dans le badge');
+});
+
+test('vignette du cours : refaite en entier quand son étiquette change, et encore une fois le lecteur retiré ; appui sans transform', () => {
+  /* Elisa, 25 octobre, 19 h 13 (Réf 1, « Reprendre · 0:10 ») : le dernier chiffre de la pastille coupé et deux filets clairs à sa droite.
+     Safari ne repeignait qu’une partie de la pastille raccourcie. La carte est maintenant refaite (élément neuf, peint en entier) et garde le focus. */
+  const sync = cut('function lvCardSync(id){', '/* Leçon seule validée à la fin de la vidéo');
+  for (const part of ["t.innerHTML=lvCardHtml(current).trim();", 'const had=document.activeElement===c;', 'c.replaceWith(n);', 'if(had)try{n.focus({preventScroll:true});}catch(e){}'])
+    assert.ok(sync.includes(part), `vignette : ${part}`);
+  assert.ok(!sync.includes('textContent='), 'plus de texte changé sur place');
+  assert.ok(cut('function lessonVideoSlide(l){', 'return `').includes('card=lvCardHtml(l);'), 'la leçon et la mise à jour partagent le même gabarit');
+  assert.ok(cut('function closeLessonVideo(instant){', 'function lessonStepMeta(){').includes('root.remove(); lvCardSync(id); };'), 'le lecteur retiré, la carte est refaite écran visible');
+  assert.ok(html.includes('.lv-lesson .lv-card:active{top:4px;box-shadow:0 1px 0 var(--lip,#DCD5F2)}') && /\.lv-lesson \.lv-card\{[^}]*transition:top \.12s,box-shadow \.12s\}/.test(html)
+    && !/\.lv-lesson \.lv-card(:active)?\{[^}]*transform/.test(html), 'la carte s’enfonce par sa position, sans transform');
 });
 
 test('« ↺ Revoir » (ou tout retour en arrière) : le moment reprend là où on l’a laissé, les erreurs restent comptées', () => {

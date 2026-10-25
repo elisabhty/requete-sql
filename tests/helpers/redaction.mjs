@@ -601,7 +601,12 @@ export const EXCEPTIONS = [
   {regle: 'client', page: 'projet-savepoint', contient: 'Je viens d’avoir Léa',
     raison: 'Mots d’Elisa (25 octobre, 17 h 05, « Cours 2 — SAVEPOINT ») : le SMS du service client, « Je viens d’avoir Léa : elle nous remercie… », comme celui du chapitre 9 ; les légendes nomment Léa Simon en entier.'},
   {regle: 'client', page: 'projet-savepoint', contient: '1 shaker rose personnalisé',
-    raison: 'Mots d’Elisa (même trame) : le récapitulatif du colis, « 1 shaker rose personnalisé « Léa » » ; « Léa » est le prénom imprimé sur le shaker, pas une façon de nommer la cliente.'}
+    raison: 'Mots d’Elisa (même trame) : le récapitulatif du colis, « 1 shaker rose personnalisé « Léa » » ; « Léa » est le prénom imprimé sur le shaker, pas une façon de nommer la cliente.'},
+  /* Elisa, 25 octobre, 19 h 13 : le premier SMS du service client, et le dernier message, celui de Léa Simon, colis reçu */
+  {regle: 'client', page: 'projet-savepoint', contient: 'au colis de remplacement de Léa',
+    raison: 'Mots d’Elisa (25 octobre, 19 h 13) : le SMS du service client, « Pour nous excuser du shaker arrivé abîmé, peux-tu ajouter une tisane gratuite au colis de remplacement de Léa ? 🌿 » ; les légendes nomment Léa Simon en entier.'},
+  {regle: 'service-client-relaie', page: 'projet-savepoint', contient: 'J’ai bien reçu le colis',
+    raison: 'Mots d’Elisa (25 octobre, 19 h 13) : à la fin, Léa Simon écrit au service client qu’elle a bien reçu son colis (« Bonjour, j’ai bien reçu le colis !… »), comme au chapitre 11 où elle lui écrit elle-même.'}
 ];
 
 /* ---------- La dette : ce qui reste à reprendre dans les anciens cours ---------- */
