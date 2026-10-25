@@ -1,0 +1,940 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Projet, chapitre 14 : Concurrence et isolation</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:124px;top:456px;letter-spacing:-2px}
+#s0 .hilite{top:522px;height:44px}
+#s0 .sub{top:612px;font-size:54px}
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+.hid{opacity:0;visibility:hidden}
+/* Aperçu d’un geste (moment « À toi ») : il prend le pas sur la timeline, le temps de l’arrêt ; il montre exactement
+   l’image que la timeline affiche juste après l’arrêt, qui reprend donc sans saut. */
+.pvs{opacity:1!important;visibility:visible!important;transform:none!important}
+.pvh{opacity:0!important;visibility:hidden!important}
+/* Aperçu en douceur : une carte qui accompagne une bonne réponse n’apparaît jamais d’un coup, ni avant le verdict « Bien vu ! » */
+.pvf{visibility:visible!important;animation:pvf .45s ease-out both}
+@keyframes pvf{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* Couleur de chaque sujet : client, équipe NutriBoost (et carte de membre), inscription, coach, atelier,
+   puis les tables de la boutique : commande, produit, fidélité ; l’avis (chapitre 10), le remplacement (chapitre 11), le cadeau
+   (chapitre 12) et l’historique des prix (chapitre 13) */
+.k-co{--c:#2F80ED;--cs:#E6F0FD;--ci:#1D5FA8}
+.k-at{--c:#E8892B;--cs:#FFF1E2;--ci:#9A5B00}
+.k-cl{--c:#6A4DF4;--cs:#EEE9FF;--ci:#5335E0}
+.k-nb{--c:#D99A0B;--cs:#FFF6DA;--ci:#8A6200}
+.k-in{--c:#169447;--cs:#E2F6EA;--ci:#0F7A3A}
+.k-cm{--c:#0E9F9A;--cs:#DDF5F3;--ci:#0B6E6A}
+.k-pr{--c:#D9468F;--cs:#FCE8F2;--ci:#A3216A}
+.k-fi{--c:#9C6B3F;--cs:#F5ECE3;--ci:#7A4F27}
+.k-av{--c:#A23CC9;--cs:#F5E8FB;--ci:#7A2A9B}
+.k-rp{--c:#2B8FB8;--cs:#E3F3FA;--ci:#1B6585}
+.k-cd{--c:#C2410C;--cs:#FFEDD5;--ci:#9A3412}
+.k-hp{--c:#4F46E5;--cs:#ECEBFE;--ci:#3730A3}
+
+/* ---------- La base : une ligne par table (son nom, son nombre de lignes) ---------- */
+.bc{left:64px;width:952px;top:236px;padding:0 0 12px;overflow:hidden}
+.bh{height:72px;display:flex;align-items:center;gap:14px;padding:0 34px;background:var(--surface-2);font-family:var(--display);font-size:34px;font-weight:800;color:var(--ink);letter-spacing:-.4px;white-space:nowrap}
+.bh .emo{font-size:34px}
+.bn{margin-left:auto;display:inline-grid;font-family:var(--ui);font-size:25px;font-weight:700;letter-spacing:0}
+.bn>span{grid-area:1/1;height:44px;padding:0 20px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;white-space:nowrap}
+.srow{position:relative;height:64px;padding:12px 34px;overflow:hidden}
+.srow+.srow{box-shadow:inset 0 2px 0 var(--line-2)}
+.srow>div{position:relative;z-index:1}
+.srow .hl{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;opacity:0;visibility:hidden;background:var(--cs);box-shadow:inset 8px 0 0 var(--c)}
+.sn{display:flex;align-items:center;gap:14px;height:40px;font-family:var(--mono);font-size:31px;font-weight:800;color:var(--ci)}
+.sn .emo{font-size:32px}
+.sn .sp{flex:1}
+.nm{position:relative;display:inline-block;white-space:nowrap}
+.nb{display:inline-grid;font-family:var(--ui);font-size:23px;font-weight:700;color:var(--ink-3)}
+.nb>span{grid-area:1/1;justify-self:end;display:flex;align-items:center;justify-content:flex-end;height:36px;padding:0 14px;border-radius:999px;background:var(--line-2);white-space:nowrap}
+
+/* ---------- Les tables : lignes, colonnes, valeurs empilées ---------- */
+.tb{padding:0 0 10px;overflow:hidden;border-radius:40px}
+.tb .h{display:flex;align-items:center;gap:12px;height:64px;padding:0 24px;background:var(--cs);font-family:var(--mono);font-size:30px;font-weight:800;color:var(--ci);white-space:nowrap}
+.tb .h .emo{font-size:32px}
+.tb .bn>span{height:40px;font-size:23px;background:#fff;color:var(--ci);box-shadow:inset 0 0 0 3px var(--c)}
+.gr{display:grid;grid-template-columns:var(--g);align-items:stretch;padding:0 12px}
+.gr>span{position:relative;z-index:1;display:flex;align-items:center;gap:10px;min-width:0;padding:0 10px;white-space:nowrap;overflow:hidden}
+.hd{height:44px;font-family:var(--mono);font-size:24px;font-weight:700;color:var(--ink-3)}
+.hd .emo{font-size:21px;width:26px;flex:none;text-align:center}
+/* Une colonne dont l’en-tête porte une icône (🔑 id, 🔗 client_id) : sa valeur commence sous le nom de la colonne, pas sous l’icône
+   (Elisa, 25 octobre, 15 h 18). 46 px = marge 10 + icône 26 + espace 10. */
+.tb .r>.c0,#ti .r>.c1{padding-left:46px}
+.gr>span.kc{color:var(--ci)}
+.r{position:relative;height:62px;font-family:var(--mono);font-size:30px;font-weight:600;color:var(--ink);box-shadow:inset 0 2px 0 var(--line-2);overflow:hidden}
+.r .hl,.r .wn,.r .xx{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;pointer-events:none;opacity:0;visibility:hidden}
+.r .hl{background:var(--cs);box-shadow:inset 6px 0 0 var(--c)}
+.r .wn{background:rgba(242,154,46,.2);box-shadow:inset 6px 0 0 #F29A2E}
+.r .xx{background:rgba(239,79,85,.15);box-shadow:inset 6px 0 0 var(--danger-fill)}
+.r .v{position:relative;z-index:1;font-style:normal}
+/* Une case peut changer de valeur : les valeurs successives sont empilées, une seule se voit */
+.sw{display:inline-grid;position:relative;z-index:1}
+.sw>*{grid-area:1/1;font-style:normal;white-space:pre}
+/* La case que l’élève doit toucher, puis la case entourée */
+.hc{position:absolute;left:4px;right:4px;top:5px;bottom:5px;z-index:0;border-radius:14px;background:var(--cs);box-shadow:inset 0 0 0 4px var(--c);opacity:0;visibility:hidden}
+/* Gestes de l’élève : case refusée */
+.gr>span.kof::after{content:"";position:absolute;left:3px;right:3px;top:6px;bottom:6px;z-index:3;border-radius:12px;background:rgba(239,79,85,.16);box-shadow:inset 0 0 0 4px var(--danger-fill);animation:kof .6s ease forwards}
+@keyframes kof{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+.r.kor{animation:kor .55s ease}
+@keyframes kor{0%,100%{background:transparent}30%{background:rgba(239,79,85,.18)}}
+.dbn.kob{animation:kob .45s ease}
+@keyframes kob{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+
+/* ---------- Les requêtes : une carte de code (un commentaire, puis la requête) ---------- */
+.sq{border-radius:34px;box-shadow:0 9px 0 #110E27}
+.sq .top{height:52px;gap:12px;padding:0 30px}
+.sq .dot{width:14px;height:14px}
+.sq .fname{margin-left:8px;font-size:22px}
+.sq .body{padding:18px 30px;font-size:28px;line-height:42px}
+.sq .ln{height:42px}
+.sq .cmt{color:var(--t-com)}
+.sq .caret i{top:-31px;width:4px;height:37px}
+.sq .glow{border-radius:8px;padding:0 3px;margin:0 -3px}
+.sq .str{color:var(--t-str)}
+
+.pack{left:0;width:1080px;display:flex;justify-content:center}
+.pack>span{height:84px;padding:0 34px 0 22px;border-radius:999px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);font-size:32px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:14px;white-space:nowrap}
+.pack .emo{font-size:40px}
+
+/* ---------- Le message reçu : la notification, puis la conversation (SMS, moteur commun) ---------- */
+.ml{left:64px;width:952px;top:560px;height:184px;padding:0 30px;overflow:hidden}
+/* Hors de l’app : le doigt qui touche la notification ou le bouton du téléphone de Léa Simon */
+.tapf{z-index:20;font-size:120px;margin:-8px 0 0 -44px;opacity:0;visibility:hidden}
+
+/* La suite : la prochaine leçon */
+.keyc{left:0;width:1080px;display:flex;justify-content:center}
+.keyc>span{height:96px;padding:0 40px 0 26px;border-radius:999px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 9px 0 #4B30CC;color:#fff;font-size:36px;font-weight:700;display:flex;align-items:center;gap:16px;white-space:nowrap}
+.keyc .emo{font-size:44px}
+
+/* ---------- À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px;padding:8px 0}
+#s7 .rrow{gap:22px;padding:18px 32px}
+#s7 .rico{width:88px;height:88px;border-radius:26px;font-size:46px}
+#s7 .rtxt{font-size:34px;line-height:1.25}
+#s7 .rtxt .rs{margin-top:2px;font-size:31px}
+
+/* ---------- Les tables : un extrait de la table ateliers (la séance du 14 novembre), un extrait de la table inscriptions ---------- */
+.tz .r{height:62px}
+.ph{color:var(--ink-3);font-style:italic;font-weight:500}
+.r.rph>span{grid-column:1/-1;font-family:var(--ui);font-size:28px}
+/* Une valeur qui ne va pas : les places restantes passent sous zéro */
+.sw>.neg{color:var(--danger-ink,#B42328)}
+/* Le verrou sur la ligne de l’atelier : qui le tient, et qui attend (deux pastilles dans l’en-tête de la table ateliers) */
+.lkc,.wtc{display:inline-grid;font-family:var(--ui);font-size:23px;font-weight:800;letter-spacing:0}
+.lkc>span,.wtc>span{grid-area:1/1;justify-self:end;height:44px;padding:0 16px 0 12px;border-radius:999px;display:flex;align-items:center;gap:6px;white-space:nowrap;opacity:0;visibility:hidden}
+.lkc>span{background:#FFF6DA;color:#8A6200;box-shadow:inset 0 0 0 3px #F2CB63}
+.wtc>span{background:#F1EFF8;color:var(--ink-2);box-shadow:inset 0 0 0 3px var(--line)}
+.lkc .emo,.wtc .emo{font-size:24px}
+.tb .h .lkc{margin-left:auto}
+.tb .h .lkc+.wtc{margin-left:10px}
+.tb .h .wtc+.bn{margin-left:10px}
+
+/* ---------- Les deux téléphones : la page de l’atelier sur le site NutriBoost (la photo d’Elisa), et qui le tient ---------- */
+.who{height:48px;display:flex;align-items:center;gap:12px;padding-left:8px;font-size:28px;font-weight:700;color:var(--ink);white-space:nowrap}
+.who .sms-av{width:44px;height:44px;font-size:18px;flex:none}
+.who.k-cl .sms-av{background:linear-gradient(180deg,#8E77FF,#6A4DF4)}
+.who.k-co .sms-av{background:linear-gradient(180deg,#5C9DF2,#2F80ED)}
+.phn{width:456px;height:660px;padding:12px;border-radius:66px;background:#16132B;box-shadow:0 10px 0 #0B0918}
+.phn .scr{position:relative;width:100%;height:100%;border-radius:54px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
+.phn .sbar{flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;padding:6px 36px 0 44px;font-size:20px;font-weight:700;color:var(--ink)}
+.phn .sig{display:flex;align-items:flex-end;gap:3px;height:16px}
+.phn .sig i{width:5px;border-radius:2px;background:var(--ink)}
+.phn .sig i:nth-child(1){height:6px}.phn .sig i:nth-child(2){height:9px}.phn .sig i:nth-child(3){height:12px}.phn .sig i:nth-child(4){height:16px}
+.phn .bat{width:30px;height:15px;margin-left:8px;border-radius:5px;box-shadow:inset 0 0 0 2px var(--ink);padding:3px;display:flex}
+.phn .bat i{flex:1;border-radius:2px;background:var(--ink)}
+.phn .apb{flex:none;height:52px;display:flex;align-items:center;gap:10px;padding:0 24px;font-size:24px;font-weight:800;color:var(--accent-ink)}
+.phn .apb .bk{font-size:34px;font-weight:600;color:var(--accent);margin-top:-4px}
+.phn .apb .apt{margin-left:auto;font-size:20px;font-weight:700;color:var(--ink-3)}
+.phn .pic{position:relative;flex:none;height:232px;overflow:hidden;background:#EDE7DD}
+.phn .pic img{display:block;width:100%;height:100%;object-fit:cover}
+.phn .bd{flex:1;min-height:0;padding:14px 24px 0;display:flex;flex-direction:column;gap:4px}
+.phn .ttl{font-family:var(--display);font-size:31px;font-weight:800;color:var(--ink);letter-spacing:-.3px;white-space:nowrap}
+.phn .mt{font-size:21px;font-weight:600;color:var(--ink-3);display:flex;align-items:center;gap:8px;white-space:nowrap}
+.phn .mt .emo{font-size:20px}
+.phn .bgw{align-self:flex-start;margin-top:8px;display:grid}
+.phn .bdg2{grid-area:1/1;justify-self:start;height:40px;padding:0 16px 0 12px;border-radius:999px;background:#FFF1E2;color:#9A5B00;box-shadow:inset 0 0 0 2px #F6D2A6;font-size:21px;font-weight:800;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.phn .bdg2 .emo{font-size:21px}
+.phn .bdg2.fl{background:#F1EFF8;color:var(--ink-3);box-shadow:inset 0 0 0 2px var(--line);opacity:0;visibility:hidden}
+/* Le bas de l’écran : le bouton, puis ce que la page affiche (une seule chose à la fois) */
+.phn .act{position:relative;flex:none;height:112px;margin:0 22px 22px}
+.phn .st{position:absolute;left:0;right:0;bottom:0;min-height:78px;border-radius:24px;display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 18px;text-align:center;font-size:23px;font-weight:700;line-height:1.25;opacity:0;visibility:hidden}
+.phn .st0{overflow:hidden;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 7px 0 #4B30CC;color:#fff;font-size:25px;opacity:1;visibility:visible}
+.phn .st1,.phn .st2{background:#F4F2FB;color:var(--ink-2);box-shadow:inset 0 0 0 2px var(--line)}
+.phn .st3{background:#E7F7EE;color:#1B7A45;box-shadow:inset 0 0 0 2px #A7E3C0}
+.phn .st4{background:#FFF4E5;color:#9A5B00;box-shadow:inset 0 0 0 2px #F6D9A8;font-size:21px}
+.phn .st5{background:#FDECEC;color:#B42328;box-shadow:inset 0 0 0 2px #F5C2C4}
+.phn .st .emo{font-size:24px}
+.phn .ripple{width:600px;height:600px;margin:-300px 0 0 -300px}
+/* Le petit cercle qui tourne pendant l’attente */
+.spn{flex:none;width:24px;height:24px;box-sizing:border-box;border-radius:50%;border:3px solid #D9D1FF;border-top-color:var(--accent);display:inline-block}
+/* Au ralenti : le numéro de chaque étape, sur la photo du téléphone qui agit */
+.stp{position:absolute;top:14px;width:54px;height:54px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--display);font-size:29px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 0 #4B30CC,0 0 0 4px #fff;opacity:0;visibility:hidden}
+
+/* ---------- Le message de l’équipe ateliers ---------- */
+#ml1{top:520px}
+
+/* ---------- 7 · Deux cases où ranger les situations : la réservation attend, ou elle continue ---------- */
+.dbn{left:64px;width:952px;height:210px;box-sizing:border-box;padding:20px 28px 22px;border-radius:36px;border:4px dashed #C9BCFF;background:rgba(255,255,255,.85);display:flex;flex-direction:column}
+.dbn .hh{display:flex;align-items:baseline;gap:20px;white-space:nowrap}
+.dbn .dn{font-family:var(--display);font-size:36px;font-weight:800;color:var(--accent-ink)}
+.dbn .dd{font-size:26px;font-weight:700;color:var(--ink-3)}
+.dbn .cs{margin-top:auto;display:flex;gap:16px}
+.dbn .rc{flex:1;min-height:92px;padding:12px 16px;border-radius:18px;background:var(--accent-soft);color:var(--accent-ink);box-shadow:inset 0 0 0 3px #C9BCFF;font-size:27px;font-weight:700;line-height:1.25;text-align:center;text-wrap:balance;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden}
+.dbn.okb{animation:okb .5s cubic-bezier(.2,.9,.3,1.3)}
+@keyframes okb{40%{transform:scale(1.035)}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 14</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>C</span><span>O</span><span>N</span><span>C</span><span>U</span><span>R</span><span>R</span><span>E</span><span>N</span><span>C</span><span>E</span></div>
+    <div class="abs sub">Gérer les accès simultanés</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Deux clients, une seule place&nbsp;:<br>à toi d’éviter<br>la double réservation !</div>
+  </section>
+
+  <!-- La base : le rappel du chapitre précédent -->
+  <section class="scene" id="sa"></section>
+  <!-- La table ateliers, les deux téléphones, la table inscriptions, la réservation de Léa Simon -->
+  <section class="scene" id="sw"></section>
+  <!-- Le message de l’équipe ateliers -->
+  <section class="scene" id="sm"></section>
+  <!-- Attendre ou continuer : les situations à ranger -->
+  <section class="scene" id="sd"></section>
+  <!-- La suite : la prochaine leçon -->
+  <section class="scene" id="sn"></section>
+
+  <!-- À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">👥</div><div class="rtxt">La <b>concurrence</b> : deux opérations accèdent<br>aux mêmes données au même moment.<span class="rs">Chacune peut se fier à une place<br>qu’une autre est en train de réserver.</span></div></div>
+      <div class="rrow"><div class="rico emo">🔒</div><div class="rtxt"><code>FOR UPDATE</code> verrouille la ligne lue<br>jusqu’à la <b>fin de la transaction</b>.<span class="rs">La syntaxe varie selon le SGBD :<br>celle-ci est notamment celle de PostgreSQL.</span></div></div>
+      <div class="rrow"><div class="rico emo">🛡️</div><div class="rtxt">Une transaction seule ne suffit pas<br>à éviter <b>tous les conflits</b>.<span class="rs">Le niveau d’isolation et les mécanismes utilisés,<br>comme les verrous, déterminent comment<br>les accès simultanés sont gérés.</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+
+/* ---------- Le déroulé : chaque légende arrive à la suite de la précédente ----------
+   cap(clé, texte, durée) pose une légende [début, fin] ; A[clé] et B[clé] donnent son début et sa fin (temps de la timeline).
+   La trame est celle d’Elisa (25 octobre, 20 h 52, « CONCURRENCE — Deux clients, une seule place » et « ISOLATION — Sécuriser la dernière
+   place ») : ses bulles sont gardées mot pour mot, une phrase par bulle ; les prénoms sont complétés (Léa Simon, la cliente 7 ; Nathan Petit,
+   le client 4), comme le veut sa charte. L’équipe ateliers écrit : deux clients ont reçu une confirmation pour la dernière place de l’atelier.
+   L’atelier est une nouvelle date de l’atelier Cuisine saine (l’atelier 6, le 14 novembre, avec Julie Nguyen) ; la colonne places_restantes
+   de la table ateliers compte les places encore libres. Les deux téléphones montrent la page de l’atelier, avec la photo d’Elisa (20 h 52). */
+const SCH = {t: 5.0, caps: [], chaps: [{label:'Deux clients, une seule place', a: 5.0}], A: {}, B: {}};
+function chap(c){ SCH.t = +(SCH.t + 0.4).toFixed(2); SCH.chaps.push({label: c.label, a: SCH.t}); }
+function cap(key, html, dur, gap = 0.1){
+  /* Une légende reste au moins le temps de la lire (17 caractères par seconde, plus son fondu de 0,5 s) : l’image ne s’arrête jamais pour elle. */
+  dur = Math.max(dur, Math.ceil((html.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').length / 17 + 0.5) * 20) / 20);
+  const a = +(SCH.t + gap).toFixed(2), b = +(a + dur).toFixed(2);
+  SCH.caps.push([a, b, html]); SCH.A[key] = a; SCH.B[key] = b; SCH.t = b;   // trois lignes au plus par bulle : au-delà, deux bulles (Elisa, 24 octobre)
+}
+/* « À toi ! » : la légende reste un instant, puis l’image s’arrête à a + 2,35 s (le passage d’attente est coupé). */
+const toi = key => cap(key, 'À toi !', 2.55);
+const {A, B} = SCH;
+/* Le message reçu : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses phrases), signature, option].
+   L’équipe ateliers écrit par SMS ({sms: true}), avec les mots d’Elisa : « Bonjour ! », puis ses deux phrases ; son message finit sur sa
+   question (bye: null : pas de « Merci ! » de plus). L’app s’arrête sur la notification (OPENS) jusqu’au toucher. */
+const MAILS = [
+  [['L’équipe', 'ateliers', 'EA'], 'k-at', 'équipe', 'ateliers@nutriboost.fr', [
+    'Deux clients ont reçu une confirmation pour la dernière place de notre atelier.',
+    'Peux-tu comprendre ce qui s’est passé et éviter que ça se reproduise ?'], 'L’équipe ateliers NutriBoost',
+    {sms: true, hello: 'Bonjour !', bye: null}]
+];
+/* Un message : la légende s’efface le temps du message (notification, toucher, lecture, départ). Un SMS : la formule, une bulle par phrase,
+   puis « Merci ! » (sauf bye: null) ; le toucher à +1,6 s, une bulle toutes les 0,28 s, le départ juste après la pause de lecture. */
+const mailSms = n => /^client/.test(MAILS[n][2]) || !!(MAILS[n][6] || {}).sms;
+const mailRows = n => { const o = MAILS[n][6] || {};
+  return (o.bye === null ? 1 : 2) + [].concat(MAILS[n][4]).flatMap(p => p.split(/(?<=[.!?])\s+(?=[A-ZÀÂÉÈÊÎÔÛÇ])/)).length + (o.photo ? 1 : 0); };
+const mailOutAt = n => +(2.68 + 0.28 * (mailRows(n) - 1)).toFixed(2);
+const MO = MAILS.map((m, n) => mailOutAt(n));
+const mailBlock = (n, extra = 0) => { const t = SCH.t; SCH.t = +(SCH.t + MO[n] + extra + 1).toFixed(2); return t; };
+
+/* 1 · Deux clients, une seule place : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) ; l’équipe
+   ateliers écrit tout de suite. Puis les deux téléphones (Elisa : « Léa et Nathan consultent le même atelier. Sur leurs écrans : « Plus
+   qu’une place ! » »). */
+cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
+cap('r2', "Au chapitre 13, un trigger<br>t’a permis de garder<br>chaque changement de prix.", 3.8);
+const MAIL1 = mailBlock(0);
+cap('a1', "Revenons juste avant<br>les deux réservations.", 3.0);
+cap('a2', "Il ne reste qu’une place<br>à l’atelier Cuisine saine<br>du 14 novembre.", 3.8);
+cap('a3', "La colonne <code>places_restantes</code><br>de la <b>table ateliers</b><br>compte les places encore libres.", 4.2);
+cap('a4', "Léa Simon et Nathan Petit consultent<br>le même atelier.", 3.8);
+cap('a5', "Sur leurs écrans :<br>« Plus qu’une place ! »", 3.2);
+cap('a6', "Léa Simon est la cliente 7,<br>et Nathan Petit le client 4.", 3.6);
+/* 2 · Au ralenti (Elisa : « Le déroulement ralentit : 1. Léa consulte la disponibilité : 1 place. 2. Nathan consulte la disponibilité :
+   1 place. 3. Léa lance son inscription. 4. Nathan lance la sienne avant que celle de Léa soit terminée. ») */
+chap({label:'Au ralenti'});
+cap('b0', "Le déroulement ralentit.", 2.8);
+cap('b1', "Léa Simon consulte la disponibilité :<br>1 place.", 3.6);
+cap('b2', "Nathan Petit consulte la disponibilité :<br>1 place.", 3.6);
+cap('b3', "Léa Simon lance son inscription.", 3.2);
+cap('b4', "Nathan Petit lance la sienne<br>avant que celle de Léa Simon<br>soit terminée.", 4.0);
+cap('b5', "Les deux inscriptions sont enregistrées<br>dans la <b>table inscriptions</b>.", 5.0);
+cap('b6', "Chacun reçoit une confirmation<br>pour la dernière place.", 3.6);
+toi('p1');
+cap('b7', "Les places restantes passent à −1 :<br>une place a été réservée deux fois.", 4.0);
+/* 3 · La concurrence : les deux bulles d’Elisa, puis sa question (le moment 2) */
+chap({label:'La concurrence'});
+cap('c1', "Deux opérations accèdent<br>aux mêmes données au même moment :<br>c’est la concurrence.", 4.6);
+cap('c2', "Si chacune se fie à la place<br>qu’elle a vue disponible, elles peuvent<br>toutes les deux tenter de la réserver.", 5.8);
+toi('p2');
+/* 4 · Verrouiller la ligne : les deux bulles d’Elisa, puis la réservation de Léa Simon, dans une transaction (« un verrou sur la ligne de
+   l’atelier, conservé jusqu’à la fin de la transaction ») ; la syntaxe est celle de PostgreSQL (FOR UPDATE). Elisa : « L’isolation encadre
+   ce que les transactions peuvent voir et faire pendant qu’elles s’exécutent en même temps. » : trop longue pour trois lignes à 44 px, elle
+   prend la classe « dense » (police 42 px, voir core.css). */
+chap({label:'Verrouiller la ligne'});
+cap('d1', "Une transaction regroupe<br>les modifications d’une réservation.", 3.8);
+cap('d2', "<span class=\"dense\">L’isolation encadre ce que les transactions<br>peuvent voir et faire pendant qu’elles<br>s’exécutent en même temps.</span>", 6.0);
+cap('d3', "Voici la réservation de Léa Simon,<br>dans une transaction.", 3.8);
+cap('d4', "<code>SELECT … FOR UPDATE</code> lit les places<br>et verrouille la ligne de l’atelier.", 4.6);
+cap('d5', "Le verrou est conservé<br>jusqu’à la fin de la transaction.", 3.8);
+cap('d6', "L’<code>INSERT</code> enregistre l’inscription,<br>et l’<code>UPDATE</code> retire une place.", 4.4);
+cap('d7', "<code>COMMIT</code> valide la réservation<br>et libère le verrou.", 3.6);
+/* 5 · Rejouer avec le verrou : les cinq étapes d’Elisa, mot pour mot, une phrase par bulle ; l’élève lance la réservation de Léa Simon. */
+chap({label:'Rejouer avec le verrou'});
+cap('e1', "Rejouons les deux réservations,<br>avec le verrou cette fois.", 3.6);
+cap('e2a', "Clique sur « Réserver ma place »<br>sur le téléphone de Léa Simon.", 4.0);   // c’est l’élève qui clique : l’app s’arrête sur le bouton (RES, plus bas)
+cap('e2', "Léa Simon commence sa transaction.", 3.2);
+cap('e3', "Elle verrouille la ligne de l’atelier<br>et vérifie qu’il reste une place.", 4.2);
+cap('e4', "Nathan Petit tente de réserver.", 3.0);
+toi('p3');
+cap('e5', "Sa transaction attend de pouvoir<br>verrouiller cette même ligne.", 3.8);
+cap('e6', "Son écran indique<br>« Vérification de la disponibilité… ».", 3.8);
+cap('e7', "Léa Simon enregistre son inscription.", 3.4);
+cap('e8', "Le nombre de places passe de 1 à 0.", 3.2);
+cap('e9', "Léa Simon valide avec <code>COMMIT</code>.", 3.2);
+cap('e10', "Son inscription est confirmée<br>et le verrou est libéré.", 3.8);
+toi('p4');
+cap('e11', "Nathan Petit peut vérifier<br>la disponibilité à son tour.", 3.6);
+cap('e12', "Il reste 0 place : aucune inscription<br>n’est créée pour lui.", 4.4);
+/* Elisa : « Ici, le verrou empêche les deux réservations de modifier simultanément la disponibilité de cet atelier. » : la première ligne ne
+   tient pas avec « Ici, » ; sans lui, la phrase tient en trois lignes (classe « dense »). */
+cap('e13', "<span class=\"dense\">Le verrou empêche les deux réservations<br>de modifier simultanément<br>la disponibilité de cet atelier.</span>", 5.6);
+cap('e14', "Nathan Petit vérifie les places<br>après la fin de la transaction<br>de Léa Simon.", 4.2);
+/* 6 · Et avec ROLLBACK ? (Elisa : « si la transaction de Léa est annulée avec ROLLBACK, la place reste disponible. Nathan peut alors la
+   réserver. ») */
+chap({label:'Et avec ROLLBACK ?'});
+cap('f1', "Et si la transaction de Léa Simon<br>était annulée avec <code>ROLLBACK</code> ?", 3.8);
+cap('f2', "Revenons juste avant son <code>COMMIT</code> :<br>la ligne est encore verrouillée.", 4.2);
+toi('p5');
+cap('f3', "<code>ROLLBACK</code> annule son inscription<br>et libère le verrou.", 4.2);
+cap('f4', "La place reste disponible.", 3.0);
+cap('f5', "Nathan Petit peut alors la réserver.", 4.2);
+/* 7 · Attendre ou continuer ? Puis le « À retenir » d’Elisa, deux bulles (« Une transaction seule ne suffit pas à éviter tous les conflits.
+   Le niveau d’isolation et les mécanismes utilisés, comme les verrous, déterminent comment les accès simultanés sont gérés. ») */
+chap({label:'Attendre ou continuer ?'});
+cap('g1', "Avec un verrou, une réservation<br>attend son tour ou continue.", 3.6);
+toi('p6');
+cap('g2', "Une transaction seule ne suffit pas<br>à éviter tous les conflits.", 3.8);
+cap('g3', "<span class=\"dense\">Le niveau d’isolation et les mécanismes<br>utilisés, comme les verrous, déterminent<br>comment les accès simultanés sont gérés.</span>", 6.2);
+/* la suite : la prochaine leçon */
+cap('g4', "Dans la prochaine leçon, tu découvriras<br>les vues : des requêtes enregistrées<br>sous un nom.", 7.0);
+/* 8 · À retenir */
+chap({label:'À retenir'});
+const RECAP = SCH.t;
+cap('j1', "Pour finir, voici les <b>trois idées à retenir</b>.", 4.8, 0.4);
+/* NOTES (le bouton « Ajouter à mes notes ») est écrit en clair dans Course(…) plus bas : tests/concurrence-lesson.test.mjs vérifie qu’il suit le déroulé. */
+const NOTES = +(SCH.t + 0.1).toFixed(2);
+const DURATION = +(NOTES + 7.2).toFixed(2);
+SCH.caps.push([NOTES, 999, APP ? "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."
+  : "Un verrou garde la dernière place<br>pour une seule réservation."]);
+
+const CAPTIONS = SCH.caps;
+const CHAPTERS = SCH.chaps.map((c, i) => ({n: i + 1, label: c.label, a: c.a, b: i + 1 < SCH.chaps.length ? SCH.chaps[i + 1].a : DURATION}));
+
+/* Pas de question du lecteur : les moments « À toi » (PICKS) font participer l’élève. */
+const QUESTIONS = [];
+
+/* ---------- Le cas : la base des ateliers NutriBoost (la même dans tous les chapitres du projet) ---------- */
+/* La base telle que le chapitre 13 la laisse : douze tables, avec la table historique_prix (le changement de prix du collagène). L’équipe
+   ateliers a programmé une nouvelle date de l’atelier Cuisine saine : l’atelier 6, le 14 novembre (six ateliers).
+   [clé, couleur, emoji, nom, lignes] */
+const TB = [
+  ['cl', 'k-cl', '👥', 'clients', 8], ['cm', 'k-cm', '🛒', 'commandes', 16], ['fi', 'k-fi', '⭐', 'fidelite', 4], ['pr', 'k-pr', '📦', 'produits', 8],
+  ['co', 'k-co', '🧑‍🏫', 'coachs', 4], ['at', 'k-at', '📅', 'ateliers', 6], ['in', 'k-in', '📝', 'inscriptions', 7], ['ca', 'k-nb', '💳', 'cartes', 3],
+  ['av', 'k-av', '💬', 'avis', 1], ['rp', 'k-rp', '🔁', 'remplacements', 1], ['cd', 'k-cd', '🎁', 'cadeaux', 1], ['hp', 'k-hp', '🏷️', 'historique_prix', 1]
+];
+/* L’atelier de la trame : l’atelier Cuisine saine du 14 novembre (l’atelier 6, avec Julie Nguyen, la coach 3), dans sa petite salle de 8 places
+   (chapitre 5) ; il ne lui reste qu’une place. Léa Simon est la cliente 7, Nathan Petit le client 4 ; ils réservent le 25 octobre. */
+const ATELIER = {id: 6, titre: 'Cuisine saine', date: '2026-11-14', coach: 3, places: 8, restantes: 1}, LEA = 7, NATHAN = 4, JOUR = '2026-10-25';
+/* Moment 1 : la valeur qui montre la place réservée deux fois est celle des places restantes (c3) ; pourquoi les autres ne conviennent pas. */
+const WHY1 = {
+  c0: 'L’identifiant ne change pas : c’est toujours l’atelier 6.',
+  c1: 'Le titre ne change pas : c’est toujours l’atelier Cuisine saine.',
+  c2: 'La date ne change pas : l’atelier a toujours lieu le 14 novembre.'
+};
+/* Moment 6 : avec le verrou, la réservation de Nathan Petit attend, ou elle continue ; six situations à ranger [situation, case, pourquoi]. */
+const BINS = [['at', 'Elle attend', 'son tour pour verrouiller la ligne'], ['co', 'Elle continue', 'la ligne est libre']];
+const ITEMS = [
+  ['Léa Simon tient le verrou de la ligne', 'at', 'La ligne est verrouillée par une autre transaction : la réservation attend la fin de celle de Léa Simon.'],
+  ['Léa Simon vient de valider avec COMMIT', 'co', 'COMMIT termine la transaction et libère le verrou : la réservation peut vérifier les places à son tour.'],
+  ['Léa Simon enregistre encore son inscription', 'at', 'Sa transaction n’est pas terminée : le verrou reste en place jusqu’à sa fin.'],
+  ['La transaction de Léa Simon est annulée', 'co', 'ROLLBACK termine la transaction et libère le verrou : la place reste disponible.'],
+  ['Personne d’autre ne réserve cet atelier', 'co', 'Aucun verrou n’est posé sur la ligne : la réservation continue tout de suite.'],
+  ['Les places passent à 0, sans COMMIT', 'at', 'La modification n’est pas encore validée : le verrou est toujours là.']
+];
+
+/* Les six moments « À toi » : l’image s’arrête, l’élève touche, choisit ou range ; la page montre aussitôt le résultat.
+   from : début du passage qui amène chaque moment, d’où repartent « ↺ Revoir » et « Rejouer ». */
+const atp = k => +(A[k] + 2.35).toFixed(2);
+const PICKS = [
+  {at: atp('p1'), from: A.b0, kind: 'tap', need: 1, prompt: 'Touche la valeur qui montre qu’une place a été réservée deux fois.'},
+  {at: atp('p2'), from: A.c1, kind: 'pick', text: true, prompt: 'Comment faire pour qu’une seule inscription soit confirmée ?', options: [
+    {label: 'Vérifier les places une seconde fois avant d’écrire', why: 'Une seconde lecture peut encore voir 1 place : la réservation de l’autre client n’est pas terminée.'},
+    {label: 'Verrouiller la ligne de l’atelier pendant la réservation', ok: true, why: 'Avec un verrou, la deuxième réservation attend la fin de la première : elle lit alors 0 place.'},
+    {label: 'Supprimer ensuite l’inscription en double', why: 'Les deux clients ont déjà reçu leur confirmation : il faut éviter la double réservation, pas la corriger après coup.'}]},
+  {at: atp('p3'), from: A.e1, kind: 'pick', text: true, prompt: 'Pendant que Léa Simon tient le verrou, que fait la transaction de Nathan Petit ?', options: [
+    {label: 'Elle attend de pouvoir verrouiller la même ligne', ok: true, why: 'La ligne reste verrouillée jusqu’à la fin de la transaction de Léa Simon : celle de Nathan Petit attend son tour.'},
+    {label: 'Elle lit 1 place et réserve aussi', why: 'Pour lire avec <code>FOR UPDATE</code>, elle doit verrouiller la ligne : elle attend la fin de la transaction de Léa Simon.'},
+    {label: 'Elle annule la transaction de Léa Simon', why: 'Une transaction n’annule pas celle d’une autre : celle de Nathan Petit attend son tour.'}]},
+  {at: atp('p4'), from: A.e7, kind: 'pick', text: true, prompt: 'Le verrou est libéré : que voit Nathan Petit ?', options: [
+    {label: '1 place : il est inscrit lui aussi', why: 'La réservation de Léa Simon est validée : la place est prise, il en reste 0.'},
+    {label: 'Une erreur : la ligne reste verrouillée', why: 'Le <code>COMMIT</code> de Léa Simon a libéré le verrou : Nathan Petit peut verrouiller la ligne à son tour.'},
+    {label: '0 place : aucune inscription pour lui', ok: true, why: 'Il lit les places après le <code>COMMIT</code> de Léa Simon : il en reste 0, aucune inscription n’est créée pour lui.'}]},
+  {at: atp('p5'), from: A.f1, kind: 'pick', text: true, prompt: 'La transaction de Léa Simon est annulée avec ROLLBACK : que devient la place ?', options: [
+    {label: 'Elle reste réservée à Léa Simon', why: '<code>ROLLBACK</code> annule toute la réservation : l’inscription de Léa Simon disparaît avec le reste.'},
+    {label: 'Elle reste disponible pour Nathan Petit', ok: true, why: '<code>ROLLBACK</code> annule l’inscription de Léa Simon et le retrait de la place : il en reste 1, et le verrou est libéré.'},
+    {label: 'Elle est perdue : il reste 0 place', why: 'Le retrait de la place est annulé avec le reste de la transaction : il reste 1 place.'}]},
+  {at: atp('p6'), from: A.g1, kind: 'sort', prompt: 'Avec le verrou, la réservation de Nathan Petit attend-elle ou continue-t-elle ?',
+    hint: 'Touche une situation, puis la case qui convient. Tu peux aussi la faire glisser directement.', next: '« {x} » : elle attend, ou elle continue ?',
+    options: ITEMS.map(x => ({label: x[0]}))}
+];
+
+/* Les arrêts « toucher » : la notification, et le bouton « Réserver ma place » du téléphone de Léa Simon (la réservation rejouée avec le
+   verrou). Rien n’y est noté. Sur le bouton, la légende dit déjà quoi faire : un doigt seul (hand) monte et descend sur son coin, et le
+   bouton s’enfonce dès l’appui (press), puis remonte au relâcher (rest). */
+const RES = +(A.e2a + 2.6).toFixed(2);
+const msgOpen = (t, n) => {
+  const [prenom, nom] = MAILS[n][0], msg = mailSms(n) ? 'message' : 'mail';   // l’équipe ateliers écrit par SMS
+  const de = /^Le /.test(prenom) ? 'du ' + prenom.slice(3) : /^La /.test(prenom) ? 'de la ' + prenom.slice(3) : /^L’/.test(prenom) ? 'de l’' + prenom.slice(2)
+    : /^[AEIOUHÉÈ]/.test(prenom) ? 'd’' + prenom : 'de ' + prenom;
+  return {at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: `Touche le ${msg} pour l’ouvrir.`, label: `Ouvrir le ${msg} ${de} ${nom}`};
+};
+const OPENS = [
+  msgOpen(MAIL1, 0),
+  {at: RES, sel: '#pl-0', prompt: 'Touche le bouton.', label: 'Réserver ma place pour Léa Simon', hand: {x: 0.84, y: 0.74},
+    press: {y: 5, boxShadow: '0 2px 0 #4B30CC'}, rest: {y: 0, boxShadow: '0 7px 0 #4B30CC'}}
+];
+
+/* ---------- Gabarits ---------- */
+/* Une case à valeurs empilées (une seule se voit). */
+const sw = (id, vals, k = 'v') => `<span class="sw ${k}" id="${id}">${vals.map((v, j) => `<i class="a${j}${v[1] ? ' ' + v[1] : ''}">${v[0]}</i>`).join('')}</span>`;
+const cell = (j, inner) => `<span class="c${j}">${inner}</span>`;
+const line = (id, cells, cls = '') => `<div class="gr r${cls ? ' ' + cls : ''}" id="r${id}"><i class="hl"></i><i class="wn"></i><i class="xx"></i>${cells}</div>`;
+/* Carte de code : une ligne par [repère, texte, classe, style]. Dans le texte : {id|…} un passage repéré (il pulse). Un commentaire (--) n’a pas de curseur. */
+const SQL_KW = /\b(?:BEGIN|COMMIT|ROLLBACK|SELECT|FROM|WHERE|FOR UPDATE|INSERT INTO|VALUES|UPDATE|SET)\b/g, CARET = '<span class="caret"><i></i></span>';
+function lineHtml([lid, s, cls = '', st = '']){
+  const cmt = s.trim().startsWith('--');
+  let h = s.replace(/\{(\w+)\|([^{}]*)\}/g, '<span class="glow" id="$1">$2</span>');
+  if (!cmt) h = h.replace(SQL_KW, '<span class="kw">$&</span>').replace(/'[^']*'/g, '<span class="str">$&</span>');
+  return `<span class="ln${cmt ? ' cmt' : ''}${cls ? ' ' + cls : ''}" id="${lid}"${st ? ` style="${st}"` : ''}>${h}${cmt ? '' : CARET}</span>`;
+}
+function editor(id, fname, lines, extra = ''){
+  return `<div class="abs code sq" id="${id}" style="left:64px;width:952px"><div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i>` +
+    `<span class="fname">${fname}</span></div><div class="body">${lines.map(lineHtml).join('')}${extra}</div></div>`;
+}
+const head = (cols, k = '') => `<div class="gr hd">${cols.map(([c, label, extra]) => `<span class="${c}${extra ? ' ' + extra : ''}">${label}</span>`).join('')}</div>`;
+const tbl = (id, kc, emo, name, g, hd, rows, bn = '') => `<div class="abs card tb tz ${kc}" id="${id}" style="left:64px;width:952px;${g}"><div class="h"><span class="emo">${emo}</span><span>${name}</span>${bn}</div>${hd}${rows}</div>`;
+const KEY = '<span class="emo">🔑</span>id', LK = '<span class="emo">🔗</span>';
+/* La réservation de Léa Simon, dans une transaction : la ligne de l’atelier est lue et verrouillée (FOR UPDATE, syntaxe de PostgreSQL),
+   l’inscription enregistrée, une place retirée, puis la réservation validée. */
+const Q_RES = [['-- La réservation de Léa Simon'], ['{xbg|BEGIN};'], ['{xsel|SELECT places_restantes}'], ['FROM ateliers'], ['WHERE id = 6'], ['{xfu|FOR UPDATE};'],
+  ['{xin|INSERT INTO inscriptions}'], ['  (client_id, atelier_id, date_inscription)'], ["VALUES (7, 6, '2026-10-25');"], ['{xup|UPDATE ateliers}'],
+  ['SET places_restantes = places_restantes - 1'], ['WHERE id = 6;'], ['{xcm|COMMIT};']];
+const ed = (id, q, fname) => editor(id, fname, q.map(([s], k) => [id + '-' + k, s]));
+/* Un téléphone : la page de l’atelier sur le site NutriBoost (la photo d’Elisa, 25 octobre, 20 h 52), le badge « Plus qu’une place ! » (puis « Complet »), puis le bas de l’écran,
+   qui ne montre qu’une chose à la fois : le bouton (0), l’inscription en cours (1), l’attente du verrou (2), la place réservée (3),
+   l’atelier complet (4, les mots d’Elisa), la réservation annulée (5). Les numéros des étapes, au ralenti, se posent sur la photo. */
+const PHOTO = 'projet-concurrence-atelier.webp';
+function phone(p, steps){
+  return `<div class="abs phn" id="${p}"><div class="scr">` +
+    '<div class="sbar"><b>10:21</b><span class="sig"><i></i><i></i><i></i><i></i><b class="bat"><i></i></b></span></div>' +
+    '<div class="apb"><span class="bk">‹</span>NutriBoost<span class="apt">Ateliers</span></div>' +
+    `<div class="pic"><img src="${PHOTO}" alt="L’atelier Cuisine saine : la coach et les participants préparent des smoothies">` +
+      steps.map((n, q) => `<span class="stp" id="${p}-s${n}" style="left:${16 + q * 64}px">${n}</span>`).join('') + '</div>' +
+    '<div class="bd"><div class="ttl">Atelier Cuisine saine</div><div class="mt"><span class="emo">📅</span>Samedi 14 novembre · 10 h</div>' +
+      '<div class="mt"><span class="emo">🧑‍🍳</span>avec Julie Nguyen</div>' +
+      `<div class="bgw"><div class="bdg2" id="${p}-bg"><span class="emo">🔥</span>Plus qu’une place !</div><div class="bdg2 fl" id="${p}-bf">Complet</div></div></div>` +
+    `<div class="act"><div class="st st0" id="${p}-0">Réserver ma place<i class="ripple"></i></div>` +
+      `<div class="st st1" id="${p}-1"><i class="spn"></i>Inscription en cours…</div>` +
+      `<div class="st st2" id="${p}-2"><i class="spn"></i>Vérification de la disponibilité…</div>` +
+      `<div class="st st3" id="${p}-3"><span class="emo">✅</span>Ta place est réservée !</div>` +
+      `<div class="st st4" id="${p}-4">Cet atelier vient d’être complet. Découvre les prochaines dates.</div>` +
+      `<div class="st st5" id="${p}-5"><span class="emo">↩️</span>Réservation annulée</div></div>` +
+    '</div></div>';
+}
+function dom(){
+  /* La base et ses douze tables : le rappel du chapitre précédent */
+  $('#sa').innerHTML = `<div class="abs card bc" id="bc"><div class="bh"><span class="emo">🗄️</span><span>Base NutriBoost</span><span class="bn"><span>12 tables</span></span></div>` +
+    TB.map(([k, kc, emo, name, n]) => `<div class="srow ${kc}" id="bw-${k}"><i class="hl"></i><div class="sn"><span class="emo">${emo}</span>` +
+      `<span class="nm">${name}</span><i class="sp"></i><b class="nb"><span>${n} ${n > 1 ? 'lignes' : 'ligne'}</span></b></div></div>`).join('') + '</div>';
+  /* Le message de l’équipe ateliers (il finit sur sa question) */
+  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body, false, smsRank(MAILS, n),
+    (MAILS[n][6] || {}).hello, (MAILS[n][6] || {}).photo, (MAILS[n][6] || {}).bye) : '').join('') +
+    '<div class="abs emo tapf" id="tapf">👆</div>';
+  /* Le travail : l’extrait de la table ateliers (l’atelier 6), avec le verrou dans son en-tête (qui le tient, qui attend) ; les places
+     restantes : 1, 0, -1 (la place réservée deux fois), puis 1, 0 (avec le verrou), puis 1, 0 (le ROLLBACK, puis Nathan Petit) */
+  let w = tbl('ta', 'k-at', '📅', 'ateliers', '--g:96px 270px 240px 1fr', head([['c0 kc', KEY], ['c1', 'titre'], ['c2', 'date_atelier'], ['c3', 'places_restantes']]),
+      line('ta6', cell(0, '<i class="v">6</i>') + cell(1, '<i class="v">Cuisine saine</i>') + cell(2, '<i class="v">2026-11-14</i>') +
+        cell(3, sw('pr6', [['1'], ['0'], ['-1', 'neg'], ['1'], ['0'], ['1'], ['0']]) + '<i class="hc" id="hc3"></i>')),
+      '<span class="lkc" id="lk"><span class="a0"><span class="emo">🔒</span>Léa Simon</span><span class="a1"><span class="emo">🔒</span>Nathan Petit</span></span>' +
+      '<span class="wtc" id="wt"><span class="a0"><span class="emo">⏳</span>Nathan Petit attend</span></span><span class="bn"><span>extrait</span></span>');
+  /* Les deux clients et leurs téléphones */
+  w += '<div class="abs who k-cl" id="wl" style="left:64px"><i class="sms-av">LS</i>Léa Simon</div><div class="abs who k-co" id="wn" style="left:560px"><i class="sms-av">NP</i>Nathan Petit</div>';
+  w += phone('pl', [1, 3]) + phone('pn', [2, 4]);
+  /* L’extrait de la table inscriptions : les nouvelles inscriptions à l’atelier 6 (celle de Léa Simon, puis celle de Nathan Petit) */
+  w += tbl('ti', 'k-in', '📝', 'inscriptions', '--g:260px 260px 1fr', head([['c0 kc k-cl', LK + 'client_id'], ['c1 kc k-at', LK + 'atelier_id'], ['c2', 'date_inscription']]),
+      line('ti0', '<span class="ph">Aucune nouvelle inscription</span>', 'rph') +
+      line('tiL', cell(0, `<i class="v">${LEA}</i>`) + cell(1, '<i class="v">6</i>') + cell(2, `<i class="v">${JOUR}</i>`)) +
+      line('tiN', cell(0, `<i class="v">${NATHAN}</i>`) + cell(1, '<i class="v">6</i>') + cell(2, `<i class="v">${JOUR}</i>`)),
+      '<span class="bn"><span>extrait</span></span>');
+  // la réservation de Léa Simon, dans une transaction
+  w += ed('etx', Q_RES, 'reservation.sql');
+  w += '<div class="abs emo tapf" id="tapw">👆</div>';
+  $('#sw').innerHTML = w;
+  /* Attendre ou continuer : une case chacune, où ranger les situations */
+  $('#sd').innerHTML = BINS.map(([k, n, d], q) => `<div class="abs dbn" id="db-${k}" data-k="${k}" style="top:${260 + q * 232}px"><div class="hh"><span class="dn">${n}</span><span class="dd">${d}</span></div>` +
+    `<div class="cs">${ITEMS.map((x, i) => x[1] === k ? `<div class="rc" id="sbu${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
+    '<div class="abs pack" id="bpack"><span><span class="emo">📬</span>6 situations à ranger</span></div>';
+  /* La suite : la prochaine leçon */
+  $('#sn').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🔖</span>Prochaine leçon · CREATE VIEW</span></div>';
+  // la requête, découpée en caractères (elle arrive déjà tapée)
+  $$('.sq .ln').forEach(splitChars);
+}
+
+/* ---------- Mise en page ---------- */
+const RH = 62;   // hauteur d’une ligne des tables
+const bottom = s => { const el = $(s); return el.offsetTop + el.offsetHeight; };
+/* Position d’un élément dans sa scène (sans tenir compte des transformations) : le coin et la taille. */
+const pos = el => {
+  let x = 0, y = 0, e = el;
+  while (e && !e.classList.contains('scene')) {
+    x += e.offsetLeft; y += e.offsetTop;
+    const p = e.offsetParent;
+    if (p && !p.classList.contains('scene')) { x += p.clientLeft; y += p.clientTop; }
+    e = p;
+  }
+  return {x, y, w: el.offsetWidth, h: el.offsetHeight};
+};
+function layout(){
+  // la table ateliers en haut ; dessous, les deux clients et leurs téléphones, puis la table inscriptions
+  $('#ta').style.top = '236px';
+  const T2 = bottom('#ta') + 24;
+  ['#wl', '#wn'].forEach(s => { $(s).style.top = T2 + 'px'; });
+  const T3 = bottom('#wl') + 12;
+  ['#pl', '#pn'].forEach(s => { $(s).style.top = T3 + 'px'; });
+  $('#pn').style.left = '560px'; $('#pl').style.left = '64px';
+  // la table inscriptions garde la hauteur de deux lignes : les deux inscriptions de la course, puis une à la fois
+  $('#ti').style.top = (bottom('#pl') + 10 + 26) + 'px';
+  $('#rtiL').style.height = '0px'; $('#rtiN').style.height = '0px';
+  $('#rti0').style.height = '0px'; $('#ti').style.height = ($('#ti').offsetHeight + 2 * RH) + 'px'; $('#rti0').style.height = RH + 'px';
+  // la réservation de Léa Simon : à la place des téléphones, sous la table ateliers
+  $('#etx').style.top = (bottom('#ta') + 30) + 'px';
+  // attendre ou continuer : la pile des situations, sous les deux cases
+  $('#bpack').style.top = (bottom('#db-co') + 9 + 44) + 'px';
+}
+
+/* ---------- Petits gestes de la timeline ---------- */
+const pulse = (el, t, n = 3, c = 'rgba(201,188,255,.55)') => tl.to(el, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (el, t, s = 1.04) => tl.to(el, {scale: s, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, t);
+const on = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 1, duration: d, ease: 'power2.out'}, t);
+const off = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 0, duration: d, ease: 'power2.in'}, t);
+const GLOW = 'rgba(255,224,138,.4)';
+/* Une valeur en remplace une autre : l’ancienne monte et s’efface, la nouvelle arrive par en dessous. */
+function swap(o, n, t, sound = true){
+  tl.to(o, {autoAlpha: 0, y: -14, duration: 0.2, ease: 'power2.in'}, t);
+  tl.fromTo(n, {autoAlpha: 0, y: 14}, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power3.out', immediateRender: false}, t + 0.12);
+  if (sound) cue(t + 0.12, 'type', 0.8, 2);
+}
+/* Une mention apparaît (d’un petit rebond). */
+const mark = (sel, t) => { tl.fromTo(sel, {autoAlpha: 0, scale: 0.6, y: 0}, {autoAlpha: 1, scale: 1, y: 0, duration: 0.4, ease: 'back.out(2.4)', immediateRender: false}, t); cue(t, 'pop', 0.6, 2); };
+/* Une ligne qui apparaît (ou disparaît) en dépliant sa hauteur. */
+const rowIn = (sel, t) => { tl.fromTo(sel, {height: 0}, {height: RH, duration: 0.45, ease: 'power2.out', immediateRender: false}, t); cue(t, 'whoosh', 0.35, 2); };
+const rowOut = (sel, t) => { tl.fromTo(sel, {height: RH}, {height: 0, duration: 0.4, ease: 'power2.inOut', immediateRender: false}, t); };
+/* Le bas de l’écran d’un téléphone change : l’état a laisse la place à l’état b (une seule chose à la fois). */
+function state(p, a, b, t){
+  tl.to(`#${p}-${a}`, {autoAlpha: 0, duration: 0.2, ease: 'power2.in'}, t);
+  tl.fromTo(`#${p}-${b}`, {autoAlpha: 0, scale: 0.92}, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(1.8)', immediateRender: false}, t + 0.12);
+  cue(t + 0.12, b === 3 ? 'pop' : 'tick', 0.6, b + 1);
+}
+/* Au ralenti : le numéro de l’étape se pose sur le téléphone qui agit. */
+const step = (sel, t) => { tl.fromTo(sel, {autoAlpha: 0, scale: 0.4}, {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2.6)', immediateRender: false}, t); cue(t, 'pop', 0.7, 3); };
+/* Un client touche « Réserver ma place » (vidéo seule) : le bouton s’enfonce, une onde le traverse. */
+const pressPhone = (p, t) => press($(`#${p}-0`), t, '#4B30CC', 7);
+/* La réservation de Léa Simon, rejouée avec le verrou : c’est l’élève qui touche son bouton (OPENS). Dans l’app, le bouton s’enfonce sous
+   le doigt (press, rest : le lecteur s’en charge) et une onde le traverse ; hors de l’app, un doigt le montre et appuie. */
+function tapPhone(T){
+  const b = '#pl-0';
+  if (APP) {
+    const rp = $(b + ' .ripple');
+    tl.to(rp, {scale: 0, opacity: 0.55, duration: 0.001}, T + 0.001).to(rp, {scale: 1, opacity: 0, duration: 0.7, ease: 'power2.out'}, T + 0.011);
+    cue(T + 0.001, 'click');
+  } else { fingerTap($(b), T, '#tapw', 0.62, 40); pressPhone('pl', T); }
+}
+/* La légende s’efface le temps du message, puis revient. */
+const capOff = t => tl.to('#cap', {autoAlpha: 0, y: 30, duration: 0.3, ease: 'power2.in'}, t);
+const capOn = t => tl.to('#cap', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, t);
+/* Le message arrive : l’équipe ateliers écrit par SMS (smsIn) ; l’app s’arrête sur la notification (OPENS) jusqu’au toucher ;
+   hors de l’app, un doigt la montre. */
+function mailIn(n, t, T){
+  if (isSms(MAILS[n - 1][2], MAILS[n - 1][6])) { if (!APP) fingerTap($('#ml' + n), T); return smsIn(n, t, T); }
+  return T;
+}
+function mailOut(n, t){ hide('#ml' + n, t, {x: 140, y: 0, rotation: 2}, 0.4, 'power2.in'); cue(t, 'whoosh', 0.4); }
+/* Un doigt montre le geste (vidéo seule) : il touche la notification ou un bouton. */
+function fingerTap(M, T, f = '#tapf', fx = 0.6, fy = 92){
+  const p = pos(M);
+  tl.set(f, {left: p.x + p.w * fx, top: p.y + fy}, T - 0.8);
+  tl.fromTo(f, {autoAlpha: 0, x: 90, y: 170}, {autoAlpha: 1, x: 0, y: 0, duration: 0.5, ease: 'power3.out', immediateRender: false}, T - 0.75);
+  tl.to(f, {scale: 0.86, duration: 0.1, ease: 'power2.in'}, T - 0.15);
+  tl.to(f, {scale: 1, duration: 0.15}, T);
+  tl.to(f, {autoAlpha: 0, y: 70, duration: 0.3}, T + 0.2);
+}
+/* Le verrou : la pastille de celui qui le tient, et la ligne de l’atelier, teintée, tant qu’il est posé. */
+const lockOn = (who, t) => { mark(`#lk .a${who}`, t); on('#rta6 .wn', t, 0.3); cue(t, 'click', 0.5, 1); };
+const lockOff = (who, t) => { tl.to(`#lk .a${who}`, {autoAlpha: 0, scale: 0.6, duration: 0.3, ease: 'power2.in'}, t); off('#rta6 .wn', t, 0.3); cue(t, 'whoosh', 0.35, 3); };
+
+/* Réponses des moments « À toi » : ce que la timeline montre juste après l’arrêt (et que l’aperçu montre pendant l’arrêt). */
+const M1_ANS = ['#hc3'];   // la case des places restantes (-1), entourée
+const set2 = t => +(t + 0.02).toFixed(2);
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
+  layout();
+  gsap.set(['.sq', '.pack', '#bc', '#ta', '#wl', '#wn', '#pl', '#pn', '#ti', '#keyc', '.dbn', '#tapf', '#tapw'], {autoAlpha: 0});
+  gsap.set(['#pr6 .a1', '#pr6 .a2', '#pr6 .a3', '#pr6 .a4', '#pr6 .a5', '#pr6 .a6', '.stp', '#lk > span', '#wt > span', '#pl-bf', '#pn-bf', '.dbn .rc'], {autoAlpha: 0});
+  // le bas de l’écran des deux téléphones : le bouton seul, au départ
+  gsap.set(['1', '2', '3', '4', '5'].flatMap(k => [`#pl-${k}`, `#pn-${k}`]), {autoAlpha: 0});
+  // le petit cercle de l’attente tourne tout au long de la vidéo (il ne se voit que pendant une attente)
+  tl.to('.spn', {rotation: 360 * 120, duration: DURATION, ease: 'none', data: 'amb'}, 0);
+
+  /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
+     la consigne, la légende ne la répète pas. Le passage d’attente est coupé (rien ne s’y anime). */
+  PICKS.forEach(p => cut(p.at - 1.35, 1.25));
+
+  /* ===== 1 · Deux clients, une seule place ===== */
+  sceneOn('#sa', 5.0);
+  show('#bc', A.r1, {y: 60}, 0.55); cue(A.r1, 'whoosh', 0.5);
+  TB.forEach(([k], q) => { const t = A.r1 + 0.3 + q * 0.15; show('#bw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q % 5); });
+  // « Au chapitre 13, un trigger » : la table historique_prix ; puis la table ateliers, avec sa nouvelle date
+  on('#bw-hp .hl', A.r2 + 0.6, 0.2); cue(A.r2 + 0.6, 'tick', 0.5, 2);
+  on('#bw-at .hl', A.r2 + 1.6, 0.2); cue(A.r2 + 1.6, 'tick', 0.5, 4);
+  off(['#bw-hp .hl', '#bw-at .hl'], A.r2 + 3.1, 0.3);
+  // l’équipe ateliers écrit : la base laisse la place à son message, la légende s’efface le temps du message (jamais de carte vide)
+  capOff(B.r2 - 0.2);
+  hide('#bc', B.r2 - 0.1, {y: -30}, 0.35);
+  sceneOff('#sa', MAIL1 + 0.3);
+  sceneOn('#sm', MAIL1 + 0.3);
+  mailIn(1, MAIL1 + 0.5, OPENS[0].at);
+  mailOut(1, MAIL1 + MO[0]);
+  sceneOff('#sm', MAIL1 + MO[0] + 0.45);
+  // revenons juste avant les deux réservations : la table ateliers
+  sceneOn('#sw', MAIL1 + MO[0] + 0.45);
+  capOn(A.a1 - 0.3);
+  show('#ta', A.a1 + 0.4, {y: 50}, 0.5); cue(A.a1 + 0.4, 'whoosh', 0.5);
+  // il ne reste qu’une place à l’atelier Cuisine saine du 14 novembre
+  on('#rta6 .hl', A.a2 + 0.4, 0.25); cue(A.a2 + 0.4, 'tick', 0.5, 2);
+  pulse('#rta6 .c1', A.a2 + 1.4, 1, GLOW); pulse('#rta6 .c2', A.a2 + 2.2, 1, GLOW); cue(A.a2 + 2.2, 'tick', 0.5, 3);
+  // la colonne places_restantes compte les places encore libres
+  pulse('#ta .hd .c3', A.a3 + 0.6, 1, GLOW); cue(A.a3 + 0.6, 'tick', 0.5, 3);
+  pulse('#rta6 .c3', A.a3 + 2.2, 1, GLOW); cue(A.a3 + 2.2, 'tick', 0.5, 5);
+  off('#rta6 .hl', B.a3 - 0.3, 0.3);
+  // Léa Simon et Nathan Petit consultent le même atelier : leurs deux téléphones, la page de l’atelier
+  show('#wl', A.a4 + 0.2, {y: 20}, 0.4); show('#pl', A.a4 + 0.3, {y: 90}, 0.6); cue(A.a4 + 0.3, 'whoosh', 0.5, 1);
+  show('#wn', A.a4 + 0.8, {y: 20}, 0.4); show('#pn', A.a4 + 0.9, {y: 90}, 0.6); cue(A.a4 + 0.9, 'whoosh', 0.5, 3);
+  // sur leurs écrans : « Plus qu’une place ! »
+  bump('#pl-bg', A.a5 + 0.6, 1.14); cue(A.a5 + 0.6, 'tick', 0.5, 2);
+  bump('#pn-bg', A.a5 + 1.1, 1.14); cue(A.a5 + 1.1, 'tick', 0.5, 4);
+  // Léa Simon est la cliente 7, Nathan Petit le client 4
+  bump('#wl', A.a6 + 0.5, 1.08); cue(A.a6 + 0.5, 'tick', 0.5, 2);
+  bump('#wn', A.a6 + 1.8, 1.08); cue(A.a6 + 1.8, 'tick', 0.5, 4);
+
+  /* ===== 2 · Au ralenti ===== */
+  // le déroulement ralentit : la table inscriptions arrive sous les téléphones (aucune nouvelle inscription)
+  show('#ti', A.b0 + 0.3, {y: 40}, 0.5); cue(A.b0 + 0.3, 'whoosh', 0.45, 1);
+  // 1 · Léa Simon consulte la disponibilité : 1 place
+  step('#pl-s1', A.b1 + 0.3);
+  pulse('#rta6 .c3', A.b1 + 1.0, 1, GLOW); cue(A.b1 + 1.0, 'tick', 0.5, 2);
+  bump('#pl-bg', A.b1 + 1.8, 1.14);
+  // 2 · Nathan Petit consulte la disponibilité : 1 place
+  step('#pn-s2', A.b2 + 0.3);
+  pulse('#rta6 .c3', A.b2 + 1.0, 1, GLOW); cue(A.b2 + 1.0, 'tick', 0.5, 4);
+  bump('#pn-bg', A.b2 + 1.8, 1.14);
+  // 3 · Léa Simon lance son inscription
+  step('#pl-s3', A.b3 + 0.2);
+  pressPhone('pl', A.b3 + 0.8);
+  state('pl', 0, 1, A.b3 + 1.1);
+  // 4 · Nathan Petit lance la sienne avant que celle de Léa Simon soit terminée
+  step('#pn-s4', A.b4 + 0.2);
+  pressPhone('pn', A.b4 + 0.8);
+  state('pn', 0, 1, A.b4 + 1.1);
+  // les deux inscriptions sont enregistrées : celle de Léa Simon (la place passe à 0), puis celle de Nathan Petit (-1)
+  rowOut('#rti0', A.b5 + 0.3); rowIn('#rtiL', A.b5 + 0.35);
+  swap('#pr6 .a0', '#pr6 .a1', A.b5 + 0.8);
+  state('pl', 1, 3, A.b5 + 1.1);
+  rowIn('#rtiN', A.b5 + 1.9);
+  swap('#pr6 .a1', '#pr6 .a2', A.b5 + 2.4);
+  on('#rta6 .xx', A.b5 + 2.5, 0.3); cue(A.b5 + 2.5, 'miss', 0.45);
+  state('pn', 1, 3, A.b5 + 2.8);
+  // chacun reçoit une confirmation pour la dernière place
+  bump('#pl-3', A.b6 + 0.5, 1.06); cue(A.b6 + 0.5, 'tick', 0.5, 2);
+  bump('#pn-3', A.b6 + 1.3, 1.06); cue(A.b6 + 1.3, 'tick', 0.5, 4);
+  // À toi : la valeur qui montre la place réservée deux fois (réponse : elle est entourée)
+  tl.set(M1_ANS, {autoAlpha: 1}, set2(PICKS[0].at));
+  // les places restantes passent à -1 : une place a été réservée deux fois
+  pulse(['#rtiL', '#rtiN'], A.b7 + 1.9, 1, 'rgba(239,79,85,.16)'); cue(A.b7 + 1.9, 'tick', 0.5, 3);
+  off(M1_ANS, B.b7 - 0.3, 0.3);
+
+  /* ===== 3 · La concurrence ===== */
+  // deux opérations accèdent aux mêmes données au même moment : les deux lectures (1 et 2), la même ligne
+  bump(['#pl-s1', '#pn-s2'], A.c1 + 0.8, 1.2); cue(A.c1 + 0.8, 'tick', 0.5, 2);
+  pulse('#rta6', A.c1 + 2.0, 1, GLOW); cue(A.c1 + 2.0, 'tick', 0.5, 4);
+  // si chacune se fie à la place qu’elle a vue disponible : les deux badges « Plus qu’une place ! », puis les deux confirmations
+  bump(['#pl-bg', '#pn-bg'], A.c2 + 1.2, 1.1); cue(A.c2 + 1.2, 'tick', 0.5, 3);
+  bump(['#pl-3', '#pn-3'], A.c2 + 3.2, 1.06); cue(A.c2 + 3.2, 'tick', 0.5, 5);
+
+  /* ===== 4 · Verrouiller la ligne ===== */
+  // une transaction regroupe les modifications d’une réservation ; l’isolation encadre ce que les transactions peuvent voir et faire
+  bump('#rtiL', A.d1 + 1.4, 1.02); cue(A.d1 + 1.4, 'tick', 0.5, 2);
+  // voici la réservation de Léa Simon : les téléphones et l’inscription s’en vont, la place revient à 1 ; la requête arrive, déjà écrite
+  hide(['#wl', '#wn', '#pl', '#pn', '#ti'], A.d3 - 0.05, {y: 40}, 0.35);
+  off('#rta6 .xx', A.d3 + 0.1, 0.3);
+  swap('#pr6 .a2', '#pr6 .a3', A.d3 + 0.2);
+  show('#etx', A.d3 + 0.5, {y: 40}, 0.5); cue(A.d3 + 0.5, 'whoosh', 0.45, 1);
+  // SELECT … FOR UPDATE lit les places et verrouille la ligne de l’atelier
+  pulse('#xsel', A.d4 + 0.4, 1, GLOW); cue(A.d4 + 0.4, 'tick', 0.5, 2);
+  pulse('#xfu', A.d4 + 1.6, 1, GLOW); cue(A.d4 + 1.6, 'tick', 0.5, 4);
+  pulse('#rta6', A.d4 + 2.8, 1, GLOW);
+  // le verrou est conservé jusqu’à la fin de la transaction : son COMMIT
+  pulse('#xcm', A.d5 + 1.4, 1, GLOW); cue(A.d5 + 1.4, 'tick', 0.5, 3);
+  // l’INSERT enregistre l’inscription, et l’UPDATE retire une place
+  pulse('#xin', A.d6 + 0.4, 1, GLOW); cue(A.d6 + 0.4, 'tick', 0.5, 2);
+  pulse('#xup', A.d6 + 2.1, 1, GLOW); cue(A.d6 + 2.1, 'tick', 0.5, 4);
+  // COMMIT valide la réservation et libère le verrou
+  pulse('#xcm', A.d7 + 0.4, 1, GLOW); cue(A.d7 + 0.4, 'tick', 0.5, 5);
+  hide('#etx', B.d7 - 0.15, {y: -30}, 0.35);
+
+  /* ===== 5 · Rejouer avec le verrou ===== */
+  // les téléphones reviennent comme au départ : le bouton, sans numéro d’étape ; aucune nouvelle inscription
+  tl.set(['#pl-3', '#pn-3', '.stp'], {autoAlpha: 0}, A.e1);
+  tl.set(['#pl-0', '#pn-0'], {autoAlpha: 1}, A.e1);
+  tl.set(['#rtiL', '#rtiN'], {height: 0}, A.e1); tl.set('#rti0', {height: RH}, A.e1);
+  [['#wl', 0.2], ['#pl', 0.3], ['#wn', 0.6], ['#pn', 0.7], ['#ti', 1.1]].forEach(([s, d]) =>
+    tl.fromTo(s, {autoAlpha: 0, y: 60}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false}, A.e1 + d));
+  cue(A.e1 + 0.3, 'whoosh', 0.5, 1); cue(A.e1 + 0.7, 'whoosh', 0.5, 3);
+  // l’élève touche « Réserver ma place » sur le téléphone de Léa Simon (l’app s’arrête dessus, OPENS ; hors de l’app, un doigt le montre)
+  tapPhone(RES);
+  state('pl', 0, 1, RES + 0.3);
+  // Léa Simon commence sa transaction ; elle verrouille la ligne de l’atelier et vérifie qu’il reste une place
+  bump('#pl-1', A.e2 + 0.8, 1.05); cue(A.e2 + 0.8, 'tick', 0.5, 2);
+  lockOn(0, A.e3 + 0.4);
+  pulse('#rta6 .c3', A.e3 + 2.0, 1, GLOW); cue(A.e3 + 2.0, 'tick', 0.5, 4);
+  // Nathan Petit tente de réserver : son écran vérifie la disponibilité
+  pressPhone('pn', A.e4 + 0.5);
+  state('pn', 0, 2, A.e4 + 0.8);
+  // sa transaction attend de pouvoir verrouiller cette même ligne
+  mark('#wt .a0', A.e5 + 0.5);
+  // son écran indique « Vérification de la disponibilité… »
+  bump('#pn-2', A.e6 + 1.0, 1.05); cue(A.e6 + 1.0, 'tick', 0.5, 3);
+  // Léa Simon enregistre son inscription
+  rowOut('#rti0', A.e7 + 0.4); rowIn('#rtiL', A.e7 + 0.45);
+  // le nombre de places passe de 1 à 0
+  swap('#pr6 .a3', '#pr6 .a4', A.e8 + 0.5);
+  // Léa Simon valide avec COMMIT : son inscription est confirmée, le verrou est libéré
+  state('pl', 1, 3, A.e9 + 0.7);
+  lockOff(0, A.e10 + 1.3);
+  // Nathan Petit peut vérifier la disponibilité à son tour : il verrouille la ligne, et lit 0 place
+  tl.to('#wt .a0', {autoAlpha: 0, scale: 0.6, duration: 0.3, ease: 'power2.in'}, A.e11 + 0.2);
+  lockOn(1, A.e11 + 0.5);
+  pulse('#rta6 .c3', A.e11 + 1.6, 1, GLOW); cue(A.e11 + 1.6, 'tick', 0.5, 3);
+  // il reste 0 place : aucune inscription n’est créée pour lui ; son écran : l’atelier vient d’être complet
+  state('pn', 2, 4, A.e12 + 1.0);
+  swap('#pn-bg', '#pn-bf', A.e12 + 1.3, false);
+  lockOff(1, A.e12 + 2.4);
+  // le verrou empêche les deux réservations de modifier simultanément la disponibilité ; Nathan Petit vérifie après la fin de la transaction de Léa Simon
+  pulse('#rta6 .c3', A.e13 + 1.4, 1, GLOW); cue(A.e13 + 1.4, 'tick', 0.5, 2);
+  bump('#pl-3', A.e14 + 1.4, 1.05); bump('#pn-4', A.e14 + 2.4, 1.05); cue(A.e14 + 2.4, 'tick', 0.5, 4);
+
+  /* ===== 6 · Et avec ROLLBACK ? ===== */
+  // revenons juste avant son COMMIT : la ligne est encore verrouillée, Nathan Petit attend (la place est à 0, pas encore validée)
+  state('pl', 3, 1, A.f2 + 0.4);
+  state('pn', 4, 2, A.f2 + 0.4);
+  swap('#pn-bf', '#pn-bg', A.f2 + 0.5, false);
+  lockOn(0, A.f2 + 1.0);
+  mark('#wt .a0', A.f2 + 1.5);
+  // ROLLBACK annule son inscription et libère le verrou : la ligne rougit et s’en va, la place revient à 1
+  on('#rtiL .xx', A.f3 + 0.3, 0.25); cue(A.f3 + 0.3, 'miss', 0.4);
+  rowOut('#rtiL', A.f3 + 0.9); rowIn('#rti0', A.f3 + 0.95);
+  swap('#pr6 .a4', '#pr6 .a5', A.f3 + 1.4);
+  state('pl', 1, 5, A.f3 + 1.7);
+  lockOff(0, A.f3 + 2.5);
+  // la place reste disponible
+  pulse('#rta6 .c3', A.f4 + 0.5, 1, GLOW); cue(A.f4 + 0.5, 'tick', 0.5, 3);
+  // Nathan Petit peut alors la réserver : il verrouille la ligne, s’inscrit, la place passe à 0, et sa place est réservée
+  tl.to('#wt .a0', {autoAlpha: 0, scale: 0.6, duration: 0.3, ease: 'power2.in'}, A.f5 + 0.1);
+  lockOn(1, A.f5 + 0.3);
+  rowOut('#rti0', A.f5 + 1.0); rowIn('#rtiN', A.f5 + 1.05);
+  swap('#pr6 .a5', '#pr6 .a6', A.f5 + 1.6);
+  state('pn', 2, 3, A.f5 + 1.9);
+  lockOff(1, A.f5 + 2.8);
+
+  /* ===== 7 · Attendre ou continuer ? ===== */
+  hide(['#ta', '#wl', '#wn', '#pl', '#pn', '#ti'], A.g1 - 0.05, {y: -30}, 0.35);
+  sceneOff('#sw', A.g1 + 0.35);
+  sceneOn('#sd', A.g1 + 0.35);
+  [['#db-at', 0], ['#db-co', 3]].forEach(([id, p], q) => { const t = A.g1 + 0.5 + q * 0.5; show(id, t, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(t, 'pop', 0.6, p); });
+  show('#bpack', A.g1 + 1.7, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.g1 + 1.7, 'pop', 0.7, 1);
+  // À toi : les six situations rangées ; remplies, les cases ne sont plus des zones où déposer, et la pile est vide
+  tl.set('.dbn .rc', {autoAlpha: 1}, set2(PICKS[5].at));
+  tl.set('.dbn', {borderStyle: 'solid'}, set2(PICKS[5].at));
+  tl.set('#bpack', {autoAlpha: 0}, set2(PICKS[5].at));
+  // une transaction seule ne suffit pas : le verrou fait attendre ; le niveau d’isolation et les mécanismes utilisés décident
+  bump('#db-at', A.g2 + 0.9, 1.03); cue(A.g2 + 0.9, 'tick', 0.5, 2);
+  bump('#db-co', A.g3 + 2.0, 1.03); cue(A.g3 + 2.0, 'tick', 0.5, 4);
+  hide('.dbn', B.g3 - 0.1, {y: -40}, 0.4);
+  // la suite : la prochaine leçon
+  sceneOff('#sd', A.g4 + 0.3);
+  sceneOn('#sn', A.g4);
+  show('#keyc', A.g4 + 0.1, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)'); cue(A.g4 + 0.1, 'whoosh', 0.6);
+  tl.to('#keyc .emo', {rotation: -18, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.g4 + 0.7);
+  hide('#keyc', B.g4 - 0.1, {y: -30}, 0.4);
+  sceneOff('#sn', RECAP);
+
+  /* ===== 8 · À retenir ===== */
+  // chaque idée : sa phrase, puis son détail
+  recapScene(RECAP, [RECAP + 0.7, RECAP + 2.1, RECAP + 3.5]);
+  const rt = $$('#s7 .rtxt'), rs = $$('#s7 .rs'), rd = (h, n = 20) => Math.ceil(readTime(h) * n) / n;
+  gsap.set(rs, {autoAlpha: 0, y: 10});
+  [[RECAP + 0.7, RECAP + 1.45], [RECAP + 2.1, RECAP + 2.85], [RECAP + 3.5, RECAP + 4.25]].forEach(([r, d], i) => {
+    tl.to(rs[i], {autoAlpha: 1, y: 0, duration: 0.45, ease: 'power2.out'}, d);
+    cue(d, 'tick', 0.5, i * 2 + 1);
+    hold(r + 0.6, rd(rt[i].innerHTML.split('<span')[0]));
+    hold(d + 0.5, rd(rs[i].innerHTML));
+  });
+  if (APP) cue(NOTES + 0.05, 'pop', 0.85, 5);
+}
+
+/* ---------- Moments « À toi » : ce que montre chaque geste ----------
+   Le lecteur arrête l’image à chaque moment (PICKS) et pose ses zones tactiles sur les endroits que la page décrit
+   (IX.spots). Chaque geste est jugé ici (IX.act, IX.pick) et montré aussitôt sur l’image : les bons gestes affichent
+   les mêmes éléments que la timeline juste après l’arrêt (classe pvs, sans toucher aux styles de la timeline) ;
+   ils restent jusqu’à ce que la timeline affiche la même image (IX.tick), puis s’effacent : la reprise est invisible. */
+const IX = (() => {
+  let X = null, wait = -1;
+  function start(i){ if (!X || X.i !== i) { clear(); X = {i, cls: [], tm: [], got: new Set()}; } }
+  function clear(){
+    if (!X) return;
+    X.tm.forEach(clearTimeout);
+    X.cls.forEach(([e, c]) => e.classList.remove(c));
+    X = null; wait = -1;
+  }
+  const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
+  const marks = (sels, c = 'pvs') => sels.forEach(s => $$(s).forEach(e => mark(e, c)));
+  /* La classe est aussi notée dans X.cls : si le moment change avant la fin du minuteur (deux réponses enchaînées), clear() la retire. */
+  const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
+  /* Moment 1 : les quatre cases de la ligne de l’atelier */
+  const CELLS = [['c0', 'Identifiant de l’atelier : 6'], ['c1', 'Titre : l’atelier Cuisine saine'], ['c2', 'Date de l’atelier'], ['c3', 'Places restantes : -1']];
+  const cellOf = k => $(`#rta6 .${k}`);
+  function spots(i){
+    if (i === 0) return CELLS.map(([k, label]) => Object.assign({k, label}, rel(cellOf(k))));
+    // moment 6 : la réservation attend, ou elle continue
+    if (i === 5) return BINS.map(([k, n, d]) => Object.assign({k, label: `${n} : ${d}`}, rel($('#db-' + k))));
+    return [];
+  }
+  function act(i, a, b){
+    start(i);
+    if (i === 0) {
+      // les places restantes : -1, une place réservée deux fois
+      if (a === 'c3') {
+        if (!X.got.has(a)) { X.got.add(a); marks(M1_ANS); sfx('tick', 1, 0.6); }
+        return {ok: true, done: true, why: '', at: rel(cellOf('c3'))};
+      }
+      // une autre case : elle rougit un instant, et la correction dit pourquoi
+      flash(cellOf(a), 'kof', 650);
+      return {ok: false, why: fr(WHY1[a])};
+    }
+    if (i === 5) {
+      const n = +a, bin = $('#db-' + b);
+      if (ITEMS[n][1] === b) {
+        mark($('#sbu' + n), 'pvs');
+        flash(bin, 'okb', 520);
+        X.got.add(n);
+        sfx('pop', X.got.size, 0.6);
+        if (X.got.size === ITEMS.length) marks(['#bpack'], 'pvh');   // la pile est vide, comme juste après l’arrêt
+        return {ok: true, done: X.got.size === ITEMS.length, why: '', at: rel(bin)};
+      }
+      flash(bin, 'kob', 650);
+      return {ok: false, why: fr(ITEMS[n][2])};
+    }
+    return {ok: false};
+  }
+  /* Choix d’une réponse (moments 2 à 5) : le verdict et son explication. */
+  function pick(i, k){
+    clear(); start(i);
+    const P = PICKS[i], o = P.options[k], ok = !!o.ok;
+    sfx(ok ? 'pop' : 'miss', 2, 0.5);
+    return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));
+  }
+  /* Indice, après deux erreurs : une piste. */
+  function hint(i){
+    const h = (() => {
+      if (i === 0) return {text: 'Cherche une valeur impossible : un nombre de places sous zéro.', keys: ['c3']};
+      if (i === 1) return {text: 'Il faut empêcher la deuxième réservation de lire la place pendant que la première la prend.'};
+      if (i === 2) return {text: 'Le verrou reste en place jusqu’à la fin de la transaction de Léa Simon.'};
+      if (i === 3) return {text: 'Qu’a fait la transaction de Léa Simon avant de libérer le verrou ?'};
+      if (i === 4) return {text: '<code>ROLLBACK</code> annule toutes les modifications de la transaction, pas seulement le verrou.'};
+      return null;
+    })();
+    return h && Object.assign(h, {text: fr(h.text)});
+  }
+  return {
+    enter: i => { clear(); start(i); },
+    spots, act, pick, hint,
+    slot: () => null,
+    /* Moment réussi : l’aperçu reste jusqu’à ce que la timeline affiche la même image ; sinon il part tout de suite. */
+    leave(i, answered){ if (answered && X && X.i === i) wait = i; else clear(); },
+    tick(t = tl.time()){ if (wait < 0) return; const a = PICKS[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear(); }
+  };
+})();
+window.IX = IX;
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 249.94, picks: PICKS, opens: OPENS,
+  glyphs: '🗄️👥🛒⭐📦🧑‍🏫📅📝💳💬🔁🎁🏷️🔑🔗🔒⏳🔥✅↩️🧑‍🍳👆📬🔖🛡️✓✕!…«»·−→‹',
+  dom, build, beforeRender: t => IX.tick(t)});
+</script>
+</body>
+</html>
