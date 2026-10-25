@@ -192,10 +192,15 @@
 .bring{left:220px;width:640px;height:108px;border-radius:30px;box-shadow:0 0 0 7px rgba(106,77,244,.5);pointer-events:none;opacity:0;visibility:hidden}
 .bring.go{box-shadow:0 0 0 7px rgba(52,194,122,.55)}
 
-/* ---------- Les messages : deux du service client, puis celui de Léa Simon ---------- */
+/* ---------- Les messages : deux du service client, puis celui de Léa Simon, avec la photo de son colis, puis la même photo agrandie ---------- */
 #ml1{top:560px}
 #ml2{top:520px}
-#ml3{top:470px}
+#ml3{top:370px}
+/* La photo garde sa place (carrée) avant même d’être chargée : la conversation et le zoom se mesurent juste. */
+#ph1 img,.zph img{aspect-ratio:1/1;object-fit:cover}
+.zbg{left:0;top:0;width:1080px;height:1920px;background:rgba(17,14,39,.62);opacity:0;visibility:hidden}
+.zph{left:64px;top:330px;width:952px;height:952px;border-radius:46px;overflow:hidden;box-shadow:0 30px 70px rgba(17,14,39,.45);opacity:0;visibility:hidden;transform-origin:0 0}
+.zph img{display:block;width:100%;height:100%}
 
 /* ---------- 7 · Trois cases où ranger les situations : ROLLBACK TO SAVEPOINT, ROLLBACK, COMMIT ---------- */
 .dbn{left:64px;width:952px;height:210px;box-sizing:border-box;padding:20px 28px 22px;border-radius:36px;border:4px dashed #C9BCFF;background:rgba(255,255,255,.85);display:flex;flex-direction:column}
@@ -285,7 +290,8 @@ const {A, B} = SCH;
 /* Les trois messages reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses phrases), signature, option].
    Le service client écrit par SMS ({sms: true}) : il interrompt la préparation (Elisa, 25 octobre, 17 h 05 : « une nouvelle notification
    interrompt la préparation »). Le premier message et celui de Léa Simon sont ceux d’Elisa (25 octobre, 19 h 13), mot pour mot ; Léa Simon
-   finit sur son propre merci (bye: null : pas de « Merci ! » de plus). L’app s’arrête sur chaque notification (OPENS) jusqu’au toucher. */
+   finit sur son propre merci (bye: null : pas de « Merci ! » de plus), puis envoie la photo de son colis (Elisa, 20 h 05).
+   L’app s’arrête sur chaque notification (OPENS) jusqu’au toucher, puis sur la photo. */
 const MAILS = [
   [['Le service client', 'NutriBoost', 'SC'], 'k-in', 'équipe', 'service.client@nutriboost.fr', [
     'Pour nous excuser du shaker arrivé abîmé, peux-tu ajouter une tisane gratuite au colis de remplacement de Léa ? 🌿'], 'Le service client NutriBoost', {sms: true}],
@@ -295,7 +301,8 @@ const MAILS = [
   [['Léa', 'Simon', 'LS'], 'k-cl', 'cliente', 'lea@mail.fr', [
     'J’ai bien reçu le colis !',
     'Le shaker est arrivé en parfait état cette fois, avec le papier bulle 😊',
-    'Merci pour votre réactivité et pour la protéine, c’est une attention qui fait plaisir !'], 'Léa Simon', {bye: null}]
+    'Merci pour votre réactivité et pour la protéine, c’est une attention qui fait plaisir !'], 'Léa Simon',
+    {bye: null, photo: {id: 'ph1', src: 'projet-savepoint-colis.webp', alt: 'Le colis de Léa Simon : son shaker rose personnalisé, dans du papier bulle, et la Protéine Végétale'}}]
 ];
 /* Un message : la légende s’efface le temps du message (notification, toucher, lecture, départ). Un SMS : « Bonjour, », une bulle par phrase,
    la photo jointe s’il y en a une, « Merci ! » ; le toucher à +1,6 s, une bulle toutes les 0,28 s, le départ juste après la pause de lecture. */
@@ -304,7 +311,10 @@ const mailRows = n => { const o = MAILS[n][6] || {};
   return (o.bye === null ? 1 : 2) + [].concat(MAILS[n][4]).flatMap(p => p.split(/(?<=[.!?])\s+(?=[A-ZÀÂÉÈÊÎÔÛÇ])/)).length + (o.photo ? 1 : 0); };
 const mailOutAt = n => +(2.68 + 0.28 * (mailRows(n) - 1)).toFixed(2);
 const MO = MAILS.map((m, n) => mailOutAt(n));
-const mailBlock = n => { const t = SCH.t; SCH.t = +(SCH.t + MO[n] + 1).toFixed(2); return t; };
+const mailBlock = (n, extra = 0) => { const t = SCH.t; SCH.t = +(SCH.t + MO[n] + extra + 1).toFixed(2); return t; };
+/* La photo du message de Léa Simon : l’app s’arrête dessus (PH) une fois toutes les bulles arrivées et lues ; au toucher, elle s’agrandit,
+   reste le temps de la regarder (ZOOM_HOLD), puis reprend sa place, et le message s’en va (ZOOM_EXTRA : le temps de tout cela, avant le départ). */
+const ZOOM_HOLD = 2.6, ZOOM_EXTRA = 2.3;
 
 /* 1 · Un petit geste pour Léa : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) ; le service client
    écrit tout de suite (Elisa, 25 octobre, 19 h 13 : son message prend la place de la légende qui annonçait la tisane, et passe avant) */
@@ -367,7 +377,9 @@ cap('f4', "L’équipe logistique peut préparer<br>le colis de Léa Simon.", 3.
 /* 8 · Le colis est arrivé : Léa Simon écrit au service client (Elisa, 25 octobre, 19 h 13, ses mots) */
 chap({label:'Le colis est arrivé'});
 cap('h1', "Quelques jours plus tard,<br>Léa Simon écrit au service client.", 3.6);
-const MAIL3 = mailBlock(2);
+const MAIL3 = mailBlock(2, ZOOM_EXTRA);
+const PH = +(MAIL3 + MO[2] + 0.9).toFixed(2);     // l’arrêt sur la photo, après la pause de lecture des bulles (hors de l’app, le doigt arrive)
+const OUT3 = +(MAIL3 + MO[2] + ZOOM_EXTRA).toFixed(2);   // le départ du message, une fois la photo revenue à sa place
 cap('h2', "Grâce au savepoint, tu as changé<br>le cadeau sans refaire le remplacement.", 4.4);
 /* 9 · Quelle commande choisir ? */
 chap({label:'Quelle commande choisir ?'});
@@ -449,7 +461,7 @@ const PICKS = [
     options: ITEMS.map(x => ({label: x[0]}))}
 ];
 
-/* Les arrêts « toucher » : les trois notifications, et les deux boutons de la trame d’Elisa (« Revenir au savepoint », « Valider le remplacement »).
+/* Les arrêts « toucher » : les trois notifications, la photo du colis, et les deux boutons de la trame d’Elisa (« Revenir au savepoint », « Valider le remplacement »).
    Rien n’y est noté. Sur un bouton, la légende dit déjà quoi faire : un doigt seul (hand) monte et descend sur son coin, et le bouton s’enfonce
    dès l’appui (press), puis remonte au relâcher (rest). */
 const SAV = +(A.d3 + 2.6).toFixed(2), VAL = +(A.f2 + 2.6).toFixed(2);
@@ -464,7 +476,8 @@ const OPENS = [
   msgOpen(MAIL2, 1),
   Object.assign({at: SAV, sel: '#bsav', prompt: 'Touche le bouton.', label: 'Revenir au savepoint'}, BTN('#4B30CC')),
   Object.assign({at: VAL, sel: '#bval', prompt: 'Touche le bouton.', label: 'Valider le remplacement'}, BTN('#157A49')),
-  msgOpen(MAIL3, 2)
+  msgOpen(MAIL3, 2),
+  {at: PH, sel: '#ph1', prompt: 'Touche la photo pour l’agrandir.', label: 'Agrandir la photo du colis'}
 ];
 
 /* ---------- Gabarits ---------- */
@@ -512,9 +525,10 @@ function dom(){
   $('#sa').innerHTML = `<div class="abs card bc" id="bc"><div class="bh"><span class="emo">🗄️</span><span>Base NutriBoost</span><span class="bn"><span>10 tables</span></span></div>` +
     TB.map(([k, kc, emo, name, n]) => `<div class="srow ${kc}" id="bw-${k}"><i class="hl"></i><div class="sn"><span class="emo">${emo}</span>` +
       `<span class="nm">${name}</span><i class="sp"></i><b class="nb"><span>${n} ${n > 1 ? 'lignes' : 'ligne'}</span></b></div></div>`).join('') + '</div>';
-  /* Les messages : le service client, deux fois, puis Léa Simon (elle finit sur son propre merci) */
+  /* Les messages : le service client, deux fois, puis Léa Simon (elle finit sur son propre merci) ; la photo de son colis, agrandie au toucher */
   $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body, false, smsRank(MAILS, n),
     (MAILS[n][6] || {}).hello, (MAILS[n][6] || {}).photo, (MAILS[n][6] || {}).bye) : '').join('') +
+    `<div class="abs zbg fly" id="zbg"></div><div class="abs zph fly" id="zph"><img src="${MAILS[2][6].photo.src}" alt=""></div>` +
     '<div class="abs emo tapf" id="tapf">👆</div>';
   /* La préparation : l’historique de la transaction, l’extrait de la table produits, la table cadeaux, la requête du moment, les boutons.
      L’historique : la tisane (h4, h5) s’efface au retour au savepoint, la protéine (h6, h7) prend sa place, après le même repère. */
@@ -574,6 +588,7 @@ const pos = el => {
   return {x, y, w: el.offsetWidth, h: el.offsetHeight};
 };
 const HROWS = ['#h1', '#h2', '#h3', '#h4', '#h5'], HNEW = ['#h6', '#h7'];
+const ZB = {};   // la photo du colis dans sa bulle, par rapport à sa place agrandie (décalage, échelle)
 function layout(){
   // l’historique garde la hauteur de cinq lignes, son plus grand nombre à la fois : les modifications s’y ajoutent sans pousser les tables
   // (la protéine, h6 et h7, arrive une fois la tisane, h4 et h5, effacée)
@@ -600,6 +615,9 @@ function layout(){
   $('#colis').style.top = EW + 'px';
   // quelle commande choisir : la pile des situations, sous les trois cases
   $('#bpack').style.top = (bottom('#db-co') + 9 + 44) + 'px';
+  // la photo : de sa bulle dans la conversation à sa place agrandie (au centre de l’image)
+  const b = pos($('#ph1')), z = pos($('#zph'));
+  Object.assign(ZB, {x: b.x - z.x, y: b.y - z.y, s: b.w / z.w});
 }
 
 /* ---------- Petits gestes de la timeline ---------- */
@@ -666,6 +684,21 @@ function fingerTap(M, T, f = '#tapf', fx = 0.6, fy = 92){
   tl.to(f, {scale: 1, duration: 0.15}, T);
   tl.to(f, {autoAlpha: 0, y: 70, duration: 0.3}, T + 0.2);
 }
+/* La photo agrandie : au toucher (T), elle part de sa bulle et prend toute la largeur, l’image reste le temps de la regarder, puis elle
+   revient dans sa bulle (comme au chapitre 11). */
+function zoomPhoto(T){
+  if (!APP) fingerTap($('#ph1'), T, '#tapf', 0.55, 150);
+  tl.to('#ph1', {scale: 0.97, duration: 0.09, yoyo: true, repeat: 1, ease: 'power2.out'}, T); cue(T, 'click', 0.5);
+  tl.set('#zph', {autoAlpha: 1, x: ZB.x, y: ZB.y, scale: ZB.s}, T + 0.12);
+  tl.set('#ph1', {autoAlpha: 0}, T + 0.12);
+  tl.to('#zbg', {autoAlpha: 1, duration: 0.4, ease: 'power2.out'}, T + 0.12);
+  tl.to('#zph', {x: 0, y: 0, scale: 1, duration: 0.5, ease: 'power3.out'}, T + 0.12); cue(T + 0.12, 'whoosh', 0.45, 2);
+  hold(T + 0.7, ZOOM_HOLD);
+  tl.to('#zbg', {autoAlpha: 0, duration: 0.35, ease: 'power2.in'}, T + 0.75);
+  tl.to('#zph', {x: ZB.x, y: ZB.y, scale: ZB.s, duration: 0.45, ease: 'power3.inOut'}, T + 0.75); cue(T + 0.75, 'whoosh', 0.35, 1);
+  tl.set('#ph1', {autoAlpha: 1}, T + 1.2);
+  tl.set('#zph', {autoAlpha: 0}, T + 1.21);
+}
 /* La micro-interaction d’un bouton touché (Elisa, 25 octobre, 16 h 22). Dans l’app, le bouton s’enfonce sous le doigt dès le toucher et remonte
    d’un rebond au relâcher (OPENS : press, rest ; le lecteur s’en charge, hors de la timeline) ; hors de l’app, le doigt appuie (press). Puis une
    onde blanche le traverse, il gonfle un instant, son icône remue et un anneau s’en échappe. Rien que des « to » : en revenant en arrière, chaque
@@ -692,7 +725,7 @@ function build(){
   gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
   hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
   layout();
-  gsap.set(['.sq', '.pack', '#bc', '#hs', '#tp', '#tc', '.bt', '#st3', '#colis', '#keyc', '.dbn', '#tapf', '#tapw'], {autoAlpha: 0});
+  gsap.set(['.sq', '.pack', '#bc', '#hs', '#tp', '#tc', '.bt', '#st3', '#colis', '#keyc', '.dbn', '#tapf', '#tapw', '#zbg', '#zph'], {autoAlpha: 0});
   gsap.set(['#sk5 .a1', '#sk6 .a1', '#sk8 .a1', '.dbn .rc'], {autoAlpha: 0});
 
   /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
@@ -882,14 +915,16 @@ function build(){
   tl.to('#colis .ch .emo', {rotation: -14, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.f4 + 1.0);
 
   /* ===== 8 · Le colis est arrivé ===== */
-  // quelques jours plus tard, Léa Simon écrit au service client : son message (la préparation s’efface le temps du message, la légende aussi)
+  // quelques jours plus tard, Léa Simon écrit au service client : son message et la photo de son colis, agrandie au toucher
+  // (la préparation s’efface le temps du message, la légende aussi)
   bump('#colis', A.h1 + 0.8, 1.03); cue(A.h1 + 0.8, 'tick', 0.5, 2);
   capOff(B.h1 - 0.2); workOff(B.h1 - 0.1);
   sceneOn('#sm', MAIL3);
   mailIn(3, MAIL3 + 0.5, OPENS[4].at);
-  mailOut(3, MAIL3 + MO[2]);
-  sceneOff('#sm', MAIL3 + MO[2] + 0.45);
-  workOn(MAIL3 + MO[2] + 0.35);
+  zoomPhoto(PH);
+  mailOut(3, OUT3);
+  sceneOff('#sm', OUT3 + 0.45);
+  workOn(OUT3 + 0.35);
   capOn(A.h2 - 0.3);
   // grâce au savepoint : le remplacement gardé, puis le nouveau cadeau, après le repère
   pulse(['#h1', '#h2'], A.h2 + 0.9, 1, 'rgba(52,194,122,.22)'); cue(A.h2 + 0.9, 'tick', 0.5, 2);
@@ -1014,7 +1049,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 229.28, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 231.86, picks: PICKS, opens: OPENS,
   glyphs: '🗄️👥🛒⭐📦🧑‍🏫📅📝💳💬🔁🔑🔗⏳✅↩️👆🎁🍵🌱🌿😊📜📍💤🚚📬🔖✓✕!…«»·−→',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>

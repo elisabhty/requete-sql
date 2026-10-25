@@ -102,9 +102,9 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 229.28);
-  assert.ok(page.includes('notesAt: 229.28,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 236.48);
+  assert.equal(val('NOTES'), 231.86);
+  assert.ok(page.includes('notesAt: 231.86,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 239.06);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   /* Les parties de la trame d’Elisa, avec l’ouverture commune à tous les chapitres du projet dans la première ; le 25 octobre (19 h 13), Léa Simon
@@ -267,18 +267,27 @@ test('les messages : le service client écrit deux fois par SMS, puis Léa Simon
   assert.deepEqual(mails[1][4], ['Je viens d’avoir Léa : elle nous remercie, mais elle ne boit pas de tisane.',
     'Peux-tu remplacer la tisane par de la protéine végétale, pour qu’elle teste son nouveau shaker ?']);
   /* Le dernier : Léa Simon, colis reçu (ses mots, d’après Elisa : « Bonjour, j’ai bien reçu le colis ! … »), sans « Merci ! » de plus. */
-  assert.deepEqual([mails[2][0], mails[2][2], mails[2][6]], [['Léa', 'Simon', 'LS'], 'cliente', {bye: null}]);
+  /* Elisa, 20 h 05 : la photo de son colis (le shaker rose « Léa » dans son papier bulle, la Protéine Végétale), envoyée après son merci. */
+  assert.deepEqual([mails[2][0], mails[2][2], mails[2][6]], [['Léa', 'Simon', 'LS'], 'cliente',
+    {bye: null, photo: {id: 'ph1', src: 'projet-savepoint-colis.webp', alt: 'Le colis de Léa Simon : son shaker rose personnalisé, dans du papier bulle, et la Protéine Végétale'}}]);
+  assert.ok(fs.statSync(path.join(root, 'assets/anim/projet-savepoint-colis.webp')).size > 20000, 'la photo est livrée avec la page');
+  assert.ok(fs.readFileSync(path.join(root, 'sw.js'), 'utf8').includes("'./assets/anim/projet-savepoint-colis.webp'"), 'et gardée pour le hors ligne');
   assert.deepEqual(mails[2][4], ['J’ai bien reçu le colis !', 'Le shaker est arrivé en parfait état cette fois, avec le papier bulle 😊',
     'Merci pour votre réactivité et pour la protéine, c’est une attention qui fait plaisir !']);
-  assert.equal(vm.runInContext('mailRows(2)', D), 4, 'quatre bulles : « Bonjour, » et ses trois phrases');
-  assert.deepEqual(opens.map(o => o.sel), ['#ml1', '#ml2', '#bsav', '#bval', '#ml3']);
+  assert.equal(vm.runInContext('mailRows(2)', D), 5, 'cinq bulles : « Bonjour, », ses trois phrases et la photo');
+  assert.deepEqual(opens.map(o => o.sel), ['#ml1', '#ml2', '#bsav', '#bval', '#ml3', '#ph1']);
   assert.deepEqual(opens.map(o => o.label), ['Ouvrir le message du service client NutriBoost', 'Ouvrir le message du service client NutriBoost', 'Revenir au savepoint', 'Valider le remplacement',
-    'Ouvrir le message de Léa Simon']);
+    'Ouvrir le message de Léa Simon', 'Agrandir la photo du colis']);
+  /* La photo : l’app s’arrête dessus une fois les bulles lues ; agrandie au toucher, comme au chapitre 11 ; le message part une fois la photo revenue. */
+  assert.equal(opens[5].prompt, 'Touche la photo pour l’agrandir.');
+  assert.ok(opens[5].at > opens[4].at && opens[5].at < picks[5].at && val('OUT3') > opens[5].at + 1.2, 'la photo, après l’ouverture du message, avant son départ');
+  for (const t of ['zoomPhoto(PH);', 'mailOut(3, OUT3);', "sceneOff('#sm', OUT3 + 0.45);", '<div class="abs zph fly" id="zph"><img src="${MAILS[2][6].photo.src}" alt=""></div>', 'hold(T + 0.7, ZOOM_HOLD);'])
+    assert.ok(page.includes(t), `la photo : ${t}`);
   /* Le premier message ouvre le chapitre, le deuxième ouvre la partie 4, le troisième suit la validation ; la préparation s’efface le temps de chacun, puis revient. */
   assert.ok(opens[0].at < picks[0].at && opens[1].at > picks[2].at && opens[1].at < picks[3].at && opens[4].at > opens[3].at && opens[4].at < picks[5].at,
     'le premier message avant le moment 1, le deuxième entre les moments 3 et 4, le troisième après la validation');
   for (const t of ['capOff(B.r2 - 0.2);', "hide('#bc', B.r2 - 0.1, {y: -30}, 0.35);", "sceneOn('#sw', MAIL1 + MO[0] + 0.45);", 'workOff(B.c8 - 0.1);', 'workOn(MAIL2 + MO[1] + 0.35);',
-    'workOff(B.h1 - 0.1);', 'workOn(MAIL3 + MO[2] + 0.35);']) assert.ok(page.includes(t), `la préparation s’efface : ${t}`);
+    'workOff(B.h1 - 0.1);', 'workOn(OUT3 + 0.35);']) assert.ok(page.includes(t), `la préparation s’efface : ${t}`);
   assert.ok(page.includes('(MAILS[n][6] || {}).hello, (MAILS[n][6] || {}).photo, (MAILS[n][6] || {}).bye)'), 'la page passe au moteur la formule, la photo et la fin de chaque SMS');
   const bulles = {'#bsav': 'Clique sur le bouton<br>« Revenir au savepoint ».', '#bval': 'Clique sur le bouton<br>« Valider le remplacement ».'}, lips = {'#bsav': '#4B30CC', '#bval': '#157A49'};
   for (const o of opens.slice(2, 4)) {

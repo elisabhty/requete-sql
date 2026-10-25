@@ -41,14 +41,18 @@ test('les bulles : « Bonjour, », une bulle par phrase de la demande, « Merci 
   assert.deepEqual(parts('Je voudrais aussi participer à l’atelier Méditation du 24 septembre.'), ['Bonjour,', 'Je voudrais aussi participer à l’atelier Méditation du 24 septembre.', 'Merci !']);
 });
 
-test('un message qui finit sur son propre merci (bye: null) : pas de « Merci ! » de plus ; la photo vient avant sa dernière phrase', () => {
+test('un message qui finit sur son propre merci (bye: null) : pas de « Merci ! » de plus ; sa photo vient en dernier, sans queue de bulle avant elle', () => {
   /* Elisa, 25 octobre, 19 h 13 : à la fin du chapitre 12, Léa Simon écrit « Merci pour votre réactivité et pour la protéine, c’est une attention qui fait plaisir ! ». */
   const body = ['J’ai bien reçu le colis !', 'Merci pour votre réactivité !'];
   assert.deepEqual([...S.smsParts(body, undefined, null)], ['Bonjour,', 'J’ai bien reçu le colis !', 'Merci pour votre réactivité !']);
   assert.deepEqual([...S.smsParts(body)], ['Bonjour,', 'J’ai bien reçu le colis !', 'Merci pour votre réactivité !', 'Merci !'], 'sans option : « Merci ! » à la fin');
   const h = S.smsCard(3, 'k-cl', 'Léa', 'Simon', 'LS', body, false, 0, undefined, {id: 'ph2', src: 'x.webp', alt: 'Le colis'}, null);
-  assert.ok(!h.includes('>Merci !<') && h.includes('<p class="sms-m sms-ph" id="ph2"><img src="x.webp" alt="Le colis"></p><p class="sms-m last">Merci pour votre réactivité !</p>'),
-    'la photo, puis la dernière phrase, qui porte la queue de la bulle');
+  assert.ok(!h.includes('>Merci !<') && h.includes('<p class="sms-m">Merci pour votre réactivité !</p><p class="sms-m sms-ph" id="ph2"><img src="x.webp" alt="Le colis"></p></div>'),
+    'la dernière phrase, puis la photo, en dernier : la consigne « Touche la photo » ne cache aucune phrase');
+  assert.ok(!h.includes('sms-m last'), 'pas de queue sur la bulle de texte suivie de la photo');
+  /* Avec « Merci ! » (chapitre 11), la photo vient juste avant lui, qui garde la queue. */
+  const h2 = S.smsCard(1, 'k-cl', 'Léa', 'Simon', 'LS', ['Mon shaker est arrivé cassé.'], false, 0, undefined, {id: 'ph1', src: 'y.webp', alt: 'Le shaker'});
+  assert.ok(h2.includes('<p class="sms-m sms-ph" id="ph1"><img src="y.webp" alt="Le shaker"></p><p class="sms-m last">Merci !</p>'));
 });
 test('la première bulle : « Bonjour, » par défaut ; la page peut choisir la sienne (hello : « Bonjour ! »), la bannière montre toujours la première phrase', () => {
   assert.deepEqual(parts('Peux-tu venir ?'), ['Bonjour,', 'Peux-tu venir ?', 'Merci !']);
