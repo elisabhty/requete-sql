@@ -1289,6 +1289,13 @@ test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la 
     'le plateau couvre la légende, jamais le résultat : haut de la légende (y = 1496), jusqu’à y = 1830');
   assert.ok(place.includes("P.box.style.top=Math.max(0,Math.min(a.y,lim-card.offsetHeight)).toFixed(1)+'px'") && !place.includes('R.height-pb-10-a.y'),
     'la carte suit son contenu : plus de hauteur forcée jusqu’en bas de l’écran, elle remonte seulement s’il lui manque de la place');
+  /* Elisa, 25 octobre, 16 h 35 : « ça dépasse en bas ». La carte s’arrête 22 px au-dessus du bas du lecteur, ou du bas visible si la barre de Safari
+     en recouvre une partie (son liseré et son ombre restent visibles) ; le bouton lecture a de l’air dessous ; la barre qui change de taille replace tout. */
+  assert.ok(place.includes('const lim=Math.min(R.height-pb,vv?vv.offsetTop+vv.height-R.top:R.height)-LV_PK_BOT;') && html.includes('LV_PK_WAIT=400, LV_PK_BOT=22;'),
+    'un vrai blanc sous la carte, jamais sous la barre de Safari');
+  assert.ok(html.includes('.lv-bottom{flex:none;padding:2px 14px 14px;'), 'de l’air sous le bouton lecture');
+  assert.ok(html.includes("if(window.visualViewport)visualViewport.addEventListener('resize',place);") && html.includes("if(window.visualViewport)visualViewport.removeEventListener('resize',place);"),
+    'tout se replace quand la barre de Safari change de taille ; l’écouteur est libéré à la fermeture');
   assert.ok(cut('function lvPkShow(i,p){', 'function lvPkValid(').includes('new ResizeObserver(lvPkPlace)') && cut('function lvPkClose(answered){', 'function lvReplay(){').includes('P.ro.disconnect()'),
     'la carte se replace quand son contenu change (réponse, explication, bouton) ; l’observateur est libéré à la fermeture');
   assert.ok(html.includes('.lv-pk-card>p:nth-last-child(1 of :not([hidden])){margin-bottom:0}'),
