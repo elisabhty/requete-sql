@@ -595,7 +595,9 @@ export const EXCEPTIONS = [
     raison: 'Mots d’Elisa (25 octobre, 12 h 51) : « SET NULL modifie le lien dans la base de données » (légende et correction du moment 5).'},
   /* La trame d’Elisa pour le chapitre 11 (25 octobre, 17 h 05) : la cliente écrit elle-même, avec la photo de son shaker cassé */
   {regle: 'service-client-relaie', page: 'projet-transaction', contient: 'Je viens de recevoir ma commande',
-    raison: 'Trame d’Elisa (25 octobre, 17 h 05, « Cours 1 — TRANSACTION ») : « La conversation avec Léa s’ouvre et son message s’affiche », sa photo dessous ; le service client écrit ensuite ce qu’il faut faire.'},
+    raison: 'Trame d’Elisa (25 octobre, 17 h 05, « Cours 1 — TRANSACTION ») : « La conversation avec Léa s’ouvre et son message s’affiche », sa photo dessous ; 18 h 36 : ce message est envoyé au service client, qui nous écrit ensuite.'},
+  {regle: 'client', page: 'projet-transaction', contient: 'Léa vient de nous envoyer un message',
+    raison: 'Mots d’Elisa (25 octobre, 18 h 36) : le SMS du service client, « Léa vient de nous envoyer un message… », comme celui du chapitre 9 ; les légendes nomment Léa Simon en entier.'},
   {regle: 'client', page: 'projet-savepoint', contient: 'Je viens d’avoir Léa',
     raison: 'Mots d’Elisa (25 octobre, 17 h 05, « Cours 2 — SAVEPOINT ») : le SMS du service client, « Je viens d’avoir Léa : elle nous remercie… », comme celui du chapitre 9 ; les légendes nomment Léa Simon en entier.'},
   {regle: 'client', page: 'projet-savepoint', contient: '1 shaker rose personnalisé',
