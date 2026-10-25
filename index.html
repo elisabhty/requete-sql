@@ -3085,6 +3085,10 @@
   .cd-lab{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:.8px;margin:0 4px 9px;font-family:var(--mono)}
   .cd-lab.memo{color:var(--accent)}
   .cd-lab-i{font-size:13px;font-style:normal}
+  /* La feuille « Carte » : « Ajouter à mes notes » reste près de « À retenir », et « Syntaxe » reprend de l’air sous le bouton (0 px avant :
+     le libellé touchait le bouton, presque coupé ; Elisa, 25 octobre, Réf 3). */
+  #card-body .cd-memo + .coda-note{margin-top:-2px}
+  #card-body .coda-note + .cd-lab,#card-body .coda-note + .cd-syntaxes{margin-top:26px}
   .cd-memo{position:relative;background:linear-gradient(180deg,#fff,var(--surface));border:1px solid var(--card-border);border-radius:18px;padding:16px 18px 16px 20px;font-size:14.5px;box-shadow:var(--card-shadow);margin-bottom:16px;line-height:1.6;overflow:hidden}
   .cd-memo::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--accent),var(--accent-2))}
   .cd-memo b{color:var(--ink);font-weight:700}
@@ -16594,7 +16598,7 @@ function bravoStepsHtml(l){
   if(l&&l.leconSeule){
     const n=(l.video&&l.video.moments)||0, ok=n?lvPkScore(l.id,n):0, e=n?lvPkErrs(l.id,n):0;
     const score=lvErreursMax(l)!=null?(e?`${e} erreur${e>1?'s':''}`:'Aucune erreur'):`${ok} exercice${ok>1?'s':''} réussi${ok>1?'s':''} sur ${n}`;
-    return `<div class="bravo-steps"><span class="bravo-step"><i>✓</i> Leçon interactive</span>${n?`<span class="bravo-step"><i>🎯</i> ${score}</span>`:''}</div>`;
+    return `<div class="bravo-steps"><span class="bravo-step"><i>✓</i> Leçon</span>${n?`<span class="bravo-step"><i>🎯</i> ${score}</span>`:''}</div>`;
   }
   return `<div class="bravo-steps">
     <span class="bravo-step"><i>✓</i> Cours</span>
@@ -16740,7 +16744,7 @@ function renderBravoSlide(l){
         <div class="bravo-ring" aria-hidden="true"><i>✓</i></div>
         <div class="bravo-kicker">Leçon ${l.id} · validée</div>
         <h1>Bravo !</h1>
-        <p class="bravo-lesson">${esc(l.titre)}<small>${l.leconSeule?'Leçon interactive au complet':'Exercice et quiz au complet'}</small></p>
+        <p class="bravo-lesson">${esc(l.titre)}<small>${l.leconSeule?'Leçon au complet':'Exercice et quiz au complet'}</small></p>
         ${bravoStepsHtml(l)}
       </div>
       ${stkBravoHtml()}
@@ -21917,10 +21921,14 @@ function toastLift(t){
   t.style.removeProperty('--toast-lift');
   if(!document.body.classList.contains('in-lesson'))return;
   const nav=document.querySelector('#lesson-body .ls-nav')||document.querySelector('.ls-nav');
-  if(!nav||nav.classList.contains('cta-away'))return;
-  const r=nav.getBoundingClientRect();
-  if(!r.height||r.top>=window.innerHeight||r.bottom<=0)return;
-  t.style.setProperty('--toast-lift',Math.round(window.innerHeight-r.top+24)+'px');
+  const r=nav&&!nav.classList.contains('cta-away')?nav.getBoundingClientRect():null;
+  if(r&&r.height&&r.top<window.innerHeight&&r.bottom>0){
+    t.style.setProperty('--toast-lift',Math.round(window.innerHeight-r.top+24)+'px');
+    return;
+  }
+  /* Aucun bouton collant à éviter (le bilan « Bravo ! », un bouton rentré) : la notification se pose en bas de l’écran, sans flotter
+     au milieu du contenu (Elisa, 25 octobre : « notification trop haute », sur iPhone comme sur ordinateur). */
+  t.style.setProperty('--toast-lift','calc(max(8px,var(--safe-bottom)) + 14px)');
 }
 function toast(msg,sub,tone){
   const t=document.getElementById('toast');
@@ -25026,7 +25034,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2031';
+  const SW_CACHE='requete-2026-10-12-ludique-v2032';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
