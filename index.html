@@ -9120,106 +9120,41 @@ guide({ id:63, titre:"SAVEPOINT", résumé:"Annuler une partie des modifications
 })
 ]},
 { titre:"Triggers et concurrence", sous:"Automatiser et isoler les écritures", lessons:[
-guide({ id:70, titre:"Les triggers", résumé:"Faire réagir la base toute seule",
-  sit:{
-    blocks:[
-      "L’équipe catalogue modifie régulièrement les prix de la boutique. Pour les audits et les litiges, elle veut pouvoir <b>retrouver l’historique</b> de chaque changement de prix.",
-      "La table <code>produits</code> contient au total <b>8 produits</b>. Pour garder l’historique, l’équipe souhaite conserver à chaque changement :",
-      {need:[["🏷️","Le produit concerné","table historique_prix"],["💶","Son ancien prix","table historique_prix"],["🆕","Son nouveau prix","table historique_prix"]],label:"Les informations à conserver"}
-    ],
-    problem:{
-      p:["Avec <code>UPDATE</code>, SQL remplace l’ancienne valeur par la nouvelle : l’ancien prix n’est conservé <b>nulle part</b>.","Or, l’équipe veut une trace de <b>chaque</b> changement, même s’il vient d’un import, d’un script ou d’une correction faite à la main."],
-      scene:{h:"🏷️ Prix du catalogue",cols:"1.3fr .8fr .8fr",
-        lanes:[{c:[["h1","nom","t"],["h2","prix","t"],["h3","ancien","t"]]},
-          {k:"R1",c:[["a1","Magnésium"],["a2","19.9"],["a3","perdu","hn"]]},
-          {k:"R2",c:[["b1","Vitamine D"],["b2","14.9"]]},
-          {k:"R3",c:[["c1","Oméga 3"],["c2","24.9"]]}],
-        caps:["<b>Notre catalogue</b> · Chaque produit a un seul prix enregistré : le prix actuel.","<b>Changement</b> · Le prix du Magnésium passe de 19.9 à 22.9.","<b>Résultat</b> · Le prix de 19.9 a disparu : personne ne pourra plus le retrouver."],
-        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,off:["R2","R3"],text:{a2:"22.9"},d:2300},{cap:2,off:["R1"],show:["a3"],d:2600}]},
-      then:["Il faut donc que la base <b>réagisse toute seule</b> à chaque changement de prix.","C’est exactement le rôle d’un <code>TRIGGER</code>."]
-    },
-    mission:"Aide l’équipe catalogue à garder une trace de chaque changement de prix, afin de retrouver à tout moment l’ancien prix d’un produit."
-  },
-  concept:{
-    title:"Comment SQL peut-il savoir quand réagir ?",
-    blocks:[
-      "Un trigger relie un événement à des instructions que la base exécute d’elle-même :",
-      {ask:"Que faire quand une ligne de la table produits change ?"},
-      "En SQL, on décrit le moment, l’événement et la table, puis les instructions à exécuter :",
-      {syntax:"CREATE TRIGGER garder_prix\n⟦AFTER UPDATE ON produits⟧\nBEGIN\n  …instructions…\nEND;"},
-      {scene:{h:"⚡ Le trigger se déclenche",cols:"1fr",
-        lanes:[{k:"E",c:[["e","Magnésium passe à 22.9"]]},
-          {k:"T",fold:true,c:[["t","⚡ garder_prix se déclenche"]]},
-          {k:"H",fold:true,c:[["h","Historique : 19.9 → 22.9"]]}],
-        caps:["<b>Une écriture</b> · Le prix du Magnésium est modifié par un <b>UPDATE</b> sur la table produits.","<b>Le trigger</b> · La base remarque l’événement et lance les instructions du trigger.","<b>Le corps</b> · Le trigger exécute ses instructions : il ajoute une ligne à l’historique, avec l’ancien prix (<b>OLD.prix</b>) et le nouveau (<b>NEW.prix</b>)."],
-        steps:[{cap:0,on:["E"],d:2200},{cap:1,off:["E"],unfold:["T"],on:["T"],d:2400},{cap:2,off:["T"],unfold:["H"],on:["H"],d:2800}]}}
-    ]
-  },
-  steps:[
-    {h:"Réagir à une suppression",blocks:[
-      "Dans le corps d’un trigger, <code>OLD</code> désigne la ligne qui s’en va et <code>NEW</code> celle qui arrive. Selon l’événement, l’un des deux peut manquer :",
-      {table:{label:"Quelle ligne le trigger peut-il lire ?",head:["Événement","Disponible"],rows:[["INSERT","NEW"],["UPDATE","OLD et NEW"],["DELETE","OLD"]]}},
-      {say:"👇 Exécute cette requête pour supprimer deux clients et lire le journal rempli par le trigger :",run:"CREATE TABLE clients_supprimes (\n  id INTEGER,\n  prenom TEXT,\n  nom TEXT\n);\nCREATE TRIGGER journal_suppression\nAFTER DELETE ON clients\nBEGIN\n  INSERT INTO clients_supprimes\n    (id, prenom, nom)\n  VALUES (OLD.id, OLD.prenom, OLD.nom);\nEND;\nDELETE FROM clients\nWHERE id IN (9, 10);\nSELECT id, prenom, nom\nFROM clients_supprimes;"},
-      {arrow:"Le trigger se déclenche <b>une fois par ligne</b> touchée : deux clients supprimés, deux lignes dans le journal."},
-      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux créer des tables et des triggers sans rien encombrer. À chaque essai, le journal et le trigger n’existent plus : voilà pourquoi chaque exemple les recrée."]}}
-    ]},
-    {h:"Refuser une écriture avec BEFORE",blocks:[
-      "Un trigger <code>BEFORE</code> s’exécute <b>avant</b> l’écriture : c’est le moment de la contrôler, et de la refuser si besoin. Un trigger <code>AFTER</code> réagit une fois la ligne écrite.",
-      {syntax:"CREATE TRIGGER prix_stable\nBEFORE UPDATE ON produits\n⟦WHEN NEW.prix < OLD.prix * 0.7⟧\nBEGIN\n  SELECT ⟦RAISE(ABORT,\n    'Baisse de prix supérieure à 30 %')⟧;\nEND;"},
-      {looks:[["WHEN","limite le trigger aux écritures à surveiller"],["RAISE(ABORT, …)","annule l’écriture avec le message de ton choix"]]},
-      {warn:{t:"Une baisse de prix trop forte",blocks:[
-        "Ce trigger refuse toute baisse de prix de plus de 30 % : une règle que <code>CHECK</code> ne sait pas écrire, car elle compare <code>OLD</code> et <code>NEW</code>.",
-        {say:"👇 Teste par toi-même :",run:"CREATE TRIGGER prix_stable\nBEFORE UPDATE ON produits\nWHEN NEW.prix < OLD.prix * 0.7\nBEGIN\n  SELECT RAISE(ABORT,\n    'Baisse de prix supérieure à 30 %');\nEND;\nUPDATE produits\nSET prix = 9\nWHERE id = 1;"}
-      ]}}
-    ]},
-    {h:"Que ne fait pas un trigger ?",aside:"Bon à savoir",blocks:[
-      "Un trigger observe et réagit, mais il ne réécrit pas la ligne en cours d’écriture.",
-      {warn:{t:"Corriger la valeur dans un BEFORE",blocks:[
-        "Si tu écris :",
-        {syntax:"CREATE TRIGGER stock_plancher\nBEFORE UPDATE ON produits\nBEGIN\n  SET NEW.stock = 0;\nEND;"},
-        "Dans d’autres moteurs, un trigger <code>BEFORE</code> peut modifier <code>NEW</code>. Pas en SQLite : un trigger <code>BEFORE</code> peut contrôler la ligne et la refuser avec <code>RAISE</code>, mais l’affectation est une erreur de syntaxe.",
-        {say:"👇 Teste par toi-même :",run:"CREATE TRIGGER stock_plancher\nBEFORE UPDATE ON produits\nBEGIN\n  SET NEW.stock = 0;\nEND;"}
-      ]}},
-      {tip:{t:"Un trigger agit sans se montrer",blocks:["Rien dans le texte d’une requête ne signale qu’un trigger va réagir. Réserve-le aux règles qui doivent valoir <b>quoi qu’il arrive</b>, et garde dans l’application la logique propre à un écran."]}}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : créer la table d’historique, puis le trigger. Son <code>WHEN</code> le limite aux vrais changements de prix : une ligne n’est ajoutée que si le prix a changé.",
-      {say:"👇 Exécute la requête pour changer un prix et lire l’historique :",run:"CREATE TABLE historique_prix (\n  produit_id INTEGER,\n  ancien_prix REAL,\n  nouveau_prix REAL\n);\nCREATE TRIGGER garder_prix\nAFTER UPDATE ON produits\nWHEN NEW.prix <> OLD.prix\nBEGIN\n  INSERT INTO historique_prix\n    (produit_id, ancien_prix, nouveau_prix)\n  VALUES (OLD.id, OLD.prix, NEW.prix);\nEND;\nUPDATE produits\nSET prix = 22.9\nWHERE id = 3;\nSELECT produit_id, ancien_prix, nouveau_prix\nFROM historique_prix;"},
-      {done:{
-        label:"D’un prix sans mémoire à un changement tracé",
-        unit:"free",
-        funnel:[
-          {n:8,t:"produits au catalogue",s:"toute la <code>table produits</code>",dots:"00000000"},
-          {step:"CREATE TRIGGER … AFTER UPDATE",s:"note l’ancien et le nouveau prix à chaque changement"},
-          {n:1,t:"⭐ changement tracé",s:"Magnésium : de 19.9 à 22.9",dots:"00100000",out:true}
-        ],
-        board:{ico:"🗂️",h:"Historique des prix",aria:"L’équipe change le prix du Magnésium (produit 3) : la table historique_prix reçoit toute seule une ligne, ancien prix 19.9, nouveau prix 22.9",tiles:false,hit:1,lead:"✏️ L’équipe change le prix du Magnésium (produit 3)",ops:{"0": {"op": "add"}},cols:["produit_id", "ancien_prix", "nouveau_prix"],
-          rows:[[3, 19.9, 22.9]],done:"✓ Ancien prix conservé"},
-        fill:["AFTER UPDATE","WHEN","OLD.prix","NEW.prix"],
-        ui:{t:"Chaque changement laisse une trace",s:"Rien ne se perd, sans aucune intervention.",n:["CREATE TRIGGER","AFTER UPDATE","WHEN","OLD","NEW"]},
-        rows:1
-      }}
-    ]}
-  ],
+guide({ id:70, titre:"Les triggers", résumé:"Déclencher une action automatiquement",
+  /* Projet, chapitre 13, en vidéo interactive : l’animation (assets/anim/projet-trigger.html, moteur commun assets/anim/core.js)
+     est le cours. La trame est celle d’Elisa (25 octobre, 20 h 52, « TRIGGER — Qui a changé le prix du collagène ? »), ses bulles
+     gardées mot pour mot, une phrase par bulle. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 12,
+     un savepoint t’a permis d’annuler une partie d’une transaction »), sur la base que le chapitre 12 laisse : onze tables.
+     1 · Qui a changé le prix ? La responsable commerciale écrit par SMS, avec les mots d’Elisa (« Le collagène est passé de 39,90 € à
+     34,90 €, mais je ne retrouve pas la date du changement. Peux-tu faire en sorte que chaque modification de prix soit désormais
+     conservée automatiquement ? ») ; la table produits ne garde que le prix actuel du collagène (le produit 2, Collagène Marin) :
+     l’ancien prix et la date du changement sont introuvables (moment 1 : un UPDATE remplace l’ancien prix sans garder de trace).
+     2 · Garder chaque changement : l’équipe commerciale a ajouté la table historique_prix (produit_id, ancien_prix, nouveau_prix,
+     date_changement), encore vide. 3 · Créer le trigger, une partie de la requête par bulle : CREATE TRIGGER garder_prix, AFTER UPDATE
+     ON produits, WHEN OLD.prix <> NEW.prix, puis entre BEGIN et END l’INSERT INTO historique_prix avec OLD.id, OLD.prix, NEW.prix et
+     CURRENT_TIMESTAMP (« après une modification de produit, si son prix a réellement changé, enregistrer l’ancien et le nouveau prix
+     dans l’historique », Elisa ; moment 2 : quand il ajoute une ligne) ; l’élève touche « Créer le trigger » : il est attaché à la
+     table produits. 4 · Modifier le prix : pour le tester, on rejoue le changement de prix, 39,90 € → 34,90 € (moment 3 : ce que vaut
+     OLD.prix) ; l’élève touche « Modifier le prix » ; le trigger se déclenche, sa condition est vraie, l’écran se déplace vers
+     historique_prix et une ligne y apparaît toute seule (2, 39.90, 34.90, 2026-10-25 14:32:00) ; puis les trois bulles d’Elisa (« Tu
+     n’as exécuté que la modification du prix. », « Le TRIGGER a ajouté la ligne d’historique automatiquement. », « Un trigger
+     déclenche une action lorsqu’un événement précis se produit dans une table. »). 5 · Lire la nouvelle ligne (moment 4 : la case
+     remplie avec NEW.prix). 6 · Vérifier avec le stock : seul le stock change (80 → 79) ; la condition du WHEN est fausse, aucune ligne
+     n’est ajoutée (moment 5). 7 · Ligne ajoutée ou non : six modifications à ranger (moment 6). La fin annonce la prochaine leçon,
+     Concurrence et isolation (deux clients et la dernière place d’un atelier). Six moments « À toi », comme aux chapitres du projet ;
+     leçon seule : ni exercice ni quiz dans la vidéo, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on
+     rejoue les moments ratés. Elle remplace l’ancien cours texte Les triggers (le Magnésium, le journal des clients supprimés, RAISE). */
+  leconSeule:true,
+  video:{anim:'assets/anim/projet-trigger.html?app&embed',thumb:'assets/anim/projet-trigger-thumb.webp',duree:'3 min 57',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 3 min 49 (229,3 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:229.3,y:1223,card:[64,292,1016,928],to:[940,255]}},
   reflex:[
     {recap:[
-      ["⚡","Un <code>TRIGGER</code> exécute des instructions tout seul à chaque <code>INSERT</code>, <code>UPDATE</code> ou <code>DELETE</code> : une fois par ligne touchée."],
-      ["🔀","<code>NEW</code> désigne la ligne qui arrive, <code>OLD</code> celle qui s’en va :",null,"OLD.prix → NEW.prix"],
-      ["⏱️","<code>BEFORE</code> contrôle ou refuse l’écriture avec <code>RAISE</code> ; <code>AFTER</code> en tire les conséquences."]
+      ["⚡","Un <code>TRIGGER</code> déclenche une action lorsqu’un <b>événement précis</b> se produit dans une table.","Ici, <code>AFTER UPDATE ON produits</code> : après chaque modification d’un produit."],
+      ["🔀","<code>OLD</code> et <code>NEW</code> donnent la ligne <b>avant</b> et <b>après</b> la modification.","<code>OLD.prix</code> est l’ancien prix, <code>NEW.prix</code> le nouveau."],
+      ["🎯","<code>WHEN</code> limite le trigger aux <b>vrais changements</b>.","La syntaxe varie selon le SGBD : celle-ci est celle de SQLite."]
     ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"CREATE TRIGGER journal_suppression",txt:"Le nom du trigger, libre."},{tok:"AFTER DELETE ON clients",txt:"Le moment et l’événement qui le déclenchent."},{tok:"BEGIN … END;",txt:"Le corps : les instructions exécutées à chaque ligne."},{tok:"OLD.prenom",plain:1,txt:"Une colonne de la ligne qui vient d’être supprimée."}],
-  exemple:"CREATE TABLE clients_supprimes (id INTEGER, prenom TEXT, nom TEXT);\n\nCREATE TRIGGER journal_suppression\nAFTER DELETE ON clients\nBEGIN\n  INSERT INTO clients_supprimes (id, prenom, nom)\n  VALUES (OLD.id, OLD.prenom, OLD.nom);\nEND;\n\nDELETE FROM clients WHERE id IN (9, 10);\n\nSELECT id, prenom, nom FROM clients_supprimes;",
-  attendu:"<b>2 lignes</b> : Inès Lefebvre et Nathan Dupont. Le trigger s’est déclenché une fois par client supprimé, sans qu’aucun <code>INSERT</code> ne soit écrit à la main.",
-  retenir:"Un <code>TRIGGER</code> exécute des instructions à chaque écriture sur une table, sans qu’on les demande. Il se déclenche <b>une fois par ligne</b>.<br><br><code>BEFORE</code> contrôle avant l’écriture : <code>RAISE(ABORT, …)</code> la refuse avec ton message. <code>AFTER</code> réagit une fois la ligne écrite.<br><br>Dans le corps, <code>NEW</code> désigne la ligne qui arrive et <code>OLD</code> celle qui part. Selon l’événement, l’un des deux peut manquer.",
-  consigne:"Chaque commande enregistrée doit faire baisser le stock du produit commandé. Écris un trigger nommé <code>baisser_stock</code> qui, après chaque ajout dans <code>commandes</code>, retire du <code>stock</code> du produit concerné la quantité commandée.",
-  solution:"CREATE TRIGGER baisser_stock\nAFTER INSERT ON commandes\nBEGIN\n  UPDATE produits\n  SET stock = stock - NEW.quantite\n  WHERE id = NEW.produit_id;\nEND;",
-  verif:"INSERT INTO commandes (client_id, produit_id, quantite, date_commande) VALUES (1, 1, 5, '2026-08-31'), (2, 3, 2, '2026-08-31'); SELECT id, nom, stock FROM produits ORDER BY id;",
-  indice:"Le trigger se déclenche <b>après</b> un <code>INSERT</code> sur <code>commandes</code>. Dans son corps, un <code>UPDATE</code> retire <code>NEW.quantite</code> au stock du produit désigné par <code>NEW.produit_id</code>.",
-  write:true,
-  petitDefi:[{p:"Dans un trigger <code>AFTER DELETE</code>, quel nom désigne la ligne qui vient d’être supprimée ?",sql:"VALUES (__________.id, __________.prenom);",a:"OLD",answers:["OLD","old","OLD.id","old.id"]}],
-  testeVariants:[{k:"stock",label:"Stock",sql:"CREATE TRIGGER baisser_stock\nAFTER INSERT ON commandes\nBEGIN\n  UPDATE produits\n  SET stock = stock - NEW.quantite\n  WHERE id = NEW.produit_id;\nEND;\n\nINSERT INTO commandes (id, client_id, produit_id, quantite, date_commande)\nVALUES (17, 1, 1, 5, '2026-08-31');\n\nSELECT id, nom, stock FROM produits WHERE id = 1;",out:"120 moins 5 : le trigger a fait l’UPDATE tout seul.",tone:"good"},{k:"journal",label:"Journal",sql:"CREATE TABLE clients_supprimes (id INTEGER, prenom TEXT, date_suppression TEXT);\n\nCREATE TRIGGER journal_suppression\nAFTER DELETE ON clients\nBEGIN\n  INSERT INTO clients_supprimes\n    (id, prenom, date_suppression)\n  VALUES (OLD.id, OLD.prenom,\n          date('now'));\nEND;\n\nDELETE FROM clients WHERE id = 9;\n\nSELECT id, prenom, date_suppression FROM clients_supprimes;",out:"Inès a disparu de clients, mais son passage est tracé."},{k:"raise",label:"RAISE",sql:"CREATE TRIGGER prix_stable\nBEFORE UPDATE ON produits\nWHEN NEW.prix < OLD.prix * 0.7\nBEGIN\n  SELECT RAISE(ABORT,\n    'Baisse de prix supérieure à 30 %');\nEND;\n\nUPDATE produits\nSET prix = 9\nWHERE id = 1;",out:"Le trigger refuse l’écriture avec son propre message.",tone:"bad"}],
-  learningCheck:{question:"Pour retirer du stock le produit commandé, que doit contenir le trigger AFTER INSERT ON commandes ?",options:["WHERE id = 1","WHERE id = NEW.produit_id","WHERE id = OLD.produit_id"],answer:1,explanation:"NEW désigne la ligne qui vient d’être insérée : NEW.produit_id donne le produit de chaque nouvelle commande. OLD n’existe pas pour un INSERT."}
+  ]
 }),
 guide({ id:71, titre:"Concurrence et isolation", résumé:"Quand deux écritures arrivent en même temps",
   sit:{
@@ -10053,9 +9988,9 @@ const QCM={
  68:[{q:"Où se définit la règle <code>ON DELETE</code> ?",o:["Dans le DELETE, au moment de supprimer","Sur la clé étrangère, dans le CREATE TABLE","Dans un PRAGMA, au début de la session"],b:1,e:"Elle s’écrit à côté de la clé étrangère : <code>REFERENCES clients(id) ON DELETE SET NULL</code>. Au moment du <code>DELETE</code>, il n’y a rien à préciser."},
    {q:"Le compte d’un client est supprimé, mais son avis doit rester sur la fiche produit. Quelle règle choisir ?",o:["SET NULL : l’avis reste, sans compte","CASCADE : l’avis disparaît avec le compte","RESTRICT : la suppression du compte est bloquée"],b:0,e:"<code>SET NULL</code> conserve l’avis et retire seulement sa référence au compte : <code>client_id</code> vaut alors <code>NULL</code>, et le site peut afficher « Ancien client »."},
    {q:"Que devient la suppression du compte si <code>client_id</code> est <code>NOT NULL</code>, avec <code>ON DELETE SET NULL</code> ?",o:["L’avis reste, avec un client NULL","L’avis est supprimé avec le compte","Elle est refusée : NOT NULL constraint failed"],b:2,e:"<code>NOT NULL</code> interdit <code>NULL</code> : la base ne peut pas détacher l’avis, elle refuse donc de supprimer le compte."}],
- 70:[{q:"Un trigger <code>AFTER INSERT</code> sur une table se déclenche :",o:["Une fois par instruction","Une fois par ligne insérée","Une fois par session"],b:1,e:"SQLite ne connaît que le déclenchement ligne par ligne. Un <code>DELETE</code> qui retire cinq lignes déclenche le trigger cinq fois."},
-   {q:"Dans un trigger <code>AFTER DELETE</code>, quel nom désigne la ligne supprimée ?",o:["NEW","OLD","DELETED"],b:1,e:"<code>NEW</code> est la version qui arrive, <code>OLD</code> celle qui s’en va. Un DELETE n’a que <code>OLD</code>."},
-   {q:"Peut-on corriger une valeur dans un trigger <code>BEFORE</code> avec <code>SET NEW.stock = 0</code> ?",o:["Oui, c’est l’usage principal de BEFORE","Non : en SQLite c’est une erreur de syntaxe","Oui, mais seulement sur une colonne NOT NULL"],b:1,e:"Un trigger <code>BEFORE</code> n’a que deux réponses : laisser passer, ou refuser avec <code>RAISE(ABORT, …)</code>."}],
+ 70:[{q:"Quand le trigger <code>garder_prix</code> se déclenche-t-il ?",o:["Avant chaque lecture de la table produits","Après chaque modification d’un produit","Seulement quand on l’exécute à la main"],b:1,e:"<code>AFTER UPDATE ON produits</code> le lance après chaque modification d’un produit : personne n’a besoin de l’exécuter."},
+   {q:"Dans <code>garder_prix</code>, que donne <code>OLD.prix</code> ?",o:["Le prix après la modification","Le prix moyen des produits","Le prix avant la modification"],b:2,e:"<code>OLD</code> donne la ligne avant la modification, <code>NEW</code> la ligne après : <code>OLD.prix</code> est l’ancien prix."},
+   {q:"Tu modifies seulement le stock du collagène. Que fait <code>garder_prix</code> ?",o:["Il n’ajoute aucune ligne : le prix n’a pas changé","Il ajoute une ligne avec deux fois le même prix","Il annule la modification du stock"],b:0,e:"Sa condition <code>WHEN OLD.prix &lt;&gt; NEW.prix</code> est fausse : il n’ajoute une ligne que si le prix a réellement changé."}],
  71:[{q:"Deux caisses lisent un stock de 30, calculent 30 − 1 chacune et écrivent 29. Comment l’éviter ?",o:["En écrivant SET stock = stock - 1, calcul fait par la base","En relisant le stock juste avant d’écrire","En augmentant le niveau d’isolation à READ COMMITTED"],b:0,e:"Une instruction est indivisible : les deux caisses passent l’une après l’autre, 30 puis 29 puis 28. C’est la mise à jour perdue."},
    {q:"Que fait <code>BEGIN IMMEDIATE</code> de plus que <code>BEGIN</code> ?",o:["Il valide la transaction sans COMMIT","Il prend le verrou d’écriture dès l’ouverture","Il empêche toute lecture concurrente"],b:1,e:"<code>BEGIN</code> seul vaut <code>DEFERRED</code> : rien n’est verrouillé tant qu’on ne fait que lire, et la transaction peut échouer plus tard."},
    {q:"Quel niveau d’isolation SQLite applique-t-il ?",o:["READ COMMITTED, comme PostgreSQL par défaut","Le comportement de SERIALIZABLE, sans réglage possible","Aucun : les transactions ne sont pas isolées"],b:1,e:"Le moteur verrouille la base entière et n’autorise qu’un seul écrivain à la fois. Il n’existe pas de <code>SET TRANSACTION ISOLATION LEVEL</code>."}],
@@ -13027,7 +12962,7 @@ const SQ_ALIASES={
   68:'on delete cascade set null restrict supprimer lignes liees cle etrangere foreign key constraint failed suppression refusee client compte avis ancien client feuille table avis not null create table regle detacher nutriboost',
   62:'transaction transactions begin transaction start transaction commit rollback valider annuler modifications ensemble non valide definitives stock remplacement table remplacements shaker colis personnalisation prenom not null constraint failed nutriboost',
   63:'savepoint point de retour point de sauvegarde rollback to savepoint rollback to annuler une partie partiel transaction repere historique cadeau cadeaux tisane proteine proteine vegetale remplacement colis commit nutriboost',
-  70:'trigger declencheur reagir automatiquement before after evenement',
+  70:'trigger triggers declencheur declencher automatiquement action evenement after update on when old new current_timestamp create trigger garder_prix historique historique_prix prix collagene changement responsable commerciale stock nutriboost',
   71:'concurrence isolation verrou lock deadlock lectures ecritures simultanees',
   64:'create view vue requete enregistree nommer virtual table',
   57:'index create index performance rapide optimiser recherche accelerer explain query plan plan d execution lenteur optimisation requete lente scan search',
@@ -25002,7 +24937,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2049';
+  const SW_CACHE='requete-2026-10-12-ludique-v2050';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

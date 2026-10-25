@@ -1,0 +1,899 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Projet, chapitre 13 : TRIGGER</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:200px;top:398px;letter-spacing:-5px}
+#s0 .hilite{top:530px;height:56px}
+#s0 .sub{top:640px;font-size:50px}
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+.hid{opacity:0;visibility:hidden}
+/* Aperçu d’un geste (moment « À toi ») : il prend le pas sur la timeline, le temps de l’arrêt ; il montre exactement
+   l’image que la timeline affiche juste après l’arrêt, qui reprend donc sans saut. */
+.pvs{opacity:1!important;visibility:visible!important;transform:none!important}
+.pvh{opacity:0!important;visibility:hidden!important}
+/* Aperçu en douceur : une carte qui accompagne une bonne réponse n’apparaît jamais d’un coup, ni avant le verdict « Bien vu ! » */
+.pvf{visibility:visible!important;animation:pvf .45s ease-out both}
+@keyframes pvf{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* Couleur de chaque sujet : client, équipe NutriBoost (et carte de membre), inscription, coach, atelier,
+   puis les tables de la boutique : commande, produit, fidélité ; l’avis (chapitre 10), le remplacement (chapitre 11), le cadeau
+   (chapitre 12), et l’historique des prix (ce chapitre) */
+.k-co{--c:#2F80ED;--cs:#E6F0FD;--ci:#1D5FA8}
+.k-at{--c:#E8892B;--cs:#FFF1E2;--ci:#9A5B00}
+.k-cl{--c:#6A4DF4;--cs:#EEE9FF;--ci:#5335E0}
+.k-nb{--c:#D99A0B;--cs:#FFF6DA;--ci:#8A6200}
+.k-in{--c:#169447;--cs:#E2F6EA;--ci:#0F7A3A}
+.k-cm{--c:#0E9F9A;--cs:#DDF5F3;--ci:#0B6E6A}
+.k-pr{--c:#D9468F;--cs:#FCE8F2;--ci:#A3216A}
+.k-fi{--c:#9C6B3F;--cs:#F5ECE3;--ci:#7A4F27}
+.k-av{--c:#A23CC9;--cs:#F5E8FB;--ci:#7A2A9B}
+.k-rp{--c:#2B8FB8;--cs:#E3F3FA;--ci:#1B6585}
+.k-cd{--c:#C2410C;--cs:#FFEDD5;--ci:#9A3412}
+.k-hp{--c:#4F46E5;--cs:#ECEBFE;--ci:#3730A3}
+
+/* ---------- La base : une ligne par table (son nom, son nombre de lignes) ---------- */
+.bc{left:64px;width:952px;top:236px;padding:0 0 12px;overflow:hidden}
+.bh{height:72px;display:flex;align-items:center;gap:14px;padding:0 34px;background:var(--surface-2);font-family:var(--display);font-size:34px;font-weight:800;color:var(--ink);letter-spacing:-.4px;white-space:nowrap}
+.bh .emo{font-size:34px}
+.bn{margin-left:auto;display:inline-grid;font-family:var(--ui);font-size:25px;font-weight:700;letter-spacing:0}
+.bn>span{grid-area:1/1;height:44px;padding:0 20px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;white-space:nowrap}
+.srow{position:relative;height:64px;padding:12px 34px;overflow:hidden}
+.srow+.srow{box-shadow:inset 0 2px 0 var(--line-2)}
+.srow>div{position:relative;z-index:1}
+.srow .hl{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;opacity:0;visibility:hidden;background:var(--cs);box-shadow:inset 8px 0 0 var(--c)}
+.sn{display:flex;align-items:center;gap:14px;height:40px;font-family:var(--mono);font-size:31px;font-weight:800;color:var(--ci)}
+.sn .emo{font-size:32px}
+.sn .sp{flex:1}
+.nm{position:relative;display:inline-block;white-space:nowrap}
+.nb{display:inline-grid;font-family:var(--ui);font-size:23px;font-weight:700;color:var(--ink-3)}
+.nb>span{grid-area:1/1;justify-self:end;display:flex;align-items:center;justify-content:flex-end;height:36px;padding:0 14px;border-radius:999px;background:var(--line-2);white-space:nowrap}
+
+/* ---------- Les tables : lignes, colonnes, valeurs empilées ---------- */
+.tb{padding:0 0 10px;overflow:hidden;border-radius:40px}
+.tb .h{display:flex;align-items:center;gap:12px;height:64px;padding:0 24px;background:var(--cs);font-family:var(--mono);font-size:30px;font-weight:800;color:var(--ci);white-space:nowrap}
+.tb .h .emo{font-size:32px}
+.tb .bn>span{height:40px;font-size:23px;background:#fff;color:var(--ci);box-shadow:inset 0 0 0 3px var(--c)}
+.gr{display:grid;grid-template-columns:var(--g);align-items:stretch;padding:0 12px}
+.gr>span{position:relative;z-index:1;display:flex;align-items:center;gap:10px;min-width:0;padding:0 10px;white-space:nowrap;overflow:hidden}
+.hd{height:44px;font-family:var(--mono);font-size:24px;font-weight:700;color:var(--ink-3)}
+.hd .emo{font-size:21px;width:26px;flex:none;text-align:center}
+/* Une colonne dont l’en-tête porte une icône (🔑 id, 🔗 produit_id) : sa valeur commence sous le nom de la colonne, pas sous l’icône
+   (Elisa, 25 octobre, 15 h 18). 46 px = marge 10 + icône 26 + espace 10. */
+.tb .r>.c0{padding-left:46px}
+.gr>span.kc{color:var(--ci)}
+.r{position:relative;height:62px;font-family:var(--mono);font-size:30px;font-weight:600;color:var(--ink);box-shadow:inset 0 2px 0 var(--line-2);overflow:hidden}
+.r .hl,.r .wn,.r .xx{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;pointer-events:none;opacity:0;visibility:hidden}
+.r .hl{background:var(--cs);box-shadow:inset 6px 0 0 var(--c)}
+.r .wn{background:rgba(242,154,46,.2);box-shadow:inset 6px 0 0 #F29A2E}
+.r .xx{background:rgba(239,79,85,.15);box-shadow:inset 6px 0 0 var(--danger-fill)}
+.r .v{position:relative;z-index:1;font-style:normal}
+/* Une case peut changer de valeur : les valeurs successives sont empilées, une seule se voit */
+.sw{display:inline-grid;position:relative;z-index:1}
+.sw>*{grid-area:1/1;font-style:normal;white-space:pre}
+/* La case que l’élève doit toucher, puis la case entourée */
+.hc{position:absolute;left:4px;right:4px;top:5px;bottom:5px;z-index:0;border-radius:14px;background:var(--cs);box-shadow:inset 0 0 0 4px var(--c);opacity:0;visibility:hidden}
+/* Gestes de l’élève : case refusée */
+.gr>span.kof::after{content:"";position:absolute;left:3px;right:3px;top:6px;bottom:6px;z-index:3;border-radius:12px;background:rgba(239,79,85,.16);box-shadow:inset 0 0 0 4px var(--danger-fill);animation:kof .6s ease forwards}
+@keyframes kof{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+.r.kor{animation:kor .55s ease}
+@keyframes kor{0%,100%{background:transparent}30%{background:rgba(239,79,85,.18)}}
+.dbn.kob{animation:kob .45s ease}
+@keyframes kob{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+
+/* ---------- Les requêtes : une carte de code (un commentaire, puis la requête) ---------- */
+.sq{border-radius:34px;box-shadow:0 9px 0 #110E27}
+.sq .top{height:52px;gap:12px;padding:0 30px}
+.sq .dot{width:14px;height:14px}
+.sq .fname{margin-left:8px;font-size:22px}
+.sq .body{padding:18px 30px;font-size:28px;line-height:42px}
+.sq .ln{height:42px}
+.sq .cmt{color:var(--t-com)}
+.sq .caret i{top:-31px;width:4px;height:37px}
+.sq .glow{border-radius:8px;padding:0 3px;margin:0 -3px}
+.sq .str{color:var(--t-str)}
+/* OLD et NEW : la ligne avant et après la modification, d’une couleur à eux */
+.sq .ov{color:#8EE6C0;font-weight:800}
+
+.pack{left:0;width:1080px;display:flex;justify-content:center}
+.pack>span{height:84px;padding:0 34px 0 22px;border-radius:999px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);font-size:32px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:14px;white-space:nowrap}
+.pack .emo{font-size:40px}
+
+/* ---------- Le message reçu : la notification, puis la conversation (SMS, moteur commun) ---------- */
+.ml{left:64px;width:952px;top:560px;height:184px;padding:0 30px;overflow:hidden}
+/* Hors de l’app : le doigt qui touche la notification ou un bouton */
+.tapf{z-index:20;font-size:120px;margin:-8px 0 0 -44px;opacity:0;visibility:hidden}
+
+/* La suite : la prochaine leçon */
+.keyc{left:0;width:1080px;display:flex;justify-content:center}
+.keyc>span{height:96px;padding:0 40px 0 26px;border-radius:999px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 9px 0 #4B30CC;color:#fff;font-size:36px;font-weight:700;display:flex;align-items:center;gap:16px;white-space:nowrap}
+.keyc .emo{font-size:44px}
+
+/* ---------- À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px;padding:8px 0}
+#s7 .rrow{gap:22px;padding:18px 32px}
+#s7 .rico{width:88px;height:88px;border-radius:26px;font-size:46px}
+#s7 .rtxt{font-size:34px;line-height:1.25}
+#s7 .rtxt .rs{margin-top:2px;font-size:31px}
+
+/* ---------- La table produits (un extrait : le collagène) et son trigger, la table historique_prix ---------- */
+.tz .r{height:62px}
+.ph{color:var(--ink-3);font-style:italic;font-weight:500}
+.r.rph>span{grid-column:1/-1;font-family:var(--ui);font-size:28px}
+/* Le trigger, une fois créé : il est attaché à la table produits (une pastille dans son en-tête) */
+.tgc{margin-left:auto;height:44px;padding:0 18px 0 12px;border-radius:999px;background:#FFF6DA;color:#8A6200;box-shadow:inset 0 0 0 3px #F2CB63;font-family:var(--mono);font-size:23px;font-weight:800;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tgc .emo{font-size:24px}
+.tb .h .tgc+.bn{margin-left:12px}
+/* L’historique des prix : quatre colonnes ; la date et l’heure tiennent sur la ligne, et chaque case garde de l’air autour de sa valeur
+   (moment 4 : la case touchée s’entoure sans toucher le texte) */
+#hp .gr{padding:0 4px}
+#hp .gr>span{padding:0 14px}
+#hp .r>.c0{padding-left:50px}
+#hp .r{font-size:27px}
+
+/* ---------- 1 · Ce que la responsable commerciale cherche : introuvable ---------- */
+.ko{left:64px;width:952px;padding:0 0 10px;overflow:hidden}
+.ko .kh{height:66px;display:flex;align-items:center;gap:12px;padding:0 30px;background:#FDECEC;color:#B42328;font-size:30px;font-weight:700;white-space:nowrap}
+.ko .kh .emo{font-size:32px}
+.ko .kl{height:66px;display:flex;align-items:center;gap:14px;padding:0 30px;font-size:30px;font-weight:600;color:var(--ink);white-space:nowrap}
+.ko .kl+.kl{box-shadow:inset 0 2px 0 var(--line-2)}
+.ko .kl .emo{font-size:32px}
+.ko .kq{margin-left:auto;height:42px;padding:0 16px;border-radius:999px;background:#FDECEC;color:#B42328;box-shadow:inset 0 0 0 2px #F5C2C4;font-size:23px;font-weight:800;display:flex;align-items:center}
+
+/* ---------- 4 et 6 · Le trigger se déclenche : sa condition, évaluée avec l’ancien et le nouveau prix ---------- */
+.wk{left:64px;width:952px;padding:0 0 6px;overflow:hidden}
+.wk .wkh{height:66px;display:flex;align-items:center;gap:12px;padding:0 30px;background:#FFF6DA;color:#8A6200;font-size:30px;font-weight:700;white-space:nowrap}
+.wk .wkh .emo{font-size:32px}
+.wk .wkl{height:74px;display:flex;align-items:center;gap:16px;padding:0 30px}
+.wk .wkw{height:42px;padding:0 12px;border-radius:10px;background:var(--code-bg);color:var(--t-kw);font-family:var(--mono);font-size:22px;font-weight:800;display:flex;align-items:center}
+.wk .wkv{font-family:var(--mono);font-size:30px;font-weight:700;color:var(--ink);font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
+.wk .wkr{margin-left:auto}
+.wk .wkr>i{justify-self:end;height:44px;padding:0 16px;border-radius:999px;font-size:23px;font-weight:800;display:flex;align-items:center}
+.wk .wkr .ok{background:#E7F7EE;color:#1B7A45;box-shadow:inset 0 0 0 2px #A7E3C0}
+.wk .wkr .no{background:#FDECEC;color:#B42328;box-shadow:inset 0 0 0 2px #F5C2C4}
+
+/* ---------- Les boutons à toucher, et l’anneau qui s’en échappe au toucher (micro-interaction, Elisa, 25 octobre, 16 h 22) ---------- */
+.bt{position:absolute;left:220px;width:640px;margin:0;height:108px;gap:16px;font-size:36px}
+.bt .emo{font-size:42px}
+.bt.pk{background:linear-gradient(135deg,#E86AA8,#D9468F);box-shadow:0 9px 0 #A3216A}
+.bring{left:220px;width:640px;height:108px;border-radius:30px;box-shadow:0 0 0 7px rgba(106,77,244,.5);pointer-events:none;opacity:0;visibility:hidden}
+.bring.pk{box-shadow:0 0 0 7px rgba(217,70,143,.5)}
+
+/* ---------- Le message de la responsable commerciale ---------- */
+#ml1{top:520px}
+
+/* ---------- 7 · Deux cases où ranger les modifications : une ligne ajoutée, ou aucune ---------- */
+.dbn{left:64px;width:952px;height:210px;box-sizing:border-box;padding:20px 28px 22px;border-radius:36px;border:4px dashed #C9BCFF;background:rgba(255,255,255,.85);display:flex;flex-direction:column}
+.dbn .hh{display:flex;align-items:baseline;gap:20px;white-space:nowrap}
+.dbn .dn{font-family:var(--display);font-size:36px;font-weight:800;color:var(--accent-ink)}
+.dbn .dd{font-size:26px;font-weight:700;color:var(--ink-3)}
+.dbn .cs{margin-top:auto;display:flex;gap:16px}
+.dbn .rc{flex:1;min-height:92px;padding:12px 16px;border-radius:18px;background:var(--accent-soft);color:var(--accent-ink);box-shadow:inset 0 0 0 3px #C9BCFF;font-size:28px;font-weight:700;line-height:1.25;text-align:center;text-wrap:balance;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden}
+.dbn.okb{animation:okb .5s cubic-bezier(.2,.9,.3,1.3)}
+@keyframes okb{40%{transform:scale(1.035)}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 13</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>T</span><span>R</span><span>I</span><span>G</span><span>G</span><span>E</span><span>R</span></div>
+    <div class="abs sub">Déclencher une action automatiquement</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Un prix a changé sans trace&nbsp;:<br>à toi de garder<br>chaque changement !</div>
+  </section>
+
+  <!-- La base : le rappel du chapitre précédent -->
+  <section class="scene" id="sa"></section>
+  <!-- Les tables produits et historique_prix, les requêtes, les boutons -->
+  <section class="scene" id="sw"></section>
+  <!-- Le message de la responsable commerciale -->
+  <section class="scene" id="sm"></section>
+  <!-- Une ligne ajoutée, ou aucune : les modifications à ranger -->
+  <section class="scene" id="sd"></section>
+  <!-- La suite : la prochaine leçon -->
+  <section class="scene" id="sn"></section>
+
+  <!-- À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">⚡</div><div class="rtxt">Un <code>TRIGGER</code> déclenche une action<br>lorsqu’un <b>événement précis</b><br>se produit dans une table.<span class="rs">Ici, <code>AFTER UPDATE ON produits</code> :<br>après chaque modification d’un produit.</span></div></div>
+      <div class="rrow"><div class="rico emo">🔀</div><div class="rtxt"><code>OLD</code> et <code>NEW</code> donnent la ligne<br><b>avant</b> et <b>après</b> la modification.<span class="rs"><code>OLD.prix</code> est l’ancien prix,<br><code>NEW.prix</code> le nouveau.</span></div></div>
+      <div class="rrow"><div class="rico emo">🎯</div><div class="rtxt"><code>WHEN</code> limite le trigger aux <b>vrais changements</b>.<span class="rs">La syntaxe varie selon le SGBD :<br>celle-ci est celle de SQLite.</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+
+/* ---------- Le déroulé : chaque légende arrive à la suite de la précédente ----------
+   cap(clé, texte, durée) pose une légende [début, fin] ; A[clé] et B[clé] donnent son début et sa fin (temps de la timeline).
+   La trame est celle d’Elisa (25 octobre, 20 h 52, « TRIGGER — Qui a changé le prix du collagène ? ») : ses bulles sont gardées mot pour
+   mot, une phrase par bulle ; les chiffres sont ceux de la base du projet (le collagène est le produit 2, Collagène Marin, 39,90 €,
+   80 en stock). La responsable commerciale écrit : le collagène est passé de 39,90 € à 34,90 €, et elle ne retrouve pas la date du
+   changement. La table historique_prix garde le produit concerné, l’ancien prix, le nouveau prix et la date du changement ; le trigger
+   garder_prix (« après une modification de produit, si son prix a réellement changé, enregistrer l’ancien et le nouveau prix dans
+   l’historique ») la remplit. Pour le tester, on rejoue le changement de prix : la ligne d’historique apparaît toute seule ; puis on
+   modifie seulement le stock : aucune ligne n’est ajoutée. */
+const SCH = {t: 5.0, caps: [], chaps: [{label:'Qui a changé le prix ?', a: 5.0}], A: {}, B: {}};
+function chap(c){ SCH.t = +(SCH.t + 0.4).toFixed(2); SCH.chaps.push({label: c.label, a: SCH.t}); }
+function cap(key, html, dur, gap = 0.1){
+  /* Une légende reste au moins le temps de la lire (17 caractères par seconde, plus son fondu de 0,5 s) : l’image ne s’arrête jamais pour elle. */
+  dur = Math.max(dur, Math.ceil((html.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').length / 17 + 0.5) * 20) / 20);
+  const a = +(SCH.t + gap).toFixed(2), b = +(a + dur).toFixed(2);
+  SCH.caps.push([a, b, html]); SCH.A[key] = a; SCH.B[key] = b; SCH.t = b;   // trois lignes au plus par bulle : au-delà, deux bulles (Elisa, 24 octobre)
+}
+/* « À toi ! » : la légende reste un instant, puis l’image s’arrête à a + 2,35 s (le passage d’attente est coupé). */
+const toi = key => cap(key, 'À toi !', 2.55);
+const {A, B} = SCH;
+/* Le message reçu : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses phrases), signature, option].
+   La responsable commerciale écrit par SMS ({sms: true}), avec les mots d’Elisa : « Bonjour ! », puis ses deux phrases ; son message finit
+   sur sa question (bye: null : pas de « Merci ! » de plus). L’app s’arrête sur la notification (OPENS) jusqu’au toucher. */
+const MAILS = [
+  [['La responsable', 'commerciale', 'RC'], 'k-pr', 'équipe', 'commercial@nutriboost.fr', [
+    'Le collagène est passé de 39,90 € à 34,90 €, mais je ne retrouve pas la date du changement.',
+    'Peux-tu faire en sorte que chaque modification de prix soit désormais conservée automatiquement ?'], 'La responsable commerciale NutriBoost',
+    {sms: true, hello: 'Bonjour !', bye: null}]
+];
+/* Un message : la légende s’efface le temps du message (notification, toucher, lecture, départ). Un SMS : la formule, une bulle par phrase,
+   puis « Merci ! » (sauf bye: null) ; le toucher à +1,6 s, une bulle toutes les 0,28 s, le départ juste après la pause de lecture. */
+const mailSms = n => /^client/.test(MAILS[n][2]) || !!(MAILS[n][6] || {}).sms;
+const mailRows = n => { const o = MAILS[n][6] || {};
+  return (o.bye === null ? 1 : 2) + [].concat(MAILS[n][4]).flatMap(p => p.split(/(?<=[.!?])\s+(?=[A-ZÀÂÉÈÊÎÔÛÇ])/)).length + (o.photo ? 1 : 0); };
+const mailOutAt = n => +(2.68 + 0.28 * (mailRows(n) - 1)).toFixed(2);
+const MO = MAILS.map((m, n) => mailOutAt(n));
+const mailBlock = (n, extra = 0) => { const t = SCH.t; SCH.t = +(SCH.t + MO[n] + extra + 1).toFixed(2); return t; };
+
+/* 1 · Qui a changé le prix ? L’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) ; la responsable
+   commerciale écrit tout de suite. */
+cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
+cap('r2', "Au chapitre 12, un savepoint<br>t’a permis d’annuler<br>une partie d’une transaction.", 3.8);
+const MAIL1 = mailBlock(0);
+cap('a1', "Dans la <b>table produits</b>,<br>le collagène est bien à 34,90 €.", 3.6);
+cap('a2', "Seul le prix actuel est enregistré.", 3.6);
+toi('p1');
+cap('a3', "Un <code>UPDATE</code> écrit le nouveau prix<br>à la place de l’ancien,<br>sans garder de trace.", 4.2);
+/* 2 · Garder chaque changement : la table historique_prix (mots d’Elisa : « le produit concerné, l’ancien prix, le nouveau prix et la date
+   du changement ») */
+chap({label:'Garder chaque changement'});
+cap('b1', "Pour garder chaque changement,<br>l’équipe commerciale a ajouté<br>la <b>table historique_prix</b>.", 4.2);
+cap('b2', "Elle garde le produit concerné,<br>l’ancien prix, le nouveau prix<br>et la date du changement.", 4.8);
+cap('b3', "Pour l’instant, aucun changement<br>n’y est enregistré.", 3.4);
+cap('b4', "Pour la remplir automatiquement,<br>tu vas créer un <code>TRIGGER</code> :<br>un déclencheur.", 4.0);
+/* 3 · Créer le trigger : « après une modification de produit, si son prix a réellement changé, enregistrer l’ancien et le nouveau prix
+   dans l’historique » (Elisa), une ligne de la requête à la fois */
+chap({label:'Créer le trigger'});
+cap('c1', "<code>CREATE TRIGGER</code> crée le trigger,<br>ici nommé <code>garder_prix</code>.", 4.0);   // la requête s’écrit pendant les bulles
+cap('c2', "<code>AFTER UPDATE ON produits</code> le lance<br>après une modification de produit.", 4.4);
+cap('c3', "<code>WHEN</code> ajoute une condition :<br>son prix a réellement changé.", 4.2);
+cap('c4', "Entre <code>BEGIN</code> et <code>END</code>, il enregistre<br>l’ancien et le nouveau prix<br>dans l’historique.", 6.0);
+cap('c5', "<code>OLD.prix</code> donne l’ancien prix,<br><code>NEW.prix</code> le nouveau.", 3.8);
+cap('c6', "<code>CURRENT_TIMESTAMP</code> donne la date<br>et l’heure du changement.", 3.8);
+toi('p2');
+cap('c7', "Clique sur le bouton<br>« Créer le trigger ».", 3.8);   // c’est l’élève qui clique : l’app s’arrête sur le bouton (CRE, plus bas)
+cap('c8', "Le trigger est maintenant attaché<br>à la <b>table produits</b>.", 3.6);
+/* 4 · Modifier le prix : pour tester le trigger, on rejoue le changement de prix (Elisa, 25 octobre, 20 h 52 : « Tu modifies le prix du collagène dans produits :
+   39,90 € → 34,90 €. L’écran se déplace vers historique_prix. Une ligne apparaît automatiquement »), puis ses trois bulles, mot pour mot. */
+chap({label:'Modifier le prix'});
+cap('d1', "Pour tester le trigger, rejouons<br>le changement de prix du collagène.", 4.0);
+cap('d2', "Le collagène repart<br>de son ancien prix : 39,90 €.", 3.4);
+cap('d3', "Tu modifies son prix<br>dans la <b>table produits</b>.", 3.8);   // l’UPDATE s’écrit pendant la bulle
+toi('p3');
+cap('d4', "Clique sur le bouton<br>« Modifier le prix ».", 3.8);   // l’app s’arrête sur le bouton (MOD, plus bas)
+cap('d5', "Une ligne apparaît automatiquement<br>dans la <b>table historique_prix</b>.", 4.4);
+cap('d6', "Tu n’as exécuté<br>que la modification du prix.", 3.2);
+cap('d7', "Le <code>TRIGGER</code> a ajouté la ligne<br>d’historique automatiquement.", 3.8);
+cap('d8', "Un trigger déclenche une action<br>lorsqu’un événement précis<br>se produit dans une table.", 4.6);
+/* 5 · Lire la nouvelle ligne */
+chap({label:'Lire la nouvelle ligne'});
+cap('e1', "Le trigger a rempli chaque case<br>de la nouvelle ligne.", 3.4);
+toi('p4');
+cap('e2', "Le nouveau prix vient de <code>NEW.prix</code>,<br>et l’ancien de <code>OLD.prix</code>.", 4.0);
+cap('e3', "La date vient de <code>CURRENT_TIMESTAMP</code> :<br>le 25/10/2026 à 14:32.", 4.0);
+cap('e4', "Désormais, chaque modification de prix<br>est conservée automatiquement.", 4.0);
+/* 6 · Vérifier avec le stock (Elisa : « tu modifies ensuite uniquement le stock. Aucune ligne n’est ajoutée à l’historique des prix. ») */
+chap({label:'Vérifier avec le stock'});
+cap('f1', "Pour vérifier, tu modifies ensuite<br>uniquement le stock du collagène.", 4.2);   // l’UPDATE s’écrit pendant la bulle
+cap('f2', "Son stock va passer de 80 à 79.", 3.0);
+toi('p5');
+cap('f3', "Aucune ligne n’est ajoutée<br>à l’historique des prix.", 3.6);
+cap('f4', "Le <code>WHEN</code> compare l’ancien<br>et le nouveau prix : ils sont égaux.", 4.0);
+cap('f5', "Le trigger n’ajoute une ligne<br>que si le prix a réellement changé.", 3.8);
+/* 7 · Ligne ajoutée ou non ? */
+chap({label:'Ligne ajoutée ou non ?'});
+cap('g1', "Selon la modification, une ligne<br>s’ajoute à l’historique, ou aucune.", 4.2);
+toi('p6');
+cap('g2', "Le trigger réagit à un événement :<br>la modification d’un produit.", 3.6);
+cap('g3', "Son <code>WHEN</code> ne garde<br>que les vrais changements de prix.", 3.8);
+/* la suite : la prochaine leçon (Elisa : « la dernière place disponible à un atelier ») */
+cap('g4', "Dans la prochaine leçon, deux clients<br>réserveront la dernière place<br>d’un atelier en même temps.", 7.0);
+/* 8 · À retenir */
+chap({label:'À retenir'});
+const RECAP = SCH.t;
+cap('j1', "Pour finir, voici les <b>trois idées à retenir</b>.", 4.8, 0.4);
+/* NOTES (le bouton « Ajouter à mes notes ») est écrit en clair dans Course(…) plus bas : tests/trigger-lesson.test.mjs vérifie qu’il suit le déroulé. */
+const NOTES = +(SCH.t + 0.1).toFixed(2);
+const DURATION = +(NOTES + 7.2).toFixed(2);
+SCH.caps.push([NOTES, 999, APP ? "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."
+  : "Avec un trigger, chaque changement<br>de prix laisse une trace."]);
+
+const CAPTIONS = SCH.caps;
+const CHAPTERS = SCH.chaps.map((c, i) => ({n: i + 1, label: c.label, a: c.a, b: i + 1 < SCH.chaps.length ? SCH.chaps[i + 1].a : DURATION}));
+
+/* Pas de question du lecteur : les moments « À toi » (PICKS) font participer l’élève. */
+const QUESTIONS = [];
+
+/* ---------- Le cas : la base des ateliers NutriBoost (la même dans tous les chapitres du projet) ---------- */
+/* La base telle que le chapitre 12 la laisse : onze tables, avec la table cadeaux (la Protéine Végétale offerte à Léa Simon, validée).
+   [clé, couleur, emoji, nom, lignes] */
+const TB = [
+  ['cl', 'k-cl', '👥', 'clients', 8], ['cm', 'k-cm', '🛒', 'commandes', 16], ['fi', 'k-fi', '⭐', 'fidelite', 4], ['pr', 'k-pr', '📦', 'produits', 8],
+  ['co', 'k-co', '🧑‍🏫', 'coachs', 4], ['at', 'k-at', '📅', 'ateliers', 5], ['in', 'k-in', '📝', 'inscriptions', 7], ['ca', 'k-nb', '💳', 'cartes', 3],
+  ['av', 'k-av', '💬', 'avis', 1], ['rp', 'k-rp', '🔁', 'remplacements', 1], ['cd', 'k-cd', '🎁', 'cadeaux', 1]
+];
+/* Le collagène, tel que la base le connaît : le produit 2 (Collagène Marin, 39,90 €, 80 en stock). Son prix passe à 34,90 € ; le changement
+   rejoué a lieu le 25 octobre 2026 à 14 h 32 (la date de la trame d’Elisa). */
+const COLLAGENE = {id: 2, nom: 'Collagène Marin', prix: 39.90, nouveau: 34.90, stock: 80}, QUAND = '2026-10-25 14:32:00';
+/* Moment 4 : la case remplie avec NEW.prix est le nouveau prix (c2) ; d’où viennent les autres cases. */
+const WHY4 = {
+  c0: 'Cette case vient de <code>OLD.id</code> : le produit concerné, le collagène.',
+  c1: 'Cette case vient de <code>OLD.prix</code> : l’ancien prix, 39,90 €.',
+  c3: 'Cette case vient de <code>CURRENT_TIMESTAMP</code> : la date et l’heure du changement.'
+};
+/* Moment 6 : une ligne ajoutée, ou aucune, et six modifications à ranger [modification, case, pourquoi]. */
+const BINS = [['ad', 'Une ligne ajoutée', 'dans l’historique des prix'], ['no', 'Aucune ligne', 'l’historique ne change pas']];
+const ITEMS = [
+  ['Le prix du collagène passe à 32,90 €', 'ad', 'Le prix change : le trigger ajoute une ligne, avec l’ancien prix, 34,90 €, et le nouveau, 32,90 €.'],
+  ['Le stock du shaker passe de 29 à 28', 'no', 'Seul le stock change : la condition du WHEN est fausse, aucune ligne n’est ajoutée.'],
+  ['Le nom et le prix de la tisane changent', 'ad', 'Le prix change, en même temps que le nom : la condition du WHEN est vraie, une ligne est ajoutée.'],
+  ['Un UPDATE réécrit le même prix', 'no', 'L’ancien et le nouveau prix sont égaux : la condition du WHEN est fausse, aucune ligne n’est ajoutée.'],
+  ['Un nouveau produit arrive au catalogue', 'no', 'C’est un INSERT, pas un UPDATE : le trigger ne se déclenche qu’après une modification.'],
+  ['Le prix du shaker baisse pendant les soldes', 'ad', 'Une baisse est aussi un changement de prix : une ligne est ajoutée à l’historique.']
+];
+
+/* Les six moments « À toi » : l’image s’arrête, l’élève touche, choisit ou range ; la page montre aussitôt le résultat.
+   from : début du passage qui amène chaque moment, d’où repartent « ↺ Revoir » et « Rejouer ». */
+const atp = k => +(A[k] + 2.35).toFixed(2);
+const PICKS = [
+  {at: atp('p1'), from: A.a1, kind: 'pick', text: true, prompt: 'Pourquoi la date du changement est-elle introuvable ?', options: [
+    {label: 'Le changement n’a pas été validé avec COMMIT', why: 'Le changement est bien enregistré : la <b>table produits</b> affiche 34,90 €, mais aucune colonne n’y garde la date.'},
+    {label: 'Un UPDATE remplace l’ancien prix, sans garder de trace', ok: true, why: '<code>UPDATE</code> écrit le nouveau prix à la place de l’ancien : ni l’ancien prix, ni la date du changement ne sont conservés.'},
+    {label: 'La date est enregistrée dans la table commandes', why: 'La <b>table commandes</b> enregistre les commandes des clients, pas les changements de prix.'}]},
+  {at: atp('p2'), from: A.c1, kind: 'pick', text: true, prompt: 'Quand le trigger garder_prix ajoute-t-il une ligne à l’historique ?', options: [
+    {label: 'Après une modification de prix d’un produit', ok: true, why: '<code>AFTER UPDATE ON produits</code> le lance après chaque modification d’un produit, et <code>WHEN</code> ne garde que les changements de prix.'},
+    {label: 'Avant chaque ajout dans l’historique', why: 'Le trigger surveille la <b>table produits</b> : c’est lui qui ajoute les lignes de l’historique.'},
+    {label: 'À chaque lecture de la table produits', why: 'Une lecture ne modifie rien : le trigger se déclenche après un <code>UPDATE</code>, pas après un <code>SELECT</code>.'}]},
+  {at: atp('p3'), from: A.d1, kind: 'pick', text: true, prompt: 'Pendant ce changement de prix, que vaudra OLD.prix ?', options: [
+    {label: '34.90, le prix après la modification', why: '34,90 € est le nouveau prix : c’est <code>NEW.prix</code>, la ligne après la modification.'},
+    {label: 'NULL, car l’ancien prix est effacé', why: 'Pendant le trigger, l’ancienne ligne reste lisible : <code>OLD.prix</code> vaut 39,90 €.'},
+    {label: '39.90, le prix avant la modification', ok: true, why: '<code>OLD</code> donne la ligne telle qu’elle était avant l’<code>UPDATE</code> : son prix était de 39,90 €.'}]},
+  {at: atp('p4'), from: A.d5, kind: 'tap', need: 1, prompt: 'Touche la case que le trigger a remplie avec NEW.prix.'},
+  {at: atp('p5'), from: A.f1, kind: 'pick', text: true, prompt: 'Le prix ne change pas : le trigger ajoutera-t-il une ligne à l’historique ?', options: [
+    {label: 'Oui, avec deux fois le même prix', why: 'La condition <code>OLD.prix &lt;&gt; NEW.prix</code> est fausse : 34,90 € des deux côtés, aucune ligne n’est ajoutée.'},
+    {label: 'Non, aucune ligne n’est ajoutée', ok: true, why: '<code>OLD.prix</code> et <code>NEW.prix</code> valent tous les deux 34,90 € : la condition du <code>WHEN</code> est fausse.'},
+    {label: 'Oui, avec l’ancien et le nouveau stock', why: 'Le trigger enregistre des prix, pas des stocks : et ici, le prix n’a pas changé.'}]},
+  {at: atp('p6'), from: A.g1, kind: 'sort', prompt: 'Range chaque modification selon ce que fait le trigger.',
+    hint: 'Touche une modification, puis la case qui convient. Tu peux aussi la faire glisser directement.', next: '« {x} » : une ligne ajoutée, ou aucune ?',
+    options: ITEMS.map(x => ({label: x[0]}))}
+];
+
+/* Les arrêts « toucher » : la notification, et les deux boutons de la trame (« Créer le trigger », « Modifier le prix »). Rien n’y est noté.
+   Sur un bouton, la légende dit déjà quoi faire : un doigt seul (hand) monte et descend sur son coin, et le bouton s’enfonce dès l’appui
+   (press), puis remonte au relâcher (rest). */
+const CRE = +(A.c7 + 2.6).toFixed(2), MOD = +(A.d4 + 2.6).toFixed(2);
+const BTN = (lip) => ({hand: {x: 0.86, y: 0.78}, press: {y: 7, boxShadow: `0 2px 0 ${lip}`}, rest: {y: 0, boxShadow: `0 9px 0 ${lip}`}});
+const msgOpen = (t, n) => {
+  const [prenom, nom] = MAILS[n][0], msg = mailSms(n) ? 'message' : 'mail';   // la responsable commerciale écrit par SMS
+  const de = /^Le /.test(prenom) ? 'du ' + prenom.slice(3) : /^La /.test(prenom) ? 'de la ' + prenom.slice(3) : /^[AEIOUHÉÈ]/.test(prenom) ? 'd’' + prenom : 'de ' + prenom;
+  return {at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: `Touche le ${msg} pour l’ouvrir.`, label: `Ouvrir le ${msg} ${de} ${nom}`};
+};
+const OPENS = [
+  msgOpen(MAIL1, 0),
+  Object.assign({at: CRE, sel: '#bcre', prompt: 'Touche le bouton.', label: 'Créer le trigger'}, BTN('#4B30CC')),
+  Object.assign({at: MOD, sel: '#bmod', prompt: 'Touche le bouton.', label: 'Modifier le prix'}, BTN('#A3216A'))
+];
+
+/* ---------- Gabarits ---------- */
+/* Une case à valeurs empilées (une seule se voit). */
+const sw = (id, vals, k = 'v') => `<span class="sw ${k}" id="${id}">${vals.map((v, j) => `<i class="a${j}${v[1] ? ' ' + v[1] : ''}">${v[0]}</i>`).join('')}</span>`;
+const cell = (j, inner) => `<span class="c${j}">${inner}</span>`;
+const line = (id, cells, cls = '') => `<div class="gr r${cls ? ' ' + cls : ''}" id="r${id}"><i class="hl"></i><i class="wn"></i><i class="xx"></i>${cells}</div>`;
+/* Carte de code : une ligne par [repère, texte, classe, style]. Dans le texte : {id|…} un passage repéré (il pulse). Un commentaire (--) n’a pas de curseur.
+   OLD et NEW (la ligne avant et après la modification) ont leur couleur. */
+const SQL_KW = /\b(?:CREATE TRIGGER|AFTER UPDATE ON|INSERT INTO|CURRENT_TIMESTAMP|BEGIN|END|WHEN|VALUES|UPDATE|SET|WHERE)\b/g, CARET = '<span class="caret"><i></i></span>';
+function lineHtml([lid, s, cls = '', st = '']){
+  const cmt = s.trim().startsWith('--');
+  let h = s.replace(/\{(\w+)\|([^{}]*)\}/g, '<span class="glow" id="$1">$2</span>');
+  if (!cmt) h = h.replace(SQL_KW, '<span class="kw">$&</span>').replace(/\b(?:OLD|NEW)\b/g, '<span class="ov">$&</span>').replace(/'[^']*'/g, '<span class="str">$&</span>');
+  return `<span class="ln${cmt ? ' cmt' : ''}${cls ? ' ' + cls : ''}" id="${lid}"${st ? ` style="${st}"` : ''}>${h}${cmt ? '' : CARET}</span>`;
+}
+function editor(id, fname, lines, extra = ''){
+  return `<div class="abs code sq" id="${id}" style="left:64px;width:952px"><div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i>` +
+    `<span class="fname">${fname}</span></div><div class="body">${lines.map(lineHtml).join('')}${extra}</div></div>`;
+}
+const head = (cols, k = '') => `<div class="gr hd">${cols.map(([c, label, extra]) => `<span class="${c}${extra ? ' ' + extra : ''}">${label}</span>`).join('')}</div>`;
+const tbl = (id, kc, emo, name, g, hd, rows, bn = '') => `<div class="abs card tb tz ${kc}" id="${id}" style="left:64px;width:952px;${g}"><div class="h"><span class="emo">${emo}</span><span>${name}</span>${bn}</div>${hd}${rows}</div>`;
+const KEY = '<span class="emo">🔑</span>id', LK = '<span class="emo">🔗</span>';
+/* Les requêtes de la trame : le trigger (une ligne de la requête à la fois, au fil des bulles), le changement de prix rejoué, puis la
+   modification du stock seul. Dans le texte des requêtes, <> s’écrit &lt;&gt;. */
+const Q_TRIG = [['-- Garder chaque changement de prix'], ['CREATE TRIGGER {tgn|garder_prix}'], ['{tev|AFTER UPDATE ON produits}'], ['{twh|WHEN OLD.prix &lt;&gt; NEW.prix}'],
+  ['{tbg|BEGIN}'], ['  INSERT INTO {thp|historique_prix}'], ['    (produit_id, ancien_prix,'], ['     nouveau_prix, date_changement)'], ['  VALUES (OLD.id, {to1|OLD.prix},'],
+  ['          {tn1|NEW.prix}, {tct|CURRENT_TIMESTAMP});'], ['{ten|END};']];
+const Q_PRIX = [['-- Changer le prix du collagène'], ['UPDATE produits'], ['SET prix = 34.90'], ['WHERE id = 2;']];
+const Q_STOCK = [['-- Modifier seulement le stock'], ['UPDATE produits'], ['SET stock = stock - 1'], ['WHERE id = 2;']];
+const ed = (id, q, fname = 'produits.sql') => editor(id, fname, q.map(([s], k) => [id + '-' + k, s]));
+/* Un bouton à toucher, et l’anneau qui s’en échappe */
+const button = (id, cls, emo, label) => `<i class="abs bring ${cls}" id="${id}-r"></i><div class="abs run bt ${cls}" id="${id}"><span class="emo">${emo}</span>${label}<i class="ripple"></i></div>`;
+function dom(){
+  /* La base et ses onze tables : le rappel du chapitre précédent */
+  $('#sa').innerHTML = `<div class="abs card bc" id="bc"><div class="bh"><span class="emo">🗄️</span><span>Base NutriBoost</span><span class="bn"><span>11 tables</span></span></div>` +
+    TB.map(([k, kc, emo, name, n]) => `<div class="srow ${kc}" id="bw-${k}"><i class="hl"></i><div class="sn"><span class="emo">${emo}</span>` +
+      `<span class="nm">${name}</span><i class="sp"></i><b class="nb"><span>${n} ${n > 1 ? 'lignes' : 'ligne'}</span></b></div></div>`).join('') + '</div>';
+  /* Le message de la responsable commerciale (il finit sur sa question) */
+  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body, false, smsRank(MAILS, n),
+    (MAILS[n][6] || {}).hello, (MAILS[n][6] || {}).photo, (MAILS[n][6] || {}).bye) : '').join('') +
+    '<div class="abs emo tapf" id="tapf">👆</div>';
+  /* Le travail : l’extrait de la table produits (le collagène) et son trigger, ce que la responsable ne retrouve pas, la table historique_prix,
+     les requêtes, les boutons, la condition du trigger. Le prix : 34,90 €, puis 39,90 € (le changement rejoué), puis 34,90 €. */
+  let w = tbl('tp', 'k-pr', '📦', 'produits', '--g:96px 1fr 210px 170px', head([['c0 kc', KEY], ['c1', 'nom'], ['c2', 'prix'], ['c3', 'stock']]),
+      line('tp2', cell(0, '<i class="v">2</i>') + cell(1, '<i class="v">Collagène Marin</i>') + cell(2, sw('pr2', [['34.90'], ['39.90'], ['34.90']])) + cell(3, sw('st2', [['80'], ['79']]))),
+      '<span class="tgc" id="tgc"><span class="emo">⚡</span>garder_prix</span><span class="bn"><span>extrait</span></span>');
+  w += '<div class="abs card ko" id="ko"><div class="kh"><span class="emo">🔎</span>Ce que la responsable cherche</div>' +
+    '<div class="kl"><span class="emo">💶</span>L’ancien prix<span class="kq">introuvable</span></div>' +
+    '<div class="kl"><span class="emo">🗓️</span>La date du changement<span class="kq">introuvable</span></div></div>';
+  /* L’historique des prix : « aucun changement », puis la ligne que le trigger ajoute ; la case du nouveau prix s’entoure (moment 4) */
+  w += tbl('hp', 'k-hp', '🏷️', 'historique_prix', '--g:208px 186px 202px 1fr',
+      head([['c0 kc k-pr', LK + 'produit_id'], ['c1', 'ancien_prix'], ['c2', 'nouveau_prix'], ['c3', 'date_changement']]),
+      line('hp0', '<span class="ph">Aucun changement enregistré</span>', 'rph') +
+      line('hp1', cell(0, '<i class="v">2</i>') + cell(1, '<i class="v">39.90</i>') + cell(2, '<i class="v">34.90</i><i class="hc" id="hc2"></i>') + cell(3, `<i class="v">${QUAND}</i>`)),
+      '<span class="bn" id="hpn"><span class="a0">vide</span><span class="a1">1 ligne</span></span>');
+  // les requêtes : le trigger, puis les deux modifications de la table produits
+  w += ed('etg', Q_TRIG, 'garder_prix.sql') + ed('eup', Q_PRIX) + ed('eus', Q_STOCK);
+  w += button('bcre', '', '⚡', 'Créer le trigger') + button('bmod', 'pk', '✏️', 'Modifier le prix');
+  // le trigger se déclenche : sa condition, avec l’ancien et le nouveau prix (vraie pour le prix, fausse pour le stock)
+  w += '<div class="abs card wk" id="wk"><div class="wkh"><span class="emo">⚡</span>Le trigger <code>garder_prix</code> se déclenche</div>' +
+    '<div class="wkl"><span class="wkw">WHEN</span><span class="sw wkv" id="wkv"><i class="a0">39.90 &lt;&gt; 34.90</i><i class="a1">34.90 &lt;&gt; 34.90</i></span>' +
+    '<span class="sw wkr" id="wkr"><i class="a0 ok">✓ Vrai : une ligne ajoutée</i><i class="a1 no">✕ Faux : aucune ligne</i></span></div></div>';
+  w += '<div class="abs emo tapf" id="tapw">👆</div>';
+  $('#sw').innerHTML = w;
+  /* Une ligne ajoutée, ou aucune : une case chacune, où ranger les modifications */
+  $('#sd').innerHTML = BINS.map(([k, n, d], q) => `<div class="abs dbn" id="db-${k}" data-k="${k}" style="top:${260 + q * 232}px"><div class="hh"><span class="dn">${n}</span><span class="dd">${d}</span></div>` +
+    `<div class="cs">${ITEMS.map((x, i) => x[1] === k ? `<div class="rc" id="sbu${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
+    '<div class="abs pack" id="bpack"><span><span class="emo">📬</span>6 modifications à ranger</span></div>';
+  /* La suite : la prochaine leçon */
+  $('#sn').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🔖</span>Prochaine leçon · Concurrence et isolation</span></div>';
+  // les requêtes, découpées en caractères pour la frappe
+  $$('.sq .ln').forEach(splitChars);
+}
+
+/* ---------- Mise en page ---------- */
+const RH = 62;   // hauteur d’une ligne des tables
+const bottom = s => { const el = $(s); return el.offsetTop + el.offsetHeight; };
+/* Position d’un élément dans sa scène (sans tenir compte des transformations) : le coin et la taille. */
+const pos = el => {
+  let x = 0, y = 0, e = el;
+  while (e && !e.classList.contains('scene')) {
+    x += e.offsetLeft; y += e.offsetTop;
+    const p = e.offsetParent;
+    if (p && !p.classList.contains('scene')) { x += p.clientLeft; y += p.clientTop; }
+    e = p;
+  }
+  return {x, y, w: el.offsetWidth, h: el.offsetHeight};
+};
+function layout(){
+  // la table produits en haut ; dessous, ce qui est introuvable, puis la table historique_prix, à la même place
+  $('#tp').style.top = '236px';
+  const T2 = bottom('#tp') + 30;
+  $('#ko').style.top = T2 + 'px';
+  // l’historique garde la hauteur d’une ligne : « aucun changement », puis la ligne que le trigger ajoute
+  $('#hp').style.top = T2 + 'px';
+  $('#rhp1').style.height = '0px';
+  $('#hp').style.height = $('#hp').offsetHeight + 'px';
+  // sous l’historique : le trigger et son bouton, puis la condition du trigger, et la modification du stock
+  const T3 = bottom('#hp') + 30;
+  const place = (id, top) => { $('#' + id).style.top = top + 'px'; $('#' + id + '-r').style.top = top + 'px'; };
+  $('#etg').style.top = T3 + 'px';
+  place('bcre', bottom('#etg') + 9 + 32);
+  // le changement de prix rejoué : la requête sous la table produits (l’historique est descendu), et son bouton
+  $('#eup').style.top = T2 + 'px';
+  place('bmod', bottom('#eup') + 9 + 32);
+  $('#wk').style.top = T3 + 'px';
+  $('#eus').style.top = T3 + 'px';
+  // une ligne ajoutée, ou aucune : la pile des modifications, sous les deux cases
+  $('#bpack').style.top = (bottom('#db-no') + 9 + 44) + 'px';
+}
+
+/* ---------- Petits gestes de la timeline ---------- */
+const pulse = (el, t, n = 3, c = 'rgba(201,188,255,.55)') => tl.to(el, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (el, t, s = 1.04) => tl.to(el, {scale: s, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, t);
+const on = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 1, duration: d, ease: 'power2.out'}, t);
+const off = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 0, duration: d, ease: 'power2.in'}, t);
+const GLOW = 'rgba(255,224,138,.4)';
+/* Une valeur en remplace une autre : l’ancienne monte et s’efface, la nouvelle arrive par en dessous. */
+function swap(o, n, t, sound = true){
+  tl.to(o, {autoAlpha: 0, y: -14, duration: 0.2, ease: 'power2.in'}, t);
+  tl.fromTo(n, {autoAlpha: 0, y: 14}, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power3.out', immediateRender: false}, t + 0.12);
+  if (sound) cue(t + 0.12, 'type', 0.8, 2);
+}
+/* Une mention apparaît (d’un petit rebond). */
+const mark = (sel, t) => { tl.fromTo(sel, {autoAlpha: 0, scale: 0.6, y: 0}, {autoAlpha: 1, scale: 1, y: 0, duration: 0.4, ease: 'back.out(2.4)', immediateRender: false}, t); cue(t, 'pop', 0.6, 2); };
+/* Une ligne qui apparaît (ou disparaît) en dépliant sa hauteur. */
+const rowIn = (sel, t) => { tl.fromTo(sel, {height: 0}, {height: RH, duration: 0.45, ease: 'power2.out', immediateRender: false}, t); cue(t, 'whoosh', 0.35, 2); };
+const rowOut = (sel, t) => { tl.fromTo(sel, {height: RH}, {height: 0, duration: 0.4, ease: 'power2.inOut', immediateRender: false}, t); };
+/* Frappe des lignes a à b d’une requête (un commentaire se tape plus vite, sans curseur). Renvoie l’instant de fin. */
+function typeLines(id, a, b, t, cps = 34){
+  const lns = $$('#' + id + ' .ln').slice(a, b + 1);
+  let e = t;
+  lns.forEach(ln => {
+    if (ln.classList.contains('cmt')) { e = typeChars($$('.ch', ln), e, 60) + 0.1; return; }
+    const caret = $$(':scope > .caret', ln).pop();
+    tl.set(caret, {autoAlpha: 1}, e - 0.2);
+    e = typeChars($$('.ch', ln), e, cps);
+    tl.set(caret, {autoAlpha: 0}, e + 0.1);
+    e += 0.15;
+  });
+  return e;
+}
+const typeQuery = (id, t, cps = 34) => typeLines(id, 0, 99, t, cps);
+/* La requête s’exécute : la carte s’enfonce d’un coup, comme un bouton « Exécuter ». */
+const run = (id, t) => { tl.to('#' + id, {scale: 0.985, duration: 0.08, yoyo: true, repeat: 1, ease: 'power2.out'}, t); cue(t, 'click', 0.6); };
+/* Le trigger se déclenche : sa pastille, dans l’en-tête de la table produits, s’allume et son éclair remue. */
+function fire(t){
+  tl.to('#tgc', {backgroundColor: '#FFE08A', duration: 0.16, yoyo: true, repeat: 3, ease: 'power1.inOut'}, t);
+  tl.to('#tgc', {scale: 1.12, duration: 0.16, yoyo: true, repeat: 1, ease: 'power1.inOut'}, t);
+  tl.to('#tgc .emo', {rotation: -18, transformOrigin: '50% 60%', duration: 0.07, yoyo: true, repeat: 5, ease: 'sine.inOut'}, t);
+  cue(t, 'chord', 0.55);
+}
+/* La légende s’efface le temps du message, puis revient. */
+const capOff = t => tl.to('#cap', {autoAlpha: 0, y: 30, duration: 0.3, ease: 'power2.in'}, t);
+const capOn = t => tl.to('#cap', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, t);
+/* Le message arrive : la responsable commerciale écrit par SMS (smsIn) ; l’app s’arrête sur la notification (OPENS) jusqu’au toucher ;
+   hors de l’app, un doigt la montre. */
+function mailIn(n, t, T){
+  if (isSms(MAILS[n - 1][2], MAILS[n - 1][6])) { if (!APP) fingerTap($('#ml' + n), T); return smsIn(n, t, T); }
+  return T;
+}
+function mailOut(n, t){ hide('#ml' + n, t, {x: 140, y: 0, rotation: 2}, 0.4, 'power2.in'); cue(t, 'whoosh', 0.4); }
+/* Un doigt montre le geste (vidéo seule) : il touche la notification ou un bouton. */
+function fingerTap(M, T, f = '#tapf', fx = 0.6, fy = 92){
+  const p = pos(M);
+  tl.set(f, {left: p.x + p.w * fx, top: p.y + fy}, T - 0.8);
+  tl.fromTo(f, {autoAlpha: 0, x: 90, y: 170}, {autoAlpha: 1, x: 0, y: 0, duration: 0.5, ease: 'power3.out', immediateRender: false}, T - 0.75);
+  tl.to(f, {scale: 0.86, duration: 0.1, ease: 'power2.in'}, T - 0.15);
+  tl.to(f, {scale: 1, duration: 0.15}, T);
+  tl.to(f, {autoAlpha: 0, y: 70, duration: 0.3}, T + 0.2);
+}
+/* La micro-interaction d’un bouton touché (Elisa, 25 octobre, 16 h 22). Dans l’app, le bouton s’enfonce sous le doigt dès le toucher et remonte
+   d’un rebond au relâcher (OPENS : press, rest ; le lecteur s’en charge, hors de la timeline) ; hors de l’app, le doigt appuie (press). Puis une
+   onde blanche le traverse, il gonfle un instant, son icône remue et un anneau s’en échappe. Rien que des « to » : en revenant en arrière, chaque
+   élément retrouve l’état d’avant le toucher. */
+function tapButton(id, T, lip){
+  const b = '#' + id;
+  if (APP) {
+    const rp = $(b + ' .ripple');
+    tl.to(rp, {scale: 0, opacity: 0.55, duration: 0.001}, T + 0.001).to(rp, {scale: 1, opacity: 0, duration: 0.7, ease: 'power2.out'}, T + 0.011);
+    cue(T + 0.001, 'click');
+  } else { fingerTap($(b), T, '#tapw', 0.6, 62); press($(b), T, lip, 9); }
+  tl.to(b, {scale: 1.04, duration: 0.14, ease: 'power2.out'}, T + 0.1).to(b, {scale: 1, duration: 0.32, ease: 'back.out(2)'}, T + 0.24);
+  tl.to(b + ' .emo', {rotation: -16, transformOrigin: '50% 85%', duration: 0.07, yoyo: true, repeat: 3, ease: 'sine.inOut'}, T + 0.06);
+  tl.set(b + '-r', {autoAlpha: 0.9, scale: 1}, T + 0.05);
+  tl.to(b + '-r', {autoAlpha: 0, scale: 1.16, duration: 0.6, ease: 'power2.out'}, T + 0.051);
+}
+
+/* Réponses des moments « À toi » : ce que la timeline montre juste après l’arrêt (et que l’aperçu montre pendant l’arrêt). */
+const M4_ANS = ['#hc2'];   // la case du nouveau prix, entourée
+const set2 = t => +(t + 0.02).toFixed(2);
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
+  layout();
+  gsap.set(['.sq', '.pack', '#bc', '#tp', '#ko', '#hp', '.bt', '#wk', '#keyc', '.dbn', '#tapf', '#tapw', '#tgc'], {autoAlpha: 0});
+  gsap.set(['#pr2 .a1', '#pr2 .a2', '#st2 .a1', '#hpn .a1', '#wkv .a1', '#wkr .a1', '.dbn .rc'], {autoAlpha: 0});
+
+  /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
+     la consigne, la légende ne la répète pas. Le passage d’attente est coupé (rien ne s’y anime). */
+  PICKS.forEach(p => cut(p.at - 1.35, 1.25));
+
+  /* ===== 1 · Qui a changé le prix ? ===== */
+  sceneOn('#sa', 5.0);
+  show('#bc', A.r1, {y: 60}, 0.55); cue(A.r1, 'whoosh', 0.5);
+  TB.forEach(([k], q) => { const t = A.r1 + 0.3 + q * 0.15; show('#bw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q % 5); });
+  // « Au chapitre 12, un savepoint » : le cadeau de Léa Simon, changé sans annuler son remplacement
+  on('#bw-cd .hl', A.r2 + 0.6, 0.2); cue(A.r2 + 0.6, 'tick', 0.5, 2);
+  on('#bw-rp .hl', A.r2 + 1.3, 0.2); cue(A.r2 + 1.3, 'tick', 0.5, 4);
+  off(['#bw-cd .hl', '#bw-rp .hl'], A.r2 + 3.0, 0.3);
+  // la responsable commerciale écrit : la base laisse la place à son message, la légende s’efface le temps du message (jamais de carte vide)
+  capOff(B.r2 - 0.2);
+  hide('#bc', B.r2 - 0.1, {y: -30}, 0.35);
+  sceneOff('#sa', MAIL1 + 0.3);
+  sceneOn('#sm', MAIL1 + 0.3);
+  mailIn(1, MAIL1 + 0.5, OPENS[0].at);
+  mailOut(1, MAIL1 + MO[0]);
+  sceneOff('#sm', MAIL1 + MO[0] + 0.45);
+  // dans la table produits, le collagène est bien à 34,90 €
+  sceneOn('#sw', MAIL1 + MO[0] + 0.45);
+  capOn(A.a1 - 0.3);
+  show('#tp', A.a1 + 0.3, {y: 50}, 0.5); cue(A.a1 + 0.3, 'whoosh', 0.5);
+  on('#rtp2 .hl', A.a1 + 1.2, 0.25); cue(A.a1 + 1.2, 'tick', 0.5, 2);
+  pulse('#rtp2 .c2', A.a1 + 2.2, 1, GLOW); cue(A.a1 + 2.2, 'tick', 0.5, 4);
+  // seul le prix actuel est enregistré : l’ancien prix et la date du changement sont introuvables
+  show('#ko', A.a2 + 0.3, {y: 40}, 0.5); cue(A.a2 + 0.3, 'whoosh', 0.45, 1);
+  $$('#ko .kq').forEach((q, i) => { const t = A.a2 + 1.1 + i * 0.45; bump(q, t, 1.14); cue(t, 'miss', 0.35, i); });
+  // un UPDATE écrit le nouveau prix à la place de l’ancien, sans garder de trace
+  pulse('#rtp2 .c2', A.a3 + 0.8, 1, GLOW); cue(A.a3 + 0.8, 'tick', 0.5, 3);
+  bump('#ko', A.a3 + 2.4, 1.02);
+  off('#rtp2 .hl', B.a3 - 0.3, 0.3);
+
+  /* ===== 2 · Garder chaque changement ===== */
+  // la table historique_prix arrive à la place de ce qui était introuvable
+  hide('#ko', A.b1 - 0.05, {y: -30}, 0.35);
+  show('#hp', A.b1 + 0.4, {y: 50}, 0.5); cue(A.b1 + 0.4, 'whoosh', 0.5, 1);
+  bump('#hp', A.b1 + 2.0, 1.02); cue(A.b1 + 2.0, 'tick', 0.5, 2);
+  // le produit concerné, l’ancien prix, le nouveau prix et la date du changement : ses quatre colonnes
+  ['c0', 'c1', 'c2', 'c3'].forEach((c, q) => { const t = A.b2 + 0.5 + q * 0.85; pulse('#hp .hd .' + c, t, 1, GLOW); cue(t, 'tick', 0.5, q + 1); });
+  // pour l’instant, aucun changement n’y est enregistré
+  pulse('#rhp0', A.b3 + 0.5, 1, GLOW); cue(A.b3 + 0.5, 'tick', 0.5, 2);
+  bump('#hpn', A.b3 + 1.4, 1.12); cue(A.b3 + 1.4, 'tick', 0.5, 4);
+
+  /* ===== 3 · Créer le trigger ===== */
+  // CREATE TRIGGER garder_prix : la requête s’écrit au fil des bulles, une partie à la fois
+  show('#etg', A.c1 + 0.2, {y: 40}, 0.5); cue(A.c1 + 0.2, 'whoosh', 0.45, 1);
+  typeLines('etg', 0, 1, A.c1 + 0.6);
+  pulse('#tgn', A.c1 + 2.6, 1, GLOW); cue(A.c1 + 2.6, 'tick', 0.5, 2);
+  // AFTER UPDATE ON produits : après une modification de produit
+  typeLines('etg', 2, 2, A.c2 + 0.3);
+  pulse('#tev', A.c2 + 1.9, 1, GLOW); cue(A.c2 + 1.9, 'tick', 0.5, 3);
+  pulse('#tp .h', A.c2 + 2.9, 1, GLOW); cue(A.c2 + 2.9, 'tick', 0.5, 4);
+  // WHEN : son prix a réellement changé
+  typeLines('etg', 3, 3, A.c3 + 0.3);
+  pulse('#twh', A.c3 + 1.9, 1, GLOW); cue(A.c3 + 1.9, 'tick', 0.5, 2);
+  // entre BEGIN et END : l’ancien et le nouveau prix, enregistrés dans l’historique
+  const c4 = typeLines('etg', 4, 10, A.c4 + 0.3, 48);
+  pulse('#thp', c4 + 0.1, 1, GLOW); cue(c4 + 0.1, 'tick', 0.5, 3);
+  pulse('#hp .h', c4 + 0.7, 1, GLOW); cue(c4 + 0.7, 'tick', 0.5, 5);
+  // OLD.prix, l’ancien prix ; NEW.prix, le nouveau
+  pulse('#to1', A.c5 + 0.4, 1, GLOW); cue(A.c5 + 0.4, 'tick', 0.5, 2);
+  pulse('#tn1', A.c5 + 1.8, 1, GLOW); cue(A.c5 + 1.8, 'tick', 0.5, 4);
+  // CURRENT_TIMESTAMP : la date et l’heure du changement
+  pulse('#tct', A.c6 + 0.4, 1, GLOW); cue(A.c6 + 0.4, 'tick', 0.5, 3);
+  pulse('#hp .hd .c3', A.c6 + 1.8, 1, GLOW); cue(A.c6 + 1.8, 'tick', 0.5, 5);
+  // l’élève clique sur « Créer le trigger » : le bouton arrive sous la requête (l’app s’arrête dessus, OPENS ; hors de l’app, un doigt le montre)
+  show('#bcre', A.c7 + 1.5, {y: 30, scale: 0.94}, 0.5, 'back.out(1.7)'); cue(A.c7 + 1.5, 'pop', 0.7, 2);
+  tapButton('bcre', CRE, '#4B30CC');
+  run('etg', CRE + 0.15);
+  // le trigger est créé : il est attaché à la table produits (sa pastille, dans l’en-tête)
+  mark('#tgc', CRE + 0.55); cue(CRE + 0.6, 'chord', 0.5);
+  bump('#tgc', A.c8 + 0.8, 1.15); cue(A.c8 + 0.8, 'tick', 0.5, 3);
+  pulse('#tp .h', A.c8 + 1.7, 1, GLOW);
+
+  /* ===== 4 · Modifier le prix ===== */
+  // pour tester le trigger : la requête et son bouton s’en vont, l’historique descend plus bas (l’écran y reviendra)
+  hide(['#etg', '#bcre'], A.d1 + 0.1, {y: -30}, 0.35);
+  hide('#hp', A.d1 + 0.6, {y: 600}, 0.55, 'power2.in'); cue(A.d1 + 0.6, 'whoosh', 0.35, 1);
+  // le collagène repart de son ancien prix : 39,90 €
+  on('#rtp2 .hl', A.d2 + 0.2, 0.25); cue(A.d2 + 0.2, 'tick', 0.5, 2);
+  swap('#pr2 .a0', '#pr2 .a1', A.d2 + 0.6);
+  pulse('#rtp2 .c2', A.d2 + 1.5, 1, GLOW); cue(A.d2 + 1.5, 'tick', 0.5, 4);
+  // tu modifies son prix dans la table produits : l’UPDATE s’écrit pendant la bulle
+  show('#eup', A.d3 + 0.2, {y: 40}, 0.5); cue(A.d3 + 0.2, 'whoosh', 0.45, 1);
+  typeQuery('eup', A.d3 + 0.6, 40);
+  // l’élève clique sur « Modifier le prix » (l’app s’arrête dessus, OPENS ; hors de l’app, un doigt le montre)
+  show('#bmod', A.d4 + 1.5, {y: 30, scale: 0.94}, 0.5, 'back.out(1.7)'); cue(A.d4 + 1.5, 'pop', 0.7, 2);
+  tapButton('bmod', MOD, '#A3216A');
+  // tu n’exécutes que la modification du prix : 39,90 € devient 34,90 €
+  run('eup', MOD + 0.15);
+  swap('#pr2 .a1', '#pr2 .a2', MOD + 0.45);
+  // le trigger se déclenche
+  fire(MOD + 0.85);
+  off('#rtp2 .hl', MOD + 1.0, 0.3);
+  // l’écran se déplace vers historique_prix : la requête et le bouton s’effacent vers le haut, l’historique remonte d’en bas
+  hide(['#eup', '#bmod'], MOD + 1.15, {y: -50}, 0.35);
+  tl.fromTo('#hp', {autoAlpha: 1, y: 700}, {autoAlpha: 1, y: 0, duration: 0.8, ease: 'power3.inOut', immediateRender: false}, MOD + 1.3); cue(MOD + 1.3, 'whoosh', 0.6, 1);
+  // sa condition est vraie : l’ancien prix et le nouveau sont différents
+  show('#wk', MOD + 2.0, {y: 30, scale: 0.94}, 0.45, 'back.out(1.6)'); cue(MOD + 2.0, 'pop', 0.6, 3);
+  // une ligne apparaît automatiquement dans la table historique_prix
+  rowOut('#rhp0', MOD + 2.6); rowIn('#rhp1', MOD + 2.65);
+  swap('#hpn .a0', '#hpn .a1', MOD + 2.9, false); cue(MOD + 3.0, 'pop', 0.7, 4);
+  on('#rhp1 .hl', MOD + 3.0, 0.3);
+  // tu n’as exécuté que la modification du prix : ta requête ne touchait que la table produits
+  pulse('#rtp2 .c2', A.d6 + 0.8, 1, GLOW); cue(A.d6 + 0.8, 'tick', 0.5, 2);
+  // le TRIGGER a ajouté la ligne d’historique automatiquement
+  bump('#tgc', A.d7 + 0.6, 1.15); cue(A.d7 + 0.6, 'tick', 0.5, 3);
+  pulse('#rhp1', A.d7 + 1.6, 1, GLOW); cue(A.d7 + 1.6, 'tick', 0.5, 5);
+  // un trigger déclenche une action lorsqu’un événement précis se produit dans une table
+  bump('#wk', A.d8 + 1.2, 1.02); cue(A.d8 + 1.2, 'tick', 0.5, 2);
+  off('#rhp1 .hl', B.d8 - 0.3, 0.3);
+
+  /* ===== 5 · Lire la nouvelle ligne ===== */
+  // le trigger a rempli chaque case de la nouvelle ligne
+  ['c0', 'c1', 'c2', 'c3'].forEach((c, q) => { const t = A.e1 + 0.5 + q * 0.5; pulse('#rhp1 .' + c, t, 1, GLOW); cue(t, 'tick', 0.5, q + 1); });
+  // À toi : la case remplie avec NEW.prix (réponse : elle est entourée)
+  tl.set(M4_ANS, {autoAlpha: 1}, set2(PICKS[3].at));
+  // le nouveau prix vient de NEW.prix, l’ancien de OLD.prix
+  pulse('#rhp1 .c1', A.e2 + 2.1, 1, GLOW); cue(A.e2 + 2.1, 'tick', 0.5, 3);
+  off(M4_ANS, B.e2 - 0.3, 0.3);
+  // la date vient de CURRENT_TIMESTAMP
+  pulse('#rhp1 .c3', A.e3 + 0.8, 1, GLOW); cue(A.e3 + 0.8, 'tick', 0.5, 4);
+  // désormais, chaque modification de prix est conservée
+  bump('#hp', A.e4 + 0.8, 1.02); cue(A.e4 + 0.8, 'tick', 0.5, 2);
+
+  /* ===== 6 · Vérifier avec le stock ===== */
+  // tu modifies ensuite uniquement le stock : la condition s’efface, la requête s’écrit à sa place
+  hide('#wk', A.f1 + 0.05, {y: -30}, 0.35);
+  show('#eus', A.f1 + 0.4, {y: 40}, 0.5); cue(A.f1 + 0.4, 'whoosh', 0.45, 1);
+  typeQuery('eus', A.f1 + 0.8, 40);
+  // son stock va passer de 80 à 79
+  on('#rtp2 .hl', A.f2 + 0.2, 0.25); cue(A.f2 + 0.2, 'tick', 0.5, 2);
+  pulse('#rtp2 .c3', A.f2 + 0.9, 1, GLOW); cue(A.f2 + 0.9, 'tick', 0.5, 4);
+  // la requête s’exécute : 80 devient 79, et le trigger se déclenche
+  run('eus', A.f3 + 0.15);
+  swap('#st2 .a0', '#st2 .a1', A.f3 + 0.45);
+  fire(A.f3 + 0.85);
+  off('#rtp2 .hl', A.f3 + 1.0, 0.3);
+  hide('#eus', A.f3 + 1.15, {y: -40}, 0.35);
+  // sa condition est fausse : l’ancien et le nouveau prix sont égaux
+  tl.set(['#wkv .a0', '#wkr .a0'], {autoAlpha: 0}, A.f3 + 1.3); tl.set(['#wkv .a1', '#wkr .a1'], {autoAlpha: 1}, A.f3 + 1.3);
+  tl.fromTo('#wk', {autoAlpha: 0, y: 30, scale: 0.94}, {autoAlpha: 1, y: 0, scale: 1, duration: 0.45, ease: 'back.out(1.6)', immediateRender: false}, A.f3 + 1.35);
+  cue(A.f3 + 1.35, 'miss', 0.4);
+  // aucune ligne n’est ajoutée à l’historique des prix : il en a toujours une
+  bump('#hpn', A.f3 + 2.1, 1.14); cue(A.f3 + 2.1, 'tick', 0.5, 2);
+  // le WHEN compare l’ancien et le nouveau prix : ils sont égaux
+  pulse('#wkv', A.f4 + 1.0, 1, GLOW); cue(A.f4 + 1.0, 'tick', 0.5, 3);
+  // une ligne seulement si le prix a réellement changé
+  bump('#wkr', A.f5 + 1.0, 1.08); cue(A.f5 + 1.0, 'tick', 0.5, 4);
+
+  /* ===== 7 · Ligne ajoutée ou non ? ===== */
+  hide(['#tp', '#hp', '#wk'], B.f5 - 0.1, {y: -30}, 0.35);
+  sceneOff('#sw', B.f5 + 0.35);
+  sceneOn('#sd', B.f5 + 0.35);
+  [['#db-ad', 0], ['#db-no', 3]].forEach(([id, p], q) => { const t = A.g1 + 0.4 + q * 0.5; show(id, t, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(t, 'pop', 0.6, p); });
+  show('#bpack', A.g1 + 1.6, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.g1 + 1.6, 'pop', 0.7, 1);
+  // À toi : les six modifications rangées ; remplies, les cases ne sont plus des zones où déposer, et la pile est vide
+  tl.set('.dbn .rc', {autoAlpha: 1}, set2(PICKS[5].at));
+  tl.set('.dbn', {borderStyle: 'solid'}, set2(PICKS[5].at));
+  tl.set('#bpack', {autoAlpha: 0}, set2(PICKS[5].at));
+  // le trigger réagit à la modification d’un produit ; son WHEN ne garde que les vrais changements de prix
+  bump('#db-ad', A.g2 + 0.8, 1.03); cue(A.g2 + 0.8, 'tick', 0.5, 2);
+  bump('#db-no', A.g3 + 1.0, 1.03); cue(A.g3 + 1.0, 'tick', 0.5, 4);
+  hide('.dbn', B.g3 - 0.1, {y: -40}, 0.4);
+  // la suite : la prochaine leçon
+  sceneOff('#sd', A.g4 + 0.3);
+  sceneOn('#sn', A.g4);
+  show('#keyc', A.g4 + 0.1, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)'); cue(A.g4 + 0.1, 'whoosh', 0.6);
+  tl.to('#keyc .emo', {rotation: -18, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.g4 + 0.7);
+  hide('#keyc', B.g4 - 0.1, {y: -30}, 0.4);
+  sceneOff('#sn', RECAP);
+
+  /* ===== 8 · À retenir ===== */
+  // chaque idée : sa phrase, puis son détail
+  recapScene(RECAP, [RECAP + 0.7, RECAP + 2.1, RECAP + 3.5]);
+  const rt = $$('#s7 .rtxt'), rs = $$('#s7 .rs'), rd = (h, n = 20) => Math.ceil(readTime(h) * n) / n;
+  gsap.set(rs, {autoAlpha: 0, y: 10});
+  [[RECAP + 0.7, RECAP + 1.45], [RECAP + 2.1, RECAP + 2.85], [RECAP + 3.5, RECAP + 4.25]].forEach(([r, d], i) => {
+    tl.to(rs[i], {autoAlpha: 1, y: 0, duration: 0.45, ease: 'power2.out'}, d);
+    cue(d, 'tick', 0.5, i * 2 + 1);
+    hold(r + 0.6, rd(rt[i].innerHTML.split('<span')[0]));
+    hold(d + 0.5, rd(rs[i].innerHTML));
+  });
+  if (APP) cue(NOTES + 0.05, 'pop', 0.85, 5);
+}
+
+/* ---------- Moments « À toi » : ce que montre chaque geste ----------
+   Le lecteur arrête l’image à chaque moment (PICKS) et pose ses zones tactiles sur les endroits que la page décrit
+   (IX.spots). Chaque geste est jugé ici (IX.act, IX.pick) et montré aussitôt sur l’image : les bons gestes affichent
+   les mêmes éléments que la timeline juste après l’arrêt (classe pvs, sans toucher aux styles de la timeline) ;
+   ils restent jusqu’à ce que la timeline affiche la même image (IX.tick), puis s’effacent : la reprise est invisible. */
+const IX = (() => {
+  let X = null, wait = -1;
+  function start(i){ if (!X || X.i !== i) { clear(); X = {i, cls: [], tm: [], got: new Set()}; } }
+  function clear(){
+    if (!X) return;
+    X.tm.forEach(clearTimeout);
+    X.cls.forEach(([e, c]) => e.classList.remove(c));
+    X = null; wait = -1;
+  }
+  const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
+  const marks = (sels, c = 'pvs') => sels.forEach(s => $$(s).forEach(e => mark(e, c)));
+  /* La classe est aussi notée dans X.cls : si le moment change avant la fin du minuteur (deux réponses enchaînées), clear() la retire. */
+  const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
+  /* Moment 4 : les quatre cases de la ligne ajoutée par le trigger */
+  const CELLS = [['c0', 'Produit concerné : 2'], ['c1', 'Ancien prix : 39.90'], ['c2', 'Nouveau prix : 34.90'], ['c3', 'Date du changement']];
+  const cellOf = k => $(`#rhp1 .${k}`);
+  function spots(i){
+    if (i === 3) return CELLS.map(([k, label]) => Object.assign({k, label}, rel(cellOf(k))));
+    // moment 6 : une ligne ajoutée, ou aucune
+    if (i === 5) return BINS.map(([k, n, d]) => Object.assign({k, label: `${n} : ${d}`}, rel($('#db-' + k))));
+    return [];
+  }
+  function act(i, a, b){
+    start(i);
+    if (i === 3) {
+      // le nouveau prix : 34.90, la valeur de NEW.prix
+      if (a === 'c2') {
+        if (!X.got.has(a)) { X.got.add(a); marks(M4_ANS); sfx('tick', 1, 0.6); }
+        return {ok: true, done: true, why: '', at: rel(cellOf('c2'))};
+      }
+      // une autre case : elle rougit un instant, et la correction dit d’où elle vient
+      flash(cellOf(a), 'kof', 650);
+      return {ok: false, why: fr(WHY4[a])};
+    }
+    if (i === 5) {
+      const n = +a, bin = $('#db-' + b);
+      if (ITEMS[n][1] === b) {
+        mark($('#sbu' + n), 'pvs');
+        flash(bin, 'okb', 520);
+        X.got.add(n);
+        sfx('pop', X.got.size, 0.6);
+        if (X.got.size === ITEMS.length) marks(['#bpack'], 'pvh');   // la pile est vide, comme juste après l’arrêt
+        return {ok: true, done: X.got.size === ITEMS.length, why: '', at: rel(bin)};
+      }
+      flash(bin, 'kob', 650);
+      return {ok: false, why: fr(ITEMS[n][2])};
+    }
+    return {ok: false};
+  }
+  /* Choix d’une réponse (moments 1, 2, 3 et 5) : le verdict et son explication. */
+  function pick(i, k){
+    clear(); start(i);
+    const P = PICKS[i], o = P.options[k], ok = !!o.ok;
+    sfx(ok ? 'pop' : 'miss', 2, 0.5);
+    return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));
+  }
+  /* Indice, après deux erreurs : une piste. */
+  function hint(i){
+    const h = (() => {
+      if (i === 0) return {text: 'Après un <code>UPDATE</code>, que reste-t-il de l’ancien prix dans la <b>table produits</b> ?'};
+      if (i === 1) return {text: 'Relis la ligne <code>AFTER UPDATE ON produits</code>, puis la condition du <code>WHEN</code>.'};
+      if (i === 2) return {text: '<code>OLD</code> donne la ligne telle qu’elle était avant la modification.'};
+      if (i === 3) return {text: 'Cherche le nouveau prix du collagène dans la ligne ajoutée.', keys: ['c2']};
+      if (i === 4) return {text: 'Le <code>WHEN</code> compare l’ancien et le nouveau prix du produit.'};
+      return null;
+    })();
+    return h && Object.assign(h, {text: fr(h.text)});
+  }
+  return {
+    enter: i => { clear(); start(i); },
+    spots, act, pick, hint,
+    slot: () => null,
+    /* Moment réussi : l’aperçu reste jusqu’à ce que la timeline affiche la même image ; sinon il part tout de suite. */
+    leave(i, answered){ if (answered && X && X.i === i) wait = i; else clear(); },
+    tick(t = tl.time()){ if (wait < 0) return; const a = PICKS[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear(); }
+  };
+})();
+window.IX = IX;
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 201.74, picks: PICKS, opens: OPENS,
+  glyphs: '🗄️👥🛒⭐📦🧑‍🏫📅📝💳💬🔁🎁🔑🔗⚡🏷️🔎💶🗓️✏️👆📬🔖✓✕!…«»·−→<>',
+  dom, build, beforeRender: t => IX.tick(t)});
+</script>
+</body>
+</html>

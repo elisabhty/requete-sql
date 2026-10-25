@@ -63,8 +63,8 @@ for(const sql of ['REVOKE SELECT ON produits FROM stagiaire; -- commandes','REVO
 assert.equal(ctx.checkNoExecExo('REVOKE SELECT ON "commandes" FROM "stagiaire";',lesson(50)).ok,true);
 assert.equal(ctx.checkNoExecExo(lesson(50).solution,lesson(50)).ok,true);
 assert.match(ctx.checkNoExecExo('GRANT SELECT ON commandes TO stagiaire;',lesson(50)).diag,/GRANT accorde un droit/);
-for(const [id,wrong]of [[70,lesson(70).solution.replace('NEW.produit_id','1')]])assert.equal(ctx.exerciseResultsMatch(query(wrong,lesson(id).verif),query(lesson(id).solution,lesson(id).verif),lesson(id)),false,'solution incomplète '+id);
+for(const [id,wrong]of [[64,lesson(64).solution.replace("WHERE ville = 'Paris'","WHERE ville = 'Lyon'")]])assert.equal(ctx.exerciseResultsMatch(query(wrong,lesson(id).verif),query(lesson(id).solution,lesson(id).verif),lesson(id)),false,'solution incomplète '+id);
 const frame={dataset:{},classList:{remove(){},add(){}},querySelectorAll:()=>[],querySelector:s=>s==='.xf-expect'?{remove(){}}:null};ctx.current=lesson(50);
-ctx.paintTesteVariant(frame,ctx.current.testeVariants,0);assert.equal(frame.dataset.noExec,'1');ctx.current=lesson(70);ctx.paintTesteVariant(frame,ctx.current.testeVariants,0);assert.equal(frame.dataset.noExec,'0');
+ctx.paintTesteVariant(frame,ctx.current.testeVariants,0);assert.equal(frame.dataset.noExec,'1');ctx.current=lesson(64);ctx.paintTesteVariant(frame,ctx.current.testeVariants,0);assert.equal(frame.dataset.noExec,'0');
 console.log(`${lessons.length} cours, ${solved} solutions SQLite, ${variants} variantes exécutables : OK.`);
 console.log('Progression, ordre, alias, contraintes, transactions, trigger, GRANT et récursion : OK.');

@@ -61,7 +61,7 @@ test('encadré « Bon à savoir » : non numéroté, avec son étiquette à la p
   assert.ok(/\.jn-course \.fn-use\.is-aside > \.pt-syntax-h::before\{content:attr\(data-tag\)!important/.test(html), 'étiquette à la place de « Étape N »');
 });
 
-test('apartés « Bon à savoir » (titre en question) dans 1 cours texte ; chaque cours finit par l’étape « La requête complète »', () => {
+test('apartés « Bon à savoir » (titre en question) : plus aucun dans les cours texte ; chaque cours finit par l’étape « La requête complète »', () => {
   const ctx = vm.createContext({});
   vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), ctx);
   const lessons = JSON.parse(vm.runInContext('JSON.stringify(MODULES.flatMap(m=>m.lessons).map(l=>({id:l.id,body:(l.studio&&l.studio.uses&&l.studio.uses.body)||""})))', ctx));
@@ -75,7 +75,5 @@ test('apartés « Bon à savoir » (titre en question) dans 1 cours texte ; chaq
     const a = heads.filter(h => h[1]).map(h => { assert.equal(h[2], 'Bon à savoir'); return norm(h[3]); });
     if (a.length) asides[l.id] = a;
   }
-  assert.deepEqual(asides, {
-    70: ['Que ne fait pas un trigger ?'],
-  });
+  assert.deepEqual(asides, {}, 'le dernier aparté (« Que ne fait pas un trigger ? ») est parti avec le cours texte Les triggers, devenu une vidéo (chapitre 13)');
 });

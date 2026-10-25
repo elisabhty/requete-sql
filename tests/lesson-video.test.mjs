@@ -1094,6 +1094,19 @@ const COURSES = [
       "{at: atp('p1'), from: A.a6, kind: 'pick', text: true,", "{label: 'Avec un point de retour posé avant le cadeau', ok: true,", "{at: atp('p2'), from: A.c4, kind: 'tap', need: 2,",
       "{label: 'Aucune : rien n’est validé avant COMMIT', ok: true,", "{label: 'ROLLBACK TO SAVEPOINT avant_cadeau', ok: true,", "{label: 'Elle est toujours en cours', ok: true,",
       "{at: atp('p6'), from: A.g1, kind: 'sort',", "const Q_RT = [['-- Revenir au point de retour'], ['ROLLBACK TO SAVEPOINT avant_cadeau;']]", 'Prochaine leçon · Les triggers']},
+  {id: 70, next: 71, titre: 'Les triggers', page: 'projet-trigger.html', thumb: 'projet-trigger-thumb.webp', duree: '3 min 57', notesAt: 201.74,
+    notes: /notes:\{t:229\.3,y:1223,card:\[64,292,1016,928\],to:\[940,255\]\}/, table: 'historique_prix',
+    bubble: 'Un prix a changé sans trace&nbsp;:<br>à toi de garder<br>chaque changement !',
+    chapters: ['Qui a changé le prix ?', 'Garder chaque changement', 'Créer le trigger', 'Modifier le prix', 'Lire la nouvelle ligne', 'Vérifier avec le stock',
+      'Ligne ajoutée ou non ?', 'À retenir'],
+    traps: ["const COLLAGENE = {id: 2, nom: 'Collagène Marin', prix: 39.90, nouveau: 34.90, stock: 80}, QUAND = '2026-10-25 14:32:00';",
+      "const BINS = [['ad', 'Une ligne ajoutée', 'dans l’historique des prix'], ['no', 'Aucune ligne', 'l’historique ne change pas']];",
+      // Les six moments : pourquoi la date du changement est introuvable, quand le trigger ajoute une ligne, ce que vaut OLD.prix, la case remplie
+      // avec NEW.prix, ce que fait le trigger quand seul le stock change, les six modifications à ranger
+      "{at: atp('p1'), from: A.a1, kind: 'pick', text: true,", "{label: 'Un UPDATE remplace l’ancien prix, sans garder de trace', ok: true,",
+      "{at: atp('p2'), from: A.c1, kind: 'pick', text: true,", "{label: 'Après une modification de prix d’un produit', ok: true,", "{label: '39.90, le prix avant la modification', ok: true,",
+      "{at: atp('p4'), from: A.d5, kind: 'tap', need: 1,", "{label: 'Non, aucune ligne n’est ajoutée', ok: true,", "{at: atp('p6'), from: A.g1, kind: 'sort',",
+      "['{twh|WHEN OLD.prix &lt;&gt; NEW.prix}']", 'Prochaine leçon · Concurrence et isolation']},
 ];
 
 for (const c of COURSES) {
@@ -1575,7 +1588,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
     && D.CAPTIONS[iq + 1][0] <= 12.6 && D.CAPTIONS[iq + 1][1] >= 14.3 && D.CAPTIONS[iq + 2][2] === 'Pour le savoir, il faut relier les tables grâce à des <b>clés</b>.'
     && page.includes("pop('#ms1', 14.0, 0.5); pop('#ms2', 14.3, 0.5);"), 'la question du 4 septembre, pendant que la ligne s’allume et que « ? client » et « ? atelier » apparaissent');
   /* Une seule façon de nommer la table d’une relation N ↔ N, dans les trois chapitres. */
-  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html', 'projet-transaction.html', 'projet-savepoint.html'])
+  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html', 'projet-transaction.html', 'projet-savepoint.html', 'projet-trigger.html'])
     assert.ok(!fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8').includes('table de jointure'), `${f} : « table d’association », jamais « table de jointure »`);
   assert.ok(caps.includes('Une <b>table d’association</b>'), 'le chapitre 2 la nomme comme le chapitre 3');
   /* La clé étrangère : sa définition, puis à quoi elle sert, sur l’exemple entouré (inscription 1, client_id 1, Sophie Martin). */
@@ -2803,7 +2816,7 @@ test('Quel JOIN choisir ? : chaque étiquette montre le résultat de SQLite (ord
 });
 
 test('deux réponses enchaînées aux moments « À toi » : la pastille rouge du mauvais geste ne reste pas, clear() retire la classe de flash() sans attendre le minuteur', () => {
-  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html', 'projet-transaction.html', 'projet-savepoint.html']) {
+  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html', 'projet-transaction.html', 'projet-savepoint.html', 'projet-trigger.html']) {
     const src = fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8');
     const clearSrc = src.match(/function clear\(\)\{\n[\s\S]*?\n  \}/)?.[0], flashSrc = src.match(/const flash = \(e, c, ms = 600\) => \{[^\n]*\};/)?.[0];
     assert.ok(clearSrc && flashSrc, `${f} : clear() et flash() trouvés`);

@@ -48,7 +48,7 @@ export const CLIENTS = [...INSERT_CLIENTS.matchAll(/\(\d+,'([^']+)','([^']+)'/g)
 /* Les coachs et le développeur ne sont pas des clients : « Karim », « Moussa » seuls sont permis. */
 export const EQUIPE = ['Karim', 'Moussa', 'Salma', 'Julie', 'Diego'];
 export const ATELIERS = ['Récupération', 'Pilates', 'Cuisine saine', 'Méditation', 'Yoga du matin'];
-export const TABLES = ['clients', 'commandes', 'produits', 'fidelite', 'coachs', 'ateliers', 'inscriptions', 'cartes', 'avis', 'remplacements', 'cadeaux', 'inscriptions_excel'];
+export const TABLES = ['clients', 'commandes', 'produits', 'fidelite', 'coachs', 'ateliers', 'inscriptions', 'cartes', 'avis', 'remplacements', 'cadeaux', 'historique_prix', 'inscriptions_excel'];
 
 /* ---------- Les listes de mots du moteur (assets/anim/core.js) : les mêmes que celles qui évitent les coupes à l’affichage ---------- */
 const core = lire(path.join(ANIM, 'core.js'));
@@ -667,7 +667,6 @@ export const DETTE = {
     47: {relation: 1},   // Sous-requête dans SELECT
     55: {relation: 1},   // EXISTS et NOT EXISTS
     74: {identifiant: 2},   // Fonctions de rang
-    70: {client: 1},   // Les triggers
     71: {'sans-personnification': 1},   // Concurrence et isolation
     64: {'sans-personnification': 1},   // CREATE VIEW
     57: {identifiant: 11, 'sans-personnification': 3},   // Les index et EXPLAIN
