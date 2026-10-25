@@ -1,0 +1,945 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Projet, chapitre 12 : SAVEPOINT</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:140px;top:444px;letter-spacing:-3px}
+#s0 .hilite{top:522px;height:48px}
+#s0 .sub{top:612px;font-size:52px}
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+.hid{opacity:0;visibility:hidden}
+/* Aperçu d’un geste (moment « À toi ») : il prend le pas sur la timeline, le temps de l’arrêt ; il montre exactement
+   l’image que la timeline affiche juste après l’arrêt, qui reprend donc sans saut. */
+.pvs{opacity:1!important;visibility:visible!important;transform:none!important}
+.pvh{opacity:0!important;visibility:hidden!important}
+/* Aperçu en douceur : une carte qui accompagne une bonne réponse n’apparaît jamais d’un coup, ni avant le verdict « Bien vu ! » */
+.pvf{visibility:visible!important;animation:pvf .45s ease-out both}
+@keyframes pvf{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* Couleur de chaque sujet : client, équipe NutriBoost (et carte de membre), inscription, coach, atelier,
+   puis les tables de la boutique : commande, produit, fidélité ; l’avis (chapitre 10), le remplacement (chapitre 11), le cadeau
+   (ce chapitre), et l’historique de la transaction */
+.k-co{--c:#2F80ED;--cs:#E6F0FD;--ci:#1D5FA8}
+.k-at{--c:#E8892B;--cs:#FFF1E2;--ci:#9A5B00}
+.k-cl{--c:#6A4DF4;--cs:#EEE9FF;--ci:#5335E0}
+.k-nb{--c:#D99A0B;--cs:#FFF6DA;--ci:#8A6200}
+.k-in{--c:#169447;--cs:#E2F6EA;--ci:#0F7A3A}
+.k-cm{--c:#0E9F9A;--cs:#DDF5F3;--ci:#0B6E6A}
+.k-pr{--c:#D9468F;--cs:#FCE8F2;--ci:#A3216A}
+.k-fi{--c:#9C6B3F;--cs:#F5ECE3;--ci:#7A4F27}
+.k-av{--c:#A23CC9;--cs:#F5E8FB;--ci:#7A2A9B}
+.k-rp{--c:#2B8FB8;--cs:#E3F3FA;--ci:#1B6585}
+.k-cd{--c:#C2410C;--cs:#FFEDD5;--ci:#9A3412}
+.k-hs{--c:#6A4DF4;--cs:#EEE9FF;--ci:#4B30CC}
+
+/* ---------- La base : une ligne par table (son nom, son nombre de lignes) ---------- */
+.bc{left:64px;width:952px;top:236px;padding:0 0 12px;overflow:hidden}
+.bh{height:72px;display:flex;align-items:center;gap:14px;padding:0 34px;background:var(--surface-2);font-family:var(--display);font-size:34px;font-weight:800;color:var(--ink);letter-spacing:-.4px;white-space:nowrap}
+.bh .emo{font-size:34px}
+.bn{margin-left:auto;display:inline-grid;font-family:var(--ui);font-size:25px;font-weight:700;letter-spacing:0}
+.bn>span{grid-area:1/1;height:44px;padding:0 20px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;white-space:nowrap}
+.srow{position:relative;height:64px;padding:12px 34px;overflow:hidden}
+.srow+.srow{box-shadow:inset 0 2px 0 var(--line-2)}
+.srow>div{position:relative;z-index:1}
+.srow .hl{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;opacity:0;visibility:hidden;background:var(--cs);box-shadow:inset 8px 0 0 var(--c)}
+.sn{display:flex;align-items:center;gap:14px;height:40px;font-family:var(--mono);font-size:31px;font-weight:800;color:var(--ci)}
+.sn .emo{font-size:32px}
+.sn .sp{flex:1}
+.nm{position:relative;display:inline-block;white-space:nowrap}
+.nb{display:inline-grid;font-family:var(--ui);font-size:23px;font-weight:700;color:var(--ink-3)}
+.nb>span{grid-area:1/1;justify-self:end;display:flex;align-items:center;justify-content:flex-end;height:36px;padding:0 14px;border-radius:999px;background:var(--line-2);white-space:nowrap}
+
+/* ---------- Les tables : lignes, colonnes, valeurs empilées ---------- */
+.tb{padding:0 0 10px;overflow:hidden;border-radius:40px}
+.tb .h{display:flex;align-items:center;gap:12px;height:64px;padding:0 24px;background:var(--cs);font-family:var(--mono);font-size:30px;font-weight:800;color:var(--ci);white-space:nowrap}
+.tb .h .emo{font-size:32px}
+.tb .bn>span{height:40px;font-size:23px;background:#fff;color:var(--ci);box-shadow:inset 0 0 0 3px var(--c)}
+.gr{display:grid;grid-template-columns:var(--g);align-items:stretch;padding:0 12px}
+.gr>span{position:relative;z-index:1;display:flex;align-items:center;gap:10px;min-width:0;padding:0 10px;white-space:nowrap;overflow:hidden}
+.hd{height:44px;font-family:var(--mono);font-size:24px;font-weight:700;color:var(--ink-3)}
+.hd .emo{font-size:21px;width:26px;flex:none;text-align:center}
+/* Une colonne dont l’en-tête porte une icône (🔑 id, 🔗 client_id) : sa valeur commence sous le nom de la colonne, pas sous l’icône
+   (Elisa, 25 octobre, 15 h 18). 46 px = marge 10 + icône 26 + espace 10. */
+.tb .r>.c0,#tc .r>.c1,#tc .r>.c2{padding-left:46px}
+.gr>span.kc{color:var(--ci)}
+.r{position:relative;height:62px;font-family:var(--mono);font-size:30px;font-weight:600;color:var(--ink);box-shadow:inset 0 2px 0 var(--line-2);overflow:hidden}
+.r .hl,.r .wn,.r .xx{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;pointer-events:none;opacity:0;visibility:hidden}
+.r .hl{background:var(--cs);box-shadow:inset 6px 0 0 var(--c)}
+.r .wn{background:rgba(242,154,46,.2);box-shadow:inset 6px 0 0 #F29A2E}
+.r .xx{background:rgba(239,79,85,.15);box-shadow:inset 6px 0 0 var(--danger-fill)}
+.r .v{position:relative;z-index:1;font-style:normal}
+/* Une case peut changer de valeur : les valeurs successives sont empilées, une seule se voit */
+.sw{display:inline-grid;position:relative;z-index:1}
+.sw>*{grid-area:1/1;font-style:normal;white-space:pre}
+/* La case que l’élève doit toucher, puis la case entourée */
+.hc{position:absolute;left:4px;right:4px;top:5px;bottom:5px;z-index:0;border-radius:14px;background:var(--cs);box-shadow:inset 0 0 0 4px var(--c);opacity:0;visibility:hidden}
+/* Gestes de l’élève : case refusée */
+.gr>span.kof::after{content:"";position:absolute;left:3px;right:3px;top:6px;bottom:6px;z-index:3;border-radius:12px;background:rgba(239,79,85,.16);box-shadow:inset 0 0 0 4px var(--danger-fill);animation:kof .6s ease forwards}
+@keyframes kof{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+.r.kor{animation:kor .55s ease}
+@keyframes kor{0%,100%{background:transparent}30%{background:rgba(239,79,85,.18)}}
+.dbn.kob{animation:kob .45s ease}
+@keyframes kob{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+
+/* ---------- Les requêtes : une carte de code (un commentaire, puis la requête) ---------- */
+.sq{border-radius:34px;box-shadow:0 9px 0 #110E27}
+.sq .top{height:52px;gap:12px;padding:0 30px}
+.sq .dot{width:14px;height:14px}
+.sq .fname{margin-left:8px;font-size:22px}
+.sq .body{padding:18px 30px;font-size:28px;line-height:42px}
+.sq .ln{height:42px}
+.sq .cmt{color:var(--t-com)}
+.sq .caret i{top:-31px;width:4px;height:37px}
+.sq .glow{border-radius:8px;padding:0 3px;margin:0 -3px}
+.sq .str{color:var(--t-str)}
+
+/* ---------- Le résultat d’une requête ---------- */
+.abs.out{left:64px;width:952px;margin:0}
+.abs.out.t2{height:150px}
+.out.ok{background:#E7F7EE;border:3px solid #A7E3C0}
+.out.ok .oi{background:#34C27A;color:#fff}
+.out.ok .ot b{color:#1B7A45}
+.out.warn{background:#FFF4E5;border:3px solid #F6D9A8}
+.out.warn .oi{background:#F29A2E;color:#fff}
+.out.warn .ot b{color:#9A5B00}
+/* Le message d’erreur est écrit tel qu’on le lit dans l’app : >= et non ⩾ */
+.ot .m{font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
+
+.pack{left:0;width:1080px;display:flex;justify-content:center}
+.pack>span{height:84px;padding:0 34px 0 22px;border-radius:999px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);font-size:32px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:14px;white-space:nowrap}
+.pack .emo{font-size:40px}
+
+/* ---------- Les messages reçus : la notification, puis la conversation (SMS, moteur commun) ---------- */
+.ml{left:64px;width:952px;top:560px;height:184px;padding:0 30px;overflow:hidden}
+/* Hors de l’app : le doigt qui touche la notification, la photo ou un bouton */
+.tapf{z-index:20;font-size:120px;margin:-8px 0 0 -44px;opacity:0;visibility:hidden}
+
+/* La suite : la prochaine leçon */
+.keyc{left:0;width:1080px;display:flex;justify-content:center}
+.keyc>span{height:96px;padding:0 40px 0 26px;border-radius:999px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 9px 0 #4B30CC;color:#fff;font-size:36px;font-weight:700;display:flex;align-items:center;gap:16px;white-space:nowrap}
+.keyc .emo{font-size:44px}
+
+/* ---------- À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px;padding:8px 0}
+#s7 .rrow{gap:22px;padding:18px 32px}
+#s7 .rico{width:88px;height:88px;border-radius:26px;font-size:46px}
+#s7 .rtxt{font-size:34px;line-height:1.25}
+#s7 .rtxt .rs{margin-top:2px;font-size:31px}
+
+/* ---------- L’historique de la transaction : une ligne par modification, et le repère du savepoint ---------- */
+.hs .h{font-family:var(--ui);font-size:30px;justify-content:flex-start}
+.hst{margin-left:auto;display:inline-grid;font-family:var(--ui);font-size:23px;font-weight:800;letter-spacing:0}
+.hst>span{grid-area:1/1;justify-self:end;height:44px;padding:0 18px 0 12px;border-radius:999px;display:flex;align-items:center;gap:8px;white-space:nowrap;opacity:0;visibility:hidden}
+.hst .emo{font-size:24px}
+.hst .h0{background:#fff;color:var(--ink-3);box-shadow:inset 0 0 0 3px var(--line);opacity:1;visibility:visible}
+.hst .h1{background:#fff;color:var(--accent-ink);box-shadow:inset 0 0 0 3px #C9BCFF}
+.hst .h2{background:#E7F7EE;color:#1B7A45;box-shadow:inset 0 0 0 3px #A7E3C0}
+.hr{display:flex;align-items:center;gap:14px;padding:0 22px}
+.hr>span{position:relative;z-index:1}
+.hk{flex:none;height:38px;padding:0 12px;border-radius:10px;background:var(--code-bg);color:var(--code-ink);font-family:var(--mono);font-size:21px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.ht{font-family:var(--ui);font-size:27px;font-weight:600;color:var(--ink);white-space:nowrap;display:flex;align-items:center;gap:10px}
+.ht .emo{font-size:28px}
+.hr .bdg{margin-left:auto}
+.r.rph>span{grid-column:1/-1;font-family:var(--ui);font-size:28px}
+.hr.rph{padding-left:34px}
+/* Le repère : une ligne pointillée, et son nom au milieu */
+.hm{display:flex;align-items:center;justify-content:center;padding:0 22px}
+.hm::before{content:"";position:absolute;left:22px;right:22px;top:50%;border-top:4px dashed #B7A6FF}
+.hmk{position:relative;z-index:1;height:44px;padding:0 18px 0 12px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 3px #B7A6FF;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:24px;font-weight:800;color:var(--accent-ink);white-space:nowrap}
+.hmk .emo{font-size:26px}
+/* La ligne entourée (moment 2) : l’anneau prend toute la ligne */
+.hr .hc{left:6px;right:6px;top:4px;bottom:4px}
+
+/* ---------- Les tables : un extrait de la table produits (le shaker et la tisane), la table cadeaux ---------- */
+.tz .r{height:62px}
+.sw>.nul,.ph{color:var(--ink-3);font-style:italic;font-weight:500}
+/* La mention d’une modification : non validée, puis validée (une seule se voit) */
+.bdg{display:inline-grid;margin-left:6px}
+.bdg>i{grid-area:1/1;height:40px;padding:0 14px;border-radius:999px;font-family:var(--ui);font-size:22px;font-weight:800;font-style:normal;display:flex;align-items:center;gap:6px;white-space:nowrap;opacity:0;visibility:hidden}
+.bdg .st0{background:#FFF1DC;color:#9A5B00;box-shadow:inset 0 0 0 2px #F6D9A8}
+.bdg .st1{background:#E2F6EA;color:#1B7A45;box-shadow:inset 0 0 0 2px #A7E3C0}
+
+/* ---------- 5 · Ce que le retour au savepoint laisse : trois pastilles ---------- */
+.st3{left:0;width:1080px;display:flex;flex-direction:column;align-items:center;gap:16px}
+/* Une pastille centrée (.pack) : le lecteur la compte dans le contenu à ne pas recouvrir */
+.st3>span{height:66px;padding:0 24px 0 16px;border:0;border-radius:999px;display:flex;align-items:center;gap:10px;font-size:26px;font-weight:700;white-space:nowrap}
+.st3 .emo{font-size:30px}
+.st3 .q0{background:#FDECEC;box-shadow:inset 0 0 0 3px #F5C2C4,0 6px 0 #F5C2C4;color:#B42328}
+.st3 .q1{background:#E3F3FA;box-shadow:inset 0 0 0 3px #A9D8EC,0 6px 0 #A9D8EC;color:#1B6585}
+.st3 .q2{background:var(--accent-soft);box-shadow:inset 0 0 0 3px #C9BCFF,0 6px 0 #C9BCFF;color:var(--accent-ink)}
+
+/* ---------- 6 · Le colis de Léa Simon ---------- */
+.colis{left:64px;width:952px;padding:0 0 14px;overflow:hidden}
+.colis .ch{height:74px;display:flex;align-items:center;gap:14px;padding:0 30px;background:#FFEDD5;font-size:32px;color:#9A3412;white-space:nowrap}
+.colis .ch .emo{font-size:36px}
+.colis .cst{margin-left:auto;height:44px;padding:0 18px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 3px #FDBA74;font-size:23px;font-weight:800;display:flex;align-items:center}
+.colis .cl{height:66px;display:flex;align-items:center;gap:14px;padding:0 30px;font-size:30px;font-weight:600;color:var(--ink);white-space:nowrap}
+.colis .cl+.cl{box-shadow:inset 0 2px 0 var(--line-2)}
+.colis .cl .emo{font-size:32px}
+.colis .cl.no{color:var(--ink-3)}
+
+/* ---------- Les boutons à toucher, et l’anneau qui s’en échappe au toucher (micro-interaction, Elisa, 25 octobre, 16 h 22) ---------- */
+.bt{position:absolute;left:220px;width:640px;margin:0;height:108px;gap:16px;font-size:36px}
+.bt .emo{font-size:42px}
+.bt.go{background:linear-gradient(135deg,#3ACB82,#1FA463);box-shadow:0 9px 0 #157A49}
+.bring{left:220px;width:640px;height:108px;border-radius:30px;box-shadow:0 0 0 7px rgba(106,77,244,.5);pointer-events:none;opacity:0;visibility:hidden}
+.bring.go{box-shadow:0 0 0 7px rgba(52,194,122,.55)}
+
+/* ---------- Les deux messages du service client ---------- */
+#ml1{top:560px}
+#ml2{top:520px}
+
+/* ---------- 7 · Trois cases où ranger les situations : ROLLBACK TO SAVEPOINT, ROLLBACK, COMMIT ---------- */
+.dbn{left:64px;width:952px;height:210px;box-sizing:border-box;padding:20px 28px 22px;border-radius:36px;border:4px dashed #C9BCFF;background:rgba(255,255,255,.85);display:flex;flex-direction:column}
+.dbn .hh{display:flex;align-items:baseline;gap:20px;white-space:nowrap}
+.dbn .dn{font-family:var(--mono);font-size:34px;font-weight:800;color:var(--accent-ink)}
+.dbn .dd{font-size:26px;font-weight:700;color:var(--ink-3)}
+.dbn .cs{margin-top:auto;display:flex;gap:16px}
+.dbn .rc{flex:1;min-height:92px;padding:12px 16px;border-radius:18px;background:var(--accent-soft);color:var(--accent-ink);box-shadow:inset 0 0 0 3px #C9BCFF;font-size:28px;font-weight:700;line-height:1.25;text-align:center;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden}
+.dbn.okb{animation:okb .5s cubic-bezier(.2,.9,.3,1.3)}
+@keyframes okb{40%{transform:scale(1.035)}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 12</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>S</span><span>A</span><span>V</span><span>E</span><span>P</span><span>O</span><span>I</span><span>N</span><span>T</span></div>
+    <div class="abs sub">Annuler une partie des modifications</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Léa Simon change d’avis&nbsp;:<br>à toi d’annuler<br>seulement le cadeau !</div>
+  </section>
+
+  <!-- La base : le rappel du chapitre précédent -->
+  <section class="scene" id="sa"></section>
+  <!-- L’historique de la transaction, les deux tables, la requête, les boutons -->
+  <section class="scene" id="sw"></section>
+  <!-- Les messages du service client : ils interrompent la préparation -->
+  <section class="scene" id="sm"></section>
+  <!-- Quelle commande choisir : les situations à ranger -->
+  <section class="scene" id="sd"></section>
+  <!-- La suite : la prochaine leçon -->
+  <section class="scene" id="sn"></section>
+
+  <!-- À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">📍</div><div class="rtxt"><code>SAVEPOINT nom</code> crée<br>un <b>point de retour</b>.<span class="rs">La syntaxe varie selon le SGBD :<br>celle-ci est notamment celle de PostgreSQL.</span></div></div>
+      <div class="rrow"><div class="rico emo">↩️</div><div class="rtxt"><code>ROLLBACK TO SAVEPOINT nom</code> annule<br>les modifications faites <b>après ce point</b>.<span class="rs">La transaction continue. <code>ROLLBACK</code><br>sans cible annule toute la transaction.</span></div></div>
+      <div class="rrow"><div class="rico emo">✅</div><div class="rtxt"><code>COMMIT</code> valide<br>les modifications <b>conservées</b>.<span class="rs">Et il termine la transaction.</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+
+/* ---------- Le déroulé : chaque légende arrive à la suite de la précédente ----------
+   cap(clé, texte, durée) pose une légende [début, fin] ; A[clé] et B[clé] donnent son début et sa fin (temps de la timeline).
+   La trame est celle d’Elisa (25 octobre, 17 h 05, « Cours 2 — SAVEPOINT : annuler une partie des modifications ») : ses bulles
+   sont gardées mot pour mot, une phrase par bulle ; les chiffres sont ceux de la base du projet (le shaker est le produit 8, Shaker Inox,
+   30 en stock ; la tisane est le produit 5, Tisane Détox, 60 en stock ; Léa Simon est la cliente 7 ; le remplacement a l’identifiant 1,
+   comme au chapitre 11). */
+const SCH = {t: 5.0, caps: [], chaps: [{label:'Un petit geste pour Léa', a: 5.0}], A: {}, B: {}};
+function chap(c){ SCH.t = +(SCH.t + 0.4).toFixed(2); SCH.chaps.push({label: c.label, a: SCH.t}); }
+function cap(key, html, dur, gap = 0.1){
+  /* Une légende reste au moins le temps de la lire (17 caractères par seconde, plus son fondu de 0,5 s) : l’image ne s’arrête jamais pour elle. */
+  dur = Math.max(dur, Math.ceil((html.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').length / 17 + 0.5) * 20) / 20);
+  const a = +(SCH.t + gap).toFixed(2), b = +(a + dur).toFixed(2);
+  SCH.caps.push([a, b, html]); SCH.A[key] = a; SCH.B[key] = b; SCH.t = b;   // trois lignes au plus par bulle : au-delà, deux bulles (Elisa, 24 octobre)
+}
+/* « À toi ! » : la légende reste un instant, puis l’image s’arrête à a + 2,35 s (le passage d’attente est coupé). */
+const toi = key => cap(key, 'À toi !', 2.55);
+const {A, B} = SCH;
+/* Les deux messages reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses phrases), signature, option].
+   Le service client écrit par SMS ({sms: true}) : il interrompt la préparation (Elisa, 25 octobre, 17 h 05 : « une nouvelle notification
+   interrompt la préparation »). L’app s’arrête sur chaque notification (OPENS) jusqu’au toucher. */
+const MAILS = [
+  [['Le service client', 'NutriBoost', 'SC'], 'k-in', 'équipe', 'service.client@nutriboost.fr', [
+    'Peux-tu aussi ajouter une tisane gratuite dans son colis ?'], 'Le service client NutriBoost', {sms: true}],
+  [['Le service client', 'NutriBoost', 'SC'], 'k-in', 'équipe', 'service.client@nutriboost.fr', [
+    'Je viens d’avoir Léa : elle nous remercie, mais elle ne souhaite pas recevoir de tisane.',
+    'Garde uniquement le remplacement du shaker.'], 'Le service client NutriBoost', {sms: true}]
+];
+/* Un message : la légende s’efface le temps du message (notification, toucher, lecture, départ). Un SMS : « Bonjour, », une bulle par phrase,
+   « Merci ! » ; le toucher à +1,6 s, une bulle toutes les 0,28 s, le départ juste après la pause de lecture. */
+const mailSms = n => /^client/.test(MAILS[n][2]) || !!(MAILS[n][6] || {}).sms;
+const mailRows = n => 2 + [].concat(MAILS[n][4]).flatMap(p => p.split(/(?<=[.!?])\s+(?=[A-ZÀÂÉÈÊÎÔÛÇ])/)).length;
+const mailOutAt = n => +(2.68 + 0.28 * (mailRows(n) - 1)).toFixed(2);
+const MO = MAILS.map((m, n) => mailOutAt(n));
+const mailBlock = n => { const t = SCH.t; SCH.t = +(SCH.t + MO[n] + 1).toFixed(2); return t; };
+
+/* 1 · Un petit geste pour Léa : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) */
+cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
+cap('r2', "Au chapitre 11, une transaction<br>t’a permis de tout valider<br>ou de tout annuler.", 3.8);
+cap('a1', "Reprenons le remplacement<br>de Léa Simon juste avant<br>sa validation.", 3.6);
+cap('a2', "Cette fois, le service client<br>souhaite aussi lui offrir une tisane<br>pour s’excuser.", 4.4);
+cap('a3', "On repart de la situation de départ :<br>30 shakers, aucun remplacement.", 4.0);
+cap('a4', "La transaction démarre,<br>et le stock du shaker passe à 29.", 4.6);   // BEGIN, puis l’UPDATE : l’opération du chapitre 11, rejouée
+cap('a5', "Le remplacement de Léa Simon<br>est enregistré.", 3.6);
+cap('a6', "Aucun <code>COMMIT</code> n’a été exécuté :<br>la transaction est toujours en cours.", 4.2);
+const MAIL1 = mailBlock(0);
+/* 2 · Pouvoir revenir en arrière */
+chap({label:'Pouvoir revenir en arrière'});
+cap('b1', "Le remplacement est prêt.", 2.6);
+toi('p1');
+cap('b2', "Avant d’ajouter le cadeau,<br>tu peux poser un point de retour<br>dans la transaction : un <code>SAVEPOINT</code>.", 6.2);   // la requête s’écrit pendant la bulle
+cap('b3', "Un repère apparaît dans l’historique,<br>juste après le remplacement.", 3.8);
+cap('b4', "<code>avant_cadeau</code> est le nom<br>que tu donnes à ce repère.", 3.4);
+cap('b5', "Tu pourras annuler les modifications<br>effectuées après lui, sans annuler<br>celles qui le précèdent.", 5.0);
+/* 3 · Ajouter le cadeau */
+chap({label:'Ajouter le cadeau'});
+cap('c1', "Les cadeaux offerts sont enregistrés<br>dans la <b>table cadeaux</b>.", 3.8);
+cap('c2', "Tu vas y ajouter la tisane<br>et diminuer son stock.", 3.2);
+cap('c3', "La tisane est le produit 5,<br>avec 60 en stock.", 4.0);   // l’UPDATE s’écrit pendant la bulle
+cap('c4', "L’<code>UPDATE</code> fait passer son stock<br>de 60 à 59.", 3.6);
+cap('c5', "<code>INSERT INTO</code> ajoute la tisane<br>dans la <b>table cadeaux</b>.", 4.8);
+cap('c6', "Les deux modifications s’ajoutent<br>après le repère <code>avant_cadeau</code>.", 3.8);
+toi('p2');
+cap('c7', "Un retour au savepoint<br>les annulerait.", 3.0);
+toi('p3');
+cap('c8', "Toutes les modifications restent<br>non validées.", 3.2);
+/* 4 · Léa ne souhaite pas de tisane : une nouvelle notification interrompt la préparation */
+chap({label:'Léa ne souhaite pas de tisane'});
+const MAIL2 = mailBlock(1);
+toi('p4');
+cap('d1', "Un <code>ROLLBACK</code> complet annulerait<br>aussi le remplacement.", 3.6);
+cap('d2', "Ici, tu veux seulement annuler<br>l’ajout du cadeau.", 3.2);
+cap('d3', "Clique sur le bouton<br>« Revenir au savepoint ».", 3.8);   // c’est l’élève qui clique : l’app s’arrête sur le bouton (SAV, plus bas)
+/* 5 · Observer ce qui est annulé */
+chap({label:'Observer ce qui est annulé'});
+cap('e1', "La ligne de Léa Simon disparaît<br>de la <b>table cadeaux</b>.", 3.6);
+cap('e2', "Le stock de tisanes revient<br>de 59 à 60.", 3.2);
+cap('e3', "Le remplacement du shaker reste là,<br>et son stock reste à 29.", 4.0);
+cap('e4', "Le retour au savepoint annule<br>uniquement les modifications<br>effectuées après ce repère.", 4.4);
+toi('p5');
+cap('e5', "La transaction reste ouverte.", 2.8);
+/* 6 · Valider ce qui reste */
+chap({label:'Valider ce qui reste'});
+cap('f1', "Il reste à valider<br>le remplacement du shaker<br>et la mise à jour de son stock.", 4.2);
+cap('f2', "Clique sur le bouton<br>« Valider le remplacement ».", 3.8);   // l’app s’arrête sur le bouton (VAL, plus bas)
+cap('f3', "Les modifications conservées<br>sont validées.", 3.0);
+cap('f4', "L’équipe logistique peut préparer<br>le colis de Léa Simon, sans cadeau.", 4.0);
+/* 7 · Quelle commande choisir ? */
+chap({label:'Quelle commande choisir ?'});
+cap('g1', "Selon la situation, tu valides,<br>tu annules tout, ou tu reviens<br>à un savepoint.", 4.2);
+toi('p6');
+cap('g2', "Un savepoint ne valide rien.", 2.8);
+cap('g3', "Il te permet de revenir à une étape<br>de la transaction, avant la validation<br>finale avec <code>COMMIT</code>.", 5.2);
+/* la suite : la prochaine leçon */
+cap('g4', "Dans la prochaine leçon, tu découvriras<br>les triggers : des actions lancées<br>automatiquement par une modification.", 7.0);
+/* 8 · À retenir */
+chap({label:'À retenir'});
+const RECAP = SCH.t;
+cap('j1', "Pour finir, voici les <b>trois idées à retenir</b>.", 4.8, 0.4);
+/* NOTES (le bouton « Ajouter à mes notes ») est écrit en clair dans Course(…) plus bas : tests/savepoint-lesson.test.mjs vérifie qu’il suit le déroulé. */
+const NOTES = +(SCH.t + 0.1).toFixed(2);
+const DURATION = +(NOTES + 7.2).toFixed(2);
+SCH.caps.push([NOTES, 999, APP ? "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."
+  : "Un savepoint te permet d’annuler<br>une partie de la transaction."]);
+
+const CAPTIONS = SCH.caps;
+const CHAPTERS = SCH.chaps.map((c, i) => ({n: i + 1, label: c.label, a: c.a, b: i + 1 < SCH.chaps.length ? SCH.chaps[i + 1].a : DURATION}));
+
+/* Pas de question du lecteur : les moments « À toi » (PICKS) font participer l’élève. */
+const QUESTIONS = [];
+
+/* ---------- Le cas : la base des ateliers NutriBoost (la même dans tous les chapitres du projet) ---------- */
+/* La base telle que le chapitre 11 la laisse : dix tables, avec la table remplacements (le remplacement de Léa Simon, validé).
+   [clé, couleur, emoji, nom, lignes] */
+const TB = [
+  ['cl', 'k-cl', '👥', 'clients', 8], ['cm', 'k-cm', '🛒', 'commandes', 16], ['fi', 'k-fi', '⭐', 'fidelite', 4], ['pr', 'k-pr', '📦', 'produits', 8],
+  ['co', 'k-co', '🧑‍🏫', 'coachs', 4], ['at', 'k-at', '📅', 'ateliers', 5], ['in', 'k-in', '📝', 'inscriptions', 7], ['ca', 'k-nb', '💳', 'cartes', 3],
+  ['av', 'k-av', '💬', 'avis', 1], ['rp', 'k-rp', '🔁', 'remplacements', 1]
+];
+/* Le shaker et la tisane, tels que la base les connaît : le produit 8 (Shaker Inox, 30 en stock) et le produit 5 (Tisane Détox, 60 en stock).
+   Léa Simon est la cliente 7 ; son remplacement a l’identifiant 1 (chapitre 11), son cadeau aura l’identifiant 1 (la table cadeaux est vide). */
+const SHAKER = {id: 8, nom: 'Shaker Inox', stock: 30}, TISANE = {id: 5, nom: 'Tisane Détox', stock: 60}, LEA = 7, REMPLACEMENT = 1, CADEAU = 1;
+/* Moment 2 : les modifications qu’un retour au savepoint annulerait sont celles d’après le repère (h4, h5) ; pourquoi les autres ne conviennent pas. */
+const WHY2 = {
+  h1: 'Le stock du shaker a été modifié avant le repère : un retour au savepoint le conserve.',
+  h2: 'Le remplacement a été enregistré avant le repère : un retour au savepoint le conserve.',
+  h3: 'C’est le repère lui-même : le retour au savepoint revient jusqu’à lui, sans l’effacer.'
+};
+/* Moment 6 : trois commandes, et six situations à ranger [situation, commande, pourquoi]. */
+const BINS = [['rt', 'ROLLBACK TO SAVEPOINT', 'annule après le repère'], ['rb', 'ROLLBACK', 'annule toute la transaction'], ['co', 'COMMIT', 'valide ce qui reste']];
+const ITEMS = [
+  ['Léa Simon refuse seulement la tisane', 'rt', 'Seul le cadeau est à annuler : ROLLBACK TO SAVEPOINT le retire et garde le remplacement, enregistré avant le repère.'],
+  ['Le service client annule toute la demande', 'rb', 'Plus rien n’est à garder : ROLLBACK annule toute la transaction, ce qui précède le repère compris.'],
+  ['Le remplacement est prêt, sans cadeau', 'co', 'Ce qui reste est juste : COMMIT le rend définitif et termine la transaction.'],
+  ['Tu t’es trompé de quantité dans le cadeau', 'rt', 'Le cadeau suit le repère : ROLLBACK TO SAVEPOINT l’annule sans toucher au remplacement.'],
+  ['Tu t’es trompé de produit dans le remplacement', 'rb', 'Le remplacement précède le repère : un retour au savepoint ne l’annulerait pas, ROLLBACK annule tout.'],
+  ['Tu veux rendre définitif ce qui reste', 'co', 'Rendre définitif, c’est valider : COMMIT valide les modifications conservées.']
+];
+
+/* Les six moments « À toi » : l’image s’arrête, l’élève touche, choisit ou range ; la page montre aussitôt le résultat.
+   from : début du passage qui amène chaque moment, d’où repartent « ↺ Revoir » et « Rejouer ». */
+const atp = k => +(A[k] + 2.35).toFixed(2);
+const PICKS = [
+  {at: atp('p1'), from: A.a6, kind: 'pick', text: true, prompt: 'Sans valider le remplacement, comment pourras-tu annuler seulement le cadeau ?', options: [
+    {label: 'Avec ROLLBACK, qui annule la dernière modification', why: '<code>ROLLBACK</code> annule toute la transaction : le remplacement disparaîtrait avec le cadeau.'},
+    {label: 'Avec un point de retour posé avant le cadeau', ok: true, why: 'Un <code>SAVEPOINT</code> posé avant le cadeau permet de revenir jusqu’à lui, en gardant ce qui le précède.'},
+    {label: 'Avec un deuxième BEGIN TRANSACTION', why: 'Une transaction est déjà en cours : un deuxième <code>BEGIN TRANSACTION</code> est refusé.'}]},
+  {at: atp('p2'), from: A.c4, kind: 'tap', need: 2, prompt: 'Touche les deux modifications qu’un retour au savepoint annulerait.'},
+  {at: atp('p3'), from: A.c7, kind: 'pick', text: true, prompt: 'À cet instant, quelles modifications sont validées ?', options: [
+    {label: 'Celles d’avant le repère', why: 'Un savepoint ne valide rien : le stock du shaker et le remplacement attendent toujours un <code>COMMIT</code>.'},
+    {label: 'Toutes, sauf le cadeau', why: 'Rien n’est validé tant que la transaction ne se termine pas par <code>COMMIT</code>, le cadeau comme le reste.'},
+    {label: 'Aucune : rien n’est validé avant COMMIT', ok: true, why: 'Les quatre modifications sont en attente : seul <code>COMMIT</code> les rendra définitives.'}]},
+  {at: atp('p4'), from: MAIL2, kind: 'pick', text: true, prompt: 'Léa Simon ne veut pas de tisane : quelle commande annule seulement le cadeau ?', options: [
+    {label: 'ROLLBACK TO SAVEPOINT avant_cadeau', ok: true, why: 'Le retour au savepoint annule le cadeau et le stock de la tisane, et garde le remplacement, posé avant le repère.'},
+    {label: 'ROLLBACK', why: '<code>ROLLBACK</code> annulerait toute la transaction : le remplacement du shaker disparaîtrait aussi.'},
+    {label: 'COMMIT', why: '<code>COMMIT</code> validerait tout, le cadeau compris : Léa Simon recevrait la tisane.'}]},
+  {at: atp('p5'), from: A.e1, kind: 'pick', text: true, prompt: 'Après le retour au savepoint, où en est la transaction ?', options: [
+    {label: 'Elle est annulée', why: 'Seules les modifications d’après le repère sont annulées : le remplacement attend toujours, dans la transaction.'},
+    {label: 'Elle est validée', why: 'Un retour au savepoint ne valide rien : il faut encore <code>COMMIT</code> pour enregistrer le remplacement.'},
+    {label: 'Elle est toujours en cours', ok: true, why: 'Le retour au savepoint ne termine pas la transaction : elle reste ouverte jusqu’au <code>COMMIT</code> ou au <code>ROLLBACK</code>.'}]},
+  {at: atp('p6'), from: A.g1, kind: 'sort', prompt: 'Range chaque situation avec la commande qui convient.',
+    hint: 'Touche une situation, puis la commande qui convient. Tu peux aussi la faire glisser directement.', next: '« {x} » : quelle commande choisir ?',
+    options: ITEMS.map(x => ({label: x[0]}))}
+];
+
+/* Les arrêts « toucher » : les deux notifications, et les deux boutons de la trame d’Elisa (« Revenir au savepoint », « Valider le remplacement »).
+   Rien n’y est noté. Sur un bouton, la légende dit déjà quoi faire : un doigt seul (hand) monte et descend sur son coin, et le bouton s’enfonce
+   dès l’appui (press), puis remonte au relâcher (rest). */
+const SAV = +(A.d3 + 2.6).toFixed(2), VAL = +(A.f2 + 2.6).toFixed(2);
+const BTN = (lip) => ({hand: {x: 0.86, y: 0.78}, press: {y: 7, boxShadow: `0 2px 0 ${lip}`}, rest: {y: 0, boxShadow: `0 9px 0 ${lip}`}});
+const msgOpen = (t, n) => {
+  const [prenom, nom] = MAILS[n][0], msg = mailSms(n) ? 'message' : 'mail';   // le service client écrit par SMS
+  const de = /^Le /.test(prenom) ? 'du ' + prenom.slice(3) : /^[AEIOUHÉÈ]/.test(prenom) ? 'd’' + prenom : 'de ' + prenom;   // « du service client »
+  return {at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: `Touche le ${msg} pour l’ouvrir.`, label: `Ouvrir le ${msg} ${de} ${nom}`};
+};
+const OPENS = [
+  msgOpen(MAIL1, 0),
+  msgOpen(MAIL2, 1),
+  Object.assign({at: SAV, sel: '#bsav', prompt: 'Touche le bouton.', label: 'Revenir au savepoint'}, BTN('#4B30CC')),
+  Object.assign({at: VAL, sel: '#bval', prompt: 'Touche le bouton.', label: 'Valider le remplacement'}, BTN('#157A49'))
+];
+
+/* ---------- Gabarits ---------- */
+/* Une case à valeurs empilées (une seule se voit). */
+const sw = (id, vals, k = 'v') => `<span class="sw ${k}" id="${id}">${vals.map((v, j) => `<i class="a${j}${v[1] ? ' ' + v[1] : ''}">${v[0]}</i>`).join('')}</span>`;
+const cell = (j, inner) => `<span class="c${j}">${inner}</span>`;
+const line = (id, cells, cls = '') => `<div class="gr r${cls ? ' ' + cls : ''}" id="r${id}"><i class="hl"></i><i class="wn"></i><i class="xx"></i>${cells}</div>`;
+/* Carte de code : une ligne par [repère, texte, classe, style]. Dans le texte : {id|…} un passage repéré (il pulse). Un commentaire (--) n’a pas de curseur. */
+const SQL_KW = /\b(?:BEGIN TRANSACTION|COMMIT|ROLLBACK TO SAVEPOINT|ROLLBACK|SAVEPOINT|UPDATE|SET|WHERE|INSERT INTO|VALUES)\b/g, CARET = '<span class="caret"><i></i></span>';
+function lineHtml([lid, s, cls = '', st = '']){
+  const cmt = s.trim().startsWith('--');
+  let h = s.replace(/\{(\w+)\|([^{}]*)\}/g, '<span class="glow" id="$1">$2</span>');
+  if (!cmt) h = h.replace(SQL_KW, '<span class="kw">$&</span>').replace(/'[^']*'/g, '<span class="str">$&</span>');
+  return `<span class="ln${cmt ? ' cmt' : ''}${cls ? ' ' + cls : ''}" id="${lid}"${st ? ` style="${st}"` : ''}>${h}${cmt ? '' : CARET}</span>`;
+}
+function editor(id, fname, lines, extra = ''){
+  return `<div class="abs code sq" id="${id}" style="left:64px;width:952px"><div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i>` +
+    `<span class="fname">${fname}</span></div><div class="body">${lines.map(lineHtml).join('')}${extra}</div></div>`;
+}
+const head = (cols, k = '') => `<div class="gr hd">${cols.map(([c, label, extra]) => `<span class="${c}${extra ? ' ' + extra : ''}">${label}</span>`).join('')}</div>`;
+const tbl = (id, kc, emo, name, g, hd, rows, bn = '') => `<div class="abs card tb tz ${kc}" id="${id}" style="left:64px;width:952px;${g}"><div class="h"><span class="emo">${emo}</span><span>${name}</span>${bn}</div>${hd}${rows}</div>`;
+const KEY = '<span class="emo">🔑</span>id', LK = '<span class="emo">🔗</span>';
+/* La mention d’une modification (une seule se voit) : non validée, puis validée. */
+const bdg = id => `<span class="bdg" id="${id}"><i class="st0">⏳ Non validé</i><i class="st1">✓ Validé</i></span>`;
+/* Une ligne de l’historique : la commande (en code), ce qu’elle a changé, sa mention ; l’anneau de la réponse du moment 2. */
+const hrow = (id, kw, emo, text) => `<div class="r hr" id="${id}"><i class="hl"></i><i class="xx"></i><i class="hc" id="hk${id.slice(1)}"></i>` +
+  `<span class="hk">${kw}</span><span class="ht"><span class="emo">${emo}</span>${text}</span>${bdg('b' + id)}</div>`;
+/* Les requêtes de la trame : l’opération du chapitre 11 (rejouée), le point de retour, le cadeau, le retour au point, la validation. */
+const Q_BEGIN = [['-- Démarrer la transaction'], ['BEGIN TRANSACTION;']];
+const Q_UP8 = [['-- Retirer un shaker du stock'], ['UPDATE produits'], ['SET stock = stock - 1'], ['WHERE id = 8;']];
+const Q_INR = [['-- Enregistrer le remplacement'], ['INSERT INTO remplacements'], ['  (id, client_id, produit_id,'], ['   quantite, personnalisation)'], ["VALUES (1, 7, 8, 1, 'Léa');"]];
+const Q_SP = [['-- Poser un point de retour'], ['SAVEPOINT {spn|avant_cadeau};']];
+const Q_UP5 = [['-- Retirer une tisane du stock'], ['UPDATE produits'], ['SET stock = stock - 1'], ['WHERE id = 5;']];
+const Q_INC = [['-- Ajouter le cadeau'], ['INSERT INTO cadeaux'], ['  (client_id, produit_id, quantite)'], ['VALUES (7, 5, 1);']];
+const Q_RT = [['-- Revenir au point de retour'], ['ROLLBACK TO SAVEPOINT avant_cadeau;']], Q_COMMIT = [['-- Valider le remplacement'], ['COMMIT;']];
+const ed = (id, q) => editor(id, 'remplacement.sql', q.map(([s], k) => [id + '-' + k, s]));
+/* Un bouton à toucher, et l’anneau qui s’en échappe */
+const button = (id, cls, emo, label) => `<i class="abs bring ${cls}" id="${id}-r"></i><div class="abs run bt ${cls}" id="${id}"><span class="emo">${emo}</span>${label}<i class="ripple"></i></div>`;
+function dom(){
+  /* La base et ses dix tables : le rappel du chapitre précédent */
+  $('#sa').innerHTML = `<div class="abs card bc" id="bc"><div class="bh"><span class="emo">🗄️</span><span>Base NutriBoost</span><span class="bn"><span>10 tables</span></span></div>` +
+    TB.map(([k, kc, emo, name, n]) => `<div class="srow ${kc}" id="bw-${k}"><i class="hl"></i><div class="sn"><span class="emo">${emo}</span>` +
+      `<span class="nm">${name}</span><i class="sp"></i><b class="nb"><span>${n} ${n > 1 ? 'lignes' : 'ligne'}</span></b></div></div>`).join('') + '</div>';
+  /* Les messages du service client */
+  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body, false, smsRank(MAILS, n), (MAILS[n][6] || {}).hello) : '').join('') +
+    '<div class="abs emo tapf" id="tapf">👆</div>';
+  /* La préparation : l’historique de la transaction, l’extrait de la table produits, la table cadeaux, la requête du moment, les boutons */
+  let w = '<div class="abs card tb hs k-hs" id="hs" style="left:64px;width:952px"><div class="h"><span class="emo">📜</span><span>Historique de la transaction</span>' +
+      '<span class="hst"><span class="h0"><span class="emo">💤</span>Aucune transaction</span><span class="h1"><span class="emo">⏳</span>Transaction en cours</span>' +
+      '<span class="h2"><span class="emo">✅</span>Transaction validée</span></span></div>' +
+      '<div class="r hr rph" id="h0"><span class="ph">Aucune modification pour l’instant</span></div>' +
+      hrow('h1', 'UPDATE', '📦', 'Shaker Inox : stock 30 → 29') +
+      hrow('h2', 'INSERT INTO', '🔁', 'Remplacement de Léa Simon') +
+      '<div class="r hm" id="h3"><i class="hl"></i><i class="hc" id="hk3"></i><span class="hmk"><span class="emo">📍</span>SAVEPOINT avant_cadeau</span></div>' +
+      hrow('h4', 'UPDATE', '🍵', 'Tisane Détox : stock 60 → 59') +
+      hrow('h5', 'INSERT INTO', '🎁', 'Cadeau pour Léa Simon') + '</div>' +
+    tbl('tp', 'k-pr', '📦', 'produits', '--g:96px 1fr 300px', head([['c0 kc', KEY], ['c1', 'nom'], ['c2', 'stock']]),
+      line('tp5', cell(0, '<i class="v">5</i>') + cell(1, '<i class="v">Tisane Détox</i>') + cell(2, sw('sk5', [['60'], ['59']]))) +
+      line('tp8', cell(0, '<i class="v">8</i>') + cell(1, '<i class="v">Shaker Inox</i>') + cell(2, sw('sk8', [['30'], ['29']]))),
+      '<span class="bn"><span>extrait</span></span>') +
+    tbl('tc', 'k-cd', '🎁', 'cadeaux', '--g:96px 250px 270px 1fr',
+      head([['c0 kc', KEY], ['c1 kc k-cl', LK + 'client_id'], ['c2 kc k-pr', LK + 'produit_id'], ['c3', 'quantite']]),
+      line('tc0', '<span class="ph">Aucun cadeau pour Léa Simon</span>', 'rph') +
+      line('tc1', cell(0, '<i class="v">1</i>') + cell(1, '<i class="v">7</i>') + cell(2, '<i class="v">5</i>') + cell(3, '<i class="v">1</i>')));
+  // les requêtes, une carte par étape
+  w += ed('eb', Q_BEGIN) + ed('eu8', Q_UP8) + ed('eir', Q_INR) + ed('esp', Q_SP) + ed('eu5', Q_UP5) + ed('eic', Q_INC) + ed('ert', Q_RT) + ed('ec', Q_COMMIT);
+  w += button('bsav', '', '↩️', 'Revenir au savepoint') + button('bval', 'go', '✅', 'Valider le remplacement');
+  // ce que le retour au savepoint laisse, puis le colis de Léa Simon
+  w += '<div class="abs pack st3" id="st3"><span class="q0"><span class="emo">🎁</span>Cadeau annulé</span><span class="q1"><span class="emo">🔁</span>Remplacement conservé</span>' +
+    '<span class="q2"><span class="emo">⏳</span>Transaction en cours</span></div>';
+  w += '<div class="abs card colis" id="colis"><div class="ch"><span class="emo">📦</span><b>Léa Simon</b><span class="cst">À préparer</span></div>' +
+    '<div class="cl"><span class="emo">🔁</span>1 shaker rose personnalisé « Léa »</div><div class="cl no"><span class="emo">🎁</span>Aucun cadeau ajouté</div></div>';
+  w += '<div class="abs emo tapf" id="tapw">👆</div>';
+  $('#sw').innerHTML = w;
+  /* Quelle commande choisir : une case chacune, où ranger les situations */
+  $('#sd').innerHTML = BINS.map(([k, n, d], q) => `<div class="abs dbn" id="db-${k}" data-k="${k}" style="top:${260 + q * 232}px"><div class="hh"><span class="dn">${n}</span><span class="dd">${d}</span></div>` +
+    `<div class="cs">${ITEMS.map((x, i) => x[1] === k ? `<div class="rc" id="sbu${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
+    '<div class="abs pack" id="bpack"><span><span class="emo">📬</span>6 situations à ranger</span></div>';
+  /* La suite : la prochaine leçon */
+  $('#sn').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🔖</span>Prochaine leçon · Les triggers</span></div>';
+  // les requêtes, découpées en caractères pour la frappe
+  $$('.sq .ln').forEach(splitChars);
+}
+
+/* ---------- Mise en page ---------- */
+const RH = 62;   // hauteur d’une ligne des tables et de l’historique
+const bottom = s => { const el = $(s); return el.offsetTop + el.offsetHeight; };
+/* Position d’un élément dans sa scène (sans tenir compte des transformations) : le coin et la taille. */
+const pos = el => {
+  let x = 0, y = 0, e = el;
+  while (e && !e.classList.contains('scene')) {
+    x += e.offsetLeft; y += e.offsetTop;
+    const p = e.offsetParent;
+    if (p && !p.classList.contains('scene')) { x += p.clientLeft; y += p.clientTop; }
+    e = p;
+  }
+  return {x, y, w: el.offsetWidth, h: el.offsetHeight};
+};
+const HROWS = ['#h1', '#h2', '#h3', '#h4', '#h5'];
+function layout(){
+  // l’historique garde la hauteur de ses cinq lignes : les modifications s’y ajoutent sans pousser les tables
+  $('#hs').style.top = '236px';
+  $('#h0').style.height = '0px'; HROWS.forEach(s => { $(s).style.height = RH + 'px'; });
+  $('#hs').style.height = $('#hs').offsetHeight + 'px';
+  $('#h0').style.height = RH + 'px'; HROWS.forEach(s => { $(s).style.height = '0px'; });
+  $('#tp').style.top = (bottom('#hs') + 30) + 'px';
+  // la table cadeaux garde sa hauteur : une ligne à la fois (aucun cadeau, puis la tisane de Léa Simon)
+  $('#rtc1').style.height = '0px';
+  $('#tc').style.top = (bottom('#tp') + 30) + 'px';
+  $('#tc').style.height = $('#tc').offsetHeight + 'px';
+  // les requêtes, à la même place sous les tables ; dessous, le bouton à toucher
+  const EW = bottom('#tc') + 9 + 30;
+  $$('#sw .sq').forEach(e => { e.style.top = EW + 'px'; });
+  const place = (id, top) => { $('#' + id).style.top = top + 'px'; $('#' + id + '-r').style.top = top + 'px'; };
+  place('bsav', bottom('#ert') + 9 + 32);
+  place('bval', bottom('#ec') + 9 + 32);
+  // ce que le retour au savepoint laisse, puis le colis : à la place de la requête
+  $('#st3').style.top = (EW + 10) + 'px';
+  $('#colis').style.top = EW + 'px';
+  // quelle commande choisir : la pile des situations, sous les trois cases
+  $('#bpack').style.top = (bottom('#db-co') + 9 + 44) + 'px';
+}
+
+/* ---------- Petits gestes de la timeline ---------- */
+const pulse = (el, t, n = 3, c = 'rgba(201,188,255,.55)') => tl.to(el, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (el, t, s = 1.04) => tl.to(el, {scale: s, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, t);
+const shake = (el, t, x = 10) => tl.to(el, {x: -x, duration: 0.07, yoyo: true, repeat: 5, ease: 'power1.inOut'}, t);
+const on = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 1, duration: d, ease: 'power2.out'}, t);
+const off = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 0, duration: d, ease: 'power2.in'}, t);
+const GLOW = 'rgba(255,224,138,.4)';
+/* Une valeur en remplace une autre : l’ancienne monte et s’efface, la nouvelle arrive par en dessous. */
+function swap(o, n, t, sound = true){
+  tl.to(o, {autoAlpha: 0, y: -14, duration: 0.2, ease: 'power2.in'}, t);
+  tl.fromTo(n, {autoAlpha: 0, y: 14}, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power3.out', immediateRender: false}, t + 0.12);
+  if (sound) cue(t + 0.12, 'type', 0.8, 2);
+}
+/* La mention d’une modification apparaît (d’un petit rebond). */
+const mark = (sel, t) => { tl.fromTo(sel, {autoAlpha: 0, scale: 0.6, y: 0}, {autoAlpha: 1, scale: 1, y: 0, duration: 0.4, ease: 'back.out(2.4)', immediateRender: false}, t); cue(t, 'pop', 0.6, 2); };
+/* Une ligne qui apparaît (ou disparaît) en dépliant sa hauteur. */
+const rowIn = (sel, t) => { tl.fromTo(sel, {height: 0}, {height: RH, duration: 0.45, ease: 'power2.out', immediateRender: false}, t); cue(t, 'whoosh', 0.35, 2); };
+const rowOut = (sel, t) => { tl.fromTo(sel, {height: RH}, {height: 0, duration: 0.4, ease: 'power2.inOut', immediateRender: false}, t); };
+/* Une modification effacée par le retour au savepoint : elle rougit, puis se replie. */
+function eraseRow(sel, t){
+  on(sel + ' .xx', t, 0.25); cue(t, 'miss', 0.4);
+  tl.fromTo(sel, {height: RH}, {height: 0, duration: 0.45, ease: 'power2.inOut', immediateRender: false}, t + 0.55);
+  cue(t + 0.55, 'whoosh', 0.35, 1);
+}
+/* Frappe des lignes d’une requête (le commentaire est déjà là). Renvoie l’instant de fin. */
+function typeQuery(id, t, cps = 34){
+  const lns = $$('#' + id + ' .ln');
+  let e = t;
+  lns.forEach(ln => {
+    if (ln.classList.contains('cmt')) { e = typeChars($$('.ch', ln), e, 60) + 0.1; return; }
+    const caret = $$(':scope > .caret', ln).pop();
+    tl.set(caret, {autoAlpha: 1}, e - 0.2);
+    e = typeChars($$('.ch', ln), e, cps);
+    tl.set(caret, {autoAlpha: 0}, e + 0.1);
+    e += 0.15;
+  });
+  return e;
+}
+/* La requête s’exécute : la carte s’enfonce d’un coup, comme un bouton « Exécuter ». */
+const run = (id, t) => { tl.to('#' + id, {scale: 0.985, duration: 0.08, yoyo: true, repeat: 1, ease: 'power2.out'}, t); cue(t, 'click', 0.6); };
+/* Une requête déjà écrite (l’opération du chapitre 11, rejouée) : elle arrive tapée, sans frappe. */
+const showTyped = (id, t) => { show('#' + id, t, {y: 40}, 0.45); cue(t, 'whoosh', 0.4, 1); };
+/* La légende s’efface le temps d’un message, puis revient. */
+const capOff = t => tl.to('#cap', {autoAlpha: 0, y: 30, duration: 0.3, ease: 'power2.in'}, t);
+const capOn = t => tl.to('#cap', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, t);
+/* Un message arrive : le service client écrit par SMS (smsIn) ; l’app s’arrête sur la notification (OPENS) jusqu’au toucher ;
+   hors de l’app, un doigt la montre. */
+function mailIn(n, t, T){
+  if (isSms(MAILS[n - 1][2], MAILS[n - 1][6])) { if (!APP) fingerTap($('#ml' + n), T); return smsIn(n, t, T); }
+  return T;
+}
+function mailOut(n, t){ hide('#ml' + n, t, {x: 140, y: 0, rotation: 2}, 0.4, 'power2.in'); cue(t, 'whoosh', 0.4); }
+/* Un message interrompt la préparation : elle s’efface le temps du message, puis revient telle quelle. */
+const workOff = t => tl.to('#sw', {autoAlpha: 0, duration: 0.3, ease: 'power2.in'}, t);
+const workOn = t => tl.to('#sw', {autoAlpha: 1, duration: 0.35, ease: 'power2.out'}, t);
+/* Un doigt montre le geste (vidéo seule) : il touche la notification ou un bouton. */
+function fingerTap(M, T, f = '#tapf', fx = 0.6, fy = 92){
+  const p = pos(M);
+  tl.set(f, {left: p.x + p.w * fx, top: p.y + fy}, T - 0.8);
+  tl.fromTo(f, {autoAlpha: 0, x: 90, y: 170}, {autoAlpha: 1, x: 0, y: 0, duration: 0.5, ease: 'power3.out', immediateRender: false}, T - 0.75);
+  tl.to(f, {scale: 0.86, duration: 0.1, ease: 'power2.in'}, T - 0.15);
+  tl.to(f, {scale: 1, duration: 0.15}, T);
+  tl.to(f, {autoAlpha: 0, y: 70, duration: 0.3}, T + 0.2);
+}
+/* La micro-interaction d’un bouton touché (Elisa, 25 octobre, 16 h 22). Dans l’app, le bouton s’enfonce sous le doigt dès le toucher et remonte
+   d’un rebond au relâcher (OPENS : press, rest ; le lecteur s’en charge, hors de la timeline) ; hors de l’app, le doigt appuie (press). Puis une
+   onde blanche le traverse, il gonfle un instant, son icône remue et un anneau s’en échappe. Rien que des « to » : en revenant en arrière, chaque
+   élément retrouve l’état d’avant le toucher. */
+function tapButton(id, T, lip){
+  const b = '#' + id;
+  if (APP) {
+    const rp = $(b + ' .ripple');
+    tl.to(rp, {scale: 0, opacity: 0.55, duration: 0.001}, T + 0.001).to(rp, {scale: 1, opacity: 0, duration: 0.7, ease: 'power2.out'}, T + 0.011);
+    cue(T + 0.001, 'click');
+  } else { fingerTap($(b), T, '#tapw', 0.6, 62); press($(b), T, lip, 9); }
+  tl.to(b, {scale: 1.04, duration: 0.14, ease: 'power2.out'}, T + 0.1).to(b, {scale: 1, duration: 0.32, ease: 'back.out(2)'}, T + 0.24);
+  tl.to(b + ' .emo', {rotation: -16, transformOrigin: '50% 85%', duration: 0.07, yoyo: true, repeat: 3, ease: 'sine.inOut'}, T + 0.06);
+  tl.set(b + '-r', {autoAlpha: 0.9, scale: 1}, T + 0.05);
+  tl.to(b + '-r', {autoAlpha: 0, scale: 1.16, duration: 0.6, ease: 'power2.out'}, T + 0.051);
+}
+
+/* Réponses des moments « À toi » : ce que la timeline montre juste après l’arrêt (et que l’aperçu montre pendant l’arrêt). */
+const M2_ANS = ['#hk4', '#hk5'];   // les deux modifications d’après le repère, entourées
+const set2 = t => +(t + 0.02).toFixed(2);
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
+  layout();
+  gsap.set(['.sq', '.pack', '#bc', '#hs', '#tp', '#tc', '.bt', '#st3', '#colis', '#keyc', '.dbn', '#tapf', '#tapw'], {autoAlpha: 0});
+  gsap.set(['#sk5 .a1', '#sk8 .a1', '.dbn .rc'], {autoAlpha: 0});
+
+  /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
+     la consigne, la légende ne la répète pas. Le passage d’attente est coupé (rien ne s’y anime). */
+  PICKS.forEach(p => cut(p.at - 1.35, 1.25));
+
+  /* ===== 1 · Un petit geste pour Léa ===== */
+  sceneOn('#sa', 5.0);
+  show('#bc', A.r1, {y: 60}, 0.55); cue(A.r1, 'whoosh', 0.5);
+  TB.forEach(([k], q) => { const t = A.r1 + 0.3 + q * 0.15; show('#bw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q % 5); });
+  // « Au chapitre 11, une transaction » : le remplacement de Léa Simon, et le stock du shaker
+  on('#bw-rp .hl', A.r2 + 0.5, 0.2); cue(A.r2 + 0.5, 'tick', 0.5, 1);
+  on('#bw-pr .hl', A.r2 + 1.1, 0.2); cue(A.r2 + 1.1, 'tick', 0.5, 3);
+  off(['#bw-rp .hl', '#bw-pr .hl'], A.r2 + 3.0, 0.3);
+  // reprenons le remplacement juste avant sa validation : la base laisse la place à la préparation
+  hide('#bc', A.a1 + 0.2, {y: -30}, 0.35);
+  sceneOff('#sa', A.a1 + 0.6);
+  sceneOn('#sw', A.a1 + 0.6);
+  show('#hs', A.a1 + 0.7, {y: 50}, 0.5); cue(A.a1 + 0.7, 'whoosh', 0.5);
+  show('#tp', A.a1 + 1.1, {y: 50}, 0.5); cue(A.a1 + 1.1, 'whoosh', 0.45, 1);
+  // le service client souhaite aussi offrir une tisane : la ligne de la tisane
+  on('#rtp5 .hl', A.a2 + 1.6, 0.25); cue(A.a2 + 1.6, 'tick', 0.5, 2);
+  off('#rtp5 .hl', B.a2 - 0.3, 0.3);
+  // on repart de la situation de départ : 30 shakers, aucun remplacement
+  pulse('#rtp8 .c2', A.a3 + 1.4, 1, GLOW); cue(A.a3 + 1.4, 'tick', 0.5, 3);
+  pulse('#h0', A.a3 + 2.6, 1, GLOW); cue(A.a3 + 2.6, 'tick', 0.5, 4);
+  // la transaction démarre (BEGIN), et le stock du shaker passe à 29 (l’UPDATE) : l’opération du chapitre 11, rejouée
+  showTyped('eb', A.a4 + 0.1);
+  run('eb', A.a4 + 0.7);
+  swap('#hs .hst .h0', '#hs .hst .h1', A.a4 + 0.95, false); cue(A.a4 + 1.07, 'pop', 0.7, 3);
+  hide('#eb', A.a4 + 1.6, {y: -30}, 0.3);
+  showTyped('eu8', A.a4 + 1.85);
+  run('eu8', A.a4 + 2.5);
+  swap('#sk8 .a0', '#sk8 .a1', A.a4 + 2.75);
+  rowOut('#h0', A.a4 + 2.9); rowIn('#h1', A.a4 + 2.95);
+  mark('#bh1 .st0', A.a4 + 3.5);
+  // le remplacement de Léa Simon est enregistré
+  hide('#eu8', A.a5 - 0.05, {y: -30}, 0.3);
+  showTyped('eir', A.a5 + 0.2);
+  run('eir', A.a5 + 0.85);
+  rowIn('#h2', A.a5 + 1.1);
+  mark('#bh2 .st0', A.a5 + 1.6);
+  // aucun COMMIT : la transaction est toujours en cours
+  hide('#eir', A.a6 + 0.1, {y: -30}, 0.3);
+  bump('#hs .hst', A.a6 + 1.0, 1.08); cue(A.a6 + 1.0, 'tick', 0.5, 2);
+  // le service client écrit : la préparation s’efface le temps du message, la légende aussi (jamais de carte vide)
+  capOff(B.a6 - 0.2); workOff(B.a6 - 0.1);
+  sceneOn('#sm', MAIL1);
+  mailIn(1, MAIL1 + 0.5, OPENS[0].at);
+  mailOut(1, MAIL1 + MO[0]);
+  sceneOff('#sm', MAIL1 + MO[0] + 0.45);
+  workOn(MAIL1 + MO[0] + 0.35);
+  capOn(A.b1 - 0.3);
+
+  /* ===== 2 · Pouvoir revenir en arrière ===== */
+  // le remplacement est prêt : ses deux modifications
+  pulse(['#h1', '#h2'], A.b1 + 0.4, 1, GLOW); cue(A.b1 + 0.4, 'tick', 0.5, 2);
+  // un point de retour dans la transaction : un SAVEPOINT ; la requête s’écrit pendant la bulle
+  show('#esp', A.b2 + 0.4, {y: 40}, 0.5); cue(A.b2 + 0.4, 'whoosh', 0.45, 1);
+  typeQuery('esp', A.b2 + 2.8);
+  // un repère apparaît dans l’historique, juste après le remplacement
+  run('esp', A.b3 + 0.2);
+  rowIn('#h3', A.b3 + 0.5);
+  bump('#h3 .hmk', A.b3 + 1.1, 1.1); cue(A.b3 + 1.1, 'pop', 0.7, 4);
+  // avant_cadeau est le nom que tu donnes à ce repère
+  pulse('#spn', A.b4 + 0.3, 1, GLOW); cue(A.b4 + 0.3, 'tick', 0.5, 2);
+  pulse('#h3 .hmk', A.b4 + 1.3, 1, GLOW); cue(A.b4 + 1.3, 'tick', 0.5, 4);
+  // tu pourras annuler ce qui le suit, sans annuler ce qui le précède
+  pulse(['#h1', '#h2'], A.b5 + 3.0, 1, 'rgba(52,194,122,.2)'); cue(A.b5 + 3.0, 'tick', 0.5, 3);
+  hide('#esp', B.b5 - 0.15, {y: -30}, 0.35);
+
+  /* ===== 3 · Ajouter le cadeau ===== */
+  // les cadeaux offerts sont enregistrés dans la table cadeaux
+  show('#tc', A.c1 + 0.4, {y: 50}, 0.5); cue(A.c1 + 0.4, 'whoosh', 0.5, 1);
+  bump('#tc', A.c1 + 1.5, 1.02); cue(A.c1 + 1.5, 'tick', 0.5, 2);
+  // tu vas y ajouter la tisane, et diminuer son stock
+  pulse('#rtc0', A.c2 + 0.5, 1, GLOW); cue(A.c2 + 0.5, 'tick', 0.5, 2);
+  pulse('#rtp5 .c2', A.c2 + 1.7, 1, GLOW); cue(A.c2 + 1.7, 'tick', 0.5, 4);
+  // la tisane est le produit 5, avec 60 en stock ; l’UPDATE s’écrit pendant la bulle
+  on('#rtp5 .hl', A.c3 + 0.3, 0.25); cue(A.c3 + 0.3, 'tick', 0.5, 2);
+  show('#eu5', A.c3 + 0.4, {y: 40}, 0.5); cue(A.c3 + 0.4, 'whoosh', 0.45, 1);
+  typeQuery('eu5', A.c3 + 0.9, 40);
+  // l’UPDATE : 60 devient 59 ; la modification s’ajoute dans l’historique, après le repère
+  run('eu5', A.c4 + 0.2);
+  swap('#sk5 .a0', '#sk5 .a1', A.c4 + 0.5);
+  rowIn('#h4', A.c4 + 0.7);
+  mark('#bh4 .st0', A.c4 + 1.25);
+  off('#rtp5 .hl', B.c4 - 0.3, 0.3);
+  // INSERT INTO ajoute la tisane dans la table cadeaux
+  hide('#eu5', A.c5 - 0.05, {y: -30}, 0.3);
+  show('#eic', A.c5 + 0.25, {y: 40}, 0.5); cue(A.c5 + 0.25, 'whoosh', 0.45, 2);
+  const c5 = typeQuery('eic', A.c5 + 0.65, 50);
+  run('eic', c5 + 0.1);
+  rowOut('#rtc0', c5 + 0.35); rowIn('#rtc1', c5 + 0.4);
+  rowIn('#h5', c5 + 0.55);
+  mark('#bh5 .st0', c5 + 1.1);
+  // les deux modifications s’ajoutent après le repère avant_cadeau
+  pulse(['#h4', '#h5'], A.c6 + 0.9, 1, GLOW); cue(A.c6 + 0.9, 'tick', 0.5, 3);
+  bump('#h3 .hmk', A.c6 + 2.2, 1.08); cue(A.c6 + 2.2, 'tick', 0.5, 4);
+  hide('#eic', B.c6 - 0.15, {y: -30}, 0.35);
+  // À toi : les deux modifications qu’un retour au savepoint annulerait (réponse : elles sont entourées)
+  tl.set(M2_ANS, {autoAlpha: 1}, set2(PICKS[1].at));
+  off(M2_ANS, B.c7 - 0.3, 0.3);
+  // toutes les modifications restent non validées : leurs quatre mentions
+  bump(['#bh1', '#bh2', '#bh4', '#bh5'], A.c8 + 0.7, 1.12); cue(A.c8 + 0.7, 'tick', 0.5, 3);
+
+  /* ===== 4 · Léa ne souhaite pas de tisane ===== */
+  // une nouvelle notification interrompt la préparation
+  capOff(B.c8 - 0.2); workOff(B.c8 - 0.1);
+  sceneOn('#sm', MAIL2);
+  mailIn(2, MAIL2 + 0.5, OPENS[1].at);
+  mailOut(2, MAIL2 + MO[1]);
+  sceneOff('#sm', MAIL2 + MO[1] + 0.45);
+  workOn(MAIL2 + MO[1] + 0.35);
+  capOn(A.p4 - 0.3);
+  // un ROLLBACK complet annulerait aussi le remplacement
+  pulse(['#h1', '#h2'], A.d1 + 1.4, 1, 'rgba(239,79,85,.18)'); cue(A.d1 + 1.4, 'tick', 0.5, 2);
+  // ici, tu veux seulement annuler l’ajout du cadeau
+  pulse(['#h4', '#h5'], A.d2 + 1.0, 1, GLOW); cue(A.d2 + 1.0, 'tick', 0.5, 4);
+  // l’élève clique sur « Revenir au savepoint » : la requête, puis le bouton (l’app s’arrête dessus, OPENS ; hors de l’app, un doigt le montre)
+  show('#ert', A.d3 + 0.2, {y: 40}, 0.5); cue(A.d3 + 0.2, 'whoosh', 0.45, 1);
+  typeQuery('ert', A.d3 + 0.55, 44);
+  show('#bsav', A.d3 + 1.5, {y: 30, scale: 0.94}, 0.5, 'back.out(1.7)'); cue(A.d3 + 1.5, 'pop', 0.7, 2);
+  tapButton('bsav', SAV, '#4B30CC');
+  // ROLLBACK TO SAVEPOINT : les modifications d’après le repère rougissent
+  run('ert', SAV + 0.15);
+  on(['#h4 .xx', '#h5 .xx'], SAV + 0.5, 0.25); cue(SAV + 0.5, 'miss', 0.4);
+
+  /* ===== 5 · Observer ce qui est annulé ===== */
+  // la ligne de Léa Simon disparaît de la table cadeaux, et le cadeau quitte l’historique
+  rowOut('#rtc1', A.e1 + 0.4); rowIn('#rtc0', A.e1 + 0.45);
+  tl.fromTo('#h5', {height: RH}, {height: 0, duration: 0.45, ease: 'power2.inOut', immediateRender: false}, A.e1 + 1.2); cue(A.e1 + 1.2, 'whoosh', 0.35, 1);
+  // le stock de tisanes revient de 59 à 60, et sa modification quitte l’historique
+  swap('#sk5 .a1', '#sk5 .a0', A.e2 + 0.4);
+  tl.fromTo('#h4', {height: RH}, {height: 0, duration: 0.45, ease: 'power2.inOut', immediateRender: false}, A.e2 + 1.0); cue(A.e2 + 1.0, 'whoosh', 0.35, 2);
+  // le remplacement du shaker reste là, et son stock reste à 29
+  pulse('#h2', A.e3 + 0.5, 1, 'rgba(52,194,122,.22)'); cue(A.e3 + 0.5, 'tick', 0.5, 2);
+  pulse('#rtp8 .c2', A.e3 + 2.0, 1, 'rgba(52,194,122,.22)'); cue(A.e3 + 2.0, 'tick', 0.5, 4);
+  hide(['#ert', '#bsav'], B.e3 - 0.1, {y: -30}, 0.35);
+  // ce que le retour au savepoint laisse : cadeau annulé, remplacement conservé, transaction en cours
+  tl.set('#st3', {autoAlpha: 1}, A.e4 + 0.1);
+  $$('#st3 > span').forEach((s, q) => { const t = A.e4 + 0.2 + q * 0.35; show(s, t, {y: 20, scale: 0.85}, 0.4, 'back.out(2)'); cue(t, 'pop', 0.6, q * 2 + 1); });
+  // la transaction reste ouverte
+  bump('#st3 .q2', A.e5 + 0.6, 1.08); cue(A.e5 + 0.6, 'tick', 0.5, 3);
+  bump('#hs .hst', A.e5 + 1.3, 1.08);
+
+  /* ===== 6 · Valider ce qui reste ===== */
+  hide('#st3', A.f1 + 0.1, {y: -20}, 0.3);
+  pulse(['#h1', '#h2'], A.f1 + 1.6, 1, GLOW); cue(A.f1 + 1.6, 'tick', 0.5, 2);
+  // l’élève clique sur « Valider le remplacement » : la requête, puis le bouton (l’app s’arrête dessus, OPENS)
+  show('#ec', A.f2 + 0.2, {y: 40}, 0.5); cue(A.f2 + 0.2, 'whoosh', 0.45, 1);
+  typeQuery('ec', A.f2 + 0.6);
+  show('#bval', A.f2 + 1.5, {y: 30, scale: 0.94}, 0.5, 'back.out(1.7)'); cue(A.f2 + 1.5, 'pop', 0.7, 2);
+  tapButton('bval', VAL, '#157A49');
+  // COMMIT : les modifications conservées sont validées, la transaction aussi
+  run('ec', VAL + 0.15);
+  swap('#bh1 .st0', '#bh1 .st1', VAL + 0.45, false); cue(VAL + 0.57, 'pop', 0.6, 3);
+  swap('#bh2 .st0', '#bh2 .st1', VAL + 0.6, false); cue(VAL + 0.72, 'pop', 0.6, 5);
+  swap('#hs .hst .h1', '#hs .hst .h2', VAL + 0.85, false); cue(VAL + 0.97, 'chord', 0.6);
+  bump(['#bh1', '#bh2'], A.f3 + 0.6, 1.12); cue(A.f3 + 0.6, 'tick', 0.5, 3);
+  // le colis de Léa Simon : la requête et le bouton s’en vont, le colis arrive
+  hide(['#ec', '#bval'], A.f4 - 0.05, {y: -30}, 0.35);
+  show('#colis', A.f4 + 0.4, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.f4 + 0.4, 'whoosh', 0.5, 2);
+  tl.to('#colis .ch .emo', {rotation: -14, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.f4 + 1.0);
+
+  /* ===== 7 · Quelle commande choisir ? ===== */
+  hide(['#hs', '#tp', '#tc', '#colis'], B.f4 - 0.1, {y: -30}, 0.35);
+  sceneOff('#sw', B.f4 + 0.35);
+  sceneOn('#sd', B.f4 + 0.35);
+  [['#db-rt', 0], ['#db-rb', 2], ['#db-co', 4]].forEach(([id, p], q) => { const t = A.g1 + 0.4 + q * 0.5; show(id, t, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(t, 'pop', 0.6, p); });
+  show('#bpack', A.g1 + 2.0, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.g1 + 2.0, 'pop', 0.7, 1);
+  // À toi : les six situations rangées ; remplies, les cases ne sont plus des zones où déposer, et la pile est vide
+  tl.set('.dbn .rc', {autoAlpha: 1}, set2(PICKS[5].at));
+  tl.set('.dbn', {borderStyle: 'solid'}, set2(PICKS[5].at));
+  tl.set('#bpack', {autoAlpha: 0}, set2(PICKS[5].at));
+  // un savepoint ne valide rien ; il permet de revenir à une étape, avant la validation finale avec COMMIT
+  bump('#db-rt', A.g2 + 0.6, 1.03); cue(A.g2 + 0.6, 'tick', 0.5, 2);
+  bump('#db-co', A.g3 + 3.4, 1.03); cue(A.g3 + 3.4, 'tick', 0.5, 4);
+  hide('.dbn', B.g3 - 0.1, {y: -40}, 0.4);
+  // la suite : la prochaine leçon
+  sceneOff('#sd', A.g4 + 0.3);
+  sceneOn('#sn', A.g4);
+  show('#keyc', A.g4 + 0.1, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)'); cue(A.g4 + 0.1, 'whoosh', 0.6);
+  tl.to('#keyc .emo', {rotation: -18, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.g4 + 0.7);
+  hide('#keyc', B.g4 - 0.1, {y: -30}, 0.4);
+  sceneOff('#sn', RECAP);
+
+  /* ===== 8 · À retenir ===== */
+  // chaque idée : sa phrase, puis son détail
+  recapScene(RECAP, [RECAP + 0.7, RECAP + 2.1, RECAP + 3.5]);
+  const rt = $$('#s7 .rtxt'), rs = $$('#s7 .rs'), rd = (h, n = 20) => Math.ceil(readTime(h) * n) / n;
+  gsap.set(rs, {autoAlpha: 0, y: 10});
+  [[RECAP + 0.7, RECAP + 1.45], [RECAP + 2.1, RECAP + 2.85], [RECAP + 3.5, RECAP + 4.25]].forEach(([r, d], i) => {
+    tl.to(rs[i], {autoAlpha: 1, y: 0, duration: 0.45, ease: 'power2.out'}, d);
+    cue(d, 'tick', 0.5, i * 2 + 1);
+    hold(r + 0.6, rd(rt[i].innerHTML.split('<span')[0]));
+    hold(d + 0.5, rd(rs[i].innerHTML));
+  });
+  if (APP) cue(NOTES + 0.05, 'pop', 0.85, 5);
+}
+
+/* ---------- Moments « À toi » : ce que montre chaque geste ----------
+   Le lecteur arrête l’image à chaque moment (PICKS) et pose ses zones tactiles sur les endroits que la page décrit
+   (IX.spots). Chaque geste est jugé ici (IX.act, IX.pick) et montré aussitôt sur l’image : les bons gestes affichent
+   les mêmes éléments que la timeline juste après l’arrêt (classe pvs, sans toucher aux styles de la timeline) ;
+   ils restent jusqu’à ce que la timeline affiche la même image (IX.tick), puis s’effacent : la reprise est invisible. */
+const IX = (() => {
+  let X = null, wait = -1;
+  function start(i){ if (!X || X.i !== i) { clear(); X = {i, cls: [], tm: [], got: new Set()}; } }
+  function clear(){
+    if (!X) return;
+    X.tm.forEach(clearTimeout);
+    X.cls.forEach(([e, c]) => e.classList.remove(c));
+    X = null; wait = -1;
+  }
+  const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
+  const marks = (sels, c = 'pvs') => sels.forEach(s => $$(s).forEach(e => mark(e, c)));
+  /* La classe est aussi notée dans X.cls : si le moment change avant la fin du minuteur (deux réponses enchaînées), clear() la retire. */
+  const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
+  /* Moment 2 : les cinq lignes de l’historique (le repère compris) */
+  const ROWS = [['h1', 'Stock du shaker'], ['h2', 'Remplacement de Léa Simon'], ['h3', 'Repère avant_cadeau'], ['h4', 'Stock de la tisane'], ['h5', 'Cadeau pour Léa Simon']];
+  function spots(i){
+    if (i === 1) return ROWS.map(([k, label]) => Object.assign({k, label}, rel($('#' + k))));
+    // moment 6 : ROLLBACK TO SAVEPOINT, ROLLBACK ou COMMIT
+    if (i === 5) return BINS.map(([k, n, d]) => Object.assign({k, label: `${n} : ${d}`}, rel($('#db-' + k))));
+    return [];
+  }
+  function act(i, a, b){
+    start(i);
+    if (i === 1) {
+      // les deux modifications d’après le repère : le stock de la tisane et le cadeau
+      if (a === 'h4' || a === 'h5') {
+        if (!X.got.has(a)) { X.got.add(a); marks(['#hk' + a.slice(1)]); sfx('tick', X.got.size, 0.6); }
+        return {ok: true, done: X.got.size === 2, why: '', at: rel($('#' + a))};
+      }
+      // une autre ligne : elle rougit un instant, et la correction dit pourquoi
+      flash($('#' + a), 'kor', 600);
+      return {ok: false, why: fr(WHY2[a])};
+    }
+    if (i === 5) {
+      const n = +a, bin = $('#db-' + b);
+      if (ITEMS[n][1] === b) {
+        mark($('#sbu' + n), 'pvs');
+        flash(bin, 'okb', 520);
+        X.got.add(n);
+        sfx('pop', X.got.size, 0.6);
+        if (X.got.size === ITEMS.length) marks(['#bpack'], 'pvh');   // la pile est vide, comme juste après l’arrêt
+        return {ok: true, done: X.got.size === ITEMS.length, why: '', at: rel(bin)};
+      }
+      flash(bin, 'kob', 650);
+      return {ok: false, why: fr(ITEMS[n][2])};
+    }
+    return {ok: false};
+  }
+  /* Choix d’une réponse (moments 1, 3, 4 et 5) : le verdict et son explication. */
+  function pick(i, k){
+    clear(); start(i);
+    const P = PICKS[i], o = P.options[k], ok = !!o.ok;
+    sfx(ok ? 'pop' : 'miss', 2, 0.5);
+    return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));
+  }
+  /* Indice, après deux erreurs : une piste. */
+  function hint(i){
+    const h = (() => {
+      if (i === 0) return {text: 'Il faut un repère posé avant le cadeau : <code>ROLLBACK</code>, lui, annule toute la transaction.'};
+      if (i === 1) return {text: 'Cherche les modifications placées après le repère <code>avant_cadeau</code>.', keys: ['h4', 'h5']};
+      if (i === 2) return {text: 'Rien ne devient définitif sans <code>COMMIT</code>, même avec un savepoint.'};
+      if (i === 3) return {text: 'Il faut revenir au repère posé avant le cadeau, sans annuler ce qui le précède.'};
+      if (i === 4) return {text: 'Le retour au savepoint ne valide rien, et il n’annule pas toute la transaction.'};
+      return null;
+    })();
+    return h && Object.assign(h, {text: fr(h.text)});
+  }
+  return {
+    enter: i => { clear(); start(i); },
+    spots, act, pick, hint,
+    slot: () => null,
+    /* Moment réussi : l’aperçu reste jusqu’à ce que la timeline affiche la même image ; sinon il part tout de suite. */
+    leave(i, answered){ if (answered && X && X.i === i) wait = i; else clear(); },
+    tick(t = tl.time()){ if (wait < 0) return; const a = PICKS[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear(); }
+  };
+})();
+window.IX = IX;
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 199.71, picks: PICKS, opens: OPENS,
+  glyphs: '🗄️👥🛒⭐📦🧑‍🏫📅📝💳💬🔁🔑🔗⏳✅↩️👆🎁🍵📜📍💤🚚📬🔖✓✕!…«»·−→',
+  dom, build, beforeRender: t => IX.tick(t)});
+</script>
+</body>
+</html>

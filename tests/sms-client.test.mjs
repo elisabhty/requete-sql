@@ -142,9 +142,9 @@ for (const f of AVEC_SMS) {
     assert.ok(R.rendEnSms(src), 'smsCard pour un SMS, smsIn dans mailIn');
     assert.ok(/isSms\(tag, MAILS\[n\]\[6\]\) \? smsCard\(n \+ 1, k, /.test(src) && /function mailIn\(n, t, T\)\{\n  if \(isSms\(MAILS\[n - 1\]\[2\], MAILS\[n - 1\]\[6\]\)\) \{ if \(!APP\) fingerTap\(\$\('#ml' \+ n\), T\); return smsIn\(n, t, T/.test(src), 'même câblage dans chaque page');
     /* Une page qui a aussi un mail (coach, équipe, service client sans option) garde son code : avatar à enveloppe, adresse, signature.
-       Le chapitre 11 n’a que des SMS (Léa Simon, puis le service client) : il n’embarque pas le code du mail. */
+       Les chapitres 11 et 12 n’ont que des SMS (Léa Simon, puis le service client ; deux fois le service client) : ils n’embarquent pas le code du mail. */
     if (M.some(m => !estSms(m))) assert.ok(src.includes('<i class="mav">') && src.includes('Nouveau mail'), 'la carte de mail existe toujours');
-    else assert.ok(!src.includes('Nouveau mail') && f === 'projet-transaction.html', 'que des SMS : seulement au chapitre 11, sans le code du mail');
+    else assert.ok(!src.includes('Nouveau mail') && ['projet-transaction.html', 'projet-savepoint.html'].includes(f), 'que des SMS : aux chapitres 11 et 12 seulement, sans le code du mail');
     /* L’app s’arrête sur la notification : « Touche le message… » pour un client, « Touche le mail… » sinon. */
     assert.ok(/msg = (?:\/\^client\/\.test\(MAILS\[n\]\[2\]\) \|\| \(MAILS\[n\]\[6\] \|\| \{\}\)\.sms|mailSms\(n\)) \? 'message' : 'mail'/.test(src) && src.includes('prompt: `Touche le ${msg} pour l’ouvrir.`') && src.includes('label: `Ouvrir le ${msg} '), 'consigne et étiquette du toucher');
   });

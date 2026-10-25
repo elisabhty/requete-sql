@@ -9071,104 +9071,38 @@ guide({ id:62, titre:"Transactions", résumé:"Valider les modifications ensembl
     ],label:"Les trois idées à retenir"}
   ]
 }),
-guide({ id:63, titre:"SAVEPOINT", résumé:"Annuler seulement une partie d’une transaction",
-  sit:{
-    blocks:[
-      "L’équipe logistique marque <b>les commandes du jour comme expédiées</b>, en une seule transaction. Au dernier moment, le transporteur refuse l’un des colis.",
-      "La table <code>commandes</code> contient au total <b>16 commandes</b>, dont plusieurs sont encore en préparation. Pour préparer l’expédition, l’équipe souhaite faire passer à « expédiée » :",
-      {need:[["📦","La commande n°12","table commandes"],["📦","La commande n°13","table commandes"],["📦","La commande n°14","table commandes"]],label:"Les commandes à expédier"}
-    ],
-    problem:{
-      p:["Avec <code>ROLLBACK</code>, SQL sait annuler une transaction, mais il l’annule <b>en entier</b> : les trois expéditions seraient annulées avec la dernière.","Or, l’équipe veut garder les deux premières expéditions et annuler <b>seulement la dernière</b>."],
-      scene:{h:"📦 Expéditions du jour",cols:"1fr 1.7fr",
-        lanes:[{c:[["h1","id","t"],["h2","statut","t"]]},
-          {k:"R1",c:[["a1","12"],["a2","en_preparation"]]},
-          {k:"R2",c:[["b1","13"],["b2","en_preparation"]]},
-          {k:"R3",c:[["c1","14"],["c2","en_preparation"]]}],
-        caps:["<b>Notre lot</b> · Trois commandes du jour sont encore en préparation.","<b>Expédition</b> · Les trois commandes passent à « expédiée » dans la même transaction.","<b>Incident</b> · Le transporteur refuse le colis de la commande n°14.","<b>Résultat</b> · Seule la commande n°14 doit revenir en préparation : les deux autres restent expédiées."],
-        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,text:{a2:"expédiée",b2:"expédiée",c2:"expédiée"},stagger:300,d:2800},{cap:2,off:["R1","R2","R3"],mark:{R3:"is-miss"},d:2300},{cap:3,unmark:{R3:"is-miss"},text:{c2:"en_preparation"},on:["R1","R2"],d:2600}]},
-      then:["Il faut donc pouvoir revenir <b>jusqu’à un point précis</b> de la transaction, et non jusqu’à son début.","C’est exactement le rôle de <code>SAVEPOINT</code>."]
-    },
-    mission:"Aide l’équipe logistique à expédier les commandes <b>12</b> et <b>13</b> en annulant seulement l’expédition de la commande <b>14</b>, afin de valider le lot sans le colis refusé."
-  },
-  concept:{
-    title:"Comment SQL peut-il savoir jusqu’où revenir en arrière ?",
-    blocks:[
-      "Pour revenir à un endroit précis, SQL a besoin d’un repère posé en chemin :",
-      {ask:"Jusqu’à quel point faut-il annuler ?"},
-      "En SQL, on pose ce repère avec <code>SAVEPOINT</code>, suivi d’un nom, puis on y revient avec <code>ROLLBACK TO</code> :",
-      {syntax:"SAVEPOINT ⟦avant_13⟧;\n  …\nROLLBACK TO ⟦avant_13⟧;"},
-      {scene:{h:"📍 Un point de retour",cols:"1fr",
-        lanes:[{k:"P1",c:[["a","Commande n°12 → expédiée"]]},
-          {k:"SP",fold:true,c:[["b","🚩 SAVEPOINT avant_13"]]},
-          {k:"P2",fold:true,c:[["c","Commande n°13 → expédiée"]]}],
-        caps:["<b>BEGIN</b> · La transaction s’ouvre : la commande n°12 passe à « expédiée », sans être validée.","<b>SAVEPOINT</b> · Un point de retour est posé : il marque l’état à cet instant.","<b>Seconde opération</b> · La commande n°13 passe à son tour à « expédiée », après le point de retour.","<b>ROLLBACK TO</b> · On revient au point de retour : l’expédition de la commande n°13 est annulée, celle de la commande n°12 est conservée."],
-        steps:[{cap:0,on:["P1"],d:2200},{cap:1,unfold:["SP"],on:["SP"],d:2300},{cap:2,off:["SP"],unfold:["P2"],on:["P2"],d:2300},{cap:3,off:["P2"],mark:{P2:"is-miss"},dim:["P2"],d:2800}]}}
-    ]
-  },
-  steps:[
-    {h:"Revenir à un point de retour",blocks:[
-      "Un <code>SAVEPOINT</code> marque un point de retour dans la transaction : ce qui précède reste en attente, et ce qui suit peut être annulé seul.",
-      {looks:[["SAVEPOINT avant_16","pose le point de retour"],["ROLLBACK TO avant_16","annule tout ce qui a été fait depuis ce point"]]},
-      {say:"👇 Exécute cette requête pour expédier deux commandes, puis annuler la seconde :",run:"BEGIN;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 15;\nSAVEPOINT avant_16;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 16;\nROLLBACK TO avant_16;\nCOMMIT;\nSELECT id, statut\nFROM commandes\nWHERE id IN (15, 16);"},
-      {arrow:"La commande n°15 est expédiée. La commande n°16, dont l’expédition a été annulée, est toujours en préparation."}
-    ]},
-    {h:"La transaction continue",blocks:[
-      "Après un <code>ROLLBACK TO</code>, la transaction reste ouverte : tu peux écrire autre chose, puis valider l’ensemble avec <code>COMMIT</code>.",
-      {say:"👇 Exécute cette requête pour marquer comme bloquée la commande n°16 :",run:"BEGIN;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 15;\nSAVEPOINT avant_16;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 16;\nROLLBACK TO avant_16;\nUPDATE commandes\nSET statut = 'bloquée'\nWHERE id = 16;\nCOMMIT;\nSELECT id, statut\nFROM commandes\nWHERE id IN (15, 16);"},
-      {arrow:"La commande n°15 est expédiée et la n°16 est bloquée."}
-    ]},
-    {h:"Que ne fait pas un SAVEPOINT ?",aside:"Bon à savoir",blocks:[
-      "Un <code>SAVEPOINT</code> n’est qu’un repère : il ne valide rien, et le supprimer n’annule rien.",
-      {warn:{t:"Un ROLLBACK sans TO",blocks:[
-        "Si tu écris :",
-        {syntax:"BEGIN;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 15;\nSAVEPOINT etape_1;\nROLLBACK;"},
-        "<code>ROLLBACK</code> sans <code>TO</code> annule toute la transaction, même ce qui précède le <code>SAVEPOINT</code> : l’expédition de la commande n°15 disparaît, bien qu’elle soit avant le point.",
-        {say:"👇 Teste par toi-même :",run:"BEGIN;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 15;\nSAVEPOINT etape_1;\nROLLBACK;\nSELECT id, statut\nFROM commandes\nWHERE id = 15;"}
-      ]}},
-      {tip:{t:"RELEASE n’annule rien",blocks:[
-        "<code>RELEASE</code> supprime le point de retour, parce qu’on n’en a plus besoin : les modifications faites depuis ce point sont conservées.",
-        {say:"👇 Exécute cette requête pour libérer le point :",run:"BEGIN;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 15;\nSAVEPOINT avant_16;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 16;\nRELEASE avant_16;\nCOMMIT;\nSELECT id, statut\nFROM commandes\nWHERE id IN (15, 16);"},
-        {arrow:"Les deux expéditions sont conservées : les commandes n°15 et n°16 sont expédiées."}
-      ]}}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : expédier les commandes n°12 et n°13, poser le point de retour, expédier la commande n°14, y revenir, puis valider.",
-      {say:"👇 Exécute la requête pour valider le lot sans le colis refusé :",run:"BEGIN;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id IN (12, 13);\nSAVEPOINT avant_14;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 14;\nROLLBACK TO avant_14;\nCOMMIT;\nSELECT id, statut\nFROM commandes\nWHERE id IN (12, 13, 14);"},
-      {done:{
-        label:"De trois expéditions à deux expéditions validées",
-        unit:"free",
-        funnel:[
-          {n:3,t:"commandes expédiées dans la transaction",s:"les commandes n°12, n°13 et n°14",dots:"111"},
-          {step:"ROLLBACK TO avant_14",s:"annule seulement la dernière expédition"},
-          {n:2,t:"⭐ expéditions validées",s:"les commandes n°12 et n°13 ; la commande n°14 reste en préparation",dots:"110",out:true}
-        ],
-        board:{ico:"📦",h:"Expéditions du jour",aria:"Dans la table commandes, les commandes n°12 et n°13 passent au statut « expédiée » ; la commande n°14, refusée par le transporteur, reste en préparation",kpi:"Commandes expédiées",count:{t:"Commandes expédiées",from:0,to:2},lead:"🚚 Le transporteur refuse le colis de la commande n°14",hl:{"col": 0, "val": 14},ops:{"0": {"op": "upd", "from": {"1": "en_preparation"}}, "1": {"op": "upd", "from": {"1": "en_preparation"}}},cols:["id", "statut"],rows:[[12, "expédiée"], [13, "expédiée"], [14, "en_preparation"]],done:"✓ Commandes n°12 et n°13 expédiées, la n°14 reste en préparation"},
-        fill:["SAVEPOINT","avant_14","ROLLBACK TO","COMMIT"],
-        ui:{t:"Deux expéditions validées, une annulée",s:"Le lot est validé sans le colis refusé.",n:["BEGIN","SAVEPOINT","ROLLBACK TO","COMMIT"]},
-        rows:2
-      }}
-    ]}
-  ],
+guide({ id:63, titre:"SAVEPOINT", résumé:"Annuler une partie des modifications",
+  /* Projet, chapitre 12, en vidéo interactive : l’animation (assets/anim/projet-savepoint.html, moteur commun assets/anim/core.js)
+     est le cours. La trame est celle d’Elisa (25 octobre, 17 h 05, « Cours 2 — SAVEPOINT : annuler une partie des modifications »),
+     ses bulles gardées mot pour mot, une phrase par bulle. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… »,
+     « Au chapitre 11, une transaction t’a permis de tout valider ou de tout annuler »), sur la base que le chapitre 11 laisse : dix
+     tables. 1 · Un petit geste pour Léa : on reprend le remplacement de Léa Simon juste avant sa validation (30 shakers, aucun
+     remplacement ; BEGIN TRANSACTION, l’UPDATE du stock, l’INSERT du remplacement, rejoués) ; l’historique de la transaction montre
+     chaque modification, « Non validé » ; le service client demande, par SMS, d’ajouter une tisane gratuite dans son colis.
+     2 · Pouvoir revenir en arrière (moment 1 : comment annuler seulement le cadeau) : SAVEPOINT avant_cadeau pose un repère dans
+     l’historique, juste après le remplacement. 3 · Ajouter le cadeau : la tisane est le produit 5 (Tisane Détox, 60 en stock) ; son
+     stock passe à 59 et la table cadeaux reçoit une ligne, deux modifications après le repère (moment 2 : l’élève touche celles qu’un
+     retour au savepoint annulerait ; moment 3 : rien n’est validé avant COMMIT). 4 · Léa ne souhaite pas de tisane : le service client
+     écrit de nouveau ; un ROLLBACK complet annulerait aussi le remplacement (moment 4 : ROLLBACK TO SAVEPOINT avant_cadeau) ; l’élève
+     touche « Revenir au savepoint ». 5 · Le cadeau et le stock de la tisane sont annulés, le remplacement et le stock du shaker restent ;
+     la transaction reste ouverte (moment 5). 6 · L’élève touche « Valider le remplacement » (COMMIT) : les modifications conservées
+     sont validées, le colis de Léa Simon est à préparer, sans cadeau. 7 · Quelle commande choisir : six situations à ranger sous
+     ROLLBACK TO SAVEPOINT, ROLLBACK ou COMMIT (moment 6) ; un savepoint ne valide rien. La fin annonce la prochaine leçon, les triggers.
+     Choix de scénario : les chiffres de la base du projet (shaker 30 → 29, tisane 60 → 59 → 60), le remplacement 1 comme au chapitre 11.
+     Six moments « À toi », comme aux chapitres du projet ; leçon seule : ni exercice ni quiz dans la vidéo, validée avec 4 exercices
+     réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments ratés. Elle remplace l’ancien cours texte SAVEPOINT (les
+     expéditions du jour). */
+  leconSeule:true,
+  video:{anim:'assets/anim/projet-savepoint.html?app&embed',thumb:'assets/anim/projet-savepoint-thumb.webp',duree:'3 min 52',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 3 min 45 (225,2 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:225.2,y:1184,card:[64,292,1016,889],to:[940,255]}},
   reflex:[
     {recap:[
-      ["📍","Un <code>SAVEPOINT</code> pose un point de retour <b>à l’intérieur</b> d’une transaction.",null,"SAVEPOINT avant_14"],
-      ["↩️","<code>ROLLBACK TO</code> revient au point et la transaction continue ; <code>ROLLBACK</code> annule tout et la termine."],
-      ["✅","Seul <code>COMMIT</code> valide ce qui a été conservé."]
+      ["📍","<code>SAVEPOINT nom</code> crée un <b>point de retour</b>.","La syntaxe varie selon le SGBD : celle-ci est notamment celle de PostgreSQL."],
+      ["↩️","<code>ROLLBACK TO SAVEPOINT nom</code> annule les modifications faites <b>après ce point</b>.","La transaction continue. <code>ROLLBACK</code> sans cible annule toute la transaction."],
+      ["✅","<code>COMMIT</code> valide les modifications <b>conservées</b>.","Et il termine la transaction."]
     ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"BEGIN",txt:"Commence la transaction."},{tok:"SAVEPOINT avant_16",txt:"Crée un point de retour, sans rien valider."},{tok:"ROLLBACK TO avant_16",txt:"Annule ce qui a été fait depuis ce point. La transaction continue."},{tok:"COMMIT",txt:"Valide finalement les modifications conservées."}],
-  exemple:"BEGIN;\n\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 15;\n\nSAVEPOINT avant_16;\n\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 16;\n\nROLLBACK TO avant_16;\n\nCOMMIT;\n\nSELECT id, statut\nFROM commandes\nWHERE id IN (15, 16);",
-  attendu:"<b>2 lignes</b> : la commande n°15 est « expédiée », la commande n°16 est toujours « en_preparation ». Le <code>ROLLBACK TO</code> n’a annulé que la seconde expédition.",
-  retenir:"Un <code>SAVEPOINT</code> crée un point de retour <b>à l’intérieur</b> d’une transaction.<br><br><code>ROLLBACK</code> annule toute la transaction et la termine. <code>ROLLBACK TO</code> revient au point choisi, et la transaction continue.<br><br>Seul <code>COMMIT</code> valide ce qui a été conservé : un <code>SAVEPOINT</code> ne valide rien.",
-  consigne:"Une livraison de fournisseur est enregistrée en une seule transaction : ajoute 10 unités au stock du produit 1, pose un point de retour nommé <code>avant_modification</code>, ajoute 50 unités au stock du produit 2, puis annule uniquement cette seconde modification avant de valider la transaction.",
-  solution:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT avant_modification;\n\nUPDATE produits\nSET stock = stock + 50\nWHERE id = 2;\n\nROLLBACK TO avant_modification;\n\nCOMMIT;",
-  verif:"SELECT id, stock FROM produits WHERE id IN (1, 2) ORDER BY id;",
-  indice:"<code>SAVEPOINT nom;</code> pose le point, <code>ROLLBACK TO nom;</code> y revient. Le <code>COMMIT</code> vient à la fin.",
-  write:true,
-  petitDefi:[{p:"Tu veux conserver la première modification et annuler la seconde. Quel mot-clé crée le point de retour, à la place des tirets ?",sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\n__________ avant_modification;\n\nUPDATE produits\nSET stock = stock + 50\nWHERE id = 2;\n\nROLLBACK TO avant_modification;\n\nCOMMIT;",a:"SAVEPOINT",answers:["SAVEPOINT","savepoint"]}],
-  testeVariants:[{k:"partiel",label:"ROLLBACK TO",sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT avant_modification;\n\nUPDATE produits\nSET stock = stock + 50\nWHERE id = 2;\n\nROLLBACK TO avant_modification;\n\nCOMMIT;\n\nSELECT id, stock\nFROM produits\nWHERE id IN (1, 2)\nORDER BY id;",out:"Le produit 1 passe à 130, le produit 2 reste à 80.",tone:"good"},{k:"total",label:"ROLLBACK",sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT avant_modification;\n\nROLLBACK;\n\nSELECT id, stock\nFROM produits\nWHERE id = 1;",out:"Le stock est inchangé : ROLLBACK annule toute la transaction, point de retour compris."}],
-  learningCheck:{question:"ROLLBACK TO annule-t-il les écritures placées avant le SAVEPOINT ?",options:["Non : elles restent en attente jusqu’au COMMIT","Oui : il annule toute la transaction","Il valide la transaction"],answer:0,explanation:"Le retour est partiel : les écritures antérieures au point restent en attente, et la transaction continue jusqu’au COMMIT."}
+  ]
 })
 ]},
 { titre:"Triggers et concurrence", sous:"Automatiser et isoler les écritures", lessons:[
@@ -10070,10 +10004,9 @@ const QCM={
   {q:"Si les données de <code>produits</code> changent, faut-il recréer la vue ?",o:["Oui, systématiquement","Non : la vue s’appuie sur les données actuelles","Seulement après un DELETE"],b:1,e:"La requête est rejouée à chaque interrogation."},
   {q:"Que fait <code>DROP VIEW</code> ?",o:["Il supprime aussi les tables sources","Il supprime les lignes visibles dans la vue","Il supprime la vue, pas les données des tables sources"],b:2,e:"La vue n’était qu’une manière de consulter : la retirer ne retire rien d’autre."},
   {q:"Quelle est la différence entre une table et une vue ?",o:["Aucune","Une table stocke les données ; une vue enregistre une requête pour les consulter","Une vue contient toujours plus de données"],b:1,e:"C’est le mémo du cours."}],
- 63:[{q:"À quoi sert <code>SAVEPOINT</code> ?",o:["À terminer une transaction","À créer un point de retour dans une transaction","À sauvegarder la base sur le disque"],b:1,e:"C’est un marque-page interne à la transaction, pas une sauvegarde de fichier."},
-  {q:"Quelle commande revient à un point de sauvegarde ?",o:["<code>ROLLBACK TO</code>","<code>COMMIT TO</code>","<code>RETURN</code>"],b:0,e:"Elle annule ce qui a été fait depuis ce point, et la transaction continue."},
-  {q:"Quelle différence entre <code>ROLLBACK</code> et <code>ROLLBACK TO</code> ?",o:["Aucune","<code>ROLLBACK</code> annule toute la transaction, <code>ROLLBACK TO</code> revient à un savepoint","<code>ROLLBACK TO</code> valide les données"],b:1,e:"L’un termine la transaction, l’autre la poursuit à partir du point choisi."},
-  {q:"Un <code>SAVEPOINT</code> valide-t-il les modifications ?",o:["Oui","Non : seul COMMIT valide"],b:1,e:"Avant le <code>COMMIT</code>, tout reste annulable — y compris ce qui précède le point."}],
+ 63:[{q:"Que fait <code>SAVEPOINT avant_cadeau</code> ?",o:["Il valide les modifications faites jusque-là","Il pose un point de retour dans la transaction","Il démarre une nouvelle transaction"],b:1,e:"Un savepoint ne valide rien : c’est un repère, jusqu’auquel <code>ROLLBACK TO SAVEPOINT</code> peut revenir."},
+  {q:"Après <code>ROLLBACK TO SAVEPOINT avant_cadeau</code>, où en est la transaction ?",o:["Elle est toujours en cours","Elle est annulée","Elle est validée"],b:0,e:"Seules les modifications faites après le repère sont annulées : la transaction continue, jusqu’au <code>COMMIT</code> ou au <code>ROLLBACK</code>."},
+  {q:"Quelle commande annule toute la transaction, même ce qui précède le savepoint ?",o:["<code>COMMIT</code>","<code>ROLLBACK TO SAVEPOINT avant_cadeau</code>","<code>ROLLBACK</code>"],b:2,e:"<code>ROLLBACK</code> sans cible annule toute la transaction ; <code>ROLLBACK TO SAVEPOINT</code> ne revient que jusqu’au repère."}],
  62:[{q:"Quelle commande démarre une transaction ?",o:["<code>COMMIT</code>","<code>BEGIN TRANSACTION</code>","<code>ROLLBACK</code>"],b:1,e:"<code>BEGIN TRANSACTION</code> (ou <code>BEGIN</code>) la démarre : les modifications qui suivent ne deviennent définitives qu’après <code>COMMIT</code>."},
   {q:"Dans une transaction, le stock a diminué, puis l’enregistrement du remplacement est refusé. Que faut-il faire ?",o:["Annuler avec <code>ROLLBACK</code>","Valider avec <code>COMMIT</code>","Rien : la transaction s’annule seule"],b:0,e:"<code>ROLLBACK</code> annule toutes les modifications non validées : le stock retrouve sa valeur de départ. Le refus d’une requête n’annule pas la transaction."},
   {q:"Après un <code>COMMIT</code>, peut-on annuler la transaction avec <code>ROLLBACK</code> ?",o:["Oui, tant que la base est ouverte","Oui, si aucune autre requête n’a suivi","Non : <code>COMMIT</code> a rendu les modifications définitives"],b:2,e:"<code>COMMIT</code> termine la transaction : il n’y a plus rien à annuler, et <code>ROLLBACK</code> renvoie une erreur."}],
@@ -13079,7 +13012,7 @@ const SQ_ALIASES={
   28:'delete from supprimer effacer lignes ligne supprimer une ligne where oubli du where sans where toutes les lignes vider une table vider table select avant de supprimer lire identifiant client_id plusieurs lignes annuler inscription inscriptions compte atelier nutriboost insert update',
   68:'on delete cascade set null restrict supprimer lignes liees cle etrangere foreign key constraint failed suppression refusee client compte avis ancien client feuille table avis not null create table regle detacher nutriboost',
   62:'transaction transactions begin transaction start transaction commit rollback valider annuler modifications ensemble non valide definitives stock remplacement table remplacements shaker colis personnalisation prenom not null constraint failed nutriboost',
-  63:'savepoint point de sauvegarde rollback to partiel transaction',
+  63:'savepoint point de retour point de sauvegarde rollback to savepoint rollback to annuler une partie partiel transaction repere historique cadeau cadeaux tisane remplacement colis commit nutriboost',
   70:'trigger declencheur reagir automatiquement before after evenement',
   71:'concurrence isolation verrou lock deadlock lectures ecritures simultanees',
   64:'create view vue requete enregistree nommer virtual table',
@@ -25047,7 +24980,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2043';
+  const SW_CACHE='requete-2026-10-12-ludique-v2044';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
