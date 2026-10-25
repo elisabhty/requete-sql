@@ -252,10 +252,11 @@ const smsTime = (name, nth = 0) => {
 };
 /* Le rang du SMS n parmi ceux du même expéditeur dans la liste des messages de la page (0 pour le premier). */
 const smsRank = (list, n) => list.slice(0, n).filter(m => m[0][0] === list[n][0][0] && m[0][1] === list[n][0][1] && isSms(m[2], m[6])).length;
-/* Les bulles : « Bonjour, » (ou la formule de la page : hello, comme « Bonjour ! »), une bulle par phrase de la demande, « Merci ! ». Pas de signature : le nom est en haut de la conversation. */
-function smsParts(body, hello = 'Bonjour,'){
+/* Les bulles : « Bonjour, » (ou la formule de la page : hello, comme « Bonjour ! »), une bulle par phrase de la demande, « Merci ! ». Pas de signature : le nom est en haut de la conversation.
+   bye : null quand le message finit sur son propre merci (pas de « Merci ! » de plus). */
+function smsParts(body, hello = 'Bonjour,', bye = 'Merci !'){
   const sentences = [].concat(body).flatMap(p => String(p).split(/(?<=[.!?])\s+(?=[A-ZÀÂÉÈÊÎÔÛÇ])/));
-  return [hello, ...sentences, 'Merci !'];
+  return bye === null ? [hello, ...sentences] : [hello, ...sentences, bye];
 }
 const SMS_ICO = {
   bubble: '<svg viewBox="0 0 24 24"><path fill="#fff" d="M12 3C6.5 3 2 6.6 2 11c0 2.5 1.3 4.7 3.4 6.1L4.4 21l4.3-2.3c1.1.3 2.2.5 3.3.5 5.5 0 10-3.6 10-8.2S17.5 3 12 3z"/></svg>',
@@ -267,8 +268,8 @@ const SMS_ICO = {
 /* La carte d’un SMS (#ml + id, comme un mail) : la bannière de notification, et la conversation qui s’ouvre à sa place.
    cmp : version compacte (sans date ni barre de saisie), là où la place manque ; nth : rang parmi les SMS du même expéditeur (smsRank) ;
    hello : la première bulle, quand la page ne veut pas « Bonjour, » (8e élément du message : {sms: true, hello: 'Bonjour !'}). */
-function smsCard(id, k, first, last, ini, body, cmp = false, nth = 0, hello, photo){
-  const parts = smsParts(body, hello), name = first + ' ' + last;
+function smsCard(id, k, first, last, ini, body, cmp = false, nth = 0, hello, photo, bye){
+  const parts = smsParts(body, hello, bye), name = first + ' ' + last;
   const list = parts.map((p, j) => `<p class="sms-m${j === parts.length - 1 ? ' last' : ''}">${p}</p>`);
   /* Une photo jointe (photo : {id, src, alt}) : une bulle d’image juste avant « Merci ! » ; un appui l’agrandit
      (Elisa, 25 octobre, 17 h 05 : « afficher sous son message la photo du shaker rose cassé ; un appui permet d’agrandir la photo »). */
@@ -331,8 +332,9 @@ function smsIn(n, t, T, fast = false){
     cue(at, 'tick', 0.4, k + 2);
   });
   const end = first + (bubbles.length - 1) * step + 0.35;
-  // le temps de lire la demande : toutes les bulles entre « Bonjour, » et « Merci ! »
-  hold(end + 0.05, Math.ceil(readTime(bubbles.slice(1, -1).map(b => b.textContent).join(' ')) * 20) / 20);
+  // le temps de lire la demande : toutes les bulles après « Bonjour, », sans « Merci ! » (un message qui finit sur son propre merci le compte)
+  const said = bubbles.slice(1, /^Merci\s*!$/.test(bubbles[bubbles.length - 1].textContent.trim()) ? -1 : undefined);
+  hold(end + 0.05, Math.ceil(readTime(said.map(b => b.textContent).join(' ')) * 20) / 20);
   return end;
 }
 /* ---------- Habillage : chapitres et légendes ---------- */
