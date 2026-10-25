@@ -9036,104 +9036,40 @@ guide({ id:68, titre:"ON DELETE", résumé:"Décider du sort des lignes liées",
 })
 ]},
 { titre:"Transactions", sous:"Tout valider ou tout annuler", lessons:[
-guide({ id:62, titre:"Transactions", résumé:"Tout valider ou tout annuler",
-  sit:{
-    blocks:[
-      "L’équipe fidélité propose à ses clients d’<b>offrir des points</b> à un autre client. Sophie veut donner <b>50 points</b> à Lucas.",
-      "La table <code>fidelite</code> contient au total <b>4 comptes</b>. Pour réaliser ce transfert, l’équipe doit effectuer :",
-      {need:[["➖","Retirer 50 points à Sophie","table fidelite"],["➕","Ajouter 50 points à Lucas","table fidelite"]],label:"Les opérations à effectuer"}
-    ],
-    problem:{
-      p:["Avec <code>UPDATE</code>, SQL sait modifier une ligne, mais <b>chaque modification est enregistrée seule</b>, sans lien avec la suivante.","Or, si un incident interrompt le transfert entre les deux opérations, les points <b>disparaissent</b>."],
-      scene:{h:"🎁 Transfert de points",cols:"1fr .8fr",
-        lanes:[{c:[["h1","client_id","t"],["h2","points","t"]]},
-          {k:"R1",c:[["a1","1 · Sophie"],["a2","120"]]},
-          {k:"R2",c:[["b1","2 · Lucas"],["b2","80"]]},
-          {k:"T",cls:"is-goal",c:[["t1","Total"],["t2","200"]]}],
-        caps:["<b>Avant le transfert</b> · Sophie a 120 points et Lucas 80 : cela fait 200 points en tout.","<b>Première opération</b> · 50 points sont retirés à Sophie, qui passe à 70.","<b>Incident</b> · Une panne empêche la seconde opération : Lucas reste à 80.","<b>Résultat</b> · Il ne reste que 150 points en tout : 50 points ont disparu."],
-        steps:[{cap:0,on:["R1","R2"],d:1900},{cap:1,off:["R2"],text:{a2:"70"},d:2300},{cap:2,off:["R1"],mark:{R2:"is-miss"},d:2300},{cap:3,text:{t2:"150"},mark:{T:"is-miss"},d:2600}]},
-      then:["Il faut donc que les deux opérations forment <b>un seul ensemble</b> : validées toutes les deux, ou annulées toutes les deux.","C’est exactement le rôle d’une <code>transaction</code>."]
-    },
-    mission:"Aide l’équipe fidélité à transférer <b>50 points</b> du compte de <b>Sophie</b> vers celui de <b>Lucas</b>, afin que les deux opérations soient validées ensemble."
-  },
-  concept:{
-    title:"Comment SQL peut-il savoir que des opérations vont ensemble ?",
-    blocks:[
-      "Pour regrouper des opérations, SQL doit savoir où l’ensemble commence et comment il se termine :",
-      {ask:"Valider tout, ou tout annuler ?"},
-      "En SQL, on ouvre l’ensemble avec <code>BEGIN</code>, puis on le termine avec <code>COMMIT</code> ou <code>ROLLBACK</code> :",
-      {syntax:"⟦BEGIN;⟧\n  UPDATE …;\n  UPDATE …;\n⟦COMMIT;⟧   -- ou ROLLBACK;"},
-      {scene:{h:"↔️ Valider ou annuler",cols:"1.2fr 1fr 1fr",
-        lanes:[{c:[["h1","opération","t"],["h2","COMMIT","t"],["h3","ROLLBACK","t"]]},
-          {k:"R1",c:[["a1","Sophie −50"],["a2","en cours"],["a3","en cours"]]},
-          {k:"R2",c:[["b1","Lucas +50"],["b2","en cours"],["b3","en cours"]]}],
-        caps:["<b>BEGIN</b> · La transaction s’ouvre : les deux opérations sont exécutées, mais restent provisoires.","<b>COMMIT</b> · Tout est validé d’un coup : les deux opérations deviennent définitives.","<b>ROLLBACK</b> · Ou bien tout est annulé d’un coup : on revient à l’état d’avant le <b>BEGIN</b>."],
-        steps:[{cap:0,on:["R1","R2"],d:2200},{cap:1,off:["R1","R2"],text:{a2:"validée",b2:"validée"},d:2600},{cap:2,text:{a3:"annulée",b3:"annulée"},dim:["a3","b3"],d:2800}]}}
-    ]
-  },
-  steps:[
-    {h:"Valider avec COMMIT",blocks:[
-      "Voici une transaction complète : deux opérations encadrées par <code>BEGIN</code> et <code>COMMIT</code>.",
-      {say:"👇 Exécute cette requête pour ajouter 10 unités au stock de deux produits, en une seule transaction :",run:"BEGIN;\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 2;\nCOMMIT;\nSELECT id, nom, stock\nFROM produits\nWHERE id IN (1, 2);"},
-      {arrow:"Les deux stocks ont changé ensemble : 130 et 90."},
-      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux modifier des stocks sans rien abîmer. À chaque essai, les produits 1 et 2 retrouvent leurs stocks d’origine, 120 et 80."]}}
-    ]},
-    {h:"Annuler avec ROLLBACK",blocks:[
-      "Pour tout annuler, termine par <code>ROLLBACK</code> à la place de <code>COMMIT</code> : les opérations faites depuis le <code>BEGIN</code> sont effacées.",
-      {say:"👇 Exécute la même transaction, terminée par ROLLBACK :",run:"BEGIN;\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 2;\nROLLBACK;\nSELECT id, nom, stock\nFROM produits\nWHERE id IN (1, 2);"},
-      {arrow:"Rien n’a changé : les deux stocks valent toujours 120 et 80."},
-      {tip:{t:"Garde les transactions courtes",blocks:["Tant qu’une transaction qui écrit est ouverte, ses modifications restent invisibles pour les autres, et les autres écritures doivent attendre. Mieux vaut la terminer vite, par <code>COMMIT</code> ou par <code>ROLLBACK</code>."]}}
-    ]},
-    {h:"Conclure la transaction",blocks:[
-      {warn:{t:"Un ROLLBACK après le COMMIT",blocks:[
-        "Si tu écris :",
-        {syntax:"BEGIN;\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\nCOMMIT;\nROLLBACK;"},
-        "Le <code>COMMIT</code> a déjà terminé la transaction : il n’y a plus rien à annuler. Le <code>ROLLBACK</code> provoque une erreur, et la modification reste en place.",
-        {say:"👇 Teste par toi-même :",run:"BEGIN;\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\nCOMMIT;\nROLLBACK;"}
-      ]}},
-      {warn:{t:"Une erreur ne remplace pas ROLLBACK",blocks:[
-        "Quand une instruction est refusée au milieu d’une transaction (contrainte enfreinte, erreur de syntaxe), SQLite annule seulement cette instruction : les précédentes restent en attente, et la transaction reste ouverte.",
-        "C’est donc à toi de conclure : <code>COMMIT</code> pour garder ce qui a réussi, <code>ROLLBACK</code> pour tout annuler."
-      ]}}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : ouvrir la transaction, retirer les points à Sophie, les ajouter à Lucas, puis valider l’ensemble.",
-      {say:"👇 Exécute la requête pour réaliser le transfert :",run:"BEGIN;\nUPDATE fidelite\nSET points = points - 50\nWHERE client_id = 1;\nUPDATE fidelite\nSET points = points + 50\nWHERE client_id = 2;\nCOMMIT;\nSELECT client_id, points\nFROM fidelite\nORDER BY client_id;"},
-      {done:{
-        label:"De deux opérations séparées à un transfert validé",
-        unit:"free",
-        funnel:[
-          {n:2,t:"opérations à effectuer",s:"retirer 50 points à Sophie, en ajouter 50 à Lucas",dots:"00"},
-          {step:"BEGIN … COMMIT",s:"regroupe les deux opérations et les valide ensemble"},
-          {n:2,t:"⭐ opérations validées ensemble",s:"Sophie passe à 70 points et Lucas à 130 : il y en a toujours 200 en tout",dots:"11",out:true}
-        ],
-        board:{ico:"🎁",h:"Table fidelite",aria:"Sophie passe de 120 à 70 points et Lucas de 80 à 130 : les deux changements sont validés ensemble, le total ne bouge pas",kpi:"Points sur les 4 comptes",count:{"t": "Points sur les 4 comptes", "from": 610, "to": 610},lead:"➡️ Sophie (client 1) offre 50 points à Lucas (client 2)",ops:{"0": {"op": "upd", "from": {"1": 120}}, "1": {"op": "upd", "from": {"1": 80}}},cols:["client_id", "points"],
-          rows:[[1, 70], [2, 130], [4, 250], [7, 160]],done:"✓ Transfert validé : Sophie passe à 70 points, Lucas à 130"},
-        fill:["BEGIN","points - 50","points + 50","COMMIT"],
-        ui:{t:"Un transfert, une seule transaction",s:"Aucun point n’a disparu.",n:["BEGIN","UPDATE","COMMIT"]},
-        rows:2
-      }}
-    ]}
-  ],
+guide({ id:62, titre:"Transactions", résumé:"Valider les modifications ensemble",
+  /* Projet, chapitre 11, en vidéo interactive : l’animation (assets/anim/projet-transaction.html, moteur commun assets/anim/core.js)
+     est le cours. La trame est celle d’Elisa (25 octobre, 17 h 05, « Cours 1 — TRANSACTION : valider les modifications ensemble »),
+     ses bulles gardées mot pour mot, une phrase par bulle. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… »,
+     « Au chapitre 10, tu as décidé du sort des lignes liées avec ON DELETE »), sur la base que le chapitre 10 laisse : neuf tables.
+     1 · Un colis abîmé : Léa Simon (la cliente 7) écrit elle-même, par SMS, avec la photo de son shaker rose personnalisé « Léa »,
+     arrivé cassé (l’app s’arrête sur la photo, qu’un appui agrandit) ; le service client demande de mettre à jour le stock et
+     d’enregistrer le remplacement, en conservant son prénom. 2 · Deux modifications à réaliser, qui doivent réussir ensemble : le
+     shaker est le produit 8 (Shaker Inox, 30 en stock) ; l’équipe logistique a ajouté une table remplacements (id, client_id,
+     produit_id, quantite, personnalisation). 3 · Ce qui peut mal se passer : sans transaction, l’UPDATE fait passer le stock de 30 à
+     29, puis l’INSERT du remplacement est refusé (le prénom à imprimer manque : NOT NULL constraint failed) ; la base ne reflète
+     qu’une partie de l’opération (moment 1 : l’élève touche la valeur qui ne correspond plus à la réalité, le stock) ; l’élève touche
+     le bouton « Comment éviter ça ? ». 4 · Une transaction regroupe plusieurs modifications, validées toutes ensemble ou annulées ;
+     BEGIN TRANSACTION la démarre (« Transaction en cours »). 5 · L’UPDATE puis l’INSERT (avec le prénom), chacun « Non validé »
+     (moment 2 : si la transaction était annulée, le stock reviendrait à 30). 6 · COMMIT (moment 3) : l’élève touche « Valider les
+     modifications » ; les deux modifications sont validées, le colis peut partir. 7 · La même opération rejouée, où le remplacement
+     échoue (moment 4 : ROLLBACK) ; l’élève touche « Annuler les modifications » ; le stock revient à 30, la demande reste à traiter
+     (moment 5). 8 · COMMIT ou ROLLBACK : l’élève range six situations (moment 6) ; après COMMIT, plus de ROLLBACK possible. La fin
+     annonce la prochaine leçon, SAVEPOINT. Choix de scénario : le premier remplacement a l’identifiant 1 (la table est nouvelle) ;
+     le refus vient du prénom oublié, ce qui reprend la demande du service client. Léa Simon écrit elle-même, par exception à la règle
+     du service client qui relaie (trame d’Elisa). Six moments « À toi », comme aux chapitres du projet ; leçon seule : ni exercice ni
+     quiz dans la vidéo, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments ratés. Elle
+     remplace l’ancien cours texte Transactions (le transfert de points de fidélité). */
+  leconSeule:true,
+  video:{anim:'assets/anim/projet-transaction.html?app&embed',thumb:'assets/anim/projet-transaction-thumb.webp',duree:'4 min 45',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 4 min 38 (278,2 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:278.2,y:1180,card:[64,292,1016,885],to:[940,255]}},
   reflex:[
     {recap:[
-      ["🧩","Une <b>transaction</b> regroupe des opérations qui réussissent ou échouent <b>ensemble</b>."],
-      ["🔑","<code>BEGIN</code> commence, <code>COMMIT</code> valide, <code>ROLLBACK</code> annule :",null,"BEGIN; … COMMIT;"],
-      ["🔒","Après un <code>COMMIT</code>, il n’y a plus de retour en arrière : <b>décide avant</b> de valider."]
+      ["🚦","<code>BEGIN TRANSACTION</code> démarre la <b>transaction</b>.","Selon le SGBD, tu peux aussi écrire <code>BEGIN</code> ou <code>START TRANSACTION</code>."],
+      ["✅","<code>COMMIT</code> valide toutes ses <b>modifications</b>.","Elles deviennent définitives, et la transaction se termine."],
+      ["↩️","<code>ROLLBACK</code> annule toutes ses modifications <b>non validées</b>.","Après <code>COMMIT</code>, tu ne peux plus utiliser <code>ROLLBACK</code> pour annuler cette transaction."]
     ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"BEGIN",txt:"Commence la transaction."},{tok:"INSERT INTO commandes (…)",txt:"Première opération de l’ensemble."},{tok:"UPDATE produits SET stock = stock - 2",txt:"Seconde opération, regroupée avec la première."},{tok:"COMMIT",txt:"Valide les modifications. Ou <code>ROLLBACK</code> pour les annuler."}],
-  exemple:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 2;\n\nCOMMIT;\n\nSELECT id, nom, stock\nFROM produits\nWHERE id IN (1, 2);",
-  attendu:"Les deux stocks sont modifiés ensemble : <b>130</b> pour le produit 1 et <b>90</b> pour le produit 2. Avec <code>ROLLBACK</code> à la place de <code>COMMIT</code>, ils vaudraient toujours 120 et 80.",
-  retenir:"Une transaction regroupe plusieurs opérations qui doivent réussir ou échouer ensemble.<br><br><b>BEGIN</b> commence, <b>COMMIT</b> valide, <b>ROLLBACK</b> annule les modifications non validées.<br><br>Tant que le <code>COMMIT</code> n’a pas eu lieu, tout est encore annulable. Après, non.",
-  consigne:"Un client commande 2 unités du produit 3 : enregistre la commande du client 1, passée le <code>2026-08-30</code>, puis retire ces 2 unités du stock du produit 3. Les deux écritures doivent être validées ensemble, dans une seule transaction.",
-  solution:"BEGIN;\n\nINSERT INTO commandes\n    (client_id, produit_id, quantite, date_commande)\nVALUES\n    (1, 3, 2, '2026-08-30');\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;\n\nCOMMIT;",
-  verif:"SELECT (SELECT COUNT(*) FROM commandes WHERE produit_id = 3 AND quantite = 2 AND date_commande = '2026-08-30') AS commandes_ajoutees, (SELECT stock FROM produits WHERE id = 3) AS stock;",
-  indice:"Écris <code>BEGIN;</code>, puis l’<code>INSERT</code> et l’<code>UPDATE</code>, puis <code>COMMIT;</code> pour tout valider d’un coup.",
-  write:true,
-  petitDefi:[{p:"Tu modifies le stock de deux produits, puis tu décides finalement de ne rien conserver. Quel mot-clé termine cette transaction ?",sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 2;\n\n________;",a:"ROLLBACK",answers:["ROLLBACK","rollback","ROLLBACK;"]}],
-  testeVariants:[{k:"commit",label:"COMMIT",sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;\n\nCOMMIT;\n\nSELECT nom, stock\nFROM produits\nWHERE id = 3;",out:"Le stock du produit 3 passe de 500 à 498 : la modification est validée.",tone:"good"},{k:"rollback",label:"ROLLBACK",sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;\n\nROLLBACK;\n\nSELECT nom, stock\nFROM produits\nWHERE id = 3;",out:"Le stock est inchangé : le ROLLBACK a annulé la modification."}],
-  learningCheck:{question:"Après un ROLLBACK, que devient une commande ajoutée plus tôt dans la même transaction ?",options:["Elle est conservée","Elle est annulée avec le reste","Elle est validée automatiquement"],answer:1,explanation:"ROLLBACK annule toutes les modifications faites depuis le BEGIN : la commande disparaît avec le reste, et la base revient à son état d’avant."}
+  ]
 }),
 guide({ id:63, titre:"SAVEPOINT", résumé:"Annuler seulement une partie d’une transaction",
   sit:{
@@ -10138,10 +10074,9 @@ const QCM={
   {q:"Quelle commande revient à un point de sauvegarde ?",o:["<code>ROLLBACK TO</code>","<code>COMMIT TO</code>","<code>RETURN</code>"],b:0,e:"Elle annule ce qui a été fait depuis ce point, et la transaction continue."},
   {q:"Quelle différence entre <code>ROLLBACK</code> et <code>ROLLBACK TO</code> ?",o:["Aucune","<code>ROLLBACK</code> annule toute la transaction, <code>ROLLBACK TO</code> revient à un savepoint","<code>ROLLBACK TO</code> valide les données"],b:1,e:"L’un termine la transaction, l’autre la poursuit à partir du point choisi."},
   {q:"Un <code>SAVEPOINT</code> valide-t-il les modifications ?",o:["Oui","Non : seul COMMIT valide"],b:1,e:"Avant le <code>COMMIT</code>, tout reste annulable — y compris ce qui précède le point."}],
- 62:[{q:"Quel mot-clé commence une transaction ?",o:["<code>START TABLE</code>","<code>BEGIN</code>","<code>COMMIT</code>"],b:1,e:"<code>COMMIT</code> la termine en validant ; <code>START TABLE</code> n’existe pas."},
-  {q:"Que fait <code>COMMIT</code> ?",o:["Il annule les modifications","Il supprime la transaction","Il valide les modifications"],b:2,e:"Après un <code>COMMIT</code>, les modifications sont acquises."},
-  {q:"Que fait <code>ROLLBACK</code> ?",o:["Il annule les modifications non validées de la transaction","Il supprime une table","Il relance automatiquement les requêtes"],b:0,e:"On revient à l’état d’avant le <code>BEGIN</code>."},
-  {q:"Quand une transaction est-elle particulièrement utile ?",o:["Quand plusieurs opérations doivent rester cohérentes ensemble","Uniquement avec <code>SELECT</code>","Pour renommer une colonne"],b:0,e:"C’est tout son objet : une commande sans son stock laisse la base incohérente."}],
+ 62:[{q:"Quelle commande démarre une transaction ?",o:["<code>COMMIT</code>","<code>BEGIN TRANSACTION</code>","<code>ROLLBACK</code>"],b:1,e:"<code>BEGIN TRANSACTION</code> (ou <code>BEGIN</code>) la démarre : les modifications qui suivent ne deviennent définitives qu’après <code>COMMIT</code>."},
+  {q:"Dans une transaction, le stock a diminué, puis l’enregistrement du remplacement est refusé. Que faut-il faire ?",o:["Annuler avec <code>ROLLBACK</code>","Valider avec <code>COMMIT</code>","Rien : la transaction s’annule seule"],b:0,e:"<code>ROLLBACK</code> annule toutes les modifications non validées : le stock retrouve sa valeur de départ. Le refus d’une requête n’annule pas la transaction."},
+  {q:"Après un <code>COMMIT</code>, peut-on annuler la transaction avec <code>ROLLBACK</code> ?",o:["Oui, tant que la base est ouverte","Oui, si aucune autre requête n’a suivi","Non : <code>COMMIT</code> a rendu les modifications définitives"],b:2,e:"<code>COMMIT</code> termine la transaction : il n’y a plus rien à annuler, et <code>ROLLBACK</code> renvoie une erreur."}],
  61:[{q:"Que fait <code>CREATE TABLE</code> ?",o:["Elle ajoute une ligne","Elle crée la structure d’une table","Elle trie les données"],b:1,e:"Elle définit les colonnes, leurs types et leurs règles. La table est vide tant qu’aucun <code>INSERT</code> n’a eu lieu."},
   {q:"Quelle contrainte identifie chaque ligne de manière unique ?",o:["<code>DEFAULT</code>","<code>NOT NULL</code>","<code>PRIMARY KEY</code>"],b:2,e:"<code>NOT NULL</code> rend la valeur obligatoire, <code>DEFAULT</code> en fournit une par défaut : ni l’une ni l’autre n’identifie la ligne."},
   {q:"À quoi sert une <code>FOREIGN KEY</code> ?",o:["À relier une valeur à une autre table","À trier une colonne","À supprimer les doublons"],b:0,e:"Elle empêche qu’une commande désigne un client qui n’existe pas."}],
@@ -13143,7 +13078,7 @@ const SQ_ALIASES={
   27:'update modifier mettre a jour set lignes valeurs changer where oubli du where sans where toutes les lignes select avant de modifier lire calculer valeur calculee ancienne valeur regle de la table check modification refusee atelier date carte cartes seances nutriboost',
   28:'delete from supprimer effacer lignes ligne supprimer une ligne where oubli du where sans where toutes les lignes vider une table vider table select avant de supprimer lire identifiant client_id plusieurs lignes annuler inscription inscriptions compte atelier nutriboost insert update',
   68:'on delete cascade set null restrict supprimer lignes liees cle etrangere foreign key constraint failed suppression refusee client compte avis ancien client feuille table avis not null create table regle detacher nutriboost',
-  62:'transaction begin commit rollback valider annuler acid atomicite',
+  62:'transaction transactions begin transaction start transaction commit rollback valider annuler modifications ensemble non valide definitives stock remplacement table remplacements shaker colis personnalisation prenom not null constraint failed nutriboost',
   63:'savepoint point de sauvegarde rollback to partiel transaction',
   70:'trigger declencheur reagir automatiquement before after evenement',
   71:'concurrence isolation verrou lock deadlock lectures ecritures simultanees',
@@ -25112,7 +25047,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2042';
+  const SW_CACHE='requete-2026-10-12-ludique-v2043';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

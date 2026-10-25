@@ -1,0 +1,1012 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Projet, chapitre 11 : TRANSACTION</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:124px;top:456px;letter-spacing:-2px}
+#s0 .hilite{top:522px;height:44px}
+#s0 .sub{top:612px;font-size:52px}
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+.hid{opacity:0;visibility:hidden}
+/* Aperçu d’un geste (moment « À toi ») : il prend le pas sur la timeline, le temps de l’arrêt ; il montre exactement
+   l’image que la timeline affiche juste après l’arrêt, qui reprend donc sans saut. */
+.pvs{opacity:1!important;visibility:visible!important;transform:none!important}
+.pvh{opacity:0!important;visibility:hidden!important}
+/* Aperçu en douceur : une carte qui accompagne une bonne réponse n’apparaît jamais d’un coup, ni avant le verdict « Bien vu ! » */
+.pvf{visibility:visible!important;animation:pvf .45s ease-out both}
+@keyframes pvf{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* Couleur de chaque sujet : client, équipe NutriBoost (et carte de membre), inscription, coach, atelier,
+   puis les tables de la boutique : commande, produit, fidélité ; l’avis (chapitre 10) et le remplacement (ce chapitre) */
+.k-co{--c:#2F80ED;--cs:#E6F0FD;--ci:#1D5FA8}
+.k-at{--c:#E8892B;--cs:#FFF1E2;--ci:#9A5B00}
+.k-cl{--c:#6A4DF4;--cs:#EEE9FF;--ci:#5335E0}
+.k-nb{--c:#D99A0B;--cs:#FFF6DA;--ci:#8A6200}
+.k-in{--c:#169447;--cs:#E2F6EA;--ci:#0F7A3A}
+.k-cm{--c:#0E9F9A;--cs:#DDF5F3;--ci:#0B6E6A}
+.k-pr{--c:#D9468F;--cs:#FCE8F2;--ci:#A3216A}
+.k-fi{--c:#9C6B3F;--cs:#F5ECE3;--ci:#7A4F27}
+.k-av{--c:#A23CC9;--cs:#F5E8FB;--ci:#7A2A9B}
+.k-rp{--c:#2B8FB8;--cs:#E3F3FA;--ci:#1B6585}
+
+/* ---------- La base : une ligne par table (son nom, son nombre de lignes) ---------- */
+.bc{left:64px;width:952px;top:236px;padding:0 0 12px;overflow:hidden}
+.bh{height:72px;display:flex;align-items:center;gap:14px;padding:0 34px;background:var(--surface-2);font-family:var(--display);font-size:34px;font-weight:800;color:var(--ink);letter-spacing:-.4px;white-space:nowrap}
+.bh .emo{font-size:34px}
+.bn{margin-left:auto;display:inline-grid;font-family:var(--ui);font-size:25px;font-weight:700;letter-spacing:0}
+.bn>span{grid-area:1/1;height:44px;padding:0 20px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;white-space:nowrap}
+.srow{position:relative;height:64px;padding:12px 34px;overflow:hidden}
+.srow+.srow{box-shadow:inset 0 2px 0 var(--line-2)}
+.srow>div{position:relative;z-index:1}
+.srow .hl{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;opacity:0;visibility:hidden;background:var(--cs);box-shadow:inset 8px 0 0 var(--c)}
+.sn{display:flex;align-items:center;gap:14px;height:40px;font-family:var(--mono);font-size:31px;font-weight:800;color:var(--ci)}
+.sn .emo{font-size:32px}
+.sn .sp{flex:1}
+.nm{position:relative;display:inline-block;white-space:nowrap}
+.nb{display:inline-grid;font-family:var(--ui);font-size:23px;font-weight:700;color:var(--ink-3)}
+.nb>span{grid-area:1/1;justify-self:end;display:flex;align-items:center;justify-content:flex-end;height:36px;padding:0 14px;border-radius:999px;background:var(--line-2);white-space:nowrap}
+
+/* ---------- Les tables : lignes, colonnes, valeurs empilées ---------- */
+.tb{padding:0 0 10px;overflow:hidden;border-radius:40px}
+.tb .h{display:flex;align-items:center;gap:12px;height:64px;padding:0 24px;background:var(--cs);font-family:var(--mono);font-size:30px;font-weight:800;color:var(--ci);white-space:nowrap}
+.tb .h .emo{font-size:32px}
+.tb .bn>span{height:40px;font-size:23px;background:#fff;color:var(--ci);box-shadow:inset 0 0 0 3px var(--c)}
+.gr{display:grid;grid-template-columns:var(--g);align-items:stretch;padding:0 12px}
+.gr>span{position:relative;z-index:1;display:flex;align-items:center;gap:10px;min-width:0;padding:0 10px;white-space:nowrap;overflow:hidden}
+.hd{height:44px;font-family:var(--mono);font-size:24px;font-weight:700;color:var(--ink-3)}
+.hd .emo{font-size:21px;width:26px;flex:none;text-align:center}
+/* Une colonne dont l’en-tête porte une icône (🔑 id, 🔗 client_id) : sa valeur commence sous le nom de la colonne, pas sous l’icône
+   (Elisa, 25 octobre, 15 h 18). 46 px = marge 10 + icône 26 + espace 10. */
+.tb .r>.c0,#tr .r>.c1,#tr .r>.c2{padding-left:46px}
+.gr>span.kc{color:var(--ci)}
+.r{position:relative;height:62px;font-family:var(--mono);font-size:30px;font-weight:600;color:var(--ink);box-shadow:inset 0 2px 0 var(--line-2);overflow:hidden}
+.r .hl,.r .wn,.r .xx{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;pointer-events:none;opacity:0;visibility:hidden}
+.r .hl{background:var(--cs);box-shadow:inset 6px 0 0 var(--c)}
+.r .wn{background:rgba(242,154,46,.2);box-shadow:inset 6px 0 0 #F29A2E}
+.r .xx{background:rgba(239,79,85,.15);box-shadow:inset 6px 0 0 var(--danger-fill)}
+.r .v{position:relative;z-index:1;font-style:normal}
+/* Une case peut changer de valeur : les valeurs successives sont empilées, une seule se voit */
+.sw{display:inline-grid;position:relative;z-index:1}
+.sw>*{grid-area:1/1;font-style:normal;white-space:pre}
+/* La case que l’élève doit toucher, puis la case entourée */
+.hc{position:absolute;left:4px;right:4px;top:5px;bottom:5px;z-index:0;border-radius:14px;background:var(--cs);box-shadow:inset 0 0 0 4px var(--c);opacity:0;visibility:hidden}
+/* Gestes de l’élève : case refusée */
+.gr>span.kof::after{content:"";position:absolute;left:3px;right:3px;top:6px;bottom:6px;z-index:3;border-radius:12px;background:rgba(239,79,85,.16);box-shadow:inset 0 0 0 4px var(--danger-fill);animation:kof .6s ease forwards}
+@keyframes kof{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+.r.kor{animation:kor .55s ease}
+@keyframes kor{0%,100%{background:transparent}30%{background:rgba(239,79,85,.18)}}
+.dbn.kob{animation:kob .45s ease}
+@keyframes kob{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+
+/* ---------- Les requêtes : une carte de code (un commentaire, puis la requête) ---------- */
+.sq{border-radius:34px;box-shadow:0 9px 0 #110E27}
+.sq .top{height:52px;gap:12px;padding:0 30px}
+.sq .dot{width:14px;height:14px}
+.sq .fname{margin-left:8px;font-size:22px}
+.sq .body{padding:18px 30px;font-size:28px;line-height:42px}
+.sq .ln{height:42px}
+.sq .cmt{color:var(--t-com)}
+.sq .caret i{top:-31px;width:4px;height:37px}
+.sq .glow{border-radius:8px;padding:0 3px;margin:0 -3px}
+.sq .str{color:var(--t-str)}
+
+/* ---------- Le résultat d’une requête ---------- */
+.abs.out{left:64px;width:952px;margin:0}
+.abs.out.t2{height:150px}
+.out.ok{background:#E7F7EE;border:3px solid #A7E3C0}
+.out.ok .oi{background:#34C27A;color:#fff}
+.out.ok .ot b{color:#1B7A45}
+.out.warn{background:#FFF4E5;border:3px solid #F6D9A8}
+.out.warn .oi{background:#F29A2E;color:#fff}
+.out.warn .ot b{color:#9A5B00}
+/* Le message d’erreur est écrit tel qu’on le lit dans l’app : >= et non ⩾ */
+.ot .m{font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
+
+.pack{left:0;width:1080px;display:flex;justify-content:center}
+.pack>span{height:84px;padding:0 34px 0 22px;border-radius:999px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);font-size:32px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:14px;white-space:nowrap}
+.pack .emo{font-size:40px}
+
+/* ---------- Les messages reçus : la notification, puis la conversation (SMS, moteur commun) ---------- */
+.ml{left:64px;width:952px;top:560px;height:184px;padding:0 30px;overflow:hidden}
+/* Hors de l’app : le doigt qui touche la notification, la photo ou un bouton */
+.tapf{z-index:20;font-size:120px;margin:-8px 0 0 -44px;opacity:0;visibility:hidden}
+
+/* La suite : la prochaine leçon */
+.keyc{left:0;width:1080px;display:flex;justify-content:center}
+.keyc>span{height:96px;padding:0 40px 0 26px;border-radius:999px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 9px 0 #4B30CC;color:#fff;font-size:36px;font-weight:700;display:flex;align-items:center;gap:16px;white-space:nowrap}
+.keyc .emo{font-size:44px}
+
+/* ---------- À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px;padding:8px 0}
+#s7 .rrow{gap:22px;padding:18px 32px}
+#s7 .rico{width:88px;height:88px;border-radius:26px;font-size:46px}
+#s7 .rtxt{font-size:34px;line-height:1.25}
+#s7 .rtxt .rs{margin-top:2px;font-size:31px}
+
+/* ---------- L’état de l’opération, au-dessus des deux tables : une pastille (une seule se voit) ---------- */
+.txp{left:0;width:1080px;top:236px;height:80px;display:grid;justify-items:center}
+.txp>span{grid-area:1/1;height:80px;padding:0 34px 0 24px;border-radius:999px;display:flex;align-items:center;gap:14px;font-size:30px;font-weight:700;white-space:nowrap;opacity:0;visibility:hidden}
+.txp .emo{font-size:36px}
+.txp .t0{background:#FFF4E5;box-shadow:inset 0 0 0 3px #F6D9A8,0 6px 0 #F6D9A8;color:#9A5B00}
+.txp .t1{background:var(--accent-soft);box-shadow:inset 0 0 0 3px #C9BCFF,0 6px 0 #C9BCFF;color:var(--accent-ink)}
+.txp .t2{background:#E7F7EE;box-shadow:inset 0 0 0 3px #A7E3C0,0 6px 0 #A7E3C0;color:#1B7A45}
+.txp .t3{background:#FDECEC;box-shadow:inset 0 0 0 3px #F5C2C4,0 6px 0 #F5C2C4;color:#B42328}
+
+/* ---------- Les deux tables : un extrait de la table produits, la table remplacements ---------- */
+.tz .r{height:62px}
+.sw>.nul,.ph{color:var(--ink-3);font-style:italic;font-weight:500}
+.r.rph>span{grid-column:1/-1;font-family:var(--ui);font-size:28px}
+/* Une colonne citée par la légende pulse : son en-tête prend des coins arrondis */
+#tr .hd>span{border-radius:12px}
+/* La mention d’une modification : enregistrée (sans transaction), non validée, puis validée (une seule se voit) */
+.bdg{display:inline-grid;margin-left:6px}
+.bdg>i{grid-area:1/1;height:40px;padding:0 14px;border-radius:999px;font-family:var(--ui);font-size:22px;font-weight:800;font-style:normal;display:flex;align-items:center;gap:6px;white-space:nowrap;opacity:0;visibility:hidden}
+.bdg .st0{background:#FFF1DC;color:#9A5B00;box-shadow:inset 0 0 0 2px #F6D9A8}
+.bdg .st1,.bdg .st2{background:#E2F6EA;color:#1B7A45;box-shadow:inset 0 0 0 2px #A7E3C0}
+
+/* ---------- Les boutons à toucher, et l’anneau qui s’en échappe au toucher (micro-interaction, Elisa, 25 octobre, 16 h 22) ---------- */
+.bt{position:absolute;left:220px;width:640px;margin:0;height:108px;gap:16px;font-size:36px}
+.bt .emo{font-size:42px}
+.bt.go{background:linear-gradient(135deg,#3ACB82,#1FA463);box-shadow:0 9px 0 #157A49}
+.bt.no{background:linear-gradient(135deg,#F2656B,#E0383F);box-shadow:0 9px 0 #A92A31}
+.bring{left:220px;width:640px;height:108px;border-radius:30px;box-shadow:0 0 0 7px rgba(106,77,244,.5);pointer-events:none;opacity:0;visibility:hidden}
+.bring.go{box-shadow:0 0 0 7px rgba(52,194,122,.55)}
+.bring.no{box-shadow:0 0 0 7px rgba(239,79,85,.55)}
+
+/* ---------- 4 · Une transaction : deux modifications regroupées, validées ou annulées ensemble ---------- */
+.tg{left:64px;width:952px;padding:0 0 28px;border:4px dashed #B7A6FF;background:rgba(255,255,255,.94);box-shadow:none}
+.tgh{height:80px;display:flex;align-items:center;gap:14px;padding:0 34px;font-family:var(--display);font-size:34px;font-weight:800;color:var(--accent-ink);white-space:nowrap}
+.tgh .emo{font-size:36px}
+.tgr{display:flex;gap:20px;padding:0 30px}
+.tgc{flex:1;height:96px;border-radius:28px;background:var(--surface-2);box-shadow:inset 0 0 0 3px var(--line);display:flex;align-items:center;justify-content:center;gap:12px;font-size:31px;font-weight:700;color:var(--ink);white-space:nowrap}
+.tgc .emo{font-size:36px}
+.tgo{left:0;width:1080px;display:flex;justify-content:center;gap:28px}
+.tgo>span{height:84px;padding:0 34px 0 24px;border-radius:999px;display:flex;align-items:center;gap:12px;font-size:32px;font-weight:700;white-space:nowrap}
+.tgo .emo{font-size:38px}
+.tgo .go{background:#E7F7EE;box-shadow:inset 0 0 0 3px #A7E3C0,0 6px 0 #A7E3C0;color:#1B7A45}
+.tgo .no{background:#FDECEC;box-shadow:inset 0 0 0 3px #F5C2C4,0 6px 0 #F5C2C4;color:#B42328}
+
+/* ---------- 1 · Le message de Léa Simon : la photo du shaker, puis la même photo agrandie ---------- */
+/* La photo garde sa place (carrée) avant même d’être chargée : la conversation et le zoom se mesurent juste. */
+#ph1 img,.zph img{aspect-ratio:1/1;object-fit:cover}
+#ml1{top:430px}
+#ml2{top:520px}
+.zbg{left:0;top:0;width:1080px;height:1920px;background:rgba(17,14,39,.62);opacity:0;visibility:hidden}
+.zph{left:64px;top:330px;width:952px;height:952px;border-radius:46px;overflow:hidden;box-shadow:0 30px 70px rgba(17,14,39,.45);opacity:0;visibility:hidden;transform-origin:0 0}
+.zph img{display:block;width:100%;height:100%}
+
+/* ---------- 8 · Deux cases où ranger les situations : COMMIT, ROLLBACK ---------- */
+.dbn{left:64px;width:952px;height:300px;box-sizing:border-box;padding:20px 28px 22px;border-radius:36px;border:4px dashed #C9BCFF;background:rgba(255,255,255,.85);display:flex;flex-direction:column}
+.dbn .hh{display:flex;align-items:baseline;gap:20px;white-space:nowrap}
+.dbn .dn{font-family:var(--mono);font-size:34px;font-weight:800;color:var(--accent-ink)}
+.dbn .dd{font-size:26px;font-weight:700;color:var(--ink-3)}
+.dbn .cs{margin-top:auto;display:flex;gap:14px}
+.dbn .rc{flex:1;min-height:150px;padding:12px 14px;border-radius:18px;background:var(--accent-soft);color:var(--accent-ink);box-shadow:inset 0 0 0 3px #C9BCFF;font-size:27px;font-weight:700;line-height:1.25;text-align:center;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden}
+.dbn.okb{animation:okb .5s cubic-bezier(.2,.9,.3,1.3)}
+@keyframes okb{40%{transform:scale(1.035)}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 11</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>T</span><span>R</span><span>A</span><span>N</span><span>S</span><span>A</span><span>C</span><span>T</span><span>I</span><span>O</span><span>N</span></div>
+    <div class="abs sub">Valider les modifications ensemble</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Un colis arrive abîmé&nbsp;:<br>à toi de tout valider<br>ou de tout annuler !</div>
+  </section>
+
+  <!-- La base : le rappel du chapitre précédent -->
+  <section class="scene" id="sa"></section>
+  <!-- Les messages : Léa Simon (sa photo, agrandie au toucher), puis le service client -->
+  <section class="scene" id="sm"></section>
+  <!-- Les deux tables, la requête, l’état de l’opération, les boutons -->
+  <section class="scene" id="sw"></section>
+  <!-- COMMIT ou ROLLBACK : les situations à ranger -->
+  <section class="scene" id="sd"></section>
+  <!-- La suite : la prochaine leçon -->
+  <section class="scene" id="sn"></section>
+
+  <!-- À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🚦</div><div class="rtxt"><code>BEGIN TRANSACTION</code> démarre<br>la <b>transaction</b>.<span class="rs">Selon le SGBD, tu peux aussi écrire<br><code>BEGIN</code> ou <code>START TRANSACTION</code>.</span></div></div>
+      <div class="rrow"><div class="rico emo">✅</div><div class="rtxt"><code>COMMIT</code> valide toutes ses <b>modifications</b>.<span class="rs">Elles deviennent définitives,<br>et la transaction se termine.</span></div></div>
+      <div class="rrow"><div class="rico emo">↩️</div><div class="rtxt"><code>ROLLBACK</code> annule<br>toutes ses modifications <b>non validées</b>.<span class="rs">Après <code>COMMIT</code>, tu ne peux plus utiliser<br><code>ROLLBACK</code> pour annuler cette transaction.</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+
+/* ---------- Le déroulé : chaque légende arrive à la suite de la précédente ----------
+   cap(clé, texte, durée) pose une légende [début, fin] ; A[clé] et B[clé] donnent son début et sa fin (temps de la timeline).
+   La trame est celle d’Elisa (25 octobre, 17 h 05, « Cours 1 — TRANSACTION : valider les modifications ensemble ») : ses bulles
+   sont gardées mot pour mot, une phrase par bulle ; les chiffres sont ceux de la base du projet (le shaker est le produit 8, Shaker Inox,
+   30 en stock ; Léa Simon est la cliente 7 ; le premier remplacement a l’identifiant 1). */
+const SCH = {t: 5.0, caps: [], chaps: [{label:'Un colis abîmé', a: 5.0}], A: {}, B: {}};
+function chap(c){ SCH.t = +(SCH.t + 0.4).toFixed(2); SCH.chaps.push({label: c.label, a: SCH.t}); }
+function cap(key, html, dur, gap = 0.1){
+  /* Une légende reste au moins le temps de la lire (17 caractères par seconde, plus son fondu de 0,5 s) : l’image ne s’arrête jamais pour elle. */
+  dur = Math.max(dur, Math.ceil((html.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').length / 17 + 0.5) * 20) / 20);
+  const a = +(SCH.t + gap).toFixed(2), b = +(a + dur).toFixed(2);
+  SCH.caps.push([a, b, html]); SCH.A[key] = a; SCH.B[key] = b; SCH.t = b;   // trois lignes au plus par bulle : au-delà, deux bulles (Elisa, 24 octobre)
+}
+/* « À toi ! » : la légende reste un instant, puis l’image s’arrête à a + 2,35 s (le passage d’attente est coupé). */
+const toi = key => cap(key, 'À toi !', 2.55);
+const {A, B} = SCH;
+/* Les deux messages reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses phrases), signature, option].
+   Léa Simon écrit elle-même, par SMS, avec la photo de son shaker cassé (Elisa, 25 octobre, 17 h 05 : « La conversation avec Léa s’ouvre et son
+   message s’affiche », la photo dessous, « un appui permet d’agrandir la photo ») ; puis le service client, par SMS lui aussi ({sms: true}).
+   L’app s’arrête sur chaque notification (OPENS) jusqu’au toucher, et sur la photo jusqu’à ce que l’élève l’agrandisse. */
+const MAILS = [
+  [['Léa', 'Simon', 'LS'], 'k-cl', 'cliente', 'lea@mail.fr', [
+    'Je viens de recevoir ma commande, mais mon shaker personnalisé est arrivé cassé… 😕',
+    'Est-ce que vous pouvez m’en renvoyer un ?'], 'Léa Simon',
+    {photo: {id: 'ph1', src: 'projet-transaction-shaker.webp', alt: 'Le shaker rose de Léa Simon, arrivé cassé'}}],
+  [['Le service client', 'NutriBoost', 'SC'], 'k-in', 'équipe', 'service.client@nutriboost.fr', [
+    'Nous allons lui envoyer gratuitement un nouveau shaker.',
+    'Peux-tu mettre à jour le stock et enregistrer le remplacement pour que l’équipe logistique le prépare ?',
+    'Pense à conserver son prénom dessus.'], 'Le service client NutriBoost', {sms: true}]
+];
+/* Un message : la légende s’efface le temps du message (notification, toucher, lecture, départ). Un SMS : « Bonjour, », une bulle par phrase,
+   la photo jointe s’il y en a une, « Merci ! » ; le toucher à +1,6 s, une bulle toutes les 0,28 s, le départ juste après la pause de lecture. */
+const mailSms = n => /^client/.test(MAILS[n][2]) || !!(MAILS[n][6] || {}).sms;
+const mailRows = n => 2 + [].concat(MAILS[n][4]).flatMap(p => p.split(/(?<=[.!?])\s+(?=[A-ZÀÂÉÈÊÎÔÛÇ])/)).length + ((MAILS[n][6] || {}).photo ? 1 : 0);
+const mailOutAt = n => +(2.68 + 0.28 * (mailRows(n) - 1)).toFixed(2);
+const mailBlock = (n, extra = 0) => { const t = SCH.t; SCH.t = +(SCH.t + mailOutAt(n) + extra + 1).toFixed(2); return t; };
+/* La photo du message de Léa Simon : l’app s’arrête dessus (PH) une fois toutes les bulles arrivées et lues ; au toucher, elle s’agrandit,
+   reste le temps de la regarder (ZOOM_HOLD), puis reprend sa place, et le message s’en va (ZOOM_EXTRA : le temps de tout cela, avant le départ). */
+const ZOOM_HOLD = 2.6, ZOOM_EXTRA = 2.3;
+
+/* 1 · Un colis abîmé : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) */
+cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
+cap('r2', "Au chapitre 10, tu as décidé<br>du sort des lignes liées<br>avec <code>ON DELETE</code>.", 3.6);
+cap('a1', "Léa Simon vient de recevoir<br>sa commande NutriBoost.", 3.2);
+const MAIL1 = mailBlock(0, ZOOM_EXTRA);
+const PH = +(MAIL1 + mailOutAt(0) + 0.9).toFixed(2);     // l’arrêt sur la photo, après la pause de lecture des bulles (hors de l’app, le doigt arrive)
+const OUT1 = +(MAIL1 + mailOutAt(0) + ZOOM_EXTRA).toFixed(2);   // le départ du message, une fois la photo revenue à sa place
+const MAIL2 = mailBlock(1);
+/* 2 · Deux modifications à réaliser */
+chap({label:'Deux modifications à réaliser'});
+cap('b1', "Pour traiter cette demande,<br>tu dois retirer un shaker du stock<br>et enregistrer son remplacement.", 4.8);
+cap('b2', "Ces deux modifications<br>doivent réussir ensemble.", 3.2);
+cap('b3', "Le shaker est le produit 8<br>de la <b>table produits</b>.", 3.4);
+cap('b4', "Il en reste 30 en stock.", 2.8);
+cap('b5', "L’équipe logistique a ajouté<br>une <b>table remplacements</b> à la base.", 3.8);
+cap('b6', "La <b>table remplacements</b> contient<br>les produits à renvoyer aux clients.", 4.2);
+cap('b6b', "Chaque remplacement a sa quantité<br>et sa personnalisation.", 3.6);
+cap('b7', "Aucun remplacement n’est encore<br>enregistré pour Léa Simon.", 3.6);
+/* 3 · Ce qui peut mal se passer */
+chap({label:'Ce qui peut mal se passer'});
+cap('c1', "Première tentative :<br>chaque modification<br>est enregistrée séparément.", 4.0);
+cap('c2', "L’<code>UPDATE</code> fait passer le stock<br>de 30 à 29.", 3.6);
+cap('c3', "Puis l’enregistrement<br>du remplacement échoue.", 5.0);   // le temps de taper l’INSERT, puis le refus
+cap('c4', "Le prénom à imprimer<br>n’a pas été indiqué.", 3.2);
+cap('c5', "Le stock a diminué,<br>mais aucun remplacement<br>n’a été enregistré.", 3.8);
+cap('c6', "La base de données ne reflète<br>qu’une partie de l’opération.", 3.6);
+toi('p1');
+cap('c7', "Le stock compte un shaker de moins,<br>alors qu’aucun colis ne part.", 3.8);
+cap('c8', "Clique sur le bouton<br>« Comment éviter ça ? ».", 3.8);   // c’est l’élève qui clique : l’app s’arrête sur le bouton (HOW, plus bas)
+/* 4 · Démarrer une transaction */
+chap({label:'Démarrer une transaction'});
+cap('e1', "Une transaction regroupe<br>plusieurs modifications.", 3.4);
+cap('e2', "Tu peux les valider toutes ensemble<br>ou les annuler pour retrouver<br>la situation de départ.", 4.8);
+cap('e3', "On repart de la situation de départ :<br>30 shakers, aucun remplacement.", 4.0);
+cap('e4', "<code>BEGIN TRANSACTION</code> démarre<br>la transaction.", 3.6);
+cap('e5', "Les modifications qui suivent<br>ne seront définitives<br>qu’après leur validation.", 4.2);
+/* 5 · Effectuer les modifications */
+chap({label:'Effectuer les modifications'});
+cap('f1', "L’<code>UPDATE</code> retire<br>un shaker du stock.", 4.4);
+cap('f2', "Le stock passe à 29,<br>mais il n’est pas encore validé.", 3.6);
+toi('p2');
+cap('f3', "<code>INSERT INTO</code> enregistre<br>le remplacement,<br>avec le prénom à imprimer.", 4.8);
+cap('f4', "Léa Simon a l’identifiant 7,<br>et le shaker l’identifiant 8.", 3.8);
+cap('f5', "Le nouveau remplacement<br>a l’identifiant 1.", 3.2);
+cap('f6', "Une nouvelle ligne apparaît<br>dans la <b>table remplacements</b>.", 3.6);
+cap('f7', "Elle n’est pas encore validée,<br>elle non plus.", 3.0);
+/* 6 · Valider avec COMMIT */
+chap({label:'Valider avec COMMIT'});
+cap('g1', "Les deux modifications ont réussi.", 3.0);
+toi('p3');
+cap('g2', "Utilise <code>COMMIT</code> pour les enregistrer<br>définitivement.", 3.8);   // l’élève touche « Valider les modifications » (COM, plus bas)
+cap('g3', "Les deux modifications<br>sont validées.", 3.0);
+cap('g4', "Le stock contient 29 shakers,<br>et le remplacement de Léa Simon<br>est enregistré.", 4.4);
+cap('g5', "L’équipe logistique peut<br>préparer le colis.", 3.2);
+/* 7 · Et si le remplacement échoue ? */
+chap({label:'Et si le remplacement échoue ?'});
+cap('h1', "Rejouons l’opération<br>depuis la situation de départ.", 3.6);
+cap('h2', "La transaction démarre,<br>et le stock passe à 29.", 3.8);
+cap('h3', "Mais l’enregistrement<br>du remplacement échoue.", 3.6);
+cap('h4', "Le remplacement n’a pas été enregistré.", 3.0);
+toi('p4');
+cap('h5', "Utilise <code>ROLLBACK</code> pour annuler<br>les modifications de cette transaction.", 4.4);   // l’élève touche « Annuler les modifications » (ROL)
+cap('h6', "Le stock revient à 30,<br>et aucun remplacement n’est enregistré.", 4.0);
+toi('p5');
+cap('h7', "La demande de Léa Simon<br>reste à traiter.", 3.4);
+/* 8 · COMMIT ou ROLLBACK ? */
+chap({label:'COMMIT ou ROLLBACK ?'});
+cap('i1', "Une transaction se termine<br>par <code>COMMIT</code> ou par <code>ROLLBACK</code>.", 3.8);
+toi('p6');
+cap('i2', "<code>COMMIT</code> valide toutes les modifications<br>de la transaction.", 3.8);
+cap('i3', "<code>ROLLBACK</code> annule toutes celles<br>qui ne sont pas encore validées.", 3.8);
+cap('i4', "Après <code>COMMIT</code>, tu ne peux plus utiliser<br><code>ROLLBACK</code> pour annuler<br>cette transaction.", 4.6);
+/* la suite : la prochaine leçon */
+cap('i5', "Dans la prochaine leçon, tu apprendras<br>à annuler une partie d’une transaction<br>avec <code>SAVEPOINT</code>.", 7.0);
+/* 9 · À retenir */
+chap({label:'À retenir'});
+const RECAP = SCH.t;
+cap('j1', "Pour finir, voici les <b>trois idées à retenir</b>.", 4.8, 0.4);
+/* NOTES (le bouton « Ajouter à mes notes ») est écrit en clair dans Course(…) plus bas : tests/transaction-lesson.test.mjs vérifie qu’il suit le déroulé. */
+const NOTES = +(SCH.t + 0.1).toFixed(2);
+const DURATION = +(NOTES + 7.2).toFixed(2);
+SCH.caps.push([NOTES, 999, APP ? "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."
+  : "Une transaction valide ou annule<br>ses modifications ensemble."]);
+
+const CAPTIONS = SCH.caps;
+const CHAPTERS = SCH.chaps.map((c, i) => ({n: i + 1, label: c.label, a: c.a, b: i + 1 < SCH.chaps.length ? SCH.chaps[i + 1].a : DURATION}));
+
+/* Pas de question du lecteur : les moments « À toi » (PICKS) font participer l’élève. */
+const QUESTIONS = [];
+
+/* ---------- Le cas : la base des ateliers NutriBoost (la même dans tous les chapitres du projet) ---------- */
+/* La base telle que le chapitre 10 la laisse : neuf tables, avec la table avis (une ligne, son client à NULL) ; Nathan Dupont (chapitre 9)
+   et Inès Lefebvre (chapitre 10) ne sont plus clientes ni clients. Léa Simon, la cliente 7, est toujours là.
+   [clé, couleur, emoji, nom, lignes] */
+const TB = [
+  ['cl', 'k-cl', '👥', 'clients', 8], ['cm', 'k-cm', '🛒', 'commandes', 16], ['fi', 'k-fi', '⭐', 'fidelite', 4], ['pr', 'k-pr', '📦', 'produits', 8],
+  ['co', 'k-co', '🧑‍🏫', 'coachs', 4], ['at', 'k-at', '📅', 'ateliers', 5], ['in', 'k-in', '📝', 'inscriptions', 7], ['ca', 'k-nb', '💳', 'cartes', 3],
+  ['av', 'k-av', '💬', 'avis', 1]
+];
+/* Le shaker, tel que la base le connaît : le produit 8 (Shaker Inox), 30 en stock. Léa Simon est la cliente 7 ; le premier remplacement a l’identifiant 1. */
+const SHAKER = {id: 8, nom: 'Shaker Inox', stock: 30}, LEA = 7, REMPLACEMENT = 1;
+/* Moment 1 : la valeur qui ne correspond plus à la réalité est le stock (c2) ; pourquoi les autres cases ne conviennent pas. */
+const WHY1 = {
+  c0: 'L’identifiant du produit ne change pas : il désigne toujours le même shaker.',
+  c1: 'Le nom du produit ne change pas : c’est toujours le Shaker Inox.',
+  ph: 'Cette ligne est juste : aucun remplacement n’a été enregistré. C’est le stock qui a diminué pour rien.'
+};
+/* Moment 6 : COMMIT ou ROLLBACK, et six situations à ranger [situation, commande, pourquoi pas l’autre]. */
+const BINS = [['co', 'COMMIT', 'valide toutes les modifications'], ['ro', 'ROLLBACK', 'annule toutes les modifications']];
+const ITEMS = [
+  ['Les deux modifications ont réussi', 'co', 'Tout a réussi : il reste à valider les modifications avec COMMIT.'],
+  ['Le remplacement n’a pas été enregistré', 'ro', 'Une modification a échoué : ROLLBACK annule aussi celle qui avait réussi.'],
+  ['Le stock et le remplacement sont corrects', 'co', 'Tout est correct : COMMIT rend les deux modifications définitives.'],
+  ['Tu t’es trompé de produit dans l’UPDATE', 'ro', 'Une modification est fausse : ROLLBACK la défait, tant qu’elle n’est pas validée.'],
+  ['Tu veux rendre les modifications définitives', 'co', 'Rendre définitif, c’est valider : c’est le rôle de COMMIT.'],
+  ['Le service client annule finalement la demande', 'ro', 'La demande n’a plus lieu d’être : ROLLBACK annule toutes les modifications.']
+];
+
+/* Les six moments « À toi » : l’image s’arrête, l’élève touche, choisit ou range ; la page montre aussitôt le résultat.
+   from : début du passage qui amène chaque moment, d’où repartent « ↺ Revoir » et « Rejouer ». */
+const atp = k => +(A[k] + 2.35).toFixed(2);
+const PICKS = [
+  {at: atp('p1'), from: A.c1, kind: 'tap', need: 1, prompt: 'Touche la valeur qui ne correspond plus à la réalité.'},
+  {at: atp('p2'), from: A.f1, kind: 'pick', text: true, prompt: 'Si la transaction était annulée maintenant, que vaudrait le stock du shaker ?', options: [
+    {label: '30 : la valeur de départ', ok: true, why: 'Une modification non validée n’est pas définitive : annuler la transaction remet le stock à 30.'},
+    {label: '29 : la valeur affichée', why: '29 n’est pas encore validé : si la transaction est annulée, cette valeur disparaît.'},
+    {label: '28 : un shaker de moins encore', why: 'Annuler ne retire rien de plus : le stock retrouve sa valeur de départ, 30.'}]},
+  {at: atp('p3'), from: A.f6, kind: 'pick', text: true, prompt: 'Les deux modifications ont réussi : quelle commande les enregistre définitivement ?', options: [
+    {label: 'ROLLBACK', why: '<code>ROLLBACK</code> annulerait les deux modifications : le stock reviendrait à 30, et le remplacement disparaîtrait.'},
+    {label: 'BEGIN TRANSACTION', why: '<code>BEGIN TRANSACTION</code> démarre une transaction : celle-ci est déjà en cours.'},
+    {label: 'COMMIT', ok: true, why: '<code>COMMIT</code> valide toutes les modifications de la transaction : elles deviennent définitives.'}]},
+  {at: atp('p4'), from: A.h1, kind: 'pick', text: true, prompt: 'Le remplacement a échoué : que faut-il faire maintenant ?', options: [
+    {label: 'Valider avec COMMIT', why: '<code>COMMIT</code> validerait le stock à 29 sans aucun remplacement : la base resterait fausse.'},
+    {label: 'Annuler avec ROLLBACK', ok: true, why: '<code>ROLLBACK</code> annule toutes les modifications de la transaction : le stock revient à 30.'},
+    {label: 'Rien : la transaction s’annule seule', why: 'Le refus du remplacement n’annule pas la transaction : le stock reste à 29, en attente d’un <code>COMMIT</code> ou d’un <code>ROLLBACK</code>.'}]},
+  {at: atp('p5'), from: A.h5, kind: 'pick', text: true, prompt: 'Après le <code>ROLLBACK</code>, la demande de Léa Simon est-elle traitée ?', options: [
+    {label: 'Oui, le shaker est prêt à partir', why: 'Aucun remplacement n’est enregistré : l’équipe logistique n’a rien à préparer.'},
+    {label: 'À moitié : le stock est à jour', why: '<code>ROLLBACK</code> annule aussi l’<code>UPDATE</code> : le stock est revenu à 30.'},
+    {label: 'Non, le remplacement reste à enregistrer', ok: true, why: '<code>ROLLBACK</code> remet tout comme avant : le remplacement est à refaire, cette fois avec le prénom à imprimer.'}]},
+  {at: atp('p6'), from: A.i1, kind: 'sort', prompt: 'Range chaque situation avec la commande qui convient.',
+    hint: 'Touche une situation, puis la commande qui convient. Tu peux aussi la faire glisser directement.', next: '« {x} » : quelle commande choisir ?',
+    options: ITEMS.map(x => ({label: x[0]}))}
+];
+
+/* Les arrêts « toucher » : les deux notifications, la photo du shaker, et les trois boutons de la trame d’Elisa (« Comment éviter ça ? »,
+   « Valider les modifications », « Annuler les modifications »). Rien n’y est noté. Sur un bouton, la légende dit déjà quoi faire : un doigt seul
+   (hand) monte et descend sur son coin, et le bouton s’enfonce dès l’appui (press), puis remonte au relâcher (rest). */
+const HOW = +(A.c8 + 2.4).toFixed(2), COM = +(A.g2 + 2.6).toFixed(2), ROL = +(A.h5 + 2.6).toFixed(2);
+const BTN = (lip) => ({hand: {x: 0.86, y: 0.78}, press: {y: 7, boxShadow: `0 2px 0 ${lip}`}, rest: {y: 0, boxShadow: `0 9px 0 ${lip}`}});
+const msgOpen = (t, n) => {
+  const [prenom, nom] = MAILS[n][0], msg = mailSms(n) ? 'message' : 'mail';   // Léa Simon et le service client écrivent par SMS
+  const de = /^Le /.test(prenom) ? 'du ' + prenom.slice(3) : /^[AEIOUHÉÈ]/.test(prenom) ? 'd’' + prenom : 'de ' + prenom;   // « du service client », « de Léa »
+  return {at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: `Touche le ${msg} pour l’ouvrir.`, label: `Ouvrir le ${msg} ${de} ${nom}`};
+};
+const OPENS = [
+  msgOpen(MAIL1, 0),
+  {at: PH, sel: '#ph1', prompt: 'Touche la photo pour l’agrandir.', label: 'Agrandir la photo du shaker cassé'},
+  msgOpen(MAIL2, 1),
+  Object.assign({at: HOW, sel: '#bhow', prompt: 'Touche le bouton.', label: 'Comment éviter ça ?'}, BTN('#4B30CC')),
+  Object.assign({at: COM, sel: '#bcom', prompt: 'Touche le bouton.', label: 'Valider les modifications'}, BTN('#157A49')),
+  Object.assign({at: ROL, sel: '#brol', prompt: 'Touche le bouton.', label: 'Annuler les modifications'}, BTN('#A92A31'))
+];
+
+/* ---------- Gabarits ---------- */
+/* Une case à valeurs empilées (une seule se voit). */
+const sw = (id, vals, k = 'v') => `<span class="sw ${k}" id="${id}">${vals.map((v, j) => `<i class="a${j}${v[1] ? ' ' + v[1] : ''}">${v[0]}</i>`).join('')}</span>`;
+const cell = (j, inner) => `<span class="c${j}">${inner}</span>`;
+const line = (id, cells, cls = '') => `<div class="gr r${cls ? ' ' + cls : ''}" id="r${id}"><i class="hl"></i><i class="wn"></i><i class="xx"></i>${cells}</div>`;
+/* Carte de code : une ligne par [repère, texte, classe, style]. Dans le texte : {id|…} un passage repéré (il pulse). Un commentaire (--) n’a pas de curseur. */
+const SQL_KW = /\b(?:BEGIN TRANSACTION|COMMIT|ROLLBACK|UPDATE|SET|WHERE|INSERT INTO|VALUES)\b/g, CARET = '<span class="caret"><i></i></span>';
+function lineHtml([lid, s, cls = '', st = '']){
+  const cmt = s.trim().startsWith('--');
+  let h = s.replace(/\{(\w+)\|([^{}]*)\}/g, '<span class="glow" id="$1">$2</span>');
+  if (!cmt) h = h.replace(SQL_KW, '<span class="kw">$&</span>').replace(/'[^']*'/g, '<span class="str">$&</span>');
+  return `<span class="ln${cmt ? ' cmt' : ''}${cls ? ' ' + cls : ''}" id="${lid}"${st ? ` style="${st}"` : ''}>${h}${cmt ? '' : CARET}</span>`;
+}
+function editor(id, fname, lines, extra = ''){
+  return `<div class="abs code sq" id="${id}" style="left:64px;width:952px"><div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i>` +
+    `<span class="fname">${fname}</span></div><div class="body">${lines.map(lineHtml).join('')}${extra}</div></div>`;
+}
+const out = (id, kind, title, msg, cls = 's', t2 = false) => `<div class="abs out ${kind}${t2 ? ' t2' : ''}" id="${id}"><span class="oi">${kind === 'ok' ? '✓' : kind === 'warn' ? '!' : '✕'}</span>` +
+  `<div class="ot"><b>${title}</b><span class="${cls}">${msg}</span></div></div>`;
+const head = (cols, k = '') => `<div class="gr hd">${cols.map(([c, label, extra]) => `<span class="${c}${extra ? ' ' + extra : ''}">${label}</span>`).join('')}</div>`;
+const tbl = (id, kc, emo, name, g, hd, rows, bn = '') => `<div class="abs card tb tz ${kc}" id="${id}" style="left:64px;width:952px;${g}"><div class="h"><span class="emo">${emo}</span><span>${name}</span>${bn}</div>${hd}${rows}</div>`;
+const KEY = '<span class="emo">🔑</span>id', LK = '<span class="emo">🔗</span>';
+/* La mention d’une modification (une seule se voit) : non validée, validée, enregistrée sans transaction. */
+const bdg = id => `<span class="bdg" id="${id}"><i class="st0">⏳ Non validé</i><i class="st1">✓ Validé</i><i class="st2">✓ Enregistré</i></span>`;
+/* Les requêtes de la trame : le stock (UPDATE), le remplacement sans prénom (refusé), le remplacement complet, le début et la fin de la transaction. */
+const Q_UP = [['-- Retirer un shaker du stock'], ['UPDATE produits'], ['SET stock = stock - 1'], ['WHERE id = 8;']];
+const Q_IN0 = [['-- Enregistrer le remplacement'], ['INSERT INTO remplacements'], ['  (id, client_id, produit_id, quantite)'], ['VALUES (1, 7, 8, 1);']];
+/* Le remplacement complet : ses valeurs repérées (elles pulsent quand la légende les cite) — l’identifiant 1, Léa Simon (7), le shaker (8), le prénom à imprimer. */
+const Q_IN = [['-- Enregistrer le remplacement'], ['INSERT INTO remplacements'], ['  (id, client_id, produit_id,'], ['   quantite, personnalisation)'], ["VALUES ({v1|1}, {v7|7}, {v8|8}, 1, {vl|'Léa'});"]];
+const Q_BEGIN = [['-- Démarrer la transaction'], ['BEGIN TRANSACTION;']], Q_COMMIT = [['-- Valider les modifications'], ['COMMIT;']], Q_ROLLBACK = [['-- Annuler les modifications'], ['ROLLBACK;']];
+const ed = (id, q) => editor(id, 'remplacement.sql', q.map(([s], k) => [id + '-' + k, s]));
+/* Un bouton à toucher, et l’anneau qui s’en échappe */
+const button = (id, cls, emo, label) => `<i class="abs bring ${cls}" id="${id}-r"></i><div class="abs run bt ${cls}" id="${id}"><span class="emo">${emo}</span>${label}<i class="ripple"></i></div>`;
+function dom(){
+  /* La base et ses neuf tables : le rappel du chapitre précédent */
+  $('#sa').innerHTML = `<div class="abs card bc" id="bc"><div class="bh"><span class="emo">🗄️</span><span>Base NutriBoost</span><span class="bn"><span>9 tables</span></span></div>` +
+    TB.map(([k, kc, emo, name, n]) => `<div class="srow ${kc}" id="bw-${k}"><i class="hl"></i><div class="sn"><span class="emo">${emo}</span>` +
+      `<span class="nm">${name}</span><i class="sp"></i><b class="nb"><span>${n} ${n > 1 ? 'lignes' : 'ligne'}</span></b></div></div>`).join('') + '</div>';
+  /* Les messages : Léa Simon (sa photo jointe), puis le service client ; la photo agrandie au toucher */
+  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body, false, smsRank(MAILS, n), (MAILS[n][6] || {}).hello, (MAILS[n][6] || {}).photo) : '').join('') +
+    `<div class="abs zbg fly" id="zbg"></div><div class="abs zph fly" id="zph"><img src="${MAILS[0][6].photo.src}" alt=""></div>` +
+    '<div class="abs emo tapf" id="tapf">👆</div>';
+  /* L’opération : l’état (pastille), l’extrait de la table produits, la table remplacements, la requête du moment, son résultat, les boutons */
+  let w = '<div class="abs txp" id="tx">' +
+      '<span class="t0"><span class="emo">⚠️</span>Stock : 29 · Aucun remplacement pour Léa Simon</span>' +
+      '<span class="t1"><span class="emo">⏳</span>Transaction en cours</span>' +
+      '<span class="t2"><span class="emo">✅</span>Transaction validée</span>' +
+      '<span class="t3"><span class="emo">↩️</span>Transaction annulée · Demande de Léa Simon à traiter</span></div>' +
+    tbl('tp', 'k-pr', '📦', 'produits', '--g:96px 1fr 400px', head([['c0 kc', KEY], ['c1', 'nom'], ['c2', 'stock']]),
+      line('tp', cell(0, '<i class="v">8</i>') + cell(1, '<i class="v">Shaker Inox</i>') + cell(2, sw('sk', [['30'], ['29']]) + bdg('bs') + '<i class="hc" id="hcs"></i>')),
+      '<span class="bn"><span>extrait</span></span>') +
+    tbl('tr', 'k-rp', '🔁', 'remplacements', '--g:96px 180px 200px 150px 1fr',
+      head([['c0 kc', KEY], ['c1 kc k-cl', LK + 'client_id'], ['c2 kc k-pr', LK + 'produit_id'], ['c3', 'quantite'], ['c4', 'personnalisation']]),
+      line('tr0', '<span class="ph">Aucun remplacement pour Léa Simon</span>', 'rph') +
+      line('tr1', cell(0, '<i class="v">1</i>') + cell(1, '<i class="v">7</i>') + cell(2, '<i class="v">8</i>') + cell(3, '<i class="v">1</i>') + cell(4, '<i class="v">Léa</i>' + bdg('br'))),
+      '<span class="bn"><span>nouvelle table</span></span>');
+  // les requêtes, une carte par passage : sans transaction (1), dans la transaction qui réussit (2), dans celle qui échoue (3)
+  w += ed('eu1', Q_UP) + ed('ei1', Q_IN0) + ed('eb2', Q_BEGIN) + ed('eu2', Q_UP) + ed('ei2', Q_IN) + ed('ec2', Q_COMMIT) + ed('eb3', Q_BEGIN) + ed('eu3', Q_UP) + ed('ei3', Q_IN0) + ed('er3', Q_ROLLBACK);
+  w += out('o-u1', 'ok', 'Stock mis à jour', '1 ligne modifiée.');
+  w += out('o-i1', 'err', 'Remplacement non enregistré', 'NOT NULL constraint failed:<br>remplacements.personnalisation', 'm', true);
+  w += out('o-i3', 'err', 'Remplacement non enregistré', 'NOT NULL constraint failed:<br>remplacements.personnalisation', 'm', true);
+  w += button('bhow', '', '💡', 'Comment éviter ça ?') + button('bcom', 'go', '✅', 'Valider les modifications') + button('brol', 'no', '↩️', 'Annuler les modifications');
+  // une transaction : deux modifications regroupées, puis les deux façons de la terminer
+  w += '<div class="abs card tg" id="tg"><div class="tgh"><span class="emo">🧺</span><span>Une transaction</span></div><div class="tgr">' +
+    '<span class="tgc" id="tg1"><span class="emo">📦</span>− 1 shaker en stock</span><span class="tgc" id="tg2"><span class="emo">🔁</span>+ 1 remplacement</span></div></div>' +
+    '<div class="abs tgo" id="tgo"><span class="go" id="tgv"><span class="emo">✅</span>Tout valider</span><span class="no" id="tga"><span class="emo">↩️</span>Tout annuler</span></div>';
+  // le remplacement validé : le colis part
+  w += '<div class="abs pack" id="kpk"><span><span class="emo">🚚</span>Colis à préparer · Léa Simon</span></div>';
+  w += '<div class="abs emo tapf" id="tapw">👆</div>';
+  $('#sw').innerHTML = w;
+  /* COMMIT ou ROLLBACK : une case chacune, où ranger les situations */
+  $('#sd').innerHTML = BINS.map(([k, n, d], q) => `<div class="abs dbn" id="db-${k}" data-k="${k}" style="top:${300 + q * 330}px"><div class="hh"><span class="dn">${n}</span><span class="dd">${d}</span></div>` +
+    `<div class="cs">${ITEMS.map((x, i) => x[1] === k ? `<div class="rc" id="sbu${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
+    '<div class="abs pack" id="bpack"><span><span class="emo">📬</span>6 situations à ranger</span></div>';
+  /* La suite : la prochaine leçon */
+  $('#sn').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🔖</span>Prochaine leçon · SAVEPOINT</span></div>';
+  // les requêtes, découpées en caractères pour la frappe
+  $$('.sq .ln').forEach(splitChars);
+}
+
+/* ---------- Mise en page ---------- */
+const RH = 62;   // hauteur d’une ligne des tables
+const ZB = {};   // la photo du message : sa bulle (départ du zoom) et sa place agrandie
+const bottom = s => { const el = $(s); return el.offsetTop + el.offsetHeight; };
+/* Position d’un élément dans sa scène (sans tenir compte des transformations) : le coin et la taille. */
+const pos = el => {
+  let x = 0, y = 0, e = el;
+  while (e && !e.classList.contains('scene')) {
+    x += e.offsetLeft; y += e.offsetTop;
+    const p = e.offsetParent;
+    if (p && !p.classList.contains('scene')) { x += p.clientLeft; y += p.clientTop; }
+    e = p;
+  }
+  return {x, y, w: el.offsetWidth, h: el.offsetHeight};
+};
+function layout(){
+  // la table remplacements garde sa hauteur : une ligne à la fois (aucun remplacement, puis celui de Léa Simon) ; la carte ne bouge pas
+  $('#rtr1').style.height = '0px';
+  $('#tp').style.top = '346px';
+  $('#tr').style.top = (bottom('#tp') + 30) + 'px';
+  $('#tr').style.height = $('#tr').offsetHeight + 'px';
+  // les requêtes, à la même place sous les tables ; dessous, leur résultat, puis le bouton à toucher
+  const EW = bottom('#tr') + 9 + 30;
+  $$('#sw .sq').forEach(e => { e.style.top = EW + 'px'; });
+  const under = (s, gap = 9 + 32) => bottom(s) + gap;
+  $('#o-u1').style.top = under('#eu1') + 'px';
+  $('#o-i1').style.top = under('#ei1') + 'px';
+  $('#o-i3').style.top = under('#ei3') + 'px';
+  const place = (id, top) => { $('#' + id).style.top = top + 'px'; $('#' + id + '-r').style.top = top + 'px'; };
+  place('bhow', EW + 10);   // « Comment éviter ça ? » : seul sous les tables (la requête et son refus sont partis)
+  place('bcom', under('#ec2'));
+  place('brol', under('#er3'));
+  // la transaction (deux modifications regroupées), et les deux façons de la terminer ; le colis, à la place de la requête
+  $('#tg').style.top = EW + 'px';
+  $('#tgo').style.top = (bottom('#tg') + 44) + 'px';
+  $('#kpk').style.top = (EW + 10) + 'px';
+  // COMMIT ou ROLLBACK : la pile des situations, sous les deux cases
+  $('#bpack').style.top = (bottom('#db-ro') + 9 + 44) + 'px';
+  // la photo : de sa bulle dans la conversation à sa place agrandie (au centre de l’image)
+  const b = pos($('#ph1')), z = pos($('#zph'));
+  Object.assign(ZB, {x: b.x - z.x, y: b.y - z.y, s: b.w / z.w});
+}
+
+/* ---------- Petits gestes de la timeline ---------- */
+const pulse = (el, t, n = 3, c = 'rgba(201,188,255,.55)') => tl.to(el, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (el, t, s = 1.04) => tl.to(el, {scale: s, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, t);
+const shake = (el, t, x = 10) => tl.to(el, {x: -x, duration: 0.07, yoyo: true, repeat: 5, ease: 'power1.inOut'}, t);
+const on = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 1, duration: d, ease: 'power2.out'}, t);
+const off = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 0, duration: d, ease: 'power2.in'}, t);
+const GLOW = 'rgba(255,224,138,.4)';
+/* Une valeur en remplace une autre : l’ancienne monte et s’efface, la nouvelle arrive par en dessous. */
+function swap(o, n, t, sound = true){
+  tl.to(o, {autoAlpha: 0, y: -14, duration: 0.2, ease: 'power2.in'}, t);
+  tl.fromTo(n, {autoAlpha: 0, y: 14}, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power3.out', immediateRender: false}, t + 0.12);
+  if (sound) cue(t + 0.12, 'type', 0.8, 2);
+}
+/* La mention d’une modification apparaît (d’un petit rebond), ou laisse la place à une autre. */
+const mark = (sel, t) => { tl.fromTo(sel, {autoAlpha: 0, scale: 0.6, y: 0}, {autoAlpha: 1, scale: 1, y: 0, duration: 0.4, ease: 'back.out(2.4)', immediateRender: false}, t); cue(t, 'pop', 0.6, 2); };
+/* L’état de l’opération (une pastille au-dessus des tables) : il arrive d’en haut, ou s’efface. */
+const pill = (sel, t) => { tl.fromTo(sel, {autoAlpha: 0, y: -18, scale: 0.94}, {autoAlpha: 1, y: 0, scale: 1, duration: 0.45, ease: 'back.out(1.8)', immediateRender: false}, t); cue(t, 'pop', 0.7, 3); };
+const pillOff = (sel, t) => tl.to(sel, {autoAlpha: 0, y: -12, duration: 0.25, ease: 'power2.in'}, t);
+/* Une requête déjà écrite (l’opération rejouée) : elle arrive tapée, sans frappe. */
+const showTyped = (id, t) => { show('#' + id, t, {y: 40}, 0.45); cue(t, 'whoosh', 0.4, 1); };
+/* Une ligne qui apparaît (ou disparaît) en dépliant sa hauteur. */
+const rowIn = (sel, t) => { tl.fromTo(sel, {height: 0}, {height: RH, duration: 0.45, ease: 'power2.out', immediateRender: false}, t); cue(t, 'whoosh', 0.35, 2); };
+const rowOut = (sel, t) => { tl.fromTo(sel, {height: RH}, {height: 0, duration: 0.4, ease: 'power2.inOut', immediateRender: false}, t); };
+/* Frappe des lignes d’une requête (le commentaire est déjà là). Renvoie l’instant de fin. */
+function typeQuery(id, t, cps = 34){
+  const lns = $$('#' + id + ' .ln');
+  let e = t;
+  lns.forEach(ln => {
+    if (ln.classList.contains('cmt')) { e = typeChars($$('.ch', ln), e, 60) + 0.1; return; }
+    const caret = $$(':scope > .caret', ln).pop();
+    tl.set(caret, {autoAlpha: 1}, e - 0.2);
+    e = typeChars($$('.ch', ln), e, cps);
+    tl.set(caret, {autoAlpha: 0}, e + 0.1);
+    e += 0.15;
+  });
+  return e;
+}
+/* La requête s’exécute : la carte s’enfonce d’un coup, comme un bouton « Exécuter ». */
+const run = (id, t) => { tl.to('#' + id, {scale: 0.985, duration: 0.08, yoyo: true, repeat: 1, ease: 'power2.out'}, t); cue(t, 'click', 0.6); };
+/* La légende s’efface le temps d’un message, puis revient. */
+const capOff = t => tl.to('#cap', {autoAlpha: 0, y: 30, duration: 0.3, ease: 'power2.in'}, t);
+const capOn = t => tl.to('#cap', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, t);
+/* Un message arrive : un client ou le service client écrit par SMS (smsIn) ; l’app s’arrête sur la notification (OPENS) jusqu’au toucher ;
+   hors de l’app, un doigt la montre. */
+function mailIn(n, t, T){
+  if (isSms(MAILS[n - 1][2], MAILS[n - 1][6])) { if (!APP) fingerTap($('#ml' + n), T); return smsIn(n, t, T); }
+  return T;
+}
+function mailOut(n, t){ hide('#ml' + n, t, {x: 140, y: 0, rotation: 2}, 0.4, 'power2.in'); cue(t, 'whoosh', 0.4); }
+/* Un doigt montre le geste (vidéo seule) : il touche la notification, la photo ou un bouton. */
+function fingerTap(M, T, f = '#tapf', fx = 0.6, fy = 92){
+  const p = pos(M);
+  tl.set(f, {left: p.x + p.w * fx, top: p.y + fy}, T - 0.8);
+  tl.fromTo(f, {autoAlpha: 0, x: 90, y: 170}, {autoAlpha: 1, x: 0, y: 0, duration: 0.5, ease: 'power3.out', immediateRender: false}, T - 0.75);
+  tl.to(f, {scale: 0.86, duration: 0.1, ease: 'power2.in'}, T - 0.15);
+  tl.to(f, {scale: 1, duration: 0.15}, T);
+  tl.to(f, {autoAlpha: 0, y: 70, duration: 0.3}, T + 0.2);
+}
+/* La photo agrandie : au toucher (T), elle part de sa bulle et prend toute la largeur, l’image reste le temps de la regarder, puis elle
+   revient dans sa bulle. */
+function zoomPhoto(T){
+  if (!APP) fingerTap($('#ph1'), T, '#tapf', 0.55, 150);
+  tl.to('#ph1', {scale: 0.97, duration: 0.09, yoyo: true, repeat: 1, ease: 'power2.out'}, T); cue(T, 'click', 0.5);
+  tl.set('#zph', {autoAlpha: 1, x: ZB.x, y: ZB.y, scale: ZB.s}, T + 0.12);
+  tl.set('#ph1', {autoAlpha: 0}, T + 0.12);
+  tl.to('#zbg', {autoAlpha: 1, duration: 0.4, ease: 'power2.out'}, T + 0.12);
+  tl.to('#zph', {x: 0, y: 0, scale: 1, duration: 0.5, ease: 'power3.out'}, T + 0.12); cue(T + 0.12, 'whoosh', 0.45, 2);
+  hold(T + 0.7, ZOOM_HOLD);
+  tl.to('#zbg', {autoAlpha: 0, duration: 0.35, ease: 'power2.in'}, T + 0.75);
+  tl.to('#zph', {x: ZB.x, y: ZB.y, scale: ZB.s, duration: 0.45, ease: 'power3.inOut'}, T + 0.75); cue(T + 0.75, 'whoosh', 0.35, 1);
+  tl.set('#ph1', {autoAlpha: 1}, T + 1.2);
+  tl.set('#zph', {autoAlpha: 0}, T + 1.21);
+}
+/* La micro-interaction d’un bouton touché (Elisa, 25 octobre, 16 h 22). Dans l’app, le bouton s’enfonce sous le doigt dès le toucher et remonte
+   d’un rebond au relâcher (OPENS : press, rest ; le lecteur s’en charge, hors de la timeline) ; hors de l’app, le doigt appuie (press). Puis une
+   onde blanche le traverse, il gonfle un instant, son icône remue et un anneau s’en échappe. Rien que des « to » : en revenant en arrière, chaque
+   élément retrouve l’état d’avant le toucher. */
+function tapButton(id, T, lip){
+  const b = '#' + id;
+  if (APP) {
+    const rp = $(b + ' .ripple');
+    tl.to(rp, {scale: 0, opacity: 0.55, duration: 0.001}, T + 0.001).to(rp, {scale: 1, opacity: 0, duration: 0.7, ease: 'power2.out'}, T + 0.011);
+    cue(T + 0.001, 'click');
+  } else { fingerTap($(b), T, '#tapw', 0.6, 62); press($(b), T, lip, 9); }
+  tl.to(b, {scale: 1.04, duration: 0.14, ease: 'power2.out'}, T + 0.1).to(b, {scale: 1, duration: 0.32, ease: 'back.out(2)'}, T + 0.24);
+  tl.to(b + ' .emo', {rotation: -16, transformOrigin: '50% 85%', duration: 0.07, yoyo: true, repeat: 3, ease: 'sine.inOut'}, T + 0.06);
+  tl.set(b + '-r', {autoAlpha: 0.9, scale: 1}, T + 0.05);
+  tl.to(b + '-r', {autoAlpha: 0, scale: 1.16, duration: 0.6, ease: 'power2.out'}, T + 0.051);
+}
+
+/* Réponses des moments « À toi » : ce que la timeline montre juste après l’arrêt (et que l’aperçu montre pendant l’arrêt). */
+const M1_ANS = ['#hcs'];   // la case du stock, entourée
+const set2 = t => +(t + 0.02).toFixed(2);
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
+  layout();
+  gsap.set(['.sq', '.out', '.pack', '#bc', '#tp', '#tr', '#tg', '#tgo', '.bt', '#keyc', '.dbn', '#tapf', '#tapw', '#zbg', '#zph'], {autoAlpha: 0});
+  gsap.set(['#sk .a1', '.dbn .rc'], {autoAlpha: 0});
+
+  /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
+     la consigne, la légende ne la répète pas. Le passage d’attente est coupé (rien ne s’y anime). */
+  PICKS.forEach(p => cut(p.at - 1.35, 1.25));
+
+  /* ===== 1 · Un colis abîmé ===== */
+  sceneOn('#sa', 5.0);
+  show('#bc', A.r1, {y: 60}, 0.55); cue(A.r1, 'whoosh', 0.5);
+  TB.forEach(([k], q) => { const t = A.r1 + 0.3 + q * 0.15; show('#bw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q % 5); });
+  // « Au chapitre 10, tu as décidé du sort des lignes liées » : le compte supprimé (clients), l’avis conservé (avis)
+  on('#bw-cl .hl', A.r2 + 0.5, 0.2); cue(A.r2 + 0.5, 'tick', 0.5, 1);
+  on('#bw-av .hl', A.r2 + 1.1, 0.2); cue(A.r2 + 1.1, 'tick', 0.5, 3);
+  off(['#bw-cl .hl', '#bw-av .hl'], A.r2 + 2.6, 0.3);
+  // Léa Simon vient de recevoir sa commande : les clients, puis les commandes
+  on('#bw-cl .hl', A.a1 + 0.3, 0.2); cue(A.a1 + 0.3, 'tick', 0.5, 2);
+  on('#bw-cm .hl', A.a1 + 1.2, 0.2); cue(A.a1 + 1.2, 'tick', 0.5, 4);
+  // son message arrive : la légende s’efface le temps des deux messages (jamais de carte vide)
+  capOff(B.a1 - 0.2);
+  hide('#bc', B.a1 - 0.1, {y: -30}, 0.35);
+  sceneOff('#sa', B.a1 + 0.3);
+  sceneOn('#sm', B.a1 + 0.3);
+  // Léa Simon : son message et la photo du shaker cassé (agrandie au toucher), puis le service client
+  mailIn(1, MAIL1 + 0.5, OPENS[0].at);
+  zoomPhoto(PH);
+  mailOut(1, OUT1);
+  mailIn(2, MAIL2 + 0.5, OPENS[2].at);
+  const MO2 = +(MAIL2 + mailOutAt(1)).toFixed(2);
+  mailOut(2, MO2);
+  sceneOff('#sm', MO2 + 0.35);
+
+  /* ===== 2 · Deux modifications à réaliser ===== */
+  sceneOn('#sw', MO2 + 0.35);
+  capOn(A.b1 - 0.3);   // juste avant la légende suivante
+  // retirer un shaker du stock, puis enregistrer son remplacement : les deux tables arrivent avec la phrase
+  show('#tp', A.b1 + 1.4, {y: 50}, 0.5); cue(A.b1 + 1.4, 'whoosh', 0.5);
+  show('#tr', A.b1 + 3.0, {y: 50}, 0.5); cue(A.b1 + 3.0, 'whoosh', 0.45, 1);
+  // ces deux modifications doivent réussir ensemble
+  bump(['#tp', '#tr'], A.b2 + 0.9, 1.02); cue(A.b2 + 0.9, 'tick', 0.5, 2);
+  // le shaker est le produit 8 : sa ligne ; il en reste 30
+  on('#rtp .hl', A.b3 + 0.5, 0.25); cue(A.b3 + 0.5, 'tick', 0.5, 2);
+  pulse('#rtp .c2', A.b4 + 0.5, 1, GLOW); cue(A.b4 + 0.5, 'tick', 0.5, 3);
+  off('#rtp .hl', B.b4 - 0.3, 0.3);
+  // l’équipe logistique a ajouté la table remplacements : la carte, puis sa pastille « nouvelle table »
+  bump('#tr', A.b5 + 0.9, 1.02); cue(A.b5 + 0.9, 'tick', 0.5, 2);
+  bump('#tr .h .bn', A.b5 + 1.8, 1.1); cue(A.b5 + 1.8, 'pop', 0.6, 4);
+  // ce qu’elle contient : les produits à renvoyer, les clients ; puis la quantité et la personnalisation de chaque remplacement
+  [['c2', 'b6', 1.6], ['c1', 'b6', 2.8], ['c3', 'b6b', 1.0], ['c4', 'b6b', 2.0]].forEach(([c, k, d], q) => { pulse(`#tr .hd .${c}`, A[k] + d, 1, GLOW); cue(A[k] + d, 'tick', 0.5, q + 1); });
+  // aucun remplacement pour Léa Simon : la ligne vide
+  pulse('#rtr0', A.b7 + 0.6, 1, GLOW); cue(A.b7 + 0.6, 'tick', 0.5, 3);
+
+  /* ===== 3 · Ce qui peut mal se passer ===== */
+  // première tentative, chaque modification enregistrée séparément : la requête du stock
+  show('#eu1', A.c1 + 0.3, {y: 40}, 0.5); cue(A.c1 + 0.3, 'whoosh', 0.45, 1);
+  typeQuery('eu1', A.c1 + 0.9);
+  // l’UPDATE : 30 devient 29, enregistré aussitôt
+  run('eu1', A.c2 + 0.3);
+  swap('#sk .a0', '#sk .a1', A.c2 + 0.7);
+  mark('#bs .st2', A.c2 + 1.1);
+  show('#o-u1', A.c2 + 1.3, {y: 20}, 0.4); cue(A.c2 + 1.3, 'chord', 0.5);
+  // puis l’enregistrement du remplacement échoue : la requête, sans le prénom ; le refus
+  hide(['#eu1', '#o-u1'], A.c3 - 0.05, {y: -30}, 0.35);
+  show('#ei1', A.c3 + 0.35, {y: 40}, 0.5); cue(A.c3 + 0.35, 'whoosh', 0.45, 2);
+  const c3 = typeQuery('ei1', A.c3 + 0.8, 50);
+  run('ei1', c3 + 0.1);
+  show('#o-i1', c3 + 0.35, {y: 20}, 0.4); cue(c3 + 0.35, 'miss', 0.45);
+  shake('#o-i1', c3 + 0.75, 9);
+  // le prénom à imprimer n’a pas été indiqué : la colonne personnalisation, puis la liste des colonnes de la requête
+  pulse('#tr .hd .c4', A.c4 + 0.4, 1, 'rgba(239,79,85,.22)'); cue(A.c4 + 0.4, 'tick', 0.5, 4);
+  pulse('#ei1-2', A.c4 + 1.5, 1, 'rgba(255,224,138,.22)');
+  // le stock a diminué, mais aucun remplacement : l’état de l’opération, et les deux lignes en alerte
+  pill('#tx .t0', A.c5 + 0.3);
+  on('#rtp .wn', A.c5 + 1.0, 0.3); cue(A.c5 + 1.0, 'miss', 0.35);
+  on('#rtr0 .wn', A.c5 + 2.0, 0.3);
+  hide(['#ei1', '#o-i1'], B.c5 - 0.15, {y: -30}, 0.35);
+  // la base ne reflète qu’une partie de l’opération
+  bump('#tx .t0', A.c6 + 0.8, 1.05); cue(A.c6 + 0.8, 'tick', 0.5, 2);
+  // À toi : la valeur qui ne correspond plus à la réalité (réponse : la case du stock, entourée)
+  tl.set(M1_ANS, {autoAlpha: 1}, set2(PICKS[0].at));
+  // le stock compte un shaker de moins, alors qu’aucun colis ne part
+  pulse('#rtp .c2', A.c7 + 0.6, 1, 'rgba(242,154,46,.3)'); cue(A.c7 + 0.6, 'tick', 0.5, 3);
+  off(M1_ANS, B.c7 - 0.3, 0.3);
+  // l’élève clique sur le bouton « Comment éviter ça ? » (l’app s’arrête dessus, OPENS ; hors de l’app, un doigt le montre)
+  show('#bhow', A.c8 + 0.3, {y: 30, scale: 0.94}, 0.5, 'back.out(1.7)'); cue(A.c8 + 0.3, 'pop', 0.7, 1);
+  tapButton('bhow', HOW, '#4B30CC');
+  hide('#bhow', HOW + 0.75, {y: 20, scale: 0.96}, 0.35);
+
+  /* ===== 4 · Démarrer une transaction ===== */
+  // une transaction regroupe plusieurs modifications : les deux modifications, dans un même cadre
+  show('#tg', A.e1 + 0.3, {y: 40, scale: 0.96}, 0.5, 'back.out(1.5)'); cue(A.e1 + 0.3, 'whoosh', 0.45, 1);
+  [['#tg1', 1.0], ['#tg2', 1.6]].forEach(([s, d], q) => { show(s, A.e1 + d, {y: 20, scale: 0.8}, 0.4, 'back.out(2.2)'); cue(A.e1 + d, 'pop', 0.6, q * 2 + 1); });
+  // tu peux les valider toutes ensemble, ou les annuler pour retrouver la situation de départ
+  tl.set('#tgo', {autoAlpha: 1}, A.e2 + 1.1);
+  show('#tgv', A.e2 + 1.2, {y: 20, scale: 0.85}, 0.4, 'back.out(2)'); cue(A.e2 + 1.2, 'pop', 0.7, 2);
+  bump('#tg', A.e2 + 1.7, 1.02);
+  show('#tga', A.e2 + 2.8, {y: 20, scale: 0.85}, 0.4, 'back.out(2)'); cue(A.e2 + 2.8, 'pop', 0.7, 4);
+  // on repart de la situation de départ : 30 shakers, aucun remplacement
+  hide(['#tg', '#tgo'], A.e3 - 0.05, {y: -30}, 0.35);
+  pillOff('#tx .t0', A.e3 + 0.4);
+  off(['#rtp .wn', '#rtr0 .wn'], A.e3 + 0.4, 0.3);
+  swap('#sk .a1', '#sk .a0', A.e3 + 1.0);
+  tl.to('#bs .st2', {autoAlpha: 0, scale: 0.6, duration: 0.25, ease: 'power2.in'}, A.e3 + 1.0);
+  pulse('#rtr0', A.e3 + 2.0, 1, GLOW); cue(A.e3 + 2.0, 'tick', 0.5, 2);
+  // BEGIN TRANSACTION démarre la transaction : la requête, puis la pastille « Transaction en cours »
+  show('#eb2', A.e4 + 0.2, {y: 40}, 0.5); cue(A.e4 + 0.2, 'whoosh', 0.45, 1);
+  const e4 = typeQuery('eb2', A.e4 + 0.7);
+  run('eb2', e4 + 0.1);
+  pill('#tx .t1', e4 + 0.35);
+  // les modifications qui suivent ne seront définitives qu’après leur validation
+  bump('#tx .t1', A.e5 + 1.2, 1.05); cue(A.e5 + 1.2, 'tick', 0.5, 3);
+
+  /* ===== 5 · Effectuer les modifications ===== */
+  // l’UPDATE retire un shaker du stock : 30 devient 29, non validé
+  hide('#eb2', A.f1 - 0.05, {y: -30}, 0.35);
+  show('#eu2', A.f1 + 0.3, {y: 40}, 0.5); cue(A.f1 + 0.3, 'whoosh', 0.45, 1);
+  const f1 = typeQuery('eu2', A.f1 + 0.7);
+  run('eu2', f1 + 0.1);
+  swap('#sk .a0', '#sk .a1', f1 + 0.35);
+  mark('#bs .st0', f1 + 0.75);
+  // le stock passe à 29, mais il n’est pas encore validé
+  bump('#bs', A.f2 + 1.6, 1.12); cue(A.f2 + 1.6, 'tick', 0.5, 3);
+  hide('#eu2', B.f2 - 0.15, {y: -30}, 0.35);
+  // INSERT INTO enregistre le remplacement, avec le prénom à imprimer
+  show('#ei2', A.f3 + 0.3, {y: 40}, 0.5); cue(A.f3 + 0.3, 'whoosh', 0.45, 2);
+  const f3 = typeQuery('ei2', A.f3 + 0.7, 50);
+  pulse('#vl', f3 + 0.05, 1, GLOW); cue(f3 + 0.05, 'tick', 0.5, 4);
+  // Léa Simon a l’identifiant 7, et le shaker l’identifiant 8
+  pulse('#v7', A.f4 + 0.5, 1, GLOW); cue(A.f4 + 0.5, 'tick', 0.5, 2);
+  pulse('#v8', A.f4 + 1.9, 1, GLOW); cue(A.f4 + 1.9, 'tick', 0.5, 3);
+  pulse('#rtp .c0', A.f4 + 1.9, 1, GLOW);
+  // le nouveau remplacement a l’identifiant 1
+  pulse('#v1', A.f5 + 0.6, 1, GLOW); cue(A.f5 + 0.6, 'tick', 0.5, 1);
+  // une nouvelle ligne apparaît dans la table remplacements, non validée elle aussi
+  run('ei2', A.f6 + 0.2);
+  rowOut('#rtr0', A.f6 + 0.5);
+  rowIn('#rtr1', A.f6 + 0.55);
+  mark('#br .st0', A.f6 + 1.2);
+  pulse('#rtr1', A.f6 + 1.8, 1, GLOW);
+  bump('#br', A.f7 + 0.9, 1.12); cue(A.f7 + 0.9, 'tick', 0.5, 4);
+  hide('#ei2', B.f7 - 0.15, {y: -30}, 0.35);
+
+  /* ===== 6 · Valider avec COMMIT ===== */
+  // les deux modifications ont réussi : leurs deux mentions « Non validé »
+  bump(['#bs', '#br'], A.g1 + 0.7, 1.12); cue(A.g1 + 0.7, 'tick', 0.5, 2);
+  // utilise COMMIT : la requête, puis le bouton « Valider les modifications » (l’app s’arrête dessus, OPENS)
+  show('#ec2', A.g2 + 0.2, {y: 40}, 0.5); cue(A.g2 + 0.2, 'whoosh', 0.45, 1);
+  typeQuery('ec2', A.g2 + 0.6);
+  show('#bcom', A.g2 + 1.5, {y: 30, scale: 0.94}, 0.5, 'back.out(1.7)'); cue(A.g2 + 1.5, 'pop', 0.7, 2);
+  tapButton('bcom', COM, '#157A49');
+  // COMMIT : les deux modifications deviennent définitives, la transaction est validée
+  run('ec2', COM + 0.15);
+  swap('#bs .st0', '#bs .st1', COM + 0.45, false); cue(COM + 0.57, 'pop', 0.6, 3);
+  swap('#br .st0', '#br .st1', COM + 0.6, false); cue(COM + 0.72, 'pop', 0.6, 5);
+  pillOff('#tx .t1', COM + 0.85); pill('#tx .t2', COM + 0.95); cue(COM + 0.95, 'chord', 0.6);
+  // les deux modifications sont validées
+  bump(['#bs', '#br'], A.g3 + 0.6, 1.12); cue(A.g3 + 0.6, 'tick', 0.5, 3);
+  // le stock contient 29 shakers, et le remplacement de Léa Simon est enregistré
+  pulse('#rtp .c2', A.g4 + 1.0, 1, 'rgba(52,194,122,.25)'); cue(A.g4 + 1.0, 'tick', 0.5, 2);
+  pulse('#rtr1', A.g4 + 2.6, 1, 'rgba(52,194,122,.25)'); cue(A.g4 + 2.6, 'tick', 0.5, 4);
+  // l’équipe logistique peut préparer le colis : la requête et le bouton s’en vont, le colis arrive
+  hide(['#ec2', '#bcom'], A.g5 - 0.05, {y: -30}, 0.35);
+  show('#kpk', A.g5 + 0.4, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)'); cue(A.g5 + 0.4, 'whoosh', 0.5, 2);
+  tl.to('#kpk .emo', {x: 14, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.g5 + 1.0);
+
+  /* ===== 7 · Et si le remplacement échoue ? ===== */
+  // rejouons depuis la situation de départ : le colis s’en va, 30 shakers, aucun remplacement
+  hide('#kpk', A.h1 + 0.1, {y: -30}, 0.35);
+  pillOff('#tx .t2', A.h1 + 0.4);
+  tl.to(['#bs .st1', '#br .st1'], {autoAlpha: 0, scale: 0.6, duration: 0.25, ease: 'power2.in'}, A.h1 + 0.6);
+  swap('#sk .a1', '#sk .a0', A.h1 + 1.0);
+  rowOut('#rtr1', A.h1 + 1.3);
+  rowIn('#rtr0', A.h1 + 1.35);
+  // la transaction démarre, et le stock passe à 29 : l’opération est rejouée, ses requêtes arrivent déjà écrites
+  showTyped('eb3', A.h2 + 0.1);
+  run('eb3', A.h2 + 0.7);
+  pill('#tx .t1', A.h2 + 0.95);
+  hide('#eb3', A.h2 + 1.6, {y: -30}, 0.3);
+  showTyped('eu3', A.h2 + 1.85);
+  run('eu3', A.h2 + 2.5);
+  swap('#sk .a0', '#sk .a1', A.h2 + 2.75);
+  mark('#bs .st0', A.h2 + 3.1);
+  // mais l’enregistrement du remplacement échoue : la requête sans le prénom, puis le refus
+  hide('#eu3', A.h3 - 0.05, {y: -30}, 0.3);
+  showTyped('ei3', A.h3 + 0.25);
+  run('ei3', A.h3 + 0.95);
+  show('#o-i3', A.h3 + 1.2, {y: 20}, 0.4); cue(A.h3 + 1.2, 'miss', 0.45);
+  shake('#o-i3', A.h3 + 1.6, 9);
+  // le remplacement n’a pas été enregistré : la ligne vide
+  pulse('#rtr0', A.h4 + 0.5, 1, 'rgba(239,79,85,.18)'); cue(A.h4 + 0.5, 'tick', 0.5, 2);
+  hide(['#ei3', '#o-i3'], B.h4 - 0.15, {y: -30}, 0.35);
+  // utilise ROLLBACK : la requête, puis le bouton « Annuler les modifications » (l’app s’arrête dessus, OPENS)
+  show('#er3', A.h5 + 0.2, {y: 40}, 0.5); cue(A.h5 + 0.2, 'whoosh', 0.45, 1);
+  typeQuery('er3', A.h5 + 0.6);
+  show('#brol', A.h5 + 1.5, {y: 30, scale: 0.94}, 0.5, 'back.out(1.7)'); cue(A.h5 + 1.5, 'pop', 0.7, 2);
+  tapButton('brol', ROL, '#A92A31');
+  // ROLLBACK : la modification du stock est annulée, la transaction aussi
+  run('er3', ROL + 0.15);
+  swap('#sk .a1', '#sk .a0', ROL + 0.45);
+  tl.to('#bs .st0', {autoAlpha: 0, scale: 0.6, duration: 0.25, ease: 'power2.in'}, ROL + 0.45);
+  pillOff('#tx .t1', ROL + 0.85); pill('#tx .t3', ROL + 0.95);
+  // le stock revient à 30, et aucun remplacement n’est enregistré
+  pulse('#rtp .c2', A.h6 + 0.6, 1, GLOW); cue(A.h6 + 0.6, 'tick', 0.5, 2);
+  pulse('#rtr0', A.h6 + 2.2, 1, GLOW); cue(A.h6 + 2.2, 'tick', 0.5, 4);
+  hide(['#er3', '#brol'], B.h6 - 0.15, {y: -30}, 0.35);
+  // la demande de Léa Simon reste à traiter
+  bump('#tx .t3', A.h7 + 0.8, 1.04); cue(A.h7 + 0.8, 'tick', 0.5, 3);
+
+  /* ===== 8 · COMMIT ou ROLLBACK ? ===== */
+  hide(['#tp', '#tr'], B.h7 - 0.1, {y: -30}, 0.35);
+  pillOff('#tx .t3', B.h7 - 0.1);
+  sceneOff('#sw', B.h7 + 0.35);
+  sceneOn('#sd', B.h7 + 0.35);
+  [['#db-co', 0], ['#db-ro', 2]].forEach(([id, p], q) => { const t = A.i1 + 0.4 + q * 0.5; show(id, t, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(t, 'pop', 0.6, p); });
+  show('#bpack', A.i1 + 1.6, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.i1 + 1.6, 'pop', 0.7, 1);
+  // À toi : les six situations rangées ; remplies, les cases ne sont plus des zones où déposer, et la pile est vide
+  tl.set('.dbn .rc', {autoAlpha: 1}, set2(PICKS[5].at));
+  tl.set('.dbn', {borderStyle: 'solid'}, set2(PICKS[5].at));
+  tl.set('#bpack', {autoAlpha: 0}, set2(PICKS[5].at));
+  // COMMIT valide toutes les modifications ; ROLLBACK annule toutes celles qui ne sont pas encore validées
+  bump('#db-co', A.i2 + 0.6, 1.03); cue(A.i2 + 0.6, 'tick', 0.5, 2);
+  bump('#db-ro', A.i3 + 0.6, 1.03); cue(A.i3 + 0.6, 'tick', 0.5, 4);
+  // après COMMIT, plus de ROLLBACK pour annuler cette transaction
+  bump('#db-co', A.i4 + 0.5, 1.03); cue(A.i4 + 0.5, 'tick', 0.5, 2);
+  shake('#db-ro', A.i4 + 1.9, 8); cue(A.i4 + 1.9, 'miss', 0.4);
+  hide('.dbn', B.i4 - 0.1, {y: -40}, 0.4);
+  // la suite : la prochaine leçon
+  sceneOff('#sd', A.i5 + 0.3);
+  sceneOn('#sn', A.i5);
+  show('#keyc', A.i5 + 0.1, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)'); cue(A.i5 + 0.1, 'whoosh', 0.6);
+  tl.to('#keyc .emo', {rotation: -18, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.i5 + 0.7);
+  hide('#keyc', B.i5 - 0.1, {y: -30}, 0.4);
+  sceneOff('#sn', RECAP);
+
+  /* ===== 9 · À retenir ===== */
+  // chaque idée : sa phrase, puis son détail
+  recapScene(RECAP, [RECAP + 0.7, RECAP + 2.1, RECAP + 3.5]);
+  const rt = $$('#s7 .rtxt'), rs = $$('#s7 .rs'), rd = (h, n = 20) => Math.ceil(readTime(h) * n) / n;
+  gsap.set(rs, {autoAlpha: 0, y: 10});
+  [[RECAP + 0.7, RECAP + 1.45], [RECAP + 2.1, RECAP + 2.85], [RECAP + 3.5, RECAP + 4.25]].forEach(([r, d], i) => {
+    tl.to(rs[i], {autoAlpha: 1, y: 0, duration: 0.45, ease: 'power2.out'}, d);
+    cue(d, 'tick', 0.5, i * 2 + 1);
+    hold(r + 0.6, rd(rt[i].innerHTML.split('<span')[0]));
+    hold(d + 0.5, rd(rs[i].innerHTML));
+  });
+  if (APP) cue(NOTES + 0.05, 'pop', 0.85, 5);
+}
+
+/* ---------- Moments « À toi » : ce que montre chaque geste ----------
+   Le lecteur arrête l’image à chaque moment (PICKS) et pose ses zones tactiles sur les endroits que la page décrit
+   (IX.spots). Chaque geste est jugé ici (IX.act, IX.pick) et montré aussitôt sur l’image : les bons gestes affichent
+   les mêmes éléments que la timeline juste après l’arrêt (classe pvs, sans toucher aux styles de la timeline) ;
+   ils restent jusqu’à ce que la timeline affiche la même image (IX.tick), puis s’effacent : la reprise est invisible. */
+const IX = (() => {
+  let X = null, wait = -1;
+  function start(i){ if (!X || X.i !== i) { clear(); X = {i, cls: [], tm: [], got: new Set()}; } }
+  function clear(){
+    if (!X) return;
+    X.tm.forEach(clearTimeout);
+    X.cls.forEach(([e, c]) => e.classList.remove(c));
+    X = null; wait = -1;
+  }
+  const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
+  const marks = (sels, c = 'pvs') => sels.forEach(s => $$(s).forEach(e => mark(e, c)));
+  /* La classe est aussi notée dans X.cls : si le moment change avant la fin du minuteur (deux réponses enchaînées), clear() la retire. */
+  const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
+  /* Moment 1 : les trois cases du shaker, et la ligne vide de la table remplacements */
+  const CELLS = [['c0', 'Identifiant du shaker'], ['c1', 'Nom du produit'], ['c2', 'Stock du shaker']];
+  const cellOf = k => k === 'ph' ? $('#rtr0') : $(`#rtp .${k}`);
+  function spots(i){
+    if (i === 0) return CELLS.map(([k, label]) => Object.assign({k, label}, rel(cellOf(k))))
+      .concat([Object.assign({k: 'ph', label: 'Remplacement de Léa Simon'}, rel(cellOf('ph')))]);
+    // moment 6 : COMMIT ou ROLLBACK
+    if (i === 5) return BINS.map(([k, n, d]) => Object.assign({k, label: `${n} : ${d}`}, rel($('#db-' + k))));
+    return [];
+  }
+  function act(i, a, b){
+    start(i);
+    if (i === 0) {
+      // le stock : 29, alors qu’aucun shaker n’est parti
+      if (a === 'c2') {
+        if (!X.got.has(a)) { X.got.add(a); marks(M1_ANS); sfx('tick', 1, 0.6); }
+        return {ok: true, done: true, why: '', at: rel(cellOf('c2'))};
+      }
+      // une autre case : elle rougit un instant, et la correction dit pourquoi
+      if (a === 'ph') flash(cellOf('ph'), 'kor', 600); else flash(cellOf(a), 'kof', 650);
+      return {ok: false, why: fr(WHY1[a])};
+    }
+    if (i === 5) {
+      const n = +a, bin = $('#db-' + b);
+      if (ITEMS[n][1] === b) {
+        mark($('#sbu' + n), 'pvs');
+        flash(bin, 'okb', 520);
+        X.got.add(n);
+        sfx('pop', X.got.size, 0.6);
+        if (X.got.size === ITEMS.length) marks(['#bpack'], 'pvh');   // la pile est vide, comme juste après l’arrêt
+        return {ok: true, done: X.got.size === ITEMS.length, why: '', at: rel(bin)};
+      }
+      flash(bin, 'kob', 650);
+      return {ok: false, why: fr(ITEMS[n][2])};
+    }
+    return {ok: false};
+  }
+  /* Choix d’une réponse (moments 2 à 5) : le verdict et son explication. */
+  function pick(i, k){
+    clear(); start(i);
+    const P = PICKS[i], o = P.options[k], ok = !!o.ok;
+    sfx(ok ? 'pop' : 'miss', 2, 0.5);
+    return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));
+  }
+  /* Indice, après deux erreurs : une piste. */
+  function hint(i){
+    const h = (() => {
+      if (i === 0) return {text: 'Aucun shaker n’est parti : cherche la valeur qui a changé quand même.', keys: ['c2']};
+      if (i === 1) return {text: 'Une modification qui n’est pas encore validée n’est jamais définitive.'};
+      if (i === 2) return {text: 'Il faut la commande qui termine la transaction en gardant ses modifications.'};
+      if (i === 3) return {text: 'Le stock a déjà changé : il faut annuler toutes les modifications de la transaction.'};
+      if (i === 4) return {text: 'Regarde la <b>table remplacements</b> : y a-t-il un remplacement pour Léa Simon ?'};
+      return null;
+    })();
+    return h && Object.assign(h, {text: fr(h.text)});
+  }
+  return {
+    enter: i => { clear(); start(i); },
+    spots, act, pick, hint,
+    slot: () => null,
+    /* Moment réussi : l’aperçu reste jusqu’à ce que la timeline affiche la même image ; sinon il part tout de suite. */
+    leave(i, answered){ if (answered && X && X.i === i) wait = i; else clear(); },
+    tick(t = tl.time()){ if (wait < 0) return; const a = PICKS[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear(); }
+  };
+})();
+window.IX = IX;
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 242.15, picks: PICKS, opens: OPENS,
+  glyphs: '🗄️👥🛒⭐📦🧑‍🏫📅📝💳💬🔁🔑🔗⚠️⏳✅↩️💡👆🧺🚚📬🔖🚦✓✕!…«»·−',
+  dom, build, beforeRender: t => IX.tick(t)});
+</script>
+</body>
+</html>
