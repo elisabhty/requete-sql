@@ -48,7 +48,7 @@ export const CLIENTS = [...INSERT_CLIENTS.matchAll(/\(\d+,'([^']+)','([^']+)'/g)
 /* Les coachs et le développeur ne sont pas des clients : « Karim », « Moussa » seuls sont permis. */
 export const EQUIPE = ['Karim', 'Moussa', 'Salma', 'Julie', 'Diego'];
 export const ATELIERS = ['Récupération', 'Pilates', 'Cuisine saine', 'Méditation', 'Yoga du matin'];
-export const TABLES = ['clients', 'commandes', 'produits', 'fidelite', 'coachs', 'ateliers', 'inscriptions', 'cartes', 'avis', 'remplacements', 'inscriptions_excel'];
+export const TABLES = ['clients', 'commandes', 'produits', 'fidelite', 'coachs', 'ateliers', 'inscriptions', 'cartes', 'avis', 'remplacements', 'cadeaux', 'inscriptions_excel'];
 
 /* ---------- Les listes de mots du moteur (assets/anim/core.js) : les mêmes que celles qui évitent les coupes à l’affichage ---------- */
 const core = lire(path.join(ANIM, 'core.js'));
@@ -595,7 +595,11 @@ export const EXCEPTIONS = [
     raison: 'Mots d’Elisa (25 octobre, 12 h 51) : « SET NULL modifie le lien dans la base de données » (légende et correction du moment 5).'},
   /* La trame d’Elisa pour le chapitre 11 (25 octobre, 17 h 05) : la cliente écrit elle-même, avec la photo de son shaker cassé */
   {regle: 'service-client-relaie', page: 'projet-transaction', contient: 'Je viens de recevoir ma commande',
-    raison: 'Trame d’Elisa (25 octobre, 17 h 05, « Cours 1 — TRANSACTION ») : « La conversation avec Léa s’ouvre et son message s’affiche », sa photo dessous ; le service client écrit ensuite ce qu’il faut faire.'}
+    raison: 'Trame d’Elisa (25 octobre, 17 h 05, « Cours 1 — TRANSACTION ») : « La conversation avec Léa s’ouvre et son message s’affiche », sa photo dessous ; le service client écrit ensuite ce qu’il faut faire.'},
+  {regle: 'client', page: 'projet-savepoint', contient: 'Je viens d’avoir Léa',
+    raison: 'Mots d’Elisa (25 octobre, 17 h 05, « Cours 2 — SAVEPOINT ») : le SMS du service client, « Je viens d’avoir Léa : elle nous remercie… », comme celui du chapitre 9 ; les légendes nomment Léa Simon en entier.'},
+  {regle: 'client', page: 'projet-savepoint', contient: '1 shaker rose personnalisé',
+    raison: 'Mots d’Elisa (même trame) : le récapitulatif du colis, « 1 shaker rose personnalisé « Léa » » ; « Léa » est le prénom imprimé sur le shaker, pas une façon de nommer la cliente.'}
 ];
 
 /* ---------- La dette : ce qui reste à reprendre dans les anciens cours ---------- */
@@ -656,7 +660,6 @@ export const DETTE = {
     47: {relation: 1},   // Sous-requête dans SELECT
     55: {relation: 1},   // EXISTS et NOT EXISTS
     74: {identifiant: 2},   // Fonctions de rang
-    63: {'sans-personnification': 1},   // SAVEPOINT
     70: {client: 1},   // Les triggers
     71: {'sans-personnification': 1},   // Concurrence et isolation
     64: {'sans-personnification': 1},   // CREATE VIEW

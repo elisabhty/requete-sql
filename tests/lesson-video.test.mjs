@@ -1081,6 +1081,18 @@ const COURSES = [
       "{at: atp('p1'), from: A.c1, kind: 'tap', need: 1,", "{at: atp('p2'), from: A.f1, kind: 'pick', text: true,", "{label: '30 : la valeur de départ', ok: true,",
       "{label: 'COMMIT', ok: true,", "{label: 'Annuler avec ROLLBACK', ok: true,", "{label: 'Non, le remplacement reste à enregistrer', ok: true,", "{at: atp('p6'), from: A.i1, kind: 'sort',",
       "w += out('o-i1', 'err', 'Remplacement non enregistré', 'NOT NULL constraint failed:<br>remplacements.personnalisation', 'm', true);", 'Prochaine leçon · SAVEPOINT']},
+  {id: 63, next: 70, titre: 'SAVEPOINT', page: 'projet-savepoint.html', thumb: 'projet-savepoint-thumb.webp', duree: '3 min 52', notesAt: 199.71,
+    notes: /notes:\{t:225\.2,y:1184,card:\[64,292,1016,889\],to:\[940,255\]\}/, table: 'cadeaux',
+    bubble: 'Léa Simon change d’avis&nbsp;:<br>à toi d’annuler<br>seulement le cadeau !',
+    chapters: ['Un petit geste pour Léa', 'Pouvoir revenir en arrière', 'Ajouter le cadeau', 'Léa ne souhaite pas de tisane', 'Observer ce qui est annulé', 'Valider ce qui reste',
+      'Quelle commande choisir ?', 'À retenir'],
+    traps: ["const SHAKER = {id: 8, nom: 'Shaker Inox', stock: 30}, TISANE = {id: 5, nom: 'Tisane Détox', stock: 60}, LEA = 7, REMPLACEMENT = 1, CADEAU = 1;",
+      "const BINS = [['rt', 'ROLLBACK TO SAVEPOINT', 'annule après le repère'], ['rb', 'ROLLBACK', 'annule toute la transaction'], ['co', 'COMMIT', 'valide ce qui reste']];",
+      // Les six moments : comment annuler seulement le cadeau, les deux modifications d’après le repère, ce qui est validé, la commande qui annule
+      // seulement le cadeau, l’état de la transaction après le retour au savepoint, les six situations à ranger
+      "{at: atp('p1'), from: A.a6, kind: 'pick', text: true,", "{label: 'Avec un point de retour posé avant le cadeau', ok: true,", "{at: atp('p2'), from: A.c4, kind: 'tap', need: 2,",
+      "{label: 'Aucune : rien n’est validé avant COMMIT', ok: true,", "{label: 'ROLLBACK TO SAVEPOINT avant_cadeau', ok: true,", "{label: 'Elle est toujours en cours', ok: true,",
+      "{at: atp('p6'), from: A.g1, kind: 'sort',", "const Q_RT = [['-- Revenir au point de retour'], ['ROLLBACK TO SAVEPOINT avant_cadeau;']]", 'Prochaine leçon · Les triggers']},
 ];
 
 for (const c of COURSES) {
@@ -1563,7 +1575,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
     && D.CAPTIONS[iq + 1][0] <= 12.6 && D.CAPTIONS[iq + 1][1] >= 14.3 && D.CAPTIONS[iq + 2][2] === 'Pour le savoir, il faut relier les tables grâce à des <b>clés</b>.'
     && page.includes("pop('#ms1', 14.0, 0.5); pop('#ms2', 14.3, 0.5);"), 'la question du 4 septembre, pendant que la ligne s’allume et que « ? client » et « ? atelier » apparaissent');
   /* Une seule façon de nommer la table d’une relation N ↔ N, dans les trois chapitres. */
-  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html', 'projet-transaction.html'])
+  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html', 'projet-transaction.html', 'projet-savepoint.html'])
     assert.ok(!fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8').includes('table de jointure'), `${f} : « table d’association », jamais « table de jointure »`);
   assert.ok(caps.includes('Une <b>table d’association</b>'), 'le chapitre 2 la nomme comme le chapitre 3');
   /* La clé étrangère : sa définition, puis à quoi elle sert, sur l’exemple entouré (inscription 1, client_id 1, Sophie Martin). */
@@ -2752,7 +2764,7 @@ test('Quel JOIN choisir ? : chaque étiquette montre le résultat de SQLite (ord
 });
 
 test('deux réponses enchaînées aux moments « À toi » : la pastille rouge du mauvais geste ne reste pas, clear() retire la classe de flash() sans attendre le minuteur', () => {
-  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html', 'projet-transaction.html']) {
+  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html', 'projet-transaction.html', 'projet-savepoint.html']) {
     const src = fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8');
     const clearSrc = src.match(/function clear\(\)\{\n[\s\S]*?\n  \}/)?.[0], flashSrc = src.match(/const flash = \(e, c, ms = 600\) => \{[^\n]*\};/)?.[0];
     assert.ok(clearSrc && flashSrc, `${f} : clear() et flash() trouvés`);
