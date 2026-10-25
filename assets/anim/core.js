@@ -78,7 +78,7 @@ function fr(h){
   return out.map(p => p.t).join('');
 }
 /* Même typographie pour les textes écrits directement dans la page (bulle, récapitulatif, cartes…), hors code. */
-const NO_FR = 'code, .ic, .code, .mini, .codepill, .lk, .colchip, .th, .tr, .mt, .chips, .cnt, .emo, #cap, .sms-np';
+const NO_FR = 'code, .ic, .code, .mini, .codepill, .lk, .colchip, .th, .tr, .mt, .chips, .cnt, .emo, #cap';
 function frDom(root){
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), nodes = [];
   while (walker.nextNode()) nodes.push(walker.currentNode);
@@ -252,10 +252,10 @@ const smsTime = (name, nth = 0) => {
 };
 /* Le rang du SMS n parmi ceux du même expéditeur dans la liste des messages de la page (0 pour le premier). */
 const smsRank = (list, n) => list.slice(0, n).filter(m => m[0][0] === list[n][0][0] && m[0][1] === list[n][0][1] && isSms(m[2], m[6])).length;
-/* Les bulles : « Bonjour, », une bulle par phrase de la demande, « Merci ! ». Pas de signature : le nom est en haut de la conversation. */
-function smsParts(body){
+/* Les bulles : « Bonjour, » (ou la formule de la page : hello, comme « Bonjour ! »), une bulle par phrase de la demande, « Merci ! ». Pas de signature : le nom est en haut de la conversation. */
+function smsParts(body, hello = 'Bonjour,'){
   const sentences = [].concat(body).flatMap(p => String(p).split(/(?<=[.!?])\s+(?=[A-ZÀÂÉÈÊÎÔÛÇ])/));
-  return ['Bonjour,', ...sentences, 'Merci !'];
+  return [hello, ...sentences, 'Merci !'];
 }
 const SMS_ICO = {
   bubble: '<svg viewBox="0 0 24 24"><path fill="#fff" d="M12 3C6.5 3 2 6.6 2 11c0 2.5 1.3 4.7 3.4 6.1L4.4 21l4.3-2.3c1.1.3 2.2.5 3.3.5 5.5 0 10-3.6 10-8.2S17.5 3 12 3z"/></svg>',
@@ -265,14 +265,15 @@ const SMS_ICO = {
   mic: '<svg viewBox="0 0 34 44"><rect x="10" y="2" width="14" height="26" rx="7" fill="#8A8A8E"/><path d="M4 21c0 8 5 13 13 13s13-5 13-13M17 34v8" fill="none" stroke="#8A8A8E" stroke-width="3.6" stroke-linecap="round"/></svg>'
 };
 /* La carte d’un SMS (#ml + id, comme un mail) : la bannière de notification, et la conversation qui s’ouvre à sa place.
-   cmp : version compacte (sans date ni barre de saisie), là où la place manque ; nth : rang parmi les SMS du même expéditeur (smsRank). */
-function smsCard(id, k, first, last, ini, body, cmp = false, nth = 0){
-  const parts = smsParts(body), name = first + ' ' + last;
+   cmp : version compacte (sans date ni barre de saisie), là où la place manque ; nth : rang parmi les SMS du même expéditeur (smsRank) ;
+   hello : la première bulle, quand la page ne veut pas « Bonjour, » (8e élément du message : {sms: true, hello: 'Bonjour !'}). */
+function smsCard(id, k, first, last, ini, body, cmp = false, nth = 0, hello){
+  const parts = smsParts(body, hello), name = first + ' ' + last;
   const bubbles = parts.map((p, j) => `<p class="sms-m${j === parts.length - 1 ? ' last' : ''}">${p}</p>`).join('');
   const date = cmp ? '' : `<div class="sms-d">Message texte · SMS<br><b>Aujourd’hui</b> ${smsTime(name, nth)}</div>`;
   const bar = cmp ? '' : `<div class="sms-i"><i class="sms-pl">${SMS_ICO.plus}</i><div class="sms-in">Message texte · SMS${SMS_ICO.mic}</div></div>`;
   return `<div class="abs ml sms${cmp ? ' cmp' : ''} ${k}" id="ml${id}">` +
-    `<div class="card sms-n"><i class="sms-ic">${SMS_ICO.bubble}</i><div class="sms-nt"><div class="sms-nr"><b>${name}</b><span>maintenant</span></div><div class="sms-np">${parts[1].replace(/ ([:?!;»])/g, NB + '$1')}</div></div></div>` +
+    `<div class="card sms-n"><i class="sms-ic">${SMS_ICO.bubble}</i><div class="sms-nt"><div class="sms-nr"><b>${name}</b><span>maintenant</span></div><div class="sms-np">${parts[1].replace(/ ([:?!;»])/g, NB + '$1').replace(/« /g, '«' + NB)}</div></div></div>` +
     `<div class="card sms-v"><div class="sms-h">${SMS_ICO.back}${SMS_ICO.video}<i class="sms-av">${ini}</i><div class="sms-who">${name}<i>›</i></div></div>${date}` +
     `<div class="sms-b"><div class="sms-t"><i></i><i></i><i></i></div>${bubbles}</div>${bar}</div></div>`;
 }
@@ -287,6 +288,15 @@ function smsFit(){
     if (lines.length < 2) return;   // une seule ligne : la bulle est déjà à sa taille
     const cs = getComputedStyle(p);
     p.style.width = Math.ceil(Math.max(...lines.map(x => x.width)) / k) + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + 2 + 'px';
+  });
+  /* L’aperçu d’une notification tient en deux lignes. Un texte plus long est coupé par « … » entre deux mots : line-clamp, lui, coupe au milieu
+     d’un mot (« …son compte, ca… »). On le mesure sans line-clamp (en bloc), sur la hauteur de deux lignes, comme le fait l’iPhone. */
+  $$('.sms-np').forEach(p => {
+    const deux = 2 * parseFloat(getComputedStyle(p).lineHeight) + 2, css = p.style.cssText;
+    p.style.cssText = 'display:block;overflow:visible';
+    const mots = p.textContent.split(' ');   // les espaces insécables gardent leurs mots ensemble
+    for (let n = mots.length - 1; n > 0 && p.offsetHeight > deux; n--) p.textContent = mots.slice(0, n).join(' ').replace(/[,;:]$/, '') + '…';
+    p.style.cssText = css;
   });
 }
 /* Un SMS arrive : la bannière tombe (icône Messages, nom, début du message). À T, l’élève la touche (l’app s’arrête là, moment

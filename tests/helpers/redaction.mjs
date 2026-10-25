@@ -220,15 +220,15 @@ export const REGLES = [
       const pb = [];
       for (const nomAtelier of ATELIERS) for (const m of plain.matchAll(new RegExp(`(?<![\\p{L}-])${echappe(nomAtelier)}(?![\\p{L}-])`, 'gu'))) {
         const avant = plain.slice(Math.max(0, m.index - 10), m.index), apres = plain.slice(m.index + nomAtelier.length);
-        if (/atelier $/i.test(avant)) continue;                              // « l’atelier Pilates », « L’atelier Pilates », « un nouvel atelier Yoga du matin »
+        if (/atelier (?:« )?$/i.test(avant)) continue;                       // « l’atelier Pilates », « L’atelier Pilates », « un nouvel atelier Yoga du matin », « l’atelier « Cuisine saine » »
         if (/^ (?:est|sont) (?:un|une) atelier\b/.test(apres)) continue;     // « Yoga du matin est un atelier » : la phrase dit justement ce que c’est
         pb.push(`« ${nomAtelier} » sans « l’atelier » devant`);
       }
       return pb;
     },
     bon: ['Emma Dubois est inscrite à l’atelier Pilates.', 'Elle choisit l’atelier Cuisine saine ou l’atelier Yoga du matin.', 'L’atelier Pilates a lieu le 17 septembre.',
-      'Je propose un nouvel atelier Yoga du matin.', 'Yoga du matin est un atelier.'],
-    mauvais: ['Emma Dubois est inscrite à Pilates.', 'Le Yoga du matin est ouvert à tous les clients.', 'Pilates est complet.', 'La ligne de Yoga du matin est vide.']
+      'Je propose un nouvel atelier Yoga du matin.', 'Yoga du matin est un atelier.', 'Sophie Martin ne pourra pas participer à l’atelier « Cuisine saine » du 19 septembre.'],
+    mauvais: ['Emma Dubois est inscrite à Pilates.', 'Sophie Martin ne participera pas à « Cuisine saine » le 19 septembre.', 'Le Yoga du matin est ouvert à tous les clients.', 'Pilates est complet.', 'La ligne de Yoga du matin est vide.']
   },
   {
     id: 'client',
@@ -571,8 +571,8 @@ export const EXCEPTIONS = [
     raison: 'Mots d’Elisa (24 octobre, Réf 4), confirmés par elle le soir même (« Lucas seul ») : juste après le mail de Karim qui nomme Lucas Bernard en entier.'},
   {regle: 'client', page: 'projet-update', contient: 'Nathan conserve ses 7 séances',
     raison: 'Mots d’Elisa (24 octobre, 22 h 29, Réf 6) : « Nathan conserve ses 7 séances », juste après « Nathan Petit » (légende et mail du service client).'},
-  {regle: 'client', page: 'projet-delete', contient: 'Léa ne pourra pas venir.',
-    raison: 'Mots d’Elisa (25 octobre, 00 h 21) : le SMS du service client (l’accueil, avant sa correction de 00 h 32) dit « Léa ne pourra pas venir », et c’est l’aperçu de la notification ; les moments qui suivent nomment Léa Simon en entier.'},
+  {regle: 'client', page: 'projet-delete', contient: 'Léa vient de nous prévenir',
+    raison: 'Mots d’Elisa (25 octobre, 08 h 21, Réf 1) : le SMS du service client dit « Léa vient de nous prévenir au téléphone… », et c’est l’aperçu de la notification ; les moments qui suivent nomment Léa Simon en entier.'},
   {regle: 'registre-parle', page: 'projet-delete', contient: 'afin de libérer les places',
     raison: 'Mots d’Elisa (25 octobre, 00 h 32, Réf 3), le mail du service client : « Peux-tu supprimer toutes ses inscriptions afin de libérer les places pour d’autres participants ? ».'},
   /* Les mots d’Elisa écrits avant sa consigne : à lui redemander */

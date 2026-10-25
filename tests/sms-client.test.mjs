@@ -21,7 +21,7 @@ assert.ok(a > 0 && b > a, 'repères de la partie SMS de core.js introuvables');
 const ctx = vm.createContext({});
 vm.runInContext("const NB = '\\u00a0';" + core.slice(a, b) + ';this.S = {isSms, smsTime, smsRank, smsParts, smsCard, SMS_ICO};', ctx);
 const S = ctx.S;
-const parts = body => [...S.smsParts(body)];   // un tableau du moteur (autre contexte) ne se compare pas tel quel
+const parts = (body, hello) => [...S.smsParts(body, hello)];   // un tableau du moteur (autre contexte) ne se compare pas tel quel
 
 test('qui écrit par SMS : un client ou une cliente ; le service client seulement quand la page le décide ({sms: true})', () => {
   for (const t of ['client', 'cliente']) assert.equal(S.isSms(t), true, t);
@@ -39,6 +39,14 @@ test('les bulles : « Bonjour, », une bulle par phrase de la demande, « Merci 
   assert.deepEqual(parts('Je ne pourrai pas venir à l’atelier Cuisine saine prévu le 19 septembre. Peux-tu annuler mon inscription ?'),
     ['Bonjour,', 'Je ne pourrai pas venir à l’atelier Cuisine saine prévu le 19 septembre.', 'Peux-tu annuler mon inscription ?', 'Merci !'], 'un texte de deux phrases : deux bulles');
   assert.deepEqual(parts('Je voudrais aussi participer à l’atelier Méditation du 24 septembre.'), ['Bonjour,', 'Je voudrais aussi participer à l’atelier Méditation du 24 septembre.', 'Merci !']);
+});
+
+test('la première bulle : « Bonjour, » par défaut ; la page peut choisir la sienne (hello : « Bonjour ! »), la bannière montre toujours la première phrase', () => {
+  assert.deepEqual(parts('Peux-tu venir ?'), ['Bonjour,', 'Peux-tu venir ?', 'Merci !']);
+  assert.deepEqual(parts('Peux-tu venir ?', 'Bonjour !'), ['Bonjour !', 'Peux-tu venir ?', 'Merci !']);
+  const h = S.smsCard(1, 'k-in', 'Le service client', 'NutriBoost', 'SC', 'Peux-tu venir ?', false, 0, 'Bonjour !');
+  assert.ok(h.includes('<p class="sms-m">Bonjour !</p>') && !h.includes('Bonjour,'), 'la conversation s’ouvre sur « Bonjour ! »');
+  assert.ok(h.slice(h.indexOf('sms-n'), h.indexOf('sms-v')).includes('<div class="sms-np">Peux-tu venir&nbsp;?</div>'.replace('&nbsp;', '\u00a0')), 'l’aperçu de la notification est la première phrase, pas « Bonjour ! »');
 });
 
 test('l’heure d’envoi : « 07:00 » à « 18:59 », la même pour un même expéditeur', () => {
@@ -142,23 +150,27 @@ test('chapitre 1 : la conversation est compacte et serrée (elle tient sous le f
   const src = lire('projet-normaliser.html');
   assert.ok(src.includes('smsCard(n + 1, k, w[1], w[2], w[4], body, true)') && src.includes('return smsIn(n, t, T, true);'), 'version compacte et cadence serrée');
 });
-test('chapitre 9 : le service client relaie les trois demandes : deux SMS (« Léa ne pourra pas venir. », « Nathan Dupont veut qu’on supprime son compte. »), puis le mail d’Hugo Laurent', () => {
+test('chapitre 9 : le service client relaie les trois demandes : deux SMS (« Léa vient de nous prévenir… », « Nathan Dupont nous a demandé… »), puis le mail d’Hugo Laurent', () => {
   const src = lire('projet-delete.html'), M = R.donnees('projet-delete.html').MAILS;
   assert.deepEqual(M.map(m => `${m[0][0]} ${m[0][1]} [${m[2]}]`), Array(3).fill('Le service client NutriBoost [équipe]'));
   assert.deepEqual(M.map(m => !!(m[6] && m[6].sms)), [true, true, false], 'les deux premiers messages du service client portent l’option {sms: true}, le dernier est un mail');
-  assert.deepEqual(parts(M[0][4]), ['Bonjour,', 'Léa ne pourra pas venir.', 'Elle est inscrite à l’atelier Cuisine saine du 19 septembre.', 'Peux-tu annuler son inscription ?', 'Merci !'],
-    'une bulle par phrase ; la première phrase est l’aperçu de la notification');
-  assert.deepEqual(parts(M[1][4]), ['Bonjour,', 'Nathan Dupont veut qu’on supprime son compte.', 'Il ne souhaite finalement plus participer aux ateliers.', 'Il n’en aura plus l’utilité.',
-    'Peux-tu le supprimer et me confirmer quand c’est fait ?', 'Merci !'], 'Nathan : « Nathan Dupont veut qu’on supprime… » (Elisa, Réf 2), quatre phrases');
+  /* Les mots d’Elisa (25 octobre, 08 h 21, Réf 1 et 2) : « Bonjour ! », sa demande en deux phrases, « Merci ! » ; la première phrase est l’aperçu de la notification. */
+  const LEA = ['Léa vient de nous prévenir au téléphone qu’elle ne pourra pas participer à l’atelier « Cuisine saine » du 19 septembre.', 'Peux-tu annuler son inscription à cet atelier ?'];
+  const NATHAN = ['Nathan Dupont nous a demandé de supprimer complètement son compte, car il ne souhaite plus participer aux ateliers.', 'Peux-tu t’en occuper et me confirmer la suppression pour que je puisse lui répondre rapidement ?'];
+  assert.deepEqual(M[0][4], LEA); assert.deepEqual(M[1][4], NATHAN);
+  assert.deepEqual(M.slice(0, 2).map(m => m[6].hello), ['Bonjour !', 'Bonjour !'], 'les deux SMS s’ouvrent sur « Bonjour ! », pas sur « Bonjour, »');
+  assert.deepEqual(parts(M[0][4], M[0][6].hello), ['Bonjour !', ...LEA, 'Merci !'], 'une bulle par phrase, entre « Bonjour ! » et « Merci ! »');
+  assert.deepEqual(parts(M[1][4], M[1][6].hello), ['Bonjour !', ...NATHAN, 'Merci !']);
   const nom = 'Le service client NutriBoost';
-  const h0 = S.smsCard(1, 'k-in', 'Le service client', 'NutriBoost', 'SC', M[0][4], false, S.smsRank(M, 0)), h1 = S.smsCard(2, 'k-in', 'Le service client', 'NutriBoost', 'SC', M[1][4], false, S.smsRank(M, 1));
-  const ban = h => h.slice(h.indexOf('sms-n'), h.indexOf('sms-v'));
-  assert.ok(ban(h0).includes('<b>Le service client NutriBoost</b>') && ban(h0).includes('<div class="sms-np">Léa ne pourra pas venir.</div>'), 'bannière : « Le service client NutriBoost », « Léa ne pourra pas venir. »');
-  assert.ok(ban(h1).includes('<b>Le service client NutriBoost</b>') && ban(h1).includes('<div class="sms-np">Nathan Dupont veut qu’on supprime son compte.</div>'), 'bannière : « Nathan Dupont veut qu’on supprime son compte. »');
+  const h0 = S.smsCard(1, 'k-in', 'Le service client', 'NutriBoost', 'SC', M[0][4], false, S.smsRank(M, 0), M[0][6].hello), h1 = S.smsCard(2, 'k-in', 'Le service client', 'NutriBoost', 'SC', M[1][4], false, S.smsRank(M, 1), M[1][6].hello);
+  const ban = h => h.slice(h.indexOf('sms-n'), h.indexOf('sms-v')).replace(/\u00a0/g, ' ');   // l’aperçu porte ses espaces insécables : on lit le texte
+  assert.ok(ban(h0).includes('<b>Le service client NutriBoost</b>') && ban(h0).includes('<div class="sms-np">' + LEA[0] + '</div>'), 'bannière : « Le service client NutriBoost », la première phrase de Léa');
+  assert.ok(h0.includes('<p class="sms-m">Bonjour !</p>') && h1.includes('<p class="sms-m">Bonjour !</p>') && !h0.includes('Bonjour,') && !h1.includes('Bonjour,'), 'la première bulle : « Bonjour ! »');
+  assert.ok(ban(h1).includes('<b>Le service client NutriBoost</b>') && ban(h1).includes('<div class="sms-np">' + NATHAN[0] + '</div>'), 'bannière : la première phrase de Nathan');
   assert.ok(h0.includes('<i class="sms-av">SC</i>') && h0.includes('Le service client NutriBoost<i>›</i>'), 'conversation : avatar SC, nom du service client');
   assert.ok(h0.includes('<b>Aujourd’hui</b> ' + S.smsTime(nom, 0)) && h1.includes('<b>Aujourd’hui</b> ' + S.smsTime(nom, 1)) && S.smsTime(nom, 0) !== S.smsTime(nom, 1), 'deux SMS du même expéditeur : deux heures');
-  assert.ok(src.includes('body, false, smsRank(MAILS, n)) : `'), 'la page donne le rang du SMS : l’heure d’envoi du second est plus tardive');
-  assert.equal(M[2][6].bye, 'Merci pour ton aide !', 'le mail d’Hugo se termine par les mots d’Elisa (Réf 3)');
+  assert.ok(src.includes('body, false, smsRank(MAILS, n), (MAILS[n][6] || {}).hello) : `'), 'la page donne le rang du SMS (l’heure d’envoi du second est plus tardive) et sa première bulle');
+  assert.equal(M[2][6].bye, 'Merci !', 'le mail d’Hugo se termine par « Merci ! » (Elisa, 25 octobre, 08 h 21, Réf 3)');
   assert.ok(src.includes("(MAILS[n][6] || {}).bye || 'Merci !', sign]"), 'la formule de fin du mail vient du message');
   assert.ok(src.includes('Elisa, 25 octobre'), 'la page garde la trace de la demande d’Elisa');
 });

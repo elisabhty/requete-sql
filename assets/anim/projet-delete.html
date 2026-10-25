@@ -130,8 +130,9 @@
 .mdot::before{content:"";position:absolute;inset:0;border-radius:50%;background:#2F80ED;animation:mdot 1.3s ease-in-out infinite}
 @keyframes mdot{50%{transform:scale(.72);opacity:.65}}
 .mb{padding:24px 4px 28px;box-shadow:inset 0 3px 0 var(--line-2)}
-.mb p{margin:0;font-size:34px;line-height:1.3;font-weight:500;color:var(--ink)}
-.mb .sn{display:block;height:auto;font-family:var(--ui);font-size:34px;font-weight:500;color:var(--ink)}
+/* 33 px et non 34 : « Hugo Laurent nous a informés de son déménagement. » tient alors sur une seule ligne (Elisa, 25 octobre, 08 h 21, Réf 3 : « mauvais formatage du mail ») */
+.mb p{margin:0;font-size:33px;line-height:1.3;font-weight:500;color:var(--ink)}
+.mb .sn{display:block;height:auto;font-family:var(--ui);font-size:33px;font-weight:500;color:var(--ink)}
 .mb .sn+.sn{margin-top:12px}
 .mb .sn.s{margin-top:0}
 /* Hors de l’app : le doigt qui touche la notification */
@@ -246,20 +247,19 @@ const {A, B} = SCH;
 /* Les trois messages reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses paragraphes), signature, option].
    Depuis le chapitre 5, le service client centralise les demandes des clients : aucun client n’écrit plus lui-même (Elisa, 25 octobre :
    « doit être de l’accueil », puis « plus l’accueil mais le service client »). Il écrit par SMS (smsCard, smsIn) quand l’option vaut {sms: true},
-   sinon par mail ({bye: …} : sa formule de fin). Chacun arrive en notification ; l’app s’arrête dessus (OPENS) jusqu’au toucher. */
+   sinon par mail ({bye: …} : sa formule de fin). Chacun arrive en notification ; l’app s’arrête dessus (OPENS) jusqu’au toucher.
+   Les textes sont ceux d’Elisa (25 octobre, 08 h 21, Réf 1 à 3) : les deux SMS s’ouvrent sur « Bonjour ! » ({hello: …}) et se ferment sur « Merci ! » ;
+   le mail finit par « Merci ! », et ses retours à la ligne sont posés à la main (« mauvais formatage du mail » : une phrase par ligne, pas de mot court en bout de ligne). */
 const MAILS = [
   [['Le service client', 'NutriBoost', 'SC'], 'k-in', 'équipe', 'service.client@nutriboost.fr', [
-    'Léa ne pourra pas venir.',
-    'Elle est inscrite à l’atelier Cuisine saine du 19 septembre.',
-    'Peux-tu annuler son inscription ?'], 'Le service client NutriBoost', {sms: true}],
+    'Léa vient de nous prévenir au téléphone qu’elle ne pourra pas participer à l’atelier « Cuisine saine » du 19 septembre.',
+    'Peux-tu annuler son inscription à cet atelier ?'], 'Le service client NutriBoost', {sms: true, hello: 'Bonjour !'}],
   [['Le service client', 'NutriBoost', 'SC'], 'k-in', 'équipe', 'service.client@nutriboost.fr', [
-    'Nathan Dupont veut qu’on supprime son compte.',
-    'Il ne souhaite finalement plus participer aux ateliers.',
-    'Il n’en aura plus l’utilité.',
-    'Peux-tu le supprimer et me confirmer quand c’est fait ?'], 'Le service client NutriBoost', {sms: true}],
+    'Nathan Dupont nous a demandé de supprimer complètement son compte, car il ne souhaite plus participer aux ateliers.',
+    'Peux-tu t’en occuper et me confirmer la suppression pour que je puisse lui répondre rapidement ?'], 'Le service client NutriBoost', {sms: true, hello: 'Bonjour !'}],
   [['Le service client', 'NutriBoost', 'SC'], 'k-in', 'équipe', 'service.client@nutriboost.fr', [
-    'Hugo Laurent nous a informés de son déménagement. Il ne pourra donc plus participer aux ateliers auxquels il est inscrit.',
-    'Peux-tu supprimer toutes ses inscriptions afin de libérer les places pour d’autres participants ?'], 'Le service client NutriBoost', {bye: 'Merci pour ton aide !'}]
+    'Hugo Laurent nous a informés de son déménagement.<br>Il ne pourra donc plus participer aux ateliers<br>auxquels il est inscrit.',
+    'Peux-tu supprimer toutes ses inscriptions<br>afin de libérer les places pour d’autres participants ?'], 'Le service client NutriBoost', {bye: 'Merci !'}]
 ];
 /* Un message : la légende s’efface le temps du message (notification, toucher, lecture, départ). Plus il a de lignes (de bulles, pour un SMS),
    plus il reste : le toucher à +1,6 s, une ligne toutes les 0,28 s, le départ juste après la pause de lecture (+3,8 s pour cinq lignes), et le
@@ -498,7 +498,7 @@ function dom(){
     `<div class="cs">${ITEMS.map((x, i) => x[1] === k ? `<div class="rc" id="sbu${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
     '<div class="abs pack" id="bpack"><span><span class="emo">📬</span>6 demandes à ranger</span></div>';
   /* Les SMS et les mails */
-  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body, false, smsRank(MAILS, n)) : `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
+  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body, false, smsRank(MAILS, n), (MAILS[n][6] || {}).hello) : `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
     `<div class="mw"><div class="mn"><b>${w[0]} ${w[1]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
     `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), (MAILS[n][6] || {}).bye || 'Merci !', sign].map((x, j, a) => `<span class="sn${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
     '<div class="abs emo tapf" id="tapf">👆</div>';
@@ -643,7 +643,7 @@ function build(){
   off(['#bw-at .hl', '#bw-ca .hl'], A.r2 + 2.2, 0.3);
   // trois autres demandes arrivent : le paquet « 3 demandes à traiter » (deux SMS, puis un mail)
   show('#dem', A.c2 + 0.3, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.c2 + 0.3, 'pop', 0.7, 1);
-  // le SMS du service client : Léa Simon ne pourra pas venir
+  // le SMS du service client : Léa vient de le prévenir qu’elle ne pourra pas participer à l’atelier Cuisine saine
   capOff(MAIL1 - 0.2);   // avec la légende : jamais de carte vide
   hide(['#bc', '#dem'], MAIL1, {y: -30}, 0.35);
   sceneOff('#sa', MAIL1 + 0.4);
@@ -687,7 +687,7 @@ function build(){
   off('#rt3 .hl', B.c8 - 0.8, 0.3);
 
   /* ===== 3 · Le bon client ===== */
-  // le SMS du service client : Nathan Dupont veut qu’on supprime son compte ; pendant qu’il est affiché, la table inscriptions s’en va
+  // le SMS du service client : Nathan Dupont lui a demandé de supprimer complètement son compte ; pendant qu’il est affiché, la table inscriptions s’en va
   capOff(MAIL2 - 0.2);
   hide(['#tb', '#keep'], MAIL2, {y: -30}, 0.35);
   sceneOff('#sb', MAIL2 + 0.4);
@@ -925,7 +925,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 141.18, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 140.34, picks: PICKS, opens: OPENS,
   glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝🔑🔗✉️👆📬🗑️⚠️🎯✓✕!…«»·−',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>
