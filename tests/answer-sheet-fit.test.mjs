@@ -110,9 +110,21 @@ test('moteur des animations : window.__contentBottom, bas du contenu visible sur
     'exposé par le moteur, avec renderAt');
   const body = core.slice(core.indexOf('function contentBottom(){'), core.indexOf('/* ---------- Le cours ---------- */'));
   for (const part of ["$$('.card, .code', stage).forEach(take);", "$$('section.scene > *', stage).forEach(el => { if (isBox(el)) take(el); });",
+    "$$('section.scene > .pack > span', stage).forEach(take);",
     "el.closest('#cap, #chapter, #chap') || shown(el) < 0.3", "(r.bottom - sr.top) / k"])
     assert.ok(body.includes(part), `mesure : ${part}`);
   assert.ok(body.includes("!el.classList.contains('stamp') && !el.classList.contains('fly')"), 'ni tampon ni ce qui s’envole');
+});
+
+test('les pastilles centrées (« 6 situations à ranger »…) comptent comme du contenu : le conteneur .pack est transparent, la pastille (span) porte le cadre', () => {
+  /* Elisa, 25 octobre, 15 h 48 : au dernier moment du chapitre 10, la feuille de réponse recouvrait la pastille « 6 situations à ranger ». */
+  for (const f of ['projet-insert', 'projet-update', 'projet-delete', 'projet-ondelete']) {
+    const page = fs.readFileSync(path.join(root, `assets/anim/${f}.html`), 'utf8');
+    const pills = [...page.matchAll(/<div class="abs pack" id="([^"]+)"><span>/g)];
+    assert.ok(pills.length >= 1, `${f} : au moins une pastille .pack, un span directement dedans`);
+    assert.ok(/\.pack\{[^}]*\}/.test(page) && !/\.pack\{[^}]*(background|border|box-shadow)/.test(page), `${f} : le conteneur .pack n’a ni fond ni cadre`);
+    assert.ok(/\.pack>span\{[^}]*background:#fff;border:3px solid[^}]*box-shadow/.test(page), `${f} : le cadre est sur la pastille .pack>span`);
+  }
 });
 
 const zoomOf = p => p.ctx.LV.zoom == null ? 1 : p.ctx.LV.zoom;
