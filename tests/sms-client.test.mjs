@@ -191,6 +191,6 @@ for (const f of ['projet-delete.html', 'projet-ondelete.html']) {
   });
 }
 test('chapitres 9 et 10 : la légende annonce les SMS', () => {
-  assert.ok(lire('projet-delete.html').includes('cap(\'c2\', "Trois demandes arrivent :<br>deux SMS et un mail.", 2.8);'));
+  assert.ok(lire('projet-delete.html').includes('cap(\'c2\', "Trois autres demandes arrivent.", 2.8);'));   // Elisa, 25 octobre, 08 h 17 (Réf 1)
   assert.ok(lire('projet-ondelete.html').includes('cap(\'c2\', "Deux demandes arrivent :<br>un SMS et un mail.", 2.8);'));
 });

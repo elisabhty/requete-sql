@@ -82,9 +82,9 @@ test('recherche, et leçon seule sans texte de secours ni exercice', () => {
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
   /* Le bouton des notes est écrit en clair dans Course(…) : il suit la dernière légende. */
-  assert.equal(val('NOTES'), 144.48);
-  assert.ok(page.includes('notesAt: 144.48,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 151.68);
+  assert.equal(val('NOTES'), 141.18);
+  assert.ok(page.includes('notesAt: 141.18,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 148.38);
   /* Des légendes qui se suivent sans se chevaucher, chaque chapitre commençant 0,4 s après la légende précédente. */
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
@@ -131,7 +131,11 @@ test('la page montre la base : huit tables, leurs nombres de lignes, la table in
   assert.ok(page.includes('<span id="bn0">11 lignes</span><span id="bn1">10 lignes</span><span id="bn2">8 lignes</span><span id="bn3">0 ligne</span>'), 'la table inscriptions passe de 11 à 10, 8, puis 0 ligne');
   assert.ok(page.includes('<span id="cn0">10 lignes</span><span id="cn1">9 lignes</span>'), 'la table clients passe de 10 à 9 lignes');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.equal(caps[3], 'Cette fois, toutes demandent<br>de supprimer des lignes.', 'toutes les demandes suppriment des lignes');
+  /* Mots d’Elisa (25 octobre, 08 h 17) : Réf 1, « Trois autres demandes arrivent. » ; Réf 2, « supprimer la bulle » « Cette fois, toutes demandent de supprimer des lignes. ». */
+  assert.equal(caps[2], 'Trois autres demandes arrivent.', 'la légende des trois demandes');
+  assert.ok(!caps.some(c => /Cette fois|toutes demandent/.test(c)), 'plus de bulle « Cette fois, toutes demandent de supprimer des lignes. »');
+  assert.ok(!page.includes("'#bw-in .hl'") && !page.includes("'#bw-cl .hl'"), 'les deux tables qui s’allumaient avec cette bulle ne s’allument plus');
+  assert.equal(caps[3], 'Chaque inscription est une ligne<br>de la <b>table inscriptions</b>.', 'la légende suivante : le chapitre « Supprimer une ligne »');
 });
 
 test('moments 1 et 2 : l’inscription de Léa Simon est celle d’identifiant 4 ; WHERE id = 4 la supprime seule ; id = 7 supprimerait celle de Sophie Martin, atelier_id = 3 en supprimerait deux', () => {
