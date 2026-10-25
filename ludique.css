@@ -2326,9 +2326,13 @@ html[data-motion="reduce"] .pgr-arc,html[data-motion="reduce"] .pgr-bars li>i,ht
    et les agrandit. Dessous, la planche (papier de protection lilas) : les stickers gagnés, les découpes vides de ceux
    qui sont sur le tableau, les silhouettes de ceux à gagner. Chaque sticker est un canvas ; une ombre le décolle du
    fond. Les holographiques ont des voiles masqués par leur silhouette (irisation, éclat, paillettes, reflet). */
-html.lq .stk-art{position:relative;display:block;width:100%;aspect-ratio:1/1;--px:50%;--py:50%;--tx:0deg;--ty:0deg;--k:1;
-  transform:perspective(700px) rotateX(var(--tx)) rotateY(var(--ty)) scale(var(--k))}
-html.lq .stk-art>canvas{display:block;width:100%;height:100%;filter:drop-shadow(0 1px 1px rgba(34,28,70,.24)) drop-shadow(0 3px 6px rgba(34,28,70,.12))}
+html.lq .stk-art{position:relative;display:block;width:100%;aspect-ratio:1/1;--px:50%;--py:50%;--tx:0deg;--ty:0deg;--k:1}
+html.lq .stk-art.is-holo{isolation:isolate}
+/* Net sur iPhone : au repos, ni filtre ni transformation sur le canvas. Un drop-shadow ou un perspective() (même neutre) le fait passer par le
+   compositeur, qui le ré-échantillonne dès qu’il n’est pas posé pile sur les pixels de l’écran : contours et texte mous. L’ombre est donc peinte
+   dans le canvas (stkShadow), qui déborde du sticker de 10 px de chaque côté pour la loger (STK_PAD) ; la 3D n’existe que pendant le geste. */
+html.lq .stk-art>canvas{position:absolute;left:-10px;top:-10px;display:block;width:calc(100% + 20px);height:calc(100% + 20px);pointer-events:none}
+html.lq .stk-art.is-tilt,html.lq .stk-item.is-lift .stk-art{transform:perspective(700px) rotateX(var(--tx)) rotateY(var(--ty)) scale(var(--k))}
 html.lq .stk-art>i{position:absolute;inset:0;pointer-events:none;-webkit-mask:var(--m) center/100% 100% no-repeat;mask:var(--m) center/100% 100% no-repeat}
 html.lq .stk-v1{background:linear-gradient(115deg,#FFB3D1 0%,#FFE7A3 16%,#B8F5CF 32%,#AEE4FF 48%,#D4C2FF 64%,#FFB3D1 80%,#FFE7A3 100%) var(--px) var(--py)/300% 300%;mix-blend-mode:multiply;opacity:.55}
 html.lq .stk-v2{background:repeating-linear-gradient(115deg,#FF4FA3 0%,#FFC94F 6%,#4FFFA0 12%,#4FC8FF 18%,#A34FFF 24%,#FF4FA3 30%) var(--px) var(--py)/250% 250%;mix-blend-mode:color-dodge;opacity:.32}
@@ -2363,7 +2367,7 @@ html.lq .stk-item.is-drop .stk-art{animation:stkDrop .6s cubic-bezier(.3,.7,.3,1
 html.lq .stk-item.is-drop .stk-art>canvas{animation:stkPress .6s ease-out}
 @keyframes stkPress{0%{filter:drop-shadow(0 16px 14px rgba(0,0,0,.42)) drop-shadow(0 4px 8px rgba(0,0,0,.18))}
   28%{filter:drop-shadow(0 0 1px rgba(20,14,48,.6)) drop-shadow(0 1px 2px rgba(20,14,48,.3))}
-  100%{filter:drop-shadow(0 1px 1px rgba(34,28,70,.24)) drop-shadow(0 3px 6px rgba(34,28,70,.12))}}
+  100%{filter:none}}
 /* Le reflet qui balaie le sticker au contact (masqué à sa découpe par --m) */
 html.lq .stk-art>.stk-shine{background:linear-gradient(112deg,rgba(255,255,255,0) 40%,rgba(255,255,255,.7) 50%,rgba(255,255,255,0) 60%) 0 0/300% 100% no-repeat;
   mix-blend-mode:screen;animation:stkShine .6s .13s cubic-bezier(.3,.1,.3,1) both}
@@ -2405,7 +2409,6 @@ html.lq .stk-cell:active{transform:scale(.96)}
 html.lq .stk-cell:focus{outline:none}
 html.lq .stk-cell:focus-visible{box-shadow:inset 0 0 0 3px var(--accent)}
 html.lq .stk-cell.is-got{cursor:grab}
-html.lq .stk-cell.is-lock .stk-art>canvas,html.lq .stk-cell.is-peeling .stk-art>canvas{filter:none}
 html.lq .stk-cell.is-placed .stk-art{opacity:.42}
 html.lq .stk-on{position:absolute;left:50%;bottom:2px;transform:translateX(-50%);padding:4px 8px;border-radius:99px;background:#fff;color:var(--ink-2);font:700 11px/1 var(--display);font-style:normal;white-space:nowrap;box-shadow:0 2px 0 var(--lip);pointer-events:none}
 html.lq .stk-cell.is-peeling{transform:none}
