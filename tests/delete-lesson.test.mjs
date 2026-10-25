@@ -1,7 +1,7 @@
 /* Projet NutriBoost, chapitre 9 (leçon 28 « DELETE ») : la vidéo interactive assets/anim/projet-delete.html, testée aussi dans lesson-video.test.mjs.
    Trois messages demandent de supprimer des lignes. Le service client, qui centralise les demandes des clients depuis le chapitre 5
-   (Elisa, 25 octobre : « plus l’accueil mais le service client »), les relaie : un SMS prévient que Léa Simon ne pourra pas venir, un SMS
-   dit que Nathan Dupont veut qu’on supprime son compte (il y a deux Nathan), puis un mail annonce qu’Hugo Laurent déménage (deux inscriptions). Troisième cours du module « Écrire et modifier les données ». Leçon seule : ni cours texte, ni exercice. Elle remplace
+   (Elisa, 25 octobre : « plus l’accueil mais le service client »), les relaie : un SMS prévient que Léa Simon ne pourra pas participer à l’atelier Cuisine saine, un SMS
+   dit que Nathan Dupont veut supprimer son compte (il y a deux Nathan), puis un mail annonce qu’Hugo Laurent déménage (deux inscriptions). Troisième cours du module « Écrire et modifier les données ». Leçon seule : ni cours texte, ni exercice. Elle remplace
    l’ancien cours DELETE (le compte de Nathan Dupont et la table fidelite, la sous-requête dans le WHERE).
    Ce que la vidéo montre (DELETE FROM … WHERE …, un prénom partagé par deux clients, plusieurs lignes d’un coup, l’oubli du WHERE, la table qui existe
    encore, vide) est ici rejoué dans SQLite : c’est ce que la base répond vraiment. */
@@ -82,9 +82,9 @@ test('recherche, et leçon seule sans texte de secours ni exercice', () => {
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
   /* Le bouton des notes est écrit en clair dans Course(…) : il suit la dernière légende. */
-  assert.equal(val('NOTES'), 141.18);
-  assert.ok(page.includes('notesAt: 141.18,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 148.38);
+  assert.equal(val('NOTES'), 140.34);
+  assert.ok(page.includes('notesAt: 140.34,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 147.54);
   /* Des légendes qui se suivent sans se chevaucher, chaque chapitre commençant 0,4 s après la légende précédente. */
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
@@ -161,7 +161,9 @@ test('moments 1 et 2 : l’inscription de Léa Simon est celle d’identifiant 4
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.ok(caps.includes('Seule la ligne dont l’identifiant<br>vaut 4 est supprimée.') && caps.includes('L’atelier Cuisine saine existe<br>toujours dans la <b>table ateliers</b>.'), 'les légendes disent la même chose');
   const mail = val('MAILS')[0];
-  assert.ok(mail[4].join(' ').includes('Léa ne pourra pas venir.') && mail[4].join(' ').includes('Elle est inscrite à l’atelier Cuisine saine du 19 septembre.') && mail[4].join(' ').includes('Peux-tu annuler son inscription ?'), 'le SMS du service client sur Léa Simon');
+  assert.deepEqual(mail[4], ['Léa vient de nous prévenir au téléphone qu’elle ne pourra pas participer à l’atelier « Cuisine saine » du 19 septembre.', 'Peux-tu annuler son inscription à cet atelier ?'],
+    'le SMS du service client sur Léa Simon, mot pour mot (Elisa, 25 octobre, 08 h 21, Réf 1 ; « viens » corrigé en « vient »)');
+  assert.equal(mail[6].hello, 'Bonjour !', 'il s’ouvre sur « Bonjour ! »');
   assert.equal(base().exec("SELECT date_atelier FROM ateliers WHERE titre = 'Cuisine saine'")[0].values[0][0], '2026-09-19', 'le 19 septembre est bien la date de l’atelier');
 });
 
@@ -194,8 +196,10 @@ test('moment 3 : il y a deux Nathan ; WHERE id = 10 supprime Nathan Dupont, que 
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.ok(caps.includes('Cette table contient deux Nathan :<br>le prénom seul ne suffit pas.') && caps.includes('Aucune autre table<br>ne fait référence à Nathan Dupont.'), 'les légendes disent la même chose');
   const mail = val('MAILS')[1];
-  assert.ok(mail[4][0].startsWith('Nathan Dupont veut qu’on supprime son compte') && db.exec("SELECT COUNT(*) FROM clients WHERE prenom = 'Nathan' AND nom = 'Dupont' AND id = 10")[0].values[0][0] === 1, 'le service client nomme le client de la table clients');
-  assert.ok(mail[4].join(' ').includes('Peux-tu le supprimer et me confirmer quand c’est fait ?'));
+  assert.ok(mail[4][0].startsWith('Nathan Dupont nous a demandé de supprimer complètement son compte') && db.exec("SELECT COUNT(*) FROM clients WHERE prenom = 'Nathan' AND nom = 'Dupont' AND id = 10")[0].values[0][0] === 1, 'le service client nomme le client de la table clients');
+  assert.deepEqual(mail[4], ['Nathan Dupont nous a demandé de supprimer complètement son compte, car il ne souhaite plus participer aux ateliers.', 'Peux-tu t’en occuper et me confirmer la suppression pour que je puisse lui répondre rapidement ?'],
+    'le SMS de Nathan, mot pour mot (Elisa, 25 octobre, 08 h 21, Réf 2)');
+  assert.equal(mail[6].hello, 'Bonjour !', 'il s’ouvre sur « Bonjour ! »');
 });
 
 test('moment 4 : les deux inscriptions d’Hugo Laurent ont le client 6 ; WHERE client_id = 6 les supprime ensemble ; id = 6 en laisserait une, client_id > 6 viserait d’autres clients', () => {
@@ -221,9 +225,11 @@ test('moment 4 : les deux inscriptions d’Hugo Laurent ont le client 6 ; WHERE 
   /* Comme au chapitre 8, on lit d’abord les lignes concernées : le SELECT passe avant la suppression, qui n’est exécutée qu’après la relecture. */
   assert.ok(caps.findIndex(c => c.includes('un <code>SELECT</code>')) < caps.indexOf('Deux lignes sont supprimées<br>par une seule requête.'), 'la relecture, puis la suppression');
   const mail = val('MAILS')[2];
-  assert.deepEqual(mail[4], ['Hugo Laurent nous a informés de son déménagement. Il ne pourra donc plus participer aux ateliers auxquels il est inscrit.',
-    'Peux-tu supprimer toutes ses inscriptions afin de libérer les places pour d’autres participants ?'], 'le mail du service client, mot pour mot (Elisa, 25 octobre, Réf 3)');
-  assert.equal(mail[6].bye, 'Merci pour ton aide !', 'sa formule de fin');
+  assert.deepEqual(mail[4].map(p => p.replace(/<br>/g, ' ')), ['Hugo Laurent nous a informés de son déménagement. Il ne pourra donc plus participer aux ateliers auxquels il est inscrit.',
+    'Peux-tu supprimer toutes ses inscriptions afin de libérer les places pour d’autres participants ?'], 'le mail du service client, mot pour mot (Elisa, 25 octobre, 00 h 32, Réf 3)');
+  assert.deepEqual(mail[4], ['Hugo Laurent nous a informés de son déménagement.<br>Il ne pourra donc plus participer aux ateliers<br>auxquels il est inscrit.',
+    'Peux-tu supprimer toutes ses inscriptions<br>afin de libérer les places pour d’autres participants ?'], 'retours à la ligne posés à la main : une phrase par ligne, aucune ligne trop courte (Elisa, 08 h 21, Réf 3 : « mauvais formatage du mail »)');
+  assert.equal(mail[6].bye, 'Merci !', 'sa formule de fin (Elisa, 25 octobre, 08 h 21, Réf 3)');
 });
 
 test('moment 5 : sans WHERE, la requête est exécutée sans erreur et les huit inscriptions restantes disparaissent ; la table existe encore, vide ; DROP TABLE la supprime elle-même', () => {
@@ -275,10 +281,9 @@ test('les trois messages : le service client relaie Léa Simon (SMS), Nathan Dup
   const db = base();
   /* Le premier message ne donne que le prénom, « Léa », et une seule cliente le porte. */
   assert.equal(db.exec("SELECT COUNT(*) FROM clients WHERE prenom = 'Léa'")[0].values[0][0], 1, 'une seule cliente s’appelle Léa : le prénom suffit à la désigner');
-  assert.equal(mails[0][4][0], 'Léa ne pourra pas venir.', 'la notification n’affiche que « Léa ne pourra pas venir. »');
-  assert.equal(mails[1][4][0], 'Nathan Dupont veut qu’on supprime son compte.', 'la notification : « Nathan Dupont veut qu’on supprime son compte. » (Elisa, Réf 2)');
-  assert.deepEqual(mails[1][4], ['Nathan Dupont veut qu’on supprime son compte.', 'Il ne souhaite finalement plus participer aux ateliers.', 'Il n’en aura plus l’utilité.', 'Peux-tu le supprimer et me confirmer quand c’est fait ?'],
-    'le message de Nathan, redit « en mode Nathan Dupont veut qu’on supprime… » : son départ, l’inutilité du compte, la demande de confirmation');
+  assert.ok(mails[0][4][0].startsWith('Léa vient de nous prévenir') && mails[0][4].length === 2, 'la notification de Léa : sa première phrase, puis une demande (Elisa, 25 octobre, 08 h 21, Réf 1)');
+  assert.ok(mails[1][4][0].startsWith('Nathan Dupont nous a demandé') && mails[1][4].length === 2, 'la notification de Nathan : sa première phrase, puis une demande (Réf 2)');
+  assert.deepEqual(mails.slice(0, 2).map(m => m[6].hello), ['Bonjour !', 'Bonjour !'], 'les deux SMS commencent par « Bonjour ! » (Elisa, Réf 1 et 2)');
   assert.deepEqual(mails.map(m => m[2]), ['équipe', 'équipe', 'équipe'], 'aucun message n’est signé par un client');
   assert.deepEqual(mails.map(m => !!(m[6] && m[6].sms)), [true, true, false], 'deux SMS (option {sms: true}), puis un mail');
   assert.deepEqual(mails.map(m => m[5]), ['Le service client NutriBoost', 'Le service client NutriBoost', 'Le service client NutriBoost']);
@@ -290,8 +295,8 @@ test('les trois messages : le service client relaie Léa Simon (SMS), Nathan Dup
   /* Aucun message n’est paresseux : de deux à quatre phrases (une bulle chacune pour un SMS), pour que l’image ne reste pas trop longtemps sur la lecture. */
   assert.ok(mails.every(m => m[4].length >= 2 && m[4].length <= 4), 'au plus quatre phrases ou paragraphes, une demande');
   /* Le message reste le temps de ses lignes : une bulle (SMS) ou une ligne (mail) toutes les 0,28 s, le départ juste après la pause de lecture. */
-  assert.deepEqual(lignes, [5, 6, 5], 'lignes de chaque message : Bonjour, ses phrases, Merci ! (SMS) ; Bonjour, ses paragraphes, la fin, la signature (mail)');
-  assert.deepEqual(sorties, [3.8, 4.08, 3.8], 'le départ : +2,68 s + 0,28 s par ligne après la première');
+  assert.deepEqual(lignes, [4, 4, 5], 'lignes de chaque message : Bonjour !, ses deux phrases, Merci ! (SMS) ; Bonjour, ses paragraphes, la fin, la signature (mail)');
+  assert.deepEqual(sorties, [3.52, 3.52, 3.8], 'le départ : +2,68 s + 0,28 s par ligne après la première');
 });
 
 /* ---------- Propre au chapitre 9 : la suite du chapitre 8, l’annonce de la leçon ON DELETE ---------- */
