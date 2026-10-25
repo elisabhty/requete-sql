@@ -1306,17 +1306,16 @@ test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la 
     assert.ok(vd.includes(part), `verdict : ${part}`);
   assert.ok(html.includes('.lv-pk-hole{') && html.includes('.lv-pk-why.ok{') && html.includes('.lv-pk-why.ko{'), 'case jaune du prompt, correction verte ou rouge');
   assert.ok(html.includes('.lv.is-pk .lv-bottom{visibility:hidden}'), 'le plateau cache les commandes');
-  /* Le plateau part du haut de la légende et couvre la légende restée affichée à l’arrêt (jusqu’à y = 1830), pas davantage :
-     au-delà, la carte suit sa question (aucun blanc), et remonte seulement si elle manque de place sous elle. */
-  const place = cut('function lvPkPlace(){', 'function lvPkClose(answered){');
-  assert.ok(place.includes('const a=lvPt(0,1496,1), z=lvPt(0,1830,1);') && place.includes('Math.min(z.y,lim)-a.y'),
-    'le plateau couvre la légende, jamais le résultat : haut de la légende (y = 1496), jusqu’à y = 1830');
-  assert.ok(place.includes("P.box.style.top=Math.max(0,Math.min(a.y,lim-card.offsetHeight)).toFixed(1)+'px'") && !place.includes('R.height-pb-10-a.y'),
-    'la carte suit son contenu : plus de hauteur forcée jusqu’en bas de l’écran, elle remonte seulement s’il lui manque de la place');
-  /* Elisa, 25 octobre, 16 h 35 : « ça dépasse en bas ». La carte s’arrête 22 px au-dessus du bas du lecteur, ou du bas visible si la barre de Safari
-     en recouvre une partie (son liseré et son ombre restent visibles) ; le bouton lecture a de l’air dessous ; la barre qui change de taille replace tout. */
-  assert.ok(place.includes('const lim=Math.min(R.height-pb,vv?vv.offsetTop+vv.height-R.top:R.height)-LV_PK_BOT;') && html.includes('LV_PK_WAIT=400, LV_PK_BOT=22;'),
-    'un vrai blanc sous la carte, jamais sous la barre de Safari');
+  /* Elisa, 25 octobre, 18 h 43 : « je préfère que le gros cadre de choix soit tout en bas ». Le plateau est posé tout en bas du lecteur et grandit
+     vers le haut avec son contenu ; la légende est cachée pendant le moment, il n’a rien à recouvrir. Le bas visible de Safari (visualViewport)
+     n’entre plus en compte : sur son iPhone, il restait à la hauteur d’un clavier fermé, et la feuille flottait au milieu de l’écran, sur le contenu.
+     Elisa, 16 h 35 : « ça dépasse en bas » : la carte s’arrête 22 px au-dessus du bas du lecteur (son liseré et son ombre restent au-dessus de la barre
+     de Safari) ; le bouton lecture a de l’air dessous ; la barre qui change de taille replace tout. */
+  const place = cut('function lvPkPlace(){', '/* Le contenu de l’image reste au-dessus du plateau');
+  assert.ok(place.includes('lim=R.height-pb-LV_PK_BOT;') && html.includes('LV_PK_WAIT=400, LV_PK_BOT=22;'), 'la carte s’arrête 22 px au-dessus du bas du lecteur');
+  assert.ok(place.includes("P.box.style.top=Math.max(0,lim-card.offsetHeight).toFixed(1)+'px'"), 'la carte est posée tout en bas, quelle que soit sa hauteur');
+  assert.ok(!/visualViewport|vv\.|1496|1830|minHeight/.test(place), 'ni le bas visible de Safari, ni la place de la légende, ni hauteur forcée');
+  assert.ok(html.includes("function lvPkShow(i,p){") && cut('function lvPkShow(i,p){', 'function lvPkValid(').includes('lvCapHide(true);'), 'la légende de l’image est cachée pendant le moment');
   assert.ok(html.includes('.lv-bottom{flex:none;padding:2px 14px 14px;'), 'de l’air sous le bouton lecture');
   assert.ok(html.includes("if(window.visualViewport)visualViewport.addEventListener('resize',place);") && html.includes("if(window.visualViewport)visualViewport.removeEventListener('resize',place);"),
     'tout se replace quand la barre de Safari change de taille ; l’écouteur est libéré à la fermeture');
@@ -2358,7 +2357,7 @@ test('moment réussi puis vidéo reculée : la réponse ne réapparaît pas avan
 test('moment réussi : la validation bien en avant, coche verte animée et « Bien vu ! » ; trouvé après une erreur, « Bien rattrapé ! » en orange, mais le point reste rouge', () => {
   const valid = cut('function lvPkValid(P,first,anim){', '/* La réponse gardée s’affiche telle quelle');
   for (const part of ["el.className='lv-pk-ok'+(first?'':' is-late')+(anim&&!prefersReduceMotion()?' is-anim':'');", "tick='<path class=\"k\" d=\"M12.5 21.5l6 6L30 15.5\"/>'",
-    '<g class="was"><path class="k x" d="M15 15l12 12"/><path class="k x" d="M27 15L15 27"/></g>${tick}',
+    '<i class="ic" aria-hidden="true"><svg viewBox="0 0 42 42">', '<g class="was"><path class="x" d="M15 15l12 12"/><path class="x" d="M27 15L15 27"/></g>${tick}`}</svg></i>`',
     "${first?'Bien vu&nbsp;!':'<span class=\"was\" aria-hidden=\"true\">Raté</span><span class=\"now\">Bien rattrapé&nbsp;!</span>'}",
     "top.querySelectorAll('.lv-pk-kick,.lv-pk-cnt').forEach(e=>{ e.hidden=true; });"])
     assert.ok(valid.includes(part), `badge : ${part}`);
@@ -2367,17 +2366,37 @@ test('moment réussi : la validation bien en avant, coche verte animée et « Bi
     'au choix, aux gestes, et pour un moment déjà fait : là, le badge final sans animation (« Bien rattrapé ! » sans repasser par « Raté ») ; plus de « Trouvé ! »');
   /* Trouvé après une erreur : la croix rouge du premier essai se trace puis s’efface, le rond passe à l’orange, la coche se trace,
      « Raté » laisse la place à « Bien rattrapé ! » ; sans animation, directement l’état orange. Le point du moment reste rouge. */
-  for (const part of ['.lv-pk-ok.is-late{color:#B45309}', '.lv-pk-ok.is-late .c{fill:#EE8A1A}', '.lv-pk-ok .was{display:none}', '.lv-pk-ok.is-late.is-anim .was{display:inline}',
-    '.lv-pk-ok.is-late.is-anim .c{animation:lvLateFill .95s ease both}', '@keyframes lvLateFill{0%,72%{fill:#DE3F46}100%{fill:#EE8A1A}}',
-    '.lv-pk-ok.is-late.is-anim g.was{transform-box:fill-box;transform-origin:center;animation:lvLateOut .22s ease-in .78s forwards}',
-    '.lv-pk-ok.is-late.is-anim .k:not(.x){animation-delay:.95s}', '.lv-pk-ok.is-late.is-anim span.now{animation:lvOkTxt .35s cubic-bezier(.2,.9,.3,1.3) .92s both}',
-    '.lv-pk-ok.is-anim .x{stroke-dashoffset:18}', '.lv-pk-ok.is-anim .x+.x{animation-delay:.44s}', '.lv-pk-dots i.try{background:#DE3F46}', '.lv-pkm i.ko{'])
+  for (const part of ['.lv-pk-ok.is-late{color:#B45309}', '.lv-pk-ok.is-late .ic{background:#EE8A1A}', '.lv-pk-ok .was{display:none}', '.lv-pk-ok.is-late.is-anim .was{display:inline}',
+    '.lv-pk-ok.is-late.is-anim .ic{animation:lvOkPop .5s cubic-bezier(.2,.9,.3,1.5) both,lvLateFill .95s ease both,lvLateNod .5s ease-in-out 1.05s}',
+    '@keyframes lvLateFill{0%,72%{background-color:#DE3F46}100%{background-color:#EE8A1A}}',
+    '.lv-pk-ok.is-late.is-anim g.was{animation:lvLateFade .22s ease-in .78s forwards}', '@keyframes lvLateFade{to{opacity:0}}',
+    '.lv-pk-ok.is-late.is-anim .k{animation-delay:.95s}', '.lv-pk-ok.is-late.is-anim span.now{animation:lvOkTxt .35s cubic-bezier(.2,.9,.3,1.3) .92s both}',
+    '.lv-pk-ok.is-anim .x{stroke-dashoffset:18;opacity:0;animation:lvOkTick .32s ease-out .28s forwards}', '.lv-pk-ok.is-anim .x+.x{animation-delay:.44s}',
+    '.lv-pk-dots i.try{background:#DE3F46}', '.lv-pkm i.ko{'])
     assert.ok(html.includes(part), `rattrapé : ${part}`);
   assert.ok(!html.includes('.lv-pk-ok.is-ko'), 'plus de badge rouge « Raté » une fois la bonne réponse trouvée');
   for (const f of ['function lvPkVerdict(', 'function lvPkWin(']) assert.ok(cut(f, f === 'function lvPkWin(' ? 'function lvEndHide(){' : 'function lvPkFrom(i){').includes("'Bien rattrapé, mais seul le premier essai compte : moment raté. '"), `${f} VoiceOver : rattrapé, mais raté`);
   assert.ok(cut('function lvPkWin(', 'function lvEndHide(){').includes("dot.className=first?'ok':'try';") && cut('function lvPkVerdict(', 'function lvPkFrom(i){').includes("dot.className=first?'ok':'try';"), 'le point du moment : vert du premier coup, rouge sinon');
-  for (const part of ['.lv-pk-kick[hidden],.lv-pk-cnt[hidden]{display:none}', '@keyframes lvOkPop{', '@keyframes lvOkTick{to{stroke-dashoffset:0}}', '@keyframes lvOkRing{', '.lv-pk-ok.is-anim .k{stroke-dashoffset:26;'])
+  for (const part of ['.lv-pk-kick[hidden],.lv-pk-cnt[hidden]{display:none}', '@keyframes lvOkPop{', '@keyframes lvOkTick{0%{opacity:1}to{opacity:1;stroke-dashoffset:0}}', '@keyframes lvOkRing{',
+    '.lv-pk-ok.is-anim .k{stroke-dashoffset:26;opacity:0;animation:lvOkTick .32s ease-out .28s forwards}'])
     assert.ok(html.includes(part), `animation : ${part}`);
+});
+
+test('badge du verdict : rien ne se dessine hors du cadre du SVG, aucune transformation sur ses traits (Safari laissait des bouts de traits)', () => {
+  /* Elisa, 25 octobre, 18 h 43 : « des traits sur les icônes, comme des bugs ». L’onde était un cercle SVG qui grandissait hors du cadre de l’icône
+     (overflow visible) : Safari la découpait au carré ; la croix tournait sur elle-même dans le SVG. Le rond et son onde sont désormais des éléments HTML,
+     le SVG ne garde que les traits blancs, dans son cadre ; la croix s’efface sans tourner ; un trait n’apparaît qu’au moment où il se trace. */
+  const css = cut('.lv-pk-kick[hidden],.lv-pk-cnt[hidden]{display:none}', '.lv-pk.is-ok .lv-pk-back+.lv-pk-dots{margin-left:auto}');
+  assert.ok(!css.includes('overflow:visible') && !css.includes('transform-box') && !css.includes('transform-origin'), 'ni débord du SVG, ni transformation de ses traits');
+  for (const part of ['.lv-pk-ok .ic{position:relative;display:block;flex:none;width:42px;height:42px;border-radius:50%;background:#169447}',
+    '.lv-pk-ok .ic::after{content:"";position:absolute;inset:0;border:2.5px solid #169447;border-radius:50%;opacity:0;pointer-events:none}',
+    '.lv-pk-ok .ic svg{display:block;width:42px;height:42px}', '.lv-pk-ok.is-anim .ic{animation:lvOkPop .5s cubic-bezier(.2,.9,.3,1.5) both}',
+    '.lv-pk-ok.is-anim .ic::after{animation:lvOkRing .9s ease-out .3s}', '.lv-pk-ok.is-late .ic::after{border-color:#EE8A1A}', '.lv-pk-ok.is-late.is-anim .ic::after{animation-delay:1s}',
+    '.lv-pk-ok .k,.lv-pk-ok .x{fill:none;stroke:#fff;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round}',
+    '@media (prefers-reduced-motion:reduce){.lv-pk-ok .ic,.lv-pk-ok .ic::after,.lv-pk-ok b{animation:none!important}.lv-pk-ok .k{animation:none!important;stroke-dashoffset:0!important;opacity:1!important}}'])
+    assert.ok(css.includes(part), `badge : ${part}`);
+  const valid = cut('function lvPkValid(P,first,anim){', '/* La réponse gardée s’affiche telle quelle');
+  assert.ok(!valid.includes('<circle'), 'plus de cercle dessiné en SVG');
 });
 
 test('« ↺ Revoir » (ou tout retour en arrière) : le moment reprend là où on l’a laissé, les erreurs restent comptées', () => {

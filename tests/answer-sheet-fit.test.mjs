@@ -97,6 +97,34 @@ test('lvPt suit la réduction (zones tactiles, gerbe), sauf pour la place de la 
   assert.equal(p.pt(0, 0, true).y, 0, 'sans réduction : repère de l’image entière');
 });
 
+/* Elisa, 25 octobre, 18 h 43 (iPhone de 430 × 932, Safari) : « je préfère que le gros cadre de choix soit tout en bas ». Sur ses captures, la feuille
+   s’arrêtait à 575 px, 260 px au-dessus de la barre de Safari, quelle que soit sa hauteur : le bas visible que donnait Safari (visualViewport)
+   restait à la hauteur d’un clavier fermé. La feuille couvrait alors le contenu (au dernier moment, les cases, même réduites à 70 %). */
+function placed({rootH = 873, pb = 34, card = 300, vv = {offsetTop: 0, height: 597}} = {}) {
+  const box = {style: {}, querySelector: () => ({offsetHeight: card, style: {}})};
+  const calls = {fit: 0, layer: 0};
+  const ctx = vm.createContext({
+    Math, parseFloat, window: {visualViewport: vv}, getComputedStyle: () => ({paddingBottom: pb + 'px'}),
+    lvPkFit: () => { calls.fit++; }, lvPkLayerPlace: () => { calls.layer++; }, LV_PK_BOT: 22,
+    LV: {pk: {box}, root: {getBoundingClientRect: () => ({left: 0, top: 0, width: 430, height: rootH})}},
+  });
+  vm.runInContext(cut('function lvPkPlace(){', '/* Le contenu de l’image reste au-dessus du plateau'), ctx);
+  vm.runInContext('lvPkPlace()', ctx);
+  return {top: parseFloat(box.style.top), bottom: box.style.bottom, calls};
+}
+
+test('la feuille est posée tout en bas du lecteur, 22 px au-dessus de son bord, même si Safari donne un bas visible trop haut', () => {
+  for (const card of [110, 300, 380]) {
+    const r = placed({card});
+    assert.equal(r.top, 873 - 34 - 22 - card, `carte de ${card} px : son bas à 22 px du bas du lecteur`);
+    assert.equal(r.bottom, 'auto');
+  }
+  assert.equal(placed({vv: {offsetTop: 0, height: 873}}).top, placed().top, 'le bas visible de Safari ne change rien');
+  assert.equal(placed({card: 2000}).top, 0, 'une carte plus haute que le lecteur part du haut');
+  const r = placed();
+  assert.ok(r.calls.fit === 1 && r.calls.layer === 1, 'puis l’image se règle sur la feuille et les zones tactiles suivent');
+});
+
 test('lecteur : la feuille se place sans réduction, se règle sur le contenu et rend sa taille à l’image à la fermeture', () => {
   const place = cut('function lvPkPlace(){', 'const LV_PK_GAP=');
   assert.ok(place.includes('lvPkFit(P);') && place.indexOf("P.box.style.top=") < place.indexOf('lvPkFit(P);'), 'après avoir posé la feuille');

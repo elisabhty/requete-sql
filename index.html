@@ -6584,44 +6584,48 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 .lv-pk-back+.lv-pk-dots{margin-left:8px}
 .lv-pk.is-ok .lv-pk-back{display:none}
 /* Réussi : la validation bien en avant, à la place du petit badge — une coche verte qui arrive d’un rebond, se trace,
-   lance une onde, puis « Bien vu ! » */
+   lance une onde, puis « Bien vu ! ».
+   Le rond et son onde sont des éléments HTML, le dessin SVG ne garde que les traits blancs, dans son cadre : sur iPhone, Safari découpait
+   au carré l’onde dessinée en SVG hors du cadre de l’icône et laissait des bouts de traits autour (Elisa, 25 octobre, 18 h 43 : « des traits
+   sur les icônes, comme des bugs »). Un trait n’apparaît qu’au moment où il se trace : pas de point laissé par son bout arrondi avant. */
 .lv-pk-kick[hidden],.lv-pk-cnt[hidden]{display:none}
 .lv-pk-ok{display:inline-flex;align-items:center;gap:10px;min-height:42px;font:800 20px/1.1 var(--display);letter-spacing:-.01em;color:#0F7A3A}
-.lv-pk-ok svg{flex:none;width:42px;height:42px;overflow:visible}
-.lv-pk-ok .c{fill:#169447}
-.lv-pk-ok .r{fill:none;stroke:#169447;stroke-width:2.5;opacity:0;transform-box:fill-box;transform-origin:center}
-.lv-pk-ok .k{fill:none;stroke:#fff;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:26;stroke-dashoffset:0}
-.lv-pk-ok.is-anim svg{animation:lvOkPop .5s cubic-bezier(.2,.9,.3,1.5) both}
-.lv-pk-ok.is-anim .k{stroke-dashoffset:26;animation:lvOkTick .32s ease-out .28s forwards}
-.lv-pk-ok.is-anim .r{animation:lvOkRing .9s ease-out .3s}
+.lv-pk-ok .ic{position:relative;display:block;flex:none;width:42px;height:42px;border-radius:50%;background:#169447}
+.lv-pk-ok .ic::after{content:"";position:absolute;inset:0;border:2.5px solid #169447;border-radius:50%;opacity:0;pointer-events:none}
+.lv-pk-ok .ic svg{display:block;width:42px;height:42px}
+.lv-pk-ok .k,.lv-pk-ok .x{fill:none;stroke:#fff;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round}
+.lv-pk-ok .k{stroke-dasharray:26;stroke-dashoffset:0}
+.lv-pk-ok.is-anim .ic{animation:lvOkPop .5s cubic-bezier(.2,.9,.3,1.5) both}
+.lv-pk-ok.is-anim .k{stroke-dashoffset:26;opacity:0;animation:lvOkTick .32s ease-out .28s forwards}
+.lv-pk-ok.is-anim .ic::after{animation:lvOkRing .9s ease-out .3s}
 .lv-pk-ok.is-anim b{animation:lvOkTxt .35s cubic-bezier(.2,.9,.3,1.3) .18s both}
 /* Trouvé après une erreur : le moment reste raté (point rouge, seul le premier essai compte), mais la bonne réponse est saluée.
    La même arrivée, en rouge : la croix du premier essai se trace, puis s’efface ; le rond passe à l’orange, une coche s’y trace
    et le badge acquiesce ; « Raté » laisse la place à « Bien rattrapé ! ». Sans animation : directement l’état orange. */
 .lv-pk-ok.is-late{color:#B45309}
-.lv-pk-ok.is-late .c{fill:#EE8A1A}
-.lv-pk-ok.is-late .r{stroke:#EE8A1A}
+.lv-pk-ok.is-late .ic{background:#EE8A1A}
+.lv-pk-ok.is-late .ic::after{border-color:#EE8A1A}
 .lv-pk-ok .was{display:none}
 .lv-pk-ok.is-late.is-anim .was{display:inline}
 .lv-pk-ok.is-late b{position:relative}
 .lv-pk-ok .x{stroke-dasharray:18}
-.lv-pk-ok.is-anim .x{stroke-dashoffset:18}
+.lv-pk-ok.is-anim .x{stroke-dashoffset:18;opacity:0;animation:lvOkTick .32s ease-out .28s forwards}
 .lv-pk-ok.is-anim .x+.x{animation-delay:.44s}
-.lv-pk-ok.is-late.is-anim .c{animation:lvLateFill .95s ease both}
-.lv-pk-ok.is-late.is-anim g.was{transform-box:fill-box;transform-origin:center;animation:lvLateOut .22s ease-in .78s forwards}
-.lv-pk-ok.is-late.is-anim .k:not(.x){animation-delay:.95s}
-.lv-pk-ok.is-late.is-anim .r{animation-delay:1s}
-.lv-pk-ok.is-late.is-anim svg{animation:lvOkPop .5s cubic-bezier(.2,.9,.3,1.5) both,lvLateNod .5s ease-in-out 1.05s}
+.lv-pk-ok.is-late.is-anim .ic{animation:lvOkPop .5s cubic-bezier(.2,.9,.3,1.5) both,lvLateFill .95s ease both,lvLateNod .5s ease-in-out 1.05s}
+.lv-pk-ok.is-late.is-anim g.was{animation:lvLateFade .22s ease-in .78s forwards}
+.lv-pk-ok.is-late.is-anim .k{animation-delay:.95s}
+.lv-pk-ok.is-late.is-anim .ic::after{animation-delay:1s}
 .lv-pk-ok.is-late.is-anim span.was{position:absolute;left:0;top:0;color:#C2323A;animation:lvLateOut .2s ease-in .78s forwards}
 .lv-pk-ok.is-late.is-anim span.now{animation:lvOkTxt .35s cubic-bezier(.2,.9,.3,1.3) .92s both}
-@keyframes lvLateFill{0%,72%{fill:#DE3F46}100%{fill:#EE8A1A}}
+@keyframes lvLateFill{0%,72%{background-color:#DE3F46}100%{background-color:#EE8A1A}}
+@keyframes lvLateFade{to{opacity:0}}
 @keyframes lvLateOut{to{opacity:0;transform:scale(.5) rotate(45deg)}}
 @keyframes lvLateNod{30%{transform:rotate(-12deg) scale(1.08)}65%{transform:rotate(7deg)}100%{transform:none}}
 @keyframes lvOkPop{0%{transform:scale(.2) rotate(-25deg);opacity:0}60%{transform:scale(1.15);opacity:1}100%{transform:none;opacity:1}}
-@keyframes lvOkTick{to{stroke-dashoffset:0}}
+@keyframes lvOkTick{0%{opacity:1}to{opacity:1;stroke-dashoffset:0}}
 @keyframes lvOkRing{0%{opacity:.55;transform:scale(1)}100%{opacity:0;transform:scale(1.75)}}
 @keyframes lvOkTxt{0%{opacity:0;transform:translateX(-8px)}100%{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.lv-pk-ok svg,.lv-pk-ok .r,.lv-pk-ok b{animation:none!important}.lv-pk-ok .k{animation:none!important;stroke-dashoffset:0!important}}
+@media (prefers-reduced-motion:reduce){.lv-pk-ok .ic,.lv-pk-ok .ic::after,.lv-pk-ok b{animation:none!important}.lv-pk-ok .k{animation:none!important;stroke-dashoffset:0!important;opacity:1!important}}
 .lv-pk.is-ok .lv-pk-back+.lv-pk-dots{margin-left:auto}
 @media (max-width:359px){.lv-pk-back span+span{display:none}}
 .lv-pk-dots i{width:9px;height:9px;border-radius:50%;background:#E2DCF5;transition:background-color .3s,box-shadow .3s}
@@ -15608,7 +15612,7 @@ function lvPkValid(P,first,anim){
   const top=P.box.querySelector('.lv-pk-top'); if(!top||top.querySelector('.lv-pk-ok'))return;
   const el=document.createElement('span'), tick='<path class="k" d="M12.5 21.5l6 6L30 15.5"/>';
   el.className='lv-pk-ok'+(first?'':' is-late')+(anim&&!prefersReduceMotion()?' is-anim':'');
-  el.innerHTML=`<svg viewBox="0 0 42 42" aria-hidden="true"><circle class="r" cx="21" cy="21" r="19"/><circle class="c" cx="21" cy="21" r="19"/>${first?tick:`<g class="was"><path class="k x" d="M15 15l12 12"/><path class="k x" d="M27 15L15 27"/></g>${tick}`}</svg>`+
+  el.innerHTML=`<i class="ic" aria-hidden="true"><svg viewBox="0 0 42 42">${first?tick:`<g class="was"><path class="x" d="M15 15l12 12"/><path class="x" d="M27 15L15 27"/></g>${tick}`}</svg></i>`+
     `<b>${first?'Bien vu&nbsp;!':'<span class="was" aria-hidden="true">Raté</span><span class="now">Bien rattrapé&nbsp;!</span>'}</b>`;
   top.querySelectorAll('.lv-pk-kick,.lv-pk-cnt').forEach(e=>{ e.hidden=true; });
   top.insertBefore(el,top.firstChild);
@@ -15822,19 +15826,17 @@ function lvPkBurst(rect){
   }
   setTimeout(()=>layer.remove(),1100);
 }
-/* Le plateau prend la place de la légende (bord haut à y = 1496 de la maquette) : assez haut pour cacher la légende restée affichée
-   à l’arrêt (jusqu’à y = 1830), pas davantage ; au-delà, il suit son contenu, sans blanc, et remonte s’il manque de place dessous.
-   Le résultat, au-dessus, reste visible. */
+/* Le plateau est posé tout en bas du lecteur et grandit vers le haut avec son contenu (question, indice, correction) ; la légende de l’image
+   est cachée pendant le moment (lvCapHide), il n’a rien à recouvrir. Le résultat, au-dessus, reste visible : l’image se réduit au besoin (lvPkFit).
+   Le bas de la carte : LV_PK_BOT px au-dessus du bas du lecteur, son liseré et son ombre restent au-dessus de la barre de Safari
+   (Elisa, 25 octobre, 16 h 35 : « ça dépasse en bas »). Le bas visible que donne Safari (visualViewport) n’entre pas en compte : sur l’iPhone
+   d’Elisa, il restait à la hauteur d’un clavier pourtant fermé, et la feuille flottait au milieu de l’écran, sur le contenu (25 octobre, 18 h 43 :
+   « je préfère que le gros cadre de choix soit tout en bas »). */
 function lvPkPlace(){
   const P=LV&&LV.pk; if(!P)return;
-  const a=lvPt(0,1496,1), z=lvPt(0,1830,1); if(!a||!z)return;
-  /* Le bas de la carte : LV_PK_BOT px au-dessus du bas du lecteur, ou du bas visible si la barre de Safari en recouvre une partie
-     (visualViewport) ; son liseré et son ombre restent ainsi au-dessus de la barre (Elisa, 25 octobre, 16 h 35 : « ça dépasse en bas »). */
-  const R=LV.root.getBoundingClientRect(), pb=parseFloat(getComputedStyle(LV.root).paddingBottom)||0, vv=window.visualViewport;
-  const lim=Math.min(R.height-pb,vv?vv.offsetTop+vv.height-R.top:R.height)-LV_PK_BOT;
+  const R=LV.root.getBoundingClientRect(), pb=parseFloat(getComputedStyle(LV.root).paddingBottom)||0, lim=R.height-pb-LV_PK_BOT;
   const card=P.box.querySelector('.lv-pk-card');
-  card.style.minHeight=Math.max(0,Math.min(z.y,lim)-a.y).toFixed(1)+'px';
-  P.box.style.bottom='auto'; P.box.style.top=Math.max(0,Math.min(a.y,lim-card.offsetHeight)).toFixed(1)+'px';
+  P.box.style.bottom='auto'; P.box.style.top=Math.max(0,lim-card.offsetHeight).toFixed(1)+'px';
   lvPkFit(P);
   lvPkLayerPlace();
 }
@@ -24980,7 +24982,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2046';
+  const SW_CACHE='requete-2026-10-12-ludique-v2047';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
