@@ -168,8 +168,10 @@ test('les phrases d’Elisa (25 octobre, 12 h 51) : les sept parties de sa trame
   dit('Son avis doit s’afficher<br>à chaque visite sur le site.', 'Il faut donc l’enregistrer<br>dans la base de données.',
     'On ajoute une <b>table avis</b> :<br>chaque ligne contient un avis<br>publié sur un produit.', 'Elle a cinq colonnes :<br><code>id</code>, <code>client_id</code>, <code>produit_id</code>,<br><code>note</code> et <code>commentaire</code>.',
     'La colonne <code>client_id</code><br>relie l’avis au compte<br>d’Inès Lefebvre.', 'La colonne <code>produit_id</code><br>le relie à la protéine<br>qu’elle a goûtée.', 'Ces deux colonnes sont<br>des <b>clés étrangères</b>.');
-  /* 4 · Le moment de la suppression : le bouton, la table clients, le lien qui n’a plus de sens */
-  dit('Le compte d’Inès Lefebvre<br>est relié à son avis<br>par <code>client_id</code>.', 'On clique sur le bouton<br>« Supprimer le compte ».', 'Son avis ne peut pas continuer<br>à référencer un compte<br>qui n’existe plus.', 'Que doit devenir ce lien ?');
+  /* 4 · Le moment de la suppression : le bouton, la table clients, le lien qui n’a plus de sens ; c’est l’élève qui clique sur le bouton (Elisa, 25 octobre, 15 h 48 :
+     « demande plutôt à l’utilisateur de cliquer lui sur le bouton »), la légende le lui demande. */
+  dit('Le compte d’Inès Lefebvre<br>est relié à son avis<br>par <code>client_id</code>.', 'Clique sur le bouton<br>« Supprimer le compte ».', 'Son avis ne peut pas continuer<br>à référencer un compte<br>qui n’existe plus.', 'Que doit devenir ce lien ?');
+  assert.ok(!caps.some(c => /^On clique/.test(c)), 'plus de « On clique… » : la vidéo ne clique plus à la place de l’élève');
   /* 5 · Découvrir ON DELETE */
   dit('La règle <code>ON DELETE</code> se définit<br>sur une clé étrangère.', 'Elle précise ce qui se passe<br>lorsque la ligne référencée<br>est supprimée.', 'Il existe trois possibilités.');
   /* 7 · Retour sur le site web */
@@ -319,6 +321,9 @@ test('moment 6 : chaque situation est rangée sous la bonne règle ; SET NULL ne
   assert.deepEqual(BINS.map(([k]) => ITEMS.filter(x => x[1] === k).length), [2, 2, 2], 'deux situations par règle');
   assert.deepEqual(val('PICKS')[5].options.map(o => o.label), ITEMS.map(x => x[0]), 'les situations à ranger sont celles des correcteurs');
   for (const x of ITEMS) assert.ok(strip(x[2]).length > 40, `${x[0]} : une correction qui explique pourquoi pas les autres règles`);
+  /* Elisa, 25 octobre, 15 h 48 : « les cartes quoi ? » : la table cartes se dit « carte de membre » depuis le chapitre 2. */
+  assert.ok(ITEMS.some(x => x[0] === 'Les cartes de membre d’un client qui ferme son compte' && x[1] === 're'), 'les cartes de membre, pas « les cartes »');
+  assert.ok(!ITEMS.some(x => /cartes d’un/.test(x[0])) && /carte de membre/.test(ITEMS[2][2]), 'la correction aussi parle de la carte de membre');
   /* Le cas de l’avis revient dans la liste : un avis de client se conserve (SET NULL), un avis de produit retiré disparaît (CASCADE). */
   assert.ok(ITEMS.some(x => /avis d’un client/.test(x[0]) && x[1] === 'sn') && ITEMS.some(x => /avis d’un produit/.test(x[0]) && x[1] === 'ca'));
   /* La colonne concernée par chaque situation : celle qui désigne le client ou le produit. */
@@ -344,9 +349,22 @@ test('le message : un mail du service client relaie la demande d’Inès Lefebvr
     '<i class="qt">Bonjour, je souhaite supprimer mon compte NutriBoost. Vous pouvez conserver mon avis, mais je ne souhaite plus que mon prénom apparaisse. Merci !</i>',
     'Peux-tu supprimer le compte d’Inès Lefebvre tout en conservant son avis sur la fiche produit ? Il devra apparaître sous la mention « Ancien client ».']);
   assert.deepEqual(base().exec('SELECT prenom, nom FROM clients WHERE id = 9')[0].values[0], ['Inès', 'Lefebvre'], 'Inès Lefebvre est la cliente 9');
-  assert.equal(opens.length, 1);
+  assert.equal(opens.length, 2, 'deux arrêts « toucher » : le mail, puis le bouton « Supprimer le compte »');
   assert.ok(opens[0].at > mail && opens[0].at < mail + sortie, 'l’app s’arrête pendant le message'); assert.equal(opens[0].sel, '#ml1');
   assert.equal(opens[0].label, 'Ouvrir le mail du service client NutriBoost'); assert.equal(opens[0].prompt, 'Touche le mail pour l’ouvrir.');
+  /* Le bouton : l’app s’arrête dessus pendant la légende qui demande de cliquer, jusqu’au toucher ; rien n’est noté (ce n’est pas un moment « À toi »). */
+  const caps = val('CAPTIONS'), d2 = caps.find(c => c[2] === 'Clique sur le bouton<br>« Supprimer le compte ».');
+  assert.ok(d2, 'la légende demande à l’élève de cliquer');
+  assert.deepEqual([opens[1].sel, opens[1].prompt, opens[1].label], ['#bdel', 'Touche le bouton.', 'Supprimer le compte d’Inès Lefebvre']);
+  assert.equal(opens[1].at, val('BTN')); assert.ok(opens[1].at > d2[0] + 1 && opens[1].at < d2[1] - 1, 'le bouton est visible, puis l’app s’arrête ; la légende ne reste pas longtemps après le toucher');
+  assert.ok(opens[1].at > picks[0].at && opens[1].at < picks[1].at && opens[1].at > opens[0].at, 'après le moment 1 et le mail, avant le moment 2');
+  assert.ok(val('NOTES') === 237.73 && val('DURATION') === 244.93, 'un arrêt « toucher » n’allonge pas la vidéo');
+  assert.ok(page.includes("if (!APP) fingerTap($('#bdel'), BTN, '#tapw', 0.6, 62);") && page.includes("press($('#bdel'), BTN, '#A92A31', 9);"),
+    'le doigt ne montre le geste que dans la vidéo seule ; dans l’app, le bouton s’enfonce au toucher de l’élève');
+  assert.equal(l68.video.moments, 6, 'le bouton ne compte pas parmi les moments « À toi »');
+  /* Elisa, 25 octobre, 15 h 48 : « met des espaces dans le mail pour espacer » : un blanc entre les blocs, la citation collée à sa phrase, la signature collée à « Merci ! ». */
+  assert.ok(page.includes('.mb .sn+.sn{margin-top:34px}') && page.includes('.mb .sn.q{margin-top:14px}') && page.includes('.mb .sn.s{margin-top:0}'), 'espaces entre les blocs du mail');
+  assert.ok(page.includes(`\${/class="qt"/.test(x) ? ' q' : ''}`), 'la citation reçoit sa classe');
   /* Le message reste le temps de ses lignes : une ligne toutes les 0,28 s, le départ juste après la pause de lecture. */
   assert.equal(lignes, 6, 'lignes du mail : Bonjour, ses trois paragraphes, Merci !, la signature'); assert.equal(sortie, 4.08, 'le départ : +2,68 s + 0,28 s par ligne après la première');
   /* Il arrive après le premier moment et avant le deuxième, derrière la carte-titre « Quelque temps plus tard… ». */

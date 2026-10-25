@@ -137,7 +137,9 @@
 .mb{padding:24px 4px 28px;box-shadow:inset 0 3px 0 var(--line-2)}
 .mb p{margin:0;font-size:34px;line-height:1.3;font-weight:500;color:var(--ink)}
 .mb .sn{display:block;height:auto;font-family:var(--ui);font-size:34px;font-weight:500;color:var(--ink)}
-.mb .sn+.sn{margin-top:12px}
+/* Un blanc entre les blocs du mail ; la citation reste collée à la phrase qui l’annonce, la signature à « Merci ! » (Elisa, 25 octobre, 15 h 48 : « met des espaces dans le mail pour espacer »). */
+.mb .sn+.sn{margin-top:34px}
+.mb .sn.q{margin-top:14px}
 .mb .sn.s{margin-top:0}
 /* Hors de l’app : le doigt qui touche la notification */
 .tapf{z-index:20;font-size:120px;margin:-8px 0 0 -44px;opacity:0;visibility:hidden}
@@ -228,7 +230,7 @@
 .ml{top:420px}
 
 /* ---------- 4 et 5 · Le bouton « Supprimer le compte », les deux cartes liées, la règle ---------- */
-.bdel{position:absolute;left:260px;width:560px;top:236px;margin:0;height:96px;gap:16px;font-size:36px;background:linear-gradient(135deg,#F2656B,#E0383F);box-shadow:0 9px 0 #A92A31}
+.bdel{position:absolute;left:260px;width:560px;top:230px;margin:0;height:108px;gap:16px;font-size:36px;background:linear-gradient(135deg,#F2656B,#E0383F);box-shadow:0 9px 0 #A92A31}
 .bdel .emo{font-size:42px}
 .sq .rl{vertical-align:top}
 .sq .rl>*{height:42px;display:flex;align-items:center;justify-content:center;padding:0 12px;border-radius:10px}
@@ -400,7 +402,7 @@ const MAIL1 = mailBlock(0);
 /* 4 · Le moment de la suppression */
 chap({label:'Le moment de la suppression'});
 cap('d1', "Le compte d’Inès Lefebvre<br>est relié à son avis<br>par <code>client_id</code>.", 4.4);
-cap('d2', "On clique sur le bouton<br>« Supprimer le compte ».", 3.8);
+cap('d2', "Clique sur le bouton<br>« Supprimer le compte ».", 3.8);   // c’est l’élève qui clique : l’app s’arrête sur le bouton (BTN, plus bas)
 cap('d3', "On supprime Inès Lefebvre<br>de la <b>table clients</b>.", 3.8);
 cap('d4', "Son avis ne peut pas continuer<br>à référencer un compte<br>qui n’existe plus.", 4.6);
 cap('d5', "Que doit devenir ce lien ?", 3.4);
@@ -487,7 +489,7 @@ const BINS = [['ca', 'CASCADE', 'supprime les lignes liées'], ['sn', 'SET NULL'
 const ITEMS = [
   ['Les inscriptions d’un client qui ferme son compte', 'ca', 'Une inscription n’a aucun sens sans son client : elle doit disparaître avec lui.'],
   ['Les commandes d’un client qui ferme son compte', 'sn', 'Une commande reste utile à la comptabilité : elle est conservée, mais sans client.'],
-  ['Les cartes d’un client qui ferme son compte', 're', 'Les séances restantes se règlent à la main : tant que la carte existe, la suppression du compte doit être refusée.'],
+  ['Les cartes de membre d’un client qui ferme son compte', 're', 'Les séances restantes se règlent à la main : tant que la carte de membre existe, la suppression du compte doit être refusée.'],
   ['Les avis d’un produit retiré du catalogue', 'ca', 'Un avis n’a aucun sens sans son produit : il doit disparaître avec lui.'],
   ['Les avis d’un client qui ferme son compte', 'sn', 'Un avis reste utile pour son produit : il est conservé, mais sans client.'],
   ['Les commandes d’un produit retiré du catalogue', 're', 'Une commande passée ne doit jamais disparaître : retirer le produit doit être refusé.']
@@ -521,6 +523,12 @@ const OPENS = [MAIL1].map((t, n) => {
   const de = /^Le /.test(prenom) ? 'du ' + prenom.slice(3) : /^[AEIOUHÉÈ]/.test(prenom) ? 'd’' + prenom : 'de ' + prenom;   // « du service client », « d’Inès »
   return {at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: `Touche le ${msg} pour l’ouvrir.`, label: `Ouvrir le ${msg} ${de} ${nom}`};
 });
+
+/* Le bouton « Supprimer le compte » : l’app s’arrête dessus jusqu’au toucher, comme sur le mail ; rien n’est noté (Elisa, 25 octobre, 15 h 48 :
+   « demande plutôt à l’utilisateur de cliquer lui sur le bouton »). Hors de l’app, un doigt le montre. Le toucher tombe 2,4 s après le début de la légende : la fin
+   de la légende (1,4 s) laisse le temps de voir le bouton s’enfoncer, sans redire une consigne que l’élève vient d’exécuter. */
+const BTN = +(A.d2 + 2.4).toFixed(2);
+OPENS.push({at: BTN, sel: '#bdel', prompt: 'Touche le bouton.', label: 'Supprimer le compte d’Inès Lefebvre'});
 
 /* ---------- Gabarits ---------- */
 /* Une case à valeurs empilées (une seule se voit). */
@@ -596,7 +604,7 @@ function dom(){
   $('#sm').innerHTML = '<div class="abs ttl" id="tt"><span class="emo">📩</span><span>Quelque temps<br>plus tard…</span></div>' +
     MAILS.map(([w, k, tag, from, body, sign], n) => `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
     `<div class="mw"><div class="mn"><b>${w[0]} ${w[1]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
-    `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), 'Merci !', sign].map((x, j, a) => `<span class="sn${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
+    `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), 'Merci !', sign].map((x, j, a) => `<span class="sn${/class="qt"/.test(x) ? ' q' : ''}${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
     '<div class="abs emo tapf" id="tapf">👆</div>';
   /* Le moment de la suppression : le bouton, le compte, la flèche, l’avis ; puis la règle ON DELETE écrite sur la clé étrangère */
   let w = '<div class="abs run bdel" id="bdel"><span class="emo">🗑️</span>Supprimer le compte<i class="ripple"></i></div>' +
@@ -625,7 +633,7 @@ function dom(){
     ['e2d', '  ON DELETE SET NULL']
   ]) + out('o-nn', 'err', 'Suppression du compte refusée', 'NOT NULL constraint failed:<br>avis.client_id', 'm', true);
   /* Les trois règles : une case chacune, où ranger les situations */
-  $('#sd').innerHTML = BINS.map(([k, n, d], q) => `<div class="abs dbn" id="db-${k}" data-k="${k}" style="top:${340 + q * 232}px"><div class="hh"><span class="dn">${n}</span><span class="dd">${d}</span></div>` +
+  $('#sd').innerHTML = BINS.map(([k, n, d], q) => `<div class="abs dbn" id="db-${k}" data-k="${k}" style="top:${260 + q * 232}px"><div class="hh"><span class="dn">${n}</span><span class="dd">${d}</span></div>` +
     `<div class="cs">${ITEMS.map((x, i) => x[1] === k ? `<div class="rc" id="sbu${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
     '<div class="abs pack" id="bpack"><span><span class="emo">📬</span>6 situations à ranger</span></div>';
   /* La suite : la prochaine leçon */
@@ -947,10 +955,10 @@ function build(){
   on('#rwa .hl', A.d1 + 1.3, 0.25); cue(A.d1 + 1.3, 'tick', 0.5, 3);
   pulse('#rwa .c1', A.d1 + 2.5, 1, GLOW); cue(A.d1 + 2.5, 'tick', 0.5, 4);
   off(['#rwc .hl', '#rwa .hl'], A.d1 + 3.7, 0.3);
-  // on clique sur le bouton « Supprimer le compte » : le doigt, le bouton qui s’enfonce
+  // l’élève clique sur le bouton « Supprimer le compte » (l’app s’arrête dessus, moment OPENS ; hors de l’app, un doigt le montre) : le bouton s’enfonce
   show('#bdel', A.d2 + 0.1, {y: 30, scale: 0.94}, 0.5, 'back.out(1.7)'); cue(A.d2 + 0.1, 'pop', 0.7, 1);
-  fingerTap($('#bdel'), A.d2 + 1.5, '#tapw', 0.6, 62);
-  press($('#bdel'), A.d2 + 1.5, '#A92A31', 9);
+  if (!APP) fingerTap($('#bdel'), BTN, '#tapw', 0.6, 62);
+  press($('#bdel'), BTN, '#A92A31', 9);
   // on supprime Inès Lefebvre de la table clients : sa ligne devient rouge
   on('#rwc .xx', A.d3 + 0.6, 0.25); cue(A.d3 + 0.6, 'miss', 0.4);
   // son avis ne peut pas continuer à référencer un compte qui n’existe plus : la flèche se brise, la case client_id clignote

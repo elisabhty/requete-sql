@@ -680,6 +680,9 @@ function contentBottom(){
   const take = el => { if (!el.classList.contains('stamp') && !el.classList.contains('fly') && !el.parentElement.closest('.card, .code')) set.add(el); };
   $$('.card, .code', stage).forEach(take);
   $$('section.scene > *', stage).forEach(el => { if (isBox(el)) take(el); });
+  /* Une pastille centrée (.pack : « 6 situations à ranger », « 2 clés étrangères »…) : son conteneur est transparent et c’est elle qui porte le cadre.
+     Sans elle, la feuille de réponse la recouvrait (Elisa, 25 octobre, 15 h 48 : « la pastille qu’on ne voit pas »). */
+  $$('section.scene > .pack > span', stage).forEach(take);
   let best = null;
   set.forEach(el => {
     if (el.closest('#cap, #chapter, #chap') || shown(el) < 0.3) return;
