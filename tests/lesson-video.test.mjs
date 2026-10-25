@@ -1059,16 +1059,16 @@ const COURSES = [
       "{at: atp('p1'), from: A.c4, kind: 'tap', need: 1,", "{label: 'WHERE id = 4', ok: true},", "{label: 'WHERE id = 10', ok: true}]},", "{label: 'WHERE client_id = 6', ok: true},",
       "{at: atp('p5'), from: A.c19, kind: 'tap', need: 8,", "{at: atp('p6'), from: A.c24, kind: 'sort',",
       "b += out('o-8', 'warn', 'Requête exécutée', '8 lignes supprimées.');", "c += out('o-2', 'ok', 'Requête exécutée', '1 ligne supprimée.');", 'Prochaine leçon · ON DELETE']},
-  {id: 68, next: 62, titre: 'ON DELETE', page: 'projet-ondelete.html', thumb: 'projet-ondelete-thumb.webp', duree: '4 min 05', notesAt: 210.77,
-    notes: /notes:\{t:237\.5,y:1261,card:\[64,292,1016,966\],to:\[940,255\]\}/, table: 'avis',
-    bubble: 'Un compte ne peut pas être supprimé&nbsp;:<br>à toi de décider du sort des lignes liées.',
-    chapters: ['Deux demandes', 'Une suppression refusée', 'Trois sorts possibles', 'Écrire la règle', 'Le compte supprimé', 'Quelle règle choisir ?', 'À retenir'],
-    traps: ["const AVIS = [", "const BINS = [['ca', 'CASCADE', 'supprime les lignes liées'], ['sn', 'SET NULL', 'détache les lignes liées'], ['re', 'RESTRICT', 'refuse la suppression']];",
-      // Les six moments : l’inscription qui désigne le client, la case qui devient NULL, la règle qui conserve les avis, NOT NULL, ON DELETE écrit dans le DELETE, les six situations à ranger
-      "{at: atp('p1'), from: A.c4, kind: 'tap', need: 1,", "{at: atp('p2'), from: A.n1, kind: 'tap', need: 1,", "{label: 'ON DELETE SET NULL', ok: true},",
-      "{label: 'La suppression du client est refusée', ok: true}]},", "{label: 'Une erreur de syntaxe', ok: true},", "{at: atp('p6'), from: A.c35, kind: 'sort',",
-      "c += out('o-fk', 'err', 'Requête refusée', 'FOREIGN KEY constraint failed', 'm');", "c += out('o-se', 'err', 'Requête refusée', 'near \"ON\": syntax error', 'm');",
-      "e += out('o-nn', 'err', 'Suppression du client refusée', 'NOT NULL constraint failed:<br>avis.client_id', 'm', true);", 'Prochaine leçon · Transactions']},
+  {id: 68, next: 62, titre: 'ON DELETE', page: 'projet-ondelete.html', thumb: 'projet-ondelete-thumb.webp', duree: '4 min 36', notesAt: 237.73,
+    notes: /notes:\{t:268\.7,y:1141,card:\[64,292,1016,846\],to:\[940,255\]\}/, table: 'avis', article: 'une',
+    bubble: 'Un client part,<br>mais son avis doit rester&nbsp;:<br>à toi de décider !',
+    chapters: ['Après l’atelier', 'De la feuille à la base', 'Quelque temps plus tard…', 'Le moment de la suppression', 'Découvrir ON DELETE', 'À toi de choisir', 'Retour sur le site web', 'Chaque cas, sa règle', 'À retenir'],
+    traps: ["const PRENOM = 'Inès';", "const BINS = [['ca', 'CASCADE', 'supprime les lignes liées'], ['sn', 'SET NULL', 'détache les lignes liées'], ['re', 'RESTRICT', 'refuse la suppression']];",
+      // Les six moments : les deux clés étrangères de l’avis, la règle qui conserve l’avis, la case qui devient NULL, NOT NULL, qui affiche « Ancien client », les six situations à ranger
+      "{at: atp('p1'), from: A.b8, kind: 'tap', need: 2,", "{at: atp('p2'), from: A.e1, kind: 'pick', text: true,", "{label: 'SET NULL', ok: true, why:",
+      "{at: atp('p3'), from: A.g1, kind: 'tap', need: 1,", "{label: 'La suppression du compte est refusée', ok: true}]},", "{label: 'Le site web, sans compte associé', ok: true,",
+      "{at: atp('p6'), from: A.h1, kind: 'sort',",
+      "w += out('o-rs', 'err', 'Suppression bloquée', 'FOREIGN KEY constraint failed', 'm');", "out('o-nn', 'err', 'Suppression du compte refusée', 'NOT NULL constraint failed:<br>avis.client_id', 'm', true)", 'Prochaine leçon · Transactions']},
 ];
 
 for (const c of COURSES) {
@@ -1096,7 +1096,7 @@ for (const c of COURSES) {
     for (const t of c.traps) assert.ok(page.includes(t), `piège : ${t}`);
     if (!['between.html', 'limit-offset.html'].includes(c.page) && !c.page.startsWith('projet-')) assert.ok(page.includes("stackBelow('#s1 .need', "), 'la liste des informations se cale sous la carte de la situation, sans la toucher');
     assert.ok(!/SQL (voit|comprend|sait|lit)\b/.test(page), 'SQL n’est jamais personnifié');
-    assert.ok(page.includes(`la <b>table ${c.table}</b>`) && !new RegExp(`dans ${c.table}\\b`).test(page), `toujours « table ${c.table} »`);
+    assert.ok(page.includes(`${c.article || 'la'} <b>table ${c.table}</b>`) && !new RegExp(`dans ${c.table}\\b`).test(page), `toujours « table ${c.table} »`);
   });
 
   test(`${c.titre} reste léger et disponible hors ligne`, () => {

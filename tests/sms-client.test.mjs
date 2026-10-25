@@ -129,8 +129,9 @@ test('la cadence : la bannière, le toucher, « … », puis une bulle toutes le
 const PAGES = R.pagesProjet();
 const estSms = m => /^client/.test(m[2]) || !!(m[6] && m[6].sms);   // un client, ou le service client quand le message le dit
 const AVEC_SMS = PAGES.filter(f => R.donnees(f).MAILS.some(estSms));
-test('les chapitres où un SMS arrive : 1 et 2 (un client), 9 et 10 (le service client) ; ceux à venir s’ajoutent seuls', () => {
-  assert.deepEqual(['projet-cles.html', 'projet-delete.html', 'projet-normaliser.html', 'projet-ondelete.html'].filter(f => !AVEC_SMS.includes(f)), [], 'les quatre chapitres déjà faits');
+test('les chapitres où un SMS arrive : 1 et 2 (un client), 9 (le service client) ; le chapitre 10 n’a qu’un mail ; ceux à venir s’ajoutent seuls', () => {
+  assert.deepEqual(['projet-cles.html', 'projet-delete.html', 'projet-normaliser.html'].filter(f => !AVEC_SMS.includes(f)), [], 'les trois chapitres déjà faits');
+  assert.ok(!AVEC_SMS.includes('projet-ondelete.html'), 'le chapitre 10 : un seul message, un mail du service client (Elisa, 25 octobre, 12 h 51)');
   const clients = PAGES.filter(f => R.donnees(f).MAILS.some(m => /^client/.test(m[2])));
   assert.deepEqual(clients, ['projet-cles.html', 'projet-normaliser.html'], 'un client écrit lui-même aux chapitres 1 et 2 seulement : depuis le chapitre 5, le service client centralise les demandes');
 });
@@ -174,17 +175,18 @@ test('chapitre 9 : le service client relaie les trois demandes : deux SMS (« L�
   assert.ok(src.includes("(MAILS[n][6] || {}).bye || 'Merci !', sign]"), 'la formule de fin du mail vient du message');
   assert.ok(src.includes('Elisa, 25 octobre'), 'la page garde la trace de la demande d’Elisa');
 });
-test('chapitre 10 : le service client relaie la demande d’Inès Lefebvre par SMS (« Bonjour ! », puis « Inès Lefebvre ne reviendra plus aux ateliers. » en aperçu), puis écrit le mail des avis', () => {
+test('chapitre 10 : le service client relaie la demande d’Inès Lefebvre par un mail (sa demande citée mot pour mot, puis ce qu’il demande à l’équipe), sans SMS', () => {
   const src = lire('projet-ondelete.html'), M = R.donnees('projet-ondelete.html').MAILS;
-  assert.deepEqual(M.map(m => `${m[0][0]} ${m[0][1]} [${m[2]}]`), Array(2).fill('Le service client NutriBoost [équipe]'));
-  assert.deepEqual(M.map(m => !!(m[6] && m[6].sms)), [true, false]);
-  /* Comme au chapitre 9 (Elisa, 25 octobre, réponse « Oui » de 08 h 55) : « Bonjour ! », sa demande en deux phrases, « Merci ! ». */
-  assert.equal(M[0][6].hello, 'Bonjour !', 'le SMS s’ouvre sur « Bonjour ! », pas sur « Bonjour, »');
-  assert.deepEqual(parts(M[0][4], M[0][6].hello), ['Bonjour !', 'Inès Lefebvre ne reviendra plus aux ateliers.', 'Peux-tu supprimer son compte ?', 'Merci !']);
-  const h = S.smsCard(1, 'k-in', 'Le service client', 'NutriBoost', 'SC', M[0][4], false, S.smsRank(M, 0), M[0][6].hello);
-  assert.ok(h.includes('<p class="sms-m">Bonjour !</p>') && !h.includes('Bonjour,'), 'la première bulle : « Bonjour ! »');
-  assert.ok(h.slice(h.indexOf('sms-n'), h.indexOf('sms-v')).includes('<div class="sms-np">Inès Lefebvre ne reviendra plus aux ateliers.</div>'), 'l’aperçu de la notification');
-  assert.ok(src.includes('body, false, smsRank(MAILS, n), (MAILS[n][6] || {}).hello) : `') && src.includes('Elisa, 25 octobre'), 'la page donne sa première bulle au SMS');
+  assert.deepEqual(M.map(m => `${m[0][0]} ${m[0][1]} [${m[2]}]`), ['Le service client NutriBoost [équipe]'], 'un seul message, du service client');
+  assert.ok(!estSms(M[0]) && !(M[0][6] && M[0][6].sms), 'un mail : ni l’option {sms: true}, ni un client qui écrit lui-même (le service client centralise les demandes depuis le chapitre 5)');
+  /* Les mots d’Elisa (25 octobre, 12 h 51) : la demande de la cliente, entre guillemets, puis la demande à l’équipe. */
+  assert.deepEqual(M[0][4], [
+    'Inès Lefebvre nous a écrit :',
+    '<i class="qt">Bonjour, je souhaite supprimer mon compte NutriBoost. Vous pouvez conserver mon avis, mais je ne souhaite plus que mon prénom apparaisse. Merci !</i>',
+    'Peux-tu supprimer le compte d’Inès Lefebvre tout en conservant son avis sur la fiche produit ? Il devra apparaître sous la mention « Ancien client ».']);
+  assert.equal(M[0][3], 'service.client@nutriboost.fr'); assert.equal(M[0][5], 'Le service client NutriBoost');
+  assert.ok(src.includes('Elisa, 25 octobre') && src.includes('<i class="mav">') && src.includes('Nouveau mail'), 'la page garde la trace de la demande d’Elisa et la carte de mail');
+  assert.ok(!/smsCard|smsIn/.test(src), 'la page n’embarque pas le code des SMS : elle n’en a aucun');
 });
 
 /* La durée d’un message suit sa longueur : une bulle (SMS) ou une ligne (mail) toutes les 0,28 s ; le départ juste après la pause de lecture, 0,06 s après sa fin. */
@@ -205,7 +207,7 @@ for (const f of ['projet-delete.html', 'projet-ondelete.html']) {
     assert.ok(/mailOut\(\d, MAIL\d \+ MO\[\d\]\);/.test(src) && !/MAIL\d \+ (?:3\.8|4\.1|4\.15)\b/.test(src), 'le départ de chaque message suit sa longueur (plus de 3,8 s, 4,1 s ou 4,15 s écrits en dur)');
   });
 }
-test('chapitres 9 et 10 : la légende annonce les SMS', () => {
+test('chapitre 9 : la légende annonce les SMS ; le chapitre 10, qui n’a qu’un mail, n’en annonce pas', () => {
   assert.ok(lire('projet-delete.html').includes('cap(\'c2\', "Trois autres demandes arrivent.", 2.8);'));   // Elisa, 25 octobre, 08 h 17 (Réf 1)
-  assert.ok(lire('projet-ondelete.html').includes('cap(\'c2\', "Deux autres demandes arrivent.", 2.8);'));   // Elisa, 25 octobre, comme au chapitre 9
+  assert.ok(!/autres demandes arrivent/.test(lire('projet-ondelete.html')), 'le chapitre 10 ne dit pas « demandes arrivent » : une carte-titre « Quelque temps plus tard… », puis le mail');
 });

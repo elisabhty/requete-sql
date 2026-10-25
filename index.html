@@ -8986,39 +8986,42 @@ guide({ id:28, titre:"DELETE", résumé:"Supprimer des lignes",
 { titre:"Contraintes et intégrité", sous:"Les règles que les données doivent respecter", lessons:[
 guide({ id:68, titre:"ON DELETE", résumé:"Décider du sort des lignes liées",
   /* Projet, chapitre 10, en vidéo interactive : l’animation (assets/anim/projet-ondelete.html, moteur commun assets/anim/core.js)
-     est le cours. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 9, tu as supprimé des lignes
-     avec DELETE »), sur la base que le chapitre 9 laisse : huit tables, avec 9 clients et 8 inscriptions, puisque Nathan Dupont,
-     l’inscription de Léa Simon et les deux d’Hugo Laurent ont été supprimés. Deux messages du service client arrivent. SMS pour Inès Lefebvre : elle ne reviendra plus aux ateliers, son compte est à supprimer. La requête DELETE FROM
-     clients WHERE id = 9 est refusée, FOREIGN KEY constraint failed : une seule table fait référence à Inès Lefebvre, la table
-     inscriptions, par l’inscription d’identifiant 11 (moment 1 : l’élève touche cette inscription). Mail du service client : sept avis
-     ont été donnés sur papier, la table avis est à créer. Chaque avis désigne le client qui l’a donné par une clé étrangère, et les
-     trois règles ON DELETE sont montrées sur cette table, dont la colonne du client accepte NULL (client_id est NOT NULL dans la
-     table inscriptions : SET NULL y serait refusé). CASCADE supprime l’avis avec le client ; SET NULL le conserve, la case du client
-     passe à NULL (moment 2 : l’élève touche cette case) ; RESTRICT refuse la suppression du client, ce que fait déjà une clé
-     étrangère sans règle. La requête CREATE TABLE avis écrit la règle à côté de la clé étrangère (moment 3 : ON DELETE SET NULL
-     conserve les avis, CASCADE les supprimerait, RESTRICT interdirait de supprimer le client). Avec NOT NULL ajouté à la colonne du
-     client, la suppression d’un client qui a des avis est refusée, NOT NULL constraint failed: avis.client_id (moment 4). La colonne
-     atelier_id est en ON DELETE CASCADE, car un avis n’a aucun sens sans son atelier. La règle se déclare dans CREATE TABLE et
-     SQLite ne permet plus de la modifier ensuite ; les sept avis sont ensuite ajoutés, dont celui d’Inès Lefebvre. Retour à la
-     demande d’Inès Lefebvre : son inscription est supprimée d’abord, comme au chapitre 9 ; écrire la règle à la fin du DELETE du
-     compte (… WHERE id = 9 ON DELETE SET NULL) donne near "ON": syntax error (moment 5 : ON DELETE n’est pas une option du DELETE) ;
-     le DELETE simple supprime le compte, l’avis d’Inès Lefebvre reste dans la table avis avec un client NULL (NULL ne désigne
-     aucun client : la clé étrangère n’a rien à vérifier). Moment 6 : CASCADE, SET NULL ou RESTRICT, l’élève range six situations (inscriptions, commandes et cartes
-     d’un client, avis d’un atelier ou d’un client, commandes d’un produit) ; CASCADE supprime sans demander de confirmation. La fin
-     annonce la prochaine leçon du cours : « tu apprendras à tout valider ou tout annuler avec une transaction ». Six moments « À toi »,
-     comme aux chapitres du projet ; leçon seule : ni exercice ni quiz, validée avec 4 exercices réussis du premier coup sur 6
-     (seuil:4), sinon on rejoue les moments ratés. Elle remplace l’ancien cours texte ON DELETE (la table satisfaction, les paniers)
-     et le cours « Les contraintes en action » (supprimé : NOT NULL, UNIQUE et CHECK sont vus aux chapitres 4, 7 et 8, la clé
-     étrangère qui refuse au chapitre 10 ; laissé de côté : NULL qui échappe aussi à UNIQUE). */
+     est le cours. Refondue le 25 octobre sur la seule histoire des avis (Elisa, 12 h 51 : l’ancien cours sur ON DELETE était
+     incompréhensible ; 12 h 52 : le client remplit une feuille, l’équipe enregistre l’avis et sa note dans la base ; 13 h 17 : la base
+     partagée ne doit pas être modifiée pour Nathan Petit, dont d’autres chapitres ont besoin). Elle s’ouvre comme les autres chapitres
+     (« Depuis le chapitre 1… », « Au chapitre 9, tu as supprimé des lignes avec DELETE »), sur la base que le chapitre 9 laisse : huit
+     tables, 9 clients, 8 inscriptions. 1 · Inès Lefebvre (la neuvième cliente) vient de participer à un atelier, goûte plusieurs produits
+     et remplit une feuille d’avis : Protéine Végétale, cinq étoiles, un commentaire, sa signature. 2 · L’équipe récupère la feuille :
+     l’avis doit s’afficher à chaque visite sur le site, donc être enregistré dans la base. Une table avis (id, client_id, produit_id, note,
+     commentaire) reçoit une ligne : les étoiles deviennent la note, le texte le commentaire, client_id relie l’avis au compte d’Inès
+     Lefebvre, produit_id au produit (moment 1 : l’élève touche les deux clés étrangères) ; le site affiche son avis. 3 · Quelque temps
+     plus tard, un mail du service client relaie sa demande mot pour mot (supprimer son compte, conserver son avis, ne plus afficher son
+     prénom) et demande à l’équipe de la traiter, l’avis devant apparaître sous la mention « Ancien client ». 4 · Le bouton « Supprimer le
+     compte » : la ligne de la table clients devient rouge, la flèche vers l’avis se brise, un point d’interrogation arrête l’animation :
+     que doit devenir ce lien ? 5 · La règle ON DELETE se définit sur la clé étrangère client_id ; RESTRICT bloque la suppression (FOREIGN
+     KEY constraint failed), CASCADE supprime le compte et l’avis, SET NULL supprime le compte et garde l’avis, dont seule la case client_id
+     devient NULL. 6 · L’élève choisit la règle qui conserve l’avis (moment 2 : SET NULL). 7 · Retour sur le site : l’avis est conservé, son
+     lien vers le compte est retiré (moment 3 : l’élève touche la case qui devient NULL) ; le produit, la note et le commentaire ne changent
+     pas ; la colonne client_id doit autoriser NULL : avec NOT NULL, la suppression du compte est refusée, NOT NULL constraint failed:
+     avis.client_id (moment 4) ; le site affiche l’avis avec ses cinq étoiles, sous la mention « Ancien client » à la place du prénom : SET NULL
+     modifie le lien dans la base de données, c’est le site qui affiche « Ancien client » (moment 5). Chaque cas, sa règle : l’élève range six
+     situations sous CASCADE, SET NULL ou RESTRICT (moment 6) ; CASCADE supprime sans demander de confirmation. La fin annonce la prochaine
+     leçon du cours : « tu apprendras à tout valider ou tout annuler avec une transaction ». Choix de scénario : Inès Lefebvre n’a ni
+     commande, ni carte, ni points de fidélité ; son unique inscription (Yoga du matin) est supposée déjà supprimée hors écran, comme au
+     chapitre 9 : après ce chapitre, la base compte 8 clients et 7 inscriptions, et une table avis d’une ligne dont le client vaut NULL. Nathan
+     Petit n’est pas touché. La vidéo montre le produit 6 (Protéine Végétale). Six moments « À toi », comme aux chapitres du projet ; leçon
+     seule : ni exercice ni quiz dans la vidéo, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments
+     ratés. Elle remplace l’ancien cours texte ON DELETE (la table satisfaction, les paniers) et le cours « Les contraintes en action »
+     (supprimé : NOT NULL, UNIQUE et CHECK sont vus aux chapitres 4, 7 et 8, la clé étrangère qui refuse au chapitre 10). */
   leconSeule:true,
-  video:{anim:'assets/anim/projet-ondelete.html?app&embed',thumb:'assets/anim/projet-ondelete-thumb.webp',duree:'4 min 05',moments:6,seuil:4,
-    /* « Ajouter à mes notes » : apparaît à 3 min 58 (237,5 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:237.5,y:1261,card:[64,292,1016,966],to:[940,255]}},
+  video:{anim:'assets/anim/projet-ondelete.html?app&embed',thumb:'assets/anim/projet-ondelete-thumb.webp',duree:'4 min 36',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 4 min 29 (268,7 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:268.7,y:1141,card:[64,292,1016,846],to:[940,255]}},
   reflex:[
     {recap:[
-      ["🛑","Sans règle, la suppression d’une ligne <b>encore désignée</b> est refusée.","Le message d’erreur est <code>FOREIGN KEY constraint failed</code>."],
-      ["🔀","<code>ON DELETE</code> choisit le sort des <b>lignes liées</b>.","<code>CASCADE</code> les supprime, <code>SET NULL</code> les détache, <code>RESTRICT</code> refuse la suppression."],
-      ["📍","La règle se déclare dans <code>CREATE TABLE</code>, jamais dans le <code>DELETE</code>.","Elle se place à côté de la clé étrangère : <code>REFERENCES clients(id) ON DELETE SET NULL</code>."]
+      ["🔀","La règle <code>ON DELETE</code> décide du sort de la <b>ligne liée</b>.","Elle se définit sur la clé étrangère."],
+      ["🧭","Trois règles au <b>choix</b>.","<code>RESTRICT</code> bloque la suppression, <code>CASCADE</code> supprime aussi l’avis, <code>SET NULL</code> le conserve sans compte."],
+      ["🏷️","Avec <code>SET NULL</code>, la colonne doit autoriser <code>NULL</code>.","Le site affiche alors « Ancien client »."]
     ],label:"Les trois idées à retenir"}
   ]
 })
@@ -10156,9 +10159,9 @@ const QCM={
  66:[{q:"<code>DELETE FROM commandes;</code> puis <code>DROP TABLE commandes;</code> — quelle différence ?",o:["Aucune, les deux vident la table","DELETE laisse la table vide, DROP la retire de la base","DROP est plus rapide mais fait la même chose"],b:1,e:"DELETE agit sur le contenu, DROP sur l’objet. Après DELETE la table répond encore ; après DROP, <code>no such table</code>."},
    {q:"À quoi sert <code>IF EXISTS</code> dans <code>DROP TABLE IF EXISTS paniers;</code> ?",o:["À ne rien faire si la table n’existe pas, sans erreur","À supprimer la table seulement si elle est vide","À demander confirmation avant de supprimer"],b:0,e:"Sans lui, supprimer une table absente échoue sur <code>no such table</code>. Avec lui, l’instruction passe dans les deux cas."},
    {q:"<code>TRUNCATE TABLE commandes;</code> dans cette application :",o:["Vide la table plus vite que DELETE","Renvoie une erreur de syntaxe : SQLite ne la connaît pas","Supprime la table comme DROP"],b:1,e:"PostgreSQL et MySQL la proposent, pas SQLite. Pour vider une table ici, on écrit <code>DELETE FROM commandes;</code>."}],
- 68:[{q:"Où se déclare <code>ON DELETE CASCADE</code> ?",o:["Dans le DELETE, au moment de supprimer","Dans le CREATE TABLE, à côté de la clé étrangère","Dans un PRAGMA, au début de la session"],b:1,e:"C’est une propriété de la table, posée une fois pour toutes. Au moment du <code>DELETE</code>, il n’y a rien à préciser."},
-   {q:"Une commande garde-t-elle un sens sans son client ? Quelle action choisir ?",o:["CASCADE : la commande disparaît avec lui","SET NULL : la commande reste, détachée","RESTRICT : la suppression est impossible pour toujours"],b:1,e:"Le chiffre d’affaires est préservé, le lien vers la personne est coupé. <code>CASCADE</code> conviendrait à une ligne de panier, qui n’a aucun sens seule."},
-   {q:"Sans aucune action déclarée, supprimer un client encore référencé :",o:["Supprime aussi ses commandes","Est refusé : FOREIGN KEY constraint failed","Met leurs client_id à NULL"],b:1,e:"C’est le comportement le plus prudent, et c’est pour cela qu’il est celui par défaut."}],
+ 68:[{q:"Où se définit la règle <code>ON DELETE</code> ?",o:["Dans le DELETE, au moment de supprimer","Sur la clé étrangère, dans le CREATE TABLE","Dans un PRAGMA, au début de la session"],b:1,e:"Elle s’écrit à côté de la clé étrangère : <code>REFERENCES clients(id) ON DELETE SET NULL</code>. Au moment du <code>DELETE</code>, il n’y a rien à préciser."},
+   {q:"Le compte d’un client est supprimé, mais son avis doit rester sur la fiche produit. Quelle règle choisir ?",o:["SET NULL : l’avis reste, sans compte","CASCADE : l’avis disparaît avec le compte","RESTRICT : la suppression du compte est bloquée"],b:0,e:"<code>SET NULL</code> conserve l’avis et retire seulement sa référence au compte : <code>client_id</code> vaut alors <code>NULL</code>, et le site peut afficher « Ancien client »."},
+   {q:"Que devient la suppression du compte si <code>client_id</code> est <code>NOT NULL</code>, avec <code>ON DELETE SET NULL</code> ?",o:["L’avis reste, avec un client NULL","L’avis est supprimé avec le compte","Elle est refusée : NOT NULL constraint failed"],b:2,e:"<code>NOT NULL</code> interdit <code>NULL</code> : la base ne peut pas détacher l’avis, elle refuse donc de supprimer le compte."}],
  70:[{q:"Un trigger <code>AFTER INSERT</code> sur une table se déclenche :",o:["Une fois par instruction","Une fois par ligne insérée","Une fois par session"],b:1,e:"SQLite ne connaît que le déclenchement ligne par ligne. Un <code>DELETE</code> qui retire cinq lignes déclenche le trigger cinq fois."},
    {q:"Dans un trigger <code>AFTER DELETE</code>, quel nom désigne la ligne supprimée ?",o:["NEW","OLD","DELETED"],b:1,e:"<code>NEW</code> est la version qui arrive, <code>OLD</code> celle qui s’en va. Un DELETE n’a que <code>OLD</code>."},
    {q:"Peut-on corriger une valeur dans un trigger <code>BEFORE</code> avec <code>SET NEW.stock = 0</code> ?",o:["Oui, c’est l’usage principal de BEFORE","Non : en SQLite c’est une erreur de syntaxe","Oui, mais seulement sur une colonne NOT NULL"],b:1,e:"Un trigger <code>BEFORE</code> n’a que deux réponses : laisser passer, ou refuser avec <code>RAISE(ABORT, …)</code>."}],
@@ -13130,7 +13133,7 @@ const SQ_ALIASES={
   26:'insert into ajouter des lignes ligne insertion inserer values nouvelle ligne plusieurs lignes en une requete on conflict upsert do update do nothing doublon doublons conflit inscription inscriptions atelier carte pack seances colonne obligatoire not null unique ordre des valeurs valeurs inversees nutriboost',
   27:'update modifier mettre a jour set lignes valeurs changer where oubli du where sans where toutes les lignes select avant de modifier lire calculer valeur calculee ancienne valeur regle de la table check modification refusee atelier date carte cartes seances nutriboost',
   28:'delete from supprimer effacer lignes ligne supprimer une ligne where oubli du where sans where toutes les lignes vider une table vider table select avant de supprimer lire identifiant client_id plusieurs lignes annuler inscription inscriptions compte atelier nutriboost insert update',
-  68:'on delete cascade set null restrict supprimer lignes liees cle etrangere foreign key constraint failed suppression refusee client compte avis not null create table regle detacher syntax error nutriboost',
+  68:'on delete cascade set null restrict supprimer lignes liees cle etrangere foreign key constraint failed suppression refusee client compte avis ancien client feuille table avis not null create table regle detacher nutriboost',
   62:'transaction begin commit rollback valider annuler acid atomicite',
   63:'savepoint point de sauvegarde rollback to partiel transaction',
   70:'trigger declencheur reagir automatiquement before after evenement',
@@ -25073,7 +25076,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2036';
+  const SW_CACHE='requete-2026-10-12-ludique-v2037';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -585,7 +585,14 @@ export const EXCEPTIONS = [
   {regle: 'relation', page: 'projet-uml', contient: 'Pour comprendre ces liens', aConfirmer: '« ces relations » ?',
     raison: 'Texte d’Elisa du 23 octobre, avant sa consigne du 24 (« relation » plutôt que « lien » entre tables).'},
   {regle: 'relation', page: 'projet-uml', contient: 'en liens entre ces tables', aConfirmer: 'quel mot, puisque « les relations du diagramme en relations » se répéterait (« en clés étrangères entre ces tables » ?)',
-    raison: 'Texte d’Elisa du 23 octobre : « traduire les relations du diagramme en liens entre ces tables » ; remplacer « liens » par « relations » répéterait le mot.'}
+    raison: 'Texte d’Elisa du 23 octobre : « traduire les relations du diagramme en liens entre ces tables » ; remplacer « liens » par « relations » répéterait le mot.'},
+  /* Les trois phrases de « lien » de la trame d’Elisa pour le chapitre 10 (25 octobre, 12 h 51), écrites le lendemain de sa consigne : le lien d’un avis vers un compte */
+  {regle: 'relation', page: 'projet-ondelete', contient: 'Que doit devenir ce lien', aConfirmer: '« Que doit devenir cette relation ? »',
+    raison: 'Mots d’Elisa (25 octobre, 12 h 51) : « Que doit devenir ce lien ? » ; le lien est celui d’un avis vers un compte (une ligne vers une ligne), pas la relation entre deux tables.'},
+  {regle: 'relation', page: 'projet-ondelete', contient: 'son lien vers le compte d’Inès Lefebvre est retiré', aConfirmer: '« sa relation avec le compte d’Inès Lefebvre est retirée » ?',
+    raison: 'Mots d’Elisa (25 octobre, 12 h 51) : « son lien vers le compte de Nathan est retiré » (légende et correction du moment 2) ; Inès Lefebvre remplace Nathan pour que la base partagée ne soit pas modifiée (13 h 17).'},
+  {regle: 'relation', page: 'projet-ondelete', contient: 'modifie le lien dans la base de données', aConfirmer: '« modifie la relation dans la base de données » ?',
+    raison: 'Mots d’Elisa (25 octobre, 12 h 51) : « SET NULL modifie le lien dans la base de données » (légende et correction du moment 5).'}
 ];
 
 /* ---------- La dette : ce qui reste à reprendre dans les anciens cours ---------- */

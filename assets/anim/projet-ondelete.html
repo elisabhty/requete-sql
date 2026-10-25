@@ -17,7 +17,7 @@
 .hid{opacity:0;visibility:hidden}
 /* Aperçu d’un geste (moment « À toi ») : il prend le pas sur la timeline, le temps de l’arrêt ; il montre exactement
    l’image que la timeline affiche juste après l’arrêt, qui reprend donc sans saut. */
-.pvs{opacity:1!important;visibility:visible!important}
+.pvs{opacity:1!important;visibility:visible!important;transform:none!important}
 .pvh{opacity:0!important;visibility:hidden!important}
 /* Aperçu en douceur : une carte d’erreur qui accompagne une bonne réponse n’apparaît jamais d’un coup, ni avant le verdict « Bien vu ! » */
 .pvf{visibility:visible!important;animation:pvf .45s ease-out both}
@@ -94,10 +94,6 @@
 .sq .glow{border-radius:8px;padding:0 3px;margin:0 -3px}
 /* Un morceau de la requête qui se replie ou se déplie (le point-virgule) */
 .sg{display:inline-block;vertical-align:top;white-space:pre}
-/* Le trou de la requête (moment 3) : la règle ON DELETE, à choisir ; ses réponses possibles, pour l’aperçu d’un mauvais choix */
-.sq .hole{position:absolute;left:30px;right:30px;height:42px;box-sizing:border-box;border:3px dashed #FFC94A;border-radius:12px;background:rgba(255,201,74,.12);color:#FFD66B;font-family:var(--mono);font-size:30px;font-weight:800;display:flex;align-items:center;justify-content:center}
-.sq .alt{position:absolute;left:30px;opacity:0;visibility:hidden}
-.sq .alt{top:102px}
 .sq .str{color:var(--t-str)}
 .sw.cm>*{white-space:pre}
 
@@ -155,34 +151,118 @@
 #s7 .rico{width:88px;height:88px;border-radius:26px;font-size:46px}
 #s7 .rtxt{font-size:34px;line-height:1.25}
 #s7 .rtxt .rs{margin-top:2px;font-size:31px}
-/* ---------- Les tables : inscriptions (huit lignes), clients (neuf), avis (sept), et les deux petites tables du schéma ---------- */
+
+/* ---------- Les trois tables de l’histoire : avis, clients, produits (une seule ligne chacune, des lignes compactes) ---------- */
 .k-av{--c:#A23CC9;--cs:#F5E8FB;--ci:#7A2A9B}
-#tb .r,.mi .r{height:84px}
-#tav .r{height:62px}
-#tcl .r{height:46px;font-size:28px}
-/* Une ligne supprimée se replie : sa hauteur passe à 0 ; la carte garde la sienne (fixée par la mise en page) */
-/* La neuvième table, à créer : sa ligne grandit dans la carte de la base */
-.srow.ghost{height:0;padding-top:0;padding-bottom:0}
-.srow.ghost .nb>span{background:var(--cs);color:var(--ci)}
-/* Une case dont la valeur change : NULL, en gris et en italique */
-.sw>.nul{color:var(--ink-3);font-style:italic;font-weight:500}
+.tz .r{height:62px}
+.sw>.nul,.ph{color:var(--ink-3);font-style:italic;font-weight:500}
 .sw>.cx{display:flex;align-items:center;gap:10px}
+.stk{display:grid;min-width:0;width:100%}
+.stk>*{grid-area:1/1;min-width:0}
+.cm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--ui);font-size:26px;font-weight:500}
+.lk2{display:inline-block}
 
-/* ---------- Le schéma : un client, l’inscription qui le désigne, et la règle ON DELETE de l’inscription ---------- */
-.lkv{left:0;width:1080px;height:64px}
-.lkv::before{content:"";position:absolute;left:50%;top:16px;bottom:0;width:8px;margin-left:-4px;border-radius:4px;background:#6A4DF4}
-.lkv::after{content:"";position:absolute;left:50%;top:0;margin-left:-16px;border:16px solid transparent;border-top:0;border-bottom:22px solid #6A4DF4}
-.wp>span{font-family:var(--mono);font-weight:800}
+/* ---------- Une flèche entre deux cartes : un client désigné (vers le haut), un produit désigné (vers le bas) ; la même en rouge, pointillée, quand elle ne mène plus à rien ---------- */
+.lkv,.lkd{left:0;width:1080px;height:64px}
+.lkv::before,.lkd::before{content:"";position:absolute;left:var(--ax,540px);width:8px;margin-left:-4px;border-radius:4px;background:var(--ac,#6A4DF4)}
+.lkv::before{top:16px;bottom:0}
+.lkv::after{content:"";position:absolute;left:var(--ax,540px);top:0;margin-left:-16px;border:16px solid transparent;border-top:0;border-bottom:22px solid var(--ac,#6A4DF4)}
+.lkd::before{top:0;bottom:16px}
+.lkd::after{content:"";position:absolute;left:var(--ax,540px);bottom:0;margin-left:-16px;border:16px solid transparent;border-bottom:0;border-top:22px solid var(--ac,#6A4DF4)}
+.lkr{--ac:#EF4F55}
+.lkr::before{background:repeating-linear-gradient(to bottom,#EF4F55 0 12px,transparent 12px 20px)}
+.qm{width:76px;height:76px;margin:-38px 0 0 -38px;border-radius:50%;background:#FFC94A;box-shadow:0 6px 0 #D79A00;color:#5A3B00;font-family:var(--display);font-size:50px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.gch{width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;background:var(--c);color:#fff;font-family:var(--mono);font-size:30px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 5px 0 rgba(34,28,70,.22)}
 
-/* ---------- Les tables qui font référence à la table clients : une seule désigne Inès Lefebvre ---------- */
-.refs{left:64px;width:952px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
-.rf{height:70px;padding:0 22px;border-radius:22px;background:var(--cs);box-shadow:inset 0 0 0 3px var(--c);color:var(--ci);font-family:var(--mono);font-size:28px;font-weight:800;display:flex;align-items:center;gap:12px;white-space:nowrap}
-.rf .emo{font-size:30px}
-.rf i{margin-left:auto;height:40px;padding:0 14px;border-radius:999px;background:#E7F7EE;color:#1B7A45;font-family:var(--ui);font-size:23px;font-weight:800;font-style:normal;display:flex;align-items:center}
-.rf.no{box-shadow:inset 0 0 0 4px var(--danger-fill)}
-.rf.no i{background:var(--danger-fill);color:#fff}
+/* ---------- 1 · Après l’atelier : le ticket d’Inès Lefebvre, puis les produits goûtés ---------- */
+.tk{left:64px;width:952px;top:236px;height:176px;padding:0 36px;display:flex;align-items:center;gap:28px}
+.tk .mav{width:112px;height:112px;font-size:42px}
+.tk .tkw{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.tk .tkn{font-family:var(--display);font-size:44px;font-weight:800;letter-spacing:-.8px;color:var(--ink);white-space:nowrap}
+.tk .tks{display:flex;align-items:center;gap:10px;font-size:30px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.tk .tkb{flex:none;height:56px;padding:0 24px;border-radius:999px;background:#E2F6EA;color:#0F7A3A;font-size:28px;font-weight:800;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.tray{left:64px;width:952px;top:480px;height:268px;display:flex;gap:32px}
+.pt{position:relative;flex:none;width:296px;height:268px;padding:34px 12px 0;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;font-size:28px;font-weight:700;color:var(--ink);white-space:nowrap}
+.pt .emo{font-size:108px}
+.pt .rg{position:absolute;left:-10px;right:-10px;top:-10px;bottom:-10px;border-radius:56px;border:6px solid #2FB866;opacity:0;visibility:hidden}
 
-/* ---------- Trois cases où ranger les situations : CASCADE, SET NULL, RESTRICT (une bande chacune) ---------- */
+/* ---------- 1 · La feuille d’avis (papier) ---------- */
+.fe{left:64px;width:952px;top:236px;padding:0 0 28px;background:#FFFEFA;border:3px solid #E6DEC5;border-radius:36px;box-shadow:0 9px 0 #E3DABC}
+.fe .fh{display:flex;align-items:center;gap:16px;height:84px;padding:0 36px;border-bottom:3px solid #EFE7CF;font-family:var(--display);font-size:38px;font-weight:800;color:#5C4A12}
+.fe .fh .emo{font-size:40px}
+.fe .fh small{margin-left:auto;font-family:var(--ui);font-size:25px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#A8975F}
+.fe .frow{display:flex;align-items:center;gap:26px;padding:22px 36px 4px}
+.fe .fl{flex:none;width:210px;font-size:26px;font-weight:700;color:#A8975F}
+.fe .fpr{height:64px;padding:0 24px;border-radius:999px;background:#E2F6EA;color:#0F7A3A;font-size:30px;font-weight:800;display:flex;align-items:center;gap:12px;white-space:nowrap}
+.fe .fpr .emo{font-size:34px}
+.fe .fst{display:flex;gap:6px}
+.fe .fst svg{width:64px;height:64px;display:block}
+.fe .fst path{fill:#DAD5EE}
+.fe .flab{padding:22px 36px 8px;font-size:26px;font-weight:700;color:#A8975F}
+.fe .fc{position:relative;margin:0 36px;height:232px;padding:0 22px;border-radius:18px;background:repeating-linear-gradient(to bottom,transparent 0 50px,#E9E0C4 50px 54px);font-size:34px;line-height:54px;font-weight:500;color:#2B2F77}
+.fe .fsg{display:flex;align-items:center;gap:20px;padding:18px 36px 0;font-size:26px;font-weight:700;color:#A8975F}
+.fe .fsg i{font-family:var(--display);font-size:42px;font-weight:700;font-style:italic;letter-spacing:-.5px;color:#2B2F77}
+.fe .stamp{right:34px;top:auto;bottom:22px}
+
+/* ---------- 2 · De la feuille au site : la feuille, une case vide, le site ---------- */
+.flow{left:64px;width:952px;height:170px;display:flex;align-items:center;justify-content:space-between}
+.nd{flex:none;width:262px;height:158px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;font-size:28px;font-weight:700;color:var(--ink);white-space:nowrap}
+.nd .emo{font-size:60px}
+.nd.q{border:4px dashed #FFC94A;background:rgba(255,201,74,.14);box-shadow:none;color:#8A6200;font-family:var(--display);font-size:80px;font-weight:800}
+.flow .arw{flex:none;width:83px;height:60px;overflow:visible}
+.flow .arw path{fill:none;stroke:#B9AFEA;stroke-width:8;stroke-linecap:round;stroke-linejoin:round}
+.fly{pointer-events:none}
+.gst{display:flex;gap:5px;width:340px;height:64px;margin:-32px 0 0 -170px}
+.gst svg{width:64px;height:64px;flex:none}
+.gst path{fill:#F5B301}
+.gcm{width:560px;height:64px;margin:-32px 0 0 -280px;padding:0 22px;border-radius:18px;background:#FFFEFA;border:3px solid #E6DEC5;box-shadow:0 5px 0 #E3DABC;font-size:27px;line-height:58px;font-weight:500;color:#2B2F77;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpack{left:0;width:1080px}
+
+/* ---------- 3 · Quelque temps plus tard… : la carte-titre, puis le mail ---------- */
+.ttl{left:170px;width:740px;top:640px;display:flex;flex-direction:column;align-items:center;gap:30px;text-align:center;font-family:var(--display);font-size:68px;font-weight:800;line-height:1.12;letter-spacing:-1.4px;color:var(--ink)}
+.ttl .emo{font-size:130px}
+.qt{display:block;margin:6px 0;padding:6px 0 6px 22px;border-left:6px solid #C9BCFF;font-style:normal;color:var(--ink-2)}
+.ml{top:420px}
+
+/* ---------- 4 et 5 · Le bouton « Supprimer le compte », les deux cartes liées, la règle ---------- */
+.bdel{position:absolute;left:260px;width:560px;top:236px;margin:0;height:96px;gap:16px;font-size:36px;background:linear-gradient(135deg,#F2656B,#E0383F);box-shadow:0 9px 0 #A92A31}
+.bdel .emo{font-size:42px}
+.sq .rl{vertical-align:top}
+.sq .rl>*{height:42px;display:flex;align-items:center;justify-content:center;padding:0 12px;border-radius:10px}
+.sq .rl>.a0{box-sizing:border-box;border:3px dashed #FFC94A;background:rgba(255,201,74,.12);color:#FFD66B;font-weight:800;min-width:72px}
+
+/* ---------- 7 · La fiche produit du site ---------- */
+.br{left:64px;width:952px;top:236px;padding:0 0 30px;overflow:hidden}
+.br .bar{height:72px;display:flex;align-items:center;gap:12px;padding:0 26px;background:var(--surface-2)}
+.br .bar i{width:16px;height:16px;border-radius:50%;background:#C9C3E6}
+.br .url{margin-left:18px;flex:1;height:44px;padding:0 22px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 3px var(--line);display:flex;align-items:center;font-family:var(--mono);font-size:24px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.br .pd{display:flex;align-items:center;gap:30px;padding:30px 36px 0}
+.br .pimg{flex:none;width:200px;height:200px;border-radius:36px;background:#E2F6EA;display:flex;align-items:center;justify-content:center;font-size:112px}
+.br .pw{display:flex;flex-direction:column;align-items:flex-start;gap:14px}
+.br .pn{font-family:var(--display);font-size:50px;font-weight:800;letter-spacing:-1px;color:var(--ink);white-space:nowrap}
+.br .pg{height:46px;padding:0 20px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:26px;font-weight:700;display:flex;align-items:center}
+.br .pp{font-family:var(--display);font-size:46px;font-weight:800;color:var(--ink)}
+.br .rh{display:flex;align-items:center;gap:16px;padding:34px 36px 12px;font-family:var(--display);font-size:38px;font-weight:800;color:var(--ink)}
+.br .rh small{height:42px;padding:0 18px;border-radius:999px;background:var(--line-2);font-family:var(--ui);font-size:24px;font-weight:700;color:var(--ink-3);display:flex;align-items:center}
+.br .rev{position:relative;margin:6px 36px 0;padding:24px 26px;border-radius:28px;background:var(--surface-2);display:flex;gap:22px;align-items:flex-start}
+.br .sav{position:relative;flex:none;width:84px;height:84px}
+.br .sav>*{position:absolute;left:0;top:0;right:0;bottom:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-style:normal}
+.br .sav .a0{background:#EEE9FF;color:#5335E0;font-family:var(--display);font-size:34px;font-weight:800}
+.br .sav .a1{background:#E4E0F2;font-size:44px}
+.br .rb{flex:1;min-width:0}
+.br .rnw{position:relative;display:inline-block;padding:2px 0}
+.br .rnm{font-size:32px;font-weight:700;color:var(--ink)}
+.br .rgn{position:absolute;left:-14px;right:-14px;top:-8px;bottom:-8px;border-radius:16px;border:5px solid #6A4DF4;opacity:0;visibility:hidden}
+.br .rst{display:flex;gap:4px;margin:6px 0 8px}
+.br .rst svg{width:38px;height:38px;display:block}
+.br .rst path{fill:#F5B301}
+.br .rtx{font-size:27px;line-height:1.35;font-weight:500;color:var(--ink-2)}
+.sdb{left:64px;width:952px;height:104px;padding:0 34px;border-radius:32px;background:var(--code-bg);box-shadow:0 9px 0 #110E27;color:var(--code-ink);display:flex;align-items:center;gap:20px;font-size:32px;font-weight:700;white-space:nowrap}
+.sdb .emo{font-size:44px}
+.sdb .sp{flex:1}
+.sdb code{background:rgba(255,255,255,.1);color:var(--t-kw)}
+
+/* ---------- 8 · Trois cases où ranger les situations : CASCADE, SET NULL, RESTRICT (une bande chacune) ---------- */
 .dbn{left:64px;width:952px;height:210px;box-sizing:border-box;padding:20px 28px 22px;border-radius:36px;border:4px dashed #C9BCFF;background:rgba(255,255,255,.85);display:flex;flex-direction:column}
 .dbn .hh{display:flex;align-items:baseline;gap:20px;white-space:nowrap}
 .dbn .dn{font-family:var(--mono);font-size:34px;font-weight:800;color:var(--accent-ink)}
@@ -211,37 +291,39 @@
     <div class="abs tag0"><div class="tagpill">Projet · Chapitre 10</div></div>
     <div class="abs hilite"></div>
     <div class="abs title"><span>O</span><span class="sp">N</span><span>D</span><span>E</span><span>L</span><span>E</span><span>T</span><span>E</span></div>
-    <div class="abs sub">Le sort des lignes liées</div>
+    <div class="abs sub">Quand un compte disparaît</div>
     <img class="abs mascot" src="mascotte.webp" alt="">
-    <div class="abs bubble">Un compte ne peut pas être supprimé&nbsp;:<br>à toi de décider du sort des lignes liées.</div>
+    <div class="abs bubble">Un client part,<br>mais son avis doit rester&nbsp;:<br>à toi de décider !</div>
   </section>
 
-  <!-- La base et les deux demandes -->
+  <!-- La base : le rappel du chapitre précédent -->
   <section class="scene" id="sa"></section>
-  <!-- La table inscriptions, la requête qui supprime l’inscription d’Inès Lefebvre -->
-  <section class="scene" id="sb"></section>
-  <!-- Les deux messages : un SMS, un mail -->
+  <!-- Après l’atelier : le ticket d’Inès Lefebvre, les produits goûtés -->
+  <section class="scene" id="sf"></section>
+  <!-- La feuille d’avis, son trajet vers la base, la table avis -->
+  <section class="scene" id="sh"></section>
+  <!-- Les deux clés étrangères de l’avis -->
+  <section class="scene" id="sk"></section>
+  <!-- La fiche produit du site -->
+  <section class="scene" id="ss"></section>
+  <!-- Quelque temps plus tard… : la carte-titre, le mail -->
   <section class="scene" id="sm"></section>
-  <!-- La table clients, la requête DELETE (refusée), les tables qui font référence à un client -->
-  <section class="scene" id="sc"></section>
-  <!-- Le schéma : un client, l’inscription qui le désigne, les trois règles ON DELETE -->
+  <!-- Le compte, son avis, le bouton, la règle ON DELETE -->
   <section class="scene" id="sw"></section>
-  <!-- La requête CREATE TABLE de la table avis -->
+  <!-- La colonne client_id avec NOT NULL -->
   <section class="scene" id="se"></section>
-  <!-- La table avis -->
-  <section class="scene" id="sv"></section>
   <!-- Les trois règles à distinguer : CASCADE, SET NULL, RESTRICT -->
   <section class="scene" id="sd"></section>
   <!-- La suite : la prochaine leçon -->
-  <section class="scene" id="sk"></section>
+  <section class="scene" id="sn"></section>
 
   <!-- À retenir -->
   <section class="scene" id="s7">
     <div class="abs rtitle">Les trois idées à retenir</div>
     <div class="abs card recap" id="recap">
-      <div class="rrow"><div class="rico emo">🛑</div><div class="rtxt">Sans règle, la suppression d’une ligne<br><b>encore désignée</b> est refusée.<span class="rs">Le message d’erreur est<br><code>FOREIGN KEY constraint failed</code>.</span></div></div>
-      <div class="rrow"><div class="rico emo">🔀</div><div class="rtxt"><code>ON DELETE</code> choisit le sort<br>des <b>lignes liées</b>.<span class="rs"><code>CASCADE</code> les supprime, <code>SET NULL</code> les détache,<br><code>RESTRICT</code> refuse la suppression.</span></div></div>
-      <div class="rrow"><div class="rico emo">📍</div><div class="rtxt">La règle se déclare dans <code>CREATE TABLE</code>,<br>jamais dans le <code>DELETE</code>.<span class="rs">Elle se place à côté de la clé étrangère :<br><code>REFERENCES clients(id) ON DELETE SET NULL</code>.</span></div></div>
+      <div class="rrow"><div class="rico emo">🔀</div><div class="rtxt">La règle <code>ON DELETE</code> décide du sort<br>de la <b>ligne liée</b>.<span class="rs">Elle se définit sur la clé étrangère.</span></div></div>
+      <div class="rrow"><div class="rico emo">🧭</div><div class="rtxt">Trois règles au <b>choix</b>.<span class="rs"><code>RESTRICT</code> bloque la suppression,<br><code>CASCADE</code> supprime aussi l’avis,<br><code>SET NULL</code> le conserve sans compte.</span></div></div>
+      <div class="rrow"><div class="rico emo">🏷️</div><div class="rtxt">Avec <code>SET NULL</code>, la colonne<br>doit autoriser <code>NULL</code>.<span class="rs">Le site affiche alors « Ancien client ».</span></div></div>
     </div>
   </section>
 
@@ -256,7 +338,7 @@
 
 /* ---------- Le déroulé : chaque légende arrive à la suite de la précédente ----------
    cap(clé, texte, durée) pose une légende [début, fin] ; A[clé] et B[clé] donnent son début et sa fin (temps de la timeline). */
-const SCH = {t: 5.0, caps: [], chaps: [{label:'Deux demandes', a: 5.0}], A: {}, B: {}};
+const SCH = {t: 5.0, caps: [], chaps: [{label:'Après l’atelier', a: 5.0}], A: {}, B: {}};
 function chap(c){ SCH.t = +(SCH.t + 0.4).toFixed(2); SCH.chaps.push({label: c.label, a: SCH.t}); }
 function cap(key, html, dur, gap = 0.1){
   /* Une légende reste au moins le temps de la lire (17 caractères par seconde, plus son fondu de 0,5 s) : l’image ne s’arrête jamais pour elle. */
@@ -267,98 +349,104 @@ function cap(key, html, dur, gap = 0.1){
 /* « À toi ! » : la légende reste un instant, puis l’image s’arrête à a + 2,35 s (le passage d’attente est coupé). */
 const toi = key => cap(key, 'À toi !', 2.55);
 const {A, B} = SCH;
-/* Les deux messages reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses paragraphes), signature, option].
-   Depuis le chapitre 5, le service client centralise les demandes des clients : aucun client n’écrit plus lui-même (Elisa, 25 octobre :
-   « plus l’accueil mais le service client »). Il écrit par SMS (smsCard, smsIn) quand l’option vaut {sms: true}, sinon par mail ; le SMS s’ouvre sur « Bonjour ! »
-   ({hello: …}, Elisa, 25 octobre) et se ferme sur « Merci ! ». Chacun arrive en notification ; l’app s’arrête dessus (OPENS) jusqu’au toucher. Le premier relaie la demande d’Inès Lefebvre, celle du chapitre 1. */
+/* Le message reçu : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses paragraphes), signature].
+   Le service client centralise les demandes des clients (Elisa, 25 octobre : « plus l’accueil mais le service client ») et relaie ici, mot pour mot,
+   celle d’Inès Lefebvre, puis ce qu’il demande à l’équipe (Elisa, 25 octobre, 12 h 51). L’app s’arrête sur la notification (OPENS) jusqu’au toucher. */
 const MAILS = [
   [['Le service client', 'NutriBoost', 'SC'], 'k-in', 'équipe', 'service.client@nutriboost.fr', [
-    'Inès Lefebvre ne reviendra plus aux ateliers.',
-    'Peux-tu supprimer son compte ?'], 'Le service client NutriBoost', {sms: true, hello: 'Bonjour !'}],
-  [['Le service client', 'NutriBoost', 'SC'], 'k-in', 'équipe', 'service.client@nutriboost.fr', [
-    'Les clients ont déjà donné sept avis sur papier.',
-    'Peux-tu créer la table des avis ?'], 'Le service client NutriBoost']
+    'Inès Lefebvre nous a écrit :',
+    '<i class="qt">Bonjour, je souhaite supprimer mon compte NutriBoost. Vous pouvez conserver mon avis, mais je ne souhaite plus que mon prénom apparaisse. Merci !</i>',
+    'Peux-tu supprimer le compte d’Inès Lefebvre tout en conservant son avis sur la fiche produit ? Il devra apparaître sous la mention « Ancien client ».'], 'Le service client NutriBoost']
 ];
-/* Un message : la légende s’efface le temps du message (notification, toucher, lecture, départ). Plus il a de lignes (de bulles, pour un SMS),
-   plus il reste : le toucher à +1,6 s, une ligne toutes les 0,28 s, le départ juste après la pause de lecture (+3,8 s pour cinq lignes), et le
-   bloc finit 1 s après le départ. Un SMS : sa première bulle (hello), une bulle par phrase, « Merci ! » (comme smsParts). */
+/* Un message : la légende s’efface le temps du message (notification, toucher, lecture, départ). Plus il a de lignes, plus il reste : le toucher
+   à +1,6 s, une ligne toutes les 0,28 s, le départ juste après la pause de lecture, et le bloc finit 1 s après le départ. */
 const mailSms = n => /^client/.test(MAILS[n][2]) || !!(MAILS[n][6] || {}).sms;
-const mailRows = n => mailSms(n) ? 2 + [].concat(MAILS[n][4]).flatMap(p => p.split(/(?<=[.!?])\s+(?=[A-ZÀÂÉÈÊÎÔÛÇ])/)).length
-  : 1 + [].concat(MAILS[n][4]).length + 1 + 1;   // « Bonjour, », ses paragraphes, la formule de fin, la signature
+const mailRows = n => 1 + [].concat(MAILS[n][4]).length + 1 + 1;   // « Bonjour, », ses paragraphes, la formule de fin, la signature
 const mailOutAt = n => +(2.68 + 0.28 * (mailRows(n) - 1)).toFixed(2);
 const mailBlock = n => { const t = SCH.t; SCH.t = +(SCH.t + mailOutAt(n) + 1).toFixed(2); return t; };
 const MO = MAILS.map((m, n) => mailOutAt(n));   // le départ de chaque message, depuis le début de son bloc
 
-/* 1 · Deux demandes : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) */
+/* 1 · Après l’atelier : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) */
 cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
 cap('r2', "Au chapitre 9, tu as supprimé<br>des lignes avec <code>DELETE</code>.", 3.0);
-cap('c2', "Deux autres demandes arrivent.", 2.8);
-cap('c3', "La première concerne un compte,<br>la seconde une nouvelle table.", 3.6);
-const MAIL1 = mailBlock(0);
-/* 2 · Une suppression refusée */
-chap({label:'Une suppression refusée'});
-cap('c4', "Le compte d’Inès Lefebvre est<br>une ligne de la <b>table clients</b>.", 3.6);
-cap('c5', "On le supprime avec <code>DELETE FROM</code>,<br>comme au chapitre 9.", 3.6);
-cap('c6', "Pourtant, la requête est refusée.", 2.8);
-cap('c7', "La règle <code>FOREIGN KEY</code> interdit<br>de supprimer une ligne<br>encore désignée.", 4.2);
-cap('c8', "Une seule table fait référence<br>à Inès Lefebvre :<br>la <b>table inscriptions</b>.", 4.2);
+cap('a1', "Inès Lefebvre vient de participer<br>à un atelier NutriBoost.", 3.8);
+cap('a2', "Elle a pu goûter<br>plusieurs de nos produits.", 3.6);
+cap('a3', "Elle souhaite maintenant<br>partager son expérience.", 3.6);
+cap('a4', "Elle remplit une feuille d’avis.", 3.0);
+cap('a5', "Elle donne cinq étoiles<br>à la Protéine Végétale.", 3.6);
+cap('a6', "Puis elle écrit son commentaire.", 5.4);
+/* 2 · De la feuille à la base */
+chap({label:'De la feuille à la base'});
+cap('b1', "On récupère la feuille<br>d’Inès Lefebvre.", 3.0);
+cap('b2', "Son avis doit s’afficher<br>à chaque visite sur le site.", 3.8);
+cap('b3', "Il faut donc l’enregistrer<br>dans la base de données.", 3.6);
+cap('b4', "On ajoute une <b>table avis</b> :<br>chaque ligne contient un avis<br>publié sur un produit.", 5.2);
+cap('b5', "Elle a cinq colonnes :<br><code>id</code>, <code>client_id</code>, <code>produit_id</code>,<br><code>note</code> et <code>commentaire</code>.", 5.6);
+cap('b6', "Les étoiles de la feuille<br>deviennent la <code>note</code>.", 3.8);
+cap('b7', "Le texte de la feuille<br>devient le <code>commentaire</code>.", 3.6);
+cap('b8', "La colonne <code>client_id</code><br>relie l’avis au compte<br>d’Inès Lefebvre.", 4.6);
+cap('b9', "La colonne <code>produit_id</code><br>le relie à la protéine<br>qu’elle a goûtée.", 4.2);
+cap('b10', "Ces deux colonnes sont<br>des <b>clés étrangères</b>.", 3.4);
 toi('p1');
-cap('c9', "Tant que cette inscription existe,<br>Inès Lefebvre ne peut pas<br>être supprimée.", 4.0);
-/* 3 · Trois sorts possibles : le second mail en ouvre le chapitre ; les trois sorts sont montrés sur la table avis (sa colonne du client accepte NULL) */
-chap({label:'Trois sorts possibles'});
-const MAIL2 = mailBlock(1);
-cap('n1', "Chaque avis est une ligne<br>de la nouvelle <b>table avis</b>.", 3.4);
-cap('n2', "Il désigne le client qui l’a donné,<br>avec une clé étrangère.", 3.6);
-cap('c10', "<code>ON DELETE</code> choisit ce que deviennent<br>les lignes liées au client supprimé.", 4.2);
-cap('c11', "Avec <code>CASCADE</code>, l’avis<br>est supprimé avec le client.", 3.8);
-cap('c12', "Avec <code>SET NULL</code>, l’avis reste,<br>mais ne désigne plus personne.", 3.8);
+cap('b11', "Le site peut maintenant<br>afficher son avis.", 3.4);
+/* 3 · Quelque temps plus tard… : une carte-titre, puis le mail du service client (sans légende) */
+chap({label:'Quelque temps plus tard…'});
+const TC = 2.2, T3 = SCH.t;   // la carte-titre : début, durée
+SCH.t = +(SCH.t + TC).toFixed(2);
+const MAIL1 = mailBlock(0);
+/* 4 · Le moment de la suppression */
+chap({label:'Le moment de la suppression'});
+cap('d1', "Le compte d’Inès Lefebvre<br>est relié à son avis<br>par <code>client_id</code>.", 4.4);
+cap('d2', "On clique sur le bouton<br>« Supprimer le compte ».", 3.8);
+cap('d3', "On supprime Inès Lefebvre<br>de la <b>table clients</b>.", 3.8);
+cap('d4', "Son avis ne peut pas continuer<br>à référencer un compte<br>qui n’existe plus.", 4.6);
+cap('d5', "Que doit devenir ce lien ?", 3.4);
+/* 5 · Découvrir ON DELETE */
+chap({label:'Découvrir ON DELETE'});
+cap('e1', "La règle <code>ON DELETE</code> se définit<br>sur une clé étrangère.", 4.2);
+cap('e2', "Elle précise ce qui se passe<br>lorsque la ligne référencée<br>est supprimée.", 4.6);
+cap('e3', "Il existe trois possibilités.", 3.4);
+cap('e4', "Avec <code>RESTRICT</code>, la suppression<br>du compte est bloquée<br>tant que l’avis lui est rattaché.", 5.2);
+cap('e5', "Avec <code>CASCADE</code>, le compte<br>et l’avis sont supprimés ensemble.", 4.6);
+cap('e6', "Avec <code>SET NULL</code>, le compte<br>est supprimé mais l’avis reste.", 4.6);
+cap('e7', "Seule la colonne <code>client_id</code><br>devient <code>NULL</code>.", 3.8);
+/* 6 · À toi de choisir */
+chap({label:'À toi de choisir'});
+cap('f1', "Il faut choisir la règle<br>de la clé étrangère <code>client_id</code>.", 4.2);
 toi('p2');
-cap('c13', "Seule la case qui désigne le client<br>devient <code>NULL</code>.", 3.6);
-cap('c14', "Avec <code>RESTRICT</code>, la suppression<br>du client est refusée.", 3.4);
-cap('c15', "Sans règle, c’est déjà<br>ce qui se passe.", 2.8);
-/* 4 · Écrire la règle */
-chap({label:'Écrire la règle'});
-cap('c16', "Il reste à écrire la requête<br>qui crée la <b>table avis</b>.", 4.6);
-cap('c18', "Si le client est supprimé,<br>ses avis doivent rester.", 3.2);
+/* 7 · Retour sur le site web */
+chap({label:'Retour sur le site web'});
+cap('g1', "Avec <code>ON DELETE SET NULL</code>,<br>l’avis est conservé.", 4.0);
 toi('p3');
-cap('c20', "Pour détacher les avis, la colonne<br>du client doit accepter <code>NULL</code>.", 3.8);
-cap('c21', "Imagine que tu ajoutes <code>NOT NULL</code><br>à cette colonne.", 3.2);
+cap('g2', "Mais son lien vers le compte<br>d’Inès Lefebvre est retiré.", 3.8);
+cap('g3', "Le produit, la note<br>et le commentaire<br>ne changent pas.", 4.2);
+cap('g4', "La colonne <code>client_id</code> doit donc<br>autoriser <code>NULL</code>.", 4.0);
+cap('g5', "Et si tu ajoutes <code>NOT NULL</code><br>à cette colonne ?", 3.6);
 toi('p4');
-cap('c22', "Avec <code>NOT NULL</code>, les avis<br>ne peuvent pas devenir <code>NULL</code> :<br>la suppression est refusée.", 4.4);
-cap('c23', "Un avis n’a aucun sens sans atelier :<br>avec <code>CASCADE</code>, il disparaît<br>avec son atelier.", 4.4);
-cap('c24', "La règle se déclare<br>dans <code>CREATE TABLE</code>,<br>à côté de la clé étrangère.", 4.0);
-cap('c25', "Avec SQLite, elle ne peut plus<br>être modifiée ensuite.", 3.2);
-cap('c26', "Les sept avis sont ensuite ajoutés,<br>dont celui d’Inès Lefebvre.", 3.8);
-/* 5 · Le compte supprimé */
-chap({label:'Le compte supprimé'});
-cap('c27', "Revenons à la demande<br>d’Inès Lefebvre.", 2.8);
-cap('c28', "On supprime d’abord son inscription,<br>comme au chapitre 9.", 3.8);
-cap('c29', "Et si tu écris la règle<br>à la fin du <code>DELETE</code> du compte ?", 4.0);   // le seul « Imagine » est c21 (Elisa, 24 octobre : « répétition de imagine »)
+cap('g6', "Avec <code>NOT NULL</code>, la suppression<br>du compte est refusée.", 4.0);
+cap('g7', "Sur la fiche produit,<br>l’avis est toujours là,<br>avec ses cinq étoiles.", 4.2);
+cap('g8', "À la place du prénom,<br>le site écrit « Ancien client ».", 4.0);
+cap('g9', "<code>SET NULL</code> modifie le lien<br>dans la base de données.", 4.6);
 toi('p5');
-cap('c30', "<code>ON DELETE</code> n’est pas une option<br>du <code>DELETE</code> : la règle ne s’écrit<br>jamais ici.", 4.4);
-cap('c31', "Le compte se supprime<br>avec un simple <code>DELETE</code>.", 3.6);
-cap('c32', "L’avis d’Inès Lefebvre reste<br>dans la <b>table avis</b>.", 3.4);
-cap('c33', "Son client vaut maintenant <code>NULL</code> :<br>l’avis ne désigne plus personne.", 3.8);
-cap('c34', "<code>NULL</code> ne désigne aucun client :<br>la clé étrangère n’a<br>rien à vérifier.", 4.0);
-/* 6 · Quelle règle choisir ? */
-chap({label:'Quelle règle choisir ?'});
-cap('c35', "La bonne règle dépend du sens<br>de la ligne liée.", 3.2);
+/* 8 · Chaque cas, sa règle */
+chap({label:'Chaque cas, sa règle'});
+cap('h1', "Chaque clé étrangère peut avoir<br>sa propre règle.", 3.8);
 toi('p6');
-cap('c36', "<code>CASCADE</code> convient à une ligne liée<br>qui n’a plus de sens sans l’autre.", 4.0);
-cap('c37', "<code>SET NULL</code> convient à une ligne liée<br>qui garde sa valeur sans l’autre.", 4.0);
-cap('c38', "<code>RESTRICT</code> convient à une ligne liée<br>à traiter d’abord à la main.", 4.0);
-cap('c39', "Attention : <code>CASCADE</code> supprime<br>sans demander de confirmation.", 3.6);
+cap('h2', "<code>CASCADE</code> convient à une ligne liée<br>qui n’a plus de sens sans l’autre.", 4.0);
+cap('h3', "<code>SET NULL</code> convient à une ligne liée<br>qui garde sa valeur sans l’autre.", 4.0);
+cap('h4', "<code>RESTRICT</code> convient à une ligne liée<br>à traiter d’abord à la main.", 4.0);
+cap('h5', "Attention : <code>CASCADE</code> supprime<br>sans demander de confirmation.", 3.6);
 /* la suite : la prochaine leçon */
-cap('c40', "Dans la prochaine leçon, tu apprendras<br>à tout valider ou tout annuler<br>avec une transaction.", 7.0);
-/* 7 · À retenir */
+cap('h6', "Dans la prochaine leçon, tu apprendras<br>à tout valider ou tout annuler<br>avec une transaction.", 7.0);
+/* 9 · À retenir */
 chap({label:'À retenir'});
 const RECAP = SCH.t;
-cap('c41', "Pour finir, voici les <b>trois idées à retenir</b>.", 4.8, 0.4);
+cap('i1', "Pour finir, voici les <b>trois idées à retenir</b>.", 4.8, 0.4);
 /* NOTES (le bouton « Ajouter à mes notes ») est écrit en clair dans Course(…) plus bas : tests/ondelete-lesson.test.mjs vérifie qu’il suit le déroulé. */
 const NOTES = +(SCH.t + 0.1).toFixed(2);
 const DURATION = +(NOTES + 7.2).toFixed(2);
 SCH.caps.push([NOTES, 999, APP ? "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."
-  : "La règle <code>ON DELETE</code> se déclare<br>dans <code>CREATE TABLE</code>, jamais dans le <code>DELETE</code>."]);
+  : "La règle <code>ON DELETE</code> décide<br>du sort de la ligne liée."]);
 
 const CAPTIONS = SCH.caps;
 const CHAPTERS = SCH.chaps.map((c, i) => ({n: i + 1, label: c.label, a: c.a, b: i + 1 < SCH.chaps.length ? SCH.chaps[i + 1].a : DURATION}));
@@ -368,45 +456,28 @@ const QUESTIONS = [];
 
 /* ---------- Le cas : la base des ateliers NutriBoost (le même dans tous les chapitres du projet) ---------- */
 /* La base telle que le chapitre 9 la laisse : huit tables, avec un client et trois inscriptions de moins que dans l’app
-   (Nathan Dupont, l’inscription de Léa Simon et les deux d’Hugo Laurent sont supprimés).   [clé, couleur, emoji, nom, lignes] */
+   (Nathan Dupont, l’inscription de Léa Simon et les deux d’Hugo Laurent sont supprimés). Nathan Petit est toujours là : le chapitre 11 en a besoin.
+   Ici, seule Inès Lefebvre (la neuvième cliente) quitte NutriBoost, et son avis est la première ligne de la nouvelle table avis.
+   [clé, couleur, emoji, nom, lignes] */
 const TB = [
   ['cl', 'k-cl', '👥', 'clients', 9], ['cm', 'k-cm', '🛒', 'commandes', 16], ['fi', 'k-fi', '⭐', 'fidelite', 4], ['pr', 'k-pr', '📦', 'produits', 8],
   ['co', 'k-co', '🧑‍🏫', 'coachs', 4], ['at', 'k-at', '📅', 'ateliers', 5], ['in', 'k-in', '📝', 'inscriptions', 8], ['ca', 'k-nb', '💳', 'cartes', 3]
 ];
-/* La table inscriptions : [id, identifiant du client, nom du client, identifiant de l’atelier, titre de l’atelier, date d’inscription]. */
-const INSCR = [
-  [1, 1, 'Sophie Martin', 1, 'Récupération', '2026-09-01'], [2, 4, 'Nathan Petit', 1, 'Récupération', '2026-09-02'],
-  [3, 5, 'Chloé Moreau', 2, 'Pilates', '2026-09-03'], [5, 3, 'Emma Dubois', 1, 'Récupération', '2026-09-05'],
-  [7, 1, 'Sophie Martin', 4, 'Méditation', '2026-09-07'], [8, 2, 'Lucas Bernard', 3, 'Cuisine saine', '2026-09-08'],
-  [10, 8, 'Gabriel Michel', 5, 'Yoga du matin', '2026-09-09'], [11, 9, 'Inès Lefebvre', 5, 'Yoga du matin', '2026-09-09']
-];
-/* La table clients : [id, prénom, nom, ville]. */
-const CLI = [[1, 'Sophie', 'Martin', 'Paris'], [2, 'Lucas', 'Bernard', 'Lyon'], [3, 'Emma', 'Dubois', 'Marseille'], [4, 'Nathan', 'Petit', 'Paris'],
-  [5, 'Chloé', 'Moreau', 'Bordeaux'], [6, 'Hugo', 'Laurent', 'Lyon'], [7, 'Léa', 'Simon', 'Paris'], [8, 'Gabriel', 'Michel', 'Toulouse'],
-  [9, 'Inès', 'Lefebvre', 'Nantes']];
-/* La nouvelle table avis : [id, identifiant du client, nom du client, identifiant de l’atelier, titre de l’atelier, note]. Le dernier avis est celui d’Inès Lefebvre. */
-const AVIS = [
-  [1, 1, 'Sophie Martin', 1, 'Récupération', 5], [2, 4, 'Nathan Petit', 1, 'Récupération', 4], [3, 5, 'Chloé Moreau', 2, 'Pilates', 5],
-  [4, 2, 'Lucas Bernard', 3, 'Cuisine saine', 4], [5, 1, 'Sophie Martin', 4, 'Méditation', 4], [6, 8, 'Gabriel Michel', 5, 'Yoga du matin', 4],
-  [7, 9, 'Inès Lefebvre', 5, 'Yoga du matin', 5]
-];
-/* Les quatre tables qui font référence à la table clients : seule la table inscriptions désigne Inès Lefebvre.   [clé, couleur, emoji, nom, lignes pour Inès Lefebvre] */
-const REFS = [['cm', 'k-cm', '🛒', 'commandes', 0], ['fi', 'k-fi', '⭐', 'fidelite', 0], ['ca', 'k-nb', '💳', 'cartes', 0], ['in', 'k-in', '📝', 'inscriptions', 1]];
-/* Moment 1 : la ligne à toucher est l’inscription d’Inès Lefebvre (r11) ; pourquoi les autres lignes ne conviennent pas. */
+/* Le prénom, tel que le site l’affiche sous l’avis. Le commentaire, tel qu’Inès Lefebvre l’écrit sur sa feuille (Elisa, 25 octobre, 12 h 51). */
+const PRENOM = 'Inès';
+const COMMENT = 'J’ai découvert cette protéine pendant un atelier NutriBoost. J’ai beaucoup aimé le goût chocolat et elle se mélange facilement. Je recommande !';
+/* Moment 1 : les deux clés étrangères sont client_id (c1) et produit_id (c2) ; pourquoi les autres cases ne conviennent pas. */
 const WHY1 = {
-  r1: 'Cette inscription est celle de Sophie Martin, pas celle d’Inès Lefebvre.',
-  r2: 'Cette inscription est celle de Nathan Petit, pas celle d’Inès Lefebvre.',
-  r3: 'Cette inscription est celle de Chloé Moreau, pas celle d’Inès Lefebvre.',
-  r5: 'Cette inscription est celle d’Emma Dubois, pas celle d’Inès Lefebvre.',
-  r7: 'Cette inscription est celle de Sophie Martin, pas celle d’Inès Lefebvre.',
-  r8: 'Cette inscription est celle de Lucas Bernard, pas celle d’Inès Lefebvre.',
-  r10: 'Gabriel Michel est lui aussi inscrit à l’atelier Yoga du matin, mais cette inscription n’est pas celle d’Inès Lefebvre.'
+  c0: 'Cette case identifie l’avis lui-même : ce n’est pas une clé étrangère.',
+  c3: 'La note est une simple valeur : elle ne désigne aucune autre table.',
+  c4: 'Le commentaire est un simple texte : il ne désigne aucune autre table.'
 };
-/* Moment 2 : la case à toucher est celle du client (c1) ; pourquoi les autres cases ne conviennent pas. */
+/* Moment 3 : la case à toucher est celle du compte (c1) ; pourquoi les autres cases ne conviennent pas. */
 const WHY2 = {
-  c0: 'L’identifiant de l’avis ne désigne pas le client : il ne change pas.',
-  c2: 'Cette case désigne l’atelier, pas le client : elle ne change pas.',
-  c3: 'La note ne désigne personne : elle ne change pas.'
+  c0: 'L’identifiant de l’avis ne désigne pas le compte : il ne change pas.',
+  c2: 'Cette case désigne le produit, pas le compte : elle ne change pas.',
+  c3: 'La note ne désigne personne : elle ne change pas.',
+  c4: 'Le commentaire ne désigne personne : il ne change pas.'
 };
 /* Moment 6 : les trois règles, et six situations à ranger [situation, règle, pourquoi pas une autre règle]. */
 const BINS = [['ca', 'CASCADE', 'supprime les lignes liées'], ['sn', 'SET NULL', 'détache les lignes liées'], ['re', 'RESTRICT', 'refuse la suppression']];
@@ -414,8 +485,8 @@ const ITEMS = [
   ['Les inscriptions d’un client qui ferme son compte', 'ca', 'Une inscription n’a aucun sens sans son client : elle doit disparaître avec lui.'],
   ['Les commandes d’un client qui ferme son compte', 'sn', 'Une commande reste utile à la comptabilité : elle est conservée, mais sans client.'],
   ['Les cartes d’un client qui ferme son compte', 're', 'Les séances restantes se règlent à la main : tant que la carte existe, la suppression du compte doit être refusée.'],
-  ['Les avis d’un atelier supprimé', 'ca', 'Un avis n’a aucun sens sans son atelier : il doit disparaître avec lui.'],
-  ['Les avis d’un client qui ferme son compte', 'sn', 'Un avis reste utile pour son atelier : il est conservé, mais sans client.'],
+  ['Les avis d’un produit retiré du catalogue', 'ca', 'Un avis n’a aucun sens sans son produit : il doit disparaître avec lui.'],
+  ['Les avis d’un client qui ferme son compte', 'sn', 'Un avis reste utile pour son produit : il est conservé, mais sans client.'],
   ['Les commandes d’un produit retiré du catalogue', 're', 'Une commande passée ne doit jamais disparaître : retirer le produit doit être refusé.']
 ];
 
@@ -423,27 +494,27 @@ const ITEMS = [
    from : début du passage qui amène chaque moment, d’où repartent « ↺ Revoir » et « Rejouer ». */
 const atp = k => +(A[k] + 2.35).toFixed(2);
 const PICKS = [
-  {at: atp('p1'), from: A.c4, kind: 'tap', need: 1, prompt: 'Touche l’inscription qui fait référence à Inès Lefebvre.'},
-  {at: atp('p2'), from: A.n1, kind: 'tap', need: 1, prompt: 'Avec <code>SET NULL</code>, touche la case qui devient <code>NULL</code>.'},
-  {at: atp('p3'), from: A.c16, kind: 'pick', text: true, prompt: 'Quelle règle conserve les avis d’un client supprimé ?', options: [
-    {label: 'ON DELETE CASCADE', why: 'Avec <code>CASCADE</code>, les avis du client seraient supprimés avec lui.'},
-    {label: 'ON DELETE SET NULL', ok: true},
-    {label: 'ON DELETE RESTRICT', why: 'Avec <code>RESTRICT</code>, un client qui a des avis ne pourrait plus être supprimé.'}]},
-  {at: atp('p4'), from: A.c20, kind: 'pick', text: true, prompt: 'Avec <code>NOT NULL</code>, que devient la suppression d’un client qui a des avis ?', options: [
-    {label: 'Les avis restent, sans client', why: '<code>NOT NULL</code> interdit justement <code>NULL</code> : les avis ne peuvent pas être détachés.'},
-    {label: 'Les avis sont supprimés avec le client', why: 'C’est ce que ferait <code>CASCADE</code> : avec <code>SET NULL</code>, aucun avis n’est supprimé.'},
-    {label: 'La suppression du client est refusée', ok: true}]},
-  {at: atp('p5'), from: A.c29, kind: 'pick', text: true, prompt: 'Que donne la suppression du compte avec <code>ON DELETE SET NULL</code> à la fin du <code>DELETE</code> ?', options: [
-    {label: 'Une erreur de syntaxe', ok: true},
-    {label: 'Le compte est supprimé et ses avis restent', why: '<code>ON DELETE</code> n’est pas une option du <code>DELETE</code> : rien n’est supprimé.'},
-    {label: 'Le compte et ses avis sont supprimés', why: 'La requête est refusée avant toute suppression : ni le compte ni les avis ne sont supprimés.'}]},
-  {at: atp('p6'), from: A.c35, kind: 'sort', prompt: 'Range chaque situation avec la règle qui convient.',
+  {at: atp('p1'), from: A.b8, kind: 'tap', need: 2, prompt: 'Dans l’avis d’Inès Lefebvre, touche les deux clés étrangères.'},
+  {at: atp('p2'), from: A.e1, kind: 'pick', text: true, prompt: 'Quelle règle permet de conserver l’avis d’Inès Lefebvre sans le rattacher à son compte supprimé ?', options: [
+    {label: 'RESTRICT', why: 'Avec <code>RESTRICT</code>, la suppression du compte est bloquée tant que l’avis lui est rattaché.'},
+    {label: 'CASCADE', why: 'Avec <code>CASCADE</code>, le compte et l’avis sont supprimés ensemble.'},
+    {label: 'SET NULL', ok: true, why: 'Avec <code>ON DELETE SET NULL</code>, l’avis est conservé, mais son lien vers le compte d’Inès Lefebvre est retiré. La colonne <code>client_id</code> doit donc autoriser <code>NULL</code>.'}]},
+  {at: atp('p3'), from: A.g1, kind: 'tap', need: 1, prompt: 'Avec <code>SET NULL</code>, touche la case qui devient <code>NULL</code>.'},
+  {at: atp('p4'), from: A.g4, kind: 'pick', text: true, prompt: 'Avec <code>NOT NULL</code> sur la colonne <code>client_id</code>, que devient la suppression du compte d’Inès Lefebvre ?', options: [
+    {label: 'L’avis reste, sans compte', why: 'Une colonne <code>NOT NULL</code> interdit justement <code>NULL</code> : l’avis ne peut pas être détaché du compte.'},
+    {label: 'L’avis est supprimé avec le compte', why: 'Rien n’est supprimé avec <code>SET NULL</code> : la règle détache l’avis, elle ne le supprime jamais.'},
+    {label: 'La suppression du compte est refusée', ok: true}]},
+  {at: atp('p5'), from: A.g7, kind: 'pick', text: true, prompt: 'Qui affiche « Ancien client » sur la fiche produit ?', options: [
+    {label: 'Le site web, sans compte associé', ok: true, why: '<code>SET NULL</code> modifie le lien dans la base de données. C’est ensuite le site web qui affiche « Ancien client » lorsqu’aucun compte n’est associé à l’avis.'},
+    {label: 'La base de données', why: 'Dans la base de données, il n’y a que <code>NULL</code> : c’est le site web qui décide quoi afficher à la place.'},
+    {label: 'La règle SET NULL', why: '<code>SET NULL</code> modifie seulement la base de données : elle n’écrit rien sur le site web.'}]},
+  {at: atp('p6'), from: A.h1, kind: 'sort', prompt: 'Range chaque situation avec la règle qui convient.',
     hint: 'Touche une situation, puis la règle qui convient. Tu peux aussi la faire glisser directement.', next: '« {x} » : quelle règle choisir ?',
     options: ITEMS.map(x => ({label: x[0]}))}
 ];
 
-const OPENS = [MAIL1, MAIL2].map((t, n) => {
-  const [prenom, nom] = MAILS[n][0], msg = mailSms(n) ? 'message' : 'mail';   // le service client écrit par SMS quand le message le dit ({sms: true})
+const OPENS = [MAIL1].map((t, n) => {
+  const [prenom, nom] = MAILS[n][0], msg = mailSms(n) ? 'message' : 'mail';   // le service client écrit par mail
   const de = /^Le /.test(prenom) ? 'du ' + prenom.slice(3) : /^[AEIOUHÉÈ]/.test(prenom) ? 'd’' + prenom : 'de ' + prenom;   // « du service client », « d’Inès »
   return {at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: `Touche le ${msg} pour l’ouvrir.`, label: `Ouvrir le ${msg} ${de} ${nom}`};
 });
@@ -465,143 +536,161 @@ function editor(id, fname, lines, extra = ''){
   return `<div class="abs code sq" id="${id}" style="left:64px;width:952px"><div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i>` +
     `<span class="fname">${fname}</span></div><div class="body">${lines.map(lineHtml).join('')}${extra}</div></div>`;
 }
-const hole = (id, top) => `<div class="hole" id="${id}" style="top:${top}px">?</div>`;
-const alts = (ls, top) => ls.map(([i, s]) => lineHtml([i, s, 'alt', `top:${top}px`])).join('');
 const out = (id, kind, title, msg, cls = 's', t2 = false) => `<div class="abs out ${kind}${t2 ? ' t2' : ''}" id="${id}"><span class="oi">${kind === 'ok' ? '✓' : kind === 'warn' ? '!' : '✕'}</span>` +
   `<div class="ot"><b>${title}</b><span class="${cls}">${msg}</span></div></div>`;
-const RH = 84, RHK = 46;   // hauteur d’une ligne des tables à toucher (inscriptions, schéma : le doigt) et de la table clients
+/* Une étoile (cinq pour une note de 5) : un tracé, qu’on remplit en doré. */
+const STAR = 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z';
+const stars = n => Array.from({length: n}, () => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${STAR}"/></svg>`).join('');
+/* Les colonnes de la table avis (la même grille partout) et d’une table à une ligne (clients, produits) */
+const GAV = '--g:84px 190px 210px 100px 1fr';
+const head = (cols, k = '') => `<div class="gr hd">${cols.map(([c, label, extra]) => `<span class="${c}${extra ? ' ' + extra : ''}">${label}</span>`).join('')}</div>`;
+const tbl = (id, kc, emo, name, g, hd, rows, bn = '') => `<div class="abs card tb tz ${kc}" id="${id}" style="left:64px;width:952px;${g}"><div class="h"><span class="emo">${emo}</span><span>${name}</span>${bn}</div>${hd}${rows}</div>`;
+const KEY = '<span class="emo">🔑</span>id', LK = '<span class="emo lk2">🔗</span>';
 function dom(){
-  /* La base et ses huit tables (la neuvième, avis, est à créer), puis les deux demandes à traiter */
+  /* La base et ses huit tables : le rappel du chapitre précédent */
   $('#sa').innerHTML = `<div class="abs card bc" id="bc"><div class="bh"><span class="emo">🗄️</span><span>Base NutriBoost</span><span class="bn"><span>8 tables</span></span></div>` +
     TB.map(([k, kc, emo, name, n]) => `<div class="srow ${kc}" id="bw-${k}"><i class="hl"></i><div class="sn"><span class="emo">${emo}</span>` +
-      `<span class="nm">${name}</span><i class="sp"></i><b class="nb"><span>${n} lignes</span></b></div></div>`).join('') +
-    `<div class="srow ghost k-av" id="bw-av"><i class="hl"></i><div class="sn"><span class="emo">💬</span><span class="nm">avis</span><i class="sp"></i><b class="nb"><span>à créer</span></b></div></div></div>` +
-    '<div class="abs pack" id="dem"><span><span class="emo">📬</span>2 demandes à traiter</span></div>';
-  /* La table inscriptions : chaque ligne peut être touchée (moment 1) ; une ligne supprimée se replie */
-  let b = `<div class="abs card tb k-in" id="tb" style="left:64px;width:952px;top:236px;--g:80px 300px 290px 1fr">` +
-    `<div class="h"><span class="emo">📝</span><span id="tbn">inscriptions</span><span class="bn"><span id="bn0">8 lignes</span><span id="bn1">7 lignes</span></span></div>` +
-    `<div class="gr hd"><span class="c0 kc"><span class="emo">🔑</span>id</span><span class="c1 kc k-cl"><span class="emo">🔗</span>client_id</span><span class="c2 kc k-at"><span class="emo">🔗</span>atelier_id</span><span class="c3">date_inscription</span></div>` +
-    INSCR.map(([id, cl, nom, at, atl, date]) => line('i' + id, cell(0, `<i class="v">${id}</i>`) + cell(1, `<i class="v">${cl}</i><i class="nt k-cl">${nom}</i>`) +
-      cell(2, `<i class="v">${at}</i><i class="nt k-at">${atl}</i>`) + cell(3, `<i class="v">${date}</i>`))).join('') + '</div>';
-  // la suppression de l’inscription d’Inès Lefebvre : un DELETE avec la même condition que celle du chapitre 9
-  b += editor('e4', 'inscription.sql', [
-    ['e4a', '-- Supprimer l’inscription d’Inès Lefebvre'],
-    ['e4b', '{ku4|DELETE FROM} {tn4|inscriptions}'],
-    ['e4c', '{kw4|WHERE} {cw4|client_id = 9};']
+      `<span class="nm">${name}</span><i class="sp"></i><b class="nb"><span>${n} lignes</span></b></div></div>`).join('') + '</div>';
+  /* Après l’atelier : le ticket d’Inès Lefebvre, puis les produits qu’elle a goûtés */
+  $('#sf').innerHTML = `<div class="abs card tk k-cl" id="tk"><i class="mav">IL<b class="mbg emo">💬</b></i><div class="tkw"><span class="tkn">Inès Lefebvre</span>` +
+    `<span class="tks"><span class="emo">🌿</span>Atelier NutriBoost</span></div><span class="tkb">✓ Terminé</span></div>` +
+    '<div class="abs tray" id="tray">' + [['pr', '🌱', 'Protéine Végétale'], ['ti', '🍵', 'Tisane Détox'], ['om', '🐟', 'Oméga 3']].map(([k, e, n]) =>
+      `<div class="card pt" id="pt-${k}"><span class="emo">${e}</span>${n}<i class="rg"></i></div>`).join('') + '</div>';
+  /* La feuille d’avis, remplie à la main ; son trajet jusqu’au site ; la table avis, où l’équipe recopie la note et le commentaire */
+  const arw = '<svg class="arw" viewBox="0 0 83 60" aria-hidden="true"><path d="M8 30H70M52 12l20 18-20 18"/></svg>';
+  $('#sh').innerHTML = `<div class="abs fe" id="fe"><div class="fh"><span class="emo">📝</span>Feuille d’avis<small>NutriBoost</small></div>` +
+    `<div class="frow"><span class="fl">Produit</span><span class="fpr" id="fp"><span class="emo">🌱</span>Protéine Végétale</span></div>` +
+    `<div class="frow"><span class="fl">Ma note</span><span class="fst" id="fst">${stars(5)}</span></div>` +
+    `<div class="flab">Mon commentaire</div><div class="fc" id="fc">${COMMENT}</div>` +
+    `<div class="fsg"><span>Signature</span><i id="fsig">Inès Lefebvre</i></div><span class="stamp" id="stp">Reçue</span></div>` +
+    `<div class="abs flow" id="flow"><div class="card nd" id="fn-fe"><span class="emo">📝</span>Feuille</div>${arw}` +
+    sw('fmid', [['?', 'card nd q'], ['<span class="emo">🗄️</span>Base de données', 'card nd']], 'fm') + `${arw}<div class="card nd" id="fn-web"><span class="emo">🌐</span>Site web</div></div>` +
+    tbl('tav', 'k-av', '💬', 'avis', GAV, head([['c0 kc', KEY], ['c1', 'client_id'], ['c2', 'produit_id'], ['c3', 'note'], ['c4', 'commentaire']]),
+      line('va', cell(0, '<i class="v">1</i>') + cell(1, '<i class="ph">?</i>') + cell(2, '<i class="ph">?</i>') + cell(3, sw('vnw', [['?', 'nul'], ['5']])) +
+        cell(4, `<span class="stk"><i class="cm ph" id="vcp">?</i><i class="cm" id="vcm">${COMMENT}</i></span>`)),
+      '<span class="bn"><span id="tn0">nouvelle table</span><span id="tn1">1 ligne</span></span>') +
+    '<div class="abs fly gst" id="gst">' + stars(5) + '</div>' + `<div class="abs fly gcm" id="gcm">${COMMENT}</div>`;
+  /* Les deux clés étrangères de l’avis : le compte d’Inès Lefebvre (au-dessus), le produit (au-dessous) */
+  $('#sk').innerHTML = tbl('kc', 'k-cl', '👥', 'clients', '--g:80px 230px 260px 1fr', head([['c0 kc', KEY], ['c1', 'prenom'], ['c2', 'nom'], ['c3', 'ville']]),
+      line('kc', cell(0, '<i class="v">9</i>') + cell(1, `<i class="v">${PRENOM}</i>`) + cell(2, '<i class="v">Lefebvre</i>') + cell(3, '<i class="v">Nantes</i>'))) +
+    '<div class="abs lkv" id="kuv" style="--ax:258px"></div>' +
+    tbl('kv', 'k-av', '💬', 'avis', GAV, head([['c0 kc', KEY], ['c1 kc k-cl', LK + 'client_id'], ['c2 kc k-pr', LK + 'produit_id'], ['c3', 'note'], ['c4', 'commentaire']]),
+      line('ka', cell(0, '<i class="v">1</i>') + cell(1, sw('kcw', [['?', 'nul'], ['9']]) + '<i class="hc" id="hk1"></i>') + cell(2, sw('kpw', [['?', 'nul'], ['6']]) + '<i class="hc" id="hk2"></i>') +
+        cell(3, '<i class="v">5</i>') + cell(4, `<i class="cm">${COMMENT}</i>`))) +
+    '<div class="abs lkd" id="kdv" style="--ax:458px;--ac:#D9468F"></div>' +
+    tbl('kp', 'k-pr', '📦', 'produits', '--g:80px 340px 230px 1fr', head([['c0 kc', KEY], ['c1', 'nom'], ['c2', 'categorie'], ['c3', 'prix']]),
+      line('kp', cell(0, '<i class="v">6</i>') + cell(1, '<i class="v">Protéine Végétale</i>') + cell(2, '<i class="v">Nutrition</i>') + cell(3, '<i class="v">34.9</i>'))) +
+    '<div class="abs pack" id="kpack"><span><span class="emo">🔗</span>2 clés étrangères</span></div>' +
+    `<div class="abs fly gch k-cl" id="g9">9</div><div class="abs fly gch k-pr" id="g6">6</div>`;
+  /* La fiche produit du site : l’avis sous le prénom, puis sous « Ancien client » */
+  $('#ss').innerHTML = `<div class="abs card br" id="br"><div class="bar"><i></i><i></i><i></i><span class="url">nutriboost.fr/produit/6</span></div>` +
+    `<div class="pd"><div class="pimg emo">🌱</div><div class="pw"><span class="pn">Protéine Végétale</span><span class="pg">Nutrition</span><span class="pp">34,90 €</span></div></div>` +
+    `<div class="rh">Avis clients<small>1 avis</small></div>` +
+    `<div class="rev" id="rev"><div class="sav" id="sav"><i class="a0">IL</i><i class="a1 emo">👤</i></div><div class="rb"><div class="rnw">` +
+    sw('snm', [[PRENOM, 'rnm'], ['Ancien client', 'rnm']], 'sn2') + `<i class="rgn" id="rgn"></i></div><div class="rst">${stars(5)}</div><div class="rtx">${COMMENT}</div></div></div></div>` +
+    '<div class="abs sdb" id="sdb"><span class="emo">🗄️</span>Base de données<i class="sp"></i><code>client_id</code><span>vaut</span><code>NULL</code></div>';
+  /* Quelque temps plus tard… : la carte-titre, puis le mail du service client */
+  $('#sm').innerHTML = '<div class="abs ttl" id="tt"><span class="emo">📩</span><span>Quelque temps<br>plus tard…</span></div>' +
+    MAILS.map(([w, k, tag, from, body, sign], n) => `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
+    `<div class="mw"><div class="mn"><b>${w[0]} ${w[1]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
+    `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), 'Merci !', sign].map((x, j, a) => `<span class="sn${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
+    '<div class="abs emo tapf" id="tapf">👆</div>';
+  /* Le moment de la suppression : le bouton, le compte, la flèche, l’avis ; puis la règle ON DELETE écrite sur la clé étrangère */
+  let w = '<div class="abs run bdel" id="bdel"><span class="emo">🗑️</span>Supprimer le compte<i class="ripple"></i></div>' +
+    tbl('wc', 'k-cl', '👥', 'clients', '--g:80px 230px 260px 1fr', head([['c0 kc', KEY], ['c1', 'prenom'], ['c2', 'nom'], ['c3', 'ville']]),
+      line('wc', cell(0, '<i class="v">9</i>') + cell(1, `<i class="v">${PRENOM}</i>`) + cell(2, '<i class="v">Lefebvre</i>') + cell(3, '<i class="v">Nantes</i>'))) +
+    '<div class="abs lkv" id="lkv" style="--ax:258px;height:96px"></div><div class="abs lkv lkr" id="lkr" style="--ax:258px;height:96px"></div><div class="abs fly qm" id="qm">?</div>' +
+    tbl('wi', 'k-av', '💬', 'avis', GAV, head([['c0 kc', KEY], ['c1 kc k-cl', LK + 'client_id'], ['c2 kc k-pr', LK + 'produit_id'], ['c3', 'note'], ['c4', 'commentaire']]),
+      line('wa', cell(0, '<i class="v">1</i>') + cell(1, sw('wsw', [['9'], ['NULL', 'nul']]) + '<i class="hc" id="hcw"></i>') + cell(2, '<i class="v">6</i>') +
+        cell(3, '<i class="v">5</i>') + cell(4, `<i class="cm">${COMMENT}</i>`)));
+  w += editor('e3', 'avis.sql', [
+    ['e3a', '-- La clé étrangère de la table avis'],
+    ['e3b', '{kc3|client_id} INTEGER'],
+    ['e3c', '  {kr3|REFERENCES clients(id)}'],
+    ['e3d', '  {od3|ON DELETE} ' + sw('rule', [['?'], ['RESTRICT'], ['CASCADE'], ['SET NULL']], 'rl')]
   ]);
-  b += out('o-4', 'ok', 'Requête exécutée', '1 ligne supprimée.');
-  $('#sb').innerHTML = b;
-  /* La table clients : le compte d’Inès Lefebvre ; la requête qui le supprime (refusée), puis la même avec la règle au mauvais endroit */
-  let c = `<div class="abs card tb k-cl" id="tcl" style="left:64px;width:952px;top:236px;--g:80px 230px 260px 1fr">` +
-    `<div class="h"><span class="emo">👥</span><span id="tcn">clients</span><span class="bn"><span id="cn0">9 lignes</span><span id="cn1">8 lignes</span></span></div>` +
-    `<div class="gr hd"><span class="c0 kc"><span class="emo">🔑</span>id</span><span class="c1">prenom</span><span class="c2">nom</span><span class="c3">ville</span></div>` +
-    CLI.map(([id, p, n, v]) => line('k' + id, cell(0, `<i class="v">${id}</i>`) + cell(1, `<i class="v">${p}</i>`) + cell(2, `<i class="v">${n}</i>`) + cell(3, `<i class="v">${v}</i>`))).join('') + '</div>';
-  c += editor('e1', 'compte.sql', [
-    ['e1a', '-- Supprimer le compte d’Inès Lefebvre'],
-    ['e1b', '{ku1|DELETE FROM} {tn1|clients}'],
-    ['e1c', '{kw1|WHERE} {cw1|id = 9};']
-  ]);
-  c += editor('e5', 'compte.sql', [
-    ['e5a', '-- Supprimer le compte d’Inès Lefebvre'],
-    ['e5b', '{ku5|DELETE FROM} {tn5|clients}'],
-    ['e5c', '{kw5|WHERE} {cw5|id = 9}<span class="sg" id="sod"> ON DELETE SET NULL</span>;']
-  ]);
-  c += out('o-fk', 'err', 'Requête refusée', 'FOREIGN KEY constraint failed', 'm');
-  c += out('o-se', 'err', 'Requête refusée', 'near "ON": syntax error', 'm');
-  c += out('o-5', 'ok', 'Requête exécutée', '1 ligne supprimée.');
-  c += '<div class="abs refs" id="refs">' + REFS.map(([k, kc, emo, name, n]) => `<div class="rf ${kc}${n ? ' no' : ''}" id="rf-${k}"><span class="emo">${emo}</span>${name}<i>${n ? '✕ 1 ligne' : '✓ 0 ligne'}</i></div>`).join('') + '</div>';
-  $('#sc').innerHTML = c;
-  /* Le schéma : un client, l’inscription qui le désigne (la règle ON DELETE est celle de l’inscription), la même requête dans les trois cas */
-  let w = `<div class="abs card tb mi k-cl" id="wc" style="left:64px;width:952px;--g:80px 230px 260px 1fr"><div class="h"><span class="emo">👥</span>clients</div>` +
-    `<div class="gr hd"><span class="c0 kc"><span class="emo">🔑</span>id</span><span class="c1">prenom</span><span class="c2">nom</span><span class="c3">ville</span></div>` +
-    line('w1', cell(0, '<i class="v">9</i>') + cell(1, '<i class="v">Inès</i>') + cell(2, '<i class="v">Lefebvre</i>') + cell(3, '<i class="v">Nantes</i>')) + '</div>';
-  w += '<div class="abs lkv" id="lkv"></div>';
-  w += `<div class="abs card tb mi k-av" id="wi" style="left:64px;width:952px;--g:80px 330px 320px 1fr"><div class="h"><span class="emo">💬</span>avis` +
-    `<span class="bn wp"><span id="wp0">ON DELETE ?</span><span id="wp1">ON DELETE CASCADE</span><span id="wp2">ON DELETE SET NULL</span><span id="wp3">ON DELETE RESTRICT</span><span id="wp4">sans règle</span></span></div>` +
-    `<div class="gr hd"><span class="c0 kc"><span class="emo">🔑</span>id</span><span class="c1 kc k-cl"><span class="emo">🔗</span>client_id</span><span class="c2 kc k-at"><span class="emo">🔗</span>atelier_id</span><span class="c3">note</span></div>` +
-    line('w2', cell(0, '<i class="v">7</i>') + cell(1, sw('wsw', [['<i class="v">9</i><i class="nt k-cl">Inès Lefebvre</i>', 'cx'], ['NULL', 'nul']]) + '<i class="hc" id="hcw"></i>') +
-      cell(2, '<i class="v">5</i><i class="nt k-at">Yoga du matin</i>') + cell(3, '<i class="v">5</i>')) + '</div>';
-  w += editor('e3', 'compte.sql', [
-    ['e3a', '-- Supprimer le compte d’Inès Lefebvre'],
-    ['e3b', '{ku3|DELETE FROM} {tn3|clients}'],
-    ['e3c', '{kw3|WHERE} {cw3|id = 9};']
-  ]);
-  w += out('o-w3', 'err', 'Requête refusée', 'FOREIGN KEY constraint failed', 'm');
+  w += out('o-rs', 'err', 'Suppression bloquée', 'FOREIGN KEY constraint failed', 'm');
+  w += out('o-ca', 'warn', 'Compte et avis supprimés', 'Sans aucune confirmation.');
+  w += out('o-sn', 'ok', 'Compte supprimé, avis conservé', 'La colonne <code>client_id</code> vaut <code>NULL</code>.');
+  w += '<div class="abs emo tapf" id="tapw">👆</div>';
   $('#sw').innerHTML = w;
-  /* La requête qui crée la table avis : la règle du client (moment 3, un trou), puis celle de l’atelier */
-  const HT = 18 + 42 * 5;   // la ligne de la règle du client, sous la ligne REFERENCES clients(id)
-  let e = editor('e2', 'avis.sql', [
-    ['e2a', '-- Les avis des clients sur les ateliers'],
-    ['e2b', '{kt2|CREATE TABLE} {tn2|avis} ('],
-    ['e2c', '  id INTEGER {kp2|PRIMARY KEY},'],
-    ['e2d', '  {kc2|client_id} INTEGER<span class="sg" id="smn"> NOT NULL</span>'],
-    ['e2e', '    {kr2|REFERENCES clients(id)}'],
-    ['e2f', '    {od1|ON DELETE SET NULL},'],
-    ['e2g', '  atelier_id INTEGER'],
-    ['e2h', '    {kr3|REFERENCES ateliers(id)}'],
-    ['e2i', '    {od2|ON DELETE CASCADE},'],
-    ['e2j', '  note INTEGER'],
-    ['e2k', ');']
-  ], hole('hole3', HT) + alts([['e2f2', '    ON DELETE CASCADE,'], ['e2f3', '    ON DELETE RESTRICT,']], HT));
-  e += out('o-nn', 'err', 'Suppression du client refusée', 'NOT NULL constraint failed:<br>avis.client_id', 'm', true);
-  e += out('o-ct', 'ok', 'Requête exécutée', 'Table avis créée.');
-  e += out('pvo3-1', 'warn', 'Avis supprimés', 'Ils disparaissent avec le client.');
-  e += out('pvo3-2', 'err', 'Suppression refusée', 'Le client a encore des avis.');
-  $('#se').innerHTML = e;
-  /* La table avis : sept lignes, dont celle d’Inès Lefebvre (le client de la dernière passe à NULL) */
-  $('#sv').innerHTML = `<div class="abs card tb k-av" id="tav" style="left:64px;width:952px;top:236px;--g:80px 330px 320px 1fr">` +
-    `<div class="h"><span class="emo">💬</span><span id="tvn">avis</span><span class="bn"><span>7 lignes</span></span></div>` +
-    `<div class="gr hd"><span class="c0 kc"><span class="emo">🔑</span>id</span><span class="c1 kc k-cl"><span class="emo">🔗</span>client_id</span><span class="c2 kc k-at"><span class="emo">🔗</span>atelier_id</span><span class="c3">note</span></div>` +
-    AVIS.map(([id, cl, nom, at, titre, note]) => line('v' + id, cell(0, `<i class="v">${id}</i>`) +
-      cell(1, id === 7 ? sw('vsw', [['<i class="v">9</i><i class="nt k-cl">Inès Lefebvre</i>', 'cx'], ['NULL', 'nul']]) : `<i class="v">${cl}</i><i class="nt k-cl">${nom}</i>`) +
-      cell(2, `<i class="v">${at}</i><i class="nt k-at">${titre}</i>`) + cell(3, `<i class="v">${note}</i>`))).join('') + '</div>';
+  /* La colonne client_id avec NOT NULL : le cas imaginé */
+  $('#se').innerHTML = editor('e2', 'avis.sql', [
+    ['e2a', '-- La colonne client_id de la table avis'],
+    ['e2b', '{kc2|client_id} INTEGER<span class="sg" id="smn"> NOT NULL</span>'],
+    ['e2c', '  REFERENCES clients(id)'],
+    ['e2d', '  ON DELETE SET NULL']
+  ]) + out('o-nn', 'err', 'Suppression du compte refusée', 'NOT NULL constraint failed:<br>avis.client_id', 'm', true);
   /* Les trois règles : une case chacune, où ranger les situations */
   $('#sd').innerHTML = BINS.map(([k, n, d], q) => `<div class="abs dbn" id="db-${k}" data-k="${k}" style="top:${340 + q * 232}px"><div class="hh"><span class="dn">${n}</span><span class="dd">${d}</span></div>` +
     `<div class="cs">${ITEMS.map((x, i) => x[1] === k ? `<div class="rc" id="sbu${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
     '<div class="abs pack" id="bpack"><span><span class="emo">📬</span>6 situations à ranger</span></div>';
-  /* Le SMS et le mail */
-  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body, false, smsRank(MAILS, n), (MAILS[n][6] || {}).hello) : `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
-    `<div class="mw"><div class="mn"><b>${w[0]} ${w[1]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
-    `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), (MAILS[n][6] || {}).bye || 'Merci !', sign].map((x, j, a) => `<span class="sn${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
-    '<div class="abs emo tapf" id="tapf">👆</div>';
   /* La suite : la prochaine leçon */
-  $('#sk').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🔄</span>Prochaine leçon · Transactions</span></div>';
+  $('#sn').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🔄</span>Prochaine leçon · Transactions</span></div>';
   // les requêtes, découpées en caractères pour la frappe
   $$('.sq .ln').forEach(splitChars);
 }
 
 /* ---------- Mise en page ---------- */
 const MH = [];   // hauteur de chaque mail déplié
-const W = {};    // largeur mesurée : les morceaux de requête qui se replient (NOT NULL, ON DELETE SET NULL)
+const W = {};    // largeur mesurée : les morceaux de requête qui se replient (NOT NULL) ou se déplient (la règle)
+const G = {};    // trajets des étoiles, du commentaire et des pastilles d’identifiant : de leur départ à leur arrivée
+const RH = 62;   // hauteur d’une ligne des tables
 const bottom = s => { const el = $(s); return el.offsetTop + el.offsetHeight; };
+/* Position d’un élément dans sa scène (sans tenir compte des transformations) : le coin, la taille, puis le centre. */
+const pos = el => {
+  let x = 0, y = 0, e = el;
+  while (e && !e.classList.contains('scene')) {
+    x += e.offsetLeft; y += e.offsetTop;
+    const p = e.offsetParent;
+    if (p && !p.classList.contains('scene')) { x += p.clientLeft; y += p.clientTop; }
+    e = p;
+  }
+  return {x, y, w: el.offsetWidth, h: el.offsetHeight};
+};
+const mid = p => ({x: Math.round(p.x + p.w / 2), y: Math.round(p.y + p.h / 2)});
+/* Un objet qui vole (étoiles, commentaire, pastille) : posé sur son départ, il se déplace de dx, dy jusqu’à son arrivée. */
+function fly(sel, from, to){
+  const a = mid(pos($(from))), b = mid(pos($(to)));
+  $(sel).style.left = a.x + 'px'; $(sel).style.top = a.y + 'px';
+  return {dx: b.x - a.x, dy: b.y - a.y};
+}
 function layout(){
-  // les tables gardent leur hauteur quand des lignes se replient : les cartes dessous ne bougent pas
-  ['#tb', '#tcl', '#tav', '#wc', '#wi'].forEach(s => { $(s).style.height = $(s).offsetHeight + 'px'; });
-  // la table inscriptions : la requête dessous, son résultat
-  const ED = bottom('#tb') + 9 + 40;
-  $('#e4').style.top = ED + 'px';
-  $('#o-4').style.top = (ED + $('#e4').offsetHeight + 9 + 32) + 'px';
-  // la table clients : les requêtes dessous, leur résultat, puis les quatre tables qui font référence aux clients
-  const EC = bottom('#tcl') + 9 + 40;
-  ['#e1', '#e5'].forEach(s => { $(s).style.top = EC + 'px'; });
-  const OC = EC + $('#e1').offsetHeight + 9 + 32;
-  ['#o-fk', '#o-se', '#o-5'].forEach(s => { $(s).style.top = OC + 'px'; });
-  $('#refs').style.top = (OC + $('#o-fk').offsetHeight + 36) + 'px';
-  // le schéma : le client, la flèche, l’inscription, la requête, son résultat
-  $('#wc').style.top = '300px';
-  $('#lkv').style.top = (bottom('#wc') + 8) + 'px';
-  $('#wi').style.top = (bottom('#wc') + 8 + 64 + 8) + 'px';
+  // les tables dont des lignes se replient gardent leur hauteur : les cartes dessous ne bougent pas
+  ['#wc', '#wi'].forEach(s => { $(s).style.height = $(s).offsetHeight + 'px'; });
+  // la feuille, puis dessous le trajet jusqu’au site, puis la table avis (au même endroit)
+  const FL = bottom('#fe') + 9 + 52;
+  $('#flow').style.top = FL + 'px';
+  $('#tav').style.top = FL + 'px';
+  G.stars = fly('#gst', '#fst', '#rva .c3');
+  G.cm = fly('#gcm', '#fc', '#vcm');
+  // l’avis et ses deux clés étrangères : le compte au-dessus, le produit au-dessous
+  $('#kc').style.top = '236px';
+  $('#kuv').style.top = (bottom('#kc') + 8) + 'px';
+  $('#kv').style.top = (bottom('#kc') + 8 + 64 + 8) + 'px';
+  $('#kdv').style.top = (bottom('#kv') + 8) + 'px';
+  $('#kp').style.top = (bottom('#kv') + 8 + 64 + 8) + 'px';
+  $('#kpack').style.top = (bottom('#kp') + 9 + 44) + 'px';
+  G.c9 = fly('#g9', '#rkc .c0', '#kcw');
+  G.c6 = fly('#g6', '#rkp .c0', '#kpw');
+  // la fiche produit, et sous elle la base
+  $('#sdb').style.top = (bottom('#br') + 9 + 44) + 'px';
+  // le moment de la suppression : le bouton, le compte, la flèche (et son point d’interrogation), l’avis, la règle, le résultat
+  $('#wc').style.top = '380px';
+  const AR = bottom('#wc') + 8;
+  $('#lkv').style.top = AR + 'px'; $('#lkr').style.top = AR + 'px';
+  $('#qm').style.left = '258px'; $('#qm').style.top = (AR + 48) + 'px';
+  $('#wi').style.top = (AR + 96 + 8) + 'px';
   const EW = bottom('#wi') + 9 + 50;
   $('#e3').style.top = EW + 'px';
-  $('#o-w3').style.top = (EW + $('#e3').offsetHeight + 9 + 32) + 'px';
-  // la requête CREATE TABLE et ses résultats
+  const OW = EW + $('#e3').offsetHeight + 9 + 32;
+  ['#o-rs', '#o-ca', '#o-sn'].forEach(s => { $(s).style.top = OW + 'px'; });
+  // la colonne client_id avec NOT NULL, et le message d’erreur
   $('#e2').style.top = '236px';
-  const OE = 236 + $('#e2').offsetHeight + 9 + 32;
-  ['#o-nn', '#o-ct', '#pvo3-1', '#pvo3-2'].forEach(s => { $(s).style.top = OE + 'px'; });
-  // la base : la ligne de la neuvième table s’ajoute à la carte, les demandes sont posées sous la carte agrandie
-  $('#dem').style.top = (bottom('#bc') + 64 + 9 + 44) + 'px';
+  $('#o-nn').style.top = (236 + $('#e2').offsetHeight + 9 + 32) + 'px';
+  // les trois règles : la pile des situations
   $('#bpack').style.top = (bottom('#db-re') + 9 + 44) + 'px';
-  W.smn = $('#smn').offsetWidth; W.sod = $('#sod').offsetWidth;
+  W.smn = $('#smn').offsetWidth; W.rule = $('#rule').offsetWidth;
   // Les mails : hauteur une fois dépliés
   $$('.ml').forEach((el, n) => { el.style.height = 'auto'; MH[n + 1] = el.offsetHeight; el.style.height = ''; });
 }
@@ -636,28 +725,27 @@ function delRow(sel, h, t){
   tl.fromTo(sel, {height: h}, {height: 0, duration: 0.45, ease: 'power2.inOut', immediateRender: false}, t + 0.55);
   cue(t + 0.55, 'whoosh', 0.35, 1);
 }
-/* Une ligne du schéma revient (le schéma montre trois cas l’un après l’autre). */
+/* Une ligne revient (la scène montre plusieurs cas l’un après l’autre). */
 function restoreRow(sel, h, t){
   tl.fromTo(sel, {height: 0}, {height: h, duration: 0.4, ease: 'power2.out', immediateRender: false}, t);
   off(sel + ' .xx', t, 0.25);
   cue(t, 'whoosh', 0.3, 1);
 }
-/* Frappe d’une ligne de code. Renvoie l’instant de fin. */
+/* Frappe d’une ligne de code (hors la pile des règles, qui change de mot sans être tapée). Renvoie l’instant de fin. */
 function sqType(lid, t, cps = 36, lead = 0.25){
   const ln = $('#' + lid), caret = $$(':scope > .caret', ln).pop();
   tl.set(caret, {autoAlpha: 1}, t - lead);
-  const end = typeChars($$('.ch', ln), t, cps);
+  const end = typeChars($$('.ch', ln).filter(c => !c.closest('.sw')), t, cps);
   tl.set(caret, {autoAlpha: 0}, end + 0.12);
   return end;
 }
 /* La légende s’efface le temps d’un mail, puis revient. */
 const capOff = t => tl.to('#cap', {autoAlpha: 0, y: 30, duration: 0.3, ease: 'power2.in'}, t);
 const capOn = t => tl.to('#cap', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, t);
-/* Un mail arrive : la notification tombe (avatar, enveloppe, pastille « non lu »). À T, l’élève la touche (l’app s’arrête là,
+/* Le mail arrive : la notification tombe (avatar, enveloppe, pastille « non lu »). À T, l’élève la touche (l’app s’arrête là,
    moment OPENS ; hors de l’app, un doigt le montre) : elle s’enfonce, l’adresse de l’expéditeur remplace « Nouveau mail »,
    puis elle se déplie en mail, ligne après ligne. L’image reste le temps de lire la demande. */
 function mailIn(n, t, T){
-  if (isSms(MAILS[n - 1][2], MAILS[n - 1][6])) { if (!APP) fingerTap($('#ml' + n), T); return smsIn(n, t, T); }
   const m = '#ml' + n, sn = $$(m + ' .sn');
   show(m, t, {y: -36, scale: 0.94}, 0.55, 'back.out(1.7)');
   cue(t, 'mail', 0.8);
@@ -681,10 +769,9 @@ function mailIn(n, t, T){
   return end;
 }
 function mailOut(n, t){ hide('#ml' + n, t, {x: 140, y: 0, rotation: 2}, 0.4, 'power2.in'); cue(t, 'whoosh', 0.4); }
-/* Hors de l’app (vidéo seule), un doigt montre le geste : il touche la notification. */
-function fingerTap(M, T){
-  const f = '#tapf';
-  tl.set(f, {left: M.offsetLeft + M.offsetWidth * 0.6, top: M.offsetTop + 92}, T - 0.8);
+/* Un doigt montre le geste : il touche la notification du mail (vidéo seule) ou le bouton « Supprimer le compte ». */
+function fingerTap(M, T, f = '#tapf', fx = 0.6, fy = 92){
+  tl.set(f, {left: M.offsetLeft + M.offsetWidth * fx, top: M.offsetTop + fy}, T - 0.8);
   tl.fromTo(f, {autoAlpha: 0, x: 90, y: 170}, {autoAlpha: 1, x: 0, y: 0, duration: 0.5, ease: 'power3.out', immediateRender: false}, T - 0.75);
   tl.to(f, {scale: 0.86, duration: 0.1, ease: 'power2.in'}, T - 0.15);
   tl.to(f, {scale: 1, duration: 0.15}, T);
@@ -692,13 +779,11 @@ function fingerTap(M, T){
 }
 
 /* Réponses des moments « À toi » : ce que la timeline montre juste après l’arrêt (et que l’aperçu montre pendant l’arrêt). */
-const M1_ANS = ['#ri11 .hl'];                                       // l’inscription d’Inès Lefebvre, entourée
-const M2_ANS = ['#hcw'];                                            // la case du client, entourée
-const M3_ANS = ['#e2f'], M3_HIDE = ['#hole3'];                      // ON DELETE SET NULL : la ligne de la règle prend la place du trou
+const M1_ANS = ['#hk1', '#hk2'];                                    // les deux clés étrangères de l’avis, entourées
+const M2_ANS = ['#rule .a3'], M2_HIDE = ['#rule .a0'];              // SET NULL : le mot prend la place du point d’interrogation
+const M3_ANS = ['#hcw'];                                            // la case du compte, entourée
 const M4_ANS = ['#o-nn'];                                           // NOT NULL : le message d’erreur
-const M5_ANS = ['#o-se'];                                           // la règle au bout du DELETE : l’erreur de syntaxe
-/* Les mauvaises réponses du moment 3 : la ligne de règle qu’elles donnent, et ce qu’elles feraient. */
-const W3 = {0: {alt: '#e2f2', out: '#pvo3-1'}, 2: {alt: '#e2f3', out: '#pvo3-2'}};
+const M5_ANS = ['#rgn'];                                            // le prénom, entouré : c’est le site qui l’écrit
 const set2 = t => +(t + 0.02).toFixed(2);
 
 function build(){
@@ -706,15 +791,18 @@ function build(){
   gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
   hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
   layout();
-  gsap.set(['.sq', '.out', '.pack', '#bc', '#tb', '#tcl', '#tav', '#wc', '#wi', '#lkv', '#keyc', '.dbn', '#bpack'], {autoAlpha: 0});
-  gsap.set(['#e2f', '#hole3', '#hcw', '#wp0', '#wp1', '#wp2', '#wp3', '#wp4', '#wsw .a1', '#vsw .a1', '.rf', '#bn1', '#cn1', '.dbn .rc', '#tav .r'], {autoAlpha: 0});
-  gsap.set(['#smn', '#sod'], {width: 0, overflow: 'hidden'});
+  const FCH = splitChars($('#fc'));   // le commentaire de la feuille se tape lettre à lettre (après la mise en forme du texte)
+  gsap.set(['.sq', '.out', '.pack', '#bc', '#tk', '.pt', '#fe', '#tav', '#kc', '#kv', '#kp', '#kuv', '#kdv', '#br', '#sdb', '#bdel', '#wc', '#wi', '#lkv', '#lkr', '#qm',
+    '#keyc', '.dbn', '#bpack', '#tt', '#g9', '#g6', '#gst', '#gcm', '#tapf', '#tapw'], {autoAlpha: 0});
+  gsap.set(['#fmid .a1', '#tn1', '#vnw .a1', '#kcw .a1', '#kpw .a1', '#wsw .a1', '#snm .a1', '#sav .a1', '#vcm', '#rva', '#fsig', '#tav .hd>span', '#kv .lk2',
+    '#rule .a1', '#rule .a2', '#rule .a3', '.dbn .rc', '#hk1', '#hk2', '#hcw', '#rgn', '#tk .mbg'], {autoAlpha: 0});
+  gsap.set(['#smn', '#rule'], {width: 0, overflow: 'hidden'});
 
   /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
      la consigne, la légende ne la répète pas. Le passage d’attente est coupé (rien ne s’y anime). */
   PICKS.forEach(p => cut(p.at - 1.35, 1.25));
 
-  /* ===== 1 · Deux demandes ===== */
+  /* ===== 1 · Après l’atelier ===== */
   sceneOn('#sa', 5.0);
   show('#bc', A.r1, {y: 60}, 0.55); cue(A.r1, 'whoosh', 0.5);
   TB.forEach(([k], q) => { const t = A.r1 + 0.3 + q * 0.15; show('#bw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q % 5); });
@@ -722,236 +810,279 @@ function build(){
   on('#bw-in .hl', A.r2 + 0.3, 0.2); cue(A.r2 + 0.3, 'tick', 0.5, 1);
   on('#bw-cl .hl', A.r2 + 0.9, 0.2); cue(A.r2 + 0.9, 'tick', 0.5, 3);
   off(['#bw-in .hl', '#bw-cl .hl'], A.r2 + 2.2, 0.3);
-  // deux autres demandes arrivent : le paquet « 2 demandes à traiter » (un SMS, puis un mail)
-  show('#dem', A.c2 + 0.3, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.c2 + 0.3, 'pop', 0.7, 1);
-  // l’une concerne un compte (la table clients), l’autre une table à créer : sa ligne s’ajoute à la carte de la base
-  on('#bw-cl .hl', A.c3 + 0.5, 0.25); cue(A.c3 + 0.5, 'tick', 0.5, 1);
-  off('#bw-cl .hl', A.c3 + 1.5, 0.25);
-  tl.to('#bw-av', {height: 64, paddingTop: 12, paddingBottom: 12, duration: 0.5, ease: 'power2.out'}, A.c3 + 1.9);
-  cue(A.c3 + 1.9, 'pop', 0.7, 3);
-  on('#bw-av .hl', A.c3 + 2.5, 0.25); cue(A.c3 + 2.5, 'tick', 0.5, 3);
-  off('#bw-av .hl', B.c3 - 0.5, 0.3);
-  // le SMS du service client : Inès Lefebvre ne reviendra plus aux ateliers
-  capOff(MAIL1 - 0.2);   // avec la légende : jamais de carte vide
-  hide(['#bc', '#dem'], MAIL1, {y: -30}, 0.35);
-  sceneOff('#sa', MAIL1 + 0.4);
-  sceneOn('#sm', MAIL1 + 0.4);
+  // Inès Lefebvre vient de participer à un atelier : son ticket
+  hide('#bc', B.r2 - 0.1, {y: -30}, 0.35);
+  sceneOff('#sa', B.r2 + 0.3);
+  sceneOn('#sf', B.r2 + 0.3);
+  show('#tk', A.a1 + 0.2, {y: 50, scale: 0.96}, 0.55, 'back.out(1.5)'); cue(A.a1 + 0.2, 'whoosh', 0.5);
+  show('#tk .mav', A.a1 + 0.5, {y: 0, scale: 0.5}, 0.4, 'back.out(2.4)'); cue(A.a1 + 0.5, 'pop', 0.7, 1);
+  show('#tk .tkb', A.a1 + 1.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2.4)'); cue(A.a1 + 1.6, 'pop', 0.7, 3);
+  // elle a pu goûter plusieurs de nos produits : les trois produits
+  ['#pt-pr', '#pt-ti', '#pt-om'].forEach((s, q) => { const t = A.a2 + 0.3 + q * 0.5; show(s, t, {y: 50, scale: 0.9}, 0.5, 'back.out(1.6)'); cue(t, 'pop', 0.7, q * 2); });
+  // elle souhaite maintenant partager son expérience : la bulle de message près de son avatar
+  show('#tk .mbg', A.a3 + 0.4, {y: 0, scale: 0, rotation: -30}, 0.4, 'back.out(3)'); cue(A.a3 + 0.4, 'pop', 0.8, 4);
+  bump('#tk', A.a3 + 0.9, 1.02);
+  // elle remplit une feuille d’avis : la feuille arrive, le ticket et les produits s’en vont
+  hide(['#tk', '.pt'], B.a3 - 0.1, {y: -30}, 0.35);
+  sceneOff('#sf', B.a3 + 0.3);
+  sceneOn('#sh', B.a3 + 0.3);
+  show('#fe', A.a4 + 0.2, {y: 60}, 0.6); cue(A.a4 + 0.2, 'whoosh', 0.5);
+  // cinq étoiles pour la Protéine Végétale : le produit ressort, les étoiles se remplissent une à une
+  bump('#fp', A.a5 + 0.2, 1.08); cue(A.a5 + 0.2, 'tick', 0.5, 2);
+  $$('#fst svg').forEach((s, q) => {
+    const t = A.a5 + 1.0 + q * 0.4;
+    tl.to(s.querySelector('path'), {fill: '#F5B301', duration: 0.2}, t);
+    tl.to(s, {scale: 1.3, duration: 0.16, yoyo: true, repeat: 1, ease: 'power2.out'}, t);
+    cue(t, 'pop', 0.6, q);
+  });
+  // puis elle écrit son commentaire, et signe
+  const tc = typeChars(FCH, A.a6 + 0.5, 36);
+  tl.fromTo('#fsig', {autoAlpha: 0, x: -24}, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power2.out', immediateRender: false}, tc + 0.15);
+  cue(tc + 0.15, 'tick', 0.5, 3);
+
+  /* ===== 2 · De la feuille à la base ===== */
+  // on récupère la feuille : le tampon « Reçue »
+  stampIn('#stp', A.b1 + 0.5, 7);
+  // son avis doit s’afficher à chaque visite sur le site : la feuille, une case vide, le site
+  const aw = $$('#flow .arw');
+  show('#fn-fe', A.b2 + 0.2, {y: 30, scale: 0.92}, 0.45, 'back.out(1.6)'); cue(A.b2 + 0.2, 'pop', 0.7, 1);
+  show(aw[0], A.b2 + 0.7, {y: 0, x: -20}, 0.4);
+  show('#fmid', A.b2 + 0.9, {y: 30, scale: 0.92}, 0.45, 'back.out(1.6)'); cue(A.b2 + 0.9, 'pop', 0.7, 2);
+  show(aw[1], A.b2 + 1.5, {y: 0, x: -20}, 0.4);
+  show('#fn-web', A.b2 + 1.7, {y: 30, scale: 0.92}, 0.45, 'back.out(1.6)'); cue(A.b2 + 1.7, 'pop', 0.7, 3);
+  bump('#fn-web', A.b2 + 2.6, 1.06); cue(A.b2 + 2.6, 'tick', 0.5, 2);
+  // il faut donc l’enregistrer dans la base de données : la case vide devient la base
+  swap('#fmid .a0', '#fmid .a1', A.b3 + 0.9);
+  bump('#fmid', A.b3 + 1.6, 1.06); cue(A.b3 + 1.6, 'tick', 0.5, 3);
+  // on ajoute une table avis : elle prend la place du trajet
+  hide(['#fn-fe', '#fmid', '#fn-web', aw[0], aw[1]], A.b4 + 0.1, {y: -20}, 0.3);
+  show('#tav', A.b4 + 0.5, {y: 50}, 0.55); cue(A.b4 + 0.5, 'whoosh', 0.5);
+  bump('#tn0', A.b4 + 1.3, 1.1); cue(A.b4 + 1.3, 'pop', 0.7, 3);
+  // elle a cinq colonnes : une à une, puis la première ligne
+  $$('#tav .hd>span').forEach((s, q) => {
+    const t = A.b5 + 1.0 + q * 0.6;
+    tl.fromTo(s, {autoAlpha: 0, scale: 0.6}, {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)', immediateRender: false}, t);
+    cue(t, 'tick', 0.5, q);
+  });
+  on('#rva', A.b5 + 4.3, 0.35); cue(A.b5 + 4.3, 'pop', 0.7, 2);
+  swap('#tn0', '#tn1', A.b5 + 4.6);
+  // les étoiles de la feuille deviennent la note
+  tl.set('#gst', {autoAlpha: 1, x: 0, y: 0, scale: 1}, A.b6 + 0.4);
+  tl.to('#fst', {opacity: 0.3, duration: 0.3}, A.b6 + 0.4);
+  tl.to('#gst', {x: G.stars.dx, y: G.stars.dy, scale: 0.28, duration: 0.95, ease: 'power2.inOut'}, A.b6 + 0.55); cue(A.b6 + 0.55, 'whoosh', 0.5, 1);
+  tl.set('#gst', {autoAlpha: 0}, A.b6 + 1.5);
+  swap('#vnw .a0', '#vnw .a1', A.b6 + 1.5);
+  pulse('#rva .c3', A.b6 + 1.8, 1, GLOW);
+  // le texte de la feuille devient le commentaire
+  tl.set('#gcm', {autoAlpha: 1, x: 0, y: 0, scale: 1}, A.b7 + 0.3);
+  tl.to('#fc', {opacity: 0.3, duration: 0.3}, A.b7 + 0.3);
+  tl.to('#gcm', {x: G.cm.dx, y: G.cm.dy, scale: 0.5, duration: 0.95, ease: 'power2.inOut'}, A.b7 + 0.45); cue(A.b7 + 0.45, 'whoosh', 0.5, 2);
+  tl.set('#gcm', {autoAlpha: 0}, A.b7 + 1.4);
+  swap('#vcp', '#vcm', A.b7 + 1.4);
+  pulse('#rva .c4', A.b7 + 1.8, 1, GLOW);
+
+  // la colonne client_id relie l’avis au compte : l’avis, le compte au-dessus, la flèche, l’identifiant qui descend dans la case
+  hide(['#fe', '#tav'], B.b7 - 0.1, {y: -30}, 0.35);
+  sceneOff('#sh', B.b7 + 0.3);
+  sceneOn('#sk', B.b7 + 0.3);
+  show('#kv', A.b8 + 0.15, {y: 50}, 0.5); cue(A.b8 + 0.15, 'whoosh', 0.45, 1);
+  show('#kc', A.b8 + 0.9, {y: 40}, 0.5); cue(A.b8 + 0.9, 'whoosh', 0.45, 2);
+  show('#kuv', A.b8 + 1.6, {y: 10}, 0.4); cue(A.b8 + 1.6, 'tick', 0.5, 3);
+  on('#rkc .hl', A.b8 + 1.9, 0.25);
+  tl.set('#g9', {autoAlpha: 1, x: 0, y: 0, scale: 0.6}, A.b8 + 2.3);
+  tl.to('#g9', {scale: 1, duration: 0.2, ease: 'back.out(2)'}, A.b8 + 2.3); cue(A.b8 + 2.3, 'pop', 0.7, 2);
+  tl.to('#g9', {x: G.c9.dx, y: G.c9.dy, duration: 0.85, ease: 'power2.inOut'}, A.b8 + 2.6); cue(A.b8 + 2.6, 'whoosh', 0.4, 1);
+  tl.set('#g9', {autoAlpha: 0}, A.b8 + 3.5);
+  swap('#kcw .a0', '#kcw .a1', A.b8 + 3.45);
+  off('#rkc .hl', A.b8 + 4.1, 0.3);
+  // la colonne produit_id le relie à la protéine : le produit au-dessous, la flèche, l’identifiant qui monte dans la case
+  show('#kp', A.b9 + 0.15, {y: 50}, 0.5); cue(A.b9 + 0.15, 'whoosh', 0.45, 1);
+  show('#kdv', A.b9 + 0.85, {y: -10}, 0.4); cue(A.b9 + 0.85, 'tick', 0.5, 3);
+  on('#rkp .hl', A.b9 + 1.2, 0.25);
+  tl.set('#g6', {autoAlpha: 1, x: 0, y: 0, scale: 0.6}, A.b9 + 1.5);
+  tl.to('#g6', {scale: 1, duration: 0.2, ease: 'back.out(2)'}, A.b9 + 1.5); cue(A.b9 + 1.5, 'pop', 0.7, 3);
+  tl.to('#g6', {x: G.c6.dx, y: G.c6.dy, duration: 0.85, ease: 'power2.inOut'}, A.b9 + 1.8); cue(A.b9 + 1.8, 'whoosh', 0.4, 2);
+  tl.set('#g6', {autoAlpha: 0}, A.b9 + 2.7);
+  swap('#kpw .a0', '#kpw .a1', A.b9 + 2.65);
+  off('#rkp .hl', A.b9 + 3.3, 0.3);
+  // ces deux colonnes sont des clés étrangères
+  show('#kpack', A.b10 + 0.4, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.b10 + 0.4, 'pop', 0.7, 1);
+  // À toi : les deux clés étrangères de l’avis (réponse : les deux cases entourées, et le signe des clés étrangères dans leur en-tête)
+  tl.set(M1_ANS, {autoAlpha: 1}, set2(PICKS[0].at));
+  tl.fromTo('#kv .lk2', {autoAlpha: 0, scale: 0.3}, {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(3)', immediateRender: false}, set2(PICKS[0].at) + 0.05);
+  // le site peut maintenant afficher son avis : la fiche produit
+  hide(['#kc', '#kv', '#kp', '#kuv', '#kdv', '#kpack'], B.p1 + 0.05, {y: -30}, 0.35);
+  sceneOff('#sk', B.p1 + 0.45);
+  sceneOn('#ss', B.p1 + 0.45);
+  show('#br', A.b11 + 0.3, {y: 60}, 0.6); cue(A.b11 + 0.3, 'whoosh', 0.5);
+  show('#rev', A.b11 + 1.0, {y: 30, scale: 0.96}, 0.5, 'back.out(1.5)'); cue(A.b11 + 1.0, 'pop', 0.7, 2);
+  pulse('#rev', A.b11 + 1.8, 1, GLOW);
+
+
+  /* ===== 3 · Quelque temps plus tard… ===== */
+  // la carte-titre, puis le mail du service client (la légende s’efface avec la fiche produit : jamais de carte vide)
+  capOff(B.b11 - 0.2);
+  hide('#br', B.b11 - 0.1, {y: -30}, 0.35);
+  sceneOff('#ss', B.b11 + 0.3);
+  sceneOn('#sm', T3 + 0.1);
+  show('#tt', T3 + 0.2, {y: 40, scale: 0.94}, 0.55, 'back.out(1.5)'); cue(T3 + 0.2, 'whoosh', 0.5);
+  tl.to('#tt .emo', {rotation: -14, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, T3 + 0.8); cue(T3 + 0.8, 'mail', 0.5);
+  hide('#tt', T3 + TC - 0.15, {y: -30}, 0.35);
   mailIn(1, MAIL1 + 0.5, OPENS[0].at);
   mailOut(1, MAIL1 + MO[0]);
   sceneOff('#sm', MAIL1 + MO[0] + 0.3);
-  sceneOn('#sc', MAIL1 + MO[0] + 0.3);
-  tl.fromTo('#tcl', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL1 + MO[0] + 0.35);
-  cue(MAIL1 + MO[0] + 0.35, 'whoosh', 0.5);
-  capOn(A.c4 - 0.3);   // juste avant la légende suivante
 
-  /* ===== 2 · Une suppression refusée ===== */
-  // le compte d’Inès Lefebvre est une ligne de la table clients : sa ligne ressort
-  bump('#tcn', A.c4 + 0.6, 1.12); cue(A.c4 + 0.6, 'tick', 0.5, 2);
-  on('#rk9 .hl', A.c4 + 1.4, 0.25); bump('#rk9 .c1', A.c4 + 1.4, 1.12); cue(A.c4 + 1.4, 'tick', 0.5, 3);
-  // on le supprime avec DELETE FROM, comme au chapitre 9 : la requête est tapée
-  show('#e1', A.c5 + 0.1, {y: 40}, 0.5); cue(A.c5 + 0.1, 'whoosh', 0.45, 1);
-  let t = sqType('e1b', A.c5 + 0.8, 28);
-  pulse('#ku1', t + 0.1, 1, GLOW); pulse('#tn1', t + 0.1, 1, GLOW); cue(t + 0.1, 'tick', 0.5, 2);
-  t = sqType('e1c', t + 0.35, 28);
-  pulse('#kw1', t + 0.1, 1, GLOW); pulse('#cw1', t + 0.1, 1, GLOW); cue(t + 0.1, 'tick', 0.5, 4);
-  // pourtant, la requête est refusée : le message d’erreur
-  show('#o-fk', A.c6 + 0.3, {y: 20}, 0.4); cue(A.c6 + 0.3, 'miss', 0.45);
-  shake('#o-fk', A.c6 + 0.8, 9);
-  // la règle FOREIGN KEY interdit de supprimer une ligne encore désignée
-  pulse('#o-fk', A.c7 + 0.8, 1, 'rgba(239,79,85,.25)'); cue(A.c7 + 0.8, 'tick', 0.5, 2);
-  // une seule table fait référence à Inès Lefebvre : les quatre tables qui font référence aux clients, la table inscriptions en rouge
-  REFS.forEach(([k], q) => { const t2 = A.c8 + 0.7 + q * 0.5 + (q === 3 ? 0.5 : 0); show('#rf-' + k, t2, {y: 20, scale: 0.94}, 0.45, 'back.out(1.6)'); cue(t2, q === 3 ? 'miss' : 'pop', 0.6, q); });
-  shake('#rf-in', A.c8 + 3.0, 8);
-  // le client reste dans sa table : la table inscriptions arrive pour le moment « À toi »
-  off('#rk9 .hl', B.c8 - 0.5, 0.3);
-  hide(['#tcl', '#e1', '#o-fk', '#refs'], B.c8 - 0.1, {y: -30}, 0.35);
-  sceneOff('#sc', B.c8 + 0.35);
-  sceneOn('#sb', B.c8 + 0.35);
-  tl.fromTo('#tb', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, B.c8 + 0.4);
-  cue(B.c8 + 0.4, 'whoosh', 0.5);
-  // À toi : l’inscription qui fait référence à Inès Lefebvre (réponse : l’inscription 11, entourée)
-  tl.set(M1_ANS, {autoAlpha: 1}, set2(PICKS[0].at));
-  // tant que cette inscription existe, Inès Lefebvre ne peut pas être supprimée
-  bump('#ri11 .c1', A.c9 + 0.6, 1.1); cue(A.c9 + 0.6, 'tick', 0.5, 3);
+  /* ===== 4 · Le moment de la suppression ===== */
+  const S4 = MAIL1 + MO[0] + 0.35;
+  sceneOn('#sw', MAIL1 + MO[0] + 0.3);
+  show('#wc', S4, {y: 50}, 0.5); cue(S4, 'whoosh', 0.5);
+  show('#wi', S4 + 0.15, {y: 50}, 0.5); cue(S4 + 0.15, 'whoosh', 0.45, 1);
+  show('#lkv', S4 + 0.6, {y: 10}, 0.4); cue(S4 + 0.6, 'tick', 0.5, 3);
+  capOn(A.d1 - 0.3);   // juste avant la légende suivante
+  // le compte d’Inès Lefebvre est relié à son avis par client_id : la ligne du compte, la ligne de l’avis, la case client_id
+  on('#rwc .hl', A.d1 + 0.5, 0.25); cue(A.d1 + 0.5, 'tick', 0.5, 2);
+  on('#rwa .hl', A.d1 + 1.3, 0.25); cue(A.d1 + 1.3, 'tick', 0.5, 3);
+  pulse('#rwa .c1', A.d1 + 2.5, 1, GLOW); cue(A.d1 + 2.5, 'tick', 0.5, 4);
+  off(['#rwc .hl', '#rwa .hl'], A.d1 + 3.7, 0.3);
+  // on clique sur le bouton « Supprimer le compte » : le doigt, le bouton qui s’enfonce
+  show('#bdel', A.d2 + 0.1, {y: 30, scale: 0.94}, 0.5, 'back.out(1.7)'); cue(A.d2 + 0.1, 'pop', 0.7, 1);
+  fingerTap($('#bdel'), A.d2 + 1.5, '#tapw', 0.6, 62);
+  press($('#bdel'), A.d2 + 1.5, '#A92A31', 9);
+  // on supprime Inès Lefebvre de la table clients : sa ligne devient rouge
+  on('#rwc .xx', A.d3 + 0.6, 0.25); cue(A.d3 + 0.6, 'miss', 0.4);
+  // son avis ne peut pas continuer à référencer un compte qui n’existe plus : la flèche se brise, la case client_id clignote
+  off('#lkv', A.d4 + 0.9, 0.25); on('#lkr', A.d4 + 0.9, 0.25); cue(A.d4 + 0.9, 'miss', 0.45);
+  pulse('#rwa .c1', A.d4 + 1.6, 3, 'rgba(239,79,85,.25)');
+  // que doit devenir ce lien ? l’animation s’arrête sur un point d’interrogation
+  show('#qm', A.d5 + 0.3, {y: 0, scale: 0}, 0.45, 'back.out(2.4)'); cue(A.d5 + 0.3, 'pop', 0.8, 5);
+  tl.to('#qm', {rotation: 10, duration: 0.2, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.d5 + 0.9);
 
-  /* ===== 3 · Trois sorts possibles ===== */
-  // le mail du service client ouvre le chapitre : pendant qu’il est affiché, la table inscriptions s’en va
-  off('#ri11 .hl', B.c9 - 0.5, 0.3);
-  capOff(MAIL2 - 0.2);
-  hide('#tb', MAIL2, {y: -30}, 0.35);
-  sceneOff('#sb', MAIL2 + 0.4);
-  sceneOn('#sm', MAIL2 + 0.4);
-  mailIn(2, MAIL2 + 0.5, OPENS[1].at);
-  mailOut(2, MAIL2 + MO[1]);
-  sceneOff('#sm', MAIL2 + MO[1] + 0.3);
-  sceneOn('#sw', MAIL2 + MO[1] + 0.3);
-  capOn(A.n1 - 0.3);
-  // chaque avis est une ligne de la nouvelle table avis : celle de l’avis d’Inès Lefebvre
-  show('#wi', A.n1 + 0.2, {y: 40}, 0.5); cue(A.n1 + 0.2, 'whoosh', 0.45, 1);
-  on('#rw2 .hl', A.n1 + 1.1, 0.25); cue(A.n1 + 1.1, 'tick', 0.5, 2);
-  // il désigne le client qui l’a donné, avec une clé étrangère : le client, la flèche
-  show('#wc', A.n2 + 0.2, {y: 40}, 0.5); cue(A.n2 + 0.2, 'whoosh', 0.45, 2);
-  show('#lkv', A.n2 + 0.9, {y: 10}, 0.4); cue(A.n2 + 0.9, 'tick', 0.5, 3);
-  off('#rw2 .hl', A.n2 + 2.2, 0.3);
-  // ON DELETE choisit ce que deviennent les lignes liées au client supprimé : la règle à choisir, puis la requête
-  on('#wp0', A.c10 + 0.4, 0.3); cue(A.c10 + 0.4, 'tick', 0.5, 3);
-  show('#e3', A.c10 + 1.0, {y: 40}, 0.5); cue(A.c10 + 1.0, 'whoosh', 0.45, 1);
-  t = sqType('e3b', A.c10 + 1.8, 32);
-  t = sqType('e3c', t + 0.2, 32);
-  // CASCADE : le client est supprimé, l’avis aussi, en cascade
-  swap('#wp0', '#wp1', A.c11 + 0.1, false);
-  pulse('#kw3', A.c11 + 0.7, 1, GLOW); pulse('#cw3', A.c11 + 0.7, 1, GLOW); cue(A.c11 + 0.7, 'tick', 0.5, 2);
-  delRow('#rw1', RH, A.c11 + 1.1);
-  bump('#lkv', A.c11 + 1.7, 1.2);
-  delRow('#rw2', RH, A.c11 + 1.9);
-  // SET NULL : le client est supprimé, l’avis reste (la case du client devient NULL après le moment « À toi »)
-  restoreRow('#rw1', RH, A.c12); restoreRow('#rw2', RH, A.c12 + 0.05);
-  swap('#wp1', '#wp2', A.c12 + 0.1, false);
-  // À toi : la case de l’avis qui devient NULL (réponse : la case du client, entourée)
-  tl.set(M2_ANS, {autoAlpha: 1}, set2(PICKS[1].at));
-  // seule la case qui désigne le client devient NULL : le client est supprimé, les autres cases de l’avis ne changent pas
-  delRow('#rw1', RH, A.c13 + 0.4);
-  swap('#wsw .a0', '#wsw .a1', A.c13 + 1.5);
-  off('#hcw', A.c13 + 2.4, 0.3);
-  // RESTRICT : le client revient, la suppression est refusée, rien ne change
-  restoreRow('#rw1', RH, A.c14);
-  swap('#wsw .a1', '#wsw .a0', A.c14 + 0.1, false);
-  swap('#wp2', '#wp3', A.c14 + 0.1, false);
-  pulse('#kw3', A.c14 + 0.8, 1, GLOW); pulse('#cw3', A.c14 + 0.8, 1, GLOW); cue(A.c14 + 0.8, 'tick', 0.5, 2);
-  show('#o-w3', A.c14 + 1.3, {y: 20}, 0.4); cue(A.c14 + 1.3, 'miss', 0.45);
-  shake('#wc', A.c14 + 1.6, 9);
-  // sans règle, c’est déjà ce qui se passe
-  swap('#wp3', '#wp4', A.c15 + 0.2, false);
-  pulse('#o-w3', A.c15 + 0.8, 1, 'rgba(239,79,85,.25)'); cue(A.c15 + 0.8, 'tick', 0.5, 2);
+  /* ===== 5 · Découvrir ON DELETE ===== */
+  // la scène redevient neutre : la ligne n’est plus rouge, la flèche est de nouveau pleine, le point d’interrogation s’en va
+  off('#rwc .xx', A.e1 - 0.05, 0.25); off('#lkr', A.e1 - 0.05, 0.25); on('#lkv', A.e1 - 0.05, 0.25);
+  tl.to('#qm', {autoAlpha: 0, scale: 0, duration: 0.25, ease: 'power2.in'}, A.e1 - 0.05);
+  // la règle ON DELETE se définit sur une clé étrangère : la clé étrangère client_id est écrite, avec un mot à choisir
+  show('#e3', A.e1 + 0.3, {y: 40}, 0.5); cue(A.e1 + 0.3, 'whoosh', 0.45, 1);
+  let t = sqType('e3b', A.e1 + 1.0, 32);
+  t = sqType('e3c', t + 0.25, 32);
+  t = sqType('e3d', t + 0.25, 32);
+  unfold('rule', t + 0.2);
+  // elle précise ce qui se passe lorsque la ligne référencée est supprimée
+  pulse('#od3', A.e2 + 0.5, 1, GLOW); cue(A.e2 + 0.5, 'tick', 0.5, 2);
+  on('#rwc .hl', A.e2 + 2.3, 0.25); cue(A.e2 + 2.3, 'tick', 0.5, 3);
+  off('#rwc .hl', A.e2 + 3.7, 0.2); on('#rwc .xx', A.e2 + 3.7, 0.25); cue(A.e2 + 3.7, 'miss', 0.4);
+  // il existe trois possibilités : le mot change trois fois
+  off('#rwc .xx', A.e3 - 0.05, 0.25);
+  swap('#rule .a0', '#rule .a1', A.e3 + 0.5, false); cue(A.e3 + 0.62, 'tick', 0.5, 1);
+  swap('#rule .a1', '#rule .a2', A.e3 + 1.1, false); cue(A.e3 + 1.22, 'tick', 0.5, 2);
+  swap('#rule .a2', '#rule .a3', A.e3 + 1.7, false); cue(A.e3 + 1.82, 'tick', 0.5, 3);
+  swap('#rule .a3', '#rule .a0', A.e3 + 2.3, false);
+  // RESTRICT : la suppression du compte est bloquée, rien ne change
+  swap('#rule .a0', '#rule .a1', A.e4 + 0.15, false); cue(A.e4 + 0.27, 'tick', 0.5, 1);
+  press($('#bdel'), A.e4 + 1.0, '#A92A31', 9);
+  on('#rwc .xx', A.e4 + 1.3, 0.2);
+  show('#o-rs', A.e4 + 1.7, {y: 20}, 0.4); cue(A.e4 + 1.7, 'miss', 0.45);
+  shake('#wc', A.e4 + 1.9, 9);
+  off('#rwc .xx', A.e4 + 2.9, 0.3);
+  hide('#o-rs', B.e4 - 0.15, {y: 20}, 0.3);
+  // CASCADE : le compte et l’avis sont supprimés ensemble
+  swap('#rule .a1', '#rule .a2', A.e5 + 0.1, false); cue(A.e5 + 0.22, 'tick', 0.5, 2);
+  press($('#bdel'), A.e5 + 0.9, '#A92A31', 9);
+  delRow('#rwc', RH, A.e5 + 1.2);
+  delRow('#rwa', RH, A.e5 + 2.0);
+  show('#o-ca', A.e5 + 3.0, {y: 20}, 0.4); cue(A.e5 + 3.0, 'miss', 0.45);
+  hide('#o-ca', B.e5 - 0.15, {y: 20}, 0.3);
+  // SET NULL : le compte est supprimé, l’avis reste
+  restoreRow('#rwc', RH, A.e6 + 0.05); restoreRow('#rwa', RH, A.e6 + 0.1);
+  swap('#rule .a2', '#rule .a3', A.e6 + 0.15, false); cue(A.e6 + 0.27, 'tick', 0.5, 3);
+  press($('#bdel'), A.e6 + 1.2, '#A92A31', 9);
+  delRow('#rwc', RH, A.e6 + 1.5);
+  show('#o-sn', A.e6 + 2.5, {y: 20}, 0.4); cue(A.e6 + 2.5, 'chord', 0.6);
+  // seule la colonne client_id devient NULL
+  swap('#wsw .a0', '#wsw .a1', A.e7 + 0.4);
+  pulse('#rwa .c1', A.e7 + 1.2, 1, 'rgba(255,224,138,.5)'); cue(A.e7 + 1.2, 'tick', 0.5, 3);
 
-  /* ===== 4 · Écrire la règle ===== */
-  hide(['#wc', '#lkv', '#wi', '#e3', '#o-w3'], B.c15 - 0.1, {y: -30}, 0.35);
-  sceneOff('#sw', B.c15 + 0.35);
-  sceneOn('#se', B.c15 + 0.35);
-  tl.fromTo('#e2', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, B.c15 + 0.4);
-  cue(B.c15 + 0.4, 'whoosh', 0.5);
-  // il reste à écrire la requête qui crée la table avis : CREATE TABLE avis (…, puis la clé étrangère vers les clients
-  t = sqType('e2b', A.c16 + 0.5, 34);
-  pulse('#tn2', t + 0.1, 1, GLOW); cue(t + 0.1, 'tick', 0.5, 2);
-  t = sqType('e2c', t + 0.3, 34);
-  t = sqType('e2d', t + 0.25, 34);
-  t = sqType('e2e', t + 0.25, 34);
-  pulse('#kr2', t + 0.1, 1, GLOW); cue(t + 0.1, 'tick', 0.5, 3);
-  // si le client est supprimé, ses avis doivent rester : le trou attend la règle
-  on('#hole3', A.c18 + 0.5, 0.3); cue(A.c18 + 0.5, 'tick', 0.5, 2);
-  // À toi : la règle du client (réponse : ON DELETE SET NULL, la ligne prend la place du trou)
+  /* ===== 6 · À toi de choisir ===== */
+  // tout revient comme avant la suppression : le compte, son identifiant dans la case de l’avis, le point d’interrogation à la place de la règle
+  const R6 = B.e7 + 0.05;
+  hide('#o-sn', R6, {y: 20}, 0.3);
+  swap('#wsw .a1', '#wsw .a0', R6 + 0.05, false);
+  restoreRow('#rwc', RH, R6 + 0.1);
+  swap('#rule .a3', '#rule .a0', R6 + 0.1, false);
+  pulse('#kc3', A.f1 + 1.2, 1, GLOW); cue(A.f1 + 1.2, 'tick', 0.5, 2);
+  pulse('#od3', A.f1 + 2.1, 1, GLOW); cue(A.f1 + 2.1, 'tick', 0.5, 4);
+  // À toi : la règle (réponse : SET NULL prend la place du point d’interrogation)
+  tl.set(M2_ANS, {autoAlpha: 1, y: 0}, set2(PICKS[1].at));
+  tl.set(M2_HIDE, {autoAlpha: 0}, set2(PICKS[1].at));
+
+  /* ===== 7 · Retour sur le site web ===== */
+  // avec ON DELETE SET NULL, l’avis est conservé : le bouton, le compte disparaît, l’avis reste
+  press($('#bdel'), A.g1 + 0.6, '#A92A31', 9);
+  delRow('#rwc', RH, A.g1 + 0.9);
+  tl.fromTo('#o-sn', {autoAlpha: 0, y: 20}, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'expo.out', immediateRender: false}, A.g1 + 1.9); cue(A.g1 + 1.9, 'chord', 0.6);
+  // À toi : la case de l’avis qui devient NULL (réponse : la case du compte, entourée)
   tl.set(M3_ANS, {autoAlpha: 1}, set2(PICKS[2].at));
-  tl.set(M3_HIDE, {autoAlpha: 0}, set2(PICKS[2].at));
-  // pour détacher les avis, la colonne du client doit accepter NULL
-  pulse('#od1', A.c20 + 0.3, 1, GLOW); cue(A.c20 + 0.3, 'tick', 0.5, 2);
-  pulse('#kc2', A.c20 + 1.5, 1, GLOW); bump('#kc2', A.c20 + 1.5, 1.1); cue(A.c20 + 1.5, 'tick', 0.5, 4);
-  // imagine que tu ajoutes NOT NULL à cette colonne
-  unfold('smn', A.c21 + 0.9);
-  // À toi : la suppression d’un client qui a des avis, avec NOT NULL (réponse : refusée, le message d’erreur)
+  // mais son lien vers le compte est retiré : 9 devient NULL
+  swap('#wsw .a0', '#wsw .a1', A.g2 + 0.5);
+  off('#hcw', A.g2 + 1.5, 0.3);
+  // le produit, la note et le commentaire ne changent pas
+  ['#rwa .c0', '#rwa .c2', '#rwa .c3', '#rwa .c4'].forEach((s, q) => { const t2 = A.g3 + 0.4 + q * 0.7; pulse(s, t2, 1); cue(t2, 'tick', 0.5, q); });
+  // la colonne client_id doit donc autoriser NULL : la requête de la colonne, sans NOT NULL
+  hide(['#bdel', '#wc', '#wi', '#lkv', '#e3', '#o-sn'], B.g3 - 0.1, {y: -30}, 0.35);
+  sceneOff('#sw', B.g3 + 0.35);
+  sceneOn('#se', B.g3 + 0.35);
+  show('#e2', A.g4 + 0.2, {y: 40}, 0.5); cue(A.g4 + 0.2, 'whoosh', 0.45, 1);
+  pulse('#kc2', A.g4 + 1.3, 1, GLOW); cue(A.g4 + 1.3, 'tick', 0.5, 3);
+  // et si tu ajoutes NOT NULL à cette colonne ?
+  unfold('smn', A.g5 + 0.9);
+  pulse('#smn', A.g5 + 1.6, 1, GLOW);
+  // À toi : la suppression du compte avec NOT NULL (réponse : refusée, le message d’erreur)
   tl.set(M4_ANS, {autoAlpha: 1}, set2(PICKS[3].at));
-  shake('#o-nn', A.c22 + 0.3, 9); cue(A.c22 + 0.3, 'miss', 0.45);
-  // NOT NULL s’en va ; un avis n’a aucun sens sans atelier : la règle de l’atelier est CASCADE
-  hide('#o-nn', A.c23, {y: 20}, 0.3);
-  fold('smn', A.c23 + 0.1);
-  t = sqType('e2g', A.c23 + 0.8, 40);
-  t = sqType('e2h', t + 0.15, 40);
-  t = sqType('e2i', t + 0.15, 40);
-  t = sqType('e2j', t + 0.15, 40);
-  t = sqType('e2k', t + 0.15, 40);
-  // la règle se déclare dans CREATE TABLE, à côté de la clé étrangère
-  pulse('#kt2', A.c24 + 0.4, 1, GLOW); cue(A.c24 + 0.4, 'tick', 0.5, 2);
-  pulse('#od1', A.c24 + 1.3, 1, GLOW); pulse('#od2', A.c24 + 1.3, 1, GLOW); cue(A.c24 + 1.3, 'tick', 0.5, 4);
-  // elle ne peut plus être modifiée ensuite : la table est créée
-  show('#o-ct', A.c25 + 1.4, {y: 20}, 0.4); cue(A.c25 + 1.4, 'chord', 0.6);
-  // les sept avis sont ensuite ajoutés, dont celui d’Inès Lefebvre
-  hide(['#e2', '#o-ct'], A.c26, {y: -30}, 0.35);
-  sceneOff('#se', A.c26 + 0.4);
-  sceneOn('#sv', A.c26 + 0.4);
-  tl.fromTo('#tav', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, A.c26 + 0.5);
-  cue(A.c26 + 0.5, 'whoosh', 0.5);
-  AVIS.forEach(([id], q) => { const t2 = A.c26 + 0.9 + q * 0.14; on(`#rv${id}`, t2, 0.25); cue(t2, 'tick', 0.4, q % 5); });
-  on('#rv7 .hl', A.c26 + 2.4, 0.25); bump('#rv7 .c1', A.c26 + 2.4, 1.1); cue(A.c26 + 2.4, 'tick', 0.5, 3);
-
-  /* ===== 5 · Le compte supprimé ===== */
-  // revenons à la demande d’Inès Lefebvre : la table inscriptions, et son inscription
-  off('#rv7 .hl', B.c26 - 0.5, 0.3);
-  hide('#tav', B.c26 - 0.1, {y: -30}, 0.35);
-  sceneOff('#sv', B.c26 + 0.35);
-  sceneOn('#sb', A.c27);
-  tl.fromTo('#tb', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, A.c27 + 0.2);
-  cue(A.c27 + 0.2, 'whoosh', 0.5);
-  on('#ri11 .hl', A.c27 + 1.2, 0.25); cue(A.c27 + 1.2, 'tick', 0.5, 2);
-  // on supprime d’abord son inscription : un DELETE comme au chapitre 9, la ligne se replie, le compteur passe à 7
-  show('#e4', A.c28 + 0.1, {y: 40}, 0.5); cue(A.c28 + 0.1, 'whoosh', 0.45, 1);
-  t = sqType('e4b', A.c28 + 0.7, 30);
-  t = sqType('e4c', t + 0.2, 30);
-  pulse('#kw4', t + 0.1, 1, GLOW); pulse('#cw4', t + 0.1, 1, GLOW); cue(t + 0.1, 'tick', 0.5, 4);
-  delRow('#ri11', RH, A.c28 + 2.3);
-  swap('#bn0', '#bn1', A.c28 + 2.9);
-  show('#o-4', A.c28 + 3.1, {y: 20}, 0.4); cue(A.c28 + 3.1, 'chord', 0.6);
-  // le compte : la table clients et sa requête ; imagine que la règle soit écrite à la fin du DELETE
-  hide(['#tb', '#e4', '#o-4'], B.c28 - 0.1, {y: -30}, 0.35);
-  sceneOff('#sb', B.c28 + 0.35);
-  sceneOn('#sc', B.c28 + 0.35);
-  tl.fromTo('#tcl', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, B.c28 + 0.4);
-  cue(B.c28 + 0.4, 'whoosh', 0.5);
-  on('#rk9 .hl', A.c29 + 0.4, 0.25); cue(A.c29 + 0.4, 'tick', 0.5, 2);
-  show('#e5', A.c29 + 0.6, {y: 40}, 0.5); cue(A.c29 + 0.6, 'whoosh', 0.45, 1);
-  t = sqType('e5b', A.c29 + 1.2, 30);
-  t = sqType('e5c', t + 0.2, 30);
-  unfold('sod', A.c29 + 2.9);
-  pulse('#sod', A.c29 + 3.5, 1, GLOW);
-  // À toi : ce que donne cette requête (réponse : une erreur de syntaxe, le message d’erreur)
+  shake('#o-nn', A.g6 + 0.3, 9); cue(A.g6 + 0.3, 'miss', 0.45);
+  // sur la fiche produit, l’avis est toujours là, avec ses cinq étoiles
+  hide(['#e2', '#o-nn'], B.g6 - 0.1, {y: -30}, 0.35);
+  sceneOff('#se', B.g6 + 0.35);
+  sceneOn('#ss', B.g6 + 0.35);
+  tl.fromTo('#br', {autoAlpha: 0, y: 60}, {autoAlpha: 1, y: 0, duration: 0.6, ease: 'expo.out', immediateRender: false}, A.g7 + 0.2); cue(A.g7 + 0.2, 'whoosh', 0.5);
+  pulse('#rev', A.g7 + 1.4, 1, GLOW); cue(A.g7 + 1.4, 'tick', 0.5, 2);
+  // à la place du prénom, le site écrit « Ancien client »
+  swap('#snm .a0', '#snm .a1', A.g8 + 0.6);
+  swap('#sav .a0', '#sav .a1', A.g8 + 0.6, false);
+  on('#rgn', A.g8 + 1.5, 0.3); cue(A.g8 + 1.5, 'tick', 0.5, 4);
+  off('#rgn', B.g8 - 0.3, 0.3);
+  // SET NULL modifie le lien dans la base de données : la base, sous la fiche
+  show('#sdb', A.g9 + 0.3, {y: 40}, 0.5); cue(A.g9 + 0.3, 'whoosh', 0.45, 1);
+  pulse('#sdb', A.g9 + 1.4, 1, 'rgba(60,52,120,1)');
+  // À toi : qui écrit « Ancien client » (réponse : le site web, le prénom entouré)
   tl.set(M5_ANS, {autoAlpha: 1}, set2(PICKS[4].at));
-  shake('#o-se', A.c30 + 0.3, 9); cue(A.c30 + 0.3, 'miss', 0.45);
-  // le compte se supprime avec un simple DELETE : la règle s’en va, la ligne se replie, le compteur passe à 8
-  hide('#o-se', A.c31, {y: 20}, 0.3);
-  fold('sod', A.c31 + 0.1);
-  off('#rk9 .hl', A.c31 + 0.9, 0.2);
-  delRow('#rk9', RHK, A.c31 + 1.2);
-  swap('#cn0', '#cn1', A.c31 + 1.8);
-  show('#o-5', A.c31 + 2.1, {y: 20}, 0.4); cue(A.c31 + 2.1, 'chord', 0.6);
-  // l’avis d’Inès Lefebvre reste dans la table avis
-  hide(['#tcl', '#e5', '#o-5'], B.c31 - 0.1, {y: -30}, 0.35);
-  sceneOff('#sc', B.c31 + 0.35);
-  sceneOn('#sv', B.c31 + 0.35);
-  tl.fromTo('#tav', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, B.c31 + 0.4);
-  cue(B.c31 + 0.4, 'whoosh', 0.5);
-  on('#rv7 .hl', A.c32 + 0.9, 0.25); cue(A.c32 + 0.9, 'tick', 0.5, 3);
-  // son client vaut maintenant NULL
-  swap('#vsw .a0', '#vsw .a1', A.c33 + 0.8);
-  bump('#rv7 .c1', A.c33 + 1.0, 1.1);
-  // NULL ne désigne aucun client : la clé étrangère n’a rien à vérifier
-  pulse('#rv7 .hl', A.c34 + 0.6, 1, 'rgba(255,224,138,.5)'); cue(A.c34 + 0.6, 'tick', 0.5, 2);
 
-  /* ===== 6 · Quelle règle choisir ? ===== */
-  off('#rv7 .hl', B.c34 - 0.8, 0.3);
-  hide('#tav', B.c34 - 0.1, {y: -40}, 0.4);
-  sceneOff('#sv', B.c34 + 0.4);
-  sceneOn('#sd', A.c35);
-  [['#db-ca', 0], ['#db-sn', 2], ['#db-re', 4]].forEach(([id, p], q) => { const t2 = A.c35 + 0.4 + q * 0.5; show(id, t2, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(t2, 'pop', 0.6, p); });
-  show('#bpack', A.c35 + 2.0, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.c35 + 2.0, 'pop', 0.7, 1);
+  /* ===== 8 · Chaque cas, sa règle ===== */
+  hide(['#br', '#sdb'], B.p5 + 0.05, {y: -30}, 0.35);
+  sceneOff('#ss', B.p5 + 0.45);
+  sceneOn('#sd', A.h1);
+  [['#db-ca', 0], ['#db-sn', 2], ['#db-re', 4]].forEach(([id, p], q) => { const t2 = A.h1 + 0.4 + q * 0.5; show(id, t2, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(t2, 'pop', 0.6, p); });
+  show('#bpack', A.h1 + 2.0, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.h1 + 2.0, 'pop', 0.7, 1);
   // À toi : les six situations rangées dans leur case ; remplies, les cases ne sont plus des zones où déposer
   tl.set('.dbn .rc', {autoAlpha: 1}, set2(PICKS[5].at));
   tl.set('.dbn', {borderStyle: 'solid'}, set2(PICKS[5].at));
   // une ligne sans aucun sens seule disparaît avec l’autre : CASCADE
-  bump('#db-ca', A.c36 + 0.6, 1.03); cue(A.c36 + 0.6, 'tick', 0.5, 2);
+  bump('#db-ca', A.h2 + 0.6, 1.03); cue(A.h2 + 0.6, 'tick', 0.5, 2);
   // une ligne qui garde sa valeur est détachée : SET NULL
-  bump('#db-sn', A.c37 + 0.6, 1.03); cue(A.c37 + 0.6, 'tick', 0.5, 3);
+  bump('#db-sn', A.h3 + 0.6, 1.03); cue(A.h3 + 0.6, 'tick', 0.5, 3);
   // une ligne à traiter à la main bloque la suppression : RESTRICT
-  bump('#db-re', A.c38 + 0.6, 1.03); cue(A.c38 + 0.6, 'tick', 0.5, 4);
+  bump('#db-re', A.h4 + 0.6, 1.03); cue(A.h4 + 0.6, 'tick', 0.5, 4);
   // CASCADE supprime sans demander de confirmation
-  bump('#db-ca', A.c39 + 0.6, 1.03); cue(A.c39 + 0.6, 'miss', 0.4);
-  hide(['.dbn', '#bpack'], B.c39 - 0.1, {y: -40}, 0.4);
+  bump('#db-ca', A.h5 + 0.6, 1.03); cue(A.h5 + 0.6, 'miss', 0.4);
+  hide(['.dbn', '#bpack'], B.h5 - 0.1, {y: -40}, 0.4);
   // la suite : la prochaine leçon
-  sceneOff('#sd', A.c40 + 0.3);
-  sceneOn('#sk', A.c40);
-  show('#keyc', A.c40 + 0.1, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)'); cue(A.c40 + 0.1, 'whoosh', 0.6);
-  tl.to('#keyc .emo', {rotation: -18, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.c40 + 0.7);
-  hide('#keyc', B.c40 - 0.1, {y: -30}, 0.4);
-  sceneOff('#sk', RECAP);
+  sceneOff('#sd', A.h6 + 0.3);
+  sceneOn('#sn', A.h6);
+  show('#keyc', A.h6 + 0.1, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)'); cue(A.h6 + 0.1, 'whoosh', 0.6);
+  tl.to('#keyc .emo', {rotation: -18, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.h6 + 0.7);
+  hide('#keyc', B.h6 - 0.1, {y: -30}, 0.4);
+  sceneOff('#sn', RECAP);
 
-  /* ===== 7 · À retenir ===== */
+  /* ===== 9 · À retenir ===== */
   // chaque idée : sa phrase, puis son détail
   recapScene(RECAP, [RECAP + 0.7, RECAP + 2.1, RECAP + 3.5]);
   const rt = $$('#s7 .rtxt'), rs = $$('#s7 .rs'), rd = (h, n = 20) => Math.ceil(readTime(h) * n) / n;
@@ -986,13 +1117,13 @@ const IX = (() => {
   const soft = (sels, ms = 450) => { const i = X.i; X.tm.push(setTimeout(() => { if (X && X.i === i) marks(sels, 'pvf'); }, ms)); };
   /* La classe est aussi notée dans X.cls : si le moment change avant la fin du minuteur (deux réponses enchaînées), clear() la retire. */
   const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
-  const row = id => { const r = INSCR.find(x => x[0] === id); return Object.assign({k: 'r' + id, label: `Inscription ${/^[AEIOUHÉÈ]/.test(r[2]) ? 'd’' : 'de '}${r[2]} à l’atelier ${r[4]}`}, rel($('#ri' + id))); };
-  const CELLS = [['c0', 'Identifiant de l’avis'], ['c1', 'Client de l’avis'], ['c2', 'Atelier de l’avis'], ['c3', 'Note de l’avis']];
+  /* Les cinq cases d’un avis (moments 1 et 3) */
+  const CELLS = [['c0', 'Identifiant de l’avis'], ['c1', 'Client de l’avis'], ['c2', 'Produit de l’avis'], ['c3', 'Note de l’avis'], ['c4', 'Commentaire de l’avis']];
   function spots(i){
-    // moment 1 : les huit lignes de la table inscriptions
-    if (i === 0) return INSCR.map(r => row(r[0]));
-    // moment 2 : les quatre cases de l’inscription d’Inès Lefebvre
-    if (i === 1) return CELLS.map(([k, label]) => Object.assign({k, label}, rel($(`#rw2 .${k}`))));
+    // moment 1 : les cinq cases de l’avis, dans le schéma
+    if (i === 0) return CELLS.map(([k, label]) => Object.assign({k, label}, rel($(`#rka .${k}`))));
+    // moment 3 : les cinq cases de l’avis, à côté du compte supprimé
+    if (i === 2) return CELLS.map(([k, label]) => Object.assign({k, label}, rel($(`#rwa .${k}`))));
     // moment 6 : les trois règles
     if (i === 5) return BINS.map(([k, n, d]) => Object.assign({k, label: `${n} : ${d}`}, rel($('#db-' + k))));
     return [];
@@ -1000,21 +1131,24 @@ const IX = (() => {
   function act(i, a, b){
     start(i);
     if (i === 0) {
-      if (a === 'r11') {
-        if (!X.got.has(a)) { X.got.add(a); marks(M1_ANS); sfx('tick', 1, 0.6); }
-        return {ok: true, done: true, why: '', at: rel($('#ri11'))};
-      }
-      // une autre ligne : elle rougit un instant, et la correction dit pourquoi
-      flash($('#ri' + a.slice(1)), 'kor', 650);
-      return {ok: false, why: fr(WHY1[a])};
-    }
-    if (i === 1) {
-      if (a === 'c1') {
-        if (!X.got.has(a)) { X.got.add(a); marks(M2_ANS); sfx('tick', 1, 0.6); }
-        return {ok: true, done: true, why: '', at: rel($('#rw2 .c1'))};
+      // les deux clés étrangères : client_id et produit_id
+      if (a === 'c1' || a === 'c2') {
+        if (!X.got.has(a)) {
+          X.got.add(a); marks([a === 'c1' ? '#hk1' : '#hk2']); sfx('tick', X.got.size, 0.6);
+          if (X.got.size === 2) marks(['#kv .lk2']);
+        }
+        return {ok: true, done: X.got.size === 2, why: '', at: rel($(`#rka .${a}`))};
       }
       // une autre case : elle rougit un instant, et la correction dit pourquoi
-      flash($(`#rw2 .${a}`), 'kof', 650);
+      flash($(`#rka .${a}`), 'kof', 650);
+      return {ok: false, why: fr(WHY1[a])};
+    }
+    if (i === 2) {
+      if (a === 'c1') {
+        if (!X.got.has(a)) { X.got.add(a); marks(M3_ANS); sfx('tick', 1, 0.6); }
+        return {ok: true, done: true, why: '', at: rel($('#rwa .c1'))};
+      }
+      flash($(`#rwa .${a}`), 'kof', 650);
       return {ok: false, why: fr(WHY2[a])};
     }
     if (i === 5) {
@@ -1031,15 +1165,16 @@ const IX = (() => {
     }
     return {ok: false};
   }
-  /* Choix d’une réponse (moments 3, 4 et 5) : ce que donnerait le choix. */
+  /* Choix d’une réponse (moments 2, 4 et 5) : ce que donnerait le choix. */
   function pick(i, k){
     clear(); start(i);
     const P = PICKS[i], o = P.options[k], ok = !!o.ok;
-    /* Une mauvaise règle : la ligne qu’elle donne dans la requête, ce qu’elle ferait ; le trou s’efface. */
-    const bad = (w, hole) => { marks([w.alt, w.out]); marks([hole], 'pvh'); };
-    if (i === 2) {
-      if (ok) { marks(M3_ANS); marks(M3_HIDE, 'pvh'); }
-      else bad(W3[k], '#hole3');   // CASCADE : les avis disparaissent avec le client ; RESTRICT : un client qui a des avis ne peut plus être supprimé
+    if (i === 1) {
+      /* La règle choisie prend la place du point d’interrogation ; RESTRICT et CASCADE montrent aussi ce qu’elles feraient. */
+      marks(M2_HIDE, 'pvh');
+      if (k === 0) marks(['#rule .a1', '#o-rs']);                             // RESTRICT : la suppression du compte est bloquée
+      else if (k === 1) marks(['#rule .a2', '#o-ca', '#rwc .xx', '#rwa .xx']);   // CASCADE : le compte et l’avis disparaissent
+      else marks(M2_ANS);                                                    // SET NULL : la bonne règle
       sfx(ok ? 'pop' : 'miss', 2, 0.5);
     }
     if (i === 3) {
@@ -1047,7 +1182,7 @@ const IX = (() => {
       sfx(ok ? 'pop' : 'miss', 2, 0.5);
     }
     if (i === 4) {
-      if (ok) soft(M5_ANS);   // la règle au bout du DELETE : l’erreur de syntaxe, après le verdict
+      if (ok) soft(M5_ANS);   // le prénom entouré, après le verdict
       sfx(ok ? 'pop' : 'miss', 2, 0.5);
     }
     return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));
@@ -1055,11 +1190,11 @@ const IX = (() => {
   /* Indice, après deux erreurs : une piste. */
   function hint(i){
     const h = (() => {
-      if (i === 0) return {text: 'Cherche le nom d’Inès Lefebvre à côté de l’identifiant du client.', keys: ['r11']};
-      if (i === 1) return {text: 'Une seule case désigne le client : cherche son nom à côté de l’identifiant.', keys: ['c1']};
-      if (i === 2) return {text: 'Les avis doivent rester dans la table, mais sans client : la règle doit les détacher, pas les supprimer.'};
+      if (i === 0) return {text: 'Cherche les deux colonnes qui relient l’avis à un compte et à un produit.', keys: ['c1', 'c2']};
+      if (i === 1) return {text: 'L’avis doit rester dans la base, mais sans compte : il faut une règle qui détache l’avis, pas qui bloque ou supprime.'};
+      if (i === 2) return {text: 'Une seule case désigne le compte : cherche la colonne <code>client_id</code>.', keys: ['c1']};
       if (i === 3) return {text: 'Une colonne <code>NOT NULL</code> ne peut jamais recevoir <code>NULL</code>.'};
-      if (i === 4) return {text: 'Un <code>DELETE</code> s’écrit avec <code>FROM</code> et <code>WHERE</code> : <code>ON DELETE</code> n’en fait pas partie.'};
+      if (i === 4) return {text: 'Dans la base de données, il ne reste que <code>NULL</code> : qui choisit alors le texte affiché sur la fiche ?'};
       return null;
     })();
     return h && Object.assign(h, {text: fr(h.text)});
@@ -1075,8 +1210,8 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 210.77, picks: PICKS, opens: OPENS,
-  glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝🔑🔗✉️👆📬🔄🛑🔀📍💬✓✕!…«»·−',
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 237.73, picks: PICKS, opens: OPENS,
+  glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝🔑🔗✉️👆📬🔄🛑🔀📍💬🌱🍵🐟🌐📩🗑️🧭🏷️🌿👤✓✕!…«»·−',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>
 </body>
