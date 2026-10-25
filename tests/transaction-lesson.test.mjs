@@ -266,7 +266,7 @@ test('les messages : Léa Simon écrit elle-même par SMS, sa photo dessous ; le
   /* Léa Simon : ses mots (Elisa, 25 octobre, 17 h 05), une bulle par phrase ; la photo du shaker cassé, qu’un appui agrandit. */
   assert.deepEqual([mails[0][0], mails[0][2], mails[0][3]], [['Léa', 'Simon', 'LS'], 'cliente', 'lea@mail.fr']);
   assert.deepEqual(mails[0][4], ['Je viens de recevoir ma commande, mais mon shaker personnalisé est arrivé cassé… 😕', 'Est-ce que vous pouvez m’en renvoyer un ?']);
-  assert.deepEqual(mails[0][6].photo, {id: 'ph1', src: 'projet-transaction-shaker.webp', alt: 'Le shaker rose de Léa Simon, arrivé cassé'});
+  assert.deepEqual(mails[0][6].photo, {id: 'ph1', src: 'projet-transaction-shaker.webp', alt: 'Le shaker inox rose de Léa Simon, arrivé cassé'});   // la photo d’Elisa (18 h 30) : un shaker en inox, comme le produit 8
   const photo = fs.statSync(path.join(root, 'assets/anim/projet-transaction-shaker.webp')).size;
   assert.ok(photo > 10000 && photo < 80 * 1024, `la photo d’Elisa, légère : ${Math.round(photo / 1024)} Ko`);
   /* Le service client : ses trois phrases, par SMS. */
