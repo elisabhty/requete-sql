@@ -6479,7 +6479,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 /* Le gros ▶ invite à lancer la vidéo tant qu’elle n’a pas démarré. Ensuite il ne fait que répondre à l’appui de mise en pause : il apparaît puis s’efface,
    au lieu de rester posé sur le récapitulatif, un schéma ou le bouton « Ajouter à mes notes » ; le ▶ de la barre du bas reprend la lecture. */
 .lv.is-paused:not(.is-end):not(.has-played) .lv-big,.lv.is-paused:not(.is-end).is-flash .lv-big{opacity:1;pointer-events:auto;transform:none}
-.lv-bottom{flex:none;padding:2px 14px 8px;transition:opacity .2s}
+.lv-bottom{flex:none;padding:2px 14px 14px;transition:opacity .2s}
 .lv-seekrow{display:flex;align-items:center;gap:10px;height:30px;padding:0 4px}
 .lv-time{flex:none;min-width:30px;font:600 12.5px/1 var(--ui);font-variant-numeric:tabular-nums;color:var(--ink-3,#6A6490)}
 .lv-time.lv-dur{text-align:right}
@@ -15028,6 +15028,8 @@ function openLessonVideo(){
   video.addEventListener('loadedmetadata',place);
   if(window.ResizeObserver){ LV.ro=new ResizeObserver(place); LV.ro.observe(root.querySelector('.lv-stage')); }
   else addEventListener('resize',place);
+  /* La barre de Safari qui s’agrandit ou se replie change le bas visible sans forcément changer l’image : tout se replace. */
+  if(window.visualViewport)visualViewport.addEventListener('resize',place);
   video.muted=LV_MUTED;
   lvSyncMute();
   video.playbackRate=LV_RATE; video.defaultPlaybackRate=LV_RATE;
@@ -15957,7 +15959,10 @@ function lvPkBurst(rect){
 function lvPkPlace(){
   const P=LV&&LV.pk; if(!P)return;
   const a=lvPt(0,1496,1), z=lvPt(0,1830,1); if(!a||!z)return;
-  const R=LV.root.getBoundingClientRect(), pb=parseFloat(getComputedStyle(LV.root).paddingBottom)||0, lim=R.height-pb-10;
+  /* Le bas de la carte : LV_PK_BOT px au-dessus du bas du lecteur, ou du bas visible si la barre de Safari en recouvre une partie
+     (visualViewport) ; son liseré et son ombre restent ainsi au-dessus de la barre (Elisa, 25 octobre, 16 h 35 : « ça dépasse en bas »). */
+  const R=LV.root.getBoundingClientRect(), pb=parseFloat(getComputedStyle(LV.root).paddingBottom)||0, vv=window.visualViewport;
+  const lim=Math.min(R.height-pb,vv?vv.offsetTop+vv.height-R.top:R.height)-LV_PK_BOT;
   const card=P.box.querySelector('.lv-pk-card');
   card.style.minHeight=Math.max(0,Math.min(z.y,lim)-a.y).toFixed(1)+'px';
   P.box.style.bottom='auto'; P.box.style.top=Math.max(0,Math.min(a.y,lim-card.offsetHeight)).toFixed(1)+'px';
@@ -15971,7 +15976,7 @@ function lvPkPlace(){
    réponse est donnée mais que la correction n’est pas encore posée, le plateau et l’image passent par des états de passage qu’on ne mesure
    pas. Pendant la question, la réduction ne fait que croître (elle ne bat pas à chaque essai raté) ; une fois la bonne réponse donnée,
    elle se règle sur la correction, qui est plus courte, et l’image peut reprendre de la taille. */
-const LV_PK_GAP=18, LV_PK_MIN=16, LV_PK_ZMIN=.7, LV_PK_WAIT=400;
+const LV_PK_GAP=18, LV_PK_MIN=16, LV_PK_ZMIN=.7, LV_PK_WAIT=400, LV_PK_BOT=22;
 function lvPkFit(P,settled){
   const V=LV&&LV.video, w=V&&V.win; if(!w||typeof w.__contentBottom!=='function')return;
   const wait=()=>{ clearTimeout(P.fitT); P.fitT=setTimeout(()=>{ if(LV&&LV.pk===P)lvPkFit(P,true); },LV_PK_WAIT); };
@@ -16482,6 +16487,7 @@ function closeLessonVideo(instant){
   if(note)clearTimeout(note.timer);
   clearTimeout(tap.timer);
   if(ro)ro.disconnect(); else removeEventListener('resize',place);
+  if(window.visualViewport)visualViewport.removeEventListener('resize',place);
   try{video.pause();}catch(e){}
   lvCardSync(id);
   document.removeEventListener('keydown',lvKey);
@@ -25100,7 +25106,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2040';
+  const SW_CACHE='requete-2026-10-12-ludique-v2041';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
