@@ -270,10 +270,13 @@ const SMS_ICO = {
    hello : la première bulle, quand la page ne veut pas « Bonjour, » (8e élément du message : {sms: true, hello: 'Bonjour !'}). */
 function smsCard(id, k, first, last, ini, body, cmp = false, nth = 0, hello, photo, bye){
   const parts = smsParts(body, hello, bye), name = first + ' ' + last;
-  const list = parts.map((p, j) => `<p class="sms-m${j === parts.length - 1 ? ' last' : ''}">${p}</p>`);
   /* Une photo jointe (photo : {id, src, alt}) : une bulle d’image juste avant « Merci ! » ; un appui l’agrandit
-     (Elisa, 25 octobre, 17 h 05 : « afficher sous son message la photo du shaker rose cassé ; un appui permet d’agrandir la photo »). */
-  if (photo) list.splice(parts.length - 1, 0, `<p class="sms-m sms-ph" id="${photo.id}"><img src="${photo.src}" alt="${photo.alt}"></p>`);
+     (Elisa, 25 octobre, 17 h 05 : « afficher sous son message la photo du shaker rose cassé ; un appui permet d’agrandir la photo »).
+     Un message qui finit sur son propre merci (bye: null) envoie sa photo en dernier : la consigne « Touche la photo » se pose dessous,
+     sur la barre de saisie, sans cacher de phrase ; la dernière bulle de texte perd alors sa queue, comme dans Messages. */
+  const end = photo && bye === null, tail = end ? -1 : parts.length - 1;
+  const list = parts.map((p, j) => `<p class="sms-m${j === tail ? ' last' : ''}">${p}</p>`);
+  if (photo) list.splice(end ? list.length : parts.length - 1, 0, `<p class="sms-m sms-ph" id="${photo.id}"><img src="${photo.src}" alt="${photo.alt}"></p>`);
   const bubbles = list.join('');
   const date = cmp ? '' : `<div class="sms-d">Message texte · SMS<br><b>Aujourd’hui</b> ${smsTime(name, nth)}</div>`;
   const bar = cmp ? '' : `<div class="sms-i"><i class="sms-pl">${SMS_ICO.plus}</i><div class="sms-in">Message texte · SMS${SMS_ICO.mic}</div></div>`;
