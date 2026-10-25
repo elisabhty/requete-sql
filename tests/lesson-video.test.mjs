@@ -1449,7 +1449,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
   assert.ok(page.includes('spots, act, pick, hint,') && page.includes("if (i === 0) return {text: 'L’e-mail du coach est dans la colonne E.'"), 'un indice par moment à toucher ou à glisser');
   const coreJs = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8'), coreCss = fs.readFileSync(path.join(ROOT, 'assets/anim/core.css'), 'utf8');
   assert.ok(coreJs.includes('function stampIn(sel, t, rot = 7){') && coreCss.includes('.stamp.warn{'), 'moteur : tampon d’alerte, pour tous les chapitres');
-  assert.ok(coreJs.includes('opens: opens.map(o => ({t: unwarp(o.at), sel: o.sel, prompt: fr(o.prompt), label: o.label})),') && coreJs.includes('clashes: holdClashes(picks.concat(opens).map(p => p.at)),'),
+  assert.ok(coreJs.includes('opens: opens.map(o => ({t: unwarp(o.at), sel: o.sel, prompt: fr(o.prompt), label: o.label, hand: o.hand || null})),') && coreJs.includes('clashes: holdClashes(picks.concat(opens).map(p => p.at)),'),
     'moteur : mails à ouvrir envoyés au lecteur, sans animation en cours à l’arrêt');
   assert.deepEqual(D.PICKS.map(p => p.at), [...D.PICKS.map(p => p.at)].sort((x, y) => x - y), 'moments dans l’ordre');
   for (const p of D.PICKS.filter(x => x.kind === 'pick')) assert.equal(p.options.filter(o => o.ok).length, 1, `${p.prompt} : une seule bonne réponse`);
@@ -2499,6 +2499,29 @@ test('mail à toucher : le bouton lecture ne l’ouvre pas, et l’image s’arr
   for (const part of ['.lv-op-spot.is-nudge{animation:lvOpPulse', '.lv-op-tip.is-nudge{animation:lvOpWiggle', '@keyframes lvOpWiggle{', 'html[data-motion="reduce"] .lv-op-spot.is-nudge'])
     assert.ok(html.includes(part), `style : ${part}`);
   assert.ok(cut('/* Saut de ±5 s', 'function lvSpeedMenu(open){').includes('if(LV.op)lvOpClose();'), 'sauter par-dessus (barre, ±5 s) ne l’ouvre pas non plus');
+});
+
+test('arrêt « toucher » sur un bouton : un doigt seul qui monte et descend, sans bulle ; le bouton s’enfonce dès l’appui et remonte au relâcher', () => {
+  /* Elisa, 25 octobre, 16 h 21 : « met juste un doigt qui monte et descend (sans texte) » ; 16 h 22 : « et micro interaction quand on appuie sur le bouton ». */
+  const show = cut('function lvOpShow(i,o){', 'function lvOpPlace(){');
+  for (const part of ["if(o.hand)layer.classList.add('is-hand');", '<span class="lv-op-finger" aria-hidden="true">👆</span>', '<p class="lv-op-tip" aria-hidden="true">',
+    "b.addEventListener('pointerdown',()=>{ layer.dataset.up=''; down(true); });", "b.addEventListener('pointercancel',()=>down(false));",
+    "if(!layer.dataset.up&&layer.classList.contains('is-down'))down(false);", "w.__opPress(i,'release');", "w.__opPress(i,on);"])
+    assert.ok(show.includes(part), `lecteur : ${part}`);
+  assert.ok(show.indexOf("w.__opPress(i,'release');") < show.indexOf('lvOpClose(); lvPlay();'), 'le bouton remonte, puis la lecture reprend');
+  const place = cut('function lvOpPlace(){', '/* Lecture demandée');
+  assert.ok(place.includes('if(tip)Object.assign(tip.style,') && place.includes("if(fin)Object.assign(fin.style,{left:(a.x+(c.x-a.x)*P.o.hand.x).toFixed(1)+'px',top:(a.y+(c.y-a.y)*P.o.hand.y).toFixed(1)+'px',fontSize:(96*k).toFixed(1)+'px'});"),
+    'la bulle sous l’élément, ou le doigt posé dessus, à la taille de l’image');
+  assert.ok(cut('function lvOpNudge(){', 'function lvOpClose(){').includes("P.layer.querySelector('.lv-op-tip,.lv-op-finger')"), 'la bulle ou le doigt remue');
+  assert.ok(cut('function lvOpClose(){', '/* ---------- Moments « À toi » joués sur l’image').includes("if(!P.hit&&P.layer.classList.contains('is-down')){ try{ LV.video.win.__opPress(P.i,false); }catch(e){} }"),
+    'fermé sans appui (saut, barre) : l’élément enfoncé remonte');
+  for (const part of ['.lv-op-finger{position:absolute;', '.lv-op.on .lv-op-finger{opacity:1;animation:lvOpTap', '@keyframes lvOpTap{', '.lv-op.is-down .lv-op-spot{animation:none;',
+    '.lv-op.is-down .lv-op-finger{opacity:0;', '.lv-op.on .lv-op-finger.is-nudge{animation:lvOpTapNudge', 'html[data-motion="reduce"] .lv-op.on .lv-op-finger{animation:none}'])
+    assert.ok(html.includes(part), `style : ${part}`);
+  /* Le moteur : l’état enfoncé et la remontée ne passent pas par la timeline (rien ne reste enfoncé en revenant en arrière). */
+  const core = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
+  assert.ok(core.includes("window.__opPress = (i, state) => {") && core.includes("if (state === 'release') gsap.to(o.sel, Object.assign({duration: 0.34, ease: 'back.out(2.6)', overwrite: 'auto'}, o.rest || {}));")
+    && core.includes('else gsap.set(o.sel, state ? o.press : (o.rest || {}));'), 'moteur : enfoncé au toucher, remonté au relâcher');
 });
 
 test('moments « À toi » : la légende annonce le moment sans répéter la consigne de la carte, l’attente est coupée', () => {

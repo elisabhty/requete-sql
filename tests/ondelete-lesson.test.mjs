@@ -356,6 +356,16 @@ test('le message : un mail du service client relaie la demande d’Inès Lefebvr
   const caps = val('CAPTIONS'), d2 = caps.find(c => c[2] === 'Clique sur le bouton<br>« Supprimer le compte ».');
   assert.ok(d2, 'la légende demande à l’élève de cliquer');
   assert.deepEqual([opens[1].sel, opens[1].prompt, opens[1].label], ['#bdel', 'Touche le bouton.', 'Supprimer le compte d’Inès Lefebvre']);
+  /* Elisa, 25 octobre, 16 h 21 : un doigt seul qui monte et descend, sans texte (la consigne reste dite à VoiceOver), posé sur le coin du bouton pour ne pas
+     cacher la table clients ; 16 h 22 : le bouton s’enfonce dès l’appui, puis rebondit, une onde le traverse, la corbeille remue, un anneau s’en échappe. */
+  assert.deepEqual(opens[1].hand, {x: 0.86, y: 0.78}, 'le bout du doigt sur le coin bas droit du bouton, après la fin du mot « compte »');
+  assert.deepEqual([opens[1].press, opens[1].rest], [{y: 7, boxShadow: '0 2px 0 #A92A31'}, {y: 0, boxShadow: '0 9px 0 #A92A31'}], 'enfoncé au toucher, au repos sinon');
+  assert.ok(!opens[0].hand, 'le mail garde sa bulle « Touche le mail pour l’ouvrir. » : aucune légende ne le dit');
+  for (const t of ["tl.set('#bring', {autoAlpha: 0.9, scale: 1}, BTN + 0.05);", "tl.to('#bring', {autoAlpha: 0, scale: 1.16, duration: 0.6, ease: 'power2.out'}, BTN + 0.051);",
+    "tl.to('#bdel .emo', {rotation: -16, transformOrigin: '50% 85%', duration: 0.07, yoyo: true, repeat: 3, ease: 'sine.inOut'}, BTN + 0.06);",
+    "tl.to('#bdel', {scale: 1.04, duration: 0.14, ease: 'power2.out'}, BTN + 0.1)", '<i class="abs bring" id="bring"></i><div class="abs run bdel" id="bdel">'])
+    assert.ok(page.includes(t), `micro-interaction : ${t}`);
+  assert.ok(!/fromTo\('#bdel'|fromTo\('#bring'/.test(page), 'aucun « fromTo » sur le bouton ni sur l’anneau : en revenant en arrière, rien ne reste enfoncé ni allumé');
   assert.equal(opens[1].at, val('BTN')); assert.ok(opens[1].at > d2[0] + 1 && opens[1].at < d2[1] - 1, 'le bouton est visible, puis l’app s’arrête ; la légende ne reste pas longtemps après le toucher');
   assert.ok(opens[1].at > picks[0].at && opens[1].at < picks[1].at && opens[1].at > opens[0].at, 'après le moment 1 et le mail, avant le moment 2');
   assert.ok(val('NOTES') === 237.73 && val('DURATION') === 244.93, 'un arrêt « toucher » n’allonge pas la vidéo');
