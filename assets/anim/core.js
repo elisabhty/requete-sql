@@ -267,9 +267,13 @@ const SMS_ICO = {
 /* La carte d’un SMS (#ml + id, comme un mail) : la bannière de notification, et la conversation qui s’ouvre à sa place.
    cmp : version compacte (sans date ni barre de saisie), là où la place manque ; nth : rang parmi les SMS du même expéditeur (smsRank) ;
    hello : la première bulle, quand la page ne veut pas « Bonjour, » (8e élément du message : {sms: true, hello: 'Bonjour !'}). */
-function smsCard(id, k, first, last, ini, body, cmp = false, nth = 0, hello){
+function smsCard(id, k, first, last, ini, body, cmp = false, nth = 0, hello, photo){
   const parts = smsParts(body, hello), name = first + ' ' + last;
-  const bubbles = parts.map((p, j) => `<p class="sms-m${j === parts.length - 1 ? ' last' : ''}">${p}</p>`).join('');
+  const list = parts.map((p, j) => `<p class="sms-m${j === parts.length - 1 ? ' last' : ''}">${p}</p>`);
+  /* Une photo jointe (photo : {id, src, alt}) : une bulle d’image juste avant « Merci ! » ; un appui l’agrandit
+     (Elisa, 25 octobre, 17 h 05 : « afficher sous son message la photo du shaker rose cassé ; un appui permet d’agrandir la photo »). */
+  if (photo) list.splice(parts.length - 1, 0, `<p class="sms-m sms-ph" id="${photo.id}"><img src="${photo.src}" alt="${photo.alt}"></p>`);
+  const bubbles = list.join('');
   const date = cmp ? '' : `<div class="sms-d">Message texte · SMS<br><b>Aujourd’hui</b> ${smsTime(name, nth)}</div>`;
   const bar = cmp ? '' : `<div class="sms-i"><i class="sms-pl">${SMS_ICO.plus}</i><div class="sms-in">Message texte · SMS${SMS_ICO.mic}</div></div>`;
   return `<div class="abs ml sms${cmp ? ' cmp' : ''} ${k}" id="ml${id}">` +

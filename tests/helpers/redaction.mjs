@@ -48,7 +48,7 @@ export const CLIENTS = [...INSERT_CLIENTS.matchAll(/\(\d+,'([^']+)','([^']+)'/g)
 /* Les coachs et le développeur ne sont pas des clients : « Karim », « Moussa » seuls sont permis. */
 export const EQUIPE = ['Karim', 'Moussa', 'Salma', 'Julie', 'Diego'];
 export const ATELIERS = ['Récupération', 'Pilates', 'Cuisine saine', 'Méditation', 'Yoga du matin'];
-export const TABLES = ['clients', 'commandes', 'produits', 'fidelite', 'coachs', 'ateliers', 'inscriptions', 'cartes', 'avis', 'inscriptions_excel'];
+export const TABLES = ['clients', 'commandes', 'produits', 'fidelite', 'coachs', 'ateliers', 'inscriptions', 'cartes', 'avis', 'remplacements', 'inscriptions_excel'];
 
 /* ---------- Les listes de mots du moteur (assets/anim/core.js) : les mêmes que celles qui évitent les coupes à l’affichage ---------- */
 const core = lire(path.join(ANIM, 'core.js'));
@@ -592,7 +592,10 @@ export const EXCEPTIONS = [
   {regle: 'relation', page: 'projet-ondelete', contient: 'son lien vers le compte d’Inès Lefebvre est retiré', aConfirmer: '« sa relation avec le compte d’Inès Lefebvre est retirée » ?',
     raison: 'Mots d’Elisa (25 octobre, 12 h 51) : « son lien vers le compte de Nathan est retiré » (légende et correction du moment 2) ; Inès Lefebvre remplace Nathan pour que la base partagée ne soit pas modifiée (13 h 17).'},
   {regle: 'relation', page: 'projet-ondelete', contient: 'modifie le lien dans la base de données', aConfirmer: '« modifie la relation dans la base de données » ?',
-    raison: 'Mots d’Elisa (25 octobre, 12 h 51) : « SET NULL modifie le lien dans la base de données » (légende et correction du moment 5).'}
+    raison: 'Mots d’Elisa (25 octobre, 12 h 51) : « SET NULL modifie le lien dans la base de données » (légende et correction du moment 5).'},
+  /* La trame d’Elisa pour le chapitre 11 (25 octobre, 17 h 05) : la cliente écrit elle-même, avec la photo de son shaker cassé */
+  {regle: 'service-client-relaie', page: 'projet-transaction', contient: 'Je viens de recevoir ma commande',
+    raison: 'Trame d’Elisa (25 octobre, 17 h 05, « Cours 1 — TRANSACTION ») : « La conversation avec Léa s’ouvre et son message s’affiche », sa photo dessous ; le service client écrit ensuite ce qu’il faut faire.'}
 ];
 
 /* ---------- La dette : ce qui reste à reprendre dans les anciens cours ---------- */
@@ -653,7 +656,6 @@ export const DETTE = {
     47: {relation: 1},   // Sous-requête dans SELECT
     55: {relation: 1},   // EXISTS et NOT EXISTS
     74: {identifiant: 2},   // Fonctions de rang
-    62: {client: 22, relation: 1, 'sans-personnification': 1},   // Transactions
     63: {'sans-personnification': 1},   // SAVEPOINT
     70: {client: 1},   // Les triggers
     71: {'sans-personnification': 1},   // Concurrence et isolation

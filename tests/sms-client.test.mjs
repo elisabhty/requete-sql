@@ -133,16 +133,18 @@ test('les chapitres où un SMS arrive : 1 et 2 (un client), 9 (le service client
   assert.deepEqual(['projet-cles.html', 'projet-delete.html', 'projet-normaliser.html'].filter(f => !AVEC_SMS.includes(f)), [], 'les trois chapitres déjà faits');
   assert.ok(!AVEC_SMS.includes('projet-ondelete.html'), 'le chapitre 10 : un seul message, un mail du service client (Elisa, 25 octobre, 12 h 51)');
   const clients = PAGES.filter(f => R.donnees(f).MAILS.some(m => /^client/.test(m[2])));
-  assert.deepEqual(clients, ['projet-cles.html', 'projet-normaliser.html'], 'un client écrit lui-même aux chapitres 1 et 2 seulement : depuis le chapitre 5, le service client centralise les demandes');
+  /* Une exception : au chapitre 11, Léa Simon écrit elle-même, avec la photo de son shaker cassé (trame d’Elisa, 25 octobre, 17 h 05) ; le service client écrit ensuite. */
+  assert.deepEqual(clients, ['projet-cles.html', 'projet-normaliser.html', 'projet-transaction.html'], 'un client écrit lui-même aux chapitres 1 et 2, et au chapitre 11 (la trame d’Elisa) : depuis le chapitre 5, le service client centralise les demandes');
 });
 for (const f of AVEC_SMS) {
   test(`${f} : un SMS est rendu en SMS (smsCard, smsIn), celui d’un coach, de l’équipe ou du service client (sans option) reste un mail`, () => {
     const src = lire(f), M = R.donnees(f).MAILS;
     assert.ok(R.rendEnSms(src), 'smsCard pour un SMS, smsIn dans mailIn');
     assert.ok(/isSms\(tag, MAILS\[n\]\[6\]\) \? smsCard\(n \+ 1, k, /.test(src) && /function mailIn\(n, t, T\)\{\n  if \(isSms\(MAILS\[n - 1\]\[2\], MAILS\[n - 1\]\[6\]\)\) \{ if \(!APP\) fingerTap\(\$\('#ml' \+ n\), T\); return smsIn\(n, t, T/.test(src), 'même câblage dans chaque page');
-    assert.ok(M.some(m => !estSms(m)), 'au moins un mail resté un mail');
-    /* La page garde le code du mail (coach, équipe, service client) : avatar à enveloppe, adresse, signature. */
-    assert.ok(src.includes('<i class="mav">') && src.includes('Nouveau mail'), 'la carte de mail existe toujours');
+    /* Une page qui a aussi un mail (coach, équipe, service client sans option) garde son code : avatar à enveloppe, adresse, signature.
+       Le chapitre 11 n’a que des SMS (Léa Simon, puis le service client) : il n’embarque pas le code du mail. */
+    if (M.some(m => !estSms(m))) assert.ok(src.includes('<i class="mav">') && src.includes('Nouveau mail'), 'la carte de mail existe toujours');
+    else assert.ok(!src.includes('Nouveau mail') && f === 'projet-transaction.html', 'que des SMS : seulement au chapitre 11, sans le code du mail');
     /* L’app s’arrête sur la notification : « Touche le message… » pour un client, « Touche le mail… » sinon. */
     assert.ok(/msg = (?:\/\^client\/\.test\(MAILS\[n\]\[2\]\) \|\| \(MAILS\[n\]\[6\] \|\| \{\}\)\.sms|mailSms\(n\)) \? 'message' : 'mail'/.test(src) && src.includes('prompt: `Touche le ${msg} pour l’ouvrir.`') && src.includes('label: `Ouvrir le ${msg} '), 'consigne et étiquette du toucher');
   });

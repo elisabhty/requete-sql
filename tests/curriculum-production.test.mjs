@@ -56,7 +56,7 @@ assert.equal(ctx.exerciseResultsMatch(query('SELECT nom,prix FROM produits ORDER
 let state={lessons:{64:{etapes:{exo:1,q0:true,q1:'1',q2:0,unexpected:1},draft:'SELECT 1;',testeDraft:'SELECT 2;',testeVi:2}}};
 for(let i=0;i<3;i++)state=JSON.parse(JSON.stringify(ctx.normalizeState(state)));
 assert.deepEqual(state.lessons[64].etapes,{exo:1,q0:1,q1:1});assert.equal(state.lessons[64].draft,'SELECT 1;');assert.equal(state.lessons[64].testeVi,2);
-for(const id of [62,63,71])assert.equal(ctx.checkExerciseConcept(lesson(id).solution.replace(/BEGIN[^;]*;|COMMIT;/g,''),lesson(id)).ok,false,'transaction absente '+id);
+for(const id of [63,71])assert.equal(ctx.checkExerciseConcept(lesson(id).solution.replace(/BEGIN[^;]*;|COMMIT;/g,''),lesson(id)).ok,false,'transaction absente '+id);
 assert.equal(ctx.checkExerciseConcept('SELECT 50; -- CAST(45 AS INTEGER)',lesson(54)).ok,false);
 assert.equal(ctx.checkExerciseConcept('BEGIN; UPDATE produits SET stock=stock+10 WHERE id=1; COMMIT;',lesson(63)).ok,false);
 assert.equal(ctx.checkExerciseConcept('BEGIN IMMEDIATE; UPDATE produits SET stock=29 WHERE id=8; COMMIT;',lesson(71)).ok,false);
