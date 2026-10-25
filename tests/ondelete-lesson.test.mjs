@@ -1,11 +1,14 @@
 /* Projet NutriBoost, chapitre 10 (leçon 68 « ON DELETE ») : la vidéo interactive assets/anim/projet-ondelete.html, testée aussi dans lesson-video.test.mjs.
-   Deux messages du service client (qui centralise les demandes des clients depuis le chapitre 5 : Elisa, 25 octobre, « plus l’accueil mais le service client ») :
-   un SMS dit qu’Inès Lefebvre ne reviendra plus et demande la suppression de son compte (la base la refuse tant qu’une inscription la désigne), un mail demande
-   de créer la table des avis. Les trois règles ON DELETE (CASCADE, SET NULL, RESTRICT) sont montrées sur cette table, dont la colonne du client accepte NULL.
+   Refonte du 25 octobre (Elisa, 12 h 51 : « le cours ON DELETE, je ne comprends rien du tout, je préfère qu’on se base sur tout le cours sur la partie avis ») :
+   une seule histoire, celle d’un avis. Une cliente, Inès Lefebvre, remplit une feuille d’avis après un atelier (12 h 52 : l’équipe enregistre l’avis et sa note dans
+   la base) ; la table avis relie l’avis à son compte (client_id) et à son produit (produit_id) par deux clés étrangères ; quelque temps plus tard, le service client
+   transmet sa demande : supprimer le compte, conserver l’avis sous la mention « Ancien client ». ON DELETE RESTRICT, CASCADE et SET NULL sont montrés sur cette
+   clé étrangère ; SET NULL conserve l’avis, la colonne client_id doit donc accepter NULL ; c’est le site, non la base, qui affiche « Ancien client ».
+   Inès Lefebvre remplace Nathan Petit de la trame d’Elisa : la base partagée ne doit pas être modifiée pour Nathan, dont d’autres chapitres ont besoin (13 h 17).
    Seul cours du module « Contraintes et intégrité » : il remplace l’ancien cours ON DELETE (la table satisfaction, les paniers) et le cours
    « Les contraintes en action » (67, supprimé). Leçon seule : ni cours texte, ni exercice.
-   Ce que la vidéo montre (FOREIGN KEY constraint failed, les trois règles, NOT NULL qui s’y oppose, ON DELETE écrit dans le DELETE, NULL que la clé
-   étrangère ne vérifie pas) est ici rejoué dans SQLite : c’est ce que la base répond vraiment. */
+   Ce que la vidéo montre (FOREIGN KEY constraint failed, les trois règles, NOT NULL qui s’y oppose, NULL que le site remplace par « Ancien client ») est ici rejoué
+   dans SQLite : c’est ce que la base répond vraiment. */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -22,7 +25,7 @@ const modules = vm.runInContext('MODULES', ctx);
 const lessons = modules.flatMap(m => m.lessons);
 const l68 = lessons.find(l => l.id === 68);
 
-/* Les données de la page (le déroulé des légendes, les tables, les six moments), évaluées telles quelles. */
+/* Les données de la page (le déroulé des légendes, le message, les six moments), évaluées telles quelles. */
 const a = page.indexOf('const SCH = '), b = page.indexOf('/* ---------- Gabarits');
 assert.ok(a > 0 && b > a, 'données de la page localisées');
 const D = vm.createContext({APP: true});
@@ -30,6 +33,7 @@ vm.runInContext(page.slice(a, b), D);
 const val = expr => JSON.parse(vm.runInContext(`JSON.stringify(${expr})`, D));
 const strip = h => h.replace(/<br>/g, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/[  ]/g, ' ').replace(/&gt;/g, '>').replace(/\s+/g, ' ').trim();
 const sp = s => s.replace(/[  ]/g, ' ');
+const COMMENT = val('COMMENT');
 
 /* ---------- La base de la vidéo ---------- */
 const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(root, 'vendor/sqljs', f)});
@@ -52,25 +56,35 @@ function base() {
     DELETE FROM clients WHERE id = 10;`);
   return db;
 }
-/* La requête CREATE TABLE telle que la page l’affiche (lignes e2a à e2k), sans le balisage {clé|texte} ; NOT NULL et la règle du client au choix. */
-const lignes = Object.fromEntries([...page.matchAll(/\['e2([a-k])', '((?:[^'\\]|\\.)*)'\]/g)].map(m => [m[1], m[2]]));
-assert.deepEqual(Object.keys(lignes), 'abcdefghijk'.split(''), 'les onze lignes de la requête');
-const creation = ({notNull = false, regle = 'ON DELETE SET NULL'} = {}) => Object.keys(lignes).sort()
-  .map(k => lignes[k].replace(/\{\w+\|([^}]*)\}/g, '$1').replace('<span class="sg" id="smn"> NOT NULL</span>', notNull ? ' NOT NULL' : '').replace('ON DELETE SET NULL', regle)).join('\n');
-/* La base avec la table avis, créée puis remplie par les sept avis du papier (dont celui d’Inès Lefebvre). */
+/* La colonne client_id de la table avis, telle que la page l’écrit (lignes e2b à e2d), sans le balisage {clé|texte} ; NOT NULL et la règle au choix. */
+const lignes = Object.fromEntries([...page.matchAll(/\['e2([a-d])', '((?:[^'\\]|\\.)*)'\]/g)].map(m => [m[1], m[2]]));
+assert.deepEqual(Object.keys(lignes), ['a', 'b', 'c', 'd'], 'les quatre lignes du fragment de requête');
+const colonne = ({notNull = false, regle = 'ON DELETE SET NULL'} = {}) => ['b', 'c', 'd'].map(k => lignes[k]
+  .replace(/\{\w+\|([^}]*)\}/g, '$1').replace('<span class="sg" id="smn"> NOT NULL</span>', notNull ? ' NOT NULL' : '').replace('ON DELETE SET NULL', regle)).join('\n');
+/* La table avis : cinq colonnes (id, client_id, produit_id, note, commentaire), comme la page les nomme ; le produit est la seconde clé étrangère. */
+const creation = options => `CREATE TABLE avis (
+  id INTEGER PRIMARY KEY,
+  ${colonne(options)},
+  produit_id INTEGER REFERENCES produits(id),
+  note INTEGER,
+  commentaire TEXT
+);`;
+/* La base avec la table avis et sa seule ligne : l’avis d’Inès Lefebvre (cliente 9) sur la Protéine Végétale (produit 6), cinq étoiles. */
 function avec(options) {
   const db = base();
   db.run(creation(options));
-  db.run(`INSERT INTO avis (id, client_id, atelier_id, note) VALUES ${val('AVIS').map(r => `(${r[0]}, ${r[1]}, ${r[3]}, ${r[5]})`).join(', ')};`);
+  db.run('INSERT INTO avis (id, client_id, produit_id, note, commentaire) VALUES (1, 9, 6, 5, ?)', [COMMENT]);
   return db;
 }
 const HUIT = ['ateliers', 'cartes', 'clients', 'coachs', 'commandes', 'fidelite', 'inscriptions', 'produits'];   // par ordre alphabétique
 const tables = db => db.exec("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name")[0].values.map(r => r[0]);
 const count = (db, t) => db.exec(`SELECT COUNT(*) FROM ${t}`)[0].values[0][0];
-const avis = db => db.exec('SELECT id, client_id, atelier_id, note FROM avis ORDER BY id')[0].values;
-/* Le compte d’Inès Lefebvre : d’abord son inscription (chapitre 5 de la vidéo), puis la ligne de la table clients. */
+const avis = db => (db.exec('SELECT id, client_id, produit_id, note, commentaire FROM avis ORDER BY id')[0] || {values: []}).values;
+/* Le compte d’Inès Lefebvre : sa seule inscription (Yoga du matin) est déjà supprimée, hors écran, comme au chapitre 9 ; puis la ligne de la table clients. */
 const supprimerInscription = db => db.run('DELETE FROM inscriptions WHERE client_id = 9;');
 const supprimerCompte = db => db.run('DELETE FROM clients WHERE id = 9;');
+/* Ce que le site lit : l’avis de la fiche produit, avec le prénom de son auteur ou, à défaut, « Ancien client ». */
+const FICHE = "SELECT COALESCE(c.prenom, 'Ancien client'), a.note, a.commentaire FROM avis a LEFT JOIN clients c ON c.id = a.client_id WHERE a.produit_id = 6";
 
 test('ON DELETE : seul cours du module « Contraintes et intégrité », juste après DELETE et juste avant Transactions ; la leçon 67 n’existe plus', () => {
   const m = modules.find(x => x.titre === 'Contraintes et intégrité');
@@ -87,27 +101,36 @@ test('ON DELETE : seul cours du module « Contraintes et intégrité », juste a
   assert.equal(vm.runInContext('QCM', ctx)[67], undefined);
 });
 
-test('recherche, et leçon seule sans texte de secours ni exercice', () => {
+test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () => {
   const mots = html.match(/\n  68:'([^']+)',/)[1];
-  assert.ok(['on delete', 'cascade', 'set null', 'restrict', 'cle etrangere', 'foreign key', 'constraint failed', 'not null', 'avis', 'create table', 'syntax error', 'supprimer lignes liees'].every(m => mots.includes(m)),
-    'trouvé par la recherche : ON DELETE, les trois règles, la clé étrangère, NOT NULL, la table avis…');
+  assert.ok(['on delete', 'cascade', 'set null', 'restrict', 'cle etrangere', 'foreign key', 'constraint failed', 'not null', 'avis', 'ancien client', 'create table', 'supprimer lignes liees'].every(m => mots.includes(m)),
+    'trouvé par la recherche : ON DELETE, les trois règles, la clé étrangère, NOT NULL, la table avis, « Ancien client »…');
   assert.ok(l68.leconSeule && l68.video && !l68.situation && !l68.consigne && !l68.solution && !l68.petitDefi && !l68.learningCheck && !l68.testeVariants && !l68.anatomie, 'la vidéo est le cours');
   assert.equal(l68.video.moments, 6); assert.equal(l68.video.seuil, 4);
   assert.equal(l68.video.anim, 'assets/anim/projet-ondelete.html?app&embed');
   const recap = l68.studio.reflex.extra;
-  assert.ok(recap.includes('Les trois idées à retenir') && ['🛑', '🔀', '📍'].every(e => recap.includes(e)), 'les trois idées à retenir, comme à la fin de la vidéo');
+  assert.ok(recap.includes('Les trois idées à retenir') && ['🔀', '🧭', '🏷️'].every(e => recap.includes(e)), 'les trois idées à retenir, comme à la fin de la vidéo');
+  /* Le quiz de la leçon parle de la même histoire : la règle sur la clé étrangère, SET NULL pour conserver l’avis, NOT NULL qui refuse. */
+  const quiz = vm.runInContext('QCM', ctx)[68];
+  assert.equal(quiz.length, 3);
+  assert.deepEqual([...quiz.map(q => q.b)], [1, 0, 2], 'la bonne réponse change de place d’une question à l’autre');
+  assert.ok(quiz.every(q => q.o.length === 3 && q.e), 'trois réponses et une explication par question');
+  assert.ok(/clé étrangère/.test(quiz[0].o[1]) && /SET NULL/.test(quiz[1].o[0]) && /refusée/.test(quiz[2].o[2]), 'les bonnes réponses : la clé étrangère, SET NULL, la suppression refusée');
+  assert.ok(!/panier|satisfaction/i.test(JSON.stringify(quiz)), 'plus de panier ni de table satisfaction');
 });
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
   /* Le bouton des notes est écrit en clair dans Course(…) : il suit la dernière légende. */
-  assert.equal(val('NOTES'), 210.77);
-  assert.ok(page.includes('notesAt: 210.77,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 217.97);
+  assert.equal(val('NOTES'), 237.73);
+  assert.ok(page.includes('notesAt: 237.73,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 244.93);
   /* Des légendes qui se suivent sans se chevaucher, chaque chapitre commençant 0,4 s après la légende précédente. */
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
-  assert.deepEqual(chaps.map(c => c.label), ['Deux demandes', 'Une suppression refusée', 'Trois sorts possibles', 'Écrire la règle', 'Le compte supprimé', 'Quelle règle choisir ?', 'À retenir']);
+  /* Les sept parties de la trame d’Elisa (25 octobre, 12 h 51), avec l’ouverture commune à tous les chapitres du projet dans la première et le récapitulatif en dernier. */
+  assert.deepEqual(chaps.map(c => c.label), ['Après l’atelier', 'De la feuille à la base', 'Quelque temps plus tard…', 'Le moment de la suppression', 'Découvrir ON DELETE',
+    'À toi de choisir', 'Retour sur le site web', 'Chaque cas, sa règle', 'À retenir']);
   /* Une seule phrase complète par bulle (Elisa, 23 octobre) ; aucune bulle de plus de trois lignes. */
   caps.forEach(([, , t, lines], k) => {
     const txt = strip(t);
@@ -118,7 +141,7 @@ test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajo
     assert.ok(t.split('<br>').length <= 3, `légende ${k + 1} : trois lignes au plus`);
   });
   /* Six moments, dans l’ordre des chapitres ; chacun s’arrête 2,35 s après le début de sa légende « À toi ! ». */
-  assert.deepEqual(picks.map(p => p.kind), ['tap', 'tap', 'pick', 'pick', 'pick', 'sort']);
+  assert.deepEqual(picks.map(p => p.kind), ['tap', 'pick', 'tap', 'pick', 'pick', 'sort']);
   assert.deepEqual(picks.map(p => p.at), ['p1', 'p2', 'p3', 'p4', 'p5', 'p6'].map(k => +(val(`A.${k}`) + 2.35).toFixed(2)));
   assert.ok(picks.every((p, k) => !k || p.at > picks[k - 1].at && p.from < p.at), 'dans l’ordre, chaque reprise commence avant son moment');
   for (const p of picks.filter(p => p.kind === 'pick')) {
@@ -126,17 +149,41 @@ test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajo
     assert.equal(p.options.length, 3, `${p.prompt} : trois réponses`);
     for (const o of p.options.filter(o => !o.ok)) assert.ok(o.why && strip(o.why).length > 30, `${o.label} : une correction qui explique le choix`);
   }
-  assert.deepEqual(picks[2].options.map(o => !!o.ok), [false, true, false], 'ON DELETE SET NULL');
-  assert.deepEqual(picks[3].options.map(o => !!o.ok), [false, false, true], 'la suppression du client est refusée');
-  assert.deepEqual(picks[4].options.map(o => !!o.ok), [true, false, false], 'une erreur de syntaxe');
-  assert.equal(picks[0].need, 1, 'une seule ligne à toucher : l’inscription qui désigne Inès Lefebvre');
-  assert.equal(picks[1].need, 1, 'une seule case à toucher : celle du client');
+  assert.deepEqual(picks[1].options.map(o => !!o.ok), [false, false, true], 'la règle qui conserve l’avis : SET NULL');
+  assert.deepEqual(picks[3].options.map(o => !!o.ok), [false, false, true], 'avec NOT NULL, la suppression du compte est refusée');
+  assert.deepEqual(picks[4].options.map(o => !!o.ok), [true, false, false], 'c’est le site web qui affiche « Ancien client »');
+  assert.equal(picks[0].need, 2, 'deux cases à toucher : les deux clés étrangères de l’avis');
+  assert.equal(picks[2].need, 1, 'une seule case à toucher : celle qui devient NULL');
   assert.equal(picks[5].options.length, 6, 'six situations à ranger');
   /* Chaque question se suffit : sur un petit écran, le plateau des réponses recouvre le bas de l’image. */
   assert.ok(picks.every(p => !/cette requête|ci-dessus|ci-dessous/.test(p.prompt)), 'aucune question ne renvoie à une requête de l’image');
 });
 
-test('la page montre la base du chapitre 9 : huit tables, neuf clients, huit inscriptions ; la neuvième table, avis, est à créer et reçoit sept avis', () => {
+test('les phrases d’Elisa (25 octobre, 12 h 51) : les sept parties de sa trame, dites avec ses mots', () => {
+  const caps = val('CAPTIONS').map(c => c[2]), picks = val('PICKS');
+  const dit = (...phrases) => phrases.forEach(p => assert.ok(caps.includes(p), `légende : ${p}`));
+  /* 1 · Après l’atelier */
+  dit('Inès Lefebvre vient de participer<br>à un atelier NutriBoost.', 'Elle a pu goûter<br>plusieurs de nos produits.', 'Elle souhaite maintenant<br>partager son expérience.');
+  /* 2 · Du site web à la base de données : une table avis, deux clés étrangères */
+  dit('Son avis doit s’afficher<br>à chaque visite sur le site.', 'Il faut donc l’enregistrer<br>dans la base de données.',
+    'On ajoute une <b>table avis</b> :<br>chaque ligne contient un avis<br>publié sur un produit.', 'Elle a cinq colonnes :<br><code>id</code>, <code>client_id</code>, <code>produit_id</code>,<br><code>note</code> et <code>commentaire</code>.',
+    'La colonne <code>client_id</code><br>relie l’avis au compte<br>d’Inès Lefebvre.', 'La colonne <code>produit_id</code><br>le relie à la protéine<br>qu’elle a goûtée.', 'Ces deux colonnes sont<br>des <b>clés étrangères</b>.');
+  /* 4 · Le moment de la suppression : le bouton, la table clients, le lien qui n’a plus de sens */
+  dit('Le compte d’Inès Lefebvre<br>est relié à son avis<br>par <code>client_id</code>.', 'On clique sur le bouton<br>« Supprimer le compte ».', 'Son avis ne peut pas continuer<br>à référencer un compte<br>qui n’existe plus.', 'Que doit devenir ce lien ?');
+  /* 5 · Découvrir ON DELETE */
+  dit('La règle <code>ON DELETE</code> se définit<br>sur une clé étrangère.', 'Elle précise ce qui se passe<br>lorsque la ligne référencée<br>est supprimée.', 'Il existe trois possibilités.');
+  /* 7 · Retour sur le site web */
+  dit('Avec <code>ON DELETE SET NULL</code>,<br>l’avis est conservé.', 'Mais son lien vers le compte<br>d’Inès Lefebvre est retiré.', 'La colonne <code>client_id</code> doit donc<br>autoriser <code>NULL</code>.', '<code>SET NULL</code> modifie le lien<br>dans la base de données.');
+  /* 6 · À toi de choisir (la question) et 7 (la réponse), mot pour mot, sans le « Exact ! » que le lecteur dit déjà par « Bien vu ! » */
+  assert.equal(picks[1].prompt, 'Quelle règle permet de conserver l’avis d’Inès Lefebvre sans le rattacher à son compte supprimé ?');
+  assert.deepEqual(picks[1].options.map(o => sp(o.label)), ['RESTRICT', 'CASCADE', 'SET NULL']);
+  assert.equal(picks[1].options[2].why, 'Avec <code>ON DELETE SET NULL</code>, l’avis est conservé, mais son lien vers le compte d’Inès Lefebvre est retiré. La colonne <code>client_id</code> doit donc autoriser <code>NULL</code>.');
+  assert.equal(picks[4].options[0].why, '<code>SET NULL</code> modifie le lien dans la base de données. C’est ensuite le site web qui affiche « Ancien client » lorsqu’aucun compte n’est associé à l’avis.');
+  assert.ok(picks.every(p => !(p.options || []).some(o => /^Exact/.test(o.why || ''))), 'le lecteur affiche déjà « Bien vu ! » : pas de « Exact ! » en plus');
+  assert.ok(page.includes('Un client part,<br>mais son avis doit rester&nbsp;:<br>à toi de décider !'), 'la bulle de la mascotte');
+});
+
+test('la base du chapitre 9 : huit tables, neuf clients, huit inscriptions ; Inès Lefebvre y est la cliente 9, sans commande, sans carte ni points de fidélité', () => {
   const db = base(), TB = val('TB');
   assert.deepEqual(tables(db), HUIT, 'huit tables avant la création de la table avis');
   assert.deepEqual(TB.map(t => t[3]), ['clients', 'commandes', 'fidelite', 'produits', 'coachs', 'ateliers', 'inscriptions', 'cartes'], 'la boutique d’abord, puis les tables des ateliers dans l’ordre du chapitre 5');
@@ -144,144 +191,125 @@ test('la page montre la base du chapitre 9 : huit tables, neuf clients, huit ins
   for (const [, , , name, n] of TB) assert.equal(count(db, name), n, `${name} : ${n} lignes`);
   assert.deepEqual(TB.map(t => t[3]).sort(), tables(db), 'aucune table de la base n’est oubliée à l’écran');
   assert.equal(count(db, 'clients'), 9); assert.equal(count(db, 'inscriptions'), 8);
-  assert.deepEqual(val('INSCR'), db.exec("SELECT i.id, i.client_id, c.prenom || ' ' || c.nom, i.atelier_id, a.titre, i.date_inscription FROM inscriptions i JOIN clients c ON c.id = i.client_id JOIN ateliers a ON a.id = i.atelier_id ORDER BY i.id")[0].values, 'la table inscriptions de la page est celle de la base');
-  assert.deepEqual(val('CLI'), db.exec('SELECT id, prenom, nom, ville FROM clients ORDER BY id')[0].values, 'la table clients de la page est celle de la base');
-  assert.ok(page.includes('<span>8 tables</span>') && page.includes('2 demandes à traiter'), '8 tables, 2 demandes');
-  /* Les sept avis : chacun désigne un client et un atelier qui existent, avec le bon nom et le bon titre. */
-  const AVIS = val('AVIS');
-  assert.equal(AVIS.length, 7, 'sept avis sur papier');
-  const d = avec();
-  assert.deepEqual(tables(d), [...HUIT, 'avis'].sort(), 'neuf tables une fois la table avis créée');
-  assert.deepEqual(AVIS.map(r => [r[0], r[2], r[4]]), d.exec("SELECT v.id, c.prenom || ' ' || c.nom, a.titre FROM avis v JOIN clients c ON c.id = v.client_id JOIN ateliers a ON a.id = v.atelier_id ORDER BY v.id")[0].values, 'le nom et l’atelier de chaque avis');
-  assert.deepEqual(AVIS.map(r => r[5]), [5, 4, 5, 4, 4, 4, 5]); assert.ok(AVIS.every(r => r[5] >= 1 && r[5] <= 5), 'des notes de 1 à 5');
-  assert.equal(AVIS[6][2], 'Inès Lefebvre', 'le dernier avis est celui d’Inès Lefebvre');
-  assert.ok(page.includes('<span class="n0">8 lignes</span>') || /8 lignes/.test(page), 'la table inscriptions compte 8 lignes');
-  const caps = val('CAPTIONS').map(c => c[2]);
-  assert.equal(caps[3], 'La première concerne un compte,<br>la seconde une nouvelle table.');
+  assert.ok(page.includes('<span>8 tables</span>'), '8 tables');
+  assert.deepEqual(db.exec('SELECT id, prenom, nom, ville FROM clients WHERE id = 9')[0].values, [[9, 'Inès', 'Lefebvre', 'Nantes']], 'la ligne de la table clients que la page montre');
+  assert.equal(val('PRENOM'), 'Inès');
+  /* Elle n’a ni commande, ni points de fidélité, ni carte : seule son inscription (Yoga du matin) la désigne, et la vidéo la suppose supprimée hors écran. */
+  for (const t of ['commandes', 'fidelite', 'cartes']) assert.equal(db.exec(`SELECT COUNT(*) FROM ${t} WHERE client_id = 9`)[0].values[0][0], 0, `${t} : aucune ligne pour Inès Lefebvre`);
+  assert.deepEqual(db.exec('SELECT id, atelier_id FROM inscriptions WHERE client_id = 9')[0].values, [[11, 5]], 'une seule inscription : la 11, à l’atelier Yoga du matin');
+  assert.throws(() => supprimerCompte(db), /FOREIGN KEY constraint failed/, 'tant que cette inscription existe, le compte ne peut pas être supprimé');
 });
 
-test('moment 1 : supprimer le compte d’Inès Lefebvre est refusé (FOREIGN KEY constraint failed) ; une seule table la désigne, la table inscriptions, par l’inscription 11', () => {
-  const db = base(), INSCR = val('INSCR'), WHY1 = val('WHY1');
-  assert.throws(() => db.run('DELETE FROM clients WHERE id = 9;'), /FOREIGN KEY constraint failed/);
-  assert.equal(count(db, 'clients'), 9, 'une suppression refusée ne supprime rien');
-  assert.equal(db.exec("SELECT prenom || ' ' || nom FROM clients WHERE id = 9")[0].values[0][0], 'Inès Lefebvre');
-  /* Les tables qui font référence à la table clients, et ce qu’elles désignent pour Inès Lefebvre. */
-  const refs = db.exec("SELECT DISTINCT m.name FROM sqlite_master m, pragma_foreign_key_list(m.name) f WHERE m.type = 'table' AND f.\"table\" = 'clients' ORDER BY m.name")[0].values.flat();
-  assert.deepEqual(refs, ['cartes', 'commandes', 'fidelite', 'inscriptions']);
-  const REFS = val('REFS');
-  assert.deepEqual(REFS.map(r => r[3]).sort(), refs, 'la page montre ces quatre tables');
-  for (const r of REFS) assert.equal(db.exec(`SELECT COUNT(*) FROM ${r[3]} WHERE client_id = 9`)[0].values[0][0], r[4], `${r[3]} : ${r[4]} ligne(s) désignent Inès Lefebvre`);
-  assert.deepEqual(REFS.filter(r => r[4] > 0).map(r => r[3]), ['inscriptions'], 'une seule table la désigne');
-  assert.deepEqual(db.exec('SELECT id, atelier_id FROM inscriptions WHERE client_id = 9')[0].values, [[11, 5]], 'l’inscription 11, à l’atelier Yoga du matin');
-  assert.deepEqual(Object.keys(WHY1).sort(), ['r1', 'r10', 'r2', 'r3', 'r5', 'r7', 'r8'], 'toutes les lignes sauf la bonne (r11) sont expliquées');
-  for (const r of INSCR.filter(r => r[0] !== 11)) assert.ok(WHY1['r' + r[0]].includes(r[2]), `l’inscription ${r[0]} : la correction nomme ${r[2]}`);
-  assert.ok(/if \(i === 0\) return \{text: '[^']+', keys: \['r11'\]\};/.test(page), 'indice du moment 1 : la ligne d’Inès Lefebvre (r11) ressort');
-  for (const t of ["out('o-fk', 'err', 'Requête refusée', 'FOREIGN KEY constraint failed', 'm')", "['e1c', '{kw1|WHERE} {cw1|id = 9};']"]) assert.ok(page.includes(t), `la page montre : ${t}`);
-  const caps = val('CAPTIONS').map(c => c[2]);
-  assert.ok(caps.includes('Pourtant, la requête est refusée.') && caps.includes('La règle <code>FOREIGN KEY</code> interdit<br>de supprimer une ligne<br>encore désignée.')
-    && caps.includes('Une seule table fait référence<br>à Inès Lefebvre :<br>la <b>table inscriptions</b>.'), 'les légendes disent la même chose');
-  const mail = val('MAILS')[0];
-  assert.ok(mail[4].join(' ').includes('Inès Lefebvre ne reviendra plus aux ateliers.') && mail[4].join(' ').includes('Peux-tu supprimer son compte ?'), 'le SMS du service client sur Inès Lefebvre');
+test('Nathan Petit : la vidéo ne le nomme jamais et le chapitre ne touche pas à sa ligne (Elisa, 25 octobre, 13 h 17 : « je ne veux pas que tu modifies la base pour Nathan »)', () => {
+  const textes = JSON.stringify([val('CAPTIONS'), val('PICKS'), val('MAILS'), val('TB'), val('ITEMS'), val('WHY1'), val('WHY2'), val('PRENOM'), COMMENT]);
+  assert.ok(!/Nathan/.test(textes), 'aucun texte de la vidéo ne parle de Nathan');
+  const db = avec({}), avant = db.exec('SELECT * FROM clients WHERE id = 4')[0].values;
+  assert.deepEqual(db.exec("SELECT prenom, nom FROM clients WHERE id = 4")[0].values, [['Nathan', 'Petit']]);
+  supprimerInscription(db); supprimerCompte(db);
+  assert.deepEqual(db.exec('SELECT * FROM clients WHERE id = 4')[0].values, avant, 'sa ligne n’a pas changé');
+  assert.equal(db.exec('SELECT COUNT(*) FROM inscriptions WHERE client_id = 4')[0].values[0][0], 1, 'son inscription non plus');
+  assert.equal(db.exec('SELECT COUNT(*) FROM commandes WHERE client_id = 4')[0].values[0][0], 2, 'ni ses deux commandes');
+  assert.equal(db.exec('SELECT COUNT(*) FROM cartes WHERE client_id = 4')[0].values[0][0], 1, 'ni sa carte');
 });
 
-test('moments 2 et 3 : CASCADE supprime l’avis avec le client, SET NULL le garde en mettant NULL dans la case du client, RESTRICT refuse la suppression — comme sans règle', () => {
-  const regles = {'ON DELETE CASCADE': 'cascade', 'ON DELETE SET NULL': 'setnull', 'ON DELETE RESTRICT': 'restrict', '': 'sans'};
-  const avant = avec({}).exec('SELECT id, client_id, atelier_id, note FROM avis ORDER BY id')[0].values;
-  assert.deepEqual(avant[6], [7, 9, 5, 5], 'l’avis d’Inès Lefebvre : client 9, atelier 5, note 5');
-  const jouer = regle => { const db = avec({regle}); supprimerInscription(db); try { supprimerCompte(db); } catch (e) { return {refuse: e.message, clients: count(db, 'clients'), avis: avis(db)}; } return {clients: count(db, 'clients'), avis: avis(db)}; };
-  /* CASCADE : l’avis disparaît avec le client, les six autres ne bougent pas. */
-  assert.deepEqual(jouer('ON DELETE CASCADE'), {clients: 8, avis: avant.slice(0, 6)});
-  /* SET NULL : l’avis reste, seule la case du client devient NULL (l’atelier et la note ne changent pas). */
-  assert.deepEqual(jouer('ON DELETE SET NULL'), {clients: 8, avis: [...avant.slice(0, 6), [7, null, 5, 5]]});
-  /* RESTRICT, ou pas de règle : la suppression du client est refusée, et rien ne change. */
+test('de la feuille à la base : l’avis devient une ligne de la table avis (cinq colonnes, deux clés étrangères) ; le client et le produit sont ceux que la page montre', () => {
+  const db = avec({});
+  assert.deepEqual(tables(db), [...HUIT, 'avis'].sort(), 'neuf tables une fois la table avis créée');
+  assert.deepEqual(db.exec(`SELECT name, "notnull", pk FROM pragma_table_info('avis')`)[0].values,
+    [['id', 0, 1], ['client_id', 0, 0], ['produit_id', 0, 0], ['note', 0, 0], ['commentaire', 0, 0]], 'cinq colonnes : id, client_id, produit_id, note, commentaire');
+  assert.deepEqual(db.exec(`SELECT "from", "table", "to" FROM pragma_foreign_key_list('avis') ORDER BY "from"`)[0].values,
+    [['client_id', 'clients', 'id'], ['produit_id', 'produits', 'id']], 'deux clés étrangères : client_id vers clients, produit_id vers produits');
+  assert.deepEqual(avis(db), [[1, 9, 6, 5, COMMENT]], 'une seule ligne : l’avis 1 du client 9 sur le produit 6, cinq étoiles, le commentaire de la feuille');
+  /* Les trois lignes que la page montre, côte à côte : le compte, l’avis, le produit. */
+  assert.deepEqual(db.exec('SELECT id, nom, categorie, prix FROM produits WHERE id = 6')[0].values, [[6, 'Protéine Végétale', 'Nutrition', 34.9]]);
+  for (const t of ["['c1', 'client_id'], ['c2', 'produit_id'], ['c3', 'note'], ['c4', 'commentaire']", "'<i class=\"v\">Protéine Végétale</i>'", "'<i class=\"v\">34.9</i>'", "'<i class=\"v\">Nantes</i>'",
+    "sw('kcw', [['?', 'nul'], ['9']])", "sw('kpw', [['?', 'nul'], ['6']])", "sw('vnw', [['?', 'nul'], ['5']])"]) assert.ok(page.includes(t), `la page montre : ${t}`);
+  assert.ok((page.match(/\$\{COMMENT\}/g) || []).length >= 4, 'le même commentaire sur la feuille, dans la table, dans le schéma et sur le site');
+  assert.ok(COMMENT.startsWith('J’ai découvert cette protéine pendant un atelier NutriBoost.') && COMMENT.endsWith('Je recommande !'), 'le commentaire de la feuille, mot pour mot');
+  /* Moment 1 : les deux clés étrangères sont client_id (c1) et produit_id (c2) ; pourquoi les autres cases ne conviennent pas. */
+  assert.deepEqual(Object.keys(val('WHY1')).sort(), ['c0', 'c3', 'c4'], 'toutes les cases sauf les deux bonnes sont expliquées');
+  assert.ok(/if \(i === 0\) return \{text: '[^']+', keys: \['c1', 'c2'\]\};/.test(page), 'indice du moment 1 : les deux colonnes (c1, c2) ressortent');
+  assert.equal(val('PICKS')[0].prompt, 'Dans l’avis d’Inès Lefebvre, touche les deux clés étrangères.');
+});
+
+test('moment 2 : RESTRICT refuse la suppression du compte, CASCADE supprime l’avis avec lui, SET NULL le garde en mettant NULL dans la case du compte', () => {
+  const avant = avis(avec({}));
+  assert.deepEqual(avant, [[1, 9, 6, 5, COMMENT]]);
+  const jouer = regle => {
+    const db = avec({regle}); supprimerInscription(db);
+    try { supprimerCompte(db); } catch (e) { return {refuse: e.message, clients: count(db, 'clients'), avis: avis(db)}; }
+    return {clients: count(db, 'clients'), avis: avis(db)};
+  };
+  /* CASCADE : le compte et l’avis disparaissent ensemble, sans confirmation. */
+  assert.deepEqual(jouer('ON DELETE CASCADE'), {clients: 8, avis: []});
+  /* SET NULL : le compte est supprimé, l’avis reste ; seule la case client_id devient NULL, le produit, la note et le commentaire ne changent pas. */
+  assert.deepEqual(jouer('ON DELETE SET NULL'), {clients: 8, avis: [[1, null, 6, 5, COMMENT]]});
+  /* RESTRICT, ou pas de règle : la suppression du compte est bloquée, et rien ne change. */
   assert.deepEqual(jouer('ON DELETE RESTRICT'), {refuse: 'FOREIGN KEY constraint failed', clients: 9, avis: avant});
-  assert.deepEqual(jouer(''), {refuse: 'FOREIGN KEY constraint failed', clients: 9, avis: avant}, 'sans règle, c’est déjà ce qui se passe');
+  assert.deepEqual(jouer(''), {refuse: 'FOREIGN KEY constraint failed', clients: 9, avis: avant}, 'sans règle, la suppression est déjà bloquée');
   /* Les trois règles sont lues telles que la base les connaît. */
-  const lire = regle => avec({regle}).exec(`SELECT "from", on_delete FROM pragma_foreign_key_list('avis') ORDER BY "from"`)[0].values;
-  assert.deepEqual(lire('ON DELETE SET NULL'), [['atelier_id', 'CASCADE'], ['client_id', 'SET NULL']]);
-  assert.deepEqual(lire('ON DELETE CASCADE'), [['atelier_id', 'CASCADE'], ['client_id', 'CASCADE']]);
-  assert.deepEqual(lire('ON DELETE RESTRICT'), [['atelier_id', 'CASCADE'], ['client_id', 'RESTRICT']]);
-  assert.deepEqual(lire(''), [['atelier_id', 'CASCADE'], ['client_id', 'NO ACTION']], 'sans règle : NO ACTION, qui refuse aussi');
-  /* Moment 2 : la case qui devient NULL est celle du client ; les autres cases sont expliquées. */
-  const WHY2 = val('WHY2'), picks = val('PICKS');
-  assert.deepEqual(Object.keys(WHY2).sort(), ['c0', 'c2', 'c3'], 'toutes les cases sauf celle du client (c1)');
-  assert.ok(/if \(i === 1\) return \{text: '[^']+', keys: \['c1'\]\};/.test(page), 'indice du moment 2 : la case du client (c1) ressort');
-  assert.ok(picks[1].prompt.includes('<code>SET NULL</code>'), 'le moment 2 porte sur SET NULL');
+  const lire = regle => avec({regle}).exec(`SELECT on_delete FROM pragma_foreign_key_list('avis') WHERE "from" = 'client_id'`)[0].values[0][0];
+  assert.deepEqual(['ON DELETE RESTRICT', 'ON DELETE CASCADE', 'ON DELETE SET NULL', ''].map(lire), ['RESTRICT', 'CASCADE', 'SET NULL', 'NO ACTION']);
+  /* Ce que la page montre : la règle écrite sur la clé étrangère, ses trois valeurs, les trois messages. */
+  for (const t of ["['e3b', '{kc3|client_id} INTEGER']", "['e3c', '  {kr3|REFERENCES clients(id)}']", "'  {od3|ON DELETE} ' + sw('rule', [['?'], ['RESTRICT'], ['CASCADE'], ['SET NULL']], 'rl')",
+    "out('o-rs', 'err', 'Suppression bloquée', 'FOREIGN KEY constraint failed', 'm')", "out('o-ca', 'warn', 'Compte et avis supprimés', 'Sans aucune confirmation.')",
+    "out('o-sn', 'ok', 'Compte supprimé, avis conservé', 'La colonne <code>client_id</code> vaut <code>NULL</code>.')"]) assert.ok(page.includes(t), `la page montre : ${t}`);
   const caps = val('CAPTIONS').map(c => c[2]);
-  for (const c of ['Avec <code>CASCADE</code>, l’avis<br>est supprimé avec le client.', 'Avec <code>SET NULL</code>, l’avis reste,<br>mais ne désigne plus personne.', 'Seule la case qui désigne le client<br>devient <code>NULL</code>.',
-    'Avec <code>RESTRICT</code>, la suppression<br>du client est refusée.', 'Sans règle, c’est déjà<br>ce qui se passe.']) assert.ok(caps.includes(c), `légende : ${c}`);
-  /* Moment 3 : la règle qui conserve les avis. */
-  assert.deepEqual(picks[2].options.map(o => sp(o.label)), ['ON DELETE CASCADE', 'ON DELETE SET NULL', 'ON DELETE RESTRICT']);
-  for (const t of ["out('pvo3-1', 'warn', 'Avis supprimés', 'Ils disparaissent avec le client.')", "out('pvo3-2', 'err', 'Suppression refusée', 'Le client a encore des avis.')"]) assert.ok(page.includes(t), `la page montre : ${t}`);
-  assert.ok(Object.values(regles).length === 4);
+  for (const c of ['Avec <code>RESTRICT</code>, la suppression<br>du compte est bloquée<br>tant que l’avis lui est rattaché.', 'Avec <code>CASCADE</code>, le compte<br>et l’avis sont supprimés ensemble.',
+    'Avec <code>SET NULL</code>, le compte<br>est supprimé mais l’avis reste.', 'Seule la colonne <code>client_id</code><br>devient <code>NULL</code>.']) assert.ok(caps.includes(c), `légende : ${c}`);
+  const picks = val('PICKS');
+  assert.ok(picks[1].options[0].why.includes('<code>RESTRICT</code>') && picks[1].options[1].why.includes('<code>CASCADE</code>'), 'chaque mauvaise réponse est expliquée par sa règle');
 });
 
-test('écrire la règle : la requête CREATE TABLE affichée crée la table avis ; la règle du client est SET NULL, celle de l’atelier CASCADE ; SQLite ne permet plus de la modifier ensuite', () => {
-  const db = base();
-  db.run(creation());
-  assert.deepEqual(db.exec(`SELECT name, "notnull", pk FROM pragma_table_info('avis')`)[0].values, [['id', 0, 1], ['client_id', 0, 0], ['atelier_id', 0, 0], ['note', 0, 0]], 'la colonne du client accepte NULL');
-  assert.deepEqual(db.exec(`SELECT "from", "table", "to", on_delete FROM pragma_foreign_key_list('avis') ORDER BY "from"`)[0].values,
-    [['atelier_id', 'ateliers', 'id', 'CASCADE'], ['client_id', 'clients', 'id', 'SET NULL']]);
-  /* Un avis n’a aucun sens sans son atelier : il disparaît avec lui (CASCADE). */
-  const d = avec();
-  d.run("INSERT INTO ateliers VALUES (6, 'Stretching', '2026-11-07', 1, 12); INSERT INTO avis (client_id, atelier_id, note) VALUES (1, 6, 3);");
-  assert.equal(count(d, 'avis'), 8);
-  d.run('DELETE FROM ateliers WHERE id = 6;');
-  assert.equal(count(d, 'avis'), 7, 'l’avis de l’atelier supprimé disparaît avec lui');
-  /* Les règles se déclarent dans CREATE TABLE : aucune de ces modifications n’existe dans SQLite. */
-  for (const q of ['ALTER TABLE avis DROP CONSTRAINT fk_client;', 'ALTER TABLE avis ADD CONSTRAINT fk FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE;', 'ALTER TABLE avis ALTER COLUMN client_id SET NOT NULL;'])
-    assert.throws(() => d.run(q), /syntax error/, q);
-  assert.deepEqual(d.exec(`SELECT on_delete FROM pragma_foreign_key_list('avis') WHERE "from" = 'client_id'`)[0].values, [['SET NULL']], 'la règle n’a pas changé');
-  for (const t of ["out('o-ct', 'ok', 'Requête exécutée', 'Table avis créée.')", "['e2b', '{kt2|CREATE TABLE} {tn2|avis} (']", "['e2f', '    {od1|ON DELETE SET NULL},']", "['e2i', '    {od2|ON DELETE CASCADE},']"])
-    assert.ok(page.includes(t), `la page montre : ${t}`);
-  const caps = val('CAPTIONS').map(c => c[2]);
-  for (const c of ['Un avis n’a aucun sens sans atelier :<br>avec <code>CASCADE</code>, il disparaît<br>avec son atelier.', 'La règle se déclare<br>dans <code>CREATE TABLE</code>,<br>à côté de la clé étrangère.',
-    'Avec SQLite, elle ne peut plus<br>être modifiée ensuite.', 'Les sept avis sont ensuite ajoutés,<br>dont celui d’Inès Lefebvre.']) assert.ok(caps.includes(c), `légende : ${c}`);
-  const mail = val('MAILS')[1];
-  assert.ok(mail[4].join(' ').includes('Les clients ont déjà donné sept avis sur papier.') && mail[4].join(' ').includes('Peux-tu créer la table des avis ?'), 'le mail du service client NutriBoost');
+test('moment 3 : avec SET NULL, seule la case du compte (client_id) devient NULL ; le produit, la note et le commentaire ne changent pas', () => {
+  const db = avec({}); supprimerInscription(db);
+  const [avant] = avis(db); supprimerCompte(db); const [apres] = avis(db);
+  assert.deepEqual(avant.map((v, k) => v === apres[k]), [true, false, true, true, true], 'une seule case change : la deuxième, client_id (c1)');
+  assert.equal(avant[1], 9); assert.equal(apres[1], null);
+  assert.deepEqual(Object.keys(val('WHY2')).sort(), ['c0', 'c2', 'c3', 'c4'], 'toutes les cases sauf celle du compte (c1) sont expliquées');
+  assert.ok(/if \(i === 2\) return \{text: '[^']+', keys: \['c1'\]\};/.test(page), 'indice du moment 3 : la case du compte (c1) ressort');
+  assert.ok(val('PICKS')[2].prompt.includes('<code>SET NULL</code>'), 'le moment 3 porte sur SET NULL');
+  /* NULL ne désigne aucun compte : la clé étrangère n’a rien à vérifier, et un avis sans compte est accepté. */
+  assert.deepEqual(db.exec('PRAGMA foreign_key_check'), []);
+  db.run('INSERT INTO avis (client_id, produit_id, note, commentaire) VALUES (NULL, 6, 4, ?)', ['Très bonne protéine.']);
+  assert.equal(count(db, 'avis'), 2);
+  assert.ok(page.includes("swap('#wsw .a0', '#wsw .a1', A.g2 + 0.5)") && page.includes("sw('wsw', [['9'], ['NULL', 'nul']])"), 'la page remplace 9 par NULL dans la case du compte');
 });
 
-test('moment 4 : avec NOT NULL sur la colonne du client, SET NULL ne peut plus détacher les avis, et la suppression du client est refusée', () => {
+test('moment 4 : avec NOT NULL sur client_id, SET NULL ne peut plus détacher l’avis, et la suppression du compte est refusée', () => {
   const db = avec({notNull: true});
-  assert.deepEqual(db.exec(`SELECT "notnull" FROM pragma_table_info('avis') WHERE name = 'client_id'`)[0].values, [[1]], 'la colonne du client est obligatoire');
+  assert.deepEqual(db.exec(`SELECT "notnull" FROM pragma_table_info('avis') WHERE name = 'client_id'`)[0].values, [[1]], 'la colonne du compte est obligatoire');
+  assert.deepEqual(db.exec(`SELECT on_delete FROM pragma_foreign_key_list('avis') WHERE "from" = 'client_id'`)[0].values, [['SET NULL']], 'la règle est toujours SET NULL');
   supprimerInscription(db);
   assert.throws(() => supprimerCompte(db), /NOT NULL constraint failed: avis\.client_id/);
-  assert.equal(count(db, 'clients'), 9, 'le client est toujours là');
-  assert.equal(avis(db).length, 7, 'aucun avis n’est supprimé');
-  assert.ok(avis(db).every(r => r[1] !== null), 'aucun avis n’est détaché');
+  assert.equal(count(db, 'clients'), 9, 'le compte est toujours là');
+  assert.deepEqual(avis(db), [[1, 9, 6, 5, COMMENT]], 'l’avis n’est ni supprimé ni détaché');
   const picks = val('PICKS');
-  assert.deepEqual(picks[3].options.map(o => o.label), ['Les avis restent, sans client', 'Les avis sont supprimés avec le client', 'La suppression du client est refusée']);
-  assert.ok(page.includes("e += out('o-nn', 'err', 'Suppression du client refusée', 'NOT NULL constraint failed:<br>avis.client_id', 'm', true);") && page.includes('<span class="sg" id="smn"> NOT NULL</span>'), 'la page montre NOT NULL et le message de la base');
+  assert.deepEqual(picks[3].options.map(o => o.label), ['L’avis reste, sans compte', 'L’avis est supprimé avec le compte', 'La suppression du compte est refusée']);
+  assert.ok(page.includes("out('o-nn', 'err', 'Suppression du compte refusée', 'NOT NULL constraint failed:<br>avis.client_id', 'm', true)") && page.includes('<span class="sg" id="smn"> NOT NULL</span>'), 'la page montre NOT NULL et le message de la base');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.ok(caps.includes('Pour détacher les avis, la colonne<br>du client doit accepter <code>NULL</code>.') && caps.includes('Avec <code>NOT NULL</code>, les avis<br>ne peuvent pas devenir <code>NULL</code> :<br>la suppression est refusée.'), 'les légendes disent la même chose');
-  /* La même colonne dans la table inscriptions est NOT NULL depuis le chapitre 4 : SET NULL n’y serait pas possible non plus (d’où la table avis). */
+  for (const c of ['La colonne <code>client_id</code> doit donc<br>autoriser <code>NULL</code>.', 'Et si tu ajoutes <code>NOT NULL</code><br>à cette colonne ?', 'Avec <code>NOT NULL</code>, la suppression<br>du compte est refusée.']) assert.ok(caps.includes(c), `légende : ${c}`);
+  /* La même colonne dans la table inscriptions est NOT NULL depuis le chapitre 4 : SET NULL n’y serait pas possible non plus. */
   assert.deepEqual(base().exec(`SELECT "notnull" FROM pragma_table_info('inscriptions') WHERE name = 'client_id'`)[0].values, [[1]]);
 });
 
-test('moment 5 : ON DELETE écrit à la fin du DELETE donne une erreur de syntaxe ; le DELETE simple supprime le compte, l’avis d’Inès Lefebvre reste avec un client NULL, que la clé étrangère ne vérifie pas', () => {
-  const db = avec();
-  supprimerInscription(db);   // comme au chapitre 9
-  assert.equal(db.getRowsModified(), 1);
-  assert.throws(() => db.run('DELETE FROM clients WHERE id = 9 ON DELETE SET NULL;'), /near "ON": syntax error/);
-  assert.equal(count(db, 'clients'), 9, 'rien n’est supprimé : ni le compte');
-  assert.equal(count(db, 'avis'), 7, 'ni les avis');
-  assert.deepEqual(avis(db)[6], [7, 9, 5, 5]);
-  supprimerCompte(db);   // le DELETE simple
-  assert.equal(db.getRowsModified(), 1); assert.equal(count(db, 'clients'), 8);
-  assert.deepEqual(avis(db)[6], [7, null, 5, 5], 'l’avis reste, son client vaut NULL');
-  assert.equal(count(db, 'avis'), 7);
-  assert.deepEqual(db.exec('PRAGMA foreign_key_check'), [], 'NULL ne désigne aucun client : la clé étrangère n’a rien à vérifier');
-  db.run('INSERT INTO avis (client_id, atelier_id, note) VALUES (NULL, 1, 3);');   // un avis sans client est accepté
-  assert.equal(count(db, 'avis'), 8);
+test('moment 5 : la base ne garde que NULL ; c’est le site web qui affiche « Ancien client » à la place du prénom', () => {
+  const db = avec({}), site = () => db.exec(FICHE)[0].values;
+  assert.deepEqual(site(), [['Inès', 5, COMMENT]], 'avant : le site affiche le prénom, les cinq étoiles et le commentaire');
+  supprimerInscription(db); supprimerCompte(db);
+  assert.deepEqual(db.exec('SELECT client_id FROM avis')[0].values, [[null]], 'dans la base de données, il ne reste que NULL');
+  assert.deepEqual(site(), [['Ancien client', 5, COMMENT]], 'après : le site affiche « Ancien client », avec les mêmes cinq étoiles et le même commentaire');
   const picks = val('PICKS');
-  assert.deepEqual(picks[4].options.map(o => sp(o.label)), ['Une erreur de syntaxe', 'Le compte est supprimé et ses avis restent', 'Le compte et ses avis sont supprimés']);
-  for (const t of ["out('o-se', 'err', 'Requête refusée', 'near \"ON\": syntax error', 'm')", "out('o-4', 'ok', 'Requête exécutée', '1 ligne supprimée.')", "out('o-5', 'ok', 'Requête exécutée', '1 ligne supprimée.')",
-    "['e4c', '{kw4|WHERE} {cw4|client_id = 9};']", '<span class="sg" id="sod"> ON DELETE SET NULL</span>']) assert.ok(page.includes(t), `la page montre : ${t}`);
+  assert.equal(picks[4].prompt, 'Qui affiche « Ancien client » sur la fiche produit ?');
+  assert.deepEqual(picks[4].options.map(o => sp(o.label)), ['Le site web, sans compte associé', 'La base de données', 'La règle SET NULL']);
+  for (const t of ["sw('snm', [[PRENOM, 'rnm'], ['Ancien client', 'rnm']], 'sn2')", "swap('#snm .a0', '#snm .a1', A.g8 + 0.6)", '<span class="url">nutriboost.fr/produit/6</span>',
+    '<div class="rh">Avis clients<small>1 avis</small></div>', '<span class="emo">🗄️</span>Base de données<i class="sp"></i><code>client_id</code><span>vaut</span><code>NULL</code>'])
+    assert.ok(page.includes(t), `la page montre : ${t}`);
   const caps = val('CAPTIONS').map(c => c[2]);
-  for (const c of ['<code>ON DELETE</code> n’est pas une option<br>du <code>DELETE</code> : la règle ne s’écrit<br>jamais ici.', 'Le compte se supprime<br>avec un simple <code>DELETE</code>.', 'L’avis d’Inès Lefebvre reste<br>dans la <b>table avis</b>.',
-    'Son client vaut maintenant <code>NULL</code> :<br>l’avis ne désigne plus personne.', '<code>NULL</code> ne désigne aucun client :<br>la clé étrangère n’a<br>rien à vérifier.']) assert.ok(caps.includes(c), `légende : ${c}`);
-  /* Dans la vidéo, l’inscription est supprimée avant le compte, comme au chapitre 9. */
-  assert.ok(caps.indexOf('On supprime d’abord son inscription,<br>comme au chapitre 9.') < caps.indexOf('Le compte se supprime<br>avec un simple <code>DELETE</code>.'));
+  for (const c of ['Sur la fiche produit,<br>l’avis est toujours là,<br>avec ses cinq étoiles.', 'À la place du prénom,<br>le site écrit « Ancien client ».']) assert.ok(caps.includes(c), `légende : ${c}`);
+  /* La base laissée au chapitre suivant : un client de moins (Inès Lefebvre), une inscription de moins, un avis sans compte ; Nathan Petit est toujours là. */
+  assert.equal(count(db, 'clients'), 8); assert.equal(count(db, 'inscriptions'), 7); assert.equal(count(db, 'avis'), 1);
+  assert.equal(db.exec("SELECT COUNT(*) FROM clients WHERE prenom = 'Nathan' AND nom = 'Petit'")[0].values[0][0], 1);
 });
 
 test('moment 6 : chaque situation est rangée sous la bonne règle ; SET NULL ne vaut que pour une colonne qui accepte NULL', () => {
@@ -291,9 +319,11 @@ test('moment 6 : chaque situation est rangée sous la bonne règle ; SET NULL ne
   assert.deepEqual(BINS.map(([k]) => ITEMS.filter(x => x[1] === k).length), [2, 2, 2], 'deux situations par règle');
   assert.deepEqual(val('PICKS')[5].options.map(o => o.label), ITEMS.map(x => x[0]), 'les situations à ranger sont celles des correcteurs');
   for (const x of ITEMS) assert.ok(strip(x[2]).length > 40, `${x[0]} : une correction qui explique pourquoi pas les autres règles`);
-  /* La colonne concernée par chaque situation : celle qui désigne le client, l’atelier ou le produit. */
+  /* Le cas de l’avis revient dans la liste : un avis de client se conserve (SET NULL), un avis de produit retiré disparaît (CASCADE). */
+  assert.ok(ITEMS.some(x => /avis d’un client/.test(x[0]) && x[1] === 'sn') && ITEMS.some(x => /avis d’un produit/.test(x[0]) && x[1] === 'ca'));
+  /* La colonne concernée par chaque situation : celle qui désigne le client ou le produit. */
   const db = avec({}), nullable = (t, c) => db.exec(`SELECT "notnull" FROM pragma_table_info('${t}') WHERE name = '${c}'`)[0].values[0][0] === 0;
-  const COLONNES = [['inscriptions', 'client_id'], ['commandes', 'client_id'], ['cartes', 'client_id'], ['avis', 'atelier_id'], ['avis', 'client_id'], ['commandes', 'produit_id']];
+  const COLONNES = [['inscriptions', 'client_id'], ['commandes', 'client_id'], ['cartes', 'client_id'], ['avis', 'produit_id'], ['avis', 'client_id'], ['commandes', 'produit_id']];
   ITEMS.forEach((x, k) => { if (x[1] === 'sn') assert.ok(nullable(...COLONNES[k]), `${x[0]} : SET NULL, donc une colonne qui accepte NULL (${COLONNES[k].join('.')})`); });
   assert.deepEqual(COLONNES.map(c => nullable(...c)), [false, true, false, true, true, false], 'les colonnes obligatoires de la base : inscriptions.client_id, cartes.client_id, commandes.produit_id');
   assert.equal(db.exec('SELECT COUNT(*) FROM commandes WHERE client_id IS NULL')[0].values[0][0], 1, 'une commande sans client existe déjà : commande 16');
@@ -301,38 +331,36 @@ test('moment 6 : chaque situation est rangée sous la bonne règle ; SET NULL ne
   assert.throws(() => db.run('DELETE FROM clients WHERE id = 6;'), /FOREIGN KEY constraint failed/, 'Hugo Laurent a une carte (et des commandes)');
   assert.throws(() => db.run('DELETE FROM produits WHERE id = 1;'), /FOREIGN KEY constraint failed/, 'un produit commandé ne peut pas être retiré');
   const caps = val('CAPTIONS').map(c => c[2]);
-  for (const c of ['La bonne règle dépend du sens<br>de la ligne liée.', '<code>CASCADE</code> convient à une ligne liée<br>qui n’a plus de sens sans l’autre.', '<code>SET NULL</code> convient à une ligne liée<br>qui garde sa valeur sans l’autre.',
+  for (const c of ['Chaque clé étrangère peut avoir<br>sa propre règle.', '<code>CASCADE</code> convient à une ligne liée<br>qui n’a plus de sens sans l’autre.', '<code>SET NULL</code> convient à une ligne liée<br>qui garde sa valeur sans l’autre.',
     '<code>RESTRICT</code> convient à une ligne liée<br>à traiter d’abord à la main.', 'Attention : <code>CASCADE</code> supprime<br>sans demander de confirmation.']) assert.ok(caps.includes(c), `légende : ${c}`);
 });
 
-test('les deux messages : le service client relaie Inès Lefebvre (SMS), puis demande la table des avis (mail) ; l’app s’arrête sur chacun jusqu’au toucher', () => {
-  const mails = val('MAILS'), opens = val('OPENS'), picks = val('PICKS'), mail = val('[MAIL1, MAIL2]'), sorties = val('MO'), lignes = val('MAILS.map((m, n) => mailRows(n))');
-  const SC = ['Le service client', 'NutriBoost', 'service.client@nutriboost.fr'];
-  assert.deepEqual(mails.map(m => [m[0][0], m[0][1], m[3]]), [SC, SC], 'les deux messages sont du service client : un client n’écrit plus lui-même depuis le chapitre 5 (Elisa, 25 octobre)');
-  assert.deepEqual(base().exec("SELECT prenom, nom FROM clients WHERE id = 9")[0].values[0], ['Inès', 'Lefebvre'], 'Inès Lefebvre est la cliente 9');
-  assert.deepEqual(mails[0][4], ['Inès Lefebvre ne reviendra plus aux ateliers.', 'Peux-tu supprimer son compte ?'], 'le SMS : la notification dit « Inès Lefebvre ne reviendra plus aux ateliers. »');
-  assert.deepEqual(mails.map(m => m[2]), ['équipe', 'équipe']);
-  assert.deepEqual(mails.map(m => !!(m[6] && m[6].sms)), [true, false], 'un SMS (option {sms: true}), puis un mail');
-  assert.equal(mails[0][6].hello, 'Bonjour !', 'le SMS s’ouvre sur « Bonjour ! », comme au chapitre 9 (Elisa, 25 octobre), et non sur « Bonjour, »');
-  assert.deepEqual(mails.map(m => m[5]), ['Le service client NutriBoost', 'Le service client NutriBoost']);
-  assert.equal(opens.length, 2);
-  opens.forEach((o, n) => { assert.ok(o.at > mail[n] && o.at < mail[n] + sorties[n], `message ${n + 1} : l’app s’arrête pendant le message`); assert.equal(o.sel, '#ml' + (n + 1)); });
-  assert.ok(mail[0] < picks[0].at && mail[1] > picks[0].at && mail[1] < picks[1].at, 'message 1 avant le moment 1, message 2 entre les moments 1 et 2');
-  assert.equal(opens.map(o => o.label).join('|'), 'Ouvrir le message du service client NutriBoost|Ouvrir le mail du service client NutriBoost', 'un SMS, puis un mail du service client');
-  assert.deepEqual(opens.map(o => o.prompt), ['Touche le message pour l’ouvrir.', 'Touche le mail pour l’ouvrir.']);
-  assert.ok(mails.every(m => m[4].length === 2), 'une phrase de contexte, une demande');
-  /* Le message reste le temps de ses lignes : une bulle (SMS) ou une ligne (mail) toutes les 0,28 s, le départ juste après la pause de lecture. */
-  assert.deepEqual(lignes, [4, 5], 'lignes de chaque message : Bonjour, ses deux phrases, Merci ! (SMS) ; Bonjour, ses deux paragraphes, la fin, la signature (mail)');
-  assert.deepEqual(sorties, [3.52, 3.8], 'le départ : +2,68 s + 0,28 s par ligne après la première');
-  /* Le second message arrive juste après le refus : la table avis ouvre le chapitre 3 de la vidéo. */
-  assert.ok(mail[1] === val('SCH.chaps')[2].a, 'le mail du service client ouvre le chapitre « Trois sorts possibles »');
+test('le message : un mail du service client relaie la demande d’Inès Lefebvre mot pour mot, puis demande à l’équipe de la traiter ; l’app s’arrête sur lui jusqu’au toucher', () => {
+  const mails = val('MAILS'), opens = val('OPENS'), picks = val('PICKS'), mail = val('MAIL1'), sortie = val('MO[0]'), lignes = val('mailRows(0)'), chaps = val('SCH.chaps');
+  assert.equal(mails.length, 1, 'un seul message dans ce chapitre');
+  assert.deepEqual([mails[0][0][0], mails[0][0][1], mails[0][3]], ['Le service client', 'NutriBoost', 'service.client@nutriboost.fr'], 'du service client : un client n’écrit plus lui-même depuis le chapitre 5 (Elisa, 25 octobre)');
+  assert.equal(mails[0][2], 'équipe'); assert.ok(!(mails[0][6] && mails[0][6].sms), 'un mail, pas un SMS'); assert.equal(mails[0][5], 'Le service client NutriBoost');
+  assert.deepEqual(mails[0][4], ['Inès Lefebvre nous a écrit :',
+    '<i class="qt">Bonjour, je souhaite supprimer mon compte NutriBoost. Vous pouvez conserver mon avis, mais je ne souhaite plus que mon prénom apparaisse. Merci !</i>',
+    'Peux-tu supprimer le compte d’Inès Lefebvre tout en conservant son avis sur la fiche produit ? Il devra apparaître sous la mention « Ancien client ».']);
+  assert.deepEqual(base().exec('SELECT prenom, nom FROM clients WHERE id = 9')[0].values[0], ['Inès', 'Lefebvre'], 'Inès Lefebvre est la cliente 9');
+  assert.equal(opens.length, 1);
+  assert.ok(opens[0].at > mail && opens[0].at < mail + sortie, 'l’app s’arrête pendant le message'); assert.equal(opens[0].sel, '#ml1');
+  assert.equal(opens[0].label, 'Ouvrir le mail du service client NutriBoost'); assert.equal(opens[0].prompt, 'Touche le mail pour l’ouvrir.');
+  /* Le message reste le temps de ses lignes : une ligne toutes les 0,28 s, le départ juste après la pause de lecture. */
+  assert.equal(lignes, 6, 'lignes du mail : Bonjour, ses trois paragraphes, Merci !, la signature'); assert.equal(sortie, 4.08, 'le départ : +2,68 s + 0,28 s par ligne après la première');
+  /* Il arrive après le premier moment et avant le deuxième, derrière la carte-titre « Quelque temps plus tard… ». */
+  assert.ok(picks[0].at < val('T3') && mail >= val('T3') + val('TC') && mail < picks[1].at, 'après le moment 1, après la carte-titre, avant le moment 2');
+  assert.equal(chaps[2].label, 'Quelque temps plus tard…'); assert.equal(chaps[2].a, val('T3'), 'le chapitre commence avec la carte-titre');
+  assert.ok(page.includes('<span>Quelque temps<br>plus tard…</span>') && page.includes('<span class="emo">📩</span>'), 'la carte-titre');
+  assert.ok(page.includes('Elisa, 25 octobre'), 'la page garde la trace de la demande d’Elisa');
 });
 
 /* ---------- Propre au chapitre 10 : la suite du chapitre 9, l’annonce de la leçon Transactions ---------- */
 test('chapitre 10 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
   assert.ok(page.includes('<title>Requête · Projet, chapitre 10 : ON DELETE</title>') && page.includes('<div class="tagpill">Projet · Chapitre 10</div>')
-    && page.includes('<span>O</span><span class="sp">N</span><span>D</span><span>E</span><span>L</span><span>E</span><span>T</span><span>E</span>') && page.includes('<div class="abs sub">Le sort des lignes liées</div>')
-    && page.includes('Un compte ne peut pas être supprimé&nbsp;:<br>à toi de décider du sort des lignes liées.'), 'écran titre : « Projet · Chapitre 10 », ON DELETE, « Le sort des lignes liées »');
+    && page.includes('<span>O</span><span class="sp">N</span><span>D</span><span>E</span><span>L</span><span>E</span><span>T</span><span>E</span>') && page.includes('<div class="abs sub">Quand un compte disparaît</div>'),
+    'écran titre : « Projet · Chapitre 10 », ON DELETE, « Quand un compte disparaît »');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les chapitres 2 à 9');
   assert.equal(caps[1], 'Au chapitre 9, tu as supprimé<br>des lignes avec <code>DELETE</code>.', 'le chapitre précédent');
@@ -350,12 +378,12 @@ test('le récapitulatif, mot pour mot, dans la vidéo comme dans la fiche de la 
     const [phrase, detail] = m[2].split('<span class="rs">');
     return [m[1], strip(phrase), strip(detail.replace(/<\/span>$/, ''))];
   });
-  const RECAP = [['🛑', 'Sans règle, la suppression d’une ligne encore désignée est refusée.', 'Le message d’erreur est FOREIGN KEY constraint failed.'],
-    ['🔀', 'ON DELETE choisit le sort des lignes liées.', 'CASCADE les supprime, SET NULL les détache, RESTRICT refuse la suppression.'],
-    ['📍', 'La règle se déclare dans CREATE TABLE, jamais dans le DELETE.', 'Elle se place à côté de la clé étrangère : REFERENCES clients(id) ON DELETE SET NULL.']];
+  const RECAP = [['🔀', 'La règle ON DELETE décide du sort de la ligne liée.', 'Elle se définit sur la clé étrangère.'],
+    ['🧭', 'Trois règles au choix.', 'RESTRICT bloque la suppression, CASCADE supprime aussi l’avis, SET NULL le conserve sans compte.'],
+    ['🏷️', 'Avec SET NULL, la colonne doit autoriser NULL.', 'Le site affiche alors « Ancien client ».']];
   assert.deepEqual(rows, RECAP, 'la vidéo : les trois idées');
   const fiche = html.slice(html.indexOf('guide({ id:68,'), html.indexOf('guide({ id:62,'));
-  const idees = [...fiche.matchAll(/\["(🛑|🔀|📍)","([^"]*)","([^"]*)"(?:,"([^"]*)")?\]/g)].map(m => [m[1], strip(m[2]), strip(m[3])]);
+  const idees = [...fiche.matchAll(/\["(🔀|🧭|🏷️)","([^"]*)","([^"]*)"(?:,"([^"]*)")?\]/g)].map(m => [m[1], strip(m[2]), strip(m[3])]);
   assert.deepEqual(idees, RECAP, 'la fiche de la leçon dit la même chose que la vidéo');
   assert.ok(page.includes('recapScene(RECAP, [RECAP + 0.7, RECAP + 2.1, RECAP + 3.5]);'), 'chaque idée se révèle à son tour');
 });
@@ -365,12 +393,13 @@ test('ce que la vidéo ne reprend pas des anciens cours : plus de table satisfac
   for (const mot of ['satisfaction', 'panier', 'DEFAULT', 'CHECK', 'PRAGMA', 'TRIGGER']) assert.ok(!caps.includes(mot) && !page.includes(`>${mot}`), `la vidéo n’enseigne pas ${mot}`);
   assert.ok(!/SQL (voit|comprend|sait|lit)\b/.test(page), 'SQL n’est jamais personnifié');
   assert.ok(!html.slice(html.indexOf('guide({ id:68,'), html.indexOf('guide({ id:62,')).includes('sit:{'), 'plus de cours texte ON DELETE dans la fiche');
+  /* L’histoire est celle de l’avis seul : plus d’atelier lié à l’avis, plus de SMS, plus d’erreur de syntaxe à provoquer. */
+  assert.ok(!/atelier_id|syntax error/.test(JSON.stringify([val('CAPTIONS'), val('PICKS'), val('MAILS')])), 'la table avis relie un compte et un produit (pas d’atelier), et la vidéo ne provoque aucune erreur de syntaxe');
 });
 
-test('zones à toucher : les lignes de la table inscriptions font 84 px et celles de la table avis 62 px (le doigt) ; les indices des deux moments « toucher » ressortent la bonne zone, en typographie française', () => {
-  const h = +page.match(/#tb \.r,\.mi \.r\{height:(\d+)px/)[1], hv = +page.match(/#tav \.r\{height:(\d+)px/)[1];
-  assert.ok(h >= 84, `lignes de la table inscriptions : ${h} px`);
-  assert.ok(hv >= 62, `lignes de la table avis : ${hv} px`);
+test('zones à toucher : les lignes des tables font 62 px (le doigt) ; les indices des trois moments « toucher » et « choisir » ressortent la bonne zone, en typographie française', () => {
+  const hv = +page.match(/\.tz \.r\{height:(\d+)px/)[1];
+  assert.ok(hv >= 62, `lignes des tables clients, avis et produits : ${hv} px`);
   assert.ok(/return h && Object\.assign\(h, \{text: fr\(h\.text\)\}\);/.test(page), 'l’indice passe par la typographie française (espaces insécables)');
   assert.equal([...page.matchAll(/return \{text: '([^']+)'/g)].length, 5, 'cinq indices écrits : un par moment à choix ou à toucher');
 });
