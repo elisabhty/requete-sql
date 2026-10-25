@@ -174,14 +174,17 @@ test('chapitre 9 : le service client relaie les trois demandes : deux SMS (« L�
   assert.ok(src.includes("(MAILS[n][6] || {}).bye || 'Merci !', sign]"), 'la formule de fin du mail vient du message');
   assert.ok(src.includes('Elisa, 25 octobre'), 'la page garde la trace de la demande d’Elisa');
 });
-test('chapitre 10 : le service client relaie la demande d’Inès Lefebvre par SMS (« Inès Lefebvre ne reviendra plus aux ateliers. » en aperçu), puis écrit le mail des avis', () => {
+test('chapitre 10 : le service client relaie la demande d’Inès Lefebvre par SMS (« Bonjour ! », puis « Inès Lefebvre ne reviendra plus aux ateliers. » en aperçu), puis écrit le mail des avis', () => {
   const src = lire('projet-ondelete.html'), M = R.donnees('projet-ondelete.html').MAILS;
   assert.deepEqual(M.map(m => `${m[0][0]} ${m[0][1]} [${m[2]}]`), Array(2).fill('Le service client NutriBoost [équipe]'));
   assert.deepEqual(M.map(m => !!(m[6] && m[6].sms)), [true, false]);
-  assert.deepEqual(parts(M[0][4]), ['Bonjour,', 'Inès Lefebvre ne reviendra plus aux ateliers.', 'Peux-tu supprimer son compte ?', 'Merci !']);
-  const h = S.smsCard(1, 'k-in', 'Le service client', 'NutriBoost', 'SC', M[0][4], false, S.smsRank(M, 0));
+  /* Comme au chapitre 9 (Elisa, 25 octobre, réponse « Oui » de 08 h 55) : « Bonjour ! », sa demande en deux phrases, « Merci ! ». */
+  assert.equal(M[0][6].hello, 'Bonjour !', 'le SMS s’ouvre sur « Bonjour ! », pas sur « Bonjour, »');
+  assert.deepEqual(parts(M[0][4], M[0][6].hello), ['Bonjour !', 'Inès Lefebvre ne reviendra plus aux ateliers.', 'Peux-tu supprimer son compte ?', 'Merci !']);
+  const h = S.smsCard(1, 'k-in', 'Le service client', 'NutriBoost', 'SC', M[0][4], false, S.smsRank(M, 0), M[0][6].hello);
+  assert.ok(h.includes('<p class="sms-m">Bonjour !</p>') && !h.includes('Bonjour,'), 'la première bulle : « Bonjour ! »');
   assert.ok(h.slice(h.indexOf('sms-n'), h.indexOf('sms-v')).includes('<div class="sms-np">Inès Lefebvre ne reviendra plus aux ateliers.</div>'), 'l’aperçu de la notification');
-  assert.ok(src.includes('body, false, smsRank(MAILS, n)) : `') && src.includes('Elisa, 25 octobre'));
+  assert.ok(src.includes('body, false, smsRank(MAILS, n), (MAILS[n][6] || {}).hello) : `') && src.includes('Elisa, 25 octobre'), 'la page donne sa première bulle au SMS');
 });
 
 /* La durée d’un message suit sa longueur : une bulle (SMS) ou une ligne (mail) toutes les 0,28 s ; le départ juste après la pause de lecture, 0,06 s après sa fin. */
@@ -204,5 +207,5 @@ for (const f of ['projet-delete.html', 'projet-ondelete.html']) {
 }
 test('chapitres 9 et 10 : la légende annonce les SMS', () => {
   assert.ok(lire('projet-delete.html').includes('cap(\'c2\', "Trois autres demandes arrivent.", 2.8);'));   // Elisa, 25 octobre, 08 h 17 (Réf 1)
-  assert.ok(lire('projet-ondelete.html').includes('cap(\'c2\', "Deux demandes arrivent :<br>un SMS et un mail.", 2.8);'));
+  assert.ok(lire('projet-ondelete.html').includes('cap(\'c2\', "Deux autres demandes arrivent.", 2.8);'));   // Elisa, 25 octobre, comme au chapitre 9
 });
