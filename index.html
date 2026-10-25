@@ -9156,109 +9156,42 @@ guide({ id:70, titre:"Les triggers", résumé:"Déclencher une action automatiqu
     ],label:"Les trois idées à retenir"}
   ]
 }),
-guide({ id:71, titre:"Concurrence et isolation", résumé:"Quand deux écritures arrivent en même temps",
-  sit:{
-    blocks:[
-      "L’équipe boutique encaisse les ventes sur <b>deux caisses</b>. Pendant une promotion, deux clients achètent une <b>Protéine Végétale</b> au même instant, un à chaque caisse.",
-      "La table <code>produits</code> contient au total <b>8 produits</b>, et il reste <b>45 Protéines Végétales</b> en stock. Pour enregistrer les deux ventes, l’équipe doit modifier :",
-      {need:[["🥤","Le produit vendu","table produits"],["📦","Son stock restant","table produits"]],label:"Les informations à modifier"}
-    ],
-    problem:{
-      p:["Avec <code>UPDATE</code>, SQL sait modifier le stock, mais chaque caisse peut <b>lire</b> le stock, calculer la nouvelle valeur de son côté, puis <b>écrire</b> le résultat.","Or, si les deux caisses lisent avant que l’autre n’ait écrit, elles écrivent <b>la même valeur</b> : une des deux ventes est perdue."],
-      scene:{h:"🧾 Deux caisses, un stock",cols:"1fr 1fr 1fr",
-        lanes:[{c:[["h1","caisse","t"],["h2","lit","t"],["h3","écrit","t"]]},
-          {k:"R1",c:[["a1","A"],["a2","45","h"],["a3","44","h"]]},
-          {k:"R2",c:[["b1","B"],["b2","45","h"],["b3","44","h"]]},
-          {k:"T",cls:"is-goal",cols:"1fr 2fr",c:[["t1","stock"],["t2","44, une vente perdue","h"]]}],
-        caps:["<b>Le stock</b> · Il reste 45 Protéines Végétales, et deux caisses vendent chacune un exemplaire au même instant.","<b>Lecture</b> · Les deux caisses lisent le stock : elles voient toutes deux 45.","<b>Écriture</b> · Chacune calcule 45 − 1 de son côté et écrit 44.","<b>Résultat</b> · Le stock vaut 44 : une des deux ventes a été perdue."],
-        steps:[{cap:0,on:["R1","R2"],d:1900},{cap:1,show:["a2","b2"],d:2300},{cap:2,show:["a3","b3"],d:2300},{cap:3,show:["t2"],mark:{T:"is-miss"},d:2600}]},
-      then:["Il faut donc que <b>les deux ventes soient comptées</b>, même enregistrées au même instant.","C’est exactement le rôle de l’<b>isolation</b> : chaque écriture se déroule comme si elle était seule."]
-    },
-    mission:"Aide l’équipe boutique à enregistrer les deux ventes de <b>Protéine Végétale</b> sans en perdre aucune, afin que le stock affiche <b>43</b>."
-  },
-  concept:{
-    title:"Comment SQL peut-il savoir qui a le droit d’écrire ?",
-    blocks:[
-      "SQLite ne laisse écrire <b>qu’une transaction à la fois</b> :",
-      {ask:"Qui a le droit d’écrire en ce moment ?"},
-      "En SQL, une transaction prend ce droit dès son ouverture avec <code>BEGIN IMMEDIATE</code>, et le garde jusqu’à son <code>COMMIT</code> :",
-      {syntax:"⟦BEGIN IMMEDIATE;⟧\n  …\nCOMMIT;"},
-      {scene:{h:"🔒 Une caisse à la fois",cols:"1fr 1fr",
-        lanes:[{c:[["h1","caisse","t"],["h2","état","t"]]},
-          {k:"A",c:[["a1","caisse A"],["a2","écrit"]]},
-          {k:"B",c:[["b1","caisse B"],["b2","attend"]]},
-          {k:"S",cls:"is-goal",c:[["s1","stock"],["s2","45"]]}],
-        caps:["<b>BEGIN IMMEDIATE</b> · La caisse A prend le droit d’écrire. La caisse B doit attendre son tour, ou échoue si l’attente dure trop.","<b>Caisse A</b> · Elle retire une unité à la valeur courante, puis valide : le stock passe à 44.","<b>Caisse B</b> · Le droit d’écrire se libère : elle part de la valeur courante, 44, et le stock passe à 43."],
-        steps:[{cap:0,on:["A"],dim:["B"],d:2400},{cap:1,text:{a2:"validé",s2:"44"},d:2600},{cap:2,off:["A"],dim:["A"],undim:["B"],on:["B"],text:{b2:"écrit",s2:"43"},d:2800}]}}
-    ]
-  },
-  steps:[
-    {h:"Laisser la base calculer",blocks:[
-      "La parade la plus simple : ne pas recalculer le stock hors de la base. <code>SET stock = stock - 1</code> lit et écrit dans <b>la même instruction</b>, qui est indivisible.",
-      {syntax:"UPDATE produits\nSET stock = ⟦stock - 1⟧\nWHERE id = 6;"},
-      {say:"👇 Exécute cette requête pour enregistrer les deux ventes, l’une après l’autre :",run:"UPDATE produits\nSET stock = stock - 1\nWHERE id = 6;\nUPDATE produits\nSET stock = stock - 1\nWHERE id = 6;\nSELECT id, nom, stock\nFROM produits\nWHERE id = 6;"},
-      {arrow:"Le stock passe de 45 à 44, puis à 43."},
-      {warn:{t:"Écrire la valeur calculée",blocks:[
-        "Si chaque caisse écrit le résultat de son propre calcul :",
-        {syntax:"UPDATE produits\nSET stock = 44\nWHERE id = 6;"},
-        "Les deux caisses écrivent 44 : la seconde vente écrase la première au lieu de s’y ajouter.",
-        {say:"👇 Teste par toi-même, avec les deux caisses :",run:"UPDATE produits\nSET stock = 44\nWHERE id = 6;\nUPDATE produits\nSET stock = 44\nWHERE id = 6;\nSELECT id, nom, stock\nFROM produits\nWHERE id = 6;"}
-      ]}}
-    ]},
-    {h:"Vérifier et écrire d’un seul geste",blocks:[
-      "Quand la vente dépend d’une condition, mets-la dans le même <code>UPDATE</code> : la base vérifie le stock et l’écrit sans que rien ne puisse s’intercaler.",
-      {syntax:"UPDATE produits\nSET stock = stock - 50\nWHERE id = 8\n  ⟦AND stock >= 50⟧;"},
-      {say:"👇 Exécute cette requête pour tenter de vendre 50 Shakers Inox alors qu’il n’en reste que 30 :",run:"UPDATE produits\nSET stock = stock - 50\nWHERE id = 8\n  AND stock >= 50;\nSELECT id, nom, stock\nFROM produits\nWHERE id = 8;"},
-      {arrow:"Aucune ligne n’est modifiée : le stock reste à 30, et il ne devient jamais négatif."}
-    ]},
-    {h:"Prendre le droit d’écrire d’avance",blocks:[
-      "Avec un <code>BEGIN</code> simple (<code>BEGIN DEFERRED</code>), la transaction ne réclame le droit d’écrire qu’à sa première écriture : si un autre l’a pris entre-temps, elle échoue en cours de route. <code>BEGIN IMMEDIATE</code> le réclame dès l’ouverture : si le droit est déjà pris, elle attend ou échoue dès le départ, jamais au milieu.",
-      {table:{label:"Les trois façons d’ouvrir une transaction",head:["Ouverture","Droit d’écrire"],rows:[["BEGIN DEFERRED","pris à la première écriture"],["BEGIN IMMEDIATE","pris dès l’ouverture"],["BEGIN EXCLUSIVE","pris dès l’ouverture, lectures bloquées aussi"]]}},
-      {say:"👇 Exécute cette requête pour vendre 2 Magnésium, avec le droit d’écrire pris dès le départ :",run:"BEGIN IMMEDIATE;\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3\n  AND stock >= 2;\nCOMMIT;\nSELECT id, nom, stock\nFROM produits\nWHERE id = 3;"},
-      {arrow:"La vente est faite : le stock du Magnésium passe de 500 à 498."},
-      {tip:{t:"Et les niveaux d’isolation ?",blocks:[
-        "L’isolation est le <b>I</b> d’ACID : une transaction ne doit ni voir les états intermédiaires d’une autre, ni être écrasée par elle. En plus de la mise à jour perdue vue plus haut, le standard SQL décrit trois anomalies :",
-        {looks:[["Lecture sale","lire une valeur pas encore validée par une autre transaction"],["Lecture non répétable","relire une ligne et obtenir une autre valeur"],["Lignes fantômes","relancer une requête et voir des lignes en plus"]]},
-        "SQLite n’a pas de réglage <code>SET TRANSACTION ISOLATION LEVEL</code> : avec un seul écrivain à la fois, il se comporte comme <code>SERIALIZABLE</code>. Pour les niveaux d’isolation des autres SGBD, voir la page <button type='button' class='sgbd-link' data-sgbd='transactions'>Selon le SGBD</button> de la Bibliothèque."
-      ]}}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : chaque caisse ouvre sa transaction avec <code>BEGIN IMMEDIATE</code>, retire une unité à partir de la valeur courante si le stock le permet, puis valide. Ce laboratoire n’a qu’une seule connexion : la caisse B passe donc après la caisse A, comme l’impose <code>BEGIN IMMEDIATE</code>.",
-      {say:"👇 Exécute la requête pour enregistrer les deux ventes :",run:"BEGIN IMMEDIATE;\nUPDATE produits\nSET stock = stock - 1\nWHERE id = 6\n  AND stock >= 1;\nCOMMIT;\nBEGIN IMMEDIATE;\nUPDATE produits\nSET stock = stock - 1\nWHERE id = 6\n  AND stock >= 1;\nCOMMIT;\nSELECT id, nom, stock\nFROM produits\nWHERE id = 6;"},
-      {done:{
-        label:"De deux ventes simultanées à deux ventes comptées",
-        unit:"free",
-        funnel:[
-          {n:2,t:"ventes à enregistrer",s:"une à chaque caisse, pour 45 Protéines Végétales en stock",dots:"00"},
-          {step:"BEGIN IMMEDIATE … COMMIT",s:"chaque caisse vérifie le stock et écrit à son tour"},
-          {n:2,t:"⭐ ventes comptées",s:"le stock passe de 45 à 43",dots:"11",out:true}
-        ],
-        board:{ico:"🧾",h:"Stock de la boutique",aria:"Les deux ventes sont comptées l’une après l’autre : le stock de Protéine Végétale passe de 45 à 44, puis à 43",kpi:"Ventes comptées",count:{t:"Ventes comptées",from:0,to:2},lead:"Caisse A, puis caisse B : une vente chacune",ops:{"0": {"op": "upd", "from": {"2": 45}}},cols:["id", "nom", "stock"],rows:[[6, "Protéine Végétale", 43]],done:"✓ 2 ventes comptées : stock à 43"},
-        fill:["BEGIN IMMEDIATE","stock - 1","stock >= 1","COMMIT"],
-        ui:{t:"Aucune vente perdue",s:"Chaque caisse est repartie de la valeur courante.",n:["BEGIN IMMEDIATE","UPDATE","COMMIT"]},
-        rows:2
-      }}
-    ]}
-  ],
+guide({ id:71, titre:"Concurrence et isolation", résumé:"Gérer les accès simultanés",
+  /* Projet, chapitre 14, en vidéo interactive : l’animation (assets/anim/projet-concurrence.html, moteur commun assets/anim/core.js)
+     est le cours. La trame est celle d’Elisa (25 octobre, 20 h 52, « CONCURRENCE — Deux clients, une seule place » et « ISOLATION —
+     Sécuriser la dernière place »), ses bulles gardées mot pour mot, une phrase par bulle, les prénoms complétés comme le veut sa charte
+     (Léa Simon, la cliente 7 ; Nathan Petit, le client 4). Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au
+     chapitre 13, un trigger t’a permis de garder chaque changement de prix »), sur la base que le chapitre 13 laisse : douze tables, et
+     une nouvelle date de l’atelier Cuisine saine (l’atelier 6, le 14 novembre, avec Julie Nguyen). 1 · Deux clients, une seule place :
+     l’équipe ateliers écrit par SMS, avec les mots d’Elisa (« Deux clients ont reçu une confirmation pour la dernière place de notre
+     atelier. Peux-tu comprendre ce qui s’est passé et éviter que ça se reproduise ? ») ; la colonne places_restantes de la table ateliers
+     compte les places encore libres : 1 ; deux téléphones côte à côte montrent la page de l’atelier (la photo d’Elisa, « Plus qu’une
+     place ! »). 2 · Au ralenti, les quatre étapes d’Elisa : Léa Simon consulte (1 place), Nathan Petit consulte (1 place), Léa Simon
+     lance son inscription, Nathan Petit lance la sienne avant que celle de Léa Simon soit terminée ; les deux inscriptions sont
+     enregistrées, chacun reçoit une confirmation, les places restantes passent à -1 (moment 1 : la valeur qui le montre). 3 · La
+     concurrence (les deux bulles d’Elisa ; moment 2, sa question : comment faire pour qu’une seule inscription soit confirmée).
+     4 · Verrouiller la ligne : une transaction, l’isolation (les mots d’Elisa), puis la réservation de Léa Simon : BEGIN, SELECT
+     places_restantes … FOR UPDATE (syntaxe de PostgreSQL : SQLite, lui, n’a pas de FOR UPDATE), l’INSERT de l’inscription, l’UPDATE qui
+     retire une place, COMMIT. 5 · Rejouer avec le verrou : l’élève touche « Réserver ma place » sur le téléphone de Léa Simon ; elle
+     verrouille la ligne et vérifie qu’il reste une place ; Nathan Petit tente de réserver, sa transaction attend (« Vérification de la
+     disponibilité… », moment 3) ; Léa Simon enregistre son inscription (1 → 0), valide avec COMMIT, le verrou est libéré (moment 4) ;
+     Nathan Petit lit 0 place, aucune inscription pour lui (« Cet atelier vient d’être complet. Découvre les prochaines dates. »).
+     6 · Et avec ROLLBACK ? Juste avant le COMMIT, la transaction de Léa Simon est annulée (moment 5) : la place reste disponible, Nathan
+     Petit la réserve. 7 · Attendre ou continuer : six situations à ranger (moment 6), puis le « À retenir » d’Elisa (une transaction seule
+     ne suffit pas à éviter tous les conflits…). La fin annonce la prochaine leçon, CREATE VIEW. Six moments « À toi », comme aux chapitres
+     du projet ; leçon seule : ni exercice ni quiz dans la vidéo, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon
+     on rejoue les moments ratés. Elle remplace l’ancien cours texte Concurrence et isolation (les deux caisses, BEGIN IMMEDIATE). */
+  leconSeule:true,
+  video:{anim:'assets/anim/projet-concurrence.html?app&embed',thumb:'assets/anim/projet-concurrence-thumb.webp',duree:'4 min 49',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 4 min 41 (281,4 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:281.4,y:1261,card:[64,292,1016,966],to:[940,255]}},
   reflex:[
     {recap:[
-      ["🧮","Laisse la base calculer plutôt que d’écrire une valeur lue plus tôt :",null,"SET stock = stock - 1"],
-      ["🔒","SQLite n’autorise qu’<b>un écrivain à la fois</b> : les autres écritures attendent leur tour."],
-      ["⏩","<code>BEGIN IMMEDIATE</code> prend le droit d’écrire dès l’ouverture de la transaction :",null,"BEGIN IMMEDIATE; … COMMIT;"]
+      ["👥","La <b>concurrence</b> : deux opérations accèdent aux mêmes données au même moment.","Chacune peut se fier à une place qu’une autre est en train de réserver."],
+      ["🔒","<code>FOR UPDATE</code> verrouille la ligne lue jusqu’à la <b>fin de la transaction</b>.","La syntaxe varie selon le SGBD : celle-ci est notamment celle de PostgreSQL."],
+      ["🛡️","Une transaction seule ne suffit pas à éviter <b>tous les conflits</b>.","Le niveau d’isolation et les mécanismes utilisés, comme les verrous, déterminent comment les accès simultanés sont gérés."]
     ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"BEGIN IMMEDIATE",txt:"Ouvre la transaction en prenant tout de suite le droit d’écrire."},{tok:"UPDATE produits",txt:"L’écriture protégée par la transaction."},{tok:"stock = stock - 1",plain:1,txt:"Le calcul est fait par la base, à partir de la valeur courante."},{tok:"COMMIT",txt:"Valide et libère le droit d’écrire pour la transaction suivante."}],
-  exemple:"BEGIN IMMEDIATE;\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3\n  AND stock >= 2;\n\nCOMMIT;\n\nSELECT id, nom, stock\nFROM produits\nWHERE id = 3;",
-  attendu:"Le stock du Magnésium passe de 500 à 498. Une seconde caisse qui exécuterait la même transaction obtiendrait 496, et non 498 : le calcul repart de la valeur en base.",
-  retenir:"L’isolation, le <b>I</b> d’ACID, décide de ce qu’une transaction voit des autres. Le standard définit quatre niveaux, de <code>READ UNCOMMITTED</code> à <code>SERIALIZABLE</code>.<br><br>SQLite ne les expose pas : il n’autorise <b>qu’un écrivain à la fois</b> et se comporte comme <code>SERIALIZABLE</code>. <code>BEGIN IMMEDIATE</code> prend le droit d’écrire dès l’ouverture.<br><br>Le réflexe qui vaut partout : <code>SET stock = stock - 1</code> plutôt que relire, calculer et réécrire.",
-  consigne:"Une caisse vend un Shaker Inox (produit 8). Enregistre la vente dans une transaction qui prend le droit d’écrire dès son ouverture, et laisse la base calculer le nouveau stock plutôt que d’écrire la valeur finale.",
-  solution:"BEGIN IMMEDIATE;\n\nUPDATE produits\nSET stock = stock - 1\nWHERE id = 8;\n\nCOMMIT;",
-  verif:"SELECT id, nom, stock FROM produits WHERE id = 8;",
-  indice:"Ouvre la transaction avec <code>BEGIN IMMEDIATE</code>, soustrais 1 au stock du produit 8 en partant de la valeur courante, puis termine par <code>COMMIT</code>.",
-  write:true,
-  petitDefi:[{p:"Tu veux que la transaction prenne le droit d’écrire dès son ouverture, sans attendre la première écriture. Quel mot ajoutes-tu ?",sql:"BEGIN __________;",a:"IMMEDIATE",answers:["IMMEDIATE","immediate","BEGIN IMMEDIATE"]}],
-  testeVariants:[{k:"fige",label:"Valeur figée",sql:"UPDATE produits\nSET stock = 29\nWHERE id = 8;\n\nSELECT id, nom, stock FROM produits WHERE id = 8;",out:"29, quoi qu’il se soit passé entre-temps : une vente concurrente serait effacée.",tone:"bad"},{k:"relatif",label:"Calcul en base",sql:"UPDATE produits\nSET stock = stock - 1\nWHERE id = 8;\n\nSELECT id, nom, stock FROM produits WHERE id = 8;",out:"29 aussi, mais obtenu à partir de la valeur courante : juste dans tous les cas.",tone:"good"},{k:"transaction",label:"BEGIN IMMEDIATE",sql:"BEGIN IMMEDIATE;\n\nUPDATE produits\nSET stock = stock - 1\nWHERE id = 8;\n\nCOMMIT;\n\nSELECT id, nom, stock FROM produits WHERE id = 8;",out:"Le droit d’écrire est pris dès l’ouverture : rien ne peut s’intercaler.",tone:"good"}],
-  learningCheck:{question:"Deux caisses lisent un stock de 30, calculent chacune 29 de leur côté et l’écrivent. Quel est le stock final ?",options:["28","29","30"],answer:1,explanation:"Les deux caisses écrivent la même valeur : une vente est perdue. Avec SET stock = stock - 1, le calcul part de la valeur courante et le stock vaut 28."}
+  ]
 })
 ]},
 { titre:"Vues, index et optimisation", sous:"Structurer et accélérer", lessons:[
@@ -9991,9 +9924,9 @@ const QCM={
  70:[{q:"Quand le trigger <code>garder_prix</code> se déclenche-t-il ?",o:["Avant chaque lecture de la table produits","Après chaque modification d’un produit","Seulement quand on l’exécute à la main"],b:1,e:"<code>AFTER UPDATE ON produits</code> le lance après chaque modification d’un produit : personne n’a besoin de l’exécuter."},
    {q:"Dans <code>garder_prix</code>, que donne <code>OLD.prix</code> ?",o:["Le prix après la modification","Le prix moyen des produits","Le prix avant la modification"],b:2,e:"<code>OLD</code> donne la ligne avant la modification, <code>NEW</code> la ligne après : <code>OLD.prix</code> est l’ancien prix."},
    {q:"Tu modifies seulement le stock du collagène. Que fait <code>garder_prix</code> ?",o:["Il n’ajoute aucune ligne : le prix n’a pas changé","Il ajoute une ligne avec deux fois le même prix","Il annule la modification du stock"],b:0,e:"Sa condition <code>WHEN OLD.prix &lt;&gt; NEW.prix</code> est fausse : il n’ajoute une ligne que si le prix a réellement changé."}],
- 71:[{q:"Deux caisses lisent un stock de 30, calculent 30 − 1 chacune et écrivent 29. Comment l’éviter ?",o:["En écrivant SET stock = stock - 1, calcul fait par la base","En relisant le stock juste avant d’écrire","En augmentant le niveau d’isolation à READ COMMITTED"],b:0,e:"Une instruction est indivisible : les deux caisses passent l’une après l’autre, 30 puis 29 puis 28. C’est la mise à jour perdue."},
-   {q:"Que fait <code>BEGIN IMMEDIATE</code> de plus que <code>BEGIN</code> ?",o:["Il valide la transaction sans COMMIT","Il prend le verrou d’écriture dès l’ouverture","Il empêche toute lecture concurrente"],b:1,e:"<code>BEGIN</code> seul vaut <code>DEFERRED</code> : rien n’est verrouillé tant qu’on ne fait que lire, et la transaction peut échouer plus tard."},
-   {q:"Quel niveau d’isolation SQLite applique-t-il ?",o:["READ COMMITTED, comme PostgreSQL par défaut","Le comportement de SERIALIZABLE, sans réglage possible","Aucun : les transactions ne sont pas isolées"],b:1,e:"Le moteur verrouille la base entière et n’autorise qu’un seul écrivain à la fois. Il n’existe pas de <code>SET TRANSACTION ISOLATION LEVEL</code>."}],
+ 71:[{q:"Léa Simon et Nathan Petit voient tous les deux « Plus qu’une place ! » et réservent au même moment. Qu’est-ce qui peut arriver ?",o:["Seul le premier arrivé est inscrit, sans rien faire de plus","Les deux inscriptions sont confirmées pour une seule place","Les deux réservations sont refusées"],b:1,e:"Chaque réservation se fie à la place qu’elle a vue disponible : sans verrou, les deux peuvent la prendre, et les places restantes passent à -1."},
+   {q:"Que fait <code>SELECT … FOR UPDATE</code> dans la réservation ?",o:["Il modifie les places restantes","Il valide la réservation","Il lit la ligne de l’atelier et la verrouille jusqu’à la fin de la transaction"],b:2,e:"Une autre transaction qui veut verrouiller la même ligne attend le <code>COMMIT</code> ou le <code>ROLLBACK</code> de la première."},
+   {q:"La transaction de Léa Simon se termine par <code>ROLLBACK</code>. Que devient la dernière place ?",o:["Elle reste disponible, et Nathan Petit peut la réserver","Elle est perdue","Elle reste réservée à Léa Simon"],b:0,e:"<code>ROLLBACK</code> annule l’inscription et le retrait de la place, puis libère le verrou : il reste 1 place."}],
  72:[{q:"Nathan peut avoir plusieurs commandes. Quelle relation existe entre <code>clients</code> et <code>commandes</code>&nbsp;?",o:["1 ↔ 1","1 → N","N ↔ N"],b:1,e:"Un client a plusieurs commandes, mais une commande n’a qu’un client : c’est 1 → N."},
    {q:"Comment transformer une relation 1-N en 1-1 ?",o:["En ajoutant UNIQUE sur la clé étrangère","En déplaçant la clé dans l’autre table","En ajoutant une table d’association"],b:0,e:"Sans <code>UNIQUE</code>, un client pourrait recevoir deux cartes. Avec, la seconde est refusée."},
    {q:"Un client peut suivre plusieurs produits, et un produit être suivi par plusieurs clients. Comment écrire ce lien ?",o:["Une clé étrangère dans clients","Une clé étrangère dans produits","Une troisième table qui porte les deux clés"],b:2,e:"Les deux côtés sont « plusieurs » : aucune colonne ne peut retenir plusieurs valeurs. Il faut une table d’association."},
@@ -12963,7 +12896,7 @@ const SQ_ALIASES={
   62:'transaction transactions begin transaction start transaction commit rollback valider annuler modifications ensemble non valide definitives stock remplacement table remplacements shaker colis personnalisation prenom not null constraint failed nutriboost',
   63:'savepoint point de retour point de sauvegarde rollback to savepoint rollback to annuler une partie partiel transaction repere historique cadeau cadeaux tisane proteine proteine vegetale remplacement colis commit nutriboost',
   70:'trigger triggers declencheur declencher automatiquement action evenement after update on when old new current_timestamp create trigger garder_prix historique historique_prix prix collagene changement responsable commerciale stock nutriboost',
-  71:'concurrence isolation verrou lock deadlock lectures ecritures simultanees',
+  71:'concurrence isolation verrou verrouiller lock for update select for update transaction begin commit rollback reservation derniere place places restantes places_restantes atelier cuisine saine acces simultanes simultane inscription conflit nutriboost',
   64:'create view vue requete enregistree nommer virtual table',
   57:'index create index performance rapide optimiser recherche accelerer explain query plan plan d execution lenteur optimisation requete lente scan search',
   50:'securite droits grant revoke permissions acces utilisateurs roles'
@@ -24937,7 +24870,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2050';
+  const SW_CACHE='requete-2026-10-12-ludique-v2051';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -667,7 +667,6 @@ export const DETTE = {
     47: {relation: 1},   // Sous-requête dans SELECT
     55: {relation: 1},   // EXISTS et NOT EXISTS
     74: {identifiant: 2},   // Fonctions de rang
-    71: {'sans-personnification': 1},   // Concurrence et isolation
     64: {'sans-personnification': 1},   // CREATE VIEW
     57: {identifiant: 11, 'sans-personnification': 3},   // Les index et EXPLAIN
     50: {'sans-personnification': 6, typographie: 1}   // Sécurité et droits

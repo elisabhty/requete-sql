@@ -11,7 +11,7 @@ const allLessons = vm.runInContext('MODULES.flatMap(m=>m.lessons)', ctx);
 /* Cours en vidéo : la vidéo est le cours, sans texte de secours (ni situation, ni étapes, ni exemple…) ; il garde le réflexe à
    retenir (fin de la vidéo, bilan, note). Les vérifications du cours texte portent sur les autres cours. */
 const videos = allLessons.filter(l => l.video);
-assert.equal(videos.length, 58, '58 cours en vidéo');
+assert.equal(videos.length, 59, '59 cours en vidéo');
 for (const l of videos) {
   assert.ok(!l.situation && !l.missionSql && !l.studio.problem && !l.studio.uses, `${l.titre} : pas de texte de secours`);
   for (const k of ['anatomie', 'exemple', 'attendu', 'retenir', 'learningCheck', 'testeVariants', 'joinRecap'])
