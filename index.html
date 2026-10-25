@@ -20577,6 +20577,11 @@ const STK_ART={
   ]
 };
 const STK_B=8;
+/* L’ombre d’un sticker est peinte dans son canvas, pas par un filtre CSS : sur iPhone, un canvas filtré ou transformé en 3D passe par le
+   compositeur, qui le ré-échantillonne dès que sa position ne tombe pas sur un pixel d’écran (contours et texte mous). Le canvas déborde donc
+   du sticker de STK_PAD px CSS de chaque côté (ludique.css fait de même) pour y loger l’ombre. */
+const STK_PAD=10;
+const STK_SHADOW=[[3,6,'rgba(34,28,70,.12)'],[1,1,'rgba(34,28,70,.24)']];   /* décalage vers le bas et flou en px CSS, couleur : la large, puis la serrée */
 const stkPathCache=new Map();
 function stkPath(d){let p=stkPathCache.get(d);if(!p){p=new Path2D(d);stkPathCache.set(d,p);}return p;}
 function stkFont(z,fw){return `${fw||800} ${z}px "Bricolage Grotesque",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif`;}
@@ -20610,14 +20615,32 @@ function stkLayers(ctx,list,cut,b){
     ctx.restore();
   }
 }
-/* mode : art (sticker gagné), lock (silhouette à gagner), spot (emplacement vide sur la planche : la fente de découpe). */
-function stkDraw(ctx,id,px,mode){
+/* mode : art (sticker gagné), lock (silhouette à gagner), spot (emplacement vide sur la planche : la fente de découpe).
+   cutOnly : seulement la silhouette de découpe (le bord blanc), sans les couleurs : de quoi calculer l’ombre. */
+function stkDraw(ctx,id,px,mode,cutOnly){
   const art=STK_ART[id];if(!art)return;
   ctx.save();ctx.scale(px/200,px/200);ctx.lineJoin='round';ctx.lineCap='round';
   const one=(col,b)=>{ctx.fillStyle=ctx.strokeStyle=col;stkLayers(ctx,art,true,b);};
   if(mode==='lock')one('#DCD5F2',STK_B);
   else if(mode==='spot'){one('#CBC2EC',STK_B);one('#EEEAFB',STK_B-1.6);}
-  else{one('#fff',STK_B);stkLayers(ctx,art,false,0);}
+  else{one('#fff',STK_B);if(!cutOnly)stkLayers(ctx,art,false,0);}
+  ctx.restore();
+}
+let stkWork=null;
+/* L’ombre portée, peinte sous le sticker : sa silhouette de découpe (sur un calque de travail) est posée avec chacune des deux ombres, puis
+   le sticker la recouvre. Une seule silhouette pour tout le sticker : couche par couche, les ombres de couches qui se chevauchent
+   s’additionneraient le long du contour. Décalages et flou sont comptés en pixels d’écran (le canvas ne les met pas à l’échelle). */
+function stkShadow(ctx,id,px,mode,pad,dpr,n){
+  const wk=stkWork||(stkWork=document.createElement('canvas'));
+  if(wk.width!==n||wk.height!==n){wk.width=n;wk.height=n;}
+  const wx=wk.getContext('2d');if(!wx)return;
+  wx.clearRect(0,0,n,n);
+  wx.save();wx.translate(pad,pad);stkDraw(wx,id,px,mode,true);wx.restore();
+  ctx.save();
+  for(const [dy,blur,col] of STK_SHADOW){
+    ctx.shadowColor=col;ctx.shadowBlur=blur*dpr;ctx.shadowOffsetX=0;ctx.shadowOffsetY=dy*dpr;
+    ctx.drawImage(wk,0,0);
+  }
   ctx.restore();
 }
 /* Dans l’ordre de MODULES : un dessin par module (le nom affiché reste celui du module). */
@@ -20746,13 +20769,19 @@ function stkPaint(root){
   if(!root||!root.querySelectorAll)return;
   const dpr=Math.min(3,window.devicePixelRatio||1);
   root.querySelectorAll('canvas[data-stk]').forEach(cv=>{
-    const w=cv.offsetWidth;if(!w)return;
-    const px=Math.round(w*dpr);
+    if(!cv.offsetWidth)return;
+    /* Le sticker lui-même (sa boîte .stk-art), à la fraction de pixel près : arrondie à l’entier, une colonne de 105,3 px donnerait un dessin
+       trop petit d’un pixel d’écran, que le navigateur étire (flou). Le canvas déborde de STK_PAD de chaque côté, pour l’ombre. */
+    const w=parseFloat(getComputedStyle(cv.parentElement).width);if(!w)return;
+    const px=Math.round(w*dpr),pad=Math.round(STK_PAD*dpr),n=px+2*pad;
     /* Les deux côtés : un canvas neuf mesure 300 × 150, et 300 tombe juste (100 px affichés sur un écran ×3). */
-    if(cv.width!==px||cv.height!==px){cv.width=px;cv.height=px;}
+    if(cv.width!==n||cv.height!==n){cv.width=n;cv.height=n;}
     const ctx=cv.getContext('2d');if(!ctx)return;
-    ctx.clearRect(0,0,px,px);
-    stkDraw(ctx,cv.dataset.stk,px,cv.dataset.mode||'art');
+    ctx.clearRect(0,0,n,n);
+    const id=cv.dataset.stk,mode=cv.dataset.mode||'art';
+    /* Les silhouettes de la planche et la découpe vide restent à plat : sans ombre. */
+    if(mode==='art'||(mode==='lock'&&!cv.closest('.stk-cell')))stkShadow(ctx,id,px,mode,pad,dpr,n);
+    ctx.save();ctx.translate(pad,pad);stkDraw(ctx,id,px,mode);ctx.restore();
   });
   root.querySelectorAll('.stk-art.is-holo').forEach(el=>{
     const m=stkMask(el.dataset.holo);if(!m)return;
@@ -21246,10 +21275,12 @@ function stkTilt(stage){
   if(!art||prefersReduceMotion())return;
   const set=e=>{
     const r=art.getBoundingClientRect(),px=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),py=Math.min(1,Math.max(0,(e.clientY-r.top)/r.height));
+    art.classList.add('is-tilt');
     art.style.setProperty('--px',(px*100).toFixed(1)+'%');art.style.setProperty('--py',(py*100).toFixed(1)+'%');
     art.style.setProperty('--ty',((px-.5)*24).toFixed(1)+'deg');art.style.setProperty('--tx',((.5-py)*24).toFixed(1)+'deg');
   };
-  const reset=()=>{art.style.removeProperty('--tx');art.style.removeProperty('--ty');};
+  /* La 3D n’existe que pendant l’inclinaison : au repos, le canvas n’a aucune transformation (net sur iPhone). */
+  const reset=()=>{art.classList.remove('is-tilt');art.style.removeProperty('--tx');art.style.removeProperty('--ty');};
   stage.addEventListener('pointermove',set);
   stage.addEventListener('pointerdown',set);
   stage.addEventListener('pointerleave',reset);
@@ -25034,7 +25065,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2034';
+  const SW_CACHE='requete-2026-10-12-ludique-v2035';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
