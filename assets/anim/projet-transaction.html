@@ -262,10 +262,11 @@ function cap(key, html, dur, gap = 0.1){
 /* « À toi ! » : la légende reste un instant, puis l’image s’arrête à a + 2,35 s (le passage d’attente est coupé). */
 const toi = key => cap(key, 'À toi !', 2.55);
 const {A, B} = SCH;
-/* Les deux messages reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses phrases), signature, option].
-   Léa Simon écrit elle-même, par SMS, avec la photo de son shaker cassé (Elisa, 25 octobre, 17 h 05 : « La conversation avec Léa s’ouvre et son
-   message s’affiche », la photo dessous, « un appui permet d’agrandir la photo » ; 18 h 30 : le shaker est en inox, comme le Shaker Inox de la
-   base) ; puis le service client, par SMS lui aussi ({sms: true}).
+/* Les deux messages : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses phrases), signature, option].
+   Léa Simon écrit au service client, par SMS, avec la photo de son shaker cassé (Elisa, 25 octobre, 17 h 05 : « La conversation avec Léa s’ouvre
+   et son message s’affiche », la photo dessous, « un appui permet d’agrandir la photo » ; 18 h 30 : le shaker est en inox, comme le Shaker Inox de
+   la base ; 18 h 36 : « il faut dire qu’elle a envoyé le message au service client »). Puis le service client nous écrit, par SMS lui aussi
+   ({sms: true}) : « Léa vient de nous envoyer un message… » (18 h 36 ; « Pense à conserver son prénom dessus » est retiré).
    L’app s’arrête sur chaque notification (OPENS) jusqu’au toucher, et sur la photo jusqu’à ce que l’élève l’agrandisse. */
 const MAILS = [
   [['Léa', 'Simon', 'LS'], 'k-cl', 'cliente', 'lea@mail.fr', [
@@ -273,9 +274,9 @@ const MAILS = [
     'Est-ce que vous pouvez m’en renvoyer un ?'], 'Léa Simon',
     {photo: {id: 'ph1', src: 'projet-transaction-shaker.webp', alt: 'Le shaker inox rose de Léa Simon, arrivé cassé'}}],
   [['Le service client', 'NutriBoost', 'SC'], 'k-in', 'équipe', 'service.client@nutriboost.fr', [
+    'Léa vient de nous envoyer un message : elle a trouvé son shaker cassé.',
     'Nous allons lui envoyer gratuitement un nouveau shaker.',
-    'Peux-tu mettre à jour le stock et enregistrer le remplacement pour que l’équipe logistique le prépare ?',
-    'Pense à conserver son prénom dessus.'], 'Le service client NutriBoost', {sms: true}]
+    'Peux-tu mettre à jour le stock et enregistrer le remplacement pour que l’équipe logistique le prépare ?'], 'Le service client NutriBoost', {sms: true}]
 ];
 /* Un message : la légende s’efface le temps du message (notification, toucher, lecture, départ). Un SMS : « Bonjour, », une bulle par phrase,
    la photo jointe s’il y en a une, « Merci ! » ; le toucher à +1,6 s, une bulle toutes les 0,28 s, le départ juste après la pause de lecture. */
@@ -291,6 +292,7 @@ const ZOOM_HOLD = 2.6, ZOOM_EXTRA = 2.3;
 cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
 cap('r2', "Au chapitre 10, tu as décidé<br>du sort des lignes liées<br>avec <code>ON DELETE</code>.", 3.6);
 cap('a1', "Léa Simon vient de recevoir<br>sa commande NutriBoost.", 3.2);
+cap('a2', "Elle envoie un message<br>au service client.", 3.0);   // Elisa, 25 octobre, 18 h 36 : son message va au service client, qui nous écrit ensuite
 const MAIL1 = mailBlock(0, ZOOM_EXTRA);
 const PH = +(MAIL1 + mailOutAt(0) + 0.9).toFixed(2);     // l’arrêt sur la photo, après la pause de lecture des bulles (hors de l’app, le doigt arrive)
 const OUT1 = +(MAIL1 + mailOutAt(0) + ZOOM_EXTRA).toFixed(2);   // le départ du message, une fois la photo revenue à sa place
@@ -690,12 +692,15 @@ function build(){
   // Léa Simon vient de recevoir sa commande : les clients, puis les commandes
   on('#bw-cl .hl', A.a1 + 0.3, 0.2); cue(A.a1 + 0.3, 'tick', 0.5, 2);
   on('#bw-cm .hl', A.a1 + 1.2, 0.2); cue(A.a1 + 1.2, 'tick', 0.5, 4);
+  // elle envoie un message au service client : la ligne de Léa Simon, dans la table clients
+  pulse('#bw-cl', A.a2 + 0.6, 1, GLOW); cue(A.a2 + 0.6, 'tick', 0.5, 3);
+  off(['#bw-cl .hl', '#bw-cm .hl'], B.a2 - 0.5, 0.3);
   // son message arrive : la légende s’efface le temps des deux messages (jamais de carte vide)
-  capOff(B.a1 - 0.2);
-  hide('#bc', B.a1 - 0.1, {y: -30}, 0.35);
-  sceneOff('#sa', B.a1 + 0.3);
-  sceneOn('#sm', B.a1 + 0.3);
-  // Léa Simon : son message et la photo du shaker cassé (agrandie au toucher), puis le service client
+  capOff(B.a2 - 0.2);
+  hide('#bc', B.a2 - 0.1, {y: -30}, 0.35);
+  sceneOff('#sa', B.a2 + 0.3);
+  sceneOn('#sm', B.a2 + 0.3);
+  // Léa Simon écrit au service client : son message et la photo du shaker cassé (agrandie au toucher) ; puis le service client nous écrit
   mailIn(1, MAIL1 + 0.5, OPENS[0].at);
   zoomPhoto(PH);
   mailOut(1, OUT1);
@@ -1005,7 +1010,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 242.15, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 245.25, picks: PICKS, opens: OPENS,
   glyphs: '🗄️👥🛒⭐📦🧑‍🏫📅📝💳💬🔁🔑🔗⚠️⏳✅↩️💡👆🧺🚚📬🔖🚦✓✕!…«»·−',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>

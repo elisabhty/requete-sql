@@ -104,9 +104,9 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
   /* Le bouton des notes est écrit en clair dans Course(…) : il suit la dernière légende. */
-  assert.equal(val('NOTES'), 242.15);
-  assert.ok(page.includes('notesAt: 242.15,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 249.35);
+  assert.equal(val('NOTES'), 245.25);
+  assert.ok(page.includes('notesAt: 245.25,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 252.45);
   /* Des légendes qui se suivent sans se chevaucher, chaque chapitre commençant 0,4 s après la légende précédente. */
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
@@ -269,10 +269,12 @@ test('les messages : Léa Simon écrit elle-même par SMS, sa photo dessous ; le
   assert.deepEqual(mails[0][6].photo, {id: 'ph1', src: 'projet-transaction-shaker.webp', alt: 'Le shaker inox rose de Léa Simon, arrivé cassé'});   // la photo d’Elisa (18 h 30) : un shaker en inox, comme le produit 8
   const photo = fs.statSync(path.join(root, 'assets/anim/projet-transaction-shaker.webp')).size;
   assert.ok(photo > 10000 && photo < 80 * 1024, `la photo d’Elisa, légère : ${Math.round(photo / 1024)} Ko`);
-  /* Le service client : ses trois phrases, par SMS. */
+  /* Léa Simon écrit au service client, qui nous écrit à son tour (Elisa, 25 octobre, 18 h 36) : ses trois phrases, par SMS ; « Pense à conserver son prénom dessus » est retiré. */
+  assert.ok(val('CAPTIONS').some(c => c[2] === 'Elle envoie un message<br>au service client.'), 'la légende dit à qui Léa Simon écrit');
   assert.deepEqual([mails[1][0][0], mails[1][0][1], mails[1][2], mails[1][6]], ['Le service client', 'NutriBoost', 'équipe', {sms: true}]);
-  assert.deepEqual(mails[1][4], ['Nous allons lui envoyer gratuitement un nouveau shaker.', 'Peux-tu mettre à jour le stock et enregistrer le remplacement pour que l’équipe logistique le prépare ?',
-    'Pense à conserver son prénom dessus.']);
+  assert.deepEqual(mails[1][4], ['Léa vient de nous envoyer un message : elle a trouvé son shaker cassé.', 'Nous allons lui envoyer gratuitement un nouveau shaker.',
+    'Peux-tu mettre à jour le stock et enregistrer le remplacement pour que l’équipe logistique le prépare ?']);
+  assert.ok(!JSON.stringify(mails).includes('Pense à conserver'), 'plus de « Pense à conserver son prénom dessus »');
   /* Six arrêts « toucher », rien n’y est noté : les deux messages, la photo, les trois boutons de la trame. */
   assert.deepEqual(opens.map(o => o.sel), ['#ml1', '#ph1', '#ml2', '#bhow', '#bcom', '#brol']);
   assert.deepEqual(opens.map(o => o.label), ['Ouvrir le message de Léa Simon', 'Agrandir la photo du shaker cassé', 'Ouvrir le message du service client NutriBoost',
