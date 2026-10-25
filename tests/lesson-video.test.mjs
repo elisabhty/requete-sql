@@ -2846,3 +2846,28 @@ test('deux réponses enchaînées aux moments « À toi » : la pastille rouge d
     assert.equal(api.left(), null, `${f} : plus rien à nettoyer ensuite`);
   }
 });
+
+/* Elisa, 25 octobre, 22 h 20 : « Le scroll est difficile parfois ». L’écran du cours en vidéo (titre, vignette, bouton du
+   bas) dépassait de 13 à 157 px selon l’iPhone : il défilait de quelques pixels puis rebondissait. */
+test('cours en vidéo : tout tient en un écran, la vignette rapetisse du dépassement (jamais sous 230 px)', () => {
+  const slide = cut('function lessonVideoSlide(l){', 'function openLessonVideo(){');
+  assert.ok(slide.includes('<div class="ls-main lv-main">'), 'la diapositive du cours en vidéo est repérable');
+  assert.ok(html.includes('#lesson-body .ls-main.lv-main{padding-bottom:0}'), 'pas de réserve en plus sous la vignette : la barre du bas (collante) est déjà dans le flux');
+  assert.ok(html.includes('width:min(100%,420px,max(230px,min(calc(100svh - 430px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)),var(--lv-fit,9999px))));'),
+    'la largeur suit --lv-fit, sans descendre sous 230 px');
+  const flow = cut('function renderLessonFlow(){', 'function qfConfetti(anchor){');
+  assert.ok(flow.includes('if(lessonStep===0&&lessonHasVideo(l))lvCardFit();'), 'mesurée au rendu du cours');
+  const show = cut('function showScreen(){', 'function leaveLessonScreen(');
+  assert.equal(show.split('lvCardFit();').length - 1, 2, '… et quand l’écran du cours s’affiche (aussi au retour dans l’app)');
+  assert.ok(html.includes("addEventListener('resize',()=>requestAnimationFrame(lvCardFit));") && html.includes("visualViewport.addEventListener('resize',()=>requestAnimationFrame(lvCardFit));"),
+    'et quand la taille de l’écran change (rotation, barre de Safari)');
+  const props = {};
+  const card = { getBoundingClientRect: () => ({ width: 350 }) };
+  const box = { style: { removeProperty: k => { delete props[k]; }, setProperty: (k, v) => { props[k] = v; } }, querySelector: () => card };
+  const scr = { clientHeight: 780, scrollHeight: 903, querySelector: () => box };
+  const ctx = vm.createContext({ document: { getElementById: () => scr } });
+  vm.runInContext(cut('function lvCardFit(){', '/* Leçon seule validée') + ';this.fit=lvCardFit;', ctx);
+  ctx.fit(); assert.equal(props['--lv-fit'], '227px', '123 px de trop : la vignette perd 123 px');
+  scr.scrollHeight = 780; ctx.fit(); assert.equal(props['--lv-fit'], undefined, 'rien ne dépasse : la vignette reprend sa taille');
+  scr.clientHeight = 0; props['--lv-fit'] = '300px'; ctx.fit(); assert.equal(props['--lv-fit'], '300px', 'écran du cours caché : rien n’est mesuré');
+});

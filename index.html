@@ -75,7 +75,8 @@
   input::-moz-selection,textarea::-moz-selection{background:rgba(91,91,214,.20);color:inherit}
   .editor-area textarea::selection{background:rgba(255,255,255,.28);color:transparent}
   .editor-area textarea::-moz-selection{background:rgba(255,255,255,.28);color:transparent}
-  html{height:100%;overflow-x:hidden}
+  /* La page elle-même ne rebondit pas : seul l’écran actif (.screen) défile, comme dans une app (voir .screen). */
+  html{height:100%;overflow-x:hidden;overscroll-behavior-y:none}
   body{margin:0;min-height:100%;min-height:100dvh;overflow-x:hidden}
   body{font-family:var(--ui);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;overscroll-behavior:none;line-height:1.5}
   /* Voile d'ambiance : un halo violet très discret en haut de page donne de la
@@ -111,7 +112,11 @@
   #loader p{color:var(--ink-2);font-size:14px;margin:0;max-width:280px}
 
   .stage{flex:1 1 0;min-height:0;position:relative;overflow:hidden}
-  .screen{position:absolute;inset:0;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(120px + var(--safe-bottom) + var(--kbar-offset));display:none}
+  /* overscroll-behavior-y:contain : arrivé en haut ou en bas d’un écran, Safari iOS passait le geste à la page entière
+     (overscroll-behavior:auto = « la page peut prendre le relais ») : toute l’app rebondissait, et le geste suivant restait
+     à la page le temps du rebond, ou dès que le doigt partait un peu vers le bord. Le défilement « accrochait », surtout
+     juste en arrivant sur un écran (tout en haut). L’écran garde son propre rebond et ne passe plus jamais la main. */
+  .screen{position:absolute;inset:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;padding-bottom:calc(120px + var(--safe-bottom) + var(--kbar-offset));display:none}
   .screen.active{display:block}
   .screen.leaving{display:block;animation:screenOut .26s cubic-bezier(.32,.72,.28,1) both;z-index:1;pointer-events:none}
   .screen.push{animation:pushIn .34s cubic-bezier(.32,.72,.28,1);z-index:2;background:var(--bg)}
@@ -2904,7 +2909,7 @@
   .viz-head b{font-size:16.5px;font-weight:750;letter-spacing:-.2px;flex:1}
   .viz-head button{background:rgba(118,118,128,.14);border:none;border-radius:50%;width:32px;height:32px;font-size:14px;font-weight:700;color:var(--ink-2);cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;touch-action:manipulation;transition:transform .16s var(--spring-ios),background .16s}
   .viz-head button:active{transform:scale(.92);background:rgba(118,118,128,.24)}
-  .viz-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px 18px calc(18px + var(--safe-bottom))}
+  .viz-body{flex:1;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;padding:18px 18px calc(18px + var(--safe-bottom))}
   .viz:has(.viz-nav) .viz-body{padding-bottom:18px}
   .viz-stepnum{font-family:var(--mono);font-size:11px;font-weight:750;letter-spacing:1px;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
   .viz-body h3{font-family:var(--mono);font-size:20px;font-weight:800;margin:0 0 8px;letter-spacing:-.4px}
@@ -6459,6 +6464,8 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
   padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);
   opacity:0;transform:translateY(28px) scale(.985);transition:opacity .26s ease,transform .38s cubic-bezier(.2,.8,.2,1)}
 .lv.on{opacity:1;transform:none}
+/* Pendant le fondu de fermeture (320 ms), le lecteur devenu transparent ne retient plus le doigt : on peut déjà faire défiler le cours. */
+.lv:not(.on){pointer-events:none}
 .lv:focus{outline:none}
 .lv-close{position:absolute;z-index:4;left:calc(env(safe-area-inset-left,0px) + 12px);top:calc(env(safe-area-inset-top,0px) + 10px)}
 .lv-ico{width:44px;height:44px;padding:0;border-radius:50%;border:2px solid var(--line,#E6E1F6);background:#fff;color:var(--ink,#221C46);display:grid;place-items:center;box-shadow:0 3px 0 var(--lip,#DCD5F2);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .12s,box-shadow .12s}
@@ -6838,7 +6845,11 @@ html[data-motion="reduce"] .lv-end-cat,html[data-motion="reduce"] .lv-end-bravo{
 .lv-end .lv-again[hidden]{display:none}
 .lv-end .lv-again svg{width:18px;height:18px}
 /* Dans le cours : la vignette qui rouvre la vidéo */
-.lv-lesson .lv-card{position:relative;display:block;container-type:inline-size;width:min(100%,420px,max(230px,calc(100svh - 430px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))));aspect-ratio:1/1;margin:18px auto 6px;padding:0;border:2px solid var(--line,#E6E1F6);border-radius:24px;overflow:hidden;background:#F4F2FC;box-shadow:0 5px 0 var(--lip,#DCD5F2);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:top .12s,box-shadow .12s}
+/* Le cours en vidéo tient en un écran, sans rien à faire défiler : la barre du bas est déjà dans le flux (collante), pas de
+   réserve en plus sous la vignette ; si le titre ou le sous-titre prennent plus de place, la vignette rapetisse (--lv-fit,
+   voir lvCardFit), jamais sous 230 px. */
+#lesson-body .ls-main.lv-main{padding-bottom:0}
+.lv-lesson .lv-card{position:relative;display:block;container-type:inline-size;width:min(100%,420px,max(230px,min(calc(100svh - 430px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)),var(--lv-fit,9999px))));aspect-ratio:1/1;margin:18px auto 6px;padding:0;border:2px solid var(--line,#E6E1F6);border-radius:24px;overflow:hidden;background:#F4F2FC;box-shadow:0 5px 0 var(--lip,#DCD5F2);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:top .12s,box-shadow .12s}
 /* L’appui enfonce la carte par sa position, sans transform : rien n’est mis sur un calque à part (Safari en laissait des restes, voir lvCardSync). */
 .lv-lesson .lv-card:active{top:4px;box-shadow:0 1px 0 var(--lip,#DCD5F2)}
 .lv-lesson .lv-card img{display:block;width:100%;height:100%;object-fit:contain;object-position:50% 50%}
@@ -14150,6 +14161,7 @@ function showScreen(){
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active','leaving'));
     scr.classList.add('active');
     scr.scrollTop=0;
+    lvCardFit();
     return;
   }
   if(cur&&cur!==scr){
@@ -14160,6 +14172,7 @@ function showScreen(){
     document.querySelectorAll('.screen').forEach(s=>{ if(s!==scr) s.classList.remove('active','leaving'); });
   }
   scr.classList.add('active','push'); scr.scrollTop=0;
+  lvCardFit();
   setTimeout(()=>scr.classList.remove('push'),340);
 }
 function leaveLessonScreen(toTab){
@@ -14697,6 +14710,16 @@ function lvCardSync(id){
   c.replaceWith(n);
   if(had)try{n.focus({preventScroll:true});}catch(e){}
 }
+/* La vignette du cours en vidéo tient dans l’écran avec le titre et le bouton du bas. Sinon l’écran défilait de quelques
+   dizaines de pixels puis rebondissait : on croyait que le défilement accrochait (Elisa, 25 octobre, 22 h 20 : « le scroll
+   est difficile parfois »). La vignette rapetisse du dépassement mesuré, jamais sous 230 px (voir .lv-card). */
+function lvCardFit(){
+  const scr=document.getElementById('scr-lesson'),box=scr&&scr.querySelector('#lesson-body .lv-lesson'),c=box&&box.querySelector('.lv-card');
+  if(!c||!scr.clientHeight)return;
+  box.style.removeProperty('--lv-fit');
+  const over=scr.scrollHeight-scr.clientHeight;
+  if(over>0)box.style.setProperty('--lv-fit',Math.floor(c.getBoundingClientRect().width-over)+'px');
+}
 /* Leçon seule validée à la fin de la vidéo : le bouton du haut devient « Voir le bilan » (vu en fermant la vidéo). */
 function lvNavSync(id){
   if(!current||current.id!==id||!current.leconSeule||!lecCompletee(id))return;
@@ -14710,7 +14733,7 @@ function lessonVideoSlide(l){
         ${l.leconSeule?(state.lessons[l.id]&&state.lessons[l.id].done?'<button class="ls-next" type="button" onclick="setLessonStep(3)">Voir le bilan</button>':`<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">${lvErreursMax(l)!=null?`Termine la vidéo avec ${lvErreursMax(l)} erreur${lvErreursMax(l)>1?'s':''} au plus`:lvSeuil(l)?`Valide la leçon&nbsp;: <br>réussis au moins ${lvSeuil(l)}&nbsp;exercices sur&nbsp;${v.moments}`:'Termine la vidéo pour valider la leçon'}</button>`)
           :locked?'<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">Termine la vidéo pour continuer</button>':'<button class="ls-next" type="button" onclick="setLessonStep(1)">Passer à l’exercice</button>'}
       </div>
-      <div class="ls-main">
+      <div class="ls-main lv-main">
         <div class="lesson-rich lv-lesson">
           <div class="l-kicker">Cours${m?`<span class="l-kicker-mod"> · ${m.titre}</span>`:''}</div><h1>${l.titre}</h1>${l.résumé?`<p class="l-sub">${l.résumé}</p>`:''}
           ${card}
@@ -17259,6 +17282,15 @@ function prStage(sc){
   /* cols sur une ligne : sa propre grille de colonnes (ex. une liste de valeurs au-dessus d’un tableau). */
   return sc.lanes.map(L=>`<div class="pr-lane${L.cls?' '+L.cls:''}${L.fold?' is-fold':''}"${L.k?` data-k="${L.k}"`:''}${L.cols?` style="--cols:${L.cols}"`:''}>${L.l?`<span class="pr-ll">${L.l}</span>`:''}<div class="pr-cells">${L.c.map(prCell).join('')}</div></div>`).join('');
 }
+/* Défilement en cours : un doigt posé sur l’écran, ou un défilement il y a moins de 200 ms (l’élan continue). Sur iPhone,
+   écrire scrollTop pendant ce temps arrête net l’élan : le défilement « a du mal à se faire ». Écouteurs passifs. */
+let doigtsPoses=0,defileLe=0;
+const noterDoigts=e=>{doigtsPoses=e.touches?e.touches.length:0;};
+document.addEventListener('touchstart',noterDoigts,{capture:true,passive:true});
+document.addEventListener('touchend',noterDoigts,{capture:true,passive:true});
+document.addEventListener('touchcancel',noterDoigts,{capture:true,passive:true});
+document.addEventListener('scroll',()=>{defileLe=performance.now();},{capture:true,passive:true});
+function enDefilement(){return doigtsPoses>0||performance.now()-defileLe<200;}
 /* ---------- Démarrage des animations ----------
    Une animation (scène du Problème ou du cours, carte d’envoi) ne se lance que lorsqu’elle est entièrement visible, hors
    en-tête et barre du bas, et que l’écran ne bouge plus depuis un court instant : on voit toujours son début, même en
@@ -17342,12 +17374,13 @@ function mountProbScene(cfg,slot,memo){
   root.innerHTML=`<div class="pr-h"><span>${hm?`<i class="pr-ico" aria-hidden="true">${hm[1]}</i><span>${hm[2]}</span>`:cfg.h}</span><button type="button" class="pr-replay" aria-label="Rejouer l’animation" title="Rejouer"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button></div><div class="pr-stage" aria-hidden="true"></div><div class="pr-caps" aria-hidden="true">${cfg.caps.map(c=>`<span class="pr-cap">${c}</span>`).join('')}</div>`;
   if(slot)slot.replaceWith(root);else memo.append(root);
   const stage=root.querySelector('.pr-stage'),caps=[...root.querySelectorAll('.pr-cap')];
-  let tok=0,timers=[];
+  let tok=0,timers=[],held=[],heldT=0;
   const q=k=>stage.querySelector(`[data-k="${k}"]`);
   const each=(v,f)=>(v||[]).forEach(f);
   const later=(f,ms,now)=>{if(now||!ms){f();return;}timers.push(setTimeout(()=>keepView(f),ms));};
   const reset=()=>{
     timers.forEach(clearTimeout);timers=[];
+    clearTimeout(heldT);heldT=0;held=[];
     root.querySelectorAll('.pr-fly').forEach(n=>n.remove());
     stage.innerHTML=prStage(cfg);
     if(cfg.cols)root.style.setProperty('--cols',cfg.cols);
@@ -17402,7 +17435,8 @@ function mountProbScene(cfg,slot,memo){
     const a=blockAfter(root,sc,r=>r.bottom<=sr.top);
     return a&&a.getBoundingClientRect().top<sr.bottom?a:null;
   };
-  const keepView=change=>{
+  const keepNow=list=>{
+    const change=()=>list.forEach(f=>f());
     const sc=root.closest('.screen');
     if(!sc){change();return;}
     const sr=sc.getBoundingClientRect();
@@ -17416,6 +17450,25 @@ function mountProbScene(cfg,slot,memo){
       if(dh)sc.scrollTop+=dh;
       requestAnimationFrame(()=>root.classList.remove('is-instant'));
     }
+  };
+  /* Pendant que l’élève fait défiler (doigt posé, ou élan), ce décalage arrêterait net l’élan sur iPhone : l’étape d’une
+     scène déjà dépassée attend la fin du défilement — elle est hors de l’écran, rien ne se voit. Les étapes mises de côté
+     passent ensuite ensemble, dans l’ordre, avec un seul décalage. */
+  const flushHeld=()=>{
+    heldT=0;
+    if(!held.length)return;
+    if(root.isConnected&&enDefilement()){heldT=setTimeout(flushHeld,150);return;}
+    const list=held;held=[];
+    if(root.isConnected)keepNow(list);
+  };
+  const keepView=change=>{
+    const sc=root.closest('.screen');
+    if(held.length||(sc&&enDefilement()&&root.getBoundingClientRect().top<sc.getBoundingClientRect().top-1)){
+      held.push(change);
+      if(!heldT)heldT=setTimeout(flushHeld,150);
+      return;
+    }
+    keepNow([change]);
   };
   const play=async()=>{
     if(reduce){finish();return;}
@@ -17477,13 +17530,17 @@ function initRunSqlSlots(){
         mo.disconnect();
         const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
         /* Le résultat d’abord, puis le commentaire qui l’explique. Si on a déjà défilé plus bas, le texte lu ne bouge pas. */
-        setTimeout(()=>{
+        const montrer=()=>{
           const sc=wrap.closest('.screen'),next=sc&&blockAfter(notes[notes.length-1],sc);
           const keep=!!(sc&&next&&wrap.getBoundingClientRect().bottom<=sc.getBoundingClientRect().top);
+          /* Cadre déjà au-dessus de l’écran pendant un défilement : le commentaire attend la fin du geste (le décalage
+             arrêterait net l’élan sur iPhone). */
+          if(keep&&enDefilement()){setTimeout(montrer,150);return;}
           const y0=keep?next.getBoundingClientRect().top:0;
           notes.forEach(n=>{n.classList.remove('ij-await');if(!reduce)n.classList.add('ij-await-in');});
           if(keep){const dy=next.getBoundingClientRect().top-y0;if(dy)sc.scrollTop+=dy;}
-        },reduce?0:700);
+        };
+        setTimeout(montrer,reduce?0:700);
       });
       mo.observe(res,{attributes:true,attributeFilter:['hidden']});
     }
@@ -17510,7 +17567,8 @@ function initRunSqlSlots(){
         done.animate([{height:'0px',marginTop:'0px',marginBottom:'0px',paddingTop:'0px',paddingBottom:'0px'},{height:h+'px',marginTop:cs.marginTop,marginBottom:cs.marginBottom,paddingTop:cs.paddingTop,paddingBottom:cs.paddingBottom}],{duration:460,easing:'cubic-bezier(.4,0,.2,1)'}).onfinish=()=>{done.style.overflow='';};
       }
       if(navigator.vibrate)navigator.vibrate([8,40,14]);
-      setTimeout(()=>done.scrollIntoView({behavior:reduce?'auto':'smooth',block:wrap.closest('.qf-run')?'center':'nearest'}),reduce?0:500);
+      /* On y descend, sauf si l’élève fait déjà défiler lui-même : le défilement automatique tirerait l’écran sous son doigt. */
+      setTimeout(()=>{if(!enDefilement())done.scrollIntoView({behavior:reduce?'auto':'smooth',block:wrap.closest('.qf-run')?'center':'nearest'});},reduce?0:500);
     };
     new MutationObserver(reveal).observe(res,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
   });
@@ -17962,6 +18020,7 @@ function renderLessonFlow(){
   document.getElementById('lesson-body').innerHTML=`
     <div class="ls-bars${lessonStep===3?' bravo-hide':''}" role="group" aria-label="Progression de la leçon">${bars}</div>
     <div class="ls-slide${lessonStepDir<0?' is-back':''}">${slide}</div>`;
+  if(lessonStep===0&&lessonHasVideo(l))lvCardFit();
   if(lessonStep===1){
     setupEditor('ed-lesson','hl-lesson');
     const d=state.lessons[l.id]&&state.lessons[l.id].draft;
@@ -22416,7 +22475,9 @@ function armerAppuiLong(e){
   document.addEventListener('pointermove',bouger);
   document.addEventListener('pointerup',fini);
   document.addEventListener('pointercancel',fini);
-  if(!souris)lpTimer=setTimeout(()=>{lpTimer=null;demarrer(x,y,'medium');},240);
+  /* 400 ms, proche de l’appui long d’iOS : à 240 ms, un doigt posé un instant avant de faire défiler le planning soulevait
+     la carte au lieu de faire défiler. */
+  if(!souris)lpTimer=setTimeout(()=>{lpTimer=null;demarrer(x,y,'medium');},400);
 }
 function annulerAppuiLong(){
   if(lpTimer){clearTimeout(lpTimer);lpTimer=null;}
@@ -24861,6 +24922,10 @@ if(learnScreen){
   const tabbar=document.querySelector('.tabbar');
   if(tabbar) tabbar.addEventListener('click',()=>tuck(false));
 })();
+/* La vignette du cours en vidéo se recale quand la taille de l’écran change (rotation, barre de Safari, police chargée). */
+addEventListener('resize',()=>requestAnimationFrame(lvCardFit));
+if(window.visualViewport)visualViewport.addEventListener('resize',()=>requestAnimationFrame(lvCardFit));
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(lvCardFit).catch(()=>{});
 
 boot();
 
@@ -24870,7 +24935,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2051';
+  const SW_CACHE='requete-2026-10-12-ludique-v2052';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
