@@ -4611,7 +4611,7 @@
   }
   .tab:active{transform:scale(.93)}
   .tab.active{background:transparent;color:var(--accent-ink);font-weight:720}
-  .tab svg{width:21px;height:21px;padding:4px;box-sizing:content-box;border-radius:12px;transition:transform .3s var(--bounce-ios),background .25s ease,box-shadow .25s ease}
+  .tab svg{overflow:visible;width:21px;height:21px;padding:4px;box-sizing:content-box;border-radius:12px;transition:transform .3s var(--bounce-ios),background .25s ease,box-shadow .25s ease}
   .tab.active svg{background:var(--accent-soft);box-shadow:inset 0 0 0 1px rgba(88,86,214,.09),0 3px 8px -3px rgba(91,91,214,.3);transform:scale(1.1)}
   .tab-label{display:flex;align-items:center;justify-content:center;max-width:100%;min-height:10px;white-space:nowrap;overflow:hidden;text-overflow:clip;line-height:1.1;text-align:center}
   .tab-label-stack{flex-direction:column;line-height:1.02}
@@ -6452,7 +6452,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=19">
+<link rel="stylesheet" href="ludique.css?v=20">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -15700,6 +15700,7 @@ function lvPkShow(i,p){
   </div>`;
   LV.root.appendChild(box);
   LV.root.classList.add('is-q','is-pk');
+  lvCapHide(true);
   /* Moment commencé puis laissé : pas de démonstration, il reprend là où on l’a laissé (lvPkRestore, plus bas). */
   let draft=lvPkDraft(LV.id,i);
   if(draft&&draft.f!==lvPkSig(p)){ lvPkDrop(LV.id,i); draft=null; }
@@ -16017,6 +16018,10 @@ function lvZoomTo(z){
   };
   LV.zoomRaf=requestAnimationFrame(step);
 }
+/* Pendant un moment « À toi », la légende de l’image (« À toi ! ») se cache : la feuille la recouvrait, mais quand l’image se réduit pour
+   faire place à la feuille, puis que la feuille raccourcit (étiquettes rangées), la légende remontée dépassait au-dessus d’elle
+   (Elisa, 25 octobre, 16 h 56 : « il y a un cadre en dessous, ça fait bizarre »). Une vidéo en fichier n’a pas de légende à cacher. */
+function lvCapHide(on){ try{ const w=LV&&LV.video&&LV.video.win, d=w&&w.document; if(d&&d.body)d.body.classList.toggle('lv-pk-open',on); }catch(e){} }
 function lvPkClose(answered){
   const P=LV&&LV.pk; if(!P)return;
   LV.pk=null;
@@ -16024,6 +16029,7 @@ function lvPkClose(answered){
   clearTimeout(P.timer); clearTimeout(P.demo); if(P.demoEl)P.demoEl.remove();
   clearTimeout(P.fitT); lvZoomTo(1);   // l’image réduite pour le plateau reprend sa taille
   LV.root.classList.remove('is-q','is-pk');
+  lvCapHide(false);
   if(P.layer)P.layer.remove();
   /* Une étiquette en plein glisser (ou le trou qu’elle visait) ne survit pas au plateau. */
   LV.root.querySelectorAll('.lv-pk-fly.is-drag,.lv-pk-target').forEach(e=>e.remove());
@@ -25106,7 +25112,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2041';
+  const SW_CACHE='requete-2026-10-12-ludique-v2042';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
