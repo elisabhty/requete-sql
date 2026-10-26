@@ -140,7 +140,9 @@ export function textes(file) {
     const [phrase, precision] = m[1].split('<span class="rs">');
     ajoute('recap', phrase, 'récapitulatif'); if (precision) ajoute('recap', precision.replace(/<\/span>[\s\S]*$/, ''), 'récapitulatif, précision');
   }
-  const scripts = [...src.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
+  /* La réponse de l’élève à toute l’équipe (chapitre 17, const RPP) : la lettre d’Elisa, mot pour mot (26 octobre, 23 h 53). Une lettre
+     écrite à la première personne, avec ses « je vous » et son « accueil chaleureux » : les règles de la narration ne la concernent pas. */
+  const scripts = [...src.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n').replace(/const RPP = \[[\s\S]*?\];/, '');
   litteraux(scripts).filter(estDeLaProse).forEach(t => ajoute('autre', t, 'texte de la page'));
   textesDuBalisage(src).filter(estDeLaProse).forEach(t => ajoute('autre', t, 'texte de la page'));
   return out;
@@ -189,7 +191,9 @@ export function textesVideo(file) {
     (p.options || []).forEach((o, k) => { ajoute('option', o.label, `moment ${i + 1}, réponse ${k + 1}`); ajoute('correction', o.why, `moment ${i + 1}, correction ${k + 1}`); });
     (p.spots || []).forEach((z, k) => ajoute('correction', z.why, `moment ${i + 1}, zone ${k + 1}`));
   });
-  const scripts = [...src.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
+  /* La réponse de l’élève à toute l’équipe (chapitre 17, const RPP) : la lettre d’Elisa, mot pour mot (26 octobre, 23 h 53). Une lettre
+     écrite à la première personne, avec ses « je vous » et son « accueil chaleureux » : les règles de la narration ne la concernent pas. */
+  const scripts = [...src.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n').replace(/const RPP = \[[\s\S]*?\];/, '');
   litteraux(scripts).filter(estDeLaProse).forEach(t => ajoute('autre', t, 'texte de la page'));
   textesDuBalisage(src).filter(estDeLaProse).forEach(t => ajoute('autre', t, 'texte de la page'));
   return out;

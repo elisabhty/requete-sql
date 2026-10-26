@@ -171,6 +171,7 @@ const PRECACHE = [
   './assets/anim/projet-index-scan.webp',
   './assets/anim/projet-droits-thumb.webp',
   './assets/anim/projet-droits-lina.webp',
+  './assets/anim/projet-droits-equipe.webp',
   './assets/fonts/jetbrains-mono.woff2',
   './assets/fonts/inter-medium.woff2',
   './assets/fonts/inter-semibold.woff2',
