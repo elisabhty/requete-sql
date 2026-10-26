@@ -9228,128 +9228,38 @@ guide({ id:64, titre:"CREATE VIEW", résumé:"Enregistrer une requête sous un n
   ]
 }),
 guide({ id:57, titre:"Les index et EXPLAIN", résumé:"Accélérer une recherche et lire son plan",
-  sit:{
-    blocks:[
-      "L’équipe commerciale répond chaque jour à des clients qui veulent connaître l’état de leur commande. Pour la retrouver, elle n’a qu’une information : <b>son numéro</b>.",
-      "La table <code>commandes</code> contient aujourd’hui <b>16 commandes</b>, mais la boutique en comptera bientôt des millions. Pour répondre à un client, l’équipe souhaite récupérer uniquement :",
-      {need:[["📅","La date de la commande","table commandes"],["🚚","Son statut","table commandes"],["🔢","La quantité commandée","table commandes"]],label:"Les informations à récupérer"}
-    ],
-    problem:{
-      p:["Avec <code>WHERE</code>, SQL sait déjà retrouver la commande qui porte un numéro donné.","Or, rien n’indique à SQL <b>où</b> se trouve ce numéro : il doit <b>lire les commandes une par une</b>."],
-      scene:{h:"🔎 Recherche d’un numéro",cols:".4fr 1.6fr",
-        lanes:[{c:[["h1","id","t"],["h2","numero_commande","t"]]},
-          {k:"R1",c:[["a1","1"],["a2","CMD-2026-1002481"]]},
-          {k:"R2",c:[["b1","2"],["b2","CMD-2026-1003912"]]},
-          {k:"R3",c:[["c1","3"],["c2","CMD-2026-1015630"]]},
-          {k:"R4",c:[["d1","…"],["d2","…"]]},
-          {k:"R5",c:[["e1","14"],["e2","CMD-2026-1847392"]]}],
-        caps:["<b>Notre table</b> · Les commandes sont rangées dans l’ordre d’arrivée : rien n’indique où se trouve un numéro.","<b>Recherche</b> · L’équipe cherche <b>CMD-2026-1847392</b>, un numéro parmi des millions.","<b>Besoin</b> · Seule cette ligne nous intéresse."],
-        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R3","R4"],dim:["R1","R2","R3","R4"],d:2300},{cap:2,fold:["R1","R2","R3","R4"],d:2600}]},
-      then:["Il faut donc donner à SQL un moyen d’aller <b>directement</b> à la ligne cherchée, sans lire toute la table.","C’est exactement le rôle d’un <code>INDEX</code>."]
-    },
-    mission:"Aide l’équipe commerciale à retrouver plus vite la <b>date</b>, le <b>statut</b> et la <b>quantité</b> d’une commande à partir de son <b>numéro</b>, en créant l’index <b>idx_commandes_numero</b> sur la colonne <b>numero_commande</b>, afin que SQL n’ait plus à parcourir toute la table."
-  },
-  concept:{
-    title:"Comment SQL peut-il savoir où se trouve une commande ?",
-    blocks:[
-      "SQL a besoin de ce que le lecteur d’un livre trouve à la fin : un <b>index</b>, une liste rangée qui indique où trouver chaque élément.",
-      {ask:"À quelle ligne se trouve ce numéro ?"},
-      "Dans une base, l’index range les valeurs d’une colonne et note, en face de chacune, la ligne qui la contient. Il est stocké à côté de la table, qui ne change pas. On le crée avec <code>CREATE INDEX</code> :",
-      {syntax:"⟦CREATE INDEX idx_commandes_numero⟧\nON commandes(numero_commande);"},
-      {scene:{h:"📖 Un index pour la table",cols:"1.7fr .8fr",
-        lanes:[{c:[["h1","numero_commande","t"],["h2","ligne","t"]]},
-          {k:"I1",c:[["a1","CMD-2026-1002481"],["a2","1"]]},
-          {k:"I2",c:[["b1","CMD-2026-1015630"],["b2","3"]]},
-          {k:"I3",c:[["c1","CMD-2026-1134085"],["c2","16"]]},
-          {k:"I4",c:[["d1","CMD-2026-1847392"],["d2","14"]]},
-          {k:"G",l:"Ligne 14 de la table commandes",cls:"is-goal",fold:true,cols:"1fr",c:[["g1","14 · 2026-07-30 · en_preparation"]]}],
-        caps:["<b>L’index</b> · Les numéros sont rangés dans l’ordre.","<b>Recherche</b> · SQL repère CMD-2026-1847392 dans cette liste rangée, sans regarder les autres lignes de la table.","<b>Accès direct</b> · L’index indique la ligne 14 : SQL va la lire directement dans la table."],
-        steps:[{cap:0,on:["I1","I2","I3","I4"],d:2000},{cap:1,off:["I1","I2","I3"],dim:["I1","I2","I3"],d:2400},{cap:2,unfold:["G"],on:["G"],d:2800}]}}
-    ]
-  },
-  steps:[
-    {h:"Voir comment SQL cherche",blocks:[
-      "Pour voir comment SQL s’y prend, on place <code>EXPLAIN QUERY PLAN</code> devant une requête : SQL affiche alors son <b>plan</b> au lieu des lignes. Dans SQLite, il faut l’écrire en entier : <code>EXPLAIN</code> seul affiche le programme interne, bien moins lisible, et <code>EXPLAIN ANALYZE</code> n’existe pas.",
-      {syntax:"⟦EXPLAIN QUERY PLAN⟧\nSELECT *\nFROM produits\nWHERE nom = 'Magnésium';"},
-      {say:"👇 Exécute cette requête pour voir comment SQL cherche un produit à partir de son nom :",run:"EXPLAIN QUERY PLAN\nSELECT *\nFROM produits\nWHERE nom = 'Magnésium';"},
-      {arrow:"La colonne <code>detail</code> décrit le plan : <b>SCAN produits</b> signifie que SQL parcourt toute la table, car aucun index ne porte sur <code>nom</code>."},
-      {warn:{t:"SCAN ne veut pas dire « faux »",blocks:[
-        "Un <code>SCAN</code> est logique quand on demande toutes les lignes, ou presque :",
-        {say:"👇 Teste par toi-même :",run:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients;"},
-        "Pour tout afficher, lire toute la table est la seule solution : le plan sert à <b>comprendre</b> le choix de SQL, pas à traquer le mot <code>SCAN</code>."
-      ]}}
-    ]},
-    {h:"Créer un index",blocks:[
-      "Un index sur la colonne <code>nom</code> peut accélérer cette recherche :",
-      {syntax:"CREATE INDEX ⟦idx_produits_nom⟧\nON ⟦produits(nom)⟧;"},
-      {looks:[["idx_produits_nom","est le nom donné à l’index"],["produits(nom)","désigne la table et la colonne à indexer"]]},
-      {say:"👇 Exécute ces instructions pour créer l’index, puis refaire le plan :",run:"CREATE INDEX idx_produits_nom\nON produits(nom);\n\nEXPLAIN QUERY PLAN\nSELECT *\nFROM produits\nWHERE nom = 'Magnésium';"},
-      {arrow:"Le plan annonce maintenant <b>SEARCH … USING INDEX idx_produits_nom</b> : SQL passe par l’index. La requête n’a pas changé, c’est SQL qui choisit de s’en servir."},
-      {tip:{t:"Un index a un coût",blocks:["Un index occupe de la place, et SQL doit le mettre à jour à chaque <code>INSERT</code>, <code>UPDATE</code> ou <code>DELETE</code>. On n’indexe donc que les colonnes souvent recherchées, pas toutes « au cas où »."]}},
-      {tip:{t:"Des index déjà là",blocks:["Une colonne <code>PRIMARY KEY</code> ou <code>UNIQUE</code>, comme <code>email</code> dans <code>clients</code>, reçoit un index automatique : inutile d’en créer un."]}},
-      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux créer des index sans rien abîmer. À chaque essai, l’index <code>idx_produits_nom</code> n’existe plus."]}}
-    ]},
-    {h:"Vérifier que SQL s’en sert",blocks:[
-      "Créer un index ne suffit pas : encore faut-il que SQL puisse s’en servir, et seul le plan le montre. Ici, l’index existe sur <code>nom</code>, mais la recherche applique une fonction à la colonne :",
-      {say:"👇 Exécute ces instructions pour créer l’index, puis voir si SQL l’utilise :",run:"CREATE INDEX idx_produits_nom\nON produits(nom);\n\nEXPLAIN QUERY PLAN\nSELECT *\nFROM produits\nWHERE LOWER(nom) = 'magnésium';"},
-      {arrow:"Malgré l’index, le plan annonce <b>SCAN produits</b> : en transformant la colonne avec <code>LOWER</code>, la recherche empêche SQL de s’appuyer sur l’index. Avec <code>WHERE nom = 'Magnésium'</code>, comme à l’étape précédente, il l’utilise."}
-    ]},
-    {h:"Indexer plusieurs colonnes",blocks:[
-      "Quand une recherche porte sur deux colonnes, un seul index peut les couvrir : c’est un <b>index composite</b>. Les colonnes se listent entre parenthèses, dans l’ordre voulu :",
-      {syntax:"CREATE INDEX idx_commandes_client_date\nON commandes(⟦client_id, date_commande⟧);"},
-      {scene:{h:"🗂️ Un index sur deux colonnes",cols:"1fr 1.4fr .6fr",
-        lanes:[{c:[["h1","client_id","t"],["h2","date_commande","t"],["h3","ligne","t"]]},
-          {k:"I1",c:[["a1","1"],["a2","2026-07-02"],["a3","1"]]},
-          {k:"I2",c:[["b1","1"],["b2","2026-07-02"],["b3","2"]]},
-          {k:"I3",c:[["c1","1"],["c2","2026-07-28"],["c3","13"]]},
-          {k:"I4",c:[["d1","2"],["d2","2026-07-05"],["d3","3"]]},
-          {k:"I5",c:[["e1","2"],["e2","2026-07-20"],["e3","10"]]}],
-        caps:["<b>L’index</b> · Les entrées sont rangées d’abord par client, puis par date à l’intérieur de chaque client.","<b>client_id = 1</b> · SQL va directement au groupe du client 1 : les autres clients sont ignorés.","<b>date_commande ≥ 2026-07-15</b> · Dans ce groupe, les dates sont rangées : il ne reste que la ligne 13."],
-        steps:[{cap:0,on:["I1","I2","I3","I4","I5"],d:2000},{cap:1,off:["I4","I5"],dim:["I4","I5"],d:2400},{cap:2,off:["I1","I2"],dim:["I1","I2"],d:2600}]}},
-      {say:"👇 Exécute ces instructions pour voir le plan de la recherche des commandes d’un client à partir d’une date :",run:"CREATE INDEX idx_commandes_client_date\nON commandes(client_id, date_commande);\n\nEXPLAIN QUERY PLAN\nSELECT *\nFROM commandes\nWHERE client_id = 1\n  AND date_commande >= '2026-07-15';"},
-      {arrow:"Le plan utilise les deux colonnes de l’index : <b>client_id=? AND date_commande&gt;?</b> (le <code>?</code> remplace la valeur cherchée)."},
-      {warn:{t:"L’ordre des colonnes compte",blocks:[
-        "Une recherche qui ne porte que sur la date ne peut pas profiter de ce rangement : les dates ne sont rangées qu’<b>à l’intérieur</b> de chaque client.",
-        {say:"👇 Teste par toi-même :",run:"CREATE INDEX idx_commandes_client_date\nON commandes(client_id, date_commande);\n\nEXPLAIN QUERY PLAN\nSELECT *\nFROM commandes\nWHERE date_commande >= '2026-07-15';"},
-        "SQL revient à un <b>SCAN</b> : pour cette recherche, il faudrait un index qui commence par <code>date_commande</code>."
-      ]}}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : créer l’index sur le numéro de commande, puis vérifier que SQL l’utilise pour retrouver la commande cherchée.",
-      {say:"👇 Exécute les instructions pour créer l’index et vérifier le plan de la recherche :",run:"CREATE INDEX idx_commandes_numero\nON commandes(numero_commande);\n\nEXPLAIN QUERY PLAN\nSELECT date_commande, statut, quantite\nFROM commandes\nWHERE numero_commande = 'CMD-2026-1847392';"},
-      {done:{
-        label:"De 16 commandes à parcourir à une commande lue directement",
-        unit:"free",
-        funnel:[
-          {n:16,t:"commandes à parcourir",s:"sans index, SQL lit la <code>table commandes</code> ligne par ligne",dots:"0000000000000000"},
-          {step:"CREATE INDEX idx_commandes_numero",s:"range les numéros dans un index, à côté de la table"},
-          {n:1,t:"⭐ commande lue directement",s:"CMD-2026-1847392, sans lire les 15 autres",dots:"0000000000000100",out:true}
-        ],
-        page:{ico:"🔎",h:"Recherche par numéro",aria:"Dans l’outil interne, le numéro CMD-2026-1847392 est tapé ; la commande s’affiche aussitôt, retrouvée par l’index : commandée le 30 juillet 2026, en préparation, 2 unités ; le plan annonce SEARCH … USING INDEX",url:"outil interne › commandes",layout:"search",search:{q:"CMD-2026-1847392",chip:"⚡ via l’index"},hit:{k:"Fiche de la commande",t:"CMD-2026-1847392",s:"Commandée le 30 juillet\u00a02026 · en préparation · 2 unités"},kicker:"Plan de la recherche",text:3,hlWord:"SEARCH",stamp:"Accès direct",delay:0.5,sg:1.2,rows:[[3,0,0,"SEARCH commandes USING INDEX idx_commandes_numero (numero_commande=?)"]],done:"✓ Réponse prête pour le client : statut et quantité"},
-        fill:["CREATE INDEX","idx_commandes_numero","commandes","numero_commande"],
-        ui:{t:"Une commande retrouvée directement",s:"Le plan annonce SEARCH et non plus SCAN : SQL passe par l’index.",n:["CREATE INDEX","ON","EXPLAIN QUERY PLAN"]},
-        rows:1
-      }}
-    ]}
-  ],
+  /* Projet, chapitre 16, en vidéo interactive : l’animation (assets/anim/projet-index.html, moteur commun assets/anim/core.js) est le
+     cours. La trame est celle d’Elisa (26 octobre, 10 h 52, « INDEX / EXPLAIN — La file d’attente s’allonge »), transposée à la
+     préparation des commandes avec sa photo de remplacement (11 h 57 : le bon « Commande NB-10482 » et son QR code, « Recherche de la
+     commande… ») ; ses bulles sont gardées mot pour mot, le billet devenant la commande. Elle s’ouvre comme les autres chapitres
+     (« Depuis le chapitre 1… », « Au chapitre 15, une vue a présenté la sélection de la box à l’agence »). 1 · La file d’attente
+     s’allonge : au service logistique, on scanne le QR code de chaque commande ; « Recherche de la commande… » reste affiché, la file des
+     commandes à préparer s’allonge ; l’équipe logistique écrit par SMS (« On vient de lancer les expéditions du jour et la recherche des
+     commandes est trop lente ! La table contient 500 000 commandes, y compris les anciennes. Peux-tu regarder ce qui se passe ? »).
+     2 · La recherche de la commande : SELECT * FROM commandes WHERE numero_commande = 'NB-10482' (moment 1 : sans index, toutes les
+     lignes sont lues). 3 · Lire le plan : EXPLAIN QUERY PLAN, l’élève touche « Exécuter » : SCAN commandes ; les deux bulles d’Elisa ;
+     les commandes défilent, année après année, jusqu’à 500 000 lignes lues (moment 2 : une table deux fois plus grande, une recherche
+     deux fois plus lente). 4 · Créer l’index : CREATE INDEX idx_commandes_numero ON commandes(numero_commande) (moment 3 : la colonne
+     à indexer), ses deux bulles ; l’élève touche « Créer l’index » : les numéros dans l’ordre, chacun avec l’identifiant de sa ligne.
+     5 · Le nouveau plan : SEARCH commandes USING INDEX idx_commandes_numero (numero_commande=?) (moment 4 : la partie qui montre
+     l’index) ; scannée à nouveau, la commande de Léa Simon est retrouvée aussitôt. 6 · Le plan ou la mesure ? Sa bulle, puis la mesure
+     de SQLite sur ces 500 000 commandes : environ 400 fois plus rapide (moment 5 : ce que donne le plan, ce que donne une mesure).
+     7 · Des index partout ? Son dernier choix (moment 6), puis son explication. La fin annonce la prochaine leçon, Sécurité et droits
+     (une nouvelle collègue et ses accès). Six moments « À toi », comme aux chapitres du projet ; leçon seule : ni exercice ni quiz dans
+     la vidéo, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments ratés. Elle remplace
+     l’ancien cours texte Les index et EXPLAIN (la commande retrouvée par son numéro, la boîte à fiches). */
+  leconSeule:true,
+  video:{anim:'assets/anim/projet-index.html?app&embed',thumb:'assets/anim/projet-index-thumb.webp',duree:'3 min 56',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 3 min 48 (228,7 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:228.7,y:1308,card:[64,292,1016,1013],to:[940,255]}},
   reflex:[
     {recap:[
-      ["📖","Un <b>index</b> range les valeurs d’une colonne, comme celui d’un livre. On le crée avec <code>CREATE INDEX</code> :",null,"ON commandes(numero_commande)"],
-      ["🧭","<code>EXPLAIN QUERY PLAN</code> montre la méthode de SQL : <b>SCAN</b> lit toute la table, <b>SEARCH</b> passe par un index.",null,"EXPLAIN QUERY PLAN SELECT …"],
-      ["⚖️","Un index <b>accélère les recherches</b> mais alourdit les écritures : on n’indexe pas tout, puis on relance le plan pour vérifier qu’il sert."]
+      /* Les mots d’Elisa (sa trame, 26 octobre, 10 h 52), comme dans la vidéo : le plan, l’index, son coût. */
+      ["🔎","<code>EXPLAIN QUERY PLAN</code> montre comment la base prévoit d’exécuter une requête.","<code>SCAN</code> : la table est parcourue ; <code>SEARCH … USING INDEX</code> : l’index est utilisé."],
+      ["⚡","Un <b>index</b> permet de retrouver plus rapidement les lignes à partir d’une valeur recherchée.","Ici, le numéro de la commande sert à la retrouver."],
+      ["⚖️","Un index a un <b>coût</b> : il occupe de l’espace et doit être entretenu lorsque les données changent.","Crée-les pour les recherches qui en ont besoin."]
     ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"CREATE INDEX idx_commandes_numero",txt:"Crée un index et lui donne un nom."},{tok:"ON commandes",txt:"La table concernée."},{tok:"(numero_commande)",plain:1,txt:"La colonne qui sert à retrouver les lignes."}],
-  exemple:"CREATE INDEX idx_produits_nom ON produits(nom);",
-  attendu:"L’index est créé. La table <code>produits</code> garde les mêmes colonnes, et SQL dispose d’un chemin plus direct pour chercher par <code>nom</code>.",
-  retenir:"Un <b>index</b> fonctionne comme celui d’un livre : il range les valeurs d’une colonne et indique où trouver chaque ligne. Il est créé à côté de la table, qui ne change pas.<br><br>On le crée avec <code>CREATE INDEX nom ON table(colonne)</code>. SQL décide seul de l’utiliser : la requête ne change pas. <code>EXPLAIN QUERY PLAN</code> montre son choix : <code>SCAN</code> lit toute la table, <code>SEARCH … USING INDEX</code> passe par un index.<br><br>Un index accélère les recherches mais alourdit les écritures : on n’indexe que les colonnes souvent recherchées, puis on relance le plan pour vérifier qu’il est utilisé.",
-  consigne:"Crée un index nommé <code>idx_clients_ville</code> sur la colonne <code>ville</code> de la table <code>clients</code>.",
-  solution:"CREATE INDEX idx_clients_ville ON clients(ville);",
-  verif:"SELECT name AS colonne FROM pragma_index_info('idx_clients_ville');",
-  write:true,
-  indice:"Écris <code>CREATE INDEX</code>, le nom de l’index, puis <code>ON</code> suivi de la table et de la colonne entre parenthèses.",
-  testeVariants:[{k:"scan",label:"Sans index",sql:"EXPLAIN QUERY PLAN SELECT * FROM clients WHERE ville = 'Paris';",out:"SCAN clients : SQL parcourt les lignes. La colonne ville n’a pas encore d’index."},{k:"search",label:"Avec index",sql:"CREATE INDEX idx_clients_ville ON clients(ville);\nEXPLAIN QUERY PLAN SELECT * FROM clients WHERE ville = 'Paris';",out:"SEARCH clients USING INDEX idx_clients_ville : SQL utilise l’index. Le résultat de la requête reste identique.",tone:"good"}],
-  learningCheck:{question:"Quel est l’effet d’un index sur la requête WHERE numero_commande = 'CMD-2026-1847392' ?",options:["Le résultat change : d’autres lignes sont renvoyées","SQL retrouve la même ligne sans parcourir toute la table","La table commandes reçoit une nouvelle colonne"],answer:1,explanation:"Un index ne change ni le résultat ni les colonnes de la table : il donne à SQL un chemin plus direct vers les lignes cherchées."}
+  ]
 })
 ]},
 { titre:"Sécurité et droits", sous:"Contrôler les accès", lessons:[
@@ -9807,10 +9717,9 @@ const QCM={
  56:[{q:"Pourquoi répartir les données dans plusieurs tables ?",o:["Pour que les requêtes soient plus courtes","Pour qu’une information ne soit écrite qu’à un seul endroit","Pour économiser des noms de colonnes"],b:1,e:"Écrite une seule fois, elle se corrige une seule fois : la base ne peut plus se contredire."},
   {q:"Dans la grande table, la ville de Sophie est répétée à chaque commande. Que se passe-t-il si elle déménage ?",o:["SQL met à jour les autres lignes tout seul","Il faut corriger chaque ligne, et un oubli rend la base incohérente","La ville devient NULL"],b:1,e:"C’est l’anomalie de mise à jour, et c’est ce que la normalisation évite."},
   {q:"Le prix appartient à quelle table après normalisation ?",o:["commandes, puisqu’on l’y consulte","produits, puisqu’il décrit le produit","clients, puisque le client paie"],b:1,e:"Chaque colonne va dans la table dont elle décrit le sujet."}],
- 57:[{q:"Dans un plan, un parcours de table (<code>SCAN</code>) :",o:["Est toujours une erreur à corriger","Peut être le bon choix, par exemple si tu demandes toutes les lignes","Signifie que la table n’existe pas"],b:1,e:"<code>SELECT * FROM clients</code> doit parcourir la table. EXPLAIN sert à comprendre, pas à colorier le plan."},
-  {q:"<code>CREATE INDEX idx_clients_ville ON clients(ville)</code> :",o:["Ajoute une colonne ville","Crée une structure en plus : la table ne change pas","Change l’écriture du SELECT"],b:1,e:"L’index est à côté de la table. Tu continues d’écrire le même <code>WHERE ville = …</code>."},
-  {q:"Un index existe sur <code>nom</code>. La recherche <code>WHERE LOWER(nom) = 'magnésium'</code> passe-t-elle par lui ?",o:["Oui : l’index sert à toute recherche sur cette colonne","Non : la fonction appliquée à la colonne l’empêche de servir","Oui, mais seulement si la table est petite"],b:1,e:"Quand la colonne est transformée par une fonction, SQL ne peut plus s’appuyer sur l’index : le plan annonce un SCAN."},
-  {q:"Pourquoi ne pas indexer toutes les colonnes ?",o:["Parce qu’un index est interdit sur le texte","Parce qu’un index occupe de l’espace et doit être maintenu","Parce que les index ne sont pas utilisés"],b:1,e:"On indexe les colonnes vraiment utilisées pour chercher ou relier, pas toutes « au cas où »."}],
+ 57:[{q:"Que montre <code>EXPLAIN QUERY PLAN</code> placé devant une requête ?",o:["Le résultat de la requête, plus vite","Comment la base prévoit d’exécuter la requête","Le temps d’exécution de la requête"],b:1,e:"Le plan décrit la méthode : <code>SCAN</code> si la table est parcourue, <code>SEARCH … USING INDEX</code> si un index est utilisé. La durée, elle, se mesure."},
+   {q:"Le plan affiche <code>SCAN commandes</code>. Que se passe-t-il ?",o:["Toutes les lignes de la table commandes sont lues","Seule la ligne recherchée est lue","La table commandes est triée"],b:0,e:"Sans index sur la colonne recherchée, toutes les lignes sont lues : plus la table grandit, plus la recherche ralentit."},
+   {q:"Pourquoi ne pas créer un index sur toutes les colonnes ?",o:["Un index ne sert qu’une seule fois","Un index est interdit sur le texte","Chaque index occupe de l’espace et doit être entretenu lorsque les données changent"],b:2,e:"Crée les index pour les recherches qui en ont besoin, comme celle du numéro de commande."}],
  65:[{q:"À quoi sert <code>ALTER TABLE</code> ?",o:["À modifier la structure d’une table existante","À filtrer des lignes","À trier les résultats"],b:0,e:"Elle ajoute, renomme ou supprime des colonnes — sans recréer la table."},
   {q:"Comment ajouter une colonne <code>pays</code> ?",o:["<code>UPDATE clients ADD pays;</code>","<code>ALTER TABLE clients ADD COLUMN pays TEXT;</code>","<code>CREATE COLUMN pays;</code>"],b:1,e:"<code>UPDATE</code> ne crée pas de colonne, et <code>CREATE COLUMN</code> n’existe pas."},
   {q:"Quelle commande renomme une colonne en SQLite ?",o:["<code>CHANGE COLUMN</code>","<code>RENAME COLUMN … TO …</code>","<code>UPDATE COLUMN</code>"],b:1,e:"Les données restent : seul le nom change."},
@@ -12831,7 +12740,7 @@ const SQ_ALIASES={
   70:'trigger triggers declencheur declencher automatiquement action evenement after update on when old new current_timestamp create trigger garder_prix historique historique_prix prix collagene changement responsable commerciale stock nutriboost',
   71:'concurrence isolation verrou verrouiller lock for update select for update transaction begin commit rollback reservation derniere place places restantes places_restantes atelier cuisine saine acces simultanes simultane inscription conflit nutriboost',
   64:'create view vue vues requete enregistree sous un nom nommer as select from where catalogue_box catalogue box surprise selection selection_box agence colonnes lignes consulter consultation donnees actuelles recreer droits acces camille produits tisane magnesium nutriboost',
-  57:'index create index performance rapide optimiser recherche accelerer explain query plan plan d execution lenteur optimisation requete lente scan search',
+  57:'index create index performance rapide optimiser recherche accelerer explain query plan plan d execution lenteur optimisation requete lente scan search using index idx_commandes_numero numero_commande commande scan qr code logistique file d attente mesure temps d execution nutriboost',
   50:'securite droits grant revoke permissions acces utilisateurs roles'
 };
 const SQ={
@@ -25008,7 +24917,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2058';
+  const SW_CACHE='requete-2026-10-12-ludique-v2059';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

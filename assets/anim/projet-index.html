@@ -1,0 +1,980 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Projet, chapitre 16 : Les index et EXPLAIN</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:200px;top:398px;letter-spacing:-5px}
+#s0 .hilite{top:530px;height:56px}
+#s0 .sub{top:640px;font-size:46px}
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+.hid{opacity:0;visibility:hidden}
+/* Aperçu d’un geste (moment « À toi ») : il prend le pas sur la timeline, le temps de l’arrêt ; il montre exactement
+   l’image que la timeline affiche juste après l’arrêt, qui reprend donc sans saut. */
+.pvs{opacity:1!important;visibility:visible!important;transform:none!important}
+.pvh{opacity:0!important;visibility:hidden!important}
+/* Aperçu en douceur : une carte qui accompagne une bonne réponse n’apparaît jamais d’un coup, ni avant le verdict « Bien vu ! » */
+.pvf{visibility:visible!important;animation:pvf .45s ease-out both}
+@keyframes pvf{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* Couleur de chaque sujet : client, équipe NutriBoost (et carte de membre), inscription, coach, atelier,
+   puis les tables de la boutique : commande, produit, fidélité ; l’avis (chapitre 10), le remplacement (chapitre 11), le cadeau
+   (chapitre 12), l’historique des prix (chapitre 13), la vue catalogue_box (chapitre 15) ; puis l’index et le plan d’exécution (ce chapitre) */
+.k-co{--c:#2F80ED;--cs:#E6F0FD;--ci:#1D5FA8}
+.k-at{--c:#E8892B;--cs:#FFF1E2;--ci:#9A5B00}
+.k-cl{--c:#6A4DF4;--cs:#EEE9FF;--ci:#5335E0}
+.k-nb{--c:#D99A0B;--cs:#FFF6DA;--ci:#8A6200}
+.k-in{--c:#169447;--cs:#E2F6EA;--ci:#0F7A3A}
+.k-cm{--c:#0E9F9A;--cs:#DDF5F3;--ci:#0B6E6A}
+.k-pr{--c:#D9468F;--cs:#FCE8F2;--ci:#A3216A}
+.k-fi{--c:#9C6B3F;--cs:#F5ECE3;--ci:#7A4F27}
+.k-av{--c:#A23CC9;--cs:#F5E8FB;--ci:#7A2A9B}
+.k-rp{--c:#2B8FB8;--cs:#E3F3FA;--ci:#1B6585}
+.k-cd{--c:#C2410C;--cs:#FFEDD5;--ci:#9A3412}
+.k-hp{--c:#4F46E5;--cs:#ECEBFE;--ci:#3730A3}
+.k-vw{--c:#0891B2;--cs:#E0F5FA;--ci:#0E7490}
+.k-ix{--c:#0F766E;--cs:#DDF3EF;--ci:#115E59}
+.k-pl{--c:#7C3AED;--cs:#F1EAFE;--ci:#5B21B6}
+
+/* ---------- La base : une ligne par table (son nom, son nombre de lignes) ---------- */
+.bc{left:64px;width:952px;top:236px;padding:0 0 12px;overflow:hidden}
+.bh{height:72px;display:flex;align-items:center;gap:14px;padding:0 34px;background:var(--surface-2);font-family:var(--display);font-size:34px;font-weight:800;color:var(--ink);letter-spacing:-.4px;white-space:nowrap}
+.bh .emo{font-size:34px}
+.bn{margin-left:auto;display:inline-grid;font-family:var(--ui);font-size:25px;font-weight:700;letter-spacing:0}
+.bn>span{grid-area:1/1;height:44px;padding:0 20px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;white-space:nowrap}
+.srow{position:relative;height:64px;padding:12px 34px;overflow:hidden}
+.srow+.srow{box-shadow:inset 0 2px 0 var(--line-2)}
+.srow>div{position:relative;z-index:1}
+.srow .hl{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;opacity:0;visibility:hidden;background:var(--cs);box-shadow:inset 8px 0 0 var(--c)}
+.sn{display:flex;align-items:center;gap:14px;height:40px;font-family:var(--mono);font-size:31px;font-weight:800;color:var(--ci)}
+.sn .emo{font-size:32px}
+.sn .sp{flex:1}
+.nm{position:relative;display:inline-block;white-space:nowrap}
+.nb{display:inline-grid;font-family:var(--ui);font-size:23px;font-weight:700;color:var(--ink-3)}
+.nb>span{grid-area:1/1;justify-self:end;display:flex;align-items:center;justify-content:flex-end;height:36px;padding:0 14px;border-radius:999px;background:var(--line-2);white-space:nowrap}
+
+/* ---------- Les tables : lignes, colonnes, valeurs empilées ---------- */
+.tb{padding:0 0 10px;overflow:hidden;border-radius:40px}
+.tb .h{display:flex;align-items:center;gap:12px;height:64px;padding:0 24px;background:var(--cs);font-family:var(--mono);font-size:30px;font-weight:800;color:var(--ci);white-space:nowrap}
+.tb .h .emo{font-size:32px}
+.tb .bn>span{height:40px;font-size:23px;background:#fff;color:var(--ci);box-shadow:inset 0 0 0 3px var(--c)}
+.gr{display:grid;grid-template-columns:var(--g);align-items:stretch;padding:0 12px}
+.gr>span{position:relative;z-index:1;display:flex;align-items:center;gap:10px;min-width:0;padding:0 10px;white-space:nowrap;overflow:hidden}
+.hd{height:44px;font-family:var(--mono);font-size:24px;font-weight:700;color:var(--ink-3)}
+.hd .emo{font-size:21px;width:26px;flex:none;text-align:center}
+/* Une colonne dont l’en-tête porte une icône (🔑 id, 🔗 produit_id) : sa valeur commence sous le nom de la colonne, pas sous l’icône
+   (Elisa, 25 octobre, 15 h 18). 46 px = marge 10 + icône 26 + espace 10. */
+.tb .r>.c0{padding-left:46px}
+.gr>span.kc{color:var(--ci)}
+.r{position:relative;height:62px;font-family:var(--mono);font-size:30px;font-weight:600;color:var(--ink);box-shadow:inset 0 2px 0 var(--line-2);overflow:hidden}
+.r .hl,.r .wn,.r .xx{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;pointer-events:none;opacity:0;visibility:hidden}
+.r .hl{background:var(--cs);box-shadow:inset 6px 0 0 var(--c)}
+.r .wn{background:rgba(242,154,46,.2);box-shadow:inset 6px 0 0 #F29A2E}
+.r .xx{background:rgba(239,79,85,.15);box-shadow:inset 6px 0 0 var(--danger-fill)}
+.r .v{position:relative;z-index:1;font-style:normal}
+/* Une case peut changer de valeur : les valeurs successives sont empilées, une seule se voit */
+.sw{display:inline-grid;position:relative;z-index:1}
+.sw>*{grid-area:1/1;font-style:normal;white-space:pre}
+/* La case que l’élève doit toucher, puis la case entourée */
+.hc{position:absolute;left:4px;right:4px;top:5px;bottom:5px;z-index:0;border-radius:14px;background:var(--cs);box-shadow:inset 0 0 0 4px var(--c);opacity:0;visibility:hidden}
+/* Gestes de l’élève : case refusée */
+.gr>span.kof::after{content:"";position:absolute;left:3px;right:3px;top:6px;bottom:6px;z-index:3;border-radius:12px;background:rgba(239,79,85,.16);box-shadow:inset 0 0 0 4px var(--danger-fill);animation:kof .6s ease forwards}
+@keyframes kof{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+.r.kor{animation:kor .55s ease}
+@keyframes kor{0%,100%{background:transparent}30%{background:rgba(239,79,85,.18)}}
+.dbn.kob{animation:kob .45s ease}
+@keyframes kob{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+
+/* ---------- Les requêtes : une carte de code (un commentaire, puis la requête) ---------- */
+.sq{border-radius:34px;box-shadow:0 9px 0 #110E27}
+.sq .top{height:52px;gap:12px;padding:0 30px}
+.sq .dot{width:14px;height:14px}
+.sq .fname{margin-left:8px;font-size:22px}
+.sq .body{padding:18px 30px;font-size:28px;line-height:42px}
+.sq .ln{height:42px}
+.sq .cmt{color:var(--t-com)}
+.sq .caret i{top:-31px;width:4px;height:37px}
+.sq .glow{border-radius:8px;padding:0 3px;margin:0 -3px}
+.sq .str{color:var(--t-str)}
+
+.pack{left:0;width:1080px;display:flex;justify-content:center}
+.pack>span{height:84px;padding:0 34px 0 22px;border-radius:999px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);font-size:32px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:14px;white-space:nowrap}
+.pack .emo{font-size:40px}
+
+/* ---------- Le message reçu : la notification, puis la conversation (SMS, moteur commun) ---------- */
+.ml{left:64px;width:952px;top:560px;height:184px;padding:0 30px;overflow:hidden}
+/* Hors de l’app : le doigt qui touche la notification ou un bouton */
+.tapf{z-index:20;font-size:120px;margin:-8px 0 0 -44px;opacity:0;visibility:hidden}
+
+/* La suite : la prochaine leçon */
+.keyc{left:0;width:1080px;display:flex;justify-content:center}
+.keyc>span{height:96px;padding:0 40px 0 26px;border-radius:999px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 9px 0 #4B30CC;color:#fff;font-size:36px;font-weight:700;display:flex;align-items:center;gap:16px;white-space:nowrap}
+.keyc .emo{font-size:44px}
+
+/* ---------- À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px;padding:8px 0}
+#s7 .rrow{gap:22px;padding:18px 32px}
+#s7 .rico{width:88px;height:88px;border-radius:26px;font-size:46px}
+#s7 .rtxt{font-size:34px;line-height:1.25}
+#s7 .rtxt .rs{margin-top:2px;font-size:31px}
+/* ---------- Le scan d’une commande : la photo d’Elisa (26 octobre, 11 h 57), le bon « Commande NB-10482 » et son QR code ---------- */
+.phc{left:64px;width:952px;top:236px;height:691px;padding:0;border-radius:48px;overflow:hidden;background:#EDE5D8}
+.phc img{display:block;width:100%;height:100%;object-fit:cover;transform-origin:62% 30%}
+/* La file des commandes à préparer : une pastille dont le nombre grandit, puis diminue */
+.qch{position:absolute;left:26px;top:26px;height:64px;padding:0 26px 0 18px;border-radius:999px;background:rgba(255,255,255,.94);box-shadow:0 6px 0 rgba(34,28,70,.18);
+  font-size:30px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:12px;white-space:nowrap}
+.qch .emo{font-size:32px}
+.qch .sw>i{min-width:44px;text-align:right;color:#B42328}
+/* La commande retrouvée, posée sur l’écran de la photo */
+.fnd{position:absolute;left:530px;top:84px;width:396px;padding:22px 26px;border-radius:26px;background:#fff;box-shadow:0 0 0 3px #A7E3C0,0 14px 30px rgba(34,28,70,.22);opacity:0;visibility:hidden}
+.fnd .ft{display:flex;align-items:center;gap:10px;font-size:28px;font-weight:800;color:#1B7A45;white-space:nowrap}
+.fnd .ft .emo{font-size:32px}
+.fnd .fl{margin-top:10px;font-family:var(--mono);font-size:27px;font-weight:700;color:var(--ink);white-space:nowrap}
+.fnd .fl+.fl{margin-top:4px;font-family:var(--ui);font-weight:700;color:var(--ink-2)}
+
+/* ---------- La table commandes : un extrait (les plus anciennes, puis les plus récentes) ---------- */
+#tc .r{font-size:28px}
+#tc .gr>span{padding:0 10px}
+.r.rmore>span{grid-column:1/-1;justify-content:center;font-family:var(--ui);font-size:26px;font-weight:700;color:var(--ink-3)}
+.st{display:inline-flex;align-items:center;height:40px;padding:0 14px;border-radius:999px;font-family:var(--ui);font-size:22px;font-weight:800;white-space:nowrap}
+.st.ex{background:var(--line-2);color:var(--ink-3)}
+.st.ep{background:#FFF1E2;color:#9A5B00;box-shadow:inset 0 0 0 2px #F7C98E}
+
+/* ---------- Le plan d’exécution : ce que la base prévoit (EXPLAIN QUERY PLAN) ---------- */
+.pl{left:64px;width:952px;padding:0 0 12px;overflow:hidden}
+.pl .plh{height:66px;display:flex;align-items:center;gap:12px;padding:0 30px;background:var(--cs);color:var(--ci);font-size:30px;font-weight:800;white-space:nowrap}
+.pl .plh .emo{font-size:32px}
+.pl .pll{position:relative;display:flex;align-items:center;gap:14px;min-height:72px;padding:0 30px;font-family:var(--mono);font-size:31px;font-weight:700;color:var(--ink);white-space:nowrap}
+.pl .pll+.pll{box-shadow:inset 0 2px 0 var(--line-2)}
+.pl .pll .kw{color:#5B21B6}
+.pl .plb{margin-left:auto;height:46px;padding:0 18px;border-radius:999px;font-family:var(--ui);font-size:24px;font-weight:800;display:flex;align-items:center;gap:6px}
+.pl .plb.no{background:#FDECEC;color:#B42328;box-shadow:inset 0 0 0 2px #F5C2C4}
+.pl .plb.ok{background:#E7F7EE;color:#1B7A45;box-shadow:inset 0 0 0 2px #A7E3C0}
+/* Une partie du plan touchée (moment 4) : la mauvaise rougit un instant, la bonne s’entoure */
+.pl .pll>span{position:relative;z-index:1}
+.pl .pll .hc{left:12px;right:12px;top:6px;bottom:6px}
+.pl .pll.kof::after{content:"";position:absolute;left:8px;right:8px;top:6px;bottom:6px;z-index:3;border-radius:14px;background:rgba(239,79,85,.16);box-shadow:inset 0 0 0 4px var(--danger-fill);animation:kof .6s ease forwards}
+
+/* ---------- La lecture de toute la table (SCAN) : les groupes de commandes, année par année, et le compteur des lignes lues ---------- */
+.scl{left:64px;width:952px;padding:0 0 12px;overflow:hidden}
+.scl .sch{height:66px;display:flex;align-items:center;gap:12px;padding:0 30px;background:var(--cs);color:var(--ci);font-family:var(--mono);font-size:30px;font-weight:800;white-space:nowrap}
+.scl .sch .emo{font-size:32px}
+.scl .scr{position:relative;height:60px;display:flex;align-items:center;gap:16px;padding:0 30px;font-size:29px;font-weight:600;color:var(--ink);white-space:nowrap}
+.scl .scr+.scr{box-shadow:inset 0 2px 0 var(--line-2)}
+.scl .scr>*{position:relative;z-index:1}
+.scl .scr .y{font-family:var(--mono);font-weight:800;color:var(--ci);width:96px}
+.scl .scr .n{margin-left:auto;font-family:var(--mono);font-weight:700;color:var(--ink-3)}
+.scl .scr .lu{position:absolute;left:0;top:0;bottom:0;width:0;z-index:0;background:rgba(239,79,85,.12);box-shadow:inset 6px 0 0 #EF4F55}
+.scl .scr.hit .lu{background:rgba(22,148,71,.14);box-shadow:inset 6px 0 0 #169447}
+.scl .scf{display:flex;align-items:center;gap:14px;height:70px;padding:0 30px;box-shadow:inset 0 2px 0 var(--line-2);font-size:29px;font-weight:800;color:var(--ink);white-space:nowrap}
+.scl .scf .emo{font-size:32px}
+.scl .scf .sw{margin-left:auto;font-family:var(--mono);color:#B42328}
+.scl .scf .sw>i{justify-self:end}
+
+/* ---------- L’index : les numéros de commande rangés dans l’ordre, chacun avec l’identifiant de sa ligne ---------- */
+#ix .gr>span{padding:0 14px}
+#ix .r{font-size:29px}
+#ix .r .ar{color:var(--ink-3);margin-right:2px}
+
+/* ---------- La mesure du temps d’exécution : sans index, avec l’index ---------- */
+.chr{left:64px;width:952px;padding:0 0 16px;overflow:hidden}
+.chr .chh{height:66px;display:flex;align-items:center;gap:12px;padding:0 30px;background:#FFF6DA;color:#8A6200;font-size:30px;font-weight:800;white-space:nowrap}
+.chr .chh .emo{font-size:32px}
+.chr .chl{display:grid;grid-template-columns:230px 1fr;align-items:center;gap:18px;height:78px;padding:0 30px}
+.chr .chl b{font-size:29px;font-weight:800;color:var(--ink);white-space:nowrap}
+.chr .bar{height:34px;border-radius:999px;transform-origin:0 50%}
+.chr .bar.slow{background:linear-gradient(90deg,#F59AA0,#EF4F55)}
+.chr .bar.fast{width:12px;background:linear-gradient(90deg,#7EDCA5,#169447)}
+.chr .chx{margin:10px 30px 0;height:62px;border-radius:20px;background:#E7F7EE;color:#1B7A45;box-shadow:inset 0 0 0 3px #A7E3C0;font-size:30px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:12px;white-space:nowrap}
+
+/* ---------- Un index sur chaque colonne ? Les sept colonnes de la table commandes ---------- */
+.al{left:64px;width:952px;padding:0 0 14px;overflow:hidden}
+.al .alh{height:66px;display:flex;align-items:center;gap:12px;padding:0 30px;background:var(--cs);color:var(--ci);font-size:30px;font-weight:800;white-space:nowrap}
+.al .alh .emo{font-size:32px}
+.al .alc{display:flex;flex-wrap:wrap;gap:16px;padding:26px 26px 8px}
+.al .alc>span{position:relative;height:72px;padding:0 22px 0 20px;border-radius:20px;background:#fff;box-shadow:inset 0 0 0 3px var(--line);font-family:var(--mono);font-size:30px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:12px;white-space:nowrap}
+.al .alc .ixb{font-size:30px}
+.al .alc .ixb>i{font-style:normal}
+.al .alk{display:flex;gap:16px;padding:18px 26px 4px}
+.al .alk>span{flex:1;height:72px;border-radius:20px;background:#FDECEC;color:#B42328;box-shadow:inset 0 0 0 2px #F5C2C4;font-size:29px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:10px;white-space:nowrap}
+
+/* ---------- Les boutons à toucher, et l’anneau qui s’en échappe au toucher (micro-interaction, Elisa, 25 octobre, 16 h 22) ---------- */
+.bt{position:absolute;left:220px;width:640px;margin:0;height:108px;gap:16px;font-size:36px}
+.bt .emo{font-size:42px}
+.bt .emo svg{display:block;width:34px;height:34px}
+.bt.tl{background:linear-gradient(135deg,#14A394,#0F766E);box-shadow:0 9px 0 #0B5A54}
+.bring{left:220px;width:640px;height:108px;border-radius:30px;box-shadow:0 0 0 7px rgba(106,77,244,.5);pointer-events:none;opacity:0;visibility:hidden}
+.bring.tl{box-shadow:0 0 0 7px rgba(15,118,110,.45)}
+
+/* ---------- Le message de l’équipe logistique ---------- */
+#ml1{top:520px}
+
+/* ---------- 6 · Deux cases où ranger ce que l’on vérifie : avec le plan, ou avec une mesure ---------- */
+.dbn{left:64px;width:952px;height:210px;box-sizing:border-box;padding:20px 28px 22px;border-radius:36px;border:4px dashed #C9BCFF;background:rgba(255,255,255,.85);display:flex;flex-direction:column}
+.dbn .hh{display:flex;align-items:baseline;gap:20px;white-space:nowrap}
+.dbn .dn{font-family:var(--display);font-size:36px;font-weight:800;color:var(--accent-ink)}
+.dbn .dd{font-size:26px;font-weight:700;color:var(--ink-3)}
+.dbn .cs{margin-top:auto;display:flex;gap:16px}
+.dbn .rc{flex:1;min-height:92px;padding:12px 16px;border-radius:18px;background:var(--accent-soft);color:var(--accent-ink);box-shadow:inset 0 0 0 3px #C9BCFF;font-size:28px;font-weight:700;line-height:1.25;text-align:center;text-wrap:balance;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden}
+.dbn.okb{animation:okb .5s cubic-bezier(.2,.9,.3,1.3)}
+@keyframes okb{40%{transform:scale(1.035)}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 16</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>I</span><span>N</span><span>D</span><span>E</span><span>X</span></div>
+    <div class="abs sub">Accélérer une recherche et lire son plan</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">La file d’attente s’allonge&nbsp;:<br>à toi d’accélérer<br>la recherche !</div>
+  </section>
+
+  <!-- La base : le rappel du chapitre précédent ; puis le scan d’une commande (la photo d’Elisa) -->
+  <section class="scene" id="sa"></section>
+  <!-- La requête, la table commandes, le plan, la lecture de la table, l’index, la mesure -->
+  <section class="scene" id="sw"></section>
+  <!-- Le message de l’équipe logistique -->
+  <section class="scene" id="sm"></section>
+  <!-- Avec le plan, ou avec une mesure : ce que l’on vérifie -->
+  <section class="scene" id="sd"></section>
+  <!-- La suite : la prochaine leçon -->
+  <section class="scene" id="sn"></section>
+
+  <!-- À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🔎</div><div class="rtxt"><code>EXPLAIN QUERY PLAN</code> montre comment<br>la base prévoit d’exécuter une requête.<span class="rs"><code>SCAN</code> : la table est parcourue ;<br><code>SEARCH … USING INDEX</code> : l’index est utilisé.</span></div></div>
+      <div class="rrow"><div class="rico emo">⚡</div><div class="rtxt">Un <b>index</b> permet de retrouver plus<br>rapidement les lignes à partir<br>d’une valeur recherchée.<span class="rs">Ici, le numéro de la commande<br>sert à la retrouver.</span></div></div>
+      <div class="rrow"><div class="rico emo">⚖️</div><div class="rtxt">Un index a un <b>coût</b> : il occupe de l’espace<br>et doit être entretenu<br>lorsque les données changent.<span class="rs">Crée-les pour les recherches<br>qui en ont besoin.</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+
+/* ---------- Le déroulé : chaque légende arrive à la suite de la précédente ----------
+   cap(clé, texte, durée) pose une légende [début, fin] ; A[clé] et B[clé] donnent son début et sa fin (temps de la timeline).
+   La trame est celle d’Elisa (26 octobre, 10 h 52, « INDEX / EXPLAIN — La file d’attente s’allonge »), transposée à la préparation des
+   commandes avec sa photo de remplacement (11 h 57 : le bon « Commande NB-10482 » et son QR code, « Recherche de la commande… ») ; ses
+   bulles sont gardées mot pour mot, le billet devenant la commande. Au service logistique, chaque commande se prépare après un scan ; la
+   recherche n’en finit pas et la file des commandes à préparer s’allonge. La table commandes compte 500 000 lignes, y compris les anciennes
+   commandes de la boutique ; la requête du scan la parcourt en entier (SCAN commandes). L’index idx_commandes_numero sur numero_commande
+   change le plan (SEARCH commandes USING INDEX idx_commandes_numero) : la commande de Léa Simon est retrouvée aussitôt. */
+const SCH = {t: 5.0, caps: [], chaps: [{label:'La file d’attente s’allonge', a: 5.0}], A: {}, B: {}};
+function chap(c){ SCH.t = +(SCH.t + 0.4).toFixed(2); SCH.chaps.push({label: c.label, a: SCH.t}); }
+function cap(key, html, dur, gap = 0.1){
+  /* Une légende reste au moins le temps de la lire (17 caractères par seconde, plus son fondu de 0,5 s) : l’image ne s’arrête jamais pour elle. */
+  dur = Math.max(dur, Math.ceil((html.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').length / 17 + 0.5) * 20) / 20);
+  const a = +(SCH.t + gap).toFixed(2), b = +(a + dur).toFixed(2);
+  SCH.caps.push([a, b, html]); SCH.A[key] = a; SCH.B[key] = b; SCH.t = b;   // trois lignes au plus par bulle : au-delà, deux bulles (Elisa, 24 octobre)
+}
+/* « À toi ! » : la légende reste un instant, puis l’image s’arrête à a + 2,35 s (le passage d’attente est coupé). */
+const toi = key => cap(key, 'À toi !', 2.55);
+const {A, B} = SCH;
+/* Le message reçu : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses phrases), signature, option].
+   L’équipe logistique écrit par SMS ({sms: true}), avec les mots d’Elisa, transposés : son message entre directement dans le sujet
+   (hello: null : pas de formule) et finit sur sa question (bye: null : pas de « Merci ! » de plus). L’app s’arrête sur la notification (OPENS). */
+const MAILS = [
+  [['L’équipe', 'logistique', 'EL'], 'k-cm', 'équipe', 'logistique@nutriboost.fr', [
+    'On vient de lancer les expéditions du jour et la recherche des commandes est trop lente !',
+    'La table contient 500 000 commandes, y compris les anciennes.',
+    'Peux-tu regarder ce qui se passe ?'], 'L’équipe logistique NutriBoost',
+    {sms: true, hello: null, bye: null}]
+];
+/* Un message : la légende s’efface le temps du message (notification, toucher, lecture, départ). Un SMS : la formule (sauf hello: null), une
+   bulle par phrase, puis « Merci ! » (sauf bye: null) ; le toucher à +1,6 s, une bulle toutes les 0,28 s, le départ juste après la pause de lecture. */
+const mailSms = n => /^client/.test(MAILS[n][2]) || !!(MAILS[n][6] || {}).sms;
+const mailRows = n => { const o = MAILS[n][6] || {};
+  return (o.hello === null ? 0 : 1) + (o.bye === null ? 0 : 1) + [].concat(MAILS[n][4]).flatMap(p => p.split(/(?<=[.!?])\s+(?=[A-ZÀÂÉÈÊÎÔÛÇ])/)).length + (o.photo ? 1 : 0); };
+const mailOutAt = n => +(2.68 + 0.28 * (mailRows(n) - 1)).toFixed(2);
+const MO = MAILS.map((m, n) => mailOutAt(n));
+const mailBlock = (n, extra = 0) => { const t = SCH.t; SCH.t = +(SCH.t + MO[n] + extra + 1).toFixed(2); return t; };
+
+/* 1 · La file d’attente s’allonge. L’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) ; puis le scan
+   d’une commande, avec la photo d’Elisa (« un scan, « Recherche de … » reste affiché, la file s’allonge »), et le message de l’équipe logistique. */
+cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
+cap('r2', "Au chapitre 15, une vue a présenté<br>la sélection de la box à l’agence.", 3.8);
+cap('o1', "Au service logistique, on scanne<br>le QR code de chaque commande.", 4.0);
+cap('o2', "Mais l’écran affiche<br>« Recherche de la commande… ».", 3.6);
+cap('o3', "Et la file des commandes<br>à préparer s’allonge.", 3.8);
+const MAIL1 = mailBlock(0);
+/* 2 · La recherche de la commande : la requête lancée à chaque scan, et la table commandes */
+chap({label:'La recherche de la commande'});
+cap('a1', "À chaque scan, l’application lance<br>cette requête.", 3.6);   // la requête s’écrit pendant la bulle
+cap('a2', "Elle cherche la commande<br>dont le numéro est NB-10482.", 3.6);
+cap('a3', "La <b>table commandes</b> contient<br>500 000 lignes.", 3.4);
+cap('a4', "Elle garde aussi les anciennes<br>commandes de la boutique.", 3.6);
+toi('p1');
+cap('a5', "Pour le vérifier, tu demandes<br>son plan à la base.", 3.4);
+/* 3 · Lire le plan (Elisa : « Diagnostic EXPLAIN QUERY PLAN … → SCAN », ses deux bulles, puis « des groupes d’anciennes inscriptions défilent ») */
+chap({label:'Lire le plan'});
+cap('b1', "<code>EXPLAIN QUERY PLAN</code>, placé devant<br>la requête, affiche son plan.", 4.0);   // la ligne s’écrit pendant la bulle
+cap('b2', "Clique sur le bouton<br>« Exécuter ».", 3.6);   // c’est l’élève qui clique : l’app s’arrête sur le bouton (EXE1, plus bas)
+cap('b3', "<code>EXPLAIN QUERY PLAN</code> montre comment<br>la base prévoit d’exécuter la requête.", 4.4);
+cap('b4', "Ici, elle parcourt la table<br>pour retrouver la commande.", 3.6);
+cap('b5', "<code>SCAN commandes</code> : les 500 000 lignes<br>sont lues, une à une.", 4.6);
+cap('b6', "Même les commandes de 2019<br>sont relues à chaque scan.", 3.6);
+toi('p2');
+cap('b7', "Plus la table grandit,<br>plus la recherche ralentit.", 3.4);
+/* 4 · Créer l’index : la mission d’Elisa (« CREATE INDEX … »), une partie de la requête à la fois, puis ses deux bulles */
+chap({label:'Créer l’index'});
+cap('c0', "Ta mission : créer un index<br>sur le numéro de commande.", 3.6);
+cap('c1', "<code>CREATE INDEX</code> crée un index,<br>ici nommé <code>idx_commandes_numero</code>.", 4.4);   // la requête s’écrit pendant les bulles
+cap('c2', "<code>ON commandes(numero_commande)</code><br>précise la table et la colonne.", 4.2);
+toi('p3');
+cap('c3', "Un index permet de retrouver<br>plus rapidement les lignes à partir<br>d’une valeur recherchée.", 4.6);
+cap('c4', "Ici, le numéro de la commande<br>sert à la retrouver.", 3.4);
+cap('c5', "Clique sur le bouton<br>« Créer l’index ».", 3.8);   // l’app s’arrête sur le bouton (CIX, plus bas)
+cap('c6', "L’index range les numéros dans l’ordre,<br>chacun avec l’identifiant de sa ligne.", 4.6);
+/* 5 · Le nouveau plan (Elisa : « SEARCH … USING INDEX … », sa bulle), puis la commande scannée à nouveau, retrouvée aussitôt */
+chap({label:'Le nouveau plan'});
+cap('d1', "Relance <code>EXPLAIN QUERY PLAN</code> :<br>clique sur « Exécuter ».", 3.8);   // l’app s’arrête sur le bouton (EXE2, plus bas)
+cap('d2', "La base utilise maintenant l’index<br>pour retrouver la commande.", 4.0);
+toi('p4');
+cap('d3', "<code>SEARCH</code> : grâce à l’index,<br>seule la ligne recherchée est lue.", 4.0);
+cap('d4', "Le QR code de la commande NB-10482<br>est scanné à nouveau.", 3.8);
+cap('d5', "La commande de Léa Simon<br>est retrouvée aussitôt.", 3.4);
+cap('d6', "Et la file des commandes<br>avance de nouveau.", 3.4);
+/* 6 · Le plan ou la mesure ? (Elisa : « Le plan confirme la méthode utilisée ; une mesure du temps d’exécution permet de vérifier le gain de
+   vitesse. ») La mesure est celle de SQLite, sur la table de la vidéo : 500 000 commandes, avant et après l’index. */
+chap({label:'Le plan ou la mesure ?'});
+cap('e1', "Le plan confirme la méthode utilisée ;<br>une mesure du temps d’exécution<br>permet de vérifier le gain de vitesse.", 5.6);
+cap('e2', "Mesurée dans SQLite, la recherche est<br>environ 400 fois plus rapide<br>avec l’index.", 4.6);
+cap('e2b', "Le plan et la mesure ne répondent pas<br>à la même question.", 3.6);
+toi('p5');
+cap('e3', "Le plan dit comment la requête<br>s’exécute ; la mesure dit<br>en combien de temps.", 4.6);
+/* 7 · Des index partout ? Le dernier choix d’Elisa (« Ajouter des index sur toutes les colonnes ? »), puis son explication, en deux bulles */
+chap({label:'Des index partout ?'});
+cap('f1', "Et si tu ajoutais un index<br>sur chaque colonne ?", 3.2);
+toi('p6');
+cap('f2', "Chaque index occupe de l’espace<br>et doit être entretenu<br>lorsque les données changent.", 4.4);
+cap('f3', "Crée-les pour les recherches<br>qui en ont besoin.", 3.4);
+/* la suite : la prochaine leçon (Elisa, 11 h 57 : « donner les bons accès à une nouvelle collègue ») */
+cap('f4', "Dans la prochaine leçon,<br>une nouvelle collègue aura besoin<br>des bons accès.", 7.0);
+/* 8 · À retenir */
+chap({label:'À retenir'});
+const RECAP = SCH.t;
+cap('j1', "Pour finir, voici les <b>trois idées à retenir</b>.", 4.8, 0.4);
+/* NOTES (le bouton « Ajouter à mes notes ») est écrit en clair dans Course(…) plus bas : tests/index-lesson.test.mjs vérifie qu’il suit le déroulé. */
+const NOTES = +(SCH.t + 0.1).toFixed(2);
+const DURATION = +(NOTES + 7.2).toFixed(2);
+SCH.caps.push([NOTES, 999, APP ? "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."
+  : "Avec un index, la commande<br>est retrouvée aussitôt."]);
+
+const CAPTIONS = SCH.caps;
+const CHAPTERS = SCH.chaps.map((c, i) => ({n: i + 1, label: c.label, a: c.a, b: i + 1 < SCH.chaps.length ? SCH.chaps[i + 1].a : DURATION}));
+
+/* Pas de question du lecteur : les moments « À toi » (PICKS) font participer l’élève. */
+const QUESTIONS = [];
+
+/* ---------- Le cas : la base des ateliers NutriBoost (la même dans tous les chapitres du projet) ---------- */
+/* La base telle que le chapitre 15 la laisse (douze tables ; la vue catalogue_box n’est pas une table), avec la table commandes de la boutique
+   telle que l’équipe logistique la décrit : 500 000 lignes, y compris les anciennes commandes. [clé, couleur, emoji, nom, lignes] */
+const TB = [
+  ['cl', 'k-cl', '👥', 'clients', 8], ['cm', 'k-cm', '🛒', 'commandes', 500000], ['fi', 'k-fi', '⭐', 'fidelite', 4], ['pr', 'k-pr', '📦', 'produits', 8],
+  ['co', 'k-co', '🧑‍🏫', 'coachs', 4], ['at', 'k-at', '📅', 'ateliers', 6], ['in', 'k-in', '📝', 'inscriptions', 8], ['ca', 'k-nb', '💳', 'cartes', 3],
+  ['av', 'k-av', '💬', 'avis', 1], ['rp', 'k-rp', '🔁', 'remplacements', 1], ['cd', 'k-cd', '🎁', 'cadeaux', 1], ['hp', 'k-hp', '🏷️', 'historique_prix', 1]
+];
+/* Les commandes, année par année : les anciennes (de 2019 à 2025), puis celles de 2026 (les seize de la base, et les commandes du jour,
+   numérotées NB-10001 à NB-10490). [année, commandes] : 500 000 en tout. */
+const ANNEES = [[2019, 52310], [2020, 61875], [2021, 70432], [2022, 78119], [2023, 83547], [2024, 79861], [2025, 73350], [2026, 506]];
+/* La commande scannée : NB-10482, celle de Léa Simon (la cliente 7), identifiant 499 992, en préparation. */
+const SCAN = {numero: 'NB-10482', id: 499992, client: 7, nom: 'Léa Simon', date: '2026-10-26', statut: 'en_preparation'};
+/* La table commandes, telle que la vidéo la montre : les deux plus anciennes, puis les trois plus récentes autour de la commande scannée.
+   [identifiant, numéro, date, statut] */
+const EXTRAIT = [[17, 'CMD-2019-1000000', '2019-01-01', 'expédiée'], [18, 'CMD-2019-1000001', '2019-01-01', 'expédiée'],
+  [499991, 'NB-10481', '2026-10-26', 'en_preparation'], [499992, 'NB-10482', '2026-10-26', 'en_preparation'], [499993, 'NB-10483', '2026-10-26', 'en_preparation']];
+/* Ce que mesure SQLite sur cette table (tests/index-lesson.test.mjs la reconstruit et chronomètre la requête) : environ 400 fois plus rapide. */
+const GAIN = 400;
+const fmtN = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');   // 500 000 : une espace fine insécable entre les milliers
+
+/* Moment 4 : les trois parties du nouveau plan ; d’où vient chacune. */
+const WHY4 = {
+  p0: '<code>SEARCH commandes</code> dit que la table est cherchée, sans être parcourue en entier ; l’index est nommé juste après.',
+  p2: '<code>(numero_commande=?)</code> dit quelle colonne sert à la recherche ; l’index utilisé est nommé juste avant.'
+};
+/* Moment 5 : avec le plan, ou avec une mesure ; six informations à ranger [information, case, pourquoi]. */
+const BINS = [['pl', 'Le plan', 'comment la requête s’exécute'], ['me', 'Une mesure', 'en combien de temps']];
+const ITEMS = [
+  ['La table est lue en entier', 'pl', 'C’est la méthode : <code>SCAN commandes</code>, dans le plan, dit que toute la table est parcourue.'],
+  ['La recherche est 400 fois plus rapide', 'me', 'Le plan ne donne aucune durée : seule une mesure du temps d’exécution montre le gain.'],
+  ['Quel index est utilisé', 'pl', 'C’est la méthode : <code>USING INDEX idx_commandes_numero</code>, dans le plan, nomme l’index.'],
+  ['Le temps d’une recherche', 'me', 'Une durée se mesure : le plan décrit la méthode, pas le temps qu’elle prend.'],
+  ['La colonne recherchée', 'pl', 'C’est la méthode : <code>(numero_commande=?)</code>, dans le plan, dit quelle colonne sert à la recherche.'],
+  ['Le gain de vitesse', 'me', 'Le gain se vérifie en mesurant le temps d’exécution, avant puis après la création de l’index.']
+];
+
+/* Les six moments « À toi » : l’image s’arrête, l’élève touche, choisit ou range ; la page montre aussitôt le résultat.
+   from : début du passage qui amène chaque moment, d’où repartent « ↺ Revoir » et « Rejouer ». */
+const atp = k => +(A[k] + 2.35).toFixed(2);
+const PICKS = [
+  {at: atp('p1'), from: A.a1, kind: 'pick', text: true, prompt: 'Sans index, comment la commande NB-10482 est-elle retrouvée ?', options: [
+    {label: 'Les 500 000 commandes sont lues, une à une', ok: true, why: 'Rien n’indique où se trouve la commande NB-10482 : toutes les lignes de la <b>table commandes</b> sont lues pour la trouver.'},
+    {label: 'La bonne ligne est lue directement', why: 'Pour aller directement à la bonne ligne, il faudrait savoir où elle se trouve : c’est le rôle d’un index, et la table n’en a pas.'},
+    {label: 'Seules les commandes du jour sont lues', why: 'La requête cherche un numéro, pas une date : rien ne permet d’écarter les anciennes commandes sans les lire.'}]},
+  {at: atp('p2'), from: A.b5, kind: 'pick', text: true, prompt: 'Bientôt, la table comptera un million de commandes. Que deviendra cette recherche ?', options: [
+    {label: 'Elle sera aussi rapide qu’aujourd’hui', why: 'Avec <code>SCAN</code>, chaque ligne est lue : deux fois plus de lignes, c’est environ deux fois plus de lectures.'},
+    {label: 'Elle sera environ deux fois plus lente', ok: true, why: '<code>SCAN</code> parcourt toute la table : le temps de la recherche grandit avec le nombre de lignes.'},
+    {label: 'Elle ne trouvera plus la commande', why: 'La commande sera toujours trouvée : la recherche sera simplement plus longue, car toutes les lignes seront lues.'}]},
+  {at: atp('p3'), from: A.c0, kind: 'pick', text: true, prompt: 'Sur quelle colonne créer l’index pour retrouver une commande scannée ?', options: [
+    {label: 'date_commande', why: 'Le scan ne donne pas la date : il donne le numéro de la commande, celui que la requête recherche.'},
+    {label: 'numero_commande', ok: true, why: 'Le QR code donne le numéro de la commande, et la requête cherche avec <code>WHERE numero_commande = …</code> : c’est cette colonne qu’il faut indexer.'},
+    {label: 'statut', why: 'La requête ne cherche pas un statut : elle cherche un numéro de commande.'}]},
+  {at: atp('p4'), from: A.d1, kind: 'tap', need: 1, prompt: 'Touche la partie du plan qui montre que l’index est utilisé.'},
+  {at: atp('p5'), from: A.e1, kind: 'sort', prompt: 'Range chaque information : le plan la donne, ou une mesure ?',
+    hint: 'Touche une information, puis la case qui convient. Tu peux aussi la faire glisser directement.', next: '« {x} » : le plan, ou une mesure ?',
+    options: ITEMS.map(x => ({label: x[0]}))},
+  {at: atp('p6'), from: A.f1, kind: 'pick', text: true, prompt: 'Ajouter des index sur toutes les colonnes ?', options: [
+    {label: 'Oui : toutes les recherches iront plus vite', why: 'Un index n’aide que les recherches sur sa colonne. Et chaque index occupe de l’espace et doit être entretenu lorsque les données changent.'},
+    {label: 'Non : chaque index a un coût', ok: true, why: 'Chaque index occupe de l’espace et doit être entretenu lorsque les données changent. Crée-les pour les recherches qui en ont besoin.'},   // mots d’Elisa
+    {label: 'Oui : un index ne coûte rien', why: 'Chaque index occupe de l’espace, et chaque ajout ou modification de commande doit aussi le mettre à jour.'}]}
+];
+
+/* Les arrêts « toucher » : la notification, et les boutons de la trame (« Exécuter », deux fois : le plan, puis le nouveau plan ;
+   « Créer l’index »). Rien n’y est noté. Sur un bouton, la légende dit déjà quoi faire : un doigt seul (hand) monte et descend sur son coin,
+   et le bouton s’enfonce dès l’appui (press), puis remonte au relâcher (rest). */
+const EXE1 = +(A.b2 + 2.4).toFixed(2), CIX = +(A.c5 + 2.6).toFixed(2), EXE2 = +(A.d1 + 2.6).toFixed(2);
+const BTN = (lip) => ({hand: {x: 0.86, y: 0.78}, press: {y: 7, boxShadow: `0 2px 0 ${lip}`}, rest: {y: 0, boxShadow: `0 9px 0 ${lip}`}});
+const msgOpen = (t, n) => {
+  const [prenom, nom] = MAILS[n][0], msg = mailSms(n) ? 'message' : 'mail';   // l’équipe logistique écrit par SMS
+  const de = /^Le /.test(prenom) ? 'du ' + prenom.slice(3) : /^La /.test(prenom) ? 'de la ' + prenom.slice(3) : /^L’/.test(prenom) ? 'de l’' + prenom.slice(2)
+    : /^[AEIOUHÉÈ]/.test(prenom) ? 'd’' + prenom : 'de ' + prenom;
+  return {at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: `Touche le ${msg} pour l’ouvrir.`, label: `Ouvrir le ${msg} ${de} ${nom}`};
+};
+const OPENS = [
+  msgOpen(MAIL1, 0),
+  Object.assign({at: EXE1, sel: '#bexp', prompt: 'Touche le bouton.', label: 'Exécuter'}, BTN('#4B30CC')),
+  Object.assign({at: CIX, sel: '#bcix', prompt: 'Touche le bouton.', label: 'Créer l’index'}, BTN('#0B5A54')),
+  Object.assign({at: EXE2, sel: '#bexp', prompt: 'Touche le bouton.', label: 'Exécuter'}, BTN('#4B30CC'))
+];
+
+/* ---------- Gabarits ---------- */
+/* Une case à valeurs empilées (une seule se voit). */
+const sw = (id, vals, k = 'v') => `<span class="sw ${k}" id="${id}">${vals.map((v, j) => `<i class="a${j}${v[1] ? ' ' + v[1] : ''}">${v[0]}</i>`).join('')}</span>`;
+const cell = (j, inner) => `<span class="c${j}">${inner}</span>`;
+const line = (id, cells, cls = '') => `<div class="gr r${cls ? ' ' + cls : ''}" id="r${id}"><i class="hl"></i><i class="wn"></i><i class="xx"></i>${cells}</div>`;
+/* Carte de code : une ligne par [repère, texte, classe, style]. Dans le texte : {id|…} un passage repéré (il pulse). Un commentaire (--) n’a pas de curseur. */
+const SQL_KW = /\b(?:EXPLAIN QUERY PLAN|CREATE INDEX|SELECT|FROM|WHERE|ON)\b/g, CARET = '<span class="caret"><i></i></span>';
+function lineHtml([lid, s, cls = '', st = '']){
+  const cmt = s.trim().startsWith('--');
+  let h = s.replace(/\{(\w+)\|([^{}]*)\}/g, '<span class="glow" id="$1">$2</span>');
+  if (!cmt) h = h.replace(SQL_KW, '<span class="kw">$&</span>').replace(/'[^']*'/g, '<span class="str">$&</span>');
+  return `<span class="ln${cmt ? ' cmt' : ''}${cls ? ' ' + cls : ''}" id="${lid}"${st ? ` style="${st}"` : ''}>${h}${cmt ? '' : CARET}</span>`;
+}
+function editor(id, fname, lines, extra = ''){
+  return `<div class="abs code sq" id="${id}" style="left:64px;width:952px"><div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i>` +
+    `<span class="fname">${fname}</span></div><div class="body">${lines.map(lineHtml).join('')}${extra}</div></div>`;
+}
+const head = (cols) => `<div class="gr hd">${cols.map(([c, label, extra]) => `<span class="${c}${extra ? ' ' + extra : ''}">${label}</span>`).join('')}</div>`;
+const tbl = (id, kc, emo, name, g, hd, rows, bn = '') => `<div class="abs card tb ${kc}" id="${id}" style="left:64px;width:952px;${g}"><div class="h"><span class="emo">${emo}</span><span>${name}</span>${bn}</div>${hd}${rows}</div>`;
+const KEY = '<span class="emo">🔑</span>id';
+/* Les requêtes de la trame : la recherche lancée à chaque scan, son plan (EXPLAIN QUERY PLAN devant la même requête), puis l’index. */
+const Q_SEL = [['-- La requête lancée à chaque scan'], ['SELECT * FROM commandes'], ["WHERE numero_commande = {qnb|'NB-10482'};"]];
+const Q_EXP = [['-- Le plan de la requête'], ['{xeq|EXPLAIN QUERY PLAN}'], ['SELECT * FROM commandes'], ["WHERE numero_commande = 'NB-10482';"]];
+const Q_IDX = [['-- Retrouver une commande par son numéro'], ['CREATE INDEX {inm|idx_commandes_numero}'], ['{ion|ON commandes(numero_commande)};']];
+const ed = (id, q, fname) => editor(id, fname, q.map(([s], k) => [id + '-' + k, s]));
+/* Un bouton à toucher, et l’anneau qui s’en échappe */
+const button = (id, cls, emo, label) => `<i class="abs bring ${cls}" id="${id}-r"></i><div class="abs run bt ${cls}" id="${id}"><span class="emo">${emo}</span>${label}<i class="ripple"></i></div>`;
+/* « Exécuter » : le triangle blanc de lecture (l’emoji ▶️ est une case orange) */
+const PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 4.6c0-1 1.1-1.6 1.9-1.1l11 7.4c.8.5.8 1.7 0 2.2l-11 7.4c-.8.5-1.9-.1-1.9-1.1z" fill="#fff"/></svg>';
+const PHOTO = 'projet-index-scan.webp';
+const statut = s => `<span class="st ${s === 'expédiée' ? 'ex' : 'ep'}">${s}</span>`;
+/* Le nombre de commandes à préparer : il grandit pendant que la recherche tourne, puis diminue */
+const queue = (id, vals) => `<span class="qch" id="${id}"><span class="emo">📦</span>Commandes à préparer :${sw(id + 'n', vals.map(v => [v]))}</span>`;
+function dom(){
+  /* La base et ses douze tables : le rappel du chapitre précédent ; puis le scan d’une commande (la photo d’Elisa) */
+  $('#sa').innerHTML = `<div class="abs card bc" id="bc"><div class="bh"><span class="emo">🗄️</span><span>Base NutriBoost</span><span class="bn"><span>12 tables</span></span></div>` +
+    TB.map(([k, kc, emo, name, n]) => `<div class="srow ${kc}" id="bw-${k}"><i class="hl"></i><div class="sn"><span class="emo">${emo}</span>` +
+      `<span class="nm">${name}</span><i class="sp"></i><b class="nb"><span>${fmtN(n)} ${n > 1 ? 'lignes' : 'ligne'}</span></b></div></div>`).join('') + '</div>' +
+    `<div class="abs card phc" id="ph"><img src="${PHOTO}" alt="Au service logistique : une préparatrice scanne le QR code du bon « Commande NB-10482 » ; l’écran affiche « Recherche de la commande… »">` +
+    queue('qc', [12, 19, 27, 41]) + '</div>';
+  /* Le message de l’équipe logistique (il finit sur sa question) */
+  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body, false, smsRank(MAILS, n),
+    (MAILS[n][6] || {}).hello, (MAILS[n][6] || {}).photo, (MAILS[n][6] || {}).bye) : '').join('') +
+    '<div class="abs emo tapf" id="tapf">👆</div>';
+  /* Le travail : les requêtes, la table commandes, le plan, la lecture de toute la table, l’index, le nouveau plan, le scan à nouveau,
+     la mesure, un index sur chaque colonne */
+  let w = ed('eq', Q_SEL, 'scan.sql') + ed('ee', Q_EXP, 'plan.sql') + ed('ei', Q_IDX, 'index.sql');
+  w += tbl('tc', 'k-cm', '🛒', 'commandes', '--g:150px 300px 210px 1fr', head([['c0 kc', KEY], ['c1', 'numero_commande'], ['c2', 'date_commande'], ['c3', 'statut']]),
+    EXTRAIT.slice(0, 2).map(([id, nb, d, s]) => line('tc' + id, cell(0, `<i class="v">${fmtN(id)}</i>`) + cell(1, `<i class="v">${nb}</i>`) + cell(2, `<i class="v">${d}</i>`) + cell(3, statut(s)))).join('') +
+    line('tcm', `<span>⋮ ${fmtN(500000 - EXTRAIT.length)} autres commandes</span>`, 'rmore') +
+    EXTRAIT.slice(2).map(([id, nb, d, s]) => line('tc' + id, cell(0, `<i class="v">${fmtN(id)}</i>`) + cell(1, `<i class="v">${nb}</i>`) + cell(2, `<i class="v">${d}</i>`) + cell(3, statut(s)))).join(''),
+    `<span class="bn"><span>${fmtN(500000)} lignes</span></span>`);
+  // le plan, avant l’index : toute la table est parcourue
+  w += '<div class="abs card pl k-pl" id="pl"><div class="plh"><span class="emo">📋</span>Plan d’exécution</div>' +
+    '<div class="pll" id="pl-0"><span><span class="kw" id="pscan">SCAN</span> commandes</span><span class="plb no">⚠ toute la table</span></div></div>';
+  // la lecture de toute la table : les commandes, année par année, et le compteur des lignes lues (cumulé, année après année)
+  let cumul = 0;
+  const lus = [['0']].concat(ANNEES.map(([, n]) => [fmtN(cumul += n)]));
+  w += '<div class="abs card scl k-cm" id="sc"><div class="sch"><span class="emo">🛒</span>commandes<span class="bn"><span>lecture de la table</span></span></div>' +
+    ANNEES.map(([y, n]) => `<div class="scr${y === 2026 ? ' hit' : ''}" id="sc-${y}"><i class="lu"></i><span class="y">${y}</span><span>${fmtN(n)} commandes</span>` +
+      `<span class="n">${y === 2026 ? '✓ NB-10482' : ''}</span></div>`).join('') +
+    `<div class="scf"><span class="emo">🔎</span>Lignes lues ${sw('scn', lus)}</div></div>`;
+  // l’index : les numéros de commande dans l’ordre, chacun avec l’identifiant de sa ligne
+  const IXR = [['CMD-2019-1000000', 17], ['CMD-2019-1000001', 18], null, ['NB-10481', 499991], ['NB-10482', 499992], ['NB-10483', 499993], null];
+  w += tbl('ix', 'k-ix', '🗂️', 'idx_commandes_numero', '--g:1fr 280px', head([['c0', 'numero_commande'], ['c1', '<span class="ar">→</span>id']]),
+    IXR.map((r, q) => r ? line('ix' + q, cell(0, `<i class="v">${r[0]}</i>`) + cell(1, `<i class="v"><span class="ar">→</span>${fmtN(r[1])}</i>`)) : line('ix' + q, '<span>⋮</span>', 'rmore')).join(''),
+    '<span class="bn"><span>index</span></span>');
+  // le nouveau plan : l’index est utilisé ; ses trois parties se touchent (moment 4)
+  w += '<div class="abs card pl k-pl" id="pl2"><div class="plh"><span class="emo">📋</span>Plan d’exécution<span class="plb ok">✓ avec l’index</span></div>' +
+    '<div class="pll" id="p2-0"><span><span class="kw" id="psearch">SEARCH</span> commandes</span></div>' +
+    '<div class="pll" id="p2-1"><span><span class="kw">USING INDEX</span> idx_commandes_numero</span><i class="hc" id="hcu"></i></div>' +
+    '<div class="pll" id="p2-2"><span>(numero_commande=?)</span></div></div>';
+  // la commande scannée à nouveau : retrouvée aussitôt, et la file qui avance
+  w += `<div class="abs card phc" id="ph2"><img src="${PHOTO}" alt="">` + queue('qd', [41, 34, 22]) +
+    `<div class="fnd" id="fnd"><div class="ft"><span class="emo">✅</span>Commande retrouvée</div><div class="fl">${SCAN.numero}</div><div class="fl">${SCAN.nom}</div></div></div>`;
+  // la mesure du temps d’exécution, dans SQLite, sur les 500 000 commandes
+  w += '<div class="abs card chr" id="chr"><div class="chh"><span class="emo">⏱️</span>Temps d’exécution, mesuré dans SQLite</div>' +
+    '<div class="chl"><b>Sans index</b><i class="bar slow" id="bslow"></i></div><div class="chl"><b>Avec l’index</b><i class="bar fast" id="bfast"></i></div>' +
+    `<div class="chx" id="chx"><span class="emo">⚡</span>Environ ${GAIN} fois plus rapide</div></div>`;
+  // un index sur chaque colonne ? Les colonnes de la table commandes ; un seul index utile
+  const COLS = ['numero_commande', 'client_id', 'produit_id', 'quantite', 'date_commande', 'statut'];   // id, la clé primaire, sert déjà à retrouver une ligne
+  w += '<div class="abs card al k-ix" id="al"><div class="alh"><span class="emo">🗂️</span>Un index sur chaque colonne ?</div><div class="alc">' +
+    COLS.map(c => `<span id="al-${c}">${c}<b class="ixb">${sw('ab-' + c, c === 'numero_commande' ? [['🗂️'], ['🗂️']] : [['🗂️'], ['✕']])}</b></span>`).join('') + '</div>' +
+    '<div class="alk"><span id="alk1"><span class="emo">💾</span>de l’espace en plus</span><span id="alk2"><span class="emo">🔧</span>à mettre à jour</span></div></div>';
+  w += button('bexp', '', PLAY, 'Exécuter') + button('bcix', 'tl', '🗂️', 'Créer l’index');
+  w += '<div class="abs emo tapf" id="tapw">👆</div>';
+  $('#sw').innerHTML = w;
+  /* Le plan, ou une mesure : une case chacune, où ranger les informations */
+  $('#sd').innerHTML = BINS.map(([k, n, d], q) => `<div class="abs dbn" id="db-${k}" data-k="${k}" style="top:${260 + q * 232}px"><div class="hh"><span class="dn">${n}</span><span class="dd">${d}</span></div>` +
+    `<div class="cs">${ITEMS.map((x, i) => x[1] === k ? `<div class="rc" id="sbu${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
+    '<div class="abs pack" id="bpack"><span><span class="emo">📬</span>6 informations à ranger</span></div>';
+  /* La suite : la prochaine leçon */
+  $('#sn').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🔖</span>Prochaine leçon · Sécurité et droits</span></div>';
+  // les requêtes, découpées en caractères pour la frappe
+  $$('.sq .ln').forEach(splitChars);
+}
+
+/* ---------- Mise en page ---------- */
+const RH = 62;   // hauteur d’une ligne des tables
+const bottom = s => { const el = $(s); return el.offsetTop + el.offsetHeight; };
+/* Position d’un élément dans sa scène (sans tenir compte des transformations) : le coin et la taille. */
+const pos = el => {
+  let x = 0, y = 0, e = el;
+  while (e && !e.classList.contains('scene')) {
+    x += e.offsetLeft; y += e.offsetTop;
+    const p = e.offsetParent;
+    if (p && !p.classList.contains('scene')) { x += p.clientLeft; y += p.clientTop; }
+    e = p;
+  }
+  return {x, y, w: el.offsetWidth, h: el.offsetHeight};
+};
+function layout(){
+  // les requêtes en haut (le scan, son plan, l’index), la table commandes sous la première
+  ['#eq', '#ee', '#ei', '#al'].forEach(e => { $(e).style.top = '236px'; });
+  $('#tc').style.top = (bottom('#eq') + 30) + 'px';
+  const place = (id, top) => { $('#' + id).style.top = top + 'px'; $('#' + id + '-r').style.top = top + 'px'; };
+  // le plan : la requête précédée d’EXPLAIN QUERY PLAN, son bouton, puis le plan à la place du bouton, et la lecture de toute la table
+  place('bexp', bottom('#ee') + 9 + 32);
+  const TP = bottom('#ee') + 30;
+  $('#pl').style.top = TP + 'px';
+  $('#sc').style.top = (bottom('#pl') + 30) + 'px';
+  // l’index : la requête, son bouton, puis l’index à la place du bouton ; au nouveau plan, l’index descend sous lui
+  place('bcix', bottom('#ei') + 9 + 32);
+  $('#ix').style.top = (bottom('#ei') + 30) + 'px';
+  $('#pl2').style.top = TP + 'px';
+  IXY = bottom('#pl2') + 30 - $('#ix').offsetTop;
+  // la mesure : le nouveau plan remonte en haut, la mesure dessous
+  PLY = 236 - TP;
+  $('#chr').style.top = (236 + $('#pl2').offsetHeight + 30) + 'px';
+  // le plan, ou une mesure : la pile des informations, sous les deux cases
+  $('#bpack').style.top = (bottom('#db-me') + 9 + 44) + 'px';
+}
+let IXY = 0, PLY = 0;   // décalages de l’index (sous le nouveau plan) et du nouveau plan (en haut, avec la mesure)
+
+/* ---------- Petits gestes de la timeline ---------- */
+const pulse = (el, t, n = 3, c = 'rgba(201,188,255,.55)') => tl.to(el, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (el, t, s = 1.04) => tl.to(el, {scale: s, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, t);
+const on = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 1, duration: d, ease: 'power2.out'}, t);
+const off = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 0, duration: d, ease: 'power2.in'}, t);
+const GLOW = 'rgba(255,224,138,.4)';
+/* Une valeur en remplace une autre : l’ancienne monte et s’efface, la nouvelle arrive par en dessous. */
+function swap(o, n, t, sound = true){
+  tl.to(o, {autoAlpha: 0, y: -14, duration: 0.2, ease: 'power2.in'}, t);
+  tl.fromTo(n, {autoAlpha: 0, y: 14}, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power3.out', immediateRender: false}, t + 0.12);
+  if (sound) cue(t + 0.12, 'type', 0.8, 2);
+}
+/* Une mention apparaît (d’un petit rebond). */
+const mark = (sel, t) => { tl.fromTo(sel, {autoAlpha: 0, scale: 0.6, y: 0}, {autoAlpha: 1, scale: 1, y: 0, duration: 0.4, ease: 'back.out(2.4)', immediateRender: false}, t); cue(t, 'pop', 0.6, 2); };
+/* Frappe des lignes a à b d’une requête (un commentaire se tape plus vite, sans curseur). Renvoie l’instant de fin. */
+function typeLines(id, a, b, t, cps = 34){
+  const lns = $$('#' + id + ' .ln').slice(a, b + 1);
+  let e = t;
+  lns.forEach(ln => {
+    if (ln.classList.contains('cmt')) { e = typeChars($$('.ch', ln), e, 60) + 0.1; return; }
+    const caret = $$(':scope > .caret', ln).pop();
+    tl.set(caret, {autoAlpha: 1}, e - 0.2);
+    e = typeChars($$('.ch', ln), e, cps);
+    tl.set(caret, {autoAlpha: 0}, e + 0.1);
+    e += 0.15;
+  });
+  return e;
+}
+const typeQuery = (id, t, cps = 34) => typeLines(id, 0, 99, t, cps);
+/* La requête s’exécute : la carte s’enfonce d’un coup, comme un bouton « Exécuter ». */
+const run = (id, t) => { tl.to('#' + id, {scale: 0.985, duration: 0.08, yoyo: true, repeat: 1, ease: 'power2.out'}, t); cue(t, 'click', 0.6); };
+/* La légende s’efface le temps du message, puis revient. */
+const capOff = t => tl.to('#cap', {autoAlpha: 0, y: 30, duration: 0.3, ease: 'power2.in'}, t);
+const capOn = t => tl.to('#cap', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, t);
+/* Le message arrive : l’équipe logistique écrit par SMS (smsIn) ; l’app s’arrête sur la notification (OPENS) jusqu’au toucher ; hors de l’app, un doigt la montre. */
+function mailIn(n, t, T){
+  if (isSms(MAILS[n - 1][2], MAILS[n - 1][6])) { if (!APP) fingerTap($('#ml' + n), T); return smsIn(n, t, T); }
+  return T;
+}
+function mailOut(n, t){ hide('#ml' + n, t, {x: 140, y: 0, rotation: 2}, 0.4, 'power2.in'); cue(t, 'whoosh', 0.4); }
+/* Un doigt montre le geste (vidéo seule) : il touche la notification ou un bouton. */
+function fingerTap(M, T, f = '#tapf', fx = 0.6, fy = 92){
+  const p = pos(M);
+  tl.set(f, {left: p.x + p.w * fx, top: p.y + fy}, T - 0.8);
+  tl.fromTo(f, {autoAlpha: 0, x: 90, y: 170}, {autoAlpha: 1, x: 0, y: 0, duration: 0.5, ease: 'power3.out', immediateRender: false}, T - 0.75);
+  tl.to(f, {scale: 0.86, duration: 0.1, ease: 'power2.in'}, T - 0.15);
+  tl.to(f, {scale: 1, duration: 0.15}, T);
+  tl.to(f, {autoAlpha: 0, y: 70, duration: 0.3}, T + 0.2);
+}
+/* La micro-interaction d’un bouton touché (Elisa, 25 octobre, 16 h 22). Dans l’app, le bouton s’enfonce sous le doigt dès le toucher et remonte
+   d’un rebond au relâcher (OPENS : press, rest ; le lecteur s’en charge, hors de la timeline) ; hors de l’app, le doigt appuie (press). Puis une
+   onde blanche le traverse, il gonfle un instant, son icône remue et un anneau s’en échappe. Rien que des « to » : en revenant en arrière, chaque
+   élément retrouve l’état d’avant le toucher. */
+function tapButton(id, T, lip){
+  const b = '#' + id;
+  if (APP) {
+    const rp = $(b + ' .ripple');
+    tl.to(rp, {scale: 0, opacity: 0.55, duration: 0.001}, T + 0.001).to(rp, {scale: 1, opacity: 0, duration: 0.7, ease: 'power2.out'}, T + 0.011);
+    cue(T + 0.001, 'click');
+  } else { fingerTap($(b), T, '#tapw', 0.6, 62); press($(b), T, lip, 9); }
+  tl.to(b, {scale: 1.04, duration: 0.14, ease: 'power2.out'}, T + 0.1).to(b, {scale: 1, duration: 0.32, ease: 'back.out(2)'}, T + 0.24);
+  tl.to(b + ' .emo', {rotation: -16, transformOrigin: '50% 85%', duration: 0.07, yoyo: true, repeat: 3, ease: 'sine.inOut'}, T + 0.06);
+  tl.set(b + '-r', {autoAlpha: 0.9, scale: 1}, T + 0.05);
+  tl.to(b + '-r', {autoAlpha: 0, scale: 1.16, duration: 0.6, ease: 'power2.out'}, T + 0.051);
+}
+
+/* Une valeur empilée en remplace une autre, sans mouvement (un compteur qui avance). */
+const flip = (sel, k, t) => { tl.set(`${sel} .a${k - 1}`, {autoAlpha: 0}, t); tl.set(`${sel} .a${k}`, {autoAlpha: 1}, t); };
+
+/* Réponses des moments « À toi » : ce que la timeline montre juste après l’arrêt (et que l’aperçu montre pendant l’arrêt). */
+const M4_ANS = ['#hcu'];   // la partie du plan qui nomme l’index, entourée
+const set2 = t => +(t + 0.02).toFixed(2);
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
+  layout();
+  gsap.set(['.sq', '.pack', '#bc', '#ph', '#tc', '#pl', '#sc', '#ix', '#pl2', '#ph2', '#fnd', '#chr', '#chx', '#al', '#alk1', '#alk2', '.ixb', '.bt', '#keyc', '.dbn', '#tapf', '#tapw'], {autoAlpha: 0});
+  gsap.set(['#qcn > i:not(.a0)', '#qdn > i:not(.a0)', '#scn > i:not(.a0)', '.ixb .a1', '.dbn .rc'], {autoAlpha: 0});
+  gsap.set(['#bslow', '#bfast'], {scaleX: 0});
+
+  /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
+     la consigne, la légende ne la répète pas. Le passage d’attente est coupé (rien ne s’y anime). */
+  PICKS.forEach(p => cut(p.at - 1.35, 1.25));
+
+  /* ===== 1 · La file d’attente s’allonge ===== */
+  sceneOn('#sa', 5.0);
+  show('#bc', A.r1, {y: 60}, 0.55); cue(A.r1, 'whoosh', 0.5);
+  TB.forEach(([k], q) => { const t = A.r1 + 0.3 + q * 0.15; show('#bw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q % 5); });
+  // « Au chapitre 15, une vue » : la vue catalogue_box lit la table produits
+  on('#bw-pr .hl', A.r2 + 0.8, 0.2); cue(A.r2 + 0.8, 'tick', 0.5, 2);
+  off('#bw-pr .hl', A.r2 + 3.0, 0.3);
+  // au service logistique, on scanne le QR code de chaque commande : la photo d’Elisa, qui avance doucement vers l’écran
+  hide('#bc', A.o1 - 0.1, {y: -30}, 0.35);
+  show('#ph', A.o1 + 0.3, {y: 50, scale: 0.96}, 0.6); cue(A.o1 + 0.3, 'whoosh', 0.5, 1);
+  tl.fromTo('#ph img', {scale: 1}, {scale: 1.1, duration: +(B.o3 - A.o1).toFixed(2), ease: 'none', immediateRender: false}, A.o1 + 0.3);
+  mark('#qc', A.o1 + 1.6);
+  // mais l’écran affiche « Recherche de la commande… » : la file grandit déjà
+  swap('#qcn .a0', '#qcn .a1', A.o2 + 1.2); bump('#qc', A.o2 + 1.3, 1.06);
+  // et la file des commandes à préparer s’allonge
+  [2, 3].forEach((k, q) => { const t = A.o3 + 0.5 + q * 1.1; swap(`#qcn .a${k - 1}`, `#qcn .a${k}`, t); bump('#qc', t + 0.1, 1.08); });
+  // l’équipe logistique écrit : la photo laisse la place à son message, la légende s’efface le temps du message (jamais de carte vide)
+  capOff(B.o3 - 0.2);
+  hide('#ph', B.o3 - 0.1, {y: -30}, 0.35);
+  sceneOff('#sa', MAIL1 + 0.3);
+  sceneOn('#sm', MAIL1 + 0.3);
+  mailIn(1, MAIL1 + 0.5, OPENS[0].at);
+  mailOut(1, MAIL1 + MO[0]);
+  sceneOff('#sm', MAIL1 + MO[0] + 0.45);
+
+  /* ===== 2 · La recherche de la commande ===== */
+  sceneOn('#sw', MAIL1 + MO[0] + 0.45);
+  capOn(A.a1 - 0.3);
+  // la requête lancée à chaque scan : elle s’écrit pendant la bulle
+  show('#eq', A.a1 + 0.2, {y: 40}, 0.5); cue(A.a1 + 0.2, 'whoosh', 0.45, 1);
+  typeQuery('eq', A.a1 + 0.6, 44);
+  // elle cherche la commande dont le numéro est NB-10482
+  pulse('#qnb', A.a2 + 1.4, 1, GLOW); cue(A.a2 + 1.4, 'tick', 0.5, 3);
+  // la table commandes : 500 000 lignes
+  show('#tc', A.a3 + 0.2, {y: 50}, 0.5); cue(A.a3 + 0.2, 'whoosh', 0.5, 2);
+  bump('#tc .bn', A.a3 + 1.5, 1.14); cue(A.a3 + 1.5, 'tick', 0.5, 4);
+  // elle garde aussi les anciennes commandes : celles de 2019, puis les 499 995 autres ; la commande scannée est parmi les plus récentes
+  ['#rtc17', '#rtc18'].forEach((r, q) => { const t = A.a4 + 0.6 + q * 0.3; pulse(r, t, 1, GLOW); cue(t, 'tick', 0.5, q + 2); });
+  pulse('#rtcm', A.a4 + 1.5, 1, GLOW); cue(A.a4 + 1.5, 'tick', 0.5, 4);
+  // pour le vérifier, tu demandes son plan à la base
+  on('#rtc499992 .hl', A.a5 + 0.6, 0.3); cue(A.a5 + 0.6, 'tick', 0.5, 3);
+
+  /* ===== 3 · Lire le plan ===== */
+  // EXPLAIN QUERY PLAN, placé devant la requête : la même requête, avec une ligne de plus, tapée pendant la bulle
+  hide(['#eq', '#tc'], A.b1 - 0.05, {y: -20}, 0.3);
+  show('#ee', A.b1 + 0.25, {y: 0}, 0.35);
+  const b1 = typeLines('ee', 1, 1, A.b1 + 0.8, 30);
+  pulse('#xeq', b1 + 0.2, 1, GLOW); cue(b1 + 0.2, 'tick', 0.5, 2);
+  // l’élève clique sur « Exécuter » : le bouton arrive sous la requête (l’app s’arrête dessus, OPENS ; hors de l’app, un doigt le montre)
+  show('#bexp', A.b2 + 1.2, {y: 30, scale: 0.94}, 0.5, 'back.out(1.7)'); cue(A.b2 + 1.2, 'pop', 0.7, 2);
+  tapButton('bexp', EXE1, '#4B30CC');
+  run('ee', EXE1 + 0.15);
+  confetti($('#bexp'), EXE1 + 0.6);   // la requête s’exécute sans erreur : des confettis (Elisa, 26 octobre, 7 h 18, Réf 6)
+  // le plan arrive à la place du bouton : SCAN commandes
+  hide('#bexp', EXE1 + 0.75, {y: -20, scale: 0.96}, 0.3);
+  show('#pl', EXE1 + 1.0, {y: 40, scale: 0.96}, 0.5, 'back.out(1.5)'); cue(EXE1 + 1.0, 'whoosh', 0.5, 2);
+  // EXPLAIN QUERY PLAN montre comment la base prévoit d’exécuter la requête
+  pulse('#xeq', A.b3 + 0.8, 1, GLOW); cue(A.b3 + 0.8, 'tick', 0.5, 2);
+  bump('#pl', A.b3 + 2.6, 1.02); cue(A.b3 + 2.6, 'tick', 0.5, 4);
+  // ici, elle parcourt la table pour retrouver la commande
+  pulse('#pscan', A.b4 + 0.6, 1, GLOW); cue(A.b4 + 0.6, 'tick', 0.5, 3);
+  bump('#pl .plb', A.b4 + 1.7, 1.12); cue(A.b4 + 1.7, 'miss', 0.35);
+  // SCAN commandes : les commandes défilent, année après année, et le compteur des lignes lues avance jusqu’à 500 000
+  show('#sc', A.b5 + 0.2, {y: 40}, 0.5); cue(A.b5 + 0.2, 'whoosh', 0.5, 1);
+  ANNEES.forEach(([y], q) => {
+    const t = A.b5 + 1.0 + q * 0.4;
+    tl.to(`#sc-${y} .lu`, {width: '100%', duration: 0.38, ease: 'none'}, t);
+    flip('#scn', q + 1, t + 0.38); cue(t + 0.38, 'tick', 0.4, q % 5);
+  });
+  bump('#sc-2026 .n', A.b5 + 1.0 + 8 * 0.4, 1.2); cue(A.b5 + 1.0 + 8 * 0.4, 'pop', 0.5, 4);
+  // même les commandes de 2019 sont relues à chaque scan
+  pulse('#sc-2019', A.b6 + 0.6, 1, 'rgba(239,79,85,.18)'); cue(A.b6 + 0.6, 'miss', 0.35, 1);
+  // plus la table grandit, plus la recherche ralentit
+  bump('#scn', A.b7 + 0.8, 1.15); cue(A.b7 + 0.8, 'tick', 0.5, 3);
+
+  /* ===== 4 · Créer l’index ===== */
+  // ta mission : créer un index sur le numéro de commande ; la requête s’écrit au fil des bulles, une partie à la fois
+  hide(['#ee', '#pl', '#sc'], A.c0 - 0.05, {y: -30}, 0.35);
+  show('#ei', A.c0 + 0.3, {y: 40}, 0.5); cue(A.c0 + 0.3, 'whoosh', 0.45, 1);
+  typeLines('ei', 0, 0, A.c0 + 0.8);
+  // CREATE INDEX crée un index, ici nommé idx_commandes_numero
+  const c1 = typeLines('ei', 1, 1, A.c1 + 0.3);
+  pulse('#inm', c1 + 0.2, 1, GLOW); cue(c1 + 0.2, 'tick', 0.5, 2);
+  // ON commandes(numero_commande) précise la table et la colonne
+  const c2 = typeLines('ei', 2, 2, A.c2 + 0.3);
+  pulse('#ion', c2 + 0.2, 1, GLOW); cue(c2 + 0.2, 'tick', 0.5, 3);
+  // un index permet de retrouver plus rapidement les lignes à partir d’une valeur recherchée
+  bump('#ei', A.c3 + 1.6, 1.015);
+  // ici, le numéro de la commande sert à la retrouver
+  pulse('#ion', A.c4 + 0.8, 1, GLOW); cue(A.c4 + 0.8, 'tick', 0.5, 2);
+  // l’élève clique sur « Créer l’index » (l’app s’arrête dessus, OPENS ; hors de l’app, un doigt le montre)
+  show('#bcix', A.c5 + 1.5, {y: 30, scale: 0.94}, 0.5, 'back.out(1.7)'); cue(A.c5 + 1.5, 'pop', 0.7, 2);
+  tapButton('bcix', CIX, '#0B5A54');
+  run('ei', CIX + 0.15);
+  confetti($('#bcix'), CIX + 0.6);   // l’index est créé : des confettis
+  // l’index arrive à la place du bouton : les numéros dans l’ordre, chacun avec l’identifiant de sa ligne
+  hide('#bcix', CIX + 0.75, {y: -20, scale: 0.96}, 0.3);
+  show('#ix', CIX + 1.0, {y: 40, scale: 0.96}, 0.5, 'back.out(1.5)'); cue(CIX + 1.0, 'chord', 0.5);
+  pulse('#ix .hd .c0', A.c6 + 0.6, 1, GLOW); cue(A.c6 + 0.6, 'tick', 0.5, 2);
+  $$('#ix .r:not(.rmore)').forEach((r, q) => { const t = A.c6 + 1.2 + q * 0.22; pulse(r, t, 1, 'rgba(15,118,110,.12)'); cue(t, 'tick', 0.4, q % 5); });
+  pulse('#ix .hd .c1', A.c6 + 2.9, 1, GLOW); cue(A.c6 + 2.9, 'tick', 0.5, 4);
+
+  /* ===== 5 · Le nouveau plan ===== */
+  // relance EXPLAIN QUERY PLAN : la requête du plan revient, avec son bouton ; l’index s’écarte (l’app s’arrête sur le bouton, OPENS)
+  hide(['#ei', '#ix'], A.d1 - 0.05, {y: -30}, 0.35);
+  tl.set('#ee', {y: 40}, A.d1 + 0.3);
+  tl.to('#ee', {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out'}, A.d1 + 0.3); cue(A.d1 + 0.3, 'whoosh', 0.45, 1);
+  tl.set('#bexp', {y: 30, scale: 0.94}, A.d1 + 1.4);
+  tl.to('#bexp', {autoAlpha: 1, y: 0, scale: 1, duration: 0.5, ease: 'back.out(1.7)'}, A.d1 + 1.4); cue(A.d1 + 1.4, 'pop', 0.7, 2);
+  tapButton('bexp', EXE2, '#4B30CC');
+  run('ee', EXE2 + 0.15);
+  confetti($('#bexp'), EXE2 + 0.6);
+  // le nouveau plan arrive à la place du bouton ; l’index revient dessous
+  hide('#bexp', EXE2 + 0.75, {y: -20, scale: 0.96}, 0.3);
+  show('#pl2', EXE2 + 1.0, {y: 40, scale: 0.96}, 0.5, 'back.out(1.5)'); cue(EXE2 + 1.0, 'whoosh', 0.5, 2);
+  tl.set('#ix', {y: IXY + 40, scale: 1}, EXE2 + 1.6);
+  tl.to('#ix', {autoAlpha: 1, y: IXY, duration: 0.5, ease: 'expo.out'}, EXE2 + 1.6); cue(EXE2 + 1.6, 'whoosh', 0.4, 3);
+  // la base utilise maintenant l’index pour retrouver la commande : elle y trouve NB-10482, et l’identifiant de sa ligne
+  pulse('#psearch', A.d2 + 0.6, 1, GLOW); cue(A.d2 + 0.6, 'tick', 0.5, 2);
+  on('#rix4 .hl', A.d2 + 1.8, 0.3); cue(A.d2 + 1.8, 'pop', 0.6, 4);
+  pulse('#rix4 .c1', A.d2 + 2.8, 1, GLOW);
+  // À toi : la partie du plan qui nomme l’index (réponse : elle est entourée)
+  tl.set(M4_ANS, {autoAlpha: 1}, set2(PICKS[3].at));
+  // SEARCH : grâce à l’index, seule la ligne recherchée est lue
+  pulse('#rix4', A.d3 + 1.2, 1, GLOW); cue(A.d3 + 1.2, 'tick', 0.5, 3);
+  off(M4_ANS, B.d3 - 0.3, 0.3);
+  // la commande NB-10482 est scannée à nouveau : la photo revient, l’écran affiche la commande retrouvée, et la file avance
+  hide(['#ee', '#pl2', '#ix', '#rix4 .hl'], A.d4 - 0.05, {y: -30}, 0.35);
+  show('#ph2', A.d4 + 0.3, {y: 50, scale: 0.96}, 0.6); cue(A.d4 + 0.3, 'whoosh', 0.5, 1);
+  tl.fromTo('#ph2 img', {scale: 1.04}, {scale: 1.1, duration: +(B.d6 - A.d4).toFixed(2), ease: 'none', immediateRender: false}, A.d4 + 0.3);
+  show('#fnd', A.d5 + 0.3, {y: 20, scale: 0.9}, 0.45, 'back.out(1.8)'); cue(A.d5 + 0.3, 'chord', 0.55);
+  [1, 2].forEach((k, q) => { const t = A.d6 + 0.4 + q * 1.0; swap(`#qdn .a${k - 1}`, `#qdn .a${k}`, t); bump('#qd', t + 0.1, 1.06); });
+
+  /* ===== 6 · Le plan ou la mesure ? ===== */
+  // le plan confirme la méthode utilisée ; une mesure du temps d’exécution permet de vérifier le gain de vitesse
+  hide('#ph2', A.e1 - 0.05, {y: -30}, 0.35);
+  tl.set('#pl2', {y: PLY + 40}, A.e1 + 0.3);
+  tl.to('#pl2', {autoAlpha: 1, y: PLY, duration: 0.5, ease: 'expo.out'}, A.e1 + 0.3); cue(A.e1 + 0.3, 'whoosh', 0.45, 1);
+  show('#chr', A.e1 + 2.0, {y: 40}, 0.5); cue(A.e1 + 2.0, 'whoosh', 0.45, 2);
+  tl.to('#bslow', {scaleX: 1, duration: 1.6, ease: 'none'}, A.e1 + 2.8); cue(A.e1 + 2.8, 'tick', 0.4, 1);
+  tl.to('#bfast', {scaleX: 1, duration: 0.08, ease: 'none'}, A.e1 + 4.6); cue(A.e1 + 4.6, 'pop', 0.5, 4);
+  // mesurée dans SQLite, la recherche est environ 400 fois plus rapide avec l’index
+  show('#chx', A.e2 + 0.8, {y: 16, scale: 0.9}, 0.45, 'back.out(1.8)'); cue(A.e2 + 0.8, 'chord', 0.5);
+  // le plan et la mesure ne répondent pas à la même question : les deux cases où ranger les informations
+  hide(['#pl2', '#chr'], A.e2b - 0.05, {y: -30}, 0.35);
+  sceneOff('#sw', A.e2b + 0.35);
+  sceneOn('#sd', A.e2b + 0.35);
+  [['#db-pl', 0], ['#db-me', 3]].forEach(([id, p], q) => { const t = A.e2b + 0.5 + q * 0.5; show(id, t, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(t, 'pop', 0.6, p); });
+  show('#bpack', A.e2b + 1.7, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.e2b + 1.7, 'pop', 0.7, 1);
+  // À toi : les six informations rangées ; remplies, les cases ne sont plus des zones où déposer, et la pile est vide
+  tl.set('.dbn .rc', {autoAlpha: 1}, set2(PICKS[4].at));
+  tl.set('.dbn', {borderStyle: 'solid'}, set2(PICKS[4].at));
+  tl.set('#bpack', {autoAlpha: 0}, set2(PICKS[4].at));
+  // le plan dit comment la requête s’exécute ; la mesure dit en combien de temps
+  bump('#db-pl', A.e3 + 0.6, 1.03); cue(A.e3 + 0.6, 'tick', 0.5, 2);
+  bump('#db-me', A.e3 + 2.4, 1.03); cue(A.e3 + 2.4, 'tick', 0.5, 4);
+  hide('.dbn', B.e3 - 0.1, {y: -40}, 0.4);
+
+  /* ===== 7 · Des index partout ? ===== */
+  // et si tu ajoutais un index sur chaque colonne ? Un index apparaît sur chacune
+  sceneOff('#sd', A.f1 + 0.3);
+  sceneOn('#sw', A.f1 + 0.3);
+  show('#al', A.f1 + 0.3, {y: 40}, 0.5); cue(A.f1 + 0.3, 'whoosh', 0.5, 1);
+  $$('#al .ixb').forEach((b, q) => { const t = A.f1 + 1.0 + q * 0.22; show(b, t, {y: 0, scale: 0.4}, 0.32, 'back.out(2.2)'); cue(t, 'pop', 0.45, q % 5); });
+  // chaque index occupe de l’espace et doit être entretenu lorsque les données changent
+  show('#alk1', A.f2 + 0.8, {y: 16, scale: 0.94}, 0.4, 'back.out(1.8)'); cue(A.f2 + 0.8, 'miss', 0.35, 1);
+  show('#alk2', A.f2 + 2.2, {y: 16, scale: 0.94}, 0.4, 'back.out(1.8)'); cue(A.f2 + 2.2, 'miss', 0.35, 2);
+  // crée-les pour les recherches qui en ont besoin : seul l’index du numéro de commande reste
+  $$('#al .alc > span').filter(s => s.id !== 'al-numero_commande').forEach((s, q) => { const c = s.id.slice(3), t = A.f3 + 0.5 + q * 0.15; swap(`#ab-${c} .a0`, `#ab-${c} .a1`, t, q === 0); });
+  tl.to('#al-numero_commande', {backgroundColor: '#DDF3EF', boxShadow: 'inset 0 0 0 4px #0F766E', duration: 0.3}, A.f3 + 1.6); cue(A.f3 + 1.6, 'chord', 0.5);
+  // la suite : la prochaine leçon
+  hide('#al', A.f4 - 0.05, {y: -30}, 0.35);
+  sceneOff('#sw', A.f4 + 0.3);
+  sceneOn('#sn', A.f4);
+  show('#keyc', A.f4 + 0.1, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)'); cue(A.f4 + 0.1, 'whoosh', 0.6);
+  tl.to('#keyc .emo', {rotation: -18, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.f4 + 0.7);
+  hide('#keyc', B.f4 - 0.1, {y: -30}, 0.4);
+  sceneOff('#sn', RECAP);
+
+  /* ===== 8 · À retenir ===== */
+  // chaque idée : sa phrase, puis son détail
+  recapScene(RECAP, [RECAP + 0.7, RECAP + 2.1, RECAP + 3.5]);
+  const rt = $$('#s7 .rtxt'), rs = $$('#s7 .rs'), rd = (h, n = 20) => Math.ceil(readTime(h) * n) / n;
+  gsap.set(rs, {autoAlpha: 0, y: 10});
+  [[RECAP + 0.7, RECAP + 1.45], [RECAP + 2.1, RECAP + 2.85], [RECAP + 3.5, RECAP + 4.25]].forEach(([r, d], i) => {
+    tl.to(rs[i], {autoAlpha: 1, y: 0, duration: 0.45, ease: 'power2.out'}, d);
+    cue(d, 'tick', 0.5, i * 2 + 1);
+    hold(r + 0.6, rd(rt[i].innerHTML.split('<span')[0]));
+    hold(d + 0.5, rd(rs[i].innerHTML));
+  });
+  if (APP) cue(NOTES + 0.05, 'pop', 0.85, 5);
+}
+
+/* ---------- Moments « À toi » : ce que montre chaque geste ----------
+   Le lecteur arrête l’image à chaque moment (PICKS) et pose ses zones tactiles sur les endroits que la page décrit
+   (IX.spots). Chaque geste est jugé ici (IX.act, IX.pick) et montré aussitôt sur l’image : les bons gestes affichent
+   les mêmes éléments que la timeline juste après l’arrêt (classe pvs, sans toucher aux styles de la timeline) ;
+   ils restent jusqu’à ce que la timeline affiche la même image (IX.tick), puis s’effacent : la reprise est invisible. */
+const IX = (() => {
+  let X = null, wait = -1;
+  function start(i){ if (!X || X.i !== i) { clear(); X = {i, cls: [], tm: [], got: new Set()}; } }
+  function clear(){
+    if (!X) return;
+    X.tm.forEach(clearTimeout);
+    X.cls.forEach(([e, c]) => e.classList.remove(c));
+    X = null; wait = -1;
+  }
+  const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
+  const marks = (sels, c = 'pvs') => sels.forEach(s => $$(s).forEach(e => mark(e, c)));
+  /* La classe est aussi notée dans X.cls : si le moment change avant la fin du minuteur (deux réponses enchaînées), clear() la retire. */
+  const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
+  /* Moment 4 : les trois parties du nouveau plan */
+  const PARTS = [['p0', 'SEARCH commandes'], ['p1', 'USING INDEX idx_commandes_numero'], ['p2', '(numero_commande=?)']];
+  const partOf = k => $('#p2-' + k.slice(1));
+  function spots(i){
+    if (i === 3) return PARTS.map(([k, label]) => Object.assign({k, label}, rel(partOf(k))));
+    // moment 5 : le plan, ou une mesure
+    if (i === 4) return BINS.map(([k, n, d]) => Object.assign({k, label: `${n} : ${d}`}, rel($('#db-' + k))));
+    return [];
+  }
+  function act(i, a, b){
+    start(i);
+    if (i === 3) {
+      // USING INDEX idx_commandes_numero : l’index utilisé
+      if (a === 'p1') {
+        if (!X.got.has(a)) { X.got.add(a); marks(M4_ANS); sfx('tick', 1, 0.6); }
+        return {ok: true, done: true, why: '', at: rel(partOf('p1'))};
+      }
+      // une autre partie : elle rougit un instant, et la correction dit ce qu’elle montre
+      flash(partOf(a), 'kof', 650);
+      return {ok: false, why: fr(WHY4[a])};
+    }
+    if (i === 4) {
+      const n = +a, bin = $('#db-' + b);
+      if (ITEMS[n][1] === b) {
+        mark($('#sbu' + n), 'pvs');
+        flash(bin, 'okb', 520);
+        X.got.add(n);
+        sfx('pop', X.got.size, 0.6);
+        if (X.got.size === ITEMS.length) marks(['#bpack'], 'pvh');   // la pile est vide, comme juste après l’arrêt
+        return {ok: true, done: X.got.size === ITEMS.length, why: '', at: rel(bin)};
+      }
+      flash(bin, 'kob', 650);
+      return {ok: false, why: fr(ITEMS[n][2])};
+    }
+    return {ok: false};
+  }
+  /* Choix d’une réponse (moments 1, 2, 3 et 6) : le verdict et son explication. */
+  function pick(i, k){
+    clear(); start(i);
+    const P = PICKS[i], o = P.options[k], ok = !!o.ok;
+    sfx(ok ? 'pop' : 'miss', 2, 0.5);
+    return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));
+  }
+  /* Indice, après deux erreurs : une piste. */
+  function hint(i){
+    const h = (() => {
+      if (i === 0) return {text: 'La table n’a pas encore d’index : rien n’indique où se trouve la commande.'};
+      if (i === 1) return {text: '<code>SCAN</code> lit chaque ligne de la table, une à une.'};
+      if (i === 2) return {text: 'Relis la requête du scan : <code>WHERE numero_commande = …</code>.'};
+      if (i === 3) return {text: 'Cherche le mot <code>INDEX</code> dans le plan.', keys: ['p1']};
+      if (i === 5) return {text: 'Chaque index occupe de la place, et doit suivre chaque modification des données.'};
+      return null;
+    })();
+    return h && Object.assign(h, {text: fr(h.text)});
+  }
+  return {
+    enter: i => { clear(); start(i); },
+    spots, act, pick, hint,
+    slot: () => null,
+    /* Moment réussi : l’aperçu reste jusqu’à ce que la timeline affiche la même image ; sinon il part tout de suite. */
+    leave(i, answered){ if (answered && X && X.i === i) wait = i; else clear(); },
+    tick(t = tl.time()){ if (wait < 0) return; const a = PICKS[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear(); }
+  };
+})();
+window.IX = IX;
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 197.84, picks: PICKS, opens: OPENS,
+  glyphs: '🗄️👥🛒⭐📦🧑‍🏫📅📝💳💬🔁🎁🏷️📋⚠🔎🗂️⏱️⚡💾🔧✅✓✕!…«»·−→<>⋮',
+  dom, build, beforeRender: t => IX.tick(t)});
+</script>
+</body>
+</html>
