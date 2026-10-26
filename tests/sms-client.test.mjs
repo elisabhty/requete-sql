@@ -152,11 +152,47 @@ test('le style : bulles grises iOS, bleu des icônes, queue de la dernière bull
 test('la cadence : la bannière, le toucher, « … », puis une bulle toutes les 0,28 s (0,25 s en version serrée) ; l’image reste le temps de lire', () => {
   const f = core.slice(core.indexOf('function smsIn('), core.indexOf('/* ---------- Habillage'));
   for (const part of ["cue(t, 'sms', 0.8);", "cue(T, 'click', 0.5);", 'first = T + (fast ? 0.5 : 0.62)', 'step = fast ? 0.25 : 0.28', "tl.set(dots, {autoAlpha: 0}, first);",
-    'const end = first + (bubbles.length - 1) * step + 0.35;', "const said = bubbles.slice(+!$(m).dataset.hi, /^Merci\\s*!$/.test(bubbles[bubbles.length - 1].textContent.trim()) ? -1 : undefined);",
-    'hold(end + 0.05, Math.ceil(readTime(said.map(b => b.textContent).join(\' \')) * 20) / 20);'])
+    'const end = first + (bubbles.length - 1) * step + 0.35;', 'const said = bubbles.slice(hi, merci ? -1 : undefined);',
+    'const total = Math.ceil(readTime(said.map(b => b.textContent).join(\' \')) * 20) / 20;'])
     assert.ok(f.includes(part), `smsIn : ${part}`);
   assert.ok(core.includes('await document.fonts.ready;\n    smsFit();'), 'les bulles se resserrent sur leur ligne la plus longue, polices chargées, avant la timeline');
   assert.ok(index.includes("case 'sms':{"), 'le son de la notification existe dans le lecteur');
+});
+
+/* Elisa, 26 octobre, 13 h 39 (Réf 1) : « les messages défilent beaucoup trop vite, tout d’un coup ». Les bulles n’arrivent plus toutes en une
+   seconde avant une longue pause : chaque bulle reste seule le temps de la lire, puis la suivante arrive. Le temps de lecture total ne change pas. */
+function joue(textes, {hi = true, fast = false} = {}){
+  const f = core.slice(core.indexOf('function smsIn('), core.indexOf('/* ---------- Habillage'));
+  const holds = [], pops = [], bulles = textes.map(t => ({textContent: t}));
+  const tl = {to(el, v, t){ if (bulles.includes(el)) pops.push([t, v.duration]); return this; }, set(){ return this; }};
+  const c = vm.createContext({$: s => s === '#ml1' ? {dataset: hi ? {} : {hi: '0'}} : {}, $$: s => s.endsWith(' .sms-m') ? bulles : [], show(){}, cue(){}, gsap: {set(){}}, tl,
+    hold: (t, d) => holds.push([t, d]), plain: h => h, readTime: h => h.length / 17});
+  vm.runInContext(f + ';this.smsIn = smsIn;', c);
+  const end = c.smsIn(1, 10, 11.6, fast);
+  return {holds, pops, end, total: Math.ceil(textes.slice(hi ? 1 : 0, /^Merci/.test(textes[textes.length - 1]) ? -1 : undefined).join(' ').length / 17 * 20) / 20};
+}
+test('la lecture : chaque bulle reste seule le temps de la lire, puis la suivante arrive ; le temps total de lecture ne change pas', () => {
+  const textes = ['Salut !', 'L’agence prépare la page de notre prochaine box.', 'Elle a besoin du nom, de la catégorie et du prix des produits sélectionnés.',
+    'La sélection peut encore changer, donc évitons les exports à refaire.', 'Peux-tu préparer une vue dédiée ?'];
+  const {holds, pops, end, total} = joue(textes);
+  assert.equal(pops.length, 5, 'cinq bulles');
+  assert.equal(holds.length, 4, 'une pause par phrase, aucune pour « Salut ! »');
+  assert.ok(Math.abs(holds.reduce((s, h) => s + h[1], 0) - total) < 1e-9, `le temps de lecture total : ${total} s, comme avant`);
+  for (let k = 0; k < 3; k++) {
+    const [at, dur] = pops[k + 1], next = pops[k + 2][0];
+    assert.ok(holds[k][0] >= at + dur - 1e-9 && holds[k][0] < next, `phrase ${k + 1} : la pause tombe après son apparition, avant la bulle suivante`);
+  }
+  assert.ok(Math.abs(holds[3][0] - (end + 0.05)) < 1e-9, 'la dernière phrase : sa pause après la toute dernière bulle');
+  const parts = holds.map(h => h[1]), longueurs = textes.slice(1).map(t => t.length);
+  assert.ok(parts[1] > parts[0] && parts[3] < parts[2], 'chaque bulle reçoit une part à sa longueur');
+  assert.ok(Math.abs(parts[1] / parts[0] - longueurs[1] / longueurs[0]) < 0.05, 'proportionnelle à sa longueur');
+  /* Sans formule, avec « Merci ! » ; et la version serrée : chaque bulle a fini d’apparaître avant la suivante */
+  const sans = joue(['Petit changement : on remplace finalement la tisane par le magnésium.', 'Il faut recréer la vue ?', 'Merci !'], {hi: false});
+  assert.equal(sans.holds.length, 2, 'les deux phrases, pas « Merci ! »');
+  assert.ok(sans.holds[0][0] < sans.pops[1][0] && Math.abs(sans.holds[1][0] - (sans.end + 0.05)) < 1e-9, 'la dernière part après « Merci ! »');
+  assert.ok(Math.abs(sans.holds.reduce((s, h) => s + h[1], 0) - sans.total) < 1e-9);
+  const serre = joue(['Bonjour,', 'Je ne pourrai pas venir.', 'Pouvez-vous annuler ?'], {fast: true});
+  assert.ok(serre.pops.every(([t, d], k) => k === serre.pops.length - 1 || t + d < serre.pops[k + 1][0]), 'version serrée : une bulle a fini d’apparaître avant la suivante');
 });
 
 /* ---------- Les chapitres ---------- */

@@ -165,6 +165,8 @@
 .tb .h .vrk+.bn{margin-left:10px}
 
 /* ---------- Les droits : l’agence consulte la vue, pas le catalogue complet ---------- */
+/* La prochaine leçon (les droits d’accès) et ses deux questions */
+.nxq{gap:24px}
 .ag{left:64px;width:952px;padding:0 0 10px;overflow:hidden}
 .ag .agh{height:70px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--cs);color:var(--ci);font-size:31px;font-weight:800;white-space:nowrap}
 .ag .agh .emo{font-size:34px}
@@ -235,7 +237,7 @@
   <section class="scene" id="s7">
     <div class="abs rtitle">Les trois idées à retenir</div>
     <div class="abs card recap" id="recap">
-      <div class="rrow"><div class="rico emo">👁️</div><div class="rtxt">Une <b>vue</b> enregistre une requête<br>sous un nom.<span class="rs">Elle se consulte comme une table,<br>avec <code>SELECT</code>.</span></div></div>
+      <div class="rrow"><div class="rico emo">📋</div><div class="rtxt">Une <b>vue</b> enregistre une requête<br>sous un nom.<span class="rs">Elle se consulte comme une table,<br>avec <code>SELECT</code>.</span></div></div>
       <div class="rrow"><div class="rico emo">🔄</div><div class="rtxt">Elle conserve la <b>requête</b>,<br>pas une copie des résultats.<span class="rs">À chaque consultation, elle utilise<br>les données actuelles.</span></div></div>
       <div class="rrow"><div class="rico emo">🎁</div><div class="rtxt">Elle présente uniquement<br>les <b>colonnes</b> et les <b>lignes</b> utiles.<span class="rs">Avec des droits configurés séparément,<br>l’agence la consulte sans accéder<br>au catalogue complet.</span></div></div>
     </div>
@@ -255,10 +257,11 @@
    La trame est celle d’Elisa (26 octobre, 10 h 52, « CREATE VIEW — La sélection surprise dévoilée trop tôt ») : ses bulles et ses messages
    sont gardés mot pour mot, une phrase par bulle. NutriBoost prépare une box surprise ; une agence doit créer la page de présentation à partir
    du catalogue produits, sans recevoir ni les stocks ni les produits qui ne font pas partie de la sélection. Le catalogue interne est la table
-   produits, avec sa colonne selection_box (1 : le produit est dans la box) ; la box contient la Tisane Détox, la Protéine Végétale et le Shaker
-   Inox (la photo d’Elisa, 11 h 16 : la box surprise, avec le shaker rose, la protéine et la tisane). Camille, la responsable de la box, demande une vue dédiée :
-   catalogue_box (le nom, la catégorie et le prix des produits sélectionnés). Puis la sélection change : le magnésium remplace la tisane ;
-   consultée à nouveau, la vue montre la nouvelle sélection, sans être recréée. */
+   produits, avec la colonne selection_box que Karim, le développeur, y a ajoutée (1 : le produit est dans la box ; Elisa, 13 h 39 : « plus
+   crédible » que « l’équipe de la box ») ; la box contient la Tisane Détox, la Protéine Végétale et le Shaker Inox (la photo d’Elisa, 11 h 16 :
+   la box surprise, avec le shaker rose, la protéine et la tisane). Camille Roux, la responsable des opérations, demande une vue dédiée :
+   catalogue_box (le nom, la catégorie et le prix des produits sélectionnés). Puis la sélection change (Elisa, 13 h 39 : la hausse du prix des
+   matières premières) : le magnésium remplace la protéine ; consultée à nouveau, la vue montre la nouvelle sélection, sans être recréée. */
 const SCH = {t: 5.0, caps: [], chaps: [{label:'La box surprise', a: 5.0}], A: {}, B: {}};
 function chap(c){ SCH.t = +(SCH.t + 0.4).toFixed(2); SCH.chaps.push({label: c.label, a: SCH.t}); }
 function cap(key, html, dur, gap = 0.1){
@@ -271,19 +274,20 @@ function cap(key, html, dur, gap = 0.1){
 const toi = key => cap(key, 'À toi !', 2.55);
 const {A, B} = SCH;
 /* Les messages reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses phrases), signature, option].
-   Camille, la responsable de la box, écrit par SMS ({sms: true}), avec les mots d’Elisa. Son premier message s’ouvre sur « Salut ! » ; le second
-   commence directement (hello: null : pas de formule) ; les deux finissent sur sa question (bye: null : pas de « Merci ! » de plus). L’app
-   s’arrête sur chaque notification (OPENS) jusqu’au toucher. */
+   Camille Roux, la responsable des opérations, écrit par SMS ({sms: true}), avec les mots d’Elisa. Son premier message s’ouvre sur « Salut ! » ;
+   le second commence directement (hello: null : pas de formule), avec le texte d’Elisa du 26 octobre, 13 h 39 (Réf 4) ; les deux finissent sur
+   sa question (bye: null : pas de « Merci ! » de plus). L’app s’arrête sur chaque notification (OPENS) jusqu’au toucher. */
 const MAILS = [
   [['Camille', 'Roux', 'CR'], 'k-pr', 'équipe', 'camille.roux@nutriboost.fr', [
     'L’agence prépare la page de notre prochaine box.',
     'Elle a besoin du nom, de la catégorie et du prix des produits sélectionnés.',
     'La sélection peut encore changer, donc évitons les exports à refaire.',
-    'Peux-tu préparer une vue dédiée ?'], 'Camille, responsable de la box NutriBoost',
+    'Peux-tu préparer une vue dédiée ?'], 'Camille, responsable des opérations NutriBoost',
     {sms: true, hello: 'Salut !', bye: null}],
   [['Camille', 'Roux', 'CR'], 'k-pr', 'équipe', 'camille.roux@nutriboost.fr', [
-    'Petit changement : on remplace finalement la tisane par le magnésium.',
-    'Il faut recréer la vue ?'], 'Camille, responsable de la box NutriBoost',
+    'Petit changement : après avoir recalculé les coûts, la hausse du prix des matières premières rend la box trop chère à produire.',
+    'On va donc remplacer la protéine par le magnésium pour conserver le prix de vente prévu.',
+    'Est-ce qu’il faut recréer la vue pour prendre en compte ce changement ?'], 'Camille, responsable des opérations NutriBoost',
     {sms: true, hello: null, bye: null}]
 ];
 /* Un message : la légende s’efface le temps du message (notification, toucher, lecture, départ). Un SMS : la formule (sauf hello: null), une
@@ -306,7 +310,7 @@ const MAIL1 = mailBlock(0);
 /* 2 · Le catalogue interne (Elisa : « catalogue interne avec colonne selection_box, certains produits cochés ») */
 chap({label:'Le catalogue interne'});
 cap('a1', "Le catalogue interne, c’est<br>la <b>table produits</b>.", 3.4);
-cap('a2', "L’équipe de la box y a ajouté<br>la colonne <code>selection_box</code>.", 3.8);
+cap('a2', "Karim, le développeur, y a ajouté<br>la colonne <code>selection_box</code>.", 3.8);   // Elisa, 13 h 39 (Réf 2) : plus crédible que « l’équipe de la box »
 cap('a3', "Un produit coché vaut 1 :<br>il fait partie de la sélection.", 3.8);
 toi('p1');
 cap('a4', "Trois produits sont sélectionnés :<br>la tisane, la protéine et le shaker.", 4.0);
@@ -336,19 +340,22 @@ cap('d5', "Les stocks et les produits<br>non sélectionnés n’y figurent pas."
    d’Elisa, mot pour mot */
 chap({label:'Petit changement'});
 const MAIL2 = mailBlock(1);
-cap('e1', "L’équipe de la box met à jour<br>la colonne <code>selection_box</code>.", 3.8);
-cap('e2', "La tisane passe à 0,<br>et le magnésium à 1.", 3.4);
+cap('e1', "Camille Roux met à jour la sélection<br>dans l’outil de gestion.", 3.8);   // Elisa, 13 h 39 (Réf 2)
+cap('e2', "La protéine passe à 0,<br>et le magnésium à 1.", 3.4);
 toi('p4');
 cap('e3', "Consulte à nouveau la vue :<br>clique sur « Exécuter ».", 3.8);   // l’app s’arrête sur le bouton (EXE2, plus bas)
-cap('e4', "La nouvelle sélection apparaît :<br>le magnésium remplace la tisane.", 4.0);
+cap('e4', "La nouvelle sélection apparaît :<br>le magnésium remplace la protéine.", 4.0);
 toi('p5');
 cap('e5', "Pas besoin de recréer la vue !", 3.0);
 cap('e6', "Elle conserve la requête,<br>pas une copie des résultats.", 3.6);
 cap('e7', "À chaque consultation, elle utilise<br>les données actuelles.", 3.8);
-/* 6 · Et les droits ? (Elisa : « droits d’accès configurés séparément pour que l’agence consulte la vue sans accéder au catalogue complet ») */
+/* 6 · Et les droits ? Les deux bulles d’Elisa (26 octobre, 13 h 39, Réf 5 : « Encore un point à découvrir (dans une prochaine leçon) : les
+   droits d’accès ! Qui peut consulter ou modifier les données ? ») : la leçon Sécurité et droits les présente. Puis sa note de la trame
+   (« droits d’accès configurés séparément pour que l’agence consulte la vue sans accéder au catalogue complet »). */
 chap({label:'Et les droits ?'});
-cap('f1', "Un dernier point à prévoir :<br>les droits d’accès.", 3.4);
-cap('f2', "Ils se configurent séparément,<br>pour que l’agence consulte la vue<br>sans accéder au catalogue complet.", 5.2);
+cap('f1', "Encore un point à découvrir<br>dans une prochaine leçon :<br>les droits d’accès !", 4.4);
+cap('f1b', "Qui peut consulter<br>ou modifier les données ?", 3.4);
+cap('f2', "Ces droits se configurent séparément,<br>pour que l’agence consulte la vue<br>sans accéder au catalogue complet.", 5.2);
 /* 7 · Dans la vue ou non ? */
 chap({label:'Dans la vue ou non ?'});
 cap('g1', "Certaines informations figurent<br>dans la vue, d’autres non.", 3.6);
@@ -382,19 +389,19 @@ const TB = [
   ['av', 'k-av', '💬', 'avis', 1], ['rp', 'k-rp', '🔁', 'remplacements', 1], ['cd', 'k-cd', '🎁', 'cadeaux', 1], ['hp', 'k-hp', '🏷️', 'historique_prix', 1]
 ];
 /* Le catalogue interne : la table produits telle que les chapitres précédents la laissent (le collagène à 34,90 € depuis le chapitre 13 ; le stock
-   du collagène, de la protéine et du shaker diminué d’une unité aux chapitres 11 à 13), avec la colonne selection_box ajoutée par l’équipe de la
-   box : 1 pour un produit de la box, 0 sinon. [identifiant, nom, catégorie, prix, stock, selection_box avant, après le changement de Camille] */
+   du collagène, de la protéine et du shaker diminué d’une unité aux chapitres 11 à 13), avec la colonne selection_box ajoutée par Karim, le
+   développeur : 1 pour un produit de la box, 0 sinon. [identifiant, nom, catégorie, prix, stock, selection_box avant, après le changement de Camille] */
 const PRODUITS = [
   [1, 'Fibre Prébiotique', 'Bien-être', '29.90', 120, 0, 0],
   [2, 'Collagène Marin', 'Beauté', '34.90', 79, 0, 0],
   [3, 'Magnésium', 'Bien-être', '19.90', 500, 0, 1],
   [4, 'Vitamine D', 'Nutrition', '14.90', 150, 0, 0],
-  [5, 'Tisane Détox', 'Boisson', '12.50', 60, 1, 0],
-  [6, 'Protéine Végétale', 'Nutrition', '34.90', 44, 1, 1],
+  [5, 'Tisane Détox', 'Boisson', '12.50', 60, 1, 1],
+  [6, 'Protéine Végétale', 'Nutrition', '34.90', 44, 1, 0],
   [7, 'Oméga 3', 'Bien-être', '24.90', 90, 0, 0],
   [8, 'Shaker Inox', 'Accessoire', '15.00', 29, 1, 1]
 ];
-const BOX = PRODUITS.filter(p => p[5]).map(p => p[0]), BOX2 = PRODUITS.filter(p => p[6]).map(p => p[0]);   // [5, 6, 8], puis [3, 6, 8]
+const BOX = PRODUITS.filter(p => p[5]).map(p => p[0]), BOX2 = PRODUITS.filter(p => p[6]).map(p => p[0]);   // [5, 6, 8], puis [3, 5, 8] : le magnésium remplace la protéine
 /* Moment 1 : un produit touché à tort ; moment 5 : d’où vient chaque case de la ligne du magnésium. */
 const WHY1 = {
   1: 'La Fibre Prébiotique n’est pas cochée : sa colonne <code>selection_box</code> vaut 0.',
@@ -409,16 +416,16 @@ const WHY5 = {
   c2: 'Le prix apparaît dans la vue, mais ce n’est pas lui qui y fait entrer le magnésium : c’est la condition du <code>WHERE</code>.',
   c3: 'Le stock n’apparaît pas dans la vue, et le <code>WHERE</code> ne le regarde pas.'
 };
-/* Moment 6 : dans la vue, ou hors de la vue (après le changement : le magnésium, la protéine et le shaker) ; six informations à ranger
+/* Moment 6 : dans la vue, ou hors de la vue (après le changement : le magnésium, la tisane et le shaker) ; six informations à ranger
    [information, case, pourquoi]. */
 const BINS = [['vu', 'Dans la vue', 'l’agence la voit'], ['ho', 'Hors de la vue', 'elle reste interne']];
 const ITEMS = [
   ['Le prix du shaker', 'vu', 'Le shaker fait partie de la sélection, et le prix est l’une des colonnes de la vue.'],
-  ['Le stock de la protéine', 'ho', 'La protéine est bien dans la box, mais la colonne stock ne fait pas partie de la vue.'],
+  ['Le stock de la tisane', 'ho', 'La tisane est bien dans la box, mais la colonne stock ne fait pas partie de la vue.'],
   ['La catégorie du magnésium', 'vu', 'Le magnésium fait maintenant partie de la sélection : sa catégorie apparaît dans la vue.'],
   ['Le prix de l’Oméga 3', 'ho', 'L’Oméga 3 n’est pas sélectionné : sa colonne selection_box vaut 0, il n’apparaît pas dans la vue.'],
-  ['Le nom de la protéine', 'vu', 'La protéine est sélectionnée, et le nom fait partie des colonnes de la vue.'],
-  ['La tisane, retirée de la box', 'ho', 'La tisane a été retirée de la sélection : sa colonne selection_box vaut 0, elle n’apparaît plus dans la vue.']
+  ['Le nom de la tisane', 'vu', 'La tisane est sélectionnée, et le nom fait partie des colonnes de la vue.'],
+  ['La protéine, retirée de la box', 'ho', 'La protéine a été retirée de la sélection : sa colonne selection_box vaut 0, elle n’apparaît plus dans la vue.']
 ];
 
 /* Les six moments « À toi » : l’image s’arrête, l’élève touche, choisit ou range ; la page montre aussitôt le résultat.
@@ -450,7 +457,7 @@ const PICKS = [
 const CRE = +(A.c7 + 2.6).toFixed(2), EXE1 = +(A.d3 + 2.4).toFixed(2), EXE2 = +(A.e3 + 2.6).toFixed(2);
 const BTN = (lip) => ({hand: {x: 0.86, y: 0.78}, press: {y: 7, boxShadow: `0 2px 0 ${lip}`}, rest: {y: 0, boxShadow: `0 9px 0 ${lip}`}});
 const msgOpen = (t, n) => {
-  const [prenom, nom] = MAILS[n][0], msg = mailSms(n) ? 'message' : 'mail';   // Camille écrit par SMS
+  const [prenom, nom] = MAILS[n][0], msg = mailSms(n) ? 'message' : 'mail';   // Camille Roux écrit par SMS
   const de = /^Le /.test(prenom) ? 'du ' + prenom.slice(3) : /^La /.test(prenom) ? 'de la ' + prenom.slice(3) : /^[AEIOUHÉÈ]/.test(prenom) ? 'd’' + prenom : 'de ' + prenom;
   return {at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: `Touche le ${msg} pour l’ouvrir.`, label: `Ouvrir le ${msg} ${de} ${nom}`};
 };
@@ -489,7 +496,7 @@ const Q_SEL = [['-- Consulter la vue'], ['SELECT * FROM {snm|catalogue_box};']];
 const ed = (id, q, fname) => editor(id, fname, q.map(([s], k) => [id + '-' + k, s]));
 /* Un bouton à toucher, et l’anneau qui s’en échappe */
 const button = (id, cls, emo, label) => `<i class="abs bring ${cls}" id="${id}-r"></i><div class="abs run bt ${cls}" id="${id}"><span class="emo">${emo}</span>${label}<i class="ripple"></i></div>`;
-/* La case selection_box : 1 (coché) ou 0 ; celles de la tisane et du magnésium changent avec le message de Camille. */
+/* La case selection_box : 1 (coché) ou 0 ; celles de la protéine et du magnésium changent avec le message de Camille Roux. */
 const coche = v => v ? ['1', 'y'] : ['0', 'n'];
 const PHOTO = 'projet-vue-box.webp';
 /* « Exécuter » : le triangle blanc de lecture (l’emoji ▶️ est une case orange) */
@@ -503,30 +510,35 @@ function dom(){
     '<div class="abs card ko" id="ko"><div class="kh"><span class="emo">🙈</span>Ce que l’agence ne doit pas recevoir</div>' +
     '<div class="kl"><span class="emo">📦</span>Les stocks<span class="kq">interne</span></div>' +
     '<div class="kl"><span class="emo">🛍️</span>Les produits hors sélection<span class="kq">interne</span></div></div>';
-  /* Les messages de Camille (ils finissent sur sa question) */
+  /* Les messages de Camille Roux (ils finissent sur sa question) */
   $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body, false, smsRank(MAILS, n),
     (MAILS[n][6] || {}).hello, (MAILS[n][6] || {}).photo, (MAILS[n][6] || {}).bye) : '').join('') +
     '<div class="abs emo tapf" id="tapf">👆</div>';
   /* Le travail : le catalogue (la table produits et sa colonne selection_box), les deux requêtes, les boutons, le résultat de la vue, les droits
-     de l’agence. La tisane passe de 1 à 0, le magnésium de 0 à 1 (le message de Camille). */
+     de l’agence. La protéine passe de 1 à 0, le magnésium de 0 à 1 (le message de Camille Roux). Une vue est marquée 📋, comme un résultat
+     enregistré (Elisa, 13 h 39, Réf 3 : pas d’œil quand on parle de données). */
   let w = tbl('tp', 'k-pr', '📦', 'produits', '--g:308px 190px 106px 96px 1fr',
       head([['c0', 'nom'], ['c1', 'categorie'], ['c2', 'prix'], ['c3', 'stock'], ['c4', 'selection_box']]),
       PRODUITS.map(([id, nom, cat, prix, stock, s1, s2]) => line('tp' + id, cell(0, `<i class="v">${nom}</i>`) + cell(1, `<i class="v">${cat}</i>`) + cell(2, `<i class="v">${prix}</i>`) +
         cell(3, `<i class="v">${stock}</i>`) + cell(4, (s1 === s2 ? sw('sb' + id, [coche(s1)], 'sb') : sw('sb' + id, [coche(s1), coche(s2)], 'sb')) + (id === 3 ? '<i class="hc" id="hc3"></i>' : '')))).join(''),
-      '<span class="vwc" id="vwc"><span class="emo">👁️</span>catalogue_box</span><span class="bn"><span>8 lignes</span></span>');
+      '<span class="vwc" id="vwc"><span class="emo">📋</span>catalogue_box</span><span class="bn"><span>8 lignes</span></span>');
   // les requêtes : la vue, puis sa consultation
   w += ed('evw', Q_VIEW, 'catalogue_box.sql') + ed('esl', Q_SEL, 'consultation.sql');
-  w += button('bcre', 'cy', '👁️', 'Créer la vue') + button('bexe', '', PLAY, 'Exécuter');
-  /* Le résultat de la vue : le nom, la catégorie et le prix des produits sélectionnés (la tisane, puis le magnésium à sa place, en tête : les
-     lignes suivent l’ordre de la table produits) */
-  const [t, m] = [PRODUITS[4], PRODUITS[2]];
-  w += tbl('vr', 'k-vw', '👁️', 'catalogue_box', '--g:350px 250px 1fr', head([['c0', 'nom'], ['c1', 'categorie'], ['c2', 'prix']]),
-    line('vr1', cell(0, sw('vn1', [[t[1]], [m[1]]])) + cell(1, sw('vc1', [[t[2]], [m[2]]])) + cell(2, sw('vp1', [[t[3]], [m[3]]]))) +
-    [PRODUITS[5], PRODUITS[7]].map((p, q) => line('vr' + (q + 2), cell(0, `<i class="v">${p[1]}</i>`) + cell(1, `<i class="v">${p[2]}</i>`) + cell(2, `<i class="v">${p[3]}</i>`))).join(''),
+  w += button('bcre', 'cy', '📋', 'Créer la vue') + button('bexe', '', PLAY, 'Exécuter');
+  /* Le résultat de la vue : le nom, la catégorie et le prix des produits sélectionnés, dans l’ordre de la table produits : la tisane, la protéine
+     et le shaker ; puis, consultée à nouveau, le magnésium (en tête), la tisane et le shaker. Une ligne qui change empile ses deux valeurs. */
+  const avant = BOX.map(id => PRODUITS.find(p => p[0] === id)), apres = BOX2.map(id => PRODUITS.find(p => p[0] === id));
+  w += tbl('vr', 'k-vw', '📋', 'catalogue_box', '--g:350px 250px 1fr', head([['c0', 'nom'], ['c1', 'categorie'], ['c2', 'prix']]),
+    avant.map((p, q) => { const n = apres[q], k = q + 1;
+      return line('vr' + k, p === n ? cell(0, `<i class="v">${p[1]}</i>`) + cell(1, `<i class="v">${p[2]}</i>`) + cell(2, `<i class="v">${p[3]}</i>`)
+        : cell(0, sw('vn' + k, [[p[1]], [n[1]]])) + cell(1, sw('vc' + k, [[p[2]], [n[2]]])) + cell(2, sw('vp' + k, [[p[3]], [n[3]]]))); }).join(''),
     '<span class="vrk">vue</span><span class="bn"><span>3 lignes</span></span>');
+  // les droits d’accès, à découvrir dans une prochaine leçon : qui peut consulter ou modifier les données ?
+  w += '<div class="abs keyc" id="nxd"><span><span class="emo">🔐</span>Une prochaine leçon · Sécurité et droits</span></div>' +
+    '<div class="abs pack nxq" id="nxq"><span><span class="emo">🔍</span>Consulter ?</span><span><span class="emo">✏️</span>Modifier ?</span></div>';
   // les droits : l’agence consulte la vue, pas le catalogue complet
   w += '<div class="abs card ag k-ag" id="ag"><div class="agh"><span class="emo">🧑‍🎨</span>Les droits de l’agence</div>' +
-    '<div class="agl" id="ag1"><span class="emo">👁️</span>catalogue_box<span class="agr ok">✓ consultation</span></div>' +
+    '<div class="agl" id="ag1"><span class="emo">📋</span>catalogue_box<span class="agr ok">✓ consultation</span></div>' +
     '<div class="agl" id="ag2"><span class="emo">📦</span>produits<span class="agr no">🔒 aucun accès</span></div></div>';
   w += '<div class="abs emo tapf" id="tapw">👆</div>';
   $('#sw').innerHTML = w;
@@ -568,8 +580,10 @@ function layout(){
   $('#esl').style.top = T2 + 'px';
   place('bexe', bottom('#esl') + 9 + 32);
   $('#vr').style.top = (bottom('#esl') + 30) + 'px';
-  // les droits de l’agence : sous le catalogue
+  // les droits de l’agence, et avant eux la prochaine leçon et ses deux questions : sous le catalogue
   $('#ag').style.top = T2 + 'px';
+  $('#nxd').style.top = T2 + 'px';
+  $('#nxq').style.top = (T2 + 96 + 44) + 'px';
   // dans la vue, ou hors de la vue : la pile des informations, sous les deux cases
   $('#bpack').style.top = (bottom('#db-ho') + 9 + 44) + 'px';
 }
@@ -668,8 +682,8 @@ function build(){
   gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
   hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
   layout();
-  gsap.set(['.sq', '.pack', '#bc', '#bxc', '#ko', '#tp', '.bt', '#vr', '#ag', '#keyc', '.dbn', '#tapf', '#tapw', '#vwc'], {autoAlpha: 0});
-  gsap.set(['#vn1 .a1', '#vc1 .a1', '#vp1 .a1', '#sb3 .a1', '#sb5 .a1', '.dbn .rc'], {autoAlpha: 0});
+  gsap.set(['.sq', '.pack:not(.nxq)', '#nxq > span', '#bc', '#bxc', '#ko', '#tp', '.bt', '#vr', '#ag', '#nxd', '#keyc', '.dbn', '#tapf', '#tapw', '#vwc'], {autoAlpha: 0});
+  gsap.set(['#vn1 .a1', '#vc1 .a1', '#vp1 .a1', '#vn2 .a1', '#vc2 .a1', '#vp2 .a1', '#sb3 .a1', '#sb6 .a1', '.dbn .rc'], {autoAlpha: 0});
 
   /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
      la consigne, la légende ne la répète pas. Le passage d’attente est coupé (rien ne s’y anime). */
@@ -704,7 +718,7 @@ function build(){
   capOn(A.a1 - 0.3);
   show('#tp', A.a1 + 0.3, {y: 50}, 0.5); cue(A.a1 + 0.3, 'whoosh', 0.5);
   pulse('#tp .h', A.a1 + 1.5, 1, GLOW); cue(A.a1 + 1.5, 'tick', 0.5, 2);
-  // la colonne selection_box, ajoutée par l’équipe de la box
+  // la colonne selection_box, ajoutée par Karim, le développeur
   pulse('#tp .hd .c4', A.a2 + 1.0, 1, GLOW); cue(A.a2 + 1.0, 'tick', 0.5, 3);
   PRODUITS.forEach(([id], q) => pulse(`#rtp${id} .c4`, A.a2 + 1.9 + q * 0.12, 1, GLOW));
   cue(A.a2 + 1.9, 'whoosh', 0.3, 2);
@@ -788,14 +802,14 @@ function build(){
   sceneOff('#sm', MAIL2 + MO[1] + 0.45);
   sceneOn('#sw', MAIL2 + MO[1] + 0.45);
   capOn(A.e1 - 0.3);
-  // l’équipe de la box met à jour la colonne selection_box : la tisane passe à 0, le magnésium à 1
+  // Camille Roux met à jour la sélection dans l’outil de gestion : la protéine passe à 0, le magnésium à 1
   unkeep(BOX, A.e1 + 0.2);
-  on(['#rtp5 .hl', '#rtp3 .hl'], A.e1 + 0.6, 0.25); cue(A.e1 + 0.6, 'tick', 0.5, 2);
-  swap('#sb5 .a0', '#sb5 .a1', A.e1 + 1.5);
+  on(['#rtp6 .hl', '#rtp3 .hl'], A.e1 + 0.6, 0.25); cue(A.e1 + 0.6, 'tick', 0.5, 2);
+  swap('#sb6 .a0', '#sb6 .a1', A.e1 + 1.5);
   swap('#sb3 .a0', '#sb3 .a1', A.e1 + 2.3);
-  pulse('#rtp5 .c4', A.e2 + 0.5, 1, GLOW); cue(A.e2 + 0.5, 'tick', 0.5, 2);
+  pulse('#rtp6 .c4', A.e2 + 0.5, 1, GLOW); cue(A.e2 + 0.5, 'tick', 0.5, 2);
   pulse('#rtp3 .c4', A.e2 + 1.5, 1, GLOW); cue(A.e2 + 1.5, 'tick', 0.5, 4);
-  off(['#rtp5 .hl', '#rtp3 .hl'], B.e2 - 0.3, 0.3);
+  off(['#rtp6 .hl', '#rtp3 .hl'], B.e2 - 0.3, 0.3);
   // consulte à nouveau la vue : l’ancien résultat s’en va, le bouton revient (l’app s’arrête dessus, OPENS)
   hide('#vr', A.e3 + 0.1, {y: 30}, 0.35);
   tl.set('#bexe', {y: 30, scale: 0.94}, A.e3 + 1.4);
@@ -804,10 +818,10 @@ function build(){
   run('esl', EXE2 + 0.15);
   look(EXE2 + 0.45);
   confetti($('#bexe'), EXE2 + 0.6);
-  // la nouvelle sélection apparaît : le magnésium en tête (il précède la protéine dans la table produits), à la place de la tisane
+  // la nouvelle sélection apparaît : le magnésium en tête (il précède la tisane dans la table produits), et plus de protéine
   hide('#bexe', EXE2 + 0.75, {y: -20, scale: 0.96}, 0.3);
-  tl.set(['#vn1 .a0', '#vc1 .a0', '#vp1 .a0'], {autoAlpha: 0}, EXE2 + 0.9);
-  tl.set(['#vn1 .a1', '#vc1 .a1', '#vp1 .a1'], {autoAlpha: 1}, EXE2 + 0.9);
+  tl.set(['#vn1 .a0', '#vc1 .a0', '#vp1 .a0', '#vn2 .a0', '#vc2 .a0', '#vp2 .a0'], {autoAlpha: 0}, EXE2 + 0.9);
+  tl.set(['#vn1 .a1', '#vc1 .a1', '#vp1 .a1', '#vn2 .a1', '#vc2 .a1', '#vp2 .a1'], {autoAlpha: 1}, EXE2 + 0.9);
   tl.set('#vr', {y: 40, scale: 0.96}, EXE2 + 1.0);
   tl.to('#vr', {autoAlpha: 1, y: 0, scale: 1, duration: 0.5, ease: 'back.out(1.5)'}, EXE2 + 1.0); cue(EXE2 + 1.0, 'whoosh', 0.5, 2);
   on('#rvr1 .hl', EXE2 + 1.6, 0.3); cue(EXE2 + 1.6, 'pop', 0.6, 4);
@@ -831,16 +845,21 @@ function build(){
   BOX2.forEach((id, q) => { const t = A.e7 + 1.6 + q * 0.4; pulse(`#rtp${id} .c4`, t, 1, GLOW); cue(t, 'tick', 0.5, q + 3); });
 
   /* ===== 6 · Et les droits ? ===== */
-  // un dernier point à prévoir : les droits d’accès de l’agence, configurés séparément
+  // encore un point à découvrir dans une prochaine leçon : les droits d’accès (la leçon Sécurité et droits)
   hide('#evw', A.f1 + 0.1, {y: -30}, 0.35);
-  show('#ag', A.f1 + 0.5, {y: 40, scale: 0.96}, 0.5, 'back.out(1.5)'); cue(A.f1 + 0.5, 'whoosh', 0.5, 1);
-  tl.to('#ag .agh .emo', {rotation: -14, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.f1 + 1.1);
-  // dans le catalogue : ce que l’agence voit par la vue ressort, le reste s’estompe
-  keep(BOX2, A.f1 + 1.6);
+  show('#nxd', A.f1 + 0.5, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)'); cue(A.f1 + 0.5, 'whoosh', 0.5, 1);
+  tl.to('#nxd .emo', {rotation: -16, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.f1 + 1.1);
+  // qui peut consulter ou modifier les données ? Le catalogue, et les deux questions
+  bump('#tp', A.f1b + 0.4, 1.015); cue(A.f1b + 0.4, 'tick', 0.5, 2);
+  $$('#nxq > span').forEach((c, q) => { const t = A.f1b + 0.9 + q * 0.5; show(c, t, {y: 20, scale: 0.9}, 0.4, 'back.out(2)'); cue(t, 'pop', 0.55, q + 3); });
+  // ces droits se configurent séparément : les droits de l’agence ; dans le catalogue, ce que l’agence voit par la vue ressort, le reste s’estompe
+  hide(['#nxd', '#nxq'], A.f2 - 0.05, {y: -30}, 0.35);
+  show('#ag', A.f2 + 0.3, {y: 40, scale: 0.96}, 0.5, 'back.out(1.5)'); cue(A.f2 + 0.3, 'whoosh', 0.5, 1);
+  tl.to('#ag .agh .emo', {rotation: -14, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.f2 + 0.9);
+  keep(BOX2, A.f2 + 1.3);
   // l’agence consulte la vue, sans accéder au catalogue complet
-  pulse('#ag1', A.f2 + 1.0, 1, 'rgba(22,148,71,.12)'); bump('#ag1 .agr', A.f2 + 1.0, 1.12); cue(A.f2 + 1.0, 'pop', 0.6, 3);
-  pulse('#ag2', A.f2 + 2.6, 1, 'rgba(239,79,85,.12)'); bump('#ag2 .agr', A.f2 + 2.6, 1.12); cue(A.f2 + 2.6, 'miss', 0.4, 1);
-  bump('#tp', A.f2 + 3.6, 1.015);
+  pulse('#ag1', A.f2 + 2.1, 1, 'rgba(22,148,71,.12)'); bump('#ag1 .agr', A.f2 + 2.1, 1.12); cue(A.f2 + 2.1, 'pop', 0.6, 3);
+  pulse('#ag2', A.f2 + 3.5, 1, 'rgba(239,79,85,.12)'); bump('#ag2 .agr', A.f2 + 3.5, 1.12); cue(A.f2 + 3.5, 'miss', 0.4, 1);
 
   /* ===== 7 · Dans la vue ou non ? ===== */
   hide(['#tp', '#ag'], B.f2 - 0.1, {y: -30}, 0.35);
@@ -974,8 +993,8 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 204.21, picks: PICKS, opens: OPENS,
-  glyphs: '🗄️👥🛒⭐📦🧑‍🏫📅📝💳💬🔁🎁🏷️🙈🛍️👁️▶️🧑‍🎨🔒👆📬🔖✓✕!…«»·−→<>',
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 210.54, picks: PICKS, opens: OPENS,
+  glyphs: '🗄️👥🛒⭐📦🧑‍🏫📅📝💳💬🔁🎁🏷️🙈🛍️📋▶️🧑‍🎨🔒🔐🔍✏️👆📬🔖✓✕!…«»·−→<>',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>
 </body>

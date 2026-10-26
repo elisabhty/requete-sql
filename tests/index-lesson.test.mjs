@@ -68,7 +68,7 @@ function base() {
     ALTER TABLE ateliers ADD COLUMN places_restantes INTEGER;
     INSERT INTO ateliers VALUES (6, 'Cuisine saine', '2026-11-14', 3, 8, 1);
     INSERT INTO inscriptions (client_id, atelier_id, date_inscription) VALUES (7, 6, '2026-10-25'); UPDATE ateliers SET places_restantes = places_restantes - 1 WHERE id = 6;
-    ALTER TABLE produits ADD COLUMN selection_box INTEGER NOT NULL DEFAULT 0; UPDATE produits SET selection_box = 1 WHERE id IN (3, 6, 8);
+    ALTER TABLE produits ADD COLUMN selection_box INTEGER NOT NULL DEFAULT 0; UPDATE produits SET selection_box = 1 WHERE id IN (3, 5, 8);
     CREATE VIEW catalogue_box AS SELECT nom, categorie, prix FROM produits WHERE selection_box = 1;`);
   /* Les anciennes commandes, année après année, puis les commandes du jour (une ligne par commande) */
   db.run('BEGIN');
