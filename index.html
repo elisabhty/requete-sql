@@ -9189,101 +9189,43 @@ guide({ id:71, titre:"Concurrence et isolation", résumé:"Gérer les accès sim
 ]},
 { titre:"Vues, index et optimisation", sous:"Structurer et accélérer", lessons:[
 guide({ id:64, titre:"CREATE VIEW", résumé:"Enregistrer une requête sous un nom",
-  sit:{
-    blocks:[
-      "L’équipe logistique prépare le réassort : chaque matin, elle consulte <b>les produits dont le stock est faible</b>, c’est-à-dire ceux qui comptent <b>moins de 50 unités</b>.",
-      "La table <code>produits</code> contient au total <b>8 produits</b>. Pour préparer le réassort, l’équipe souhaite récupérer uniquement :",
-      {need:[["🔢","L’identifiant du produit","table produits"],["🏷️","Son nom","table produits"],["📦","Son stock","table produits"]],label:"Les informations à récupérer"}
-    ],
-    problem:{
-      p:["Avec <code>WHERE</code>, SQL sait déjà retrouver les produits dont le stock est inférieur à 50.","Or, la requête qui les retrouve n’est conservée nulle part : l’équipe doit la <b>réécrire à chaque consultation</b>."],
-      scene:{h:"📝 Requête du matin",
-        lanes:[{k:"L1",l:"Lundi",c:[["a1","SELECT id, nom, stock FROM produits WHERE stock &lt; 50;"]]},
-          {k:"L2",l:"Mardi",c:[["b1","SELECT id, nom, stock FROM produits WHERE stock &lt; 50;"]]},
-          {k:"L3",l:"Mercredi",c:[["c1","SELECT id, nom, stock FROM produits WHERE stock &lt; 50;"]]}],
-        caps:["<b>Notre pratique</b> · Chaque matin, l’équipe écrit la requête qui affiche les produits à stock faible.","<b>Besoin</b> · Retaper trois fois la même requête fait perdre du temps et expose aux fautes de frappe.","<b>Résultat</b> · La requête ne devrait être écrite qu’une seule fois."],
-        steps:[{cap:0,on:["L1","L2","L3"],d:2000},{cap:1,off:["L1","L2","L3"],mark:{a1:"is-miss",b1:"is-miss",c1:"is-miss"},d:2400},{cap:2,unmark:{a1:"is-miss",b1:"is-miss",c1:"is-miss"},fold:["L2","L3"],on:["L1"],d:2600}]},
-      then:["Il faut donc indiquer à SQL de <b>conserver cette requête</b>, pour la rappeler sans la réécrire.","C’est exactement le rôle de <code>CREATE VIEW</code>."]
-    },
-    mission:"Aide l’équipe logistique à enregistrer, sous le nom <b>produits_stock_faible</b>, la requête qui affiche l’<b>identifiant</b>, le <b>nom</b> et le <b>stock</b> des produits de <b>moins de 50 unités</b>, afin de la consulter chaque matin sans la réécrire."
-  },
-  concept:{
-    title:"Comment SQL peut-il savoir quelle requête conserver ?",
-    blocks:[
-      "Pour conserver une requête, SQL doit connaître deux choses :",
-      {ask:"Quel nom lui donner, et quelle requête enregistrer ?"},
-      "En SQL, on écrit le nom après <code>CREATE VIEW</code>, puis la requête après <code>AS</code>. La requête ainsi conservée s’appelle une <b>vue</b> :",
-      {syntax:"⟦CREATE VIEW produits_premium AS⟧\nSELECT nom, prix\nFROM produits\nWHERE prix > 30;"},
-      {scene:{h:"🔖 De la requête à la vue",
-        lanes:[{k:"Q",l:"La requête",c:[["q1","SELECT nom, prix FROM produits WHERE prix &gt; 30"]]},
-          {k:"V",l:"La vue enregistrée",fold:true,c:[["v1","produits_premium"]]},
-          {k:"R",l:"Quand on la consulte",fold:true,cls:"is-goal",c:[["r1","Collagène Marin · 39.9"],["r2","Protéine Végétale · 34.9"]]}],
-        caps:["<b>La requête</b> · Elle retrouve les produits à plus de 30 €.","<b>CREATE VIEW</b> · SQL l’enregistre sous un nom : il retient la requête, pas son résultat.","<b>SELECT * FROM produits_premium</b> · Consulter la vue exécute la requête enregistrée et affiche son résultat."],
-        steps:[{cap:0,on:["Q"],d:2000},{cap:1,off:["Q"],unfold:["V"],on:["V"],d:2500},{cap:2,off:["V"],unfold:["R"],on:["R"],d:2800}]}}
-    ]
-  },
-  steps:[
-    {h:"Créer puis consulter une vue",blocks:[
-      "<code>CREATE VIEW</code> enregistre la requête sans rien afficher. La vue se consulte ensuite avec un <code>SELECT</code>, comme une table :",
-      {syntax:"⟦SELECT *\nFROM produits_premium;⟧"},
-      {say:"👇 Exécute ces instructions pour créer la vue, puis la consulter :",run:"CREATE VIEW produits_premium AS\nSELECT nom, prix\nFROM produits\nWHERE prix > 30;\n\nSELECT *\nFROM produits_premium;"},
-      {arrow:"La vue renvoie les 2 produits à plus de 30 € : le Collagène Marin et la Protéine Végétale."},
-      {tip:{t:"Supprimer une vue",blocks:["<code>DROP VIEW produits_premium;</code> supprime la vue, jamais les données de la table qu’elle consultait."]}},
-      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux créer des vues sans rien encombrer. À chaque essai, la vue <code>produits_premium</code> n’existe plus : voilà pourquoi chaque exemple la recrée avant de la consulter."]}}
-    ]},
-    {h:"Filtrer et trier une vue",blocks:[
-      "Une vue se filtre et se trie comme une table. Elle est surtout précieuse avec une requête longue : ici, deux jointures relient chaque commande à son client et à son produit.",
-      {say:"👇 Exécute ces instructions pour créer la vue <code>detail_commandes</code>, puis la filtrer et la trier :",run:"CREATE VIEW detail_commandes AS\nSELECT commandes.id,\n       clients.prenom AS client,\n       produits.nom AS produit,\n       commandes.quantite\nFROM commandes\nJOIN clients\n  ON commandes.client_id = clients.id\nJOIN produits\n  ON commandes.produit_id = produits.id;\n\nSELECT client, produit\nFROM detail_commandes\nWHERE quantite >= 3\nORDER BY client;"},
-      {arrow:"Les deux jointures restent cachées dans la vue. Trois commandes comptent au moins 3 unités."}
-    ]},
-    {h:"Une vue suit les données",blocks:[
-      "Et si les données changent après la création de la vue ? La Fibre Prébiotique passe à 31 € : elle dépasse maintenant le seuil des 30 €.",
-      {say:"👇 Exécute ces instructions pour voir si la vue en tient compte :",run:"CREATE VIEW produits_premium AS\nSELECT nom, prix\nFROM produits\nWHERE prix > 30;\n\nUPDATE produits\nSET prix = 31\nWHERE id = 1;\n\nSELECT *\nFROM produits_premium;"},
-      {arrow:"La Fibre Prébiotique est entrée dans la vue sans aucune recréation."},
-      {warn:{t:"Une copie ne suit pas",blocks:[
-        "<code>CREATE TABLE … AS SELECT</code> ressemble à une vue, mais il <b>copie</b> les lignes au moment où il s’exécute.",
-        {say:"👇 Teste par toi-même :",run:"CREATE TABLE copie_premium AS\nSELECT nom, prix\nFROM produits\nWHERE prix > 30;\n\nUPDATE produits\nSET prix = 31\nWHERE id = 1;\n\nSELECT *\nFROM copie_premium;"},
-        "La copie date de sa création : la Fibre Prébiotique n’y figure pas."
-      ]}},
-      {tip:{t:"Une vue se consulte, elle ne se modifie pas",blocks:["Dans SQLite, une vue ne se modifie pas directement : un <code>INSERT</code>, un <code>UPDATE</code> ou un <code>DELETE</code> adressé à une vue provoque une erreur. Les modifications se font sur la table d’origine."]}}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : donner un nom à la vue, puis y enregistrer la requête qui retrouve les produits de moins de 50 unités.",
-      {say:"👇 Exécute les instructions pour créer la vue et consulter les produits à réapprovisionner :",run:"CREATE VIEW produits_stock_faible AS\nSELECT id, nom, stock\nFROM produits\nWHERE stock < 50;\n\nSELECT *\nFROM produits_stock_faible;"},
-      {done:{
-        label:"De 8 produits aux produits à réapprovisionner",
-        funnel:[
-          {n:8,t:"produits au départ",s:"toute la <code>table produits</code>",dots:"00000000"},
-          {step:"CREATE VIEW produits_stock_faible",s:"enregistre la requête : la vue ne présente que les produits de moins de 50 unités"},
-          {n:2,t:"⭐ produits à réapprovisionner",s:"Protéine Végétale et Shaker Inox",dots:"00000101",out:true}
-        ],
-        board:{ico:"🔖",h:"Vue produits_stock_faible",aria:"Chaque matin, la vue produits_stock_faible affiche les 2 produits de moins de 50 unités, sans réécrire la requête",kpi:"Moins de 50 unités",chart:"stock par produit",bar:2,cols:["id", "nom", "stock"],
-          rows:[[6, "Protéine Végétale", 45], [8, "Shaker Inox", 30]],done:"✓ Liste prête pour le réassort du matin"},
-        fill:["CREATE VIEW","produits_stock_faible","AS","50"],
-        ui:{t:"2 produits à réapprovisionner",s:"La requête est enregistrée : chaque matin, il suffit de consulter la vue.",n:["CREATE VIEW","AS","SELECT","FROM","WHERE"]},
-        rows:2
-      }}
-    ]}
-  ],
+  /* Projet, chapitre 15, en vidéo interactive : l’animation (assets/anim/projet-vue.html, moteur commun assets/anim/core.js) est le
+     cours. La trame est celle d’Elisa (26 octobre, 10 h 52, « CREATE VIEW — La sélection surprise dévoilée trop tôt »), ses bulles et
+     ses messages gardés mot pour mot, une phrase par bulle ; la photo de la box est la sienne (11 h 16). Elle s’ouvre comme les autres
+     chapitres (« Depuis le chapitre 1… », « Au chapitre 14, un verrou a gardé la dernière place pour une seule réservation »), sur la
+     base que le chapitre 14 laisse : douze tables. 1 · La box surprise : NutriBoost prépare une box surprise ; une agence doit créer la
+     page de présentation à partir du catalogue produits, sans recevoir ni les stocks ni les produits qui ne font pas partie de la
+     sélection. Camille, la responsable de la box, écrit par SMS (« Salut ! L’agence prépare la page de notre prochaine box. Elle a
+     besoin du nom, de la catégorie et du prix des produits sélectionnés. La sélection peut encore changer, donc évitons les exports à
+     refaire. Peux-tu préparer une vue dédiée ? »). 2 · Le catalogue interne : la table produits, avec la colonne selection_box ajoutée
+     par l’équipe de la box (1 : le produit est dans la box) ; la Tisane Détox, la Protéine Végétale et le Shaker Inox sont cochés
+     (moment 1 : les toucher). 3 · Créer la vue : CREATE VIEW catalogue_box AS SELECT nom, categorie, prix FROM produits WHERE
+     selection_box = 1, une partie à la fois (moment 2 : les colonnes à présenter), puis les deux bulles d’Elisa (« Une vue enregistre
+     une requête sous un nom. », « Ici, elle présente uniquement les colonnes et les produits utiles à la préparation de la box. ») ;
+     l’élève touche « Créer la vue ». 4 · Consulter la vue : SELECT * FROM catalogue_box (moment 3 : ce qu’elle va afficher) ; l’élève
+     touche « Exécuter » : le catalogue complet en haut, le résultat de la vue en dessous, sans les stocks ni les produits non
+     sélectionnés. 5 · Petit changement : Camille écrit de nouveau (« Petit changement : on remplace finalement la tisane par le
+     magnésium. Il faut recréer la vue ? ») ; la colonne selection_box change (moment 4 : faut-il recréer la vue ?) ; l’élève consulte
+     à nouveau la vue : la nouvelle sélection apparaît (moment 5 : la valeur qui fait entrer le magnésium), puis les trois bulles
+     d’Elisa (« Pas besoin de recréer la vue ! », « Elle conserve la requête, pas une copie des résultats. », « À chaque consultation,
+     elle utilise les données actuelles. »). 6 · Et les droits ? Son point à prévoir : les droits d’accès se configurent séparément,
+     pour que l’agence consulte la vue sans accéder au catalogue complet. 7 · Dans la vue ou non : six informations à ranger
+     (moment 6). La fin annonce la prochaine leçon, Les index et EXPLAIN (la file d’attente à l’entrée d’un grand événement). Six
+     moments « À toi », comme aux chapitres du projet ; leçon seule : ni exercice ni quiz dans la vidéo, validée avec 4 exercices
+     réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments ratés. Elle remplace l’ancien cours texte CREATE VIEW (les
+     produits à stock faible, produits_premium, detail_commandes). */
+  leconSeule:true,
+  video:{anim:'assets/anim/projet-vue.html?app&embed',thumb:'assets/anim/projet-vue-thumb.webp',duree:'4 min 06',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 3 min 59 (238,8 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:238.8,y:1261,card:[64,292,1016,966],to:[940,255]}},
   reflex:[
     {recap:[
-      ["🔖","<code>CREATE VIEW</code> <b>enregistre une requête</b> sous un nom.","La vue ne copie aucune donnée : elle suit toujours celles de la table."],
-      ["📍","Le nom se place après <code>CREATE VIEW</code>, la requête après <code>AS</code> :",null,"CREATE VIEW nom AS SELECT …"],
-      ["🔎","On <b>consulte la vue comme une table</b> :",null,"SELECT * FROM produits_stock_faible"]
+      /* Les mots d’Elisa (sa trame, 26 octobre, 10 h 52), comme dans la vidéo. */
+      ["👁️","Une <b>vue</b> enregistre une requête sous un nom.","Elle se consulte comme une table, avec <code>SELECT</code>."],
+      ["🔄","Elle conserve la <b>requête</b>, pas une copie des résultats.","À chaque consultation, elle utilise les données actuelles."],
+      ["🎁","Elle présente uniquement les <b>colonnes</b> et les <b>lignes</b> utiles.","Avec des droits configurés séparément, l’agence la consulte sans accéder au catalogue complet."]
     ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"CREATE VIEW",txt:"Crée une vue."},{tok:"produits_premium",plain:1,txt:"Le nom donné à la vue."},{tok:"AS",txt:"Introduit la requête enregistrée."},{tok:"SELECT nom, prix FROM produits WHERE prix > 30",plain:1,txt:"La requête que la vue retient et relance à chaque consultation."}],
-  exemple:"CREATE VIEW produits_premium AS SELECT nom, prix FROM produits WHERE prix > 30; SELECT * FROM produits_premium;",
-  attendu:"<b>2 lignes</b> : le Collagène Marin (39,90 €) et la Protéine Végétale (34,90 €), les deux produits à plus de 30 €. La vue ne contient aucune copie : elle retient la requête.",
-  retenir:"<code>CREATE VIEW</code> enregistre une requête sous un nom : c’est une vue.<br>Elle ne copie rien : à chaque consultation, SQL relance la requête sur les données actuelles.<br><br>Le nom se place après <code>CREATE VIEW</code>, la requête après <code>AS</code> : <code>CREATE VIEW nom AS SELECT …</code><br><br>On consulte la vue comme une table. <code>DROP VIEW</code> la supprime, sans toucher aux données.",
-  consigne:"Enregistre sous le nom <code>clients_paris</code> la requête qui affiche le <code>prenom</code>, le <code>nom</code> et l’<code>email</code> des clients qui habitent à Paris.",
-  solution:"CREATE VIEW clients_paris AS\nSELECT prenom, nom, email\nFROM clients\nWHERE ville = 'Paris';",
-  verif:"SELECT prenom, nom, email FROM clients_paris ORDER BY prenom, nom;",
-  write:true,
-  indice:"Écris <code>CREATE VIEW clients_paris AS</code>, puis la requête <code>SELECT</code> avec son filtre sur la colonne <code>ville</code>.",
-  petitDefi:[{p:"Quel mot-clé introduit la requête que la vue doit enregistrer ?",sql:"CREATE VIEW commandes_en_cours __________\nSELECT id, numero_commande\nFROM commandes\nWHERE statut = 'en_preparation';",a:"AS",answers:["AS","as"]}],
-  testeVariants:[{k:"base",label:"Créer la vue",sql:"CREATE VIEW produits_stock_faible AS\nSELECT id, nom, stock\nFROM produits\nWHERE stock < 50;\n\nSELECT *\nFROM produits_stock_faible;",expectRows:2},{k:"rec_source",label:"La source évolue",sql:"CREATE VIEW produits_stock_faible AS SELECT id, nom, stock FROM produits WHERE stock < 50; UPDATE produits SET stock = 45 WHERE id = 5; SELECT * FROM produits_stock_faible ORDER BY id;",out:"La Tisane Détox entre dans la vue sans recréer celle-ci.",expectRows:3}],
-  learningCheck:{question:"Un produit passe sous 50 unités de stock. Faut-il recréer la vue produits_stock_faible pour qu’il y apparaisse ?",options:["Oui, la vue garde une copie figée des données","Oui, il faut la supprimer puis la recréer","Non, la vue relance sa requête à chaque consultation"],answer:2,explanation:"Une vue retient une requête, pas une copie des données : chaque consultation lit l’état actuel de la table."}
+  ]
 }),
 guide({ id:57, titre:"Les index et EXPLAIN", résumé:"Accélérer une recherche et lire son plan",
   sit:{
@@ -9874,11 +9816,9 @@ const QCM={
   {q:"Quelle commande renomme une colonne en SQLite ?",o:["<code>CHANGE COLUMN</code>","<code>RENAME COLUMN … TO …</code>","<code>UPDATE COLUMN</code>"],b:1,e:"Les données restent : seul le nom change."},
   {q:"Quelle différence entre <code>ALTER TABLE</code> et <code>UPDATE</code> ?",o:["Aucune","<code>ALTER TABLE</code> modifie la structure, <code>UPDATE</code> les valeurs des lignes","<code>UPDATE</code> crée les colonnes"],b:1,e:"Il faut souvent les deux, dans cet ordre : la colonne, puis la valeur."},
   {q:"Que se passe-t-il quand tu supprimes une colonne ?",o:["Seul son nom disparaît","La colonne et les données qu’elle contenait sont supprimées","La table entière est supprimée"],b:1,e:"C’est ce qui distingue <code>DROP COLUMN</code> d’un simple renommage."}],
- 64:[{q:"Qu’est-ce qu’une vue ?",o:["Une copie obligatoire d’une table","Une requête enregistrée sous un nom","Un index"],b:1,e:"Elle ne contient rien : elle décrit comment obtenir le résultat."},
-  {q:"Quelle commande crée une vue ?",o:["<code>CREATE VIEW</code>","<code>CREATE TABLE</code>","<code>SAVE VIEW</code>"],b:0,e:"<code>CREATE TABLE … AS</code> existe aussi, mais elle copie les lignes."},
-  {q:"Si les données de <code>produits</code> changent, faut-il recréer la vue ?",o:["Oui, systématiquement","Non : la vue s’appuie sur les données actuelles","Seulement après un DELETE"],b:1,e:"La requête est rejouée à chaque interrogation."},
-  {q:"Que fait <code>DROP VIEW</code> ?",o:["Il supprime aussi les tables sources","Il supprime les lignes visibles dans la vue","Il supprime la vue, pas les données des tables sources"],b:2,e:"La vue n’était qu’une manière de consulter : la retirer ne retire rien d’autre."},
-  {q:"Quelle est la différence entre une table et une vue ?",o:["Aucune","Une table stocke les données ; une vue enregistre une requête pour les consulter","Une vue contient toujours plus de données"],b:1,e:"C’est le mémo du cours."}],
+ 64:[{q:"Que fait <code>CREATE VIEW catalogue_box AS SELECT …</code> ?",o:["Elle copie les produits sélectionnés dans une nouvelle table","Elle enregistre la requête sous le nom <code>catalogue_box</code>","Elle retire les colonnes inutiles de la table produits"],b:1,e:"Une vue enregistre une requête sous un nom : elle ne copie aucune ligne et ne modifie pas la table produits."},
+   {q:"Le magnésium remplace la tisane dans la sélection. Que faut-il faire pour que <code>catalogue_box</code> le présente ?",o:["Consulter à nouveau la vue, rien de plus","Recréer la vue avec <code>CREATE VIEW</code>","Copier le magnésium dans la vue"],b:0,e:"La vue conserve la requête, pas une copie des résultats : à chaque consultation, elle utilise les données actuelles."},
+   {q:"Que reçoit l’agence en consultant <code>catalogue_box</code> ?",o:["Tout le catalogue, avec les stocks","Le stock des produits sélectionnés","Le nom, la catégorie et le prix des produits sélectionnés"],b:2,e:"La requête de la vue ne garde que trois colonnes (<code>nom</code>, <code>categorie</code>, <code>prix</code>) et les produits dont <code>selection_box</code> vaut 1."}],
  63:[{q:"Que fait <code>SAVEPOINT avant_cadeau</code> ?",o:["Il valide les modifications faites jusque-là","Il pose un point de retour dans la transaction","Il démarre une nouvelle transaction"],b:1,e:"Un savepoint ne valide rien : c’est un repère, jusqu’auquel <code>ROLLBACK TO SAVEPOINT</code> peut revenir."},
   {q:"Après <code>ROLLBACK TO SAVEPOINT avant_cadeau</code>, où en est la transaction ?",o:["Elle est toujours en cours","Elle est annulée","Elle est validée"],b:0,e:"Seules les modifications faites après le repère sont annulées : la transaction continue, jusqu’au <code>COMMIT</code> ou au <code>ROLLBACK</code>."},
   {q:"Quelle commande annule toute la transaction, même ce qui précède le savepoint ?",o:["<code>COMMIT</code>","<code>ROLLBACK TO SAVEPOINT avant_cadeau</code>","<code>ROLLBACK</code>"],b:2,e:"<code>ROLLBACK</code> sans cible annule toute la transaction ; <code>ROLLBACK TO SAVEPOINT</code> ne revient que jusqu’au repère."}],
@@ -12890,7 +12830,7 @@ const SQ_ALIASES={
   63:'savepoint point de retour point de sauvegarde rollback to savepoint rollback to annuler une partie partiel transaction repere historique cadeau cadeaux tisane proteine proteine vegetale remplacement colis commit nutriboost',
   70:'trigger triggers declencheur declencher automatiquement action evenement after update on when old new current_timestamp create trigger garder_prix historique historique_prix prix collagene changement responsable commerciale stock nutriboost',
   71:'concurrence isolation verrou verrouiller lock for update select for update transaction begin commit rollback reservation derniere place places restantes places_restantes atelier cuisine saine acces simultanes simultane inscription conflit nutriboost',
-  64:'create view vue requete enregistree nommer virtual table',
+  64:'create view vue vues requete enregistree sous un nom nommer as select from where catalogue_box catalogue box surprise selection selection_box agence colonnes lignes consulter consultation donnees actuelles recreer droits acces camille produits tisane magnesium nutriboost',
   57:'index create index performance rapide optimiser recherche accelerer explain query plan plan d execution lenteur optimisation requete lente scan search',
   50:'securite droits grant revoke permissions acces utilisateurs roles'
 };
@@ -25068,7 +25008,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2057';
+  const SW_CACHE='requete-2026-10-12-ludique-v2058';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -294,10 +294,10 @@ const smsTime = (name, nth = 0) => {
 /* Le rang du SMS n parmi ceux du même expéditeur dans la liste des messages de la page (0 pour le premier). */
 const smsRank = (list, n) => list.slice(0, n).filter(m => m[0][0] === list[n][0][0] && m[0][1] === list[n][0][1] && isSms(m[2], m[6])).length;
 /* Les bulles : « Bonjour, » (ou la formule de la page : hello, comme « Bonjour ! »), une bulle par phrase de la demande, « Merci ! ». Pas de signature : le nom est en haut de la conversation.
-   bye : null quand le message finit sur son propre merci (pas de « Merci ! » de plus). */
+   hello : null, sans formule ; bye : null quand le message finit sur son propre merci (pas de « Merci ! » de plus). */
 function smsParts(body, hello = 'Bonjour,', bye = 'Merci !'){
   const sentences = [].concat(body).flatMap(p => String(p).split(/(?<=[.!?])\s+(?=[A-ZÀÂÉÈÊÎÔÛÇ])/));
-  return bye === null ? [hello, ...sentences] : [hello, ...sentences, bye];
+  return [hello, ...sentences, bye].filter(p => p !== null);
 }
 const SMS_ICO = {
   bubble: '<svg viewBox="0 0 24 24"><path fill="#fff" d="M12 3C6.5 3 2 6.6 2 11c0 2.5 1.3 4.7 3.4 6.1L4.4 21l4.3-2.3c1.1.3 2.2.5 3.3.5 5.5 0 10-3.6 10-8.2S17.5 3 12 3z"/></svg>',
@@ -308,9 +308,9 @@ const SMS_ICO = {
 };
 /* La carte d’un SMS (#ml + id, comme un mail) : la bannière de notification, et la conversation qui s’ouvre à sa place.
    cmp : version compacte (sans date ni barre de saisie), là où la place manque ; nth : rang parmi les SMS du même expéditeur (smsRank) ;
-   hello : la première bulle, quand la page ne veut pas « Bonjour, » (8e élément du message : {sms: true, hello: 'Bonjour !'}). */
+   hello : la première bulle, quand la page ne veut pas « Bonjour, » (8e élément du message : {sms: true, hello: 'Bonjour !'}) ; null : aucune (data-hi). */
 function smsCard(id, k, first, last, ini, body, cmp = false, nth = 0, hello, photo, bye){
-  const parts = smsParts(body, hello, bye), name = first + ' ' + last;
+  const parts = smsParts(body, hello, bye), name = first + ' ' + last, said = hello === null ? 0 : 1;
   /* Une photo jointe (photo : {id, src, alt}) : une bulle d’image juste avant « Merci ! » ; un appui l’agrandit
      (Elisa, 25 octobre, 17 h 05 : « afficher sous son message la photo du shaker rose cassé ; un appui permet d’agrandir la photo »).
      Un message qui finit sur son propre merci (bye: null) envoie sa photo en dernier : la consigne « Touche la photo » se pose dessous,
@@ -321,8 +321,8 @@ function smsCard(id, k, first, last, ini, body, cmp = false, nth = 0, hello, pho
   const bubbles = list.join('');
   const date = cmp ? '' : `<div class="sms-d">Message texte · SMS<br><b>Aujourd’hui</b> ${smsTime(name, nth)}</div>`;
   const bar = cmp ? '' : `<div class="sms-i"><i class="sms-pl">${SMS_ICO.plus}</i><div class="sms-in">Message texte · SMS${SMS_ICO.mic}</div></div>`;
-  return `<div class="abs ml sms${cmp ? ' cmp' : ''} ${k}" id="ml${id}">` +
-    `<div class="card sms-n"><i class="sms-ic">${SMS_ICO.bubble}</i><div class="sms-nt"><div class="sms-nr"><b>${name}</b><span>maintenant</span></div><div class="sms-np">${parts[1].replace(/ ([:?!;»])/g, NB + '$1').replace(/« /g, '«' + NB)}</div></div></div>` +
+  return `<div class="abs ml sms${cmp ? ' cmp' : ''} ${k}" id="ml${id}"${said ? '' : ' data-hi="0"'}>` +
+    `<div class="card sms-n"><i class="sms-ic">${SMS_ICO.bubble}</i><div class="sms-nt"><div class="sms-nr"><b>${name}</b><span>maintenant</span></div><div class="sms-np">${parts[said].replace(/ ([:?!;»])/g, NB + '$1').replace(/« /g, '«' + NB)}</div></div></div>` +
     `<div class="card sms-v"><div class="sms-h">${SMS_ICO.back}${SMS_ICO.video}<i class="sms-av">${ini}</i><div class="sms-who">${name}<i>›</i></div></div>${date}` +
     `<div class="sms-b"><div class="sms-t"><i></i><i></i><i></i></div>${bubbles}</div>${bar}</div></div>`;
 }
@@ -376,8 +376,8 @@ function smsIn(n, t, T, fast = false){
     cue(at, 'tick', 0.4, k + 2);
   });
   const end = first + (bubbles.length - 1) * step + 0.35;
-  // le temps de lire la demande : toutes les bulles après « Bonjour, », sans « Merci ! » (un message qui finit sur son propre merci le compte)
-  const said = bubbles.slice(1, /^Merci\s*!$/.test(bubbles[bubbles.length - 1].textContent.trim()) ? -1 : undefined);
+  // le temps de lire la demande : toutes les bulles après « Bonjour, » (s’il y est), sans « Merci ! » (un message qui finit sur son propre merci le compte)
+  const said = bubbles.slice(+!$(m).dataset.hi, /^Merci\s*!$/.test(bubbles[bubbles.length - 1].textContent.trim()) ? -1 : undefined);
   hold(end + 0.05, Math.ceil(readTime(said.map(b => b.textContent).join(' ')) * 20) / 20);
   return end;
 }

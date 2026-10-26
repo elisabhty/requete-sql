@@ -1,6 +1,7 @@
 /* Carte « Mission accomplie » des cours texte : le Résultat est un dashboard (indicateur, graphique, tableau aux en-têtes
    du résultat), ou un objet à thème (cours 57). Avant la lecture, des cases grises (chargement) ; puis les en-têtes, et
    chaque ligne avec sa barre pendant que l'indicateur compte les lignes. Les cours en vidéo n'ont plus de cours texte. */
+import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
@@ -10,7 +11,9 @@ import {guideEnv, checkGuideLesson, openDb, decode} from './helpers/guide-checks
 const root = path.resolve(import.meta.dirname, '..');
 const env = await guideEnv(root);
 const {html, ctx} = env;
-const lesson = vm.runInContext('MODULES.flatMap(m=>m.lessons).find(l=>l.id===64)', ctx);
+/* Le cours texte d’exemple : l’ancienne leçon 64, CREATE VIEW en texte (tests/fixtures/guide-texte-create-view.js) ; les cours de l’app sont
+   presque tous devenus des vidéos. */
+const lesson = vm.runInContext(fs.readFileSync(path.join(root, 'tests/fixtures/guide-texte-create-view.js'), 'utf8'), ctx);
 const body = lesson.studio.uses.body;
 const card = body.slice(body.lastIndexOf('<div class="ij-done is-locked"'));
 
