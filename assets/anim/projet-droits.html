@@ -156,6 +156,9 @@
 .nd.no{background:var(--line-2);color:var(--ink-3)}
 .tg{flex:none;position:relative;width:84px;height:48px;border-radius:999px;background:#D6D1E8}
 .tg>i{position:absolute;left:5px;top:5px;width:38px;height:38px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(34,28,70,.28)}
+/* Moment 1 : un accès nécessaire touché, son interrupteur passe de l’autre côté, en vert (Elisa, 26 octobre, 21 h 31) */
+.tg.tgon{background:#169447!important;transition:background-color .25s ease-out}
+.tg.tgon>i{transform:translateX(36px)!important;transition:transform .32s cubic-bezier(.34,1.9,.64,1)}
 .fcf{display:flex;align-items:center;height:66px;margin:14px 22px 0;padding:0 24px;border-radius:20px;background:var(--line-2);font-size:27px;font-weight:800;color:var(--ink-2);white-space:nowrap;opacity:0;visibility:hidden}
 .fcf .sw>i{display:flex;align-items:center;gap:12px}
 
@@ -843,6 +846,7 @@ function build(){
   ACCES.forEach(([k], q) => { const t = A.a2 + 0.4 + q * 0.4; show('#f' + k, t, {y: 0, x: -30}, 0.4); cue(t, 'tick', 0.45, q + 1); });
   // À toi : les deux accès nécessaires (réponse : « ✓ nécessaire »)
   tl.set(M1_ANS, {autoAlpha: 1}, set2(PICKS[0].at));
+  tl.set(['#tg0', '#tg1'], {backgroundColor: '#169447'}, set2(PICKS[0].at)); tl.set(['#tg0 > i', '#tg1 > i'], {x: 36}, set2(PICKS[0].at));
   // les droits déterminent ce qu’un utilisateur peut faire dans la base : les deux autres accès sont écartés
   [2, 3].forEach((q, i) => { const t = A.a3 + 0.9 + i * 0.5; mark('#nd' + q, t); tl.to(`#fa${q} .fl`, {opacity: 0.42, duration: 0.3}, t); tl.to(`#fa${q} > .emo`, {opacity: 0.42, duration: 0.3}, t); });
   // le principe : uniquement les accès nécessaires à sa mission ; les deux accès gardés ressortent
@@ -851,6 +855,8 @@ function build(){
   /* ===== 3 · Ce qu’elle peut consulter ===== */
   // la notion de vue, découverte au chapitre 15 : son rappel, puis la vue commandes_expedition
   hide('#fc', A.b1 - 0.05, {y: -30}, 0.35);
+  // la fiche cachée, ses interrupteurs s’éteignent : elle reviendra sans aucun accès accordé
+  tl.set(['#tg0', '#tg1'], {backgroundColor: '#D6D1E8'}, A.b1 + 0.35); tl.set(['#tg0 > i', '#tg1 > i'], {x: 0}, A.b1 + 0.35);
   show('#vr', A.b1 + 0.4, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.b1 + 0.4, 'pop', 0.6, 2);
   hide('#vr', A.b2 - 0.05, {y: -30}, 0.3);
   show('#vx', A.b2 + 0.3, {y: 40}, 0.5); cue(A.b2 + 0.3, 'whoosh', 0.5, 1);
@@ -1077,9 +1083,9 @@ const IX = (() => {
     start(i);
     if (i === 0) {
       const q = ACCES.findIndex(x => x[0] === a);
-      // un accès nécessaire : « ✓ nécessaire » s’y pose, comme juste après l’arrêt
+      // un accès nécessaire : « ✓ nécessaire » s’y pose et son interrupteur passe au vert, comme juste après l’arrêt
       if (q >= 0 && ACCES[q][3]) {
-        if (!X.got.has(a)) { X.got.add(a); marks(['#nd' + q]); sfx('tick', X.got.size + 1, 0.6); }
+        if (!X.got.has(a)) { X.got.add(a); marks(['#nd' + q]); marks(['#tg' + q], 'tgon'); sfx('tick', X.got.size + 1, 0.6); }
         return {ok: true, done: X.got.size === 2, why: '', at: rel(rowOf(a))};
       }
       // un accès de trop : sa ligne rougit un instant, et la correction dit pourquoi
