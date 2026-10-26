@@ -221,6 +221,23 @@
 
 /* ---------- Le prix d’un produit, modifié depuis l’application de Lina ---------- */
 .pe{left:64px;width:952px;padding:0 0 20px;overflow:hidden}
+/* Le chemin d’un clic (Elisa, 26 octobre, 23 h 01 : « il n’y a pas le lien entre l’application et la base, pour les débutants,
+   on ne comprend pas trop ») : l’application → la requête SQL → la base NutriBoost, reliées par deux flèches qui se dessinent ;
+   la requête descend vers la base ; le refus revient dans l’application, à la place du bouton « Enregistrer ». */
+.flw{left:0;width:1080px;height:100px}
+.flw .fln{position:absolute;left:177px;top:8px;width:6px;height:66px;border-radius:3px;background:#8B80F0;transform-origin:50% 0}
+.flw .fhd{position:absolute;left:167px;top:70px;width:0;height:0;border-left:13px solid transparent;border-right:13px solid transparent;border-top:18px solid #8B80F0}
+.flw .fpk{position:absolute;left:170px;top:4px;width:20px;height:20px;border-radius:50%;background:#5B5BD6;box-shadow:0 0 0 5px rgba(91,91,214,.18)}
+.flw .flb{position:absolute;left:216px;top:23px;height:54px;padding:0 22px 0 16px;border-radius:999px;background:#fff;border:3px solid var(--line);font-size:25px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:10px;white-space:nowrap}
+.flw .flb .emo{font-size:28px}
+.flw .flb code{font-family:var(--mono);font-size:23px;font-weight:800;color:var(--ink)}
+.dbn{left:64px;width:952px;display:flex}
+.dbn>span{height:88px;padding:0 30px 0 24px;border-radius:999px;background:#fff;border:3px solid #C9BCFF;box-shadow:0 6px 0 #DCD3FF;font-size:30px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:14px;white-space:nowrap}
+.dbn .emo{font-size:38px}
+.dbn .dbv{height:48px;padding:0 16px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);font-size:23px;font-weight:700;display:flex;align-items:center;gap:8px}
+.dbn .dbv .emo{font-size:24px}
+.pin{position:relative}
+.pin .pref{position:absolute;right:18px;top:15px;height:58px;padding:0 20px;border-radius:16px;background:#FDECEC;box-shadow:inset 0 0 0 3px #F5B5B0;color:#B42318;font-size:24px;font-weight:800;display:flex;align-items:center;gap:8px;white-space:nowrap}
 .per{display:flex;align-items:center;gap:18px;height:96px;margin:16px 22px 0;padding:0 18px 0 26px;border-radius:24px;background:#fff;box-shadow:inset 0 0 0 3px var(--line)}
 .per b{font-size:30px;font-weight:800;color:var(--ink);white-space:nowrap}
 .per .pz{font-family:var(--mono);font-size:29px;font-weight:800;color:var(--ink-2)}
@@ -430,12 +447,14 @@ cap('d2', "Tu peux limiter un droit<br>à une colonne.", 3.4);
 cap('d3', "Clique de nouveau<br>sur « Exécuter ».", 3.6);   // l’app s’arrête sur le bouton (EXE2, plus bas)
 cap('d4', "Lina peut maintenant modifier<br>le statut des commandes, sans pouvoir<br>changer leur quantité ou leur client.", 5.0);
 cap('d5', "Le colis de Léa Simon<br>passe à « expédiée ».", 3.8);
-/* 6 · Vérifier les limites de son accès (Elisa) : Lina tente de modifier le prix d’un produit ; avant la réponse de la base, la question
+/* 6 · Vérifier les limites de son accès (Elisa) : Lina tente de modifier le prix d’un produit ; le chemin de son clic (l’application écrit
+   la requête SQL, puis l’envoie à la base NutriBoost avec le compte de Lina : Elisa, 26 octobre, 23 h 01) ; avant la réponse de la base, la question
    (moment 4 : que va répondre la base ?) ; la modification est refusée, ses deux bulles. L’ancienne question « Suffirait-il de masquer
    le bouton ? » et ses deux bulles sont retirées (Elisa, 26 octobre, 22 h 46 : « masquer un bouton, rien à voir avec SQL »). */
 chap({label:'Les limites de son accès'});
 cap('e1', "Lina tente maintenant de modifier<br>le prix d’un produit.", 3.8);
-cap('e2', "Son application envoie la requête<br>avec le compte de Lina.", 4.2);
+cap('ea', "Quand elle clique sur « Enregistrer »,<br>son application écrit<br>une requête SQL.", 4.4);
+cap('e2', "Son application envoie la requête<br>à la base, avec le compte de Lina.", 4.4);
 toi('p4');
 cap('e3', "La base vérifie les droits<br>avant d’exécuter l’action.", 3.8);
 cap('e4', "Comme Lina n’a pas le droit<br>de modifier les produits,<br>le prix reste inchangé.", 4.6);
@@ -655,7 +674,12 @@ function dom(){
   // le prix d’un produit : Lina tente de le modifier
   w += `<div class="abs card pe k-pr" id="pe"><div class="aph"><span class="emo">📦</span>Produits<span class="apu"><span class="emo">👤</span>lina</span></div>` +
     `<div class="per"><b>${PROD.nom}</b><span class="pz" id="pez">${PROD.prix}</span><span class="act" id="pea"><span class="emo">🏷️</span>Modifier le prix</span></div>` +
-    '<div class="pin" id="pin">Nouveau prix<span class="fld" id="pfl">1,00 €</span><span class="sv" id="psv">Enregistrer</span></div></div>';
+    '<div class="pin" id="pin">Nouveau prix<span class="fld" id="pfl">1,00 €</span><span class="sv" id="psv">Enregistrer</span>' +
+    '<span class="pref" id="pref"><span class="emo">🔒</span>Refusé par la base</span></div></div>';
+  // le chemin du clic : l’application écrit la requête, puis l’envoie à la base NutriBoost, avec le compte de Lina
+  const flw = (id, emo, label) => `<div class="abs flw" id="${id}"><i class="fln"></i><i class="fhd"></i><i class="fpk"></i><span class="flb"><span class="emo">${emo}</span>${label}</span></div>`;
+  w += flw('fl1', '⚙️', 'L’application écrit la requête SQL') + flw('fl2', '📨', 'Envoyée à la base, avec le compte <code>lina</code>');
+  w += '<div class="abs dbn" id="dbn"><span><span class="emo">🗄️</span>Base NutriBoost<span class="dbv" id="dbv"><span class="emo">🔍</span>vérifie les droits de lina</span></span></div>';
   // un mois plus tard : le calendrier
   w += `<div class="abs card cal" id="cal"><div class="calm">${sw('calm', [['Octobre'], ['Novembre']])}</div><div class="cald">26</div><div class="calw">${sw('calw', [['lundi'], ['jeudi']])}</div></div>` +
     '<div class="abs calt" id="calt" style="top:920px"><span><span class="emo">🏁</span>Fin de la mission de Lina</span></div>';
@@ -703,8 +727,11 @@ function layout(){
   FC.revoke = bottom('#rs4') + 30;
   ['#ap', '#cc'].forEach(e => { $(e).style.top = FC.grant + 'px'; });
   // le prix d’un produit : la carte du produit, la requête envoyée par l’application de Lina, puis la réponse
-  $('#el').style.top = (bottom('#pe') + 30) + 'px';
-  $('#rs3').style.top = (bottom('#el') + 30) + 'px';
+  $('#fl1').style.top = bottom('#pe') + 'px';
+  $('#el').style.top = bottom('#fl1') + 'px';
+  $('#fl2').style.top = bottom('#el') + 'px';
+  $('#dbn').style.top = bottom('#fl2') + 'px';
+  $('#rs3').style.top = (bottom('#dbn') + 30) + 'px';
 }
 
 /* ---------- Petits gestes de la timeline ---------- */
@@ -713,6 +740,14 @@ const bump = (el, t, s = 1.04) => tl.to(el, {scale: s, duration: 0.18, yoyo: tru
 const on = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 1, duration: d, ease: 'power2.out'}, t);
 const off = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 0, duration: d, ease: 'power2.in'}, t);
 const GLOW = 'rgba(255,224,138,.4)';
+/* Une flèche du chemin du clic : le trait se dessine vers le bas, la pointe se pose, puis son étiquette. */
+function flow(sel, t){
+  tl.set(sel, {autoAlpha: 1}, t);
+  tl.fromTo(`${sel} .fln`, {autoAlpha: 1, scaleY: 0}, {autoAlpha: 1, scaleY: 1, duration: 0.35, ease: 'power2.out', immediateRender: false}, t);
+  tl.fromTo(`${sel} .fhd`, {autoAlpha: 0, y: -10}, {autoAlpha: 1, y: 0, duration: 0.2, ease: 'power2.out', immediateRender: false}, t + 0.3);
+  tl.fromTo(`${sel} .flb`, {autoAlpha: 0, x: -16}, {autoAlpha: 1, x: 0, duration: 0.35, ease: 'expo.out', immediateRender: false}, t + 0.35);
+  cue(t + 0.35, 'tick', 0.45, 2);
+}
 /* Une valeur en remplace une autre : l’ancienne monte et s’efface, la nouvelle arrive par en dessous. */
 function swap(o, n, t, sound = true){
   tl.to(o, {autoAlpha: 0, y: -14, duration: 0.2, ease: 'power2.in'}, t);
@@ -813,7 +848,7 @@ function build(){
   gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
   hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
   layout();
-  gsap.set(['.sq', '#bc', '#gs', '#gsu', '.act .wr', '#ph', '#fc', '#fcf', '.fcd', '.nd', '#vr', '#vx', '#sxc', '#sxk', '#vsrc', '.bt', '.srv', '#ap', '#apb', '#gp', '.gpl', '#cc', '#pe', '#pin',
+  gsap.set(['.sq', '#bc', '#gs', '#gsu', '.act .wr', '#ph', '#fc', '#fcf', '.fcd', '.nd', '#vr', '#vx', '#sxc', '#sxk', '#vsrc', '.bt', '.srv', '#ap', '#apb', '#gp', '.gpl', '#cc', '#pe', '#pin', '#pref', '#fl1', '#fl2', '.flw > i', '.flw .flb', '#dbn', '#dbv',
     '#cal', '#calt', '#tm', '#tq2w', '#fin', '#fmas', '#tapf', '#tapw'], {autoAlpha: 0});
   gsap.set(['#fcn > i:not(.a0)', '#ast > i:not(.a0)', '#calm > i:not(.a0)', '#calw > i:not(.a0)'], {autoAlpha: 0});
 
@@ -979,21 +1014,30 @@ function build(){
   tl.to('#pea', {scale: 0.93, duration: 0.08, yoyo: true, repeat: 1, ease: 'power2.out'}, A.e1 + 1.4); cue(A.e1 + 1.4, 'click', 0.6);
   show('#pin', A.e1 + 1.7, {y: 20}, 0.4); cue(A.e1 + 1.7, 'pop', 0.5, 2);
   typeChars($$('#pfl .ch'), A.e1 + 2.2, 14);
-  // son application envoie la requête avec le compte de Lina
-  press($('#psv'), A.e2 + 0.3, '#A3216A', 6, false);
-  show('#el', A.e2 + 0.6, {y: 40}, 0.5); cue(A.e2 + 0.6, 'whoosh', 0.45, 2);
-  typeLines('el', 0, 3, A.e2 + 1.0, 44);
-  // la base vérifie les droits avant d’exécuter l’action : la modification est refusée
-  bump('#el', A.e3 + 0.6, 1.015); cue(A.e3 + 0.6, 'tick', 0.5, 2);
+  // quand elle clique sur « Enregistrer », son application écrit une requête SQL : une flèche part de l’application, la requête s’écrit
+  press($('#psv'), A.ea + 0.5, '#A3216A', 6, false);
+  flow('#fl1', A.ea + 0.9);
+  show('#el', A.ea + 1.6, {y: 30}, 0.5); cue(A.ea + 1.6, 'whoosh', 0.45, 2);
+  typeLines('el', 0, 3, A.ea + 2.0, 44);
+  // elle l’envoie à la base, avec le compte de Lina : la seconde flèche, la requête qui descend, puis la base NutriBoost
+  flow('#fl2', A.e2 + 0.6);
+  show('#dbn', A.e2 + 1.3, {y: 24, scale: 0.94}, 0.45, 'back.out(1.6)'); cue(A.e2 + 1.3, 'pop', 0.55, 2);
+  tl.fromTo('#fl2 .fpk', {autoAlpha: 1, y: 0}, {autoAlpha: 1, y: 64, duration: 0.7, ease: 'power1.in', immediateRender: false}, A.e2 + 2.0);
+  tl.to('#fl2 .fpk', {autoAlpha: 0, duration: 0.15}, A.e2 + 2.7);
+  bump('#dbn > span', A.e2 + 2.75, 1.04); cue(A.e2 + 2.75, 'tick', 0.5, 3);
+  // la base vérifie les droits avant d’exécuter l’action : la modification est refusée, sa réponse arrive sous la base
+  mark('#dbv', A.e3 + 0.6);
   show('#rs3', A.e3 + 1.6, {y: 30, scale: 0.96}, 0.5, 'back.out(1.5)'); cue(A.e3 + 1.6, 'miss', 0.45);
   [[-12, 0.08], [10, 0.1], [-6, 0.1], [0, 0.12]].reduce((t, [x, d]) => { tl.to('#rs3', {x, duration: d, ease: 'power1.inOut'}, t); return t + d; }, A.e3 + 2.1);   // le refus secoue la carte
-  // comme Lina n’a pas le droit de modifier les produits, le prix reste inchangé
+  // comme Lina n’a pas le droit de modifier les produits, le prix reste inchangé : dans l’application, le refus remplace « Enregistrer »
   pulse('#lpx', A.e4 + 0.7, 1, 'rgba(239,79,85,.3)');
-  pulse('#pez', A.e4 + 2.4, 1, 'rgba(22,148,71,.16)'); cue(A.e4 + 2.4, 'tick', 0.5, 3);
+  hide('#psv', A.e4 + 1.3, {y: 0, scale: 0.9}, 0.2);
+  mark('#pref', A.e4 + 1.45);
+  pulse('#pez', A.e4 + 2.6, 1, 'rgba(22,148,71,.16)'); cue(A.e4 + 2.6, 'tick', 0.5, 3);
 
   /* ===== 7 · Retirer les accès ===== */
   // un mois plus tard, la mission de Lina se termine : le calendrier passe du lundi 26 octobre au jeudi 26 novembre
-  hide(['#pe', '#el', '#rs3'], A.f1 - 0.05, {y: -30}, 0.35);
+  hide(['#pe', '#fl1', '#el', '#fl2', '#dbn', '#rs3'], A.f1 - 0.05, {y: -30}, 0.35);
   show('#cal', A.f1 + 0.3, {y: 50, scale: 0.92}, 0.55, 'back.out(1.5)'); cue(A.f1 + 0.3, 'whoosh', 0.5, 1);
   tl.to('#cal', {rotationX: 12, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut', transformPerspective: 900}, A.f1 + 1.2);
   swap('#calm .a0', '#calm .a1', A.f1 + 1.3); swap('#calw .a0', '#calw .a1', A.f1 + 1.45, false);
@@ -1151,7 +1195,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 265.6, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 271.05, picks: PICKS, opens: OPENS,
   glyphs: '🗄️👥🛒⭐📦🧑‍🏫📅📝💳💬🔁🎁🏷️🖥️👤🔄🗑️🔍🔒🔓🧪📋🧩✏️🏁🚪🔐✅!…«»·−→',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>
