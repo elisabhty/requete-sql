@@ -21054,14 +21054,36 @@ function stkTilt(stage){
   stage.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')reset();});
   if(art.classList.contains('is-holo')){art.classList.add('is-sweep');setTimeout(()=>art.classList.remove('is-sweep'),1400);}
 }
+/* « Coller sur le tableau » depuis la planche : on remonte d’abord jusqu’au tableau, puis le sticker s’y colle, sous les yeux.
+   Avant, il se collait pendant que l’écran remontait encore : l’animation se jouait hors de la vue (Elisa, 26 octobre, 23 h 06 :
+   « on ne voit pas bien l’animation, elle commence quand on est encore en bas, pas quand on est sur le tableau »). */
+let stkPlacing=false;
+function stkShowBoard(){
+  return new Promise(done=>{
+    const board=document.getElementById('stk-board'),scr=document.getElementById('scr-stickers');
+    if(!board||!scr)return done();
+    const sr=scr.getBoundingClientRect(),br=board.getBoundingClientRect();
+    if(br.top>=sr.top+8&&br.bottom<=sr.bottom-90)return done();   // déjà tout entier à l’écran
+    const reduce=prefersReduceMotion(),t0=performance.now();
+    scr.scrollTo({top:0,behavior:reduce?'auto':'smooth'});
+    const wait=()=>{
+      if(scr.scrollTop<=1||performance.now()-t0>1100)return setTimeout(done,reduce?0:90);   // arrivé en haut (ou geste de l’élève : on n’attend pas plus)
+      requestAnimationFrame(wait);
+    };
+    requestAnimationFrame(wait);
+  });
+}
 function stkTogglePlace(id){
   const placed=stkState().board.some(b=>b.id===id);
   stkClose();
   if(placed){stkRemove(id);return;}
-  stkPlace(id);
-  document.querySelector(`#stk-board .stk-item[data-id="${id}"]`)?.focus({preventScroll:true});
-  const board=document.getElementById('stk-board'),scr=document.getElementById('scr-stickers');
-  if(board&&scr&&board.getBoundingClientRect().top<scr.getBoundingClientRect().top+40)scr.scrollTo({top:0,behavior:prefersReduceMotion()?'auto':'smooth'});
+  if(stkPlacing)return;
+  stkPlacing=true;
+  stkShowBoard().then(()=>{
+    stkPlacing=false;
+    stkPlace(id);
+    document.querySelector(`#stk-board .stk-item[data-id="${id}"]`)?.focus({preventScroll:true});
+  });
 }
 /* Continuer un module : sa première leçon pas encore validée. */
 function stkGoModule(i){
