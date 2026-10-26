@@ -15469,8 +15469,71 @@ function lvPkDots(i,n){
 }
 /* Mots à trait d’union (e-mail, peut-être) : jamais coupés au trait d’union dans le plateau, ni dans la consigne ni dans la correction. */
 function lvNw(h){ return String(h||'').replace(/(<[^>]*>)|([0-9A-Za-zÀ-ÖØ-öø-ÿŒœ]+(?:-[0-9A-Za-zÀ-ÖØ-öø-ÿŒœ]+)+)/g,(m,tag,w)=>tag?m:`<span class="lv-nw">${w}</span>`); }
+/* Textes des feuilles « À toi » (consigne, aide, indice, explication), Elisa, 26 octobre, 9 h 59 : « Vérifie le formatage du texte
+   sur iPhone et ordi ». Ils arrivent avec la typographie des légendes, faite pour des lignes coupées à la main : chaque petit mot y
+   est collé au suivant, en chaîne (« pour qu’une seule inscription », « de la transaction » d’un bloc). Dans une feuille, dont la
+   largeur change d’un écran à l’autre, ces blocs coupaient les lignes au hasard (« … de Léa Simon : celle / de Nathan Petit attend
+   son tour. », « Comment faire / pour qu’une seule inscription soit confirmée ? »). Ici :
+   - typographie du texte courant : les espaces insécables avant « : ; ! ? » et dans « », un nombre avec son unité, un prénom avec
+     son nom (« Julie Roy », « Dr Claire Morel »), un court libellé entre guillemets ; un petit mot reste avec ce qui le suit
+     (« de la transaction ») : jamais de ligne finie par « de », « la » ou « dans ». Les collages propres aux légendes (« qu’une »,
+     « seule », « deux »… avec le mot suivant) ne sont pas repris ;
+   - chaque phrase, et chaque membre de phrase après « : » ou « ; », peut commencer sa ligne (s’ils font tous deux au moins
+     14 caractères : jamais « aucune ligne. » seul), seulement si cela n’ajoute pas de ligne : sur l’iPhone, « … de Léa Simon : /
+     celle de Nathan Petit attend son tour. » ; sur l’ordinateur, plus large, le texte garde ses deux lignes pleines. */
+const LV_CUT_MIN=14;
+const LV_SHORT=new Set(('à au aux de du des d le la les l un une en et ou ni par sur sous pour dans avec sans chez vers entre ce cet cette ces son sa ses '+
+  'leur leurs mon ma mes ton ta tes notre votre nos vos chaque il elle on ils elles se ne que qu qui si y').split(' '));
+function lvFlowTypo(h){
+  const sw=w=>LV_SHORT.has(String(w||'').toLowerCase().replace(/^[(«“"']+/,''));
+  let code=0;
+  return String(h||'').replace(/<span class="lv-nw">([^<]*)<\/span>/g,'$1').split(/(<[^>]*>)/).map(t=>{
+    if(t[0]==='<'){ if(/^<code[\s>]/i.test(t))code++; else if(/^<\/code>/i.test(t))code=Math.max(0,code-1); return t; }
+    if(code)return t;
+    t=t.replace(/\u00a0/g,' ');
+    t=t.replace(/(\S+) (?=\S|$)/g,(m,w)=>sw(w)?w+'\u00a0':m);
+    t=t.replace(/ ([:;!?»])/g,'\u00a0$1').replace(/« /g,'«\u00a0');
+    t=t.replace(/(\d) (?=\S)/g,'$1\u00a0').replace(/([\p{L}°%)]) (?=[−-]?\d)/gu,'$1\u00a0');
+    t=t.replace(/(\p{Lu}\p{Ll}+) (?=\p{Lu}\p{Ll})/gu,'$1\u00a0');
+    t=t.replace(/«([^«»]{1,28})»/g,m=>m.replace(/ /g,'\u00a0')).replace(/Cuisine saine|Yoga du matin/g,m=>m.replace(/ /g,'\u00a0'));
+    return t;
+  }).join('');
+}
+function lvCuts(h,kinds){
+  /* Le texte lu d’un bout à l’autre, balises ôtées (le code compris, pour voir qu’une phrase commence par <code>RIGHT</code>) ;
+     pos[k] dit où se trouve chaque caractère, et s’il est dans du code (on n’y coupe jamais). */
+  const parts=String(h||'').split(/(<[^>]*>)/), pos=[]; let plain='', code=0;
+  parts.forEach((t,i)=>{
+    if(t[0]==='<'){ if(/^<code[\s>]/i.test(t))code++; else if(/^<\/code>/i.test(t))code=Math.max(0,code-1); return; }
+    for(let j=0;j<t.length;j++){ pos.push({i,j,code:code>0}); plain+=t[j]; }
+  });
+  const re=/([  ][:;])( )(?=\S)|([.!?…])( )(?=[«\p{Lu}])/gu, cands=[]; let m;
+  while((m=re.exec(plain))){
+    const k=m[1]?'colon':'sent', at=m.index+(m[1]||m[3]).length, p=pos[at];
+    if((!kinds||kinds.includes(k))&&p&&!p.code&&!pos[at-1].code)cands.push({at,p});
+  }
+  let last=0; const keep=[];
+  cands.forEach(c=>{ if(c.at-last>=LV_CUT_MIN&&plain.length-c.at-1>=LV_CUT_MIN){ keep.push(c); last=c.at; } });
+  keep.reverse().forEach(({p})=>{ const t=parts[p.i]; parts[p.i]=t.slice(0,p.j)+'<br>'+t.slice(p.j+1); });
+  return parts.join('');
+}
+function lvText(el,h,host){
+  if(!el)return;
+  const base=lvFlowTypo(h);
+  host=host||el;
+  el.innerHTML=lvNw(base);
+  const tries=[lvCuts(base),lvCuts(base,['sent']),lvCuts(base,['colon'])].filter((c,k,a)=>c!==base&&a.indexOf(c)===k);
+  if(!tries.length||!host.clientHeight)return;
+  const cs=getComputedStyle(host), lh=parseFloat(cs.lineHeight)||parseFloat(cs.fontSize)*1.3||20, pad=parseFloat(cs.paddingTop||0)+parseFloat(cs.paddingBottom||0);
+  const lines=()=>Math.round((host.clientHeight-pad)/lh);
+  const n0=lines();
+  if(n0<2)return;
+  for(const c of tries){ el.innerHTML=lvNw(c); if(lines()<=n0)return; }
+  el.innerHTML=lvNw(base);
+}
 function lvPkShow(i,p){
   if(!LV||!p)return;
+  const rawPrompt=p.prompt, rawHint=p.hint||'';
   p={...p,prompt:lvNw(p.prompt),hint:p.hint?lvNw(p.hint):''};
   if(LV.q)lvQClose(false);
   if(LV.pk)lvPkClose(false);
@@ -15481,15 +15544,17 @@ function lvPkShow(i,p){
   box.className='lv-pk'+(kind==='pick'?'':' is-'+kind)+(p.text?' is-text':'')+(kind==='pick'&&opts.some(o=>String(o.label).length>30)?' is-long':'');
   box.innerHTML=`<div class="lv-pk-card" role="group" aria-labelledby="lv-pk-t" tabindex="-1">
     <div class="lv-pk-top"><span class="lv-pk-kick">À toi · ${i+1}/${n}</span>${total>1?`<span class="lv-pk-cnt">0 / ${total}</span>`:''}<button type="button" class="lv-pk-back" aria-label="Revoir le passage avant ce moment"><span aria-hidden="true">↺</span><span>Revoir</span></button><span class="lv-pk-dots" aria-hidden="true">${lvPkDots(i,n)}</span></div>
-    <p class="lv-pk-t" id="lv-pk-t">${kind==='pick'?`<span class="lv-pk-hole" aria-hidden="true">?</span>${p.prompt}`:`<span class="lv-pk-ico" aria-hidden="true">${LV_PK_ICO[kind]||LV_PK_ICO.tap}</span>${p.prompt}`}</p>
+    <p class="lv-pk-t" id="lv-pk-t">${kind==='pick'?`<span class="lv-pk-hole" aria-hidden="true">?</span>`:`<span class="lv-pk-ico" aria-hidden="true">${LV_PK_ICO[kind]||LV_PK_ICO.tap}</span>`}<span class="lv-pk-tx">${p.prompt}</span></p>
     <p class="lv-pk-why" hidden></p>
     ${p.hint?`<p class="lv-pk-hint">${p.hint}</p>`:''}
     ${opts.length?`<div class="lv-pk-opts">${opts.map((o,k)=>kind==='sort'
-      ?`<button type="button" class="lv-pk-opt" data-k="${k}"${o.tag?` aria-label="Colonne ${esc(o.tag)} : ${esc(o.label)}"`:''}>${LV_PK_GRIP}${o.tag?`<span class="lv-pk-tag">${esc(o.tag)}</span>`:''}${esc(o.label)}</button>`
-      :`<button type="button" class="lv-pk-opt" data-k="${k}">${esc(o.label)}</button>`).join('')}</div>`:''}
+      ?`<button type="button" class="lv-pk-opt" data-k="${k}"${o.tag?` aria-label="Colonne ${esc(o.tag)} : ${esc(o.label)}"`:''}>${LV_PK_GRIP}${o.tag?`<span class="lv-pk-tag">${esc(o.tag)}</span>`:''}${lvNw(lvFlowTypo(esc(o.label)))}</button>`
+      :`<button type="button" class="lv-pk-opt" data-k="${k}">${lvNw(lvFlowTypo(esc(o.label)))}</button>`).join('')}</div>`:''}
     <button type="button" class="lq-btn lv-pk-go" hidden>Continuer</button>
   </div>`;
   LV.root.appendChild(box);
+  lvText(box.querySelector('.lv-pk-tx'),rawPrompt,box.querySelector('.lv-pk-t'));
+  if(rawHint)lvText(box.querySelector('.lv-pk-hint'),rawHint);
   LV.root.classList.add('is-q','is-pk');
   lvCapHide(true);
   /* Moment commencé puis laissé : pas de démonstration, il reprend là où on l’a laissé (lvPkRestore, plus bas). */
@@ -15549,7 +15614,7 @@ function lvPkKept(P,a){
   if(P.kind==='pick'){
     const k=P.p.options.findIndex(o=>o.ok), why=k>=0?P.p.options[k].why:'';
     box.querySelectorAll('.lv-pk-opt').forEach((b,j)=>b.classList.add(j===k?'is-ok':'is-gone'));
-    if(why){ const w=box.querySelector('.lv-pk-why'); w.innerHTML=lvNw(why); w.className='lv-pk-why ok'; w.hidden=false; box.querySelector('.lv-pk-t').hidden=true; opts.hidden=true; }
+    if(why){ const w=box.querySelector('.lv-pk-why'); w.className='lv-pk-why ok'; w.hidden=false; box.querySelector('.lv-pk-t').hidden=true; opts.hidden=true; lvText(w,why); }
     else opts.classList.add('is-won');
   }else{
     if(opts)opts.hidden=true;
@@ -15621,8 +15686,9 @@ function lvPkVerdict(P,k,btn,ok,r){
   /* La correction prend la place de la question : ce que fait ce choix, et pourquoi il convient ou non. */
   const wEl=P.box.querySelector('.lv-pk-why');
   if(why&&wEl){
-    wEl.innerHTML=lvNw(why); wEl.className='lv-pk-why '+(ok?'ok':'ko'); wEl.hidden=false;
+    wEl.className='lv-pk-why '+(ok?'ok':'ko'); wEl.hidden=false;
     P.box.querySelector('.lv-pk-t').hidden=true;
+    lvText(wEl,why);
     if(!prefersReduceMotion()&&wEl.animate)wEl.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:260,easing:'ease-out'});
   }else if(wEl){ wEl.hidden=true; P.box.querySelector('.lv-pk-t').hidden=false; }   // pas de correction : la question revient (jamais la correction d’un essai précédent)
   if(ok){
@@ -15940,9 +16006,10 @@ function lvPkHint(P){
   P.hinted=true;
   if(h.text){
     const el=document.createElement('p'); el.className='lv-pk-tip';
-    el.innerHTML=`<span aria-hidden="true">💡</span><span>${lvNw(h.text)}</span>`;
+    el.innerHTML=`<span aria-hidden="true">💡</span><span class="lv-pk-tip-t"></span>`;
     const ref=P.box.querySelector('.lv-pk-opts')||P.box.querySelector('.lv-pk-hint')||P.box.querySelector('.lv-pk-go');
     ref.parentNode.insertBefore(el,ref);
+    lvText(el.querySelector('.lv-pk-tip-t'),h.text,el);
     /* L’indice prend la place de la ligne d’aide sur le geste : le plateau ne grandit pas jusqu’à couvrir l’image. */
     const gh=P.box.querySelector('.lv-pk-hint'); if(gh)gh.hidden=true;
     if(!prefersReduceMotion()&&el.animate)el.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:280,easing:'ease-out'});
@@ -16042,7 +16109,7 @@ function lvPkSel(P,el){
     /* La ligne garde la hauteur de l’aide : la consigne au-dessus ne bouge pas quand on choisit une étiquette. */
     if(!h.style.minHeight&&h.offsetHeight)h.style.minHeight=h.offsetHeight+'px';
     const o=el?P.p.options[+el.dataset.k]:null, x=o?`<b>${lvNw(esc(o.label))}</b>`:'';
-    h.innerHTML=o?(P.p.next?P.p.next.replace('{x}',x):`Touche maintenant la table de ${x}.`):P.p.hint; h.classList.toggle('is-next',!!o);
+    lvText(h,o?(P.p.next?P.p.next.replace('{x}',x):`Touche maintenant la table de ${x}.`):P.p.hint); h.classList.toggle('is-next',!!o);
   }
 }
 /* Lâcher au bord d’une place compte aussi : la plus proche, à moins de m px du doigt. */
@@ -16187,7 +16254,7 @@ function lvPkActed(P,r,el,chip,el2,args){
   P.box.classList.add('is-ko');
   kick.textContent='✕ Essaie encore';
   if(P.miss>=2)lvPkHint(P);
-  if(why&&wEl){ wEl.innerHTML=lvNw(why); wEl.className='lv-pk-why ko'; wEl.hidden=false; tEl.hidden=true; }
+  if(why&&wEl){ wEl.className='lv-pk-why ko'; wEl.hidden=false; tEl.hidden=true; lvText(wEl,why); }
   [el,el2,chip].forEach(x=>{ if(!x)return; x.classList.remove('is-ko'); void x.offsetWidth; x.classList.add('is-ko'); setTimeout(()=>x.classList.remove('is-ko'),460); });
   LV.video.sfx('false');
   if(navigator.vibrate)navigator.vibrate([20,60,20]);
@@ -16204,8 +16271,9 @@ function lvPkWin(P,why,rect){
   const dot=P.box.querySelectorAll('.lv-pk-dots i')[P.i]; if(dot){ dot.className=first?'ok':'try'; lvPkBump(dot,1.8); }
   const tip=P.box.querySelector('.lv-pk-tip'); if(tip)tip.hidden=true;
   if(why&&wEl){
-    wEl.innerHTML=lvNw(why); wEl.className='lv-pk-why ok'; wEl.hidden=false;
+    wEl.className='lv-pk-why ok'; wEl.hidden=false;
     P.box.querySelector('.lv-pk-t').hidden=true;
+    lvText(wEl,why);
     if(!prefersReduceMotion()&&wEl.animate)wEl.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:260,easing:'ease-out'});
   }else if(wEl){ wEl.hidden=true; P.box.querySelector('.lv-pk-t').hidden=false; }   // la légende qui suit explique : la consigne revient, sans la correction d’une erreur
   LV.video.sfx('true');
@@ -25000,7 +25068,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2056';
+  const SW_CACHE='requete-2026-10-12-ludique-v2057';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

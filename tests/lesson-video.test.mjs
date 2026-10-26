@@ -1321,14 +1321,14 @@ test('LvAnim : moments « À toi » de la leçon interactive, arrêt pile, évé
 test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la requête, verdict, score du premier essai', () => {
   const show = cut('function lvPkShow(i,p){', 'function lvPkTry(k){');
   for (const part of ['À toi · ${i+1}/${n}', "LV.root.classList.add('is-q','is-pk');", 'IX.enter(i)', '>Continuer</button>',
-    '<span class="lv-pk-hole" aria-hidden="true">?</span>${p.prompt}', '<p class="lv-pk-why" hidden></p>'])
+    '<span class="lv-pk-hole" aria-hidden="true">?</span>`:', '<span class="lv-pk-tx">${p.prompt}</span></p>', '<p class="lv-pk-why" hidden></p>'])
     assert.ok(show.includes(part), `plateau : ${part}`);
   const tr = cut('function lvPkTry(k){', 'function lvPkVerdict(');
   assert.ok(tr.includes('IX.pick(P.i,k)') && tr.includes('lvPkFly(btn,rect,land)'), 'l’étiquette s’envole jusqu’au trou, puis la page montre le résultat de ce choix');
   assert.ok(tr.includes('lvPkVerdict(P,k,btn,ok,r||{})'), 'la page renvoie le verdict et la correction de ce choix');
   const vd = cut('function lvPkVerdict(', '/* L’étiquette quitte le plateau');
   for (const part of ['lvPkSet(LV.id,P.i,first,P.tries-1)', "LvSfx.play('chord',0,.55,0)", 'lvPkBurst(rect)', "kick.textContent='✕ Essaie un autre choix';", "btn.classList.add('is-out')",
-    "const why=r.why||r.say||''", "wEl.innerHTML=lvNw(why); wEl.className='lv-pk-why '+(ok?'ok':'ko'); wEl.hidden=false;", "P.box.querySelector('.lv-pk-t').hidden=true;"])
+    "const why=r.why||r.say||''", "wEl.className='lv-pk-why '+(ok?'ok':'ko'); wEl.hidden=false;", "P.box.querySelector('.lv-pk-t').hidden=true;", 'lvText(wEl,why);'])
     assert.ok(vd.includes(part), `verdict : ${part}`);
   assert.ok(html.includes('.lv-pk-hole{') && html.includes('.lv-pk-why.ok{') && html.includes('.lv-pk-why.ko{'), 'case jaune du prompt, correction verte ou rouge');
   assert.ok(html.includes('.lv.is-pk .lv-bottom{visibility:hidden}'), 'le plateau cache les commandes');
@@ -1363,7 +1363,7 @@ test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la 
 test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme à la souris, sans couper « e-mail »', () => {
   const show = cut('function lvPkShow(i,p){', 'function lvPkTry(k){');
   for (const part of ["const total=kind==='sort'?opts.length:(p.need||0);", "box.className='lv-pk'+(kind==='pick'?'':' is-'+kind)+(p.text?' is-text':'')+(kind==='pick'&&opts.some(o=>String(o.label).length>30)?' is-long':'');",
-    '<span class="lv-pk-cnt">0 / ${total}</span>', '<span class="lv-pk-ico" aria-hidden="true">${LV_PK_ICO[kind]||LV_PK_ICO.tap}</span>${p.prompt}',
+    '<span class="lv-pk-cnt">0 / ${total}</span>', '<span class="lv-pk-ico" aria-hidden="true">${LV_PK_ICO[kind]||LV_PK_ICO.tap}</span>`}<span class="lv-pk-tx">${p.prompt}</span>',
     '<p class="lv-pk-hint">${p.hint}</p>', '}else lvPkLayer(P);', "p={...p,prompt:lvNw(p.prompt),hint:p.hint?lvNw(p.hint):''};"])
     assert.ok(show.includes(part), `plateau : ${part}`);
   assert.ok(show.includes('<p class="lv-pk-why" hidden></p>\n    ${p.hint?`<p class="lv-pk-hint">${p.hint}</p>`:\'\'}\n    ${opts.length?`<div class="lv-pk-opts">')
@@ -1418,7 +1418,7 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
   }
   const acted = cut('function lvPkActed(', 'function lvReplay(){');
   for (const part of ['if(r.done){ lvPkWin(P,why,r.at||(el&&el._s)||null); return; }', 'P.miss++;', "kick.textContent='✕ Essaie encore';",
-    'const first=P.miss===0', 'lvPkSet(LV.id,P.i,first,P.miss);', "wEl.innerHTML=lvNw(why); wEl.className='lv-pk-why ko';", "if(P.layer)P.layer.classList.add('is-done');"])
+    'const first=P.miss===0', 'lvPkSet(LV.id,P.i,first,P.miss);', "wEl.className='lv-pk-why ko'; wEl.hidden=false; tEl.hidden=true; lvText(wEl,why);", "if(P.layer)P.layer.classList.add('is-done');"])
     assert.ok(acted.includes(part), `verdict des gestes : ${part}`);
   /* Toucher, relier : les zones se voient sur l’image (contour qui s’allume deux fois, puis discret) ; plus léger sur un tableau entier. */
   assert.ok(html.includes('.lv-pk-layer.is-tap .lv-pk-spot:not(:disabled):not(.is-ko),.lv-pk-layer.is-link .lv-pk-spot:not(:disabled):not(.is-ko):not(.is-sel){')
@@ -1427,14 +1427,14 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
     'zones à toucher visibles sur l’image, effacées une fois le moment réussi');
   /* Glisser : chaque étiquette est une colonne du tableur (poignée, lettre, nom) ; à l’ouverture, une copie monte vers les tables. */
   const show2 = cut('function lvPkShow(i,p){', 'function lvPkTry(k){');
-  assert.ok(show2.includes('>${LV_PK_GRIP}${o.tag?`<span class="lv-pk-tag">${esc(o.tag)}</span>`:\'\'}${esc(o.label)}</button>`')
+  assert.ok(show2.includes('>${LV_PK_GRIP}${o.tag?`<span class="lv-pk-tag">${esc(o.tag)}</span>`:\'\'}${lvNw(lvFlowTypo(esc(o.label)))}</button>`')
     && show2.includes('aria-label="Colonne ${esc(o.tag)} : ${esc(o.label)}"'), 'étiquette à glisser : poignée, lettre de la colonne, nom');
   const demo = cut('function lvPkDemo(P){', 'function lvPkLayer(P){');
   for (const part of ["P.box.addEventListener('pointerdown',stop,{capture:true,once:true});", "btn.classList.add('is-demo'); P.layer.classList.add('is-armed');", 'P.demo=setTimeout(()=>run(2),700);', 'if(prefersReduceMotion())return;'])
     assert.ok(demo.includes(part), `démonstration du geste (toucher une étiquette, les tables s’allument) : ${part}`);
   /* Ranger au doigt : toucher d’abord (la ligne d’aide dit quelle table toucher), glisser en option, lâcher au bord d’une table compte. */
   const sel = cut('function lvPkSel(P,el){', 'function lvPkDrag(');
-  assert.ok(sel.includes("h.innerHTML=o?(P.p.next?P.p.next.replace('{x}',x):`Touche maintenant la table de ${x}.`):P.p.hint;") && sel.includes('function lvPkNear(zs,x,y,m){'), 'étiquette choisie : l’aide guide (la phrase du moment, sinon « la table de … ») ; place la plus proche');
+  assert.ok(sel.includes("lvText(h,o?(P.p.next?P.p.next.replace('{x}',x):`Touche maintenant la table de ${x}.`):P.p.hint);") && sel.includes('function lvPkNear(zs,x,y,m){'), 'étiquette choisie : l’aide guide (la phrase du moment, sinon « la table de … ») ; place la plus proche');
   assert.ok(sel.includes("if(!h.style.minHeight&&h.offsetHeight)h.style.minHeight=h.offsetHeight+'px';"), 'la ligne d’aide garde sa hauteur : la consigne ne bouge pas');
   assert.ok(html.includes('||lvPkNear(zs,x,y,32);') && html.includes('@keyframes lvSpotArm{') && html.includes("const LV_PK_ICO={tap:'👆',sort:'👆',link:'🔗'};"), 'glisser tolérant, tables qui appellent le doigt');
   const ctxN = vm.createContext({Math}); vm.runInContext(cut('function lvPkNear(zs,x,y,m){', 'function lvPkDrag(') + ';this.f=lvPkNear;', ctxN);
