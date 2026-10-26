@@ -118,9 +118,9 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 271.05);
-  assert.ok(page.includes('notesAt: 271.05,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 278.25);
+  assert.equal(val('NOTES'), 271.89);
+  assert.ok(page.includes('notesAt: 271.89,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 279.09);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   assert.deepEqual(chaps.map(c => c.label), ['Un accès trop large', 'Les accès nécessaires', 'Ce qu’elle peut consulter', 'Autoriser la consultation', 'Une modification précise',
@@ -184,14 +184,15 @@ test('les messages : Camille Roux, puis Lina, puis Camille Roux, par SMS, avec l
   const mails = val('MAILS'), opens = val('OPENS'), picks = val('PICKS'), caps = val('CAPTIONS');
   assert.equal(mails.length, 3);
   assert.deepEqual(mails.map(m => [m[0], m[2], m[6]]), [[['Camille', 'Roux', 'CR'], 'équipe', {sms: true, hello: 'Bonjour !', bye: null}],
-    [['Lina', '', 'L'], 'équipe', {sms: true, hello: null, bye: null}], [['Camille', 'Roux', 'CR'], 'équipe', {sms: true, hello: null, bye: null}]]);
+    [['Lina', '', 'L'], 'équipe', {sms: true, hello: null, bye: null}], [['Camille', 'Roux', 'CR'], 'équipe', {sms: true, hello: 'Bonjour !', bye: 'Merci d’avance pour tes actions !'}]]);
   assert.deepEqual(mails[0][4], ['Lina rejoint l’équipe pour nous aider à préparer les commandes pendant un mois.',
     'Elle doit consulter les informations nécessaires aux expéditions et mettre à jour le statut des commandes.',
     'En revanche, elle ne doit pas pouvoir modifier les prix ni supprimer des clients.', 'Peux-tu lui donner les accès adaptés à sa mission ?']);
   /* « Le colis de Léa » : un client est toujours cité par son prénom et son nom (Elisa, 22 octobre) */
   assert.deepEqual(mails[1][4], ['Je peux consulter les expéditions !', 'Le colis de Léa Simon est prêt.', 'Il me manque l’accès pour passer son statut à « expédiée ».']);
-  assert.deepEqual(mails[2][4], ['La mission de Lina est terminée.', 'Peux-tu retirer les accès que nous lui avions accordés ?']);
-  assert.deepEqual([0, 1, 2].map(n => vm.runInContext(`mailRows(${n})`, D)), [5, 3, 2], '« Bonjour ! » et ses quatre phrases ; puis trois, puis deux phrases');
+  assert.deepEqual(mails[2][4], ['La mission de Lina à la préparation des commandes est terminée.', 'Son compte peut encore consulter les expéditions et modifier le statut des commandes.',
+    'Peux-tu retirer les accès que nous lui avions accordés ?']);
+  assert.deepEqual([0, 1, 2].map(n => vm.runInContext(`mailRows(${n})`, D)), [5, 3, 5], '« Bonjour ! » et ses quatre phrases ; puis trois phrases ; puis « Bonjour ! », trois phrases et « Merci d’avance pour tes actions ! »');
   assert.ok(strip(caps.find(c => /t’écrit/.test(c[2]))[2]) === 'Camille Roux, responsable des opérations, t’écrit.', 'qui est Camille Roux (Elisa : « responsable des opérations »)');
   assert.deepEqual(opens.map(o => o.sel), ['#ml1', '#bs1', '#ml2', '#bs2', '#ml3', '#bs3']);
   assert.deepEqual(opens.map(o => o.label), ['Ouvrir le message de Camille Roux', 'Exécuter', 'Ouvrir le message de Lina', 'Exécuter', 'Ouvrir le message de Camille Roux', 'Exécuter']);
