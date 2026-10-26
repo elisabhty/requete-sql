@@ -553,14 +553,11 @@ cap('f3', "Avec <code>REVOKE</code>, le compte<br>se place après <code>FROM</co
 cap('f4', "Exécute les deux commandes :<br>clique sur « Exécuter ».", 3.8);   // l’app s’arrête sur le bouton (EXE3, plus bas)
 cap('f5', "<code>REVOKE</code> retire un droit accordé.", 3.4);
 cap('f6', "Ici, tu retires les deux autorisations<br>données à Lina au début<br>de sa mission.", 4.6);
-/* 8 · Le dernier réflexe (Elisa) : sa question finale (moment 6), puis son explication, en deux bulles. C’était le dernier chapitre du projet. */
+/* 8 · Le dernier réflexe (Elisa) : sa question finale (moment 6) ; son explication est dans la correction. C’était le dernier chapitre du projet. */
 chap({label:'Le dernier réflexe'});
 cap('g1', "Garde un dernier réflexe<br>pour tes prochaines missions.", 3.6);
-toi('p6');
-/* Les mots d’Elisa (26 octobre, 23 h 45), une phrase par bulle */
-cap('g2', "Chaque personne utilise<br>son propre compte, avec uniquement<br>les droits nécessaires à ses missions.", 4.6);
-cap('g3', "Lorsqu’elle quitte l’équipe,<br>ses accès sont retirés.", 3.6);
-cap('g4', "Bravo : tu as terminé<br>le dernier chapitre<br>du projet NutriBoost !", 5.0);
+toi('p6');   // sa réponse est dans la correction du moment : plus de bulles qui la répètent (Elisa, 27 octobre, 0 h 46)
+cap('g4', "Bravo : tu as terminé<br>le dernier chapitre<br>du projet NutriBoost !", 6.4);   // l’équipe reste 1,4 s, puis la fin du projet
 /* 9 · Merci pour tout (Elisa, 26 octobre, 23 h 53 : « mets un message de la part de toutes les équipes, qui te remercient pour
    toutes tes actions », puis sa réponse, mot pour mot). La conversation de groupe : la bannière (l’app s’arrête dessus), puis les
    bulles, une à une, chacune le temps d’être lue ; la photo de l’équipe. Ta réponse : un nouveau message ; l’app s’arrête sur
@@ -684,7 +681,7 @@ const PICKS = [
   {at: atp('p3'), from: A.d0, kind: 'tap', need: 1, prompt: 'Touche la partie de la commande qui limite le droit à une colonne.'},
   {at: atp('p4'), from: A.e1, kind: 'pick', text: true, prompt: 'Lina n’a aucun droit sur la table produits. Que va répondre la base ?', options: [
     {label: 'Le prix passe à 1,00 €', why: 'Pour modifier un prix, il faut le droit <code>UPDATE</code> sur la <b>table produits</b>. Lina ne l’a pas : la base n’exécute pas la requête.'},
-    {label: 'La modification est refusée', ok: true, why: 'La base vérifie les droits avant d’exécuter l’action. Lina n’a pas le droit de modifier les produits : la requête est refusée et le prix ne change pas.'},
+    {label: 'La modification est refusée', ok: true, why: 'Oui : Lina n’a aucun droit sur la <b>table produits</b>. Regarde ce qui se passe quand sa requête arrive.'},
     {label: 'Le prix change, mais seulement pour Lina', why: 'Une modification acceptée changerait le prix pour tout le monde. Ici, sans droit sur la <b>table produits</b>, elle est simplement refusée.'}]},
   {at: atp('p5'), from: A.f1, kind: 'pick', prompt: 'Quelle commande retire à Lina le droit de consulter la vue ?', options: [
     {label: 'REVOKE SELECT ON commandes_expedition FROM lina;', ok: true, why: '<code>REVOKE</code> retire un droit accordé, et le compte se place après <code>FROM</code>.'},
@@ -1272,19 +1269,20 @@ function build(){
   sceneOn('#sn', A.g1 + 0.3);
   show('#tm', A.g1 + 0.3, {y: 40}, 0.5); cue(A.g1 + 0.3, 'whoosh', 0.5, 1);
   bump('#tm2 .ava', A.g1 + 1.6, 1.12); cue(A.g1 + 1.6, 'pop', 0.55, 3);
-  // chaque personne utilise son propre compte, avec uniquement les droits nécessaires à ses missions
-  mark('#tq2w', A.g2 + 0.8);
-  ['#tm0 .tq', '#tq2w'].forEach((s, q) => { const t = A.g2 + 2.2 + q * 0.4; bump(s, t, 1.08); cue(t, 'tick', 0.45, q + 2); });
-  // lorsqu’elle quitte l’équipe, ses accès sont retirés : ceux de Lina l’ont été
-  bump('#tm1 .tq', A.g3 + 1.0, 1.08); cue(A.g3 + 1.0, 'tick', 0.5, 4);
+  // juste après le moment (sa correction a tout dit) : la nouvelle personne reçoit son propre compte ; les comptes ressortent,
+  // celui de Lina, aux accès retirés, en dernier ; puis l’équipe laisse la place à la fin du projet
+  const G6 = set2(PICKS[5].at);
+  mark('#tq2w', G6 + 0.1);
+  ['#tm0 .tq', '#tq2w', '#tm1 .tq'].forEach((s, q) => { const t = G6 + 0.7 + q * 0.35; bump(s, t, 1.08); cue(t, 'tick', 0.45, q + 2); });
   // bravo : le dernier chapitre du projet est terminé
-  hide('#tm', A.g4 - 0.05, {y: -30}, 0.35);
-  show('#fin', A.g4 + 0.3, {y: 40, scale: 0.85}, 0.6, 'back.out(1.8)'); cue(A.g4 + 0.3, 'chord', 0.6);
-  confetti($('#fin'), A.g4 + 0.5);
-  tl.to('#fin .emo', {rotation: -16, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.g4 + 1.0);
+  const G4 = +(A.g4 + 1.4).toFixed(2);
+  hide('#tm', G4 - 0.05, {y: -30}, 0.35);
+  show('#fin', G4 + 0.3, {y: 40, scale: 0.85}, 0.6, 'back.out(1.8)'); cue(G4 + 0.3, 'chord', 0.6);
+  confetti($('#fin'), G4 + 0.5);
+  tl.to('#fin .emo', {rotation: -16, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, G4 + 1.0);
   // la mascotte arrive, et saute de joie
-  show('#fmas', A.g4 + 0.7, {y: 300, rotation: -6}, 0.9, 'back.out(1.3)'); cue(A.g4 + 0.7, 'whoosh', 0.6, 1);
-  tl.to('#fmas', {y: -26, duration: 0.22, yoyo: true, repeat: 3, ease: 'power2.out'}, A.g4 + 1.8); cue(A.g4 + 1.8, 'pop', 0.6, 3); cue(A.g4 + 2.24, 'pop', 0.6, 5);
+  show('#fmas', G4 + 0.7, {y: 300, rotation: -6}, 0.9, 'back.out(1.3)'); cue(G4 + 0.7, 'whoosh', 0.6, 1);
+  tl.to('#fmas', {y: -26, duration: 0.22, yoyo: true, repeat: 3, ease: 'power2.out'}, G4 + 1.8); cue(G4 + 1.8, 'pop', 0.6, 3); cue(G4 + 2.24, 'pop', 0.6, 5);
   hide(['#fin', '#fmas'], B.g4 - 0.1, {y: -30}, 0.4);
   sceneOff('#sn', MERCI);
 
@@ -1499,7 +1497,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 286.08, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 277.43, picks: PICKS, opens: OPENS,
   glyphs: '🗄️👥🛒⭐📦🧑‍🏫📅📝💳💬🔁🎁🏷️🖥️👤🔄🗑️🔍🔒🔓🧪📋🧩✏️🏁🚪🔐✅🎉💜😉👋✈️🎓!…«»·−→',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>
