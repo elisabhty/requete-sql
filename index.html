@@ -6292,6 +6292,21 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
   .exframe .xf-result.on,.result-live .result-meta,.result-live .table-scroll,.result-live .table-wrap thead{animation:xfResIn .22s cubic-bezier(.2,.8,.2,1) both!important;opacity:1!important}
   .exframe .xf-result.on .table-wrap tbody tr,.result-live .table-wrap tbody tr{animation:none!important;opacity:1!important}
   @keyframes xfResIn{from{transform:translateY(6px)}to{transform:none}}
+
+  /* Tirer pour actualiser (Elisa, 26 octobre, 21 h 55 : « J’ai l’impression que l’on peut pas rafraîchir les pages »).
+     Les écrans gardent leur propre défilement (overscroll-behavior-y:contain, voir .screen) : le geste de Safari ne passe
+     donc jamais à la page. Tout en haut d’un écran, tirer vers le bas fait descendre une pastille ; au-delà du seuil,
+     la flèche devient verte et relâcher recharge l’app (la progression est gardée dans localStorage). */
+  .ptr{position:absolute;left:50%;top:0;z-index:30;width:44px;height:44px;margin-left:-22px;border-radius:50%;background:#fff;color:var(--accent);
+    box-shadow:0 4px 14px rgba(34,28,70,.16),0 0 0 1px rgba(91,91,214,.12);display:flex;align-items:center;justify-content:center;
+    opacity:0;transform:translateY(-52px);pointer-events:none;will-change:transform,opacity}
+  .ptr svg{width:22px;height:22px;transition:transform .18s ease-out}
+  .ptr.is-ready{background:#169447;color:#fff}
+  .ptr.is-ready svg{transform:rotate(180deg)}
+  .ptr.is-back{transition:transform .25s cubic-bezier(.2,.8,.2,1),opacity .2s ease-out}
+  .ptr.is-loading svg{animation:ptrSpin .8s linear infinite}
+  @keyframes ptrSpin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.ptr.is-loading svg{animation:none}}
 </style>
 <link rel="stylesheet" href="anim-responsive.css?v=1">
 <link rel="stylesheet" href="ux-polish.css?v=1">
@@ -24851,13 +24866,65 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(lvCardFit).cat
 
 boot();
 
+/* Tirer pour actualiser : tout en haut de l’écran affiché, un geste vers le bas recharge l’app (voir .ptr).
+   Le geste n’est pas pris quand il commence dans un champ de saisie, dans une liste déjà défilée, ou quand
+   l’écran l’utilise déjà (glisser une activité du planning, un sticker : ces gestes appellent preventDefault). */
+(function pullToRefresh(){
+  const stage=document.querySelector('#app > .stage'); if(!stage)return;
+  const ptr=document.createElement('div'); ptr.className='ptr'; ptr.setAttribute('aria-hidden','true');
+  ptr.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>';
+  stage.appendChild(ptr);
+  const SEUIL=90, MAX=130;
+  let y0=0,x0=0,dy=0,on=false,busy=false;
+  const reset=()=>{ ptr.classList.add('is-back'); ptr.classList.remove('is-ready'); ptr.style.transform=''; ptr.style.opacity=''; on=false; dy=0;
+    setTimeout(()=>ptr.classList.remove('is-back'),260); };
+  const startOk=e=>{
+    if(busy||e.touches.length!==1)return false;
+    const t=e.target, scr=t&&t.closest&&t.closest('.screen.active'); if(!scr||scr.scrollTop>0)return false;
+    if(t.closest('input,textarea,select,[contenteditable="true"],.cm-editor'))return false;
+    for(let n=t;n&&n!==scr;n=n.parentElement)if(n.scrollTop>0)return false;
+    return true;
+  };
+  stage.addEventListener('touchstart',e=>{
+    on=startOk(e); if(!on)return;
+    y0=e.touches[0].clientY; x0=e.touches[0].clientX; dy=0;
+  },{passive:true});
+  stage.addEventListener('touchmove',e=>{
+    if(!on)return;
+    const t=e.touches[0], ddy=t.clientY-y0, ddx=t.clientX-x0;
+    if(e.defaultPrevented||(typeof dragging!=='undefined'&&dragging!==null)){ reset(); return; }
+    if(dy===0&&Math.abs(ddx)>Math.abs(ddy)){ on=false; return; }        // un geste de côté : pas pour nous
+    const scr=e.target.closest&&e.target.closest('.screen.active');
+    if(ddy<=0||(scr&&scr.scrollTop>0)){ if(dy>0)reset(); else on=false; return; }
+    dy=Math.min(ddy,MAX*1.6);
+    const k=Math.min(dy/SEUIL,1), y=Math.min(dy*0.55,MAX*0.8);
+    ptr.style.opacity=String(Math.min(1,k*1.2));
+    ptr.style.transform=`translateY(${y-30}px)`;
+    ptr.classList.toggle('is-ready',dy>=SEUIL);
+  },{passive:true});
+  const end=()=>{
+    if(!on)return;
+    if(dy<SEUIL){ reset(); return; }
+    busy=true; on=false;
+    ptr.classList.remove('is-ready'); ptr.classList.add('is-loading','is-back');
+    ptr.style.transform='translateY(24px)'; ptr.style.opacity='1';
+    /* Le service worker vérifie d’abord s’il y a une nouvelle version ; la page est rechargée de toute façon. */
+    const go=()=>location.reload();
+    const sw=navigator.serviceWorker;
+    if(sw&&sw.getRegistration){ Promise.race([sw.getRegistration().then(r=>r&&r.update()),new Promise(r=>setTimeout(r,1200))]).then(go,go); }
+    else setTimeout(go,150);
+  };
+  stage.addEventListener('touchend',end,{passive:true});
+  stage.addEventListener('touchcancel',()=>{ if(on)reset(); },{passive:true});
+})();
+
 /* Service worker : met l'app en cache pour qu'elle démarre sans réseau.
    Enregistré après boot pour ne pas retarder le premier affichage.
    Ignoré en file:// (protocole non supporté). */
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2069';
+  const SW_CACHE='requete-2026-10-12-ludique-v2070';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
