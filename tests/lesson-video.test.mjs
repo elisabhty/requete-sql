@@ -1152,17 +1152,17 @@ const COURSES = [
       "{at: atp('p4'), from: A.d1, kind: 'tap', need: 1,", "{at: atp('p5'), from: A.e1, kind: 'sort',", "{label: 'Non : chaque index a un coût', ok: true,",
       "['CREATE INDEX {inm|idx_commandes_numero}']", 'Prochaine leçon · Sécurité et droits']},
   /* Le dernier chapitre du projet, et le dernier cours de l’app : pas de leçon suivante (next: null). */
-  {id: 50, next: null, titre: 'Sécurité et droits', page: 'projet-droits.html', thumb: 'projet-droits-thumb.webp', duree: '5 min 27', notesAt: 274.45,
-    notes: /notes:\{t:319\.65,y:1173,card:\[64,292,1016,878\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 50, next: null, titre: 'Sécurité et droits', page: 'projet-droits.html', thumb: 'projet-droits-thumb.webp', duree: '5 min 18', notesAt: 265.6,
+    notes: /notes:\{t:310\.8,y:1173,card:\[64,292,1016,878\],to:\[940,255\]\}/, table: 'commandes',
     bubble: 'Un accès trop large&nbsp;:<br>à toi de donner<br>les bons accès !',
     chapters: ['Un accès trop large', 'Les accès nécessaires', 'Ce qu’elle peut consulter', 'Autoriser la consultation', 'Une modification précise', 'Les limites de son accès', 'Retirer les accès',
       'Le dernier réflexe', 'À retenir'],
     traps: ["const VCOLS = ['numero_commande', 'destinataire', 'adresse_livraison', 'statut'];",
       "const VUE = [['NB-10482', 'Léa Simon', '41 avenue Jaurès, Paris', 'en_preparation'], ['NB-10483', 'Nathan Petit', '5 rue Victor Hugo, Paris', 'en_preparation']];",
       // Les six moments : les deux accès nécessaires ; ce droit permet-il de supprimer ? ; la partie qui limite le droit à une colonne ;
-      // masquer le bouton suffirait-il ? ; la commande qui retire un droit ; une nouvelle personne rejoint l’équipe
+      // que va répondre la base ? ; la commande qui retire un droit ; une nouvelle personne rejoint l’équipe
       "{at: atp('p1'), from: A.a1, kind: 'tap', need: 2,", "{label: 'Non : chaque droit correspond à une action', ok: true,", "{at: atp('p3'), from: A.d0, kind: 'tap', need: 1,",
-      "{label: 'Non : les droits doivent aussi empêcher l’action', ok: true,", "{label: 'REVOKE SELECT ON commandes_expedition FROM lina;', ok: true,",
+      "{label: 'La modification est refusée', ok: true,", "{label: 'REVOKE SELECT ON commandes_expedition FROM lina;', ok: true,",
       "{label: 'Identifier ses besoins et lui accorder les droits correspondants', ok: true,", "['{gup|GRANT UPDATE} {gst|(statut)}']", 'Projet NutriBoost terminé !']},
 ];
 

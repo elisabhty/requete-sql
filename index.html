@@ -9302,17 +9302,17 @@ guide({ id:50, titre:"Sécurité et droits", résumé:"Contrôler les accès ave
      22 h 14) ; Lina ouvre la liste des expéditions ; les deux bulles d’Elisa (moment 2 : ce droit lui permet-il de supprimer une
      commande ?). 5 · Une modification précise : le SMS de Lina (« Je peux consulter les expéditions ! Le colis de Léa Simon est
      prêt… »), GRANT UPDATE (statut) ON commandes TO lina (moment 3 : la partie qui limite le droit à une colonne) ; le colis de Léa
-     Simon passe à « expédiée ». 6 · Les limites de son accès : UPDATE produits SET prix = 1 WHERE id = 2, refusé (moment 4 :
-     suffirait-il de masquer le bouton ?). 7 · Retirer les accès : un mois plus tard, le SMS de Camille Roux ; REVOKE … FROM lina
+     Simon passe à « expédiée ». 6 · Les limites de son accès : UPDATE produits SET prix = 1 WHERE id = 2, refusé (moment 4, avant
+     la réponse : que va répondre la base ?). 7 · Retirer les accès : un mois plus tard, le SMS de Camille Roux ; REVOKE … FROM lina
      (moment 5 : la commande qui retire un droit) ; les deux autorisations quittent sa fiche. 8 · Le dernier réflexe (moment 6 : une
      nouvelle personne rejoint l’équipe), puis la fin du projet. Six moments « À toi », comme aux chapitres du projet ; leçon seule :
      ni exercice ni quiz dans la vidéo, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments
      ratés. Elle remplace l’ancien cours texte Sécurité et droits (app_user et la table clients), le dernier cours texte de l’app : il
      est gardé pour les tests (tests/fixtures/guide-texte-droits.js). */
   leconSeule:true,
-  video:{anim:'assets/anim/projet-droits.html?app&embed',thumb:'assets/anim/projet-droits-thumb.webp',duree:'5 min 27',moments:6,seuil:4,
-    /* « Ajouter à mes notes » : apparaît à 5 min 19 (319,65 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:319.65,y:1173,card:[64,292,1016,878],to:[940,255]}},
+  video:{anim:'assets/anim/projet-droits.html?app&embed',thumb:'assets/anim/projet-droits-thumb.webp',duree:'5 min 18',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 5 min 10 (310,8 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:310.8,y:1173,card:[64,292,1016,878],to:[940,255]}},
   reflex:[
     {recap:[
       /* Les mots d’Elisa (sa trame, 26 octobre, 11 h 57, « Ce que tu retiens »), comme dans la vidéo. */
@@ -9710,7 +9710,7 @@ const QCM={
    {q:"Pour vider une case sans supprimer la ligne :",o:["DELETE colonne","UPDATE … SET colonne = NULL","DROP colonne"],b:1,e:"DELETE agit sur des lignes ; vider une valeur relève de l’UPDATE."}],
  50:[{q:"Quelle commande autorise Lina à consulter la vue <code>commandes_expedition</code> ?",o:["<code>REVOKE SELECT ON commandes_expedition FROM lina;</code>","<code>GRANT SELECT ON commandes_expedition TO lina;</code>","<code>GRANT ALL PRIVILEGES ON commandes_expedition TO lina;</code>"],b:1,e:"<code>GRANT</code> accorde un droit, et <code>SELECT</code> autorise la consultation : uniquement l’accès nécessaire. <code>ALL PRIVILEGES</code> donnerait aussi le droit de modifier et de supprimer."},
   {q:"Que permet <code>GRANT UPDATE (statut) ON commandes TO lina;</code> ?",o:["Modifier uniquement la colonne <code>statut</code> des commandes","Modifier toutes les colonnes des commandes","Consulter et supprimer les commandes"],b:0,e:"Le droit est limité à une colonne : Lina peut changer le statut d’une commande, sans pouvoir changer sa quantité ou son client."},
-  {q:"La mission de Lina est terminée. Que faire de ses accès ?",o:["Les garder, au cas où elle reviendrait","Masquer les boutons de son application","Les retirer avec <code>REVOKE</code>"],b:2,e:"<code>REVOKE</code> retire un droit accordé. Pense à revoir les accès lorsqu’une mission change ou se termine : masquer un bouton ne protège pas la base."}],
+  {q:"La mission de Lina est terminée. Que faire de ses accès ?",o:["Les garder, au cas où elle reviendrait","Lui accorder en plus le droit <code>DELETE</code>","Les retirer avec <code>REVOKE</code>"],b:2,e:"<code>REVOKE</code> retire un droit accordé. Pense à revoir les accès lorsqu’une mission change ou se termine : un compte garde uniquement les droits utiles à son travail."}],
  66:[{q:"<code>DELETE FROM commandes;</code> puis <code>DROP TABLE commandes;</code> — quelle différence ?",o:["Aucune, les deux vident la table","DELETE laisse la table vide, DROP la retire de la base","DROP est plus rapide mais fait la même chose"],b:1,e:"DELETE agit sur le contenu, DROP sur l’objet. Après DELETE la table répond encore ; après DROP, <code>no such table</code>."},
    {q:"À quoi sert <code>IF EXISTS</code> dans <code>DROP TABLE IF EXISTS paniers;</code> ?",o:["À ne rien faire si la table n’existe pas, sans erreur","À supprimer la table seulement si elle est vide","À demander confirmation avant de supprimer"],b:0,e:"Sans lui, supprimer une table absente échoue sur <code>no such table</code>. Avec lui, l’instruction passe dans les deux cas."},
    {q:"<code>TRUNCATE TABLE commandes;</code> dans cette application :",o:["Vide la table plus vite que DELETE","Renvoie une erreur de syntaxe : SQLite ne la connaît pas","Supprime la table comme DROP"],b:1,e:"PostgreSQL et MySQL la proposent, pas SQLite. Pour vider une table ici, on écrit <code>DELETE FROM commandes;</code>."}],

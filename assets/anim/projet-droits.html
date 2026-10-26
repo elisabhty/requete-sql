@@ -430,16 +430,15 @@ cap('d2', "Tu peux limiter un droit<br>à une colonne.", 3.4);
 cap('d3', "Clique de nouveau<br>sur « Exécuter ».", 3.6);   // l’app s’arrête sur le bouton (EXE2, plus bas)
 cap('d4', "Lina peut maintenant modifier<br>le statut des commandes, sans pouvoir<br>changer leur quantité ou leur client.", 5.0);
 cap('d5', "Le colis de Léa Simon<br>passe à « expédiée ».", 3.8);
-/* 6 · Vérifier les limites de son accès (Elisa) : Lina tente de modifier le prix d’un produit ; la modification est refusée ; ses deux bulles,
-   sa question (moment 4) et sa réponse, en deux bulles */
+/* 6 · Vérifier les limites de son accès (Elisa) : Lina tente de modifier le prix d’un produit ; avant la réponse de la base, la question
+   (moment 4 : que va répondre la base ?) ; la modification est refusée, ses deux bulles. L’ancienne question « Suffirait-il de masquer
+   le bouton ? » et ses deux bulles sont retirées (Elisa, 26 octobre, 22 h 46 : « masquer un bouton, rien à voir avec SQL »). */
 chap({label:'Les limites de son accès'});
 cap('e1', "Lina tente maintenant de modifier<br>le prix d’un produit.", 3.8);
 cap('e2', "Son application envoie la requête<br>avec le compte de Lina.", 4.2);
+toi('p4');
 cap('e3', "La base vérifie les droits<br>avant d’exécuter l’action.", 3.8);
 cap('e4', "Comme Lina n’a pas le droit<br>de modifier les produits,<br>le prix reste inchangé.", 4.6);
-toi('p4');
-cap('e5', "Masquer un bouton<br>ne protège pas la base.", 3.4);
-cap('e6', "Les droits doivent aussi empêcher<br>l’action si une requête<br>est envoyée autrement.", 4.6);
 /* 7 · Retirer les accès avec REVOKE (Elisa) : le calendrier avance d’un mois, le message de Camille Roux ; la commande qui retire un droit
    (moment 5), les deux REVOKE ; l’élève touche « Exécuter » ; la bulle d’Elisa, en deux bulles ; les deux autorisations quittent sa fiche */
 chap({label:'Retirer les accès'});
@@ -529,10 +528,10 @@ const PICKS = [
     {label: 'Non : chaque droit correspond à une action', ok: true, why: 'Chaque droit correspond à une action. Autoriser la consultation ne donne pas automatiquement le droit de modifier ou de supprimer.'},   // mots d’Elisa
     {label: 'Oui, si la commande est déjà expédiée', why: 'Le statut d’une commande ne change rien aux droits : <code>SELECT</code> autorise seulement la consultation.'}]},
   {at: atp('p3'), from: A.d0, kind: 'tap', need: 1, prompt: 'Touche la partie de la commande qui limite le droit à une colonne.'},
-  {at: atp('p4'), from: A.e1, kind: 'pick', text: true, prompt: 'Suffirait-il de masquer le bouton « Modifier le prix » dans l’application ?', options: [
-    {label: 'Oui : sans bouton, rien ne peut changer', why: 'Une requête peut être envoyée autrement qu’avec ce bouton : seuls les droits de son compte empêchent la modification.'},
-    {label: 'Oui, s’il est aussi désactivé', why: 'Désactiver un bouton ne change que l’écran : avec le droit, une requête envoyée autrement serait exécutée.'},
-    {label: 'Non : les droits doivent aussi empêcher l’action', ok: true, why: 'Masquer un bouton ne protège pas la base. Les droits doivent aussi empêcher l’action si une requête est envoyée autrement.'}]},   // mots d’Elisa
+  {at: atp('p4'), from: A.e1, kind: 'pick', text: true, prompt: 'Lina n’a aucun droit sur la table produits. Que va répondre la base ?', options: [
+    {label: 'Le prix passe à 1,00 €', why: 'Pour modifier un prix, il faut le droit <code>UPDATE</code> sur la <b>table produits</b>. Lina ne l’a pas : la base n’exécute pas la requête.'},
+    {label: 'La modification est refusée', ok: true, why: 'La base vérifie les droits avant d’exécuter l’action. Lina n’a pas le droit de modifier les produits : la requête est refusée et le prix ne change pas.'},
+    {label: 'Le prix change, mais seulement pour Lina', why: 'Une modification acceptée changerait le prix pour tout le monde. Ici, sans droit sur la <b>table produits</b>, elle est simplement refusée.'}]},
   {at: atp('p5'), from: A.f1, kind: 'pick', prompt: 'Quelle commande retire à Lina le droit de consulter la vue ?', options: [
     {label: 'REVOKE SELECT ON commandes_expedition FROM lina;', ok: true, why: '<code>REVOKE</code> retire un droit accordé, et le compte se place après <code>FROM</code>.'},
     {label: 'REVOKE SELECT ON commandes_expedition TO lina;', why: 'Avec <code>REVOKE</code>, le compte se place après <code>FROM</code> : <code>TO</code> s’écrit avec <code>GRANT</code>.'},
@@ -991,11 +990,6 @@ function build(){
   // comme Lina n’a pas le droit de modifier les produits, le prix reste inchangé
   pulse('#lpx', A.e4 + 0.7, 1, 'rgba(239,79,85,.3)');
   pulse('#pez', A.e4 + 2.4, 1, 'rgba(22,148,71,.16)'); cue(A.e4 + 2.4, 'tick', 0.5, 3);
-  // masquer un bouton ne protège pas la base : le bouton s’efface, la requête, elle, peut toujours partir
-  hide('#pea', A.e5 + 0.6, {y: 0, scale: 0.8}, 0.35); cue(A.e5 + 0.6, 'whoosh', 0.35, 1);
-  bump('#el', A.e5 + 1.8, 1.015); cue(A.e5 + 1.8, 'tick', 0.5, 2);
-  // les droits doivent aussi empêcher l’action si une requête est envoyée autrement : le refus reste
-  bump('#rs3', A.e6 + 1.4, 1.02); cue(A.e6 + 1.4, 'tick', 0.5, 4);
 
   /* ===== 7 · Retirer les accès ===== */
   // un mois plus tard, la mission de Lina se termine : le calendrier passe du lundi 26 octobre au jeudi 26 novembre
@@ -1139,7 +1133,7 @@ const IX = (() => {
       if (i === 0) return {text: 'Relis le message de Camille Roux : Lina consulte les expéditions et met à jour le statut des commandes.', keys: ['a0', 'a1']};
       if (i === 1) return {text: 'Le droit accordé est <code>SELECT</code> : il permet de consulter.'};
       if (i === 2) return {text: 'Cherche le nom de la colonne, entre parenthèses.', keys: ['q1']};
-      if (i === 3) return {text: 'Une requête peut-elle partir sans passer par ce bouton ?'};
+      if (i === 3) return {text: 'Relis la fiche de Lina : ses droits portent sur la vue et sur la colonne <code>statut</code>, pas sur les produits.'};
       if (i === 4) return {text: 'Retirer un droit s’écrit avec <code>REVOKE</code> ; regarde ensuite le mot placé devant <code>lina</code>.'};
       if (i === 5) return {text: 'Relis la mission de Lina : chacun de ses accès répondait à un besoin précis.'};
       return null;
@@ -1157,7 +1151,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 274.45, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 265.6, picks: PICKS, opens: OPENS,
   glyphs: '🗄️👥🛒⭐📦🧑‍🏫📅📝💳💬🔁🎁🏷️🖥️👤🔄🗑️🔍🔒🔓🧪📋🧩✏️🏁🚪🔐✅!…«»·−→',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>
