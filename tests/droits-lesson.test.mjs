@@ -68,7 +68,7 @@ function base() {
     ALTER TABLE ateliers ADD COLUMN places_restantes INTEGER;
     INSERT INTO ateliers VALUES (6, 'Cuisine saine', '2026-11-14', 3, 8, 1);
     INSERT INTO inscriptions (client_id, atelier_id, date_inscription) VALUES (7, 6, '2026-10-25'); UPDATE ateliers SET places_restantes = places_restantes - 1 WHERE id = 6;
-    ALTER TABLE produits ADD COLUMN selection_box INTEGER NOT NULL DEFAULT 0; UPDATE produits SET selection_box = 1 WHERE id IN (3, 6, 8);
+    ALTER TABLE produits ADD COLUMN selection_box INTEGER NOT NULL DEFAULT 0; UPDATE produits SET selection_box = 1 WHERE id IN (3, 5, 8);
     CREATE VIEW catalogue_box AS SELECT nom, categorie, prix FROM produits WHERE selection_box = 1;`);
   const st = db.prepare('INSERT INTO commandes (numero_commande, client_id, produit_id, quantite, date_commande, statut) VALUES (?, ?, ?, ?, ?, ?)');
   for (let k = 10001; k <= 10490; k++) st.run([`NB-${k}`, k === 10482 ? 7 : k === 10483 ? 4 : 1 + k % 8, k === 10482 ? 6 : 1 + k % 8, 1, '2026-10-26', 'en_preparation']);

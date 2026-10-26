@@ -1,9 +1,9 @@
 /* Projet NutriBoost, chapitre 15 (leçon 64 « CREATE VIEW ») : la vidéo interactive assets/anim/projet-vue.html, testée aussi dans lesson-video.test.mjs.
    La trame est celle d’Elisa (26 octobre, 10 h 52, « CREATE VIEW — La sélection surprise dévoilée trop tôt ») : NutriBoost prépare une box
    surprise ; une agence doit créer la page de présentation à partir du catalogue produits, sans recevoir ni les stocks ni les produits qui ne
-   font pas partie de la sélection. Camille, la responsable de la box, demande une vue dédiée : catalogue_box (le nom, la catégorie et le prix
-   des produits sélectionnés, ceux dont la colonne selection_box vaut 1). Puis le magnésium remplace la tisane : consultée à nouveau, la vue
-   montre la nouvelle sélection, sans être recréée. Ce que la vidéo montre est ici rejoué dans SQLite : c’est ce que la base répond vraiment.
+   font pas partie de la sélection. Camille Roux, la responsable des opérations, demande une vue dédiée : catalogue_box (le nom, la catégorie
+   et le prix des produits sélectionnés, ceux dont la colonne selection_box, ajoutée par Karim, le développeur, vaut 1). Puis, les coûts
+   recalculés, le magnésium remplace la protéine (Elisa, 13 h 39) : consultée à nouveau, la vue montre la nouvelle sélection, sans être recréée. Ce que la vidéo montre est ici rejoué dans SQLite : c’est ce que la base répond vraiment.
    Leçon seule : ni cours texte, ni exercice ; elle remplace l’ancien cours texte CREATE VIEW (gardé comme exemple de cours texte dans
    tests/fixtures/guide-texte-create-view.js). */
 import fs from 'node:fs';
@@ -38,8 +38,8 @@ const sql = q => Q.Q[q].map(([s]) => s).filter(s => !s.trim().startsWith('--')).
 /* ---------- La base de la vidéo ---------- */
 const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(root, 'vendor/sqljs', f)});
 /* La base NutriBoost telle que le chapitre 14 la laisse (douze tables ; l’inscription de Léa Simon à l’atelier Cuisine saine du 14 novembre,
-   confirmée : il n’y reste plus de place), puis la colonne selection_box que l’équipe de la box ajoute à la table produits : la Tisane Détox,
-   la Protéine Végétale et le Shaker Inox sont dans la box. */
+   confirmée : il n’y reste plus de place), puis la colonne selection_box que Karim, le développeur, ajoute à la table produits : la Tisane
+   Détox, la Protéine Végétale et le Shaker Inox sont dans la box. */
 function base() {
   const db = new SQL.Database();
   db.run(vm.runInContext('SCHEMA_SQL', ctx));
@@ -70,10 +70,10 @@ function base() {
     INSERT INTO inscriptions (client_id, atelier_id, date_inscription) VALUES (7, 6, '2026-10-25'); UPDATE ateliers SET places_restantes = places_restantes - 1 WHERE id = 6;`);
   return db;
 }
-/* La colonne de l’équipe de la box : 1 pour un produit de la box, 0 sinon. */
+/* La colonne de Karim, le développeur : 1 pour un produit de la box, 0 sinon. */
 const SELECTION = 'ALTER TABLE produits ADD COLUMN selection_box INTEGER NOT NULL DEFAULT 0; UPDATE produits SET selection_box = 1 WHERE id IN (5, 6, 8);';
-/* Le message de Camille : le magnésium remplace la tisane. */
-const CHANGEMENT = 'UPDATE produits SET selection_box = 0 WHERE id = 5; UPDATE produits SET selection_box = 1 WHERE id = 3;';
+/* Le message de Camille Roux : le magnésium remplace la protéine ; elle met à jour la sélection dans l’outil de gestion. */
+const CHANGEMENT = 'UPDATE produits SET selection_box = 0 WHERE id = 6; UPDATE produits SET selection_box = 1 WHERE id = 3;';
 const catalogue = () => { const db = base(); db.run(SELECTION); return db; };
 const tables = db => db.exec("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name")[0].values.map(r => r[0]);
 const count = (db, t) => db.exec(`SELECT COUNT(*) FROM ${t}`)[0].values[0][0];
@@ -97,11 +97,13 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
   assert.equal(l64.video.moments, 6); assert.equal(l64.video.seuil, 4);
   assert.equal(l64.video.anim, 'assets/anim/projet-vue.html?app&embed');
   const recap = l64.studio.reflex.extra;
-  assert.ok(recap.includes('Les trois idées à retenir') && ['👁️', '🔄', '🎁'].every(e => recap.includes(e)), 'les trois idées à retenir, comme à la fin de la vidéo');
+  assert.ok(recap.includes('Les trois idées à retenir') && ['📋', '🔄', '🎁'].every(e => recap.includes(e)), 'les trois idées à retenir, comme à la fin de la vidéo');
+  assert.ok(!recap.includes('👁️'), 'une vue : 📋, pas d’œil (Elisa, 13 h 39)');
   const quiz = vm.runInContext('QCM', ctx)[64];
   assert.equal(quiz.length, 3);
   assert.deepEqual([...quiz.map(q => q.b)], [1, 0, 2], 'la bonne réponse change de place d’une question à l’autre');
   assert.ok(quiz.every(q => q.o.length === 3 && q.e), 'trois réponses et une explication par question');
+  assert.ok(/remplace la protéine/.test(quiz[1].q), 'le changement de la vidéo : le magnésium remplace la protéine');
   assert.ok(/enregistre la requête/.test(quiz[0].o[1]) && /Consulter à nouveau la vue/.test(quiz[1].o[0]) && /nom, la catégorie et le prix/.test(quiz[2].o[2]),
     'les bonnes réponses : la requête enregistrée, consulter à nouveau la vue, le nom, la catégorie et le prix');
   assert.ok(!/produits_premium|produits_stock_faible|detail_commandes|clients_paris/.test(JSON.stringify(quiz)), 'plus rien de l’ancien cours texte');
@@ -109,9 +111,9 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 204.21);
-  assert.ok(page.includes('notesAt: 204.21,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 211.41);
+  assert.equal(val('NOTES'), 210.54);
+  assert.ok(page.includes('notesAt: 210.54,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 217.74);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   /* La trame d’Elisa : la box et le message de Camille, le catalogue, la vue créée puis consultée, le changement de sélection, les droits ;
@@ -155,8 +157,15 @@ test('les phrases d’Elisa (26 octobre, 10 h 52) : sa trame, une phrase par bul
     'Clique sur le bouton « Créer la vue ».');
   /* La nouvelle sélection, puis ses trois bulles */
   suite('Pas besoin de recréer la vue !', 'Elle conserve la requête, pas une copie des résultats.', 'À chaque consultation, elle utilise les données actuelles.');
-  /* Son point à prévoir : les droits d’accès */
-  suite('Un dernier point à prévoir : les droits d’accès.', 'Ils se configurent séparément, pour que l’agence consulte la vue sans accéder au catalogue complet.');
+  /* Les droits d’accès, à découvrir dans une prochaine leçon (Elisa, 13 h 39), puis sa note de la trame */
+  suite('Encore un point à découvrir dans une prochaine leçon : les droits d’accès !', 'Qui peut consulter ou modifier les données ?',
+    'Ces droits se configurent séparément, pour que l’agence consulte la vue sans accéder au catalogue complet.');
+  assert.ok(page.includes('<span class="emo">🔐</span>Une prochaine leçon · Sécurité et droits</span>'), 'la leçon qui les présente');
+  /* La colonne selection_box : Karim, le développeur, l’a ajoutée ; Camille Roux met à jour la sélection dans l’outil de gestion (13 h 39) */
+  suite('Karim, le développeur, y a ajouté la colonne selection_box.');
+  suite('Camille Roux met à jour la sélection dans l’outil de gestion.', 'La protéine passe à 0, et le magnésium à 1.');
+  assert.ok(!/équipe de la box/.test(JSON.stringify([val('CAPTIONS'), val('PICKS'), val('MAILS'), val('ITEMS')])), 'plus d’« équipe de la box » à l’écran');
+  assert.ok(!/👁️|👀/.test(page), 'une vue : 📋, pas d’œil');
   assert.ok(lus.includes('Les stocks et les produits non sélectionnés n’y figurent pas.'), 'le résultat de la vue : ni les stocks, ni les produits non sélectionnés');
   assert.ok(page.includes('Une box surprise à préparer&nbsp;:<br>à toi de ne montrer<br>que la sélection !'), 'la bulle de la mascotte');
   assert.ok(page.includes('Elisa, 26 octobre, 10 h 52'), 'la page garde la trace de la trame d’Elisa');
@@ -169,9 +178,13 @@ test('les messages : Camille écrit par SMS, avec les mots d’Elisa ; l’app s
     [['Camille', 'Roux', 'CR'], 'équipe', {sms: true, hello: null, bye: null}]]);
   assert.deepEqual(mails[0][4], ['L’agence prépare la page de notre prochaine box.', 'Elle a besoin du nom, de la catégorie et du prix des produits sélectionnés.',
     'La sélection peut encore changer, donc évitons les exports à refaire.', 'Peux-tu préparer une vue dédiée ?']);
-  assert.deepEqual(mails[1][4], ['Petit changement : on remplace finalement la tisane par le magnésium.', 'Il faut recréer la vue ?'], 'le second commence directement, sans formule');
+  /* Elisa, 13 h 39 : son texte, mot pour mot, et sa question */
+  assert.deepEqual(mails[1][4], ['Petit changement : après avoir recalculé les coûts, la hausse du prix des matières premières rend la box trop chère à produire.',
+    'On va donc remplacer la protéine par le magnésium pour conserver le prix de vente prévu.',
+    'Est-ce qu’il faut recréer la vue pour prendre en compte ce changement ?'], 'le second commence directement, sans formule');
+  assert.ok(mails.every(m => m[5] === 'Camille, responsable des opérations NutriBoost'), 'Camille Roux, responsable des opérations');
   assert.equal(vm.runInContext('mailRows(0)', D), 5, 'cinq bulles : « Salut ! » et ses quatre phrases');
-  assert.equal(vm.runInContext('mailRows(1)', D), 2, 'deux bulles : ses deux phrases');
+  assert.equal(vm.runInContext('mailRows(1)', D), 3, 'trois bulles : ses trois phrases');
   assert.deepEqual(opens.map(o => o.sel), ['#ml1', '#bcre', '#bexe', '#ml2', '#bexe']);
   assert.deepEqual(opens.map(o => o.label), ['Ouvrir le message de Camille Roux', 'Créer la vue', 'Exécuter', 'Ouvrir le message de Camille Roux', 'Exécuter']);
   assert.ok(opens[0].at < picks[0].at && opens[1].at > picks[1].at && opens[1].at < picks[2].at && opens[2].at > picks[2].at && opens[3].at < picks[3].at
@@ -202,8 +215,8 @@ test('la base du chapitre 14 : douze tables ; le catalogue, avec la colonne sele
   assert.deepEqual(P.map(p => [p[0], p[1], p[2], +p[3], p[4], p[5]]), lignes(db, 'SELECT id, nom, categorie, prix, stock, selection_box FROM produits ORDER BY id'));
   assert.ok(P.every(p => p[3] === prix(+p[3])), 'les prix s’écrivent avec deux décimales');
   db.run(CHANGEMENT);
-  assert.deepEqual(P.map(p => [p[0], p[6]]), lignes(db, 'SELECT id, selection_box FROM produits ORDER BY id'), 'après le message de Camille : le magnésium à 1, la tisane à 0');
-  assert.deepEqual(val('BOX'), [5, 6, 8]); assert.deepEqual(val('BOX2'), [3, 6, 8]);
+  assert.deepEqual(P.map(p => [p[0], p[6]]), lignes(db, 'SELECT id, selection_box FROM produits ORDER BY id'), 'après le message de Camille : le magnésium à 1, la protéine à 0');
+  assert.deepEqual(val('BOX'), [5, 6, 8]); assert.deepEqual(val('BOX2'), [3, 5, 8]);
 });
 
 test('la vue, rejouée dans SQLite : CREATE VIEW enregistre la requête ; consultée, elle présente la sélection, sans stock', () => {
@@ -219,12 +232,16 @@ test('la vue, rejouée dans SQLite : CREATE VIEW enregistre la requête ; consul
   const r = db.exec(sql('Q_SEL'))[0];
   assert.deepEqual(r.columns, ['nom', 'categorie', 'prix'], 'ni le stock, ni selection_box');
   assert.deepEqual(r.values.map(v => [v[0], v[1], prix(v[2])]), [['Tisane Détox', 'Boisson', '12.50'], ['Protéine Végétale', 'Nutrition', '34.90'], ['Shaker Inox', 'Accessoire', '15.00']]);
-  /* La vidéo montre ce résultat : trois lignes, la première change avec le message de Camille. */
-  assert.ok(page.includes("const [t, m] = [PRODUITS[4], PRODUITS[2]];") && page.includes("line('vr1', cell(0, sw('vn1', [[t[1]], [m[1]]]))") && page.includes('[PRODUITS[5], PRODUITS[7]].map('),
-    'le résultat de la vue : la tisane (puis le magnésium), la protéine, le shaker');
+  /* La vidéo montre ce résultat : trois lignes, celles des produits de BOX, dans l’ordre de la table ; une ligne qui change avec le message de
+     Camille empile ses deux valeurs (avant, après). */
+  const P = val('PRODUITS'), rang = ids => ids.map(id => P.find(p => p[0] === id)).map(p => [p[1], p[2], p[3]]);
+  assert.deepEqual(rang(val('BOX')), r.values.map(v => [v[0], v[1], prix(v[2])]), 'la vidéo : les lignes de la vue, dans l’ordre de SQLite');
+  assert.ok(page.includes('const avant = BOX.map(id => PRODUITS.find(p => p[0] === id)), apres = BOX2.map(id => PRODUITS.find(p => p[0] === id));')
+    && page.includes("cell(0, sw('vn' + k, [[p[1]], [n[1]]]))"), 'le résultat de la vue : la tisane, la protéine, le shaker ; puis le magnésium, la tisane, le shaker');
   assert.ok(page.includes("head([['c0', 'nom'], ['c1', 'categorie'], ['c2', 'prix']])"), 'les colonnes de la vue');
   for (const t of ["tapButton('bcre', CRE, '#0E6F8A');", "mark('#vwc', CRE + 0.55);", "tapButton('bexe', EXE1, '#4B30CC');", "keep(BOX, A.d5 + 0.5);", "tapButton('bexe', EXE2, '#4B30CC');",
-    "swap('#sb5 .a0', '#sb5 .a1', A.e1 + 1.5);", "swap('#sb3 .a0', '#sb3 .a1', A.e1 + 2.3);", "keep(BOX2, A.e4 + 1.6);"])
+    "swap('#sb6 .a0', '#sb6 .a1', A.e1 + 1.5);", "swap('#sb3 .a0', '#sb3 .a1', A.e1 + 2.3);", "keep(BOX2, A.e4 + 1.6);",
+    "'#vn1 .a1', '#vc1 .a1', '#vp1 .a1', '#vn2 .a1', '#vc2 .a1', '#vp2 .a1'"])
     assert.ok(page.includes(t), `la page montre : ${t}`);
 });
 
@@ -232,13 +249,16 @@ test('le changement de Camille : sans recréer la vue, sa consultation présente
   const db = catalogue();
   db.run(sql('Q_VIEW'));
   db.run(CHANGEMENT);
-  /* Pas besoin de recréer la vue : la même requête, sur les données actuelles. Le magnésium (produit 3) vient en tête. */
-  assert.deepEqual(lignes(db, sql('Q_SEL')).map(v => [v[0], v[1], prix(v[2])]), [['Magnésium', 'Bien-être', '19.90'], ['Protéine Végétale', 'Nutrition', '34.90'], ['Shaker Inox', 'Accessoire', '15.00']]);
+  /* Pas besoin de recréer la vue : la même requête, sur les données actuelles. Le magnésium (produit 3) vient en tête ; plus de protéine. */
+  const apres = lignes(db, sql('Q_SEL')).map(v => [v[0], v[1], prix(v[2])]);
+  assert.deepEqual(apres, [['Magnésium', 'Bien-être', '19.90'], ['Tisane Détox', 'Boisson', '12.50'], ['Shaker Inox', 'Accessoire', '15.00']]);
+  const P = val('PRODUITS');
+  assert.deepEqual(val('BOX2').map(id => P.find(p => p[0] === id)).map(p => [p[1], p[2], p[3]]), apres, 'la vidéo montre ce résultat, ligne par ligne');
   /* Une copie, elle, ne suit pas : CREATE TABLE … AS SELECT garde la sélection de sa création. */
   const db2 = catalogue();
   db2.run('CREATE TABLE copie_box AS SELECT nom, categorie, prix FROM produits WHERE selection_box = 1;');
   db2.run(CHANGEMENT);
-  assert.deepEqual(lignes(db2, 'SELECT nom FROM copie_box'), [['Tisane Détox'], ['Protéine Végétale'], ['Shaker Inox']], 'la copie garde la tisane');
+  assert.deepEqual(lignes(db2, 'SELECT nom FROM copie_box'), [['Tisane Détox'], ['Protéine Végétale'], ['Shaker Inox']], 'la copie garde la protéine');
   assert.equal(val('PICKS')[3].options[2].label, 'Non, il suffit de consulter à nouveau la vue');
 });
 
@@ -252,7 +272,7 @@ test('moments 1 et 5 : les produits cochés ; la valeur qui fait entrer le magn�
   assert.ok(/if \(i === 4\) return \{text: '[^']+', keys: \['c4'\]\};/.test(page), 'indice du moment 5 : la case selection_box ressort');
   assert.ok(page.includes("(id === 3 ? '<i class=\"hc\" id=\"hc3\"></i>' : '')") && page.includes("const M5_ANS = ['#hc3'];"), 'la case selection_box du magnésium s’entoure');
   db.run(sql('Q_VIEW'));
-  db.run('UPDATE produits SET selection_box = 0 WHERE id = 5;');
+  db.run('UPDATE produits SET selection_box = 0 WHERE id = 6;');
   assert.ok(!lignes(db, sql('Q_SEL')).some(r => r[0] === 'Magnésium'), 'sans son 1, pas de magnésium dans la vue');
   db.run('UPDATE produits SET selection_box = 1 WHERE id = 3;');
   assert.ok(lignes(db, sql('Q_SEL')).some(r => r[0] === 'Magnésium'), 'avec son 1, il y entre');
@@ -265,7 +285,7 @@ test('moment 6 : chaque information est rangée selon ce que la vue présente, c
   assert.deepEqual(val('PICKS')[5].options.map(o => o.label), ITEMS.map(x => x[0]));
   for (const x of ITEMS) assert.ok(strip(x[2]).length > 40, `${x[0]} : une correction qui explique le choix`);
   /* Chaque information : [produit, colonne], après le changement de Camille. */
-  const QUOI = [[8, 'prix'], [6, 'stock'], [3, 'categorie'], [7, 'prix'], [6, 'nom'], [5, 'nom']];
+  const QUOI = [[8, 'prix'], [5, 'stock'], [3, 'categorie'], [7, 'prix'], [5, 'nom'], [6, 'nom']];
   const db = catalogue(); db.run(sql('Q_VIEW')); db.run(CHANGEMENT);
   const vue = db.exec(sql('Q_SEL'))[0], noms = vue.values.map(v => v[0]);
   ITEMS.forEach(([label, k], i) => {
@@ -297,12 +317,12 @@ test('le récapitulatif, dans la vidéo comme dans la fiche de la leçon : trois
     const [phrase, detail] = m[2].split('<span class="rs">');
     return [m[1], strip(phrase), strip(detail.replace(/<\/span>$/, ''))];
   });
-  const RECAP = [['👁️', 'Une vue enregistre une requête sous un nom.', 'Elle se consulte comme une table, avec SELECT.'],
+  const RECAP = [['📋', 'Une vue enregistre une requête sous un nom.', 'Elle se consulte comme une table, avec SELECT.'],
     ['🔄', 'Elle conserve la requête, pas une copie des résultats.', 'À chaque consultation, elle utilise les données actuelles.'],
     ['🎁', 'Elle présente uniquement les colonnes et les lignes utiles.', 'Avec des droits configurés séparément, l’agence la consulte sans accéder au catalogue complet.']];
   assert.deepEqual(rows, RECAP, 'la vidéo : les trois idées');
   const fiche = html.slice(html.indexOf('guide({ id:64,'), html.indexOf('guide({ id:57,'));
-  const idees = [...fiche.matchAll(/\["(👁️|🔄|🎁)","([^"]*)","([^"]*)"(?:,"([^"]*)")?\]/g)].map(m => [m[1], strip(m[2]), strip(m[3])]);
+  const idees = [...fiche.matchAll(/\["(📋|🔄|🎁)","([^"]*)","([^"]*)"(?:,"([^"]*)")?\]/g)].map(m => [m[1], strip(m[2]), strip(m[3])]);
   assert.deepEqual(idees, RECAP, 'la fiche de la leçon dit la même chose que la vidéo');
 });
 

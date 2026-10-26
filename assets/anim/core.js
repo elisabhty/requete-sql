@@ -350,8 +350,9 @@ function smsFit(){
 }
 /* Un SMS arrive : la bannière tombe (icône Messages, nom, début du message). À T, l’élève la touche (l’app s’arrête là, moment
    OPENS ; hors de l’app, la page montre un doigt) : elle s’enfonce, la conversation s’ouvre à sa place, « … » (il écrit), puis les
-   bulles arrivent une à une, à la cadence des lignes d’un mail. L’image reste le temps de lire la demande. Renvoie l’instant de fin.
-   fast : cadence serrée (conversation compacte), là où la légende suivante revient tout de suite. */
+   bulles arrivent une à une. Chaque bulle reste seule le temps de la lire avant la suivante (Elisa, 26 octobre, 13 h 39 : « les messages
+   défilent beaucoup trop vite, tout d’un coup ») : le temps de lecture de la demande, le même qu’avant, est réparti entre ses bulles.
+   Renvoie l’instant de fin. fast : cadence serrée (conversation compacte), là où la légende suivante revient tout de suite. */
 function smsIn(n, t, T, fast = false){
   const m = '#ml' + n, bubbles = $$(m + ' .sms-m'), dots = $(m + ' .sms-t');
   const open = fast ? 0.4 : 0.5, first = T + (fast ? 0.5 : 0.62), step = fast ? 0.25 : 0.28;   // la première bulle prend la place de « … »
@@ -370,15 +371,27 @@ function smsIn(n, t, T, fast = false){
   tl.to($$('i', dots), {y: -9, duration: 0.12, stagger: 0.06, yoyo: true, repeat: 1, ease: 'sine.inOut', data: 'amb'}, first - 0.18);
   tl.set(dots, {autoAlpha: 0}, first);
   gsap.set(bubbles, {autoAlpha: 0, scale: 0.6, y: 14, transformOrigin: '0% 100%'});
+  const pop = +(step - 0.03).toFixed(2);   // une bulle a fini d’apparaître avant la suivante : la pause de lecture tombe entre les deux
   bubbles.forEach((b, k) => {
     const at = first + k * step;
-    tl.to(b, {autoAlpha: 1, scale: 1, y: 0, duration: 0.32, ease: 'back.out(1.8)'}, at);
+    tl.to(b, {autoAlpha: 1, scale: 1, y: 0, duration: pop, ease: 'back.out(1.8)'}, at);
     cue(at, 'tick', 0.4, k + 2);
   });
   const end = first + (bubbles.length - 1) * step + 0.35;
-  // le temps de lire la demande : toutes les bulles après « Bonjour, » (s’il y est), sans « Merci ! » (un message qui finit sur son propre merci le compte)
-  const said = bubbles.slice(+!$(m).dataset.hi, /^Merci\s*!$/.test(bubbles[bubbles.length - 1].textContent.trim()) ? -1 : undefined);
-  hold(end + 0.05, Math.ceil(readTime(said.map(b => b.textContent).join(' ')) * 20) / 20);
+  /* Le temps de lire la demande : toutes les bulles après « Bonjour, » (s’il y est), sans « Merci ! » (un message qui finit sur son propre merci
+     le compte). Chaque bulle en reçoit sa part, juste après être apparue, selon sa longueur ; la part de la dernière vient après la toute
+     dernière bulle (« Merci ! » compris). Les parts sont arrondies au centième sans changer leur somme. */
+  const hi = +!$(m).dataset.hi, merci = /^Merci\s*!$/.test(bubbles[bubbles.length - 1].textContent.trim());
+  const said = bubbles.slice(hi, merci ? -1 : undefined);
+  const total = Math.ceil(readTime(said.map(b => b.textContent).join(' ')) * 20) / 20;
+  const lens = said.map(b => plain(b.textContent).length), sum = lens.reduce((x, y) => x + y, 0) || 1;
+  let lu = 0, done = 0;
+  said.forEach((b, k) => {
+    lu += lens[k];
+    const upto = k === said.length - 1 ? total : +(total * lu / sum).toFixed(2), d = +(upto - done).toFixed(2);
+    done = upto;
+    if (d > 0) hold(k === said.length - 1 ? end + 0.05 : first + (hi + k) * step + pop + 0.005, d);
+  });
   return end;
 }
 /* ---------- Habillage : chapitres et légendes ---------- */
