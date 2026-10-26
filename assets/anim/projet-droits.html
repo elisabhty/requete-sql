@@ -156,9 +156,6 @@
 .nd.no{background:var(--line-2);color:var(--ink-3)}
 .tg{flex:none;position:relative;width:84px;height:48px;border-radius:999px;background:#D6D1E8}
 .tg>i{position:absolute;left:5px;top:5px;width:38px;height:38px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(34,28,70,.28)}
-/* Moment 1 : un accès nécessaire touché, son interrupteur passe de l’autre côté, en vert (Elisa, 26 octobre, 21 h 31) */
-.tg.tgon{background:#169447!important;transition:background-color .25s ease-out}
-.tg.tgon>i{transform:translateX(36px)!important;transition:transform .32s cubic-bezier(.34,1.9,.64,1)}
 .fcf{display:flex;align-items:center;height:66px;margin:14px 22px 0;padding:0 24px;border-radius:20px;background:var(--line-2);font-size:27px;font-weight:800;color:var(--ink-2);white-space:nowrap;opacity:0;visibility:hidden}
 .fcf .sw>i{display:flex;align-items:center;gap:12px}
 
@@ -396,8 +393,16 @@ cap('a4', "Le principe est simple : donner<br>uniquement les accès nécessaires
 /* 3 · Préparer les informations qu’elle peut consulter (Elisa) : la vue commandes_expedition, ses deux bulles, puis la précision de la narration */
 chap({label:'Ce qu’elle peut consulter'});
 cap('b1', "Tu réutilises ici la notion de vue,<br>découverte au chapitre 15.", 3.8);
+/* Ce qu’est une vue, et à quoi elle sert ici (Elisa, 26 octobre, 22 h 30 : « bien expliquer ce que c’est la vue, à quoi elle sert,
+   je ne me rappelle plus ») : une requête enregistrée sous un nom ; les deux tables où sont les informations, avec ce que Lina
+   n’a pas à voir ; la vue ne lui montre que le nécessaire, sans lui ouvrir les tables ; elle ne copie rien. */
+cap('v1', "Une vue est une requête enregistrée<br>sous un nom.", 3.6);
+cap('v2', "Les informations utiles à Lina sont<br>dans la <b>table commandes</b><br>et la <b>table clients</b>.", 4.4);
+cap('v3', "Ces tables contiennent aussi<br>des données qu’elle n’a pas à voir,<br>comme l’e-mail ou le téléphone.", 4.6);
+cap('v4', "Une vue lui montre uniquement<br>le nécessaire, sans lui ouvrir<br>les tables entières.", 4.4);
 cap('b2', "Une vue <code>commandes_expedition</code><br>a été préparée.", 3.6);
 cap('b3', "Elle contient uniquement<br>ces quatre colonnes.", 3.6);
+cap('v5', "La vue ne copie pas les données :<br>elle les lit dans les tables<br>à chaque consultation.", 4.6);
 cap('b4', "Lina a besoin du destinataire<br>et de l’adresse pour préparer<br>les colis.", 4.2);
 cap('b5', "Cette vue rassemble les informations<br>utiles à son travail.", 3.8);
 cap('b6', "Son compte est déjà créé<br>et ne dispose, pour le moment,<br>d’aucun accès aux tables.", 4.6);
@@ -507,6 +512,12 @@ const WHY3 = {
 };
 /* Les sept colonnes de la table commandes : avec UPDATE (statut), Lina ne modifie que la dernière. */
 const CMCOLS = ['id', 'numero_commande', 'client_id', 'produit_id', 'quantite', 'date_commande', 'statut'];
+/* Les deux tables où la vue commandes_expedition lit ses informations, toutes leurs colonnes ; celles que la vue garde ;
+   les données des clients que Lina n’a pas à voir */
+const CLCOLS = ['id', 'prenom', 'nom', 'adresse', 'ville', 'age', 'email', 'telephone', 'date_inscription'];
+const SRC = [['sxc', 'k-cm', '🛒', 'commandes', CMCOLS], ['sxk', 'k-cl', '👥', 'clients', CLCOLS]];
+const GARDE = ['#sxc-numero_commande', '#sxc-statut', '#sxk-prenom', '#sxk-nom', '#sxk-adresse', '#sxk-ville'];
+const PRIVE = ['#sxk-email', '#sxk-telephone', '#sxk-age'];
 
 /* Les six moments « À toi » : l’image s’arrête, l’élève touche ou choisit ; la page montre aussitôt le résultat.
    from : début du passage qui amène chaque moment, d’où repartent « ↺ Revoir » et « Rejouer ». */
@@ -615,7 +626,10 @@ function dom(){
       `<b class="nd ${need ? 'ok' : 'no'}" id="nd${q}">${need ? '✓ nécessaire' : '✕ pas nécessaire'}</b><i class="tg" id="tg${q}"><i></i></i></div>`).join('') +
     `<div class="fcf" id="fcf">${sw('fcn', [['<span class="emo">🔒</span>Aucun accès aux tables pour le moment'], ['<span class="emo">🔓</span>1 droit accordé'],
       ['<span class="emo">🔓</span>2 droits accordés'], ['<span class="emo">🔒</span>Plus aucun accès aux tables']])}</div></div>`;
-  // le rappel du chapitre 15, puis la vue commandes_expedition et ses quatre colonnes
+  // le rappel du chapitre 15 ; les deux tables où sont les informations (leurs colonnes) ; puis la vue commandes_expedition et ses quatre colonnes
+  w += SRC.map(([id, kc, emo, name, cols]) => `<div class="abs card cc ${kc}" id="${id}"><div class="cch"><span class="emo">${emo}</span><span>La <b>table ${name}</b></span></div><div class="ccs">` +
+    cols.map(c => `<span id="${id}-${c}">${c}</span>`).join('') + '</div></div>').join('');
+  w += '<div class="abs vr" id="vsrc"><span><span class="emo">🔄</span>Relue dans les tables à chaque consultation</span></div>';
   w += '<div class="abs vr" id="vr" style="top:300px"><span><span class="emo">📋</span>Chapitre 15 · une vue enregistre une requête</span></div>';
   w += tbl('vx', 'k-vw', '📋', 'commandes_expedition', '--g:212px 180px 1fr 226px', head(VCOLS.map((c, j) => [`c${j}`, c])),
     VUE.map(([nb, who, adr, s], q) => line('vx' + q, cell(0, `<i class="v">${nb}</i>`) + cell(1, `<i class="v u">${who}</i>`) + cell(2, `<i class="v ad">${adr}</i>`) + cell(3, statut('', s)))).join('') +
@@ -684,6 +698,8 @@ function layout(){
   // la commande partie par partie, sous la commande ; l’application de Lina et les colonnes de la table commandes, sous la réponse
   $('#gp').style.top = (bottom('#eu') + 30) + 'px';
   FC.vue = bottom('#vx') + 30;
+  $('#sxc').style.top = '236px'; $('#sxk').style.top = (bottom('#sxc') + 24) + 'px';
+  $('#vsrc').style.top = (bottom('#vx') + 34) + 'px';
   FC.grant = bottom('#rs1') + 30;
   FC.revoke = bottom('#rs4') + 30;
   ['#ap', '#cc'].forEach(e => { $(e).style.top = FC.grant + 'px'; });
@@ -798,7 +814,7 @@ function build(){
   gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
   hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
   layout();
-  gsap.set(['.sq', '#bc', '#gs', '#gsu', '.act .wr', '#ph', '#fc', '#fcf', '.fcd', '.nd', '#vr', '#vx', '.bt', '.srv', '#ap', '#apb', '#gp', '.gpl', '#cc', '#pe', '#pin',
+  gsap.set(['.sq', '#bc', '#gs', '#gsu', '.act .wr', '#ph', '#fc', '#fcf', '.fcd', '.nd', '#vr', '#vx', '#sxc', '#sxk', '#vsrc', '.bt', '.srv', '#ap', '#apb', '#gp', '.gpl', '#cc', '#pe', '#pin',
     '#cal', '#calt', '#tm', '#tq2w', '#fin', '#fmas', '#tapf', '#tapw'], {autoAlpha: 0});
   gsap.set(['#fcn > i:not(.a0)', '#ast > i:not(.a0)', '#calm > i:not(.a0)', '#calw > i:not(.a0)'], {autoAlpha: 0});
 
@@ -843,7 +859,6 @@ function build(){
   ACCES.forEach(([k], q) => { const t = A.a2 + 0.4 + q * 0.4; show('#f' + k, t, {y: 0, x: -30}, 0.4); cue(t, 'tick', 0.45, q + 1); });
   // À toi : les deux accès nécessaires (réponse : « ✓ nécessaire »)
   tl.set(M1_ANS, {autoAlpha: 1}, set2(PICKS[0].at));
-  tl.set(['#tg0', '#tg1'], {backgroundColor: '#169447'}, set2(PICKS[0].at)); tl.set(['#tg0 > i', '#tg1 > i'], {x: 36}, set2(PICKS[0].at));
   // les droits déterminent ce qu’un utilisateur peut faire dans la base : les deux autres accès sont écartés
   [2, 3].forEach((q, i) => { const t = A.a3 + 0.9 + i * 0.5; mark('#nd' + q, t); tl.to(`#fa${q} .fl`, {opacity: 0.42, duration: 0.3}, t); tl.to(`#fa${q} > .emo`, {opacity: 0.42, duration: 0.3}, t); });
   // le principe : uniquement les accès nécessaires à sa mission ; les deux accès gardés ressortent
@@ -852,18 +867,30 @@ function build(){
   /* ===== 3 · Ce qu’elle peut consulter ===== */
   // la notion de vue, découverte au chapitre 15 : son rappel, puis la vue commandes_expedition
   hide('#fc', A.b1 - 0.05, {y: -30}, 0.35);
-  // la fiche cachée, ses interrupteurs s’éteignent : elle reviendra sans aucun accès accordé
-  tl.set(['#tg0', '#tg1'], {backgroundColor: '#D6D1E8'}, A.b1 + 0.35); tl.set(['#tg0 > i', '#tg1 > i'], {x: 0}, A.b1 + 0.35);
   show('#vr', A.b1 + 0.4, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.b1 + 0.4, 'pop', 0.6, 2);
-  hide('#vr', A.b2 - 0.05, {y: -30}, 0.3);
+  // une vue est une requête enregistrée sous un nom
+  bump('#vr', A.v1 + 1.0, 1.05); cue(A.v1 + 1.0, 'pop', 0.5, 3);
+  hide('#vr', A.v2 - 0.05, {y: -30}, 0.3);
+  // les informations utiles à Lina sont dans deux tables : commandes, puis clients, avec toutes leurs colonnes
+  show('#sxc', A.v2 + 0.3, {y: 40}, 0.5); cue(A.v2 + 0.3, 'whoosh', 0.5, 1);
+  show('#sxk', A.v2 + 1.1, {y: 40}, 0.5); cue(A.v2 + 1.1, 'whoosh', 0.5, 2);
+  // des données qu’elle n’a pas à voir : l’e-mail, le téléphone, l’âge rougissent, l’un après l’autre
+  PRIVE.forEach((c, q) => { const t = A.v3 + 2.0 + q * 0.5; tl.to(c, {backgroundColor: '#FDECEC', color: '#B42318', boxShadow: 'inset 0 0 0 3px #F5B5B0', duration: 0.3}, t); cue(t, 'tick', 0.45, q + 1); });
+  // la vue ne lui montre que le nécessaire : ces colonnes passent au vert, les autres s’effacent
+  GARDE.forEach((c, q) => { const t = A.v4 + 1.0 + q * 0.22; tl.to(c, {backgroundColor: '#E7F7EE', color: '#1B7A45', boxShadow: 'inset 0 0 0 3px #A7E3C0', duration: 0.3}, t); cue(t, 'tick', 0.4, q + 1); });
+  tl.to([...SRC.flatMap(([id, , , , cols]) => cols.map(c => `#${id}-${c}`)).filter(c => !GARDE.includes(c))], {opacity: 0.3, duration: 0.4}, A.v4 + 2.6);
+  hide(['#sxc', '#sxk'], A.b2 - 0.05, {y: -30}, 0.35);
   show('#vx', A.b2 + 0.3, {y: 40}, 0.5); cue(A.b2 + 0.3, 'whoosh', 0.5, 1);
   // elle contient uniquement ces quatre colonnes : leurs noms, l’un après l’autre
   VCOLS.forEach((c, j) => { const t = A.b3 + 0.8 + j * 0.45; pulse(`#vx .hd .c${j}`, t, 1, GLOW); cue(t, 'tick', 0.45, j + 1); });
+  // la vue ne copie pas les données : elle les relit dans les tables à chaque consultation
+  show('#vsrc', A.v5 + 0.6, {y: 24, scale: 0.94}, 0.45, 'back.out(1.6)'); cue(A.v5 + 0.6, 'pop', 0.55, 2);
   // Lina a besoin du destinataire et de l’adresse : leurs deux colonnes
   pulse('#vx .c1', A.b4 + 0.9, 1, 'rgba(8,145,178,.14)'); cue(A.b4 + 0.9, 'tick', 0.5, 2);
   pulse('#vx .c2', A.b4 + 2.0, 1, 'rgba(8,145,178,.14)'); cue(A.b4 + 2.0, 'tick', 0.5, 4);
   // cette vue rassemble les informations utiles à son travail
   bump('#vx', A.b5 + 1.2, 1.015); cue(A.b5 + 1.2, 'pop', 0.5, 3);
+  hide('#vsrc', A.b6 - 0.05, {y: -20}, 0.3);
   // son compte est déjà créé et ne dispose d’aucun accès aux tables : la fiche revient sous la vue, tous ses interrupteurs éteints
   reShow('#fc', A.b6 + 0.3, FC.vue);
   show('#fcf', A.b6 + 1.4, {y: 16, scale: 0.96}, 0.4, 'back.out(1.8)'); cue(A.b6 + 1.4, 'pop', 0.5, 1);
@@ -1077,9 +1104,10 @@ const IX = (() => {
     start(i);
     if (i === 0) {
       const q = ACCES.findIndex(x => x[0] === a);
-      // un accès nécessaire : « ✓ nécessaire » s’y pose et son interrupteur passe au vert, comme juste après l’arrêt
+      // un accès nécessaire : « ✓ nécessaire » s’y pose, comme juste après l’arrêt ; son interrupteur ne passe au vert
+      // qu’avec GRANT, au chapitre 4 (Elisa, 26 octobre, 22 h 30)
       if (q >= 0 && ACCES[q][3]) {
-        if (!X.got.has(a)) { X.got.add(a); marks(['#nd' + q]); marks(['#tg' + q], 'tgon'); sfx('tick', X.got.size + 1, 0.6); }
+        if (!X.got.has(a)) { X.got.add(a); marks(['#nd' + q]); sfx('tick', X.got.size + 1, 0.6); }
         return {ok: true, done: X.got.size === 2, why: '', at: rel(rowOf(a))};
       }
       // un accès de trop : sa ligne rougit un instant, et la correction dit pourquoi
@@ -1129,7 +1157,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 248.15, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 274.45, picks: PICKS, opens: OPENS,
   glyphs: '🗄️👥🛒⭐📦🧑‍🏫📅📝💳💬🔁🎁🏷️🖥️👤🔄🗑️🔍🔒🔓🧪📋🧩✏️🏁🚪🔐✅!…«»·−→',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>
