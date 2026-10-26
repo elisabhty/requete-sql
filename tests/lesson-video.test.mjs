@@ -468,8 +468,8 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '5 min 56', notesAt: 327.35,
-    notes: /notes:\{t:347\.6,y:1404,card:\[64,292,1016,1109\],to:\[940,255\]\}/, table: 'clients',
+  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '6 min 03', notesAt: 327.35,
+    notes: /notes:\{t:354\.6,y:1404,card:\[64,292,1016,1109\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Chaque sujet a sa table,<br>et des identifiants relient les tables.',
     chapters: ['Situation', 'Le problème', 'Le découpage', 'Base de données et SGBD', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],
     traps: [
@@ -1201,8 +1201,10 @@ for (const c of COURSES) {
     for (const f of [c.page, 'core.css', 'core.js', 'gsap.min.js', 'mascotte.webp', c.thumb, ...(page.includes('src="moments.js"') ? ['moments.js'] : [])])
       total += fs.statSync(path.join(ROOT, 'assets/anim', f)).size;
     for (const f of ANIM_FONTS) total += fs.statSync(path.join(ROOT, 'assets/fonts', f)).size;
-    /* 480 Ko (470 jusqu’au 26 octobre) : le moteur commun grandit avec les chapitres du projet (le SMS sans formule du chapitre 15). */
-    assert.ok(total < 480 * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
+    /* 490 Ko (470 jusqu’au 26 octobre, puis 480) : le moteur commun grandit avec les chapitres du projet (le SMS sans formule du chapitre 15),
+       et les premières leçons chargent moments.js pour leurs moments « À toi » (Elisa, 26 octobre, 14 h 59 ; l’introduction, la plus lourde,
+       en a cinq). */
+    assert.ok(total < 490 * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
     for (const f of [`./assets/anim/${c.page}?app&embed`, `./assets/anim/${c.thumb}`]) assert.ok(sw.includes(`'${f}'`), `préchargé : ${f}`);
   });
 }
