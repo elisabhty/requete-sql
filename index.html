@@ -6293,20 +6293,19 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
   .exframe .xf-result.on .table-wrap tbody tr,.result-live .table-wrap tbody tr{animation:none!important;opacity:1!important}
   @keyframes xfResIn{from{transform:translateY(6px)}to{transform:none}}
 
-  /* Tirer pour actualiser (Elisa, 26 octobre, 21 h 55 : « J’ai l’impression que l’on peut pas rafraîchir les pages »).
-     Les écrans gardent leur propre défilement (overscroll-behavior-y:contain, voir .screen) : le geste de Safari ne passe
-     donc jamais à la page. Tout en haut d’un écran, tirer vers le bas fait descendre une pastille ; au-delà du seuil,
-     la flèche devient verte et relâcher recharge l’app (la progression est gardée dans localStorage). */
-  .ptr{position:absolute;left:50%;top:0;z-index:30;width:44px;height:44px;margin-left:-22px;border-radius:50%;background:#fff;color:var(--accent);
-    box-shadow:0 4px 14px rgba(34,28,70,.16),0 0 0 1px rgba(91,91,214,.12);display:flex;align-items:center;justify-content:center;
-    opacity:0;transform:translateY(-52px);pointer-events:none;will-change:transform,opacity}
-  .ptr svg{width:22px;height:22px;transition:transform .18s ease-out}
-  .ptr.is-ready{background:#169447;color:#fff}
-  .ptr.is-ready svg{transform:rotate(180deg)}
-  .ptr.is-back{transition:transform .25s cubic-bezier(.2,.8,.2,1),opacity .2s ease-out}
-  .ptr.is-loading svg{animation:ptrSpin .8s linear infinite}
-  @keyframes ptrSpin{to{transform:rotate(360deg)}}
-  @media (prefers-reduced-motion:reduce){.ptr.is-loading svg{animation:none}}
+  /* Tirer pour actualiser (Elisa, 26 octobre, 21 h 55 : « J’ai l’impression que l’on peut pas rafraîchir les pages » ;
+     22 h 06 : « je veux quelque chose de plus moderne »). Les écrans gardent leur propre défilement (overscroll-behavior-y:contain,
+     voir .screen) : le geste de Safari ne passe jamais à la page. Tout en haut d’un écran, tirer fait descendre l’écran avec
+     une résistance ; l’indicateur se dessine trait par trait dans l’espace libéré, comme sur iPhone ; relâcher au-delà du
+     seuil le fait tourner, l’écran attend un instant puis l’app se recharge (la progression est gardée dans localStorage). */
+  .ptr{position:absolute;left:50%;top:0;z-index:0;width:28px;height:28px;margin-left:-14px;color:var(--ink-2,#4A4566);opacity:0;pointer-events:none;will-change:transform,opacity}
+  .ptr i{position:absolute;left:12.5px;top:1px;width:3px;height:8px;border-radius:2px;background:currentColor;transform-origin:1.5px 13px;opacity:0;transition:opacity .12s linear}
+  .ptr.is-loading{animation:ptrSpin .9s steps(8) infinite}
+  .ptr.is-loading i{opacity:1!important}
+  @keyframes ptrSpin{to{transform:var(--ptr-y,translateY(18px)) rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.ptr.is-loading{animation:none}}
+  .stage>.screen.ptr-pull{z-index:1}
+  .stage>.screen.ptr-back{transition:transform .42s cubic-bezier(.22,1,.36,1)}
 </style>
 <link rel="stylesheet" href="anim-responsive.css?v=1">
 <link rel="stylesheet" href="ux-polish.css?v=1">
@@ -24866,56 +24865,71 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(lvCardFit).cat
 
 boot();
 
-/* Tirer pour actualiser : tout en haut de l’écran affiché, un geste vers le bas recharge l’app (voir .ptr).
+/* Tirer pour actualiser : tout en haut de l’écran affiché, tirer vers le bas fait descendre l’écran (voir .ptr).
    Le geste n’est pas pris quand il commence dans un champ de saisie, dans une liste déjà défilée, ou quand
    l’écran l’utilise déjà (glisser une activité du planning, un sticker : ces gestes appellent preventDefault). */
 (function pullToRefresh(){
   const stage=document.querySelector('#app > .stage'); if(!stage)return;
   const ptr=document.createElement('div'); ptr.className='ptr'; ptr.setAttribute('aria-hidden','true');
-  ptr.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>';
-  stage.appendChild(ptr);
-  const SEUIL=90, MAX=130;
-  let y0=0,x0=0,dy=0,on=false,busy=false;
-  const reset=()=>{ ptr.classList.add('is-back'); ptr.classList.remove('is-ready'); ptr.style.transform=''; ptr.style.opacity=''; on=false; dy=0;
-    setTimeout(()=>ptr.classList.remove('is-back'),260); };
-  const startOk=e=>{
-    if(busy||e.touches.length!==1)return false;
-    const t=e.target, scr=t&&t.closest&&t.closest('.screen.active'); if(!scr||scr.scrollTop>0)return false;
-    if(t.closest('input,textarea,select,[contenteditable="true"],.cm-editor'))return false;
-    for(let n=t;n&&n!==scr;n=n.parentElement)if(n.scrollTop>0)return false;
-    return true;
+  const N=8; ptr.innerHTML=Array.from({length:N},(_,k)=>`<i style="transform:rotate(${k*360/N}deg);opacity:0"></i>`).join('');
+  stage.insertBefore(ptr,stage.firstChild);
+  const spokes=[...ptr.children];
+  const SEUIL=60, TENU=56, LIM=160;
+  /* Résistance d’élastique : l’écran suit le doigt, de moins en moins vite. */
+  const elastique=d=>LIM*(1-1/(d*0.75/LIM+1));
+  let y0=0,x0=0,off=0,on=false,pull=false,busy=false,scr=null;
+  const draw=o=>{
+    const k=Math.min(o/SEUIL,1);
+    spokes.forEach((s,i)=>{ s.style.opacity=k*N>i?String(0.25+0.75*(i+1)/N):'0'; });
+    const y=Math.max(4,o/2-14);
+    ptr.style.setProperty('--ptr-y',`translateY(${y}px)`);
+    ptr.style.transform=`translateY(${y}px)`;
+    ptr.style.opacity=String(Math.min(1,o/24));
+  };
+  const back=()=>{
+    if(scr){ const s=scr; s.classList.add('ptr-back'); s.style.transform='';
+      setTimeout(()=>{ s.classList.remove('ptr-back','ptr-pull'); },440); }
+    ptr.style.transition='opacity .25s ease-out'; ptr.style.opacity='0';
+    setTimeout(()=>{ ptr.style.transition=''; },260);
+    on=pull=false; off=0; scr=null;
   };
   stage.addEventListener('touchstart',e=>{
-    on=startOk(e); if(!on)return;
-    y0=e.touches[0].clientY; x0=e.touches[0].clientX; dy=0;
+    on=false; if(busy||e.touches.length!==1)return;
+    const t=e.target, s=t&&t.closest&&t.closest('.screen.active'); if(!s||s.scrollTop>0)return;
+    if(t.closest('input,textarea,select,[contenteditable="true"],.cm-editor'))return;
+    for(let n=t;n&&n!==s;n=n.parentElement)if(n.scrollTop>0)return;
+    on=true; pull=false; scr=s; y0=e.touches[0].clientY; x0=e.touches[0].clientX;
   },{passive:true});
   stage.addEventListener('touchmove',e=>{
     if(!on)return;
-    const t=e.touches[0], ddy=t.clientY-y0, ddx=t.clientX-x0;
-    if(e.defaultPrevented||(typeof dragging!=='undefined'&&dragging!==null)){ reset(); return; }
-    if(dy===0&&Math.abs(ddx)>Math.abs(ddy)){ on=false; return; }        // un geste de côté : pas pour nous
-    const scr=e.target.closest&&e.target.closest('.screen.active');
-    if(ddy<=0||(scr&&scr.scrollTop>0)){ if(dy>0)reset(); else on=false; return; }
-    dy=Math.min(ddy,MAX*1.6);
-    const k=Math.min(dy/SEUIL,1), y=Math.min(dy*0.55,MAX*0.8);
-    ptr.style.opacity=String(Math.min(1,k*1.2));
-    ptr.style.transform=`translateY(${y-30}px)`;
-    ptr.classList.toggle('is-ready',dy>=SEUIL);
-  },{passive:true});
+    const t=e.touches[0], dy=t.clientY-y0, dx=t.clientX-x0;
+    if(e.defaultPrevented||(typeof dragging!=='undefined'&&dragging!==null)){ if(pull)back(); else on=false; return; }
+    if(!pull){
+      if(Math.abs(dx)>Math.abs(dy)||dy<=0||scr.scrollTop>0){ if(Math.abs(dx)+Math.abs(dy)>6)on=false; return; }
+      if(dy<6)return;
+      pull=true; y0=t.clientY; scr.classList.add('ptr-pull'); scr.classList.remove('ptr-back');
+    }
+    if(e.cancelable)e.preventDefault();   // l’écran descend à la place du rebond de Safari
+    off=elastique(Math.max(0,t.clientY-y0));
+    scr.style.transform=`translateY(${off}px)`;
+    draw(off);
+  },{passive:false});
   const end=()=>{
-    if(!on)return;
-    if(dy<SEUIL){ reset(); return; }
-    busy=true; on=false;
-    ptr.classList.remove('is-ready'); ptr.classList.add('is-loading','is-back');
-    ptr.style.transform='translateY(24px)'; ptr.style.opacity='1';
+    if(!on)return; on=false;
+    if(!pull)return;
+    if(off<SEUIL){ back(); return; }
+    busy=true;
+    const s=scr; s.classList.add('ptr-back'); s.style.transform=`translateY(${TENU}px)`;
+    const y=TENU/2-14; ptr.style.setProperty('--ptr-y',`translateY(${y}px)`); ptr.style.transform=`translateY(${y}px)`; ptr.style.opacity='1';
+    ptr.classList.add('is-loading');
     /* Le service worker vérifie d’abord s’il y a une nouvelle version ; la page est rechargée de toute façon. */
-    const go=()=>location.reload();
+    const go=()=>setTimeout(()=>location.reload(),350);
     const sw=navigator.serviceWorker;
     if(sw&&sw.getRegistration){ Promise.race([sw.getRegistration().then(r=>r&&r.update()),new Promise(r=>setTimeout(r,1200))]).then(go,go); }
-    else setTimeout(go,150);
+    else go();
   };
   stage.addEventListener('touchend',end,{passive:true});
-  stage.addEventListener('touchcancel',()=>{ if(on)reset(); },{passive:true});
+  stage.addEventListener('touchcancel',()=>{ if(on&&pull)back(); on=false; },{passive:true});
 })();
 
 /* Service worker : met l'app en cache pour qu'elle démarre sans réseau.
@@ -24924,7 +24938,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2070';
+  const SW_CACHE='requete-2026-10-12-ludique-v2071';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
