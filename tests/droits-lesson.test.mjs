@@ -118,9 +118,9 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 274.45);
-  assert.ok(page.includes('notesAt: 274.45,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 281.65);
+  assert.equal(val('NOTES'), 265.6);
+  assert.ok(page.includes('notesAt: 265.6,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 272.8);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   assert.deepEqual(chaps.map(c => c.label), ['Un accès trop large', 'Les accès nécessaires', 'Ce qu’elle peut consulter', 'Autoriser la consultation', 'Une modification précise',
@@ -142,7 +142,7 @@ test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajo
     for (const o of p.options) assert.ok(o.why && strip(o.why).length > 30, `${o.label} : une explication`);
   }
   assert.deepEqual(picks[1].options.map(o => !!o.ok), [false, true, false], 'consulter ne donne pas le droit de supprimer');
-  assert.deepEqual(picks[3].options.map(o => !!o.ok), [false, false, true], 'masquer un bouton ne suffit pas');
+  assert.deepEqual(picks[3].options.map(o => !!o.ok), [false, true, false], 'sans droit sur la table produits, la modification est refusée');
   assert.deepEqual(picks[4].options.map(o => !!o.ok), [true, false, false], 'REVOKE … FROM lina');
   assert.deepEqual(picks[5].options.map(o => !!o.ok), [false, true, false], 'identifier ses besoins');
   assert.deepEqual([picks[0].need, picks[2].need], [2, 1], 'deux accès à toucher, puis une partie de la commande');
@@ -161,15 +161,17 @@ test('les phrases d’Elisa (26 octobre, 11 h 57) : sa trame, une phrase par bul
   suite('Chaque droit correspond à une action.', 'Autoriser la consultation ne donne pas automatiquement le droit de modifier ou de supprimer.');
   assert.ok(lus.includes('Tu peux limiter un droit à une colonne.') && lus.includes('Lina peut maintenant modifier le statut des commandes, sans pouvoir changer leur quantité ou leur client.'));
   suite('La base vérifie les droits avant d’exécuter l’action.', 'Comme Lina n’a pas le droit de modifier les produits, le prix reste inchangé.');
-  suite('Masquer un bouton ne protège pas la base.', 'Les droits doivent aussi empêcher l’action si une requête est envoyée autrement.');
   suite('REVOKE retire un droit accordé.', 'Ici, tu retires les deux autorisations données à Lina au début de sa mission.');
   suite('Chaque personne doit utiliser son propre compte, avec des droits adaptés à son travail.', 'Les accès doivent être revus lorsque sa mission change ou se termine.');
   /* Ses questions, mot pour mot ; ses réponses dans la correction de la bonne réponse */
   const picks = val('PICKS');
   assert.deepEqual([0, 1, 3, 5].map(i => picks[i].prompt), ['Lina prépare les colis. De quels accès a-t-elle besoin ?', 'Ce droit lui permet-il aussi de supprimer une commande ?',
-    'Suffirait-il de masquer le bouton « Modifier le prix » dans l’application ?', 'Une nouvelle personne rejoint l’équipe. Que fais-tu ?']);
+    'Lina n’a aucun droit sur la table produits. Que va répondre la base ?', 'Une nouvelle personne rejoint l’équipe. Que fais-tu ?']);
   assert.equal(strip(picks[1].options[1].why), 'Chaque droit correspond à une action. Autoriser la consultation ne donne pas automatiquement le droit de modifier ou de supprimer.');
-  assert.equal(strip(picks[3].options[2].why), 'Masquer un bouton ne protège pas la base. Les droits doivent aussi empêcher l’action si une requête est envoyée autrement.');
+  assert.equal(strip(picks[3].options[1].why), 'La base vérifie les droits avant d’exécuter l’action. Lina n’a pas le droit de modifier les produits : la requête est refusée et le prix ne change pas.');
+  /* La question vient avant la réponse de la base : la carte du refus n’apparaît qu’après l’arrêt */
+  assert.ok(picks[3].at < val('A').e3, 'moment 4 : avant « La base vérifie les droits »');
+  assert.ok(!/masquer|bouton ne protège/i.test(lus.join(' ')), 'plus de question sur un bouton masqué (Elisa, 26 octobre, 22 h 46)');
   assert.equal(strip(picks[5].options[1].why), 'Chaque personne doit utiliser son propre compte, avec des droits adaptés à son travail. Les accès doivent être revus lorsque sa mission change ou se termine.');
   assert.deepEqual(picks[5].options.map(o => o.label), ['Lui donner tous les droits pour éviter les blocages', 'Identifier ses besoins et lui accorder les droits correspondants', 'Lui prêter le compte d’un collègue']);
   /* Ses quatre accès possibles, et les deux dont Lina a besoin */
