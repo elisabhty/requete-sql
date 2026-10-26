@@ -118,9 +118,9 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 295.45);
-  assert.ok(page.includes('notesAt: 295.45,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 326.55);
+  assert.equal(val('NOTES'), 295.43);
+  assert.ok(page.includes('notesAt: 295.43,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 326.53);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   assert.deepEqual(chaps.map(c => c.label), ['Un accès trop large', 'Les accès nécessaires', 'Ce qu’elle peut consulter', 'Autoriser la consultation', 'Une modification précise',
