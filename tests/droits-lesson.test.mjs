@@ -97,8 +97,8 @@ test('Sécurité et droits : le dernier cours de l’app, seul dans son module, 
 
 test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () => {
   const mots = html.match(/\n  50:'([^']+)',?\n/)[1];
-  assert.ok(['grant', 'revoke', 'droits', 'acces', 'compte', 'select', 'update', 'statut', 'colonne', 'vue', 'commandes_expedition', 'lina', 'simulation', 'postgresql'].every(m => mots.includes(m)),
-    'trouvé par la recherche : GRANT, REVOKE, les droits, la vue, la colonne statut, Lina, la simulation…');
+  assert.ok(['grant', 'revoke', 'droits', 'acces', 'compte', 'select', 'update', 'statut', 'colonne', 'vue', 'commandes_expedition', 'lina', 'executer'].every(m => mots.includes(m)),
+    'trouvé par la recherche : GRANT, REVOKE, les droits, la vue, la colonne statut, Lina, le bouton « Exécuter »…');
   assert.ok(l50.leconSeule && l50.video && !l50.situation && !l50.consigne && !l50.solution && !l50.petitDefi && !l50.learningCheck && !l50.testeVariants && !l50.anatomie && !l50.noExec,
     'la vidéo est le cours');
   assert.equal(l50.video.moments, 6); assert.equal(l50.video.seuil, 4);
@@ -118,9 +118,9 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 256.8);
-  assert.ok(page.includes('notesAt: 256.8,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 264);
+  assert.equal(val('NOTES'), 248.15);
+  assert.ok(page.includes('notesAt: 248.15,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 255.35);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   assert.deepEqual(chaps.map(c => c.label), ['Un accès trop large', 'Les accès nécessaires', 'Ce qu’elle peut consulter', 'Autoriser la consultation', 'Une modification précise',
@@ -178,7 +178,7 @@ test('les phrases d’Elisa (26 octobre, 11 h 57) : sa trame, une phrase par bul
   assert.ok(page.includes('Elisa (26 octobre, 11 h 57'), 'la page garde la trace de la trame d’Elisa et de sa photo');
 });
 
-test('les messages : Camille Roux, puis Lina, puis Camille Roux, par SMS, avec les mots d’Elisa ; l’app s’arrête sur eux, et sur « Simuler »', () => {
+test('les messages : Camille Roux, puis Lina, puis Camille Roux, par SMS, avec les mots d’Elisa ; l’app s’arrête sur eux, et sur « Exécuter »', () => {
   const mails = val('MAILS'), opens = val('OPENS'), picks = val('PICKS'), caps = val('CAPTIONS');
   assert.equal(mails.length, 3);
   assert.deepEqual(mails.map(m => [m[0], m[2], m[6]]), [[['Camille', 'Roux', 'CR'], 'équipe', {sms: true, hello: 'Bonjour !', bye: null}],
@@ -192,12 +192,12 @@ test('les messages : Camille Roux, puis Lina, puis Camille Roux, par SMS, avec l
   assert.deepEqual([0, 1, 2].map(n => vm.runInContext(`mailRows(${n})`, D)), [5, 3, 2], '« Bonjour ! » et ses quatre phrases ; puis trois, puis deux phrases');
   assert.ok(strip(caps.find(c => /t’écrit/.test(c[2]))[2]) === 'Camille Roux, responsable des opérations, t’écrit.', 'qui est Camille Roux (Elisa : « responsable des opérations »)');
   assert.deepEqual(opens.map(o => o.sel), ['#ml1', '#bs1', '#ml2', '#bs2', '#ml3', '#bs3']);
-  assert.deepEqual(opens.map(o => o.label), ['Ouvrir le message de Camille Roux', 'Simuler', 'Ouvrir le message de Lina', 'Simuler', 'Ouvrir le message de Camille Roux', 'Simuler']);
+  assert.deepEqual(opens.map(o => o.label), ['Ouvrir le message de Camille Roux', 'Exécuter', 'Ouvrir le message de Lina', 'Exécuter', 'Ouvrir le message de Camille Roux', 'Exécuter']);
   assert.ok(opens.every((o, k) => !k || o.at > opens[k - 1].at), 'dans l’ordre');
   assert.ok(opens[0].at < picks[0].at && opens[1].at > picks[0].at && opens[1].at < picks[1].at && opens[2].at > picks[1].at && opens[3].at > picks[2].at && opens[3].at < picks[3].at
     && opens[4].at > picks[3].at && opens[4].at < picks[4].at && opens[5].at > picks[4].at && opens[5].at < picks[5].at,
     'le message de Camille Roux avant le moment 1 ; GRANT SELECT avant le moment 2 ; le message de Lina, GRANT UPDATE après le moment 3 ; le second message, le moment 5, puis REVOKE');
-  const bulles = [['#bs1', 'Clique sur le bouton<br>« Simuler ».'], ['#bs2', 'Clique de nouveau<br>sur « Simuler ».'], ['#bs3', 'Simule les deux commandes :<br>clique sur « Simuler ».']];
+  const bulles = [['#bs1', 'Clique sur le bouton<br>« Exécuter ».'], ['#bs2', 'Clique de nouveau<br>sur « Exécuter ».'], ['#bs3', 'Exécute les deux commandes :<br>clique sur « Exécuter ».']];
   [opens[1], opens[3], opens[5]].forEach((o, k) => {
     const [sel, bulle] = bulles[k];
     assert.equal(o.sel, sel);
@@ -210,20 +210,17 @@ test('les messages : Camille Roux, puis Lina, puis Camille Roux, par SMS, avec l
   assert.ok(page.includes('(MAILS[n][6] || {}).hello, (MAILS[n][6] || {}).photo, (MAILS[n][6] || {}).bye)'), 'la page passe au moteur la formule et la fin du SMS');
 });
 
-test('une simulation clairement présentée : SQLite n’a pas de comptes, le bouton « Simuler » affiche la réponse d’un serveur PostgreSQL', () => {
-  const lus = val('CAPTIONS').map(c => strip(c[2]));
-  const i = lus.indexOf('SQLite, le moteur de l’application, n’a pas de comptes.');
-  assert.ok(i > 0 && lus[i + 1] === 'Le bouton « Simuler » affiche donc la réponse d’un serveur PostgreSQL.' && lus[i + 2] === 'Clique sur le bouton « Simuler ».', 'annoncé avant le premier « Simuler »');
-  assert.ok(val('CAPTIONS').findIndex(c => /Simuler/.test(c[2])) === i + 1, 'avant tout bouton « Simuler »');
-  /* Chaque commande de droits porte l’étiquette « simulation » ; chaque réponse se dit simulée ; le bouton s’appelle « Simuler », comme dans les cours de l’app */
-  for (const e of ["ed('eg', Q_GSEL, 'droits.sql', SIM)", "ed('eu', Q_GUPD, 'droits.sql', SIM)", "ed('er', Q_REV, 'droits.sql', SIM)", "const SIM = '🧪 simulation';"])
-    assert.ok(page.includes(e), `étiquette : ${e}`);
-  assert.ok(!page.includes("ed('el', Q_LINA, 'application de Lina', SIM)"), 'la requête de l’application de Lina n’est pas une commande de droits');
-  assert.equal((page.match(/Réponse simulée · serveur PostgreSQL/g) || []).length, 2, 'les réponses : le gabarit, et la modification refusée');
+test('comme sur la vraie base : ni SQLite, ni PostgreSQL, ni simulation ; le bouton « Exécuter » (Elisa, 26 octobre, 22 h 14)', () => {
+  /* « Ne pas parler de ça, SQLite et Postgre, faire comme si on avait tout » */
+  const lus = val('CAPTIONS').map(c => strip(c[2])).join(' ');
+  assert.ok(!/sqlite|postgre|simul/i.test(lus), 'aucune légende ne parle du moteur ni d’une simulation');
+  const vu = page.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!--[\s\S]*?-->/g, '').replace(/\/\/[^\n]*/g, '');
+  assert.ok(!/sqlite|postgre|simul/i.test(vu), 'ni à l’écran : étiquettes, réponses, boutons');
+  for (const e of ["ed('eg', Q_GSEL, 'droits.sql')", "ed('eu', Q_GUPD, 'droits.sql')", "ed('er', Q_REV, 'droits.sql')"]) assert.ok(page.includes(e), `sans étiquette : ${e}`);
+  assert.equal((page.match(/<span class="emo">🗄️<\/span>Réponse de la base<\/div>/g) || []).length, 2, 'les réponses : le gabarit, et la modification refusée');
   assert.ok(page.includes("reponse('rs1', ['GRANT'], '✓ droit accordé')") && page.includes("reponse('rs4', ['REVOKE', 'REVOKE'], '✓ droit retiré')"), 'GRANT, puis REVOKE deux fois');
-  assert.equal((page.match(/button\('bs\d', '', PLAY, 'Simuler'\)/g) || []).length, 3, 'trois boutons « Simuler »');
-  assert.ok(html.includes("${simulated?'Simuler':'Exécuter'}"), 'le même mot que le bouton des cours de l’app');
-  /* La modification refusée : le message d’Elisa, puis l’erreur d’un serveur PostgreSQL */
+  assert.equal((page.match(/button\('bs\d', '', PLAY, 'Exécuter'\)/g) || []).length, 3, 'trois boutons « Exécuter »');
+  /* La modification refusée : le message d’Elisa, puis l’erreur de la base */
   assert.ok(page.includes('<div class="rsm">🔒 Modification refusée : droit insuffisant.</div><div class="rse">ERROR: permission denied for table produits</div>'));
 });
 

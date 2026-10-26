@@ -173,11 +173,11 @@
 #vx .r .ad{font-family:var(--ui);font-size:24px;font-weight:600;color:var(--ink-2)}
 .r.rmore>span{grid-column:1/-1;justify-content:center;font-family:var(--ui);font-size:25px;font-weight:700;color:var(--ink-3)}
 
-/* ---------- Les commandes de droits : simulées, comme sur un serveur PostgreSQL ---------- */
+/* ---------- Les commandes de droits ---------- */
 .sq .simt{margin-left:auto;height:34px;padding:0 14px;border-radius:999px;background:rgba(255,224,138,.14);box-shadow:inset 0 0 0 2px rgba(255,224,138,.5);color:#FFE08A;font-family:var(--ui);font-size:20px;font-weight:800;display:flex;align-items:center;gap:6px;white-space:nowrap}
-/* La réponse du serveur, simulée : la commande acceptée, ou la modification refusée */
+/* La réponse de la base : la commande acceptée, ou la modification refusée */
 .srv{left:64px;width:952px;padding:0 0 16px;overflow:hidden;border-radius:36px}
-.rsh{height:58px;display:flex;align-items:center;gap:12px;padding:0 28px;background:#FFF6DA;color:#8A6200;font-size:24px;font-weight:800;white-space:nowrap}
+.rsh{height:58px;display:flex;align-items:center;gap:12px;padding:0 28px;background:var(--surface-2);color:var(--ink-2);font-size:24px;font-weight:800;white-space:nowrap}
 .rsh .emo{font-size:27px}
 .rsl{display:flex;align-items:center;gap:16px;height:60px;padding:0 28px;margin-top:12px}
 .rsl+.rsl{margin-top:4px}
@@ -299,7 +299,7 @@
   <section class="scene" id="sa"></section>
   <!-- Les messages de Camille Roux et de Lina -->
   <section class="scene" id="sm"></section>
-  <!-- La fiche du compte de Lina, la vue, les commandes de droits (simulées), l’application de Lina, le prix d’un produit, le calendrier -->
+  <!-- La fiche du compte de Lina, la vue, les commandes de droits, l’application de Lina, le prix d’un produit, le calendrier -->
   <section class="scene" id="sw"></section>
   <!-- Le dernier réflexe : l’équipe ; la fin du projet -->
   <section class="scene" id="sn"></section>
@@ -330,9 +330,8 @@
    Lina rejoint l’équipe pour un mois : elle doit consulter les informations des expéditions et mettre à jour le statut des commandes,
    sans pouvoir modifier les prix ni supprimer des clients. La vue commandes_expedition (la notion du chapitre 15) présente les quatre
    colonnes utiles ; GRANT SELECT lui ouvre la vue, GRANT UPDATE (statut) la seule colonne statut de la table commandes ; sa tentative de
-   modifier un prix est refusée ; un mois plus tard, REVOKE retire les deux droits. SQLite, le moteur de l’app, n’a pas de comptes :
-   ces commandes sont simulées, comme sur un serveur PostgreSQL, et la vidéo le dit (Elisa : « une simulation clairement présentée
-   comme telle »). Les données sont celles de la base : la commande NB-10482 de Léa Simon (chapitre 16), NB-10483 de Nathan Petit,
+   modifier un prix est refusée ; un mois plus tard, REVOKE retire les deux droits. Les commandes s’exécutent comme sur
+   la base de NutriBoost, sans parler du moteur (Elisa, 26 octobre, 22 h 14 : « faire comme si on avait tout »). Les données sont celles de la base : la commande NB-10482 de Léa Simon (chapitre 16), NB-10483 de Nathan Petit,
    leurs adresses, le prix du Collagène Marin (34,90 € depuis le chapitre 13). */
 const SCH = {t: 5.0, caps: [], chaps: [{label:'Un accès trop large', a: 5.0}], A: {}, B: {}};
 function chap(c){ SCH.t = +(SCH.t + 0.4).toFixed(2); SCH.chaps.push({label: c.label, a: SCH.t}); }
@@ -402,13 +401,11 @@ cap('b3', "Elle contient uniquement<br>ces quatre colonnes.", 3.6);
 cap('b4', "Lina a besoin du destinataire<br>et de l’adresse pour préparer<br>les colis.", 4.2);
 cap('b5', "Cette vue rassemble les informations<br>utiles à son travail.", 3.8);
 cap('b6', "Son compte est déjà créé<br>et ne dispose, pour le moment,<br>d’aucun accès aux tables.", 4.6);
-/* 4 · Autoriser la consultation avec GRANT (Elisa) : la mission, la commande, la simulation annoncée ; l’élève touche « Simuler » ; Lina ouvre la
+/* 4 · Autoriser la consultation avec GRANT (Elisa) : la mission, la commande ; l’élève touche « Exécuter » ; Lina ouvre la
    liste des expéditions ; les deux bulles d’Elisa, puis sa question (moment 2) et sa réponse, en deux bulles */
 chap({label:'Autoriser la consultation'});
 cap('c0', "Ta mission : autoriser Lina<br>à consulter la vue.", 3.6);   // la commande s’écrit pendant la bulle
-cap('c2', "SQLite, le moteur de l’application,<br>n’a pas de comptes.", 3.8);
-cap('c3', "Le bouton « Simuler » affiche donc<br>la réponse d’un serveur PostgreSQL.", 4.2);
-cap('c4', "Clique sur le bouton<br>« Simuler ».", 3.6);   // c’est l’élève qui clique : l’app s’arrête sur le bouton (EXE1, plus bas)
+cap('c4', "Clique sur le bouton<br>« Exécuter ».", 3.6);   // c’est l’élève qui clique : l’app s’arrête sur le bouton (EXE1, plus bas)
 cap('c4b', "Sur la fiche de Lina, la consultation<br>est maintenant autorisée.", 3.8);
 cap('c5', "Lina ouvre la liste des expéditions :<br>les lignes de la vue apparaissent.", 4.2);
 cap('c6', "<code>GRANT</code> accorde un droit.", 3.0);
@@ -418,14 +415,14 @@ toi('p2');
 cap('c9', "Chaque droit correspond à une action.", 3.2);
 cap('c10', "Autoriser la consultation ne donne pas<br>automatiquement le droit de modifier<br>ou de supprimer.", 4.8);
 /* 5 · Autoriser une modification précise (Elisa) : le message de Lina, la mission, la commande partie par partie (moment 3), sa bulle ;
-   l’élève touche « Simuler » ; sa seconde bulle ; le colis de Léa Simon passe à « expédiée » */
+   l’élève touche « Exécuter » ; sa seconde bulle ; le colis de Léa Simon passe à « expédiée » */
 chap({label:'Une modification précise'});
 const MAIL2 = mailBlock(1);
 cap('d0', "Ta mission : autoriser uniquement<br>la modification de la colonne <code>statut</code>.", 4.2);
 cap('d1', "Cette fois, le droit accordé<br>est <code>UPDATE</code>.", 3.2);   // la commande s’écrit pendant les deux bulles
 toi('p3');
 cap('d2', "Tu peux limiter un droit<br>à une colonne.", 3.4);
-cap('d3', "Clique de nouveau<br>sur « Simuler ».", 3.6);   // l’app s’arrête sur le bouton (EXE2, plus bas)
+cap('d3', "Clique de nouveau<br>sur « Exécuter ».", 3.6);   // l’app s’arrête sur le bouton (EXE2, plus bas)
 cap('d4', "Lina peut maintenant modifier<br>le statut des commandes, sans pouvoir<br>changer leur quantité ou leur client.", 5.0);
 cap('d5', "Le colis de Léa Simon<br>passe à « expédiée ».", 3.8);
 /* 6 · Vérifier les limites de son accès (Elisa) : Lina tente de modifier le prix d’un produit ; la modification est refusée ; ses deux bulles,
@@ -439,14 +436,14 @@ toi('p4');
 cap('e5', "Masquer un bouton<br>ne protège pas la base.", 3.4);
 cap('e6', "Les droits doivent aussi empêcher<br>l’action si une requête<br>est envoyée autrement.", 4.6);
 /* 7 · Retirer les accès avec REVOKE (Elisa) : le calendrier avance d’un mois, le message de Camille Roux ; la commande qui retire un droit
-   (moment 5), les deux REVOKE ; l’élève touche « Simuler » ; la bulle d’Elisa, en deux bulles ; les deux autorisations quittent sa fiche */
+   (moment 5), les deux REVOKE ; l’élève touche « Exécuter » ; la bulle d’Elisa, en deux bulles ; les deux autorisations quittent sa fiche */
 chap({label:'Retirer les accès'});
 cap('f1', "Un mois plus tard,<br>la mission de Lina se termine.", 3.8);
 const MAIL3 = mailBlock(2);
 toi('p5');
 cap('f2', "Tu écris un <code>REVOKE</code><br>pour chaque droit accordé.", 3.8);   // les deux commandes s’écrivent pendant la bulle
 cap('f3', "Avec <code>REVOKE</code>, le compte<br>se place après <code>FROM</code>.", 3.6);
-cap('f4', "Simule les deux commandes :<br>clique sur « Simuler ».", 3.8);   // l’app s’arrête sur le bouton (EXE3, plus bas)
+cap('f4', "Exécute les deux commandes :<br>clique sur « Exécuter ».", 3.8);   // l’app s’arrête sur le bouton (EXE3, plus bas)
 cap('f5', "<code>REVOKE</code> retire un droit accordé.", 3.4);
 cap('f6', "Ici, tu retires les deux autorisations<br>données à Lina au début<br>de sa mission.", 4.6);
 /* 8 · Le dernier réflexe (Elisa) : sa question finale (moment 6), puis son explication, en deux bulles. C’était le dernier chapitre du projet. */
@@ -535,7 +532,7 @@ const PICKS = [
     {label: 'Lui prêter le compte d’un collègue', why: 'Avec un compte prêté, elle reçoit des droits qui ne sont pas les siens, et on ne sait plus qui a fait quoi : chaque personne utilise son propre compte.'}]}
 ];
 
-/* Les arrêts « toucher » : les trois messages, et le bouton « Simuler », trois fois (GRANT SELECT, GRANT UPDATE (statut), les deux REVOKE).
+/* Les arrêts « toucher » : les trois messages, et le bouton « Exécuter », trois fois (GRANT SELECT, GRANT UPDATE (statut), les deux REVOKE).
    Rien n’y est noté. Sur un bouton, la légende dit déjà quoi faire : un doigt seul (hand) monte et descend sur son coin, et le bouton
    s’enfonce dès l’appui (press), puis remonte au relâcher (rest). */
 const EXE1 = +(A.c4 + 2.4).toFixed(2), EXE2 = +(A.d3 + 2.4).toFixed(2), EXE3 = +(A.f4 + 2.6).toFixed(2);
@@ -548,11 +545,11 @@ const msgOpen = (t, n) => {
 };
 const OPENS = [
   msgOpen(MAIL1, 0),
-  Object.assign({at: EXE1, sel: '#bs1', prompt: 'Touche le bouton.', label: 'Simuler'}, BTN('#4B30CC')),
+  Object.assign({at: EXE1, sel: '#bs1', prompt: 'Touche le bouton.', label: 'Exécuter'}, BTN('#4B30CC')),
   msgOpen(MAIL2, 1),
-  Object.assign({at: EXE2, sel: '#bs2', prompt: 'Touche le bouton.', label: 'Simuler'}, BTN('#4B30CC')),
+  Object.assign({at: EXE2, sel: '#bs2', prompt: 'Touche le bouton.', label: 'Exécuter'}, BTN('#4B30CC')),
   msgOpen(MAIL3, 2),
-  Object.assign({at: EXE3, sel: '#bs3', prompt: 'Touche le bouton.', label: 'Simuler'}, BTN('#4B30CC'))
+  Object.assign({at: EXE3, sel: '#bs3', prompt: 'Touche le bouton.', label: 'Exécuter'}, BTN('#4B30CC'))
 ];
 
 /* ---------- Gabarits ---------- */
@@ -568,7 +565,7 @@ function lineHtml([lid, s, cls = '', st = '']){
   if (!cmt) h = h.replace(SQL_KW, '<span class="kw">$&</span>').replace(/'[^']*'/g, '<span class="str">$&</span>');
   return `<span class="ln${cmt ? ' cmt' : ''}${cls ? ' ' + cls : ''}" id="${lid}"${st ? ` style="${st}"` : ''}>${h}${cmt ? '' : CARET}</span>`;
 }
-/* Une carte de code ; tag : l’étiquette de sa barre (« simulation » pour une commande de droits, que SQLite n’exécute pas). */
+/* Une carte de code ; tag : l’étiquette de sa barre. */
 function editor(id, fname, lines, tag = ''){
   return `<div class="abs code sq" id="${id}" style="left:64px;width:952px"><div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i>` +
     `<span class="fname">${fname}</span>${tag ? `<span class="simt" id="${id}-t">${tag}</span>` : ''}</div><div class="body">${lines.map(lineHtml).join('')}</div></div>`;
@@ -576,8 +573,8 @@ function editor(id, fname, lines, tag = ''){
 const head = (cols) => `<div class="gr hd">${cols.map(([c, label, extra]) => `<span class="${c}${extra ? ' ' + extra : ''}">${label}</span>`).join('')}</div>`;
 const tbl = (id, kc, emo, name, g, hd, rows, bn = '') => `<div class="abs card tb ${kc}" id="${id}" style="left:64px;width:952px;${g}"><div class="h"><span class="emo">${emo}</span><span>${name}</span>${bn}</div>${hd}${rows}</div>`;
 /* Les commandes de la trame d’Elisa : GRANT SELECT sur la vue, GRANT UPDATE (statut) sur la table commandes, la requête envoyée par
-   l’application de Lina, puis les deux REVOKE. Les commandes de droits sont simulées (étiquette de la carte). */
-const SIM = '🧪 simulation';
+   l’application de Lina, puis les deux REVOKE. Elles s’exécutent comme sur la base de NutriBoost : la vidéo ne parle ni de SQLite ni
+   d’un autre serveur (Elisa, 26 octobre, 22 h 14 : « ne pas parler de ça, SQLite et Postgre, faire comme si on avait tout »). */
 const Q_GSEL = [['-- Autoriser Lina à consulter la vue'], ['{gsel|GRANT SELECT}'], ['{gon|ON commandes_expedition}'], ['{gto|TO lina};']];
 const Q_GUPD = [['-- Autoriser la modification du statut'], ['{gup|GRANT UPDATE} {gst|(statut)}'], ['{guo|ON commandes}'], ['{gut|TO lina};']];
 const Q_LINA = [['-- Envoyée avec le compte lina'], ['UPDATE produits'], ['{lpx|SET prix = 1}'], ['WHERE id = 2;']];
@@ -585,12 +582,12 @@ const Q_REV = [['-- Retirer les deux accès de Lina'], ['REVOKE SELECT ON comman
 const ed = (id, q, fname, tag) => editor(id, fname, q.map(([s], k) => [id + '-' + k, s]), tag);
 /* Un bouton à toucher, et l’anneau qui s’en échappe */
 const button = (id, cls, emo, label) => `<i class="abs bring ${cls}" id="${id}-r"></i><div class="abs run bt ${cls}" id="${id}"><span class="emo">${emo}</span>${label}<i class="ripple"></i></div>`;
-/* « Simuler » : le triangle blanc de lecture, comme le bouton « Simuler » des cours de l’app */
+/* « Exécuter » : le triangle blanc de lecture, comme le bouton « Exécuter » des cours de l’app */
 const PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 4.6c0-1 1.1-1.6 1.9-1.1l11 7.4c.8.5.8 1.7 0 2.2l-11 7.4c-.8.5-1.9-.1-1.9-1.1z" fill="#fff"/></svg>';
 const PHOTO = 'projet-droits-lina.webp';
 const statut = (id, s) => s === 'en_preparation' ? `<span class="st ep">en_preparation</span>` : `<span class="st ex">expédiée</span>`;
-/* La réponse simulée du serveur : une ou plusieurs commandes acceptées */
-const reponse = (id, tags, ok) => `<div class="abs card srv" id="${id}"><div class="rsh"><span class="emo">🧪</span>Réponse simulée · serveur PostgreSQL</div>` +
+/* La réponse de la base : une ou plusieurs commandes acceptées */
+const reponse = (id, tags, ok) => `<div class="abs card srv" id="${id}"><div class="rsh"><span class="emo">🗄️</span>Réponse de la base</div>` +
   tags.map((t, k) => `<div class="rsl" id="${id}-${k}"><code>${t}</code><span class="ok">${ok}</span></div>`).join('') + '</div>';
 function dom(){
   /* La base et ses douze tables : le rappel du chapitre précédent ; puis l’écran de gestion, et la photo d’Elisa */
@@ -612,7 +609,7 @@ function dom(){
   $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body, false, smsRank(MAILS, n),
     (MAILS[n][6] || {}).hello, (MAILS[n][6] || {}).photo, (MAILS[n][6] || {}).bye) : '').join('') +
     '<div class="abs emo tapf" id="tapf">👆</div>';
-  /* Le travail : la fiche du compte de Lina, la vue, les commandes (simulées), l’application de Lina, le prix d’un produit, le calendrier */
+  /* Le travail : la fiche du compte de Lina, la vue, les commandes, l’application de Lina, le prix d’un produit, le calendrier */
   let w = '<div class="abs card fc" id="fc"><div class="fch"><i class="av"></i><div class="fcn"><b>Lina</b><span>Compte lina · Préparation des commandes</span></div></div>' +
     ACCES.map(([k, emo, label, need, droit], q) => `<div class="fcr" id="f${k}"><span class="emo">${emo}</span><span class="fl"><span>${label}</span><i class="fcd" id="fd${q}">${droit}</i></span>` +
       `<b class="nd ${need ? 'ok' : 'no'}" id="nd${q}">${need ? '✓ nécessaire' : '✕ pas nécessaire'}</b><i class="tg" id="tg${q}"><i></i></i></div>`).join('') +
@@ -623,12 +620,12 @@ function dom(){
   w += tbl('vx', 'k-vw', '📋', 'commandes_expedition', '--g:212px 180px 1fr 226px', head(VCOLS.map((c, j) => [`c${j}`, c])),
     VUE.map(([nb, who, adr, s], q) => line('vx' + q, cell(0, `<i class="v">${nb}</i>`) + cell(1, `<i class="v u">${who}</i>`) + cell(2, `<i class="v ad">${adr}</i>`) + cell(3, statut('', s)))).join('') +
     line('vxm', '<span>⋮ les autres commandes à préparer</span>', 'rmore'), '<span class="bn"><span>vue</span></span>');
-  // les commandes de droits, simulées ; la requête envoyée par l’application de Lina
-  w += ed('eg', Q_GSEL, 'droits.sql', SIM) + ed('eu', Q_GUPD, 'droits.sql', SIM) + ed('el', Q_LINA, 'application de Lina') + ed('er', Q_REV, 'droits.sql', SIM);
-  w += button('bs1', '', PLAY, 'Simuler') + button('bs2', '', PLAY, 'Simuler') + button('bs3', '', PLAY, 'Simuler');
+  // les commandes de droits ; la requête envoyée par l’application de Lina
+  w += ed('eg', Q_GSEL, 'droits.sql') + ed('eu', Q_GUPD, 'droits.sql') + ed('el', Q_LINA, 'application de Lina') + ed('er', Q_REV, 'droits.sql');
+  w += button('bs1', '', PLAY, 'Exécuter') + button('bs2', '', PLAY, 'Exécuter') + button('bs3', '', PLAY, 'Exécuter');
   w += reponse('rs1', ['GRANT'], '✓ droit accordé') + reponse('rs2', ['GRANT'], '✓ droit accordé') + reponse('rs4', ['REVOKE', 'REVOKE'], '✓ droit retiré');
   // la modification du prix, refusée
-  w += '<div class="abs card srv" id="rs3"><div class="rsh"><span class="emo">🧪</span>Réponse simulée · serveur PostgreSQL</div>' +
+  w += '<div class="abs card srv" id="rs3"><div class="rsh"><span class="emo">🗄️</span>Réponse de la base</div>' +
     '<div class="rsm">🔒 Modification refusée : droit insuffisant.</div><div class="rse">ERROR: permission denied for table produits</div></div>';
   // l’application de Lina : la liste des expéditions (les lignes de la vue)
   w += '<div class="abs card ap k-cm" id="ap"><div class="aph"><span class="emo">📦</span>Expéditions du jour<span class="apu"><span class="emo">👤</span>lina</span></div>' +
@@ -679,7 +676,7 @@ const pos = el => {
 /* Les places de la fiche du compte de Lina, d’une étape à l’autre : seule (moment 1), sous la vue, sous une commande et sa réponse */
 const FC = {};
 function layout(){
-  // les commandes en haut ; sous chacune, son bouton, puis la réponse simulée à la place du bouton
+  // les commandes en haut ; sous chacune, son bouton, puis la réponse de la base à la place du bouton
   ['#eg', '#eu', '#er', '#vx', '#pe', '#fc'].forEach(e => { $(e).style.top = '236px'; });
   const place = (id, top) => { $('#' + id).style.top = top + 'px'; $('#' + id + '-r').style.top = top + 'px'; };
   place('bs1', bottom('#eg') + 9 + 32); place('bs2', bottom('#eu') + 9 + 32); place('bs3', bottom('#er') + 9 + 32);
@@ -730,7 +727,7 @@ function typeLines(id, a, b, t, cps = 34){
   });
   return e;
 }
-/* La commande part : la carte s’enfonce d’un coup, comme un bouton « Simuler ». */
+/* La commande part : la carte s’enfonce d’un coup, comme un bouton « Exécuter ». */
 const run = (id, t) => { tl.to('#' + id, {scale: 0.985, duration: 0.08, yoyo: true, repeat: 1, ease: 'power2.out'}, t); cue(t, 'click', 0.6); };
 /* La légende s’efface le temps du message, puis revient. */
 const capOff = t => tl.to('#cap', {autoAlpha: 0, y: 30, duration: 0.3, ease: 'power2.in'}, t);
@@ -878,16 +875,13 @@ function build(){
   show('#eg', A.c0 + 0.3, {y: 40}, 0.5); cue(A.c0 + 0.3, 'whoosh', 0.45, 1);
   const c0 = typeLines('eg', 0, 0, A.c0 + 0.8);
   typeLines('eg', 1, 3, c0 + 0.2, 30);
-  reShow('#fc', A.c2 + 0.3, FC.grant);
-  // SQLite n’a pas de comptes : la commande est simulée (l’étiquette de la carte)
-  pulse('#eg-t', A.c2 + 1.0, 1, 'rgba(255,224,138,.35)'); cue(A.c2 + 1.0, 'tick', 0.5, 2);
-  pulse('#eg-t', A.c3 + 1.2, 1, 'rgba(255,224,138,.35)'); cue(A.c3 + 1.2, 'tick', 0.5, 3);
-  // l’élève clique sur « Simuler » : le bouton arrive sous la commande (l’app s’arrête dessus, OPENS ; hors de l’app, un doigt le montre)
+  reShow('#fc', B.c0 + 0.4, FC.grant);
+  // l’élève clique sur « Exécuter » : le bouton arrive sous la commande (l’app s’arrête dessus, OPENS ; hors de l’app, un doigt le montre)
   show('#bs1', A.c4 + 1.2, {y: 30, scale: 0.94}, 0.5, 'back.out(1.7)'); cue(A.c4 + 1.2, 'pop', 0.7, 2);
   tapButton('bs1', EXE1, '#4B30CC');
   run('eg', EXE1 + 0.15);
   confetti($('#bs1'), EXE1 + 0.6);   // la commande passe sans erreur : des confettis (Elisa, 26 octobre, 7 h 18, Réf 6)
-  // la réponse simulée arrive à la place du bouton : GRANT ; sur la fiche, l’accès aux commandes s’allume
+  // la réponse de la base arrive à la place du bouton : GRANT ; sur la fiche, l’accès aux commandes s’allume
   hide('#bs1', EXE1 + 0.75, {y: -20, scale: 0.96}, 0.3);
   show('#rs1', EXE1 + 1.0, {y: 30, scale: 0.96}, 0.5, 'back.out(1.5)'); cue(EXE1 + 1.0, 'chord', 0.5);
   grant(0, EXE1 + 1.7);
@@ -928,7 +922,7 @@ function build(){
   mark('#gl-q1', A.d2 + 0.4);
   pulse('#gst', A.d2 + 0.5, 1, GLOW);
   ['q0', 'q2', 'q3'].forEach((k, q) => { const t = A.d2 + 1.5 + q * 0.4; show('#gl-' + k, t, {y: 0, x: 16}, 0.35); cue(t, 'tick', 0.45, q + 2); });
-  // l’élève clique de nouveau sur « Simuler » : le découpage laisse la place au bouton, et la fiche revient dessous
+  // l’élève clique de nouveau sur « Exécuter » : le découpage laisse la place au bouton, et la fiche revient dessous
   hide('#gp', A.d3 - 0.05, {y: -30}, 0.35);
   reShow('#fc', A.d3 + 0.5, FC.grant);
   show('#bs2', A.d3 + 1.2, {y: 30, scale: 0.94}, 0.5, 'back.out(1.7)'); cue(A.d3 + 1.2, 'pop', 0.7, 2);
@@ -1003,7 +997,7 @@ function build(){
   // avec REVOKE, le compte se place après FROM
   pulse('#rf1', A.f3 + 0.8, 1, GLOW); cue(A.f3 + 0.8, 'tick', 0.5, 2);
   pulse('#rf2', A.f3 + 1.5, 1, GLOW); cue(A.f3 + 1.5, 'tick', 0.5, 4);
-  // l’élève clique sur « Simuler » : les deux commandes partent
+  // l’élève clique sur « Exécuter » : les deux commandes partent
   show('#bs3', A.f4 + 1.2, {y: 30, scale: 0.94}, 0.5, 'back.out(1.7)'); cue(A.f4 + 1.2, 'pop', 0.7, 2);
   tapButton('bs3', EXE3, '#4B30CC');
   run('er', EXE3 + 0.15);
@@ -1135,7 +1129,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 256.8, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 248.15, picks: PICKS, opens: OPENS,
   glyphs: '🗄️👥🛒⭐📦🧑‍🏫📅📝💳💬🔁🎁🏷️🖥️👤🔄🗑️🔍🔒🔓🧪📋🧩✏️🏁🚪🔐✅!…«»·−→⋮',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>
