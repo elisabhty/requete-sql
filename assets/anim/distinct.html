@@ -271,30 +271,25 @@ const QUESTIONS = [];
 /* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
    Elisa, 26 octobre, 14 h 59 : les premières leçons gardent tout ce qu’elle a validé ; il leur manquait les moments. */
 const MOMENTS = [
-  // avant le passage en revue des lignes : les villes déjà présentes dans le résultat (Paris trois fois, Lyon une fois)
-  {at: 34.4, from: 26.8, kind: 'tap', need: 4, prompt: 'Touche les lignes dont la ville est déjà dans le résultat.',
-    spots: CLIENTS.map(([, v], i) => {
-      const first = CLIENTS.findIndex(c => c[1] === v) === i;
-      return {k: 'v' + i, sel: `#rows3 > .tr:nth-child(${i + 1})`, label: `Ligne ${i + 1} : ${v}`, ok: !first,
-        why: first ? `C’est la première fois que ${v} apparaît : la ligne est gardée.` : ''};
-    }),
-    tip: 'Lis les lignes de haut en bas : la première fois qu’une ville apparaît, elle est gardée.'},
+  // avant le passage en revue des lignes : combien de villes une fois les doublons retirés (Paris revient 4 fois, Lyon 2 fois)
+  {at: 34.4, from: 26.8, kind: 'pick', text: true, prompt: 'Combien de villes contiendra le résultat ?', options: [
+    {label: '6 villes', ok: true, why: 'Chaque ville n’est gardée qu’une fois : il en reste 6.'},
+    {label: '10 villes', why: '10, c’est le nombre de clients : <code>DISTINCT</code> retire les villes répétées.'},
+    {label: '4 villes', why: 'Paris et Lyon ne disparaissent pas : elles restent, une fois chacune.'}],
+    tip: 'Compte les villes différentes de la liste.'},
   // juste après la règle (DISTINCT juste après le SELECT), avant l’encadré piège
   {at: 49.25, from: 44.9, kind: 'pick', text: true, prompt: 'Que se passe-t-il si <code>DISTINCT</code> est écrit entre deux colonnes ?', options: [
-    {label: 'La requête provoque une erreur', ok: true, why: '<code>DISTINCT</code> se place juste après le <code>SELECT</code>, avant la liste des colonnes : entre deux colonnes, il provoque une erreur.'},
-    {label: 'Les doublons de la colonne qui suit sont retirés', why: '<code>DISTINCT</code> ne s’écrit pas devant une seule colonne : placé entre deux colonnes, il provoque une erreur.'},
-    {label: 'Les doublons de toutes les colonnes sont retirés', why: 'Pour cela, <code>DISTINCT</code> doit être juste après le <code>SELECT</code> : écrit entre deux colonnes, il provoque une erreur.'}],
+    {label: 'La requête provoque une erreur', ok: true, why: 'Sa place est juste après le <code>SELECT</code> : entre deux colonnes, c’est une erreur.'},
+    {label: 'Les doublons d’une colonne sont retirés', why: '<code>DISTINCT</code> ne vise pas une colonne : écrit au milieu, il provoque une erreur.'},
+    {label: 'Les lignes en double sont retirées', why: 'Il faut l’écrire juste après le <code>SELECT</code>. Entre deux colonnes, c’est une erreur.'}],
     tip: 'Regarde où se place <code>DISTINCT</code> dans la requête.'},
-  // plusieurs colonnes : la combinaison Paris + Nathan, présente deux fois ; la deuxième n’est pas répétée
-  {at: 64.45, from: 55.5, kind: 'tap', need: 1, prompt: 'Touche la ligne que <code>DISTINCT</code> va retirer.',
+  // plusieurs colonnes : la combinaison Paris + Nathan, présente deux fois (la vidéo n’en garde qu’une)
+  {at: 64.45, from: 55.5, kind: 'tap', need: 2, prompt: 'Touche les deux lignes identiques.',
     spots: CLIENTS.map(([p, v], i) => {
-      const k = CLIENTS.findIndex(c => c[0] === p && c[1] === v), dup = k !== i;
-      return {k: 'c' + i, sel: `#rows5 > .tr:nth-child(${i + 1})`, label: `Ligne ${i + 1} : ${v}, ${p}`, ok: dup,
-        why: dup ? '' : CLIENTS.some((c, j) => j > i && c[0] === p && c[1] === v)
-          ? 'C’est la première fois que cette combinaison apparaît : la ligne reste. C’est la suivante qui n’est pas répétée.'
-          : 'Cette combinaison de ville et de prénom n’apparaît qu’une fois : la ligne reste.'};
+      const dup = CLIENTS.filter(c => c[0] === p && c[1] === v).length > 1;
+      return {k: 'c' + i, sel: `#rows5 > .tr:nth-child(${i + 1})`, label: `Ligne ${i + 1} : ${v}, ${p}`, ok: dup, why: dup ? '' : 'Cette ligne n’apparaît qu’une fois.'};
     }),
-    tip: 'Cherche deux lignes identiques, ville et prénom compris.'}
+    tip: 'Compare la ville et le prénom de chaque ligne.'}
 ];
 
 function dom(){
