@@ -1153,7 +1153,7 @@ const COURSES = [
       "['CREATE INDEX {inm|idx_commandes_numero}']", 'Prochaine leçon · Sécurité et droits']},
   /* Le dernier chapitre du projet, et le dernier cours de l’app : pas de leçon suivante (next: null). */
   {id: 50, next: null, titre: 'Sécurité et droits', page: 'projet-droits.html', thumb: 'projet-droits-thumb.webp', duree: '6 min 41', notesAt: 295.45, maxKo: 520,
-    notes: /notes:\{t:370\.2,until:377\.4,y:1173,card:\[64,292,1016,878\],to:\[940,255\]\}/, table: 'commandes',
+    notes: /notes:\{t:370\.25,until:377\.45,y:1173,card:\[64,292,1016,878\],to:\[940,255\]\}/, table: 'commandes',
     bubble: 'Un accès trop large&nbsp;:<br>à toi de donner<br>les bons accès !',
     chapters: ['Un accès trop large', 'Les accès nécessaires', 'Ce qu’elle peut consulter', 'Autoriser la consultation', 'Une modification précise', 'Les limites de son accès', 'Retirer les accès',
       'Le dernier réflexe', 'Merci pour tout', 'À retenir', 'Le chemin parcouru'],
