@@ -283,7 +283,7 @@ test('chapitre 15 : écran titre, ouverture comme aux autres chapitres, la box s
   assert.equal(caps[1], 'Au chapitre 14, un verrou<br>a gardé la dernière place<br>pour une seule réservation.', 'le chapitre précédent');
   const cc = fs.readFileSync(path.join(root, 'assets/anim/projet-concurrence.html'), 'utf8');
   assert.ok(cc.includes('les vues : des requêtes enregistrées') && cc.includes('Prochaine leçon · CREATE VIEW</span>'), 'le chapitre 14 annonce celui-ci');
-  assert.ok(caps.includes('Dans la prochaine leçon,<br>une file d’attente s’allongera<br>à l’entrée d’un grand événement.') && page.includes('Prochaine leçon · Les index et EXPLAIN</span>'),
+  assert.ok(caps.includes('Dans la prochaine leçon,<br>la file des commandes à préparer<br>s’allongera.') && page.includes('Prochaine leçon · Les index et EXPLAIN</span>'),
     'annonce de la prochaine leçon');
   assert.equal(lessons[lessons.findIndex(l => l.id === 64) + 1].titre, 'Les index et EXPLAIN');
   assert.equal(caps[caps.length - 2], 'Pour finir, voici les <b>trois idées à retenir</b>.');

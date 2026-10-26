@@ -24,7 +24,7 @@ test('chaque cadre Exécuter des cours a sa consigne en en-tête (p.gd-try juste
     assert.ok(!/<p>👇/.test(b), `${l.titre} : une consigne « 👇 » est restée un simple paragraphe`);
     heads += ok.length;
   }
-  assert.ok(heads >= 12, `au moins 12 consignes en en-tête (${heads})`);   // 26 INSERT, 27 UPDATE, 28 DELETE, 61 CREATE TABLE, 65 ALTER TABLE, 66 DROP, 68 ON DELETE, 62 Transactions, 63 SAVEPOINT, 70 Les triggers, 71 Concurrence et isolation et 64 CREATE VIEW sont devenus des cours en vidéo ; 67 est supprimé et 69 fusionné dans 26
+  assert.ok(heads >= 5, `au moins 5 consignes en en-tête (${heads})`);   // 26 INSERT, 27 UPDATE, 28 DELETE, 61 CREATE TABLE, 65 ALTER TABLE, 66 DROP, 68 ON DELETE, 62 Transactions, 63 SAVEPOINT, 70 Les triggers, 71 Concurrence et isolation, 64 CREATE VIEW et 57 Les index et EXPLAIN sont devenus des cours en vidéo ; 67 est supprimé et 69 fusionné dans 26
 });
 
 test('« Teste par toi-même » et « Exécute cette requête… » : même en-tête, l’emoji passe dans la pastille', () => {

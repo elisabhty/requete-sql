@@ -45,8 +45,11 @@ test('compteur des missions : data-ease="linear" suit un rythme régulier', () =
 /* Objets à thème (guidePage) : la structure de chaque mise en page, sur le modèle des billets du cours 6. Le protocole des
    pages reste celui du contrôle (tests/helpers/guide-checks.mjs) : une carte pg-card par ligne du résultat, dans l'ordre (cartes
    empilées comprises), chacune avec toutes les colonnes de sa ligne (data-c, data-v). */
-const themed = [57];   // les autres objets à thème étaient dans le cours texte des cours en vidéo
-const lessonOf = id => vm.runInContext(`MODULES.flatMap(m=>m.lessons).find(l=>l.id===${id})`, ctx);
+/* L’objet à thème du cours 57 (l’outil interne) : son cours texte est gardé dans tests/fixtures/guide-texte-index.js (identifiant 957), le cours
+   étant devenu le chapitre 16, en vidéo ; les autres objets à thème étaient dans le cours texte des cours en vidéo. */
+const themed = [957];
+const INDEX_TEXTE = vm.runInContext(fs.readFileSync(path.join(root, 'tests/fixtures/guide-texte-index.js'), 'utf8'), ctx);
+const lessonOf = id => id === 957 ? INDEX_TEXTE : vm.runInContext(`MODULES.flatMap(m=>m.lessons).find(l=>l.id===${id})`, ctx);
 const doneOf = id => { const b = lessonOf(id).studio.uses.body; return b.slice(b.lastIndexOf('<div class="ij-done is-locked"')); };
 const count = (s, re) => (s.match(re) || []).length;
 const withBody = (l, b) => Object.assign({}, l, {studio: Object.assign({}, l.studio, {uses: Object.assign({}, l.studio.uses, {body: b})})});
@@ -71,8 +74,8 @@ test('objets à thème : plus aucun envoi générique (guideSms et sa bulle reti
   }
 });
 
-test('cours 57 (recherche) : une seule fiche, la ligne du plan (is-plan)', () => {
-  assert.equal(count(doneOf(57), /<div class="pg-card is-plan"/g), 1);
+test('cours 57 (recherche, cours texte d’exemple) : une seule fiche, la ligne du plan (is-plan)', () => {
+  assert.equal(count(doneOf(957), /<div class="pg-card is-plan"/g), 1);
 });
 
 test('contrôle des pages : deux valeurs échangées entre deux cartes (ou une valeur changée) sont refusées, sur chaque objet à thème', () => {

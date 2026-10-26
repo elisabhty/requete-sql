@@ -1129,6 +1129,17 @@ const COURSES = [
       "{at: atp('p1'), from: A.a1, kind: 'tap', need: 3,", "{label: 'nom, categorie et prix', ok: true,", "{label: 'Les 3 produits de la box : nom, catégorie et prix', ok: true,",
       "{label: 'Non, il suffit de consulter à nouveau la vue', ok: true,", "{at: atp('p5'), from: A.e3, kind: 'tap', need: 1,", "{at: atp('p6'), from: A.g1, kind: 'sort',",
       "['{vwh|WHERE selection_box = 1};']", 'Prochaine leçon · Les index et EXPLAIN']},
+  {id: 57, next: 50, titre: 'Les index et EXPLAIN', page: 'projet-index.html', thumb: 'projet-index-thumb.webp', duree: '3 min 56', notesAt: 197.84,
+    notes: /notes:\{t:228\.7,y:1308,card:\[64,292,1016,1013\],to:\[940,255\]\}/, table: 'commandes',
+    bubble: 'La file d’attente s’allonge&nbsp;:<br>à toi d’accélérer<br>la recherche !',
+    chapters: ['La file d’attente s’allonge', 'La recherche de la commande', 'Lire le plan', 'Créer l’index', 'Le nouveau plan', 'Le plan ou la mesure ?', 'Des index partout ?', 'À retenir'],
+    traps: ["const ANNEES = [[2019, 52310], [2020, 61875], [2021, 70432], [2022, 78119], [2023, 83547], [2024, 79861], [2025, 73350], [2026, 506]];",
+      "const BINS = [['pl', 'Le plan', 'comment la requête s’exécute'], ['me', 'Une mesure', 'en combien de temps']];",
+      // Les six moments : sans index, toutes les lignes sont lues ; une table deux fois plus grande ; la colonne à indexer ; la partie du plan
+      // qui nomme l’index ; ce que donnent le plan et une mesure ; un index sur chaque colonne ?
+      "{label: 'Les 500 000 commandes sont lues, une à une', ok: true,", "{label: 'Elle sera environ deux fois plus lente', ok: true,", "{label: 'numero_commande', ok: true,",
+      "{at: atp('p4'), from: A.d1, kind: 'tap', need: 1,", "{at: atp('p5'), from: A.e1, kind: 'sort',", "{label: 'Non : chaque index a un coût', ok: true,",
+      "['CREATE INDEX {inm|idx_commandes_numero}']", 'Prochaine leçon · Sécurité et droits']},
 ];
 
 for (const c of COURSES) {
@@ -1611,7 +1622,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
     && D.CAPTIONS[iq + 1][0] <= 12.6 && D.CAPTIONS[iq + 1][1] >= 14.3 && D.CAPTIONS[iq + 2][2] === 'Pour le savoir, il faut relier les tables grâce à des <b>clés</b>.'
     && page.includes("pop('#ms1', 14.0, 0.5); pop('#ms2', 14.3, 0.5);"), 'la question du 4 septembre, pendant que la ligne s’allume et que « ? client » et « ? atelier » apparaissent');
   /* Une seule façon de nommer la table d’une relation N ↔ N, dans les trois chapitres. */
-  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html', 'projet-transaction.html', 'projet-savepoint.html', 'projet-trigger.html', 'projet-concurrence.html', 'projet-vue.html'])
+  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html', 'projet-transaction.html', 'projet-savepoint.html', 'projet-trigger.html', 'projet-concurrence.html', 'projet-vue.html', 'projet-index.html'])
     assert.ok(!fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8').includes('table de jointure'), `${f} : « table d’association », jamais « table de jointure »`);
   assert.ok(caps.includes('Une <b>table d’association</b>'), 'le chapitre 2 la nomme comme le chapitre 3');
   /* La clé étrangère : sa définition, puis à quoi elle sert, sur l’exemple entouré (inscription 1, client_id 1, Sophie Martin). */
@@ -2839,7 +2850,7 @@ test('Quel JOIN choisir ? : chaque étiquette montre le résultat de SQLite (ord
 });
 
 test('deux réponses enchaînées aux moments « À toi » : la pastille rouge du mauvais geste ne reste pas, clear() retire la classe de flash() sans attendre le minuteur', () => {
-  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html', 'projet-transaction.html', 'projet-savepoint.html', 'projet-trigger.html', 'projet-concurrence.html', 'projet-vue.html']) {
+  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html', 'projet-transaction.html', 'projet-savepoint.html', 'projet-trigger.html', 'projet-concurrence.html', 'projet-vue.html', 'projet-index.html']) {
     const src = fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8');
     const clearSrc = src.match(/function clear\(\)\{\n[\s\S]*?\n  \}/)?.[0], flashSrc = src.match(/const flash = \(e, c, ms = 600\) => \{[^\n]*\};/)?.[0];
     assert.ok(clearSrc && flashSrc, `${f} : clear() et flash() trouvés`);

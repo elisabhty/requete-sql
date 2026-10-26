@@ -1,6 +1,7 @@
 /* Objets à thème, famille « screen » (guidePage) : l’outil interne et sa recherche par numéro (cours 57, cours texte ; le
    téléphone des cours 7 et 8 et l’écran verrouillé du cours 78 étaient dans le cours texte des cours en vidéo, retiré). Chaque
    carte porte toutes les colonnes de sa ligne : le contrôle des pages (tests/helpers/guide-checks.mjs) les compare au vrai résultat. */
+import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
@@ -10,7 +11,9 @@ import {guideEnv, checkGuideLesson} from './helpers/guide-checks.mjs';
 const root = path.resolve(import.meta.dirname, '..');
 const env = await guideEnv(root);
 const {html, ctx} = env;
-const lesson = id => vm.runInContext(`MODULES.flatMap(m=>m.lessons).find(l=>l.id===${id})`, ctx);
+/* Le cours 57 est devenu le chapitre 16, en vidéo : son cours texte est gardé dans tests/fixtures/guide-texte-index.js (identifiant 957). */
+const INDEX_TEXTE = vm.runInContext(fs.readFileSync(path.join(root, 'tests/fixtures/guide-texte-index.js'), 'utf8'), ctx);
+const lesson = id => id === 57 ? INDEX_TEXTE : vm.runInContext(`MODULES.flatMap(m=>m.lessons).find(l=>l.id===${id})`, ctx);
 const cardOf = l => { const b = l.studio.uses.body; return b.slice(b.lastIndexOf('<div class="ij-done is-locked"')); };
 const withBody = (l, f) => Object.assign({}, l, {studio: Object.assign({}, l.studio, {uses: Object.assign({}, l.studio.uses, {body: f(l.studio.uses.body)})})});
 const count = (s, re) => (s.match(re) || []).length;

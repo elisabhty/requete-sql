@@ -107,6 +107,9 @@ test('les chapitres du projet : les boutons touchés par l’élève qui réussi
   const vw = anim('projet-vue.html');
   assert.ok(vw.includes("confetti($('#bcre'), CRE + 0.6);") && vw.includes("confetti($('#bexe'), EXE1 + 0.6);") && vw.includes("confetti($('#bexe'), EXE2 + 0.6);"),
     'chapitre 15 : « Créer la vue », puis « Exécuter », deux fois');
+  const ix = anim('projet-index.html');
+  assert.ok(ix.includes("confetti($('#bexp'), EXE1 + 0.6);") && ix.includes("confetti($('#bcix'), CIX + 0.6);") && ix.includes("confetti($('#bexp'), EXE2 + 0.6);"),
+    'chapitre 16 : « Exécuter » (le plan), « Créer l’index », puis « Exécuter » (le nouveau plan)');
   const tx = anim('projet-transaction.html');
   assert.ok(tx.includes("confetti($('#bcom'), COM + 0.95);") && tx.includes("confetti($('#brol'), ROL + 0.95);") && !tx.includes("confetti($('#bhow')"), 'chapitre 11 : COMMIT et ROLLBACK, pas « Comment éviter ça ? »');
   const sp = anim('projet-savepoint.html');

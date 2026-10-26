@@ -37,7 +37,7 @@ test('cadre surligné + cadre « Exécuter » qui se suivent : la requête ne s�
   /* Aucun cadre « Exécuter » sans requête ; les requêtes fusionnées sont celles qui suivaient aussitôt leur cadre surligné. */
   assert.equal(lessons.reduce((n, l) => n + (l.body.match(/data-compact=/g) || []).length, 0), 0, 'plus de cadre compact');
   const merged = lessons.reduce((n, l) => n + (l.body.match(/ data-hit="/g) || []).length, 0);
-  assert.equal(merged, 2, '2 requêtes montrées deux fois de suite, désormais une seule fois (cours 50 et 57)');
+  assert.equal(merged, 1, 'une requête montrée deux fois de suite, désormais une seule fois (cours 50 ; le cours 57 est devenu le chapitre 16, en vidéo)');
   assert.equal(lessons.find(l => l.id === 1), undefined, 'le cours SELECT a rejoint le cours 0');
 });
 
