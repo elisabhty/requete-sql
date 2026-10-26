@@ -86,6 +86,10 @@ test('les autres actions : des tuiles égales, chacune avec son icône', () => {
     'html.lq #scr-lesson .bravo-tool.restart:active .bi svg{transform:rotate(-50deg)}'])
     assert.ok(lq.includes(part), part);
   assert.ok(html.includes('.bravo-next-btn,.bravo-done-note,.bravo-recap,.bravo-spark,.bravo-unlock,.bravo-tool{animation:none!important;opacity:1;transform:none}'), 'mouvements réduits : elles arrivent sans glisser');
+  /* Elisa, 26 octobre, 9 h 45 : « Il y a beaucoup d’espace en bas ». Le bilan n’a pas de barre du bas : plus de réserve de 96 px
+     (celle de la barre des autres étapes) sous les tuiles, 16 px suffisent (plus les 9 px et la zone du bas de l’écran de la leçon). */
+  assert.ok(html.includes('#lesson-body .ls-main.bravo-wrap{padding-bottom:16px}'), 'le bilan finit juste sous les tuiles');
+  assert.ok(html.includes('.ls-main{padding-bottom:calc(var(--ls-nav-h) + 12px)}') && html.includes('#scr-lesson.screen{padding-bottom:calc(var(--safe-bottom) + 9px + var(--kbar-offset));'), 'les autres étapes gardent la place de leur barre');
   for (const [name, src] of [['index.html', html], ['ludique.css', lq], ['design-premium.css', premium]])
     assert.ok(!/bravo-sec|bravo-row|bn-arrow|bravoArrow|bravo-actions-stack|bravo-unlock-row|Mon parcours<\/button>/.test(src), `${name} : plus d’anciens boutons`);
 });
