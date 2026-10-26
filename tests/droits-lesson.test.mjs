@@ -118,9 +118,9 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 275.19);
-  assert.ok(page.includes('notesAt: 275.19,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 282.39);
+  assert.equal(val('NOTES'), 271.89);
+  assert.ok(page.includes('notesAt: 271.89,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 279.09);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   assert.deepEqual(chaps.map(c => c.label), ['Un accès trop large', 'Les accès nécessaires', 'Ce qu’elle peut consulter', 'Autoriser la consultation', 'Une modification précise',
@@ -162,8 +162,7 @@ test('les phrases d’Elisa (26 octobre, 11 h 57) : sa trame, une phrase par bul
   assert.ok(lus.includes('Tu peux limiter un droit à une colonne.') && lus.includes('Lina peut maintenant modifier le statut des commandes, sans pouvoir changer leur quantité ou leur client.'));
   suite('La base vérifie les droits avant d’exécuter l’action.', 'Comme Lina n’a pas le droit de modifier les produits, le prix reste inchangé.');
   suite('REVOKE retire un droit accordé.', 'Ici, tu retires les deux autorisations données à Lina au début de sa mission.');
-  suite('Chaque personne utilise son propre compte, avec uniquement les droits nécessaires à ses missions.', 'Si ses missions évoluent, ses droits sont ajustés.',
-    'Si elle quitte l’équipe, ses accès sont retirés.');
+  suite('Chaque personne doit utiliser son propre compte, avec des droits adaptés à son travail.', 'Les accès doivent être revus lorsque sa mission change ou se termine.');
   /* Ses questions, mot pour mot ; ses réponses dans la correction de la bonne réponse */
   const picks = val('PICKS');
   assert.deepEqual([0, 1, 3, 5].map(i => picks[i].prompt), ['Lina prépare les colis. De quels accès a-t-elle besoin ?', 'Ce droit lui permet-il aussi de supprimer une commande ?',
@@ -173,6 +172,7 @@ test('les phrases d’Elisa (26 octobre, 11 h 57) : sa trame, une phrase par bul
   /* La question vient avant la réponse de la base : la carte du refus n’apparaît qu’après l’arrêt */
   assert.ok(picks[3].at < val('A').e3, 'moment 4 : avant « La base vérifie les droits »');
   assert.ok(!/masquer|bouton ne protège/i.test(lus.join(' ')), 'plus de question sur un bouton masqué (Elisa, 26 octobre, 22 h 46)');
+  /* La correction du moment 6 : les mots d’Elisa (26 octobre, 23 h 35) ; les bulles de la vidéo, elles, restent les siennes du 26 octobre, 11 h 57 */
   assert.equal(strip(picks[5].options[1].why), 'Chaque personne utilise son propre compte, avec uniquement les droits nécessaires à ses missions. Si ses missions évoluent, ses droits sont ajustés. Si elle quitte l’équipe, ses accès sont retirés.');
   assert.deepEqual(picks[5].options.map(o => o.label), ['Lui donner tous les droits pour éviter les blocages', 'Identifier ses besoins et lui accorder les droits correspondants', 'Lui prêter le compte d’un collègue']);
   /* Ses quatre accès possibles, et les deux dont Lina a besoin */
