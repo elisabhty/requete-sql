@@ -369,7 +369,7 @@ test('le message : un mail du service client relaie la demande d’Inès Lefebvr
   assert.equal(opens[1].at, val('BTN')); assert.ok(opens[1].at > d2[0] + 1 && opens[1].at < d2[1] - 1, 'le bouton est visible, puis l’app s’arrête ; la légende ne reste pas longtemps après le toucher');
   assert.ok(opens[1].at > picks[0].at && opens[1].at < picks[1].at && opens[1].at > opens[0].at, 'après le moment 1 et le mail, avant le moment 2');
   assert.ok(val('NOTES') === 237.73 && val('DURATION') === 244.93, 'un arrêt « toucher » n’allonge pas la vidéo');
-  assert.ok(page.includes("if (!APP) fingerTap($('#bdel'), BTN, '#tapw', 0.6, 62);") && page.includes("press($('#bdel'), BTN, '#A92A31', 9);"),
+  assert.ok(page.includes("if (!APP) fingerTap($('#bdel'), BTN, '#tapw', 0.6, 62);") && page.includes("press($('#bdel'), BTN, '#A92A31', 9, false);"),
     'le doigt ne montre le geste que dans la vidéo seule ; dans l’app, le bouton s’enfonce au toucher de l’élève');
   assert.equal(l68.video.moments, 6, 'le bouton ne compte pas parmi les moments « À toi »');
   /* Elisa, 25 octobre, 15 h 48 : « met des espaces dans le mail pour espacer » : un blanc entre les blocs, la citation collée à sa phrase, la signature collée à « Merci ! ». */

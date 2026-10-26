@@ -103,9 +103,9 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 201.74);
-  assert.ok(page.includes('notesAt: 201.74,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 208.94);
+  assert.equal(val('NOTES'), 245.04);
+  assert.ok(page.includes('notesAt: 245.04,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 252.24);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   /* Les trois parties de la trame d’Elisa (le message, la table d’historique et le trigger, la vérification avec le stock), découpées comme dans
@@ -149,8 +149,28 @@ test('les phrases d’Elisa (25 octobre, 20 h 52) : sa trame, une phrase par bul
   /* La table d’historique, le déclencheur à créer, la vérification avec le stock */
   dit('Elle garde le produit concerné, l’ancien prix, le nouveau prix et la date du changement.',
     'Pour vérifier, tu modifies ensuite uniquement le stock du collagène.', 'Aucune ligne n’est ajoutée à l’historique des prix.');
-  dit('AFTER UPDATE ON produits le lance après une modification de produit.', 'WHEN ajoute une condition : son prix a réellement changé.',
-    'Entre BEGIN et END, il enregistre l’ancien et le nouveau prix dans l’historique.');
+  /* Ses mots du 26 octobre (7 h 18) : ce qu’est un trigger (Réf 3), AFTER UPDATE ON (Réf 4), WHEN (Réf 2), BEGIN et END (Réf 5). Une phrase
+     trop longue pour trois lignes devient deux bulles ; « la table historique_prix » plutôt que le nom seul, comme toujours. */
+  const suite = (...phrases) => { const i = lus.indexOf(phrases[0]); assert.ok(i >= 0, `légende : ${phrases[0]}`);
+    phrases.forEach((p, k) => assert.equal(lus[i + k], p, 'ses phrases, à la suite')); };
+  suite('Pour l’instant, aucun changement n’y est enregistré.',
+    'Un déclencheur, ou TRIGGER, est un bloc de code SQL qui s’exécute automatiquement lors d’un événement.',
+    'Par exemple : l’ajout, la modification ou la suppression de données.',
+    'Ici, chaque fois que le prix d’un produit change, le trigger enregistre l’ancien prix, le nouveau et la date.',
+    'Il les ajoute à la table historique_prix.',
+    'Tu n’as pas à ajouter toi-même cette ligne dans l’historique.');
+  suite('CREATE TRIGGER crée le trigger, ici nommé garder_prix.',
+    'AFTER UPDATE ON produits signifie « après une modification dans la table produits ».',
+    'Cela précise à quel moment le déclencheur intervient.',
+    'WHEN précise la condition à respecter : l’ancien prix (OLD.prix) doit être différent du nouveau (NEW.prix).',
+    'Si le prix reste identique, rien n’est ajouté à l’historique.',
+    'BEGIN et END encadrent les instructions à exécuter automatiquement.',
+    'Ici, INSERT INTO ajoute une ligne dans la table historique_prix.',
+    'Elle contient l’identifiant du produit, l’ancien prix, le nouveau prix et la date du changement.',
+    'OLD.prix donne l’ancien prix, NEW.prix le nouveau.');
+  /* L’explication du moment 2 (Réf 1), mot pour mot */
+  assert.equal(strip(val('PICKS')[1].options[0].why), 'AFTER UPDATE ON produits indique que le trigger intervient après une modification dans la table produits. ' +
+    'La condition WHEN OLD.prix <> NEW.prix précise que son action s’exécute uniquement si le prix a changé : OLD.prix correspond à l’ancien prix et NEW.prix au nouveau.');
   /* Le changement de prix, 39,90 € → 34,90 €, rejoué pour tester le trigger */
   dit('Dans la table produits, le collagène est bien à 34,90 €.', 'Pour tester le trigger, rejouons le changement de prix du collagène.',
     'Le collagène repart de son ancien prix : 39,90 €.', 'La date vient de CURRENT_TIMESTAMP : le 25/10/2026 à 14:32.');

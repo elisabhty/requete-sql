@@ -6466,6 +6466,9 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 .lv.on{opacity:1;transform:none}
 /* Pendant le fondu de fermeture (320 ms), le lecteur devenu transparent ne retient plus le doigt : on peut déjà faire défiler le cours. */
 .lv:not(.on){pointer-events:none}
+/* Confettis d’un bouton réussi dans la vidéo (lvConfetti) : par-dessus l’image, sans jamais retenir le doigt. */
+.lv-confetti{position:absolute;inset:0;z-index:5;pointer-events:none;overflow:hidden}
+.lv-confetti i{position:absolute;display:block}
 .lv:focus{outline:none}
 .lv-close{position:absolute;z-index:4;left:calc(env(safe-area-inset-left,0px) + 12px);top:calc(env(safe-area-inset-top,0px) + 10px)}
 .lv-ico{width:44px;height:44px;padding:0;border-radius:50%;border:2px solid var(--line,#E6E1F6);background:#fff;color:var(--ink,#221C46);display:grid;place-items:center;box-shadow:0 3px 0 var(--lip,#DCD5F2);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .12s,box-shadow .12s}
@@ -9141,11 +9144,12 @@ guide({ id:70, titre:"Les triggers", résumé:"Déclencher une action automatiqu
      conservée automatiquement ? ») ; la table produits ne garde que le prix actuel du collagène (le produit 2, Collagène Marin) :
      l’ancien prix et la date du changement sont introuvables (moment 1 : un UPDATE remplace l’ancien prix sans garder de trace).
      2 · Garder chaque changement : l’équipe commerciale a ajouté la table historique_prix (produit_id, ancien_prix, nouveau_prix,
-     date_changement), encore vide. 3 · Créer le trigger, une partie de la requête par bulle : CREATE TRIGGER garder_prix, AFTER UPDATE
-     ON produits, WHEN OLD.prix <> NEW.prix, puis entre BEGIN et END l’INSERT INTO historique_prix avec OLD.id, OLD.prix, NEW.prix et
-     CURRENT_TIMESTAMP (« après une modification de produit, si son prix a réellement changé, enregistrer l’ancien et le nouveau prix
-     dans l’historique », Elisa ; moment 2 : quand il ajoute une ligne) ; l’élève touche « Créer le trigger » : il est attaché à la
-     table produits. 4 · Modifier le prix : pour le tester, on rejoue le changement de prix, 39,90 € → 34,90 € (moment 3 : ce que vaut
+     date_changement), encore vide ; puis ce qu’est un déclencheur, avec les mots d’Elisa (26 octobre, 7 h 18, Réf 3 : « Un déclencheur,
+     ou TRIGGER, est un bloc de code SQL qui s’exécute automatiquement lors d’un événement… »). 3 · Créer le trigger, une partie de la
+     requête par bulle, avec ses mots (Réf 4, 2 et 5) : AFTER UPDATE ON produits signifie « après une modification dans la table
+     produits » ; WHEN précise la condition à respecter (OLD.prix différent de NEW.prix) ; BEGIN et END encadrent les instructions à
+     exécuter automatiquement, dont l’INSERT INTO historique_prix avec OLD.id, OLD.prix, NEW.prix et CURRENT_TIMESTAMP (moment 2 : quand
+     il ajoute une ligne, l’explication de la Réf 1) ; l’élève touche « Créer le trigger » : il est attaché à la table produits. 4 · Modifier le prix : pour le tester, on rejoue le changement de prix, 39,90 € → 34,90 € (moment 3 : ce que vaut
      OLD.prix) ; l’élève touche « Modifier le prix » ; le trigger se déclenche, sa condition est vraie, l’écran se déplace vers
      historique_prix et une ligne y apparaît toute seule (2, 39.90, 34.90, 2026-10-25 14:32:00) ; puis les trois bulles d’Elisa (« Tu
      n’as exécuté que la modification du prix. », « Le TRIGGER a ajouté la ligne d’historique automatiquement. », « Un trigger
@@ -9156,9 +9160,9 @@ guide({ id:70, titre:"Les triggers", résumé:"Déclencher une action automatiqu
      leçon seule : ni exercice ni quiz dans la vidéo, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on
      rejoue les moments ratés. Elle remplace l’ancien cours texte Les triggers (le Magnésium, le journal des clients supprimés, RAISE). */
   leconSeule:true,
-  video:{anim:'assets/anim/projet-trigger.html?app&embed',thumb:'assets/anim/projet-trigger-thumb.webp',duree:'3 min 57',moments:6,seuil:4,
-    /* « Ajouter à mes notes » : apparaît à 3 min 49 (229,3 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:229.3,y:1223,card:[64,292,1016,928],to:[940,255]}},
+  video:{anim:'assets/anim/projet-trigger.html?app&embed',thumb:'assets/anim/projet-trigger-thumb.webp',duree:'4 min 40',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 4 min 32 (272,6 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:272.6,y:1223,card:[64,292,1016,928],to:[940,255]}},
   reflex:[
     {recap:[
       ["⚡","Un <code>TRIGGER</code> déclenche une action lorsqu’un <b>événement précis</b> se produit dans une table.","Ici, <code>AFTER UPDATE ON produits</code> : après chaque modification d’un produit."],
@@ -14664,7 +14668,7 @@ class LvAnim{
       /* Mail reçu : l’image s’arrête sur la notification, à chaque visionnage, jusqu’à ce que l’élève la touche. */
       for(let i=0;i<this.opens.length;i++){ const ot=this.opens[i].t; if(ot>this.t&&ot<=t){ if((q<0&&pk<0)||ot<t){ t=ot; op=i; q=-1; pk=-1; } break; } }
       const end=t>=this.duration; if(end)t=this.duration;
-      while(this.ci<this.cues.length&&this.cues[this.ci].t<=t){ const c=this.cues[this.ci]; if(c.t>this.t)LvSfx.play(c.type,c.pitch||0,c.gain==null?1:c.gain,.36*Math.sin(this.ci*2.399)); this.ci++; }
+      while(this.ci<this.cues.length&&this.cues[this.ci].t<=t){ const c=this.cues[this.ci]; if(c.t>this.t){ if(c.type==='confetti')lvConfetti(this.frame,c); else LvSfx.play(c.type,c.pitch||0,c.gain==null?1:c.gain,.36*Math.sin(this.ci*2.399)); } this.ci++; }
       this.t=t; this._render();
       if(now-this.lastTU>=80||end||q>=0||pk>=0||op>=0){ this.lastTU=now; this._emit('timeupdate'); }
       if(q>=0){ this.paused=true; this._emit('pause'); this._emit('question',{i:q,q:this.questions[q]}); return; }
@@ -14674,6 +14678,33 @@ class LvAnim{
       this._loop();
     });
   }
+}
+/* Confettis d’une vidéo (Elisa, 26 octobre, 7 h 18 : « quand on appuie sur les boutons pour lancer requête ou triggers etc et que c’est
+   pas une erreur ensuite mettre des confettis »). La page les annonce comme un son (repère « confetti », position du bouton sur la scène
+   1080 × 1920) ; le lecteur les lance en direct, par-dessus l’image : une pause de lecture ne les fige pas, revenir en arrière ne les
+   rejoue pas. Même gerbe que la requête à trous réussie (qfConfetti), à l’échelle de l’image, même quand elle est réduite (lvPkFit). */
+function lvConfetti(frame,c){
+  if(prefersReduceMotion()||!LV||!LV.root||!frame||!(c.x>=0)||!(c.y>=0))return;
+  let st=null; try{ st=frame.contentDocument&&frame.contentDocument.getElementById('stage'); }catch(e){}
+  if(!st)return;
+  const fr=frame.getBoundingClientRect(),sr=st.getBoundingClientRect(),z=fr.width/(frame.offsetWidth||fr.width||1),k=sr.width/1080*z;
+  if(!(k>0))return;
+  const ox=fr.left+(sr.left+c.x*sr.width/1080)*z,oy=fr.top+(sr.top+c.y*sr.width/1080)*z;
+  const layer=document.createElement('div');layer.className='lv-confetti';layer.setAttribute('aria-hidden','true');
+  LV.root.appendChild(layer);
+  const cols=['#a78bfa','#7A6FF0','#c4b5fd','#4ade80','#fcd34d','#f9a8d4','#7CC7FF'];
+  for(let n=0;n<46;n++){
+    const i=document.createElement('i'),ang=-Math.PI/2+(Math.random()-.5)*Math.PI*1.5,v=(320+Math.random()*420)*k;
+    const dx=Math.cos(ang)*v,dy=Math.sin(ang)*v,rot=(Math.random()-.5)*900,w=(16+Math.random()*14)*k;
+    i.style.cssText=`left:${ox}px;top:${oy}px;width:${w}px;height:${w*(Math.random()<.5?1:1.8)}px;background:${cols[n%cols.length]};border-radius:${Math.random()<.3?'50%':'2px'}`;
+    layer.appendChild(i);
+    i.animate([
+      {transform:'translate(-50%,-50%) rotate(0)',opacity:1},
+      {transform:`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) rotate(${rot*.6}deg)`,opacity:1,offset:.45},
+      {transform:`translate(calc(-50% + ${dx*1.25}px),calc(-50% + ${dy+600*k}px)) rotate(${rot}deg)`,opacity:0}
+    ],{duration:1400+Math.random()*500,delay:Math.random()*90,easing:'cubic-bezier(.2,.7,.4,1)',fill:'forwards'});
+  }
+  setTimeout(()=>layer.remove(),2300);
 }
 /* Leçon en vidéo : la vidéo est son cours (sans texte de secours). lessonVideoOn : vidéo lisible, pas tombée en échec. */
 function lessonHasVideo(l){return !!(l&&l.video&&(l.video.anim||l.video.src));}
@@ -24935,7 +24966,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2052';
+  const SW_CACHE='requete-2026-10-12-ludique-v2053';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
