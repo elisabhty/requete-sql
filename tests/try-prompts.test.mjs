@@ -10,7 +10,11 @@ import {guideEnv} from './helpers/guide-checks.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const {html, ctx} = await guideEnv(root);
-const lessons = vm.runInContext('MODULES.flatMap(m=>m.lessons)', ctx).filter(l => !l.video);   // les cours en vidéo n’ont pas de cours texte
+/* Tous les cours de l’app sont en vidéo depuis le 26 octobre (Sécurité et droits, le dernier cours texte, est devenu le chapitre 17) : les cadres
+   Exécuter sont vérifiés sur les trois cours texte d’exemple (tests/fixtures : les anciennes leçons 50, 57 et 64). */
+const FIXTURES = ['guide-texte-droits.js', 'guide-texte-index.js', 'guide-texte-create-view.js'];
+assert.equal(vm.runInContext('MODULES.flatMap(m=>m.lessons)', ctx).filter(l => !l.video).length, 0, 'plus aucun cours texte dans l’app');
+const lessons = FIXTURES.map(f => vm.runInContext(fs.readFileSync(path.join(root, 'tests/fixtures', f), 'utf8'), ctx));
 const bodyOf = l => [l.situation, l.studio.problem.extra, l.studio.uses.body, (l.studio.reflex || {}).extra].join('\n');
 
 test('chaque cadre Exécuter des cours a sa consigne en en-tête (p.gd-try juste au-dessus), sans deux-points final', () => {
@@ -24,7 +28,7 @@ test('chaque cadre Exécuter des cours a sa consigne en en-tête (p.gd-try juste
     assert.ok(!/<p>👇/.test(b), `${l.titre} : une consigne « 👇 » est restée un simple paragraphe`);
     heads += ok.length;
   }
-  assert.ok(heads >= 5, `au moins 5 consignes en en-tête (${heads})`);   // 26 INSERT, 27 UPDATE, 28 DELETE, 61 CREATE TABLE, 65 ALTER TABLE, 66 DROP, 68 ON DELETE, 62 Transactions, 63 SAVEPOINT, 70 Les triggers, 71 Concurrence et isolation, 64 CREATE VIEW et 57 Les index et EXPLAIN sont devenus des cours en vidéo ; 67 est supprimé et 69 fusionné dans 26
+  assert.ok(heads >= 5, `au moins 5 consignes en en-tête (${heads})`);   // les trois cours texte d’exemple : Sécurité et droits, Les index et EXPLAIN, CREATE VIEW
 });
 
 test('« Teste par toi-même » et « Exécute cette requête… » : même en-tête, l’emoji passe dans la pastille', () => {

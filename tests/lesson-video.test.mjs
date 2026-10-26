@@ -1140,11 +1140,24 @@ const COURSES = [
       "{label: 'Les 500 000 commandes sont lues, une à une', ok: true,", "{label: 'Elle sera environ deux fois plus lente', ok: true,", "{label: 'numero_commande', ok: true,",
       "{at: atp('p4'), from: A.d1, kind: 'tap', need: 1,", "{at: atp('p5'), from: A.e1, kind: 'sort',", "{label: 'Non : chaque index a un coût', ok: true,",
       "['CREATE INDEX {inm|idx_commandes_numero}']", 'Prochaine leçon · Sécurité et droits']},
+  /* Le dernier chapitre du projet, et le dernier cours de l’app : pas de leçon suivante (next: null). */
+  {id: 50, next: null, titre: 'Sécurité et droits', page: 'projet-droits.html', thumb: 'projet-droits-thumb.webp', duree: '5 min 08', notesAt: 255.6,
+    notes: /notes:\{t:300\.8,y:1173,card:\[64,292,1016,878\],to:\[940,255\]\}/, table: 'commandes',
+    bubble: 'Un accès trop large&nbsp;:<br>à toi de donner<br>les bons accès !',
+    chapters: ['Un accès trop large', 'Les accès nécessaires', 'Ce qu’elle peut consulter', 'Autoriser la consultation', 'Une modification précise', 'Les limites de son accès', 'Retirer les accès',
+      'Le dernier réflexe', 'À retenir'],
+    traps: ["const VCOLS = ['numero_commande', 'destinataire', 'adresse_livraison', 'statut'];",
+      "const VUE = [['NB-10482', 'Léa Simon', '41 avenue Jaurès, Paris', 'en_preparation'], ['NB-10483', 'Nathan Petit', '5 rue Victor Hugo, Paris', 'en_preparation']];",
+      // Les six moments : les deux accès nécessaires ; ce droit permet-il de supprimer ? ; la partie qui limite le droit à une colonne ;
+      // masquer le bouton suffirait-il ? ; la commande qui retire un droit ; une nouvelle personne rejoint l’équipe
+      "{at: atp('p1'), from: A.a1, kind: 'tap', need: 2,", "{label: 'Non : chaque droit correspond à une action', ok: true,", "{at: atp('p3'), from: A.d0, kind: 'tap', need: 1,",
+      "{label: 'Non : les droits doivent aussi empêcher l’action', ok: true,", "{label: 'REVOKE SELECT ON commandes_expedition FROM lina;', ok: true,",
+      "{label: 'Identifier ses besoins et lui accorder les droits correspondants', ok: true,", "['{gup|GRANT UPDATE} {gst|(statut)}']", 'Projet NutriBoost terminé !']},
 ];
 
 for (const c of COURSES) {
   test(`${c.titre} : le cours a son animation et sa vignette, avec le bouton « Ajouter à mes notes » sous le récapitulatif`, () => {
-    const lesson = cut(`guide({ id:${c.id}, titre:"${c.titre}"`, `guide({ id:${c.next},`);
+    const lesson = cut(`guide({ id:${c.id}, titre:"${c.titre}"`, c.next ? `guide({ id:${c.next},` : '\n]}\n]');   // le dernier cours : jusqu’à la fin des modules
     const m = lesson.match(/video:\{anim:'([^']+)',thumb:'([^']+)',duree:'([^']+)',/);
     assert.ok(m, `champ video du cours ${c.titre}`);
     assert.equal(m[1], `assets/anim/${c.page}?app&embed`);
@@ -1622,7 +1635,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
     && D.CAPTIONS[iq + 1][0] <= 12.6 && D.CAPTIONS[iq + 1][1] >= 14.3 && D.CAPTIONS[iq + 2][2] === 'Pour le savoir, il faut relier les tables grâce à des <b>clés</b>.'
     && page.includes("pop('#ms1', 14.0, 0.5); pop('#ms2', 14.3, 0.5);"), 'la question du 4 septembre, pendant que la ligne s’allume et que « ? client » et « ? atelier » apparaissent');
   /* Une seule façon de nommer la table d’une relation N ↔ N, dans les trois chapitres. */
-  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html', 'projet-transaction.html', 'projet-savepoint.html', 'projet-trigger.html', 'projet-concurrence.html', 'projet-vue.html', 'projet-index.html'])
+  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html', 'projet-transaction.html', 'projet-savepoint.html', 'projet-trigger.html', 'projet-concurrence.html', 'projet-vue.html', 'projet-index.html', 'projet-droits.html'])
     assert.ok(!fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8').includes('table de jointure'), `${f} : « table d’association », jamais « table de jointure »`);
   assert.ok(caps.includes('Une <b>table d’association</b>'), 'le chapitre 2 la nomme comme le chapitre 3');
   /* La clé étrangère : sa définition, puis à quoi elle sert, sur l’exemple entouré (inscription 1, client_id 1, Sophie Martin). */
@@ -2850,7 +2863,7 @@ test('Quel JOIN choisir ? : chaque étiquette montre le résultat de SQLite (ord
 });
 
 test('deux réponses enchaînées aux moments « À toi » : la pastille rouge du mauvais geste ne reste pas, clear() retire la classe de flash() sans attendre le minuteur', () => {
-  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html', 'projet-transaction.html', 'projet-savepoint.html', 'projet-trigger.html', 'projet-concurrence.html', 'projet-vue.html', 'projet-index.html']) {
+  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html', 'projet-transaction.html', 'projet-savepoint.html', 'projet-trigger.html', 'projet-concurrence.html', 'projet-vue.html', 'projet-index.html', 'projet-droits.html']) {
     const src = fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8');
     const clearSrc = src.match(/function clear\(\)\{\n[\s\S]*?\n  \}/)?.[0], flashSrc = src.match(/const flash = \(e, c, ms = 600\) => \{[^\n]*\};/)?.[0];
     assert.ok(clearSrc && flashSrc, `${f} : clear() et flash() trouvés`);

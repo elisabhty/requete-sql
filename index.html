@@ -9264,108 +9264,40 @@ guide({ id:57, titre:"Les index et EXPLAIN", résumé:"Accélérer une recherche
 ]},
 { titre:"Sécurité et droits", sous:"Contrôler les accès", lessons:[
 guide({ id:50, titre:"Sécurité et droits", résumé:"Contrôler les accès avec GRANT et REVOKE",
-  sit:{
-    blocks:[
-      "L’équipe data branche <b>un outil de reporting</b> sur la base de la boutique. L’outil se connecte avec un compte dédié, <code>app_user</code>, qui doit pouvoir <b>lire</b> la table <code>clients</code>, mais pas la modifier.",
-      "Un SGBD <b>serveur</b> (PostgreSQL, MySQL, SQL Server) gère des comptes : chaque utilisateur se connecte avec le sien, et chaque compte reçoit des <b>droits</b>. Pour ouvrir cet accès, l’équipe souhaite définir uniquement :",
-      {need:[["👤","Le compte concerné","app_user"],["📋","La table à ouvrir","clients"],["👀","Le droit accordé","lecture seule"]],label:"Ce qu’il faut définir"},
-      {tip:{t:"Des commandes simulées",p:["SQLite, le moteur de cette application, n’a pas de comptes : <code>GRANT</code> et <code>REVOKE</code> ne s’y exécutent pas. Le bouton <b>Simuler</b> affiche donc la réponse qu’un serveur PostgreSQL donnerait."]}}
-    ],
-    problem:{
-      p:["Avec <code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code> et <code>DELETE</code>, SQL sait lire et modifier les tables, mais il ne se demande pas <b>qui</b> envoie la requête.","Or, sans règle, un compte connecté pourrait <b>modifier ou supprimer</b> des clients : <code>app_user</code> ne doit pouvoir que lire."],
-      scene:{h:"🔐 Que peut faire app_user ?",cols:"1.1fr 1fr .9fr",
-        lanes:[{c:[["h1","action","t"],["h2","commande","t"],["h3","autorisé ?","t"]]},
-          {k:"R1",c:[["a1","lire"],["a2","SELECT"],["a3","?","q"]]},
-          {k:"R2",c:[["b1","ajouter"],["b2","INSERT"],["b3","?","q"]]},
-          {k:"R3",c:[["c1","modifier"],["c2","UPDATE"],["c3","?","q"]]},
-          {k:"R4",c:[["d1","supprimer"],["d2","DELETE"],["d3","?","q"]]}],
-        caps:["<b>Notre compte</b> · app_user peut envoyer quatre sortes de commandes à la table clients.","<b>Besoin</b> · Il doit seulement pouvoir lire.","<b>Résultat</b> · Lire est autorisé ; ajouter, modifier et supprimer doivent être refusés."],
-        steps:[{cap:0,on:["R1","R2","R3","R4"],d:1900},{cap:1,off:["R2","R3","R4"],dim:["R2","R3","R4"],d:2300},{cap:2,undim:["R2","R3","R4"],text:{a3:"✅ oui",b3:"⛔ non",c3:"⛔ non",d3:"⛔ non"},stagger:350,d:3000}]},
-      then:["Il faut donc indiquer au serveur <b>quels droits</b> accorder à ce compte, et sur <b>quelle table</b>.","C’est exactement le rôle de <code>GRANT</code>."]
-    },
-    mission:"Aide l’équipe data à donner à <b>app_user</b> le droit de <b>lire</b> la table <b>clients</b>, sans lui accorder aucun autre droit, afin que l’outil de reporting consulte les clients sans pouvoir les modifier."
-  },
-  concept:{
-    title:"Comment un serveur peut-il savoir ce qu’un compte a le droit de faire ?",
-    blocks:[
-      "Le serveur garde, pour chaque compte, la liste de ses droits. Avant d’exécuter une requête, il la compare à cette liste :",
-      {ask:"Ce compte a-t-il le droit de faire cela, sur cette table ?"},
-      "En SQL, on accorde un droit avec <code>GRANT</code>, en précisant le droit, la table et le compte :",
-      {syntax:"GRANT ⟦SELECT⟧\nON ⟦clients⟧\nTO ⟦app_user⟧;"},
-      {scene:{h:"🔑 Les droits d’app_user",
-        lanes:[{k:"D",l:"Droits sur la table clients",c:[["d1","SELECT"],["d2","INSERT"],["d3","UPDATE"],["d4","DELETE"]]}],
-        caps:["<b>Au départ</b> · app_user n’a aucun droit sur la table clients.","<b>GRANT SELECT ON clients TO app_user</b> · Le droit de lire est accordé : les trois autres restent refusés.","<b>REVOKE SELECT ON clients FROM app_user</b> · Le droit est retiré : la lecture est de nouveau refusée."],
-        steps:[{cap:0,dim:["d1","d2","d3","d4"],d:2200},{cap:1,undim:["d1"],on:["d1"],d:2600},{cap:2,off:["d1"],dim:["d1"],d:2600}]}},
-      {looks:[["GRANT","accorde un droit à un compte"],["REVOKE","retire un droit à un compte"]],label:"Accorder ou retirer"}
-    ]
-  },
-  steps:[
-    {h:"Accorder un droit avec GRANT",blocks:[
-      "Le droit le plus courant est <code>SELECT</code>.",
-      {syntax:"GRANT ⟦SELECT⟧\nON produits\nTO app_user;"},
-      {looks:[["SELECT","le droit accordé : lire les lignes de la table"],["ON produits","la table concernée"],["TO app_user","le compte qui reçoit le droit"]]},
-      {say:"👇 Simule cette commande pour accorder à <code>app_user</code> la lecture des produits :",run:"GRANT SELECT\nON produits\nTO app_user;",sim:"GRANT"},
-      {arrow:"Le serveur répond <code>GRANT</code> : le droit est accordé, <code>app_user</code> peut lire la table <code>produits</code>."}
-    ]},
-    {h:"Retirer un droit avec REVOKE",blocks:[
-      "<code>REVOKE</code> retire un droit déjà accordé. Le compte se place après <code>FROM</code>, et non après <code>TO</code> :",
-      {syntax:"REVOKE ⟦SELECT⟧\nON produits\n⟦FROM⟧ app_user;"},
-      {say:"👇 Simule cette commande pour retirer le droit de lecture :",run:"REVOKE SELECT\nON produits\nFROM app_user;",sim:"REVOKE"},
-      {arrow:"Le serveur répond <code>REVOKE</code> : <code>app_user</code> n’a plus le droit de lire la table <code>produits</code>."},
-      {say:"👇 Simule maintenant une lecture envoyée par <code>app_user</code> :",run:"SELECT nom, prix\nFROM produits;",sim:"ERROR:  permission denied for table produits"},
-      {arrow:"Le serveur refuse la requête : sans le droit <code>SELECT</code>, la table lui est fermée."}
-    ]},
-    {h:"Donner le minimum de droits",blocks:[
-      "Le piège classique est d’accorder trop de droits.",
-      {warn:{t:"Tous les droits d’un coup",blocks:[
-        "Si tu écris :",
-        {syntax:"GRANT ALL PRIVILEGES\nON clients\nTO app_user;"},
-        "<code>ALL PRIVILEGES</code> accorde <b>tous</b> les droits : lire, mais aussi ajouter, modifier et supprimer. L’outil de reporting pourrait alors abîmer la table par erreur.",
-        {say:"👇 Simule une modification envoyée par <code>app_user</code>, une fois ces droits accordés :",run:"UPDATE clients\nSET email = NULL;",sim:"UPDATE 10"},
-        {arrow:"Le serveur répond <code>UPDATE 10</code> : tous les emails viennent d’être effacés."}
-      ]}},
-      {tip:{t:"Le bon réflexe",p:["Pose-toi toujours la même question : <b>quel est le droit minimal</b> dont ce compte a besoin ? Un compte de lecture reçoit <code>SELECT</code>, rien de plus."]}}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la commande complète : le droit de lecture, sur la table <code>clients</code>, pour le compte <code>app_user</code>.",
-      {say:"👇 Simule la commande pour ouvrir la lecture de <code>clients</code> :",run:"GRANT SELECT\nON clients\nTO app_user;",sim:"GRANT"},
-      {done:{
-        label:"De quatre droits possibles à un seul droit accordé",
-        unit:"free",
-        funnel:[
-          {n:4,t:"droits possibles",s:"lire, ajouter, modifier ou supprimer dans la <code>table clients</code>",dots:"0000"},
-          {step:"GRANT SELECT ON clients TO app_user",s:"n’accorde que le droit de lecture"},
-          {n:1,t:"⭐ droit accordé",s:"<code>app_user</code> peut lire <code>clients</code>, sans pouvoir la modifier",dots:"1000",out:true}
-        ],
-        board:{ico:"🔐",h:"Droits d’app_user sur clients",aria:"app_user reçoit le droit de lire la table clients ; ajouter, modifier et supprimer restent refusés",kpi:"Droits accordés",count:{t:"Droits accordés",from:0,to:1},ops:{"0": {"op": "upd", "from": {"2": "⛔ non"}}},cols:["action", "commande", "autorisé ?"],rows:[["lire", "SELECT", "✅ oui"], ["ajouter", "INSERT", "⛔ non"], ["modifier", "UPDATE", "⛔ non"], ["supprimer", "DELETE", "⛔ non"]],done:"✓ Droit de lecture accordé, rien de plus"},
-        fill:["GRANT","SELECT","clients","app_user"],
-        ui:{t:"Un accès en lecture seule",s:"L’outil de reporting est branché sans risque.",n:["GRANT","SELECT","ON","TO"]},
-        rows:1
-      }}
-    ]}
-  ],
+  /* Projet, chapitre 17 (le dernier), en vidéo interactive : l’animation (assets/anim/projet-droits.html, moteur commun
+     assets/anim/core.js) est le cours. La trame est celle d’Elisa (26 octobre, 11 h 57, « Sécurité et droits — Un accès trop
+     large »), ses bulles et ses messages gardés mot pour mot, une phrase par bulle ; la photo de Lina est la sienne. Elle s’ouvre
+     comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 16, un index a accéléré la recherche des commandes »).
+     1 · Un accès trop large : l’écran de gestion de NutriBoost (les commandes, les produits, les fiches clients) ; une nouvelle
+     collègue doit préparer les colis ; avec un compte trop large, elle pourrait aussi modifier les prix et supprimer des clients ;
+     Camille Roux, responsable des opérations, écrit par SMS (« Bonjour ! Lina rejoint l’équipe pour nous aider à préparer les
+     commandes pendant un mois… Peux-tu lui donner les accès adaptés à sa mission ? »). 2 · Les accès nécessaires : la fiche du
+     compte de Lina et ses quatre accès possibles (moment 1 : les deux dont elle a besoin), puis les deux bulles d’Elisa. 3 · Ce
+     qu’elle peut consulter : la vue commandes_expedition (numero_commande, destinataire, adresse_livraison, statut), ses deux bulles ;
+     son compte ne dispose, pour le moment, d’aucun accès aux tables. 4 · Autoriser la consultation : GRANT SELECT ON
+     commandes_expedition TO lina, simulé (SQLite n’a pas de comptes : le bouton « Simuler » affiche la réponse d’un serveur
+     PostgreSQL) ; Lina ouvre la liste des expéditions ; les deux bulles d’Elisa (moment 2 : ce droit lui permet-il de supprimer une
+     commande ?). 5 · Une modification précise : le SMS de Lina (« Je peux consulter les expéditions ! Le colis de Léa Simon est
+     prêt… »), GRANT UPDATE (statut) ON commandes TO lina (moment 3 : la partie qui limite le droit à une colonne) ; le colis de Léa
+     Simon passe à « expédiée ». 6 · Les limites de son accès : UPDATE produits SET prix = 1 WHERE id = 2, refusé (moment 4 :
+     suffirait-il de masquer le bouton ?). 7 · Retirer les accès : un mois plus tard, le SMS de Camille Roux ; REVOKE … FROM lina
+     (moment 5 : la commande qui retire un droit) ; les deux autorisations quittent sa fiche. 8 · Le dernier réflexe (moment 6 : une
+     nouvelle personne rejoint l’équipe), puis la fin du projet. Six moments « À toi », comme aux chapitres du projet ; leçon seule :
+     ni exercice ni quiz dans la vidéo, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments
+     ratés. Elle remplace l’ancien cours texte Sécurité et droits (app_user et la table clients), le dernier cours texte de l’app : il
+     est gardé pour les tests (tests/fixtures/guide-texte-droits.js). */
+  leconSeule:true,
+  video:{anim:'assets/anim/projet-droits.html?app&embed',thumb:'assets/anim/projet-droits-thumb.webp',duree:'5 min 08',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 5 min 00 (300,8 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:300.8,y:1173,card:[64,292,1016,878],to:[940,255]}},
   reflex:[
     {recap:[
-      ["🔑","<code>GRANT</code> <b>accorde</b> un droit sur une table à un compte :",null,"GRANT SELECT ON clients TO app_user"],
-      ["↩️","<code>REVOKE</code> <b>retire</b> un droit accordé : le compte le perd aussitôt.",null,"REVOKE SELECT ON clients FROM app_user"],
-      ["🎯","Donne le <b>minimum nécessaire</b> : un compte de lecture reçoit <code>SELECT</code>, jamais <code>ALL PRIVILEGES</code>."]
+      /* Les mots d’Elisa (sa trame, 26 octobre, 11 h 57, « Ce que tu retiens »), comme dans la vidéo. */
+      ["🔐","Accorde uniquement les <b>accès nécessaires</b>.","Un compte doit pouvoir effectuer les actions utiles à sa mission."],
+      ["✅","<code>GRANT</code> permet d’<b>accorder</b> un droit.","Tu peux autoriser la consultation ou limiter une modification à certaines colonnes."],
+      ["🚪","<code>REVOKE</code> permet de <b>retirer</b> un droit.","Pense à revoir les accès lorsqu’une mission change ou se termine."]
     ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"GRANT SELECT ON clients",txt:"Donne le droit de lecture sur la table clients."},{tok:"TO app_user",txt:"À l’utilisateur app_user."},{tok:"REVOKE SELECT ON clients",txt:"Retire le droit de lecture sur clients."},{tok:"FROM app_user",txt:"Pour le même utilisateur."}],
-  exemple:"-- Exemple de principe (la syntaxe varie selon le SGBD)\nGRANT SELECT ON clients TO app_user;\n\nREVOKE SELECT ON clients FROM app_user;",
-  attendu:"Le serveur répond <code>REVOKE</code> : <code>stagiaire</code> ne peut plus lire la table <code>commandes</code>. Cette commande ne s’exécute pas dans SQLite.",
-  retenir:"<code>GRANT</code> accorde un droit sur une table à un compte. <code>REVOKE</code> le retire.<br><br>Un SGBD serveur (PostgreSQL, MySQL, SQL Server) gère des comptes, chacun avec ses droits. SQLite, le moteur de cette application, n’en a pas : les commandes de droits y sont simulées.<br><br>Principe : accorder le <b>minimum nécessaire</b>. Pour seulement lire <code>clients</code> : <code>GRANT SELECT</code>, pas <code>ALL PRIVILEGES</code>.",
-  consigne:"Le compte <code>stagiaire</code> peut lire la table <code>commandes</code>, mais son stage est terminé. Retire-lui uniquement ce droit de lecture.",
-  solution:"REVOKE SELECT ON commandes FROM stagiaire;",
-  indice:"Écris <code>REVOKE SELECT</code> sur la table <code>commandes</code>, puis précise le compte avec <code>FROM</code> : un retrait de droit ne s’écrit pas avec <code>TO</code>.",
-  noExec:true,
-  serverConcept:true,
-  noExecNote:"Cette commande ne s’exécute pas dans SQLite : on compare ce que tu écris à la commande attendue.",
-  noExecWhy:"SQLite n’a pas de comptes : <code>GRANT</code> et <code>REVOKE</code> sont des commandes de SQL serveur.",
-  noExecOk:{b:"✓ Correct — le droit est retiré",t:"<code>REVOKE SELECT ON commandes FROM stagiaire</code> retire le droit de lecture : <code>stagiaire</code> ne peut plus lire <code>commandes</code>. Cette commande ne s’exécute pas dans SQLite."},
-  petitDefi:[{p:"Quel mot introduit le compte qui reçoit le droit, dans un <code>GRANT</code> ?",sql:"GRANT SELECT ON produits __________ app_user;",a:"TO",answers:["TO","to","To"]}],
-  testeVariants:[{k:"grant_select",label:"GRANT SELECT",sql:"GRANT SELECT ON clients TO app_user;",out:"Droit de lecture seulement — non exécutable ici.",tone:"good",exec:false},{k:"grant_all",label:"GRANT ALL",sql:"GRANT ALL PRIVILEGES ON clients TO app_user;",out:"Trop de droits pour un simple besoin de lecture.",tone:"bad",exec:false},{k:"revoke",label:"REVOKE",sql:"REVOKE SELECT ON clients FROM app_user;",out:"Le droit de lecture est retiré.",tone:"neutral",exec:false}],
-  learningCheck:{question:"app_user doit seulement lire la table clients. Quelle commande lui donne exactement ce droit ?",options:["GRANT ALL PRIVILEGES ON clients TO app_user;","GRANT SELECT ON clients TO app_user;","REVOKE SELECT ON clients FROM app_user;"],answer:1,explanation:"SELECT est le droit de lecture : c’est le minimum nécessaire. ALL PRIVILEGES donnerait aussi le droit de modifier et de supprimer, et REVOKE retire un droit au lieu de l’accorder."}
+  ]
 })
 ]}
 ]
@@ -9585,8 +9517,8 @@ const CARTES={
     m:"<b>Sans WHERE, toute la table est écrasée</b>, sans avertissement. Réflexe : un <code>SELECT</code> avec le même WHERE d’abord."},
  28:{k:"DELETE",t:"Supprimer des lignes",s:"DELETE FROM commandes\nWHERE id = 15;",
     m:"Définitif. Même garde-fou que UPDATE. Attention aux orphelins dans les tables liées."},
- 50:{k:"GRANT / REVOKE",t:"Accorder le minimum de droits",s:"GRANT SELECT ON clients TO app_user;",
-    m:"<code>GRANT</code> donne une permission, <code>REVOKE</code> la retire. Un SGBD serveur gère des utilisateurs ; SQLite, non. Principe : le minimum nécessaire — lecture seule → <code>SELECT</code>, pas tous les droits."}
+ 50:{k:"GRANT / REVOKE",t:"Accorder uniquement les accès nécessaires",s:"GRANT SELECT ON commandes_expedition TO lina;\nGRANT UPDATE (statut) ON commandes TO lina;\n\nREVOKE SELECT ON commandes_expedition FROM lina;",
+    m:"<code>GRANT</code> accorde un droit, <code>REVOKE</code> le retire (le compte se place après <code>FROM</code>). Un droit porte sur une vue, une table ou certaines colonnes. Principe : uniquement les accès nécessaires, revus quand une mission change ou se termine. Un SGBD serveur gère des comptes ; SQLite, non."}
 };
 const CARD_GRAD=[['#5B5BD6','#7A6FF0'],['#0E9BC4','#22B8D6'],['#0EA5A0','#2DD4BF'],['#B45309','#E0A040'],['#9333EA','#B45CF0'],['#E5484D','#F0736F'],['#0F766E','#14A89A'],['#B45309','#D97F2B'],['#1E40AF','#3B6FE0'],['#86198F','#B32BAF']];
 function moduleOf(id){ for(let i=0;i<MODULES.length;i++) if(MODULES[i].lessons.some(l=>l.id===id)) return i; return 0; }
@@ -9753,10 +9685,9 @@ const QCM={
    {q:"Le bon réflexe avant un UPDATE sensible :",o:["Ajouter LIMIT 1","Tester le même WHERE avec un SELECT","Faire l’UPDATE deux fois"],b:1,e:"Tu vois les lignes concernées avant de les toucher."}],
  28:[{q:"<code>DELETE</code> supprime :",o:["Une colonne","Des lignes entières","La table"],b:1,e:"On ne vide jamais une seule case avec DELETE."},
    {q:"Pour vider une case sans supprimer la ligne :",o:["DELETE colonne","UPDATE … SET colonne = NULL","DROP colonne"],b:1,e:"DELETE agit sur des lignes ; vider une valeur relève de l’UPDATE."}],
- 50:[{q:"<code>GRANT</code> sert à :",o:["Exécuter une requête plus vite","Accorder un droit à un utilisateur","Créer une table"],b:1,e:"<code>GRANT</code> donne une permission. <code>REVOKE</code> la retire."},
-  {q:"Un compte qui doit seulement lire la table <code>clients</code> devrait recevoir :",o:["ALL PRIVILEGES","GRANT SELECT","REVOKE SELECT"],b:1,e:"Le minimum nécessaire : le droit de lecture, pas tous les droits."},
-  {q:"Un SGBD, c’est :",o:["Une table SQL","Le logiciel qui stocke la base et exécute le SQL (SQLite, MySQL, PostgreSQL…)","Un type de JOIN"],b:1,e:"Cette app utilise SQLite. MySQL ou PostgreSQL sont des SGBD serveur, avec des comptes et des droits."},
-  {q:"Pourquoi les commandes <code>GRANT</code> sont-elles simulées dans cette application ?",o:["La syntaxe est fausse","SQLite n’a pas de comptes : GRANT et REVOKE sont des commandes de SQL serveur","Il manque un WHERE"],b:1,e:"C’est une notion de SQL serveur : elle est présentée par une réponse simulée, sans être exécutée par SQLite."}],
+ 50:[{q:"Quelle commande autorise Lina à consulter la vue <code>commandes_expedition</code> ?",o:["<code>REVOKE SELECT ON commandes_expedition FROM lina;</code>","<code>GRANT SELECT ON commandes_expedition TO lina;</code>","<code>GRANT ALL PRIVILEGES ON commandes_expedition TO lina;</code>"],b:1,e:"<code>GRANT</code> accorde un droit, et <code>SELECT</code> autorise la consultation : uniquement l’accès nécessaire. <code>ALL PRIVILEGES</code> donnerait aussi le droit de modifier et de supprimer."},
+  {q:"Que permet <code>GRANT UPDATE (statut) ON commandes TO lina;</code> ?",o:["Modifier uniquement la colonne <code>statut</code> des commandes","Modifier toutes les colonnes des commandes","Consulter et supprimer les commandes"],b:0,e:"Le droit est limité à une colonne : Lina peut changer le statut d’une commande, sans pouvoir changer sa quantité ou son client."},
+  {q:"La mission de Lina est terminée. Que faire de ses accès ?",o:["Les garder, au cas où elle reviendrait","Masquer les boutons de son application","Les retirer avec <code>REVOKE</code>"],b:2,e:"<code>REVOKE</code> retire un droit accordé. Pense à revoir les accès lorsqu’une mission change ou se termine : masquer un bouton ne protège pas la base."}],
  66:[{q:"<code>DELETE FROM commandes;</code> puis <code>DROP TABLE commandes;</code> — quelle différence ?",o:["Aucune, les deux vident la table","DELETE laisse la table vide, DROP la retire de la base","DROP est plus rapide mais fait la même chose"],b:1,e:"DELETE agit sur le contenu, DROP sur l’objet. Après DELETE la table répond encore ; après DROP, <code>no such table</code>."},
    {q:"À quoi sert <code>IF EXISTS</code> dans <code>DROP TABLE IF EXISTS paniers;</code> ?",o:["À ne rien faire si la table n’existe pas, sans erreur","À supprimer la table seulement si elle est vide","À demander confirmation avant de supprimer"],b:0,e:"Sans lui, supprimer une table absente échoue sur <code>no such table</code>. Avec lui, l’instruction passe dans les deux cas."},
    {q:"<code>TRUNCATE TABLE commandes;</code> dans cette application :",o:["Vide la table plus vite que DELETE","Renvoie une erreur de syntaxe : SQLite ne la connaît pas","Supprime la table comme DROP"],b:1,e:"PostgreSQL et MySQL la proposent, pas SQLite. Pour vider une table ici, on écrit <code>DELETE FROM commandes;</code>."}],
@@ -12741,7 +12672,7 @@ const SQ_ALIASES={
   71:'concurrence isolation verrou verrouiller lock for update select for update transaction begin commit rollback reservation derniere place places restantes places_restantes atelier cuisine saine acces simultanes simultane inscription conflit nutriboost',
   64:'create view vue vues requete enregistree sous un nom nommer as select from where catalogue_box catalogue box surprise selection selection_box agence colonnes lignes consulter consultation donnees actuelles recreer droits acces camille produits tisane magnesium nutriboost',
   57:'index create index performance rapide optimiser recherche accelerer explain query plan plan d execution lenteur optimisation requete lente scan search using index idx_commandes_numero numero_commande commande scan qr code logistique file d attente mesure temps d execution nutriboost',
-  50:'securite droits grant revoke permissions acces utilisateurs roles'
+  50:'securite droits grant revoke permissions acces utilisateurs roles compte comptes accorder retirer select update statut colonne vue commandes_expedition lina camille simulation simuler postgresql minimum necessaire mission expedition nutriboost'
 };
 const SQ={
   /* texte « plié » : minuscules, sans accents, séparateurs → espace (1 caractère → 1 caractère) */
@@ -24917,7 +24848,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2059';
+  const SW_CACHE='requete-2026-10-12-ludique-v2060';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -1,0 +1,1137 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Projet, chapitre 17 : Sécurité et droits</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:124px;top:456px;letter-spacing:-2px}
+#s0 .title span.sp{margin-right:36px}
+#s0 .hilite{top:522px;height:44px}
+#s0 .sub{top:612px;font-size:46px}
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+.hid{opacity:0;visibility:hidden}
+/* Aperçu d’un geste (moment « À toi ») : il prend le pas sur la timeline, le temps de l’arrêt ; il montre exactement
+   l’image que la timeline affiche juste après l’arrêt, qui reprend donc sans saut. */
+.pvs{opacity:1!important;visibility:visible!important;transform:none!important}
+.pvh{opacity:0!important;visibility:hidden!important}
+/* Aperçu en douceur : une carte qui accompagne une bonne réponse n’apparaît jamais d’un coup, ni avant le verdict « Bien vu ! » */
+.pvf{visibility:visible!important;animation:pvf .45s ease-out both}
+@keyframes pvf{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* Couleur de chaque sujet : client, équipe NutriBoost (et carte de membre), inscription, coach, atelier,
+   puis les tables de la boutique : commande, produit, fidélité ; l’avis (chapitre 10), le remplacement (chapitre 11), le cadeau
+   (chapitre 12), l’historique des prix (chapitre 13), la vue (chapitre 15), l’index (chapitre 16) ; puis les droits (ce chapitre) */
+.k-co{--c:#2F80ED;--cs:#E6F0FD;--ci:#1D5FA8}
+.k-at{--c:#E8892B;--cs:#FFF1E2;--ci:#9A5B00}
+.k-cl{--c:#6A4DF4;--cs:#EEE9FF;--ci:#5335E0}
+.k-nb{--c:#D99A0B;--cs:#FFF6DA;--ci:#8A6200}
+.k-in{--c:#169447;--cs:#E2F6EA;--ci:#0F7A3A}
+.k-cm{--c:#0E9F9A;--cs:#DDF5F3;--ci:#0B6E6A}
+.k-pr{--c:#D9468F;--cs:#FCE8F2;--ci:#A3216A}
+.k-fi{--c:#9C6B3F;--cs:#F5ECE3;--ci:#7A4F27}
+.k-av{--c:#A23CC9;--cs:#F5E8FB;--ci:#7A2A9B}
+.k-rp{--c:#2B8FB8;--cs:#E3F3FA;--ci:#1B6585}
+.k-cd{--c:#C2410C;--cs:#FFEDD5;--ci:#9A3412}
+.k-hp{--c:#4F46E5;--cs:#ECEBFE;--ci:#3730A3}
+.k-vw{--c:#0891B2;--cs:#E0F5FA;--ci:#0E7490}
+.k-dr{--c:#169447;--cs:#E2F6EA;--ci:#0F7A3A}
+
+/* ---------- La base : une ligne par table (son nom, son nombre de lignes) ---------- */
+.bc{left:64px;width:952px;top:236px;padding:0 0 12px;overflow:hidden}
+.bh{height:72px;display:flex;align-items:center;gap:14px;padding:0 34px;background:var(--surface-2);font-family:var(--display);font-size:34px;font-weight:800;color:var(--ink);letter-spacing:-.4px;white-space:nowrap}
+.bh .emo{font-size:34px}
+.bn{margin-left:auto;display:inline-grid;font-family:var(--ui);font-size:25px;font-weight:700;letter-spacing:0}
+.bn>span{grid-area:1/1;height:44px;padding:0 20px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;white-space:nowrap}
+.srow{position:relative;height:64px;padding:12px 34px;overflow:hidden}
+.srow+.srow{box-shadow:inset 0 2px 0 var(--line-2)}
+.srow>div{position:relative;z-index:1}
+.srow .hl{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;opacity:0;visibility:hidden;background:var(--cs);box-shadow:inset 8px 0 0 var(--c)}
+.sn{display:flex;align-items:center;gap:14px;height:40px;font-family:var(--mono);font-size:31px;font-weight:800;color:var(--ci)}
+.sn .emo{font-size:32px}
+.sn .sp{flex:1}
+.nm{position:relative;display:inline-block;white-space:nowrap}
+.nb{display:inline-grid;font-family:var(--ui);font-size:23px;font-weight:700;color:var(--ink-3)}
+.nb>span{grid-area:1/1;justify-self:end;display:flex;align-items:center;justify-content:flex-end;height:36px;padding:0 14px;border-radius:999px;background:var(--line-2);white-space:nowrap}
+
+/* ---------- Les tables : lignes, colonnes, valeurs empilées ---------- */
+.tb{padding:0 0 10px;overflow:hidden;border-radius:40px}
+.tb .h{display:flex;align-items:center;gap:12px;height:64px;padding:0 24px;background:var(--cs);font-family:var(--mono);font-size:30px;font-weight:800;color:var(--ci);white-space:nowrap}
+.tb .h .emo{font-size:32px}
+.tb .bn>span{height:40px;font-size:23px;background:#fff;color:var(--ci);box-shadow:inset 0 0 0 3px var(--c)}
+.gr{display:grid;grid-template-columns:var(--g);align-items:stretch;padding:0 12px}
+.gr>span{position:relative;z-index:1;display:flex;align-items:center;gap:10px;min-width:0;padding:0 10px;white-space:nowrap;overflow:hidden}
+.hd{height:44px;font-family:var(--mono);font-size:24px;font-weight:700;color:var(--ink-3)}
+.hd .emo{font-size:21px;width:26px;flex:none;text-align:center}
+.gr>span.kc{color:var(--ci)}
+.r{position:relative;height:62px;font-family:var(--mono);font-size:30px;font-weight:600;color:var(--ink);box-shadow:inset 0 2px 0 var(--line-2);overflow:hidden}
+.r .hl,.r .wn,.r .xx{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;pointer-events:none;opacity:0;visibility:hidden}
+.r .hl{background:var(--cs);box-shadow:inset 6px 0 0 var(--c)}
+.r .wn{background:rgba(242,154,46,.2);box-shadow:inset 6px 0 0 #F29A2E}
+.r .xx{background:rgba(239,79,85,.15);box-shadow:inset 6px 0 0 var(--danger-fill)}
+.r .v{position:relative;z-index:1;font-style:normal}
+/* Une case peut changer de valeur : les valeurs successives sont empilées, une seule se voit */
+.sw{display:inline-grid;position:relative;z-index:1}
+.sw>*{grid-area:1/1;font-style:normal;white-space:pre}
+/* La case que l’élève doit toucher, puis la case entourée */
+.hc{position:absolute;left:4px;right:4px;top:5px;bottom:5px;z-index:0;border-radius:14px;background:var(--cs);box-shadow:inset 0 0 0 4px var(--c);opacity:0;visibility:hidden}
+/* Gestes de l’élève : case refusée */
+.gr>span.kof::after{content:"";position:absolute;left:3px;right:3px;top:6px;bottom:6px;z-index:3;border-radius:12px;background:rgba(239,79,85,.16);box-shadow:inset 0 0 0 4px var(--danger-fill);animation:kof .6s ease forwards}
+@keyframes kof{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+.kor{animation:kor .55s ease}
+@keyframes kor{0%,100%{background:transparent}30%{background:rgba(239,79,85,.18)}}
+
+/* ---------- Les commandes : une carte de code (un commentaire, puis la commande) ---------- */
+.sq{border-radius:34px;box-shadow:0 9px 0 #110E27}
+.sq .top{height:52px;gap:12px;padding:0 30px}
+.sq .dot{width:14px;height:14px}
+.sq .fname{margin-left:8px;font-size:22px}
+.sq .body{padding:18px 30px;font-size:28px;line-height:42px}
+.sq .ln{height:42px}
+.sq .cmt{color:var(--t-com)}
+.sq .caret i{top:-31px;width:4px;height:37px}
+.sq .glow{border-radius:8px;padding:0 3px;margin:0 -3px}
+.sq .str{color:var(--t-str)}
+
+.pack{left:0;width:1080px;display:flex;justify-content:center}
+.pack>span{height:84px;padding:0 34px 0 22px;border-radius:999px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);font-size:32px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:14px;white-space:nowrap}
+.pack .emo{font-size:40px}
+
+/* ---------- Les messages reçus : la notification, puis la conversation (SMS, moteur commun) ---------- */
+.ml{left:64px;width:952px;top:560px;height:184px;padding:0 30px;overflow:hidden}
+/* Hors de l’app : le doigt qui touche la notification ou un bouton */
+.tapf{z-index:20;font-size:120px;margin:-8px 0 0 -44px;opacity:0;visibility:hidden}
+
+/* ---------- À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px;padding:8px 0}
+#s7 .rrow{gap:22px;padding:18px 32px}
+#s7 .rico{width:88px;height:88px;border-radius:26px;font-size:46px}
+#s7 .rtxt{font-size:34px;line-height:1.25}
+#s7 .rtxt .rs{margin-top:2px;font-size:31px}
+/* ---------- L’écran de gestion de NutriBoost : les commandes, les produits et les fiches clients ---------- */
+.gs{left:64px;width:952px;top:236px;padding:0 0 22px;overflow:hidden}
+.gsh{height:80px;display:flex;align-items:center;gap:14px;padding:0 26px 0 30px;background:var(--ink);color:#fff;font-family:var(--display);font-size:33px;font-weight:800;letter-spacing:-.3px;white-space:nowrap}
+.gsh .emo{font-size:34px}
+.gsu{margin-left:auto;height:50px;padding:0 20px 0 14px;border-radius:999px;background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 2px rgba(255,255,255,.3);display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:26px;font-weight:700;letter-spacing:0;color:#fff}
+.gsu .emo{font-size:26px}
+.gss{position:relative;margin:20px 22px 0;padding:4px 0 12px;border-radius:30px;background:var(--cs)}
+.gst{display:flex;align-items:center;gap:12px;height:72px;padding:0 18px 0 24px;font-size:30px;font-weight:800;color:var(--ci);white-space:nowrap}
+.gst .emo{font-size:32px}
+.act{position:relative;margin-left:auto;height:54px;padding:0 20px 0 14px;border-radius:16px;background:#fff;box-shadow:inset 0 0 0 2px var(--line);display:flex;align-items:center;gap:10px;font-size:25px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.act .emo{font-size:26px}
+.act .wr{position:absolute;right:-12px;top:-16px;width:40px;height:40px;border-radius:50%;background:#EF4F55;color:#fff;font-size:25px;font-weight:800;font-style:normal;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 0 #A92A31;opacity:0;visibility:hidden}
+.gsr{display:flex;align-items:center;gap:20px;height:62px;margin:0 12px;padding:0 22px;border-radius:18px;background:rgba(255,255,255,.8);font-size:28px;font-weight:600;color:var(--ink);white-space:nowrap}
+.gsr+.gsr{margin-top:8px}
+.gsr b{font-weight:800}
+.gsr .m{font-family:var(--mono);font-weight:800}
+.gsr .rt{margin-left:auto}
+.gsr .pz{margin-left:auto;font-family:var(--mono);font-weight:700;color:var(--ink-2)}
+.st{display:inline-flex;align-items:center;height:40px;padding:0 14px;border-radius:999px;font-family:var(--ui);font-size:22px;font-weight:800;white-space:nowrap}
+.st.ep{background:#FFF1E2;color:#9A5B00;box-shadow:inset 0 0 0 2px #F7C98E}
+.st.ex{background:#E7F7EE;color:#1B7A45;box-shadow:inset 0 0 0 2px #A7E3C0}
+
+/* ---------- La nouvelle collègue : la photo d’Elisa (26 octobre, 11 h 57), Lina et son badge « Préparation des commandes » ---------- */
+.phc{left:64px;width:952px;top:236px;height:952px;padding:0;border-radius:48px;overflow:hidden;background:#EDE5D8}
+.phc img{display:block;width:100%;height:100%;object-fit:cover;transform-origin:52% 40%}
+
+/* ---------- La fiche du compte de Lina : quatre accès possibles, ceux qui lui sont nécessaires, et ceux qui lui sont accordés ---------- */
+.fc{left:64px;width:952px;top:236px;padding:0 0 16px;overflow:hidden}
+.fch{display:flex;align-items:center;gap:22px;padding:20px 30px;background:var(--surface-2)}
+/* Le portrait de Lina, pris dans la photo d’Elisa (son visage, au-dessus du badge) */
+.av{flex:none;width:92px;height:92px;border-radius:50%;background:#EDE5D8 url(projet-droits-lina.webp) no-repeat;background-size:400px 400px;background-position:-157px -36px;box-shadow:0 0 0 4px #fff,0 0 0 7px var(--line)}
+.fcn{display:flex;flex-direction:column;gap:4px;min-width:0}
+.fcn b{font-family:var(--display);font-size:36px;font-weight:800;color:var(--ink);letter-spacing:-.4px}
+.fcn span{font-size:25px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.fcr{position:relative;display:flex;align-items:center;gap:18px;height:100px;padding:0 28px;box-shadow:inset 0 2px 0 var(--line-2)}
+.fcr>.emo{flex:none;width:50px;font-size:38px;text-align:center}
+.fcr .fl{position:relative;min-width:0;font-size:30px;font-weight:700;color:var(--ink);white-space:nowrap}
+.fcr .fcd{position:absolute;left:0;top:calc(100% + 2px);font-style:normal;font-family:var(--mono);font-size:22px;font-weight:700;color:#0F7A3A;opacity:0;visibility:hidden}
+.nd{margin-left:auto;height:46px;padding:0 16px;border-radius:999px;font-size:24px;font-weight:800;display:flex;align-items:center;gap:6px;white-space:nowrap;opacity:0;visibility:hidden}
+.nd.ok{background:#E7F7EE;color:#1B7A45;box-shadow:inset 0 0 0 2px #A7E3C0}
+.nd.no{background:var(--line-2);color:var(--ink-3)}
+.tg{flex:none;position:relative;width:84px;height:48px;border-radius:999px;background:#D6D1E8}
+.tg>i{position:absolute;left:5px;top:5px;width:38px;height:38px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(34,28,70,.28)}
+.fcf{display:flex;align-items:center;height:66px;margin:14px 22px 0;padding:0 24px;border-radius:20px;background:var(--line-2);font-size:27px;font-weight:800;color:var(--ink-2);white-space:nowrap;opacity:0;visibility:hidden}
+.fcf .sw>i{display:flex;align-items:center;gap:12px}
+
+/* ---------- La vue commandes_expedition : les quatre colonnes utiles à la préparation des colis ---------- */
+.vr{left:0;width:1080px;display:flex;justify-content:center}
+.vr>span{height:84px;padding:0 34px 0 24px;border-radius:999px;background:#fff;border:3px solid #9FDCEA;box-shadow:0 6px 0 #BFE7F1;font-size:30px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:14px;white-space:nowrap}
+.vr .emo{font-size:38px}
+#vx .hd{font-size:21px}
+#vx .gr>span{padding:0 9px}
+#vx .r{height:66px;font-size:25px}
+#vx .r .u{font-family:var(--ui);font-weight:800}
+#vx .r .ad{font-family:var(--ui);font-size:24px;font-weight:600;color:var(--ink-2)}
+.r.rmore>span{grid-column:1/-1;justify-content:center;font-family:var(--ui);font-size:25px;font-weight:700;color:var(--ink-3)}
+
+/* ---------- Les commandes de droits : simulées, comme sur un serveur PostgreSQL ---------- */
+.sq .simt{margin-left:auto;height:34px;padding:0 14px;border-radius:999px;background:rgba(255,224,138,.14);box-shadow:inset 0 0 0 2px rgba(255,224,138,.5);color:#FFE08A;font-family:var(--ui);font-size:20px;font-weight:800;display:flex;align-items:center;gap:6px;white-space:nowrap}
+/* La réponse du serveur, simulée : la commande acceptée, ou la modification refusée */
+.srv{left:64px;width:952px;padding:0 0 16px;overflow:hidden;border-radius:36px}
+.rsh{height:58px;display:flex;align-items:center;gap:12px;padding:0 28px;background:#FFF6DA;color:#8A6200;font-size:24px;font-weight:800;white-space:nowrap}
+.rsh .emo{font-size:27px}
+.rsl{display:flex;align-items:center;gap:16px;height:60px;padding:0 28px;margin-top:12px}
+.rsl+.rsl{margin-top:4px}
+.rsl code{font-size:28px}
+.rsl .ok{margin-left:auto;height:44px;padding:0 18px;border-radius:999px;background:#E7F7EE;color:#1B7A45;box-shadow:inset 0 0 0 2px #A7E3C0;font-size:23px;font-weight:800;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.srv .rsm{padding:16px 28px 0;font-size:30px;font-weight:800;color:#B42328;white-space:nowrap}
+.srv .rse{padding:8px 28px 0;font-family:var(--mono);font-size:23px;font-weight:700;color:var(--ink-3);white-space:nowrap}
+
+/* ---------- L’application de Lina : la liste des expéditions (les lignes de la vue) ---------- */
+.ap{left:64px;width:952px;padding:0 0 20px;overflow:hidden}
+.aph{height:76px;display:flex;align-items:center;gap:14px;padding:0 24px 0 28px;background:var(--cs);color:var(--ci);font-size:31px;font-weight:800;white-space:nowrap}
+.aph .emo{font-size:34px}
+.apu{margin-left:auto;height:46px;padding:0 16px 0 12px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 2px var(--c);color:var(--ci);font-family:var(--mono);font-size:24px;font-weight:700;display:flex;align-items:center;gap:8px}
+.apu .emo{font-size:24px}
+.api{position:relative;margin:16px 22px 0;padding:16px 24px;border-radius:26px;background:#fff;box-shadow:inset 0 0 0 3px var(--line)}
+.apr{display:flex;align-items:center;gap:16px;min-height:44px}
+.api .n{font-family:var(--mono);font-size:28px;font-weight:800;color:var(--ink)}
+.apr>.st,.apr>.sw{margin-left:auto}
+.api .who{margin-top:6px;font-size:30px;font-weight:800;color:var(--ink)}
+.api .adr{font-size:25px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.apb{position:relative;margin-left:auto;height:52px;padding:0 20px 0 14px;border-radius:16px;background:linear-gradient(135deg,#1FAF5E,#169447);box-shadow:0 6px 0 #0F6B33;color:#fff;font-size:24px;font-weight:800;display:flex;align-items:center;gap:8px;white-space:nowrap;opacity:0;visibility:hidden}
+.apb .emo{font-size:26px}
+.ape{margin:16px 22px 0;text-align:center;font-size:25px;font-weight:700;color:var(--ink-3)}
+
+/* ---------- La commande, partie par partie (moment 3) : celle qui limite le droit à une colonne ---------- */
+.gp{left:64px;width:952px;padding:0 0 12px;overflow:hidden}
+.gph{height:64px;display:flex;align-items:center;gap:12px;padding:0 28px;background:var(--surface-2);font-size:28px;font-weight:800;color:var(--ink);white-space:nowrap}
+.gph .emo{font-size:30px}
+.gpr{position:relative;display:flex;align-items:center;gap:20px;height:86px;padding:0 30px;box-shadow:inset 0 2px 0 var(--line-2)}
+.gpr>code,.gpr>span{position:relative;z-index:1}
+.gpr>code{font-size:30px}
+.gpr .gpl{margin-left:auto;font-size:26px;font-weight:700;color:var(--ink-3);white-space:nowrap;opacity:0;visibility:hidden}
+.gpr .hc{left:12px;right:12px;top:8px;bottom:8px}
+.gpr.kof::after{content:"";position:absolute;left:8px;right:8px;top:6px;bottom:6px;z-index:3;border-radius:14px;background:rgba(239,79,85,.16);box-shadow:inset 0 0 0 4px var(--danger-fill);animation:kof .6s ease forwards}
+
+/* ---------- Les colonnes de la table commandes : seule la colonne statut se modifie ---------- */
+.cc{left:64px;width:952px;padding:0 0 18px;overflow:hidden}
+.cch{height:66px;display:flex;align-items:center;gap:12px;padding:0 28px;background:var(--cs);color:var(--ci);font-size:28px;font-weight:800;white-space:nowrap}
+.cch .emo{font-size:30px}
+.ccs{display:flex;flex-wrap:wrap;gap:14px;padding:22px 24px 4px}
+.ccs>span{height:64px;padding:0 18px 0 16px;border-radius:18px;background:#fff;box-shadow:inset 0 0 0 3px var(--line);font-family:var(--mono);font-size:26px;font-weight:700;color:var(--ink-3);display:flex;align-items:center;gap:10px;white-space:nowrap}
+.ccs>span .emo{font-size:26px}
+.ccs>span.ok{background:#E7F7EE;color:#1B7A45;box-shadow:inset 0 0 0 3px #A7E3C0}
+
+/* ---------- Le prix d’un produit, modifié depuis l’application de Lina ---------- */
+.pe{left:64px;width:952px;padding:0 0 20px;overflow:hidden}
+.per{display:flex;align-items:center;gap:18px;height:96px;margin:16px 22px 0;padding:0 18px 0 26px;border-radius:24px;background:#fff;box-shadow:inset 0 0 0 3px var(--line)}
+.per b{font-size:30px;font-weight:800;color:var(--ink);white-space:nowrap}
+.per .pz{font-family:var(--mono);font-size:29px;font-weight:800;color:var(--ink-2)}
+.pin{display:flex;align-items:center;gap:16px;height:88px;margin:14px 22px 0;padding:0 18px 0 26px;border-radius:24px;background:var(--surface-2);font-size:27px;font-weight:700;color:var(--ink-2);white-space:nowrap;opacity:0;visibility:hidden}
+.pin .fld{height:58px;min-width:150px;padding:0 18px;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 3px var(--c);font-family:var(--mono);font-size:28px;font-weight:700;color:var(--ink);display:flex;align-items:center}
+.pin .fld .ch{white-space:pre}
+.pin .sv{position:relative;margin-left:auto;height:58px;padding:0 24px;border-radius:16px;background:var(--c);color:#fff;font-size:26px;font-weight:800;display:flex;align-items:center;box-shadow:0 6px 0 var(--ci)}
+
+/* ---------- Un mois plus tard : le calendrier ---------- */
+.cal{left:330px;width:420px;top:420px;height:440px;padding:0;border-radius:48px;overflow:hidden;text-align:center}
+.calm{height:112px;background:#EF4F55;color:#fff;font-family:var(--display);font-size:44px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.cald{margin-top:24px;font-family:var(--display);font-size:190px;font-weight:800;line-height:200px;color:var(--ink);letter-spacing:-4px}
+.calw{margin-top:6px;font-size:36px;font-weight:700;color:var(--ink-3)}
+.calt{left:0;width:1080px;display:flex;justify-content:center}
+.calt>span{height:84px;padding:0 34px 0 24px;border-radius:999px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);font-size:31px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:14px;white-space:nowrap}
+.calt .emo{font-size:38px}
+
+/* ---------- L’équipe NutriBoost : chaque personne, son propre compte ---------- */
+.tm{left:64px;width:952px;top:236px;padding:0 0 16px;overflow:hidden}
+.tmh{height:72px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);font-family:var(--display);font-size:33px;font-weight:800;color:var(--ink);letter-spacing:-.3px;white-space:nowrap}
+.tmh .emo{font-size:34px}
+.tmr{position:relative;display:flex;align-items:center;gap:20px;height:116px;padding:0 28px;box-shadow:inset 0 2px 0 var(--line-2)}
+.tmr .ava{flex:none;width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:800;color:#fff}
+.tmr .ava.cr{background:linear-gradient(135deg,#E86AA8,#D9468F)}
+.tmr .ava.av{width:80px;height:80px;background-size:348px 348px;background-position:-137px -31px;box-shadow:none}
+.tmr .ava.nw{background:#fff;color:var(--accent-ink);box-shadow:inset 0 0 0 4px var(--accent);border:0;font-size:40px}
+.tmr .tn{display:flex;flex-direction:column;gap:4px;min-width:0;white-space:nowrap}
+.tmr .tn b{font-size:30px;font-weight:800;color:var(--ink)}
+.tmr .tn span{font-size:24px;font-weight:600;color:var(--ink-3)}
+.tmr .tq{margin-left:auto;height:46px;padding:0 16px;border-radius:999px;font-size:23px;font-weight:800;display:flex;align-items:center;gap:8px;white-space:nowrap;background:var(--line-2);color:var(--ink-2)}
+.tmr .tq.ok{background:#E7F7EE;color:#1B7A45;box-shadow:inset 0 0 0 2px #A7E3C0}
+.tmr .tq.cl{background:var(--line-2);color:var(--ink-3)}
+.tmr .tq .sw>i{display:flex;align-items:center;gap:8px}
+/* Le projet est terminé */
+.fin{left:0;width:1080px;display:flex;justify-content:center}
+.fin>span{height:104px;padding:0 44px 0 30px;border-radius:999px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 9px 0 #4B30CC;color:#fff;font-size:38px;font-weight:800;display:flex;align-items:center;gap:18px;white-space:nowrap}
+.fin .emo{font-size:48px}
+
+/* ---------- Les boutons à toucher, et l’anneau qui s’en échappe au toucher (micro-interaction, Elisa, 25 octobre, 16 h 22) ---------- */
+.bt{position:absolute;left:220px;width:640px;margin:0;height:108px;gap:16px;font-size:36px}
+.bt .emo{font-size:42px}
+.bt .emo svg{display:block;width:34px;height:34px}
+.bring{left:220px;width:640px;height:108px;border-radius:30px;box-shadow:0 0 0 7px rgba(106,77,244,.5);pointer-events:none;opacity:0;visibility:hidden}
+
+/* ---------- Les messages : Camille Roux, puis Lina, puis Camille Roux de nouveau ---------- */
+#ml1,#ml2,#ml3{top:470px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 17</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>G</span><span>R</span><span>A</span><span>N</span><span class="sp">T</span><span>R</span><span>E</span><span>V</span><span>O</span><span>K</span><span>E</span></div>
+    <div class="abs sub">Contrôler les accès avec GRANT et REVOKE</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Un accès trop large&nbsp;:<br>à toi de donner<br>les bons accès !</div>
+  </section>
+
+  <!-- La base : le rappel du chapitre précédent ; puis l’écran de gestion, et la nouvelle collègue (la photo d’Elisa) -->
+  <section class="scene" id="sa"></section>
+  <!-- Les messages de Camille Roux et de Lina -->
+  <section class="scene" id="sm"></section>
+  <!-- La fiche du compte de Lina, la vue, les commandes de droits (simulées), l’application de Lina, le prix d’un produit, le calendrier -->
+  <section class="scene" id="sw"></section>
+  <!-- Le dernier réflexe : l’équipe ; la fin du projet -->
+  <section class="scene" id="sn"></section>
+
+  <!-- À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🔐</div><div class="rtxt">Accorde uniquement les <b>accès nécessaires</b>.<span class="rs">Un compte doit pouvoir effectuer<br>les actions utiles à sa mission.</span></div></div>
+      <div class="rrow"><div class="rico emo">✅</div><div class="rtxt"><code>GRANT</code> permet d’<b>accorder</b> un droit.<span class="rs">Tu peux autoriser la consultation<br>ou limiter une modification<br>à certaines colonnes.</span></div></div>
+      <div class="rrow"><div class="rico emo">🚪</div><div class="rtxt"><code>REVOKE</code> permet de <b>retirer</b> un droit.<span class="rs">Pense à revoir les accès<br>lorsqu’une mission change<br>ou se termine.</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+
+/* ---------- Le déroulé : chaque légende arrive à la suite de la précédente ----------
+   cap(clé, texte, durée) pose une légende [début, fin] ; A[clé] et B[clé] donnent son début et sa fin (temps de la timeline).
+   La trame est celle d’Elisa (26 octobre, 11 h 57, « Sécurité et droits — Un accès trop large »), le dernier chapitre du projet, avec
+   sa photo de Lina (son badge « Préparation des commandes ») ; ses bulles et ses messages sont gardés mot pour mot, une phrase par bulle.
+   Lina rejoint l’équipe pour un mois : elle doit consulter les informations des expéditions et mettre à jour le statut des commandes,
+   sans pouvoir modifier les prix ni supprimer des clients. La vue commandes_expedition (la notion du chapitre 15) présente les quatre
+   colonnes utiles ; GRANT SELECT lui ouvre la vue, GRANT UPDATE (statut) la seule colonne statut de la table commandes ; sa tentative de
+   modifier un prix est refusée ; un mois plus tard, REVOKE retire les deux droits. SQLite, le moteur de l’app, n’a pas de comptes :
+   ces commandes sont simulées, comme sur un serveur PostgreSQL, et la vidéo le dit (Elisa : « une simulation clairement présentée
+   comme telle »). Les données sont celles de la base : la commande NB-10482 de Léa Simon (chapitre 16), NB-10483 de Nathan Petit,
+   leurs adresses, le prix du Collagène Marin (34,90 € depuis le chapitre 13). */
+const SCH = {t: 5.0, caps: [], chaps: [{label:'Un accès trop large', a: 5.0}], A: {}, B: {}};
+function chap(c){ SCH.t = +(SCH.t + 0.4).toFixed(2); SCH.chaps.push({label: c.label, a: SCH.t}); }
+function cap(key, html, dur, gap = 0.1){
+  /* Une légende reste au moins le temps de la lire (17 caractères par seconde, plus son fondu de 0,5 s) : l’image ne s’arrête jamais pour elle. */
+  dur = Math.max(dur, Math.ceil((html.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').length / 17 + 0.5) * 20) / 20);
+  const a = +(SCH.t + gap).toFixed(2), b = +(a + dur).toFixed(2);
+  SCH.caps.push([a, b, html]); SCH.A[key] = a; SCH.B[key] = b; SCH.t = b;   // trois lignes au plus par bulle : au-delà, deux bulles (Elisa, 24 octobre)
+}
+/* « À toi ! » : la légende reste un instant, puis l’image s’arrête à a + 2,35 s (le passage d’attente est coupé). */
+const toi = key => cap(key, 'À toi !', 2.55);
+const {A, B} = SCH;
+/* Les messages reçus : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses phrases), signature, option].
+   Camille Roux, la responsable des opérations, puis Lina, écrivent par SMS ({sms: true}), avec les mots d’Elisa : le premier message
+   s’ouvre sur « Bonjour ! » ; les deux autres entrent directement dans le sujet (hello: null) ; tous finissent sur leur dernière phrase,
+   sans « Merci ! » de plus (bye: null). Le colis est celui de « Léa Simon » : un client est toujours cité par son prénom et son nom
+   (Elisa, 22 octobre). L’app s’arrête sur chaque notification (OPENS). */
+const MAILS = [
+  [['Camille', 'Roux', 'CR'], 'k-pr', 'équipe', 'camille.roux@nutriboost.fr', [
+    'Lina rejoint l’équipe pour nous aider à préparer les commandes pendant un mois.',
+    'Elle doit consulter les informations nécessaires aux expéditions et mettre à jour le statut des commandes.',
+    'En revanche, elle ne doit pas pouvoir modifier les prix ni supprimer des clients.',
+    'Peux-tu lui donner les accès adaptés à sa mission ?'], 'Camille, responsable des opérations NutriBoost',
+    {sms: true, hello: 'Bonjour !', bye: null}],
+  [['Lina', '', 'L'], 'k-in', 'équipe', 'lina@nutriboost.fr', [
+    'Je peux consulter les expéditions !',
+    'Le colis de Léa Simon est prêt.',
+    'Il me manque l’accès pour passer son statut à « expédiée ».'], 'Lina, préparation des commandes NutriBoost',
+    {sms: true, hello: null, bye: null}],
+  [['Camille', 'Roux', 'CR'], 'k-pr', 'équipe', 'camille.roux@nutriboost.fr', [
+    'La mission de Lina est terminée.',
+    'Peux-tu retirer les accès que nous lui avions accordés ?'], 'Camille, responsable des opérations NutriBoost',
+    {sms: true, hello: null, bye: null}]
+];
+/* Un message : la légende s’efface le temps du message (notification, toucher, lecture, départ). Un SMS : la formule (sauf hello: null), une
+   bulle par phrase, puis « Merci ! » (sauf bye: null) ; le toucher à +1,6 s, une bulle toutes les 0,28 s, le départ juste après la pause de lecture. */
+const mailSms = n => /^client/.test(MAILS[n][2]) || !!(MAILS[n][6] || {}).sms;
+const mailRows = n => { const o = MAILS[n][6] || {};
+  return (o.hello === null ? 0 : 1) + (o.bye === null ? 0 : 1) + [].concat(MAILS[n][4]).flatMap(p => p.split(/(?<=[.!?])\s+(?=[A-ZÀÂÉÈÊÎÔÛÇ])/)).length + (o.photo ? 1 : 0); };
+const mailOutAt = n => +(2.68 + 0.28 * (mailRows(n) - 1)).toFixed(2);
+const MO = MAILS.map((m, n) => mailOutAt(n));
+const mailBlock = (n, extra = 0) => { const t = SCH.t; SCH.t = +(SCH.t + MO[n] + extra + 1).toFixed(2); return t; };
+
+/* 1 · Un accès trop large. L’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) ; puis l’écran de
+   gestion (Elisa : « un écran de gestion affiche les commandes, les produits et les fiches clients »), la nouvelle collègue (sa photo), et
+   le risque d’un compte trop large (Elisa : « son compte lui permet aussi de modifier les prix et de supprimer des clients », dit au
+   conditionnel : son compte « ne dispose, pour le moment, d’aucun accès aux tables », plus bas). Puis le message de Camille Roux. */
+cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
+cap('r2', "Au chapitre 16, un index a accéléré<br>la recherche des commandes.", 3.8);
+cap('o1', "L’écran de gestion de NutriBoost<br>affiche les commandes, les produits<br>et les fiches clients.", 4.6);
+cap('o2', "Une nouvelle collègue<br>doit préparer les colis.", 3.6);
+cap('o3', "Mais avec un compte trop large,<br>elle pourrait aussi modifier les prix<br>et supprimer des clients.", 4.8);
+cap('o4', "Camille Roux, responsable<br>des opérations, t’écrit.", 3.2);
+const MAIL1 = mailBlock(0);
+/* 2 · Un compte ne doit pas avoir tous les accès (Elisa) : la fiche du compte de Lina, quatre possibilités ; l’élève choisit les deux premières */
+chap({label:'Les accès nécessaires'});
+cap('a1', "Voici la fiche du compte de Lina.", 3.0);
+cap('a2', "Elle affiche quatre accès possibles.", 3.4);
+toi('p1');
+cap('a3', "Les droits déterminent<br>ce qu’un utilisateur peut faire<br>dans la base.", 4.2);
+cap('a4', "Le principe est simple : donner<br>uniquement les accès nécessaires<br>à sa mission.", 4.6);
+/* 3 · Préparer les informations qu’elle peut consulter (Elisa) : la vue commandes_expedition, ses deux bulles, puis la précision de la narration */
+chap({label:'Ce qu’elle peut consulter'});
+cap('b1', "Tu réutilises ici la notion de vue,<br>découverte au chapitre 15.", 3.8);
+cap('b2', "Une vue <code>commandes_expedition</code><br>a été préparée.", 3.6);
+cap('b3', "Elle contient uniquement<br>ces quatre colonnes.", 3.6);
+cap('b4', "Lina a besoin du destinataire<br>et de l’adresse pour préparer<br>les colis.", 4.2);
+cap('b5', "Cette vue rassemble les informations<br>utiles à son travail.", 3.8);
+cap('b6', "Son compte est déjà créé<br>et ne dispose, pour le moment,<br>d’aucun accès aux tables.", 4.6);
+/* 4 · Autoriser la consultation avec GRANT (Elisa) : la mission, la commande, la simulation annoncée ; l’élève touche « Simuler » ; Lina ouvre la
+   liste des expéditions ; les deux bulles d’Elisa, puis sa question (moment 2) et sa réponse, en deux bulles */
+chap({label:'Autoriser la consultation'});
+cap('c0', "Ta mission : autoriser Lina<br>à consulter la vue.", 3.6);   // la commande s’écrit pendant la bulle
+cap('c2', "SQLite, le moteur de l’application,<br>n’a pas de comptes.", 3.8);
+cap('c3', "Le bouton « Simuler » affiche donc<br>la réponse d’un serveur PostgreSQL.", 4.2);
+cap('c4', "Clique sur le bouton<br>« Simuler ».", 3.6);   // c’est l’élève qui clique : l’app s’arrête sur le bouton (EXE1, plus bas)
+cap('c4b', "Sur la fiche de Lina, la consultation<br>est maintenant autorisée.", 3.8);
+cap('c5', "Lina ouvre la liste des expéditions :<br>les lignes de la vue apparaissent.", 4.2);
+cap('c6', "<code>GRANT</code> accorde un droit.", 3.0);
+cap('c7', "Ici, <code>SELECT</code> autorise Lina à consulter<br>la vue <code>commandes_expedition</code>.", 4.2);
+cap('c8', "<code>ON</code> précise la vue, et <code>TO</code><br>le compte qui reçoit le droit.", 3.8);
+toi('p2');
+cap('c9', "Chaque droit correspond à une action.", 3.2);
+cap('c10', "Autoriser la consultation ne donne pas<br>automatiquement le droit de modifier<br>ou de supprimer.", 4.8);
+/* 5 · Autoriser une modification précise (Elisa) : le message de Lina, la mission, la commande partie par partie (moment 3), sa bulle ;
+   l’élève touche « Simuler » ; sa seconde bulle ; le colis de Léa Simon passe à « expédiée » */
+chap({label:'Une modification précise'});
+const MAIL2 = mailBlock(1);
+cap('d0', "Ta mission : autoriser uniquement<br>la modification de la colonne <code>statut</code>.", 4.2);
+cap('d1', "Cette fois, le droit accordé<br>est <code>UPDATE</code>.", 3.2);   // la commande s’écrit pendant les deux bulles
+toi('p3');
+cap('d2', "Tu peux limiter un droit<br>à une colonne.", 3.4);
+cap('d3', "Clique de nouveau<br>sur « Simuler ».", 3.6);   // l’app s’arrête sur le bouton (EXE2, plus bas)
+cap('d4', "Lina peut maintenant modifier<br>le statut des commandes, sans pouvoir<br>changer leur quantité ou leur client.", 5.0);
+cap('d5', "Le colis de Léa Simon<br>passe à « expédiée ».", 3.8);
+/* 6 · Vérifier les limites de son accès (Elisa) : Lina tente de modifier le prix d’un produit ; la modification est refusée ; ses deux bulles,
+   sa question (moment 4) et sa réponse, en deux bulles */
+chap({label:'Les limites de son accès'});
+cap('e1', "Lina tente maintenant de modifier<br>le prix d’un produit.", 3.8);
+cap('e2', "Son application envoie la requête<br>avec le compte de Lina.", 4.2);
+cap('e3', "La base vérifie les droits<br>avant d’exécuter l’action.", 3.8);
+cap('e4', "Comme Lina n’a pas le droit<br>de modifier les produits,<br>le prix reste inchangé.", 4.6);
+toi('p4');
+cap('e5', "Masquer un bouton<br>ne protège pas la base.", 3.4);
+cap('e6', "Les droits doivent aussi empêcher<br>l’action si une requête<br>est envoyée autrement.", 4.6);
+/* 7 · Retirer les accès avec REVOKE (Elisa) : le calendrier avance d’un mois, le message de Camille Roux ; la commande qui retire un droit
+   (moment 5), les deux REVOKE ; l’élève touche « Simuler » ; la bulle d’Elisa, en deux bulles ; les deux autorisations quittent sa fiche */
+chap({label:'Retirer les accès'});
+cap('f1', "Un mois plus tard,<br>la mission de Lina se termine.", 3.8);
+const MAIL3 = mailBlock(2);
+toi('p5');
+cap('f2', "Tu écris un <code>REVOKE</code><br>pour chaque droit accordé.", 3.8);   // les deux commandes s’écrivent pendant la bulle
+cap('f3', "Avec <code>REVOKE</code>, le compte<br>se place après <code>FROM</code>.", 3.6);
+cap('f4', "Simule les deux commandes :<br>clique sur « Simuler ».", 3.8);   // l’app s’arrête sur le bouton (EXE3, plus bas)
+cap('f5', "<code>REVOKE</code> retire un droit accordé.", 3.4);
+cap('f6', "Ici, tu retires les deux autorisations<br>données à Lina au début<br>de sa mission.", 4.6);
+/* 8 · Le dernier réflexe (Elisa) : sa question finale (moment 6), puis son explication, en deux bulles. C’était le dernier chapitre du projet. */
+chap({label:'Le dernier réflexe'});
+cap('g1', "Garde un dernier réflexe<br>pour tes prochaines missions.", 3.6);
+toi('p6');
+cap('g2', "Chaque personne doit utiliser<br>son propre compte, avec des droits<br>adaptés à son travail.", 4.6);
+cap('g3', "Les accès doivent être revus<br>lorsque sa mission change<br>ou se termine.", 4.2);
+cap('g4', "Bravo : tu as terminé<br>le dernier chapitre<br>du projet NutriBoost !", 5.0);
+/* 9 · À retenir (Elisa : « Ce que tu retiens ») */
+chap({label:'À retenir'});
+const RECAP = SCH.t;
+cap('j1', "Pour finir, voici les <b>trois idées à retenir</b>.", 4.8, 0.4);
+/* NOTES (le bouton « Ajouter à mes notes ») est écrit en clair dans Course(…) plus bas : tests/droits-lesson.test.mjs vérifie qu’il suit le déroulé. */
+const NOTES = +(SCH.t + 0.1).toFixed(2);
+const DURATION = +(NOTES + 7.2).toFixed(2);
+SCH.caps.push([NOTES, 999, APP ? "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."
+  : "Chaque compte reçoit uniquement<br>les accès utiles à sa mission."]);
+
+const CAPTIONS = SCH.caps;
+const CHAPTERS = SCH.chaps.map((c, i) => ({n: i + 1, label: c.label, a: c.a, b: i + 1 < SCH.chaps.length ? SCH.chaps[i + 1].a : DURATION}));
+
+/* Pas de question du lecteur : les moments « À toi » (PICKS) font participer l’élève. */
+const QUESTIONS = [];
+
+/* ---------- Le cas : la base des ateliers NutriBoost (la même dans tous les chapitres du projet) ---------- */
+/* La base telle que le chapitre 16 la laisse : douze tables (la vue catalogue_box et l’index idx_commandes_numero n’en sont pas), dont la
+   table commandes et ses 500 000 lignes. [clé, couleur, emoji, nom, lignes] */
+const TB = [
+  ['cl', 'k-cl', '👥', 'clients', 8], ['cm', 'k-cm', '🛒', 'commandes', 500000], ['fi', 'k-fi', '⭐', 'fidelite', 4], ['pr', 'k-pr', '📦', 'produits', 8],
+  ['co', 'k-co', '🧑‍🏫', 'coachs', 4], ['at', 'k-at', '📅', 'ateliers', 6], ['in', 'k-in', '📝', 'inscriptions', 8], ['ca', 'k-nb', '💳', 'cartes', 3],
+  ['av', 'k-av', '💬', 'avis', 1], ['rp', 'k-rp', '🔁', 'remplacements', 1], ['cd', 'k-cd', '🎁', 'cadeaux', 1], ['hp', 'k-hp', '🏷️', 'historique_prix', 1]
+];
+const fmtN = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');   // 500 000 : une espace fine insécable entre les milliers
+/* La vue commandes_expedition (Elisa : « Elle contient uniquement : commande_id | destinataire | adresse_livraison | statut ») : les commandes du
+   jour, avec le nom et l’adresse de leur client. La commande y est retrouvée par son numéro, comme au chapitre 16 (le code du bon scanné).
+   [numéro de commande, destinataire, adresse de livraison, statut] : les deux premières que Lina prépare, celles de Léa Simon (NB-10482,
+   la commande du chapitre 16) et de Nathan Petit (NB-10483), aux adresses de la table clients. */
+const VCOLS = ['numero_commande', 'destinataire', 'adresse_livraison', 'statut'];
+const VUE = [['NB-10482', 'Léa Simon', '41 avenue Jaurès, Paris', 'en_preparation'], ['NB-10483', 'Nathan Petit', '5 rue Victor Hugo, Paris', 'en_preparation']];
+/* Le produit dont Lina tente de changer le prix : l’identifiant 2, le Collagène Marin, à 34,90 € depuis le chapitre 13. */
+const PROD = {id: 2, nom: 'Collagène Marin', prix: '34,90 €'};
+/* La fiche du compte de Lina : les quatre accès possibles de la trame d’Elisa. [clé, emoji, accès, nécessaire à sa mission, droit accordé] */
+const ACCES = [
+  ['a0', '👀', 'Consulter les commandes', true, 'SELECT · commandes_expedition'],
+  ['a1', '🔄', 'Mettre à jour leur statut', true, 'UPDATE (statut) · commandes'],
+  ['a2', '🏷️', 'Modifier les prix', false, ''],
+  ['a3', '🗑️', 'Supprimer des clients', false, '']
+];
+/* Moment 1 : un accès qui dépasse sa mission */
+const WHY1 = {
+  a2: 'Préparer un colis ne demande pas de changer un prix : cet accès dépasse sa mission.',
+  a3: 'Préparer un colis ne demande pas de supprimer un client : cet accès dépasse sa mission.'
+};
+/* Moment 3 : la commande GRANT UPDATE (statut), partie par partie. [clé, partie, ce qu’elle précise] */
+const PARTS = [['q0', 'GRANT UPDATE', 'le droit : modifier'], ['q1', '(statut)', 'une seule colonne'], ['q2', 'ON commandes', 'la table'], ['q3', 'TO lina', 'le compte']];
+const WHY3 = {
+  q0: '<code>GRANT UPDATE</code> accorde le droit de modifier : seul, il porterait sur toutes les colonnes de la table.',
+  q2: '<code>ON commandes</code> précise la table concernée, pas une colonne.',
+  q3: '<code>TO lina</code> précise le compte qui reçoit le droit.'
+};
+/* Les sept colonnes de la table commandes : avec UPDATE (statut), Lina ne modifie que la dernière. */
+const CMCOLS = ['id', 'numero_commande', 'client_id', 'produit_id', 'quantite', 'date_commande', 'statut'];
+
+/* Les six moments « À toi » : l’image s’arrête, l’élève touche ou choisit ; la page montre aussitôt le résultat.
+   from : début du passage qui amène chaque moment, d’où repartent « ↺ Revoir » et « Rejouer ». */
+const atp = k => +(A[k] + 2.35).toFixed(2);
+const PICKS = [
+  {at: atp('p1'), from: A.a1, kind: 'tap', need: 2, prompt: 'Lina prépare les colis. De quels accès a-t-elle besoin ?'},   // la question d’Elisa
+  {at: atp('p2'), from: A.c6, kind: 'pick', text: true, prompt: 'Ce droit lui permet-il aussi de supprimer une commande ?', options: [
+    {label: 'Oui : elle a accès aux commandes', why: 'Elle peut consulter la vue <code>commandes_expedition</code>, rien de plus : supprimer une commande demanderait un autre droit, <code>DELETE</code>.'},
+    {label: 'Non : chaque droit correspond à une action', ok: true, why: 'Chaque droit correspond à une action. Autoriser la consultation ne donne pas automatiquement le droit de modifier ou de supprimer.'},   // mots d’Elisa
+    {label: 'Oui, si la commande est déjà expédiée', why: 'Le statut d’une commande ne change rien aux droits : <code>SELECT</code> autorise seulement la consultation.'}]},
+  {at: atp('p3'), from: A.d0, kind: 'tap', need: 1, prompt: 'Touche la partie de la commande qui limite le droit à une colonne.'},
+  {at: atp('p4'), from: A.e1, kind: 'pick', text: true, prompt: 'Suffirait-il de masquer le bouton « Modifier le prix » dans l’application ?', options: [
+    {label: 'Oui : sans bouton, rien ne peut changer', why: 'Une requête peut être envoyée autrement qu’avec ce bouton : seuls les droits de son compte empêchent la modification.'},
+    {label: 'Oui, s’il est aussi désactivé', why: 'Désactiver un bouton ne change que l’écran : avec le droit, une requête envoyée autrement serait exécutée.'},
+    {label: 'Non : les droits doivent aussi empêcher l’action', ok: true, why: 'Masquer un bouton ne protège pas la base. Les droits doivent aussi empêcher l’action si une requête est envoyée autrement.'}]},   // mots d’Elisa
+  {at: atp('p5'), from: A.f1, kind: 'pick', prompt: 'Quelle commande retire à Lina le droit de consulter la vue ?', options: [
+    {label: 'REVOKE SELECT ON commandes_expedition FROM lina;', ok: true, why: '<code>REVOKE</code> retire un droit accordé, et le compte se place après <code>FROM</code>.'},
+    {label: 'REVOKE SELECT ON commandes_expedition TO lina;', why: 'Avec <code>REVOKE</code>, le compte se place après <code>FROM</code> : <code>TO</code> s’écrit avec <code>GRANT</code>.'},
+    {label: 'GRANT SELECT ON commandes_expedition FROM lina;', why: '<code>GRANT</code> accorde un droit : pour le retirer, la commande est <code>REVOKE</code>.'}]},
+  {at: atp('p6'), from: A.g1, kind: 'pick', text: true, prompt: 'Une nouvelle personne rejoint l’équipe. Que fais-tu ?', options: [
+    {label: 'Lui donner tous les droits pour éviter les blocages', why: 'Tous les droits, c’est aussi pouvoir modifier les prix ou supprimer des clients : un compte reçoit uniquement les accès utiles à sa mission.'},
+    {label: 'Identifier ses besoins et lui accorder les droits correspondants', ok: true, why: 'Chaque personne doit utiliser son propre compte, avec des droits adaptés à son travail. Les accès doivent être revus lorsque sa mission change ou se termine.'},   // mots d’Elisa
+    {label: 'Lui prêter le compte d’un collègue', why: 'Avec un compte prêté, elle reçoit des droits qui ne sont pas les siens, et on ne sait plus qui a fait quoi : chaque personne utilise son propre compte.'}]}
+];
+
+/* Les arrêts « toucher » : les trois messages, et le bouton « Simuler », trois fois (GRANT SELECT, GRANT UPDATE (statut), les deux REVOKE).
+   Rien n’y est noté. Sur un bouton, la légende dit déjà quoi faire : un doigt seul (hand) monte et descend sur son coin, et le bouton
+   s’enfonce dès l’appui (press), puis remonte au relâcher (rest). */
+const EXE1 = +(A.c4 + 2.4).toFixed(2), EXE2 = +(A.d3 + 2.4).toFixed(2), EXE3 = +(A.f4 + 2.6).toFixed(2);
+const BTN = (lip) => ({hand: {x: 0.86, y: 0.78}, press: {y: 7, boxShadow: `0 2px 0 ${lip}`}, rest: {y: 0, boxShadow: `0 9px 0 ${lip}`}});
+const msgOpen = (t, n) => {
+  const [prenom, nom] = MAILS[n][0], msg = mailSms(n) ? 'message' : 'mail';   // Camille Roux et Lina écrivent par SMS
+  const de = /^Le /.test(prenom) ? 'du ' + prenom.slice(3) : /^La /.test(prenom) ? 'de la ' + prenom.slice(3) : /^L’/.test(prenom) ? 'de l’' + prenom.slice(2)
+    : /^[AEIOUHÉÈ]/.test(prenom) ? 'd’' + prenom : 'de ' + prenom;
+  return {at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: `Touche le ${msg} pour l’ouvrir.`, label: `Ouvrir le ${msg} ${[de, nom].filter(Boolean).join(' ')}`};
+};
+const OPENS = [
+  msgOpen(MAIL1, 0),
+  Object.assign({at: EXE1, sel: '#bs1', prompt: 'Touche le bouton.', label: 'Simuler'}, BTN('#4B30CC')),
+  msgOpen(MAIL2, 1),
+  Object.assign({at: EXE2, sel: '#bs2', prompt: 'Touche le bouton.', label: 'Simuler'}, BTN('#4B30CC')),
+  msgOpen(MAIL3, 2),
+  Object.assign({at: EXE3, sel: '#bs3', prompt: 'Touche le bouton.', label: 'Simuler'}, BTN('#4B30CC'))
+];
+
+/* ---------- Gabarits ---------- */
+/* Une case à valeurs empilées (une seule se voit). */
+const sw = (id, vals, k = 'v') => `<span class="sw ${k}" id="${id}">${vals.map((v, j) => `<i class="a${j}${v[1] ? ' ' + v[1] : ''}">${v[0]}</i>`).join('')}</span>`;
+const cell = (j, inner) => `<span class="c${j}">${inner}</span>`;
+const line = (id, cells, cls = '') => `<div class="gr r${cls ? ' ' + cls : ''}" id="r${id}"><i class="hl"></i><i class="wn"></i><i class="xx"></i>${cells}</div>`;
+/* Carte de code : une ligne par [repère, texte, classe, style]. Dans le texte : {id|…} un passage repéré (il pulse). Un commentaire (--) n’a pas de curseur. */
+const SQL_KW = /\b(?:GRANT|REVOKE|SELECT|UPDATE|SET|WHERE|ON|TO|FROM)\b/g, CARET = '<span class="caret"><i></i></span>';
+function lineHtml([lid, s, cls = '', st = '']){
+  const cmt = s.trim().startsWith('--');
+  let h = s.replace(/\{(\w+)\|([^{}]*)\}/g, '<span class="glow" id="$1">$2</span>');
+  if (!cmt) h = h.replace(SQL_KW, '<span class="kw">$&</span>').replace(/'[^']*'/g, '<span class="str">$&</span>');
+  return `<span class="ln${cmt ? ' cmt' : ''}${cls ? ' ' + cls : ''}" id="${lid}"${st ? ` style="${st}"` : ''}>${h}${cmt ? '' : CARET}</span>`;
+}
+/* Une carte de code ; tag : l’étiquette de sa barre (« simulation » pour une commande de droits, que SQLite n’exécute pas). */
+function editor(id, fname, lines, tag = ''){
+  return `<div class="abs code sq" id="${id}" style="left:64px;width:952px"><div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i>` +
+    `<span class="fname">${fname}</span>${tag ? `<span class="simt" id="${id}-t">${tag}</span>` : ''}</div><div class="body">${lines.map(lineHtml).join('')}</div></div>`;
+}
+const head = (cols) => `<div class="gr hd">${cols.map(([c, label, extra]) => `<span class="${c}${extra ? ' ' + extra : ''}">${label}</span>`).join('')}</div>`;
+const tbl = (id, kc, emo, name, g, hd, rows, bn = '') => `<div class="abs card tb ${kc}" id="${id}" style="left:64px;width:952px;${g}"><div class="h"><span class="emo">${emo}</span><span>${name}</span>${bn}</div>${hd}${rows}</div>`;
+/* Les commandes de la trame d’Elisa : GRANT SELECT sur la vue, GRANT UPDATE (statut) sur la table commandes, la requête envoyée par
+   l’application de Lina, puis les deux REVOKE. Les commandes de droits sont simulées (étiquette de la carte). */
+const SIM = '🧪 simulation';
+const Q_GSEL = [['-- Autoriser Lina à consulter la vue'], ['{gsel|GRANT SELECT}'], ['{gon|ON commandes_expedition}'], ['{gto|TO lina};']];
+const Q_GUPD = [['-- Autoriser la modification du statut'], ['{gup|GRANT UPDATE} {gst|(statut)}'], ['{guo|ON commandes}'], ['{gut|TO lina};']];
+const Q_LINA = [['-- Envoyée avec le compte lina'], ['UPDATE produits'], ['{lpx|SET prix = 1}'], ['WHERE id = 2;']];
+const Q_REV = [['-- Retirer les deux accès de Lina'], ['REVOKE SELECT ON commandes_expedition {rf1|FROM lina};'], ['REVOKE UPDATE (statut) ON commandes {rf2|FROM lina};']];
+const ed = (id, q, fname, tag) => editor(id, fname, q.map(([s], k) => [id + '-' + k, s]), tag);
+/* Un bouton à toucher, et l’anneau qui s’en échappe */
+const button = (id, cls, emo, label) => `<i class="abs bring ${cls}" id="${id}-r"></i><div class="abs run bt ${cls}" id="${id}"><span class="emo">${emo}</span>${label}<i class="ripple"></i></div>`;
+/* « Simuler » : le triangle blanc de lecture, comme le bouton « Simuler » des cours de l’app */
+const PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 4.6c0-1 1.1-1.6 1.9-1.1l11 7.4c.8.5.8 1.7 0 2.2l-11 7.4c-.8.5-1.9-.1-1.9-1.1z" fill="#fff"/></svg>';
+const PHOTO = 'projet-droits-lina.webp';
+const statut = (id, s) => s === 'en_preparation' ? `<span class="st ep">en_preparation</span>` : `<span class="st ex">expédiée</span>`;
+/* La réponse simulée du serveur : une ou plusieurs commandes acceptées */
+const reponse = (id, tags, ok) => `<div class="abs card srv" id="${id}"><div class="rsh"><span class="emo">🧪</span>Réponse simulée · serveur PostgreSQL</div>` +
+  tags.map((t, k) => `<div class="rsl" id="${id}-${k}"><code>${t}</code><span class="ok">${ok}</span></div>`).join('') + '</div>';
+function dom(){
+  /* La base et ses douze tables : le rappel du chapitre précédent ; puis l’écran de gestion, et la photo d’Elisa */
+  let a = `<div class="abs card bc" id="bc"><div class="bh"><span class="emo">🗄️</span><span>Base NutriBoost</span><span class="bn"><span>12 tables</span></span></div>` +
+    TB.map(([k, kc, emo, name, n]) => `<div class="srow ${kc}" id="bw-${k}"><i class="hl"></i><div class="sn"><span class="emo">${emo}</span>` +
+      `<span class="nm">${name}</span><i class="sp"></i><b class="nb"><span>${fmtN(n)} ${n > 1 ? 'lignes' : 'ligne'}</span></b></div></div>`).join('') + '</div>';
+  // l’écran de gestion : les commandes, les produits, les fiches clients ; le compte connecté, et les deux actions de trop
+  const gsr = (cells) => `<div class="gsr">${cells}</div>`;
+  a += '<div class="abs card gs" id="gs"><div class="gsh"><span class="emo">🖥️</span>Gestion NutriBoost<span class="gsu" id="gsu"><span class="emo">👤</span>lina</span></div>' +
+    '<div class="gss k-cm" id="gs-cm"><div class="gst"><span class="emo">🛒</span>Commandes<span class="act" id="ga-cm"><span class="emo">🔄</span>Mettre à jour le statut</span></div>' +
+      VUE.map(([nb, who]) => gsr(`<span class="m">${nb}</span><b>${who}</b><span class="rt">${statut('', 'en_preparation')}</span>`)).join('') + '</div>' +
+    '<div class="gss k-pr" id="gs-pr"><div class="gst"><span class="emo">📦</span>Produits<span class="act" id="ga-pr"><span class="emo">🏷️</span>Modifier le prix<i class="wr">!</i></span></div>' +
+      gsr(`<b>${PROD.nom}</b><span class="pz">${PROD.prix}</span>`) + gsr('<b>Magnésium</b><span class="pz">19,90 €</span>') + '</div>' +
+    '<div class="gss k-cl" id="gs-cl"><div class="gst"><span class="emo">👥</span>Fiches clients<span class="act" id="ga-cl"><span class="emo">🗑️</span>Supprimer le client<i class="wr">!</i></span></div>' +
+      VUE.map(([, who, adr]) => gsr(`<b>${who}</b><span class="pz">${adr.split(', ')[1]}</span>`)).join('') + '</div></div>';
+  a += `<div class="abs card phc" id="ph"><img src="${PHOTO}" alt="Lina, la nouvelle collègue, son badge NutriBoost « Préparation des commandes » sur la veste, prépare un colis : un shaker rose et une protéine végétale à la vanille"></div>`;
+  $('#sa').innerHTML = a;
+  /* Les messages de Camille Roux et de Lina (chacun finit sur sa dernière phrase) */
+  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body, false, smsRank(MAILS, n),
+    (MAILS[n][6] || {}).hello, (MAILS[n][6] || {}).photo, (MAILS[n][6] || {}).bye) : '').join('') +
+    '<div class="abs emo tapf" id="tapf">👆</div>';
+  /* Le travail : la fiche du compte de Lina, la vue, les commandes (simulées), l’application de Lina, le prix d’un produit, le calendrier */
+  let w = '<div class="abs card fc" id="fc"><div class="fch"><i class="av"></i><div class="fcn"><b>Lina</b><span>Compte lina · Préparation des commandes</span></div></div>' +
+    ACCES.map(([k, emo, label, need, droit], q) => `<div class="fcr" id="f${k}"><span class="emo">${emo}</span><span class="fl"><span>${label}</span><i class="fcd" id="fd${q}">${droit}</i></span>` +
+      `<b class="nd ${need ? 'ok' : 'no'}" id="nd${q}">${need ? '✓ nécessaire' : '✕ pas nécessaire'}</b><i class="tg" id="tg${q}"><i></i></i></div>`).join('') +
+    `<div class="fcf" id="fcf">${sw('fcn', [['<span class="emo">🔒</span>Aucun accès aux tables pour le moment'], ['<span class="emo">🔓</span>1 droit accordé'],
+      ['<span class="emo">🔓</span>2 droits accordés'], ['<span class="emo">🔒</span>Plus aucun accès aux tables']])}</div></div>`;
+  // le rappel du chapitre 15, puis la vue commandes_expedition et ses quatre colonnes
+  w += '<div class="abs vr" id="vr" style="top:300px"><span><span class="emo">👁️</span>Chapitre 15 · une vue enregistre une requête</span></div>';
+  w += tbl('vx', 'k-vw', '👁️', 'commandes_expedition', '--g:200px 186px 1fr 196px', head(VCOLS.map((c, j) => [`c${j}`, c])),
+    VUE.map(([nb, who, adr, s], q) => line('vx' + q, cell(0, `<i class="v">${nb}</i>`) + cell(1, `<i class="v u">${who}</i>`) + cell(2, `<i class="v ad">${adr}</i>`) + cell(3, statut('', s)))).join('') +
+    line('vxm', '<span>⋮ les autres commandes à préparer</span>', 'rmore'), '<span class="bn"><span>vue</span></span>');
+  // les commandes de droits, simulées ; la requête envoyée par l’application de Lina
+  w += ed('eg', Q_GSEL, 'droits.sql', SIM) + ed('eu', Q_GUPD, 'droits.sql', SIM) + ed('el', Q_LINA, 'application de Lina') + ed('er', Q_REV, 'droits.sql', SIM);
+  w += button('bs1', '', PLAY, 'Simuler') + button('bs2', '', PLAY, 'Simuler') + button('bs3', '', PLAY, 'Simuler');
+  w += reponse('rs1', ['GRANT'], '✓ droit accordé') + reponse('rs2', ['GRANT'], '✓ droit accordé') + reponse('rs4', ['REVOKE', 'REVOKE'], '✓ droit retiré');
+  // la modification du prix, refusée
+  w += '<div class="abs card srv" id="rs3"><div class="rsh"><span class="emo">🧪</span>Réponse simulée · serveur PostgreSQL</div>' +
+    '<div class="rsm">🔒 Modification refusée : droit insuffisant.</div><div class="rse">ERROR: permission denied for table produits</div></div>';
+  // l’application de Lina : la liste des expéditions (les lignes de la vue)
+  w += '<div class="abs card ap k-cm" id="ap"><div class="aph"><span class="emo">📦</span>Expéditions du jour<span class="apu"><span class="emo">👤</span>lina</span></div>' +
+    VUE.map(([nb, who, adr, s], q) => `<div class="api" id="api${q}"><div class="apr"><b class="n">${nb}</b>` +
+      (q === 0 ? sw('ast', [[statut('', 'en_preparation')], [statut('', 'expédiée')]], 'st0') : statut('', s)) + `</div><div class="who">${who}</div>` +
+      `<div class="apr"><span class="adr">${adr}</span>${q === 0 ? '<span class="apb" id="apb"><span class="emo">📦</span>Expédiée</span>' : ''}</div></div>`).join('') +
+    '<div class="ape" id="ape">⋮ les autres commandes à préparer</div></div>';
+  // la commande GRANT UPDATE (statut), partie par partie (moment 3)
+  w += '<div class="abs card gp" id="gp"><div class="gph"><span class="emo">🧩</span>La commande, partie par partie</div>' +
+    PARTS.map(([k, part, what]) => `<div class="gpr" id="gp-${k}"><code>${part}</code><span class="gpl" id="gl-${k}">${what}</span>${k === 'q1' ? '<i class="hc" id="hcq"></i>' : ''}</div>`).join('') + '</div>';
+  // les colonnes de la table commandes : seule la colonne statut se modifie
+  w += '<div class="abs card cc k-cm" id="cc"><div class="cch"><span class="emo">🛒</span>Ce que lina peut modifier dans la <b>table commandes</b></div><div class="ccs">' +
+    CMCOLS.map(c => `<span id="cc-${c}"${c === 'statut' ? ' class="ok"' : ''}>${c}<span class="emo">${c === 'statut' ? '✏️' : '🔒'}</span></span>`).join('') + '</div></div>';
+  // le prix d’un produit : Lina tente de le modifier
+  w += `<div class="abs card pe k-pr" id="pe"><div class="aph"><span class="emo">📦</span>Produits<span class="apu"><span class="emo">👤</span>lina</span></div>` +
+    `<div class="per"><b>${PROD.nom}</b><span class="pz" id="pez">${PROD.prix}</span><span class="act" id="pea"><span class="emo">🏷️</span>Modifier le prix</span></div>` +
+    '<div class="pin" id="pin">Nouveau prix<span class="fld" id="pfl">1,00 €</span><span class="sv" id="psv">Enregistrer</span></div></div>';
+  // un mois plus tard : le calendrier
+  w += `<div class="abs card cal" id="cal"><div class="calm">${sw('calm', [['Octobre'], ['Novembre']])}</div><div class="cald">26</div><div class="calw">${sw('calw', [['lundi'], ['jeudi']])}</div></div>` +
+    '<div class="abs calt" id="calt" style="top:920px"><span><span class="emo">🏁</span>Fin de la mission de Lina</span></div>';
+  w += '<div class="abs emo tapf" id="tapw">👆</div>';
+  $('#sw').innerHTML = w;
+  /* Le dernier réflexe : l’équipe NutriBoost, chaque personne avec son propre compte ; puis la fin du projet */
+  $('#sn').innerHTML = '<div class="abs card tm" id="tm"><div class="tmh"><span class="emo">👥</span>L’équipe NutriBoost</div>' +
+    `<div class="tmr" id="tm0"><i class="ava cr">CR</i><div class="tn"><b>Camille Roux</b><span>Responsable des opérations</span></div><span class="tq ok">${sw('tq0', [['<span class="emo">👤</span>son compte']])}</span></div>` +
+    `<div class="tmr" id="tm1"><i class="ava av"></i><div class="tn"><b>Lina</b><span>Mission terminée</span></div><span class="tq cl">${sw('tq1', [['<span class="emo">🔒</span>accès retirés']])}</span></div>` +
+    `<div class="tmr" id="tm2"><i class="ava nw">?</i><div class="tn"><b>Une nouvelle personne</b><span>Elle rejoint l’équipe</span></div><span class="tq ok" id="tq2w">${sw('tq2', [['<span class="emo">👤</span>son propre compte']])}</span></div></div>` +
+    '<div class="abs fin" id="fin" style="top:500px"><span><span class="emo">🏁</span>Projet NutriBoost terminé !</span></div>' +
+    '<img class="abs mascot" id="fmas" src="mascotte.webp" alt="" style="left:350px;top:680px;width:380px">';
+  // les commandes, découpées en caractères pour la frappe
+  $$('.sq .ln').forEach(splitChars);
+  $$('#pfl').forEach(splitChars);
+}
+
+/* ---------- Mise en page ---------- */
+const bottom = s => { const el = $(s); return el.offsetTop + el.offsetHeight; };
+/* Position d’un élément dans sa scène (sans tenir compte des transformations) : le coin et la taille. */
+const pos = el => {
+  let x = 0, y = 0, e = el;
+  while (e && !e.classList.contains('scene')) {
+    x += e.offsetLeft; y += e.offsetTop;
+    const p = e.offsetParent;
+    if (p && !p.classList.contains('scene')) { x += p.clientLeft; y += p.clientTop; }
+    e = p;
+  }
+  return {x, y, w: el.offsetWidth, h: el.offsetHeight};
+};
+/* Les places de la fiche du compte de Lina, d’une étape à l’autre : seule (moment 1), sous la vue, sous une commande et sa réponse */
+const FC = {};
+function layout(){
+  // les commandes en haut ; sous chacune, son bouton, puis la réponse simulée à la place du bouton
+  ['#eg', '#eu', '#er', '#vx', '#pe', '#fc'].forEach(e => { $(e).style.top = '236px'; });
+  const place = (id, top) => { $('#' + id).style.top = top + 'px'; $('#' + id + '-r').style.top = top + 'px'; };
+  place('bs1', bottom('#eg') + 9 + 32); place('bs2', bottom('#eu') + 9 + 32); place('bs3', bottom('#er') + 9 + 32);
+  $('#rs1').style.top = (bottom('#eg') + 30) + 'px'; $('#rs2').style.top = (bottom('#eu') + 30) + 'px'; $('#rs4').style.top = (bottom('#er') + 30) + 'px';
+  // la commande partie par partie, sous la commande ; l’application de Lina et les colonnes de la table commandes, sous la réponse
+  $('#gp').style.top = (bottom('#eu') + 30) + 'px';
+  FC.vue = bottom('#vx') + 30;
+  FC.grant = bottom('#rs1') + 30;
+  FC.revoke = bottom('#rs4') + 30;
+  ['#ap', '#cc'].forEach(e => { $(e).style.top = FC.grant + 'px'; });
+  // le prix d’un produit : la carte du produit, la requête envoyée par l’application de Lina, puis la réponse
+  $('#el').style.top = (bottom('#pe') + 30) + 'px';
+  $('#rs3').style.top = (bottom('#el') + 30) + 'px';
+}
+
+/* ---------- Petits gestes de la timeline ---------- */
+const pulse = (el, t, n = 3, c = 'rgba(201,188,255,.55)') => tl.to(el, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (el, t, s = 1.04) => tl.to(el, {scale: s, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, t);
+const on = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 1, duration: d, ease: 'power2.out'}, t);
+const off = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 0, duration: d, ease: 'power2.in'}, t);
+const GLOW = 'rgba(255,224,138,.4)';
+/* Une valeur en remplace une autre : l’ancienne monte et s’efface, la nouvelle arrive par en dessous. */
+function swap(o, n, t, sound = true){
+  tl.to(o, {autoAlpha: 0, y: -14, duration: 0.2, ease: 'power2.in'}, t);
+  tl.fromTo(n, {autoAlpha: 0, y: 14}, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power3.out', immediateRender: false}, t + 0.12);
+  if (sound) cue(t + 0.12, 'type', 0.8, 2);
+}
+/* Une mention apparaît (d’un petit rebond). */
+const mark = (sel, t) => { tl.fromTo(sel, {autoAlpha: 0, scale: 0.6, y: 0}, {autoAlpha: 1, scale: 1, y: 0, duration: 0.4, ease: 'back.out(2.4)', immediateRender: false}, t); cue(t, 'pop', 0.6, 2); };
+/* Une carte déjà montrée revient, à une autre place : elle remonte de 40 px en apparaissant. */
+function reShow(sel, t, top){
+  if (top !== undefined) tl.set(sel, {top}, t);
+  tl.set(sel, {y: 40}, t);
+  tl.to(sel, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out'}, t);
+  cue(t, 'whoosh', 0.45, 2);
+}
+/* Frappe des lignes a à b d’une commande (un commentaire se tape plus vite, sans curseur). Renvoie l’instant de fin. */
+function typeLines(id, a, b, t, cps = 34){
+  const lns = $$('#' + id + ' .ln').slice(a, b + 1);
+  let e = t;
+  lns.forEach(ln => {
+    if (ln.classList.contains('cmt')) { e = typeChars($$('.ch', ln), e, 60) + 0.1; return; }
+    const caret = $$(':scope > .caret', ln).pop();
+    tl.set(caret, {autoAlpha: 1}, e - 0.2);
+    e = typeChars($$('.ch', ln), e, cps);
+    tl.set(caret, {autoAlpha: 0}, e + 0.1);
+    e += 0.15;
+  });
+  return e;
+}
+/* La commande part : la carte s’enfonce d’un coup, comme un bouton « Simuler ». */
+const run = (id, t) => { tl.to('#' + id, {scale: 0.985, duration: 0.08, yoyo: true, repeat: 1, ease: 'power2.out'}, t); cue(t, 'click', 0.6); };
+/* La légende s’efface le temps du message, puis revient. */
+const capOff = t => tl.to('#cap', {autoAlpha: 0, y: 30, duration: 0.3, ease: 'power2.in'}, t);
+const capOn = t => tl.to('#cap', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, t);
+/* Le message arrive : Camille Roux et Lina écrivent par SMS (smsIn) ; l’app s’arrête sur la notification (OPENS) jusqu’au toucher ; hors de l’app, un doigt la montre. */
+function mailIn(n, t, T){
+  if (isSms(MAILS[n - 1][2], MAILS[n - 1][6])) { if (!APP) fingerTap($('#ml' + n), T); return smsIn(n, t, T); }
+  return T;
+}
+function mailOut(n, t){ hide('#ml' + n, t, {x: 140, y: 0, rotation: 2}, 0.4, 'power2.in'); cue(t, 'whoosh', 0.4); }
+/* Un doigt montre le geste (vidéo seule) : il touche la notification ou un bouton. */
+function fingerTap(M, T, f = '#tapf', fx = 0.6, fy = 92){
+  const p = pos(M);
+  tl.set(f, {left: p.x + p.w * fx, top: p.y + fy}, T - 0.8);
+  tl.fromTo(f, {autoAlpha: 0, x: 90, y: 170}, {autoAlpha: 1, x: 0, y: 0, duration: 0.5, ease: 'power3.out', immediateRender: false}, T - 0.75);
+  tl.to(f, {scale: 0.86, duration: 0.1, ease: 'power2.in'}, T - 0.15);
+  tl.to(f, {scale: 1, duration: 0.15}, T);
+  tl.to(f, {autoAlpha: 0, y: 70, duration: 0.3}, T + 0.2);
+}
+/* La micro-interaction d’un bouton touché (Elisa, 25 octobre, 16 h 22). Dans l’app, le bouton s’enfonce sous le doigt dès le toucher et remonte
+   d’un rebond au relâcher (OPENS : press, rest ; le lecteur s’en charge, hors de la timeline) ; hors de l’app, le doigt appuie (press). Puis une
+   onde blanche le traverse, il gonfle un instant, son icône remue et un anneau s’en échappe. Rien que des « to » : en revenant en arrière, chaque
+   élément retrouve l’état d’avant le toucher. */
+function tapButton(id, T, lip){
+  const b = '#' + id;
+  if (APP) {
+    const rp = $(b + ' .ripple');
+    tl.to(rp, {scale: 0, opacity: 0.55, duration: 0.001}, T + 0.001).to(rp, {scale: 1, opacity: 0, duration: 0.7, ease: 'power2.out'}, T + 0.011);
+    cue(T + 0.001, 'click');
+  } else { fingerTap($(b), T, '#tapw', 0.6, 62); press($(b), T, lip, 9); }
+  tl.to(b, {scale: 1.04, duration: 0.14, ease: 'power2.out'}, T + 0.1).to(b, {scale: 1, duration: 0.32, ease: 'back.out(2)'}, T + 0.24);
+  tl.to(b + ' .emo', {rotation: -16, transformOrigin: '50% 85%', duration: 0.07, yoyo: true, repeat: 3, ease: 'sine.inOut'}, T + 0.06);
+  tl.set(b + '-r', {autoAlpha: 0.9, scale: 1}, T + 0.05);
+  tl.to(b + '-r', {autoAlpha: 0, scale: 1.16, duration: 0.6, ease: 'power2.out'}, T + 0.051);
+}
+/* Un droit accordé : l’interrupteur de l’accès passe au vert, et le droit s’écrit sous son nom ; un droit retiré : l’inverse. */
+function grant(q, t){
+  tl.to('#tg' + q, {backgroundColor: '#169447', duration: 0.25, ease: 'power2.out'}, t);
+  tl.to(`#tg${q} > i`, {x: 36, duration: 0.32, ease: 'back.out(2)'}, t);
+  tl.to(`#fa${q} .fl`, {y: -14, duration: 0.3, ease: 'power2.out'}, t + 0.1);
+  show('#fd' + q, t + 0.2, {y: 8}, 0.35);
+  cue(t, 'pop', 0.6, 3 + q);
+}
+function revoke(q, t){
+  tl.to('#tg' + q, {backgroundColor: '#D6D1E8', duration: 0.25, ease: 'power2.out'}, t);
+  tl.to(`#tg${q} > i`, {x: 0, duration: 0.32, ease: 'back.out(2)'}, t);
+  hide('#fd' + q, t, {y: -6}, 0.3);
+  tl.to(`#fa${q} .fl`, {y: 0, duration: 0.3, ease: 'power2.inOut'}, t + 0.25);
+  cue(t, 'tick', 0.5, 1 + q);
+}
+/* Une action de trop, sur l’écran de gestion : elle rougit, et un point d’exclamation s’y pose. */
+function warn(sel, t, p = 1){
+  tl.to(sel, {backgroundColor: '#FDECEC', color: '#B42328', boxShadow: 'inset 0 0 0 3px #EF4F55', duration: 0.3, ease: 'power2.out'}, t);
+  mark(sel + ' .wr', t + 0.1);
+  cue(t, 'miss', 0.35, p);
+}
+
+/* Une valeur empilée en remplace une autre, sans mouvement (un compteur qui avance). */
+const flip = (sel, k, t) => { tl.set(`${sel} .a${k - 1}`, {autoAlpha: 0}, t); tl.set(`${sel} .a${k}`, {autoAlpha: 1}, t); };
+
+/* Réponses des moments « À toi » : ce que la timeline montre juste après l’arrêt (et que l’aperçu montre pendant l’arrêt). */
+const M1_ANS = ['#nd0', '#nd1'];   // les deux accès nécessaires
+const M3_ANS = ['#hcq'];           // la partie qui limite le droit à une colonne, entourée
+const set2 = t => +(t + 0.02).toFixed(2);
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
+  layout();
+  gsap.set(['.sq', '#bc', '#gs', '#gsu', '.act .wr', '#ph', '#fc', '#fcf', '.fcd', '.nd', '#vr', '#vx', '.bt', '.srv', '#ap', '#apb', '#gp', '.gpl', '#cc', '#pe', '#pin',
+    '#cal', '#calt', '#tm', '#tq2w', '#fin', '#fmas', '#tapf', '#tapw'], {autoAlpha: 0});
+  gsap.set(['#fcn > i:not(.a0)', '#ast > i:not(.a0)', '#calm > i:not(.a0)', '#calw > i:not(.a0)'], {autoAlpha: 0});
+
+  /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
+     la consigne, la légende ne la répète pas. Le passage d’attente est coupé (rien ne s’y anime). */
+  PICKS.forEach(p => cut(p.at - 1.35, 1.25));
+
+  /* ===== 1 · Un accès trop large ===== */
+  sceneOn('#sa', 5.0);
+  show('#bc', A.r1, {y: 60}, 0.55); cue(A.r1, 'whoosh', 0.5);
+  TB.forEach(([k], q) => { const t = A.r1 + 0.3 + q * 0.15; show('#bw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q % 5); });
+  // « Au chapitre 16, un index » : la table commandes
+  on('#bw-cm .hl', A.r2 + 0.8, 0.2); cue(A.r2 + 0.8, 'tick', 0.5, 2);
+  off('#bw-cm .hl', A.r2 + 3.0, 0.3);
+  // l’écran de gestion de NutriBoost : les commandes, les produits et les fiches clients, l’une après l’autre
+  hide('#bc', A.o1 - 0.1, {y: -30}, 0.35);
+  show('#gs', A.o1 + 0.3, {y: 50, scale: 0.96}, 0.6); cue(A.o1 + 0.3, 'whoosh', 0.5, 1);
+  ['#gs-cm', '#gs-pr', '#gs-cl'].forEach((s, q) => { const t = A.o1 + 1.2 + q * 0.95; bump(s, t, 1.025); cue(t, 'tick', 0.5, q + 2); });
+  // une nouvelle collègue doit préparer les colis : la photo d’Elisa, qui avance doucement vers Lina
+  hide('#gs', A.o2 - 0.1, {y: -30}, 0.35);
+  show('#ph', A.o2 + 0.3, {y: 50, scale: 0.96}, 0.6); cue(A.o2 + 0.3, 'whoosh', 0.5, 2);
+  tl.fromTo('#ph img', {scale: 1}, {scale: 1.08, duration: +(B.o2 - A.o2 + 0.4).toFixed(2), ease: 'none', immediateRender: false}, A.o2 + 0.3);
+  // mais avec un compte trop large… : l’écran revient, ouvert avec le compte lina ; modifier les prix et supprimer des clients rougissent
+  hide('#ph', A.o3 - 0.1, {y: -30}, 0.35);
+  reShow('#gs', A.o3 + 0.3);
+  mark('#gsu', A.o3 + 1.0);
+  warn('#ga-pr', A.o3 + 2.3, 1); warn('#ga-cl', A.o3 + 3.3, 2);
+  // Camille Roux, responsable des opérations, t’écrit : l’écran laisse la place à son message ; la légende s’efface le temps du message
+  capOff(B.o4 - 0.2);
+  hide('#gs', B.o4 - 0.1, {y: -30}, 0.35);
+  sceneOff('#sa', MAIL1 + 0.3);
+  sceneOn('#sm', MAIL1 + 0.3);
+  mailIn(1, MAIL1 + 0.5, OPENS[0].at);
+  mailOut(1, MAIL1 + MO[0]);
+  sceneOff('#sm', MAIL1 + MO[0] + 0.45);
+
+  /* ===== 2 · Les accès nécessaires ===== */
+  sceneOn('#sw', MAIL1 + MO[0] + 0.45);
+  capOn(A.a1 - 0.3);
+  // la fiche du compte de Lina, puis ses quatre accès possibles, un à un
+  show('#fc', A.a1 + 0.2, {y: 40}, 0.5); cue(A.a1 + 0.2, 'whoosh', 0.45, 1);
+  ACCES.forEach(([k], q) => { const t = A.a2 + 0.4 + q * 0.4; show('#f' + k, t, {y: 0, x: -30}, 0.4); cue(t, 'tick', 0.45, q + 1); });
+  // À toi : les deux accès nécessaires (réponse : « ✓ nécessaire »)
+  tl.set(M1_ANS, {autoAlpha: 1}, set2(PICKS[0].at));
+  // les droits déterminent ce qu’un utilisateur peut faire dans la base : les deux autres accès sont écartés
+  [2, 3].forEach((q, i) => { const t = A.a3 + 0.9 + i * 0.5; mark('#nd' + q, t); tl.to(`#fa${q} .fl`, {opacity: 0.42, duration: 0.3}, t); tl.to(`#fa${q} > .emo`, {opacity: 0.42, duration: 0.3}, t); });
+  // le principe : uniquement les accès nécessaires à sa mission ; les deux accès gardés ressortent
+  ['#fa0', '#fa1'].forEach((r, q) => { const t = A.a4 + 1.4 + q * 0.35; pulse(r, t, 1, 'rgba(22,148,71,.12)'); cue(t, 'tick', 0.5, q + 3); });
+
+  /* ===== 3 · Ce qu’elle peut consulter ===== */
+  // la notion de vue, découverte au chapitre 15 : son rappel, puis la vue commandes_expedition
+  hide('#fc', A.b1 - 0.05, {y: -30}, 0.35);
+  show('#vr', A.b1 + 0.4, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.b1 + 0.4, 'pop', 0.6, 2);
+  hide('#vr', A.b2 - 0.05, {y: -30}, 0.3);
+  show('#vx', A.b2 + 0.3, {y: 40}, 0.5); cue(A.b2 + 0.3, 'whoosh', 0.5, 1);
+  // elle contient uniquement ces quatre colonnes : leurs noms, l’un après l’autre
+  VCOLS.forEach((c, j) => { const t = A.b3 + 0.8 + j * 0.45; pulse(`#vx .hd .c${j}`, t, 1, GLOW); cue(t, 'tick', 0.45, j + 1); });
+  // Lina a besoin du destinataire et de l’adresse : leurs deux colonnes
+  pulse('#vx .c1', A.b4 + 0.9, 1, 'rgba(8,145,178,.14)'); cue(A.b4 + 0.9, 'tick', 0.5, 2);
+  pulse('#vx .c2', A.b4 + 2.0, 1, 'rgba(8,145,178,.14)'); cue(A.b4 + 2.0, 'tick', 0.5, 4);
+  // cette vue rassemble les informations utiles à son travail
+  bump('#vx', A.b5 + 1.2, 1.015); cue(A.b5 + 1.2, 'pop', 0.5, 3);
+  // son compte est déjà créé et ne dispose d’aucun accès aux tables : la fiche revient sous la vue, tous ses interrupteurs éteints
+  reShow('#fc', A.b6 + 0.3, FC.vue);
+  show('#fcf', A.b6 + 1.4, {y: 16, scale: 0.96}, 0.4, 'back.out(1.8)'); cue(A.b6 + 1.4, 'pop', 0.5, 1);
+  $$('#fc .tg').forEach((g, q) => { const t = A.b6 + 2.4 + q * 0.2; bump(g, t, 1.12); cue(t, 'tick', 0.4, q + 1); });
+
+  /* ===== 4 · Autoriser la consultation ===== */
+  // ta mission : autoriser Lina à consulter la vue ; la commande s’écrit pendant les deux bulles ; la fiche attend, sous la commande
+  hide(['#vx', '#fc'], A.c0 - 0.05, {y: -30}, 0.35);
+  show('#eg', A.c0 + 0.3, {y: 40}, 0.5); cue(A.c0 + 0.3, 'whoosh', 0.45, 1);
+  const c0 = typeLines('eg', 0, 0, A.c0 + 0.8);
+  typeLines('eg', 1, 3, c0 + 0.2, 30);
+  reShow('#fc', A.c2 + 0.3, FC.grant);
+  // SQLite n’a pas de comptes : la commande est simulée (l’étiquette de la carte)
+  pulse('#eg-t', A.c2 + 1.0, 1, 'rgba(255,224,138,.35)'); cue(A.c2 + 1.0, 'tick', 0.5, 2);
+  pulse('#eg-t', A.c3 + 1.2, 1, 'rgba(255,224,138,.35)'); cue(A.c3 + 1.2, 'tick', 0.5, 3);
+  // l’élève clique sur « Simuler » : le bouton arrive sous la commande (l’app s’arrête dessus, OPENS ; hors de l’app, un doigt le montre)
+  show('#bs1', A.c4 + 1.2, {y: 30, scale: 0.94}, 0.5, 'back.out(1.7)'); cue(A.c4 + 1.2, 'pop', 0.7, 2);
+  tapButton('bs1', EXE1, '#4B30CC');
+  run('eg', EXE1 + 0.15);
+  confetti($('#bs1'), EXE1 + 0.6);   // la commande passe sans erreur : des confettis (Elisa, 26 octobre, 7 h 18, Réf 6)
+  // la réponse simulée arrive à la place du bouton : GRANT ; sur la fiche, l’accès aux commandes s’allume
+  hide('#bs1', EXE1 + 0.75, {y: -20, scale: 0.96}, 0.3);
+  show('#rs1', EXE1 + 1.0, {y: 30, scale: 0.96}, 0.5, 'back.out(1.5)'); cue(EXE1 + 1.0, 'chord', 0.5);
+  grant(0, EXE1 + 1.7);
+  flip('#fcn', 1, EXE1 + 1.9);
+  // Lina ouvre la liste des expéditions : la fiche laisse la place à son application, et les lignes de la vue apparaissent
+  hide('#fc', A.c5 - 0.05, {y: -30}, 0.35);
+  show('#ap', A.c5 + 0.3, {y: 40}, 0.5); cue(A.c5 + 0.3, 'whoosh', 0.5, 2);
+  ['#api0', '#api1', '#ape'].forEach((r, q) => { const t = A.c5 + 1.1 + q * 0.45; show(r, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q + 2); });
+  // GRANT accorde un droit ; ici, SELECT autorise Lina à consulter la vue commandes_expedition ; ON précise la vue, TO le compte
+  pulse('#gsel', A.c6 + 0.6, 1, GLOW); cue(A.c6 + 0.6, 'tick', 0.5, 2);
+  pulse('#gsel', A.c7 + 0.7, 1, GLOW); cue(A.c7 + 0.7, 'tick', 0.5, 3);
+  pulse('#gon', A.c7 + 2.3, 1, GLOW); cue(A.c7 + 2.3, 'tick', 0.5, 4);
+  pulse('#gon', A.c8 + 0.5, 1, GLOW); cue(A.c8 + 0.5, 'tick', 0.5, 2);
+  pulse('#gto', A.c8 + 1.9, 1, GLOW); cue(A.c8 + 1.9, 'tick', 0.5, 4);
+  // chaque droit correspond à une action : consulter, oui ; supprimer, non
+  bump('#ap', A.c9 + 0.9, 1.015);
+  // Lina écrit : le travail laisse la place à son message
+  capOff(B.c10 - 0.2);
+  hide(['#eg', '#rs1', '#ap'], B.c10 - 0.1, {y: -30}, 0.35);
+  sceneOff('#sw', MAIL2 + 0.3);
+  sceneOn('#sm', MAIL2 + 0.3);
+  mailIn(2, MAIL2 + 0.5, OPENS[2].at);
+  mailOut(2, MAIL2 + MO[1]);
+  sceneOff('#sm', MAIL2 + MO[1] + 0.45);
+
+  /* ===== 5 · Une modification précise ===== */
+  sceneOn('#sw', MAIL2 + MO[1] + 0.45);
+  capOn(A.d0 - 0.3);
+  // ta mission : autoriser uniquement la modification de la colonne statut ; la commande s’écrit, puis se découpe en quatre parties
+  show('#eu', A.d0 + 0.2, {y: 40}, 0.5); cue(A.d0 + 0.2, 'whoosh', 0.45, 1);
+  typeLines('eu', 0, 0, A.d0 + 0.7);
+  const d1 = typeLines('eu', 1, 3, A.d1 + 0.2, 30);
+  pulse('#gup', d1 + 0.1, 1, GLOW); cue(d1 + 0.1, 'tick', 0.5, 2);
+  show('#gp', d1 + 0.3, {y: 40}, 0.5); cue(d1 + 0.3, 'whoosh', 0.45, 3);
+  // À toi : la partie qui limite le droit à une colonne (réponse : elle est entourée)
+  tl.set(M3_ANS, {autoAlpha: 1}, set2(PICKS[2].at));
+  // tu peux limiter un droit à une colonne : ce que précise chaque partie
+  mark('#gl-q1', A.d2 + 0.4);
+  pulse('#gst', A.d2 + 0.5, 1, GLOW);
+  ['q0', 'q2', 'q3'].forEach((k, q) => { const t = A.d2 + 1.5 + q * 0.4; show('#gl-' + k, t, {y: 0, x: 16}, 0.35); cue(t, 'tick', 0.45, q + 2); });
+  // l’élève clique de nouveau sur « Simuler » : le découpage laisse la place au bouton, et la fiche revient dessous
+  hide('#gp', A.d3 - 0.05, {y: -30}, 0.35);
+  reShow('#fc', A.d3 + 0.5, FC.grant);
+  show('#bs2', A.d3 + 1.2, {y: 30, scale: 0.94}, 0.5, 'back.out(1.7)'); cue(A.d3 + 1.2, 'pop', 0.7, 2);
+  tapButton('bs2', EXE2, '#4B30CC');
+  run('eu', EXE2 + 0.15);
+  confetti($('#bs2'), EXE2 + 0.6);
+  hide('#bs2', EXE2 + 0.75, {y: -20, scale: 0.96}, 0.3);
+  show('#rs2', EXE2 + 1.0, {y: 30, scale: 0.96}, 0.5, 'back.out(1.5)'); cue(EXE2 + 1.0, 'chord', 0.5);
+  grant(1, EXE2 + 1.7);
+  flip('#fcn', 2, EXE2 + 1.9);
+  // Lina peut modifier le statut, sans pouvoir changer la quantité ou le client : les colonnes de la table commandes
+  hide('#fc', A.d4 + 2.4, {y: -30}, 0.35);
+  show('#cc', A.d4 + 2.7, {y: 40}, 0.5); cue(A.d4 + 2.7, 'whoosh', 0.5, 2);
+  bump('#cc-statut', A.d4 + 3.4, 1.1); cue(A.d4 + 3.4, 'pop', 0.55, 4);
+  ['#cc-quantite', '#cc-client_id'].forEach((c, q) => { const t = A.d4 + 4.2 + q * 0.5; pulse(c, t, 1, 'rgba(239,79,85,.16)'); cue(t, 'tick', 0.45, q + 1); });
+  // le colis de Léa Simon passe à « expédiée » : dans l’application de Lina, le bouton « Expédiée », puis le statut
+  hide('#cc', A.d5 - 0.05, {y: -30}, 0.35);
+  reShow('#ap', A.d5 + 0.25);
+  show('#apb', A.d5 + 0.8, {y: 0, scale: 0.6}, 0.4, 'back.out(2)'); cue(A.d5 + 0.8, 'pop', 0.6, 2);
+  press($('#apb'), A.d5 + 1.6, '#0F6B33', 6);
+  swap('#ast .a0', '#ast .a1', A.d5 + 1.8);
+  bump('#api0', A.d5 + 2.0, 1.02); cue(A.d5 + 2.0, 'chord', 0.5);
+
+  /* ===== 6 · Les limites de son accès ===== */
+  // Lina tente maintenant de modifier le prix d’un produit : dans son application, « Modifier le prix », puis un nouveau prix
+  hide(['#eu', '#rs2', '#ap'], A.e1 - 0.05, {y: -30}, 0.35);
+  show('#pe', A.e1 + 0.3, {y: 40}, 0.5); cue(A.e1 + 0.3, 'whoosh', 0.5, 1);
+  tl.to('#pea', {scale: 0.93, duration: 0.08, yoyo: true, repeat: 1, ease: 'power2.out'}, A.e1 + 1.4); cue(A.e1 + 1.4, 'click', 0.6);
+  show('#pin', A.e1 + 1.7, {y: 20}, 0.4); cue(A.e1 + 1.7, 'pop', 0.5, 2);
+  typeChars($$('#pfl .ch'), A.e1 + 2.2, 14);
+  // son application envoie la requête avec le compte de Lina
+  press($('#psv'), A.e2 + 0.3, '#A3216A', 6, false);
+  show('#el', A.e2 + 0.6, {y: 40}, 0.5); cue(A.e2 + 0.6, 'whoosh', 0.45, 2);
+  typeLines('el', 0, 3, A.e2 + 1.0, 44);
+  // la base vérifie les droits avant d’exécuter l’action : la modification est refusée
+  bump('#el', A.e3 + 0.6, 1.015); cue(A.e3 + 0.6, 'tick', 0.5, 2);
+  show('#rs3', A.e3 + 1.6, {y: 30, scale: 0.96}, 0.5, 'back.out(1.5)'); cue(A.e3 + 1.6, 'miss', 0.45);
+  [[-12, 0.08], [10, 0.1], [-6, 0.1], [0, 0.12]].reduce((t, [x, d]) => { tl.to('#rs3', {x, duration: d, ease: 'power1.inOut'}, t); return t + d; }, A.e3 + 2.1);   // le refus secoue la carte
+  // comme Lina n’a pas le droit de modifier les produits, le prix reste inchangé
+  pulse('#lpx', A.e4 + 0.7, 1, 'rgba(239,79,85,.3)');
+  pulse('#pez', A.e4 + 2.4, 1, 'rgba(22,148,71,.16)'); cue(A.e4 + 2.4, 'tick', 0.5, 3);
+  // masquer un bouton ne protège pas la base : le bouton s’efface, la requête, elle, peut toujours partir
+  hide('#pea', A.e5 + 0.6, {y: 0, scale: 0.8}, 0.35); cue(A.e5 + 0.6, 'whoosh', 0.35, 1);
+  bump('#el', A.e5 + 1.8, 1.015); cue(A.e5 + 1.8, 'tick', 0.5, 2);
+  // les droits doivent aussi empêcher l’action si une requête est envoyée autrement : le refus reste
+  bump('#rs3', A.e6 + 1.4, 1.02); cue(A.e6 + 1.4, 'tick', 0.5, 4);
+
+  /* ===== 7 · Retirer les accès ===== */
+  // un mois plus tard, la mission de Lina se termine : le calendrier passe du lundi 26 octobre au jeudi 26 novembre
+  hide(['#pe', '#el', '#rs3'], A.f1 - 0.05, {y: -30}, 0.35);
+  show('#cal', A.f1 + 0.3, {y: 50, scale: 0.92}, 0.55, 'back.out(1.5)'); cue(A.f1 + 0.3, 'whoosh', 0.5, 1);
+  tl.to('#cal', {rotationX: 12, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut', transformPerspective: 900}, A.f1 + 1.2);
+  swap('#calm .a0', '#calm .a1', A.f1 + 1.3); swap('#calw .a0', '#calw .a1', A.f1 + 1.45, false);
+  show('#calt', A.f1 + 2.2, {y: 24, scale: 0.94}, 0.45, 'back.out(1.7)'); cue(A.f1 + 2.2, 'pop', 0.6, 3);
+  // Camille Roux écrit de nouveau : le calendrier laisse la place à son message
+  capOff(B.f1 - 0.2);
+  hide(['#cal', '#calt'], B.f1 - 0.1, {y: -30}, 0.35);
+  sceneOff('#sw', MAIL3 + 0.3);
+  sceneOn('#sm', MAIL3 + 0.3);
+  mailIn(3, MAIL3 + 0.5, OPENS[4].at);
+  mailOut(3, MAIL3 + MO[2]);
+  sceneOff('#sm', MAIL3 + MO[2] + 0.45);
+  // À toi : la fiche de Lina, ses deux droits accordés ; la commande qui en retire un
+  sceneOn('#sw', MAIL3 + MO[2] + 0.45);
+  capOn(A.p5 - 0.3);
+  reShow('#fc', A.p5 - 0.1, 236);
+  // tu écris un REVOKE pour chaque droit accordé : la fiche descend, la commande s’écrit au-dessus
+  tl.to('#fc', {top: FC.revoke, duration: 0.6, ease: 'power3.inOut'}, A.f2 - 0.05);
+  show('#er', A.f2 + 0.4, {y: 40}, 0.5); cue(A.f2 + 0.4, 'whoosh', 0.45, 1);
+  typeLines('er', 0, 0, A.f2 + 0.9);
+  typeLines('er', 1, 2, A.f2 + 1.6, 40);
+  // avec REVOKE, le compte se place après FROM
+  pulse('#rf1', A.f3 + 0.8, 1, GLOW); cue(A.f3 + 0.8, 'tick', 0.5, 2);
+  pulse('#rf2', A.f3 + 1.5, 1, GLOW); cue(A.f3 + 1.5, 'tick', 0.5, 4);
+  // l’élève clique sur « Simuler » : les deux commandes partent
+  show('#bs3', A.f4 + 1.2, {y: 30, scale: 0.94}, 0.5, 'back.out(1.7)'); cue(A.f4 + 1.2, 'pop', 0.7, 2);
+  tapButton('bs3', EXE3, '#4B30CC');
+  run('er', EXE3 + 0.15);
+  confetti($('#bs3'), EXE3 + 0.6);
+  hide('#bs3', EXE3 + 0.75, {y: -20, scale: 0.96}, 0.3);
+  show('#rs4', EXE3 + 1.0, {y: 30, scale: 0.96}, 0.5, 'back.out(1.5)'); cue(EXE3 + 1.0, 'chord', 0.5);
+  // REVOKE retire un droit accordé
+  pulse('#rs4-0', A.f5 + 0.7, 1, GLOW); cue(A.f5 + 0.7, 'tick', 0.5, 2);
+  // ici, tu retires les deux autorisations données à Lina au début de sa mission : elles quittent sa fiche
+  revoke(0, A.f6 + 0.9); revoke(1, A.f6 + 1.6);
+  flip('#fcn', 3, A.f6 + 2.1); bump('#fcf', A.f6 + 2.1, 1.03);
+
+  /* ===== 8 · Le dernier réflexe ===== */
+  // l’équipe NutriBoost : Camille Roux, Lina (sa mission est terminée), et une nouvelle personne
+  hide(['#er', '#rs4', '#fc'], A.g1 - 0.05, {y: -30}, 0.35);
+  sceneOff('#sw', A.g1 + 0.3);
+  sceneOn('#sn', A.g1 + 0.3);
+  show('#tm', A.g1 + 0.3, {y: 40}, 0.5); cue(A.g1 + 0.3, 'whoosh', 0.5, 1);
+  bump('#tm2 .ava', A.g1 + 1.6, 1.12); cue(A.g1 + 1.6, 'pop', 0.55, 3);
+  // chaque personne doit utiliser son propre compte, avec des droits adaptés à son travail
+  mark('#tq2w', A.g2 + 0.8);
+  ['#tm0 .tq', '#tq2w'].forEach((s, q) => { const t = A.g2 + 2.2 + q * 0.4; bump(s, t, 1.08); cue(t, 'tick', 0.45, q + 2); });
+  // les accès doivent être revus lorsque sa mission change ou se termine : ceux de Lina ont été retirés
+  bump('#tm1 .tq', A.g3 + 1.0, 1.08); cue(A.g3 + 1.0, 'tick', 0.5, 4);
+  // bravo : le dernier chapitre du projet est terminé
+  hide('#tm', A.g4 - 0.05, {y: -30}, 0.35);
+  show('#fin', A.g4 + 0.3, {y: 40, scale: 0.85}, 0.6, 'back.out(1.8)'); cue(A.g4 + 0.3, 'chord', 0.6);
+  confetti($('#fin'), A.g4 + 0.5);
+  tl.to('#fin .emo', {rotation: -16, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.g4 + 1.0);
+  // la mascotte arrive, et saute de joie
+  show('#fmas', A.g4 + 0.7, {y: 300, rotation: -6}, 0.9, 'back.out(1.3)'); cue(A.g4 + 0.7, 'whoosh', 0.6, 1);
+  tl.to('#fmas', {y: -26, duration: 0.22, yoyo: true, repeat: 3, ease: 'power2.out'}, A.g4 + 1.8); cue(A.g4 + 1.8, 'pop', 0.6, 3); cue(A.g4 + 2.24, 'pop', 0.6, 5);
+  hide(['#fin', '#fmas'], B.g4 - 0.1, {y: -30}, 0.4);
+  sceneOff('#sn', RECAP);
+
+  /* ===== 9 · À retenir ===== */
+  // chaque idée : sa phrase, puis son détail
+  recapScene(RECAP, [RECAP + 0.7, RECAP + 2.1, RECAP + 3.5]);
+  const rt = $$('#s7 .rtxt'), rs = $$('#s7 .rs'), rd = (h, n = 20) => Math.ceil(readTime(h) * n) / n;
+  gsap.set(rs, {autoAlpha: 0, y: 10});
+  [[RECAP + 0.7, RECAP + 1.45], [RECAP + 2.1, RECAP + 2.85], [RECAP + 3.5, RECAP + 4.25]].forEach(([r, d], i) => {
+    tl.to(rs[i], {autoAlpha: 1, y: 0, duration: 0.45, ease: 'power2.out'}, d);
+    cue(d, 'tick', 0.5, i * 2 + 1);
+    hold(r + 0.6, rd(rt[i].innerHTML.split('<span')[0]));
+    hold(d + 0.5, rd(rs[i].innerHTML));
+  });
+  if (APP) cue(NOTES + 0.05, 'pop', 0.85, 5);
+}
+
+/* ---------- Moments « À toi » : ce que montre chaque geste ----------
+   Le lecteur arrête l’image à chaque moment (PICKS) et pose ses zones tactiles sur les endroits que la page décrit
+   (IX.spots). Chaque geste est jugé ici (IX.act, IX.pick) et montré aussitôt sur l’image : les bons gestes affichent
+   les mêmes éléments que la timeline juste après l’arrêt (classe pvs, sans toucher aux styles de la timeline) ;
+   ils restent jusqu’à ce que la timeline affiche la même image (IX.tick), puis s’effacent : la reprise est invisible. */
+const IX = (() => {
+  let X = null, wait = -1;
+  function start(i){ if (!X || X.i !== i) { clear(); X = {i, cls: [], tm: [], got: new Set()}; } }
+  function clear(){
+    if (!X) return;
+    X.tm.forEach(clearTimeout);
+    X.cls.forEach(([e, c]) => e.classList.remove(c));
+    X = null; wait = -1;
+  }
+  const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
+  const marks = (sels, c = 'pvs') => sels.forEach(s => $$(s).forEach(e => mark(e, c)));
+  /* La classe est aussi notée dans X.cls : si le moment change avant la fin du minuteur (deux réponses enchaînées), clear() la retire. */
+  const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
+  const rowOf = k => $('#f' + k), partOf = k => $('#gp-' + k);
+  function spots(i){
+    // moment 1 : les quatre accès de la fiche du compte de Lina
+    if (i === 0) return ACCES.map(([k, , label]) => Object.assign({k, label}, rel(rowOf(k))));
+    // moment 3 : les quatre parties de la commande GRANT UPDATE (statut)
+    if (i === 2) return PARTS.map(([k, part]) => Object.assign({k, label: part}, rel(partOf(k))));
+    return [];
+  }
+  function act(i, a){
+    start(i);
+    if (i === 0) {
+      const q = ACCES.findIndex(x => x[0] === a);
+      // un accès nécessaire : « ✓ nécessaire » s’y pose, comme juste après l’arrêt
+      if (q >= 0 && ACCES[q][3]) {
+        if (!X.got.has(a)) { X.got.add(a); marks(['#nd' + q]); sfx('tick', X.got.size + 1, 0.6); }
+        return {ok: true, done: X.got.size === 2, why: '', at: rel(rowOf(a))};
+      }
+      // un accès de trop : sa ligne rougit un instant, et la correction dit pourquoi
+      flash(rowOf(a), 'kor', 650);
+      return {ok: false, why: fr(WHY1[a])};
+    }
+    if (i === 2) {
+      // (statut) : la seule colonne que le droit permet de modifier
+      if (a === 'q1') {
+        if (!X.got.has(a)) { X.got.add(a); marks(M3_ANS); sfx('tick', 1, 0.6); }
+        return {ok: true, done: true, why: '', at: rel(partOf('q1'))};
+      }
+      // une autre partie : elle rougit un instant, et la correction dit ce qu’elle précise
+      flash(partOf(a), 'kof', 650);
+      return {ok: false, why: fr(WHY3[a])};
+    }
+    return {ok: false};
+  }
+  /* Choix d’une réponse (moments 2, 4, 5 et 6) : le verdict et son explication. */
+  function pick(i, k){
+    clear(); start(i);
+    const P = PICKS[i], o = P.options[k], ok = !!o.ok;
+    sfx(ok ? 'pop' : 'miss', 2, 0.5);
+    return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));
+  }
+  /* Indice, après deux erreurs : une piste. */
+  function hint(i){
+    const h = (() => {
+      if (i === 0) return {text: 'Relis le message de Camille Roux : Lina consulte les expéditions et met à jour le statut des commandes.', keys: ['a0', 'a1']};
+      if (i === 1) return {text: 'Le droit accordé est <code>SELECT</code> : il permet de consulter.'};
+      if (i === 2) return {text: 'Cherche le nom de la colonne, entre parenthèses.', keys: ['q1']};
+      if (i === 3) return {text: 'Une requête peut-elle partir sans passer par ce bouton ?'};
+      if (i === 4) return {text: 'Retirer un droit s’écrit avec <code>REVOKE</code> ; regarde ensuite le mot placé devant <code>lina</code>.'};
+      if (i === 5) return {text: 'Relis la mission de Lina : chacun de ses accès répondait à un besoin précis.'};
+      return null;
+    })();
+    return h && Object.assign(h, {text: fr(h.text)});
+  }
+  return {
+    enter: i => { clear(); start(i); },
+    spots, act, pick, hint,
+    slot: () => null,
+    /* Moment réussi : l’aperçu reste jusqu’à ce que la timeline affiche la même image ; sinon il part tout de suite. */
+    leave(i, answered){ if (answered && X && X.i === i) wait = i; else clear(); },
+    tick(t = tl.time()){ if (wait < 0) return; const a = PICKS[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear(); }
+  };
+})();
+window.IX = IX;
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 255.6, picks: PICKS, opens: OPENS,
+  glyphs: '🗄️👥🛒⭐📦🧑‍🏫📅📝💳💬🔁🎁🏷️🖥️👤🔄🗑️👀🔒🔓🧪👁️🧩✏️🏁🚪🔐✅!…«»·−→⋮',
+  dom, build, beforeRender: t => IX.tick(t)});
+</script>
+</body>
+</html>
