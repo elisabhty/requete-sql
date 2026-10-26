@@ -130,7 +130,7 @@ test('anciens cours : les vidéos et les leçons en texte sont lues', () => {
   assert.ok(VIDEOS.length >= 40, `${VIDEOS.length} vidéos`);
   for (const f of VIDEOS) assert.ok(R.textesVideo(f).length >= 20, `${f} : ${R.textesVideo(f).length} textes lus`);
   assert.ok(LECONS_ANCIENNES.length >= 45, `${LECONS_ANCIENNES.length} leçons`);   // les chapitres du projet remplacent un à un les anciens cours texte
-  assert.ok(R.textesFiche(64).length >= 50, 'la leçon CREATE VIEW (en texte) est lue en entier');
+  assert.ok(R.textesFiche(50).length >= 50, 'la leçon Sécurité et droits (en texte) est lue en entier');   // CREATE VIEW est devenue le chapitre 15, en vidéo
 });
 test('anciennes vidéos : aucun écart de plus que ceux déjà connus', () => {
   const rapports = VIDEOS.flatMap(f => {

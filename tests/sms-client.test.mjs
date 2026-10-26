@@ -62,6 +62,18 @@ test('la première bulle : « Bonjour, » par défaut ; la page peut choisir la 
   assert.ok(h.slice(h.indexOf('sms-n'), h.indexOf('sms-v')).includes('<div class="sms-np">Peux-tu venir&nbsp;?</div>'.replace('&nbsp;', '\u00a0')), 'l’aperçu de la notification est la première phrase, pas « Bonjour ! »');
 });
 
+test('un message sans formule (hello: null) : la conversation commence par la première phrase, la bannière aussi, et tout se lit', () => {
+  /* Elisa, 26 octobre, 10 h 52 (chapitre 15) : le second message de Camille commence directement, « Petit changement : … ». */
+  const body = ['Petit changement : on remplace finalement la tisane par le magnésium.', 'Il faut recréer la vue ?'];
+  assert.deepEqual([...S.smsParts(body, null, null)], body, 'ni « Bonjour, » ni « Merci ! »');
+  assert.deepEqual([...S.smsParts(body, null)], [...body, 'Merci !'], 'sans formule, mais avec « Merci ! »');
+  const h = S.smsCard(2, 'k-pr', 'Camille', 'Roux', 'CR', body, false, 1, null, undefined, null);
+  assert.ok(h.startsWith('<div class="abs ml sms k-pr" id="ml2" data-hi="0">'), 'la carte le signale à smsIn() (data-hi="0") : toutes ses bulles comptent dans le temps de lecture');
+  assert.ok(h.includes('<div class="sms-b"><div class="sms-t"><i></i><i></i><i></i></div><p class="sms-m">Petit changement : on remplace finalement la tisane par le magnésium.</p><p class="sms-m last">Il faut recréer la vue ?</p></div>'));
+  assert.ok(h.slice(h.indexOf('sms-n'), h.indexOf('sms-v')).includes('<div class="sms-np">Petit changement\u00a0: on remplace'), 'l’aperçu de la notification : sa première phrase');
+  assert.ok(!S.smsCard(1, 'k-pr', 'Camille', 'Roux', 'CR', body, false, 0, 'Salut !').includes('data-hi'), 'avec une formule, rien ne change');
+});
+
 test('l’heure d’envoi : « 07:00 » à « 18:59 », la même pour un même expéditeur', () => {
   for (const n of ['Léa Simon', 'Nathan Dupont', 'Inès Lefebvre', 'Sophie Martin']) {
     const h = S.smsTime(n);
@@ -132,7 +144,7 @@ test('le style : bulles grises iOS, bleu des icônes, queue de la dernière bull
 test('la cadence : la bannière, le toucher, « … », puis une bulle toutes les 0,28 s (0,25 s en version serrée) ; l’image reste le temps de lire', () => {
   const f = core.slice(core.indexOf('function smsIn('), core.indexOf('/* ---------- Habillage'));
   for (const part of ["cue(t, 'sms', 0.8);", "cue(T, 'click', 0.5);", 'first = T + (fast ? 0.5 : 0.62)', 'step = fast ? 0.25 : 0.28', "tl.set(dots, {autoAlpha: 0}, first);",
-    'const end = first + (bubbles.length - 1) * step + 0.35;', "const said = bubbles.slice(1, /^Merci\\s*!$/.test(bubbles[bubbles.length - 1].textContent.trim()) ? -1 : undefined);",
+    'const end = first + (bubbles.length - 1) * step + 0.35;', "const said = bubbles.slice(+!$(m).dataset.hi, /^Merci\\s*!$/.test(bubbles[bubbles.length - 1].textContent.trim()) ? -1 : undefined);",
     'hold(end + 0.05, Math.ceil(readTime(said.map(b => b.textContent).join(\' \')) * 20) / 20);'])
     assert.ok(f.includes(part), `smsIn : ${part}`);
   assert.ok(core.includes('await document.fonts.ready;\n    smsFit();'), 'les bulles se resserrent sur leur ligne la plus longue, polices chargées, avant la timeline');
@@ -157,10 +169,10 @@ for (const f of AVEC_SMS) {
     assert.ok(R.rendEnSms(src), 'smsCard pour un SMS, smsIn dans mailIn');
     assert.ok(/isSms\(tag, MAILS\[n\]\[6\]\) \? smsCard\(n \+ 1, k, /.test(src) && /function mailIn\(n, t, T\)\{\n  if \(isSms\(MAILS\[n - 1\]\[2\], MAILS\[n - 1\]\[6\]\)\) \{ if \(!APP\) fingerTap\(\$\('#ml' \+ n\), T\); return smsIn\(n, t, T/.test(src), 'même câblage dans chaque page');
     /* Une page qui a aussi un mail (coach, équipe, service client sans option) garde son code : avatar à enveloppe, adresse, signature.
-       Les chapitres 11 à 14 n’ont que des SMS (Léa Simon, puis le service client ; deux fois le service client ; la responsable commerciale ;
-       l’équipe ateliers) : ils n’embarquent pas le code du mail. */
+       Les chapitres 11 à 15 n’ont que des SMS (Léa Simon, puis le service client ; deux fois le service client ; la responsable commerciale ;
+       l’équipe ateliers ; deux fois Camille, la responsable de la box) : ils n’embarquent pas le code du mail. */
     if (M.some(m => !estSms(m))) assert.ok(src.includes('<i class="mav">') && src.includes('Nouveau mail'), 'la carte de mail existe toujours');
-    else assert.ok(!src.includes('Nouveau mail') && ['projet-transaction.html', 'projet-savepoint.html', 'projet-trigger.html', 'projet-concurrence.html'].includes(f), 'que des SMS : aux chapitres 11 à 14 seulement, sans le code du mail');
+    else assert.ok(!src.includes('Nouveau mail') && ['projet-transaction.html', 'projet-savepoint.html', 'projet-trigger.html', 'projet-concurrence.html', 'projet-vue.html'].includes(f), 'que des SMS : aux chapitres 11 à 15 seulement, sans le code du mail');
     /* L’app s’arrête sur la notification : « Touche le message… » pour un client, « Touche le mail… » sinon. */
     assert.ok(/msg = (?:\/\^client\/\.test\(MAILS\[n\]\[2\]\) \|\| \(MAILS\[n\]\[6\] \|\| \{\}\)\.sms|mailSms\(n\)) \? 'message' : 'mail'/.test(src) && src.includes('prompt: `Touche le ${msg} pour l’ouvrir.`') && src.includes('label: `Ouvrir le ${msg} '), 'consigne et étiquette du toucher');
   });

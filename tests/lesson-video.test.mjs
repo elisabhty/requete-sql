@@ -1119,6 +1119,16 @@ const COURSES = [
       "{at: atp('p1'), from: A.b0, kind: 'tap', need: 1,", "{label: 'Verrouiller la ligne de l’atelier pendant la réservation', ok: true,",
       "{label: 'Elle attend de pouvoir verrouiller la même ligne', ok: true,", "{label: '0 place : aucune inscription pour lui', ok: true,",
       "{label: 'Elle reste disponible pour Nathan Petit', ok: true,", "{at: atp('p6'), from: A.g1, kind: 'sort',", "['{xfu|FOR UPDATE};']", 'Prochaine leçon · CREATE VIEW']},
+  {id: 64, next: 57, titre: 'CREATE VIEW', page: 'projet-vue.html', thumb: 'projet-vue-thumb.webp', duree: '4 min 06', notesAt: 204.21,
+    notes: /notes:\{t:238\.8,y:1261,card:\[64,292,1016,966\],to:\[940,255\]\}/, table: 'produits',
+    bubble: 'Une box surprise à préparer&nbsp;:<br>à toi de ne montrer<br>que la sélection !',
+    chapters: ['La box surprise', 'Le catalogue interne', 'Créer la vue', 'Consulter la vue', 'Petit changement', 'Et les droits ?', 'Dans la vue ou non ?', 'À retenir'],
+    traps: ["const BINS = [['vu', 'Dans la vue', 'l’agence la voit'], ['ho', 'Hors de la vue', 'elle reste interne']];",
+      // Les six moments : les produits sélectionnés, les colonnes à présenter, ce qu’affiche la vue, faut-il la recréer, la valeur qui fait
+      // entrer le magnésium, les six informations à ranger
+      "{at: atp('p1'), from: A.a1, kind: 'tap', need: 3,", "{label: 'nom, categorie et prix', ok: true,", "{label: 'Les 3 produits de la box : nom, catégorie et prix', ok: true,",
+      "{label: 'Non, il suffit de consulter à nouveau la vue', ok: true,", "{at: atp('p5'), from: A.e3, kind: 'tap', need: 1,", "{at: atp('p6'), from: A.g1, kind: 'sort',",
+      "['{vwh|WHERE selection_box = 1};']", 'Prochaine leçon · Les index et EXPLAIN']},
 ];
 
 for (const c of COURSES) {
@@ -1153,7 +1163,8 @@ for (const c of COURSES) {
     let total = 0;
     for (const f of [c.page, 'core.css', 'core.js', 'gsap.min.js', 'mascotte.webp', c.thumb]) total += fs.statSync(path.join(ROOT, 'assets/anim', f)).size;
     for (const f of ANIM_FONTS) total += fs.statSync(path.join(ROOT, 'assets/fonts', f)).size;
-    assert.ok(total < 470 * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
+    /* 480 Ko (470 jusqu’au 26 octobre) : le moteur commun grandit avec les chapitres du projet (le SMS sans formule du chapitre 15). */
+    assert.ok(total < 480 * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
     for (const f of [`./assets/anim/${c.page}?app&embed`, `./assets/anim/${c.thumb}`]) assert.ok(sw.includes(`'${f}'`), `préchargé : ${f}`);
   });
 }
@@ -1600,7 +1611,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
     && D.CAPTIONS[iq + 1][0] <= 12.6 && D.CAPTIONS[iq + 1][1] >= 14.3 && D.CAPTIONS[iq + 2][2] === 'Pour le savoir, il faut relier les tables grâce à des <b>clés</b>.'
     && page.includes("pop('#ms1', 14.0, 0.5); pop('#ms2', 14.3, 0.5);"), 'la question du 4 septembre, pendant que la ligne s’allume et que « ? client » et « ? atelier » apparaissent');
   /* Une seule façon de nommer la table d’une relation N ↔ N, dans les trois chapitres. */
-  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html', 'projet-transaction.html', 'projet-savepoint.html', 'projet-trigger.html', 'projet-concurrence.html'])
+  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html', 'projet-transaction.html', 'projet-savepoint.html', 'projet-trigger.html', 'projet-concurrence.html', 'projet-vue.html'])
     assert.ok(!fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8').includes('table de jointure'), `${f} : « table d’association », jamais « table de jointure »`);
   assert.ok(caps.includes('Une <b>table d’association</b>'), 'le chapitre 2 la nomme comme le chapitre 3');
   /* La clé étrangère : sa définition, puis à quoi elle sert, sur l’exemple entouré (inscription 1, client_id 1, Sophie Martin). */
@@ -2828,7 +2839,7 @@ test('Quel JOIN choisir ? : chaque étiquette montre le résultat de SQLite (ord
 });
 
 test('deux réponses enchaînées aux moments « À toi » : la pastille rouge du mauvais geste ne reste pas, clear() retire la classe de flash() sans attendre le minuteur', () => {
-  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html', 'projet-transaction.html', 'projet-savepoint.html', 'projet-trigger.html', 'projet-concurrence.html']) {
+  for (const f of ['projet-normaliser.html', 'projet-cles.html', 'projet-uml.html', 'projet-drop.html', 'projet-insert.html', 'projet-update.html', 'projet-delete.html', 'projet-ondelete.html', 'projet-transaction.html', 'projet-savepoint.html', 'projet-trigger.html', 'projet-concurrence.html', 'projet-vue.html']) {
     const src = fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8');
     const clearSrc = src.match(/function clear\(\)\{\n[\s\S]*?\n  \}/)?.[0], flashSrc = src.match(/const flash = \(e, c, ms = 600\) => \{[^\n]*\};/)?.[0];
     assert.ok(clearSrc && flashSrc, `${f} : clear() et flash() trouvés`);

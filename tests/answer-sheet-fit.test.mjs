@@ -146,7 +146,7 @@ test('moteur des animations : window.__contentBottom, bas du contenu visible sur
 
 test('les pastilles centrées (« 6 situations à ranger »…) comptent comme du contenu : le conteneur .pack est transparent, la pastille (span) porte le cadre', () => {
   /* Elisa, 25 octobre, 15 h 48 : au dernier moment du chapitre 10, la feuille de réponse recouvrait la pastille « 6 situations à ranger ». */
-  for (const f of ['projet-insert', 'projet-update', 'projet-delete', 'projet-ondelete', 'projet-transaction', 'projet-savepoint', 'projet-trigger', 'projet-concurrence']) {
+  for (const f of ['projet-insert', 'projet-update', 'projet-delete', 'projet-ondelete', 'projet-transaction', 'projet-savepoint', 'projet-trigger', 'projet-concurrence', 'projet-vue']) {
     const page = fs.readFileSync(path.join(root, `assets/anim/${f}.html`), 'utf8');
     const pills = [...page.matchAll(/<div class="abs pack" id="([^"]+)"><span>/g)];
     assert.ok(pills.length >= 1, `${f} : au moins une pastille .pack, un span directement dedans`);
