@@ -118,9 +118,9 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 265.6);
-  assert.ok(page.includes('notesAt: 265.6,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 272.8);
+  assert.equal(val('NOTES'), 271.05);
+  assert.ok(page.includes('notesAt: 271.05,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 278.25);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   assert.deepEqual(chaps.map(c => c.label), ['Un accès trop large', 'Les accès nécessaires', 'Ce qu’elle peut consulter', 'Autoriser la consultation', 'Une modification précise',
@@ -342,4 +342,18 @@ test('ce qu’est une vue, et à quoi elle sert ; les interrupteurs ne passent a
   /* Moment 1 : toucher un accès nécessaire ne le fait pas passer au vert ; seul grant() allume un interrupteur */
   assert.ok(!page.includes('tgon') && !/tl\.set\(\['#tg0', '#tg1'\]/.test(page), 'aucun interrupteur allumé avant GRANT');
   assert.ok(/function grant\(q, t\)\{\n  tl\.to\('#tg' \+ q, \{backgroundColor: '#169447'/.test(page), 'GRANT allume l’interrupteur');
+});
+
+test('le chemin d’un clic : l’application écrit la requête SQL, l’envoie à la base, le refus revient dans l’application (Elisa, 26 octobre, 23 h 01)', () => {
+  const lus = val('CAPTIONS').map(c => strip(c[2]));
+  const i = lus.indexOf('Lina tente maintenant de modifier le prix d’un produit.');
+  assert.deepEqual(lus.slice(i, i + 6), ['Lina tente maintenant de modifier le prix d’un produit.', 'Quand elle clique sur « Enregistrer », son application écrit une requête SQL.',
+    'Son application envoie la requête à la base, avec le compte de Lina.', 'À toi !', 'La base vérifie les droits avant d’exécuter l’action.',
+    'Comme Lina n’a pas le droit de modifier les produits, le prix reste inchangé.']);
+  for (const e of ["flw('fl1', '⚙️', 'L’application écrit la requête SQL')", "flw('fl2', '📨', 'Envoyée à la base, avec le compte <code>lina</code>')",
+    'Base NutriBoost<span class="dbv" id="dbv">', '<span class="pref" id="pref"><span class="emo">🔒</span>Refusé par la base</span>']) assert.ok(page.includes(e), e);
+  /* Dans l’ordre, de haut en bas : l’application, la flèche, la requête, la flèche, la base, sa réponse */
+  assert.ok(page.includes("$('#fl1').style.top = bottom('#pe') + 'px';\n  $('#el').style.top = bottom('#fl1') + 'px';\n  $('#fl2').style.top = bottom('#el') + 'px';\n  $('#dbn').style.top = bottom('#fl2') + 'px';"));
+  /* La base est là avant la question : l’élève voit où part la requête */
+  assert.ok(val('A').e2 < val('PICKS')[3].at && /show\('#dbn', A\.e2 \+ 1\.3/.test(page));
 });
