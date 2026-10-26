@@ -333,6 +333,29 @@ html.lq #app>.tabbar .tab-avatar{
   font:700 11px/1 var(--display);letter-spacing:0;
 }
 html.lq #app>.tabbar .tab.active .tab-avatar{background:var(--accent);border-color:var(--accent);color:#fff;font-size:12px;animation:lqTabPop .32s ease-out}
+/* Onglet ouvert : une pastille douce derrière l’icône, qui s’étire en arrivant ; l’icône et le libellé passent
+   à la couleur de l’app. Les autres onglets restent tous gris, Planning compris : quand des activités sont à
+   replacer, un petit point le signale sur son icône, au lieu de la colorer comme un onglet ouvert (Elisa,
+   26 octobre, 23 h 16 : « le planning en violet et les autres en gris, ça fait bizarre »). */
+html.lq #app>.tabbar .tab{position:relative;color:#7A7596}
+html.lq #app>.tabbar .tab::before{
+  content:"";display:block;position:absolute;left:50%;top:1px;z-index:0;
+  width:min(60px,calc(100% - 8px));height:32px;border-radius:999px;
+  background:var(--accent-soft,#ECEAFD);box-shadow:none;
+  transform:translateX(-50%) scaleX(.45);opacity:0;
+  transition:transform .34s cubic-bezier(.34,1.5,.64,1),opacity .18s ease-out;
+}
+html.lq #app>.tabbar .tab.active::before{transform:translateX(-50%) scaleX(1);opacity:1}
+html.lq #app>.tabbar .tab>svg,html.lq #app>.tabbar .tab-avatar,html.lq #app>.tabbar .tab-label{position:relative;z-index:1}
+html.lq #app>.tabbar .tab.active{color:var(--accent)}
+html.lq #app>.tabbar .tab.active .tab-label{font-weight:800}
+html.lq #app>.tabbar .tab.has-late:not(.active)>svg{color:inherit}
+html.lq #app>.tabbar .tab.has-late:not(.active)::after{
+  content:"";position:absolute;z-index:2;top:3px;left:calc(50% + 7px);
+  width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2.5px #fff;
+}
+html.lq #app>.tabbar .tab-avatar{border-width:1.8px}
+@media (prefers-reduced-motion:reduce){html.lq #app>.tabbar .tab::before{transition:opacity .15s linear}}
 /* Cinq onglets sur un petit écran : chacun prend la largeur de son libellé,
    pour que « Bibliothèque » ne déborde jamais sur ses voisins. */
 @media (max-width:379px){
