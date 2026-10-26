@@ -6299,11 +6299,15 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
      une résistance ; l’indicateur se dessine trait par trait dans l’espace libéré, comme sur iPhone ; relâcher au-delà du
      seuil le fait tourner, l’écran attend un instant puis l’app se recharge (la progression est gardée dans localStorage). */
   .ptr{position:absolute;left:50%;top:0;z-index:0;width:28px;height:28px;margin-left:-14px;color:var(--ink-2,#4A4566);opacity:0;pointer-events:none;will-change:transform,opacity}
+  /* L’indicateur tourne avec le doigt, puis en continu pendant le rechargement (Elisa, 26 octobre, 22 h 52 : « on dirait qu’elle est
+     figée, il faudrait qu’elle soit rotative »). Deux couches : .ptr-r suit le geste, .ptr-s tourne seule, sans à-coup ni saut
+     d’angle entre les deux ; une rotation simple (transform) que le navigateur continue même quand la page se recharge. */
+  .ptr-r,.ptr-s{position:absolute;inset:0}
   .ptr i{position:absolute;left:12.5px;top:1px;width:3px;height:8px;border-radius:2px;background:currentColor;transform-origin:1.5px 13px;opacity:0;transition:opacity .12s linear}
-  .ptr.is-loading{animation:ptrSpin .9s steps(8) infinite}
-  .ptr.is-loading i{opacity:1!important}
-  @keyframes ptrSpin{to{transform:var(--ptr-y,translateY(18px)) rotate(360deg)}}
-  @media (prefers-reduced-motion:reduce){.ptr.is-loading{animation:none}}
+  .ptr.is-loading .ptr-s{animation:ptrSpin .75s linear infinite}
+  .ptr.is-loading i{transition:none}
+  @keyframes ptrSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.ptr.is-loading .ptr-s{animation-duration:2.4s}}
   .stage>.screen.ptr-pull{z-index:1}
   .stage>.screen.ptr-back{transition:transform .42s cubic-bezier(.22,1,.36,1)}
 </style>
@@ -24871,9 +24875,9 @@ boot();
 (function pullToRefresh(){
   const stage=document.querySelector('#app > .stage'); if(!stage)return;
   const ptr=document.createElement('div'); ptr.className='ptr'; ptr.setAttribute('aria-hidden','true');
-  const N=8; ptr.innerHTML=Array.from({length:N},(_,k)=>`<i style="transform:rotate(${k*360/N}deg);opacity:0"></i>`).join('');
+  const N=8; ptr.innerHTML='<span class="ptr-r"><span class="ptr-s">'+Array.from({length:N},(_,k)=>`<i style="transform:rotate(${k*360/N}deg);opacity:0"></i>`).join('')+'</span></span>';
   stage.insertBefore(ptr,stage.firstChild);
-  const spokes=[...ptr.children];
+  const spokes=[...ptr.querySelectorAll('i')], rot=ptr.firstChild;
   const SEUIL=60, TENU=56, LIM=160;
   /* Résistance d’élastique : l’écran suit le doigt, de moins en moins vite. */
   const elastique=d=>LIM*(1-1/(d*0.75/LIM+1));
@@ -24882,15 +24886,15 @@ boot();
     const k=Math.min(o/SEUIL,1);
     spokes.forEach((s,i)=>{ s.style.opacity=k*N>i?String(0.25+0.75*(i+1)/N):'0'; });
     const y=Math.max(4,o/2-14);
-    ptr.style.setProperty('--ptr-y',`translateY(${y}px)`);
     ptr.style.transform=`translateY(${y}px)`;
     ptr.style.opacity=String(Math.min(1,o/24));
+    rot.style.transform=`rotate(${Math.round(o*3)}deg)`;   // les traits tournent avec le doigt
   };
   const back=()=>{
     if(scr){ const s=scr; s.classList.add('ptr-back'); s.style.transform='';
       setTimeout(()=>{ s.classList.remove('ptr-back','ptr-pull'); },440); }
     ptr.style.transition='opacity .25s ease-out'; ptr.style.opacity='0';
-    setTimeout(()=>{ ptr.style.transition=''; },260);
+    setTimeout(()=>{ ptr.style.transition=''; rot.style.transform=''; },260);
     on=pull=false; off=0; scr=null;
   };
   stage.addEventListener('touchstart',e=>{
@@ -24920,10 +24924,13 @@ boot();
     if(off<SEUIL){ back(); return; }
     busy=true;
     const s=scr; s.classList.add('ptr-back'); s.style.transform=`translateY(${TENU}px)`;
-    const y=TENU/2-14; ptr.style.setProperty('--ptr-y',`translateY(${y}px)`); ptr.style.transform=`translateY(${y}px)`; ptr.style.opacity='1';
+    const y=TENU/2-14; ptr.style.transform=`translateY(${y}px)`; ptr.style.opacity='1';
+    ptr.style.transition='transform .42s cubic-bezier(.22,1,.36,1)';
+    spokes.forEach((sp,i)=>{ sp.style.opacity=String(0.2+0.8*(i+1)/N); });   // tous les traits, du plus clair au plus foncé : une traîne qui tourne
     ptr.classList.add('is-loading');
-    /* Le service worker vérifie d’abord s’il y a une nouvelle version ; la page est rechargée de toute façon. */
-    const go=()=>setTimeout(()=>location.reload(),350);
+    /* Le service worker vérifie d’abord s’il y a une nouvelle version ; la page est rechargée de toute façon,
+       après au moins 0,7 s de rotation, pour qu’on la voie tourner. */
+    const t0=Date.now(), go=()=>setTimeout(()=>location.reload(),Math.max(150,700-(Date.now()-t0)));
     const sw=navigator.serviceWorker;
     if(sw&&sw.getRegistration){ Promise.race([sw.getRegistration().then(r=>r&&r.update()),new Promise(r=>setTimeout(r,1200))]).then(go,go); }
     else go();
