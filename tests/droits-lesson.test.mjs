@@ -118,9 +118,9 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 255.6);
-  assert.ok(page.includes('notesAt: 255.6,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 262.8);
+  assert.equal(val('NOTES'), 256.8);
+  assert.ok(page.includes('notesAt: 256.8,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 264);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   assert.deepEqual(chaps.map(c => c.label), ['Un accès trop large', 'Les accès nécessaires', 'Ce qu’elle peut consulter', 'Autoriser la consultation', 'Une modification précise',
@@ -281,7 +281,7 @@ test('chapitre 17 : écran titre, ouverture comme aux autres chapitres, la photo
   const ix = fs.readFileSync(path.join(root, 'assets/anim/projet-index.html'), 'utf8');
   assert.ok(ix.includes('Dans la prochaine leçon,<br>une nouvelle collègue aura besoin<br>des bons accès.') && ix.includes('Prochaine leçon · Sécurité et droits</span>'), 'le chapitre 16 annonce celui-ci');
   /* Le compte trop large, au conditionnel : son compte ne dispose encore d’aucun accès aux tables (la précision d’Elisa, plus loin) */
-  assert.ok(caps.includes('Mais avec un compte trop large,<br>elle pourrait aussi modifier les prix<br>et supprimer des clients.'));
+  assert.ok(caps.includes('Mais avec un compte trop large,<br>elle pourrait aussi, sans faire exprès,<br>modifier les prix et supprimer des clients.'));
   /* Le dernier chapitre : pas de prochaine leçon, la fin du projet */
   assert.ok(!page.includes('Prochaine leçon') && !caps.some(c => /prochaine leçon/i.test(c)), 'aucune leçon après celle-ci');
   assert.ok(caps.includes('Bravo : tu as terminé<br>le dernier chapitre<br>du projet NutriBoost !') && page.includes('Projet NutriBoost terminé !'), 'la fin du projet');
