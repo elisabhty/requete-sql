@@ -24938,11 +24938,16 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2073';
+  const SW_CACHE='requete-2026-10-12-ludique-v2074';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE),{updateViaCache:'none'}).catch(e=>console.warn('Service worker non enregistré :',e));
+    /* Les animations des cours sont rangées pour le hors ligne après coup, en fond (voir « warm » dans sw.js) :
+       quelques secondes après l’ouverture, et pas pendant qu’une vidéo est ouverte. */
+    const ranger=()=>{ if(document.getElementById('lesson-video')){ setTimeout(ranger,15000); return; }
+      navigator.serviceWorker.ready.then(r=>r.active&&r.active.postMessage('warm')).catch(()=>{}); };
+    setTimeout(ranger,8000);
   });
   /* Au retour sur l’app, on vérifie qu’une nouvelle version n’est pas
      disponible : sans cela, un onglet longue durée peut rester des jours

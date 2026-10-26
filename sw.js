@@ -14,7 +14,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-10-12-ludique-v2073';
+const CACHE = 'requete-2026-10-12-ludique-v2074';
 
 const PRECACHE = [
   './',
@@ -178,15 +178,43 @@ const PRECACHE = [
   './assets/fonts/inter-extrabold.woff2',
 ];
 
+/* Deux temps (Elisa, 26 octobre, 22 h 20 : « les vidéos mettent du temps à charger au début maintenant »).
+   Avant, chaque nouvelle version téléchargeait d’un coup les 157 fichiers (11,6 Mo, dont toutes les animations
+   et leurs images), en parallèle : juste après une mise en ligne, la vidéo ouverte attendait derrière eux.
+   - à l’installation : seulement le cœur de l’app (page, styles, polices, moteur SQL, moteur des animations) ;
+   - ensuite, quand la page le demande (message « warm », quelques secondes après son ouverture) : les animations
+     et leurs images, deux à la fois, en sautant celles déjà rangées. Une vidéo ouverte entre-temps passe devant. */
+const EN_FOND = (url) => url.includes('/assets/anim/') && !/\.(js|css)$/.test(url.split('?')[0]);
+const COEUR = PRECACHE.filter((url) => !EN_FOND(url));
+const ANIMS = PRECACHE.filter(EN_FOND);
+
 self.addEventListener('install', (e) => {
   e.waitUntil((async () => {
     const cache = await caches.open(CACHE);
     // addAll échoue en bloc si un seul fichier manque : on tolère les absents.
-    await Promise.all(PRECACHE.map((url) =>
+    await Promise.all(COEUR.map((url) =>
       cache.add(new Request(url, { cache: 'reload' })).catch(() => {})
     ));
     await self.skipWaiting();
   })());
+});
+
+let rangement = null;
+async function rangerAnims(){
+  const cache = await caches.open(CACHE);
+  const file = ANIMS.slice();
+  const suivant = async () => {
+    for (let url = file.shift(); url; url = file.shift()) {
+      if (await cache.match(url)) continue;
+      try { await cache.add(new Request(url, { cache: 'reload' })); } catch (err) {}
+    }
+  };
+  await Promise.all([suivant(), suivant()]);
+}
+self.addEventListener('message', (e) => {
+  if (e.data !== 'warm') return;
+  if (!rangement) rangement = rangerAnims().finally(() => { rangement = null; });
+  e.waitUntil(rangement);
 });
 
 self.addEventListener('activate', (e) => {
