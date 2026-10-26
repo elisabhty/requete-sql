@@ -553,21 +553,21 @@ const NOTES_AT = 88.4;   // le bouton « Ajouter à mes notes » de l’app, sou
 const MOMENTS = [
   // le résultat sans filtre contient les clients de toutes les villes : avant que la vidéo ne nomme WHERE
   {at: 22.95, from: 15.0, kind: 'pick', text: true, prompt: 'Que faut-il ajouter à la requête pour ne garder que les clients parisiens ?', options: [
-    {label: 'Un WHERE, suivi d’une condition', ok: true, why: '<code>WHERE</code> sélectionne les lignes à conserver : seules celles où la condition est vraie restent dans le résultat.'},
-    {label: 'DISTINCT, juste après le SELECT', why: '<code>DISTINCT</code> retire les doublons du résultat : il garde une ligne par valeur, mais pas seulement les clients parisiens.'},
-    {label: 'AS, pour renommer la colonne ville', why: '<code>AS</code> donne un autre nom à une colonne dans le résultat : il ne retire aucune ligne.'}],
+    {label: 'Un WHERE, suivi d’une condition', ok: true, why: '<code>WHERE</code> sélectionne les lignes : il garde celles où la condition est vraie.'},
+    {label: 'DISTINCT, juste après le SELECT', why: '<code>DISTINCT</code> retire les doublons : il ne garde pas que les Parisiens.'},
+    {label: 'AS, pour renommer la colonne ville', why: '<code>AS</code> renomme une colonne du résultat : il ne retire aucune ligne.'}],
     tip: 'Il faut choisir des lignes, pas des colonnes.'},
-  // la première ligne vient d’être vérifiée (Paris : condition vraie) : les autres lignes, avant le reste du passage en revue
-  {at: 31.15, from: 26.8, kind: 'tap', need: 3, prompt: 'Touche les autres lignes où la condition est vraie.',
+  // le passage en revue commence (la première ligne vient d’être vérifiée) : les lignes où la condition est vraie
+  {at: 31.15, from: 26.8, kind: 'tap', need: 4, prompt: 'Touche les lignes où la condition <code>ville = \'Paris\'</code> est vraie.',
     spots: CLIENTS.map((c, i) => ({k: 'r' + i, sel: `#rows > .tr:nth-child(${i + 1})`, label: `Ligne ${i + 1} : ${c[0]} ${c[1]}, ${c[2]}`, ok: c[2] === 'Paris',
-      why: c[2] === 'Paris' ? '' : `La ville ${/^[AEIOUHÉÈ]/.test(c[0]) ? 'd’' : 'de '}${c[0]} ${c[1]} est ${c[2]} : la condition est fausse, la ligne est écartée.`})).slice(1),
-    tip: 'Regarde la colonne ville : la condition est vraie quand elle vaut Paris.'},
+      why: c[2] === 'Paris' ? '' : `La ville ${/^[AEIOUHÉÈ]/.test(c[0]) ? 'd’' : 'de '}${c[0]} ${c[1]} est ${c[2]} : la condition est fausse.`})),
+    tip: 'Regarde la colonne ville : elle doit valoir Paris.'},
   // le second piège, avant son exécution : 'paris' en minuscules
   {at: 64.95, from: 56.0, kind: 'pick', text: true, prompt: 'Que donne la condition <code>ville = \'paris\'</code>, écrite en minuscules ?', options: [
-    {label: 'Aucune ligne', ok: true, why: '<code>\'paris\'</code> ≠ <code>\'Paris\'</code> : aucune ville de la <b>table clients</b> ne s’écrit en minuscules, le résultat est vide.'},
-    {label: 'Les 4 clients parisiens', why: 'La comparaison tient compte des majuscules : <code>\'paris\'</code> ≠ <code>\'Paris\'</code>, aucune ligne ne remplit la condition.'},
-    {label: 'Une erreur', why: 'Entre guillemets simples, <code>\'paris\'</code> est bien une valeur en texte : la requête s’exécute, mais le résultat est vide.'}],
-    tip: 'Compare la valeur écrite dans la requête à celle de la table, lettre par lettre.'}
+    {label: 'Aucune ligne', ok: true, why: '<code>\'paris\'</code> ≠ <code>\'Paris\'</code> : aucune ligne ne remplit la condition.'},
+    {label: 'Les 4 clients parisiens', why: 'Les majuscules comptent : <code>\'paris\'</code> ne vaut pas <code>\'Paris\'</code>.'},
+    {label: 'Une erreur', why: '<code>\'paris\'</code> est bien un texte : la requête s’exécute, sans résultat.'}],
+    tip: 'Compare les deux valeurs, lettre par lettre.'}
 ];
 
 /* ---------- Construction du DOM dynamique ---------- */

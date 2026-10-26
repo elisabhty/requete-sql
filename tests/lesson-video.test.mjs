@@ -33,7 +33,8 @@ test('WHERE : le cours a son animation, son image fixe et sa vignette, présente
   assert.ok(page.includes('<script src="gsap.min.js"></script>\n<script src="moments.js"></script>') && page.includes('  build();\n  applyMoments();'), 'moments.js, puis les moments insérés une fois la timeline construite');
   const M = momentsDe('where.html');
   assert.deepEqual(M.map(x => [x.at, x.kind]), [[22.95, 'pick'], [31.15, 'tap'], [64.95, 'pick']]);
-  assert.deepEqual(M[1].spots.filter(z => z.ok).map(z => z.label), ['Ligne 4 : Nathan Petit, Paris', 'Ligne 7 : Léa Simon, Paris', 'Ligne 10 : Nathan Dupont, Paris'], 'les clients parisiens, après Sophie Martin (déjà vérifiée)');
+  assert.deepEqual(M[1].spots.filter(z => z.ok).map(z => z.label), ['Ligne 1 : Sophie Martin, Paris', 'Ligne 4 : Nathan Petit, Paris', 'Ligne 7 : Léa Simon, Paris', 'Ligne 10 : Nathan Dupont, Paris'], 'les quatre clients parisiens');
+  assert.equal(M[1].need, 4);
   for (const x of M.filter(x => x.kind === 'pick')) assert.equal(x.options.filter(o => o.ok).length, 1);
   assert.ok(html.includes("'exoNeeds','video']"), 'guide() garde le champ video sur la leçon');
 });
