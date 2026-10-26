@@ -670,10 +670,8 @@ export const DETTE = {
     45: {client: 1},   // Sous-requête dans WHERE avec IN
     47: {relation: 1},   // Sous-requête dans SELECT
     55: {relation: 1},   // EXISTS et NOT EXISTS
-    74: {identifiant: 2},   // Fonctions de rang
-    64: {'sans-personnification': 1},   // CREATE VIEW
-    57: {identifiant: 11, 'sans-personnification': 3},   // Les index et EXPLAIN
-    50: {'sans-personnification': 6, typographie: 1}   // Sécurité et droits
+    74: {identifiant: 2}   // Fonctions de rang
+    // 64 CREATE VIEW, 57 Les index et EXPLAIN et 50 Sécurité et droits sont devenues les chapitres 15, 16 et 17 du projet : vérifiées sans tolérance
   }
 };
 

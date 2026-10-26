@@ -19,10 +19,15 @@ const fnSrc = name => {
   assert.ok(a >= 0, `function ${name}( présente`);
   return html.slice(a, html.indexOf('\nfunction ', a + 10));
 };
+/* Les cours de l’app, puis les trois cours texte d’exemple (tests/fixtures : les anciennes leçons 50, 57 et 64, identifiants 950, 957 et 964) :
+   depuis le 26 octobre, tous les cours de l’app sont en vidéo, et le moteur des cours texte est testé sur ces exemples. */
+const FIXTURES = ['guide-texte-droits.js', 'guide-texte-index.js', 'guide-texte-create-view.js'];
 const lessons = (() => {
   const ctx = vm.createContext({});
   vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), ctx);
-  return JSON.parse(vm.runInContext('JSON.stringify(MODULES.flatMap(m=>m.lessons).map(l=>({id:l.id,video:!!l.video,missionSql:l.missionSql,solution:l.solution,body:(l.studio&&l.studio.uses&&l.studio.uses.body)||""})))', ctx));
+  vm.runInContext('var FIXTURES = [];', ctx);
+  for (const f of FIXTURES) { ctx.__l = vm.runInContext(fs.readFileSync(path.join(root, 'tests/fixtures', f), 'utf8'), ctx); vm.runInContext('FIXTURES.push(__l);', ctx); }
+  return JSON.parse(vm.runInContext('JSON.stringify(MODULES.flatMap(m=>m.lessons).concat(FIXTURES).map(l=>({id:l.id,video:!!l.video,missionSql:l.missionSql,solution:l.solution,body:(l.studio&&l.studio.uses&&l.studio.uses.body)||""})))', ctx));
 })();
 
 test('cadre surligné + cadre « Exécuter » qui se suivent : la requête ne s’affiche qu’une fois, dans le cadre « Exécuter »', () => {
@@ -37,7 +42,7 @@ test('cadre surligné + cadre « Exécuter » qui se suivent : la requête ne s�
   /* Aucun cadre « Exécuter » sans requête ; les requêtes fusionnées sont celles qui suivaient aussitôt leur cadre surligné. */
   assert.equal(lessons.reduce((n, l) => n + (l.body.match(/data-compact=/g) || []).length, 0), 0, 'plus de cadre compact');
   const merged = lessons.reduce((n, l) => n + (l.body.match(/ data-hit="/g) || []).length, 0);
-  assert.equal(merged, 1, 'une requête montrée deux fois de suite, désormais une seule fois (cours 50 ; le cours 57 est devenu le chapitre 16, en vidéo)');
+  assert.equal(merged, 2, 'une requête montrée deux fois de suite, désormais une seule fois (les cours texte d’exemple : l’ancien cours 50, l’ancien cours 57)');
   assert.equal(lessons.find(l => l.id === 1), undefined, 'le cours SELECT a rejoint le cours 0');
 });
 
@@ -59,5 +64,6 @@ test('écran de fin : « Le réflexe de cette leçon » = les trois idées (cour
   assert.ok(recap.indexOf('lessonHasVideo(l)') > 0 && recap.indexOf('lessonHasVideo(l)') < recap.indexOf('l.missionSql'), 'cours en vidéo : les trois idées, comme à la fin de la vidéo');
   assert.ok(recap.indexOf('l.missionSql') > 0 && recap.indexOf('l.missionSql') < recap.indexOf('l.solution'), 'la mission passe avant la solution de l’exercice');
   for (const l of lessons) assert.ok(l.video ? !l.missionSql : l.missionSql && l.missionSql.trim(), `cours ${l.id} : ${l.video ? 'pas de mission (vidéo)' : 'requête de mission'}`);
-  assert.equal(lessons.find(l => l.id === 50).missionSql, "GRANT SELECT\nON clients\nTO app_user;");
+  assert.equal(lessons.find(l => l.id === 950).missionSql, "GRANT SELECT\nON clients\nTO app_user;", 'l’ancien cours 50 (Sécurité et droits en texte, gardé en exemple)');
+  assert.ok(lessons.filter(l => l.id < 900).every(l => l.video), 'tous les cours de l’app sont en vidéo (Sécurité et droits, le dernier cours texte, est devenu le chapitre 17)');
 });

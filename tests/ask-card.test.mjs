@@ -8,8 +8,12 @@ import test from 'node:test';
 const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const dataCtx = vm.createContext({});
 vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), dataCtx);
-const lessons = vm.runInContext('MODULES.flatMap(m=>m.lessons)', dataCtx).filter(l => !l.video);
-const concept = lessons.find(l => l.id === 50).studio.problem.extra;
+/* Plus aucun cours texte dans l’app depuis le 26 octobre (Sécurité et droits est devenu le chapitre 17, en vidéo) : les cours texte
+   d’exemple (tests/fixtures : les anciennes leçons 50, 57 et 64, identifiants 950, 957 et 964). */
+assert.equal(vm.runInContext('MODULES.flatMap(m=>m.lessons)', dataCtx).filter(l => !l.video).length, 0, 'plus aucun cours texte dans l’app');
+const lessons = ['guide-texte-droits.js', 'guide-texte-index.js', 'guide-texte-create-view.js']
+  .map(f => vm.runInContext(fs.readFileSync(new URL(`./fixtures/${f}`, import.meta.url), 'utf8'), dataCtx));
+const concept = lessons.find(l => l.id === 950).studio.problem.extra;
 const src = html.slice(html.indexOf('function initAskCards()'), html.indexOf('const RT_TIME='));
 assert.ok(src.includes('function initAskCards()'), 'animation localisée');
 

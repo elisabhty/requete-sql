@@ -1,5 +1,6 @@
 /* Cours « guide » (format LAG et LEAD) : chaque requête à exécuter marche, la scène animée est cohérente,
    le HTML est équilibré et la typographie française est respectée (vérifications dans tests/helpers/guide-checks.mjs). */
+import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
@@ -11,7 +12,7 @@ const allLessons = vm.runInContext('MODULES.flatMap(m=>m.lessons)', ctx);
 /* Cours en vidéo : la vidéo est le cours, sans texte de secours (ni situation, ni étapes, ni exemple…) ; il garde le réflexe à
    retenir (fin de la vidéo, bilan, note). Les vérifications du cours texte portent sur les autres cours. */
 const videos = allLessons.filter(l => l.video);
-assert.equal(videos.length, 61, '61 cours en vidéo');
+assert.equal(videos.length, 62, 'les 62 cours en vidéo');
 for (const l of videos) {
   assert.ok(!l.situation && !l.missionSql && !l.studio.problem && !l.studio.uses, `${l.titre} : pas de texte de secours`);
   for (const k of ['anatomie', 'exemple', 'attendu', 'retenir', 'learningCheck', 'testeVariants', 'joinRecap'])
@@ -19,8 +20,12 @@ for (const l of videos) {
   if (l.leconSeule) for (const k of ['consigne', 'solution', 'indice', 'petitDefi']) assert.equal(l[k], undefined, `${l.titre} : leçon seule, sans exercice (« ${k} »)`);
   assert.ok(l.studio.reflex.extra.includes('<ol class="fk-syn-map is-recap"'), `${l.titre} : le réflexe à retenir reste`);
 }
-const lessons = allLessons.filter(l => l.guided && !l.video);
-assert.ok(lessons.length >= 1, 'au moins un cours guide');
+/* Depuis le 26 octobre, tous les cours de l’app sont en vidéo (Sécurité et droits, le dernier cours texte, est devenu le chapitre 17) :
+   le modèle « guide » des cours texte est vérifié sur les trois cours d’exemple (tests/fixtures : les anciennes leçons 50, 57 et 64). */
+assert.equal(allLessons.filter(l => !l.video).length, 0, 'plus aucun cours texte dans l’app');
+const lessons = ['guide-texte-droits.js', 'guide-texte-index.js', 'guide-texte-create-view.js']
+  .map(f => vm.runInContext(fs.readFileSync(path.join(root, 'tests/fixtures', f), 'utf8'), ctx));
+assert.ok(lessons.every(l => l.guided && !l.video), 'trois cours guide d’exemple');
 /* Tous les cours suivent le modèle « guide » : situation, problème animé, mission, concept, étapes, carte « Mission accomplie », réflexe. */
 const notGuided = allLessons.filter(l => !l.guided).map(l => l.id);
 assert.equal(notGuided.length, 0, `tous les cours sont au format « guide » (à convertir : ${notGuided.join(', ')})`);

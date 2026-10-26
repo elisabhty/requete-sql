@@ -14,8 +14,8 @@ const read = f => fs.readFileSync(path.join(dir, f), 'utf8');
 /* Les pages à moments : celles qui donnent leurs « picks » au moteur. */
 const pages = fs.readdirSync(dir).filter(f => f.endsWith('.html') && /\bpicks\s*:\s*PICKS\b/.test(read(f))).sort();
 
-test('neuf leçons interactives, toutes passées en revue', () => {
-  assert.deepEqual(pages, ['projet-alter.html', 'projet-cles.html', 'projet-concurrence.html', 'projet-create.html', 'projet-delete.html', 'projet-drop.html', 'projet-index.html', 'projet-insert.html',
+test('les leçons interactives, toutes passées en revue', () => {
+  assert.deepEqual(pages, ['projet-alter.html', 'projet-cles.html', 'projet-concurrence.html', 'projet-create.html', 'projet-delete.html', 'projet-droits.html', 'projet-drop.html', 'projet-index.html', 'projet-insert.html',
     'projet-normaliser.html', 'projet-ondelete.html', 'projet-savepoint.html', 'projet-transaction.html', 'projet-trigger.html', 'projet-uml.html', 'projet-update.html', 'projet-vue.html', 'quel-join-choisir.html']);
 });
 

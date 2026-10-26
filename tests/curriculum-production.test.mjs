@@ -57,14 +57,18 @@ let state={lessons:{64:{etapes:{exo:1,q0:true,q1:'1',q2:0,unexpected:1},draft:'S
 for(let i=0;i<3;i++)state=JSON.parse(JSON.stringify(ctx.normalizeState(state)));
 assert.deepEqual(state.lessons[64].etapes,{exo:1,q0:1,q1:1});assert.equal(state.lessons[64].draft,'SELECT 1;');assert.equal(state.lessons[64].testeVi,2);
 assert.equal(ctx.checkExerciseConcept('SELECT 50; -- CAST(45 AS INTEGER)',lesson(54)).ok,false);
-for(const sql of ['REVOKE SELECT ON produits FROM stagiaire; -- commandes','REVOKE SELECT ON commandes FROM autre;','REVOKE SELECT ON commandes FROM stagiaire; REVOKE UPDATE ON commandes FROM stagiaire;','GRANT SELECT ON commandes TO stagiaire;','REVOKE ALL PRIVILEGES ON commandes FROM stagiaire;'])assert.equal(ctx.checkNoExecExo(sql,lesson(50)).ok,false,'REVOKE exact');
-assert.equal(ctx.checkNoExecExo('REVOKE SELECT ON "commandes" FROM "stagiaire";',lesson(50)).ok,true);
-assert.equal(ctx.checkNoExecExo(lesson(50).solution,lesson(50)).ok,true);
-assert.match(ctx.checkNoExecExo('GRANT SELECT ON commandes TO stagiaire;',lesson(50)).diag,/GRANT accorde un droit/);
+/* L’exercice non exécutable (REVOKE) de l’ancien cours texte Sécurité et droits, gardé en exemple (tests/fixtures/guide-texte-droits.js) : la leçon 50
+   est devenue le chapitre 17 du projet, en vidéo, et l’app n’a plus de cours texte. */
+const DROITS=vm.runInContext(fs.readFileSync(path.join(root,'tests/fixtures/guide-texte-droits.js'),'utf8'),ctx);
+assert.ok(DROITS.noExec&&DROITS.serverConcept&&lesson(50).leconSeule&&lesson(50).video,'la leçon 50 en vidéo, son ancien exercice en exemple');
+for(const sql of ['REVOKE SELECT ON produits FROM stagiaire; -- commandes','REVOKE SELECT ON commandes FROM autre;','REVOKE SELECT ON commandes FROM stagiaire; REVOKE UPDATE ON commandes FROM stagiaire;','GRANT SELECT ON commandes TO stagiaire;','REVOKE ALL PRIVILEGES ON commandes FROM stagiaire;'])assert.equal(ctx.checkNoExecExo(sql,DROITS).ok,false,'REVOKE exact');
+assert.equal(ctx.checkNoExecExo('REVOKE SELECT ON "commandes" FROM "stagiaire";',DROITS).ok,true);
+assert.equal(ctx.checkNoExecExo(DROITS.solution,DROITS).ok,true);
+assert.match(ctx.checkNoExecExo('GRANT SELECT ON commandes TO stagiaire;',DROITS).diag,/GRANT accorde un droit/);
 /* Le cours texte d’exemple (l’ancienne leçon 64, CREATE VIEW en texte : tests/fixtures/guide-texte-create-view.js) : les cours de l’app sont presque tous en vidéo. */
 const VUE=vm.runInContext(fs.readFileSync(path.join(root,'tests/fixtures/guide-texte-create-view.js'),'utf8'),ctx);
 for(const [l,wrong]of [[VUE,VUE.solution.replace("WHERE ville = 'Paris'","WHERE ville = 'Lyon'")]])assert.equal(ctx.exerciseResultsMatch(query(wrong,l.verif),query(l.solution,l.verif),l),false,'solution incomplète '+l.titre);
-const frame={dataset:{},classList:{remove(){},add(){}},querySelectorAll:()=>[],querySelector:s=>s==='.xf-expect'?{remove(){}}:null};ctx.current=lesson(50);
+const frame={dataset:{},classList:{remove(){},add(){}},querySelectorAll:()=>[],querySelector:s=>s==='.xf-expect'?{remove(){}}:null};ctx.current=DROITS;
 ctx.paintTesteVariant(frame,ctx.current.testeVariants,0);assert.equal(frame.dataset.noExec,'1');ctx.current=VUE;ctx.paintTesteVariant(frame,ctx.current.testeVariants,0);assert.equal(frame.dataset.noExec,'0');
 console.log(`${lessons.length} cours, ${solved} solutions SQLite, ${variants} variantes exécutables : OK.`);
 console.log('Progression, ordre, alias, contraintes, transactions, trigger, GRANT et récursion : OK.');

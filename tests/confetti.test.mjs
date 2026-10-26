@@ -110,6 +110,12 @@ test('les chapitres du projet : les boutons touchés par l’élève qui réussi
   const ix = anim('projet-index.html');
   assert.ok(ix.includes("confetti($('#bexp'), EXE1 + 0.6);") && ix.includes("confetti($('#bcix'), CIX + 0.6);") && ix.includes("confetti($('#bexp'), EXE2 + 0.6);"),
     'chapitre 16 : « Exécuter » (le plan), « Créer l’index », puis « Exécuter » (le nouveau plan)');
+  const dr = anim('projet-droits.html');
+  assert.ok(dr.includes("confetti($('#bs1'), EXE1 + 0.6);") && dr.includes("confetti($('#bs2'), EXE2 + 0.6);") && dr.includes("confetti($('#bs3'), EXE3 + 0.6);"),
+    'chapitre 17 : « Simuler », trois fois (GRANT SELECT, GRANT UPDATE (statut), les deux REVOKE)');
+  assert.ok(dr.includes("press($('#psv'), A.e2 + 0.3, '#A3216A', 6, false);") && dr.includes("press($('#apb'), A.d5 + 1.6, '#0F6B33', 6);"),
+    '… pas pour la modification du prix, refusée ; mais pour le colis de Léa Simon, expédié');
+  assert.ok(dr.includes("confetti($('#fin'), A.g4 + 0.5);"), '… et la fin du projet');
   const tx = anim('projet-transaction.html');
   assert.ok(tx.includes("confetti($('#bcom'), COM + 0.95);") && tx.includes("confetti($('#brol'), ROL + 0.95);") && !tx.includes("confetti($('#bhow')"), 'chapitre 11 : COMMIT et ROLLBACK, pas « Comment éviter ça ? »');
   const sp = anim('projet-savepoint.html');

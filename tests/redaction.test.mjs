@@ -130,7 +130,9 @@ test('anciens cours : les vidéos et les leçons en texte sont lues', () => {
   assert.ok(VIDEOS.length >= 40, `${VIDEOS.length} vidéos`);
   for (const f of VIDEOS) assert.ok(R.textesVideo(f).length >= 20, `${f} : ${R.textesVideo(f).length} textes lus`);
   assert.ok(LECONS_ANCIENNES.length >= 45, `${LECONS_ANCIENNES.length} leçons`);   // les chapitres du projet remplacent un à un les anciens cours texte
-  assert.ok(R.textesFiche(50).length >= 50, 'la leçon Sécurité et droits (en texte) est lue en entier');   // CREATE VIEW est devenue le chapitre 15, en vidéo
+  /* Depuis le 26 octobre, plus aucune leçon en texte (Sécurité et droits est devenue le chapitre 17) : la fiche de chaque ancienne leçon (titre, résumé,
+     récapitulatif de sa vidéo…) est lue. */
+  for (const l of LECONS_ANCIENNES) assert.ok(R.textesFiche(l.id).length >= 6, `leçon ${l.id} (${l.titre}) : ${R.textesFiche(l.id).length} textes lus`);
 });
 test('anciennes vidéos : aucun écart de plus que ceux déjà connus', () => {
   const rapports = VIDEOS.flatMap(f => {
