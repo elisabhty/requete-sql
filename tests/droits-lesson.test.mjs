@@ -118,9 +118,9 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 248.15);
-  assert.ok(page.includes('notesAt: 248.15,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 255.35);
+  assert.equal(val('NOTES'), 274.45);
+  assert.ok(page.includes('notesAt: 274.45,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 281.65);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   assert.deepEqual(chaps.map(c => c.label), ['Un accès trop large', 'Les accès nécessaires', 'Ce qu’elle peut consulter', 'Autoriser la consultation', 'Une modification précise',
@@ -322,4 +322,22 @@ test('zones à toucher : les accès de la fiche font 100 px, les parties de la c
   assert.ok(/if \(i === 0\) return \{text: '[^']+', keys: \['a0', 'a1'\]\};/.test(page), 'indice du moment 1 : les deux accès nécessaires ressortent');
   assert.deepEqual(Object.keys(val('WHY1')).sort(), ['a2', 'a3']);
   assert.ok(page.includes("const M1_ANS = ['#nd0', '#nd1'];"), 'les deux accès nécessaires : « ✓ nécessaire »');
+});
+
+test('ce qu’est une vue, et à quoi elle sert ; les interrupteurs ne passent au vert qu’avec GRANT (Elisa, 26 octobre, 22 h 30)', () => {
+  const lus = val('CAPTIONS').map(c => strip(c[2]));
+  const i = lus.indexOf('Tu réutilises ici la notion de vue, découverte au chapitre 15.');
+  assert.deepEqual(lus.slice(i, i + 8), ['Tu réutilises ici la notion de vue, découverte au chapitre 15.', 'Une vue est une requête enregistrée sous un nom.',
+    'Les informations utiles à Lina sont dans la table commandes et la table clients.', 'Ces tables contiennent aussi des données qu’elle n’a pas à voir, comme l’e-mail ou le téléphone.',
+    'Une vue lui montre uniquement le nécessaire, sans lui ouvrir les tables entières.', 'Une vue commandes_expedition a été préparée.',
+    'Elle contient uniquement ces quatre colonnes.', 'La vue ne copie pas les données : elle les lit dans les tables à chaque consultation.']);
+  /* Les deux tables, toutes leurs colonnes ; celles que la vue garde sont celles qu’elle lit (voir la vue de la base, plus haut) */
+  assert.deepEqual(val('CLCOLS'), ['id', 'prenom', 'nom', 'adresse', 'ville', 'age', 'email', 'telephone', 'date_inscription']);
+  const cols = t => DB.exec(`PRAGMA table_info(${t})`)[0].values.map(r => r[1]);
+  assert.deepEqual(cols('clients'), val('CLCOLS'));
+  assert.deepEqual(cols('commandes'), val('CMCOLS'));
+  assert.deepEqual(val('GARDE'), ['#sxc-numero_commande', '#sxc-statut', '#sxk-prenom', '#sxk-nom', '#sxk-adresse', '#sxk-ville']);
+  /* Moment 1 : toucher un accès nécessaire ne le fait pas passer au vert ; seul grant() allume un interrupteur */
+  assert.ok(!page.includes('tgon') && !/tl\.set\(\['#tg0', '#tg1'\]/.test(page), 'aucun interrupteur allumé avant GRANT');
+  assert.ok(/function grant\(q, t\)\{\n  tl\.to\('#tg' \+ q, \{backgroundColor: '#169447'/.test(page), 'GRANT allume l’interrupteur');
 });
