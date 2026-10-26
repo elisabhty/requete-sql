@@ -254,7 +254,7 @@ test('la base, rejouée dans SQLite : la vue commandes_expedition, les commandes
   const v = DB.exec("SELECT * FROM commandes_expedition WHERE numero_commande IN ('NB-10482', 'NB-10483') ORDER BY numero_commande")[0];
   assert.deepEqual(v.columns, val('VCOLS'));
   assert.deepEqual(v.values, val('VUE'), 'NB-10482 · Léa Simon · 41 avenue Jaurès, Paris ; NB-10483 · Nathan Petit · 5 rue Victor Hugo, Paris');
-  assert.ok(count(DB, 'commandes_expedition') > 2 && page.includes('⋮ les autres commandes à préparer'), 'et les autres commandes du jour');
+  assert.ok(count(DB, 'commandes_expedition') > 2 && page.includes('… les autres commandes à préparer') && !page.includes('⋮ les autres'), 'et les autres commandes du jour');
   /* La colonne statut se modifie : la commande de Léa Simon passe à « expédiée », une valeur de la base */
   DB.run("UPDATE commandes SET statut = 'expédiée' WHERE numero_commande = 'NB-10482'");
   assert.deepEqual(DB.exec("SELECT statut FROM commandes_expedition WHERE numero_commande = 'NB-10482'")[0].values, [['expédiée']]);
