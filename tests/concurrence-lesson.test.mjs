@@ -154,10 +154,12 @@ test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajo
 test('les phrases d’Elisa (25 octobre, 20 h 52) : sa trame, une phrase par bulle, avec ses mots', () => {
   const lus = val('CAPTIONS').map(c => strip(c[2]));
   const dit = (...phrases) => phrases.forEach(p => assert.ok(lus.includes(p), `légende : ${p}`));
-  /* CONCURRENCE : les deux téléphones, puis le déroulement au ralenti, ses quatre étapes */
-  dit('Léa Simon et Nathan Petit consultent le même atelier.', 'Sur leurs écrans : « Plus qu’une place ! »', 'Le déroulement ralentit.',
+  /* CONCURRENCE : les deux téléphones, puis le déroulement au ralenti, ses quatre étapes. « Le déroulement ralentit. », seule, ne se
+     comprenait pas (Elisa, 26 octobre, 9 h 49 : « C’est à dire ? ») : la bulle dit ce qu’on va voir. */
+  dit('Léa Simon et Nathan Petit consultent le même atelier.', 'Sur leurs écrans : « Plus qu’une place ! »', 'Voici ce qui s’est passé, au ralenti.',
     'Léa Simon consulte la disponibilité : 1 place.', 'Nathan Petit consulte la disponibilité : 1 place.', 'Léa Simon lance son inscription.',
     'Nathan Petit lance la sienne avant que celle de Léa Simon soit terminée.');
+  assert.ok(!lus.includes('Le déroulement ralentit.'), 'plus de « Le déroulement ralentit. » seul');
   dit('Deux opérations accèdent aux mêmes données au même moment : c’est la concurrence.',
     'Si chacune se fie à la place qu’elle a vue disponible, elles peuvent toutes les deux tenter de la réserver.');
   /* ISOLATION : ses deux bulles, puis les cinq étapes avec le verrou */
