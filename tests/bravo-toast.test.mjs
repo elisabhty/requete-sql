@@ -20,7 +20,7 @@ const cut = (from, to) => {
 
 test('bilan « Bravo ! » d’une leçon seule : « Leçon au complet », jamais « Leçon interactive »', () => {
   const ctx = vm.createContext({
-    esc: s => s, stkBravoHtml: () => '', bravoRecapHtml: () => '', bravoNextHtml: () => '', bravoActionsHtml: () => '',
+    esc: s => s, stkBravoHtml: () => '', bravoRecapHtml: () => '', bravoUnlockHtml: () => '', bravoNextHtml: () => '', bravoActionsHtml: () => '',
     lvPkScore: () => 6, lvPkErrs: () => 0, lvErreursMax: () => null,
   });
   vm.runInContext(cut('function bravoStepsHtml(l){', 'function bravoCardHtml(l){') + cut('function renderBravoSlide(l){', '/* ---------- Blocs de cours enrichis'), ctx);

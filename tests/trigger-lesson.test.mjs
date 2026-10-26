@@ -299,20 +299,21 @@ test('chapitre 13 : écran titre, ouverture comme aux autres chapitres, annonce 
   assert.equal(caps[caps.length - 2], 'Pour finir, voici les <b>trois idées à retenir</b>.');
 });
 
-test('le récapitulatif, mot pour mot, dans la vidéo comme dans la fiche de la leçon : trois idées, chacune avec sa phrase puis sa précision', () => {
+test('le récapitulatif d’Elisa (26 octobre, 8 h 10), mot pour mot, dans la vidéo comme dans la fiche de la leçon : trois idées, chacune avec sa phrase puis sa précision', () => {
   const rows = [...page.matchAll(/<div class="rrow"><div class="rico emo">([^<]+)<\/div><div class="rtxt">(.*?)<\/div><\/div>/g)].map(m => {
     const [phrase, detail] = m[2].split('<span class="rs">');
     return [m[1], strip(phrase), strip(detail.replace(/<\/span>$/, ''))];
   });
-  const RECAP = [['⚡', 'Un TRIGGER déclenche une action lorsqu’un événement précis se produit dans une table.', 'Ici, AFTER UPDATE ON produits : après chaque modification d’un produit.'],
-    ['🔀', 'OLD et NEW donnent la ligne avant et après la modification.', 'OLD.prix est l’ancien prix, NEW.prix le nouveau.'],
-    ['🎯', 'WHEN limite le trigger aux vrais changements.', 'La syntaxe varie selon le SGBD : celle-ci est celle de SQLite.']];
+  const RECAP = [['⚡', 'Un TRIGGER exécute une action automatiquement lorsqu’un événement se produit dans une table.', 'Ici, il permet de conserver une trace de chaque changement de prix.'],
+    ['🔀', 'OLD et NEW donnent accès aux valeurs avant et après la modification.', 'OLD.prix correspond à l’ancien prix et NEW.prix au nouveau.'],
+    ['🎯', 'WHEN précise la condition à remplir pour exécuter l’action.', 'Ici, une ligne est ajoutée à l’historique uniquement si l’ancien prix est différent du nouveau.']];
   assert.deepEqual(rows, RECAP, 'la vidéo : les trois idées');
   const fiche = html.slice(html.indexOf('guide({ id:70,'), html.indexOf('guide({ id:71,'));
   const idees = [...fiche.matchAll(/\["(⚡|🔀|🎯)","([^"]*)","([^"]*)"(?:,"([^"]*)")?\]/g)].map(m => [m[1], strip(m[2]), strip(m[3])]);
   assert.deepEqual(idees, RECAP, 'la fiche de la leçon dit la même chose que la vidéo');
-  /* La première idée, la définition d’Elisa, se coupe entre ses groupes de mots : jamais « lorsqu’un » en fin de ligne. */
-  assert.ok(page.includes('Un <code>TRIGGER</code> déclenche une action<br>lorsqu’un <b>événement précis</b><br>se produit dans une table.'));
+  /* Les lignes se coupent entre les groupes de mots : jamais « lorsqu’un » ni « du nouveau. » seul en fin de ligne. */
+  assert.ok(page.includes('Un <code>TRIGGER</code> exécute une action<br><b>automatiquement</b> lorsqu’un <b>événement</b><br>se produit dans une table.'));
+  assert.ok(page.includes('Ici, une ligne est ajoutée à l’historique<br>uniquement si l’ancien prix<br>est différent du nouveau.'));
 });
 
 test('ce que la vidéo ne reprend pas de l’ancien cours : plus de Magnésium, de journal des clients supprimés ni de RAISE ; le chapitre ne parle pas de SQL comme d’une personne', () => {

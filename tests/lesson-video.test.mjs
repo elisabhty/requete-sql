@@ -1094,8 +1094,8 @@ const COURSES = [
       "{at: atp('p1'), from: A.a6, kind: 'pick', text: true,", "{label: 'Avec un point de retour posé avant le cadeau', ok: true,", "{at: atp('p2'), from: A.c4, kind: 'tap', need: 2,",
       "{label: 'Aucune : rien n’est validé avant COMMIT', ok: true,", "{label: 'ROLLBACK TO SAVEPOINT avant_cadeau', ok: true,", "{label: 'Elle est toujours en cours', ok: true,",
       "{at: atp('p6'), from: A.g1, kind: 'sort',", "const Q_RT = [['-- Revenir au point de retour'], ['ROLLBACK TO SAVEPOINT avant_cadeau;']]", 'Prochaine leçon · Les triggers']},
-  {id: 70, next: 71, titre: 'Les triggers', page: 'projet-trigger.html', thumb: 'projet-trigger-thumb.webp', duree: '4 min 40', notesAt: 245.04,
-    notes: /notes:\{t:272\.6,y:1223,card:\[64,292,1016,928\],to:\[940,255\]\}/, table: 'historique_prix',
+  {id: 70, next: 71, titre: 'Les triggers', page: 'projet-trigger.html', thumb: 'projet-trigger-thumb.webp', duree: '4 min 44', notesAt: 245.04,
+    notes: /notes:\{t:276\.8,y:1304,card:\[64,292,1016,1009\],to:\[940,255\]\}/, table: 'historique_prix',
     bubble: 'Un prix a changé sans trace&nbsp;:<br>à toi de garder<br>chaque changement !',
     chapters: ['Qui a changé le prix ?', 'Garder chaque changement', 'Créer le trigger', 'Modifier le prix', 'Lire la nouvelle ligne', 'Vérifier avec le stock',
       'Ligne ajoutée ou non ?', 'À retenir'],
@@ -2616,7 +2616,7 @@ test('boutons retour en pastille ronde : Safari ne coupe plus leur relief (overf
   assert.ok(/html\.lq #app \.home-back svg\{[^}]*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour des écrans : relief entier');
   assert.ok(/html\.lq #scr-lesson \.navbar \.back svg\{\s*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour de la leçon (« ‹ Accueil ») : relief entier');
   assert.ok(html.includes('.tab svg{overflow:visible;'), 'onglets : l’ombre de l’onglet actif n’est pas coupée non plus');
-  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=20">'), 'la feuille de style du thème est rechargée');
+  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=21">'), 'la feuille de style du thème est rechargée');
 });
 
 test('arrêt « toucher » sur un bouton : un doigt seul qui monte et descend, sans bulle ; le bouton s’enfonce dès l’appui et remonte au relâcher', () => {
