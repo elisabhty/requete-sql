@@ -1152,11 +1152,11 @@ const COURSES = [
       "{at: atp('p4'), from: A.d1, kind: 'tap', need: 1,", "{at: atp('p5'), from: A.e1, kind: 'sort',", "{label: 'Non : chaque index a un coût', ok: true,",
       "['CREATE INDEX {inm|idx_commandes_numero}']", 'Prochaine leçon · Sécurité et droits']},
   /* Le dernier chapitre du projet, et le dernier cours de l’app : pas de leçon suivante (next: null). */
-  {id: 50, next: null, titre: 'Sécurité et droits', page: 'projet-droits.html', thumb: 'projet-droits-thumb.webp', duree: '5 min 33', notesAt: 271.49,
-    notes: /notes:\{t:325\.59,y:1173,card:\[64,292,1016,878\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 50, next: null, titre: 'Sécurité et droits', page: 'projet-droits.html', thumb: 'projet-droits-thumb.webp', duree: '6 min 41', notesAt: 295.45, maxKo: 520,
+    notes: /notes:\{t:370\.2,until:377\.4,y:1173,card:\[64,292,1016,878\],to:\[940,255\]\}/, table: 'commandes',
     bubble: 'Un accès trop large&nbsp;:<br>à toi de donner<br>les bons accès !',
     chapters: ['Un accès trop large', 'Les accès nécessaires', 'Ce qu’elle peut consulter', 'Autoriser la consultation', 'Une modification précise', 'Les limites de son accès', 'Retirer les accès',
-      'Le dernier réflexe', 'À retenir'],
+      'Le dernier réflexe', 'Merci pour tout', 'À retenir', 'Le chemin parcouru'],
     traps: ["const VCOLS = ['numero_commande', 'destinataire', 'adresse_livraison', 'statut'];",
       "const VUE = [['NB-10482', 'Léa Simon', '41 avenue Jaurès, Paris', 'en_preparation'], ['NB-10483', 'Nathan Petit', '5 rue Victor Hugo, Paris', 'en_preparation']];",
       // Les six moments : les deux accès nécessaires ; ce droit permet-il de supprimer ? ; la partie qui limite le droit à une colonne ;
@@ -1204,7 +1204,9 @@ for (const c of COURSES) {
     /* 490 Ko (470 jusqu’au 26 octobre, puis 480) : le moteur commun grandit avec les chapitres du projet (le SMS sans formule du chapitre 15),
        et les premières leçons chargent moments.js pour leurs moments « À toi » (Elisa, 26 octobre, 14 h 59 ; l’introduction, la plus lourde,
        en a cinq). */
-    assert.ok(total < 490 * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
+    /* Le chapitre 17, le dernier, porte en plus la fin de l’apprentissage (la conversation des équipes, la lettre d’Elisa et la finale
+       « Le chemin parcouru », 26 octobre, 23 h 53) : 520 Ko pour lui seul. */
+    assert.ok(total < (c.maxKo || 490) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
     for (const f of [`./assets/anim/${c.page}?app&embed`, `./assets/anim/${c.thumb}`]) assert.ok(sw.includes(`'${f}'`), `préchargé : ${f}`);
   });
 }

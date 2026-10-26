@@ -9314,9 +9314,10 @@ guide({ id:50, titre:"Sécurité et droits", résumé:"Contrôler les accès ave
      ratés. Elle remplace l’ancien cours texte Sécurité et droits (app_user et la table clients), le dernier cours texte de l’app : il
      est gardé pour les tests (tests/fixtures/guide-texte-droits.js). */
   leconSeule:true,
-  video:{anim:'assets/anim/projet-droits.html?app&embed',thumb:'assets/anim/projet-droits-thumb.webp',duree:'5 min 33',moments:6,seuil:4,
-    /* « Ajouter à mes notes » : apparaît à 5 min 26 (325,59 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:325.59,y:1173,card:[64,292,1016,878],to:[940,255]}},
+  video:{anim:'assets/anim/projet-droits.html?app&embed',thumb:'assets/anim/projet-droits-thumb.webp',duree:'6 min 41',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 6 min 10 (370,2 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920),
+       et s’en va à 6 min 17 (377,4 s), quand commence la finale « Le chemin parcouru ». */
+    notes:{t:370.2,until:377.4,y:1173,card:[64,292,1016,878],to:[940,255]}},
   reflex:[
     {recap:[
       /* Les mots d’Elisa (sa trame, 26 octobre, 11 h 57, « Ce que tu retiens »), comme dans la vidéo. */
@@ -14953,7 +14954,8 @@ function lvNotePlace(){
 }
 function lvNoteSync(){
   const N=LV&&LV.note; if(!N)return;
-  const V=LV.video, on=!LV.root.classList.contains('is-end')&&!V.ended&&V.currentTime>=N.cfg.t;
+  /* until : le bouton s’en va quand la vidéo continue après le résumé (chapitre 17 : la finale « Le chemin parcouru »). */
+  const V=LV.video, on=!LV.root.classList.contains('is-end')&&!V.ended&&V.currentTime>=N.cfg.t&&(N.cfg.until==null||V.currentTime<N.cfg.until);
   if(on===N.shown)return;
   N.shown=on;
   clearTimeout(N.timer);

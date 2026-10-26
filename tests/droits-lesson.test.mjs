@@ -118,13 +118,13 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 271.49);
-  assert.ok(page.includes('notesAt: 271.49,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 278.69);
+  assert.equal(val('NOTES'), 295.45);
+  assert.ok(page.includes('notesAt: 295.45,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 326.55);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   assert.deepEqual(chaps.map(c => c.label), ['Un accès trop large', 'Les accès nécessaires', 'Ce qu’elle peut consulter', 'Autoriser la consultation', 'Une modification précise',
-    'Les limites de son accès', 'Retirer les accès', 'Le dernier réflexe', 'À retenir']);
+    'Les limites de son accès', 'Retirer les accès', 'Le dernier réflexe', 'Merci pour tout', 'À retenir', 'Le chemin parcouru']);
   caps.forEach(([, , t, lines], k) => {
     const txt = strip(t);
     assert.ok(/^[A-ZÀ-ÖØ-Þ0-9«]/.test(txt) || /^(<b[^>]*>)?<code>/.test(t), `légende ${k + 1} : une phrase qui commence (« ${txt.slice(0, 50)} »)`);
@@ -195,8 +195,9 @@ test('les messages : Camille Roux, puis Lina, puis Camille Roux, par SMS, avec l
     'Peux-tu retirer les accès que nous lui avions accordés ?']);
   assert.deepEqual([0, 1, 2].map(n => vm.runInContext(`mailRows(${n})`, D)), [5, 3, 5], '« Bonjour ! » et ses quatre phrases ; puis trois phrases ; puis « Bonjour ! », trois phrases et « Merci d’avance pour tes actions ! »');
   assert.ok(strip(caps.find(c => /t’écrit/.test(c[2]))[2]) === 'Camille Roux, responsable des opérations, t’écrit.', 'qui est Camille Roux (Elisa : « responsable des opérations »)');
-  assert.deepEqual(opens.map(o => o.sel), ['#ml1', '#bs1', '#ml2', '#bs2', '#ml3', '#bs3']);
-  assert.deepEqual(opens.map(o => o.label), ['Ouvrir le message de Camille Roux', 'Exécuter', 'Ouvrir le message de Lina', 'Exécuter', 'Ouvrir le message de Camille Roux', 'Exécuter']);
+  assert.deepEqual(opens.map(o => o.sel), ['#ml1', '#bs1', '#ml2', '#bs2', '#ml3', '#bs3', '#gnb', '#bsend']);
+  assert.deepEqual(opens.map(o => o.label), ['Ouvrir le message de Camille Roux', 'Exécuter', 'Ouvrir le message de Lina', 'Exécuter', 'Ouvrir le message de Camille Roux', 'Exécuter',
+    'Ouvrir le message de l’équipe NutriBoost', 'Envoyer']);
   assert.ok(opens.every((o, k) => !k || o.at > opens[k - 1].at), 'dans l’ordre');
   assert.ok(opens[0].at < picks[0].at && opens[1].at > picks[0].at && opens[1].at < picks[1].at && opens[2].at > picks[1].at && opens[3].at > picks[2].at && opens[3].at < picks[3].at
     && opens[4].at > picks[3].at && opens[4].at < picks[4].at && opens[5].at > picks[4].at && opens[5].at < picks[5].at,
@@ -286,7 +287,10 @@ test('chapitre 17 : écran titre, ouverture comme aux autres chapitres, la photo
   /* Le dernier chapitre : pas de prochaine leçon, la fin du projet */
   assert.ok(!page.includes('Prochaine leçon') && !caps.some(c => /prochaine leçon/i.test(c)), 'aucune leçon après celle-ci');
   assert.ok(caps.includes('Bravo : tu as terminé<br>le dernier chapitre<br>du projet NutriBoost !') && page.includes('Projet NutriBoost terminé !'), 'la fin du projet');
-  assert.equal(caps[caps.length - 2], 'Pour finir, voici les <b>trois idées à retenir</b>.');
+  /* Puis le résumé (« À retenir », le bouton « Ajouter à mes notes ») et, tout à la fin, la finale « Le chemin parcouru » */
+  const r = caps.indexOf('Pour finir, voici les <b>trois idées à retenir</b>.');
+  assert.deepEqual(caps.slice(r + 2), ['Souviens-toi<br>de ta toute première requête.', 'Regarde le chemin parcouru<br>depuis !', '15 modules, 62 cours<br>et 17 chapitres de projet.',
+    'Bravo : tu as terminé<br>ton apprentissage du SQL !'], 'la finale, après le résumé');
   assert.ok(page.includes("const PHOTO = 'projet-droits-lina.webp';") && fs.statSync(path.join(root, 'assets/anim/projet-droits-lina.webp')).size > 20000, 'la photo de Lina');
   assert.ok(fs.readFileSync(path.join(root, 'sw.js'), 'utf8').includes("'./assets/anim/projet-droits-lina.webp'"), 'et gardée pour le hors ligne');
   assert.ok(page.includes('url(projet-droits-lina.webp)'), 'son portrait sur la fiche de son compte');
