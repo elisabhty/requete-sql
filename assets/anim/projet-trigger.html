@@ -286,14 +286,27 @@ chap({label:'Garder chaque changement'});
 cap('b1', "Pour garder chaque changement,<br>l’équipe commerciale a ajouté<br>la <b>table historique_prix</b>.", 4.2);
 cap('b2', "Elle garde le produit concerné,<br>l’ancien prix, le nouveau prix<br>et la date du changement.", 4.8);
 cap('b3', "Pour l’instant, aucun changement<br>n’y est enregistré.", 3.4);
-cap('b4', "Pour la remplir automatiquement,<br>tu vas créer un <code>TRIGGER</code> :<br>un déclencheur.", 4.0);
+/* Ce qu’est un trigger, avec les mots d’Elisa (26 octobre, 7 h 18, Réf 3), une phrase par bulle : sa première phrase, trop longue pour trois
+   lignes, se coupe après « lors d’un événement » ; la deuxième aussi (« Il les ajoute à la table historique_prix ») : « la table historique_prix »,
+   comme toujours, plutôt que le nom seul. */
+cap('b4', "Un déclencheur, ou <code>TRIGGER</code>,<br>est un bloc de code SQL qui s’exécute<br>automatiquement lors d’un événement.", 5.0);
+cap('b4b', "Par exemple : l’ajout, la modification<br>ou la suppression de données.", 3.6);
+cap('b4c', "<span class=\"dense\">Ici, chaque fois que le prix d’un produit<br>change, le trigger enregistre l’ancien prix,<br>le nouveau et la date.</span>", 5.0);
+cap('b4d', "Il les ajoute à la <b>table historique_prix</b>.", 3.2);
+cap('b4e', "Tu n’as pas à ajouter toi-même<br>cette ligne dans l’historique.", 3.6);
 /* 3 · Créer le trigger : « après une modification de produit, si son prix a réellement changé, enregistrer l’ancien et le nouveau prix
    dans l’historique » (Elisa), une ligne de la requête à la fois */
 chap({label:'Créer le trigger'});
 cap('c1', "<code>CREATE TRIGGER</code> crée le trigger,<br>ici nommé <code>garder_prix</code>.", 4.0);   // la requête s’écrit pendant les bulles
-cap('c2', "<code>AFTER UPDATE ON produits</code> le lance<br>après une modification de produit.", 4.4);
-cap('c3', "<code>WHEN</code> ajoute une condition :<br>son prix a réellement changé.", 4.2);
-cap('c4', "Entre <code>BEGIN</code> et <code>END</code>, il enregistre<br>l’ancien et le nouveau prix<br>dans l’historique.", 6.0);
+/* AFTER UPDATE ON, WHEN, BEGIN … END : les mots d’Elisa (26 octobre, 7 h 18, Réf 4, 2 et 5), une phrase par bulle. */
+cap('c2', "<code>AFTER UPDATE ON produits</code> signifie<br>« après une modification<br>dans la <b>table produits</b> ».", 4.6);
+cap('c2b', "Cela précise à quel moment<br>le déclencheur intervient.", 3.4);
+cap('c3', "<code>WHEN</code> précise la condition à respecter :<br>l’ancien prix (<code>OLD.prix</code>) doit être<br>différent du nouveau (<code>NEW.prix</code>).", 5.4);
+cap('c3b', "Si le prix reste identique,<br>rien n’est ajouté à l’historique.", 3.6);
+cap('c4', "<code>BEGIN</code> et <code>END</code> encadrent<br>les instructions à exécuter<br>automatiquement.", 6.4);   // BEGIN … END s’écrit pendant la bulle
+/* Sa deuxième phrase de la Réf 5 (INSERT INTO, puis le contenu de la ligne) : trop longue pour trois lignes, elle devient deux bulles. */
+cap('c4b', "Ici, <code>INSERT INTO</code> ajoute une ligne<br>dans la <b>table historique_prix</b>.", 3.8);
+cap('c4c', "Elle contient l’identifiant du produit,<br>l’ancien prix, le nouveau prix<br>et la date du changement.", 4.6);
 cap('c5', "<code>OLD.prix</code> donne l’ancien prix,<br><code>NEW.prix</code> le nouveau.", 3.8);
 cap('c6', "<code>CURRENT_TIMESTAMP</code> donne la date<br>et l’heure du changement.", 3.8);
 toi('p2');
@@ -387,7 +400,8 @@ const PICKS = [
     {label: 'Un UPDATE remplace l’ancien prix, sans garder de trace', ok: true, why: '<code>UPDATE</code> écrit le nouveau prix à la place de l’ancien : ni l’ancien prix, ni la date du changement ne sont conservés.'},
     {label: 'La date est enregistrée dans la table commandes', why: 'La <b>table commandes</b> enregistre les commandes des clients, pas les changements de prix.'}]},
   {at: atp('p2'), from: A.c1, kind: 'pick', text: true, prompt: 'Quand le trigger garder_prix ajoute-t-il une ligne à l’historique ?', options: [
-    {label: 'Après une modification de prix d’un produit', ok: true, why: '<code>AFTER UPDATE ON produits</code> le lance après chaque modification d’un produit, et <code>WHEN</code> ne garde que les changements de prix.'},
+    {label: 'Après une modification de prix d’un produit', ok: true, why: '<code>AFTER UPDATE ON produits</code> indique que le trigger intervient après une modification dans la <b>table produits</b>. ' +
+      'La condition <code>WHEN OLD.prix &lt;&gt; NEW.prix</code> précise que son action s’exécute uniquement si le prix a changé : <code>OLD.prix</code> correspond à l’ancien prix et <code>NEW.prix</code> au nouveau.'},   // mots d’Elisa (26 octobre, 7 h 18, Réf 1)
     {label: 'Avant chaque ajout dans l’historique', why: 'Le trigger surveille la <b>table produits</b> : c’est lui qui ajoute les lignes de l’historique.'},
     {label: 'À chaque lecture de la table produits', why: 'Une lecture ne modifie rien : le trigger se déclenche après un <code>UPDATE</code>, pas après un <code>SELECT</code>.'}]},
   {at: atp('p3'), from: A.d1, kind: 'pick', text: true, prompt: 'Pendant ce changement de prix, que vaudra OLD.prix ?', options: [
@@ -663,23 +677,42 @@ function build(){
   // pour l’instant, aucun changement n’y est enregistré
   pulse('#rhp0', A.b3 + 0.5, 1, GLOW); cue(A.b3 + 0.5, 'tick', 0.5, 2);
   bump('#hpn', A.b3 + 1.4, 1.12); cue(A.b3 + 1.4, 'tick', 0.5, 4);
+  // un déclencheur s’exécute automatiquement lors d’un événement : ici, la modification d’une ligne de la table produits
+  bump('#tp', A.b4 + 2.6, 1.02); cue(A.b4 + 2.6, 'tick', 0.5, 2);
+  pulse('#rtp2', A.b4b + 0.9, 1, GLOW); cue(A.b4b + 0.9, 'tick', 0.5, 3);
+  // chaque fois que le prix change : l’ancien prix, le nouveau et la date (les colonnes de l’historique)
+  pulse('#rtp2 .c2', A.b4c + 0.8, 1, GLOW); cue(A.b4c + 0.8, 'tick', 0.5, 2);
+  ['c1', 'c2', 'c3'].forEach((c, q) => { const t = A.b4c + 2.2 + q * 0.7; pulse('#hp .hd .' + c, t, 1, GLOW); cue(t, 'tick', 0.5, q + 3); });
+  // il les ajoute à la table historique_prix ; tu n’as pas à ajouter cette ligne toi-même
+  pulse('#hp .h', A.b4d + 0.5, 1, GLOW); cue(A.b4d + 0.5, 'tick', 0.5, 4);
+  pulse('#rhp0', A.b4e + 0.8, 1, GLOW); cue(A.b4e + 0.8, 'tick', 0.5, 2);
 
   /* ===== 3 · Créer le trigger ===== */
   // CREATE TRIGGER garder_prix : la requête s’écrit au fil des bulles, une partie à la fois
   show('#etg', A.c1 + 0.2, {y: 40}, 0.5); cue(A.c1 + 0.2, 'whoosh', 0.45, 1);
   typeLines('etg', 0, 1, A.c1 + 0.6);
   pulse('#tgn', A.c1 + 2.6, 1, GLOW); cue(A.c1 + 2.6, 'tick', 0.5, 2);
-  // AFTER UPDATE ON produits : après une modification de produit
+  // AFTER UPDATE ON produits : « après une modification dans la table produits »
   typeLines('etg', 2, 2, A.c2 + 0.3);
   pulse('#tev', A.c2 + 1.9, 1, GLOW); cue(A.c2 + 1.9, 'tick', 0.5, 3);
   pulse('#tp .h', A.c2 + 2.9, 1, GLOW); cue(A.c2 + 2.9, 'tick', 0.5, 4);
-  // WHEN : son prix a réellement changé
+  // cela précise à quel moment le déclencheur intervient
+  pulse('#tev', A.c2b + 0.8, 1, GLOW); cue(A.c2b + 0.8, 'tick', 0.5, 2);
+  // WHEN : l’ancien prix doit être différent du nouveau
   typeLines('etg', 3, 3, A.c3 + 0.3);
   pulse('#twh', A.c3 + 1.9, 1, GLOW); cue(A.c3 + 1.9, 'tick', 0.5, 2);
-  // entre BEGIN et END : l’ancien et le nouveau prix, enregistrés dans l’historique
+  // si le prix reste identique, rien n’est ajouté à l’historique
+  pulse('#rhp0', A.c3b + 0.6, 1, GLOW); cue(A.c3b + 0.6, 'tick', 0.5, 3);
+  bump('#hpn', A.c3b + 1.6, 1.12); cue(A.c3b + 1.6, 'tick', 0.5, 5);
+  // BEGIN et END encadrent les instructions à exécuter automatiquement : elles s’écrivent pendant la bulle
   const c4 = typeLines('etg', 4, 10, A.c4 + 0.3, 48);
-  pulse('#thp', c4 + 0.1, 1, GLOW); cue(c4 + 0.1, 'tick', 0.5, 3);
-  pulse('#hp .h', c4 + 0.7, 1, GLOW); cue(c4 + 0.7, 'tick', 0.5, 5);
+  pulse('#tbg', c4 + 0.15, 1, GLOW); cue(c4 + 0.15, 'tick', 0.5, 2);
+  pulse('#ten', c4 + 0.75, 1, GLOW); cue(c4 + 0.75, 'tick', 0.5, 4);
+  // INSERT INTO ajoute une ligne dans la table historique_prix
+  pulse('#thp', A.c4b + 0.6, 1, GLOW); cue(A.c4b + 0.6, 'tick', 0.5, 3);
+  pulse('#hp .h', A.c4b + 1.6, 1, GLOW); cue(A.c4b + 1.6, 'tick', 0.5, 5);
+  // elle contient l’identifiant du produit, l’ancien prix, le nouveau prix et la date du changement
+  ['c0', 'c1', 'c2', 'c3'].forEach((c, q) => { const t = A.c4c + 0.5 + q * 0.75; pulse('#hp .hd .' + c, t, 1, GLOW); cue(t, 'tick', 0.5, q + 1); });
   // OLD.prix, l’ancien prix ; NEW.prix, le nouveau
   pulse('#to1', A.c5 + 0.4, 1, GLOW); cue(A.c5 + 0.4, 'tick', 0.5, 2);
   pulse('#tn1', A.c5 + 1.8, 1, GLOW); cue(A.c5 + 1.8, 'tick', 0.5, 4);
@@ -692,6 +725,7 @@ function build(){
   run('etg', CRE + 0.15);
   // le trigger est créé : il est attaché à la table produits (sa pastille, dans l’en-tête)
   mark('#tgc', CRE + 0.55); cue(CRE + 0.6, 'chord', 0.5);
+  confetti($('#bcre'), CRE + 0.6);   // le trigger est créé : des confettis (Elisa, 26 octobre, 7 h 18, Réf 6)
   bump('#tgc', A.c8 + 0.8, 1.15); cue(A.c8 + 0.8, 'tick', 0.5, 3);
   pulse('#tp .h', A.c8 + 1.7, 1, GLOW);
 
@@ -712,8 +746,9 @@ function build(){
   // tu n’exécutes que la modification du prix : 39,90 € devient 34,90 €
   run('eup', MOD + 0.15);
   swap('#pr2 .a1', '#pr2 .a2', MOD + 0.45);
-  // le trigger se déclenche
+  // le trigger se déclenche : le prix est modifié, des confettis partent du bouton
   fire(MOD + 0.85);
+  confetti($('#bmod'), MOD + 0.85);
   off('#rtp2 .hl', MOD + 1.0, 0.3);
   // l’écran se déplace vers historique_prix : la requête et le bouton s’effacent vers le haut, l’historique remonte d’en bas
   hide(['#eup', '#bmod'], MOD + 1.15, {y: -50}, 0.35);
@@ -891,7 +926,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 201.74, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 245.04, picks: PICKS, opens: OPENS,
   glyphs: '🗄️👥🛒⭐📦🧑‍🏫📅📝💳💬🔁🎁🔑🔗⚡🏷️🔎💶🗓️✏️👆📬🔖✓✕!…«»·−→<>',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>

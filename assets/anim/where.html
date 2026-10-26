@@ -615,6 +615,21 @@ gsap.config({force3D: false});
 const tl = gsap.timeline({paused: true});
 const CUES = [];
 function cue(t, type, gain = 1, pitch = 0){ CUES.push({t: +t.toFixed(3), type, gain, pitch}); }
+/* Confettis après une requête qui réussit (Elisa, 26 octobre, 7 h 18 : « quand on appuie sur les boutons pour lancer requête […] et que
+   c’est pas une erreur ensuite mettre des confettis ») : même repère que le moteur commun (core.js), lancé en direct par le lecteur de
+   l’app. Ici, la page les pose elle-même : ni le premier essai (encore toutes les villes), ni les deux essais de l’encadré piège
+   (erreur, résultat vide) n’en ont. */
+const CONFETTI = [];
+function confetti(el, t){ CONFETTI.push({el, t}); }
+function confettiCues(){
+  const st = document.getElementById('stage');
+  CONFETTI.forEach(({el, t}) => {
+    tl.seek(t, true);
+    const sr = st.getBoundingClientRect(), k = sr.width / 1080 || 1, r = el.getBoundingClientRect();
+    CUES.push({t: +t.toFixed(3), type: 'confetti', gain: 1, pitch: 0, x: Math.round((r.left - sr.left + r.width / 2) / k), y: Math.round((r.top - sr.top + r.height / 2) / k)});
+  });
+  tl.seek(0, true);
+}
 
 function show(el, t, from = {}, dur = 0.55, ease = 'expo.out'){
   const f = Object.assign({autoAlpha: 0, y: 40}, from);
@@ -756,7 +771,7 @@ function build(){
   cue(15.05, 'whoosh', 0.7);
   let te = typeLine($('#s2l1'), 15.55, 24);
   te = typeLine($('#s2l2'), te + 0.12, 24);
-  press($('#s2run'), te + 0.35);
+  press($('#s2run'), te + 0.35);   // premier essai, que la suite montre insuffisant : pas de confettis
   const tStart = te + 0.65;               // ≈ 17.6
   show('#tbl', tStart, {y: 40}, 0.5);
   gsap.set('#tbl', {'--c1': '450px', '--c2': '450px', '--c3': '0px'});
@@ -846,6 +861,7 @@ function build(){
   cue(48.6, 'pop', 0.8, 3);
   tl.to('#s4cond', {backgroundColor: 'rgba(255,224,138,.22)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 48.7);
   press($('#s4run'), 50.35);
+  confetti($('#s4run'), 51.35);
   show('#tbl4', 50.7, {y: 40}, 0.5);
   const tr4 = $$('#rows4 .tr');
   gsap.set(tr4, {autoAlpha: 0, y: 16});
@@ -892,6 +908,7 @@ function build(){
   te = typeLine($('#s6l2'), te + 0.1, 28);
   te = typeLine($('#s6l3'), te + 0.1, 28);
   press($('#s6run'), te + 0.3);
+  confetti($('#s6run'), te + 0.8);
   const t6 = te + 0.6;
   show('#tbl6', t6, {y: 40}, 0.5);
   const tr6 = $$('#rows6 .tr');
@@ -993,6 +1010,7 @@ window.__ready = (async () => {
   await Promise.all(fams.map(f => document.fonts.load(f, 'Aàé’✉️🎉')));
   await document.fonts.ready;
   build();
+  confettiCues();
   renderAt(0);
   if (EMBED) { const st = document.getElementById('stage'); st && dispatchEvent(new Event('resize')); }
   return {duration: OUT_DURATION, fps: FPS, cues: CUES.map(c => Object.assign({}, c, {t: unwarp(c.t)})), overflow: checkCaptions(), notesT: unwarp(88.4), holds: HOLD_TOTAL,

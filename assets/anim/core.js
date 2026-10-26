@@ -207,7 +207,8 @@ function stackBelow(lower, upper, rot = 0, gap = STACK_GAP){
   lo.style.top = Math.round(up.offsetTop + h / 2 + (h / 2) * Math.cos(a) + (w / 2) * Math.sin(a) + lip + gap) + 'px';
 }
 
-function press(btn, t, lip = '#4B30CC', depth = 9){
+/* conf : confettis après l’appui (« Confettis », plus bas). */
+function press(btn, t, lip = '#4B30CC', depth = 9, conf){
   tl.to(btn, {y: depth - 2, boxShadow: `0 2px 0 ${lip}`, duration: 0.09, ease: 'power2.out'}, t)
     .to(btn, {y: 0, boxShadow: `0 ${depth}px 0 ${lip}`, duration: 0.3, ease: 'back.out(2.2)'}, t + 0.13);
   const r = btn.querySelector('.ripple');
@@ -217,6 +218,46 @@ function press(btn, t, lip = '#4B30CC', depth = 9){
       .to(r, {scale: 1, opacity: 0, duration: 0.7, ease: 'power2.out'}, t + 0.01);
   }
   cue(t, 'click');
+  if (conf !== false) CONFETTI.push({el: btn, t, press: true, force: conf === true});
+}
+
+/* ---------- Confettis ----------
+   Elisa, 26 octobre, 7 h 18 : « quand on appuie sur les boutons pour lancer requête ou triggers etc et que c’est pas une erreur ensuite
+   mettre des confettis ». La page les annonce comme un son (repère « confetti », position du bouton sur la scène) ; le lecteur de l’app
+   les lance en direct : une pause ne les fige jamais. Un appui (press) en reçoit, sauf échec : son d’échec juste après, erreur ou valeur
+   fautive qui apparaît, essai d’un encadré piège sans son de réussite. press(…, false|true) tranche ; un bouton de l’élève : confetti(). */
+const CONFETTI = [];
+const FAIL_CUES = new Set(['error', 'empty', 'false', 'miss', 'buzz']), OK_CUES = new Set(['chord', 'success']);
+function confetti(el, t){ if (el) CONFETTI.push({el, t, press: false, force: true}); }
+function confettiCues(){
+  if (!CONFETTI.length) return;
+  const stage = $('#stage');
+  const seen = el => { for (let n = el; n && n !== document.body; n = n.parentElement) { const cs = getComputedStyle(n);
+    if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity < 0.3) return false; } const r = el.getBoundingClientRect(); return r.width > 1 && r.height > 1; };
+  const fails = () => new Set($$('.err, .emp, .ko, .bad', stage).filter(seen));
+  const out = [];
+  CONFETTI.forEach(c => {
+    let at = c.t;
+    if (c.press) {
+      const next = CUES.filter(q => q.t > c.t + 0.001 && q.t <= c.t + 2.2).sort((a, b) => a.t - b.t).find(q => FAIL_CUES.has(q.type) || OK_CUES.has(q.type));
+      const ok = !!next && OK_CUES.has(next.type);
+      if (!c.force) {
+        if (next && !ok) return;
+        tl.seek(Math.max(0, c.t - 0.05), true);
+        const before = fails();
+        tl.seek(c.t + 1.6, true);
+        if ([...fails()].some(e => !before.has(e))) return;
+        if (!ok && c.el.closest('.trap')) return;
+      }
+      at = ok ? next.t : c.t + 0.5;
+    }
+    tl.seek(at, true);
+    const r = rel(c.el);
+    if (r.w < 1 && r.h < 1) return;
+    out.push({t: +at.toFixed(3), type: 'confetti', gain: 1, pitch: 0, x: Math.round(r.x + r.w / 2), y: Math.round(r.y + r.h / 2)});
+  });
+  tl.seek(0, true);
+  CUES.push(...out);
 }
 
 /* Frappe : les caractères apparaissent un à un, le curseur clignote devant. Renvoie l’instant de fin. */
@@ -744,6 +785,7 @@ function Course(cfg){
     chromeTimeline(chapters, captions, duration);
     cfg.build();
     tl.set({}, {}, duration);
+    confettiCues();
     HOLDS = mergeHolds(captionHolds(captions, duration).concat(EXTRA_HOLDS)).concat(CUTS).sort((x, y) => x[0] - y[0]);
     const total = HOLDS.reduce((a, h) => a + h[1], 0);
     out = +(duration + total).toFixed(3);
