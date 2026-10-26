@@ -385,6 +385,7 @@ code,.ic{font-family:var(--mono);font-size:.86em;font-weight:700;color:var(--acc
 </div>
 
 <script src="gsap.min.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const FPS = 30;
@@ -404,17 +405,31 @@ if (EMBED) {
 }
 const DURATION = APP ? 96 : 99;
 /* Pauses de lecture : à ces instants de la timeline, l’image reste affichée le temps de lire la légende
-   (instant, durée en secondes). Placées quand rien ne bouge, juste avant que la légende ne s’efface. */
-const HOLDS = [[2.25,2.3],[8.3,1.55],[11.1,1.4],[14.35,1.6],[17.25,1.35],[22.6,1.8],[26.1,1.75],[30.3,1.45],[35.35,1.65],[37.75,2.6],[42.9,0.3],[55.2,0.6],[58.5,0.75],[64.25,0.8],[76.2,0.7],[85.4,2.9],[87.2,2.9]];
-const HOLD_TOTAL = HOLDS.reduce((a, h) => a + h[1], 0);
-const OUT_DURATION = +(DURATION + HOLD_TOTAL).toFixed(3);
-/* Temps de la vidéo → temps de la timeline (et l’inverse pour les sons). */
+   (instant, durée en secondes). Placées quand rien ne bouge, juste avant que la légende ne s’efface.
+   Les moments « À toi » (MOMENTS, plus bas ; moments.js) s’insèrent dans la vidéo : les pauses qui les suivent sont décalées d’autant,
+   et le passage d’attente de chaque moment est coupé (une pause négative), comme dans le moteur commun (applyMoments). */
+const HOLDS0 = [[2.25,2.3],[8.3,1.55],[11.1,1.4],[14.35,1.6],[17.25,1.35],[22.6,1.8],[26.1,1.75],[30.3,1.45],[35.35,1.65],[37.75,2.6],[42.9,0.3],[55.2,0.6],[58.5,0.75],[64.25,0.8],[76.2,0.7],[85.4,2.9],[87.2,2.9]];
+let HOLDS = HOLDS0, HOLD_TOTAL = 0, OUT_DURATION = 0;
+/* Temps de la vidéo → temps de la timeline (et l’inverse pour les sons) ; une pause négative saute le passage (le moteur commun fait de même). */
 function warp(T){
   let shift = 0;
-  for (const [t, d] of HOLDS) { if (T <= t + shift) break; if (T < t + shift + d) return t; shift += d; }
+  for (const [t, d] of HOLDS) {
+    if (T <= t + shift) break;
+    if (d < 0) { shift += d; continue; }
+    if (T < t + shift + d) return t;
+    shift += d;
+  }
   return T - shift;
 }
-function unwarp(t){ let s = 0; for (const [h, d] of HOLDS) { if (t > h) s += d; else break; } return +(t + s).toFixed(3); }
+function unwarp(t){
+  let s = 0;
+  for (const [h, d] of HOLDS) {
+    if (t <= h) break;
+    if (d < 0 && t < h - d) return +(h + s).toFixed(3);
+    s += d;
+  }
+  return +(t + s).toFixed(3);
+}
 const NB = ' ';
 const $ = s => document.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -524,13 +539,36 @@ const CAPTIONS = [
   [83.3, 88.9, "Pour finir, voici les <b>trois idées à retenir</b>."],
   [89.0, 92.5, "<code>WHERE</code> ne filtre que le résultat : la <b>table\u00a0clients</b> n’est pas modifiée."]
 ];
-/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+/* Pas de question du lecteur en pleine vidéo : les moments « À toi » (MOMENTS) font participer l’élève. */
 const QUESTIONS = [];
 if (APP) {
   CHAPTERS[6].b = 96.0;
   CAPTIONS[CAPTIONS.length - 2][1] = 88.3;
   CAPTIONS[CAPTIONS.length - 1] = [88.4, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."];
 }
+const NOTES_AT = 88.4;   // le bouton « Ajouter à mes notes » de l’app, sous le récapitulatif (temps de la timeline d’origine)
+
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 26 octobre, 14 h 59 : les premières leçons gardent tout ce qu’elle a validé ; il leur manquait les moments. */
+const MOMENTS = [
+  // le résultat sans filtre contient les clients de toutes les villes : avant que la vidéo ne nomme WHERE
+  {at: 22.95, from: 15.0, kind: 'pick', text: true, prompt: 'Que faut-il ajouter à la requête pour ne garder que les clients parisiens ?', options: [
+    {label: 'Un WHERE, suivi d’une condition', ok: true, why: '<code>WHERE</code> sélectionne les lignes à conserver : seules celles où la condition est vraie restent dans le résultat.'},
+    {label: 'DISTINCT, juste après le SELECT', why: '<code>DISTINCT</code> retire les doublons du résultat : il garde une ligne par valeur, mais pas seulement les clients parisiens.'},
+    {label: 'AS, pour renommer la colonne ville', why: '<code>AS</code> donne un autre nom à une colonne dans le résultat : il ne retire aucune ligne.'}],
+    tip: 'Il faut choisir des lignes, pas des colonnes.'},
+  // la première ligne vient d’être vérifiée (Paris : condition vraie) : les autres lignes, avant le reste du passage en revue
+  {at: 31.15, from: 26.8, kind: 'tap', need: 3, prompt: 'Touche les autres lignes où la condition est vraie.',
+    spots: CLIENTS.map((c, i) => ({k: 'r' + i, sel: `#rows > .tr:nth-child(${i + 1})`, label: `Ligne ${i + 1} : ${c[0]} ${c[1]}, ${c[2]}`, ok: c[2] === 'Paris',
+      why: c[2] === 'Paris' ? '' : `La ville ${/^[AEIOUHÉÈ]/.test(c[0]) ? 'd’' : 'de '}${c[0]} ${c[1]} est ${c[2]} : la condition est fausse, la ligne est écartée.`})).slice(1),
+    tip: 'Regarde la colonne ville : la condition est vraie quand elle vaut Paris.'},
+  // le second piège, avant son exécution : 'paris' en minuscules
+  {at: 64.95, from: 56.0, kind: 'pick', text: true, prompt: 'Que donne la condition <code>ville = \'paris\'</code>, écrite en minuscules ?', options: [
+    {label: 'Aucune ligne', ok: true, why: '<code>\'paris\'</code> ≠ <code>\'Paris\'</code> : aucune ville de la <b>table clients</b> ne s’écrit en minuscules, le résultat est vide.'},
+    {label: 'Les 4 clients parisiens', why: 'La comparaison tient compte des majuscules : <code>\'paris\'</code> ≠ <code>\'Paris\'</code>, aucune ligne ne remplit la condition.'},
+    {label: 'Une erreur', why: 'Entre guillemets simples, <code>\'paris\'</code> est bien une valeur en texte : la requête s’exécute, mais le résultat est vide.'}],
+    tip: 'Compare la valeur écrite dans la requête à celle de la table, lettre par lettre.'}
+];
 
 /* ---------- Construction du DOM dynamique ---------- */
 function buildDom(){
@@ -978,9 +1016,62 @@ function build(){
   tl.set({}, {}, DURATION);
 }
 
+/* ---------- Moments « À toi » (moments.js) ----------
+   Une position sur la scène 1080 × 1920 (zones à toucher), un son joué tout de suite (aperçu d’un moment), comme dans le moteur commun. */
+function rel(el){ const sr = $('#stage').getBoundingClientRect(), k = sr.width / 1080 || 1, r = el.getBoundingClientRect();
+  return {x: (r.left - sr.left) / k, y: (r.top - sr.top) / k, w: r.width / k, h: r.height / k}; }
+function sfx(type, pitch = 0, gain = 1){ try { if (typeof window.__sfx === 'function') window.__sfx(type, pitch, gain); } catch (e) {} }
+/* Bas du contenu visible (cartes, éditeurs, encadrés), sur la scène : le lecteur réduit l’image juste assez pour que la feuille d’un moment
+   ne le cache pas (même règle que le moteur commun). */
+function contentBottom(){
+  const stage = $('#stage'); if (!stage) return null;
+  const sr = stage.getBoundingClientRect(), k = sr.width / 1080 || 1;
+  const shown = el => { let o = 1; for (let n = el; n && n !== document.body; n = n.parentElement) {
+    const cs = getComputedStyle(n); if (cs.display === 'none' || cs.visibility === 'hidden') return 0; o *= parseFloat(cs.opacity); } return o; };
+  let best = null;
+  $$('.card, .code, section.scene > .abs', stage).forEach(el => {
+    if (el.closest('#cap, #chapter') || shown(el) < 0.3) return;
+    const r = el.getBoundingClientRect(); if (!r.width || !r.height) return;
+    const b = (r.bottom - sr.top) / k; if (best === null || b > best) best = b;
+  });
+  return best === null ? null : +best.toFixed(1);
+}
+window.__contentBottom = contentBottom;
+/* Les moments s’insèrent dans la timeline construite : tout ce qui commence à partir d’un moment (animations, légendes, sons, confettis)
+   est décalé de la durée du passage inséré ; la barre d’un chapitre qui contient un moment s’allonge d’autant ; une légende « À toi ! »
+   s’ajoute à chaque moment. Une animation en cours à l’instant d’un moment est signalée (clashes). */
+let MP = null;
+const MOMENT_CLASHES = [];
+function applyMoments(){
+  MP = momentPlan(MOMENTS, CAPTIONS, CHAPTERS, DURATION, NOTES_AT);
+  const T = MOMENTS.map(m => m.at), before = t => T.filter(x => t >= x - 1e-6).length;
+  tl.getChildren(false, true, true).forEach(c => {
+    const a = c.startTime(), b = a + c.totalDuration(), k = before(a), tg = c.targets ? c.targets()[0] : null;
+    if (k) { c.startTime(a + MOMENT_GAP * k); return; }
+    const inside = T.filter(x => a < x - 0.001 && b > x + 0.001).length;
+    if (!inside) return;
+    if (tg && tg.closest && tg.closest('#progress')) c.duration(c.duration() + MOMENT_GAP * inside);
+    else if (!(tg && tg.closest && tg.closest('#cap'))) MOMENT_CLASHES.push({moment: T.find(x => a < x && b > x), at: +a.toFixed(2), to: +b.toFixed(2), el: tg && tg.id ? '#' + tg.id : '?'});
+  });
+  CUES.forEach(q => { q.t = MP.s1(q.t); });
+  CONFETTI.forEach(c => { c.t = MP.s1(c.t); });
+  HOLDS = HOLDS0.map(([t, d]) => [MP.s0(t), d]).concat(MP.cuts.map(([t, d]) => [t, -d])).sort((x, y) => x[0] - y[0]);
+  MP.captions.filter(c => c[2] === 'À toi !').forEach(([a, b]) => {
+    const d = document.createElement('div');
+    d.className = 'c'; d.innerHTML = `<p>${fr('À toi !')}</p>`;
+    $('#cap').append(d);
+    gsap.set(d, {autoAlpha: 0, y: 26});
+    tl.to(d, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'power3.out'}, a);
+    tl.to(d, {autoAlpha: 0, y: -18, duration: 0.25, ease: 'power2.in'}, b - 0.2);
+  });
+  window.__moments = MP.picks;
+  window.IX = momentIX(MP.picks);
+}
+
 /* Rendu d'une image : position dans la timeline + petits effets dépendant du temps */
 function renderAt(T){
   const t = T;
+  if (window.IX) window.IX.tick(warp(T));
   tl.seek(warp(T), true);
   const blinkOn = Math.floor(t * 1.9) % 2 === 0;
   document.getElementById('stage').style.setProperty('--blink', blinkOn ? 1 : 0);
@@ -1010,14 +1101,22 @@ window.__ready = (async () => {
   await Promise.all(fams.map(f => document.fonts.load(f, 'Aàé’✉️🎉')));
   await document.fonts.ready;
   build();
+  applyMoments();
+  HOLD_TOTAL = HOLDS.reduce((a, h) => a + h[1], 0);
+  OUT_DURATION = +(MP.duration + HOLD_TOTAL).toFixed(3);
   confettiCues();
   renderAt(0);
   if (EMBED) { const st = document.getElementById('stage'); st && dispatchEvent(new Event('resize')); }
-  return {duration: OUT_DURATION, fps: FPS, cues: CUES.map(c => Object.assign({}, c, {t: unwarp(c.t)})), overflow: checkCaptions(), notesT: unwarp(88.4), holds: HOLD_TOTAL,
-    chapters: CHAPTERS.map(c => ({t: unwarp(c.a), n: c.n, label: c.label})),
+  return {duration: OUT_DURATION, fps: FPS, cues: CUES.map(c => Object.assign({}, c, {t: unwarp(c.t)})), overflow: checkCaptions(), notesT: unwarp(MP.notesAt), holds: HOLD_TOTAL,
+    clashes: MOMENT_CLASHES,
+    chapters: MP.chapters.map(c => ({t: unwarp(c.a), n: c.n, label: c.label})),
     questions: QUESTIONS.map(q => ({t: unwarp(q.at), kicker: q.kicker, ctx: fr(q.ctx || ''), q: fr(q.q), options: q.options.map(o => ({label: o.label, ok: o.ok})), okTitle: fr(q.okTitle), koTitle: fr(q.koTitle), why: fr(q.why)})),
+    /* Moments « À toi » : la même description que le moteur commun (core.js). */
+    picks: MP.picks.map(p => ({t: unwarp(p.at), from: p.from != null ? unwarp(p.from) : null, kind: ['tap', 'sort', 'link'].includes(p.kind) ? p.kind : 'pick', text: !!p.text,
+      prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', next: p.next ? fr(p.next) : '', need: p.need || 0,
+      options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''}))})),
     /* Légendes en texte : le lecteur les annonce à VoiceOver au fil de l’animation. */
-    captions: CAPTIONS.map(c => ({a: unwarp(c[0]), b: unwarp(Math.min(c[1], DURATION)), text: fr(c[2]).replace(/<[^>]+>/g, '')}))};
+    captions: MP.captions.map(c => ({a: unwarp(c[0]), b: unwarp(Math.min(c[1], MP.duration)), text: fr(c[2]).replace(/<[^>]+>/g, '')}))};
 })();
 window.renderAt = renderAt;
 

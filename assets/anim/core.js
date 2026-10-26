@@ -759,7 +759,7 @@ function contentBottom(){
 /* cfg : {duration, chapters, captions, questions, picks, notesAt, glyphs, dom(), build(), onRender(T)} */
 function Course(cfg){
   /* Les moments « À toi » ajoutés aux cours d’avant le projet (moments.js) : leurs temps deviennent ceux de la vidéo avec ses moments. */
-  if (cfg.moments) cfg = withMoments(cfg);
+  if (cfg.moments && !QS.has('nomoments')) cfg = withMoments(cfg);   // ?nomoments : la vidéo sans ses moments (pour en placer de nouveaux)
   const {duration, chapters, captions, questions = [], picks = [], opens = [], notesAt = null} = cfg;
   let out = 0;
   function renderAt(T){

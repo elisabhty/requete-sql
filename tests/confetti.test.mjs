@@ -134,5 +134,5 @@ test('les autres vidéos : ni la récursion sans fin, ni le site d’avant la re
   /* WHERE a son propre moteur : la page pose elle-même ses confettis. */
   const where = anim('where.html');
   assert.ok(where.includes("confetti($('#s4run'), 51.35);") && where.includes("confetti($('#s6run'), te + 0.8);") && !where.includes("confetti($('#s2run')"), 'WHERE : après WHERE et le résultat, pas le premier essai');
-  assert.ok(where.includes('  build();\n  confettiCues();\n  renderAt(0);'), 'WHERE : posés une fois la timeline construite');
+  assert.ok(/  build\(\);\n  applyMoments\(\);\n[^]*?\n  confettiCues\(\);\n  renderAt\(0\);/.test(where), 'WHERE : posés une fois la timeline construite (et ses moments « À toi » insérés)');
 });
