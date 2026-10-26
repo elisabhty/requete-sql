@@ -3,6 +3,7 @@ import vm from 'node:vm';
 import path from 'node:path';
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {momentsDe} from './helpers/redaction.mjs';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
@@ -506,8 +507,8 @@ const COURSES = [
     bubble: 'Avec <span class="ic">AS</span>, donne à une colonne un nom plus clair dans le résultat.',
     chapters: ['Situation', 'Le problème', 'Renommer une colonne', 'Plusieurs colonnes', 'Le piège des guillemets', 'Le résultat', 'À retenir'],
     traps: ['near "du": syntax error', 'near "(": syntax error', '"Nom du produit"']},
-  {id: 13, next: 4, titre: 'DISTINCT', page: 'distinct.html', thumb: 'distinct-thumb.jpg', duree: '2 min 00', notesAt: 87.2,
-    notes: /notes:\{t:112\.0,y:1277,card:\[64,356,1016,964\],to:\[940,255\]\}/, table: 'clients',
+  {id: 13, next: 4, titre: 'DISTINCT', page: 'distinct.html', thumb: 'distinct-thumb.jpg', duree: '2 min 04', notesAt: 87.2,
+    notes: /notes:\{t:116\.2,y:1277,card:\[64,356,1016,964\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avec <span class="ic">DISTINCT</span>, garde chaque valeur une seule fois.',
     chapters: ['Situation', 'Le problème', 'DISTINCT en action', 'Où le placer', 'Plusieurs colonnes', 'Le résultat', 'À retenir'],
     traps: ['near "DISTINCT": syntax error', 'Cette ville est-elle déjà dans le résultat ?', 'Paris + Sophie et Paris + Léa sont différentes']},
@@ -1172,6 +1173,7 @@ for (const c of COURSES) {
     for (const rel of ['core.css', 'core.js', 'gsap.min.js', 'mascotte.webp'])
       assert.ok(page.includes(rel) && fs.existsSync(path.join(ROOT, 'assets/anim', rel)), `ressource : ${rel}`);
     assert.ok(page.indexOf('src="gsap.min.js"') < page.indexOf('src="core.js"'), 'GSAP chargé avant le moteur');
+    if (page.includes('moments: MOMENTS')) assert.ok(page.includes('<script src="core.js"></script>\n<script src="moments.js"></script>'), 'les moments « À toi » : moments.js, juste après le moteur');
     assert.ok(!/https?:\/\//.test(page), 'rien de chargé depuis Internet');
     assert.ok(page.includes(`Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: ${c.notesAt},`));
     assert.ok(page.includes('const QUESTIONS = [];') && !/kicker: '/.test(page), 'pas de question en pleine vidéo : la lecture n’est jamais interrompue');
@@ -1185,13 +1187,80 @@ for (const c of COURSES) {
 
   test(`${c.titre} reste léger et disponible hors ligne`, () => {
     let total = 0;
-    for (const f of [c.page, 'core.css', 'core.js', 'gsap.min.js', 'mascotte.webp', c.thumb]) total += fs.statSync(path.join(ROOT, 'assets/anim', f)).size;
+    const page = fs.readFileSync(path.join(ROOT, 'assets/anim', c.page), 'utf8');
+    for (const f of [c.page, 'core.css', 'core.js', 'gsap.min.js', 'mascotte.webp', c.thumb, ...(page.includes('src="moments.js"') ? ['moments.js'] : [])])
+      total += fs.statSync(path.join(ROOT, 'assets/anim', f)).size;
     for (const f of ANIM_FONTS) total += fs.statSync(path.join(ROOT, 'assets/fonts', f)).size;
     /* 480 Ko (470 jusqu’au 26 octobre) : le moteur commun grandit avec les chapitres du projet (le SMS sans formule du chapitre 15). */
     assert.ok(total < 480 * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
     for (const f of [`./assets/anim/${c.page}?app&embed`, `./assets/anim/${c.thumb}`]) assert.ok(sw.includes(`'${f}'`), `préchargé : ${f}`);
   });
 }
+
+/* ---------- Moments « À toi » des cours d’avant le projet (assets/anim/moments.js) ----------
+   Elisa, 26 octobre, 14 h 59 : « convertir les premières leçons sans moment en moments, même si c’est juste des petites questions […] les premières
+   leçons sont validées aussi par moi, elles sont bien mises, il manque les moments ». La page garde ses temps validés ; MOMENTS dit, dans ces temps,
+   où l’image s’arrête (juste avant que la vidéo ne montre la réponse) ; la fiche de la leçon en donne le nombre (video.moments). Les moments font
+   participer sans bloquer : l’exercice et le quiz valident toujours la leçon. */
+const donneesVideo = file => {
+  const src = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
+  const js = [...src.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).pop(), m = js.indexOf('const MOMENTS = '), b = js.indexOf('\nfunction ', m);
+  const ctx = vm.createContext({APP: true});
+  vm.runInContext(js.slice(0, b) + ';this.D = {DURATION, CAPTIONS, CHAPTERS};', ctx);
+  return JSON.parse(JSON.stringify(ctx.D));
+};
+const prose = l => /[a-zà-ÿ]{2,} [a-zà-ÿ]{2,}/.test(l);
+for (const c of COURSES) {
+  const page = fs.readFileSync(path.join(ROOT, 'assets/anim', c.page), 'utf8');
+  if (!page.includes('moments: MOMENTS')) continue;
+  test(`${c.titre} : moments « À toi » entre deux légendes, avant la réponse ; une bonne réponse, une correction pour chaque erreur, un indice`, () => {
+    const M = momentsDe(c.page), D = donneesVideo(c.page);
+    const lesson = cut(`guide({ id:${c.id}, titre:"${c.titre}"`, c.next ? `guide({ id:${c.next},` : '\n]}\n]');
+    assert.ok(new RegExp(`duree:'[^']+',moments:${M.length},\\n`).test(lesson), `la fiche annonce ${M.length} moments`);
+    assert.ok(!/seuil:/.test(lesson) && !/leconSeule:true/.test(lesson), 'les moments ne bloquent pas : l’exercice et le quiz valident la leçon');
+    assert.ok(M.length >= 3, 'trois moments au moins');
+    const notes = +String(c.notesAt);
+    M.forEach((m, i) => {
+      const nom = `moment ${i + 1} (${m.at})`;
+      assert.ok(!i || m.at > M[i - 1].at + 3, `${nom} : dans l’ordre, espacé du précédent`);
+      assert.ok(m.at > D.CAPTIONS[0][0] && m.at < notes, `${nom} : pendant le cours, avant le récapitulatif`);
+      for (const cap of D.CAPTIONS) assert.ok(!(cap[0] < m.at - 0.001 && cap[1] > m.at + 0.001 && cap[1] < 900), `${nom} : entre deux légendes, pas pendant « ${cap[2].slice(0, 40)}… »`);
+      assert.ok(m.from != null && m.from < m.at - 2 && (!i || m.from >= M[i - 1].at - 0.001), `${nom} : « Revoir » repart du passage qui l’amène`);
+      assert.ok(/[?.]$/.test(m.prompt.replace(/<[^>]+>/g, '').trim()), `${nom} : une consigne qui finit par « ? » ou « . »`);
+      assert.ok(m.tip && m.tip.length > 15, `${nom} : un indice après deux erreurs`);
+      if (m.kind === 'pick') {
+        assert.equal(m.options.length, 3, `${nom} : trois réponses`);
+        assert.equal(m.options.filter(o => o.ok).length, 1, `${nom} : une seule bonne réponse`);
+        for (const o of m.options) assert.ok(o.why && o.why.length > 25, `${nom}, « ${o.label} » : une explication`);
+        if (m.options.some(o => prose(o.label))) assert.equal(m.text, true, `${nom} : des réponses en phrases (text: true, police du texte)`);
+      } else {
+        assert.equal(m.kind, 'tap', `${nom} : un choix (pick) ou des zones à toucher (tap)`);
+        const ok = m.spots.filter(z => z.ok);
+        assert.ok(m.need >= 1 && ok.length >= m.need && m.spots.length > ok.length, `${nom} : ${m.need} bonne(s) zone(s), et des zones fausses`);
+        assert.equal(new Set(m.spots.map(z => z.k)).size, m.spots.length, `${nom} : une clé par zone`);
+        for (const z of m.spots) assert.ok(z.sel && z.label, `${nom}, zone ${z.k} : un sélecteur et un nom (VoiceOver)`);
+        for (const z of m.spots.filter(z => !z.ok)) assert.ok((z.why || m.miss || '').length > 20, `${nom}, zone ${z.k} : une correction`);
+      }
+    });
+  });
+}
+
+test('moments « À toi » des cours d’avant le projet : un passage inséré à chaque moment, le reste décalé d’autant', () => {
+  const js = fs.readFileSync(path.join(ROOT, 'assets/anim/moments.js'), 'utf8');
+  const ctx = vm.createContext({document: {createElement: () => ({}), head: {append() {}}}});
+  vm.runInContext(js + ';this.plan = momentPlan; this.GAP = MOMENT_GAP;', ctx);
+  assert.equal(ctx.GAP, 2.65, '0,1 s puis la légende « À toi ! » de 2,55 s, comme toi() dans les chapitres du projet');
+  const P = ctx.plan([{at: 8.05, from: 5, kind: 'pick'}], [[5, 8, 'a'], [8.1, 10, 'b'], [10.5, 999, 'notes']], [{n: 1, a: 5, b: 9}, {n: 2, a: 9, b: 12}], 12, 10.5);
+  assert.equal(JSON.stringify(P.captions), JSON.stringify([[5, 8, 'a'], [8.15, 10.7, 'À toi !'], [10.75, 12.65, 'b'], [13.15, 999, 'notes']]), 'la légende d’avant reste, « À toi ! » s’insère, la suite est décalée');
+  assert.equal(JSON.stringify(P.chapters.map(c => [c.a, c.b])), '[[5,11.65],[11.65,14.65]]');
+  assert.equal(P.duration, 14.65); assert.equal(P.notesAt, 13.15);
+  assert.equal(JSON.stringify(P.picks.map(p => [p.at, p.from, p.src])), '[[10.5,5,8.05]]', 'l’arrêt à 0,1 + 2,35 s du début du passage, comme dans les chapitres du projet');
+  assert.equal(JSON.stringify(P.cuts), '[[9.15,1.25]]', 'le passage d’attente est coupé');
+  assert.equal(P.s1(8.05), 10.7, 'ce qui commence au moment même vient après l’arrêt'); assert.equal(P.s0(8.05), 8.05, 'ce qui finit au moment même reste avant');
+  const P2 = ctx.plan([{at: 20, from: 15}, {at: 8, from: 5}], [[5, 8, 'a'], [8.1, 19.9, 'b'], [20.1, 25, 'c']], [{n: 1, a: 5, b: 30}], 30, 26);
+  assert.equal(JSON.stringify(P2.picks.map(p => [p.at, p.from])), '[[10.45,5],[25.1,17.65]]', 'deux moments, dans l’ordre de la vidéo');
+  assert.equal(P2.duration, 35.3);
+});
 
 test('Les bases de données relationnelles : la feuille Excel, la table clients, les commandes et les produits de la vidéo sont ceux de SQLite', async () => {
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/bases-relationnelles.html'), 'utf8');
@@ -1540,7 +1609,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
   assert.ok(page.includes('spots, act, pick, hint,') && page.includes("if (i === 0) return {text: 'L’e-mail du coach est dans la colonne E.'"), 'un indice par moment à toucher ou à glisser');
   const coreJs = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8'), coreCss = fs.readFileSync(path.join(ROOT, 'assets/anim/core.css'), 'utf8');
   assert.ok(coreJs.includes('function stampIn(sel, t, rot = 7){') && coreCss.includes('.stamp.warn{'), 'moteur : tampon d’alerte, pour tous les chapitres');
-  assert.ok(coreJs.includes('opens: opens.map(o => ({t: unwarp(o.at), sel: o.sel, prompt: fr(o.prompt), label: o.label, hand: o.hand || null})),') && coreJs.includes('clashes: holdClashes(picks.concat(opens).map(p => p.at)),'),
+  assert.ok(coreJs.includes('opens: opens.map(o => ({t: unwarp(o.at), sel: o.sel, prompt: fr(o.prompt), label: o.label, hand: o.hand || null})),') && coreJs.includes('clashes: holdClashes(picks.concat(opens).map(p => p.at)).concat(cfg.extraClashes ? cfg.extraClashes() : []),'),
     'moteur : mails à ouvrir envoyés au lecteur, sans animation en cours à l’arrêt');
   assert.deepEqual(D.PICKS.map(p => p.at), [...D.PICKS.map(p => p.at)].sort((x, y) => x - y), 'moments dans l’ordre');
   for (const p of D.PICKS.filter(x => x.kind === 'pick')) assert.equal(p.options.filter(o => o.ok).length, 1, `${p.prompt} : une seule bonne réponse`);

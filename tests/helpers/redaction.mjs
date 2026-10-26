@@ -164,11 +164,31 @@ export function toutesLesLecons() {
   return [...html.matchAll(/guide\(\{ id:(\d+), titre:"([^"]*)"/g)].map(m => ({id: +m[1], titre: m[2], projet: projet.has(+m[1])}));
 }
 
-/* Les textes d’une vidéo qui n’est pas un chapitre du projet : ses légendes (« [début, fin, "texte"] »), puis tout ce que la page écrit à l’élève. */
+/* Les moments « À toi » d’une vidéo d’avant le projet (MOMENTS, moments.js), exécutés seuls : le script de la page jusqu’à sa première
+   fonction après MOMENTS (les données ; ni DOM, ni GSAP). [] sans moment. */
+export function momentsDe(file) {
+  const src = lire(path.join(ANIM, file));
+  const scripts = [...src.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
+  const js = scripts[scripts.length - 1] || '', m = js.indexOf('const MOMENTS = ');
+  if (m < 0) return [];
+  const b = js.indexOf('\nfunction ', m);
+  const ctx = vm.createContext({APP: true});
+  vm.runInContext(js.slice(0, b > 0 ? b : undefined) + ';this.M = MOMENTS;', ctx);
+  return JSON.parse(JSON.stringify(ctx.M));
+}
+
+/* Les textes d’une vidéo qui n’est pas un chapitre du projet : ses légendes (« [début, fin, "texte"] »), ses moments « À toi », puis tout ce que
+   la page écrit à l’élève. */
 export function textesVideo(file) {
   const page = nom(file), src = lire(path.join(ANIM, file)), out = [], vus = new Set();
-  const ajoute = (genre, h, ou, extra = {}) => { const cle = lisible(h); if (!cle || vus.has(cle)) return; vus.add(cle); out.push({page, genre, ou, html: h, plain: cle, ...extra}); };
+  const ajoute = (genre, h, ou, extra = {}) => { if (!h || typeof h !== 'string') return; const cle = lisible(h); if (!cle || vus.has(cle)) return; vus.add(cle); out.push({page, genre, ou, html: h, plain: cle, ...extra}); };
   legendesLitterales(file).forEach((c, k) => ajoute('legende', c.html, `légende ${k + 1}`, {lignes: c.lignes}));
+  momentsDe(file).forEach((p, i) => {
+    ajoute('consigne', p.prompt, `moment ${i + 1}, consigne`);
+    ajoute('indice', p.tip, `moment ${i + 1}, indice`); ajoute('indice', p.hint, `moment ${i + 1}, aide`); ajoute('correction', p.miss, `moment ${i + 1}, correction`);
+    (p.options || []).forEach((o, k) => { ajoute('option', o.label, `moment ${i + 1}, réponse ${k + 1}`); ajoute('correction', o.why, `moment ${i + 1}, correction ${k + 1}`); });
+    (p.spots || []).forEach((z, k) => ajoute('correction', z.why, `moment ${i + 1}, zone ${k + 1}`));
+  });
   const scripts = [...src.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
   litteraux(scripts).filter(estDeLaProse).forEach(t => ajoute('autre', t, 'texte de la page'));
   textesDuBalisage(src).filter(estDeLaProse).forEach(t => ajoute('autre', t, 'texte de la page'));
