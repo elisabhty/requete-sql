@@ -457,6 +457,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 335.7;
@@ -567,7 +568,7 @@ const CAPTIONS = [
       : [327.3, 999, "Chaque sujet a sa table, des clés relient les tables, et <code>SELECT</code> les lit."]
 ];
 
-/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+/* Pas de question du lecteur en pleine vidéo : les moments « À toi » (MOMENTS) font participer l’élève. */
 const QUESTIONS = [];
 
 /* La feuille : colonnes A à G, et la table où part chacune (la commande garde son numéro et sa quantité). */
@@ -580,6 +581,38 @@ const C3 = [1, 2, 3, 4], P3 = [1, 2, 3, 6, 8];
 const SGBD_TABLES = [['cl', '👥', 'clients', 10, [[22, 18, 34], [18, 24, 30]]], ['co', '🧾', 'commandes', 16, [[10, 14, 14, 10], [10, 12, 16, 10]]],
   ['pr', '📦', 'produits', 8, [[40, 14], [34, 12]]]];
 const fk = (v, k) => `<b class="fk ${k}">${v}</b>`;
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 26 octobre, 14 h 59 : les premières leçons gardent tout ce qu’elle a validé ; il leur manquait les moments. */
+const MOMENTS = [
+  // le problème : les informations répétées sur les trois lignes de Sophie Martin (prénom, nom, e-mail), juste avant qu’elles se marquent
+  {at: 57.95, from: 52.9, kind: 'tap', need: 3, prompt: 'Sophie Martin a commandé trois fois. Touche les informations répétées sur ses trois lignes.',
+    spots: HEAD.map((h, j) => ({k: 'h' + j, sel: `#xg .xh > span:nth-child(${j + 1})`, label: 'Colonne ' + h, ok: GRP[j] === 'k-cl',
+      why: GRP[j] === 'k-cl' ? '' : `C’est une information ${GRP[j] === 'k-pr' ? 'du produit' : 'de la commande'}, pas de la cliente.`})),
+    tip: 'Compare ses trois lignes, colonne par colonne.'},
+  // le découpage : ce qu’est une table, juste avant que la vidéo la définisse
+  {at: 88.25, from: 83.5, kind: 'pick', text: true, prompt: 'Qu’est-ce qu’une table ?', options: [
+    {label: 'Un tableau de données sur un seul sujet', ok: true, why: 'Une table organise en lignes et en colonnes les données d’un seul sujet.'},
+    {label: 'Une copie de toute la feuille Excel', why: 'La copie garderait les répétitions. Une table ne décrit qu’un seul sujet.'},
+    {label: 'Une seule colonne de la feuille', why: 'Une table a plusieurs colonnes : toutes celles d’un même sujet.'}],
+    tip: 'Repense à la solution : découper la feuille par sujet.'},
+  // la clé primaire : ce qu’il faut pour savoir qui a commandé quoi, avant que les identifiants apparaissent
+  {at: 156.55, from: 151.0, kind: 'pick', text: true, prompt: 'Que faut-il pour savoir qui a commandé quoi ?', options: [
+    {label: 'Un identifiant par client et par produit', ok: true, why: 'C’est la clé primaire. On la note ensuite dans chaque commande.'},
+    {label: 'Le prénom de chaque client', why: 'Un prénom peut se répéter : la commande ne dirait pas qui l’a passée.'},
+    {label: 'Une seule table, comme la feuille', why: 'Ce serait revenir à la feuille Excel, avec ses répétitions.'}],
+    tip: 'Cherche ce qui distingue chaque client.'},
+  // la clé étrangère : les commandes de la cliente 1 (1, 2 et 13), juste avant que la vidéo les relie à elle (la ligne ⋮ précède la 13)
+  {at: 217.05, from: 204.6, kind: 'tap', need: 3, prompt: 'Touche les commandes de Sophie Martin, la cliente 1.',
+    spots: COMMANDES.map(([id, c], i) => ({k: 'c' + id, sel: `#m3 > .rw:nth-child(${i + (i < 5 ? 4 : 5)})`, label: 'Commande ' + id, ok: c === 1,
+      why: c === 1 ? '' : `La commande ${id} renvoie à ${cli(c)[1]} ${cli(c)[2]} : son <code>client_id</code> vaut ${c}.`})),
+    tip: 'Cherche l’identifiant 1 dans <code>client_id</code>.'},
+  // choisir les colonnes : ce que va afficher la requête, juste avant « Exécuter »
+  {at: 280.45, from: 269.3, kind: 'pick', text: true, prompt: 'Que va afficher <code>SELECT prenom, nom, email</code> ?', options: [
+    {label: 'Les 10 clients, avec 3 colonnes', ok: true, why: 'Chaque client garde sa ligne. Seules les colonnes écrites s’affichent.'},
+    {label: 'Les 10 clients, avec leurs 9 colonnes', why: 'Les 9 colonnes, c’est l’étoile <code>*</code>. Ici, seules trois colonnes s’affichent.'},
+    {label: '3 lignes : prénom, nom et e-mail', why: 'Une colonne n’est pas une ligne : les 10 clients gardent chacun la leur.'}],
+    tip: 'Pense à la différence entre une ligne et une colonne.'}
+];
 function dom(){
   /* 1 · La feuille Excel : une ligne par commande, le client et le produit recopiés */
   const sheet = ([id, c, p, q]) => { const k = cli(c), [pn, px] = PRODUITS[p]; return [id, k[1], k[2], k[6], pn, px, q]; };
@@ -1457,7 +1490,7 @@ function build(){
   if (APP) cue(327.35, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 327.35,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 327.35, moments: MOMENTS,
   glyphs: '📊👥📦🧾🔑🔗❓🔎👀🗂️🏷️➕📋⚠️💬💼🚚⚙️🗄️✓✕?!→↔↑↓·…⋮«»+', dom, build});
 </script>
 </body>
