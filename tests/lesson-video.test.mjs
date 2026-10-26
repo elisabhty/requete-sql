@@ -25,8 +25,16 @@ test('WHERE : le cours a son animation, son image fixe et sa vignette, présente
   assert.ok(m, 'champ video du cours WHERE');
   assert.equal(m[1], 'assets/anim/where.html?app&embed');
   for (const f of m.slice(1, 3)) assert.ok(fs.statSync(path.join(ROOT, f.split('?')[0])).size > 1000, `fichier présent : ${f}`);
-  assert.equal(m[3], '2 min 02');
-  assert.ok(/notes:\{t:114\.8,y:1330,card:\[64,356,1016,1017\],to:\[940,255\]\}/.test(where), 'bouton « Ajouter à mes notes » à 1 min 55, sous le récapitulatif ; la note part du récapitulatif vers le carnet');
+  assert.equal(m[3], '2 min 07');
+  assert.ok(/notes:\{t:119\.0,y:1330,card:\[64,356,1016,1017\],to:\[940,255\]\}/.test(where), 'bouton « Ajouter à mes notes » à 1 min 59, sous le récapitulatif ; la note part du récapitulatif vers le carnet');
+  /* Les moments « À toi » (Elisa, 26 octobre, 14 h 59) : la page garde son propre moteur et passe par moments.js (momentPlan, momentIX). */
+  assert.ok(/duree:'2 min 07',moments:3,\n/.test(where) && !/seuil:/.test(where), 'trois moments, qui ne bloquent pas (l’exercice et le quiz valident la leçon)');
+  const page = fs.readFileSync(path.join(ROOT, 'assets/anim/where.html'), 'utf8');
+  assert.ok(page.includes('<script src="gsap.min.js"></script>\n<script src="moments.js"></script>') && page.includes('  build();\n  applyMoments();'), 'moments.js, puis les moments insérés une fois la timeline construite');
+  const M = momentsDe('where.html');
+  assert.deepEqual(M.map(x => [x.at, x.kind]), [[22.95, 'pick'], [31.15, 'tap'], [64.95, 'pick']]);
+  assert.deepEqual(M[1].spots.filter(z => z.ok).map(z => z.label), ['Ligne 4 : Nathan Petit, Paris', 'Ligne 7 : Léa Simon, Paris', 'Ligne 10 : Nathan Dupont, Paris'], 'les clients parisiens, après Sophie Martin (déjà vérifiée)');
+  for (const x of M.filter(x => x.kind === 'pick')) assert.equal(x.options.filter(o => o.ok).length, 1);
   assert.ok(html.includes("'exoNeeds','video']"), 'guide() garde le champ video sur la leçon');
 });
 
@@ -174,7 +182,8 @@ test('page de l’animation : ressources locales, mode intégré, chapitres et l
   assert.ok(!/https?:\/\//.test(page.replace(/https:\/\/gsap\.com/g, '')), 'rien de chargé depuis Internet');
   assert.ok(page.includes("const EMBED = new URLSearchParams(location.search).has('embed');"), 'mode intégré : la scène s’adapte à la fenêtre');
   assert.ok(page.includes('const QUESTIONS = [];') && !page.includes("ctx: 'Lucas habite à Lyon.'"), 'pas de question en pleine vidéo');
-  assert.ok(page.includes('chapters: CHAPTERS.map(') && page.includes('captions: CAPTIONS.map(') && page.includes('questions: QUESTIONS.map('));
+  /* Chapitres et légendes : ceux de la vidéo avec ses moments « À toi » (MP : le plan de moments.js), la bulle « À toi ! » comprise. */
+  assert.ok(page.includes('chapters: MP.chapters.map(') && page.includes('captions: MP.captions.map(') && page.includes('questions: QUESTIONS.map(') && page.includes('picks: MP.picks.map('));
   assert.ok(page.includes('const sr = $(\'#stage\').getBoundingClientRect(), k = sr.width / 1080 || 1;'), 'mesures justes quand la scène est réduite');
   assert.ok(page.includes('<div class="inv-from">NutriBoost · équipe marketing</div>') && page.includes('Avec <span class="ic">WHERE</span>, garde seulement'));
   assert.ok(page.includes('gsap.config({force3D: false});'), 'transformations en 2D : pas de calque GPU, texte net à la taille réduite');

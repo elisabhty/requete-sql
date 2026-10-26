@@ -172,7 +172,7 @@ export function momentsDe(file) {
   const js = scripts[scripts.length - 1] || '', m = js.indexOf('const MOMENTS = ');
   if (m < 0) return [];
   const b = js.indexOf('\nfunction ', m);
-  const ctx = vm.createContext({APP: true});
+  const ctx = vm.createContext({APP: true, location: {search: '?app'}, URLSearchParams});   // where.html lit lui-même ?app
   vm.runInContext(js.slice(0, b > 0 ? b : undefined) + ';this.M = MOMENTS;', ctx);
   return JSON.parse(JSON.stringify(ctx.M));
 }

@@ -122,9 +122,10 @@ function withMoments(cfg){
   return out;
 }
 
-/* Une zone touchée : entourée de vert si c’est la bonne, rouge un instant sinon (les cadres restent dans la zone, rien ne bouge). */
+/* Une zone touchée : entourée de vert si c’est la bonne, rouge un instant sinon (les cadres restent dans la zone, rien ne bouge).
+   Pendant un moment, la légende se cache (le lecteur pose lv-pk-open sur body) : la règle de core.css, redite pour where.html, qui a son propre style. */
 (() => {
   const s = document.createElement('style');
-  s.textContent = '.pk-on{outline:6px solid #16A34A;outline-offset:-6px}.pk-ko{outline:6px solid #EF4F55;outline-offset:-6px}';
+  s.textContent = '.pk-on{outline:6px solid #16A34A;outline-offset:-6px}.pk-ko{outline:6px solid #EF4F55;outline-offset:-6px}body.lv-pk-open #cap{visibility:hidden!important}';
   document.head.append(s);
 })();
