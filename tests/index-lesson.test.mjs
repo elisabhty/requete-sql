@@ -208,7 +208,7 @@ test('la base : douze tables, et la table commandes de 500 000 lignes, année ap
   /* L’extrait de la table : les deux plus anciennes, puis les trois plus récentes autour de la commande scannée */
   const extrait = val('EXTRAIT');
   for (const [id, nb, d, s] of extrait) assert.deepEqual(DB.exec(`SELECT id, numero_commande, date_commande, statut FROM commandes WHERE id = ${id}`)[0].values[0], [id, nb, d, s]);
-  assert.ok(page.includes('⋮ ${fmtN(500000 - EXTRAIT.length)} autres commandes'), 'les autres lignes sont annoncées : 499 995');
+  assert.ok(page.includes('… ${fmtN(500000 - EXTRAIT.length)} autres commandes'), 'les autres lignes sont annoncées : 499 995');
   /* La commande scannée : NB-10482, celle de Léa Simon */
   const scan = val('SCAN');
   assert.deepEqual(DB.exec(`SELECT c.id, c.numero_commande, c.client_id, cl.prenom || ' ' || cl.nom, c.date_commande, c.statut FROM commandes c JOIN clients cl ON cl.id = c.client_id WHERE c.numero_commande = 'NB-10482'`)[0].values,
