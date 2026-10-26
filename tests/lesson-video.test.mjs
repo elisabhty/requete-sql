@@ -1152,8 +1152,8 @@ const COURSES = [
       "{at: atp('p4'), from: A.d1, kind: 'tap', need: 1,", "{at: atp('p5'), from: A.e1, kind: 'sort',", "{label: 'Non : chaque index a un coût', ok: true,",
       "['CREATE INDEX {inm|idx_commandes_numero}']", 'Prochaine leçon · Sécurité et droits']},
   /* Le dernier chapitre du projet, et le dernier cours de l’app : pas de leçon suivante (next: null). */
-  {id: 50, next: null, titre: 'Sécurité et droits', page: 'projet-droits.html', thumb: 'projet-droits-thumb.webp', duree: '6 min 48', notesAt: 295.43, maxKo: 520,
-    notes: /notes:\{t:376\.98,until:384\.18,y:1173,card:\[64,292,1016,878\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 50, next: null, titre: 'Sécurité et droits', page: 'projet-droits.html', thumb: 'projet-droits-thumb.webp', duree: '6 min 39', notesAt: 286.08, maxKo: 520,
+    notes: /notes:\{t:367\.63,until:374\.83,y:1173,card:\[64,292,1016,878\],to:\[940,255\]\}/, table: 'commandes',
     bubble: 'Un accès trop large&nbsp;:<br>à toi de donner<br>les bons accès !',
     chapters: ['Un accès trop large', 'Les accès nécessaires', 'Ce qu’elle peut consulter', 'Autoriser la consultation', 'Une modification précise', 'Les limites de son accès', 'Retirer les accès',
       'Le dernier réflexe', 'Merci pour tout', 'À retenir', 'Le chemin parcouru'],
