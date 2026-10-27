@@ -253,6 +253,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 166.0;
@@ -321,6 +322,28 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // la requête refusée : avant que la vidéo ne donne un alias à chaque copie
+  {at: 61.62, from: 51.0, kind: 'pick', prompt: 'Comment distinguer les deux copies de la <b>table commandes</b> ?', options: [
+    {label: 'FROM commandes AS c1 JOIN commandes AS c2', ok: true, why: 'Chaque copie reçoit un alias avec <code>AS</code> : c1 et c2 se distinguent.'},
+    {label: 'FROM commandes JOIN commandes', why: 'Sans alias, <code>commandes.id</code> peut désigner l’une ou l’autre copie : la requête est refusée.'},
+    {label: 'FROM commandes1 JOIN commandes2', why: 'Les tables commandes1 et commandes2 n’existent pas : on donne un alias à la même table.'}],
+    tip: 'Un nom différent pour chaque copie, comme avec AS pour une colonne.'},
+  // 15 commandes associées à elles-mêmes : avant que la vidéo ne les écarte
+  {at: 104.35, from: 94.05, kind: 'pick', prompt: 'Quelle condition écarte une commande associée à elle-même ?', options: [
+    {label: 'AND c1.id <> c2.id', ok: true, why: 'Deux identifiants différents : une commande n’est plus associée à elle-même.'},
+    {label: 'AND c1.client_id <> c2.client_id', why: 'On cherche le même client : des clients différents écarteraient toutes les paires.'},
+    {label: 'AND c1.date_commande <> c2.date_commande', why: 'On cherche le même jour : des dates différentes écarteraient toutes les paires.'}],
+    tip: 'Une commande associée à elle-même a le même identifiant des deux côtés.'},
+  // chaque paire deux fois : avant que la vidéo ne remplace <> par <
+  {at: 123.55, from: 114.35, kind: 'pick', prompt: 'Comment ne garder qu’une ligne par paire ?', options: [
+    {label: 'AND c1.id < c2.id', ok: true, why: 'Seul le sens où c1.id est le plus petit reste : une ligne par paire.'},
+    {label: 'AND c1.id = c2.id', why: 'Avec <code>=</code>, on retrouverait les commandes associées à elles-mêmes.'},
+    {label: 'SELECT DISTINCT c1.id', why: 'Les lignes 1-2 et 2-1 ne sont pas identiques : <code>DISTINCT</code> les garde toutes les deux.'}],
+    tip: 'Dans une paire, une commande a toujours le plus petit identifiant.'}
+];
 
 function dom(){
   const nul = '<span class="nul">NULL</span>';
@@ -633,7 +656,7 @@ function build(){
   if (APP) cue(158.45, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 158.4,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 158.4, moments: MOMENTS,
   glyphs: '📦🧾👤📅🧪🎯🪞🔎🏷️☝️✓✕?·…⋯', dom, build});
 </script>
 </body>

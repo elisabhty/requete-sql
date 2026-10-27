@@ -250,6 +250,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 128.5;
@@ -304,6 +305,30 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // INNER JOIN posé, sans condition : avant que la vidéo n’écrive ON
+  {at: 48.75, from: 43.95, kind: 'pick', prompt: 'Que faut-il ajouter pour relier chaque commande à son client ?', options: [
+    {label: 'ON commandes.client_id = clients.id', ok: true, why: '<code>ON</code> relie chaque commande au client dont l’identifiant vaut son <code>client_id</code>.'},
+    {label: 'ON commandes.id = clients.id', why: '<code>commandes.id</code> est l’identifiant de la commande : c’est <code>client_id</code> qui renvoie au client.'},
+    {label: 'ON client_id', why: 'Il manque l’autre côté : <code>client_id</code> doit être égal à <code>clients.id</code>.'}],
+    tip: 'La colonne <code>client_id</code> renvoie à l’identifiant d’un client.'},
+  // les quatre traits posés : avant que la vidéo ne montre ce qui reste sans correspondance
+  {at: 65.05, from: 53.0, kind: 'tap', need: 3, prompt: 'Touche les lignes qui n’ont aucune correspondance dans l’autre table.',
+    spots: PREP.map(([id, c], i) => ({k: 'c' + id, sel: `.mt.cm > :nth-child(${i + 3})`, label: `Commande n°${id}`, ok: c === null,
+      why: c === null ? '' : `La commande n°${id} est reliée à ${PRENOM[c]} ${NOM[c]} : son client_id vaut ${c}.`}))
+      .concat(CLIENTS.map(([id, p, n], k) => { const cmd = PREP.find(x => x[1] === id);
+        return {k: 'k' + id, sel: `.mt.cl > :nth-child(${k + 3})`, label: `${p} ${n}`, ok: !cmd,
+          why: cmd ? `${p} ${n} a une commande en préparation : la n°${cmd[0]}.` : ''}; })),
+    tip: 'Cherche les lignes qu’aucun trait ne relie à l’autre table.'},
+  // la requête refusée : avant que la vidéo ne précise la table
+  {at: 94.25, from: 85.45, kind: 'pick', prompt: 'Comment afficher l’identifiant de la commande, sans ambiguïté ?', options: [
+    {label: 'commandes.id', ok: true, why: 'Le nom de la table, puis un point : <code>commandes.id</code> est l’identifiant de la commande.'},
+    {label: 'clients.id', why: '<code>clients.id</code> est l’identifiant du client, pas celui de la commande.'},
+    {label: 'id', why: 'Seul, <code>id</code> reste ambigu : la colonne existe dans les deux tables.'}],
+    tip: 'On écrit le nom de la table devant la colonne, avec un point.'}
+];
 
 function dom(){
   /* Chapitre 1 : les commandes à étiqueter */
@@ -569,7 +594,7 @@ function build(){
   if (APP) cue(120.95, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 120.9,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 120.9, moments: MOMENTS,
   glyphs: '📦👤🏠🔎🔗🤝⚠️✕✓?!…·=', dom, build});
 </script>
 </body>

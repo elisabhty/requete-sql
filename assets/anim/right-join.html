@@ -276,6 +276,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 190.7;
@@ -344,6 +345,30 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // RIGHT JOIN écrit : avant que la vidéo ne désigne la table de droite
+  {at: 75.35, from: 66.25, kind: 'pick', text: true, prompt: 'Avec <code>FROM clients RIGHT JOIN commandes</code>, quelle table garde toutes ses lignes ?', options: [
+    {label: 'La table commandes', ok: true, why: 'Elle est écrite après <code>RIGHT JOIN</code> : c’est la table de droite, gardée en entier.'},
+    {label: 'La table clients', why: 'Elle est écrite avant <code>RIGHT JOIN</code> : seuls les clients reliés à une commande restent.'},
+    {label: 'Les deux tables', why: '<code>RIGHT JOIN</code> ne garde en entier que la table de droite : la <b>table commandes</b>.'}],
+    tip: '« Right », c’est la droite : la table écrite après la jointure.'},
+  // deux clients sans commande : avant que la vidéo ne dise s’ils restent
+  {at: 101.75, from: 86.0, kind: 'pick', text: true, prompt: 'Inès Lefebvre et Nathan Dupont n’ont passé aucune commande. Apparaissent-ils dans le résultat ?', options: [
+    {label: 'Non : aucune commande ne leur correspond', ok: true, why: '<code>RIGHT JOIN</code> garde toutes les commandes, mais seulement les clients qui leur correspondent.'},
+    {label: 'Oui, avec NULL à la place de la commande', why: 'Ce serait le cas avec la <b>table clients</b> à droite. Ici, c’est la <b>table commandes</b> qui est gardée en entier.'},
+    {label: 'Oui, une fois chacun', why: 'Un client n’apparaît qu’à travers ses commandes : sans commande, il n’est pas dans le résultat.'}],
+    tip: 'Le résultat part des commandes : un client sans commande n’a aucune ligne.'},
+  // les tables inversées : avant que la vidéo n’exécute la requête
+  {at: 134.42, from: 123.8, kind: 'pick', text: true, prompt: 'Avec les tables inversées, que devient la commande n°16, sans client ?',
+    board: {y: 470, html: '<span class="mb-k">Les tables inversées</span><div class="mb-q" style="font-size:34px"><span class="k">SELECT</span> commandes.id, clients.prenom,\n       clients.nom\n<span class="k">FROM</span> commandes\n<span class="k">RIGHT JOIN</span> clients\n  <span class="k">ON</span> clients.id = commandes.client_id;</div>'},
+    options: [
+    {label: 'Elle disparaît du résultat', ok: true, why: 'La table de droite est maintenant la <b>table clients</b> : seules les commandes reliées à un client restent.'},
+    {label: 'Elle reste, avec NULL', why: 'Elle restait quand la <b>table commandes</b> était à droite. Ici, c’est la <b>table clients</b> qui garde toutes ses lignes.'},
+    {label: 'Elle apparaît deux fois', why: 'Une commande sans client n’a aucune correspondance : elle n’apparaît pas du tout.'}],
+    tip: '<code>RIGHT JOIN</code> garde toutes les lignes de la table écrite après lui.'}
+];
 
 function dom(){
   /* Chapitre 1 : les 16 commandes à exporter, le client encore inconnu */
@@ -647,7 +672,7 @@ function build(){
   if (APP) cue(183.15, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 183.1,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 183.1, moments: MOMENTS,
   glyphs: '🧾👤👪🔎🎯➡️⚠️🔗✓✕?!·…⋯', dom, build});
 </script>
 </body>

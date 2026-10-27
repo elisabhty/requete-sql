@@ -291,6 +291,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 182.5;
@@ -359,6 +360,28 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // le ON ne suffit plus : avant que la vidéo n’ajoute AND
+  {at: 52.02, from: 43.1, kind: 'pick', prompt: 'Que faut-il ajouter au ON pour ne relier que les clients parisiens ?', options: [
+    {label: 'AND clients.ville = \'Paris\'', ok: true, why: '<code>AND</code> ajoute une condition : les deux doivent être vraies pour relier deux lignes.'},
+    {label: 'OR clients.ville = \'Paris\'', why: 'Avec <code>OR</code>, une seule condition vraie suffirait : des commandes seraient reliées à des clients qui ne sont pas les leurs.'},
+    {label: ', clients.ville = \'Paris\'', why: 'Les conditions ne se séparent pas par une virgule : on les relie avec <code>AND</code>.'}],
+    tip: 'Les deux conditions doivent être vraies à la fois.'},
+  // la commande n°14 et Emma Dubois : avant que la vidéo ne dise si elles sont reliées
+  {at: 103.45, from: 98.2, kind: 'pick', text: true, prompt: 'La commande n°14 est-elle reliée à Emma Dubois ?', options: [
+    {label: 'Non : la deuxième condition est fausse', ok: true, why: 'C’est bien sa cliente, mais elle habite à Marseille : avec <code>AND</code>, une condition fausse suffit à l’écarter.'},
+    {label: 'Oui : c’est bien sa cliente', why: 'La première condition est vraie, mais pas la deuxième : avec <code>AND</code>, il faut les deux.'},
+    {label: 'Oui, avec NULL pour la ville', why: '<code>INNER JOIN</code> ne garde que les paires qui respectent tout le ON : ici, aucune ligne.'}],
+    tip: 'Avec AND, une seule condition fausse suffit à écarter la paire.'},
+  // trois conditions, 2 lignes : avant le piège du OR
+  {at: 130.75, from: 117.8, kind: 'pick', text: true, prompt: 'Et avec OR à la place des AND, que devient le résultat ?', options: [
+    {label: 'Bien plus de lignes, la plupart sans aucun sens', ok: true, why: 'Avec <code>OR</code>, une seule condition vraie suffit : une commande se relie à tous les clients parisiens.'},
+    {label: 'Les mêmes 2 lignes', why: '<code>OR</code> n’exige plus que toutes les conditions soient vraies : bien plus de paires passent.'},
+    {label: 'Aucune ligne', why: 'C’est l’inverse : avec <code>OR</code>, il suffit d’une condition vraie, et beaucoup de paires passent.'}],
+    tip: 'Avec OR, une seule condition vraie suffit.'}
+];
 
 function dom(){
   /* Chapitre 2 : la jointure avec une seule condition, 15 lignes (les 3 premières, puis les 3 dernières) */
@@ -689,7 +712,7 @@ function build(){
   if (APP) cue(177.65, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 177.6,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 177.6, moments: MOMENTS,
   glyphs: '🛵🏬📍📦🧾👤👪🔎🎯⚠️🔗➕✅👉✓✕?!·…⋯', dom, build});
 </script>
 </body>
