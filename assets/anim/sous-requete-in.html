@@ -256,6 +256,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 218.4;
@@ -326,6 +327,35 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // la sous-requête posée : avant que la vidéo ne l’exécute seule
+  {at: 74.25, from: 63.05, kind: 'pick', text: true, prompt: 'Exécutée seule, que renvoie la sous-requête ?',
+    board: {y: 470, html: '<span class="mb-k">La sous-requête</span><div class="mb-q"><span class="k">SELECT</span> client_id\n<span class="k">FROM</span> commandes\n<span class="k">WHERE</span> statut = <span class="s">\'en_preparation\'</span></div>'},
+    options: [
+    {label: 'Les identifiants des clients concernés', ok: true, why: 'Elle sélectionne <code>client_id</code> dans la <b>table commandes</b> : une liste d’identifiants de clients.'},
+    {label: 'Le prénom et le nom des clients', why: 'Le prénom et le nom sont dans la <b>table clients</b> : la sous-requête ne lit que la <b>table commandes</b>.'},
+    {label: 'Les commandes en préparation, en entier', why: 'Son <code>SELECT</code> ne garde qu’une colonne, <code>client_id</code> : pas les commandes en entier.'}],
+    tip: 'Regarde la colonne écrite après <code>SELECT</code>.'},
+  // IN va tester chaque client : avant que la vidéo ne les passe en revue
+  {at: 110.05, from: 103.75, kind: 'sort', text: true, prompt: 'La liste vaut 4, 1, 3, 5 et NULL. Range chaque client : gardé ou écarté ?',
+    hint: 'Touche un client, puis sa case. Tu peux aussi le faire glisser.', next: '« {x} » : gardé ou écarté ?',
+    board: {y: 470, html: '<span class="mb-k">id IN (4, 1, 3, 5, NULL)</span><div class="mb-cols" style="gap:28px"><div class="mb-col"><div class="mb-bin" id="mbG"><b>Gardé</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin" id="mbE"><b>Écarté</b><div class="mb-drop"></div></div></div></div>'},
+    spots: [{k: 'G', sel: '#mbG', label: 'Gardé'}, {k: 'E', sel: '#mbE', label: 'Écarté'}],
+    options: [
+      {label: 'Sophie Martin, id 1', to: 'G', why: 'Son identifiant, 1, figure dans la liste : sa ligne est gardée.'},
+      {label: 'Lucas Bernard, id 2', to: 'E', why: 'Son identifiant, 2, ne figure pas dans la liste : sa ligne est écartée.'},
+      {label: 'Nathan Petit, id 4', to: 'G', why: 'Son identifiant, 4, figure dans la liste : sa ligne est gardée.'},
+      {label: 'Hugo Laurent, id 6', to: 'E', why: 'Son identifiant, 6, ne figure pas dans la liste : sa ligne est écartée.'}],
+    tip: 'Un client est gardé si son identifiant figure dans la liste.'},
+  // = au lieu de IN : avant que la vidéo n’exécute la requête
+  {at: 151.52, from: 146.3, kind: 'pick', text: true, prompt: 'Avec <code>=</code> au lieu de <code>IN</code> devant la sous-requête, que se passe-t-il ?', options: [
+    {label: 'Une seule ligne, sans erreur', ok: true, why: '<code>=</code> attend une seule valeur : seule la première de la liste, 4, est comparée. Une ligne : Nathan Petit.'},
+    {label: 'Les 4 mêmes clients', why: 'Pour plusieurs valeurs, il faut <code>IN</code> : avec <code>=</code>, seule la première compte.'},
+    {label: 'Une erreur SQL', why: 'La requête s’exécute sans erreur : c’est le résultat qui est incomplet.'}],
+    tip: '<code>=</code> compare à une seule valeur.'}
+];
 
 function dom(){
   const nul = '<span class="nul">NULL</span>';
@@ -594,7 +624,7 @@ function build(){
   if (APP) cue(213.55, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 213.5,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 213.5, moments: MOMENTS,
   glyphs: '🚚📞📦👤👪🔎✕✓🗂️🎯🧺👥⚠️☝️📋🧱·?…', dom, build});
 </script>
 </body>

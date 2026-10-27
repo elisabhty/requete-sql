@@ -257,6 +257,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 209.2;
@@ -327,6 +328,36 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // EXISTS expliqué : avant que la vidéo ne teste les clients un par un
+  {at: 71.45, from: 62.65, kind: 'sort', text: true, prompt: 'Pour chaque client, EXISTS est-il vrai ou faux ?',
+    hint: 'Touche un client, puis sa case. Tu peux aussi le faire glisser.', next: '« {x} » : vrai ou faux ?',
+    board: {y: 470, html: '<span class="mb-k">Fibre Prébiotique : commandes des clients 1, 4, 5 et 7</span><div class="mb-cols" style="gap:28px"><div class="mb-col"><div class="mb-bin" id="mbV"><b>EXISTS vrai</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin" id="mbF"><b>EXISTS faux</b><div class="mb-drop"></div></div></div></div>'},
+    spots: [{k: 'V', sel: '#mbV', label: 'EXISTS vrai'}, {k: 'F', sel: '#mbF', label: 'EXISTS faux'}],
+    options: [
+      {label: 'Nathan Petit, id 4', to: 'V', why: 'Une commande de Fibre Prébiotique porte son identifiant, 4 : EXISTS est vrai.'},
+      {label: 'Lucas Bernard, id 2', to: 'F', why: 'Aucune commande de Fibre Prébiotique ne porte l’identifiant 2 : EXISTS est faux.'},
+      {label: 'Sophie Martin, id 1', to: 'V', why: 'Une commande de Fibre Prébiotique porte son identifiant, 1 : EXISTS est vrai.'},
+      {label: 'Hugo Laurent, id 6', to: 'F', why: 'Aucune commande de Fibre Prébiotique ne porte l’identifiant 6 : EXISTS est faux.'}],
+    tip: 'EXISTS est vrai si au moins une commande porte l’identifiant du client.'},
+  // l’identifiant écrit en dur : avant que la vidéo ne le remplace
+  {at: 102.2, from: 93.4, kind: 'pick', slot: '#mbX', prompt: 'Pour suivre chaque client, par quoi remplacer l’identifiant écrit en dur ?',
+    hint: 'Touche une réponse, ou fais-la glisser dans le « ? ».',
+    board: {y: 470, html: '<span class="mb-k">La recherche, client par client</span><div class="mb-q" style="font-size:32px"><span class="k">SELECT</span> prenom, nom\n<span class="k">FROM</span> clients\n<span class="k">WHERE EXISTS</span> (\n  <span class="k">SELECT</span> 1 <span class="k">FROM</span> commandes\n  <span class="k">WHERE</span> commandes.client_id = <span class="mb-hole" id="mbX">?</span>\n    <span class="k">AND</span> commandes.produit_id = 1\n);</div>'},
+    options: [
+    {label: 'clients.id', ok: true, why: '<code>clients.id</code> désigne le client de la ligne en cours : la recherche suit chaque client.'},
+    {label: 'commandes.id', why: '<code>commandes.id</code> est l’identifiant de la commande, pas celui du client.'},
+    {label: '4', why: 'Avec 4, on vérifierait toujours Nathan Petit, quel que soit le client de la ligne.'}],
+    tip: 'Il faut l’identifiant du client de la ligne en cours.'},
+  // le piège : sans le lien avec le client
+  {at: 137.5, from: 128.8, kind: 'pick', text: true, prompt: 'Sans <code>commandes.client_id = clients.id</code>, pour combien de clients EXISTS est-il vrai ?', options: [
+    {label: 'Les 10 clients', ok: true, why: 'Sans la condition sur le client, la sous-requête trouve toujours une commande de Fibre Prébiotique : vrai pour tous.'},
+    {label: 'Les 4 mêmes clients', why: 'Plus rien ne vérifie que la commande appartient au client : tous les clients passent.'},
+    {label: 'Aucun', why: 'Des commandes de Fibre Prébiotique existent : sans la condition sur le client, EXISTS est vrai pour tous.'}],
+    tip: 'Sans cette condition, la recherche ne dépend plus du client.'}
+];
 
 function dom(){
   /* Chapitre 2 : les quatre commandes de Fibre Prébiotique */
@@ -604,7 +635,7 @@ function build(){
   if (APP) cue(204.35, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 204.3,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 204.3, moments: MOMENTS,
   glyphs: '🍋📣🛒👤👪🗂️✕❓🔍✓🔗👥⚠️🔎🔄→·?…', dom, build});
 </script>
 </body>

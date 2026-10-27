@@ -220,6 +220,7 @@ function withMoments(cfg){
     /* Un calendrier (des jours à toucher) et une référence découpée en caractères numérotés. */
     + '.mb-row{display:flex;justify-content:center;align-items:flex-end;gap:24px}.mb-grp{display:flex;flex-direction:column;align-items:center;gap:12px}.mb-grp>small{font:700 28px/1 Inter,sans-serif;color:#6B6790}.mb-grp>div{display:flex;gap:10px}'
     + '.mb-i.d{width:84px;min-height:112px;padding:0;font:800 40px/1 Inter,sans-serif}.mb-grp>div{gap:8px}.mb-i.from{background:#5335E0;color:#fff;box-shadow:none}'
+    + '.mb-lh{display:block;margin-bottom:4px;font:800 30px/1.2 "Bricolage Grotesque",Inter,sans-serif;color:#5335E0}.mb-t{display:block;padding:12px 18px;border-radius:16px;background:#F6F4FF;box-shadow:inset 0 0 0 3px #E6E1F6;font:600 30px/1.25 Inter,sans-serif}'
     + '.mb-chars{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 8px;max-width:856px;margin:0 auto}.mb-chars>span{display:flex;flex-direction:column;align-items:center;width:100px;padding:14px 0 10px;box-sizing:border-box;border-radius:18px;background:#F6F4FF;font:700 52px/1.1 "JetBrains Mono",JBM,monospace}'
     + '.mb-chars>span>small{margin-top:8px;font:700 28px/1 Inter,sans-serif;color:#8A86A8}.mb-chars>span.n{background:#EEE9FF;color:#5335E0}'
     + 'svg.mb-ln{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}svg.mb-ln line{stroke:#16A34A;stroke-width:8;stroke-linecap:round}';

@@ -252,6 +252,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 167.6;
@@ -317,6 +318,28 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // le cumul de la troisième commande : la suivante, avant que la vidéo ne déroule le cadre
+  {at: 69.35, from: 58.0, kind: 'pick', text: true, prompt: 'Le cumul vaut 114,60 € à la troisième commande. La quatrième vaut 119,70 € : quel cumul ?', options: [
+    {label: '234,30 €', ok: true, why: 'Le cadre réunit les lignes 1 à 4 : 114,60 + 119,70 = 234,30 €.'},
+    {label: '119,70 €', why: 'C’est le montant seul : le cumul ajoute aussi les commandes précédentes.'},
+    {label: '154,60 €', why: 'Le cadre part de la première ligne : il faut toutes les commandes, pas seulement la précédente.'}],
+    tip: 'Ajoute le montant de la quatrième commande au cumul précédent.'},
+  // la moyenne mobile : avant que la vidéo n’écrive son cadre
+  {at: 77.75, from: 69.4, kind: 'pick', prompt: 'Quel cadre réunit la commande actuelle et les deux précédentes ?', options: [
+    {label: 'ROWS BETWEEN 2 PRECEDING AND CURRENT ROW', ok: true, why: '<code>2 PRECEDING</code> : les deux lignes d’avant, jusqu’à la ligne actuelle. Trois commandes.'},
+    {label: 'ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW', why: 'Ce cadre part de la première ligne : c’est celui du cumul.'},
+    {label: 'ROWS BETWEEN 2 PRECEDING AND 2 FOLLOWING', why: '<code>FOLLOWING</code> prendrait aussi les deux lignes suivantes : cinq commandes.'}],
+    tip: '<code>PRECEDING</code> : les lignes d’avant ; <code>CURRENT ROW</code> : la ligne actuelle.'},
+  // le piège : ordonné seulement par date
+  {at: 103.5, from: 95.4, kind: 'pick', text: true, prompt: 'Ordonné seulement par date, sans cadre explicite, quel cumul reçoivent les deux commandes du 2 juillet ?', options: [
+    {label: 'Le même : 79,70 € chacune', ok: true, why: 'Sans cadre explicite, les lignes de même date sont prises ensemble : elles reçoivent le cumul des deux, 79,70 €.'},
+    {label: '59,80 €, puis 79,70 €', why: 'C’est ce qu’on obtient avec id et <code>ROWS BETWEEN</code> : chaque commande a son propre cumul.'},
+    {label: '19,90 €, puis 79,70 €', why: 'Sans cadre explicite, les deux commandes du même jour ne sont pas séparées : même cumul.'}],
+    tip: 'À date égale, rien ne sépare les deux commandes.'}
+];
 
 function dom(){
   /* Chapitre 2 : le résultat du WITH ; la colonne du cumul attend encore ses valeurs */
@@ -567,7 +590,7 @@ function build(){
   if (APP) cue(162.75, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 162.7,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 162.7, moments: MOMENTS,
   glyphs: '📈🧾🎯📅🔢🏷️💶🔎⚠️✕✓🪟💰📊·…→×÷€', dom, build});
 </script>
 </body>

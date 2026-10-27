@@ -245,6 +245,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 167.6;
@@ -328,6 +329,34 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // la numérotation ne repart pas : avant que la vidéo n’ajoute PARTITION BY
+  {at: 69.35, from: 52.3, kind: 'pick', prompt: 'Que faut-il ajouter dans OVER pour que la numérotation reparte de 1 pour chaque client ?', options: [
+    {label: 'PARTITION BY clients.id', ok: true, why: '<code>PARTITION BY</code> découpe les commandes client par client : la numérotation repart de 1.'},
+    {label: 'GROUP BY clients.id', why: '<code>GROUP BY</code> réduirait le résultat à une ligne par client : on perdrait les commandes.'},
+    {label: 'ORDER BY clients.id', why: 'Trier par client ne fait pas repartir la numérotation : elle continue de 1 à 15.'}],
+    tip: 'Le même découpage que pour <code>COUNT(*) OVER</code>.'},
+  // deux commandes le même jour : avant que la vidéo ne donne leurs numéros
+  {at: 109.85, from: 95.4, kind: 'pick', text: true, prompt: 'Avec <code>ROW_NUMBER()</code>, quels rangs reçoivent les deux commandes du 2 juillet ?', options: [
+    {label: '1 et 2', ok: true, why: '<code>ROW_NUMBER()</code> donne un rang différent à chaque ligne, même à date égale.'},
+    {label: '1 et 1', why: 'Une même place pour deux lignes ex æquo, c’est un autre calcul : <code>ROW_NUMBER()</code> ne répète jamais un rang.'},
+    {label: '2 et 2', why: 'Les rangs commencent à 1 et ne se répètent jamais : 1, puis 2.'}],
+    tip: '<code>ROW_NUMBER()</code> donne un rang à chaque ligne, une à une.'},
+  // les trois fonctions vues : relier chacune à sa numérotation
+  {at: 127.5, from: 116.2, kind: 'link', need: 3, prompt: 'Sophie Martin a deux commandes le 2 juillet, puis une le 28. Relie chaque fonction aux rangs qu’elle donne.',
+    hint: 'Touche une fonction, puis ses rangs. Tu peux aussi tracer le trait du doigt.',
+    board: {y: 470, html: '<span class="mb-k">2 juillet, 2 juillet, 28 juillet</span><div class="mb-cols" style="gap:120px"><div class="mb-col"><div class="mb-i c" id="mbfR">ROW_NUMBER()</div><div class="mb-i c" id="mbfK">RANK()</div><div class="mb-i c" id="mbfD">DENSE_RANK()</div></div><div class="mb-col" style="flex:0 0 260px"><div class="mb-i" id="mbn112">1, 1, 2</div><div class="mb-i" id="mbn123">1, 2, 3</div><div class="mb-i" id="mbn113">1, 1, 3</div></div></div>'},
+    spots: [
+      {k: 'R', sel: '#mbfR', label: 'ROW_NUMBER()', side: 'l', pair: 'n123', why: '<code>ROW_NUMBER()</code> ne répète jamais un rang : 1, 2, 3.'},
+      {k: 'K', sel: '#mbfK', label: 'RANK()', side: 'l', pair: 'n113', why: '<code>RANK()</code> donne la même place aux ex æquo, puis saute : 1, 1, 3.'},
+      {k: 'D', sel: '#mbfD', label: 'DENSE_RANK()', side: 'l', pair: 'n112', why: '<code>DENSE_RANK()</code> donne la même place aux ex æquo, sans sauter : 1, 1, 2.'},
+      {k: 'n112', sel: '#mbn112', label: '1, 1, 2', side: 'r'},
+      {k: 'n123', sel: '#mbn123', label: '1, 2, 3', side: 'r'},
+      {k: 'n113', sel: '#mbn113', label: '1, 1, 3', side: 'r'}],
+    tip: 'Une seule fonction ne répète jamais un rang ; une seule en saute un.'}
+];
 
 function dom(){
   /* Chapitre 2 : les commandes rangées par date, sans numéro */
@@ -573,7 +602,7 @@ function build(){
   if (APP) cue(162.75, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 162.7,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 162.7, moments: MOMENTS,
   glyphs: '🛍️👥🧾👤📦📅🔢🎯🔎⚠️✕✓🥇🗂️🌱🌾🛒·…→€æ', dom, build});
 </script>
 </body>
