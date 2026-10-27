@@ -8,12 +8,21 @@
    légende « À toi ! », comme toi() dans les chapitres du projet, puis l’arrêt (le passage d’attente est coupé, comme là-bas) ; tout
    ce qui vient après (légendes, chapitres, animations, sons, pauses, coupes, confettis, bouton « Ajouter à mes notes ») est décalé
    d’autant. L’image du moment est celle de `at` : rien ne doit y bouger (?check le vérifie), et la réponse n’y est pas encore.
-   Un moment : {at, from, kind: 'pick' | 'tap', prompt, …}
+   Un moment : {at, from, kind: 'pick' | 'tap' | 'sort' | 'link', prompt, …}
      pick : options [{label, ok, why}] (une seule bonne réponse ; why : la correction, pour chaque réponse) ; text : réponses en phrases ;
+            slot : le sélecteur d’un trou de la page (ou de la carte du moment), où l’étiquette se glisse aussi du doigt ;
      tap : spots [{k, sel, label, ok, why}] (les zones à toucher : un sélecteur de la page), need (bons gestes attendus),
            hint (la ligne d’aide sous la consigne), miss (la correction d’une zone fausse sans why) ;
+     sort : options [{label, to, why}] (chaque étiquette du plateau va dans la zone `to` ; why : la correction si elle est mal rangée),
+            spots [{k, sel, label}] (les zones où ranger), next (aide une fois une étiquette choisie, {x} : l’étiquette) ;
+     link : spots [{k, sel, label, side: 'l' | 'r', pair, why}] (relier chaque élément de gauche à sa paire de droite ; why : la
+            correction d’un mauvais lien partant de lui), need (liens attendus) ;
+     board : {y, h, html, veil} (facultatif) : une carte posée sur l’image le temps du moment (relier, ranger, compléter une requête) :
+            ses éléments servent de zones ; elle n’existe que pendant le moment, jamais dans la vidéo ; un voile la sépare de la scène
+            (veil: false pour garder la scène visible autour) ;
      tip : l’indice après deux erreurs (tipKeys : les zones qu’il fait ressortir) ; from : début du passage qui amène le moment
-     (« ↺ Revoir »), en temps de la timeline d’origine. */
+     (« ↺ Revoir »), en temps de la timeline d’origine.
+   Elisa, 27 octobre, 13 h 48 : « tu peux faire tout ce que tu veux comme moment : lignes à relier, toucher, dessins, question, puzzle ». */
 const MOMENT_GAP = 2.65;   // 0,1 s d’écart + la légende « À toi ! » (2,55 s), comme toi() dans les chapitres du projet
 
 /* Le plan : où tombent les moments une fois les passages insérés, et ce que deviennent les temps de la page. Fonction pure (testée). */
@@ -48,17 +57,78 @@ function momentPlan(moments, captions, chapters, duration, notesAt){
    de vert (elle le reste jusqu’à la reprise), une fausse rougit un instant ; un choix renvoie sa correction. */
 function momentIX(P){
   let X = null, wait = -1;
-  const clear = () => { if (!X) return; X.tm.forEach(clearTimeout); X.cls.forEach(([e, c]) => e.classList.remove(c)); X = null; wait = -1; };
-  const start = i => { if (!X || X.i !== i) { clear(); X = {i, cls: [], tm: [], got: new Set()}; } };
+  /* La carte du moment (board) : posée dans la scène à l’ouverture du moment, retirée avec lui. */
+  const clear = () => { if (!X) return; X.tm.forEach(clearTimeout); X.cls.forEach(([e, c]) => e.classList.remove(c)); X.add.forEach(e => e.remove()); X = null; wait = -1; };
+  const start = i => {
+    if (X && X.i === i) return;
+    clear(); X = {i, cls: [], tm: [], add: [], got: new Set()};
+    const b = P[i].board;
+    if (b) {
+      const d = document.createElement('div');
+      d.className = 'mb'; d.style.top = (b.y || 640) + 'px'; if (b.h) d.style.minHeight = b.h + 'px';
+      d.innerHTML = fr(b.html || '');
+      const st = $('#stage');
+      /* Un voile sous la carte : la scène de la vidéo, à moitié recouverte, dépassait autour d’elle (lignes de tableau, bout de requête). */
+      if (st && b.veil !== false) { const v = document.createElement('div'); v.className = 'mb-veil'; st.append(v); X.add.push(v); }
+      if (st) { st.append(d); X.add.push(d); if (typeof frDom === 'function') try { frDom(d); } catch (e) {} }
+    }
+  };
   const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
   const flash = (e, c, ms = 650) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
   const spot = (i, k) => (P[i].spots || []).find(s => String(s.k) === String(k));
+  /* Rectangle d’un élément de la carte, sans son entrée animée (qui le décale et le réduit un instant) : mesuré pendant l’entrée,
+     la zone à toucher tombait à côté de la case. */
+  const lay = (el, ref) => {
+    const host = ref || $('#stage');
+    if (el && host && el.closest('.mb')) { let x = 0, y = 0, e = el; while (e && e !== host) { x += e.offsetLeft; y += e.offsetTop; e = e.offsetParent; }
+      if (e === host) return {x, y, w: el.offsetWidth, h: el.offsetHeight}; }
+    return rel(el, ref);
+  };
+  /* Un lien réussi : un trait entre les deux éléments, sur la carte du moment (ou sur la scène). */
+  const line = (a, b) => {
+    const host = (a && a.closest('.mb')) || $('#stage'); if (!a || !b || !host) return;
+    const r = lay(a, host), q = lay(b, host);
+    let svg = host.querySelector(':scope > svg.mb-ln');
+    if (!svg) { svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('class', 'mb-ln'); host.append(svg); X.add.push(svg); }
+    const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    l.setAttribute('x1', r.x + r.w); l.setAttribute('y1', r.y + r.h / 2); l.setAttribute('x2', q.x); l.setAttribute('y2', q.y + q.h / 2);
+    svg.append(l);
+  };
   return {
     enter: i => { clear(); start(i); },
-    spots: i => (P[i].spots || []).map(s => Object.assign({k: String(s.k), label: s.label || String(s.k)}, rel($(s.sel)))),
-    act(i, k){
+    spots: i => { start(i); return (P[i].spots || []).map(s => Object.assign({k: String(s.k), label: s.label || String(s.k), side: s.side || undefined}, lay($(s.sel)))); },
+    act(i, k, k2){
       start(i);
-      const s = spot(i, k), p = P[i];
+      const p = P[i];
+      if (p.kind === 'sort') {
+        const o = (p.options || [])[+k], z = spot(i, k2), el = z && $(z.sel);
+        if (!o || !z) return {ok: false};
+        if (String(o.to) === String(z.k)) {
+          if (!X.got.has(+k)) {
+            X.got.add(+k);
+            const c = document.createElement('span'); c.className = 'mb-chip' + (p.text ? '' : ' c'); c.textContent = o.label;
+            const box = el && (el.querySelector('.mb-drop') || el); if (box) { box.append(c); X.add.push(c); }
+            mark(el, 'pk-on'); sfx('tick', X.got.size + 1, 0.6);
+          }
+          return {ok: true, done: X.got.size >= p.options.length, why: '', at: rel(el)};
+        }
+        flash(el, 'pk-ko');
+        const why = o.why || p.miss;
+        return {ok: false, why: why ? fr(why) : ''};
+      }
+      if (p.kind === 'link') {
+        const a = spot(i, k), b = spot(i, k2);
+        if (!a || !b) return {ok: false};
+        const ok = String(a.pair) === String(b.k) || String(b.pair) === String(a.k);
+        if (ok) {
+          if (!X.got.has(a.k)) { X.got.add(a.k); mark($(a.sel), 'pk-on'); mark($(b.sel), 'pk-on'); line($(a.sel), $(b.sel)); sfx('tick', X.got.size + 1, 0.6); }
+          return {ok: true, done: X.got.size >= (p.need || 1), why: '', at: rel($(b.sel))};
+        }
+        flash($(a.sel), 'pk-ko'); flash($(b.sel), 'pk-ko');
+        const why = a.why || b.why || p.miss;
+        return {ok: false, why: why ? fr(why) : ''};
+      }
+      const s = spot(i, k);
       if (!s) return {ok: false};
       if (s.ok) {
         if (!X.got.has(s.k)) { X.got.add(s.k); mark($(s.sel), 'pk-on'); sfx('tick', X.got.size + 1, 0.6); }
@@ -71,11 +141,13 @@ function momentIX(P){
     pick(i, k){
       clear(); start(i);
       const o = P[i].options[k], ok = !!o.ok;
+      /* Une réponse glissée dans le trou d’une requête : elle s’y écrit. */
+      if (P[i].slot) { const sl = $(P[i].slot); if (sl) { const was = sl.innerHTML; sl.textContent = o.label; mark(sl, ok ? 'mb-fill' : 'mb-bad'); X.tm.push(setTimeout(() => { if (!ok) sl.innerHTML = was; }, 900)); } }
       sfx(ok ? 'pop' : 'miss', 2, 0.5);
       return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));
     },
     hint(i){ const p = P[i]; return p.tip ? {text: fr(p.tip), keys: (p.tipKeys || []).map(String)} : null; },
-    slot: () => null,
+    slot: i => { start(i); const sl = P[i].slot && $(P[i].slot); return sl ? lay(sl) : null; },
     leave(i, answered){ if (answered && X && X.i === i) wait = i; else clear(); },
     tick(t){ if (wait < 0) return; const a = P[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear(); }
   };
@@ -126,6 +198,22 @@ function withMoments(cfg){
    Pendant un moment, la légende se cache (le lecteur pose lv-pk-open sur body) : la règle de core.css, redite pour where.html, qui a son propre style. */
 (() => {
   const s = document.createElement('style');
-  s.textContent = '.pk-on{outline:6px solid #16A34A;outline-offset:-6px}.pk-ko{outline:6px solid #EF4F55;outline-offset:-6px}body.lv-pk-open #cap{visibility:hidden!important}';
+  s.textContent = '.pk-on{outline:6px solid #16A34A;outline-offset:-6px}.pk-ko{outline:6px solid #EF4F55;outline-offset:-6px}body.lv-pk-open #cap{visibility:hidden!important}'
+    /* La carte d’un moment (relier, ranger, compléter une requête) : une carte blanche, comme celles des scènes. */
+    + '.mb{position:absolute;left:64px;width:952px;z-index:40;box-sizing:border-box;padding:44px 44px 48px;border-radius:48px;background:#fff;box-shadow:0 0 0 3px #E6E1F6,0 12px 0 #DCD5F2;font-family:Inter,system-ui,sans-serif;color:#1F1B3A;animation:mbIn .35s cubic-bezier(.2,.9,.3,1.3) both}'
+    + '.mb-veil{position:absolute;left:0;right:0;top:190px;bottom:0;z-index:39;background:#F4F2FC;animation:mbVeil .25s ease-out both}@keyframes mbVeil{from{opacity:0}to{opacity:1}}'
+    + '@keyframes mbIn{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}'
+    + '.mb-k{display:inline-block;margin-bottom:22px;padding:10px 22px;border-radius:999px;background:#EEE9FF;color:#5335E0;font:800 34px/1.1 "Bricolage Grotesque",Inter,sans-serif}'
+    + '.mb-cols{position:relative;display:flex;justify-content:space-between;gap:150px}.mb-col{flex:1;display:flex;flex-direction:column;gap:26px}'
+    + '.mb-i{display:flex;align-items:center;justify-content:center;min-height:96px;padding:12px 22px;box-sizing:border-box;border-radius:28px;background:#F6F4FF;box-shadow:inset 0 0 0 3px #DCD5F2;font:600 38px/1.2 Inter,sans-serif;text-align:center}'
+    + '.mb-i.c,.mb-q,.mb-chip.c{font-family:"JetBrains Mono",JBM,monospace;font-weight:700;font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}.mb-i.c{color:#5335E0}'
+    + '.mb-bin{min-height:150px;padding:20px;border-radius:30px;background:#F6F4FF;box-shadow:inset 0 0 0 3px #DCD5F2;display:flex;flex-direction:column;gap:12px}'
+    + '.mb-bin.mb-row{flex-direction:row;align-items:center;min-height:112px;gap:22px;padding:14px 24px}.mb-bin.mb-row>b{flex:0 0 72px}.mb-bin.mb-row .mb-drop{flex:1}'
+    + '.mb-bin>b{font:800 36px/1.15 "Bricolage Grotesque",Inter,sans-serif;color:#5335E0}.mb-drop{display:flex;flex-wrap:wrap;gap:10px}'
+    + '.mb-chip{display:inline-block;padding:10px 18px;border-radius:999px;background:#16A34A;color:#fff;font:700 32px/1.2 Inter,sans-serif;animation:mbIn .3s both}'
+    + '.mb-q{padding:30px 34px;border-radius:30px;background:#1F1B3A;color:#fff;font-size:38px;line-height:1.55;white-space:pre-wrap}.mb-q .k{color:#B9A8FF}.mb-q .s{color:#FFD58A}'
+    + '.mb-hole{display:inline-block;min-width:150px;padding:0 14px;border-radius:14px;background:rgba(185,168,255,.18);box-shadow:inset 0 0 0 3px #B9A8FF;color:#fff;text-align:center}'
+    + '.mb-hole.mb-fill{background:#16A34A;box-shadow:none}.mb-hole.mb-bad{background:#EF4F55;box-shadow:none}'
+    + 'svg.mb-ln{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}svg.mb-ln line{stroke:#16A34A;stroke-width:8;stroke-linecap:round}';
   document.head.append(s);
 })();

@@ -244,6 +244,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 109.3;
@@ -297,6 +298,33 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const de = (p, n) => (/^[AEIOUYHÉÈÊÂÎ]/.test(p) ? 'd’' : 'de ') + p + ' ' + n;
+const MOMENTS = [
+  // prenom = 'L' ne renvoie rien : avant que la vidéo parle de motif et de LIKE
+  {at: 24.45, from: 15.0, kind: 'pick', prompt: 'Quelle condition retrouve les prénoms qui commencent par L ?', options: [
+    {label: "prenom LIKE 'L%'", ok: true, why: '<code>LIKE</code> cherche un motif ; <code>%</code> remplace la suite du prénom.'},
+    {label: "prenom = 'L%'", why: 'Avec <code>=</code>, le % est un caractère comme un autre : aucun prénom ne vaut « L% ».'},
+    {label: "prenom LIKE 'L'", why: 'Sans <code>%</code>, le motif est exactement « L » : aucun prénom ne correspond.'}],
+    tip: 'Il faut un motif : un L, puis n’importe quelle suite.'},
+  // le passage en revue commence : les prénoms qui correspondent au motif 'L%'
+  {at: 41.9, from: 29.0, kind: 'tap', need: 2, prompt: 'Touche les clients dont le prénom commence par L.',
+    spots: CLIENTS.map((c, i) => ({k: 'r' + i, sel: `#rows3 > .tr:nth-child(${i + 1})`, label: `Ligne ${i + 1} : ${c[0]} ${c[1]}`, ok: EN_L(c),
+      why: EN_L(c) ? '' : `Le prénom ${de(c[0], c[1])} commence par ${c[0][0]}.`})),
+    tip: 'Regarde la première lettre de chaque prénom.'},
+  // un seul caractère : le motif '_a%', avant que la vidéo explique _
+  {at: 69.02, from: 50.5, kind: 'sort', text: true, prompt: 'Range chaque client : son prénom correspond-il au motif <code>\'_a%\'</code> ?',
+    hint: '<code>_</code> remplace un seul caractère. Touche un client, puis sa case.', next: '« {x} » : correspond-il au motif ?',
+    board: {y: 470, html: '<span class="mb-k">Le motif <span class="mb-q" style="display:inline;padding:4px 14px;font-size:30px">\'_a%\'</span></span><div class="mb-cols" style="gap:28px"><div class="mb-col"><div class="mb-bin" id="mbOui"><b>Correspond</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin" id="mbNon"><b>Ne correspond pas</b><div class="mb-drop"></div></div></div></div>'},
+    spots: [{k: 'oui', sel: '#mbOui', label: 'Correspond'}, {k: 'non', sel: '#mbNon', label: 'Ne correspond pas'}],
+    options: [
+      {label: 'Nathan Petit', to: 'oui', why: 'Nathan Petit : la deuxième lettre de son prénom est un a.'},
+      {label: 'Lucas Bernard', to: 'non', why: 'Lucas Bernard : la deuxième lettre de son prénom est un u.'},
+      {label: 'Gabriel Michel', to: 'oui', why: 'Gabriel Michel : la deuxième lettre de son prénom est un a.'},
+      {label: 'Emma Dubois', to: 'non', why: 'Emma Dubois : la deuxième lettre de son prénom est un m.'}],
+    tip: 'Le <code>_</code> prend la première lettre : la deuxième doit être un a.'}
+];
 
 /* Un prénom en tuiles (une par lettre), avec les cadres du motif : [symbole, première tuile, dernière tuile ou 'end'].
    fail : rang du cadre qui ne correspond pas (-1 si le prénom correspond au motif). */
@@ -624,7 +652,7 @@ function build(){
   if (APP) cue(101.75, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 101.7,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 101.7, moments: MOMENTS,
   glyphs: '📦🏭👤👪📞🔎⚠️🧩📋🔤🔍🔠2️⃣🧵☝️✓✕→…', dom, build});
 </script>
 </body>

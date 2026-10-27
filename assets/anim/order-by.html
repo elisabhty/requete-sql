@@ -163,6 +163,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 103.4;
@@ -218,6 +219,32 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // les stocks en vrac : avant que la vidéo ajoute ORDER BY
+  {at: 31.85, from: 19.0, kind: 'pick', prompt: 'Comment afficher les lignes triées par stock ?', options: [
+    {label: 'ORDER BY stock', ok: true, why: '<code>ORDER BY</code>, à la fin de la requête, trie les lignes selon la colonne.'},
+    {label: 'WHERE stock', why: '<code>WHERE</code> garde certaines lignes : il ne les trie pas.'},
+    {label: 'SORT BY stock', why: 'Le tri s’écrit <code>ORDER BY</code> : « SORT BY » n’existe pas en SQL.'}],
+    tip: 'Le tri s’écrit en deux mots : « ordonner par ».'},
+  // le stock de 500 se retrouve en bas : avant DESC
+  {at: 47.05, from: 31.9, kind: 'pick', prompt: 'Comment mettre le stock de 500 en tête ?', options: [
+    {label: 'ORDER BY stock DESC', ok: true, why: '<code>DESC</code> inverse le tri : du plus grand au plus petit.'},
+    {label: 'ORDER BY stock ASC', why: '<code>ASC</code> est le sens par défaut : du plus petit au plus grand.'},
+    {label: 'ORDER BY DESC stock', why: '<code>DESC</code> se place juste après la colonne qu’il trie.'}],
+    tip: 'Il faut inverser le sens du tri.'},
+  // deux critères : dans la catégorie Bien-être, le prix départage
+  {at: 65.45, from: 61.5, kind: 'sort', text: true, prompt: 'Avec <code>ORDER BY categorie, prix</code>, dans quel ordre arrivent les trois produits Bien-être ?',
+    hint: 'Touche un produit, puis sa place. Tu peux aussi le faire glisser.', next: '« {x} » : à quelle place ?',
+    board: {y: 470, html: '<span class="mb-k">Catégorie Bien-être</span><div class="mb-col" style="gap:18px"><div class="mb-bin mb-row" id="mbP1"><b>1er</b><div class="mb-drop"></div></div><div class="mb-bin mb-row" id="mbP2"><b>2e</b><div class="mb-drop"></div></div><div class="mb-bin mb-row" id="mbP3"><b>3e</b><div class="mb-drop"></div></div></div>'},
+    spots: [{k: 'p1', sel: '#mbP1', label: 'Première place'}, {k: 'p2', sel: '#mbP2', label: 'Deuxième place'}, {k: 'p3', sel: '#mbP3', label: 'Troisième place'}],
+    options: [
+      {label: 'Fibre Prébiotique, 29,90 €', to: 'p3', why: 'C’est le plus cher des trois : il arrive en dernier.'},
+      {label: 'Magnésium, 19,90 €', to: 'p1', why: 'C’est le moins cher des trois : il arrive en premier.'},
+      {label: 'Oméga 3, 24,90 €', to: 'p2', why: 'Son prix est entre les deux autres : il arrive deuxième.'}],
+    tip: 'À catégorie égale, le prix départage : du moins cher au plus cher.'}
+];
 
 function dom(){
   const sus = '<span class="sus"><span class="emo">🔍</span>50 ou 500 ?</span>';
@@ -422,7 +449,7 @@ function build(){
   if (APP) cue(95.85, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 95.8,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 95.8, moments: MOMENTS,
   glyphs: '🕵️🔍🏷️📦🔎🗂️🔢🔤📅📚↕️🔼🥇✓→·', dom, build});
 </script>
 </body>

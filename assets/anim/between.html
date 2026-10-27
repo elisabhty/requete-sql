@@ -206,6 +206,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 106.0;
@@ -262,6 +263,32 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+const jour = d => { const j = +d.slice(8, 10), m = +d.slice(5, 7); return (j === 1 ? '1er' : j) + ' ' + MOIS[m - 1]; };
+const MOMENTS = [
+  // la colonne écrite deux fois : avant que la vidéo nomme BETWEEN
+  {at: 30.65, from: 20.0, kind: 'pick', prompt: 'Comment écrire « entre le 14 et le 20 juillet » en une seule condition ?', options: [
+    {label: "BETWEEN '2026-07-14' AND '2026-07-20'", ok: true, why: '<code>BETWEEN</code>, la limite basse, <code>AND</code>, puis la limite haute.'},
+    {label: "BETWEEN '2026-07-14', '2026-07-20'", why: 'Les deux limites sont séparées par <code>AND</code>, pas par une virgule.'},
+    {label: "IN ('2026-07-14', '2026-07-20')", why: '<code>IN</code> ne garderait que ces deux dates : pas le 15, ni le 18.'}],
+    tip: 'Les deux limites sont séparées par un mot-clé déjà vu.'},
+  // le passage en revue commence : les commandes de la période
+  {at: 42.9, from: 33.6, kind: 'tap', need: 4, prompt: 'Touche les commandes passées entre le 14 et le 20 juillet.',
+    spots: COMMANDES.map(([id, num, d], i) => { const ok = d >= '2026-07-14' && d <= '2026-07-20';
+      return {k: 'r' + i, sel: `#rows3 > .tr:nth-child(${i + 1})`, label: `Commande ${num}, du ${jour(d)}`, ok,
+        why: ok ? '' : `Le ${jour(d)} est ${d < '2026-07-14' ? 'avant le 14' : 'après le 20'} juillet : hors de l’intervalle.`}; }),
+    tip: 'Regarde la colonne <code>date_commande</code> : du 14 au 20 juillet.'},
+  // les limites à l’envers, avant l’exécution
+  {at: 65.22, from: 53.1, kind: 'pick', text: true, prompt: 'Que renvoie la requête, avec ses limites inversées ?',
+    board: {y: 470, html: '<span class="mb-k">Du 20 au 14 juillet</span><div class="mb-q"><span class="k">SELECT</span> numero_commande\n<span class="k">FROM</span> commandes\n<span class="k">WHERE</span> date_commande\n  <span class="k">BETWEEN</span> <span class="s">\'2026-07-20\'</span>\n  <span class="k">AND</span> <span class="s">\'2026-07-14\'</span>;</div>'},
+    options: [
+    {label: 'Aucune ligne', ok: true, why: 'Il faudrait une date à partir du 20 et jusqu’au 14 juillet : c’est impossible.'},
+    {label: 'Les 4 mêmes commandes', why: 'L’ordre compte : la limite basse vient toujours en premier.'},
+    {label: 'Une erreur', why: 'La requête s’exécute, mais l’intervalle est vide : aucune ligne.'}],
+    tip: 'Une date peut-elle être après le 20 et avant le 14 juillet ?'}
+];
 
 /* Calendrier du 12 au 22 juillet : une enveloppe par commande, « ¡Gracias! » pendant la période du bug. */
 function agenda(id, tags){
@@ -509,7 +536,7 @@ function build(){
   if (APP) cue(98.45, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 98.4,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 98.4, moments: MOMENTS,
   glyphs: '📧📦📅🧾🐞✉️🔎📋⚠️✅↔️✓✕→×·¡', dom, build});
 </script>
 </body>

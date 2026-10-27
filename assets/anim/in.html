@@ -202,6 +202,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 99.7;
@@ -255,6 +256,28 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const de = (p, n) => (/^[AEIOUYHÉÈÊÂÎ]/.test(p) ? 'd’' : 'de ') + p + ' ' + n;
+const MOMENTS = [
+  // trois conditions id = … avec OR : avant que la vidéo les remplace par IN
+  {at: 26.45, from: 15.0, kind: 'pick', prompt: 'Comment écrire ces trois conditions en une seule ?', options: [
+    {label: 'id IN (2, 5, 9)', ok: true, why: '<code>IN</code> compare l’identifiant à une liste de valeurs.'},
+    {label: 'id = (2, 5, 9)', why: '<code>=</code> compare à une seule valeur. Pour une liste, c’est <code>IN</code>.'},
+    {label: 'id IN 2, 5, 9', why: 'La liste s’écrit entre parenthèses, avec des virgules entre les valeurs.'}],
+    tip: 'Le mot-clé veut dire « dans ».'},
+  // le passage en revue commence : les identifiants qui sont dans la liste
+  {at: 40.0, from: 29.6, kind: 'tap', need: 3, prompt: 'Touche les clients dont l’identifiant est dans la liste.',
+    spots: CLIENTS.map((c, i) => ({k: 'r' + i, sel: `#rows3 > .tr:nth-child(${i + 1})`, label: `Ligne ${i + 1} : identifiant ${c[0]}, ${c[1]} ${c[2]}`, ok: GAGNANTS.includes(c[0]),
+      why: GAGNANTS.includes(c[0]) ? '' : `L’identifiant ${de(c[1], c[2])} vaut ${c[0]} : il n’est pas dans la liste.`})),
+    tip: 'La liste contient 2, 5 et 9 : regarde la colonne <code>id</code>.'},
+  // un deuxième tirage : Paris ou Lyon, plus de 35 ans
+  {at: 65.05, from: 61.0, kind: 'pick', prompt: 'Comment ajouter la condition « plus de 35 ans » ?', options: [
+    {label: 'AND age > 35', ok: true, why: '<code>IN</code> ne compare que la ville : l’âge s’ajoute avec <code>AND</code>.'},
+    {label: "IN ('Paris', 'Lyon', 35)", why: 'La liste compare la ville : 35 n’est pas une ville.'},
+    {label: 'OR age > 35', why: 'Avec <code>OR</code>, tous les plus de 35 ans resteraient, quelle que soit leur ville.'}],
+    tip: '<code>IN</code> ne compare qu’une seule colonne.'}
+];
 
 function dom(){
   $('#rows2').innerHTML = CLIENTS.filter(GAGNE).map(c => `<div class="rgR tr te"><div>${c[1]}</div><div>${c[2]}</div><div>${c[3]}</div><div>${c[4]}</div></div>`).join('');
@@ -506,7 +529,7 @@ function build(){
   if (APP) cue(92.15, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 92.1,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 92.1, moments: MOMENTS,
   glyphs: '🏆👤👪🏠🔎📋🔢💬🎟️🎁✂️☝️✓✕→×°·', dom, build});
 </script>
 </body>
