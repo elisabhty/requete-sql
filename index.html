@@ -3705,6 +3705,26 @@
     radial-gradient(2px 2px at 40% 5%,#fff 50%,transparent 51%),radial-gradient(1.5px 1.5px at 95% 82%,#fff 50%,transparent 51%),
     radial-gradient(2px 2px at 26% 92%,#fff 50%,transparent 51%),radial-gradient(1.5px 1.5px at 60% 74%,#fff 50%,transparent 51%);
     animation:lvFeTwinkle 3.2s ease-in-out infinite alternate}
+  /* « Nouveau sticker » : l’étiquette posée sur le sticker gagné */
+  .mu-tag{position:absolute;right:-18px;top:2px;z-index:2;padding:7px 11px;border-radius:10px;background:#FF8FC7;color:#3A0A24;font:800 11.5px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;
+    box-shadow:0 3px 0 #C2427F;opacity:0;transform:rotate(10deg)}
+  .mu.is-a .mu-tag{animation:muTag .5s cubic-bezier(.2,.9,.3,1.6) 1s both}
+  @keyframes muTag{0%{opacity:0;transform:rotate(10deg) scale(.3)}100%{opacity:1;transform:rotate(10deg)}}
+  .mu.is-a.is-got .mu-tag{animation:none;opacity:0;transition:opacity .15s ease}
+  /* « Ta planche » : le sticker récupéré y file, le compteur passe à n + 1 */
+  .mu-album{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:16px;z-index:3;display:flex;align-items:center;gap:8px;height:44px;padding:0 8px 0 6px;border-radius:999px;
+    background:#fff;color:var(--accent-ink,#5335E0);font:800 14px/1 var(--display);box-shadow:0 4px 0 #C9BEFF;opacity:0;pointer-events:none}
+  .mu-album-ico{width:32px;height:32px;border-radius:50%;background:var(--accent-soft,#EEE9FF);display:grid;place-items:center}
+  .mu-album-ico svg{width:19px;height:19px}
+  .mu-album-n{position:relative;min-width:24px;height:24px;padding:0 7px;box-sizing:border-box;border-radius:999px;background:var(--accent,#6A4DF4);color:#fff;font:800 12.5px/24px var(--display);overflow:hidden;text-align:center}
+  .mu-album-n span{display:block;transition:transform .34s cubic-bezier(.2,.9,.3,1.25)}
+  .mu-album-n span+span{position:absolute;left:0;right:0;top:0;transform:translateY(110%)}
+  .mu-album.is-hit .mu-album-n span:first-child{transform:translateY(-110%)}
+  .mu-album.is-hit .mu-album-n span+span{transform:none}
+  .mu.is-album .mu-album{opacity:1;animation:muAlbum .42s cubic-bezier(.2,.9,.3,1.5) both}
+  .mu.is-album .mu-album.is-hit{animation:muAlbumHit .45s ease-out both}
+  @keyframes muAlbum{from{opacity:0;transform:scale(.5) translateY(-6px)}to{opacity:1;transform:none}}
+  @keyframes muAlbumHit{0%{transform:scale(1)}35%{transform:scale(1.18)}70%{transform:scale(.95)}100%{transform:none}}
   .mu-x{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);right:16px;z-index:3;width:44px;height:44px;border:0;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;display:grid;place-items:center;cursor:pointer}
   .mu-x svg{width:20px;height:20px}
   .mu-x:focus-visible,.mu-go:focus-visible,.mu-later:focus-visible{outline:3px solid #FFE08A;outline-offset:3px}
@@ -3733,7 +3753,7 @@
   .mu-back .mu-lock svg{width:100%;height:100%;overflow:visible}
   .mu-kh{fill:#30267F}
   .mu-shk{transform-origin:16px 10.5px;transition:transform .3s cubic-bezier(.3,1.7,.5,1)}
-  .mu.is-card:not(.is-unlock) .mu-back .mu-lock{animation:muLockShake .42s ease-in-out .3s}
+  .mu.is-card:not(.is-unlock) .mu-back .mu-lock{animation:muLockShake .42s ease-in-out .3s,muWiggle 2.2s ease-in-out 1.6s infinite}
   @keyframes muLockShake{0%,100%{transform:none}20%{transform:rotate(-12deg)}40%{transform:rotate(10deg)}60%{transform:rotate(-7deg)}80%{transform:rotate(4deg)}}
   .mu.is-unlock .mu-back .mu-shk{transform:translateY(-3px) rotate(-34deg)}
   .mu-front{transform:rotateY(180deg);padding:16px 12px;background:linear-gradient(155deg,#A48CFF 0%,#6A4DF4 50%,#4B30CC 100%);
@@ -3793,7 +3813,7 @@
   /* Mouvement réduit : l’écran final, sans rien qui bouge */
   .mu.is-still,.mu.is-still *,.mu.is-still *::before,.mu.is-still *::after{animation:none!important;transition:none!important}
   .mu.is-still :is(.mu-kick,.mu-h,.mu-p,.mu-path,.mu-acts),.mu.is-still .mu-rays{opacity:1;transform:none}
-  .mu.is-still .mu-done{display:none}
+  .mu.is-still .mu-done,.mu.is-still .mu-tag{display:none}
   .mu.is-still .mu-pips i.cur{background:#FFD23F;box-shadow:none}
   .mu.is-still .mu-pips i.nx{background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.22)}
 
@@ -16768,15 +16788,18 @@ function bravoFinWire(){
    Une seule fois, quand le module vient d’être terminé (son sticker vient d’être gagné pendant la leçon : stkLessonNew), par-dessus le bilan :
    1. La récompense : le sticker du module tombe du haut et se plaque au centre (onde, éclair, secousse, confettis, vibration) ; « Bravo ! »,
       le nom du module, le chemin des quinze modules où le sien s’allume en or.
-   2. « Débloquer le module 5 » : c’est l’élève qui ouvre le module suivant. Le son part de cet appui (sur iPhone, Web Audio ne démarre
-      que pendant un appui ; à l’arrivée de l’écran, il ne joue que si un appui vient d’avoir lieu). Le sticker file dans sa pastille,
-      une étincelle court jusqu’à celle du module suivant, la carte du module 5 tombe, verrouillée ; le cadenas saute, la carte se retourne
-      (« Module 5 », son nom, ses leçons), avec l’arpège de réussite, une deuxième onde et une pluie de confettis.
-   3. « Commencer le module 5 » ouvre sa première leçon à faire ; « Voir mon bilan » referme l’écran sur le bilan (et son sticker).
+   2. « Récupérer le sticker » (Elisa, 27 octobre, 13 h 24 : « un bouton récupérer le sticker, qu’on voie bien que c’en est un ») : il porte
+      l’étiquette « Nouveau sticker », se décolle et file dans « Ta planche », qui compte un sticker de plus. Le son part de cet appui (sur
+      iPhone, Web Audio ne démarre que pendant un appui ; à l’arrivée de l’écran, il ne joue que si un appui vient d’avoir lieu). Une
+      étincelle court jusqu’à la pastille du module suivant, sa carte tombe, verrouillée.
+   3. « Débloquer le module 5 » : le cadenas saute, la carte se retourne (« Module 5 », son nom, ses leçons), avec l’arpège de réussite,
+      une deuxième onde et une pluie de confettis ; « Commencer le module 5 » ouvre sa première leçon à faire. « Voir mon bilan » referme
+      l’écran sur le bilan à tout moment.
    Le dernier module n’en a pas quand tout est fini : la fin du parcours a sa vidéo et sa carte. Mouvement réduit : l’écran final, d’emblée. */
 const MU_SEEN=new Set();
 let MU=null;
 const MU_LOCK='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path class="mu-shk" d="M8 10.5V8a4 4 0 0 1 8 0v2.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><rect x="5" y="10.5" width="14" height="10.5" rx="2.8" fill="currentColor"/><circle class="mu-kh" cx="12" cy="15.6" r="1.7"/></svg>';
+const MU_STK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M14 20H7.5A3.5 3.5 0 0 1 4 16.5v-9A3.5 3.5 0 0 1 7.5 4h9A3.5 3.5 0 0 1 20 7.5V14"/><path d="M14 20c0-3.3 2.7-6 6-6l-6 6Z" fill="currentColor"/><path d="M9 10h.01M15 10h.01M9.5 13.6c1.4 1 3.6 1 5 0" stroke-linecap="round"/></svg>';
 const MU_PLAY='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 5.6v12.8c0 .9 1 1.4 1.7.9l9.4-6.4c.6-.4.6-1.4 0-1.8L9.7 4.7C9 4.2 8 4.7 8 5.6Z"/></svg>';
 /* Le module à débloquer : le suivant pas encore terminé, sinon le premier qui reste (modules faits dans le désordre) ; -1 s’il ne reste rien. */
 function muNext(i,n,ok){
@@ -16797,24 +16820,29 @@ function moduleUpHtml(i,n){
   const M=MODULES[i], N=MODULES[n], ok=k=>MODULES[k].lessons.every(l=>itemDone(l.id));
   const nb=MODULES.filter((m,k)=>ok(k)).length;
   const pips=MODULES.map((m,k)=>`<i class="${k===i?'cur':k===n?'nx':ok(k)?'on':''}"></i>`).join('');
+  /* Ta planche : les stickers gagnés, celui du module compris (il est gagné en terminant le module) */
+  const id=STK_MODULE_IDS[i], info=typeof stkInfo==='function'?stkInfo(id):null;
+  const got=typeof stkList==='function'?stkList().filter(x=>x.got).length:0, after=got+(info&&info.got?0:1);
   return `<div class="mu" role="dialog" aria-modal="true" aria-labelledby="mu-h">
     <i class="mu-rays" aria-hidden="true"></i><i class="mu-sky" aria-hidden="true"></i>
+    <div class="mu-album" aria-hidden="true"><span class="mu-album-ico">${MU_STK}</span><span>Ta planche</span><b class="mu-album-n"><span>${after-1}</span><span>${after}</span></b></div>
     <button type="button" class="mu-x" aria-label="Fermer et voir mon bilan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     <div class="mu-in">
       <span class="mu-kick" id="mu-k">Module ${i+1} terminé</span>
       <div class="mu-stage" aria-hidden="true">
         <i class="mu-glow"></i><i class="mu-ring"></i><i class="mu-flash"></i>
-        <div class="mu-st mu-done">${stkArtHtml(STK_MODULE_IDS[i],'art')}</div>
+        <div class="mu-st mu-done">${stkArtHtml(id,'art')}</div>
+        <span class="mu-tag">Nouveau sticker</span>
         <div class="mu-card"><div class="mu-card-in">
           <div class="mu-back"><span class="mu-lock">${MU_LOCK}</span><b>Module ${n+1}</b></div>
           <div class="mu-front"><small>Module</small><b class="mu-num">${n+1}</b><span class="mu-t">${esc(N.titre)}</span><span class="mu-n">${N.lessons.length} leçon${N.lessons.length>1?'s':''}</span></div>
         </div></div>
       </div>
       <h2 class="mu-h" id="mu-h" tabindex="-1">Bravo&nbsp;!</h2>
-      <p class="mu-p" id="mu-p">Tu as terminé le module <b>${esc(M.titre)}</b>.</p>
+      <p class="mu-p" id="mu-p">Tu as terminé le module <b>${esc(M.titre)}</b>. Voici ton sticker&nbsp;!</p>
       <div class="mu-path" role="img" aria-label="${nb} modules terminés sur ${MODULES.length}"><span class="mu-pips">${pips}</span><small><b>${nb}</b> / ${MODULES.length} modules</small></div>
       <div class="mu-acts">
-        <button type="button" class="mu-go"><span class="mu-go-ico">${MU_LOCK}</span><span class="mu-go-l">Débloquer le module ${n+1}</span></button>
+        <button type="button" class="mu-go"><span class="mu-go-ico">${MU_STK}</span><span class="mu-go-l">Récupérer le sticker</span></button>
         <button type="button" class="mu-later">Voir mon bilan</button>
       </div>
       <p class="mu-sr" aria-live="polite"></p>
@@ -16840,6 +16868,15 @@ function muImpact(el,big){
   ring.animate([{opacity:.95,transform:'scale(.45)',borderWidth:'8px'},{opacity:0,transform:`scale(${big?2.3:1.9})`,borderWidth:'1px'}],{duration:big?820:700,easing:'cubic-bezier(.1,.7,.3,1)'});
   flash.animate([{opacity:.9,transform:'scale(.4)'},{opacity:0,transform:'scale(1.25)'}],{duration:520,easing:'ease-out'});
   inner.animate([{transform:'none'},{transform:'translate(-5px,3px)'},{transform:'translate(5px,-2px)'},{transform:'translate(-3px,2px)'},{transform:'translate(2px,-1px)'},{transform:'none'}],{duration:360,easing:'ease-out'});
+}
+/* Un texte qui change : il s’efface vers le haut, le nouveau arrive d’en bas. */
+function muSet(node,html,instant){
+  if(!node)return;
+  if(instant||!node.animate){ node.innerHTML=html; return; }
+  node.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateY(-8px)'}],{duration:150,easing:'ease-in',fill:'forwards'}).onfinish=()=>{
+    node.innerHTML=html;
+    node.animate([{opacity:0,transform:'translateY(10px) scale(.97)'},{opacity:1,transform:'none'}],{duration:380,easing:'cubic-bezier(.2,.9,.3,1.3)',fill:'forwards'});
+  };
 }
 function moduleUpOpen(i,n){
   const box=document.createElement('div');
@@ -16867,65 +16904,78 @@ function moduleUpOpen(i,n){
 }
 function moduleUpGo(){
   if(!MU)return;
-  if(MU.stage==='a')moduleUpUnlock();
+  if(MU.stage==='a')moduleUpCollect();
+  else if(MU.stage==='a2')moduleUpUnlock();
   else if(MU.stage==='c')moduleUpStart();
 }
-/* 2. Le module suivant se débloque. */
-function moduleUpUnlock(){
-  const el=MU.el;
-  MU.stage='b';
-  el.classList.add('is-b');
-  el.querySelector('.mu-go').setAttribute('aria-disabled','true');
-  muSound([[0,'click',0,.7],[150,'whoosh',0,.45],[640,'tick',4,.6],[760,'pop',2,.6],[1160,'stamp',0,.75],[1210,'success',0,.65],[1560,'chord',0,.5]],true);
+/* 2. « Récupérer le sticker » : il se décolle et file dans ta planche (en haut à gauche), qui compte un sticker de plus ; une étincelle court
+   jusqu’à la pastille du module suivant, sa carte tombe, verrouillée : « Débloquer le module 5 ». */
+function moduleUpCollect(){
+  const el=MU.el, n=MU.n;
+  MU.stage='a1';
+  el.classList.add('is-got','is-album');
+  const go=el.querySelector('.mu-go');
+  go.setAttribute('aria-disabled','true');
+  muSound([[0,'pop',3,.7],[180,'whoosh',0,.4],[760,'true',0,.6]],true);
   if(navigator.vibrate)navigator.vibrate(10);
   const T=(f,d)=>MU.timers.push(setTimeout(()=>{ if(MU&&MU.el===el)f(); },d));
-  /* Le sticker file dans sa pastille */
-  const st=el.querySelector('.mu-done'), pips=el.querySelector('.mu-pips'), pip=pips.querySelector('.cur'), nx=pips.querySelector('.nx');
-  const a=st.getBoundingClientRect(), b=pip.getBoundingClientRect();
-  const dx=b.left+b.width/2-(a.left+a.width/2), dy=b.top+b.height/2-(a.top+a.height/2), k=Math.max(.04,b.width/Math.max(1,a.width));
-  st.animate([{transform:'rotate(-4deg)',opacity:1},{transform:`translate(${dx}px,${dy}px) scale(${k}) rotate(220deg)`,opacity:.4}],{duration:560,delay:110,easing:'cubic-bezier(.55,0,.75,.2)',fill:'forwards'});
-  T(()=>{ pip.classList.add('is-hit'); },650);
-  /* Une étincelle court jusqu’à la pastille du module suivant */
+  const st=el.querySelector('.mu-done'), alb=el.querySelector('.mu-album'), ico=alb.querySelector('.mu-album-ico');
+  const a=st.getBoundingClientRect(), b=ico.getBoundingClientRect();
+  const dx=b.left+b.width/2-(a.left+a.width/2), dy=b.top+b.height/2-(a.top+a.height/2), k=Math.max(.05,b.width/Math.max(1,a.width));
+  st.animate([{transform:'rotate(-4deg)'},{transform:'translateY(-22px) rotate(-12deg) scale(1.12)',offset:.26},{transform:`translate(${dx}px,${dy}px) rotate(14deg) scale(${k})`,opacity:.85}],
+    {duration:820,easing:'cubic-bezier(.5,0,.6,1)',fill:'forwards'});
+  T(()=>{ st.style.visibility='hidden'; alb.classList.add('is-hit'); if(navigator.vibrate)navigator.vibrate(8); },800);
+  /* Le chemin : du module terminé au suivant */
   T(()=>{
-    if(!nx)return;
+    const pips=el.querySelector('.mu-pips'), pip=pips.querySelector('.cur'), nx=pips.querySelector('.nx');
+    if(!pip||!nx)return;
     const c=document.createElement('i'); c.className='mu-comet'; pips.appendChild(c);
     const p0=pip.offsetLeft+pip.offsetWidth/2, p1=nx.offsetLeft+nx.offsetWidth/2;
     c.style.left=p0+'px';
     const an=c.animate([{transform:'translateX(0) scale(.5)',opacity:0},{opacity:1,offset:.2},{transform:`translateX(${p1-p0}px) scale(1)`,opacity:1}],{duration:380,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
     an.onfinish=()=>{ c.remove(); nx.classList.add('is-on'); };
-  },660);
-  /* La carte du module suivant tombe, verrouillée ; le cadenas saute, elle se retourne */
-  T(()=>el.classList.add('is-card'),720);
-  T(()=>el.classList.add('is-unlock'),1040);
+  },860);
+  T(()=>{ el.classList.add('is-card'); muSound([[0,'pop',1,.55]]); },920);
+  T(()=>{
+    muSet(el.querySelector('#mu-p'),`Ton sticker est dans ta planche. Le module ${n+1} t’attend.`);
+    muSet(go.querySelector('.mu-go-l'),`Débloquer le module ${n+1}`);
+    go.querySelector('.mu-go-ico').innerHTML=MU_LOCK;
+    go.removeAttribute('aria-disabled');
+    el.querySelector('.mu-sr').textContent='Sticker ajouté à ta planche.';
+    MU.stage='a2';
+  },1000);
+}
+/* 3. Le module suivant se débloque : le cadenas saute, la carte se retourne. */
+function moduleUpUnlock(){
+  const el=MU.el;
+  MU.stage='b';
+  el.classList.add('is-b','is-unlock');
+  el.querySelector('.mu-go').setAttribute('aria-disabled','true');
+  muSound([[0,'click',0,.7],[200,'stamp',0,.75],[250,'success',0,.65],[620,'chord',0,.5]],true);
+  if(navigator.vibrate)navigator.vibrate(10);
+  const T=(f,d)=>MU.timers.push(setTimeout(()=>{ if(MU&&MU.el===el)f(); },d));
   T(()=>{
     el.classList.add('is-open');
     muImpact(el,true);
     lqConfetti({n:90});
     if(navigator.vibrate)navigator.vibrate([12,40,12,40,24]);
-  },1180);
-  T(()=>moduleUpFinal(false),1260);
-  T(()=>lqConfetti({n:50}),1750);
+  },220);
+  T(()=>moduleUpFinal(false),300);
+  T(()=>lqConfetti({n:50}),800);
 }
-/* 3. L’écran final : « Module 5 débloqué », son nom, « Commencer le module 5 ». */
+/* 4. L’écran final : « Module 5 débloqué », « C’est parti ! », « Commencer le module 5 ». */
 function moduleUpFinal(instant){
   if(!MU)return;
   const el=MU.el, n=MU.n, N=MODULES[n];
   MU.stage='c';
-  if(instant)el.classList.add('is-still','is-a','is-ready','is-b','is-card','is-unlock','is-open');
-  const set=(node,html)=>{
-    if(instant||!node.animate){ node.innerHTML=html; return; }
-    node.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateY(-8px)'}],{duration:150,easing:'ease-in',fill:'forwards'}).onfinish=()=>{
-      node.innerHTML=html;
-      node.animate([{opacity:0,transform:'translateY(10px) scale(.97)'},{opacity:1,transform:'none'}],{duration:380,easing:'cubic-bezier(.2,.9,.3,1.3)',fill:'forwards'});
-    };
-  };
+  if(instant)el.classList.add('is-still','is-a','is-ready','is-got','is-b','is-card','is-unlock','is-open');
   el.classList.add('is-final');
-  set(el.querySelector('#mu-k'),`Module ${n+1} débloqué`);
-  set(el.querySelector('#mu-h'),'C’est parti&nbsp;!');
-  set(el.querySelector('#mu-p'),esc(N.sous||''));
+  muSet(el.querySelector('#mu-k'),`Module ${n+1} débloqué`,instant);
+  muSet(el.querySelector('#mu-h'),'C’est parti&nbsp;!',instant);
+  muSet(el.querySelector('#mu-p'),esc(N.sous||''),instant);
   const go=el.querySelector('.mu-go');
   go.removeAttribute('aria-disabled');
-  set(go.querySelector('.mu-go-l'),`Commencer le module ${n+1}`);
+  muSet(go.querySelector('.mu-go-l'),`Commencer le module ${n+1}`,instant);
   go.querySelector('.mu-go-ico').innerHTML=MU_PLAY;
   el.querySelector('.mu-sr').textContent=`Module ${n+1} débloqué : ${N.titre}.`;
 }
@@ -25486,7 +25536,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2084';
+  const SW_CACHE='requete-2026-10-12-ludique-v2085';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
