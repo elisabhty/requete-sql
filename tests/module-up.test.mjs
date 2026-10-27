@@ -1,8 +1,9 @@
 /* La fin d’un module (Elisa, 27 octobre, 12 h 40 : « pour la fin de module, une félicitation, passer au nouveau module en gros, avec
    une animation waouh, du son, et tout bien réfléchi »).
    Une seule fois, quand le module vient d’être terminé (son sticker vient d’être gagné pendant la leçon), par-dessus le bilan :
-   la récompense (le sticker du module se plaque au centre, « Bravo ! », le chemin des quinze modules), puis « Débloquer le module 5 » :
-   la carte du module suivant tombe, verrouillée, le cadenas saute, elle se retourne ; « Commencer le module 5 » ou « Voir mon bilan ». */
+   la récompense (le sticker du module se plaque au centre, avec l’étiquette « Nouveau sticker », « Bravo ! », le chemin des quinze modules) ;
+   « Récupérer le sticker » (Elisa, 27 octobre, 13 h 24 : « qu’on voie bien que c’en est un ») : il file dans « Ta planche », la carte du
+   module suivant tombe, verrouillée ; « Débloquer le module 5 » : le cadenas saute, elle se retourne ; « Commencer le module 5 » ou « Voir mon bilan ». */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -48,12 +49,14 @@ test('l’écran : la récompense du module terminé, le chemin des modules, la 
   assert.ok(h.startsWith('<div class="mu" role="dialog" aria-modal="true" aria-labelledby="mu-h">'));
   assert.ok(h.includes('<span class="mu-kick" id="mu-k">Module 3 terminé</span>'));
   assert.ok(h.includes('<div class="mu-st mu-done"><span class="stk-art" data-id="agregats" data-mode="art"></span></div>'), 'le sticker gagné, en couleur');
-  assert.ok(h.includes('<h2 class="mu-h" id="mu-h" tabindex="-1">Bravo&nbsp;!</h2>') && h.includes('Tu as terminé le module <b>Agrégats et regroupements</b>.'));
+  assert.ok(h.includes('<span class="mu-tag">Nouveau sticker</span>'), 'on voit bien que c’est un sticker');
+  assert.ok(h.includes('<h2 class="mu-h" id="mu-h" tabindex="-1">Bravo&nbsp;!</h2>') && h.includes('Tu as terminé le module <b>Agrégats et regroupements</b>. Voici ton sticker&nbsp;!'));
+  assert.ok(h.includes('<span>Ta planche</span><b class="mu-album-n"><span>0</span><span>1</span></b>'), 'ta planche, qui comptera un sticker de plus');
   assert.ok(h.includes('<span class="mu-pips"><i class="on"></i><i class="on"></i><i class="cur"></i><i class="nx"></i></span>'), 'les modules faits, celui qui vient d’être terminé, le suivant');
   assert.ok(h.includes('aria-label="3 modules terminés sur 4"') && h.includes('<small><b>3</b> / 4 modules</small>'));
   assert.ok(h.includes('<div class="mu-back"><span class="mu-lock">') && h.includes('<b>Module 4</b></div>'), 'le dos : verrouillé');
   assert.ok(h.includes('<div class="mu-front"><small>Module</small><b class="mu-num">4</b><span class="mu-t">Jointures</span><span class="mu-n">3 leçons</span></div>'), 'la face : le numéro, le nom, les leçons');
-  assert.ok(h.includes('<span class="mu-go-l">Débloquer le module 4</span>') && h.includes('<button type="button" class="mu-later">Voir mon bilan</button>'));
+  assert.ok(h.includes('<span class="mu-go-l">Récupérer le sticker</span>') && h.includes('<button type="button" class="mu-later">Voir mon bilan</button>'));
   assert.ok(h.includes('class="mu-x" aria-label="Fermer et voir mon bilan"') && h.includes('<p class="mu-sr" aria-live="polite"></p>'));
 });
 
@@ -67,14 +70,20 @@ test('une seule fois, au bilan de la leçon qui termine le module ; jamais sans 
   assert.ok(html.includes("#lesson-video.on,[id$=\"-back\"].on,.plus-details[open],.mu');"), 'pas de retour par glissement pendant l’écran');
 });
 
-test('le déroulé : impact à l’arrivée, puis l’élève débloque (le son part de son appui), la carte se retourne, l’écran final', () => {
+test('le déroulé : impact à l’arrivée ; récupérer le sticker (le son part de cet appui) ; débloquer le module suivant ; l’écran final', () => {
   const open = cut('function moduleUpOpen(i,n){', 'function moduleUpGo(){');
   for (const part of ["el.classList.add('is-a')", 'muImpact(el,false);', 'lqConfetti({n:60});', "muSound([[0,'stamp',0,.8],[110,'chord',0,.5]]);", 'navigator.vibrate([18,30,10])'])
     assert.ok(open.includes(part), part);
   assert.ok(open.indexOf('if(prefersReduceMotion()){ moduleUpFinal(true);') < open.indexOf('muImpact('), 'mouvement réduit : l’écran final, d’emblée');
-  const unlock = cut('function moduleUpUnlock(){', 'function moduleUpFinal(instant){');
-  assert.ok(unlock.includes("[1210,'success',0,.65]") && unlock.includes("[1560,'chord',0,.5]],true);"), 'les sons de l’appui, forcés (on est dans l’appui)');
-  for (const part of ["el.classList.add('is-card')", "el.classList.add('is-unlock')", "el.classList.add('is-open');", 'muImpact(el,true);', 'lqConfetti({n:90});', "c.className='mu-comet'", "nx.classList.add('is-on')", 'moduleUpFinal(false)'])
+  const go = cut('function moduleUpGo(){', '/* 2. « Récupérer le sticker »');
+  assert.ok(go.includes("if(MU.stage==='a')moduleUpCollect();") && go.includes("else if(MU.stage==='a2')moduleUpUnlock();") && go.includes("else if(MU.stage==='c')moduleUpStart();"), 'un bouton, trois temps');
+  const collect = cut('function moduleUpCollect(){', '/* 3. Le module suivant se débloque');
+  assert.ok(collect.includes("muSound([[0,'pop',3,.7],[180,'whoosh',0,.4],[760,'true',0,.6]],true);"), 'les sons de l’appui, forcés (on est dans l’appui)');
+  for (const part of ["el.classList.add('is-got','is-album');", "alb.querySelector('.mu-album-ico')", "alb.classList.add('is-hit')", "c.className='mu-comet'", "nx.classList.add('is-on')", "el.classList.add('is-card')",
+    '`Ton sticker est dans ta planche. Le module ${n+1} t’attend.`', '`Débloquer le module ${n+1}`', "MU.stage='a2';"])
+    assert.ok(collect.includes(part), part);
+  const unlock = cut('function moduleUpUnlock(){', '/* 4. L’écran final');
+  for (const part of ["el.classList.add('is-b','is-unlock');", "[250,'success',0,.65]", "el.classList.add('is-open');", 'muImpact(el,true);', 'lqConfetti({n:90});', 'moduleUpFinal(false)'])
     assert.ok(unlock.includes(part), part);
   const sound = cut('function muSound(seq,force){', 'function muImpact(el,big){');
   assert.ok(sound.includes('LV_MUTED') && sound.includes('if(!force&&!(ua&&ua.isActive))return;') && sound.includes('LvSfx.resume();'), 'muet respecté ; sans appui, pas de son');
@@ -88,7 +97,7 @@ test('le déroulé : impact à l’arrivée, puis l’élève débloque (le son 
 
 test('l’animation : chute du sticker, onde, rayons, carte qui se retourne, pastilles ; mouvement réduit respecté', () => {
   for (const part of ['@keyframes muSlam{', '.mu.is-a .mu-done{animation:muSlam', '.mu.is-open .mu-card-in{transform:rotateY(180deg)}', '.mu.is-unlock .mu-back .mu-shk{transform:translateY(-3px) rotate(-34deg)}',
-    '.mu.is-card .mu-card{opacity:1;animation:muCardIn', '.mu.is-open .mu-rays::after{opacity:1}', '.mu.is-a .mu-pips i.cur{animation:muPip', '.mu-pips i.nx.is-on{', '.mu.is-ready:not(.is-b) .mu-go::after{animation:lvRing',
+    '.mu.is-card .mu-card{opacity:1;animation:muCardIn', '.mu.is-a .mu-tag{animation:muTag', '.mu.is-album .mu-album{opacity:1;animation:muAlbum', '.mu-album.is-hit .mu-album-n span+span{transform:none}', '.mu.is-open .mu-rays::after{opacity:1}', '.mu.is-a .mu-pips i.cur{animation:muPip', '.mu-pips i.nx.is-on{', '.mu.is-ready:not(.is-b) .mu-go::after{animation:lvRing',
     '.mu.is-still,.mu.is-still *,.mu.is-still *::before,.mu.is-still *::after{animation:none!important;transition:none!important}'])
     assert.ok(html.includes(part), part);
   assert.ok(html.includes('apercuFromUrl();') && cut('function apercuFromUrl(){', 'function moduleUpStart(){').includes("q.get('apercu')!=='fin-module'"), 'un lien d’aperçu, sans toucher à la progression');
