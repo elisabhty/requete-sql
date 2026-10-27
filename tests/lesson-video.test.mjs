@@ -25,10 +25,14 @@ test('WHERE : le cours a son animation, son image fixe et sa vignette, présente
   assert.ok(m, 'champ video du cours WHERE');
   assert.equal(m[1], 'assets/anim/where.html?app&embed');
   for (const f of m.slice(1, 3)) assert.ok(fs.statSync(path.join(ROOT, f.split('?')[0])).size > 1000, `fichier présent : ${f}`);
-  assert.equal(m[3], '2 min 07');
-  assert.ok(/notes:\{t:119\.0,y:1330,card:\[64,356,1016,1017\],to:\[940,255\]\}/.test(where), 'bouton « Ajouter à mes notes » à 1 min 59, sous le récapitulatif ; la note part du récapitulatif vers le carnet');
+  assert.equal(m[3], '1 min 48');
+  assert.ok(!/notes:\{/.test(where), 'pas de bouton « Ajouter à mes notes » dans la vidéo : il est dans le bilan (Elisa, 27 octobre, 9 h 43)');
+  /* « Ce que tu retiens » n’est plus dans la vidéo : elle s’arrête sur la dernière image du résultat, avant sa sortie (82,5 s), la légende encore là. */
+  const wp = fs.readFileSync(path.join(ROOT, 'assets/anim/where.html'), 'utf8');
+  assert.ok(wp.includes('const END = RECAP ? null : 82.48;') && wp.includes('CHAPTERS.length = 6;') && wp.includes('CAPTIONS[16] = [CAPTIONS[16][0], 999, CAPTIONS[16][2]];'), 'la vidéo s’arrête avant « À retenir », sa dernière légende reste affichée');
+  assert.ok(wp.includes('<span>/ ${CHAPTERS.length} · ${c.label}</span>'), 'l’étiquette compte les chapitres restants (6 / 6)');
   /* Les moments « À toi » (Elisa, 26 octobre, 14 h 59) : la page garde son propre moteur et passe par moments.js (momentPlan, momentIX). */
-  assert.ok(/duree:'2 min 07',moments:3,\n/.test(where) && !/seuil:/.test(where), 'trois moments, qui ne bloquent pas (l’exercice et le quiz valident la leçon)');
+  assert.ok(/duree:'1 min 48',moments:3\}/.test(where) && !/seuil:/.test(where), 'trois moments, qui ne bloquent pas (l’exercice et le quiz valident la leçon)');
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/where.html'), 'utf8');
   assert.ok(page.includes('<script src="gsap.min.js"></script>\n<script src="moments.js"></script>') && page.includes('  build();\n  applyMoments();'), 'moments.js, puis les moments insérés une fois la timeline construite');
   const M = momentsDe('where.html');
@@ -124,7 +128,7 @@ test('« Ajouter à mes notes » dans la vidéo : même note que le cours texte,
   assert.ok(player.includes("e.target.closest('.lv-end,.lv-big,.lv-note-btn')"), 'toucher le bouton ne met pas la vidéo en pause');
   const add = cut('function lvNoteAdd(e){', 'function lvNoteBurst(btn){');
   assert.ok(!/toast\(/.test(add), 'pas de toast : le retour se fait sur le bouton');
-  assert.ok(add.includes('lvNoteExisting(l)') && add.includes("lvNoteMark('already')"), 'pas de doublon');
+  assert.ok(add.includes("if(lvNoteSave(l)==='already'){ lvNoteMark('already');") && cut('function lvNoteSave(l){', 'function lvNoteAdd(e){').includes("if(lvNoteExisting(l))return 'already';"), 'pas de doublon');
   const ctx = vm.createContext({REFLEX_TITLE: 'Le réflexe à retenir', state: {notes: []},
     lessonReflexText: l => 'WHERE sert à filtrer les lignes selon une condition.\nIl agit sur le résultat.'});
   vm.runInContext(cut('function lvNoteCtx(l){', 'function lvNotePlace(){'), ctx);
@@ -164,7 +168,7 @@ test('commandes de lecture : reculer / avancer de 5 s, pause, vitesse 0,5× à 2
 
 test('micro-interaction de l’ajout : halo, mini-note en arc vers « Mes notes », compteur n → n + 1, puis tout s’efface', () => {
   const add = cut('function lvNoteAdd(e){', '/* Micro-interaction de l’ajout');
-  assert.ok(add.includes('const before=state.notes.length;') && add.includes('lvNoteFly(before,state.notes.length)'), 'compteur avant / après l’ajout');
+  assert.ok(add.includes('const before=(state.notes||[]).length;') && add.includes('lvNoteFly(before,state.notes.length)'), 'compteur avant / après l’ajout');
   assert.ok(add.indexOf("lvNoteMark('already')") < add.indexOf('lvNoteFly('), 'note déjà présente : pas d’envol');
   assert.ok(add.includes('if(!prefersReduceMotion()){ lvNoteBurst('), 'mouvement réduit : pas d’animation');
   const fly = cut('function lvNoteFly(before,after){', 'function lvNoteBurst(btn){');
@@ -468,8 +472,8 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '6 min 03', notesAt: 327.35,
-    notes: /notes:\{t:354\.6,y:1404,card:\[64,292,1016,1109\],to:\[940,255\]\}/, table: 'clients',
+  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '5 min 40', notesAt: 327.35,
+    table: 'clients',
     bubble: 'Chaque sujet a sa table,<br>et des identifiants relient les tables.',
     chapters: ['Situation', 'Le problème', 'Le découpage', 'Base de données et SGBD', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],
     traps: [
@@ -512,32 +516,32 @@ const COURSES = [
       'Les prénoms, sous le titre <span class="ic">email</span>', 'near "FROM": syntax error',
       // Les trois idées : les tables, les clés (et leur déclaration), SELECT
       '<span class="ic blk">FOREIGN KEY (client_id)<br>&nbsp;&nbsp;REFERENCES clients(id)</span>', '<span class="ic blk">SELECT prenom, nom, email</span>']},
-  {id: 2, next: 13, titre: 'Renommer avec AS', page: 'as.html', thumb: 'as-thumb.jpg', duree: '2 min 03', notesAt: 92.4,
-    notes: /notes:\{t:115\.3,y:1330,card:\[64,356,1016,1017\],to:\[940,255\]\}/, table: 'produits',
+  {id: 2, next: 13, titre: 'Renommer avec AS', page: 'as.html', thumb: 'as-thumb.jpg', duree: '1 min 45', notesAt: 92.4,
+    table: 'produits',
     bubble: 'Avec <span class="ic">AS</span>, donne à une colonne un nom plus clair dans le résultat.',
     chapters: ['Situation', 'Le problème', 'Renommer une colonne', 'Plusieurs colonnes', 'Le piège des guillemets', 'Le résultat', 'À retenir'],
     traps: ['near "du": syntax error', 'near "(": syntax error', '"Nom du produit"']},
-  {id: 13, next: 4, titre: 'DISTINCT', page: 'distinct.html', thumb: 'distinct-thumb.jpg', duree: '2 min 04', notesAt: 87.2,
-    notes: /notes:\{t:116\.2,y:1277,card:\[64,356,1016,964\],to:\[940,255\]\}/, table: 'clients',
+  {id: 13, next: 4, titre: 'DISTINCT', page: 'distinct.html', thumb: 'distinct-thumb.jpg', duree: '1 min 46', notesAt: 87.2,
+    table: 'clients',
     bubble: 'Avec <span class="ic">DISTINCT</span>, garde chaque valeur une seule fois.',
     chapters: ['Situation', 'Le problème', 'DISTINCT en action', 'Où le placer', 'Plusieurs colonnes', 'Le résultat', 'À retenir'],
     traps: ['near "DISTINCT": syntax error', 'Cette ville est-elle déjà dans le résultat ?', 'Paris + Sophie et Paris + Léa sont différentes']},
-  {id: 5, next: 6, titre: 'Comparer des valeurs', page: 'comparer.html', thumb: 'comparer-thumb.jpg', duree: '2 min 18', notesAt: 102.2,
-    notes: /notes:\{t:130\.4,y:1372,card:\[64,356,1016,1077\],to:\[940,255\]\}/, table: 'produits',
+  {id: 5, next: 6, titre: 'Comparer des valeurs', page: 'comparer.html', thumb: 'comparer-thumb.jpg', duree: '2 min 00', notesAt: 102.2,
+    table: 'produits',
     bubble: 'Avec les opérateurs de comparaison, compare une colonne à une valeur.',
     chapters: ['Situation', 'Le problème', 'La comparaison', 'Six opérateurs', 'La limite', 'Comparer un texte', 'Le résultat', 'À retenir'],
     traps: ['<span class="kw">WHERE</span> stock <span class="cbox" id="eqA">=<i class="mbox"></i></span><span class="glow" id="leA">&lt;=</span> 60;',
       'Son stock est-il inférieur<br>ou égal à 60 ?', '<span class="kw">WHERE</span> stock &lt; 60', '<span class="kw">WHERE</span> stock &lt;= 60',
       "<span class=\"kw\">WHERE</span> categorie != <span class=\"str glow\" id=\"s6str\">'Accessoire'</span>;", 'Un texte, entre guillemets simples']},
-  {id: 6, next: 22, titre: 'AND et OR', page: 'and-or.html', thumb: 'and-or-thumb.jpg', duree: '2 min 11', notesAt: 101.5,
-    notes: /notes:\{t:123\.4,y:1420,card:\[64,356,1016,1130\],to:\[940,255\]\}/, table: 'clients',
+  {id: 6, next: 22, titre: 'AND et OR', page: 'and-or.html', thumb: 'and-or-thumb.jpg', duree: '1 min 53', notesAt: 101.5,
+    table: 'clients',
     bubble: 'Avec <span class="ic">AND</span> et <span class="ic">OR</span>, relie plusieurs conditions dans <span class="ic">WHERE</span>.',
     chapters: ['Situation', 'Le problème', 'Avec AND', 'Avec OR', 'Les parenthèses', 'Le résultat', 'À retenir'],
     traps: ['<span class="ln" id="ql4">  <span class="kw hlc" id="and3">AND</span> age &gt; 30;', '<b>Aucune ligne</b><span class="s">Une ville ne peut pas être Paris et Lyon à la fois.</span>',
       '<span class="op2">AND</span>', '<span class="op2">OR</span>', 'AND : calculé en premier', 'entre parenthèses : calculé en premier',
       '<span id="lp">(</span><span id="cP">ville = <span class="str">\'Paris\'</span></span> <span class="kw">OR</span> <span id="cL">ville = <span class="str">\'Lyon\'</span></span><span id="rp">)</span> <span class="kw" id="and5">AND</span> <span id="cA">age &gt; 30</span>']},
-  {id: 22, next: 7, titre: 'NOT', page: 'not.html', thumb: 'not-thumb.jpg', duree: '2 min 13', notesAt: 97.2,
-    notes: /notes:\{t:124\.9,y:1365,card:\[64,356,1016,1070\],to:\[940,255\]\}/, table: 'clients',
+  {id: 22, next: 7, titre: 'NOT', page: 'not.html', thumb: 'not-thumb.jpg', duree: '1 min 54', notesAt: 97.2,
+    table: 'clients',
     bubble: 'Avec <span class="ic">NOT</span>, inverse une condition : garde ce qu’elle écarte.',
     chapters: ['Situation', 'Le problème', 'NOT en action', 'NOT ou l’inverse', 'Les parenthèses', 'Le résultat', 'À retenir'],
     traps: ['<span class="kw">WHERE</span> <span class="kw glow" id="not3">NOT </span>', '<span id="dY">2023</span>-<span id="dM">03</span>-<span id="dD">01</span>',
@@ -545,15 +549,15 @@ const COURSES = [
       'date_inscription <span class="hv">&gt;=<i class="mbox"></i></span>&nbsp;<span class="str">\'2023-03-01\'</span>',
       '<span class="kw" id="not5">NOT</span> <span id="lp">(</span><span id="cP">ville = <span class="str">\'Paris\'</span></span> <span class="kw">AND</span> age &gt; 35<span id="rp">)</span>',
       'NOT inverse tout le groupe', 'NOT n’inverse que cette condition']},
-  {id: 7, next: 8, titre: 'NULL', page: 'null.html', thumb: 'null-thumb.jpg', duree: '1 min 58', notesAt: 86.2,
-    notes: /notes:\{t:110\.8,y:1270,card:\[64,356,1016,957\],to:\[940,255\]\}/, table: 'clients',
+  {id: 7, next: 8, titre: 'NULL', page: 'null.html', thumb: 'null-thumb.jpg', duree: '1 min 40', notesAt: 86.2,
+    table: 'clients',
     bubble: '<span class="ic">IS NULL</span> retrouve les valeurs absentes.',
     chapters: ['Situation', 'Le problème', 'IS NULL en action', 'Le piège du = NULL', 'IS NOT NULL', 'Le résultat', 'À retenir'],
     traps: ['<span class="ln" id="ql3"><span class="kw">WHERE</span> email <span class="kw glow" id="isn3">IS NULL</span>;', '<span class="tv nul">NULL</span><b>aucune valeur</b>',
       '<span class="tv">\'\'</span><b>un texte vide</b>', '<span class="tv">0</span><b>le nombre zéro</b>', '<span class="kw">WHERE</span> email = <span class="kw">NULL</span>;',
       '<b>Aucune ligne</b><span class="s">NULL n’est égal à rien, pas même à NULL.</span>', '<span class="kw glow" id="isnn5">IS NOT NULL</span>', '2 + 8 = <em>10 clients</em>']},
-  {id: 8, next: 9, titre: 'LIKE', page: 'like.html', thumb: 'like-thumb.jpg', duree: '2 min 25', notesAt: 101.7,
-    notes: /notes:\{t:137\.1,y:1372,card:\[64,356,1016,1077\],to:\[940,255\]\}/, table: 'clients',
+  {id: 8, next: 9, titre: 'LIKE', page: 'like.html', thumb: 'like-thumb.jpg', duree: '2 min 07', notesAt: 101.7,
+    table: 'clients',
     bubble: 'Avec <span class="ic">LIKE</span>, cherche un motif plutôt qu’une valeur exacte.',
     chapters: ['Situation', 'Le problème', 'LIKE en action', 'Où placer le %', 'Un seul caractère', 'Le résultat', 'À retenir'],
     traps: ['<span class="kw">WHERE</span> prenom <span class="cbox" id="eqA">=<i class="mbox"></i></span><span class="kw glow" id="likeA">LIKE</span>',
@@ -562,8 +566,8 @@ const COURSES = [
       '<span class="str glow" id="strB4">\'%ie%\'</span>', '<span class="cpl">\'l%\'</span><span class="tx">ou</span><span class="cpl">\'L%\'</span>',
       '<span class="str">\'<span class="glow" id="us5">_</span>a%\'</span>', "[['_', 0, 0], ['a', 1, 1], ['%', 2, 'end']]",
       'n’importe quelle suite, <b>même vide</b>', '<b>exactement un</b> caractère']},
-  {id: 9, next: 10, titre: 'IN', page: 'in.html', thumb: 'in-thumb.jpg', duree: '2 min 10', notesAt: 92.1,
-    notes: /notes:\{t:122\.5,y:1359,card:\[64,356,1016,1064\],to:\[940,255\]\}/, table: 'clients',
+  {id: 9, next: 10, titre: 'IN', page: 'in.html', thumb: 'in-thumb.jpg', duree: '1 min 52', notesAt: 92.1,
+    table: 'clients',
     bubble: 'Avec <span class="ic">IN</span>, compare une colonne à toute une liste de valeurs.',
     chapters: ['Situation', 'Le problème', 'IN en action', 'Écrire la liste', 'Une seule colonne', 'Le résultat', 'À retenir'],
     traps: ['<span class="ball">2</span><span class="ball">5</span><span class="ball">9</span>',
@@ -572,16 +576,16 @@ const COURSES = [
       'Son identifiant est-il dans la liste ?', '<div class="tg" id="tgP"><i>( )</i>entre parenthèses</div>',
       '(<span class="hv str" id="hS1">\'Paris\'<i class="mbox"></i></span>, <span class="hv str" id="hS2">\'Nantes\'<i class="mbox"></i></span>)',
       '<span class="ln5" id="m5b">  <span class="kw">AND</span> age &gt; 35;', '✓ 3 lots prêts à partir']},
-  {id: 10, next: 11, titre: 'BETWEEN', page: 'between.html', thumb: 'between-thumb.jpg', duree: '2 min 19', notesAt: 98.4,
-    notes: /notes:\{t:131\.2,y:1351,card:\[64,356,1016,1056\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 10, next: 11, titre: 'BETWEEN', page: 'between.html', thumb: 'between-thumb.jpg', duree: '2 min 01', notesAt: 98.4,
+    table: 'commandes',
     bubble: 'Avec <span class="ic">BETWEEN</span>, garde les valeurs situées entre deux limites.',
     chapters: ['Situation', 'Le problème', 'BETWEEN en action', 'Limites incluses', 'Limites à l’envers', 'Le résultat', 'À retenir'],
     traps: ['<div class="inv-title">¡Gracias!</div>', '<span class="t1">¡Gracias!</span><span class="t2">Merci !</span>',
       '<span id="geA">&gt;=</span><span class="kw glow" id="btA">BETWEEN</span>', '<span id="dcB"><span class="rep" id="r2">date_commande<i class="mbox"></i></span> &lt;= </span>',
       '<span class="x2" id="x2">× 2</span>', 'Sa date est-elle dans l’intervalle ?', '<span class="op" id="op2">&lt;=</span>20 juillet · inclus',
       '<span class="str bad" id="bd1">\'2026-07-20\'</span>', 'À l’envers, l’intervalle est vide.', '✓ 4 confirmations renvoyées en français']},
-  {id: 11, next: 12, titre: 'ORDER BY', page: 'order-by.html', thumb: 'order-by-thumb.jpg', duree: '2 min 10', notesAt: 95.8,
-    notes: /notes:\{t:122\.5,y:1366,card:\[64,356,1016,1071\],to:\[940,255\]\}/, table: 'produits',
+  {id: 11, next: 12, titre: 'ORDER BY', page: 'order-by.html', thumb: 'order-by-thumb.jpg', duree: '1 min 52', notesAt: 95.8,
+    table: 'produits',
     bubble: 'Avec <span class="ic">ORDER BY</span>, range le résultat dans l’ordre voulu.',
     chapters: ['Situation', 'Le problème', 'ORDER BY en action', 'Le sens du tri', 'Deux critères', 'Le résultat', 'À retenir'],
     traps: ["[3,'Magnésium','Bien-être',19.9,500]", '<div class="inv-title">Stock saisi : 50<span id="z0">0</span></div>',
@@ -589,8 +593,8 @@ const COURSES = [
       '<span class="sus"><span class="emo">🔍</span>50 ou 500 ?</span>', '<span class="tx">30 → 500</span><span class="tx">500 → 30</span>',
       '<span class="tx">A → Z</span><span class="tx">Z → A</span>', '<span class="kw">ORDER BY</span> categorie, prix<span class="sens" id="descC"> <span class="kw glow">DESC</span></span>;',
       '✓ Vérifications prêtes']},
-  {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '3 min 01', notesAt: 142.2,
-    notes: /notes:\{t:173\.0,y:1372,card:\[64,356,1016,1077\],to:\[940,255\]\}/, table: 'produits',
+  {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '2 min 43', notesAt: 142.2,
+    table: 'produits',
     bubble: 'Avec <span class="ic">LIMIT</span> et <span class="ic">OFFSET</span>, tu affiches seulement la partie du résultat qui t’intéresse.',
     chapters: ['Situation', 'Le problème', 'LIMIT en action', 'Sauter avec OFFSET', 'Un classement stable', 'Le résultat', 'À quoi ça sert', 'À retenir'],
     traps: ['<div class="more"><span class="emo">⬇️</span>Voir plus</div>', '<div class="pc sk"><span class="pi">?</span>',
@@ -611,8 +615,8 @@ const COURSES = [
       '<b>Tableaux de bord</b><span class="rs">Parcourir une longue liste de commandes.</span>',
       '<b>API</b><span class="rs">Renvoyer une portion des résultats à chaque demande.</span>',
       '<b>Scripts de traitement</b><span class="rs">Récupérer des données par lots.</span>']},
-  {id: 51, next: 52, titre: 'Fonctions de texte', page: 'fonctions-texte.html', thumb: 'fonctions-texte-thumb.jpg', duree: '2 min 36', notesAt: 134.0,
-    notes: /notes:\{t:148\.1,y:1371,card:\[64,300,1016,1076\],to:\[940,255\]\}/, table: 'clients',
+  {id: 51, next: 52, titre: 'Fonctions de texte', page: 'fonctions-texte.html', thumb: 'fonctions-texte-thumb.jpg', duree: '2 min 15', notesAt: 134.0,
+    table: 'clients',
     bubble: 'Les fonctions de texte permettent<br>de transformer le contenu d’une colonne<br>pour obtenir le texte dont tu as besoin.',
     chapters: ['Situation', 'Le problème', 'UPPER en action', 'Assembler avec ||', 'Une fonction par besoin', 'Le résultat', 'À retenir'],
     traps: ['<div class="tagpill">Cours · Fonctions et expressions</div>', '<div class="lb-f" id="f1"><span class="ph">NOM Prénom</span></div>',
@@ -626,8 +630,8 @@ const COURSES = [
       '<span class="fi"><span class="ic">SUBSTR</span>récupère une partie du texte</span>', '<span class="fi"><span class="ic">REPLACE</span>remplace des caractères</span>',
       'hold(2.3, 4.6);', '<meta name="format-detection" content="telephone=no">', '✓ 10 étiquettes prêtes',
       'function ean13Svg(code){', "const bar = ean13Svg('3760123456784');", '.lb-bar svg{display:block;width:100%;height:100%}']},
-  {id: 52, next: 53, titre: 'Fonctions numériques', page: 'fonctions-numeriques.html', thumb: 'fonctions-numeriques-thumb.jpg', duree: '2 min 31', notesAt: 132.6,
-    notes: /notes:\{t:143\.4,y:1365,card:\[64,356,1016,1070\],to:\[940,255\]\}/, table: 'produits',
+  {id: 52, next: 53, titre: 'Fonctions numériques', page: 'fonctions-numeriques.html', thumb: 'fonctions-numeriques-thumb.jpg', duree: '2 min 13', notesAt: 132.6,
+    table: 'produits',
     bubble: 'Les fonctions numériques permettent<br><span class="nw">d’effectuer des opérations sur les nombres.</span>',
     chapters: ['Situation', 'Le problème', 'FLOOR en action', 'Calculer', 'Trois façons d’arrondir', 'Le résultat', 'À retenir'],
     traps: ['<div class="ly-pts">120 <small>points</small></div>', '<span>🎯 1 point par euro entier</span>', '<span class="pc-val"><span class="a">+ ? points</span></span>',
@@ -643,8 +647,8 @@ const COURSES = [
       '"Pendant la semaine des <b>points doublés</b>, organisée une fois dans l’année, <span class=\\"nw\\">seuls les euros entiers comptent</span>."',
       '"<code>FLOOR(prix)</code> retire les centimes, <span class=\\"nw\\">puis ×\\u00a02</span> calcule les points gagnés."', 'hold(2.3, 2.6);',
       '"Sur chaque fiche produit, le site web veut afficher les points gagnés à l’achat."']},
-  {id: 53, next: 54, titre: 'Fonctions de dates et heures', page: 'fonctions-dates.html', thumb: 'fonctions-dates-thumb.jpg', duree: '2 min 30', notesAt: 131.5,
-    notes: /notes:\{t:142\.6,y:1362,card:\[64,356,1016,1067\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 53, next: 54, titre: 'Fonctions de dates et heures', page: 'fonctions-dates.html', thumb: 'fonctions-dates-thumb.jpg', duree: '2 min 12', notesAt: 131.5,
+    table: 'commandes',
     bubble: 'Les fonctions de dates et heures permettent<br><span class="nw">d’extraire, de transformer et de comparer</span><br><span class="nw">les dates et les heures dans tes données.</span>',
     chapters: ['Situation', 'Le problème', 'DATE en action', 'Le calendrier', 'Changer l’affichage', 'Le résultat', 'À retenir'],
     traps: ['<div class="abs title"><span>J</span><span>+</span><span>7</span></div>', '<span>⏳ 7 jours plus tard</span>', '<div class="ml-f"><span>Envoi prévu le</span><span class="ml-val">?</span></div>',
@@ -653,8 +657,8 @@ const COURSES = [
       '<span class="pt">2026<span class="dim">-07-02</span></span><span class="pj">+</span><span class="pt">7</span>', '<b>Résultat : 2033</b><span class="s">La date est lue comme le nombre 2026.</span>',
       '<span class="cp bad" id="bad4">✕ <s>2026-07-35</s></span><span class="cp good" id="good4">✓ 2026-08-04</span>',
       '<span class="dc">\'+1 month\'</span>', '<span class="dc">\'%d/%m/%Y\'</span><span class="ol">à la française</span>', '<span class="dc">\'%d\'</span><span class="ol">le jour</span>', '<span class="ic">STRFTIME()</span> change<br>l’<b>affichage</b> d’une date&nbsp;:', '✓ 16 messages planifiés']},
-  {id: 54, next: 21, titre: 'Fonctions de conversion de types', page: 'conversion-types.html', thumb: 'conversion-types-thumb.jpg', duree: '2 min 45', notesAt: 148.4,
-    notes: /notes:\{t:155\.9,y:1347,card:\[64,300,1016,1052\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 54, next: 21, titre: 'Fonctions de conversion de types', page: 'conversion-types.html', thumb: 'conversion-types-thumb.jpg', duree: '2 min 24', notesAt: 148.4,
+    table: 'commandes',
     bubble: 'Avec <span class="ic">CAST</span>, change le type d’une valeur.',
     chapters: ['Situation', 'Le problème', 'CAST en action', 'Extraire, puis convertir', 'Les types', 'Le résultat', 'À retenir'],
     traps: ['<div class="ap-in" id="in1"><span id="ty1">CMD-2026-1002481</span></div>', '✕ Nombre entier attendu, par exemple <b>1002481</b>',
@@ -665,8 +669,8 @@ const COURSES = [
       '<span class="tcp">REAL</span><span class="tl">nombre à virgule</span><span class="tx">29.9</span>', 'Les décimales sont supprimées, sans arrondir',
       '<span class="ln" id="s6l4">  <span class="kw">typeof</span>(', '<div class="rgT th"><div>numero_commande</div><div>numero</div><div>type</div></div>',
       '✓ Nombre entier : numéro accepté', '✓ 16 commandes importées']},
-  {id: 21, next: 23, titre: 'CASE', page: 'case.html', thumb: 'case-thumb.jpg', duree: '2 min 35', notesAt: 141.5,
-    notes: /notes:\{t:147\.7,y:1306,card:\[64,356,1016,1011\],to:\[940,255\]\}/, table: 'produits',
+  {id: 21, next: 23, titre: 'CASE', page: 'case.html', thumb: 'case-thumb.jpg', duree: '2 min 17', notesAt: 141.5,
+    table: 'produits',
     bubble: 'Avec <span class="ic">CASE</span>, affiche une valeur selon une condition.',
     chapters: ['Situation', 'Le problème', 'CASE en action', 'L’ordre compte', 'Sans ELSE', 'Le résultat', 'À retenir'],
     traps: ['<span>Entrepôt · Tableau de bord</span>', "const ALERTE = s => s < 50 ? 'r' : s < 100 ? 'o' : 'g';",
@@ -676,8 +680,8 @@ const COURSES = [
       '<span>Dans le mauvais ordre</span>', '<b>Aucun produit « À commander »</b><span class="s">Sous 50, le stock est aussi sous 100.</span>',
       '<span class="a com">  -- pas de ELSE</span>', '<span class="nul" id="nul5">NULL</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> alerte</span>', '✓ 8 alertes à jour']},
-  {id: 23, next: 14, titre: 'COALESCE', page: 'coalesce.html', thumb: 'coalesce-thumb.jpg', duree: '2 min 29', notesAt: 135.9,
-    notes: /notes:\{t:141\.7,y:1270,card:\[64,356,1016,957\],to:\[940,255\]\}/, table: 'clients',
+  {id: 23, next: 14, titre: 'COALESCE', page: 'coalesce.html', thumb: 'coalesce-thumb.jpg', duree: '2 min 11', notesAt: 135.9,
+    table: 'clients',
     bubble: 'Avec <span class="ic">COALESCE</span>, remplace un <span class="ic">NULL</span> par une autre valeur.',
     chapters: ['Situation', 'Le problème', 'COALESCE en action', 'Plusieurs valeurs', 'Le texte vide', 'Le résultat', 'À retenir'],
     traps: ['<span>Support · Fiches clients</span>', '<span class="sw st"><span class="a ec"></span><span class="b nr">Non renseigné</span></span>',
@@ -688,8 +692,8 @@ const COURSES = [
       '<span>NULL ou texte vide&nbsp;?</span>', '(<span class="str glow" id="q5">\'\'</span>, <span class="str">\'Non renseigné\'</span>)',
       '<b>La case reste vide</b><span class="s">Un texte vide n’est jamais remplacé.</span>',
       '<span class="kw">AS</span> email', '✓ Aucune case vide à l’écran', 'La table clients ne change pas']},
-  {id: 14, next: 16, titre: 'COUNT', page: 'count.html', thumb: 'count-thumb.jpg', duree: '2 min 18', notesAt: 125.1,
-    notes: /notes:\{t:130\.9,y:1365,card:\[64,356,1016,1070\],to:\[940,255\]\}/, table: 'produits',
+  {id: 14, next: 16, titre: 'COUNT', page: 'count.html', thumb: 'count-thumb.jpg', duree: '2 min 00', notesAt: 125.1,
+    table: 'produits',
     bubble: 'Avec <span class="ic">COUNT</span>, compte les lignes au lieu de les afficher.',
     chapters: ['Situation', 'Le problème', 'COUNT(*) en action', 'Valeurs différentes', 'Compter une partie', 'Le résultat', 'À retenir'],
     traps: ['<span>Entrepôt · Tableau de bord</span>', '<span class="nl">Les produits à commander</span><span class="tag calc">à calculer</span>',
@@ -698,8 +702,8 @@ const COURSES = [
       '<span class="x">✕ email ignoré</span>', '<span>Les catégories des 8 produits</span>', '<span class="kw glow" id="d4">DISTINCT</span> categorie)',
       '<span class="sw" id="sw4"><span class="a">?</span><span class="b">5</span></span>', '<span class="kw">WHERE</span> <span class="glow" id="w5">stock &lt; 50</span>;',
       '<span class="glow" id="as6b"><span class="kw">AS</span> categories</span>', '✓ Compteurs à jour']},
-  {id: 16, next: 17, titre: 'GROUP BY', page: 'group-by.html', thumb: 'group-by-thumb.jpg', duree: '2 min 20', notesAt: 126.3,
-    notes: /notes:\{t:132\.1,y:1312,card:\[64,356,1016,1017\],to:\[940,255\]\}/, table: 'clients',
+  {id: 16, next: 17, titre: 'GROUP BY', page: 'group-by.html', thumb: 'group-by-thumb.jpg', duree: '2 min 02', notesAt: 126.3,
+    table: 'clients',
     bubble: 'Avec <span class="ic">GROUP BY</span>, calcule un résultat pour chaque groupe.',
     chapters: ['Situation', 'Le problème', 'GROUP BY en action', 'Un calcul par groupe', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span>Conseillers · Répartition par ville</span>', '<span class="nl">Son nombre de clients</span><span class="tag calc">à calculer</span>',
@@ -710,8 +714,8 @@ const COURSES = [
       '<span class="glow" id="pn5">prenom</span>, ville, <span class="kw">COUNT</span>(*)', '<span class="vv" id="so5">Sophie</span>',
       '<span class="ok">SQLite&nbsp;: un prénom au choix</span><span class="ko">Autres bases&nbsp;: une erreur</span>', '<span class="cv">✕ ni l’un ni l’autre</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> nb_clients</span>', '✓ Paris en tête avec 4 clients']},
-  {id: 17, next: 76, titre: 'HAVING', page: 'having.html', thumb: 'having-thumb.jpg', duree: '2 min 26', notesAt: 131.4,
-    notes: /notes:\{t:138\.5,y:1335,card:\[64,300,1016,1040\],to:\[940,255\]\}/, table: 'clients',
+  {id: 17, next: 76, titre: 'HAVING', page: 'having.html', thumb: 'having-thumb.jpg', duree: '2 min 07', notesAt: 131.4,
+    table: 'clients',
     bubble: 'Avec <span class="ic">HAVING</span>, filtre les groupes formés par <span class="ic">GROUP BY</span>.',
     chapters: ['Situation', 'Le problème', 'HAVING en action', 'WHERE ou HAVING', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span class="emo">🪷</span><span>Ateliers bien-être · Choix des villes</span>', '<span class="emo">🧘</span>Un atelier dès 2 clients', '<span class="pd emo">🧘</span>',
@@ -722,8 +726,8 @@ const COURSES = [
       '<span class="emo">🎂</span>&nbsp;7 clients de 30 ans ou plus</span>', '<span class="kw">WHERE</span> <span class="glow" id="cw5"><span class="kw">COUNT</span>(*) &gt;= 2</span>',
       '<b>Erreur SQL</b><span class="m">misuse of aggregate: COUNT()</span>', '<span class="sk">HAVING</span><span class="sx">trie les groupes</span><span class="sc ok" id="sc5c">COUNT(*) ✓</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> nb_clients</span>', '✓ 2 ateliers&nbsp;: Paris et Lyon']},
-  {id: 76, next: 18, titre: 'GROUP_CONCAT', page: 'group-concat.html', thumb: 'group-concat-thumb.jpg', duree: '2 min 48', notesAt: 150.2,
-    notes: /notes:\{t:159\.9,y:1367,card:\[64,300,1016,1072\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 76, next: 18, titre: 'GROUP_CONCAT', page: 'group-concat.html', thumb: 'group-concat-thumb.jpg', duree: '2 min 28', notesAt: 150.2,
+    table: 'commandes',
     bubble: 'Avec <span class="ic">GROUP_CONCAT</span>, liste les valeurs de chaque groupe.',
     chapters: ['Situation', 'Le problème', 'GROUP_CONCAT en action', 'Séparateur et NULL', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span>Entrepôt · Suivi des commandes</span>', '<span class="nl">La liste de ses commandes</span><span class="tag calc">à calculer</span>',
@@ -733,8 +737,8 @@ const COURSES = [
       '<span class="snote" id="sn4">une virgule sans espace</span>', '<span class="vc nul" id="vn4"><small>commande n°16</small><b>NULL</b>', '<span class="b">4, 1, 3, 5</span>',
       '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> statut <span class="kw">DESC</span></span>', '<span class="b">16, 15, 14, 13, 12</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> commandes</span>', '✓ 16 commandes, chacune sous son statut']},
-  {id: 18, next: 20, titre: 'INNER JOIN', page: 'inner-join.html', thumb: 'inner-join-thumb.jpg', duree: '2 min 21', notesAt: 120.9,
-    notes: /notes:\{t:133\.3,y:1365,card:\[64,300,1016,1070\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 18, next: 20, titre: 'INNER JOIN', page: 'inner-join.html', thumb: 'inner-join-thumb.jpg', duree: '2 min 01', notesAt: 120.9,
+    table: 'commandes',
     bubble: 'Avec <span class="ic">INNER JOIN</span>, seules les lignes<br>qui ont une correspondance<br>dans l’autre table sont conservées.',
     chapters: ['Situation', 'Le problème', 'INNER JOIN en action', 'Sans correspondance', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span>Entrepôt · Étiquettes d’expédition</span><span class="tb" id="tb1">table commandes</span>', 'const PREP = [[12, 4], [13, 1], [14, 3], [15, 5], [16, null]];',
@@ -744,8 +748,8 @@ const COURSES = [
       '<span class="qm" id="qm4"><span class="sw"><span class="a">?</span><span class="b">✕</span></span></span>',
       '<b>Erreur SQL</b><span class="m">ambiguous column name: id</span>', '<span class="glow" id="id5"><span id="pre5">commandes.</span>id</span>, prenom, nom',
       '<span>🤝 4 correspondances, 4 lignes</span>', '✓ 4 étiquettes imprimées']},
-  {id: 20, next: 38, titre: 'LEFT JOIN', page: 'left-join.html', thumb: 'left-join-thumb.jpg', duree: '2 min 43', notesAt: 145.4,
-    notes: /notes:\{t:155\.2,y:1370,card:\[64,300,1016,1075\],to:\[940,255\]\}/, table: 'clients',
+  {id: 20, next: 38, titre: 'LEFT JOIN', page: 'left-join.html', thumb: 'left-join-thumb.jpg', duree: '2 min 22', notesAt: 145.4,
+    table: 'clients',
     bubble: 'Avec <span class="ic">LEFT JOIN</span>, garde aussi les lignes sans correspondance.',
     chapters: ['Situation', 'Le problème', 'LEFT JOIN en action', 'Clients sans carte', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span>Bilan fidélité</span><span class="tb" id="tb1">table clients</span>', 'const CARTES = [[1, 1, 120], [2, 2, 80], [3, 4, 250], [4, 7, 160]];',
@@ -753,8 +757,8 @@ const COURSES = [
       '<span class="glow" id="lw3">LEFT</span>', '<span class="glow" id="o3"><span class="kw">ON</span> clients.id = fidelite.client_id</span>', '<span>👥 10 clients, 10 lignes</span>',
       '<span class="glow" id="w4"><span class="kw">WHERE</span> fidelite.id <span class="kw">IS NULL</span></span>',
       '<span class="glow" id="f5"><span class="kw">FROM</span> fidelite</span>', 'Les 6 clients sans carte ont disparu', '✓ 4 clients sur 10 ont une carte']},
-  {id: 38, next: 39, titre: 'RIGHT JOIN', page: 'right-join.html', thumb: 'right-join-thumb.jpg', duree: '3 min 22', notesAt: 183.1,
-    notes: /notes:\{t:194\.7,y:1344,card:\[64,292,1016,1049\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 38, next: 39, titre: 'RIGHT JOIN', page: 'right-join.html', thumb: 'right-join-thumb.jpg', duree: '3 min 02', notesAt: 183.1,
+    table: 'commandes',
     bubble: 'Avec <span class="ic">RIGHT JOIN</span>, toutes les lignes<br>de la table de droite sont conservées.',
     chapters: ['Situation', 'Le problème', 'RIGHT JOIN en action', 'Commande sans client', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span>Export de l’été</span><span class="tb tc" id="tb1">table commandes</span>', "const ORDRE = [1, 2, 13, 3, 10, 4, 14, 5, 12, 6, 15, 7, 8, 9, 11, 16];",
@@ -762,8 +766,8 @@ const COURSES = [
       '<span class="glow" id="o3"><span class="kw">ON</span> clients.id = commandes.client_id</span>', '<span>🧾 16 commandes, 16 lignes</span>',
       '<span class="glow" id="w4"><span class="kw">WHERE</span> clients.id <span class="kw">IS NULL</span></span>',
       '<span class="kw">RIGHT JOIN</span> <span class="glow" id="c5">clients</span>', 'La commande n°16 a disparu', '✓ 16 commandes exportées, dont 1 sans client']},
-  {id: 39, next: 40, titre: 'FULL OUTER JOIN', page: 'full-outer-join.html', thumb: 'full-outer-join-thumb.jpg', duree: '3 min 15', notesAt: 175.6,
-    notes: /notes:\{t:187\.5,y:1377,card:\[64,292,1016,1082\],to:\[940,255\]\}/, table: 'clients',
+  {id: 39, next: 40, titre: 'FULL OUTER JOIN', page: 'full-outer-join.html', thumb: 'full-outer-join-thumb.jpg', duree: '2 min 54', notesAt: 175.6,
+    table: 'clients',
     bubble: 'Avec <span class="ic">FULL OUTER JOIN</span>, toutes les lignes<br>des deux tables sont conservées.',
     chapters: ['Situation', 'Le problème', 'FULL OUTER JOIN en action', 'Sans correspondance', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span>Audit de la base</span><span class="tb" id="tb1">table clients</span>', 'const ORDRE = [[1, 1], [1, 2], [1, 13], [2, 3], [2, 10], [3, 4], [3, 14], [4, 5], [4, 12], [5, 6], [5, 15], [6, 7], [7, 8], [7, 9], [8, 11],',
@@ -771,8 +775,8 @@ const COURSES = [
       '<span class="kw"><span class="glow" id="fo3">FULL OUTER</span> JOIN</span> commandes', '<span class="glow" id="o3"><span class="kw">ON</span> clients.id = commandes.client_id</span>',
       '<span>↔️ Aucune ligne n’est exclue</span>', '<span>🚫 NULL en l’absence de correspondance</span>', '<span class="bl">correspondances, une ligne chacune</span>',
       '✓ Aucune ligne oubliée, 3 à vérifier']},
-  {id: 40, next: 19, titre: 'CROSS JOIN', page: 'cross-join.html', thumb: 'cross-join-thumb.jpg', duree: '2 min 40', notesAt: 140.4,
-    notes: /notes:\{t:152\.2,y:1185,card:\[64,292,1016,890\],to:\[940,255\]\}/, table: 'clients',
+  {id: 40, next: 19, titre: 'CROSS JOIN', page: 'cross-join.html', thumb: 'cross-join-thumb.jpg', duree: '2 min 19', notesAt: 140.4,
+    table: 'clients',
     bubble: 'Avec <span class="ic">CROSS JOIN</span>, chaque ligne d’une table<br>est associée à chaque ligne de l’autre.',
     chapters: ['Situation', 'Le problème', 'CROSS JOIN en action', 'Les doublons', 'Le résultat', 'À retenir'],
     traps: ['<span>Catalogue des offres</span><span class="tb" id="tb1">table clients</span>', 'const DOUBLONS = [4, 6, 7, 10];',
@@ -780,8 +784,8 @@ const COURSES = [
       '<span class="glow" id="cj3"><span class="kw">CROSS JOIN</span></span> produits', '<span class="vi"><span class="emo">✖️</span>Pas de <span class="ic">ON</span>&nbsp;: aucune condition</span>',
       '<span id="d4" class="glow"><span class="kw">DISTINCT</span> </span>', '<span class="ic blk sm">6 villes × 8 produits = 48 combinaisons</span>',
       '✓ Chaque produit, dans chaque ville']},
-  {id: 19, next: 41, titre: 'Jointure de 3 tables', page: 'jointure-3-tables.html', thumb: 'jointure-3-tables-thumb.jpg', duree: '3 min 38', notesAt: '196.7',
-    notes: /notes:\{t:210\.4,y:1149,card:\[64,292,1016,854\],to:\[940,255\]\}/, table: 'clients',
+  {id: 19, next: 41, titre: 'Jointure de 3 tables', page: 'jointure-3-tables.html', thumb: 'jointure-3-tables-thumb.jpg', duree: '3 min 17', notesAt: '196.7',
+    table: 'clients',
     bubble: 'Pour relier trois tables, enchaîne<br>les jointures&nbsp;: chaque <span class="ic">JOIN</span> ajoute une table.',
     chapters: ['Situation', 'Le problème', 'Deux JOIN en action', 'Filtrer', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span class="pn">Magnésium</span><span class="ps" id="ps1"><span class="emo">⚠️</span>lot défectueux</span>', "const PIEGE = [[3, '2026-07-08'], [3, '2026-07-30']];",
@@ -791,8 +795,8 @@ const COURSES = [
       '<span class="orph" id="op5b"><span class="emo">✕</span>Sophie Martin et Lucas Bernard oubliés</span>',
       '<span class="qx" id="qx6">sa qualité est compromise</span>', '<span class="of" id="of6a"><span class="emo">💶</span>Le remboursement du produit</span>',
       '✓ 2 emails envoyés']},
-  {id: 41, next: 42, titre: 'JOIN + GROUP BY', page: 'join-group-by.html', thumb: 'join-group-by-thumb.jpg', duree: '2 min 50', notesAt: 150.7,
-    notes: /notes:\{t:162\.2,y:1346,card:\[64,292,1016,1051\],to:\[940,255\]\}/, table: 'clients',
+  {id: 41, next: 42, titre: 'JOIN + GROUP BY', page: 'join-group-by.html', thumb: 'join-group-by-thumb.jpg', duree: '2 min 29', notesAt: 150.7,
+    table: 'clients',
     bubble: 'Relie d’abord les tables avec <span class="ic">JOIN</span>,<br>puis regroupe avec <span class="ic">GROUP BY</span>.',
     chapters: ['Situation', 'Le problème', 'JOIN + GROUP BY en action', 'Le bon ordre', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span>Rapport commercial</span><span class="tb" id="tb1">table clients</span>', "const GROUPES = [['Bordeaux', 2], ['Lyon', 3], ['Marseille', 2], ['Paris', 7], ['Toulouse', 1]];",
@@ -800,8 +804,8 @@ const COURSES = [
       '<span class="glow" id="j3"><span class="kw">INNER JOIN</span> commandes</span>', '<span class="sw" id="tt3"><span class="a">Après le JOIN</span><span class="b">Après GROUP BY et COUNT()</span></span>',
       '<span class="m">near "INNER": syntax error</span>', '<span class="nt rd" id="nt5b">↑ les 15 commandes d’un coup</span>',
       '<span>Nantes&nbsp;: aucune commande, donc aucune ligne</span>', '✓ Paris en tête, devant Lyon']},
-  {id: 42, next: 49, titre: 'SELF JOIN', page: 'self-join.html', thumb: 'self-join-thumb.jpg', duree: '2 min 58', notesAt: 158.4,
-    notes: /notes:\{t:170\.2,y:1203,card:\[64,292,1016,908\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 42, next: 49, titre: 'SELF JOIN', page: 'self-join.html', thumb: 'self-join-thumb.jpg', duree: '2 min 37', notesAt: 158.4,
+    table: 'commandes',
     bubble: 'Avec un <span class="ic">SELF JOIN</span>, une table<br>est reliée à <span class="nw">elle-même</span>.',
     chapters: ['Situation', 'Le problème', 'SELF JOIN en action', 'Avec elle-même', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span>Commandes reçues</span><span class="tb tc" id="tb1">table commandes</span>', 'const PAIRES = [[1, 2], [8, 9]];',
@@ -809,8 +813,8 @@ const COURSES = [
       '<span class="glow" id="d3"><span class="kw">AND</span> c1.date_commande = c2.date_commande</span>', '<span class="dp rd">elle-même</span>',
       '<span class="sw" id="op5"><span class="a">&lt;&gt;</span><span class="b">&lt;</span></span>',
       '<span class="glow" id="w6"><span class="kw">AND</span> c1.id &lt; c2.id</span>', '✓ 2 colis au lieu de 4']},
-  {id: 49, next: 44, titre: 'Plusieurs conditions dans ON', page: 'plusieurs-conditions-on.html', thumb: 'plusieurs-conditions-on-thumb.jpg', duree: '3 min 17', notesAt: 177.6,
-    notes: /notes:\{t:191\.8,y:1340,card:\[64,292,1016,1045\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 49, next: 44, titre: 'Plusieurs conditions dans ON', page: 'plusieurs-conditions-on.html', thumb: 'plusieurs-conditions-on-thumb.jpg', duree: '2 min 59', notesAt: 177.6,
+    table: 'commandes',
     bubble: 'Avec <span class="ic">AND</span>, une jointure peut vérifier<br>plusieurs conditions à la fois.',
     chapters: ['Situation', 'Le problème', 'AND en action', 'Une troisième condition', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span>Coursier express</span><span class="tb tc" id="tb1">table commandes</span>', "const PARIS = LIGNES.filter(l => l[3] === 'Paris');",
@@ -822,8 +826,8 @@ const COURSES = [
       '✓ 2 commandes pour le coursier', '<span class="c">Lyon ✕</span>', '"À ne pas confondre : 13 est l’identifiant de la commande, 1 celui de la cliente."',
       '"Première condition :<br>la commande n°13 appartient-elle<br>à la cliente Sophie Martin ?"', '"Deuxième condition :<br>Sophie Martin habite-t-elle à Paris ?<br>Oui, sa ville est Paris."',
       '<span class="bike" id="bike6"><span class="emo">🛵</span></span>', '<span class="lvr">✓ Livrée</span>']},
-  {id: 44, next: 45, titre: 'Quel JOIN choisir ?', page: 'quel-join-choisir.html', thumb: 'quel-join-choisir-thumb.jpg', duree: '3 min 46', notesAt: 218.5,
-    notes: /notes:\{t:217\.5,y:1396,card:\[64,292,1016,1101\],to:\[940,255\]\}/, table: 'clients',
+  {id: 44, next: 45, titre: 'Quel JOIN choisir ?', page: 'quel-join-choisir.html', thumb: 'quel-join-choisir-thumb.jpg', duree: '3 min 10', notesAt: 218.5,
+    table: 'clients',
     bubble: 'Six situations de la vie courante&nbsp;:<br>à toi de choisir le bon <span class="ic">JOIN</span>.',
     chapters: ['Le cabinet des Tilleuls', 'L’aquarium de l’Atlas', 'La bibliothèque des Lumières', 'L’hôtel des Cimes', 'Le glacier parisien', 'L’agence Horizon', 'À retenir'],
     traps: ["const SAL = [[1, 'Nadia Benali', N], [2, 'Hugo Lefèvre', 1], [3, 'Inès Fabre', 2], [4, 'Théo Petit', 2]];",
@@ -844,48 +848,48 @@ const COURSES = [
       '<span class="cm hid" id="q5c">-- sans ON</span>', "if (out.length + rest.length <= 6) rest.forEach(s => { out.push(JSON.parse(s)); mk.push('m'); });",
       "leave(i, answered){ if (answered && X && X.ok && X.i === i) wait = i; else clear(); },",
       "tick(t = tl.time()){ if (wait < 0) return; const a = PICKS[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear(); }"]},
-  {id: 45, next: 47, titre: 'Sous-requête dans WHERE avec IN', page: 'sous-requete-in.html', thumb: 'sous-requete-in-thumb.jpg', duree: '3 min 57', notesAt: 213.5,
-    notes: /notes:\{t:231\.9,y:1286,card:\[64,292,1016,991\],to:\[940,255\]\}/, table: 'clients',
+  {id: 45, next: 47, titre: 'Sous-requête dans WHERE avec IN', page: 'sous-requete-in.html', thumb: 'sous-requete-in-thumb.jpg', duree: '3 min 38', notesAt: 213.5,
+    table: 'clients',
     bubble: 'Avec une sous-requête, la liste de <span class="ic">IN</span><br>est fabriquée par une autre requête.',
     chapters: ['Situation', 'Le problème', 'La sous-requête', 'IN en action', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span class="m">no such column: statut</span>', '<span class="col gh" id="gh2">✕ statut</span>', 'const LISTE = [4, 1, 3, 5, null];',
       '<span class="nt" id="nt3">commande n°16 · sans client</span>', '<span class="kw glow" id="k3">IN</span> <span class="glow" id="p3a">(</span>',
       '<span class="glow" id="eq5">=</span> (', '<span class="n2" id="n5">1 ligne</span><span class="ok2" id="ok5">✓ Aucune erreur</span>',
       '<span class="orph" id="m5a"><span class="emo">✕</span>Sophie Martin</span>', '✓ 4 clients à appeler']},
-  {id: 47, next: 48, titre: 'Sous-requête dans SELECT', page: 'sous-requete-select.html', thumb: 'sous-requete-select-thumb.jpg', duree: '3 min 33', notesAt: 187.2,
-    notes: /notes:\{t:206\.3,y:1250,card:\[64,292,1016,955\],to:\[940,255\]\}/, table: 'produits',
+  {id: 47, next: 48, titre: 'Sous-requête dans SELECT', page: 'sous-requete-select.html', thumb: 'sous-requete-select-thumb.jpg', duree: '3 min 08', notesAt: 187.2,
+    table: 'produits',
     bubble: 'Avec une sous-requête dans <span class="ic">SELECT</span>,<br>chaque ligne reçoit sa propre valeur.',
     chapters: ['Situation', 'Le problème', 'La sous-requête', 'Ligne par ligne', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span class="rz-v" id="v2">2026-08-03</span><span class="n2" id="n2">1 seule ligne</span>', "const TOUTE_LA_TABLE = '2026-08-03';",
       '<span class="kw">WHERE</span> produit_id = <span class="glow" id="v3">5</span>', '📌 Le 5 est écrit en dur&nbsp;: la Tisane Détox seulement',
       '= <span class="glow" id="pi4">produits.id</span>)', '<span class="glow" id="f5"><span class="kw">FROM</span> commandes</span>)',
       '✕ La Tisane Détox risque d’être écartée à tort', '<span class="glow" id="as6"><span class="kw">AS</span> derniere_commande</span>', '✓ Tisane Détox relancée']},
-  {id: 48, next: 55, titre: 'Sous-requête dans FROM', page: 'sous-requete-from.html', thumb: 'sous-requete-from-thumb.jpg', duree: '3 min 21', notesAt: 175.8,
-    notes: /notes:\{t:193\.5,y:1344,card:\[64,292,1016,1049\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 48, next: 55, titre: 'Sous-requête dans FROM', page: 'sous-requete-from.html', thumb: 'sous-requete-from-thumb.jpg', duree: '2 min 58', notesAt: 175.8,
+    table: 'commandes',
     bubble: 'Avec une sous-requête dans <span class="ic">FROM</span>,<br>un résultat se lit comme une table.',
     chapters: ['Situation', 'Le problème', 'La sous-requête', 'La table dérivée', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span class="m">no such column: montant</span>', '<span class="col gh" id="gh2">✕ montant</span>',
       '<span class="glow" id="mul3">produits.prix * commandes.quantite</span>', '<span class="glow" id="al3"><span class="kw">AS</span> commandes_montants</span>',
       '<span class="t2"><span class="emo">🗃️</span><span>commandes_montants</span></span>', '<span class="m">no such column: quantite</span>',
       '<span class="col gh" id="gh5">✕ quantite</span>', '<div>46.71875</div>', '✓ Indicateur mis à jour']},
-  {id: 55, next: 59, titre: 'EXISTS et NOT EXISTS', page: 'exists.html', thumb: 'exists-thumb.jpg', duree: '3 min 57', notesAt: 204.3,
-    notes: /notes:\{t:227\.2,y:1399,card:\[64,292,1016,1104\],to:\[940,255\]\}/, table: 'clients',
+  {id: 55, next: 59, titre: 'EXISTS et NOT EXISTS', page: 'exists.html', thumb: 'exists-thumb.jpg', duree: '3 min 26', notesAt: 204.3,
+    table: 'clients',
     bubble: 'Avec <span class="ic">EXISTS</span>, vérifie qu’une ligne liée<br>existe dans une autre table.',
     chapters: ['Situation', 'Le problème', 'EXISTS', 'La recherche corrélée', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span class="col gh" id="gh2">✕ commande</span>', "const FIBRE = [['n°1', 1], ['n°5', 4], ['n°8', 7], ['n°15', 5]];",
       '<span class="rv">✓ 1 ligne trouvée&nbsp;: la commande n°5</span><span class="vd ok">EXISTS → vrai</span>', '<span class="rv no">Aucune ligne trouvée</span><span class="vd ko">EXISTS → faux</span>',
       'commandes.client_id = <span class="glow" id="ci4">clients.id</span>', '<span class="glow" id="w5"><span class="kw">WHERE</span> commandes.produit_id = 1</span>',
       '✕ Inès Lefebvre et Nathan Dupont n’ont jamais commandé', '✓ 4 clients prévenus', '<span class="ic">NOT EXISTS</span> → les 6 autres clients']},
-  {id: 59, next: 73, titre: 'WITH (CTE)', page: 'with-cte.html', thumb: 'with-cte-thumb.jpg', duree: '3 min 52', notesAt: 205.8,
-    notes: /notes:\{t:226\.7,y:1348,card:\[64,292,1016,1053\],to:\[940,255\]\}/, table: 'clients',
+  {id: 59, next: 73, titre: 'WITH (CTE)', page: 'with-cte.html', thumb: 'with-cte-thumb.jpg', duree: '3 min 24', notesAt: 205.8,
+    table: 'clients',
     bubble: 'Avec <span class="ic">WITH</span>, prépare un calcul à part,<br>puis utilise-le comme une table.',
     chapters: ['Situation', 'Le problème', 'La CTE', 'Lire la CTE', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<div class="gh" id="gh2">nb_commandes&nbsp;?</div>', 'const TOTAUX = [[1, 3], [2, 2], [3, 2], [4, 2], [5, 2], [6, 1], [7, 2], [8, 1]];',
       '<span class="glow" id="nn3"><span class="kw">WHERE</span> client_id <span class="kw">IS NOT NULL</span></span>',
       '<span class="glow" id="wh4"><span class="kw">WHERE</span> nb_commandes &gt;= 2</span>;', '<span class="m">no such table: totaux</span>',
       '<span class="glow" id="j6"><span class="kw">JOIN</span> totaux</span>', '✓ 6 invitations envoyées']},
-  {id: 73, next: 80, titre: 'UNION et UNION ALL', page: 'union.html', thumb: 'union-thumb.jpg', duree: '3 min 48', notesAt: 155.7,
-    notes: /notes:\{t:223\.3,y:1391,card:\[64,292,1016,1096\],to:\[940,255\]\}/, table: 'clients',
+  {id: 73, next: 80, titre: 'UNION et UNION ALL', page: 'union.html', thumb: 'union-thumb.jpg', duree: '3 min 22', notesAt: 155.7,
+    table: 'clients',
     bubble: 'Avec <span class="ic">UNION</span>, empile les lignes<br>de plusieurs requêtes en un seul résultat.',
     chapters: ['Situation', 'Le problème', 'UNION ALL', 'Les noms de colonnes', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ["const INDICATEURS = [['Nombre de clients', 10, '👥'], ['Nombre de commandes', 16, '🛒'], ['Nombre de produits', 8, '📦']];",
@@ -894,8 +898,8 @@ const COURSES = [
       '<span class="m">SELECTs to the left and right of UNION ALL do not have the same number of result columns</span>',
       '<span class="k ko">3 colonnes</span>', '✓ Un indicateur de plus = une ligne de plus', '✓ Tableau de bord à jour',
       '<div class="mn-l"><span class="ic">UNION</span> rallonge</div>']},
-  {id: 80, next: 77, titre: 'INTERSECT et EXCEPT', page: 'intersect-except.html', thumb: 'intersect-except-thumb.jpg', duree: '3 min 03', notesAt: 159.2,
-    notes: /notes:\{t:178\.5,y:1356,card:\[64,292,1016,1061\],to:\[940,255\]\}/, table: 'produits',
+  {id: 80, next: 77, titre: 'INTERSECT et EXCEPT', page: 'intersect-except.html', thumb: 'intersect-except-thumb.jpg', duree: '2 min 42', notesAt: 159.2,
+    table: 'produits',
     bubble: 'Avec <span class="ic">INTERSECT</span> et <span class="ic">EXCEPT</span>,<br>compare les lignes de deux requêtes.',
     chapters: ['Situation', 'Le problème', 'INTERSECT', 'EXCEPT', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ["const STOCK_FAIBLE = [['Collagène Marin', 80], ['Oméga 3', 90], ['Protéine Végétale', 45], ['Shaker Inox', 30], ['Tisane Détox', 60]];",
@@ -904,8 +908,8 @@ const COURSES = [
       '🏷️ Tisane Détox&nbsp;: à écouler en promotion', "tl.to(blocB, {y: -4 * LH, duration: 0.6, ease: 'power2.inOut'}, 113.0);",
       '✕ Des stocks confortables&nbsp;: 120, 500 et 150 unités', '✓ Commande envoyée au fournisseur',
       '<div class="mn-l"><span class="ic">EXCEPT</span><span>retire la seconde</span></div>']},
-  {id: 77, next: 60, titre: 'WITH RECURSIVE (CTE RECURSIVE)', page: 'with-recursive.html', thumb: 'with-recursive-thumb.jpg', duree: '3 min 28', notesAt: 159.2,
-    notes: /notes:\{t:203\.2,y:1391,card:\[64,292,1016,1096\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 77, next: 60, titre: 'WITH RECURSIVE (CTE RECURSIVE)', page: 'with-recursive.html', thumb: 'with-recursive-thumb.jpg', duree: '3 min 02', notesAt: 159.2,
+    table: 'commandes',
     bubble: 'Avec <span class="ic">WITH RECURSIVE</span>, fabrique une suite de lignes à partir d’une seule ligne.',
     chapters: ['Situation', 'Le problème', 'L’ancre', 'La partie récursive', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['const JOURS_AVEC_COMMANDE = [2, 5, 8, 11, 12, 15, 18, 20, 22, 25, 28, 30];', '<span class="lg q" id="lgq2">? 19 jours</span>',
@@ -914,8 +918,8 @@ const COURSES = [
       '<span class="glow" id="wh3"><span class="kw">WHERE</span> jour &lt; <span class="str">\'2026-07-31\'</span></span><i class="strike" id="sk5"></i>',
       '⏳ Exécution en cours…', '✕ Sans condition d’arrêt, la requête ne s’arrête jamais',
       '<span class="glow" id="ex6"><span class="kw">EXCEPT</span></span>', '✓ 19 promotions programmées']},
-  {id: 60, next: 74, titre: 'OVER()', page: 'over.html', thumb: 'over-thumb.jpg', duree: '3 min 27', notesAt: 159.2,
-    notes: /notes:\{t:202\.2,y:1391,card:\[64,292,1016,1096\],to:\[940,255\]\}/, table: 'produits',
+  {id: 60, next: 74, titre: 'OVER()', page: 'over.html', thumb: 'over-thumb.jpg', duree: '3 min 01', notesAt: 159.2,
+    table: 'produits',
     bubble: 'Avec <span class="ic">OVER()</span>, un calcul porte sur plusieurs lignes sans les regrouper.',
     chapters: ['Situation', 'Le problème', 'OVER ()', 'PARTITION BY', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<div class="lst-t mono">GROUP BY categorie</div>', '✕ Le nom et le prix des produits ont disparu',
@@ -923,8 +927,8 @@ const COURSES = [
       '<span class="glow" id="pb3"><span class="kw">PARTITION BY</span> categorie</span>', '<b class="v8">8</b><b class="vp">${nbDans(c)}</b>',
       '<span class="m">misuse of window function COUNT()</span>', '<div class="st ko" id="sw5"><b>2</b><span>WHERE</span></div>',
       '<span class="glow" id="wh6"><span class="kw">WHERE</span> nb_produits = 1</span>', '✓ 3 catégories à étoffer']},
-  {id: 74, next: 78, titre: 'Fonctions de rang', page: 'fonctions-rang.html', thumb: 'fonctions-rang-thumb.jpg', duree: '3 min 11', notesAt: 162.7,
-    notes: /notes:\{t:186\.5,y:1411,card:\[64,292,1016,1116\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 74, next: 78, titre: 'Fonctions de rang', page: 'fonctions-rang.html', thumb: 'fonctions-rang-thumb.jpg', duree: '2 min 41', notesAt: 162.7,
+    table: 'commandes',
     bubble: 'Avec <span class="ic">RANK()</span>, chaque ligne reçoit une place&nbsp;: la même pour les ex&nbsp;æquo.',
     chapters: ['Situation', 'Le problème', 'ROW_NUMBER()', 'PARTITION BY', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span class="cnt"><span class="ob" id="ob2">ORDER BY date_commande</span></span>', '📅 Sophie Martin&nbsp;: deux commandes le 2 juillet',
@@ -934,8 +938,8 @@ const COURSES = [
       '<div class="fc" id="f5c"><div class="fn">DENSE_RANK()</div><b class="ok">1</b><b class="ok">1</b><b>2</b></div>',
       '<span class="glow" id="rk6"><span class="kw">RANK</span>() <span class="kw">OVER</span> (</span>', '🥇 Premier achat de 3 clients',
       '✓ Mise en avant pour les nouveaux clients']},
-  {id: 78, next: 79, titre: 'LAG et LEAD', page: 'lag-lead.html', thumb: 'lag-lead-thumb.jpg', duree: '3 min 28', notesAt: 163.2,
-    notes: /notes:\{t:203\.3,y:1357,card:\[64,292,1016,1062\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 78, next: 79, titre: 'LAG et LEAD', page: 'lag-lead.html', thumb: 'lag-lead-thumb.jpg', duree: '3 min 02', notesAt: 163.2,
+    table: 'commandes',
     bubble: 'Avec <span class="ic">LAG()</span> et <span class="ic">LEAD()</span>, chaque ligne lit la valeur d’une ligne voisine.',
     chapters: ['Situation', 'Le problème', 'LAG() et LEAD()', 'Le délai en jours', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span class="al2" id="al2">? jours</span>', '<span class="glow" id="lg3"><span class="kw">LAG</span>(date_commande) <span class="kw">OVER</span> (</span>',
@@ -945,8 +949,8 @@ const COURSES = [
       '<span class="glow" id="nb5"><span class="kw">ORDER BY</span> client_id, date_commande, id</span>', '<span class="jr" id="j5b">−23</span>',
       '✕ Lucas Bernard lit la commande de Sophie Martin', '<span class="glow" id="av6"><span class="kw">COALESCE</span>(<span class="kw">AVG</span>(jours_depuis), 10)</span>',
       '🔔 Hugo Laurent et Gabriel Michel&nbsp;: 10 jours par défaut', '✓ 8 rappels programmés']},
-  {id: 79, next: 56, titre: 'Fenêtres glissantes', page: 'fenetres-glissantes.html', thumb: 'fenetres-glissantes-thumb.jpg', duree: '3 min 07', notesAt: 162.7,
-    notes: /notes:\{t:182\.2,y:1380,card:\[64,292,1016,1085\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 79, next: 56, titre: 'Fenêtres glissantes', page: 'fenetres-glissantes.html', thumb: 'fenetres-glissantes-thumb.jpg', duree: '2 min 44', notesAt: 162.7,
+    table: 'commandes',
     bubble: 'Avec <span class="ic">ROWS BETWEEN</span>, choisis les lignes qui entrent dans chaque calcul.',
     chapters: ['Situation', 'Le problème', 'Le cumul', 'La moyenne mobile', 'Le piège', 'Le résultat', 'À retenir'],
     traps: ['<span class="glow" id="mt2">produits.prix * commandes.quantite</span>', '<b id="tot2">747.5</b>',
@@ -954,8 +958,8 @@ const COURSES = [
       '<span class="b"><span class="glow" id="p4"><span class="kw">2 PRECEDING</span></span></span>', '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> date_commande</span>',
       '✕ Les deux commandes du 2 juillet ont le même cumul', '<div class="lim" id="lim6"><span>Palier&nbsp;: 700&nbsp;€</span></div>',
       '✓ Palier franchi le 1er&nbsp;août']},
-  {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '3 min 28', notesAt: 159.3,
-    notes: /notes:\{t:201\.8,y:1291,card:\[64,292,1016,996\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '3 min 01', notesAt: 159.3,
+    table: 'inscriptions',
     bubble: 'Le fichier Excel des ateliers mélange tout&nbsp;:<br>à toi de le ranger en tables.',
     chapters: ['Le fichier Excel', 'Les copies', 'Supprimer, ajouter', 'Une table par sujet', 'Les tables remplies', 'À retenir'],
     traps: ["const INSCR = [[1, 1, '01/09', '2026-09-01'], [4, 1, '02/09', '2026-09-02'], [5, 2, '03/09', '2026-09-03'], [7, 3, '04/09', '2026-09-04'],",
@@ -965,8 +969,8 @@ const COURSES = [
       "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 129.8, from: 119.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}", "{at: 141.4, from: 135.95, kind: 'pick',",
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
-  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '5 min 04', notesAt: 167.9,
-    notes: /notes:\{t:297\.2,y:1193,card:\[64,292,1016,898\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 42', notesAt: 167.9,
+    table: 'inscriptions',
     bubble: 'Tes tables sont prêtes&nbsp;:<br>à toi de les relier avec des clés.',
     chapters: ['Le problème', 'La clé primaire', 'La clé étrangère', '1 → N', 'N ↔ N', '1 ↔ 1', 'À retenir'],
     traps: ["const INSCR = [[1, 1, 1, '2026-09-01'], [2, 4, 1, '2026-09-02'], [3, 5, 2, '2026-09-03'], [4, 7, 3, '2026-09-04'],",
@@ -980,8 +984,8 @@ const COURSES = [
       "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
       "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.9);", 'Chapitre 3 · Modéliser avec UML']},
-  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '5 min 43', notesAt: 224.15,
-    notes: /notes:\{t:335\.2,y:1362,card:\[64,292,1016,1067\],to:\[940,255\]\}/, table: 'ateliers',
+  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '4 min 57', notesAt: 224.15,
+    table: 'ateliers',
     bubble: 'Tu vas dessiner le plan de ta base, puis&nbsp;apprendre à le traduire en tables.',
     chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
     traps: ["const CLASSES = [['co', 'Coach', ['prenom', 'nom', 'email']], ['ca', 'Carte', ['seances']],",
@@ -995,8 +999,8 @@ const COURSES = [
       "const SHOP_ASSOCS = ASSOCS.concat([['pa', 'passe', '▾', 'cl', '0..1', 'cm', '0..*'], ['ce', 'concerne', '◂', 'cm', '0..*', 'pr', '1']]);",
       '<line id="ln-an"/><line id="ln-po"/><line id="ln-in"/><line id="ln-cx" class="dash"/>', "tl.to('#sb .mp:not(.ask) .mn', {opacity: 0.28,",
       'Prochaine leçon · CREATE TABLE']},
-  {id: 61, next: 65, titre: 'CREATE TABLE', page: 'projet-create.html', thumb: 'projet-create-thumb.webp', duree: '4 min 57', notesAt: 198.9,
-    notes: /notes:\{t:290\.0,y:1328,card:\[64,292,1016,1033\],to:\[940,255\]\}/, table: 'coachs',
+  {id: 61, next: 65, titre: 'CREATE TABLE', page: 'projet-create.html', thumb: 'projet-create-thumb.webp', duree: '4 min 16', notesAt: 198.9,
+    table: 'coachs',
     bubble: 'Le plan est prêt&nbsp;: à toi de construire<br>les tables avec <span class="ic">CREATE TABLE</span>.',
     chapters: ['Le plan', 'La table coachs', 'L’ordre des tables', 'La table ateliers', 'La carte de membre', 'Exécuter', 'À retenir'],
     traps: ["co: ['🧑‍🏫', 'coachs', [['id', 'INTEGER', 'pk'], ['prenom', 'TEXT', '', 1], ['nom', 'TEXT', '', 1], ['email', 'TEXT', '', 1]]],",
@@ -1008,8 +1012,8 @@ const COURSES = [
       "{at: 80.05, from: 68.1, kind: 'tap', need: 2, prompt: 'Touche les deux tables que tu peux écrire juste après coachs.'},", "const M2_ANS = {at: ['#p-at .hlo'], ca: ['#p-ca .hlo']};",
       "{at: 97.85, from: 89.9, kind: 'sort',", "{at: 115.65, from: 110.5, kind: 'tap', need: 1,", "{at: 155.85, from: 145.8, kind: 'sort',",
       "{at: 182.45, from: 165.7, kind: 'pick', text: true,", "{label: 'Ses colonnes, mais aucune ligne', ok: true},", 'Chapitre 5 · ALTER TABLE']},
-  {id: 65, next: 66, titre: 'ALTER TABLE', page: 'projet-alter.html', thumb: 'projet-alter-thumb.webp', duree: '5 min 27', notesAt: 222.55,
-    notes: /notes:\{t:319\.6,y:1289,card:\[64,292,1016,994\],to:\[940,255\]\}/, table: 'ateliers',
+  {id: 65, next: 66, titre: 'ALTER TABLE', page: 'projet-alter.html', thumb: 'projet-alter-thumb.webp', duree: '4 min 47', notesAt: 222.55,
+    table: 'ateliers',
     bubble: 'Les ateliers ont commencé&nbsp;:<br>à toi d’adapter les tables sans les recréer.',
     chapters: ['Les demandes', 'Ajouter une colonne', 'Une colonne sans DEFAULT', 'Renommer une colonne', 'Supprimer une colonne', 'Structure ou valeurs', 'À retenir'],
     traps: ["const PLACES = 12, CUISINE = [3, 8];", "const TELS = ['06 39 98 02 31', '06 39 98 14 76', '06 39 98 25 93', '06 39 98 36 58'];",
@@ -1026,8 +1030,8 @@ const COURSES = [
       '<span class="lc2" id="lc-${k}"><i class="e">0 ligne</i><i class="f">${n} lignes</i></span>', "kbp('kb1', 'INSERT INTO')", "kbp('kb2', 'UPDATE', 'up2')",
       "addCol('tb-at', 4, 150, 53.7, 0.16);", "crumble(COACHS.map(([id]) => `#tc-co-r${id} .c4 .l1`).reverse().concat('#tc-co .hd .c4 .h0').map(s => $(s)), 172.6);",
       'Effacé avec la colonne', 'Chapitre 6 · DROP']},
-  {id: 66, next: 26, titre: 'DROP', page: 'projet-drop.html', thumb: 'projet-drop-thumb.jpg', duree: '3 min 14', notesAt: 122.1,
-    notes: /notes:\{t:187\.0,y:1270,card:\[64,292,1016,975\],to:\[940,255\]\}/, table: 'clients',
+  {id: 66, next: 26, titre: 'DROP', page: 'projet-drop.html', thumb: 'projet-drop-thumb.jpg', duree: '2 min 36', notesAt: 122.1,
+    table: 'clients',
     bubble: 'Une table est de trop dans la base&nbsp;:<br>à toi de la retirer.',
     chapters: ['La table de trop', 'Vider ou supprimer', 'La requête', 'Une table liée', 'Noms proches', 'IF EXISTS', 'À retenir'],
     traps: ["const TB = [", "['xl', 'k-xl', '📄', 'inscriptions_excel', 6, [['client'], ['atelier'], ['date'], ['coach'], ['email_coach'], ['inscrit_le']]]",
@@ -1038,8 +1042,8 @@ const COURSES = [
       "{at: atp('p4'), from: A.c11, kind: 'tap', need: 4,", "{label: 'La table inscriptions est supprimée, avec ses sept lignes', ok: true},", "{label: 'DROP\\u00a0TABLE\\u00a0IF\\u00a0EXISTS inscriptions_excel;', ok: true},",
       "a += out('o4', 'err', 'Requête refusée', 'FOREIGN KEY constraint failed', 'm');", "a += out('o5', 'warn', 'Exécutée sans erreur', 'La table inscriptions n’existe plus.');",
       "a += out('o6', 'err', 'Erreur SQL', 'no such table: inscriptions_excel', 'm');", "<span id=\"bt-b\">Serveur de test</span>", 'Prochaine leçon · INSERT INTO']},
-  {id: 26, next: 27, titre: 'INSERT', page: 'projet-insert.html', thumb: 'projet-insert-thumb.webp', duree: '4 min 43', notesAt: 161.8,
-    notes: /notes:\{t:276\.2,y:1336,card:\[64,292,1016,1041\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 26, next: 27, titre: 'INSERT', page: 'projet-insert.html', thumb: 'projet-insert-thumb.webp', duree: '3 min 58', notesAt: 161.8,
+    table: 'inscriptions',
     bubble: 'Les inscriptions arrivent&nbsp;:<br>à toi de les ajouter à la base.',
     chapters: ['Karim passe la main', 'Une inscription', 'L’ordre des valeurs', 'Une colonne oubliée', 'Un groupe', 'Créer ou recharger', 'À retenir'],
     traps: ["const ATELIERS = [[1, 'Récupération', '2026-09-12'], [2, 'Pilates', '2026-09-17'], [3, 'Cuisine saine', '2026-09-19'],",
@@ -1049,8 +1053,8 @@ const COURSES = [
       "{at: atp('p4'), from: A.c20, kind: 'tap', need: 1,", "{label: 'DO\u00a0UPDATE SET seances_restantes\u00a0= seances_restantes\u00a0+\u00a010', ok: true},",
       "{at: atp('p6'), from: A.c30, kind: 'sort',", "b += out('o-fk', 'err', 'Requête refusée', 'FOREIGN KEY constraint failed', 'm');",
       "c += out('o-un', 'err', 'Requête refusée', 'UNIQUE constraint failed:<br>cartes.client_id', 'm', true);", 'Prochaine leçon · UPDATE']},
-  {id: 27, next: 28, titre: 'UPDATE', page: 'projet-update.html', thumb: 'projet-update-thumb.webp', duree: '3 min 51', notesAt: 173.4,
-    notes: /notes:\{t:223\.6,y:1328,card:\[64,292,1016,1033\],to:\[940,255\]\}/, table: 'ateliers',
+  {id: 27, next: 28, titre: 'UPDATE', page: 'projet-update.html', thumb: 'projet-update-thumb.webp', duree: '3 min 05', notesAt: 173.4,
+    table: 'ateliers',
     bubble: 'Les informations changent&nbsp;:<br>à toi de les modifier dans la base.',
     chapters: ['Trois demandes', 'Cibler une ligne', 'L’oubli du WHERE', 'Lire avant d’écrire', 'Une valeur calculée', 'Une règle de la table', 'À retenir'],
     traps: ["const ATELIERS = [[1, 'Récupération', '2026-09-12'], [2, 'Pilates', '2026-09-17'], [3, 'Cuisine saine', '2026-09-19'],",
@@ -1060,8 +1064,8 @@ const COURSES = [
       "{label: 'SELECT\u00a0*\u00a0FROM\u00a0ateliers WHERE\u00a0id\u00a0=\u00a02', ok: true},", "{label: 'SET seances_restantes\u00a0= seances_restantes\u00a0+\u00a02', ok: true},",
       "{label: 'Le solde passerait sous 0, ce que la règle de la table interdit', ok: true}]}",
       "b += out('o-5', 'warn', 'Requête exécutée', '5 lignes modifiées.');", "c += out('o-ck', 'err', 'Requête refusée', 'CHECK constraint failed:<br>seances_restantes &gt;= 0', 'm', true);", 'Prochaine leçon · DELETE']},
-  {id: 28, next: 68, titre: 'DELETE', page: 'projet-delete.html', thumb: 'projet-delete-thumb.webp', duree: '3 min 38', notesAt: 140.34,
-    notes: /notes:\{t:211\.0,y:1258,card:\[64,292,1016,963\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 28, next: 68, titre: 'DELETE', page: 'projet-delete.html', thumb: 'projet-delete-thumb.webp', duree: '3 min 00', notesAt: 140.34,
+    table: 'inscriptions',
     bubble: 'Des lignes ne servent plus&nbsp;:<br>à toi de les supprimer de la base.',
     chapters: ['Trois demandes', 'Supprimer une ligne', 'Le bon client', 'Plusieurs lignes', 'L’oubli du WHERE', 'Trois mots-clés', 'À retenir'],
     traps: ["const REST = [1, 2, 3, 5, 7, 8, 10, 11];",
@@ -1070,8 +1074,8 @@ const COURSES = [
       "{at: atp('p1'), from: A.c4, kind: 'tap', need: 1,", "{label: 'WHERE id = 4', ok: true},", "{label: 'WHERE id = 10', ok: true}]},", "{label: 'WHERE client_id = 6', ok: true},",
       "{at: atp('p5'), from: A.c19, kind: 'tap', need: 8,", "{at: atp('p6'), from: A.c24, kind: 'sort',",
       "b += out('o-8', 'warn', 'Requête exécutée', '8 lignes supprimées.');", "c += out('o-2', 'ok', 'Requête exécutée', '1 ligne supprimée.');", 'Prochaine leçon · ON DELETE']},
-  {id: 68, next: 62, titre: 'ON DELETE', page: 'projet-ondelete.html', thumb: 'projet-ondelete-thumb.webp', duree: '4 min 36', notesAt: 237.73,
-    notes: /notes:\{t:268\.7,y:1141,card:\[64,292,1016,846\],to:\[940,255\]\}/, table: 'avis', article: 'une',
+  {id: 68, next: 62, titre: 'ON DELETE', page: 'projet-ondelete.html', thumb: 'projet-ondelete-thumb.webp', duree: '4 min 07', notesAt: 237.73,
+    table: 'avis', article: 'une',
     bubble: 'Un client part,<br>mais son avis doit rester&nbsp;:<br>à toi de décider !',
     chapters: ['Après l’atelier', 'De la feuille à la base', 'Quelque temps plus tard…', 'Le moment de la suppression', 'Découvrir ON DELETE', 'À toi de choisir', 'Retour sur le site web', 'Chaque cas, sa règle', 'À retenir'],
     traps: ["const PRENOM = 'Inès';", "const BINS = [['ca', 'CASCADE', 'supprime les lignes liées'], ['sn', 'SET NULL', 'détache les lignes liées'], ['re', 'RESTRICT', 'refuse la suppression']];",
@@ -1080,8 +1084,8 @@ const COURSES = [
       "{at: atp('p3'), from: A.g1, kind: 'tap', need: 1,", "{label: 'La suppression du compte est refusée', ok: true}]},", "{label: 'Le site web, sans compte associé', ok: true,",
       "{at: atp('p6'), from: A.h1, kind: 'sort',",
       "w += out('o-rs', 'err', 'Suppression bloquée', 'FOREIGN KEY constraint failed', 'm');", "out('o-nn', 'err', 'Suppression du compte refusée', 'NOT NULL constraint failed:<br>avis.client_id', 'm', true)", 'Prochaine leçon · Transactions']},
-  {id: 62, next: 63, titre: 'Transactions', page: 'projet-transaction.html', thumb: 'projet-transaction-thumb.webp', duree: '4 min 51', notesAt: 245.25,
-    notes: /notes:\{t:284\.4,y:1138,card:\[64,292,1016,843\],to:\[940,255\]\}/, table: 'remplacements',
+  {id: 62, next: 63, titre: 'Transactions', page: 'projet-transaction.html', thumb: 'projet-transaction-thumb.webp', duree: '4 min 19', notesAt: 245.25,
+    table: 'remplacements',
     bubble: 'Un colis arrive abîmé&nbsp;:<br>à toi de tout valider<br>ou de tout annuler !',
     chapters: ['Un colis abîmé', 'Deux modifications à réaliser', 'Ce qui peut mal se passer', 'Démarrer une transaction', 'Effectuer les modifications', 'Valider avec COMMIT',
       'Et si le remplacement échoue ?', 'COMMIT ou ROLLBACK ?', 'À retenir'],
@@ -1092,8 +1096,8 @@ const COURSES = [
       "{at: atp('p1'), from: A.c1, kind: 'tap', need: 1,", "{at: atp('p2'), from: A.f1, kind: 'pick', text: true,", "{label: '30 : la valeur de départ', ok: true,",
       "{label: 'COMMIT', ok: true,", "{label: 'Annuler avec ROLLBACK', ok: true,", "{label: 'Non, le remplacement reste à enregistrer', ok: true,", "{at: atp('p6'), from: A.i1, kind: 'sort',",
       "w += out('o-i1', 'err', 'Remplacement non enregistré', 'NOT NULL constraint failed:<br>remplacements.personnalisation', 'm', true);", 'Prochaine leçon · SAVEPOINT']},
-  {id: 63, next: 70, titre: 'SAVEPOINT', page: 'projet-savepoint.html', thumb: 'projet-savepoint-thumb.webp', duree: '4 min 43', notesAt: 231.86,
-    notes: /notes:\{t:276\.3,y:1100,card:\[64,292,1016,805\],to:\[940,255\]\}/, table: 'cadeaux',
+  {id: 63, next: 70, titre: 'SAVEPOINT', page: 'projet-savepoint.html', thumb: 'projet-savepoint-thumb.webp', duree: '4 min 12', notesAt: 231.86,
+    table: 'cadeaux',
     bubble: 'Léa Simon change d’avis&nbsp;:<br>à toi d’annuler<br>seulement le cadeau !',
     chapters: ['Un petit geste pour Léa', 'Pouvoir revenir en arrière', 'Ajouter le cadeau', 'Léa préfère un autre cadeau', 'Observer ce qui est annulé', 'Ajouter la protéine',
       'Valider ce qui reste', 'Le colis est arrivé', 'Quelle commande choisir ?', 'À retenir'],
@@ -1105,8 +1109,8 @@ const COURSES = [
       "{at: atp('p1'), from: A.a6, kind: 'pick', text: true,", "{label: 'Avec un point de retour posé avant le cadeau', ok: true,", "{at: atp('p2'), from: A.c4, kind: 'tap', need: 2,",
       "{label: 'Aucune : rien n’est validé avant COMMIT', ok: true,", "{label: 'ROLLBACK TO SAVEPOINT avant_cadeau', ok: true,", "{label: 'Elle est toujours en cours', ok: true,",
       "{at: atp('p6'), from: A.g1, kind: 'sort',", "const Q_RT = [['-- Revenir au point de retour'], ['ROLLBACK TO SAVEPOINT avant_cadeau;']]", 'Prochaine leçon · Les triggers']},
-  {id: 70, next: 71, titre: 'Les triggers', page: 'projet-trigger.html', thumb: 'projet-trigger-thumb.webp', duree: '4 min 44', notesAt: 245.04,
-    notes: /notes:\{t:276\.8,y:1304,card:\[64,292,1016,1009\],to:\[940,255\]\}/, table: 'historique_prix',
+  {id: 70, next: 71, titre: 'Les triggers', page: 'projet-trigger.html', thumb: 'projet-trigger-thumb.webp', duree: '4 min 06', notesAt: 245.04,
+    table: 'historique_prix',
     bubble: 'Un prix a changé sans trace&nbsp;:<br>à toi de garder<br>chaque changement !',
     chapters: ['Qui a changé le prix ?', 'Garder chaque changement', 'Créer le trigger', 'Modifier le prix', 'Lire la nouvelle ligne', 'Vérifier avec le stock',
       'Ligne ajoutée ou non ?', 'À retenir'],
@@ -1118,8 +1122,8 @@ const COURSES = [
       "{at: atp('p2'), from: A.c1, kind: 'pick', text: true,", "{label: 'Après une modification de prix d’un produit', ok: true,", "{label: '39.90, le prix avant la modification', ok: true,",
       "{at: atp('p4'), from: A.d5, kind: 'tap', need: 1,", "{label: 'Non, aucune ligne n’est ajoutée', ok: true,", "{at: atp('p6'), from: A.g1, kind: 'sort',",
       "['{twh|WHEN OLD.prix &lt;&gt; NEW.prix}']", 'Prochaine leçon · Concurrence et isolation']},
-  {id: 71, next: 64, titre: 'Concurrence et isolation', page: 'projet-concurrence.html', thumb: 'projet-concurrence-thumb.webp', duree: '4 min 49', notesAt: 249.94,
-    notes: /notes:\{t:281\.4,y:1261,card:\[64,292,1016,966\],to:\[940,255\]\}/, table: 'inscriptions',
+  {id: 71, next: 64, titre: 'Concurrence et isolation', page: 'projet-concurrence.html', thumb: 'projet-concurrence-thumb.webp', duree: '4 min 09', notesAt: 249.94,
+    table: 'inscriptions',
     bubble: 'Deux clients, une seule place&nbsp;:<br>à toi d’éviter<br>la double réservation !',
     chapters: ['Deux clients, une seule place', 'Au ralenti', 'La concurrence', 'Verrouiller la ligne', 'Rejouer avec le verrou', 'Et avec ROLLBACK ?',
       'Attendre ou continuer ?', 'À retenir'],
@@ -1130,8 +1134,8 @@ const COURSES = [
       "{at: atp('p1'), from: A.b0, kind: 'tap', need: 1,", "{label: 'Verrouiller la ligne de l’atelier pendant la réservation', ok: true,",
       "{label: 'Elle attend de pouvoir verrouiller la même ligne', ok: true,", "{label: '0 place : aucune inscription pour lui', ok: true,",
       "{label: 'Elle reste disponible pour Nathan Petit', ok: true,", "{at: atp('p6'), from: A.g1, kind: 'sort',", "['{xfu|FOR UPDATE};']", 'Prochaine leçon · CREATE VIEW']},
-  {id: 64, next: 57, titre: 'CREATE VIEW', page: 'projet-vue.html', thumb: 'projet-vue-thumb.webp', duree: '4 min 24', notesAt: 210.54,
-    notes: /notes:\{t:256\.5,y:1261,card:\[64,292,1016,966\],to:\[940,255\]\}/, table: 'produits',
+  {id: 64, next: 57, titre: 'CREATE VIEW', page: 'projet-vue.html', thumb: 'projet-vue-thumb.webp', duree: '3 min 51', notesAt: 210.54,
+    table: 'produits',
     bubble: 'Une box surprise à préparer&nbsp;:<br>à toi de ne montrer<br>que la sélection !',
     chapters: ['La box surprise', 'Le catalogue interne', 'Créer la vue', 'Consulter la vue', 'Petit changement', 'Et les droits ?', 'Dans la vue ou non ?', 'À retenir'],
     traps: ["const BINS = [['vu', 'Dans la vue', 'l’agence la voit'], ['ho', 'Hors de la vue', 'elle reste interne']];",
@@ -1140,8 +1144,8 @@ const COURSES = [
       "{at: atp('p1'), from: A.a1, kind: 'tap', need: 3,", "{label: 'nom, categorie et prix', ok: true,", "{label: 'Les 3 produits de la box : nom, catégorie et prix', ok: true,",
       "{label: 'Non, il suffit de consulter à nouveau la vue', ok: true,", "{at: atp('p5'), from: A.e3, kind: 'tap', need: 1,", "{at: atp('p6'), from: A.g1, kind: 'sort',",
       "['{vwh|WHERE selection_box = 1};']", 'Prochaine leçon · Les index et EXPLAIN']},
-  {id: 57, next: 50, titre: 'Les index et EXPLAIN', page: 'projet-index.html', thumb: 'projet-index-thumb.webp', duree: '3 min 56', notesAt: 197.84,
-    notes: /notes:\{t:228\.7,y:1308,card:\[64,292,1016,1013\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 57, next: 50, titre: 'Les index et EXPLAIN', page: 'projet-index.html', thumb: 'projet-index-thumb.webp', duree: '3 min 19', notesAt: 197.84,
+    table: 'commandes',
     bubble: 'La file d’attente s’allonge&nbsp;:<br>à toi d’accélérer<br>la recherche !',
     chapters: ['La file d’attente s’allonge', 'La recherche de la commande', 'Lire le plan', 'Créer l’index', 'Le nouveau plan', 'Le plan ou la mesure ?', 'Des index partout ?', 'À retenir'],
     traps: ["const ANNEES = [[2019, 52310], [2020, 61875], [2021, 70432], [2022, 78119], [2023, 83547], [2024, 79861], [2025, 73350], [2026, 506]];",
@@ -1152,8 +1156,8 @@ const COURSES = [
       "{at: atp('p4'), from: A.d1, kind: 'tap', need: 1,", "{at: atp('p5'), from: A.e1, kind: 'sort',", "{label: 'Non : chaque index a un coût', ok: true,",
       "['CREATE INDEX {inm|idx_commandes_numero}']", 'Prochaine leçon · Sécurité et droits']},
   /* Le dernier chapitre du projet, et le dernier cours de l’app : pas de leçon suivante (next: null). */
-  {id: 50, next: null, titre: 'Sécurité et droits', page: 'projet-droits.html', thumb: 'projet-droits-thumb.webp', duree: '5 min 10', notesAt: 248.44,
-    notes: /notes:\{t:302\.54,y:1173,card:\[64,292,1016,878\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 50, next: null, titre: 'Sécurité et droits', page: 'projet-droits.html', thumb: 'projet-droits-thumb.webp', duree: '4 min 39', notesAt: 248.44,
+    table: 'commandes',
     bubble: 'Un accès trop large&nbsp;:<br>à toi de donner<br>les bons accès !',
     chapters: ['Un accès trop large', 'Les accès nécessaires', 'Ce qu’elle peut consulter', 'Autoriser la consultation', 'Une modification précise', 'Les limites de son accès', 'Retirer les accès',
       'Le dernier réflexe', 'À retenir'],
@@ -1167,15 +1171,15 @@ const COURSES = [
 ];
 
 for (const c of COURSES) {
-  test(`${c.titre} : le cours a son animation et sa vignette, avec le bouton « Ajouter à mes notes » sous le récapitulatif`, () => {
+  test(`${c.titre} : le cours a son animation et sa vignette, sans récapitulatif ni bouton « Ajouter à mes notes » dans la vidéo`, () => {
     const lesson = cut(`guide({ id:${c.id}, titre:"${c.titre}"`, c.next ? `guide({ id:${c.next},` : '\n]}\n]');   // le dernier cours : jusqu’à la fin des modules
-    const m = lesson.match(/video:\{anim:'([^']+)',thumb:'([^']+)',duree:'([^']+)',/);
+    const m = lesson.match(/video:\{anim:'([^']+)',thumb:'([^']+)',duree:'([^']+)'[,}]/);
     assert.ok(m, `champ video du cours ${c.titre}`);
     assert.equal(m[1], `assets/anim/${c.page}?app&embed`);
     assert.equal(m[2], `assets/anim/${c.thumb}`);
     for (const f of m.slice(1, 3)) assert.ok(fs.statSync(path.join(ROOT, f.split('?')[0])).size > 1000, `fichier présent : ${f}`);
     assert.equal(m[3], c.duree);
-    assert.ok(c.notes.test(lesson), 'bouton « Ajouter à mes notes » sous « Les trois idées à retenir »');
+    assert.ok(!/notes:\{/.test(lesson), 'pas de bouton « Ajouter à mes notes » dans la vidéo : il est dans le bilan, sous « Ce que tu retiens » (Elisa, 27 octobre, 9 h 43)');
   });
 
   test(`${c.titre} : page de l’animation sur le moteur commun, ressources locales, chapitres et pièges, sans question en pleine vidéo`, () => {
@@ -1230,7 +1234,7 @@ for (const c of COURSES) {
   test(`${c.titre} : moments « À toi » entre deux légendes, avant la réponse ; une bonne réponse, une correction pour chaque erreur, un indice`, () => {
     const M = momentsDe(c.page), D = donneesVideo(c.page);
     const lesson = cut(`guide({ id:${c.id}, titre:"${c.titre}"`, c.next ? `guide({ id:${c.next},` : '\n]}\n]');
-    assert.ok(new RegExp(`duree:'[^']+',moments:${M.length},\\n`).test(lesson), `la fiche annonce ${M.length} moments`);
+    assert.ok(new RegExp(`duree:'[^']+',moments:${M.length}[,}]`).test(lesson), `la fiche annonce ${M.length} moments`);
     assert.ok(!/seuil:/.test(lesson) && !/leconSeule:true/.test(lesson), 'les moments ne bloquent pas : l’exercice et le quiz valident la leçon');
     assert.ok(M.length >= 3, 'trois moments au moins');
     const notes = +String(c.notesAt);
@@ -1591,7 +1595,7 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
 
 test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six moments sur l’image, clients de la base', async () => {
   const l56 = cut('guide({ id:56, titre:"Normaliser les inscriptions"', 'guide({ id:72,');
-  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'3 min 28',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'3 min 01',moments:6,seuil:4}"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/projet-normaliser.html'), 'utf8');
   const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
   assert.ok(a > 0 && b > a, 'données de la page localisées');
@@ -1668,7 +1672,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
 
 test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre 1 relié par des clés, chaque réponse vérifiée dans SQLite', async () => {
   const l72 = cut('guide({ id:72, titre:"Clés et relations"', 'guide({ id:81,');
-  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'5 min 04',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'4 min 42',moments:6,seuil:4}"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -1942,7 +1946,7 @@ test('« Identifiant », jamais « numéro », pour la valeur d’une clé : vid
 
 test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des tables du chapitre 2, chaque multiplicité et chaque traduction vérifiées', async () => {
   const l81 = cut('guide({ id:81, titre:"Modéliser avec UML"', 'guide({ id:61,');
-  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'5 min 43',moments:6,seuil:4,"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'4 min 57',moments:6,seuil:4}"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -2769,7 +2773,7 @@ test('moments « À toi » : la légende annonce le moment sans répéter la con
     + 'JSON.stringify([warp(5), warp(11), warp(13), warp(22), warp(22.5), warp(29.5), warp(31), unwarp(5), unwarp(21), unwarp(25), unwarp(31), cutIn(19, 24), inCut(21), inCut(23.5)])', ctx);
   assert.equal(got, JSON.stringify([5, 10, 11, 20, 23.5, 30, 31, 5, 22, 24, 31, 3, true, false]), 'temps de la vidéo ↔ temps de la timeline, pauses et coupes comprises');
   assert.ok(core.includes('cues: CUES.filter(c => !inCut(c.t))') && core.includes('readTime(text) - ((b - 0.2) - (a + 0.3) - cutIn(a + 0.3, b - 0.2))')
-    && core.includes('.concat(CUTS).sort((x, y) => x[0] - y[0]);'), 'sons du passage coupé retirés ; temps de lecture des légendes sans le passage coupé');
+    && core.includes('.concat(CUTS.filter(c => c[0] < duration)).sort((x, y) => x[0] - y[0]);'), 'sons du passage coupé retirés ; temps de lecture des légendes sans le passage coupé');
   assert.ok(core.includes('out.push({cut: h, at: +a.toFixed(2), to: +b.toFixed(2), el: name(c)})'), 'aucune animation dans un passage coupé (?check)');
   /* Pages : une légende « À toi ! » par moment, juste avant l’arrêt ; la consigne n’est que sur la carte du lecteur. */
   for (const f of ['quel-join-choisir.html', 'projet-normaliser.html']) {
@@ -2792,7 +2796,7 @@ test('moments « À toi » : la légende annonce le moment sans répéter la con
 
 test('leçon seule (Quel JOIN choisir ?) : la vidéo interactive valide la leçon, sans exercice, quiz ni révision', () => {
   const l44 = cut('guide({ id:44, titre:"Quel JOIN choisir ?"', 'guide({ id:45,');
-  assert.ok(l44.includes('leconSeule:true,') && l44.includes(",duree:'3 min 46',moments:9,"), 'leçon 44 : leçon seule, 9 moments');
+  assert.ok(l44.includes('leconSeule:true,') && l44.includes(",duree:'3 min 10',moments:9,"), 'leçon 44 : leçon seule, 9 moments');
   assert.ok(html.includes("'joinRecap','leconSeule','exoNeeds','video']"), 'drapeau copié par guide()');
   assert.ok(html.includes('function dueList(){ return allLessons.filter(l=>isDue(l.id)&&!l.leconSeule); }'), 'pas de révision « De mémoire » sans exercice');
   assert.ok(html.includes("if(current.leconSeule)return [{i:0,l:'Leçon'") && html.includes("if(leconSeule(id))return !!(state.lessons[id]&&state.lessons[id].done);"), 'une seule étape : la leçon');
@@ -2854,13 +2858,13 @@ test('leçon seule : on n’avance pas au-delà d’un moment « À toi » pas r
   assert.ok(cut('function lvGoExercise(){', 'function lvFail(){').includes('if(LV&&LV.retry){ if(LV.rates&&LV.rates.length)lvRedo(LV.rates); else lvReplay(); return; }'), 'pas assez : rejouer les moments ratés');
   assert.ok(cut('function lvReplay(){', 'function lvGoExercise(){').includes('if(LV.retry){ lvPkReset(LV.id); lvPkMarks(); }'), '« Tout recommencer » : tous les moments sont à refaire');
   assert.ok(cut('function leconSeuleBilan(first){', 'function lvFail(){').includes('if(!lvReussi(current))return;'), 'ni bilan ni validation sous le seuil');
-  assert.ok(cut('guide({ id:44,', 'guide({ id:45,').includes(',moments:9,seuil:7,'), 'leçon 44 : 7 exercices réussis sur 9 (deux ratés au plus), comme le chapitre 1 du projet');
+  assert.ok(cut('guide({ id:44,', 'guide({ id:45,').includes(',moments:9,seuil:7}'), 'leçon 44 : 7 exercices réussis sur 9 (deux ratés au plus), comme le chapitre 1 du projet');
   /* Le bouton annonce la règle avec les mots d’Elisa (23 octobre, 11:57 : « Valide la leçon : réussis au moins 4 exercices sur 6 »), sans point final (c’est un bouton) :
      retour à la ligne après les deux-points, espaces insécables avant « : », dans « 4 exercices » et « sur 6 ». Les deux autres règles gardent leurs mots. */
   assert.ok(html.includes('Valide la leçon&nbsp;: <br>réussis au moins ${lvSeuil(l)}&nbsp;exercices sur&nbsp;${v.moments}') && !html.includes('Réussis ${lvSeuil(l)} exercices sur') && !html.includes('exercices sur ${v.moments} pour valider la leçon'),
     'le bouton du cours annonce la règle : « Valide la leçon : réussis au moins N exercices sur M »');
   assert.ok(html.includes('Termine la vidéo avec ${lvErreursMax(l)} erreur') && html.includes("'Termine la vidéo pour valider la leçon'"), 'les règles à erreurs au plus et sans seuil gardent leurs mots');
-  assert.ok(cut('guide({ id:56,', 'guide({ id:72,').includes(",moments:6,seuil:4,"), 'leçon 56 : 4 exercices réussis sur 6 (deux ratés au plus)');
+  assert.ok(cut('guide({ id:56,', 'guide({ id:72,').includes(",moments:6,seuil:4}"), 'leçon 56 : 4 exercices réussis sur 6 (deux ratés au plus)');
 });
 
 test('rejouer les moments ratés, revoir le passage : la vidéo saute d’un moment raté au suivant, puis refait le compte', () => {

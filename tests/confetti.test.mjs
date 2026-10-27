@@ -60,7 +60,7 @@ test('le moteur : press note l’appui (sauf false), Course juge les appuis une 
   assert.ok(core.includes("function press(btn, t, lip = '#4B30CC', depth = 9, conf){"), 'press(…, conf)');
   assert.ok(core.includes("if (conf !== false) CONFETTI.push({el: btn, t, press: true, force: conf === true});"), 'false : jamais ; true : toujours');
   assert.ok(core.includes("const FAIL_CUES = new Set(['error', 'empty', 'false', 'miss', 'buzz']), OK_CUES = new Set(['chord', 'success']);"));
-  assert.ok(core.includes("cfg.build();\n    tl.set({}, {}, duration);\n    confettiCues();"), 'jugés après la construction');
+  assert.ok(core.includes("cfg.build();\n    let rest = [];\n    if (RECAP_A != null) { duration = recapEnd(RECAP_A, duration); captions = captions.filter(c => c[0] < duration - 0.3); rest = recapRest(captions, duration); }\n    tl.set({}, {}, duration);\n    confettiCues();"), 'jugés après la construction (et après la fin de la vidéo, avant « À retenir »)');
   assert.ok(core.includes("const fails = () => new Set($$('.err, .emp, .ko, .bad', stage).filter(seen));"), 'message d’erreur, résultat vide, ligne écartée, valeur fautive');
   assert.ok(core.includes("out.push({t: +at.toFixed(3), type: 'confetti', gain: 1, pitch: 0, x: Math.round(r.x + r.w / 2), y: Math.round(r.y + r.h / 2)});"), 'un repère comme un son, avec sa position');
   assert.ok(core.includes('cues: CUES.filter(c => !inCut(c.t)).map(c => Object.assign({}, c, {t: unwarp(c.t)}))'), 'exportés avec les sons (position comprise), en temps de la vidéo');
