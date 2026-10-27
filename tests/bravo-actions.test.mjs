@@ -34,7 +34,7 @@ function bilan({session = null, plan = true, card = false, video = true} = {}) {
     gradOf: () => 'linear-gradient(#7C5CFF,#5335E0)',
     esc: s => String(s), escAttr: s => String(s)
   });
-  vm.runInContext(cut('function bravoCardHtml(l){', 'function bravoRevealCard(') + cut('function bravoNextHtml(){', 'function renderBravoSlide(l){'), ctx);
+  vm.runInContext(cut('function bravoCardHtml(l){', 'function bravoRevealCard(') + cut('function bravoNextHtml(l){', 'function renderBravoSlide(l){'), ctx);
   return ctx;
 }
 const SEANCE = {id: 45, label: 'Ta séance du jour', summary: '2 activités restantes · environ 12 min'};
@@ -102,7 +102,7 @@ test('la carte mémo débloquée : sa ligne, avant la suite du parcours ; son ti
   assert.equal(bilan({session: SEANCE}).bravoUnlockHtml({id: 70}), '', 'pas de carte, pas de ligne');
   assert.ok(!ctx.bravoActionsHtml({id: 56}).includes('bravo-gcard'), 'la carte n’est plus mêlée aux boutons');
   const slide = cut('function renderBravoSlide(l){', '/* ---------- Blocs de cours enrichis');
-  const order = ['${bravoRecapHtml(l)}', '${bravoUnlockHtml(l)}', '${bravoNextHtml()}', '${bravoActionsHtml(l)}'].map(s => slide.indexOf(s));
+  const order = ['${bravoRecapHtml(l)}', '${bravoUnlockHtml(l)}', '${bravoNextHtml(l)}', '${bravoActionsHtml(l)}'].map(s => slide.indexOf(s));
   assert.ok(order.every((v, i) => v > 0 && (!i || v > order[i - 1])), 'récapitulatif, carte, suite du parcours, autres actions');
   /* « Normalisation » débordait de la carte : le titre rétrécit jusqu’à tenir dans sa largeur. */
   const fit = vm.createContext({getComputedStyle: e => ({fontSize: e.style.fontSize || '16.4px'})});
@@ -152,4 +152,18 @@ test('« Recommencer cette leçon ? » : une feuille dans le style de l’app, p
   for (const part of ['html.lq .lq-ask{position:fixed;inset:0;z-index:2600;', 'margin:0 0 calc(8px + env(safe-area-inset-bottom,0px));',
     'html.lq .lq-ask.on .lq-ask-sheet{transform:none}', 'html[data-motion="reduce"] .lq-ask-back,html[data-motion="reduce"] .lq-ask-sheet{transition:none!important}'])
     assert.ok(lq.includes(part), part);
+});
+
+test('le tout dernier cours : le bilan mène à la pratique (Elisa, 27 octobre, 1 h 13 : « emmener voir la partie pratique »)', () => {
+  const ctx = bilan({session: SEANCE});
+  ctx.MODULES = [{lessons: [{id: 1}, {id: 2}]}, {lessons: [{id: 50}]}];
+  ctx.CHALLENGES = Array.from({length: 25}, (_, i) => ({id: 'd' + i}));
+  const fin = ctx.bravoNextHtml({id: 50});
+  assert.ok(fin.startsWith('<button type="button" class="bravo-next-btn" onclick="exitLessonToTab(\'practice\')">'), 'toute la carte mène à l’onglet Pratiquer');
+  assert.ok(fin.includes('<b>Place à la pratique</b>') && fin.includes('25 défis concrets et la console SQL t’attendent.') && fin.includes('</span>Pratiquer</span>'));
+  assert.ok(ctx.bravoNextHtml({id: 2}).includes('onclick="openItem(45)"'), 'les autres cours : la suite du parcours, comme avant');
+  assert.ok(html.includes('${bravoNextHtml(l)}'), 'le bilan passe la leçon');
+  /* Le lecteur lit la fin du bouton « Ajouter à mes notes » sur la page de l’animation */
+  assert.ok(html.includes('until=I&&I.notesUntil!=null?I.notesUntil:N.cfg.until'));
+  assert.ok(fs.readFileSync(path.join(root, 'assets/anim/core.js'), 'utf8').includes('notesUntil: cfg.notesUntil != null ? unwarp(cfg.notesUntil) : null'));
 });

@@ -363,6 +363,9 @@
 .fbu i{position:absolute;left:-9px;top:-9px;width:18px;height:18px;border-radius:50%;opacity:0}
 .fbu b{position:absolute;left:-90px;top:-90px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,#fff 0%,rgba(255,255,255,0) 65%);opacity:0}
 .fma{left:286px;top:760px;width:380px}
+.fpr{left:0;top:668px;width:952px;display:flex;justify-content:center}
+.fpr>span{height:78px;padding:0 32px 0 24px;border-radius:999px;background:#fff;color:#4B30CC;box-shadow:0 7px 0 #4B30CC,0 0 40px rgba(201,190,255,.6);font-size:31px;font-weight:800;display:flex;align-items:center;gap:12px;white-space:nowrap}
+.fpr .emo{font-size:36px}
 .fflash{position:absolute;inset:0;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.95),rgba(201,190,255,.4) 45%,rgba(201,190,255,0) 75%);opacity:0;visibility:hidden;pointer-events:none}
 </style>
 </head>
@@ -603,6 +606,9 @@ cap('k1', "Souviens-toi<br>de ta toute première requête.", 3.8, 0.6);
 cap('k2', "Regarde le chemin parcouru<br>depuis !", 7.4);
 cap('k3', "15 modules, 62 cours<br>et 17 chapitres de projet.", 4.8);
 cap('k4', "Bravo : tu as terminé<br>ton apprentissage du SQL !", 5.6);
+/* Et maintenant, la pratique (Elisa, 27 octobre, 1 h 13 : « emmener voir la partie pratique ») : la vidéo le dit, et le bilan
+   de la leçon s’ouvre sur « Place à la pratique », qui mène à l’onglet Pratiquer. */
+cap('k5', "Et maintenant, place à la pratique :<br>des défis t’attendent !", 4.6);
 const DURATION = +(SCH.t + 1.4).toFixed(2);
 
 const CAPTIONS = SCH.caps;
@@ -663,6 +669,7 @@ const FH = 2875, FPTS = [[476, FH - 170]].concat(FMOD.map((m, j) => [j % 2 ? 700
 const fseg = j => { const [x0, y0] = FPTS[j], [x1, y1] = FPTS[j + 1], a = j ? y0 : y0 - 46;
   return `M${x0} ${a} C${x0} ${a - 90} ${x1} ${y1 + 90} ${x1} ${y1}`; };
 const FSTAT = [[15, 'modules'], [62, 'cours'], [17, 'chapitres']];
+const FDEFIS = 25;   // les défis de l’onglet Pratiquer (CHALLENGES dans l’app)
 /* Un compteur qui monte vite puis ralentit : ses valeurs, de 0 au total (une valeur empilée par étape, comme les autres compteurs) */
 const FSTEPS = 14, fcount = n => [...new Set(Array.from({length: FSTEPS + 1}, (_, i) => Math.round(n * (1 - Math.pow(1 - i / FSTEPS, 2.2)))))];
 const FBURST = [[190, 300, '#FFD45C'], [770, 250, '#FF8FC7'], [150, 760, '#7CE0FF'], [800, 700, '#B9FF8A'], [476, 140, '#C9BEFF']];
@@ -867,6 +874,7 @@ function dom(){
   f += '<div class="abs fsx" id="fsx">' + FSTAT.map(([n, l], k) => `<div><b class="sw" id="zs${k}">${fcount(n).map((v, j) => `<i class="a${j}">${v}</i>`).join('')}</b><span>${l}</span></div>`).join('') + '</div>';
   f += FBURST.map(([x, y, c], k) => `<div class="fbu" id="zb${k}" style="left:${x}px;top:${y}px"><b></b>` +
     Array.from({length: 26}, (_, i) => `<i style="background:${i % 3 ? c : '#fff'};box-shadow:0 0 14px ${c}"></i>`).join('') + '</div>').join('');
+  f += `<div class="abs fpr" id="fpr"><span><span class="emo">⚑</span>${FDEFIS} défis t’attendent dans Pratiquer</span></div>`;
   f += '<img class="abs mascot fma" id="fma" src="mascotte.webp" alt=""><i class="fflash" id="fflash"></i></div>';
   $('#sf').innerHTML = f;
   splitChars($('#fq'));
@@ -1037,7 +1045,7 @@ function build(){
   gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
   hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
   layout();
-  gsap.set(['.sq', '#bc', '#gs', '#gsu', '.act .wr', '#ph', '#fc', '#fcf', '.fcd', '.nd', '#vr', '#vx', '#sxc', '#sxk', '#vsrc', '.bt', '.srv', '#ap', '#apb', '#gp', '.gpl', '#cc', '#pe', '#pin', '#pref', '#gnb', '#gc', '#rp', '#bsend', '#plane', '#rpok', '#fpn', '#ftt', '#fsx', '#fma', '.flb', '.fglow', '#fqt', '#fl1', '#fl2', '.flw > i', '.flw .flb', '#dbn', '#dbv',
+  gsap.set(['.sq', '#bc', '#gs', '#gsu', '.act .wr', '#ph', '#fc', '#fcf', '.fcd', '.nd', '#vr', '#vx', '#sxc', '#sxk', '#vsrc', '.bt', '.srv', '#ap', '#apb', '#gp', '.gpl', '#cc', '#pe', '#pin', '#pref', '#gnb', '#gc', '#rp', '#bsend', '#plane', '#rpok', '#fpn', '#ftt', '#fsx', '#fma', '#fpr', '.flb', '.fglow', '#fqt', '#fl1', '#fl2', '.flw > i', '.flw .flb', '#dbn', '#dbv',
     '#cal', '#calt', '#tm', '#tq2w', '#fin', '#fmas', '#tapf', '#tapw'], {autoAlpha: 0});
   gsap.set(['#fcn > i:not(.a0)', '#ast > i:not(.a0)', '#calm > i:not(.a0)', '#calw > i:not(.a0)'], {autoAlpha: 0});
 
@@ -1412,6 +1420,10 @@ function build(){
   cue(W + 2.0, 'pop', 0.6, 3); cue(W + 2.48, 'pop', 0.6, 5); cue(W + 2.96, 'pop', 0.6, 6);
   confetti($('#fma'), W + 2.2);
   tl.to('#ftt b', {scale: 1.04, duration: 0.5, yoyo: true, repeat: 3, ease: 'sine.inOut'}, W + 2.2);
+  // et maintenant, la pratique : ses défis
+  show('#fpr', A.k5 + 0.4, {y: 30, scale: 0.8}, 0.5, 'back.out(2)'); cue(A.k5 + 0.4, 'pop', 0.7, 4);
+  bump('#fpr > span', A.k5 + 1.6, 1.06); cue(A.k5 + 1.6, 'tick', 0.5, 5);
+  tl.to('#fpr .emo', {rotation: -18, transformOrigin: '20% 90%', duration: 0.12, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.k5 + 1.7);
 }
 
 /* ---------- Moments « À toi » : ce que montre chaque geste ----------
@@ -1497,7 +1509,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 277.43, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 277.43, notesUntil: FIN0, picks: PICKS, opens: OPENS,
   glyphs: '🗄️👥🛒⭐📦🧑‍🏫📅📝💳💬🔁🎁🏷️🖥️👤🔄🗑️🔍🔒🔓🧪📋🧩✏️🏁🚪🔐✅🎉💜😉👋✈️🎓!…«»·−→',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>

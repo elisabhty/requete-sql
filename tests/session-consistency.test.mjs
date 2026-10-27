@@ -21,7 +21,7 @@ for(const [start,end] of [
  ['function prochaineActiviteParcours(){','function progressContinuer('],
  ['function prochaineEtapeParcours(){','function homeToolIcon('],
  ['function renderHomeHero(){','function lessonListRow('],
- ['function bravoNextHtml(){','function bravoActionsHtml(']
+ ['function bravoNextHtml(l){','function bravoActionsHtml(']
 ])vm.runInContext(html.slice(html.indexOf(start),html.indexOf(end,html.indexOf(start))),ctx);
 function check(id,count,label){
  const before=JSON.stringify(ctx.state);

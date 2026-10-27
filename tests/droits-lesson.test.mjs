@@ -120,7 +120,7 @@ test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajo
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
   assert.equal(val('NOTES'), 277.43);
   assert.ok(page.includes('notesAt: 277.43,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 308.53);
+  assert.equal(val('DURATION'), 313.23);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   assert.deepEqual(chaps.map(c => c.label), ['Un accès trop large', 'Les accès nécessaires', 'Ce qu’elle peut consulter', 'Autoriser la consultation', 'Une modification précise',
@@ -293,7 +293,9 @@ test('chapitre 17 : écran titre, ouverture comme aux autres chapitres, la photo
   /* Puis le résumé (« À retenir », le bouton « Ajouter à mes notes ») et, tout à la fin, la finale « Le chemin parcouru » */
   const r = caps.indexOf('Pour finir, voici les <b>trois idées à retenir</b>.');
   assert.deepEqual(caps.slice(r + 2), ['Souviens-toi<br>de ta toute première requête.', 'Regarde le chemin parcouru<br>depuis !', '15 modules, 62 cours<br>et 17 chapitres de projet.',
-    'Bravo : tu as terminé<br>ton apprentissage du SQL !'], 'la finale, après le résumé');
+    'Bravo : tu as terminé<br>ton apprentissage du SQL !', 'Et maintenant, place à la pratique :<br>des défis t’attendent !'], 'la finale, après le résumé, puis la pratique');
+  /* Le bouton « Ajouter à mes notes » s’en va quand commence la finale : la page le dit au lecteur (notesUntil) */
+  assert.ok(page.includes('notesAt: 277.43, notesUntil: FIN0,'), 'notesUntil : le début de la finale');
   assert.ok(page.includes("const PHOTO = 'projet-droits-lina.webp';") && fs.statSync(path.join(root, 'assets/anim/projet-droits-lina.webp')).size > 20000, 'la photo de Lina');
   assert.ok(fs.readFileSync(path.join(root, 'sw.js'), 'utf8').includes("'./assets/anim/projet-droits-lina.webp'"), 'et gardée pour le hors ligne');
   assert.ok(page.includes('url(projet-droits-lina.webp)'), 'son portrait sur la fiche de son compte');

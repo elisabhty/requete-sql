@@ -807,7 +807,10 @@ function Course(cfg){
     renderAt(0);
     if (EMBED) dispatchEvent(new Event('resize'));
     return {duration: out, fps: FPS, cues: CUES.filter(c => !inCut(c.t)).map(c => Object.assign({}, c, {t: unwarp(c.t)})), overflow: checkCaptions(captions),
-      notesT: notesAt != null ? unwarp(notesAt) : null, holds: +total.toFixed(3), holdList: HOLDS, clashes: holdClashes(picks.concat(opens).map(p => p.at)).concat(cfg.extraClashes ? cfg.extraClashes() : []),
+      notesT: notesAt != null ? unwarp(notesAt) : null,
+      /* notesUntil : le bouton « Ajouter à mes notes » s’en va quand la vidéo continue après le résumé (chapitre 17). Le lecteur le lit ici,
+         sur la page : il suit la vidéo telle qu’elle est, sans dépendre d’un temps recopié à la main dans la fiche de la leçon. */
+      notesUntil: cfg.notesUntil != null ? unwarp(cfg.notesUntil) : null, holds: +total.toFixed(3), holdList: HOLDS, clashes: holdClashes(picks.concat(opens).map(p => p.at)).concat(cfg.extraClashes ? cfg.extraClashes() : []),
       textIssues: QS.has('check') ? textIssues() : undefined,
       layoutIssues: QS.has('check') ? layoutIssues(renderAt, out) : undefined,
       chapters: chapters.map(c => ({t: unwarp(c.a), n: c.n, label: c.label})),
