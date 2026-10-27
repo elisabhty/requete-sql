@@ -122,7 +122,8 @@ test('les chapitres du projet : les boutons touchés par l’élève qui réussi
   assert.ok(sp.includes("confetti($('#bsav'), SAV + 0.35);") && sp.includes("confetti($('#bval'), VAL + 1.27);"), 'chapitre 12 : retour au savepoint, validation');
   const od = anim('projet-ondelete.html');
   assert.ok(od.includes("press($('#bdel'), BTN, '#A92A31', 9, false);"), 'chapitre 10 : le lien de l’avis se brise, pas de confettis');
-  for (const t of ["A.e5 + 0.9", "A.e6 + 1.2", "A.g1 + 0.6"]) assert.ok(od.includes(`press($('#bdel'), ${t}, '#A92A31', 9, true);`), `chapitre 10 : la suppression réussit (${t})`);
+  /* CASCADE au chapitre 5, puis SET NULL sur le site (chapitre 7) : SET NULL n’est plus joué avant le choix de l’élève (27 octobre). */
+  for (const t of ["A.e5 + 0.9", "A.g1 + 0.6"]) assert.ok(od.includes(`press($('#bdel'), ${t}, '#A92A31', 9, true);`), `chapitre 10 : la suppression réussit (${t})`);
 });
 
 test('les autres vidéos : ni la récursion sans fin, ni le site d’avant la requête, ni les premiers essais insuffisants', () => {

@@ -415,17 +415,19 @@ cap('e2', "Elle précise ce qui se passe<br>lorsque la ligne référencée<br>es
 cap('e3', "Il existe trois possibilités.", 3.4);
 cap('e4', "Avec <code>RESTRICT</code>, la suppression<br>du compte est bloquée<br>tant que l’avis lui est rattaché.", 5.2);
 cap('e5', "Avec <code>CASCADE</code>, le compte<br>et l’avis sont supprimés ensemble.", 4.6);
-cap('e6', "Avec <code>SET NULL</code>, le compte<br>est supprimé mais l’avis reste.", 4.6);
-cap('e7', "Seule la colonne <code>client_id</code><br>devient <code>NULL</code>.", 3.8);
-/* 6 · À toi de choisir */
+/* 6 · À toi de choisir. Le choix vient avant l’explication de SET NULL : après « avec SET NULL, le compte est supprimé mais l’avis reste »,
+   la question ne faisait que répéter la légende (Elisa, 27 octobre, 23 h 11). RESTRICT bloque, CASCADE supprime l’avis : reste la troisième
+   règle, nommée au début du chapitre 5 (« Il existe trois possibilités »). */
 chap({label:'À toi de choisir'});
 cap('f1', "Il faut choisir la règle<br>de la clé étrangère <code>client_id</code>.", 4.2);
 toi('p2');
+cap('e6', "Avec <code>SET NULL</code>, le compte<br>est supprimé mais l’avis reste.", 4.6);
 /* 7 · Retour sur le site web */
 chap({label:'Retour sur le site web'});
 cap('g1', "Avec <code>ON DELETE SET NULL</code>,<br>l’avis est conservé.", 4.0);
 toi('p3');
 cap('g2', "Mais son lien vers le compte<br>d’Inès Lefebvre est retiré.", 3.8);
+cap('e7', "Seule la colonne <code>client_id</code><br>devient <code>NULL</code>.", 3.8);   // après le moment 3 (« touche la case qui devient NULL »), pas avant
 cap('g3', "Le produit, la note<br>et le commentaire<br>ne changent pas.", 4.2);
 cap('g4', "La colonne <code>client_id</code> doit donc<br>autoriser <code>NULL</code>.", 4.0);
 cap('g5', "Et si tu ajoutes <code>NOT NULL</code><br>à cette colonne ?", 3.6);
@@ -1020,28 +1022,20 @@ function build(){
   delRow('#rwa', RH, A.e5 + 2.0);
   show('#o-ca', A.e5 + 3.0, {y: 20}, 0.4); cue(A.e5 + 3.0, 'miss', 0.45);
   hide('#o-ca', B.e5 - 0.15, {y: 20}, 0.3);
-  // SET NULL : le compte est supprimé, l’avis reste
-  restoreRow('#rwc', RH, A.e6 + 0.05); restoreRow('#rwa', RH, A.e6 + 0.1);
-  swap('#rule .a2', '#rule .a3', A.e6 + 0.15, false); cue(A.e6 + 0.27, 'tick', 0.5, 3);
-  press($('#bdel'), A.e6 + 1.2, '#A92A31', 9, true);
-  delRow('#rwc', RH, A.e6 + 1.5);
-  show('#o-sn', A.e6 + 2.5, {y: 20}, 0.4); cue(A.e6 + 2.5, 'chord', 0.6);
-  // seule la colonne client_id devient NULL
-  swap('#wsw .a0', '#wsw .a1', A.e7 + 0.4);
-  pulse('#rwa .c1', A.e7 + 1.2, 1, 'rgba(255,224,138,.5)'); cue(A.e7 + 1.2, 'tick', 0.5, 3);
+  // SET NULL n’est pas montré ici : c’est la règle que l’élève choisit au chapitre 6, puis le chapitre 7 la joue sur le site
 
   /* ===== 6 · À toi de choisir ===== */
-  // tout revient comme avant la suppression : le compte, son identifiant dans la case de l’avis, le point d’interrogation à la place de la règle
-  const R6 = B.e7 + 0.05;
-  hide('#o-sn', R6, {y: 20}, 0.3);
-  swap('#wsw .a1', '#wsw .a0', R6 + 0.05, false);
-  restoreRow('#rwc', RH, R6 + 0.1);
-  swap('#rule .a3', '#rule .a0', R6 + 0.1, false);
+  // tout revient comme avant la suppression (CASCADE avait tout effacé) : le compte, l’avis, le point d’interrogation à la place de la règle
+  const R6 = B.e5 + 0.05;
+  restoreRow('#rwc', RH, R6 + 0.1); restoreRow('#rwa', RH, R6 + 0.15);
+  swap('#rule .a2', '#rule .a0', R6 + 0.1, false);
   pulse('#kc3', A.f1 + 1.2, 1, GLOW); cue(A.f1 + 1.2, 'tick', 0.5, 2);
   pulse('#od3', A.f1 + 2.1, 1, GLOW); cue(A.f1 + 2.1, 'tick', 0.5, 4);
   // À toi : la règle (réponse : SET NULL prend la place du point d’interrogation)
   tl.set(M2_ANS, {autoAlpha: 1, y: 0}, set2(PICKS[1].at));
   tl.set(M2_HIDE, {autoAlpha: 0}, set2(PICKS[1].at));
+  // avec SET NULL, le compte est supprimé mais l’avis reste : la règle choisie ressort
+  pulse('#rule', A.e6 + 0.6, 1, GLOW); cue(A.e6 + 0.6, 'tick', 0.5, 3);
 
   /* ===== 7 · Retour sur le site web ===== */
   // avec ON DELETE SET NULL, l’avis est conservé : le bouton, le compte disparaît, l’avis reste
@@ -1057,6 +1051,8 @@ function build(){
   swap('#wsw .a0', '#wsw .a1', A.g2 + 0.5);
   tl.set('#o-sn .s', {display: 'block'}, A.g2 + 0.6);
   tl.to('#o-sn .s', {autoAlpha: 1, duration: 0.3}, A.g2 + 0.6);
+  // seule la colonne client_id devient NULL
+  pulse('#rwa .c1', A.e7 + 0.8, 1, 'rgba(255,224,138,.5)'); cue(A.e7 + 0.8, 'tick', 0.5, 3);
   off('#hcw', A.g2 + 1.5, 0.3);
   // le produit, la note et le commentaire ne changent pas
   ['#rwa .c0', '#rwa .c2', '#rwa .c3', '#rwa .c4'].forEach((s, q) => { const t2 = A.g3 + 0.4 + q * 0.7; pulse(s, t2, 1); cue(t2, 'tick', 0.5, q); });
