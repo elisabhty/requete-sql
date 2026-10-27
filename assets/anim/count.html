@@ -232,6 +232,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 132.6;
@@ -284,6 +285,27 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // COUNT(*) et COUNT(email) posés côte à côte : avant que la vidéo ne donne les deux nombres
+  {at: 62.45, from: 44.65, kind: 'pick', text: true, prompt: 'La <b>table clients</b> compte 10 clients, dont 2 sans email. Que donnent <code>COUNT(*)</code> et <code>COUNT(email)</code> ?', options: [
+    {label: '10 et 8', ok: true, why: '<code>COUNT(*)</code> compte toutes les lignes ; <code>COUNT(email)</code> ignore les 2 emails NULL.'},
+    {label: '10 et 10', why: '<code>COUNT(email)</code> ne compte que les valeurs renseignées : les 2 emails NULL sont ignorés.'},
+    {label: '8 et 8', why: '<code>COUNT(*)</code> compte toutes les lignes, NULL compris : 10.'}],
+    tip: 'Une colonne entre les parenthèses : seules ses valeurs renseignées comptent.'},
+  // 8 catégories, dont des doublons : avant que la vidéo n’ajoute DISTINCT
+  {at: 83.65, from: 73.35, kind: 'pick', prompt: 'Comment compter chaque catégorie une seule fois ?', options: [
+    {label: 'COUNT(DISTINCT categorie)', ok: true, why: '<code>DISTINCT</code>, dans les parenthèses, garde chaque catégorie une fois : 5.'},
+    {label: 'DISTINCT COUNT(categorie)', why: '<code>DISTINCT</code> se place dans les parenthèses, devant la colonne.'},
+    {label: 'COUNT(categorie)', why: 'Sans <code>DISTINCT</code>, chaque produit compte : 8, et non 5.'}],
+    tip: 'Le mot-clé qui retire les doublons se place devant la colonne.'},
+  // le WHERE ajouté : avant que la vidéo ne filtre les lignes
+  {at: 94.45, from: 89.45, kind: 'tap', need: 2, prompt: 'Touche les produits que compte <code>COUNT(*)</code> avec <code>WHERE stock &lt; 50</code>.',
+    spots: PRODUITS.map(([n, , s], i) => ({k: 'r' + i, sel: `#rows5 > .tr:nth-child(${i + 1})`, label: `${n}, ${s} en stock`, ok: s < 50,
+      why: s < 50 ? '' : `Le stock du produit ${n} est de ${s} : <code>${s} &lt; 50</code> est faux.`})),
+    tip: 'Regarde la colonne <code>stock</code> : moins de 50.'}
+];
 
 function dom(){
   const kpis = `<div class="kpis">${KPIS.map(([e, l, v, c]) =>
@@ -507,7 +529,7 @@ function build(){
   if (APP) cue(125.15, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 125.1,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 125.1, moments: MOMENTS,
   glyphs: '📦🏷️🔴🗃️🔎🔢⚠️✉️🧹✓✕→·?', dom, build});
 </script>
 </body>

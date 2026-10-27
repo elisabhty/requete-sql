@@ -265,6 +265,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 133.9;
@@ -323,6 +324,37 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const PARIS = CLIENTS.filter(c => c[1] === 'Paris').map(c => c[2]);   // 34, 31, 38, 30
+const MOMENTS = [
+  // les 6 groupes formés : avant que la vidéo ne dise combien de lignes en sortent
+  {at: 47.25, from: 38.55, kind: 'pick', text: true, prompt: 'Avec <code>GROUP BY ville</code>, combien de lignes aura le résultat ?', options: [
+    {label: '6 lignes, une par ville', ok: true, why: 'Chaque groupe devient une ligne du résultat : 6 villes, 6 lignes.'},
+    {label: '10 lignes, une par client', why: 'Les clients d’une même ville forment un seul groupe : une ligne par ville.'},
+    {label: '1 ligne, avec le total', why: 'Sans <code>GROUP BY</code>, on aurait un seul total. Ici, une ligne par ville.'}],
+    tip: 'Une ligne du résultat par groupe.'},
+  // AVG vient d’être calculé : les autres calculs, sur le groupe de Paris
+  {at: 74.65, from: 57.35, kind: 'link', need: 4, prompt: `Les clients de Paris ont ${PARIS.slice(0, 3).join(', ')} et ${PARIS[3]} ans. Relie chaque calcul à son résultat.`,
+    hint: 'Touche un calcul, puis son résultat. Tu peux aussi tracer le trait du doigt.',
+    board: {y: 470, html: `<span class="mb-k">Le groupe de Paris : ${PARIS.join(', ')} ans</span><div class="mb-cols" style="gap:120px"><div class="mb-col"><div class="mb-i c" id="mbcC">COUNT(*)</div><div class="mb-i c" id="mbcS">SUM(age)</div><div class="mb-i c" id="mbcN">MIN(age)</div><div class="mb-i c" id="mbcX">MAX(age)</div></div><div class="mb-col" style="flex:0 0 220px"><div class="mb-i c" id="mbv30">30</div><div class="mb-i c" id="mbv4">4</div><div class="mb-i c" id="mbv38">38</div><div class="mb-i c" id="mbv133">133</div></div></div>`},
+    spots: [
+      {k: 'C', sel: '#mbcC', label: 'COUNT(*)', side: 'l', pair: 'v4', why: '<code>COUNT(*)</code> compte les lignes du groupe : 4 clients.'},
+      {k: 'S', sel: '#mbcS', label: 'SUM(age)', side: 'l', pair: 'v133', why: '<code>SUM(age)</code> additionne les âges : 34 + 31 + 38 + 30 = 133.'},
+      {k: 'N', sel: '#mbcN', label: 'MIN(age)', side: 'l', pair: 'v30', why: '<code>MIN(age)</code> garde le plus petit âge du groupe : 30.'},
+      {k: 'X', sel: '#mbcX', label: 'MAX(age)', side: 'l', pair: 'v38', why: '<code>MAX(age)</code> garde le plus grand âge du groupe : 38.'},
+      {k: 'v30', sel: '#mbv30', label: '30', side: 'r'},
+      {k: 'v4', sel: '#mbv4', label: '4', side: 'r'},
+      {k: 'v38', sel: '#mbv38', label: '38', side: 'r'},
+      {k: 'v133', sel: '#mbv133', label: '133', side: 'r'}],
+    tip: 'Un seul résultat dépasse 100 : celui qui additionne.'},
+  // le piège posé : avant que la vidéo ne désigne prenom
+  {at: 84.65, from: 80.15, kind: 'pick', prompt: 'Quelle colonne du SELECT pose problème avec <code>GROUP BY ville</code> ?', options: [
+    {label: 'prenom', ok: true, why: '<code>prenom</code> n’est ni dans le <code>GROUP BY</code>, ni dans un calcul : un groupe a plusieurs prénoms.'},
+    {label: 'ville', why: '<code>ville</code> est la colonne de regroupement : une seule valeur par groupe.'},
+    {label: 'COUNT(*)', why: '<code>COUNT(*)</code> est un calcul sur le groupe : un seul nombre par ville.'}],
+    tip: 'Une ligne par ville : quelle colonne a plusieurs valeurs dans un même groupe ?'}
+];
 
 /* Les deux couches du chapitre 3 : les 10 clients en liste (2 colonnes), puis rangés dans 6 paniers (3 colonnes). */
 const LIST = i => ({left: (i % 2) * 496, top: 64 + Math.floor(i / 2) * 68, width: 456});
@@ -587,7 +619,7 @@ function build(){
   if (APP) cue(126.35, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 126.3,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 126.3, moments: MOMENTS,
   glyphs: '👥📍🏙️🔎🧺🧮📊⚠️🚫✓✕→↓÷·?', dom, build});
 </script>
 </body>
