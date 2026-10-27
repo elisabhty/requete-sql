@@ -741,11 +741,13 @@ function contentBottom(){
     (cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || cs.backgroundImage !== 'none' || parseFloat(cs.borderTopWidth) > 0 || cs.boxShadow !== 'none'); };
   const set = new Set();
   const take = el => { if (!el.classList.contains('stamp') && !el.classList.contains('fly') && !el.parentElement.closest('.card, .code')) set.add(el); };
-  $$('.card, .code', stage).forEach(take);
-  $$('section.scene > *', stage).forEach(el => { if (isBox(el)) take(el); });
+  /* La carte d’un moment « À toi » (moments.js) compte aussi ; posée sur un voile, elle est seule à compter. */
+  const veil = $('.mb-veil', stage);
+  $$(veil ? '.mb' : '.card, .code, .mb', stage).forEach(take);
+  if (!veil) $$('section.scene > *', stage).forEach(el => { if (isBox(el)) take(el); });
   /* Une pastille centrée (.pack : « 6 situations à ranger », « 2 clés étrangères »…) : son conteneur est transparent et c’est elle qui porte le cadre.
      Sans elle, la feuille de réponse la recouvrait (Elisa, 25 octobre, 15 h 48 : « la pastille qu’on ne voit pas »). */
-  $$('section.scene > .pack > span', stage).forEach(take);
+  if (!veil) $$('section.scene > .pack > span', stage).forEach(take);
   let best = null;
   set.forEach(el => {
     if (el.closest('#cap, #chapter, #chap') || shown(el) < 0.3) return;

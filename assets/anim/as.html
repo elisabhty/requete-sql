@@ -201,6 +201,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 100;
@@ -257,6 +258,34 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 : toutes les vidéos ont leurs moments, du même niveau que les derniers cours ; 13 h 48 : « relier, toucher,
+   question, puzzle… ». */
+const MOMENTS = [
+  // le problème : des intitulés pas assez précis, avant que la vidéo nomme AS
+  {at: 22.55, from: 15.0, kind: 'pick', prompt: 'Quel mot-clé change le nom affiché d’une colonne ?', options: [
+    {label: 'AS', ok: true, why: '<code>AS</code> donne un nom d’affichage à la colonne : un alias.'},
+    {label: 'DISTINCT', why: '<code>DISTINCT</code> retire les doublons : il ne renomme aucune colonne.'},
+    {label: 'WHERE', why: '<code>WHERE</code> garde certaines lignes : il ne renomme aucune colonne.'}],
+    tip: 'Le mot-clé s’écrit juste après la colonne à renommer.'},
+  // le piège des guillemets, avant qu’il soit expliqué : avec ou sans guillemets doubles (espaces, symboles)
+  {at: 58.62, from: 44.9, kind: 'sort', prompt: 'Range chaque alias : s’écrit-il avec ou sans guillemets doubles ?',
+    hint: 'Touche un alias, puis sa case. Tu peux aussi le faire glisser.', next: '« {x} » : avec ou sans guillemets ?',
+    board: {y: 470, html: '<span class="mb-k">Avec ou sans guillemets ?</span><div class="mb-cols" style="gap:28px"><div class="mb-col"><div class="mb-bin" id="mbAv"><b>Avec guillemets doubles</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin" id="mbSa"><b>Sans guillemets</b><div class="mb-drop"></div></div></div></div>'},
+    spots: [{k: 'avec', sel: '#mbAv', label: 'Avec guillemets doubles'}, {k: 'sans', sel: '#mbSa', label: 'Sans guillemets'}],
+    options: [
+      {label: 'Nom du produit', to: 'avec', why: 'Il contient des espaces : il s’écrit entre guillemets doubles.'},
+      {label: 'rayon', to: 'sans', why: 'Un seul mot, sans espace ni symbole : pas de guillemets.'},
+      {label: 'Prix (€)', to: 'avec', why: 'Un symbole comme € demande aussi des guillemets doubles.'},
+      {label: 'quantite', to: 'sans', why: 'Un seul mot, sans espace ni symbole : pas de guillemets.'}],
+    tip: 'Les guillemets doubles servent aux espaces et aux symboles.'},
+  // la requête complète, juste avant son exécution
+  {at: 76.05, from: 72.5, kind: 'pick', text: true, prompt: 'Que va afficher le dashboard ?', options: [
+    {label: 'Les 8 produits, avec « Nom du produit » et « Prix (€) »', ok: true, why: 'Seuls les en-têtes changent : les 8 produits restent.'},
+    {label: 'Les 8 produits, avec nom et prix', why: 'Avec <code>AS</code>, les en-têtes affichent les alias.'},
+    {label: 'Une erreur, à cause du symbole €', why: 'Le symbole est entre guillemets doubles : la requête s’exécute.'}],
+    tip: 'Les deux alias sont bien écrits entre guillemets doubles.'}
+];
 
 function dom(){
   $('#rows2').innerHTML = PRODUITS.slice(0, 4).map(p => `<div class="dg drow"><div class="dn">${p[0]}</div><div class="dp">${p[2]}</div></div>`).join('');
@@ -472,7 +501,7 @@ function build(){
   if (APP) cue(92.45, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 92.4,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 92.4, moments: MOMENTS,
   glyphs: '📊🏷️💶🔎🗄️📍💬⚠️✓€', dom, build});
 </script>
 </body>

@@ -215,6 +215,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 93.8;
@@ -266,6 +267,29 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // la colonne email des 10 clients : avant que la vidéo nomme les deux cases vides
+  {at: 19.05, from: 15.0, kind: 'tap', need: 2, prompt: 'Touche les clients qui n’ont pas d’email.',
+    spots: CLIENTS.map((c, i) => ({k: 'r' + i, sel: `#rows2 > .tr:nth-child(${i + 1})`, label: `Ligne ${i + 1} : ${c[0]} ${c[1]}`, ok: c[2] == null,
+      why: c[2] == null ? '' : `${c[0]} ${c[1]} a un email : ${c[2]}.`})),
+    tip: 'Cherche les cases où aucun email n’est écrit.'},
+  // le piège, avant son exécution : = NULL
+  {at: 47.02, from: 30.0, kind: 'pick', text: true, prompt: 'Que donne <code>WHERE email = NULL</code> ?', 
+    board: {y: 470, html: '<span class="mb-k">Avec = au lieu de IS</span><div class="mb-q"><span class="k">SELECT</span> prenom, email\n<span class="k">FROM</span> clients\n<span class="k">WHERE</span> email = <span class="k">NULL</span>;</div>'},
+    options: [
+    {label: 'Aucune ligne', ok: true, why: '<code>NULL</code> n’est égal à rien : <code>= NULL</code> n’est jamais vrai.'},
+    {label: 'Hugo Laurent et Inès Lefebvre', why: 'Avec <code>=</code>, aucune ligne : une valeur absente se repère avec <code>IS NULL</code>.'},
+    {label: 'Une erreur', why: 'La requête s’exécute, mais la condition n’est jamais vraie : aucune ligne.'}],
+    tip: 'Une valeur absente ne peut être égale à rien.'},
+  // IS NOT NULL, avant son résultat
+  {at: 59.02, from: 47.05, kind: 'pick', text: true, prompt: 'Combien de clients garde <code>WHERE email IS NOT NULL</code> ?', options: [
+    {label: '8 clients', ok: true, why: 'Les 10 clients, moins les 2 sans email : il en reste 8.'},
+    {label: '2 clients', why: 'Ce sont les clients sans email : <code>IS NOT NULL</code> garde les autres.'},
+    {label: '10 clients', why: 'Hugo Laurent et Inès Lefebvre n’ont pas d’email : ils sont écartés.'}],
+    tip: '<code>IS NOT NULL</code> garde les lignes où l’email existe.'}
+];
 
 function dom(){
   $('#rows2').innerHTML = CLIENTS.map(c => `<div class="rgE tr te" data-n="${NUL(c) ? 1 : 0}"><i class="hl"></i><div>${c[0]}</div><div>${mail(c)}</div></div>`).join('');
@@ -452,7 +476,7 @@ function build(){
   if (APP) cue(86.25, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 86.2,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 86.2, moments: MOMENTS,
   glyphs: '📋✉️👤👪📞🔎🧐⚠️✅📬🕳️🚫✓✕→', dom, build});
 </script>
 </body>

@@ -271,6 +271,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 109.8;
@@ -336,6 +337,36 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // WHERE stock = 60 oublie deux produits : avant que la vidéo remplace = par <=
+  {at: 27.1, from: 15.0, kind: 'pick', prompt: 'Quel opérateur garde les produits à 60 unités ou moins ?', options: [
+    {label: '<=', ok: true, why: '<code>&lt;=</code> veut dire inférieur ou égal à : 60 est gardé.'},
+    {label: '<', why: '<code>&lt;</code> exclut la limite : la Tisane Détox, à 60, serait écartée.'},
+    {label: '>=', why: '<code>&gt;=</code> garde les stocks de 60 et plus : c’est l’inverse.'}],
+    tip: '« 60 ou moins » : la limite 60 compte.'},
+  // les six opérateurs, avant leur tableau : relier chaque opérateur à son sens
+  {at: 45.52, from: 40.5, kind: 'link', need: 4, prompt: 'Relie chaque opérateur à son sens.',
+    hint: 'Touche un opérateur, puis son sens. Tu peux aussi tracer le trait du doigt.',
+    board: {y: 470, html: '<span class="mb-k">Les opérateurs de comparaison</span><div class="mb-cols" style="gap:120px"><div class="mb-col" style="flex:0 0 250px"><div class="mb-i c" id="mbo0">=</div><div class="mb-i c" id="mbo1">!=</div><div class="mb-i c" id="mbo2">&gt;</div><div class="mb-i c" id="mbo3">&lt;=</div></div><div class="mb-col"><div class="mb-i" id="mbs0">inférieur ou égal à</div><div class="mb-i" id="mbs1">égal à</div><div class="mb-i" id="mbs2">strictement supérieur à</div><div class="mb-i" id="mbs3">différent de</div></div></div>'},
+    spots: [
+      {k: 'o0', sel: '#mbo0', label: 'Opérateur égal', side: 'l', pair: 's1', why: '<code>=</code> veut dire égal à.'},
+      {k: 'o1', sel: '#mbo1', label: 'Opérateur point d’exclamation égal', side: 'l', pair: 's3', why: '<code>!=</code> veut dire différent de.'},
+      {k: 'o2', sel: '#mbo2', label: 'Opérateur supérieur', side: 'l', pair: 's2', why: '<code>&gt;</code> veut dire strictement supérieur à : la limite est exclue.'},
+      {k: 'o3', sel: '#mbo3', label: 'Opérateur inférieur ou égal', side: 'l', pair: 's0', why: '<code>&lt;=</code> veut dire inférieur ou égal à : la limite est incluse.'},
+      {k: 's0', sel: '#mbs0', label: 'inférieur ou égal à', side: 'r'},
+      {k: 's1', sel: '#mbs1', label: 'égal à', side: 'r'},
+      {k: 's2', sel: '#mbs2', label: 'strictement supérieur à', side: 'r'},
+      {k: 's3', sel: '#mbs3', label: 'différent de', side: 'r'}],
+    tip: 'Un <code>=</code> placé après <code>&lt;</code> ou <code>&gt;</code> inclut la limite.'},
+  // comparer un texte : ce que garde != 'Accessoire', avant l’exécution
+  {at: 76.17, from: 72.5, kind: 'pick', text: true, prompt: 'Que garde la condition <code>categorie != \'Accessoire\'</code> ?', options: [
+    {label: 'Tous les produits, sauf les accessoires', ok: true, why: 'Avec <code>!=</code>, on compare aussi du texte : les accessoires sont écartés.'},
+    {label: 'Seulement les accessoires', why: '<code>!=</code> veut dire différent de : les accessoires sont écartés, pas gardés.'},
+    {label: 'Aucun produit : une erreur', why: 'Le texte est entre guillemets simples : la requête s’exécute.'}],
+    tip: '<code>!=</code> veut dire « différent de ».'}
+];
 
 function dom(){
   const row = (cls, cells) => `<div class="${cls}">${cells}</div>`;
@@ -650,7 +681,7 @@ function build(){
   if (APP) cue(102.25, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 102.2,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 102.2, moments: MOMENTS,
   glyphs: '📦🔎🏷️⚠️📋⚖️✅🔢💬📏✓✕→', dom, build});
 </script>
 </body>

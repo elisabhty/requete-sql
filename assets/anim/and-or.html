@@ -222,6 +222,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 109.1;
@@ -273,6 +274,27 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // le problème : il manque la condition sur l’âge, avant que la vidéo ajoute AND
+  {at: 27.0, from: 15.0, kind: 'pick', prompt: 'Comment ajouter la condition sur l’âge ?', options: [
+    {label: 'AND age > 30', ok: true, why: 'Avec <code>AND</code>, les deux conditions doivent être vraies : Paris, et plus de 30 ans.'},
+    {label: 'OR age > 30', why: 'Avec <code>OR</code>, une seule suffirait : tous les plus de 30 ans resteraient.'},
+    {label: 'WHERE age > 30', why: 'Une requête n’a qu’un seul <code>WHERE</code> : les conditions se combinent.'}],
+    tip: 'Les deux conditions doivent être vraies en même temps.'},
+  // le passage en revue commence (Sophie Martin est gardée) : les autres clients gardés avec AND
+  {at: 33.35, from: 27.3, kind: 'tap', need: 2, prompt: 'Sophie Martin est gardée. Touche les deux autres clients gardés avec <code>AND</code>.',
+    spots: CLIENTS.map((c, i) => ({k: 'r' + i, sel: `#rows3 > .tr:nth-child(${i + 1})`, label: `Ligne ${i + 1} : ${c[0]} ${c[1]}, ${c[2]}, ${c[3]} ans`, ok: PARIS(c) && AGE(c),
+      why: PARIS(c) && AGE(c) ? '' : !PARIS(c) ? `${c[0]} ${c[1]} habite à ${c[2]} : la première condition est fausse.` : `${c[0]} ${c[1]} a ${c[3]} ans, pas plus de 30 : la deuxième condition est fausse.`})).slice(1),
+    tip: 'Il faut habiter à Paris et avoir plus de 30 ans.'},
+  // sans parenthèses, AND est calculé avant OR : Nathan Dupont, 30 ans, de Paris
+  {at: 72.8, from: 64.5, kind: 'pick', text: true, prompt: 'Sans parenthèses, Nathan Dupont, 30 ans, de Paris, est-il gardé ?', options: [
+    {label: 'Oui : l’âge ne compte que pour Lyon', ok: true, why: '<code>AND</code> est calculé avant <code>OR</code> : l’âge ne s’applique qu’à Lyon.'},
+    {label: 'Non : il a 30 ans, pas plus', why: 'Sans parenthèses, l’âge ne s’applique qu’à Lyon : pour Paris, la ville suffit.'},
+    {label: 'Non : Paris n’est plus dans la condition', why: '<code>ville = \'Paris\'</code> est toujours là : pour Paris, une seule condition suffit.'}],
+    tip: '<code>AND</code> est calculé en premier : à quelle ville s’applique l’âge ?'}
+];
 
 function dom(){
   const cells = c => `<div>${c[0]}</div><div>${c[1]}</div><div>${c[2]}</div>`;
@@ -551,7 +573,7 @@ function build(){
   if (APP) cue(101.55, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 101.5,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 101.5, moments: MOMENTS,
   glyphs: '🎤📍👤👪🎂🔎⚠️📋✅🎟️🔗🔀🧩✓✕→', dom, build});
 </script>
 </body>

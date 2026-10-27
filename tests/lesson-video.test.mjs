@@ -516,7 +516,7 @@ const COURSES = [
       'Les prénoms, sous le titre <span class="ic">email</span>', 'near "FROM": syntax error',
       // Les trois idées : les tables, les clés (et leur déclaration), SELECT
       '<span class="ic blk">FOREIGN KEY (client_id)<br>&nbsp;&nbsp;REFERENCES clients(id)</span>', '<span class="ic blk">SELECT prenom, nom, email</span>']},
-  {id: 2, next: 13, titre: 'Renommer avec AS', page: 'as.html', thumb: 'as-thumb.jpg', duree: '1 min 45', notesAt: 92.4,
+  {id: 2, next: 13, titre: 'Renommer avec AS', page: 'as.html', thumb: 'as-thumb.jpg', duree: '1 min 49', notesAt: 92.4,
     table: 'produits',
     bubble: 'Avec <span class="ic">AS</span>, donne à une colonne un nom plus clair dans le résultat.',
     chapters: ['Situation', 'Le problème', 'Renommer une colonne', 'Plusieurs colonnes', 'Le piège des guillemets', 'Le résultat', 'À retenir'],
@@ -526,21 +526,21 @@ const COURSES = [
     bubble: 'Avec <span class="ic">DISTINCT</span>, garde chaque valeur une seule fois.',
     chapters: ['Situation', 'Le problème', 'DISTINCT en action', 'Où le placer', 'Plusieurs colonnes', 'Le résultat', 'À retenir'],
     traps: ['near "DISTINCT": syntax error', 'Cette ville est-elle déjà dans le résultat ?', 'Paris + Sophie et Paris + Léa sont différentes']},
-  {id: 5, next: 6, titre: 'Comparer des valeurs', page: 'comparer.html', thumb: 'comparer-thumb.jpg', duree: '2 min 00', notesAt: 102.2,
+  {id: 5, next: 6, titre: 'Comparer des valeurs', page: 'comparer.html', thumb: 'comparer-thumb.jpg', duree: '2 min 04', notesAt: 102.2,
     table: 'produits',
     bubble: 'Avec les opérateurs de comparaison, compare une colonne à une valeur.',
     chapters: ['Situation', 'Le problème', 'La comparaison', 'Six opérateurs', 'La limite', 'Comparer un texte', 'Le résultat', 'À retenir'],
     traps: ['<span class="kw">WHERE</span> stock <span class="cbox" id="eqA">=<i class="mbox"></i></span><span class="glow" id="leA">&lt;=</span> 60;',
       'Son stock est-il inférieur<br>ou égal à 60 ?', '<span class="kw">WHERE</span> stock &lt; 60', '<span class="kw">WHERE</span> stock &lt;= 60',
       "<span class=\"kw\">WHERE</span> categorie != <span class=\"str glow\" id=\"s6str\">'Accessoire'</span>;", 'Un texte, entre guillemets simples']},
-  {id: 6, next: 22, titre: 'AND et OR', page: 'and-or.html', thumb: 'and-or-thumb.jpg', duree: '1 min 53', notesAt: 101.5,
+  {id: 6, next: 22, titre: 'AND et OR', page: 'and-or.html', thumb: 'and-or-thumb.jpg', duree: '1 min 57', notesAt: 101.5,
     table: 'clients',
     bubble: 'Avec <span class="ic">AND</span> et <span class="ic">OR</span>, relie plusieurs conditions dans <span class="ic">WHERE</span>.',
     chapters: ['Situation', 'Le problème', 'Avec AND', 'Avec OR', 'Les parenthèses', 'Le résultat', 'À retenir'],
     traps: ['<span class="ln" id="ql4">  <span class="kw hlc" id="and3">AND</span> age &gt; 30;', '<b>Aucune ligne</b><span class="s">Une ville ne peut pas être Paris et Lyon à la fois.</span>',
       '<span class="op2">AND</span>', '<span class="op2">OR</span>', 'AND : calculé en premier', 'entre parenthèses : calculé en premier',
       '<span id="lp">(</span><span id="cP">ville = <span class="str">\'Paris\'</span></span> <span class="kw">OR</span> <span id="cL">ville = <span class="str">\'Lyon\'</span></span><span id="rp">)</span> <span class="kw" id="and5">AND</span> <span id="cA">age &gt; 30</span>']},
-  {id: 22, next: 7, titre: 'NOT', page: 'not.html', thumb: 'not-thumb.jpg', duree: '1 min 54', notesAt: 97.2,
+  {id: 22, next: 7, titre: 'NOT', page: 'not.html', thumb: 'not-thumb.jpg', duree: '1 min 59', notesAt: 97.2,
     table: 'clients',
     bubble: 'Avec <span class="ic">NOT</span>, inverse une condition : garde ce qu’elle écarte.',
     chapters: ['Situation', 'Le problème', 'NOT en action', 'NOT ou l’inverse', 'Les parenthèses', 'Le résultat', 'À retenir'],
@@ -549,14 +549,14 @@ const COURSES = [
       'date_inscription <span class="hv">&gt;=<i class="mbox"></i></span>&nbsp;<span class="str">\'2023-03-01\'</span>',
       '<span class="kw" id="not5">NOT</span> <span id="lp">(</span><span id="cP">ville = <span class="str">\'Paris\'</span></span> <span class="kw">AND</span> age &gt; 35<span id="rp">)</span>',
       'NOT inverse tout le groupe', 'NOT n’inverse que cette condition']},
-  {id: 7, next: 8, titre: 'NULL', page: 'null.html', thumb: 'null-thumb.jpg', duree: '1 min 40', notesAt: 86.2,
+  {id: 7, next: 8, titre: 'NULL', page: 'null.html', thumb: 'null-thumb.jpg', duree: '1 min 45', notesAt: 86.2,
     table: 'clients',
     bubble: '<span class="ic">IS NULL</span> retrouve les valeurs absentes.',
     chapters: ['Situation', 'Le problème', 'IS NULL en action', 'Le piège du = NULL', 'IS NOT NULL', 'Le résultat', 'À retenir'],
     traps: ['<span class="ln" id="ql3"><span class="kw">WHERE</span> email <span class="kw glow" id="isn3">IS NULL</span>;', '<span class="tv nul">NULL</span><b>aucune valeur</b>',
       '<span class="tv">\'\'</span><b>un texte vide</b>', '<span class="tv">0</span><b>le nombre zéro</b>', '<span class="kw">WHERE</span> email = <span class="kw">NULL</span>;',
       '<b>Aucune ligne</b><span class="s">NULL n’est égal à rien, pas même à NULL.</span>', '<span class="kw glow" id="isnn5">IS NOT NULL</span>', '2 + 8 = <em>10 clients</em>']},
-  {id: 8, next: 9, titre: 'LIKE', page: 'like.html', thumb: 'like-thumb.jpg', duree: '2 min 07', notesAt: 101.7,
+  {id: 8, next: 9, titre: 'LIKE', page: 'like.html', thumb: 'like-thumb.jpg', duree: '2 min 11', notesAt: 101.7,
     table: 'clients',
     bubble: 'Avec <span class="ic">LIKE</span>, cherche un motif plutôt qu’une valeur exacte.',
     chapters: ['Situation', 'Le problème', 'LIKE en action', 'Où placer le %', 'Un seul caractère', 'Le résultat', 'À retenir'],
@@ -566,7 +566,7 @@ const COURSES = [
       '<span class="str glow" id="strB4">\'%ie%\'</span>', '<span class="cpl">\'l%\'</span><span class="tx">ou</span><span class="cpl">\'L%\'</span>',
       '<span class="str">\'<span class="glow" id="us5">_</span>a%\'</span>', "[['_', 0, 0], ['a', 1, 1], ['%', 2, 'end']]",
       'n’importe quelle suite, <b>même vide</b>', '<b>exactement un</b> caractère']},
-  {id: 9, next: 10, titre: 'IN', page: 'in.html', thumb: 'in-thumb.jpg', duree: '1 min 52', notesAt: 92.1,
+  {id: 9, next: 10, titre: 'IN', page: 'in.html', thumb: 'in-thumb.jpg', duree: '1 min 56', notesAt: 92.1,
     table: 'clients',
     bubble: 'Avec <span class="ic">IN</span>, compare une colonne à toute une liste de valeurs.',
     chapters: ['Situation', 'Le problème', 'IN en action', 'Écrire la liste', 'Une seule colonne', 'Le résultat', 'À retenir'],
@@ -576,7 +576,7 @@ const COURSES = [
       'Son identifiant est-il dans la liste ?', '<div class="tg" id="tgP"><i>( )</i>entre parenthèses</div>',
       '(<span class="hv str" id="hS1">\'Paris\'<i class="mbox"></i></span>, <span class="hv str" id="hS2">\'Nantes\'<i class="mbox"></i></span>)',
       '<span class="ln5" id="m5b">  <span class="kw">AND</span> age &gt; 35;', '✓ 3 lots prêts à partir']},
-  {id: 10, next: 11, titre: 'BETWEEN', page: 'between.html', thumb: 'between-thumb.jpg', duree: '2 min 01', notesAt: 98.4,
+  {id: 10, next: 11, titre: 'BETWEEN', page: 'between.html', thumb: 'between-thumb.jpg', duree: '2 min 05', notesAt: 98.4,
     table: 'commandes',
     bubble: 'Avec <span class="ic">BETWEEN</span>, garde les valeurs situées entre deux limites.',
     chapters: ['Situation', 'Le problème', 'BETWEEN en action', 'Limites incluses', 'Limites à l’envers', 'Le résultat', 'À retenir'],
@@ -584,7 +584,7 @@ const COURSES = [
       '<span id="geA">&gt;=</span><span class="kw glow" id="btA">BETWEEN</span>', '<span id="dcB"><span class="rep" id="r2">date_commande<i class="mbox"></i></span> &lt;= </span>',
       '<span class="x2" id="x2">× 2</span>', 'Sa date est-elle dans l’intervalle ?', '<span class="op" id="op2">&lt;=</span>20 juillet · inclus',
       '<span class="str bad" id="bd1">\'2026-07-20\'</span>', 'À l’envers, l’intervalle est vide.', '✓ 4 confirmations renvoyées en français']},
-  {id: 11, next: 12, titre: 'ORDER BY', page: 'order-by.html', thumb: 'order-by-thumb.jpg', duree: '1 min 52', notesAt: 95.8,
+  {id: 11, next: 12, titre: 'ORDER BY', page: 'order-by.html', thumb: 'order-by-thumb.jpg', duree: '1 min 56', notesAt: 95.8,
     table: 'produits',
     bubble: 'Avec <span class="ic">ORDER BY</span>, range le résultat dans l’ordre voulu.',
     chapters: ['Situation', 'Le problème', 'ORDER BY en action', 'Le sens du tri', 'Deux critères', 'Le résultat', 'À retenir'],
@@ -593,7 +593,7 @@ const COURSES = [
       '<span class="sus"><span class="emo">🔍</span>50 ou 500 ?</span>', '<span class="tx">30 → 500</span><span class="tx">500 → 30</span>',
       '<span class="tx">A → Z</span><span class="tx">Z → A</span>', '<span class="kw">ORDER BY</span> categorie, prix<span class="sens" id="descC"> <span class="kw glow">DESC</span></span>;',
       '✓ Vérifications prêtes']},
-  {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '2 min 43', notesAt: 142.2,
+  {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '2 min 47', notesAt: 142.2,
     table: 'produits',
     bubble: 'Avec <span class="ic">LIMIT</span> et <span class="ic">OFFSET</span>, tu affiches seulement la partie du résultat qui t’intéresse.',
     chapters: ['Situation', 'Le problème', 'LIMIT en action', 'Sauter avec OFFSET', 'Un classement stable', 'Le résultat', 'À quoi ça sert', 'À retenir'],
@@ -1210,7 +1210,8 @@ for (const c of COURSES) {
        en a cinq). */
     /* Le chapitre 17, le dernier, porte en plus la fin de l’apprentissage (la conversation des équipes, la lettre d’Elisa et la finale
        « Le chemin parcouru », 26 octobre, 23 h 53) : 520 Ko pour lui seul. */
-    assert.ok(total < (c.maxKo || 490) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
+    /* 500 Ko depuis le 27 octobre : moments.js porte aussi les cartes des moments (relier, ranger, une requête à lire ; Elisa, 13 h 48). */
+    assert.ok(total < (c.maxKo || 500) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
     for (const f of [`./assets/anim/${c.page}?app&embed`, `./assets/anim/${c.thumb}`]) assert.ok(sw.includes(`'${f}'`), `préchargé : ${f}`);
   });
 }
@@ -1251,8 +1252,29 @@ for (const c of COURSES) {
         assert.equal(m.options.filter(o => o.ok).length, 1, `${nom} : une seule bonne réponse`);
         for (const o of m.options) assert.ok(o.why && o.why.length > 25, `${nom}, « ${o.label} » : une explication`);
         if (m.options.some(o => prose(o.label))) assert.equal(m.text, true, `${nom} : des réponses en phrases (text: true, police du texte)`);
+      } else if (m.kind === 'sort' || m.kind === 'link') {
+        /* Elisa, 27 octobre, 13 h 48 : « tu peux faire tout ce que tu veux comme moment : lignes à relier, toucher, dessins, question, puzzle ».
+           Ranger des étiquettes dans des cases (sort), relier deux colonnes (link) : sur une carte posée le temps du moment (board). */
+        assert.ok(m.board && m.board.html, `${nom} : une carte, posée le temps du moment`);
+        assert.equal(new Set(m.spots.map(z => z.k)).size, m.spots.length, `${nom} : une clé par zone`);
+        for (const z of m.spots) assert.ok(z.label && /^#mb\w+$/.test(z.sel) && m.board.html.includes(`id="${z.sel.slice(1)}"`), `${nom}, zone ${z.k} : sur la carte (id en mb…), avec un nom (VoiceOver)`);
+        assert.ok(m.hint && /\.$/.test(m.hint.replace(/<[^>]+>/g, '').trim()), `${nom} : une aide qui dit le geste`);
+        if (m.kind === 'sort') {
+          const keys = new Set(m.spots.map(z => z.k));
+          assert.ok(m.spots.length >= 2 && m.options.length >= 3, `${nom} : au moins deux cases et trois étiquettes`);
+          for (const o of m.options) assert.ok(keys.has(o.to) && o.why && o.why.length > 25, `${nom}, « ${o.label} » : sa case, et une correction`);
+          assert.ok(m.spots.every(z => m.options.some(o => o.to === z.k)), `${nom} : chaque case reçoit au moins une étiquette`);
+          /* Des alias (« Nom du produit ») restent du code ; des noms ou des prix (« Magnésium, 19,90 € ») sont du texte. */
+          if (m.options.some(o => /\d,\d/.test(o.label))) assert.equal(m.text, true, `${nom} : des étiquettes en mots (text: true, police du texte)`);
+        } else {
+          const left = m.spots.filter(z => z.side === 'l'), right = m.spots.filter(z => z.side === 'r');
+          assert.ok(left.length >= 3 && right.length === left.length && m.need === left.length, `${nom} : autant d’éléments à gauche qu’à droite, tous à relier`);
+          for (const z of left) assert.ok(right.some(r => r.k === z.pair) && z.why && z.why.length > 25, `${nom}, ${z.k} : sa paire, et une correction`);
+          assert.equal(new Set(left.map(z => z.pair)).size, left.length, `${nom} : une paire différente pour chaque élément`);
+          assert.ok(left.some((z, k) => right[k].k !== z.pair), `${nom} : la colonne de droite est mélangée`);
+        }
       } else {
-        assert.equal(m.kind, 'tap', `${nom} : un choix (pick) ou des zones à toucher (tap)`);
+        assert.equal(m.kind, 'tap', `${nom} : un choix (pick), des zones à toucher (tap), des étiquettes à ranger (sort) ou des éléments à relier (link)`);
         const ok = m.spots.filter(z => z.ok);
         assert.ok(m.need >= 1 && ok.length >= m.need && m.spots.length > ok.length, `${nom} : ${m.need} bonne(s) zone(s), et des zones fausses`);
         assert.equal(new Set(m.spots.map(z => z.k)).size, m.spots.length, `${nom} : une clé par zone`);
