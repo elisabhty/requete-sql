@@ -374,8 +374,11 @@ test('la vidéo de fin (fin-sql.html) : le bravo du projet, le merci des équipe
   assert.ok(fin.includes("'Avant ton départ, toute l’équipe tenait à te dire merci 💜'") && fin.includes("'Tu peux être fier du chemin parcouru ! 💜'") && !fin.includes("'Ta mission touche à sa fin.'"), 'le merci des équipes');
   assert.ok(fin.includes("'Bonjour à toute l’équipe,'") && fin.includes("'À bientôt 👋'"), 'ta réponse, mot pour mot');
   assert.ok(fin.includes("sel: '#gnb'") && fin.includes("sel: '#bsend'"), 'l’app s’arrête sur le message, puis sur « Envoyer »');
-  assert.ok(fin.includes("cap('k3', \"15 modules, 62 cours<br>et une base de 12 tables.\", 4.8);") && fin.includes("const FSTAT = [[15, 'modules'], [62, 'cours'], [12, 'tables']];"),
-    '12 tables, plus « 17 chapitres » (ils sont déjà parmi les 62 cours)');
+  assert.ok(fin.includes("cap('k3', \"15 modules, 62 cours<br>et 210 requêtes SQL.\", 4.8);") && fin.includes("const FSTAT = [[15, 'modules'], [62, 'cours'], [210, 'requêtes']];"),
+    'le nombre de requêtes des cours (plus « 17 chapitres », déjà parmi les 62 cours)');
+  /* Les 44 requêtes des exercices sont dans le compte : chaque cours avec exercice en a une */
+  const M = html.slice(html.indexOf('const MODULES = ['), html.indexOf('const CHALLENGES=['));
+  assert.equal(new Set([...M.matchAll(/\n  solution:"((?:[^"\\]|\\.)*)"/g)].map(m => m[1])).size, 44, 'les requêtes des exercices');
   assert.ok(fin.includes("cap('k5', \"Et maintenant, place à la pratique :<br>des défis t’attendent !\", 4.6);"), 'et maintenant, la pratique');
   assert.ok(fs.readFileSync(path.join(root, 'sw.js'), 'utf8').includes("'./assets/anim/fin-sql.html?app&embed'"), 'gardée pour le hors ligne');
   /* Le lecteur : la fin se lance après une réussite, jamais après un échec */
