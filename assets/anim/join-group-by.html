@@ -249,6 +249,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 158.3;
@@ -309,6 +310,34 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // deux essais ratés : avant que la vidéo ne montre la bonne requête
+  {at: 61.62, from: 55.9, kind: 'sort', prompt: 'Remets la requête dans l’ordre : une ligne par place.',
+    hint: 'Touche une ligne, puis sa place. Tu peux aussi la faire glisser.', next: '« {x} » : à quelle place ?',
+    board: {y: 470, html: '<span class="mb-k">Compter les commandes par ville</span><div class="mb-col" style="gap:16px">'
+      + [1, 2, 3, 4].map(n => `<div class="mb-bin mb-row" id="mbo${n}"><b style="flex-basis:50px">${n}</b><div class="mb-drop"></div></div>`).join('') + '</div>'},
+    spots: [1, 2, 3, 4].map(n => ({k: 'o' + n, sel: '#mbo' + n, label: `Place ${n}`})),
+    options: [
+      {label: 'GROUP BY clients.ville;', to: 'o4', why: 'On regroupe une fois les tables reliées : <code>GROUP BY</code> vient en dernier.'},
+      {label: 'FROM commandes', to: 'o2', why: '<code>FROM</code> vient juste après <code>SELECT</code> : on part de la <b>table commandes</b>.'},
+      {label: 'SELECT clients.ville, COUNT(*)', to: 'o1', why: '<code>SELECT</code> ouvre toujours la requête.'},
+      {label: 'INNER JOIN clients ON …', to: 'o3', why: 'La jointure fait partie de <code>FROM</code> : elle suit la première table.'}],
+    tip: 'D’abord relier les tables, ensuite regrouper.'},
+  // les commandes rassemblées par ville : avant que la vidéo ne les compte
+  {at: 78.75, from: 67.5, kind: 'pick', text: true, prompt: 'Que donnera <code>COUNT(*)</code> pour le groupe de Paris ?', options: [
+    {label: '7 commandes', ok: true, why: 'Le groupe de Paris réunit 7 lignes, une par commande : <code>COUNT(*)</code> les compte.'},
+    {label: '4 commandes', why: '4, c’est le nombre de clients de Paris. Après le JOIN, chaque ligne est une commande : 7.'},
+    {label: '15 commandes', why: '15, c’est le total des commandes. <code>COUNT(*)</code> compte chaque groupe à part.'}],
+    tip: 'Compte les lignes du groupe de Paris.'},
+  // sans GROUP BY : avant que la vidéo n’exécute la requête
+  {at: 107.55, from: 102.55, kind: 'pick', text: true, prompt: 'Sans <code>GROUP BY</code>, que renvoie la requête ?', options: [
+    {label: 'Une seule ligne, avec 15 commandes', ok: true, why: 'Sans groupes, <code>COUNT()</code> compte les 15 commandes d’un coup : une seule ligne.'},
+    {label: '5 lignes, une par ville', why: 'Sans <code>GROUP BY</code>, il n’y a aucun groupe : une seule ligne pour toutes les commandes.'},
+    {label: 'Une erreur SQL', why: 'La requête ne provoque aucune erreur : elle renvoie une seule ligne, avec 15 commandes.'}],
+    tip: 'Sans groupes, toutes les lignes sont comptées ensemble.'}
+];
 
 /* Position de chaque ligne : au départ (ordre du JOIN), une fois regroupée (GROUP BY), puis réduite à une ligne par groupe (COUNT). */
 function places(){
@@ -588,7 +617,7 @@ function build(){
   if (APP) cue(150.75, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 150.7,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 150.7, moments: MOMENTS,
   glyphs: '📊📍🛒🧪🎯🔗⚠️✅🔎🗂️🔢✓✕?·…⋯↑+=', dom, build});
 </script>
 </body>

@@ -270,6 +270,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 153.0;
@@ -328,6 +329,30 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // LEFT JOIN écrit : avant que la vidéo ne déroule les 10 clients
+  {at: 66.45, from: 57.55, kind: 'pick', text: true, prompt: '10 clients, dont 4 avec une carte. Avec <code>LEFT JOIN</code>, combien de lignes aura le résultat ?', options: [
+    {label: '10 lignes, une par client', ok: true, why: '<code>LEFT JOIN</code> garde toutes les lignes de la table de gauche, la <b>table clients</b> : 10 lignes.'},
+    {label: '4 lignes, une par carte', why: '4 lignes, c’est <code>INNER JOIN</code> : seuls les clients qui ont une carte.'},
+    {label: '14 lignes', why: 'Chaque client apparaît une seule fois : avec sa carte, ou avec NULL.'}],
+    tip: 'La table placée avant <code>LEFT JOIN</code> garde toutes ses lignes.'},
+  // les 6 clients sans carte surlignés : avant que la vidéo ne remplisse leurs colonnes
+  {at: 90.85, from: 84.25, kind: 'pick', text: true, prompt: 'Emma Dubois n’a pas de carte. Que contient sa colonne <code>points</code> ?', options: [
+    {label: 'NULL', ok: true, why: 'Aucune carte ne lui correspond : les colonnes de la <b>table fidelite</b> valent NULL.'},
+    {label: '0', why: '0 serait une valeur enregistrée. Sans carte, il n’y a aucune valeur : NULL.'},
+    {label: 'Un texte vide', why: 'Un texte vide est une valeur. Sans correspondance, les colonnes valent NULL.'}],
+    tip: 'Une valeur absente, en SQL, s’écrit NULL.'},
+  // les tables à l’envers : avant que la vidéo n’exécute la requête
+  {at: 104.72, from: 95.7, kind: 'pick', text: true, prompt: 'Avec les tables à l’envers, que garde <code>LEFT JOIN</code> ?',
+    board: {y: 470, html: '<span class="mb-k">Les tables à l’envers</span><div class="mb-q" style="font-size:34px"><span class="k">SELECT</span> clients.prenom, fidelite.points\n<span class="k">FROM</span> fidelite\n<span class="k">LEFT JOIN</span> clients\n  <span class="k">ON</span> clients.id = fidelite.client_id;</div>'},
+    options: [
+    {label: 'Les 4 cartes, avec leur client', ok: true, why: 'La table de gauche est maintenant la <b>table fidelite</b> : toutes les cartes sont gardées, les clients sans carte disparaissent.'},
+    {label: 'Les 10 clients', why: 'Il faudrait la <b>table clients</b> à gauche, juste après <code>FROM</code> : ici, c’est la <b>table fidelite</b>.'},
+    {label: 'Les 6 clients sans carte', why: 'Ce sont eux qui disparaissent : la table de gauche, la <b>table fidelite</b>, ne les contient pas.'}],
+    tip: '<code>LEFT JOIN</code> garde toutes les lignes de la table écrite avant lui.'}
+];
 
 function dom(){
   /* Chapitre 1 : les 10 clients du bilan, leurs points encore inconnus */
@@ -607,7 +632,7 @@ function build(){
   if (APP) cue(145.45, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 145.4,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 145.4, moments: MOMENTS,
   glyphs: '👤👪🏅🔎🎯⬅️👥⚠️🔗✓✕?!·…', dom, build});
 </script>
 </body>

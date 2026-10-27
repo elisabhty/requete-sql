@@ -270,6 +270,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 183.2;
@@ -339,6 +340,36 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // le premier essai, LEFT JOIN : avant que la vidéo ne montre ce qui manque
+  {at: 43.65, from: 38.45, kind: 'pick', text: true, prompt: 'Avec <code>FROM clients LEFT JOIN commandes</code>, qui manque dans le résultat ?', options: [
+    {label: 'La commande n°16, sans client', ok: true, why: '<code>LEFT JOIN</code> garde tous les clients ; la commande n°16 n’a aucun client : elle n’apparaît pas.'},
+    {label: 'Inès Lefebvre et Nathan Dupont', why: 'Ils sont dans la table de gauche, la <b>table clients</b> : <code>LEFT JOIN</code> les garde, avec NULL pour la commande.'},
+    {label: 'Personne', why: 'La commande n°16 n’a pas de client : <code>LEFT JOIN</code>, qui part des clients, ne la garde pas.'}],
+    tip: '<code>LEFT JOIN</code> garde toute la table de gauche, et seulement elle.'},
+  // FULL OUTER JOIN écrit : avant que la vidéo ne compte les lignes
+  {at: 82.65, from: 71.55, kind: 'pick', text: true, prompt: '15 commandes ont leur client ; 2 clients n’ont rien commandé ; 1 commande n’a pas de client. Combien de lignes ?', options: [
+    {label: '18 lignes', ok: true, why: '15 correspondances, plus 2 clients sans commande et 1 commande sans client : 18 lignes.'},
+    {label: '26 lignes', why: 'Ce n’est pas la somme des deux tables : une correspondance réunit un client et une commande sur une seule ligne.'},
+    {label: '16 lignes', why: '16 lignes, c’est <code>RIGHT JOIN</code> : les 2 clients sans commande manqueraient.'}],
+    tip: 'Une ligne par correspondance, plus une par ligne restée seule.'},
+  // les lignes sans correspondance : avant que la vidéo ne les détaille
+  {at: 105.72, from: 100.0, kind: 'sort', text: true, prompt: 'Sur chaque ligne du résultat, quelles colonnes valent NULL ?',
+    hint: 'Touche une ligne, puis sa case. Tu peux aussi la faire glisser.', next: '« {x} » : quelles colonnes valent NULL ?',
+    board: {y: 470, html: '<span class="mb-k">Les colonnes à NULL</span><div class="mb-col" style="gap:18px">'
+      + '<div class="mb-bin mb-row" id="mbnC"><b style="flex-basis:300px">L’identifiant de commande</b><div class="mb-drop"></div></div>'
+      + '<div class="mb-bin mb-row" id="mbnP"><b style="flex-basis:300px">Le prénom et le nom</b><div class="mb-drop"></div></div>'
+      + '<div class="mb-bin mb-row" id="mbnA"><b style="flex-basis:300px">Aucune</b><div class="mb-drop"></div></div></div>'},
+    spots: [{k: 'C', sel: '#mbnC', label: 'L’identifiant de commande'}, {k: 'P', sel: '#mbnP', label: 'Le prénom et le nom'}, {k: 'A', sel: '#mbnA', label: 'Aucune'}],
+    options: [
+      {label: 'Inès Lefebvre', to: 'C', why: 'Inès Lefebvre n’a aucune commande : l’identifiant de commande vaut NULL.'},
+      {label: 'Commande n°16', to: 'P', why: 'La commande n°16 n’a aucun client : le prénom et le nom valent NULL.'},
+      {label: 'Sophie Martin, commande n°1', to: 'A', why: 'Une correspondance réunit le client et sa commande : aucune valeur NULL.'},
+      {label: 'Nathan Dupont', to: 'C', why: 'Nathan Dupont n’a aucune commande : l’identifiant de commande vaut NULL.'}],
+    tip: 'Il manque ce que l’autre table aurait apporté.'}
+];
 
 function dom(){
   /* Chapitre 1 : les 10 clients et les 16 commandes de la base */
@@ -620,7 +651,7 @@ function build(){
   if (APP) cue(175.65, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 175.6,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 175.6, moments: MOMENTS,
   glyphs: '👤👪🧾🔎🎯↔️⚠️🧪🔗🚫✓✕?!·…⋯+=°', dom, build});
 </script>
 </body>

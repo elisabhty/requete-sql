@@ -328,6 +328,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 204.3;
@@ -403,6 +404,30 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // la table clients ajoutée : avant que la vidéo n’écrive le second ON
+  {at: 72.85, from: 61.65, kind: 'pick', prompt: 'Quel ON écrire pour ajouter la <b>table produits</b> ?', options: [
+    {label: 'ON commandes.produit_id = produits.id', ok: true, why: '<code>produit_id</code>, dans la <b>table commandes</b>, renvoie à l’identifiant d’un produit.'},
+    {label: 'ON commandes.client_id = produits.id', why: '<code>client_id</code> renvoie à un client, pas à un produit.'},
+    {label: 'ON commandes.id = produits.id', why: '<code>commandes.id</code> est l’identifiant de la commande : c’est <code>produit_id</code> qui renvoie au produit.'}],
+    tip: 'Dans la <b>table commandes</b>, quelle colonne renvoie à un produit ?'},
+  // les trois tables réunies : avant que la vidéo ne filtre le Magnésium
+  {at: 101.02, from: 86.9, kind: 'pick', text: true, prompt: 'Où placer <code>WHERE produits.nom = \'Magnésium\'</code> ?',
+    board: {y: 470, html: '<span class="mb-k">Les trois tables reliées</span><div class="mb-q" style="font-size:32px"><span class="k">SELECT</span> clients.prenom, clients.email\n<span class="k">FROM</span> commandes\n<span class="k">INNER JOIN</span> clients\n  <span class="k">ON</span> commandes.client_id = clients.id\n<span class="k">INNER JOIN</span> produits\n  <span class="k">ON</span> commandes.produit_id = produits.id</div>'},
+    options: [
+    {label: 'Après le dernier ON', ok: true, why: 'Les jointures font partie de <code>FROM</code> : <code>WHERE</code> vient ensuite, après le dernier <code>ON</code>.'},
+    {label: 'Entre les deux INNER JOIN', why: 'Les deux jointures se suivent dans <code>FROM</code> : <code>WHERE</code> ne les sépare pas.'},
+    {label: 'Juste avant FROM', why: 'L’ordre est toujours <code>SELECT</code>, <code>FROM</code> et ses jointures, puis <code>WHERE</code>.'}],
+    tip: 'On relie d’abord toutes les tables, puis on filtre.'},
+  // le second ON relie clients et produits : avant que la vidéo n’exécute la requête
+  {at: 136.45, from: 131.15, kind: 'pick', text: true, prompt: 'Avec <code>ON clients.id = produits.id</code>, que se passe-t-il ?', options: [
+    {label: '2 lignes, mais pas les bons clients', ok: true, why: 'Deux identifiants sans rapport sont comparés : on obtient la cliente 3, Emma Dubois.'},
+    {label: 'Une erreur SQL', why: 'La requête s’exécute : les deux colonnes existent. C’est le résultat qui est faux.'},
+    {label: 'Les 2 bons clients', why: 'On ne passe plus par la <b>table commandes</b> : les achats de Sophie Martin et de Lucas Bernard sont perdus.'}],
+    tip: 'Un client et un produit qui ont le même identifiant ont-ils un rapport ?'}
+];
 
 function dom(){
   const nul = '<span class="nul">NULL</span>';
@@ -783,7 +808,7 @@ function build(){
   if (APP) cue(196.75, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 196.7,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 196.7, moments: MOMENTS,
   glyphs: '💊⚠️👥👤✉️📅📦🧾🎯🔗🔢✅🔎🧩🌉💶✓✕?·…⋯=→€', dom, build});
 </script>
 </body>

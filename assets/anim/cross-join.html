@@ -247,6 +247,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 148.0;
@@ -305,6 +306,36 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // CROSS JOIN écrit : avant que la vidéo ne dise qu’il n’a pas de ON
+  {at: 67.95, from: 61.65, kind: 'pick', text: true, prompt: 'Que faut-il écrire après <code>CROSS JOIN produits</code> ?', options: [
+    {label: 'Rien : pas de ON', ok: true, why: '<code>CROSS JOIN</code> associe chaque ville à chaque produit : aucune condition à vérifier.'},
+    {label: 'ON clients.ville = produits.nom', why: 'Une ville n’est jamais égale à un nom de produit : aucune ligne ne correspondrait.'},
+    {label: 'ON clients.id = produits.id', why: 'Les identifiants des deux tables n’ont aucun rapport : on relierait des lignes au hasard.'}],
+    tip: 'On veut toutes les combinaisons, sans rien vérifier.'},
+  // chaque client associé aux 8 produits : avant que la vidéo ne donne le total
+  {at: 87.35, from: 72.2, kind: 'pick', text: true, prompt: '10 clients, chacun associé aux 8 produits : combien de lignes au total ?', options: [
+    {label: '80 lignes', ok: true, why: 'Chaque client est associé aux 8 produits : 10 × 8 = 80 lignes.'},
+    {label: '18 lignes', why: 'Les nombres ne s’additionnent pas : 10 clients × 8 produits = 80.'},
+    {label: '8 lignes', why: 'Chaque client apporte ses 8 lignes : 10 × 8 = 80.'}],
+    tip: 'Multiplie le nombre de clients par le nombre de produits.'},
+  // les jointures vues jusqu’ici : chacune et ce qu’elle garde
+  {at: 115.52, from: 94.25, kind: 'link', need: 4, prompt: 'Relie chaque jointure à ce qu’elle garde.',
+    hint: 'Touche une jointure, puis ce qu’elle garde. Tu peux aussi tracer le trait du doigt.',
+    board: {y: 470, html: '<span class="mb-k">Les jointures</span><div class="mb-cols" style="gap:80px"><div class="mb-col" style="flex:0 0 290px"><div class="mb-i c" id="mbjI">INNER JOIN</div><div class="mb-i c" id="mbjL">LEFT JOIN</div><div class="mb-i c" id="mbjR">RIGHT JOIN</div><div class="mb-i c" id="mbjC">CROSS JOIN</div></div><div class="mb-col"><div class="mb-i sm" id="mbgC">Toutes les combinaisons</div><div class="mb-i sm" id="mbgR">Toute la table de droite</div><div class="mb-i sm" id="mbgI">Les lignes qui correspondent</div><div class="mb-i sm" id="mbgL">Toute la table de gauche</div></div></div>'},
+    spots: [
+      {k: 'I', sel: '#mbjI', label: 'INNER JOIN', side: 'l', pair: 'gI', why: '<code>INNER JOIN</code> ne garde que les lignes qui ont une correspondance des deux côtés.'},
+      {k: 'L', sel: '#mbjL', label: 'LEFT JOIN', side: 'l', pair: 'gL', why: '<code>LEFT JOIN</code> garde toutes les lignes de la table écrite avant lui, à gauche.'},
+      {k: 'R', sel: '#mbjR', label: 'RIGHT JOIN', side: 'l', pair: 'gR', why: '<code>RIGHT JOIN</code> garde toutes les lignes de la table écrite après lui, à droite.'},
+      {k: 'C', sel: '#mbjC', label: 'CROSS JOIN', side: 'l', pair: 'gC', why: '<code>CROSS JOIN</code> associe chaque ligne à chaque ligne : toutes les combinaisons.'},
+      {k: 'gC', sel: '#mbgC', label: 'Toutes les combinaisons', side: 'r'},
+      {k: 'gR', sel: '#mbgR', label: 'Toute la table de droite', side: 'r'},
+      {k: 'gI', sel: '#mbgI', label: 'Les lignes qui correspondent', side: 'r'},
+      {k: 'gL', sel: '#mbgL', label: 'Toute la table de gauche', side: 'r'}],
+    tip: 'Une seule jointure s’écrit sans <code>ON</code> : celle des combinaisons.'}
+];
 
 function dom(){
   /* Chapitre 1 : les 6 villes et les 8 produits */
@@ -619,7 +650,7 @@ function build(){
   if (APP) cue(140.45, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 140.4,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 140.4, moments: MOMENTS,
   glyphs: '🏙️📦👤🧪🧩🎯✖️🔗🔎🧮✓✕?·…⋯+=×', dom, build});
 </script>
 </body>
