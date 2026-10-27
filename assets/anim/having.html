@@ -253,6 +253,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 139.0;
@@ -318,6 +319,35 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const NB_CL = v => CLIENTS.filter(c => c[1] === v).length;
+const MOMENTS = [
+  // chaque groupe passe le test : avant que la vidéo ne donne les gagnants
+  {at: 53.05, from: 38.45, kind: 'tap', need: 2, prompt: 'Touche les villes que garde <code>HAVING COUNT(*) &gt;= 2</code>.',
+    spots: VILLES.map(([v, c]) => ({k: c, sel: `#grp3 .gc.${c}`, label: `${v}, ${NB_CL(v)} client${NB_CL(v) > 1 ? 's' : ''}`, ok: NB_CL(v) >= 2,
+      why: NB_CL(v) >= 2 ? '' : `${v} n’a qu’un client : <code>1 &gt;= 2</code> est faux, le groupe est écarté.`})),
+    tip: 'Regarde le nombre de clients de chaque groupe : au moins 2.'},
+  // WHERE ou HAVING : avant que la vidéo ne compare les deux
+  {at: 67.12, from: 53.1, kind: 'sort', prompt: 'Range chaque condition : <code>WHERE</code> ou <code>HAVING</code> ?',
+    hint: 'Touche une condition, puis sa case. Tu peux aussi la faire glisser.', next: '« {x} » : WHERE ou HAVING ?',
+    board: {y: 470, html: '<span class="mb-k">Avant ou après les groupes ?</span><div class="mb-cols" style="gap:28px"><div class="mb-col"><div class="mb-bin" id="mbW"><b>WHERE</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin" id="mbH"><b>HAVING</b><div class="mb-drop"></div></div></div></div>'},
+    spots: [{k: 'W', sel: '#mbW', label: 'WHERE, avant les groupes'}, {k: 'H', sel: '#mbH', label: 'HAVING, après les groupes'}],
+    options: [
+      {label: 'age >= 30', to: 'W', why: 'Une condition sur chaque client, avant les groupes : <code>WHERE</code>.'},
+      {label: 'COUNT(*) >= 2', to: 'H', why: 'Un calcul sur un groupe : il se teste après le regroupement, dans <code>HAVING</code>.'},
+      {label: 'ville = \'Paris\'', to: 'W', why: 'Une valeur de chaque ligne, sans calcul de groupe : <code>WHERE</code>.'},
+      {label: 'AVG(age) > 35', to: 'H', why: 'Une moyenne se calcule sur un groupe : <code>HAVING</code>.'}],
+    tip: 'Un calcul sur un groupe (COUNT, AVG…) ne se teste qu’après le regroupement.'},
+  // le piège : COUNT(*) dans le WHERE
+  {at: 94.72, from: 85.9, kind: 'pick', text: true, prompt: 'Et avec <code>COUNT(*) &gt;= 2</code> dans le <code>WHERE</code>, que se passe-t-il ?',
+    board: {y: 470, html: '<span class="mb-k">COUNT(*) dans le WHERE</span><div class="mb-q"><span class="k">SELECT</span> ville, <span class="k">COUNT</span>(*)\n<span class="k">FROM</span> clients\n<span class="k">WHERE</span> <span class="k">COUNT</span>(*) &gt;= 2\n<span class="k">GROUP BY</span> ville;</div>'},
+    options: [
+    {label: 'Une erreur SQL', ok: true, why: '<code>WHERE</code> agit avant le regroupement : aucun groupe n’existe encore à compter.'},
+    {label: 'Paris et Lyon, comme avec HAVING', why: 'Le test d’un groupe se fait après le regroupement : dans <code>HAVING</code>, pas dans <code>WHERE</code>.'},
+    {label: 'Aucune ligne', why: 'La requête ne s’exécute pas : <code>COUNT(*)</code> n’a pas sa place dans le <code>WHERE</code>.'}],
+    tip: 'Au moment du <code>WHERE</code>, les groupes sont-ils déjà formés ?'}
+];
 
 /* Chapitre 3 : les 6 groupes (3 colonnes). Chapitre 4 : les 10 clients en liste (2 colonnes), puis les 4 groupes qui restent (2 colonnes). */
 const G3 = k => ({left: (k % 3) * 328, top: 64 + Math.floor(k / 3) * 280});
@@ -640,7 +670,7 @@ function build(){
   if (APP) cue(131.45, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 131.4,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 131.4, moments: MOMENTS,
   glyphs: '🎯📍👥🔎🧺🎂⚠️🔢🧮🔀🚫🧘🪷🌿🍃🍵🕯️✓✕·?!', dom, build});
 </script>
 </body>

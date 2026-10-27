@@ -249,6 +249,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 157.8;
@@ -311,6 +312,29 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // les deux groupes formés, la fonction écrite : avant que la cellule ne se remplisse
+  {at: 55.45, from: 43.15, kind: 'pick', prompt: 'Qu’affiche la cellule du groupe en_preparation ?', options: [
+    {label: '12, 13, 14, 15, 16', ok: true, why: 'Les 5 identifiants, dans une seule cellule, séparés par une virgule et un espace.'},
+    {label: '12,13,14,15,16', why: 'Le séparateur choisi est <code>\', \'</code> : une virgule suivie d’un espace.'},
+    {label: '5', why: '5, c’est le nombre de commandes : <code>COUNT(*)</code>. <code>GROUP_CONCAT()</code> liste les identifiants.'}],
+    tip: 'Le séparateur <code>\', \'</code> se place entre chaque valeur.'},
+  // la commande n°16 sans client : avant que la vidéo ne montre la liste
+  {at: 99.75, from: 90.0, kind: 'pick', slot: '#sw4 .a', prompt: 'Que renvoie <code>GROUP_CONCAT(client_id, \', \')</code> ?',
+    hint: 'Touche une réponse, ou fais-la glisser dans le « ? ».', options: [
+    {label: '4, 1, 3, 5', ok: true, why: 'La valeur NULL est ignorée : ni texte, ni séparateur en trop.'},
+    {label: '4, 1, 3, 5, NULL', why: 'NULL n’est pas écrit dans la liste : la valeur est ignorée.'},
+    {label: '4, 1, 3, 5,', why: 'Aucun séparateur n’est ajouté pour une valeur NULL : la liste s’arrête à 5.'}],
+    tip: 'Une valeur NULL n’ajoute rien à la liste.'},
+  // l’ORDER BY final ne trie pas les cellules : avant que la vidéo ne le place dans la fonction
+  {at: 119.75, from: 104.45, kind: 'pick', prompt: 'Comment trier les identifiants dans chaque cellule, du plus récent au plus ancien ?', options: [
+    {label: 'GROUP_CONCAT(id, \',\u00a0\' ORDER BY id DESC)', ok: true, why: '<code>ORDER BY</code> se place dans la fonction, après le séparateur : il trie les valeurs de la cellule.'},
+    {label: 'GROUP BY statut ORDER BY id DESC', why: 'Un <code>ORDER BY</code> à la fin de la requête trie les lignes du résultat, pas les valeurs d’une cellule.'},
+    {label: 'GROUP_CONCAT(ORDER BY id DESC)', why: 'Il manque la colonne et le séparateur : <code>ORDER BY</code> vient après eux.'}],
+    tip: 'Le tri des valeurs se place dans les parenthèses de la fonction.'}
+];
 
 function dom(){
   /* Résultats : un nombre par statut (chapitre 2), puis la liste de ses commandes (chapitres 3 et 6) */
@@ -565,7 +589,7 @@ function build(){
   if (APP) cue(150.25, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 150.2,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 150.2, moments: MOMENTS,
   glyphs: '📦🚚🏷️📋🔎🎯🧺🧵✂️👤⚠️↕️✓✕→·?', dom, build});
 </script>
 </body>
