@@ -432,9 +432,9 @@ cap('g5', "Et si tu ajoutes <code>NOT NULL</code><br>à cette colonne ?", 3.6);
 toi('p4');
 cap('g6', "Avec <code>NOT NULL</code>, la suppression<br>du compte est refusée.", 4.0);
 cap('g7', "Sur la fiche produit,<br>l’avis est toujours là,<br>avec ses cinq étoiles.", 4.2);
+toi('p5');   // avant « le site écrit « Ancien client » », qui donne la réponse (audit du 27 octobre)
 cap('g8', "À la place du prénom,<br>le site écrit « Ancien client ».", 4.0);
 cap('g9', "<code>SET NULL</code> modifie le lien<br>dans la base de données.", 4.6);
-toi('p5');
 /* 8 · Chaque cas, sa règle */
 chap({label:'Chaque cas, sa règle'});
 cap('h1', "Chaque clé étrangère peut avoir<br>sa propre règle.", 3.8);
@@ -1047,11 +1047,16 @@ function build(){
   // avec ON DELETE SET NULL, l’avis est conservé : le bouton, le compte disparaît, l’avis reste
   press($('#bdel'), A.g1 + 0.6, '#A92A31', 9, true);
   delRow('#rwc', RH, A.g1 + 0.9);
+  // le message revient sans sa deuxième ligne (« La colonne client_id vaut NULL. » donnerait la réponse du moment qui suit) :
+  // elle s’affiche quand 9 devient NULL
+  tl.set('#o-sn .s', {display: 'none', autoAlpha: 0}, A.g1 + 1.85);   // le titre seul, centré dans le message
   tl.fromTo('#o-sn', {autoAlpha: 0, y: 20}, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'expo.out', immediateRender: false}, A.g1 + 1.9); cue(A.g1 + 1.9, 'chord', 0.6);
   // À toi : la case de l’avis qui devient NULL (réponse : la case du compte, entourée)
   tl.set(M3_ANS, {autoAlpha: 1}, set2(PICKS[2].at));
   // mais son lien vers le compte est retiré : 9 devient NULL
   swap('#wsw .a0', '#wsw .a1', A.g2 + 0.5);
+  tl.set('#o-sn .s', {display: 'block'}, A.g2 + 0.6);
+  tl.to('#o-sn .s', {autoAlpha: 1, duration: 0.3}, A.g2 + 0.6);
   off('#hcw', A.g2 + 1.5, 0.3);
   // le produit, la note et le commentaire ne changent pas
   ['#rwa .c0', '#rwa .c2', '#rwa .c3', '#rwa .c4'].forEach((s, q) => { const t2 = A.g3 + 0.4 + q * 0.7; pulse(s, t2, 1); cue(t2, 'tick', 0.5, q); });
@@ -1073,9 +1078,9 @@ function build(){
   sceneOn('#ss', B.g6 + 0.35);
   tl.fromTo('#br', {autoAlpha: 0, y: 60}, {autoAlpha: 1, y: 0, duration: 0.6, ease: 'expo.out', immediateRender: false}, A.g7 + 0.2); cue(A.g7 + 0.2, 'whoosh', 0.5);
   pulse('#rev', A.g7 + 1.4, 1, GLOW); cue(A.g7 + 1.4, 'tick', 0.5, 2);
-  // à la place du prénom, le site écrit « Ancien client »
-  swap('#snm .a0', '#snm .a1', A.g8 + 0.6);
-  swap('#sav .a0', '#sav .a1', A.g8 + 0.6, false);
+  // à la place du prénom, « Ancien client » : affiché avant le moment 5 (qui l’écrit ?), la légende le dit après
+  swap('#snm .a0', '#snm .a1', A.g7 + 2.4);
+  swap('#sav .a0', '#sav .a1', A.g7 + 2.4, false);
   on('#rgn', A.g8 + 1.5, 0.3); cue(A.g8 + 1.5, 'tick', 0.5, 4);
   off('#rgn', B.g8 - 0.3, 0.3);
   // SET NULL modifie le lien dans la base de données : la base, sous la fiche
@@ -1085,8 +1090,8 @@ function build(){
   tl.set(M5_ANS, {autoAlpha: 1}, set2(PICKS[4].at));
 
   /* ===== 8 · Chaque cas, sa règle ===== */
-  hide(['#br', '#sdb'], B.p5 + 0.05, {y: -30}, 0.35);
-  sceneOff('#ss', B.p5 + 0.45);
+  hide(['#br', '#sdb'], B.g9 + 0.05, {y: -30}, 0.35);
+  sceneOff('#ss', B.g9 + 0.45);
   sceneOn('#sd', A.h1);
   [['#db-ca', 0], ['#db-sn', 2], ['#db-re', 4]].forEach(([id, p], q) => { const t2 = A.h1 + 0.4 + q * 0.5; show(id, t2, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(t2, 'pop', 0.6, p); });
   show('#bpack', A.h1 + 2.0, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.h1 + 2.0, 'pop', 0.7, 1);

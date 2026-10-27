@@ -129,9 +129,9 @@ test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajo
     for (const o of p.options) assert.ok(o.why && strip(o.why).length > 30, `${o.label} : une explication`);
   }
   assert.deepEqual(picks[0].options.map(o => !!o.ok), [false, true, false], 'un point de retour posé avant le cadeau');
-  assert.deepEqual(picks[2].options.map(o => !!o.ok), [false, false, true], 'rien n’est validé avant COMMIT');
+  assert.deepEqual(picks[2].options.map(o => !!o.ok), [false, false, true], 'COMMIT validerait les quatre modifications, cadeau compris');
   assert.deepEqual(picks[3].options.map(o => !!o.ok), [true, false, false], 'ROLLBACK TO SAVEPOINT avant_cadeau');
-  assert.deepEqual(picks[4].options.map(o => !!o.ok), [false, false, true], 'la transaction est toujours en cours');
+  assert.deepEqual(picks[4].options.map(o => !!o.ok), [false, false, true], 'la transaction est toujours en cours : il faut encore COMMIT');
   assert.equal(picks[1].need, 2, 'deux lignes à toucher : les modifications d’après le repère');
   assert.equal(picks[5].options.length, 6, 'six situations à ranger');
   assert.ok(picks.every(p => !/cette requête|ci-dessus|ci-dessous/.test(p.prompt)), 'aucune question ne renvoie à une requête de l’image');

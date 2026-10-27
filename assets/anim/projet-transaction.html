@@ -335,10 +335,10 @@ cap('f4', "Léa Simon a l’identifiant 7,<br>et le shaker l’identifiant 8.", 
 cap('f5', "Le nouveau remplacement<br>a l’identifiant 1.", 3.2);
 cap('f6', "Une nouvelle ligne apparaît<br>dans la <b>table remplacements</b>.", 3.6);
 cap('f7', "Elle n’est pas encore validée,<br>elle non plus.", 3.0);
+toi('p3');   // avant le chapitre « Valider avec COMMIT » : son titre donnerait la réponse (audit du 27 octobre)
 /* 6 · Valider avec COMMIT */
 chap({label:'Valider avec COMMIT'});
 cap('g1', "Les deux modifications ont réussi.", 3.0);
-toi('p3');
 cap('g2', "Utilise <code>COMMIT</code> pour les enregistrer<br>définitivement.", 3.8);   // l’élève touche « Valider les modifications » (COM, plus bas)
 cap('g3', "Les deux modifications<br>sont validées.", 3.0);
 cap('g4', "Le stock contient 29 shakers,<br>et le remplacement de Léa Simon<br>est enregistré.", 4.4);
@@ -424,10 +424,12 @@ const PICKS = [
     {label: 'Valider avec COMMIT', why: '<code>COMMIT</code> validerait le stock à 29 sans aucun remplacement : la base resterait fausse.'},
     {label: 'Annuler avec ROLLBACK', ok: true, why: '<code>ROLLBACK</code> annule toutes les modifications de la transaction : le stock revient à 30.'},
     {label: 'Rien : la transaction s’annule seule', why: 'Le refus du remplacement n’annule pas la transaction : le stock reste à 29, en attente d’un <code>COMMIT</code> ou d’un <code>ROLLBACK</code>.'}]},
-  {at: atp('p5'), from: A.h5, kind: 'pick', text: true, prompt: 'Après le <code>ROLLBACK</code>, la demande de Léa Simon est-elle traitée ?', options: [
-    {label: 'Oui, le shaker est prêt à partir', why: 'Aucun remplacement n’est enregistré : l’équipe logistique n’a rien à préparer.'},
-    {label: 'À moitié : le stock est à jour', why: '<code>ROLLBACK</code> annule aussi l’<code>UPDATE</code> : le stock est revenu à 30.'},
-    {label: 'Non, le remplacement reste à enregistrer', ok: true, why: '<code>ROLLBACK</code> remet tout comme avant : le remplacement est à refaire, cette fois avec le prénom à imprimer.'}]},
+  /* « La demande est-elle traitée ? » : la légende d’avant (« aucun remplacement n’est enregistré ») et la pastille donnaient la réponse.
+     La question porte sur la suite (audit du 27 octobre). */
+  {at: atp('p5'), from: A.h5, kind: 'pick', text: true, prompt: 'Après le <code>ROLLBACK</code>, que faut-il faire pour traiter la demande de Léa Simon ?', options: [
+    {label: 'Rien : le ROLLBACK s’en est chargé', why: '<code>ROLLBACK</code> annule les modifications, il ne les refait pas : aucun remplacement n’est enregistré.'},
+    {label: 'Enregistrer seulement le remplacement', why: '<code>ROLLBACK</code> a aussi annulé l’<code>UPDATE</code> : le stock compterait encore le shaker envoyé à Léa Simon.'},
+    {label: 'Recommencer toute la transaction', ok: true, why: '<code>ROLLBACK</code> a tout annulé : il faut refaire le retrait du stock et le remplacement, cette fois avec le prénom à imprimer, puis valider avec <code>COMMIT</code>.'}]},
   {at: atp('p6'), from: A.i1, kind: 'sort', prompt: 'Range chaque situation avec la commande qui convient.',
     hint: 'Touche une situation, puis la commande qui convient. Tu peux aussi la faire glisser directement.', next: '« {x} » : quelle commande choisir ?',
     options: ITEMS.map(x => ({label: x[0]}))}
