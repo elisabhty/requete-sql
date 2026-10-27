@@ -403,7 +403,7 @@ if (EMBED) {
   addEventListener('resize', fit);
   addEventListener('DOMContentLoaded', fit);
 }
-const DURATION = APP ? 96 : 99;
+let DURATION = APP ? 96 : 99;
 /* Pauses de lecture : à ces instants de la timeline, l’image reste affichée le temps de lire la légende
    (instant, durée en secondes). Placées quand rien ne bouge, juste avant que la légende ne s’efface.
    Les moments « À toi » (MOMENTS, plus bas ; moments.js) s’insèrent dans la vidéo : les pauses qui les suivent sont décalées d’autant,
@@ -546,7 +546,19 @@ if (APP) {
   CAPTIONS[CAPTIONS.length - 2][1] = 88.3;
   CAPTIONS[CAPTIONS.length - 1] = [88.4, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."];
 }
-const NOTES_AT = 88.4;   // le bouton « Ajouter à mes notes » de l’app, sous le récapitulatif (temps de la timeline d’origine)
+/* « Ce que tu retiens » n’est plus dans la vidéo : il est dans le bilan de la leçon, avec le bouton « Ajouter à mes notes » et sa flèche
+   (Elisa, 27 octobre, 9 h 43). La vidéo s’arrête sur la dernière image du résultat, juste avant sa sortie (82,5 s), la légende encore
+   affichée ; l’image reste un instant avant le bilan (comme le moteur commun, core.js). ?recap remontre le chapitre « À retenir ». */
+const RECAP = new URLSearchParams(location.search).has('recap');
+const END = RECAP ? null : 82.48;
+if (END) {
+  DURATION = END;
+  CHAPTERS.length = 6;
+  CHAPTERS[5].b = END;
+  CAPTIONS.length = 17;
+  CAPTIONS[16] = [CAPTIONS[16][0], 999, CAPTIONS[16][2]];
+}
+const NOTES_AT = RECAP ? 88.4 : null;   // le bouton « Ajouter à mes notes » de l’app, sous le récapitulatif (temps de la timeline d’origine)
 
 /* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
    Elisa, 26 octobre, 14 h 59 : les premières leçons gardent tout ce qu’elle a validé ; il leur manquait les moments. */
@@ -578,7 +590,7 @@ function buildDom(){
   CHAPTERS.forEach(c => {
     const d = document.createElement('div');
     d.className = 'chip';
-    d.innerHTML = `<b>${c.n}</b><span>/ 7 · ${c.label}</span>`;
+    d.innerHTML = `<b>${c.n}</b><span>/ ${CHAPTERS.length} · ${c.label}</span>`;
     chap.append(d);
   });
   const cap = $('#cap');
@@ -1055,7 +1067,7 @@ function applyMoments(){
   });
   CUES.forEach(q => { q.t = MP.s1(q.t); });
   CONFETTI.forEach(c => { c.t = MP.s1(c.t); });
-  HOLDS = HOLDS0.map(([t, d]) => [MP.s0(t), d]).concat(MP.cuts.map(([t, d]) => [t, -d])).sort((x, y) => x[0] - y[0]);
+  HOLDS = (END ? HOLDS0.filter(h => h[0] < END).concat([[END - 0.02, 1.2]]) : HOLDS0).map(([t, d]) => [MP.s0(t), d]).concat(MP.cuts.map(([t, d]) => [t, -d])).sort((x, y) => x[0] - y[0]);
   MP.captions.filter(c => c[2] === 'À toi !').forEach(([a, b]) => {
     const d = document.createElement('div');
     d.className = 'c'; d.innerHTML = `<p>${fr('À toi !')}</p>`;
@@ -1107,7 +1119,7 @@ window.__ready = (async () => {
   confettiCues();
   renderAt(0);
   if (EMBED) { const st = document.getElementById('stage'); st && dispatchEvent(new Event('resize')); }
-  return {duration: OUT_DURATION, fps: FPS, cues: CUES.map(c => Object.assign({}, c, {t: unwarp(c.t)})), overflow: checkCaptions(), notesT: unwarp(MP.notesAt), holds: HOLD_TOTAL,
+  return {duration: OUT_DURATION, fps: FPS, cues: CUES.filter(c => c.t < MP.duration).map(c => Object.assign({}, c, {t: unwarp(c.t)})), overflow: checkCaptions(), notesT: MP.notesAt == null ? null : unwarp(MP.notesAt), holds: HOLD_TOTAL,
     clashes: MOMENT_CLASHES,
     chapters: MP.chapters.map(c => ({t: unwarp(c.a), n: c.n, label: c.label})),
     questions: QUESTIONS.map(q => ({t: unwarp(q.at), kicker: q.kicker, ctx: fr(q.ctx || ''), q: fr(q.q), options: q.options.map(o => ({label: o.label, ok: o.ok})), okTitle: fr(q.okTitle), koTitle: fr(q.koTitle), why: fr(q.why)})),

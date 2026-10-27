@@ -59,7 +59,8 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
   let total = 0;
   for (const f of [FILE, 'core.css', 'core.js', 'gsap.min.js', 'mascotte.webp', THUMB]) total += fs.statSync(path.join(ANIM, f)).size;
   for (const f of FONTS) total += fs.statSync(path.join(ROOT, 'assets/fonts', f)).size;
-  assert.ok(total < 470 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
+  /* 480 Kio (470 jusqu’au 27 octobre) : le moteur commun arrête chaque vidéo avant son chapitre « À retenir » (recapEnd, recapRest). */
+  assert.ok(total < 480 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
   assert.ok(fs.statSync(path.join(ANIM, THUMB)).size > 1000, 'vignette');
 });
 

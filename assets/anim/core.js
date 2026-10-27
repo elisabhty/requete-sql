@@ -755,12 +755,45 @@ function contentBottom(){
   return best === null ? null : +best.toFixed(1);
 }
 
+/* ---------- La fin de la vidéo, avant le chapitre « À retenir » ---------- */
+/* La scène d’avant s’efface juste avant le chapitre (ses fondus de sortie, dans la seconde qui précède) : la vidéo s’arrête
+   sur l’image d’avant ces fondus. */
+function recapEnd(a, end){
+  const chrome = el => el && el.closest && el.closest('#cap, #chapter, #progress, #header');
+  const outs = tl.getChildren(true, true, false).filter(tw => {
+    const s = tw.startTime(), v = tw.vars || {}, tg = (tw.targets() || []).filter(x => x && x.nodeType === 1);
+    return s >= a - 1.0 && s < a - 0.01 && v.data !== 'amb' && (v.autoAlpha === 0 || v.opacity === 0) && !(tg.length && tg.every(chrome));
+  }).map(tw => tw.startTime());
+  return outs.length ? Math.min(end, +(Math.min(...outs) - 0.02).toFixed(2)) : end;
+}
+/* La dernière image reste le temps de lire la dernière légende (sans fondu de sortie), puis un instant, avant le bilan de l’app. */
+const RECAP_REST = 1.2;
+function recapRest(captions, end){
+  const c = captions[captions.length - 1];
+  const miss = c && c[1] >= end ? readTime(c[2]) - ((end - 0.05) - (c[0] + 0.3) - cutIn(c[0] + 0.3, end)) : 0;
+  return [[+(end - 0.02).toFixed(2), Math.ceil((Math.max(0, miss) + RECAP_REST) * 20) / 20]];
+}
+
 /* ---------- Le cours ---------- */
 /* cfg : {duration, chapters, captions, questions, picks, notesAt, glyphs, dom(), build(), onRender(T)} */
 function Course(cfg){
   /* Les moments « À toi » ajoutés aux cours d’avant le projet (moments.js) : leurs temps deviennent ceux de la vidéo avec ses moments. */
   if (cfg.moments && !QS.has('nomoments')) cfg = withMoments(cfg);   // ?nomoments : la vidéo sans ses moments (pour en placer de nouveaux)
-  const {duration, chapters, captions, questions = [], picks = [], opens = [], notesAt = null} = cfg;
+  let {duration, chapters, captions, questions = [], picks = [], opens = [], notesAt = null} = cfg;
+  /* « Ce que tu retiens » n’est plus dans les vidéos : il est dans le bilan de la leçon, avec le bouton « Ajouter à mes notes » et sa
+     flèche (Elisa, 27 octobre, 9 h 43). La vidéo s’arrête avant son chapitre « À retenir » (les pages le gardent : ?recap le remontre),
+     sur la dernière image de la scène d’avant, sa légende encore affichée : la sortie de la scène (ses fondus, juste avant le chapitre)
+     est retirée après la construction (recapEnd), et l’image reste le temps de lire la légende, puis un instant (RECAP_REST). */
+  const RECAP_CH = chapters.findIndex(c => c.label === 'À retenir');
+  const RECAP_A = RECAP_CH > 0 && !QS.has('recap') ? chapters[RECAP_CH].a : null;
+  if (RECAP_A != null) {
+    duration = +(RECAP_A - 0.05).toFixed(2);
+    chapters = chapters.slice(0, RECAP_CH).map((c, i, a) => i === a.length - 1 ? Object.assign({}, c, {b: duration}) : c);
+    captions = captions.filter(c => c[0] < duration - 0.3);
+    const k = captions.length - 1;
+    if (k >= 0 && plain(captions[k][2]) !== 'À toi !') captions[k] = [captions[k][0], 999].concat(captions[k].slice(2));
+    notesAt = null;
+  }
   let out = 0;
   function renderAt(T){
     const t = warp(T);
@@ -799,9 +832,11 @@ function Course(cfg){
     smsFit();
     chromeTimeline(chapters, captions, duration);
     cfg.build();
+    let rest = [];
+    if (RECAP_A != null) { duration = recapEnd(RECAP_A, duration); captions = captions.filter(c => c[0] < duration - 0.3); rest = recapRest(captions, duration); }
     tl.set({}, {}, duration);
     confettiCues();
-    HOLDS = mergeHolds(captionHolds(captions, duration).concat(EXTRA_HOLDS)).concat(CUTS).sort((x, y) => x[0] - y[0]);
+    HOLDS = mergeHolds(captionHolds(captions, duration).concat(EXTRA_HOLDS.filter(h => h[0] < duration), rest)).concat(CUTS.filter(c => c[0] < duration)).sort((x, y) => x[0] - y[0]);
     const total = HOLDS.reduce((a, h) => a + h[1], 0);
     out = +(duration + total).toFixed(3);
     renderAt(0);
