@@ -9314,7 +9314,7 @@ guide({ id:50, titre:"Sécurité et droits", résumé:"Contrôler les accès ave
      ratés. Elle remplace l’ancien cours texte Sécurité et droits (app_user et la table clients), le dernier cours texte de l’app : il
      est gardé pour les tests (tests/fixtures/guide-texte-droits.js). */
   leconSeule:true,
-  video:{anim:'assets/anim/projet-droits.html?app&embed',thumb:'assets/anim/projet-droits-thumb.webp',duree:'6 min 30',moments:6,seuil:4,
+  video:{anim:'assets/anim/projet-droits.html?app&embed',thumb:'assets/anim/projet-droits-thumb.webp',duree:'6 min 35',moments:6,seuil:4,
     /* « Ajouter à mes notes » : apparaît à 5 min 58 (358,98 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920),
        et s’en va à 6 min 06 (366,18 s), quand commence la finale « Le chemin parcouru ». */
     notes:{t:358.98,until:366.18,y:1173,card:[64,292,1016,878],to:[940,255]}},
@@ -14955,7 +14955,9 @@ function lvNotePlace(){
 function lvNoteSync(){
   const N=LV&&LV.note; if(!N)return;
   /* until : le bouton s’en va quand la vidéo continue après le résumé (chapitre 17 : la finale « Le chemin parcouru »). */
-  const V=LV.video, on=!LV.root.classList.contains('is-end')&&!V.ended&&V.currentTime>=N.cfg.t&&(N.cfg.until==null||V.currentTime<N.cfg.until);
+  /* La fin du bouton : celle que donne la page de l’animation (notesUntil), sinon celle de la fiche. */
+  const V=LV.video, I=V.info, until=I&&I.notesUntil!=null?I.notesUntil:N.cfg.until;
+  const on=!LV.root.classList.contains('is-end')&&!V.ended&&V.currentTime>=N.cfg.t&&(until==null||V.currentTime<until);
   if(on===N.shown)return;
   N.shown=on;
   clearTimeout(N.timer);
@@ -16424,7 +16426,17 @@ function bravoRecapHtml(l){
 /* La suite du parcours : une carte violette, comme celle de l’accueil, avec son bouton blanc « Continuer ». Le titre se lit en entier
    (deux lignes s’il le faut, plus de « Sous-requête dans WHER… »). Toute la carte est le bouton ; c’est sa pastille blanche qui
    s’enfonce sous le doigt. */
-function bravoNextHtml(){
+function bravoNextHtml(l){
+  /* Le tout dernier cours : place à la pratique, l’onglet Pratiquer et ses défis (Elisa, 27 octobre, 1 h 13 : « emmener voir la partie pratique »). */
+  const fin=l&&typeof MODULES!=='undefined'&&MODULES.length?MODULES[MODULES.length-1].lessons.slice(-1)[0]:null;
+  if(fin&&fin.id===l.id){
+    const n=typeof CHALLENGES!=='undefined'?CHALLENGES.length:0;
+    return `<button type="button" class="bravo-next-btn" onclick="exitLessonToTab('practice')">
+      <span class="bravo-next-lab">Et maintenant</span>
+      <span class="bn-copy"><b>Place à la pratique</b><small>${n?`${n} défis concrets et la console SQL t’attendent.`:'Des défis concrets et la console SQL t’attendent.'}</small></span>
+      <span class="bn-cta"><span class="bn-num defi" aria-hidden="true">⚑</span>Pratiquer</span>
+    </button>`;
+  }
   const session=recommendedSession();
   if(session){
     const id=session.id, defi=isDefiId(id), meta=itemMeta(id);
@@ -16481,7 +16493,7 @@ function renderBravoSlide(l){
       ${stkBravoHtml()}
       ${bravoRecapHtml(l)}
       ${bravoUnlockHtml(l)}
-      ${bravoNextHtml()}
+      ${bravoNextHtml(l)}
       ${bravoActionsHtml(l)}
     </div>`;
 }
@@ -24969,7 +24981,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2075';
+  const SW_CACHE='requete-2026-10-12-ludique-v2076';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
