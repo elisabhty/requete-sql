@@ -9314,10 +9314,11 @@ guide({ id:50, titre:"Sécurité et droits", résumé:"Contrôler les accès ave
      ratés. Elle remplace l’ancien cours texte Sécurité et droits (app_user et la table clients), le dernier cours texte de l’app : il
      est gardé pour les tests (tests/fixtures/guide-texte-droits.js). */
   leconSeule:true,
-  video:{anim:'assets/anim/projet-droits.html?app&embed',thumb:'assets/anim/projet-droits-thumb.webp',duree:'6 min 33',moments:6,seuil:4,
-    /* « Ajouter à mes notes » : apparaît à 5 min 57 (357,04 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920),
-       et s’en va à 6 min 04 (364,24 s), quand commence la finale « Le chemin parcouru ». */
-    notes:{t:357.04,until:364.24,y:1173,card:[64,292,1016,878],to:[940,255]}},
+  video:{anim:'assets/anim/projet-droits.html?app&embed',thumb:'assets/anim/projet-droits-thumb.webp',duree:'5 min 10',moments:6,seuil:4,
+    /* « Ajouter à mes notes » : apparaît à 5 min 03 (302,54 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:302.54,y:1173,card:[64,292,1016,878],to:[940,255]},
+    /* La vidéo de fin, lancée seulement quand la leçon est réussie (lvEnded) : le bravo du projet, le merci des équipes, le chemin parcouru. */
+    finale:{anim:'assets/anim/fin-sql.html?app&embed'}},
   reflex:[
     {recap:[
       /* Les mots d’Elisa (sa trame, 26 octobre, 11 h 57, « Ce que tu retiens »), comme dans la vidéo. */
@@ -14557,20 +14558,23 @@ function lessonVideoSlide(l){
         </div>
       </div>`;
 }
-function openLessonVideo(){
+/* fin : la vidéo de fin de la leçon (video.finale), lancée par lvEnded quand la leçon est réussie ; fin.first : sa toute première réussite
+   (le bilan fêtera la carte débloquée). Elle n’a ni moment « À toi » ni bouton des notes, et ne garde pas de point de reprise. */
+function openLessonVideo(fin){
   const l=current;
   if(mode!=='lesson'||!lessonHasVideo(l))return;
   if(LV){lvPlay();return;}
+  if(fin&&!(l.video.finale&&l.video.finale.anim))return;
   /* Après un échec de chargement, toucher la carte (ou le bouton du haut) recharge la vidéo. */
-  if(LV_FAILED.delete(l.id)&&lessonStep===0)renderLessonFlow();
-  const v=l.video;
+  if(!fin&&LV_FAILED.delete(l.id)&&lessonStep===0)renderLessonFlow();
+  const v=fin?{anim:l.video.finale.anim}:l.video;
   const root=document.createElement('div');
   root.id='lesson-video';
   root.className='lv is-paused'+(v.anim?' is-loading':'');
   root.tabIndex=-1;
   root.setAttribute('role','dialog');
   root.setAttribute('aria-modal','true');
-  root.setAttribute('aria-label',`Cours en vidéo : ${l.titre}`);
+  root.setAttribute('aria-label',fin?`Fin du cours en vidéo : ${l.titre}`:`Cours en vidéo : ${l.titre}`);
   root.innerHTML=`
     <button type="button" class="lv-ico lv-close" aria-label="Fermer la vidéo">${LV_ICO.close}</button>
     <div class="lv-stage">
@@ -14612,7 +14616,7 @@ function openLessonVideo(){
     </div>`;
   document.body.appendChild(root);
   const video=v.anim?new LvAnim(root.querySelector('.lv-anim')):root.querySelector('video'), seek=root.querySelector('.lv-seek');
-  LV={id:l.id,root,video,seek,fill:root.querySelector('.lv-fill'),knob:root.querySelector('.lv-knob'),seeking:false,gate:-1,gateResume:false,retry:false,redo:null,note:null,q:null,cap:null,saved:0,tap:{t:0,side:0,timer:0,total:0,burst:0}};
+  LV={id:l.id,fin:!!fin,firstDone:fin?!!fin.first:undefined,root,video,seek,fill:root.querySelector('.lv-fill'),knob:root.querySelector('.lv-knob'),seeking:false,gate:-1,gateResume:false,retry:false,redo:null,note:null,q:null,cap:null,saved:0,tap:{t:0,side:0,timer:0,total:0,burst:0}};
   /* « Rejouer les moments ratés » : la vidéo ne s’arrête que sur eux. */
   if(video instanceof LvAnim)video.skip=i=>!!(LV&&LV.video===video&&LV.redo&&!LV.redo.list.includes(i));
   const noteEl=root.querySelector('.lv-note');
@@ -14641,7 +14645,7 @@ function openLessonVideo(){
     lvPkMarks(); lvSyncSeek();
   });
   /* Reprise là où on s’était arrêté (même après avoir fermé l’app). */
-  const resume=LV_POS.get(l.id);
+  const resume=fin?0:LV_POS.get(l.id);
   if(resume)video.addEventListener('loadedmetadata',()=>{
     if(!LV||LV.video!==video||!(resume>2&&resume<video.duration-2))return;
     let r=resume;
@@ -14744,7 +14748,8 @@ function openLessonVideo(){
   document.addEventListener('visibilitychange',lvHidden);
   document.addEventListener('touchend',lvWake,{capture:true,passive:true});
   document.addEventListener('click',lvWake,true);
-  if(prefersReduceMotion())root.classList.add('on');
+  /* La vidéo de fin prend la place de la leçon sans fondu : l’écran ne repasse pas par la page de la leçon. */
+  if(prefersReduceMotion()||fin){ if(fin)root.style.transition='none'; root.classList.add('on'); if(fin)requestAnimationFrame(()=>requestAnimationFrame(()=>root.style.removeProperty('transition'))); }
   else requestAnimationFrame(()=>requestAnimationFrame(()=>root.classList.add('on')));
   lvPlay();
   try{root.focus({preventScroll:true});}catch(e){}
@@ -14864,6 +14869,16 @@ function lvSyncMute(){
 function lvEnded(){
   if(!LV)return;
   const {id,root}=LV;
+  /* La vidéo de fin (video.finale) est terminée : l’écran de fin, en fête, mène au bilan. */
+  if(LV.fin){
+    root.querySelector('#lv-end-h').innerHTML='Bravo&nbsp;!';
+    const sc=root.querySelector('.lv-end-score'); if(sc)sc.hidden=true;
+    root.querySelector('.lv-go').textContent='Voir le bilan';
+    root.querySelector('.lv-again span').textContent='Revoir la fin';
+    LV.retry=false; root.classList.remove('is-retry');
+    lvEndShow(root,id,true);
+    return;
+  }
   LV_POS.delete(id); lvPosSave();
   if(LV.q)lvQClose(true);
   if(LV.pk)lvPkClose(true);
@@ -14898,6 +14913,19 @@ function lvEnded(){
   root.classList.toggle('is-retry',LV.retry);
   /* Leçon seule terminée avec le score requis : la fête (lvWin). */
   const win=!!(current&&current.id===id&&current.leconSeule&&!LV.retry);
+  /* Leçon réussie et une vidéo de fin prévue (le dernier chapitre du projet : le bravo, le merci des équipes, le chemin parcouru) :
+     elle se lance tout de suite. Ratée, la leçon garde son écran « Encore un effort ! », sans fête ni merci (Elisa, 27 octobre,
+     7 h 11 : « on a raté la leçon mais on a quand même eu les bravo ; une autre vidéo qui se lance juste après avoir réussi »). */
+  if(win&&current.video&&current.video.finale){
+    const first=!!LV.firstDone;
+    closeLessonVideo(true);
+    openLessonVideo({first});
+    return;
+  }
+  lvEndShow(root,id,win);
+}
+/* L’écran de fin : la fête (win) ou « Encore un effort ! ». */
+function lvEndShow(root,id,win){
   root.classList.toggle('is-win',win);
   lvCardSync(id);
   root.classList.add('is-end');
@@ -15061,7 +15089,7 @@ function lvNoteBurst(btn){
 }
 /* Garde la position (reprise au prochain lancement, même après fermeture de l’app). */
 function lvPosKeep(){
-  if(!LV)return;
+  if(!LV||LV.fin)return;
   const V=LV.video; LV.saved=performance.now();
   if(V.ended)return;
   const t=V.currentTime, d=V.duration;
@@ -16138,6 +16166,7 @@ function leconSeuleBilan(first){
 }
 function lvFail(){
   if(!LV)return;
+  if(LV.fin){ const first=!!LV.firstDone; closeLessonVideo(true); leconSeuleBilan(first); return; }
   const id=LV.id;
   LV_FAILED.add(id);
   closeLessonVideo(true);
@@ -16156,7 +16185,9 @@ function closeLessonVideo(instant){
   if(!LV)return;
   lvPosKeep();
   clearTimeout(LV.flashT);
-  const {id,root,video,note,ro,place,tap}=LV;
+  const {id,root,video,note,ro,place,tap,fin,firstDone}=LV;
+  /* La vidéo de fin fermée par la croix : la leçon est réussie, on va au bilan. */
+  if(fin&&!instant)setTimeout(()=>{ if(!LV&&mode==='lesson'&&current&&current.id===id)leconSeuleBilan(!!firstDone); },0);
   LV=null;
   if(note)clearTimeout(note.timer);
   clearTimeout(tap.timer);
@@ -24981,7 +25012,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2076';
+  const SW_CACHE='requete-2026-10-12-ludique-v2077';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

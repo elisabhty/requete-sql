@@ -118,13 +118,13 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 277.09);
-  assert.ok(page.includes('notesAt: 277.09,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 312.89);
+  assert.equal(val('NOTES'), 248.44);
+  assert.ok(page.includes('notesAt: 248.44,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 255.64);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   assert.deepEqual(chaps.map(c => c.label), ['Un accès trop large', 'Les accès nécessaires', 'Ce qu’elle peut consulter', 'Autoriser la consultation', 'Une modification précise',
-    'Les limites de son accès', 'Retirer les accès', 'Le dernier réflexe', 'Merci pour tout', 'À retenir', 'Le chemin parcouru']);
+    'Les limites de son accès', 'Retirer les accès', 'Le dernier réflexe', 'À retenir']);
   caps.forEach(([, , t, lines], k) => {
     const txt = strip(t);
     assert.ok(/^[A-ZÀ-ÖØ-Þ0-9«]/.test(txt) || /^(<b[^>]*>)?<code>/.test(t), `légende ${k + 1} : une phrase qui commence (« ${txt.slice(0, 50)} »)`);
@@ -198,9 +198,8 @@ test('les messages : Camille Roux, puis Lina, puis Camille Roux, par SMS, avec l
     'Peux-tu retirer les accès que nous lui avions accordés ?']);
   assert.deepEqual([0, 1, 2].map(n => vm.runInContext(`mailRows(${n})`, D)), [5, 3, 5], '« Bonjour ! » et ses quatre phrases ; puis trois phrases ; puis « Bonjour ! », trois phrases et « Merci d’avance pour tes actions ! »');
   assert.ok(strip(caps.find(c => /t’écrit/.test(c[2]))[2]) === 'Camille Roux, responsable des opérations, t’écrit.', 'qui est Camille Roux (Elisa : « responsable des opérations »)');
-  assert.deepEqual(opens.map(o => o.sel), ['#ml1', '#bs1', '#ml2', '#bs2', '#ml3', '#bs3', '#gnb', '#bsend']);
-  assert.deepEqual(opens.map(o => o.label), ['Ouvrir le message de Camille Roux', 'Exécuter', 'Ouvrir le message de Lina', 'Exécuter', 'Ouvrir le message de Camille Roux', 'Exécuter',
-    'Ouvrir le message de l’équipe NutriBoost', 'Envoyer']);
+  assert.deepEqual(opens.map(o => o.sel), ['#ml1', '#bs1', '#ml2', '#bs2', '#ml3', '#bs3']);
+  assert.deepEqual(opens.map(o => o.label), ['Ouvrir le message de Camille Roux', 'Exécuter', 'Ouvrir le message de Lina', 'Exécuter', 'Ouvrir le message de Camille Roux', 'Exécuter']);
   assert.ok(opens.every((o, k) => !k || o.at > opens[k - 1].at), 'dans l’ordre');
   assert.ok(opens[0].at < picks[0].at && opens[1].at > picks[0].at && opens[1].at < picks[1].at && opens[2].at > picks[1].at && opens[3].at > picks[2].at && opens[3].at < picks[3].at
     && opens[4].at > picks[3].at && opens[4].at < picks[4].at && opens[5].at > picks[4].at && opens[5].at < picks[5].at,
@@ -286,16 +285,12 @@ test('chapitre 17 : écran titre, ouverture comme aux autres chapitres, la photo
   const ix = fs.readFileSync(path.join(root, 'assets/anim/projet-index.html'), 'utf8');
   assert.ok(ix.includes('Dans la prochaine leçon,<br>une nouvelle collègue aura besoin<br>des bons accès.') && ix.includes('Prochaine leçon · Sécurité et droits</span>'), 'le chapitre 16 annonce celui-ci');
   /* Le compte trop large, au conditionnel : son compte ne dispose encore d’aucun accès aux tables (la précision d’Elisa, plus loin) */
-  assert.ok(caps.includes('Mais avec un compte trop large,<br>elle pourrait aussi, sans faire exprès,<br>modifier les prix et supprimer des clients.'));
+  assert.ok(caps.includes('Mais avec un compte trop large,<br>elle pourrait aussi, sans faire exprès,<br>modifier les prix, supprimer des clients.'));
   /* Le dernier chapitre : pas de prochaine leçon, la fin du projet */
   assert.ok(!page.includes('Prochaine leçon') && !caps.some(c => /prochaine leçon/i.test(c)), 'aucune leçon après celle-ci');
-  assert.ok(caps.includes('Bravo : tu as terminé<br>le dernier chapitre<br>du projet NutriBoost !') && page.includes('Projet NutriBoost terminé !'), 'la fin du projet');
-  /* Puis le résumé (« À retenir », le bouton « Ajouter à mes notes ») et, tout à la fin, la finale « Le chemin parcouru » */
-  const r = caps.indexOf('Pour finir, voici les <b>trois idées à retenir</b>.');
-  assert.deepEqual(caps.slice(r + 2), ['Souviens-toi<br>de ta toute première requête.', 'Regarde le chemin parcouru<br>depuis !', '15 modules, 62 cours<br>et 17 chapitres de projet.',
-    'Bravo : tu as terminé<br>ton apprentissage du SQL !', 'Et maintenant, place à la pratique :<br>des défis t’attendent !'], 'la finale, après le résumé, puis la pratique');
-  /* Le bouton « Ajouter à mes notes » s’en va quand commence la finale : la page le dit au lecteur (notesUntil) */
-  assert.ok(page.includes('notesAt: 277.09, notesUntil: FIN0,'), 'notesUntil : le début de la finale');
+  /* La fin du projet est une autre vidéo (fin-sql.html), lancée seulement quand la leçon est réussie (Elisa, 27 octobre, 7 h 11) */
+  assert.ok(!caps.some(c => /Bravo/.test(c)) && !page.includes('Projet NutriBoost terminé !'), 'pas de bravo dans la leçon elle-même');
+  assert.equal(caps[caps.length - 2], 'Pour finir, voici les <b>trois idées à retenir</b>.');
   assert.ok(page.includes("const PHOTO = 'projet-droits-lina.webp';") && fs.statSync(path.join(root, 'assets/anim/projet-droits-lina.webp')).size > 20000, 'la photo de Lina');
   assert.ok(fs.readFileSync(path.join(root, 'sw.js'), 'utf8').includes("'./assets/anim/projet-droits-lina.webp'"), 'et gardée pour le hors ligne');
   assert.ok(page.includes('url(projet-droits-lina.webp)'), 'son portrait sur la fiche de son compte');
@@ -367,4 +362,25 @@ test('le chemin d’un clic : l’application écrit la requête SQL, l’envoie
   assert.ok(page.includes("$('#fl1').style.top = bottom('#pe') + 'px';\n  $('#el').style.top = bottom('#fl1') + 'px';\n  $('#fl2').style.top = bottom('#el') + 'px';\n  $('#dbn').style.top = bottom('#fl2') + 'px';"));
   /* La base est là avant la question : l’élève voit où part la requête */
   assert.ok(val('A').e2 < val('PICKS')[3].at && /show\('#dbn', A\.e2 \+ 1\.3/.test(page));
+});
+
+test('la vidéo de fin (fin-sql.html) : le bravo du projet, le merci des équipes, ta réponse, le chemin parcouru ; lancée seulement après une réussite', () => {
+  const fin = fs.readFileSync(path.join(root, 'assets/anim/fin-sql.html'), 'utf8');
+  const F = vm.createContext({});
+  const grab = name => { const m = fin.match(new RegExp(`const ${name} = ([\\s\\S]*?);\\n`)); return m && m[1]; };
+  assert.ok(fin.includes('<script src="gsap.min.js"></script>\n<script src="core.js"></script>') && !/https?:\/\//.test(fin), 'moteur commun, rien depuis Internet');
+  for (const l of ['Projet terminé', 'Merci pour tout', 'Le chemin parcouru']) assert.ok(fin.includes(`label:'${l}'`), `chapitre ${l}`);
+  assert.ok(fin.includes("cap('g4', \"Bravo : tu as terminé<br>le dernier chapitre<br>du projet NutriBoost !\", 5.0);") && fin.includes('Projet NutriBoost terminé !'), 'le bravo du projet');
+  assert.ok(fin.includes("'Avant ton départ, toute l’équipe tenait à te dire merci 💜'") && fin.includes("'Tu peux être fier du chemin parcouru ! 💜'") && !fin.includes("'Ta mission touche à sa fin.'"), 'le merci des équipes');
+  assert.ok(fin.includes("'Bonjour à toute l’équipe,'") && fin.includes("'À bientôt 👋'"), 'ta réponse, mot pour mot');
+  assert.ok(fin.includes("sel: '#gnb'") && fin.includes("sel: '#bsend'"), 'l’app s’arrête sur le message, puis sur « Envoyer »');
+  assert.ok(fin.includes("cap('k3', \"15 modules, 62 cours<br>et une base de 12 tables.\", 4.8);") && fin.includes("const FSTAT = [[15, 'modules'], [62, 'cours'], [12, 'tables']];"),
+    '12 tables, plus « 17 chapitres » (ils sont déjà parmi les 62 cours)');
+  assert.ok(fin.includes("cap('k5', \"Et maintenant, place à la pratique :<br>des défis t’attendent !\", 4.6);"), 'et maintenant, la pratique');
+  assert.ok(fs.readFileSync(path.join(root, 'sw.js'), 'utf8').includes("'./assets/anim/fin-sql.html?app&embed'"), 'gardée pour le hors ligne');
+  /* Le lecteur : la fin se lance après une réussite, jamais après un échec */
+  assert.ok(html.includes("finale:{anim:'assets/anim/fin-sql.html?app&embed'}"), 'la fiche de la leçon');
+  assert.ok(html.includes('if(win&&current.video&&current.video.finale){') && html.includes('openLessonVideo({first});'), 'lancée par lvEnded quand la leçon est réussie');
+  assert.ok(html.includes("if(LV.fin){\n    root.querySelector('#lv-end-h').innerHTML='Bravo&nbsp;!';"), 'son écran de fin mène au bilan');
+  assert.ok(html.includes('if(!LV||LV.fin)return;'), 'pas de point de reprise pour la fin');
 });

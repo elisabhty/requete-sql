@@ -52,7 +52,7 @@ test('le cours en vidéo est la vidéo, sans texte de secours ni outils du cours
   /* L’exercice reste verrouillé jusqu’à la fin de la vidéo (plus de requête à trous du texte pour le faire). */
   assert.ok(cut('function jcGateLocked(l){', '/* Bouton verrouillé').includes('lessonHasFill(l)||lessonHasVideo(l)'), 'verrou : la vidéo');
   /* Échec de chargement : toucher la carte (openLessonVideo) recharge la vidéo. */
-  assert.ok(cut('function openLessonVideo(){', 'function lvPlay(){').includes('if(LV_FAILED.delete(l.id)&&lessonStep===0)renderLessonFlow();'), 'réessayer');
+  assert.ok(cut('function openLessonVideo(fin){', 'function lvPlay(){').includes('if(!fin&&LV_FAILED.delete(l.id)&&lessonStep===0)renderLessonFlow();'), 'réessayer');
 });
 
 test('la vidéo démarre à l’ouverture du cours, au retour sur « Cours » et au redémarrage de la leçon, pas lors d’une reprise automatique', () => {
@@ -64,7 +64,7 @@ test('la vidéo démarre à l’ouverture du cours, au retour sur « Cours » et
 });
 
 test('lecteur plein écran : lecture dans la page, fin « À toi de jouer », exercice débloqué, repli sur le texte', () => {
-  const player = cut('function openLessonVideo(){', 'function lvPlay(){');
+  const player = cut('function openLessonVideo(fin){', 'function lvPlay(){');
   assert.ok(player.includes('playsinline webkit-playsinline'), 'lecture dans la page sur iPhone');
   assert.ok(player.includes('À toi de jouer&nbsp;!'), 'fin : à toi de jouer');
   assert.ok(html.includes('.lv.is-end .lv-bottom{opacity:0;visibility:hidden;'), 'fin : commandes vraiment masquées (pas de bande sous la barre de Safari sur iPhone)');
@@ -85,7 +85,7 @@ test('vignette du cours : verrou tant que la vidéo n’est pas finie, puis « P
     moduleDeLecon: () => ({titre: 'Lire une table'}),
     jcGateLocked: () => !passed, jcPassed: () => passed, etapesDe: () => ({}),
   });
-  vm.runInContext(cut('const LV_FAILED=new Set()', 'function openLessonVideo(){') + ';this.slide=lessonVideoSlide;this.on=lessonVideoOn;this.fail=LV_FAILED;this.pos=LV_POS;', ctx);
+  vm.runInContext(cut('const LV_FAILED=new Set()', 'function openLessonVideo(fin){') + ';this.slide=lessonVideoSlide;this.on=lessonVideoOn;this.fail=LV_FAILED;this.pos=LV_POS;', ctx);
   const l = {id: 4, titre: 'WHERE', résumé: 'Filtrer les lignes', video: {anim: 'assets/anim/where.html?app&embed', poster: 'p.jpg', thumb: 't.jpg', duree: '2 min 02'}};
   let h = ctx.slide(l);
   assert.ok(h.includes('data-jc-gate onclick="openLessonVideo()">Termine la vidéo pour continuer'));
@@ -117,7 +117,7 @@ test('l’animation part dans l’app iOS et reste légère (plus de MP4 pour WH
 });
 
 test('« Ajouter à mes notes » dans la vidéo : même note que le cours texte, un seul appui, sans doublon ni toast', () => {
-  const player = cut('function openLessonVideo(){', 'function lvPlay(){');
+  const player = cut('function openLessonVideo(fin){', 'function lvPlay(){');
   assert.ok(player.includes('class="lv-note-btn"') && player.includes('Ajouter à mes notes') && player.includes('class="lv-note-arrow"'), 'bouton et flèche dans le lecteur');
   assert.ok(player.includes('class="lv-a-halo"') && html.includes('.lv-note-arrow{position:absolute;z-index:1;') && html.includes('.lv-note-arrow .lv-a-halo{'),
     'flèche bien visible : trait épais sur un halo, dessinée au-dessus du bouton');
@@ -146,7 +146,7 @@ test('le bouton suit la vidéo : visible à partir de son moment, caché à la f
 });
 
 test('commandes de lecture : reculer / avancer de 5 s, pause, vitesse 0,5× à 2× gardée d’une vidéo à l’autre, son', () => {
-  const player = cut('function openLessonVideo(){', 'function lvPlay(){');
+  const player = cut('function openLessonVideo(fin){', 'function lvPlay(){');
   for (const c of ['lv-back', 'lv-pp', 'lv-fwd', 'lv-speed', 'lv-mute', 'lv-cur', 'lv-dur'])
     assert.ok(player.includes(`class="lv-${c.slice(3)}`) || player.includes(c), `commande ${c}`);
   assert.ok(player.includes("lvSkip(-LV_SKIP)") && player.includes("lvSkip(LV_SKIP)"));
@@ -241,7 +241,7 @@ test('LvAnim se pilote comme une vidéo : lecture, vitesse, question, reprise, f
 });
 
 test('reprise, repères de chapitres, double appui, question et légendes dans le lecteur', () => {
-  const player = cut('function openLessonVideo(){', 'function lvPlay(){');
+  const player = cut('function openLessonVideo(fin){', 'function lvPlay(){');
   assert.ok(html.includes("const LV_POS_KEY='rq-video-pos';") && html.includes('localStorage.setItem(LV_POS_KEY'), 'position gardée après fermeture de l’app');
   assert.ok(player.includes("lvPosKeep(); });") && player.includes('resume>2&&resume<video.duration-2'), 'gardée à la pause, reprise au lancement');
   assert.ok(cut('function closeLessonVideo(instant){', 'function lessonStepMeta(){').includes('lvPosKeep();'));
@@ -330,7 +330,7 @@ test('son de l’animation : contexte neuf à chaque cours, remplacé s’il ne 
   assert.equal(made.length, 4, 'son déjà actif : rien ne change');
   const anim = cut('class LvAnim{', 'function lessonVideoOn(l)');
   assert.ok(anim.includes("if(typeof LV==='undefined'||!LV){ LvSfx.stop(); LvSfx.idle(); LvSfx.release(); }"), 'fondu de fermeture : le son d’un cours ouvert entre-temps reste intact');
-  const open = cut('function openLessonVideo(){', 'function lvPlay(){'), close = cut('function closeLessonVideo(instant){', 'function lessonStepMeta(){');
+  const open = cut('function openLessonVideo(fin){', 'function lvPlay(){'), close = cut('function closeLessonVideo(instant){', 'function lessonStepMeta(){');
   assert.ok(open.includes("document.addEventListener('touchend',lvWake,{capture:true,passive:true});") && open.includes("document.addEventListener('click',lvWake,true);"), 'un appui pendant la lecture réveille le son');
   assert.ok(close.includes("document.removeEventListener('touchend',lvWake,{capture:true});") && close.includes("document.removeEventListener('click',lvWake,true);"));
 });
@@ -420,7 +420,7 @@ test('lecteur : si le son ne peut pas démarrer, la vidéo attend sur le gros �
   const iAudio = play.indexOf('if(err&&err.audio){ LV.root.classList.add(\'is-paused\'); lvSyncPP(); return; }');
   assert.ok(iAudio > 0 && iAudio < play.indexOf("err.name==='NotAllowedError'"), 'refus « son » traité avant le repli « on relance sans le son »');
   assert.ok(!play.slice(iAudio, iAudio + 140).includes('muted=true'), 'l’élève n’est pas mis en muet à sa place');
-  const open = cut('function openLessonVideo(){', 'function lvPlay(){');
+  const open = cut('function openLessonVideo(fin){', 'function lvPlay(){');
   assert.ok(open.includes("video.addEventListener('blocked',()=>{ if(LV&&LV.video===video)lvBigFlash(); });"), 'pause automatique : le gros ▶ apparaît un instant');
   const anim = cut('class LvAnim{', 'function lessonVideoOn(l)');
   assert.ok(anim.includes("if(!this._muted&&!LvSfx.canStart()){ const e=new Error('audio'); e.name='NotAllowedError'; e.audio=true; return Promise.reject(e); }"));
@@ -463,7 +463,7 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
   assert.ok(!/sfx\(|lvNoteBurst/.test(show), 'sans rejouer le son ni la gerbe');
   assert.ok(cut('function lvQAnswer(k){', 'function lvQClose(answered){').includes('lvAnsSet(LV.id,Q.i,q,k);'), 'nouvelle réponse enregistrée');
   assert.ok(cut('function recommencerLecon(', 'function bravoStatsHtml(').includes('lvForget(id);'));
-  assert.ok(cut('function openLessonVideo(){', 'function lvPlay(){').includes('if(r>=q.t-.02&&r<=q.t+.3)r=Math.max(0,q.t-.08);'), 'lecteur fermé pendant la question : elle se réaffiche à la reprise');
+  assert.ok(cut('function openLessonVideo(fin){', 'function lvPlay(){').includes('if(r>=q.t-.02&&r<=q.t+.3)r=Math.max(0,q.t-.08);'), 'lecteur fermé pendant la question : elle se réaffiche à la reprise');
 });
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
@@ -1152,18 +1152,18 @@ const COURSES = [
       "{at: atp('p4'), from: A.d1, kind: 'tap', need: 1,", "{at: atp('p5'), from: A.e1, kind: 'sort',", "{label: 'Non : chaque index a un coût', ok: true,",
       "['CREATE INDEX {inm|idx_commandes_numero}']", 'Prochaine leçon · Sécurité et droits']},
   /* Le dernier chapitre du projet, et le dernier cours de l’app : pas de leçon suivante (next: null). */
-  {id: 50, next: null, titre: 'Sécurité et droits', page: 'projet-droits.html', thumb: 'projet-droits-thumb.webp', duree: '6 min 33', notesAt: 277.09, maxKo: 520,
-    notes: /notes:\{t:357\.04,until:364\.24,y:1173,card:\[64,292,1016,878\],to:\[940,255\]\}/, table: 'commandes',
+  {id: 50, next: null, titre: 'Sécurité et droits', page: 'projet-droits.html', thumb: 'projet-droits-thumb.webp', duree: '5 min 10', notesAt: 248.44,
+    notes: /notes:\{t:302\.54,y:1173,card:\[64,292,1016,878\],to:\[940,255\]\}/, table: 'commandes',
     bubble: 'Un accès trop large&nbsp;:<br>à toi de donner<br>les bons accès !',
     chapters: ['Un accès trop large', 'Les accès nécessaires', 'Ce qu’elle peut consulter', 'Autoriser la consultation', 'Une modification précise', 'Les limites de son accès', 'Retirer les accès',
-      'Le dernier réflexe', 'Merci pour tout', 'À retenir', 'Le chemin parcouru'],
+      'Le dernier réflexe', 'À retenir'],
     traps: ["const VCOLS = ['numero_commande', 'destinataire', 'adresse_livraison', 'statut'];",
       "const VUE = [['NB-10482', 'Léa Simon', '41 avenue Jaurès, Paris', 'en_preparation'], ['NB-10483', 'Nathan Petit', '5 rue Victor Hugo, Paris', 'en_preparation']];",
       // Les six moments : les deux accès nécessaires ; ce droit permet-il de supprimer ? ; la partie qui limite le droit à une colonne ;
       // que va répondre la base ? ; la commande qui retire un droit ; une nouvelle personne rejoint l’équipe
       "{at: atp('p1'), from: A.a1, kind: 'tap', need: 2,", "{label: 'Non : chaque droit correspond à une action', ok: true,", "{at: atp('p3'), from: A.d0, kind: 'tap', need: 1,",
       "{label: 'La modification est refusée', ok: true,", "{label: 'REVOKE SELECT ON commandes_expedition FROM lina;', ok: true,",
-      "{label: 'Identifier ses besoins et lui accorder les droits correspondants', ok: true,", "['{gup|GRANT UPDATE} {gst|(statut)}']", 'Projet NutriBoost terminé !']},
+      "{label: 'Identifier ses besoins et lui accorder les droits correspondants', ok: true,", "['{gup|GRANT UPDATE} {gst|(statut)}']", '<span class="emo">👤</span>son propre compte']},
 ];
 
 for (const c of COURSES) {
@@ -2843,7 +2843,7 @@ test('leçon seule : on n’avance pas au-delà d’un moment « À toi » pas r
   assert.ok(api.lvPkErrs(56, 3) === 2 && api.lvReussi(l56r), 'moment rejoué sans erreur : 2 erreurs, validée');
   ctx.LV_ANS[57] = {p0: {first: 0}};
   assert.equal(api.lvPkErrs(57, 1), 1, 'réponse gardée sans le détail : 1 erreur par moment raté');
-  const player = cut('function openLessonVideo(){', 'function lvPlay(){');
+  const player = cut('function openLessonVideo(fin){', 'function lvPlay(){');
   assert.ok(player.includes('LV.gate=lvPkGate(t);') && player.includes('if(g>=0)lvPkStop(g); else if(again)lvPlay();'), 'barre : le curseur s’arrête avant le moment, son plateau s’ouvre au relâchement');
   assert.ok(player.includes('const g=lvPkGate(r); if(g>=0)r=Math.max(0,video.picks[g].t-.08);'), 'reprise : jamais au-delà d’un moment pas réussi');
   const end = cut('function lvEnded(){', '/* ---------- « Ajouter à mes notes »');
@@ -2968,7 +2968,7 @@ test('deux réponses enchaînées aux moments « À toi » : la pastille rouge d
 /* Elisa, 25 octobre, 22 h 20 : « Le scroll est difficile parfois ». L’écran du cours en vidéo (titre, vignette, bouton du
    bas) dépassait de 13 à 157 px selon l’iPhone : il défilait de quelques pixels puis rebondissait. */
 test('cours en vidéo : tout tient en un écran, la vignette rapetisse du dépassement (jamais sous 230 px)', () => {
-  const slide = cut('function lessonVideoSlide(l){', 'function openLessonVideo(){');
+  const slide = cut('function lessonVideoSlide(l){', 'function openLessonVideo(fin){');
   assert.ok(slide.includes('<div class="ls-main lv-main">'), 'la diapositive du cours en vidéo est repérable');
   assert.ok(html.includes('#lesson-body .ls-main.lv-main{padding-bottom:0}'), 'pas de réserve en plus sous la vignette : la barre du bas (collante) est déjà dans le flux');
   assert.ok(html.includes('width:min(100%,420px,max(230px,min(calc(100svh - 430px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)),var(--lv-fit,9999px))));'),
