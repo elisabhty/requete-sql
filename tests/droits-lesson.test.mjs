@@ -384,6 +384,12 @@ test('la vidéo de fin (fin-sql.html) : le bravo du projet, le merci des équipe
   /* Le lecteur : la fin se lance après une réussite, jamais après un échec */
   assert.ok(html.includes("finale:{anim:'assets/anim/fin-sql.html?app&embed'}"), 'la fiche de la leçon');
   assert.ok(html.includes('if(win&&current.video&&current.video.finale){') && html.includes('openLessonVideo({first});'), 'lancée par lvEnded quand la leçon est réussie');
-  assert.ok(html.includes("if(LV.fin){\n    root.querySelector('#lv-end-h').innerHTML='Bravo&nbsp;!';"), 'son écran de fin mène au bilan');
+  /* Son écran de fin (Elisa, 27 octobre, 8 h 01) : « Bravo ! » dans la bulle, « Quel chemin parcouru ! », puis les défis ou l’accueil */
+  const fe = html.slice(html.indexOf('function lvFinEndHtml(){'), html.indexOf('function lvFinCount(end){'));
+  assert.ok(fe.includes('<span class="lv-end-bravo" aria-hidden="true">Bravo&nbsp;!</span>') && fe.includes('<h2 id="lv-fe-h">Quel chemin parcouru&nbsp;!</h2>')
+    && fe.includes('<p>Tu as terminé ton parcours SQL. Prends un instant pour découvrir tout ce que tu as appris.</p>'), 'ses mots');
+  assert.ok(fe.includes('Découvrir les défis</button>') && fe.includes('<button type="button" class="lv-fe-home">Retour à l’accueil</button>'), 'ses deux boutons');
+  assert.ok(html.includes("end.querySelector('.lv-fe-go').addEventListener('click',()=>lvFinLeave('defis'));") && html.includes("end.querySelector('.lv-fe-home').addEventListener('click',()=>lvFinLeave('learn'));"), 'les défis, ou l’accueil');
+  assert.ok(html.includes('const SQL_REQUETES=210;') && fin.includes("[210, 'requêtes']"), 'les mêmes nombres que la vidéo');
   assert.ok(html.includes('if(!LV||LV.fin)return;'), 'pas de point de reprise pour la fin');
 });
