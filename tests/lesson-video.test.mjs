@@ -472,7 +472,7 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '5 min 40', notesAt: 327.35,
+  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '5 min 40', notesAt: 327.35, maxKo: 580,
     table: 'clients',
     bubble: 'Chaque sujet a sa table,<br>et des identifiants relient les tables.',
     chapters: ['Situation', 'Le problème', 'Le découpage', 'Base de données et SGBD', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],
@@ -1202,7 +1202,10 @@ for (const c of COURSES) {
   test(`${c.titre} reste léger et disponible hors ligne`, () => {
     let total = 0;
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', c.page), 'utf8');
-    for (const f of [c.page, 'core.css', 'core.js', 'gsap.min.js', 'mascotte.webp', c.thumb, ...(page.includes('src="moments.js"') ? ['moments.js'] : [])])
+    /* Les images de la page comptent aussi (l’illustration NutriBoost des bases relationnelles, Elisa, 27 octobre). */
+    const images = [...page.matchAll(/src="([\w-]+\.(?:webp|png|jpg))"/g)].map(m => m[1]).filter(f => f !== 'mascotte.webp');
+    for (const f of images) assert.ok(sw.includes(`'./assets/anim/${f}'`), `image préchargée : ${f}`);
+    for (const f of [c.page, 'core.css', 'core.js', 'gsap.min.js', 'mascotte.webp', c.thumb, ...images, ...(page.includes('src="moments.js"') ? ['moments.js'] : [])])
       total += fs.statSync(path.join(ROOT, 'assets/anim', f)).size;
     for (const f of ANIM_FONTS) total += fs.statSync(path.join(ROOT, 'assets/fonts', f)).size;
     /* 490 Ko (470 jusqu’au 26 octobre, puis 480) : le moteur commun grandit avec les chapitres du projet (le SMS sans formule du chapitre 15),
