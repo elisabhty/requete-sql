@@ -108,7 +108,7 @@ function momentIX(P){
         if (String(o.to) === String(z.k)) {
           if (!X.got.has(+k)) {
             X.got.add(+k);
-            const c = document.createElement('span'); c.className = 'mb-chip' + (p.text ? '' : ' c'); c.textContent = o.label;
+            const c = document.createElement('span'); c.className = 'mb-chip'; c.textContent = o.label;   // la police du bouton rangé
             const box = el && (el.querySelector('.mb-drop') || el); if (box) { box.append(c); X.add.push(c); }
             mark(el, 'pk-on'); sfx('tick', X.got.size + 1, 0.6);
           }
