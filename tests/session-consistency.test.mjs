@@ -55,18 +55,20 @@ ctx.state.lessons[0]={done:true};check(null); // Pas de repli vers un autre cour
 ctx.state.plan={sessions:[{d:'2026-09-17',lessons:[2]}]};delete ctx.state.lessons[0];check(null); // Plan terminé, même si catalogue différent.
 ctx.state.plan=null;ctx.state.lessons={};ctx.nbFaites=id=>id===0?1:0;
 check(0,1,'jour');assert.equal(ctx.recommendedSession().started,true);
-/* Avec un planning, le résumé compte la semaine (Elisa, 27 octobre, 10 h 26 : « mettre 6 activités restantes cette semaine, on compte
-   la semaine ») : du lundi 14 au dimanche 20 septembre, le retard compris ; la semaine finie, celle de la séance suivante. */
+/* Avec un planning, le résumé compte le jour même, et dit lequel (Elisa, 27 octobre, 10 h 31 : « finalement le nombre d’activités le jour
+   même ») ; nous sommes le mardi 15 septembre. */
 ctx.nbFaites=()=>0;
-ctx.state.plan={sessions:[{d:'2026-09-10',lessons:[0]},{d:'2026-09-15',lessons:[1,'d1']},{d:'2026-09-20',lessons:[2]},{d:'2026-09-22',lessons:['d2']}]};
-assert.equal(ctx.recommendedSession().summary,'4 activités restantes cette semaine');
-ctx.state.lessons={0:{done:true},1:{done:true},d1:{done:true}};
-assert.equal(ctx.recommendedSession().summary,'1 activité restante cette semaine');
+ctx.state.plan={sessions:[{d:'2026-09-10',lessons:[0]},{d:'2026-09-15',lessons:[1,'d1']},{d:'2026-09-16',lessons:[2]},{d:'2026-09-18',lessons:['d2','d4']},{d:'2026-09-30',lessons:['d3']}]};
+assert.equal(ctx.recommendedSession().summary,'2 activités restantes aujourd’hui');
+ctx.state.lessons={1:{done:true}};
+assert.equal(ctx.recommendedSession().summary,'1 activité restante aujourd’hui');
+ctx.state.lessons.d1={done:true};
+assert.equal(ctx.recommendedSession().summary,'1 activité prévue demain');
 ctx.state.lessons[2]={done:true};
-assert.equal(ctx.recommendedSession().summary,'1 activité prévue la semaine prochaine');
-ctx.state.plan.sessions.push({d:'2026-09-24',lessons:['d3']});
-assert.equal(ctx.recommendedSession().summary,'2 activités prévues la semaine prochaine');
-ctx.state.plan={sessions:[{d:'2026-10-01',lessons:[0,1]}]};ctx.state.lessons={};
-assert.equal(ctx.recommendedSession().summary,'2 activités prévues la semaine du 28 septembre');
-assert.ok(ctx.bravoNextHtml().includes('<small>2 activités prévues la semaine du 28 septembre</small>'),'le bilan l’affiche');
+assert.equal(ctx.recommendedSession().summary,'2 activités prévues vendredi');
+assert.ok(ctx.bravoNextHtml().includes('<small>2 activités prévues vendredi</small>'),'le bilan l’affiche');
+ctx.state.lessons.d2={done:true};ctx.state.lessons.d4={done:true};
+assert.equal(ctx.recommendedSession().summary,'1 activité prévue le 30 septembre');
+ctx.state.lessons.d3={done:true};
+assert.equal(ctx.recommendedSession().summary,'1 activité à rattraper','il ne reste que le retard');
 console.log('Séance commune : accueil et bilan cohérents sur 8 scénarios.');
