@@ -705,7 +705,7 @@ function layoutIssues(render, total){
 /* Une pause de lecture fige l’image : rien ne doit être en plein mouvement à cet instant (hors ambiance) ; les moments
    « À toi » (picks) arrêtent aussi l’image et sont vérifiés de même. Liste les animations interrompues. */
 /* Gestes joués sur l’image ; tout autre kind (on, join… de Quel JOIN) reste un choix d’étiquette. */
-const GESTURES = ['tap', 'sort', 'link'];
+const GESTURES = ['tap', 'sort', 'link', 'tune'];
 function holdClashes(extra = []){
   const out = [];
   const tweens = tl.getChildren(true, true, false).filter(c => !(c.vars && c.vars.data === 'amb'));
@@ -854,13 +854,17 @@ function Course(cfg){
       questions: questions.map(q => ({t: unwarp(q.at), kicker: q.kicker, ctx: fr(q.ctx || ''), q: fr(q.q), options: q.options.map(o => ({label: o.label, ok: o.ok})), okTitle: fr(q.okTitle), koTitle: fr(q.koTitle), why: fr(q.why)})),
       /* Moments « À toi » : l’animation s’arrête, l’élève agit ; la page montre aussitôt le résultat (window.IX : slot, pick,
          leave), le lecteur gère le plateau, le son et la reprise. Gestes (kind) : tap (toucher les bons endroits), sort (glisser
-         chaque étiquette), link (relier deux éléments) ; la page décrit les endroits (IX.spots) et juge chaque geste (IX.act).
+         chaque étiquette), link (relier deux éléments), tune (un réglage à manipuler : curseur, choix, bascules, dont la page dessine
+         l’effet à chaque mouvement, IX.tune) ; la page décrit les endroits (IX.spots) et juge chaque geste (IX.act).
          need : bons gestes attendus (tap, link) ; hint : consigne sous le plateau ; next : ligne d’aide une fois une étiquette
          choisie ({x} : l’étiquette) ; text : étiquettes en texte courant ; tag : repère de l’étiquette à glisser ;
          from : début du passage qui amène le moment (revoir, rejouer). */
       picks: picks.map(p => ({t: unwarp(p.at), from: p.from != null ? unwarp(p.from) : null, kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', next: p.next ? fr(p.next) : '', need: p.need || 0,
         /* L’explication de la bonne réponse : le lecteur la remontre quand le moment, déjà réussi, s’ouvre résolu. */
-        options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''}))})),
+        options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''})),
+        /* Réglage (tune) : les commandes de la feuille (curseur, choix, bascule), en données ; la page dessine leur effet (IX.tune). */
+        controls: (p.controls || []).map(c => ({k: c.k, type: c.type, label: fr(c.label || ''), min: c.min, max: c.max, step: c.step, value: c.value,
+          choices: c.choices || null, code: !!c.code, unit: c.unit || ''})), ico: p.ico || ''})),
       /* Mail reçu (opens) : l’image s’arrête, l’élève touche l’élément sel pour l’ouvrir ; rien n’est noté. */
       /* hand : {x, y}, le bout d’un doigt seul (sans bulle), en fraction de l’élément, quand la légende dit déjà quoi faire (Elisa, 25 octobre, 16 h 21). */
       opens: opens.map(o => ({t: unwarp(o.at), sel: o.sel, prompt: fr(o.prompt), label: o.label, hand: o.hand || null})),

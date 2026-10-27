@@ -280,6 +280,10 @@ const DURATION = 109.8;
 const PRODUITS = [['Fibre Prébiotique','Bien-être',120],['Collagène Marin','Beauté',80],['Magnésium','Bien-être',500],['Vitamine D','Nutrition',150],
   ['Tisane Détox','Boisson',60],['Protéine Végétale','Nutrition',45],['Oméga 3','Bien-être',90],['Shaker Inox','Accessoire',30]];
 const LIMITE = 60;
+/* Le portique (moment 4) : un stock passe-t-il la condition réglée ? Et le nom du produit, avec son article. */
+const PASSE = (s, n) => ({'<': n < s.v, '<=': n <= s.v, '>': n > s.v, '>=': n >= s.v})[s.op];
+const LE = nom => ({'Fibre Prébiotique': 'La Fibre Prébiotique', 'Collagène Marin': 'Le Collagène Marin', 'Magnésium': 'Le Magnésium', 'Vitamine D': 'La Vitamine D',
+  'Tisane Détox': 'La Tisane Détox', 'Protéine Végétale': 'La Protéine Végétale', 'Oméga 3': 'L’Oméga 3', 'Shaker Inox': 'Le Shaker Inox'})[nom] || nom;
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /* Les six opérateurs : [clé, symbole, sens, limite exclue / incluse] */
@@ -360,6 +364,34 @@ const MOMENTS = [
       {k: 's2', sel: '#mbs2', label: 'différent de', side: 'r'},
       {k: 's3', sel: '#mbs3', label: 'strictement supérieur à', side: 'r'}],
     tip: 'Un <code>=</code> placé après <code>&lt;</code> ou <code>&gt;</code> inclut la limite.'},
+  /* Mini-jeu : le portique (Elisa, 27 octobre, 23 h 25). La limite vient d’être expliquée (< l’exclut, <= l’inclut) : l’élève règle
+     lui-même opérateur et limite pour un autre seuil, 90 ou plus ; les produits qui passent s’allument à chaque mouvement. Toute
+     condition qui garde exactement ces produits est juste (>= 90, > 80…). */
+  {at: 72.0, from: 58.5, kind: 'tune', ico: '🚪', prompt: 'Pour l’inventaire, garde les produits à <b>90 unités ou plus</b>.',
+    hint: 'Règle la condition, puis valide.',
+    controls: [{k: 'op', type: 'seg', label: 'Opérateur', choices: ['<', '<=', '>', '>='], value: '<=', code: true},
+      {k: 'v', type: 'range', label: 'Limite', min: 0, max: 200, step: 10, value: 60}],
+    answer: {op: '>=', v: 90},
+    board: {y: 210, html: '<div class="mg-hd"><span class="mb-k">🚪 Le portique</span><div class="mb-q" id="mbpq"></div></div><div class="mg-grid">'
+      + PRODUITS.map((p, i) => `<div class="mg-r" id="mbp${i}">${p[0]}<b>${p[2]}</b></div>`).join('') + '</div><div class="mg-c" id="mbpn"></div>'},
+    show(s, b) {
+      const n = PRODUITS.filter(p => PASSE(s, p[2])).length, op = String(s.op).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      b.querySelector('#mbpq').innerHTML = `<span class="k">WHERE</span> stock ${op} ${s.v}`;
+      PRODUITS.forEach((p, i) => { const r = b.querySelector('#mbp' + i), ok = PASSE(s, p[2]); r.classList.toggle('in', ok); r.classList.toggle('out', !ok); });
+      b.querySelector('#mbpn').innerHTML = n ? `<b>${n}</b> produit${n > 1 ? 's' : ''} passe${n > 1 ? 'nt' : ''} le portique` : 'Aucun produit ne passe';
+    },
+    check(s) {
+      const garde = p => PASSE(s, p[2]), manque = PRODUITS.filter(p => p[2] >= 90 && !garde(p)), trop = PRODUITS.filter(p => p[2] < 90 && garde(p));
+      if (!manque.length && !trop.length) return {ok: true, why: `<code>stock ${s.op.replace('<', '&lt;').replace('>', '&gt;')} ${s.v}</code> garde les 4 produits à 90 unités ou plus, l’Oméga 3 compris.`};
+      if (s.op[0] === '<') return {ok: false, why: '<code>&lt;</code> et <code>&lt;=</code> gardent les petits stocks : il faut les produits à 90 unités ou plus.'};
+      if (manque.length) { const m = manque.sort((x, y) => x[2] - y[2])[0];
+        const e = /^La /.test(LE(m[0])) ? 'écartée' : 'écarté';
+        return {ok: false, why: m[2] === s.v ? `${LE(m[0])}, à ${m[2]} unités, est ${e} : avec <code>&gt;</code>, la limite est exclue.`
+          : `${LE(m[0])}, à ${m[2]} unités, est ${e} : la limite est trop haute.`}; }
+      const t = trop.sort((x, y) => y[2] - x[2])[0];
+      return {ok: false, why: `${LE(t[0])}, à ${t[2]} unités, passe aussi : la limite est trop basse.`};
+    },
+    tip: '« 90 ou plus » : la limite 90 compte, comme avec <code>&gt;=</code>.'},
   // comparer un texte : ce que garde != 'Accessoire', avant l’exécution
   {at: 76.17, from: 72.5, kind: 'pick', text: true, prompt: 'Que garde la condition <code>categorie != \'Accessoire\'</code> ?', options: [
     {label: 'Tous les produits, sauf les accessoires', ok: true, why: 'Avec <code>!=</code>, on compare aussi du texte : les accessoires sont écartés.'},

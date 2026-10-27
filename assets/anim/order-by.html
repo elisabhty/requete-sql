@@ -173,6 +173,9 @@ const PRODUITS = [[1,'Fibre Prébiotique','Bien-être',29.9,120],[2,'Collagène 
   [4,'Vitamine D','Nutrition',14.9,150],[5,'Tisane Détox','Boisson',12.5,60],[6,'Protéine Végétale','Nutrition',34.9,45],
   [7,'Oméga 3','Bien-être',24.9,90],[8,'Shaker Inox','Accessoire',15,30]];
 const P = id => PRODUITS.find(p => p[0] === id);
+/* L’ascenseur (moment 2) : les produits dans l’ordre du réglage (colonne, sens), du premier étage au dernier. */
+const ETAGES = s => { const c = {nom: 1, prix: 3, stock: 4}[s.col], d = s.dir === 'DESC' ? -1 : 1;
+  return [...PRODUITS].sort((a, b) => (typeof a[c] === 'string' ? a[c].localeCompare(b[c], 'fr') : a[c] - b[c]) * d); };
 const ordre = cmp => PRODUITS.slice().sort(cmp).map(p => p[0]);
 const parCat = (a, b) => a[2] < b[2] ? -1 : a[2] > b[2] ? 1 : 0;
 const ASC = ordre((a, b) => a[4] - b[4]);                              // ORDER BY stock
@@ -229,11 +232,32 @@ const MOMENTS = [
     {label: 'SORT BY stock', why: 'Le tri s’écrit <code>ORDER BY</code> : « SORT BY » n’existe pas en SQL.'}],
     tip: 'Le tri s’écrit en deux mots : « ordonner par ».'},
   // le stock de 500 se retrouve en bas : avant DESC
-  {at: 47.05, from: 31.9, kind: 'pick', prompt: 'Comment mettre le stock de 500 en tête ?', options: [
-    {label: 'ORDER BY stock DESC', ok: true, why: '<code>DESC</code> inverse le tri : du plus grand au plus petit.'},
-    {label: 'ORDER BY stock ASC', why: '<code>ASC</code> est le sens par défaut : du plus petit au plus grand.'},
-    {label: 'ORDER BY DESC stock', why: '<code>DESC</code> se place juste après la colonne qu’il trie.'}],
-    tip: 'Il faut inverser le sens du tri.'},
+  /* Mini-jeu : l’ascenseur du classement (Elisa, 27 octobre, 23 h 25). La colonne et le sens se règlent ; les produits changent d’étage
+     à chaque choix. Juste : le tri par stock, du plus grand au plus petit. */
+  {at: 47.05, from: 31.9, kind: 'tune', ico: '🛗', prompt: 'Fais monter le stock de <b>500</b> en tête du classement.',
+    hint: 'Choisis la colonne et le sens, puis valide.',
+    controls: [{k: 'col', type: 'seg', label: 'Colonne', choices: ['nom', 'stock', 'prix'], value: 'stock', code: true},
+      {k: 'dir', type: 'seg', label: 'Sens', choices: ['ASC', 'DESC'], value: 'ASC', code: true}],
+    answer: {col: 'stock', dir: 'DESC'},
+    board: {y: 200, html: '<div class="mg-hd"><span class="mb-k">🛗 L’ascenseur</span><div class="mb-q" id="mbaq"></div></div><div class="mg-lift" id="mbal">'
+      + PRODUITS.map((p, k) => `<div class="mg-fl" style="top:${k * 76}px;height:66px">${k + 1}</div>`).join('')
+      + PRODUITS.map(p => `<div class="mg-lr" id="mba${p[0]}" style="height:66px"><span>${p[1]}</span><b class="s">${p[4]}</b><b class="p">${String(p[3].toFixed(2)).replace('.', ',')} €</b></div>`).join('') + '</div>'},
+    show(s, b) {
+      b.querySelector('#mbal').style.height = PRODUITS.length * 76 - 10 + 'px';
+      b.querySelector('#mbaq').innerHTML = `<span class="k">ORDER BY</span> ${s.col} <span class="k">${s.dir}</span>`;
+      ETAGES(s).forEach((p, k) => {
+        const r = b.querySelector('#mba' + p[0]);
+        r.style.top = k * 76 + 'px'; r.classList.toggle('top', k === 0 && s.col === 'stock' && s.dir === 'DESC');
+        r.querySelector('.s').classList.toggle('k', s.col === 'stock'); r.querySelector('.p').classList.toggle('k', s.col === 'prix');
+      });
+    },
+    check(s) {
+      if (s.col === 'stock' && s.dir === 'DESC') return {ok: true, why: '<code>ORDER BY stock DESC</code> : du plus grand stock au plus petit. Le Magnésium arrive en tête.'};
+      if (s.col === 'stock') return {ok: false, why: '<code>ASC</code> trie du plus petit au plus grand : le stock de 500 reste tout en bas.'};
+      if (s.col === 'prix') return {ok: false, why: 'Trié par prix, le classement suit les prix : le stock de 500 n’est pas en tête.'};
+      return {ok: false, why: 'Trié par nom, l’ordre est alphabétique : les stocks ne comptent pas.'};
+    },
+    tip: 'Trie sur le stock, puis inverse le sens du tri.'},
   // deux critères : dans la catégorie Bien-être, le prix départage
   {at: 65.45, from: 61.5, kind: 'sort', text: true, prompt: 'Avec <code>ORDER BY categorie, prix</code>, dans quel ordre arrivent les trois produits Bien-être ?',
     hint: 'Touche un produit, puis sa place. Tu peux aussi le faire glisser.', next: '« {x} » : touche sa place.',
