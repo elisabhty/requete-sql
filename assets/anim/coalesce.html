@@ -236,6 +236,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 143.5;
@@ -290,6 +291,33 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // les deux clients posés, la colonne « Affiché » encore vide
+  {at: 53.8, from: 43.15, kind: 'tap', need: 2, prompt: 'Pour chaque client, touche la valeur que <code>COALESCE()</code> affiche.',
+    spots: [
+      {k: 'v11', sel: '#v11', label: 'Sophie Martin, première valeur : sophie@mail.fr', ok: true},
+      {k: 'v12', sel: '#v12', label: 'Sophie Martin, deuxième valeur : Non renseigné', why: 'Sophie Martin a un email : c’est la première valeur qui n’est pas NULL.'},
+      {k: 'v21', sel: '#v21', label: 'Hugo Laurent, première valeur : NULL', why: 'L’email d’Hugo Laurent est NULL : on passe à la valeur suivante.'},
+      {k: 'v22', sel: '#v22', label: 'Hugo Laurent, deuxième valeur : Non renseigné', ok: true}],
+    tip: '<code>COALESCE()</code> renvoie la première valeur qui n’est pas NULL.'},
+  // trois valeurs : avant que la vidéo ne les parcoure pour Hugo Laurent
+  {at: 78.15, from: 68.85, kind: 'pick', text: true, prompt: 'Hugo Laurent n’a pas d’email, mais un téléphone. Qu’affiche ce <code>COALESCE()</code> ?', options: [
+    {label: 'Son téléphone', ok: true, why: 'L’email est NULL, le téléphone ne l’est pas : c’est la première valeur qui existe.'},
+    {label: '« Non renseigné »', why: 'Les valeurs sont parcourues dans l’ordre : le téléphone passe avant « Non renseigné ».'},
+    {label: 'NULL', why: '<code>COALESCE()</code> ne renvoie NULL que si toutes ses valeurs sont NULL.'}],
+    tip: 'Parcours les valeurs dans l’ordre : email, puis téléphone.'},
+  // le texte vide : avant que la vidéo ne le compare à NULL
+  {at: 97.32, from: 88.8, kind: 'pick', slot: '#mbH', prompt: 'Que renvoie <code>COALESCE(\'\', \'Non renseigné\')</code> ?',
+    hint: 'Touche une réponse, ou fais-la glisser dans le « ? ».',
+    board: {y: 470, html: '<span class="mb-k">Un texte vide</span><div class="mb-q"><span class="k">COALESCE</span>(<span class="s">\'\'</span>, <span class="s">\'Non renseigné\'</span>)\n→ <span class="mb-hole" id="mbH">?</span></div>'},
+    options: [
+    {label: '\'\'', ok: true, why: 'Un texte vide n’est pas NULL : <code>COALESCE()</code> le garde.'},
+    {label: '\'Non renseigné\'', why: '<code>COALESCE()</code> ne remplace que NULL : <code>\'\'</code> est un texte, même vide.'},
+    {label: 'NULL', why: 'La première valeur, <code>\'\'</code>, n’est pas NULL : elle est renvoyée telle quelle.'}],
+    tip: 'Un texte vide contient zéro caractère, mais il existe.'}
+];
 
 function dom(){
   const rows = TOOL.map(i => { const [p, e] = CLIENTS[i];
@@ -516,7 +544,7 @@ function build(){
   if (APP) cue(135.95, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 135.9,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 135.9, moments: MOMENTS,
   glyphs: '👤✉️🔎⚠️🔒🥇🪞✓✕–→·…?', dom, build});
 </script>
 </body>

@@ -250,6 +250,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 157.5;
@@ -307,6 +308,39 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const REF = 'CMD-2026-1002481';
+const MOMENTS = [
+  // la conversion posée, son résultat encore caché
+  {at: 59.15, from: 49.15, kind: 'pick', slot: '#fb3 .sw .a', prompt: 'Que renvoie <code>CAST(\'1002481\' AS INTEGER)</code> ?',
+    hint: 'Touche une réponse, ou fais-la glisser dans le « ? ».', options: [
+    {label: '1002481', ok: true, why: 'Le texte devient un nombre entier : les chiffres restent les mêmes, seul le type change.'},
+    {label: '\'1002481\'', why: 'Entre apostrophes, c’est encore du texte : <code>CAST</code> en fait un nombre entier.'},
+    {label: '0', why: '<code>CAST</code> donne 0 quand le texte commence par des lettres : ici, il n’a que des chiffres.'}],
+    tip: '<code>AS INTEGER</code> demande un nombre entier, écrit sans apostrophes.'},
+  // CAST renvoie 0 sur la référence complète : avant que la vidéo n’extraie les chiffres
+  {at: 80.62, from: 66.7, kind: 'pick', prompt: 'Quelle fonction extrait 1002481 de la référence ?',
+    board: {y: 470, html: '<span class="mb-k">La référence, caractère par caractère</span><div class="mb-chars">'
+      + [...REF].map((c, i) => `<span>${c}<small>${i + 1}</small></span>`).join('') + '</div>'},
+    options: [
+    {label: 'SUBSTR(numero_commande, 10)', ok: true, why: 'Le 10ᵉ caractère est le 1 de 1002481 : <code>SUBSTR</code> garde la suite.'},
+    {label: 'SUBSTR(numero_commande, 9)', why: 'Le 9ᵉ caractère est un tiret : on obtiendrait -1002481.'},
+    {label: 'SUBSTR(numero_commande, 1, 7)', why: 'Elle garde les 7 premiers caractères : CMD-202.'}],
+    tip: 'Compte les caractères jusqu’au 1 de 1002481.'},
+  // les types vus : de nouvelles valeurs, avec le piège des apostrophes
+  {at: 123.52, from: 99.45, kind: 'sort', prompt: 'Range chaque valeur selon son type.',
+    hint: 'Touche une valeur, puis son type. Tu peux aussi la faire glisser.', next: '« {x} » : quel type ?',
+    board: {y: 470, html: '<span class="mb-k">Les trois types</span><div class="mb-cols" style="gap:22px"><div class="mb-col"><div class="mb-bin" id="mbtI"><b>INTEGER</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin" id="mbtR"><b>REAL</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin" id="mbtT"><b>TEXT</b><div class="mb-drop"></div></div></div></div>'},
+    spots: [{k: 'I', sel: '#mbtI', label: 'INTEGER, nombre entier'}, {k: 'R', sel: '#mbtR', label: 'REAL, nombre à virgule'}, {k: 'T', sel: '#mbtT', label: 'TEXT, texte'}],
+    options: [
+      {label: '1002481', to: 'I', why: 'Un nombre sans virgule ni apostrophes : INTEGER.'},
+      {label: '\'1002481\'', to: 'T', why: 'Entre apostrophes, c’est du texte, même avec des chiffres : TEXT.'},
+      {label: '19.9', to: 'R', why: 'Un nombre avec des décimales : REAL.'},
+      {label: '\'29.9\'', to: 'T', why: 'Entre apostrophes, c’est du texte : TEXT.'},
+      {label: '150', to: 'I', why: 'Un nombre entier, sans apostrophes : INTEGER.'}],
+    tip: 'Des apostrophes : du texte. Des décimales : REAL.'}
+];
 
 function dom(){
   const ghost = `<div class="tr gh">+ ${NUMEROS.length - SHOWN} autres commandes</div>`;
@@ -512,7 +546,7 @@ function build(){
   if (APP) cue(148.45, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 148.4,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 148.4, moments: MOMENTS,
   glyphs: '🧾🔎🔄⚠️✂️🏷️↓→✓✕·ᵉ…', dom, build});
 </script>
 </body>
