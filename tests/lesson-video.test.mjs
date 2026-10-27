@@ -1510,7 +1510,7 @@ test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la 
 
 test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme à la souris, sans couper « e-mail »', () => {
   const show = cut('function lvPkShow(i,p){', 'function lvPkTry(k){');
-  for (const part of ["const total=kind==='sort'?opts.length:(p.need||0);", "box.className='lv-pk'+(kind==='pick'?'':' is-'+kind)+(p.text?' is-text':'')+(kind==='pick'&&opts.some(o=>String(o.label).length>30)?' is-long':'');",
+  for (const part of ["const total=kind==='sort'?opts.length:(p.need||0);", "box.className='lv-pk'+(kind==='pick'?'':' is-'+kind)+(p.text?' is-text':'')+(kind==='pick'&&opts.some(o=>String(o.label).length>30)?' is-long':'')+(kind==='sort'&&opts.some(o=>String(o.label).length>22)?' is-wide':'');",
     '<span class="lv-pk-cnt">0 / ${total}</span>', '<span class="lv-pk-ico" aria-hidden="true">${LV_PK_ICO[kind]||LV_PK_ICO.tap}</span>`}<span class="lv-pk-tx">${p.prompt}</span>',
     '<p class="lv-pk-hint">${p.hint}</p>', '}else lvPkLayer(P);', "p={...p,prompt:lvNw(p.prompt),hint:p.hint?lvNw(p.hint):''};"])
     assert.ok(show.includes(part), `plateau : ${part}`);
@@ -1590,7 +1590,11 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
     assert.ok(demo.includes(part), `démonstration du geste (toucher une étiquette, les tables s’allument) : ${part}`);
   /* Ranger au doigt : toucher d’abord (la ligne d’aide dit quelle table toucher), glisser en option, lâcher au bord d’une table compte. */
   const sel = cut('function lvPkSel(P,el){', 'function lvPkDrag(');
-  assert.ok(sel.includes("lvText(h,o?(P.p.next?P.p.next.replace('{x}',x):`Touche maintenant la table de ${x}.`):P.p.hint);") && sel.includes('function lvPkNear(zs,x,y,m){'), 'étiquette choisie : l’aide guide (la phrase du moment, sinon « la table de … ») ; place la plus proche');
+  assert.ok(sel.includes("const tpl=P.p.next?(P.p.text?P.p.next:P.p.next.replace(/«\\s?\\{x\\}\\s?»/,'{x}')):'Touche maintenant la table de {x}.';")
+    && sel.includes("if(o)h.innerHTML=lvNw(lvFlowTypo(tpl.replace('{x}',x))); else lvText(h,P.p.hint);") && sel.includes('function lvPkNear(zs,x,y,m){'),
+    'étiquette choisie : l’aide guide (la phrase du moment, sinon « la table de … »), sans guillemets autour du code, sans coupure après « : » ; place la plus proche');
+  /* Elisa, 27 octobre, 17 h 47 : une étiquette rangée fait grandir sa case ; les zones à toucher suivent. */
+  assert.ok(html.includes("if(P.kind==='sort'||P.kind==='link')lvPkSpotsRefresh(P);\n    if(r.done){") && cut('function lvPkSpotsRefresh(P){', '/* Zones tactiles placées').includes('lvPkLayerPlace();'), 'les zones suivent les cases qui grandissent');
   assert.ok(sel.includes("if(!h.style.minHeight&&h.offsetHeight)h.style.minHeight=h.offsetHeight+'px';"), 'la ligne d’aide garde sa hauteur : la consigne ne bouge pas');
   assert.ok(html.includes('||lvPkNear(zs,x,y,32);') && html.includes('@keyframes lvSpotArm{') && html.includes("const LV_PK_ICO={tap:'👆',sort:'👆',link:'🔗'};"), 'glisser tolérant, tables qui appellent le doigt');
   const ctxN = vm.createContext({Math}); vm.runInContext(cut('function lvPkNear(zs,x,y,m){', 'function lvPkDrag(') + ';this.f=lvPkNear;', ctxN);
@@ -2623,7 +2627,7 @@ test('« ↺ Revoir » (ou tout retour en arrière) : le moment reprend là où 
   const played = [], heard = [], sfx = (...a) => heard.push(a), win = {__sfx: sfx};
   const IX = {act(i, a, b) { win.__sfx('pop'); played.push([i, a, b]); return {ok: true, done: false}; }};
   const dropped = [];
-  const ctxR = vm.createContext({LV: {id: 56, video: {win}}, lvPkIX: () => IX, lvPkHint(P) { P.hinted = true; }, lvPkDrop: (id, i) => dropped.push(i), Array, Math, String});
+  const ctxR = vm.createContext({LV: {id: 56, video: {win}}, lvPkIX: () => IX, lvPkHint(P) { P.hinted = true; }, lvPkDrop: (id, i) => dropped.push(i), lvPkSpotsRefresh() {}, Array, Math, String});
   vm.runInContext(cut('function lvPkRestore(P,d){', 'function lvPkTry(k){') + ';this.lvPkRestore=lvPkRestore;', ctxR);
   const chips = [0, 1, 2, 3, 4].map(mk), cnt = {textContent: '0 / 5'};
   const box = {querySelector: sel => { const m = sel.match(/data-k="(\d+)"/); return m ? chips[+m[1]] || null : sel === '.lv-pk-cnt' ? cnt : null; }};

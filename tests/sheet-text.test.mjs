@@ -86,6 +86,6 @@ test('le lecteur passe par là pour chaque texte de la feuille', () => {
   assert.ok(html.includes("if(why&&wEl){ wEl.className='lv-pk-why ko'; wEl.hidden=false; tEl.hidden=true; lvText(wEl,why); }"), 'geste raté');
   assert.ok(cut('function lvPkWin(P,why,rect){', 'LV.video.sfx(').includes("wEl.className='lv-pk-why ok'; wEl.hidden=false;\n    P.box.querySelector('.lv-pk-t').hidden=true;\n    lvText(wEl,why);"), 'gestes réussis');
   assert.ok(html.includes("lvText(el.querySelector('.lv-pk-tip-t'),h.text,el);"), 'indice');
-  assert.ok(html.includes("lvText(h,o?(P.p.next?P.p.next.replace('{x}',x):`Touche maintenant la table de ${x}.`):P.p.hint);"), 'ligne d’aide du rangement');
+  assert.ok(html.includes("if(o)h.innerHTML=lvNw(lvFlowTypo(tpl.replace('{x}',x))); else lvText(h,P.p.hint);"), 'ligne d’aide du rangement');
   assert.ok(!/\.innerHTML=lvNw\(why\)/.test(html), 'plus d’explication posée telle quelle');
 });

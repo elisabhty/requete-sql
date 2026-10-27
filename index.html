@@ -6876,6 +6876,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
    une étiquette seule sur sa ligne (nombre impair, ou au fil des étiquettes posées) se centre */
 .lv-pk.is-sort .lv-pk-opts:not([hidden]){display:flex;flex-wrap:wrap;justify-content:center;gap:7px}
 .lv-pk.is-sort .lv-pk-opt{min-height:44px;flex:0 0 calc(50% - 3.5px);min-width:0}
+.lv-pk.is-sort.is-wide .lv-pk-opt{flex-basis:100%}
 .lv-pk.is-sort .lv-pk-opt{display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 8px;text-align:left;text-wrap:balance;line-height:1.15;background:#fff;border-color:#D4C8FB;color:var(--ink,#221C46);font-family:var(--ui);font-size:15px;font-weight:700;letter-spacing:-.01em;box-shadow:0 4px 0 #CBBEFB,0 10px 18px -12px rgba(40,20,120,.45)}
 .lv-pk-grip{width:9px;height:15px;flex:none;fill:#A496E8}
 .lv-pk-tag{flex:none;min-width:23px;height:23px;padding:0 5px;border-radius:7px;background:#F1EEFC;color:#6F66A0;font:800 12.5px/23px var(--ui);text-align:center}
@@ -6886,6 +6887,8 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 .lv-pk.is-sort .lv-pk-opt.is-sel,.lv-pk.is-sort .lv-pk-opt.is-demo{background:#F3EFFF;border-color:var(--accent,#6A4DF4);box-shadow:0 4px 0 var(--accent,#6A4DF4),0 10px 18px -10px rgba(106,77,244,.6);transform:translateY(-3px)}
 .lv-pk-hint.is-next{color:var(--accent-ink,#5335E0)}
 .lv-pk-hint b{font-weight:800}
+/* Du code dans la ligne d’aide ou l’indice (un alias, une valeur, un mot-clé) : comme dans la consigne. */
+.lv-pk-hint code,.lv-pk-tip code{font:700 .9em/1 var(--mono);color:var(--accent-ink,#5335E0);background:var(--accent-soft,#EEE9FF);padding:.12em .34em;border-radius:.32em;white-space:nowrap}
 .lv-pk-opt.is-placed,.lv-pk.is-sort .lv-pk-opt.is-placed{display:none}
 .lv-pk-opt.is-hint{animation:lvShake .42s ease}
 .lv-pk-fly.is-drag{z-index:9;box-shadow:0 16px 30px -10px rgba(40,20,120,.5);will-change:transform}
@@ -15538,15 +15541,20 @@ function lvText(el,h,host){
   if(!el)return;
   const base=lvFlowTypo(h);
   host=host||el;
-  el.innerHTML=lvNw(base);
+  /* Un bout de code reste d’un bloc (« = NULL » jamais coupé) ; mais un code plus large que la feuille (« NOT ville = 'Paris'
+     AND age > 35 » sur iPhone) dépassait du bord : celui-là peut passer à la ligne, entre ses mots (Elisa, 27 octobre, 17 h 47). */
+  const set=x=>{ el.innerHTML=lvNw(x);
+    if(host.clientWidth&&host.scrollWidth>host.clientWidth+1){ const w=host.clientWidth;
+      el.querySelectorAll('code').forEach(c=>{ if(c.getBoundingClientRect().width>w*.45)c.style.whiteSpace='normal'; }); } };
+  set(base);
   const tries=[lvCuts(base),lvCuts(base,['sent']),lvCuts(base,['colon'])].filter((c,k,a)=>c!==base&&a.indexOf(c)===k);
   if(!tries.length||!host.clientHeight)return;
   const cs=getComputedStyle(host), lh=parseFloat(cs.lineHeight)||parseFloat(cs.fontSize)*1.3||20, pad=parseFloat(cs.paddingTop||0)+parseFloat(cs.paddingBottom||0);
   const lines=()=>Math.round((host.clientHeight-pad)/lh);
   const n0=lines();
   if(n0<2)return;
-  for(const c of tries){ el.innerHTML=lvNw(c); if(lines()<=n0)return; }
-  el.innerHTML=lvNw(base);
+  for(const c of tries){ set(c); if(lines()<=n0)return; }
+  set(base);
 }
 function lvPkShow(i,p){
   if(!LV||!p)return;
@@ -15558,7 +15566,9 @@ function lvPkShow(i,p){
   /* Compteur des gestes attendus : une étiquette par place (sort), sinon le nombre de bons gestes (need). */
   const total=kind==='sort'?opts.length:(p.need||0);
   /* Réponses longues (une phrase) : l’une sous l’autre, sur toute la largeur, le texte sur deux lignes au besoin. */
-  box.className='lv-pk'+(kind==='pick'?'':' is-'+kind)+(p.text?' is-text':'')+(kind==='pick'&&opts.some(o=>String(o.label).length>30)?' is-long':'');
+  /* Étiquettes à ranger longues (« SELECT clients.ville, COUNT(*) », « Sophie Martin, commande n°1 ») : une par ligne, sur toute la
+     largeur ; à deux par ligne, elles tenaient sur trois lignes, coupées n’importe où (Elisa, 27 octobre, 17 h 47). */
+  box.className='lv-pk'+(kind==='pick'?'':' is-'+kind)+(p.text?' is-text':'')+(kind==='pick'&&opts.some(o=>String(o.label).length>30)?' is-long':'')+(kind==='sort'&&opts.some(o=>String(o.label).length>22)?' is-wide':'');
   box.innerHTML=`<div class="lv-pk-card" role="group" aria-labelledby="lv-pk-t" tabindex="-1">
     <div class="lv-pk-top"><span class="lv-pk-kick">À toi · ${i+1}/${n}</span>${total>1?`<span class="lv-pk-cnt">0 / ${total}</span>`:''}<button type="button" class="lv-pk-back" aria-label="Revoir le passage avant ce moment"><span aria-hidden="true">↺</span><span>Revoir</span></button><span class="lv-pk-dots" aria-hidden="true">${lvPkDots(i,n)}</span></div>
     <p class="lv-pk-t" id="lv-pk-t">${kind==='pick'?`<span class="lv-pk-hole" aria-hidden="true">?</span>`:`<span class="lv-pk-ico" aria-hidden="true">${LV_PK_ICO[kind]||LV_PK_ICO.tap}</span>`}<span class="lv-pk-tx">${p.prompt}</span></p>
@@ -15670,6 +15680,7 @@ function lvPkRestore(P,d){
   P.miss=Math.max(0,d.m|0); P.tries=Math.max(P.outs.length,d.t|0);
   const cnt=P.box.querySelector('.lv-pk-cnt'); if(cnt)cnt.textContent=`${Math.min(P.count,P.total)} / ${P.total}`;
   if(P.kind==='pick'?P.tries>=2:P.miss>=2)lvPkHint(P);
+  if(P.kind==='sort'||P.kind==='link')lvPkSpotsRefresh(P);
 }
 function lvPkTry(k){
   const P=LV&&LV.pk; if(!P||P.busy||P.done)return;
@@ -16161,6 +16172,15 @@ function lvPkAim(P){
     L.addEventListener('pointermove',mv); L.addEventListener('pointerup',up); L.addEventListener('pointercancel',up);
   });
 }
+/* Les cases d’une carte grandissent quand une étiquette y entre : les zones à toucher suivent (Elisa, 27 octobre, 17 h 47 :
+   « Nom du produit » rangé, la case avait grandi, et son cadre barrait l’étiquette). */
+function lvPkSpotsRefresh(P){
+  const IX=lvPkIX(); let sp=null; try{ sp=IX&&IX.spots?IX.spots(P.i):null; }catch(e){ sp=null; }
+  if(!sp||!P.spots)return;
+  const by={}; sp.forEach(z=>{ by[String(z.k)]=z; });
+  P.spots.forEach(b=>{ const z=by[b.dataset.k]; if(z)b._s=Object.assign({},b._s,{x:z.x,y:z.y,w:z.w,h:z.h}); });
+  lvPkLayerPlace();
+}
 /* Zones tactiles placées sur l’image, et leur rectangle dans le lecteur (repère de LV.root). */
 function lvPkLayerPlace(){
   const P=LV&&LV.pk; if(!P||!P.layer)return;
@@ -16190,8 +16210,13 @@ function lvPkSel(P,el){
   if(h){
     /* La ligne garde la hauteur de l’aide : la consigne au-dessus ne bouge pas quand on choisit une étiquette. */
     if(!h.style.minHeight&&h.offsetHeight)h.style.minHeight=h.offsetHeight+'px';
+    /* L’étiquette choisie, en gras, comme sur son bouton. */
     const o=el?P.p.options[+el.dataset.k]:null, x=o?`<b>${lvNw(esc(o.label))}</b>`:'';
-    lvText(h,o?(P.p.next?P.p.next.replace('{x}',x):`Touche maintenant la table de ${x}.`):P.p.hint); h.classList.toggle('is-next',!!o);
+    /* Du code n’est jamais mis entre guillemets « » : dans une question sur les guillemets d’un alias, ils prêtaient à confusion. */
+    const tpl=P.p.next?(P.p.text?P.p.next:P.p.next.replace(/«\s?\{x\}\s?»/,'{x}')):'Touche maintenant la table de {x}.';
+    /* La ligne garde une hauteur minimale : on ne la coupe pas après « : » (lvText la croyait déjà sur deux lignes). */
+    if(o)h.innerHTML=lvNw(lvFlowTypo(tpl.replace('{x}',x))); else lvText(h,P.p.hint);
+    h.classList.toggle('is-next',!!o);
   }
 }
 /* Lâcher au bord d’une place compte aussi : la plus proche, à moins de m px du doigt. */
@@ -16320,6 +16345,7 @@ function lvPkActed(P,r,el,chip,el2,args){
     if(P.kind==='tap'&&el){ el.classList.add('is-ok'); el.disabled=true; }
     if(P.kind==='link'){ [el,el2].forEach(x=>x&&x.classList.add('is-linked')); }
     if(chip){ chip.classList.add('is-placed'); chip.disabled=true; }
+    if(P.kind==='sort'||P.kind==='link')lvPkSpotsRefresh(P);
     if(r.done){ lvPkWin(P,why,r.at||(el&&el._s)||null); return; }
     if(args){ P.acts.push(args); lvPkKeep(P); }
     LvSfx.play('tick',P.count%5,.7,0);
@@ -25601,7 +25627,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2093';
+  const SW_CACHE='requete-2026-10-12-ludique-v2094';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
