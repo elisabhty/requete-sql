@@ -115,7 +115,7 @@ test('les chapitres du projet : les boutons touchés par l’élève qui réussi
     'chapitre 17 : « Simuler », trois fois (GRANT SELECT, GRANT UPDATE (statut), les deux REVOKE)');
   assert.ok(dr.includes("press($('#psv'), A.ea + 0.5, '#A3216A', 6, false);") && dr.includes("press($('#apb'), A.d5 + 1.6, '#0F6B33', 6);"),
     '… pas pour la modification du prix, refusée ; mais pour le colis de Léa Simon, expédié');
-  assert.ok(dr.includes("confetti($('#fin'), G4 + 0.5);"), '… et la fin du projet');
+  assert.ok(fs.readFileSync(path.join(root, 'assets/anim/fin-sql.html'), 'utf8').includes("confetti($('#fin'), G4 + 0.5);"), '… et la fin du projet');
   const tx = anim('projet-transaction.html');
   assert.ok(tx.includes("confetti($('#bcom'), COM + 0.95);") && tx.includes("confetti($('#brol'), ROL + 0.95);") && !tx.includes("confetti($('#bhow')"), 'chapitre 11 : COMMIT et ROLLBACK, pas « Comment éviter ça ? »');
   const sp = anim('projet-savepoint.html');
