@@ -47,20 +47,24 @@ function check(id,count,label){
 }
 check(0,1,'jour'); // Sans plan : ne pas perdre l’id zéro.
 ctx.state.plan={sessions:[{d:'2026-09-17',lessons:[2]},{d:'2026-09-14',lessons:[0]},{d:'2026-09-15',lessons:[1,'d1']}]};
-check(1,2,'jour'); // Le retard ne remplace pas la séance prévue aujourd’hui.
+check(0,1,'reprendre'); // Le retard d’abord (Elisa, 27 octobre, 10 h 36 : « les activités à rattraper, les mettre en premier »).
+ctx.state.lessons[0]={done:true};check(1,2,'jour'); // Puis la séance prévue aujourd’hui.
 ctx.state.lessons[1]={done:true};check('d1',1,'jour');assert.equal(ctx.recommendedSession().started,true);
 ctx.state.lessons.d1={done:true};check(2,1,'Prochaine'); // Aujourd’hui terminé.
-ctx.state.lessons[2]={done:true};check(0,1,'reprendre'); // Seulement du retard.
-ctx.state.lessons[0]={done:true};check(null); // Pas de repli vers un autre cours.
+ctx.state.lessons[2]={done:true};check(null); // Pas de repli vers un autre cours.
 ctx.state.plan={sessions:[{d:'2026-09-17',lessons:[2]}]};delete ctx.state.lessons[0];check(null); // Plan terminé, même si catalogue différent.
 ctx.state.plan=null;ctx.state.lessons={};ctx.nbFaites=id=>id===0?1:0;
 check(0,1,'jour');assert.equal(ctx.recommendedSession().started,true);
 /* Avec un planning, le résumé compte le jour même, et dit lequel (Elisa, 27 octobre, 10 h 31 : « finalement le nombre d’activités le jour
    même ») ; nous sommes le mardi 15 septembre. */
 ctx.nbFaites=()=>0;
-ctx.state.plan={sessions:[{d:'2026-09-10',lessons:[0]},{d:'2026-09-15',lessons:[1,'d1']},{d:'2026-09-16',lessons:[2]},{d:'2026-09-18',lessons:['d2','d4']},{d:'2026-09-30',lessons:['d3']}]};
+ctx.state.plan={sessions:[{d:'2026-09-10',lessons:[0]},{d:'2026-09-12',lessons:['d5','d6']},{d:'2026-09-15',lessons:[1,'d1']},{d:'2026-09-16',lessons:[2]},{d:'2026-09-18',lessons:['d2','d4']},{d:'2026-09-30',lessons:['d3']}]};
+assert.deepEqual([ctx.recommendedSession().id,ctx.recommendedSession().summary],[0,'3 activités à rattraper'],'le retard en premier : tout ce qui est à rattraper');
+ctx.state.lessons={0:{done:true},d5:{done:true}};
+assert.deepEqual([ctx.recommendedSession().id,ctx.recommendedSession().summary],['d6','1 activité à rattraper']);
+ctx.state.lessons.d6={done:true};
 assert.equal(ctx.recommendedSession().summary,'2 activités restantes aujourd’hui');
-ctx.state.lessons={1:{done:true}};
+ctx.state.lessons[1]={done:true};
 assert.equal(ctx.recommendedSession().summary,'1 activité restante aujourd’hui');
 ctx.state.lessons.d1={done:true};
 assert.equal(ctx.recommendedSession().summary,'1 activité prévue demain');
@@ -69,6 +73,4 @@ assert.equal(ctx.recommendedSession().summary,'2 activités prévues vendredi');
 assert.ok(ctx.bravoNextHtml().includes('<small>2 activités prévues vendredi</small>'),'le bilan l’affiche');
 ctx.state.lessons.d2={done:true};ctx.state.lessons.d4={done:true};
 assert.equal(ctx.recommendedSession().summary,'1 activité prévue le 30 septembre');
-ctx.state.lessons.d3={done:true};
-assert.equal(ctx.recommendedSession().summary,'1 activité à rattraper','il ne reste que le retard');
 console.log('Séance commune : accueil et bilan cohérents sur 8 scénarios.');

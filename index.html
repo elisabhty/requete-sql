@@ -13174,8 +13174,9 @@ function recommendedSession(){
   const today=dstr(auj());
   let session;
   if(state.plan){
-    session=nextScheduledSession(state.plan.sessions,today,itemDone)
-      ||nextScheduledSession(state.plan.sessions,'',itemDone);
+    /* Les activités à rattraper d’abord (Elisa, 27 octobre, 10 h 36 : « les activités à rattraper, les mettre en premier dans l’ordre ») :
+       la plus ancienne séance pas finie, puis celle du jour, puis les suivantes. */
+    session=nextScheduledSession(state.plan.sessions,'',itemDone);
   }else{
     const lesson=allLessons.find(l=>!itemDone(l.id));
     session=lesson?{d:today,lessons:[lesson.id],remaining:[lesson.id]}:null;
@@ -13188,16 +13189,19 @@ function recommendedSession(){
     :'Prochaine séance · '+parseD(session.d).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'}).replace(/ /g,'\u00a0');
   const count=session.remaining.length;
   return {...session,id,started,label,minutes:count*MIN_PAR_ACTIVITE,
-    summary:state.plan?resteJour(session,today)
+    summary:state.plan?resteJour(session,today,state.plan.sessions)
       :`${count} activité${count>1?'s':''} restante${count>1?'s':''} · environ ${count*MIN_PAR_ACTIVITE} min`};
 }
 /* Le résumé de la séance, avec un planning : ce qu’il reste à faire le jour même, et quel jour (Elisa, 27 octobre, 10 h 31 :
    « finalement le nombre d’activités le jour même ») : « 2 activités restantes aujourd’hui », « 1 activité prévue demain »,
-   « … prévues jeudi », « … prévues le 9 novembre » ; une séance passée : « 1 activité à rattraper ». */
-function resteJour(session,today){
+   « … prévues jeudi », « … prévues le 9 novembre » ; du retard (il passe en premier) : tout ce qui est à rattraper, « 3 activités à rattraper ». */
+function resteJour(session,today,sessions){
+  if(session.d<today){
+    const r=(sessions||[]).filter(x=>Array.isArray(x.lessons)&&x.d<today).reduce((k,x)=>k+x.lessons.filter(id=>!itemDone(id)).length,0)||session.remaining.length;
+    return `${r} activité${r>1?'s':''} à rattraper`;
+  }
   const n=session.remaining.length, s=n>1?'s':'';
   if(session.d===today)return `${n} activité${s} restante${s} aujourd’hui`;
-  if(session.d<today)return `${n} activité${s} à rattraper`;
   const j=parseD(session.d), dj=Math.round((j-parseD(today))/864e5);
   const quand=dj===1?'demain':dj<7?j.toLocaleDateString('fr-FR',{weekday:'long'}):'le '+j.toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
   return `${n} activité${s} prévue${s} ${quand}`;
@@ -25177,7 +25181,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2082';
+  const SW_CACHE='requete-2026-10-12-ludique-v2083';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
