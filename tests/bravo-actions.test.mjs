@@ -42,13 +42,15 @@ const SEANCE = {id: 45, label: 'Ta séance du jour', summary: '2 activités rest
 test('la suite du parcours : une carte, son titre en entier et son bouton « Continuer »', () => {
   const next = bilan({session: SEANCE}).bravoNextHtml();
   assert.ok(next.startsWith('<button type="button" class="bravo-next-btn" onclick="openItem(45)">'), 'toute la carte ouvre la séance');
-  assert.ok(next.includes('<span class="bravo-next-lab">Ta séance du jour</span>'));
+  /* Après une leçon, c’est la séance suivante (Elisa, 27 octobre, 10 h 11) ; prévue un autre jour, avec sa date. */
+  assert.ok(next.includes('<span class="bravo-next-lab">Séance suivante</span>') && !next.includes('Ta séance du jour'));
+  assert.ok(bilan({session: {...SEANCE, label: 'Prochaine séance · jeu. 28 oct.'}}).bravoNextHtml().includes('<span class="bravo-next-lab">Séance suivante · jeu. 28 oct.</span>'));
   assert.ok(next.includes('<span class="bn-copy"><b>Sous-requête dans WHERE avec IN</b><small>2 activités restantes · environ 12 min</small></span>'), 'titre et durée');
   assert.ok(/<span class="bn-cta"><span class="bn-num" aria-hidden="true"><svg[^>]*>.*<\/svg><\/span>Continuer<\/span>/.test(next), 'bouton « Continuer » avec le triangle de lecture');
   assert.ok(!next.includes('bn-arrow') && !next.includes('bravo-next-body'), 'plus de flèche qui bouge seule à droite');
   const defi = bilan({session: {...SEANCE, id: 'd1'}}).bravoNextHtml();
   assert.ok(defi.includes(`onclick="openItem('d1')"`) && defi.includes('<span class="bn-num defi" aria-hidden="true">⚑</span>Continuer'), 'un défi : le drapeau');
-  assert.ok(bilan().bravoNextHtml().includes('<b>Parcours terminé</b>'), 'parcours terminé : la note reste');
+  assert.ok(bilan().bravoNextHtml().includes('<h2 id="bravo-fin-h">Bravo, tu as complété le parcours&nbsp;!</h2>'), 'parcours terminé : bravo');
   /* Le titre se lit en entier : deux lignes au plus, plus de coupure « … » sur une ligne. */
   assert.ok(lq.includes('html.lq #scr-lesson .bravo-next-btn .bn-copy b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;white-space:normal;'));
   assert.ok(!/\.bravo-next[^{]*\{[^}]*text-overflow:ellipsis/.test(html + lq + premium), 'plus de titre coupé');
@@ -166,4 +168,29 @@ test('le tout dernier cours : le bilan mène à la pratique (Elisa, 27 octobre, 
   /* Le lecteur lit la fin du bouton « Ajouter à mes notes » sur la page de l’animation */
   assert.ok(html.includes('until=I&&I.notesUntil!=null?I.notesUntil:N.cfg.until'));
   assert.ok(fs.readFileSync(path.join(root, 'assets/anim/core.js'), 'utf8').includes('notesUntil: cfg.notesUntil != null ? unwarp(cfg.notesUntil) : null'));
+});
+
+/* Elisa, 27 octobre, 10 h 11 : « quand il n’y en a plus, mettre bravo tu as complété le parcours avec des animations et confettis ». */
+test('plus rien à faire : « Bravo, tu as complété le parcours », avec ce que tu as fait, « Découvrir les défis », animations et confettis', () => {
+  const ctx = bilan({session: null});
+  ctx.MODULES = [{lessons: [{id: 1}, {id: 2}]}, {lessons: [{id: 50}]}];
+  ctx.allLessons = [{id: 1}, {id: 2}, {id: 50}];
+  ctx.itemDone = () => true;
+  ctx.SQL_REQUETES = 210;
+  const fin = ctx.bravoNextHtml({id: 50});
+  assert.ok(fin.startsWith('<div class="bravo-fin" role="group" aria-labelledby="bravo-fin-h">'), 'la carte de fin, même après le tout dernier cours');
+  assert.ok(fin.includes('<span class="bravo-fin-cup">🏆</span>') && (fin.match(/class="bf-s s\d"/g) || []).length === 4, 'la coupe et ses étincelles');
+  assert.ok(fin.includes('<span class="bravo-fin-tag">🎓 Parcours terminé</span>') && fin.includes('<h2 id="bravo-fin-h">Bravo, tu as complété le parcours&nbsp;!</h2>'));
+  assert.deepEqual([...fin.matchAll(/<span><b data-n="(\d+)">\d+<\/b>([^<]+)<\/span>/g)].map(m => [+m[1], m[2]]), [[2, 'modules'], [3, 'cours'], [210, 'requêtes']], 'ce que tu as fait');
+  assert.ok(fin.includes('<button type="button" class="bravo-fin-go" onclick="exitLessonToTab(\'practice\')"><span class="fl" aria-hidden="true">⚑</span>Découvrir les défis</button>'));
+  ctx.itemDone = id => id !== 50;
+  assert.ok(!ctx.bravoNextHtml({id: 2}).includes('requêtes'), 'un parcours planifié sans tous les cours : pas les 210 requêtes de tous les cours');
+  assert.ok(cut('function renderLessonFlow(){', '/* ---------- Requête à trous').includes('requestAnimationFrame(bravoFinWire);'), 'branchée à l’affichage du bilan');
+  const wire = cut('function bravoFinWire(){', '/* Les autres actions');
+  for (const part of ["el.classList.add('is-in');", "lvFinCount(el,'.bravo-fin-stats b',650);", 'lqConfetti({n:70})', 'lqConfetti({n:46})', "LvSfx.play('success',0,.6,0)", 'navigator.vibrate([12,40,12,40,24])', 'new IntersectionObserver('])
+    assert.ok(wire.includes(part), part);
+  assert.ok(wire.indexOf("if(prefersReduceMotion()){ el.classList.add('is-in'); return; }") < wire.indexOf('lqConfetti('), 'mouvement réduit : la carte est là, sans confettis');
+  for (const part of ['.bravo-fin.is-in>.bravo-fin-medal{animation:bfPop', '.bravo-fin.is-in .bravo-fin-cup{animation:bfBob', '.bravo-fin.is-in .bf-s{animation:bfTwinkle', 'animation:bfSpin 16s linear infinite'])
+    assert.ok(html.includes(part), part);
+  assert.ok(!html.includes('bravo-done-note"><span'), 'plus l’ancienne note « Parcours terminé »');
 });
