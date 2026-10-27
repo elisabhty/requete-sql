@@ -304,7 +304,7 @@ test('moment 5 : la base ne garde que NULL ; c’est le site web qui affiche « 
   const picks = val('PICKS');
   assert.equal(picks[4].prompt, 'Qui affiche « Ancien client » sur la fiche produit ?');
   assert.deepEqual(picks[4].options.map(o => sp(o.label)), ['Le site web, sans compte associé', 'La base de données', 'La règle SET NULL']);
-  for (const t of ["sw('snm', [[PRENOM, 'rnm'], ['Ancien client', 'rnm']], 'sn2')", "swap('#snm .a0', '#snm .a1', A.g8 + 0.6)", '<span class="url">nutriboost.fr/produit/6</span>',
+  for (const t of ["sw('snm', [[PRENOM, 'rnm'], ['Ancien client', 'rnm']], 'sn2')", "swap('#snm .a0', '#snm .a1', A.g7 + 2.4)", '<span class="url">nutriboost.fr/produit/6</span>',
     '<div class="rh">Avis clients<small>1 avis</small></div>', '<span class="emo">🗄️</span>Base de données<i class="sp"></i><code>client_id</code><span>vaut</span><code>NULL</code>'])
     assert.ok(page.includes(t), `la page montre : ${t}`);
   const caps = val('CAPTIONS').map(c => c[2]);

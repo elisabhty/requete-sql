@@ -536,7 +536,7 @@ const COURSES = [
   {id: 6, next: 22, titre: 'AND et OR', page: 'and-or.html', thumb: 'and-or-thumb.jpg', duree: '1 min 57', notesAt: 101.5,
     table: 'clients',
     bubble: 'Avec <span class="ic">AND</span> et <span class="ic">OR</span>, relie plusieurs conditions dans <span class="ic">WHERE</span>.',
-    chapters: ['Situation', 'Le problème', 'Avec AND', 'Avec OR', 'Les parenthèses', 'Le résultat', 'À retenir'],
+    chapters: ['Situation', 'Le problème', 'Ajouter l’âge', 'Ajouter Lyon', 'Les parenthèses', 'Le résultat', 'À retenir'],
     traps: ['<span class="ln" id="ql4">  <span class="kw hlc" id="and3">AND</span> age &gt; 30;', '<b>Aucune ligne</b><span class="s">Une ville ne peut pas être Paris et Lyon à la fois.</span>',
       '<span class="op2">AND</span>', '<span class="op2">OR</span>', 'AND : calculé en premier', 'entre parenthèses : calculé en premier',
       '<span id="lp">(</span><span id="cP">ville = <span class="str">\'Paris\'</span></span> <span class="kw">OR</span> <span id="cL">ville = <span class="str">\'Lyon\'</span></span><span id="rp">)</span> <span class="kw" id="and5">AND</span> <span id="cA">age &gt; 30</span>']},
@@ -1062,7 +1062,7 @@ const COURSES = [
       // Les six moments : la case à modifier, la fin de la requête, les cinq ateliers touchés, la requête qui lit, la fin qui calcule, pourquoi la modification est refusée
       "{at: atp('p1'), from: A.c4, kind: 'tap', need: 1,", "{label: 'WHERE\u00a0id\u00a0=\u00a02', ok: true}]},", "{at: atp('p3'), from: A.c9, kind: 'tap', need: 5,",
       "{label: 'SELECT\u00a0*\u00a0FROM\u00a0ateliers WHERE\u00a0id\u00a0=\u00a02', ok: true},", "{label: 'SET seances_restantes\u00a0= seances_restantes\u00a0+\u00a02', ok: true},",
-      "{label: 'Le solde passerait sous 0, ce que la règle de la table interdit', ok: true}]}",
+      "{label: 'Le solde deviendrait négatif, ce que CHECK interdit', ok: true}]}",
       "b += out('o-5', 'warn', 'Requête exécutée', '5 lignes modifiées.');", "c += out('o-ck', 'err', 'Requête refusée', 'CHECK constraint failed:<br>seances_restantes &gt;= 0', 'm', true);", 'Prochaine leçon · DELETE']},
   {id: 28, next: 68, titre: 'DELETE', page: 'projet-delete.html', thumb: 'projet-delete-thumb.webp', duree: '3 min 00', notesAt: 140.34,
     table: 'inscriptions',
@@ -1092,9 +1092,9 @@ const COURSES = [
     traps: ["const SHAKER = {id: 8, nom: 'Shaker Inox', stock: 30}, LEA = 7, REMPLACEMENT = 1;",
       "const BINS = [['co', 'COMMIT', 'valide toutes les modifications'], ['ro', 'ROLLBACK', 'annule toutes les modifications']];",
       // Les six moments : la valeur qui ne correspond plus à la réalité, le stock si la transaction était annulée, la commande qui valide, ce qu’il faut faire
-      // quand le remplacement échoue, la demande après le ROLLBACK, les six situations à ranger
+      // quand le remplacement échoue, ce qu’il faut faire après le ROLLBACK, les six situations à ranger
       "{at: atp('p1'), from: A.c1, kind: 'tap', need: 1,", "{at: atp('p2'), from: A.f1, kind: 'pick', text: true,", "{label: '30 : la valeur de départ', ok: true,",
-      "{label: 'COMMIT', ok: true,", "{label: 'Annuler avec ROLLBACK', ok: true,", "{label: 'Non, le remplacement reste à enregistrer', ok: true,", "{at: atp('p6'), from: A.i1, kind: 'sort',",
+      "{label: 'COMMIT', ok: true,", "{label: 'Annuler avec ROLLBACK', ok: true,", "{label: 'Recommencer toute la transaction', ok: true,", "{at: atp('p6'), from: A.i1, kind: 'sort',",
       "w += out('o-i1', 'err', 'Remplacement non enregistré', 'NOT NULL constraint failed:<br>remplacements.personnalisation', 'm', true);", 'Prochaine leçon · SAVEPOINT']},
   {id: 63, next: 70, titre: 'SAVEPOINT', page: 'projet-savepoint.html', thumb: 'projet-savepoint-thumb.webp', duree: '4 min 12', notesAt: 231.86,
     table: 'cadeaux',
@@ -1104,10 +1104,10 @@ const COURSES = [
     traps: ["const SHAKER = {id: 8, nom: 'Shaker Inox', stock: 30}, TISANE = {id: 5, nom: 'Tisane Détox', stock: 60}, PROTEINE = {id: 6, nom: 'Protéine Végétale', stock: 45},",
       "LEA = 7, REMPLACEMENT = 1, CADEAU = 1;",
       "const BINS = [['rt', 'ROLLBACK TO SAVEPOINT', 'annule après le repère'], ['rb', 'ROLLBACK', 'annule toute la transaction'], ['co', 'COMMIT', 'valide ce qui reste']];",
-      // Les six moments : comment annuler seulement le cadeau, les deux modifications d’après le repère, ce qui est validé, la commande qui annule
-      // seulement le cadeau, l’état de la transaction après le retour au savepoint, les six situations à ranger
+      // Les six moments : comment annuler seulement le cadeau, les deux modifications d’après le repère, ce que validerait COMMIT, la commande qui annule
+      // seulement le cadeau, ce qu’il faut encore après le retour au savepoint, les six situations à ranger
       "{at: atp('p1'), from: A.a6, kind: 'pick', text: true,", "{label: 'Avec un point de retour posé avant le cadeau', ok: true,", "{at: atp('p2'), from: A.c4, kind: 'tap', need: 2,",
-      "{label: 'Aucune : rien n’est validé avant COMMIT', ok: true,", "{label: 'ROLLBACK TO SAVEPOINT avant_cadeau', ok: true,", "{label: 'Elle est toujours en cours', ok: true,",
+      "{label: 'Les quatre, cadeau compris', ok: true,", "{label: 'ROLLBACK TO SAVEPOINT avant_cadeau', ok: true,", "{label: 'Un COMMIT, qui terminera la transaction', ok: true,",
       "{at: atp('p6'), from: A.g1, kind: 'sort',", "const Q_RT = [['-- Revenir au point de retour'], ['ROLLBACK TO SAVEPOINT avant_cadeau;']]", 'Prochaine leçon · Les triggers']},
   {id: 70, next: 71, titre: 'Les triggers', page: 'projet-trigger.html', thumb: 'projet-trigger-thumb.webp', duree: '4 min 06', notesAt: 245.04,
     table: 'historique_prix',
@@ -1583,7 +1583,7 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
     'zones à toucher visibles sur l’image, effacées une fois le moment réussi');
   /* Glisser : chaque étiquette est une colonne du tableur (poignée, lettre, nom) ; à l’ouverture, une copie monte vers les tables. */
   const show2 = cut('function lvPkShow(i,p){', 'function lvPkTry(k){');
-  assert.ok(show2.includes('>${LV_PK_GRIP}${o.tag?`<span class="lv-pk-tag">${esc(o.tag)}</span>`:\'\'}${lvNw(lvFlowTypo(esc(o.label)))}</button>`')
+  assert.ok(show2.includes('>${LV_PK_GRIP}${o.tag?`<span class="lv-pk-tag">${esc(o.tag)}</span>`:\'\'}<span class="lv-pk-lb">${lvNw(lvFlowTypo(esc(o.label)))}</span></button>`')
     && show2.includes('aria-label="Colonne ${esc(o.tag)} : ${esc(o.label)}"'), 'étiquette à glisser : poignée, lettre de la colonne, nom');
   const demo = cut('function lvPkDemo(P){', 'function lvPkLayer(P){');
   for (const part of ["P.box.addEventListener('pointerdown',stop,{capture:true,once:true});", "btn.classList.add('is-demo'); P.layer.classList.add('is-armed');", 'P.demo=setTimeout(()=>run(2),700);', 'if(prefersReduceMotion())return;'])

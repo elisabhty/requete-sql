@@ -444,18 +444,21 @@ const PICKS = [
     {label: 'Avec un point de retour posé avant le cadeau', ok: true, why: 'Un <code>SAVEPOINT</code> posé avant le cadeau permet de revenir jusqu’à lui, en gardant ce qui le précède.'},
     {label: 'Avec un deuxième BEGIN TRANSACTION', why: 'Une transaction est déjà en cours : un deuxième <code>BEGIN TRANSACTION</code> est refusé.'}]},
   {at: atp('p2'), from: A.c4, kind: 'tap', need: 2, prompt: 'Touche les deux modifications qu’un retour au savepoint annulerait.'},
-  {at: atp('p3'), from: A.c7, kind: 'pick', text: true, prompt: 'À cet instant, quelles modifications sont validées ?', options: [
-    {label: 'Celles d’avant le repère', why: 'Un savepoint ne valide rien : le stock du shaker et le remplacement attendent toujours un <code>COMMIT</code>.'},
-    {label: 'Toutes, sauf le cadeau', why: 'Rien n’est validé tant que la transaction ne se termine pas par <code>COMMIT</code>, le cadeau comme le reste.'},
-    {label: 'Aucune : rien n’est validé avant COMMIT', ok: true, why: 'Les quatre modifications sont en attente : seul <code>COMMIT</code> les rendra définitives.'}]},
+  /* « Quelles modifications sont validées ? » : l’historique répond « Non validé » sur chaque ligne. La question porte sur ce que ferait
+     COMMIT (audit du 27 octobre). */
+  {at: atp('p3'), from: A.c7, kind: 'pick', text: true, prompt: 'Si tu exécutais <code>COMMIT</code> maintenant, quelles modifications seraient validées ?', options: [
+    {label: 'Seulement celles d’avant le repère', why: 'Un savepoint ne découpe pas la transaction : <code>COMMIT</code> valide tout ce qu’elle contient, le cadeau compris.'},
+    {label: 'Seulement le cadeau', why: '<code>COMMIT</code> ne choisit pas : il valide toutes les modifications de la transaction, le remplacement compris.'},
+    {label: 'Les quatre, cadeau compris', ok: true, why: '<code>COMMIT</code> valide toute la transaction, avant comme après le repère : un savepoint ne met rien de côté.'}]},
   {at: atp('p4'), from: MAIL2, kind: 'pick', text: true, prompt: 'Léa Simon préfère la protéine : quelle commande annule seulement la tisane ?', options: [
     {label: 'ROLLBACK TO SAVEPOINT avant_cadeau', ok: true, why: 'Le retour au savepoint annule la tisane et son stock, et garde le remplacement, posé avant le repère.'},
     {label: 'ROLLBACK', why: '<code>ROLLBACK</code> annulerait toute la transaction : le remplacement du shaker disparaîtrait aussi.'},
     {label: 'COMMIT', why: '<code>COMMIT</code> validerait tout, la tisane comprise : Léa Simon la recevrait quand même.'}]},
-  {at: atp('p5'), from: A.e1, kind: 'pick', text: true, prompt: 'Après le retour au savepoint, où en est la transaction ?', options: [
-    {label: 'Elle est annulée', why: 'Seules les modifications d’après le repère sont annulées : le remplacement attend toujours, dans la transaction.'},
-    {label: 'Elle est validée', why: 'Un retour au savepoint ne valide rien : il faut encore <code>COMMIT</code> pour enregistrer le remplacement.'},
-    {label: 'Elle est toujours en cours', ok: true, why: 'Le retour au savepoint ne termine pas la transaction : elle reste ouverte jusqu’au <code>COMMIT</code> ou au <code>ROLLBACK</code>.'}]},
+  /* « Où en est la transaction ? » : la pastille « Transaction en cours » répondait. La question porte sur la suite (audit du 27 octobre). */
+  {at: atp('p5'), from: A.e1, kind: 'pick', text: true, prompt: 'Après le retour au savepoint, que faut-il pour que le remplacement devienne définitif ?', options: [
+    {label: 'Rien : il est déjà enregistré', why: 'Il est enregistré dans la transaction, mais pas validé : sans <code>COMMIT</code>, il n’est pas définitif.'},
+    {label: 'Le refaire après le repère', why: 'Le remplacement est posé avant le repère : le retour au savepoint l’a conservé, il n’y a rien à refaire.'},
+    {label: 'Un COMMIT, qui terminera la transaction', ok: true, why: 'Le retour au savepoint ne termine pas la transaction : elle reste ouverte, et seul <code>COMMIT</code> rendra le remplacement définitif.'}]},
   {at: atp('p6'), from: A.g1, kind: 'sort', prompt: 'Range chaque situation avec la commande qui convient.',
     hint: 'Touche une situation, puis la commande qui convient. Tu peux aussi la faire glisser directement.', next: '« {x} » : quelle commande choisir ?',
     options: ITEMS.map(x => ({label: x[0]}))}

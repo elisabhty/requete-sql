@@ -245,7 +245,7 @@ test('moments 4 et 5 : le remplacement échoue dans la transaction ; elle reste 
   const picks = val('PICKS');
   assert.deepEqual(picks[3].options.map(o => sp(o.label)), ['Valider avec COMMIT', 'Annuler avec ROLLBACK', 'Rien : la transaction s’annule seule']);
   assert.ok(/29 sans aucun remplacement/.test(picks[3].options[0].why) && /reste à 29/.test(picks[3].options[2].why), 'chaque mauvaise réponse est expliquée par ce que la base ferait');
-  assert.deepEqual(picks[4].options.map(o => sp(o.label)), ['Oui, le shaker est prêt à partir', 'À moitié : le stock est à jour', 'Non, le remplacement reste à enregistrer']);
+  assert.deepEqual(picks[4].options.map(o => sp(o.label)), ['Rien : le ROLLBACK s’en est chargé', 'Enregistrer seulement le remplacement', 'Recommencer toute la transaction']);
 });
 
 test('moment 6 : chaque situation est rangée avec COMMIT ou avec ROLLBACK', () => {

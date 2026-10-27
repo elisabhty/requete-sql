@@ -6879,6 +6879,9 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 .lv-pk.is-sort.is-wide .lv-pk-opt{flex-basis:100%}
 .lv-pk.is-sort .lv-pk-opt{display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 8px;text-align:left;text-wrap:balance;line-height:1.15;background:#fff;border-color:#D4C8FB;color:var(--ink,#221C46);font-family:var(--ui);font-size:15px;font-weight:700;letter-spacing:-.01em;box-shadow:0 4px 0 #CBBEFB,0 10px 18px -12px rgba(40,20,120,.45)}
 .lv-pk-grip{width:9px;height:15px;flex:none;fill:#A496E8}
+/* Le nom de l’étiquette, d’un seul tenant : sans lui, « e-mail » (mot insécable) et « du coach » étaient deux éléments du bouton,
+   côte à côte, et débordaient au lieu de passer à la ligne (projet Normaliser, iPhone). */
+.lv-pk-lb{min-width:0}
 .lv-pk-tag{flex:none;min-width:23px;height:23px;padding:0 5px;border-radius:7px;background:#F1EEFC;color:#6F66A0;font:800 12.5px/23px var(--ui);text-align:center}
 .lv-pk-fly.is-sort{gap:6px;padding:5px 10px 5px 8px;white-space:normal;text-align:left;line-height:1.15;justify-content:flex-start;font-family:var(--ui);font-size:15px;color:var(--ink,#221C46);border-color:#B8A8FF}
 .lv-pk-opt.can-drag{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -15505,7 +15508,9 @@ const LV_CUT_MIN=14;
 const LV_SHORT=new Set(('à au aux de du des d le la les l un une en et ou ni par sur sous pour dans avec sans chez vers entre ce cet cette ces son sa ses '+
   'leur leurs mon ma mes ton ta tes notre votre nos vos chaque il elle on ils elles se ne que qu qui si y').split(' '));
 function lvFlowTypo(h){
-  const sw=w=>LV_SHORT.has(String(w||'').toLowerCase().replace(/^[(«“"']+/,''));
+  /* « d’un », « d’une » : l’article après l’apostrophe compte aussi (« Les cartes de membre d’un / client » coupait là) ; « qu’une » reste
+     libre, comme au 26 octobre. */
+  const sw=w=>{ const x=String(w||'').toLowerCase().replace(/^[(«“"']+/,''); return LV_SHORT.has(x)||/^[dl][’']/.test(x)&&LV_SHORT.has(x.slice(2)); };
   let code=0;
   return String(h||'').replace(/<span class="lv-nw">([^<]*)<\/span>/g,'$1').split(/(<[^>]*>)/).map(t=>{
     if(t[0]==='<'){ if(/^<code[\s>]/i.test(t))code++; else if(/^<\/code>/i.test(t))code=Math.max(0,code-1); return t; }
@@ -15537,9 +15542,25 @@ function lvCuts(h,kinds){
   keep.reverse().forEach(({p})=>{ const t=parts[p.i]; parts[p.i]=t.slice(0,p.j)+'<br>'+t.slice(p.j+1); });
   return parts.join('');
 }
+/* Fin de texte : les derniers mots (moins de 12 caractères, « AND. », « UNION ? », « 1, 2, 3. ») restent avec le mot qui les
+   précède : jamais une ligne finale d’un ou deux mots sous un paragraphe (audit iPhone de tous les cours, 27 octobre). */
+const LV_TAIL=12;
+function lvTail(h){
+  const parts=String(h||'').split(/(<[^>]*>)/); let code=0, n=0;
+  const inCode=parts.map(t=>{ if(t[0]!=='<')return code>0; if(/^<code[\s>]/i.test(t))code++; else if(/^<\/code>/i.test(t))code=Math.max(0,code-1); return null; });
+  for(let i=parts.length-1;i>=0&&n<LV_TAIL;i--){
+    const t=parts[i];
+    if(t[0]==='<'){ if(/^<br\b/i.test(t))break; continue; }
+    let out='';
+    for(let j=t.length-1;j>=0;j--){ const c=t[j];
+      out=(c===' '&&!inCode[i]&&n<LV_TAIL&&n>0?'\u00a0':c)+out; if(c!==' '||n>0)n++; }
+    parts[i]=out;
+  }
+  return parts.join('');
+}
 function lvText(el,h,host){
   if(!el)return;
-  const base=lvFlowTypo(h);
+  const base=lvTail(lvFlowTypo(h));
   host=host||el;
   /* Un bout de code reste d’un bloc (« = NULL » jamais coupé) ; mais un code plus large que la feuille (« NOT ville = 'Paris'
      AND age > 35 » sur iPhone) dépassait du bord : celui-là peut passer à la ligne, entre ses mots (Elisa, 27 octobre, 17 h 47). */
@@ -15575,7 +15596,7 @@ function lvPkShow(i,p){
     <p class="lv-pk-why" hidden></p>
     ${p.hint?`<p class="lv-pk-hint">${p.hint}</p>`:''}
     ${opts.length?`<div class="lv-pk-opts">${opts.map((o,k)=>kind==='sort'
-      ?`<button type="button" class="lv-pk-opt" data-k="${k}"${o.tag?` aria-label="Colonne ${esc(o.tag)} : ${esc(o.label)}"`:''}>${LV_PK_GRIP}${o.tag?`<span class="lv-pk-tag">${esc(o.tag)}</span>`:''}${lvNw(lvFlowTypo(esc(o.label)))}</button>`
+      ?`<button type="button" class="lv-pk-opt" data-k="${k}"${o.tag?` aria-label="Colonne ${esc(o.tag)} : ${esc(o.label)}"`:''}>${LV_PK_GRIP}${o.tag?`<span class="lv-pk-tag">${esc(o.tag)}</span>`:''}<span class="lv-pk-lb">${lvNw(lvFlowTypo(esc(o.label)))}</span></button>`
       :`<button type="button" class="lv-pk-opt" data-k="${k}">${lvNw(lvFlowTypo(esc(o.label)))}</button>`).join('')}</div>`:''}
     <button type="button" class="lq-btn lv-pk-go" hidden>Continuer</button>
   </div>`;
@@ -25627,7 +25648,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2094';
+  const SW_CACHE='requete-2026-10-12-ludique-v2095';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

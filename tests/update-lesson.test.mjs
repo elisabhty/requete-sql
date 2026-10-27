@@ -246,7 +246,7 @@ test('moment 6 : retirer 8 séances à Nathan Petit (7 séances après le cadeau
   const create = fs.readFileSync(path.join(root, 'assets/anim/projet-create.html'), 'utf8'), alter = fs.readFileSync(path.join(root, 'assets/anim/projet-alter.html'), 'utf8');
   assert.ok(/CHECK/.test(create) && /seances_restantes/.test(alter), 'le chapitre 4 crée la règle CHECK, le chapitre 5 renomme la colonne');
   const opts = val('PICKS')[5].options;
-  assert.ok(sp(opts[2].label) === 'Le solde passerait sous 0, ce que la règle de la table interdit', 'la bonne réponse');
+  assert.ok(sp(opts[2].label) === 'Le solde deviendrait négatif, ce que CHECK interdit', 'la bonne réponse');
   for (const t of ["out('o-ck', 'err', 'Requête refusée', 'CHECK constraint failed:<br>seances_restantes &gt;= 0', 'm', true)", '<span><b>CHECK</b> (seances_restantes &gt;= 0)</span>', '<i class="calc bad" id="cx">7 − 8 = −1</i>'])
     assert.ok(page.includes(t), `la page montre : ${t}`);
   const caps = val('CAPTIONS').map(c => c[2]);
