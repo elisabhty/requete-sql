@@ -13188,7 +13188,20 @@ function recommendedSession(){
     :'Prochaine séance · '+parseD(session.d).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'}).replace(/ /g,'\u00a0');
   const count=session.remaining.length;
   return {...session,id,started,label,minutes:count*MIN_PAR_ACTIVITE,
-    summary:`${count} activité${count>1?'s':''} restante${count>1?'s':''} · environ ${count*MIN_PAR_ACTIVITE} min`};
+    summary:state.plan?resteSemaine(state.plan.sessions,session.d,today)
+      :`${count} activité${count>1?'s':''} restante${count>1?'s':''} · environ ${count*MIN_PAR_ACTIVITE} min`};
+}
+/* Le résumé de la séance, avec un planning : ce qu’il reste à faire dans la semaine, du lundi au dimanche (Elisa, 27 octobre, 10 h 26 :
+   « mettre 6 activités restantes cette semaine, on compte la semaine »). Le retard compte dans la semaine en cours. Si cette semaine est
+   finie, la semaine de la séance suivante : « 3 activités prévues la semaine prochaine », « … la semaine du 9 novembre ». */
+function resteSemaine(sessions,d,today){
+  const reste=(a,b)=>(sessions||[]).filter(s=>Array.isArray(s.lessons)&&s.d>=a&&s.d<=b).reduce((n,s)=>n+s.lessons.filter(id=>!itemDone(id)).length,0);
+  const lundi=lundiDe(parseD(today)), dim=dstr(addJ(lundi,6));
+  const n=reste('',dim);
+  if(n)return `${n} activité${n>1?'s':''} restante${n>1?'s':''} cette semaine`;
+  const l2=lundiDe(parseD(d)), m=reste(dstr(l2),dstr(addJ(l2,6)));
+  const quand=dstr(l2)===dstr(addJ(lundi,7))?'la semaine prochaine':'la semaine du '+l2.toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
+  return `${m} activité${m>1?'s':''} prévue${m>1?'s':''} ${quand}`;
 }
 function moduleProgressData(modules,lessons){
   return modules.map((module,index)=>{const done=module.lessons.filter(l=>lessons[l.id]?.done).length;return {index,title:module.titre,total:module.lessons.length,done,next:module.lessons.find(l=>!lessons[l.id]?.done)?.id,first:module.lessons[0]?.id,secs:moduleStudySecs(module)};});
@@ -25165,7 +25178,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2080';
+  const SW_CACHE='requete-2026-10-12-ludique-v2081';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
