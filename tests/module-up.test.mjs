@@ -3,7 +3,8 @@
    Une seule fois, quand le module vient d’être terminé (son sticker vient d’être gagné pendant la leçon), par-dessus le bilan :
    la récompense (le sticker du module se plaque au centre, avec l’étiquette « Nouveau sticker », « Bravo ! », le chemin des quinze modules) ;
    « Récupérer le sticker » (Elisa, 27 octobre, 13 h 24 : « qu’on voie bien que c’en est un ») : il file dans « Ta planche », la carte du
-   module suivant tombe, verrouillée ; « Débloquer le module 5 » : le cadenas saute, elle se retourne ; « Commencer le module 5 » ou « Voir mon bilan ». */
+   module suivant tombe, verrouillée, et se débloque aussitôt (13 h 33 : trois appuis, « c’est long ») : le cadenas saute, elle se retourne ;
+   « Commencer le module 5 » ou « Voir mon bilan ». */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -70,17 +71,17 @@ test('une seule fois, au bilan de la leçon qui termine le module ; jamais sans 
   assert.ok(html.includes("#lesson-video.on,[id$=\"-back\"].on,.plus-details[open],.mu');"), 'pas de retour par glissement pendant l’écran');
 });
 
-test('le déroulé : impact à l’arrivée ; récupérer le sticker (le son part de cet appui) ; débloquer le module suivant ; l’écran final', () => {
+test('le déroulé : impact à l’arrivée ; récupérer le sticker (le son part de cet appui), le module suivant se débloque aussitôt ; l’écran final', () => {
   const open = cut('function moduleUpOpen(i,n){', 'function moduleUpGo(){');
   for (const part of ["el.classList.add('is-a')", 'muImpact(el,false);', 'lqConfetti({n:60});', "muSound([[0,'stamp',0,.8],[110,'chord',0,.5]]);", 'navigator.vibrate([18,30,10])'])
     assert.ok(open.includes(part), part);
   assert.ok(open.indexOf('if(prefersReduceMotion()){ moduleUpFinal(true);') < open.indexOf('muImpact('), 'mouvement réduit : l’écran final, d’emblée');
   const go = cut('function moduleUpGo(){', '/* 2. « Récupérer le sticker »');
-  assert.ok(go.includes("if(MU.stage==='a')moduleUpCollect();") && go.includes("else if(MU.stage==='a2')moduleUpUnlock();") && go.includes("else if(MU.stage==='c')moduleUpStart();"), 'un bouton, trois temps');
+  assert.ok(go.includes("if(MU.stage==='a')moduleUpCollect();") && go.includes("else if(MU.stage==='c')moduleUpStart();") && !go.includes('moduleUpUnlock'), 'deux appuis : récupérer, puis commencer');
   const collect = cut('function moduleUpCollect(){', '/* 3. Le module suivant se débloque');
   assert.ok(collect.includes("muSound([[0,'pop',3,.7],[180,'whoosh',0,.4],[760,'true',0,.6]],true);"), 'les sons de l’appui, forcés (on est dans l’appui)');
   for (const part of ["el.classList.add('is-got','is-album');", "alb.querySelector('.mu-album-ico')", "alb.classList.add('is-hit')", "c.className='mu-comet'", "nx.classList.add('is-on')", "el.classList.add('is-card')",
-    '`Ton sticker est dans ta planche. Le module ${n+1} t’attend.`', '`Débloquer le module ${n+1}`', "MU.stage='a2';"])
+    "'Ton sticker est dans ta planche&nbsp;!'", 'T(moduleUpUnlock,1650);'])
     assert.ok(collect.includes(part), part);
   const unlock = cut('function moduleUpUnlock(){', '/* 4. L’écran final');
   for (const part of ["el.classList.add('is-b','is-unlock');", "[250,'success',0,.65]", "el.classList.add('is-open');", 'muImpact(el,true);', 'lqConfetti({n:90});', 'moduleUpFinal(false)'])
@@ -100,5 +101,8 @@ test('l’animation : chute du sticker, onde, rayons, carte qui se retourne, pas
     '.mu.is-card .mu-card{opacity:1;animation:muCardIn', '.mu.is-a .mu-tag{animation:muTag', '.mu.is-album .mu-album{opacity:1;animation:muAlbum', '.mu-album.is-hit .mu-album-n span+span{transform:none}', '.mu.is-open .mu-rays::after{opacity:1}', '.mu.is-a .mu-pips i.cur{animation:muPip', '.mu-pips i.nx.is-on{', '.mu.is-ready:not(.is-b) .mu-go::after{animation:lvRing',
     '.mu.is-still,.mu.is-still *,.mu.is-still *::before,.mu.is-still *::after{animation:none!important;transition:none!important}'])
     assert.ok(html.includes(part), part);
-  assert.ok(html.includes('apercuFromUrl();') && cut('function apercuFromUrl(){', 'function moduleUpStart(){').includes("q.get('apercu')!=='fin-module'"), 'un lien d’aperçu, sans toucher à la progression');
+  const apercu = cut('function apercuFromUrl(){', 'function moduleUpStart(){');
+  assert.ok(html.includes('apercuFromUrl();') && apercu.includes("q.get('apercu')!=='fin-module'") && !apercu.includes('replaceState'), 'un lien d’aperçu, sans toucher à la progression');
+  assert.ok(cut('function moduleUpClose(instant){', '/* Les autres actions').includes("if(apercu)try{ const u=new URL(location.href); u.searchParams.delete('apercu');"),
+    'le lien garde son paramètre jusqu’à la fermeture : une nouvelle version recharge la page à la première ouverture, et l’écran revient');
 });

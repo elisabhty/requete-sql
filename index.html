@@ -16792,9 +16792,9 @@ function bravoFinWire(){
       l’étiquette « Nouveau sticker », se décolle et file dans « Ta planche », qui compte un sticker de plus. Le son part de cet appui (sur
       iPhone, Web Audio ne démarre que pendant un appui ; à l’arrivée de l’écran, il ne joue que si un appui vient d’avoir lieu). Une
       étincelle court jusqu’à la pastille du module suivant, sa carte tombe, verrouillée.
-   3. « Débloquer le module 5 » : le cadenas saute, la carte se retourne (« Module 5 », son nom, ses leçons), avec l’arpège de réussite,
-      une deuxième onde et une pluie de confettis ; « Commencer le module 5 » ouvre sa première leçon à faire. « Voir mon bilan » referme
-      l’écran sur le bilan à tout moment.
+   3. Aussitôt (Elisa, 27 octobre, 13 h 33 : trois appuis, « c’est long »), le cadenas saute, la carte se retourne (« Module 5 », son nom,
+      ses leçons), avec l’arpège de réussite, une deuxième onde et une pluie de confettis ; « Commencer le module 5 » ouvre sa première leçon
+      à faire. « Voir mon bilan » referme l’écran sur le bilan à tout moment.
    Le dernier module n’en a pas quand tout est fini : la fin du parcours a sa vidéo et sa carte. Mouvement réduit : l’écran final, d’emblée. */
 const MU_SEEN=new Set();
 let MU=null;
@@ -16818,7 +16818,7 @@ function moduleUpCheck(){
 }
 function moduleUpHtml(i,n){
   const M=MODULES[i], N=MODULES[n], ok=k=>MODULES[k].lessons.every(l=>itemDone(l.id));
-  const nb=MODULES.filter((m,k)=>ok(k)).length;
+  const nb=MODULES.filter((m,k)=>k===i||ok(k)).length;
   const pips=MODULES.map((m,k)=>`<i class="${k===i?'cur':k===n?'nx':ok(k)?'on':''}"></i>`).join('');
   /* Ta planche : les stickers gagnés, celui du module compris (il est gagné en terminant le module) */
   const id=STK_MODULE_IDS[i], info=typeof stkInfo==='function'?stkInfo(id):null;
@@ -16905,11 +16905,10 @@ function moduleUpOpen(i,n){
 function moduleUpGo(){
   if(!MU)return;
   if(MU.stage==='a')moduleUpCollect();
-  else if(MU.stage==='a2')moduleUpUnlock();
   else if(MU.stage==='c')moduleUpStart();
 }
 /* 2. « Récupérer le sticker » : il se décolle et file dans ta planche (en haut à gauche), qui compte un sticker de plus ; une étincelle court
-   jusqu’à la pastille du module suivant, sa carte tombe, verrouillée : « Débloquer le module 5 ». */
+   jusqu’à la pastille du module suivant, sa carte tombe, verrouillée, et se débloque aussitôt. */
 function moduleUpCollect(){
   const el=MU.el, n=MU.n;
   MU.stage='a1';
@@ -16937,13 +16936,11 @@ function moduleUpCollect(){
   },860);
   T(()=>{ el.classList.add('is-card'); muSound([[0,'pop',1,.55]]); },920);
   T(()=>{
-    muSet(el.querySelector('#mu-p'),`Ton sticker est dans ta planche. Le module ${n+1} t’attend.`);
-    muSet(go.querySelector('.mu-go-l'),`Débloquer le module ${n+1}`);
-    go.querySelector('.mu-go-ico').innerHTML=MU_LOCK;
-    go.removeAttribute('aria-disabled');
+    muSet(el.querySelector('#mu-p'),'Ton sticker est dans ta planche&nbsp;!');
     el.querySelector('.mu-sr').textContent='Sticker ajouté à ta planche.';
-    MU.stage='a2';
   },1000);
+  /* Puis le module suivant se débloque tout seul (Elisa, 27 octobre, 13 h 33 : trois appuis, « c’est long ») : le son suit, l’appui l’a lancé. */
+  T(moduleUpUnlock,1650);
 }
 /* 3. Le module suivant se débloque : le cadenas saute, la carte se retourne. */
 function moduleUpUnlock(){
@@ -16951,8 +16948,7 @@ function moduleUpUnlock(){
   MU.stage='b';
   el.classList.add('is-b','is-unlock');
   el.querySelector('.mu-go').setAttribute('aria-disabled','true');
-  muSound([[0,'click',0,.7],[200,'stamp',0,.75],[250,'success',0,.65],[620,'chord',0,.5]],true);
-  if(navigator.vibrate)navigator.vibrate(10);
+  muSound([[0,'click',0,.7],[200,'stamp',0,.75],[250,'success',0,.65],[620,'chord',0,.5]]);
   const T=(f,d)=>MU.timers.push(setTimeout(()=>{ if(MU&&MU.el===el)f(); },d));
   T(()=>{
     el.classList.add('is-open');
@@ -16980,13 +16976,13 @@ function moduleUpFinal(instant){
   el.querySelector('.mu-sr').textContent=`Module ${n+1} débloqué : ${N.titre}.`;
 }
 /* Lien « ?apercu=fin-module » (et « &module=4 », le module terminé) : l’écran de fin de module, sans rien changer à la progression,
-   pour le voir sur son téléphone sans finir un module. */
+   pour le voir sur son téléphone sans finir un module. Le lien garde son paramètre jusqu’à la fermeture de l’écran : une nouvelle version
+   de l’app recharge la page à la première ouverture (controllerchange), et l’écran revient. */
 function apercuFromUrl(){
   let q=null; try{ q=new URLSearchParams(location.search); }catch(e){ return; }
   if(!q||q.get('apercu')!=='fin-module')return;
   const i=Math.max(1,Math.min(MODULES.length-1,+q.get('module')||4))-1;
-  try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e){}
-  setTimeout(()=>{ if(!MU)moduleUpOpen(i,i+1); },700);
+  setTimeout(()=>{ if(!MU){ moduleUpOpen(i,i+1); if(MU)MU.apercu=true; } },700);
 }
 function moduleUpStart(){
   if(!MU)return;
@@ -16996,8 +16992,9 @@ function moduleUpStart(){
 }
 function moduleUpClose(instant){
   if(!MU)return;
-  const {el,timers,snd}=MU;
+  const {el,timers,snd,apercu}=MU;
   MU=null;
+  if(apercu)try{ const u=new URL(location.href); u.searchParams.delete('apercu'); u.searchParams.delete('module'); history.replaceState(history.state,'',u.pathname+u.search+u.hash); }catch(e){}
   timers.forEach(clearTimeout);
   document.body.classList.remove('mu-on');
   if(snd)setTimeout(()=>{ if(!LV&&!MU)try{LvSfx.release();}catch(e){} },instant?0:1600);
@@ -25536,7 +25533,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2085';
+  const SW_CACHE='requete-2026-10-12-ludique-v2086';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
