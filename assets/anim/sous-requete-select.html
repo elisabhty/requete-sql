@@ -235,6 +235,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 192.1;
@@ -302,6 +303,31 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // un seul produit, la Tisane Détox : avant que la vidéo ne filtre ses commandes
+  {at: 58.95, from: 47.1, kind: 'pick', prompt: 'Quelle condition ne garde que les commandes de la Tisane Détox, d’identifiant 5 ?', options: [
+    {label: 'WHERE produit_id = 5', ok: true, why: '<code>produit_id</code> donne le produit de chaque commande : on garde celles du produit 5.'},
+    {label: 'WHERE id = 5', why: '<code>id</code>, dans la <b>table commandes</b>, est l’identifiant de la commande, pas celui du produit.'},
+    {label: 'WHERE MAX(date_commande) = 5', why: '<code>MAX()</code> calcule la date la plus récente : il ne sert pas à choisir les commandes.'}],
+    tip: 'Dans la <b>table commandes</b>, quelle colonne renvoie à un produit ?'},
+  // le 5 écrit en dur : avant que la vidéo ne le remplace
+  {at: 82.5, from: 64.8, kind: 'pick', slot: '#mbX', prompt: 'Par quoi remplacer le 5, pour que le calcul suive chaque produit ?',
+    hint: 'Touche une réponse, ou fais-la glisser dans le « ? ».',
+    board: {y: 470, html: '<span class="mb-k">La sous-requête dans le SELECT</span><div class="mb-q" style="font-size:34px"><span class="k">SELECT</span> nom,\n  (<span class="k">SELECT</span> <span class="k">MAX</span>(date_commande)\n   <span class="k">FROM</span> commandes\n   <span class="k">WHERE</span> produit_id = <span class="mb-hole" id="mbX">?</span>)\n<span class="k">FROM</span> produits;</div>'},
+    options: [
+    {label: 'produits.id', ok: true, why: '<code>produits.id</code> désigne le produit de la ligne en cours : le calcul suit chaque produit.'},
+    {label: 'produit_id', why: 'Comparer <code>produit_id</code> à lui-même est toujours vrai : toutes les commandes compteraient.'},
+    {label: 'id', why: 'Seul, <code>id</code> désignerait l’identifiant de la commande : il faut <code>produits.id</code>.'}],
+    tip: 'Il faut l’identifiant du produit de la ligne en cours, dans la <b>table produits</b>.'},
+  // le piège : sans le lien
+  {at: 124.92, from: 117.6, kind: 'pick', text: true, prompt: 'Sans la condition sur <code>produits.id</code>, que renvoie la sous-requête pour chaque produit ?', options: [
+    {label: 'La même date pour chaque produit', ok: true, why: 'Sans cette condition, elle calcule la date la plus récente de toute la table : la même pour tous, 2026-08-03.'},
+    {label: 'Une erreur SQL', why: 'La requête s’exécute : c’est le résultat qui est faux.'},
+    {label: 'La bonne date pour chaque produit', why: 'Sans <code>produits.id</code>, rien ne relie le calcul au produit de la ligne.'}],
+    tip: 'Sans cette condition, la sous-requête porte sur toutes les commandes.'}
+];
 
 function dom(){
   const nom = p => `<div>${p[1]}</div>`;
@@ -563,7 +589,7 @@ function build(){
   if (APP) cue(187.25, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 187.2,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 187.2, moments: MOMENTS,
   glyphs: '💤📦📅🔎🎯🔁🍵📌🗓️🔗⚠️✕✓🎁🧮·?…', dom, build});
 </script>
 </body>

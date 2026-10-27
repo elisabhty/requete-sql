@@ -224,6 +224,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 180.7;
@@ -280,6 +281,28 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // le premier essai : avant que la vidéo ne l’exécute
+  {at: 42.45, from: 36.65, kind: 'pick', text: true, prompt: 'Que donne <code>SELECT AVG(montant) FROM commandes</code> ?', options: [
+    {label: 'Une erreur : la colonne montant n’existe pas', ok: true, why: 'La <b>table commandes</b> n’a aucune colonne montant : il faut d’abord le calculer.'},
+    {label: 'Le panier moyen', why: 'Le montant n’est enregistré nulle part : il faut le calculer, prix × quantité.'},
+    {label: '0', why: 'La requête ne s’exécute pas : la colonne montant n’existe pas dans la <b>table commandes</b>.'}],
+    tip: 'La <b>table commandes</b> contient-elle une colonne montant ?'},
+  // les 16 montants calculés : avant que la vidéo ne les place dans le FROM
+  {at: 84.05, from: 60.8, kind: 'pick', text: true, prompt: 'Où placer la requête qui calcule les 16 montants, pour en faire la moyenne ?', options: [
+    {label: 'Entre parenthèses, dans le FROM', ok: true, why: 'Placée dans le <code>FROM</code>, avec un alias, elle se lit comme une table : la moyenne porte sur ses montants.'},
+    {label: 'Dans le WHERE', why: '<code>WHERE</code> filtre des lignes : ici, on veut lire les 16 montants comme une table.'},
+    {label: 'Après GROUP BY', why: '<code>GROUP BY</code> forme des groupes : la requête doit servir de table, dans le <code>FROM</code>.'}],
+    tip: 'La moyenne se calcule sur une table : celle que la requête fabrique.'},
+  // la table dérivée n’a qu’une colonne : avant le piège
+  {at: 113.0, from: 102.3, kind: 'pick', text: true, prompt: 'Et <code>AVG(quantite)</code> sur la table dérivée ?', options: [
+    {label: 'Une erreur : quantite n’y est pas', ok: true, why: 'La table dérivée ne contient que les colonnes de son <code>SELECT</code> : ici, seulement montant.'},
+    {label: 'La quantité moyenne', why: '<code>quantite</code> n’est pas renvoyée par la sous-requête : elle n’existe pas dans la table dérivée.'},
+    {label: '0', why: 'La requête ne s’exécute pas : <code>quantite</code> n’existe pas dans la table dérivée.'}],
+    tip: 'Quelles colonnes la sous-requête renvoie-t-elle ?'}
+];
 
 function dom(){
   /* Chapitres 3 et 4 : les montants calculés par la sous-requête (les trois premiers), avec leur calcul en note */
@@ -513,7 +536,7 @@ function build(){
   if (APP) cue(175.85, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 175.8,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 175.8, moments: MOMENTS,
   glyphs: '🧺📈💶🔢🏷️🔎🗂️✕🎯🗃️⚠️✓🧮💡·⋯×÷…«»', dom, build});
 </script>
 </body>

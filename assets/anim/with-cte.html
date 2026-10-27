@@ -210,6 +210,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 210.7;
@@ -279,6 +280,30 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // la requête entre parenthèses : avant que la vidéo ne montre son résultat
+  {at: 84.05, from: 67.9, kind: 'pick', text: true, prompt: 'Que renvoie la requête entre parenthèses ?', options: [
+    {label: 'Une ligne par client, avec son nombre de commandes', ok: true, why: '<code>GROUP BY client_id</code> forme un groupe par client, et <code>COUNT(*)</code> compte ses commandes.'},
+    {label: 'Les 16 commandes, une par ligne', why: 'Les commandes d’un même client forment un seul groupe : une ligne par client.'},
+    {label: 'Un seul nombre : 15', why: 'Avec <code>GROUP BY</code>, on obtient un nombre par client, pas un total.'}],
+    tip: 'Une ligne par groupe : ici, un groupe par client.'},
+  // le nombre déjà calculé dans totaux : avant que la vidéo ne filtre
+  {at: 104.95, from: 95.5, kind: 'pick', prompt: 'Quelle condition garde les clients qui ont passé au moins 2 commandes ?', options: [
+    {label: 'WHERE nb_commandes >= 2', ok: true, why: 'Dans totaux, le nombre est déjà une colonne, <code>nb_commandes</code> : <code>WHERE</code> peut la tester.'},
+    {label: 'WHERE COUNT(*) >= 2', why: '<code>COUNT(*)</code> n’a pas sa place dans un <code>WHERE</code> : on teste la colonne déjà calculée.'},
+    {label: 'HAVING nb_commandes >= 2', why: 'Il n’y a pas de <code>GROUP BY</code> dans la requête principale : <code>WHERE</code> suffit.'}],
+    tip: 'Dans totaux, le nombre de commandes est déjà une colonne.'},
+  // le piège : totaux après le point-virgule
+  {at: 122.4, from: 111.8, kind: 'pick', text: true, prompt: 'Après le point-virgule, que donne <code>SELECT * FROM totaux</code>, exécuté seul ?',
+    board: {y: 470, html: '<span class="mb-k">Deux requêtes</span><div class="mb-q" style="font-size:34px"><span class="k">WITH</span> totaux <span class="k">AS</span> (…)\n<span class="k">SELECT</span> * <span class="k">FROM</span> totaux\n<span class="k">WHERE</span> nb_commandes &gt;= 2;\n\n<span class="k">SELECT</span> * <span class="k">FROM</span> totaux;</div>'},
+    options: [
+    {label: 'Une erreur : totaux n’existe plus', ok: true, why: 'Une CTE n’existe que dans sa requête : après le point-virgule, totaux n’est plus défini.'},
+    {label: 'Les 8 lignes de totaux', why: '<code>WITH</code> ne crée pas de table permanente : il faut remettre la définition de totaux.'},
+    {label: 'Une table vide', why: 'La requête ne s’exécute pas : totaux n’est ni une table enregistrée, ni une CTE de cette requête.'}],
+    tip: 'Une CTE ne vit que le temps de sa requête.'}
+];
 
 function dom(){
   /* Chapitre 2 : les premiers clients, sans nombre de commandes */
@@ -519,7 +544,7 @@ function build(){
   if (APP) cue(205.85, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 205.8,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 205.8, moments: MOMENTS,
   glyphs: '✨💌🛒👤👪✉️👥🧩🗃️⚠️✕✓🔎⏳⋯«»·?…', dom, build});
 </script>
 </body>

@@ -253,6 +253,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 160.6;
@@ -318,6 +319,28 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // empiler trois lignes : avant que la vidéo ne nomme UNION ALL
+  {at: 50.0, from: 39.1, kind: 'pick', prompt: 'Quel mot-clé empile les lignes de plusieurs SELECT ?', options: [
+    {label: 'UNION ALL', ok: true, why: '<code>UNION ALL</code> réunit les lignes de plusieurs <code>SELECT</code>, l’une sous l’autre.'},
+    {label: 'JOIN', why: 'Un <code>JOIN</code> relie des lignes côte à côte : ici, il n’y a rien à relier.'},
+    {label: 'GROUP BY', why: '<code>GROUP BY</code> forme des groupes dans une table : il ne réunit pas plusieurs <code>SELECT</code>.'}],
+    tip: 'On veut rallonger le résultat, pas l’élargir.'},
+  // UNION ou UNION ALL : avant que la vidéo ne tranche
+  {at: 68.05, from: 57.0, kind: 'pick', text: true, prompt: 'Si deux indicateurs valaient 10, combien de lignes donnerait <code>UNION</code> ?', options: [
+    {label: '2 lignes : les deux 10 n’en font qu’une', ok: true, why: '<code>UNION</code> écarte les lignes en double : les deux 10 ne font plus qu’une ligne.'},
+    {label: '3 lignes', why: '3 lignes, c’est <code>UNION ALL</code>, qui garde les doublons.'},
+    {label: '1 ligne', why: 'Seules les lignes identiques sont fusionnées : les deux 10, pas la troisième valeur.'}],
+    tip: '<code>UNION</code> retire les doublons ; <code>UNION ALL</code> les garde.'},
+  // un nouveau besoin : avant le piège de la troisième colonne
+  {at: 102.95, from: 88.5, kind: 'pick', text: true, prompt: 'La direction veut aussi le nombre en stock. Que faut-il ajouter ?', options: [
+    {label: 'Un SELECT de plus, avec deux colonnes', ok: true, why: 'Un indicateur de plus, c’est une ligne de plus : un <code>SELECT</code> avec le libellé et la valeur.'},
+    {label: 'Une troisième colonne au dernier SELECT', why: 'Chaque <code>SELECT</code> doit avoir le même nombre de colonnes : les lignes ne pourraient plus s’empiler.'},
+    {label: 'Un JOIN avec la table produits', why: '<code>UNION ALL</code> rallonge le résultat : il suffit d’empiler un <code>SELECT</code> de plus.'}],
+    tip: 'Chaque indicateur est une ligne : libellé, puis valeur.'}
+];
 
 function dom(){
   /* Chapitre 3 : les trois comptages, sans nom */
@@ -575,7 +598,7 @@ function build(){
   if (APP) cue(155.75, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 155.7,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 155.7, moments: MOMENTS,
   glyphs: '📊👥🛒📦🏬✉️✕🎯🔎⚠️✓📚📏🧠·?…', dom, build});
 </script>
 </body>

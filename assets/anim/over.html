@@ -237,6 +237,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 164.1;
@@ -309,6 +310,28 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // 8 sur chaque ligne : avant que la vidéo n’ajoute PARTITION BY
+  {at: 77.55, from: 69.4, kind: 'pick', prompt: 'Comment compter les produits catégorie par catégorie, en gardant chaque ligne ?', options: [
+    {label: 'COUNT(*) OVER (PARTITION BY categorie)', ok: true, why: '<code>PARTITION BY</code> découpe la fenêtre : une par catégorie, sans retirer de lignes.'},
+    {label: 'COUNT(*) OVER () GROUP BY categorie', why: '<code>GROUP BY</code> réduirait le résultat à une ligne par catégorie : les produits disparaîtraient.'},
+    {label: 'COUNT(categorie) OVER ()', why: 'Avec <code>OVER ()</code>, la fenêtre reste toute la table : 8 sur chaque ligne.'}],
+    tip: 'Il faut découper la fenêtre, dans les parenthèses d’<code>OVER</code>.'},
+  // une fenêtre par catégorie : avant que la vidéo ne donne les nombres
+  {at: 89.65, from: 78.3, kind: 'pick', text: true, prompt: 'Que vaut <code>nb_produits</code> pour le Magnésium, de la catégorie Bien-être ?', options: [
+    {label: '3 produits', ok: true, why: 'La fenêtre du Magnésium ne contient que la catégorie Bien-être : 3 produits.'},
+    {label: '8 produits', why: '8, c’était avec <code>OVER ()</code> : toute la table. Ici, seulement sa catégorie.'},
+    {label: '1 produit', why: 'Le calcul compte toute la catégorie du produit, pas seulement sa ligne.'}],
+    tip: 'Compte les produits de la catégorie Bien-être.'},
+  // le piège : filtrer sur la fenêtre
+  {at: 103.5, from: 95.4, kind: 'pick', text: true, prompt: 'Peut-on écrire <code>WHERE nb_produits = 1</code> dans la même requête ?', options: [
+    {label: 'Non : WHERE passe avant la fenêtre', ok: true, why: 'Au moment du <code>WHERE</code>, le nombre n’est pas encore calculé : il faut le calculer d’abord, dans un <code>WITH</code>.'},
+    {label: 'Oui, comme pour toute colonne', why: '<code>nb_produits</code> est calculé par la fenêtre, après le <code>WHERE</code> : la requête est refusée.'},
+    {label: 'Oui, avec HAVING', why: '<code>HAVING</code> filtre des groupes, après <code>GROUP BY</code> : ici, il n’y a pas de groupes.'}],
+    tip: 'Dans quel ordre passent <code>WHERE</code> et la fenêtre ?'}
+];
 
 function dom(){
   /* Chapitre 2 : les produits, puis GROUP BY */
@@ -536,7 +559,7 @@ function build(){
   if (APP) cue(159.25, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 159.2,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 159.2, moments: MOMENTS,
   glyphs: '🗂️📦🏷️🔢🎯🔎⚠️✕✓→🪟🚫·…', dom, build});
 </script>
 </body>

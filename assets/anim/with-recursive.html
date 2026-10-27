@@ -208,6 +208,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 164.1;
@@ -272,6 +273,31 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // l’ancre posée : avant que la vidéo n’écrive la partie récursive
+  {at: 69.35, from: 52.3, kind: 'pick', slot: '#mbX', prompt: 'Quelle expression donne le jour suivant ?',
+    hint: 'Touche une réponse, ou fais-la glisser dans le « ? ».',
+    board: {y: 470, html: '<span class="mb-k">Un jour de plus à chaque étape</span><div class="mb-q" style="font-size:34px"><span class="k">WITH RECURSIVE</span> jours(jour) <span class="k">AS</span> (\n  <span class="k">SELECT</span> <span class="s">\'2026-07-01\'</span>\n  <span class="k">UNION ALL</span>\n  <span class="k">SELECT</span> <span class="mb-hole" id="mbX">?</span>\n  <span class="k">FROM</span> jours\n  <span class="k">WHERE</span> jour &lt; <span class="s">\'2026-07-31\'</span>\n)</div>'},
+    options: [
+    {label: 'DATE(jour, \'+1 day\')', ok: true, why: '<code>DATE()</code> suit le calendrier : <code>\'+1 day\'</code> ajoute un jour à la date précédente.'},
+    {label: 'jour + 1', why: 'Avec <code>+</code>, la date est lue comme le nombre 2026 : on obtiendrait 2027.'},
+    {label: 'DATE(jour, \'+1 month\')', why: '<code>\'+1 month\'</code> ajoute un mois : on sauterait au 1er août.'}],
+    tip: 'La fonction <code>DATE()</code>, avec la durée à ajouter.'},
+  // la condition d’arrêt : avant que la vidéo ne compte les lignes
+  {at: 93.35, from: 82.0, kind: 'pick', text: true, prompt: 'Avec <code>WHERE jour &lt; \'2026-07-31\'</code>, combien de lignes compte jours ?', options: [
+    {label: '31 lignes', ok: true, why: 'Le 30 juillet respecte encore la condition : il crée le 31. Du 1er au 31 : 31 lignes.'},
+    {label: '30 lignes', why: 'Le 30 juillet est avant le 31 : il crée encore le 31 juillet. 31 lignes.'},
+    {label: '1 ligne', why: 'L’ancre donne le 1er juillet, puis la partie récursive ajoute un jour à chaque étape.'}],
+    tip: 'Quelle est la dernière date qui respecte la condition, et que crée-t-elle ?'},
+  // le piège : la condition d’arrêt oubliée
+  {at: 103.55, from: 99.0, kind: 'pick', text: true, prompt: 'Sans le <code>WHERE</code> de la partie récursive, que se passe-t-il ?', options: [
+    {label: 'La requête ne s’arrête jamais', ok: true, why: 'Rien n’arrête la partie récursive : elle trouve toujours un jour de plus à créer.'},
+    {label: 'Elle s’arrête au 31 juillet', why: 'Seul le <code>WHERE</code> arrête la création au 31 juillet : sans lui, août, septembre…'},
+    {label: 'Une erreur, tout de suite', why: 'La requête démarre bien : c’est la condition d’arrêt qui manque.'}],
+    tip: 'Qu’est-ce qui empêche la partie récursive d’ajouter encore un jour ?'}
+];
 
 function dom(){
   /* Calendriers de juillet (chapitres 2 et 6) */
@@ -525,7 +551,7 @@ function build(){
   if (APP) cue(159.25, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 159.2,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 159.2, moments: MOMENTS,
   glyphs: '🏷️📅🛒🎯🔎⏳✕✓🔁🛑🌳👥🗂️·…?', dom, build});
 </script>
 </body>

@@ -258,6 +258,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 168.1;
@@ -332,6 +333,34 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // LAG() expliqué : avant que la vidéo ne montre LEAD()
+  {at: 69.35, from: 58.0, kind: 'pick', text: true, prompt: 'Et avec <code>LEAD()</code>, quelle commande de chaque client affiche NULL ?', options: [
+    {label: 'La dernière', ok: true, why: '<code>LEAD()</code> lit la ligne suivante : après la dernière commande, il n’y a plus rien.'},
+    {label: 'La première', why: 'C’était avec <code>LAG()</code>, qui lit la ligne précédente.'},
+    {label: 'Aucune', why: 'La dernière commande n’a pas de suivante : <code>LEAD()</code> renvoie NULL.'}],
+    tip: '<code>LEAD()</code> regarde la ligne d’après.'},
+  // julianday() expliqué : avant que la vidéo ne calcule les délais
+  {at: 83.95, from: 78.3, kind: 'link', need: 3, prompt: 'Sophie Martin a commandé le 2 juillet, encore le 2 juillet, puis le 28 juillet. Relie chaque commande à son délai.',
+    hint: 'Touche une commande, puis son délai. Tu peux aussi tracer le trait du doigt.',
+    board: {y: 470, html: '<span class="mb-k">Sophie Martin : ses commandes</span><div class="mb-cols" style="gap:120px"><div class="mb-col"><div class="mb-i" id="mbc1">n°1 · 2 juillet</div><div class="mb-i" id="mbc2">n°2 · 2 juillet</div><div class="mb-i" id="mbc13">n°13 · 28 juillet</div></div><div class="mb-col" style="flex:0 0 240px"><div class="mb-i" id="mbd26">26 jours</div><div class="mb-i c" id="mbdN">NULL</div><div class="mb-i" id="mbd0">0 jour</div></div></div>'},
+    spots: [
+      {k: 'c1', sel: '#mbc1', label: 'Commande n°1, le 2 juillet', side: 'l', pair: 'dN', why: 'Sa première commande n’a pas de précédente : <code>LAG()</code> renvoie NULL, et le délai aussi.'},
+      {k: 'c2', sel: '#mbc2', label: 'Commande n°2, le 2 juillet', side: 'l', pair: 'd0', why: 'Même jour que la commande précédente : 0 jour d’écart.'},
+      {k: 'c13', sel: '#mbc13', label: 'Commande n°13, le 28 juillet', side: 'l', pair: 'd26', why: 'Du 2 au 28 juillet : 26 jours.'},
+      {k: 'd26', sel: '#mbd26', label: '26 jours', side: 'r'},
+      {k: 'dN', sel: '#mbdN', label: 'NULL', side: 'r'},
+      {k: 'd0', sel: '#mbd0', label: '0 jour', side: 'r'}],
+    tip: 'Le délai compare chaque commande à la précédente.'},
+  // le piège : sans PARTITION BY
+  {at: 103.5, from: 95.4, kind: 'pick', text: true, prompt: 'Sans <code>PARTITION BY</code>, que lit <code>LAG()</code> pour la première commande de Lucas Bernard ?', options: [
+    {label: 'La dernière commande de Sophie Martin', ok: true, why: 'Sans partition, toutes les commandes forment une seule suite : la ligne précédente est celle d’un autre client.'},
+    {label: 'NULL, comme avant', why: 'Seule la toute première ligne de la suite reçoit NULL : les clients ne sont plus séparés.'},
+    {label: 'Sa propre date', why: '<code>LAG()</code> lit toujours la ligne précédente, jamais la ligne en cours.'}],
+    tip: 'Sans partition, la ligne précédente peut appartenir à un autre client.'}
+];
 
 function dom(){
   /* Chapitre 2 : la table commandes, telle quelle ; le délai est encore inconnu */
@@ -589,7 +618,7 @@ function build(){
   if (APP) cue(163.25, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 163.2,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 163.2, moments: MOMENTS,
   glyphs: '🔔👥⏱️👤📅🧾🎯🔎⚠️✕✓🛍️↕️🧭🕳️·…→−÷', dom, build});
 </script>
 </body>

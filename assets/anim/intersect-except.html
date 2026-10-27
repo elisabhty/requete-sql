@@ -215,6 +215,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 164.1;
@@ -273,6 +274,30 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // deux listes à comparer : avant que la vidéo ne nomme INTERSECT
+  {at: 51.5, from: 45.7, kind: 'pick', prompt: 'Quel mot-clé ne garde que les produits présents dans les deux listes ?', options: [
+    {label: 'INTERSECT', ok: true, why: '<code>INTERSECT</code> ne garde que les lignes présentes dans les deux résultats.'},
+    {label: 'UNION ALL', why: '<code>UNION ALL</code> empile les deux listes : on aurait tous les produits, certains en double.'},
+    {label: 'EXCEPT', why: '<code>EXCEPT</code> garde les lignes de la première liste absentes de la seconde : l’inverse de ce qu’on cherche.'}],
+    tip: 'On cherche l’intersection des deux listes.'},
+  // les produits en stock faible qui ne se vendent plus : avant que la vidéo n’amène EXCEPT
+  {at: 87.95, from: 82.3, kind: 'tap', need: 1, prompt: 'Touche le produit en stock faible qui n’a pas été commandé depuis le 20 juillet.',
+    board: {y: 300, html: '<div class="mb-cols" style="gap:24px"><div class="mb-col" style="gap:10px"><b class="mb-lh">Stock faible</b>'
+      + STOCK_FAIBLE.map(([n], i) => `<span class="mb-t" id="mbs${i}">${n}</span>`).join('') + '</div><div class="mb-col" style="gap:10px"><b class="mb-lh">Commandés récemment</b>'
+      + COMMANDES_RECENTES.map(n => `<span class="mb-t">${n}</span>`).join('') + '</div></div>'},
+    spots: STOCK_FAIBLE.map(([n], i) => ({k: 's' + i, sel: '#mbs' + i, label: n, ok: !COMMANDES_RECENTES.includes(n),
+      why: COMMANDES_RECENTES.includes(n) ? `Le produit ${n} figure aussi parmi les produits commandés récemment.` : ''})),
+    tip: 'Cherche le produit de gauche absent de la liste de droite.'},
+  // l’ordre des requêtes avec EXCEPT : avant que la vidéo ne les inverse
+  {at: 111.95, from: 106.3, kind: 'pick', text: true, prompt: 'Si on inverse les deux requêtes autour d’EXCEPT, que garde-t-on ?', options: [
+    {label: 'Les produits commandés récemment, mais pas en stock faible', ok: true, why: 'La première requête donne la liste de départ : celle des produits commandés. On en retire ceux en stock faible.'},
+    {label: 'La Tisane Détox, comme avant', why: 'Avec <code>EXCEPT</code>, l’ordre compte : on part maintenant de la liste des produits commandés.'},
+    {label: 'Le même résultat qu’INTERSECT', why: '<code>INTERSECT</code> garde ce qui est commun ; <code>EXCEPT</code> retire de la première liste ce qui est dans la seconde.'}],
+    tip: '<code>EXCEPT</code> part toujours de la première requête.'}
+];
 
 function dom(){
   /* Chapitre 2 : les deux listes, produits communs repérés */
@@ -507,7 +532,7 @@ function build(){
   if (APP) cue(159.25, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 159.2,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 159.2, moments: MOMENTS,
   glyphs: '📦📉🛒🗓️🎯🔎🏷️✕✓🤝➖📏·…', dom, build});
 </script>
 </body>
