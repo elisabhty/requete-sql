@@ -1514,10 +1514,18 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
   assert.ok(show.includes('<p class="lv-pk-why" hidden></p>\n    ${p.hint?`<p class="lv-pk-hint">${p.hint}</p>`:\'\'}\n    ${opts.length?`<div class="lv-pk-opts">')
     && html.includes('.lv-pk-hint{margin:-5px 2px 11px;font:600 14px/1.35 var(--ui);color:var(--ink-3,#6A6490);text-align:left;'), 'les consignes au même endroit : la ligne d’aide suit la consigne, au-dessus des étiquettes');
   const layer = cut('function lvPkLayer(P){', 'function lvPkActed(');
-  for (const part of ['spots=(IX&&IX.spots&&IX.spots(P.i))||[]', "if(P.kind==='tap')P.spots.forEach(b=>b.addEventListener('click',()=>lvPkAct(P,[b.dataset.k],b)));",
+  for (const part of ['spots=(IX&&IX.spots&&IX.spots(P.i))||[]', "P.spots.forEach(b=>b.addEventListener('click',()=>{ if(P.aimNoClick&&performance.now()<P.aimNoClick)return; lvPkAct(P,[b.dataset.k],b); }));", 'lvPkAim(P);',
     'lvPkDrag(P,c,zones,z=>{ lvPkSel(P,null); lvPkAct(P,[+c.dataset.k,z.el.dataset.k],z.el,c); });', 'lvGlisse(btn,', 'lvGlisse(a,',
     'res=IX&&IX.act?IX.act(P.i,...args):null;', "b.setAttribute('aria-label',"])
     assert.ok(layer.includes(part), `gestes : ${part}`);
+  /* Toucher une ligne fine d’un tableau (Elisa, 27 octobre) : la ligne sous le doigt s’allume, son nom s’affiche au-dessus du doigt,
+     on peut glisser pour ajuster, le choix se fait au lever ; une ligne déjà trouvée ne renvoie jamais à sa voisine ; un seul geste. */
+  const aim = cut('function lvPkAim(P){', '/* Zones tactiles placées sur l’image');
+  for (const part of ["if(hit)return hit.el.disabled||hit.el.classList.contains('is-ok')?null:hit.el;", 'lvPkNear(zs.filter(', "el.classList.add('is-over')",
+    "tag.className='lv-pk-aimtag'", 'LV_PK_AIM_TAG);', 'P.aimNoClick=performance.now()+600; lvPkAct(P,[el.dataset.k],el);', "L.addEventListener('touchend',e=>{ if(doigt(e))end(true); });",
+    '},{passive:false});', "if((tactile&&e.pointerType!=='mouse')||e.button!==0||!e.target.closest('.lv-pk-spot'))return;"])
+    assert.ok(aim.includes(part), `viser : ${part}`);
+  assert.ok(html.includes('.lv-pk-aimtag{position:absolute;z-index:7;'), 'le nom de la ligne visée, au-dessus du doigt');
   /* Glisser du premier coup sur iPhone : le doigt passe par les événements tactiles, qui bloquent le défilement dès le premier
      mouvement (Safari n’applique pas toujours touch-action et annulait le geste) ; la souris par les événements pointeur ;
      un toucher reste un toucher, avec un seul clic. */

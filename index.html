@@ -6898,6 +6898,9 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 .lv-pk-layer.is-armed .lv-pk-spot:not(:disabled){background:rgba(106,77,244,.05);box-shadow:inset 0 0 0 2px rgba(106,77,244,.45);animation:lvSpotArm 1.1s ease-in-out infinite}
 @keyframes lvSpotArm{50%{background:rgba(106,77,244,.15);box-shadow:inset 0 0 0 4px var(--accent,#6A4DF4)}}
 .lv-pk-spot.is-over{background:rgba(106,77,244,.18)!important;box-shadow:inset 0 0 0 3px var(--accent,#6A4DF4)!important}
+/* Le nom de la ligne visée, au-dessus du doigt (lvPkAim). */
+.lv-pk-aimtag{position:absolute;z-index:7;max-width:calc(100% - 16px);padding:7px 12px;border-radius:12px;background:#1F1B3A;color:#fff;font:700 14px/1.25 var(--ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;box-shadow:0 6px 18px rgba(31,27,58,.28)}
+.lv-pk-aimtag[hidden]{display:none}
 .lv-pk-spot.is-sel{background:rgba(106,77,244,.14);box-shadow:inset 0 0 0 3px var(--accent,#6A4DF4)}
 .lv-pk-spot.is-ok{pointer-events:none;background:transparent;box-shadow:none}
 .lv-pk-spot.is-ko{background:rgba(239,79,85,.2);box-shadow:inset 0 0 0 3px #EF4F55;animation:lvShake .42s ease}
@@ -16069,7 +16072,11 @@ function lvPkLayer(P){
   P.layer=layer; P.spots=[...layer.querySelectorAll('.lv-pk-spot')];
   lvPkLayerPlace();
   layer.addEventListener('pointerdown',e=>{ const b=e.target.closest('.lv-pk-spot'); if(b&&!b.disabled&&!P.done&&!P.busy)lvPkRipple(e.clientX,e.clientY); },true);
-  if(P.kind==='tap')P.spots.forEach(b=>b.addEventListener('click',()=>lvPkAct(P,[b.dataset.k],b)));
+  if(P.kind==='tap'){
+    /* Le clic reste pour le clavier et VoiceOver ; au doigt et à la souris, c’est la visée (lvPkAim) qui choisit la ligne. */
+    P.spots.forEach(b=>b.addEventListener('click',()=>{ if(P.aimNoClick&&performance.now()<P.aimNoClick)return; lvPkAct(P,[b.dataset.k],b); }));
+    lvPkAim(P);
+  }
   if(P.kind==='sort'){
     lvPkDemo(P);
     const zones=()=>P.spots.filter(b=>!b.disabled).map(b=>lvPkZone(b));
@@ -16091,6 +16098,67 @@ function lvPkLayer(P){
       lvPkSel(P,null); lvPkLink(P,a,b);
     });
     lvPkRubber(P,b);
+  });
+}
+/* Toucher une ligne d’un tableau (Elisa, 27 octobre) : sur iPhone, une ligne mesure à peine 20 px, le doigt la cache, et un
+   toucher en bordure tombait sur la voisine, compté comme une erreur. Le doigt posé, la ligne visée s’allume et son nom
+   s’affiche au-dessus du doigt ; on peut glisser pour ajuster ; la ligne est choisie quand le doigt se lève. Un toucher bref
+   reste un toucher (le nom n’apparaît qu’après un court appui). Une ligne déjà trouvée ne renvoie jamais à sa voisine. */
+const LV_PK_AIM_TAG=140;
+function lvPkAim(P){
+  const L=P.layer; if(!L)return;
+  const tactile='ontouchstart' in window;
+  let g=null, tag=null;
+  const can=()=>!!LV&&LV.pk===P&&!P.busy&&!P.done;
+  const zoneAt=(x,y)=>{
+    const R=LV.root.getBoundingClientRect(), px=x-R.left, py=y-R.top;
+    const zs=P.spots.map(lvPkZone), hit=zs.find(q=>px>=q.x1&&px<=q.x2&&py>=q.y1&&py<=q.y2);
+    if(hit)return hit.el.disabled||hit.el.classList.contains('is-ok')?null:hit.el;
+    const z=lvPkNear(zs.filter(q=>!q.el.disabled&&!q.el.classList.contains('is-ok')),px,py,14);
+    return z?z.el:null;
+  };
+  const place=(x,y)=>{
+    if(!tag||!g)return;
+    const R=LV.root.getBoundingClientRect(), w=tag.offsetWidth;
+    tag.style.left=Math.max(8,Math.min(R.width-w-8,x-R.left-w/2)).toFixed(1)+'px';
+    tag.style.top=Math.max(8,y-R.top-62).toFixed(1)+'px';
+  };
+  const show=(x,y)=>{
+    const el=zoneAt(x,y);
+    if(el!==g.el){ if(g.el)g.el.classList.remove('is-over'); g.el=el; if(el)el.classList.add('is-over'); }
+    g.x=x; g.y=y;
+    if(tag){ tag.textContent=el?String((el._s&&el._s.label)||'').replace(/<[^>]+>/g,''):''; tag.hidden=!el; place(x,y); }
+  };
+  const start=(x,y,id)=>{
+    if(g||!can())return false;
+    g={id,el:null,x,y};
+    show(x,y);
+    g.t=setTimeout(()=>{ if(!g)return; tag=document.createElement('div'); tag.className='lv-pk-aimtag'; tag.setAttribute('aria-hidden','true'); LV.root.appendChild(tag); show(g.x,g.y); },LV_PK_AIM_TAG);
+    return true;
+  };
+  const end=commit=>{
+    if(!g)return;
+    const el=g.el; clearTimeout(g.t); g=null;
+    if(el)el.classList.remove('is-over');
+    if(tag){ tag.remove(); tag=null; }
+    if(commit&&el&&can()){ P.aimNoClick=performance.now()+600; lvPkAct(P,[el.dataset.k],el); }
+  };
+  const doigt=e=>g&&g.id!=null?[...e.changedTouches].find(t=>t.identifier===g.id):null;
+  L.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1||!e.target.closest('.lv-pk-spot'))return;
+    const t=e.changedTouches[0];
+    if(start(t.clientX,t.clientY,t.identifier)&&e.cancelable)e.preventDefault();
+  },{passive:false});
+  L.addEventListener('touchmove',e=>{ const t=doigt(e); if(!t)return; if(e.cancelable)e.preventDefault(); show(t.clientX,t.clientY); },{passive:false});
+  L.addEventListener('touchend',e=>{ if(doigt(e))end(true); });
+  L.addEventListener('touchcancel',()=>{ if(g&&g.id!=null)end(false); });
+  L.addEventListener('pointerdown',e=>{
+    if((tactile&&e.pointerType!=='mouse')||e.button!==0||!e.target.closest('.lv-pk-spot'))return;
+    if(!start(e.clientX,e.clientY,null))return;
+    try{ L.setPointerCapture(e.pointerId); }catch(err){}
+    const mv=ev=>{ if(g)show(ev.clientX,ev.clientY); };
+    const up=ev=>{ L.removeEventListener('pointermove',mv); L.removeEventListener('pointerup',up); L.removeEventListener('pointercancel',up); end(ev.type==='pointerup'); };
+    L.addEventListener('pointermove',mv); L.addEventListener('pointerup',up); L.addEventListener('pointercancel',up);
   });
 }
 /* Zones tactiles placées sur l’image, et leur rectangle dans le lecteur (repère de LV.root). */
@@ -25533,7 +25601,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2091';
+  const SW_CACHE='requete-2026-10-12-ludique-v2092';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
