@@ -335,10 +335,10 @@ toi('p3');
 cap('e5', "Sa transaction attend de pouvoir<br>verrouiller cette même ligne.", 3.8);
 cap('e6', "Son écran indique<br>« Vérification de la disponibilité… ».", 3.8);
 cap('e7', "Léa Simon enregistre son inscription.", 3.4);
+toi('p4');   // avant « le nombre de places passe de 1 à 0 » : après, le tableau et la légende donnaient la réponse (Elisa, 27 octobre, 23 h 11)
 cap('e8', "Le nombre de places passe de 1 à 0.", 3.2);
 cap('e9', "Léa Simon valide avec <code>COMMIT</code>.", 3.2);
 cap('e10', "Son inscription est confirmée<br>et le verrou est libéré.", 3.8);
-toi('p4');
 cap('e11', "Nathan Petit peut vérifier<br>la disponibilité à son tour.", 3.6);
 cap('e12', "Il reste 0 place : aucune inscription<br>n’est créée pour lui.", 4.4);
 /* Elisa : « Ici, le verrou empêche les deux réservations de modifier simultanément la disponibilité de cet atelier. » : la première ligne ne
@@ -421,9 +421,10 @@ const PICKS = [
     {label: 'Elle attend de pouvoir verrouiller la même ligne', ok: true, why: 'La ligne reste verrouillée jusqu’à la fin de la transaction de Léa Simon : celle de Nathan Petit attend son tour.'},
     {label: 'Elle lit 1 place et réserve aussi', why: 'Pour lire avec <code>FOR UPDATE</code>, elle doit verrouiller la ligne : elle attend la fin de la transaction de Léa Simon.'},
     {label: 'Elle annule la transaction de Léa Simon', why: 'Une transaction n’annule pas celle d’une autre : celle de Nathan Petit attend son tour.'}]},
-  {at: atp('p4'), from: A.e7, kind: 'pick', text: true, prompt: 'Le verrou est libéré : que voit Nathan Petit ?', options: [
-    {label: '1 place : il est inscrit lui aussi', why: 'La réservation de Léa Simon est validée : la place est prise, il en reste 0.'},
-    {label: 'Une erreur : la ligne reste verrouillée', why: 'Le <code>COMMIT</code> de Léa Simon a libéré le verrou : Nathan Petit peut verrouiller la ligne à son tour.'},
+  /* La place est encore à 1 dans le tableau : l’élève prévoit ce que Nathan Petit lira une fois le verrou libéré. */
+  {at: atp('p4'), from: A.e5, kind: 'pick', text: true, prompt: 'Quand Léa Simon aura validé, combien de places Nathan Petit lira-t-il ?', options: [
+    {label: '1 place, celle qu’il a vue au début', why: 'Il lit les places après le <code>COMMIT</code> de Léa Simon : la place qu’elle retire est déjà comptée, il en reste 0.'},
+    {label: 'Aucune : la ligne reste verrouillée', why: 'Le <code>COMMIT</code> de Léa Simon libère le verrou : Nathan Petit peut verrouiller la ligne à son tour, et la lire.'},
     {label: '0 place : aucune inscription pour lui', ok: true, why: 'Il lit les places après le <code>COMMIT</code> de Léa Simon : il en reste 0, aucune inscription n’est créée pour lui.'}]},
   {at: atp('p5'), from: A.f1, kind: 'pick', text: true, prompt: 'La transaction de Léa Simon est annulée avec ROLLBACK : que devient la place ?', options: [
     {label: 'Elle reste réservée à Léa Simon', why: '<code>ROLLBACK</code> annule toute la réservation : l’inscription de Léa Simon disparaît avec le reste.'},
