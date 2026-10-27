@@ -229,6 +229,9 @@ const CLIENTS = [['Sophie','Paris'],['Lucas','Lyon'],['Emma','Marseille'],['Nath
   ['Hugo','Lyon'],['Léa','Paris'],['Gabriel','Toulouse'],['Inès','Nantes'],['Nathan','Paris']];
 const VILLES = [...new Set(CLIENTS.map(c => c[1]))];                       // Paris, Lyon, Marseille, Bordeaux, Toulouse, Nantes
 const COUNT = v => CLIENTS.filter(c => c[1] === v).length;
+/* La chasse aux doublons (moment 4) : une teinte par ville, [fond, texte], pour voir les villes répétées. */
+const TEINTE = {Paris: ['#EEE9FF', '#3B2A9E'], Lyon: ['#FFF1DC', '#8A4F00'], Marseille: ['#E3F0FF', '#1E4F9A'], Bordeaux: ['#FCE7F0', '#9D1D5A'],
+  Toulouse: ['#E2F6EA', '#0F6B33'], Nantes: ['#DFF5F3', '#0F6B63']};
 
 const CHAPTERS = [
   {n:1, label:'Situation',          a:5.0,  b:15.0},
@@ -289,7 +292,34 @@ const MOMENTS = [
       const dup = CLIENTS.filter(c => c[0] === p && c[1] === v).length > 1;
       return {k: 'c' + i, sel: `#rows5 > .tr:nth-child(${i + 1})`, label: `Ligne ${i + 1} : ${v}, ${p}`, ok: dup, why: dup ? '' : 'Cette ligne n’apparaît qu’une fois.'};
     }),
-    tip: 'Compare la ville et le prénom de chaque ligne.'}
+    tip: 'Compare la ville et le prénom de chaque ligne.'},
+  /* Mini-jeu : la chasse aux doublons (Elisa, 27 octobre, 23 h 25). La requête de la fin du chapitre 5 (DISTINCT ville, prenom :
+     9 lignes) ; l’élève active ou coupe DISTINCT et la colonne prenom, et voit les pastilles répétées disparaître ou revenir. */
+  {at: 68.9, from: 64.5, kind: 'tune', ico: '🎳', prompt: 'L’équipe veut <b>chaque ville une seule fois</b>. Règle la requête.',
+    hint: 'Active ou coupe les bascules, puis valide.',
+    controls: [{k: 'd', type: 'switch', label: '<code>DISTINCT</code>', value: true}, {k: 'p', type: 'switch', label: 'Colonne <code>prenom</code>', value: true}],
+    answer: {d: true, p: false},
+    board: {y: 300, html: '<span class="mb-k">🎳 La chasse aux doublons</span><div class="mb-q" id="mbdq"></div><div class="mg-pills">'
+      + CLIENTS.map(([p, v], i) => `<span class="mg-p" id="mbd${i}" style="--c:${TEINTE[v][0]};--t:${TEINTE[v][1]}">${v}<i id="mbdi${i}">&nbsp;·&nbsp;${p}</i></span>`).join('')
+      + '</div><div class="mg-c" id="mbdn"></div>'},
+    show(s, b) {
+      const vus = new Set(); let n = 0;
+      b.querySelector('#mbdq').innerHTML = `<span class="k">SELECT</span> ${s.d ? '<span class="k">DISTINCT</span> ' : ''}ville${s.p ? ', prenom' : ''}\n<span class="k">FROM</span> clients;`;
+      CLIENTS.forEach(([p, v], i) => {
+        const cle = s.p ? v + '|' + p : v, double = s.d && vus.has(cle);
+        vus.add(cle); if (!double) n++;
+        b.querySelector('#mbd' + i).classList.toggle('gone', double);
+        b.querySelector('#mbdi' + i).style.display = s.p ? '' : 'none';
+      });
+      b.querySelector('#mbdn').innerHTML = `<b>${n}</b> lignes`;
+    },
+    check(s) {
+      if (s.d && !s.p) return {ok: true, why: '<code>DISTINCT</code> sur la seule colonne <code>ville</code> : 6 villes, chacune une seule fois.'};
+      if (s.d) return {ok: false, why: 'Avec <code>prenom</code>, <code>DISTINCT</code> compare la combinaison : Paris revient encore 3 fois.'};
+      return {ok: false, why: s.p ? 'Sans <code>DISTINCT</code>, chaque client garde sa ligne : Paris revient 4 fois.'
+        : 'Sans <code>DISTINCT</code>, chaque client donne sa ville : Paris revient 4 fois.'};
+    },
+    tip: 'Une seule colonne, <code>ville</code>, et <code>DISTINCT</code> juste après le <code>SELECT</code>.'}
 ];
 
 function dom(){

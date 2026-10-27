@@ -521,12 +521,12 @@ const COURSES = [
     bubble: 'Avec <span class="ic">AS</span>, donne à une colonne un nom plus clair dans le résultat.',
     chapters: ['Situation', 'Le problème', 'Renommer une colonne', 'Plusieurs colonnes', 'Le piège des guillemets', 'Le résultat', 'À retenir'],
     traps: ['near "du": syntax error', 'near "(": syntax error', '"Nom du produit"']},
-  {id: 13, next: 4, titre: 'DISTINCT', page: 'distinct.html', thumb: 'distinct-thumb.jpg', duree: '1 min 46', notesAt: 87.2,
+  {id: 13, next: 4, titre: 'DISTINCT', page: 'distinct.html', thumb: 'distinct-thumb.jpg', duree: '1 min 47', notesAt: 87.2,
     table: 'clients',
     bubble: 'Avec <span class="ic">DISTINCT</span>, garde chaque valeur une seule fois.',
     chapters: ['Situation', 'Le problème', 'DISTINCT en action', 'Où le placer', 'Plusieurs colonnes', 'Le résultat', 'À retenir'],
     traps: ['near "DISTINCT": syntax error', 'Cette ville est-elle déjà dans le résultat ?', 'Paris + Sophie et Paris + Léa sont différentes']},
-  {id: 5, next: 6, titre: 'Comparer des valeurs', page: 'comparer.html', thumb: 'comparer-thumb.jpg', duree: '2 min 04', notesAt: 102.2,
+  {id: 5, next: 6, titre: 'Comparer des valeurs', page: 'comparer.html', thumb: 'comparer-thumb.jpg', duree: '2 min 05', notesAt: 102.2,
     table: 'produits',
     bubble: 'Avec les opérateurs de comparaison, compare une colonne à une valeur.',
     chapters: ['Situation', 'Le problème', 'La comparaison', 'Six opérateurs', 'La limite', 'Comparer un texte', 'Le résultat', 'À retenir'],
@@ -1277,8 +1277,20 @@ for (const c of COURSES) {
           assert.equal(new Set(left.map(z => z.pair)).size, left.length, `${nom} : une paire différente pour chaque élément`);
           assert.ok(left.some((z, k) => right[k].k !== z.pair), `${nom} : la colonne de droite est mélangée`);
         }
+      } else if (m.kind === 'tune') {
+        /* Mini-jeu (Elisa, 27 octobre, 23 h 25) : des commandes sur la feuille, une carte qui suit chaque réglage, un réglage juste. */
+        assert.ok(m.board && m.board.html, `${nom} : une carte, posée le temps du moment`);
+        assert.ok(Array.isArray(m.controls) && m.controls.length >= 1 && m.controls.length <= 3, `${nom} : une à trois commandes`);
+        for (const c of m.controls) {
+          assert.ok(c.k && c.label && ['range', 'seg', 'switch'].includes(c.type), `${nom}, ${c.k} : un nom, et un curseur, un choix ou une bascule`);
+          if (c.type === 'seg') assert.ok(c.choices.length >= 2 && c.choices.includes(c.value), `${nom}, ${c.k} : des choix, dont la valeur de départ`);
+          if (c.type === 'range') assert.ok(c.min < c.max && c.value >= c.min && c.value <= c.max && c.step > 0, `${nom}, ${c.k} : un curseur borné`);
+          if (c.type === 'switch') assert.equal(typeof c.value, 'boolean', `${nom}, ${c.k} : une bascule`);
+        }
+        assert.ok(m.answer && m.controls.every(c => c.k in m.answer), `${nom} : le réglage juste, pour chaque commande`);
+        assert.ok(m.hint && /\.$/.test(m.hint.replace(/<[^>]+>/g, '').trim()), `${nom} : une aide qui dit le geste`);
       } else {
-        assert.equal(m.kind, 'tap', `${nom} : un choix (pick), des zones à toucher (tap), des étiquettes à ranger (sort) ou des éléments à relier (link)`);
+        assert.equal(m.kind, 'tap', `${nom} : un choix (pick), des zones à toucher (tap), des étiquettes à ranger (sort), des éléments à relier (link) ou un réglage (tune)`);
         const ok = m.spots.filter(z => z.ok);
         assert.ok(m.need >= 1 && ok.length >= m.need && m.spots.length > ok.length, `${nom} : ${m.need} bonne(s) zone(s), et des zones fausses`);
         assert.equal(new Set(m.spots.map(z => z.k)).size, m.spots.length, `${nom} : une clé par zone`);
@@ -1288,6 +1300,39 @@ for (const c of COURSES) {
     });
   });
 }
+
+/* Les mini-jeux jugent un réglage (check) : chaque réglage possible a son verdict ; le réglage juste réussit, celui de départ non, et
+   chaque réglage faux dit pourquoi. Un curseur est essayé sur toute sa course. */
+test('mini-jeux (tune) : chaque réglage a son verdict, et une correction quand il est faux', () => {
+  let vus = 0;
+  for (const c of COURSES) {
+    const src = fs.readFileSync(path.join(ROOT, 'assets/anim', c.page), 'utf8');
+    if (!src.includes("kind: 'tune'")) continue;
+    const js = [...src.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).pop(), m = js.indexOf('const MOMENTS = '), b = js.indexOf('\nfunction ', m);
+    const ctx = vm.createContext({APP: true, location: {search: '?app'}, URLSearchParams});
+    vm.runInContext(js.slice(0, b) + ';this.M = MOMENTS;', ctx);
+    for (const t of ctx.M.filter(x => x.kind === 'tune')) {
+      vus++;
+      const nom = `${c.titre}, « ${t.prompt.replace(/<[^>]+>/g, '')} »`;
+      assert.equal(typeof t.check, 'function', `${nom} : un juge`); assert.equal(typeof t.show, 'function', `${nom} : une carte qui suit le réglage`);
+      const valeurs = k => { const x = t.controls.find(y => y.k === k);
+        return x.type === 'switch' ? [false, true] : x.type === 'seg' ? x.choices : Array.from({length: Math.round((x.max - x.min) / x.step) + 1}, (_, j) => x.min + j * x.step); };
+      let etats = [{}];
+      for (const x of t.controls) etats = etats.flatMap(e => valeurs(x.k).map(v => ({...e, [x.k]: v})));
+      let justes = 0;
+      for (const e of etats) {
+        const r = t.check(e);
+        assert.ok(r && typeof r.ok === 'boolean', `${nom} : un verdict pour ${JSON.stringify(e)}`);
+        assert.ok(r.why && r.why.replace(/<[^>]+>/g, '').length > 25, `${nom} : une explication pour ${JSON.stringify(e)}`);
+        if (r.ok) justes++;
+      }
+      assert.ok(justes >= 1 && t.check(t.answer).ok, `${nom} : le réglage juste réussit`);
+      assert.equal(t.check(Object.fromEntries(t.controls.map(x => [x.k, x.value]))).ok, false, `${nom} : le réglage de départ n’est pas la réponse`);
+      assert.ok(justes < etats.length / 2, `${nom} : peu de réglages justes (${justes} sur ${etats.length})`);
+    }
+  }
+  assert.ok(vus >= 3, 'trois mini-jeux au moins');
+});
 
 test('moments « À toi » des cours d’avant le projet : un passage inséré à chaque moment, le reste décalé d’autant', () => {
   const js = fs.readFileSync(path.join(ROOT, 'assets/anim/moments.js'), 'utf8');
@@ -1503,18 +1548,19 @@ test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la 
   assert.ok(html.includes("o['p'+i]={first:first?1:0,err:Math.max(0,err|0)}") && html.includes('.lv-pk-t code{'), 'premier essai gardé pour le score ; code du prompt en étiquette');
   const core = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
   assert.ok(core.includes("picks: picks.map(p => ({t: unwarp(p.at), from: p.from != null ? unwarp(p.from) : null, kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', next: p.next ? fr(p.next) : '', need: p.need || 0,")
-    && core.includes("const GESTURES = ['tap', 'sort', 'link'];")
-    && core.includes("options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''}))}))")
+    && core.includes("const GESTURES = ['tap', 'sort', 'link', 'tune'];")
+    && core.includes("options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''})),")
+    && core.includes("controls: (p.controls || []).map(c => ({k: c.k, type: c.type, label: fr(c.label || ''), min: c.min, max: c.max, step: c.step, value: c.value,")
     && core.includes('clashes: holdClashes(picks.concat(opens).map(p => p.at))') && core.includes('if (cfg.onRender) cfg.onRender(T);'), 'moteur : moments exportés, aucune animation coupée par un arrêt, rendu suivi par la page');
 });
 
 test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme à la souris, sans couper « e-mail »', () => {
   const show = cut('function lvPkShow(i,p){', 'function lvPkTry(k){');
   for (const part of ["const total=kind==='sort'?opts.length:(p.need||0);", "box.className='lv-pk'+(kind==='pick'?'':' is-'+kind)+(p.text?' is-text':'')+(kind==='pick'&&opts.some(o=>String(o.label).length>30)?' is-long':'')+(kind==='sort'&&opts.some(o=>String(o.label).length>22)?' is-wide':'');",
-    '<span class="lv-pk-cnt">0 / ${total}</span>', '<span class="lv-pk-ico" aria-hidden="true">${LV_PK_ICO[kind]||LV_PK_ICO.tap}</span>`}<span class="lv-pk-tx">${p.prompt}</span>',
-    '<p class="lv-pk-hint">${p.hint}</p>', '}else lvPkLayer(P);', "p={...p,prompt:lvNw(p.prompt),hint:p.hint?lvNw(p.hint):''};"])
+    '<span class="lv-pk-cnt">0 / ${total}</span>', '<span class="lv-pk-ico" aria-hidden="true">${(kind===\'tune\'&&p.ico)||LV_PK_ICO[kind]||LV_PK_ICO.tap}</span>`}<span class="lv-pk-tx">${p.prompt}</span>',
+    '<p class="lv-pk-hint">${p.hint}</p>', "}else if(kind==='tune')lvPkTune(P);\n  else lvPkLayer(P);", "p={...p,prompt:lvNw(p.prompt),hint:p.hint?lvNw(p.hint):''};"])
     assert.ok(show.includes(part), `plateau : ${part}`);
-  assert.ok(show.includes('<p class="lv-pk-why" hidden></p>\n    ${p.hint?`<p class="lv-pk-hint">${p.hint}</p>`:\'\'}\n    ${opts.length?`<div class="lv-pk-opts">')
+  assert.ok(show.includes('<p class="lv-pk-why" hidden></p>\n    ${p.hint?`<p class="lv-pk-hint">${p.hint}</p>`:\'\'}\n    ${kind===\'tune\'?lvPkCtlHtml(p.controls||[]):\'\'}\n    ${opts.length?`<div class="lv-pk-opts">')
     && html.includes('.lv-pk-hint{margin:-5px 2px 11px;font:600 14px/1.35 var(--ui);color:var(--ink-3,#6A6490);text-align:left;'), 'les consignes au même endroit : la ligne d’aide suit la consigne, au-dessus des étiquettes');
   const layer = cut('function lvPkLayer(P){', 'function lvPkActed(');
   for (const part of ['spots=(IX&&IX.spots&&IX.spots(P.i))||[]', "P.spots.forEach(b=>b.addEventListener('click',()=>{ if(P.aimNoClick&&performance.now()<P.aimNoClick)return; lvPkAct(P,[b.dataset.k],b); }));", 'lvPkAim(P);',
@@ -1596,7 +1642,7 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
   /* Elisa, 27 octobre, 17 h 47 : une étiquette rangée fait grandir sa case ; les zones à toucher suivent. */
   assert.ok(html.includes("if(P.kind==='sort'||P.kind==='link')lvPkSpotsRefresh(P);\n    if(r.done){") && cut('function lvPkSpotsRefresh(P){', '/* Zones tactiles placées').includes('lvPkLayerPlace();'), 'les zones suivent les cases qui grandissent');
   assert.ok(sel.includes("if(!h.style.minHeight&&h.offsetHeight)h.style.minHeight=h.offsetHeight+'px';"), 'la ligne d’aide garde sa hauteur : la consigne ne bouge pas');
-  assert.ok(html.includes('||lvPkNear(zs,x,y,32);') && html.includes('@keyframes lvSpotArm{') && html.includes("const LV_PK_ICO={tap:'👆',sort:'👆',link:'🔗'};"), 'glisser tolérant, tables qui appellent le doigt');
+  assert.ok(html.includes('||lvPkNear(zs,x,y,32);') && html.includes('@keyframes lvSpotArm{') && html.includes("const LV_PK_ICO={tap:'👆',sort:'👆',link:'🔗',tune:'🎚️'};"), 'glisser tolérant, tables qui appellent le doigt');
   const ctxN = vm.createContext({Math}); vm.runInContext(cut('function lvPkNear(zs,x,y,m){', 'function lvPkDrag(') + ';this.f=lvPkNear;', ctxN);
   const zs = [{x1: 0, y1: 0, x2: 100, y2: 100, n: 'a'}, {x1: 200, y1: 0, x2: 300, y2: 100, n: 'b'}];
   assert.ok(ctxN.f(zs, 120, 50, 32).n === 'a' && ctxN.f(zs, 185, 50, 32).n === 'b' && ctxN.f(zs, 150, 50, 32) === null, 'à moins de 32 px d’une table : elle est prise ; au milieu : rien');
