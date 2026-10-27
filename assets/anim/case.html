@@ -241,6 +241,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 149.1;
@@ -296,6 +297,40 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const CASE_Q = (els) => '<span class="k">CASE</span>\n  <span class="k">WHEN</span> stock &lt; 50 <span class="k">THEN</span> <span class="s">\'À commander\'</span>\n  <span class="k">WHEN</span> stock &lt; 100 <span class="k">THEN</span> <span class="s">\'À surveiller\'</span>\n'
+  + (els ? '  <span class="k">ELSE</span> <span class="s">\'OK\'</span>\n' : '') + '<span class="k">END</span>';
+const MOMENTS = [
+  // le CASE complet : avant que la vidéo ne le déroule pour l’Oméga 3
+  {at: 62.25, from: 47.35, kind: 'sort', text: true, prompt: 'Quelle alerte reçoit chaque produit ? Range-le dans sa case.',
+    hint: 'Touche un produit, puis son alerte. Tu peux aussi le faire glisser.', next: '« {x} » : quelle alerte ?',
+    board: {y: 260, html: `<div class="mb-q" style="font-size:32px;margin-bottom:26px">${CASE_Q(true)}</div><div class="mb-col" style="gap:18px">`
+      + '<div class="mb-bin mb-row" id="mbaC"><b style="flex-basis:250px">À commander</b><div class="mb-drop"></div></div>'
+      + '<div class="mb-bin mb-row" id="mbaS"><b style="flex-basis:250px">À surveiller</b><div class="mb-drop"></div></div>'
+      + '<div class="mb-bin mb-row" id="mbaO"><b style="flex-basis:250px">OK</b><div class="mb-drop"></div></div></div>'},
+    spots: [{k: 'C', sel: '#mbaC', label: 'À commander'}, {k: 'S', sel: '#mbaS', label: 'À surveiller'}, {k: 'O', sel: '#mbaO', label: 'OK'}],
+    options: [
+      {label: 'Fibre Prébiotique, 120', to: 'O', why: '<code>120 &lt; 50</code> et <code>120 &lt; 100</code> sont faux : <code>ELSE</code> donne « OK ».'},
+      {label: 'Oméga 3, 90', to: 'S', why: '<code>90 &lt; 50</code> est faux, <code>90 &lt; 100</code> est vrai : « À surveiller ».'},
+      {label: 'Shaker Inox, 30', to: 'C', why: '<code>30 &lt; 50</code> est vrai dès la première condition : « À commander ».'},
+      {label: 'Magnésium, 500', to: 'O', why: '<code>500 &lt; 50</code> et <code>500 &lt; 100</code> sont faux : <code>ELSE</code> donne « OK ».'}],
+    tip: 'Teste les conditions dans l’ordre : la première vraie l’emporte.'},
+  // les conditions inversées : avant que la vidéo ne déroule le Shaker Inox
+  {at: 86.25, from: 80.95, kind: 'pick', text: true, prompt: 'Dans ce CASE, quelle alerte reçoit le Shaker Inox, avec 30 en stock ?', options: [
+    {label: '« À surveiller »', ok: true, why: '<code>30 &lt; 100</code> est vrai, et testé en premier : la suite est ignorée.'},
+    {label: '« À commander »', why: '<code>30 &lt; 50</code> est vrai aussi, mais testé après : seule la première condition vraie compte.'},
+    {label: '« OK »', why: '<code>ELSE</code> ne sert que si aucune condition n’est vraie : ici, <code>30 &lt; 100</code> l’est.'}],
+    tip: 'Les conditions sont testées de haut en bas.'},
+  // sans ELSE : avant que la vidéo ne le montre
+  {at: 103.52, from: 97.9, kind: 'pick', text: true, prompt: 'Sans <code>ELSE</code>, que reçoit le Magnésium, avec 500 en stock ?',
+    board: {y: 470, html: `<span class="mb-k">Sans ELSE</span><div class="mb-q" style="font-size:32px">${CASE_Q(false)}</div>`},
+    options: [
+    {label: 'NULL', ok: true, why: 'Aucune condition n’est vraie, et rien n’est prévu pour les autres cas : NULL.'},
+    {label: '« OK »', why: '« OK » venait de <code>ELSE</code> : sans lui, aucune valeur n’est prévue.'},
+    {label: '« À surveiller »', why: '<code>500 &lt; 100</code> est faux : la deuxième condition ne s’applique pas.'}],
+    tip: 'Sans <code>ELSE</code>, rien n’est prévu quand toutes les conditions sont fausses.'}
+];
 
 function dom(){
   const legend = `<div class="legend">${['r', 'o', 'g'].map((k, i) =>
@@ -545,7 +580,7 @@ function build(){
   if (APP) cue(141.55, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 141.5,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 141.5, moments: MOMENTS,
   glyphs: '📦🔢🚦🔎⚠️🛟🔀⬇️✓✕–·…', dom, build});
 </script>
 </body>

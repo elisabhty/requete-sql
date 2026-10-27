@@ -58,7 +58,9 @@ function momentPlan(moments, captions, chapters, duration, notesAt){
 function momentIX(P){
   let X = null, wait = -1;
   /* La carte du moment (board) : posée dans la scène à l’ouverture du moment, retirée avec lui. */
-  const clear = () => { if (!X) return; X.tm.forEach(clearTimeout); X.cls.forEach(([e, c]) => e.classList.remove(c)); X.add.forEach(e => e.remove()); X = null; wait = -1; };
+  const clear = () => { if (!X) return; X.tm.forEach(clearTimeout); X.cls.forEach(([e, c]) => e.classList.remove(c)); X.add.forEach(e => e.remove());
+    if (X.slot0) X.slot0[0].innerHTML = X.slot0[1];   // le trou retrouve son « ? » : la vidéo le remplit elle-même, et « Revoir » le remontre vide
+    X = null; wait = -1; };
   const start = i => {
     if (X && X.i === i) return;
     clear(); X = {i, cls: [], tm: [], add: [], got: new Set()};
@@ -142,7 +144,8 @@ function momentIX(P){
       clear(); start(i);
       const o = P[i].options[k], ok = !!o.ok;
       /* Une réponse glissée dans le trou d’une requête : elle s’y écrit. */
-      if (P[i].slot) { const sl = $(P[i].slot); if (sl) { const was = sl.innerHTML; sl.textContent = o.label; mark(sl, ok ? 'mb-fill' : 'mb-bad'); X.tm.push(setTimeout(() => { if (!ok) sl.innerHTML = was; }, 900)); } }
+      if (P[i].slot) { const sl = $(P[i].slot); if (sl) { X.slot0 = [sl, sl.innerHTML]; sl.textContent = o.label; mark(sl, ok ? 'mb-fill' : 'mb-bad');
+        if (!ok) X.tm.push(setTimeout(() => { if (X && X.slot0) { sl.innerHTML = X.slot0[1]; sl.classList.remove('mb-bad'); } }, 900)); } }
       sfx(ok ? 'pop' : 'miss', 2, 0.5);
       return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));
     },
@@ -206,14 +209,19 @@ function withMoments(cfg){
     + '.mb-k{display:inline-block;margin-bottom:22px;padding:10px 22px;border-radius:999px;background:#EEE9FF;color:#5335E0;font:800 34px/1.1 "Bricolage Grotesque",Inter,sans-serif}'
     + '.mb-cols{position:relative;display:flex;justify-content:space-between;gap:150px}.mb-col{flex:1;display:flex;flex-direction:column;gap:26px}'
     + '.mb-i{display:flex;align-items:center;justify-content:center;min-height:96px;padding:12px 22px;box-sizing:border-box;border-radius:28px;background:#F6F4FF;box-shadow:inset 0 0 0 3px #DCD5F2;font:600 38px/1.2 Inter,sans-serif;text-align:center}'
-    + '.mb-i.c,.mb-q,.mb-chip.c{font-family:"JetBrains Mono",JBM,monospace;font-weight:700;font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}.mb-i.c{color:#5335E0}'
+    + '.mb-i.c,.mb-q,.mb-chip.c{font-family:"JetBrains Mono",JBM,monospace;font-weight:700;font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}.mb-i.c{color:#5335E0}.mb-i.sm{font-size:32px}'
     + '.mb-bin{min-height:150px;padding:20px;border-radius:30px;background:#F6F4FF;box-shadow:inset 0 0 0 3px #DCD5F2;display:flex;flex-direction:column;gap:12px}'
     + '.mb-bin.mb-row{flex-direction:row;align-items:center;min-height:112px;gap:22px;padding:14px 24px}.mb-bin.mb-row>b{flex:0 0 72px}.mb-bin.mb-row .mb-drop{flex:1}'
     + '.mb-bin>b{font:800 36px/1.15 "Bricolage Grotesque",Inter,sans-serif;color:#5335E0}.mb-drop{display:flex;flex-wrap:wrap;gap:10px}'
     + '.mb-chip{display:inline-block;padding:10px 18px;border-radius:999px;background:#16A34A;color:#fff;font:700 32px/1.2 Inter,sans-serif;animation:mbIn .3s both}'
     + '.mb-q{padding:30px 34px;border-radius:30px;background:#1F1B3A;color:#fff;font-size:38px;line-height:1.55;white-space:pre-wrap}.mb-q .k{color:#B9A8FF}.mb-q .s{color:#FFD58A}'
     + '.mb-hole{display:inline-block;min-width:150px;padding:0 14px;border-radius:14px;background:rgba(185,168,255,.18);box-shadow:inset 0 0 0 3px #B9A8FF;color:#fff;text-align:center}'
-    + '.mb-hole.mb-fill{background:#16A34A;box-shadow:none}.mb-hole.mb-bad{background:#EF4F55;box-shadow:none}'
+    + '.mb-hole.mb-fill{background:#16A34A;box-shadow:none}.mb-hole.mb-bad{background:#EF4F55;box-shadow:none}.mb-fill:not(.mb-hole){color:#16A34A!important}.mb-bad:not(.mb-hole){color:#EF4F55!important}'
+    /* Un calendrier (des jours à toucher) et une référence découpée en caractères numérotés. */
+    + '.mb-row{display:flex;justify-content:center;align-items:flex-end;gap:24px}.mb-grp{display:flex;flex-direction:column;align-items:center;gap:12px}.mb-grp>small{font:700 28px/1 Inter,sans-serif;color:#6B6790}.mb-grp>div{display:flex;gap:10px}'
+    + '.mb-i.d{width:84px;min-height:112px;padding:0;font:800 40px/1 Inter,sans-serif}.mb-grp>div{gap:8px}.mb-i.from{background:#5335E0;color:#fff;box-shadow:none}'
+    + '.mb-chars{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 8px;max-width:856px;margin:0 auto}.mb-chars>span{display:flex;flex-direction:column;align-items:center;width:100px;padding:14px 0 10px;box-sizing:border-box;border-radius:18px;background:#F6F4FF;font:700 52px/1.1 "JetBrains Mono",JBM,monospace}'
+    + '.mb-chars>span>small{margin-top:8px;font:700 28px/1 Inter,sans-serif;color:#8A86A8}.mb-chars>span.n{background:#EEE9FF;color:#5335E0}'
     + 'svg.mb-ln{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}svg.mb-ln line{stroke:#16A34A;stroke-width:8;stroke-linecap:round}';
   document.head.append(s);
 })();

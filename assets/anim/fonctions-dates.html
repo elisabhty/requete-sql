@@ -261,6 +261,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 139.1;
@@ -318,6 +319,34 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const AOUT = [1, 2, 3, 4, 5], JUIL = [29, 30, 31];
+const jourDe = (j, m) => (j === 1 ? '1er' : j) + ' ' + m;
+const MOMENTS = [
+  // la fonction posée, son résultat encore caché
+  {at: 52.25, from: 42.85, kind: 'pick', slot: '#fb3 .sw .a', prompt: 'Pour la commande du 2 juillet, que renvoie la fonction ?',
+    hint: 'Touche une date, ou fais-la glisser dans le « ? ».', options: [
+    {label: '2026-07-09', ok: true, why: '<code>\'+7 days\'</code> ajoute 7 jours : du 2 au 9 juillet.'},
+    {label: '2026-07-02', why: 'C’est la date de la commande : la fonction y ajoute 7 jours.'},
+    {label: '2026-08-02', why: '<code>\'+7 days\'</code> ajoute 7 jours, pas un mois : ce serait <code>\'+1 month\'</code>.'}],
+    tip: '<code>days</code> veut dire jours : on avance de 7 jours.'},
+  // la colonne suivi est calculée : avant le piège du +
+  {at: 64.35, from: 52.3, kind: 'pick', text: true, prompt: 'Que donne <code>date_commande + 7</code> pour la commande du 2 juillet ?', options: [
+    {label: '2033', ok: true, why: 'Avec <code>+</code>, la date est lue comme le nombre 2026 : 2026 + 7 = 2033.'},
+    {label: 'Le 9 juillet', why: '<code>+</code> ne suit pas le calendrier : la date est lue comme le nombre 2026, d’où 2033.'},
+    {label: 'Une erreur', why: 'La requête s’exécute : la date est lue comme le nombre 2026, et 2026 + 7 = 2033.'}],
+    tip: 'Avec <code>+</code>, seul le début de la date, 2026, compte comme un nombre.'},
+  // le calendrier : la fin de juillet, avant que la vidéo ne compte les jours
+  {at: 73.33, from: 64.4, kind: 'tap', need: 1, prompt: 'Le 28 juillet, plus 7 jours : touche le jour obtenu.',
+    board: {y: 470, html: '<span class="mb-k">Le calendrier</span><div class="mb-row"><div class="mb-grp"><small>juillet</small><div><div class="mb-i d from">28</div>'
+      + JUIL.map(j => `<div class="mb-i d" id="mbj${j}">${j}</div>`).join('') + '</div></div><div class="mb-grp"><small>août</small><div>'
+      + AOUT.map(j => `<div class="mb-i d" id="mba${j}">${j}</div>`).join('') + '</div></div></div>'},
+    spots: JUIL.map((j, k) => ({k: 'j' + j, sel: '#mbj' + j, label: jourDe(j, 'juillet'), ok: false, n: k + 1}))
+      .concat(AOUT.map((j, k) => ({k: 'a' + j, sel: '#mba' + j, label: jourDe(j, 'août'), ok: j === 4, n: k + 4})))
+      .map(z => Object.assign(z, {why: z.ok ? '' : `Le ${z.label} est à ${z.n} jour${z.n > 1 ? 's' : ''} du 28 juillet : il en faut 7.`})),
+    tip: 'Juillet compte 31 jours : 3 jours en juillet, puis 4 en août.'}
+];
 
 function dom(){
   const rows = (withSuivi, cls) => COMMANDES.slice(0, SHOWN).map(([n, d]) =>
@@ -567,7 +596,7 @@ function build(){
   if (APP) cue(131.55, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 131.5,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 131.5, moments: MOMENTS,
   glyphs: '🧾📨⏳📅🔎⚙️↓⚠️📆🛒⏩✂️✓✕→·–ᵉʳ', dom, build});
 </script>
 </body>

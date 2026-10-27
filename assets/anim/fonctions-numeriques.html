@@ -253,6 +253,7 @@
 
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
+<script src="moments.js"></script>
 <script>
 'use strict';
 const DURATION = 140.2;
@@ -310,6 +311,33 @@ const CAPTIONS = [
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
 const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
+   Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+const MOMENTS = [
+  // FLOOR vient de donner 29 : avant que la vidéo ne montre ROUND
+  {at: 58.65, from: 44.25, kind: 'pick', text: true, prompt: '<code>ROUND</code>, lui, arrondit au plus proche. Combien de points donnerait <code>ROUND(prix)</code> pour 29,90 € ?', options: [
+    {label: '30 points', ok: true, why: '29,90 est plus proche de 30 que de 29 : <code>ROUND</code> donne 30, un point de trop.'},
+    {label: '29 points', why: '29, c’est <code>FLOOR</code>, qui arrondit toujours vers le bas. <code>ROUND</code> va au plus proche : 30.'},
+    {label: '29,9 points', why: '<code>ROUND(prix)</code> arrondit à l’entier : il ne reste pas de décimales.'}],
+    tip: 'Cherche l’entier le plus proche de 29,90.'},
+  // FLOOR(prix) * 2 vient de donner 58 : le même calcul, pour un autre produit
+  {at: 83.47, from: 69.25, kind: 'pick', text: true, prompt: 'L’Oméga 3 coûte 24,90 €. Que donne <code>FLOOR(prix) * 2</code> ?', options: [
+    {label: '48 points', ok: true, why: '<code>FLOOR</code> d’abord : 24,90 devient 24, puis 24 × 2 = 48.'},
+    {label: '49,8 points', why: 'La fonction s’applique avant la multiplication : 24 × 2 = 48, sans décimales.'},
+    {label: '50 points', why: '50, ce serait avec <code>ROUND</code> : 25 × 2. <code>FLOOR</code> garde 24, donc 48.'}],
+    tip: 'Calcule d’abord <code>FLOOR(prix)</code>, puis multiplie par 2.'},
+  // trois façons d’arrondir : avant que la vidéo ne montre 24,2 et 24,9
+  {at: 102.55, from: 97.95, kind: 'sort', prompt: 'Range chaque calcul selon son résultat : 24 ou 25 ?',
+    hint: 'Touche un calcul, puis sa case. Tu peux aussi le faire glisser.', next: '« {x} » : 24 ou 25 ?',
+    board: {y: 470, html: '<span class="mb-k">Arrondir à l’entier</span><div class="mb-cols" style="gap:28px"><div class="mb-col"><div class="mb-bin" id="mb24"><b>Donne 24</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin" id="mb25"><b>Donne 25</b><div class="mb-drop"></div></div></div></div>'},
+    spots: [{k: 'b24', sel: '#mb24', label: 'Donne 24'}, {k: 'b25', sel: '#mb25', label: 'Donne 25'}],
+    options: [
+      {label: 'ROUND(24.2)', to: 'b24', why: '24,2 est plus proche de 24 : <code>ROUND</code> donne 24.'},
+      {label: 'ROUND(24.9)', to: 'b25', why: '24,9 est plus proche de 25 : <code>ROUND</code> donne 25.'},
+      {label: 'FLOOR(24.9)', to: 'b24', why: '<code>FLOOR</code> arrondit toujours vers le bas : 24,9 donne 24.'},
+      {label: 'ROUND(25.1)', to: 'b25', why: '25,1 est plus proche de 25 : <code>ROUND</code> donne 25.'}],
+    tip: '<code>ROUND</code> va au plus proche, <code>FLOOR</code> toujours vers le bas.'}
+];
 
 /* Une fiche produit du site web ; ses points s’affichent ensuite (chapitre 6). */
 const fiche = p => `<div class="pc-top"><span class="pc-ico emo">${ICONE[p[0]]}</span><span class="pc-txt">${p[1]}<small>${p[2]}</small></span><span class="pc-price">${euros(p[3])}</span></div>` +
@@ -539,7 +567,7 @@ function build(){
   if (APP) cue(132.65, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 132.6,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 132.6, moments: MOMENTS,
   glyphs: '🎁🎯🌾🌊🏷️💶🔎⚙️↓⚠️🎉🧮📦🧮➗✓✕→·€', dom, build});
 </script>
 </body>

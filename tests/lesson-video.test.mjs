@@ -615,7 +615,7 @@ const COURSES = [
       '<b>Tableaux de bord</b><span class="rs">Parcourir une longue liste de commandes.</span>',
       '<b>API</b><span class="rs">Renvoyer une portion des résultats à chaque demande.</span>',
       '<b>Scripts de traitement</b><span class="rs">Récupérer des données par lots.</span>']},
-  {id: 51, next: 52, titre: 'Fonctions de texte', page: 'fonctions-texte.html', thumb: 'fonctions-texte-thumb.jpg', duree: '2 min 15', notesAt: 134.0,
+  {id: 51, next: 52, titre: 'Fonctions de texte', page: 'fonctions-texte.html', thumb: 'fonctions-texte-thumb.jpg', duree: '2 min 19', notesAt: 134.0,
     table: 'clients',
     bubble: 'Les fonctions de texte permettent<br>de transformer le contenu d’une colonne<br>pour obtenir le texte dont tu as besoin.',
     chapters: ['Situation', 'Le problème', 'UPPER en action', 'Assembler avec ||', 'Une fonction par besoin', 'Le résultat', 'À retenir'],
@@ -630,7 +630,7 @@ const COURSES = [
       '<span class="fi"><span class="ic">SUBSTR</span>récupère une partie du texte</span>', '<span class="fi"><span class="ic">REPLACE</span>remplace des caractères</span>',
       'hold(2.3, 4.6);', '<meta name="format-detection" content="telephone=no">', '✓ 10 étiquettes prêtes',
       'function ean13Svg(code){', "const bar = ean13Svg('3760123456784');", '.lb-bar svg{display:block;width:100%;height:100%}']},
-  {id: 52, next: 53, titre: 'Fonctions numériques', page: 'fonctions-numeriques.html', thumb: 'fonctions-numeriques-thumb.jpg', duree: '2 min 13', notesAt: 132.6,
+  {id: 52, next: 53, titre: 'Fonctions numériques', page: 'fonctions-numeriques.html', thumb: 'fonctions-numeriques-thumb.jpg', duree: '2 min 17', notesAt: 132.6,
     table: 'produits',
     bubble: 'Les fonctions numériques permettent<br><span class="nw">d’effectuer des opérations sur les nombres.</span>',
     chapters: ['Situation', 'Le problème', 'FLOOR en action', 'Calculer', 'Trois façons d’arrondir', 'Le résultat', 'À retenir'],
@@ -647,7 +647,7 @@ const COURSES = [
       '"Pendant la semaine des <b>points doublés</b>, organisée une fois dans l’année, <span class=\\"nw\\">seuls les euros entiers comptent</span>."',
       '"<code>FLOOR(prix)</code> retire les centimes, <span class=\\"nw\\">puis ×\\u00a02</span> calcule les points gagnés."', 'hold(2.3, 2.6);',
       '"Sur chaque fiche produit, le site web veut afficher les points gagnés à l’achat."']},
-  {id: 53, next: 54, titre: 'Fonctions de dates et heures', page: 'fonctions-dates.html', thumb: 'fonctions-dates-thumb.jpg', duree: '2 min 12', notesAt: 131.5,
+  {id: 53, next: 54, titre: 'Fonctions de dates et heures', page: 'fonctions-dates.html', thumb: 'fonctions-dates-thumb.jpg', duree: '2 min 16', notesAt: 131.5,
     table: 'commandes',
     bubble: 'Les fonctions de dates et heures permettent<br><span class="nw">d’extraire, de transformer et de comparer</span><br><span class="nw">les dates et les heures dans tes données.</span>',
     chapters: ['Situation', 'Le problème', 'DATE en action', 'Le calendrier', 'Changer l’affichage', 'Le résultat', 'À retenir'],
@@ -657,7 +657,7 @@ const COURSES = [
       '<span class="pt">2026<span class="dim">-07-02</span></span><span class="pj">+</span><span class="pt">7</span>', '<b>Résultat : 2033</b><span class="s">La date est lue comme le nombre 2026.</span>',
       '<span class="cp bad" id="bad4">✕ <s>2026-07-35</s></span><span class="cp good" id="good4">✓ 2026-08-04</span>',
       '<span class="dc">\'+1 month\'</span>', '<span class="dc">\'%d/%m/%Y\'</span><span class="ol">à la française</span>', '<span class="dc">\'%d\'</span><span class="ol">le jour</span>', '<span class="ic">STRFTIME()</span> change<br>l’<b>affichage</b> d’une date&nbsp;:', '✓ 16 messages planifiés']},
-  {id: 54, next: 21, titre: 'Fonctions de conversion de types', page: 'conversion-types.html', thumb: 'conversion-types-thumb.jpg', duree: '2 min 24', notesAt: 148.4,
+  {id: 54, next: 21, titre: 'Fonctions de conversion de types', page: 'conversion-types.html', thumb: 'conversion-types-thumb.jpg', duree: '2 min 28', notesAt: 148.4,
     table: 'commandes',
     bubble: 'Avec <span class="ic">CAST</span>, change le type d’une valeur.',
     chapters: ['Situation', 'Le problème', 'CAST en action', 'Extraire, puis convertir', 'Les types', 'Le résultat', 'À retenir'],
@@ -669,7 +669,7 @@ const COURSES = [
       '<span class="tcp">REAL</span><span class="tl">nombre à virgule</span><span class="tx">29.9</span>', 'Les décimales sont supprimées, sans arrondir',
       '<span class="ln" id="s6l4">  <span class="kw">typeof</span>(', '<div class="rgT th"><div>numero_commande</div><div>numero</div><div>type</div></div>',
       '✓ Nombre entier : numéro accepté', '✓ 16 commandes importées']},
-  {id: 21, next: 23, titre: 'CASE', page: 'case.html', thumb: 'case-thumb.jpg', duree: '2 min 17', notesAt: 141.5,
+  {id: 21, next: 23, titre: 'CASE', page: 'case.html', thumb: 'case-thumb.jpg', duree: '2 min 22', notesAt: 141.5,
     table: 'produits',
     bubble: 'Avec <span class="ic">CASE</span>, affiche une valeur selon une condition.',
     chapters: ['Situation', 'Le problème', 'CASE en action', 'L’ordre compte', 'Sans ELSE', 'Le résultat', 'À retenir'],
@@ -680,7 +680,7 @@ const COURSES = [
       '<span>Dans le mauvais ordre</span>', '<b>Aucun produit « À commander »</b><span class="s">Sous 50, le stock est aussi sous 100.</span>',
       '<span class="a com">  -- pas de ELSE</span>', '<span class="nul" id="nul5">NULL</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> alerte</span>', '✓ 8 alertes à jour']},
-  {id: 23, next: 14, titre: 'COALESCE', page: 'coalesce.html', thumb: 'coalesce-thumb.jpg', duree: '2 min 11', notesAt: 135.9,
+  {id: 23, next: 14, titre: 'COALESCE', page: 'coalesce.html', thumb: 'coalesce-thumb.jpg', duree: '2 min 16', notesAt: 135.9,
     table: 'clients',
     bubble: 'Avec <span class="ic">COALESCE</span>, remplace un <span class="ic">NULL</span> par une autre valeur.',
     chapters: ['Situation', 'Le problème', 'COALESCE en action', 'Plusieurs valeurs', 'Le texte vide', 'Le résultat', 'À retenir'],
@@ -1228,7 +1228,8 @@ const donneesVideo = file => {
   vm.runInContext(js.slice(0, b) + ';this.D = {DURATION, CAPTIONS, CHAPTERS};', ctx);
   return JSON.parse(JSON.stringify(ctx.D));
 };
-const prose = l => /[a-zà-ÿ]{2,} [a-zà-ÿ]{2,}/.test(l);
+/* Des mots en phrase ; pas un texte SQL entre apostrophes (« 'Non renseigné' »), qui reste du code. */
+const prose = l => /[a-zà-ÿ]{2,} [a-zà-ÿ]{2,}/.test(l) && !/^'.*'$/.test(l);
 for (const c of COURSES) {
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim', c.page), 'utf8');
   if (!page.includes('moments: MOMENTS')) continue;
