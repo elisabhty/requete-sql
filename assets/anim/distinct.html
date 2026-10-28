@@ -73,6 +73,10 @@
 .pills{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding:8px 34px 0}
 .vpill{height:92px;border-radius:24px;background:var(--surface-2);border:3px solid var(--line);display:flex;align-items:center;justify-content:center;gap:12px;font-size:36px;font-weight:700;color:var(--ink)}
 .vpill .emo{font-size:34px}
+/* ---------- 1 · L’illustration d’Elisa (28 octobre, 18 h 11) : l’équipe commerciale autour de la carte, « Où vivent nos clients ? » ---------- */
+.ill{left:90px;top:560px;width:900px;height:900px;padding:0;overflow:hidden;border-radius:56px}
+.ill img{display:block;width:900px;height:900px}
+
 /* ---------- 1 · La table clients : ses colonnes (la ville, demandée) ---------- */
 .tp{left:64px;width:952px;padding:24px 0 30px}
 .tp-h{display:flex;align-items:center;gap:14px;padding:0 34px 18px;font-size:34px;font-weight:700;color:var(--ink)}
@@ -108,6 +112,7 @@
 
   <!-- 1 · Situation -->
   <section class="scene" id="s1">
+    <div class="abs card ill" id="ill1"><img src="distinct-clients.webp" alt="L’équipe commerciale penchée sur une carte de France, avec des clients à Paris, Lyon et Bordeaux : « Où vivent nos clients ? »"></div>
     <div class="abs card tp" id="tp1" style="top:720px">
       <div class="tp-h"><span class="emo">🗄️</span><span>Table clients</span><span class="tp-n" id="tpn1">10 clients</span></div>
       <div class="chips"><span class="colchip">id</span><span class="colchip">prenom</span><span class="colchip">nom</span><span class="colchip">adresse</span><span class="colchip on" id="tc1v">ville</span><span class="colchip">…</span></div>
@@ -236,13 +241,13 @@ const TEINTE = {Paris: ['#EEE9FF', '#3B2A9E'], Lyon: ['#FFF1DC', '#8A4F00'], Mar
 /* La demande (Elisa, 28 octobre, 18 h 00 : « Pareil ici un message bien formulé de l’équipe ») : un mail précis, qui dit à quoi
    servent les données, lesquelles il faut, et sous quelle forme (chaque ville une seule fois). L’app s’arrête sur la notification
    jusqu’au toucher. Il remplace la carte « Rencontres clients », la carte « Les informations à récupérer » et les deux légendes
-   qui racontaient la demande. */
+   qui racontaient la demande. Avant lui, l’illustration d’Elisa (18 h 11) : l’équipe se pose la question, puis l’écrit. */
 const MAIL = {id: 'ml1', qui: ['L’équipe commerciale', 'EC'], k: 'k-cc', tag: 'équipe', de: 'commercial@nutriboost.fr', corps: [
   'Nous organisons des rencontres avec nos clients, dans les villes où ils habitent.',
   'Pour choisir les lieux, nous avons besoin de la liste de ces villes.',
   'Chaque ville ne doit y figurer qu’une seule fois.',
   'Peux-tu nous la préparer ?'], signe: 'L’équipe commerciale NutriBoost'};
-const MAIL_T = 5.2, MAIL_OPEN = 6.8;
+const MAIL_T = 7.0, MAIL_OPEN = 8.6;
 const OPENS = [{at: MAIL_OPEN, sel: '#ml1', prompt: 'Touche le mail pour l’ouvrir.', label: 'Ouvrir le mail de l’équipe commerciale'}];
 
 const CHAPTERS = [
@@ -257,7 +262,7 @@ const CHAPTERS = [
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
 const CAPTIONS = [
-  [10.45, 14.6, "Les villes sont dans la colonne <code>ville</code> de la <b>table clients</b>."],
+  [12.25, 14.6, "Les villes sont dans la colonne <code>ville</code> de la <b>table clients</b>."],
   [15.3, 19.1, "Avec <code>SELECT ville</code>, on obtient la ville de <b>chaque client</b> : une ligne par client."],
   [19.2, 22.9, "Plusieurs clients ont la même ville : <b>Paris</b> revient 4 fois et <b>Lyon</b> 2 fois."],
   [23.0, 26.4, "Il faut donc afficher <b>chaque ville une seule fois</b>, grâce à <code>DISTINCT</code>."],
@@ -380,19 +385,24 @@ function build(){
 
   /* ===== 1 · Situation ===== */
   sceneOn('#s1', 5.0);
-  // Le mail de l’équipe commerciale arrive seul (la première légende vient après lui) ; l’élève l’ouvre, le lit, puis il s’en va.
+  // L’équipe se demande où vivent ses clients (l’illustration d’Elisa) : l’image s’arrête le temps de la regarder, sans légende.
+  show('#ill1', 5.15, {y: 70, scale: 0.94, rotation: -2}, 0.7, 'back.out(1.4)');
+  cue(5.15, 'whoosh', 0.8);
+  hold(5.95, 2.4);
+  hide('#ill1', 6.45, {y: -60, scale: 0.96}, 0.45);
+  // Puis elle écrit : le mail arrive seul (la première légende vient après lui) ; l’élève l’ouvre, le lit, puis il s’en va.
   const mailEnd = lessonMailIn('#ml1', lessonMailFit('#ml1'), MAIL_T, MAIL_OPEN);
   lessonMailOut('#ml1', +(mailEnd + 0.45).toFixed(2));
   // Les villes : la colonne ville de la table clients
-  show('#tp1', 10.1, {y: 60});
-  cue(10.1, 'whoosh', 0.6);
+  show('#tp1', 11.95, {y: 60});
+  cue(11.95, 'whoosh', 0.6);
   const tc1 = $$('#tp1 .colchip');
   gsap.set(tc1, {autoAlpha: 0, scale: 0.6});
-  tl.to(tc1, {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2.2)', stagger: 0.08}, 10.35);
-  tc1.forEach((_, i) => cue(10.35 + i * 0.08, 'tick', 0.5, i));
-  show('#tpn1', 10.9, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  tl.to('#tc1v', {scale: 1.12, duration: 0.2, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 11.6);
-  cue(11.6, 'pop', 0.8, 3);
+  tl.to(tc1, {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2.2)', stagger: 0.08}, 12.2);
+  tc1.forEach((_, i) => cue(12.2 + i * 0.08, 'tick', 0.5, i));
+  show('#tpn1', 12.75, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  tl.to('#tc1v', {scale: 1.12, duration: 0.2, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 13.1);
+  cue(13.1, 'pop', 0.8, 3);
   hide('#tp1', 14.6);
   sceneOff('#s1', 15.1);
 
