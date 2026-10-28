@@ -131,3 +131,22 @@ test('par module : le temps passé sur ses leçons, à partir d’une minute', (
   ctx.state.study = { days: {}, items: { l1: 90 } };
   assert.match(vm.runInContext('moduleProgressRows("all")', ctx), /Module 02 · En cours/, 'une minute d’étude suffit pour qu’un module soit « en cours »');
 });
+
+/* Elisa, 28 octobre, 1 h 09 : « à la fin des écrans de félicitations, fin de module, fin de parcours, mettre les heures aussi passées,
+   avec minutes ». */
+test('écrans de fête : le temps passé en heures et minutes (fin de module, fin du parcours, parcours complété)', () => {
+  const ctx = vm.createContext({});
+  vm.runInContext(take('function fmtHeuresMin(', 'function studyItems('), ctx);
+  const f = (s, h) => ctx.fmtHeuresMin(s, h).replace(/\u00a0/g, ' ');
+  assert.equal(f(30), '1 min', 'moins d’une minute : 1 min');
+  assert.equal(f(45 * 60 + 59), '45 min');
+  assert.equal(f(3600), '1 h 00 min', 'une heure pile : les minutes restent écrites');
+  assert.equal(f(3 * 3600 + 25 * 60 + 10), '3 h 25 min');
+  assert.equal(f(21 * 3600 + 5 * 60, true), '21<em> h</em><em> </em>05<em> min</em>', 'en grand : les unités en petit');
+  const mu = take('function moduleUpHtml(i,n){', 'function muSound(');
+  assert.ok(mu.includes("const secs=typeof moduleStudySecs==='function'?moduleStudySecs(M):0;") && mu.includes('passées sur le module ${i+1}') && mu.includes('secs>=60?'), 'fin de module : le temps passé sur ses leçons');
+  assert.ok(html.includes("${n.map(([v,l])=>`<span><b data-n=\"${v}\">${v}</b>${l}</span>`).join('')}${finTimeHtml('lv-fe-time')}</div>"), 'fin du parcours (après la vidéo de fin) : une tuile « Temps passé »');
+  assert.ok(html.includes("${typeof finTimeHtml==='function'?finTimeHtml('bravo-fin-time'):''}</div>`:''}"), 'parcours complété : la même tuile');
+  assert.ok(take('function finTimeHtml(cls){', 'function lvFinCount(').includes('Temps passé</small><b data-t='), 'la tuile monte comme les nombres (data-t)');
+  assert.ok(take('function lvFinCount(', 'function lvFinLeave(').includes("if(b.dataset.t)b.innerHTML=fmtHeuresMin(+b.dataset.t*e,true);"), 'le temps passé monte minute après minute');
+});
