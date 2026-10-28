@@ -32,7 +32,7 @@ test('WHERE : le cours a son animation, son image fixe et sa vignette, présente
   assert.ok(wp.includes('const END = RECAP ? null : 82.48;') && wp.includes('CHAPTERS.length = 6;') && wp.includes('CAPTIONS[16] = [CAPTIONS[16][0], 999, CAPTIONS[16][2]];'), 'la vidéo s’arrête avant « À retenir », sa dernière légende reste affichée');
   assert.ok(wp.includes('<span>/ ${CHAPTERS.length} · ${c.label}</span>'), 'l’étiquette compte les chapitres restants (6 / 6)');
   /* Les moments « À toi » (Elisa, 26 octobre, 14 h 59) : la page garde son propre moteur et passe par moments.js (momentPlan, momentIX). */
-  assert.ok(/duree:'1 min 48',moments:3\}/.test(where) && !/seuil:/.test(where), 'trois moments, qui ne bloquent pas (l’exercice et le quiz valident la leçon)');
+  assert.ok(/duree:'1 min 48',moments:3,seuil:2\}/.test(where) && /\n  leconSeule:true,/.test(where), 'trois moments ; leçon seule, validée avec deux moments réussis du premier coup (Elisa, 28 octobre)');
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/where.html'), 'utf8');
   assert.ok(page.includes('<script src="gsap.min.js"></script>\n<script src="moments.js"></script>') && page.includes('  build();\n  applyMoments();'), 'moments.js, puis les moments insérés une fois la timeline construite');
   const M = momentsDe('where.html');
@@ -1250,9 +1250,10 @@ for (const c of COURSES) {
     const M = momentsDe(c.page), D = donneesVideo(c.page);
     const lesson = cut(`guide({ id:${c.id}, titre:"${c.titre}"`, c.next ? `guide({ id:${c.next},` : '\n]}\n]');
     assert.ok(new RegExp(`duree:'[^']+',moments:${M.length}[,}]`).test(lesson), `la fiche annonce ${M.length} moments`);
-    /* Le cours 0 est une leçon seule (Elisa, 28 octobre) : ses moments la valident, deux ratés au plus ; ailleurs, l’exercice et le quiz. */
-    if (/leconSeule:true/.test(lesson)) assert.ok(new RegExp(`moments:${M.length},seuil:${M.length - 2}\\}`).test(lesson), 'leçon seule : validée par ses moments, deux ratés au plus');
-    else assert.ok(!/seuil:/.test(lesson), 'les moments ne bloquent pas : l’exercice et le quiz valident la leçon');
+    /* Chaque cours est une leçon seule (Elisa, 28 octobre : « mettre l’écran de fin de cours et enlever la partie quiz et exercice ») :
+       ses moments la valident, un raté au plus. */
+    assert.ok(/\n  leconSeule:true,/.test(lesson) && new RegExp(`moments:${M.length},seuil:${M.length - 1}\\}`).test(lesson), 'leçon seule : validée par ses moments, un raté au plus');
+    assert.ok(!/\n  (consigne|solution|indice|petitDefi|exoNeeds|ordered):/.test(lesson), 'ni exercice ni requête à trous');
     assert.ok(M.length >= 3, 'trois moments au moins');
     const notes = +String(c.notesAt);
     M.forEach((m, i) => {
@@ -2126,7 +2127,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.ok(!/colonnes|création de la base|créer la base|Pour dessiner ce plan|Karim/.test([D.CAPTIONS[ic][2], D.CAPTIONS[ic + 1][2]].join(' ')), 'la légende ne redit pas la demande de Karim');
   assert.ok(!/à gérer/.test(flat(ic + 1)), 'la légende d’avant ne devance pas la réf 1 (« élément à gérer »)');
   assert.ok(!/sujet/.test(JSON.stringify([D.CAPTIONS, D.PICKS, D.MAILS, bubble])), 'un « élément » (pas un « sujet ») devient une classe : même mot dans les légendes, les réponses et le mail');
-  assert.ok(html.includes('e:"Une classe décrit un élément à gérer : elle devient une table, et ses attributs deviennent ses colonnes."') && !html.includes('Une classe décrit un sujet'), 'le quiz dit aussi « élément », pas « sujet »');
+  assert.ok(!html.includes('Une classe décrit un sujet'), 'nulle part « sujet » pour une classe (le quiz, qui disait « élément », n’existe plus depuis le 28 octobre)');
   assert.equal(flat(ic + 2), 'Chaque élément à gérer est représenté par une classe.', 'la suite reprend « éléments » : une phrase, une bulle');
   assert.equal(flat(ic + 3), 'Elle porte un nom et contient des attributs.', 'la phrase suivante, dans sa propre bulle (Elisa, 23 octobre : des bulles courtes, pas trop d’info d’un coup)');
   /* La transition vers les tables (texte d’Elisa du 23 octobre, 11:02), en deux bulles, avant le premier moment « À toi » : à cette étape, on décrit les classes
@@ -2898,7 +2899,7 @@ test('leçon seule (Quel JOIN choisir ?) : la vidéo interactive valide la leço
   const l44 = cut('guide({ id:44, titre:"Quel JOIN choisir ?"', 'guide({ id:45,');
   assert.ok(l44.includes('leconSeule:true,') && l44.includes(",duree:'3 min 10',moments:9,"), 'leçon 44 : leçon seule, 9 moments');
   assert.ok(html.includes("'joinRecap','leconSeule','exoNeeds','video']"), 'drapeau copié par guide()');
-  assert.ok(html.includes('function dueList(){ return allLessons.filter(l=>isDue(l.id)&&!l.leconSeule); }'), 'pas de révision « De mémoire » sans exercice');
+  assert.ok(html.includes('function revisable(l){ return !!(l&&!l.leconSeule&&l.consigne&&l.solution); }') && html.includes('function dueList(){ return allLessons.filter(l=>isDue(l.id)&&revisable(l)); }'), 'pas de révision « De mémoire » sans exercice');
   assert.ok(html.includes("if(current.leconSeule)return [{i:0,l:'Leçon'") && html.includes("if(leconSeule(id))return !!(state.lessons[id]&&state.lessons[id].done);"), 'une seule étape : la leçon');
   const end = cut('function lvEnded(){', 'function lvReplay(){');
   assert.ok(end.includes('markDone(id,false)') && end.includes('🎯 Tu as réussi <b>${ok}&nbsp;exercice${ok>1?\'s\':\'\'} sur&nbsp;${n}</b>&nbsp;!'), 'fin de la vidéo : leçon validée, exercices réussis');

@@ -89,7 +89,7 @@ test('CREATE VIEW : juste après Concurrence et isolation, en tête du module «
   assert.equal(l64.résumé, 'Enregistrer une requête sous un nom');
 });
 
-test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () => {
+test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', () => {
   const mots = html.match(/\n  64:'([^']+)',/)[1];
   assert.ok(['create view', 'vue', 'catalogue_box', 'selection_box', 'box surprise', 'agence', 'droits', 'consultation', 'donnees actuelles'].every(m => mots.includes(m)),
     'trouvé par la recherche : CREATE VIEW, la vue, catalogue_box, selection_box, la box surprise, l’agence, les droits…');
@@ -99,14 +99,7 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
   const recap = l64.studio.reflex.extra;
   assert.ok(recap.includes('Les trois idées à retenir') && ['📋', '🔄', '🎁'].every(e => recap.includes(e)), 'les trois idées à retenir, comme à la fin de la vidéo');
   assert.ok(!recap.includes('👁️'), 'une vue : 📋, pas d’œil (Elisa, 13 h 39)');
-  const quiz = vm.runInContext('QCM', ctx)[64];
-  assert.equal(quiz.length, 3);
-  assert.deepEqual([...quiz.map(q => q.b)], [1, 0, 2], 'la bonne réponse change de place d’une question à l’autre');
-  assert.ok(quiz.every(q => q.o.length === 3 && q.e), 'trois réponses et une explication par question');
-  assert.ok(/remplace la protéine/.test(quiz[1].q), 'le changement de la vidéo : le magnésium remplace la protéine');
-  assert.ok(/enregistre la requête/.test(quiz[0].o[1]) && /Consulter à nouveau la vue/.test(quiz[1].o[0]) && /nom, la catégorie et le prix/.test(quiz[2].o[2]),
-    'les bonnes réponses : la requête enregistrée, consulter à nouveau la vue, le nom, la catégorie et le prix');
-  assert.ok(!/produits_premium|produits_stock_faible|detail_commandes|clients_paris/.test(JSON.stringify(quiz)), 'plus rien de l’ancien cours texte');
+  assert.equal(vm.runInContext('QCM', ctx)[64], undefined, 'plus de quiz : la vidéo et ses moments valident la leçon (Elisa, 28 octobre)');
 });
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {

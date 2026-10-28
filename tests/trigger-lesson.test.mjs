@@ -83,7 +83,7 @@ test('Les triggers : juste après SAVEPOINT, en tête du module « Triggers et c
   assert.equal(l70.résumé, 'Déclencher une action automatiquement');
 });
 
-test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () => {
+test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', () => {
   const mots = html.match(/\n  70:'([^']+)',/)[1];
   assert.ok(['trigger', 'declencheur', 'after update on', 'when', 'old', 'new', 'current_timestamp', 'historique_prix', 'collagene', 'prix'].every(m => mots.includes(m)),
     'trouvé par la recherche : trigger, déclencheur, AFTER UPDATE ON, WHEN, OLD, NEW, l’historique des prix, le collagène…');
@@ -92,13 +92,7 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
   assert.equal(l70.video.anim, 'assets/anim/projet-trigger.html?app&embed');
   const recap = l70.studio.reflex.extra;
   assert.ok(recap.includes('Les trois idées à retenir') && ['⚡', '🔀', '🎯'].every(e => recap.includes(e)), 'les trois idées à retenir, comme à la fin de la vidéo');
-  const quiz = vm.runInContext('QCM', ctx)[70];
-  assert.equal(quiz.length, 3);
-  assert.deepEqual([...quiz.map(q => q.b)], [1, 2, 0], 'la bonne réponse change de place d’une question à l’autre');
-  assert.ok(quiz.every(q => q.o.length === 3 && q.e), 'trois réponses et une explication par question');
-  assert.ok(/Après chaque modification/.test(quiz[0].o[1]) && /avant la modification/.test(quiz[1].o[2]) && /aucune ligne/.test(quiz[2].o[0]),
-    'les bonnes réponses : après chaque modification, le prix avant la modification, aucune ligne');
-  assert.ok(!/Magnésium|RAISE|BEFORE|clients_supprimes/.test(JSON.stringify(quiz)), 'plus rien de l’ancien cours texte');
+  assert.equal(vm.runInContext('QCM', ctx)[70], undefined, 'plus de quiz : la vidéo et ses moments valident la leçon (Elisa, 28 octobre)');
 });
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {

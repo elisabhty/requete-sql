@@ -102,7 +102,7 @@ test('Les index et EXPLAIN : juste après CREATE VIEW, à la fin du module « Vu
   assert.equal(l57.résumé, 'Accélérer une recherche et lire son plan');
 });
 
-test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () => {
+test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', () => {
   const mots = html.match(/\n  57:'([^']+)',/)[1];
   assert.ok(['index', 'create index', 'explain query plan', 'scan', 'search', 'using index', 'numero_commande', 'commande', 'qr code', 'mesure'].every(m => mots.includes(m)),
     'trouvé par la recherche : index, CREATE INDEX, EXPLAIN QUERY PLAN, SCAN, SEARCH, la commande scannée…');
@@ -111,12 +111,7 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
   assert.equal(l57.video.anim, 'assets/anim/projet-index.html?app&embed');
   const recap = l57.studio.reflex.extra;
   assert.ok(recap.includes('Les trois idées à retenir') && ['🔎', '⚡', '⚖️'].every(e => recap.includes(e)), 'les trois idées à retenir, comme à la fin de la vidéo');
-  const quiz = vm.runInContext('QCM', ctx)[57];
-  assert.equal(quiz.length, 3);
-  assert.deepEqual([...quiz.map(q => q.b)], [1, 0, 2], 'la bonne réponse change de place d’une question à l’autre');
-  assert.ok(quiz.every(q => q.o.length === 3 && q.e), 'trois réponses et une explication par question');
-  assert.ok(/prévoit d’exécuter/.test(quiz[0].o[1]) && /Toutes les lignes/.test(quiz[1].o[0]) && /entretenu/.test(quiz[2].o[2]), 'les bonnes réponses : le plan, toute la table lue, le coût d’un index');
-  assert.ok(!/idx_clients_ville|LOWER\(nom\)/.test(JSON.stringify(quiz)), 'plus rien de l’ancien cours texte');
+  assert.equal(vm.runInContext('QCM', ctx)[57], undefined, 'plus de quiz : la vidéo et ses moments valident la leçon (Elisa, 28 octobre)');
 });
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {

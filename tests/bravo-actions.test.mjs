@@ -176,15 +176,15 @@ test('plus rien à faire : « Bravo, tu as complété le parcours », avec ce qu
   ctx.MODULES = [{lessons: [{id: 1}, {id: 2}]}, {lessons: [{id: 50}]}];
   ctx.allLessons = [{id: 1}, {id: 2}, {id: 50}];
   ctx.itemDone = () => true;
-  ctx.SQL_REQUETES = 209;
+  ctx.SQL_REQUETES = 166;
   const fin = ctx.bravoNextHtml({id: 50});
   assert.ok(fin.startsWith('<div class="bravo-fin" role="group" aria-labelledby="bravo-fin-h">'), 'la carte de fin, même après le tout dernier cours');
   assert.ok(fin.includes('<span class="bravo-fin-cup">🏆</span>') && (fin.match(/class="bf-s s\d"/g) || []).length === 4, 'la coupe et ses étincelles');
   assert.ok(fin.includes('<span class="bravo-fin-tag">🎓 Parcours terminé</span>') && fin.includes('<h2 id="bravo-fin-h">Bravo, tu as complété le parcours&nbsp;!</h2>'));
-  assert.deepEqual([...fin.matchAll(/<span><b data-n="(\d+)">\d+<\/b>([^<]+)<\/span>/g)].map(m => [+m[1], m[2]]), [[2, 'modules'], [3, 'cours'], [209, 'requêtes']], 'ce que tu as fait');
+  assert.deepEqual([...fin.matchAll(/<span><b data-n="(\d+)">\d+<\/b>([^<]+)<\/span>/g)].map(m => [+m[1], m[2]]), [[2, 'modules'], [3, 'cours'], [166, 'requêtes']], 'ce que tu as fait');
   assert.ok(fin.includes('<button type="button" class="bravo-fin-go" onclick="exitLessonToTab(\'practice\')"><span class="fl" aria-hidden="true">⚑</span>Découvrir les défis</button>'));
   ctx.itemDone = id => id !== 50;
-  assert.ok(!ctx.bravoNextHtml({id: 2}).includes('requêtes'), 'un parcours planifié sans tous les cours : pas les 209 requêtes de tous les cours');
+  assert.ok(!ctx.bravoNextHtml({id: 2}).includes('requêtes'), 'un parcours planifié sans tous les cours : pas les 166 requêtes de tous les cours');
   assert.ok(cut('function renderLessonFlow(){', '/* ---------- Requête à trous').includes('requestAnimationFrame(bravoFinWire);'), 'branchée à l’affichage du bilan');
   const wire = cut('function bravoFinWire(){', '/* Les autres actions');
   for (const part of ["el.classList.add('is-in');", "lvFinCount(el,'.bravo-fin-stats b',650);", 'lqConfetti({n:70})', 'lqConfetti({n:46})', "LvSfx.play('success',0,.6,0)", 'navigator.vibrate([12,40,12,40,24])', 'new IntersectionObserver('])

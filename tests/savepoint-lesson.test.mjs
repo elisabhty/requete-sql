@@ -83,7 +83,7 @@ test('SAVEPOINT : juste après Transactions, dans le module « Transactions », 
   assert.equal(l63.résumé, 'Annuler une partie des modifications', 'le sous-titre de la trame d’Elisa');
 });
 
-test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () => {
+test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', () => {
   const mots = html.match(/\n  63:'([^']+)',/)[1];
   assert.ok(['savepoint', 'point de retour', 'rollback to savepoint', 'rollback to', 'annuler une partie', 'transaction', 'cadeau', 'commit'].every(m => mots.includes(m)),
     'trouvé par la recherche : SAVEPOINT, le point de retour, ROLLBACK TO SAVEPOINT, le cadeau…');
@@ -92,12 +92,7 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
   assert.equal(l63.video.anim, 'assets/anim/projet-savepoint.html?app&embed');
   const recap = l63.studio.reflex.extra;
   assert.ok(recap.includes('Les trois idées à retenir') && ['📍', '↩️', '✅'].every(e => recap.includes(e)), 'les trois idées à retenir, comme à la fin de la vidéo');
-  const quiz = vm.runInContext('QCM', ctx)[63];
-  assert.equal(quiz.length, 3);
-  assert.deepEqual([...quiz.map(q => q.b)], [1, 0, 2], 'la bonne réponse change de place d’une question à l’autre');
-  assert.ok(quiz.every(q => q.o.length === 3 && q.e), 'trois réponses et une explication par question');
-  assert.ok(/point de retour/.test(quiz[0].o[1]) && /en cours/.test(quiz[1].o[0]) && /^<code>ROLLBACK<\/code>$/.test(quiz[2].o[2]), 'les bonnes réponses : un point de retour, toujours en cours, ROLLBACK');
-  assert.ok(!/expédi|commande n°/.test(JSON.stringify(quiz)), 'plus d’expéditions du jour');
+  assert.equal(vm.runInContext('QCM', ctx)[63], undefined, 'plus de quiz : la vidéo et ses moments valident la leçon (Elisa, 28 octobre)');
 });
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {

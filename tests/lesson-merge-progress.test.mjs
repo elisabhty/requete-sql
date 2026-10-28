@@ -26,9 +26,8 @@ assert.equal(titre(12), 'LIMIT et OFFSET');
 assert.equal(titre(57), 'Les index et EXPLAIN');
 assert.equal(titre(72), 'Clés et relations');
 const quiz = vm.runInContext('QCM', ctx);
-for (const id of [6, 11, 12, 72]) assert.equal(quiz[id].length, 4, `quiz du cours ${id} : les questions des deux cours`);
-assert.equal(quiz[57].length, 3, 'le cours 57 (où EXPLAIN a été fusionné) est devenu le chapitre 16, en vidéo : trois questions, comme les autres chapitres');
-assert.equal(quiz[0], undefined, 'le cours 0 est une leçon seule (Elisa, 28 octobre) : ni exercice ni quiz, ses moments « À toi » le valident');
+/* Depuis le 28 octobre (Elisa : « enlever la partie quiz et exercice »), plus aucun quiz : chaque cours est une leçon seule. */
+assert.equal(Object.keys(quiz).length, 0, 'plus aucun quiz de fin de leçon');
 for (const id of [1, 36, 58]) assert.equal(quiz[id], undefined, `plus de quiz pour le cours fusionné ${id}`);
 const carte = vm.runInContext('CARTES', ctx);
 for (const id of [1, 3, 29, 75, 58]) assert.equal(carte[id], undefined, `plus de carte mémo pour le cours fusionné ${id}`);
@@ -40,7 +39,7 @@ for (const id of [11, 12]) assert.equal(ordered.has(id), true, `le cours ${id} e
 ctx.allLessons = lessons;
 ctx.save = () => { ctx.saved = (ctx.saved || 0) + 1; };
 ctx.state = { lessons: {
-  11: { done: true, etapes: { exo: 1, q0: 1, q1: 1 } },     // quiz passé de 2 à 4 questions
+  11: { done: true, etapes: { exo: 1, q0: 1, q1: 1 } },     // validé avec son ancien quiz : rien ne change
   12: { done: true },                                         // ancien état sans étapes
   6: { done: false, etapes: { exo: 1, q0: 1 } },              // en cours : rien n'est offert
   72: { done: true, etapes: { exo: 1, q0: 1, q1: 1, q2: 1, q3: 1 } },  // déjà complet : rien ne change
@@ -48,8 +47,8 @@ ctx.state = { lessons: {
 } };
 vm.runInContext('migrerEtapes()', ctx);
 const e = id => JSON.parse(JSON.stringify(ctx.state.lessons[id].etapes));   // objets du contexte vm : on compare des copies simples
-assert.deepEqual(e(11), { exo: 1, q0: 1, q1: 1, q2: 1, q3: 1 });
-assert.deepEqual(e(12), { exo: 1, q0: 1, q1: 1, q2: 1, q3: 1 });
+assert.deepEqual(e(11), { exo: 1, q0: 1, q1: 1 });
+assert.deepEqual(e(12), { exo: 1 });
 assert.deepEqual(e(6), { exo: 1, q0: 1 }, 'une leçon non validée garde sa progression partielle');
 assert.deepEqual(e(72), { exo: 1, q0: 1, q1: 1, q2: 1, q3: 1 });
 assert.deepEqual(e(0), { exo: 1 });

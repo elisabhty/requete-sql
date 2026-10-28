@@ -95,7 +95,7 @@ test('Sécurité et droits : le dernier cours de l’app, seul dans son module, 
   assert.equal(lessons.filter(l => !l.video).length, 0, 'plus aucun cours texte dans l’app : tous les cours sont en vidéo');
 });
 
-test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () => {
+test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', () => {
   const mots = html.match(/\n  50:'([^']+)',?\n/)[1];
   assert.ok(['grant', 'revoke', 'droits', 'acces', 'compte', 'select', 'update', 'statut', 'colonne', 'vue', 'commandes_expedition', 'lina', 'executer'].every(m => mots.includes(m)),
     'trouvé par la recherche : GRANT, REVOKE, les droits, la vue, la colonne statut, Lina, le bouton « Exécuter »…');
@@ -105,13 +105,7 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
   assert.equal(l50.video.anim, 'assets/anim/projet-droits.html?app&embed');
   const recap = l50.studio.reflex.extra;
   assert.ok(recap.includes('Les trois idées à retenir') && ['🔐', '✅', '🚪'].every(e => recap.includes(e)), 'les trois idées à retenir, comme à la fin de la vidéo');
-  const quiz = vm.runInContext('QCM', ctx)[50];
-  assert.equal(quiz.length, 3);
-  assert.deepEqual([...quiz.map(q => q.b)], [1, 0, 2], 'la bonne réponse change de place d’une question à l’autre');
-  assert.ok(quiz.every(q => q.o.length === 3 && q.e), 'trois réponses et une explication par question');
-  assert.ok(/GRANT SELECT ON commandes_expedition TO lina/.test(quiz[0].o[1]) && /uniquement la colonne/.test(quiz[1].o[0]) && /REVOKE/.test(quiz[2].o[2]),
-    'les bonnes réponses : GRANT SELECT sur la vue, la seule colonne statut, REVOKE à la fin de la mission');
-  assert.ok(!/app_user|stagiaire|reporting/.test(JSON.stringify(quiz)), 'plus rien de l’ancien cours texte');
+  assert.equal(vm.runInContext('QCM', ctx)[50], undefined, 'plus de quiz : la vidéo et ses moments valident la leçon (Elisa, 28 octobre)');
   const carte = html.match(/\n 50:\{k:"GRANT \/ REVOKE",t:"([^"]+)",s:"([^"]+)"/);
   assert.ok(carte && carte[1] === 'Accorder uniquement les accès nécessaires' && carte[2].includes('GRANT UPDATE (statut) ON commandes TO lina;'), 'la carte mémo suit le chapitre');
 });
@@ -374,11 +368,11 @@ test('la vidéo de fin (fin-sql.html) : le bravo du projet, le merci des équipe
   assert.ok(fin.includes("'Avant ton départ, toute l’équipe tenait à te dire merci 💜'") && fin.includes("'Tu peux être fier du chemin parcouru ! 💜'") && !fin.includes("'Ta mission touche à sa fin.'"), 'le merci des équipes');
   assert.ok(fin.includes("'Bonjour à toute l’équipe,'") && fin.includes("'À bientôt 👋'"), 'ta réponse, mot pour mot');
   assert.ok(fin.includes("sel: '#gnb'") && fin.includes("sel: '#bsend'"), 'l’app s’arrête sur le message, puis sur « Envoyer »');
-  assert.ok(fin.includes("cap('k3', \"15 modules, 62 cours<br>et 209 requêtes SQL.\", 4.8);") && fin.includes("const FSTAT = [[15, 'modules'], [62, 'cours'], [209, 'requêtes']];"),
+  assert.ok(fin.includes("cap('k3', \"15 modules, 62 cours<br>et 166 requêtes SQL.\", 4.8);") && fin.includes("const FSTAT = [[15, 'modules'], [62, 'cours'], [166, 'requêtes']];"),
     'le nombre de requêtes des cours (plus « 17 chapitres », déjà parmi les 62 cours)');
-  /* Les 43 requêtes des exercices sont dans le compte : chaque cours avec exercice en a une (le cours 0, leçon seule, n’en a plus) */
+  /* Plus aucun exercice dans les cours (Elisa, 28 octobre) : les 166 requêtes sont celles des vidéos */
   const M = html.slice(html.indexOf('const MODULES = ['), html.indexOf('const CHALLENGES=['));
-  assert.equal(new Set([...M.matchAll(/\n  solution:"((?:[^"\\]|\\.)*)"/g)].map(m => m[1])).size, 43, 'les requêtes des exercices');
+  assert.equal(new Set([...M.matchAll(/\n  solution:"((?:[^"\\]|\\.)*)"/g)].map(m => m[1])).size, 0, 'plus de requête d’exercice');
   assert.ok(fin.includes("cap('k5', \"Et maintenant, place à la pratique :<br>des défis t’attendent !\", 4.6);"), 'et maintenant, la pratique');
   assert.ok(fs.readFileSync(path.join(root, 'sw.js'), 'utf8').includes("'./assets/anim/fin-sql.html?app&embed'"), 'gardée pour le hors ligne');
   /* Le lecteur : la fin se lance après une réussite, jamais après un échec */
@@ -390,6 +384,6 @@ test('la vidéo de fin (fin-sql.html) : le bravo du projet, le merci des équipe
     && fe.includes('<p>Tu as terminé ton parcours SQL. Prends un instant pour découvrir tout ce que tu as appris.</p>'), 'ses mots');
   assert.ok(fe.includes('Découvrir les défis</button>') && fe.includes('<button type="button" class="lv-fe-home">Retour à l’accueil</button>'), 'ses deux boutons');
   assert.ok(html.includes("end.querySelector('.lv-fe-go').addEventListener('click',()=>lvFinLeave('defis'));") && html.includes("end.querySelector('.lv-fe-home').addEventListener('click',()=>lvFinLeave('learn'));"), 'les défis, ou l’accueil');
-  assert.ok(html.includes('const SQL_REQUETES=209;') && fin.includes("[209, 'requêtes']"), 'les mêmes nombres que la vidéo');
+  assert.ok(html.includes('const SQL_REQUETES=166;') && fin.includes("[166, 'requêtes']"), 'les mêmes nombres que la vidéo');
   assert.ok(html.includes('if(!LV||LV.fin)return;'), 'pas de point de reprise pour la fin');
 });

@@ -83,7 +83,7 @@ test('Transactions : premier cours du module « Transactions », juste après ON
   assert.equal(l62.résumé, 'Valider les modifications ensemble', 'le sous-titre de la trame d’Elisa');
 });
 
-test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () => {
+test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', () => {
   const mots = html.match(/\n  62:'([^']+)',/)[1];
   assert.ok(['transaction', 'begin transaction', 'start transaction', 'commit', 'rollback', 'valider', 'annuler', 'remplacement', 'stock', 'not null'].every(m => mots.includes(m)),
     'trouvé par la recherche : la transaction, ses trois commandes, le remplacement, le stock, NOT NULL…');
@@ -92,13 +92,7 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
   assert.equal(l62.video.anim, 'assets/anim/projet-transaction.html?app&embed');
   const recap = l62.studio.reflex.extra;
   assert.ok(recap.includes('Les trois idées à retenir') && ['🚦', '✅', '↩️'].every(e => recap.includes(e)), 'les trois idées à retenir, comme à la fin de la vidéo');
-  /* Le quiz de la leçon parle de la même histoire : BEGIN TRANSACTION, ROLLBACK quand le remplacement est refusé, plus de ROLLBACK après COMMIT. */
-  const quiz = vm.runInContext('QCM', ctx)[62];
-  assert.equal(quiz.length, 3);
-  assert.deepEqual([...quiz.map(q => q.b)], [1, 0, 2], 'la bonne réponse change de place d’une question à l’autre');
-  assert.ok(quiz.every(q => q.o.length === 3 && q.e), 'trois réponses et une explication par question');
-  assert.ok(/BEGIN TRANSACTION/.test(quiz[0].o[1]) && /ROLLBACK/.test(quiz[1].o[0]) && /^Non/.test(quiz[2].o[2]), 'les bonnes réponses : BEGIN TRANSACTION, ROLLBACK, « Non » après COMMIT');
-  assert.ok(!/Sophie|Lucas|points/.test(JSON.stringify(quiz)), 'plus de transfert de points de fidélité');
+  assert.equal(vm.runInContext('QCM', ctx)[62], undefined, 'plus de quiz : la vidéo et ses moments valident la leçon (Elisa, 28 octobre)');
 });
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {

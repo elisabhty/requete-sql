@@ -96,7 +96,7 @@ test('Concurrence et isolation : juste après Les triggers, dans le module « Tr
   assert.equal(l71.résumé, 'Gérer les accès simultanés', 'les mots du « À retenir » d’Elisa');
 });
 
-test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () => {
+test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', () => {
   const mots = html.match(/\n  71:'([^']+)',/)[1];
   assert.ok(['concurrence', 'isolation', 'verrou', 'for update', 'transaction', 'commit', 'rollback', 'places_restantes', 'derniere place', 'acces simultanes'].every(m => mots.includes(m)),
     'trouvé par la recherche : concurrence, isolation, verrou, FOR UPDATE, la dernière place…');
@@ -105,13 +105,7 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
   assert.equal(l71.video.anim, 'assets/anim/projet-concurrence.html?app&embed');
   const recap = l71.studio.reflex.extra;
   assert.ok(recap.includes('Les trois idées à retenir') && ['👥', '🔒', '🛡️'].every(e => recap.includes(e)), 'les trois idées à retenir, comme à la fin de la vidéo');
-  const quiz = vm.runInContext('QCM', ctx)[71];
-  assert.equal(quiz.length, 3);
-  assert.deepEqual([...quiz.map(q => q.b)], [1, 2, 0], 'la bonne réponse change de place d’une question à l’autre');
-  assert.ok(quiz.every(q => q.o.length === 3 && q.e), 'trois réponses et une explication par question');
-  assert.ok(/deux inscriptions sont confirmées/.test(quiz[0].o[1]) && /verrouille/.test(quiz[1].o[2]) && /reste disponible/.test(quiz[2].o[0]),
-    'les bonnes réponses : deux confirmations, le verrou, la place qui reste disponible');
-  assert.ok(!/caisse|BEGIN IMMEDIATE|Magnésium/.test(JSON.stringify(quiz)), 'plus rien de l’ancien cours texte');
+  assert.equal(vm.runInContext('QCM', ctx)[71], undefined, 'plus de quiz : la vidéo et ses moments valident la leçon (Elisa, 28 octobre)');
 });
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
