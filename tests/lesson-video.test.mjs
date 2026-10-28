@@ -116,9 +116,11 @@ test('l’animation part dans l’app iOS et reste légère (plus de MP4 pour WH
   assert.ok(build.includes("for (const dir of ['assets', 'vendor'])"), 'assets/ (donc assets/anim) est copié dans l’app');
   assert.ok(!fs.existsSync(path.join(ROOT, 'assets/videos/where.mp4')), 'l’ancien MP4 de 9 Mo a disparu');
   let total = 0;
-  for (const f of ['where.html', 'gsap.min.js', 'mascotte.webp', 'where-thumb.jpg']) total += fs.statSync(path.join(ROOT, 'assets/anim', f)).size;
+  /* La photo de l’événement éphémère (Elisa, 28 octobre, 22 h 06), dans la carte de la situation : comptée et préchargée. */
+  assert.ok(sw.includes("'./assets/anim/evenement-ephemere.webp'"), 'photo préchargée');
+  for (const f of ['where.html', 'gsap.min.js', 'mascotte.webp', 'where-thumb.jpg', 'evenement-ephemere.webp']) total += fs.statSync(path.join(ROOT, 'assets/anim', f)).size;
   for (const f of ANIM_FONTS) total += fs.statSync(path.join(ROOT, 'assets/fonts', f)).size;
-  assert.ok(total < 470 * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
+  assert.ok(total < 540 * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);   // 470 Ko, plus la photo (70 Ko)
   assert.ok(sw.includes("url.pathname.endsWith('.mp4')"));
 });
 
@@ -192,7 +194,9 @@ test('page de l’animation : ressources locales, mode intégré, chapitres et l
   /* Chapitres et légendes : ceux de la vidéo avec ses moments « À toi » (MP : le plan de moments.js), la bulle « À toi ! » comprise. */
   assert.ok(page.includes('chapters: MP.chapters.map(') && page.includes('captions: MP.captions.map(') && page.includes('questions: QUESTIONS.map(') && page.includes('picks: MP.picks.map('));
   assert.ok(page.includes('const sr = $(\'#stage\').getBoundingClientRect(), k = sr.width / 1080 || 1;'), 'mesures justes quand la scène est réduite');
-  assert.ok(page.includes('<div class="inv-from">NutriBoost · équipe marketing</div>') && page.includes('Avec <span class="ic">WHERE</span>, garde seulement'));
+  /* La carte de la situation : la photo de l’événement éphémère (Elisa, 28 octobre, 22 h 06), le lieu dessous. */
+  assert.ok(page.includes('<img src="evenement-ephemere.webp"') && page.includes('<div class="inv-foot"><span class="emo">📍</span><span>Dans un local à Paris</span></div>')
+    && page.includes('Avec <span class="ic">WHERE</span>, garde seulement'));
   assert.ok(page.includes('gsap.config({force3D: false});'), 'transformations en 2D : pas de calque GPU, texte net à la taille réduite');
   assert.ok(page.includes('html.embed,html.embed body{height:100%;overflow:hidden;background:transparent}') && page.includes('html.embed .blob{display:none}'),
     'dans le lecteur : fond transparent, sans halos coupés au bord de la scène');

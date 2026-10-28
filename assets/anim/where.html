@@ -125,6 +125,13 @@ code,.ic{font-family:var(--mono);font-size:.86em;font-weight:700;color:var(--acc
 .inv-place{margin-top:14px;display:flex;align-items:center;gap:12px;font-size:40px;font-weight:600;color:var(--ink-2)}
 .inv-place .emo{font-size:40px}
 .stamp{position:absolute;right:-34px;top:-30px;padding:12px 24px;border:5px solid var(--accent);border-radius:20px;color:var(--accent-ink);background:#F7F4FF;box-shadow:0 6px 0 #D9CEFF;font-family:var(--display);font-weight:800;font-size:40px;opacity:0;white-space:nowrap}
+/* 1 · La carte de l’événement : la photo d’Elisa sous le bandeau, le lieu dessous (sur la photo, il cachait l’enseigne NutriBoost) ;
+   le tampon au coin bas de la carte, à côté du lieu : ni sur le titre ni sur les visages */
+.inv-photo{height:420px;overflow:hidden}
+.inv-photo img{display:block;width:100%;height:100%;object-fit:cover}
+.inv-foot{height:78px;display:flex;align-items:center;gap:10px;padding:0 30px;font-size:32px;font-weight:600;color:var(--ink-2)}
+.inv-foot .emo{font-size:30px}
+.invite .stamp{top:auto;bottom:-8px}
 .need{left:64px;top:666px;width:952px;padding:30px 0 16px}
 .need-h{padding:0 42px 14px;font-size:34px;font-weight:700;color:var(--ink-3)}
 .need-row{height:118px;display:flex;align-items:center;gap:24px;padding:0 42px;box-shadow:inset 0 2px 0 var(--line-2);opacity:0}
@@ -253,20 +260,18 @@ code,.ic{font-family:var(--mono);font-size:.86em;font-weight:700;color:var(--acc
 
   <!-- 1 · Situation -->
   <section class="scene" id="s1">
+    <!-- La photo de l’événement éphémère (Elisa, 28 octobre, 22 h 06) remplace le texte de la carte : le titre dans le bandeau, le lieu sur la photo -->
     <div class="abs card invite">
-      <div class="inv-band"><span class="emo">🎉</span><span>Invitation</span></div>
-      <div class="inv-body">
-        <div class="inv-from">NutriBoost · équipe marketing</div>
-        <div class="inv-title">Événement éphémère</div>
-        <div class="inv-place"><span class="emo">📍</span><span>Dans un local à Paris</span></div>
-      </div>
+      <div class="inv-band"><span class="emo">🎉</span><span>Événement éphémère</span></div>
+      <div class="inv-photo"><img src="evenement-ephemere.webp" alt="L’événement éphémère de NutriBoost à Paris"></div>
+      <div class="inv-foot"><span class="emo">📍</span><span>Dans un local à Paris</span></div>
       <div class="stamp">Places limitées</div>
     </div>
     <div class="abs card need">
       <div class="need-h">Les informations à récupérer</div>
       <div class="need-row"><span class="emo">👤</span><span class="nl">Le prénom du client</span><span class="tag">table clients</span></div>
       <div class="need-row"><span class="emo">👪</span><span class="nl">Son nom de famille</span><span class="tag">table clients</span></div>
-      <div class="need-row"><span class="emo">✉️</span><span class="nl">Son email</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">✉️</span><span class="nl">Son e-mail</span><span class="tag">table clients</span></div>
       <div class="need-row"><span class="emo">📍</span><span class="nl">Sa ville</span><span class="tag">table clients</span></div>
     </div>
   </section>
@@ -815,6 +820,8 @@ function build(){
   /* ===== 1 · Situation ===== */
   sceneOn('#s1', 5.0);
   // L'invitation arrive seule au centre de l'écran, puis remonte quand la liste des informations entre.
+  // La liste se cale sous la carte inclinée, agrandie par la photo, sans la toucher.
+  $('#s1 .need').style.top = Math.round(256 + $('#s1 .invite').offsetHeight + 44) + 'px';
   gsap.set('#s1 .invite', {autoAlpha: 0, y: 470, rotation: -9});
   tl.to('#s1 .invite', {autoAlpha: 1, y: 380, rotation: -2.5, duration: 0.9, ease: 'back.out(1.3)'}, 5.15);
   cue(5.15, 'whoosh', 0.8);
