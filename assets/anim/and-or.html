@@ -22,7 +22,8 @@
 .tr.tp{height:62px;font-size:32px}
 .agev{position:relative;display:inline-block}
 .agev .mbox{position:absolute;left:-12px;right:-12px;top:-5px;bottom:-5px;background:#FADADD;border-radius:12px;box-shadow:inset 0 0 0 2px rgba(194,50,58,.16);z-index:-1;opacity:0}
-.note{justify-self:end;height:44px;padding:0 16px;border-radius:999px;background:var(--danger-soft);border:2px solid #F6C9CD;color:var(--danger);font-family:var(--ui);font-size:24px;font-weight:800;display:flex;align-items:center;white-space:nowrap;opacity:0}
+/* « Ne remplit pas le critère d’âge » (Elisa, 28 octobre, 23 h 23) : sur deux lignes, il tient dans sa colonne et dans la ligne */
+.note{justify-self:end;padding:4px 14px;border-radius:14px;background:var(--danger-soft);border:2px solid #F6C9CD;color:var(--danger);font-family:var(--ui);font-size:20px;line-height:1.12;font-weight:800;text-align:center;white-space:nowrap;opacity:0}
 .miss{left:64px;width:952px;padding:0 0 16px;background:#FFF8F8;border:3px dashed #EFA9B0;border-radius:48px}
 .miss .tt{height:76px;display:flex;align-items:center;gap:14px;padding:0 34px;font-weight:700;font-size:32px;color:var(--danger)}
 .miss .tt .emo{font-size:34px}
@@ -187,7 +188,7 @@
       <div class="trap-h swap"><span class="ph" id="ph1"><span class="emo">⚠️</span><span>Sans parenthèses</span></span><span class="ph" id="ph2"><span class="emo">✅</span><span>Avec parenthèses</span></span></div>
       <div class="mini m5" id="m5"><span class="ln" id="m5l"><span id="lp">(</span><span id="cP">ville = <span class="str">'Paris'</span></span> <span class="kw">OR</span> <span id="cL">ville = <span class="str">'Lyon'</span></span><span id="rp">)</span> <span class="kw" id="and5">AND</span> <span id="cA">age &gt; 30</span><span class="caret"><i></i></span></span></div>
       <svg class="brk"><path id="br1" d=""/><path id="br2" d=""/></svg>
-      <div class="blab" id="bl1">AND : calculé en premier</div>
+      <div class="blab" id="bl1">AND est prioritaire sur OR</div>
       <div class="blab" id="bl2">entre parenthèses : calculé en premier</div>
     </div>
     <div class="tbl card" id="tbl5" style="top:566px">
@@ -230,7 +231,7 @@
 <script src="moments.js"></script>
 <script>
 'use strict';
-const DURATION = 109.1;
+const DURATION = 119.1;
 
 /* Table clients : [prenom, nom, ville, age] */
 const CLIENTS = [['Sophie','Martin','Paris',34],['Lucas','Bernard','Lyon',28],['Emma','Dubois','Marseille',45],['Nathan','Petit','Paris',31],
@@ -244,9 +245,9 @@ const CHAPTERS = [
   {n:2, label:'Le problème',      a:15.0, b:26.8},
   {n:3, label:'Ajouter l’âge',    a:26.8, b:45.5},   // « Avec AND » donnait la réponse du moment 1 (AND ou OR ?), affiché au-dessus de la feuille
   {n:4, label:'Ajouter Lyon',     a:45.5, b:64.5},
-  {n:5, label:'Les parenthèses',  a:64.5, b:83.3},
-  {n:6, label:'Le résultat',      a:83.3, b:96.3},
-  {n:7, label:'À retenir',        a:96.3, b:DURATION}
+  {n:5, label:'Les parenthèses',  a:64.5, b:93.3},
+  {n:6, label:'Le résultat',      a:93.3, b:106.3},
+  {n:7, label:'À retenir',        a:106.3, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
@@ -267,14 +268,19 @@ const CAPTIONS = [
   [59.7, 64.0,  "Les clients de Paris et de Lyon <span class=\"nw\">sont gardés</span> : <b>6 clients</b>."],
   [64.8, 68.6,  "Il reste à tout combiner : les deux villes avec <code>OR</code>, l’âge avec <code>AND</code>."],
   [68.7, 72.6,  "Attention : <code>AND</code> est <b>prioritaire</b>, <span class=\"nw\">il est calculé</span> avant <code>OR</code>."],
-  [73.0, 77.8,  "Sans parenthèses, Nathan Dupont, 30 ans, reste : l’âge ne compte que pour Lyon."],
-  [77.9, 82.8,  "Avec les parenthèses, l’âge compte pour <b>tous</b> : il reste <b>4 clients</b>."],
-  [83.6, 88.2,  "La requête affiche le prénom, le nom, la ville et l’âge des clients à inviter."],
-  [88.3, 92.0,  "Résultat : <b>4 invitations</b> à envoyer, 3 pour Paris et 1 pour Lyon."],
-  [92.1, 95.8,  "<code>WHERE</code> ne filtre que le résultat : la <b>table\u00a0clients</b> n’est pas modifiée."],
-  [96.6, 101.4, "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [101.5, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
-      : [101.5, 999, "Relie les conditions avec <code>AND</code> et <code>OR</code>, et regroupe-les entre parenthèses."]
+  // Sans parenthèses : le texte d’Elisa (28 octobre, 23 h 23), une phrase par bulle (la première, en 4 lignes, coupée au deux-points) ;
+  // le passage gagne 10 s
+  [73.0, 75.9,  "Sans parenthèses,<br><code>AND</code> est prioritaire sur <code>OR</code>."],
+  [76.0, 80.2,  "La condition « plus\u00a0de\u00a030\u00a0ans »<br>s’applique uniquement<br>aux clients de Lyon."],
+  [80.3, 83.9,  "Tous les clients de Paris sont donc sélectionnés, quel que soit leur âge."],
+  [84.0, 87.8,  "Nathan Dupont, 30 ans, est ainsi invité alors qu’il ne devrait pas l’être."],
+  [87.9, 92.8,  "Avec les parenthèses, l’âge compte pour <b>tous</b> : il reste <b>4 clients</b>."],
+  [93.6, 98.2,  "La requête affiche le prénom, le nom, la ville et l’âge des clients à inviter."],
+  [98.3, 102.0,  "Résultat : <b>4 invitations</b> à envoyer, 3 pour Paris et 1 pour Lyon."],
+  [102.1, 105.8,  "<code>WHERE</code> ne filtre que le résultat : la <b>table\u00a0clients</b> n’est pas modifiée."],
+  [106.6, 111.4, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [111.5, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
+      : [111.5, 999, "Relie les conditions avec <code>AND</code> et <code>OR</code>, et regroupe-les entre parenthèses."]
 ];
 
 /* Pas de question en pleine vidéo : les moments « À toi » font participer l’élève (ni exercice ni quiz après la vidéo, depuis le 28 octobre). */
@@ -326,7 +332,7 @@ const MOMENTS = [
 function dom(){
   const cells = c => `<div>${c[0]}</div><div>${c[1]}</div><div>${c[2]}</div>`;
   const ageCell = c => `<div><span class="agev">${c[3]}<i class="mbox"></i></span></div>`;
-  const noteCell = c => ND(c) ? '<span class="note">pas plus de 30</span>' : '<span></span>';
+  const noteCell = c => ND(c) ? '<span class="note">Ne remplit pas<br>le critère d’âge</span>' : '<span></span>';
   $('#rows2').innerHTML = CLIENTS.filter(PARIS).map(c => `<div class="rgP tr tp" data-nd="${ND(c) ? 1 : 0}">${cells(c)}${ageCell(c)}${noteCell(c)}</div>`).join('');
   $('#rowsM').innerHTML = CLIENTS.filter(c => LYON(c) && AGE(c)).map(c => `<div class="rgP tr tp">${cells(c)}<div>${c[3]}</div><span></span></div>`).join('');
   const truth = (c1, c2, op) => CLIENTS.map(c => {
@@ -547,60 +553,61 @@ function build(){
   gsap.set('#cnt5b', {autoAlpha: 0, y: 24});
   const nd5 = tr5.find(r => r.dataset.nd === '1');
   gsap.set(nd5.querySelector('.mbox'), {autoAlpha: 0, scale: 1.3});
-  tl.to(nd5.querySelector('.mbox'), {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 74.5);
-  tl.to(nd5.querySelector('.agev'), {color: '#C2323A', duration: 0.2}, 74.5);
-  show(nd5.querySelector('.note'), 74.8, {y: 0, scale: 0.5}, 0.36, 'back.out(2.2)');
-  cue(74.5, 'miss', 0.7, 2);
+  // Nathan Dupont, 30 ans, marqué quand la légende parle de lui
+  tl.to(nd5.querySelector('.mbox'), {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 84.2);
+  tl.to(nd5.querySelector('.agev'), {color: '#C2323A', duration: 0.2}, 84.2);
+  show(nd5.querySelector('.note'), 84.5, {y: 0, scale: 0.5}, 0.36, 'back.out(2.2)');
+  cue(84.2, 'miss', 0.7, 2);
   // Les parenthèses regroupent les deux villes.
-  tl.to('#br1', {strokeDashoffset: L.len1 + 1, duration: 0.35, ease: 'power2.in'}, 78.0);
-  tl.to('#bl1', {autoAlpha: 0, duration: 0.25}, 78.0);
+  tl.to('#br1', {strokeDashoffset: L.len1 + 1, duration: 0.35, ease: 'power2.in'}, 88.0);
+  tl.to('#bl1', {autoAlpha: 0, duration: 0.25}, 88.0);
   gsap.set([lp, rp], {autoAlpha: 0});
-  tl.set([lp, rp], {display: 'inline'}, 78.4);
-  tl.to(lp, {autoAlpha: 1, duration: 0.25}, 78.4);
-  tl.to(rp, {autoAlpha: 1, duration: 0.25}, 78.55);
-  cue(78.4, 'pop', 0.9, 4);
-  cue(78.55, 'pop', 0.9, 6);
-  tl.to('#ph1', {autoAlpha: 0, duration: 0.25}, 78.4);
-  tl.to('#ph2', {autoAlpha: 1, duration: 0.3}, 78.5);
-  tl.to('#br2', {strokeDashoffset: 0, duration: 0.55, ease: 'power2.inOut'}, 78.8);
-  show('#bl2', 79.15, {y: 14});
-  tl.to(nd5, {height: 0, opacity: 0, duration: 0.55, ease: 'power2.inOut'}, 79.9);
-  cue(79.9, 'fold', 0.9);
-  tl.to('#cnt5a', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 80.55);
-  tl.to('#cnt5b', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 80.65);
-  cue(80.65, 'pop', 0.9, 4);
-  hide(['#p5', '#tbl5'], 82.8);
-  sceneOff('#s5', 83.3);
+  tl.set([lp, rp], {display: 'inline'}, 88.4);
+  tl.to(lp, {autoAlpha: 1, duration: 0.25}, 88.4);
+  tl.to(rp, {autoAlpha: 1, duration: 0.25}, 88.55);
+  cue(88.4, 'pop', 0.9, 4);
+  cue(88.55, 'pop', 0.9, 6);
+  tl.to('#ph1', {autoAlpha: 0, duration: 0.25}, 88.4);
+  tl.to('#ph2', {autoAlpha: 1, duration: 0.3}, 88.5);
+  tl.to('#br2', {strokeDashoffset: 0, duration: 0.55, ease: 'power2.inOut'}, 88.8);
+  show('#bl2', 89.15, {y: 14});
+  tl.to(nd5, {height: 0, opacity: 0, duration: 0.55, ease: 'power2.inOut'}, 89.9);
+  cue(89.9, 'fold', 0.9);
+  tl.to('#cnt5a', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 90.55);
+  tl.to('#cnt5b', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 90.65);
+  cue(90.65, 'pop', 0.9, 4);
+  hide(['#p5', '#tbl5'], 92.8);
+  sceneOff('#s5', 93.3);
 
   /* ===== 6 · Le résultat ===== */
-  sceneOn('#s6', 83.3);
-  show('#s6code', 83.35, {y: 60}, 0.6);
-  cue(83.35, 'whoosh', 0.7);
-  te = typeLine($('#s6l1'), 83.85, 30);
+  sceneOn('#s6', 93.3);
+  show('#s6code', 93.35, {y: 60}, 0.6);
+  cue(93.35, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 93.85, 30);
   for (const id of ['#s6l2', '#s6l3', '#s6l4', '#s6l5']) te = typeLine($(id), te + 0.1, 30);
-  press($('#s6run'), 88.25);
-  show('#tix6', 88.55, {y: 40}, 0.5);
+  press($('#s6run'), 98.25);
+  show('#tix6', 98.55, {y: 40}, 0.5);
   const tk = $$('#tgrid .tk');
   gsap.set(tk, {autoAlpha: 0, scale: 0.7, rotation: -4});
   tk.forEach((k, i) => {
-    tl.to(k, {autoAlpha: 1, scale: 1, rotation: 0, duration: 0.45, ease: 'back.out(1.8)'}, 88.85 + i * 0.16);
-    cue(88.85 + i * 0.16, 'pop', 0.75, i);
+    tl.to(k, {autoAlpha: 1, scale: 1, rotation: 0, duration: 0.45, ease: 'back.out(1.8)'}, 98.85 + i * 0.16);
+    cue(98.85 + i * 0.16, 'pop', 0.75, i);
   });
-  show('#cnt6', 89.7, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  show('#badge6', 90.2, {y: 0, scale: 0.6}, 0.55, 'back.out(1.9)');
-  cue(90.2, 'success', 0.9);
-  hide(['#s6code', '#tix6', '#badge6'], 95.8);
-  sceneOff('#s6', 96.3);
+  show('#cnt6', 99.7, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  show('#badge6', 100.2, {y: 0, scale: 0.6}, 0.55, 'back.out(1.9)');
+  cue(100.2, 'success', 0.9);
+  hide(['#s6code', '#tix6', '#badge6'], 105.8);
+  sceneOff('#s6', 106.3);
 
   /* ===== 7 · À retenir ===== */
-  recapScene(96.3, [97.0, 98.8, 100.6]);
-  hold(98.6, 2.9);
-  hold(100.4, 2.9);
+  recapScene(106.3, [107.0, 108.8, 110.6]);
+  hold(108.6, 2.9);
+  hold(110.4, 2.9);
   // Le bouton « Ajouter à mes notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(101.55, 'pop', 0.85, 5);
+  if (APP) cue(111.55, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 101.5, moments: MOMENTS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 111.5, moments: MOMENTS,
   glyphs: '🎤📍👤👪🎂🔎⚠️📋✅🎟️🔗🔀🧩✓✕→', dom, build});
 </script>
 </body>
