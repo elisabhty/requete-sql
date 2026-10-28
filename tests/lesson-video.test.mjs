@@ -614,6 +614,7 @@ const COURSES = [
       '<span class="tv">\'\'</span><b>un texte vide</b>', '<span class="tv">0</span><b>le nombre zéro</b>', '<span class="kw">WHERE</span> email = <span class="kw">NULL</span>;',
       '<b>Aucune ligne</b><span class="s">= NULL ne permet pas de détecter<br>une valeur absente.</span>', '<span class="kw glow" id="isnn5">IS NOT NULL</span>', '2 + 8 = <em>10 clients</em>']},
   {id: 8, next: 9, titre: 'LIKE', page: 'like.html', thumb: 'like-thumb.jpg', duree: '2 min 30', notesAt: 120.7,
+    maxKo: 560,   // la photo du colis (47 Ko, Elisa, 29 octobre, 0 h 06), comme celles de WHERE et AND et OR
     table: 'clients',
     bubble: 'Avec <span class="ic">LIKE</span>, cherche un motif plutôt qu’une valeur exacte.',
     chapters: ['Situation', 'Le problème', 'LIKE en action', 'Où placer le %', 'Un seul caractère', 'Le résultat', 'À retenir'],
