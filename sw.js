@@ -14,7 +14,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-10-12-ludique-v2128';
+const CACHE = 'requete-2026-10-12-ludique-v2129';
 
 const PRECACHE = [
   './',
@@ -108,6 +108,7 @@ const PRECACHE = [
   './assets/anim/bases-relationnelles-thumb.webp',
   './assets/anim/nutriboost.webp',
   './assets/anim/badge-nutriboost.webp',
+  './assets/anim/conference-nutrition.webp',
   './assets/anim/where-thumb.jpg',
   './assets/anim/as-thumb.jpg',
   './assets/anim/distinct-thumb.jpg',
