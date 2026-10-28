@@ -83,6 +83,8 @@
 .inv-photo img{display:block;width:100%;height:100%;object-fit:cover}
 .inv-pin{position:absolute;left:24px;bottom:24px;display:flex;align-items:center;gap:10px;height:62px;padding:0 24px;border-radius:999px;background:rgba(255,255,255,.95);box-shadow:0 4px 14px rgba(30,20,70,.2);font-size:31px;font-weight:700;color:var(--ink);white-space:nowrap}
 .inv-pin .emo{font-size:30px}
+/* Le mélangeur (grille serrée) : un peu moins de marge à droite, pour que « Gabriel M. Toulouse · 29 » tienne dans sa case */
+#mbmg .mg-r{padding-right:14px}
 .invite .stamp{top:136px}   /* sur la photo, sous le bandeau : le titre reste lisible */
 </style>
 </head>
@@ -297,12 +299,13 @@ const MOMENTS = [
   /* Le mélangeur, juste après « AND est prioritaire » : l’élève règle lui-même le mot entre les villes et les parenthèses, et voit qui
      est invité. AND entre les villes ne garde personne ; OR sans parenthèses garde aussi Nathan Dupont, 30 ans (l’âge ne compte que
      pour Lyon) ; OR avec parenthèses garde les 4 invités. */
-  {at: 72.8, from: 64.5, kind: 'tune', ico: '🎛️', prompt: 'Règle la condition pour inviter les clients de Paris et de Lyon <b>de plus de 30 ans</b>.',
-    hint: 'Change le mot entre les villes ou les parenthèses, regarde qui est invité, puis valide.',
+  /* Énoncé, aide et explication d’Elisa (28 octobre, 22 h 12) ; la grille en version serrée : « Gabriel M. Toulouse · 29 » dépassait de la carte. */
+  {at: 72.8, from: 64.5, kind: 'tune', ico: '🎛️', prompt: 'Invite uniquement les clients <b>de plus de 30 ans</b> qui habitent à Paris ou à Lyon.',
+    hint: 'Choisis <code>AND</code> ou <code>OR</code> entre les deux villes et décide s’il faut ajouter des parenthèses. Observe la liste des invités, puis valide ta réponse.',
     controls: [{k: 'op', type: 'seg', label: 'Entre les villes', choices: ['AND', 'OR'], value: 'OR', code: true},
       {k: 'par', type: 'switch', label: 'Parenthèses', value: false}],
     answer: {op: 'OR', par: true},
-    board: {y: 210, html: '<span class="mb-k">🎛️ Le mélangeur</span><div class="mb-q mg-sm" id="mbmq"></div><div class="mg-grid">'
+    board: {y: 210, html: '<span class="mb-k">🎛️ Le mélangeur</span><div class="mb-q mg-sm" id="mbmq"></div><div class="mg-grid mg-dense" id="mbmg">'
       + CLIENTS.map((c, i) => `<div class="mg-r" id="mbm${i}">${c[0]} ${c[1][0]}.<b>${c[2]} · ${c[3]}</b></div>`).join('') + '</div><div class="mg-c" id="mbmn"></div>'},
     show(s, b) {
       const garde = c => s.op === 'AND' ? false : s.par ? (PARIS(c) || LYON(c)) && AGE(c) : PARIS(c) || (LYON(c) && AGE(c)), n = CLIENTS.filter(garde).length;
@@ -314,7 +317,8 @@ const MOMENTS = [
     check(s) {
       if (s.op === 'AND') return {ok: false, why: 'Une ville ne peut pas être à la fois Paris et Lyon : avec <code>AND</code> entre les villes, personne n’est invité.'};
       if (!s.par) return {ok: false, why: 'Sans parenthèses, <code>AND</code> est calculé avant <code>OR</code> : l’âge ne compte que pour Lyon, et Nathan Dupont, 30 ans, est invité.'};
-      return {ok: true, why: 'Avec les parenthèses, la ville est vérifiée d’abord, puis l’âge compte pour tous : 4 clients sont invités.'};
+      return {ok: true, why: 'Les parenthèses regroupent les deux villes : Paris ou Lyon. La condition « plus de 30 ans » s’applique ainsi aux clients des deux villes.'
+        + '<br>Résultat : 4 clients sont invités. Nathan Dupont, qui habite à Paris et a exactement 30 ans, est exclu.'};
     },
     tip: '<code>AND</code> est calculé avant <code>OR</code> : des parenthèses autour des deux villes font compter l’âge pour tous.'}
 ];
