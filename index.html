@@ -14192,6 +14192,11 @@ const LvSfx=(()=>{
       case 'mail':{ o=new Float32Array(N(.62)); marimba(o,0,1568,.45,.13,.12,.24,SR); marimba(o,N(.13),1174.7,.48,.17,.12,.22,SR); break; }
       case 'sms':{ o=new Float32Array(N(.55)); marimba(o,0,1760,.3,.09,.2,.22,SR); marimba(o,N(.075),2349.3,.38,.12,.2,.2,SR); marimba(o,N(.15),2793,.4,.14,.15,.17,SR); break; }
       case 'stamp':{ o=new Float32Array(N(.3)); const nz=noise(o.length,200,1800,SR); for(let i=0;i<o.length;i++){ const t=T(i); ph+=2*Math.PI*140*(1+.6*Math.exp(-t/.02))/SR; o[i]=.4*(Math.sin(ph)*env(t,.001,.08)+.5*nz[i]*env(t,.0005,.025)); } break; }
+      /* L’appel du cours LIKE (Elisa, 29 octobre, 0 h 06 : « son réaliste ») : la sonnerie (une cloche frappée 24 fois par seconde,
+         comme un vieux téléphone), le décroché, la fin d’appel (trois bips à 425 Hz). */
+      case 'ring':{ const d=1.1; o=new Float32Array(N(d)); const P=[[1180,1],[1530,.7],[2360,.32],[3110,.16]]; for(let i=0;i<o.length;i++){ const t=T(i), s=(t*24)%1, fade=Math.min(1,t/.01)*Math.min(1,(d-t)/.08); let v=0; for(const [f,a] of P)v+=a*Math.sin(2*Math.PI*f*t); o[i]=.16*v*(.2+.8*Math.exp(-s/.02))*fade; } break; }
+      case 'pickup':{ o=new Float32Array(N(.2)); const nz=noise(o.length,800,5000,SR); for(let i=0;i<o.length;i++){ const t=T(i); o[i]=.45*(nz[i]*env(t,.0005,.006)+.6*Math.sin(2*Math.PI*95*t)*env(t,.002,.045)+.25*Math.sin(2*Math.PI*1900*t)*env(t,.0005,.01)); } break; }
+      case 'hangup':{ o=new Float32Array(N(.86)); for(let k=0;k<3;k++){ const off=N(k*.28), n=N(.16); for(let i=0;i<n&&off+i<o.length;i++){ const t=T(i), e=Math.min(1,t/.006)*Math.min(1,(.16-t)/.006); o[off+i]+=.3*(Math.sin(2*Math.PI*425*t)+.15*Math.sin(2*Math.PI*850*t))*e; } } break; }
       case 'buzz':{ o=new Float32Array(N(.24)); const nz=noise(o.length,90,420,SR); for(let i=0;i<o.length;i++){ const t=T(i), am=.55+.45*Math.sin(2*Math.PI*46*t); o[i]=.5*(nz[i]*.7+Math.sin(2*Math.PI*148*t)*.5)*am*env(t,.004,.12); } break; }
       default: o=new Float32Array(1);
     }
@@ -25496,7 +25501,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2136';
+  const SW_CACHE='requete-2026-10-12-ludique-v2137';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
