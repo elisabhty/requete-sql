@@ -472,7 +472,7 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '9 min 08', notesAt: 492.4, maxKo: 700,   // 700 Ko depuis le 28 octobre : le recrutement (SMS, l’image du badge d’Elisa, 74 Ko) et le site qui interroge le SGBD
+  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '9 min 10', notesAt: 492.4, maxKo: 700,   // 700 Ko depuis le 28 octobre : le recrutement (SMS, l’image du badge d’Elisa, 75 Ko) et le site qui interroge le SGBD
     table: 'clients',
     bubble: 'Chaque sujet a sa table,<br>et des identifiants relient les tables.',
     chapters: ['Situation', 'Le problème', 'Ta mission', 'Le découpage', 'Base de données et SGBD', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],
@@ -495,7 +495,7 @@ const COURSES = [
       "'Souhaites-tu nous accompagner dans ce projet ?'", "const REPONSE = ['Avec plaisir !', 'Je suis prêt à démarrer.'];",
       "const BIENVENUE = ['Bienvenue dans l’équipe !', 'Voici ton badge.', 'Commençons par découvrir nos besoins ensemble.'];",
       '<span class="emo">🤝</span>J’accepte la mission', '<img src="badge-nutriboost.webp"', 'Bienvenue dans l’équipe NutriBoost !',
-      'Ta mission : concevoir et structurer<br>la <b>base de données</b> de NutriBoost.', 'opens: OPENS,',
+      'Ta mission : analyser leurs besoins,<br>concevoir la <b>base de données</b><br>et l’implémenter dans le SGBD.', 'Analyste-développeur', 'opens: OPENS,',
       // Le découpage par sujet : ce qu’est une table (des lignes et des colonnes, un seul sujet), puis les trois tables
       "const GRP = ['k-co', 'k-cl', 'k-cl', 'k-cl', 'k-pr', 'k-pr', 'k-co'];",
       'Une <b>table</b> organise les données en lignes et en colonnes, comme dans un tableau Excel.',
