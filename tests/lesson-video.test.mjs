@@ -472,10 +472,10 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '7 min 58', notesAt: 468.1, maxKo: 610,
+  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '8 min 38', notesAt: 492.4, maxKo: 630,   // 630 Ko depuis le 28 octobre : le recrutement (SMS, badge) et le site qui interroge le SGBD (Elisa)
     table: 'clients',
     bubble: 'Chaque sujet a sa table,<br>et des identifiants relient les tables.',
-    chapters: ['Situation', 'Le problème', 'Le découpage', 'Base de données et SGBD', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],
+    chapters: ['Situation', 'Le problème', 'Ta mission', 'Le découpage', 'Base de données et SGBD', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],
     traps: [
       // Le fichier Excel : une ligne par commande, le client et le produit recopiés
       '<span class="xfn">commandes.xlsx</span>', '<span class="xn" id="xn">16 commandes</span>', "const HEAD = ['N°', 'Prénom', 'Nom', 'E-mail', 'Produit', 'Prix', 'Qté'];",
@@ -485,6 +485,11 @@ const COURSES = [
       "cur('tc1', 'tc-a', 1, '🚚', 'Logistique') + cur('tc2', 'tc-b', 0, '💬', 'Service client') + cur('tc3', 'tc-c', 1, '💼', 'Commercial')", 'Des erreurs apparaissent',
       // Un e-mail corrigé sur deux lignes seulement : deux e-mails pour la même cliente (Elisa, 28 octobre, Réf 1)
       "const NOUVEL_EMAIL = 's.martin@mail.fr';", 'L’e-mail de Sophie Martin, commande par commande', 'Deux e-mails pour la cliente Sophie Martin',
+      // Ta mission (Elisa, 28 octobre : « comment faire en sorte que l’utilisateur nous accompagne dans le projet ? ») : le SMS de Camille Roux
+      // (l’app s’arrête dessus, puis sur « J’accepte la mission »), ta réponse, la sienne, et ton badge NutriBoost à ton prénom
+      'Camille Roux, responsable<br>des opérations, t’écrit.', 'Veux-tu nous accompagner dans ce projet ?', '<span class="emo">🤝</span>J’accepte la mission',
+      "const REPONSE = 'J’accepte la mission ! 🙌', MERCI_CR = 'Super ! Voici ton badge 💜';", "localStorage.getItem('requete-sql-v3')",
+      'Bienvenue dans l’équipe NutriBoost !', '<div class="stamp" id="bdst">Mission acceptée</div>', 'opens: OPENS,',
       // Le découpage par sujet : ce qu’est une table (des lignes et des colonnes, un seul sujet), puis les trois tables
       "const GRP = ['k-co', 'k-cl', 'k-cl', 'k-cl', 'k-pr', 'k-pr', 'k-co'];",
       'Une <b>table</b> organise les données en lignes et en colonnes, comme dans un tableau Excel.',
@@ -502,8 +507,12 @@ const COURSES = [
       'Elle est gérée par un <b>SGBD</b> : un système de gestion de base de données.',
       'Il en existe plusieurs, très utilisés : <b>MySQL</b>, <b>PostgreSQL</b>, <b>Oracle</b> ou <b>SQL Server</b>.',
       "const SGBDS = [['MySQL', '#2F7BEA', '#E3EEFF', '#BCD3FA'], ['PostgreSQL', '#7C5CFF', '#EEE9FF', '#CFC3FF'],",
-      'Beaucoup d’applications utilisent une base de données.', "['c', '🛒', 'Site NutriBoost', '<span>Produits,</span> <span>commandes,</span> <span>achats</span>']",
-      'Le site de NutriBoost utilise aussi la base de données.', 'Pour cela, il envoie des requêtes en <b>SQL</b> au SGBD, qui les exécute.',
+      // Le site de NutriBoost et le SGBD (Elisa, 28 octobre : « le passage avec les applications […] ça veut rien dire ») : la requête
+      // descend du site, le SGBD l’exécute sur la base, le résultat remonte et le site l’affiche ; puis une commande enregistrée
+      'Le site de NutriBoost utilise<br>cette base de données.', 'le site envoie alors une <b>requête SQL</b><br>au SGBD pour les obtenir.',
+      'Le SGBD l’<b>exécute</b> : il lit les produits dans la <b>table produits</b>.', 'Il renvoie le <b>résultat</b> au site,<br>qui l’affiche à l’écran.',
+      'Quand le client commande, le site envoie une autre requête.', 'Le SGBD enregistre la commande dans la <b>table commandes</b>, et le site la confirme au client.',
+      '<span class="kw">SELECT</span> * <span class="kw">FROM</span> produits;', '<span class="kw">INSERT INTO</span> commandes …;', 'Commande enregistrée', 'Commande confirmée',
       '<div class="sgs" id="sgs">Système de gestion de base de données</div>', '<span class="sgq" id="sgq"></span>', '<span>Base de données</span>',
       // La clé primaire : son nom complet, les deux Nathan, un identifiant déjà pris refusé, un client sans identifiant qui reçoit le suivant
       // (AUTOINCREMENT, Réf 13)
