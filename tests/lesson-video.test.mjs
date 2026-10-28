@@ -472,7 +472,7 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '8 min 38', notesAt: 492.4, maxKo: 630,   // 630 Ko depuis le 28 octobre : le recrutement (SMS, badge) et le site qui interroge le SGBD (Elisa)
+  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '9 min 08', notesAt: 492.4, maxKo: 700,   // 700 Ko depuis le 28 octobre : le recrutement (SMS, l’image du badge d’Elisa, 74 Ko) et le site qui interroge le SGBD
     table: 'clients',
     bubble: 'Chaque sujet a sa table,<br>et des identifiants relient les tables.',
     chapters: ['Situation', 'Le problème', 'Ta mission', 'Le découpage', 'Base de données et SGBD', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],
@@ -487,9 +487,15 @@ const COURSES = [
       "const NOUVEL_EMAIL = 's.martin@mail.fr';", 'L’e-mail de Sophie Martin, commande par commande', 'Deux e-mails pour la cliente Sophie Martin',
       // Ta mission (Elisa, 28 octobre : « comment faire en sorte que l’utilisateur nous accompagne dans le projet ? ») : le SMS de Camille Roux
       // (l’app s’arrête dessus, puis sur « J’accepte la mission »), ta réponse, la sienne, et ton badge NutriBoost à ton prénom
-      'Camille Roux, responsable<br>des opérations, t’écrit.', 'Veux-tu nous accompagner dans ce projet ?', '<span class="emo">🤝</span>J’accepte la mission',
-      "const REPONSE = 'J’accepte la mission ! 🙌', MERCI_CR = 'Super ! Voici ton badge 💜';", "localStorage.getItem('requete-sql-v3')",
-      'Bienvenue dans l’équipe NutriBoost !', '<div class="stamp" id="bdst">Mission acceptée</div>', 'opens: OPENS,',
+      // Ses messages et son badge (Elisa, 28 octobre, 13 h 07), mot pour mot
+      'Camille Roux, responsable<br>des opérations, t’écrit.', "'Je suis Camille Roux, responsable des opérations chez NutriBoost.'",
+      "'Nous gérons actuellement nos données dans Excel, mais ce fichier atteint ses limites : doublons, erreurs de saisie et difficultés de suivi.'",
+      "'Nous avons besoin d’une base de données structurée pour centraliser nos informations et faciliter leur gestion au quotidien.'",
+      "'En tant que développeur, ta mission sera de concevoir cette base, puis de l’implémenter dans un système de gestion de bases de données (SGBD) et de nous accompagner dans l’analyse de nos besoins au vu de la croissance rapide de notre marque.'",
+      "'Souhaites-tu nous accompagner dans ce projet ?'", "const REPONSE = ['Avec plaisir !', 'Je suis prêt à démarrer.'];",
+      "const BIENVENUE = ['Bienvenue dans l’équipe !', 'Voici ton badge.', 'Commençons par découvrir nos besoins ensemble.'];",
+      '<span class="emo">🤝</span>J’accepte la mission', '<img src="badge-nutriboost.webp"', 'Bienvenue dans l’équipe NutriBoost !',
+      'Ta mission : concevoir et structurer<br>la <b>base de données</b> de NutriBoost.', 'opens: OPENS,',
       // Le découpage par sujet : ce qu’est une table (des lignes et des colonnes, un seul sujet), puis les trois tables
       "const GRP = ['k-co', 'k-cl', 'k-cl', 'k-cl', 'k-pr', 'k-pr', 'k-co'];",
       'Une <b>table</b> organise les données en lignes et en colonnes, comme dans un tableau Excel.',
