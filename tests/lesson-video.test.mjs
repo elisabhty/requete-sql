@@ -554,7 +554,7 @@ const COURSES = [
       'Les prénoms, sous le titre <span class="ic">email</span>', 'near "FROM": syntax error',
       // Les trois idées : les tables, les clés (et leur déclaration), SELECT
       '<span class="ic blk">FOREIGN KEY (client_id)<br>&nbsp;&nbsp;REFERENCES clients(id)</span>', '<span class="ic blk">SELECT prenom, nom, email</span>']},
-  {id: 2, next: 13, titre: 'Renommer avec AS', page: 'as.html', thumb: 'as-thumb.jpg', duree: '1 min 49', notesAt: 92.4,
+  {id: 2, next: 13, titre: 'Renommer avec AS', page: 'as.html', thumb: 'as-thumb.jpg', duree: '1 min 59', notesAt: 92.4,
     table: 'produits',
     bubble: 'Avec <span class="ic">AS</span>, donne à une colonne un nom plus clair dans le résultat.',
     chapters: ['Situation', 'Le problème', 'Renommer une colonne', 'Plusieurs colonnes', 'Le piège des guillemets', 'Le résultat', 'À retenir'],
@@ -1232,7 +1232,12 @@ for (const c of COURSES) {
     assert.ok(page.includes(c.bubble), 'bulle de la mascotte');
     for (const label of c.chapters) assert.ok(page.includes(`label:'${label}'`), `chapitre ${label}`);
     for (const t of c.traps) assert.ok(page.includes(t), `piège : ${t}`);
-    if (!['between.html', 'limit-offset.html'].includes(c.page) && !c.page.startsWith('projet-')) assert.ok(page.includes("stackBelow('#s1 .need', "), 'la liste des informations se cale sous la carte de la situation, sans la toucher');
+    /* La situation s’ouvre sur le mail de l’équipe qui fait la demande (mail.js ; Elisa, 28 octobre, 16 h 59) : l’app s’arrête sur sa
+       notification, puis la liste des informations arrive seule. Sinon, sur une carte, la liste se cale dessous. */
+    if (page.includes('lessonMailCard(')) {
+      assert.ok(page.includes('<script src="moments.js"></script>\n<script src="mail.js"></script>') && page.includes('opens: OPENS,'), 'le mail : mail.js, après moments.js, et l’arrêt sur sa notification');
+      assert.ok(/prompt: 'Touche le mail pour l’ouvrir\.', label: 'Ouvrir le mail d[e’]/.test(page), 'la consigne et le libellé de l’arrêt');
+    } else if (!['between.html', 'limit-offset.html'].includes(c.page) && !c.page.startsWith('projet-')) assert.ok(page.includes("stackBelow('#s1 .need', "), 'la liste des informations se cale sous la carte de la situation, sans la toucher');
     assert.ok(!/SQL (voit|comprend|sait|lit)\b/.test(page), 'SQL n’est jamais personnifié');
     assert.ok(page.includes(`${c.article || 'la'} <b>table ${c.table}</b>`) && !new RegExp(`dans ${c.table}\\b`).test(page), `toujours « table ${c.table} »`);
   });
@@ -1243,7 +1248,7 @@ for (const c of COURSES) {
     /* Les images de la page comptent aussi (l’illustration NutriBoost des bases relationnelles, Elisa, 27 octobre). */
     const images = [...page.matchAll(/src="([\w-]+\.(?:webp|png|jpg))"/g)].map(m => m[1]).filter(f => f !== 'mascotte.webp');
     for (const f of images) assert.ok(sw.includes(`'./assets/anim/${f}'`), `image préchargée : ${f}`);
-    for (const f of [c.page, 'core.css', 'core.js', 'gsap.min.js', 'mascotte.webp', c.thumb, ...images, ...(page.includes('src="moments.js"') ? ['moments.js'] : [])])
+    for (const f of [c.page, 'core.css', 'core.js', 'gsap.min.js', 'mascotte.webp', c.thumb, ...images, ...(page.includes('src="moments.js"') ? ['moments.js'] : []), ...(page.includes('src="mail.js"') ? ['mail.js'] : [])])
       total += fs.statSync(path.join(ROOT, 'assets/anim', f)).size;
     for (const f of ANIM_FONTS) total += fs.statSync(path.join(ROOT, 'assets/fonts', f)).size;
     /* 490 Ko (470 jusqu’au 26 octobre, puis 480) : le moteur commun grandit avec les chapitres du projet (le SMS sans formule du chapitre 15),

@@ -83,17 +83,8 @@
     <div class="abs bubble">Avec <span class="ic">AS</span>, donne à une colonne un nom plus clair dans le résultat.</div>
   </section>
 
-  <!-- 1 · Situation -->
+  <!-- 1 · Situation : le mail de l’équipe commerciale (dom), puis les informations à récupérer -->
   <section class="scene" id="s1">
-    <div class="abs card invite">
-      <div class="inv-band"><span class="emo">📊</span><span>Dashboard</span></div>
-      <div class="inv-body">
-        <div class="inv-from">NutriBoost · équipe commerciale</div>
-        <div class="inv-title">Suivi des produits</div>
-        <div class="inv-place"><span class="emo">🏷️</span><span>Leur nom et leur prix</span></div>
-      </div>
-      <div class="stamp">Intitulés clairs</div>
-    </div>
     <div class="abs card need">
       <div class="need-h">Les informations à récupérer</div>
       <div class="need-row"><span class="emo">🏷️</span><span class="nl">Le nom du produit</span><span class="tag">table produits</span></div>
@@ -202,6 +193,7 @@
 <script src="gsap.min.js"></script>
 <script src="core.js"></script>
 <script src="moments.js"></script>
+<script src="mail.js"></script>
 <script>
 'use strict';
 const DURATION = 100;
@@ -219,6 +211,16 @@ const PRODUITS = [
 ];
 const PRIX_MAX = Math.max(...PRODUITS.map(p => p[2]));
 
+/* La demande (Elisa, 28 octobre, 16 h 59 : « Mail de l’équipe commerciale qui fait la demande bien formulé ») : un mail précis, qui
+   dit à quoi servent les données, lesquelles il faut, et sous quels intitulés. L’app s’arrête sur la notification jusqu’au toucher. */
+const MAIL = {id: 'ml1', qui: ['L’équipe commerciale', 'EC'], k: 'k-cc', tag: 'équipe', de: 'commercial@nutriboost.fr', corps: [
+  'Nous préparons un dashboard pour suivre nos produits.',
+  'Il doit afficher le nom et le prix de chaque produit.',
+  'Pour que tout le monde s’y retrouve, ses colonnes doivent s’intituler « Nom du produit » et « Prix (€) ».',
+  'Peux-tu nous préparer ces données ?'], signe: 'L’équipe commerciale NutriBoost'};
+const MAIL_T = 5.2, MAIL_OPEN = 6.8;
+const OPENS = [{at: MAIL_OPEN, sel: '#ml1', prompt: 'Touche le mail pour l’ouvrir.', label: 'Ouvrir le mail de l’équipe commerciale'}];
+
 const CHAPTERS = [
   {n:1, label:'Situation',               a:5.0,  b:15.0},
   {n:2, label:'Le problème',             a:15.0, b:26.8},
@@ -231,9 +233,7 @@ const CHAPTERS = [
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
 const CAPTIONS = [
-  [5.3, 8.6,   "Pour suivre ses produits, <span class=\"nw\">l’équipe commerciale</span> prépare un <b>dashboard</b>."],
-  [8.7, 11.35, "Elle veut afficher leur nom et leur prix sous des <b>intitulés plus clairs</b>."],
-  [11.45, 14.6, "On les récupère dans la <b>table produits</b>, qui contient <b>8 produits</b>."],
+  [10.45, 14.6, "On les récupère dans la <b>table produits</b>, qui contient <b>8 produits</b>."],
   [15.3, 18.6, "Dans le résultat, les colonnes gardent leur nom dans la base : <code>nom</code> et <code>prix</code>."],
   [18.7, 22.5, "Pour les utilisateurs qui consultent<br>le dashboard, ces intitulés <b>manquent\u00a0de\u00a0précision</b>."],
   [22.6, 26.4, "Il faut donc choisir le <b>nom affiché</b> des colonnes : c’est le rôle de <code>AS</code>."],
@@ -303,6 +303,7 @@ const MOMENTS = [
 ];
 
 function dom(){
+  $('#s1').insertAdjacentHTML('afterbegin', lessonMailCard(MAIL));
   $('#rows2').innerHTML = PRODUITS.slice(0, 4).map(p => `<div class="dg drow"><div class="dn">${p[0]}</div><div class="dp">${p[2]}</div></div>`).join('');
   $('#rows3').innerHTML = PRODUITS.map(p => `<div class="rg1 tr"><i class="hl"></i><div>${p[0]}</div></div>`).join('');
   $('#rows4').innerHTML = PRODUITS.map(p => `<div class="rg2 tr"><i class="hl"></i><div>${p[1]}</div><div>${p[3]}</div></div>`).join('');
@@ -341,24 +342,18 @@ function build(){
 
   /* ===== 1 · Situation ===== */
   sceneOn('#s1', 5.0);
-  // La carte du dashboard arrive seule au centre, puis remonte quand la liste des informations entre.
-  gsap.set('#s1 .invite', {autoAlpha: 0, y: 470, rotation: -9});
-  tl.to('#s1 .invite', {autoAlpha: 1, y: 380, rotation: -2.5, duration: 0.9, ease: 'back.out(1.3)'}, 5.15);
-  cue(5.15, 'whoosh', 0.8);
-  gsap.set('#s1 .stamp', {autoAlpha: 0, scale: 1.9, rotation: 24});
-  tl.to('#s1 .stamp', {autoAlpha: 1, scale: 1, rotation: 7, duration: 0.36, ease: 'power4.in'}, 9.3);
-  tl.to('#s1 .invite', {x: 6, duration: 0.05, yoyo: true, repeat: 3, ease: 'none'}, 9.66);
-  cue(9.65, 'stamp');
-  tl.to('#s1 .invite', {y: 0, duration: 0.75, ease: 'power3.inOut'}, 11.4);
-  stackBelow('#s1 .need', '#s1 .invite', -2.5);   // la liste se cale sous la carte inclinée, sans la toucher
-  show('#s1 .need', 11.9, {y: 60});
-  cue(11.9, 'whoosh', 0.6);
+  // Le mail de l’équipe commerciale arrive seul (la première légende vient après lui) ; l’élève l’ouvre, le lit, puis il s’en va.
+  const mailEnd = lessonMailIn('#ml1', lessonMailFit('#ml1'), MAIL_T, MAIL_OPEN);
+  lessonMailOut('#ml1', +(mailEnd + 0.45).toFixed(2));
+  // Ce qu’il faut récupérer : le nom et le prix, dans la table produits
+  show('#s1 .need', 10.3, {y: 60});
+  cue(10.3, 'whoosh', 0.6);
   const needRows = $$('#s1 .need-row');
   gsap.set(needRows, {autoAlpha: 0, x: -34});
-  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.25}, 12.05);
-  needRows.forEach((_, i) => cue(12.05 + i * 0.25, 'pop', 0.7, i));
-  tl.to('#s1 .tag', {scale: 1.08, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.1}, 13.0);
-  hide(['#s1 .invite', '#s1 .need'], 14.6);
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.25}, 10.45);
+  needRows.forEach((_, i) => cue(10.45 + i * 0.25, 'pop', 0.7, i));
+  tl.to('#s1 .tag', {scale: 1.08, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.1}, 12.4);
+  hide('#s1 .need', 14.6);
   sceneOff('#s1', 15.1);
 
   /* ===== 2 · Le problème ===== */
@@ -516,8 +511,8 @@ function build(){
   if (APP) cue(92.45, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 92.4, moments: MOMENTS,
-  glyphs: '📊🏷️💶🔎🗄️📍💬⚠️✓€', dom, build});
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 92.4, moments: MOMENTS, opens: OPENS,
+  glyphs: '📊🏷️💶🔎🗄️📍💬⚠️✓€✉️👆', dom, build});
 </script>
 </body>
 </html>
