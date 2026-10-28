@@ -227,8 +227,8 @@ test('moment 4 : les deux inscriptions d’Hugo Laurent ont le client 6 ; WHERE 
   const mail = val('MAILS')[2];
   assert.deepEqual(mail[4].map(p => p.replace(/<br>/g, ' ')), ['Hugo Laurent nous a informés de son déménagement. Il ne pourra donc plus participer aux ateliers auxquels il est inscrit.',
     'Peux-tu supprimer toutes ses inscriptions afin de libérer les places pour d’autres participants ?'], 'le mail du service client, mot pour mot (Elisa, 25 octobre, 00 h 32, Réf 3)');
-  assert.deepEqual(mail[4], ['Hugo Laurent nous a informés de son déménagement.<br>Il ne pourra donc plus participer aux ateliers<br>auxquels il est inscrit.',
-    'Peux-tu supprimer toutes ses inscriptions<br>afin de libérer les places pour d’autres participants ?'], 'retours à la ligne posés à la main : une phrase par ligne, aucune ligne trop courte (Elisa, 08 h 21, Réf 3 : « mauvais formatage du mail »)');
+  assert.deepEqual(mail[4], ['Hugo Laurent nous a informés<br>de son déménagement.<br>Il ne pourra donc plus participer<br>aux ateliers auxquels il est inscrit.',
+    'Peux-tu supprimer toutes ses inscriptions<br>afin de libérer les places<br>pour d’autres participants ?'], 'retours à la ligne posés à la main pour le texte en 42 px (Elisa, 28 octobre, 16 h 19 : mails agrandis), aucune ligne trop courte (Elisa, 25 octobre, 08 h 21, Réf 3 : « mauvais formatage du mail »)');
   assert.equal(mail[6].bye, 'Merci !', 'sa formule de fin (Elisa, 25 octobre, 08 h 21, Réf 3)');
 });
 
