@@ -40,7 +40,8 @@
   document.head.append(s);
 })();
 function lessonMailCard(m){
-  const lines = ['Bonjour,', ...m.corps, 'Merci !', m.signe];
+  /* Le dernier mot d’une phrase reste avec le précédent : jamais un mot seul sur la dernière ligne (« seule fois. »). */
+  const lines = ['Bonjour,', ...m.corps.map(x => x.replace(/ (\S+)$/, '\u00a0$1')), 'Merci !', m.signe];
   return `<div class="abs card lm ${m.k}" id="${m.id}"><div class="lm-h"><i class="lm-av">${m.qui[1]}<b class="lm-bg emo">✉️</b></i>` +
     `<div class="lm-w"><div class="lm-n"><b>${m.qui[0]}</b><small class="lm-tg">${m.tag}</small></div><div class="lm-s"><span class="lm-s0">Nouveau mail</span><span class="lm-s1">${m.de}</span></div></div>` +
     `<div class="lm-r"><span class="lm-t">maintenant</span><i class="lm-dot"></i></div></div>` +
