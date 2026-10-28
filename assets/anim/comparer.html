@@ -303,8 +303,8 @@ const CHAPTERS = [
   {n:1, label:'Situation',          a:5.0,  b:15.0},
   {n:2, label:'Le problème',        a:15.0, b:26.8},
   {n:3, label:'La comparaison',     a:26.8, b:45.5},
-  {n:4, label:'Six opérateurs',     a:45.5, b:58.5},
-  {n:5, label:'La limite',          a:58.5, b:72.5},
+  {n:4, label:'Six opérateurs',     a:45.5, b:58.75},
+  {n:5, label:'La limite',          a:58.75, b:72.5},
   {n:6, label:'Comparer un texte',  a:72.5, b:85.0},
   {n:7, label:'Le résultat',        a:85.0, b:97.0},
   {n:8, label:'À retenir',          a:97.0, b:DURATION}
@@ -319,7 +319,7 @@ const CAPTIONS = [
   [19.2, 22.9,  "La Protéine Végétale et le Shaker Inox sont oubliés, alors qu’ils sont aussi à recommander."],
   [23.0, 26.4,  "Il faut garder tous les produits <b>jusqu’à\u00a060\u00a0unités</b> : c’est le rôle des <b>opérateurs de comparaison</b>."],
   [27.3, 30.5,  "On remplace <code>=</code> par <code>&lt;=</code>, qui signifie <b>inférieur ou égal à</b>."],
-  [30.6, 34.4,  "Pour chaque produit, SQL compare son stock à <b>60</b>."],
+  [30.6, 34.4,  "Pour chaque produit, son stock est comparé à <b>60</b>."],
   [34.5, 40.4,  "Condition <b>vraie</b> : la ligne est gardée ; condition <b>fausse</b> : elle est écartée."],
   [40.5, 45.0,  "Il reste <b>3 produits</b>, dont la Tisane Détox : 60 est bien <b>inférieur ou égal</b> à 60."],
   [45.8, 49.6,  "Il existe <b>six opérateurs</b> pour comparer une colonne à une valeur."],
@@ -332,42 +332,43 @@ const CAPTIONS = [
   [76.25, 80.6, "Avec <code>!=</code>, on compare aussi du texte : seul le <b>Shaker Inox</b> est écarté."],
   [80.7, 84.6,  "Un nombre s’écrit tel quel ; un texte s’écrit entre <b>guillemets simples</b>."],
   [85.3, 88.4,  "La requête affiche le nom et le stock des produits à <b>60\u00a0unités\u00a0ou\u00a0moins</b>."],
-  [88.5, 92.6,  "Résultat : <b>3 produits à recommander</b>. La liste de réassort est prête."],
+  [88.5, 92.6,  "Avec ces <b>3 produits à recommander</b>, la liste de réassort est prête."],
   [92.7, 96.6,  "<code>WHERE</code> ne filtre que le résultat : la <b>table\u00a0produits</b> n’est pas modifiée."],
   [97.3, 102.1, "Pour finir, voici les <b>trois idées à retenir</b>."],
   APP ? [102.2, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
       : [102.2, 999, "Compare une colonne à une valeur avec <code>=</code>, <code>!=</code>, <code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code> ou <code>&lt;=</code>."]
 ];
 
-/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+/* Pas de question en pleine vidéo : les moments « À toi » font participer l’élève (ni exercice ni quiz après la vidéo, depuis le 28 octobre). */
 const QUESTIONS = [];
 /* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
    Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
 const MOMENTS = [
-  // WHERE stock = 60 oublie deux produits : avant que la vidéo remplace = par <=
-  {at: 27.1, from: 15.0, kind: 'pick', prompt: 'Quel opérateur garde les produits à 60 unités ou moins ?', options: [
+  /* Mini-jeux (Elisa, 28 octobre, 8 h 50 : « pas assez gamifié »).
+     WHERE stock = 60 oublie deux produits : avant que la vidéo remplace = par <=, l’élève glisse lui-même l’opérateur dans la requête. */
+  {at: 27.1, from: 15.0, kind: 'pick', slot: '#eqA', prompt: 'Glisse dans la requête l’opérateur qui garde les produits à <b>60 unités ou moins</b>.', options: [
     {label: '<=', ok: true, why: '<code>&lt;=</code> veut dire inférieur ou égal à : 60 est gardé.'},
     {label: '<', why: '<code>&lt;</code> exclut la limite : la Tisane Détox, à 60, serait écartée.'},
     {label: '>=', why: '<code>&gt;=</code> garde les stocks de 60 et plus : c’est l’inverse.'}],
     tip: '« 60 ou moins » : la limite 60 compte.'},
-  // les six opérateurs, avant leur tableau : relier chaque opérateur à son sens
-  {at: 45.52, from: 40.5, kind: 'link', need: 4, prompt: 'Relie chaque opérateur à son sens.',
-    hint: 'Touche un opérateur, puis son sens. Tu peux aussi tracer le trait du doigt.',
-    board: {y: 470, html: '<span class="mb-k">Les opérateurs de comparaison</span><div class="mb-cols" style="gap:100px"><div class="mb-col" style="flex:0 0 220px"><div class="mb-i c" id="mbo0">&gt;=</div><div class="mb-i c" id="mbo1">!=</div><div class="mb-i c" id="mbo2">&gt;</div><div class="mb-i c" id="mbo3">&lt;</div></div><div class="mb-col"><div class="mb-i sm" id="mbs0">strictement inférieur à</div><div class="mb-i sm" id="mbs1">supérieur ou égal à</div><div class="mb-i sm" id="mbs2">différent de</div><div class="mb-i sm" id="mbs3">strictement supérieur à</div></div></div>'},
-    spots: [
-      {k: 'o0', sel: '#mbo0', label: 'Opérateur supérieur ou égal', side: 'l', pair: 's1', why: '<code>&gt;=</code> veut dire supérieur ou égal à : la limite est incluse.'},
-      {k: 'o1', sel: '#mbo1', label: 'Opérateur point d’exclamation égal', side: 'l', pair: 's2', why: '<code>!=</code> veut dire différent de.'},
-      {k: 'o2', sel: '#mbo2', label: 'Opérateur supérieur', side: 'l', pair: 's3', why: '<code>&gt;</code> veut dire strictement supérieur à : la limite est exclue.'},
-      {k: 'o3', sel: '#mbo3', label: 'Opérateur inférieur', side: 'l', pair: 's0', why: '<code>&lt;</code> veut dire strictement inférieur à : la limite est exclue.'},
-      {k: 's0', sel: '#mbs0', label: 'strictement inférieur à', side: 'r'},
-      {k: 's1', sel: '#mbs1', label: 'supérieur ou égal à', side: 'r'},
-      {k: 's2', sel: '#mbs2', label: 'différent de', side: 'r'},
-      {k: 's3', sel: '#mbs3', label: 'strictement supérieur à', side: 'r'}],
-    tip: 'Un <code>=</code> placé après <code>&lt;</code> ou <code>&gt;</code> inclut la limite.'},
+  /* Les paniers, une fois les six opérateurs et la limite (incluse, exclue) expliqués : ce que chaque condition fait de la Tisane Détox,
+     à exactement 60 unités. (L’ancien moment, relier chaque opérateur à son sens, venait avant leur tableau.) */
+  {at: 58.45, from: 45.5, kind: 'sort', prompt: 'La Tisane Détox a <b>60 unités</b>. Chaque condition la garde-t-elle ou l’écarte-t-elle ?',
+    hint: 'Touche une condition, puis son panier. Tu peux aussi la faire glisser.', next: '{x} : touche son panier.',
+    board: {y: 470, html: '<span class="mb-k">⚖️ La Tisane Détox, à 60 unités</span><div class="mb-cols" style="gap:28px"><div class="mb-col"><div class="mb-bin" id="mbGa"><b>✅ Gardée</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin" id="mbEc"><b>❌ Écartée</b><div class="mb-drop"></div></div></div></div>'},
+    spots: [{k: 'g', sel: '#mbGa', label: 'Gardée'}, {k: 'e', sel: '#mbEc', label: 'Écartée'}],
+    options: [
+      {label: 'stock <= 60', to: 'g', why: '60 est bien inférieur ou égal à 60 : avec <code>&lt;=</code>, la limite est incluse.'},
+      {label: 'stock < 60', to: 'e', why: '60 n’est pas strictement inférieur à 60 : avec <code>&lt;</code>, la limite est exclue.'},
+      {label: 'stock >= 60', to: 'g', why: '60 est bien supérieur ou égal à 60 : avec <code>&gt;=</code>, la limite est incluse.'},
+      {label: 'stock > 60', to: 'e', why: '60 n’est pas strictement supérieur à 60 : avec <code>&gt;</code>, la limite est exclue.'},
+      {label: 'stock != 60', to: 'e', why: '<code>!=</code> veut dire différent de : à exactement 60, la Tisane Détox est écartée.'},
+      {label: 'stock = 60', to: 'g', why: 'Son stock vaut exactement 60 : la condition est vraie, elle est gardée.'}],
+    tip: 'Avec <code>&lt;=</code> et <code>&gt;=</code>, la limite est incluse ; avec <code>&lt;</code> et <code>&gt;</code>, elle est exclue.'},
   /* Mini-jeu : le portique (Elisa, 27 octobre, 23 h 25). La limite vient d’être expliquée (< l’exclut, <= l’inclut) : l’élève règle
      lui-même opérateur et limite pour un autre seuil, 90 ou plus ; les produits qui passent s’allument à chaque mouvement. Toute
      condition qui garde exactement ces produits est juste (>= 90, > 80…). */
-  {at: 72.0, from: 58.5, kind: 'tune', ico: '🚪', prompt: 'Pour l’inventaire, garde les produits à <b>90 unités ou plus</b>.',
+  {at: 72.0, from: 58.75, kind: 'tune', ico: '🚪', prompt: 'Pour l’inventaire, garde les produits à <b>90 unités ou plus</b>.',
     hint: 'Règle la condition, puis valide.',
     controls: [{k: 'op', type: 'seg', label: 'Opérateur', choices: ['<', '<=', '>', '>='], value: '<=', code: true},
       {k: 'v', type: 'range', label: 'Limite', min: 0, max: 200, step: 10, value: 60}],
@@ -392,12 +393,14 @@ const MOMENTS = [
       return {ok: false, why: `${LE(t[0])}, à ${t[2]} unités, passe aussi : la limite est trop basse.`};
     },
     tip: '« 90 ou plus » : la limite 90 compte, comme avec <code>&gt;=</code>.'},
-  // comparer un texte : ce que garde != 'Accessoire', avant l’exécution
-  {at: 76.17, from: 72.5, kind: 'pick', text: true, prompt: 'Que garde la condition <code>categorie != \'Accessoire\'</code> ?', options: [
-    {label: 'Tous les produits, sauf les accessoires', ok: true, why: 'Avec <code>!=</code>, on compare aussi du texte : les accessoires sont écartés.'},
-    {label: 'Seulement les accessoires', why: '<code>!=</code> veut dire différent de : les accessoires sont écartés, pas gardés.'},
-    {label: 'Aucun produit : une erreur', why: 'Le texte est entre guillemets simples : la requête s’exécute.'}],
-    tip: '<code>!=</code> veut dire « différent de ».'}
+  // Le produit écarté, avant l’exécution : != compare aussi du texte (seul le Shaker Inox est un accessoire)
+  {at: 76.17, from: 72.5, kind: 'tap', need: 1, prompt: 'Touche le produit que la condition <code>categorie != \'Accessoire\'</code> écarte.',
+    hint: 'Regarde la catégorie de chaque produit.',
+    board: {y: 300, html: '<span class="mb-k">🚫 Le produit écarté</span><div class="mg-grid">'
+      + PRODUITS.map((p, i) => `<div class="mg-r mg-cat" id="mbc${i}">${p[0]}<b>${p[1]}</b></div>`).join('') + '</div>'},
+    spots: PRODUITS.map((p, i) => ({k: 'c' + i, sel: '#mbc' + i, label: `${p[0]}, ${p[1]}`, ok: p[1] === 'Accessoire',
+      why: p[1] === 'Accessoire' ? '' : `${LE(p[0])} est de catégorie ${p[1]}, différente de 'Accessoire' : ${/^La /.test(LE(p[0])) ? 'elle est gardée' : 'il est gardé'}.`})),
+    tip: '<code>!=</code> veut dire « différent de » : seuls les accessoires sont écartés.'}
 ];
 
 function dom(){

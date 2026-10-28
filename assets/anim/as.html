@@ -222,10 +222,10 @@ const PRIX_MAX = Math.max(...PRODUITS.map(p => p[2]));
 const CHAPTERS = [
   {n:1, label:'Situation',               a:5.0,  b:15.0},
   {n:2, label:'Le problème',             a:15.0, b:26.8},
-  {n:3, label:'Renommer une colonne',    a:26.8, b:44.9},
-  {n:4, label:'Plusieurs colonnes',      a:44.9, b:58.6},
-  {n:5, label:'Le piège des guillemets', a:58.6, b:72.5},
-  {n:6, label:'Le résultat',             a:72.5, b:87.2},
+  {n:3, label:'Renommer une colonne',    a:26.8, b:45.15},
+  {n:4, label:'Plusieurs colonnes',      a:45.15, b:58.6},
+  {n:5, label:'Le piège des guillemets', a:58.6, b:72.75},
+  {n:6, label:'Le résultat',             a:72.75, b:87.2},
   {n:7, label:'À retenir',               a:87.2, b:DURATION}
 ];
 
@@ -237,7 +237,7 @@ const CAPTIONS = [
   [15.3, 18.6, "Dans le résultat, les colonnes gardent leur nom dans la base : <code>nom</code> et <code>prix</code>."],
   [18.7, 22.5, "Pour les utilisateurs qui consultent<br>le dashboard, ces intitulés <b>manquent\u00a0de\u00a0précision</b>."],
   [22.6, 26.4, "Il faut donc choisir le <b>nom affiché</b> des colonnes : c’est le rôle de <code>AS</code>."],
-  [27.3, 31.6, "Sans alias, la colonne s’affiche sous son nom d’origine : <code>nom</code>."],
+  [27.3, 31.6, "Sans <code>AS</code>, la colonne s’affiche sous son nom d’origine : <code>nom</code>."],
   [31.7, 35.6, "On écrit <code>AS</code> juste après la colonne, puis le nouveau nom : un <b>alias</b>."],
   [35.7, 39.1, "Comme l’alias contient des espaces, il s’écrit entre <b>guillemets doubles</b>."],
   [39.2, 44.4, "Seul l’en-tête change : les 8 produits s’affichent exactement comme avant."],
@@ -256,35 +256,50 @@ const CAPTIONS = [
       : [92.4, 999, "<code>AS</code> agit sur le résultat : la <b>table produits</b> garde ses noms de colonnes."]
 ];
 
-/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+/* Pas de question en pleine vidéo : les moments « À toi » font participer l’élève (ni exercice ni quiz après la vidéo, depuis le 28 octobre). */
 const QUESTIONS = [];
 /* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
    Elisa, 27 octobre, 13 h 42 : toutes les vidéos ont leurs moments, du même niveau que les derniers cours ; 13 h 48 : « relier, toucher,
    question, puzzle… ». */
 const MOMENTS = [
-  // le problème : des intitulés pas assez précis, avant que la vidéo nomme AS
-  {at: 22.55, from: 15.0, kind: 'pick', prompt: 'Quel mot-clé change le nom affiché d’une colonne ?', options: [
-    {label: 'AS', ok: true, why: '<code>AS</code> donne un nom d’affichage à la colonne : un alias.'},
-    {label: 'DISTINCT', why: '<code>DISTINCT</code> retire les doublons : il ne renomme aucune colonne.'},
-    {label: 'WHERE', why: '<code>WHERE</code> garde certaines lignes : il ne renomme aucune colonne.'}],
-    tip: 'Le mot-clé s’écrit juste après la colonne à renommer.'},
-  // le piège des guillemets, avant qu’il soit expliqué : avec ou sans guillemets doubles (espaces, symboles)
-  {at: 58.62, from: 44.9, kind: 'sort', prompt: 'Range chaque alias : s’écrit-il avec ou sans guillemets doubles ?',
-    hint: 'Touche un alias, puis sa case. Tu peux aussi le faire glisser.', next: '{x} : touche sa case.',
-    board: {y: 470, html: '<span class="mb-k">Avec ou sans guillemets ?</span><div class="mb-cols" style="gap:28px"><div class="mb-col"><div class="mb-bin" id="mbAv"><b>Avec guillemets doubles</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin" id="mbSa"><b>Sans guillemets</b><div class="mb-drop"></div></div></div></div>'},
+  /* Trois mini-jeux (Elisa, 28 octobre, 8 h 50 : « je trouve que t’as pas assez gamifié les vidéos ») : plus de question à choix.
+     Le puzzle, une fois la règle vue sur nom et ses guillemets doubles : la même requête, pour prix, en blocs ; la version sans
+     guillemets part dans « En trop ». (L’ancien moment 1, « Quel mot-clé change le nom affiché ? », avait pour réponse le titre du cours.) */
+  {at: 44.8, from: 26.8, kind: 'sort', prompt: 'Reconstitue la requête qui affiche la colonne <code>prix</code> sous le titre « Prix (€) ».',
+    hint: 'Touche un bloc, puis sa place. Tu peux aussi le faire glisser.', next: '{x} : touche sa place.',
+    board: {y: 300, html: '<span class="mb-k">🧩 Le puzzle</span><div class="mb-q mg-pz"><span class="k">SELECT</span> <span class="mb-hole" id="mbH1"><span class="mb-drop"></span></span> <span class="mb-hole" id="mbH2"><span class="mb-drop"></span></span> <span class="mb-hole" id="mbH3"><span class="mb-drop"></span></span>\n<span class="k">FROM</span> produits;</div>'
+      + '<div class="mb-bin mg-bin" id="mbX"><b>🗑️ En trop</b><div class="mb-drop"></div></div>'},
+    spots: [{k: 'h1', sel: '#mbH1', label: 'Première place, après SELECT'}, {k: 'h2', sel: '#mbH2', label: 'Deuxième place'},
+      {k: 'h3', sel: '#mbH3', label: 'Troisième place, avant FROM'}, {k: 'x', sel: '#mbX', label: 'En trop'}],
+    options: [
+      {label: 'prix', to: 'h1', why: 'La colonne vient d’abord, juste après <code>SELECT</code> : <code>AS</code> et l’alias la suivent.'},
+      {label: 'AS', to: 'h2', why: '<code>AS</code> se place juste après la colonne, avant le nouveau nom.'},
+      {label: '"Prix (€)"', to: 'h3', why: 'L’alias vient en dernier, après <code>AS</code> : c’est le titre affiché.'},
+      {label: 'Prix (€)', to: 'x', why: 'Sans guillemets doubles, l’espace coupe l’alias : la requête provoquerait une erreur.'}],
+    tip: 'Même ordre que pour <code>nom</code> : la colonne, <code>AS</code>, puis l’alias entre guillemets doubles.'},
+  // Les paniers, une fois les espaces et les symboles expliqués : avec ou sans guillemets doubles
+  {at: 72.4, from: 58.6, kind: 'sort', prompt: 'Range chaque alias : s’écrit-il avec ou sans guillemets doubles ?',
+    hint: 'Touche un alias, puis son panier. Tu peux aussi le faire glisser.', next: '{x} : touche son panier.',
+    board: {y: 470, html: '<span class="mb-k">🧺 Les paniers</span><div class="mb-cols" style="gap:28px"><div class="mb-col"><div class="mb-bin" id="mbAv"><b>Avec guillemets doubles</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin" id="mbSa"><b>Sans guillemets</b><div class="mb-drop"></div></div></div></div>'},
     spots: [{k: 'avec', sel: '#mbAv', label: 'Avec guillemets doubles'}, {k: 'sans', sel: '#mbSa', label: 'Sans guillemets'}],
     options: [
       {label: 'Nom du produit', to: 'avec', why: 'Il contient des espaces : il s’écrit entre guillemets doubles.'},
       {label: 'tarif', to: 'sans', why: 'Un seul mot, sans espace ni symbole : pas de guillemets.'},
-      {label: 'Prix (€)', to: 'avec', why: 'Un symbole comme € demande aussi des guillemets doubles.'},
+      {label: 'prix-ttc', to: 'avec', why: 'Le tiret est un symbole : sans guillemets doubles, la requête provoquerait une erreur.'},
       {label: 'gamme', to: 'sans', why: 'Un seul mot, sans espace ni symbole : pas de guillemets.'}],
-    tip: 'Les guillemets doubles servent aux espaces et aux symboles.'},
-  // la requête complète, juste avant son exécution
-  {at: 76.05, from: 72.5, kind: 'pick', text: true, prompt: 'Que va afficher le dashboard ?', options: [
-    {label: 'Les 8 produits, avec « Nom du produit » et « Prix (€) »', ok: true, why: 'Seuls les en-têtes changent : les 8 produits restent.'},
-    {label: 'Les 8 produits, avec nom et prix', why: 'Avec <code>AS</code>, les en-têtes affichent les alias.'},
-    {label: 'Une erreur, à cause du symbole €', why: 'Le symbole est entre guillemets doubles : la requête s’exécute.'}],
-    tip: 'Les deux alias sont bien écrits entre guillemets doubles.'}
+    tip: 'Les guillemets doubles servent aux alias avec des espaces ou des symboles.'},
+  // La chasse aux alias, sur la requête complète, juste avant son exécution : l’alias est le nom affiché, pas la colonne ni la table
+  {at: 76.05, from: 72.75, kind: 'tap', need: 2, prompt: 'Touche les deux <b>alias</b> : les titres que le dashboard va afficher.',
+    hint: 'Touche chaque alias dans la requête.',
+    board: {y: 300, html: '<span class="mb-k">🔎 La chasse aux alias</span><div class="mb-q mg-tq"><span class="k">SELECT</span> <span class="mg-t" id="mbTn">nom</span> <span class="k mg-t" id="mbTa">AS</span> <span class="s mg-t" id="mbT1">"Nom du produit"</span>,\n       <span class="mg-t" id="mbTp">prix</span> <span class="k">AS</span> <span class="s mg-t" id="mbT2">"Prix (€)"</span>\n<span class="k">FROM</span> <span class="mg-t" id="mbTf">produits</span>;</div>'},
+    spots: [
+      {k: 'n', sel: '#mbTn', label: 'nom', why: '<code>nom</code> est la colonne de la table : l’alias est le titre écrit après <code>AS</code>.'},
+      {k: 'a', sel: '#mbTa', label: 'AS', why: '<code>AS</code> annonce l’alias : l’alias, c’est le nom qui le suit.'},
+      {k: 't1', sel: '#mbT1', label: 'Nom du produit', ok: true},
+      {k: 'p', sel: '#mbTp', label: 'prix', why: '<code>prix</code> est la colonne de la table : l’alias est le titre écrit après <code>AS</code>.'},
+      {k: 't2', sel: '#mbT2', label: 'Prix (€)', ok: true},
+      {k: 'f', sel: '#mbTf', label: 'produits', why: '<code>produits</code> est la table : un alias renomme une colonne du résultat.'}],
+    tip: 'Un alias s’écrit juste après <code>AS</code>, ici entre guillemets doubles.'}
 ];
 
 function dom(){

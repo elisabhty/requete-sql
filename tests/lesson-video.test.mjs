@@ -36,7 +36,8 @@ test('WHERE : le cours a son animation, son image fixe et sa vignette, présente
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/where.html'), 'utf8');
   assert.ok(page.includes('<script src="gsap.min.js"></script>\n<script src="moments.js"></script>') && page.includes('  build();\n  applyMoments();'), 'moments.js, puis les moments insérés une fois la timeline construite');
   const M = momentsDe('where.html');
-  assert.deepEqual(M.map(x => [x.at, x.kind]), [[22.95, 'pick'], [31.15, 'tap'], [64.95, 'pick']]);
+  /* Mini-jeux (Elisa, 28 octobre, 8 h 50) : chacun son rôle (SELECT, FROM, WHERE), les lignes où la condition est vraie, le banc d’essai de la valeur. */
+  assert.deepEqual(M.map(x => [x.at, x.kind]), [[26.42, 'sort'], [31.15, 'tap'], [64.95, 'tune']]);
   assert.deepEqual(M[1].spots.filter(z => z.ok).map(z => z.label), ['Ligne 1 : Sophie Martin, Paris', 'Ligne 4 : Nathan Petit, Paris', 'Ligne 7 : Léa Simon, Paris', 'Ligne 10 : Nathan Dupont, Paris'], 'les quatre clients parisiens');
   assert.equal(M[1].need, 4);
   for (const x of M.filter(x => x.kind === 'pick')) assert.equal(x.options.filter(o => o.ok).length, 1);
@@ -570,7 +571,7 @@ const COURSES = [
     traps: ['<span class="kw">WHERE</span> stock <span class="cbox" id="eqA">=<i class="mbox"></i></span><span class="glow" id="leA">&lt;=</span> 60;',
       'Son stock est-il inférieur<br>ou égal à 60 ?', '<span class="kw">WHERE</span> stock &lt; 60', '<span class="kw">WHERE</span> stock &lt;= 60',
       "<span class=\"kw\">WHERE</span> categorie != <span class=\"str glow\" id=\"s6str\">'Accessoire'</span>;", 'Un texte, entre guillemets simples']},
-  {id: 6, next: 22, titre: 'AND et OR', page: 'and-or.html', thumb: 'and-or-thumb.jpg', duree: '1 min 57', notesAt: 101.5,
+  {id: 6, next: 22, titre: 'AND et OR', page: 'and-or.html', thumb: 'and-or-thumb.jpg', duree: '1 min 58', notesAt: 101.5,
     table: 'clients',
     bubble: 'Avec <span class="ic">AND</span> et <span class="ic">OR</span>, relie plusieurs conditions dans <span class="ic">WHERE</span>.',
     chapters: ['Situation', 'Le problème', 'Ajouter l’âge', 'Ajouter Lyon', 'Les parenthèses', 'Le résultat', 'À retenir'],
@@ -603,7 +604,7 @@ const COURSES = [
       '<span class="str glow" id="strB4">\'%ie%\'</span>', '<span class="cpl">\'l%\'</span><span class="tx">ou</span><span class="cpl">\'L%\'</span>',
       '<span class="str">\'<span class="glow" id="us5">_</span>a%\'</span>', "[['_', 0, 0], ['a', 1, 1], ['%', 2, 'end']]",
       'n’importe quelle suite, <b>même vide</b>', '<b>exactement un</b> caractère']},
-  {id: 9, next: 10, titre: 'IN', page: 'in.html', thumb: 'in-thumb.jpg', duree: '1 min 56', notesAt: 92.1,
+  {id: 9, next: 10, titre: 'IN', page: 'in.html', thumb: 'in-thumb.jpg', duree: '1 min 57', notesAt: 92.1,
     table: 'clients',
     bubble: 'Avec <span class="ic">IN</span>, compare une colonne à toute une liste de valeurs.',
     chapters: ['Situation', 'Le problème', 'IN en action', 'Écrire la liste', 'Une seule colonne', 'Le résultat', 'À retenir'],

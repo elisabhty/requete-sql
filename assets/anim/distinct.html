@@ -236,8 +236,8 @@ const TEINTE = {Paris: ['#EEE9FF', '#3B2A9E'], Lyon: ['#FFF1DC', '#8A4F00'], Mar
 const CHAPTERS = [
   {n:1, label:'Situation',          a:5.0,  b:15.0},
   {n:2, label:'Le problème',        a:15.0, b:26.8},
-  {n:3, label:'DISTINCT en action', a:26.8, b:44.9},
-  {n:4, label:'Où le placer',       a:44.9, b:55.5},
+  {n:3, label:'DISTINCT en action', a:26.8, b:45.15},
+  {n:4, label:'Où le placer',       a:45.15, b:55.5},
   {n:5, label:'Plusieurs colonnes', a:55.5, b:69.4},
   {n:6, label:'Le résultat',        a:69.4, b:82.0},
   {n:7, label:'À retenir',          a:82.0, b:DURATION}
@@ -261,7 +261,7 @@ const CAPTIONS = [
   [60.0, 64.4, "Paris + Sophie et Paris + Léa sont différentes : les deux lignes restent."],
   [64.5, 68.9, "Seule la combinaison <b>Paris + Nathan</b>, présente deux fois, n’est affichée qu’une fois : <b>9 lignes</b>."],
   [69.8, 72.6, "La requête complète affiche les villes des clients, sans doublons."],
-  [72.7, 77.6, "Résultat : <b>6 villes</b>, sans doublon. L’équipe peut choisir les lieux des rencontres."],
+  [72.7, 77.6, "Avec ces <b>6 villes</b>, sans doublon, l’équipe peut choisir les lieux des rencontres."],
   [77.7, 81.4, "<code>DISTINCT</code> agit sur le résultat : la <b>table\u00a0clients</b> garde ses 10 clients."],
   [82.3, 87.1, "Pour finir, voici les <b>trois idées à retenir</b>."],
   APP ? [87.2, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
@@ -274,18 +274,25 @@ const QUESTIONS = [];
 /* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
    Elisa, 26 octobre, 14 h 59 : les premières leçons gardent tout ce qu’elle a validé ; il leur manquait les moments. */
 const MOMENTS = [
-  // avant le passage en revue des lignes : combien de villes une fois les doublons retirés (Paris revient 4 fois, Lyon 2 fois)
-  {at: 34.4, from: 26.8, kind: 'pick', text: true, prompt: 'Combien de villes contiendra le résultat ?', options: [
-    {label: '6 villes', ok: true, why: 'Chaque ville n’est gardée qu’une fois : il en reste 6.'},
-    {label: '10 villes', why: '10, c’est le nombre de clients : <code>DISTINCT</code> retire les villes répétées.'},
-    {label: '4 villes', why: 'Paris et Lyon ne disparaissent pas : elles restent, une fois chacune.'}],
-    tip: 'Compte les villes différentes de la liste.'},
-  // juste après la règle (DISTINCT juste après le SELECT), avant l’encadré piège
-  {at: 49.25, from: 44.9, kind: 'pick', text: true, prompt: 'Que se passe-t-il si <code>DISTINCT</code> est écrit entre deux colonnes ?', options: [
-    {label: 'La requête provoque une erreur', ok: true, why: 'Sa place est juste après le <code>SELECT</code> : entre deux colonnes, c’est une erreur.'},
-    {label: 'Les doublons d’une colonne sont retirés', why: '<code>DISTINCT</code> ne vise pas une colonne : écrit au milieu, il provoque une erreur.'},
-    {label: 'Les lignes en double sont retirées', why: 'Il faut l’écrire juste après le <code>SELECT</code>. Entre deux colonnes, c’est une erreur.'}],
-    tip: 'Regarde où se place <code>DISTINCT</code> dans la requête.'},
+  /* Mini-jeux (Elisa, 28 octobre, 8 h 50 : « pas assez gamifié ») à la place de deux questions à choix.
+     Déjà vu ? Avant le passage en revue des lignes : l’élève fait lui-même le travail de DISTINCT, ligne après ligne. */
+  {at: 34.4, from: 26.8, kind: 'tap', need: 4, prompt: 'Touche chaque ville <b>déjà présente</b> plus haut dans la liste : <code>DISTINCT</code> ne la répétera pas.',
+    hint: 'Lis la liste de haut en bas, et touche chaque ville déjà vue.',
+    spots: CLIENTS.map(([p, v], i) => {
+      const deja = CLIENTS.slice(0, i).some(c => c[1] === v), encore = CLIENTS.slice(i + 1).some(c => c[1] === v);
+      return {k: 'v' + i, sel: `#rows3 > .tr:nth-child(${i + 1})`, label: `Ligne ${i + 1} : ${v}`, ok: deja,
+        why: deja ? '' : encore ? `C’est la première fois que ${v} apparaît : elle est gardée.` : `${v} n’apparaît qu’une fois : elle est gardée.`};
+    }),
+    tip: 'Paris revient 4 fois et Lyon 2 fois : seule leur première ligne est gardée.'},
+  // Le bon emplacement, avant l’explication de la place (et de l’erreur) : où écrire DISTINCT dans une requête à deux colonnes
+  {at: 44.78, from: 34.5, kind: 'tap', need: 1, prompt: 'Touche l’endroit où écrire <code>DISTINCT</code>, dans une requête à deux colonnes.',
+    hint: 'Touche un emplacement entre les mots de la requête.',
+    board: {y: 300, html: '<span class="mb-k">📍 Le bon emplacement</span><div class="mb-q mg-gaps"><span class="k">SELECT</span><i class="mg-g" id="mbG1" data-w="DISTINCT"></i>ville,<i class="mg-g" id="mbG2"></i>prenom<i class="mg-g" id="mbG3"></i>\n<span class="k">FROM</span> clients<i class="mg-g" id="mbG4"></i>;</div>'},
+    spots: [{k: 'g1', sel: '#mbG1', label: 'Juste après SELECT', ok: true},
+      {k: 'g2', sel: '#mbG2', label: 'Entre ville et prenom', why: 'Entre deux colonnes, <code>DISTINCT</code> provoque une erreur : sa place est juste après le <code>SELECT</code>.'},
+      {k: 'g3', sel: '#mbG3', label: 'Après les colonnes, avant FROM', why: 'Après les colonnes, <code>DISTINCT</code> provoque une erreur : il se place avant elles, juste après le <code>SELECT</code>.'},
+      {k: 'g4', sel: '#mbG4', label: 'À la fin de la requête', why: 'À la fin de la requête, <code>DISTINCT</code> provoque une erreur : il se place juste après le <code>SELECT</code>.'}],
+    tip: '<code>DISTINCT</code> s’écrit juste après le <code>SELECT</code>, avant la liste des colonnes.'},
   // plusieurs colonnes : la combinaison Paris + Nathan, présente deux fois (la vidéo n’en garde qu’une)
   {at: 64.45, from: 55.5, kind: 'tap', need: 2, prompt: 'Touche les deux lignes identiques.',
     spots: CLIENTS.map(([p, v], i) => {

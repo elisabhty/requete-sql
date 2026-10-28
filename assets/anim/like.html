@@ -254,6 +254,8 @@ const CLIENTS = [['Sophie','Martin','06 39 98 12 04'],['Lucas','Bernard','06 39 
   ['Nathan','Petit','06 39 98 40 15'],['Chloé','Moreau','06 39 98 51 62'],['Hugo','Laurent','06 39 98 68 03'],['Léa','Simon','06 39 98 74 29'],
   ['Gabriel','Michel','06 39 98 85 16'],['Inès','Lefebvre','06 39 98 97 50'],['Nathan','Dupont','06 39 98 10 26']];
 const EN_L = c => c[0][0] === 'L';
+/* LIKE, sans distinguer majuscules et minuscules : % vaut une suite (même vide), _ un seul caractère (le détecteur du moment 2). */
+const MOTIF = (m, v) => new RegExp('^' + m.replace(/^'|'$/g, '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/%/g, '.*').replace(/_/g, '.') + '$', 'i').test(v);
 
 const CHAPTERS = [
   {n:1, label:'Situation',         a:5.0,  b:15.0},
@@ -289,41 +291,65 @@ const CAPTIONS = [
   [75.7, 78.4,  "Lucas Bernard ne correspond pas : son prénom a un u en deuxième lettre."],
   [78.5, 82.6,  "Avec les <b>wildcards</b>, <code>%</code> vaut une suite, <b>même vide</b> ; <code>_</code>, <b>un\u00a0seul\u00a0caractère</b>."],
   [83.5, 86.6,  "La requête complète affiche le prénom, le nom et le téléphone des clients <span class=\"nw\">dont le prénom</span> commence par L."],
-  [86.7, 90.9,  "Résultat : <b>2 destinataires possibles</b>. L’équipe les appelle pour trouver le bon."],
+  [86.7, 90.9,  "Avec ces <b>2 destinataires possibles</b>, l’équipe peut appeler pour trouver le bon."],
   [91.0, 95.9,  "<code>WHERE</code> ne filtre que le résultat : la <b>table\u00a0clients</b> n’est pas modifiée."],
   [96.8, 101.6, "Pour finir, voici les <b>trois idées à retenir</b>."],
   APP ? [101.7, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
       : [101.7, 999, "<code>LIKE</code> vérifie si le texte correspond au motif, avec les wildcards <code>%</code> et <code>_</code>."]
 ];
 
-/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+/* Pas de question en pleine vidéo : les moments « À toi » font participer l’élève (ni exercice ni quiz après la vidéo, depuis le 28 octobre). */
 const QUESTIONS = [];
 /* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
    Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
 const de = (p, n) => (/^[AEIOUYHÉÈÊÂÎ]/.test(p) ? 'd’' : 'de ') + p + ' ' + n;
 const MOMENTS = [
-  // prenom = 'L' ne renvoie rien : avant que la vidéo parle de motif et de LIKE
-  {at: 24.45, from: 15.0, kind: 'pick', prompt: 'Quelle condition retrouve les prénoms qui commencent par L ?', options: [
-    {label: "prenom LIKE 'L%'", ok: true, why: '<code>LIKE</code> cherche un motif ; <code>%</code> remplace la suite du prénom.'},
-    {label: "prenom = 'L%'", why: 'Avec <code>=</code>, le % est un caractère comme un autre : aucun prénom ne vaut « L% ».'},
-    {label: "prenom LIKE 'L'", why: 'Sans <code>%</code>, le motif est exactement « L » : aucun prénom ne correspond.'}],
-    tip: 'Il faut un motif : un L, puis n’importe quelle suite.'},
-  // le passage en revue commence : les prénoms qui correspondent au motif 'L%'
-  {at: 41.9, from: 29.0, kind: 'tap', need: 2, prompt: 'Touche les clients dont le prénom commence par L.',
-    spots: CLIENTS.map((c, i) => ({k: 'r' + i, sel: `#rows3 > .tr:nth-child(${i + 1})`, label: `Ligne ${i + 1} : ${c[0]} ${c[1]}`, ok: EN_L(c),
+  /* Mini-jeux (Elisa, 28 octobre, 8 h 50 : « pas assez gamifié »). Le colis : prenom = 'L' ne renvoie rien ; avant que la vidéo nomme
+     Lucas Bernard et Léa Simon, l’élève cherche lui-même les destinataires possibles (la question à choix sur la condition est partie :
+     la vidéo la montre juste après). */
+  {at: 24.45, from: 15.0, kind: 'tap', need: 2, prompt: 'Le prénom du destinataire commence par L : touche les <b>clients possibles</b>.',
+    hint: 'Regarde la première lettre de chaque prénom.',
+    board: {y: 300, html: '<span class="mb-k">📦 Le destinataire</span><div class="mg-grid">'
+      + CLIENTS.map((c, i) => `<div class="mg-r mg-cat" id="mbd${i}">${c[0]} ${c[1]}</div>`).join('') + '</div>'},
+    spots: CLIENTS.map((c, i) => ({k: 'r' + i, sel: '#mbd' + i, label: `${c[0]} ${c[1]}`, ok: EN_L(c),
       why: EN_L(c) ? '' : `Le prénom ${de(c[0], c[1])} commence par ${c[0][0]}.`})),
-    tip: 'Regarde la première lettre de chaque prénom.'},
-  // un seul caractère : le motif '_a%', avant que la vidéo explique _
-  {at: 69.02, from: 50.5, kind: 'sort', text: true, prompt: 'Range chaque client : son prénom correspond-il au motif <code>\'_a%\'</code> ?',
-    hint: '<code>_</code> remplace un seul caractère. Touche un client, puis sa case.', next: '« {x} » : touche sa case.',
-    board: {y: 470, html: '<span class="mb-k">Le motif <span class="mb-q" style="display:inline;padding:4px 14px;font-size:30px">\'_a%\'</span></span><div class="mb-cols" style="gap:28px"><div class="mb-col"><div class="mb-bin" id="mbOui"><b>Correspond</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin" id="mbNon"><b>Ne correspond pas</b><div class="mb-drop"></div></div></div></div>'},
+    tip: 'Deux prénoms commencent par L.'},
+  /* Le détecteur, une fois LIKE et % vus sur 'L%' : la même recherche, pour un nom qui commence par D ; l’élève essaie colonne et
+     motif, et voit aussitôt qui correspond (avant que le chapitre 4 explique où placer le %). */
+  {at: 41.9, from: 29.0, kind: 'tune', ico: '🔍', prompt: 'Règle la recherche : les clients dont le <b>nom</b> commence par <b>D</b>.',
+    hint: 'Change la colonne ou le motif, regarde qui correspond, puis valide.',
+    controls: [{k: 'col', type: 'seg', label: 'Colonne', choices: ['prenom', 'nom'], value: 'prenom', code: true},
+      {k: 'm', type: 'seg', label: 'Motif', choices: ["'D'", "'D%'", "'%D'", "'%D%'"], value: "'D'", code: true}],
+    answer: {col: 'nom', m: "'D%'"},
+    board: {y: 210, html: '<span class="mb-k">🔍 Le détecteur</span><div class="mb-q mg-sm" id="mblq"></div><div class="mg-grid mg-dense">'
+      + CLIENTS.map((c, i) => `<div class="mg-r" id="mbl${i}">${c[0]}<b>${c[1]}</b></div>`).join('') + '</div><div class="mg-c" id="mbln"></div>'},
+    show(s, b) {
+      const garde = c => MOTIF(String(s.m), c[s.col === 'nom' ? 1 : 0]), n = CLIENTS.filter(garde).length;
+      b.querySelector('#mblq').innerHTML = `<span class="k">WHERE</span> ${s.col} <span class="k">LIKE</span> <span class="s">${s.m}</span>`;
+      CLIENTS.forEach((c, i) => { const r = b.querySelector('#mbl' + i); r.classList.toggle('in', garde(c)); r.classList.toggle('out', !garde(c)); });
+      b.querySelector('#mbln').innerHTML = n ? `<b>${n}</b> client${n > 1 ? 's' : ''} trouvé${n > 1 ? 's' : ''}` : 'Aucun client : <b>0</b> ligne';
+    },
+    check(s) {
+      const m = String(s.m);
+      if (s.col !== 'nom') return {ok: false, why: 'La recherche porte sur le <b>nom</b> : avec <code>prenom</code>, aucun prénom ne commence par D.'};
+      if (m === "'D%'") return {ok: true, why: '<code>nom LIKE \'D%\'</code> : un D, puis n’importe quelle suite. Emma Dubois et Nathan Dupont correspondent.'};
+      if (m === "'D'") return {ok: false, why: 'Sans <code>%</code>, le motif vaut exactement « D » : aucun nom ne correspond.'};
+      if (m === "'%D'") return {ok: false, why: 'Avec le <code>%</code> devant, le motif cherche les noms qui finissent par D : Bernard.'};
+      return {ok: false, why: 'Avec un <code>%</code> de chaque côté, le D peut être n’importe où : Bernard correspond aussi.'};
+    },
+    tip: 'Comme <code>\'L%\'</code> pour les prénoms : la lettre d’abord, puis le <code>%</code>.'},
+  /* Les paniers, une fois _ expliqué et le motif '_a%' montré : un autre motif, '_u%', pour l’appliquer soi-même. */
+  {at: 78.45, from: 69.0, kind: 'sort', text: true, prompt: 'Range chaque client : son prénom correspond-il au motif <code>\'_u%\'</code> ?',
+    hint: 'Touche un client, puis son panier. Tu peux aussi le faire glisser.', next: '« {x} » : touche son panier.',
+    board: {y: 470, html: '<span class="mb-k">🧺 Le motif <span class="mb-q" style="display:inline;padding:4px 14px;font-size:30px">\'_u%\'</span></span><div class="mb-cols" style="gap:28px"><div class="mb-col"><div class="mb-bin" id="mbOui"><b>Correspond</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin" id="mbNon"><b>Ne correspond pas</b><div class="mb-drop"></div></div></div></div>'},
     spots: [{k: 'oui', sel: '#mbOui', label: 'Correspond'}, {k: 'non', sel: '#mbNon', label: 'Ne correspond pas'}],
     options: [
-      {label: 'Nathan Petit', to: 'oui', why: 'Nathan Petit : la deuxième lettre de son prénom est un a.'},
-      {label: 'Lucas Bernard', to: 'non', why: 'Lucas Bernard : la deuxième lettre de son prénom est un u.'},
-      {label: 'Gabriel Michel', to: 'oui', why: 'Gabriel Michel : la deuxième lettre de son prénom est un a.'},
-      {label: 'Emma Dubois', to: 'non', why: 'Emma Dubois : la deuxième lettre de son prénom est un m.'}],
-    tip: 'Le <code>_</code> prend la première lettre : la deuxième doit être un a.'}
+      {label: 'Lucas Bernard', to: 'oui', why: 'Lucas Bernard : la deuxième lettre de son prénom est un u.'},
+      {label: 'Sophie Martin', to: 'non', why: 'Sophie Martin : la deuxième lettre de son prénom est un o.'},
+      {label: 'Hugo Laurent', to: 'oui', why: 'Hugo Laurent : la deuxième lettre de son prénom est un u.'},
+      {label: 'Inès Lefebvre', to: 'non', why: 'Inès Lefebvre : la deuxième lettre de son prénom est un n.'},
+      {label: 'Léa Simon', to: 'non', why: 'Léa Simon : la deuxième lettre de son prénom est un é.'}],
+    tip: 'Le <code>_</code> prend la première lettre : la deuxième doit être un u.'}
 ];
 
 /* Un prénom en tuiles (une par lettre), avec les cadres du motif : [symbole, première tuile, dernière tuile ou 'end'].

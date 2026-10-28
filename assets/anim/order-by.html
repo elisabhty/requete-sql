@@ -220,21 +220,28 @@ const CAPTIONS = [
       : [95.8, 999, "<code>ORDER BY</code> trie le résultat : croissant avec <code>ASC</code>, décroissant avec <code>DESC</code>."]
 ];
 
-/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+/* Pas de question en pleine vidéo : les moments « À toi » font participer l’élève (ni exercice ni quiz après la vidéo, depuis le 28 octobre). */
 const QUESTIONS = [];
 /* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
    Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
 const MOMENTS = [
-  // les stocks en vrac : avant que la vidéo ajoute ORDER BY
-  {at: 31.85, from: 19.0, kind: 'pick', prompt: 'Comment afficher les lignes triées par stock ?', options: [
-    {label: 'ORDER BY stock', ok: true, why: '<code>ORDER BY</code>, à la fin de la requête, trie les lignes selon la colonne.'},
-    {label: 'WHERE stock', why: '<code>WHERE</code> garde certaines lignes : il ne les trie pas.'},
-    {label: 'SORT BY stock', why: 'Le tri s’écrit <code>ORDER BY</code> : « SORT BY » n’existe pas en SQL.'}],
-    tip: 'Le tri s’écrit en deux mots : « ordonner par ».'},
+  /* Mini-jeux (Elisa, 28 octobre, 8 h 50 : « pas assez gamifié »). L’ancien moment 1 (« Comment afficher les lignes triées ? ») avait
+     pour réponse le titre du cours. Le puzzle, une fois ORDER BY et le sens par défaut vus : trier par prix, en blocs. */
+  {at: 39.95, from: 31.8, kind: 'sort', prompt: 'Reconstitue la requête qui trie les produits <b>par prix</b>.',
+    hint: 'Touche un bloc, puis sa place. Tu peux aussi le faire glisser.', next: '{x} : touche sa place.',
+    board: {y: 300, html: '<span class="mb-k">🧩 Le puzzle</span><div class="mb-q mg-pz"><span class="k">SELECT</span> nom, prix\n<span class="k">FROM</span> produits\n<span class="mb-hole" id="mbH1"><span class="mb-drop"></span></span> <span class="mb-hole" id="mbH2"><span class="mb-drop"></span></span>;</div>'
+      + '<div class="mb-bin mg-bin" id="mbX"><b>🗑️ En trop</b><div class="mb-drop"></div></div>'},
+    spots: [{k: 'h1', sel: '#mbH1', label: 'Première place, après FROM produits'}, {k: 'h2', sel: '#mbH2', label: 'Deuxième place'}, {k: 'x', sel: '#mbX', label: 'En trop'}],
+    options: [
+      {label: 'ORDER BY', to: 'h1', why: '<code>ORDER BY</code> s’ajoute à la fin de la requête, après <code>FROM</code>.'},
+      {label: 'prix', to: 'h2', why: 'La colonne à trier vient juste après <code>ORDER BY</code>.'},
+      {label: 'SORT BY', to: 'x', why: '« SORT BY » n’existe pas en SQL : le tri s’écrit <code>ORDER BY</code>.'},
+      {label: 'WHERE', to: 'x', why: '<code>WHERE</code> garde certaines lignes : il ne les trie pas.'}],
+    tip: '<code>ORDER BY</code>, puis la colonne à trier, à la fin de la requête.'},
   // le stock de 500 se retrouve en bas : avant DESC
   /* Mini-jeu : l’ascenseur du classement (Elisa, 27 octobre, 23 h 25). La colonne et le sens se règlent ; les produits changent d’étage
      à chaque choix. Juste : le tri par stock, du plus grand au plus petit. */
-  {at: 47.05, from: 31.9, kind: 'tune', ico: '🛗', prompt: 'Fais monter le stock de <b>500</b> en tête du classement.',
+  {at: 47.05, from: 40.0, kind: 'tune', ico: '🛗', prompt: 'Fais monter le stock de <b>500</b> en tête du classement.',
     hint: 'Choisis la colonne et le sens, puis valide.',
     controls: [{k: 'col', type: 'seg', label: 'Colonne', choices: ['nom', 'stock', 'prix'], value: 'stock', code: true},
       {k: 'dir', type: 'seg', label: 'Sens', choices: ['ASC', 'DESC'], value: 'ASC', code: true}],
