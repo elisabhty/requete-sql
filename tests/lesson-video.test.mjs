@@ -495,7 +495,7 @@ const COURSES = [
       "'Souhaites-tu nous accompagner dans ce projet ?'", "const REPONSE = ['Avec plaisir !', 'Je suis prêt à démarrer.'];",
       "const BIENVENUE = ['Bienvenue dans l’équipe !', 'Voici ton badge.', 'Commençons par découvrir nos besoins ensemble.'];",
       '<span class="emo">🤝</span>J’accepte la mission', '<img src="badge-nutriboost.webp"', 'Bienvenue dans l’équipe NutriBoost !',
-      'Ta mission : analyser leurs besoins,<br>concevoir la <b>base de données</b><br>et l’implémenter dans le SGBD.', 'Analyste-développeur', 'opens: OPENS,',
+      'Ta mission : analyser les besoins métier,<br>concevoir la <b>base de données</b><br>et l’implémenter dans le SGBD.', 'Analyste-développeur', 'opens: OPENS,',
       // Le découpage par sujet : ce qu’est une table (des lignes et des colonnes, un seul sujet), puis les trois tables
       "const GRP = ['k-co', 'k-cl', 'k-cl', 'k-cl', 'k-pr', 'k-pr', 'k-co'];",
       'Une <b>table</b> organise les données en lignes et en colonnes, comme dans un tableau Excel.',
