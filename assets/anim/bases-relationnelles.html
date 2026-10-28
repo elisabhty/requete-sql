@@ -1084,14 +1084,18 @@ function build(){
     return {el, to, dx: +(T.x - 18 - el.offsetLeft).toFixed(1), dy: +(T.y + T.h / 2 - el.offsetTop - el.offsetHeight / 2).toFixed(1)};
   });
   LANES.flat().forEach(([r, c], i) => gsap.set(chipAt(r, c), {rotation: ROT[i]}));
-  /* Ta mission : la conversation de Camille Roux garde une hauteur fixe (ses messages sont longs : le fil remonte, comme dans Messages) ;
-     « J’accepte la mission » se pose dessous ; l’ensemble est centré entre le haut de la scène et la légende. Le badge (l’image)
+  /* Ta mission (Elisa, 28 octobre, 16 h 19 : « quand il y a des SMS ou des mails, tu peux agrandir dans la longueur surtout ») : la
+     conversation de Camille Roux prend toute la hauteur libre, du haut de la scène au bas de la légende (effacée le temps de la lire).
+     Elle s’ouvre à la taille de ses messages, tous visibles, « J’accepte la mission » dessous ; une fois le bouton touché, elle s’allonge
+     à chaque réponse, sans défiler. Si un jour les messages ne tenaient plus, le fil remonterait, comme dans Messages. Le badge (l’image)
      pend du haut de l’écran : sa sangle sort par le haut, il se balance autour de ce point ; le halo tourne derrière sa carte. */
-  const CONV_H = 820, accH = $('#acc').offsetHeight;
-  $('#ml1 .sms-v').style.height = CONV_H + 'px';
-  $('#ml1').style.top = Math.round((236 + 1460) / 2 - (CONV_H + 44 + accH) / 2) + 'px';
-  const CONV = R($('#ml1 .sms-v')), CONV_BODY = CONV_H - $('#ml1 .sms-h').offsetHeight;
-  Object.assign($('#acc').style, {left: Math.round((1080 - $('#acc').offsetWidth) / 2) + 'px', top: Math.round(CONV.y + CONV.h + 44) + 'px'});
+  const CONV_TOP = 249, CONV_MAX = 1790, ACC_GAP = 44, accH = $('#acc').offsetHeight;
+  const smsV = $('#ml1 .sms-v'), smsHead = $('#ml1 .sms-h').offsetHeight, smsPad = parseFloat(getComputedStyle($('#ml1 .sms-b')).paddingBottom);
+  const smsNeed = el => Math.round(smsHead + el.offsetTop + el.offsetHeight + smsPad);
+  const CONV_H1 = Math.min(smsNeed($$('#ml1 .sms-m').pop()), CONV_MAX - ACC_GAP - accH - CONV_TOP);
+  smsV.style.height = CONV_H1 + 'px';
+  $('#ml1').style.top = CONV_TOP + 'px';
+  Object.assign($('#acc').style, {left: Math.round((1080 - $('#acc').offsetWidth) / 2) + 'px', top: (CONV_TOP + CONV_H1 + ACC_GAP) + 'px'});
   const BDG_TOP = -10, BDG_CARD = [315, 1354];   // le haut de l’image (au-dessus de l’écran), puis le haut et le bas de sa carte, dans l’image
   Object.assign($('#bdg').style, {left: Math.round((1080 - 659) / 2) + 'px', top: BDG_TOP + 'px'});
   Object.assign($('#bdray').style, {left: Math.round(540 - 390) + 'px', top: Math.round(BDG_TOP + (BDG_CARD[0] + BDG_CARD[1]) / 2 - 390) + 'px'});
@@ -1242,8 +1246,8 @@ function build(){
   gsap.set(['#acc', '#bdg'], {autoAlpha: 0});
   const SMS_END = smsIn(1, 84.6, OPEN1);
   tl.to('#cap', {autoAlpha: 0, y: 30, duration: 0.3, ease: 'power2.in'}, 86.95);
-  /* Ta réponse et celle de Camille (une bulle par phrase) ; puis le fil : quand une bulle dépasse en bas, il remonte au moment où elle
-     arrive (avant la pause de lecture qui la suit). */
+  /* Ta réponse et celle de Camille (une bulle par phrase) : à l’arrivée de chacune, la conversation s’allonge jusqu’à elle (jusqu’au bas
+     de la légende) ; au-delà, le fil remonterait. Avant le bouton, elle garde la hauteur des messages de Camille. */
   $('#ml1 .sms-b').insertAdjacentHTML('beforeend', REPONSE.map((t, k) => `<p class="sms-m sms-me sms-x" id="me${k}">${fr(t)}</p>`).join('') +
     BIENVENUE.map((t, k) => `<p class="sms-m sms-x${k === BIENVENUE.length - 1 ? ' last' : ''}" id="bv${k}">${fr(t)}</p>`).join(''));
   const smsAll = $$('#ml1 .sms-m'), extra = $$('#ml1 .sms-x');
@@ -1253,10 +1257,12 @@ function build(){
   const camille = smsAll.length - extra.length;
   const REP_AT = [OPEN2 + 0.8, OPEN2 + 1.15], BV_AT = [OPEN2 + 2.0, OPEN2 + 2.35, OPEN2 + 2.7];
   const appear = smsAll.map((b, k) => k < camille ? OPEN1 + 0.62 + k * 0.28 : [...REP_AT, ...BV_AT][k - camille]);
-  let scrolled = 0;
+  let shownH = CONV_H1, scrolled = 0;
   smsAll.forEach((b, k) => {
-    const want = Math.max(0, Math.round(bottoms[k] + 26 - CONV_BODY));
-    if (want > scrolled) { tl.to('#ml1 .sms-b', {y: -want, duration: 0.24, ease: 'power2.out'}, appear[k]); scrolled = want; }
+    const need = Math.round(smsHead + bottoms[k] + smsPad), cap = k < camille ? CONV_H1 : CONV_MAX - CONV_TOP;
+    const h = Math.min(need, cap), up = need - h;
+    if (h > shownH) { tl.to(smsV, {height: h, duration: 0.26, ease: 'power2.out'}, appear[k]); shownH = h; }
+    if (up > scrolled) { tl.to('#ml1 .sms-b', {y: -up, duration: 0.24, ease: 'power2.out'}, appear[k]); scrolled = up; }
   });
   // « Souhaites-tu nous accompagner dans ce projet ? » : « J’accepte la mission » arrive sous la conversation ; l’app s’arrête sur le bouton
   show('#acc', +(SMS_END + 0.2).toFixed(2), {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)');

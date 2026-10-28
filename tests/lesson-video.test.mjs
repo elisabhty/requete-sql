@@ -494,7 +494,7 @@ const COURSES = [
       "'En tant que développeur/analyste, ta mission sera de concevoir cette base, puis de l’implémenter dans un système de gestion de bases de données (SGBD) et de nous accompagner dans l’analyse de nos besoins au vu de la croissance rapide de notre marque.'",
       "'Souhaites-tu nous accompagner dans ce projet ?'", "const REPONSE = ['Avec plaisir !', 'Je suis prêt à démarrer.'];",
       "const BIENVENUE = ['Bienvenue dans l’équipe !', 'Voici ton badge.', 'Commençons par découvrir nos besoins ensemble.'];",
-      '<span class="emo">🤝</span>J’accepte la mission', '<img src="badge-nutriboost.webp"', 'Bienvenue dans l’équipe NutriBoost !',
+      '<span class="emo">🤝</span>J’accepte la mission', 'const CONV_TOP = 249, CONV_MAX = 1790,', 'tl.to(smsV, {height: h,', '<img src="badge-nutriboost.webp"', 'Bienvenue dans l’équipe NutriBoost !',
       'Ta mission : analyser les besoins métier,<br>concevoir la <b>base de données</b><br>et l’implémenter dans le SGBD.', 'Analyste-développeur', 'opens: OPENS,',
       // Le découpage par sujet : ce qu’est une table (des lignes et des colonnes, un seul sujet), puis les trois tables
       "const GRP = ['k-co', 'k-cl', 'k-cl', 'k-cl', 'k-pr', 'k-pr', 'k-co'];",
