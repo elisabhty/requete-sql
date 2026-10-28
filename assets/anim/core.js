@@ -862,6 +862,7 @@ function Course(cfg){
       picks: picks.map(p => ({t: unwarp(p.at), from: p.from != null ? unwarp(p.from) : null, kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', next: p.next ? fr(p.next) : '', need: p.need || 0,
         /* L’explication de la bonne réponse : le lecteur la remontre quand le moment, déjà réussi, s’ouvre résolu. */
         options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''})),
+        win: typeof momentWin === 'function' ? momentWin(p) : '',
         /* Réglage (tune) : les commandes de la feuille (curseur, choix, bascule), en données ; la page dessine leur effet (IX.tune). */
         controls: (p.controls || []).map(c => ({k: c.k, type: c.type, label: fr(c.label || ''), min: c.min, max: c.max, step: c.step, value: c.value,
           choices: c.choices || null, code: !!c.code, unit: c.unit || ''})), ico: p.ico || ''})),
