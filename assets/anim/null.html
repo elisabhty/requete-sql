@@ -106,7 +106,7 @@
     <div class="abs card invite">
       <div class="inv-band"><span class="emo">📋</span><span>Enquête clients</span></div>
       <div class="inv-body">
-        <div class="inv-from">NutriBoost · équipe commerciale</div>
+        <div class="inv-from">NutriBoost · équipe marketing</div>
         <div class="inv-title">Votre avis compte</div>
         <div class="inv-place"><span class="emo">✉️</span><span>Envoi par e-mail</span></div>
       </div>
@@ -135,7 +135,7 @@
       <div class="rows" id="rows2"></div>
     </div>
     <div class="abs card trio" id="trio2" style="top:672px">
-      <div class="tt"><span class="emo">🧐</span><span>Trois choses différentes</span></div>
+      <div class="tt"><span class="emo">🧐</span><span>Trois cas à distinguer</span></div>
       <div class="tri">
         <div class="tc" id="tcN"><span class="tv nul">NULL</span><b>aucune valeur</b><span class="s">l’e-mail est absent</span></div>
         <div class="tc"><span class="tv">''</span><b>un texte vide</b><span class="s">une valeur, mais vide</span></div>
@@ -146,7 +146,7 @@
 
   <!-- 3 · IS NULL en action -->
   <section class="scene" id="s3">
-    <div class="abs look" id="look3" style="top:736px"><div class="lk">IS NULL</div><div class="lt">→ vrai quand aucune valeur n’est enregistrée</div></div>
+    <div class="abs look" id="look3" style="top:736px"><div class="lk">IS NULL</div><div class="lt">→ vérifie l’absence de valeur.</div></div>
     <div class="abs ask" id="ask3"><span class="q">?</span><span>Son e-mail est-il absent ?</span></div>
     <div class="abs card scan" id="scan3" style="top:400px">
       <div class="tt"><span class="emo">📋</span><span>Clients</span><span class="cnt"><span id="cnt3a">10 lignes</span><span id="cnt3b">2 lignes</span></span></div>
@@ -160,7 +160,7 @@
     <div class="abs card trap" id="trap4" style="top:236px">
       <div class="trap-h"><span class="emo">⚠️</span><span>Avec = NULL</span></div>
       <div class="mini"><span class="kw">WHERE</span> email = <span class="kw">NULL</span>;<span class="go" id="go4"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg></span></div>
-      <div class="out err" id="err4"><span class="oi" style="font-family:var(--mono)">0</span><div class="ot"><b>Aucune ligne</b><span class="s">NULL n’est égal à rien, pas même à NULL.</span></div></div>
+      <div class="out err" id="err4"><span class="oi" style="font-family:var(--mono)">0</span><div class="ot"><b>Aucune ligne</b><span class="s">= NULL ne permet pas de détecter<br>une valeur absente.</span></div></div>
     </div>
     <div class="abs card trap" id="fix4" style="top:640px">
       <div class="trap-h"><span class="emo">✅</span><span>Avec IS NULL</span></div>
@@ -218,7 +218,7 @@
 <script src="moments.js"></script>
 <script>
 'use strict';
-const DURATION = 93.8;
+const DURATION = 99.3;
 
 /* Table clients : [prenom, nom, email (null = absent), telephone] */
 const CLIENTS = [['Sophie','Martin','sophie@mail.fr','06 39 98 12 04'],['Lucas','Bernard','lucas@mail.fr','06 39 98 21 47'],
@@ -232,37 +232,39 @@ const mail = c => NUL(c) ? '<span class="nul">NULL</span>' : c[2];
 const CHAPTERS = [
   {n:1, label:'Situation',          a:5.0,  b:15.0},
   {n:2, label:'Le problème',        a:15.0, b:30.0},
-  {n:3, label:'IS NULL en action',  a:30.0, b:47.0},
-  {n:4, label:'Le piège du = NULL', a:47.0, b:59.0},
-  {n:5, label:'IS NOT NULL',        a:59.0, b:68.0},
-  {n:6, label:'Le résultat',        a:68.0, b:81.0},
-  {n:7, label:'À retenir',          a:81.0, b:DURATION}
+  {n:3, label:'IS NULL en action',  a:30.0, b:48.5},
+  {n:4, label:'Le piège du = NULL', a:48.5, b:64.5},
+  {n:5, label:'IS NOT NULL',        a:64.5, b:73.5},
+  {n:6, label:'Le résultat',        a:73.5, b:86.5},
+  {n:7, label:'À retenir',          a:86.5, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
 const CAPTIONS = [
-  [5.3, 8.6,    "Pour mieux connaître ses clients, l’équipe envoie une <b>enquête par e-mail</b>."],
+  // Textes d’Elisa (28 octobre, 23 h 44) : l’équipe marketing, IS NULL dans le filtre WHERE, le piège du = NULL en trois bulles
+  [5.3, 8.6,    "Pour mieux connaître ses clients,<br>l’équipe marketing envoie<br>une <b>enquête par e-mail</b>."],
   [8.7, 11.35,  "Certains clients n’ont <b>aucun e-mail</b> : il faut les retrouver pour les <b>appeler</b>."],
   [11.45, 14.6, "Pour cela, on récupère<br>leur téléphone dans la <b>table clients</b>,<br>qui contient <b>10 clients</b>."],
   [15.3, 19.0,  "Avec <code>SELECT prenom, email</code>, on affiche l’e-mail de chaque client."],
   [19.1, 22.9,  "Pour Hugo Laurent et Inès Lefebvre, la case contient <code>NULL</code> : <b>aucune valeur</b> n’est enregistrée."],
   [23.0, 26.6,  "<code>NULL</code> n’est ni un texte vide, ni zéro : c’est l’<b>absence</b> de valeur."],
   [26.7, 29.6,  "Il n’y a aucune valeur à comparer : <span class=\"nw\">c’est le rôle</span> de <code>IS NULL</code>."],
-  [30.3, 33.9,  "Pour repérer une valeur absente, on ne compare pas : on écrit <code>IS NULL</code>."],
-  [34.0, 35.85, "Pour chaque client, une seule question : son e-mail est-il absent ?"],
-  [35.95, 41.6, "Seuls Hugo Laurent et Inès Lefebvre vérifient la condition :<br>leur e-mail est absent."],
-  [41.7, 46.4,  "Les autres clients ont un e-mail : <span class=\"nw\">ils sont écartés</span>, il reste <b>2 clients</b>."],
-  [47.3, 51.2,  "Attention : avec <code>= NULL</code>, la requête ne renvoie <b>aucune ligne</b>."],
-  [51.3, 55.4,  "<code>NULL</code> n’est égal à rien, <span class=\"nw\">pas même à lui-même</span> :<br><code>= NULL</code> n’est <b>jamais\u00a0vrai</b>."],
-  [55.5, 58.6,  "Pour tester une valeur absente, il faut toujours <code>IS NULL</code>."],
-  [59.3, 63.6,  "À l’inverse, <code>IS NOT NULL</code> garde les lignes où la valeur <b>existe</b>."],
-  [63.7, 67.6,  "Les <b>8 clients</b> qui ont un e-mail et les 2 autres font bien les <b>10 clients</b>."],
-  [68.3, 71.4,  "La requête affiche le prénom, le nom et le téléphone des clients sans e-mail."],
-  [71.5, 75.6,  "Résultat : <b>2 clients</b> à appeler pour recueillir leur avis."],
-  [75.7, 80.6,  "<code>WHERE</code> ne filtre que le résultat : la <b>table\u00a0clients</b> n’est pas modifiée."],
-  [81.3, 86.1,  "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [86.2, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
-      : [86.2, 999, "Une valeur absente se teste avec <code>IS NULL</code>, jamais avec <code>=</code>."]
+  [30.3, 35.4,  "Pour trouver les clients dont l’adresse<br><span class=\"nw\">e-mail</span> n’est pas renseignée, utilise<br><code>IS NULL</code> dans le filtre <code>WHERE</code>."],
+  [35.5, 37.35, "Pour chaque client, une seule question : son e-mail est-il absent ?"],
+  [37.45, 43.1, "Seuls Hugo Laurent et Inès Lefebvre vérifient la condition :<br>leur e-mail est absent."],
+  [43.2, 47.9,  "Les autres clients ont un e-mail : <span class=\"nw\">ils sont écartés</span>, il reste <b>2 clients</b>."],
+  [48.8, 52.7,  "Attention : avec <code>= NULL</code>, la requête ne renvoie <b>aucune ligne</b>."],
+  [52.8, 56.1,  "<code>NULL</code> représente<br>une valeur absente ou inconnue."],
+  [56.2, 60.9,  "Avec <code>= NULL</code>, le résultat<br>de la comparaison est inconnu :<br>aucune ligne n’est sélectionnée."],
+  [61.0, 63.9,  "Pour vérifier l’absence de valeur,<br>utilise <code>IS NULL</code>."],
+  [64.8, 69.1,  "À l’inverse, <code>IS NOT NULL</code> garde les lignes où la valeur <b>existe</b>."],
+  [69.2, 73.1,  "Les <b>8 clients</b> qui ont un e-mail et les 2 autres font bien les <b>10 clients</b>."],
+  [73.8, 76.9,  "La requête affiche le prénom, le nom et le téléphone des clients sans e-mail."],
+  [77.0, 81.1,  "Résultat : <b>2 clients</b> à appeler pour recueillir leur avis."],
+  [81.2, 86.1,  "<code>WHERE</code> ne filtre que le résultat : la <b>table\u00a0clients</b> n’est pas modifiée."],
+  [86.8, 91.6,  "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [91.7, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
+      : [91.7, 999, "Une valeur absente se teste avec <code>IS NULL</code>, jamais avec <code>=</code>."]
 ];
 
 /* Pas de question en pleine vidéo : les moments « À toi » font participer l’élève (ni exercice ni quiz après la vidéo, depuis le 28 octobre). */
@@ -277,8 +279,8 @@ const MOMENTS = [
     tip: 'Cherche les cases où aucun e-mail n’est écrit.'},
   /* Mini-jeux (Elisa, 28 octobre, 8 h 50 : « pas assez gamifié »). Le banc d’essai, avant le piège du = NULL : l’élève essaie trois
      conditions et voit le résultat ; = NULL et = '' ne gardent personne, seul IS NULL retrouve les deux clients sans e-mail. */
-  {at: 47.02, from: 30.0, kind: 'tune', ico: '🧪', prompt: 'Règle la condition pour retrouver les <b>2 clients sans e-mail</b>.',
-    hint: 'Change la condition, regarde le résultat, puis valide.',
+  {at: 48.52, from: 30.0, kind: 'tune', ico: '🧪', prompt: 'Choisis la bonne condition pour retrouver les <b>2 clients</b> dont l’adresse e-mail n’est pas renseignée.',
+    hint: 'Observe le résultat, puis valide ton choix.',
     controls: [{k: 'c', type: 'seg', label: 'Condition', choices: ['= NULL', "= ''", 'IS NULL'], value: '= NULL', code: true}],
     answer: {c: 'IS NULL'},
     board: {y: 210, html: '<span class="mb-k">🧪 Le banc d’essai</span><div class="mb-q mg-sm" id="mbuq"></div><div class="mg-grid mg-dense">'
@@ -292,14 +294,14 @@ const MOMENTS = [
     },
     check(s) {
       if (s.c === 'IS NULL') return {ok: true, why: '<code>IS NULL</code> repère les valeurs absentes : Hugo Laurent et Inès Lefebvre.'};
-      if (s.c === '= NULL') return {ok: false, why: '<code>NULL</code> n’est égal à rien, pas même à lui-même : <code>= NULL</code> n’est jamais vrai.'};
+      if (s.c === '= NULL') return {ok: false, why: 'Avec <code>= NULL</code>, le résultat de la comparaison est inconnu : aucune ligne n’est sélectionnée.'};
       return {ok: false, why: '<code>\'\'</code> est un texte vide : c’est une valeur, pas une absence de valeur. Aucun e-mail ne vaut <code>\'\'</code>.'};
     },
     tip: 'Une valeur absente ne se compare pas : elle se repère.'},
-  /* Les zones, juste après IS NOT NULL : quelle condition garde chaque e-mail ? Le texte vide '' est une valeur : IS NOT NULL le garde. */
-  {at: 63.65, from: 59.0, kind: 'sort', prompt: 'Range chaque e-mail : quelle condition le garde ?',
-    hint: 'Touche un e-mail, puis sa zone. Tu peux aussi le faire glisser.', next: '{x} : touche sa zone.',
-    board: {y: 470, html: '<span class="mb-k">🗂️ Les zones</span><div class="mb-cols" style="gap:28px"><div class="mb-col"><div class="mb-bin mg-cb" id="mbIn"><b>IS NULL</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin mg-cb" id="mbNn"><b>IS NOT NULL</b><div class="mb-drop"></div></div></div></div>'},
+  /* Les conditions, juste après IS NOT NULL : quelle condition garde chaque e-mail ? Le texte vide '' est une valeur : IS NOT NULL le garde. */
+  {at: 69.15, from: 64.5, kind: 'sort', prompt: 'Associe chaque carte à la bonne condition : <code>IS NULL</code> ou <code>IS NOT NULL</code>.',
+    hint: 'Appuie sur une carte, puis sur la zone correspondante, ou fais-la glisser dans cette zone.', next: '{x} : appuie sur la zone correspondante.',
+    board: {y: 470, html: '<span class="mb-k">🗂️ Les conditions</span><div class="mb-cols" style="gap:28px"><div class="mb-col"><div class="mb-bin mg-cb" id="mbIn"><b>IS NULL</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin mg-cb" id="mbNn"><b>IS NOT NULL</b><div class="mb-drop"></div></div></div></div>'},
     spots: [{k: 'n', sel: '#mbIn', label: 'IS NULL'}, {k: 'v', sel: '#mbNn', label: 'IS NOT NULL'}],
     options: [
       {label: 'NULL', to: 'n', why: '<code>NULL</code>, c’est l’absence de valeur : <code>IS NULL</code> le garde.'},
@@ -390,18 +392,18 @@ function build(){
   tl.to('#isn3', {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, te + 0.15);
   show('#look3', 31.8, {y: 30});
   cue(31.8, 'pop', 0.8, 1);
-  hide(['#qcode', '#look3'], 33.85, {y: -40}, 0.4);
-  show('#ask3', 34.1, {y: 30, scale: 0.94});
-  cue(34.1, 'pop', 0.9, 1);
-  show('#scan3', 34.35, {y: 40}, 0.5);
-  cue(34.35, 'whoosh', 0.5);
+  hide(['#qcode', '#look3'], 35.35, {y: -40}, 0.4);
+  show('#ask3', 35.6, {y: 30, scale: 0.94});
+  cue(35.6, 'pop', 0.9, 1);
+  show('#scan3', 35.85, {y: 40}, 0.5);
+  cue(35.85, 'whoosh', 0.5);
   const tr3 = $$('#rows3 .tr');
   gsap.set(tr3, {autoAlpha: 0, y: 12});
-  tl.to(tr3, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.035}, 34.6);
-  show('#cnt3a', 34.8, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  tl.to(tr3, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.035}, 36.1);
+  show('#cnt3a', 36.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
   gsap.set('#cnt3b', {autoAlpha: 0, y: 24});
   // Balayage : une pause de lecture après la première ligne.
-  const T3 = [35.1, 36.05];
+  const T3 = [36.6, 37.55];
   for (let i = 2; i < 10; i++) T3.push(+(T3[i - 1] + 0.42).toFixed(2));
   const scanner = $('#scanner3');
   gsap.set(scanner, {y: 0, autoAlpha: 0});
@@ -416,85 +418,85 @@ function build(){
   });
   tl.to(scanner, {autoAlpha: 0, duration: 0.25}, T3[9] + 0.5);
   const kept3 = tr3.filter(r => r.dataset.n === '1'), out3 = tr3.filter(r => r.dataset.n !== '1');
-  tl.to(kept3.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.35, stagger: 0.12}, 39.9);
-  cue(39.9, 'chord', 0.7);
-  tl.to(out3, {opacity: 0.4, duration: 0.3, stagger: 0.03}, 40.4);
-  tl.to(out3, {height: 0, opacity: 0, duration: 0.55, ease: 'power2.inOut', stagger: 0.04}, 41.9);
-  cue(41.9, 'fold', 0.9);
-  tl.to('#cnt3a', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 42.85);
-  tl.to('#cnt3b', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 42.95);
-  cue(42.95, 'pop', 0.9, 4);
-  hide(['#ask3', '#scan3'], 46.5);
-  sceneOff('#s3', 47.0);
+  tl.to(kept3.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.35, stagger: 0.12}, 41.4);
+  cue(41.4, 'chord', 0.7);
+  tl.to(out3, {opacity: 0.4, duration: 0.3, stagger: 0.03}, 41.9);
+  tl.to(out3, {height: 0, opacity: 0, duration: 0.55, ease: 'power2.inOut', stagger: 0.04}, 43.4);
+  cue(43.4, 'fold', 0.9);
+  tl.to('#cnt3a', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 44.35);
+  tl.to('#cnt3b', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 44.45);
+  cue(44.45, 'pop', 0.9, 4);
+  hide(['#ask3', '#scan3'], 48.0);
+  sceneOff('#s3', 48.5);
 
   /* ===== 4 · Le piège du = NULL ===== */
-  sceneOn('#s4', 47.0);
-  show('#trap4', 47.05, {y: 50});
-  cue(47.05, 'whoosh', 0.6);
-  press($('#go4'), 48.0, '#4B30CC', 6);
-  show('#err4', 48.25, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
-  tl.to('#err4', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 48.65);
-  cue(48.25, 'error', 0.85);
-  show('#fix4', 51.6, {y: 50});
-  cue(51.6, 'whoosh', 0.6);
-  press($('#goF'), 52.4, '#4B30CC', 6);
-  show('#ok4', 52.65, {y: 0, x: -20}, 0.4, 'back.out(1.8)');
-  cue(52.65, 'chord', 0.6);
-  tl.to('#isn4', {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 55.8);
-  hide(['#trap4', '#fix4'], 58.5);
-  sceneOff('#s4', 59.0);
+  sceneOn('#s4', 48.5);
+  show('#trap4', 48.55, {y: 50});
+  cue(48.55, 'whoosh', 0.6);
+  press($('#go4'), 49.5, '#4B30CC', 6);
+  show('#err4', 49.75, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  tl.to('#err4', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 50.15);
+  cue(49.75, 'error', 0.85);
+  show('#fix4', 53.1, {y: 50});
+  cue(53.1, 'whoosh', 0.6);
+  press($('#goF'), 53.9, '#4B30CC', 6);
+  show('#ok4', 54.15, {y: 0, x: -20}, 0.4, 'back.out(1.8)');
+  cue(54.15, 'chord', 0.6);
+  tl.to('#isn4', {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 61.2);   // « utilise IS NULL »
+  hide(['#trap4', '#fix4'], 64.0);
+  sceneOff('#s4', 64.5);
 
   /* ===== 5 · IS NOT NULL ===== */
-  sceneOn('#s5', 59.0);
-  show('#trap5', 59.05, {y: 50});
-  cue(59.05, 'whoosh', 0.6);
-  tl.to('#isnn5', {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 59.7);
-  press($('#go5'), 60.9, '#4B30CC', 6);
-  show('#ok5', 61.15, {y: 0, x: -20}, 0.4, 'back.out(1.8)');
-  cue(61.15, 'chord', 0.6);
-  show('#split5', 61.7, {y: 40}, 0.5);
-  cue(61.7, 'whoosh', 0.5);
+  sceneOn('#s5', 64.5);
+  show('#trap5', 64.55, {y: 50});
+  cue(64.55, 'whoosh', 0.6);
+  tl.to('#isnn5', {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 65.2);
+  press($('#go5'), 66.4, '#4B30CC', 6);
+  show('#ok5', 66.65, {y: 0, x: -20}, 0.4, 'back.out(1.8)');
+  cue(66.65, 'chord', 0.6);
+  show('#split5', 67.2, {y: 40}, 0.5);
+  cue(67.2, 'whoosh', 0.5);
   const s1 = $$('#sch1 .sch'), s2 = $$('#sch2 .sch');
   gsap.set([...s1, ...s2], {autoAlpha: 0, scale: 0.7});
-  tl.to(s1, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.12}, 62.1);
-  tl.to(s2, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.07}, 62.45);
-  [...s1, ...s2].forEach((_, i) => cue(62.1 + i * 0.08, 'pop', 0.55, i % 7));
-  show('#ssum', 64.0, {y: 16, scale: 0.9}, 0.45, 'back.out(1.8)');
-  cue(64.0, 'success', 0.6);
-  hide(['#trap5', '#split5'], 67.5);
-  sceneOff('#s5', 68.0);
+  tl.to(s1, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.12}, 67.6);
+  tl.to(s2, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.07}, 67.95);
+  [...s1, ...s2].forEach((_, i) => cue(67.6 + i * 0.08, 'pop', 0.55, i % 7));
+  show('#ssum', 69.5, {y: 16, scale: 0.9}, 0.45, 'back.out(1.8)');
+  cue(69.5, 'success', 0.6);
+  hide(['#trap5', '#split5'], 73.0);
+  sceneOff('#s5', 73.5);
 
   /* ===== 6 · Le résultat ===== */
-  sceneOn('#s6', 68.0);
-  show('#s6code', 68.05, {y: 60}, 0.6);
-  cue(68.05, 'whoosh', 0.7);
-  te = typeLine($('#s6l1'), 68.55, 28);
+  sceneOn('#s6', 73.5);
+  show('#s6code', 73.55, {y: 60}, 0.6);
+  cue(73.55, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 74.05, 28);
   te = typeLine($('#s6l2'), te + 0.12, 28);
   te = typeLine($('#s6l3'), te + 0.12, 28);
-  press($('#s6run'), 71.5);
-  show('#calls6', 71.8, {y: 40}, 0.5);
+  press($('#s6run'), 77.0);
+  show('#calls6', 77.3, {y: 40}, 0.5);
   const calls = $$('#callRows .call');
   gsap.set(calls, {autoAlpha: 0, x: -40});
-  tl.to(calls, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out', stagger: 0.2}, 72.1);
+  tl.to(calls, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out', stagger: 0.2}, 77.6);
   calls.forEach((c, i) => {
-    cue(72.1 + i * 0.2, 'pop', 0.75, i * 2);
-    tl.to(c.querySelector('.cb'), {scale: 1.15, duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 73.1 + i * 0.45);
+    cue(77.6 + i * 0.2, 'pop', 0.75, i * 2);
+    tl.to(c.querySelector('.cb'), {scale: 1.15, duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 78.6 + i * 0.45);
   });
-  show('#cnt6', 72.8, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  show('#badge6', 74.3, {y: 0, scale: 0.6}, 0.55, 'back.out(1.9)');
-  cue(74.3, 'success', 0.9);
-  hide(['#s6code', '#calls6', '#badge6'], 80.5);
-  sceneOff('#s6', 81.0);
+  show('#cnt6', 78.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  show('#badge6', 79.8, {y: 0, scale: 0.6}, 0.55, 'back.out(1.9)');
+  cue(79.8, 'success', 0.9);
+  hide(['#s6code', '#calls6', '#badge6'], 86.0);
+  sceneOff('#s6', 86.5);
 
   /* ===== 7 · À retenir ===== */
-  recapScene(81.0, [81.7, 83.5, 85.3]);
-  hold(83.3, 2.9);
-  hold(85.1, 2.9);
+  recapScene(86.5, [87.2, 89.0, 90.8]);
+  hold(88.8, 2.9);
+  hold(90.6, 2.9);
   // Le bouton « Ajouter à mes notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(86.25, 'pop', 0.85, 5);
+  if (APP) cue(91.75, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 86.2, moments: MOMENTS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 91.7, moments: MOMENTS,
   glyphs: '📋✉️👤👪📞🔎🧐⚠️✅📬🕳️🚫✓✕→', dom, build});
 </script>
 </body>
