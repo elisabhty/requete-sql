@@ -587,28 +587,16 @@ const MOMENTS = [
     spots: CLIENTS.map((c, i) => ({k: 'r' + i, sel: `#rows > .tr:nth-child(${i + 1})`, label: `Ligne ${i + 1} : ${c[0]} ${c[1]}, ${c[2]}`, ok: c[2] === 'Paris',
       why: c[2] === 'Paris' ? '' : `La ville ${/^[AEIOUHÉÈ]/.test(c[0]) ? 'd’' : 'de '}${c[0]} ${c[1]} est ${c[2]} : la condition est fausse.`})),
     tip: 'Regarde la colonne ville : elle doit valoir Paris.'},
-  /* Le banc d’essai, avant l’exécution du second piège : l’élève essaie lui-même plusieurs écritures de la valeur et voit aussitôt qui
-     est invité ; 'paris' en minuscules ne garde personne, Paris sans guillemets provoque une erreur. */
-  {at: 64.95, from: 56.0, kind: 'tune', ico: '🧪', prompt: 'Règle la valeur pour inviter les <b>4 clients parisiens</b>.',
-    hint: 'Change l’écriture ou les guillemets, regarde qui est invité, puis valide.',
-    controls: [{k: 'e', type: 'seg', label: 'Écriture', choices: ['paris', 'Paris', 'PARIS'], value: 'paris', code: true},
-      {k: 'q', type: 'switch', label: 'Guillemets simples', value: true}],
-    answer: {e: 'Paris', q: true},
-    board: {y: 210, html: '<span class="mb-k">🧪 Le banc d’essai</span><div class="mb-q" id="mbwq"></div><div class="mg-grid" id="mbwg">'
-      + CLIENTS.map((c, i) => `<div class="mg-r" id="mbw${i}">${c[0]} ${c[1][0]}.<b>${c[2]}</b></div>`).join('') + '</div><div class="mg-c" id="mbwn"></div>'},
-    show(s, b) {
-      const e = String(s.e), err = !s.q, garde = c => !err && e === 'Paris' && c[2] === 'Paris', n = CLIENTS.filter(garde).length;
-      b.querySelector('#mbwq').innerHTML = `<span class="k">WHERE</span> ville = ${err ? e : `<span class="s">'${e}'</span>`}`;
-      CLIENTS.forEach((c, i) => { const r = b.querySelector('#mbw' + i); r.classList.toggle('in', garde(c)); r.classList.toggle('out', !garde(c)); });
-      b.querySelector('#mbwn').innerHTML = err ? `<span class="mg-err">Erreur SQL : no such column: ${e}</span>`
-        : n ? `<b>${n}</b> clients invités` : 'Aucun client invité : <b>0</b> ligne';
-    },
-    check(s) {
-      const e = String(s.e);
-      if (!s.q) return {ok: false, why: `Sans guillemets, <code>${e}</code> est lu comme le nom d’une colonne : la requête provoque une erreur.`};
-      if (e === 'Paris') return {ok: true, why: 'Écrite comme dans la table, entre guillemets simples, <code>\'Paris\'</code> garde les 4 clients parisiens.'};
-      return {ok: false, why: `<code>'${e}'</code> ≠ <code>'Paris'</code> : les majuscules comptent, aucune ligne ne remplit la condition.`};
-    },
+  /* La condition à compléter (Elisa, 28 octobre, 21 h 05 : « en vrai on a la réponse pendant le moment ») : au début de « Deux
+     pièges », avant que la vidéo ne montre les guillemets et l’écriture de la valeur ; l’élève choisit la valeur à mettre dans le trou,
+     sans voir qui est invité avant d’avoir choisi. Les deux mauvaises valeurs sont les deux pièges que la vidéo montre ensuite. */
+  {at: 56.02, from: 43.8, kind: 'pick', slot: '#mbWv', prompt: 'Complète la condition <code>WHERE</code> pour sélectionner uniquement les clients qui habitent à Paris.',
+    board: {y: 470, html: '<span class="mb-k">🧩 La condition à compléter</span><div class="mb-q"><span class="k">SELECT</span> prenom, ville\n<span class="k">FROM</span> clients\n'
+      + '<span class="k">WHERE</span> ville = <span class="mb-hole" id="mbWv">?</span>;</div>'},
+    options: [
+      {label: '\'Paris\'', ok: true, why: 'Entre guillemets simples, écrite comme dans la table : <code>\'Paris\'</code> garde les 4 clients parisiens.'},
+      {label: 'Paris', why: 'Sans guillemets, <code>Paris</code> est lu comme le nom d’une colonne : la requête provoque une erreur.'},
+      {label: '\'paris\'', why: '<code>\'paris\'</code> ≠ <code>\'Paris\'</code> : les majuscules comptent, aucune ligne ne remplit la condition.'}],
     tip: 'Écris la valeur exactement comme dans la table, entre guillemets simples.'}
 ];
 
@@ -1159,7 +1147,7 @@ window.__ready = (async () => {
       prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', next: p.next ? fr(p.next) : '', need: p.need || 0,
       options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''})),
       win: momentWin(p),   // l’explication du moment réussi (moments.js)
-      /* Réglage (tune, le banc d’essai du moment 3) : les commandes de la feuille, comme dans le moteur commun. */
+      /* Réglage (tune) : les commandes de la feuille, comme dans le moteur commun. */
       controls: (p.controls || []).map(c => ({k: c.k, type: c.type, label: fr(c.label || ''), min: c.min, max: c.max, step: c.step, value: c.value,
         choices: c.choices || null, code: !!c.code, unit: c.unit || ''})), ico: p.ico || ''})),
     /* Légendes en texte : le lecteur les annonce à VoiceOver au fil de l’animation. */
