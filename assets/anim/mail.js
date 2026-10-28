@@ -6,8 +6,8 @@
    Fichier à part : seuls les cours qui ont un mail le chargent (après core.js et moments.js), les autres ne s’alourdissent pas.
    Classes lm-… : la page d’un cours a déjà ses .mb (les cartes des moments « À toi »).
 
-   m : {id, qui: [nom affiché, initiales], k (couleur), tag, de (adresse), corps: [phrases], signe}. Le mail commence par « Bonjour, »
-   et finit par « Merci ! », puis la signature. lessonMailCard() donne la carte (repliée, en notification) et le doigt de la vidéo ;
+   m : {id, qui: [nom affiché, initiales], k (couleur), tag, de (adresse), corps: [paragraphes], merci, signe}. Le mail commence par
+   « Bonjour, » et finit par « Merci ! » (ou la formule merci de la page : « Merci pour ton aide ! »), puis la signature. lessonMailCard() donne la carte (repliée, en notification) et le doigt de la vidéo ;
    lessonMailFit() la centre dans la hauteur libre, une fois les polices chargées (dans build) ; lessonMailIn() l’anime : à t la
    notification tombe, à T l’élève la touche (l’app s’arrête là : la page déclare l’arrêt dans ses opens) ; le mail se déplie, une
    ligne après l’autre, puis l’image s’arrête le temps de lire la demande. Renvoie l’instant de fin. */
@@ -41,7 +41,7 @@
 })();
 function lessonMailCard(m){
   /* Le dernier mot d’une phrase reste avec le précédent : jamais un mot seul sur la dernière ligne (« seule fois. »). */
-  const lines = ['Bonjour,', ...m.corps.map(x => x.replace(/ (\S+)$/, '\u00a0$1')), 'Merci !', m.signe];
+  const lines = ['Bonjour,', ...m.corps.map(x => x.replace(/ (\S+)$/, '\u00a0$1')), m.merci || 'Merci !', m.signe];
   return `<div class="abs card lm ${m.k}" id="${m.id}"><div class="lm-h"><i class="lm-av">${m.qui[1]}<b class="lm-bg emo">✉️</b></i>` +
     `<div class="lm-w"><div class="lm-n"><b>${m.qui[0]}</b><small class="lm-tg">${m.tag}</small></div><div class="lm-s"><span class="lm-s0">Nouveau mail</span><span class="lm-s1">${m.de}</span></div></div>` +
     `<div class="lm-r"><span class="lm-t">maintenant</span><i class="lm-dot"></i></div></div>` +
