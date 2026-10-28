@@ -1,8 +1,6 @@
 'use strict';
 /* ---------- Moments « À toi » des cours vidéo d’avant le projet ----------
-   Elisa, 26 octobre, 14 h 59 : « il faut convertir les premières leçons sans moment en moments, même si c’est juste des petites
-   questions du style : qu’est-ce que la normalisation ? […] les premières leçons sont validées aussi par moi, elles sont bien mises,
-   il manque les moments ».
+   Elisa, 26 octobre, 14 h 59 : « il faut convertir les premières leçons sans moment en moments […] il manque les moments ».
    Ces vidéos gardent donc leurs temps validés (légendes, chapitres, animations, sons). La page décrit ses moments dans MOMENTS, en
    temps de sa timeline, et passe Course({…, moments: MOMENTS}) : à chaque `at`, withMoments() insère un passage de 2,65 s — la
    légende « À toi ! », comme toi() dans les chapitres du projet, puis l’arrêt (le passage d’attente est coupé, comme là-bas) ; tout
@@ -17,17 +15,22 @@
             spots [{k, sel, label}] (les zones où ranger), next (aide une fois une étiquette choisie, {x} : l’étiquette) ;
      link : spots [{k, sel, label, side: 'l' | 'r', pair, why}] (relier chaque élément de gauche à sa paire de droite ; why : la
             correction d’un mauvais lien partant de lui), need (liens attendus) ;
-     tune : un réglage à manipuler, dont l’effet se voit aussitôt sur la carte (Elisa, 27 octobre, 23 h 25 : « des mini-jeux directement
-            dans le cours, où la manipulation fait comprendre la notion » — portique, chasse aux doublons, ascenseur du classement…) :
+     tune : un réglage à manipuler, dont l’effet se voit aussitôt sur la carte (Elisa, 27 octobre, 23 h 25 : des mini-jeux) :
             controls [{k, type: 'range' | 'seg' | 'switch', label, min, max, step, choices, value, code}] (curseur, choix d’une valeur,
             bascule), show(s, carte) (la carte pour le réglage s, à chaque mouvement), check(s) → {ok, why} (le réglage validé),
             answer (le réglage juste, montré quand le moment s’ouvre déjà réussi), ico (l’icône de la consigne) ;
      board : {y, h, html, veil} (facultatif) : une carte posée sur l’image le temps du moment (relier, ranger, compléter une requête) :
             ses éléments servent de zones ; elle n’existe que pendant le moment, jamais dans la vidéo ; un voile la sépare de la scène
             (veil: false pour garder la scène visible autour) ;
+     win (tap, sort, link) : l’explication sous « Bien vu ! », remontrée au retour (tune : celle du réglage juste) ;
      tip : l’indice après deux erreurs (tipKeys : les zones qu’il fait ressortir) ; from : début du passage qui amène le moment
      (« ↺ Revoir »), en temps de la timeline d’origine.
    Elisa, 27 octobre, 13 h 48 : « tu peux faire tout ce que tu veux comme moment : lignes à relier, toucher, dessins, question, puzzle ». */
+function momentWin(p){
+  if (p.win) return fr(p.win);
+  if (p.kind === 'tune' && p.check && p.answer) try { const r = p.check(p.answer); return r && r.ok && r.why ? fr(r.why) : ''; } catch (e) {}
+  return '';
+}
 const MOMENT_GAP = 2.65;   // 0,1 s d’écart + la légende « À toi ! » (2,55 s), comme toi() dans les chapitres du projet
 
 /* Le plan : où tombent les moments une fois les passages insérés, et ce que deviennent les temps de la page. Fonction pure (testée). */
@@ -88,6 +91,7 @@ function momentIX(P){
   const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
   const flash = (e, c, ms = 650) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
   const spot = (i, k) => (P[i].spots || []).find(s => String(s.k) === String(k));
+  const won = (p, d, el) => ({ok: true, done: d, why: d ? momentWin(p) : '', at: rel(el)});
   /* Rectangle d’un élément de la carte, sans son entrée animée (qui le décale et le réduit un instant) : mesuré pendant l’entrée,
      la zone à toucher tombait à côté de la case. */
   const lay = (el, ref) => {
@@ -152,7 +156,7 @@ function momentIX(P){
             const box = el && (el.querySelector('.mb-drop') || el); if (box) { box.append(c); X.add.push(c); }
             mark(el, 'pk-on'); sfx('tick', X.got.size + 1, 0.6);
           }
-          return {ok: true, done: X.got.size >= p.options.length, why: '', at: rel(el)};
+          return won(p, X.got.size >= p.options.length, el);
         }
         flash(el, 'pk-ko');
         const why = o.why || p.miss;
@@ -164,7 +168,7 @@ function momentIX(P){
         const ok = String(a.pair) === String(b.k) || String(b.pair) === String(a.k);
         if (ok) {
           if (!X.got.has(a.k)) { X.got.add(a.k); mark($(a.sel), 'pk-on'); mark($(b.sel), 'pk-on'); line($(a.sel), $(b.sel)); sfx('tick', X.got.size + 1, 0.6); }
-          return {ok: true, done: X.got.size >= (p.need || 1), why: '', at: rel($(b.sel))};
+          return won(p, X.got.size >= (p.need || 1), $(b.sel));
         }
         flash($(a.sel), 'pk-ko'); flash($(b.sel), 'pk-ko');
         const why = a.why || b.why || p.miss;
@@ -174,7 +178,7 @@ function momentIX(P){
       if (!s) return {ok: false};
       if (s.ok) {
         if (!X.got.has(s.k)) { X.got.add(s.k); mark($(s.sel), 'pk-on'); sfx('tick', X.got.size + 1, 0.6); }
-        return {ok: true, done: X.got.size >= (p.need || 1), why: '', at: rel($(s.sel))};
+        return won(p, X.got.size >= (p.need || 1), $(s.sel));
       }
       flash($(s.sel), 'pk-ko');
       const why = s.why || p.miss;

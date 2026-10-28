@@ -565,21 +565,24 @@ const NOTES_AT = RECAP ? 88.4 : null;   // le bouton « Ajouter à mes notes » 
 const MOMENTS = [
   /* Mini-jeux (Elisa, 28 octobre, 8 h 50 : « pas assez gamifié »). Chacun son rôle, dès que WHERE est nommé : SELECT choisit les
      colonnes, FROM la table, WHERE les lignes. (L’ancienne question, « Que faut-il ajouter ? », avait pour réponse le titre du cours.) */
-  {at: 26.42, from: 15.0, kind: 'sort', text: true, prompt: 'Range chaque besoin de l’équipe dans la partie de la requête qui s’en charge.',
-    hint: 'Touche un besoin, puis sa case. Tu peux aussi le faire glisser.', next: '« {x} » : touche sa case.',
-    board: {y: 300, html: '<span class="mb-k">🗂️ Chacun son rôle</span><div class="mb-col mg-kw">'
+  /* Consigne, titre, étiquettes et explication d’Elisa (28 octobre, 20 h 58 : « des formulations plus courtes et cohérentes »). */
+  {at: 26.42, from: 15.0, kind: 'sort', text: true, prompt: 'Associe chaque besoin de l’équipe à la clause SQL correspondante.',
+    hint: 'Touche un besoin, puis sa clause. Tu peux aussi le faire glisser.', next: '« {x} » : touche sa clause.',
+    board: {y: 300, html: '<span class="mb-k">🗂️ À chaque clause son rôle</span><div class="mb-col mg-kw">'
       + '<div class="mb-bin mb-row" id="mbSe"><b>SELECT</b><div class="mb-drop"></div></div>'
       + '<div class="mb-bin mb-row" id="mbFr"><b>FROM</b><div class="mb-drop"></div></div>'
       + '<div class="mb-bin mb-row" id="mbWh"><b>WHERE</b><div class="mb-drop"></div></div></div>'},
     spots: [{k: 'se', sel: '#mbSe', label: 'SELECT'}, {k: 'fr', sel: '#mbFr', label: 'FROM'}, {k: 'wh', sel: '#mbWh', label: 'WHERE'}],
     options: [
       {label: 'Afficher le prénom et la ville', to: 'se', why: 'Choisir les colonnes à afficher, c’est le rôle de <code>SELECT</code>.'},
-      {label: 'Partir de la table clients', to: 'fr', why: 'La table de départ s’indique après <code>FROM</code>.'},
-      {label: 'Ne garder que les clients de Paris', to: 'wh', why: 'Choisir les lignes à garder, c’est le rôle de <code>WHERE</code>.'},
-      {label: 'Ajouter aussi l’e-mail', to: 'se', why: 'L’e-mail est une colonne de plus : elle s’ajoute après <code>SELECT</code>.'},
-      {label: 'Écarter les clients des autres villes', to: 'wh', why: 'Écarter des lignes, c’est choisir celles qu’on garde : c’est le rôle de <code>WHERE</code>.'}],
+      {label: 'Utiliser la table clients', to: 'fr', why: 'La table à utiliser s’indique après <code>FROM</code>.'},
+      {label: 'Garder uniquement les clients de Paris', to: 'wh', why: 'Choisir les lignes à garder, c’est le rôle de <code>WHERE</code>.'},
+      {label: 'Afficher aussi l’e-mail', to: 'se', why: 'L’e-mail est une colonne de plus : elle s’ajoute après <code>SELECT</code>.'},
+      {label: 'Exclure les clients des autres villes', to: 'wh', why: 'Exclure des lignes, c’est choisir celles qu’on garde : c’est le rôle de <code>WHERE</code>.'}],
+    win: '<code>SELECT</code> choisit les colonnes à afficher, <code>FROM</code> indique la table à utiliser et <code>WHERE</code> filtre les lignes.',
     tip: '<code>SELECT</code> choisit les colonnes, <code>FROM</code> la table, <code>WHERE</code> les lignes.'},
-  // le passage en revue commence (la première ligne vient d’être vérifiée) : les lignes où la condition est vraie
+  /* Les lignes où la condition est vraie, avant le passage en revue : aucune ligne n’est encore vérifiée ni surlignée (Elisa,
+     28 octobre, 20 h 58 : « ne pas surligner déjà la première ligne pour l’exercice ») */
   {at: 31.15, from: 26.8, kind: 'tap', need: 4, prompt: 'Touche les lignes où la condition <code>ville = \'Paris\'</code> est vraie.',
     spots: CLIENTS.map((c, i) => ({k: 'r' + i, sel: `#rows > .tr:nth-child(${i + 1})`, label: `Ligne ${i + 1} : ${c[0]} ${c[1]}, ${c[2]}`, ok: c[2] === 'Paris',
       why: c[2] === 'Paris' ? '' : `La ville ${/^[AEIOUHÉÈ]/.test(c[0]) ? 'd’' : 'de '}${c[0]} ${c[1]} est ${c[2]} : la condition est fausse.`})),
@@ -891,10 +894,11 @@ function build(){
   // Balayage ligne par ligne
   const scanner = $('#scanner');
   const scanTimes = [];
-  let st = 30.6;
-  for (let i = 0; i < 10; i++) { scanTimes.push(st); st += (i < 2 ? 0.85 : 0.36); }
+  // après le moment 2 (31,15) : l’élève touche lui-même les bonnes lignes, avant que la vidéo n’en vérifie aucune
+  let st = 31.45;
+  for (let i = 0; i < 10; i++) { scanTimes.push(st); st += (i < 2 ? 0.75 : 0.34); }
   gsap.set(scanner, {y: 0, autoAlpha: 0});
-  tl.to(scanner, {autoAlpha: 1, duration: 0.25}, 30.35);
+  tl.to(scanner, {autoAlpha: 1, duration: 0.25}, 31.2);
   trs.forEach((r, i) => {
     const t = scanTimes[i];
     tl.to(scanner, {y: i * 66, duration: i ? 0.2 : 0.01, ease: 'power2.out'}, t);
@@ -1154,6 +1158,7 @@ window.__ready = (async () => {
     picks: MP.picks.map(p => ({t: unwarp(p.at), from: p.from != null ? unwarp(p.from) : null, kind: ['tap', 'sort', 'link', 'tune'].includes(p.kind) ? p.kind : 'pick', text: !!p.text,
       prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', next: p.next ? fr(p.next) : '', need: p.need || 0,
       options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''})),
+      win: momentWin(p),   // l’explication du moment réussi (moments.js)
       /* Réglage (tune, le banc d’essai du moment 3) : les commandes de la feuille, comme dans le moteur commun. */
       controls: (p.controls || []).map(c => ({k: c.k, type: c.type, label: fr(c.label || ''), min: c.min, max: c.max, step: c.step, value: c.value,
         choices: c.choices || null, code: !!c.code, unit: c.unit || ''})), ico: p.ico || ''})),

@@ -36,7 +36,7 @@ test('WHERE : le cours a son animation, son image fixe et sa vignette, présente
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/where.html'), 'utf8');
   assert.ok(page.includes('<script src="gsap.min.js"></script>\n<script src="moments.js"></script>') && page.includes('  build();\n  applyMoments();'), 'moments.js, puis les moments insérés une fois la timeline construite');
   const M = momentsDe('where.html');
-  /* Mini-jeux (Elisa, 28 octobre, 8 h 50) : chacun son rôle (SELECT, FROM, WHERE), les lignes où la condition est vraie, le banc d’essai de la valeur. */
+  /* Mini-jeux (Elisa, 28 octobre, 8 h 50) : à chaque clause son rôle (SELECT, FROM, WHERE), les lignes où la condition est vraie, le banc d’essai de la valeur. */
   assert.deepEqual(M.map(x => [x.at, x.kind]), [[26.42, 'sort'], [31.15, 'tap'], [64.95, 'tune']]);
   assert.deepEqual(M[1].spots.filter(z => z.ok).map(z => z.label), ['Ligne 1 : Sophie Martin, Paris', 'Ligne 4 : Nathan Petit, Paris', 'Ligne 7 : Léa Simon, Paris', 'Ligne 10 : Nathan Dupont, Paris'], 'les quatre clients parisiens');
   assert.equal(M[1].need, 4);
