@@ -39,7 +39,7 @@ assert(html.includes("['notes','Mes notes'") && !nav.includes('data-tab="notes"'
 assert(nav.includes('data-tab="library"') && nav.includes('>Bibliothèque</span>'), 'Bibliothèque est accessible directement');
 assert(html.includes('id="coll-overview"') && html.includes('coll-overview-ring') && html.includes('aria-label="${pct}% des cartes débloquées"'), 'Cartes mémo présente la progression globale de la collection');
 assert(html.includes('completedModules') && html.includes("module${completedModules>1?'s':''} complet") && html.includes('à obtenir</span>'), 'statistiques de collection calculées depuis les cartes réellement débloquées');
-assert(html.includes('class="coll-grid"') && html.includes('class="coll-card') && html.includes('function startCardReview()') && html.includes('CARTES[l.id]&&isUnlocked(l.id)&&isDue(l.id)') && html.includes('À revoir aujourd’hui'), 'cartes en grille, état à revoir / acquise et révision du jour');
+assert(html.includes('class="coll-grid"') && html.includes('class="coll-card') && html.includes('function startCardReview()') && html.includes('CARTES[l.id]&&isUnlocked(l.id)&&revisable(l)&&isDue(l.id)') && html.includes('À revoir aujourd’hui'), 'cartes en grille, état à revoir / acquise et révision du jour (pour une leçon à exercice : revisable)');
 assert(html.includes("nextLesson=allLessons.find(l=>CARTES[l.id]&&!isUnlocked(l.id))") && html.includes('Prochaine carte') && html.includes('Voir la leçon'), 'prochaine carte reliée à sa leçon réelle');
 assert(html.includes('class="coll-module ${complete?\'complete\':\'\'}"') && html.includes("complete?'Validé':count"), 'modules de cartes compacts et explicitement validés');
 assert(html.includes("classList.add('collection-static')") && html.includes('.collection-static>.fbar'), 'filtres de cartes changés sans rejouer les animations de page');
@@ -135,15 +135,16 @@ assert(!html.includes('guide({ id:1,'), 'le cours 1 (SELECT) a disparu');
 const introLesson = html.slice(html.indexOf('guide({ id:0, titre:"Les bases de données relationnelles"'), html.indexOf('guide({ id:2, titre:"Renommer avec AS"'));
 /* Le cours 0 est une leçon seule (Elisa, 28 octobre : « mettre l’écran de fin de cours et enlever la partie quiz et exercice ») :
    ses cinq moments « À toi » le valident. */
-assert(introLesson.includes('leconSeule:true') && !introLesson.includes('consigne:') && !introLesson.includes('solution:') && /moments:5,seuil:3\}/.test(introLesson), 'le cours 0 : leçon seule, validée par ses moments');
+assert(introLesson.includes('leconSeule:true') && !introLesson.includes('consigne:') && !introLesson.includes('solution:') && /moments:5,seuil:4\}/.test(introLesson), 'le cours 0 : leçon seule, validée par ses moments (un raté au plus)');
 assert(html.includes("(4,'Nathan','Petit','5 rue Victor Hugo','Paris'") && html.includes("(10,'Nathan','Dupont','9 place du Marché','Paris'"), 'les deux Nathan de Paris existent dans les données SQLite');
 assert(html.includes('{ id:12, titre:"LIMIT et OFFSET"') && html.includes('LIMIT 3 OFFSET 3'), 'pagination stable couverte par une leçon complète');
 assert(html.includes('{ id:76, titre:"GROUP_CONCAT"') && html.includes('STRING_AGG'), 'agrégation de texte couverte avec ouverture multi-SGBD');
 assert(html.includes('{ id:77, titre:"WITH RECURSIVE (CTE RECURSIVE)"') && html.includes('condition d’arrêt'), 'CTE récursives expliquées avec leur garde-fou');
 assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION BY client_id'), 'comparaison aux lignes voisines couverte');
-assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
+const glissantes = fs.readFileSync(path.join(ROOT, 'assets/anim/fenetres-glissantes.html'), 'utf8');
+assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && ['UNBOUNDED PRECEDING', '2 PRECEDING', '2 FOLLOWING', 'CURRENT ROW'].every(c => glissantes.includes(c)) && html.includes('NTILE(4)'), 'cadres (dans la vidéo) et fonctions de fenêtre avancées (défi NTILE) couverts');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-10-12-ludique-v2099') && html.includes('requete-2026-10-12-ludique-v2099') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-10-12-ludique-v2100') && html.includes('requete-2026-10-12-ludique-v2100') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);

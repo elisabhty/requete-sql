@@ -101,7 +101,7 @@ test('ON DELETE : seul cours du module « Contraintes et intégrité », juste a
   assert.equal(vm.runInContext('QCM', ctx)[67], undefined);
 });
 
-test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () => {
+test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', () => {
   const mots = html.match(/\n  68:'([^']+)',/)[1];
   assert.ok(['on delete', 'cascade', 'set null', 'restrict', 'cle etrangere', 'foreign key', 'constraint failed', 'not null', 'avis', 'ancien client', 'create table', 'supprimer lignes liees'].every(m => mots.includes(m)),
     'trouvé par la recherche : ON DELETE, les trois règles, la clé étrangère, NOT NULL, la table avis, « Ancien client »…');
@@ -110,13 +110,7 @@ test('recherche, quiz, et leçon seule sans texte de secours ni exercice', () =>
   assert.equal(l68.video.anim, 'assets/anim/projet-ondelete.html?app&embed');
   const recap = l68.studio.reflex.extra;
   assert.ok(recap.includes('Les trois idées à retenir') && ['🔀', '🧭', '🏷️'].every(e => recap.includes(e)), 'les trois idées à retenir, comme à la fin de la vidéo');
-  /* Le quiz de la leçon parle de la même histoire : la règle sur la clé étrangère, SET NULL pour conserver l’avis, NOT NULL qui refuse. */
-  const quiz = vm.runInContext('QCM', ctx)[68];
-  assert.equal(quiz.length, 3);
-  assert.deepEqual([...quiz.map(q => q.b)], [1, 0, 2], 'la bonne réponse change de place d’une question à l’autre');
-  assert.ok(quiz.every(q => q.o.length === 3 && q.e), 'trois réponses et une explication par question');
-  assert.ok(/clé étrangère/.test(quiz[0].o[1]) && /SET NULL/.test(quiz[1].o[0]) && /refusée/.test(quiz[2].o[2]), 'les bonnes réponses : la clé étrangère, SET NULL, la suppression refusée');
-  assert.ok(!/panier|satisfaction/i.test(JSON.stringify(quiz)), 'plus de panier ni de table satisfaction');
+  assert.equal(vm.runInContext('QCM', ctx)[68], undefined, 'plus de quiz : la vidéo et ses moments valident la leçon (Elisa, 28 octobre)');
 });
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {

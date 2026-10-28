@@ -46,14 +46,22 @@ for(const l of lessons){
  }
 }
 const lesson=id=>lessons.find(l=>l.id===id);
-/* Le cours 0 est devenu une leçon seule (Elisa, 28 octobre) : son ancien exercice sert encore d’exemple pour comparer les résultats. */
+/* Depuis le 28 octobre, chaque cours est une leçon seule (Elisa : « enlever la partie quiz et exercice ») : la comparaison des
+   résultats reste prête pour un exercice, et se vérifie sur d’anciens exercices des cours (avec leur identifiant, qui porte
+   les règles : l’alias du cours 2, l’ordre imposé des cours 11 et 12). */
 const DEUX_COLONNES={id:-1,titre:'Deux colonnes',consigne:'Affiche le nom et le prix de chaque produit, dans cet ordre.',solution:'SELECT nom, prix FROM produits;'};
+const ANCIEN={
+ 2:{id:2,titre:'Renommer avec AS',solution:'SELECT nom AS produit, stock AS en_stock FROM produits;'},
+ 6:{id:6,titre:'AND et OR',solution:"SELECT nom, prix FROM produits WHERE (categorie = 'Nutrition' OR categorie = 'Boisson') AND prix < 20;"},
+ 11:{id:11,titre:'ORDER BY',solution:'SELECT nom, categorie, stock FROM produits ORDER BY categorie, stock DESC;'},
+ 12:{id:12,titre:'LIMIT et OFFSET',solution:'SELECT id, nom, prix\nFROM produits\nORDER BY prix ASC, id ASC\nLIMIT 3 OFFSET 6;'}
+};
 assert.equal(lessons.length,62);
-assert.equal(ctx.exerciseResultsMatch(query('SELECT nom,stock FROM produits'),query(lesson(2).solution),lesson(2)),false,'alias requis');
+assert.equal(ctx.exerciseResultsMatch(query('SELECT nom,stock FROM produits'),query(ANCIEN[2].solution),ANCIEN[2]),false,'alias requis');
 assert.equal(ctx.exerciseResultsMatch(query(DEUX_COLONNES.solution+' SELECT 99;'),query(DEUX_COLONNES.solution),DEUX_COLONNES),false,'résultats multiples');
-assert.equal(ctx.exerciseResultsMatch(query("SELECT nom,prix FROM produits WHERE categorie='Nutrition' OR categorie='Boisson' AND prix<20"),query(lesson(6).solution),lesson(6)),false,'parenthèses requises avec AND et OR');
-assert.equal(ctx.exerciseResultsMatch(query('SELECT nom,categorie,stock FROM produits ORDER BY categorie,stock'),query(lesson(11).solution),lesson(11)),false,'sens décroissant du second critère');
-assert.equal(ctx.exerciseResultsMatch(query('SELECT id,nom,prix FROM produits ORDER BY prix,id LIMIT 3 OFFSET 3'),query(lesson(12).solution),lesson(12)),false,'troisième page seulement');
+assert.equal(ctx.exerciseResultsMatch(query("SELECT nom,prix FROM produits WHERE categorie='Nutrition' OR categorie='Boisson' AND prix<20"),query(ANCIEN[6].solution),ANCIEN[6]),false,'parenthèses requises avec AND et OR');
+assert.equal(ctx.exerciseResultsMatch(query('SELECT nom,categorie,stock FROM produits ORDER BY categorie,stock'),query(ANCIEN[11].solution),ANCIEN[11]),false,'sens décroissant du second critère');
+assert.equal(ctx.exerciseResultsMatch(query('SELECT id,nom,prix FROM produits ORDER BY prix,id LIMIT 3 OFFSET 3'),query(ANCIEN[12].solution),ANCIEN[12]),false,'troisième page seulement');
 assert.equal(ctx.exerciseResultsMatch(query('SELECT nom,prix FROM produits ORDER BY prix DESC'),query(DEUX_COLONNES.solution),DEUX_COLONNES),true,'ordre libre sans demande de tri');
 let state={lessons:{64:{etapes:{exo:1,q0:true,q1:'1',q2:0,unexpected:1},draft:'SELECT 1;',testeDraft:'SELECT 2;',testeVi:2}}};
 for(let i=0;i<3;i++)state=JSON.parse(JSON.stringify(ctx.normalizeState(state)));
@@ -72,5 +80,5 @@ const VUE=vm.runInContext(fs.readFileSync(path.join(root,'tests/fixtures/guide-t
 for(const [l,wrong]of [[VUE,VUE.solution.replace("WHERE ville = 'Paris'","WHERE ville = 'Lyon'")]])assert.equal(ctx.exerciseResultsMatch(query(wrong,l.verif),query(l.solution,l.verif),l),false,'solution incomplète '+l.titre);
 const frame={dataset:{},classList:{remove(){},add(){}},querySelectorAll:()=>[],querySelector:s=>s==='.xf-expect'?{remove(){}}:null};ctx.current=DROITS;
 ctx.paintTesteVariant(frame,ctx.current.testeVariants,0);assert.equal(frame.dataset.noExec,'1');ctx.current=VUE;ctx.paintTesteVariant(frame,ctx.current.testeVariants,0);assert.equal(frame.dataset.noExec,'0');
-console.log(`${lessons.length} cours, ${solved} solutions SQLite, ${variants} variantes exécutables : OK.`);
+console.log(`${lessons.length} cours (${lessons.filter(l=>l.leconSeule).length} leçons seules), ${solved} solutions SQLite, ${variants} variantes exécutables : OK.`);
 console.log('Progression, ordre, alias, contraintes, transactions, trigger, GRANT et récursion : OK.');

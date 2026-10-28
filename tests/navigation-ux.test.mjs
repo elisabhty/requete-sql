@@ -18,22 +18,33 @@ assert.ok(modules.every(m=>m.hidden));
 ctx.filterCourseCatalog('numeriques');assert.ok(nodes['course-search-results'].innerHTML.includes('Fonctions numériques'),'recherche sans accents');
 ctx.filterCourseCatalog('zzzz');assert.ok(nodes['course-search-results'].innerHTML.includes('Aucun cours'));
 ctx.clearCourseSearch();assert.ok(modules.every(m=>!m.hidden));assert.equal(nodes['course-search-results'].hidden,true);assert.equal(nodes['course-search'].focused,true);
-/* Une leçon avec exercice et quiz : une leçon seule (le cours 0 depuis le 28 octobre) ne revient jamais « à réviser ». */
-const REV=ctx.allLessons.find(l=>!l.leconSeule);
-ctx.state.lessons[REV.id]={done:true,due:true};
+/* Depuis le 28 octobre, chaque cours est une leçon seule (ni exercice ni quiz) : aucun ne revient « à réviser », et le filtre
+   « À réviser » n’est proposé que s’il existe une leçon à exercice (revisable). */
+vm.runInContext(html.slice(html.indexOf('function revisable('),html.indexOf('function dueList(')),ctx);
+const L0=ctx.allLessons[0];
+ctx.state.lessons[L0.id]={done:true,due:1};
 ctx.setCourseFilter('done');
-assert.ok(nodes['course-search-results'].innerHTML.includes(REV.titre));
+assert.ok(nodes['course-search-results'].innerHTML.includes(L0.titre));
 assert.equal(nodes['course-search-status'].textContent,'1 cours trouvé · Validés');
 ctx.filterCourseCatalog('zzzz');
 assert.ok(nodes['course-search-results'].innerHTML.includes('Voir tous les cours'));
 ctx.clearCourseSearch();
 assert.equal(nodes['course-search-status'].textContent,'1 cours trouvé · Validés','effacer garde le filtre');
 ctx.setCourseFilter('todo');
-assert.ok(!nodes['course-search-results'].innerHTML.includes(`<button>${REV.titre}</button>`));
+assert.ok(!nodes['course-search-results'].innerHTML.includes(`<button>${L0.titre}</button>`));
+assert.ok(!ctx.courseCatalogFiltersHTML().includes('data-course-filter="due"'),'plus de filtre « À réviser » : aucune leçon à réviser');
+ctx.setCourseFilter('due');
+assert.equal(vm.runInContext('courseFilter',ctx),'todo','le filtre « À réviser » est ignoré');
+/* Une leçon à exercice (il n’y en a plus dans l’app) ramènerait le filtre et sa révision. */
+const EXO={id:999,titre:'Une leçon à exercice',consigne:'Affiche les clients.',solution:'SELECT * FROM clients;'};
+const M0=vm.runInContext('MODULES[0].lessons',ctx);M0.push(EXO);ctx.allLessons.push(EXO);ctx.state.lessons[999]={done:true,due:1};
+assert.ok(ctx.courseCatalogFiltersHTML().includes('data-course-filter="due"'));
 ctx.setCourseFilter('due');
 assert.equal(nodes['course-search-status'].textContent,'1 cours trouvé · À réviser');
+assert.ok(nodes['course-search-results'].innerHTML.includes(EXO.titre)&&!nodes['course-search-results'].innerHTML.includes(`<button>${L0.titre}</button>`),'la leçon seule, à échéance, n’est pas à réviser');
 ctx.state.lessons={};ctx.setCourseFilter('due');
 assert.ok(nodes['course-search-results'].innerHTML.includes('Tu es à jour'));
+M0.pop();ctx.allLessons.pop();ctx.setCourseFilter('all');
 ctx.resetCourseCatalog();assert.equal(nodes['course-search-results'].hidden,true);
 assert.ok(modules.every(m=>!m.hidden));
 let resultFocused=false;
