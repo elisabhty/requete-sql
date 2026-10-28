@@ -111,7 +111,23 @@ function momentIX(P){
     /* Réglage en cours : la carte suit chaque mouvement (rien n’est jugé). */
     tune(i, s){ start(i); draw(i, s); },
     /* Moment déjà réussi : la carte montre le réglage juste. */
-    solve(i){ start(i); if (P[i].kind === 'tune' && P[i].answer) draw(i, P[i].answer); },
+    /* Moment déjà réussi (vidéo revue) : l’image garde la réponse — réglage, blocs rangés, zones, liens (Elisa, 28 octobre, 19 h 15). */
+    solve(i){
+      start(i);
+      const p = P[i];
+      if (p.kind === 'tune' && p.answer) draw(i, p.answer);
+      if (p.kind === 'sort') (p.options || []).forEach((o, k) => {
+        const z = spot(i, o.to), el = z && $(z.sel); if (!el || X.got.has(k)) return;
+        X.got.add(k);
+        const c = document.createElement('span'); c.className = 'mb-chip'; c.textContent = o.label;
+        (el.querySelector('.mb-drop') || el).append(c); X.add.push(c); mark(el, 'pk-on');
+      });
+      if (p.kind === 'tap') (p.spots || []).filter(s => s.ok).forEach(s => { X.got.add(s.k); mark($(s.sel), 'pk-on'); });
+      if (p.kind === 'link') (p.spots || []).filter(s => s.side === 'l' && s.pair != null).forEach(a => {
+        const b = spot(i, a.pair); if (!b || X.got.has(a.k)) return;
+        X.got.add(a.k); mark($(a.sel), 'pk-on'); mark($(b.sel), 'pk-on'); line($(a.sel), $(b.sel));
+      });
+    },
     spots: i => { start(i); return (P[i].spots || []).map(s => Object.assign({k: String(s.k), label: s.label || String(s.k), side: s.side || undefined}, lay($(s.sel)))); },
     act(i, k, k2){
       start(i);
