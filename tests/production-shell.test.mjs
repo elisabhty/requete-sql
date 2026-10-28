@@ -133,7 +133,9 @@ assert(!html.includes('guide({ id:34,') && !html.includes('guide({ id:35,') && !
 /* Le cours « SELECT » (choisir les colonnes, l’étoile, les virgules) a lui aussi rejoint le cours 0. */
 assert(!html.includes('guide({ id:1,'), 'le cours 1 (SELECT) a disparu');
 const introLesson = html.slice(html.indexOf('guide({ id:0, titre:"Les bases de données relationnelles"'), html.indexOf('guide({ id:2, titre:"Renommer avec AS"'));
-assert(introLesson.includes('solution:"SELECT nom, prix FROM produits;"'), 'l’exercice du cours 0 : choisir deux colonnes, dans l’ordre');
+/* Le cours 0 est une leçon seule (Elisa, 28 octobre : « mettre l’écran de fin de cours et enlever la partie quiz et exercice ») :
+   ses cinq moments « À toi » le valident. */
+assert(introLesson.includes('leconSeule:true') && !introLesson.includes('consigne:') && !introLesson.includes('solution:') && /moments:5,seuil:3\}/.test(introLesson), 'le cours 0 : leçon seule, validée par ses moments');
 assert(html.includes("(4,'Nathan','Petit','5 rue Victor Hugo','Paris'") && html.includes("(10,'Nathan','Dupont','9 place du Marché','Paris'"), 'les deux Nathan de Paris existent dans les données SQLite');
 assert(html.includes('{ id:12, titre:"LIMIT et OFFSET"') && html.includes('LIMIT 3 OFFSET 3'), 'pagination stable couverte par une leçon complète');
 assert(html.includes('{ id:76, titre:"GROUP_CONCAT"') && html.includes('STRING_AGG'), 'agrégation de texte couverte avec ouverture multi-SGBD');
@@ -141,7 +143,7 @@ assert(html.includes('{ id:77, titre:"WITH RECURSIVE (CTE RECURSIVE)"') && html.
 assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION BY client_id'), 'comparaison aux lignes voisines couverte');
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-10-12-ludique-v2098') && html.includes('requete-2026-10-12-ludique-v2098') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-10-12-ludique-v2099') && html.includes('requete-2026-10-12-ludique-v2099') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);

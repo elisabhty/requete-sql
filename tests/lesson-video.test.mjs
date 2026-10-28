@@ -472,7 +472,7 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '5 min 40', notesAt: 327.35, maxKo: 580,
+  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '7 min 41', notesAt: 450.5, maxKo: 610,
     table: 'clients',
     bubble: 'Chaque sujet a sa table,<br>et des identifiants relient les tables.',
     chapters: ['Situation', 'Le problème', 'Le découpage', 'Base de données et SGBD', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],
@@ -483,23 +483,31 @@ const COURSES = [
       // Le fichier grossit à chaque commande ou demande, plusieurs équipes le modifient, les erreurs arrivent
       'À chaque nouvelle commande ou demande, le fichier s’alourdit', 'Difficile de s’y retrouver', 'Il est mis à jour par plusieurs personnes, de plusieurs équipes différentes.',
       "cur('tc1', 'tc-a', 1, '🚚', 'Logistique') + cur('tc2', 'tc-b', 0, '💬', 'Service client') + cur('tc3', 'tc-c', 1, '💼', 'Commercial')", 'Des erreurs apparaissent',
-      // Un e-mail corrigé sur deux lignes seulement : deux e-mails pour la même cliente
-      "const NOUVEL_EMAIL = 's.martin@mail.fr';", 'L’e-mail de Sophie Martin, commande par commande', 'Deux e-mails pour Sophie Martin',
+      // Un e-mail corrigé sur deux lignes seulement : deux e-mails pour la même cliente (Elisa, 28 octobre, Réf 1)
+      "const NOUVEL_EMAIL = 's.martin@mail.fr';", 'L’e-mail de Sophie Martin, commande par commande', 'Deux e-mails pour la cliente Sophie Martin',
       // Le découpage par sujet : ce qu’est une table (des lignes et des colonnes, un seul sujet), puis les trois tables
       "const GRP = ['k-co', 'k-cl', 'k-cl', 'k-cl', 'k-pr', 'k-pr', 'k-co'];",
       'Une <b>table</b> organise les données en lignes et en colonnes, comme dans un tableau Excel.',
-      'Elle rassemble les informations sur <b>un même sujet</b> pour les retrouver et les mettre à jour facilement.',
-      'On crée donc <b>trois tables</b> : clients, produits et commandes.', '<span>Trois tables</span>',
-      // La base de données et le SGBD (ici SQLite), à qui les équipes envoient leurs requêtes SQL
+      'La solution : répartir les informations dans <b>trois tables</b> : clients, produits et commandes.', 'Chaque table regroupe les données d’un <b>même sujet</b>.',
+      '<span>Trois tables</span>',
+      // La base de données et le SGBD : les SGBD très utilisés (pas SQLite ici, Réf 7) ; les applications qui s’appuient sur une base,
+      // dont le site de NutriBoost, qui envoie ses requêtes SQL au SGBD (Réf 8)
       'Ensemble, ces tables forment<br>une <b>base de données</b>.', 'Elle est gérée par un <b>SGBD</b> : un système de gestion de base de données.',
-      'Ici, le SGBD est <b>SQLite</b>.', 'Les équipes lui envoient des requêtes en <b>SQL</b> : il les exécute et contrôle chaque modification.',
-      '<div class="sgs" id="sgs">Système de gestion de base de données</div>', '<span class="sgq" id="sgq">SQLite</span>', '<span>Base de données</span>',
+      'Il en existe plusieurs, très utilisés : <b>MySQL</b>, <b>PostgreSQL</b>, <b>Oracle</b> ou <b>SQL Server</b>.',
+      "const SGBDS = [['MySQL', '#2F7BEA', '#E3EEFF', '#BCD3FA'], ['PostgreSQL', '#7C5CFF', '#EEE9FF', '#CFC3FF'],",
+      'Beaucoup d’applications utilisent une base de données.', "['c', '🛒', 'Site NutriBoost', '<span>Produits,</span> <span>commandes,</span> <span>achats</span>']",
+      'Le site de NutriBoost utilise aussi la base de données.', 'Pour cela, il envoie des requêtes en <b>SQL</b> au SGBD, qui les exécute.',
+      '<div class="sgs" id="sgs">Système de gestion de base de données</div>', '<span class="sgq" id="sgq"></span>', '<span>Base de données</span>',
       // La clé primaire : son nom complet, les deux Nathan, un identifiant déjà pris refusé, un client sans identifiant qui reçoit le suivant
+      // (AUTOINCREMENT, Réf 13)
       '<span class="emo">🔑</span>clé primaire', '<b class="nq k-cl">clients</b><i class="ndot">.</i><b class="nq nqc">id</b><span class="nlb">la table</span>',
       'Lequel des deux&nbsp;?', 'Le client 4&nbsp;: Nathan Petit', "const NOUVEAUX = [[4, 'Yanis', 'Roche'], [null, 'Lina', 'Garnier']];",
-      'UNIQUE constraint failed: clients.id', '<span class="tys ko">✕ refusé</span>', 'Le SGBD y veille : un identifiant déjà pris est <b>refusé</b>',
-      // … et sa déclaration : id INTEGER PRIMARY KEY, à la création de la table
-      '<span class="fname">schema.sql</span>', 'id <span class="glow" id="pkt">INTEGER</span> <span class="glow" id="pkk"><span class="kw">PRIMARY KEY</span></span>,', 'avec <code>PRIMARY KEY</code> placé juste après le type de la colonne',
+      'UNIQUE constraint failed: clients.id', '<span class="tys ko">✕ refusé</span>', 'Le SGBD refuse l’ajout de Yanis Roche avec l’identifiant 4, déjà utilisé par Nathan Petit.',
+      'Pour Lina Garnier, l’identifiant 11 est généré automatiquement, car la colonne <code>id</code> a été configurée pour cela.',
+      // … et sa déclaration : id INTEGER PRIMARY KEY, à la création de la table, puis AUTOINCREMENT (sa ligne s’insère quand la légende en parle)
+      '<span class="fname">schema.sql</span>', 'id <span class="glow" id="pkt">INTEGER</span> <span class="glow" id="pkk"><span class="kw">PRIMARY KEY</span></span><span class="caret">',
+      '<span class="ln" id="pk2b">     <span class="glow" id="pka"><span class="kw">AUTOINCREMENT</span></span>,', "gsap.set('#pk2b', {height: 0, overflow: 'hidden'});",
+      'Avec <code>AUTOINCREMENT</code>, le SGBD génère lui-même l’identifiant de chaque nouveau client.', 'avec <code>PRIMARY KEY</code> placé juste après le type de la colonne',
       // La clé étrangère : commandes.client_id → clients.id, puis la commande pour le client 99 refusée
       '<span class="emo">🔗</span>clé étrangère', '<b class="nq k-co">commandes</b><i class="ndot">.</i><b class="nq nqc">client_id</b><i class="narr">→</i><b class="nq k-cl">clients</b>',
       '<div class="stamp" id="stamp4">Relationnelle</div>', 'const CLIENT_INCONNU = 99;', '<span class="m">FOREIGN KEY constraint failed</span>',
@@ -508,11 +516,13 @@ const COURSES = [
       '<div class="abs fkp" id="fkp"><span class="codepill"><span class="kw">FOREIGN KEY</span> (client_id) <span class="kw">REFERENCES</span> clients(id)</span></div>', 'Le SGBD vérifie alors chaque lien : existe-t-il un client d’identifiant 99 ?',
       // Lire une table : SELECT * FROM clients, les 10 clients et leurs 9 colonnes
       '<span class="star glow" id="star6">*</span>', '10 lignes · 9 colonnes', '✓ La table est lue, jamais modifiée',
-      // Choisir les colonnes : l’étoile devient prenom, nom, email ; les six autres colonnes se replient ; Sophie Martin, une seule fois ; la jointure, plus tard
+      // Choisir les colonnes : l’étoile devient prenom, nom, email ; les six autres colonnes se replient ; une ligne par client ; les jointures, plus tard
       '<span id="cols7"><span class="glow" id="c7a">prenom</span><span class="cm" id="k7a">,</span> <span class="glow" id="c7b">nom</span>', "const KEEP = [1, 2, 6], DROP = [0, 3, 4, 5, 7, 8]",
-      '10 lignes · 3 colonnes', 'dans l’ordre où on les écrit', '✓ Chaque client une seule fois', 'Sophie Martin n’a plus qu’un seul e-mail', '<span>Plus tard&nbsp;: la jointure</span>',
-      // Deux pièges : sans virgule, un alias (AS sous-entendu) ; une virgule de trop, une erreur
-      'une virgule entre deux colonnes', 'SELECT</span> prenom<span class="ghost" id="ghostAS"> <b>AS</b></span> email', 'la requête équivaut à <code>prenom AS email</code>',
+      '10 lignes · 3 colonnes', 'dans l’ordre où on les écrit', '✓ Une ligne par client', 'Elles sont regroupées dans la <b>table clients</b>.', '<span>Plus tard&nbsp;: les jointures</span>',
+      'Dans une prochaine leçon, tu découvriras les <b>jointures</b>.',
+      // Deux pièges : sans virgule, email devient le titre de la colonne prenom ; une virgule de trop, une erreur
+      'une virgule entre deux colonnes', '<div class="mini"><span class="kw">SELECT</span> prenom email', 'Le SGBD interprète <code>email</code> comme un nouveau titre pour la colonne <code>prenom</code>.',
+      'Résultat : les prénoms s’affichent sous le titre « email », sans les adresses e-mail.',
       'Les prénoms, sous le titre <span class="ic">email</span>', 'near "FROM": syntax error',
       // Les trois idées : les tables, les clés (et leur déclaration), SELECT
       '<span class="ic blk">FOREIGN KEY (client_id)<br>&nbsp;&nbsp;REFERENCES clients(id)</span>', '<span class="ic blk">SELECT prenom, nom, email</span>']},
@@ -1240,7 +1250,9 @@ for (const c of COURSES) {
     const M = momentsDe(c.page), D = donneesVideo(c.page);
     const lesson = cut(`guide({ id:${c.id}, titre:"${c.titre}"`, c.next ? `guide({ id:${c.next},` : '\n]}\n]');
     assert.ok(new RegExp(`duree:'[^']+',moments:${M.length}[,}]`).test(lesson), `la fiche annonce ${M.length} moments`);
-    assert.ok(!/seuil:/.test(lesson) && !/leconSeule:true/.test(lesson), 'les moments ne bloquent pas : l’exercice et le quiz valident la leçon');
+    /* Le cours 0 est une leçon seule (Elisa, 28 octobre) : ses moments la valident, deux ratés au plus ; ailleurs, l’exercice et le quiz. */
+    if (/leconSeule:true/.test(lesson)) assert.ok(new RegExp(`moments:${M.length},seuil:${M.length - 2}\\}`).test(lesson), 'leçon seule : validée par ses moments, deux ratés au plus');
+    else assert.ok(!/seuil:/.test(lesson), 'les moments ne bloquent pas : l’exercice et le quiz valident la leçon');
     assert.ok(M.length >= 3, 'trois moments au moins');
     const notes = +String(c.notesAt);
     M.forEach((m, i) => {
@@ -1429,11 +1441,15 @@ test('moteur commun des animations : préchargé et jamais servi périmé', () =
   assert.ok(sw.slice(i, i + 700).includes("fetch(req, { cache: 'no-cache' })"), 'revalidé auprès du serveur');
 });
 
-test('SELECT sans virgule : l’animation (cours 0) et le quiz expliquent l’alias (AS facultatif)', () => {
+test('SELECT sans virgule : la vidéo du cours 0 montre le titre de la colonne, sans parler d’alias ni d’AS (Elisa, 28 octobre)', () => {
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/bases-relationnelles.html'), 'utf8');
-  assert.ok(page.includes('Sans virgule, <code>email</code> est lu comme un <b>alias</b> : le titre donné à la colonne dans le résultat.'), 'même explication dans la vidéo');
-  const qcm = cut('const QCM={', '\n};');
-  assert.ok(qcm.includes('Sans virgule, <code>telephone</code> est lu comme un <b>alias</b>') && !qcm.includes('il interprète <code>telephone</code>'), 'explication du quiz alignée');
+  const caps = page.slice(page.indexOf('const CAPTIONS = ['), page.indexOf('];', page.indexOf('const CAPTIONS = [')));
+  for (const c of ['Et si tu oublies la virgule entre <code>prenom</code> et <code>email</code> ?',
+    'Le SGBD interprète <code>email</code> comme un nouveau titre pour la colonne <code>prenom</code>.',
+    'Résultat : les prénoms s’affichent sous le titre « email », sans les adresses e-mail.'])
+    assert.ok(caps.includes(c), c);
+  assert.ok(!/alias|<code>AS<\/code>|<b>AS<\/b>/.test(caps), 'ni alias ni AS dans les légendes : la leçon AS vient plus tard');
+  assert.ok(!cut('const QCM={', '\n};').includes('\n 0:['), 'le cours 0 n’a plus de quiz');
 });
 
 test('texte des animations : police Inter livrée (mêmes retours à la ligne sur iPhone), sans text-wrap pretty, mots courts collés au mot suivant', () => {

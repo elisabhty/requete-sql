@@ -160,10 +160,14 @@ export function textesFiche(idLecon) {
     .map(({ou, h}) => ({page: `leçon ${idLecon}`, genre: 'fiche', ou, html: h, plain: lisible(h)}))
     .filter(t => t.plain && !vus.has(t.plain) && vus.add(t.plain));
 }
-/* Toutes les leçons de index.html : [{id, titre, projet: true si la vidéo est un chapitre du projet}]. */
+/* Toutes les leçons de index.html : [{id, titre, projet: true si la vidéo est un chapitre du projet, seule: true pour une leçon sans
+   exercice ni quiz (leconSeule)}]. */
 export function toutesLesLecons() {
   const projet = new Set(leconsDuProjet().map(l => l.id));
-  return [...html.matchAll(/guide\(\{ id:(\d+), titre:"([^"]*)"/g)].map(m => ({id: +m[1], titre: m[2], projet: projet.has(+m[1])}));
+  return [...html.matchAll(/guide\(\{ id:(\d+), titre:"([^"]*)"/g)].map(m => {
+    const suite = html.indexOf('guide({ id:', m.index + 10), bloc = html.slice(m.index, suite < 0 ? m.index + 20000 : suite);
+    return {id: +m[1], titre: m[2], projet: projet.has(+m[1]), seule: /\n  leconSeule:true,/.test(bloc)};
+  });
 }
 
 /* Les moments « À toi » d’une vidéo d’avant le projet (MOMENTS, moments.js), exécutés seuls : le script de la page jusqu’à sa première

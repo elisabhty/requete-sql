@@ -28,7 +28,7 @@ assert.equal(titre(72), 'Clés et relations');
 const quiz = vm.runInContext('QCM', ctx);
 for (const id of [6, 11, 12, 72]) assert.equal(quiz[id].length, 4, `quiz du cours ${id} : les questions des deux cours`);
 assert.equal(quiz[57].length, 3, 'le cours 57 (où EXPLAIN a été fusionné) est devenu le chapitre 16, en vidéo : trois questions, comme les autres chapitres');
-assert.equal(quiz[0].length, 11, 'quiz du cours 0 : tables, clés, SELECT, l’étoile, la virgule, la déclaration des clés, puis le SGBD');
+assert.equal(quiz[0], undefined, 'le cours 0 est une leçon seule (Elisa, 28 octobre) : ni exercice ni quiz, ses moments « À toi » le valident');
 for (const id of [1, 36, 58]) assert.equal(quiz[id], undefined, `plus de quiz pour le cours fusionné ${id}`);
 const carte = vm.runInContext('CARTES', ctx);
 for (const id of [1, 3, 29, 75, 58]) assert.equal(carte[id], undefined, `plus de carte mémo pour le cours fusionné ${id}`);
@@ -44,7 +44,7 @@ ctx.state = { lessons: {
   12: { done: true },                                         // ancien état sans étapes
   6: { done: false, etapes: { exo: 1, q0: 1 } },              // en cours : rien n'est offert
   72: { done: true, etapes: { exo: 1, q0: 1, q1: 1, q2: 1, q3: 1 } },  // déjà complet : rien ne change
-  0: { done: true, etapes: { exo: 1, q0: 1, q1: 1, q2: 1, q3: 1, q4: 1, q5: 1 } }  // quiz passé de 6 à 11 questions (l'id zéro compte)
+  0: { done: true }                                          // ancien état sans étapes (l'id zéro compte)
 } };
 vm.runInContext('migrerEtapes()', ctx);
 const e = id => JSON.parse(JSON.stringify(ctx.state.lessons[id].etapes));   // objets du contexte vm : on compare des copies simples
@@ -52,7 +52,7 @@ assert.deepEqual(e(11), { exo: 1, q0: 1, q1: 1, q2: 1, q3: 1 });
 assert.deepEqual(e(12), { exo: 1, q0: 1, q1: 1, q2: 1, q3: 1 });
 assert.deepEqual(e(6), { exo: 1, q0: 1 }, 'une leçon non validée garde sa progression partielle');
 assert.deepEqual(e(72), { exo: 1, q0: 1, q1: 1, q2: 1, q3: 1 });
-assert.deepEqual(e(0), { exo: 1, q0: 1, q1: 1, q2: 1, q3: 1, q4: 1, q5: 1, q6: 1, q7: 1, q8: 1, q9: 1, q10: 1 });
+assert.deepEqual(e(0), { exo: 1 });
 assert.equal(ctx.saved, 1, 'enregistrement unique');
 vm.runInContext('migrerEtapes()', ctx);
 assert.equal(ctx.saved, 1, 'deuxième passage : rien à enregistrer');
