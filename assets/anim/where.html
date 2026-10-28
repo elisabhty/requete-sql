@@ -534,7 +534,7 @@ const CAPTIONS = [
   [56.4, 59.8, "Une valeur en texte s’écrit toujours entre <b>guillemets simples</b> : <code>'Paris'</code>."],
   [59.9, 64.9, "Sans guillemets, <code>Paris</code> est lu comme le nom d’une <b>colonne</b> : la requête provoque une erreur."],
   [65.0, 70.5, "<code>'paris'</code> ≠ <code>'Paris'</code> : écris la valeur telle qu’elle figure dans la table."],
-  [71.4, 76.5, "La requête affiche le prénom, le nom, l’email et la ville des clients parisiens."],
+  [71.4, 76.5, "La requête affiche le prénom, le nom, l’e-mail et la ville des clients parisiens."],
   [76.6, 82.5, "Résultat : <b>4 clients parisiens</b>, donc 4 invitations prêtes à partir."],
   [83.3, 88.9, "Pour finir, voici les <b>trois idées à retenir</b>."],
   [89.0, 92.5, "<code>WHERE</code> ne filtre que le résultat : la <b>table\u00a0clients</b> n’est pas modifiée."]
@@ -563,23 +563,50 @@ const NOTES_AT = RECAP ? 88.4 : null;   // le bouton « Ajouter à mes notes » 
 /* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
    Elisa, 26 octobre, 14 h 59 : les premières leçons gardent tout ce qu’elle a validé ; il leur manquait les moments. */
 const MOMENTS = [
-  // le résultat sans filtre contient les clients de toutes les villes : avant que la vidéo ne nomme WHERE
-  {at: 22.95, from: 15.0, kind: 'pick', text: true, prompt: 'Que faut-il ajouter à la requête pour ne garder que les clients parisiens ?', options: [
-    {label: 'Un WHERE, suivi d’une condition', ok: true, why: '<code>WHERE</code> sélectionne les lignes : il garde celles où la condition est vraie.'},
-    {label: 'DISTINCT, juste après le SELECT', why: '<code>DISTINCT</code> retire les doublons : il ne garde pas que les Parisiens.'},
-    {label: 'AS, pour renommer la colonne ville', why: '<code>AS</code> renomme une colonne du résultat : il ne retire aucune ligne.'}],
-    tip: 'Il faut choisir des lignes, pas des colonnes.'},
+  /* Mini-jeux (Elisa, 28 octobre, 8 h 50 : « pas assez gamifié »). Chacun son rôle, dès que WHERE est nommé : SELECT choisit les
+     colonnes, FROM la table, WHERE les lignes. (L’ancienne question, « Que faut-il ajouter ? », avait pour réponse le titre du cours.) */
+  {at: 26.42, from: 15.0, kind: 'sort', text: true, prompt: 'Range chaque besoin de l’équipe dans la partie de la requête qui s’en charge.',
+    hint: 'Touche un besoin, puis sa case. Tu peux aussi le faire glisser.', next: '« {x} » : touche sa case.',
+    board: {y: 300, html: '<span class="mb-k">🗂️ Chacun son rôle</span><div class="mb-col mg-kw">'
+      + '<div class="mb-bin mb-row" id="mbSe"><b>SELECT</b><div class="mb-drop"></div></div>'
+      + '<div class="mb-bin mb-row" id="mbFr"><b>FROM</b><div class="mb-drop"></div></div>'
+      + '<div class="mb-bin mb-row" id="mbWh"><b>WHERE</b><div class="mb-drop"></div></div></div>'},
+    spots: [{k: 'se', sel: '#mbSe', label: 'SELECT'}, {k: 'fr', sel: '#mbFr', label: 'FROM'}, {k: 'wh', sel: '#mbWh', label: 'WHERE'}],
+    options: [
+      {label: 'Afficher le prénom et la ville', to: 'se', why: 'Choisir les colonnes à afficher, c’est le rôle de <code>SELECT</code>.'},
+      {label: 'Partir de la table clients', to: 'fr', why: 'La table de départ s’indique après <code>FROM</code>.'},
+      {label: 'Ne garder que les clients de Paris', to: 'wh', why: 'Choisir les lignes à garder, c’est le rôle de <code>WHERE</code>.'},
+      {label: 'Ajouter aussi l’e-mail', to: 'se', why: 'L’e-mail est une colonne de plus : elle s’ajoute après <code>SELECT</code>.'},
+      {label: 'Écarter les clients des autres villes', to: 'wh', why: 'Écarter des lignes, c’est choisir celles qu’on garde : c’est le rôle de <code>WHERE</code>.'}],
+    tip: '<code>SELECT</code> choisit les colonnes, <code>FROM</code> la table, <code>WHERE</code> les lignes.'},
   // le passage en revue commence (la première ligne vient d’être vérifiée) : les lignes où la condition est vraie
   {at: 31.15, from: 26.8, kind: 'tap', need: 4, prompt: 'Touche les lignes où la condition <code>ville = \'Paris\'</code> est vraie.',
     spots: CLIENTS.map((c, i) => ({k: 'r' + i, sel: `#rows > .tr:nth-child(${i + 1})`, label: `Ligne ${i + 1} : ${c[0]} ${c[1]}, ${c[2]}`, ok: c[2] === 'Paris',
       why: c[2] === 'Paris' ? '' : `La ville ${/^[AEIOUHÉÈ]/.test(c[0]) ? 'd’' : 'de '}${c[0]} ${c[1]} est ${c[2]} : la condition est fausse.`})),
     tip: 'Regarde la colonne ville : elle doit valoir Paris.'},
-  // le second piège, avant son exécution : 'paris' en minuscules
-  {at: 64.95, from: 56.0, kind: 'pick', text: true, prompt: 'Que donne la condition <code>ville = \'paris\'</code>, écrite en minuscules ?', options: [
-    {label: 'Aucune ligne', ok: true, why: '<code>\'paris\'</code> ≠ <code>\'Paris\'</code> : aucune ligne ne remplit la condition.'},
-    {label: 'Les 4 clients parisiens', why: 'Les majuscules comptent : <code>\'paris\'</code> ne vaut pas <code>\'Paris\'</code>.'},
-    {label: 'Une erreur', why: '<code>\'paris\'</code> est bien un texte : la requête s’exécute, sans résultat.'}],
-    tip: 'Compare les deux valeurs, lettre par lettre.'}
+  /* Le banc d’essai, avant l’exécution du second piège : l’élève essaie lui-même plusieurs écritures de la valeur et voit aussitôt qui
+     est invité ; 'paris' en minuscules ne garde personne, Paris sans guillemets provoque une erreur. */
+  {at: 64.95, from: 56.0, kind: 'tune', ico: '🧪', prompt: 'Règle la valeur pour inviter les <b>4 clients parisiens</b>.',
+    hint: 'Change l’écriture ou les guillemets, regarde qui est invité, puis valide.',
+    controls: [{k: 'e', type: 'seg', label: 'Écriture', choices: ['paris', 'Paris', 'PARIS'], value: 'paris', code: true},
+      {k: 'q', type: 'switch', label: 'Guillemets simples', value: true}],
+    answer: {e: 'Paris', q: true},
+    board: {y: 210, html: '<span class="mb-k">🧪 Le banc d’essai</span><div class="mb-q" id="mbwq"></div><div class="mg-grid" id="mbwg">'
+      + CLIENTS.map((c, i) => `<div class="mg-r" id="mbw${i}">${c[0]} ${c[1][0]}.<b>${c[2]}</b></div>`).join('') + '</div><div class="mg-c" id="mbwn"></div>'},
+    show(s, b) {
+      const e = String(s.e), err = !s.q, garde = c => !err && e === 'Paris' && c[2] === 'Paris', n = CLIENTS.filter(garde).length;
+      b.querySelector('#mbwq').innerHTML = `<span class="k">WHERE</span> ville = ${err ? e : `<span class="s">'${e}'</span>`}`;
+      CLIENTS.forEach((c, i) => { const r = b.querySelector('#mbw' + i); r.classList.toggle('in', garde(c)); r.classList.toggle('out', !garde(c)); });
+      b.querySelector('#mbwn').innerHTML = err ? `<span class="mg-err">Erreur SQL : no such column: ${e}</span>`
+        : n ? `<b>${n}</b> clients invités` : 'Aucun client invité : <b>0</b> ligne';
+    },
+    check(s) {
+      const e = String(s.e);
+      if (!s.q) return {ok: false, why: `Sans guillemets, <code>${e}</code> est lu comme le nom d’une colonne : la requête provoque une erreur.`};
+      if (e === 'Paris') return {ok: true, why: 'Écrite comme dans la table, entre guillemets simples, <code>\'Paris\'</code> garde les 4 clients parisiens.'};
+      return {ok: false, why: `<code>'${e}'</code> ≠ <code>'Paris'</code> : les majuscules comptent, aucune ligne ne remplit la condition.`};
+    },
+    tip: 'Écris la valeur exactement comme dans la table, entre guillemets simples.'}
 ];
 
 /* ---------- Construction du DOM dynamique ---------- */
@@ -844,7 +871,7 @@ function build(){
     tl.to(city, {color: '#C2323A', duration: 0.2}, t);
     cue(t, 'miss', 0.55, i);
   });
-  hide('#s2code', 26.35, {y: -60});
+  hide('#s2code', 26.5, {y: -60});   // juste après le moment 1 (26,42)
   sceneOff('#s2', 26.9);
 
   /* ===== 3 · La condition ===== */
@@ -1124,9 +1151,12 @@ window.__ready = (async () => {
     chapters: MP.chapters.map(c => ({t: unwarp(c.a), n: c.n, label: c.label})),
     questions: QUESTIONS.map(q => ({t: unwarp(q.at), kicker: q.kicker, ctx: fr(q.ctx || ''), q: fr(q.q), options: q.options.map(o => ({label: o.label, ok: o.ok})), okTitle: fr(q.okTitle), koTitle: fr(q.koTitle), why: fr(q.why)})),
     /* Moments « À toi » : la même description que le moteur commun (core.js). */
-    picks: MP.picks.map(p => ({t: unwarp(p.at), from: p.from != null ? unwarp(p.from) : null, kind: ['tap', 'sort', 'link'].includes(p.kind) ? p.kind : 'pick', text: !!p.text,
+    picks: MP.picks.map(p => ({t: unwarp(p.at), from: p.from != null ? unwarp(p.from) : null, kind: ['tap', 'sort', 'link', 'tune'].includes(p.kind) ? p.kind : 'pick', text: !!p.text,
       prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', next: p.next ? fr(p.next) : '', need: p.need || 0,
-      options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''}))})),
+      options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''})),
+      /* Réglage (tune, le banc d’essai du moment 3) : les commandes de la feuille, comme dans le moteur commun. */
+      controls: (p.controls || []).map(c => ({k: c.k, type: c.type, label: fr(c.label || ''), min: c.min, max: c.max, step: c.step, value: c.value,
+        choices: c.choices || null, code: !!c.code, unit: c.unit || ''})), ico: p.ico || ''})),
     /* Légendes en texte : le lecteur les annonce à VoiceOver au fil de l’animation. */
     captions: MP.captions.map(c => ({a: unwarp(c[0]), b: unwarp(Math.min(c[1], MP.duration)), text: fr(c[2]).replace(/<[^>]+>/g, '')}))};
 })();

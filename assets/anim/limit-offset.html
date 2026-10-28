@@ -264,8 +264,8 @@ const euros = v => v.toFixed(2).replace('.', ',') + ' €';
 const CHAPTERS = [
   {n:1, label:'Situation',             a:5.0,  b:21.0},
   {n:2, label:'Le problème',           a:21.0, b:34.5},
-  {n:3, label:'LIMIT en action',       a:34.5, b:50.0},
-  {n:4, label:'Sauter avec OFFSET',    a:50.0, b:66.0},
+  {n:3, label:'LIMIT en action',       a:34.5, b:50.25},
+  {n:4, label:'Sauter avec OFFSET',    a:50.25, b:66.0},
   {n:5, label:'Un classement stable',  a:66.0, b:82.0},
   {n:6, label:'Le résultat',           a:82.0, b:99.0},
   {n:7, label:'À quoi ça sert',        a:99.0, b:137.0},
@@ -310,19 +310,26 @@ const CAPTIONS = [
       : [142.2, 999, "<code>LIMIT</code> garde les premières lignes, <code>OFFSET</code> en saute, après un tri stable."]
 ];
 
-/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+/* Pas de question en pleine vidéo : les moments « À toi » font participer l’élève (ni exercice ni quiz après la vidéo, depuis le 28 octobre). */
 const QUESTIONS = [];
 /* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
    Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
 const MOMENTS = [
-  // le site web n’en veut que 3 : avant que la vidéo ajoute LIMIT
-  {at: 34.3, from: 21.0, kind: 'pick', prompt: 'Comment ne garder que 3 lignes ?', options: [
-    {label: 'LIMIT 3', ok: true, why: '<code>LIMIT 3</code>, à la fin de la requête, ne garde que 3 lignes.'},
-    {label: 'OFFSET 3', why: '<code>OFFSET 3</code> saute 3 lignes : il ne limite pas leur nombre.'},
-    {label: 'WHERE id <= 3', why: 'Les identifiants 1 à 3 ne sont pas les 3 produits les plus chers.'}],
-    tip: 'Le mot-clé veut dire « limite ».'},
+  /* Mini-jeux (Elisa, 28 octobre, 8 h 50 : « pas assez gamifié »). L’ancien moment 1 (« Comment ne garder que 3 lignes ? ») avait pour
+     réponse le titre du cours. Le puzzle, une fois LIMIT vu (et ORDER BY juste avant) : la requête des 3 produits affichés au départ. */
+  {at: 50.05, from: 34.5, kind: 'sort', prompt: 'Reconstitue la requête des <b>3 produits les plus chers</b>, affichés au départ.',
+    hint: 'Touche un bloc, puis sa place. Tu peux aussi le faire glisser.', next: '{x} : touche sa place.',
+    board: {y: 300, html: '<span class="mb-k">🧩 Le puzzle</span><div class="mb-q mg-pz"><span class="k">SELECT</span> id, nom, prix\n<span class="k">FROM</span> produits\n<span class="mb-hole" id="mbH1"><span class="mb-drop"></span></span>\n<span class="mb-hole" id="mbH2"><span class="mb-drop"></span></span>;</div>'
+      + '<div class="mb-bin mg-bin" id="mbX"><b>🗑️ En trop</b><div class="mb-drop"></div></div>'},
+    spots: [{k: 'h1', sel: '#mbH1', label: 'Première place, après FROM produits'}, {k: 'h2', sel: '#mbH2', label: 'Deuxième place, à la fin'}, {k: 'x', sel: '#mbX', label: 'En trop'}],
+    options: [
+      {label: 'ORDER BY prix DESC', to: 'h1', why: 'Le classement vient d’abord : <code>ORDER BY</code> s’écrit juste avant <code>LIMIT</code>.'},
+      {label: 'LIMIT 3', to: 'h2', why: '<code>LIMIT 3</code> vient en dernier : il garde les 3 premières lignes du classement.'},
+      {label: 'OFFSET 3', to: 'x', why: '<code>OFFSET 3</code> sauterait les 3 produits les plus chers : ce sont eux qu’on veut afficher.'},
+      {label: 'WHERE id <= 3', to: 'x', why: 'Les identifiants 1 à 3 ne sont pas les 3 produits les plus chers.'}],
+    tip: 'D’abord le classement (<code>ORDER BY</code>), puis le nombre de lignes (<code>LIMIT</code>).'},
   // les pages : combien de lignes sauter pour chacune, avant que la vidéo le calcule
-  {at: 58.25, from: 50.0, kind: 'link', need: 4, prompt: 'Avec 2 produits par page, relie chaque page à son <code>OFFSET</code>.',
+  {at: 58.25, from: 50.25, kind: 'link', need: 4, prompt: 'Avec 2 produits par page, relie chaque page à son <code>OFFSET</code>.',
     hint: 'Touche une page, puis son <code>OFFSET</code>. Tu peux aussi tracer le trait du doigt.',
     board: {y: 470, html: '<span class="mb-k">2 produits par page</span><div class="mb-cols"><div class="mb-col"><div class="mb-i" id="mbg1">Page 1</div><div class="mb-i" id="mbg2">Page 2</div><div class="mb-i" id="mbg3">Page 3</div><div class="mb-i" id="mbg4">Page 4</div></div><div class="mb-col"><div class="mb-i c" id="mbf6">OFFSET 6</div><div class="mb-i c" id="mbf0">OFFSET 0</div><div class="mb-i c" id="mbf4">OFFSET 4</div><div class="mb-i c" id="mbf2">OFFSET 2</div></div></div>'},
     spots: [
@@ -335,12 +342,28 @@ const MOMENTS = [
       {k: 'f4', sel: '#mbf4', label: 'OFFSET 4', side: 'r'},
       {k: 'f2', sel: '#mbf2', label: 'OFFSET 2', side: 'r'}],
     tip: 'On saute les produits des pages précédentes : 2 par page.'},
-  // deux prix égaux : un produit en double, un autre jamais affiché
-  {at: 78.05, from: 66.0, kind: 'pick', prompt: 'Comment rendre le classement stable ?', options: [
-    {label: 'ORDER BY prix DESC, id', ok: true, why: 'À prix égal, l’identifiant départage : il est unique.'},
-    {label: 'ORDER BY id', why: 'Trié par identifiant seul, le classement par prix est perdu.'},
-    {label: 'ORDER BY prix DESC, prix', why: 'Trier deux fois par prix ne départage pas deux prix égaux.'}],
-    tip: 'Ajoute une colonne qui ne se répète jamais.'}
+  /* Le classement stable, avant que la vidéo ajoute id : deux exécutions (la page 1, puis la page 2) ; l’élève choisit la colonne qui
+     départage les prix égaux et voit la Fibre Prébiotique en double, l’Oméga 3 jamais affiché, ou les 6 produits sans doublon. */
+  {at: 78.05, from: 66.0, kind: 'tune', ico: '🧱', prompt: 'Choisis ce qui départage les prix égaux : chaque produit doit s’afficher <b>une seule fois</b>.',
+    hint: 'Change le départage, regarde les deux pages, puis valide.',
+    controls: [{k: 'd', type: 'seg', label: 'Après prix DESC', choices: ['rien', 'prix', 'id'], value: 'rien', code: true}],
+    answer: {d: 'id'},
+    board: {y: 210, html: '<span class="mb-k">🧱 Le classement stable</span><div class="mb-q mg-sm" id="mbsq"></div><div class="mb-cols" style="gap:26px">'
+      + [1, 2].map(n => `<div class="mb-col" style="gap:14px"><b class="mg-ph">Page ${n}</b>${[0, 1, 2].map(k => `<div class="mg-r mg-cat" id="mbs${n}${k}"></div>`).join('')}</div>`).join('') + '</div><div class="mg-c" id="mbsn"></div>'},
+    show(s, b) {
+      b.querySelector('#mbsq').innerHTML = `<span class="k">ORDER BY</span> prix <span class="k">DESC</span>${s.d === 'rien' ? '' : ', ' + s.d}\n<span class="k">LIMIT</span> 3 <span class="k">OFFSET</span> …`;
+      /* À prix égal (Fibre Prébiotique et Oméga 3 à 29,90 €), sans départage unique, l’ordre peut s’inverser d’une exécution à l’autre. */
+      const stable = s.d === 'id', p1 = ['Collagène Marin', 'Protéine Végétale', 'Fibre Prébiotique'],
+        p2 = stable ? ['Oméga 3', 'Magnésium', 'Shaker Inox'] : ['Fibre Prébiotique', 'Magnésium', 'Shaker Inox'];
+      [p1, p2].forEach((p, n) => p.forEach((nom, k) => { const r = b.querySelector(`#mbs${n + 1}${k}`); r.textContent = nom; r.classList.toggle('mg-dup', !stable && nom === 'Fibre Prébiotique'); }));
+      b.querySelector('#mbsn').innerHTML = stable ? '<b>6</b> produits, chacun une seule fois' : 'La Fibre Prébiotique s’affiche <b>deux fois</b>, l’Oméga&nbsp;3 jamais';
+    },
+    check(s) {
+      if (s.d === 'id') return {ok: true, why: 'L’identifiant est unique : à prix égal, il départage, et le classement devient stable.'};
+      if (s.d === 'prix') return {ok: false, why: 'Trier deux fois par prix ne départage pas deux prix égaux : l’ordre peut encore s’inverser.'};
+      return {ok: false, why: 'À prix égal, l’ordre n’est pas garanti : il peut s’inverser d’une page à l’autre.'};
+    },
+    tip: 'Il faut une colonne qui ne se répète jamais.'}
 ];
 
 /* Une fiche produit sur le site web (prix affiché en euros), ou une fiche encore inconnue (« ? »). */

@@ -253,9 +253,9 @@ const CAPTIONS = [
   [19.6, 23.0,  "Il manque Hugo Laurent, client de <b>Lyon</b>, et Nathan Dupont n’a que 30 ans."],
   [23.1, 26.4,  "Il faut <b>combiner plusieurs conditions</b> : c’est le rôle de <code>AND</code> et <code>OR</code>."],
   [27.3, 30.6,  "On ajoute la condition sur l’âge avec <code>AND</code> : <code>age &gt; 30</code>."],
-  [30.7, 33.35, "Pour chaque client, SQL vérifie deux conditions : la ville, puis l’âge."],
+  [30.7, 33.35, "Pour chaque client, deux conditions sont vérifiées : la ville, puis l’âge."],
   [33.45, 40.4, "Avec <code>AND</code>, la ligne est gardée seulement si <b>les deux</b> conditions sont vraies."],
-  [40.5, 45.0,  "Nathan Dupont est écarté : il a 30 ans, pas plus. Il reste <b>3 clients</b>."],
+  [40.5, 45.0,  "Nathan Dupont, qui a 30 ans et pas plus, est écarté : il reste <b>3 clients</b>."],
   [45.8, 49.8,  "Si on ajoute <code>AND ville = 'Lyon'</code> pour avoir Lyon, le résultat est <b>vide</b>."],
   [49.9, 54.0,  "Une ville ne peut pas être <b>à la fois</b> <span class=\"nw\">Paris et Lyon</span> : il faut <code>OR</code>."],
   [54.1, 59.6,  "Avec <code>OR</code>, une seule condition vraie suffit pour garder la ligne."],
@@ -272,28 +272,48 @@ const CAPTIONS = [
       : [101.5, 999, "Relie les conditions avec <code>AND</code> et <code>OR</code>, et regroupe-les entre parenthèses."]
 ];
 
-/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+/* Pas de question en pleine vidéo : les moments « À toi » font participer l’élève (ni exercice ni quiz après la vidéo, depuis le 28 octobre). */
 const QUESTIONS = [];
 /* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
    Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
 const MOMENTS = [
-  // le problème : il manque la condition sur l’âge, avant que la vidéo ajoute AND
-  {at: 27.0, from: 15.0, kind: 'pick', prompt: 'Comment ajouter la condition sur l’âge ?', options: [
-    {label: 'AND age > 30', ok: true, why: 'Avec <code>AND</code>, les deux conditions doivent être vraies : Paris, et plus de 30 ans.'},
-    {label: 'OR age > 30', why: 'Avec <code>OR</code>, une seule suffirait : tous les plus de 30 ans resteraient.'},
-    {label: 'WHERE age > 30', why: 'Une requête n’a qu’un seul <code>WHERE</code> : les conditions se combinent.'}],
+  /* Mini-jeux (Elisa, 28 octobre, 8 h 50 : « pas assez gamifié »). Le chaînon manquant : il manque la condition sur l’âge, avant que la
+     vidéo ajoute AND ; l’élève glisse lui-même le mot qui relie les deux conditions. */
+  {at: 27.0, from: 15.0, kind: 'pick', slot: '#mbAo', prompt: 'Glisse le mot qui garde les clients de Paris <b>de plus de 30 ans</b>.',
+    board: {y: 470, html: '<span class="mb-k">🔗 Le chaînon manquant</span><div class="mb-q"><span class="k">WHERE</span> ville = <span class="s">\'Paris\'</span>\n  <span class="mb-hole" id="mbAo">?</span> age &gt; 30;</div>'},
+    options: [
+      {label: 'AND', ok: true, why: 'Avec <code>AND</code>, les deux conditions doivent être vraies : Paris, et plus de 30 ans.'},
+      {label: 'OR', why: 'Avec <code>OR</code>, une seule suffirait : tous les plus de 30 ans resteraient, quelle que soit leur ville.'},
+      {label: 'WHERE', why: 'Une requête n’a qu’un seul <code>WHERE</code> : les conditions se relient entre elles.'}],
     tip: 'Les deux conditions doivent être vraies en même temps.'},
   // le passage en revue commence (Sophie Martin est gardée) : les autres clients gardés avec AND
-  {at: 33.35, from: 27.3, kind: 'tap', need: 2, prompt: 'Sophie Martin est gardée. Touche les deux autres clients gardés avec <code>AND</code>.',
+  {at: 33.35, from: 27.3, kind: 'tap', need: 2, prompt: 'En plus de Sophie Martin, touche les deux clients gardés avec <code>AND</code>.',
     spots: CLIENTS.map((c, i) => ({k: 'r' + i, sel: `#rows3 > .tr:nth-child(${i + 1})`, label: `Ligne ${i + 1} : ${c[0]} ${c[1]}, ${c[2]}, ${c[3]} ans`, ok: PARIS(c) && AGE(c),
       why: PARIS(c) && AGE(c) ? '' : !PARIS(c) ? `${c[0]} ${c[1]} habite à ${c[2]} : la première condition est fausse.` : `${c[0]} ${c[1]} a ${c[3]} ans, pas plus de 30 : la deuxième condition est fausse.`})).slice(1),
     tip: 'Il faut habiter à Paris et avoir plus de 30 ans.'},
-  // sans parenthèses, AND est calculé avant OR : Nathan Dupont, 30 ans, de Paris
-  {at: 72.8, from: 64.5, kind: 'pick', text: true, prompt: 'Sans parenthèses, Nathan Dupont, 30 ans, de Paris, est-il gardé ?', options: [
-    {label: 'Oui : l’âge ne compte que pour Lyon', ok: true, why: '<code>AND</code> est calculé avant <code>OR</code> : l’âge ne s’applique qu’à Lyon.'},
-    {label: 'Non : il a 30 ans, pas plus', why: 'Sans parenthèses, l’âge ne s’applique qu’à Lyon : pour Paris, la ville suffit.'},
-    {label: 'Non : Paris n’est plus dans la condition', why: '<code>ville = \'Paris\'</code> est toujours là : pour Paris, une seule condition suffit.'}],
-    tip: '<code>AND</code> est calculé en premier : à quelle ville s’applique l’âge ?'}
+  /* Le mélangeur, juste après « AND est prioritaire » : l’élève règle lui-même le mot entre les villes et les parenthèses, et voit qui
+     est invité. AND entre les villes ne garde personne ; OR sans parenthèses garde aussi Nathan Dupont, 30 ans (l’âge ne compte que
+     pour Lyon) ; OR avec parenthèses garde les 4 invités. */
+  {at: 72.8, from: 64.5, kind: 'tune', ico: '🎛️', prompt: 'Règle la condition pour inviter les clients de Paris et de Lyon <b>de plus de 30 ans</b>.',
+    hint: 'Change le mot entre les villes ou les parenthèses, regarde qui est invité, puis valide.',
+    controls: [{k: 'op', type: 'seg', label: 'Entre les villes', choices: ['AND', 'OR'], value: 'OR', code: true},
+      {k: 'par', type: 'switch', label: 'Parenthèses', value: false}],
+    answer: {op: 'OR', par: true},
+    board: {y: 210, html: '<span class="mb-k">🎛️ Le mélangeur</span><div class="mb-q mg-sm" id="mbmq"></div><div class="mg-grid">'
+      + CLIENTS.map((c, i) => `<div class="mg-r" id="mbm${i}">${c[0]} ${c[1][0]}.<b>${c[2]} · ${c[3]}</b></div>`).join('') + '</div><div class="mg-c" id="mbmn"></div>'},
+    show(s, b) {
+      const garde = c => s.op === 'AND' ? false : s.par ? (PARIS(c) || LYON(c)) && AGE(c) : PARIS(c) || (LYON(c) && AGE(c)), n = CLIENTS.filter(garde).length;
+      const villes = `ville = <span class="s">'Paris'</span> <span class="k">${s.op}</span> ville = <span class="s">'Lyon'</span>`;
+      b.querySelector('#mbmq').innerHTML = `<span class="k">WHERE</span> ${s.par ? `(${villes})` : villes}\n  <span class="k">AND</span> age &gt; 30`;
+      CLIENTS.forEach((c, i) => { const r = b.querySelector('#mbm' + i); r.classList.toggle('in', garde(c)); r.classList.toggle('out', !garde(c)); });
+      b.querySelector('#mbmn').innerHTML = n ? `<b>${n}</b> client${n > 1 ? 's' : ''} invité${n > 1 ? 's' : ''}` : 'Aucun client invité : <b>0</b> ligne';
+    },
+    check(s) {
+      if (s.op === 'AND') return {ok: false, why: 'Une ville ne peut pas être à la fois Paris et Lyon : avec <code>AND</code> entre les villes, personne n’est invité.'};
+      if (!s.par) return {ok: false, why: 'Sans parenthèses, <code>AND</code> est calculé avant <code>OR</code> : l’âge ne compte que pour Lyon, et Nathan Dupont, 30 ans, est invité.'};
+      return {ok: true, why: 'Avec les parenthèses, la ville est vérifiée d’abord, puis l’âge compte pour tous : 4 clients sont invités.'};
+    },
+    tip: '<code>AND</code> est calculé avant <code>OR</code> : des parenthèses autour des deux villes font compter l’âge pour tous.'}
 ];
 
 function dom(){

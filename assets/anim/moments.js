@@ -266,6 +266,25 @@ function withMoments(cfg){
     + '.mg-lift{position:relative}.mg-fl{position:absolute;left:0;width:64px;display:flex;align-items:center;justify-content:center;font:800 30px/1 Inter,sans-serif;color:#8A86A8}'
     + '.mg-lr{position:absolute;left:80px;right:0;display:flex;align-items:center;gap:18px;padding:0 24px;box-sizing:border-box;border-radius:22px;background:#F6F4FF;box-shadow:inset 0 0 0 3px #DCD5F2;font:600 32px/1 Inter,sans-serif;transition:top .55s cubic-bezier(.3,.9,.3,1.1),background-color .25s}'
     + '.mg-lr>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mg-lr>b{flex:0 0 auto;font:700 30px/1 "JetBrains Mono",JBM,monospace;color:#8A86A8;text-align:right}.mg-lr>b.k{color:#5335E0;font-weight:800}'
-    + '.mg-lr.top{background:#E7F7EE;box-shadow:inset 0 0 0 3px #A7E3C0}';
+    + '.mg-lr.top{background:#E7F7EE;box-shadow:inset 0 0 0 3px #A7E3C0}'
+    /* Le puzzle (des blocs à poser dans les trous d’une requête, un bac « En trop ») et la chasse (des mots d’une requête à toucher). */
+    + '.mb-q .mb-chip{font-family:"JetBrains Mono",JBM,monospace;font-size:34px;padding:6px 14px;border-radius:12px;font-variant-ligatures:none}'
+    + '.mg-pz{line-height:2}.mg-pz .mb-hole{display:inline-flex;align-items:center;justify-content:center;min-width:170px;min-height:66px;padding:0 6px;box-sizing:border-box;vertical-align:middle}'
+    + '.mg-pz .mb-hole .mb-drop{gap:0}.mg-pz .mb-hole.pk-on{background:none;box-shadow:none;outline:none}'
+    + '.mg-bin{margin-top:26px;min-height:120px}.mg-bin>b{font-size:32px}'
+    /* Le bon emplacement : des trous entre les mots d’une requête ; le bon se remplit du mot-clé (data-w sur la carte). */
+    + '.mg-gaps{line-height:2}.mg-g{display:inline-block;width:46px;height:58px;margin:0 8px;vertical-align:middle;border-radius:14px;box-shadow:inset 0 0 0 3px #B9A8FF;background:rgba(185,168,255,.16);font-style:normal}'
+    + '.mg-g.pk-on{width:auto;height:auto;padding:0 12px;outline:none;background:#16A34A;box-shadow:none;vertical-align:baseline}.mg-g.pk-on::before{content:attr(data-w);color:#fff;font-weight:800}'
+    /* Chacun son rôle : des cases en lignes, le mot-clé à gauche ; une erreur SQL sous un banc d’essai. */
+    + '.mg-kw{gap:20px}.mg-kw>.mb-bin.mb-row>b{flex:0 0 190px;font:800 36px/1 "JetBrains Mono",JBM,monospace;color:#5335E0}.mg-kw .mb-chip{font-size:30px}'
+    + '.mg-err{display:inline-block;padding:10px 22px;border-radius:18px;background:#FDE8E8;color:#C2323A;font:700 30px/1.3 "JetBrains Mono",JBM,monospace}'
+    + '.mg-r.mg-cat{padding-left:24px}.mg-r.mg-cat::before{display:none}.mg-cat>b{font:700 28px/1 Inter,sans-serif;color:#6B6790}'
+    + '.mb-q.mg-sm{font-size:32px;line-height:1.5;margin-bottom:22px}'
+    + '.mg-tag{display:inline-block;margin-left:10px;padding:4px 10px;border-radius:999px;background:#FFF1D6;color:#9A5B00;font:700 22px/1 Inter,sans-serif;font-style:normal}'
+    + '.mg-r.mg-test{grid-column:1/-1;background:#FFF8E6;box-shadow:inset 0 0 0 3px #F5D58A}.mg-r.mg-test.in{background:#E7F7EE;box-shadow:inset 0 0 0 3px #A7E3C0}'
+    + '.mg-dense .mg-r{min-height:76px;padding-left:52px;font-size:28px}.mg-dense .mg-r::before{left:14px;width:26px;height:26px;margin-top:-13px}.mg-dense .mg-r>b{font-size:26px}.mg-dense .mg-tag{margin-left:8px;padding:3px 8px;font-size:20px}'
+    + '.mg-null{font-style:italic;font-weight:600;color:#8A86A8;padding:2px 10px;border-radius:10px;box-shadow:inset 0 0 0 2px #DCD5F2}.mg-cb>b{font-family:"JetBrains Mono",JBM,monospace}'
+    + '.mg-ph{font:800 32px/1.1 "Bricolage Grotesque",Inter,sans-serif;color:#5335E0}.mg-r.mg-dup{background:#FDE8E8;box-shadow:inset 0 0 0 3px #F3B7BB;color:#C2323A}'
+    + '.mg-tq{line-height:1.95}.mg-tq .mg-t{display:inline-block;padding:2px 10px;margin:0 -10px;border-radius:14px;line-height:1.3}';
   document.head.append(s);
 })();

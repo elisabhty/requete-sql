@@ -581,6 +581,9 @@ export const REGLES_DE_PAGE = [
    aConfirmer : ce qu’il faut demander à Elisa (la suite l’affiche à chaque lancement).
    Une exception qui ne sert plus (le texte a changé) fait échouer la suite : la liste reste juste. */
 export const EXCEPTIONS = [
+  /* Du code, pas du texte */
+  {regle: 'typographie', page: 'as', probleme: 'guillemets droits : écrire « »',
+    raison: 'Le cours AS montre l’alias tel qu’on l’écrit en SQL, entre guillemets doubles (« "Prix (€)" », « "Nom du produit" ») : ce sont des blocs de requête, pas des guillemets du texte.'},
   /* Un mot qui est le bon mot ici */
   {regle: 'identifiant', page: 'projet-alter',
     raison: 'Le chapitre 4 parle des numéros de téléphone des coachs : « numéro » est le bon mot (il ne sert que pour un téléphone).'},
@@ -648,7 +651,6 @@ export const EXCEPTIONS = [
 export const DETTE = {
   videos: {
     'and-or': {'legende-phrase': 1, typographie: 1, coupes: 1},
-    'as': {typographie: 3},
     'bases-relationnelles': {'table-gras': 3, client: 2, relation: 1, 'legende-phrase': 1},
     'between': {identifiant: 3},
     'case': {'legende-phrase': 3},

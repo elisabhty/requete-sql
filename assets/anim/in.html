@@ -229,7 +229,7 @@ const CHAPTERS = [
 /* Légendes : [début, fin, texte] (temps de la timeline). */
 const CAPTIONS = [
   [5.3, 8.6,    "NutriBoost organise un <b>jeu-concours</b> : trois gagnants sont tirés au sort."],
-  [8.7, 11.35,  "Les gagnants sont les clients <b>n° 2, 5 et 9</b> : chacun recevra un lot."],
+  [8.7, 11.35,  "Les gagnants sont les clients d’identifiant <b>2, 5 et 9</b> : chacun recevra un lot."],
   [11.45, 14.6, "Pour envoyer les lots,<br>on part de la <b>table clients</b>,<br>qui contient <b>10 clients</b>."],
   [15.3, 19.0,  "Avec <code>OR</code>, on écrit trois conditions : <code>id = 2</code>, <code>id = 5</code> et <code>id = 9</code>."],
   [19.1, 22.1,  "La requête fonctionne : elle renvoie bien les <b>3 gagnants</b>."],
@@ -237,8 +237,8 @@ const CAPTIONS = [
   [26.5, 29.3,  "<code>IN</code> remplace ces conditions par <b>une\u00a0liste\u00a0de\u00a0valeurs</b>."],
   [29.9, 33.4,  "Les trois conditions deviennent une seule : <code>id IN (2, 5, 9)</code>."],
   [33.5, 37.2,  "<code>IN</code> compare une colonne à une <b>liste de valeurs</b>, écrite entre parenthèses."],
-  [37.6, 39.95, "Pour chaque client, SQL vérifie si son identifiant est <b>dans la liste</b>."],
-  [40.05, 44.4, "Lucas Bernard (n° 2), Chloé Moreau (n° 5) et Inès Lefebvre (n° 9) sont dans la liste : leur ligne est gardée."],
+  [37.6, 39.95, "Pour chaque client, une question : son identifiant est-il <b>dans la liste</b> ?"],
+  [40.05, 44.4, "Les identifiants de Lucas Bernard, Chloé Moreau et Inès Lefebvre sont dans la liste : leur ligne est gardée."],
   [44.5, 48.4,  "Les autres clients sont écartés : il en reste <b>3</b>, comme avec <code>OR</code>."],
   [49.3, 53.2,  "Dans la liste, les valeurs sont écrites entre <b>parenthèses</b> et séparées par des <b>virgules</b>."],
   [53.3, 56.6,  "Un nombre s’écrit <b>tel quel</b> ; un texte s’écrit entre <b>guillemets simples</b>."],
@@ -254,29 +254,40 @@ const CAPTIONS = [
       : [92.1, 999, "<code>IN</code> compare une colonne à une liste de valeurs : <code>id IN (2, 5, 9)</code>."]
 ];
 
-/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+/* Pas de question en pleine vidéo : les moments « À toi » font participer l’élève (ni exercice ni quiz après la vidéo, depuis le 28 octobre). */
 const QUESTIONS = [];
 /* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
    Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
 const de = (p, n) => (/^[AEIOUYHÉÈÊÂÎ]/.test(p) ? 'd’' : 'de ') + p + ' ' + n;
 const MOMENTS = [
-  // trois conditions id = … avec OR : avant que la vidéo les remplace par IN
-  {at: 26.45, from: 15.0, kind: 'pick', prompt: 'Comment écrire ces trois conditions en une seule ?', options: [
-    {label: 'id IN (2, 5, 9)', ok: true, why: '<code>IN</code> compare l’identifiant à une liste de valeurs.'},
-    {label: 'id = (2, 5, 9)', why: '<code>=</code> compare à une seule valeur. Pour une liste, c’est <code>IN</code>.'},
-    {label: 'id IN 2, 5, 9', why: 'La liste s’écrit entre parenthèses, avec des virgules entre les valeurs.'}],
-    tip: 'Le mot-clé veut dire « dans ».'},
-  // le passage en revue commence : les identifiants qui sont dans la liste
+  /* Mini-jeux (Elisa, 28 octobre, 8 h 50 : « pas assez gamifié »). L’ancien moment 1 (« Comment écrire ces trois conditions en une
+     seule ? ») avait pour réponse le titre du cours : il laisse la place au puzzle de la liste, plus loin.
+     Le passage en revue commence : les identifiants qui sont dans la liste. */
   {at: 40.0, from: 29.6, kind: 'tap', need: 3, prompt: 'Touche les clients dont l’identifiant est dans la liste.',
     spots: CLIENTS.map((c, i) => ({k: 'r' + i, sel: `#rows3 > .tr:nth-child(${i + 1})`, label: `Ligne ${i + 1} : identifiant ${c[0]}, ${c[1]} ${c[2]}`, ok: GAGNANTS.includes(c[0]),
       why: GAGNANTS.includes(c[0]) ? '' : `L’identifiant ${de(c[1], c[2])} vaut ${c[0]} : il n’est pas dans la liste.`})),
     tip: 'La liste contient 2, 5 et 9 : regarde la colonne <code>id</code>.'},
-  // un deuxième tirage : Paris ou Lyon, plus de 35 ans
-  {at: 65.05, from: 61.0, kind: 'pick', prompt: 'Comment ajouter la condition « plus de 35 ans » ?', options: [
-    {label: 'AND age > 35', ok: true, why: '<code>IN</code> ne compare que la ville : l’âge s’ajoute avec <code>AND</code>.'},
-    {label: "IN ('Paris', 'Lyon', 35)", why: 'La liste compare la ville : 35 n’est pas une ville.'},
-    {label: 'OR age > 35', why: 'Avec <code>OR</code>, tous les plus de 35 ans resteraient, quelle que soit leur ville.'}],
-    tip: '<code>IN</code> ne compare qu’une seule colonne.'}
+  /* Le puzzle, une fois l’écriture de la liste expliquée (parenthèses, virgules, guillemets simples) : la condition des clients de Paris
+     et de Nantes, en blocs ; les listes mal écrites partent dans « En trop ». */
+  {at: 56.65, from: 49.0, kind: 'sort', prompt: 'Reconstitue la condition qui garde les clients de <b>Paris</b> et de <b>Nantes</b>.',
+    hint: 'Touche un bloc, puis sa place. Tu peux aussi le faire glisser.', next: '{x} : touche sa place.',
+    board: {y: 300, html: '<span class="mb-k">🧩 Le puzzle</span><div class="mb-q mg-pz"><span class="k">WHERE</span> <span class="mb-hole" id="mbH1"><span class="mb-drop"></span></span> <span class="mb-hole" id="mbH2"><span class="mb-drop"></span></span> <span class="mb-hole" id="mbH3"><span class="mb-drop"></span></span>;</div>'
+      + '<div class="mb-bin mg-bin" id="mbX"><b>🗑️ En trop</b><div class="mb-drop"></div></div>'},
+    spots: [{k: 'h1', sel: '#mbH1', label: 'Première place, après WHERE'}, {k: 'h2', sel: '#mbH2', label: 'Deuxième place'},
+      {k: 'h3', sel: '#mbH3', label: 'Troisième place'}, {k: 'x', sel: '#mbX', label: 'En trop'}],
+    options: [
+      {label: 'ville', to: 'h1', why: 'La colonne vient d’abord : <code>IN</code> compare la ville à la liste.'},
+      {label: 'IN', to: 'h2', why: '<code>IN</code> se place entre la colonne et la liste.'},
+      {label: "('Paris', 'Nantes')", to: 'h3', why: 'La liste vient en dernier : entre parenthèses, les textes entre guillemets simples, séparés par une virgule.'},
+      {label: '(Paris, Nantes)', to: 'x', why: 'Sans guillemets simples, Paris et Nantes seraient lus comme des noms de colonnes : erreur.'},
+      {label: "('Paris' 'Nantes')", to: 'x', why: 'Sans virgule entre les valeurs, la liste est mal écrite : erreur.'}],
+    tip: 'La colonne, <code>IN</code>, puis la liste : parenthèses, guillemets simples et virgules.'},
+  // Le deuxième tirage, avant que la vidéo ajoute AND : les clients de Paris ou Lyon de plus de 35 ans, dans la liste à l’écran
+  {at: 65.05, from: 61.0, kind: 'tap', need: 2, prompt: 'Touche les gagnants du deuxième tirage : Paris ou Lyon, et <b>plus de 35 ans</b>.',
+    hint: 'Regarde l’âge de chaque client de la liste.',
+    spots: CLIENTS.filter(c => ['Paris', 'Lyon'].includes(c[4])).map((c, i) => ({k: 't' + i, sel: `#rows5 > .tr:nth-child(${i + 1})`, label: `${c[1]} ${c[2]}, ${c[4]}, ${c[5]} ans`, ok: c[5] > 35,
+      why: c[5] > 35 ? '' : `${c[1]} ${c[2]} habite à ${c[4]}, mais a ${c[5]} ans : pas plus de 35.`})),
+    tip: 'Les deux conditions comptent : la ville est dans la liste, et l’âge dépasse 35.'}
 ];
 
 function dom(){

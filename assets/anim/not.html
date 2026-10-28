@@ -264,6 +264,12 @@ const CLIENTS = [['Sophie','Martin','Paris',34,'2023-01-15'],['Lucas','Bernard',
   ['Nathan','Dupont','Paris',30,'2023-08-03']];
 const OLD = c => c[4] < '2023-03-01';
 const GROUP = c => c[2] === 'Paris' && c[3] > 35;          // (ville = 'Paris' AND age > 35)
+/* Mini-jeux : prénom au féminin (accords des corrections), date en toutes lettres, et le miroir avec un client test inscrit le 1er mars. */
+const FEM = c => ['Sophie', 'Emma', 'Chloé', 'Léa', 'Inès'].includes(c[0]);
+const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+const JOUR = d => { const [y, m, j] = d.split('-').map(Number); return `${j === 1 ? '1er' : j} ${MOIS[m - 1]} ${y}`; };
+const MIROIR = CLIENTS.concat([['', '', '', 0, '2023-03-01', true]]);
+const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const NOPAR = c => c[2] !== 'Paris' && c[3] > 35;          // NOT ville = 'Paris' AND age > 35
 const NOM = c => `${c[0]} ${c[1]}`;   // le prénom et le nom du client, toujours ensemble
 
@@ -280,14 +286,14 @@ const CHAPTERS = [
 /* Légendes : [début, fin, texte] (temps de la timeline). */
 const CAPTIONS = [
   [5.3, 8.6,    "Inscrits avant le 1<sup>er</sup>&nbsp;mars&nbsp;2023, les anciens clients ont déjà reçu un <b>code\u00a0de réduction\u00a0de 15 %</b>."],
-  [8.7, 11.35,  "Elle veut offrir la <b>livraison\u00a0gratuite</b> à tous les <b>autres clients</b>."],
+  [8.7, 11.35,  "L’équipe marketing veut offrir la <b>livraison\u00a0gratuite</b> à tous les <b>autres clients</b>."],
   [11.45, 14.6, "Pour cela, on récupère<br>la date d’inscription des <b>10 clients</b><br>dans la <b>table clients</b>."],
   [15.3, 18.6,  "On part de la condition du code : une inscription avant le 1<sup>er</sup>&nbsp;mars&nbsp;2023."],
   [18.7, 22.6,  "Une date s’écrit <code>'AAAA-MM-JJ'</code> : une date plus ancienne est plus <b>petite</b>."],
   [22.7, 26.0,  "Le résultat contient les <b>4 clients</b> <span class=\"nw\">qui ont déjà reçu</span> le code de réduction."],
-  [26.1, 29.1,  "Il faut l’<b>inverse</b> : les 6 autres clients. C’est le rôle de <code>NOT</code>."],
+  [26.1, 29.1,  "Il faut l’<b>inverse</b>, les 6 autres clients : c’est le rôle de <code>NOT</code>."],
   [29.8, 33.4,  "On place <code>NOT</code> juste après <code>WHERE</code>, devant la condition."],
-  [33.5, 36.25, "Pour chaque client, SQL vérifie la condition ; <code>NOT</code> inverse la réponse."],
+  [33.5, 36.25, "Pour chaque client, la condition est vérifiée ; <code>NOT</code> inverse la réponse."],
   [36.35, 43.0, "Vrai devient faux : on garde donc les lignes où la condition est <b>fausse</b>."],
   [43.1, 47.5,  "Les 4 anciens clients sont écartés : il reste <b>6 clients</b>."],
   [48.3, 52.2,  "Pour une comparaison simple, il existe un opérateur inverse : <code>!=</code> pour <code>=</code>."],
@@ -305,30 +311,49 @@ const CAPTIONS = [
       : [97.2, 999, "<code>NOT</code> inverse une condition : la ligne est gardée si elle est fausse."]
 ];
 
-/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+/* Pas de question en pleine vidéo : les moments « À toi » font participer l’élève (ni exercice ni quiz après la vidéo, depuis le 28 octobre). */
 const QUESTIONS = [];
 /* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
    Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
 const MOMENTS = [
-  // le résultat donne les 4 anciens clients : il faut l’inverse, avant que la vidéo nomme NOT
-  {at: 26.05, from: 15.0, kind: 'pick', prompt: 'Quel mot-clé inverse la condition, pour garder les 6 autres clients ?', options: [
-    {label: 'NOT', ok: true, why: '<code>NOT</code> inverse la condition : on garde les lignes où elle est fausse.'},
-    {label: 'OR', why: '<code>OR</code> ajoute une condition : il n’inverse rien.'},
-    {label: 'DISTINCT', why: '<code>DISTINCT</code> retire les doublons : il n’inverse rien.'}],
-    tip: 'Le mot-clé veut dire « pas ».'},
-  // l’inverse d’une comparaison : < devient >=, avant que la vidéo le montre
-  {at: 52.25, from: 48.0, kind: 'pick', prompt: 'Quel est l’inverse de <code>date_inscription &lt; \'2023-03-01\'</code> ?', options: [
-    {label: ">= '2023-03-01'", ok: true, why: 'Un client inscrit le 1er mars n’est pas inscrit avant : il fait partie de l’inverse.'},
-    {label: "> '2023-03-01'", why: 'Avec <code>&gt;</code>, un client inscrit le 1er mars ne serait gardé d’aucun côté.'},
-    {label: "!= '2023-03-01'", why: '<code>!=</code> garderait aussi les anciens clients : seul le 1er mars serait écarté.'}],
-    tip: 'Un client inscrit le 1er mars : de quel côté est-il ?'},
-  // sans parenthèses, NOT ne s’applique qu’à la condition qui le suit
-  {at: 68.45, from: 60.0, kind: 'pick', text: true, prompt: 'Sans parenthèses, qu’inverse <code>NOT</code> ?',
-    board: {y: 470, html: '<span class="mb-k">Sans parenthèses</span><div class="mb-q"><span class="k">WHERE NOT</span> ville = <span class="s">\'Paris\'</span>\n  <span class="k">AND</span> age &gt; 35</div>'},
-    options: [
-    {label: 'Seulement la condition sur la ville', ok: true, why: 'Sans parenthèses, <code>NOT</code> n’inverse que la condition qui le suit.'},
-    {label: 'Les deux conditions', why: 'Pour inverser les deux, il faut les mettre entre parenthèses après <code>NOT</code>.'},
-    {label: 'Seulement la condition sur l’âge', why: '<code>NOT</code> s’applique à ce qui le suit directement : <code>ville = \'Paris\'</code>.'}],
+  /* Mini-jeux (Elisa, 28 octobre, 8 h 50 : « pas assez gamifié »). L’ancien moment 1 (« Quel mot-clé inverse la condition ? ») avait
+     pour réponse le titre du cours : place au passage en revue, que l’élève fait lui-même. Sophie Martin, déjà marquée « écartée »,
+     sert d’exemple. */
+  {at: 36.3, from: 29.5, kind: 'tap', need: 4, prompt: 'Touche les <b>4 clients</b> que <code>NOT</code> écarte.',
+    hint: 'Une inscription avant le 1er mars 2023 rend la condition vraie : NOT l’inverse.',
+    spots: CLIENTS.map((c, i) => ({k: 'r' + i, sel: `#rows3 > .tr:nth-child(${i + 1})`, label: `Ligne ${i + 1} : ${c[0]} ${c[1]}, inscrit${FEM(c) ? 'e' : ''} le ${JOUR(c[4])}`, ok: OLD(c),
+      why: OLD(c) ? '' : `${c[0]} ${c[1]} s’est inscrit${FEM(c) ? 'e' : ''} le ${JOUR(c[4])} : la condition est fausse, <code>NOT</code> la rend vraie, ${FEM(c) ? 'elle est gardée' : 'il est gardé'}.`})),
+    tip: 'Cherche les dates avant le 1er mars 2023 : pour elles, la condition est vraie, et NOT écarte la ligne.'},
+  /* Le miroir, avant que la vidéo montre l’inverse de < : un client test, inscrit le 1er mars, n’a pas reçu le code ; seul >= le garde
+     (avec >, il n’est gardé d’aucun côté ; avec !=, les anciens clients reviennent). */
+  {at: 52.25, from: 48.0, kind: 'tune', ico: '🪞', prompt: 'Trouve l’inverse de <code>&lt; \'2023-03-01\'</code> : tous les clients <b>sans code</b>, et eux seuls.',
+    hint: 'Change l’opérateur, regarde qui est gardé, puis valide.',
+    controls: [{k: 'op', type: 'seg', label: 'Opérateur', choices: ['>', '>=', '!='], value: '>', code: true}],
+    answer: {op: '>='},
+    board: {y: 210, html: '<span class="mb-k">🪞 Le miroir</span><div class="mb-q mg-sm" id="mbnq"></div><div class="mg-grid mg-dense">'
+      + MIROIR.map((c, i) => `<div class="mg-r${c[5] ? ' mg-test' : ''}" id="mbn${i}">${c[5] ? '🆕 Client test' : `${c[0]}${OLD(c) ? ' <i class="mg-tag">code</i>' : ''}`}<b>${c[4]}</b></div>`).join('')
+      + '</div><div class="mg-c" id="mbnn"></div>'},
+    show(s, b) {
+      const garde = c => ({'>': c[4] > '2023-03-01', '>=': c[4] >= '2023-03-01', '!=': c[4] !== '2023-03-01'})[s.op];
+      b.querySelector('#mbnq').innerHTML = `<span class="k">WHERE</span> date_inscription ${esc(s.op)} <span class="s">'2023-03-01'</span>`;
+      MIROIR.forEach((c, i) => { const r = b.querySelector('#mbn' + i); r.classList.toggle('in', garde(c)); r.classList.toggle('out', !garde(c)); });
+      const n = MIROIR.filter(garde).length, test = garde(MIROIR[MIROIR.length - 1]), anciens = MIROIR.filter(c => OLD(c) && garde(c)).length;
+      b.querySelector('#mbnn').innerHTML = anciens ? `<b>${n}</b> clients gardés, dont ${anciens} qui ont déjà le code`
+        : test ? `<b>${n}</b> clients gardés : tous ceux sans code` : `<b>${n}</b> clients gardés : le client test est oublié`;
+    },
+    check(s) {
+      if (s.op === '>=') return {ok: true, why: 'L’inverse de <code>&lt;</code> est <code>&gt;=</code> : le client inscrit le 1er mars, qui n’a pas reçu le code, est gardé.'};
+      if (s.op === '>') return {ok: false, why: 'Avec <code>&gt;</code>, le client inscrit le 1er mars n’est gardé d’aucun côté : ni code, ni livraison gratuite.'};
+      return {ok: false, why: '<code>!=</code> garde aussi les anciens clients : seul le 1er mars serait écarté.'};
+    },
+    tip: 'Un client inscrit le 1er mars n’est pas inscrit avant : il doit être gardé.'},
+  // La portée de NOT, juste après le groupe entre parenthèses : sans elles, NOT n’inverse que la condition qui le suit
+  {at: 68.45, from: 60.0, kind: 'tap', need: 1, prompt: 'Sans parenthèses, touche ce que <code>NOT</code> inverse.',
+    hint: 'Touche une partie de la condition.',
+    board: {y: 470, html: '<span class="mb-k">🔦 La portée de NOT</span><div class="mb-q mg-tq"><span class="k">WHERE NOT</span> <span class="mg-t" id="mbP1">ville = <span class="s">\'Paris\'</span></span>\n  <span class="k mg-t" id="mbP2">AND</span> <span class="mg-t" id="mbP3">age &gt; 35</span></div>'},
+    spots: [{k: 'v', sel: '#mbP1', label: "ville = 'Paris'", ok: true},
+      {k: 'a', sel: '#mbP2', label: 'AND', why: '<code>AND</code> relie les deux conditions : <code>NOT</code> inverse une condition, celle qui le suit directement.'},
+      {k: 'g', sel: '#mbP3', label: 'age > 35', why: 'Sans parenthèses, <code>NOT</code> n’atteint pas <code>age &gt; 35</code> : il n’inverse que la condition qui le suit.'}],
     tip: 'Regarde ce qui suit directement <code>NOT</code>.'}
 ];
 
@@ -469,7 +494,7 @@ function build(){
   show('#cnt3a', 34.45, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
   gsap.set('#cnt3b', {autoAlpha: 0, y: 24});
   // Balayage : la condition, puis NOT retourne la pastille.
-  const T3 = [35.2, 36.2];
+  const T3 = [35.2, 36.45];   // une pause après Sophie Martin : le moment 1 (36,3) laisse l’élève faire la suite
   for (let i = 2; i < 10; i++) T3.push(+(T3[i - 1] + 0.5).toFixed(2));
   const scan = $('#scan3');
   gsap.set(scan, {y: 0, autoAlpha: 0});

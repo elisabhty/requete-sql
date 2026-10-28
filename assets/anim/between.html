@@ -224,8 +224,8 @@ const JOURS = [[12,'dim.'],[13,'lun.'],[14,'mar.'],[15,'mer.'],[16,'jeu.'],[17,'
 const CHAPTERS = [
   {n:1, label:'Situation',          a:5.0,  b:20.0},
   {n:2, label:'Le problème',        a:20.0, b:33.6},
-  {n:3, label:'BETWEEN en action',  a:33.6, b:53.1},
-  {n:4, label:'Limites incluses',   a:53.1, b:65.2},
+  {n:3, label:'BETWEEN en action',  a:33.6, b:53.35},
+  {n:4, label:'Limites incluses',   a:53.35, b:65.2},
   {n:5, label:'Limites à l’envers', a:65.2, b:77.1},
   {n:6, label:'Le résultat',        a:77.1, b:93.2},
   {n:7, label:'À retenir',          a:93.2, b:DURATION}
@@ -243,7 +243,7 @@ const CAPTIONS = [
   [30.7, 33.4,  "<code>BETWEEN</code> permet de dire simplement : « entre le 14 et le 20 juillet »."],
   [33.8, 37.4,  "Avec <code>BETWEEN</code>, on écrit la <b>limite basse</b>, <code>AND</code>, puis la <b>limite haute</b>."],
   [37.5, 40.6,  "La colonne n’est écrite qu’<b>une fois</b> : l’intervalle se lit d’un coup d’œil."],
-  [40.9, 42.85, "Pour chaque commande, SQL compare sa date aux deux limites."],
+  [40.9, 42.85, "Pour chaque commande, sa date est comparée aux deux limites."],
   [42.95, 48.6, "Seules les commandes du 15, du 18 et du 20 juillet sont gardées."],
   [48.7, 52.6,  "Les autres commandes sont écartées : il en reste <b>4</b>, comme avec <code>AND</code>."],
   [53.4, 57.1,  "<code>BETWEEN</code> <b>inclut les deux limites</b> : le 14 et le 20 juillet comptent."],
@@ -261,33 +261,66 @@ const CAPTIONS = [
       : [98.4, 999, "<code>BETWEEN</code> garde les valeurs entre deux limites incluses,<br>la plus petite d’abord."]
 ];
 
-/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+/* Pas de question en pleine vidéo : les moments « À toi » font participer l’élève (ni exercice ni quiz après la vidéo, depuis le 28 octobre). */
 const QUESTIONS = [];
 /* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
    Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 const jour = d => { const j = +d.slice(8, 10), m = +d.slice(5, 7); return (j === 1 ? '1er' : j) + ' ' + MOIS[m - 1]; };
+/* Les curseurs du moment 3 vont du 10 au 25 juillet : la carte ne montre que les commandes de ces jours-là (du 11 au 25). */
+const PROCHES = COMMANDES.filter(c => c[2] >= '2026-07-10' && c[2] <= '2026-07-25');
 const MOMENTS = [
-  // la colonne écrite deux fois : avant que la vidéo nomme BETWEEN
-  {at: 30.65, from: 20.0, kind: 'pick', prompt: 'Comment écrire « entre le 14 et le 20 juillet » en une seule condition ?', options: [
-    {label: "BETWEEN '2026-07-14' AND '2026-07-20'", ok: true, why: '<code>BETWEEN</code>, la limite basse, <code>AND</code>, puis la limite haute.'},
-    {label: "BETWEEN '2026-07-14', '2026-07-20'", why: 'Les deux limites sont séparées par <code>AND</code>, pas par une virgule.'},
-    {label: "IN ('2026-07-14', '2026-07-20')", why: '<code>IN</code> ne garderait que ces deux dates : pas le 15, ni le 18.'}],
-    tip: 'Les deux limites sont séparées par un mot-clé déjà vu.'},
+  /* Mini-jeux (Elisa, 28 octobre, 8 h 50 : « pas assez gamifié »). L’ancien moment 1 (« Comment écrire « entre le 14 et le 20 juillet »
+     en une seule condition ? ») avait pour réponse le titre du cours : place au puzzle, une fois BETWEEN expliqué.
+     Le passage en revue commence : les commandes de la période. */
   // le passage en revue commence : les commandes de la période
   {at: 42.9, from: 33.6, kind: 'tap', need: 4, prompt: 'Touche les commandes passées entre le 14 et le 20 juillet.',
     spots: COMMANDES.map(([id, num, d], i) => { const ok = d >= '2026-07-14' && d <= '2026-07-20';
       return {k: 'r' + i, sel: `#rows3 > .tr:nth-child(${i + 1})`, label: `Commande ${num}, du ${jour(d)}`, ok,
         why: ok ? '' : `Le ${jour(d)} est ${d < '2026-07-14' ? 'avant le 14' : 'après le 20'} juillet : hors de l’intervalle.`}; }),
     tip: 'Regarde la colonne <code>date_commande</code> : du 14 au 20 juillet.'},
-  // les limites à l’envers, avant l’exécution
-  {at: 65.22, from: 53.1, kind: 'pick', text: true, prompt: 'Que renvoie la requête, avec ses limites inversées ?',
-    board: {y: 470, html: '<span class="mb-k">Du 20 au 14 juillet</span><div class="mb-q"><span class="k">SELECT</span> numero_commande\n<span class="k">FROM</span> commandes\n<span class="k">WHERE</span> date_commande\n  <span class="k">BETWEEN</span> <span class="s">\'2026-07-20\'</span>\n  <span class="k">AND</span> <span class="s">\'2026-07-14\'</span>;</div>'},
+  /* Le puzzle, à la fin du passage en revue : une autre période, du 1er au 10 juillet, en blocs (la limite basse d’abord) ; une virgule
+     à la place de AND part dans « En trop ». */
+  {at: 53.05, from: 42.95, kind: 'sort', prompt: 'Reconstitue la condition des commandes passées <b>du 1<sup>er</sup> au 10 juillet</b>.',
+    hint: 'Touche un bloc, puis sa place. Tu peux aussi le faire glisser.', next: '{x} : touche sa place.',
+    board: {y: 300, html: '<span class="mb-k">🧩 Le puzzle</span><div class="mb-q mg-pz"><span class="k">WHERE</span> date_commande <span class="mb-hole" id="mbH1"><span class="mb-drop"></span></span>\n  <span class="mb-hole" id="mbH2"><span class="mb-drop"></span></span> <span class="mb-hole" id="mbH3"><span class="mb-drop"></span></span> <span class="mb-hole" id="mbH4"><span class="mb-drop"></span></span>;</div>'
+      + '<div class="mb-bin mg-bin" id="mbX"><b>🗑️ En trop</b><div class="mb-drop"></div></div>'},
+    spots: [{k: 'h1', sel: '#mbH1', label: 'Première place, après la colonne'}, {k: 'h2', sel: '#mbH2', label: 'Deuxième place'},
+      {k: 'h3', sel: '#mbH3', label: 'Troisième place'}, {k: 'h4', sel: '#mbH4', label: 'Quatrième place'}, {k: 'x', sel: '#mbX', label: 'En trop'}],
     options: [
-    {label: 'Aucune ligne', ok: true, why: 'Il faudrait une date à partir du 20 et jusqu’au 14 juillet : c’est impossible.'},
-    {label: 'Les 4 mêmes commandes', why: 'L’ordre compte : la limite basse vient toujours en premier.'},
-    {label: 'Une erreur', why: 'La requête s’exécute, mais l’intervalle est vide : aucune ligne.'}],
-    tip: 'Une date peut-elle être après le 20 et avant le 14 juillet ?'}
+      {label: 'BETWEEN', to: 'h1', why: '<code>BETWEEN</code> vient juste après la colonne, avant les limites.'},
+      {label: "'2026-07-01'", to: 'h2', why: 'La limite basse vient en premier : c’est la date la plus ancienne, le 1er juillet.'},
+      {label: 'AND', to: 'h3', why: '<code>AND</code> sépare les deux limites.'},
+      {label: "'2026-07-10'", to: 'h4', why: 'La limite haute vient en dernier : c’est la date la plus récente, le 10 juillet.'},
+      {label: ',', to: 'x', why: 'Les deux limites ne sont pas séparées par une virgule, mais par <code>AND</code>.'}],
+    tip: '<code>BETWEEN</code>, la limite basse, <code>AND</code>, puis la limite haute.'},
+  /* Les curseurs, avant que la vidéo explique les limites à l’envers : la condition part du 20 au 14 juillet (aucune ligne) ; l’élève
+     règle lui-même les deux limites et voit les commandes s’allumer. Toute période qui garde exactement les 4 commandes du bug est juste. */
+  {at: 65.22, from: 53.35, kind: 'tune', ico: '🗓️', prompt: 'Les limites sont à l’envers : règle-les pour retrouver les <b>4 commandes du bug</b>.',
+    hint: 'Glisse les deux curseurs, regarde les commandes gardées, puis valide.',
+    controls: [{k: 'a', type: 'range', label: 'Limite basse', min: 10, max: 25, step: 1, value: 20, unit: ' juil.'},
+      {k: 'b', type: 'range', label: 'Limite haute', min: 10, max: 25, step: 1, value: 14, unit: ' juil.'}],
+    answer: {a: 14, b: 20},
+    board: {y: 210, html: '<span class="mb-k">🗓️ L’intervalle</span><div class="mb-q mg-sm" id="mbbq"></div><div class="mg-grid mg-dense">'
+      + PROCHES.map((c, i) => `<div class="mg-r" id="mbb${i}">${jour(c[2])}${DANS(c) ? ' <i class="mg-tag">¡Gracias!</i>' : ''}<b>…${c[1].slice(-4)}</b></div>`).join('')
+      + '</div><div class="mg-c" id="mbbn"></div>'},
+    show(s, b) {
+      const d = n => `'2026-07-${String(n).padStart(2, '0')}'`, garde = c => c[2] >= d(s.a).slice(1, -1) && c[2] <= d(s.b).slice(1, -1);
+      b.querySelector('#mbbq').innerHTML = `<span class="k">WHERE</span> date_commande <span class="k">BETWEEN</span> <span class="s">${d(s.a)}</span> <span class="k">AND</span> <span class="s">${d(s.b)}</span>`;
+      PROCHES.forEach((c, i) => { const r = b.querySelector('#mbb' + i); r.classList.toggle('in', garde(c)); r.classList.toggle('out', !garde(c)); });
+      const n = COMMANDES.filter(garde).length;
+      b.querySelector('#mbbn').innerHTML = s.a > s.b ? 'Limites à l’envers : <b>0</b> ligne' : n ? `<b>${n}</b> commande${n > 1 ? 's' : ''} gardée${n > 1 ? 's' : ''}` : 'Aucune commande : <b>0</b> ligne';
+    },
+    check(s) {
+      const d = n => `2026-07-${String(n).padStart(2, '0')}`, garde = c => c[2] >= d(s.a) && c[2] <= d(s.b);
+      if (s.a > s.b) return {ok: false, why: 'La limite basse est après la limite haute : à l’envers, l’intervalle est vide, aucune ligne.'};
+      const manque = COMMANDES.filter(c => DANS(c) && !garde(c)), trop = COMMANDES.filter(c => !DANS(c) && garde(c));
+      if (!manque.length && !trop.length) return {ok: true, why: `Du ${s.a === 1 ? '1er' : s.a} au ${s.b} juillet, limites comprises : les 4 commandes du bug sont retrouvées.`};
+      if (manque.length) { const m = manque[s.b < 20 ? manque.length - 1 : 0];
+        return {ok: false, why: `La commande du ${jour(m[2])} est écartée : ${m[2] > d(s.b) ? 'la limite haute s’arrête avant elle' : 'la limite basse commence après elle'}.`}; }
+      return {ok: false, why: `La commande du ${jour(trop[0][2])} est gardée aussi : elle n’a pas reçu « ¡Gracias! ».`};
+    },
+    tip: 'La limite basse d’abord, le 14 ; puis la limite haute, le 20 : les deux comptent.'}
 ];
 
 /* Calendrier du 12 au 22 juillet : une enveloppe par commande, « ¡Gracias! » pendant la période du bug. */
