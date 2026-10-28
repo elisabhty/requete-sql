@@ -686,13 +686,13 @@ const CAPTIONS = [
   [207.35, 211.55, "Quand le client commande, le site envoie une autre requête."],
   [211.65, 217.85, "Le SGBD enregistre la commande dans la <b>table commandes</b>, et le site la confirme au client."],
   [218.65, 224.4, "Les données sont bien séparées en tables, mais il manque encore une <b>relation</b> entre elles."],
-  [224.5, 229.4, "Pour chaque commande, comment retrouver le client et le produit commandé ?"],
+  [224.5, 229.4, "Pour chaque commande, comment retrouver le client et le produit, s’ils sont dans des tables différentes ?"],
   [229.5, 234.5, "On ajoute une colonne <code>id</code> pour identifier chaque client sans confusion."],
   [234.6, 239.5, "Même si deux clients portent le même nom, chacun a son propre identifiant."],
   [239.6, 245.0, "Cette colonne est la <b>clé primaire</b> : sa valeur est unique et ne peut pas être nulle."],
   [245.1, 251.0, "On l’écrit table.colonne : <code>clients.id</code> désigne la colonne id de la table clients."],
   [251.1, 256.4, "Même chose dans <code>produits.id</code> : la <span class=\"nw\">Fibre Prébiotique</span> porte l’identifiant 1."],
-  [257.2, 260.6, "Pourquoi noter un identifiant, et pas le prénom du client ?"],
+  [257.2, 260.6, "Pourquoi enregistrer l’identifiant du client dans la commande plutôt que son prénom ?"],
   [260.7, 265.2, "Deux clients s’appellent Nathan, et tous les deux habitent à Paris."],
   [265.3, 268.9, "Une commande notée « Nathan » ne dirait pas <b>lequel</b>."],
   [269.0, 275.35, "La clé primaire ne se répète jamais : la commande n°5 porte l’identifiant 4, celui de Nathan Petit."],
@@ -778,7 +778,7 @@ const MOMENTS = [
     tip: 'Repense à la solution : une table pour chaque sujet.'},
   // la clé primaire : comment relier chaque commande au bon client et au bon produit, avant que les identifiants apparaissent (Réf 10)
   {at: 229.45, from: 218.35, kind: 'pick', text: true, prompt: 'Comment relier chaque commande au bon client et au bon produit ?', options: [
-    {label: 'En indiquant dans la commande les identifiants du client et du produit', ok: true, why: 'Chaque client et chaque produit reçoit un identifiant unique : la commande n’a plus qu’à le noter.'},
+    {label: 'En indiquant dans la commande les identifiants du client et du produit', ok: true, why: 'Chaque client et chaque produit possède un identifiant unique. On enregistre ces identifiants dans la commande pour savoir qui a commandé et quel produit a été acheté.'},
     {label: 'En indiquant uniquement le prénom du client', why: 'Un prénom peut se répéter : la commande ne dirait pas quel client l’a passée. Et le produit commandé manquerait.'},
     {label: 'En donnant le même identifiant à toutes les commandes', why: 'Si toutes les commandes portent le même identifiant, on ne peut plus les distinguer, ni savoir qui a commandé quoi.'}],
     tip: 'Cherche ce qui distingue chaque client et chaque produit.'},
@@ -1582,6 +1582,7 @@ function build(){
   cue(214.7, 'whoosh', 0.5);
   tl.to('#rs2', {autoAlpha: 0, scale: 0.85, duration: 0.25}, 215.75);
   lit(1, LINE, 215.75);
+  tl.to([$('#sps .spp'), buy[0]], {autoAlpha: 0, duration: 0.2}, 215.75);   // Réf 1 : le prix et « Commander » s’effacent, la confirmation prend leur place
   show('#sok', 215.9, {y: 0, scale: 0.6}, 0.4, 'back.out(2.2)');
   cue(215.9, 'true', 0.5);
   // Retour aux trois tables

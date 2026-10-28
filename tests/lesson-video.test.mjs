@@ -472,7 +472,7 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '9 min 15', notesAt: 492.4, maxKo: 700,   // 700 Ko depuis le 28 octobre : le recrutement (SMS, l’image du badge d’Elisa, 75 Ko) et le site qui interroge le SGBD
+  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '9 min 18', notesAt: 492.4, maxKo: 700,   // 700 Ko depuis le 28 octobre : le recrutement (SMS, l’image du badge d’Elisa, 75 Ko) et le site qui interroge le SGBD
     table: 'clients',
     bubble: 'Chaque sujet a sa table,<br>et des identifiants relient les tables.',
     chapters: ['Situation', 'Le problème', 'Ta mission', 'Le découpage', 'Base de données et SGBD', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],
@@ -520,6 +520,11 @@ const COURSES = [
       'Quand le client commande, le site envoie une autre requête.', 'Le SGBD enregistre la commande dans la <b>table commandes</b>, et le site la confirme au client.',
       '<span class="kw">SELECT</span> * <span class="kw">FROM</span> produits;', '<span class="kw">INSERT INTO</span> commandes …;', 'Commande enregistrée', 'Commande confirmée',
       '<div class="sgs" id="sgs">Système de gestion de base de données</div>', '<span class="sgq" id="sgq"></span>', '<span>Base de données</span>',
+      // Elisa, 28 octobre, 16 h 09 (Réf 1 à 4) : la confirmation remplace le prix et le bouton ; la relation qui manque entre des tables
+      // différentes ; la correction du moment ; enregistrer l’identifiant plutôt que le prénom
+      "tl.to([$('#sps .spp'), buy[0]], {autoAlpha: 0, duration: 0.2}", 'Pour chaque commande, comment retrouver le client et le produit, s’ils sont dans des tables différentes ?',
+      'Chaque client et chaque produit possède un identifiant unique. On enregistre ces identifiants dans la commande pour savoir qui a commandé et quel produit a été acheté.',
+      'Pourquoi enregistrer l’identifiant du client dans la commande plutôt que son prénom ?',
       // La clé primaire : son nom complet, les deux Nathan, un identifiant déjà pris refusé, un client sans identifiant qui reçoit le suivant
       // (AUTOINCREMENT, Réf 13)
       '<span class="emo">🔑</span>clé primaire', '<b class="nq k-cl">clients</b><i class="ndot">.</i><b class="nq nqc">id</b><span class="nlb">la table</span>',
