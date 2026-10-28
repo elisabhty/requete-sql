@@ -561,7 +561,7 @@ const COURSES = [
        ni chapitre « Le problème » pour la redire ; les guillemets : deux erreurs, puis un alias qui s’en passe. */
     chapters: ['Situation', 'Renommer une colonne', 'Avec ou sans guillemets', 'Le résultat', 'À retenir'],
     traps: ['near "du": syntax error', 'near "(": syntax error', '"Nom du produit"', 'Sans espace ni symbole']},
-  {id: 13, next: 4, titre: 'DISTINCT', page: 'distinct.html', thumb: 'distinct-thumb.jpg', duree: '2 min 19', notesAt: 109.05,
+  {id: 13, next: 4, titre: 'DISTINCT', page: 'distinct.html', thumb: 'distinct-thumb.jpg', duree: '2 min 18', notesAt: 109.05,
     table: 'clients',
     bubble: 'Avec <span class="ic">DISTINCT</span>, garde chaque valeur une seule fois.',
     chapters: ['Situation', 'Le problème', 'À la main', 'DISTINCT', 'Où le placer', 'Plusieurs colonnes', 'Le résultat', 'À retenir'],
