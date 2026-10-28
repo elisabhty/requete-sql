@@ -10,7 +10,28 @@
 #s0 .bubble{left:514px;width:532px}
 .nw{white-space:nowrap}
 
-/* ---------- 1 · Situation : l’étiquette déchirée ---------- */
+/* ---------- 1 · Situation : l’appel de l’entrepôt (Elisa, 28 octobre, 23 h 51 : « un appel paniqué, immersif et interactif »),
+   puis l’étiquette déchirée ---------- */
+.pc{left:220px;width:640px;padding:52px 40px 48px;border-radius:72px;background:linear-gradient(170deg,#2B2358,#15122B);box-shadow:0 12px 0 #0D0B1C,0 30px 60px rgba(30,20,70,.22);color:#fff;text-align:center}
+.pc-st{position:relative;height:42px;font-size:30px;font-weight:600;color:rgba(255,255,255,.72)}
+.pc-st>span{position:absolute;left:0;right:0;top:0;white-space:nowrap}
+.pc-st .gd{display:inline-block;width:16px;height:16px;margin-right:12px;border-radius:50%;background:#34C759;vertical-align:2px}
+.pc-av{position:relative;width:196px;height:196px;margin:32px auto 28px;border-radius:50%;background:linear-gradient(135deg,#8B6CFF,#6A4DF4);display:flex;align-items:center;justify-content:center;font-size:96px}
+.pc-av .rg{position:absolute;inset:0;border-radius:50%;border:5px solid rgba(160,138,255,.8);opacity:0}
+.pc-nm{font-family:var(--display);font-size:52px;font-weight:800;letter-spacing:-1px}
+.pc-sub{margin-top:8px;font-size:32px;font-weight:500;color:rgba(255,255,255,.7)}
+.pc-mid{position:relative;height:200px;margin-top:40px}
+.pc-btns{position:absolute;inset:0;display:flex;justify-content:space-between;padding:0 48px}
+.pc-b{display:flex;flex-direction:column;align-items:center;gap:14px}
+.pc-b>i{width:124px;height:124px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:56px}
+.pc-b.no>i{background:#FF3B30}
+.pc-b.no>i .emo{display:inline-block;transform:rotate(135deg)}
+.pc-b.ok>i{background:#34C759}
+.pc-b em{font-style:normal;font-size:28px;font-weight:600;color:rgba(255,255,255,.85)}
+.pc-wave{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:12px;opacity:0}
+.pc-wave b{width:12px;height:96px;border-radius:6px;background:#8B6CFF;transform:scaleY(.22)}
+.pc-yes{position:absolute;left:50%;top:44px;margin-left:-230px;width:460px;height:104px;border-radius:999px;background:#34C759;box-shadow:0 9px 0 #1E8E3E;display:flex;align-items:center;justify-content:center;gap:14px;font-size:38px;font-weight:800;color:#fff;opacity:0}
+/* L’étiquette déchirée */
 .inv-title.lab{display:flex;align-items:center}
 .lab .lv{display:inline-block;margin-left:16px;padding:0 14px;border-radius:18px;font-size:74px;line-height:1.1;color:var(--accent-ink)}
 /* Le reste de l’étiquette est arraché : bord déchiré et papier manquant */
@@ -130,6 +151,17 @@
 
   <!-- 1 · Situation -->
   <section class="scene" id="s1">
+    <div class="abs pc" id="pc1">
+      <div class="pc-st"><span id="pcIn">Appel entrant…</span><span id="pcOn"><i class="gd"></i>En ligne</span><span id="pcEnd">Appel terminé</span></div>
+      <div class="pc-av"><i class="rg" id="pcR1"></i><i class="rg" id="pcR2"></i><span class="emo">📦</span></div>
+      <div class="pc-nm">Équipe logistique</div>
+      <div class="pc-sub">Entrepôt NutriBoost</div>
+      <div class="pc-mid">
+        <div class="pc-btns" id="pcBtns"><span class="pc-b no"><i><span class="emo">📞</span></i><em>Refuser</em></span><span class="pc-b ok" id="pcOk"><i><span class="emo">📞</span></i><em>Répondre</em></span></div>
+        <div class="pc-wave" id="pcWave"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></div>
+        <div class="pc-yes" id="pcYes"><span class="emo">✅</span><span>Je m’en occupe !</span></div>
+      </div>
+    </div>
     <div class="abs card invite">
       <div class="inv-band"><span class="emo">📦</span><span>Colis retourné</span></div>
       <div class="inv-body">
@@ -247,7 +279,7 @@
 <script src="moments.js"></script>
 <script>
 'use strict';
-const DURATION = 109.3;
+const DURATION = 128.3;
 
 /* Table clients : [prenom, nom, telephone] */
 const CLIENTS = [['Sophie','Martin','06 39 98 12 04'],['Lucas','Bernard','06 39 98 21 47'],['Emma','Dubois','06 39 98 33 08'],
@@ -258,44 +290,49 @@ const EN_L = c => c[0][0] === 'L';
 const MOTIF = (m, v) => new RegExp('^' + m.replace(/^'|'$/g, '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/%/g, '.*').replace(/_/g, '.') + '$', 'i').test(v);
 
 const CHAPTERS = [
-  {n:1, label:'Situation',         a:5.0,  b:15.0},
-  {n:2, label:'Le problème',       a:15.0, b:29.0},
-  {n:3, label:'LIKE en action',    a:29.0, b:50.5},
-  {n:4, label:'Où placer le %',    a:50.5, b:69.0},
-  {n:5, label:'Un seul caractère', a:69.0, b:83.2},
-  {n:6, label:'Le résultat',       a:83.2, b:96.5},
-  {n:7, label:'À retenir',         a:96.5, b:DURATION}
+  {n:1, label:'Situation',         a:5.0,  b:34.0},
+  {n:2, label:'Le problème',       a:34.0, b:48.0},
+  {n:3, label:'LIKE en action',    a:48.0, b:69.5},
+  {n:4, label:'Où placer le %',    a:69.5, b:88.0},
+  {n:5, label:'Un seul caractère', a:88.0, b:102.2},
+  {n:6, label:'Le résultat',       a:102.2, b:115.5},
+  {n:7, label:'À retenir',         a:115.5, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
 const CAPTIONS = [
-  [5.3, 8.6,    "Un colis revient à l’entrepôt : son étiquette est <b>déchirée</b>."],
-  [8.7, 11.35,  "Seule la première lettre du prénom du destinataire est lisible : un <b>L</b>."],
-  [11.45, 14.6, "Pour l’appeler, il faut le retrouver parmi les <b>10 clients</b> de la <b>table clients</b>."],
-  [15.3, 19.9,  "Avec <code>=</code>, on retrouve une valeur <b>exacte</b> :<br><code>prenom = 'Sophie'</code> → Sophie Martin."],
-  [20.0, 24.4,  "Avec <code>prenom = 'L'</code>, <b>aucune ligne</b> : aucun client ne s’appelle « L »."],
-  [24.5, 28.6,  "Lucas Bernard et Léa Simon commencent par L : c’est un <b>motif</b> à chercher avec <code>LIKE</code>."],
-  [29.3, 33.0,  "On remplace <code>=</code> par <code>LIKE</code>, puis on ajoute <code>%</code> après le L."],
-  [33.3, 36.0,  "Le <code>%</code> est un <b>wildcard</b> : après le L, il remplace <b>n’importe quelle suite</b>."],
-  [36.1, 39.75, "Léa Simon correspond aussi,<br>mais pas Sophie Martin : son prénom commence par S."],
-  [39.85, 41.85, "<code>LIKE</code> vérifie si le texte correspond au <b>motif</b> : c’est le <b>pattern\u00a0matching</b>."],
-  [41.95, 46.5, "Seuls Lucas Bernard et Léa Simon vérifient la condition : leur prénom commence par L."],
-  [46.6, 50.0,  "Les autres prénoms sont écartés : il reste <b>2 clients</b>."],
-  [50.8, 54.5,  "Placé <b>après</b> des lettres, le <code>%</code> cherche ce qui <b>commence</b> par elles."],
-  [54.6, 57.7,  "Ainsi, <code>nom LIKE 'D%'</code> renvoie Emma\u00a0Dubois et Nathan\u00a0Dupont."],
-  [57.8, 61.4,  "Avec un <code>%</code> de <b>chaque côté</b>, on cherche un morceau placé <b>n’importe où</b>."],
-  [61.5, 64.3,  "<code>'%ie%'</code> renvoie Sophie Martin et Gabriel Michel, dont le prénom contient « ie »."],
-  [64.4, 68.4,  "Ici, <code>LIKE</code> ne fait pas la différence entre <span class=\"nw\"><b>majuscules</b> et <b>minuscules</b></span>."],
-  [69.3, 73.1,  "Deuxième <b>wildcard</b> : <code>_</code> remplace <b>exactement\u00a0un\u00a0caractère</b>."],
-  [73.2, 75.6,  "Avec <code>'_a%'</code>, la <b>deuxième lettre</b> doit être un a : Nathan Petit, Nathan Dupont et Gabriel Michel."],
-  [75.7, 78.4,  "Lucas Bernard ne correspond pas : son prénom a un u en deuxième lettre."],
-  [78.5, 82.6,  "Avec les <b>wildcards</b>, <code>%</code> vaut une suite, <b>même vide</b> ; <code>_</code>, <b>un\u00a0seul\u00a0caractère</b>."],
-  [83.5, 86.6,  "La requête complète affiche le prénom, le nom et le téléphone des clients <span class=\"nw\">dont le prénom</span> commence par L."],
-  [86.7, 90.9,  "Avec ces <b>2 destinataires possibles</b>, l’équipe peut appeler pour trouver le bon."],
-  [91.0, 95.9,  "<code>WHERE</code> ne filtre que le résultat : la <b>table\u00a0clients</b> n’est pas modifiée."],
-  [96.8, 101.6, "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [101.7, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
-      : [101.7, 999, "<code>LIKE</code> vérifie si le texte correspond au motif, avec les wildcards <code>%</code> et <code>_</code>."]
+  // L’appel de l’entrepôt (Elisa, 28 octobre, 23 h 51) : les légendes sont les sous-titres de l’appel ; l’élève décroche, puis accepte d’aider
+  [8.9, 12.1,   "« Allô ? Ici l’entrepôt NutriBoost : on a un gros problème ! »"],
+  [12.2, 15.9,  "« Un colis vient de nous revenir, et son étiquette est <b>déchirée</b>. »"],
+  [16.0, 18.4,  "« On ne sait pas à qui il appartient… »"],
+  [18.5, 21.6,  "« Seule la première lettre<br>du prénom est lisible : un <b>L</b>. »"],
+  [21.7, 24.4,  "« Tu peux nous aider à retrouver le destinataire ? »"],
+  [25.9, 29.2,  "Pour contacter ce client,<br>il faut d’abord le retrouver."],
+  [29.3, 33.4,  "On le cherche parmi les <b>10 clients</b> de la <b>table clients</b>."],
+  [34.3, 38.9,  "Avec <code>=</code>, on retrouve une valeur <b>exacte</b> :<br><code>prenom = 'Sophie'</code> → Sophie Martin."],
+  [39.0, 43.4,  "Avec <code>prenom = 'L'</code>,<br><b>aucune ligne</b> : aucun client<br>ne s’appelle exactement « L »."],
+  [43.5, 47.6,  "Lucas Bernard et Léa Simon commencent par L : c’est un <b>motif</b> à chercher avec <code>LIKE</code>."],
+  [48.3, 52.0,  "On remplace <code>=</code> par <code>LIKE</code>, puis on ajoute <code>%</code> après le L."],
+  [52.3, 55.0,  "Le <code>%</code> est un <b>wildcard</b> : après le L, il remplace <b>n’importe quelle suite</b>."],
+  [55.1, 58.75, "Léa Simon correspond aussi,<br>mais pas Sophie Martin : son prénom commence par S."],
+  [58.85, 60.85, "<code>LIKE</code> vérifie si le texte correspond au <b>motif</b> : c’est le <b>pattern\u00a0matching</b>."],
+  [60.95, 65.5, "Seuls Lucas Bernard et Léa Simon vérifient la condition : leur prénom commence par L."],
+  [65.6, 69.0,  "Les autres prénoms sont écartés : il reste <b>2 clients</b>."],
+  [69.8, 73.5,  "Placé <b>après</b> des lettres, le <code>%</code> cherche ce qui <b>commence</b> par elles."],
+  [73.6, 76.7,  "Ainsi, <code>nom LIKE 'D%'</code> renvoie Emma\u00a0Dubois et Nathan\u00a0Dupont."],
+  [76.8, 80.4,  "Avec un <code>%</code> de <b>chaque côté</b>, on cherche un morceau placé <b>n’importe où</b>."],
+  [80.5, 83.3,  "<code>'%ie%'</code> renvoie Sophie Martin et Gabriel Michel, dont le prénom contient « ie »."],
+  [83.4, 87.4,  "Ici, <code>LIKE</code> ne fait pas la différence entre <span class=\"nw\"><b>majuscules</b> et <b>minuscules</b></span>."],
+  [88.3, 92.1,  "Deuxième <b>wildcard</b> : <code>_</code> remplace <b>exactement\u00a0un\u00a0caractère</b>."],
+  [92.2, 94.6,  "Avec <code>'_a%'</code>, la <b>deuxième lettre</b> doit être un a : Nathan Petit, Nathan Dupont et Gabriel Michel."],
+  [94.7, 97.4,  "Lucas Bernard ne correspond pas : son prénom a un u en deuxième lettre."],
+  [97.5, 101.6,  "Avec les <b>wildcards</b>, <code>%</code> vaut une suite, <b>même vide</b> ; <code>_</code>, <b>un\u00a0seul\u00a0caractère</b>."],
+  [102.5, 105.6,  "La requête complète affiche le prénom, le nom et le téléphone des clients <span class=\"nw\">dont le prénom</span> commence par L."],
+  [105.7, 109.9,  "Avec ces <b>2 destinataires possibles</b>, l’équipe peut appeler pour trouver le bon."],
+  [110.0, 114.9,  "<code>WHERE</code> ne filtre que le résultat : la <b>table\u00a0clients</b> n’est pas modifiée."],
+  [115.8, 120.6, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [120.7, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
+      : [120.7, 999, "<code>LIKE</code> vérifie si le texte correspond au motif, avec les wildcards <code>%</code> et <code>_</code>."]
 ];
 
 /* Pas de question en pleine vidéo : les moments « À toi » font participer l’élève (ni exercice ni quiz après la vidéo, depuis le 28 octobre). */
@@ -303,11 +340,19 @@ const QUESTIONS = [];
 /* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
    Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
 const de = (p, n) => (/^[AEIOUYHÉÈÊÂÎ]/.test(p) ? 'd’' : 'de ') + p + ' ' + n;
+/* L’appel : deux arrêts « toucher » (rien n’y est noté). L’élève décroche (le bouton vert s’enfonce à l’appui), puis répond
+   « Je m’en occupe ! ». */
+const OPENS = [
+  {at: 8.3, sel: '#pcOk', prompt: 'Touche « Répondre » pour décrocher.', label: 'Répondre à l’appel de l’équipe logistique',
+    press: {scale: 0.9}, rest: {scale: 1}},
+  {at: 24.5, sel: '#pcYes', prompt: 'Touche « Je m’en occupe ! ».', label: 'Je m’en occupe !', hand: {x: 0.82, y: 0.7},
+    press: {y: 7, boxShadow: '0 2px 0 #1E8E3E'}, rest: {y: 0, boxShadow: '0 9px 0 #1E8E3E'}}
+];
 const MOMENTS = [
   /* Mini-jeux (Elisa, 28 octobre, 8 h 50 : « pas assez gamifié »). Le colis : prenom = 'L' ne renvoie rien ; avant que la vidéo nomme
      Lucas Bernard et Léa Simon, l’élève cherche lui-même les destinataires possibles (la question à choix sur la condition est partie :
      la vidéo la montre juste après). */
-  {at: 24.45, from: 15.0, kind: 'tap', need: 2, prompt: 'Le prénom du destinataire commence par L : touche les <b>clients possibles</b>.',
+  {at: 43.45, from: 34.0, kind: 'tap', need: 2, prompt: 'Le prénom du destinataire commence par L : touche les <b>clients possibles</b>.',
     hint: 'Regarde la première lettre de chaque prénom.',
     board: {y: 300, html: '<span class="mb-k">📦 Le destinataire</span><div class="mg-grid">'
       + CLIENTS.map((c, i) => `<div class="mg-r mg-cat" id="mbd${i}">${c[0]} ${c[1]}</div>`).join('') + '</div>'},
@@ -316,8 +361,8 @@ const MOMENTS = [
     tip: 'Deux prénoms commencent par L.'},
   /* Le détecteur, une fois LIKE et % vus sur 'L%' : la même recherche, pour un nom qui commence par D ; l’élève essaie colonne et
      motif, et voit aussitôt qui correspond (avant que le chapitre 4 explique où placer le %). */
-  {at: 41.9, from: 29.0, kind: 'tune', ico: '🔍', prompt: 'Choisis la colonne et le motif pour retrouver les clients dont le <b>nom</b> commence par <b>D</b>.',
-    hint: 'Change la colonne ou le motif, regarde qui correspond, puis valide.',
+  {at: 60.9, from: 48.0, kind: 'tune', ico: '🔍', prompt: 'Retrouve les clients dont le <b>nom de famille</b> commence par <b>D</b>.',
+    hint: 'Choisis la bonne colonne et le bon motif, observe le résultat, puis valide.',
     controls: [{k: 'col', type: 'seg', label: 'Colonne', choices: ['prenom', 'nom'], value: 'prenom', code: true},
       {k: 'm', type: 'seg', label: 'Motif', choices: ["'D'", "'D%'", "'%D'", "'%D%'"], value: "'D'", code: true}],
     answer: {col: 'nom', m: "'D%'"},
@@ -339,7 +384,7 @@ const MOMENTS = [
     },
     tip: 'Comme <code>\'L%\'</code> pour les prénoms : la lettre d’abord, puis le <code>%</code>.'},
   /* Les zones, une fois _ expliqué et le motif '_a%' montré : un autre motif, '_u%', pour l’appliquer soi-même. */
-  {at: 78.45, from: 69.0, kind: 'sort', text: true, prompt: 'Range chaque client : son prénom correspond-il au motif <code>\'_u%\'</code> ?',
+  {at: 97.45, from: 88.0, kind: 'sort', text: true, prompt: 'Range chaque client : son prénom correspond-il au motif <code>\'_u%\'</code> ?',
     hint: 'Touche un client, puis sa zone. Tu peux aussi le faire glisser.', next: '« {x} » : touche sa zone.',
     board: {y: 470, html: '<span class="mb-k">🗂️ Le motif <span class="mb-q" style="display:inline;padding:4px 14px;font-size:30px">\'_u%\'</span></span><div class="mb-cols" style="gap:28px"><div class="mb-col"><div class="mb-bin" id="mbOui"><b>Correspond</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin" id="mbNon"><b>Ne correspond pas</b><div class="mb-drop"></div></div></div></div>'},
     spots: [{k: 'oui', sel: '#mbOui', label: 'Correspond'}, {k: 'non', sel: '#mbNon', label: 'Ne correspond pas'}],
@@ -449,116 +494,146 @@ function build(){
 
   /* ===== 1 · Situation ===== */
   sceneOn('#s1', 5.0);
+  // L’appel arrive au milieu de la scène et sonne : deux ondes autour de l’icône, le téléphone vibre
+  $('#pc1').style.top = Math.round((236 + 1480) / 2 - $('#pc1').offsetHeight / 2) + 'px';
+  gsap.set(['#pcOn', '#pcEnd', '#pcWave', '#pcYes', '#pcR1', '#pcR2'], {autoAlpha: 0});
+  show('#pc1', 5.1, {y: 60, scale: 0.94}, 0.55, 'back.out(1.6)');
+  cue(5.1, 'whoosh', 0.6);
+  [5.6, 6.4, 7.2].forEach(t => {
+    tl.fromTo('#pcR1', {scale: 1, autoAlpha: 0.9}, {scale: 1.55, autoAlpha: 0, duration: 0.7, ease: 'power1.out', immediateRender: false}, t);
+    tl.fromTo('#pcR2', {scale: 1, autoAlpha: 0.9}, {scale: 1.55, autoAlpha: 0, duration: 0.7, ease: 'power1.out', immediateRender: false}, t - 0.4 + 0.7);
+    tl.to('#pc1', {x: 5, duration: 0.04, yoyo: true, repeat: 5, ease: 'none'}, t);
+    cue(t, 'buzz', 0.55);
+  });
+  // À toi : décrocher (arrêt à 8,3). Puis l’appel est en ligne : l’onde de la voix bouge pendant que l’entrepôt parle
+  tl.to('#pcBtns', {autoAlpha: 0, scale: 0.9, duration: 0.25, ease: 'power2.in'}, 8.45);
+  tl.to('#pcIn', {autoAlpha: 0, duration: 0.2}, 8.45);
+  tl.to('#pcOn', {autoAlpha: 1, duration: 0.25}, 8.55);
+  cue(8.45, 'pop', 0.8, 4);
+  tl.to('#pcWave', {autoAlpha: 1, duration: 0.3}, 8.7);
+  // L’onde bouge pendant chaque phrase et se repose pendant les pauses de lecture (fin de chaque légende) : rien ne s’y fige
+  [[8.75, 11.75], [12.25, 15.55], [16.1, 18.05], [18.6, 21.25], [21.8, 23.5]].forEach(([a, b]) => $$('#pcWave b').forEach((w, i) => {
+    const d = 0.2 + (i % 4) * 0.04, t0 = a + i * 0.03, n = 2 * Math.floor((b - t0) / d / 2) - 1;   // impair (la barre revient au repos), et fini avant b
+    tl.to(w, {scaleY: 0.45 + ((i * 37) % 55) / 100, duration: d, yoyo: true, repeat: n, ease: 'sine.inOut'}, t0);
+  }));
+  // « Tu peux nous aider ? » : la réponse s’affiche ; à toi : « Je m’en occupe ! » (arrêt à 24,5)
+  tl.to('#pcWave', {autoAlpha: 0, duration: 0.25}, 23.55);
+  show('#pcYes', 23.6, {y: 20, scale: 0.85}, 0.45, 'back.out(2)');
+  cue(23.6, 'pop', 0.8, 6);
+  tl.to('#pcOn', {autoAlpha: 0, duration: 0.2}, 24.65);
+  tl.to('#pcEnd', {autoAlpha: 1, duration: 0.25}, 24.75);
+  cue(24.65, 'chord', 0.6);
+  hide('#pc1', 25.3, {y: -40, scale: 0.94}, 0.4);
+  // Le colis arrive : l’étiquette déchirée, le L seul lisible
   gsap.set('#s1 .invite', {autoAlpha: 0, y: 470, rotation: -9});
-  tl.to('#s1 .invite', {autoAlpha: 1, y: 380, rotation: -2.5, duration: 0.9, ease: 'back.out(1.3)'}, 5.15);
-  cue(5.15, 'whoosh', 0.8);
+  tl.to('#s1 .invite', {autoAlpha: 1, y: 380, rotation: -2.5, duration: 0.9, ease: 'back.out(1.3)'}, 25.75);
+  cue(25.75, 'whoosh', 0.8);
   gsap.set('#s1 .stamp', {autoAlpha: 0, scale: 1.9, rotation: 24});
-  tl.to('#s1 .stamp', {autoAlpha: 1, scale: 1, rotation: 7, duration: 0.36, ease: 'power4.in'}, 6.6);
-  tl.to('#s1 .invite', {x: 6, duration: 0.05, yoyo: true, repeat: 3, ease: 'none'}, 6.96);
-  cue(6.95, 'stamp');
-  // Le L, seule lettre lisible
-  tl.to('#lv1', {backgroundColor: '#E4DCFF', duration: 0.3}, 9.2);
-  tl.to('#lv1', {scale: 1.25, duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 9.2);
-  cue(9.2, 'pop', 0.8, 3);
-  tl.to('#s1 .invite', {y: 0, duration: 0.75, ease: 'power3.inOut'}, 11.4);
+  tl.to('#s1 .stamp', {autoAlpha: 1, scale: 1, rotation: 7, duration: 0.36, ease: 'power4.in'}, 26.9);
+  tl.to('#s1 .invite', {x: 6, duration: 0.05, yoyo: true, repeat: 3, ease: 'none'}, 27.26);
+  cue(27.25, 'stamp');
+  tl.to('#lv1', {backgroundColor: '#E4DCFF', duration: 0.3}, 27.9);
+  tl.to('#lv1', {scale: 1.25, duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 27.9);
+  cue(27.9, 'pop', 0.8, 3);
+  tl.to('#s1 .invite', {y: 0, duration: 0.75, ease: 'power3.inOut'}, 29.3);
   stackBelow('#s1 .need', '#s1 .invite', -2.5);   // la liste se cale sous la carte inclinée, sans la toucher
-  show('#s1 .need', 11.9, {y: 60});
-  cue(11.9, 'whoosh', 0.6);
+  show('#s1 .need', 29.8, {y: 60});
+  cue(29.8, 'whoosh', 0.6);
   const needRows = $$('#s1 .need-row');
   gsap.set(needRows, {autoAlpha: 0, x: -34});
-  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.13}, 12.05);
-  needRows.forEach((_, i) => cue(12.05 + i * 0.13, 'pop', 0.7, i));
-  tl.to('#s1 .tag', {scale: 1.08, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 13.0);
-  hide(['#s1 .invite', '#s1 .need'], 14.6);
-  sceneOff('#s1', 15.1);
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.13}, 29.95);
+  needRows.forEach((_, i) => cue(29.95 + i * 0.13, 'pop', 0.7, i));
+  tl.to('#s1 .tag', {scale: 1.08, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 30.9);
+  hide(['#s1 .invite', '#s1 .need'], 33.6);
+  sceneOff('#s1', 34.1);
 
   /* ===== 2 · Le problème ===== */
-  sceneOn('#s2', 15.0);
-  show('#qcode', 15.05, {y: 60}, 0.6);
-  cue(15.05, 'whoosh', 0.7);
+  sceneOn('#s2', 34.0);
+  show('#qcode', 34.05, {y: 60}, 0.6);
+  cue(34.05, 'whoosh', 0.7);
   // Ligne 3 : « WHERE prenom = 'Sophie'; » ; LIKE, le L et le % viennent plus tard.
   const all3 = splitChars($('#ql3'));
   const later3 = all3.filter(c => ['#likeA', '#lA', '#pctA'].some(s => $(s).contains(c)));
   gsap.set(['#likeA', '#pctA'], {display: 'none'});
   gsap.set($$('.ch', $('#lA')), {display: 'none'});
-  te = typeLine($('#ql1'), 15.55, 30);
+  te = typeLine($('#ql1'), 34.55, 30);
   te = typeLine($('#ql2'), te + 0.12, 30);
   te = typeChars(all3.filter(c => !later3.includes(c)), te + 0.12, 30, $('#car3'));
-  press($('#qrun'), 18.05, '#4B30CC', 9, false);   // premier essai, que la suite montre insuffisant : pas de confettis
-  show('#tbl2', 18.3, {y: 40}, 0.5);
+  press($('#qrun'), 37.05, '#4B30CC', 9, false);   // premier essai, que la suite montre insuffisant : pas de confettis
+  show('#tbl2', 37.3, {y: 40}, 0.5);
   const row2 = $('#row2');
   gsap.set(row2, {autoAlpha: 0, y: 16});
-  tl.to(row2, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out'}, 18.45);
-  cue(18.45, 'tick', 0.5);
-  show('#cnt2a', 18.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  cue(18.6, 'pop', 0.8, 2);
+  tl.to(row2, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out'}, 37.45);
+  cue(37.45, 'tick', 0.5);
+  show('#cnt2a', 37.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(37.6, 'pop', 0.8, 2);
   gsap.set('#cnt2b', {autoAlpha: 0, y: 24});
   // 'Sophie' devient 'L' : aucune ligne
-  te = eraseChars($$('.ch', $('#sophie')), 20.05, 20, $('#carS'));
+  te = eraseChars($$('.ch', $('#sophie')), 39.05, 20, $('#carS'));
   te = typeChars($$('.ch', $('#lA')), te + 0.15, 20, $('#carS'));
-  press($('#qrun'), 20.9);
+  press($('#qrun'), 39.9);
   gsap.set('#emp2', {height: 0, autoAlpha: 0});
-  tl.to(row2, {height: 0, autoAlpha: 0, duration: 0.45, ease: 'power2.inOut'}, 21.1);
-  tl.to('#emp2', {height: 66, autoAlpha: 1, duration: 0.45, ease: 'power2.inOut'}, 21.1);
-  cue(21.1, 'empty', 0.8);
-  tl.to('#cnt2a', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 21.45);
-  tl.to('#cnt2b', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 21.55);
+  tl.to(row2, {height: 0, autoAlpha: 0, duration: 0.45, ease: 'power2.inOut'}, 40.1);
+  tl.to('#emp2', {height: 66, autoAlpha: 1, duration: 0.45, ease: 'power2.inOut'}, 40.1);
+  cue(40.1, 'empty', 0.8);
+  tl.to('#cnt2a', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 40.45);
+  tl.to('#cnt2b', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 40.55);
   // Le « = » ne garde qu’une valeur exacte
   gsap.set('#eqA .mbox', {autoAlpha: 0, scale: 1.3});
-  tl.to('#eqA .mbox', {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 22.6);
-  tl.to('#eqA', {x: 6, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 23.0);
-  cue(22.6, 'error', 0.6);
+  tl.to('#eqA .mbox', {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 41.6);
+  tl.to('#eqA', {x: 6, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 42.0);
+  cue(41.6, 'error', 0.6);
   // Lucas et Léa : absents du résultat, alors que leur prénom commence par L
-  show('#miss2', 24.55, {y: 40}, 0.55);
-  cue(24.55, 'whoosh', 0.5);
+  show('#miss2', 43.55, {y: 40}, 0.55);
+  cue(43.55, 'whoosh', 0.5);
   const trM = $$('#rowsM .tr');
   gsap.set(trM, {autoAlpha: 0, x: -30});
-  tl.to(trM, {autoAlpha: 1, x: 0, duration: 0.4, ease: 'power3.out', stagger: 0.18}, 24.9);
-  trM.forEach((_, i) => cue(24.9 + i * 0.18, 'miss', 0.6, i));
-  tl.to($$('#rowsM .fl'), {scale: 1.35, duration: 0.2, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.15}, 25.7);
-  cue(25.7, 'pop', 0.7, 4);
-  hide(['#tbl2', '#miss2'], 28.45, {y: 40});
-  sceneOff('#s2', 29.0);
+  tl.to(trM, {autoAlpha: 1, x: 0, duration: 0.4, ease: 'power3.out', stagger: 0.18}, 43.9);
+  trM.forEach((_, i) => cue(43.9 + i * 0.18, 'miss', 0.6, i));
+  tl.to($$('#rowsM .fl'), {scale: 1.35, duration: 0.2, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.15}, 44.7);
+  cue(44.7, 'pop', 0.7, 4);
+  hide(['#tbl2', '#miss2'], 47.45, {y: 40});
+  sceneOff('#s2', 48.0);
 
   /* ===== 3 · LIKE en action ===== */
-  sceneOn('#s3', 29.0);
+  sceneOn('#s3', 48.0);
   // « = » laisse sa place à LIKE, puis le % s’ajoute après le L.
-  tl.to('#eqA .mbox', {autoAlpha: 0, duration: 0.2}, 29.25);
-  tl.to('#eqA', {scale: 0, autoAlpha: 0, duration: 0.2, ease: 'power2.in'}, 29.45);
-  tl.set('#eqA', {display: 'none'}, 29.66);
+  tl.to('#eqA .mbox', {autoAlpha: 0, duration: 0.2}, 48.25);
+  tl.to('#eqA', {scale: 0, autoAlpha: 0, duration: 0.2, ease: 'power2.in'}, 48.45);
+  tl.set('#eqA', {display: 'none'}, 48.66);
   gsap.set('#likeA', {scale: 0.3, autoAlpha: 0});
-  tl.set('#likeA', {display: 'inline-block'}, 29.66);
-  tl.to('#likeA', {scale: 1, autoAlpha: 1, duration: 0.42, ease: 'back.out(2.6)'}, 29.68);
-  cue(29.68, 'pop', 0.9, 4);
-  tl.to('#likeA', {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 30.15);
+  tl.set('#likeA', {display: 'inline-block'}, 48.66);
+  tl.to('#likeA', {scale: 1, autoAlpha: 1, duration: 0.42, ease: 'back.out(2.6)'}, 48.68);
+  cue(48.68, 'pop', 0.9, 4);
+  tl.to('#likeA', {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 49.15);
   gsap.set('#pctA', {scale: 0.3, autoAlpha: 0});
-  tl.set('#pctA', {display: 'inline-block'}, 30.75);
-  tl.to('#pctA', {scale: 1, autoAlpha: 1, duration: 0.42, ease: 'back.out(2.6)'}, 30.77);
-  cue(30.77, 'pop', 0.9, 6);
-  tl.to('#pctA', {backgroundColor: 'rgba(255,224,138,.3)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 31.2);
-  show('#look3', 31.5, {y: 30});
-  cue(31.5, 'pop', 0.8, 1);
-  hide(['#qcode', '#look3'], 33.0, {y: -40}, 0.4);
+  tl.set('#pctA', {display: 'inline-block'}, 49.75);
+  tl.to('#pctA', {scale: 1, autoAlpha: 1, duration: 0.42, ease: 'back.out(2.6)'}, 49.77);
+  cue(49.77, 'pop', 0.9, 6);
+  tl.to('#pctA', {backgroundColor: 'rgba(255,224,138,.3)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 50.2);
+  show('#look3', 50.5, {y: 30});
+  cue(50.5, 'pop', 0.8, 1);
+  hide(['#qcode', '#look3'], 52.0, {y: -40}, 0.4);
   // Le motif posé sur trois prénoms
-  show('#mot3', 33.35, {y: 50}, 0.6);
-  cue(33.35, 'whoosh', 0.6);
+  show('#mot3', 52.35, {y: 50}, 0.6);
+  cue(52.35, 'whoosh', 0.6);
   const m3 = $$('#mrows3 .mrow');
-  motifPlay(m3[0], 33.8);
-  motifPlay(m3[1], 36.15);
-  motifPlay(m3[2], 38.1);
-  hide('#mot3', 39.8, {y: -40});
+  motifPlay(m3[0], 52.8);
+  motifPlay(m3[1], 55.15);
+  motifPlay(m3[2], 57.1);
+  hide('#mot3', 58.8, {y: -40});
   // Chaque client passé en revue
-  show('#ask3', 40.05, {y: 30, scale: 0.94});
-  cue(40.05, 'pop', 0.9, 1);
-  show('#scan3', 40.3, {y: 40}, 0.5);
-  cue(40.3, 'whoosh', 0.5);
+  show('#ask3', 59.05, {y: 30, scale: 0.94});
+  cue(59.05, 'pop', 0.9, 1);
+  show('#scan3', 59.3, {y: 40}, 0.5);
+  cue(59.3, 'whoosh', 0.5);
   const tr3 = $$('#rows3 .tr');
   gsap.set(tr3, {autoAlpha: 0, y: 12});
-  tl.to(tr3, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.035}, 40.55);
-  show('#cnt3a', 40.75, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  tl.to(tr3, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.035}, 59.55);
+  show('#cnt3a', 59.75, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
   gsap.set('#cnt3b', {autoAlpha: 0, y: 24});
   // Balayage : une pause de lecture après la première ligne.
-  const T3 = [41.1, 42.05];
+  const T3 = [60.1, 61.05];
   for (let i = 2; i < 10; i++) T3.push(+(T3[i - 1] + 0.42).toFixed(2));
   const scanner = $('#scanner3');
   gsap.set(scanner, {y: 0, autoAlpha: 0});
@@ -574,88 +649,88 @@ function build(){
   });
   tl.to(scanner, {autoAlpha: 0, duration: 0.25}, T3[9] + 0.5);
   const kept3 = tr3.filter(r => r.dataset.ok === '1'), out3 = tr3.filter(r => r.dataset.ok !== '1');
-  tl.to(kept3.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.35, stagger: 0.12}, 46.4);
-  cue(46.4, 'chord', 0.7);
-  tl.to(out3, {opacity: 0.4, duration: 0.3, stagger: 0.03}, 46.9);
-  tl.to(out3, {height: 0, opacity: 0, duration: 0.55, ease: 'power2.inOut', stagger: 0.04}, 47.7);
-  cue(47.7, 'fold', 0.9);
-  tl.to('#cnt3a', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 48.6);
-  tl.to('#cnt3b', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 48.7);
-  cue(48.7, 'pop', 0.9, 4);
-  hide(['#ask3', '#scan3'], 50.0);
-  sceneOff('#s3', 50.5);
+  tl.to(kept3.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.35, stagger: 0.12}, 65.4);
+  cue(65.4, 'chord', 0.7);
+  tl.to(out3, {opacity: 0.4, duration: 0.3, stagger: 0.03}, 65.9);
+  tl.to(out3, {height: 0, opacity: 0, duration: 0.55, ease: 'power2.inOut', stagger: 0.04}, 66.7);
+  cue(66.7, 'fold', 0.9);
+  tl.to('#cnt3a', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 67.6);
+  tl.to('#cnt3b', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 67.7);
+  cue(67.7, 'pop', 0.9, 4);
+  hide(['#ask3', '#scan3'], 69.0);
+  sceneOff('#s3', 69.5);
 
   /* ===== 4 · Où placer le % ===== */
-  sceneOn('#s4', 50.5);
+  sceneOn('#s4', 69.5);
   // Au début : commence par D
-  show('#pA', 50.55, {y: 50});
-  cue(50.55, 'whoosh', 0.6);
-  tl.to('#strA4', {backgroundColor: 'rgba(255,224,138,.25)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 51.4);
-  press($('#goA4'), 52.6, '#4B30CC', 6);
-  show('#resA4', 52.85, {y: 0, x: -20}, 0.4, 'back.out(1.8)');
-  cue(52.85, 'chord', 0.6);
-  tl.to($$('#resA4 .hp'), {scale: 1.3, duration: 0.2, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.15}, 53.4);
-  cue(53.4, 'pop', 0.7, 3);
+  show('#pA', 69.55, {y: 50});
+  cue(69.55, 'whoosh', 0.6);
+  tl.to('#strA4', {backgroundColor: 'rgba(255,224,138,.25)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 70.4);
+  press($('#goA4'), 71.6, '#4B30CC', 6);
+  show('#resA4', 71.85, {y: 0, x: -20}, 0.4, 'back.out(1.8)');
+  cue(71.85, 'chord', 0.6);
+  tl.to($$('#resA4 .hp'), {scale: 1.3, duration: 0.2, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.15}, 72.4);
+  cue(72.4, 'pop', 0.7, 3);
   // De chaque côté : contient « ie »
-  show('#pB', 57.85, {y: 50});
-  cue(57.85, 'whoosh', 0.6);
-  tl.to('#strB4', {backgroundColor: 'rgba(255,224,138,.25)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 58.5);
-  press($('#goB4'), 59.6, '#4B30CC', 6);
-  show('#resB4', 59.85, {y: 0, x: -20}, 0.4, 'back.out(1.8)');
-  cue(59.85, 'chord', 0.6);
-  tl.to($$('#resB4 .hp'), {scale: 1.3, duration: 0.2, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.15}, 60.35);
-  cue(60.35, 'pop', 0.7, 5);
+  show('#pB', 76.85, {y: 50});
+  cue(76.85, 'whoosh', 0.6);
+  tl.to('#strB4', {backgroundColor: 'rgba(255,224,138,.25)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 77.5);
+  press($('#goB4'), 78.6, '#4B30CC', 6);
+  show('#resB4', 78.85, {y: 0, x: -20}, 0.4, 'back.out(1.8)');
+  cue(78.85, 'chord', 0.6);
+  tl.to($$('#resB4 .hp'), {scale: 1.3, duration: 0.2, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.15}, 79.35);
+  cue(79.35, 'pop', 0.7, 5);
   // Majuscules ou minuscules : les mêmes prénoms
-  show('#pC', 64.45, {y: 50});
-  cue(64.45, 'whoosh', 0.6);
+  show('#pC', 83.45, {y: 50});
+  cue(83.45, 'whoosh', 0.6);
   const cs = $$('#pC .case > *');
   gsap.set(cs, {autoAlpha: 0, x: -20});
-  tl.to(cs, {autoAlpha: 1, x: 0, duration: 0.35, ease: 'power3.out', stagger: 0.2}, 64.9);
-  cs.forEach((_, i) => cue(64.9 + i * 0.2, 'pop', 0.6, i));
-  hide(['#pA', '#pB', '#pC'], 68.5);
-  sceneOff('#s4', 69.0);
+  tl.to(cs, {autoAlpha: 1, x: 0, duration: 0.35, ease: 'power3.out', stagger: 0.2}, 83.9);
+  cs.forEach((_, i) => cue(83.9 + i * 0.2, 'pop', 0.6, i));
+  hide(['#pA', '#pB', '#pC'], 87.5);
+  sceneOff('#s4', 88.0);
 
   /* ===== 5 · Un seul caractère ===== */
-  sceneOn('#s5', 69.0);
-  show('#u5', 69.05, {y: 50}, 0.6);
-  cue(69.05, 'whoosh', 0.6);
-  tl.to('#us5', {backgroundColor: 'rgba(255,224,138,.3)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 69.7);
-  press($('#go5'), 70.15, '#4B30CC', 6);
+  sceneOn('#s5', 88.0);
+  show('#u5', 88.05, {y: 50}, 0.6);
+  cue(88.05, 'whoosh', 0.6);
+  tl.to('#us5', {backgroundColor: 'rgba(255,224,138,.3)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 88.7);
+  press($('#go5'), 89.15, '#4B30CC', 6);
   const u = $$('#urows .mrow');
-  motifPlay(u[0], 70.4);
-  motifPlay(u[1], 73.0);
-  motifPlay(u[2], 75.75);
-  show('#res5', 77.55, {y: 0, x: -20}, 0.4, 'back.out(1.8)');
-  cue(77.55, 'chord', 0.6);
+  motifPlay(u[0], 89.4);
+  motifPlay(u[1], 92.0);
+  motifPlay(u[2], 94.75);
+  show('#res5', 96.55, {y: 0, x: -20}, 0.4, 'back.out(1.8)');
+  cue(96.55, 'chord', 0.6);
   // % et _ côte à côte
-  show('#vs5', 78.6, {y: 50});
-  cue(78.6, 'whoosh', 0.6);
+  show('#vs5', 97.6, {y: 50});
+  cue(97.6, 'whoosh', 0.6);
   const vr = $$('#vs5 .vrow');
   gsap.set(vr, {autoAlpha: 0, x: -30});
   vr.forEach((r, i) => {
-    tl.to(r, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, 78.95 + i * 0.5);
-    cue(78.95 + i * 0.5, 'pop', 0.8, i * 3);
+    tl.to(r, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, 97.95 + i * 0.5);
+    cue(97.95 + i * 0.5, 'pop', 0.8, i * 3);
   });
-  hide(['#u5', '#vs5'], 82.7);
-  sceneOff('#s5', 83.2);
+  hide(['#u5', '#vs5'], 101.7);
+  sceneOff('#s5', 102.2);
 
   /* ===== 6 · Le résultat ===== */
-  sceneOn('#s6', 83.2);
-  show('#s6code', 83.25, {y: 60}, 0.6);
-  cue(83.25, 'whoosh', 0.7);
-  te = typeLine($('#s6l1'), 83.75, 28);
+  sceneOn('#s6', 102.2);
+  show('#s6code', 102.25, {y: 60}, 0.6);
+  cue(102.25, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 102.75, 28);
   te = typeLine($('#s6l2'), te + 0.12, 28);
   te = typeLine($('#s6l3'), te + 0.12, 28);
-  press($('#s6run'), 86.7);
-  show('#calls6', 86.95, {y: 40}, 0.5);
+  press($('#s6run'), 105.7);
+  show('#calls6', 105.95, {y: 40}, 0.5);
   const calls = $$('#callRows .call');
   gsap.set(calls, {autoAlpha: 0, x: -40});
-  tl.to(calls, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out', stagger: 0.2}, 87.25);
-  calls.forEach((c, i) => cue(87.25 + i * 0.2, 'pop', 0.75, i * 2));
-  show('#cnt6', 87.85, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  tl.to(calls, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out', stagger: 0.2}, 106.25);
+  calls.forEach((c, i) => cue(106.25 + i * 0.2, 'pop', 0.75, i * 2));
+  show('#cnt6', 106.85, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
   // Les deux appels, l’un après l’autre
   calls.forEach((c, i) => {
-    const t = 88.0 + i * 0.95, s1 = c.querySelector('.s1'), s2 = c.querySelector('.s2');
+    const t = 107.0 + i * 0.95, s1 = c.querySelector('.s1'), s2 = c.querySelector('.s2');
     gsap.set(s1, {autoAlpha: 0, scale: 0.6});
     gsap.set(s2, {autoAlpha: 0, scale: 0.6});
     tl.to(s1, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)'}, t);
@@ -665,21 +740,21 @@ function build(){
     tl.to(s2, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)'}, t + 0.6);
     cue(t + 0.6, 'true', 0.7);
   });
-  show('#badge6', 89.95, {y: 0, scale: 0.6}, 0.55, 'back.out(1.9)');
-  cue(89.95, 'success', 0.9);
-  hide(['#s6code', '#calls6', '#badge6'], 96.0);
-  sceneOff('#s6', 96.5);
+  show('#badge6', 108.95, {y: 0, scale: 0.6}, 0.55, 'back.out(1.9)');
+  cue(108.95, 'success', 0.9);
+  hide(['#s6code', '#calls6', '#badge6'], 115.0);
+  sceneOff('#s6', 115.5);
 
   /* ===== 7 · À retenir ===== */
-  recapScene(96.5, [97.2, 99.0, 100.8]);
-  hold(98.8, 2.9);
-  hold(100.6, 2.9);
+  recapScene(115.5, [116.2, 118.0, 119.8]);
+  hold(117.8, 2.9);
+  hold(119.6, 2.9);
   // Le bouton « Ajouter à mes notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(101.75, 'pop', 0.85, 5);
+  if (APP) cue(120.75, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 101.7, moments: MOMENTS,
-  glyphs: '📦🏭👤👪📞🔎⚠️🧩📋🔤🔍🔠2️⃣🧵☝️✓✕→…', dom, build});
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 120.7, moments: MOMENTS, opens: OPENS,
+  glyphs: '✅📦🏭👤👪📞🔎⚠️🧩📋🔤🔍🔠2️⃣🧵☝️✓✕→…', dom, build});
 </script>
 </body>
 </html>
