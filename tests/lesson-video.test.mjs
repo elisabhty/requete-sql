@@ -587,14 +587,15 @@ const COURSES = [
     traps: ['<span class="kw">WHERE</span> stock <span class="cbox" id="eqA">=<i class="mbox"></i></span><span class="glow" id="leA">&lt;=</span> 60;',
       'Son stock est-il inférieur<br>ou égal à 60 ?', '<span class="kw">WHERE</span> stock &lt; 60', '<span class="kw">WHERE</span> stock &lt;= 60',
       "<span class=\"kw\">WHERE</span> categorie != <span class=\"str glow\" id=\"s6str\">'Accessoire'</span>;", 'Un texte, entre guillemets simples']},
-  {id: 6, next: 22, titre: 'AND et OR', page: 'and-or.html', thumb: 'and-or-thumb.jpg', duree: '1 min 58', notesAt: 101.5,
+  {id: 6, next: 22, titre: 'AND et OR', page: 'and-or.html', thumb: 'and-or-thumb.jpg', duree: '2 min 10', notesAt: 111.5,
     maxKo: 560,   // la photo de la conférence (43 Ko), comme le badge du cours 0
     table: 'clients',
     bubble: 'Avec <span class="ic">AND</span> et <span class="ic">OR</span>, relie plusieurs conditions dans <span class="ic">WHERE</span>.',
     chapters: ['Situation', 'Le problème', 'Ajouter l’âge', 'Ajouter Lyon', 'Les parenthèses', 'Le résultat', 'À retenir'],
     /* La photo de la conférence (Elisa, 28 octobre, 22 h 02) dans la carte de la situation. */
     traps: ['<img src="conference-nutrition.webp"', '<span class="ln" id="ql4">  <span class="kw hlc" id="and3">AND</span> age &gt; 30;', '<b>Aucune ligne</b><span class="s">Une ville ne peut pas être Paris et Lyon à la fois.</span>',
-      '<span class="op2">AND</span>', '<span class="op2">OR</span>', 'AND : calculé en premier', 'entre parenthèses : calculé en premier',
+      '<span class="op2">AND</span>', '<span class="op2">OR</span>', 'AND est prioritaire sur OR', 'entre parenthèses : calculé en premier', 'Ne remplit pas<br>le critère d’âge',
+      'Nathan Dupont, 30 ans, est ainsi invité alors qu’il ne devrait pas l’être.',
       '<span id="lp">(</span><span id="cP">ville = <span class="str">\'Paris\'</span></span> <span class="kw">OR</span> <span id="cL">ville = <span class="str">\'Lyon\'</span></span><span id="rp">)</span> <span class="kw" id="and5">AND</span> <span id="cA">age &gt; 30</span>']},
   {id: 22, next: 7, titre: 'NOT', page: 'not.html', thumb: 'not-thumb.jpg', duree: '1 min 59', notesAt: 97.2,
     table: 'clients',
