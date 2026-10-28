@@ -46,7 +46,9 @@ sup{font-size:.6em;line-height:0;vertical-align:.62em}
 .truth .tt{height:76px;display:flex;align-items:center;gap:14px;padding:0 34px;font-weight:700;font-size:32px;color:var(--ink)}
 .truth .tt .emo{font-size:34px}
 .truth .th{font-size:24px}
-.rgN{display:grid;grid-template-columns:150px 262px 140px 100px 1fr;padding:0 20px;align-items:center}
+.rgN{display:grid;grid-template-columns:136px 254px 150px 140px 1fr;padding:0 20px;align-items:center}
+/* Les colonnes condition et NOT, centrées, bien séparées (Elisa, 28 octobre, 23 h 34 : « trop proches ») */
+.th.rgN>div:nth-child(3),.th.rgN>div:nth-child(4),.tr.tn>div:nth-child(4),.tr.tn>div:nth-child(5){justify-self:center;text-align:center}
 .rgN>div:last-child{display:flex;justify-content:flex-end}
 .tr.tn{height:58px;font-size:28px}
 .ck2{display:inline-flex;width:40px;height:40px;border-radius:50%;align-items:center;justify-content:center;font-family:var(--ui);font-size:22px;font-weight:800;opacity:0}
@@ -160,7 +162,7 @@ sup{font-size:.6em;line-height:0;vertical-align:.62em}
   <!-- Code partagé : NOT s’ajoute devant la condition au chapitre 3 -->
   <div class="abs code sm" id="qcode">
     <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
-    <div class="body"><span class="ln" id="ql1"><span class="kw">SELECT</span> prenom, date_inscription<span class="caret"><i></i></span></span><span class="ln" id="ql2"><span class="kw">FROM</span> clients<span class="caret"><i></i></span></span><span class="ln" id="ql3"><span class="kw">WHERE</span> <span class="kw glow" id="not3">NOT </span><span class="caret" id="car3n"><i></i></span>date_inscription &lt; <span class="str">'2023-03-01'</span>;<span class="caret" id="car3"><i></i></span></span></div>
+    <div class="body"><span class="ln" id="ql1"><span class="kw">SELECT</span> prenom, date_inscription<span class="caret"><i></i></span></span><span class="ln" id="ql2"><span class="kw">FROM</span> clients<span class="caret"><i></i></span></span><span class="ln" id="ql3"><span class="kw">WHERE</span> <span class="kw glow" id="not3">NOT </span><span class="caret" id="car3n"><i></i></span>date_inscription <span id="lt3">&lt;</span> <span class="str">'2023-03-01'</span>;<span class="caret" id="car3"><i></i></span></span></div>
     <div class="run" id="qrun"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
   </div>
 
@@ -233,7 +235,7 @@ sup{font-size:.6em;line-height:0;vertical-align:.62em}
       <div class="tt"><span class="emo">🚚</span><span>Livraison gratuite</span><span class="cnt"><span id="cnt6">6 clients</span></span></div>
       <div class="cgrid" id="cgrid"></div>
     </div>
-    <div class="abs badge" id="badge6" style="top:1330px"><span>✓ 6 offres prêtes</span></div>
+    <div class="abs badge" id="badge6" style="top:1330px"><span>✓ 6 bénéficiaires identifiés</span></div>
   </section>
 
   <!-- 7 · À retenir -->
@@ -255,32 +257,32 @@ sup{font-size:.6em;line-height:0;vertical-align:.62em}
 <script src="moments.js"></script>
 <script>
 'use strict';
-const DURATION = 104.8;
+const DURATION = 117.3;
 
 /* Table clients : [prenom, nom, ville, age, date_inscription] */
-const CLIENTS = [['Sophie','Martin','Paris',34,'2023-01-15'],['Lucas','Bernard','Lyon',28,'2023-03-22'],['Emma','Dubois','Marseille',45,'2022-11-05'],
+const CLIENTS = [['Sophie','Martin','Paris',34,'2023-01-15'],['Lucas','Bernard','Lyon',28,'2023-03-01'],['Emma','Dubois','Marseille',45,'2022-11-05'],
   ['Nathan','Petit','Paris',31,'2023-06-10'],['Chloé','Moreau','Bordeaux',26,'2023-02-18'],['Hugo','Laurent','Lyon',52,'2022-09-30'],
   ['Léa','Simon','Paris',38,'2023-05-12'],['Gabriel','Michel','Toulouse',29,'2023-04-08'],['Inès','Lefebvre','Nantes',41,'2023-07-26'],
   ['Nathan','Dupont','Paris',30,'2023-08-03']];
 const OLD = c => c[4] < '2023-03-01';
 const GROUP = c => c[2] === 'Paris' && c[3] > 35;          // (ville = 'Paris' AND age > 35)
-/* Mini-jeux : prénom au féminin (accords des corrections), date en toutes lettres, et le miroir avec un client test inscrit le 1er mars. */
+/* Mini-jeux : prénom au féminin (accords des corrections), date en toutes lettres. Lucas Bernard est inscrit le 1er mars 2023 (Elisa,
+   28 octobre, 23 h 34 : « pourquoi un client test ? garder nos clients ») : c’est lui que > oublie dans le miroir. */
 const FEM = c => ['Sophie', 'Emma', 'Chloé', 'Léa', 'Inès'].includes(c[0]);
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 const JOUR = d => { const [y, m, j] = d.split('-').map(Number); return `${j === 1 ? '1er' : j} ${MOIS[m - 1]} ${y}`; };
-const MIROIR = CLIENTS.concat([['', '', '', 0, '2023-03-01', true]]);
 const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const NOPAR = c => c[2] !== 'Paris' && c[3] > 35;          // NOT ville = 'Paris' AND age > 35
 const NOM = c => `${c[0]} ${c[1]}`;   // le prénom et le nom du client, toujours ensemble
 
 const CHAPTERS = [
   {n:1, label:'Situation',          a:5.0,  b:15.0},
-  {n:2, label:'Le problème',        a:15.0, b:29.5},
-  {n:3, label:'NOT en action',      a:29.5, b:48.0},
-  {n:4, label:'NOT ou l’inverse',   a:48.0, b:60.0},
-  {n:5, label:'Les parenthèses',    a:60.0, b:79.0},
-  {n:6, label:'Le résultat',        a:79.0, b:92.0},
-  {n:7, label:'À retenir',          a:92.0, b:DURATION}
+  {n:2, label:'Le problème',        a:15.0, b:33.5},
+  {n:3, label:'NOT en action',      a:33.5, b:52.0},
+  {n:4, label:'NOT ou l’inverse',   a:52.0, b:68.5},
+  {n:5, label:'Les parenthèses',    a:68.5, b:87.5},
+  {n:6, label:'Le résultat',        a:87.5, b:104.5},
+  {n:7, label:'À retenir',          a:104.5, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
@@ -288,27 +290,31 @@ const CAPTIONS = [
   [5.3, 8.6,    "Inscrits avant le 1<sup>er</sup>&nbsp;mars&nbsp;2023, les anciens clients ont déjà reçu un <b>code\u00a0de réduction\u00a0de 15 %</b>."],
   [8.7, 11.35,  "L’équipe marketing veut offrir la <b>livraison\u00a0gratuite</b> à tous les <b>autres clients</b>."],
   [11.45, 14.6, "Pour cela, on récupère<br>la date d’inscription des <b>10 clients</b><br>dans la <b>table clients</b>."],
-  [15.3, 18.6,  "On part de la condition du code : une inscription avant le 1<sup>er</sup>&nbsp;mars&nbsp;2023."],
-  [18.7, 22.6,  "Une date s’écrit <code>'AAAA-MM-JJ'</code> : une date plus ancienne est plus <b>petite</b>."],
-  [22.7, 26.0,  "Le résultat contient les <b>4 clients</b> <span class=\"nw\">qui ont déjà reçu</span> le code de réduction."],
-  [26.1, 29.1,  "Il faut l’<b>inverse</b>, les 6 autres clients : c’est le rôle de <code>NOT</code>."],
-  [29.8, 33.4,  "On place <code>NOT</code> juste après <code>WHERE</code>, devant la condition."],
-  [33.5, 36.25, "Pour chaque client, la condition est vérifiée ; <code>NOT</code> inverse la réponse."],
-  [36.35, 43.0, "Vrai devient faux : on garde donc les lignes où la condition est <b>fausse</b>."],
-  [43.1, 47.5,  "Les 4 anciens clients sont écartés : il reste <b>6 clients</b>."],
-  [48.3, 52.2,  "Pour une comparaison simple, il existe un opérateur inverse : <code>!=</code> pour <code>=</code>."],
-  [52.3, 56.3,  "Attention, l’inverse de <code>&lt;</code> est <code>&gt;=</code>, pas\u00a0<code>&gt;</code> : le 1<sup>er</sup>&nbsp;mars compte aussi."],
-  [56.4, 59.6,  "Avec <code>NOT</code>, tu gardes la condition telle quelle : aucune erreur de signe."],
-  [60.3, 64.3,  "Pour inverser un <b>groupe de conditions</b>, mets-le entre parenthèses après <code>NOT</code>."],
-  [64.4, 68.4,  "Seule Léa Simon, Parisienne de plus de 35 ans, est écartée : il reste <b>9 clients</b>."],
-  [68.5, 73.0,  "Sans parenthèses, <code>NOT</code> n’inverse que la condition qui le suit : <code>ville = 'Paris'</code>."],
-  [73.1, 78.6,  "Tous les Parisiens, dont Sophie Martin, sont écartés : il reste <b>3 clients</b>."],
-  [79.3, 83.6,  "La requête affiche le prénom, le nom, la ville et la date d’inscription."],
-  [83.7, 87.7,  "Résultat : <b>6 clients</b> recevront <span class=\"nw\">la livraison gratuite</span>,<br>aucun n’a reçu le code."],
-  [87.8, 91.5,  "<code>WHERE</code> ne filtre que le résultat : la <b>table\u00a0clients</b> n’est pas modifiée."],
-  [92.3, 97.1,  "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [97.2, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
-      : [97.2, 999, "<code>NOT</code> inverse une condition : la ligne est gardée si elle est fausse."]
+  // Le problème, la situation et la comparaison : les textes d’Elisa (28 octobre, 23 h 34), une phrase par bulle
+  [15.3, 18.6,  "On part de la condition du code de réduction :<br>une inscription avant le 1<sup>er</sup>&nbsp;mars&nbsp;2023."],
+  [18.7, 22.6,  "Ici, la date s’écrit au format<br><span class=\"nw\">année-mois-jour</span> : <code>'2023-03-01'</code><br>correspond au 1<sup>er</sup>&nbsp;mars&nbsp;2023."],
+  [22.7, 26.4,  "Le signe <code>&lt;</code> permet de sélectionner les clients inscrits avant cette date."],
+  [26.7, 30.0,  "Ces <b>4 clients</b> ont déjà reçu leur code de réduction."],
+  [30.1, 33.1,  "Pour sélectionner les 6 autres, utilise <code>NOT</code> : il inverse la condition du filtre."],
+  [33.8, 37.4,  "On place <code>NOT</code> juste après <code>WHERE</code>, devant la condition."],
+  [37.5, 40.25, "Pour chaque client, la condition est vérifiée ; <code>NOT</code> inverse la réponse."],
+  [40.35, 47.0, "Vrai devient faux : on garde donc les lignes où la condition est <b>fausse</b>."],
+  [47.1, 51.5,  "Les 4 anciens clients sont écartés : il reste <b>6 clients</b>."],
+  [52.3, 56.4,  "Pour dire « différent de »,<br>tu peux utiliser <code>!=</code> à la place<br>de <code>NOT</code> devant une égalité."],
+  [56.5, 60.6,  "Ici, les deux écritures sélectionnent les clients dont la ville n’est pas Paris."],
+  [60.8, 64.8,  "Attention, l’inverse de <code>&lt;</code> est <code>&gt;=</code>, pas\u00a0<code>&gt;</code> : le 1<sup>er</sup>&nbsp;mars compte aussi."],
+  [64.9, 68.1,  "Avec <code>NOT</code>, tu gardes la condition telle quelle : aucune erreur de signe."],
+  [68.8, 72.8,  "Pour inverser un <b>groupe de conditions</b>, mets-le entre parenthèses après <code>NOT</code>."],
+  [72.9, 76.9,  "Seule Léa Simon, Parisienne de plus de 35 ans, est écartée : il reste <b>9 clients</b>."],
+  [77.0, 81.5,  "Sans parenthèses, <code>NOT</code> n’inverse que la condition qui le suit : <code>ville = 'Paris'</code>."],
+  [81.6, 87.1,  "Tous les Parisiens, dont Sophie Martin, sont écartés : il reste <b>3 clients</b>."],
+  [87.8, 92.1,  "La requête affiche le prénom, le nom, la ville et la date d’inscription."],
+  [92.2, 96.2,  "Tu as identifié les <b>6 clients</b> qui n’ont pas reçu le code de réduction."],
+  [96.3, 100.2, "Ils pourront bénéficier<br>de la livraison offerte."],
+  [100.3, 104.0,  "<code>WHERE</code> ne filtre que le résultat : la <b>table\u00a0clients</b> n’est pas modifiée."],
+  [104.8, 109.6,  "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [109.7, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
+      : [109.7, 999, "<code>NOT</code> inverse une condition : la ligne est gardée si elle est fausse."]
 ];
 
 /* Pas de question en pleine vidéo : les moments « À toi » font participer l’élève (ni exercice ni quiz après la vidéo, depuis le 28 octobre). */
@@ -319,36 +325,36 @@ const MOMENTS = [
   /* Mini-jeux (Elisa, 28 octobre, 8 h 50 : « pas assez gamifié »). L’ancien moment 1 (« Quel mot-clé inverse la condition ? ») avait
      pour réponse le titre du cours : place au passage en revue, que l’élève fait lui-même. Sophie Martin, déjà marquée « écartée »,
      sert d’exemple. */
-  {at: 36.3, from: 29.5, kind: 'tap', need: 4, prompt: 'Touche les <b>4 clients</b> que <code>NOT</code> écarte.',
+  {at: 40.3, from: 33.5, kind: 'tap', need: 4, prompt: 'Touche les <b>4 clients</b> que <code>NOT</code> écarte.',
     hint: 'Une inscription avant le 1er mars 2023 rend la condition vraie : NOT l’inverse.',
     spots: CLIENTS.map((c, i) => ({k: 'r' + i, sel: `#rows3 > .tr:nth-child(${i + 1})`, label: `Ligne ${i + 1} : ${c[0]} ${c[1]}, inscrit${FEM(c) ? 'e' : ''} le ${JOUR(c[4])}`, ok: OLD(c),
       why: OLD(c) ? '' : `${c[0]} ${c[1]} s’est inscrit${FEM(c) ? 'e' : ''} le ${JOUR(c[4])} : la condition est fausse, <code>NOT</code> la rend vraie, ${FEM(c) ? 'elle est gardée' : 'il est gardé'}.`})),
     tip: 'Cherche les dates avant le 1er mars 2023 : pour elles, la condition est vraie, et NOT écarte la ligne.'},
-  /* Le miroir, avant que la vidéo montre l’inverse de < : un client test, inscrit le 1er mars, n’a pas reçu le code ; seul >= le garde
-     (avec >, il n’est gardé d’aucun côté ; avec !=, les anciens clients reviennent). */
-  {at: 52.25, from: 48.0, kind: 'tune', ico: '🪞', prompt: 'Trouve l’inverse de <code>&lt; \'2023-03-01\'</code> : tous les clients <b>sans code</b>, et eux seuls.',
-    hint: 'Change l’opérateur, regarde qui est gardé, puis valide.',
+  /* Le miroir, avant que la vidéo montre l’inverse de < : Lucas Bernard, inscrit le 1er mars, n’a pas reçu le code ; seul >= le
+     sélectionne (avec >, il n’est sélectionné d’aucun côté ; avec !=, les anciens clients reviennent). Énoncé, aide et compte d’Elisa. */
+  {at: 60.75, from: 52.0, kind: 'tune', ico: '🪞', prompt: 'Les clients inscrits avant le 1er mars 2023 ont déjà reçu leur code. Quel opérateur permet de sélectionner tous les autres, y compris le client inscrit le 1er mars ?',
+    hint: 'Choisis un opérateur, observe les clients sélectionnés, puis valide.',
     controls: [{k: 'op', type: 'seg', label: 'Opérateur', choices: ['>', '>=', '!='], value: '>', code: true}],
     answer: {op: '>='},
     board: {y: 210, html: '<span class="mb-k">🪞 Le miroir</span><div class="mb-q mg-sm" id="mbnq"></div><div class="mg-grid mg-dense">'
-      + MIROIR.map((c, i) => `<div class="mg-r${c[5] ? ' mg-test' : ''}" id="mbn${i}">${c[5] ? '🆕 Client test' : `${c[0]}${OLD(c) ? ' <i class="mg-tag">code</i>' : ''}`}<b>${c[4]}</b></div>`).join('')
+      + CLIENTS.map((c, i) => `<div class="mg-r" id="mbn${i}">${c[0]}${OLD(c) ? ' <i class="mg-tag">code</i>' : ''}<b>${c[4]}</b></div>`).join('')
       + '</div><div class="mg-c" id="mbnn"></div>'},
     show(s, b) {
       const garde = c => ({'>': c[4] > '2023-03-01', '>=': c[4] >= '2023-03-01', '!=': c[4] !== '2023-03-01'})[s.op];
       b.querySelector('#mbnq').innerHTML = `<span class="k">WHERE</span> date_inscription ${esc(s.op)} <span class="s">'2023-03-01'</span>`;
-      MIROIR.forEach((c, i) => { const r = b.querySelector('#mbn' + i); r.classList.toggle('in', garde(c)); r.classList.toggle('out', !garde(c)); });
-      const n = MIROIR.filter(garde).length, test = garde(MIROIR[MIROIR.length - 1]), anciens = MIROIR.filter(c => OLD(c) && garde(c)).length;
-      b.querySelector('#mbnn').innerHTML = anciens ? `<b>${n}</b> clients gardés, dont ${anciens} qui ont déjà le code`
-        : test ? `<b>${n}</b> clients gardés : tous ceux sans code` : `<b>${n}</b> clients gardés : le client test est oublié`;
+      CLIENTS.forEach((c, i) => { const r = b.querySelector('#mbn' + i); r.classList.toggle('in', garde(c)); r.classList.toggle('out', !garde(c)); });
+      const n = CLIENTS.filter(garde).length, lucas = garde(CLIENTS[1]), anciens = CLIENTS.filter(c => OLD(c) && garde(c)).length;
+      b.querySelector('#mbnn').innerHTML = anciens ? `<b>${n}</b> clients sélectionnés, dont ${anciens} qui ont déjà reçu le code.`
+        : lucas ? `<b>${n}</b> clients sélectionnés : aucun n’a encore reçu de code.` : `<b>${n}</b> clients sélectionnés : Lucas Bernard, inscrit le 1er mars, est oublié.`;
     },
     check(s) {
-      if (s.op === '>=') return {ok: true, why: 'L’inverse de <code>&lt;</code> est <code>&gt;=</code> : le client inscrit le 1er mars, qui n’a pas reçu le code, est gardé.'};
-      if (s.op === '>') return {ok: false, why: 'Avec <code>&gt;</code>, le client inscrit le 1er mars n’est gardé d’aucun côté : ni code, ni livraison gratuite.'};
-      return {ok: false, why: '<code>!=</code> garde aussi les anciens clients : seul le 1er mars serait écarté.'};
+      if (s.op === '>=') return {ok: true, why: 'L’inverse de <code>&lt;</code> est <code>&gt;=</code> : Lucas Bernard, inscrit le 1er mars, n’a pas reçu le code ; il est sélectionné.'};
+      if (s.op === '>') return {ok: false, why: 'Avec <code>&gt;</code>, Lucas Bernard, inscrit le 1er mars, n’est sélectionné d’aucun côté : ni code, ni livraison offerte.'};
+      return {ok: false, why: '<code>!=</code> sélectionne aussi les clients qui ont déjà reçu le code : seul Lucas Bernard, inscrit le 1er mars, serait écarté.'};
     },
-    tip: 'Un client inscrit le 1er mars n’est pas inscrit avant : il doit être gardé.'},
+    tip: 'Lucas Bernard, inscrit le 1er mars, n’est pas inscrit avant cette date : il doit être sélectionné.'},
   // La portée de NOT, juste après le groupe entre parenthèses : sans elles, NOT n’inverse que la condition qui le suit
-  {at: 68.45, from: 60.0, kind: 'tap', need: 1, prompt: 'Sans parenthèses, touche ce que <code>NOT</code> inverse.',
+  {at: 76.95, from: 68.5, kind: 'tap', need: 1, prompt: 'Sans parenthèses, touche ce que <code>NOT</code> inverse.',
     hint: 'Touche une partie de la condition.',
     board: {y: 470, html: '<span class="mb-k">🔦 La portée de NOT</span><div class="mb-q mg-tq"><span class="k">WHERE NOT</span> <span class="mg-t" id="mbP1">ville = <span class="s">\'Paris\'</span></span>\n  <span class="k mg-t" id="mbP2">AND</span> <span class="mg-t" id="mbP3">age &gt; 35</span></div>'},
     spots: [{k: 'v', sel: '#mbP1', label: "ville = 'Paris'", ok: true},
@@ -454,48 +460,52 @@ function build(){
     show(lab, 19.45 + i * 0.3, {y: 12}, 0.35);
     cue(19.2 + i * 0.3, 'tick', 0.6, i * 2);
   });
-  hide('#date2', 22.55, {y: 30}, 0.35);
-  press($('#qrun'), 22.65, '#4B30CC', 9, false);   // premier essai, que la suite montre insuffisant : pas de confettis
-  show('#tbl2', 22.9, {y: 40}, 0.5);
+  // « Le signe < permet de sélectionner les clients inscrits avant cette date » : le signe s’allume dans la requête
+  tl.to('#lt3', {backgroundColor: 'rgba(255,224,138,.3)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 22.9);
+  cue(22.9, 'pop', 0.7, 3);
+  hide('#date2', 26.55, {y: 30}, 0.35);
+  press($('#qrun'), 26.65, '#4B30CC', 9, false);   // premier essai, que la suite montre insuffisant : pas de confettis
+  show('#tbl2', 26.9, {y: 40}, 0.5);
   const tr2 = $$('#rows2 .tr');
   gsap.set(tr2, {autoAlpha: 0, y: 16});
-  tl.to(tr2, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out', stagger: 0.07}, 23.05);
-  tr2.forEach((_, i) => cue(23.05 + i * 0.07, 'tick', 0.45, i));
-  show('#cnt2', 23.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  tl.to(tr2, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out', stagger: 0.07}, 27.05);
+  tr2.forEach((_, i) => cue(27.05 + i * 0.07, 'tick', 0.45, i));
+  show('#cnt2', 27.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
   const got = $$('#rows2 .got');
   gsap.set(got, {autoAlpha: 0, scale: 0.5});
-  tl.to(got, {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2.2)', stagger: 0.12}, 24.0);
-  got.forEach((_, i) => cue(24.0 + i * 0.12, 'pop', 0.6, i));
+  tl.to(got, {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2.2)', stagger: 0.12}, 28.0);
+  got.forEach((_, i) => cue(28.0 + i * 0.12, 'pop', 0.6, i));
   // Les 6 autres, à contacter
-  show('#ghost2', 26.3, {y: 40}, 0.55);
-  cue(26.3, 'whoosh', 0.5);
+  show('#ghost2', 30.3, {y: 40}, 0.55);
+  cue(30.3, 'whoosh', 0.5);
   const gc = $$('#gchips .gchip');
   gsap.set(gc, {autoAlpha: 0, scale: 0.6});
-  tl.to(gc, {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)', stagger: 0.08}, 26.6);
-  gc.forEach((_, i) => cue(26.6 + i * 0.08, 'pop', 0.55, i));
-  hide(['#tbl2', '#ghost2'], 29.0, {y: 40});
-  sceneOff('#s2', 29.5);
+  tl.to(gc, {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)', stagger: 0.08}, 30.6);
+  gc.forEach((_, i) => cue(30.6 + i * 0.08, 'pop', 0.55, i));
+  hide(['#tbl2', '#ghost2'], 33.0, {y: 40});
+  sceneOff('#s2', 33.5);
 
   /* ===== 3 · NOT en action ===== */
-  sceneOn('#s3', 29.5);
-  te = typeChars(notCh, 29.9, 14, $('#car3n'));
-  cue(29.9, 'pop', 0.7, 4);
+  sceneOn('#s3', 33.5);
+  te = typeChars(notCh, 33.9, 14, $('#car3n'));
+  cue(33.9, 'pop', 0.7, 4);
   tl.to('#not3', {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, te + 0.15);
-  show('#look3', 31.0, {y: 30});
-  cue(31.0, 'pop', 0.8, 1);
-  hide(['#qcode', '#look3'], 33.3, {y: -40}, 0.4);
-  show('#cond3', 33.6, {y: 30, scale: 0.94});
-  cue(33.6, 'pop', 0.9, 1);
-  show('#tt3', 33.9, {y: 40}, 0.5);
-  cue(33.9, 'whoosh', 0.5);
+  show('#look3', 35.0, {y: 30});
+  cue(35.0, 'pop', 0.8, 1);
+  hide(['#qcode', '#look3'], 37.3, {y: -40}, 0.4);
+  show('#cond3', 37.6, {y: 30, scale: 0.94});
+  cue(37.6, 'pop', 0.9, 1);
+  show('#tt3', 37.9, {y: 40}, 0.5);
+  cue(37.9, 'whoosh', 0.5);
   const tr3 = $$('#rows3 .tr');
   gsap.set(tr3, {autoAlpha: 0, y: 12});
-  tl.to(tr3, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.04}, 34.2);
-  show('#cnt3a', 34.45, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  tl.to(tr3, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.04}, 38.2);
+  show('#cnt3a', 38.45, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
   gsap.set('#cnt3b', {autoAlpha: 0, y: 24});
   // Balayage : la condition, puis NOT retourne la pastille.
-  const T3 = [35.2, 36.45];   // une pause après Sophie Martin : le moment 1 (36,3) laisse l’élève faire la suite
-  for (let i = 2; i < 10; i++) T3.push(+(T3[i - 1] + 0.5).toFixed(2));
+  // Le passage en revue commence après le moment 1 (40,3) : aucune ligne n’est vérifiée avant que l’élève agisse (Elisa, 28 octobre, 23 h 34)
+  const T3 = [40.6];
+  for (let i = 1; i < 10; i++) T3.push(+(T3[i - 1] + 0.45).toFixed(2));
   const scan = $('#scan3');
   gsap.set(scan, {y: 0, autoAlpha: 0});
   tl.to(scan, {autoAlpha: 1, duration: 0.25}, T3[0] - 0.25);
@@ -517,50 +527,50 @@ function build(){
   });
   tl.to(scan, {autoAlpha: 0, duration: 0.25}, T3[9] + 0.6);
   const kept3 = tr3.filter(r => r.dataset.keep === '1'), out3 = tr3.filter(r => r.dataset.keep !== '1');
-  tl.to(kept3.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.35, stagger: 0.07}, 41.6);
-  cue(41.6, 'chord', 0.7);
-  tl.to(out3, {opacity: 0.4, duration: 0.3, stagger: 0.05}, 42.1);
-  tl.to(out3, {height: 0, opacity: 0, duration: 0.55, ease: 'power2.inOut', stagger: 0.06}, 43.4);
-  cue(43.4, 'fold', 0.9);
-  tl.to('#cnt3a', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 44.25);
-  tl.to('#cnt3b', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 44.35);
-  cue(44.35, 'pop', 0.9, 4);
-  hide(['#cond3', '#tt3'], 47.5);
-  sceneOff('#s3', 48.0);
+  tl.to(kept3.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.35, stagger: 0.07}, 45.6);
+  cue(45.6, 'chord', 0.7);
+  tl.to(out3, {opacity: 0.4, duration: 0.3, stagger: 0.05}, 46.1);
+  tl.to(out3, {height: 0, opacity: 0, duration: 0.55, ease: 'power2.inOut', stagger: 0.06}, 47.4);
+  cue(47.4, 'fold', 0.9);
+  tl.to('#cnt3a', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 48.25);
+  tl.to('#cnt3b', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 48.35);
+  cue(48.35, 'pop', 0.9, 4);
+  hide(['#cond3', '#tt3'], 51.5);
+  sceneOff('#s3', 52.0);
 
   /* ===== 4 · NOT ou l’inverse à la main ===== */
-  sceneOn('#s4', 48.0);
-  show('#eq1', 48.1, {y: 50});
-  cue(48.1, 'whoosh', 0.6);
+  sceneOn('#s4', 52.0);
+  show('#eq1', 52.1, {y: 50});
+  cue(52.1, 'whoosh', 0.6);
   const mb = $$('#s4 .mbox');
   gsap.set(mb, {autoAlpha: 0, scale: 1.3});
-  tl.to(mb[0], {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 49.4);
-  cue(49.4, 'pop', 0.8, 3);
-  show('#en1', 50.1, {y: 12}, 0.4);
-  show('#eq2', 52.4, {y: 50});
-  cue(52.4, 'whoosh', 0.6);
-  tl.to(mb[1], {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 53.5);
-  cue(53.5, 'pop', 0.8, 5);
-  show('#en2', 54.2, {y: 12}, 0.4);
-  tl.to('#s4 .eqc .kw', {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 56.6);
-  hide(['#eq1', '#eq2'], 59.5);
-  sceneOff('#s4', 60.0);
+  tl.to(mb[0], {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 53.4);
+  cue(53.4, 'pop', 0.8, 3);
+  show('#en1', 54.1, {y: 12}, 0.4);
+  show('#eq2', 60.9, {y: 50});
+  cue(60.9, 'whoosh', 0.6);
+  tl.to(mb[1], {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 62.0);
+  cue(62.0, 'pop', 0.8, 5);
+  show('#en2', 62.7, {y: 12}, 0.4);
+  tl.to('#s4 .eqc .kw', {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 65.1);
+  hide(['#eq1', '#eq2'], 68.0);
+  sceneOff('#s4', 68.5);
 
   /* ===== 5 · Les parenthèses ===== */
-  sceneOn('#s5', 60.0);
-  show('#p5', 60.05, {y: 50});
-  cue(60.05, 'whoosh', 0.6);
-  te = typeLine($('#m5l'), 60.65, 30);
+  sceneOn('#s5', 68.5);
+  show('#p5', 68.55, {y: 50});
+  cue(68.55, 'whoosh', 0.6);
+  te = typeLine($('#m5l'), 69.15, 30);
   dashHide('#br1', L.len1);
   dashHide('#br2', L.len2);
-  tl.to('#br1', {strokeDashoffset: 0, duration: 0.55, ease: 'power2.inOut'}, 62.1);
-  show('#bl1', 62.45, {y: 14});
-  cue(62.1, 'pop', 0.8, 5);
-  show('#who5', 64.4, {y: 40}, 0.5);
-  cue(64.4, 'whoosh', 0.5);
+  tl.to('#br1', {strokeDashoffset: 0, duration: 0.55, ease: 'power2.inOut'}, 70.6);
+  show('#bl1', 70.95, {y: 14});
+  cue(70.6, 'pop', 0.8, 5);
+  show('#who5', 72.9, {y: 40}, 0.5);
+  cue(72.9, 'whoosh', 0.5);
   const cl = $$('#clg .cl');
   gsap.set(cl, {autoAlpha: 0, scale: 0.85});
-  tl.to(cl, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(1.8)', stagger: 0.05}, 64.6);
+  tl.to(cl, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(1.8)', stagger: 0.05}, 73.1);
   const strike = (els, t) => els.forEach((c, i) => {
     tl.to(c.querySelector('.strike'), {scaleX: 1, duration: 0.25, ease: 'power2.out'}, t + i * 0.08);
     tl.to(c.querySelector('.x'), {autoAlpha: 1, duration: 0.2}, t + i * 0.08 + 0.1);
@@ -568,58 +578,58 @@ function build(){
     cue(t + i * 0.08, 'miss', 0.55, i);
   });
   // Avec parenthèses : seule Léa (Paris, 38 ans) est écartée.
-  strike(cl.filter(c => c.dataset.g === '1'), 65.6);
-  show('#cnt5a', 66.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  strike(cl.filter(c => c.dataset.g === '1'), 74.1);
+  show('#cnt5a', 74.7, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
   gsap.set('#cnt5b', {autoAlpha: 0, y: 24});
   // Sans parenthèses : NOT n’inverse que ville = 'Paris'.
   const lp = $('#lp'), rp = $('#rp');
-  tl.to([lp, rp], {autoAlpha: 0, duration: 0.2}, 68.6);
-  tl.set([lp, rp], {display: 'none'}, 68.82);
-  cue(68.82, 'pop', 0.8, 2);
-  tl.to('#br1', {strokeDashoffset: L.len1 + 1, duration: 0.35, ease: 'power2.in'}, 68.6);
-  tl.to('#bl1', {autoAlpha: 0, duration: 0.25}, 68.6);
-  tl.to('#ph1', {autoAlpha: 0, duration: 0.25}, 68.7);
-  tl.to('#ph2', {autoAlpha: 1, duration: 0.3}, 68.8);
-  tl.to('#br2', {strokeDashoffset: 0, duration: 0.5, ease: 'power2.inOut'}, 69.1);
-  show('#bl2', 69.45, {y: 14});
-  strike(cl.filter(c => c.dataset.n !== '1' && c.dataset.g !== '1'), 73.4);
-  tl.to('#cnt5a', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 74.4);
-  tl.to('#cnt5b', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 74.5);
-  cue(74.5, 'pop', 0.9, 4);
+  tl.to([lp, rp], {autoAlpha: 0, duration: 0.2}, 77.1);
+  tl.set([lp, rp], {display: 'none'}, 77.32);
+  cue(77.32, 'pop', 0.8, 2);
+  tl.to('#br1', {strokeDashoffset: L.len1 + 1, duration: 0.35, ease: 'power2.in'}, 77.1);
+  tl.to('#bl1', {autoAlpha: 0, duration: 0.25}, 77.1);
+  tl.to('#ph1', {autoAlpha: 0, duration: 0.25}, 77.2);
+  tl.to('#ph2', {autoAlpha: 1, duration: 0.3}, 77.3);
+  tl.to('#br2', {strokeDashoffset: 0, duration: 0.5, ease: 'power2.inOut'}, 77.6);
+  show('#bl2', 77.95, {y: 14});
+  strike(cl.filter(c => c.dataset.n !== '1' && c.dataset.g !== '1'), 81.9);
+  tl.to('#cnt5a', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 82.9);
+  tl.to('#cnt5b', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 83.0);
+  cue(83.0, 'pop', 0.9, 4);
   const so = cl.find(c => c.dataset.s === '1');
-  tl.to(so, {scale: 1.06, duration: 0.18, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 75.2);
-  hide(['#p5', '#who5'], 78.5);
-  sceneOff('#s5', 79.0);
+  tl.to(so, {scale: 1.06, duration: 0.18, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 83.7);
+  hide(['#p5', '#who5'], 87.0);
+  sceneOff('#s5', 87.5);
 
   /* ===== 6 · Le résultat ===== */
-  sceneOn('#s6', 79.0);
-  show('#s6code', 79.05, {y: 60}, 0.6);
-  cue(79.05, 'whoosh', 0.7);
-  te = typeLine($('#s6l1'), 79.55, 32);
+  sceneOn('#s6', 87.5);
+  show('#s6code', 87.55, {y: 60}, 0.6);
+  cue(87.55, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 88.05, 32);
   for (const id of ['#s6l2', '#s6l3', '#s6l4']) te = typeLine($(id), te + 0.1, 32);
-  press($('#s6run'), 83.75);
-  show('#coup6', 84.05, {y: 40}, 0.5);
+  press($('#s6run'), 92.25);
+  show('#coup6', 92.55, {y: 40}, 0.5);
   const cps = $$('#cgrid .cp6');
   gsap.set(cps, {autoAlpha: 0, scale: 0.7, rotation: -3});
   cps.forEach((k, i) => {
-    tl.to(k, {autoAlpha: 1, scale: 1, rotation: 0, duration: 0.42, ease: 'back.out(1.8)'}, 84.35 + i * 0.13);
-    cue(84.35 + i * 0.13, 'pop', 0.7, i);
+    tl.to(k, {autoAlpha: 1, scale: 1, rotation: 0, duration: 0.42, ease: 'back.out(1.8)'}, 92.85 + i * 0.13);
+    cue(92.85 + i * 0.13, 'pop', 0.7, i);
   });
-  show('#cnt6', 85.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  show('#badge6', 85.8, {y: 0, scale: 0.6}, 0.55, 'back.out(1.9)');
-  cue(85.8, 'success', 0.9);
-  hide(['#s6code', '#coup6', '#badge6'], 91.5);
-  sceneOff('#s6', 92.0);
+  show('#cnt6', 93.8, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  show('#badge6', 94.3, {y: 0, scale: 0.6}, 0.55, 'back.out(1.9)');
+  cue(94.3, 'success', 0.9);
+  hide(['#s6code', '#coup6', '#badge6'], 104.0);
+  sceneOff('#s6', 104.5);
 
   /* ===== 7 · À retenir ===== */
-  recapScene(92.0, [92.7, 94.5, 96.3]);
-  hold(94.3, 2.9);
-  hold(96.1, 2.9);
+  recapScene(104.5, [105.2, 107.0, 108.8]);
+  hold(106.8, 2.9);
+  hold(108.6, 2.9);
   // Le bouton « Ajouter à mes notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(97.25, 'pop', 0.85, 5);
+  if (APP) cue(109.75, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 97.2, moments: MOMENTS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 109.7, moments: MOMENTS,
   glyphs: '🏷️🗓️🚚👥👤👪📍🔎📋🟰📏🧩⚠️↩️⚖️✓✕→⇔', dom, build});
 </script>
 </body>
