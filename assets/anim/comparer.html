@@ -351,10 +351,10 @@ const MOMENTS = [
     {label: '<', why: '<code>&lt;</code> exclut la limite : la Tisane Détox, à 60, serait écartée.'},
     {label: '>=', why: '<code>&gt;=</code> garde les stocks de 60 et plus : c’est l’inverse.'}],
     tip: '« 60 ou moins » : la limite 60 compte.'},
-  /* Les paniers, une fois les six opérateurs et la limite (incluse, exclue) expliqués : ce que chaque condition fait de la Tisane Détox,
+  /* Les zones, une fois les six opérateurs et la limite (incluse, exclue) expliqués : ce que chaque condition fait de la Tisane Détox,
      à exactement 60 unités. (L’ancien moment, relier chaque opérateur à son sens, venait avant leur tableau.) */
-  {at: 58.45, from: 45.5, kind: 'sort', prompt: 'La Tisane Détox a <b>60 unités</b>. Chaque condition la garde-t-elle ou l’écarte-t-elle ?',
-    hint: 'Touche une condition, puis son panier. Tu peux aussi la faire glisser.', next: '{x} : touche son panier.',
+  {at: 58.45, from: 45.5, kind: 'sort', prompt: 'La Tisane Détox compte <b>60 unités</b> en stock. Pour chaque condition, indique si elle est gardée dans les résultats ou écartée.',
+    hint: 'Touche une condition, puis sa zone. Tu peux aussi la faire glisser.', next: '{x} : touche sa zone.',
     board: {y: 470, html: '<span class="mb-k">⚖️ La Tisane Détox, à 60 unités</span><div class="mb-cols" style="gap:28px"><div class="mb-col"><div class="mb-bin" id="mbGa"><b>✅ Gardée</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin" id="mbEc"><b>❌ Écartée</b><div class="mb-drop"></div></div></div></div>'},
     spots: [{k: 'g', sel: '#mbGa', label: 'Gardée'}, {k: 'e', sel: '#mbEc', label: 'Écartée'}],
     options: [
@@ -384,7 +384,9 @@ const MOMENTS = [
     check(s) {
       const garde = p => PASSE(s, p[2]), manque = PRODUITS.filter(p => p[2] >= 90 && !garde(p)), trop = PRODUITS.filter(p => p[2] < 90 && garde(p));
       if (!manque.length && !trop.length) return {ok: true, why: `<code>stock ${s.op.replace('<', '&lt;').replace('>', '&gt;')} ${s.v}</code> garde les 4 produits à 90 unités ou plus, l’Oméga 3 compris.`};
-      if (s.op[0] === '<') return {ok: false, why: '<code>&lt;</code> et <code>&lt;=</code> gardent les petits stocks : il faut les produits à 90 unités ou plus.'};
+      /* La correction d’Elisa (28 octobre, 21 h 10), pour la condition réglée : ce qu’elle sélectionne, l’objectif, puis quoi changer. */
+      if (s.op[0] === '<') return {ok: false, why: `Avec <code>stock ${s.op === '<' ? '&lt;' : '&lt;='} ${s.v}</code>, tu sélectionnes les produits ayant `
+        + (s.op === '<' ? `moins de ${s.v} unités` : `${s.v} unités ou moins`) + ' en stock. L’objectif est de sélectionner ceux qui en ont 90 ou plus. Modifie l’opérateur.'};
       if (manque.length) { const m = manque.sort((x, y) => x[2] - y[2])[0];
         const e = /^La /.test(LE(m[0])) ? 'écartée' : 'écarté';
         return {ok: false, why: m[2] === s.v ? `${LE(m[0])}, à ${m[2]} unités, est ${e} : avec <code>&gt;</code>, la limite est exclue.`
