@@ -185,7 +185,9 @@ function withMoments(cfg){
   const M = momentPlan(cfg.moments, cfg.captions, cfg.chapters, cfg.duration, cfg.notesAt);
   const clashes = [];
   const build0 = cfg.build;
-  const out = Object.assign({}, cfg, {captions: M.captions, chapters: M.chapters, duration: M.duration, notesAt: M.notesAt, picks: M.picks,
+  /* Les arrêts « toucher » de la page (opens : un message à ouvrir, un bouton ; le recrutement du cours 0) suivent la vidéo avec ses moments. */
+  const opens = (cfg.opens || []).map(o => Object.assign({}, o, {at: M.s1(o.at)}));
+  const out = Object.assign({}, cfg, {captions: M.captions, chapters: M.chapters, duration: M.duration, notesAt: M.notesAt, picks: M.picks, opens,
     build(){
       /* Ce que la page construit, en temps d’origine, est décalé après coup : animations (sauf l’habillage, déjà construit avec les
          nouveaux temps), sons, pauses, coupes et confettis. */
