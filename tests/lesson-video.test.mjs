@@ -561,18 +561,20 @@ const COURSES = [
        ni chapitre « Le problème » pour la redire ; les guillemets : deux erreurs, puis un alias qui s’en passe. */
     chapters: ['Situation', 'Renommer une colonne', 'Avec ou sans guillemets', 'Le résultat', 'À retenir'],
     traps: ['near "du": syntax error', 'near "(": syntax error', '"Nom du produit"', 'Sans espace ni symbole']},
-  {id: 13, next: 4, titre: 'DISTINCT', page: 'distinct.html', thumb: 'distinct-thumb.jpg', duree: '2 min 18', notesAt: 109.05,
+  {id: 13, next: 4, titre: 'DISTINCT', page: 'distinct.html', thumb: 'distinct-thumb.jpg', duree: '2 min 16', notesAt: 109.05,
     table: 'clients',
     bubble: 'Avec <span class="ic">DISTINCT</span>, garde chaque valeur une seule fois.',
-    chapters: ['Situation', 'Le problème', 'À la main', 'DISTINCT', 'Où le placer', 'Plusieurs colonnes', 'Le résultat', 'À retenir'],
+    chapters: ['Situation', 'Le problème', 'À la main', 'DISTINCT', 'Plusieurs colonnes', 'Le piège', 'Le résultat', 'À retenir'],
     /* Elisa, 28 octobre, 18 h 23 : à la main (une étiquette par ville, la table intacte), DISTINCT débloqué et glissé à sa place, la
-       compréhension ; une seule épingle, dans le titre de la carte des lieux. */
+       compréhension ; une seule épingle, dans le titre de la carte des lieux. Remis dans l’ordre (19 h 25) : « Plusieurs colonnes » avant
+       le piège, la chasse aux doublons au résultat, sans redire la place de DISTINCT ni la table intacte. */
     traps: ['near "DISTINCT": syntax error', 'Paris + Sophie et Paris + Léa sont différentes', "prompt: 'Garde une seule étiquette par ville.'",
       "hint: 'Touche les étiquettes répétées pour les retirer du résultat.'", 'Tu viens de retirer<br>les répétitions <b>à la main</b>.',
       'Avec SQL, <code>DISTINCT</code> le fait pour toi !', "{label: 'DISTINCT', to: 'h1',",
       "prompt: 'Deux clients vivent à Lyon. Après <code>SELECT DISTINCT ville</code>, combien de clients restent dans la <b>table clients</b> ?'",
       "{label: 'Les deux', ok: true, why: '<code>DISTINCT</code> enlève les doublons du résultat, sans modifier les données de départ.'}",
-      '<div class="vpill"><span>${v}</span></div>']},
+      '<div class="vpill"><span>${v}</span></div>', 'Il porte sur la ligne entière : sa place est <b>juste après</b> le <code>SELECT</code>.',
+      'Revenons à la <b>demande de l’équipe</b>.', '<span id="s6pr">, prenom</span>']},
   {id: 5, next: 6, titre: 'Comparer des valeurs', page: 'comparer.html', thumb: 'comparer-thumb.jpg', duree: '2 min 05', notesAt: 102.2,
     table: 'produits',
     bubble: 'Avec les opérateurs de comparaison, compare une colonne à une valeur.',

@@ -50,12 +50,7 @@
 .ulp i{width:34px;height:54px;border-radius:10px;background:#E6E1F6}
 .ulg{position:absolute;inset:-10px;border-radius:58px;box-shadow:0 0 0 8px rgba(124,92,255,.35),0 0 60px rgba(124,92,255,.45);opacity:0}
 
-/* ---------- 4 · Où le placer ---------- */
-.qdemo{left:64px;top:236px;width:952px;height:220px;text-align:center}
-.qdemo .codepill{height:112px;font-size:54px;padding:0 44px}
-.qlabel{position:absolute;top:0;left:0;font-size:32px;font-weight:700;color:var(--ink-3);white-space:nowrap}
-.brk{position:absolute;left:0;top:0;width:952px;height:220px;overflow:visible}
-.brk path{fill:none;stroke:#A99CE0;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+/* ---------- 6 · Le piège : DISTINCT entre deux colonnes, puis à sa place ---------- */
 .cbox{position:relative;display:inline-block;isolation:isolate}
 .cbox .mbox{position:absolute;left:-6px;right:-6px;top:2px;bottom:2px;border-radius:10px;background:rgba(239,79,85,.22);box-shadow:inset 0 0 0 3px #EF4F55;z-index:-1;opacity:0}
 .okline{display:flex;align-items:center;gap:18px;margin-top:22px;opacity:0}
@@ -70,7 +65,7 @@
 .mark.ok{background:var(--accent-soft);color:var(--accent-ink);border:2px solid #D3C8FF}
 .mark.ko{background:var(--danger-soft);color:var(--danger);border:2px solid #F6C9CD}
 
-/* ---------- 6 · Le résultat ---------- */
+/* ---------- 7 · Le résultat ---------- */
 .lieux{left:64px;width:952px;padding:0 0 34px}
 .lieux .tt{height:90px;display:flex;align-items:center;gap:16px;padding:0 34px;font-weight:700;font-size:36px;color:var(--ink)}
 .lieux .tt .emo{font-size:40px}
@@ -171,27 +166,6 @@
     </div>
   </section>
 
-  <!-- 4 · Où le placer -->
-  <section class="scene" id="s4">
-    <div class="abs qdemo" id="qdemo">
-      <span class="codepill"><span class="kw">SELECT</span>&nbsp;<span class="kw" id="qkw">DISTINCT</span> ville</span>
-      <svg class="brk"><path id="brkPath" d=""/></svg>
-      <div class="qlabel" id="qlabel">juste après le SELECT</div>
-    </div>
-    <div class="abs card trap" id="trap4" style="top:520px">
-      <div class="trap-h"><span class="emo">⚠️</span><span>Entre deux colonnes</span></div>
-      <div class="mini"><span class="kw">SELECT</span> ville, <span class="cbox" id="bad4"><span class="kw">DISTINCT</span><i class="mbox"></i></span> prenom
-<span class="kw">FROM</span> clients;<span class="go" id="go4"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg></span></div>
-      <div class="out err" id="err4"><span class="oi">!</span><div class="ot"><b>Erreur SQL</b><span class="m">near "DISTINCT": syntax error</span></div></div>
-    </div>
-    <div class="abs card trap" id="fix4" style="top:1000px">
-      <div class="trap-h"><span class="emo">✅</span><span>Juste après SELECT</span></div>
-      <div class="mini"><span class="kw">SELECT</span> <span class="kw">DISTINCT</span> ville, prenom
-<span class="kw">FROM</span> clients;<span class="go" id="goF"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg></span></div>
-      <div class="okline" id="ok4"><span class="oi">✓</span><b>9 lignes</b><span>Requête valide</span></div>
-    </div>
-  </section>
-
   <!-- 5 · Plusieurs colonnes -->
   <section class="scene" id="s5">
     <div class="abs code" id="s5code" style="left:64px;top:236px;width:952px">
@@ -206,11 +180,30 @@
     </div>
   </section>
 
-  <!-- 6 · Le résultat -->
+  <!-- 6 · Le piège (Elisa, 28 octobre, 19 h 25 : « des redondances et pas dans le bon ordre ») : après « Plusieurs colonnes », car
+       l’erreur et sa correction utilisent deux colonnes ; la place de DISTINCT, déjà posée par l’élève au chapitre 4, n’est plus
+       réexpliquée : seulement l’erreur, puis la requête corrigée. -->
+  <section class="scene" id="s4">
+    <div class="abs card trap" id="trap4">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Entre deux colonnes</span></div>
+      <div class="mini"><span class="kw">SELECT</span> ville, <span class="cbox" id="bad4"><span class="kw">DISTINCT</span><i class="mbox"></i></span> prenom
+<span class="kw">FROM</span> clients;<span class="go" id="go4"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg></span></div>
+      <div class="out err" id="err4"><span class="oi">!</span><div class="ot"><b>Erreur SQL</b><span class="m">near "DISTINCT": syntax error</span></div></div>
+    </div>
+    <div class="abs card trap" id="fix4">
+      <div class="trap-h"><span class="emo">✅</span><span>Juste après SELECT</span></div>
+      <div class="mini"><span class="kw">SELECT</span> <span class="kw">DISTINCT</span> ville, prenom
+<span class="kw">FROM</span> clients;<span class="go" id="goF"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg></span></div>
+      <div class="okline" id="ok4"><span class="oi">✓</span><b>9 lignes</b><span>Requête valide</span></div>
+    </div>
+  </section>
+
+  <!-- 7 · Le résultat : retour à la demande de l’équipe ; l’éditeur garde la requête du piège (ville, prenom), l’élève la règle (la
+       chasse aux doublons), puis « , prenom » s’efface et la requête s’exécute : les 6 villes -->
   <section class="scene" id="s6">
     <div class="abs code" id="s6code" style="left:64px;top:236px;width:952px">
       <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
-      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> <span class="kw">DISTINCT</span> ville<span class="caret"><i></i></span></span><span class="ln" id="s6l2"><span class="kw">FROM</span> clients;<span class="caret"><i></i></span></span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> <span class="kw">DISTINCT</span> ville<span id="s6pr">, prenom</span><span class="caret"><i></i></span></span><span class="ln" id="s6l2"><span class="kw">FROM</span> clients;<span class="caret"><i></i></span></span></div>
       <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
     </div>
     <div class="abs card lieux" id="lieux6" style="top:676px">
@@ -220,7 +213,7 @@
     <div class="abs badge" id="badge6" style="top:1100px"><span>✓ Liste des lieux prête</span></div>
   </section>
 
-  <!-- 7 · À retenir -->
+  <!-- 8 · À retenir -->
   <section class="scene" id="s7">
     <div class="abs rtitle">Les trois idées à retenir</div>
     <div class="abs card recap" id="recap">
@@ -263,14 +256,18 @@ const MAIL = {id: 'ml1', qui: ['L’équipe commerciale', 'EC'], k: 'k-cc', tag:
 const MAIL_T = 5.2, MAIL_OPEN = 6.8;
 const OPENS = [{at: MAIL_OPEN, sel: '#ml1', prompt: 'Touche le mail pour l’ouvrir.', label: 'Ouvrir le mail de l’équipe commerciale'}];
 
+/* L’ordre (Elisa, 28 octobre, 19 h 25 : « des redondances et pas dans le bon ordre ») : « Plusieurs colonnes » avant le piège, qui
+   s’en sert ; la place de DISTINCT n’est expliquée qu’une fois (l’élève l’y glisse au chapitre 4) ; « Le résultat » ne retape plus la
+   requête du chapitre 4 : il revient à la demande de l’équipe avec la chasse aux doublons ; « la table garde ses 10 clients » n’est
+   plus dit qu’une fois (à la main), la réponse du moment 3 nomme simplement les deux clients de Lyon. */
 const CHAPTERS = [
   {n:1, label:'Situation',          a:5.0,  b:15.0},
   {n:2, label:'Le problème',        a:15.0, b:26.8},
   {n:3, label:'À la main',          a:26.8, b:45.2},
   {n:4, label:'DISTINCT',           a:45.2, b:67.0},
-  {n:5, label:'Où le placer',       a:67.0, b:77.35},
-  {n:6, label:'Plusieurs colonnes', a:77.35, b:91.25},
-  {n:7, label:'Le résultat',        a:91.25, b:103.85},
+  {n:5, label:'Plusieurs colonnes', a:67.0, b:80.9},
+  {n:6, label:'Le piège',           a:80.9, b:90.4},
+  {n:7, label:'Le résultat',        a:90.4, b:103.85},
   {n:8, label:'À retenir',          a:103.85, b:DURATION}
 ];
 
@@ -288,16 +285,16 @@ const CAPTIONS = [
   [45.5, 49.2,  "Tu viens de retirer<br>les répétitions <b>à la main</b>."],
   [49.3, 53.3,  "Avec SQL, <code>DISTINCT</code> le fait pour toi !"],
   [53.6, 56.2,  "On l’ajoute à la requête, puis on l’exécute."],
-  [56.3, 60.9,  "<code>DISTINCT</code> garde chaque ville <b>une seule fois</b> dans le résultat."],
-  [61.1, 66.4,  "Lucas Bernard et Hugo Laurent<br>habitent toujours à Lyon :<br>la <b>table\u00a0clients</b> garde ses 10 clients."],
-  [67.15, 71.05, "<code>DISTINCT</code> se place <b>juste après</b><br>le <code>SELECT</code>, avant la liste des colonnes."],
-  [71.15, 76.85, "Placé entre deux colonnes, <code>DISTINCT</code> provoque une <b>erreur</b>."],
-  [77.75, 81.45, "Avec plusieurs colonnes, <code>DISTINCT</code> compare la <b>combinaison entière</b> de chaque ligne."],
-  [81.85, 86.25, "Paris + Sophie et Paris + Léa sont différentes : les deux lignes restent."],
-  [86.35, 90.75, "Seule la combinaison <b>Paris + Nathan</b>, présente deux fois, n’est affichée qu’une fois : <b>9 lignes</b>."],
-  [91.65, 94.45, "On garde la seule colonne <code>ville</code>, avec <code>DISTINCT</code>."],
-  [94.55, 99.45, "Avec ces <b>6 villes</b>, l’équipe peut choisir les lieux des rencontres."],
-  [99.55, 103.25, "<code>DISTINCT</code> agit sur le résultat : la <b>table\u00a0clients</b> garde ses 10 clients."],
+  [56.3, 60.9,  "<code>DISTINCT</code> lit chaque ligne : une ville déjà affichée n’est pas répétée."],
+  [61.1, 66.4,  "Lucas Bernard et Hugo Laurent<br>sont toujours dans la <b>table clients</b>."],
+  [67.4, 71.1,  "Avec plusieurs colonnes, <code>DISTINCT</code> compare la <b>combinaison entière</b> de chaque ligne."],
+  [71.5, 75.9,  "Paris + Sophie et Paris + Léa sont différentes : les deux lignes restent."],
+  [76.0, 80.4,  "Seule la combinaison <b>Paris + Nathan</b>, présente deux fois, n’est affichée qu’une fois : <b>9 lignes</b>."],
+  [81.3, 85.6,  "Placé entre deux colonnes, <code>DISTINCT</code> provoque une <b>erreur</b>."],
+  [85.75, 89.9, "Il porte sur la ligne entière : sa place est <b>juste après</b> le <code>SELECT</code>."],
+  [90.85, 94.35, "Revenons à la <b>demande de l’équipe</b>."],
+  [94.7, 98.6,  "On garde la seule colonne <code>ville</code>, avec <code>DISTINCT</code>."],
+  [98.7, 103.25, "Avec ces <b>6 villes</b>, l’équipe peut choisir les lieux des rencontres."],
   [104.15, 108.95, "Pour finir, voici les <b>trois idées à retenir</b>."],
   APP ? [109.05, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
       : [109.05, 999, "<code>DISTINCT</code> retire les doublons du résultat, juste après le <code>SELECT</code>."]
@@ -339,15 +336,16 @@ const MOMENTS = [
     {label: 'Aucun', why: '<code>DISTINCT</code> ne supprime rien dans la table : Lucas Bernard et Hugo Laurent y sont toujours, et Lyon apparaît une fois dans le résultat.'}],
     tip: 'Regarde la <b>table clients</b>, à gauche : rien n’y a bougé.'},
   // plusieurs colonnes : la combinaison Paris + Nathan, présente deux fois (la vidéo n’en garde qu’une)
-  {at: 86.3, from: 77.35, kind: 'tap', need: 2, prompt: 'Touche les deux lignes identiques.',
+  {at: 75.95, from: 67.0, kind: 'tap', need: 2, prompt: 'Touche les deux lignes identiques.',
     spots: CLIENTS.map(([p, v], i) => {
       const dup = CLIENTS.filter(c => c[0] === p && c[1] === v).length > 1;
       return {k: 'c' + i, sel: `#rows5 > .tr:nth-child(${i + 1})`, label: `Ligne ${i + 1} : ${v}, ${p}`, ok: dup, why: dup ? '' : 'Cette ligne n’apparaît qu’une fois.'};
     }),
     tip: 'Compare la ville et le prénom de chaque ligne.'},
-  /* Mini-jeu : la chasse aux doublons (Elisa, 27 octobre, 23 h 25). La requête de la fin du chapitre 5 (DISTINCT ville, prenom :
-     9 lignes) ; l’élève active ou coupe DISTINCT et la colonne prenom, et voit les pastilles répétées disparaître ou revenir. */
-  {at: 90.75, from: 86.35, kind: 'tune', ico: '🎳', prompt: 'L’équipe veut <b>chaque ville une seule fois</b>. Règle la requête.',
+  /* Mini-jeu : la chasse aux doublons (Elisa, 27 octobre, 23 h 25), au chapitre « Le résultat » (Elisa, 28 octobre, 19 h 25 : plus
+     au milieu de « Plusieurs colonnes ») : on revient à la demande de l’équipe ; l’éditeur garde la requête du piège (DISTINCT ville,
+     prenom : 9 lignes) ; l’élève active ou coupe DISTINCT et la colonne prenom, et voit les pastilles répétées disparaître ou revenir. */
+  {at: 94.4, from: 90.45, kind: 'tune', ico: '🎳', prompt: 'L’équipe veut <b>chaque ville une seule fois</b>. Règle la requête.',
     hint: 'Active ou coupe les bascules, puis valide.',
     controls: [{k: 'd', type: 'switch', label: '<code>DISTINCT</code>', value: true}, {k: 'p', type: 'switch', label: 'Colonne <code>prenom</code>', value: true}],
     answer: {d: true, p: false},
@@ -399,26 +397,22 @@ function dom(){
   $('#pills6').innerHTML = VILLES.map(v => `<div class="vpill"><span>${v}</span></div>`).join('');
 }
 
-/* Mesures de mise en page (avant toute transformation) : accolade sous DISTINCT et son étiquette. */
+/* Mesures de mise en page (avant toute transformation). */
 function layout(){
-  const qd = $('#qdemo'), k = rel($('#qkw'), qd), pill = rel($('#qdemo .codepill'), qd);
-  const x1 = k.x + 4, x2 = k.x + k.w - 4, xm = (x1 + x2) / 2, y0 = pill.y + pill.h + 16;
-  const p = $('#brkPath');
-  p.setAttribute('d', `M${x1.toFixed(1)} ${y0.toFixed(1)} v18 H${x2.toFixed(1)} v-18 M${xm.toFixed(1)} ${(y0 + 18).toFixed(1)} v16`);
-  const lab = $('#qlabel'), lw = rel(lab).w;
-  lab.style.left = Math.max(0, Math.min(952 - lw, xm - lw / 2)).toFixed(1) + 'px';
-  lab.style.top = (y0 + 44).toFixed(1) + 'px';
   /* 3 · La table et le résultat, côte à côte, lignes alignées, au milieu de la scène ; 4 · le cadenas au centre, puis les deux cartes
      sous la requête */
   const top3 = Math.round((236 + 1480) / 2 - $('#cl3').offsetHeight / 2) + 'px';
   $('#cl3').style.top = top3; $('#rs3').style.top = top3;
   $('#ul4').style.top = Math.round((236 + 1480) / 2 - $('#ul4').offsetHeight / 2) + 'px';
   stackBelow('#cl4', '#c4', 0, 36); stackBelow('#rs4', '#c4', 0, 36);
-  return {brkLen: p.getTotalLength()};
+  /* 6 · Le piège : l’erreur, puis la correction dessous, l’ensemble au milieu de la scène */
+  const h1 = $('#trap4').offsetHeight, h2 = $('#fix4').offsetHeight, top6 = Math.round((236 + 1480) / 2 - (h1 + 56 + h2) / 2);
+  $('#trap4').style.top = top6 + 'px';
+  $('#fix4').style.top = (top6 + h1 + 56) + 'px';
 }
 
 function build(){
-  const L = layout();
+  layout();
   introScene();
   let te;
 
@@ -567,49 +561,24 @@ function build(){
   hide(['#c4', '#cl4', '#rs4'], 66.3, {y: -40}, 0.4);
   sceneOff('#s3b', 66.75);
 
-  /* ===== 5 · Où le placer ===== */
-  sceneOn('#s4', 66.75);
-  show('#qdemo .codepill', 66.8, {y: 0, scale: 0.9}, 0.55, 'back.out(1.8)');
-  cue(66.8, 'whoosh', 0.6);
-  tl.to('#qkw', {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 67.55);
-  cue(67.55, 'pop', 0.8, 5);
-  gsap.set('#brkPath', {strokeDasharray: `${L.brkLen} ${L.brkLen + 2}`, strokeDashoffset: L.brkLen + 1});
-  tl.to('#brkPath', {strokeDashoffset: 0, duration: 0.55, ease: 'power2.inOut'}, 68.1);
-  show('#qlabel', 68.45, {y: 14});
-  show('#trap4', 71.25, {y: 50});
-  cue(71.25, 'whoosh', 0.6);
-  press($('#go4'), 72.15, '#4B30CC', 6);
-  gsap.set('#bad4 .mbox', {autoAlpha: 0, scale: 1.3});
-  tl.to('#bad4 .mbox', {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 72.4);
-  show('#err4', 72.4, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
-  tl.to('#err4', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 72.8);
-  cue(72.4, 'error', 0.9);
-  show('#fix4', 73.75, {y: 50});
-  cue(73.75, 'whoosh', 0.6);
-  press($('#goF'), 74.6, '#4B30CC', 6);
-  show('#ok4', 74.85, {y: 0, x: -20}, 0.4, 'back.out(1.8)');
-  cue(74.85, 'chord', 0.6);
-  hide(['#qdemo', '#trap4', '#fix4'], 76.85);
-  sceneOff('#s4', 77.35);
-
-  /* ===== 6 · Plusieurs colonnes ===== */
-  sceneOn('#s5', 77.35);
-  show('#s5code', 77.4, {y: 60}, 0.6);
-  cue(77.4, 'whoosh', 0.7);
-  te = typeLine($('#s5l1'), 77.95, 26);
+  /* ===== 5 · Plusieurs colonnes ===== */
+  sceneOn('#s5', 66.75);
+  show('#s5code', 67.05, {y: 60}, 0.6);
+  cue(67.05, 'whoosh', 0.7);
+  te = typeLine($('#s5l1'), 67.6, 26);
   te = typeLine($('#s5l2'), te + 0.12, 26);
-  press($('#s5run'), 81.85);
-  show('#tbl5', 82.15, {y: 40}, 0.5);
+  press($('#s5run'), 71.5);
+  show('#tbl5', 71.8, {y: 40}, 0.5);
   gsap.set('#cnt5b', {autoAlpha: 0, y: 24});
   const tr5 = $$('#rows5 .tr');
   gsap.set(tr5, {autoAlpha: 0, y: 16});
-  tl.to(tr5, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out', stagger: 0.06}, 82.35);
-  tr5.forEach((_, i) => cue(82.35 + i * 0.06, 'tick', 0.45, i));
-  show('#cnt5a', 83.05, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  tl.to(tr5, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out', stagger: 0.06}, 72.0);
+  tr5.forEach((_, i) => cue(72.0 + i * 0.06, 'tick', 0.45, i));
+  show('#cnt5a', 72.7, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
   // Paris + Sophie, Paris + Léa : combinaisons différentes, gardées.
   const diff = tr5.filter(r => r.dataset.k === 'Paris|Sophie' || r.dataset.k === 'Paris|Léa');
   diff.forEach((r, i) => {
-    const t = 83.55 + i * 0.35, m = r.querySelector('.mark');
+    const t = 73.2 + i * 0.35, m = r.querySelector('.mark');
     gsap.set(m, {autoAlpha: 0, scale: 0.5});
     tl.to(m, {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2.2)'}, t);
     cue(t, 'true', 0.7);
@@ -617,39 +586,63 @@ function build(){
   // Paris + Nathan, deux fois : la deuxième ligne est un doublon, retirée.
   const nat = tr5.filter(r => r.dataset.k === 'Paris|Nathan'), dupRow = nat[1];
   nat.forEach((r, i) => {
-    const t = 86.55 + i * 0.25, box = r.querySelector('.mbox');
+    const t = 76.2 + i * 0.25, box = r.querySelector('.mbox');
     gsap.set(box, {autoAlpha: 0, scale: 0.85});
     tl.to(box, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'power2.out'}, t);
     cue(t, 'miss', 0.6, i);
   });
   const mk = dupRow.querySelector('.mark');
   gsap.set(mk, {autoAlpha: 0, scale: 0.5});
-  tl.to(mk, {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2.2)'}, 87.15);
-  tl.to(dupRow, {height: 0, opacity: 0, duration: 0.55, ease: 'power2.inOut'}, 88.15);
-  cue(88.15, 'fold', 0.9);
+  tl.to(mk, {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2.2)'}, 76.8);
+  tl.to(dupRow, {height: 0, opacity: 0, duration: 0.55, ease: 'power2.inOut'}, 77.8);
+  cue(77.8, 'fold', 0.9);
   // La première ligne Paris + Nathan reste : elle n’est plus marquée.
-  tl.to(nat[0].querySelector('.mbox'), {autoAlpha: 0, duration: 0.3}, 88.45);
-  tl.to('#cnt5a', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 88.8);
-  tl.to('#cnt5b', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 88.9);
-  cue(88.9, 'pop', 0.9, 4);
-  hide(['#s5code', '#tbl5'], 90.75);
-  sceneOff('#s5', 91.25);
+  tl.to(nat[0].querySelector('.mbox'), {autoAlpha: 0, duration: 0.3}, 78.1);
+  tl.to('#cnt5a', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 78.45);
+  tl.to('#cnt5b', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 78.55);
+  cue(78.55, 'pop', 0.9, 4);
+  hide(['#s5code', '#tbl5'], 80.4);
+  sceneOff('#s5', 80.9);
+
+  /* ===== 6 · Le piège ===== */
+  // DISTINCT entre deux colonnes : l’erreur ; puis la requête corrigée, DISTINCT juste après le SELECT : 9 lignes, comme au chapitre 5
+  sceneOn('#s4', 80.9);
+  show('#trap4', 80.95, {y: 50});
+  cue(80.95, 'whoosh', 0.6);
+  press($('#go4'), 81.85, '#4B30CC', 6);
+  gsap.set('#bad4 .mbox', {autoAlpha: 0, scale: 1.3});
+  tl.to('#bad4 .mbox', {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 82.1);
+  show('#err4', 82.1, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  tl.to('#err4', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 82.5);
+  cue(82.1, 'error', 0.9);
+  show('#fix4', 85.75, {y: 50});
+  cue(85.75, 'whoosh', 0.6);
+  press($('#goF'), 86.6, '#4B30CC', 6);
+  show('#ok4', 86.85, {y: 0, x: -20}, 0.4, 'back.out(1.8)');
+  cue(86.85, 'chord', 0.6);
+  hide(['#trap4', '#fix4'], 89.9);
+  sceneOff('#s4', 90.4);
 
   /* ===== 7 · Le résultat ===== */
-  sceneOn('#s6', 91.25);
-  show('#s6code', 91.3, {y: 60}, 0.6);
-  cue(91.3, 'whoosh', 0.7);
-  te = typeLine($('#s6l1'), 91.8, 24);
-  te = typeLine($('#s6l2'), te + 0.12, 24);
-  press($('#s6run'), 93.43);
-  show('#lieux6', 94.35, {y: 40}, 0.5);
+  // Retour à la demande de l’équipe : l’éditeur garde la requête du piège ; à toi (la chasse aux doublons) ; puis « , prenom »
+  // s’efface, la requête s’exécute, et les 6 villes forment la liste des lieux
+  sceneOn('#s6', 90.4);
+  show('#s6code', 90.45, {y: 60}, 0.6);
+  cue(90.45, 'whoosh', 0.7);
+  const pr6 = splitChars($('#s6pr')).reverse(), caret6 = $('#s6l1 .caret');
+  tl.set(caret6, {autoAlpha: 1}, 94.8);
+  tl.to(pr6, {display: 'none', duration: 0.001, stagger: 1 / 16, ease: 'none'}, 95.0);
+  pr6.forEach((c, i) => { if (i % 2 === 0) cue(95.0 + i / 16, 'type', 1, (i * 7) % 5); });
+  tl.set(caret6, {autoAlpha: 0}, 95.75);
+  press($('#s6run'), 96.2);
+  show('#lieux6', 96.6, {y: 40}, 0.5);
   const vp = $$('#pills6 .vpill');
   gsap.set(vp, {autoAlpha: 0, scale: 0.6});
-  tl.to(vp, {autoAlpha: 1, scale: 1, duration: 0.36, ease: 'back.out(2.2)', stagger: 0.12}, 94.65);
-  vp.forEach((_, i) => cue(94.65 + i * 0.12, 'pop', 0.7, i));
-  show('#cnt6', 95.55, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  show('#badge6', 95.95, {y: 0, scale: 0.6}, 0.55, 'back.out(1.9)');
-  cue(95.95, 'success', 0.9);
+  tl.to(vp, {autoAlpha: 1, scale: 1, duration: 0.36, ease: 'back.out(2.2)', stagger: 0.12}, 96.9);
+  vp.forEach((_, i) => cue(96.9 + i * 0.12, 'pop', 0.7, i));
+  show('#cnt6', 97.8, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  show('#badge6', 98.2, {y: 0, scale: 0.6}, 0.55, 'back.out(1.9)');
+  cue(98.2, 'success', 0.9);
   hide(['#s6code', '#lieux6', '#badge6'], 103.35);
   sceneOff('#s6', 103.85);
 
