@@ -472,7 +472,7 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '7 min 41', notesAt: 450.5, maxKo: 610,
+  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '7 min 58', notesAt: 468.1, maxKo: 610,
     table: 'clients',
     bubble: 'Chaque sujet a sa table,<br>et des identifiants relient les tables.',
     chapters: ['Situation', 'Le problème', 'Le découpage', 'Base de données et SGBD', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],
@@ -492,7 +492,14 @@ const COURSES = [
       '<span>Trois tables</span>',
       // La base de données et le SGBD : les SGBD très utilisés (pas SQLite ici, Réf 7) ; les applications qui s’appuient sur une base,
       // dont le site de NutriBoost, qui envoie ses requêtes SQL au SGBD (Réf 8)
-      'Ensemble, ces tables forment<br>une <b>base de données</b>.', 'Elle est gérée par un <b>SGBD</b> : un système de gestion de base de données.',
+      // Qu’est-ce qu’une base de données ? (Elisa, 28 octobre : « vraiment montrer ce que c’est avec des animations ») : les informations
+      // en vrac rejoignent leur case, la recherche retrouve Sophie Martin, son e-mail se corrige sur une seule ligne ; la base de NutriBoost
+      'Qu’est-ce qu’une <b>base de données</b> ?',
+      'Une base de données est un ensemble d’informations <b>organisées</b>.', 'On peut ainsi les <b>retrouver</b><br>et les <b>mettre à jour</b> facilement.',
+      'Ici, elle regroupe les données<br>de notre entreprise dans trois tables :<br><b>clients</b>, <b>commandes</b> et <b>produits</b>.',
+      '<span class="emo">🗂️</span>Organiser</span>', '<span class="emo">🔎</span>Retrouver</span>', '<span class="emo">✏️</span>Mettre à jour</span>',
+      '<span class="dbst" id="dbst">Sophie Martin', 'Une seule ligne à corriger', '<span class="sgo" id="sgo"><span class="emo">🛒</span>NutriBoost</span>',
+      'Elle est gérée par un <b>SGBD</b> : un système de gestion de base de données.',
       'Il en existe plusieurs, très utilisés : <b>MySQL</b>, <b>PostgreSQL</b>, <b>Oracle</b> ou <b>SQL Server</b>.',
       "const SGBDS = [['MySQL', '#2F7BEA', '#E3EEFF', '#BCD3FA'], ['PostgreSQL', '#7C5CFF', '#EEE9FF', '#CFC3FF'],",
       'Beaucoup d’applications utilisent une base de données.', "['c', '🛒', 'Site NutriBoost', '<span>Produits,</span> <span>commandes,</span> <span>achats</span>']",
