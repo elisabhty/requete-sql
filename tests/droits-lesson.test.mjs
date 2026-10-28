@@ -374,11 +374,11 @@ test('la vidéo de fin (fin-sql.html) : le bravo du projet, le merci des équipe
   assert.ok(fin.includes("'Avant ton départ, toute l’équipe tenait à te dire merci 💜'") && fin.includes("'Tu peux être fier du chemin parcouru ! 💜'") && !fin.includes("'Ta mission touche à sa fin.'"), 'le merci des équipes');
   assert.ok(fin.includes("'Bonjour à toute l’équipe,'") && fin.includes("'À bientôt 👋'"), 'ta réponse, mot pour mot');
   assert.ok(fin.includes("sel: '#gnb'") && fin.includes("sel: '#bsend'"), 'l’app s’arrête sur le message, puis sur « Envoyer »');
-  assert.ok(fin.includes("cap('k3', \"15 modules, 62 cours<br>et 210 requêtes SQL.\", 4.8);") && fin.includes("const FSTAT = [[15, 'modules'], [62, 'cours'], [210, 'requêtes']];"),
+  assert.ok(fin.includes("cap('k3', \"15 modules, 62 cours<br>et 209 requêtes SQL.\", 4.8);") && fin.includes("const FSTAT = [[15, 'modules'], [62, 'cours'], [209, 'requêtes']];"),
     'le nombre de requêtes des cours (plus « 17 chapitres », déjà parmi les 62 cours)');
-  /* Les 44 requêtes des exercices sont dans le compte : chaque cours avec exercice en a une */
+  /* Les 43 requêtes des exercices sont dans le compte : chaque cours avec exercice en a une (le cours 0, leçon seule, n’en a plus) */
   const M = html.slice(html.indexOf('const MODULES = ['), html.indexOf('const CHALLENGES=['));
-  assert.equal(new Set([...M.matchAll(/\n  solution:"((?:[^"\\]|\\.)*)"/g)].map(m => m[1])).size, 44, 'les requêtes des exercices');
+  assert.equal(new Set([...M.matchAll(/\n  solution:"((?:[^"\\]|\\.)*)"/g)].map(m => m[1])).size, 43, 'les requêtes des exercices');
   assert.ok(fin.includes("cap('k5', \"Et maintenant, place à la pratique :<br>des défis t’attendent !\", 4.6);"), 'et maintenant, la pratique');
   assert.ok(fs.readFileSync(path.join(root, 'sw.js'), 'utf8').includes("'./assets/anim/fin-sql.html?app&embed'"), 'gardée pour le hors ligne');
   /* Le lecteur : la fin se lance après une réussite, jamais après un échec */
@@ -390,6 +390,6 @@ test('la vidéo de fin (fin-sql.html) : le bravo du projet, le merci des équipe
     && fe.includes('<p>Tu as terminé ton parcours SQL. Prends un instant pour découvrir tout ce que tu as appris.</p>'), 'ses mots');
   assert.ok(fe.includes('Découvrir les défis</button>') && fe.includes('<button type="button" class="lv-fe-home">Retour à l’accueil</button>'), 'ses deux boutons');
   assert.ok(html.includes("end.querySelector('.lv-fe-go').addEventListener('click',()=>lvFinLeave('defis'));") && html.includes("end.querySelector('.lv-fe-home').addEventListener('click',()=>lvFinLeave('learn'));"), 'les défis, ou l’accueil');
-  assert.ok(html.includes('const SQL_REQUETES=210;') && fin.includes("[210, 'requêtes']"), 'les mêmes nombres que la vidéo');
+  assert.ok(html.includes('const SQL_REQUETES=209;') && fin.includes("[209, 'requêtes']"), 'les mêmes nombres que la vidéo');
   assert.ok(html.includes('if(!LV||LV.fin)return;'), 'pas de point de reprise pour la fin');
 });
