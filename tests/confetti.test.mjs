@@ -128,7 +128,7 @@ test('les chapitres du projet : les boutons touchés par l’élève qui réussi
 
 test('les autres vidéos : ni la récursion sans fin, ni le site d’avant la requête, ni les premiers essais insuffisants', () => {
   assert.ok(anim('with-recursive.html').includes("press($('#r3'), 110.4, '#4B30CC', 9, false);"), 'WITH RECURSIVE : la requête sans condition d’arrêt ne s’arrête jamais');
-  assert.ok(anim('limit-offset.html').includes("tapMore('#ph1', 10.4, false);"), 'LIMIT : le site tel que l’équipe le veut, avant la requête');
+  assert.ok(anim('limit-offset.html').includes("tapMore('#ph1', 15.4, false);"), 'LIMIT : le site tel que l’équipe le veut, avant la requête');
   const essais = ['as', 'case', 'coalesce', 'conversion-types', 'count', 'distinct', 'fenetres-glissantes', 'fonctions-dates', 'fonctions-numeriques', 'fonctions-texte',
     'group-by', 'group-concat', 'having', 'inner-join', 'left-join', 'like', 'not', 'null', 'order-by', 'plusieurs-conditions-on', 'right-join', 'over', 'fonctions-rang'];
   for (const f of essais) assert.equal(anim(`${f}.html`).split(", '#4B30CC', 9, false);   // premier essai, que la suite montre insuffisant : pas de confettis").length - 1, 1, `${f} : son premier essai`);
