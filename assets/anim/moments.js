@@ -248,10 +248,11 @@ function withMoments(cfg){
 (() => {
   const s = document.createElement('style');
   s.textContent = '.pk-on{outline:6px solid #16A34A;outline-offset:-6px}.pk-ko{outline:6px solid #EF4F55;outline-offset:-6px}body.lv-pk-open #cap{visibility:hidden!important}'
-    /* La carte d’un moment (relier, ranger, compléter une requête) : une carte blanche, comme celles des scènes. */
-    + '.mb{position:absolute;left:64px;width:952px;z-index:40;box-sizing:border-box;padding:44px 44px 48px;border-radius:48px;background:#fff;box-shadow:0 0 0 3px #E6E1F6,0 12px 0 #DCD5F2;font-family:Inter,system-ui,sans-serif;color:#1F1B3A;animation:mbIn .35s cubic-bezier(.2,.9,.3,1.3) both}'
-    + '.mb-veil{position:absolute;left:0;right:0;top:190px;bottom:0;z-index:39;background:#F4F2FC;animation:mbVeil .25s ease-out both}@keyframes mbVeil{from{opacity:0}to{opacity:1}}'
-    + '@keyframes mbIn{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}'
+    /* La carte d’un moment (relier, ranger, compléter une requête) : une carte blanche, comme celles des scènes. Entrée non maintenue
+       (backwards) : maintenue, Safari gardait la carte dans un calque et son texte paraissait flou sur iPhone. */
+    + '.mb{position:absolute;left:64px;width:952px;z-index:40;box-sizing:border-box;padding:44px 44px 48px;border-radius:48px;background:#fff;box-shadow:0 0 0 3px #E6E1F6,0 12px 0 #DCD5F2;font-family:Inter,system-ui,sans-serif;color:#1F1B3A;animation:mbIn .35s cubic-bezier(.2,.9,.3,1.3) backwards}'
+    + '.mb-veil{position:absolute;left:0;right:0;top:190px;bottom:0;z-index:39;background:#F4F2FC;animation:mbVeil .25s ease-out backwards}@keyframes mbVeil{from{opacity:0}to{opacity:1}}'
+    + '@keyframes mbIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}'
     + '.mb-k{display:inline-block;margin-bottom:22px;padding:10px 22px;border-radius:999px;background:#EEE9FF;color:#5335E0;font:800 34px/1.1 "Bricolage Grotesque",Inter,sans-serif}'
     + '.mb-cols{position:relative;display:flex;justify-content:space-between;gap:150px}.mb-col{flex:1;display:flex;flex-direction:column;gap:26px}'
     + '.mb-i{display:flex;align-items:center;justify-content:center;min-height:96px;padding:12px 22px;box-sizing:border-box;border-radius:28px;background:#F6F4FF;box-shadow:inset 0 0 0 3px #DCD5F2;font:600 38px/1.2 Inter,sans-serif;text-align:center}'
@@ -259,7 +260,7 @@ function withMoments(cfg){
     + '.mb-bin{min-height:150px;padding:20px;border-radius:30px;background:#F6F4FF;box-shadow:inset 0 0 0 3px #DCD5F2;display:flex;flex-direction:column;gap:12px}'
     + '.mb-bin.mb-row{flex-direction:row;align-items:center;min-height:112px;gap:22px;padding:14px 24px}.mb-bin.mb-row>b{flex:0 0 72px}.mb-bin.mb-row .mb-drop{flex:1}'
     + '.mb-bin>b{font:800 36px/1.15 "Bricolage Grotesque",Inter,sans-serif;color:#5335E0}.mb-drop{display:flex;flex-wrap:wrap;gap:10px}'
-    + '.mb-chip{display:inline-block;padding:10px 18px;border-radius:999px;background:#16A34A;color:#fff;font:700 32px/1.2 Inter,sans-serif;animation:mbIn .3s both}'
+    + '.mb-chip{display:inline-block;padding:10px 18px;border-radius:999px;background:#16A34A;color:#fff;font:700 32px/1.2 Inter,sans-serif;animation:mbIn .3s backwards}'
     + '.mb-q{padding:30px 34px;border-radius:30px;background:#1F1B3A;color:#fff;font-size:38px;line-height:1.55;white-space:pre-wrap}.mb-q .k{color:#B9A8FF}.mb-q .s{color:#FFD58A}'
     + '.mb-hole{display:inline-block;min-width:150px;padding:0 14px;border-radius:14px;background:rgba(185,168,255,.18);box-shadow:inset 0 0 0 3px #B9A8FF;color:#fff;text-align:center}'
     + '.mb-hole.mb-fill{background:#16A34A;box-shadow:none}.mb-hole.mb-bad{background:#EF4F55;box-shadow:none}.mb-fill:not(.mb-hole){color:#16A34A!important}.mb-bad:not(.mb-hole){color:#EF4F55!important}'
