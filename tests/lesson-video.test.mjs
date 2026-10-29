@@ -655,8 +655,8 @@ const COURSES = [
       '<span class="sus"><span class="emo">🔍</span>50 ou 500 ?</span>', '<span class="tx">30 → 500</span><span class="tx">500 → 30</span>',
       '<span class="tx">A → Z</span><span class="tx">Z → A</span>', '<span class="kw">ORDER BY</span> categorie, prix<span class="sens" id="descC"> <span class="kw glow">DESC</span></span>;',
       '✓ Vérifications prêtes']},
-  {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '3 min 15', notesAt: 150.6,
-    maxKo: 510,   // le mail de l’équipe marketing (mail.js, 7 Ko), comme DISTINCT et AS
+  {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '3 min 24', notesAt: 173.5,
+    maxKo: 530,   // les quatre démonstrations des usages (Elisa, 29 octobre, 12 h 02)
     table: 'produits',
     bubble: 'Avec <span class="ic">LIMIT</span> et <span class="ic">OFFSET</span>, tu affiches seulement la partie du résultat qui t’intéresse.',
     chapters: ['Situation', 'Le problème', 'LIMIT en action', 'Sauter avec OFFSET', 'Un classement stable', 'Le résultat', 'À quoi ça sert', 'À retenir'],
@@ -669,13 +669,13 @@ const COURSES = [
       '"<code>LIMIT</code> indique combien de lignes récupérer, et <code>OFFSET</code> combien de lignes sauter au début du résultat."',
       '"La <b>table produits</b> reste inchangée."',
       // À quoi ça sert : le site web reste à l’écran (une requête par portion de 3), puis rejoint la liste des usages
-      "telephone('#ph7', CLASSEMENT.slice(3, 6).map(fiche).join(''));", "sceneOff('#s6', 107.4);\n  sceneOn('#use', 107.4);",
+      "telephone('#ph7', CLASSEMENT.slice(3, 6).map(fiche).join(''));", "sceneOff('#s6', 102.4);\n  sceneOn('#use', 102.4);",
       '<b>1re requête</b><span class="ic">OFFSET 0</span>', '<b>2e requête</b><span class="ic">OFFSET 3</span>', '<b>3e requête</b><span class="bks">pas encore lancée</span>',
       '"Les produits arrivent <b>3 par 3</b> : une requête à chaque appui sur « Voir plus »."',
       '"C’est utile pour afficher<br>de longues listes,<br><b>sans tout charger d’un coup</b>."',
       '<b>Sites web et applications</b><span class="rs">Pages de résultats, recherche, bouton&nbsp;« Voir plus ».</span>',
       '<b>Logiciels métier</b><span class="rs">Consulter les clients ou les factures par groupes de 20.</span>',
-      '<b>Tableaux de bord</b><span class="rs">Parcourir une longue liste de commandes.</span>',
+      '<b>Tableaux de bord</b><span class="rs">Suivre les dernières commandes en direct.</span>',
       '<b>API</b><span class="rs">Renvoyer une partie des résultats à chaque demande.</span>',
       '<b>Scripts de traitement</b><span class="rs">Récupérer des données par lots.</span>']},
   {id: 51, next: 52, titre: 'Fonctions de texte', page: 'fonctions-texte.html', thumb: 'fonctions-texte-thumb.jpg', duree: '2 min 19', notesAt: 134.0,
