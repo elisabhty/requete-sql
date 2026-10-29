@@ -478,7 +478,7 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '9 min 18', notesAt: 492.4, maxKo: 700,   // 700 Ko depuis le 28 octobre : le recrutement (SMS, l’image du badge d’Elisa, 75 Ko) et le site qui interroge le SGBD
+  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '9 min 18', notesAt: 492.4, maxKo: 730,   // 730 Ko depuis le 29 octobre (nouvelle intro du moteur commun, ~9 Ko, et sa vignette refaite dans la DA de la vitrine, 22 → 36 Ko) ; 700 Ko depuis le 28 octobre : le recrutement (SMS, l’image du badge d’Elisa, 75 Ko) et le site qui interroge le SGBD
     table: 'clients',
     bubble: 'Chaque sujet a sa table,<br>et des identifiants relient les tables.',
     chapters: ['Situation', 'Le problème', 'Ta mission', 'Le découpage', 'Base de données et SGBD', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],
@@ -1282,7 +1282,8 @@ for (const c of COURSES) {
     /* Le chapitre 17, le dernier, porte en plus la fin de l’apprentissage (la conversation des équipes, la lettre d’Elisa et la finale
        « Le chemin parcouru », 26 octobre, 23 h 53) : 520 Ko pour lui seul. */
     /* 500 Ko depuis le 27 octobre : moments.js porte aussi les cartes des moments (relier, ranger, une requête à lire ; Elisa, 13 h 48). */
-    assert.ok(total < (c.maxKo || 500) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
+    /* 510 Ko depuis le 29 octobre : le moteur commun porte la nouvelle intro dans la DA de la vitrine (carte violette, pastilles, ~8 Ko). */
+    assert.ok(total < (c.maxKo || 510) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
     for (const f of [`./assets/anim/${c.page}?app&embed`, `./assets/anim/${c.thumb}`]) assert.ok(sw.includes(`'${f}'`), `préchargé : ${f}`);
   });
 }

@@ -63,7 +63,8 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
   let total = 0;
   for (const f of [FILE, 'core.css', 'core.js', 'gsap.min.js', 'mascotte.webp', THUMB]) total += fs.statSync(path.join(ANIM, f)).size;
   for (const f of FONTS) total += fs.statSync(path.join(ROOT, 'assets/fonts', f)).size;
-  assert.ok(total < 470 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
+  /* 490 Kio depuis le 29 octobre : le moteur commun porte la nouvelle intro dans la DA de la vitrine (~9 Kio). */
+  assert.ok(total < 490 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
   assert.ok(fs.statSync(path.join(ANIM, THUMB)).size > 1000, 'vignette');
 });
 
