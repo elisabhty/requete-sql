@@ -172,7 +172,7 @@ test('les phrases d’Elisa (25 octobre, 20 h 52) : sa trame, une phrase par bul
   assert.ok(page.includes("const PHOTO = 'projet-concurrence-atelier.webp';") && fs.statSync(path.join(root, 'assets/anim/projet-concurrence-atelier.webp')).size > 20000,
     'la photo de l’atelier (Elisa, 20 h 52) est livrée avec la page');
   assert.ok(fs.readFileSync(path.join(root, 'sw.js'), 'utf8').includes("'./assets/anim/projet-concurrence-atelier.webp'"), 'et gardée pour le hors ligne');
-  assert.ok(page.includes('Deux clients, une seule place&nbsp;:<br>à toi d’éviter<br>la double réservation !'), 'la bulle de la mascotte');
+  assert.ok(page.includes('Comprends comment la base gère plusieurs opérations effectuées au même moment.'), 'la bulle de la mascotte');
   assert.ok(page.includes('Elisa, 25 octobre, 20 h 52'), 'la page garde la trace de la trame d’Elisa');
 });
 

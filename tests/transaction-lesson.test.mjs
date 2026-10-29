@@ -154,7 +154,7 @@ test('les phrases d’Elisa (25 octobre, 17 h 05) : sa trame, une phrase par bul
   dit('Le remplacement n’a pas été enregistré.', 'Utilise <code>ROLLBACK</code> pour annuler<br>les modifications de cette transaction.');
   /* 8 · À retenir : la dernière idée, mot pour mot */
   dit('Après <code>COMMIT</code>, tu ne peux plus utiliser<br><code>ROLLBACK</code> pour annuler<br>cette transaction.');
-  assert.ok(page.includes('Un colis arrive abîmé&nbsp;:<br>à toi de tout valider<br>ou de tout annuler !'), 'la bulle de la mascotte');
+  assert.ok(page.includes('Regroupe plusieurs modifications pour les valider ensemble ou toutes les annuler.'), 'la bulle de la mascotte');
   /* Les pastilles d’état de la trame : « Transaction en cours », « Transaction validée », « Transaction annulée · Demande … à traiter », et le stock sans remplacement. */
   for (const t of ['<span class="emo">⚠️</span>Stock : 29 · Aucun remplacement pour Léa Simon</span>', '<span class="emo">⏳</span>Transaction en cours</span>',
     '<span class="emo">✅</span>Transaction validée</span>', '<span class="emo">↩️</span>Transaction annulée · Demande de Léa Simon à traiter</span>', '<i class="st0">⏳ Non validé</i>', '<i class="st1">✓ Validé</i>'])

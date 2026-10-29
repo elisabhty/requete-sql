@@ -348,7 +348,7 @@ test('Réf 9 : la requête qui crée ou recharge reste affichée pendant la dern
 test('chapitre 7 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
   assert.ok(page.includes('<title>Requête · Projet, chapitre 7 : INSERT INTO</title>') && page.includes('<div class="tagpill">Projet · Chapitre 7</div>')
     && page.includes('<span>I</span><span>N</span><span>S</span><span>E</span><span>R</span><span>T</span>') && page.includes('<div class="abs sub">Ajouter des lignes</div>')
-    && page.includes('Les inscriptions arrivent&nbsp;:<br>à toi de les ajouter à la base.'), 'écran titre : « Projet · Chapitre 7 », INSERT, « Ajouter des lignes »');
+    && page.includes('Ajoute de nouvelles lignes dans une table avec <span class="ic">INSERT</span>.'), 'écran titre : « Projet · Chapitre 7 », INSERT, « Ajouter des lignes »');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les chapitres 2 à 6');
   assert.equal(caps[1], 'Au chapitre 6, tu as retiré la copie du fichier Excel avec <code>DROP TABLE</code>.', 'le chapitre précédent');
