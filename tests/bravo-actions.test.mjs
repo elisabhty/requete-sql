@@ -32,6 +32,7 @@ function bilan({session = null, plan = true, card = false, video = true} = {}) {
     itemMeta: id => ({titre: id === 'd1' ? 'Le meilleur client' : 'Sous-requête dans WHERE avec IN'}),
     lessonHasVideo: () => video,
     gradOf: () => 'linear-gradient(#7C5CFF,#5335E0)',
+    collectibleFace: () => '<span class="memo-copy"><b>Normalisation</b><span>Répartir les données</span></span>',
     esc: s => String(s), escAttr: s => String(s)
   });
   vm.runInContext(cut('function bravoCardHtml(l){', 'function bravoRevealCard(') + cut('function bravoNextHtml(l){', 'function renderBravoSlide(l){'), ctx);
@@ -99,7 +100,7 @@ test('les autres actions : des tuiles égales, chacune avec son icône', () => {
 test('la carte mémo débloquée : sa ligne, avant la suite du parcours ; son titre tient dans la carte', () => {
   const ctx = bilan({session: SEANCE, card: true});
   const row = ctx.bravoUnlockHtml({id: 56});
-  assert.ok(row.startsWith('<div class="bravo-unlock">') && row.includes('class="bravo-gcard"') && row.includes('onclick="bravoRevealCard(56,event)"'));
+  assert.ok(row.startsWith('<div class="bravo-unlock">') && row.includes('class="bravo-gcard collectible"') && row.includes('onclick="bravoRevealCard(56,event)"'));
   assert.ok(row.includes('<div class="bravo-unlock-copy"><small>Carte débloquée</small><b>Touche-la pour la retourner</b><p>L’essentiel de la leçon, rangé dans tes cartes mémo.</p></div>'));
   assert.equal(bilan({session: SEANCE}).bravoUnlockHtml({id: 70}), '', 'pas de carte, pas de ligne');
   assert.ok(!ctx.bravoActionsHtml({id: 56}).includes('bravo-gcard'), 'la carte n’est plus mêlée aux boutons');
