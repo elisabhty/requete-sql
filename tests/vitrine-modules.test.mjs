@@ -56,3 +56,15 @@ test('le nombre de défis annoncé correspond aux défis de l’appli (CHALLENGE
   assert.equal(VITRINE.module('sql').defis, n);
   assert.match(fs.readFileSync(path.join(root, 'decouvrir/index.html'), 'utf8'), new RegExp(`${n} défis métier`));
 });
+
+test('le service worker sert la vitrine réseau d’abord, sous sa propre adresse, jamais à la place de index.html', () => {
+  const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
+  const vitrine = sw.indexOf("url.pathname.includes('/decouvrir/')");
+  const navigation = sw.indexOf("if (req.mode === 'navigate') {");
+  const cacheDabord = sw.indexOf('const hit = await cache.match(req, { ignoreSearch: true });');
+  assert.ok(vitrine > 0, 'branche decouvrir/ présente');
+  assert.ok(vitrine < navigation && vitrine < cacheDabord, 'traitée avant la navigation (rangée sous index.html) et avant le cache d’abord');
+  const bloc = sw.slice(vitrine, sw.indexOf('return;\n  }', vitrine));
+  assert.match(bloc, /fetch\(req, \{ cache: 'no-cache' \}\)/);
+  assert.doesNotMatch(bloc, /index\.html/);
+});
