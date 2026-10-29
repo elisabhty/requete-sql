@@ -6504,6 +6504,7 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 <link rel="stylesheet" href="home-journey.css?v=1131">
 <link rel="stylesheet" href="design-premium.css?v=1237">
 <script src="design-premium.js?v=1402" defer></script>
+<script src="import-formats.js?v=2" defer></script>
 <script>
 /* ---------- App iOS (Capacitor) ----------
    Dans l’app native, window.Capacitor est présent dès le chargement.
@@ -7398,11 +7399,12 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
         <div>
           <h1 id="console-title">Console</h1>
           <p class="sub" id="console-sub">Écris, teste et garde tes requêtes.</p>
+          <button type="button" class="console-desc" id="console-desc" onclick="editDbNote()" hidden></button>
         </div>
         <button type="button" class="title-pill" id="console-pill" onclick="openProjectCreator()" hidden>Nouveau</button>
       </div>
       <div id="console-home" class="proj-list"></div>
-      <input id="data-import" type="file" accept=".csv,.json,.sql,.txt,text/csv,application/json,text/plain" hidden onchange="onDataImport(event)">
+      <input id="data-import" type="file" accept=".xlsx,.xlsm,.xls,.ods,.csv,.tsv,.tab,.txt,.json,.jsonl,.ndjson,.sql,.db,.sqlite,.sqlite3,.db3,text/csv,text/tab-separated-values,text/plain,application/json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/vnd.oasis.opendocument.spreadsheet,application/x-sqlite3,application/vnd.sqlite3,application/octet-stream" hidden onchange="onDataImport(event)">
       <div id="console-work" class="console-work-pad" hidden>
         <div class="console-project-tabs" role="tablist" aria-label="Sections du projet" onkeydown="onConsoleTabsKey(event)">
           <button type="button" class="console-project-tab on" id="console-tab-editor" role="tab" aria-selected="true" aria-controls="console-panel-editor" onclick="setConsoleProjectPanel('editor')">Éditeur</button>
@@ -7425,6 +7427,15 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
             </div>
           </div>
 
+          <div class="console-empty" id="console-empty" hidden>
+            <span class="console-empty-ico" aria-hidden="true">🗂️</span>
+            <b>Ta base est vide</b>
+            <p>Importe un fichier (Excel, CSV, JSON, SQL ou SQLite) ou crée ta première table en SQL.</p>
+            <div class="console-empty-btns">
+              <button type="button" class="lq-btn" onclick="document.getElementById('data-import').click()">Importer un fichier</button>
+              <button type="button" class="lq-btn-2" onclick="startFirstTable()">Créer une table</button>
+            </div>
+          </div>
           <div class="chips-wrap">
             <div class="db-lab"><span>Exemples</span><small>Requêtes prêtes à lancer</small></div>
             <div class="chips" id="console-chips"></div>
@@ -7565,7 +7576,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
   <div class="imp-back" id="imp-back" hidden aria-hidden="true" onclick="closeImportSheet()"></div>
   <div class="imp-sheet" id="imp-sheet" hidden aria-hidden="true" inert role="dialog" aria-modal="true" aria-labelledby="imp-title">
     <h3 id="imp-title">Importer</h3>
-    <p class="imp-sub" id="imp-sub">CSV, JSON ou SQL</p>
+    <p class="imp-sub" id="imp-sub">Excel, CSV, JSON, SQL ou SQLite</p>
     <div class="imp-kind" id="imp-kind">Table</div>
     <div class="imp-field" id="imp-table-field"><label>Nom de la table</label><input id="imp-table" autocomplete="off" spellcheck="false"><span class="hint" id="imp-table-hint"></span></div>
     <div class="imp-field" id="imp-db-field"><label id="imp-db-label">Projet cible</label><select id="imp-db" onchange="onImportDbChange()"></select><span class="hint" id="imp-db-hint"></span></div>
@@ -10434,6 +10445,31 @@ function projOf(id){
   if(projState[k].draft==null) projState[k].draft='';
   return projState[k];
 }
+/* Descriptions (Elisa, 29 octobre, 18 h 19 : « une petite description de la base et de chaque table »). La base des cours en a
+   par défaut ; chacune se modifie. Gardées avec le projet (projState : desc, tdesc). */
+const NOTE_PLUS_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+const DEMO_NOTES={desc:'La boutique NutriBoost des cours : ses clients, ses produits, leurs commandes et la fidélité.',
+  tables:{clients:'Les clients de la boutique : nom, adresse, ville, âge, e-mail et téléphone.',produits:'Le catalogue : chaque produit, sa catégorie, son prix et son stock.',
+    commandes:'Les commandes : quel client, quel produit, quelle quantité, et quand.',fidelite:'Les cartes de fidélité et leurs points, une par client inscrit.'}};
+function dbNote(id){ const p=projOf(id); return p.desc!=null?p.desc:(id==='cours'?DEMO_NOTES.desc:''); }
+function tableNote(id,t){ const m=projOf(id).tdesc||{}; return m[t]!=null?m[t]:(id==='cours'?(DEMO_NOTES.tables[t]||''):''); }
+async function editDbNote(id){
+  id=id||activeDbId;
+  const v=await lqPrompt({ico:'📝',titre:'Description du projet',texte:'Quelques mots pour te rappeler ce que contient cette base.',
+    valeur:dbNote(id),placeholder:'Ex. : les ventes 2025 de la boutique',max:140,multi:true});
+  if(v==null)return;
+  projOf(id).desc=v; saveProjState();
+  renderConsoleScreen();
+  toast(v?'Description enregistrée':'Description retirée');
+}
+async function editTableNote(name){
+  const v=await lqPrompt({ico:'🗂️',titre:`Table « ${name} »`,texte:'Décris en quelques mots ce que contient chaque ligne.',
+    valeur:tableNote(activeDbId,name),placeholder:'Ex. : une ligne par vente, avec son montant',max:120,multi:true});
+  if(v==null)return;
+  const p=projOf(activeDbId); p.tdesc=p.tdesc||{}; p.tdesc[name]=v; saveProjState();
+  renderDbWorkspace();
+  toast(v?'Description enregistrée':'Description retirée');
+}
 function projectName(id){
   if(id==='cours') return 'Cours';
   return (dbCatalog.find(d=>d.id===id)||{}).name||id;
@@ -10503,6 +10539,14 @@ function renderConsoleScreen(){
     pill.onclick=openProjectCreator;
   }
   if(fname) fname.textContent=(activeDbId==='cours'?'cours':'projet')+'.sql';
+  const desc=document.getElementById('console-desc');
+  if(desc){
+    const d=inWork?dbNote(activeDbId):'';
+    desc.hidden=!inWork;
+    desc.classList.toggle('is-empty',!d);
+    desc.innerHTML=d?`<span>${esc(d)}</span><i aria-hidden="true">${CONSOLE_EDIT_SVG}</i>`:`<i aria-hidden="true">${NOTE_PLUS_SVG}</i><span>Ajouter une description</span>`;
+    desc.setAttribute('aria-label',d?`Description : ${d}. Modifier`:'Ajouter une description au projet');
+  }
   if(inWork){
     applyConsoleDraft();
     renderDbWorkspace();
@@ -10531,7 +10575,7 @@ function renderConsoleHome(){
     return `<div class="console-project-row">
       <button type="button" class="console-project-open" onclick="openConsoleProject('${d.id}')">
         <span class="console-project-icon">${CONSOLE_DB_SVG}</span>
-        <span class="console-project-copy"><b>${esc(demo?'Base des cours':d.name)}</b><small>${demo?'Prêt à explorer · clients, produits, commandes, fidelite':'Projet local'}</small><em>${esc(bits.join(' · '))}</em></span>
+        <span class="console-project-copy"><b>${esc(demo?'Base des cours':d.name)}</b><small${dbNote(d.id)?'':' class="is-muted"'}>${esc(dbNote(d.id)||'Projet local · sans description')}</small><em>${esc(bits.join(' · '))}</em></span>
         <span class="console-project-chev" aria-hidden="true">${CONSOLE_CHEV_SVG}</span>
       </button>
       ${actions}
@@ -10544,7 +10588,7 @@ function renderConsoleHome(){
   </form>`:'';
   host.innerHTML=`<div class="console-quick-actions">
       <button type="button" class="console-quick-action primary" onclick="openProjectCreator()"><span class="console-quick-icon">${CONSOLE_PLUS_SVG}</span><span class="console-quick-copy"><b>Nouveau projet</b></span><span class="console-quick-chev" aria-hidden="true">${CONSOLE_CHEV_SVG}</span></button>
-      <button type="button" class="console-quick-action" onclick="document.getElementById('data-import').click()"><span class="console-quick-icon">${CONSOLE_UPLOAD_SVG}</span><span class="console-quick-copy"><b>Importer un fichier</b><small>CSV, JSON ou SQL</small></span><span class="console-quick-chev" aria-hidden="true">${CONSOLE_CHEV_SVG}</span></button>
+      <button type="button" class="console-quick-action" onclick="document.getElementById('data-import').click()"><span class="console-quick-icon">${CONSOLE_UPLOAD_SVG}</span><span class="console-quick-copy"><b>Importer un fichier</b><small>Excel, CSV, JSON, SQL ou SQLite</small></span><span class="console-quick-chev" aria-hidden="true">${CONSOLE_CHEV_SVG}</span></button>
     </div>${create}
     <div class="console-projects-head"><h2>Tes projets</h2><span>${plur(dbCatalog.length,'projet')}</span></div>
     <div class="console-project-list">${items}</div>
@@ -10592,14 +10636,14 @@ function createProjectFromForm(event){
   projOf(id);saveProjState();
   consoleCreateOpen=false;
   openConsoleProject(id);
-  toast('Projet créé','Tu peux importer des données ou écrire ta première requête');
+  toast('Projet créé','Importe un fichier ou crée une table.');
 }
-function renameDb(id){
+async function renameDb(id){
   if(id==='cours')return;
   const meta=dbCatalog.find(d=>d.id===id);if(!meta)return;
-  const name=prompt('Nouveau nom du projet ?',meta.name);
-  if(!name||!name.trim()||name.trim()===meta.name)return;
-  meta.name=name.trim().slice(0,40);
+  const name=await lqPrompt({ico:'✏️',titre:'Renommer le projet',valeur:meta.name,placeholder:'Analyse des ventes',max:40,oui:'Renommer'});
+  if(!name||name===meta.name)return;
+  meta.name=name.slice(0,40);
   persistCustomDbs();renderConsoleHome();toast('Projet renommé');
 }
 function consoleSchemaStats(){
@@ -10829,8 +10873,10 @@ function toggleHistoryPin(i){
 }
 function clearConsoleHistory(){
   const p=projOf(activeDbId);if(!p.hist.length)return;
-  if(!confirm('Effacer tout l’historique de ce projet ?'))return;
-  p.hist=[];saveProjState();renderConsoleSide();toast('Historique effacé');
+  lqAsk({ico:'🧹',titre:'Effacer l’historique ?',texte:'Les requêtes exécutées dans ce projet ne seront plus listées.',oui:'Effacer',non:'Garder',danger:true}).then(ok=>{
+    if(!ok)return;
+    p.hist=[];saveProjState();renderConsoleSide();toast('Historique effacé');
+  });
 }
 function loadHistSql(i){
   const it=projOf(activeDbId).hist[i]; if(!it)return;
@@ -10880,15 +10926,15 @@ function flashTableReset(name){
     btn.setAttribute('aria-label',`Réinitialiser la table ${name}`);
   },prefersReduceMotion()?450:1000);
 }
-function resetTable(name){
+async function resetTable(name){
   const database=activeDb(),snapshot=getTableBaseline(activeDbId,name);
   if(!database||!snapshot){toast('Aucun état initial pour cette table');return;}
   const origin=activeDbId==='cours'?'les données d’origine du cours':'les données du fichier importé';
-  if(!confirm(`Réinitialiser la table « ${name} » avec ${origin} ?\n\nLes effets des INSERT, UPDATE et DELETE seront effacés.`))return;
+  if(!await lqAsk({ico:'↺',titre:`Restaurer « ${name} » ?`,texte:`La table reprend ${origin} : les effets des INSERT, UPDATE et DELETE seront effacés.`,oui:'Restaurer'}))return;
   try{
     restoreTableBaseline(database,name,snapshot);
     if(activeDbId!=='cours')persistCustomDbs();
-  }catch(e){alert('Réinitialisation impossible : '+(e.message||e));return;}
+  }catch(e){lqInfo('Restauration impossible',String(e.message||e));return;}
   kbarSchemaCache=null;
   const out=document.getElementById('console-out');if(out)out.innerHTML='';
   renderDbWorkspace();
@@ -10917,7 +10963,11 @@ function deleteDb(id){
   if(id==='cours') return;
   const meta=dbCatalog.find(d=>d.id===id);
   if(!meta||!customDbs[id]) return;
-  if(!confirm(`Supprimer le projet « ${meta.name} » ?`))return;
+  lqAsk({ico:'🗑️',titre:`Supprimer « ${meta.name} » ?`,texte:'La base, ses tables, son brouillon et son historique seront supprimés de cet appareil.',oui:'Supprimer',non:'Garder',danger:true}).then(ok=>{if(ok)deleteDbNow(id);});
+}
+function deleteDbNow(id){
+  const meta=dbCatalog.find(d=>d.id===id);
+  if(!meta||!customDbs[id]) return;
   try{ customDbs[id].close(); }catch(e){}
   delete customDbs[id];
   delete tableBaselines[id];
@@ -10958,7 +11008,7 @@ function renderDbWorkspace(){
   if(openTableSchema && !tables.includes(openTableSchema)) openTableSchema=null;
   if(lab) lab.textContent=`Dans « ${activeName} » · ${tables.length} table${tables.length>1?'s':''}`;
   if(!tables.length){
-    host.innerHTML=`<div class="db-empty">${activeDbId==='cours'?'Aucune table disponible.':'Cette base est vide — importe un CSV, JSON ou SQL.'}</div>`;
+    host.innerHTML=`<div class="db-empty">${activeDbId==='cours'?'Aucune table disponible.':'Cette base est vide : importe un fichier Excel, CSV, JSON, SQL ou SQLite.'}</div>`;
     return;
   }
   host.innerHTML=tables.map(t=>{
@@ -10977,6 +11027,9 @@ function renderDbWorkspace(){
         <span class="ct">${esc(c.t)}</span>
       </div>`).join('')||'<div class="db-empty">Aucune colonne.</div>'}
     </div>`:'';
+    const note=tableNote(activeDbId,t);
+    const noteHtml=note?`<button type="button" class="db-tnote" onclick="editTableNote(decodeURIComponent('${enc}'))" aria-label="Description de ${escAttr(t)} : ${escAttr(note)}. Modifier"><span>${esc(note)}</span><i aria-hidden="true">${CONSOLE_EDIT_SVG}</i></button>`
+      :open?`<button type="button" class="db-tnote is-empty" onclick="editTableNote(decodeURIComponent('${enc}'))"><i aria-hidden="true">${NOTE_PLUS_SVG}</i><span>Ajouter une description</span></button>`:'';
     return `<div class="db-tblock">
       <div class="db-trow ${open?'open':''}">
         <button type="button" class="db-tmain" onclick="toggleTableSchema(decodeURIComponent('${enc}'))" aria-expanded="${open?'true':'false'}" title="${open?'Masquer les colonnes':'Voir les colonnes, PK et FK'}">
@@ -10988,8 +11041,9 @@ function renderDbWorkspace(){
         </button>
         <button type="button" class="tb" onclick="queryTable(decodeURIComponent('${enc}'))">SELECT</button>
         <button type="button" class="tb reset-table" data-table="${escAttr(t)}" onclick="resetTable(decodeURIComponent('${enc}'))" aria-label="${resettable?`Réinitialiser la table ${escAttr(t)}`:`Aucun état initial pour la table ${escAttr(t)}`}" title="${resettable?'Restaurer les données initiales':'Aucun état initial enregistré'}" ${resettable?'':'disabled'}>${CONSOLE_RESET_SVG}<span>Restaurer</span></button>
-        <button type="button" class="tb danger" onclick="dropTable(decodeURIComponent('${enc}'))">Suppr.</button>
+        <button type="button" class="tb danger drop-table" onclick="dropTable(decodeURIComponent('${enc}'))" aria-label="Supprimer la table ${escAttr(t)}" title="Supprimer la table">${CONSOLE_TRASH_SVG}</button>
       </div>
+      ${noteHtml}
       ${colsHtml}
     </div>`;
   }).join('');
@@ -11002,38 +11056,23 @@ function queryTable(name){
   fillConsoleSql(`SELECT * FROM ${quoteIdent(name)}\nLIMIT 50;`);
   runConsole();
 }
-function dropTable(name){
-  if(!confirm(`Supprimer la table « ${name} » ?`))return;
+async function dropTable(name){
+  if(!await lqAsk({ico:'🗑️',titre:`Supprimer la table « ${name} » ?`,texte:'Ses lignes seront supprimées du projet.',oui:'Supprimer',non:'Garder',danger:true}))return;
   try{
     activeDb().run('DROP TABLE IF EXISTS '+quoteIdent(name));
     if(activeDbId!=='cours') persistCustomDbs();
     renderDbWorkspace();
     renderConsoleSchemaSummary();
+    const p=projOf(activeDbId); if(p.tdesc&&p.tdesc[name]!=null){delete p.tdesc[name];saveProjState();}
     toast('Table supprimée');
-  }catch(e){ alert(e.message); }
+  }catch(e){ lqInfo('Suppression impossible',String(e.message||e)); }
 }
 /* ---------- Import CSV / JSON / SQL ---------- */
+/* Texte délimité : le séparateur (virgule, point-virgule d’Excel en français, tabulation, barre verticale) est détecté sur les premières
+   lignes (Elisa, 29 octobre, 18 h 19). */
 function parseCsv(text){
-  const rows=[]; let row=[], cell='', i=0, q=false;
-  const s=String(text).replace(/^\uFEFF/,'');
-  while(i<s.length){
-    const ch=s[i];
-    if(q){
-      if(ch==='"'&&s[i+1]==='"'){cell+='"';i+=2;continue;}
-      if(ch==='"'){q=false;i++;continue;}
-      cell+=ch;i++;continue;
-    }
-    if(ch==='"'){q=true;i++;continue;}
-    if(ch===','||ch===';'){row.push(cell);cell='';i++;
-      if(ch===';'){rows.push(row);row=[];if(s[i]==='\n')i++;}
-      continue;
-    }
-    if(ch==='\n'){row.push(cell);cell='';rows.push(row);row=[];i++;continue;}
-    if(ch==='\r'){i++;continue;}
-    cell+=ch;i++;
-  }
-  if(cell.length||row.length){row.push(cell);rows.push(row);}
-  return rows.filter(r=>r.some(c=>String(c).trim()!==''));
+  if(window.ImportFormats)return ImportFormats.parseDelimited(text).rows;
+  return String(text).replace(/^\uFEFF/,'').split(/\r?\n/).filter(l=>l.trim()).map(l=>l.split(','));
 }
 function inferSqlType(vals){
   let allNum=true,allInt=true;
@@ -11046,6 +11085,16 @@ function inferSqlType(vals){
   return 'TEXT';
 }
 function tableFromMatrix(headers,dataRows){
+  /* Un tableur : les colonnes vides en fin de ligne s’en vont, et les nombres à virgule (12,5) deviennent des nombres. */
+  const width=Math.max(headers.length,...dataRows.map(r=>r.length));
+  let last=width-1;
+  while(last>0&&(headers[last]==null||String(headers[last]).trim()==='')&&dataRows.every(r=>r[last]==null||String(r[last]).trim()===''))last--;
+  headers=Array.from({length:last+1},(_,i)=>headers[i]==null?'':String(headers[i]).trim());
+  dataRows=dataRows.map(r=>Array.from({length:last+1},(_,i)=>r[i]==null?'':r[i]));
+  for(let i=0;i<=last;i++){
+    const vals=dataRows.map(r=>String(r[i]).trim()).filter(v=>v!=='');
+    if(vals.length&&vals.some(v=>/,/.test(v))&&vals.every(v=>/^-?\d+(,\d+)?$/.test(v)))dataRows.forEach(r=>{if(String(r[i]).trim()!=='')r[i]=String(r[i]).trim().replace(',','.');});
+  }
   const cols=headers.map((h,i)=>safeIdent(h||('col_'+(i+1))));
   const seen={};
   cols.forEach((c,i)=>{let n=c,k=0;while(seen[n]){k++;n=c+'_'+k;}seen[n]=1;cols[i]=n;});
@@ -11191,6 +11240,12 @@ function parseImportFile(name,text){
       preview:sql.slice(0,280)+(sql.length>280?'…':'')
     };
   }
+  if(/\.(jsonl|ndjson)$/.test(lower)||(/^\s*\{/.test(text)&&/\}\s*\r?\n\s*\{/.test(text))){
+    const lines=text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+    const parsed=parseJsonImport(lines.map((l,i)=>{try{return JSON.parse(l);}catch(e){throw new Error('JSON Lines : ligne '+(i+1)+' illisible.');}}));
+    if(!parsed.defaultTable) parsed.defaultTable=baseName;
+    return parsed;
+  }
   if(lower.endsWith('.json')||/^\s*[\[{]/.test(text)){
     const data=JSON.parse(text);
     const parsed=parseJsonImport(data);
@@ -11198,9 +11253,49 @@ function parseImportFile(name,text){
     return parsed;
   }
   const matrix=parseCsv(text);
-  if(matrix.length<2) throw new Error('CSV : il faut une ligne d’en-têtes et au moins une ligne de données.');
+  if(matrix.length<2) throw new Error('il faut une ligne d’en-têtes et au moins une ligne de données.');
   const t=tableFromMatrix(matrix[0],matrix.slice(1));
-  return {kind:'table',...t,defaultTable:baseName,hint:`${t.rows.length} lignes · ${t.cols.join(', ')}`};
+  return {kind:'table',...t,defaultTable:baseName,hint:`${plur(t.rows.length,'ligne')} · ${t.cols.join(', ')}`};
+}
+/* Un fichier, quel qu’il soit : une base SQLite, un classeur (Excel .xlsx/.xls, OpenDocument .ods ; une feuille = une table), ou du texte. */
+async function parseImportBytes(name,bytes){
+  const F=window.ImportFormats;
+  const kind=F?F.sniff(bytes,name):'text';
+  const baseName=safeIdent((name||'import').replace(/\.[^.]+$/,''))||'import';
+  if(kind==='sqlite'){
+    const tmp=new SQL.Database(bytes);
+    const tabs=listTables(tmp), counts=tabs.map(t=>tableRowCount(tmp,t));
+    tmp.close();
+    if(!tabs.length) throw new Error('cette base SQLite ne contient aucune table.');
+    return {kind:'database',format:'sqlite',bytes,defaultTable:baseName,
+      hint:`${plur(tabs.length,'table')} · base SQLite`,preview:tabs.map((t,i)=>`${t} (${counts[i]})`).join(' · ')};
+  }
+  if(kind==='zip'||kind==='cfb'){
+    const book=await F.readWorkbook(bytes,name);
+    const used=new Set();
+    const tables=book.sheets.map(sh=>{
+      const rows=sh.rows.filter(r=>r&&r.some(c=>c!=null&&String(c).trim()!==''));
+      if(rows.length<1)return null;
+      let tname=safeIdent(sh.name)||'feuille',k=1;
+      while(used.has(tname.toLowerCase()))tname=safeIdent(sh.name)+'_'+(++k);
+      used.add(tname.toLowerCase());
+      return {name:tname,sheet:sh.name,...tableFromMatrix(rows[0],rows.slice(1))};
+    }).filter(Boolean);
+    if(!tables.length) throw new Error('le classeur est vide.');
+    const fmt={xlsx:'classeur Excel',xls:'classeur Excel 97-2003',ods:'classeur OpenDocument'}[book.format]||'classeur';
+    if(tables.length===1){
+      const t=tables[0];
+      /* Une seule feuille au nom par défaut (Feuil1, Sheet1…) : la table prend le nom du fichier. */
+      const generic=/^(feuil|feuille|sheet|tabelle|hoja|foglio)\s*\d*$/i.test(t.sheet);
+      return {kind:'table',cols:t.cols,types:t.types,rows:t.rows,defaultTable:generic?baseName:t.name,
+        hint:`${fmt} · ${plur(t.rows.length,'ligne')} · ${t.cols.join(', ')}`};
+    }
+    const total=tables.reduce((n,t)=>n+t.rows.length,0);
+    return {kind:'database',format:'json-db',tables,hint:`${fmt} · ${plur(tables.length,'feuille')} · ${plur(total,'ligne')}`,
+      preview:tables.map(t=>`${t.name} (${t.rows.length})`).join(' · ')};
+  }
+  const text=F?F.decodeText(bytes):new TextDecoder().decode(bytes);
+  return parseImportFile(name,text);
 }
 function isDatabaseImport(parsed){
   return parsed && (parsed.kind==='database');
@@ -11208,24 +11303,25 @@ function isDatabaseImport(parsed){
 function isTableImport(parsed){
   return parsed && (parsed.kind==='table' || parsed.kind==='sql-table');
 }
-function onDataImport(ev){
+async function onDataImport(ev){
   const file=ev.target.files&&ev.target.files[0];
   ev.target.value='';
   if(!file)return;
-  const reader=new FileReader();
-  reader.onload=()=>{
-    try{
-      const parsed=parseImportFile(file.name,String(reader.result||''));
-      pendingImport={
-        file:file.name,
-        parsed,
-        defaultTable:parsed.defaultTable||safeIdent(file.name.replace(/\.[^.]+$/,''))||'import',
-        defaultDbName:(file.name.replace(/\.[^.]+$/,'')||'Import').slice(0,40)
-      };
-      openImportSheet();
-    }catch(e){ alert('Import impossible : '+(e.message||e)); }
-  };
-  reader.readAsText(file);
+  try{
+    const bytes=new Uint8Array(await file.arrayBuffer());
+    const parsed=await parseImportBytes(file.name,bytes);
+    pendingImport={
+      file:file.name,
+      parsed,
+      defaultTable:parsed.defaultTable||safeIdent(file.name.replace(/\.[^.]+$/,''))||'import',
+      defaultDbName:(file.name.replace(/\.[^.]+$/,'')||'Import').slice(0,40)
+    };
+    openImportSheet();
+  }catch(e){
+    const msg=String(e&&e.message||e).replace(/^\w/,c=>c.toUpperCase());
+    lqAsk({ico:'📄',titre:'Import impossible',texte:msg.endsWith('.')?msg:msg+'.',oui:'Choisir un autre fichier',non:'Fermer'})
+      .then(ok=>{if(ok)document.getElementById('data-import').click();});
+  }
 }
 function onImportDbChange(){
   const sel=document.getElementById('imp-db');
@@ -11260,11 +11356,13 @@ function openImportSheet(){
       ? (p.insertOnly
         ? 'INSERT sans CREATE : la table sera créée automatiquement dans SQLite.'
         : (p.primaryTable?'Le script crée déjà cette table.':'Le script sera exécuté dans la base choisie.'))
-      : 'CSV / JSON → une table dans la base choisie.';
+      : 'Le fichier devient une table dans le projet choisi.';
   }
 
   const customs=dbCatalog.filter(d=>d.id!=='cours');
-  const preferred=(!asDb && consoleView==='work' && activeDbId!=='cours' && customDbs[activeDbId])
+  /* Depuis un projet ouvert : une table y va directement ; une base aussi, si le projet est encore vide. */
+  const inProject=consoleView==='work' && activeDbId!=='cours' && customDbs[activeDbId];
+  const preferred=(inProject && (!asDb || !listTables(customDbs[activeDbId]).length))
     ? activeDbId
     : '__new__';
   const sel=document.getElementById('imp-db');
@@ -11334,24 +11432,24 @@ function resolveImportTarget(){
     projOf(id);
     target=id;
   }else if(!customDbs[target]){
-    alert('Base introuvable');
+    lqInfo('Projet introuvable','Choisis un autre projet, ou crée-en un.');
     return null;
   }
   return target;
 }
-function confirmImport(){
+async function confirmImport(){
   if(!pendingImport)return;
   const p=pendingImport.parsed;
   const asDb=isDatabaseImport(p);
-  const target=resolveImportTarget();
-  if(!target)return;
-
-  if(asDb && target!=='__new__' && customDbs[target]){
-    const existing=listTables(customDbs[target]);
-    if(existing.length && !confirm(`Le projet « ${(dbCatalog.find(d=>d.id===target)||{}).name||target} » contient déjà ${existing.length} table${existing.length>1?'s':''}. Remplacer son contenu ?`)){
+  const chosen=document.getElementById('imp-db').value;
+  if(asDb && chosen!=='__new__' && customDbs[chosen]){
+    const existing=listTables(customDbs[chosen]);
+    if(existing.length && !await lqAsk({ico:'🗂️',titre:'Remplacer le contenu ?',texte:`Le projet « ${(dbCatalog.find(d=>d.id===chosen)||{}).name||chosen} » contient déjà ${plur(existing.length,'table')} : elles seront remplacées par celles du fichier.`,oui:'Remplacer',non:'Annuler'})){
       return;
     }
   }
+  const target=resolveImportTarget();
+  if(!target)return;
 
   activeDbId=target;
   if(asDb && listTables(customDbs[target]||activeDb()).length){
@@ -11359,10 +11457,16 @@ function confirmImport(){
     try{ customDbs[target].close(); }catch(e){}
     customDbs[target]=attachDateFns(new SQL.Database());
   }
+  if(p.format==='sqlite'){
+    try{ customDbs[target].close(); }catch(e){}
+    customDbs[target]=attachDateFns(new SQL.Database(p.bytes));
+  }
   const database=activeDb();
-  const beforeTables=listTables(database);
+  const beforeTables=p.format==='sqlite'?[]:listTables(database);
   try{
-    if(p.kind==='database' && p.format==='json-db'){
+    if(p.format==='sqlite'){
+      /* rien à créer : les tables sont celles du fichier */
+    }else if(p.kind==='database' && p.format==='json-db'){
       createImportedTables(database, p.tables);
     }else if(p.kind==='database' || p.kind==='sql-table'){
       runSqlImport(database, p.sql);
@@ -11397,7 +11501,7 @@ function confirmImport(){
     }
     toast(asDb?'Projet importé':'Table importée');
   }catch(e){
-    alert('Erreur à l’import : '+(e.message||e));
+    lqInfo('Import impossible',String(e.message||e));
   }
 }
 
@@ -11473,9 +11577,21 @@ function fitSqlEditor(ta){
   const h=Math.max(104,ta.scrollHeight);
   setH(h,null,'hidden');
 }
+/* iPhone, iOS 26 : la barre du formulaire (∧ ∨ ✓) et, dans Safari, l’adresse flottent au-dessus du clavier sans réduire la partie
+   visible de la page ; la barre de touches SQL s’y cachait (Elisa, 29 octobre, 18 h 18). Elle monte au-dessus d’elles. */
+const IOS_KB_OVERLAY=(()=>{
+  try{
+    const ua=navigator.userAgent||'',ios=/iP(hone|od|ad)/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
+    const v=+((/Version\/(\d+)/.exec(ua)||[])[1]||0);
+    if(!ios||v<26)return 0;
+    const standalone=navigator.standalone===true||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
+    return standalone?52:100;
+  }catch(e){return 0;}
+})();
 function keyboardInset(){
   const vv=window.visualViewport;
-  return vv?Math.max(0,window.innerHeight-vv.height-vv.offsetTop):0;
+  const raw=vv?Math.max(0,window.innerHeight-vv.height-vv.offsetTop):0;
+  return raw>40?raw+IOS_KB_OVERLAY:raw;
 }
 function revealSqlEditor(ta){
   if(ta.closest('.xf-editor')) return;
@@ -11496,7 +11612,7 @@ function ensureRunRowVisible(ta){
   const scroller=ta.closest('.screen');
   if(!run||!scroller||keyboardInset()<40) return;
   const vv=window.visualViewport;
-  const visBottom=vv?vv.offsetTop+vv.height:scroller.getBoundingClientRect().bottom;
+  const visBottom=(vv?vv.offsetTop+vv.height:scroller.getBoundingClientRect().bottom)-IOS_KB_OVERLAY;
   const kbar=document.getElementById('kbar');
   const kh=(kbar&&kbar.classList.contains('on'))?kbar.offsetHeight:0;
   const nav=ta.closest('#scr-lesson')?document.querySelector('#lesson-body .ls-nav'):null;
@@ -22320,7 +22436,7 @@ function lqAsk(o){
         ${o.ico?`<span class="lq-ask-ico" aria-hidden="true">${o.ico}</span>`:''}
         <h2 id="lq-ask-t">${esc(o.titre)}</h2>
         ${o.texte?`<p id="lq-ask-p">${esc(o.texte)}</p>`:''}
-        <div class="lq-ask-btns"><button type="button" class="lq-btn lq-ask-oui">${esc(o.oui||'OK')}</button><button type="button" class="lq-btn-2 lq-ask-non">${esc(o.non||'Annuler')}</button></div>
+        <div class="lq-ask-btns"><button type="button" class="lq-btn lq-ask-oui${o.danger?' is-danger':''}">${esc(o.oui||'OK')}</button>${o.non===null?'':`<button type="button" class="lq-btn-2 lq-ask-non">${esc(o.non||'Annuler')}</button>`}</div>
       </div>`;
     const back=document.activeElement;
     let fini=false;
@@ -22337,12 +22453,63 @@ function lqAsk(o){
       else if(e.key==='Tab'){ const b=[...el.querySelectorAll('.lq-ask-btns button')], i=b.indexOf(document.activeElement); e.preventDefault(); b[(i+(e.shiftKey?b.length-1:1))%b.length].focus(); }
     };
     el.querySelector('.lq-ask-back').onclick=()=>fin(false);
-    el.querySelector('.lq-ask-non').onclick=()=>fin(false);
+    const non=el.querySelector('.lq-ask-non');
+    if(non)non.onclick=()=>fin(false);
     el.querySelector('.lq-ask-oui').onclick=()=>fin(true);
     document.addEventListener('keydown',key,true);
     document.body.appendChild(el);
     if(navigator.vibrate)navigator.vibrate(8);
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{ el.classList.add('on'); try{ el.querySelector('.lq-ask-non').focus({preventScroll:true}); }catch(e){} }));
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ el.classList.add('on'); try{ (non||el.querySelector('.lq-ask-oui')).focus({preventScroll:true}); }catch(e){} }));
+  });
+}
+/* Une information, un seul bouton (à la place de alert()). */
+const lqInfo=(titre,texte,ico)=>lqAsk({ico:ico||'ℹ️',titre,texte,oui:'OK',non:null});
+/* Une question avec un champ, dans le style de l’app, à la place de prompt() (Elisa, 29 octobre, 18 h 19 : « améliorer l’UI/UX ») :
+   lqPrompt({ico, titre, texte, valeur, placeholder, max, multi, oui}) rend le texte saisi, ou null si l’on annule. La feuille reste
+   au-dessus du clavier (partie visible de la page). */
+function lqPrompt(o){
+  return new Promise(res=>{
+    const old=document.getElementById('lq-ask'); if(old)old.remove();
+    const el=document.createElement('div');
+    el.id='lq-ask'; el.className='lq-ask has-field';
+    const max=o.max||60, multi=!!o.multi, val=String(o.valeur||'');
+    const field=multi
+      ?`<textarea id="lq-ask-in" aria-labelledby="lq-ask-t" rows="3" maxlength="${max}" placeholder="${escAttr(o.placeholder||'')}" spellcheck="true">${esc(val)}</textarea>`
+      :`<input id="lq-ask-in" aria-labelledby="lq-ask-t" type="text" maxlength="${max}" placeholder="${escAttr(o.placeholder||'')}" value="${escAttr(val)}" autocomplete="off" enterkeyhint="done">`;
+    el.innerHTML=`<button type="button" class="lq-ask-back" tabindex="-1" aria-label="Annuler"></button>
+      <div class="lq-ask-sheet" role="dialog" aria-modal="true" aria-labelledby="lq-ask-t">
+        ${o.ico?`<span class="lq-ask-ico" aria-hidden="true">${o.ico}</span>`:''}
+        <h2 id="lq-ask-t">${esc(o.titre)}</h2>
+        ${o.texte?`<p id="lq-ask-p">${esc(o.texte)}</p>`:''}
+        <label class="lq-ask-field">${field}<small id="lq-ask-n" aria-hidden="true"></small></label>
+        <div class="lq-ask-btns"><button type="button" class="lq-btn lq-ask-oui">${esc(o.oui||'Enregistrer')}</button><button type="button" class="lq-btn-2 lq-ask-non">Annuler</button></div>
+      </div>`;
+    const input=el.querySelector('#lq-ask-in'), count=el.querySelector('#lq-ask-n'), vv=window.visualViewport;
+    const upd=()=>{ count.textContent=`${input.value.length} / ${max}`; };
+    const fit=()=>{ if(!vv)return; el.style.top=vv.offsetTop+'px'; el.style.height=vv.height+'px'; el.style.bottom='auto'; };
+    let fini=false;
+    const fin=v=>{
+      if(fini)return; fini=true;
+      document.removeEventListener('keydown',key,true);
+      if(vv){vv.removeEventListener('resize',fit);vv.removeEventListener('scroll',fit);}
+      input.blur();
+      el.classList.remove('on'); el.classList.add('off');
+      setTimeout(()=>el.remove(),prefersReduceMotion()?0:260);
+      res(v);
+    };
+    const ok=()=>fin(input.value.replace(/\s+$/,'').replace(/^\s+/,''));
+    const key=e=>{
+      if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); fin(null); }
+      else if(e.key==='Enter'&&(!multi||e.metaKey||e.ctrlKey)){ e.preventDefault(); ok(); }
+    };
+    input.addEventListener('input',upd); upd();
+    el.querySelector('.lq-ask-back').onclick=()=>fin(null);
+    el.querySelector('.lq-ask-non').onclick=()=>fin(null);
+    el.querySelector('.lq-ask-oui').onclick=ok;
+    document.addEventListener('keydown',key,true);
+    if(vv){vv.addEventListener('resize',fit);vv.addEventListener('scroll',fit);}
+    document.body.appendChild(el);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ el.classList.add('on'); try{ input.focus({preventScroll:true}); const n=input.value.length; input.setSelectionRange(n,n); }catch(e){} fit(); }));
   });
 }
 
@@ -24004,12 +24171,13 @@ function renderConsoleChips(){
   if(!tables.length){
     host.innerHTML='';
     window.__chips=[];
-    if(wrap){
-      const lab=wrap.querySelector('.db-lab small');
-      if(lab) lab.textContent=activeDbId==='cours'?'Aucune table pour l’instant':'Importe un fichier pour créer des tables';
-    }
+    if(wrap)wrap.hidden=true;
+    const empty=document.getElementById('console-empty');
+    if(empty)empty.hidden=false;
     return;
   }
+  if(wrap)wrap.hidden=false;
+  {const empty=document.getElementById('console-empty');if(empty)empty.hidden=true;}
   if(wrap){
     const lab=wrap.querySelector('.db-lab small');
     if(lab) lab.textContent='Requêtes prêtes à lancer';
@@ -24023,6 +24191,13 @@ function renderConsoleChips(){
   }
   host.innerHTML=ex.map((e,i)=>`<button class="chip" onclick="fillConsole(${i})">${esc(e.l)}</button>`).join('');
   window.__chips=ex;
+}
+/* Projet vide : un modèle de table à adapter, prêt à exécuter. */
+function startFirstTable(){
+  fillConsoleSql("CREATE TABLE contacts (\n  id INTEGER PRIMARY KEY,\n  nom TEXT NOT NULL,\n  ville TEXT\n);\nINSERT INTO contacts (nom, ville)\nVALUES ('Sophie Martin', 'Paris');\nSELECT * FROM contacts;");
+  const ta=document.getElementById('ed-console');
+  if(ta)try{ ta.focus({preventScroll:false}); }catch(e){}
+  toast('Modèle de table prêt','Adapte-le, puis appuie sur « Exécuter ».','info');
 }
 function fillConsole(i){
   const ta=document.getElementById('ed-console');
@@ -25504,7 +25679,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2172';
+  const SW_CACHE='requete-2026-10-12-ludique-v2173';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
