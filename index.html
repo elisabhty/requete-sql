@@ -6637,7 +6637,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=22">
-<link rel="stylesheet" href="memo-collection.css?v=3">
+<link rel="stylesheet" href="memo-collection.css?v=4">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -16619,7 +16619,7 @@ function bravoCardHtml(l){
   const n=String(l.id).padStart(2,'0');
   return `<div class="bravo-card-col">
       <div class="bravo-gcard-stage">
-        <button type="button" class="bravo-gcard collectible" style="${collectibleStyle(l.id)}" onclick="bravoRevealCard(${l.id},event)" aria-label="Dévoiler la carte ${esc(c.k)}">${collectibleFace(l.id)}</button>
+        <button type="button" class="bravo-gcard collectible" onclick="bravoRevealCard(${l.id},event)" aria-label="Dévoiler la carte ${esc(c.k)}">${collectibleFace(l.id)}</button>
       </div>
     </div>`;
 }
@@ -20531,21 +20531,16 @@ function courseTableSummaries(){
 let collFilter=null;
 const FILTERS=[['all','Toutes'],['open','Débloquées'],['lock','À débloquer']];
 function setFilter(f){ collFilter=f;document.getElementById('scr-collection')?.classList.add('collection-static');renderCollection(); }
-/* Une identité commune pour l’album, la récompense et la fiche mémo. */
-function collectibleStyle(id){
-  const hues=[248,178,204,34,280,350,166,28,220,310,194,258,145,320,46];
-  return `--foil-h:${hues[moduleOf(id)%hues.length]};--orbit:${(id%5)*13}deg`;
-}
-function collectibleArt(id,locked=false){
-  if(locked)return `<span class="foil-art foil-back" aria-hidden="true"><svg viewBox="0 0 200 160" fill="none"><g stroke="currentColor"><path d="m100 12 68 68-68 68-68-68Z"/><path d="m100 27 53 53-53 53-53-53Z"/><path d="m100 42 38 38-38 38-38-38Z"/></g><rect x="91" y="77" width="18" height="16" rx="3" fill="currentColor"/><path d="M95 77v-6a5 5 0 0 1 10 0v6" stroke="currentColor" stroke-width="2"/></svg></span>`;
-  const table=(x,y)=>`<g transform="translate(${x} ${y})"><rect width="49" height="38" rx="3"/><path d="M0 11h49M0 24h49M16 11v27M33 11v27"/></g>`;
-  return `<span class="foil-art" aria-hidden="true"><svg viewBox="0 0 200 160" fill="none"><g class="foil-orbits" stroke="currentColor" stroke-width=".65"><ellipse cx="100" cy="80" rx="76" ry="62"/><ellipse cx="100" cy="80" rx="57" ry="74" transform="rotate(38 100 80)"/><ellipse cx="100" cy="80" rx="83" ry="37" transform="rotate(-30 100 80)"/><path d="M48 104 99 40l53 62M99 40v78" stroke-dasharray="2 4"/></g><g stroke="currentColor" stroke-width="1.15">${table(75,24)}${table(26,91)}${table(125,91)}</g><circle cx="100" cy="81" r="12" fill="currentColor" fill-opacity=".16" stroke="currentColor"/><circle cx="100" cy="81" r="5" fill="currentColor"/><g fill="currentColor"><circle cx="32" cy="51" r="3"/><circle cx="160" cy="43" r="4"/><circle cx="89" cy="147" r="3"/></g></svg></span>`;
-}
+/* Une identité commune pour l’album, la récompense et la fiche mémo :
+   une carte blanche comme le reste de l’appli, le mot-clé SQL en violet. */
+const MEMO_LOCK=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>`;
 function collectibleFace(id,locked=false){
   const c=CARTES[id],mod=MODULES[moduleOf(id)];
   const cards=allLessons.filter(l=>CARTES[l.id]);
   const serial=String(cards.findIndex(l=>l.id===id)+1).padStart(2,'0');
-  return `<span class="foil-top"><span>Requête</span><span>${serial} / ${cards.length}</span></span>${collectibleArt(id,locked)}<span class="foil-copy"><b>${locked?`Carte ${serial}`:esc(c.k)}</b><span>${locked?'À débloquer':esc(c.t)}</span></span><span class="foil-foot"><span aria-hidden="true">◇</span><span>${esc(mod.titre)}</span><span aria-hidden="true">◇</span></span>`;
+  const top=`<span class="memo-top"><span class="memo-num">${serial}</span><span class="memo-mod">${esc(mod.titre)}</span></span>`;
+  if(locked)return `<span class="memo-top"><span class="memo-num">${serial}</span><span class="memo-lock">${MEMO_LOCK}</span></span>`;
+  return `${top}<span class="memo-copy"><b>${esc(c.k)}</b><span>${esc(c.t)}</span></span>`;
 }
 function renderCollection(){
   const n=allLessons.filter(l=>CARTES[l.id]&&isUnlocked(l.id)).length;
@@ -20598,11 +20593,11 @@ function renderCollection(){
     const cards=items.map((l,i)=>{
       const u=isUnlocked(l.id);
       const c=CARTES[l.id];
-      if(!u) return `<button type="button" class="coll-card collectible lock" style="${collectibleStyle(l.id)}" onclick="openLesson(${l.id})" aria-label="${escAttr(`Carte à débloquer avec la leçon ${l.titre}. Ouvrir la leçon`)}">${collectibleFace(l.id,true)}<span class="foil-unlock">Voir la leçon · ${esc(l.titre)}</span></button>`;
+      if(!u) return `<button type="button" class="coll-card collectible lock" onclick="openLesson(${l.id})" aria-label="${escAttr(`Carte à débloquer avec la leçon ${l.titre}. Ouvrir la leçon`)}">${collectibleFace(l.id,true)}<span class="memo-copy"><b>${esc(l.titre)}</b><span>Voir la leçon</span></span></button>`;
       const due=revisable(l)&&isDue(l.id),level=(state.lessons[l.id]&&state.lessons[l.id].level)||0;
       const badge=due?'<em class="coll-badge is-due">À revoir</em>':level>=2?'<em class="coll-badge is-ok">Acquise</em>':'';
       const unlock=lastUnlockedId===l.id?' unlocking':'';
-      return `<button type="button" class="coll-card collectible${unlock}${due?' is-due':''}" style="${collectibleStyle(l.id)}" onclick="openCard(${l.id})" aria-label="${escAttr(`${c.k} : ${c.t}${due?'. À revoir':level>=2?'. Acquise':''}`)}">${badge}${collectibleFace(l.id)}</button>`;
+      return `<button type="button" class="coll-card collectible${unlock}${due?' is-due':''}" onclick="openCard(${l.id})" aria-label="${escAttr(`${c.k} : ${c.t}${due?'. À revoir':level>=2?'. Acquise':''}`)}">${badge}${collectibleFace(l.id)}</button>`;
     }).join('');
     /* Ouvert d’office : tous les modules dans « Débloquées » ; ailleurs, celui de la prochaine carte. */
     const ouvert=collFilter==='open'||(!!nextLesson&&avecCarte.some(l=>l.id===nextLesson.id));
@@ -20676,7 +20671,7 @@ function openCard(id){
   const tryIco=`<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9.05 5.36c-.7-.42-1.55.1-1.55.9v11.48c0 .8.85 1.32 1.55.9l9.52-5.74c.66-.4.66-1.4 0-1.8L9.05 5.36z" fill="currentColor"/></svg>`;
   const syntaxHead=c.ss&&c.ss.length?'':`<p class="cd-lab">Syntaxe</p>`;
   document.getElementById('card-body').innerHTML=`
-    <div class="cd-share collectible" style="${collectibleStyle(id)}">${collectibleFace(id)}</div>
+    <div class="cd-share collectible">${collectibleFace(id)}</div>
     <p class="cd-lab memo"><span class="cd-lab-i">💡</span>À retenir</p>
     <div class="cd-memo">${c.m}</div>
     <button type="button" class="coda-note" onclick="noteFromCard(${id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ajouter à mes notes</button>
@@ -25698,7 +25693,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-29-memo-collection-v2178';
+  const SW_CACHE='requete-2026-10-29-memo-simple-v2179';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
