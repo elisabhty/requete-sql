@@ -249,7 +249,7 @@
 <script src="moments.js"></script>
 <script>
 'use strict';
-const DURATION = 149.8;
+const DURATION = 153.2;
 
 /* Table produits : [id, nom, categorie, prix] */
 const PRODUITS = [[1,'Fibre Prébiotique','Bien-être',29.9],[2,'Collagène Marin','Beauté',39.9],[3,'Magnésium','Bien-être',19.9],
@@ -263,59 +263,61 @@ const euros = v => v.toFixed(2).replace('.', ',') + ' €';
 
 const CHAPTERS = [
   {n:1, label:'Situation',             a:5.0,  b:21.0},
-  {n:2, label:'Le problème',           a:21.0, b:34.5},
-  {n:3, label:'LIMIT en action',       a:34.5, b:50.25},
-  {n:4, label:'Sauter avec OFFSET',    a:50.25, b:66.0},
-  {n:5, label:'Un classement stable',  a:66.0, b:82.0},
-  {n:6, label:'Le résultat',           a:82.0, b:99.0},
-  {n:7, label:'À quoi ça sert',        a:99.0, b:137.0},
-  {n:8, label:'À retenir',             a:137.0, b:DURATION}
+  {n:2, label:'Le problème',           a:21.0, b:37.9},
+  {n:3, label:'LIMIT en action',       a:37.9, b:53.65},
+  {n:4, label:'Sauter avec OFFSET',    a:53.65, b:69.4},
+  {n:5, label:'Un classement stable',  a:69.4, b:85.4},
+  {n:6, label:'Le résultat',           a:85.4, b:102.4},
+  {n:7, label:'À quoi ça sert',        a:102.4, b:140.4},
+  {n:8, label:'À retenir',             a:140.4, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
 const CAPTIONS = [
-  [5.3, 9.6,    "Le site web montre d’abord <b>3 produits</b>, du plus cher au moins cher."],
-  [9.7, 13.9,   "Chaque appui sur « Voir plus » doit afficher les <b>3 suivants</b>, sans doublon."],
-  [14.0, 17.2,  "Le site web a besoin de l’<b>identifiant</b>, du <b>nom</b> et du <b>prix</b> de chaque produit."],
+  // Le besoin, sans personnifier le site (Elisa, 29 octobre, 8 h 25)
+  [5.3, 9.6,    "Sur le site web, les <b>3 produits</b> les plus chers s’affichent d’abord, du plus cher au moins cher."],
+  [9.7, 13.9,   "À chaque appui sur « Voir plus », les <b>3 produits suivants</b> doivent s’ajouter, sans doublon."],
+  [14.0, 17.2,  "Pour chaque produit, il faut<br>son <b>identifiant</b>, son <b>nom</b> et son <b>prix</b>."],
   [17.3, 20.7,  "On va les chercher<br>dans la <b>table produits</b>,<br>qui contient <b>8 produits</b>."],
   [21.3, 25.3,  "Avec <code>ORDER BY</code>, on classe d’abord les produits <span class=\"nw\">du plus cher au moins cher</span>."],
   [25.4, 29.6,  "Le classement est bon, mais la requête renvoie les <b>8 produits</b> d’un coup."],
-  [29.7, 34.0,  "Le site web n’en veut que <b>3</b> : ceux qui suivent les produits déjà affichés."],
-  [34.8, 38.3,  "<code>LIMIT 3</code> s’ajoute à la <b>fin</b> de la requête : il ne garde que 3 lignes."],
-  [38.4, 42.6,  "Ce sont les 3 premières lignes <b>du classement</b>, affichées au départ."],
-  [42.7, 46.4,  "Sans <code>ORDER BY</code>, <code>LIMIT</code> garde 3 lignes dans un ordre <b>non\u00a0garanti</b> : ici, <span class=\"nw\">pas les plus chères</span>."],
-  [46.5, 49.6,  "Avec <code>LIMIT</code>, écris donc toujours un <code>ORDER BY</code> juste avant."],
-  [50.3, 54.0,  "Pour les 3 suivants, <code>OFFSET 3</code> <b>saute</b> les 3 premiers, puis <code>LIMIT</code> en garde 3."],
-  [54.1, 58.2,  "Résultat : Oméga 3, Magnésium et Shaker Inox, les 3 produits suivants du classement."],
-  [58.3, 62.6,  "On saute (page\u00a0−\u00a01)\u00a0×\u00a03 lignes : 0 pour la page 1, puis 3, puis 6."],
-  [62.7, 65.6,  "La page 3 ne compte que <b>2 produits</b> : la dernière page peut être plus courte."],
-  [66.3, 70.0,  "Imaginons l’Oméga 3 à <b>29,90 €</b> : même prix que la Fibre Prébiotique."],
-  [70.1, 74.4,  "À égalité, leur ordre n’est pas garanti : il peut s’inverser d’une requête à l’autre."],
-  [74.5, 78.0,  "La Fibre Prébiotique s’affiche alors <b>deux\u00a0fois</b>, et l’Oméga 3 <b>jamais</b>."],
-  [78.1, 81.6,  "On termine donc <code>ORDER BY</code> par <code>id</code>, une colonne unique : le classement devient <b>stable</b>."],
-  [82.3, 85.6,  "La requête complète charge la page 2, dans un classement stable."],
-  [85.7, 89.4,  "Résultat : <b>3 lignes</b>, Oméga 3, Magnésium et Shaker Inox."],
-  [89.5, 93.6,  "Sur le site web, les 3 produits s’ajoutent <b>sous les premiers</b>, sans doublon."],
-  [93.7, 97.1,  "<code>LIMIT</code> indique combien de lignes récupérer, et <code>OFFSET</code> combien de lignes sauter au début du résultat."],
-  [97.2, 98.6,  "La <b>table produits</b> reste inchangée."],
-  [99.3, 104.75,   "Les produits arrivent ainsi <b>par portions</b> de 3 : une requête par portion."],
-  [104.85, 111.05, "C’est utile pour afficher ou récupérer<br>des résultats <b>par portions</b>, sans tout charger d’un coup."],
-  [111.15, 116.1,  "On s’en sert d’abord sur les <b>sites web</b> et dans les <b>applications</b>…"],
-  [116.2, 122.45,  "…mais aussi dans les <b>logiciels métier</b> : consulter les clients ou les factures par groupes de 20."],
-  [122.55, 127.15, "Dans les <b>tableaux de bord</b> : parcourir une longue liste de commandes."],
-  [127.25, 131.85, "Dans les <b>API</b> : renvoyer une portion des résultats à chaque demande."],
-  [131.95, 136.4,  "Et dans les <b>scripts de traitement</b> : récupérer des données par lots."],
-  [137.3, 142.1,   "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [142.2, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
-      : [142.2, 999, "<code>LIMIT</code> garde les premières lignes, <code>OFFSET</code> en saute, après un tri stable."]
+  [29.7, 32.9,  "Les <b>3 premiers produits</b> sont déjà affichés sur le site."],
+  [33.0, 37.4,  "Il faut charger uniquement<br>les <b>3 produits suivants</b>,<br>après ceux déjà affichés sur le site."],
+  [38.2, 41.7,  "<code>LIMIT 3</code> s’ajoute à la <b>fin</b> de la requête : il ne garde que 3 lignes."],
+  [41.8, 46.0,  "Ce sont les 3 premières lignes <b>du classement</b>, affichées au départ."],
+  [46.1, 49.8,  "Sans <code>ORDER BY</code>, <code>LIMIT</code> garde 3 lignes dans un ordre <b>non\u00a0garanti</b> : ici, <span class=\"nw\">pas les plus chères</span>."],
+  [49.9, 53.0,  "Avec <code>LIMIT</code>, écris donc toujours un <code>ORDER BY</code> juste avant."],
+  [53.7, 57.4,  "Pour les 3 suivants, <code>OFFSET 3</code> <b>saute</b> les 3 premiers, puis <code>LIMIT</code> en garde 3."],
+  [57.5, 61.6,  "Résultat : Oméga 3, Magnésium et Shaker Inox, les 3 produits suivants du classement."],
+  [61.7, 66.0,  "On saute (page\u00a0−\u00a01)\u00a0×\u00a03 lignes : 0 pour la page 1, puis 3, puis 6."],
+  [66.1, 69.0,  "La page 3 ne compte que <b>2 produits</b> : la dernière page peut être plus courte."],
+  [69.7, 73.4,  "Imaginons l’Oméga 3 à <b>29,90 €</b> : même prix que la Fibre Prébiotique."],
+  [73.5, 77.8,  "À égalité, leur ordre n’est pas garanti : il peut s’inverser d’une requête à l’autre."],
+  [77.9, 81.4,  "La Fibre Prébiotique s’affiche alors <b>deux\u00a0fois</b>, et l’Oméga 3 <b>jamais</b>."],
+  [81.5, 85.0,  "On termine donc <code>ORDER BY</code> par <code>id</code>, une colonne unique : le classement devient <b>stable</b>."],
+  [85.7, 89.0,  "La requête complète charge la page 2, dans un classement stable."],
+  [89.1, 92.8,  "Résultat : <b>3 lignes</b>, Oméga 3, Magnésium et Shaker Inox."],
+  [92.9, 97.0,  "Sur le site web, les 3 produits s’ajoutent <b>sous les premiers</b>, sans doublon."],
+  [97.1, 100.5,  "<code>LIMIT</code> indique combien de lignes récupérer, et <code>OFFSET</code> combien de lignes sauter au début du résultat."],
+  [100.6, 102.0,  "La <b>table produits</b> reste inchangée."],
+  [102.7, 108.15,   "Les produits arrivent ainsi <b>par portions</b> de 3 : une requête par portion."],
+  [108.25, 114.45, "C’est utile pour afficher ou récupérer<br>des résultats <b>par portions</b>, sans tout charger d’un coup."],
+  [114.55, 119.5,  "On s’en sert d’abord sur les <b>sites web</b> et dans les <b>applications</b>…"],
+  [119.6, 125.85,  "…mais aussi dans les <b>logiciels métier</b> : consulter les clients ou les factures par groupes de 20."],
+  [125.95, 130.55, "Dans les <b>tableaux de bord</b> : parcourir une longue liste de commandes."],
+  [130.65, 135.25, "Dans les <b>API</b> : renvoyer une portion des résultats à chaque demande."],
+  [135.35, 139.8,  "Et dans les <b>scripts de traitement</b> : récupérer des données par lots."],
+  [140.7, 145.5,   "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [145.6, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
+      : [145.6, 999, "<code>LIMIT</code> garde les premières lignes, <code>OFFSET</code> en saute, après un tri stable."]
 ];
 
-/* Pas de question en pleine vidéo : les moments « À toi » font participer l’élève (ni exercice ni quiz après la vidéo, depuis le 28 octobre). */
+/* Pas de question en pleine vidéo : les moments « À toi » font participer l’élève. */
 const QUESTIONS = [];
 /* Moments « À toi » (moments.js) : l’image s’arrête à `at`, juste avant que la vidéo ne montre la réponse. */
 const MOMENTS = [
   /* Mini-jeux (Elisa, 28 octobre, 8 h 50). Le puzzle, une fois LIMIT vu : la requête des 3 produits affichés au départ. */
-  {at: 50.05, from: 34.5, kind: 'sort', prompt: 'Reconstitue la requête des <b>3 produits les plus chers</b>, affichés au départ.',
+  {at: 53.45, from: 37.9, kind: 'sort', prompt: 'Reconstitue la requête des <b>3 produits les plus chers</b>, affichés au départ.',
     hint: 'Sélectionne un bloc, puis appuie sur l’emplacement où tu veux le placer dans la requête. Tu peux aussi le faire glisser directement.', next: '{x} : appuie sur l’emplacement où tu veux le placer dans la requête.',
     board: {y: 300, html: '<span class="mb-k">🧩 Le puzzle</span><div class="mb-q mg-pz"><span class="k">SELECT</span> id, nom, prix\n<span class="k">FROM</span> produits\n<span class="mb-hole" id="mbH1"><span class="mb-drop"></span></span>\n<span class="mb-hole" id="mbH2"><span class="mb-drop"></span></span>;</div>'
       + '<div class="mb-bin mg-bin" id="mbX"><b>🗑️ En trop</b><div class="mb-drop"></div></div>'},
@@ -327,7 +329,7 @@ const MOMENTS = [
       {label: 'WHERE id <= 3', to: 'x', why: 'Les identifiants 1 à 3 ne sont pas les 3 produits les plus chers.'}],
     tip: 'D’abord le classement (<code>ORDER BY</code>), puis le nombre de lignes (<code>LIMIT</code>).'},
   // les pages : combien de lignes sauter pour chacune, avant que la vidéo le calcule
-  {at: 58.25, from: 50.25, kind: 'link', need: 4, prompt: 'Avec 2 produits par page, relie chaque page à son <code>OFFSET</code>.',
+  {at: 61.65, from: 53.65, kind: 'link', need: 4, prompt: 'Avec 2 produits par page, relie chaque page à son <code>OFFSET</code>.',
     hint: 'Sélectionne une page, puis appuie sur son <code>OFFSET</code>. Tu peux aussi tracer le trait directement du doigt.',
     board: {y: 470, html: '<span class="mb-k">2 produits par page</span><div class="mb-cols"><div class="mb-col"><div class="mb-i" id="mbg1">Page 1</div><div class="mb-i" id="mbg2">Page 2</div><div class="mb-i" id="mbg3">Page 3</div><div class="mb-i" id="mbg4">Page 4</div></div><div class="mb-col"><div class="mb-i c" id="mbf6">OFFSET 6</div><div class="mb-i c" id="mbf0">OFFSET 0</div><div class="mb-i c" id="mbf4">OFFSET 4</div><div class="mb-i c" id="mbf2">OFFSET 2</div></div></div>'},
     spots: [
@@ -340,9 +342,8 @@ const MOMENTS = [
       {k: 'f4', sel: '#mbf4', label: 'OFFSET 4', side: 'r'},
       {k: 'f2', sel: '#mbf2', label: 'OFFSET 2', side: 'r'}],
     tip: 'On saute les produits des pages précédentes : 2 par page.'},
-  /* Le classement stable, avant que la vidéo ajoute id : deux exécutions (la page 1, puis la page 2) ; l’élève choisit la colonne qui
-     départage les prix égaux et voit la Fibre Prébiotique en double, l’Oméga 3 jamais affiché, ou les 6 produits sans doublon. */
-  {at: 78.05, from: 66.0, kind: 'tune', ico: '🧱', prompt: 'Choisis ce qui départage les prix égaux : chaque produit doit s’afficher <b>une seule fois</b>.',
+  /* Le classement stable, avant que la vidéo ajoute id : l’élève choisit ce qui départage les prix égaux. */
+  {at: 81.45, from: 69.4, kind: 'tune', ico: '🧱', prompt: 'Choisis ce qui départage les prix égaux : chaque produit doit s’afficher <b>une seule fois</b>.',
     hint: 'Change le départage, regarde les deux pages, puis valide.',
     controls: [{k: 'd', type: 'seg', label: 'Après prix DESC', choices: ['rien', 'prix', 'id'], value: 'rien', code: true}],
     answer: {d: 'id'},
@@ -476,75 +477,75 @@ function build(){
   const pills = tr2.map(r => r.querySelector('.pl')).filter(Boolean);
   gsap.set(pills, {scale: 0.5});
   pills.forEach((pl, i) => {
-    const t = i < 3 ? 30.0 + i * 0.12 : 31.0 + (i - 3) * 0.12;
+    const t = i < 3 ? 30.0 + i * 0.12 : 34.4 + (i - 3) * 0.12;
     tl.to(pl, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.2)'}, t);
     cue(t, 'pop', 0.6, i);
   });
   const nx = tr2.slice(3, 6).map(r => r.querySelector('.hl'));
-  tl.to(nx, {opacity: 1, duration: 0.3, stagger: 0.12}, 31.0);
+  tl.to(nx, {opacity: 1, duration: 0.3, stagger: 0.12}, 34.4);
 
   /* ===== 3 · LIMIT en action ===== */
-  tl.to(nx, {opacity: 0, duration: 0.3}, 34.6);
-  tl.set('#semi3', {display: 'none'}, 34.8);
-  tl.to('#ql4', {height: 54, duration: 0.3, ease: 'power2.out'}, 34.8);
-  tl.set('#ql4', {overflow: 'visible'}, 35.10);   // ligne ouverte : le surlignage du mot-clé reste entier
-  te = typeLine($('#ql4'), 35.15, 20, false, $('#offA'));
+  tl.to(nx, {opacity: 0, duration: 0.3}, 38.0);
+  tl.set('#semi3', {display: 'none'}, 38.2);
+  tl.to('#ql4', {height: 54, duration: 0.3, ease: 'power2.out'}, 38.2);
+  tl.set('#ql4', {overflow: 'visible'}, 38.5);   // ligne ouverte : le surlignage du mot-clé reste entier
+  te = typeLine($('#ql4'), 38.55, 20, false, $('#offA'));
   tl.to('#limA', {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, te + 0.15);
-  press($('#qrun'), 38.4);
+  press($('#qrun'), 41.8);
   const rest = tr2.slice(3);
-  tl.to(rest, {height: 0, autoAlpha: 0, duration: 0.5, ease: 'power2.inOut', stagger: 0.04}, 38.6);
-  cue(38.6, 'fold', 0.9);
-  tl.to('#cnt2a', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 39.35);
-  tl.to('#cnt2b', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 39.45);
-  cue(39.45, 'pop', 0.9, 4);
-  tl.to(pills.slice(0, 3), {scale: 1.12, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.1}, 40.2);
+  tl.to(rest, {height: 0, autoAlpha: 0, duration: 0.5, ease: 'power2.inOut', stagger: 0.04}, 42.0);
+  cue(42.0, 'fold', 0.9);
+  tl.to('#cnt2a', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 42.75);
+  tl.to('#cnt2b', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 42.85);
+  cue(42.85, 'pop', 0.9, 4);
+  tl.to(pills.slice(0, 3), {scale: 1.12, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.1}, 43.6);
   // Le piège : LIMIT sans ORDER BY
-  hide(['#qcode', '#tbl2'], 42.7, {y: -40}, 0.4);
-  sceneOn('#s3', 42.9);
-  show('#trap3', 43.0, {y: 50});
-  cue(43.0, 'whoosh', 0.6);
-  press($('#go3'), 43.9, '#4B30CC', 6);
-  show('#mres3', 44.1, {y: 16}, 0.4);
-  show('#err3', 44.7, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
-  tl.to('#err3', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 45.1);
-  cue(44.7, 'error', 0.85);
-  show('#fix3', 46.8, {y: 50});
-  cue(46.8, 'whoosh', 0.6);
-  show('#ok3', 47.3, {y: 0, x: -20}, 0.4, 'back.out(1.8)');
-  cue(47.3, 'chord', 0.6);
-  hide(['#trap3', '#fix3'], 49.6);
-  sceneOff('#s3', 50.05);
+  hide(['#qcode', '#tbl2'], 46.1, {y: -40}, 0.4);
+  sceneOn('#s3', 46.3);
+  show('#trap3', 46.4, {y: 50});
+  cue(46.4, 'whoosh', 0.6);
+  press($('#go3'), 47.3, '#4B30CC', 6);
+  show('#mres3', 47.5, {y: 16}, 0.4);
+  show('#err3', 48.1, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  tl.to('#err3', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 48.5);
+  cue(48.1, 'error', 0.85);
+  show('#fix3', 50.2, {y: 50});
+  cue(50.2, 'whoosh', 0.6);
+  show('#ok3', 50.7, {y: 0, x: -20}, 0.4, 'back.out(1.8)');
+  cue(50.7, 'chord', 0.6);
+  hide(['#trap3', '#fix3'], 53.0);
+  sceneOff('#s3', 53.45);
 
   /* ===== 4 · Sauter avec OFFSET ===== */
-  tl.fromTo('#qcode', {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false}, 50.05);
-  tl.fromTo('#tbl2', {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false}, 50.2);
-  cue(50.05, 'whoosh', 0.6);
-  te = typeMore($('#offA'), 50.85, 20);
+  tl.fromTo('#qcode', {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false}, 53.45);
+  tl.fromTo('#tbl2', {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false}, 53.6);
+  cue(53.45, 'whoosh', 0.6);
+  te = typeMore($('#offA'), 54.25, 20);
   tl.to('#offA .glow', {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, te + 0.15);
-  press($('#qrun'), 54.1);
+  press($('#qrun'), 57.5);
   const page1 = tr2.slice(0, 3), page2 = tr2.slice(3, 6);
-  tl.to(page1, {opacity: 0.35, duration: 0.25}, 54.3);
-  tl.to(page1, {height: 0, autoAlpha: 0, duration: 0.5, ease: 'power2.inOut', stagger: 0.04}, 54.65);
-  cue(54.65, 'fold', 0.8);
-  tl.to(page2, {height: 56, autoAlpha: 1, duration: 0.5, ease: 'power3.out', stagger: 0.08}, 55.05);
-  page2.forEach((_, i) => cue(55.05 + i * 0.08, 'pop', 0.7, i + 2));
+  tl.to(page1, {opacity: 0.35, duration: 0.25}, 57.7);
+  tl.to(page1, {height: 0, autoAlpha: 0, duration: 0.5, ease: 'power2.inOut', stagger: 0.04}, 58.05);
+  cue(58.05, 'fold', 0.8);
+  tl.to(page2, {height: 56, autoAlpha: 1, duration: 0.5, ease: 'power3.out', stagger: 0.08}, 58.45);
+  page2.forEach((_, i) => cue(58.45 + i * 0.08, 'pop', 0.7, i + 2));
   // Une page à la fois : la fenêtre de 3 lignes glisse de 3 en 3
-  hide(['#qcode', '#tbl2'], 58.3, {y: -40}, 0.4);
-  sceneOn('#s4', 58.5);
-  show('#win4', 58.6, {y: 50}, 0.55);
-  cue(58.6, 'whoosh', 0.6);
+  hide(['#qcode', '#tbl2'], 61.7, {y: -40}, 0.4);
+  sceneOn('#s4', 61.9);
+  show('#win4', 62.0, {y: 50}, 0.55);
+  cue(62.0, 'whoosh', 0.6);
   const tw = $$('#rows4 .tw');
   gsap.set(tw, {autoAlpha: 0, x: -20});
-  tl.to(tw, {autoAlpha: 1, x: 0, duration: 0.3, ease: 'power2.out', stagger: 0.04}, 58.8);
-  show('#cnt4', 59.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  tl.to(tw, {autoAlpha: 1, x: 0, duration: 0.3, ease: 'power2.out', stagger: 0.04}, 62.2);
+  show('#cnt4', 62.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
   const sk = tw.map(r => r.querySelector('.pl'));
   gsap.set(sk, {scale: 0.6});
   const fc = ['#fc0', '#fc1', '#fc2'];
   gsap.set(fc, {autoAlpha: 0, y: 14});
-  show('#frm4', 59.55, {y: 0, scale: 0.96}, 0.35, 'back.out(1.8)');
-  tl.to('#fc0', {autoAlpha: 1, y: 0, duration: 0.3, ease: 'back.out(2)'}, 59.7);
-  cue(59.55, 'pop', 0.8, 1);
-  [[60.6, 1], [61.6, 2]].forEach(([t, k]) => {
+  show('#frm4', 62.95, {y: 0, scale: 0.96}, 0.35, 'back.out(1.8)');
+  tl.to('#fc0', {autoAlpha: 1, y: 0, duration: 0.3, ease: 'back.out(2)'}, 63.1);
+  cue(62.95, 'pop', 0.8, 1);
+  [[64.0, 1], [65.0, 2]].forEach(([t, k]) => {
     tl.to('#frm4', {y: k * 3 * 62, duration: 0.5, ease: 'power3.inOut'}, t);
     tl.to(fc[k - 1], {autoAlpha: 0, y: -14, duration: 0.2}, t);
     tl.to(fc[k], {autoAlpha: 1, y: 0, duration: 0.3, ease: 'back.out(2)'}, t + 0.3);
@@ -554,91 +555,91 @@ function build(){
     cue(t, 'whoosh', 0.5);
     cue(t + 0.3, 'pop', 0.8, 2 + k);
   });
-  show('#gh4', 61.95, {y: 0}, 0.3, 'power2.out');
-  tl.to('#gh4', {color: '#5335E0', borderColor: '#A893FF', duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 63.0);
-  cue(63.0, 'empty', 0.6);
-  hide('#win4', 65.6, {y: -40});
-  sceneOff('#s4', 66.05);
+  show('#gh4', 65.35, {y: 0}, 0.3, 'power2.out');
+  tl.to('#gh4', {color: '#5335E0', borderColor: '#A893FF', duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 66.4);
+  cue(66.4, 'empty', 0.6);
+  hide('#win4', 69.0, {y: -40});
+  sceneOff('#s4', 69.45);
 
   /* ===== 5 · Un classement stable ===== */
-  sceneOn('#s5', 66.0);
+  sceneOn('#s5', 69.4);
   gsap.set('#idC', {display: 'none'});
-  show('#tie5', 66.05, {y: 50});
-  cue(66.05, 'whoosh', 0.6);
-  show('#pg5', 66.35, {y: 40}, 0.5);
+  show('#tie5', 69.45, {y: 50});
+  cue(69.45, 'whoosh', 0.6);
+  show('#pg5', 69.75, {y: 40}, 0.5);
   const tp = $$('#pg5 .tp'), pA = $('#pA'), pB = $('#pB');
   gsap.set(tp, {autoAlpha: 0, x: -20});
-  tl.to(tp, {autoAlpha: 1, x: 0, duration: 0.3, ease: 'power2.out', stagger: 0.06}, 66.55);
+  tl.to(tp, {autoAlpha: 1, x: 0, duration: 0.3, ease: 'power2.out', stagger: 0.06}, 69.95);
   // Les deux produits à 29.9, à égalité
   const tagA = $$('.pl', pA), tagB = $$('.pl', pB);     // A : [égalité, id 1] ; B : [égalité, en double, id 7]
   gsap.set([...tagA, ...tagB], {scale: 0.5});
-  tl.to([pA, pB].map(r => r.querySelector('.hla')), {opacity: 1, duration: 0.35, stagger: 0.15}, 67.5);
-  tl.to([tagA[0], tagB[0]], {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.2)', stagger: 0.15}, 67.7);
-  cue(67.7, 'pop', 0.8, 2);
+  tl.to([pA, pB].map(r => r.querySelector('.hla')), {opacity: 1, duration: 0.35, stagger: 0.15}, 70.9);
+  tl.to([tagA[0], tagB[0]], {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.2)', stagger: 0.15}, 71.1);
+  cue(71.1, 'pop', 0.8, 2);
   // D’une requête à l’autre : la page 2 commence par la Fibre Prébiotique
-  flip(pB, 71.2, true);
+  flip(pB, 74.6, true);
   // En double, et l’Oméga 3 jamais affiché
-  tl.to([pA, pB].map(r => r.querySelector('.hla')), {opacity: 0, duration: 0.3}, 74.6);
-  tl.to([pA, pB].map(r => r.querySelector('.hlr')), {opacity: 1, duration: 0.3, stagger: 0.12}, 74.7);
-  tl.to(tagB[0], {autoAlpha: 0, scale: 0.5, duration: 0.2}, 74.7);
-  tl.to(tagB[1], {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.2)'}, 74.9);
-  cue(74.9, 'error', 0.7);
-  show('#nv5', 75.6, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
-  cue(75.6, 'miss', 0.7);
+  tl.to([pA, pB].map(r => r.querySelector('.hla')), {opacity: 0, duration: 0.3}, 78.0);
+  tl.to([pA, pB].map(r => r.querySelector('.hlr')), {opacity: 1, duration: 0.3, stagger: 0.12}, 78.1);
+  tl.to(tagB[0], {autoAlpha: 0, scale: 0.5, duration: 0.2}, 78.1);
+  tl.to(tagB[1], {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.2)'}, 78.3);
+  cue(78.3, 'error', 0.7);
+  show('#nv5', 79.0, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(79.0, 'miss', 0.7);
   // Correction : ORDER BY prix DESC, id
   gsap.set('#idC', {autoAlpha: 0, scale: 0.3, transformOrigin: '50% 60%'});
-  tl.set('#idC', {display: 'inline-block'}, 78.38);
-  tl.to('#idC', {autoAlpha: 1, scale: 1, duration: 0.42, ease: 'back.out(2.6)'}, 78.4);
-  cue(78.4, 'pop', 0.9, 6);
-  press($('#go5'), 79.0, '#4B30CC', 6);
-  tl.to('#nv5', {autoAlpha: 0, scale: 0.8, duration: 0.25}, 79.2);
-  tl.to([pA, pB].map(r => r.querySelector('.hlr')), {opacity: 0, duration: 0.3}, 79.2);
-  tl.to([tagA[0], tagB[1]], {autoAlpha: 0, scale: 0.5, duration: 0.2}, 79.2);
-  flip(pB, 79.3, false);
-  tl.to([tagA[1], tagB[2]], {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.2)', stagger: 0.15}, 79.8);
-  cue(79.8, 'chord', 0.6);
-  hide(['#tie5', '#pg5'], 81.6);
-  sceneOff('#s5', 82.05);
+  tl.set('#idC', {display: 'inline-block'}, 81.78);
+  tl.to('#idC', {autoAlpha: 1, scale: 1, duration: 0.42, ease: 'back.out(2.6)'}, 81.8);
+  cue(81.8, 'pop', 0.9, 6);
+  press($('#go5'), 82.4, '#4B30CC', 6);
+  tl.to('#nv5', {autoAlpha: 0, scale: 0.8, duration: 0.25}, 82.6);
+  tl.to([pA, pB].map(r => r.querySelector('.hlr')), {opacity: 0, duration: 0.3}, 82.6);
+  tl.to([tagA[0], tagB[1]], {autoAlpha: 0, scale: 0.5, duration: 0.2}, 82.6);
+  flip(pB, 82.7, false);
+  tl.to([tagA[1], tagB[2]], {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.2)', stagger: 0.15}, 83.2);
+  cue(83.2, 'chord', 0.6);
+  hide(['#tie5', '#pg5'], 85.0);
+  sceneOff('#s5', 85.45);
 
   /* ===== 6 · Le résultat ===== */
-  sceneOn('#s6', 82.0);
-  show('#s6code', 82.05, {y: 60}, 0.6);
-  cue(82.05, 'whoosh', 0.7);
-  te = typeLine($('#s6l1'), 82.55, 32);
+  sceneOn('#s6', 85.4);
+  show('#s6code', 85.45, {y: 60}, 0.6);
+  cue(85.45, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 85.95, 32);
   te = typeLine($('#s6l2'), te + 0.1, 32);
   te = typeLine($('#s6l3'), te + 0.1, 32);
   te = typeLine($('#s6l4'), te + 0.1, 32);
-  press($('#s6run'), 85.7);
-  show('#tbl6', 85.95, {y: 40}, 0.5);
+  press($('#s6run'), 89.1);
+  show('#tbl6', 89.35, {y: 40}, 0.5);
   const tr6 = $$('#rows6 .tr');
   gsap.set(tr6, {autoAlpha: 0, y: 14});
-  tl.to(tr6, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.08}, 86.1);
-  tr6.forEach((_, i) => cue(86.1 + i * 0.08, 'tick', 0.45, i));
-  show('#cnt6', 86.5, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  hide(['#s6code', '#tbl6'], 89.5, {y: -40}, 0.4);
+  tl.to(tr6, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.08}, 89.5);
+  tr6.forEach((_, i) => cue(89.5 + i * 0.08, 'tick', 0.45, i));
+  show('#cnt6', 89.9, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  hide(['#s6code', '#tbl6'], 92.9, {y: -40}, 0.4);
   // Sur le site web : les 3 produits s’ajoutent sous les premiers
   const c6 = $$('#ph6 .pc'), new6 = c6.slice(3);
-  grow(new6, 91.2);
-  appIn('#ph6', 89.8);
-  tapMore('#ph6', 90.9);
-  tl.to(new6.map(c => c.querySelector('.glw')), {opacity: 1, duration: 0.35, stagger: 0.1}, 92.0);
-  show('#badge6', 92.5, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(92.5, 'success', 0.9);
-  hide('#badge6', 98.6);
+  grow(new6, 94.6);
+  appIn('#ph6', 93.2);
+  tapMore('#ph6', 94.3);
+  tl.to(new6.map(c => c.querySelector('.glw')), {opacity: 1, duration: 0.35, stagger: 0.1}, 95.4);
+  show('#badge6', 95.9, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(95.9, 'success', 0.9);
+  hide('#badge6', 102.0);
   // Le site web reste à l’écran : le chapitre 7 le reprend tel quel (#ph7, même image)
 
   /* ===== 7 · À quoi ça sert ===== */
   // Même image qu’à la fin du chapitre 6 : le site web se range à gauche, et chaque portion de 3 produits reçoit son repère.
-  sceneOff('#s6', 99.0);
-  sceneOn('#use', 99.0);
+  sceneOff('#s6', 102.4);
+  sceneOn('#use', 102.4);
   const ph7 = $('#ph7'), c7 = $$('#ph7 .pc'), glw7 = c7.slice(3).map(c => c.querySelector('.glw'));
   const p0 = rel(ph7), S7 = 0.84, X7 = 96, Y7 = 400;          // site web réduit : coin haut gauche (96, 400), échelle 0,84
   gsap.set(glw7, {opacity: 1});
-  tl.to(glw7, {opacity: 0, duration: 0.4}, 99.2);
+  tl.to(glw7, {opacity: 0, duration: 0.4}, 102.6);
   gsap.set(ph7, {transformOrigin: '0 0'});
-  tl.to(ph7, {x: X7 - p0.x, y: Y7 - p0.y, scale: S7, duration: 0.75, ease: 'power3.inOut'}, 99.15);
-  cue(99.15, 'whoosh', 0.6);
-  show('#use .rtitle', 99.5, {y: 34});
+  tl.to(ph7, {x: X7 - p0.x, y: Y7 - p0.y, scale: S7, duration: 0.75, ease: 'power3.inOut'}, 102.55);
+  cue(102.55, 'whoosh', 0.6);
+  show('#use .rtitle', 102.9, {y: 34});
   // Un crochet à droite de chaque portion (mesuré dans le site web, puis ramené à sa taille réduite), son étiquette à côté
   const inPh = el => rel(el, ph7), bx = X7 + p0.w * S7 + 22;
   [[c7[0], c7[2]], [c7[3], c7[5]], [$('#ph7 .more'), $('#ph7 .more')]].forEach(([u, v], k) => {
@@ -655,27 +656,27 @@ function build(){
     cue(t, 'pop', 0.8, k + 1);
   };
   // Portion 1, puis portion 2 : une requête chacune (OFFSET 0, puis OFFSET 3)
-  bracket(1, 100.0);
-  bracket(2, 100.6);
-  tl.to(['#bl1 .ic', '#bl2 .ic'], {scale: 1.12, duration: 0.2, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.3}, 102.6);
+  bracket(1, 103.4);
+  bracket(2, 104.0);
+  tl.to(['#bl1 .ic', '#bl2 .ic'], {scale: 1.12, duration: 0.2, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.3}, 106.0);
   // La portion 3 n’est pas encore chargée : elle attend le prochain « Voir plus »
-  bracket(3, 105.2);
-  tl.to('#ph7 .more', {scale: 1.05, duration: 0.25, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 106.2);
+  bracket(3, 108.6);
+  tl.to('#ph7 .more', {scale: 1.05, duration: 0.25, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 109.6);
   // Le site web devient le premier usage de la liste : il rapetisse jusqu’à l’icône de « Sites web et applications »
-  hide(['#bk1', '#bk2', '#bk3', '#bl1', '#bl2', '#bl3'], 110.6, {y: 0}, 0.3);
+  hide(['#bk1', '#bk2', '#bk3', '#bl1', '#bl2', '#bl3'], 114.0, {y: 0}, 0.3);
   const urows = $$('#use .urow'), ico = rel(urows[0].querySelector('.rico')), sf = 64 / p0.h;
   tl.to(ph7, {x: ico.x + ico.w / 2 - p0.x - p0.w * sf / 2, y: ico.y + ico.h / 2 - p0.y - p0.h * sf / 2, scale: sf,
-    duration: 0.75, ease: 'power3.inOut'}, 110.9);
-  cue(110.9, 'whoosh', 0.6);
-  tl.to(ph7, {autoAlpha: 0, duration: 0.2, ease: 'power1.in'}, 111.6);
+    duration: 0.75, ease: 'power3.inOut'}, 114.3);
+  cue(114.3, 'whoosh', 0.6);
+  tl.to(ph7, {autoAlpha: 0, duration: 0.2, ease: 'power1.in'}, 115.0);
   gsap.set(urows, {autoAlpha: 0, x: -36});
   gsap.set(urows[0], {x: 0});
-  tl.to(urows[0], {autoAlpha: 1, duration: 0.4, ease: 'power2.out'}, 111.5);
-  tl.fromTo(urows[0].querySelector('.rico'), {scale: 0.6}, {scale: 1, duration: 0.5, ease: 'back.out(2.4)', immediateRender: false}, 111.6);
-  cue(111.6, 'pop', 0.85, 0);
-  tl.to(urows[0], {borderColor: '#A893FF', duration: 0.3}, 111.75);
+  tl.to(urows[0], {autoAlpha: 1, duration: 0.4, ease: 'power2.out'}, 114.9);
+  tl.fromTo(urows[0].querySelector('.rico'), {scale: 0.6}, {scale: 1, duration: 0.5, ease: 'back.out(2.4)', immediateRender: false}, 115.0);
+  cue(115.0, 'pop', 0.85, 0);
+  tl.to(urows[0], {borderColor: '#A893FF', duration: 0.3}, 115.15);
   // … mais aussi : logiciels métier, tableaux de bord, API, scripts de traitement. Le cas en cours est entouré.
-  [116.3, 122.65, 127.35, 132.05].forEach((t, j) => {
+  [119.7, 126.05, 130.75, 135.45].forEach((t, j) => {
     const i = j + 1;
     tl.to(urows[i], {autoAlpha: 1, x: 0, duration: 0.55, ease: 'power3.out'}, t);
     tl.fromTo(urows[i].querySelector('.rico'), {scale: 0.6}, {scale: 1, duration: 0.5, ease: 'back.out(2.4)', immediateRender: false}, t + 0.1);
@@ -683,18 +684,18 @@ function build(){
     tl.to(urows[i], {borderColor: '#A893FF', duration: 0.3}, t + 0.15);
     tl.to(urows[i - 1], {borderColor: '#E6E1F6', duration: 0.3}, t + 0.15);
   });
-  hide(['#use .rtitle', '#use .ulist'], 136.45);
-  sceneOff('#use', 136.95);
+  hide(['#use .rtitle', '#use .ulist'], 139.85);
+  sceneOff('#use', 140.35);
 
   /* ===== 8 · À retenir ===== */
-  recapScene(137.0, [137.7, 139.5, 141.3]);
-  hold(139.3, 2.9);
-  hold(141.1, 2.9);
+  recapScene(140.4, [141.1, 142.9, 144.7]);
+  hold(142.7, 2.9);
+  hold(144.5, 2.9);
   // Le bouton « Ajouter à mes notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(142.25, 'pop', 0.85, 5);
+  if (APP) cue(145.65, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 142.2, moments: MOMENTS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 145.6, moments: MOMENTS,
   glyphs: '📱⬇️🔢🏷️💶🔎⚠️✅🪟🧪✂️⏭️🔒🌾🌊⚡☀️🍵🌱🐟🥤💼📊🔌⚙️✓✕→·€−×—+…', dom, build});
 </script>
 </body>
