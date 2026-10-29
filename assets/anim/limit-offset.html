@@ -222,13 +222,13 @@
       <div class="card urow"><div class="rico emo">📱</div><div class="rtxt"><b>Sites web et applications</b><span class="rs">Pages de résultats, recherche, bouton&nbsp;« Voir plus ».</span></div></div>
       <div class="card urow"><div class="rico emo">💼</div><div class="rtxt"><b>Logiciels métier</b><span class="rs">Consulter les clients ou les factures par groupes de 20.</span></div></div>
       <div class="card urow"><div class="rico emo">📊</div><div class="rtxt"><b>Tableaux de bord</b><span class="rs">Parcourir une longue liste de commandes.</span></div></div>
-      <div class="card urow"><div class="rico emo">🔌</div><div class="rtxt"><b>API</b><span class="rs">Renvoyer une portion des résultats à chaque demande.</span></div></div>
+      <div class="card urow"><div class="rico emo">🔌</div><div class="rtxt"><b>API</b><span class="rs">Renvoyer une partie des résultats à chaque demande.</span></div></div>
       <div class="card urow"><div class="rico emo">⚙️</div><div class="rtxt"><b>Scripts de traitement</b><span class="rs">Récupérer des données par lots.</span></div></div>
     </div>
     <div class="abs phone" id="ph7"></div>
-    <div class="abs brk" id="bk1"></div><div class="abs bkl" id="bl1"><b>Portion 1</b><span class="ic">OFFSET 0</span></div>
-    <div class="abs brk" id="bk2"></div><div class="abs bkl" id="bl2"><b>Portion 2</b><span class="ic">OFFSET 3</span></div>
-    <div class="abs brk dash" id="bk3"></div><div class="abs bkl" id="bl3"><b>Portion 3</b><span class="bks">pas encore chargée</span></div>
+    <div class="abs brk" id="bk1"></div><div class="abs bkl" id="bl1"><b>1re requête</b><span class="ic">OFFSET 0</span></div>
+    <div class="abs brk" id="bk2"></div><div class="abs bkl" id="bl2"><b>2e requête</b><span class="ic">OFFSET 3</span></div>
+    <div class="abs brk dash" id="bk3"></div><div class="abs bkl" id="bl3"><b>3e requête</b><span class="bks">pas encore lancée</span></div>
   </section>
 
   <!-- 8 · À retenir -->
@@ -310,12 +310,12 @@ const CAPTIONS = [
   [97.9, 102.0,  "Sur le site web, les 3 produits s’ajoutent <b>sous les premiers</b>, sans doublon."],
   [102.1, 105.5,  "<code>LIMIT</code> indique combien de lignes récupérer, et <code>OFFSET</code> combien de lignes sauter au début du résultat."],
   [105.6, 107.0,  "La <b>table produits</b> reste inchangée."],
-  [107.7, 113.15,   "Les produits arrivent ainsi <b>par portions</b> de 3 : une requête par portion."],
-  [113.25, 119.45, "C’est utile pour afficher ou récupérer<br>des résultats <b>par portions</b>, sans tout charger d’un coup."],
+  [107.7, 113.15,   "Les produits arrivent <b>3 par 3</b> : une requête à chaque appui sur « Voir plus »."],
+  [113.25, 119.45, "C’est utile pour afficher<br>de longues listes,<br><b>sans tout charger d’un coup</b>."],
   [119.55, 124.5,  "On s’en sert d’abord sur les <b>sites web</b> et dans les <b>applications</b>…"],
   [124.6, 130.85,  "…mais aussi dans les <b>logiciels métier</b> : consulter les clients ou les factures par groupes de 20."],
   [130.95, 135.55, "Dans les <b>tableaux de bord</b> : parcourir une longue liste de commandes."],
-  [135.65, 140.25, "Dans les <b>API</b> : renvoyer une portion des résultats à chaque demande."],
+  [135.65, 140.25, "Dans les <b>API</b> : renvoyer une partie des résultats à chaque demande."],
   [140.35, 144.8,  "Et dans les <b>scripts de traitement</b> : récupérer des données par lots."],
   [145.7, 150.5,   "Pour finir, voici les <b>trois idées à retenir</b>."],
   APP ? [150.6, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
@@ -353,19 +353,19 @@ const MOMENTS = [
       {k: 'f2', sel: '#mbf2', label: 'OFFSET 2', side: 'r'}],
     tip: 'On saute les produits des pages précédentes : 2 par page.'},
   /* Le classement stable, avant que la vidéo ajoute id : l’élève choisit ce qui départage les prix égaux. */
-  {at: 86.45, from: 74.4, kind: 'tune', ico: '🧱', prompt: 'Choisis ce qui départage les prix égaux : chaque produit doit s’afficher <b>une seule fois</b>.',
-    hint: 'Change le départage, regarde les deux pages, puis valide.',
+  // Consigne et aide d’Elisa (29 octobre, 8 h 41) ; sans compte sous les pages : les doublons se voient en rouge
+  {at: 86.45, from: 74.4, kind: 'tune', ico: '🧱', prompt: 'Quelle colonne ajouter au tri pour départager les produits qui ont le <b>même prix</b> ?',
+    hint: 'Sélectionne une option après <code>prix DESC</code>, puis observe les deux pages : chaque produit doit apparaître une seule fois, sans qu’aucun soit oublié.',
     controls: [{k: 'd', type: 'seg', label: 'Après prix DESC', choices: ['rien', 'prix', 'id'], value: 'rien', code: true}],
     answer: {d: 'id'},
     board: {y: 210, html: '<span class="mb-k">🧱 Le classement stable</span><div class="mb-q mg-sm" id="mbsq"></div><div class="mb-cols" style="gap:26px">'
-      + [1, 2].map(n => `<div class="mb-col" style="gap:14px"><b class="mg-ph">Page ${n}</b>${[0, 1, 2].map(k => `<div class="mg-r mg-cat" id="mbs${n}${k}"></div>`).join('')}</div>`).join('') + '</div><div class="mg-c" id="mbsn"></div>'},
+      + [1, 2].map(n => `<div class="mb-col" style="gap:14px"><b class="mg-ph">Page ${n}</b>${[0, 1, 2].map(k => `<div class="mg-r mg-cat" id="mbs${n}${k}"></div>`).join('')}</div>`).join('') + '</div>'},
     show(s, b) {
       b.querySelector('#mbsq').innerHTML = `<span class="k">ORDER BY</span> prix <span class="k">DESC</span>${s.d === 'rien' ? '' : ', ' + s.d}\n<span class="k">LIMIT</span> 3 <span class="k">OFFSET</span> …`;
       /* À prix égal (Fibre Prébiotique et Oméga 3 à 29,90 €), sans départage unique, l’ordre peut s’inverser d’une exécution à l’autre. */
       const stable = s.d === 'id', p1 = ['Collagène Marin', 'Protéine Végétale', 'Fibre Prébiotique'],
         p2 = stable ? ['Oméga 3', 'Magnésium', 'Shaker Inox'] : ['Fibre Prébiotique', 'Magnésium', 'Shaker Inox'];
       [p1, p2].forEach((p, n) => p.forEach((nom, k) => { const r = b.querySelector(`#mbs${n + 1}${k}`); r.textContent = nom; r.classList.toggle('mg-dup', !stable && nom === 'Fibre Prébiotique'); }));
-      b.querySelector('#mbsn').innerHTML = stable ? '<b>6</b> produits, chacun une seule fois' : 'La Fibre Prébiotique s’affiche <b>deux fois</b>, l’Oméga&nbsp;3 jamais';
     },
     check(s) {
       if (s.d === 'id') return {ok: true, why: 'L’identifiant est unique : à prix égal, il départage, et le classement devient stable.'};
