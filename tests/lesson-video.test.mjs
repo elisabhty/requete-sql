@@ -1207,16 +1207,16 @@ const COURSES = [
       "{at: atp('p1'), from: A.a1, kind: 'tap', need: 3,", "{label: 'nom, categorie et prix', ok: true,", "{label: 'Les 3 produits de la box : nom, catégorie et prix', ok: true,",
       "{label: 'Non, il suffit de consulter à nouveau la vue', ok: true,", "{at: atp('p5'), from: A.e3, kind: 'tap', need: 1,", "{at: atp('p6'), from: A.g1, kind: 'sort',",
       "['{vwh|WHERE selection_box = 1};']", 'Prochaine leçon · Les index et EXPLAIN']},
-  {id: 57, next: 50, titre: 'Les index et EXPLAIN', page: 'projet-index.html', thumb: 'projet-index-thumb.webp', duree: '3 min 19', notesAt: 197.84,
+  {id: 57, next: 50, titre: 'Les index et EXPLAIN', page: 'projet-index.html', thumb: 'projet-index-thumb.webp', duree: '3 min 23', notesAt: 202.54,
     table: 'commandes',
     bubble: 'La file d’attente s’allonge&nbsp;:<br>à toi d’accélérer<br>la recherche !',
     chapters: ['La file d’attente s’allonge', 'La recherche de la commande', 'Lire le plan', 'Créer l’index', 'Le nouveau plan', 'Le plan ou la mesure ?', 'Des index partout ?', 'À retenir'],
     traps: ["const ANNEES = [[2019, 52310], [2020, 61875], [2021, 70432], [2022, 78119], [2023, 83547], [2024, 79861], [2025, 73350], [2026, 506]];",
-      "const BINS = [['pl', 'Le plan', 'comment la requête s’exécute'], ['me', 'Une mesure', 'en combien de temps']];",
+      "const M5 = [['Le plan', false,",
       // Les six moments : sans index, toutes les lignes sont lues ; une table deux fois plus grande ; la colonne à indexer ; la partie du plan
       // qui nomme l’index ; ce que donnent le plan et une mesure ; un index sur chaque colonne ?
       "{label: 'Les 500 000 commandes sont lues, une à une', ok: true,", "{label: 'Elle sera environ deux fois plus lente', ok: true,", "{label: 'numero_commande', ok: true,",
-      "{at: atp('p4'), from: A.d1, kind: 'tap', need: 1,", "{at: atp('p5'), from: A.e1, kind: 'sort',", "{label: 'Non : chaque index a un coût', ok: true,",
+      "{at: atp('p4'), from: A.d1, kind: 'tap', need: 1,", "{at: atp('p5'), from: A.e0, kind: 'tune',", "{label: 'Non : chaque index a un coût', ok: true,",
       "['CREATE INDEX {inm|idx_commandes_numero}']", 'Prochaine leçon · Sécurité et droits']},
   /* Le dernier chapitre du projet, et le dernier cours de l’app : pas de leçon suivante (next: null). */
   {id: 50, next: null, titre: 'Sécurité et droits', page: 'projet-droits.html', thumb: 'projet-droits-thumb.webp', duree: '4 min 39', notesAt: 248.44,
@@ -1378,7 +1378,8 @@ test('mini-jeux (tune) : chaque réglage a son verdict, et une correction quand 
   let vus = 0;
   for (const c of COURSES) {
     const src = fs.readFileSync(path.join(ROOT, 'assets/anim', c.page), 'utf8');
-    if (!src.includes("kind: 'tune'")) continue;
+    /* Les chapitres du projet jugent leurs réglages dans leur propre IX (projet-index : tests/index-lesson.test.mjs) : ici, ceux de moments.js. */
+    if (!src.includes("kind: 'tune'") || !src.includes('const MOMENTS = ')) continue;
     const js = [...src.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).pop(), m = js.indexOf('const MOMENTS = '), b = js.indexOf('\nfunction ', m);
     const ctx = vm.createContext({APP: true, location: {search: '?app'}, URLSearchParams});
     vm.runInContext(js.slice(0, b) + ';this.M = MOMENTS;', ctx);

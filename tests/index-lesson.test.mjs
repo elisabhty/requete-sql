@@ -116,9 +116,9 @@ test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', ()
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 197.84);
-  assert.ok(page.includes('notesAt: 197.84,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 205.04);
+  assert.equal(val('NOTES'), 202.54);
+  assert.ok(page.includes('notesAt: 202.54,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 209.74);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   assert.deepEqual(chaps.map(c => c.label), ['La file d’attente s’allonge', 'La recherche de la commande', 'Lire le plan', 'Créer l’index', 'Le nouveau plan',
@@ -131,7 +131,7 @@ test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajo
     assert.equal(lines, undefined, `légende ${k + 1} : trois lignes au plus`);
     assert.ok(t.split('<br>').length <= 3, `légende ${k + 1} : trois lignes au plus`);
   });
-  assert.deepEqual(picks.map(p => p.kind), ['pick', 'pick', 'pick', 'tap', 'sort', 'pick']);
+  assert.deepEqual(picks.map(p => p.kind), ['pick', 'pick', 'pick', 'tap', 'tune', 'pick']);
   assert.deepEqual(picks.map(p => p.at), ['p1', 'p2', 'p3', 'p4', 'p5', 'p6'].map(k => +(val(`A.${k}`) + 2.35).toFixed(2)));
   assert.ok(picks.every((p, k) => !k || p.at > picks[k - 1].at && p.from < p.at), 'dans l’ordre, chaque reprise commence avant son moment');
   for (const p of picks.filter(p => p.kind === 'pick')) {
@@ -144,7 +144,8 @@ test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajo
   assert.deepEqual(picks[2].options.map(o => !!o.ok), [false, true, false], 'l’index sur numero_commande');
   assert.deepEqual(picks[5].options.map(o => !!o.ok), [false, true, false], 'pas d’index sur toutes les colonnes');
   assert.equal(picks[3].need, 1, 'une partie du plan à toucher');
-  assert.equal(picks[4].options.length, 6, 'six informations à ranger');
+  assert.deepEqual(picks[4].controls[0].choices, ['Le plan', 'Une mesure'], 'moment 5 : le plan, ou une mesure');
+  assert.deepEqual(picks[4].answer, {v: 'Une mesure'}, 'seule une mesure prouve le gain');
   assert.ok(picks.every(p => !/cette requête|ci-dessus|ci-dessous/.test(p.prompt)), 'aucune question ne renvoie à une requête de l’image');
 });
 
@@ -152,7 +153,8 @@ test('les phrases d’Elisa (26 octobre, 10 h 52) : sa trame, une phrase par bul
   const lus = val('CAPTIONS').map(c => strip(c[2]));
   const suite = (...phrases) => { const i = lus.indexOf(phrases[0]); assert.ok(i >= 0, `légende : ${phrases[0]}`);
     phrases.forEach((p, k) => assert.equal(lus[i + k], p, 'ses phrases, à la suite')); };
-  suite('Au service logistique, on scanne le QR code de chaque commande.', 'Mais l’écran affiche « Recherche de la commande… ».', 'Et la file des commandes à préparer s’allonge.');
+  suite('Au service logistique, on scanne le QR code de chaque commande.', 'L’écran doit alors afficher les produits à préparer et leurs quantités.',
+    'Mais l’écran affiche « Recherche de la commande… ».', 'Et la file des commandes à préparer s’allonge.');   // Elisa, 29 octobre, 17 h 44 : ce que le scan doit afficher
   suite('EXPLAIN QUERY PLAN montre comment la base prévoit d’exécuter la requête.', 'Ici, elle parcourt la table pour retrouver la commande.');
   suite('Un index permet de retrouver plus rapidement les lignes à partir d’une valeur recherchée.', 'Ici, le numéro de la commande sert à la retrouver.');
   assert.ok(lus.includes('La base utilise maintenant l’index pour retrouver la commande.'));
@@ -231,7 +233,7 @@ test('le plan, rejoué dans SQLite : SCAN commandes, puis SEARCH … USING INDEX
   const apres = chrono(q), gain = avant / apres;
   assert.ok(gain > 50, `avec l’index, la recherche est ${Math.round(gain)} fois plus rapide (${avant.toFixed(1)} ms → ${apres.toFixed(3)} ms)`);
   assert.equal(val('GAIN'), 400);
-  assert.ok(val('CAPTIONS').some(c => strip(c[2]) === 'Mesurée dans SQLite, la recherche est environ 400 fois plus rapide avec l’index.'));
+  assert.ok(val('CAPTIONS').some(c => strip(c[2]) === 'Mesurée, la recherche est environ 400 fois plus rapide avec l’index.'));   // sans nommer SQLite (Elisa, 29 octobre, 17 h 44)
   /* Ce que la page montre : les deux exécutions et l’index, puis la lecture de toute la table et la commande retrouvée */
   for (const t of ["tapButton('bexp', EXE1, '#4B30CC');", "tapButton('bcix', CIX, '#0B5A54');", "tapButton('bexp', EXE2, '#4B30CC');", "show('#pl', EXE1 + 1.0,",
     "show('#pl2', EXE2 + 1.0,", "flip('#scn', q + 1, t + 0.38);", "show('#fnd', A.d5 + 0.3,"])
@@ -242,11 +244,13 @@ test('moments 4 et 5 : la partie du plan qui nomme l’index ; ce que donne le p
   assert.deepEqual(Object.keys(val('WHY4')).sort(), ['p0', 'p2']);
   assert.ok(/if \(i === 3\) return \{text: '[^']+', keys: \['p1'\]\};/.test(page), 'indice du moment 4 : la partie USING INDEX ressort');
   assert.ok(page.includes("const M4_ANS = ['#hcu'];") && page.includes('idx_commandes_numero</span><i class="hc" id="hcu"></i>'), 'la partie USING INDEX s’entoure');
-  const BINS = val('BINS'), ITEMS = val('ITEMS');
-  assert.deepEqual(BINS.map(b => b[1]), ['Le plan', 'Une mesure']);
-  assert.deepEqual(ITEMS.map(x => x[1]), ['pl', 'me', 'pl', 'me', 'pl', 'me']);
-  assert.deepEqual(val('PICKS')[4].options.map(o => o.label), ITEMS.map(x => x[0]));
-  for (const x of ITEMS) assert.ok(strip(x[2]).length > 40, `${x[0]} : une correction qui explique le choix`);
+  /* Moment 5 (Elisa, 29 octobre, 17 h 44 : le rangement en deux cases n’était pas compris) : ce que l’on montre à l’équipe logistique, le plan
+     ou une mesure ; la carte du choix s’affiche, le plan sans durée, la mesure avec le gain. */
+  const M5 = val('M5');
+  assert.deepEqual(M5.map(x => [x[0], x[1]]), [['Le plan', false], ['Une mesure', true]]);
+  for (const x of M5) assert.ok(strip(x[2]).length > 60, `${x[0]} : une correction qui explique le choix`);
+  assert.ok(page.includes('Durée de la recherche</span><b>?</b>') && page.includes('Environ ${GAIN} fois plus rapide</div></div>`;'), 'le plan n’a pas de durée ; la mesure donne le gain');
+  assert.ok(page.includes("if (i === 4) draw5({v: M5[0][0]});") && /tune\(i, st\)\{ if \(i !== 4\) return;/.test(page), 'la carte suit le réglage dès l’ouverture du moment');
   /* Ce que le plan donne vraiment : la méthode (SCAN, l’index, la colonne), jamais une durée */
   const detail = plan(sql('Q_SEL')).join(' ');
   assert.ok(/SEARCH/.test(detail) && /idx_commandes_numero/.test(detail) && /numero_commande/.test(detail) && !/ms|seconde/.test(detail));
@@ -282,7 +286,7 @@ test('le récapitulatif, dans la vidéo comme dans la fiche de la leçon : trois
 });
 
 test('ce que la vidéo ne reprend pas de l’ancien cours ; le chapitre ne parle pas de SQL comme d’une personne', () => {
-  const textes = JSON.stringify([val('CAPTIONS'), val('PICKS'), val('MAILS'), val('ITEMS'), val('WHY4')]);
+  const textes = JSON.stringify([val('CAPTIONS'), val('PICKS'), val('MAILS'), val('M5'), val('WHY4')]);
   for (const mot of ['idx_clients_ville', 'boîte à fiches', 'LOWER(nom)', 'inscription']) assert.ok(!textes.includes(mot), `la vidéo ne parle pas de ${mot}`);
   assert.ok(!/SQL (voit|comprend|sait|lit)\b/.test(page) && !/la base (lit|réagit|ajoute|garde)\b/.test(page), 'ni SQL ni la base ne sont personnifiés');
   const fiche = html.slice(html.indexOf('guide({ id:57,'), html.indexOf('guide({ id:50,'));

@@ -87,8 +87,6 @@
 @keyframes kof{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
 .r.kor{animation:kor .55s ease}
 @keyframes kor{0%,100%{background:transparent}30%{background:rgba(239,79,85,.18)}}
-.dbn.kob{animation:kob .45s ease}
-@keyframes kob{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
 
 /* ---------- Les requêtes : une carte de code (un commentaire, puis la requête) ---------- */
 .sq{border-radius:34px;box-shadow:0 9px 0 #110E27}
@@ -102,9 +100,6 @@
 .sq .glow{border-radius:8px;padding:0 3px;margin:0 -3px}
 .sq .str{color:var(--t-str)}
 
-.pack{left:0;width:1080px;display:flex;justify-content:center}
-.pack>span{height:84px;padding:0 34px 0 22px;border-radius:999px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);font-size:32px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:14px;white-space:nowrap}
-.pack .emo{font-size:40px}
 
 /* ---------- Le message reçu : la notification, puis la conversation (SMS, moteur commun) ---------- */
 .ml{left:64px;width:952px;top:560px;height:184px;padding:0 30px;overflow:hidden}
@@ -215,15 +210,13 @@
 /* ---------- Le message de l’équipe logistique ---------- */
 #ml1{top:520px}
 
-/* ---------- 6 · Deux cases où ranger ce que l’on vérifie : avec le plan, ou avec une mesure ---------- */
-.dbn{left:64px;width:952px;height:210px;box-sizing:border-box;padding:20px 28px 22px;border-radius:36px;border:4px dashed #C9BCFF;background:rgba(255,255,255,.85);display:flex;flex-direction:column}
-.dbn .hh{display:flex;align-items:baseline;gap:20px;white-space:nowrap}
-.dbn .dn{font-family:var(--display);font-size:36px;font-weight:800;color:var(--accent-ink)}
-.dbn .dd{font-size:26px;font-weight:700;color:var(--ink-3)}
-.dbn .cs{margin-top:auto;display:flex;gap:16px}
-.dbn .rc{flex:1;min-height:92px;padding:12px 16px;border-radius:18px;background:var(--accent-soft);color:var(--accent-ink);box-shadow:inset 0 0 0 3px #C9BCFF;font-size:28px;font-weight:700;line-height:1.25;text-align:center;text-wrap:balance;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden}
-.dbn.okb{animation:okb .5s cubic-bezier(.2,.9,.3,1.3)}
-@keyframes okb{40%{transform:scale(1.035)}}
+/* ---------- 6 · Moment 5 : ce que l’on montre à l’équipe logistique, le plan ou une mesure (Elisa, 29 octobre, 17 h 44 : le rangement
+   en deux cases n’était pas compris). Une seule carte à la fois, celle du choix en cours ; le plan n’a pas de durée. ---------- */
+.m5{top:300px;opacity:0;visibility:hidden}
+.m5.kob{animation:kob .45s ease}
+@keyframes kob{0%,100%{translate:0}20%{translate:-12px}40%{translate:10px}60%{translate:-6px}80%{translate:4px}}
+.pl .pll.m5q{font-family:var(--ui);font-size:29px;color:var(--ink-3);background:repeating-linear-gradient(-45deg,#FBFAFF 0 14px,#F4F1FD 14px 28px)}
+.pl .pll.m5q b{margin-left:auto;width:52px;height:52px;border-radius:50%;border:3px dashed #B4ACD6;color:#8A82B5;font-size:30px;display:flex;align-items:center;justify-content:center}
 </style>
 </head>
 <body>
@@ -322,6 +315,7 @@ const mailBlock = (n, extra = 0) => { const t = SCH.t; SCH.t = +(SCH.t + MO[n] +
 cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
 cap('r2', "Au chapitre 15, une vue a présenté<br>la sélection de la box à l’agence.", 3.8);
 cap('o1', "Au service logistique, on scanne<br>le QR code de chaque commande.", 4.0);
+cap('o1b', "L’écran doit alors afficher<br>les produits à préparer<br>et leurs quantités.", 3.8);   // Elisa, 29 octobre, 17 h 44 : ce que le scan doit afficher   // Elisa, 29 octobre, 17 h 44
 cap('o2', "Mais l’écran affiche<br>« Recherche de la commande… ».", 3.6);
 cap('o3', "Et la file des commandes<br>à préparer s’allonge.", 3.8);
 const MAIL1 = mailBlock(0);
@@ -362,13 +356,14 @@ cap('d3', "<code>SEARCH</code> : grâce à l’index,<br>seule la ligne recherch
 cap('d4', "Le QR code de la commande NB-10482<br>est scanné à nouveau.", 3.8);
 cap('d5', "La commande de Léa Simon<br>est retrouvée aussitôt.", 3.4);
 cap('d6', "Et la file des commandes<br>avance de nouveau.", 3.4);
-/* 6 · Le plan ou la mesure ? (Elisa : « Le plan confirme la méthode utilisée ; une mesure du temps d’exécution permet de vérifier le gain de
-   vitesse. ») La mesure est celle de SQLite, sur la table de la vidéo : 500 000 commandes, avant et après l’index. */
+/* 6 · Le plan ou la mesure ? L’équipe logistique veut une preuve ; l’élève choisit ce qu’il lui montre (moment 5), puis les mots d’Elisa : « Le plan
+   confirme la méthode utilisée ; une mesure du temps d’exécution permet de vérifier le gain de vitesse. » La mesure, sur la table de la vidéo :
+   500 000 commandes, avant et après l’index (la bulle ne nomme pas SQLite : Elisa, 29 octobre, 17 h 44). */
 chap({label:'Le plan ou la mesure ?'});
-cap('e1', "Le plan confirme la méthode utilisée ;<br>une mesure du temps d’exécution<br>permet de vérifier le gain de vitesse.", 5.6);
-cap('e2', "Mesurée dans SQLite, la recherche est<br>environ 400 fois plus rapide<br>avec l’index.", 4.6);
-cap('e2b', "Le plan et la mesure ne répondent pas<br>à la même question.", 3.6);
+cap('e0', "L’équipe logistique veut vérifier<br>que la recherche est plus rapide.", 3.6);
 toi('p5');
+cap('e1', "Le plan confirme la méthode utilisée ;<br>une mesure du temps d’exécution<br>permet de vérifier le gain de vitesse.", 5.6);
+cap('e2', "Mesurée, la recherche est environ<br>400 fois plus rapide avec l’index.", 4.6);
 cap('e3', "Le plan dit comment la requête<br>s’exécute ; la mesure dit<br>en combien de temps.", 4.6);
 /* 7 · Des index partout ? Le dernier choix d’Elisa (« Ajouter des index sur toutes les colonnes ? »), puis son explication, en deux bulles */
 chap({label:'Des index partout ?'});
@@ -420,16 +415,10 @@ const WHY4 = {
   p0: '<code>SEARCH commandes</code> dit que la table est cherchée, sans être parcourue en entier ; l’index est nommé juste après.',
   p2: '<code>(numero_commande=?)</code> dit quelle colonne sert à la recherche ; l’index utilisé est nommé juste avant.'
 };
-/* Moment 5 : avec le plan, ou avec une mesure ; six informations à ranger [information, case, pourquoi]. */
-const BINS = [['pl', 'Le plan', 'comment la requête s’exécute'], ['me', 'Une mesure', 'en combien de temps']];
-const ITEMS = [
-  ['La table est lue en entier', 'pl', 'C’est la méthode : <code>SCAN commandes</code>, dans le plan, dit que toute la table est parcourue.'],
-  ['La recherche est 400 fois plus rapide', 'me', 'Le plan ne donne aucune durée : seule une mesure du temps d’exécution montre le gain.'],
-  ['Quel index est utilisé', 'pl', 'C’est la méthode : <code>USING INDEX idx_commandes_numero</code>, dans le plan, nomme l’index.'],
-  ['Le temps d’une recherche', 'me', 'Une durée se mesure : le plan décrit la méthode, pas le temps qu’elle prend.'],
-  ['La colonne recherchée', 'pl', 'C’est la méthode : <code>(numero_commande=?)</code>, dans le plan, dit quelle colonne sert à la recherche.'],
-  ['Le gain de vitesse', 'me', 'Le gain se vérifie en mesurant le temps d’exécution, avant puis après la création de l’index.']
-];
+/* Moment 5 : ce que l’on montre pour prouver le gain, le plan ou une mesure ; la carte du choix s’affiche, et le plan n’a pas de durée.
+   [choix, bonne réponse, pourquoi] */
+const M5 = [['Le plan', false, 'Le plan confirme la méthode, <code>SEARCH</code> avec l’index, mais il ne donne aucune durée : il ne prouve pas le gain.'],
+  ['Une mesure', true, 'Une mesure du temps d’exécution montre le gain : la recherche est environ 400 fois plus rapide. Le plan, lui, confirme la méthode.']];
 
 /* Les six moments « À toi » : l’image s’arrête, l’élève touche, choisit ou range ; la page montre aussitôt le résultat.
    from : début du passage qui amène chaque moment, d’où repartent « ↺ Revoir » et « Rejouer ». */
@@ -448,9 +437,10 @@ const PICKS = [
     {label: 'numero_commande', ok: true, why: 'Le QR code donne le numéro de la commande, et la requête cherche avec <code>WHERE numero_commande = …</code> : c’est cette colonne qu’il faut indexer.'},
     {label: 'statut', why: 'La requête ne cherche pas un statut : elle cherche un numéro de commande.'}]},
   {at: atp('p4'), from: A.d1, kind: 'tap', need: 1, prompt: 'Touche la partie du plan qui montre que l’index est utilisé.'},
-  {at: atp('p5'), from: A.e1, kind: 'sort', prompt: 'Range chaque information : le plan la donne, ou une mesure ?',
-    hint: 'Sélectionne une information, puis appuie sur l’emplacement où tu veux la placer. Tu peux aussi la faire glisser directement.', next: '« {x} » : le plan, ou une mesure ?',
-    options: ITEMS.map(x => ({label: x[0]}))},
+  {at: atp('p5'), from: A.e0, kind: 'tune', ico: '🧾', prompt: 'Que montres-tu à l’équipe logistique pour prouver que la recherche est <b>plus rapide</b> ?',
+    hint: 'Sélectionne une option, puis observe ce qu’elle affiche avant de valider.',
+    controls: [{k: 'v', type: 'seg', label: 'Tu montres', choices: M5.map(x => x[0]), value: M5[0][0]}],
+    answer: {v: 'Une mesure'}},
   {at: atp('p6'), from: A.f1, kind: 'pick', text: true, prompt: 'Ajouter des index sur toutes les colonnes ?', options: [
     {label: 'Oui : toutes les recherches iront plus vite', why: 'Un index n’aide que les recherches sur sa colonne. Et chaque index occupe de l’espace et doit être entretenu lorsque les données changent.'},
     {label: 'Non : chaque index a un coût', ok: true, why: 'Chaque index occupe de l’espace et doit être entretenu lorsque les données changent. Crée-les pour les recherches qui en ont besoin.'},   // mots d’Elisa
@@ -551,7 +541,7 @@ function dom(){
   w += `<div class="abs card phc" id="ph2"><img src="${PHOTO}" alt="">` + queue('qd', [41, 34, 22]) +
     `<div class="fnd" id="fnd"><div class="ft"><span class="emo">✅</span>Commande retrouvée</div><div class="fl">${SCAN.numero}</div><div class="fl">${SCAN.nom}</div></div></div>`;
   // la mesure du temps d’exécution, dans SQLite, sur les 500 000 commandes
-  w += '<div class="abs card chr" id="chr"><div class="chh"><span class="emo">⏱️</span>Temps d’exécution, mesuré dans SQLite</div>' +
+  w += '<div class="abs card chr" id="chr"><div class="chh"><span class="emo">⏱️</span>Temps d’exécution mesuré</div>' +
     '<div class="chl"><b>Sans index</b><i class="bar slow" id="bslow"></i></div><div class="chl"><b>Avec l’index</b><i class="bar fast" id="bfast"></i></div>' +
     `<div class="chx" id="chx"><span class="emo">⚡</span>Environ ${GAIN} fois plus rapide</div></div>`;
   // un index sur chaque colonne ? Les colonnes de la table commandes ; un seul index utile
@@ -562,10 +552,13 @@ function dom(){
   w += button('bexp', '', PLAY, 'Exécuter') + button('bcix', 'tl', '🗂️', 'Créer l’index');
   w += '<div class="abs emo tapf" id="tapw">👆</div>';
   $('#sw').innerHTML = w;
-  /* Le plan, ou une mesure : une case chacune, où ranger les informations */
-  $('#sd').innerHTML = BINS.map(([k, n, d], q) => `<div class="abs dbn" id="db-${k}" data-k="${k}" style="top:${260 + q * 232}px"><div class="hh"><span class="dn">${n}</span><span class="dd">${d}</span></div>` +
-    `<div class="cs">${ITEMS.map((x, i) => x[1] === k ? `<div class="rc" id="sbu${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
-    '<div class="abs pack" id="bpack"><span><span class="emo">📬</span>6 informations à ranger</span></div>';
+  /* Moment 5 : la carte de ce que l’on montre — le plan (sans durée), ou la mesure */
+  $('#sd').innerHTML = '<div class="abs card pl k-pl m5" id="m5pl"><div class="plh"><span class="emo">📋</span>Plan d’exécution</div>' +
+    '<div class="pll"><span><span class="kw">SEARCH</span> commandes</span></div><div class="pll"><span><span class="kw">USING INDEX</span> idx_commandes_numero</span></div>' +
+    '<div class="pll"><span>(numero_commande=?)</span></div><div class="pll m5q"><span><span class="emo">⏱️</span> Durée de la recherche</span><b>?</b></div></div>' +
+    '<div class="abs card chr m5" id="m5me"><div class="chh"><span class="emo">⏱️</span>Temps d’exécution mesuré</div>' +
+    '<div class="chl"><b>Sans index</b><i class="bar slow"></i></div><div class="chl"><b>Avec l’index</b><i class="bar fast"></i></div>' +
+    `<div class="chx"><span class="emo">⚡</span>Environ ${GAIN} fois plus rapide</div></div>`;
   /* La suite : la prochaine leçon */
   $('#sn').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🔖</span>Prochaine leçon · Sécurité et droits</span></div>';
   // les requêtes, découpées en caractères pour la frappe
@@ -604,8 +597,6 @@ function layout(){
   // la mesure : le nouveau plan remonte en haut, la mesure dessous
   PLY = 236 - TP;
   $('#chr').style.top = (236 + $('#pl2').offsetHeight + 30) + 'px';
-  // le plan, ou une mesure : la pile des informations, sous les deux cases
-  $('#bpack').style.top = (bottom('#db-me') + 9 + 44) + 'px';
 }
 let IXY = 0, PLY = 0;   // décalages de l’index (sous le nouveau plan) et du nouveau plan (en haut, avec la mesure)
 
@@ -687,8 +678,8 @@ function build(){
   gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
   hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
   layout();
-  gsap.set(['.sq', '.pack', '#bc', '#ph', '#tc', '#pl', '#sc', '#ix', '#pl2', '#ph2', '#fnd', '#chr', '#chx', '#al', '#alk1', '#alk2', '.ixb', '.bt', '#keyc', '.dbn', '#tapf', '#tapw'], {autoAlpha: 0});
-  gsap.set(['#qcn > i:not(.a0)', '#qdn > i:not(.a0)', '#scn > i:not(.a0)', '.ixb .a1', '.dbn .rc'], {autoAlpha: 0});
+  gsap.set(['.sq', '#bc', '#ph', '#tc', '#pl', '#sc', '#ix', '#pl2', '#ph2', '#fnd', '#chr', '#chx', '#al', '#alk1', '#alk2', '.ixb', '.bt', '#keyc', '#tapf', '#tapw'], {autoAlpha: 0});
+  gsap.set(['#qcn > i:not(.a0)', '#qdn > i:not(.a0)', '#scn > i:not(.a0)', '.ixb .a1'], {autoAlpha: 0});
   gsap.set(['#bslow', '#bfast'], {scaleX: 0});
 
   /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
@@ -829,6 +820,7 @@ function build(){
   [1, 2].forEach((k, q) => { const t = A.d6 + 0.4 + q * 1.0; swap(`#qdn .a${k - 1}`, `#qdn .a${k}`, t); bump('#qd', t + 0.1, 1.06); });
 
   /* ===== 6 · Le plan ou la mesure ? ===== */
+  // l’équipe logistique veut une preuve : la commande retrouvée reste à l’écran pendant la question et le moment 5
   // le plan confirme la méthode utilisée ; une mesure du temps d’exécution permet de vérifier le gain de vitesse
   hide('#ph2', A.e1 - 0.05, {y: -30}, 0.35);
   tl.set('#pl2', {y: PLY + 40}, A.e1 + 0.3);
@@ -836,27 +828,15 @@ function build(){
   show('#chr', A.e1 + 2.0, {y: 40}, 0.5); cue(A.e1 + 2.0, 'whoosh', 0.45, 2);
   tl.to('#bslow', {scaleX: 1, duration: 1.6, ease: 'none'}, A.e1 + 2.8); cue(A.e1 + 2.8, 'tick', 0.4, 1);
   tl.to('#bfast', {scaleX: 1, duration: 0.08, ease: 'none'}, A.e1 + 4.6); cue(A.e1 + 4.6, 'pop', 0.5, 4);
-  // mesurée dans SQLite, la recherche est environ 400 fois plus rapide avec l’index
+  // mesurée, la recherche est environ 400 fois plus rapide avec l’index
   show('#chx', A.e2 + 0.8, {y: 16, scale: 0.9}, 0.45, 'back.out(1.8)'); cue(A.e2 + 0.8, 'chord', 0.5);
-  // le plan et la mesure ne répondent pas à la même question : les deux cases où ranger les informations
-  hide(['#pl2', '#chr'], A.e2b - 0.05, {y: -30}, 0.35);
-  sceneOff('#sw', A.e2b + 0.35);
-  sceneOn('#sd', A.e2b + 0.35);
-  [['#db-pl', 0], ['#db-me', 3]].forEach(([id, p], q) => { const t = A.e2b + 0.5 + q * 0.5; show(id, t, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(t, 'pop', 0.6, p); });
-  show('#bpack', A.e2b + 1.7, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.e2b + 1.7, 'pop', 0.7, 1);
-  // À toi : les six informations rangées ; remplies, les cases ne sont plus des zones où déposer, et la pile est vide
-  tl.set('.dbn .rc', {autoAlpha: 1}, set2(PICKS[4].at));
-  tl.set('.dbn', {borderStyle: 'solid'}, set2(PICKS[4].at));
-  tl.set('#bpack', {autoAlpha: 0}, set2(PICKS[4].at));
   // le plan dit comment la requête s’exécute ; la mesure dit en combien de temps
-  bump('#db-pl', A.e3 + 0.6, 1.03); cue(A.e3 + 0.6, 'tick', 0.5, 2);
-  bump('#db-me', A.e3 + 2.4, 1.03); cue(A.e3 + 2.4, 'tick', 0.5, 4);
-  hide('.dbn', B.e3 - 0.1, {y: -40}, 0.4);
+  tl.to('#pl2 .plh', {backgroundColor: '#DCD3FF', duration: 0.3, yoyo: true, repeat: 3, ease: 'power1.inOut'}, A.e3 + 0.6); cue(A.e3 + 0.6, 'tick', 0.5, 2);
+  tl.to('#chr .chh', {backgroundColor: '#FFE7A3', duration: 0.3, yoyo: true, repeat: 3, ease: 'power1.inOut'}, A.e3 + 2.4); cue(A.e3 + 2.4, 'tick', 0.5, 4);
+  hide(['#pl2', '#chr'], B.e3 - 0.1, {y: -40}, 0.4);
 
   /* ===== 7 · Des index partout ? ===== */
   // et si tu ajoutais un index sur chaque colonne ? Un index apparaît sur chacune
-  sceneOff('#sd', A.f1 + 0.3);
-  sceneOn('#sw', A.f1 + 0.3);
   show('#al', A.f1 + 0.3, {y: 40}, 0.5); cue(A.f1 + 0.3, 'whoosh', 0.5, 1);
   $$('#al .ixb').forEach((b, q) => { const t = A.f1 + 1.0 + q * 0.22; show(b, t, {y: 0, scale: 0.4}, 0.32, 'back.out(2.2)'); cue(t, 'pop', 0.45, q % 5); });
   // chaque index occupe de l’espace et doit être entretenu lorsque les données changent
@@ -911,8 +891,6 @@ const IX = (() => {
   const partOf = k => $('#p2-' + k.slice(1));
   function spots(i){
     if (i === 3) return PARTS.map(([k, label]) => Object.assign({k, label}, rel(partOf(k))));
-    // moment 5 : le plan, ou une mesure
-    if (i === 4) return BINS.map(([k, n, d]) => Object.assign({k, label: `${n} : ${d}`}, rel($('#db-' + k))));
     return [];
   }
   function act(i, a, b){
@@ -928,19 +906,21 @@ const IX = (() => {
       return {ok: false, why: fr(WHY4[a])};
     }
     if (i === 4) {
-      const n = +a, bin = $('#db-' + b);
-      if (ITEMS[n][1] === b) {
-        mark($('#sbu' + n), 'pvs');
-        flash(bin, 'okb', 520);
-        X.got.add(n);
-        sfx('pop', X.got.size, 0.6);
-        if (X.got.size === ITEMS.length) marks(['#bpack'], 'pvh');   // la pile est vide, comme juste après l’arrêt
-        return {ok: true, done: X.got.size === ITEMS.length, why: '', at: rel(bin)};
-      }
-      flash(bin, 'kob', 650);
-      return {ok: false, why: fr(ITEMS[n][2])};
+      let st = {}; try { st = typeof a === 'string' ? JSON.parse(a) : (a || {}); } catch (e) {}
+      draw5(st);
+      const m = M5.find(x => x[0] === st.v) || M5[0], el = $(m[1] ? '#m5me' : '#m5pl');
+      if (m[1]) return {ok: true, done: true, why: fr(m[2]), at: rel(el)};
+      flash(el, 'kob', 650);
+      return {ok: false, why: fr(m[2])};
     }
     return {ok: false};
+  }
+  /* Moment 5 : la carte du choix en cours s’affiche à la place de l’image (le plan, sans durée ; ou la mesure). */
+  function draw5(st){
+    marks(['#sd']); marks(['#sw'], 'pvh');
+    const me = st.v === 'Une mesure';
+    ['#m5pl', '#m5me'].forEach(id => $(id).classList.remove('pvs'));
+    mark($(me ? '#m5me' : '#m5pl'), 'pvs');
   }
   /* Choix d’une réponse (moments 1, 2, 3 et 6) : le verdict et son explication. */
   function pick(i, k){
@@ -962,8 +942,9 @@ const IX = (() => {
     return h && Object.assign(h, {text: fr(h.text)});
   }
   return {
-    enter: i => { clear(); start(i); },
+    enter: i => { clear(); start(i); if (i === 4) draw5({v: M5[0][0]}); },   // moment 5 : la carte du réglage de départ, le plan
     spots, act, pick, hint,
+    tune(i, st){ if (i !== 4) return; start(i); draw5(st || {}); },
     slot: () => null,
     /* Moment réussi : l’aperçu reste jusqu’à ce que la timeline affiche la même image ; sinon il part tout de suite. */
     leave(i, answered){ if (answered && X && X.i === i) wait = i; else clear(); },
@@ -972,7 +953,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 197.84, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 202.54, picks: PICKS, opens: OPENS,
   glyphs: '🗄️👥🛒⭐📦🧑‍🏫📅📝💳💬🔁🎁🏷️📋⚠🔎🗂️⏱️⚡💾🔧✅✓✕!…«»·−→<>⋮',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>
