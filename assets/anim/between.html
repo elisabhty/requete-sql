@@ -273,7 +273,7 @@ const MOMENTS = [
   /* Mini-jeux (Elisa, 28 octobre, 8 h 50 : « pas assez gamifié »). L’ancien moment 1 (« Comment écrire « entre le 14 et le 20 juillet »
      en une seule condition ? ») avait pour réponse le titre du cours : place au puzzle, une fois BETWEEN expliqué.
      Le passage en revue commence : les commandes de la période. */
-  // le passage en revue commence : les commandes de la période
+  // avant le passage en revue (aucune ligne vérifiée) : les commandes de la période
   {at: 42.9, from: 33.6, kind: 'tap', need: 4, prompt: 'Touche les commandes passées entre le 14 et le 20 juillet.',
     spots: COMMANDES.map(([id, num, d], i) => { const ok = d >= '2026-07-14' && d <= '2026-07-20';
       return {k: 'r' + i, sel: `#rows3 > .tr:nth-child(${i + 1})`, label: `Commande ${num}, du ${jour(d)}`, ok,
@@ -466,9 +466,9 @@ function build(){
   tl.to(tr3, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.03}, 41.35);
   show('#cnt3a', 41.55, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
   gsap.set('#cnt3b', {autoAlpha: 0, y: 24});
-  // Balayage : une pause de lecture après la première ligne.
-  const T3 = [42.15, 43.1];
-  for (let i = 2; i < 16; i++) T3.push(+(T3[i - 1] + 0.34).toFixed(2));
+  // Balayage, après le moment 1 (42,9) : aucune ligne n’est vérifiée ni surlignée avant que l’élève agisse (Elisa, 29 octobre, 1 h 16)
+  const T3 = [43.2];
+  for (let i = 1; i < 16; i++) T3.push(+(T3[i - 1] + 0.3).toFixed(2));
   const scanner = $('#scanner3');
   gsap.set(scanner, {y: 0, autoAlpha: 0});
   tl.to(scanner, {autoAlpha: 1, duration: 0.25}, T3[0] - 0.25);
@@ -480,7 +480,7 @@ function build(){
     cue(t, 'tick', 0.5, 4);
     cue(t + 0.12, ok ? 'true' : 'false', 0.75);
   });
-  tl.to(scanner, {autoAlpha: 0, duration: 0.25}, 48.05);
+  tl.to(scanner, {autoAlpha: 0, duration: 0.25}, T3[15] + 0.2);
   const kept3 = tr3.filter(r => r.dataset.ok === '1'), out3 = tr3.filter(r => r.dataset.ok !== '1');
   tl.to(kept3.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.35, stagger: 0.12}, 48.7);
   cue(48.7, 'chord', 0.7);
