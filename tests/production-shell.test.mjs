@@ -41,7 +41,7 @@ assert(html.includes('id="coll-overview"') && html.includes('coll-overview-ring'
 assert(html.includes('completedModules') && html.includes("module${completedModules>1?'s':''} complet") && html.includes('à obtenir</span>'), 'statistiques de collection calculées depuis les cartes réellement débloquées');
 assert(html.includes('class="coll-grid"') && html.includes('class="coll-card') && html.includes('function startCardReview()') && html.includes('CARTES[l.id]&&isUnlocked(l.id)&&revisable(l)&&isDue(l.id)') && html.includes('À revoir aujourd’hui'), 'cartes en grille, état à revoir / acquise et révision du jour (pour une leçon à exercice : revisable)');
 assert(html.includes("nextLesson=allLessons.find(l=>CARTES[l.id]&&!isUnlocked(l.id))") && html.includes('Prochaine carte') && html.includes('Voir la leçon'), 'prochaine carte reliée à sa leçon réelle');
-assert(html.includes('class="coll-module ${complete?\'complete\':\'\'}"') && html.includes("complete?'Validé':count"), 'modules de cartes compacts et explicitement validés');
+assert(html.includes('class="coll-module ${complete?\'complete\':\'\'}"') && html.includes("const count=`${openN}/${avecCarte.length}`;"), 'modules de cartes compacts, avec leur avancement');
 assert(html.includes("classList.add('collection-static')") && html.includes('.collection-static>.fbar'), 'filtres de cartes changés sans rejouer les animations de page');
 assert(html.includes("['interview','Entretien SQL'") && !nav.includes('data-tab="entretien"'), 'entretien disponible dans la bibliothèque');
 assert(html.includes('ent-readiness-stats') && html.includes('masteredTopics') && html.includes('À retravailler') && html.includes('Thèmes validés'), 'Entretien SQL présente une préparation calculée depuis les réponses réelles');
@@ -144,7 +144,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 const glissantes = fs.readFileSync(path.join(ROOT, 'assets/anim/fenetres-glissantes.html'), 'utf8');
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && ['UNBOUNDED PRECEDING', '2 PRECEDING', '2 FOLLOWING', 'CURRENT ROW'].every(c => glissantes.includes(c)) && html.includes('NTILE(4)'), 'cadres (dans la vidéo) et fonctions de fenêtre avancées (défi NTILE) couverts');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-10-12-ludique-v2174') && html.includes('requete-2026-10-12-ludique-v2174') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-10-12-ludique-v2175') && html.includes('requete-2026-10-12-ludique-v2175') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);

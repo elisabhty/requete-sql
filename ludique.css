@@ -811,6 +811,9 @@ html.lq #coll-filters .fchip{
 html.lq #coll-filters .fchip.on{background:#fff!important;border-color:#fff!important;color:var(--accent-ink)!important;box-shadow:0 3px 0 var(--lip)!important}
 html.lq #coll-filters .fchip:active{transform:scale(.96)!important}
 html.lq #coll-filters .fchip small{font-size:11.5px!important;color:inherit!important;opacity:.7!important}
+/* Chaque segment prend la place de son libellé, puis l’espace restant se partage : « À débloquer 35 » ne touche plus le bord. */
+html.lq #coll-filters{display:flex!important;flex-wrap:nowrap!important}
+html.lq #coll-filters .fchip{flex:1 1 auto;padding:0 8px!important}
 html.lq .fchip small{font-family:var(--display)!important;font-weight:700!important;opacity:.75}
 
 /* Champs de saisie */
@@ -1434,30 +1437,58 @@ html.lq .coll-review-go{
   transition:transform .12s var(--press),box-shadow .12s var(--press);
 }
 html.lq .coll-review-go:active{transform:translateY(4px);box-shadow:0 0 0 rgba(20,10,60,.24)}
-/* Les cartes : deux par ligne, la syntaxe en grand */
-html.lq .coll-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:4px 14px 16px}
+/* Les cartes mémo (Elisa, 29 octobre, 18 h 54) : des cartes blanches en relief, la notion en grand, son rôle,
+   puis la syntaxe sur une ligne sombre colorée comme dans l’éditeur. L’état se lit d’un coup d’œil :
+   pastille violette « Acquise » (le vert passe au violet sur cet écran, voir « Moins de couleurs »),
+   pastille et bord ambre « À revoir » (l’orange sert aux retards). */
+html.lq .coll-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px;padding:10px 14px 18px}
 html.lq .coll-card{
-  position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:10px;min-height:96px;box-sizing:border-box;
-  padding:11px 12px 12px;border:0;border-radius:18px;background:var(--accent);color:#fff;text-align:left;font:inherit;
-  box-shadow:0 4px 0 var(--accent-lip);cursor:pointer;-webkit-tap-highlight-color:transparent;
-  transition:transform .12s var(--press),box-shadow .12s var(--press);
+  position:relative;display:flex;flex-direction:column;gap:10px;min-width:0;min-height:128px;box-sizing:border-box;
+  padding:14px 12px 12px;border:2px solid var(--line);border-radius:20px;background:#fff;color:var(--ink);text-align:left;font:inherit;
+  box-shadow:0 4px 0 var(--lip);cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:transform .12s var(--press),box-shadow .12s var(--press),border-color .15s;
 }
-html.lq .coll-card:active{transform:translateY(4px);box-shadow:0 0 0 var(--accent-lip)}
+html.lq .coll-card.is-wide{grid-column:1/-1}
+html.lq .coll-card:active{transform:translateY(4px);box-shadow:0 0 0 var(--lip)}
 html.lq .coll-card:focus-visible{outline:3px solid var(--accent-ink);outline-offset:3px}
-html.lq .coll-card-top{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:20px}
-html.lq .coll-card-top small{font:600 11px/1 var(--display);color:#fff}
-html.lq .coll-card-body{display:block;min-width:0}
-html.lq .coll-card-k{display:block;font:700 18px/1.12 var(--mono);letter-spacing:-.01em;color:#fff;overflow-wrap:break-word}
-html.lq .coll-card-t{display:block;margin-top:4px;font-size:12.5px;line-height:1.3;color:#fff}
-html.lq .coll-badge{flex:none;padding:3px 7px;border-radius:999px;font:700 10.5px/1.1 var(--display);font-style:normal;white-space:nowrap}
-html.lq .coll-badge.is-due{background:#fff;color:var(--accent-ink)}
-html.lq .coll-badge.is-ok{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.8);color:#fff}
-html.lq .coll-card.lock{background:var(--surface-2);color:var(--ink-3);box-shadow:none;cursor:default}
-html.lq .coll-card.lock .coll-card-top small,html.lq .coll-card.lock .coll-card-t{color:var(--ink-3)}
-html.lq .coll-card-lock{display:grid;place-items:center;color:#B3ACD4}
-html.lq .coll-card-lock svg{width:22px;height:22px}
+@media (hover:hover) and (pointer:fine){html.lq .coll-card:not(.lock):hover{border-color:var(--accent-mid,#B8A6FF)}}
+html.lq .coll-card-body{display:flex;flex-direction:column;gap:4px;min-width:0}
+html.lq .coll-card-k{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font:700 17px/1.18 var(--display);letter-spacing:-.01em;color:var(--ink);overflow-wrap:anywhere}
+html.lq .coll-card-k.is-sql{font:700 16.5px/1.2 var(--mono);letter-spacing:-.02em;color:var(--accent-ink)}
+html.lq .coll-card-t{display:block;font-size:13px;line-height:1.3;color:var(--ink-2)}
+html.lq .coll-card-code{
+  display:block;margin-top:auto;padding:7px 9px;border-radius:11px;background:var(--code-bg,#1D1A33);color:#EEEAFF;
+  font:600 11.5px/1.35 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+html.lq .coll-card-code .t-kw{color:var(--t-kw);font-weight:700}
+html.lq .coll-card-code .t-fn{color:var(--t-fn)}
+html.lq .coll-card-code .t-str,html.lq .coll-card-code .t-num{color:var(--t-str)}
+html.lq .coll-card-code .t-com{color:var(--t-com)}
+/* Pastilles d’état, posées comme une étiquette sur le bord haut */
+html.lq .coll-badge{
+  position:absolute;top:-10px;right:10px;z-index:1;padding:4px 9px;border-radius:999px;
+  font:700 11px/1.1 var(--display);font-style:normal;white-space:nowrap;box-shadow:0 2px 0 rgba(34,28,70,.12);
+}
+html.lq .coll-badge.is-ok{background:var(--success-soft);color:var(--success);box-shadow:inset 0 0 0 1.5px rgba(83,53,224,.22)}
+html.lq .coll-badge.is-ok::before{content:'✓ '}
+html.lq .coll-badge.is-due{background:var(--warn-fill);color:#3D2600}
+html.lq .coll-card.is-due{border-color:var(--warn-fill);box-shadow:0 4px 0 #E2A11B}
+html.lq .coll-card.is-due:active{box-shadow:0 0 0 #E2A11B}
+/* Carte à débloquer : en pointillés, avec la leçon qui la donne */
+html.lq .coll-card.lock{
+  min-height:112px;gap:8px;border:2px dashed #D6CFF0;background:rgba(255,255,255,.45);box-shadow:none;color:var(--ink-3);
+}
+html.lq .coll-card.lock:active{transform:scale(.98);box-shadow:none}
+html.lq .coll-card-lock{display:grid;place-items:center;width:30px;height:30px;border-radius:10px;background:var(--surface-2);color:#9C93C9}
+html.lq .coll-card-lock svg{width:16px;height:16px}
+html.lq .coll-card-lab{font:600 11.5px/1.2 var(--display);color:var(--ink-3)}
+html.lq .coll-card-lesson{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font:700 14.5px/1.25 var(--display);color:var(--ink-2)}
+html.lq .coll-card-go{margin-top:auto;font:700 12.5px/1.2 var(--display);color:var(--accent-ink)}
+html.lq .coll-card-go::after{content:' ›'}
 html.lq .coll-card.unlocking{animation:lqNodeIn .5s var(--pop) both}
-@media (min-width:600px){html.lq .coll-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
+/* Avancement du module : 8/10, en violet plein quand il est complet */
+html.lq .coll-module.complete .coll-module-side em{background:var(--accent)!important;color:#fff!important}
+@media (min-width:600px){html.lq .coll-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}html.lq .coll-card.is-wide{grid-column:auto}}
 html.lq .ent-hero{padding:18px!important}
 html.lq .ent-hero-txt b{font-size:22px!important}
 html.lq .ent-hero-stats strong,html.lq .ent-hero-stats span{color:#fff!important}

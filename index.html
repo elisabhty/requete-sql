@@ -20575,19 +20575,26 @@ function renderCollection(){
     if(!items.length) return '';
     const openN=avecCarte.filter(l=>isUnlocked(l.id)).length;
     const complete=openN===avecCarte.length;
-    const count=collFilter==='all'?`${openN}/${avecCarte.length}`:String(items.length);
-    /* De vraies cartes : la syntaxe en grand, deux par ligne, avec leur état. */
-    const cards=items.map(l=>{
+    /* Le compteur dit l’avancement du module (8/10) ; la ligne du dessous, ce qu’il reste à obtenir (Elisa, 29 octobre,
+       18 h 54 : « améliorer l’UI/UX des cartes et de la page »). */
+    const count=`${openN}/${avecCarte.length}`;
+    const rest=avecCarte.length-openN;
+    /* Une vraie carte mémo : la notion en grand, son rôle, et la syntaxe en une ligne colorée comme dans l’éditeur.
+       Une carte à débloquer dit quelle leçon la donne, et l’ouvre. Une carte seule sur sa ligne prend toute la largeur. */
+    const cards=items.map((l,i)=>{
       const u=isUnlocked(l.id);
       const c=CARTES[l.id];
-      const num=String(l.id).padStart(2,'0');
-      if(!u) return `<div class="coll-card lock"><span class="coll-card-top"><small>Carte ${num}</small></span><span class="coll-card-lock">${LOCK}</span><small class="coll-card-t">Termine la leçon pour la débloquer</small></div>`;
+      const wide=(i===items.length-1&&items.length%2===1)?' is-wide':'';
+      if(!u) return `<button type="button" class="coll-card lock${wide}" onclick="openLesson(${l.id})" aria-label="${escAttr(`Carte à débloquer avec la leçon ${l.titre}. Ouvrir la leçon`)}"><span class="coll-card-lock">${LOCK}</span><span class="coll-card-body"><small class="coll-card-lab">Avec la leçon</small><b class="coll-card-lesson">${esc(l.titre)}</b></span><small class="coll-card-go">Voir la leçon</small></button>`;
       const due=revisable(l)&&isDue(l.id),level=(state.lessons[l.id]&&state.lessons[l.id].level)||0;
       const badge=due?'<em class="coll-badge is-due">À revoir</em>':level>=2?'<em class="coll-badge is-ok">Acquise</em>':'';
       const unlock=lastUnlockedId===l.id?' unlocking':'';
-      return `<button type="button" class="coll-card${unlock}${due?' is-due':''}" onclick="openCard(${l.id})" aria-label="${escAttr(`${c.k} : ${c.t}${due?'. À revoir':level>=2?'. Acquise':''}`)}"><span class="coll-card-top"><small>Requête</small>${badge}</span><span class="coll-card-body"><b class="coll-card-k">${esc(c.k)}</b><small class="coll-card-t">${esc(c.t)}</small></span></button>`;
+      const sql=!/[a-zà-ÿ]/.test(c.k);
+      return `<button type="button" class="coll-card${unlock}${due?' is-due':''}${wide}" onclick="openCard(${l.id})" aria-label="${escAttr(`${c.k} : ${c.t}${due?'. À revoir':level>=2?'. Acquise':''}`)}">${badge}<span class="coll-card-body"><b class="coll-card-k${sql?' is-sql':''}">${esc(c.k)}</b><small class="coll-card-t">${esc(c.t)}</small></span><code class="coll-card-code" aria-hidden="true">${highlight(cardSnippet(c))}</code></button>`;
     }).join('');
-    return `<details class="coll-module ${complete?'complete':''}"${collFilter==='open'?' open':''}><summary><span class="coll-module-num">${complete?ENT_OK_SVG:String(moduleIndex+1).padStart(2,'0')}</span><span class="coll-module-copy"><b>${esc(mod.titre)}</b><small>${complete?'Toutes les cartes sont débloquées':collFilter==='open'?`${openN} carte${openN>1?'s':''} disponible${openN>1?'s':''}`:`${avecCarte.length-openN} carte${avecCarte.length-openN>1?'s':''} à obtenir`}</small></span><span class="coll-module-side"><em>${complete?'Validé':count}</em><i aria-hidden="true">⌄</i></span></summary><div class="coll-grid">${cards}</div></details>`;
+    /* Ouvert d’office : tous les modules dans « Débloquées » ; ailleurs, celui de la prochaine carte. */
+    const ouvert=collFilter==='open'||(!!nextLesson&&avecCarte.some(l=>l.id===nextLesson.id));
+    return `<details class="coll-module ${complete?'complete':''}"${ouvert?' open':''}><summary><span class="coll-module-num">${complete?ENT_OK_SVG:String(moduleIndex+1).padStart(2,'0')}</span><span class="coll-module-copy"><b>${esc(mod.titre)}</b><small>${complete?'Toutes les cartes sont débloquées':`${plur(rest,'carte')} à obtenir`}</small></span><span class="coll-module-side"><em aria-label="${openN} sur ${avecCarte.length}">${count}</em><i aria-hidden="true">⌄</i></span></summary><div class="coll-grid">${cards}</div></details>`;
   }).filter(Boolean);
   if(!groups.length){
     host.innerHTML=`<div class="coll-empty">Aucune carte dans ce filtre. Termine une leçon pour débloquer sa fiche mémo.</div>`;
@@ -20602,6 +20609,10 @@ function renderCollection(){
       if(el) el.classList.remove('unlocking');
     },700);
   }
+}
+/* La syntaxe d’une carte sur une ligne, sans les commentaires : « SELECT ville, COUNT(*) FROM clients GROUP BY ville ». */
+function cardSnippet(c){
+  return String((c&&c.s)||'').split('\n').filter(x=>!/^\s*--/.test(x)).join(' ').replace(/\s+/g,' ').trim();
 }
 /* « Prochaine révision demain », « … jeudi 2 oct. » */
 function collNextReviewLabel(ts){
@@ -25679,7 +25690,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v2174';
+  const SW_CACHE='requete-2026-10-12-ludique-v2175';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
