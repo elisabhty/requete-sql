@@ -6,6 +6,8 @@
    Stratégies :
    - navigations (index.html) → réseau d'abord, cache en repli. Une nouvelle
      version se voit donc dès qu'il y a du réseau, sans coincer hors ligne.
+   - page vitrine (decouvrir/) → réseau d'abord pour tout, rangée sous sa propre
+     adresse, jamais à la place de index.html.
    - reste des fichiers du site → cache d'abord, réseau en repli, et la réponse
      réseau est rangée au passage.
    - domaines tiers (polices) → jamais interceptés : on laisse le navigateur
@@ -14,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-10-29-memo-simple-v2180';
+const CACHE = 'requete-2026-10-29-vitrine-v2181';
 
 const PRECACHE = [
   './memo-collection.css?v=5',
@@ -254,6 +256,24 @@ self.addEventListener('fetch', (e) => {
      une réponse complète servie depuis le cache. On laisse le navigateur
      les charger lui-même ; hors ligne, l’image fixe (poster) s’affiche. */
   if (url.pathname.endsWith('.mp4')) return;
+
+  /* Page vitrine (decouvrir/) : ses pages et ses fichiers (vitrine.css, modules.js, images) passent par
+     le réseau d’abord et sont rangés sous leur propre adresse. Jamais sous index.html, sinon l’app hors
+     ligne s’ouvrirait sur la vitrine ; jamais servis du cache quand le réseau répond, sinon une page à jour
+     tournerait avec une feuille de style ou un catalogue périmés. Hors ligne, la copie rangée prend le relais. */
+  if (url.pathname.includes('/decouvrir/')) {
+    e.respondWith((async () => {
+      const cache = await caches.open(CACHE);
+      try {
+        const res = await fetch(req, { cache: 'no-cache' });
+        if (res && res.ok && res.type === 'basic') cache.put(req, res.clone());
+        return res;
+      } catch (err) {
+        return (await cache.match(req)) || (await cache.match(req, { ignoreSearch: true })) || Response.error();
+      }
+    })());
+    return;
+  }
 
   /* Animations des cours, chargées dans un cadre par le lecteur, et pages des cours
      interactifs (assets/projet/) : réseau d’abord, rangées sous leur propre adresse —

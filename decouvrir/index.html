@@ -391,6 +391,21 @@
 <script>
 var REDUIT=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
 
+/* Service worker de l’appli : s’il est déjà installé dans ce navigateur, on lui demande de se mettre à jour.
+   Une ancienne version servait vitrine.css et modules.js depuis son cache sans revérifier ; dès que la
+   nouvelle prend la main, la page se recharge une fois pour repartir sur des fichiers à jour. */
+(function(){
+  var sw=navigator.serviceWorker;
+  if(!sw||!sw.controller)return;
+  var deja=false;try{deja=sessionStorage.getItem('rq-vitrine-maj')==='1';}catch(e){}
+  sw.addEventListener('controllerchange',function(){
+    if(deja)return;deja=true;
+    try{sessionStorage.setItem('rq-vitrine-maj','1');}catch(e){}
+    location.reload();
+  });
+  sw.getRegistration().then(function(r){if(r)r.update();}).catch(function(){});
+})();
+
 /* Barre de navigation : transparente sur le héros, claire dès qu’on défile ou quand le menu est ouvert */
 (function(){
   var nav=document.getElementById('nav'),b=document.getElementById('burger'),menu=document.getElementById('menu');
