@@ -96,7 +96,13 @@
 .nr-c i{font-style:normal;font-family:var(--mono);font-size:20px;font-weight:700;color:var(--ink-3)}
 .nr-c b{width:52px;height:72px;box-sizing:border-box;border-radius:12px;background:var(--surface-2);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:34px;font-weight:800;color:var(--ink)}
 .nr-c.sp b{border-style:dashed}
-.nr-l{margin-top:22px;display:flex;flex-direction:column;align-items:flex-start;gap:10px;opacity:0}
+/* Sous les cases : une flèche (où SUBSTR commence) et une accolade (ce qu’il garde), avec leur explication */
+.nr-mk{position:relative;height:74px}
+.nr-tri{position:absolute;top:0;width:0;height:0;border-left:13px solid transparent;border-right:13px solid transparent;border-bottom:17px solid var(--c);opacity:0}
+.nr-br{position:absolute;top:2px;height:16px;box-sizing:border-box;border:4px solid var(--c);border-top:none;border-radius:0 0 10px 10px;transform-origin:0 50%;opacity:0}
+.nr-lb{position:absolute;top:26px;font-family:var(--mono);font-size:24px;font-weight:800;color:var(--c);white-space:nowrap;opacity:0}
+.hx{border-radius:7px;padding:0 3px;margin:0 -3px}
+.nr-l{margin-top:16px;display:flex;flex-direction:column;align-items:flex-start;gap:10px;opacity:0}
 .nr-l .q{padding:12px 20px;border-radius:16px;background:var(--code-bg);font-family:var(--mono);font-size:28px;font-weight:600;color:var(--code-ink);white-space:pre}
 .nr-l .o{font-family:var(--mono);font-size:30px;font-weight:700;color:var(--ink-3);opacity:0}
 .nr-l .o b{padding:4px 14px;border-radius:12px;background:var(--accent-soft);color:var(--accent-ink);white-space:pre}
@@ -220,9 +226,16 @@
     <div class="abs card nr" id="nr5" style="top:300px">
       <div class="trap-h"><span class="emo">✂️</span><span>Le numéro de rue</span></div>
       <div class="nr-cells" id="nrc"></div>
+      <div class="nr-mk" id="nrmk">
+        <i class="nr-tri" id="nrt2" style="--c:#7C5CFF"></i><span class="nr-lb" id="nrl1" style="--c:#5335E0">départ : position 1</span>
+        <i class="nr-br" id="nrb2" style="--c:#7C5CFF"></i><span class="nr-lb" id="nrl2" style="--c:#5335E0">longueur : 3 − 1 = 2</span>
+        <i class="nr-tri" id="nrt3" style="--c:#F5A524"></i><span class="nr-lb" id="nrl3" style="--c:#B45309">INSTR → 3</span>
+        <span class="nr-lb" id="nrl4" style="--c:#15803D">3 + 1 = 4 : départ</span>
+        <i class="nr-br" id="nrb3" style="--c:#16A34A"></i><span class="nr-lb" id="nrl5" style="--c:#15803D">pas de longueur : jusqu’à la fin</span>
+      </div>
       <div class="nr-l" id="nr1"><span class="q"><span class="kw">INSTR</span>(adresse, <span class="str">' '</span>)</span><span class="o">→ <b>3</b></span></div>
-      <div class="nr-l" id="nr2"><span class="q"><span class="kw">SUBSTR</span>(adresse, 1, <span class="kw">INSTR</span>(adresse, <span class="str">' '</span>) - 1)</span><span class="o">→ <b>12</b></span></div>
-      <div class="nr-l" id="nr3"><span class="q"><span class="kw">SUBSTR</span>(adresse, <span class="kw">INSTR</span>(adresse, <span class="str">' '</span>) + 1)</span><span class="o">→ <b>rue des Lilas</b></span></div>
+      <div class="nr-l" id="nr2"><span class="q"><span class="kw">SUBSTR</span>(adresse, <span class="hx" id="n2a">1</span>, <span class="hx" id="n2b"><span class="kw">INSTR</span>(adresse, <span class="str">' '</span>) - 1</span>)</span><span class="o">→ <b>12</b></span></div>
+      <div class="nr-l" id="nr3"><span class="q"><span class="kw">SUBSTR</span>(adresse, <span class="hx" id="n3a"><span class="kw">INSTR</span>(adresse, <span class="str">' '</span>)</span> <span class="hx" id="n3b">+ 1</span><span class="hx" id="n3c">)</span></span><span class="o">→ <b>rue des Lilas</b></span></div>
     </div>
   </section>
 
@@ -262,7 +275,7 @@
 <script src="moments.js"></script>
 <script>
 'use strict';
-const DURATION = 173.7;
+const DURATION = 178.7;
 
 /* Table clients : [id, prenom, nom, adresse, ville] */
 const CLIENTS = [[1,'Sophie','Martin','12 rue des Lilas','Paris'],[2,'Lucas','Bernard','8 avenue Foch','Lyon'],[3,'Emma','Dubois','27 rue Gambetta','Marseille'],
@@ -281,9 +294,9 @@ const CHAPTERS = [
   {n:3, label:'UPPER en action',       a:50.5,  b:71.5},
   {n:4, label:'Assembler avec ||',     a:71.5,  b:96.6},
   {n:5, label:'Une fonction par besoin', a:96.6, b:123.1},
-  {n:6, label:'Le numéro de rue',      a:123.1, b:142.9},
-  {n:7, label:'Le résultat',           a:142.9, b:160.9},
-  {n:8, label:'À retenir',             a:160.9, b:DURATION}
+  {n:6, label:'Le numéro de rue',      a:123.1, b:147.9},
+  {n:7, label:'Le résultat',           a:147.9, b:165.9},
+  {n:8, label:'À retenir',             a:165.9, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
@@ -315,14 +328,15 @@ const CAPTIONS = [
   [123.4, 128.1, "Pour séparer le <b>numéro de rue</b>, il faut savoir où il s’arrête : au <b>premier espace</b>."],
   [128.2, 132.7, "<code>INSTR(adresse, ' ')</code> donne la <b>position</b> de ce premier espace : 3."],
   [132.8, 137.7, "<code>SUBSTR</code> garde les caractères <b>avant</b> cet espace, soit 3\u00a0−\u00a01\u00a0=\u00a02 : 12."],
-  [137.8, 142.5, "Pour la suite, <code>SUBSTR</code> part juste <b>après</b> l’espace : rue des Lilas."],
-  [143.2, 147.3, "La requête complète réunit <code>UPPER</code>, <code>||</code>, <code>SUBSTR</code> et <code>INSTR</code>."],
-  [147.4, 151.5, "Le <b>numéro de rue</b> et l’<b>adresse</b> sortent ainsi dans deux colonnes séparées."],
-  [152.3, 155.2, "Résultat : <b>10 lignes</b>, au format voulu par le transporteur."],
-  [155.3, 160.5, "Les étiquettes s’impriment,<br>prêtes à être collées sur les colis."],
-  [161.2, 166.0, "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [166.1, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
-      : [166.1, 999, "Une fonction de texte transforme le résultat, et <code>||</code> assemble des textes."]
+  [137.8, 142.4, "Le <code>+ 1</code> permet de commencer juste <b>après</b> le premier espace."],
+  [142.5, 147.3, "Sans longueur précisée, <code>SUBSTR</code> extrait tout le texte restant : « rue des Lilas »."],
+  [148.2, 152.3, "La requête complète réunit <code>UPPER</code>, <code>||</code>, <code>SUBSTR</code> et <code>INSTR</code>."],
+  [152.4, 156.5, "Le <b>numéro de rue</b> et l’<b>adresse</b> sortent ainsi dans deux colonnes séparées."],
+  [157.3, 160.2, "Résultat : <b>10 lignes</b>, au format voulu par le transporteur."],
+  [160.3, 165.5, "Les étiquettes s’impriment,<br>prêtes à être collées sur les colis."],
+  [166.2, 171.0, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [171.1, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
+      : [171.1, 999, "Une fonction de texte transforme le résultat, et <code>||</code> assemble des textes."]
 ];
 
 /* Pas de question en pleine vidéo : les moments « À toi » font participer l’élève (ni exercice ni quiz après la vidéo, depuis le 28 octobre). */
@@ -615,66 +629,101 @@ function build(){
   tl.to(cells[2].querySelector('i'), {color: '#B45309', scale: 1.5, duration: 0.3, ease: 'back.out(2)'}, 129.5);
   show('#nr1 .o', 130.0, {x: -14}, 0.4, 'back.out(2)');
   cue(130.0, 'true', 0.6, 1);
-  // SUBSTR avant l’espace : 12
+  // Les repères sous les cases : x d’une case dans la bande (les cases ne bougent qu’en hauteur)
+  const band = $('#nrmk'), cx = i => cells[i].offsetLeft - band.offsetLeft, CW = cells[0].offsetWidth;
+  const at = (sel, i, dx = 0) => gsap.set(sel, {left: cx(i) + dx});
+  at('#nrt2', 0, CW / 2 - 13); at('#nrl1', 0); at('#nrl2', 0); at('#nrt3', 2, CW / 2 - 13); at('#nrl3', 2, -40); at('#nrl4', 3, -6);
+  gsap.set('#nrb2', {left: cx(0), width: cx(1) + CW - cx(0)});
+  gsap.set('#nrb3', {left: cx(3), width: cx(15) + CW - cx(3)});
+  gsap.set('#nrl5', {left: cx(3) + (cx(15) + CW - cx(3)) / 2, xPercent: -50});
+  const mark = (sel, t, from = {y: -10}) => tl.fromTo(sel, Object.assign({autoAlpha: 0}, from), {autoAlpha: 1, x: 0, y: 0, duration: 0.35, ease: 'back.out(2)', immediateRender: false}, t);
+  const glow = (sel, t, c = 'rgba(255,213,138,.38)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, t);
+  // SUBSTR avant l’espace : on part de la position 1, et on garde 3 − 1 = 2 caractères : 12
   show('#nr2', 133.0, {y: 20}, 0.4, 'power3.out');
   cue(133.0, 'pop', 0.7, 4);
-  tl.to([box(0), box(1)], {backgroundColor: '#ECE7FF', borderColor: '#A893FF', duration: 0.3, stagger: 0.12}, 134.0);
-  show('#nr2 .o', 134.6, {x: -14}, 0.4, 'back.out(2)');
-  cue(134.6, 'true', 0.6, 2);
-  // SUBSTR après l’espace : rue des Lilas
+  glow('#n2a', 133.6);
+  mark(['#nrt2', '#nrl1'], 133.6);
+  cue(133.6, 'tick', 0.6, 1);
+  tl.to(['#nrt2', '#nrl1'], {autoAlpha: 0, duration: 0.2}, 134.55);
+  glow('#n2b', 134.6);
+  tl.fromTo('#nrb2', {autoAlpha: 1, scaleX: 0}, {autoAlpha: 1, scaleX: 1, duration: 0.45, ease: 'power2.out', immediateRender: false}, 134.7);
+  mark('#nrl2', 134.9);
+  tl.to([box(0), box(1)], {backgroundColor: '#ECE7FF', borderColor: '#A893FF', duration: 0.3, stagger: 0.15}, 134.75);
+  cue(134.75, 'pop', 0.7, 2);
+  show('#nr2 .o', 135.7, {x: -14}, 0.4, 'back.out(2)');
+  cue(135.7, 'true', 0.6, 2);
+  tl.to(['#nrb2', '#nrl2'], {autoAlpha: 0, duration: 0.25}, 137.45);
+  // SUBSTR après l’espace : INSTR donne 3, le + 1 fait commencer à la case 4…
   show('#nr3', 138.0, {y: 20}, 0.4, 'power3.out');
   cue(138.0, 'pop', 0.7, 5);
-  tl.to(cells.slice(3).map(c => c.querySelector('b')), {backgroundColor: '#E7F7EE', borderColor: '#A7E3C0', duration: 0.25, stagger: 0.04}, 139.0);
-  show('#nr3 .o', 139.8, {x: -14}, 0.4, 'back.out(2)');
-  cue(139.8, 'true', 0.6, 3);
-  hide('#nr5', 142.35, {y: -40});
-  sceneOff('#s5n', 142.85);
+  glow('#n3a', 138.7);
+  mark(['#nrt3', '#nrl3'], 138.7);
+  cue(138.7, 'tick', 0.6, 2);
+  glow('#n3b', 140.0, 'rgba(126,226,168,.4)');
+  tl.to('#nrt3', {x: cx(3) - cx(2), borderBottomColor: '#16A34A', duration: 0.55, ease: 'power2.inOut'}, 140.1);
+  cue(140.1, 'whoosh', 0.4);
+  tl.to('#nrl3', {autoAlpha: 0, duration: 0.2}, 140.1);
+  mark('#nrl4', 140.55);
+  tl.to(box(3), {backgroundColor: '#E7F7EE', borderColor: '#16A34A', duration: 0.3}, 140.6);
+  tl.to(cells[3], {scale: 1.12, duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 140.6);
+  cue(140.65, 'pop', 0.8, 3);
+  // … et sans longueur, il garde tout le reste, jusqu’à la fin : rue des Lilas
+  tl.to(['#nrt3', '#nrl4'], {autoAlpha: 0, duration: 0.25}, 142.75);
+  glow('#n3c', 142.8, 'rgba(126,226,168,.4)');
+  tl.fromTo('#nrb3', {autoAlpha: 1, scaleX: 0}, {autoAlpha: 1, scaleX: 1, duration: 1.3, ease: 'none', immediateRender: false}, 143.0);
+  tl.to(cells.slice(4).map(c => c.querySelector('b')), {backgroundColor: '#E7F7EE', borderColor: '#A7E3C0', duration: 0.2, stagger: 1.2 / 11}, 143.05);
+  cells.slice(4).forEach((_, i) => { if (i % 2 === 0) cue(143.05 + i * 1.2 / 11, 'tick', 0.4, i % 5); });
+  mark('#nrl5', 144.35, {y: 8});
+  show('#nr3 .o', 145.0, {x: -14}, 0.4, 'back.out(2)');
+  cue(145.0, 'true', 0.6, 3);
+  hide('#nr5', 147.35, {y: -40});
+  sceneOff('#s5n', 147.85);
 
   /* ===== 7 · Le résultat ===== */
-  sceneOn('#s6', 142.9);
-  show('#s6code', 142.95, {y: 60}, 0.6);
-  cue(142.95, 'whoosh', 0.7);
-  te = 143.45;
+  sceneOn('#s6', 147.9);
+  show('#s6code', 147.95, {y: 60}, 0.6);
+  cue(147.95, 'whoosh', 0.7);
+  te = 148.45;
   for (let i = 1; i <= 10; i++) te = typeLine($('#s6l' + i), te, 40) + 0.06;
-  press($('#s6run'), 151.55);
-  hide('#s6code', 151.95, {y: -40}, 0.4);
-  show('#tbl6', 152.2, {y: 40}, 0.5);
+  press($('#s6run'), 156.55);
+  hide('#s6code', 156.95, {y: -40}, 0.4);
+  show('#tbl6', 157.2, {y: 40}, 0.5);
   const tr6 = $$('#rows6 .tr');
   gsap.set(tr6, {autoAlpha: 0, y: 14});
-  tl.to(tr6, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.06}, 152.35);
-  tr6.forEach((_, i) => cue(152.35 + i * 0.06, 'tick', 0.45, i % 5));
-  show('#cnt6', 152.85, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  hide('#tbl6', 155.15, {y: -40}, 0.4);
+  tl.to(tr6, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.06}, 157.35);
+  tr6.forEach((_, i) => cue(157.35 + i * 0.06, 'tick', 0.45, i % 5));
+  show('#cnt6', 157.85, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  hide('#tbl6', 160.15, {y: -40}, 0.4);
   // Les étiquettes s’impriment : un colis arrive, son étiquette se remplit, puis le suivant
   gsap.set('#par6a', {autoAlpha: 0, x: 1000});
   gsap.set('#par6b', {autoAlpha: 0, x: 1000});
-  tl.to('#par6a', {autoAlpha: 1, x: 0, duration: 0.6, ease: 'power3.out'}, 155.55);
-  cue(155.55, 'whoosh', 0.7);
+  tl.to('#par6a', {autoAlpha: 1, x: 0, duration: 0.6, ease: 'power3.out'}, 160.55);
+  cue(160.55, 'whoosh', 0.7);
   const fill = (id, t) => {
     let e = t;
     $$(id + ' .fv').forEach(v => { e = typeChars(splitChars(v), e, 40) + 0.12; });
     return e;
   };
-  fill('#par6a', 156.2);
-  tl.to('#par6a', {x: -1000, duration: 0.6, ease: 'power3.inOut'}, 157.8);
-  tl.set('#par6a', {autoAlpha: 0}, 158.4);
-  tl.to('#par6b', {autoAlpha: 1, x: 0, duration: 0.6, ease: 'power3.inOut'}, 157.8);
-  cue(157.8, 'whoosh', 0.6);
-  fill('#par6b', 158.45);
-  show('#badge6', 159.75, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(159.75, 'success', 0.9);
-  hide(['#par6b', '#badge6'], 160.4);
-  sceneOff('#s6', 160.9);
+  fill('#par6a', 161.2);
+  tl.to('#par6a', {x: -1000, duration: 0.6, ease: 'power3.inOut'}, 162.8);
+  tl.set('#par6a', {autoAlpha: 0}, 163.4);
+  tl.to('#par6b', {autoAlpha: 1, x: 0, duration: 0.6, ease: 'power3.inOut'}, 162.8);
+  cue(162.8, 'whoosh', 0.6);
+  fill('#par6b', 163.45);
+  show('#badge6', 164.75, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(164.75, 'success', 0.9);
+  hide(['#par6b', '#badge6'], 165.4);
+  sceneOff('#s6', 165.9);
 
   /* ===== 7 · À retenir ===== */
-  recapScene(160.9, [161.6, 163.4, 165.2]);
-  hold(163.2, 2.9);
-  hold(165.0, 6.0);   // la liste des fonctions, une par ligne
+  recapScene(165.9, [166.6, 168.4, 170.2]);
+  hold(168.2, 2.9);
+  hold(170.0, 6.0);   // la liste des fonctions, une par ligne
   // Le bouton « Ajouter à mes notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(166.15, 'pop', 0.85, 5);
+  if (APP) cue(171.15, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 166.1, moments: MOMENTS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 171.1, moments: MOMENTS,
   glyphs: '✂️📦🪪🙂🏠🏙️🔎🔒⚙️↓🔗⚠️🧰🔤✓✕→·', dom, build});
 </script>
 </body>
