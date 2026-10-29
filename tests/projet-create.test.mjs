@@ -251,7 +251,7 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
     co: 'La table coachs est déjà écrite : c’est la première du fichier.', cl: 'La table clients existe déjà : il ne faut pas la recréer.'}, 'une correction par mauvaise table');
   /* 3 · ranger les colonnes de la table ateliers selon leur type (la case REAL reste vide) */
   assert.ok(P[2].prompt === 'Range chaque colonne de la table ateliers selon son type : une case peut rester vide.'
-    && P[2].hint === 'Touche une colonne, puis le type qui lui correspond. Tu peux aussi la faire glisser directement.' && P[2].next === '{x} : touche maintenant son type.');
+    && P[2].hint === 'Sélectionne une colonne, puis appuie sur le type qui lui correspond. Tu peux aussi la faire glisser directement.' && P[2].next === '{x} : appuie maintenant sur son type.');
   assert.deepEqual(W.TYPES.map(t => [t[0], t[1]]), [['int', 'INTEGER'], ['real', 'REAL'], ['text', 'TEXT']], 'les trois types du chapitre 2 : INTEGER, REAL, TEXT');
   assert.deepEqual(W.TYPES3.map(t => [t[0], t[1], t[2], t[3]]), [['int', 'INTEGER', 'nombre entier', '10'], ['real', 'REAL', 'nombre à virgule', '29.90'], ['text', 'TEXT', 'texte', '\'Salma\''],
     ['date', 'DATE', 'date', '\'2026-09-12\'']], 'les quatre cases du moment 3 : INTEGER, REAL, TEXT, et DATE en plus');
@@ -267,7 +267,7 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
     assert.ok(page.includes(s), `moment 4 : ${s.slice(0, 60)}`);
   /* 5 · chaque mot-clé à côté de la règle qu’il traduit */
   assert.ok(P[4].prompt === 'Place chaque mot-clé à côté de la règle qu’il traduit.'
-    && P[4].hint === 'Touche un mot-clé, puis la règle qu’il traduit. Tu peux aussi le faire glisser directement.' && P[4].next === '{x} : touche maintenant la règle qu’il traduit.');
+    && P[4].hint === 'Sélectionne un mot-clé, puis appuie sur la règle qu’il traduit. Tu peux aussi le faire glisser directement.' && P[4].next === '{x} : appuie maintenant sur la règle qu’il traduit.');
   assert.deepEqual(W.KW5, [['UNIQUE', 'uq', 'UNIQUE interdit les doublons : un même client ne peut pas avoir deux cartes.'],
     ['DEFAULT', 'df', 'DEFAULT fixe la valeur de départ : ici, le solde d’une nouvelle carte.'],
     ['CHECK', 'ck', 'CHECK refuse les valeurs qui ne respectent pas sa condition : ici, un solde négatif.']]);

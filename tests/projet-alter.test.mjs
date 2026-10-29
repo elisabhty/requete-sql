@@ -247,8 +247,8 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
   assert.deepEqual(P[2].options, [{label: 'NULL\u00a0: aucune valeur', ok: true}, {label: 'Une chaîne vide \'\'', why: 'Une chaîne vide est déjà une valeur : sans DEFAULT, la base n’en donne aucune.'},
     {label: 'Le numéro de chaque coach', why: 'Ces numéros ne sont pas encore dans la base : personne ne les a saisis.'}]);
   /* 4 · l’ancien nom, puis le nouveau */
-  assert.ok(P[3].prompt === 'Place chaque nom au bon endroit de la requête.' && P[3].hint === 'Touche un nom, puis sa place dans la requête. Tu peux aussi le faire glisser directement.'
-    && P[3].next === '{x} : touche maintenant sa place dans la requête.');
+  assert.ok(P[3].prompt === 'Place chaque nom au bon endroit de la requête.' && P[3].hint === 'Sélectionne un nom, puis appuie sur l’emplacement où tu veux le placer dans la requête. Tu peux aussi le faire glisser directement.'
+    && P[3].next === '{x} : appuie sur l’emplacement où tu veux le placer dans la requête.');
   assert.deepEqual(W.NOMS, [['seances_restantes', 'new', 'seances_restantes est le nouveau nom : il vient après TO.'], ['seances', 'old', 'seances est l’ancien nom : il vient juste après RENAME COLUMN.']]);
   assert.deepEqual(P[3].options.map(o => o.label), ['seances_restantes', 'seances'], 'le nouveau nom d’abord : pas l’ordre des deux trous');
   /* Deux zones de toute la largeur de la requête, l’une sous l’autre, sans chevauchement (et non deux bandes de la taille des trous). */
