@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F4F2FC">
+<meta name="color-scheme" content="light">
+<title>Data analyst : salaires, demande et SQL — Requête</title>
+<meta name="description" content="En un peu plus d’une minute : ce que gagne un data analyst en France, ville par ville et en freelance, pourquoi la demande monte, et pourquoi le SQL est la compétence la plus demandée.">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="preload" href="../assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/inter-semibold.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+/* Vidéo de la page vitrine (« Commencer gratuitement ») : le métier de data analyst en chiffres réels et sourcés —
+   salaire moyen, salaires par ville, progression, demande, place du SQL dans les offres — puis Requête.
+   Scène 1080 × 1350 (format 4:5, lisible sur téléphone comme sur ordinateur), animée par GSAP, sans voix.
+   Chaque chiffre affiche sa source en bas de l’image ; la liste complète est dans « Sources ».
+   Chiffres relevés le 29 octobre 2026 : pour les mettre à jour, changer les constantes de données et la liste des sources. */
+@font-face{font-family:'Bricolage Grotesque';src:url(../assets/fonts/bricolage-grotesque-regular.woff2) format('woff2');font-weight:300 550;font-display:block}
+@font-face{font-family:'Bricolage Grotesque';src:url(../assets/fonts/bricolage-grotesque-bold.woff2) format('woff2');font-weight:551 900;font-display:block}
+@font-face{font-family:'Inter';src:url(../assets/fonts/inter-medium.woff2) format('woff2');font-weight:300 550;font-display:block}
+@font-face{font-family:'Inter';src:url(../assets/fonts/inter-semibold.woff2) format('woff2');font-weight:551 650;font-display:block}
+@font-face{font-family:'Inter';src:url(../assets/fonts/inter-bold.woff2) format('woff2');font-weight:651 750;font-display:block}
+@font-face{font-family:'Inter';src:url(../assets/fonts/inter-extrabold.woff2) format('woff2');font-weight:751 900;font-display:block}
+@font-face{font-family:'JBM';src:url(../assets/fonts/jetbrains-mono.woff2) format('woff2');font-weight:100 800;font-display:block}
+
+:root{
+  --bg:#F4F2FC;--surface:#fff;--surface-2:#F1EEFC;
+  --ink:#1B1640;--ink-2:#4E4872;--ink-3:#6A6490;
+  --line:#E6E1F6;--line-2:#EFECFA;--lip:#DCD5F2;
+  --accent:#6A4DF4;--accent-2:#8B6CFF;--accent-soft:#EEE9FF;--accent-ink:#5335E0;--accent-lip:#4B30CC;
+  --up:#14955A;--up-soft:#DDF5E8;--down:#D2434A;
+  --display:'Bricolage Grotesque','Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  --ui:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  --mono:'JBM',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --press:cubic-bezier(.3,.7,.4,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:500 16px/1.4 var(--ui);-webkit-font-smoothing:antialiased;overflow:hidden}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+/* ---------- Lecteur ---------- */
+.bar{width:100%;max-width:880px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;flex:none}
+.bar.top{padding-top:max(10px,env(safe-area-inset-top))}
+.bar.bottom{padding-bottom:max(12px,env(safe-area-inset-bottom))}
+.pill{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:0 15px;border-radius:14px;background:#fff;border:2px solid var(--line);box-shadow:0 3px 0 var(--lip);font:700 15px/1 var(--display);color:var(--accent-ink);text-decoration:none;cursor:pointer;transition:transform .12s var(--press),box-shadow .12s var(--press)}
+.pill:active{transform:translateY(3px);box-shadow:0 0 0 var(--lip)}
+.pill svg{width:16px;height:16px}
+.pill:focus-visible,.ctl:focus-visible,#seek:focus-visible,#src-btn:focus-visible{outline:3px solid var(--accent-ink);outline-offset:3px}
+#frame{position:relative;flex:none;overflow:hidden;box-shadow:0 0 0 1px rgba(34,28,70,.06),0 2px 4px rgba(34,28,70,.04),0 30px 70px -28px rgba(52,34,150,.35);cursor:pointer;background:var(--bg)}
+.ctl{flex:none;width:46px;height:46px;border-radius:14px;border:0;background:var(--accent);color:#fff;display:grid;place-items:center;box-shadow:0 4px 0 var(--accent-lip);cursor:pointer;transition:transform .12s var(--press),box-shadow .12s var(--press)}
+.ctl:active{transform:translateY(4px);box-shadow:0 0 0 var(--accent-lip)}
+.ctl svg{width:20px;height:20px}
+#seek{position:relative;flex:1;height:44px;cursor:pointer;touch-action:none}
+#seek .track{position:absolute;left:0;right:0;top:50%;height:8px;margin-top:-4px;border-radius:6px;background:#E2DCF5;overflow:hidden}
+#seek .fill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent)}
+#seek .tick{position:absolute;top:50%;width:3px;height:8px;margin:-4px 0 0 -1.5px;background:var(--bg)}
+#time{flex:none;min-width:80px;text-align:right;font:700 13px/1 var(--mono);color:var(--ink-3);font-variant-numeric:tabular-nums}
+#src-btn{flex:none;height:46px;padding:0 14px;border-radius:14px;border:2px solid var(--line);background:#fff;color:var(--ink-2);font:700 14px/1 var(--display);cursor:pointer;box-shadow:0 3px 0 var(--lip)}
+@media (max-width:420px){#time{display:none}}
+
+#end{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:12px;padding:0 10% 7%;background:linear-gradient(180deg,rgba(244,242,252,0) 62%,rgba(244,242,252,.96) 80%);opacity:0;visibility:hidden;transition:opacity .4s,visibility .4s;cursor:default}
+#end.on{opacity:1;visibility:visible}
+#end a,#end button{width:100%;max-width:360px;min-height:56px;border-radius:18px;display:flex;align-items:center;justify-content:center;gap:10px;font:700 18px/1 var(--display);text-decoration:none;cursor:pointer;transition:transform .12s var(--press),box-shadow .12s var(--press)}
+#end a{background:var(--accent);color:#fff;border:0;box-shadow:0 5px 0 var(--accent-lip)}
+#end a:active{transform:translateY(5px);box-shadow:0 0 0 var(--accent-lip)}
+#end button{background:#fff;color:var(--accent-ink);border:2px solid var(--line);box-shadow:0 4px 0 var(--lip)}
+#end button:active{transform:translateY(4px);box-shadow:0 0 0 var(--lip)}
+#end svg{width:20px;height:20px}
+
+/* Sources */
+#sources{position:fixed;inset:0;z-index:20;display:flex;align-items:flex-end;justify-content:center;background:rgba(27,22,64,.32);opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}
+#sources.on{opacity:1;visibility:visible}
+#sources .sheet{width:min(100%,640px);max-height:80vh;overflow:auto;background:#fff;border-radius:24px 24px 0 0;padding:22px 22px max(24px,env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(27,22,64,.18);transform:translateY(24px);transition:transform .3s var(--press)}
+#sources.on .sheet{transform:none}
+#sources h2{margin:0 0 4px;font:800 22px/1.2 var(--display)}
+#sources p.note{margin:0 0 14px;color:var(--ink-3);font-size:14px}
+#sources ol{margin:0;padding-left:20px;display:grid;gap:12px}
+#sources li{font-size:14.5px;line-height:1.45;color:var(--ink-2)}
+#sources li b{color:var(--ink)}
+#sources a{color:var(--accent-ink);font-weight:600;word-break:break-word}
+#sources .close{margin-top:18px;width:100%;min-height:50px;border-radius:16px;border:2px solid var(--line);background:#fff;font:700 16px/1 var(--display);color:var(--accent-ink);cursor:pointer;box-shadow:0 3px 0 var(--lip)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- Scène 1080 × 1350 ---------- */
+#stage{position:absolute;left:0;top:0;width:1080px;height:1350px;transform-origin:0 0;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--ui)}
+.abs{position:absolute}
+.orb{position:absolute;border-radius:50%;pointer-events:none}
+#o1{width:900px;height:900px;left:-260px;top:-380px;background:radial-gradient(closest-side,#DDD2FF,rgba(221,210,255,0))}
+#o2{width:820px;height:820px;left:560px;top:760px;background:radial-gradient(closest-side,#E6DEFF,rgba(230,222,255,0))}
+#grid{position:absolute;inset:0;opacity:.6;background-image:linear-gradient(rgba(106,77,244,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(106,77,244,.05) 1px,transparent 1px);background-size:54px 54px;-webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 45%,#000 30%,transparent 80%);mask-image:radial-gradient(ellipse 70% 60% at 50% 45%,#000 30%,transparent 80%)}
+
+#hdr{left:80px;top:56px;width:920px;height:64px;display:flex;align-items:center}
+.logo{flex:none;width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 5px 0 var(--accent-lip);display:grid;place-items:center;color:#fff;font:800 23px/1 var(--mono);letter-spacing:-1.5px}
+.brand{margin-left:18px;font:800 36px/1 var(--display);letter-spacing:-.8px}
+#chap{margin-left:auto;display:flex;align-items:center;gap:14px;font:700 26px/1 var(--ui);color:var(--ink-3)}
+#chap b{font:800 26px/1 var(--mono);color:var(--accent-ink)}
+#chap i{display:block;width:44px;height:3px;border-radius:2px;background:var(--lip)}
+#src{left:80px;top:1262px;width:920px;font:600 23px/1.35 var(--ui);color:var(--ink-3);opacity:0}
+#src b{color:var(--ink-2);font-weight:700}
+
+.scene{position:absolute;left:0;top:0;width:1080px;height:1350px;visibility:hidden;opacity:0}
+.card{background:#fff;border:3px solid var(--line);border-radius:40px;box-shadow:0 8px 0 var(--lip),0 30px 60px -40px rgba(52,34,150,.35)}
+.kick{font:700 34px/1 var(--ui);color:var(--accent-ink);letter-spacing:.2px}
+.ttl{margin:0;font:800 84px/1 var(--display);letter-spacing:-3px;color:var(--ink)}
+.ttl em{font-style:normal;color:var(--accent)}
+.mask{display:block;overflow:hidden;padding-bottom:.1em;margin-bottom:-.1em}
+.mask>span{display:inline-block}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+
+/* S0 · accroche */
+#s0 .kick{left:80px;top:250px}
+#s0 .big{left:68px;top:300px;margin:0;font:800 196px/.95 var(--display);letter-spacing:-9px}
+#s0 .big em{font-style:normal;color:var(--accent)}
+#s0 .sub{left:80px;top:690px;width:900px;margin:0;font:600 44px/1.25 var(--ui);color:var(--ink-2)}
+.q{left:80px;width:920px;height:118px;display:flex;align-items:center;gap:30px;padding:0 36px;border-radius:32px}
+.q span{flex:none;width:68px;height:68px;border-radius:20px;background:var(--accent-soft);color:var(--accent-ink);display:grid;place-items:center;font:800 28px/1 var(--mono)}
+.q b{font:800 50px/1 var(--display);letter-spacing:-1.4px}
+
+/* S1 · salaire moyen */
+#s1 .kick{left:80px;top:250px}
+#avg{left:62px;top:290px;font:800 260px/1 var(--display);letter-spacing:-12px;color:var(--ink);white-space:nowrap}
+#avg small{font-size:150px;letter-spacing:-4px;color:var(--accent);margin-left:18px}
+#s1 .sub{left:80px;top:580px;width:900px;margin:0;font:600 44px/1.25 var(--ui);color:var(--ink-2)}
+#s1 .sub b{color:var(--ink);font-weight:800}
+#range{left:80px;top:790px;width:920px;padding:44px 48px 50px}
+#range h4{margin:0 0 50px;font:700 32px/1 var(--ui);color:var(--ink-2)}
+.scale{position:relative;height:120px}
+.scale .tr{position:absolute;left:0;right:0;top:44px;height:20px;border-radius:12px;background:var(--surface-2)}
+.scale .rg{position:absolute;top:44px;height:20px;border-radius:12px;background:linear-gradient(90deg,#8B6CFF,#6A4DF4);box-shadow:0 4px 0 var(--accent-lip);transform-origin:50% 50%}
+.scale .mk{position:absolute;top:22px;width:6px;height:64px;margin-left:-3px;border-radius:4px;background:var(--ink)}
+.scale .mkl{position:absolute;top:-28px;transform:translateX(-50%);font:800 30px/1 var(--display);color:var(--ink);white-space:nowrap}
+.scale .tk{position:absolute;top:86px;transform:translateX(-50%);font:600 24px/1 var(--mono);color:var(--ink-3)}
+
+/* S2 · par ville */
+#s2 .kick,#s3 .kick,#s4 .kick,#s5 .kick,#s6 .kick{left:80px;top:220px}
+#s2 .ttl,#s3 .ttl,#s4 .ttl,#s5 .ttl,#s6 .ttl{position:absolute;left:80px;top:268px;width:920px}
+#cities{left:80px;top:470px;width:920px;padding:30px 44px}
+.ct{display:grid;grid-template-columns:190px 1fr;align-items:center;gap:22px;height:100px;margin:0 -20px;padding:0 20px;border-radius:22px}
+.ct+.ct{box-shadow:0 -2px 0 var(--line-2)}
+.ct span{font:700 36px/1 var(--ui);color:var(--ink-2)}
+.ct .tk2{position:relative;height:54px}
+.ct .fl{position:absolute;left:0;top:0;bottom:0;border-radius:16px;background:#C6B8FF;transform-origin:0 50%}
+.ct.top .fl{background:linear-gradient(90deg,#8B6CFF,#6A4DF4);box-shadow:0 5px 0 var(--accent-lip)}
+.ct.top span{color:var(--ink);font-weight:800}
+.ct .vl{position:absolute;top:0;bottom:0;display:flex;align-items:center;padding-left:18px;font:800 34px/1 var(--display);color:var(--ink);white-space:nowrap}
+
+/* S3 · progression */
+.step{bottom:200px;width:280px}
+.step .col{position:absolute;left:0;right:0;bottom:0;top:0;border-radius:30px 30px 14px 14px;background:linear-gradient(180deg,#8B6CFF,#6A4DF4);box-shadow:0 8px 0 var(--accent-lip);transform-origin:50% 100%}
+.step.s1 .col{background:linear-gradient(180deg,#C9BDFF,#B2A2FF);box-shadow:0 8px 0 #9C88F5}
+.step.s2 .col{background:linear-gradient(180deg,#A68FFF,#8B6CFF);box-shadow:0 8px 0 #6E54E8}
+.step .rv{position:absolute;left:-20px;right:-20px;bottom:calc(100% + 24px);text-align:center;font:800 46px/1 var(--display);letter-spacing:-1.4px;color:var(--ink);white-space:nowrap}
+.step .rl{position:absolute;left:-20px;right:-20px;top:calc(100% + 30px);text-align:center;font:700 34px/1.1 var(--ui);color:var(--ink-2)}
+
+/* S3b · freelance */
+#sf .kick{left:80px;top:220px}
+#sf .ttl{position:absolute;left:80px;top:268px;width:920px}
+#tjm{left:80px;top:400px;width:920px;padding:36px 48px 30px}
+#tjm .two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.tj b{display:block;font:800 132px/1 var(--display);letter-spacing:-6px;color:var(--ink);white-space:nowrap}
+.tj b small{font-size:70px;letter-spacing:-2px;color:var(--accent);margin-left:8px}
+.tj.alt b{color:var(--ink-3)}
+.tj.alt b small{color:#B2A2FF}
+.tj p{margin:12px 0 0;font:700 30px/1.2 var(--ui);color:var(--ink-2)}
+#tjm .eq{margin:22px 0 0;padding-top:20px;border-top:3px solid var(--line-2);font:600 28px/1.35 var(--ui);color:var(--ink-3)}
+#tjm .eq b{color:var(--ink);font-weight:800}
+#tjmx{left:80px;top:780px;width:920px;padding:26px 44px 18px}
+#tjmx h4{margin:0 0 6px;font:800 34px/1.2 var(--display);letter-spacing:-.4px}
+#tjmx .ct{height:80px}
+#tjmx .ct span{font-size:32px}
+
+/* S4 · demande */
+#wef{left:80px;top:400px;width:920px;height:350px;padding:44px 48px;display:grid;grid-template-columns:auto 1fr;gap:40px;align-items:center}
+#wef .n{font:800 170px/1 var(--display);letter-spacing:-8px;color:var(--up);white-space:nowrap}
+#wef p{margin:0;font:600 34px/1.3 var(--ui);color:var(--ink-2)}
+#wef p b{display:block;margin-bottom:10px;font:800 42px/1.1 var(--display);letter-spacing:-.6px;color:var(--ink)}
+#apec{left:80px;top:800px;width:920px;height:400px;padding:40px 48px}
+#apec h4{margin:0 0 30px;font:800 38px/1.15 var(--display);letter-spacing:-.6px}
+.dv{display:grid;grid-template-columns:320px 1fr;align-items:center;gap:18px;height:116px}
+.dv span{font:700 32px/1.15 var(--ui);color:var(--ink-2)}
+.dv .ax{position:relative;height:60px}
+.dv .ax::before{content:'';position:absolute;left:50%;top:-16px;bottom:-16px;width:3px;margin-left:-1.5px;background:var(--lip);border-radius:2px}
+.dv .b{position:absolute;top:6px;bottom:6px;border-radius:12px}
+.dv .b.dn{right:50%;width:45%;background:var(--down);transform-origin:100% 50%}
+.dv .b.upb{left:50%;width:29%;background:var(--up);transform-origin:0 50%}
+.dv .v{position:absolute;top:0;bottom:0;display:flex;align-items:center;font:800 36px/1 var(--display);white-space:nowrap}
+.dv .v.dn{color:#fff;right:calc(50% + 14px)}
+.dv .v.upv{color:var(--up);left:calc(79% + 16px)}
+
+/* S5 · 7 sur 10 */
+#docs{left:105px;top:440px;width:870px;display:grid;grid-template-columns:repeat(5,150px);gap:30px}
+.doc{position:relative;height:196px;border-radius:24px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);padding:22px 20px;overflow:hidden}
+.doc i{display:block;height:12px;border-radius:6px;background:var(--surface-2);margin-bottom:14px}
+.doc i:nth-child(1){width:70%;height:16px;background:#E2DCF5}
+.doc i:nth-child(3){width:80%}.doc i:nth-child(4){width:55%}
+.doc .tag{position:absolute;left:18px;bottom:18px;height:46px;padding:0 16px;border-radius:14px;background:var(--accent);color:#fff;font:800 24px/46px var(--mono);box-shadow:0 4px 0 var(--accent-lip);opacity:0}
+#seven{left:80px;top:930px;width:920px;display:flex;align-items:center;gap:34px}
+#seven b{font:800 200px/1 var(--display);letter-spacing:-9px;color:var(--accent);white-space:nowrap}
+#seven>span{font:800 48px/1.1 var(--display);letter-spacing:-1.2px;color:var(--ink)}
+#seven small{display:block;margin-top:12px;font:600 30px/1.3 var(--ui);color:var(--ink-3);letter-spacing:0}
+
+/* S6 · classement */
+#skills{left:80px;top:480px;width:920px;padding:30px 44px}
+.sk{display:grid;grid-template-columns:200px 1fr;align-items:center;gap:22px;height:108px}
+.sk span{font:800 38px/1 var(--mono);color:var(--ink-2)}
+.sk.top span{color:var(--accent-ink)}
+.sk .tk2{position:relative;height:58px}
+.sk .fl{position:absolute;left:0;top:0;bottom:0;border-radius:16px;background:#D9D0FF;transform-origin:0 50%}
+.sk.top .fl{background:linear-gradient(90deg,#8B6CFF,#6A4DF4);box-shadow:0 5px 0 var(--accent-lip)}
+.sk .vl{position:absolute;top:0;bottom:0;display:flex;align-items:center;padding-left:18px;font:800 36px/1 var(--display);white-space:nowrap}
+#fr{left:80px;top:1000px;width:920px;padding:34px 44px;display:flex;align-items:center;gap:30px}
+#fr .flag{flex:none;width:84px;height:60px;border-radius:12px;overflow:hidden;display:flex;box-shadow:0 0 0 3px var(--line)}
+#fr .flag i{flex:1}
+#fr p{margin:0;font:600 34px/1.3 var(--ui);color:var(--ink-2)}
+#fr p b{color:var(--ink);font-weight:800}
+
+/* S7 · pourquoi */
+#s7 .line{left:80px;width:920px;margin:0;font:800 96px/1.02 var(--display);letter-spacing:-3.6px}
+#s7 .line em{font-style:normal;color:var(--accent)}
+#s7 .line.small{font-size:58px;letter-spacing:-1.8px;color:var(--ink-2)}
+#flow{left:80px;top:800px;width:920px;height:340px}
+.tb{position:absolute;width:170px;height:180px;border-radius:26px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);padding:20px 18px}
+.tb i{display:block;height:14px;border-radius:7px;background:var(--surface-2);margin-bottom:16px}
+.tb i:first-child{background:#D9D0FF;height:20px}
+.tb small{position:absolute;left:0;right:0;bottom:-50px;text-align:center;font:700 28px/1 var(--ui);color:var(--ink-3)}
+#q-chip{left:380px;top:100px;width:160px;height:86px;border-radius:26px;background:var(--ink);color:#fff;display:grid;place-items:center;font:800 34px/1 var(--mono);box-shadow:0 6px 0 #000;z-index:1}
+#dash{left:640px;top:20px;width:280px;height:270px}
+#dash .bx{position:absolute;bottom:36px;width:44px;border-radius:12px 12px 6px 6px;background:var(--accent);transform-origin:50% 100%}
+#dash .bx:nth-child(odd){background:#B9A8FF}
+#flow-l{left:340px;top:140px;width:300px;height:10px;overflow:visible}
+
+/* S8 · Requête */
+#s8 .masc{left:720px;top:170px;width:290px}
+#s8 .ttl{position:absolute;left:80px;top:240px;width:660px;font-size:88px;letter-spacing:-3.2px}
+#s8 .sub{left:80px;top:450px;width:580px;margin:0;font:600 40px/1.3 var(--ui);color:var(--ink-2)}
+.ft{left:80px;width:920px;height:116px;padding:0 34px;display:flex;align-items:center;gap:28px;border-radius:32px}
+.ft .ico{flex:none;width:74px;height:74px;border-radius:22px;display:grid;place-items:center}
+.ft .ico svg{width:40px;height:40px}
+.ft b{font:800 40px/1.1 var(--display);letter-spacing:-.8px}
+.ft small{margin-left:auto;font:600 28px/1 var(--ui);color:var(--ink-3)}
+.i-a{background:#FFE6EE;color:#E0457B}.i-b{background:var(--accent-soft);color:var(--accent-ink)}.i-c{background:#FFF4D6;color:#C98A00}.i-d{background:var(--up-soft);color:var(--up)}
+#go{left:80px;top:1140px;width:920px;height:112px;border-radius:36px;background:var(--accent);box-shadow:0 9px 0 var(--accent-lip);display:flex;align-items:center;justify-content:center;gap:22px;font:800 48px/1 var(--display);color:#fff}
+#go svg{width:46px;height:46px}
+</style>
+</head>
+<body>
+<div class="bar top">
+  <a class="pill" href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Retour</a>
+  <a class="pill" href="../">Passer la vidéo<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+</div>
+
+<div id="frame" role="region" aria-label="Vidéo : le métier de data analyst en chiffres">
+<div id="stage" aria-hidden="true">
+  <div class="orb" id="o1"></div><div class="orb" id="o2"></div><div id="grid"></div>
+  <div id="hdr" class="abs"><span class="logo">&gt;_</span><span class="brand">Requête</span><span id="chap"><b id="chap-n">01</b><i></i><span id="chap-t">Le métier</span></span></div>
+
+  <!-- S0 · Accroche -->
+  <section class="scene" id="s0">
+    <div class="abs kick">Le métier de</div>
+    <h1 class="abs big"><span class="mask"><span>Data</span></span><span class="mask"><span><em>analyst.</em></span></span></h1>
+    <p class="abs sub">Transformer les données d’une entreprise en décisions.</p>
+    <div class="abs card q" style="top:830px"><span>01</span><b>Combien ça paie&nbsp;?</b></div>
+    <div class="abs card q" style="top:975px"><span>02</span><b>Est-ce que ça recrute&nbsp;?</b></div>
+    <div class="abs card q" style="top:1120px"><span>03</span><b>Quelle compétence compte&nbsp;?</b></div>
+  </section>
+
+  <!-- S1 · Salaire moyen -->
+  <section class="scene" id="s1">
+    <div class="abs kick">Salaire de base moyen</div>
+    <div class="abs num" id="avg"><span id="avg-n">0</span><small>k€</small></div>
+    <p class="abs sub">par an, pour un data analyst en France. <b>+&nbsp;4&nbsp;k€</b> de variable en moyenne.</p>
+    <div class="abs card" id="range">
+      <h4>Fourchette la plus courante</h4>
+      <div class="scale" id="scale">
+        <i class="tr"></i><i class="rg"></i>
+        <i class="mk"></i><b class="mkl">moyenne 44 k€</b>
+        <span class="tk" data-v="30">30 k</span><span class="tk" data-v="40">40 k</span><span class="tk" data-v="50">50 k</span><span class="tk" data-v="60">60 k</span><span class="tk" data-v="70">70 k</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- S2 · Par ville -->
+  <section class="scene" id="s2">
+    <div class="abs kick">Ville par ville</div>
+    <h2 class="ttl"><span class="mask"><span>Paris en tête,</span></span><span class="mask"><span>le reste <em>vers 40&nbsp;k€</em>.</span></span></h2>
+    <div class="abs card" id="cities"></div>
+  </section>
+
+  <!-- S3 · Progression -->
+  <section class="scene" id="s3">
+    <div class="abs kick">Avec l’expérience</div>
+    <h2 class="ttl"><span class="mask"><span>Un salaire qui <em>grimpe</em>.</span></span></h2>
+    <div class="abs step s1" style="left:80px;height:360px"><i class="col"></i><b class="rv">40–50 k€</b><span class="rl">Data analyst</span></div>
+    <div class="abs step s2" style="left:400px;height:450px"><i class="col"></i><b class="rv">48–60 k€</b><span class="rl">Senior</span></div>
+    <div class="abs step s3" style="left:720px;height:600px"><i class="col"></i><b class="rv">65–76 k€</b><span class="rl">Responsable</span></div>
+  </section>
+
+  <!-- S3b · Freelance -->
+  <section class="scene" id="sf">
+    <div class="abs kick">Taux journalier moyen (TJM), hors taxes</div>
+    <h2 class="ttl"><span class="mask"><span>Et en <em>freelance</em>&nbsp;?</span></span></h2>
+    <div class="abs card" id="tjm">
+      <div class="two">
+        <div class="tj"><b class="num"><span id="tj1">0</span><small>€</small></b><p>via un intermédiaire</p></div>
+        <div class="tj alt"><b class="num"><span id="tj2">0</span><small>€</small></b><p>en direct</p></div>
+      </div>
+      <p class="eq">20 jours à 420&nbsp;€&nbsp;= <b>8&nbsp;400&nbsp;€&nbsp;HT</b> facturés, avant charges.</p>
+    </div>
+    <div class="abs card" id="tjmx"><h4>En Île-de-France, selon l’expérience</h4></div>
+  </section>
+
+  <!-- S4 · Demande -->
+  <section class="scene" id="s4">
+    <div class="abs kick">Est-ce que ça recrute&nbsp;?</div>
+    <h2 class="ttl"><span class="mask"><span>La demande <em>monte</em>.</span></span></h2>
+    <div class="abs card" id="wef"><div class="n num"><span id="wef-n">+0</span>&nbsp;%</div><p><b>Spécialistes big data</b>le métier qui progresse le plus vite au monde d’ici 2030.</p></div>
+    <div class="abs card" id="apec">
+      <h4>En France, en 2025, sur apec.fr</h4>
+      <div class="dv"><span>Toutes les offres cadres</span><div class="ax"><i class="b dn" id="b-dn"></i><b class="v dn" id="v-dn">−15,5&nbsp;%</b></div></div>
+      <div class="dv"><span>Offres de data engineer</span><div class="ax"><i class="b upb" id="b-up"></i><b class="v upv" id="v-up">+10&nbsp;%</b></div></div>
+    </div>
+  </section>
+
+  <!-- S5 · 7 offres sur 10 -->
+  <section class="scene" id="s5">
+    <div class="abs kick">Quelle compétence compte&nbsp;?</div>
+    <h2 class="ttl"><span class="mask"><span>Le <em>SQL</em>, partout.</span></span></h2>
+    <div class="abs" id="docs"></div>
+    <div class="abs" id="seven"><b class="num"><span id="seven-n">0</span>/10</b><span>offres de data analyst<br>mentionnent le SQL<small>sur 65&nbsp;263 offres analysées</small></span></div>
+  </section>
+
+  <!-- S6 · Classement -->
+  <section class="scene" id="s6">
+    <div class="abs kick">Les compétences les plus citées</div>
+    <h2 class="ttl"><span class="mask"><span>Loin <em>devant</em> les</span></span><span class="mask"><span>autres outils.</span></span></h2>
+    <div class="abs card" id="skills"></div>
+    <div class="abs card" id="fr"><span class="flag" aria-hidden="true"><i style="background:#2A4BB7"></i><i style="background:#fff"></i><i style="background:#E1394B"></i></span><p>En France aussi, le <b>SQL</b> arrive en tête des offres, <b>devant Power BI et Python</b>.</p></div>
+  </section>
+
+  <!-- S7 · Pourquoi -->
+  <section class="scene" id="s7">
+    <p class="abs line" style="top:240px"><span class="mask"><span>Les données d’une</span></span><span class="mask"><span>entreprise vivent</span></span><span class="mask"><span>dans des <em>bases</em>.</span></span></p>
+    <p class="abs line small" style="top:580px"><span class="mask"><span>Le SQL est la langue pour les</span></span><span class="mask"><span>interroger.</span></span></p>
+    <div class="abs" id="flow">
+      <div class="tb" style="left:0;top:40px"><i></i><i></i><i></i><i></i><small>ventes</small></div>
+      <div class="tb" style="left:190px;top:80px"><i></i><i></i><i></i><i></i><small>clients</small></div>
+      <svg class="abs" id="flow-l" aria-hidden="true"><path d="M0 0 H300" stroke="#6A4DF4" stroke-width="5" stroke-linecap="round" stroke-dasharray="12 14" fill="none"/></svg>
+      <div class="abs" id="q-chip">SQL</div>
+      <div class="abs card" id="dash"><i class="bx" style="left:34px;height:70px"></i><i class="bx" style="left:94px;height:120px"></i><i class="bx" style="left:154px;height:95px"></i><i class="bx" style="left:214px;height:170px"></i></div>
+    </div>
+  </section>
+
+  <!-- S8 · Requête -->
+  <section class="scene" id="s8">
+    <img class="abs masc" src="mascotte.webp" alt="">
+    <h2 class="ttl"><span class="mask"><span>Apprends-le</span></span><span class="mask"><span>avec <em>Requête</em>.</span></span></h2>
+    <p class="abs sub">Pas à pas, à ton rythme, gratuitement.</p>
+    <div class="abs card ft" style="top:620px"><span class="ico i-a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.3 5 8 4.5 4 4.5v13c4 0 6.3.5 8 2 1.7-1.5 4-2 8-2v-13c-4 0-6.3.5-8 2Z"/><path d="M12 6.5v13"/></svg></span><b>Des cours courts</b><small>une notion à la fois</small></div>
+    <div class="abs card ft" style="top:750px"><span class="ico i-b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg></span><b>Un labo SQL</b><small>une vraie base</small></div>
+    <div class="abs card ft" style="top:880px"><span class="ico i-c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a5 5 0 0 1-.6-9.96A6 6 0 0 1 18 8a4.5 4.5 0 0 1 0 10"/><path d="M12 12v8M9 15l3-3 3 3"/></svg></span><b>Tes propres données</b><small>Excel, CSV, SQLite</small></div>
+    <div class="abs card ft" style="top:1010px"><span class="ico i-d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></span><b>Défis et révisions</b><small>pour ancrer</small></div>
+    <div class="abs" id="go">Commencer gratuitement<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+  </section>
+
+  <div class="abs" id="src"></div>
+</div>
+
+<div id="end">
+  <a href="../">Commencer gratuitement<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  <button type="button" id="again"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Revoir la vidéo</button>
+</div>
+<p class="sr" id="live" aria-live="polite"></p>
+</div>
+
+<div class="bar bottom">
+  <button type="button" class="ctl" id="pp" aria-label="Lecture"></button>
+  <div id="seek" role="slider" tabindex="0" aria-label="Position dans la vidéo" aria-valuemin="0" aria-valuenow="0"><div class="track"><div class="fill"></div></div></div>
+  <span id="time">0:00</span>
+  <button type="button" id="src-btn" aria-haspopup="dialog">Sources</button>
+</div>
+
+<div id="sources" role="dialog" aria-modal="true" aria-labelledby="src-h">
+  <div class="sheet">
+    <h2 id="src-h">Sources des chiffres</h2>
+    <p class="note">Relevés le 29 octobre 2026. Salaires bruts annuels, TJM hors taxes.</p>
+    <ol>
+      <li><b>Salaires (France, villes, progression)</b> : Glassdoor, « salaire de base moyen » pour l’intitulé Data Analyst. <a href="https://www.glassdoor.fr/Salaires/data-analyst-salaire-SRCH_KO0,12.htm" target="_blank" rel="noopener">France</a>, <a href="https://www.glassdoor.fr/Salaires/paris-data-analyst-salaire-SRCH_IL.0,5_IM1080_KO6,18.htm" target="_blank" rel="noopener">Paris</a>, <a href="https://www.glassdoor.fr/Salaires/bordeaux-data-analyst-salaire-SRCH_IL.0,8_IM1101_KO9,21.htm" target="_blank" rel="noopener">Bordeaux</a>, <a href="https://www.glassdoor.fr/Salaires/toulouse-data-analyst-salaire-SRCH_IL.0,8_IM1110_KO9,21.htm" target="_blank" rel="noopener">Toulouse</a>, <a href="https://www.glassdoor.fr/Salaires/nantes-data-analyst-salaire-SRCH_IL.0,6_IC2886381_KO7,19.htm" target="_blank" rel="noopener">Nantes</a>, <a href="https://www.glassdoor.fr/Salaires/lyon-data-analyst-salaire-SRCH_IL.0,4_IC2864777_KO5,17.htm" target="_blank" rel="noopener">Lyon</a>, <a href="https://www.glassdoor.fr/Salaires/lille-data-analyst-salaire-SRCH_IL.0,5_IM1111_KO6,18.htm" target="_blank" rel="noopener">Lille</a>, <a href="https://www.glassdoor.fr/Salaires/marseille-data-analyst-salaire-SRCH_IL.0,9_IM1113_KO10,22.htm" target="_blank" rel="noopener">Marseille</a>.</li>
+      <li><b>TJM freelance (420 € via un intermédiaire, 312 € en direct ; Île-de-France 335 € à 612 € selon l’expérience)</b> : Free-Work, <a href="https://www.free-work.com/fr/tech-it/data-analyst/rate-tjm-freelance" target="_blank" rel="noopener">TJM « Data analyst »</a>, tarifs HT déclarés par les freelances, consulté le 29 octobre 2026. Le calcul 20 × 420 € = 8 400 € HT est un chiffre d’affaires, avant cotisations et impôts.</li>
+      <li><b>+113 % de spécialistes big data d’ici 2030</b> : World Economic Forum, <a href="https://www.weforum.org/publications/the-future-of-jobs-report-2025" target="_blank" rel="noopener">Future of Jobs Report 2025</a> (enquête auprès de plus de 1 000 grands employeurs), chiffre repris par <a href="https://www.euronews.com/business/2025/02/01/jobs-market-at-a-crossroads-which-are-the-fastest-growing-and-declining-jobs" target="_blank" rel="noopener">Euronews</a>.</li>
+      <li><b>Offres cadres −15,5 %, offres de data engineer +10 % (2025 par rapport à 2024)</b> : Apec, <a href="https://corporate.apec.fr/files/live/sites/corporate/files/Nos%20etudes/PDF/Les%20metiers%20cadres%20porteurs%20edition%202026.pdf" target="_blank" rel="noopener">Les métiers cadres porteurs, édition 2026</a>.</li>
+      <li><b>SQL dans 71 % des offres (Python 46 %, Power BI 27 %, Excel 24 %)</b> : Huntr, <a href="https://huntr.co/resume-skills/data-analyst" target="_blank" rel="noopener">analyse de 65 263 offres de data analyst</a>, 2026. 61 % des offres l’exigent explicitement.</li>
+      <li><b>En France, SQL en tête (44 %), devant Power BI et Python (34 %)</b> : <a href="https://www.certworthit.com/fr/domaines/data/" target="_blank" rel="noopener">Certworthit</a>, d’après 859 offres Adzuna d’octobre 2026 (expression exacte seulement : ce sont des minimums).</li>
+    </ol>
+    <button type="button" class="close" id="src-close">Fermer</button>
+  </div>
+</div>
+
+<script src="../assets/anim/gsap.min.js"></script>
+<script>
+'use strict';
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+/* ---------- Données (voir « Sources ») ---------- */
+const AVG = 44;                                                     // k€, France
+const CITIES = [['Paris', 45], ['Bordeaux', 40], ['Toulouse', 40], ['Nantes', 40], ['Lyon', 39], ['Lille', 38], ['Marseille', 37]];
+const TJM = [420, 312];                                             // € HT par jour : via un intermédiaire, en direct
+const TJMX = [['1–2 ans', 335], ['3–4 ans', 466], ['5–10 ans', 507], ['+15 ans', 612]];   // Île-de-France
+const SKILLS = [['SQL', 71], ['Python', 46], ['Power BI', 27], ['Excel', 24]];
+const CHAPTERS = [[0, 'Le métier'], [6.5, 'Salaires'], [24, 'Freelance'], [31.5, 'Demande'], [42, 'Compétences'], [59.5, 'Pourquoi'], [66, 'Requête']];
+const SRC = [
+  [6.5, 'Source : <b>Glassdoor</b>, salaire de base moyen « Data Analyst », France, octobre 2026.'],
+  [12.5, 'Source : <b>Glassdoor</b>, salaire de base moyen « Data Analyst » par ville, octobre 2026.'],
+  [18.5, 'Source : <b>Glassdoor</b>, parcours salarial « Data Analyst », France, octobre 2026.'],
+  [24, 'Source : <b>Free-Work</b>, TJM déclarés pour « Data analyst » (HT, en euros), octobre 2026.'],
+  [31.5, 'Sources : <b>World Economic Forum</b>, Future of Jobs Report 2025 · <b>Apec</b>, Les métiers cadres porteurs 2026.'],
+  [42, 'Source : <b>Huntr</b>, 65 263 offres de data analyst analysées, 2026.'],
+  [50.5, 'Sources : <b>Huntr</b>, 65 263 offres, 2026 · <b>Adzuna</b> via Certworthit, 859 offres en France, octobre 2026.'],
+  [59.5, '']
+];
+const SAY = ['Le métier de data analyst : combien ça paie, est-ce que ça recrute, quelle compétence compte.',
+  'Salaire de base moyen en France : 44 000 euros par an. Paris 45 k€, Bordeaux, Toulouse et Nantes 40 k€, Lyon 39, Lille 38, Marseille 37. Puis 48 à 60 k€ en senior, 65 à 76 k€ comme responsable.',
+  'En freelance : 420 € HT par jour en moyenne via un intermédiaire, 312 € en direct. En Île-de-France, de 335 € (1 à 2 ans d’expérience) à 612 € (plus de 15 ans).',
+  'La demande monte : +113 % de spécialistes big data d’ici 2030 selon le WEF. En France, les offres de data engineer progressent de 10 % quand les offres cadres reculent de 15,5 %.',
+  '7 offres de data analyst sur 10 mentionnent le SQL, loin devant Python (46 %), Power BI (27 %) et Excel (24 %). En France aussi, le SQL arrive en tête.',
+  'Les données d’une entreprise vivent dans des bases ; le SQL est la langue pour les interroger.',
+  'Apprends-le avec Requête : cours courts, labo SQL, tes propres données, défis et révisions.'];
+const DURATION = 75.5;
+
+/* ---------- Construction des graphiques ---------- */
+const CMAX = 50;   // échelle des villes de 0 à 50 k€ : les écarts restent honnêtes
+$('#cities').innerHTML = CITIES.map((c, i) => `<div class="ct${i ? '' : ' top'}"><span>${c[0]}</span><div class="tk2"><i class="fl" style="width:${c[1] / CMAX * 76}%"></i><b class="vl num" style="left:${c[1] / CMAX * 76}%"><span class="cv">0</span>&nbsp;k€</b></div></div>`).join('');
+$('#tjmx').insertAdjacentHTML('beforeend', TJMX.map((c, i) => `<div class="ct${i === TJMX.length - 1 ? ' top' : ''}"><span>${c[0]}</span><div class="tk2"><i class="fl" style="width:${c[1] / 700 * 76}%"></i><b class="vl num" style="left:${c[1] / 700 * 76}%"><span class="xv">0</span>&nbsp;€</b></div></div>`).join(''));
+$('#skills').innerHTML = SKILLS.map((s, i) => `<div class="sk${i ? '' : ' top'}"><span>${s[0]}</span><div class="tk2"><i class="fl" style="width:${s[1] * .8}%"></i><b class="vl num" style="left:${s[1] * .8}%"><span class="sv">0</span>&nbsp;%</b></div></div>`).join('');
+$('#docs').innerHTML = Array.from({length: 10}, (_, i) => `<div class="doc${i < 7 ? ' sq' : ''}"><i></i><i></i><i></i><i></i><span class="tag">SQL</span></div>`).join('');
+/* Échelle de la fourchette : 25 k → 75 k */
+const sx = v => ((v - 25) / 50 * 100) + '%';
+gsap.set('#scale .rg', {left: sx(40), width: `calc(${sx(50)} - ${sx(40)})`});
+gsap.set('#scale .mk, #scale .mkl', {left: sx(AVG)});
+$$('#scale .tk').forEach(t => t.style.left = sx(+t.dataset.v));
+
+/* ---------- Timeline ---------- */
+const P = {avg: 0, cities: 0, tj: 0, tjx: 0, wef: 0, seven: 0, skills: 0};
+const T = gsap.timeline({paused: true, defaults: {ease: 'expo.out', duration: .9}, onUpdate: sync, onComplete: ended});
+
+function scene(id, a, b){
+  T.fromTo('#' + id, {autoAlpha: 0}, {autoAlpha: 1, duration: .35, ease: 'none'}, a);
+  if (b != null) T.to('#' + id, {autoAlpha: 0, y: -40, duration: .5, ease: 'power2.in'}, b - .5);
+}
+const rise = (t, at, o = {}) => T.fromTo(t, {autoAlpha: 0, y: 70, ...o.from}, {autoAlpha: 1, y: 0, x: 0, scale: 1, duration: o.d || .9, stagger: o.st || 0, ease: o.ease || 'expo.out'}, at);
+const lines = (sel, at, st = .09) => T.fromTo(`${sel} .mask > span`, {yPercent: 115}, {yPercent: 0, duration: .9, stagger: st, ease: 'expo.out'}, at);
+
+T.fromTo('#hdr', {autoAlpha: 0, y: -20}, {autoAlpha: 1, y: 0, duration: .7}, .1);
+/* Les halos glissent d’une scène à l’autre */
+[[0, -260, -380, 560, 760], [6.5, 300, -300, -200, 700], [24, 420, 120, -240, 640], [31.5, -200, 200, 520, -200], [42, 400, -350, -260, 820], [59.5, -240, -300, 560, 760], [66, 380, -380, -200, 820]]
+  .forEach(([t, x1, y1, x2, y2]) => { T.to('#o1', {left: x1, top: y1, duration: 2.4, ease: 'sine.inOut'}, t); T.to('#o2', {left: x2, top: y2, duration: 2.4, ease: 'sine.inOut'}, t); });
+
+/* S0 · accroche */
+scene('s0', 0, 6.5);
+rise('#s0 .kick', .2, {from: {y: 30}});
+lines('#s0 .big', .35, .12);
+rise('#s0 .sub', 1.1, {from: {y: 30}});
+rise('#s0 .q', 2.1, {st: .45, from: {x: 80, y: 0}});
+
+/* S1 · salaire moyen */
+scene('s1', 6.5, 12.5);
+rise('#s1 .kick', 6.7, {from: {y: 30}});
+T.fromTo('#avg', {autoAlpha: 0, scale: .9, transformOrigin: '0 60%'}, {autoAlpha: 1, scale: 1, duration: 1}, 6.8);
+T.fromTo(P, {avg: 0}, {avg: AVG, duration: 1.8, ease: 'power3.out'}, 6.8);
+rise('#s1 .sub', 7.6, {from: {y: 30}});
+rise('#range', 8.6);
+T.fromTo('#scale .rg', {scaleX: 0}, {scaleX: 1, duration: 1, ease: 'expo.out'}, 9.2);
+T.fromTo('#scale .mk, #scale .mkl', {autoAlpha: 0, y: -24}, {autoAlpha: 1, y: 0, duration: .6, ease: 'back.out(1.6)'}, 9.9);
+
+/* S2 · villes */
+scene('s2', 12.5, 18.5);
+rise('#s2 .kick', 12.7, {from: {y: 30}});
+lines('#s2 .ttl', 12.8);
+rise('#cities', 13.4);
+T.fromTo('#cities .fl', {scaleX: 0}, {scaleX: 1, duration: 1.2, stagger: .1, ease: 'expo.out'}, 13.9);
+T.fromTo(P, {cities: 0}, {cities: 1, duration: 1.8, ease: 'power3.out'}, 13.9);
+T.fromTo('#cities .vl', {autoAlpha: 0, x: -14}, {autoAlpha: 1, x: 0, duration: .5, stagger: .1}, 14.3);
+T.fromTo('#cities .ct.top', {backgroundColor: 'rgba(238,233,255,0)'}, {backgroundColor: 'rgba(238,233,255,1)', duration: .6}, 16);
+
+/* S3 · progression */
+scene('s3', 18.5, 24);
+rise('#s3 .kick', 18.7, {from: {y: 30}});
+lines('#s3 .ttl', 18.8);
+T.fromTo('#s3 .step .rl', {autoAlpha: 0, y: 20}, {autoAlpha: 1, y: 0, duration: .5, stagger: .35}, 19.3);
+T.fromTo('#s3 .step .col', {scaleY: 0}, {scaleY: 1, duration: 1.1, stagger: .35, ease: 'expo.out'}, 19.5);
+T.fromTo('#s3 .step .rv', {autoAlpha: 0, y: 30}, {autoAlpha: 1, y: 0, duration: .6, stagger: .35, ease: 'back.out(1.6)'}, 20.1);
+
+/* S3b · freelance */
+scene('sf', 24, 31.5);
+rise('#sf .kick', 24.2, {from: {y: 30}});
+lines('#sf .ttl', 24.3);
+rise('#tjm', 24.8);
+T.fromTo(P, {tj: 0}, {tj: 1, duration: 1.6, ease: 'power3.out'}, 25.1);
+T.fromTo('#tjm .eq', {autoAlpha: 0, y: 16}, {autoAlpha: 1, y: 0, duration: .6}, 26.4);
+rise('#tjmx', 27);
+T.fromTo('#tjmx .fl', {scaleX: 0}, {scaleX: 1, duration: 1.1, stagger: .12, ease: 'expo.out'}, 27.4);
+T.fromTo(P, {tjx: 0}, {tjx: 1, duration: 1.6, ease: 'power3.out'}, 27.4);
+T.fromTo('#tjmx .vl', {autoAlpha: 0, x: -14}, {autoAlpha: 1, x: 0, duration: .5, stagger: .12}, 27.7);
+
+/* S4 · demande */
+scene('s4', 31.5, 42);
+rise('#s4 .kick', 31.7, {from: {y: 30}});
+lines('#s4 .ttl', 31.8);
+rise('#wef', 32.5);
+T.fromTo(P, {wef: 0}, {wef: 113, duration: 2, ease: 'power3.out'}, 32.9);
+rise('#apec', 35.9);
+T.fromTo('#b-dn', {scaleX: 0}, {scaleX: 1, duration: 1, ease: 'expo.out'}, 36.7);
+T.fromTo('#v-dn', {autoAlpha: 0}, {autoAlpha: 1, duration: .4}, 37.2);
+T.fromTo('#b-up', {scaleX: 0}, {scaleX: 1, duration: 1, ease: 'expo.out'}, 38.1);
+T.fromTo('#v-up', {autoAlpha: 0, x: -14}, {autoAlpha: 1, x: 0, duration: .4}, 38.6);
+
+/* S5 · 7 sur 10 */
+scene('s5', 42, 50.5);
+rise('#s5 .kick', 42.2, {from: {y: 30}});
+lines('#s5 .ttl', 42.3);
+rise('#docs .doc', 42.9, {st: .06, d: .7, from: {y: 50, scale: .9}});
+rise('#seven', 44.1, {from: {y: 40}});
+$$('#docs .doc.sq').forEach((d, i) => {
+  const at = 44.5 + i * .32;
+  T.to(d, {borderColor: '#6A4DF4', y: -8, duration: .3, ease: 'power2.out'}, at);
+  T.fromTo($('.tag', d), {autoAlpha: 0, scale: .4}, {autoAlpha: 1, scale: 1, duration: .45, ease: 'back.out(2.4)'}, at);
+});
+T.fromTo(P, {seven: 0}, {seven: 7, duration: 2.24, ease: 'none'}, 44.5);
+T.to('#docs .doc:not(.sq)', {opacity: .4, duration: .5}, 46.9);
+
+/* S6 · classement */
+scene('s6', 50.5, 59.5);
+rise('#s6 .kick', 50.7, {from: {y: 30}});
+lines('#s6 .ttl', 50.8);
+rise('#skills', 51.5);
+T.fromTo('#skills .fl', {scaleX: 0}, {scaleX: 1, duration: 1.2, stagger: .14, ease: 'expo.out'}, 52);
+T.fromTo(P, {skills: 0}, {skills: 1, duration: 1.8, ease: 'power3.out'}, 52);
+T.fromTo('#skills .vl', {autoAlpha: 0, x: -14}, {autoAlpha: 1, x: 0, duration: .5, stagger: .14}, 52.4);
+rise('#fr', 55.1);
+
+/* S7 · pourquoi */
+scene('s7', 59.5, 66);
+lines('#s7 .line:not(.small)', 59.7, .12);
+lines('#s7 .line.small', 61.1);
+rise('#flow .tb', 61.7, {st: .15, from: {y: 60}});
+T.fromTo('#flow-l path', {strokeDashoffset: 300}, {strokeDashoffset: 0, duration: 1.4, ease: 'none'}, 62.3);
+T.fromTo('#q-chip', {autoAlpha: 0, scale: .5}, {autoAlpha: 1, scale: 1, duration: .6, ease: 'back.out(2)'}, 62.3);
+rise('#dash', 62.9, {from: {x: 60, y: 0}});
+T.fromTo('#dash .bx', {scaleY: 0}, {scaleY: 1, duration: .8, stagger: .1, ease: 'expo.out'}, 63.4);
+
+/* S8 · Requête */
+scene('s8', 66, null);
+T.fromTo('#s8 .masc', {autoAlpha: 0, y: 80, rotation: 6}, {autoAlpha: 1, y: 0, rotation: 0, duration: 1, ease: 'back.out(1.4)'}, 66.2);
+lines('#s8 .ttl', 66.3);
+rise('#s8 .sub', 67, {from: {y: 30}});
+rise('#s8 .ft', 67.7, {st: .3, from: {x: 80, y: 0}});
+rise('#go', 69.7, {from: {y: 40, scale: .9}});
+T.to('#go', {scale: 1.03, duration: .7, yoyo: true, repeat: 3, ease: 'sine.inOut'}, 70.7);
+T.to('#go', {autoAlpha: 0, y: 24, duration: .4}, DURATION - .6);
+
+/* Ligne de source en bas de l’image */
+const srcEl = $('#src');
+SRC.forEach(([t, html]) => {
+  T.to(srcEl, {opacity: 0, duration: .2, ease: 'none'}, Math.max(0, t - .2));
+  if (html) T.to(srcEl, {opacity: 1, duration: .4, ease: 'none'}, t + .6);
+});
+T.set({}, {}, DURATION);
+
+/* ---------- Ce qui dépend du temps (fonctionne aussi en reculant) ---------- */
+const tj1 = $('#tj1'), tj2 = $('#tj2'), xv = $$('#tjmx .xv');
+const avgN = $('#avg-n'), cv = $$('#cities .cv'), svs = $$('#skills .sv'), wefN = $('#wef-n'), sevenN = $('#seven-n');
+const chapN = $('#chap-n'), chapT = $('#chap-t'), live = $('#live');
+let chapIdx = -1, srcIdx = -2;
+function sync(){
+  const t = T.time();
+  avgN.textContent = Math.round(P.avg);
+  cv.forEach((e, i) => e.textContent = Math.round(CITIES[i][1] * P.cities));
+  svs.forEach((e, i) => e.textContent = Math.round(SKILLS[i][1] * P.skills));
+  tj1.textContent = Math.round(TJM[0] * P.tj); tj2.textContent = Math.round(TJM[1] * P.tj);
+  xv.forEach((e, i) => e.textContent = Math.round(TJMX[i][1] * P.tjx));
+  wefN.textContent = '+' + Math.round(P.wef);
+  sevenN.textContent = Math.floor(P.seven + .001);
+  let ci = 0; CHAPTERS.forEach((c, i) => { if (t >= c[0] - .3) ci = i; });
+  if (ci !== chapIdx) { chapIdx = ci; chapN.textContent = String(ci + 1).padStart(2, '0'); chapT.textContent = CHAPTERS[ci][1]; live.textContent = SAY[ci]; }
+  let si = -1; SRC.forEach((s, i) => { if (t >= s[0]) si = i; });
+  if (si !== srcIdx) { srcIdx = si; srcEl.innerHTML = si >= 0 ? SRC[si][1] : ''; }
+  ui(t);
+}
+
+/* ---------- Lecteur ---------- */
+const frame = $('#frame'), stage = $('#stage'), pp = $('#pp'), seek = $('#seek'), fill = $('.fill', seek), time = $('#time'), endEl = $('#end');
+const PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5Z"/></svg>';
+const PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>';
+const mmss = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+seek.setAttribute('aria-valuemax', DURATION);
+CHAPTERS.slice(1).forEach(c => { const i = document.createElement('i'); i.className = 'tick'; i.style.left = (c[0] / DURATION * 100) + '%'; seek.appendChild(i); });
+
+function ui(t){
+  fill.style.width = (t / DURATION * 100) + '%';
+  time.textContent = `${mmss(t)} / ${mmss(DURATION)}`;
+  seek.setAttribute('aria-valuenow', Math.round(t));
+  seek.setAttribute('aria-valuetext', `${mmss(t)}, ${CHAPTERS[Math.max(0, chapIdx)][1]}`);
+}
+function setPlaying(on){ pp.innerHTML = on ? PAUSE : PLAY; pp.setAttribute('aria-label', on ? 'Pause' : 'Lecture'); }
+function play(){ if (T.time() >= DURATION - .05) T.time(0); endEl.classList.remove('on'); T.play(); setPlaying(true); }
+function pause(){ T.pause(); setPlaying(false); }
+function toggle(){ T.paused() || T.time() >= DURATION - .05 ? play() : pause(); }
+function ended(){ setPlaying(false); endEl.classList.add('on'); }
+
+pp.addEventListener('click', e => { e.stopPropagation(); toggle(); });
+frame.addEventListener('click', e => { if (!endEl.contains(e.target)) toggle(); });
+$('#again').addEventListener('click', e => { e.stopPropagation(); T.time(0); play(); });
+const srcBox = $('#sources');
+let resumeAfterSources = false;
+$('#src-btn').addEventListener('click', () => { resumeAfterSources = !T.paused(); pause(); srcBox.classList.add('on'); $('#src-close').focus(); });
+const closeSources = () => { srcBox.classList.remove('on'); $('#src-btn').focus(); if (resumeAfterSources) play(); };
+$('#src-close').addEventListener('click', closeSources);
+srcBox.addEventListener('click', e => { if (e.target === srcBox) closeSources(); });
+addEventListener('keydown', e => {
+  if (srcBox.classList.contains('on')) { if (e.key === 'Escape') closeSources(); return; }
+  if (e.target.closest && e.target.closest('a,button')) return;
+  if (e.key === ' ' || e.key === 'k') { e.preventDefault(); toggle(); }
+  if (e.key === 'ArrowRight') T.time(Math.min(DURATION, T.time() + 5));
+  if (e.key === 'ArrowLeft') { T.time(Math.max(0, T.time() - 5)); endEl.classList.remove('on'); }
+});
+let dragging = false, wasPlaying = false;
+const seekTo = x => { const r = seek.getBoundingClientRect(); T.time(Math.max(0, Math.min(1, (x - r.left) / r.width)) * DURATION); if (T.time() < DURATION - .05) endEl.classList.remove('on'); };
+seek.addEventListener('pointerdown', e => { dragging = true; wasPlaying = !T.paused(); T.pause(); seek.setPointerCapture(e.pointerId); seekTo(e.clientX); });
+seek.addEventListener('pointermove', e => { if (dragging) seekTo(e.clientX); });
+seek.addEventListener('pointerup', () => { dragging = false; if (wasPlaying && T.time() < DURATION - .05) play(); else setPlaying(!T.paused()); });
+
+function fit(){
+  const bars = $$('.bar').reduce((s, b) => s + b.offsetHeight, 0);
+  const availH = innerHeight - bars - 8, availW = Math.min(innerWidth - 24, 880);
+  const s = Math.min(availW / 1080, availH / 1350);
+  frame.style.width = Math.floor(1080 * s) + 'px';
+  frame.style.height = Math.floor(1350 * s) + 'px';
+  frame.style.borderRadius = Math.max(16, 48 * s) + 'px';
+  stage.style.transform = `scale(${s})`;
+}
+addEventListener('resize', fit);
+fit();
+
+setPlaying(false); sync();
+Promise.all([document.fonts ? document.fonts.ready : 0, ...$$('img').map(i => i.decode ? i.decode().catch(() => 0) : 0)])
+  .then(() => { fit(); if (!new URLSearchParams(location.search).has('pause')) play(); });
+</script>
+</body>
+</html>
