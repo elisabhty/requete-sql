@@ -655,8 +655,8 @@ const COURSES = [
       '<span class="sus"><span class="emo">🔍</span>50 ou 500 ?</span>', '<span class="tx">30 → 500</span><span class="tx">500 → 30</span>',
       '<span class="tx">A → Z</span><span class="tx">Z → A</span>', '<span class="kw">ORDER BY</span> categorie, prix<span class="sens" id="descC"> <span class="kw glow">DESC</span></span>;',
       '✓ Vérifications prêtes']},
-  {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '3 min 15', notesAt: 150.6,
-    maxKo: 510,   // le mail de l’équipe marketing (mail.js, 7 Ko), comme DISTINCT et AS
+  {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '3 min 44', notesAt: 178.5,
+    maxKo: 530,   // le mail de l’équipe marketing (mail.js, 7 Ko) et les quatre démonstrations des usages (Elisa, 29 octobre)
     table: 'produits',
     bubble: 'Avec <span class="ic">LIMIT</span> et <span class="ic">OFFSET</span>, tu affiches seulement la partie du résultat qui t’intéresse.',
     chapters: ['Situation', 'Le problème', 'LIMIT en action', 'Sauter avec OFFSET', 'Un classement stable', 'Le résultat', 'À quoi ça sert', 'À retenir'],
@@ -675,7 +675,7 @@ const COURSES = [
       '"C’est utile pour afficher<br>de longues listes,<br><b>sans tout charger d’un coup</b>."',
       '<b>Sites web et applications</b><span class="rs">Pages de résultats, recherche, bouton&nbsp;« Voir plus ».</span>',
       '<b>Logiciels métier</b><span class="rs">Consulter les clients ou les factures par groupes de 20.</span>',
-      '<b>Tableaux de bord</b><span class="rs">Parcourir une longue liste de commandes.</span>',
+      '<b>Tableaux de bord</b><span class="rs">Suivre les dernières commandes en direct.</span>',
       '<b>API</b><span class="rs">Renvoyer une partie des résultats à chaque demande.</span>',
       '<b>Scripts de traitement</b><span class="rs">Récupérer des données par lots.</span>']},
   {id: 51, next: 52, titre: 'Fonctions de texte', page: 'fonctions-texte.html', thumb: 'fonctions-texte-thumb.jpg', duree: '2 min 19', notesAt: 134.0,
