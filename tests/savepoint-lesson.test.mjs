@@ -160,7 +160,7 @@ test('les phrases d’Elisa (25 octobre, 17 h 05 et 19 h 13) : sa trame, une phr
   dit('Quelques jours plus tard,<br>Léa Simon écrit au service client.', 'Grâce au savepoint, tu as changé<br>le cadeau sans refaire le remplacement.');
   /* La bulle finale */
   dit('Un savepoint ne valide rien.', 'Il te permet de revenir à une étape<br>de la transaction, avant la validation<br>finale avec <code>COMMIT</code>.');
-  assert.ok(page.includes('Léa Simon change d’avis&nbsp;:<br>à toi d’annuler<br>seulement le cadeau !'), 'la bulle de la mascotte');
+  assert.ok(page.includes('Crée un point de sauvegarde pour annuler seulement une partie d’une&nbsp;transaction.'), 'la bulle de la mascotte');
   /* Ce que la trame fait afficher : « Tisane annulée · Remplacement conservé · Transaction en cours », puis le colis, avec la protéine. */
   for (const t of ['<span class="q0"><span class="emo">🍵</span>Tisane annulée</span>', '<span class="q1"><span class="emo">🔁</span>Remplacement conservé</span>',
     '<span class="q2"><span class="emo">⏳</span>Transaction en cours</span>', '<b>Léa Simon</b><span class="cst">À préparer</span>', '1 shaker rose personnalisé « Léa »',

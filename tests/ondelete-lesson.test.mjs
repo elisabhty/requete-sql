@@ -176,7 +176,7 @@ test('les phrases d’Elisa (25 octobre, 12 h 51) : les sept parties de sa trame
   assert.equal(picks[1].options[2].why, 'Avec <code>ON DELETE SET NULL</code>, l’avis est conservé, mais son lien vers le compte d’Inès Lefebvre est retiré. La colonne <code>client_id</code> doit donc autoriser <code>NULL</code>.');
   assert.equal(picks[4].options[0].why, '<code>SET NULL</code> modifie le lien dans la base de données. C’est ensuite le site web qui affiche « Ancien client » lorsqu’aucun compte n’est associé à l’avis.');
   assert.ok(picks.every(p => !(p.options || []).some(o => /^Exact/.test(o.why || ''))), 'le lecteur affiche déjà « Bien vu ! » : pas de « Exact ! » en plus');
-  assert.ok(page.includes('Un client part,<br>mais son avis doit rester&nbsp;:<br>à toi de décider !'), 'la bulle de la mascotte');
+  assert.ok(page.includes('Définis ce qui doit arriver aux données&nbsp;liées lorsqu’une&nbsp;ligne est supprimée.'), 'la bulle de la mascotte');
 });
 
 test('la base du chapitre 9 : huit tables, neuf clients, huit inscriptions ; Inès Lefebvre y est la cliente 9, sans commande, sans carte ni points de fidélité', () => {

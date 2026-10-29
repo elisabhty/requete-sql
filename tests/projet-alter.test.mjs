@@ -150,7 +150,7 @@ test(`${FILE} : deux réponses enchaînées, clear() retire la classe de flash()
 test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapitre 6 et récapitulatif`, () => {
   assert.ok(page.includes('<div class="tagpill">Projet · Chapitre 5</div>') && page.includes('<span>A</span><span>L</span><span>T</span><span>E</span><span>R</span>')
     && page.includes('<div class="abs sub">Faire évoluer les tables</div>'), 'écran titre : « Projet · Chapitre 5 », ALTER, « Faire évoluer les tables »');
-  assert.ok(page.includes('<div class="abs bubble">Les ateliers ont commencé&nbsp;:<br>à toi d’adapter les tables sans les recréer.</div>'), 'bulle de la mascotte');
+  assert.ok(page.includes('<div class="abs bubble">Modifie la structure d’une&nbsp;table existante sans avoir à la recréer.</div>'), 'bulle de la mascotte');
   /* Les bulles du scénario validé, dans l’ordre (les « À toi ! » mis à part) ; seuls les <br> et les espaces insécables sont libres. */
   const BULLES = [
     'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.',

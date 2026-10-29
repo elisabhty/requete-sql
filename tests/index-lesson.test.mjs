@@ -164,7 +164,7 @@ test('les phrases d’Elisa (26 octobre, 10 h 52) : sa trame, une phrase par bul
   const p6 = val('PICKS')[5];
   assert.equal(p6.prompt, 'Ajouter des index sur toutes les colonnes ?');
   assert.equal(strip(p6.options[1].why), 'Chaque index occupe de l’espace et doit être entretenu lorsque les données changent. Crée-les pour les recherches qui en ont besoin.');
-  assert.ok(page.includes('La file d’attente s’allonge&nbsp;:<br>à toi d’accélérer<br>la recherche !'), 'la bulle de la mascotte');
+  assert.ok(page.includes('Découvre comment accélérer les recherches et analyser la façon dont une requête est exécutée.'), 'la bulle de la mascotte');
   assert.ok(page.includes('Elisa (26 octobre, 10 h 52') && page.includes('11 h 57'), 'la page garde la trace de la trame d’Elisa et de sa photo');
 });
 

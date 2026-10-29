@@ -174,7 +174,7 @@ test('les phrases d’Elisa (26 octobre, 11 h 57) : sa trame, une phrase par bul
   assert.deepEqual(picks[5].options.map(o => o.label), ['Lui donner tous les droits pour éviter les blocages', 'Identifier ses besoins et lui accorder les droits correspondants', 'Lui prêter le compte d’un collègue']);
   /* Ses quatre accès possibles, et les deux dont Lina a besoin */
   assert.deepEqual(val('ACCES').map(x => [x[2], x[3]]), [['Consulter les commandes', true], ['Mettre à jour leur statut', true], ['Modifier les prix', false], ['Supprimer des clients', false]]);
-  assert.ok(page.includes('Un accès trop large&nbsp;:<br>à toi de donner<br>les bons accès !'), 'la bulle de la mascotte');
+  assert.ok(page.includes('Contrôle qui peut consulter ou modifier les données grâce aux droits d’accès.'), 'la bulle de la mascotte');
   assert.ok(page.includes('Elisa (26 octobre, 11 h 57'), 'la page garde la trace de la trame d’Elisa et de sa photo');
 });
 

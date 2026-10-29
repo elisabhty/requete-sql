@@ -160,7 +160,7 @@ test('les phrases d’Elisa (26 octobre, 10 h 52) : sa trame, une phrase par bul
   assert.ok(!/équipe de la box/.test(JSON.stringify([val('CAPTIONS'), val('PICKS'), val('MAILS'), val('ITEMS')])), 'plus d’« équipe de la box » à l’écran');
   assert.ok(!/👁️|👀/.test(page), 'une vue : 📋, pas d’œil');
   assert.ok(lus.includes('Les stocks et les produits non sélectionnés n’y figurent pas.'), 'le résultat de la vue : ni les stocks, ni les produits non sélectionnés');
-  assert.ok(page.includes('Une box surprise à préparer&nbsp;:<br>à toi de ne montrer<br>que la sélection !'), 'la bulle de la mascotte');
+  assert.ok(page.includes('Enregistre une requête sous forme de vue pour consulter facilement un résultat réutilisable.'), 'la bulle de la mascotte');
   assert.ok(page.includes('Elisa, 26 octobre, 10 h 52'), 'la page garde la trace de la trame d’Elisa');
 });
 

@@ -168,7 +168,7 @@ test('les phrases d’Elisa (25 octobre, 20 h 52) : sa trame, une phrase par bul
   /* Le changement de prix, 39,90 € → 34,90 €, rejoué pour tester le trigger */
   dit('Dans la table produits, le collagène est bien à 34,90 €.', 'Pour tester le trigger, rejouons le changement de prix du collagène.',
     'Le collagène repart de son ancien prix : 39,90 €.', 'La date vient de CURRENT_TIMESTAMP : le 25/10/2026 à 14:32.');
-  assert.ok(page.includes('Un prix a changé sans trace&nbsp;:<br>à toi de garder<br>chaque changement !'), 'la bulle de la mascotte');
+  assert.ok(page.includes('Déclenche automatiquement une action lorsqu’un&nbsp;événement précis se produit dans la base.'), 'la bulle de la mascotte');
   assert.ok(page.includes('Elisa, 25 octobre, 20 h 52'), 'la page garde la trace de la trame d’Elisa');
 });
 

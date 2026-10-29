@@ -289,7 +289,7 @@ test('les trois mails : Moussa Diallo, l’équipe NutriBoost, puis le service c
 test('chapitre 8 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
   assert.ok(page.includes('<title>Requête · Projet, chapitre 8 : UPDATE</title>') && page.includes('<div class="tagpill">Projet · Chapitre 8</div>')
     && page.includes('<span>U</span><span>P</span><span>D</span><span>A</span><span>T</span><span>E</span>') && page.includes('<div class="abs sub">Modifier des lignes</div>')
-    && page.includes('Les informations changent&nbsp;:<br>à toi de les modifier dans la base.'), 'écran titre : « Projet · Chapitre 8 », UPDATE, « Modifier des lignes »');
+    && page.includes('Modifie les données déjà présentes dans une table avec <span class="ic">UPDATE</span>.'), 'écran titre : « Projet · Chapitre 8 », UPDATE, « Modifier des lignes »');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les chapitres 2 à 7');
   assert.equal(caps[1], 'Au chapitre 7, tu as ajouté des lignes avec <code>INSERT INTO</code>.', 'le chapitre précédent');

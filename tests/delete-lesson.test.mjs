@@ -303,7 +303,7 @@ test('les trois messages : le service client relaie Léa Simon (SMS), Nathan Dup
 test('chapitre 9 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
   assert.ok(page.includes('<title>Requête · Projet, chapitre 9 : DELETE</title>') && page.includes('<div class="tagpill">Projet · Chapitre 9</div>')
     && page.includes('<span>D</span><span>E</span><span>L</span><span>E</span><span>T</span><span>E</span>') && page.includes('<div class="abs sub">Supprimer des lignes</div>')
-    && page.includes('Des lignes ne servent plus&nbsp;:<br>à toi de les supprimer de la base.'), 'écran titre : « Projet · Chapitre 9 », DELETE, « Supprimer des lignes »');
+    && page.includes('Supprime les lignes qui ne doivent plus être conservées avec <span class="ic">DELETE</span>.'), 'écran titre : « Projet · Chapitre 9 », DELETE, « Supprimer des lignes »');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les chapitres 2 à 8');
   assert.equal(caps[1], 'Au chapitre 8, tu as modifié<br>des lignes avec <code>UPDATE</code>.', 'le chapitre précédent');
