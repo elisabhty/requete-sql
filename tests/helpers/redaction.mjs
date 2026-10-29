@@ -589,6 +589,8 @@ export const EXCEPTIONS = [
     raison: 'Le chapitre 4 parle des numéros de téléphone des coachs : « numéro » est le bon mot (il ne sert que pour un téléphone).'},
   {regle: 'identifiant', page: 'projet-index',
     raison: 'Le chapitre 16 cherche une commande par son numéro (la colonne numero_commande : le code imprimé sur le bon, « Commande NB-10482 », photo d’Elisa du 26 octobre, 11 h 57), qui n’est pas son identifiant (la colonne id) : « numéro de commande » est le bon mot, et l’identifiant de la ligne apparaît à côté.'},
+  {regle: 'identifiant', page: 'fonctions-texte', contient: 'numéro de rue',
+    raison: 'Elisa, 29 octobre, 15 h 06 : « on sépare le numéro de rue de l’adresse » : le numéro d’une rue n’est pas un identifiant, c’est le bon mot.'},
   {regle: 'identifiant', page: 'leçon 57',
     raison: 'Même mot que dans la vidéo du chapitre 16 (récapitulatif) : le numéro de la commande, la colonne numero_commande, distinct de son identifiant.'},
   {regle: 'atelier', page: 'projet-normaliser', contient: 'Quatre ateliers bien-être arrivent',

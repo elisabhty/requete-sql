@@ -21,7 +21,7 @@
 /* ---------- Le colis et son étiquette (chapitres 1 et 6) ---------- */
 .parcel{left:140px;width:800px;height:660px;border-radius:40px;background:linear-gradient(165deg,#E8BC84 0%,#D29F62 100%);box-shadow:0 10px 0 #AD7A43}
 .parcel .tape{position:absolute;left:0;right:0;top:270px;height:108px;background:rgba(255,246,228,.38)}
-.label{position:absolute;left:90px;top:50px;width:620px;border-radius:26px;background:#fff;box-shadow:0 7px 0 rgba(122,82,36,.35);overflow:hidden}
+.label{position:absolute;left:60px;top:50px;width:680px;border-radius:26px;background:#fff;box-shadow:0 7px 0 rgba(122,82,36,.35);overflow:hidden}
 .lb-band{height:84px;display:flex;align-items:center;gap:16px;padding:0 32px;background:var(--code-bg);color:#fff;font-family:var(--display);font-weight:800;font-size:36px;white-space:nowrap}
 .lb-band .emo{font-size:38px}
 .lb-body{padding:20px 32px 24px}
@@ -32,6 +32,9 @@
 .lb-bar{height:86px;margin-top:6px}
 .lb-bar svg{display:block;width:100%;height:100%}
 #par6a .lb-f,#par6b .lb-f{border-style:solid;border-color:var(--line)}
+/* Le numéro de rue a sa propre case, à côté de l’adresse (Elisa, 29 octobre, 15 h 06) */
+.lb-row{display:grid;grid-template-columns:230px 1fr;gap:16px}
+.lb-row .lb-k{letter-spacing:.5px;white-space:nowrap}
 
 /* ---------- Code et résultat partagés (chapitres 2 et 3) ---------- */
 #qcode{left:64px;top:236px;width:952px;opacity:0;visibility:hidden}
@@ -83,7 +86,20 @@
 .fd .ar{font-size:36px;font-weight:800;color:var(--ink-3)}
 
 /* ---------- 6 · Le résultat ---------- */
-.rgD{display:grid;grid-template-columns:1fr 330px 200px;padding:0 26px;align-items:center}
+.rgD{display:grid;grid-template-columns:1fr 130px 290px 180px;padding:0 26px;align-items:center}
+#zR{background:rgba(16,163,127,.08);box-shadow:inset 0 0 0 3px rgba(16,163,127,.45)}
+
+/* ---------- 6 · Le numéro de rue : INSTR trouve le premier espace, SUBSTR coupe avant et après ---------- */
+.nr{left:64px;width:952px;padding:30px 36px 36px}
+.nr-cells{display:flex;gap:2px;margin:24px 0 6px}
+.nr-c{width:52px;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0}
+.nr-c i{font-style:normal;font-family:var(--mono);font-size:20px;font-weight:700;color:var(--ink-3)}
+.nr-c b{width:52px;height:72px;box-sizing:border-box;border-radius:12px;background:var(--surface-2);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:34px;font-weight:800;color:var(--ink)}
+.nr-c.sp b{border-style:dashed}
+.nr-l{margin-top:22px;display:flex;flex-direction:column;align-items:flex-start;gap:10px;opacity:0}
+.nr-l .q{padding:12px 20px;border-radius:16px;background:var(--code-bg);font-family:var(--mono);font-size:28px;font-weight:600;color:var(--code-ink);white-space:pre}
+.nr-l .o{font-family:var(--mono);font-size:30px;font-weight:700;color:var(--ink-3);opacity:0}
+.nr-l .o b{padding:4px 14px;border-radius:12px;background:var(--accent-soft);color:var(--accent-ink);white-space:pre}
 
 /* ---------- 7 · À retenir : chaque fonction avec son rôle ---------- */
 #s7 .rtitle{top:196px}
@@ -126,8 +142,10 @@
         <div class="lb-body">
           <div class="lb-k">Destinataire</div>
           <div class="lb-f" id="f1"><span class="ph">NOM Prénom</span></div>
-          <div class="lb-k">Adresse</div>
-          <div class="lb-f" id="f3"><span class="ph">ADRESSE</span></div>
+          <div class="lb-row">
+            <div><div class="lb-k">Numéro de rue</div><div class="lb-f" id="f4"><span class="ph">N°</span></div></div>
+            <div><div class="lb-k">Adresse</div><div class="lb-f" id="f3"><span class="ph">ADRESSE</span></div></div>
+          </div>
           <div class="lb-k">Ville</div>
           <div class="lb-f" id="f2"><span class="ph">VILLE</span></div>
           <div class="lb-bar"></div>
@@ -152,7 +170,7 @@
   <div class="tbl card" id="tbl2" style="top:722px">
     <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt2">10 lignes</span></span></div>
     <div class="rgT th"><div><span class="h1">nom</span><span class="h2">UPPER(nom)</span></div><div>prenom</div><div><span class="h1">adresse</span><span class="h2">UPPER(adresse)</span></div><div><span class="h1">ville</span><span class="h2">UPPER(ville)</span></div></div>
-    <div class="rows" id="rows2"><i class="zone am" id="zN"></i><i class="zone am" id="zA"></i><i class="zone am" id="zV"></i><i class="zone ac" id="zNP"></i></div>
+    <div class="rows" id="rows2"><i class="zone am" id="zN"></i><i class="zone am" id="zA"></i><i class="zone am" id="zV"></i><i class="zone" id="zR"></i><i class="zone ac" id="zNP"></i></div>
   </div>
   <div class="abs badge soft" id="keep3" style="top:1418px"><span>🔒 La table clients ne change pas</span></div>
 
@@ -197,16 +215,27 @@
     </div>
   </section>
 
-  <!-- 6 · Le résultat -->
+  <!-- 6 · Le numéro de rue -->
+  <section class="scene" id="s5n">
+    <div class="abs card nr" id="nr5" style="top:300px">
+      <div class="trap-h"><span class="emo">✂️</span><span>Le numéro de rue</span></div>
+      <div class="nr-cells" id="nrc"></div>
+      <div class="nr-l" id="nr1"><span class="q"><span class="kw">INSTR</span>(adresse, <span class="str">' '</span>)</span><span class="o">→ <b>3</b></span></div>
+      <div class="nr-l" id="nr2"><span class="q"><span class="kw">SUBSTR</span>(adresse, 1, <span class="kw">INSTR</span>(adresse, <span class="str">' '</span>) - 1)</span><span class="o">→ <b>12</b></span></div>
+      <div class="nr-l" id="nr3"><span class="q"><span class="kw">SUBSTR</span>(adresse, <span class="kw">INSTR</span>(adresse, <span class="str">' '</span>) + 1)</span><span class="o">→ <b>rue des Lilas</b></span></div>
+    </div>
+  </section>
+
+  <!-- 7 · Le résultat -->
   <section class="scene" id="s6">
     <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
       <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
-      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> <span class="kw">UPPER</span>(nom) || <span class="str">' '</span> || prenom<span class="caret"><i></i></span></span><span class="ln" id="s6l2">       <span class="kw">AS</span> destinataire,<span class="caret"><i></i></span></span><span class="ln" id="s6la">       <span class="kw">UPPER</span>(adresse) <span class="kw">AS</span> adresse,<span class="caret"><i></i></span></span><span class="ln" id="s6l3">       <span class="kw">UPPER</span>(ville) <span class="kw">AS</span> ville<span class="caret"><i></i></span></span><span class="ln" id="s6l4"><span class="kw">FROM</span> clients;<span class="caret"><i></i></span></span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> <span class="kw">UPPER</span>(nom) || <span class="str">' '</span> || prenom<span class="caret"><i></i></span></span><span class="ln" id="s6l2">       <span class="kw">AS</span> destinataire,<span class="caret"><i></i></span></span><span class="ln" id="s6l3">       <span class="kw">SUBSTR</span>(adresse, 1,<span class="caret"><i></i></span></span><span class="ln" id="s6l4">              <span class="kw">INSTR</span>(adresse, <span class="str">' '</span>) - 1)<span class="caret"><i></i></span></span><span class="ln" id="s6l5">       <span class="kw">AS</span> numero,<span class="caret"><i></i></span></span><span class="ln" id="s6l6">       <span class="kw">UPPER</span>(<span class="kw">SUBSTR</span>(adresse,<span class="caret"><i></i></span></span><span class="ln" id="s6l7">              <span class="kw">INSTR</span>(adresse, <span class="str">' '</span>) + 1))<span class="caret"><i></i></span></span><span class="ln" id="s6l8">       <span class="kw">AS</span> adresse,<span class="caret"><i></i></span></span><span class="ln" id="s6l9">       <span class="kw">UPPER</span>(ville) <span class="kw">AS</span> ville<span class="caret"><i></i></span></span><span class="ln" id="s6l10"><span class="kw">FROM</span> clients;<span class="caret"><i></i></span></span></div>
       <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
     </div>
-    <div class="tbl card" id="tbl6" style="top:820px">
+    <div class="tbl card" id="tbl6" style="top:236px">
       <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">10 lignes</span></span></div>
-      <div class="rgD th"><div>destinataire</div><div>adresse</div><div>ville</div></div>
+      <div class="rgD th"><div>destinataire</div><div>numero</div><div>adresse</div><div>ville</div></div>
       <div class="rows" id="rows6"></div>
     </div>
     <div class="abs parcel" id="par6a" style="top:380px"></div>
@@ -219,7 +248,7 @@
     <div class="abs rtitle">Les trois idées à retenir</div>
     <div class="abs card recap" id="recap">
       <div class="rrow"><div class="rico emo">🔤</div><div class="rtxt">Une <b>fonction</b> transforme le texte du résultat, sans modifier la table&nbsp;:<br><span class="ic blk">UPPER(nom)</span></div></div>
-      <div class="rrow"><div class="rico emo">🧰</div><div class="rtxt">Une <b>fonction par besoin</b>&nbsp;:<span class="fnl"><span class="fi"><span class="ic">UPPER</span>met en majuscules</span><span class="fi"><span class="ic">LOWER</span>met en minuscules</span><span class="fi"><span class="ic">TRIM</span>retire les espaces autour du texte</span><span class="fi"><span class="ic">LENGTH</span>compte les caractères</span><span class="fi"><span class="ic">SUBSTR</span>récupère une partie du texte</span><span class="fi"><span class="ic">REPLACE</span>remplace des caractères</span></span></div></div>
+      <div class="rrow"><div class="rico emo">🧰</div><div class="rtxt">Une <b>fonction par besoin</b>&nbsp;:<span class="fnl"><span class="fi"><span class="ic">UPPER</span>met en majuscules</span><span class="fi"><span class="ic">LOWER</span>met en minuscules</span><span class="fi"><span class="ic">TRIM</span>retire les espaces autour du texte</span><span class="fi"><span class="ic">LENGTH</span>compte les caractères</span><span class="fi"><span class="ic">SUBSTR</span>récupère une partie du texte</span><span class="fi"><span class="ic">INSTR</span>donne la position d’un texte</span><span class="fi"><span class="ic">REPLACE</span>remplace des caractères</span></span></div></div>
       <div class="rrow"><div class="rico emo">🔗</div><div class="rtxt"><span class="ic">||</span> <b>assemble des textes</b>, et on peut y placer des fonctions&nbsp;:<br><span class="ic blk">UPPER(nom) || ' ' || prenom</span></div></div>
     </div>
   </section>
@@ -233,7 +262,7 @@
 <script src="moments.js"></script>
 <script>
 'use strict';
-const DURATION = 141.6;
+const DURATION = 173.7;
 
 /* Table clients : [id, prenom, nom, adresse, ville] */
 const CLIENTS = [[1,'Sophie','Martin','12 rue des Lilas','Paris'],[2,'Lucas','Bernard','8 avenue Foch','Lyon'],[3,'Emma','Dubois','27 rue Gambetta','Marseille'],
@@ -242,15 +271,19 @@ const CLIENTS = [[1,'Sophie','Martin','12 rue des Lilas','Paris'],[2,'Lucas','Be
   [10,'Nathan','Dupont','9 place du Marché','Paris']];
 /* UPPER met aussi les lettres accentuées en majuscules (3 ALLÉE DES PINS) : l’app le fait comme PostgreSQL ou MySQL. */
 const MAJ = s => s.toUpperCase();
+/* Le numéro de rue : ce qui précède le premier espace (SUBSTR et INSTR) ; la rue : ce qui le suit. */
+const NUM = a => a.slice(0, a.indexOf(' ')), RUE = a => a.slice(a.indexOf(' ') + 1);
+const ADR4 = ['12 rue des Lilas', '8 avenue Foch', '27 rue Gambetta', '5 rue Victor Hugo'];
 
 const CHAPTERS = [
-  {n:1, label:'Situation',             a:5.0,   b:24.8},
-  {n:2, label:'Le problème',           a:24.8,  b:41.4},
-  {n:3, label:'UPPER en action',       a:41.4,  b:62.4},
-  {n:4, label:'Assembler avec ||',     a:62.4,  b:87.5},
-  {n:5, label:'Une fonction par besoin', a:87.5, b:114.0},
-  {n:6, label:'Le résultat',           a:114.0, b:128.8},
-  {n:7, label:'À retenir',             a:128.8, b:DURATION}
+  {n:1, label:'Situation',             a:5.0,   b:29.3},
+  {n:2, label:'Le problème',           a:29.3,  b:50.5},
+  {n:3, label:'UPPER en action',       a:50.5,  b:71.5},
+  {n:4, label:'Assembler avec ||',     a:71.5,  b:96.6},
+  {n:5, label:'Une fonction par besoin', a:96.6, b:123.1},
+  {n:6, label:'Le numéro de rue',      a:123.1, b:142.9},
+  {n:7, label:'Le résultat',           a:142.9, b:160.9},
+  {n:8, label:'À retenir',             a:160.9, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
@@ -258,31 +291,38 @@ const CAPTIONS = [
   [5.3, 9.9,     "À chaque commande, l’entrepôt imprime une <b>étiquette d’expédition</b> pour chaque colis."],
   [10.0, 14.6,   "Pour faciliter la vie du transporteur, nous mettrons le nom, l’adresse et la ville <b>en majuscules</b>."],
   [14.7, 18.9,   "Exemple : pour Sophie Martin,<br>l’étiquette indique MARTIN\u00a0Sophie,<br>12 RUE DES LILAS, PARIS."],
-  [19.0, 24.4,   "Pour commencer l’impression, récupère<br>le nom, le prénom, l’adresse et la ville<br>des <b>10 clients</b> dans la <b>table clients</b>."],
-  [25.1, 30.0,   "Premier essai : on sélectionne simplement ces <b>quatre colonnes</b>."],
-  [30.1, 35.3,   "Le nom, l’adresse et la ville s’affichent<br>comme dans la table : <b>Martin</b>,<br>et non MARTIN."],
-  [35.4, 41.0,   "De plus, le nom et le prénom sont dans <b>deux colonnes</b> séparées."],
-  [41.7, 46.7,   "Une fonction prend une valeur, la <b>transforme</b>, puis renvoie le résultat."],
-  [46.8, 51.0,   "La fonction <code>UPPER</code>, dans la requête, transforme un texte en <b>majuscules</b> : Martin devient MARTIN."],
-  [51.1, 56.3,   "On écrit la fonction, puis la colonne <b>entre parenthèses</b>."],
-  [56.4, 62.0,   "Seul le résultat change : la <b>table clients</b> garde Martin, avec une seule majuscule."],
-  [62.7, 67.1,   "Pour réunir deux textes<br>dans une seule colonne,<br>on les relie avec <code>||</code>."],
-  [67.2, 72.5,   "Entre les deux, on ajoute un espace, écrit entre <b>guillemets simples</b>."],
-  [72.6, 76.1,   "Résultat : <b>MARTIN Sophie</b>,<br>comme sur l’étiquette."],
-  [76.2, 81.1,   "Attention : avec <code>+</code> à la place de <code>||</code>, la requête renvoie <b>0</b>."],
-  [81.2, 87.1,   "Pour assembler des textes,<br>utilise donc toujours <code>||</code>, jamais <code>+</code>."],
-  [87.8, 92.6,   "<code>LOWER</code> fait l’inverse de <code>UPPER</code> :<br>il met tout en <b>minuscules</b>."],
-  [92.7, 97.1,   "<code>TRIM</code> retire les <b>espaces</b> au début et à la fin d’un texte."],
-  [97.2, 101.0,  "<code>LENGTH</code> compte les <b>caractères</b> : le prénom Sophie en a 6."],
-  [101.1, 106.1, "<code>SUBSTR(nom, 1, 3)</code> récupère les 3 premiers caractères du nom."],
-  [106.2, 110.1, "<code>REPLACE</code> permet de remplacer des caractères dans un texte."],
-  [110.2, 113.8, "Ici, il supprime les espaces du numéro\u00a0de téléphone."],
-  [114.3, 119.3, "La requête complète assemble le <b>destinataire</b>, puis met l’<b>adresse</b> et la <b>ville</b> en majuscules."],
-  [119.4, 122.8, "Résultat : <b>10 lignes</b>, au format voulu par le transporteur."],
-  [122.9, 128.4, "Les étiquettes s’impriment,<br>prêtes à être collées sur les colis."],
-  [129.1, 133.9, "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [134.0, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
-      : [134.0, 999, "Une fonction de texte transforme le résultat, et <code>||</code> assemble des textes."]
+  [19.0, 23.4,   "Le <b>numéro de rue</b> a sa propre case, à côté de l’adresse."],
+  [23.5, 28.9,   "Pour commencer l’impression, récupère<br>le nom, le prénom, l’adresse et la ville<br>des <b>10 clients</b> dans la <b>table clients</b>."],
+  [29.6, 34.5,   "Premier essai : on sélectionne simplement ces <b>quatre colonnes</b>."],
+  [34.6, 39.8,   "Le nom, l’adresse et la ville s’affichent<br>comme dans la table : <b>Martin</b>,<br>et non MARTIN."],
+  [39.9, 45.5,   "De plus, le nom et le prénom sont dans <b>deux colonnes</b> séparées."],
+  [45.6, 50.1,   "Enfin, le <b>numéro de rue</b> est collé au reste de l’adresse."],
+  [50.8, 55.8,   "Une fonction prend une valeur, la <b>transforme</b>, puis renvoie le résultat."],
+  [55.9, 60.1,   "La fonction <code>UPPER</code>, dans la requête, transforme un texte en <b>majuscules</b> : Martin devient MARTIN."],
+  [60.2, 65.4,   "On écrit la fonction, puis la colonne <b>entre parenthèses</b>."],
+  [65.5, 71.1,   "Seul le résultat change : la <b>table clients</b> garde Martin, avec une seule majuscule."],
+  [71.8, 76.2,   "Pour réunir deux textes<br>dans une seule colonne,<br>on les relie avec <code>||</code>."],
+  [76.3, 81.6,   "Entre les deux, on ajoute un espace, écrit entre <b>guillemets simples</b>."],
+  [81.7, 85.2,   "Résultat : <b>MARTIN Sophie</b>,<br>comme sur l’étiquette."],
+  [85.3, 90.2,   "Attention : avec <code>+</code> à la place de <code>||</code>, la requête renvoie <b>0</b>."],
+  [90.3, 96.2,   "Pour assembler des textes,<br>utilise donc toujours <code>||</code>, jamais <code>+</code>."],
+  [96.9, 101.7,   "<code>LOWER</code> fait l’inverse de <code>UPPER</code> :<br>il met tout en <b>minuscules</b>."],
+  [101.8, 106.2,   "<code>TRIM</code> retire les <b>espaces</b> au début et à la fin d’un texte."],
+  [106.3, 110.1,  "<code>LENGTH</code> compte les <b>caractères</b> : le prénom Sophie en a 6."],
+  [110.2, 115.2, "<code>SUBSTR(nom, 1, 3)</code> récupère les 3 premiers caractères du nom."],
+  [115.3, 119.2, "<code>REPLACE</code> permet de remplacer des caractères dans un texte."],
+  [119.3, 122.9, "Ici, il supprime les espaces du numéro\u00a0de téléphone."],
+  [123.4, 128.1, "Pour séparer le <b>numéro de rue</b>, il faut savoir où il s’arrête : au <b>premier espace</b>."],
+  [128.2, 132.7, "<code>INSTR(adresse, ' ')</code> donne la <b>position</b> de ce premier espace : 3."],
+  [132.8, 137.7, "<code>SUBSTR</code> garde les caractères <b>avant</b> cet espace, soit 3\u00a0−\u00a01\u00a0=\u00a02 : 12."],
+  [137.8, 142.5, "Pour la suite, <code>SUBSTR</code> part juste <b>après</b> l’espace : rue des Lilas."],
+  [143.2, 147.3, "La requête complète réunit <code>UPPER</code>, <code>||</code>, <code>SUBSTR</code> et <code>INSTR</code>."],
+  [147.4, 151.5, "Le <b>numéro de rue</b> et l’<b>adresse</b> sortent ainsi dans deux colonnes séparées."],
+  [152.3, 155.2, "Résultat : <b>10 lignes</b>, au format voulu par le transporteur."],
+  [155.3, 160.5, "Les étiquettes s’impriment,<br>prêtes à être collées sur les colis."],
+  [161.2, 166.0, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [166.1, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
+      : [166.1, 999, "Une fonction de texte transforme le résultat, et <code>||</code> assemble des textes."]
 ];
 
 /* Pas de question en pleine vidéo : les moments « À toi » font participer l’élève (ni exercice ni quiz après la vidéo, depuis le 28 octobre). */
@@ -291,19 +331,19 @@ const QUESTIONS = [];
    Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
 const MOMENTS = [
   // UPPER posé : la table, elle, ne change pas (la vidéo le dira à 56,4 s)
-  {at: 46.75, from: 41.45, kind: 'pick', text: true, prompt: 'Après la requête, que contient la colonne nom de Sophie Martin, dans la <b>table clients</b> ?', options: [
+  {at: 55.85, from: 50.55, kind: 'pick', text: true, prompt: 'Après la requête, que contient la colonne nom de Sophie Martin, dans la <b>table clients</b> ?', options: [
     {label: 'Martin, comme avant', ok: true, why: '<code>UPPER</code> ne change que le résultat affiché : la <b>table clients</b> garde Martin.'},
     {label: 'MARTIN', why: 'C’est ce qu’affiche le résultat. La <b>table clients</b>, elle, n’est pas modifiée.'},
     {label: 'Martin et MARTIN', why: 'Une case ne garde qu’une valeur : la table garde Martin, le résultat affiche MARTIN.'}],
     tip: 'Une requête <code>SELECT</code> lit la table, elle ne la modifie pas.'},
   // || vient d’assembler MARTIN Sophie : avant le piège du +
-  {at: 76.15, from: 62.4, kind: 'pick', text: true, prompt: 'Et avec <code>+</code> à la place de <code>||</code>, que renvoie <code>UPPER(nom) + \' \' + prenom</code> ?', options: [
+  {at: 85.25, from: 71.5, kind: 'pick', text: true, prompt: 'Et avec <code>+</code> à la place de <code>||</code>, que renvoie <code>UPPER(nom) + \' \' + prenom</code> ?', options: [
     {label: '0', ok: true, why: '<code>+</code> additionne des nombres : chaque texte compte pour 0, et 0 + 0 + 0 = 0.'},
     {label: 'Les textes assemblés', why: 'Pour assembler des textes, il faut <code>||</code> : <code>+</code> additionne des nombres.'},
     {label: 'Une erreur', why: 'La requête s’exécute : chaque texte compte pour 0, et elle renvoie 0.'}],
     tip: '<code>+</code> sert à additionner des nombres.'},
   // les cinq fonctions vues : chacune avec un autre exemple
-  {at: 114.02, from: 87.55, kind: 'link', need: 4, prompt: 'Relie chaque fonction à son résultat.',
+  {at: 123.12, from: 96.65, kind: 'link', need: 4, prompt: 'Relie chaque fonction à son résultat.',
     hint: 'Sélectionne une fonction, puis appuie sur son résultat. Tu peux aussi tracer le trait directement du doigt.',
     board: {y: 470, html: '<span class="mb-k">Une fonction par besoin</span><div class="mb-cols" style="gap:90px"><div class="mb-col"><div class="mb-i c sm" id="mbfL">LOWER(\'NANTES\')</div><div class="mb-i c sm" id="mbfT">TRIM(\' Lyon \')</div><div class="mb-i c sm" id="mbfN">LENGTH(\'Paris\')</div><div class="mb-i c sm" id="mbfS">SUBSTR(\'Toulouse\', 1, 3)</div></div><div class="mb-col" style="flex:0 0 220px"><div class="mb-i c sm" id="mbr5">5</div><div class="mb-i c sm" id="mbrN">\'nantes\'</div><div class="mb-i c sm" id="mbrT">\'Tou\'</div><div class="mb-i c sm" id="mbrL">\'Lyon\'</div></div></div>'},
     spots: [
@@ -315,13 +355,41 @@ const MOMENTS = [
       {k: 'rN', sel: '#mbrN', label: 'nantes', side: 'r'},
       {k: 'rT', sel: '#mbrT', label: 'Tou', side: 'r'},
       {k: 'rL', sel: '#mbrL', label: 'Lyon', side: 'r'}],
-    tip: 'Une seule fonction donne un nombre : celle qui compte.'}
+    tip: 'Une seule fonction donne un nombre : celle qui compte.'},
+  /* Le numéro de rue (Elisa, 29 octobre, 15 h 06 : « gamifie le moment ») : INSTR vient de donner la position de l’espace ; l’élève
+     cherche la longueur à donner à SUBSTR, et voit 4 adresses se couper. Une longueur fixe garde un espace ou une lettre. */
+  {at: 132.75, from: 123.15, kind: 'tune', ico: '✂️', prompt: 'Quelle longueur donner à <code>SUBSTR</code> pour garder <b>uniquement le numéro de rue</b> ?',
+    hint: 'Sélectionne une longueur, puis observe les 4 adresses : chaque numéro de rue doit sortir entier, sans espace.',
+    controls: [{k: 'n', type: 'seg', label: 'Longueur', choices: ['2', '3', 'INSTR\u00a0−\u00a01'], value: '2', code: true}],
+    answer: {n: 'INSTR\u00a0−\u00a01'},
+    board: {y: 300, html: '<span class="mb-k">✂️ Le numéro de rue</span><div class="mb-q mg-sm" id="mbnq" style="font-size:28px"></div><div class="mb-col" style="gap:14px">'
+      + ADR4.map((a, i) => `<div class="mg-r" id="mbn${i}"><span>${a}</span><b id="mbnv${i}"></b></div>`).join('') + '</div><div class="mg-c" id="mbnc"></div>'},
+    show(s, b) {
+      const fixe = s.n === '2' || s.n === '3';
+      b.querySelector('#mbnq').innerHTML = `<span class="k">SUBSTR</span>(adresse, 1, ${fixe ? s.n : '<span class="k">INSTR</span>(adresse, <span class="s">\' \'</span>) - 1'})`;
+      let bons = 0;
+      ADR4.forEach((a, i) => {
+        const v = a.slice(0, fixe ? +s.n : a.indexOf(' ')), ok = v === NUM(a);
+        if (ok) bons++;
+        b.querySelector('#mbnv' + i).innerHTML = [...v].map(c => c === ' ' ? '<span style="display:inline-block;width:.55em;height:.9em;margin-left:3px;border:2px dashed #F5A524;border-radius:4px;vertical-align:-.1em"></span>' : c).join('');
+        b.querySelector('#mbn' + i).classList.toggle('in', ok);
+        b.querySelector('#mbn' + i).classList.toggle('mg-dup', !ok);
+      });
+      b.querySelector('#mbnc').innerHTML = `<b>${bons}</b> adresses sur 4 bien coupées`;
+    },
+    check(s) {
+      if (s.n === '2') return {ok: false, why: 'Avec 2, 8 avenue Foch donne « 8 » suivi d’un espace : le numéro de rue n’a pas toujours 2 chiffres.'};
+      if (s.n === '3') return {ok: false, why: 'Avec 3, l’espace reste après 12, et 8 avenue Foch donne « 8 a ».'};
+      return {ok: true, why: 'La longueur suit la position de l’espace : 2 caractères pour 12 rue des Lilas, 1 pour 8 avenue Foch.'};
+    },
+    tip: 'La longueur dépend de la position du premier espace.'}
 ];
 
 /* Un colis et son étiquette remplie (chapitre 6). */
-const colis = (dest, adresse, ville) => '<i class="tape"></i><div class="label"><div class="lb-band"><span class="emo">📦</span><span>NutriBoost · Expédition</span></div>' +
+const colis = (dest, num, adresse, ville) => '<i class="tape"></i><div class="label"><div class="lb-band"><span class="emo">📦</span><span>NutriBoost · Expédition</span></div>' +
   '<div class="lb-body"><div class="lb-k">Destinataire</div><div class="lb-f"><span class="fv">' + dest + '</span></div>' +
-  '<div class="lb-k">Adresse</div><div class="lb-f"><span class="fv">' + adresse + '</span></div>' +
+  '<div class="lb-row"><div><div class="lb-k">Numéro de rue</div><div class="lb-f"><span class="fv">' + num + '</span></div></div>' +
+  '<div><div class="lb-k">Adresse</div><div class="lb-f"><span class="fv">' + adresse + '</span></div></div></div>' +
   '<div class="lb-k">Ville</div><div class="lb-f"><span class="fv">' + ville + '</span></div><div class="lb-bar"></div></div></div>';
 
 /* Code-barres EAN-13 de l’étiquette (3 760123 456784) : 95 modules, barres fusionnées, garde de début, de milieu et de fin plus longues. */
@@ -348,9 +416,10 @@ function ean13Svg(code){
 function dom(){
   const sw = (a, b) => `<span class="sw"><span class="a">${a}</span><span class="b">${b}</span></span>`;
   $('#rows2').insertAdjacentHTML('beforeend', CLIENTS.map(c => `<div class="rgT tr tc"><div>${sw(c[2], MAJ(c[2]))}</div><div>${c[1]}</div><div>${sw(c[3], MAJ(c[3]))}</div><div>${sw(c[4], MAJ(c[4]))}</div></div>`).join(''));
-  $('#rows6').innerHTML = CLIENTS.map(c => `<div class="rgD tr tc"><div>${MAJ(c[2])} ${c[1]}</div><div>${MAJ(c[3])}</div><div>${MAJ(c[4])}</div></div>`).join('');
-  $('#par6a').innerHTML = colis('MARTIN Sophie', '12 RUE DES LILAS', 'PARIS');
-  $('#par6b').innerHTML = colis('BERNARD Lucas', '8 AVENUE FOCH', 'LYON');
+  $('#rows6').innerHTML = CLIENTS.map(c => `<div class="rgD tr tc"><div>${MAJ(c[2])} ${c[1]}</div><div>${NUM(c[3])}</div><div>${MAJ(RUE(c[3]))}</div><div>${MAJ(c[4])}</div></div>`).join('');
+  $('#par6a').innerHTML = colis('MARTIN Sophie', '12', 'RUE DES LILAS', 'PARIS');
+  $('#par6b').innerHTML = colis('BERNARD Lucas', '8', 'AVENUE FOCH', 'LYON');
+  $('#nrc').innerHTML = [...'12 rue des Lilas'].map((c, i) => `<span class="nr-c${c === ' ' ? ' sp' : ''}"><i>${i + 1}</i><b>${c === ' ' ? '' : c}</b></span>`).join('');
   const bar = ean13Svg('3760123456784');
   $$('.lb-bar').forEach(el => { el.innerHTML = bar; });
 }
@@ -387,7 +456,7 @@ function build(){
   tl.to('#par1', {x: 6, duration: 0.05, yoyo: true, repeat: 3, ease: 'none'}, 6.74);
   cue(6.74, 'stamp');
   // Le format du transporteur : NOM Prénom, puis l’adresse et la VILLE
-  [['#f1', 10.4], ['#f3', 15.1], ['#f2', 15.6]].forEach(([f, t]) => {
+  [['#f1', 10.4], ['#f3', 15.1], ['#f2', 15.6], ['#f4', 19.4]].forEach(([f, t]) => {
     tl.to(f, {borderColor: '#A893FF', duration: 0.25}, t);
     gsap.set(f + ' .ph', {y: 14});
     tl.to(f + ' .ph', {opacity: 1, y: 0, duration: 0.4, ease: 'back.out(2)'}, t + 0.1);
@@ -395,122 +464,127 @@ function build(){
     cue(t + 0.1, 'pop', 0.8, 2);
   });
   // Les informations à récupérer
-  tl.to('#par1', {y: 0, duration: 0.75, ease: 'power3.inOut'}, 19.1);
+  tl.to('#par1', {y: 0, duration: 0.75, ease: 'power3.inOut'}, 23.6);
   stackBelow('#s1 .need', '#par1', -2);   // la liste se cale sous le colis incliné, sans le toucher
-  show('#s1 .need', 19.6, {y: 60});
-  cue(19.6, 'whoosh', 0.6);
+  show('#s1 .need', 24.1, {y: 60});
+  cue(24.1, 'whoosh', 0.6);
   const needRows = $$('#s1 .need-row');
   gsap.set(needRows, {autoAlpha: 0, x: -34});
-  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.15}, 19.75);
-  needRows.forEach((_, i) => cue(19.75 + i * 0.15, 'pop', 0.7, i));
-  tl.to('#s1 .tag', {scale: 1.08, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 22.4);
-  hide(['#par1', '#s1 .need'], 24.3);
-  sceneOff('#s1', 24.8);
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.15}, 24.25);
+  needRows.forEach((_, i) => cue(24.25 + i * 0.15, 'pop', 0.7, i));
+  tl.to('#s1 .tag', {scale: 1.08, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 26.9);
+  hide(['#par1', '#s1 .need'], 28.8);
+  sceneOff('#s1', 29.3);
 
   /* ===== 2 · Le problème ===== */
-  show('#qcode', 24.85, {y: 60}, 0.6);
-  cue(24.85, 'whoosh', 0.7);
+  show('#qcode', 29.35, {y: 60}, 0.6);
+  cue(29.35, 'whoosh', 0.7);
   gsap.set('.fx', {display: 'none'});
   const ch1 = splitChars($('#ql1')).filter(c => !c.closest('.fx'));
-  te = typeChars(ch1, 25.35, 30, $('#ql1 .caret'));
+  te = typeChars(ch1, 29.85, 30, $('#ql1 .caret'));
   te = typeChars(splitChars($('#ql1b')).filter(c => !c.closest('.fx')), te + 0.1, 40, $('#ql1b .caret'));
   te = typeLine($('#ql2'), te + 0.12, 28);
-  press($('#qrun'), 27.6, '#4B30CC', 9, false);   // premier essai, que la suite montre insuffisant : pas de confettis
-  show('#tbl2', 27.85, {y: 40}, 0.5);
+  press($('#qrun'), 32.1, '#4B30CC', 9, false);   // premier essai, que la suite montre insuffisant : pas de confettis
+  show('#tbl2', 32.35, {y: 40}, 0.5);
   const tr2 = $$('#rows2 .tr');
   gsap.set(tr2, {autoAlpha: 0, y: 14});
-  tl.to(tr2, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.05}, 28.0);
-  tr2.forEach((_, i) => cue(28.0 + i * 0.05, 'tick', 0.4, i % 5));
-  show('#cnt2', 28.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  tl.to(tr2, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.05}, 32.5);
+  tr2.forEach((_, i) => cue(32.5 + i * 0.05, 'tick', 0.4, i % 5));
+  show('#cnt2', 32.9, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
   // Les colonnes à transformer (ambre), puis les deux colonnes à réunir (violet)
   const th = $$('#tbl2 .th > div'), rowsBox = $('#rows2');
   const col = (i, j = i) => { const a = rel(th[i], rowsBox), b = rel(th[j], rowsBox); return {left: (a.x + 4) + 'px', width: (b.x + b.w - a.x - 8) + 'px'}; };
   gsap.set('#zN', col(0)); gsap.set('#zA', col(2)); gsap.set('#zV', col(3)); gsap.set('#zNP', col(0, 1));
-  tl.to(['#zN', '#zA', '#zV'], {opacity: 1, duration: 0.35, stagger: 0.15}, 30.5);
-  cue(30.5, 'pop', 0.7, 2);
-  tl.to(['#zN', '#zA', '#zV'], {opacity: 0, duration: 0.3}, 35.5);
-  tl.to('#zNP', {opacity: 1, duration: 0.35}, 35.75);
-  cue(35.75, 'pop', 0.7, 4);
-  tl.to('#zNP', {opacity: 0, duration: 0.3}, 40.7);
+  tl.to(['#zN', '#zA', '#zV'], {opacity: 1, duration: 0.35, stagger: 0.15}, 35.0);
+  cue(35.0, 'pop', 0.7, 2);
+  tl.to(['#zN', '#zA', '#zV'], {opacity: 0, duration: 0.3}, 40.0);
+  tl.to('#zNP', {opacity: 1, duration: 0.35}, 40.25);
+  cue(40.25, 'pop', 0.7, 4);
+  tl.to('#zNP', {opacity: 0, duration: 0.3}, 45.2);
+  // Le numéro de rue, collé au reste de l’adresse
+  gsap.set('#zR', col(2));
+  tl.to('#zR', {opacity: 1, duration: 0.35}, 45.85);
+  cue(45.85, 'pop', 0.7, 3);
+  tl.to('#zR', {opacity: 0, duration: 0.3}, 49.85);
 
   /* ===== 3 · UPPER en action ===== */
-  hide(['#qcode', '#tbl2'], 41.45, {y: -40}, 0.4);
-  sceneOn('#s3', 41.7);
-  show('#fm3', 41.75, {y: 50});
-  cue(41.75, 'whoosh', 0.6);
-  [['#fb1', 42.1], ['#fa1', 43.0], ['#fb2', 43.25], ['#fa2', 44.2], ['#fb3', 44.45]].forEach(([s, t], i) => {
+  hide(['#qcode', '#tbl2'], 50.55, {y: -40}, 0.4);
+  sceneOn('#s3', 50.8);
+  show('#fm3', 50.85, {y: 50});
+  cue(50.85, 'whoosh', 0.6);
+  [['#fb1', 51.2], ['#fa1', 52.1], ['#fb2', 52.35], ['#fa2', 53.3], ['#fb3', 53.55]].forEach(([s, t], i) => {
     show(s, t, {y: 0, x: -30}, 0.45, 'power3.out');
     if (!s.startsWith('#fa')) cue(t, 'pop', 0.75, i);
   });
   // UPPER : Martin devient MARTIN
-  tl.to('#fb2', {scale: 1.04, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 46.9);
-  flip($('#fb3 .sw'), 47.2, false);
-  cue(47.3, 'success', 0.7);
-  hide('#fm3', 50.9, {y: -40});
-  sceneOff('#s3', 51.35);
+  tl.to('#fb2', {scale: 1.04, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 56.0);
+  flip($('#fb3 .sw'), 56.3, false);
+  cue(56.4, 'success', 0.7);
+  hide('#fm3', 60.0, {y: -40});
+  sceneOff('#s3', 60.45);
   // Dans la requête : UPPER( ) autour du nom, puis de la ville
-  tl.fromTo('#qcode', {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false}, 51.3);
-  tl.fromTo('#tbl2', {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false}, 51.45);
-  cue(51.3, 'whoosh', 0.6);
-  popIn(['#fxA', '#fxB'], 52.1);
-  cue(52.1, 'pop', 0.9, 5);
-  popIn(['#fxE', '#fxF'], 52.5);
-  cue(52.5, 'pop', 0.9, 6);
-  popIn(['#fxC', '#fxD'], 52.9);
-  cue(52.9, 'pop', 0.9, 7);
-  pulse(['#fxA .glow', '#fxE .glow', '#fxC .glow'], 53.45);
-  press($('#qrun'), 54.7);
+  tl.fromTo('#qcode', {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false}, 60.4);
+  tl.fromTo('#tbl2', {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false}, 60.55);
+  cue(60.4, 'whoosh', 0.6);
+  popIn(['#fxA', '#fxB'], 61.2);
+  cue(61.2, 'pop', 0.9, 5);
+  popIn(['#fxE', '#fxF'], 61.6);
+  cue(61.6, 'pop', 0.9, 6);
+  popIn(['#fxC', '#fxD'], 62.0);
+  cue(62.0, 'pop', 0.9, 7);
+  pulse(['#fxA .glow', '#fxE .glow', '#fxC .glow'], 62.55);
+  press($('#qrun'), 63.8);
   const hs = $$('#tbl2 .th .h1'), hs2 = $$('#tbl2 .th .h2');
-  tl.set(hs, {display: 'none'}, 54.95);
-  tl.set(hs2, {display: 'inline'}, 54.95);
+  tl.set(hs, {display: 'none'}, 64.05);
+  tl.set(hs2, {display: 'inline'}, 64.05);
   tr2.forEach((r, i) => {
     const s = $$('.sw', r);
-    flip(s[0], 55.0 + i * 0.06, i % 2 === 0);
-    flip(s[1], 55.08 + i * 0.06, false);
-    flip(s[2], 55.16 + i * 0.06, false);
+    flip(s[0], 64.1 + i * 0.06, i % 2 === 0);
+    flip(s[1], 64.18 + i * 0.06, false);
+    flip(s[2], 64.26 + i * 0.06, false);
   });
   // La table, elle, garde ses valeurs
-  show('#keep3', 56.7, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
-  cue(56.7, 'pop', 0.8, 3);
-  hide(['#qcode', '#tbl2', '#keep3'], 61.9, {y: -40}, 0.4);
+  show('#keep3', 65.8, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(65.8, 'pop', 0.8, 3);
+  hide(['#qcode', '#tbl2', '#keep3'], 71.0, {y: -40}, 0.4);
 
   /* ===== 4 · Assembler avec || ===== */
-  sceneOn('#s4', 62.35);
-  show('#join4', 62.4, {y: 50});
-  cue(62.4, 'whoosh', 0.6);
-  pulse(['#or1', '#or2'], 63.3);
+  sceneOn('#s4', 71.45);
+  show('#join4', 71.5, {y: 50});
+  cue(71.5, 'whoosh', 0.6);
+  pulse(['#or1', '#or2'], 72.4);
   const parts = $$('#parts4 .pt, #parts4 .pj');
   gsap.set(parts, {autoAlpha: 0, y: 16});
-  tl.to(parts, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'back.out(2)', stagger: 0.14}, 64.2);
-  parts.forEach((_, i) => { if (i % 2 === 0) cue(64.2 + i * 0.14, 'pop', 0.7, i); });
+  tl.to(parts, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'back.out(2)', stagger: 0.14}, 73.3);
+  parts.forEach((_, i) => { if (i % 2 === 0) cue(73.3 + i * 0.14, 'pop', 0.7, i); });
   // L’espace entre guillemets simples
-  pulse('#sp4', 67.6);
-  tl.to('#parts4 .spc', {scale: 1.12, duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 67.8);
+  pulse('#sp4', 76.7);
+  tl.to('#parts4 .spc', {scale: 1.12, duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 76.9);
   // Les morceaux se rejoignent : MARTIN Sophie
-  press($('#go4'), 72.25, '#4B30CC', 6);
-  tl.to(parts, {autoAlpha: 0, scale: 0.85, duration: 0.25, ease: 'power2.in'}, 72.45);
+  press($('#go4'), 81.35, '#4B30CC', 6);
+  tl.to(parts, {autoAlpha: 0, scale: 0.85, duration: 0.25, ease: 'power2.in'}, 81.55);
   gsap.set('#jn4', {scale: 0.7});
-  tl.to('#jn4', {autoAlpha: 1, scale: 1, duration: 0.45, ease: 'back.out(2)'}, 72.65);
-  cue(72.65, 'chord', 0.7);
+  tl.to('#jn4', {autoAlpha: 1, scale: 1, duration: 0.45, ease: 'back.out(2)'}, 81.75);
+  cue(81.75, 'chord', 0.7);
   // Le piège : + additionne des nombres
-  show('#trap4', 76.4, {y: 50});
-  cue(76.4, 'whoosh', 0.6);
-  press($('#go4b'), 77.4, '#4B30CC', 6);
-  show('#err4', 77.65, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
-  tl.to('#err4', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 78.05);
-  cue(77.65, 'error', 0.85);
-  tl.to(['#pl1', '#pl2'], {backgroundColor: 'rgba(239,79,85,.38)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 81.4);
-  pulse(['#or1', '#or2'], 83.6);
-  hide(['#join4', '#trap4'], 87.0);
-  sceneOff('#s4', 87.5);
+  show('#trap4', 85.5, {y: 50});
+  cue(85.5, 'whoosh', 0.6);
+  press($('#go4b'), 86.5, '#4B30CC', 6);
+  show('#err4', 86.75, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  tl.to('#err4', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 87.15);
+  cue(86.75, 'error', 0.85);
+  tl.to(['#pl1', '#pl2'], {backgroundColor: 'rgba(239,79,85,.38)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 90.5);
+  pulse(['#or1', '#or2'], 92.7);
+  hide(['#join4', '#trap4'], 96.1);
+  sceneOff('#s4', 96.6);
 
   /* ===== 5 · Une fonction par besoin ===== */
-  sceneOn('#s5', 87.5);
-  show('#fx5', 87.55, {y: 50});
-  cue(87.55, 'whoosh', 0.6);
+  sceneOn('#s5', 96.6);
+  show('#fx5', 96.65, {y: 50});
+  cue(96.65, 'whoosh', 0.6);
   const fr5 = $$('#fx5 .fd');
   gsap.set(fr5, {autoAlpha: 0, x: -30});
-  [88.1, 92.95, 97.45, 101.35, 106.45].forEach((t, i) => {
+  [97.2, 102.05, 106.55, 110.45, 115.55].forEach((t, i) => {
     const r = fr5[i], after = r.querySelector('.tx.o'), arrow = r.querySelector('.ar');
     const late = i === 4 ? 3.4 : 0;   // REPLACE : le numéro sans espaces arrive avec « Ici, il supprime les espaces… »
     gsap.set([after, arrow], {autoAlpha: 0, x: -14});
@@ -520,57 +594,88 @@ function build(){
     tl.to(after, {autoAlpha: 1, x: 0, duration: 0.4, ease: 'back.out(2)'}, t + 0.75 + late);
     cue(t + 0.75 + late, 'true', 0.6, i % 5);
   });
-  hide('#fx5', 113.5, {y: -40});
-  sceneOff('#s5', 114.0);
+  hide('#fx5', 122.6, {y: -40});
+  sceneOff('#s5', 123.1);
 
-  /* ===== 6 · Le résultat ===== */
-  sceneOn('#s6', 114.0);
-  show('#s6code', 114.05, {y: 60}, 0.6);
-  cue(114.05, 'whoosh', 0.7);
-  te = typeLine($('#s6l1'), 114.55, 32);
-  te = typeLine($('#s6l2'), te + 0.1, 32);
-  te = typeLine($('#s6la'), te + 0.1, 32);
-  te = typeLine($('#s6l3'), te + 0.1, 32);
-  te = typeLine($('#s6l4'), te + 0.1, 32);
-  press($('#s6run'), 119.4);
-  show('#tbl6', 119.65, {y: 40}, 0.5);
+  /* ===== 6 · Le numéro de rue ===== */
+  sceneOn('#s5n', 123.1);
+  show('#nr5', 123.15, {y: 50});
+  cue(123.15, 'whoosh', 0.6);
+  const cells = $$('#nrc .nr-c'), box = i => cells[i].querySelector('b');
+  gsap.set(cells, {y: 10});
+  tl.to(cells, {autoAlpha: 1, y: 0, duration: 0.25, ease: 'power2.out', stagger: 0.04}, 123.6);
+  cells.forEach((_, i) => { if (i % 3 === 0) cue(123.6 + i * 0.04, 'type', 1, i % 5); });
+  // Le premier espace : là où le numéro de rue s’arrête
+  tl.to(box(2), {backgroundColor: '#FFF4E5', borderColor: '#F5A524', duration: 0.3}, 125.6);
+  tl.to(cells[2], {scale: 1.12, duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 125.6);
+  cue(125.6, 'pop', 0.8, 2);
+  // INSTR : sa position, 3
+  show('#nr1', 128.5, {y: 20}, 0.4, 'power3.out');
+  cue(128.5, 'pop', 0.7, 3);
+  tl.to(cells[2].querySelector('i'), {color: '#B45309', scale: 1.5, duration: 0.3, ease: 'back.out(2)'}, 129.5);
+  show('#nr1 .o', 130.0, {x: -14}, 0.4, 'back.out(2)');
+  cue(130.0, 'true', 0.6, 1);
+  // SUBSTR avant l’espace : 12
+  show('#nr2', 133.0, {y: 20}, 0.4, 'power3.out');
+  cue(133.0, 'pop', 0.7, 4);
+  tl.to([box(0), box(1)], {backgroundColor: '#ECE7FF', borderColor: '#A893FF', duration: 0.3, stagger: 0.12}, 134.0);
+  show('#nr2 .o', 134.6, {x: -14}, 0.4, 'back.out(2)');
+  cue(134.6, 'true', 0.6, 2);
+  // SUBSTR après l’espace : rue des Lilas
+  show('#nr3', 138.0, {y: 20}, 0.4, 'power3.out');
+  cue(138.0, 'pop', 0.7, 5);
+  tl.to(cells.slice(3).map(c => c.querySelector('b')), {backgroundColor: '#E7F7EE', borderColor: '#A7E3C0', duration: 0.25, stagger: 0.04}, 139.0);
+  show('#nr3 .o', 139.8, {x: -14}, 0.4, 'back.out(2)');
+  cue(139.8, 'true', 0.6, 3);
+  hide('#nr5', 142.35, {y: -40});
+  sceneOff('#s5n', 142.85);
+
+  /* ===== 7 · Le résultat ===== */
+  sceneOn('#s6', 142.9);
+  show('#s6code', 142.95, {y: 60}, 0.6);
+  cue(142.95, 'whoosh', 0.7);
+  te = 143.45;
+  for (let i = 1; i <= 10; i++) te = typeLine($('#s6l' + i), te, 40) + 0.06;
+  press($('#s6run'), 151.55);
+  hide('#s6code', 151.95, {y: -40}, 0.4);
+  show('#tbl6', 152.2, {y: 40}, 0.5);
   const tr6 = $$('#rows6 .tr');
   gsap.set(tr6, {autoAlpha: 0, y: 14});
-  tl.to(tr6, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.06}, 119.8);
-  tr6.forEach((_, i) => cue(119.8 + i * 0.06, 'tick', 0.45, i % 5));
-  show('#cnt6', 120.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  hide(['#s6code', '#tbl6'], 122.8, {y: -40}, 0.4);
+  tl.to(tr6, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.06}, 152.35);
+  tr6.forEach((_, i) => cue(152.35 + i * 0.06, 'tick', 0.45, i % 5));
+  show('#cnt6', 152.85, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  hide('#tbl6', 155.15, {y: -40}, 0.4);
   // Les étiquettes s’impriment : un colis arrive, son étiquette se remplit, puis le suivant
   gsap.set('#par6a', {autoAlpha: 0, x: 1000});
   gsap.set('#par6b', {autoAlpha: 0, x: 1000});
-  tl.to('#par6a', {autoAlpha: 1, x: 0, duration: 0.6, ease: 'power3.out'}, 123.2);
-  cue(123.2, 'whoosh', 0.7);
+  tl.to('#par6a', {autoAlpha: 1, x: 0, duration: 0.6, ease: 'power3.out'}, 155.55);
+  cue(155.55, 'whoosh', 0.7);
   const fill = (id, t) => {
     let e = t;
     $$(id + ' .fv').forEach(v => { e = typeChars(splitChars(v), e, 40) + 0.12; });
     return e;
   };
-  fill('#par6a', 123.85);
-  tl.to('#par6a', {x: -1000, duration: 0.6, ease: 'power3.inOut'}, 125.4);
-  tl.set('#par6a', {autoAlpha: 0}, 126.0);
-  tl.to('#par6b', {autoAlpha: 1, x: 0, duration: 0.6, ease: 'power3.inOut'}, 125.4);
-  cue(125.4, 'whoosh', 0.6);
-  fill('#par6b', 126.05);
-  show('#badge6', 127.3, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(127.3, 'success', 0.9);
-  hide(['#par6b', '#badge6'], 128.3);
-  sceneOff('#s6', 128.8);
+  fill('#par6a', 156.2);
+  tl.to('#par6a', {x: -1000, duration: 0.6, ease: 'power3.inOut'}, 157.8);
+  tl.set('#par6a', {autoAlpha: 0}, 158.4);
+  tl.to('#par6b', {autoAlpha: 1, x: 0, duration: 0.6, ease: 'power3.inOut'}, 157.8);
+  cue(157.8, 'whoosh', 0.6);
+  fill('#par6b', 158.45);
+  show('#badge6', 159.75, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(159.75, 'success', 0.9);
+  hide(['#par6b', '#badge6'], 160.4);
+  sceneOff('#s6', 160.9);
 
   /* ===== 7 · À retenir ===== */
-  recapScene(128.8, [129.5, 131.3, 133.1]);
-  hold(131.1, 2.9);
-  hold(132.9, 6.0);   // la liste des fonctions, une par ligne
+  recapScene(160.9, [161.6, 163.4, 165.2]);
+  hold(163.2, 2.9);
+  hold(165.0, 6.0);   // la liste des fonctions, une par ligne
   // Le bouton « Ajouter à mes notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(134.05, 'pop', 0.85, 5);
+  if (APP) cue(166.15, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 134, moments: MOMENTS,
-  glyphs: '📦🪪🙂🏠🏙️🔎🔒⚙️↓🔗⚠️🧰🔤✓✕→·', dom, build});
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 166.1, moments: MOMENTS,
+  glyphs: '✂️📦🪪🙂🏠🏙️🔎🔒⚙️↓🔗⚠️🧰🔤✓✕→·', dom, build});
 </script>
 </body>
 </html>
