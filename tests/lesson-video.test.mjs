@@ -678,7 +678,7 @@ const COURSES = [
       '<b>Tableaux de bord</b><span class="rs">Suivre les dernières commandes en direct.</span>',
       '<b>API</b><span class="rs">Renvoyer une partie des résultats à chaque demande.</span>',
       '<b>Scripts de traitement</b><span class="rs">Récupérer des données par lots.</span>']},
-  {id: 51, next: 52, titre: 'Fonctions de texte', page: 'fonctions-texte.html', thumb: 'fonctions-texte-thumb.jpg', duree: '3 min 02', notesAt: 166.1,
+  {id: 51, next: 52, titre: 'Fonctions de texte', page: 'fonctions-texte.html', thumb: 'fonctions-texte-thumb.jpg', duree: '3 min 08', notesAt: 171.1,
     table: 'clients',
     bubble: 'Les fonctions de texte permettent<br>de transformer le contenu d’une colonne<br>pour obtenir le texte dont tu as besoin.',
     chapters: ['Situation', 'Le problème', 'UPPER en action', 'Assembler avec ||', 'Une fonction par besoin', 'Le numéro de rue', 'Le résultat', 'À retenir'],
