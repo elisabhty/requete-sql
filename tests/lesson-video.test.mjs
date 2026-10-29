@@ -655,7 +655,7 @@ const COURSES = [
       '<span class="sus"><span class="emo">🔍</span>50 ou 500 ?</span>', '<span class="tx">30 → 500</span><span class="tx">500 → 30</span>',
       '<span class="tx">A → Z</span><span class="tx">Z → A</span>', '<span class="kw">ORDER BY</span> categorie, prix<span class="sens" id="descC"> <span class="kw glow">DESC</span></span>;',
       '✓ Vérifications prêtes']},
-  {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '3 min 24', notesAt: 173.5,
+  {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '3 min 23', notesAt: 173.5,
     maxKo: 530,   // les quatre démonstrations des usages (Elisa, 29 octobre, 12 h 02)
     table: 'produits',
     bubble: 'Avec <span class="ic">LIMIT</span> et <span class="ic">OFFSET</span>, tu affiches seulement la partie du résultat qui t’intéresse.',
