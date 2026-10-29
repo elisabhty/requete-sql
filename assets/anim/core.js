@@ -450,28 +450,91 @@ function stageScale(){ const sr = $('#stage').getBoundingClientRect(); return {s
 function rel(el, ref){ const {sr, k} = stageScale(), r = el.getBoundingClientRect(), o = ref ? ref.getBoundingClientRect() : sr;
   return {x: (r.left - o.left) / k, y: (r.top - o.top) / k, w: r.width / k, h: r.height / k}; }
 
-/* Intro : titre déjà en place sur la première image (vignette), lettres qui sautillent, surligneur, mascotte et bulle ; tout s’en va à 4,4 s. */
+/* Intro, version vitrine (Elisa, 29 octobre : « OK avec la proposition », « le plus de micro animation possible »).
+   La page garde son HTML (rubrique, titre en lettres, sous-titre, mascotte, bulle) ; introScene le met en scène dans une carte
+   violette : le titre s’ajuste à la largeur de la carte, le souligné prend sa longueur, les retours à la ligne pensés pour
+   l’ancienne intro centrée s’effacent, le sous-titre et la bulle se réduisent s’ils sont trop longs. Les pastilles (durée de la
+   vidéo, moments « À toi ») se remplissent à la fin de Course, quand ces chiffres sont connus (introPills).
+   Déroulé : première image = vignette (carte, rubrique, titre, sous-titre, pastilles en place) ; lettres qui sautillent à 0,25 s,
+   souligné à 0,6 s, pastilles et reflet à 0,8 s, halo et mascotte à 1 s, étincelles à 1,3 s, bulle à 1,65 s, la mascotte salue,
+   tout s’en va à 4,4 s. Tout passe par la timeline : le lecteur de l’app peut avancer, reculer et faire une pause. */
+const SPARK = '<path d="M12 1c.9 6 4.9 10 11 11-6.1 1-10.1 5-11 11-.9-6-4.9-10-11-11 6.1-1 10.1-5 11-11Z"/>';
 function introScene(){
-  const ls = $$('#s0 .title span'), a = rel(ls[0]), b = rel(ls[ls.length - 1]);
-  const hl = $('#s0 .hilite');
-  hl.style.left = (a.x + 10) + 'px';
-  hl.style.width = (b.x + b.w - a.x - 20) + 'px';
-  gsap.set(['#s0', '#s0 .tag0', '#s0 .title', '#s0 .sub'], {autoAlpha: 1});
-  tl.to(ls, {y: -34, duration: 0.2, ease: 'power2.out', stagger: 0.07, yoyo: true, repeat: 1}, 0.25);
+  const s0 = $('#s0'); s0.classList.add('nv');
+  const mk = (html) => { const d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstChild; };
+  const card = mk('<div class="abs iv-card"><div class="abs iv-glow"></div><div class="abs iv-ring"></div><div class="abs iv-halo"></div></div>');
+  s0.insertBefore(card, s0.firstChild);
+  const title = $('#s0 .title'), sub = $('#s0 .sub'), bubble = $('#s0 .bubble');
+  [sub, bubble].forEach(el => el && el.querySelectorAll('br').forEach(br => br.replaceWith(' ')));
+  /* Titre : la plus grande taille qui tient dans la carte (de 250 à 96 px) */
+  let fs = 250; title.style.fontSize = fs + 'px';
+  while (title.scrollWidth > 840 && fs > 96) { fs -= 4; title.style.fontSize = fs + 'px'; }
+  const tb = 352 + fs * 0.95;
+  const sw = mk('<svg class="abs iv-sw" viewBox="0 0 720 60" preserveAspectRatio="none" aria-hidden="true"><path d="M10 40C200 14 470 8 710 26"/></svg>');
+  title.after(sw);
+  sw.style.width = Math.max(200, Math.min(840, title.scrollWidth)) + 'px';
+  sw.style.top = (tb + 4 - fs * 0.02) + 'px';
+  /* Sous-titre : deux lignes au plus */
+  let fsub = 84; sub.style.top = (tb + 82) + 'px'; sub.style.fontSize = fsub + 'px';
+  while (sub.scrollHeight > fsub * 1.06 * 2 + 4 && fsub > 52) { fsub -= 4; sub.style.fontSize = fsub + 'px'; }
+  const pills = mk('<div class="abs iv-pills"><span class="iv-pill w"><span class="iv-shine"></span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5Z"/></svg><b class="iv-dur"></b></span><span class="iv-pill g iv-mom"></span></div>');
+  sub.after(pills);
+  pills.style.top = (tb + 82 + sub.scrollHeight + 48) + 'px';
+  /* Bulle : elle tient entre le haut de la mascotte et le bas de la carte */
+  let fb = 44; bubble.style.fontSize = fb + 'px';
+  while ((bubble.offsetHeight > 470 || bubble.scrollWidth > bubble.clientWidth + 1) && fb > 30) { fb -= 2; bubble.style.fontSize = fb + 'px'; }
+  ['<svg class="abs iv-spark s1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">',
+    '<svg class="abs iv-spark s2" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">',
+    '<svg class="abs iv-spark s3" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">',
+    '<svg class="abs iv-spark s4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'].forEach(o => s0.appendChild(mk(o + SPARK + '</svg>')));
+
+  const ls = $$('#s0 .title span'), path = $('#s0 .iv-sw path'), L = path.getTotalLength();
+  gsap.set(['#s0', '#s0 .iv-card', '#s0 .tag0', '#s0 .title', '#s0 .sub', '#s0 .iv-pills', '#s0 .iv-spark.s1'], {autoAlpha: 1});
+  gsap.set(path, {strokeDasharray: L, strokeDashoffset: L});
+  gsap.set('#s0 .iv-sw', {autoAlpha: 0});
+  /* Lettres qui sautillent, chacune avec un petit pas de côté */
+  tl.to(ls, {y: -40, rotation: i => (i % 2 ? 5 : -5), duration: 0.2, ease: 'power2.out', stagger: 0.07, yoyo: true, repeat: 1}, 0.25);
   ls.forEach((_, i) => cue(0.25 + i * 0.07, 'pop', 0.7, i));
-  tl.to('#s0 .hilite', {scaleX: 1, duration: 0.7, ease: 'expo.out'}, 0.6);
+  tl.set('#s0 .iv-sw', {autoAlpha: 1}, 0.6);
+  tl.to(path, {strokeDashoffset: 0, duration: 0.75, ease: 'expo.out'}, 0.6);
+  tl.fromTo('#s0 .tagpill', {x: 0}, {x: 10, duration: 0.18, ease: 'power2.out', yoyo: true, repeat: 1}, 0.55);
+  /* Pastilles : petit rebond l’une après l’autre, puis un reflet passe sur la blanche */
+  tl.to('#s0 .iv-pill', {scale: 1.07, duration: 0.18, ease: 'power2.out', stagger: 0.09, yoyo: true, repeat: 1}, 0.8);
+  cue(0.8, 'pop', 0.45, 2);
+  gsap.set('#s0 .iv-shine', {x: -120});
+  tl.to('#s0 .iv-shine', {x: 420, duration: 0.7, ease: 'power2.inOut'}, 0.95);
+  /* Halo, puis la mascotte sort de la carte */
+  gsap.set('#s0 .iv-halo', {autoAlpha: 0, scale: 0.6, transformOrigin: '50% 50%'});
+  tl.to('#s0 .iv-halo', {autoAlpha: 1, scale: 1, duration: 0.8, ease: 'expo.out'}, 0.95);
   const m0 = '#s0 .mascot';
   gsap.set(m0, {autoAlpha: 0, y: 620, rotation: -6, transformOrigin: '50% 100%'});
   tl.to(m0, {autoAlpha: 1, y: 0, rotation: 0, duration: 1.0, ease: 'back.out(1.25)'}, 1.0);
   cue(1.0, 'whoosh', 0.8);
-  tl.to(m0, {y: -12, duration: 0.9, ease: 'sine.inOut', yoyo: true, repeat: 1, data: 'amb'}, 2.2);
-  gsap.set('#s0 .bubble', {autoAlpha: 0, scale: 0.5, transformOrigin: '0% 40%'});
+  tl.to(m0, {y: -14, duration: 0.9, ease: 'sine.inOut', yoyo: true, repeat: 1, data: 'amb'}, 2.2);
+  tl.to(m0, {rotation: -3, duration: 0.22, ease: 'sine.inOut', yoyo: true, repeat: 3, data: 'amb'}, 2.3);
+  /* Étincelles : elles apparaissent, puis scintillent */
+  gsap.set(['#s0 .iv-spark.s2', '#s0 .iv-spark.s3', '#s0 .iv-spark.s4'], {autoAlpha: 0, scale: 0.4, transformOrigin: '50% 50%'});
+  tl.to(['#s0 .iv-spark.s2', '#s0 .iv-spark.s3', '#s0 .iv-spark.s4'], {autoAlpha: 1, scale: 1, duration: 0.5, ease: 'back.out(2)', stagger: 0.12}, 1.3);
+  tl.to('#s0 .iv-spark', {rotation: 25, scale: 0.75, duration: 0.7, ease: 'sine.inOut', yoyo: true, repeat: 3, stagger: 0.2, data: 'amb'}, 1.9);
+  tl.to('#s0 .iv-glow', {x: -60, y: 40, duration: 2.2, ease: 'sine.inOut', yoyo: true, repeat: 1, data: 'amb'}, 0);
+  /* Bulle « autocollant » */
+  gsap.set('#s0 .bubble', {autoAlpha: 0, scale: 0.5, rotation: 2.5, transformOrigin: '0% 30%'});
   tl.to('#s0 .bubble', {autoAlpha: 1, scale: 1, duration: 0.55, ease: 'back.out(1.9)'}, 1.65);
   cue(1.65, 'pop', 1, 3);
-  tl.to(['#s0 .tag0', '#s0 .title', '#s0 .hilite', '#s0 .sub'], {autoAlpha: 0, y: -70, duration: 0.45, ease: 'power2.in', stagger: 0.04}, 4.4);
-  tl.to(m0, {autoAlpha: 0, y: 500, duration: 0.5, ease: 'power2.in'}, 4.45);
+  /* Sortie */
+  tl.to(['#s0 .tag0', '#s0 .title', '#s0 .iv-sw', '#s0 .sub', '#s0 .iv-pills'], {autoAlpha: 0, y: -70, duration: 0.45, ease: 'power2.in', stagger: 0.04}, 4.4);
   tl.to('#s0 .bubble', {autoAlpha: 0, scale: 0.8, duration: 0.3, ease: 'power2.in'}, 4.4);
+  tl.to(m0, {autoAlpha: 0, y: 500, duration: 0.5, ease: 'power2.in'}, 4.45);
+  tl.to(['#s0 .iv-card', '#s0 .iv-spark'], {autoAlpha: 0, scale: 0.96, duration: 0.45, ease: 'power2.in'}, 4.55);
   sceneOff('#s0', 5.0);
+}
+/* Pastilles de l’intro : durée réelle de la vidéo (pauses de lecture comprises) et nombre de moments « À toi ». */
+function introPills(seconds, moments){
+  const d = $('#s0.nv .iv-dur'), m = $('#s0.nv .iv-mom'); if (!d) return;
+  const t = Math.round(seconds), mn = Math.floor(t / 60), sc = t % 60;
+  d.textContent = mn ? mn + ' min ' + String(sc).padStart(2, '0') : sc + ' s';
+  if (moments > 0) m.textContent = moments + (moments > 1 ? ' moments' : ' moment') + ' « À' + NB + 'toi' + NB + '»';
+  else m.remove();
 }
 
 /* Récapitulatif « Les trois idées à retenir » : titre, carte, puis une idée à chaque instant donné. */
@@ -841,6 +904,7 @@ function Course(cfg){
     HOLDS = mergeHolds(captionHolds(captions, duration).concat(EXTRA_HOLDS.filter(h => h[0] < duration), rest)).concat(CUTS.filter(c => c[0] < duration)).sort((x, y) => x[0] - y[0]);
     const total = HOLDS.reduce((a, h) => a + h[1], 0);
     out = +(duration + total).toFixed(3);
+    introPills(out, picks.length);
     renderAt(0);
     if (EMBED) dispatchEvent(new Event('resize'));
     return {duration: out, fps: FPS, cues: CUES.filter(c => !inCut(c.t)).map(c => Object.assign({}, c, {t: unwarp(c.t)})), overflow: checkCaptions(captions),
@@ -872,6 +936,8 @@ function Course(cfg){
       /* Légendes en texte : le lecteur les annonce à VoiceOver au fil de l’animation. */
       captions: captions.map(c => ({a: unwarp(c[0]), b: unwarp(Math.min(c[1], duration)), text: plain(c[2])}))};
   })();
+  /* Une seule image, à l’instant donné (?at=2.9) : sert à fabriquer la vignette du cours. */
+  if (QS.has('at')) window.__ready.then(() => renderAt(+QS.get('at') || 0));
   /* Lecture en direct quand la page est ouverte seule dans un navigateur (?play). */
   if (QS.has('play')) {
     window.__ready.then(() => {

@@ -12,6 +12,7 @@
 <link rel="preload" href="../assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/inter-semibold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="vitrine.css">
+<script>document.documentElement.classList.add('js')</script>
 <style>
 /* Fiche d’un module (module.html?m=<id>), construite à partir de modules.js. Styles dans vitrine.css. */
 html{scroll-padding-top:156px}
@@ -23,7 +24,7 @@ html{scroll-padding-top:156px}
   <div class="wrap">
     <a class="brand" href="./" aria-label="Requête, accueil"><span class="logo" aria-hidden="true">&gt;_</span><b>Requête</b></a>
     <nav class="links" aria-label="Sections">
-      <a href="./#essayer">Essayer</a>
+      <a href="./#pour-qui">Pour qui&nbsp;?</a>
       <a href="./#pourquoi">Pourquoi le SQL</a>
       <a href="./#modules">Modules</a>
       <a href="./#faq">Questions</a>
@@ -34,9 +35,10 @@ html{scroll-padding-top:156px}
     </div>
     <button type="button" class="burger" id="burger" aria-expanded="false" aria-controls="menu" aria-label="Menu"><span></span><span></span><span></span></button>
   </div>
+  <div class="progress" aria-hidden="true"><i id="prog"></i></div>
   <nav class="menu" id="menu" aria-label="Menu" hidden>
     <a href="./">Accueil</a>
-    <a href="./#essayer">Essayer une question</a>
+    <a href="./#pour-qui">Pour qui&nbsp;?</a>
     <a href="./#modules">Les modules</a>
     <a href="#programme">Programme du module</a>
     <a href="./#faq">Questions</a>
@@ -56,7 +58,7 @@ html{scroll-padding-top:156px}
       </div>
       <nav class="foot-col" aria-label="Découvrir">
         <h4>Découvrir</h4>
-        <a href="./#essayer">Essayer une question</a>
+        <a href="./#pour-qui">Pour qui&nbsp;?</a>
         <a href="./#pourquoi">Pourquoi le SQL</a>
         <a href="./#salaires">Salaires</a>
         <a href="./#modules">Les modules</a>
@@ -88,6 +90,15 @@ html{scroll-padding-top:156px}
     location.reload();
   });
   sw.getRegistration().then(function(r){if(r)r.update();}).catch(function(){});
+})();
+
+document.documentElement.classList.add('js');
+
+/* Barre de lecture sous la navigation */
+(function(){
+  var prog=document.getElementById('prog'),t=0;
+  var lire=function(){t=0;var h=document.documentElement.scrollHeight-innerHeight;prog.style.transform='scaleX('+(h>0?Math.min(1,scrollY/h):0).toFixed(4)+')';};
+  addEventListener('scroll',function(){if(!t)t=requestAnimationFrame(lire);},{passive:true});lire();
 })();
 
 /* Barre de navigation : transparente sur l’en-tête violet, claire dès qu’on défile ou quand le menu est ouvert */
@@ -124,14 +135,14 @@ html{scroll-padding-top:156px}
     +'<span class="kicker"><i aria-hidden="true"></i>Module disponible</span>'
     +'<h1>'+e(m.titre)+'</h1>'
     +'<p class="lead">'+e(m.accroche)+'</p>'
-    +'<ul class="pills"><li>'+V.barres(m.niveau)+e(m.niveau.texte)+'</li><li>'+ic('horloge',2.2)+'≈ '+duree+' de vidéo</li><li>'+ic('livre',2.2)+nb+' cours</li><li>'+ic('gratuit',2.2)+'Gratuit</li></ul>'
+    +'<ul class="pills pills-in"><li>'+V.barres(m.niveau)+e(m.niveau.texte)+'</li><li>'+ic('horloge',2.2)+'≈ '+duree+' de vidéo</li><li>'+ic('livre',2.2)+nb+' cours</li><li>'+ic('gratuit',2.2)+'Gratuit</li></ul>'
     +'<div class="cta-row"><a class="btn btn-y btn-lg" href="video.html">Commencer le module'+FL+'</a><a class="btn btn-g btn-lg" href="#programme">Voir le programme</a></div>'
     +'</div><div class="mh-art" aria-hidden="true">'+aff+'</div></div>'
     +'<svg class="hero-wave" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true"><path d="M0 46C240 86 520 86 760 58S1220 6 1440 34V80H0Z" fill="#F7F6FD"/></svg></section>';
 
   var details=[[V.barres(m.niveau),'Niveau '+m.niveau.texte.toLowerCase()],[ic('horloge'),'Environ '+duree+' de vidéos interactives, plus la pratique'],[ic('livre'),nb+' cours, '+nbChap+' chapitres']]
     .concat(m.details.map(function(d){return [ic(d[0]),e(d[1])];}));
-  var apropos='<section class="panel sec" id="apropos" aria-labelledby="apropos-h"><h2 id="apropos-h">À propos de ce module</h2>'
+  var apropos='<section class="panel sec rv" id="apropos" aria-labelledby="apropos-h"><h2 id="apropos-h">À propos de ce module</h2>'
     +'<div class="about clamp" id="about">'+m.apropos.map(function(p){return '<p>'+e(p)+'</p>';}).join('')+'</div>'
     +'<button type="button" class="readmore" id="more" aria-expanded="false" aria-controls="about">Lire la suite</button>'
     +'<p class="label">Détails</p><ul class="dl">'+details.map(function(d){return '<li>'+d[0]+'<span>'+d[1]+'</span></li>';}).join('')+'</ul></section>';
@@ -148,27 +159,38 @@ html{scroll-padding-top:156px}
     +'<li>'+ic('carte')+'<span>'+nb+' cartes mémo à collectionner</span></li></ul></aside>';
 
   var OK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
-  var skills='<section class="panel sec" id="competences" aria-labelledby="competences-h"><h2 id="competences-h">Ce que tu sauras faire</h2>'
-    +'<ul class="skills">'+m.competences.map(function(c){return '<li><i aria-hidden="true">'+OK+'</i><span><b>'+e(c[0])+'</b> — '+e(c[1])+'</span></li>';}).join('')+'</ul>'
-    +'<p class="label">Thèmes abordés</p><div class="topics">'+m.themes.map(function(t){return '<span>'+e(t)+'</span>';}).join('')+'</div></section>';
+  var skills='<section class="panel sec rv" id="competences" aria-labelledby="competences-h"><h2 id="competences-h">Ce que tu sauras faire</h2>'
+    +'<ul class="skills">'+m.competences.map(function(c,i){return '<li style="--d:'+i*90+'ms"><i aria-hidden="true">'+OK+'</i><span><b>'+e(c[0])+'</b> — '+e(c[1])+'</span></li>';}).join('')+'</ul>'
+    +'<p class="label">Thèmes abordés</p><div class="topics">'+m.themes.map(function(t,i){return '<span style="--d:'+i*35+'ms">'+e(t)+'</span>';}).join('')+'</div></section>';
 
-  var prog='<section class="panel sec" id="programme" aria-labelledby="programme-h"><div class="prog-head"><h2 id="programme-h">Programme</h2>'
-    +'<p>'+nbChap+' chapitres · '+nb+' cours · ≈ '+duree+' de vidéo</p><button type="button" id="all">Tout déplier</button></div><div class="chaps">'
+  /* Programme : le temps de chaque chapitre en pastille, et une barre qui compare sa durée au chapitre le plus long */
+  var dChap=m.programme.map(function(c){return c.lecons.reduce(function(t,l){return t+l[2];},0);}),dMax=Math.max.apply(null,dChap);
+  var prog='<section class="panel sec rv" id="programme" aria-labelledby="programme-h"><div class="prog-head"><h2 id="programme-h">Programme</h2><button type="button" id="all">Tout déplier</button></div>'
+    +'<div class="prog-pills"><span class="pp tm">'+ic('horloge',2.4)+'≈ '+duree+' de vidéo</span><span class="pp">'+ic('livre',2.2)+nb+' cours</span><span class="pp">'+nbChap+' chapitres</span></div><div class="chaps">'
     +m.programme.map(function(c,i){
-      var s=c.lecons.reduce(function(t,l){return t+l[2];},0);
-      return '<details class="chap"'+(i?'':' open')+'><summary><span class="n">'+(i<9?'0':'')+(i+1)+'</span><span class="t"><b>'+e(c.titre)+'</b><small>'+e(c.sous)+'</small></span>'
-        +'<span class="c">'+c.lecons.length+' cours<br>'+V.minutes(s)+'</span>'+ic('chevron',2.4)+'</summary><ol>'
-        +c.lecons.map(function(l){return '<li>'+ic('lecture')+'<span><b>'+e(l[0])+'</b>'+e(l[1])+'</span><em>'+V.minutes(l[2])+'</em></li>';}).join('')
+      var s=dChap[i];
+      return '<details class="chap rv"'+(i?'':' open')+' style="--d:'+Math.min(i,8)*40+'ms"><summary><span class="n">'+(i<9?'0':'')+(i+1)+'</span><span class="t"><b>'+e(c.titre)+'</b><small>'+e(c.sous)+'</small>'
+        +'<span class="cp"><span class="pc tm">'+ic('horloge',2.4)+V.minutes(s)+'</span><span class="pc">'+c.lecons.length+' cours</span><span class="bar" aria-hidden="true"><i style="--w:'+Math.max(8,Math.round(s/dMax*100))+'%"></i></span></span></span>'
+        +ic('chevron',2.4)+'</summary><ol>'
+        +c.lecons.map(function(l,j){return '<li style="--i:'+Math.min(j,10)+'">'+ic('lecture')+'<span><b>'+e(l[0])+'</b>'+e(l[1])+'</span><em class="lp">'+ic('horloge',2.4)+V.minutes(l[2])+'</em></li>';}).join('')
         +'</ol></details>';
     }).join('')+'</div></section>';
 
   var tabs='<nav class="tabs" aria-label="Sections du module"><a href="#apropos" class="on" id="t-pres">Présentation</a><a href="#programme" id="t-prog">Programme</a></nav>';
 
-  var dark='<div class="dark"><h2>Commence le module '+e(m.nom)+' aujourd’hui&nbsp;!</h2>'
+  var dark='<div class="dark rv"><h2>Commence le module '+e(m.nom)+' aujourd’hui&nbsp;!</h2>'
     +'<a class="btn btn-lg" href="video.html">Commencer gratuitement</a><a class="alt" href="../">Ouvrir l’appli</a>'
-    +'<div class="hint">'+ic('ampoule')+'<div><p>Pas sûr·e que ce module est fait pour toi&nbsp;? Réponds à la question d’essai : dix secondes pour voir comment on apprend ici.</p><a href="./#essayer">Essayer une question →</a></div></div></div>';
+    +'<div class="hint">'+ic('ampoule')+'<div><p>Pas sûr·e que ce module est fait pour toi&nbsp;? Reconversion, débutant, entretien, niveau avancé : regarde à qui il s’adresse.</p><a href="./#pour-qui">Voir pour qui →</a></div></div></div>';
 
   page.innerHTML=hero+'<div class="wrap"><div class="fiche">'+tabs+apropos+side+skills+prog+'</div>'+dark+'</div>';
+
+  /* Apparition au défilement (mêmes classes que la page d’accueil) */
+  (function(){
+    var els=[].slice.call(document.querySelectorAll('.rv'));
+    if(!('IntersectionObserver' in window)){els.forEach(function(x){x.classList.add('in');});return;}
+    var io=new IntersectionObserver(function(es){es.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target);}});},{rootMargin:'0px 0px -6% 0px',threshold:0});
+    els.forEach(function(x){io.observe(x);});
+  })();
 
   /* « Lire la suite » : seulement si le texte dépasse */
   var about=document.getElementById('about'),more=document.getElementById('more');
