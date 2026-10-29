@@ -655,7 +655,8 @@ const COURSES = [
       '<span class="sus"><span class="emo">🔍</span>50 ou 500 ?</span>', '<span class="tx">30 → 500</span><span class="tx">500 → 30</span>',
       '<span class="tx">A → Z</span><span class="tx">Z → A</span>', '<span class="kw">ORDER BY</span> categorie, prix<span class="sens" id="descC"> <span class="kw glow">DESC</span></span>;',
       '✓ Vérifications prêtes']},
-  {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '2 min 54', notesAt: 145.6,
+  {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '3 min 14', notesAt: 150.6,
+    maxKo: 510,   // le mail de l’équipe marketing (mail.js, 7 Ko), comme DISTINCT et AS
     table: 'produits',
     bubble: 'Avec <span class="ic">LIMIT</span> et <span class="ic">OFFSET</span>, tu affiches seulement la partie du résultat qui t’intéresse.',
     chapters: ['Situation', 'Le problème', 'LIMIT en action', 'Sauter avec OFFSET', 'Un classement stable', 'Le résultat', 'À quoi ça sert', 'À retenir'],
@@ -668,7 +669,7 @@ const COURSES = [
       '"<code>LIMIT</code> indique combien de lignes récupérer, et <code>OFFSET</code> combien de lignes sauter au début du résultat."',
       '"La <b>table produits</b> reste inchangée."',
       // À quoi ça sert : le site web reste à l’écran (une requête par portion de 3), puis rejoint la liste des usages
-      "telephone('#ph7', CLASSEMENT.slice(3, 6).map(fiche).join(''));", "sceneOff('#s6', 102.4);\n  sceneOn('#use', 102.4);",
+      "telephone('#ph7', CLASSEMENT.slice(3, 6).map(fiche).join(''));", "sceneOff('#s6', 107.4);\n  sceneOn('#use', 107.4);",
       '<b>Portion 1</b><span class="ic">OFFSET 0</span>', '<b>Portion 2</b><span class="ic">OFFSET 3</span>', '<b>Portion 3</b><span class="bks">pas encore chargée</span>',
       '"Les produits arrivent ainsi <b>par portions</b> de 3 : une requête par portion."',
       '"C’est utile pour afficher ou récupérer<br>des résultats <b>par portions</b>, sans tout charger d’un coup."',
