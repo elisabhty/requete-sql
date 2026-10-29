@@ -1793,7 +1793,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
   assert.equal(D.PICKS[3].options.map(o => o.tag + ' ' + o.label).join(', '), 'B titre de l’atelier, C date de l’atelier, D nom du coach, E e-mail du coach, F date d’inscription',
     'chaque étiquette dit ce que contient sa colonne, avec la lettre de la colonne dans le fichier');
   assert.deepEqual([D.PICKS[3].prompt, D.PICKS[3].hint], ['Associe chaque colonne du fichier à la table qui lui correspond.',
-    'Touche une colonne ci-dessous, puis la bonne table. Tu peux aussi la faire glisser directement dans la table.'], 'consigne du moment 4, puis la ligne d’aide');
+    'Sélectionne une colonne ci-dessous, puis appuie sur la bonne table. Tu peux aussi la faire glisser directement dans la table.'], 'consigne du moment 4, puis la ligne d’aide');
   assert.ok(page.includes("show(['#bok', '#ck0'], 94.85, {y: 0, scale: 0.4}, 0.4, 'back.out(2.2)');") && page.includes("${old.length ? '<i class=\"bok\" id=\"bok\">✓</i>' : ''}")
     && page.includes("if (i === 3) return {text: 'Que décrit la colonne : un atelier, un coach ou une inscription ?'};")
     && page.includes('const [col, to, , ok, bad] = SORT[a], j = COLS.indexOf(col),'), 'la table clients et la colonne client se cochent dès que la légende dit que la table existe ; rien à ranger côté client');
@@ -2013,7 +2013,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.deepEqual(D.RELS.map(r => [r[1], D.CAS[r[3]]]), [['1 ↔ 1', 'Un client et sa carte de membre'], ['1 → N', 'Un coach et ses ateliers'], ['N ↔ N', 'Un client et ses ateliers']]);
   assert.deepEqual(D.PICKS[5].options.map(o => o.label.replace(/\u00a0/g, ' ')), D.CAS, 'les trois cas à ranger');
   assert.equal(D.PICKS[5].options[D.CAS.indexOf('Un client et sa carte de membre')].label, 'Un client et sa carte\u00a0de\u00a0membre', 'dans la carte du lecteur, « carte de membre » ne se coupe pas');
-  assert.ok(D.PICKS[5].prompt === 'Range chaque situation selon son type de relation.' && D.PICKS[5].hint.startsWith('Touche une situation, puis le type de relation qui lui correspond.'),
+  assert.ok(D.PICKS[5].prompt === 'Range chaque situation selon son type de relation.' && D.PICKS[5].hint.startsWith('Sélectionne une situation, puis appuie sur le type de relation qui lui correspond.'),
     'la consigne parle de situations et de types de relation');
   assert.equal(D.PICKS[5].next, '« {x} » : quel est le type de relation ?', 'une situation choisie, la ligne d’aide demande son type de relation');
   assert.ok(fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8').includes("next: p.next ? fr(p.next) : '',"), 'moteur : la ligne d’aide du moment envoyée au lecteur');
@@ -2215,7 +2215,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.equal(said('Chaque élément à gérer', 3), 'Chaque élément à gérer est représenté par une classe. Elle porte un nom et contient des attributs. Les attributs sont les informations qui la décrivent, comme le prénom, le nom et l’e-mail d’un client.');
   assert.equal(said('La multiplicité indique', 3), 'La multiplicité indique combien d’éléments d’une classe peuvent être liés à un seul élément de l’autre. Par exemple, combien d’ateliers un même coach peut-il animer ? On écrit la réponse du côté de la classe Atelier.');
   assert.equal(D.PICKS[1].prompt, 'Place les multiplicités 1 et 0..* aux bonnes extrémités de l’association « anime ».');
-  assert.equal(D.PICKS[1].hint, 'Touche une multiplicité, puis la classe à côté de laquelle tu veux la placer. Tu peux aussi la faire glisser.');
+  assert.equal(D.PICKS[1].hint, 'Sélectionne une multiplicité, puis appuie sur la classe à côté de laquelle tu veux la placer. Tu peux aussi la faire glisser directement.');
   assert.equal(said('Chaque atelier est animé', 2), 'Chaque atelier est animé par un seul coach : on place 1 du côté de la classe Coach. Un coach peut animer zéro, un ou plusieurs ateliers : on place 0..* du côté de la classe Atelier.');
   assert.equal(flat(idx('Chaque atelier est animé') + 2), 'Pour s’inscrit à : un client suit zéro, un ou plusieurs ateliers, donc 0..* du côté de la classe Atelier.');
   /* La phrase sur la classe d’association, trop longue pour trois lignes, est coupée en deux bulles (« une classe d’association. » / « Elle contient… »). */
@@ -2425,7 +2425,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.equal(D.PICKS[4].options.find(o => o.ok).why.replace(/<\/?code>/g, ''), 'Chaque ligne indique quel client s’est inscrit à quel atelier, et à quelle date. La colonne id identifie cette inscription.');
   assert.ok(D.PICKS[4].options.find(o => o.ok).why.includes('La colonne <code>id</code> identifie'), 'moment 5 : la colonne id est en code');
   assert.ok(D.PICKS[4].options.filter(o => !o.ok).every(o => o.why && !/<code>/.test(o.why)), 'moment 5 : chaque mauvaise réponse est expliquée, en texte courant');
-  assert.deepEqual(D.PICKS.filter(p => p.kind === 'sort').map(p => p.next), ['{x} : touche maintenant la classe à côté de laquelle tu veux la placer.', '{x} : touche maintenant son emplacement dans le diagramme.'], 'une ligne d’aide propre à chaque moment à placer');
+  assert.deepEqual(D.PICKS.filter(p => p.kind === 'sort').map(p => p.next), ['{x} : appuie maintenant sur la classe à côté de laquelle tu veux la placer.', '{x} : appuie sur l’emplacement où tu veux la placer dans le diagramme.'], 'une ligne d’aide propre à chaque moment à placer');
   /* Moment 6 (texte d’Elisa du 23 octobre, 09:29) : le diagramme de toute la boutique. Trois classes gardent leur nom (Coach, Atelier, Inscription) ;
      les quatre autres (Client, Carte, Commande, Produit) sont des emplacements vides que l’élève retrouve en lisant les associations, et remplit
      en glissant les étiquettes. Passe et concerne sont les deux associations de plus, celles de la base de l’app. */
@@ -2447,7 +2447,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.deepEqual(D.PICKS[5].options.map(o => o.label), D.FIND.map(f => f[1]), 'une étiquette par classe à retrouver');
   assert.ok(D.PICKS[5].options.every(o => !o.ok && !o.why), 'le moment 6 se juge à chaque geste (IX.act), pas sur une réponse');
   assert.equal(D.PICKS[5].prompt, 'Place chaque étiquette sur sa classe, en lisant les associations.');
-  assert.equal(D.PICKS[5].hint, 'Touche une étiquette, puis son emplacement dans le diagramme. Tu peux aussi la faire glisser.');
+  assert.equal(D.PICKS[5].hint, 'Sélectionne une étiquette, puis appuie sur l’emplacement où tu veux la placer dans le diagramme. Tu peux aussi la faire glisser directement.');
   /* Les légendes (texte d’Elisa du 23 octobre, 11:57) : la première dit d’appliquer les mêmes règles à toute la boutique, la deuxième nomme les commandes et les produits
      (une seule phrase en deux bulles : jamais de bulle de quatre lignes), « À toi ! » vient ensuite, l’image s’arrête, et la dernière lit les deux associations nouvelles
      en même temps que le diagramme les allume. Plus aucune clé étrangère à toucher : ce moment-là est remplacé. */
