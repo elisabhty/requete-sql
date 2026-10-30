@@ -122,6 +122,7 @@ window.MODULES=[
       ["SAVEPOINT", "Annuler une partie des modifications", 253]
     ]},
     {titre:"Triggers et concurrence", sous:"Automatiser et isoler les écritures", lecons:[
+      ["Procédures et fonctions stockées", "Réutiliser un traitement ou un calcul", 187],
       ["Les triggers", "Déclencher une action automatiquement", 247],
       ["Concurrence et isolation", "Gérer les accès simultanés", 249]
     ]},

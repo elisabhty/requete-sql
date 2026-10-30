@@ -4,7 +4,7 @@ Application web progressive pour apprendre le SQL en pratiquant sur une **vraie 
 
 ## Fonctionnalités
 
-- **63 cours en vidéo interactive** : chaque cours est une leçon seule, validée par ses moments « À toi » (ni exercice ni quiz)
+- **64 cours en vidéo interactive** : chaque cours est une leçon seule, validée par ses moments « À toi » (ni exercice ni quiz)
 - **Onboarding** pour démarrer en 30 secondes
 - **Planning** personnalisable + séance du jour
 - **Défis** métier sans filet
@@ -44,4 +44,4 @@ Usage personnel / pédagogique — adapte librement.
 
 ### Vérification des cours
 
-`node tests/curriculum-production.test.mjs` vérifie les 63 cours (tous en leçon seule) et le contrôle des réponses SQL, sur d’anciens exercices gardés en exemple (tri, alias, contraintes, transactions, triggers et droits).
+`node tests/curriculum-production.test.mjs` vérifie les 64 cours (tous en leçon seule) et le contrôle des réponses SQL, sur d’anciens exercices gardés en exemple (tri, alias, contraintes, transactions, triggers et droits).

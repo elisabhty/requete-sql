@@ -1,0 +1,810 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Projet, chapitre 14 : Procédures et fonctions stockées</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .sub{font-size:66px}
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+.hid{opacity:0;visibility:hidden}
+/* Aperçu d’un geste (moment « À toi ») : il prend le pas sur la timeline, le temps de l’arrêt ; il montre exactement
+   l’image que la timeline affiche juste après l’arrêt, qui reprend donc sans saut. */
+.pvs{opacity:1!important;visibility:visible!important}
+.pvh{opacity:0!important;visibility:hidden!important}
+
+/* Couleur de chaque sujet : les tables de la base (la boutique, les ateliers, puis celles des chapitres 11 à 13) */
+.k-co{--c:#2F80ED;--cs:#E6F0FD;--ci:#1D5FA8}
+.k-at{--c:#E8892B;--cs:#FFF1E2;--ci:#9A5B00}
+.k-cl{--c:#6A4DF4;--cs:#EEE9FF;--ci:#5335E0}
+.k-nb{--c:#D99A0B;--cs:#FFF6DA;--ci:#8A6200}
+.k-in{--c:#169447;--cs:#E2F6EA;--ci:#0F7A3A}
+.k-cm{--c:#0E9F9A;--cs:#DDF5F3;--ci:#0B6E6A}
+.k-pr{--c:#D9468F;--cs:#FCE8F2;--ci:#A3216A}
+.k-fi{--c:#9C6B3F;--cs:#F5ECE3;--ci:#7A4F27}
+.k-av{--c:#A23CC9;--cs:#F5E8FB;--ci:#7A2A9B}
+.k-rp{--c:#2B8FB8;--cs:#E3F3FA;--ci:#1B6585}
+.k-cd{--c:#C2410C;--cs:#FFEDD5;--ci:#9A3412}
+
+/* ---------- La base : une ligne par table (son nom, son nombre de lignes) ---------- */
+.bc{left:64px;width:952px;top:236px;padding:0 0 12px;overflow:hidden}
+.bh{height:72px;display:flex;align-items:center;gap:14px;padding:0 34px;background:var(--surface-2);font-family:var(--display);font-size:34px;font-weight:800;color:var(--ink);letter-spacing:-.4px;white-space:nowrap}
+.bh .emo{font-size:34px}
+.bn{margin-left:auto;display:inline-grid;font-family:var(--ui);font-size:25px;font-weight:700;letter-spacing:0}
+.bn>span{grid-area:1/1;height:44px;padding:0 20px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;white-space:nowrap}
+.srow{position:relative;height:56px;padding:9px 34px;overflow:hidden}
+.srow+.srow{box-shadow:inset 0 2px 0 var(--line-2)}
+.srow>div{position:relative;z-index:1}
+.srow .hl{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;opacity:0;visibility:hidden;background:var(--cs);box-shadow:inset 8px 0 0 var(--c)}
+.sn{display:flex;align-items:center;gap:14px;height:38px;font-family:var(--mono);font-size:30px;font-weight:800;color:var(--ci)}
+.sn .emo{font-size:31px}
+.sn .sp{flex:1}
+.nm{position:relative;display:inline-block;white-space:nowrap}
+.nb{display:inline-grid;font-family:var(--ui);font-size:23px;font-weight:700;color:var(--ink-3)}
+.nb>span{grid-area:1/1;justify-self:end;display:flex;align-items:center;justify-content:flex-end;height:36px;padding:0 14px;border-radius:999px;background:var(--line-2);white-space:nowrap}
+
+/* ---------- La table commandes : ses dernières lignes ---------- */
+.tb{padding:0 0 10px;overflow:hidden;border-radius:40px}
+.tb .h{display:flex;align-items:center;gap:12px;height:64px;padding:0 24px;background:var(--cs);font-family:var(--mono);font-size:30px;font-weight:800;color:var(--ci);white-space:nowrap}
+.tb .h .emo{font-size:32px}
+.tb .h .tg{height:38px;padding:0 14px;border-radius:999px;background:#fff;color:var(--ci);font-family:var(--ui);font-size:21px;font-weight:800;display:flex;align-items:center}
+.tb .bn>span{height:40px;font-size:23px;background:#fff;color:var(--ci);box-shadow:inset 0 0 0 3px var(--c)}
+.gr{display:grid;grid-template-columns:var(--g);align-items:stretch;padding:0 12px}
+.gr>span{position:relative;z-index:1;display:flex;align-items:center;gap:10px;min-width:0;padding:0 10px;white-space:nowrap;overflow:hidden}
+.hd{height:44px;font-family:var(--mono);font-size:24px;font-weight:700;color:var(--ink-3)}
+.hd .emo{font-size:21px;width:26px;flex:none;text-align:center}
+#tc .r>.c0{padding-left:46px}
+.gr>span.kc{color:var(--ci)}
+.r{position:relative;height:54px;font-family:var(--mono);font-size:28px;font-weight:600;color:var(--ink);box-shadow:inset 0 2px 0 var(--line-2);overflow:hidden}
+.r .hl,.r .gn{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;pointer-events:none;opacity:0;visibility:hidden}
+.r .hl{background:var(--cs);box-shadow:inset 6px 0 0 var(--c)}
+.r .gn{background:rgba(52,194,122,.18);box-shadow:inset 6px 0 0 #34C27A}
+.r .v{position:relative;z-index:1;font-style:normal}
+.nt{flex:none;height:38px;padding:0 14px;border-radius:11px;background:var(--cs);color:var(--ci);font-family:var(--ui);font-size:23px;font-weight:700;font-style:normal;display:inline-flex;align-items:center;white-space:nowrap}
+/* Une case peut changer de valeur : les valeurs successives sont empilées, une seule se voit */
+.sw{display:inline-grid;position:relative;z-index:1}
+.sw>*{grid-area:1/1;font-style:normal;white-space:pre}
+.st{display:inline-flex;align-items:center;height:40px;padding:0 14px;border-radius:999px;font-family:var(--ui);font-size:22px;font-weight:800;white-space:nowrap}
+.st.ep{background:#FFF1E2;color:#9A5B00;box-shadow:inset 0 0 0 2px #F7C98E}
+.st.ex{background:#E7F7EE;color:#1B7A45;box-shadow:inset 0 0 0 2px #A7E3C0}
+
+/* ---------- Les requêtes : une carte de code (un commentaire, puis la requête) ---------- */
+.sq{border-radius:34px;box-shadow:0 9px 0 #110E27}
+.sq .top{height:52px;gap:12px;padding:0 30px}
+.sq .dot{width:14px;height:14px}
+.sq .fname{margin-left:8px;font-size:22px}
+.sq .body{padding:18px 30px;font-size:28px;line-height:42px}
+.sq .ln{height:42px}
+.sq .cmt{color:var(--t-com)}
+.sq .caret i{top:-31px;width:4px;height:37px}
+.sq .glow{border-radius:8px;padding:0 3px;margin:0 -3px}
+.sq .str{color:var(--t-str)}
+.sq .alt{position:absolute;left:30px;opacity:0;visibility:hidden}
+
+/* ---------- Ce qui est enregistré dans la base : la procédure, puis la fonction ---------- */
+.pbx{left:64px;width:952px;padding:0 0 12px;overflow:hidden}
+.pbr{position:relative;display:flex;align-items:center;gap:16px;height:74px;padding:0 34px;font-family:var(--mono);font-size:30px;font-weight:700;color:var(--ink);white-space:nowrap}
+.pbr+.pbr{box-shadow:inset 0 2px 0 var(--line-2)}
+.pbr .emo{font-size:34px}
+.pbr .tg{margin-left:auto;height:40px;padding:0 16px;border-radius:999px;font-family:var(--ui);font-size:22px;font-weight:800;font-style:normal;display:flex;align-items:center}
+.pbr .tg.p{background:#EEE9FF;color:#5335E0}
+.pbr .tg.f{background:#DDF5F3;color:#0B6E6A}
+.pbr .ph{color:#9A5B00}
+.pbr .bad{color:#C7333A}
+/* La règle des points, et le résultat de la fonction */
+.rule{left:0;width:1080px;display:flex;justify-content:center}
+.rule>span{height:84px;padding:0 34px 0 22px;border-radius:999px;background:#FFF6DA;border:3px solid #F2D68B;box-shadow:0 6px 0 #E8C66B;font-size:32px;font-weight:800;color:#8A6200;display:flex;align-items:center;gap:14px;white-space:nowrap}
+.rule .emo{font-size:40px}
+.fres{left:64px;width:952px;height:150px;box-sizing:border-box;padding:0 38px;border-radius:40px;background:#fff;border:3px solid var(--line);box-shadow:0 9px 0 var(--lip);display:grid;align-items:center;font-family:var(--mono);font-size:34px;font-weight:700;color:var(--ink);white-space:nowrap}
+.fres .fr{grid-area:1/1;display:flex;align-items:center;gap:20px}
+.fres .emo{font-size:44px}
+.fres .ar{color:var(--ink-3)}
+.fres .pts{font-family:var(--display);font-size:64px;font-weight:800;color:#0B6E6A;letter-spacing:-1px}
+.fres .u{font-family:var(--ui);font-size:30px;font-weight:700;color:var(--ink-3)}
+
+.pack{left:0;width:1080px;display:flex;justify-content:center}
+.pack>span{height:84px;padding:0 34px 0 22px;border-radius:999px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);font-size:32px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:14px;white-space:nowrap}
+.pack .emo{font-size:40px}
+.pack.alrt>span{background:#FFF1F1;border-color:#F7B9BC;box-shadow:0 6px 0 #EFA2A6;color:#A92A31}
+
+/* ---------- Les demandes : une carte chacune ; au duel, la réponse se pose dessous ---------- */
+.dq{left:64px;width:952px;box-sizing:border-box;padding:26px 34px;display:flex;align-items:center;gap:24px;font-size:36px;font-weight:600;line-height:1.3;color:var(--ink)}
+.dq .dl{flex:none;width:72px;height:72px;border-radius:22px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--display);font-size:38px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.dv{flex-wrap:wrap}
+.dv .ans{flex-basis:100%;display:inline-grid;justify-items:start;padding-left:96px}
+.dv .ans>i{grid-area:1/1;height:56px;padding:0 22px;border-radius:999px;font-size:28px;font-weight:800;font-style:normal;display:flex;align-items:center;gap:10px;white-space:nowrap;opacity:0;visibility:hidden}
+.dv .ans>i.ok{background:#E7F7EE;color:#1B7A45;box-shadow:inset 0 0 0 3px #A7E3C0}
+.dv .ans>i.ko{background:#FFF1F1;color:#A92A31;box-shadow:inset 0 0 0 3px #F7B9BC}
+
+/* ---------- Le SMS reçu ---------- */
+.ml{left:64px;width:952px;top:560px;height:184px;padding:0 30px;overflow:hidden}
+.tapf{z-index:20;font-size:120px;margin:-8px 0 0 -44px;opacity:0;visibility:hidden}
+
+/* La suite : la prochaine leçon ; SQLite, la base de l’app */
+.keyc{left:0;width:1080px;display:flex;justify-content:center}
+.keyc>span{height:96px;padding:0 40px 0 26px;border-radius:999px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 9px 0 #4B30CC;color:#fff;font-size:36px;font-weight:700;display:flex;align-items:center;gap:16px;white-space:nowrap}
+.keyc .emo{font-size:44px}
+
+/* ---------- À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px;padding:8px 0}
+#s7 .rrow{gap:22px;padding:18px 32px}
+#s7 .rico{width:88px;height:88px;border-radius:26px;font-size:46px}
+#s7 .rtxt{font-size:34px;line-height:1.25}
+#s7 .rtxt .rs{margin-top:2px;font-size:31px}
+
+/* ---------- Les cases où ranger : action ou valeur (moment 1), procédure ou fonction (moment 6) ---------- */
+.dbn{left:64px;width:952px;height:210px;box-sizing:border-box;padding:20px 28px 22px;border-radius:36px;border:4px dashed #C9BCFF;background:rgba(255,255,255,.85);display:flex;flex-direction:column}
+#st .dbn{height:250px}
+.dbn .hh{display:flex;align-items:baseline;gap:20px;white-space:nowrap}
+.dbn .dn{font-family:var(--display);font-size:36px;font-weight:800;color:var(--accent-ink)}
+.dbn .dd{font-size:26px;font-weight:700;color:var(--ink-3)}
+.dbn .cs{margin-top:auto;display:flex;gap:16px}
+.dbn .rc{flex:1;min-height:92px;padding:12px 16px;border-radius:18px;background:var(--accent-soft);color:var(--accent-ink);box-shadow:inset 0 0 0 3px #C9BCFF;font-size:27px;font-weight:700;line-height:1.25;text-align:center;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden}
+.dbn.okb{animation:okb .5s cubic-bezier(.2,.9,.3,1.3)}
+@keyframes okb{40%{transform:scale(1.035)}}
+.dbn.kob{animation:kob .45s ease}
+@keyframes kob{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 14</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>P</span><span>R</span><span>O</span><span>C</span><span>É</span><span>D</span><span>U</span><span>R</span><span>E</span><span>S</span></div>
+    <div class="abs sub">et fonctions stockées</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Enregistre&nbsp;des actions et des calculs dans la base pour pouvoir les réutiliser.</div>
+  </section>
+
+  <!-- La base et l’heure de pointe -->
+  <section class="scene" id="sa"></section>
+  <!-- Les deux SMS : l’équipe logistique, puis l’équipe fidélité -->
+  <section class="scene" id="sm"></section>
+  <!-- Action ou calcul ? Les deux demandes et leurs deux cases -->
+  <section class="scene" id="sd"></section>
+  <!-- La procédure stockée : la table commandes, l’UPDATE, puis CALL -->
+  <section class="scene" id="sb"></section>
+  <!-- La fonction stockée : la règle des points, SELECT calculer_points(…) -->
+  <section class="scene" id="sf"></section>
+  <!-- Le duel : deux demandes, procédure ou fonction -->
+  <section class="scene" id="sv"></section>
+  <!-- Les quatre tickets -->
+  <section class="scene" id="st"></section>
+  <!-- Selon le SGBD : leur création dans PostgreSQL -->
+  <section class="scene" id="sg"></section>
+  <!-- La suite : la prochaine leçon -->
+  <section class="scene" id="sk"></section>
+
+  <!-- À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🛠️</div><div class="rtxt">Une <b>procédure stockée</b> exécute<br>un traitement réutilisable.<span class="rs">Tu l’appelles avec <code>CALL</code> :<br><code>CALL expedier_commande(13);</code></span></div></div>
+      <div class="rrow"><div class="rico emo">🧮</div><div class="rtxt">Une <b>fonction stockée</b> renvoie<br>un résultat réutilisable.<span class="rs">Tu l’utilises dans une requête :<br><code>SELECT calculer_points(80);</code></span></div></div>
+      <div class="rrow"><div class="rico emo">⚠️</div><div class="rtxt">Leur syntaxe <b>dépend du SGBD</b>.<span class="rs">Les deux reçoivent des paramètres.<br>SQLite, la base de l’app, n’en a pas.</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+
+/* ---------- Le déroulé : chaque légende arrive à la suite de la précédente ----------
+   cap(clé, texte, durée) pose une légende [début, fin] ; A[clé] et B[clé] donnent son début et sa fin (temps de la timeline). */
+const SCH = {t: 5.0, caps: [], chaps: [{label:'Les commandes affluent', a: 5.0}], A: {}, B: {}};
+function chap(c){ SCH.t = +(SCH.t + 0.4).toFixed(2); SCH.chaps.push({label: c.label, a: SCH.t}); }
+function cap(key, html, dur, gap = 0.1){
+  const a = +(SCH.t + gap).toFixed(2), b = +(a + dur).toFixed(2);
+  SCH.caps.push([a, b, html]); SCH.A[key] = a; SCH.B[key] = b; SCH.t = b;   // trois lignes au plus par bulle : au-delà, deux bulles (Elisa, 24 octobre)
+}
+/* « À toi ! » : la légende reste un instant, puis l’image s’arrête à a + 2,35 s (le passage d’attente est coupé). */
+const toi = key => cap(key, 'À toi !', 2.55);
+const {A, B} = SCH;
+/* Les messages reçus : [qui (nom, équipe, initiales), sujet (couleur), étiquette, adresse, demande (ses phrases), signature, option].
+   Les deux équipes écrivent par SMS ({sms: true}) : une bulle par phrase, entre « Bonjour ! » et « Merci ! ». Chacun arrive en notification ;
+   l’app s’arrête dessus (OPENS) jusqu’au toucher. Le scénario est celui d’Elisa (30 octobre : 18 h 02, les commandes affluent ; l’équipe
+   répète les mêmes opérations pour chaque commande ; l’équipe fidélité recalcule les points toute la journée, 1 € dépensé = 2 points). */
+const MAILS = [
+  [['L’équipe logistique', 'NutriBoost', 'EL'], 'k-nb', 'équipe', 'logistique@nutriboost.fr', [
+    'Les commandes affluent, et pour chacune, on refait les mêmes opérations : vérifier la commande, diminuer le stock, changer son statut.',
+    'On réécrit sans cesse les mêmes instructions : peux-tu les enregistrer dans la base ?'], 'L’équipe logistique NutriBoost', {sms: true, hello: 'Bonjour !'}],
+  [['L’équipe fidélité', 'NutriBoost', 'EF'], 'k-fi', 'équipe', 'fidelite@nutriboost.fr', [
+    'On recalcule les points de chaque client toute la journée.',
+    'Pour l’exercice, la règle est simple : 1 € dépensé rapporte 2 points.',
+    'Peux-tu enregistrer ce calcul dans la base ?'], 'L’équipe fidélité NutriBoost', {sms: true, hello: 'Bonjour !'}]
+];
+/* Un message : la légende s’efface le temps du message (notification, toucher, lecture, départ). Plus il a de bulles, plus il reste :
+   le toucher à +1,6 s, une bulle toutes les 0,28 s, le départ juste après la pause de lecture, et le bloc finit 1 s après le départ. */
+const mailSms = n => /^client/.test(MAILS[n][2]) || !!(MAILS[n][6] || {}).sms;
+const mailRows = n => mailSms(n) ? 2 + [].concat(MAILS[n][4]).flatMap(p => p.split(/(?<=[.!?])\s+(?=[A-ZÀÂÉÈÊÎÔÛÇ])/)).length
+  : 1 + [].concat(MAILS[n][4]).length + 1 + 1;
+const mailOutAt = n => +(2.68 + 0.28 * (mailRows(n) - 1)).toFixed(2);
+const mailBlock = n => { const t = SCH.t; SCH.t = +(SCH.t + mailOutAt(n) + 1).toFixed(2); return t; };
+const MO = MAILS.map((m, n) => mailOutAt(n));   // le départ de chaque message, depuis le début de son bloc
+
+/* 1 · Les commandes affluent : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) */
+cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
+cap('r2', "Au chapitre 13, un savepoint<br>t’a permis d’annuler<br>une partie d’une transaction.", 3.8);
+cap('c2', "À 18 h 02, les commandes affluent.", 2.8);
+const MAIL1 = mailBlock(0);
+/* 2 · Action ou calcul ? */
+chap({label:'Action ou calcul ?'});
+cap('c3', "Deux demandes reviennent<br>toute la journée.", 3.0);
+cap('c4', "Pour chacune, demande-toi<br>ce que tu attends.", 2.8);
+toi('p1');
+cap('c5', "La demande A change le statut<br>d’une commande : c’est une action.", 3.8);
+cap('c6', "La demande B renvoie un nombre<br>de points : c’est une valeur.", 3.6);
+cap('c7', "Ces deux besoins mènent<br>à deux outils différents.", 3.2);
+/* 3 · Une procédure stockée */
+chap({label:'Une procédure stockée'});
+cap('c8', "Pour expédier une commande<br>de la <b>table commandes</b>,<br>l’équipe écrit cet <code>UPDATE</code>.", 4.6);   // la requête s’écrit pendant la bulle
+cap('c9', "Demain, ce sera la commande 14,<br>puis la 15, puis la 16.", 3.6);
+cap('c10', "Plutôt que de réécrire la requête,<br>tu l’enregistres dans la base :<br>une <b>procédure stockée</b>.", 4.6);
+cap('c11', "Elle s’appelle <code>expedier_commande</code>.", 3.0);
+cap('c12', "Pour servir à toutes les commandes,<br>elle a besoin d’une information.", 3.8);
+toi('p2');
+cap('c13', "L’identifiant de la commande<br>est un <b>paramètre</b> : il change<br>à chaque appel.", 4.2);
+cap('c14', "<code>CALL expedier_commande(13)</code><br>expédie la commande 13.", 4.2);
+cap('c15', "Avec 14, la même procédure<br>expédie la commande 14.", 3.6);
+cap('c16', "Tu écris la logique une fois,<br>puis tu la réutilises.", 3.2);
+/* 4 · Une fonction stockée */
+chap({label:'Une fonction stockée'});
+const MAIL2 = mailBlock(1);
+cap('c17', "Cette fois, tu ne veux pas<br>exécuter une action :<br>tu veux obtenir un résultat.", 4.0);
+cap('c18', "C’est le rôle d’une <b>fonction stockée</b>.", 3.0);
+cap('c19', "<code>calculer_points</code> reçoit un montant<br>et renvoie le nombre de points.", 4.0);
+cap('c20', "<code>SELECT calculer_points(80)</code><br>renvoie 160.", 3.4);
+toi('p3');
+cap('c21', "Pour 120 €, elle renvoie 240 :<br>le calcul ne change pas.", 3.6);
+/* 5 · Le duel */
+chap({label:'Le duel'});
+cap('c22', "Deux nouvelles demandes arrivent.", 2.8);
+toi('p4');
+cap('c23', "Expédier la commande 15<br>est une action : une procédure.", 3.6);
+toi('p5');
+cap('c24', "Calculer des points renvoie<br>une valeur : une fonction.", 3.4);
+/* 6 · Les quatre tickets */
+chap({label:'Les quatre tickets'});
+cap('c25', "Quatre tickets viennent d’arriver.", 2.8);
+toi('p6');
+cap('c26', "Une procédure exécute un traitement ;<br>une fonction renvoie une valeur.", 4.2);
+/* 7 · Selon le SGBD */
+chap({label:'Selon le SGBD'});
+cap('c27', "Leur syntaxe dépend du système<br>de gestion de base de données.", 3.8);
+cap('c28', "Dans PostgreSQL, par exemple,<br>tu les crées ainsi.", 6.0);   // les deux créations s’écrivent pendant la bulle
+cap('c29', "<code>CREATE PROCEDURE</code> enregistre<br>le traitement, <code>CREATE FUNCTION</code><br>le calcul.", 4.6);
+cap('c30', "Dans SQLite, la base de l’app,<br>elles n’existent pas.", 3.4);
+/* la suite : la prochaine leçon */
+cap('c31', "Dans la prochaine leçon, tu découvriras<br>les triggers : des actions lancées<br>automatiquement par une modification.", 7.0);
+/* 8 · À retenir */
+chap({label:'À retenir'});
+const RECAP = SCH.t;
+cap('c32', "Pour finir, voici les <b>trois idées à retenir</b>.", 4.8, 0.4);
+/* NOTES (le bouton « Ajouter à mes notes ») est écrit en clair dans Course(…) plus bas : tests/procedures-lesson.test.mjs vérifie qu’il suit le déroulé. */
+const NOTES = +(SCH.t + 0.1).toFixed(2);
+const DURATION = +(NOTES + 7.2).toFixed(2);
+SCH.caps.push([NOTES, 999, APP ? "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."
+  : "Une procédure agit,<br>une fonction renvoie une valeur."]);
+
+const CAPTIONS = SCH.caps;
+const CHAPTERS = SCH.chaps.map((c, i) => ({n: i + 1, label: c.label, a: c.a, b: i + 1 < SCH.chaps.length ? SCH.chaps[i + 1].a : DURATION}));
+
+/* Pas de question du lecteur : les moments « À toi » (PICKS) font participer l’élève. */
+const QUESTIONS = [];
+
+/* ---------- Le cas : la base des ateliers NutriBoost (la même dans tous les chapitres du projet) ---------- */
+/* La base telle que le chapitre 13 la laisse : onze tables, avec la table cadeaux (la Protéine Végétale offerte à Léa Simon, validée).
+   [clé, couleur, emoji, nom, lignes] */
+const TB = [
+  ['cl', 'k-cl', '👥', 'clients', 8], ['cm', 'k-cm', '🛒', 'commandes', 16], ['fi', 'k-fi', '⭐', 'fidelite', 4], ['pr', 'k-pr', '📦', 'produits', 9],
+  ['co', 'k-co', '🧑‍🏫', 'coachs', 4], ['at', 'k-at', '📅', 'ateliers', 5], ['in', 'k-in', '📝', 'inscriptions', 7], ['ca', 'k-nb', '💳', 'cartes', 3],
+  ['av', 'k-av', '💬', 'avis', 1], ['rp', 'k-rp', '🔁', 'remplacements', 1], ['cd', 'k-cd', '🎁', 'cadeaux', 1]
+];
+/* Les dernières lignes de la table commandes, telles que l’app les crée : [id, numéro, identifiant du client, son nom, statut].
+   Les commandes 12 à 16 sont encore en préparation ; la procédure expédie la 13, puis la 14 (les chapitres suivants ne s’en servent pas). */
+const COMMANDES = [
+  [11, 'CMD-2026-1085073', 8, 'Gabriel Michel', 'expédiée'], [12, 'CMD-2026-1093528', 4, 'Nathan Petit', 'en_preparation'],
+  [13, 'CMD-2026-1106294', 1, 'Sophie Martin', 'en_preparation'], [14, 'CMD-2026-1847392', 3, 'Emma Dubois', 'en_preparation'],
+  [15, 'CMD-2026-1128760', 5, 'Chloé Moreau', 'en_preparation'], [16, 'CMD-2026-1134085', null, '', 'en_preparation']
+];
+/* La règle de l’exercice : 1 € dépensé rapporte 2 points. */
+const POINTS = m => m * 2;
+/* Moment 1 : ce que l’on attend de chaque demande [demande, case, pourquoi]. */
+const BINS1 = [['ac', 'Une action', 'modifier la base'], ['va', 'Une valeur', 'obtenir un résultat']];
+const DEMANDES = [
+  ['A · Passer la commande 13 au statut « expédiée »', 'ac', 'Le statut de la commande change dans la base : tu effectues une action.'],
+  ['B · Calculer les points d’un achat de 80 €', 'va', 'Tu attends un nombre de points en retour : c’est une valeur.']
+];
+/* Moment 6 : les quatre tickets [ticket, outil, pourquoi]. */
+const BINS2 = [['pr', 'Procédure stockée', 'effectuer un traitement'], ['fn', 'Fonction stockée', 'obtenir une valeur']];
+const TICKETS = [
+  ['Annuler une commande et remettre les produits en stock', 'pr', 'Plusieurs actions modifient la base : c’est un traitement, le rôle d’une procédure.'],
+  ['Calculer le prix après remise', 'fn', 'Tu attends une valeur, le prix calculé : c’est le rôle d’une fonction.'],
+  ['Valider une commande et diminuer le stock', 'pr', 'Valider la commande et diminuer le stock modifient la base : c’est le rôle d’une procédure.'],
+  ['Calculer les points fidélité d’un achat', 'fn', 'Tu attends un nombre de points, une valeur calculée : c’est le rôle d’une fonction.']
+];
+
+/* Les six moments « À toi » : l’image s’arrête, l’élève range, choisit ou règle ; la page montre aussitôt le résultat.
+   from : début du passage qui amène chaque moment, d’où repartent « ↺ Revoir » et « Rejouer ». */
+const atp = k => +(A[k] + 2.35).toFixed(2);
+const PICKS = [
+  {at: atp('p1'), from: A.c3, kind: 'sort', prompt: 'Range chaque demande selon ce que tu attends.',
+    hint: 'Sélectionne une demande, puis appuie sur ce que tu attends. Tu peux aussi la faire glisser directement.', next: '« {x} » : une action, ou une valeur ?',
+    options: DEMANDES.map(x => ({label: x[0]}))},
+  {at: atp('p2'), from: A.c10, kind: 'pick', text: true, prompt: 'Que doit recevoir la procédure pour servir à n’importe quelle commande ?', options: [
+    {label: 'Le nom de la table', why: 'La table ne change pas d’une commande à l’autre : la procédure travaille toujours sur la <b>table&nbsp;commandes</b>.'},
+    {label: 'L’identifiant de la commande', ok: true},
+    {label: 'Le mot UPDATE', why: '<code>UPDATE</code> fait partie de la procédure : il est écrit une seule fois, à l’intérieur.'}]},
+  {at: atp('p3'), from: A.c19, kind: 'tune', ico: '🧮', prompt: 'Règle le montant pour obtenir <b>240 points</b>.',
+    hint: 'Fais glisser le montant : la fonction recalcule les points.',
+    controls: [{k: 'm', type: 'range', label: 'Montant', min: 0, max: 200, step: 5, value: 80, unit: ' €'}], answer: {m: 120}},
+  {at: atp('p4'), from: A.c22, kind: 'pick', text: true, prompt: 'Passer la commande 15 au statut « expédiée » : que choisis-tu ?', options: [
+    {label: 'Une procédure stockée', ok: true},
+    {label: 'Une fonction stockée', why: 'Passer une commande à « expédiée » modifie la base : c’est une action, le rôle d’une procédure.'}]},
+  {at: atp('p5'), from: A.c23, kind: 'pick', text: true, prompt: 'Calculer les points obtenus pour 75 € : que choisis-tu ?', options: [
+    {label: 'Une procédure stockée', why: 'Tu veux récupérer un nombre de points : c’est une valeur calculée, le rôle d’une fonction.'},
+    {label: 'Une fonction stockée', ok: true}]},
+  {at: atp('p6'), from: A.c25, kind: 'sort', prompt: 'Range chaque ticket avec l’outil qui convient.',
+    hint: 'Sélectionne un ticket, puis appuie sur l’outil qui convient. Tu peux aussi le faire glisser directement.', next: '« {x} » : un traitement, ou une valeur ?',
+    options: TICKETS.map(x => ({label: x[0]}))}
+];
+
+const msgOpen = (t, n) => {
+  const [prenom, nom] = MAILS[n][0], msg = mailSms(n) ? 'message' : 'mail';   // les deux équipes écrivent par SMS
+  const de = /^Le /.test(prenom) ? 'du ' + prenom.slice(3) : /^La /.test(prenom) ? 'de la ' + prenom.slice(3) : /^L’/.test(prenom) ? 'de l’' + prenom.slice(2)
+    : /^[AEIOUHÉÈ]/.test(prenom) ? 'd’' + prenom : 'de ' + prenom;
+  return {at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: `Touche le ${msg} pour l’ouvrir.`, label: `Ouvrir le ${msg} ${de} ${nom}`};
+};
+const OPENS = [msgOpen(MAIL1, 0), msgOpen(MAIL2, 1)];
+
+/* ---------- Gabarits ---------- */
+const cell = (j, inner) => `<span class="c${j}">${inner}</span>`;
+const line = (id, cells) => `<div class="gr r" id="r${id}"><i class="hl"></i><i class="gn"></i>${cells}</div>`;
+/* Une pile de valeurs (une seule se voit) : [classe, texte] ; tv : la valeur du réglage, pendant le moment. */
+const pile = (id, vals, cls = '') => `<span class="sw${cls ? ' ' + cls : ''}" id="${id}">${vals.map((v, j) => `<i class="a${j}">${v}</i>`).join('')}</span>`;
+/* Carte de code : une ligne par [repère, texte]. Dans le texte : {id|…} un passage repéré (il pulse). Un commentaire (--) n’a pas de curseur ; 'texte' : une chaîne. */
+const SQL_KW = /\b(?:CREATE PROCEDURE|CREATE FUNCTION|RETURNS|LANGUAGE|AS|CALL|UPDATE|SET|WHERE|SELECT)\b/g, CARET = '<span class="caret"><i></i></span>';
+function lineHtml([lid, s]){
+  const cmt = s.trim().startsWith('--');
+  let h = s.replace(/\{(\w+)\|([^{}]*)\}/g, '<span class="glow" id="$1">$2</span>');
+  if (!cmt) h = h.replace(/'[^'<>]*'/g, '<span class="str">$&</span>').replace(SQL_KW, '<span class="kw">$&</span>');
+  return `<span class="ln${cmt ? ' cmt' : ''}" id="${lid}">${h}${cmt ? '' : CARET}</span>`;
+}
+const editor = (id, fname, lines, top, extra = '') => `<div class="abs code sq" id="${id}" style="left:64px;width:952px;top:${top}px"><div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i>` +
+  `<span class="fname">${fname}</span></div><div class="body">${lines.map(lineHtml).join('')}${extra}</div></div>`;
+/* Une ligne de remplacement, à la place de la ligne k (une autre valeur, un réglage) : cachée jusqu’à ce qu’on la montre. */
+const alt = (id, s, k) => lineHtml([id, s]).replace('class="ln"', `class="ln alt" style="top:${18 + 42 * k}px"`);
+const statut = s => `<span class="st ${s === 'expédiée' ? 'ex' : 'ep'}">${s}</span>`;
+/* Ce que la base garde : la procédure (son paramètre est à trouver : « … », puis id_commande ; les mauvaises réponses en rouge), puis la fonction. */
+const PROC = sig => `<div class="pbr" id="pbp${sig ? '' : '2'}"><span class="emo">🛠️</span>${sig || '<span>expedier_commande(id_commande)</span>'}<i class="tg p">procédure</i></div>`;
+const FONC = '<div class="pbr" id="pbf"><span class="emo">🧮</span><span>calculer_points(montant)</span><i class="tg f">fonction</i></div>';
+const box = (id, rows) => `<div class="abs card pbx" id="${id}"><div class="bh"><span class="emo">🗄️</span><span>Enregistré dans la base</span></div>${rows}</div>`;
+function dom(){
+  /* La base et ses onze tables, puis l’heure de pointe */
+  $('#sa').innerHTML = `<div class="abs card bc" id="bc"><div class="bh"><span class="emo">🗄️</span><span>Base NutriBoost</span><span class="bn"><span>11 tables</span></span></div>` +
+    TB.map(([k, kc, emo, name, n]) => `<div class="srow ${kc}" id="bw-${k}"><i class="hl"></i><div class="sn"><span class="emo">${emo}</span>` +
+      `<span class="nm">${name}</span><i class="sp"></i><b class="nb"><span>${n} ${n > 1 ? 'lignes' : 'ligne'}</span></b></div></div>`).join('') + '</div>' +
+    '<div class="abs pack alrt" id="dem"><span><span class="emo">🚨</span>18 h 02 · les commandes affluent</span></div>';
+  /* Action ou calcul : les deux demandes, puis leurs deux cases */
+  $('#sd').innerHTML = DEMANDES.map(([t], q) => `<div class="abs card dq" id="dq${q}" style="top:${250 + q * 150}px"><b class="dl">${t[0]}</b><span>${t.slice(4)}.</span></div>`).join('') +
+    BINS1.map(([k, n, d], q) => `<div class="abs dbn" id="db-${k}" data-k="${k}" style="top:${580 + q * 232}px"><div class="hh"><span class="dn">${n}</span><span class="dd">${d}</span></div>` +
+      `<div class="cs">${DEMANDES.map((x, i) => x[1] === k ? `<div class="rc" id="sbu${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
+    '<div class="abs pack" id="bpack" style="top:1080px"><span><span class="emo">📋</span>2 demandes à ranger</span></div>';
+  /* La procédure : les dernières commandes ; l’UPDATE de l’équipe, puis les deux appels ; ce que la base garde */
+  let b = `<div class="abs card tb k-cm" id="tc" style="left:64px;width:952px;top:236px;--g:96px 324px 300px 1fr">` +
+    `<div class="h"><span class="emo">🛒</span><span id="tcn">commandes</span><span class="tg">dernières lignes</span><span class="bn"><span>16 lignes</span></span></div>` +
+    `<div class="gr hd"><span class="c0 kc"><span class="emo">🔑</span>id</span><span class="c1">numero_commande</span><span class="c2">client_id</span><span class="c3">statut</span></div>` +
+    COMMANDES.map(([id, num, cl, nom, s]) => line('c' + id, cell(0, `<i class="v">${id}</i>`) + cell(1, `<i class="v">${num}</i>`) +
+      cell(2, cl ? `<i class="v">${cl}</i><i class="nt k-cl">${nom}</i>` : '<i class="v">NULL</i>') +
+      cell(3, id === 13 || id === 14 ? pile('st' + id, [statut(s), statut('expédiée')]) : statut(s)))).join('') + '</div>';
+  b += editor('ep', 'expedition.sql', [['ep0', '-- Expédier une commande'], ['ep1', 'UPDATE commandes'], ['ep2', "SET statut = 'expédiée'"], ['ep3', 'WHERE id = {pid|13};']], 0);
+  b += editor('ec', 'appels.sql', [['ec0', '-- Expédier les commandes'], ['ec1', '{kc1|CALL} expedier_commande({pa1|13});'], ['ec2', '{kc2|CALL} expedier_commande({pa2|14});']], 0);
+  b += box('pb', PROC(pile('psig', ['expedier_commande(<b class="ph">…</b>)', 'expedier_commande(id_commande)', 'expedier_commande(<b class="bad">nom_table</b>)', 'expedier_commande(<b class="bad">UPDATE</b>)'])));
+  $('#sb').innerHTML = b;
+  /* La fonction : la base garde les deux ; la règle des points ; l’appel, et son résultat (80 €, puis 120 € ; tv : le réglage du moment 3) */
+  $('#sf').innerHTML = box('pb2', PROC() + FONC) +
+    '<div class="abs rule" id="rule"><span><span class="emo">⭐</span>1 € dépensé = 2 points</span></div>' +
+    editor('ef', 'points.sql', [['ef0', '-- Les points d’un achat'], ['ef1', 'SELECT calculer_points(80);']], 0,
+      alt('ef1b', 'SELECT calculer_points(120);', 1) + alt('ef1t', 'SELECT calculer_points({tva|80});', 1)) +
+    '<div class="abs fres" id="fres">' + [['fr0', '80', '160'], ['fr1', '120', '240'], ['fr2', '<span id="tvr">80</span>', '<span id="tvp">160</span>']].map(([id, m, p]) =>
+      `<div class="fr" id="${id}"><span class="emo">🧮</span><span>calculer_points(${m})</span><span class="ar">→</span><b class="pts">${p}</b><span class="u">points</span></div>`).join('') + '</div>';
+  /* Le duel : deux demandes, la réponse se pose sous chacune */
+  $('#sv').innerHTML = [['Passe la commande 15 au statut « expédiée ».', 0], ['Calcule les points obtenus pour 75 €.', 1]].map(([t, q]) =>
+    `<div class="abs card dq dv" id="dv${q}" style="top:${330 + q * 330}px"><b class="dl">${q + 1}</b><span>${t}</span><span class="ans">` +
+    `<i class="${q ? 'ko' : 'ok'}" id="v${q}p">🛠️ Procédure stockée</i><i class="${q ? 'ok' : 'ko'}" id="v${q}f">🧮 Fonction stockée</i></span></div>`).join('');
+  /* Les quatre tickets : une case par outil */
+  $('#st').innerHTML = BINS2.map(([k, n, d], q) => `<div class="abs dbn" id="dt-${k}" data-k="${k}" style="top:${260 + q * 282}px"><div class="hh"><span class="dn">${n}</span><span class="dd">${d}</span></div>` +
+    `<div class="cs">${TICKETS.map((x, i) => x[1] === k ? `<div class="rc" id="stk${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
+    '<div class="abs pack" id="tpack" style="top:860px"><span><span class="emo">🎫</span>4 tickets à ranger</span></div>';
+  /* Selon le SGBD : leur création dans PostgreSQL */
+  $('#sg').innerHTML = editor('eg', 'postgresql.sql', [
+    ['eg0', '-- Dans PostgreSQL'],
+    ['eg1', '{gp|CREATE PROCEDURE} expedier_commande(id_commande INT)'],
+    ['eg2', 'LANGUAGE SQL AS $$'],
+    ['eg3', "  UPDATE commandes SET statut = 'expédiée'"],
+    ['eg4', '  WHERE id = id_commande;'],
+    ['eg5', '$$;'],
+    ['eg6', '{gf|CREATE FUNCTION} calculer_points(montant NUMERIC)'],
+    ['eg7', 'RETURNS NUMERIC LANGUAGE SQL AS $$'],
+    ['eg8', '  SELECT montant * 2;'],
+    ['eg9', '$$;']], 330);
+  /* Les SMS */
+  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body, false, smsRank(MAILS, n),
+    (MAILS[n][6] || {}).hello, (MAILS[n][6] || {}).photo, (MAILS[n][6] || {}).bye) : '').join('') +
+    '<div class="abs emo tapf" id="tapf">👆</div>';
+  /* La suite : la prochaine leçon */
+  $('#sk').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🔖</span>Prochaine leçon · Les triggers</span></div>';
+  // les requêtes, découpées en caractères pour la frappe
+  $$('.sq .ln').forEach(splitChars);
+}
+
+/* ---------- Mise en page ---------- */
+const bottom = s => { const el = $(s); return el.offsetTop + el.offsetHeight; };
+function layout(){
+  // la table commandes, la requête dessous (l’UPDATE, puis les appels à sa place), puis ce que la base garde
+  const E = bottom('#tc') + 9 + 24;
+  ['#ep', '#ec'].forEach(s => { $(s).style.top = E + 'px'; });
+  $('#pb').style.top = (E + Math.max($('#ep').offsetHeight, $('#ec').offsetHeight) + 9 + 24) + 'px';
+  // la fonction : la base, la règle, l’appel, son résultat
+  $('#pb2').style.top = '236px';
+  $('#rule').style.top = (bottom('#pb2') + 9 + 30) + 'px';
+  $('#ef').style.top = (bottom('#rule') + 6 + 30) + 'px';
+  $('#fres').style.top = (bottom('#ef') + 9 + 24) + 'px';
+  $('#dem').style.top = (bottom('#bc') + 9 + 34) + 'px';
+  // action ou calcul : les deux demandes l’une sous l’autre, puis leurs deux cases et le paquet
+  $('#dq0').style.top = '240px';
+  $('#dq1').style.top = (bottom('#dq0') + 9 + 24) + 'px';
+  $('#db-ac').style.top = (bottom('#dq1') + 9 + 34) + 'px';
+  $('#db-va').style.top = (bottom('#db-ac') + 22) + 'px';
+  $('#bpack').style.top = (bottom('#db-va') + 9 + 40) + 'px';
+}
+
+/* ---------- Petits gestes de la timeline ---------- */
+const pulse = (el, t, n = 3, c = 'rgba(201,188,255,.55)') => tl.to(el, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (el, t, s = 1.04) => tl.to(el, {scale: s, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, t);
+const on = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 1, duration: d, ease: 'power2.out'}, t);
+const off = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 0, duration: d, ease: 'power2.in'}, t);
+const GLOW = 'rgba(255,224,138,.4)';
+/* Une valeur en remplace une autre : l’ancienne monte et s’efface, la nouvelle arrive par en dessous. */
+function swap(o, n, t, sound = true){
+  tl.to(o, {autoAlpha: 0, y: -14, duration: 0.2, ease: 'power2.in'}, t);
+  tl.fromTo(n, {autoAlpha: 0, y: 14}, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power3.out', immediateRender: false}, t + 0.12);
+  if (sound) cue(t + 0.12, 'type', 0.8, 2);
+}
+/* Frappe d’une ligne de code. Renvoie l’instant de fin. */
+function sqType(lid, t, cps = 36, lead = 0.25){
+  const ln = $('#' + lid), caret = $$(':scope > .caret', ln).pop();
+  tl.set(caret, {autoAlpha: 1}, t - lead);
+  const end = typeChars($$('.ch', ln), t, cps);
+  tl.set(caret, {autoAlpha: 0}, end + 0.12);
+  return end;
+}
+/* La légende s’efface le temps d’un message, puis revient. */
+const capOff = t => tl.to('#cap', {autoAlpha: 0, y: 30, duration: 0.3, ease: 'power2.in'}, t);
+const capOn = t => tl.to('#cap', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, t);
+/* Un SMS arrive : la notification tombe ; à T, l’élève la touche (l’app s’arrête là, OPENS ; hors de l’app, un doigt le montre),
+   puis les bulles arrivent une à une. L’image reste le temps de lire la demande. */
+function mailIn(n, t, T){
+  if (isSms(MAILS[n - 1][2], MAILS[n - 1][6])) { if (!APP) fingerTap($('#ml' + n), T); return smsIn(n, t, T); }
+  return T;
+}
+function mailOut(n, t){ hide('#ml' + n, t, {x: 140, y: 0, rotation: 2}, 0.4, 'power2.in'); cue(t, 'whoosh', 0.4); }
+/* Hors de l’app (vidéo seule), un doigt montre le geste : il touche la notification. */
+function fingerTap(M, T){
+  const f = '#tapf';
+  tl.set(f, {left: M.offsetLeft + M.offsetWidth * 0.6, top: M.offsetTop + 92}, T - 0.8);
+  tl.fromTo(f, {autoAlpha: 0, x: 90, y: 170}, {autoAlpha: 1, x: 0, y: 0, duration: 0.5, ease: 'power3.out', immediateRender: false}, T - 0.75);
+  tl.to(f, {scale: 0.86, duration: 0.1, ease: 'power2.in'}, T - 0.15);
+  tl.to(f, {scale: 1, duration: 0.15}, T);
+  tl.to(f, {autoAlpha: 0, y: 70, duration: 0.3}, T + 0.2);
+}
+
+/* Réponses des moments « À toi » : ce que la timeline montre juste après l’arrêt (et que l’aperçu montre pendant l’arrêt). */
+const M1_ANS = ['#sd .dbn .rc'];
+const M2_ANS = ['#psig .a1'], M2_HIDE = ['#psig .a0'];                  // expedier_commande(id_commande)
+const M3_ANS = ['#ef1b', '#fr1'], M3_HIDE = ['#ef1', '#fr0'];   // 120 €, 240 points
+const M4_ANS = ['#v0p'], M5_ANS = ['#v1f'];
+const M6_ANS = ['#st .dbn .rc'];
+const set2 = t => +(t + 0.02).toFixed(2);
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.6);   // le temps de lire la bulle de la mascotte
+  layout();
+  gsap.set(['.sq', '.pack', '#bc', '#tc', '#pb', '#pb2', '#rule', '#fres', '#keyc', '.dbn', '.dq'], {autoAlpha: 0});
+  gsap.set(['.dbn .rc', '#pbf', '#st13 .a1', '#st14 .a1', '#psig .a1', '#psig .a2', '#psig .a3', '#fr1', '#fr2', '.dv .ans>i'], {autoAlpha: 0});
+
+  /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
+     la consigne, la légende ne la répète pas. Le passage d’attente est coupé (rien ne s’y anime). */
+  PICKS.forEach(p => cut(p.at - 1.35, 1.25));
+
+  /* ===== 1 · Les commandes affluent ===== */
+  sceneOn('#sa', 5.0);
+  show('#bc', A.r1, {y: 60}, 0.55); cue(A.r1, 'whoosh', 0.5);
+  TB.forEach(([k], q) => { const t = A.r1 + 0.3 + q * 0.12; show('#bw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q % 5); });
+  // « Au chapitre 13, un savepoint t’a permis d’annuler une partie d’une transaction » : les cadeaux, puis les remplacements
+  on('#bw-cd .hl', A.r2 + 0.6, 0.2); cue(A.r2 + 0.6, 'tick', 0.5, 2);
+  on('#bw-rp .hl', A.r2 + 1.3, 0.2); cue(A.r2 + 1.3, 'tick', 0.5, 4);
+  off(['#bw-cd .hl', '#bw-rp .hl'], A.r2 + 3.0, 0.3);
+  // 18 h 02 : la pastille rouge, et la table commandes qu’elle concerne
+  show('#dem', A.c2 + 0.3, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.c2 + 0.3, 'pop', 0.7, 1);
+  tl.to('#dem .emo', {rotation: -16, duration: 0.14, yoyo: true, repeat: 5, ease: 'sine.inOut'}, A.c2 + 0.8);
+  on('#bw-cm .hl', A.c2 + 1.2, 0.25); cue(A.c2 + 1.2, 'tick', 0.5, 2);
+  // le SMS de l’équipe logistique
+  capOff(MAIL1 - 0.2);
+  hide(['#bc', '#dem'], MAIL1, {y: -30}, 0.35);
+  sceneOff('#sa', MAIL1 + 0.4);
+  sceneOn('#sm', MAIL1 + 0.4);
+  mailIn(1, MAIL1 + 0.5, OPENS[0].at);
+  mailOut(1, MAIL1 + MO[0]);
+  sceneOff('#sm', MAIL1 + MO[0] + 0.3);
+  sceneOn('#sd', MAIL1 + MO[0] + 0.3);
+  capOn(A.c3 - 0.3);
+
+  /* ===== 2 · Action ou calcul ? ===== */
+  // les deux demandes, l’une après l’autre
+  show('#dq0', A.c3 + 0.3, {y: 40, scale: 0.96}, 0.5, 'back.out(1.5)'); cue(A.c3 + 0.3, 'pop', 0.6, 1);
+  show('#dq1', A.c3 + 1.0, {y: 40, scale: 0.96}, 0.5, 'back.out(1.5)'); cue(A.c3 + 1.0, 'pop', 0.6, 3);
+  // ce que tu attends : les deux cases, puis le paquet
+  [['#db-ac', 0], ['#db-va', 2]].forEach(([id, p], q) => { const t = A.c4 + 0.5 + q * 0.3; show(id, t, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(t, 'pop', 0.6, p); });
+  show('#bpack', B.c4 + 0.15, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(B.c4 + 0.15, 'pop', 0.7, 1);
+  // À toi : chaque demande dans sa case ; remplies, les cases ne sont plus des zones où déposer
+  tl.set(M1_ANS, {autoAlpha: 1}, set2(PICKS[0].at));
+  tl.set('#sd .dbn', {borderStyle: 'solid'}, set2(PICKS[0].at));
+  tl.set('#bpack', {autoAlpha: 0}, set2(PICKS[0].at));
+  // la demande A est une action, la demande B une valeur ; deux outils différents
+  bump('#sbu0', A.c5 + 0.6, 1.06); cue(A.c5 + 0.6, 'tick', 0.5, 2);
+  bump('#sbu1', A.c6 + 0.6, 1.06); cue(A.c6 + 0.6, 'tick', 0.5, 4);
+  hide(['#sd .dq', '#sd .dbn'], B.c7 - 0.1, {y: -40}, 0.4);
+  sceneOff('#sd', B.c7 + 0.4);
+
+  /* ===== 3 · Une procédure stockée ===== */
+  // les dernières commandes, et l’UPDATE de l’équipe pour la commande 13
+  sceneOn('#sb', A.c8 - 0.1);
+  tl.fromTo('#tc', {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, A.c8 - 0.1);
+  cue(A.c8 - 0.1, 'whoosh', 0.5);
+  show('#ep', A.c8 + 0.5, {y: 40}, 0.5); cue(A.c8 + 0.5, 'whoosh', 0.45, 1);
+  let te = sqType('ep1', A.c8 + 1.0, 30); te = sqType('ep2', te + 0.1, 30); sqType('ep3', te + 0.1, 30);
+  on('#rc13 .hl', A.c8 + 3.6, 0.25); cue(A.c8 + 3.6, 'tick', 0.5, 2);
+  // demain, la 14, puis la 15, puis la 16 : la même requête, une autre valeur
+  pulse('#pid', A.c9 + 0.3, 1, GLOW); cue(A.c9 + 0.3, 'tick', 0.5, 2);
+  [14, 15, 16].forEach((n, q) => { const t = A.c9 + 0.9 + q * 0.6; bump(`#rc${n} .c0`, t, 1.2); cue(t, 'tick', 0.5, q + 3); });
+  off('#rc13 .hl', B.c9 - 0.6, 0.3);
+  // tu l’enregistres dans la base : une procédure stockée, nommée expedier_commande ; son paramètre est à trouver
+  show('#pb', A.c10 + 1.6, {y: 30, scale: 0.96}, 0.5, 'back.out(1.5)'); cue(A.c10 + 1.6, 'chord', 0.6);
+  bump('#pbp', A.c11 + 0.6, 1.04); cue(A.c11 + 0.6, 'tick', 0.5, 3);
+  pulse('#psig .ph', A.c12 + 0.6, 2, GLOW); cue(A.c12 + 0.6, 'tick', 0.5, 2);
+  // À toi : le paramètre (réponse : l’identifiant de la commande)
+  tl.set(M2_ANS, {autoAlpha: 1}, set2(PICKS[1].at));
+  tl.set(M2_HIDE, {autoAlpha: 0}, set2(PICKS[1].at));
+  // il change à chaque appel
+  bump('#psig', A.c13 + 1.2, 1.12); cue(A.c13 + 1.2, 'tick', 0.5, 3);
+  // CALL expedier_commande(13), puis (14) : la commande 13, puis la 14, passent à « expédiée »
+  hide('#ep', A.c14, {y: -20}, 0.3);
+  show('#ec', A.c14 + 0.3, {y: 20}, 0.4); cue(A.c14 + 0.3, 'whoosh', 0.4, 1);
+  sqType('ec1', A.c14 + 0.6, 30);
+  pulse('#pa1', A.c14 + 1.9, 1, GLOW);
+  on('#rc13 .gn', A.c14 + 2.4, 0.25); swap('#st13 .a0', '#st13 .a1', A.c14 + 2.5); cue(A.c14 + 2.5, 'chord', 0.5);
+  sqType('ec2', A.c15 + 0.3, 30);
+  pulse('#pa2', A.c15 + 1.6, 1, GLOW);
+  on('#rc14 .gn', A.c15 + 2.1, 0.25); swap('#st14 .a0', '#st14 .a1', A.c15 + 2.2); cue(A.c15 + 2.2, 'chord', 0.5);
+  off(['#rc13 .gn', '#rc14 .gn'], B.c15 - 0.6, 0.3);
+  // la logique est écrite une fois : la procédure, gardée par la base
+  bump('#pbp', A.c16 + 0.6, 1.05); cue(A.c16 + 0.6, 'tick', 0.5, 4);
+  hide(['#tc', '#ec', '#pb'], B.c16 - 0.1, {y: -40}, 0.4);
+  sceneOff('#sb', B.c16 + 0.4);
+
+  /* ===== 4 · Une fonction stockée ===== */
+  // le SMS de l’équipe fidélité
+  capOff(MAIL2 - 0.2);
+  sceneOn('#sm', MAIL2 + 0.4);
+  mailIn(2, MAIL2 + 0.5, OPENS[1].at);
+  mailOut(2, MAIL2 + MO[1]);
+  sceneOff('#sm', MAIL2 + MO[1] + 0.3);
+  sceneOn('#sf', MAIL2 + MO[1] + 0.3);
+  tl.fromTo(['#pb2', '#rule'], {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', stagger: 0.15, immediateRender: false}, MAIL2 + MO[1] + 0.35);
+  cue(MAIL2 + MO[1] + 0.35, 'whoosh', 0.5);
+  capOn(A.c17 - 0.3);
+  // obtenir un résultat : c’est le rôle d’une fonction stockée, que la base garde à côté de la procédure
+  bump('#rule', A.c17 + 2.2, 1.05); cue(A.c17 + 2.2, 'tick', 0.5, 2);
+  tl.fromTo('#pbf', {autoAlpha: 0, x: 40}, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'back.out(1.6)', immediateRender: false}, A.c18 + 0.6);
+  cue(A.c18 + 0.6, 'chord', 0.6);
+  // calculer_points reçoit un montant et renvoie un nombre de points
+  bump('#pbf', A.c19 + 0.5, 1.05); cue(A.c19 + 0.5, 'tick', 0.5, 3);
+  // SELECT calculer_points(80) renvoie 160
+  show('#ef', A.c20 + 0.1, {y: 30}, 0.45); cue(A.c20 + 0.1, 'whoosh', 0.45, 1);
+  show('#fres', A.c20 + 1.0, {y: 20, scale: 0.96}, 0.45, 'back.out(1.6)'); cue(A.c20 + 1.0, 'chord', 0.6);
+  bump('#fr0 .pts', A.c20 + 1.8, 1.15); cue(A.c20 + 1.8, 'tick', 0.5, 4);
+  // À toi : le montant qui donne 240 points (réponse : 120 €)
+  tl.set(M3_ANS, {autoAlpha: 1}, set2(PICKS[2].at));
+  tl.set(M3_HIDE, {autoAlpha: 0}, set2(PICKS[2].at));
+  // pour 120 €, 240 : le même calcul
+  bump('#fr1 .pts', A.c21 + 0.6, 1.15); cue(A.c21 + 0.6, 'tick', 0.5, 4);
+  hide(['#pb2', '#rule', '#ef', '#fres'], B.c21 - 0.1, {y: -40}, 0.4);
+  sceneOff('#sf', B.c21 + 0.4);
+
+  /* ===== 5 · Le duel ===== */
+  sceneOn('#sv', A.c22);
+  show('#dv0', A.c22 + 0.3, {y: 40, scale: 0.96}, 0.5, 'back.out(1.5)'); cue(A.c22 + 0.3, 'pop', 0.6, 1);
+  show('#dv1', A.c22 + 0.9, {y: 40, scale: 0.96}, 0.5, 'back.out(1.5)'); cue(A.c22 + 0.9, 'pop', 0.6, 3);
+  // À toi : la commande 15 (réponse : une procédure), puis les points de 75 € (réponse : une fonction)
+  tl.set(M4_ANS, {autoAlpha: 1}, set2(PICKS[3].at));
+  bump('#v0p', A.c23 + 0.6, 1.08); cue(A.c23 + 0.6, 'tick', 0.5, 2);
+  tl.set(M5_ANS, {autoAlpha: 1}, set2(PICKS[4].at));
+  bump('#v1f', A.c24 + 0.6, 1.08); cue(A.c24 + 0.6, 'tick', 0.5, 4);
+  hide(['#dv0', '#dv1'], B.c24 - 0.1, {y: -40}, 0.4);
+  sceneOff('#sv', B.c24 + 0.4);
+
+  /* ===== 6 · Les quatre tickets ===== */
+  sceneOn('#st', A.c25);
+  [['#dt-pr', 0], ['#dt-fn', 2]].forEach(([id, p], q) => { const t = A.c25 + 0.2 + q * 0.3; show(id, t, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(t, 'pop', 0.6, p); });
+  show('#tpack', A.c25 + 1.1, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.c25 + 1.1, 'pop', 0.7, 1);
+  // À toi : chaque ticket dans sa case
+  tl.set(M6_ANS, {autoAlpha: 1}, set2(PICKS[5].at));
+  tl.set('#st .dbn', {borderStyle: 'solid'}, set2(PICKS[5].at));
+  tl.set('#tpack', {autoAlpha: 0}, set2(PICKS[5].at));
+  // une procédure exécute un traitement ; une fonction renvoie une valeur
+  bump('#dt-pr', A.c26 + 0.4, 1.03); cue(A.c26 + 0.4, 'tick', 0.5, 2);
+  bump('#dt-fn', A.c26 + 2.2, 1.03); cue(A.c26 + 2.2, 'tick', 0.5, 4);
+  hide('#st .dbn', B.c26 - 0.1, {y: -40}, 0.4);
+  sceneOff('#st', B.c26 + 0.4);
+
+  /* ===== 7 · Selon le SGBD ===== */
+  sceneOn('#sg', A.c27);
+  show('#eg', A.c28 + 0.1, {y: 40}, 0.5); cue(A.c28 + 0.1, 'whoosh', 0.45, 1);
+  let tg = A.c28 + 0.6;
+  ['eg1', 'eg2', 'eg3', 'eg4', 'eg5', 'eg6', 'eg7', 'eg8', 'eg9'].forEach(id => { tg = sqType(id, tg + 0.06, 80); });
+  pulse('#gp', A.c29 + 0.4, 1, GLOW); cue(A.c29 + 0.4, 'tick', 0.5, 2);
+  pulse('#gf', A.c29 + 2.0, 1, GLOW); cue(A.c29 + 2.0, 'tick', 0.5, 4);
+  hide('#eg', B.c30 - 0.1, {y: -30}, 0.4);
+  sceneOff('#sg', A.c31 + 0.3);
+  // la suite : la prochaine leçon
+  sceneOn('#sk', A.c31);
+  show('#keyc', A.c31 + 0.1, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)'); cue(A.c31 + 0.1, 'whoosh', 0.6);
+  tl.to('#keyc .emo', {rotation: -18, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.c31 + 0.7);
+  hide('#keyc', B.c31 - 0.1, {y: -30}, 0.4);
+  sceneOff('#sk', RECAP);
+
+  /* ===== 8 · À retenir ===== */
+  recapScene(RECAP, [RECAP + 0.7, RECAP + 2.1, RECAP + 3.5]);
+  const rt = $$('#s7 .rtxt'), rs = $$('#s7 .rs'), rd = (h, n = 20) => Math.ceil(readTime(h) * n) / n;
+  gsap.set(rs, {autoAlpha: 0, y: 10});
+  [[RECAP + 0.7, RECAP + 1.45], [RECAP + 2.1, RECAP + 2.85], [RECAP + 3.5, RECAP + 4.25]].forEach(([r, d], i) => {
+    tl.to(rs[i], {autoAlpha: 1, y: 0, duration: 0.45, ease: 'power2.out'}, d);
+    cue(d, 'tick', 0.5, i * 2 + 1);
+    hold(r + 0.6, rd(rt[i].innerHTML.split('<span')[0]));
+    hold(d + 0.5, rd(rs[i].innerHTML));
+  });
+  if (APP) cue(NOTES + 0.05, 'pop', 0.85, 5);
+}
+
+/* ---------- Moments « À toi » : ce que montre chaque geste ----------
+   Le lecteur arrête l’image à chaque moment (PICKS) et pose ses zones tactiles sur les endroits que la page décrit
+   (IX.spots). Chaque geste est jugé ici (IX.act, IX.pick) et montré aussitôt sur l’image ; le réglage du moment 3 suit
+   chaque mouvement du curseur (IX.tune). Les bons gestes affichent les mêmes éléments que la timeline juste après l’arrêt ;
+   ils restent jusqu’à ce que la timeline affiche la même image (IX.tick), puis s’effacent : la reprise est invisible. */
+const IX = (() => {
+  let X = null, wait = -1;
+  function start(i){ if (!X || X.i !== i) { clear(); X = {i, cls: [], tm: [], got: new Set()}; } }
+  function clear(){
+    if (!X) return;
+    X.tm.forEach(clearTimeout);
+    X.cls.forEach(([e, c]) => e.classList.remove(c));
+    X = null; wait = -1;
+  }
+  const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
+  const marks = (sels, c = 'pvs') => sels.forEach(s => $$(s).forEach(e => mark(e, c)));
+  const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
+  function spots(i){
+    // moment 1 : une action, une valeur
+    if (i === 0) return BINS1.map(([k, n, d]) => Object.assign({k, label: `${n} : ${d}`}, rel($('#db-' + k))));
+    // moment 6 : procédure, fonction
+    if (i === 5) return BINS2.map(([k, n, d]) => Object.assign({k, label: `${n} : ${d}`}, rel($('#dt-' + k))));
+    return [];
+  }
+  /* Ranger une étiquette (moments 1 et 6) : dans la bonne case, elle s’y pose ; sinon la case refuse, et la correction dit pourquoi. */
+  function sortAct(list, a, b, binSel, chipSel){
+    const n = +a, bin = $(binSel + b);
+    if (list[n][1] === b) {
+      mark($(chipSel + n), 'pvs');
+      flash(bin, 'okb', 520);
+      X.got.add(n);
+      sfx('pop', X.got.size, 0.6);
+      return {ok: true, done: X.got.size === list.length, why: '', at: rel(bin)};
+    }
+    flash(bin, 'kob', 650);
+    return {ok: false, why: fr(list[n][2])};
+  }
+  /* Le réglage du moment 3 : le montant dans l’appel et dans le résultat, les points calculés (les valeurs de la vidéo s’effacent). */
+  function points(s){
+    const m = Math.max(0, Math.round(+(s && s.m) || 0));
+    $('#tva').textContent = m; $('#tvr').textContent = m; $('#tvp').textContent = POINTS(m);
+    marks(['#ef1t', '#fr2']);
+    marks(['#ef1', '#ef1b', '#fr0', '#fr1'], 'pvh');
+    return m;
+  }
+  function act(i, a, b){
+    start(i);
+    if (i === 0) return sortAct(DEMANDES, a, b, '#db-', '#sbu');
+    if (i === 2) {
+      let s = {}; try { s = typeof a === 'string' ? JSON.parse(a) : (a || {}); } catch (e) {}
+      const m = points(s);
+      if (POINTS(m) === 240) { sfx('pop', 3, 0.6); return {ok: true, done: true, why: fr('120 € × 2 = 240 points.'), at: rel($('#fres'))}; }
+      flash($('#fres'), 'kob', 650);
+      return {ok: false, why: fr(`${m} € × 2 = ${POINTS(m)} points : il en faut 240.`)};
+    }
+    if (i === 5) return sortAct(TICKETS, a, b, '#dt-', '#stk');
+    return {ok: false};
+  }
+  /* Choix d’une réponse (moments 2, 4 et 5) : ce que donnerait ce choix. */
+  function pick(i, k){
+    clear(); start(i);
+    const P = PICKS[i], o = P.options[k], ok = !!o.ok;
+    if (i === 1) {
+      // la procédure reçoit l’identifiant, ou (en rouge) le nom de la table, le mot UPDATE
+      marks([['#psig .a2', '#psig .a1', '#psig .a3'][k]]); marks(M2_HIDE, 'pvh');
+      sfx(ok ? 'pop' : 'miss', 2, 0.5);
+    }
+    if (i === 3 || i === 4) {
+      // la réponse se pose sous la demande : verte si elle convient, rouge sinon
+      marks([`#v${i - 3}${k ? 'f' : 'p'}`]);
+      sfx(ok ? 'pop' : 'miss', 2, 0.5);
+    }
+    return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));
+  }
+  /* Indice, après deux erreurs : une piste. */
+  function hint(i){
+    const h = (() => {
+      if (i === 0) return {text: 'Une demande modifie la base, l’autre attend un nombre en retour.'};
+      if (i === 1) return {text: 'Cherche ce qui change d’une commande à l’autre : la table et la requête, elles, restent les mêmes.'};
+      if (i === 2) return {text: 'Les points valent deux fois le montant : cherche le montant qui en donne 240.'};
+      if (i === 3) return {text: 'Cette demande modifie une commande dans la base : c’est une action.'};
+      if (i === 4) return {text: 'Cette demande attend un nombre de points en retour : c’est une valeur.'};
+      if (i === 5) return {text: 'Un ticket qui modifie la base va avec la procédure ; un ticket qui attend une valeur, avec la fonction.'};
+      return null;
+    })();
+    return h && Object.assign(h, {text: fr(h.text)});
+  }
+  return {
+    enter: i => { clear(); start(i); },
+    spots, act, pick, hint,
+    /* Réglage en cours (moment 3) : l’image suit chaque mouvement du curseur, rien n’est jugé. */
+    tune(i, s){ start(i); if (i === 2) points(s); },
+    slot: () => null,
+    /* Moment réussi : l’aperçu reste jusqu’à ce que la timeline affiche la même image ; sinon il part tout de suite. */
+    leave(i, answered){ if (answered && X && X.i === i) wait = i; else clear(); },
+    tick(t = tl.time()){ if (wait < 0) return; const a = PICKS[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear(); }
+  };
+})();
+window.IX = IX;
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 161.82, picks: PICKS, opens: OPENS,
+  glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝💬🔁🎁🔑🚨🛠️🧮📋🎫🔖⚠️👆✓!…«»·−→×€',
+  dom, build, beforeRender: t => IX.tick(t)});
+</script>
+</body>
+</html>

@@ -56,7 +56,7 @@ const ANCIEN={
  11:{id:11,titre:'ORDER BY',solution:'SELECT nom, categorie, stock FROM produits ORDER BY categorie, stock DESC;'},
  12:{id:12,titre:'LIMIT et OFFSET',solution:'SELECT id, nom, prix\nFROM produits\nORDER BY prix ASC, id ASC\nLIMIT 3 OFFSET 6;'}
 };
-assert.equal(lessons.length,63);
+assert.equal(lessons.length,64);
 assert.equal(ctx.exerciseResultsMatch(query('SELECT nom,stock FROM produits'),query(ANCIEN[2].solution),ANCIEN[2]),false,'alias requis');
 assert.equal(ctx.exerciseResultsMatch(query(DEUX_COLONNES.solution+' SELECT 99;'),query(DEUX_COLONNES.solution),DEUX_COLONNES),false,'résultats multiples');
 assert.equal(ctx.exerciseResultsMatch(query("SELECT nom,prix FROM produits WHERE categorie='Nutrition' OR categorie='Boisson' AND prix<20"),query(ANCIEN[6].solution),ANCIEN[6]),false,'parenthèses requises avec AND et OR');
@@ -68,7 +68,7 @@ for(let i=0;i<3;i++)state=JSON.parse(JSON.stringify(ctx.normalizeState(state)));
 assert.deepEqual(state.lessons[64].etapes,{exo:1,q0:1,q1:1});assert.equal(state.lessons[64].draft,'SELECT 1;');assert.equal(state.lessons[64].testeVi,2);
 assert.equal(ctx.checkExerciseConcept('SELECT 50; -- CAST(45 AS INTEGER)',lesson(54)).ok,false);
 /* L’exercice non exécutable (REVOKE) de l’ancien cours texte Sécurité et droits, gardé en exemple (tests/fixtures/guide-texte-droits.js) : la leçon 50
-   est devenue le chapitre 18 du projet, en vidéo, et l’app n’a plus de cours texte. */
+   est devenue le chapitre 19 du projet, en vidéo, et l’app n’a plus de cours texte. */
 const DROITS=vm.runInContext(fs.readFileSync(path.join(root,'tests/fixtures/guide-texte-droits.js'),'utf8'),ctx);
 assert.ok(DROITS.noExec&&DROITS.serverConcept&&lesson(50).leconSeule&&lesson(50).video,'la leçon 50 en vidéo, son ancien exercice en exemple');
 for(const sql of ['REVOKE SELECT ON produits FROM stagiaire; -- commandes','REVOKE SELECT ON commandes FROM autre;','REVOKE SELECT ON commandes FROM stagiaire; REVOKE UPDATE ON commandes FROM stagiaire;','GRANT SELECT ON commandes TO stagiaire;','REVOKE ALL PRIVILEGES ON commandes FROM stagiaire;'])assert.equal(ctx.checkNoExecExo(sql,DROITS).ok,false,'REVOKE exact');

@@ -1,4 +1,4 @@
-/* Projet NutriBoost, chapitre 14 (leçon 70 « Les triggers ») : la vidéo interactive assets/anim/projet-trigger.html, testée aussi dans lesson-video.test.mjs.
+/* Projet NutriBoost, chapitre 15 (leçon 70 « Les triggers ») : la vidéo interactive assets/anim/projet-trigger.html, testée aussi dans lesson-video.test.mjs.
    La trame est celle d’Elisa (25 octobre, 20 h 52, « TRIGGER — Qui a changé le prix du collagène ? ») : la responsable commerciale écrit que
    le collagène est passé de 39,90 € à 34,90 €, sans qu’elle retrouve la date du changement ; la table historique_prix garde le produit concerné,
    l’ancien prix, le nouveau prix et la date du changement ; le trigger garder_prix l’alimente « après une modification de produit, si son prix
@@ -44,6 +44,8 @@ function base() {
   db.run(vm.runInContext('SCHEMA_SQL', ctx));
   /* Le chapitre 10 (MERGE, 30 octobre) : l’inventaire de l’entrepôt met à jour la Fibre Prébiotique (150) et Oméga 3 (75), et ajoute la Spiruline Bio. */
   db.run("UPDATE produits SET stock = 150 WHERE id = 1; UPDATE produits SET stock = 75 WHERE id = 7; INSERT INTO produits VALUES (9, 'Spiruline Bio', 'Nutrition', 22.90, 40);");
+  /* Le chapitre 14 (procédures et fonctions stockées, 30 octobre) : CALL expedier_commande(13), puis (14). */
+  db.run("UPDATE commandes SET statut = 'expédiée' WHERE id IN (13, 14);");
   db.run(`PRAGMA foreign_keys = ON;
     CREATE TABLE coachs (id INTEGER PRIMARY KEY, prenom TEXT NOT NULL, nom TEXT NOT NULL, email TEXT NOT NULL);
     CREATE TABLE ateliers (id INTEGER PRIMARY KEY, titre TEXT NOT NULL, date_atelier DATE, coach_id INTEGER NOT NULL REFERENCES coachs(id), places INTEGER DEFAULT 12);
@@ -75,11 +77,11 @@ const count = (db, t) => db.exec(`SELECT COUNT(*) FROM ${t}`)[0].values[0][0];
 const lignes = (db, t) => (db.exec(`SELECT * FROM ${t}`)[0] || {values: []}).values;
 const produit = (db, id) => db.exec(`SELECT prix, stock FROM produits WHERE id = ${id}`)[0].values[0];
 
-test('Les triggers : juste après SAVEPOINT, en tête du module « Triggers et concurrence », juste avant Concurrence et isolation', () => {
+test('Les triggers : juste après Procédures et fonctions stockées, dans le module « Triggers et concurrence », juste avant Concurrence et isolation', () => {
   const m = modules.find(x => x.titre === 'Triggers et concurrence');
-  assert.deepEqual([...m.lessons.map(l => l.id)], [70, 71], 'Les triggers, puis Concurrence et isolation');
+  assert.deepEqual([...m.lessons.map(l => l.id)], [83, 70, 71], 'Procédures et fonctions stockées, Les triggers, puis Concurrence et isolation');
   const liste = lessons.map(l => l.id);
-  assert.equal(liste.indexOf(70), liste.indexOf(63) + 1, 'juste après SAVEPOINT');
+  assert.equal(liste.indexOf(70), liste.indexOf(83) + 1, 'juste après Procédures et fonctions stockées (30 octobre)');
   assert.equal(liste[liste.indexOf(70) + 1], 71, 'Concurrence et isolation vient juste après');
   assert.equal(l70.titre, 'Les triggers');
   assert.equal(l70.résumé, 'Déclencher une action automatiquement');
@@ -99,9 +101,9 @@ test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', ()
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 245.04);
-  assert.ok(page.includes('notesAt: 245.04,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 252.24);
+  assert.equal(val('NOTES'), 244.94);
+  assert.ok(page.includes('notesAt: 244.94,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 252.14);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   /* Les trois parties de la trame d’Elisa (le message, la table d’historique et le trigger, la vérification avec le stock), découpées comme dans
@@ -280,15 +282,16 @@ test('le message : la responsable commerciale écrit par SMS ; l’app s’arrê
   assert.ok(page.includes('(MAILS[n][6] || {}).hello, (MAILS[n][6] || {}).photo, (MAILS[n][6] || {}).bye)'), 'la page passe au moteur la formule et la fin du SMS');
 });
 
-test('chapitre 14 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 14 : TRIGGER</title>') && page.includes('<div class="tagpill">Projet · Chapitre 14</div>')
+test('chapitre 15 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
+  assert.ok(page.includes('<title>Requête · Projet, chapitre 15 : TRIGGER</title>') && page.includes('<div class="tagpill">Projet · Chapitre 15</div>')
     && page.includes('<span>T</span><span>R</span><span>I</span><span>G</span><span>G</span><span>E</span><span>R</span>')
-    && page.includes('<div class="abs sub">Déclencher une action automatiquement</div>'), 'écran titre : « Projet · Chapitre 14 », TRIGGER, « Déclencher une action automatiquement »');
+    && page.includes('<div class="abs sub">Déclencher une action automatiquement</div>'), 'écran titre : « Projet · Chapitre 15 », TRIGGER, « Déclencher une action automatiquement »');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.');
-  assert.equal(caps[1], 'Au chapitre 13, un savepoint<br>t’a permis d’annuler<br>une partie d’une transaction.', 'le chapitre précédent');
-  const sp = fs.readFileSync(path.join(root, 'assets/anim/projet-savepoint.html'), 'utf8');
-  assert.ok(sp.includes('les triggers : des actions lancées') && sp.includes('Prochaine leçon · Les triggers</span>'), 'le chapitre 13 annonce celui-ci');
+  assert.equal(caps[1], 'Au chapitre 14, une procédure<br>stockée t’a permis de réutiliser<br>un traitement.', 'le chapitre précédent');
+  const pr = fs.readFileSync(path.join(root, 'assets/anim/projet-procedures.html'), 'utf8');
+  assert.ok(pr.includes('les triggers : des actions lancées') && pr.includes('Prochaine leçon · Les triggers</span>'), 'le chapitre 14 annonce celui-ci');
+  assert.ok(page.includes("on('#bw-cm .hl', A.r2 + 0.6, 0.2);"), 'la table commandes, que la procédure a expédiée, s’allume avec cette légende');
   assert.ok(caps.includes('Dans la prochaine leçon, deux clients<br>réserveront la dernière place<br>d’un atelier en même temps.') && page.includes('Prochaine leçon · Concurrence et isolation</span>'),
     'annonce de la prochaine leçon');
   assert.equal(lessons[lessons.findIndex(l => l.id === 70) + 1].titre, 'Concurrence et isolation');

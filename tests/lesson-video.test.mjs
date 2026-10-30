@@ -1170,7 +1170,7 @@ const COURSES = [
       "{at: atp('p1'), from: A.c1, kind: 'tap', need: 1,", "{at: atp('p2'), from: A.f1, kind: 'pick', text: true,", "{label: '30 : la valeur de départ', ok: true,",
       "{label: 'COMMIT', ok: true,", "{label: 'Annuler avec ROLLBACK', ok: true,", "{label: 'Recommencer toute la transaction', ok: true,", "{at: atp('p6'), from: A.i1, kind: 'sort',",
       "w += out('o-i1', 'err', 'Remplacement non enregistré', 'NOT NULL constraint failed:<br>remplacements.personnalisation', 'm', true);", 'Prochaine leçon · SAVEPOINT']},
-  {id: 63, next: 70, titre: 'SAVEPOINT', page: 'projet-savepoint.html', thumb: 'projet-savepoint-thumb.webp', duree: '4 min 13', notesAt: 231.86,
+  {id: 63, next: 83, titre: 'SAVEPOINT', page: 'projet-savepoint.html', thumb: 'projet-savepoint-thumb.webp', duree: '4 min 13', notesAt: 231.76,
     table: 'cadeaux',
     bubble: 'Crée un point de sauvegarde pour annuler seulement une partie d’une&nbsp;transaction.',
     chapters: ['Un petit geste pour Léa', 'Pouvoir revenir en arrière', 'Ajouter le cadeau', 'Léa préfère un autre cadeau', 'Observer ce qui est annulé', 'Ajouter la protéine',
@@ -1182,8 +1182,19 @@ const COURSES = [
       // seulement le cadeau, ce qu’il faut encore après le retour au savepoint, les six situations à ranger
       "{at: atp('p1'), from: A.a6, kind: 'pick', text: true,", "{label: 'Avec un point de retour posé avant le cadeau', ok: true,", "{at: atp('p2'), from: A.c4, kind: 'tap', need: 2,",
       "{label: 'Les quatre, cadeau compris', ok: true,", "{label: 'ROLLBACK TO SAVEPOINT avant_cadeau', ok: true,", "{label: 'Un COMMIT, qui terminera la transaction', ok: true,",
-      "{at: atp('p6'), from: A.g1, kind: 'sort',", "const Q_RT = [['-- Revenir au point de retour'], ['ROLLBACK TO SAVEPOINT avant_cadeau;']]", 'Prochaine leçon · Les triggers']},
-  {id: 70, next: 71, titre: 'Les triggers', page: 'projet-trigger.html', thumb: 'projet-trigger-thumb.webp', duree: '4 min 07', notesAt: 245.04,
+      "{at: atp('p6'), from: A.g1, kind: 'sort',", "const Q_RT = [['-- Revenir au point de retour'], ['ROLLBACK TO SAVEPOINT avant_cadeau;']]", 'Prochaine leçon · Procédures et fonctions']},
+  /* Le chapitre 14, ajouté le 30 octobre (le scénario d’Elisa : 18 h 02, les commandes affluent) : une action ou une valeur, la procédure
+     expedier_commande et son paramètre, la fonction calculer_points et son réglage, le duel, les quatre tickets, puis leur création dans PostgreSQL. */
+  {id: 83, next: 70, titre: 'Procédures et fonctions stockées', page: 'projet-procedures.html', thumb: 'projet-procedures-thumb.webp', duree: '3 min 07', notesAt: 161.82,
+    table: 'commandes',
+    bubble: 'Enregistre&nbsp;des actions et des calculs dans la base pour pouvoir les réutiliser.',
+    chapters: ['Les commandes affluent', 'Action ou calcul ?', 'Une procédure stockée', 'Une fonction stockée', 'Le duel', 'Les quatre tickets', 'Selon le SGBD', 'À retenir'],
+    traps: ["const BINS1 = [['ac', 'Une action', 'modifier la base'], ['va', 'Une valeur', 'obtenir un résultat']];",
+      // Les six moments : deux demandes à ranger, le paramètre, le montant à régler, le duel (deux fois), les quatre tickets
+      "{at: atp('p1'), from: A.c3, kind: 'sort',", "{label: 'L’identifiant de la commande', ok: true},", "{at: atp('p3'), from: A.c19, kind: 'tune',",
+      "{label: 'Une procédure stockée', ok: true},", "{label: 'Une fonction stockée', ok: true}]},", "{at: atp('p6'), from: A.c25, kind: 'sort',",
+      "['ec1', '{kc1|CALL} expedier_commande({pa1|13});']", "['eg1', '{gp|CREATE PROCEDURE} expedier_commande(id_commande INT)']", 'Prochaine leçon · Les triggers']},
+  {id: 70, next: 71, titre: 'Les triggers', page: 'projet-trigger.html', thumb: 'projet-trigger-thumb.webp', duree: '4 min 07', notesAt: 244.94,
     table: 'historique_prix',
     bubble: 'Déclenche automatiquement une action lorsqu’un&nbsp;événement précis se produit dans la base.',
     chapters: ['Qui a changé le prix ?', 'Garder chaque changement', 'Créer le trigger', 'Modifier le prix', 'Lire la nouvelle ligne', 'Vérifier avec le stock',
@@ -1287,10 +1298,10 @@ for (const c of COURSES) {
     for (const f of [c.page, 'core.css', 'core.js', 'gsap.min.js', 'mascotte.webp', c.thumb, ...images, ...(page.includes('src="moments.js"') ? ['moments.js'] : []), ...(page.includes('src="mail.js"') ? ['mail.js'] : [])])
       total += fs.statSync(path.join(ROOT, 'assets/anim', f)).size;
     for (const f of ANIM_FONTS) total += fs.statSync(path.join(ROOT, 'assets/fonts', f)).size;
-    /* 490 Ko (470 jusqu’au 26 octobre, puis 480) : le moteur commun grandit avec les chapitres du projet (le SMS sans formule du chapitre 16),
+    /* 490 Ko (470 jusqu’au 26 octobre, puis 480) : le moteur commun grandit avec les chapitres du projet (le SMS sans formule du chapitre 17),
        et les premières leçons chargent moments.js pour leurs moments « À toi » (Elisa, 26 octobre, 14 h 59 ; l’introduction, la plus lourde,
        en a cinq). */
-    /* Le chapitre 18, le dernier, porte en plus la fin de l’apprentissage (la conversation des équipes, la lettre d’Elisa et la finale
+    /* Le chapitre 19, le dernier, porte en plus la fin de l’apprentissage (la conversation des équipes, la lettre d’Elisa et la finale
        « Le chemin parcouru », 26 octobre, 23 h 53) : 520 Ko pour lui seul. */
     /* 500 Ko depuis le 27 octobre : moments.js porte aussi les cartes des moments (relier, ranger, une requête à lire ; Elisa, 13 h 48). */
     /* 510 Ko depuis le 29 octobre : le moteur commun porte la nouvelle intro dans la DA de la vitrine (carte violette, pastilles, ~8 Ko). */

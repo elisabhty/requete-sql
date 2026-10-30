@@ -100,19 +100,19 @@ test('le lecteur : le repère « confetti » lance une gerbe par-dessus l’imag
 
 test('les chapitres du projet : les boutons touchés par l’élève qui réussissent', () => {
   const trig = anim('projet-trigger.html');
-  assert.ok(trig.includes("confetti($('#bcre'), CRE + 0.6);") && trig.includes("confetti($('#bmod'), MOD + 0.85);"), 'chapitre 14 : « Créer le trigger », « Modifier le prix »');
+  assert.ok(trig.includes("confetti($('#bcre'), CRE + 0.6);") && trig.includes("confetti($('#bmod'), MOD + 0.85);"), 'chapitre 15 : « Créer le trigger », « Modifier le prix »');
   const cc = anim('projet-concurrence.html');
-  assert.ok(cc.includes("const pressPhone = (p, t) => press($(`#${p}-0`), t, '#4B30CC', 7, false);"), 'chapitre 15 : ni la double réservation, ni l’atelier complet');
+  assert.ok(cc.includes("const pressPhone = (p, t) => press($(`#${p}-0`), t, '#4B30CC', 7, false);"), 'chapitre 16 : ni la double réservation, ni l’atelier complet');
   assert.ok(cc.includes("confetti($('#pl-3'), A.e9 + 0.85);"), '… mais la place de Léa Simon, réservée avec le verrou');
   const vw = anim('projet-vue.html');
   assert.ok(vw.includes("confetti($('#bcre'), CRE + 0.6);") && vw.includes("confetti($('#bexe'), EXE1 + 0.6);") && vw.includes("confetti($('#bexe'), EXE2 + 0.6);"),
-    'chapitre 16 : « Créer la vue », puis « Exécuter », deux fois');
+    'chapitre 17 : « Créer la vue », puis « Exécuter », deux fois');
   const ix = anim('projet-index.html');
   assert.ok(ix.includes("confetti($('#bexp'), EXE1 + 0.6);") && ix.includes("confetti($('#bcix'), CIX + 0.6);") && ix.includes("confetti($('#bexp'), EXE2 + 0.6);"),
-    'chapitre 17 : « Exécuter » (le plan), « Créer l’index », puis « Exécuter » (le nouveau plan)');
+    'chapitre 18 : « Exécuter » (le plan), « Créer l’index », puis « Exécuter » (le nouveau plan)');
   const dr = anim('projet-droits.html');
   assert.ok(dr.includes("confetti($('#bs1'), EXE1 + 0.6);") && dr.includes("confetti($('#bs2'), EXE2 + 0.6);") && dr.includes("confetti($('#bs3'), EXE3 + 0.6);"),
-    'chapitre 18 : « Simuler », trois fois (GRANT SELECT, GRANT UPDATE (statut), les deux REVOKE)');
+    'chapitre 19 : « Simuler », trois fois (GRANT SELECT, GRANT UPDATE (statut), les deux REVOKE)');
   assert.ok(dr.includes("press($('#psv'), A.ea + 0.5, '#A3216A', 6, false);") && dr.includes("press($('#apb'), A.d5 + 1.6, '#0F6B33', 6);"),
     '… pas pour la modification du prix, refusée ; mais pour le colis de Léa Simon, expédié');
   assert.ok(fs.readFileSync(path.join(root, 'assets/anim/fin-sql.html'), 'utf8').includes("confetti($('#fin'), G4 + 0.5);"), '… et la fin du projet');
