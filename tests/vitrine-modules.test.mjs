@@ -74,7 +74,35 @@ test('la vitrine charge vitrine.css et modules.js avec l’empreinte de leur con
   const v = f => createHash('sha1').update(fs.readFileSync(path.join(root, 'decouvrir', f))).digest('hex').slice(0, 8);
   for (const page of ['index.html', 'module.html']) {
     const h = fs.readFileSync(path.join(root, 'decouvrir', page), 'utf8');
-    assert.ok(h.includes(`href="vitrine.css?v=${v('vitrine.css')}"`), `${page} : écrire href="vitrine.css?v=${v('vitrine.css')}"`);
     assert.ok(h.includes(`src="modules.js?v=${v('modules.js')}"`), `${page} : écrire src="modules.js?v=${v('modules.js')}"`);
   }
+  /* Toutes les pages qui chargent vitrine.css (accueil, module, connexion, pages légales…) */
+  const pages = fs.readdirSync(path.join(root, 'decouvrir')).filter(f => f.endsWith('.html'));
+  const avecCss = pages.filter(f => /href="vitrine\.css/.test(fs.readFileSync(path.join(root, 'decouvrir', f), 'utf8')));
+  assert.ok(avecCss.length >= 3, 'au moins l’accueil, la fiche module et la connexion');
+  for (const page of avecCss) {
+    const h = fs.readFileSync(path.join(root, 'decouvrir', page), 'utf8');
+    assert.ok(h.includes(`href="vitrine.css?v=${v('vitrine.css')}"`), `${page} : écrire href="vitrine.css?v=${v('vitrine.css')}"`);
+  }
+});
+
+test('les pages légales existent et chaque page de la vitrine y mène', () => {
+  const legal = ['mentions-legales.html', 'confidentialite.html', 'conditions.html'];
+  for (const f of legal) assert.ok(fs.existsSync(path.join(root, 'decouvrir', f)), `decouvrir/${f}`);
+  for (const page of ['index.html', 'module.html', ...legal]) {
+    const h = fs.readFileSync(path.join(root, 'decouvrir', page), 'utf8');
+    for (const f of legal) assert.ok(h.includes(`href="${f}"`), `${page} : lien vers ${f}`);
+  }
+  const cx = fs.readFileSync(path.join(root, 'decouvrir', 'connexion.html'), 'utf8');
+  assert.ok(cx.includes('href="confidentialite.html"') && cx.includes('href="conditions.html"'), 'connexion.html : liens confidentialité et conditions');
+});
+
+test('le support 7j/7 n’est promis que si une adresse de contact est réglée', () => {
+  const h = fs.readFileSync(path.join(root, 'decouvrir', 'index.html'), 'utf8');
+  const sup = [...h.matchAll(/<li class="sup"([^>]*)>/g)];
+  assert.ok(sup.length >= 1, 'mention du support présente');
+  for (const m of sup) assert.match(m[1], /\bhidden\b/, 'cachée par défaut');
+  const css = fs.readFileSync(path.join(root, 'decouvrir', 'vitrine.css'), 'utf8');
+  assert.match(css, /\.sup\[hidden\]\{display:none!important\}/, 'hidden l’emporte sur le display des listes');
+  assert.match(h, /if\(!CONTACT_EMAIL\)return;\s*\[\]\.forEach\.call\(document\.querySelectorAll\('\.sup'\)/, 'affichée seulement avec CONTACT_EMAIL');
 });
