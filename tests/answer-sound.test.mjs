@@ -16,7 +16,7 @@ const pages = fs.readdirSync(dir).filter(f => f.endsWith('.html') && /\bpicks\s*
 
 test('les leçons interactives, toutes passées en revue', () => {
   assert.deepEqual(pages, ['projet-alter.html', 'projet-cles.html', 'projet-concurrence.html', 'projet-create.html', 'projet-delete.html', 'projet-droits.html', 'projet-drop.html', 'projet-index.html', 'projet-insert.html', 'projet-merge.html',
-    'projet-normaliser.html', 'projet-ondelete.html', 'projet-procedures.html', 'projet-savepoint.html', 'projet-transaction.html', 'projet-trigger.html', 'projet-uml.html', 'projet-update.html', 'projet-vue.html', 'quel-join-choisir.html']);
+    'projet-normaliser.html', 'projet-ondelete.html', 'projet-procedures.html', 'projet-savepoint.html', 'projet-schemas.html', 'projet-transaction.html', 'projet-trigger.html', 'projet-uml.html', 'projet-update.html', 'projet-vue.html', 'quel-join-choisir.html']);
 });
 
 for (const f of pages) {

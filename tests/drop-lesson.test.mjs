@@ -26,11 +26,11 @@ const D = vm.createContext({APP: true});
 vm.runInContext(page.slice(a, b), D);
 const val = expr => JSON.parse(vm.runInContext(`JSON.stringify(${expr})`, D));
 
-test('DROP : dernier cours du module « Créer et faire évoluer les tables », juste avant INSERT', () => {
+test('DROP : avant-dernier cours du module « Créer et faire évoluer les tables », juste avant Les schémas', () => {
   const m = modules.find(x => x.titre === 'Créer et faire évoluer les tables');
-  assert.equal(m.lessons[m.lessons.length - 1].id, 66, 'DROP termine le module');
+  assert.deepEqual([...m.lessons.slice(-2).map(l => l.id)], [66, 84], 'DROP, puis Les schémas (30 octobre), terminent le module');
   const ids = lessons.map(l => l.id);
-  assert.equal(ids.indexOf(26), ids.indexOf(66) + 1, 'INSERT vient juste après');
+  assert.equal(ids.indexOf(84), ids.indexOf(66) + 1, 'Les schémas viennent juste après');
   assert.equal(l66.titre, 'DROP');
   assert.equal(l66.résumé, 'Supprimer une table de la base');
 });
@@ -233,9 +233,9 @@ test('chapitre 6 : écran titre, ouverture comme aux autres chapitres, annonce d
   const alter = fs.readFileSync(path.join(root, 'assets/anim/projet-alter.html'), 'utf8');
   assert.ok(alter.includes('Chapitre 6 · DROP') && alter.includes('Tu le feras avec <code>DROP TABLE</code> :'), 'le chapitre 5 annonce celui-ci');
   /* Il annonce à son tour la leçon suivante du cours : INSERT (texte d’Elisa, 24 octobre, 10:15). */
-  assert.ok(caps.includes('Dans la prochaine leçon, tu apprendras à ajouter des données dans tes tables avec <code>INSERT INTO</code>.') && page.includes('Prochaine leçon · INSERT INTO</span>'), 'annonce de la prochaine leçon');
-  assert.equal(lessons[lessons.findIndex(l => l.id === 66) + 1].id, 26);
-  assert.equal(lessons.find(l => l.id === 26).titre, 'INSERT');
+  assert.ok(caps.includes('Dans la prochaine leçon, tu rangeras les tables de ta base en espaces, avec les schémas.') && page.includes('Prochaine leçon · Les schémas</span>'), 'annonce de la prochaine leçon');
+  assert.equal(lessons[lessons.findIndex(l => l.id === 66) + 1].id, 84);
+  assert.equal(lessons.find(l => l.id === 84).titre, 'Les schémas');
 });
 
 /* ---------- Les deux fautes de nom et le récapitulatif (Elisa, 24 octobre, 10:15) ---------- */
@@ -249,7 +249,7 @@ test('les deux fautes de nom rappellent l’objectif (supprimer la copie), puis 
   assert.equal(strip(c11a[2]), 'Tu veux supprimer la table inscriptions_excel, mais tu tapes clients à la place.', 'faute 1 : la seconde bulle, les mots d’Elisa');
   assert.equal(strip(c14[2]), 'Et si tu oublies la fin du nom ?', 'faute 2 : la première bulle, « Et si… ? » (Elisa, 24 octobre, 22 h 29 : « Changer en et si »), « Imagine » n’est écrit qu’une fois');
   assert.equal(strip(c14a[2]), 'Tu veux supprimer la table inscriptions_excel, mais tu tapes inscriptions.', 'faute 2 : même phrase, l’objectif est rappelé');
-  assert.equal(strip(c24[2]), 'Dans la prochaine leçon, tu apprendras à ajouter des données dans tes tables avec INSERT INTO.');
+  assert.equal(strip(c24[2]), 'Dans la prochaine leçon, tu rangeras les tables de ta base en espaces, avec les schémas.');
   /* Aucune n’a plus de trois lignes (plus de 4e valeur) ; chacune dure le temps de la lire (17 caractères par seconde, 0,5 s de fondus) : aucune pause supplémentaire. */
   for (const c of [c11, c11a, c14, c14a, c24]) assert.equal(c[3], undefined, 'trois lignes au plus');
   for (const c of [c11, c11a, c14, c14a, c24]) assert.ok(c[1] - c[0] >= strip(c[2]).length / 17 + 0.5 - 1e-9, `« ${strip(c[2]).slice(0, 30)}… » : le temps de la lire sans pause`);

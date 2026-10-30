@@ -1,7 +1,7 @@
 /* Un cours texte complet, gardé comme exemple pour les tests : l’ancienne leçon 50, Sécurité et droits en texte (l’outil de reporting
    et son compte app_user, GRANT SELECT sur la table clients, REVOKE, les commandes simulées d’un serveur PostgreSQL, l’exercice
    « REVOKE SELECT ON commandes FROM stagiaire »), telle qu’elle était jusqu’au 26 octobre 2026. C’était le dernier cours texte de
-   l’app : il est devenu le chapitre 19 du projet, en vidéo (assets/anim/projet-droits.html) ; le moteur des cours texte, et celui
+   l’app : il est devenu le chapitre 20 du projet, en vidéo (assets/anim/projet-droits.html) ; le moteur des cours texte, et celui
    des commandes simulées (noExec, serverConcept, sim), restent testés sur celui-ci (identifiant 950 : aucune leçon de l’app).
    Les tests l’évaluent dans le contexte de index.html : guide(…) renvoie la leçon. */
 guide({ id:950, titre:"Sécurité et droits", résumé:"Contrôler les accès avec GRANT et REVOKE",

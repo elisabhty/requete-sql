@@ -1,4 +1,4 @@
-/* Projet NutriBoost, chapitre 15 (leçon 70 « Les triggers ») : la vidéo interactive assets/anim/projet-trigger.html, testée aussi dans lesson-video.test.mjs.
+/* Projet NutriBoost, chapitre 16 (leçon 70 « Les triggers ») : la vidéo interactive assets/anim/projet-trigger.html, testée aussi dans lesson-video.test.mjs.
    La trame est celle d’Elisa (25 octobre, 20 h 52, « TRIGGER — Qui a changé le prix du collagène ? ») : la responsable commerciale écrit que
    le collagène est passé de 39,90 € à 34,90 €, sans qu’elle retrouve la date du changement ; la table historique_prix garde le produit concerné,
    l’ancien prix, le nouveau prix et la date du changement ; le trigger garder_prix l’alimente « après une modification de produit, si son prix
@@ -36,15 +36,15 @@ const sql = q => Q.Q[q].map(([s]) => s).filter(s => !s.trim().startsWith('--')).
 
 /* ---------- La base de la vidéo ---------- */
 const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(root, 'vendor/sqljs', f)});
-/* La base NutriBoost telle que le chapitre 13 la laisse : les tables de la boutique (SCHEMA_SQL), les quatre tables des ateliers, la table avis
-   (chapitre 11), la table remplacements (chapitre 12 : le remplacement de Léa Simon, et le shaker retiré du stock) et la table cadeaux (chapitre 13 :
+/* La base NutriBoost telle que le chapitre 14 la laisse : les tables de la boutique (SCHEMA_SQL), les quatre tables des ateliers, la table avis
+   (chapitre 12), la table remplacements (chapitre 13 : le remplacement de Léa Simon, et le shaker retiré du stock) et la table cadeaux (chapitre 14 :
    la Protéine Végétale offerte, retirée du stock). Onze tables. */
 function base() {
   const db = new SQL.Database();
   db.run(vm.runInContext('SCHEMA_SQL', ctx));
-  /* Le chapitre 10 (MERGE, 30 octobre) : l’inventaire de l’entrepôt met à jour la Fibre Prébiotique (150) et Oméga 3 (75), et ajoute la Spiruline Bio. */
+  /* Le chapitre 11 (MERGE, 30 octobre) : l’inventaire de l’entrepôt met à jour la Fibre Prébiotique (150) et Oméga 3 (75), et ajoute la Spiruline Bio. */
   db.run("UPDATE produits SET stock = 150 WHERE id = 1; UPDATE produits SET stock = 75 WHERE id = 7; INSERT INTO produits VALUES (9, 'Spiruline Bio', 'Nutrition', 22.90, 40);");
-  /* Le chapitre 14 (procédures et fonctions stockées, 30 octobre) : CALL expedier_commande(13), puis (14). */
+  /* Le chapitre 15 (procédures et fonctions stockées, 30 octobre) : CALL expedier_commande(13), puis (14). */
   db.run("UPDATE commandes SET statut = 'expédiée' WHERE id IN (13, 14);");
   db.run(`PRAGMA foreign_keys = ON;
     CREATE TABLE coachs (id INTEGER PRIMARY KEY, prenom TEXT NOT NULL, nom TEXT NOT NULL, email TEXT NOT NULL);
@@ -176,13 +176,13 @@ test('les phrases d’Elisa (25 octobre, 20 h 52) : sa trame, une phrase par bul
   assert.ok(page.includes('Elisa, 25 octobre, 20 h 52'), 'la page garde la trace de la trame d’Elisa');
 });
 
-test('la base du chapitre 13 : onze tables ; le collagène, produit 2 (Collagène Marin, 39,90 €, 80 en stock)', () => {
+test('la base du chapitre 14 : onze tables ; le collagène, produit 2 (Collagène Marin, 39,90 €, 80 en stock)', () => {
   const db = base(), TB = val('TB');
   assert.deepEqual(TB.map(t => t[3]), ['clients', 'commandes', 'fidelite', 'produits', 'coachs', 'ateliers', 'inscriptions', 'cartes', 'avis', 'remplacements', 'cadeaux']);
   assert.deepEqual(TB.map(t => t[3]).sort(), tables(db), 'aucune table de la base n’est oubliée à l’écran');
   for (const [, , , name, n] of TB) assert.equal(count(db, name), n, `${name} : ${n} lignes`);
   assert.ok(page.includes('<span>11 tables</span>'), '11 tables');
-  assert.deepEqual(lignes(db, 'cadeaux'), [[1, 7, 6, 1]], 'la Protéine Végétale offerte à Léa Simon, validée au chapitre 13');
+  assert.deepEqual(lignes(db, 'cadeaux'), [[1, 7, 6, 1]], 'la Protéine Végétale offerte à Léa Simon, validée au chapitre 14');
   assert.deepEqual(db.exec('SELECT id, nom, prix, stock FROM produits WHERE id = 2')[0].values, [[2, 'Collagène Marin', 39.9, 80]], 'le collagène, avant le changement de prix');
   assert.deepEqual(val('COLLAGENE'), {id: 2, nom: 'Collagène Marin', prix: 39.9, nouveau: 34.9, stock: 80});
   assert.ok(page.includes("line('tp2', cell(0, '<i class=\"v\">2</i>') + cell(1, '<i class=\"v\">Collagène Marin</i>') + cell(2, sw('pr2', [['34.90'], ['39.90'], ['34.90']])) + cell(3, sw('st2', [['80'], ['79']])))"),
@@ -282,15 +282,15 @@ test('le message : la responsable commerciale écrit par SMS ; l’app s’arrê
   assert.ok(page.includes('(MAILS[n][6] || {}).hello, (MAILS[n][6] || {}).photo, (MAILS[n][6] || {}).bye)'), 'la page passe au moteur la formule et la fin du SMS');
 });
 
-test('chapitre 15 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 15 : TRIGGER</title>') && page.includes('<div class="tagpill">Projet · Chapitre 15</div>')
+test('chapitre 16 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
+  assert.ok(page.includes('<title>Requête · Projet, chapitre 16 : TRIGGER</title>') && page.includes('<div class="tagpill">Projet · Chapitre 16</div>')
     && page.includes('<span>T</span><span>R</span><span>I</span><span>G</span><span>G</span><span>E</span><span>R</span>')
-    && page.includes('<div class="abs sub">Déclencher une action automatiquement</div>'), 'écran titre : « Projet · Chapitre 15 », TRIGGER, « Déclencher une action automatiquement »');
+    && page.includes('<div class="abs sub">Déclencher une action automatiquement</div>'), 'écran titre : « Projet · Chapitre 16 », TRIGGER, « Déclencher une action automatiquement »');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.');
-  assert.equal(caps[1], 'Au chapitre 14, une procédure<br>stockée t’a permis de réutiliser<br>un traitement.', 'le chapitre précédent');
+  assert.equal(caps[1], 'Au chapitre 15, une procédure<br>stockée t’a permis de réutiliser<br>un traitement.', 'le chapitre précédent');
   const pr = fs.readFileSync(path.join(root, 'assets/anim/projet-procedures.html'), 'utf8');
-  assert.ok(pr.includes('les triggers : des actions lancées') && pr.includes('Prochaine leçon · Les triggers</span>'), 'le chapitre 14 annonce celui-ci');
+  assert.ok(pr.includes('les triggers : des actions lancées') && pr.includes('Prochaine leçon · Les triggers</span>'), 'le chapitre 15 annonce celui-ci');
   assert.ok(page.includes("on('#bw-cm .hl', A.r2 + 0.6, 0.2);"), 'la table commandes, que la procédure a expédiée, s’allume avec cette légende');
   assert.ok(caps.includes('Dans la prochaine leçon, deux clients<br>réserveront la dernière place<br>d’un atelier en même temps.') && page.includes('Prochaine leçon · Concurrence et isolation</span>'),
     'annonce de la prochaine leçon');

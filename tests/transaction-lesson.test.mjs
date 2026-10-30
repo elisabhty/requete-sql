@@ -1,4 +1,4 @@
-/* Projet NutriBoost, chapitre 12 (leçon 62 « Transactions ») : la vidéo interactive assets/anim/projet-transaction.html, testée aussi dans lesson-video.test.mjs.
+/* Projet NutriBoost, chapitre 13 (leçon 62 « Transactions ») : la vidéo interactive assets/anim/projet-transaction.html, testée aussi dans lesson-video.test.mjs.
    La trame est celle d’Elisa (25 octobre, 17 h 05, « Cours 1 — TRANSACTION : valider les modifications ensemble ») : Léa Simon reçoit son shaker
    personnalisé cassé et l’écrit elle-même, photo à l’appui ; le service client demande de retirer un shaker du stock et d’enregistrer son
    remplacement, en conservant son prénom. Sans transaction, le stock baisse mais le remplacement est refusé (le prénom manque) : la base ne
@@ -37,12 +37,12 @@ const sql = q => Q.Q[q].map(([s]) => s).filter(s => !s.trim().startsWith('--')).
 
 /* ---------- La base de la vidéo ---------- */
 const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(root, 'vendor/sqljs', f)});
-/* La base NutriBoost telle que le chapitre 11 la laisse : les tables de la boutique (SCHEMA_SQL), les quatre tables des ateliers, puis la table avis ;
-   Nathan Dupont (chapitre 9) et Inès Lefebvre (chapitre 11) ne sont plus clients, son avis reste, sans compte. Neuf tables. */
+/* La base NutriBoost telle que le chapitre 12 la laisse : les tables de la boutique (SCHEMA_SQL), les quatre tables des ateliers, puis la table avis ;
+   Nathan Dupont (chapitre 10) et Inès Lefebvre (chapitre 12) ne sont plus clients, son avis reste, sans compte. Neuf tables. */
 function base() {
   const db = new SQL.Database();
   db.run(vm.runInContext('SCHEMA_SQL', ctx));
-  /* Le chapitre 10 (MERGE, 30 octobre) : l’inventaire de l’entrepôt met à jour la Fibre Prébiotique (150) et Oméga 3 (75), et ajoute la Spiruline Bio. */
+  /* Le chapitre 11 (MERGE, 30 octobre) : l’inventaire de l’entrepôt met à jour la Fibre Prébiotique (150) et Oméga 3 (75), et ajoute la Spiruline Bio. */
   db.run("UPDATE produits SET stock = 150 WHERE id = 1; UPDATE produits SET stock = 75 WHERE id = 7; INSERT INTO produits VALUES (9, 'Spiruline Bio', 'Nutrition', 22.90, 40);");
   db.run(`PRAGMA foreign_keys = ON;
     CREATE TABLE coachs (id INTEGER PRIMARY KEY, prenom TEXT NOT NULL, nom TEXT NOT NULL, email TEXT NOT NULL);
@@ -163,9 +163,9 @@ test('les phrases d’Elisa (25 octobre, 17 h 05) : sa trame, une phrase par bul
     assert.ok(page.includes(t), `la page montre : ${t}`);
 });
 
-test('la base du chapitre 11 : neuf tables ; Léa Simon est la cliente 7, le shaker le produit 8 (Shaker Inox, 30 en stock)', () => {
+test('la base du chapitre 12 : neuf tables ; Léa Simon est la cliente 7, le shaker le produit 8 (Shaker Inox, 30 en stock)', () => {
   const db = base(), TB = val('TB');
-  assert.deepEqual(TB.map(t => t[3]), ['clients', 'commandes', 'fidelite', 'produits', 'coachs', 'ateliers', 'inscriptions', 'cartes', 'avis'], 'la boutique, les ateliers, puis la table avis du chapitre 11');
+  assert.deepEqual(TB.map(t => t[3]), ['clients', 'commandes', 'fidelite', 'produits', 'coachs', 'ateliers', 'inscriptions', 'cartes', 'avis'], 'la boutique, les ateliers, puis la table avis du chapitre 12');
   assert.deepEqual(TB.map(t => t[3]).sort(), tables(db), 'aucune table de la base n’est oubliée à l’écran');
   for (const [, , , name, n] of TB) assert.equal(count(db, name), n, `${name} : ${n} lignes`);
   assert.equal(new Set(TB.map(t => t[1])).size, TB.length, 'chaque table a sa couleur');
@@ -297,7 +297,7 @@ test('les messages : Léa Simon écrit elle-même par SMS, sa photo dessous ; le
   assert.ok(opens.slice(0, 3).every(o => !o.hand && !o.press), 'les messages et la photo gardent leur bulle de consigne');
   assert.ok(opens[3].at > picks[0].at && opens[3].at < picks[1].at && opens[4].at > picks[2].at && opens[4].at < picks[3].at && opens[5].at > picks[3].at && opens[5].at < picks[4].at,
     '« Comment éviter ça ? » après le moment 1, « Valider » après le moment 3, « Annuler » après le moment 4');
-  /* La micro-interaction du toucher (Elisa, 25 octobre, 16 h 22), la même qu’au chapitre 11 : rien que des « to », jamais de « fromTo » sur un bouton ou son anneau. */
+  /* La micro-interaction du toucher (Elisa, 25 octobre, 16 h 22), la même qu’au chapitre 12 : rien que des « to », jamais de « fromTo » sur un bouton ou son anneau. */
   for (const t of ["tl.set(b + '-r', {autoAlpha: 0.9, scale: 1}, T + 0.05);", "tl.to(b + '-r', {autoAlpha: 0, scale: 1.16, duration: 0.6, ease: 'power2.out'}, T + 0.051);",
     "tl.to(b + ' .emo', {rotation: -16, transformOrigin: '50% 85%', duration: 0.07, yoyo: true, repeat: 3, ease: 'sine.inOut'}, T + 0.06);",
     "} else { fingerTap($(b), T, '#tapw', 0.6, 62); press($(b), T, lip, 9); }", "tapButton('bhow', HOW, '#4B30CC');", "tapButton('bcom', COM, '#157A49');", "tapButton('brol', ROL, '#A92A31');"])
@@ -307,16 +307,16 @@ test('les messages : Léa Simon écrit elle-même par SMS, sa photo dessous ; le
   assert.ok(page.includes('Elisa, 25 octobre, 17 h 05'), 'la page garde la trace de la trame d’Elisa');
 });
 
-test('chapitre 12 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 12 : TRANSACTION</title>') && page.includes('<div class="tagpill">Projet · Chapitre 12</div>')
+test('chapitre 13 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
+  assert.ok(page.includes('<title>Requête · Projet, chapitre 13 : TRANSACTION</title>') && page.includes('<div class="tagpill">Projet · Chapitre 13</div>')
     && page.includes('<span>T</span><span>R</span><span>A</span><span>N</span><span>S</span><span>A</span><span>C</span><span>T</span><span>I</span><span>O</span><span>N</span>')
-    && page.includes('<div class="abs sub">Valider les modifications ensemble</div>'), 'écran titre : « Projet · Chapitre 12 », TRANSACTION, « Valider les modifications ensemble »');
+    && page.includes('<div class="abs sub">Valider les modifications ensemble</div>'), 'écran titre : « Projet · Chapitre 13 », TRANSACTION, « Valider les modifications ensemble »');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les autres chapitres');
-  assert.equal(caps[1], 'Au chapitre 11, tu as décidé<br>du sort des lignes liées<br>avec <code>ON DELETE</code>.', 'le chapitre précédent');
-  /* La fin du chapitre 11 annonce les transactions : c’est ce chapitre. */
+  assert.equal(caps[1], 'Au chapitre 12, tu as décidé<br>du sort des lignes liées<br>avec <code>ON DELETE</code>.', 'le chapitre précédent');
+  /* La fin du chapitre 12 annonce les transactions : c’est ce chapitre. */
   const od = fs.readFileSync(path.join(root, 'assets/anim/projet-ondelete.html'), 'utf8');
-  assert.ok(od.includes('à tout valider ou tout annuler<br>avec une transaction.') && od.includes('Prochaine leçon · Transactions</span>'), 'le chapitre 11 annonce celui-ci');
+  assert.ok(od.includes('à tout valider ou tout annuler<br>avec une transaction.') && od.includes('Prochaine leçon · Transactions</span>'), 'le chapitre 12 annonce celui-ci');
   /* Il annonce à son tour la leçon suivante du cours : SAVEPOINT. */
   assert.ok(caps.includes('Dans la prochaine leçon, tu apprendras<br>à annuler une partie d’une transaction<br>avec <code>SAVEPOINT</code>.') && page.includes('Prochaine leçon · SAVEPOINT</span>'), 'annonce de la prochaine leçon');
   assert.equal(lessons[lessons.findIndex(l => l.id === 62) + 1].titre, 'SAVEPOINT');

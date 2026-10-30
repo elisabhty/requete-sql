@@ -1,4 +1,4 @@
-/* Projet NutriBoost, chapitre 11 (leçon 68 « ON DELETE ») : la vidéo interactive assets/anim/projet-ondelete.html, testée aussi dans lesson-video.test.mjs.
+/* Projet NutriBoost, chapitre 12 (leçon 68 « ON DELETE ») : la vidéo interactive assets/anim/projet-ondelete.html, testée aussi dans lesson-video.test.mjs.
    Refonte du 25 octobre (Elisa, 12 h 51 : « le cours ON DELETE, je ne comprends rien du tout, je préfère qu’on se base sur tout le cours sur la partie avis ») :
    une seule histoire, celle d’un avis. Une cliente, Inès Lefebvre, remplit une feuille d’avis après un atelier (12 h 52 : l’équipe enregistre l’avis et sa note dans
    la base) ; la table avis relie l’avis à son compte (client_id) et à son produit (produit_id) par deux clés étrangères ; quelque temps plus tard, le service client
@@ -37,13 +37,13 @@ const COMMENT = val('COMMENT');
 
 /* ---------- La base de la vidéo ---------- */
 const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(root, 'vendor/sqljs', f)});
-/* La base NutriBoost de la vidéo, telle que le chapitre 9 la laisse : les quatre tables de la boutique, telles que l’app les crée (SCHEMA_SQL : clients,
+/* La base NutriBoost de la vidéo, telle que le chapitre 10 la laisse : les quatre tables de la boutique, telles que l’app les crée (SCHEMA_SQL : clients,
    produits, commandes 16, fidelite) et les quatre tables des ateliers (coachs 4, ateliers 5, inscriptions, cartes 3) ; Nathan Dupont, l’inscription de
    Léa Simon et les deux d’Hugo Laurent ont été supprimés : 9 clients, 8 inscriptions. Huit tables. */
 function base() {
   const db = new SQL.Database();
   db.run(vm.runInContext('SCHEMA_SQL', ctx));
-  /* Le chapitre 10 (MERGE, 30 octobre) : l’inventaire de l’entrepôt met à jour la Fibre Prébiotique (150) et Oméga 3 (75), et ajoute la Spiruline Bio. */
+  /* Le chapitre 11 (MERGE, 30 octobre) : l’inventaire de l’entrepôt met à jour la Fibre Prébiotique (150) et Oméga 3 (75), et ajoute la Spiruline Bio. */
   db.run("UPDATE produits SET stock = 150 WHERE id = 1; UPDATE produits SET stock = 75 WHERE id = 7; INSERT INTO produits VALUES (9, 'Spiruline Bio', 'Nutrition', 22.90, 40);");
   db.run(`PRAGMA foreign_keys = ON;
     CREATE TABLE coachs (id INTEGER PRIMARY KEY, prenom TEXT NOT NULL, nom TEXT NOT NULL, email TEXT NOT NULL);
@@ -82,7 +82,7 @@ const HUIT = ['ateliers', 'cartes', 'clients', 'coachs', 'commandes', 'fidelite'
 const tables = db => db.exec("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name")[0].values.map(r => r[0]);
 const count = (db, t) => db.exec(`SELECT COUNT(*) FROM ${t}`)[0].values[0][0];
 const avis = db => (db.exec('SELECT id, client_id, produit_id, note, commentaire FROM avis ORDER BY id')[0] || {values: []}).values;
-/* Le compte d’Inès Lefebvre : sa seule inscription (Yoga du matin) est déjà supprimée, hors écran, comme au chapitre 9 ; puis la ligne de la table clients. */
+/* Le compte d’Inès Lefebvre : sa seule inscription (Yoga du matin) est déjà supprimée, hors écran, comme au chapitre 10 ; puis la ligne de la table clients. */
 const supprimerInscription = db => db.run('DELETE FROM inscriptions WHERE client_id = 9;');
 const supprimerCompte = db => db.run('DELETE FROM clients WHERE id = 9;');
 /* Ce que le site lit : l’avis de la fiche produit, avec le prénom de son auteur ou, à défaut, « Ancien client ». */
@@ -181,7 +181,7 @@ test('les phrases d’Elisa (25 octobre, 12 h 51) : les sept parties de sa trame
   assert.ok(page.includes('Définis ce qui doit arriver aux données&nbsp;liées lorsqu’une&nbsp;ligne est supprimée.'), 'la bulle de la mascotte');
 });
 
-test('la base du chapitre 9 : huit tables, neuf clients, huit inscriptions ; Inès Lefebvre y est la cliente 9, sans commande, sans carte ni points de fidélité', () => {
+test('la base du chapitre 10 : huit tables, neuf clients, huit inscriptions ; Inès Lefebvre y est la cliente 9, sans commande, sans carte ni points de fidélité', () => {
   const db = base(), TB = val('TB');
   assert.deepEqual(tables(db), HUIT, 'huit tables avant la création de la table avis');
   assert.deepEqual(TB.map(t => t[3]), ['clients', 'commandes', 'fidelite', 'produits', 'coachs', 'ateliers', 'inscriptions', 'cartes'], 'la boutique d’abord, puis les tables des ateliers dans l’ordre du chapitre 5');
@@ -380,18 +380,18 @@ test('le message : un mail du service client relaie la demande d’Inès Lefebvr
   assert.ok(page.includes('Elisa, 25 octobre'), 'la page garde la trace de la demande d’Elisa');
 });
 
-/* ---------- Propre au chapitre 11 : la suite du chapitre 10 (MERGE, depuis le 30 octobre), l’annonce de la leçon Transactions ---------- */
-test('chapitre 11 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 11 : ON DELETE</title>') && page.includes('<div class="tagpill">Projet · Chapitre 11</div>')
+/* ---------- Propre au chapitre 12 : la suite du chapitre 11 (MERGE, depuis le 30 octobre), l’annonce de la leçon Transactions ---------- */
+test('chapitre 12 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
+  assert.ok(page.includes('<title>Requête · Projet, chapitre 12 : ON DELETE</title>') && page.includes('<div class="tagpill">Projet · Chapitre 12</div>')
     && page.includes('<span>O</span><span class="sp">N</span><span>D</span><span>E</span><span>L</span><span>E</span><span>T</span><span>E</span>') && page.includes('<div class="abs sub">Quand un compte disparaît</div>'),
-    'écran titre : « Projet · Chapitre 11 », ON DELETE, « Quand un compte disparaît »');
+    'écran titre : « Projet · Chapitre 12 », ON DELETE, « Quand un compte disparaît »');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les chapitres 2 à 9');
-  assert.equal(caps[1], 'Au chapitre 10, tu as synchronisé<br>deux tables avec <code>MERGE</code>.', 'le chapitre précédent');
-  /* La fin du chapitre 10 annonce « ON DELETE » : c’est ce chapitre. */
+  assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les chapitres 2 à 10');
+  assert.equal(caps[1], 'Au chapitre 11, tu as synchronisé<br>deux tables avec <code>MERGE</code>.', 'le chapitre précédent');
+  /* La fin du chapitre 11 annonce « ON DELETE » : c’est ce chapitre. */
   const merge = fs.readFileSync(path.join(root, 'assets/anim/projet-merge.html'), 'utf8');
-  assert.ok(merge.includes('avec <code>ON DELETE</code>.') && merge.includes('Prochaine leçon · ON DELETE</span>'), 'le chapitre 10 annonce celui-ci');
-  assert.ok(page.includes("on('#bw-pr .hl', A.r2 + 0.5, 0.2);"), 'la table produits, que le chapitre 10 a synchronisée, s’allume avec cette légende');
+  assert.ok(merge.includes('avec <code>ON DELETE</code>.') && merge.includes('Prochaine leçon · ON DELETE</span>'), 'le chapitre 11 annonce celui-ci');
+  assert.ok(page.includes("on('#bw-pr .hl', A.r2 + 0.5, 0.2);"), 'la table produits, que le chapitre 11 a synchronisée, s’allume avec cette légende');
   /* Il annonce à son tour la leçon suivante du cours : Transactions. */
   assert.ok(caps.includes('Dans la prochaine leçon, tu apprendras<br>à tout valider ou tout annuler<br>avec une transaction.') && page.includes('Prochaine leçon · Transactions</span>'), 'annonce de la prochaine leçon');
   assert.equal(lessons[lessons.findIndex(l => l.id === 68) + 1].titre, 'Transactions');

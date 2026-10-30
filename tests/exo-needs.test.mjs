@@ -31,7 +31,7 @@ const EXERCICES = [
 
 test('plus aucun cours ne déclare d’exercice ni de notion obligatoire : chaque cours est une leçon seule', () => {
   const lessons = vm.runInContext('MODULES.flatMap(m=>m.lessons)', ctx);
-  assert.equal(lessons.length, 64);
+  assert.equal(lessons.length, 65);
   assert.equal(lessons.filter(l => l.exoNeeds || l.consigne || l.solution || !l.leconSeule).map(l => l.titre).join(', '), '');
 });
 

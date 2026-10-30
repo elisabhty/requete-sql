@@ -75,5 +75,5 @@ test('apartés « Bon à savoir » (titre en question) : plus aucun dans les cou
     const a = heads.filter(h => h[1]).map(h => { assert.equal(h[2], 'Bon à savoir'); return norm(h[3]); });
     if (a.length) asides[l.id] = a;
   }
-  assert.deepEqual(asides, {}, 'le dernier aparté (« Que ne fait pas un trigger ? ») est parti avec le cours texte Les triggers, devenu une vidéo (chapitre 15)');
+  assert.deepEqual(asides, {}, 'le dernier aparté (« Que ne fait pas un trigger ? ») est parti avec le cours texte Les triggers, devenu une vidéo (chapitre 16)');
 });

@@ -11,7 +11,7 @@ import {guideEnv, checkGuideLesson} from './helpers/guide-checks.mjs';
 const root = path.resolve(import.meta.dirname, '..');
 const env = await guideEnv(root);
 const {html, ctx} = env;
-/* Le cours 57 est devenu le chapitre 18, en vidéo : son cours texte est gardé dans tests/fixtures/guide-texte-index.js (identifiant 957). */
+/* Le cours 57 est devenu le chapitre 19, en vidéo : son cours texte est gardé dans tests/fixtures/guide-texte-index.js (identifiant 957). */
 const INDEX_TEXTE = vm.runInContext(fs.readFileSync(path.join(root, 'tests/fixtures/guide-texte-index.js'), 'utf8'), ctx);
 const lesson = id => id === 57 ? INDEX_TEXTE : vm.runInContext(`MODULES.flatMap(m=>m.lessons).find(l=>l.id===${id})`, ctx);
 const cardOf = l => { const b = l.studio.uses.body; return b.slice(b.lastIndexOf('<div class="ij-done is-locked"')); };

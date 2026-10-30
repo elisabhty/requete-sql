@@ -46,7 +46,7 @@ test('compteur des missions : data-ease="linear" suit un rythme régulier', () =
    pages reste celui du contrôle (tests/helpers/guide-checks.mjs) : une carte pg-card par ligne du résultat, dans l'ordre (cartes
    empilées comprises), chacune avec toutes les colonnes de sa ligne (data-c, data-v). */
 /* L’objet à thème du cours 57 (l’outil interne) : son cours texte est gardé dans tests/fixtures/guide-texte-index.js (identifiant 957), le cours
-   étant devenu le chapitre 18, en vidéo ; les autres objets à thème étaient dans le cours texte des cours en vidéo. */
+   étant devenu le chapitre 19, en vidéo ; les autres objets à thème étaient dans le cours texte des cours en vidéo. */
 const themed = [957];
 const INDEX_TEXTE = vm.runInContext(fs.readFileSync(path.join(root, 'tests/fixtures/guide-texte-index.js'), 'utf8'), ctx);
 const lessonOf = id => id === 957 ? INDEX_TEXTE : vm.runInContext(`MODULES.flatMap(m=>m.lessons).find(l=>l.id===${id})`, ctx);

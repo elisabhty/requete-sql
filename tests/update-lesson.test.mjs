@@ -1,4 +1,4 @@
-/* Projet NutriBoost, chapitre 8 (leçon 27 « UPDATE ») : la vidéo interactive assets/anim/projet-update.html, testée aussi dans lesson-video.test.mjs.
+/* Projet NutriBoost, chapitre 9 (leçon 27 « UPDATE ») : la vidéo interactive assets/anim/projet-update.html, testée aussi dans lesson-video.test.mjs.
    À la rentrée, trois mails demandent de modifier des lignes qui existent déjà : la date de l’atelier Pilates, le solde de toutes les cartes,
    puis le solde de la carte de Nathan Petit (modification refusée par la règle CHECK). Deuxième cours du module « Écrire et modifier les données ».
    Leçon seule : ni cours texte, ni exercice. Elle remplace l’ancien cours UPDATE (hausse de 10 % des prix de la table produits).
@@ -31,8 +31,8 @@ const sp = s => s.replace(/ /g, ' ');
 
 /* ---------- La base de la vidéo ---------- */
 const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(root, 'vendor/sqljs', f)});
-/* La base NutriBoost de la vidéo, telle que le chapitre 7 la laisse : les quatre tables de la boutique, telles que l’app les crée (SCHEMA_SQL : clients, produits,
-   commandes, fidelite) et les quatre tables des ateliers (coachs 4, ateliers 5, inscriptions 11 avec les quatre ajoutées au chapitre 7, cartes 3 dont celle
+/* La base NutriBoost de la vidéo, telle que le chapitre 8 la laisse : les quatre tables de la boutique, telles que l’app les crée (SCHEMA_SQL : clients, produits,
+   commandes, fidelite) et les quatre tables des ateliers (coachs 4, ateliers 5, inscriptions 11 avec les quatre ajoutées au chapitre 8, cartes 3 dont celle
    d’Hugo Laurent, rechargée à 18 séances) : huit tables. */
 function base() {
   const db = new SQL.Database();
@@ -285,17 +285,17 @@ test('les trois mails : Moussa Diallo, l’équipe NutriBoost, puis le service c
   assert.ok(opens.map(o => o.label).join('|') === 'Ouvrir le mail de Moussa Diallo|Ouvrir le mail de L’équipe NutriBoost|Ouvrir le mail du service client NutriBoost');
 });
 
-/* ---------- Propre au chapitre 8 : la suite du chapitre 7, l’annonce de la leçon DELETE ---------- */
-test('chapitre 8 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 8 : UPDATE</title>') && page.includes('<div class="tagpill">Projet · Chapitre 8</div>')
+/* ---------- Propre au chapitre 9 : la suite du chapitre 8, l’annonce de la leçon DELETE ---------- */
+test('chapitre 9 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
+  assert.ok(page.includes('<title>Requête · Projet, chapitre 9 : UPDATE</title>') && page.includes('<div class="tagpill">Projet · Chapitre 9</div>')
     && page.includes('<span>U</span><span>P</span><span>D</span><span>A</span><span>T</span><span>E</span>') && page.includes('<div class="abs sub">Modifier des lignes</div>')
-    && page.includes('Modifie les données déjà présentes dans une table avec <span class="ic">UPDATE</span>.'), 'écran titre : « Projet · Chapitre 8 », UPDATE, « Modifier des lignes »');
+    && page.includes('Modifie les données déjà présentes dans une table avec <span class="ic">UPDATE</span>.'), 'écran titre : « Projet · Chapitre 9 », UPDATE, « Modifier des lignes »');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les chapitres 2 à 7');
-  assert.equal(caps[1], 'Au chapitre 7, tu as ajouté des lignes avec <code>INSERT INTO</code>.', 'le chapitre précédent');
-  /* La fin du chapitre 7 annonce « UPDATE » : c’est ce chapitre. */
+  assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les chapitres 2 à 8');
+  assert.equal(caps[1], 'Au chapitre 8, tu as ajouté des lignes avec <code>INSERT INTO</code>.', 'le chapitre précédent');
+  /* La fin du chapitre 8 annonce « UPDATE » : c’est ce chapitre. */
   const insert = fs.readFileSync(path.join(root, 'assets/anim/projet-insert.html'), 'utf8');
-  assert.ok(insert.includes('à modifier les données avec <code>UPDATE</code>.') && insert.includes('Prochaine leçon · UPDATE</span>'), 'le chapitre 7 annonce celui-ci');
+  assert.ok(insert.includes('à modifier les données avec <code>UPDATE</code>.') && insert.includes('Prochaine leçon · UPDATE</span>'), 'le chapitre 8 annonce celui-ci');
   /* Il annonce à son tour la leçon suivante du cours : DELETE. */
   assert.ok(caps.includes('Dans la prochaine leçon, tu apprendras<br>à supprimer des lignes avec <code>DELETE</code>.') && page.includes('Prochaine leçon · DELETE</span>'), 'annonce de la prochaine leçon');
   assert.equal(lessons[lessons.findIndex(l => l.id === 27) + 1].id, 28);

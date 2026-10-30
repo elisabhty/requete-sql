@@ -1,4 +1,4 @@
-/* Projet NutriBoost, chapitre 7 (leçon 26 « INSERT ») : la vidéo interactive assets/anim/projet-insert.html, testée aussi dans lesson-video.test.mjs.
+/* Projet NutriBoost, chapitre 8 (leçon 26 « INSERT ») : la vidéo interactive assets/anim/projet-insert.html, testée aussi dans lesson-video.test.mjs.
    Karim Benali passe la main : trois mails demandent d’ajouter des lignes (une inscription, un groupe de trois inscriptions, des séances sur une carte).
    Les mails de Karim et de l’équipe NutriBoost, la légende « Jusqu’ici, Karim… » et la fin du récapitulatif sont les mots d’Elisa (24 octobre).
    Le mail de Karim vient avant « À ton tour de prendre la main ! » (Réf 1), il donne les deux dates : la correction n’est pas un second mail (Réf 3).
@@ -56,7 +56,7 @@ test('INSERT : premier cours du module « Écrire et modifier les données », j
   const m = modules.find(x => x.titre === 'Écrire et modifier les données');
   assert.deepEqual([...m.lessons.map(l => l.id)], [26, 27, 28, 82], 'INSERT, UPDATE, DELETE, MERGE : le cours 69 n’existe plus');
   const ids = lessons.map(l => l.id);
-  assert.equal(ids.indexOf(26), ids.indexOf(66) + 1, 'INSERT vient juste après DROP');
+  assert.equal(ids.indexOf(26), ids.indexOf(84) + 1, 'INSERT vient juste après Les schémas (30 octobre)');
   assert.equal(ids.indexOf(27), ids.indexOf(26) + 1, 'UPDATE vient juste après');
   assert.equal(l26.titre, 'INSERT');
   assert.equal(l26.résumé, 'Ajouter des lignes');
@@ -79,9 +79,9 @@ test('recherche, et leçon seule sans texte de secours ni exercice', () => {
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
   /* Le bouton des notes est écrit en clair dans Course(…) : il suit la dernière légende. */
-  assert.equal(val('NOTES'), 161.8);
-  assert.ok(page.includes('notesAt: 161.8,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 169);
+  assert.equal(val('NOTES'), 162.2);
+  assert.ok(page.includes('notesAt: 162.2,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 169.4);
   /* Des légendes qui se suivent sans se chevaucher, chaque chapitre commençant après la fin de la légende précédente ; le mail occupe l’écran le temps de sa lecture
      (plus il a de lignes, plus il reste), la légende suivante commence après son départ. */
   const finsDeMail = val('[[MAIL1, 0], [MAIL2, 1], [MAIL3, 2]].map(([t, n]) => +(t + mailOutAt(n)).toFixed(2))');
@@ -212,7 +212,7 @@ test('moment 4 : un groupe de trois inscriptions ; une faute (atelier 15) fait t
     assert.ok(page.includes(t), `la page montre : ${t}`);
 });
 
-test('chapitre 7, cartes : une seule carte par client (UNIQUE) ; ON CONFLICT … DO UPDATE recharge la carte de 8 à 18, DO NOTHING la laisse à 8, SET … = 10 la remplace par 10', () => {
+test('chapitre 8, cartes : une seule carte par client (UNIQUE) ; ON CONFLICT … DO UPDATE recharge la carte de 8 à 18, DO NOTHING la laisse à 8, SET … = 10 la remplace par 10', () => {
   const insert = fin => `INSERT INTO cartes (client_id, seances_restantes) VALUES (6, 10) ${fin}`;
   const db = base();
   assert.throws(() => db.run(insert(';')), /UNIQUE constraint failed: cartes\.client_id/, 'une seconde carte pour Hugo Laurent est refusée');
@@ -256,18 +256,15 @@ test('moment 6 : quatre clients achètent un pack ; la même requête crée les 
   assert.deepEqual(solde, {'Sophie Martin': 20, 'Nathan Petit': 15, 'Hugo Laurent': 8, 'Chloé Moreau': 10, 'Lucas Bernard': 10}, 'cartes créées à 10 séances, cartes rechargées de 10');
 });
 
-test('la page montre la base : huit tables (la copie du fichier Excel s’en va), leurs nombres de lignes, les extraits des tables clients et ateliers et les trois dernières inscriptions', () => {
+test('la page montre la base : huit tables, leurs nombres de lignes, les extraits des tables clients et ateliers et les trois dernières inscriptions', () => {
   const db = base(), TB = val('TB');
   assert.deepEqual(tables(db), HUIT);
-  assert.deepEqual(TB.map(t => t[3]), ['clients', 'commandes', 'fidelite', 'produits', 'coachs', 'ateliers', 'inscriptions', 'cartes', 'inscriptions_excel'],
-    'la boutique d’abord, puis les tables des ateliers dans l’ordre du chapitre 5, la copie retirée au chapitre 6 en dernier');
+  assert.deepEqual(TB.map(t => t[3]), ['clients', 'commandes', 'fidelite', 'produits', 'coachs', 'ateliers', 'inscriptions', 'cartes'],
+    'la boutique d’abord, puis les tables des ateliers dans l’ordre du chapitre 5 (la copie du fichier Excel est retirée au chapitre 6, dans l’ouverture du chapitre 7)');
   assert.equal(new Set(TB.map(t => t[1])).size, TB.length, 'chaque table a sa couleur');
   for (const [, , , name, n] of TB.filter(t => t[3] !== 'inscriptions_excel')) assert.equal(count(db, name), n, `${name} : ${n} lignes`);
   assert.deepEqual(val('TB').filter(t => t[3] !== 'inscriptions_excel').map(t => t[3]).sort(), tables(db), 'aucune table de la base n’est oubliée à l’écran');
-  /* La copie ne sert qu’à rappeler le chapitre 6 : elle est barrée puis retirée pendant la légende « Au chapitre 6… ». */
-  const nb = ['bn-a', 'bn-b'].map(id => +page.match(new RegExp(`<span id="${id}">(\\d+) tables</span>`))[1]);
-  assert.deepEqual(nb, [9, tables(db).length], 'neuf tables, puis huit : ce que compte la base');
-  assert.ok(page.includes("tl.to('#bw-xl .sk', {scaleX: 1, duration: 0.3, ease: 'power2.out'}, A.r2 + 0.7);") && page.includes("tl.to('#bw-xl', {height: 0,"), 'la copie est barrée puis retirée de la liste');
+  assert.ok(page.includes('<span class="bn"><span>8 tables</span></span>') && !page.includes('#bw-xl'), 'huit tables : la copie du fichier Excel n’est plus à l’écran');
   /* Les extraits : table clients (dix lignes, deux pages de cinq) et table ateliers (cinq lignes). */
   assert.deepEqual(val('CLIENTS'), db.exec('SELECT id, prenom, nom FROM clients ORDER BY id')[0].values, 'les dix clients, dans l’ordre');
   assert.deepEqual(val('ATELIERS'), db.exec('SELECT id, titre, date_atelier FROM ateliers ORDER BY id')[0].values, 'les cinq ateliers, dans l’ordre');
@@ -344,17 +341,17 @@ test('Réf 9 : la requête qui crée ou recharge reste affichée pendant la dern
   assert.ok(page.includes("pulse('#ec2', A.c31 + 0.5, 1,") && page.includes("pulse(['#ec5', '#ec6'], A.c31 + 1.5, 1,"), 'les deux endroits qui créent et qui rechargent sont surlignés à tour de rôle');
 });
 
-/* ---------- Propre au chapitre 7 : la suite du chapitre 6, l’annonce du chapitre 8 ---------- */
-test('chapitre 7 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 7 : INSERT INTO</title>') && page.includes('<div class="tagpill">Projet · Chapitre 7</div>')
+/* ---------- Propre au chapitre 8 : la suite du chapitre 6, l’annonce du chapitre 9 ---------- */
+test('chapitre 8 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
+  assert.ok(page.includes('<title>Requête · Projet, chapitre 8 : INSERT INTO</title>') && page.includes('<div class="tagpill">Projet · Chapitre 8</div>')
     && page.includes('<span>I</span><span>N</span><span>S</span><span>E</span><span>R</span><span>T</span>') && page.includes('<div class="abs sub">Ajouter des lignes</div>')
-    && page.includes('Ajoute de nouvelles lignes dans une table avec <span class="ic">INSERT</span>.'), 'écran titre : « Projet · Chapitre 7 », INSERT, « Ajouter des lignes »');
+    && page.includes('Ajoute de nouvelles lignes dans une table avec <span class="ic">INSERT</span>.'), 'écran titre : « Projet · Chapitre 8 », INSERT, « Ajouter des lignes »');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les chapitres 2 à 6');
-  assert.equal(caps[1], 'Au chapitre 6, tu as retiré la copie du fichier Excel avec <code>DROP TABLE</code>.', 'le chapitre précédent');
-  /* La fin du chapitre 6 annonce « INSERT INTO » : c’est ce chapitre. */
-  const drop = fs.readFileSync(path.join(root, 'assets/anim/projet-drop.html'), 'utf8');
-  assert.ok(drop.includes('à ajouter des données dans tes tables avec <code>INSERT INTO</code>.') && drop.includes('Prochaine leçon · INSERT INTO</span>'), 'le chapitre 6 annonce celui-ci');
+  assert.equal(caps[1], 'Au chapitre 7, tu as découvert<br>les schémas, qui rangent<br>les tables par espace.', 'le chapitre précédent');
+  /* La fin du chapitre 7 annonce « INSERT INTO » : c’est ce chapitre. */
+  const sch = fs.readFileSync(path.join(root, 'assets/anim/projet-schemas.html'), 'utf8');
+  assert.ok(sch.includes('à ajouter des données dans tes tables<br>avec <code>INSERT INTO</code>.') && sch.includes('Prochaine leçon · INSERT INTO</span>'), 'le chapitre 7 annonce celui-ci');
   /* Il annonce à son tour la leçon suivante du cours : UPDATE. */
   assert.ok(caps.includes('Dans la prochaine leçon, tu apprendras<br>à modifier les données avec <code>UPDATE</code>.') && page.includes('Prochaine leçon · UPDATE</span>'), 'annonce de la prochaine leçon');
   assert.equal(lessons[lessons.findIndex(l => l.id === 26) + 1].id, 27);
