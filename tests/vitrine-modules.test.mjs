@@ -68,3 +68,13 @@ test('le service worker sert la vitrine réseau d’abord, sous sa propre adress
   assert.match(bloc, /fetch\(req, \{ cache: 'no-cache' \}\)/);
   assert.doesNotMatch(bloc, /index\.html/);
 });
+
+test('la vitrine charge vitrine.css et modules.js avec l’empreinte de leur contenu (sinon un navigateur garde l’ancienne version)', async () => {
+  const { createHash } = await import('node:crypto');
+  const v = f => createHash('sha1').update(fs.readFileSync(path.join(root, 'decouvrir', f))).digest('hex').slice(0, 8);
+  for (const page of ['index.html', 'module.html']) {
+    const h = fs.readFileSync(path.join(root, 'decouvrir', page), 'utf8');
+    assert.ok(h.includes(`href="vitrine.css?v=${v('vitrine.css')}"`), `${page} : écrire href="vitrine.css?v=${v('vitrine.css')}"`);
+    assert.ok(h.includes(`src="modules.js?v=${v('modules.js')}"`), `${page} : écrire src="modules.js?v=${v('modules.js')}"`);
+  }
+});
