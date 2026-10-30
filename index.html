@@ -6638,6 +6638,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=23">
 <link rel="stylesheet" href="memo-collection.css?v=5">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=1">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -7277,7 +7278,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
   })();
   </script>
 
-  <div id="onboarding" role="dialog" aria-modal="true" aria-labelledby="ob-title" aria-live="polite">
+  <div id="onboarding" role="dialog" aria-modal="true" aria-labelledby="ob-title" aria-live="polite" class="ob-vitrine">
     <div class="ob-progress" id="ob-progress"></div>
     <div class="ob-slides">
       <div class="ob-slide on" id="ob-body"></div>
@@ -24638,6 +24639,13 @@ const OB_JOBS=[
   ['career-change','En reconversion','refresh'],
   ['other','Autre activité','more']
 ];
+/* Onboarding sur fond violet : texte clair dans la barre d’état de l’appli iOS et couleur de
+   navigateur assortie, le temps du parcours ; retour au réglage clair de l’appli ensuite. */
+function obBarreEtat(sombre){
+  try{const P=window.Capacitor&&window.Capacitor.Plugins;if(P&&P.StatusBar)P.StatusBar.setStyle({style:sombre?'DARK':'LIGHT'});}catch(e){}
+  const m=document.querySelector('meta[name="theme-color"]');
+  if(m){if(!m.dataset.clair)m.dataset.clair=m.getAttribute('content')||'';m.setAttribute('content',sombre?'#6E50F6':m.dataset.clair);}
+}
 function startOnboarding(initial='welcome'){
   obEntry=OB_SLIDES.includes(initial)?initial:'welcome';
   obStep=OB_SLIDES.indexOf(obEntry);
@@ -24660,6 +24668,7 @@ function startOnboarding(initial='welcome'){
   const root=document.getElementById('onboarding');
   root.classList.add('on');
   root.removeAttribute('aria-hidden');
+  obBarreEtat(true);
   obJustEntered=true;
   brancherObSwipeV2();
   paintOb();
@@ -24667,7 +24676,7 @@ function startOnboarding(initial='welcome'){
 function closeOnboardingAuth(){
   const root=document.getElementById('onboarding');
   root.classList.remove('on','ob-account-step','ob-welcome-step','ob-profile-step','ob-legal-step');
-  root.setAttribute('aria-hidden','true');
+  root.setAttribute('aria-hidden','true');obBarreEtat(false);
   renderCompte();
 }
 function obGoto(target){
@@ -24945,7 +24954,7 @@ function paintOb(){
     const nDefis=(typeof CHALLENGES!=='undefined'&&CHALLENGES.length)||25;
     html=`<div class="ob-screen welcome"><div class="ob-brand"><code>&gt;_</code><span>Requête</span></div>
       <video class="mascot mascot-vid-hello" src="assets/mascotte-coucou.mp4" poster="assets/mascotte-coucou.jpg" autoplay loop muted playsinline disablepictureinpicture aria-label="La mascotte Requête te fait coucou"></video>
-      <h1 class="ob-title" id="ob-title">Le SQL s’apprend<br>en le pratiquant.</h1>
+      <h1 class="ob-title" id="ob-title">Le SQL s’apprend<br>en <em>le pratiquant</em>.</h1>
       <p class="ob-lead">Écris de vraies requêtes sur une base SQLite, sans rien installer. Ton départ personnalisé prend moins de deux minutes.</p>
       <div class="ob-welcome-demo" aria-hidden="true"><div class="ob-code"><div class="oc-bar"><i></i><i></i><i></i><em>requete.sql</em></div><pre class="oc-code" id="ob-demo-code"></pre><div class="oc-res" id="ob-demo-res" hidden><i>✓</i> ${plur(nParis,'client')} à Paris</div></div></div>
       <div class="ob-proof-stats" aria-label="Contenu du parcours"><div><strong>${TOTAL}</strong><span>leçons courtes</span></div><div><strong>${nDefis}</strong><span>défis SQL</span></div><div><strong>100 %</strong><span>hors-ligne</span></div></div></div>`;
@@ -24962,7 +24971,7 @@ function paintOb(){
     obSetFooter('Continuer sans compte',obChooseGuest,'','','');
   }else if(slide==='name'){
     const nameValue=esc(draft.name||'').replace(/"/g,'&quot;');
-    html=`<div class="ob-screen ob-profile ob-name">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Apprenons à mieux<br> te connaître.</h1>
+    html=`<div class="ob-screen ob-profile ob-name">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Apprenons à mieux<br> te <em>connaître</em>.</h1>
       <p class="ob-lead">Quelques étapes rapides pour personnaliser ton départ.</p>
       ${obMascotQuestion('Enchantée ! Comment dois-je t’appeler ?')}
       <label class="ob-field"><span>Prénom</span><input type="text" maxlength="32" value="${nameValue}" placeholder="Ton prénom" autocomplete="given-name" enterkeyhint="next" oninput="obInput('name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();obGoto('goal');}"></label>
@@ -24970,14 +24979,14 @@ function paintOb(){
       <p class="ob-helper">Tu pourras le modifier plus tard.</p></div>`;
     obSetFooter('Continuer',()=>obGoto('goal'),'Passer pour le moment',()=>obGoto('goal'),'1 question facultative · tes réponses restent modifiables');
   }else if(slide==='goal'){
-    html=`<div class="ob-screen ob-profile ob-goal">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Fixons ton objectif<br>d’apprentissage.</h1>
+    html=`<div class="ob-screen ob-profile ob-goal">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Fixons ton <em>objectif</em><br>d’apprentissage.</h1>
       <p class="ob-lead">Cela nous aide à construire un départ qui te ressemble.</p>
       ${obMascotQuestion('Qu’est-ce qui t’amène sur Requête ?')}
       ${obAnswers(OB_GOALS,'goal',draft.goal)}</div>`;
     obSetFooter('Continuer',()=>obGoto('level'),'','','',!draft.goal);
   }else if(slide==='level'){
     const levels=[['debutant','Je débute en SQL','bulb'],['bases','Je connais les bases','chart'],['inter','Je pratique déjà','trophy']];
-    html=`<div class="ob-screen ob-profile ob-level">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Où en es-tu avec SQL&nbsp;?</h1>
+    html=`<div class="ob-screen ob-profile ob-level">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Où en es-tu avec <em>SQL</em>&nbsp;?</h1>
       ${obMascotQuestion('Je te ferai commencer au bon endroit.')}
       ${obAnswers(levels,'niveau',draft.niveau)}
       ${obLevelHint()}
@@ -24996,7 +25005,7 @@ function paintOb(){
     obSetFooter(draft.practiceDone?'Continuer':'Exécute la requête pour continuer',()=>obGoto(obAfterPractice()),draft.practiceDone?'':'Passer l’essai',()=>obGoto(obAfterPractice()),draft.practiceDone?'':'Aucune erreur possible : cet essai est guidé.',!draft.practiceDone);
   }else if(slide==='rhythm'){
     const subtitles={calme:'Pour garder le rythme',regulier:'Le bon équilibre',intensif:'Pour progresser plus vite'};
-    html=`<div class="ob-screen ob-profile ob-rhythm">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Quel rythme te convient&nbsp;?</h1>
+    html=`<div class="ob-screen ob-profile ob-rhythm">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Quel <em>rythme</em> te convient&nbsp;?</h1>
       ${obMascotQuestion('Même dix minutes suffisent pour avancer.')}
       <div class="ob-answer-list ob-rhythm-list" role="radiogroup" aria-label="Temps par séance">${RYTHMES.map((r,i)=>`<button type="button" role="radio" aria-checked="${draft.rythme===r.k?'true':'false'}" class="ob-answer ${draft.rythme===r.k?'on':''}" style="--d:${i*60}ms" onclick="obPick('rythme','${r.k}')"><span class="ob-radio" aria-hidden="true"></span><span><b>${obRythmeMinutes(r)} minutes</b><small>${subtitles[r.k]||''}</small></span><span class="ob-rhythm-min">${r.k==='regulier'?'Conseillé':''}</span></button>`).join('')}</div>
       ${obRhythmSummary()}</div>`;
@@ -25014,7 +25023,7 @@ function paintOb(){
     const week=Array.from({length:7},(_,i)=>dates.has(dstr(addJ(d0,i))));
     const nWeek=week.filter(Boolean).length;
     html=`<div class="ob-screen ready"><div class="ob-success" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.3 4.3L19 7.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <h1 class="ob-title" id="ob-title">Ton parcours est prêt${firstName?', '+esc(firstName):''}.</h1><p class="ob-lead">Commence par ta première leçon et avance jusqu’à ton objectif.</p>
+      <h1 class="ob-title" id="ob-title">Ton parcours est prêt${firstName?', <em>'+esc(firstName)+'</em>':''}.</h1><p class="ob-lead">Commence par ta première leçon et avance jusqu’à ton objectif.</p>
       <img class="mascot" src="assets/mascotte-onboarding.png" alt="La mascotte Requête prête à commencer">
       <div class="ob-ready-summary"><div class="ob-ready-row"><span class="ob-ready-ico">◎</span><div><small>Ton objectif</small><b>${esc(goalLabel)}</b></div></div>
         <div class="ob-ready-row"><span class="ob-ready-ico">✓</span><div><b>${nivLabel} · ${obRythmeMinutes(ryt)} min par séance</b></div></div>
@@ -25056,7 +25065,7 @@ function finishOnboard(action){
   save();
   const root=document.getElementById('onboarding');
   root.classList.remove('on','ob-account-step','ob-welcome-step','ob-profile-step','ob-legal-step');
-  root.setAttribute('aria-hidden','true');
+  root.setAttribute('aria-hidden','true');obBarreEtat(false);
   semaineOffset=0;jourSel=null;
   renderGreeting();renderHomeHero();renderProgress();renderPlanning();renderCompte();
   celebrate();
