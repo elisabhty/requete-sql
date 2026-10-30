@@ -1,0 +1,860 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Projet, chapitre 10 : MERGE</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .sub{font-size:66px}
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+.hid{opacity:0;visibility:hidden}
+/* Aperçu d’un geste (moment « À toi ») : il prend le pas sur la timeline, le temps de l’arrêt ; il montre exactement
+   l’image que la timeline affiche juste après l’arrêt, qui reprend donc sans saut. */
+.pvs{opacity:1!important;visibility:visible!important}
+.pvh{opacity:0!important;visibility:hidden!important}
+
+/* Couleur de chaque sujet : coach, atelier, client, équipe NutriBoost (et carte de membre), inscription,
+   puis les tables de la boutique que la base compte aussi : commande, produit, fidélité ; enfin l’inventaire de l’entrepôt */
+.k-co{--c:#2F80ED;--cs:#E6F0FD;--ci:#1D5FA8}
+.k-at{--c:#E8892B;--cs:#FFF1E2;--ci:#9A5B00}
+.k-cl{--c:#6A4DF4;--cs:#EEE9FF;--ci:#5335E0}
+.k-nb{--c:#D99A0B;--cs:#FFF6DA;--ci:#8A6200}
+.k-in{--c:#169447;--cs:#E2F6EA;--ci:#0F7A3A}
+.k-cm{--c:#0E9F9A;--cs:#DDF5F3;--ci:#0B6E6A}
+.k-pr{--c:#D9468F;--cs:#FCE8F2;--ci:#A3216A}
+.k-fi{--c:#9C6B3F;--cs:#F5ECE3;--ci:#7A4F27}
+.k-en{--c:#0891B2;--cs:#E0F4F9;--ci:#0E6A85}
+
+/* ---------- La base : une ligne par table (son nom, son nombre de lignes) ---------- */
+.bc{left:64px;width:952px;top:236px;padding:0 0 12px;overflow:hidden}
+.bh{height:72px;display:flex;align-items:center;gap:14px;padding:0 34px;background:var(--surface-2);font-family:var(--display);font-size:34px;font-weight:800;color:var(--ink);letter-spacing:-.4px;white-space:nowrap}
+.bh .emo{font-size:34px}
+.bn{margin-left:auto;display:inline-grid;font-family:var(--ui);font-size:25px;font-weight:700;letter-spacing:0}
+.bn>span{grid-area:1/1;height:44px;padding:0 20px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;white-space:nowrap}
+.srow{position:relative;height:64px;padding:12px 34px;overflow:hidden}
+.srow+.srow{box-shadow:inset 0 2px 0 var(--line-2)}
+.srow>div{position:relative;z-index:1}
+.srow .hl{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;opacity:0;visibility:hidden;background:var(--cs);box-shadow:inset 8px 0 0 var(--c)}
+.sn{display:flex;align-items:center;gap:14px;height:40px;font-family:var(--mono);font-size:31px;font-weight:800;color:var(--ci)}
+.sn .emo{font-size:32px}
+.sn .sp{flex:1}
+.nm{position:relative;display:inline-block;white-space:nowrap}
+.nb{display:inline-grid;font-family:var(--ui);font-size:23px;font-weight:700;color:var(--ink-3)}
+.nb>span{grid-area:1/1;justify-self:end;display:flex;align-items:center;justify-content:flex-end;height:36px;padding:0 14px;border-radius:999px;background:var(--line-2);white-space:nowrap}
+
+/* ---------- Les tables : lignes, colonnes, valeurs empilées ---------- */
+.tb{padding:0 0 10px;overflow:hidden;border-radius:40px}
+.tb .h{display:flex;align-items:center;gap:12px;height:64px;padding:0 24px;background:var(--cs);font-family:var(--mono);font-size:30px;font-weight:800;color:var(--ci);white-space:nowrap}
+.tb .h .emo{font-size:32px}
+.tb .h .tg{height:38px;padding:0 14px;border-radius:999px;background:#fff;color:var(--ci);font-family:var(--ui);font-size:21px;font-weight:800;display:flex;align-items:center}
+.tb .bn>span{height:40px;font-size:23px;background:#fff;color:var(--ci);box-shadow:inset 0 0 0 3px var(--c)}
+.gr{display:grid;grid-template-columns:var(--g);align-items:stretch;padding:0 12px}
+.gr>span{position:relative;z-index:1;display:flex;align-items:center;gap:10px;min-width:0;padding:0 10px;white-space:nowrap;overflow:hidden}
+.hd{height:44px;font-family:var(--mono);font-size:24px;font-weight:700;color:var(--ink-3)}
+.hd .emo{font-size:21px;width:26px;flex:none;text-align:center}
+/* La colonne id porte une icône : sa valeur commence sous le nom de la colonne, pas sous l’icône. */
+#tp .r>.c0,#te .r>.c0{padding-left:46px}
+.gr>span.kc{color:var(--ci)}
+.r{position:relative;height:54px;font-family:var(--mono);font-size:28px;font-weight:600;color:var(--ink);box-shadow:inset 0 2px 0 var(--line-2);overflow:hidden}
+.r .hl,.r .wn,.r .xx,.r .gn{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;pointer-events:none;opacity:0;visibility:hidden}
+.r .hl{background:var(--cs);box-shadow:inset 6px 0 0 var(--c)}
+.r .wn{background:rgba(242,154,46,.2);box-shadow:inset 6px 0 0 #F29A2E}
+.r .xx{background:rgba(239,79,85,.15);box-shadow:inset 6px 0 0 var(--danger-fill)}
+.r .gn{background:rgba(52,194,122,.18);box-shadow:inset 6px 0 0 #34C27A}
+.r .v{position:relative;z-index:1;font-style:normal}
+/* Une case peut changer de valeur : les valeurs successives sont empilées, une seule se voit */
+.sw{display:inline-grid;position:relative;z-index:1}
+.sw>*{grid-area:1/1;font-style:normal;white-space:pre}
+/* Le changement prévu (avant l’exécution) : une pastille à côté du stock ; un produit nouveau : sa pastille */
+.pd{flex:none;height:38px;padding:0 14px;border-radius:11px;background:#FFF1DC;color:#9A5B00;box-shadow:inset 0 0 0 3px #F6C77E;font-family:var(--ui);font-size:23px;font-weight:800;font-style:normal;display:inline-flex;align-items:center;white-space:nowrap;opacity:0;visibility:hidden}
+.pd.ok{background:#E7F7EE;color:#1B7A45;box-shadow:inset 0 0 0 3px #A7E3C0}
+/* Gestes de l’élève : ligne refusée */
+.r.kor{animation:kor .55s ease}
+@keyframes kor{0%,100%{background:transparent}30%{background:rgba(239,79,85,.18)}}
+.dbn.kob{animation:kob .45s ease}
+@keyframes kob{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+
+/* ---------- Les requêtes : une carte de code (un commentaire, puis la requête) ---------- */
+.sq{border-radius:34px;box-shadow:0 9px 0 #110E27}
+.sq .top{height:52px;gap:12px;padding:0 30px}
+.sq .dot{width:14px;height:14px}
+.sq .fname{margin-left:8px;font-size:22px}
+.sq .body{padding:18px 30px;font-size:28px;line-height:42px}
+.sq .ln{height:42px}
+.sq .cmt{color:var(--t-com)}
+.sq .caret i{top:-31px;width:4px;height:37px}
+.sq .glow{border-radius:8px;padding:0 3px;margin:0 -3px}
+/* Les lignes qui n’arrivent qu’au chapitre 4 (WHEN NOT MATCHED) : repliées jusque-là */
+.sq .fold{display:block;overflow:hidden}
+/* Le trou de la requête (moments 2 et 3) : la ligne à choisir ; ses réponses possibles, pour l’aperçu d’un mauvais choix */
+.sq .hole{position:absolute;left:30px;right:30px;height:42px;box-sizing:border-box;border:3px dashed #FFC94A;border-radius:12px;background:rgba(255,201,74,.12);color:#FFD66B;font-family:var(--mono);font-size:30px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.sq .alt{position:absolute;left:30px;opacity:0;visibility:hidden}
+.sq .str{color:var(--t-str)}
+/* Une action à la mauvaise place (la requête du collègue) */
+.sq .bad{border-radius:8px;padding:0 4px;margin:0 -4px;background:rgba(239,79,85,.28);box-shadow:inset 0 -3px 0 #EF4F55}
+
+/* ---------- Le résultat d’une requête ---------- */
+.abs.out{left:64px;width:952px;margin:0}
+.out.ok{background:#E7F7EE;border:3px solid #A7E3C0}
+.out.ok .oi{background:#34C27A;color:#fff}
+.out.ok .ot b{color:#1B7A45}
+.out.warn{background:#FFF4E5;border:3px solid #F6D9A8}
+.out.warn .oi{background:#F29A2E;color:#fff}
+.out.warn .ot b{color:#9A5B00}
+
+.pack{left:0;width:1080px;display:flex;justify-content:center}
+.pack>span{height:84px;padding:0 34px 0 22px;border-radius:999px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);font-size:32px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:14px;white-space:nowrap}
+.pack .emo{font-size:40px}
+.pack.alrt>span{background:#FFF1F1;border-color:#F7B9BC;box-shadow:0 6px 0 #EFA2A6;color:#A92A31}
+
+/* ---------- Le SMS reçu ---------- */
+.ml{left:64px;width:952px;top:560px;height:184px;padding:0 30px;overflow:hidden}
+/* Hors de l’app : le doigt qui touche la notification */
+.tapf{z-index:20;font-size:120px;margin:-8px 0 0 -44px;opacity:0;visibility:hidden}
+
+/* La commande qui choisit l’action, puis la suite : la prochaine leçon */
+.keyc{left:0;width:1080px;display:flex;justify-content:center}
+.keyc>span{height:96px;padding:0 40px 0 26px;border-radius:999px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 9px 0 #4B30CC;color:#fff;font-size:36px;font-weight:700;display:flex;align-items:center;gap:16px;white-space:nowrap}
+.keyc .emo{font-size:44px}
+.keyc code{font-family:var(--mono);font-weight:800;background:none;color:#fff;padding:0}
+
+/* ---------- À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px;padding:8px 0}
+#s7 .rrow{gap:22px;padding:18px 32px}
+#s7 .rico{width:88px;height:88px;border-radius:26px;font-size:46px}
+#s7 .rtxt{font-size:34px;line-height:1.25}
+#s7 .rtxt .rs{margin-top:2px;font-size:31px}
+/* ---------- La table produits (neuf lignes une fois la Spiruline Bio ajoutée) et l’inventaire (trois lignes, hautes pour être touchées) ---------- */
+#tp .r{height:44px}
+#te .r{height:62px}
+
+/* ---------- Les cases où ranger : les actions (moment 1), puis les deux branches (moment 6) ---------- */
+.dbn{left:64px;width:952px;height:210px;box-sizing:border-box;padding:20px 28px 22px;border-radius:36px;border:4px dashed #C9BCFF;background:rgba(255,255,255,.85);display:flex;flex-direction:column}
+.dbn .hh{display:flex;align-items:baseline;gap:20px;white-space:nowrap}
+.dbn .dn{font-family:var(--mono);font-size:34px;font-weight:800;color:var(--accent-ink)}
+.dbn .dd{font-size:26px;font-weight:700;color:var(--ink-3)}
+.dbn .cs{margin-top:auto;display:flex;gap:16px}
+.dbn .rc{flex:1;min-height:92px;padding:12px 16px;border-radius:18px;background:var(--accent-soft);color:var(--accent-ink);box-shadow:inset 0 0 0 3px #C9BCFF;font-size:27px;font-weight:700;line-height:1.25;text-align:center;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden}
+.dbn .rc.cd{font-family:var(--mono);font-size:27px}
+.dbn.okb{animation:okb .5s cubic-bezier(.2,.9,.3,1.3)}
+@keyframes okb{40%{transform:scale(1.035)}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 10</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>M</span><span>E</span><span>R</span><span>G</span><span>E</span></div>
+    <div class="abs sub">Synchroniser deux tables</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Utilise <span class="ic">MERGE</span> pour mettre à jour les lignes&nbsp;existantes et ajouter les nouvelles en une seule&nbsp;requête.</div>
+  </section>
+
+  <!-- La base et l’alerte -->
+  <section class="scene" id="sa"></section>
+  <!-- Le SMS de l’équipe logistique -->
+  <section class="scene" id="sm"></section>
+  <!-- Une action par produit : trois cases où ranger les quatre produits, puis MERGE -->
+  <section class="scene" id="sd"></section>
+  <!-- La table produits, l’inventaire (table entrepot), la requête MERGE -->
+  <section class="scene" id="sb"></section>
+  <!-- La requête du collègue : les deux actions à remettre en place -->
+  <section class="scene" id="sx"></section>
+  <!-- Le même résultat dans SQLite -->
+  <section class="scene" id="sl"></section>
+  <!-- La suite : la prochaine leçon -->
+  <section class="scene" id="sk"></section>
+
+  <!-- À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🔀</div><div class="rtxt"><code>MERGE</code> compare deux tables<br>et choisit l’action <b>ligne par ligne</b>.<span class="rs"><code>ON</code> indique comment reconnaître<br>la même ligne : en général, l’identifiant.</span></div></div>
+      <div class="rrow"><div class="rico emo">🧭</div><div class="rtxt"><code>WHEN MATCHED</code> met à jour,<br><code>WHEN NOT MATCHED</code> <b>ajoute</b>.<span class="rs">Les lignes absentes de la source ne changent pas :<br>rien n’est supprimé sans action <code>DELETE</code>.</span></div></div>
+      <div class="rrow"><div class="rico emo">🔁</div><div class="rtxt">Dans SQLite, <code>MERGE</code><br><b>n’existe pas</b>.<span class="rs">On obtient le même résultat<br>avec <code>INSERT … ON CONFLICT DO UPDATE</code>.</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+
+/* ---------- Le déroulé : chaque légende arrive à la suite de la précédente ----------
+   cap(clé, texte, durée) pose une légende [début, fin] ; A[clé] et B[clé] donnent son début et sa fin (temps de la timeline). */
+const SCH = {t: 5.0, caps: [], chaps: [{label:'L’alerte stock', a: 5.0}], A: {}, B: {}};
+function chap(c){ SCH.t = +(SCH.t + 0.4).toFixed(2); SCH.chaps.push({label: c.label, a: SCH.t}); }
+function cap(key, html, dur, gap = 0.1){
+  const a = +(SCH.t + gap).toFixed(2), b = +(a + dur).toFixed(2);
+  SCH.caps.push([a, b, html]); SCH.A[key] = a; SCH.B[key] = b; SCH.t = b;   // trois lignes au plus par bulle : au-delà, deux bulles (Elisa, 24 octobre)
+}
+/* « À toi ! » : la légende reste un instant, puis l’image s’arrête à a + 2,35 s (le passage d’attente est coupé). */
+const toi = key => cap(key, 'À toi !', 2.55);
+const {A, B} = SCH;
+/* Le message reçu : [qui (nom, équipe, initiales), sujet (couleur), étiquette, adresse, demande (ses phrases), signature, option].
+   L’équipe logistique écrit par SMS ({sms: true}) : une bulle par phrase, entre « Bonjour ! » et « Merci ! ». Il arrive en notification ;
+   l’app s’arrête dessus (OPENS) jusqu’au toucher. Le scénario est celui d’Elisa (30 octobre : l’alerte stock, l’inventaire de l’entrepôt,
+   les ventes du soir dans 5 minutes, le Magnésium à ne pas perdre). */
+const MAILS = [
+  [['L’équipe logistique', 'NutriBoost', 'EL'], 'k-nb', 'équipe', 'logistique@nutriboost.fr', [
+    'L’entrepôt vient d’envoyer son inventaire : les stocks du site ne correspondent plus.',
+    'Le Magnésium n’y figure pas, car son fabricant le livre directement.',
+    'Les ventes du soir commencent dans 5 minutes : peux-tu synchroniser les stocks ?'], 'L’équipe logistique NutriBoost', {sms: true, hello: 'Bonjour !'}]
+];
+/* Le message : la légende s’efface le temps du message (notification, toucher, lecture, départ). Plus il a de bulles, plus il reste :
+   le toucher à +1,6 s, une bulle toutes les 0,28 s, le départ juste après la pause de lecture, et le bloc finit 1 s après le départ. */
+const mailSms = n => /^client/.test(MAILS[n][2]) || !!(MAILS[n][6] || {}).sms;
+const mailRows = n => mailSms(n) ? 2 + [].concat(MAILS[n][4]).flatMap(p => p.split(/(?<=[.!?])\s+(?=[A-ZÀÂÉÈÊÎÔÛÇ])/)).length
+  : 1 + [].concat(MAILS[n][4]).length + 1 + 1;
+const mailOutAt = n => +(2.68 + 0.28 * (mailRows(n) - 1)).toFixed(2);
+const mailBlock = n => { const t = SCH.t; SCH.t = +(SCH.t + mailOutAt(n) + 1).toFixed(2); return t; };
+const MO = MAILS.map((m, n) => mailOutAt(n));   // le départ du message, depuis le début de son bloc
+
+/* 1 · L’alerte stock : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) */
+cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
+cap('r2', "Au chapitre 9, tu as supprimé<br>des lignes avec <code>DELETE</code>.", 3.0);
+cap('c2', "Ce soir, une alerte arrive<br>de l’équipe logistique.", 2.8);
+const MAIL1 = mailBlock(0);
+/* 2 · Une action par produit */
+chap({label:'Une action par produit'});
+cap('c3', "L’équipe a importé l’inventaire<br>dans une table temporaire,<br>la <b>table entrepot</b>.", 4.0);
+cap('c4', "Compare chaque produit<br>de la <b>table produits</b><br>avec l’inventaire reçu.", 3.6);
+toi('p1');
+cap('c5', "La Fibre Prébiotique et Oméga 3<br>existent déjà : tu mets à jour<br>leur stock.", 4.0);
+cap('c6', "La Spiruline Bio est nouvelle :<br>tu l’ajoutes.", 3.2);
+cap('c7', "Le Magnésium n’est pas<br>dans l’inventaire : il reste tel quel.", 3.6);
+cap('c8', "Pour tout faire en une seule requête,<br>il te faut une commande<br>qui choisit l’action selon le cas.", 4.4);
+cap('c9', "C’est le rôle de <code>MERGE</code>.", 2.6);
+/* 3 · La clé de comparaison */
+chap({label:'La clé de comparaison'});
+cap('c10', "<code>MERGE INTO produits</code><br>désigne la table à mettre à jour.", 3.8);
+cap('c11', "<code>USING entrepot</code> désigne<br>la table qui apporte les données.", 3.8);
+cap('c12', "Avec <code>ON</code>, tu indiques comment<br>reconnaître le même produit<br>dans les deux tables.", 4.0);
+toi('p2');
+cap('c13', "Chaque identifiant désigne<br>un seul produit, dans chaque table.", 3.6);
+/* 4 · MATCHED ou NOT MATCHED */
+chap({label:'MATCHED ou NOT MATCHED'});
+cap('c14', "Pour chaque ligne de l’inventaire,<br>on cherche le même identifiant<br>dans la <b>table produits</b>.", 4.2);
+cap('c15', "Pour la Fibre Prébiotique et Oméga 3,<br>une ligne correspond :<br>c’est <code>WHEN MATCHED</code>.", 4.4);
+toi('p3');
+cap('c16', "Le stock de la Fibre Prébiotique<br>passera de 120 à 150.", 3.4);
+cap('c17', "Celui d’Oméga 3 passera de 90 à 75.", 3.2);
+cap('c18', "Une ligne de l’inventaire<br>n’a aucune correspondance.", 3.2);
+toi('p4');
+cap('c19', "Aucun produit n’a l’identifiant 9 :<br>la Spiruline Bio est nouvelle.", 3.6);
+cap('c20', "<code>WHEN NOT MATCHED</code> l’ajoute<br>avec <code>INSERT</code>.", 5.6);   // les cinq lignes s’écrivent pendant la bulle
+/* 5 · Le piège */
+chap({label:'Le piège'});
+cap('c21', "Il reste le Magnésium,<br>absent de l’inventaire.", 3.0);
+toi('p5');
+cap('c22', "La requête ne traite<br>que les lignes de l’inventaire.", 3.4);
+cap('c23', "Le Magnésium garde ses 500 unités,<br>comme tous les produits absents<br>de l’inventaire.", 4.4);
+cap('c24', "Tu peux maintenant<br>exécuter la requête.", 3.0);
+cap('c25', "Les deux stocks sont à jour,<br>et la Spiruline Bio est ajoutée.", 4.2);
+/* 6 · La requête du collègue */
+chap({label:'La requête du collègue'});
+cap('c26', "Un collègue a préparé<br>la même synchronisation pour demain.", 3.4);
+cap('c27', "Mais il a inversé les deux actions.", 3.0);
+toi('p6');
+cap('c28', "Une action par branche : <code>UPDATE</code><br>quand le produit existe,<br><code>INSERT</code> quand il est nouveau.", 4.6);
+/* 7 · Et dans SQLite ? */
+chap({label:'Et dans SQLite ?'});
+cap('c29', "Dans SQLite, la base de l’app,<br><code>MERGE</code> n’existe pas.", 3.4);
+cap('c30', "On obtient le même résultat<br>avec <code>ON CONFLICT</code>, vu au chapitre 7.", 4.6);   // la requête s’écrit pendant la bulle
+cap('c31', "<code>excluded</code> désigne la ligne<br>que l’on voulait ajouter.", 3.6);
+cap('c32', "Ici, <code>WHERE true</code> garde<br>toutes les lignes de l’inventaire.", 3.6);
+/* la suite : la prochaine leçon */
+cap('c33', "Dans la prochaine leçon, tu apprendras<br>à supprimer une ligne que d’autres<br>tables référencent, avec <code>ON DELETE</code>.", 7.0);
+/* 8 · À retenir */
+chap({label:'À retenir'});
+const RECAP = SCH.t;
+cap('c34', "Pour finir, voici les <b>trois idées à retenir</b>.", 4.8, 0.4);
+/* NOTES (le bouton « Ajouter à mes notes ») est écrit en clair dans Course(…) plus bas : tests/merge-lesson.test.mjs vérifie qu’il suit le déroulé. */
+const NOTES = +(SCH.t + 0.1).toFixed(2);
+const DURATION = +(NOTES + 7.2).toFixed(2);
+SCH.caps.push([NOTES, 999, APP ? "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."
+  : "Une requête, deux actions :<br>mettre à jour ou ajouter."]);
+
+const CAPTIONS = SCH.caps;
+const CHAPTERS = SCH.chaps.map((c, i) => ({n: i + 1, label: c.label, a: c.a, b: i + 1 < SCH.chaps.length ? SCH.chaps[i + 1].a : DURATION}));
+
+/* Pas de question du lecteur : les moments « À toi » (PICKS) font participer l’élève. */
+const QUESTIONS = [];
+
+/* ---------- Le cas : la base des ateliers NutriBoost (la même dans tous les chapitres du projet) ---------- */
+/* La base telle que le chapitre 9 la laisse : huit tables ; l’inscription de Léa Simon, le compte de Nathan Dupont et les deux inscriptions
+   d’Hugo Laurent ont été supprimés (clients 9, inscriptions 8).   [clé, couleur, emoji, nom, lignes] */
+const TB = [
+  ['cl', 'k-cl', '👥', 'clients', 9], ['cm', 'k-cm', '🛒', 'commandes', 16], ['fi', 'k-fi', '⭐', 'fidelite', 4], ['pr', 'k-pr', '📦', 'produits', 8],
+  ['co', 'k-co', '🧑‍🏫', 'coachs', 4], ['at', 'k-at', '📅', 'ateliers', 5], ['in', 'k-in', '📝', 'inscriptions', 8], ['ca', 'k-nb', '💳', 'cartes', 3]
+];
+/* La table produits, telle que l’app la crée : [id, nom, catégorie, prix, stock]. */
+const PRODUITS = [
+  [1, 'Fibre Prébiotique', 'Bien-être', '29.90', 120], [2, 'Collagène Marin', 'Beauté', '39.90', 80],
+  [3, 'Magnésium', 'Bien-être', '19.90', 500], [4, 'Vitamine D', 'Nutrition', '14.90', 150],
+  [5, 'Tisane Détox', 'Boisson', '12.50', 60], [6, 'Protéine Végétale', 'Nutrition', '34.90', 45],
+  [7, 'Oméga 3', 'Bien-être', '24.90', 90], [8, 'Shaker Inox', 'Accessoire', '15.00', 30]
+];
+/* L’inventaire reçu, importé dans la table temporaire entrepot : deux produits recomptés (la Fibre Prébiotique remonte à 150, Oméga 3
+   descend à 75) et un produit nouveau, la Spiruline Bio. Le Magnésium, livré par son fabricant, n’y figure pas. Les stocks du collagène,
+   de la tisane, de la protéine et du shaker, que les chapitres 12 à 14 reprennent, ne bougent pas. */
+const ENTREPOT = [
+  [1, 'Fibre Prébiotique', 'Bien-être', '29.90', 150], [7, 'Oméga 3', 'Bien-être', '24.90', 75], [9, 'Spiruline Bio', 'Nutrition', '22.90', 40]
+];
+/* Moment 1 : trois actions, et quatre produits à ranger [produit, action, pourquoi]. */
+const BINS = [['up', 'UPDATE', 'mettre à jour le stock'], ['in', 'INSERT', 'ajouter le produit'], ['no', 'Ne rien faire', 'garder la ligne telle quelle']];
+const ITEMS = [
+  ['Fibre Prébiotique : site 120, entrepôt 150', 'up', 'La Fibre Prébiotique existe déjà dans la <b>table&nbsp;produits</b> : seul son stock change, c’est une mise à jour.'],
+  ['Spiruline Bio : absente du site, entrepôt 40', 'in', 'Aucune ligne de la <b>table&nbsp;produits</b> ne décrit encore la Spiruline Bio : il faut l’ajouter.'],
+  ['Magnésium : site 500, absent de l’inventaire', 'no', 'L’inventaire ne dit rien du Magnésium : rien ne justifie de modifier ni de supprimer sa ligne.'],
+  ['Oméga 3 : site 90, entrepôt 75', 'up', 'Oméga 3 existe déjà : son stock doit simplement prendre la valeur de l’entrepôt.']
+];
+/* Moment 4 : la ligne à toucher est celle de la Spiruline Bio (e9) ; pourquoi les autres ne conviennent pas. */
+const WHY4 = {
+  e1: 'La Fibre Prébiotique a l’identifiant 1, qui existe déjà dans la <b>table&nbsp;produits</b>.',
+  e7: 'Oméga 3 a l’identifiant 7, qui existe déjà dans la <b>table&nbsp;produits</b>.'
+};
+/* Moment 6 : la requête du collègue, ses deux actions inversées ; les deux branches où les remettre [action, branche, pourquoi]. */
+const BRANCHES = [['m', 'WHEN MATCHED THEN', 'le produit existe déjà'], ['n', 'WHEN NOT MATCHED THEN', 'le produit est nouveau']];
+const ACTIONS = [
+  ['INSERT (…) VALUES (…)', 'n', 'Un produit nouveau n’a pas encore de ligne : il faut l’ajouter, dans la branche <code>WHEN&nbsp;NOT&nbsp;MATCHED</code>.'],
+  ['UPDATE SET stock = entrepot.stock', 'm', 'Un produit qui existe déjà garde sa ligne : seul son stock est mis à jour, dans la branche <code>WHEN&nbsp;MATCHED</code>.']
+];
+
+/* Les six moments « À toi » : l’image s’arrête, l’élève range, choisit ou touche ; la page montre aussitôt le résultat.
+   from : début du passage qui amène chaque moment, d’où repartent « ↺ Revoir » et « Rejouer ». */
+const atp = k => +(A[k] + 2.35).toFixed(2);
+const PICKS = [
+  {at: atp('p1'), from: A.c3, kind: 'sort', prompt: 'Range chaque produit avec l’action qui convient.',
+    hint: 'Sélectionne un produit, puis appuie sur l’action qui convient. Tu peux aussi le faire glisser directement.', next: '« {x} » : mettre à jour, ajouter ou ne rien faire ?',
+    options: ITEMS.map(x => ({label: x[0]}))},
+  {at: atp('p2'), from: A.c10, kind: 'pick', text: true, prompt: 'Quelle condition reconnaît le même produit dans les deux tables ?', options: [
+    {label: 'ON produits.nom = entrepot.nom', why: 'Ici, les noms concordent ; mais un nom peut s’écrire autrement d’une table à l’autre, ou être porté par deux produits. L’identifiant, lui, désigne un seul produit.'},
+    {label: 'ON produits.id = entrepot.id', ok: true},
+    {label: 'ON produits.stock = entrepot.stock', why: 'Le stock est justement ce qui change : les 150 unités de la Fibre Prébiotique correspondraient à la Vitamine D, qui en a aussi 150.'}]},
+  {at: atp('p3'), from: A.c14, kind: 'pick', text: true, prompt: 'Que faire d’un produit qui existe déjà dans la table produits ?', options: [
+    {label: 'INSERT', why: 'La Fibre Prébiotique et Oméga 3 ont déjà leur ligne : en ajouter une seconde avec le même identifiant serait refusé.'},
+    {label: 'UPDATE SET stock = entrepot.stock', ok: true},
+    {label: 'DELETE', why: 'Supprimer ces deux produits les retirerait du catalogue, alors qu’il faut seulement corriger leur stock.'}]},
+  {at: atp('p4'), from: A.c18, kind: 'tap', need: 1, prompt: 'Touche la ligne de l’inventaire qui n’a aucune correspondance dans la table produits.'},
+  {at: atp('p5'), from: A.c21, kind: 'pick', text: true, prompt: 'Le Magnésium n’est pas dans l’inventaire. Que devient-il ?', options: [
+    {label: 'Il est supprimé', why: 'La requête ne contient aucune action <code>DELETE</code> : aucune ligne de la <b>table&nbsp;produits</b> n’est supprimée.'},
+    {label: 'Son stock passe à 0', why: 'Seules les lignes de l’inventaire sont traitées, et aucune n’a l’identifiant 3 : rien ne modifie le stock du Magnésium.'},
+    {label: 'Il reste tel quel', ok: true}]},
+  {at: atp('p6'), from: A.c26, kind: 'sort', prompt: 'Remets chaque action dans la bonne branche.',
+    hint: 'Sélectionne une action, puis appuie sur la branche qui convient. Tu peux aussi la faire glisser directement.', next: '« {x} » : quand le produit existe, ou quand il est nouveau ?',
+    options: ACTIONS.map(x => ({label: x[0]}))}
+];
+
+const msgOpen = (t, n) => {
+  const [prenom, nom] = MAILS[n][0], msg = mailSms(n) ? 'message' : 'mail';   // l’équipe logistique écrit par SMS
+  const de = /^Le /.test(prenom) ? 'du ' + prenom.slice(3) : /^La /.test(prenom) ? 'de la ' + prenom.slice(3) : /^L’/.test(prenom) ? 'de l’' + prenom.slice(2)
+    : /^[AEIOUHÉÈ]/.test(prenom) ? 'd’' + prenom : 'de ' + prenom;
+  return {at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: `Touche le ${msg} pour l’ouvrir.`, label: `Ouvrir le ${msg} ${de} ${nom}`};
+};
+const OPENS = [msgOpen(MAIL1, 0)];
+
+/* ---------- Gabarits ---------- */
+const cell = (j, inner) => `<span class="c${j}">${inner}</span>`;
+const line = (id, cells) => `<div class="gr r" id="r${id}"><i class="hl"></i><i class="wn"></i><i class="xx"></i><i class="gn"></i>${cells}</div>`;
+/* Carte de code : une ligne par [repère, texte, classe, style]. Dans le texte : {id|…} un passage repéré (il pulse). Un commentaire (--) n’a pas de curseur. */
+const SQL_KW = /\b(?:MERGE INTO|USING|WHEN NOT MATCHED THEN|WHEN MATCHED THEN|ON CONFLICT|DO UPDATE|INSERT INTO|INSERT|UPDATE|SET|VALUES|SELECT|FROM|WHERE|DELETE|ON)\b/g, CARET = '<span class="caret"><i></i></span>';
+function lineHtml([lid, s, cls = '', style = '']){
+  const cmt = s.trim().startsWith('--');
+  let h = s.replace(/\{(\w+)\|([^{}]*)\}/g, '<span class="glow" id="$1">$2</span>');
+  if (!cmt) h = h.replace(SQL_KW, '<span class="kw">$&</span>');
+  return `<span class="ln${cmt ? ' cmt' : ''}${cls ? ' ' + cls : ''}" id="${lid}"${style ? ` style="${style}"` : ''}>${h}${cmt ? '' : CARET}</span>`;
+}
+function editor(id, fname, lines, extra = '', top = 0){
+  return `<div class="abs code sq" id="${id}" style="left:64px;width:952px${top ? ';top:' + top + 'px' : ''}"><div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i>` +
+    `<span class="fname">${fname}</span></div><div class="body">${lines}${extra}</div></div>`;
+}
+const LT = k => 18 + 42 * k;   // le haut de la ligne k d’une carte de code
+const hole = (id, k) => `<div class="hole" id="${id}" style="top:${LT(k)}px">?</div>`;
+const alt = (id, s, k) => lineHtml([id, s, 'alt', `top:${LT(k)}px`]);
+const out = (id, kind, title, msg) => `<div class="abs out ${kind}" id="${id}"><span class="oi">${kind === 'ok' ? '✓' : '!'}</span>` +
+  `<div class="ot"><b>${title}</b><span class="s">${msg}</span></div></div>`;
+/* Les deux tables ont les mêmes colonnes : id, nom, categorie, prix, stock. */
+const G = '--g:96px 318px 190px 130px 1fr';
+const HD = `<div class="gr hd"><span class="c0 kc"><span class="emo">🔑</span>id</span><span class="c1">nom</span><span class="c2">categorie</span><span class="c3">prix</span><span class="c4">stock</span></div>`;
+const RH = 44;   // hauteur d’une ligne de la table produits
+function dom(){
+  /* La base et ses huit tables, puis l’alerte */
+  $('#sa').innerHTML = `<div class="abs card bc" id="bc"><div class="bh"><span class="emo">🗄️</span><span>Base NutriBoost</span><span class="bn"><span>8 tables</span></span></div>` +
+    TB.map(([k, kc, emo, name, n]) => `<div class="srow ${kc}" id="bw-${k}"><i class="hl"></i><div class="sn"><span class="emo">${emo}</span>` +
+      `<span class="nm">${name}</span><i class="sp"></i><b class="nb"><span>${n} lignes</span></b></div></div>`).join('') + '</div>' +
+    '<div class="abs pack alrt" id="dem"><span><span class="emo">🚨</span>Alerte stock</span></div>';
+  /* La table produits : le stock change (valeurs empilées : actuelle, synchronisée, puis 0 pour l’aperçu du moment 5) ; la pastille dit le
+     changement prévu ; la ligne de la Spiruline Bio n’existe qu’après le chapitre 4 */
+  const sto = (id, s) => {
+    const e = ENTREPOT.find(x => x[0] === id), vals = [s].concat(e && id !== 9 ? [e[4]] : []).concat(id === 3 ? [0] : []);
+    return `<i class="sw" id="sp${id}">${vals.map((v, j) => `<i class="a${j}">${v}</i>`).join('')}</i>` +
+      (e ? `<i class="pd" id="pd${id}">${id === 9 ? 'nouveau' : '→ ' + e[4]}</i>` : '') + (id === 3 ? '<i class="pd ok" id="pd3">inchangé</i>' : '');
+  };
+  let b = `<div class="abs card tb k-pr" id="tp" style="left:64px;width:952px;top:236px;${G}">` +
+    `<div class="h"><span class="emo">📦</span><span id="tpn0">produits</span><span class="bn"><span id="pc0">8 lignes</span><span id="pc1">9 lignes</span></span></div>` + HD +
+    PRODUITS.concat([ENTREPOT[2]]).map(([id, nom, cat, prix, s]) => line('p' + id, cell(0, `<i class="v">${id}</i>`) + cell(1, `<i class="v">${nom}</i>`) +
+      cell(2, `<i class="v">${cat}</i>`) + cell(3, `<i class="v">${prix}</i>`) + cell(4, sto(id, s)))).join('') + '</div>';
+  /* L’inventaire reçu : la table temporaire entrepot ; chaque ligne peut être touchée (moment 4) ; le compteur des lignes traitées */
+  b += `<div class="abs card tb k-en" id="te" style="left:64px;width:952px;${G}">` +
+    `<div class="h"><span class="emo">🏭</span><span id="ten0">entrepot</span><span class="tg" id="tmp">temporaire</span><span class="bn">` +
+    ['0/3 traitée', '✓ 1/3 traitée', '✓ 2/3 traitées', '✓ 3/3 traitées'].map((x, j) => `<span id="tc${j}">${x}</span>`).join('') + '</span></div>' + HD +
+    ENTREPOT.map(([id, nom, cat, prix, s]) => line('e' + id, cell(0, `<i class="v">${id}</i>`) + cell(1, `<i class="v">${nom}</i>`) +
+      cell(2, `<i class="v">${cat}</i>`) + cell(3, `<i class="v">${prix}</i>`) + cell(4, `<i class="v">${s}</i>`))).join('') + '</div>';
+  /* La requête MERGE : les lignes s’écrivent au fil du cours ; ON et l’action de WHEN MATCHED sont à choisir (moments 2 et 3) ;
+     les cinq lignes de WHEN NOT MATCHED sont repliées jusqu’au chapitre 4 */
+  b += editor('em', 'synchronisation.sql', [
+    ['em0', '-- Synchroniser les stocks'],
+    ['em1', '{km|MERGE INTO} {tpn|produits}'],
+    ['em2', '{ku|USING} {ten|entrepot}'],
+    ['em3', '{ko|ON} {con|produits.id = entrepot.id}'],
+    ['em4', '{kwm|WHEN MATCHED THEN}'],
+    ['em5', '  {aup|UPDATE SET stock = entrepot.stock}']
+  ].map(lineHtml).join('') + '<span class="fold" id="emf">' + [
+    ['em6', '{kwn|WHEN NOT MATCHED THEN}'],
+    ['em7', '  {ains|INSERT} (id, nom, categorie, prix, stock)'],
+    ['em8', '  VALUES (entrepot.id, entrepot.nom,'],
+    ['em9', '    entrepot.categorie, entrepot.prix,'],
+    ['em10', '    entrepot.stock);']
+  ].map(lineHtml).join('') + '</span>',
+    hole('hole2', 3) + hole('hole3', 5) +
+    alt('em3b', 'ON produits.nom = entrepot.nom', 3) + alt('em3c', 'ON produits.stock = entrepot.stock', 3) +
+    alt('em5b', '  INSERT (…) VALUES (…)', 5) + alt('em5c', '  DELETE', 5));
+  b += out('o-run', 'ok', 'Requête exécutée', '3 lignes traitées : 2 modifiées, 1 ajoutée.');
+  b += out('pv5-0', 'warn', 'Une ligne supprimée ?', 'Aucune action DELETE ne le demande.');
+  b += out('pv5-1', 'warn', 'Un stock à 0 ?', 'Aucune ligne de l’inventaire ne porte l’identifiant 3.');
+  $('#sb').innerHTML = b;
+  /* Les trois actions : une case chacune, où ranger les produits ; puis la commande qui choisit l’action */
+  $('#sd').innerHTML = BINS.map(([k, n, d], q) => `<div class="abs dbn" id="db-${k}" data-k="${k}" style="top:${260 + q * 232}px"><div class="hh"><span class="dn">${n}</span><span class="dd">${d}</span></div>` +
+    `<div class="cs">${ITEMS.map((x, i) => x[1] === k ? `<div class="rc" id="sbu${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
+    '<div class="abs pack" id="bpack"><span><span class="emo">📦</span>4 produits à ranger</span></div>' +
+    '<div class="abs keyc" id="mrg" style="top:760px"><span><span class="emo">🔀</span><code>MERGE</code> · une requête, plusieurs actions</span></div>';
+  /* La requête du collègue : ses deux actions inversées, puis remises en place ; les deux branches où les ranger */
+  $('#sx').innerHTML = editor('ec', 'demain.sql', [
+    ['ec0', '-- Synchronisation de demain'],
+    ['ec1', 'MERGE INTO produits'],
+    ['ec2', 'USING entrepot'],
+    ['ec3', 'ON produits.id = entrepot.id'],
+    ['ec4', 'WHEN MATCHED THEN'],
+    ['ec5', '  {xa1|INSERT (…) VALUES (…)}'],
+    ['ec6', 'WHEN NOT MATCHED THEN'],
+    ['ec7', '  {xa2|UPDATE SET stock = entrepot.stock};']
+  ].map(lineHtml).join(''), alt('ec5b', '  UPDATE SET stock = entrepot.stock', 5) + alt('ec7b', '  INSERT (…) VALUES (…);', 7), 236) +
+    BRANCHES.map(([k, n, d], q) => `<div class="abs dbn" id="dx-${k}" data-k="${k}" style="top:${716 + q * 232}px"><div class="hh"><span class="dn">${n}</span><span class="dd">${d}</span></div>` +
+      `<div class="cs">${ACTIONS.map((x, i) => x[1] === k ? `<div class="rc cd" id="sxa${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
+    '<div class="abs pack" id="xpack" style="top:1224px"><span><span class="emo">🧩</span>2 actions à remettre en place</span></div>';
+  /* Le même résultat dans SQLite : INSERT … ON CONFLICT (chapitre 7) */
+  $('#sl').innerHTML = editor('eq', 'sqlite.sql', [
+    ['eq0', '-- Le même résultat dans SQLite'],
+    ['eq1', '{qi|INSERT INTO} produits'],
+    ['eq2', 'SELECT * FROM entrepot {qw|WHERE true}'],
+    ['eq3', '{qc|ON CONFLICT (id) DO UPDATE}'],
+    ['eq4', 'SET stock = {qx|excluded}.stock;']
+  ].map(lineHtml).join(''), '', 640);
+  /* Le SMS */
+  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body, false, smsRank(MAILS, n),
+    (MAILS[n][6] || {}).hello, (MAILS[n][6] || {}).photo, (MAILS[n][6] || {}).bye) : '').join('') +
+    '<div class="abs emo tapf" id="tapf">👆</div>';
+  /* La suite : la prochaine leçon */
+  $('#sk').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🔗</span>Prochaine leçon · ON DELETE</span></div>';
+  // les requêtes, découpées en caractères pour la frappe
+  $$('.sq .ln').forEach(splitChars);
+}
+
+/* ---------- Mise en page ---------- */
+const bottom = s => { const el = $(s); return el.offsetTop + el.offsetHeight; };
+let TE = 0, EM = 0, EM2 = 0, FOLD = 0;
+function layout(){
+  // la table produits garde la place de sa neuvième ligne (la Spiruline Bio, ajoutée au chapitre 4)
+  $('#tp').style.height = $('#tp').offsetHeight + 'px';
+  // l’inventaire dessous, puis la requête ; quand l’inventaire s’en va, la requête monte à sa place et se déplie
+  TE = bottom('#tp') + 9 + 24;
+  $('#te').style.top = TE + 'px';
+  FOLD = $('#emf').offsetHeight;
+  $('#emf').style.height = '0px';
+  EM = bottom('#te') + 9 + 24;
+  EM2 = TE;
+  $('#em').style.top = EM + 'px';
+  const OT = EM2 + $('#em').offsetHeight + FOLD + 9 + 24;
+  ['#o-run', '#pv5-0', '#pv5-1'].forEach(s => { $(s).style.top = OT + 'px'; });
+  $('#dem').style.top = (bottom('#bc') + 9 + 44) + 'px';
+  $('#bpack').style.top = (bottom('#db-no') + 9 + 44) + 'px';
+}
+
+/* ---------- Petits gestes de la timeline ---------- */
+const pulse = (el, t, n = 3, c = 'rgba(201,188,255,.55)') => tl.to(el, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (el, t, s = 1.04) => tl.to(el, {scale: s, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, t);
+const on = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 1, duration: d, ease: 'power2.out'}, t);
+const off = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 0, duration: d, ease: 'power2.in'}, t);
+const GLOW = 'rgba(255,224,138,.4)', RED = 'rgba(239,79,85,.45)';
+/* Une valeur en remplace une autre : l’ancienne monte et s’efface, la nouvelle arrive par en dessous. */
+function swap(o, n, t, sound = true){
+  tl.to(o, {autoAlpha: 0, y: -14, duration: 0.2, ease: 'power2.in'}, t);
+  tl.fromTo(n, {autoAlpha: 0, y: 14}, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power3.out', immediateRender: false}, t + 0.12);
+  if (sound) cue(t + 0.12, 'type', 0.8, 2);
+}
+/* Une pastille arrive à côté d’une valeur. */
+const chip = (el, t, q = 2) => { tl.fromTo(el, {autoAlpha: 0, scale: 0.6}, {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2.2)', immediateRender: false}, t); cue(t, 'pop', 0.6, q); };
+/* Frappe d’une ligne de code. Renvoie l’instant de fin. */
+function sqType(lid, t, cps = 36, lead = 0.25){
+  const ln = $('#' + lid), caret = $$(':scope > .caret', ln).pop();
+  tl.set(caret, {autoAlpha: 1}, t - lead);
+  const end = typeChars($$('.ch', ln), t, cps);
+  tl.set(caret, {autoAlpha: 0}, end + 0.12);
+  return end;
+}
+/* La légende s’efface le temps du message, puis revient. */
+const capOff = t => tl.to('#cap', {autoAlpha: 0, y: 30, duration: 0.3, ease: 'power2.in'}, t);
+const capOn = t => tl.to('#cap', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, t);
+/* Le SMS arrive : la notification tombe ; à T, l’élève la touche (l’app s’arrête là, OPENS ; hors de l’app, un doigt le montre),
+   puis les bulles arrivent une à une. L’image reste le temps de lire la demande. */
+function mailIn(n, t, T){
+  if (isSms(MAILS[n - 1][2], MAILS[n - 1][6])) { if (!APP) fingerTap($('#ml' + n), T); return smsIn(n, t, T); }
+  return T;
+}
+function mailOut(n, t){ hide('#ml' + n, t, {x: 140, y: 0, rotation: 2}, 0.4, 'power2.in'); cue(t, 'whoosh', 0.4); }
+/* Hors de l’app (vidéo seule), un doigt montre le geste : il touche la notification. */
+function fingerTap(M, T){
+  const f = '#tapf';
+  tl.set(f, {left: M.offsetLeft + M.offsetWidth * 0.6, top: M.offsetTop + 92}, T - 0.8);
+  tl.fromTo(f, {autoAlpha: 0, x: 90, y: 170}, {autoAlpha: 1, x: 0, y: 0, duration: 0.5, ease: 'power3.out', immediateRender: false}, T - 0.75);
+  tl.to(f, {scale: 0.86, duration: 0.1, ease: 'power2.in'}, T - 0.15);
+  tl.to(f, {scale: 1, duration: 0.15}, T);
+  tl.to(f, {autoAlpha: 0, y: 70, duration: 0.3}, T + 0.2);
+}
+
+/* Réponses des moments « À toi » : ce que la timeline montre juste après l’arrêt (et que l’aperçu montre pendant l’arrêt). */
+const M1_ANS = ['#sd .dbn .rc'];
+const M2_ANS = ['#em3'], M2_HIDE = ['#hole2'];                          // ON produits.id = entrepot.id
+const M3_ANS = ['#em5'], M3_HIDE = ['#hole3'];                          // UPDATE SET stock = entrepot.stock
+const M4_ANS = ['#re9 .wn'];                                            // la ligne de la Spiruline Bio, sans correspondance
+const M5_ANS = ['#pd3'];                                                // le Magnésium : « inchangé »
+const M6_ANS = ['#sx .dbn .rc', '#ec5b', '#ec7b'], M6_HIDE = ['#ec5', '#ec7'];
+/* Les mauvaises réponses des moments 2, 3 et 5 : la ligne qu’elles donnent, ce qu’elles désignent. */
+const W2 = {0: {alt: '#em3b', rows: ['#rp1 .wn', '#re1 .wn']}, 2: {alt: '#em3c', rows: ['#rp4 .xx', '#re1 .xx']}};
+const W3 = {0: {alt: '#em5b', rows: ['#rp1 .xx', '#rp7 .xx']}, 2: {alt: '#em5c', rows: ['#rp1 .xx', '#rp7 .xx']}};
+const W5 = {0: {show: ['#pv5-0', '#rp3 .xx'], hide: ['#rp3 .hl']}, 1: {show: ['#pv5-1', '#sp3 .a1', '#rp3 .xx'], hide: ['#sp3 .a0', '#rp3 .hl']}};
+const set2 = t => +(t + 0.02).toFixed(2);
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 3.9);   // le temps de lire la bulle de la mascotte
+  layout();
+  gsap.set(['.sq', '.out', '.pack', '#bc', '#tp', '#te', '#keyc', '#mrg', '.dbn'], {autoAlpha: 0});
+  gsap.set(['#em3', '#em5', '#hole2', '#hole3', '.pd', '#pc1', '#tc1', '#tc2', '#tc3', '#tmp', '.dbn .rc', '#ec5b', '#ec7b'], {autoAlpha: 0});
+  gsap.set('#rp9', {height: 0});
+  gsap.set(['#sp1 .a1', '#sp7 .a1', '#sp3 .a1'], {autoAlpha: 0});
+
+  /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
+     la consigne, la légende ne la répète pas. Le passage d’attente est coupé (rien ne s’y anime). */
+  PICKS.forEach(p => cut(p.at - 1.35, 1.25));
+
+  /* ===== 1 · L’alerte stock ===== */
+  sceneOn('#sa', 5.0);
+  show('#bc', A.r1, {y: 60}, 0.55); cue(A.r1, 'whoosh', 0.5);
+  TB.forEach(([k], q) => { const t = A.r1 + 0.3 + q * 0.15; show('#bw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q % 5); });
+  // « Au chapitre 9, tu as supprimé des lignes » : les deux tables d’où des lignes sont parties, les inscriptions et les clients
+  on('#bw-in .hl', A.r2 + 0.3, 0.2); cue(A.r2 + 0.3, 'tick', 0.5, 1);
+  on('#bw-cl .hl', A.r2 + 0.9, 0.2); cue(A.r2 + 0.9, 'tick', 0.5, 3);
+  off(['#bw-in .hl', '#bw-cl .hl'], A.r2 + 2.2, 0.3);
+  // une alerte arrive : la pastille rouge, et la table produits qu’elle concerne
+  show('#dem', A.c2 + 0.3, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.c2 + 0.3, 'pop', 0.7, 1);
+  tl.to('#dem .emo', {rotation: -16, duration: 0.14, yoyo: true, repeat: 5, ease: 'sine.inOut'}, A.c2 + 0.8);
+  on('#bw-pr .hl', A.c2 + 1.2, 0.25); cue(A.c2 + 1.2, 'tick', 0.5, 2);
+  // le SMS de l’équipe logistique : l’inventaire de l’entrepôt, le Magnésium, les ventes du soir
+  capOff(MAIL1 - 0.2);
+  hide(['#bc', '#dem'], MAIL1, {y: -30}, 0.35);
+  sceneOff('#sa', MAIL1 + 0.4);
+  sceneOn('#sm', MAIL1 + 0.4);
+  mailIn(1, MAIL1 + 0.5, OPENS[0].at);
+  mailOut(1, MAIL1 + MO[0]);
+  sceneOff('#sm', MAIL1 + MO[0] + 0.3);
+  sceneOn('#sb', MAIL1 + MO[0] + 0.3);
+  tl.fromTo('#tp', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, MAIL1 + MO[0] + 0.35);
+  cue(MAIL1 + MO[0] + 0.35, 'whoosh', 0.5);
+  capOn(A.c3 - 0.3);
+
+  /* ===== 2 · Une action par produit ===== */
+  // l’inventaire importé dans une table temporaire : la table entrepot arrive sous la table produits
+  tl.fromTo('#te', {autoAlpha: 0, y: 50}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false}, A.c3 + 0.4);
+  cue(A.c3 + 0.4, 'whoosh', 0.5);
+  chip('#tmp', A.c3 + 1.8, 3);
+  bump('#ten0', A.c3 + 3.0, 1.12); cue(A.c3 + 3.0, 'tick', 0.5, 2);
+  // compare chaque produit : les deux tables, l’une après l’autre ; puis les trois cases où ranger les produits
+  bump('#tpn0', A.c4 + 0.4, 1.12); cue(A.c4 + 0.4, 'tick', 0.5, 2);
+  bump('#ten0', A.c4 + 1.1, 1.12); cue(A.c4 + 1.1, 'tick', 0.5, 4);
+  hide(['#tp', '#te'], A.c4 + 1.75, {y: -30}, 0.35);
+  sceneOff('#sb', A.c4 + 2.15);
+  sceneOn('#sd', A.c4 + 2.15);
+  [['#db-up', 0], ['#db-in', 2], ['#db-no', 4]].forEach(([id, p], q) => { const t = A.c4 + 2.2 + q * 0.25; show(id, t, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(t, 'pop', 0.6, p); });
+  show('#bpack', B.c4 + 0.15, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(B.c4 + 0.15, 'pop', 0.7, 1);
+  // À toi : les quatre produits rangés dans leur case ; remplies, les cases ne sont plus des zones où déposer
+  tl.set(M1_ANS, {autoAlpha: 1}, set2(PICKS[0].at));
+  tl.set('#sd .dbn', {borderStyle: 'solid'}, set2(PICKS[0].at));
+  hide('#bpack', set2(PICKS[0].at) + 0.1, {y: 20}, 0.3);
+  // les deux mises à jour, l’ajout, le produit qui ne bouge pas
+  [0, 3].forEach((i, q) => { bump('#sbu' + i, A.c5 + 0.5 + q * 0.6, 1.06); cue(A.c5 + 0.5 + q * 0.6, 'tick', 0.5, q * 2 + 1); });
+  bump('#sbu1', A.c6 + 0.5, 1.06); cue(A.c6 + 0.5, 'tick', 0.5, 3);
+  bump('#sbu2', A.c7 + 0.5, 1.06); cue(A.c7 + 0.5, 'tick', 0.5, 4);
+  // une seule requête pour tout faire : les cases s’en vont ; MERGE arrive
+  hide('#sd .dbn', A.c8 + 0.6, {y: -30}, 0.4);
+  show('#mrg', A.c9 + 0.1, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)'); cue(A.c9 + 0.1, 'chord', 0.7);
+  tl.to('#mrg .emo', {rotation: 180, duration: 0.5, ease: 'back.out(2)'}, A.c9 + 0.6);
+  hide('#mrg', B.c9 - 0.1, {y: -30}, 0.35);
+  sceneOff('#sd', B.c9 + 0.3);
+
+  /* ===== 3 · La clé de comparaison ===== */
+  // les deux tables reviennent, la requête dessous : MERGE INTO produits, la table à mettre à jour
+  sceneOn('#sb', A.c10 - 0.1);
+  tl.fromTo(['#tp', '#te'], {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', stagger: 0.12, immediateRender: false}, A.c10 - 0.1);
+  show('#em', A.c10 + 0.3, {y: 40}, 0.5); cue(A.c10 + 0.3, 'whoosh', 0.45, 1);
+  sqType('em1', A.c10 + 0.9, 28);
+  pulse('#km', A.c10 + 1.8, 1, GLOW); cue(A.c10 + 1.8, 'tick', 0.5, 2);
+  pulse('#tpn', A.c10 + 2.5, 1, GLOW); bump('#tpn0', A.c10 + 2.5, 1.12); cue(A.c10 + 2.5, 'tick', 0.5, 3);
+  // USING entrepot, la table qui apporte les données
+  sqType('em2', A.c11 + 0.3, 28);
+  pulse('#ku', A.c11 + 1.0, 1, GLOW); cue(A.c11 + 1.0, 'tick', 0.5, 2);
+  pulse('#ten', A.c11 + 1.7, 1, GLOW); bump('#ten0', A.c11 + 1.7, 1.12); cue(A.c11 + 1.7, 'tick', 0.5, 4);
+  // avec ON, comment reconnaître le même produit : le trou attend la condition
+  on('#hole2', A.c12 + 0.6, 0.3); cue(A.c12 + 0.6, 'tick', 0.5, 2);
+  // À toi : la condition (réponse : ON produits.id = entrepot.id)
+  tl.set(M2_ANS, {autoAlpha: 1}, set2(PICKS[1].at));
+  tl.set(M2_HIDE, {autoAlpha: 0}, set2(PICKS[1].at));
+  // chaque identifiant désigne un seul produit : les deux colonnes id
+  pulse('#con', A.c13 + 0.3, 1, GLOW); cue(A.c13 + 0.3, 'tick', 0.5, 2);
+  bump('#tp .hd .c0', A.c13 + 1.0, 1.15); cue(A.c13 + 1.0, 'tick', 0.5, 3);
+  bump('#te .hd .c0', A.c13 + 1.6, 1.15); cue(A.c13 + 1.6, 'tick', 0.5, 5);
+
+  /* ===== 4 · MATCHED ou NOT MATCHED ===== */
+  // on cherche le même identifiant : la ligne 1 de l’inventaire, puis la ligne 1 de la table produits
+  on('#re1 .hl', A.c14 + 0.8, 0.25); cue(A.c14 + 0.8, 'tick', 0.5, 1);
+  on('#rp1 .hl', A.c14 + 1.8, 0.25); bump('#rp1 .c0', A.c14 + 1.8, 1.15); cue(A.c14 + 1.8, 'tick', 0.5, 3);
+  // la Fibre Prébiotique et Oméga 3 ont leur ligne : WHEN MATCHED, et le trou de l’action
+  on('#re7 .hl', A.c15 + 0.6, 0.25); cue(A.c15 + 0.6, 'tick', 0.5, 2);
+  on('#rp7 .hl', A.c15 + 1.3, 0.25); bump('#rp7 .c0', A.c15 + 1.3, 1.15); cue(A.c15 + 1.3, 'tick', 0.5, 4);
+  sqType('em4', A.c15 + 2.4, 30);
+  on('#hole3', A.c15 + 3.4, 0.3); cue(A.c15 + 3.4, 'tick', 0.5, 2);
+  // À toi : l’action (réponse : UPDATE SET stock = entrepot.stock)
+  tl.set(M3_ANS, {autoAlpha: 1}, set2(PICKS[2].at));
+  tl.set(M3_HIDE, {autoAlpha: 0}, set2(PICKS[2].at));
+  // le stock prévu de chaque produit : une pastille, le compteur de l’inventaire
+  pulse('#aup', A.c16 + 0.3, 1, GLOW); cue(A.c16 + 0.3, 'tick', 0.5, 2);
+  chip('#pd1', A.c16 + 1.1, 3); swap('#tc0', '#tc1', A.c16 + 1.4, false);
+  chip('#pd7', A.c17 + 0.5, 4); swap('#tc1', '#tc2', A.c17 + 0.8, false);
+  off(['#re1 .hl', '#rp1 .hl', '#re7 .hl', '#rp7 .hl'], B.c17 - 0.3, 0.3);
+  // À toi : la ligne sans correspondance (réponse : la Spiruline Bio, en orange)
+  tl.set(M4_ANS, {autoAlpha: 1}, set2(PICKS[3].at));
+  // aucun produit n’a l’identifiant 9
+  bump('#re9 .c0', A.c19 + 0.4, 1.2); cue(A.c19 + 0.4, 'tick', 0.5, 3);
+  // WHEN NOT MATCHED l’ajoute avec INSERT : l’inventaire est traité (3/3) et s’en va ; la requête monte, se déplie et s’écrit
+  swap('#tc2', '#tc3', A.c20 + 0.1, false); cue(A.c20 + 0.1, 'chord', 0.5);
+  hide('#te', A.c20 + 0.9, {y: 30}, 0.35);
+  tl.to('#em', {top: EM2, duration: 0.5, ease: 'power3.inOut'}, A.c20 + 1.1); cue(A.c20 + 1.1, 'whoosh', 0.4, 1);
+  tl.to('#emf', {height: FOLD, duration: 0.4, ease: 'power2.inOut'}, A.c20 + 1.5);
+  let te = sqType('em6', A.c20 + 1.8, 34);
+  te = sqType('em7', te + 0.15, 40); te = sqType('em8', te + 0.15, 40); te = sqType('em9', te + 0.15, 40); sqType('em10', te + 0.15, 40);
+  // la ligne prévue de la Spiruline Bio : la table produits s’agrandit, la pastille « nouveau »
+  tl.to('#rp9', {height: RH, duration: 0.45, ease: 'power2.inOut'}, A.c20 + 2.3);
+  on('#rp9 .wn', A.c20 + 2.4, 0.25); chip('#pd9', A.c20 + 2.7, 5);
+
+  /* ===== 5 · Le piège ===== */
+  // le Magnésium, absent de l’inventaire
+  on('#rp3 .hl', A.c21 + 0.4, 0.25); bump('#rp3 .c1', A.c21 + 0.4, 1.08); cue(A.c21 + 0.4, 'tick', 0.5, 2);
+  // À toi : il reste tel quel (réponse : la pastille « inchangé »)
+  tl.set(M5_ANS, {autoAlpha: 1}, set2(PICKS[4].at));
+  // la requête ne traite que les lignes de l’inventaire : USING entrepot
+  pulse('#ten', A.c22 + 0.4, 1, GLOW); cue(A.c22 + 0.4, 'tick', 0.5, 2);
+  bump('#sp3', A.c23 + 0.6, 1.2); cue(A.c23 + 0.6, 'tick', 0.5, 3);
+  // l’exécution : le résultat, puis les changements prévus deviennent réels
+  off(['#rp3 .hl', '#pd3'], A.c24 + 0.1, 0.3);
+  bump('#em', A.c24 + 0.6, 1.02); cue(A.c24 + 0.6, 'click', 0.6);
+  show('#o-run', A.c24 + 1.2, {y: 20}, 0.4); cue(A.c24 + 1.2, 'chord', 0.6);
+  off(['#pd1', '#pd7', '#pd9', '#rp9 .wn'], A.c25 + 0.2, 0.25);
+  swap('#sp1 .a0', '#sp1 .a1', A.c25 + 0.4); on('#rp1 .gn', A.c25 + 0.4, 0.25);
+  swap('#sp7 .a0', '#sp7 .a1', A.c25 + 0.9); on('#rp7 .gn', A.c25 + 0.9, 0.25);
+  on('#rp9 .gn', A.c25 + 1.4, 0.25); cue(A.c25 + 1.4, 'pop', 0.6, 4);
+  swap('#pc0', '#pc1', A.c25 + 1.9);
+  off(['#rp1 .gn', '#rp7 .gn', '#rp9 .gn'], B.c25 - 0.4, 0.3);
+
+  /* ===== 6 · La requête du collègue ===== */
+  hide(['#tp', '#em', '#o-run'], B.c25 - 0.1, {y: -40}, 0.4);
+  sceneOff('#sb', B.c25 + 0.4);
+  sceneOn('#sx', A.c26);
+  show('#ec', A.c26 + 0.2, {y: 40}, 0.5); cue(A.c26 + 0.2, 'whoosh', 0.45, 1);
+  // il a inversé les deux actions : elles rougissent ; les deux branches où les remettre
+  tl.to(['#xa1', '#xa2'], {backgroundColor: RED, duration: 0.3}, A.c27 + 0.4); cue(A.c27 + 0.4, 'miss', 0.45);
+  [['#dx-m', 0], ['#dx-n', 2]].forEach(([id, p], q) => { const t = A.c27 + 1.0 + q * 0.4; show(id, t, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(t, 'pop', 0.6, p); });
+  show('#xpack', A.c27 + 1.9, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.c27 + 1.9, 'pop', 0.7, 1);
+  // À toi : chaque action dans sa branche ; la requête est corrigée
+  tl.set(M6_ANS, {autoAlpha: 1}, set2(PICKS[5].at));
+  tl.set(M6_HIDE, {autoAlpha: 0}, set2(PICKS[5].at));
+  tl.set(['#xa1', '#xa2'], {backgroundColor: 'rgba(0,0,0,0)'}, set2(PICKS[5].at));
+  tl.set('#sx .dbn', {borderStyle: 'solid'}, set2(PICKS[5].at));
+  hide('#xpack', set2(PICKS[5].at) + 0.1, {y: 20}, 0.3);
+  // une action par branche
+  bump('#sxa1', A.c28 + 0.9, 1.05); cue(A.c28 + 0.9, 'tick', 0.5, 2);
+  bump('#sxa0', A.c28 + 2.3, 1.05); cue(A.c28 + 2.3, 'tick', 0.5, 4);
+  hide(['#ec', '#sx .dbn'], B.c28 - 0.1, {y: -40}, 0.4);
+  sceneOff('#sx', B.c28 + 0.4);
+
+  /* ===== 7 · Et dans SQLite ? ===== */
+  sceneOn('#sl', A.c29);
+  show('#eq', A.c29 + 0.6, {y: 40}, 0.5); cue(A.c29 + 0.6, 'whoosh', 0.45, 1);
+  let tq = sqType('eq1', A.c30 + 0.3, 32);
+  tq = sqType('eq2', tq + 0.15, 34); tq = sqType('eq3', tq + 0.15, 34); sqType('eq4', tq + 0.15, 34);
+  pulse('#qc', A.c30 + 2.9, 1, GLOW);
+  pulse('#qx', A.c31 + 0.4, 1, GLOW); cue(A.c31 + 0.4, 'tick', 0.5, 2);
+  pulse('#qw', A.c32 + 0.4, 1, GLOW); cue(A.c32 + 0.4, 'tick', 0.5, 3);
+  hide('#eq', B.c32 - 0.1, {y: -30}, 0.4);
+  sceneOff('#sl', A.c33 + 0.3);
+  // la suite : la prochaine leçon
+  sceneOn('#sk', A.c33);
+  show('#keyc', A.c33 + 0.1, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)'); cue(A.c33 + 0.1, 'whoosh', 0.6);
+  tl.to('#keyc .emo', {rotation: -18, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.c33 + 0.7);
+  hide('#keyc', B.c33 - 0.1, {y: -30}, 0.4);
+  sceneOff('#sk', RECAP);
+
+  /* ===== 8 · À retenir ===== */
+  // chaque idée : sa phrase, puis son détail
+  recapScene(RECAP, [RECAP + 0.7, RECAP + 2.1, RECAP + 3.5]);
+  const rt = $$('#s7 .rtxt'), rs = $$('#s7 .rs'), rd = (h, n = 20) => Math.ceil(readTime(h) * n) / n;
+  gsap.set(rs, {autoAlpha: 0, y: 10});
+  [[RECAP + 0.7, RECAP + 1.45], [RECAP + 2.1, RECAP + 2.85], [RECAP + 3.5, RECAP + 4.25]].forEach(([r, d], i) => {
+    tl.to(rs[i], {autoAlpha: 1, y: 0, duration: 0.45, ease: 'power2.out'}, d);
+    cue(d, 'tick', 0.5, i * 2 + 1);
+    hold(r + 0.6, rd(rt[i].innerHTML.split('<span')[0]));
+    hold(d + 0.5, rd(rs[i].innerHTML));
+  });
+  if (APP) cue(NOTES + 0.05, 'pop', 0.85, 5);
+}
+
+/* ---------- Moments « À toi » : ce que montre chaque geste ----------
+   Le lecteur arrête l’image à chaque moment (PICKS) et pose ses zones tactiles sur les endroits que la page décrit
+   (IX.spots). Chaque geste est jugé ici (IX.act, IX.pick) et montré aussitôt sur l’image : les bons gestes affichent
+   les mêmes éléments que la timeline juste après l’arrêt (classe pvs, sans toucher aux styles de la timeline) ;
+   ils restent jusqu’à ce que la timeline affiche la même image (IX.tick), puis s’effacent : la reprise est invisible. */
+const IX = (() => {
+  let X = null, wait = -1;
+  function start(i){ if (!X || X.i !== i) { clear(); X = {i, cls: [], tm: [], got: new Set()}; } }
+  function clear(){
+    if (!X) return;
+    X.tm.forEach(clearTimeout);
+    X.cls.forEach(([e, c]) => e.classList.remove(c));
+    X = null; wait = -1;
+  }
+  const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
+  const marks = (sels, c = 'pvs') => sels.forEach(s => $$(s).forEach(e => mark(e, c)));
+  /* La classe est aussi notée dans X.cls : si le moment change avant la fin du minuteur (deux réponses enchaînées), clear() la retire. */
+  const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
+  const row = id => { const r = ENTREPOT.find(x => x[0] === id); return Object.assign({k: 'e' + id, label: `${r[1]}, identifiant ${id}`}, rel($('#re' + id))); };
+  function spots(i){
+    // moment 1 : les trois actions
+    if (i === 0) return BINS.map(([k, n, d]) => Object.assign({k, label: `${n} : ${d}`}, rel($('#db-' + k))));
+    // moment 4 : les trois lignes de l’inventaire
+    if (i === 3) return ENTREPOT.map(r => row(r[0]));
+    // moment 6 : les deux branches
+    if (i === 5) return BRANCHES.map(([k, n, d]) => Object.assign({k, label: `${n} : ${d}`}, rel($('#dx-' + k))));
+    return [];
+  }
+  /* Ranger une étiquette (moments 1 et 6) : dans la bonne case, elle s’y pose ; sinon la case refuse, et la correction dit pourquoi. */
+  function sortAct(list, a, b, binSel, chipSel){
+    const n = +a, bin = $(binSel + b);
+    if (list[n][1] === b) {
+      mark($(chipSel + n), 'pvs');
+      flash(bin, 'okb', 520);
+      X.got.add(n);
+      sfx('pop', X.got.size, 0.6);
+      return {ok: true, done: X.got.size === list.length, why: '', at: rel(bin)};
+    }
+    flash(bin, 'kob', 650);
+    return {ok: false, why: fr(list[n][2])};
+  }
+  function act(i, a, b){
+    start(i);
+    if (i === 0) return sortAct(ITEMS, a, b, '#db-', '#sbu');
+    if (i === 3) {
+      if (a === 'e9') {
+        if (!X.got.has(a)) { X.got.add(a); marks(M4_ANS); sfx('tick', 1, 0.6); }
+        return {ok: true, done: true, why: '', at: rel($('#re9'))};
+      }
+      // une ligne qui a sa correspondance : elle rougit un instant, et la correction dit pourquoi
+      flash($('#r' + a), 'kor', 650);
+      return {ok: false, why: fr(WHY4[a])};
+    }
+    if (i === 5) return sortAct(ACTIONS, a, b, '#dx-', '#sxa');
+    return {ok: false};
+  }
+  /* Choix d’une réponse (moments 2, 3 et 5) : ce que donnerait la requête avec ce choix. */
+  function pick(i, k){
+    clear(); start(i);
+    const P = PICKS[i], o = P.options[k], ok = !!o.ok;
+    if (i === 1) {
+      if (ok) { marks(M2_ANS); marks(M2_HIDE, 'pvh'); }
+      else { marks([W2[k].alt]); marks(W2[k].rows); marks(['#hole2'], 'pvh'); }   // le nom : des correspondances fragiles ; le stock : la Fibre Prébiotique avec la Vitamine D
+      sfx(ok ? 'pop' : 'miss', 2, 0.5);
+    }
+    if (i === 2) {
+      if (ok) { marks(M3_ANS); marks(M3_HIDE, 'pvh'); }
+      else { marks([W3[k].alt]); marks(W3[k].rows); marks(['#hole3'], 'pvh'); }   // INSERT : refusé ; DELETE : deux produits disparaissent
+      sfx(ok ? 'pop' : 'miss', 2, 0.5);
+    }
+    if (i === 4) {
+      if (ok) marks(M5_ANS);
+      else { marks(W5[k].show); marks(W5[k].hide, 'pvh'); }   // supprimé, ou stock à 0 : ce que la requête ne fait pas
+      sfx(ok ? 'pop' : 'miss', 2, 0.5);
+    }
+    return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));
+  }
+  /* Indice, après deux erreurs : une piste. */
+  function hint(i){
+    const h = (() => {
+      if (i === 0) return {text: 'Pour chaque produit, regarde s’il existe sur le site, à l’entrepôt, ou des deux côtés.'};
+      if (i === 1) return {text: 'Cherche la colonne qui ne change pas d’une table à l’autre, et qui désigne un seul produit.'};
+      if (i === 2) return {text: 'Le produit a déjà sa ligne : il ne faut ni l’ajouter une seconde fois, ni le retirer du catalogue.'};
+      if (i === 3) return {text: 'Compare les identifiants de l’inventaire à ceux de la <b>table&nbsp;produits</b> : l’un d’eux n’y figure pas.', keys: ['e9']};
+      if (i === 4) return {text: 'Regarde les actions de la requête : aucune ne concerne une ligne absente de l’inventaire.'};
+      if (i === 5) return {text: 'Avec <code>WHEN&nbsp;MATCHED</code>, le produit a déjà sa ligne ; avec <code>WHEN&nbsp;NOT&nbsp;MATCHED</code>, il n’en a pas encore.'};
+      return null;
+    })();
+    return h && Object.assign(h, {text: fr(h.text)});
+  }
+  return {
+    enter: i => { clear(); start(i); },
+    spots, act, pick, hint,
+    slot: () => null,
+    /* Moment réussi : l’aperçu reste jusqu’à ce que la timeline affiche la même image ; sinon il part tout de suite. */
+    leave(i, answered){ if (answered && X && X.i === i) wait = i; else clear(); },
+    tick(t = tl.time()){ if (wait < 0) return; const a = PICKS[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear(); }
+  };
+})();
+window.IX = IX;
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 165.3, picks: PICKS, opens: OPENS,
+  glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝🔑🏭🚨🔀🧭🔁🧩🔗👆✓!…«»·−→',
+  dom, build, beforeRender: t => IX.tick(t)});
+</script>
+</body>
+</html>

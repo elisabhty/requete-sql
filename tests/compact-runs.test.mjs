@@ -65,5 +65,5 @@ test('écran de fin : « Le réflexe de cette leçon » = les trois idées (cour
   assert.ok(recap.indexOf('l.missionSql') > 0 && recap.indexOf('l.missionSql') < recap.indexOf('l.solution'), 'la mission passe avant la solution de l’exercice');
   for (const l of lessons) assert.ok(l.video ? !l.missionSql : l.missionSql && l.missionSql.trim(), `cours ${l.id} : ${l.video ? 'pas de mission (vidéo)' : 'requête de mission'}`);
   assert.equal(lessons.find(l => l.id === 950).missionSql, "GRANT SELECT\nON clients\nTO app_user;", 'l’ancien cours 50 (Sécurité et droits en texte, gardé en exemple)');
-  assert.ok(lessons.filter(l => l.id < 900).every(l => l.video), 'tous les cours de l’app sont en vidéo (Sécurité et droits, le dernier cours texte, est devenu le chapitre 17)');
+  assert.ok(lessons.filter(l => l.id < 900).every(l => l.video), 'tous les cours de l’app sont en vidéo (Sécurité et droits, le dernier cours texte, est devenu le chapitre 18)');
 });

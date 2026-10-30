@@ -100,30 +100,30 @@ test('le lecteur : le repère « confetti » lance une gerbe par-dessus l’imag
 
 test('les chapitres du projet : les boutons touchés par l’élève qui réussissent', () => {
   const trig = anim('projet-trigger.html');
-  assert.ok(trig.includes("confetti($('#bcre'), CRE + 0.6);") && trig.includes("confetti($('#bmod'), MOD + 0.85);"), 'chapitre 13 : « Créer le trigger », « Modifier le prix »');
+  assert.ok(trig.includes("confetti($('#bcre'), CRE + 0.6);") && trig.includes("confetti($('#bmod'), MOD + 0.85);"), 'chapitre 14 : « Créer le trigger », « Modifier le prix »');
   const cc = anim('projet-concurrence.html');
-  assert.ok(cc.includes("const pressPhone = (p, t) => press($(`#${p}-0`), t, '#4B30CC', 7, false);"), 'chapitre 14 : ni la double réservation, ni l’atelier complet');
+  assert.ok(cc.includes("const pressPhone = (p, t) => press($(`#${p}-0`), t, '#4B30CC', 7, false);"), 'chapitre 15 : ni la double réservation, ni l’atelier complet');
   assert.ok(cc.includes("confetti($('#pl-3'), A.e9 + 0.85);"), '… mais la place de Léa Simon, réservée avec le verrou');
   const vw = anim('projet-vue.html');
   assert.ok(vw.includes("confetti($('#bcre'), CRE + 0.6);") && vw.includes("confetti($('#bexe'), EXE1 + 0.6);") && vw.includes("confetti($('#bexe'), EXE2 + 0.6);"),
-    'chapitre 15 : « Créer la vue », puis « Exécuter », deux fois');
+    'chapitre 16 : « Créer la vue », puis « Exécuter », deux fois');
   const ix = anim('projet-index.html');
   assert.ok(ix.includes("confetti($('#bexp'), EXE1 + 0.6);") && ix.includes("confetti($('#bcix'), CIX + 0.6);") && ix.includes("confetti($('#bexp'), EXE2 + 0.6);"),
-    'chapitre 16 : « Exécuter » (le plan), « Créer l’index », puis « Exécuter » (le nouveau plan)');
+    'chapitre 17 : « Exécuter » (le plan), « Créer l’index », puis « Exécuter » (le nouveau plan)');
   const dr = anim('projet-droits.html');
   assert.ok(dr.includes("confetti($('#bs1'), EXE1 + 0.6);") && dr.includes("confetti($('#bs2'), EXE2 + 0.6);") && dr.includes("confetti($('#bs3'), EXE3 + 0.6);"),
-    'chapitre 17 : « Simuler », trois fois (GRANT SELECT, GRANT UPDATE (statut), les deux REVOKE)');
+    'chapitre 18 : « Simuler », trois fois (GRANT SELECT, GRANT UPDATE (statut), les deux REVOKE)');
   assert.ok(dr.includes("press($('#psv'), A.ea + 0.5, '#A3216A', 6, false);") && dr.includes("press($('#apb'), A.d5 + 1.6, '#0F6B33', 6);"),
     '… pas pour la modification du prix, refusée ; mais pour le colis de Léa Simon, expédié');
   assert.ok(fs.readFileSync(path.join(root, 'assets/anim/fin-sql.html'), 'utf8').includes("confetti($('#fin'), G4 + 0.5);"), '… et la fin du projet');
   const tx = anim('projet-transaction.html');
-  assert.ok(tx.includes("confetti($('#bcom'), COM + 0.95);") && tx.includes("confetti($('#brol'), ROL + 0.95);") && !tx.includes("confetti($('#bhow')"), 'chapitre 11 : COMMIT et ROLLBACK, pas « Comment éviter ça ? »');
+  assert.ok(tx.includes("confetti($('#bcom'), COM + 0.95);") && tx.includes("confetti($('#brol'), ROL + 0.95);") && !tx.includes("confetti($('#bhow')"), 'chapitre 12 : COMMIT et ROLLBACK, pas « Comment éviter ça ? »');
   const sp = anim('projet-savepoint.html');
-  assert.ok(sp.includes("confetti($('#bsav'), SAV + 0.35);") && sp.includes("confetti($('#bval'), VAL + 1.27);"), 'chapitre 12 : retour au savepoint, validation');
+  assert.ok(sp.includes("confetti($('#bsav'), SAV + 0.35);") && sp.includes("confetti($('#bval'), VAL + 1.27);"), 'chapitre 13 : retour au savepoint, validation');
   const od = anim('projet-ondelete.html');
-  assert.ok(od.includes("press($('#bdel'), BTN, '#A92A31', 9, false);"), 'chapitre 10 : le lien de l’avis se brise, pas de confettis');
+  assert.ok(od.includes("press($('#bdel'), BTN, '#A92A31', 9, false);"), 'chapitre 11 : le lien de l’avis se brise, pas de confettis');
   /* CASCADE au chapitre 5, puis SET NULL sur le site (chapitre 7) : SET NULL n’est plus joué avant le choix de l’élève (27 octobre). */
-  for (const t of ["A.e5 + 0.9", "A.g1 + 0.6"]) assert.ok(od.includes(`press($('#bdel'), ${t}, '#A92A31', 9, true);`), `chapitre 10 : la suppression réussit (${t})`);
+  for (const t of ["A.e5 + 0.9", "A.g1 + 0.6"]) assert.ok(od.includes(`press($('#bdel'), ${t}, '#A92A31', 9, true);`), `chapitre 11 : la suppression réussit (${t})`);
 });
 
 test('les autres vidéos : ni la récursion sans fin, ni le site d’avant la requête, ni les premiers essais insuffisants', () => {

@@ -1,4 +1,4 @@
-/* Le texte des feuilles « À toi » sur iPhone et sur ordinateur (Elisa, 26 octobre, 9 h 59, capture du moment 3 du chapitre 14 :
+/* Le texte des feuilles « À toi » sur iPhone et sur ordinateur (Elisa, 26 octobre, 9 h 59, capture du moment 3 du chapitre 15 :
    « Vérifie le formatage du texte sur iPhone et ordi -> c’est pas top »).
    Les textes arrivent avec la typographie des légendes (chaque petit mot collé au suivant, et les collages propres aux légendes :
    « qu’une », « seule »… avec le mot suivant), faite pour des lignes coupées à la main. Dans la feuille, la largeur change d’un écran à

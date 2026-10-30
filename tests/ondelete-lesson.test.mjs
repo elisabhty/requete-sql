@@ -1,4 +1,4 @@
-/* Projet NutriBoost, chapitre 10 (leçon 68 « ON DELETE ») : la vidéo interactive assets/anim/projet-ondelete.html, testée aussi dans lesson-video.test.mjs.
+/* Projet NutriBoost, chapitre 11 (leçon 68 « ON DELETE ») : la vidéo interactive assets/anim/projet-ondelete.html, testée aussi dans lesson-video.test.mjs.
    Refonte du 25 octobre (Elisa, 12 h 51 : « le cours ON DELETE, je ne comprends rien du tout, je préfère qu’on se base sur tout le cours sur la partie avis ») :
    une seule histoire, celle d’un avis. Une cliente, Inès Lefebvre, remplit une feuille d’avis après un atelier (12 h 52 : l’équipe enregistre l’avis et sa note dans
    la base) ; la table avis relie l’avis à son compte (client_id) et à son produit (produit_id) par deux clés étrangères ; quelque temps plus tard, le service client
@@ -43,6 +43,8 @@ const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/s
 function base() {
   const db = new SQL.Database();
   db.run(vm.runInContext('SCHEMA_SQL', ctx));
+  /* Le chapitre 10 (MERGE, 30 octobre) : l’inventaire de l’entrepôt met à jour la Fibre Prébiotique (150) et Oméga 3 (75), et ajoute la Spiruline Bio. */
+  db.run("UPDATE produits SET stock = 150 WHERE id = 1; UPDATE produits SET stock = 75 WHERE id = 7; INSERT INTO produits VALUES (9, 'Spiruline Bio', 'Nutrition', 22.90, 40);");
   db.run(`PRAGMA foreign_keys = ON;
     CREATE TABLE coachs (id INTEGER PRIMARY KEY, prenom TEXT NOT NULL, nom TEXT NOT NULL, email TEXT NOT NULL);
     CREATE TABLE ateliers (id INTEGER PRIMARY KEY, titre TEXT NOT NULL, date_atelier DATE, coach_id INTEGER NOT NULL REFERENCES coachs(id), places INTEGER DEFAULT 12);
@@ -86,12 +88,12 @@ const supprimerCompte = db => db.run('DELETE FROM clients WHERE id = 9;');
 /* Ce que le site lit : l’avis de la fiche produit, avec le prénom de son auteur ou, à défaut, « Ancien client ». */
 const FICHE = "SELECT COALESCE(c.prenom, 'Ancien client'), a.note, a.commentaire FROM avis a LEFT JOIN clients c ON c.id = a.client_id WHERE a.produit_id = 6";
 
-test('ON DELETE : seul cours du module « Contraintes et intégrité », juste après DELETE et juste avant Transactions ; la leçon 67 n’existe plus', () => {
+test('ON DELETE : seul cours du module « Contraintes et intégrité », juste après MERGE et juste avant Transactions ; la leçon 67 n’existe plus', () => {
   const m = modules.find(x => x.titre === 'Contraintes et intégrité');
   assert.deepEqual([...m.lessons.map(l => l.id)], [68], 'ON DELETE est seul dans son module');
   assert.equal(m.sous, 'Les règles que les données doivent respecter', 'le sous-titre du module ne fait pas agir la base');
   const liste = lessons.map(l => l.id);
-  assert.equal(liste.indexOf(68), liste.indexOf(28) + 1, 'ON DELETE vient juste après DELETE');
+  assert.equal(liste.indexOf(68), liste.indexOf(82) + 1, 'ON DELETE vient juste après MERGE (depuis le 30 octobre)');
   assert.equal(liste[liste.indexOf(68) + 1], 62, 'Transactions vient juste après');
   assert.equal(lessons.find(l => l.id === 62).titre, 'Transactions');
   assert.equal(l68.titre, 'ON DELETE');
@@ -116,9 +118,9 @@ test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', ()
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
   /* Le bouton des notes est écrit en clair dans Course(…) : il suit la dernière légende. */
-  assert.equal(val('NOTES'), 237.73);
-  assert.ok(page.includes('notesAt: 237.73,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 244.93);
+  assert.equal(val('NOTES'), 237.98);
+  assert.ok(page.includes('notesAt: 237.98,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 245.18);
   /* Des légendes qui se suivent sans se chevaucher, chaque chapitre commençant 0,4 s après la légende précédente. */
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
@@ -362,7 +364,7 @@ test('le message : un mail du service client relaie la demande d’Inès Lefebvr
   assert.ok(!/fromTo\('#bdel'|fromTo\('#bring'/.test(page), 'aucun « fromTo » sur le bouton ni sur l’anneau : en revenant en arrière, rien ne reste enfoncé ni allumé');
   assert.equal(opens[1].at, val('BTN')); assert.ok(opens[1].at > d2[0] + 1 && opens[1].at < d2[1] - 1, 'le bouton est visible, puis l’app s’arrête ; la légende ne reste pas longtemps après le toucher');
   assert.ok(opens[1].at > picks[0].at && opens[1].at < picks[1].at && opens[1].at > opens[0].at, 'après le moment 1 et le mail, avant le moment 2');
-  assert.ok(val('NOTES') === 237.73 && val('DURATION') === 244.93, 'un arrêt « toucher » n’allonge pas la vidéo');
+  assert.ok(val('NOTES') === 237.98 && val('DURATION') === 245.18, 'un arrêt « toucher » n’allonge pas la vidéo');
   assert.ok(page.includes("if (!APP) fingerTap($('#bdel'), BTN, '#tapw', 0.6, 62);") && page.includes("press($('#bdel'), BTN, '#A92A31', 9, false);"),
     'le doigt ne montre le geste que dans la vidéo seule ; dans l’app, le bouton s’enfonce au toucher de l’élève');
   assert.equal(l68.video.moments, 6, 'le bouton ne compte pas parmi les moments « À toi »');
@@ -378,17 +380,18 @@ test('le message : un mail du service client relaie la demande d’Inès Lefebvr
   assert.ok(page.includes('Elisa, 25 octobre'), 'la page garde la trace de la demande d’Elisa');
 });
 
-/* ---------- Propre au chapitre 10 : la suite du chapitre 9, l’annonce de la leçon Transactions ---------- */
-test('chapitre 10 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 10 : ON DELETE</title>') && page.includes('<div class="tagpill">Projet · Chapitre 10</div>')
+/* ---------- Propre au chapitre 11 : la suite du chapitre 10 (MERGE, depuis le 30 octobre), l’annonce de la leçon Transactions ---------- */
+test('chapitre 11 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
+  assert.ok(page.includes('<title>Requête · Projet, chapitre 11 : ON DELETE</title>') && page.includes('<div class="tagpill">Projet · Chapitre 11</div>')
     && page.includes('<span>O</span><span class="sp">N</span><span>D</span><span>E</span><span>L</span><span>E</span><span>T</span><span>E</span>') && page.includes('<div class="abs sub">Quand un compte disparaît</div>'),
-    'écran titre : « Projet · Chapitre 10 », ON DELETE, « Quand un compte disparaît »');
+    'écran titre : « Projet · Chapitre 11 », ON DELETE, « Quand un compte disparaît »');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les chapitres 2 à 9');
-  assert.equal(caps[1], 'Au chapitre 9, tu as supprimé<br>des lignes avec <code>DELETE</code>.', 'le chapitre précédent');
-  /* La fin du chapitre 9 annonce « ON DELETE » : c’est ce chapitre. */
-  const del = fs.readFileSync(path.join(root, 'assets/anim/projet-delete.html'), 'utf8');
-  assert.ok(del.includes('avec <code>ON DELETE</code>.') && del.includes('Prochaine leçon · ON DELETE</span>'), 'le chapitre 9 annonce celui-ci');
+  assert.equal(caps[1], 'Au chapitre 10, tu as synchronisé<br>deux tables avec <code>MERGE</code>.', 'le chapitre précédent');
+  /* La fin du chapitre 10 annonce « ON DELETE » : c’est ce chapitre. */
+  const merge = fs.readFileSync(path.join(root, 'assets/anim/projet-merge.html'), 'utf8');
+  assert.ok(merge.includes('avec <code>ON DELETE</code>.') && merge.includes('Prochaine leçon · ON DELETE</span>'), 'le chapitre 10 annonce celui-ci');
+  assert.ok(page.includes("on('#bw-pr .hl', A.r2 + 0.5, 0.2);"), 'la table produits, que le chapitre 10 a synchronisée, s’allume avec cette légende');
   /* Il annonce à son tour la leçon suivante du cours : Transactions. */
   assert.ok(caps.includes('Dans la prochaine leçon, tu apprendras<br>à tout valider ou tout annuler<br>avec une transaction.') && page.includes('Prochaine leçon · Transactions</span>'), 'annonce de la prochaine leçon');
   assert.equal(lessons[lessons.findIndex(l => l.id === 68) + 1].titre, 'Transactions');

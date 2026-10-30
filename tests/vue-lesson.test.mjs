@@ -1,4 +1,4 @@
-/* Projet NutriBoost, chapitre 15 (leçon 64 « CREATE VIEW ») : la vidéo interactive assets/anim/projet-vue.html, testée aussi dans lesson-video.test.mjs.
+/* Projet NutriBoost, chapitre 16 (leçon 64 « CREATE VIEW ») : la vidéo interactive assets/anim/projet-vue.html, testée aussi dans lesson-video.test.mjs.
    La trame est celle d’Elisa (26 octobre, 10 h 52, « CREATE VIEW — La sélection surprise dévoilée trop tôt ») : NutriBoost prépare une box
    surprise ; une agence doit créer la page de présentation à partir du catalogue produits, sans recevoir ni les stocks ni les produits qui ne
    font pas partie de la sélection. Camille Roux, la responsable des opérations, demande une vue dédiée : catalogue_box (le nom, la catégorie
@@ -37,12 +37,14 @@ const sql = q => Q.Q[q].map(([s]) => s).filter(s => !s.trim().startsWith('--')).
 
 /* ---------- La base de la vidéo ---------- */
 const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(root, 'vendor/sqljs', f)});
-/* La base NutriBoost telle que le chapitre 14 la laisse (douze tables ; l’inscription de Léa Simon à l’atelier Cuisine saine du 14 novembre,
+/* La base NutriBoost telle que le chapitre 15 la laisse (douze tables ; l’inscription de Léa Simon à l’atelier Cuisine saine du 14 novembre,
    confirmée : il n’y reste plus de place), puis la colonne selection_box que Karim, le développeur, ajoute à la table produits : la Tisane
    Détox, la Protéine Végétale et le Shaker Inox sont dans la box. */
 function base() {
   const db = new SQL.Database();
   db.run(vm.runInContext('SCHEMA_SQL', ctx));
+  /* Le chapitre 10 (MERGE, 30 octobre) : l’inventaire de l’entrepôt met à jour la Fibre Prébiotique (150) et Oméga 3 (75), et ajoute la Spiruline Bio. */
+  db.run("UPDATE produits SET stock = 150 WHERE id = 1; UPDATE produits SET stock = 75 WHERE id = 7; INSERT INTO produits VALUES (9, 'Spiruline Bio', 'Nutrition', 22.90, 40);");
   db.run(`PRAGMA foreign_keys = ON;
     CREATE TABLE coachs (id INTEGER PRIMARY KEY, prenom TEXT NOT NULL, nom TEXT NOT NULL, email TEXT NOT NULL);
     CREATE TABLE ateliers (id INTEGER PRIMARY KEY, titre TEXT NOT NULL, date_atelier DATE, coach_id INTEGER NOT NULL REFERENCES coachs(id), places INTEGER DEFAULT 12);
@@ -196,7 +198,7 @@ test('les messages : Camille écrit par SMS, avec les mots d’Elisa ; l’app s
   for (const t of ['capOff(B.o3 - 0.2);', "sceneOn('#sw', MAIL1 + MO[0] + 0.45);", 'capOff(B.d5 - 0.2);', "sceneOn('#sw', MAIL2 + MO[1] + 0.45);"]) assert.ok(page.includes(t), `les messages : ${t}`);
 });
 
-test('la base du chapitre 14 : douze tables ; le catalogue, avec la colonne selection_box (la tisane, la protéine et le shaker dans la box)', () => {
+test('la base du chapitre 15 : douze tables ; le catalogue, avec la colonne selection_box (la tisane, la protéine et le shaker dans la box)', () => {
   const db = base(), TB = val('TB');
   assert.deepEqual(TB.map(t => t[3]), ['clients', 'commandes', 'fidelite', 'produits', 'coachs', 'ateliers', 'inscriptions', 'cartes', 'avis', 'remplacements', 'cadeaux', 'historique_prix']);
   assert.deepEqual(TB.map(t => t[3]).sort(), tables(db), 'aucune table de la base n’est oubliée à l’écran');
@@ -258,7 +260,7 @@ test('le changement de Camille : sans recréer la vue, sa consultation présente
 test('moments 1 et 5 : les produits cochés ; la valeur qui fait entrer le magnésium dans la vue', () => {
   const db = catalogue();
   assert.deepEqual(lignes(db, 'SELECT id FROM produits WHERE selection_box = 1 ORDER BY id').map(r => r[0]), val('BOX'), 'moment 1 : les produits que la vue gardera');
-  assert.deepEqual(Object.keys(val('WHY1')).map(Number), [1, 2, 3, 4, 7], 'une correction pour chaque produit hors de la box');
+  assert.deepEqual(Object.keys(val('WHY1')).map(Number), [1, 2, 3, 4, 7, 9], 'une correction pour chaque produit hors de la box (la Spiruline Bio, ajoutée au chapitre 10, comprise)');
   assert.equal(val('PICKS')[0].prompt, 'Touche les produits qui font partie de la sélection.');
   /* Moment 5 : la case selection_box du magnésium (c4) ; le WHERE de la vue ne regarde qu’elle. */
   assert.deepEqual(Object.keys(val('WHY5')).sort(), ['c0', 'c1', 'c2', 'c3']);
@@ -287,15 +289,15 @@ test('moment 6 : chaque information est rangée selon ce que la vue présente, c
   });
 });
 
-test('chapitre 15 : écran titre, ouverture comme aux autres chapitres, la box surprise d’Elisa, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 15 : CREATE VIEW</title>') && page.includes('<div class="tagpill">Projet · Chapitre 15</div>')
+test('chapitre 16 : écran titre, ouverture comme aux autres chapitres, la box surprise d’Elisa, annonce de la prochaine leçon', () => {
+  assert.ok(page.includes('<title>Requête · Projet, chapitre 16 : CREATE VIEW</title>') && page.includes('<div class="tagpill">Projet · Chapitre 16</div>')
     && page.includes('<span>C</span><span>R</span><span>E</span><span>A</span><span>T</span><span class="sp">E</span><span>V</span><span>I</span><span>E</span><span>W</span>')
-    && page.includes('<div class="abs sub">Enregistrer une requête sous un nom</div>'), 'écran titre : « Projet · Chapitre 15 », CREATE VIEW, « Enregistrer une requête sous un nom »');
+    && page.includes('<div class="abs sub">Enregistrer une requête sous un nom</div>'), 'écran titre : « Projet · Chapitre 16 », CREATE VIEW, « Enregistrer une requête sous un nom »');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.');
-  assert.equal(caps[1], 'Au chapitre 14, un verrou<br>a gardé la dernière place<br>pour une seule réservation.', 'le chapitre précédent');
+  assert.equal(caps[1], 'Au chapitre 15, un verrou<br>a gardé la dernière place<br>pour une seule réservation.', 'le chapitre précédent');
   const cc = fs.readFileSync(path.join(root, 'assets/anim/projet-concurrence.html'), 'utf8');
-  assert.ok(cc.includes('les vues : des requêtes enregistrées') && cc.includes('Prochaine leçon · CREATE VIEW</span>'), 'le chapitre 14 annonce celui-ci');
+  assert.ok(cc.includes('les vues : des requêtes enregistrées') && cc.includes('Prochaine leçon · CREATE VIEW</span>'), 'le chapitre 15 annonce celui-ci');
   assert.ok(caps.includes('Dans la prochaine leçon,<br>la file des commandes à préparer<br>s’allongera.') && page.includes('Prochaine leçon · Les index et EXPLAIN</span>'),
     'annonce de la prochaine leçon');
   assert.equal(lessons[lessons.findIndex(l => l.id === 64) + 1].titre, 'Les index et EXPLAIN');

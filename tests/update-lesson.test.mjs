@@ -58,7 +58,7 @@ const NOUVELLE = '2026-09-18';
 
 test('UPDATE : deuxième cours du module « Écrire et modifier les données », juste après INSERT et juste avant DELETE', () => {
   const m = modules.find(x => x.titre === 'Écrire et modifier les données');
-  assert.deepEqual([...m.lessons.map(l => l.id)], [26, 27, 28], 'INSERT, UPDATE, DELETE');
+  assert.deepEqual([...m.lessons.map(l => l.id)], [26, 27, 28, 82], 'INSERT, UPDATE, DELETE, MERGE');
   const ids = lessons.map(l => l.id);
   assert.equal(ids.indexOf(27), ids.indexOf(26) + 1, 'UPDATE vient juste après INSERT');
   assert.equal(ids.indexOf(28), ids.indexOf(27) + 1, 'DELETE vient juste après');

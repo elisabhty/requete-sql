@@ -140,7 +140,7 @@ export function textes(file) {
     const [phrase, precision] = m[1].split('<span class="rs">');
     ajoute('recap', phrase, 'récapitulatif'); if (precision) ajoute('recap', precision.replace(/<\/span>[\s\S]*$/, ''), 'récapitulatif, précision');
   }
-  /* La réponse de l’élève à toute l’équipe (chapitre 17, const RPP) : la lettre d’Elisa, mot pour mot (26 octobre, 23 h 53). Une lettre
+  /* La réponse de l’élève à toute l’équipe (chapitre 18, const RPP) : la lettre d’Elisa, mot pour mot (26 octobre, 23 h 53). Une lettre
      écrite à la première personne, avec ses « je vous » et son « accueil chaleureux » : les règles de la narration ne la concernent pas. */
   const scripts = [...src.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n').replace(/const RPP = \[[\s\S]*?\];/, '');
   litteraux(scripts).filter(estDeLaProse).forEach(t => ajoute('autre', t, 'texte de la page'));
@@ -195,7 +195,7 @@ export function textesVideo(file) {
     (p.options || []).forEach((o, k) => { ajoute('option', o.label, `moment ${i + 1}, réponse ${k + 1}`); ajoute('correction', o.why, `moment ${i + 1}, correction ${k + 1}`); });
     (p.spots || []).forEach((z, k) => ajoute('correction', z.why, `moment ${i + 1}, zone ${k + 1}`));
   });
-  /* La réponse de l’élève à toute l’équipe (chapitre 17, const RPP) : la lettre d’Elisa, mot pour mot (26 octobre, 23 h 53). Une lettre
+  /* La réponse de l’élève à toute l’équipe (chapitre 18, const RPP) : la lettre d’Elisa, mot pour mot (26 octobre, 23 h 53). Une lettre
      écrite à la première personne, avec ses « je vous » et son « accueil chaleureux » : les règles de la narration ne la concernent pas. */
   const scripts = [...src.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n').replace(/const RPP = \[[\s\S]*?\];/, '');
   litteraux(scripts).filter(estDeLaProse).forEach(t => ajoute('autre', t, 'texte de la page'));
@@ -484,7 +484,7 @@ export const REGLES = [
       'Tutoiement, questions, exclamations, mots de tous les jours : ni « veuillez », ni « il convient de », ni « afin de », ni « procéder à »… ' +
       'À partir du chapitre 7 : pas de phrase qui commence par « Reste à », « Ici, pas de » ou « Or » ; un mot SQL ne « indique » ni ne « désigne » (« SET précise », « WHERE sélectionne ») ; pas de « peut être exécuté » (« tu peux exécuter »).',
     genres: [...prose, 'option'],
-    projetSeulement: true,   // une règle prudente, posée le 24 octobre : elle ne regarde que les chapitres du projet (les anciens cours seront remplacés par les chapitres 11 à 16)
+    projetSeulement: true,   // une règle prudente, posée le 24 octobre : elle ne regarde que les chapitres du projet (les anciens cours seront remplacés par les chapitres 12 à 17)
     depuisChapitre: 7,       // la partie « stricte » : les chapitres 1 à 6 seront repassés avec Elisa ; les chapitres 7 et suivants (et ceux à venir) la respectent déjà
     verifie(t) {
       const pb = [];
@@ -516,9 +516,9 @@ export const REGLES = [
     id: 'service-client',
     titre: 'Le service client, jamais « l’accueil » : c’est lui qui centralise les demandes des clients',
     demande: 'Elisa, 25 octobre (00 h 32, Réf 3) : « Finalement ce sera plus l’accueil mais le service client », à corriger partout. Au chapitre 5, l’équipe l’annonce (« Désormais, le service client centralise ' +
-      'les demandes des clients ») ; aux chapitres 8, 9 et 10, c’est le service client qui écrit. « Accueillir » et « une page d’accueil » restent des mots comme les autres.',
+      'les demandes des clients ») ; aux chapitres 8, 9 et 11, c’est le service client qui écrit. « Accueillir » et « une page d’accueil » restent des mots comme les autres.',
     genres: [...prose, 'option', 'etiquette'],
-    projetSeulement: true,   // posée le 25 octobre pour les chapitres du projet (les anciens cours seront remplacés par les chapitres 11 à 16)
+    projetSeulement: true,   // posée le 25 octobre pour les chapitres du projet (les anciens cours seront remplacés par les chapitres 12 à 17)
     verifie: ({plain}) => /(?<![\p{L}-])(?<!page d’)(?<!écran d’)accueil(?![\p{L}-])/iu.test(plain) ? ['« l’accueil » : écrire « le service client »'] : [],
     bon: ['Désormais, le service client centralise les demandes des clients.', 'Ce sont des questions que le service client peut gérer.', 'Le service client NutriBoost',
       'Nos salles accueillent au maximum 12 personnes.', 'Un atelier peut accueillir plusieurs clients.', 'Le site a une page d’accueil.'],
@@ -588,11 +588,11 @@ export const EXCEPTIONS = [
   {regle: 'identifiant', page: 'projet-alter',
     raison: 'Le chapitre 4 parle des numéros de téléphone des coachs : « numéro » est le bon mot (il ne sert que pour un téléphone).'},
   {regle: 'identifiant', page: 'projet-index',
-    raison: 'Le chapitre 16 cherche une commande par son numéro (la colonne numero_commande : le code imprimé sur le bon, « Commande NB-10482 », photo d’Elisa du 26 octobre, 11 h 57), qui n’est pas son identifiant (la colonne id) : « numéro de commande » est le bon mot, et l’identifiant de la ligne apparaît à côté.'},
+    raison: 'Le chapitre 17 cherche une commande par son numéro (la colonne numero_commande : le code imprimé sur le bon, « Commande NB-10482 », photo d’Elisa du 26 octobre, 11 h 57), qui n’est pas son identifiant (la colonne id) : « numéro de commande » est le bon mot, et l’identifiant de la ligne apparaît à côté.'},
   {regle: 'identifiant', page: 'fonctions-texte', contient: 'numéro de rue',
     raison: 'Elisa, 29 octobre, 15 h 06 : « on sépare le numéro de rue de l’adresse » : le numéro d’une rue n’est pas un identifiant, c’est le bon mot.'},
   {regle: 'identifiant', page: 'leçon 57',
-    raison: 'Même mot que dans la vidéo du chapitre 16 (récapitulatif) : le numéro de la commande, la colonne numero_commande, distinct de son identifiant.'},
+    raison: 'Même mot que dans la vidéo du chapitre 17 (récapitulatif) : le numéro de la commande, la colonne numero_commande, distinct de son identifiant.'},
   {regle: 'atelier', page: 'projet-normaliser', contient: 'Quatre ateliers bien-être arrivent',
     raison: 'Énumération des quatre ateliers, introduite par « Quatre ateliers bien-être » (les noms y sont en minuscules, « Pilates » en majuscule).'},
   {regle: 'relation', page: 'projet-cles', contient: 'ligne par lien',
@@ -623,14 +623,14 @@ export const EXCEPTIONS = [
     raison: 'Texte d’Elisa du 23 octobre, avant sa consigne du 24 (« relation » plutôt que « lien » entre tables).'},
   {regle: 'relation', page: 'projet-uml', contient: 'en liens entre ces tables', aConfirmer: 'quel mot, puisque « les relations du diagramme en relations » se répéterait (« en clés étrangères entre ces tables » ?)',
     raison: 'Texte d’Elisa du 23 octobre : « traduire les relations du diagramme en liens entre ces tables » ; remplacer « liens » par « relations » répéterait le mot.'},
-  /* Les trois phrases de « lien » de la trame d’Elisa pour le chapitre 10 (25 octobre, 12 h 51), écrites le lendemain de sa consigne : le lien d’un avis vers un compte */
+  /* Les trois phrases de « lien » de la trame d’Elisa pour le chapitre 11 (25 octobre, 12 h 51), écrites le lendemain de sa consigne : le lien d’un avis vers un compte */
   {regle: 'relation', page: 'projet-ondelete', contient: 'Que doit devenir ce lien', aConfirmer: '« Que doit devenir cette relation ? »',
     raison: 'Mots d’Elisa (25 octobre, 12 h 51) : « Que doit devenir ce lien ? » ; le lien est celui d’un avis vers un compte (une ligne vers une ligne), pas la relation entre deux tables.'},
   {regle: 'relation', page: 'projet-ondelete', contient: 'son lien vers le compte d’Inès Lefebvre est retiré', aConfirmer: '« sa relation avec le compte d’Inès Lefebvre est retirée » ?',
     raison: 'Mots d’Elisa (25 octobre, 12 h 51) : « son lien vers le compte de Nathan est retiré » (légende et correction du moment 2) ; Inès Lefebvre remplace Nathan pour que la base partagée ne soit pas modifiée (13 h 17).'},
   {regle: 'relation', page: 'projet-ondelete', contient: 'modifie le lien dans la base de données', aConfirmer: '« modifie la relation dans la base de données » ?',
     raison: 'Mots d’Elisa (25 octobre, 12 h 51) : « SET NULL modifie le lien dans la base de données » (légende et correction du moment 5).'},
-  /* La trame d’Elisa pour le chapitre 11 (25 octobre, 17 h 05) : la cliente écrit elle-même, avec la photo de son shaker cassé */
+  /* La trame d’Elisa pour le chapitre 12 (25 octobre, 17 h 05) : la cliente écrit elle-même, avec la photo de son shaker cassé */
   {regle: 'service-client-relaie', page: 'projet-transaction', contient: 'Je viens de recevoir ma commande',
     raison: 'Trame d’Elisa (25 octobre, 17 h 05, « Cours 1 — TRANSACTION ») : « La conversation avec Léa s’ouvre et son message s’affiche », sa photo dessous ; 18 h 36 : ce message est envoyé au service client, qui nous écrit ensuite.'},
   {regle: 'client', page: 'projet-transaction', contient: 'Léa vient de nous envoyer un message',
@@ -643,13 +643,13 @@ export const EXCEPTIONS = [
   {regle: 'client', page: 'projet-savepoint', contient: 'au colis de remplacement de Léa',
     raison: 'Mots d’Elisa (25 octobre, 19 h 13) : le SMS du service client, « Pour nous excuser du shaker arrivé abîmé, peux-tu ajouter une tisane gratuite au colis de remplacement de Léa ? 🌿 » ; les légendes nomment Léa Simon en entier.'},
   {regle: 'service-client-relaie', page: 'projet-savepoint', contient: 'J’ai bien reçu le colis',
-    raison: 'Mots d’Elisa (25 octobre, 19 h 13) : à la fin, Léa Simon écrit au service client qu’elle a bien reçu son colis (« Bonjour, j’ai bien reçu le colis !… »), comme au chapitre 11 où elle lui écrit elle-même.'}
+    raison: 'Mots d’Elisa (25 octobre, 19 h 13) : à la fin, Léa Simon écrit au service client qu’elle a bien reçu son colis (« Bonjour, j’ai bien reçu le colis !… »), comme au chapitre 12 où elle lui écrit elle-même.'}
 ];
 
 /* ---------- La dette : ce qui reste à reprendre dans les anciens cours ---------- */
 /* Un compte par page et par règle : le nombre d’écarts que la charte trouve encore dans les vidéos qui ne sont pas des chapitres du projet et dans les
    leçons en texte (relevé du 24 octobre). C’est un PLAFOND : le test refuse un écart de plus, et signale ceux qui ont disparu (à retirer d’ici).
-   Les chapitres 9 à 16 du projet remplaceront les anciens cours : ils sont, eux, vérifiés sans aucune tolérance (tests/redaction.test.mjs, partie 2). */
+   Les chapitres 9 à 17 du projet remplaceront les anciens cours : ils sont, eux, vérifiés sans aucune tolérance (tests/redaction.test.mjs, partie 2). */
 export const DETTE = {
   videos: {
     'and-or': {'legende-phrase': 1, typographie: 1, coupes: 1},
@@ -703,7 +703,7 @@ export const DETTE = {
     47: {relation: 1},   // Sous-requête dans SELECT
     55: {relation: 1},   // EXISTS et NOT EXISTS
     74: {identifiant: 2}   // Fonctions de rang
-    // 64 CREATE VIEW, 57 Les index et EXPLAIN et 50 Sécurité et droits sont devenues les chapitres 15, 16 et 17 du projet : vérifiées sans tolérance
+    // 64 CREATE VIEW, 57 Les index et EXPLAIN et 50 Sécurité et droits sont devenues les chapitres 16, 17 et 18 du projet : vérifiées sans tolérance
   }
 };
 

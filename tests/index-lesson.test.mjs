@@ -1,4 +1,4 @@
-/* Projet NutriBoost, chapitre 16 (leçon 57 « Les index et EXPLAIN ») : la vidéo interactive assets/anim/projet-index.html, testée aussi dans
+/* Projet NutriBoost, chapitre 17 (leçon 57 « Les index et EXPLAIN ») : la vidéo interactive assets/anim/projet-index.html, testée aussi dans
    lesson-video.test.mjs. La trame est celle d’Elisa (26 octobre, 10 h 52, « INDEX / EXPLAIN — La file d’attente s’allonge »), transposée à la
    préparation des commandes avec sa photo de remplacement (11 h 57 : le bon « Commande NB-10482 » et son QR code, « Recherche de la
    commande… ») : la table commandes compte 500 000 lignes, y compris les anciennes ; la requête du scan la parcourt en entier (SCAN commandes) ;
@@ -37,12 +37,14 @@ const sql = q => Q.Q[q].map(([s]) => s).filter(s => !s.trim().startsWith('--')).
 /* ---------- La base de la vidéo ---------- */
 const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(root, 'vendor/sqljs', f)});
 const ANNEES = val('ANNEES');
-/* La base NutriBoost telle que le chapitre 15 la laisse (douze tables), avec la table commandes que l’équipe logistique décrit : les seize
+/* La base NutriBoost telle que le chapitre 16 la laisse (douze tables), avec la table commandes que l’équipe logistique décrit : les seize
    commandes de la base, les anciennes commandes de 2019 à 2025 (CMD-année-…), puis les commandes du jour, NB-10001 à NB-10490 ; la commande
    NB-10482 est celle de Léa Simon (la cliente 7). 500 000 lignes. */
 function base() {
   const db = new SQL.Database();
   db.run(vm.runInContext('SCHEMA_SQL', ctx));
+  /* Le chapitre 10 (MERGE, 30 octobre) : l’inventaire de l’entrepôt met à jour la Fibre Prébiotique (150) et Oméga 3 (75), et ajoute la Spiruline Bio. */
+  db.run("UPDATE produits SET stock = 150 WHERE id = 1; UPDATE produits SET stock = 75 WHERE id = 7; INSERT INTO produits VALUES (9, 'Spiruline Bio', 'Nutrition', 22.90, 40);");
   db.run(`PRAGMA foreign_keys = ON;
     CREATE TABLE coachs (id INTEGER PRIMARY KEY, prenom TEXT NOT NULL, nom TEXT NOT NULL, email TEXT NOT NULL);
     CREATE TABLE ateliers (id INTEGER PRIMARY KEY, titre TEXT NOT NULL, date_atelier DATE, coach_id INTEGER NOT NULL REFERENCES coachs(id), places INTEGER DEFAULT 12);
@@ -256,15 +258,15 @@ test('moments 4 et 5 : la partie du plan qui nomme l’index ; ce que donne le p
   assert.ok(/SEARCH/.test(detail) && /idx_commandes_numero/.test(detail) && /numero_commande/.test(detail) && !/ms|seconde/.test(detail));
 });
 
-test('chapitre 16 : écran titre, ouverture comme aux autres chapitres, la photo d’Elisa, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 16 : Les index et EXPLAIN</title>') && page.includes('<div class="tagpill">Projet · Chapitre 16</div>')
+test('chapitre 17 : écran titre, ouverture comme aux autres chapitres, la photo d’Elisa, annonce de la prochaine leçon', () => {
+  assert.ok(page.includes('<title>Requête · Projet, chapitre 17 : Les index et EXPLAIN</title>') && page.includes('<div class="tagpill">Projet · Chapitre 17</div>')
     && page.includes('<span>I</span><span>N</span><span>D</span><span>E</span><span>X</span>')
-    && page.includes('<div class="abs sub">Accélérer une recherche et lire son plan</div>'), 'écran titre : « Projet · Chapitre 16 », INDEX, « Accélérer une recherche et lire son plan »');
+    && page.includes('<div class="abs sub">Accélérer une recherche et lire son plan</div>'), 'écran titre : « Projet · Chapitre 17 », INDEX, « Accélérer une recherche et lire son plan »');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.');
-  assert.equal(caps[1], 'Au chapitre 15, une vue a présenté<br>la sélection de la box à l’agence.', 'le chapitre précédent');
+  assert.equal(caps[1], 'Au chapitre 16, une vue a présenté<br>la sélection de la box à l’agence.', 'le chapitre précédent');
   const vw = fs.readFileSync(path.join(root, 'assets/anim/projet-vue.html'), 'utf8');
-  assert.ok(vw.includes('Dans la prochaine leçon,<br>la file des commandes à préparer<br>s’allongera.') && vw.includes('Prochaine leçon · Les index et EXPLAIN</span>'), 'le chapitre 15 annonce celui-ci');
+  assert.ok(vw.includes('Dans la prochaine leçon,<br>la file des commandes à préparer<br>s’allongera.') && vw.includes('Prochaine leçon · Les index et EXPLAIN</span>'), 'le chapitre 16 annonce celui-ci');
   assert.ok(caps.includes('Dans la prochaine leçon,<br>une nouvelle collègue aura besoin<br>des bons accès.') && page.includes('Prochaine leçon · Sécurité et droits</span>'), 'annonce de la prochaine leçon');
   assert.equal(caps[caps.length - 2], 'Pour finir, voici les <b>trois idées à retenir</b>.');
   assert.ok(page.includes("const PHOTO = 'projet-index-scan.webp';") && fs.statSync(path.join(root, 'assets/anim/projet-index-scan.webp')).size > 20000, 'la photo du scan');
