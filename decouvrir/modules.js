@@ -12,7 +12,7 @@ window.MODULES=[
   statut:'disponible',
   titre:'SQL, de zéro à avancé',
   nom:'SQL',
-  accroche:'Interroger, croiser et analyser des données avec le langage n°1 des data analysts, sur une vraie base.',
+  accroche:'Interroger, croiser et analyser des données avec le langage des data analysts, sur une vraie base.',
   apropos:[
     'Le SQL est la langue des bases de données : c’est avec lui qu’on interroge les clients, les produits ou les commandes d’une entreprise. Ce module te l’apprend du tout premier SELECT jusqu’aux fonctions de fenêtre, aux transactions et aux droits d’accès.',
     'Chaque cours est une courte vidéo interactive qui s’arrête sur des moments « À toi » : tu écris la requête, la base te répond. Tu deviens l’analyste de NutriBoost, une boutique en ligne, et ses clients, ses produits et ses commandes servent d’exemples d’un bout à l’autre.',
@@ -161,7 +161,6 @@ window.VITRINE={
     appareil:'<rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18.5h3"/>',
     horsligne:'<path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0"/><path d="M12 20h.01"/>',
     maj:'<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
-    gratuit:'<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
     fleche:'<path d="M5 12h14M13 6l6 6-6 6"/>',
     lecture:'<circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5z"/>',
     chevron:'<path d="m6 9 6 6 6-6"/>',
