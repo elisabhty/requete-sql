@@ -75,8 +75,8 @@ assert(html.includes('<script src="design-premium.js') && serviceWorker.includes
   assert(html.includes('applyMissionFills();\n    initRunSqlSlots();') && html.includes('${missionFillBlock(l)}'), 'requête à trous générée avant les emplacements exécutables, ou ajoutée en fin de cours');
   assert(html.includes("return !!(l&&(l.gateJcQuiz||lessonHasFill(l)||lessonHasVideo(l))&&!etapesDe(l.id).exo&&!jcPassed(l.id));"), 'l’exercice reste verrouillé tant que la vidéo (ou la requête à trous du cours texte) n’est pas finie');
   assert(html.includes('swapped[g]=p.length===2') , 'chaque égalité a = b accepte les deux sens, même avec plusieurs égalités');
-  assert(html.includes("const MASCOT_VIDEO='assets/mascotte-coucou.mp4'") && html.includes('mascotMedalHtml():') && html.includes('class="mascot mascot-vid-hello"'), 'mascotte animée sur l’accueil et l’écran de bienvenue');
-  assert(serviceWorker.includes("url.pathname.endsWith('.mp4')") && serviceWorker.includes("'./assets/mascotte-coucou.jpg'"), 'vidéo laissée au navigateur (lecture par morceaux sur iOS), image fixe disponible hors ligne');
+  assert(html.includes("const MASCOT_IMG='assets/mascotte-autocollant.webp'") && html.includes("mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT'") && html.includes('<div class="ob-hello-stage">') && !html.includes('mascotte-coucou'), 'mascotte en autocollant sur l’accueil et l’écran de bienvenue (plus de vidéo à fond gris)');
+  assert(serviceWorker.includes("url.pathname.endsWith('.mp4')") && serviceWorker.includes("'./assets/mascotte-autocollant.webp'"), 'vidéos laissées au navigateur (lecture par morceaux sur iOS), autocollant de la mascotte disponible hors ligne');
   assert(html.includes('.qf.is-won .qf-actions{visibility:hidden') && !html.includes('runWrap.scrollIntoView(') && html.includes('scr.scrollTo({top:anchor()'), 'résultat affiché à la place de l’éditeur, sans saut de mise en page');
 }
 assert(html.includes('id="scr-notes"') && html.includes('function renderNotesScreen('), 'Mes notes possède un écran racine dédié');
@@ -144,7 +144,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 const glissantes = fs.readFileSync(path.join(ROOT, 'assets/anim/fenetres-glissantes.html'), 'utf8');
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && ['UNBOUNDED PRECEDING', '2 PRECEDING', '2 FOLLOWING', 'CURRENT ROW'].every(c => glissantes.includes(c)) && html.includes('NTILE(4)'), 'cadres (dans la vidéo) et fonctions de fenêtre avancées (défi NTILE) couverts');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-10-30-merge-avant-delete-v2188') && html.includes('requete-2026-10-30-merge-avant-delete-v2188') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-10-30-mascotte-autocollant-v2189') && html.includes('requete-2026-10-30-mascotte-autocollant-v2189') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);

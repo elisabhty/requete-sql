@@ -14,7 +14,9 @@ for (const name of readdirSync(root)) {
   const p = join(root, name);
   if (statSync(p).isFile() && keepExt.has(extname(name)) && !skip.has(name)) cpSync(p, join(out, name));
 }
-// La vidéo mascotte-requete.mp4 (4,5 Mo) n’est utilisée nulle part : on ne l’embarque pas.
-const unused = new Set(['mascotte-requete.mp4']);
+// La vidéo mascotte-requete.mp4 (4,5 Mo) n’est utilisée nulle part : on ne l’embarque pas. Depuis le 30 octobre, la
+// mascotte de l’appli est l’autocollant assets/mascotte-autocollant.webp : l’ancienne vidéo du coucou (fond gris), son
+// affiche et l’avatar rond de l’onboarding (555 Ko) ne servent plus non plus.
+const unused = new Set(['mascotte-requete.mp4', 'mascotte-coucou.mp4', 'mascotte-coucou.jpg', 'mascotte-onboarding.png']);
 for (const dir of ['assets', 'vendor']) cpSync(join(root, dir), join(out, dir), {recursive: true, filter: src => !unused.has(src.split('/').pop())});
 console.log('www/ prêt pour Capacitor');

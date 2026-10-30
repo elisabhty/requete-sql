@@ -18,8 +18,10 @@
 
 /* ---------- 1 · Situation ---------- */
 #s1 .need{top:420px}
-#mail1 .inv-band{font-size:40px}
-#mail1 .stamp{top:166px;right:-30px}
+/* Le SMS de l’équipe communication : la bannière (184 px), puis la conversation qui s’ouvre à sa place, centrée dans la hauteur libre (smsPlace) */
+#ml1{left:64px;width:952px;height:184px}
+/* Hors de l’app, un doigt montre le geste : toucher la notification */
+#tapf{z-index:20;font-size:120px;margin:-8px 0 0 -44px;opacity:0;visibility:hidden}
 #s1 .need-row .nl{font-size:36px;white-space:nowrap}
 
 /* ---------- Calendrier des commandes (chapitres 1, 4 et 6) ---------- */
@@ -111,15 +113,7 @@
 
   <!-- 1 · Situation -->
   <section class="scene" id="s1">
-    <div class="abs card invite" id="mail1">
-      <div class="inv-band"><span class="emo">📧</span><span>Confirmation de commande</span></div>
-      <div class="inv-body">
-        <div class="inv-from">NutriBoost · service client</div>
-        <div class="inv-title">¡Gracias!</div>
-        <div class="inv-place"><span class="emo">📦</span><span>Tu pedido está confirmado.</span></div>
-      </div>
-      <div class="stamp">En espagnol !</div>
-    </div>
+    <div class="abs emo" id="tapf">👆</div>
     <div class="abs card agenda" id="ag1" style="top:236px"></div>
     <div class="abs card need">
       <div class="need-h">Les informations à récupérer</div>
@@ -218,6 +212,14 @@ const COMMANDES = [[1,'CMD-2026-1002481','2026-07-02'],[2,'CMD-2026-1003912','20
   [13,'CMD-2026-1106294','2026-07-28'],[14,'CMD-2026-1847392','2026-07-30'],[15,'CMD-2026-1128760','2026-08-01'],[16,'CMD-2026-1134085','2026-08-03']];
 /* La période du bug : du 14 au 20 juillet 2026, limites comprises */
 const DANS = c => c[2] >= '2026-07-14' && c[2] <= '2026-07-20';
+/* La demande (Elisa, 30 octobre, 16 h 22 : « Du 14 au 20 juillet, un bug a envoyé certaines confirmations de commande dans la mauvaise
+   langue » ; 16 h 29 : « faire plutôt sous forme SMS de l’équipe communication ») : le SMS dit la période, ce qu’il faut lui envoyer et
+   à quoi cela servira (« numéro » reste réservé aux légendes sur la colonne numero_commande, voir tests/redaction). L’app s’arrête sur la notification jusqu’au toucher ; la conversation se lit seule, la première légende vient après. */
+const SMS = ['Du 14 au 20 juillet, un bug a envoyé certaines confirmations de commande dans la mauvaise langue.',
+  'Peux-tu nous envoyer la liste de ces commandes ?',
+  'Nous leur renverrons la bonne confirmation, en français.'];
+const SMS_T = 5.2, SMS_OPEN = 6.8;
+const OPENS = [{at: SMS_OPEN, sel: '#ml1', prompt: 'Touche le message pour l’ouvrir.', label: 'Ouvrir le message de l’équipe communication'}];
 /* Jours affichés dans le calendrier (juillet 2026) */
 const JOURS = [[12,'dim.'],[13,'lun.'],[14,'mar.'],[15,'mer.'],[16,'jeu.'],[17,'ven.'],[18,'sam.'],[19,'dim.'],[20,'lun.'],[21,'mar.'],[22,'mer.']];
 
@@ -233,10 +235,10 @@ const CHAPTERS = [
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
 const CAPTIONS = [
-  [5.3, 8.6,    "Un bug a envoyé les confirmations de commande <b>en espagnol</b>."],
-  [8.7, 12.4,   "Le bug a duré <b>du 14 au 20 juillet</b> : ces commandes ont reçu « ¡Gracias! » au lieu de « Merci ! »."],
-  [12.5, 15.6,  "Il faut les retrouver pour renvoyer leur confirmation <b>en français</b>."],
-  [15.7, 19.6,  "Pour cela, on récupère le numéro<br>et la date des <b>16 commandes</b><br>dans la <b>table commandes</b>."],
+  // Le SMS de l’équipe communication se lit seul : la première légende vient après lui.
+  [9.85, 12.6,  "Ces commandes ont reçu « ¡Gracias! »<br>au lieu de « Merci ! »."],
+  [12.7, 15.6,  "Les commandes d’avant le 14 et d’après le 20 juillet ne sont <b>pas concernées</b>."],
+  [15.7, 19.6,  "Le numéro et la date des <b>16 commandes</b><br>sont dans la <b>table commandes</b>."],
   [20.3, 24.3,  "Avec <code>AND</code>, on écrit deux comparaisons : une pour le <b>début</b> de la période, une pour la <b>fin</b>."],
   [24.4, 27.6,  "La requête fonctionne : elle renvoie bien les <b>4 commandes</b> de la période."],
   [27.7, 30.6,  "Mais <code>date_commande</code> s’écrit <b>deux fois</b>, avec deux comparaisons à relire."],
@@ -337,6 +339,7 @@ function agenda(id, tags){
 }
 
 function dom(){
+  $('#s1').insertAdjacentHTML('afterbegin', smsCard(1, 'k-cm', 'Équipe communication', '', 'EC', SMS));
   agenda('#ag1', '<span class="agtag bug" id="bug1"><span class="emo">🐞</span>période du bug</span>');
   agenda('#ag4', '<span class="agtag lim f1" id="f1"><span class="op" id="op1">&gt;=</span>14 juillet · inclus</span>' +
     '<span class="agtag lim f2" id="f2"><span class="op" id="op2">&lt;=</span>20 juillet · inclus</span>');
@@ -347,6 +350,22 @@ function dom(){
   $('#rows6').innerHTML = COMMANDES.filter(DANS).map(c => row(c, 'rgR tr te')).join('');
   $('#rows3').insertAdjacentHTML('afterbegin', COMMANDES.map(c => `<div class="rgS tr tz" data-ok="${DANS(c) ? 1 : 0}"><i class="hl"></i><div>${c[1]}</div><div>${c[2]}</div>` +
     `<div>${DANS(c) ? '<span class="pill t">✓ vraie</span>' : '<span class="pill f">✕ fausse</span>'}</div></div>`).join(''));
+}
+
+/* La conversation du SMS se centre dans la hauteur libre (236 → 1 790 px, comme le mail des autres cours) ; la bannière est 150 px plus bas
+   que son haut. Appelée dans build, polices chargées et bulles resserrées (smsFit). */
+function smsPlace(sel){
+  const M = $(sel), h = M.querySelector('.sms-v').offsetHeight;
+  M.style.top = Math.max(236, Math.round((236 + 1790) / 2 - h / 2)) + 150 + 'px';
+}
+/* Hors de l’app, un doigt vient toucher la notification à T (dans l’app, le lecteur s’arrête et attend le toucher de l’élève). */
+function fingerTap(M, T){
+  const f = '#tapf';
+  tl.set(f, {left: M.offsetLeft + M.offsetWidth * 0.6, top: M.offsetTop + 92}, T - 0.8);
+  tl.fromTo(f, {autoAlpha: 0, x: 90, y: 170}, {autoAlpha: 1, x: 0, y: 0, duration: 0.5, ease: 'power3.out', immediateRender: false}, T - 0.75);
+  tl.to(f, {scale: 0.86, duration: 0.1, ease: 'power2.in'}, T - 0.15);
+  tl.to(f, {scale: 1, duration: 0.15}, T);
+  tl.to(f, {autoAlpha: 0, y: 70, duration: 0.3}, T + 0.2);
 }
 
 /* Le calendrier arrive : jours un à un, puis la période du 14 au 20 juillet. */
@@ -383,21 +402,19 @@ function build(){
 
   /* ===== 1 · Situation ===== */
   sceneOn('#s1', 5.0);
-  gsap.set('#mail1', {autoAlpha: 0, y: 470, rotation: -9});
-  tl.to('#mail1', {autoAlpha: 1, y: 380, rotation: -2.5, duration: 0.9, ease: 'back.out(1.3)'}, 5.15);
-  cue(5.15, 'whoosh', 0.8);
-  gsap.set('#mail1 .stamp', {autoAlpha: 0, scale: 1.9, rotation: 24});
-  tl.to('#mail1 .stamp', {autoAlpha: 1, scale: 1, rotation: 7, duration: 0.36, ease: 'power4.in'}, 6.6);
-  tl.to('#mail1', {x: 6, duration: 0.05, yoyo: true, repeat: 3, ease: 'none'}, 6.96);
-  cue(6.95, 'stamp');
-  hide('#mail1', 8.75, {y: 300}, 0.4);
+  // Le SMS de l’équipe communication arrive seul ; l’élève l’ouvre (l’app s’arrête sur la notification), le lit, puis il s’en va.
+  smsPlace('#ml1');
+  if (!APP) fingerTap($('#ml1'), SMS_OPEN);
+  const smsEnd = smsIn(1, SMS_T, SMS_OPEN);   // 8,89 : cinq bulles, de « Bonjour, » à « Merci ! »
+  hide('#ml1', +(smsEnd + 0.45).toFixed(2), {x: 140, y: 0, rotation: 2}, 0.4, 'power2.in');
+  cue(+(smsEnd + 0.45).toFixed(2), 'whoosh', 0.4);
   // Le calendrier : les confirmations de la période sont parties en espagnol.
-  agendaIn('#ag1', 9.0);
-  show('#bug1', 9.9, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  cue(9.9, 'error', 0.5);
+  agendaIn('#ag1', 9.6);
+  show('#bug1', 10.5, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(10.5, 'error', 0.5);
   const es1 = $$('#ag1 .env.es');
-  tl.to(es1, {scale: 1.12, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.14}, 10.4);
-  es1.forEach((_, i) => cue(10.4 + i * 0.14, 'miss', 0.5, i));
+  tl.to(es1, {scale: 1.12, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.14}, 11.0);
+  es1.forEach((_, i) => cue(11.0 + i * 0.14, 'miss', 0.5, i));
   hide('#ag1', 15.6, {y: -40}, 0.4);
   show('#s1 .need', 15.85, {y: 60});
   cue(15.85, 'whoosh', 0.6);
@@ -571,8 +588,8 @@ function build(){
   if (APP) cue(98.45, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 98.4, moments: MOMENTS,
-  glyphs: '📧📦📅🧾🐞✉️🔎📋⚠️✅↔️✓✕→×·¡', dom, build});
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 98.4, moments: MOMENTS, opens: OPENS,
+  glyphs: '📅🧾🐞✉️🔎📋⚠️✅↔️✓✕→×·¡👆', dom, build});
 </script>
 </body>
 </html>

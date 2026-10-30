@@ -4,7 +4,7 @@
    Il apparaît alors dans « Un parcours pour chaque objectif » sur la page d’accueil, et sa fiche s’ouvre sur
    module.html?m=<id>. Avec statut:'bientot', le module s’affiche en carte « Bientôt », sans fiche.
 
-   Le programme du module SQL reprend les chapitres et les leçons de l’appli (MODULES dans ../index.html) :
+   Le programme du parcours SQL reprend les modules (chapitres) et les leçons de l’appli (MODULES dans ../index.html) :
    titre, résumé et durée de la vidéo en secondes. tests/vitrine-modules.test.mjs vérifie qu’il reste à jour. */
 window.MODULES=[
 {
@@ -14,9 +14,9 @@ window.MODULES=[
   nom:'SQL',
   accroche:'Interroger, croiser et analyser des données avec le langage des data analysts, sur une vraie base.',
   apropos:[
-    'Le SQL est la langue des bases de données : c’est avec lui qu’on interroge les clients, les produits ou les commandes d’une entreprise. Ce module te l’apprend du tout premier SELECT jusqu’aux fonctions de fenêtre, aux transactions et aux droits d’accès.',
+    'Le SQL est la langue des bases de données : c’est avec lui qu’on interroge les clients, les produits ou les commandes d’une entreprise. Ce parcours te l’apprend du tout premier SELECT jusqu’aux fonctions de fenêtre, aux transactions et aux droits d’accès.',
     'Chaque cours est une courte vidéo interactive qui s’arrête sur des moments « À toi » : tu écris la requête, la base te répond. Tu deviens l’analyste de NutriBoost, une boutique en ligne, et ses clients, ses produits et ses commandes servent d’exemples d’un bout à l’autre.',
-    'Entre les cours, des défis métier sans filet, des révisions qui reviennent au bon moment et une console SQL libre te font pratiquer. Tu peux aussi importer tes propres fichiers Excel ou CSV et les interroger comme une vraie base.'
+    'Entre les cours, des cas pratiques sans filet, des révisions qui reviennent au bon moment et une console SQL libre te font pratiquer. Tu peux aussi importer tes propres fichiers Excel ou CSV et les interroger comme une vraie base.'
   ],
   niveau:{de:1,a:3,texte:'Débutant à avancé'},
   badge:'Vidéo interactive',
@@ -52,7 +52,7 @@ window.MODULES=[
       ["NULL", "La valeur absente", 113],
       ["LIKE", "Chercher un motif", 157],
       ["IN", "Filtrer avec une liste", 132],
-      ["BETWEEN", "Filtrer un intervalle", 128],
+      ["BETWEEN", "Filtrer un intervalle", 138],
       ["ORDER BY", "Ordonner le résultat", 118],
       ["LIMIT et OFFSET", "Limiter le résultat et le découper en pages", 205]
     ]},

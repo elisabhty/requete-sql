@@ -638,11 +638,12 @@ const COURSES = [
       'Son identifiant est-il dans la liste ?', '<div class="tg" id="tgP"><i>( )</i>entre parenthèses</div>',
       '(<span class="hv str" id="hS1">\'Paris\'<i class="mbox"></i></span>, <span class="hv str" id="hS2">\'Nantes\'<i class="mbox"></i></span>)',
       '<span class="ln5" id="m5b">  <span class="kw">AND</span> age &gt; 35;', '✓ 3 lots prêts à partir']},
-  {id: 10, next: 11, titre: 'BETWEEN', page: 'between.html', thumb: 'between-thumb.jpg', duree: '2 min 08', notesAt: 98.4,
+  {id: 10, next: 11, titre: 'BETWEEN', page: 'between.html', thumb: 'between-thumb.jpg', duree: '2 min 18', notesAt: 98.4,
     table: 'commandes',
     bubble: 'Sélectionne les valeurs comprises entre deux limites avec <span class="ic">BETWEEN</span>.',
     chapters: ['Situation', 'Le problème', 'BETWEEN en action', 'Limites incluses', 'Limites à l’envers', 'Le résultat', 'À retenir'],
-    traps: ['<div class="inv-title">¡Gracias!</div>', '<span class="t1">¡Gracias!</span><span class="t2">Merci !</span>',
+    traps: ["smsCard(1, 'k-cm', 'Équipe communication', '', 'EC', SMS)", 'Du 14 au 20 juillet, un bug a envoyé certaines confirmations de commande dans la mauvaise langue.',
+      "prompt: 'Touche le message pour l’ouvrir.', label: 'Ouvrir le message de l’équipe communication'", '<span class="t1">¡Gracias!</span><span class="t2">Merci !</span>',
       '<span id="geA">&gt;=</span><span class="kw glow" id="btA">BETWEEN</span>', '<span id="dcB"><span class="rep" id="r2">date_commande<i class="mbox"></i></span> &lt;= </span>',
       '<span class="x2" id="x2">× 2</span>', 'Sa date est-elle dans l’intervalle ?', '<span class="op" id="op2">&lt;=</span>20 juillet · inclus',
       '<span class="str bad" id="bd1">\'2026-07-20\'</span>', 'À l’envers, l’intervalle est vide.', '✓ 4 confirmations renvoyées en français']},
@@ -2849,7 +2850,7 @@ test('barre de lecture : relâcher le curseur la remet toujours en marche, même
 test('leçon terminée avec le score requis : confettis, son de réussite, le chat saute et dit « Bravo ! »', () => {
   const end = cut('function lvEnded(){', 'function lvWin(root){');
   assert.ok(end.includes('const win=!!(current&&current.id===id&&current.leconSeule&&!LV.retry);') && end.includes("root.classList.toggle('is-win',win);")
-    && end.includes('if(vid)vid.loop=win;') && end.includes('if(win)lvWin(root);'), 'seulement quand la leçon seule est validée ; le chat fait coucou en boucle');
+    && end.includes("if(cat&&cat.classList)cat.classList.toggle('is-party',win);") && end.includes('if(win)lvWin(root);'), 'seulement quand la leçon seule est validée ; l’autocollant du chat danse tant que l’écran est là');
   const win = cut('function lvWin(root){', '/* ---------- « Ajouter à mes notes »');
   assert.ok(win.includes("LvSfx.play('success',0,.6,0)") && win.includes('lqConfetti({n:56})') && win.includes('lqConfetti({n:36})') && win.includes('if(prefersReduceMotion())return;')
     && win.includes("const still=()=>!!(LV&&LV.root===root&&root.classList.contains('is-win'));"), 'deux salves de confettis, arpège de réussite ; rien en mouvement réduit ni après avoir quitté l’écran');
@@ -2933,7 +2934,7 @@ test('boutons retour en pastille ronde : Safari ne coupe plus leur relief (overf
   assert.ok(/html\.lq #app \.home-back svg\{[^}]*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour des écrans : relief entier');
   assert.ok(/html\.lq #scr-lesson \.navbar \.back svg\{\s*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour de la leçon (« ‹ Accueil ») : relief entier');
   assert.ok(html.includes('.tab svg{overflow:visible;'), 'onglets : l’ombre de l’onglet actif n’est pas coupée non plus');
-  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=23">'), 'la feuille de style du thème est rechargée');
+  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=24">'), 'la feuille de style du thème est rechargée');
 });
 
 test('arrêt « toucher » sur un bouton : un doigt seul qui monte et descend, sans bulle ; le bouton s’enfonce dès l’appui et remonte au relâcher', () => {
