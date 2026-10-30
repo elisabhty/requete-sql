@@ -21,10 +21,11 @@ window.MODULES=[
   niveau:{de:1,a:3,texte:'Débutant à avancé'},
   badge:'Vidéo interactive',
   defis:25,
+  cartes:47,
   affiches:['where','inner-join','over'],
   details:[
     ['jeu','Gamifié et interactif'],
-    ['carte','Une carte mémo à débloquer par cours'],
+    ['carte','Des cartes mémo à débloquer au fil des cours'],
     ['langue','En français'],
     ['appareil','Sur ordinateur, tablette et téléphone'],
     ['horsligne','Même hors ligne, à ton rythme'],

@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
 <link rel="preload" href="../assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/inter-semibold.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="vitrine.css?v=b42ad504">
+<link rel="stylesheet" href="vitrine.css?v=7d650f8b">
 <style>
 /* Page de connexion de la vitrine : pour l’instant un aperçu. Aucun compte n’existe encore (pas de compte en v1) :
    chaque bouton ouvre l’appli (../), rien n’est envoyé ni gardé, le mot de passe est effacé avant de partir.
@@ -30,7 +30,10 @@ body.cx{min-height:100%;background:var(--bg)}
 .cx-show::after{content:'';position:absolute;z-index:-1;right:-30%;top:-30%;width:90%;aspect-ratio:1;background:radial-gradient(closest-side,rgba(255,216,107,.24),rgba(255,216,107,0))}
 .cx-top{display:flex;align-items:center;gap:12px}
 .cx-show .brand b{color:#fff}
-.cx-back{margin-left:auto;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 13px;border-radius:12px;border:1.5px solid rgba(255,255,255,.38);color:#fff;font:700 14.5px/1 var(--display);text-decoration:none;transition:background-color .15s}
+.cx-back{margin-left:auto;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:0 13px;border-radius:12px;border:1.5px solid rgba(255,255,255,.38);color:#fff;font:700 14.5px/1 var(--display);text-decoration:none;white-space:nowrap;transition:background-color .15s}
+/* Bouton centré, sur une ligne (Elisa, 30 octobre, 21 h 10) : vers 360 px, « Découvrir Requête » passait sur deux lignes,
+   calé à gauche d’un bouton trop large ; un peu moins d’écart et de marge intérieure suffit pour qu’il tienne. */
+@media (max-width:399px){.cx-top{gap:8px}.cx-back{padding:0 11px}}
 .cx-back:hover{background:rgba(255,255,255,.1)}
 .cx-back svg{width:16px;height:16px}
 .cx-pitch h1{margin:22px 0 8px;font:800 clamp(32px,5.4vw,62px)/1.02 var(--display);letter-spacing:-.03em;animation:cxRise .8s var(--press) .05s both}
@@ -194,6 +197,7 @@ body.cx{min-height:100%;background:var(--bg)}
   .cx-s,.cx-k{opacity:1}
 }
 </style>
+<script src="../assets/curseur.js?v=92b21ffd" defer></script>
 </head>
 <body class="cx">
 <main class="cx-wrap">
@@ -205,7 +209,7 @@ body.cx{min-height:100%;background:var(--bg)}
     </div>
     <div class="cx-pitch">
       <h1 id="cx-h">Ta prochaine requête <em>t’attend</em>.</h1>
-      <p>Tes cours, tes cas pratiques, tes données et ta collection de cartes mémo et de stickers, là où tu les as laissés.</p>
+      <p>Retrouve tes cours, tes cas pratiques, tes données, ta collection, exactement là où tu les avais laissés.</p>
     </div>
 
     <div class="cx-stage" aria-hidden="true">
@@ -245,8 +249,11 @@ body.cx{min-height:100%;background:var(--bg)}
 <script>
 'use strict';
 (function(){
-  /* Aperçu : aucun compte, aucun envoi. Chaque bouton ouvre l’appli ; le mot de passe est effacé avant de partir. */
-  const APP = '../';
+  /* Aperçu : aucun compte, aucun envoi. Chaque bouton ouvre l’appli ; le mot de passe est effacé avant de partir.
+     « Se connecter » mène directement à l’accueil de l’appli, sans le parcours de bienvenue (?depuis=connexion,
+     lu par maybeOnboard dans ../index.html) ; « Créer un compte » et « Continuer sans compte » le gardent (?depuis=vitrine).
+     Dans les deux cas, l’appli s’ouvre sur l’accueil, pas sur l’écran de la dernière visite (Elisa, 30 octobre, 22 h 50). */
+  const APP = '../?depuis=vitrine', ACCUEIL = '../?depuis=connexion';
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const $ = id => document.getElementById(id);
   const form = $('cx-form'), go = $('cx-go'), pass = $('cx-pass'), bubble = $('cx-bubble'), masc = $('cx-masc'), toast = $('cx-toast');
@@ -268,8 +275,8 @@ body.cx{min-height:100%;background:var(--bg)}
       setTimeout(() => c.remove(), 1500);
     }
   }
-  function leave(){ document.body.classList.add('cx-leave'); setTimeout(() => { location.href = APP; }, reduce ? 0 : 280); }
-  function enter(btn, wait, done){
+  function leave(dest){ document.body.classList.add('cx-leave'); setTimeout(() => { location.href = dest || APP; }, reduce ? 0 : 280); }
+  function enter(btn, wait, done, dest){
     if (leaving) return;
     leaving = true; pass.value = '';
     const lbl = btn.querySelector('.lbl');
@@ -277,11 +284,11 @@ body.cx{min-height:100%;background:var(--bg)}
     setTimeout(() => {
       btn.classList.remove('is-load'); btn.classList.add('is-ok'); lbl.textContent = done;
       say('C’est parti !'); masc.classList.remove('hop'); void masc.offsetWidth; masc.classList.add('hop'); confetti(btn);
-      setTimeout(leave, reduce ? 0 : 750);
+      setTimeout(() => leave(dest), reduce ? 0 : 750);
     }, reduce ? 0 : 650);
   }
 
-  form.addEventListener('submit', e => { e.preventDefault(); enter(go, 'Connexion…', 'C’est parti !'); });
+  form.addEventListener('submit', e => { e.preventDefault(); enter(go, 'Connexion…', 'C’est parti !', ACCUEIL); });
   $('cx-new').addEventListener('click', e => enter(e.currentTarget, 'Préparation…', 'Bienvenue !'));
   $('cx-skip').addEventListener('click', () => { if (leaving) return; leaving = true; pass.value = ''; leave(); });
   $('cx-eye').addEventListener('click', e => {

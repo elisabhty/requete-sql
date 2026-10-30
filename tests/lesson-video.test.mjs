@@ -2329,7 +2329,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
     ['Elle est reliée par des pointillés', ["draw('#ln-cx', 93.55, 0.35);", "glow('#ln-in', 93.95); bump('#an-in', 93.95, 1.1); cue(93.95, 'tick', 0.5, 2);"], 93.55, 0.85],
     ['Le diagramme est maintenant complet', ["], 101.5, 1.03); cue(101.5, 'stamp', 0.6);"], 101.5, 0.4],
     ['Le diagramme est maintenant complet', ["$$('#sb .ar:not(.ini)').forEach((r, q) => pulse(r, 102.4 + q * 0.04, 1));", "cue(102.4, 'tick', 0.5, 3); cue(102.6, 'tick', 0.5, 5);"], 102.4, 0.95],
-    ['Le diagramme est maintenant complet', ["{stroke: '#6A4DF4', strokeWidth: 8, duration: 0.25, ease: 'power1.inOut'}, 103.6);", "bump(['#an-an', '#an-in', '#an-po'], 103.6, 1.1); cue(103.6, 'tick', 0.5, 2); cue(103.75, 'tick', 0.5, 4);"], 103.6, 0.4],
+    ['Le diagramme est maintenant complet', ["{stroke: '#FFD86B', strokeWidth: 8, duration: 0.25, ease: 'power1.inOut'}, 103.6);", "bump(['#an-an', '#an-in', '#an-po'], 103.6, 1.1); cue(103.6, 'tick', 0.5, 2); cue(103.75, 'tick', 0.5, 4);"], 103.6, 0.4],
     ['Karim pourra s’appuyer dessus', ["lite(k, 105.1 + q * 0.15, 0.45, 1.03); cue(105.1 + q * 0.15, 'tick', 0.5, q);"], 105.1, 1.2],
     ['C’est le 0..1', ["bump('#mp-po-ca', 109.8, 1.25); lite('ca', 109.8, 0.6); cue(109.8, 'pop', 0.6, 4);"], 109.8, 0.9],
     ['C’est le 0..1', ["lite('cl', 111.2, 0.6); cue(111.2, 'tick', 0.5, 2);"], 111.2, 0.9],
@@ -2406,7 +2406,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   /* Ce qui s’efface ou revient à son aspect le fait après la pause de lecture, jamais à cheval dessus ; la pastille « ? » et les trois sortes de relations
      disparaissent avant l’arrêt du moment suivant. */
   const hold = start => D.CAPTIONS[idx(start)][1] - 0.25;
-  assert.ok(104.4 > hold('Le diagramme est maintenant complet') && page.includes("{stroke: '#4B4570', strokeWidth: 5, duration: 0.3, ease: 'power1.inOut'}, 104.4);"), 'les traits retrouvent leur aspect après la pause de lecture');
+  assert.ok(104.4 > hold('Le diagramme est maintenant complet') && page.includes("{stroke: 'rgba(255,255,255,.9)', strokeWidth: 5, duration: 0.3, ease: 'power1.inOut'}, 104.4);"), 'les traits retrouvent leur aspect après la pause de lecture (blancs sur le fond violet de la vitrine, depuis le 30 octobre ; surlignés en jaune)');
   assert.ok(115.2 > hold('Son maximum vaut 1') && page.includes("tl.to('#mp-po-ca .mn', {opacity: 1, duration: 0.3}, 115.2);"), 'le 0.. de la pastille revient avec la suite du plan');
   assert.ok(65.45 >= hold('On écrit la réponse') && 65.45 + 0.3 <= D.CAPTIONS[idx('On écrit la réponse') + 1][0] + 1e-9 && 65.45 + 0.3 <= D.PICKS[1].at - 1.35 && 174.5 + 0.3 <= D.PICKS[4].at - 1.35 && page.includes('tl.to(RL, {autoAlpha: 0, y: 24, duration: 0.3, ease: \'power2.in\'}, 174.5);'),
     'la pastille « ? » et les trois sortes de relations sont retirées avant l’arrêt du moment suivant');
@@ -2934,7 +2934,7 @@ test('boutons retour en pastille ronde : Safari ne coupe plus leur relief (overf
   assert.ok(/html\.lq #app \.home-back svg\{[^}]*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour des écrans : relief entier');
   assert.ok(/html\.lq #scr-lesson \.navbar \.back svg\{\s*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour de la leçon (« ‹ Accueil ») : relief entier');
   assert.ok(html.includes('.tab svg{overflow:visible;'), 'onglets : l’ombre de l’onglet actif n’est pas coupée non plus');
-  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=25">'), 'la feuille de style du thème est rechargée');
+  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=30">'), 'la feuille de style du thème est rechargée');
 });
 
 test('arrêt « toucher » sur un bouton : un doigt seul qui monte et descend, sans bulle ; le bouton s’enfonce dès l’appui et remonte au relâcher', () => {
