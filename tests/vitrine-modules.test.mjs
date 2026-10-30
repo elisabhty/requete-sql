@@ -49,12 +49,12 @@ test('chaque module a un id unique, et les affiches d’un module disponible exi
       assert.ok(fs.existsSync(path.join(root, `assets/anim/${a}-thumb.jpg`)), `${m.id} : affiche ${a}`);
 });
 
-test('le nombre de défis annoncé correspond aux défis de l’appli (CHALLENGES)', () => {
+test('le nombre de cas pratiques annoncé correspond aux défis de l’appli (CHALLENGES)', () => {
   const start = html.indexOf('const CHALLENGES');
   const body = html.slice(start, html.indexOf('\n];', start));
   const n = (body.match(/^\s*\{\s*id:/gm) || []).length;
   assert.equal(VITRINE.module('sql').defis, n);
-  assert.match(fs.readFileSync(path.join(root, 'decouvrir/index.html'), 'utf8'), new RegExp(`${n} défis métier`));
+  assert.match(fs.readFileSync(path.join(root, 'decouvrir/index.html'), 'utf8'), new RegExp(`${n} cas pratiques`));
 });
 
 test('le service worker sert la vitrine réseau d’abord, sous sa propre adresse, jamais à la place de index.html', () => {

@@ -7,12 +7,12 @@
 <meta name="color-scheme" content="light">
 <meta name="robots" content="noindex">
 <title>Connexion — Requête</title>
-<meta name="description" content="Connecte-toi à Requête pour retrouver tes cours, tes défis et ta collection de cartes mémo et de stickers.">
+<meta name="description" content="Connecte-toi à Requête pour retrouver tes cours, tes cas pratiques et ta collection de cartes mémo et de stickers.">
 <link rel="icon" href="../assets/icon-192.png">
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
 <link rel="preload" href="../assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/inter-semibold.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="vitrine.css?v=fd9f50a9">
+<link rel="stylesheet" href="vitrine.css?v=75a5acde">
 <style>
 /* Page de connexion de la vitrine : pour l’instant un aperçu. Aucun compte n’existe encore (pas de compte en v1) :
    chaque bouton ouvre l’appli (../), rien n’est envoyé ni gardé, le mot de passe est effacé avant de partir.
@@ -111,6 +111,26 @@ body.cx{min-height:100%;background:var(--bg)}
 .cx-conf{position:fixed;z-index:40;width:10px;height:16px;border-radius:3px;pointer-events:none}
 
 /* ---------- Ordinateur : deux colonnes ---------- */
+/* Petits écrans : le collage se met à l’échelle de sa largeur (unités cqw) ; rien ne se chevauche ni ne dépasse
+   de l’écran, et « Ta série continue » tient dans sa pastille (Elisa, 30 octobre) */
+.cx-tag::before,.cx-tag::after{display:none}
+@media (max-width:959px){
+  .cx-stage{container-type:inline-size;min-height:clamp(236px,66vw,290px)}
+  .cx-s .sticker{font-size:clamp(12px,4.1cqw,15px);padding:.5em .78em .43em .86em}
+  .cx-s .sticker svg{width:2.55em;height:2.55em;margin:-1.15em -1.55em -1.15em 0}
+  .cx-s .sticker::before{left:-16px;top:-14px}
+  .cx-s .sticker::after{right:-16px;bottom:-18px}
+  .s1{left:0;top:0}
+  .s2{right:14px;top:17%}
+  .s3{left:2%;top:38%}
+  .s5{left:0;top:57%}
+  .k1{right:0;top:0}
+  .cx-round{width:clamp(92px,26cqw,104px);height:clamp(92px,26cqw,104px);font-size:clamp(11px,3.3cqw,13px);letter-spacing:0;gap:2px}
+  .cx-round svg{width:32%;height:auto}
+  .cx-masc{--mw:clamp(120px,40cqw,160px);right:0;width:var(--mw);bottom:calc(-32px - var(--mw) * .57)}
+  .cx-bubble{left:auto;right:22%;top:-34px;font-size:clamp(13px,4.3cqw,15px);transform:rotate(-6deg)}
+  .cx-tag{right:auto;left:22px;transform:rotate(-4deg)}
+}
 @media (min-width:960px){
   .cx-wrap{grid-template-columns:minmax(0,1.1fr) minmax(460px,.9fr)}
   .cx-show{padding:30px 46px 40px;min-height:100vh;min-height:100dvh}
@@ -137,6 +157,26 @@ body.cx{min-height:100%;background:var(--bg)}
   .cx-card h2{font-size:36px}
   .cx-row{font-size:14.5px}
 }
+/* Ordinateur : le chat se règle sur la place du décor (largeur et hauteur), les autocollants restent dans les couloirs libres */
+@media (min-width:960px){
+  .cx-stage{container-type:size}
+  .cx-masc{width:clamp(150px,min(34cqw,40cqh),280px)}
+  .cx-s .sticker{font-size:clamp(13px,2.7cqw,18px);padding:.5em .78em .43em .86em}
+  .cx-s .sticker svg{width:2.4em;height:2.4em;margin:-1em -1.45em -1em 0}
+  .s1{left:0;top:2%}
+  .k1{left:auto;right:4%;top:2%}
+  .s2{right:12px;top:15%}
+  .k2{left:2%;top:27%}
+  .s4{right:12px;top:30%;bottom:auto}
+  .s3{left:0;top:42%}
+  .k3{right:2%;top:43%}
+  .s5{left:0;bottom:3%}
+  .k4{right:6%;bottom:3%}
+  .cx-round{width:clamp(106px,20cqw,118px);height:clamp(106px,20cqw,118px);font-size:clamp(12px,2.3cqw,15px);letter-spacing:.01em}
+  .cx-round svg{width:34%;height:auto}
+}
+/* Décor étroit (petit ordinateur) : « GROUP BY » céderait sa place à la bulle du chat */
+@container (max-width:499px){.k3{display:none}}
 
 @keyframes cxRise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
 @keyframes cxIn{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
@@ -165,11 +205,11 @@ body.cx{min-height:100%;background:var(--bg)}
     </div>
     <div class="cx-pitch">
       <h1 id="cx-h">Ta prochaine requête <em>t’attend</em>.</h1>
-      <p>Tes cours, tes défis métier, tes données et ta collection de cartes mémo et de stickers, là où tu les as laissés.</p>
+      <p>Tes cours, tes cas pratiques, tes données et ta collection de cartes mémo et de stickers, là où tu les as laissés.</p>
     </div>
 
     <div class="cx-stage" aria-hidden="true">
-      <span class="cx-s s1"><span class="sticker sun">25 défis métier<svg viewBox="0 0 48 48"><g fill="#fff" stroke="#fff" stroke-width="7" stroke-linejoin="round"><path d="M14 6h20v11a10 10 0 0 1-20 0z"/><path d="M8 8h32v6a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8z"/><rect x="19" y="26" width="10" height="10"/><rect x="12" y="35" width="24" height="8" rx="2"/></g><path d="M14 9H8.5v3.5a7 7 0 0 0 7 7M34 9h5.5v3.5a7 7 0 0 1-7 7" fill="none" stroke="#1B1640" stroke-width="2.6" stroke-linecap="round"/><path d="M21 26.5h6V36h-6z" fill="#FFC83D" stroke="#1B1640" stroke-width="2.6" stroke-linejoin="round"/><path d="M14 6h20v11a10 10 0 0 1-20 0z" fill="#FFC83D" stroke="#1B1640" stroke-width="2.6" stroke-linejoin="round"/><path d="m20 13.5 3 3 5.5-6" fill="none" stroke="#1B1640" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><rect x="12" y="35" width="24" height="8" rx="2" fill="#6A4DF4" stroke="#1B1640" stroke-width="2.6"/></svg></span></span>
+      <span class="cx-s s1"><span class="sticker sun">25 cas pratiques<svg viewBox="0 0 48 48"><g fill="#fff" stroke="#fff" stroke-width="7" stroke-linejoin="round"><path d="M14 6h20v11a10 10 0 0 1-20 0z"/><path d="M8 8h32v6a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8z"/><rect x="19" y="26" width="10" height="10"/><rect x="12" y="35" width="24" height="8" rx="2"/></g><path d="M14 9H8.5v3.5a7 7 0 0 0 7 7M34 9h5.5v3.5a7 7 0 0 1-7 7" fill="none" stroke="#1B1640" stroke-width="2.6" stroke-linecap="round"/><path d="M21 26.5h6V36h-6z" fill="#FFC83D" stroke="#1B1640" stroke-width="2.6" stroke-linejoin="round"/><path d="M14 6h20v11a10 10 0 0 1-20 0z" fill="#FFC83D" stroke="#1B1640" stroke-width="2.6" stroke-linejoin="round"/><path d="m20 13.5 3 3 5.5-6" fill="none" stroke="#1B1640" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><rect x="12" y="35" width="24" height="8" rx="2" fill="#6A4DF4" stroke="#1B1640" stroke-width="2.6"/></svg></span></span>
       <span class="cx-s s2"><span class="sticker">Tes propres données<svg viewBox="0 0 48 48"><path d="M11 5h18l9 9v29H11z" fill="#fff" stroke="#fff" stroke-width="7" stroke-linejoin="round"/><path d="M11 5h18l9 9v29H11z" fill="#fff" stroke="#1B1640" stroke-width="2.5" stroke-linejoin="round"/><path d="M29 5v9h9" fill="#DDD4FF" stroke="#1B1640" stroke-width="2.5" stroke-linejoin="round"/><rect x="15" y="20" width="19" height="15" rx="2" fill="#14955A" stroke="#1B1640" stroke-width="2.2"/><path d="M15 25.5h19M15 30.5h19M21.5 20v15" stroke="#fff" stroke-width="1.8"/></svg></span></span>
       <span class="cx-s s3"><span class="sticker lav">Cartes mémo<svg viewBox="0 0 48 48"><g fill="#fff" stroke="#fff" stroke-width="7" stroke-linejoin="round"><rect x="6" y="13" width="24" height="30" rx="5" transform="rotate(-10 18 28)"/><rect x="17" y="6" width="24" height="30" rx="5" transform="rotate(8 29 21)"/></g><rect x="6" y="13" width="24" height="30" rx="5" transform="rotate(-10 18 28)" fill="#FFC83D" stroke="#1B1640" stroke-width="2.5"/><rect x="17" y="6" width="24" height="30" rx="5" transform="rotate(8 29 21)" fill="#fff" stroke="#1B1640" stroke-width="2.5"/><path d="M23 15h11M22.5 20.5h8" transform="rotate(8 29 21)" stroke="#6A4DF4" stroke-width="3" stroke-linecap="round"/></svg></span></span>
       <span class="cx-s s4"><span class="sticker">65 cours courts<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="17" fill="#fff" stroke="#fff" stroke-width="7"/><circle cx="24" cy="24" r="17" fill="#6A4DF4" stroke="#1B1640" stroke-width="2.5"/><path d="M20 16.5v15l12-7.5z" fill="#fff" stroke="#1B1640" stroke-width="2" stroke-linejoin="round"/></svg></span></span>
@@ -186,7 +226,7 @@ body.cx{min-height:100%;background:var(--bg)}
     <form class="cx-card" id="cx-form" novalidate autocomplete="off">
       <span class="sticker lav cx-tag">Aperçu</span>
       <h2>Connexion</h2>
-      <p class="cx-lead">Retrouve tes cours, tes défis et ta collection.</p>
+      <p class="cx-lead">Retrouve tes cours, tes cas pratiques et ta collection.</p>
       <label class="fld"><input type="email" id="cx-mail" inputmode="email" autocomplete="off" spellcheck="false" placeholder=" "><span>Adresse e-mail</span></label>
       <label class="fld cx-pw"><input type="password" id="cx-pass" autocomplete="off" placeholder=" "><span>Mot de passe</span><button type="button" class="cx-eye" id="cx-eye" aria-label="Afficher le mot de passe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/><path class="slash" d="m4 4 16 16"/></svg></button></label>
       <div class="cx-row"><label class="cx-check"><input type="checkbox" checked><i aria-hidden="true"></i>Rester connecté·e</label><a href="#" id="cx-forgot">Mot de passe oublié&nbsp;?</a></div>

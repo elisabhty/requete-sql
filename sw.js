@@ -16,11 +16,11 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-10-30-merge-avant-delete-v2188';
+const CACHE = 'requete-2026-10-30-mascotte-autocollant-v2189';
 
 const PRECACHE = [
   './memo-collection.css?v=5',
-  './onboarding-vitrine.css?v=1',
+  './onboarding-vitrine.css?v=2',
   './',
   './index.html',
   './home-journey.css',
@@ -36,7 +36,7 @@ const PRECACHE = [
   './vendor/sqljs/sql-wasm.js',
   './vendor/sqljs/sql-wasm.wasm',
   './assets/mascotte-requete.png',
-  './assets/mascotte-coucou.jpg',
+  './assets/mascotte-autocollant.webp',
   './assets/apple-touch-icon.png',
   './assets/icon-192.png',
   './assets/nutriboost-accueil.png',
