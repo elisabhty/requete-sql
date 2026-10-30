@@ -10,7 +10,7 @@ import {guideEnv} from './helpers/guide-checks.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const {html, ctx} = await guideEnv(root);
-/* Tous les cours de l’app sont en vidéo depuis le 26 octobre (Sécurité et droits, le dernier cours texte, est devenu le chapitre 19) : les cadres
+/* Tous les cours de l’app sont en vidéo depuis le 26 octobre (Sécurité et droits, le dernier cours texte, est devenu le chapitre 20) : les cadres
    Exécuter sont vérifiés sur les trois cours texte d’exemple (tests/fixtures : les anciennes leçons 50, 57 et 64). */
 const FIXTURES = ['guide-texte-droits.js', 'guide-texte-index.js', 'guide-texte-create-view.js'];
 assert.equal(vm.runInContext('MODULES.flatMap(m=>m.lessons)', ctx).filter(l => !l.video).length, 0, 'plus aucun cours texte dans l’app');

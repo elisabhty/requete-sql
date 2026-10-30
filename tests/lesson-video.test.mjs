@@ -1093,7 +1093,7 @@ const COURSES = [
       '<span class="lc2" id="lc-${k}"><i class="e">0 ligne</i><i class="f">${n} lignes</i></span>', "kbp('kb1', 'INSERT INTO')", "kbp('kb2', 'UPDATE', 'up2')",
       "addCol('tb-at', 4, 150, 53.7, 0.16);", "crumble(COACHS.map(([id]) => `#tc-co-r${id} .c4 .l1`).reverse().concat('#tc-co .hd .c4 .h0').map(s => $(s)), 172.6);",
       'Effacé avec la colonne', 'Chapitre 6 · DROP']},
-  {id: 66, next: 26, titre: 'DROP', page: 'projet-drop.html', thumb: 'projet-drop-thumb.jpg', duree: '2 min 36', notesAt: 122.1,
+  {id: 66, next: 84, titre: 'DROP', page: 'projet-drop.html', thumb: 'projet-drop-thumb.jpg', duree: '2 min 36', notesAt: 122.1,
     table: 'clients',
     bubble: 'Supprime une table ou un autre objet devenu inutile dans la base de données.',
     chapters: ['La table de trop', 'Vider ou supprimer', 'La requête', 'Une table liée', 'Noms proches', 'IF EXISTS', 'À retenir'],
@@ -1104,8 +1104,19 @@ const COURSES = [
       "{at: atp('p1'), from: 5.0, kind: 'tap', need: 1,", "{at: atp('p2'), from: A.c6, kind: 'sort',", "{label: 'DROP TABLE inscriptions_excel;', ok: true}]},",
       "{at: atp('p4'), from: A.c11, kind: 'tap', need: 4,", "{label: 'La table inscriptions est supprimée, avec ses sept lignes', ok: true},", "{label: 'DROP\\u00a0TABLE\\u00a0IF\\u00a0EXISTS inscriptions_excel;', ok: true},",
       "a += out('o4', 'err', 'Requête refusée', 'FOREIGN KEY constraint failed', 'm');", "a += out('o5', 'warn', 'Exécutée sans erreur', 'La table inscriptions n’existe plus.');",
-      "a += out('o6', 'err', 'Erreur SQL', 'no such table: inscriptions_excel', 'm');", "<span id=\"bt-b\">Serveur de test</span>", 'Prochaine leçon · INSERT INTO']},
-  {id: 26, next: 27, titre: 'INSERT', page: 'projet-insert.html', thumb: 'projet-insert-thumb.webp', duree: '3 min 58', notesAt: 161.8,
+      "a += out('o6', 'err', 'Erreur SQL', 'no such table: inscriptions_excel', 'm');", "<span id=\"bt-b\">Serveur de test</span>", 'Prochaine leçon · Les schémas']},
+  /* Le chapitre 7, ajouté le 30 octobre (le scénario d’Elisa : une base où tout est mélangé, à ranger en espaces) : les deux équipes de NutriBoost,
+     CREATE SCHEMA, l’adresse schéma.table, deux tables du même nom, trois requêtes à réparer, puis SQLite et son schéma main. */
+  {id: 84, next: 26, titre: 'Les schémas', page: 'projet-schemas.html', thumb: 'projet-schemas-thumb.webp', duree: '2 min 11', notesAt: 121.9,
+    table: 'clients',
+    bubble: 'Organise les tables d’une grande base en espaces distincts grâce aux schémas.',
+    chapters: ['Une base qui grandit', 'Deux espaces', 'CREATE SCHEMA', 'Une adresse', 'Le même nom', 'Les requêtes à réparer', 'Et dans SQLite ?', 'À retenir'],
+    traps: ["const ESPACES = [['b', 'boutique', '🛒', 'k-sb', 'la boutique'], ['a', 'bienetre', '🧘', 'k-sa', 'les ateliers']];",
+      // Les six moments : les huit tables à ranger, CREATE SCHEMA, l’adresse des inscriptions, deux tables clients, trois requêtes à réparer, main.clients
+      "{at: atp('p1'), from: A.c3, kind: 'sort',", "{label: 'CREATE SCHEMA bienetre;', ok: true},", "{label: 'bienetre.inscriptions', ok: true},",
+      "{label: 'Non, leur schéma les distingue', ok: true},", "{at: atp('p5'), from: A.c15, kind: 'sort',", "{label: 'SELECT * FROM main.clients;', ok: true},",
+      "['ea1', '{ka1|ALTER TABLE} clients'], ['ea2', '{ka2|SET SCHEMA} boutique;']", 'Prochaine leçon · INSERT INTO']},
+  {id: 26, next: 27, titre: 'INSERT', page: 'projet-insert.html', thumb: 'projet-insert-thumb.webp', duree: '3 min 58', notesAt: 162.2,
     table: 'inscriptions',
     bubble: 'Ajoute de nouvelles lignes dans une table avec <span class="ic">INSERT</span>.',
     chapters: ['Karim passe la main', 'Une inscription', 'L’ordre des valeurs', 'Une colonne oubliée', 'Un groupe', 'Créer ou recharger', 'À retenir'],
@@ -1137,7 +1148,7 @@ const COURSES = [
       "{at: atp('p1'), from: A.c4, kind: 'tap', need: 1,", "{label: 'WHERE id = 4', ok: true},", "{label: 'WHERE id = 10', ok: true}]},", "{label: 'WHERE client_id = 6', ok: true},",
       "{at: atp('p5'), from: A.c19, kind: 'tap', need: 8,", "{at: atp('p6'), from: A.c24, kind: 'sort',",
       "b += out('o-8', 'warn', 'Requête exécutée', '8 lignes supprimées.');", "c += out('o-2', 'ok', 'Requête exécutée', '1 ligne supprimée.');", 'Prochaine leçon · MERGE']},
-  /* Le chapitre 10, ajouté le 30 octobre (Elisa : le mini-jeu de synchronisation d’urgence) : l’alerte stock, l’inventaire de l’entrepôt,
+  /* Le chapitre 11, ajouté le 30 octobre (Elisa : le mini-jeu de synchronisation d’urgence) : l’alerte stock, l’inventaire de l’entrepôt,
      MERGE par étapes, le piège du Magnésium, la requête du collègue aux actions inversées, puis l’équivalent SQLite. */
   {id: 82, next: 68, titre: 'MERGE', page: 'projet-merge.html', thumb: 'projet-merge-thumb.webp', duree: '3 min 09', notesAt: 165.3,
     table: 'produits',
@@ -1183,7 +1194,7 @@ const COURSES = [
       "{at: atp('p1'), from: A.a6, kind: 'pick', text: true,", "{label: 'Avec un point de retour posé avant le cadeau', ok: true,", "{at: atp('p2'), from: A.c4, kind: 'tap', need: 2,",
       "{label: 'Les quatre, cadeau compris', ok: true,", "{label: 'ROLLBACK TO SAVEPOINT avant_cadeau', ok: true,", "{label: 'Un COMMIT, qui terminera la transaction', ok: true,",
       "{at: atp('p6'), from: A.g1, kind: 'sort',", "const Q_RT = [['-- Revenir au point de retour'], ['ROLLBACK TO SAVEPOINT avant_cadeau;']]", 'Prochaine leçon · Procédures et fonctions']},
-  /* Le chapitre 14, ajouté le 30 octobre (le scénario d’Elisa : 18 h 02, les commandes affluent) : une action ou une valeur, la procédure
+  /* Le chapitre 15, ajouté le 30 octobre (le scénario d’Elisa : 18 h 02, les commandes affluent) : une action ou une valeur, la procédure
      expedier_commande et son paramètre, la fonction calculer_points et son réglage, le duel, les quatre tickets, puis leur création dans PostgreSQL. */
   {id: 83, next: 70, titre: 'Procédures et fonctions stockées', page: 'projet-procedures.html', thumb: 'projet-procedures-thumb.webp', duree: '3 min 07', notesAt: 161.82,
     table: 'commandes',
@@ -1298,10 +1309,10 @@ for (const c of COURSES) {
     for (const f of [c.page, 'core.css', 'core.js', 'gsap.min.js', 'mascotte.webp', c.thumb, ...images, ...(page.includes('src="moments.js"') ? ['moments.js'] : []), ...(page.includes('src="mail.js"') ? ['mail.js'] : [])])
       total += fs.statSync(path.join(ROOT, 'assets/anim', f)).size;
     for (const f of ANIM_FONTS) total += fs.statSync(path.join(ROOT, 'assets/fonts', f)).size;
-    /* 490 Ko (470 jusqu’au 26 octobre, puis 480) : le moteur commun grandit avec les chapitres du projet (le SMS sans formule du chapitre 17),
+    /* 490 Ko (470 jusqu’au 26 octobre, puis 480) : le moteur commun grandit avec les chapitres du projet (le SMS sans formule du chapitre 18),
        et les premières leçons chargent moments.js pour leurs moments « À toi » (Elisa, 26 octobre, 14 h 59 ; l’introduction, la plus lourde,
        en a cinq). */
-    /* Le chapitre 19, le dernier, porte en plus la fin de l’apprentissage (la conversation des équipes, la lettre d’Elisa et la finale
+    /* Le chapitre 20, le dernier, porte en plus la fin de l’apprentissage (la conversation des équipes, la lettre d’Elisa et la finale
        « Le chemin parcouru », 26 octobre, 23 h 53) : 520 Ko pour lui seul. */
     /* 500 Ko depuis le 27 octobre : moments.js porte aussi les cartes des moments (relier, ranger, une requête à lire ; Elisa, 13 h 48). */
     /* 510 Ko depuis le 29 octobre : le moteur commun porte la nouvelle intro dans la DA de la vitrine (carte violette, pastilles, ~8 Ko). */
@@ -2903,7 +2914,7 @@ test('mail à toucher : le bouton lecture ne l’ouvre pas, et l’image s’arr
 });
 
 test('moment « À toi » : la légende de l’image se cache tant que la feuille est ouverte (elle dépassait au-dessus quand l’image est réduite)', () => {
-  /* Elisa, 25 octobre, 16 h 56 : « il y a un cadre en dessous, ça fait bizarre, vérifie ailleurs si on a ça ». Au dernier moment du chapitre 11, l’image
+  /* Elisa, 25 octobre, 16 h 56 : « il y a un cadre en dessous, ça fait bizarre, vérifie ailleurs si on a ça ». Au dernier moment du chapitre 12, l’image
      réduite pour la feuille garde sa taille quand la feuille raccourcit (étiquettes rangées) : la carte de légende « À toi ! », remontée avec l’image,
      dépassait au-dessus de la feuille. Le lecteur la cache pendant tous les moments, de toutes les vidéos. */
   const show = cut('function lvPkShow(i,p){', 'function lvPkValid(');

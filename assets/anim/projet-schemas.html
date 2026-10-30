@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Projet, chapitre 7 : Les schémas</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .sub{font-size:66px}
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+.hid{opacity:0;visibility:hidden}
+/* Aperçu d’un geste (moment « À toi ») : il prend le pas sur la timeline, le temps de l’arrêt ; il montre exactement
+   l’image que la timeline affiche juste après l’arrêt, qui reprend donc sans saut. */
+.pvs{opacity:1!important;visibility:visible!important}
+.pvh{opacity:0!important;visibility:hidden!important}
+
+/* Couleur de chaque sujet : les tables de la boutique, celles des ateliers, la copie du fichier Excel, Karim (le développeur) */
+.k-co{--c:#2F80ED;--cs:#E6F0FD;--ci:#1D5FA8}
+.k-at{--c:#E8892B;--cs:#FFF1E2;--ci:#9A5B00}
+.k-cl{--c:#6A4DF4;--cs:#EEE9FF;--ci:#5335E0}
+.k-nb{--c:#D99A0B;--cs:#FFF6DA;--ci:#8A6200}
+.k-in{--c:#169447;--cs:#E2F6EA;--ci:#0F7A3A}
+.k-cm{--c:#0E9F9A;--cs:#DDF5F3;--ci:#0B6E6A}
+.k-pr{--c:#D9468F;--cs:#FCE8F2;--ci:#A3216A}
+.k-fi{--c:#9C6B3F;--cs:#F5ECE3;--ci:#7A4F27}
+.k-xl{--c:#64748B;--cs:#EEF1F5;--ci:#475569}
+.k-dv{--c:#0E9F9A;--cs:#DDF5F3;--ci:#0B6E6A}
+/* Les deux espaces : la boutique, les ateliers bien-être */
+.k-sb{--c:#D9468F;--cs:#FCE8F2;--ci:#A3216A}
+.k-sa{--c:#169447;--cs:#E2F6EA;--ci:#0F7A3A}
+
+/* ---------- La base : une ligne par table, tout dans le même espace ---------- */
+.bc{left:64px;width:952px;top:236px;padding:0 0 12px;overflow:hidden}
+.bh{height:72px;display:flex;align-items:center;gap:14px;padding:0 34px;background:var(--surface-2);font-family:var(--display);font-size:34px;font-weight:800;color:var(--ink);letter-spacing:-.4px;white-space:nowrap}
+.bh .emo{font-size:34px}
+.bn{margin-left:auto;display:inline-grid;font-family:var(--ui);font-size:25px;font-weight:700;letter-spacing:0}
+.bn>span{grid-area:1/1;height:44px;padding:0 20px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;white-space:nowrap}
+.srow{position:relative;height:64px;padding:12px 34px;overflow:hidden}
+.srow+.srow{box-shadow:inset 0 2px 0 var(--line-2)}
+.srow>div{position:relative;z-index:1}
+.srow .hl,.srow .xx{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;opacity:0;visibility:hidden}
+.srow .hl{background:var(--cs);box-shadow:inset 8px 0 0 var(--c)}
+.srow .xx{background:rgba(239,79,85,.13);box-shadow:inset 8px 0 0 var(--danger-fill)}
+.sn{display:flex;align-items:center;gap:14px;height:40px;font-family:var(--mono);font-size:31px;font-weight:800;color:var(--ci)}
+.sn .emo{font-size:32px}
+.nm{position:relative;display:inline-block;white-space:nowrap}
+.nm .sk{position:absolute;left:-4px;right:-4px;top:55%;height:5px;border-radius:3px;background:var(--danger-fill);transform-origin:0 50%;transform:scaleX(0)}
+
+/* ---------- Les deux espaces de la base : un dossier par schéma, ses tables dedans ---------- */
+.fv{left:64px;width:952px;padding:0 0 18px;overflow:hidden}
+.fv .cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:18px 20px 0}
+.fd{position:relative;border-radius:28px;background:var(--cs);box-shadow:inset 0 0 0 3px var(--c);padding:0 0 12px;min-height:356px}
+.fd .fh{height:66px;display:flex;align-items:center;gap:12px;padding:0 22px;font-family:var(--mono);font-size:31px;font-weight:800;color:var(--ci);white-space:nowrap}
+.fd .fh .emo{font-size:32px}
+.fd .fh .tg{margin-left:auto;height:34px;padding:0 12px;border-radius:999px;background:#fff;font-family:var(--ui);font-size:19px;font-weight:800;display:flex;align-items:center}
+.ft{position:relative;margin:0 14px;height:56px;border-radius:16px;display:flex;align-items:center;gap:12px;padding:0 16px;font-family:var(--mono);font-size:29px;font-weight:700;color:var(--ink);white-space:nowrap}
+.ft+.ft{margin-top:2px}
+.ft .emo{font-size:28px}
+.ft .hl,.ft .xx{position:absolute;inset:0;border-radius:16px;z-index:0;opacity:0;visibility:hidden}
+.ft .hl{background:#fff;box-shadow:inset 0 0 0 4px var(--c)}
+.ft .xx{background:rgba(239,79,85,.15);box-shadow:inset 0 0 0 4px var(--danger-fill)}
+.ft>span{position:relative;z-index:1}
+.ft.nw>span:last-child{color:var(--ci)}
+
+/* ---------- Les requêtes : une carte de code (un commentaire, puis la requête) ---------- */
+.sq{border-radius:34px;box-shadow:0 9px 0 #110E27}
+.sq .top{height:52px;gap:12px;padding:0 30px}
+.sq .dot{width:14px;height:14px}
+.sq .fname{margin-left:8px;font-size:22px}
+.sq .body{padding:18px 30px;font-size:28px;line-height:42px}
+.sq .ln{height:42px}
+.sq .cmt{color:var(--t-com)}
+.sq .caret i{top:-31px;width:4px;height:37px}
+.sq .glow{border-radius:8px;padding:0 3px;margin:0 -3px}
+/* Le trou de la requête (moments 2, 3 et 6) : la ligne à choisir ; ses réponses possibles, pour l’aperçu d’un mauvais choix */
+.sq .hole{position:absolute;left:30px;right:30px;height:42px;box-sizing:border-box;border:3px dashed #FFC94A;border-radius:12px;background:rgba(255,201,74,.12);color:#FFD66B;font-family:var(--mono);font-size:30px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.sq .alt{position:absolute;left:30px;opacity:0;visibility:hidden}
+
+/* ---------- L’adresse : le schéma, puis la table ---------- */
+.adr{left:64px;width:952px;box-sizing:border-box;padding:26px 40px 30px;border-radius:40px;background:#fff;border:3px solid var(--line);box-shadow:0 9px 0 var(--lip);display:flex;justify-content:center;gap:6px;font-family:var(--mono);font-size:56px;font-weight:800;color:var(--ink);white-space:nowrap}
+.adr>span{display:flex;flex-direction:column;align-items:center;gap:10px}
+.adr small{font-family:var(--ui);font-size:26px;font-weight:800;padding:4px 16px;border-radius:999px}
+.adr .s{color:#A3216A}.adr .s small{background:#FCE8F2;color:#A3216A}
+.adr .t{color:var(--accent-ink)}.adr .t small{background:var(--accent-soft);color:var(--accent-ink)}
+
+/* ---------- Le résultat d’une requête ---------- */
+.abs.out{left:64px;width:952px;margin:0}
+.out.ok{background:#E7F7EE;border:3px solid #A7E3C0}
+.out.ok .oi{background:#34C27A;color:#fff}
+.out.ok .ot b{color:#1B7A45}
+.out.warn{background:#FFF4E5;border:3px solid #F6D9A8}
+.out.warn .oi{background:#F29A2E;color:#fff}
+.out.warn .ot b{color:#9A5B00}
+.ot .m{font-variant-ligatures:none}
+
+.pack{left:0;width:1080px;display:flex;justify-content:center}
+.pack>span{height:84px;padding:0 34px 0 22px;border-radius:999px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);font-size:32px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:14px;white-space:nowrap}
+.pack .emo{font-size:40px}
+.pack.alrt>span{background:#FFF1F1;border-color:#F7B9BC;box-shadow:0 6px 0 #EFA2A6;color:#A92A31}
+
+/* ---------- Le mail reçu : la notification (l’en-tête seul), puis le mail déplié ---------- */
+.ml{left:64px;width:952px;top:560px;height:184px;padding:0 30px;overflow:hidden}
+.mh{height:178px;display:flex;align-items:center;gap:26px}
+.mav{position:relative;flex:none;width:100px;height:100px;border-radius:50%;background:var(--cs);color:var(--ci);font-family:var(--display);font-size:36px;font-weight:800;font-style:normal;display:flex;align-items:center;justify-content:center}
+.mbg{position:absolute;right:-10px;bottom:-8px;width:44px;height:44px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px var(--line);font-size:23px;display:flex;align-items:center;justify-content:center}
+.mw{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
+.mn{display:flex;align-items:center;gap:14px;white-space:nowrap}
+.mn b{font-size:36px;font-weight:700;color:var(--ink)}
+.mtg{height:36px;padding:0 12px;border-radius:10px;background:var(--cs);color:var(--ci);font-size:20px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center}
+.ms{position:relative;height:38px;white-space:nowrap}
+.ms>span{position:absolute;left:0;top:0;line-height:38px}
+.m0{font-size:29px;font-weight:700;color:var(--accent-ink)}
+.m1{font-family:var(--mono);font-size:27px;font-weight:600;color:var(--ink-3);opacity:0;visibility:hidden}
+.mr{flex:none;align-self:stretch;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:18px}
+.mt{font-size:24px;font-weight:600;color:var(--ink-3)}
+.mdot{position:relative;width:22px;height:22px}
+.mdot::before{content:"";position:absolute;inset:0;border-radius:50%;background:#2F80ED;animation:mdot 1.3s ease-in-out infinite}
+@keyframes mdot{50%{transform:scale(.72);opacity:.65}}
+.mb{padding:24px 4px 28px;box-shadow:inset 0 3px 0 var(--line-2)}
+.mb p{margin:0;font-size:42px;line-height:1.3;font-weight:500;color:var(--ink)}
+.mb .sn{display:block;height:auto;font-family:var(--ui);font-size:42px;font-weight:500;color:var(--ink)}
+.mb .sn+.sn{margin-top:12px}
+.mb .sn.s{margin-top:0}
+.tapf{z-index:20;font-size:120px;margin:-8px 0 0 -44px;opacity:0;visibility:hidden}
+
+/* La suite : la prochaine leçon ; SQLite et son schéma unique */
+.keyc{left:0;width:1080px;display:flex;justify-content:center}
+.keyc>span{height:96px;padding:0 40px 0 26px;border-radius:999px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 9px 0 #4B30CC;color:#fff;font-size:36px;font-weight:700;display:flex;align-items:center;gap:16px;white-space:nowrap}
+.keyc .emo{font-size:44px}
+.keyc code{font-family:var(--mono);font-weight:800;background:none;color:#fff;padding:0}
+.lite{left:0;width:1080px;display:flex;justify-content:center}
+.lite>span{height:84px;padding:0 34px 0 22px;border-radius:999px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);font-size:31px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:14px;white-space:nowrap}
+.lite code{font-family:var(--mono);font-weight:800;color:var(--accent-ink)}
+
+/* ---------- À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px;padding:8px 0}
+#s7 .rrow{gap:22px;padding:18px 32px}
+#s7 .rico{width:88px;height:88px;border-radius:26px;font-size:46px}
+#s7 .rtxt{font-size:34px;line-height:1.25}
+#s7 .rtxt .rs{margin-top:2px;font-size:31px}
+
+/* ---------- Les cases où ranger : les tables (moment 1), les requêtes (moment 5) ---------- */
+.dbn{left:64px;width:952px;height:230px;box-sizing:border-box;padding:20px 28px 22px;border-radius:36px;border:4px dashed #C9BCFF;background:rgba(255,255,255,.85);display:flex;flex-direction:column}
+.dbn .hh{display:flex;align-items:baseline;gap:20px;white-space:nowrap}
+.dbn .dn{font-family:var(--mono);font-size:36px;font-weight:800;color:var(--accent-ink)}
+.dbn .dd{font-size:26px;font-weight:700;color:var(--ink-3)}
+.dbn .cs{margin-top:auto;display:flex;gap:12px}
+.dbn .rc{flex:1;min-height:92px;padding:10px 12px;border-radius:18px;background:var(--accent-soft);color:var(--accent-ink);box-shadow:inset 0 0 0 3px #C9BCFF;font-family:var(--mono);font-size:27px;font-weight:700;line-height:1.25;text-align:center;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden}
+#st .dbn .rc{font-size:25px}
+.dbn.okb{animation:okb .5s cubic-bezier(.2,.9,.3,1.3)}
+@keyframes okb{40%{transform:scale(1.035)}}
+.dbn.kob{animation:kob .45s ease}
+@keyframes kob{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 7</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>S</span><span>C</span><span>H</span><span>É</span><span>M</span><span>A</span><span>S</span></div>
+    <div class="abs sub">Ranger les tables par espace</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Organise les tables d’une grande base en espaces distincts grâce aux schémas.</div>
+  </section>
+
+  <!-- La base : neuf tables, puis huit, toutes dans le même espace -->
+  <section class="scene" id="sa"></section>
+  <!-- Le mail de Karim -->
+  <section class="scene" id="sm"></section>
+  <!-- Deux espaces : les huit tables à ranger -->
+  <section class="scene" id="sd"></section>
+  <!-- Les schémas : leur création, les tables rangées, les adresses, le même nom -->
+  <section class="scene" id="sc"></section>
+  <!-- Les requêtes qui ont perdu leur schéma -->
+  <section class="scene" id="st"></section>
+  <!-- Et dans SQLite ? -->
+  <section class="scene" id="sl"></section>
+  <!-- La suite : la prochaine leçon -->
+  <section class="scene" id="sk"></section>
+
+  <!-- À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🗂️</div><div class="rtxt">Un <b>schéma</b> range les tables<br>d’une base en espaces.<span class="rs"><code>CREATE SCHEMA boutique;</code><br>crée l’espace de la boutique.</span></div></div>
+      <div class="rrow"><div class="rico emo">📍</div><div class="rtxt"><code>boutique.commandes</code> est<br>une <b>adresse</b> : schéma.table.<span class="rs">Deux schémas peuvent contenir<br>deux tables qui portent le même nom.</span></div></div>
+      <div class="rrow"><div class="rico emo">⚠️</div><div class="rtxt">Les schémas <b>dépendent du SGBD</b>.<span class="rs">SQLite n’a pas de <code>CREATE SCHEMA</code> :<br>ses tables sont rangées dans <code>main</code>.</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+
+/* ---------- Le déroulé : chaque légende arrive à la suite de la précédente ----------
+   cap(clé, texte, durée) pose une légende [début, fin] ; A[clé] et B[clé] donnent son début et sa fin (temps de la timeline). */
+const SCH = {t: 5.0, caps: [], chaps: [{label:'Une base qui grandit', a: 5.0}], A: {}, B: {}};
+function chap(c){ SCH.t = +(SCH.t + 0.4).toFixed(2); SCH.chaps.push({label: c.label, a: SCH.t}); }
+function cap(key, html, dur, gap = 0.1){
+  const a = +(SCH.t + gap).toFixed(2), b = +(a + dur).toFixed(2);
+  SCH.caps.push([a, b, html]); SCH.A[key] = a; SCH.B[key] = b; SCH.t = b;   // trois lignes au plus par bulle : au-delà, deux bulles (Elisa, 24 octobre)
+}
+/* « À toi ! » : la légende reste un instant, puis l’image s’arrête à a + 2,35 s (le passage d’attente est coupé). */
+const toi = key => cap(key, 'À toi !', 2.55);
+const {A, B} = SCH;
+/* Le mail reçu : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses paragraphes), signature].
+   Karim, le développeur, écrit par mail, comme aux chapitres 4 et 6. Le scénario est celui d’Elisa (30 octobre : la base devient difficile
+   à gérer, tout est mélangé ; ranger la base sans supprimer ni recréer les tables), transposé aux deux équipes de NutriBoost, la boutique et
+   les ateliers. Ses retours à la ligne sont posés à la main pour le texte en 42 px. */
+const MAILS = [
+  [['Karim', 'Benali', 'KB'], 'k-dv', 'développeur', 'karim@nutriboost.fr', [
+    'La base grandit, et les tables<br>de la boutique et des ateliers<br>sont toutes mélangées.',
+    'Peux-tu les ranger en deux espaces,<br>sans supprimer ni recréer<br>aucune table ?'], 'Karim']
+];
+const mailSms = n => /^client/.test(MAILS[n][2]) || !!(MAILS[n][6] || {}).sms;
+const mailRows = n => mailSms(n) ? 2 + [].concat(MAILS[n][4]).flatMap(p => p.split(/(?<=[.!?])\s+(?=[A-ZÀÂÉÈÊÎÔÛÇ])/)).length
+  : 1 + [].concat(MAILS[n][4]).length + 1 + 1;   // « Bonjour, », ses paragraphes, la formule de fin, la signature
+const mailOutAt = n => +(2.68 + 0.28 * (mailRows(n) - 1)).toFixed(2);
+const mailBlock = n => { const t = SCH.t; SCH.t = +(SCH.t + mailOutAt(n) + 1).toFixed(2); return t; };
+const MO = MAILS.map((m, n) => mailOutAt(n));   // le départ du message, depuis le début de son bloc
+
+/* 1 · Une base qui grandit : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) */
+cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
+cap('r2', "Au chapitre 6, tu as retiré la copie du fichier Excel avec <code>DROP TABLE</code>.", 3.0);
+cap('c2', "Huit tables restent,<br>toutes dans le même espace.", 3.0);
+const MAIL1 = mailBlock(0);
+/* 2 · Deux espaces */
+chap({label:'Deux espaces'});
+cap('c3', "Deux équipes se partagent la base :<br>la boutique et les ateliers.", 3.6);
+toi('p1');
+cap('c4', "Clients, commandes, produits<br>et fidélité vont avec la boutique.", 3.8);
+cap('c5', "Coachs, ateliers, inscriptions<br>et cartes vont avec les ateliers.", 3.8);
+/* 3 · CREATE SCHEMA */
+chap({label:'CREATE SCHEMA'});
+cap('c6', "Chaque espace devient un <b>schéma</b> :<br>il regroupe des tables.", 3.6);
+cap('c7', "Pour la boutique, tu écris<br><code>CREATE SCHEMA boutique</code>.", 3.6);   // la requête s’écrit pendant la bulle
+toi('p2');
+cap('c8', "Les deux schémas sont créés,<br>vides pour l’instant.", 3.2);
+cap('c9', "Avec <code>ALTER TABLE … SET SCHEMA</code>,<br>chaque table rejoint son espace,<br>sans être recréée.", 5.4);
+/* 4 · Une adresse */
+chap({label:'Une adresse'});
+cap('c10', "Une développeuse a besoin<br>des commandes de la boutique.", 3.4);
+cap('c11', "<code>boutique.commandes</code> se lit comme<br>une adresse : le schéma,<br>puis la table.", 4.6);
+toi('p3');
+cap('c12', "Les inscriptions sont rangées<br>dans le schéma <code>bienetre</code>.", 3.6);
+/* 5 · Le même nom */
+chap({label:'Le même nom'});
+cap('c13', "L’équipe des ateliers crée<br>sa propre table <code>clients</code>.", 3.6);
+toi('p4');
+cap('c14', "<code>boutique.clients</code> et <code>bienetre.clients</code><br>sont deux tables différentes.", 4.4);
+/* 6 · Les requêtes à réparer */
+chap({label:'Les requêtes à réparer'});
+cap('c15', "Trois requêtes ont perdu<br>leur schéma.", 2.8);
+toi('p5');
+cap('c16', "Chaque table se lit maintenant<br>avec son adresse complète.", 3.6);
+/* 7 · Et dans SQLite ? */
+chap({label:'Et dans SQLite ?'});
+cap('c17', "Les schémas dépendent du système<br>de gestion de base de données.", 3.8);
+cap('c18', "Dans SQLite, la base de l’app,<br><code>CREATE SCHEMA</code> n’existe pas.", 3.6);
+cap('c19', "Toutes ses tables sont rangées<br>dans un seul schéma : <code>main</code>.", 3.6);
+toi('p6');
+cap('c20', "<code>main.clients</code> désigne<br>la <b>table clients</b> de la base.", 3.4);
+cap('c21', "La base du projet garde donc<br>ses tables telles quelles.", 3.4);
+/* la suite : la prochaine leçon */
+cap('c22', "Dans la prochaine leçon, tu apprendras<br>à ajouter des données dans tes tables<br>avec <code>INSERT INTO</code>.", 6.1);
+/* 8 · À retenir */
+chap({label:'À retenir'});
+const RECAP = SCH.t;
+cap('c23', "Pour finir, voici les <b>trois idées à retenir</b>.", 4.8, 0.4);
+/* NOTES (le bouton « Ajouter à mes notes ») est écrit en clair dans Course(…) plus bas : tests/schemas-lesson.test.mjs vérifie qu’il suit le déroulé. */
+const NOTES = +(SCH.t + 0.1).toFixed(2);
+const DURATION = +(NOTES + 7.2).toFixed(2);
+SCH.caps.push([NOTES, 999, APP ? "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."
+  : "Une table se lit avec son adresse :<br>schéma.table."]);
+
+const CAPTIONS = SCH.caps;
+const CHAPTERS = SCH.chaps.map((c, i) => ({n: i + 1, label: c.label, a: c.a, b: i + 1 < SCH.chaps.length ? SCH.chaps[i + 1].a : DURATION}));
+
+/* Pas de question du lecteur : les moments « À toi » (PICKS) font participer l’élève. */
+const QUESTIONS = [];
+
+/* ---------- Le cas : la base des ateliers NutriBoost (la même dans tous les chapitres du projet) ---------- */
+/* La base telle que le chapitre 6 la laisse : la copie du fichier Excel est retirée, huit tables restent.   [clé, couleur, emoji, nom, espace] */
+const TB = [
+  ['cl', 'k-cl', '👥', 'clients', 'b'], ['cm', 'k-cm', '🛒', 'commandes', 'b'], ['fi', 'k-fi', '⭐', 'fidelite', 'b'], ['pr', 'k-pr', '📦', 'produits', 'b'],
+  ['co', 'k-co', '🧑‍🏫', 'coachs', 'a'], ['at', 'k-at', '📅', 'ateliers', 'a'], ['in', 'k-in', '📝', 'inscriptions', 'a'], ['ca', 'k-nb', '💳', 'cartes', 'a'],
+  ['xl', 'k-xl', '📄', 'inscriptions_excel', '']
+];
+/* Les deux schémas : [clé, nom, emoji, couleur, l’équipe]. */
+const ESPACES = [['b', 'boutique', '🛒', 'k-sb', 'la boutique'], ['a', 'bienetre', '🧘', 'k-sa', 'les ateliers']];
+const TABLES = TB.filter(t => t[4]);
+/* Moment 1 : chaque table, l’espace où la ranger, et pourquoi. */
+const POURQUOI = {
+  clients: 'Les clients achètent sur la boutique : leur table va avec la boutique.',
+  commandes: 'Les commandes sont les achats de la boutique : elles vont avec la boutique.',
+  fidelite: 'Les points de fidélité récompensent les achats de la boutique : ils vont avec la boutique.',
+  produits: 'Les produits sont ceux que la boutique vend : ils vont avec la boutique.',
+  coachs: 'Les coachs animent les ateliers : leur table va avec les ateliers.',
+  ateliers: 'Les ateliers bien-être ont leur propre espace : le schéma des ateliers.',
+  inscriptions: 'Une inscription réserve une place à un atelier : elle va avec les ateliers.',
+  cartes: 'Les cartes de membre comptent les séances d’ateliers : elles vont avec les ateliers.'
+};
+/* Moment 5 : les trois requêtes qui ont perdu leur schéma [requête, espace, pourquoi]. */
+const REQUETES = [
+  ['SELECT * FROM ___.cartes;', 'a', 'Les cartes de membre comptent les séances d’ateliers : elles sont rangées dans le schéma <code>bienetre</code>.'],
+  ['SELECT * FROM ___.fidelite;', 'b', 'Les points de fidélité récompensent les achats : ils sont rangés dans le schéma <code>boutique</code>.'],
+  ['SELECT * FROM ___.coachs;', 'a', 'Les coachs animent les ateliers : leur table est rangée dans le schéma <code>bienetre</code>.']
+];
+
+/* Les six moments « À toi » : l’image s’arrête, l’élève range ou choisit ; la page montre aussitôt le résultat.
+   from : début du passage qui amène chaque moment, d’où repartent « ↺ Revoir » et « Rejouer ». */
+const atp = k => +(A[k] + 2.35).toFixed(2);
+const PICKS = [
+  {at: atp('p1'), from: A.c3, kind: 'sort', prompt: 'Range chaque table dans l’espace de son équipe.',
+    hint: 'Sélectionne une table, puis appuie sur l’espace qui convient. Tu peux aussi la faire glisser directement.', next: '« {x} » : la boutique, ou les ateliers ?',
+    options: TABLES.map(t => ({label: t[3]}))},
+  {at: atp('p2'), from: A.c6, kind: 'pick', text: true, prompt: 'Quelle requête crée l’espace des ateliers ?', options: [
+    {label: 'CREATE TABLE bienetre;', why: '<code>CREATE TABLE</code> crée une table, avec ses colonnes ; un espace qui regroupe des tables est un schéma.'},
+    {label: 'CREATE SCHEMA bienetre;', ok: true},
+    {label: 'CREATE DATABASE bienetre;', why: '<code>CREATE DATABASE</code> créerait une autre base, séparée : les tables des ateliers doivent rester dans la base NutriBoost.'}]},
+  {at: atp('p3'), from: A.c10, kind: 'pick', text: true, prompt: 'Quelle adresse désigne la table des inscriptions ?', options: [
+    {label: 'boutique.inscriptions', why: 'Les inscriptions aux ateliers sont rangées dans le schéma <code>bienetre</code>, pas dans celui de la boutique.'},
+    {label: 'bienetre.inscriptions', ok: true},
+    {label: 'inscriptions.bienetre', why: 'Une adresse commence par le schéma, puis donne la table : <code>schéma.table</code>.'}]},
+  {at: atp('p4'), from: A.c13, kind: 'pick', text: true, prompt: 'Deux tables clients, dans deux schémas : est-ce un problème ?', options: [
+    {label: 'Oui, la seconde remplace la première', why: 'Chaque table reste dans son schéma : la <b>table&nbsp;clients</b> de la boutique n’est pas touchée.'},
+    {label: 'Non, leur schéma les distingue', ok: true},
+    {label: 'Oui, il faut renommer l’une des deux', why: 'Leur adresse complète les distingue déjà : <code>boutique.clients</code> et <code>bienetre.clients</code> ne se confondent pas.'}]},
+  {at: atp('p5'), from: A.c15, kind: 'sort', prompt: 'Range chaque requête avec le schéma qui lui manque.',
+    hint: 'Sélectionne une requête, puis appuie sur le schéma qui convient. Tu peux aussi la faire glisser directement.', next: '« {x} » : boutique, ou bienetre ?',
+    options: REQUETES.map(x => ({label: x[0]}))},
+  {at: atp('p6'), from: A.c18, kind: 'pick', text: true, prompt: 'Dans SQLite, quelle requête lit la table clients en précisant son schéma ?', options: [
+    {label: 'SELECT * FROM boutique.clients;', why: 'SQLite ne connaît pas de schéma <code>boutique</code> : la requête est refusée, la table est introuvable.'},
+    {label: 'SELECT * FROM main.clients;', ok: true},
+    {label: 'SELECT * FROM clients.main;', why: 'Une adresse commence par le schéma, puis donne la table : <code>main.clients</code>, et non l’inverse.'}]}
+];
+
+const OPENS = [MAIL1].map((t, n) => {
+  const [prenom, nom] = MAILS[n][0], msg = mailSms(n) ? 'message' : 'mail';   // Karim écrit par mail
+  const de = /^Le /.test(prenom) ? 'du ' + prenom.slice(3) : /^[AEIOUHÉÈ]/.test(prenom) ? 'd’' + prenom : 'de ' + prenom;
+  return {at: +(t + 1.6).toFixed(2), sel: '#ml' + (n + 1), prompt: `Touche le ${msg} pour l’ouvrir.`, label: `Ouvrir le ${msg} ${de} ${nom}`};
+});
+
+/* ---------- Gabarits ---------- */
+/* Carte de code : une ligne par [repère, texte]. Dans le texte : {id|…} un passage repéré (il pulse). Un commentaire (--) n’a pas de curseur. */
+const SQL_KW = /\b(?:CREATE SCHEMA|CREATE TABLE|CREATE DATABASE|ALTER TABLE|SET SCHEMA|SELECT|FROM)\b/g, CARET = '<span class="caret"><i></i></span>';
+function lineHtml([lid, s]){
+  const cmt = s.trim().startsWith('--');
+  let h = s.replace(/\{(\w+)\|([^{}]*)\}/g, '<span class="glow" id="$1">$2</span>');
+  if (!cmt) h = h.replace(SQL_KW, '<span class="kw">$&</span>');
+  return `<span class="ln${cmt ? ' cmt' : ''}" id="${lid}">${h}${cmt ? '' : CARET}</span>`;
+}
+const LT = k => 18 + 42 * k;   // le haut de la ligne k d’une carte de code
+const hole = (id, k) => `<div class="hole" id="${id}" style="top:${LT(k)}px">?</div>`;
+const alt = (id, s, k) => lineHtml([id, s]).replace('class="ln"', `class="ln alt" style="top:${LT(k)}px"`);
+const editor = (id, fname, lines, extra = '') => `<div class="abs code sq" id="${id}" style="left:64px;width:952px"><div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i>` +
+  `<span class="fname">${fname}</span></div><div class="body">${lines.map(lineHtml).join('')}${extra}</div></div>`;
+const out = (id, kind, title, msg) => `<div class="abs out ${kind}" id="${id}"><span class="oi">${kind === 'ok' ? '✓' : '!'}</span>` +
+  `<div class="ot"><b>${title}</b><span class="${kind === 'ok' ? 's' : 'm'}">${msg}</span></div></div>`;
+/* Une table rangée dans un dossier (son emoji, son nom). */
+const ft = (id, emo, name, cls = '') => `<div class="ft${cls}" id="${id}"><i class="hl"></i><i class="xx"></i><span class="emo">${emo}</span><span>${name}</span></div>`;
+function dom(){
+  /* La base : neuf tables, puis huit (la copie du fichier Excel est retirée), toutes au même niveau */
+  $('#sa').innerHTML = `<div class="abs card bc" id="bc"><div class="bh"><span class="emo">🗄️</span><span>Base NutriBoost</span><span class="bn"><span id="bn-a">9 tables</span><span id="bn-b">8 tables</span></span></div>` +
+    TB.map(([k, kc, emo, name]) => `<div class="srow ${kc}" id="bw-${k}"><i class="hl"></i><i class="xx"></i><div class="sn"><span class="emo">${emo}</span>` +
+      `<span class="nm">${name}${k === 'xl' ? '<i class="sk"></i>' : ''}</span></div></div>`).join('') + '</div>' +
+    '<div class="abs pack alrt" id="dem"><span><span class="emo">🚨</span>Tout est mélangé</span></div>';
+  /* Deux espaces : une case par équipe, où ranger les huit tables */
+  $('#sd').innerHTML = ESPACES.map(([k, n, emo, kc, eq], q) => `<div class="abs dbn" id="db-${k}" data-k="${k}" style="top:${260 + q * 262}px"><div class="hh"><span class="dn">${emo} ${n}</span><span class="dd">${eq}</span></div>` +
+    `<div class="cs">${TABLES.map((t, i) => t[4] === k ? `<div class="rc" id="sbu${i}">${t[3]}</div>` : '').join('')}</div></div>`).join('') +
+    '<div class="abs pack" id="bpack" style="top:820px"><span><span class="emo">🗂️</span>8 tables à ranger</span></div>';
+  /* Les schémas : leur création ; les deux dossiers et leurs tables ; le rangement d’une table ; les adresses ; le même nom */
+  let c = editor('es', 'schemas.sql', [['es0', '-- Créer les deux espaces'], ['es1', '{ks1|CREATE SCHEMA} boutique;'], ['es2', '{ks2|CREATE SCHEMA} bienetre;']],
+    hole('hole2', 2) + alt('es2b', 'CREATE TABLE bienetre;', 2) + alt('es2c', 'CREATE DATABASE bienetre;', 2));
+  c += editor('eq', 'adresses.sql', [['eq0', '-- Lire une table avec son adresse'], ['eq1', 'SELECT * FROM {aq1|boutique.commandes};'], ['eq2', 'SELECT * FROM {aq2|bienetre.inscriptions};']],
+    hole('hole3', 2) + alt('eq2b', 'SELECT * FROM boutique.inscriptions;', 2) + alt('eq2c', 'SELECT * FROM inscriptions.bienetre;', 2));
+  c += editor('en', 'deux-clients.sql', [['en0', '-- Deux tables, deux adresses'], ['en1', 'SELECT * FROM {an1|boutique.clients};'], ['en2', 'SELECT * FROM {an2|bienetre.clients};']]);
+  c += `<div class="abs card fv" id="fv"><div class="bh"><span class="emo">🗄️</span><span>Base NutriBoost</span><span class="bn"><span>2 schémas</span></span></div><div class="cols">` +
+    ESPACES.map(([k, n, emo, kc]) => `<div class="fd ${kc}" id="fd-${k}"><div class="fh"><span class="emo">${emo}</span><span id="fn-${k}">${n}</span><i class="tg">schéma</i></div>` +
+      TABLES.filter(t => t[4] === k).map(([tk, , temo, name]) => ft(`f-${tk}`, temo, name)).join('') +
+      (k === 'a' ? ft('f-cl2', '👥', 'clients', ' nw') : '') + '</div>').join('') + '</div></div>';
+  c += editor('ea', 'rangement.sql', [['ea0', '-- Ranger une table dans son espace'], ['ea1', '{ka1|ALTER TABLE} clients'], ['ea2', '{ka2|SET SCHEMA} boutique;']]);
+  c += '<div class="abs adr" id="adr"><span class="s">boutique<small>schéma</small></span><span>.</span><span class="t">commandes<small>table</small></span></div>';
+  $('#sc').innerHTML = c;
+  /* Les requêtes à réparer : une case par schéma */
+  $('#st').innerHTML = ESPACES.map(([k, n, emo], q) => `<div class="abs dbn" id="dt-${k}" data-k="${k}" style="top:${300 + q * 262}px"><div class="hh"><span class="dn">${emo} ${n}</span><span class="dd">le schéma qui manque</span></div>` +
+    `<div class="cs">${REQUETES.map((x, i) => x[1] === k ? `<div class="rc" id="stk${i}">${x[0].replace('___', n)}</div>` : '').join('')}</div></div>`).join('') +
+    '<div class="abs pack" id="tpack" style="top:860px"><span><span class="emo">🔧</span>3 requêtes à réparer</span></div>';
+  /* Et dans SQLite ? Un seul schéma, main */
+  $('#sl').innerHTML = '<div class="abs lite" id="lite" style="top:400px"><span><span class="emo">🪶</span>SQLite · un seul schéma : <code>main</code></span></div>' +
+    editor('el', 'sqlite.sql', [['el0', '-- Dans SQLite'], ['el1', 'SELECT * FROM {al1|main.clients};']], hole('hole6', 1) + alt('el1b', 'SELECT * FROM boutique.clients;', 1) + alt('el1c', 'SELECT * FROM clients.main;', 1)) +
+    out('o-lite', 'ok', 'Requête exécutée', 'les 10 clients de la base.') + out('pv6-0', 'warn', 'Requête refusée', 'no such table: boutique.clients');
+  /* Le mail */
+  $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body, false, smsRank(MAILS, n), (MAILS[n][6] || {}).hello) : `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
+    `<div class="mw"><div class="mn"><b>${w[0]} ${w[1]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
+    `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), (MAILS[n][6] || {}).bye || 'Merci !', sign].map((x, j, a) => `<span class="sn${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
+    '<div class="abs emo tapf" id="tapf">👆</div>';
+  /* La suite : la prochaine leçon */
+  $('#sk').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">✍️</span>Prochaine leçon · INSERT INTO</span></div>';
+  // les requêtes, découpées en caractères pour la frappe
+  $$('.sq .ln').forEach(splitChars);
+}
+
+/* ---------- Mise en page ---------- */
+const MH = [];   // hauteur de chaque mail déplié
+const bottom = s => { const el = $(s); return el.offsetTop + el.offsetHeight; };
+function layout(){
+  // les schémas : la requête en haut (création, adresses, même nom), les deux dossiers, puis le rangement ou l’adresse dessous
+  ['#es', '#eq', '#en'].forEach(s => { $(s).style.top = '236px'; });
+  const F = Math.max(bottom('#es'), bottom('#eq'), bottom('#en')) + 9 + 24;
+  $('#fv').style.top = F + 'px';
+  ['#ea', '#adr'].forEach(s => { $(s).style.top = (bottom('#fv') + 9 + 24) + 'px'; });
+  // SQLite : la pastille, la requête, son résultat
+  $('#el').style.top = (bottom('#lite') + 6 + 40) + 'px';
+  ['#o-lite', '#pv6-0'].forEach(s => { $(s).style.top = (bottom('#el') + 9 + 24) + 'px'; });
+  $('#dem').style.top = (bottom('#bc') + 9 + 34) + 'px';
+  // le mail : hauteur une fois déplié, centré dans la hauteur libre
+  $$('.ml').forEach((el, n) => { el.style.height = 'auto'; MH[n + 1] = el.offsetHeight; el.style.height = '';
+    el.style.top = Math.max(236, Math.round((236 + 1790) / 2 - MH[n + 1] / 2)) + 'px'; });
+}
+
+/* ---------- Petits gestes de la timeline ---------- */
+const pulse = (el, t, n = 3, c = 'rgba(201,188,255,.55)') => tl.to(el, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (el, t, s = 1.04) => tl.to(el, {scale: s, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, t);
+const on = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 1, duration: d, ease: 'power2.out'}, t);
+const off = (els, t, d = 0.3) => tl.to(els, {autoAlpha: 0, duration: d, ease: 'power2.in'}, t);
+const GLOW = 'rgba(255,224,138,.4)';
+/* Frappe d’une ligne de code. Renvoie l’instant de fin. */
+function sqType(lid, t, cps = 36, lead = 0.25){
+  const ln = $('#' + lid), caret = $$(':scope > .caret', ln).pop();
+  tl.set(caret, {autoAlpha: 1}, t - lead);
+  const end = typeChars($$('.ch', ln), t, cps);
+  tl.set(caret, {autoAlpha: 0}, end + 0.12);
+  return end;
+}
+/* La légende s’efface le temps du mail, puis revient. */
+const capOff = t => tl.to('#cap', {autoAlpha: 0, y: 30, duration: 0.3, ease: 'power2.in'}, t);
+const capOn = t => tl.to('#cap', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, t);
+/* Le mail arrive : la notification tombe (avatar, enveloppe, pastille « non lu »). À T, l’élève la touche (l’app s’arrête là,
+   moment OPENS ; hors de l’app, un doigt le montre) : elle s’enfonce, l’adresse de l’expéditeur remplace « Nouveau mail »,
+   puis elle se déplie en mail, ligne après ligne. L’image reste le temps de lire la demande. */
+function mailIn(n, t, T){
+  if (isSms(MAILS[n - 1][2], MAILS[n - 1][6])) { if (!APP) fingerTap($('#ml' + n), T); return smsIn(n, t, T); }
+  const m = '#ml' + n, sn = $$(m + ' .sn');
+  show(m, t, {y: -36, scale: 0.94}, 0.55, 'back.out(1.7)');
+  cue(t, 'mail', 0.8);
+  show(m + ' .mav', t + 0.12, {y: 0, scale: 0.5}, 0.4, 'back.out(2.4)');
+  show(m + ' .mbg', t + 0.3, {y: 0, scale: 0, rotation: -30}, 0.4, 'back.out(3)');
+  show(m + ' .mdot', t + 0.42, {y: 0, scale: 0}, 0.3, 'back.out(3)');
+  if (!APP) fingerTap($(m), T);
+  tl.to(m, {scale: 0.975, duration: 0.09, ease: 'power2.out'}, T);
+  tl.to(m, {scale: 1, duration: 0.3, ease: 'back.out(2.5)'}, T + 0.09);
+  cue(T, 'click', 0.5);
+  tl.to(m + ' .mdot', {autoAlpha: 0, scale: 0, duration: 0.2}, T + 0.05);
+  tl.to(m + ' .m0', {autoAlpha: 0, y: -16, duration: 0.2}, T + 0.1);
+  tl.fromTo(m + ' .m1', {autoAlpha: 0, y: 16}, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power3.out', immediateRender: false}, T + 0.2);
+  tl.to(m, {height: MH[n], duration: 0.5, ease: 'power3.inOut'}, T + 0.12);
+  cue(T + 0.12, 'whoosh', 0.35);
+  gsap.set(sn, {autoAlpha: 0, y: 14});
+  sn.forEach((s, k) => { tl.to(s, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power3.out'}, T + 0.4 + k * 0.28); cue(T + 0.4 + k * 0.28, 'tick', 0.4, k + 2); });
+  const end = T + 0.4 + (sn.length - 1) * 0.28 + 0.35;
+  // le temps de lire la demande, tous ses paragraphes (entre « Bonjour, » et « Merci ! »)
+  hold(end + 0.05, Math.ceil(readTime(sn.slice(1, -2).map(s => s.textContent).join(' ')) * 20) / 20);
+  return end;
+}
+function mailOut(n, t){ hide('#ml' + n, t, {x: 140, y: 0, rotation: 2}, 0.4, 'power2.in'); cue(t, 'whoosh', 0.4); }
+/* Hors de l’app (vidéo seule), un doigt montre le geste : il touche la notification. */
+function fingerTap(M, T){
+  const f = '#tapf';
+  tl.set(f, {left: M.offsetLeft + M.offsetWidth * 0.6, top: M.offsetTop + 92}, T - 0.8);
+  tl.fromTo(f, {autoAlpha: 0, x: 90, y: 170}, {autoAlpha: 1, x: 0, y: 0, duration: 0.5, ease: 'power3.out', immediateRender: false}, T - 0.75);
+  tl.to(f, {scale: 0.86, duration: 0.1, ease: 'power2.in'}, T - 0.15);
+  tl.to(f, {scale: 1, duration: 0.15}, T);
+  tl.to(f, {autoAlpha: 0, y: 70, duration: 0.3}, T + 0.2);
+}
+
+/* Réponses des moments « À toi » : ce que la timeline montre juste après l’arrêt (et que l’aperçu montre pendant l’arrêt). */
+const M1_ANS = ['#sd .dbn .rc'];
+const M2_ANS = ['#es2'], M2_HIDE = ['#hole2'];                          // CREATE SCHEMA bienetre;
+const M3_ANS = ['#eq2', '#f-in .hl'], M3_HIDE = ['#hole3'];             // bienetre.inscriptions
+const M4_ANS = ['#f-cl .hl', '#f-cl2 .hl'];                             // deux tables clients, chacune dans son dossier
+const M5_ANS = ['#st .dbn .rc'];
+const M6_ANS = ['#el1', '#o-lite'], M6_HIDE = ['#hole6'];               // main.clients
+/* Les mauvaises réponses des moments 2, 3 et 6 : la ligne qu’elles donnent, ce qu’elles désignent. */
+const W2 = {0: ['#es2b'], 2: ['#es2c']};
+const W3 = {0: ['#eq2b'], 2: ['#eq2c']};
+const W4 = {0: ['#f-cl .xx'], 2: ['#f-cl2 .xx']};
+const W6 = {0: ['#el1b', '#pv6-0'], 2: ['#el1c', '#pv6-0']};
+const set2 = t => +(t + 0.02).toFixed(2);
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.5);   // le temps de lire la bulle de la mascotte
+  layout();
+  gsap.set(['.sq', '.out', '.pack', '#bc', '#fv', '#adr', '#keyc', '#lite', '.dbn'], {autoAlpha: 0});
+  gsap.set(['#es2', '#eq2', '#el1', '#hole2', '#hole3', '#hole6', '#bn-b', '.dbn .rc', '.ft', '#f-cl2'], {autoAlpha: 0});
+
+  /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
+     la consigne, la légende ne la répète pas. Le passage d’attente est coupé (rien ne s’y anime). */
+  PICKS.forEach(p => cut(p.at - 1.35, 1.25));
+
+  /* ===== 1 · Une base qui grandit ===== */
+  sceneOn('#sa', 5.0);
+  show('#bc', A.r1, {y: 60}, 0.55); cue(A.r1, 'whoosh', 0.5);
+  TB.forEach(([k], q) => { const t = A.r1 + 0.3 + q * 0.15; show('#bw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q % 5); });
+  // « Au chapitre 6, tu as retiré la copie du fichier Excel » : la copie est barrée, retirée de la liste (neuf tables, puis huit)
+  tl.to('#bw-xl .sk', {scaleX: 1, duration: 0.3, ease: 'power2.out'}, A.r2 + 0.7); cue(A.r2 + 0.7, 'stamp', 0.5);
+  on('#bw-xl .xx', A.r2 + 0.7, 0.2);
+  tl.to('#bw-xl', {height: 0, paddingTop: 0, paddingBottom: 0, autoAlpha: 0, duration: 0.5, ease: 'power2.inOut'}, A.r2 + 1.4);
+  off('#bn-a', A.r2 + 1.6, 0.2); on('#bn-b', A.r2 + 1.65, 0.2); bump('#bn-b', A.r2 + 1.9, 1.12); cue(A.r2 + 1.6, 'tick', 0.6, 2);
+  // huit tables, toutes au même niveau : la boutique et les ateliers, mélangées ; la pastille rouge
+  [['cl', 0], ['co', 1], ['pr', 2], ['at', 3]].forEach(([k, q]) => { const t = A.c2 + 0.4 + q * 0.3; on(`#bw-${k} .hl`, t, 0.2); cue(t, 'tick', 0.5, q + 1); });
+  off(['#bw-cl .hl', '#bw-co .hl', '#bw-pr .hl', '#bw-at .hl'], A.c2 + 2.0, 0.3);
+  show('#dem', A.c2 + 1.6, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.c2 + 1.6, 'pop', 0.7, 1);
+  // le mail de Karim
+  capOff(MAIL1 - 0.2);
+  hide(['#bc', '#dem'], MAIL1, {y: -30}, 0.35);
+  sceneOff('#sa', MAIL1 + 0.4);
+  sceneOn('#sm', MAIL1 + 0.4);
+  mailIn(1, MAIL1 + 0.5, OPENS[0].at);
+  mailOut(1, MAIL1 + MO[0]);
+  sceneOff('#sm', MAIL1 + MO[0] + 0.3);
+  sceneOn('#sd', MAIL1 + MO[0] + 0.3);
+  capOn(A.c3 - 0.3);
+
+  /* ===== 2 · Deux espaces ===== */
+  [['#db-b', 0], ['#db-a', 2]].forEach(([id, p], q) => { const t = A.c3 + 0.4 + q * 0.5; show(id, t, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(t, 'pop', 0.6, p); });
+  show('#bpack', A.c3 + 1.7, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.c3 + 1.7, 'pop', 0.7, 1);
+  // À toi : chaque table dans sa case ; remplies, les cases ne sont plus des zones où déposer
+  tl.set(M1_ANS, {autoAlpha: 1}, set2(PICKS[0].at));
+  tl.set('#sd .dbn', {borderStyle: 'solid'}, set2(PICKS[0].at));
+  tl.set('#bpack', {autoAlpha: 0}, set2(PICKS[0].at));
+  bump('#db-b', A.c4 + 0.6, 1.03); cue(A.c4 + 0.6, 'tick', 0.5, 2);
+  bump('#db-a', A.c5 + 0.6, 1.03); cue(A.c5 + 0.6, 'tick', 0.5, 4);
+  hide('#sd .dbn', B.c5 - 0.1, {y: -40}, 0.4);
+  sceneOff('#sd', B.c5 + 0.4);
+
+  /* ===== 3 · CREATE SCHEMA ===== */
+  sceneOn('#sc', A.c6 - 0.1);
+  // chaque espace devient un schéma : les deux dossiers, vides
+  show('#fv', A.c6 + 0.3, {y: 40}, 0.5); cue(A.c6 + 0.3, 'whoosh', 0.5);
+  // pour la boutique, CREATE SCHEMA boutique ; le trou attend la seconde
+  show('#es', A.c7 + 0.1, {y: 30}, 0.45); cue(A.c7 + 0.1, 'whoosh', 0.45, 1);
+  sqType('es1', A.c7 + 0.6, 26);
+  pulse('#ks1', A.c7 + 1.8, 1, GLOW); bump('#fn-b', A.c7 + 1.8, 1.12); cue(A.c7 + 1.8, 'tick', 0.5, 2);
+  on('#hole2', A.c7 + 2.6, 0.3); cue(A.c7 + 2.6, 'tick', 0.5, 3);
+  // À toi : la seconde (réponse : CREATE SCHEMA bienetre;)
+  tl.set(M2_ANS, {autoAlpha: 1}, set2(PICKS[1].at));
+  tl.set(M2_HIDE, {autoAlpha: 0}, set2(PICKS[1].at));
+  // les deux schémas, vides ; ALTER TABLE … SET SCHEMA : chaque table rejoint son dossier
+  bump('#fd-b', A.c8 + 0.4, 1.02); bump('#fd-a', A.c8 + 1.0, 1.02); cue(A.c8 + 0.4, 'tick', 0.5, 2);
+  show('#ea', A.c9 + 0.1, {y: 30}, 0.45); cue(A.c9 + 0.1, 'whoosh', 0.45, 1);
+  let te = sqType('ea1', A.c9 + 0.5, 30); sqType('ea2', te + 0.1, 30);
+  TABLES.forEach(([k], q) => { const t = A.c9 + 2.0 + q * 0.32; show('#f-' + k, t, {x: -30, scale: 0.9}, 0.4, 'back.out(1.8)'); cue(t, 'pop', 0.5, q % 5); });
+
+  /* ===== 4 · Une adresse ===== */
+  // les commandes de la boutique : la requête, l’adresse sous les dossiers
+  hide(['#es', '#ea'], A.c10, {y: -20}, 0.3);
+  show('#eq', A.c10 + 0.3, {y: 20}, 0.4); cue(A.c10 + 0.3, 'whoosh', 0.4, 1);
+  sqType('eq1', A.c10 + 0.7, 30);
+  on('#f-cm .hl', A.c10 + 2.0, 0.25); cue(A.c10 + 2.0, 'tick', 0.5, 2);
+  show('#adr', A.c11 + 0.2, {y: 20, scale: 0.96}, 0.45, 'back.out(1.6)'); cue(A.c11 + 0.2, 'chord', 0.6);
+  bump('#adr .s', A.c11 + 1.8, 1.08); cue(A.c11 + 1.8, 'tick', 0.5, 2);
+  bump('#adr .t', A.c11 + 3.0, 1.08); cue(A.c11 + 3.0, 'tick', 0.5, 4);
+  on('#hole3', A.c11 + 3.6, 0.3);
+  off('#f-cm .hl', A.p3 + 0.1, 0.3);
+  // À toi : l’adresse des inscriptions (réponse : bienetre.inscriptions)
+  tl.set(M3_ANS, {autoAlpha: 1}, set2(PICKS[2].at));
+  tl.set(M3_HIDE, {autoAlpha: 0}, set2(PICKS[2].at));
+  pulse('#aq2', A.c12 + 0.4, 1, GLOW); cue(A.c12 + 0.4, 'tick', 0.5, 3);
+  off(['#f-in .hl', '#adr'], B.c12 - 0.1, 0.3);
+
+  /* ===== 5 · Le même nom ===== */
+  // l’équipe des ateliers crée sa propre table clients : elle arrive dans le dossier bienetre
+  hide('#eq', A.c13, {y: -20}, 0.3);
+  tl.fromTo('#f-cl2', {autoAlpha: 0, x: -30, scale: 0.9}, {autoAlpha: 1, x: 0, scale: 1, duration: 0.45, ease: 'back.out(1.8)', immediateRender: false}, A.c13 + 1.4);
+  cue(A.c13 + 1.4, 'pop', 0.6, 3);
+  // À toi : deux tables clients (réponse : leur schéma les distingue)
+  tl.set(M4_ANS, {autoAlpha: 1}, set2(PICKS[3].at));
+  show('#en', A.c14 + 0.1, {y: 20}, 0.4); cue(A.c14 + 0.1, 'whoosh', 0.4, 1);
+  pulse('#an1', A.c14 + 0.8, 1, GLOW); pulse('#an2', A.c14 + 2.0, 1, GLOW); cue(A.c14 + 0.8, 'tick', 0.5, 2);
+  hide(['#en', '#fv'], B.c14 - 0.1, {y: -40}, 0.4);
+  sceneOff('#sc', B.c14 + 0.4);
+
+  /* ===== 6 · Les requêtes à réparer ===== */
+  sceneOn('#st', A.c15);
+  [['#dt-b', 0], ['#dt-a', 2]].forEach(([id, p], q) => { const t = A.c15 + 0.2 + q * 0.3; show(id, t, {y: 50, scale: 0.94}, 0.5, 'back.out(1.5)'); cue(t, 'pop', 0.6, p); });
+  show('#tpack', A.c15 + 1.1, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.c15 + 1.1, 'pop', 0.7, 1);
+  // À toi : chaque requête retrouve son schéma
+  tl.set(M5_ANS, {autoAlpha: 1}, set2(PICKS[4].at));
+  tl.set('#st .dbn', {borderStyle: 'solid'}, set2(PICKS[4].at));
+  tl.set('#tpack', {autoAlpha: 0}, set2(PICKS[4].at));
+  bump('#dt-b', A.c16 + 0.4, 1.03); bump('#dt-a', A.c16 + 1.2, 1.03); cue(A.c16 + 0.4, 'tick', 0.5, 2);
+  hide('#st .dbn', B.c16 - 0.1, {y: -40}, 0.4);
+  sceneOff('#st', B.c16 + 0.4);
+
+  /* ===== 7 · Et dans SQLite ? ===== */
+  sceneOn('#sl', A.c17);
+  show('#lite', A.c19 + 0.3, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.c19 + 0.3, 'pop', 0.7, 1);
+  show('#el', A.c19 + 1.2, {y: 30}, 0.45); cue(A.c19 + 1.2, 'whoosh', 0.45, 1);
+  on('#hole6', A.c19 + 1.8, 0.3);
+  // À toi : la requête de SQLite (réponse : main.clients, et son résultat)
+  tl.set(M6_ANS, {autoAlpha: 1}, set2(PICKS[5].at));
+  tl.set(M6_HIDE, {autoAlpha: 0}, set2(PICKS[5].at));
+  pulse('#al1', A.c20 + 0.4, 1, GLOW); cue(A.c20 + 0.4, 'tick', 0.5, 2);
+  hide(['#lite', '#el', '#o-lite'], B.c21 - 0.1, {y: -30}, 0.4);
+  sceneOff('#sl', A.c22 + 0.3);
+  // la suite : la prochaine leçon
+  sceneOn('#sk', A.c22);
+  show('#keyc', A.c22 + 0.1, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)'); cue(A.c22 + 0.1, 'whoosh', 0.6);
+  tl.to('#keyc .emo', {rotation: -18, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut'}, A.c22 + 0.7);
+  hide('#keyc', B.c22 - 0.1, {y: -30}, 0.4);
+  sceneOff('#sk', RECAP);
+
+  /* ===== 8 · À retenir ===== */
+  recapScene(RECAP, [RECAP + 0.7, RECAP + 2.1, RECAP + 3.5]);
+  const rt = $$('#s7 .rtxt'), rs = $$('#s7 .rs'), rd = (h, n = 20) => Math.ceil(readTime(h) * n) / n;
+  gsap.set(rs, {autoAlpha: 0, y: 10});
+  [[RECAP + 0.7, RECAP + 1.45], [RECAP + 2.1, RECAP + 2.85], [RECAP + 3.5, RECAP + 4.25]].forEach(([r, d], i) => {
+    tl.to(rs[i], {autoAlpha: 1, y: 0, duration: 0.45, ease: 'power2.out'}, d);
+    cue(d, 'tick', 0.5, i * 2 + 1);
+    hold(r + 0.6, rd(rt[i].innerHTML.split('<span')[0]));
+    hold(d + 0.5, rd(rs[i].innerHTML));
+  });
+  if (APP) cue(NOTES + 0.05, 'pop', 0.85, 5);
+}
+
+/* ---------- Moments « À toi » : ce que montre chaque geste ----------
+   Le lecteur arrête l’image à chaque moment (PICKS) et pose ses zones tactiles sur les endroits que la page décrit
+   (IX.spots). Chaque geste est jugé ici (IX.act, IX.pick) et montré aussitôt sur l’image : les bons gestes affichent
+   les mêmes éléments que la timeline juste après l’arrêt ; ils restent jusqu’à ce que la timeline affiche la même image
+   (IX.tick), puis s’effacent : la reprise est invisible. */
+const IX = (() => {
+  let X = null, wait = -1;
+  function start(i){ if (!X || X.i !== i) { clear(); X = {i, cls: [], tm: [], got: new Set()}; } }
+  function clear(){
+    if (!X) return;
+    X.tm.forEach(clearTimeout);
+    X.cls.forEach(([e, c]) => e.classList.remove(c));
+    X = null; wait = -1;
+  }
+  const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
+  const marks = (sels, c = 'pvs') => sels.forEach(s => $$(s).forEach(e => mark(e, c)));
+  const flash = (e, c, ms = 600) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
+  function spots(i){
+    // moment 1 : les deux espaces ; moment 5 : les deux schémas
+    if (i === 0) return ESPACES.map(([k, n, emo, kc, eq]) => Object.assign({k, label: `${n} : ${eq}`}, rel($('#db-' + k))));
+    if (i === 4) return ESPACES.map(([k, n]) => Object.assign({k, label: `Le schéma ${n}`}, rel($('#dt-' + k))));
+    return [];
+  }
+  /* Ranger une étiquette (moments 1 et 5) : dans la bonne case, elle s’y pose ; sinon la case refuse, et la correction dit pourquoi. */
+  function sortAct(n, ok, why, bin, chip, total){
+    if (ok) {
+      mark($(chip), 'pvs');
+      flash(bin, 'okb', 520);
+      X.got.add(n);
+      sfx('pop', X.got.size, 0.6);
+      return {ok: true, done: X.got.size === total, why: '', at: rel(bin)};
+    }
+    flash(bin, 'kob', 650);
+    return {ok: false, why: fr(why)};
+  }
+  function act(i, a, b){
+    start(i);
+    const n = +a;
+    if (i === 0) { const t = TABLES[n]; return sortAct(n, t[4] === b, POURQUOI[t[3]], $('#db-' + b), '#sbu' + n, TABLES.length); }
+    if (i === 4) { const q = REQUETES[n]; return sortAct(n, q[1] === b, q[2], $('#dt-' + b), '#stk' + n, REQUETES.length); }
+    return {ok: false};
+  }
+  /* Choix d’une réponse (moments 2, 3, 4 et 6) : ce que donnerait ce choix. */
+  function pick(i, k){
+    clear(); start(i);
+    const P = PICKS[i], o = P.options[k], ok = !!o.ok;
+    if (i === 1) { if (ok) { marks(M2_ANS); marks(M2_HIDE, 'pvh'); } else { marks(W2[k]); marks(['#hole2'], 'pvh'); } }
+    if (i === 2) { if (ok) { marks(M3_ANS); marks(M3_HIDE, 'pvh'); } else { marks(W3[k]); marks(['#hole3'], 'pvh'); } }
+    if (i === 3) marks(ok ? M4_ANS : W4[k]);
+    if (i === 5) { if (ok) { marks(M6_ANS); marks(M6_HIDE, 'pvh'); } else { marks(W6[k]); marks(['#hole6'], 'pvh'); } }
+    sfx(ok ? 'pop' : 'miss', 2, 0.5);
+    return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));
+  }
+  /* Indice, après deux erreurs : une piste. */
+  function hint(i){
+    const h = (() => {
+      if (i === 0) return {text: 'Demande-toi quelle équipe utilise chaque table : celle qui vend, ou celle qui anime les ateliers.'};
+      if (i === 1) return {text: 'Une table existe déjà pour les ateliers : il faut un espace qui regroupe des tables, dans la même base.'};
+      if (i === 2) return {text: 'Une adresse donne d’abord le schéma, puis la table ; les inscriptions vont avec les ateliers.'};
+      if (i === 3) return {text: 'Pense à deux dossiers qui contiennent chacun un fichier du même nom.'};
+      if (i === 4) return {text: 'Cherche l’équipe qui utilise chaque table : la boutique, ou les ateliers.'};
+      if (i === 5) return {text: 'SQLite n’a qu’un schéma, celui de la base elle-même : <code>main</code>.'};
+      return null;
+    })();
+    return h && Object.assign(h, {text: fr(h.text)});
+  }
+  return {
+    enter: i => { clear(); start(i); },
+    spots, act, pick, hint,
+    slot: () => null,
+    /* Moment réussi : l’aperçu reste jusqu’à ce que la timeline affiche la même image ; sinon il part tout de suite. */
+    leave(i, answered){ if (answered && X && X.i === i) wait = i; else clear(); },
+    tick(t = tl.time()){ if (wait < 0) return; const a = PICKS[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear(); }
+  };
+})();
+window.IX = IX;
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 121.9, picks: PICKS, opens: OPENS,
+  glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝📄🚨🗂️🛒🧘🔧🪶✍️📍⚠️✉️👆✓!…«»·−',
+  dom, build, beforeRender: t => IX.tick(t)});
+</script>
+</body>
+</html>

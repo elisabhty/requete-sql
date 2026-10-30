@@ -1,4 +1,4 @@
-/* Projet NutriBoost, chapitre 10 (leçon 82 « MERGE ») : la vidéo interactive assets/anim/projet-merge.html, testée aussi dans lesson-video.test.mjs.
+/* Projet NutriBoost, chapitre 11 (leçon 82 « MERGE ») : la vidéo interactive assets/anim/projet-merge.html, testée aussi dans lesson-video.test.mjs.
    Ajoutée le 30 octobre (Elisa : un mini-jeu de synchronisation d’urgence, « choix → feedback immédiat → progression → piège → boss final »).
    L’équipe logistique envoie une alerte : l’inventaire de l’entrepôt ne correspond plus aux stocks du site, les ventes du soir commencent
    dans 5 minutes. L’élève décide d’une action par produit, construit MERGE pas à pas (ON, WHEN MATCHED, WHEN NOT MATCHED), évite le piège
@@ -32,7 +32,7 @@ const sp = s => s.replace(/[  ]/g, ' ');
 
 /* ---------- La base de la vidéo ---------- */
 const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(root, 'vendor/sqljs', f)});
-/* La base NutriBoost telle que le chapitre 9 la laisse : les quatre tables de la boutique (SCHEMA_SQL de l’app : produits 8) et les quatre tables
+/* La base NutriBoost telle que le chapitre 10 la laisse : les quatre tables de la boutique (SCHEMA_SQL de l’app : produits 8) et les quatre tables
    des ateliers ; Nathan Dupont, l’inscription de Léa Simon et les deux d’Hugo Laurent ont été supprimés. Huit tables. */
 function base() {
   const db = new SQL.Database();
@@ -122,7 +122,7 @@ test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajo
   assert.equal([...page.matchAll(/return \{text: '([^']+)'/g)].length, 6, 'six indices écrits : un par moment');
 });
 
-test('la page montre la base du chapitre 9 : huit tables et leurs lignes ; la table produits est celle de l’app', () => {
+test('la page montre la base du chapitre 10 : huit tables et leurs lignes ; la table produits est celle de l’app', () => {
   const db = base(), TB = val('TB');
   assert.deepEqual(tables(db), ['ateliers', 'cartes', 'clients', 'coachs', 'commandes', 'fidelite', 'inscriptions', 'produits']);
   for (const [, , , name, n] of TB) assert.equal(count(db, name), n, `${name} : ${n} lignes`);
@@ -130,7 +130,7 @@ test('la page montre la base du chapitre 9 : huit tables et leurs lignes ; la ta
   assert.ok(page.includes('<span>8 tables</span>') && page.includes('<span id="pc0">8 lignes</span><span id="pc1">9 lignes</span>'), 'la table produits passe de 8 à 9 lignes');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les autres chapitres');
-  assert.equal(caps[1], 'Au chapitre 9, tu as supprimé<br>des lignes avec <code>DELETE</code>.', 'le chapitre précédent');
+  assert.equal(caps[1], 'Au chapitre 10, tu as supprimé<br>des lignes avec <code>DELETE</code>.', 'le chapitre précédent');
 });
 
 test('moment 1 : chaque produit reçoit l’action que MERGE prendra ensuite', () => {
@@ -192,11 +192,11 @@ test('moment 5 et l’exécution : le Magnésium reste tel quel ; 3 lignes trait
   assert.deepEqual(produits(lite), attendu, 'INSERT … ON CONFLICT : la même table que MERGE');
   assert.throws(() => avecInventaire().run(SQLITE.replace(' WHERE true', '')), /syntax error/, 'WHERE true est obligatoire dans cette forme');
   assert.ok(page.includes("b += out('o-run', 'ok', 'Requête exécutée', '3 lignes traitées : 2 modifiées, 1 ajoutée.');"));
-  /* Les stocks que les chapitres 12 à 15 reprennent ne bougent pas : collagène 80, tisane 60, protéine 45, shaker 30. */
+  /* Les stocks que les chapitres 13 à 16 reprennent ne bougent pas : collagène 80, tisane 60, protéine 45, shaker 30. */
   for (const [id, n] of [[2, 80], [5, 60], [6, 45], [8, 30]]) assert.equal(attendu[id - 1][4], n);
   const vue = fs.readFileSync(path.join(root, 'assets/anim/projet-vue.html'), 'utf8');
   assert.ok(vue.includes("[1, 'Fibre Prébiotique', 'Bien-être', '29.90', 150, 0, 0],") && vue.includes("[7, 'Oméga 3', 'Bien-être', '24.90', 75, 0, 0],")
-    && vue.includes("[9, 'Spiruline Bio', 'Nutrition', '22.90', 40, 0, 0]"), 'le catalogue du chapitre 17 suit la synchronisation');
+    && vue.includes("[9, 'Spiruline Bio', 'Nutrition', '22.90', 40, 0, 0]"), 'le catalogue du chapitre 18 suit la synchronisation');
 });
 
 test('moment 6 : la requête du collègue a inversé les deux actions ; chacune retourne dans sa branche', () => {
@@ -206,11 +206,11 @@ test('moment 6 : la requête du collègue a inversé les deux actions ; chacune 
   assert.ok(page.includes("alt('ec5b', '  UPDATE SET stock = entrepot.stock', 5)") && page.includes("alt('ec7b', '  INSERT (…) VALUES (…);', 7)"), 'puis remise en place');
 });
 
-test('chapitre 10 : écran titre, annonce par DELETE, annonce de ON DELETE, et récapitulatif dans la vidéo comme dans la fiche', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 10 : MERGE</title>') && page.includes('<div class="tagpill">Projet · Chapitre 10</div>')
+test('chapitre 11 : écran titre, annonce par DELETE, annonce de ON DELETE, et récapitulatif dans la vidéo comme dans la fiche', () => {
+  assert.ok(page.includes('<title>Requête · Projet, chapitre 11 : MERGE</title>') && page.includes('<div class="tagpill">Projet · Chapitre 11</div>')
     && page.includes('<span>M</span><span>E</span><span>R</span><span>G</span><span>E</span>') && page.includes('<div class="abs sub">Synchroniser deux tables</div>'));
   const del = fs.readFileSync(path.join(root, 'assets/anim/projet-delete.html'), 'utf8');
-  assert.ok(del.includes('en une seule requête, avec <code>MERGE</code>.') && del.includes('Prochaine leçon · MERGE</span>'), 'le chapitre 9 annonce celui-ci');
+  assert.ok(del.includes('en une seule requête, avec <code>MERGE</code>.') && del.includes('Prochaine leçon · MERGE</span>'), 'le chapitre 10 annonce celui-ci');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.ok(caps.includes('Dans la prochaine leçon, tu apprendras<br>à supprimer une ligne que d’autres<br>tables référencent, avec <code>ON DELETE</code>.') && page.includes('Prochaine leçon · ON DELETE</span>'));
   const rows = [...page.matchAll(/<div class="rrow"><div class="rico emo">([^<]+)<\/div><div class="rtxt">(.*?)<\/div><\/div>/g)].map(m => {

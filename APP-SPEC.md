@@ -10,7 +10,7 @@ Moment magique : je regarde le cours en vidéo → j’écris la requête aux mo
 ## Features v1 (dans le build)
 - Onboarding guidé (prénom, niveau, minutes / jours)
 - Parcours personnalisable + séance du jour (leçons + défis intercalés, jours « pause »)
-- 64 cours en leçon seule : une vidéo interactive par cours, validée par ses moments « À toi » (un raté au plus), sans exercice ni quiz
+- 65 cours en leçon seule : une vidéo interactive par cours, validée par ses moments « À toi » (un raté au plus), sans exercice ni quiz
 - Fin de cours : « Leçon terminée ! », ou « Encore un effort ! » pour rejouer les moments ratés
 - Défis métier (filtrables : Tous / Leçons / Défis)
 - Console SQL + explorateur de bases/tables + import CSV / JSON / SQL

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="color-scheme" content="light">
 <meta name="format-detection" content="telephone=no">
-<title>Requête · Projet, chapitre 7 : INSERT INTO</title>
+<title>Requête · Projet, chapitre 8 : INSERT INTO</title>
 <link rel="stylesheet" href="core.css">
 <style>
 #s0 .sub{font-size:66px}
@@ -238,7 +238,7 @@
 
   <!-- 0 · Intro -->
   <section class="scene" id="s0">
-    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 7</div></div>
+    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 8</div></div>
     <div class="abs hilite"></div>
     <div class="abs title"><span>I</span><span>N</span><span>S</span><span>E</span><span>R</span><span>T</span></div>
     <div class="abs sub">Ajouter des lignes</div>
@@ -315,7 +315,7 @@ const mailBlock = n => { const t = SCH.t; SCH.t = +(SCH.t + mailOutAt(n) + 1).to
 
 /* 1 · Karim passe la main : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) */
 cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
-cap('r2', "Au chapitre 6, tu as retiré la copie du fichier Excel avec <code>DROP TABLE</code>.", 3.0);
+cap('r2', "Au chapitre 7, tu as découvert<br>les schémas, qui rangent<br>les tables par espace.", 3.4);
 cap('c2', "Jusqu’ici, Karim, le développeur,<br>s’est chargé d’ajouter les données<br>dans les tables de NutriBoost.", 3.6);
 const MAIL1 = mailBlock(0);   // le mail de Karim, puis seulement « À ton tour de prendre la main ! » (Elisa, 24 octobre, Réf 1)
 cap('c3', "À ton tour de prendre la main !", 2.8);
@@ -385,13 +385,13 @@ const CHAPTERS = SCH.chaps.map((c, i) => ({n: i + 1, label: c.label, a: c.a, b: 
 const QUESTIONS = [];
 
 /* ---------- Le cas : la base des ateliers NutriBoost (le même dans tous les chapitres du projet) ---------- */
-/* La base telle que le chapitre 6 la laisse : huit tables, après la copie du fichier Excel (inscriptions_excel, retirée au chapitre 6).
+/* La base telle que le chapitre 7 la laisse : huit tables (la copie du fichier Excel est retirée au chapitre 6 ; les schémas du chapitre 7
+   n’existent pas dans SQLite, la base de l’app : les tables restent dans main).
    [clé, couleur, emoji, nom, lignes] : les mêmes lignes que dans l’app (clients 10, commandes 16, fidelite 4, produits 8) et au chapitre 5
    (coachs 4, ateliers 5, inscriptions 7, cartes 3). */
 const TB = [
   ['cl', 'k-cl', '👥', 'clients', 10], ['cm', 'k-cm', '🛒', 'commandes', 16], ['fi', 'k-fi', '⭐', 'fidelite', 4], ['pr', 'k-pr', '📦', 'produits', 8],
-  ['co', 'k-co', '🧑‍🏫', 'coachs', 4], ['at', 'k-at', '📅', 'ateliers', 5], ['in', 'k-in', '📝', 'inscriptions', 7], ['ca', 'k-nb', '💳', 'cartes', 3],
-  ['xl', 'k-xl', '📄', 'inscriptions_excel', 6]
+  ['co', 'k-co', '🧑‍🏫', 'coachs', 4], ['at', 'k-at', '📅', 'ateliers', 5], ['in', 'k-in', '📝', 'inscriptions', 7], ['ca', 'k-nb', '💳', 'cartes', 3]
 ];
 /* Les extraits des tables clients (deux pages de cinq) et ateliers : [id, prénom, nom] et [id, titre, date]. */
 const CLIENTS = [[1, 'Sophie', 'Martin'], [2, 'Lucas', 'Bernard'], [3, 'Emma', 'Dubois'], [4, 'Nathan', 'Petit'], [5, 'Chloé', 'Moreau'],
@@ -492,8 +492,8 @@ const out = (id, kind, title, msg, cls = 's', t2 = false) => `<div class="abs ou
   `<div class="ot"><b>${title}</b><span class="${cls}">${msg}</span></div></div>`;
 const cmtStack = (id, items) => `-- <span class="sw cm" id="${id}">${items.map((x, j) => `<i class="a${j}">${x}</i>`).join('')}</span>`;
 function dom(){
-  /* La base et ses neuf tables (la copie du fichier Excel s’en va : huit tables) ; Karim, puis toi */
-  $('#sa').innerHTML = `<div class="abs card bc" id="bc"><div class="bh"><span class="emo">🗄️</span><span>Base NutriBoost</span><span class="bn"><span id="bn-a">9 tables</span><span id="bn-b">8 tables</span></span></div>` +
+  /* La base et ses huit tables ; Karim, puis toi */
+  $('#sa').innerHTML = `<div class="abs card bc" id="bc"><div class="bh"><span class="emo">🗄️</span><span>Base NutriBoost</span><span class="bn"><span>8 tables</span></span></div>` +
     TB.map(([k, kc, emo, name, n]) => `<div class="srow ${kc}" id="bw-${k}"><i class="hl"></i><i class="xx"></i><div class="sn"><span class="emo">${emo}</span>` +
       `<span class="nm">${name}<i class="sk"></i></span><i class="sp"></i><b class="nb"><span>${n} lignes</span></b></div></div>`).join('') + '</div>' +
     pill('wk', 'KB', 'Karim Benali', 'développeur', 'k-dv') + pill('wt', 'Toi', 'Toi', '', 'k-me');
@@ -595,7 +595,7 @@ function layout(){
   $$('.dbin').forEach(el => { el.style.top = EDC + 'px'; });
   $('#pack').style.top = (EDC + $('.dbin').offsetHeight + 9 + 40) + 'px';
   // Karim et toi, sous la base repliée sur huit tables
-  const wy = bottom('#bc') - $('#bw-xl').offsetHeight + 9 + 44;
+  const wy = bottom('#bc') + 9 + 44;
   ['#wk', '#wt'].forEach(s => { $(s).style.top = wy + 'px'; $(s).style.left = '64px'; });
   // les morceaux de la requête qui se replient (virgule comprise), et l’écart entre les deux premières valeurs
   ['sg-at', 'sg-da', 'sg-vat', 'sg-vda', 'fx1', 'tx1'].forEach(id => { W[id] = $('#' + id).offsetWidth; });
@@ -717,7 +717,7 @@ function build(){
   layout();
   gsap.set(['.sq', '.out', '.dbin', '.st', '.pack', '#bc', '#tb', '#tc', '#keyc', '#wk', '#wt'], {autoAlpha: 0});
   gsap.set(['#r8 .gd', '#r9 .gd', '#r10 .gd', '#r11 .gd'], {autoAlpha: 1});
-  gsap.set(['#s8c1', '#s8c2', '#s8c3', '#t8c1', '#t8c2', '#id8', '#id9', '#id10', '#id11', '#t11c2', '#cn-b', '#cn-c', '#bn-b'], {autoAlpha: 0});
+  gsap.set(['#s8c1', '#s8c2', '#s8c3', '#t8c1', '#t8c2', '#id8', '#id9', '#id10', '#id11', '#t11c2', '#cn-b', '#cn-c'], {autoAlpha: 0});
   gsap.set(['#s8c1 .a1', '#s8c2 .a1', '#s8c3 .a1', '#t8c1 .a1', '#t8c2 .a1', '#cmt .a1', '#cmt .a2', '#cmt .a3', '#cmt2 .a1',
     '#hu .a1', '#hu .a2', '#pgs2 .a1', '#ell .e1', '#ell .e2', '#ell .e3', '#ell .e4'], {autoAlpha: 0});
   gsap.set(['#sc1b', '#calc', '#ec5', '#ec6', '#rul', '#pack', '#tgl-cr', '#tgl-rc'], {autoAlpha: 0});
@@ -733,11 +733,12 @@ function build(){
   sceneOn('#sa', 5.0);
   show('#bc', A.r1, {y: 60}, 0.55); cue(A.r1, 'whoosh', 0.5);
   TB.forEach(([k], q) => { const t = A.r1 + 0.3 + q * 0.15; show('#bw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q % 5); });
-  // « Au chapitre 6, tu as retiré la copie du fichier Excel » : la copie est barrée, retirée de la liste (neuf tables, puis huit)
-  tl.to('#bw-xl .sk', {scaleX: 1, duration: 0.3, ease: 'power2.out'}, A.r2 + 0.7); cue(A.r2 + 0.7, 'stamp', 0.5);
-  on('#bw-xl .xx', A.r2 + 0.7, 0.2);
-  tl.to('#bw-xl', {height: 0, paddingTop: 0, paddingBottom: 0, autoAlpha: 0, duration: 0.5, ease: 'power2.inOut'}, A.r2 + 1.4);
-  off('#bn-a', A.r2 + 1.6, 0.2); on('#bn-b', A.r2 + 1.65, 0.2); bump('#bn-b', A.r2 + 1.9, 1.12); cue(A.r2 + 1.6, 'tick', 0.6, 2);
+  // « Au chapitre 7, tu as découvert les schémas » : les tables de la boutique, puis celles des ateliers, chacune dans son espace
+  ['cl', 'cm', 'fi', 'pr'].forEach((k, q) => { const t = A.r2 + 0.5 + q * 0.12; on(`#bw-${k} .hl`, t, 0.2); });
+  cue(A.r2 + 0.5, 'tick', 0.5, 1);
+  ['co', 'at', 'in', 'ca'].forEach((k, q) => { const t = A.r2 + 1.4 + q * 0.12; on(`#bw-${k} .hl`, t, 0.2); });
+  cue(A.r2 + 1.4, 'tick', 0.5, 3);
+  off(TB.map(([k]) => `#bw-${k} .hl`), A.r2 + 2.7, 0.3);
   // Karim a rempli les tables : le nombre de lignes de chaque table s’allume
   show('#wk', A.c2 + 0.1, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.c2 + 0.1, 'pop', 0.7, 1);
   TB.filter(t => t[0] !== 'xl').forEach(([k], q) => { bump('#bw-' + k + ' .nb', A.c2 + 0.8 + q * 0.12, 1.12); cue(A.c2 + 0.8 + q * 0.12, 'tick', 0.5, q % 5); });
@@ -1124,7 +1125,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 161.8, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 162.2, picks: PICKS, opens: OPENS,
   glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝📄🔑🔗🔒🎟️✉️👆✓✕!…«»✍️📚🔁✏️·•', dom, build, beforeRender: t => IX.tick(t)});
 </script>
 </body>

@@ -12,7 +12,7 @@ const allLessons = vm.runInContext('MODULES.flatMap(m=>m.lessons)', ctx);
 /* Cours en vidéo : la vidéo est le cours, sans texte de secours (ni situation, ni étapes, ni exemple…) ; il garde le réflexe à
    retenir (fin de la vidéo, bilan, note). Les vérifications du cours texte portent sur les autres cours. */
 const videos = allLessons.filter(l => l.video);
-assert.equal(videos.length, 64, 'les 64 cours en vidéo (MERGE, puis Procédures et fonctions stockées, ajoutés le 30 octobre)');
+assert.equal(videos.length, 65, 'les 65 cours en vidéo (MERGE, Procédures et fonctions stockées, puis Les schémas, ajoutés le 30 octobre)');
 for (const l of videos) {
   assert.ok(!l.situation && !l.missionSql && !l.studio.problem && !l.studio.uses, `${l.titre} : pas de texte de secours`);
   for (const k of ['anatomie', 'exemple', 'attendu', 'retenir', 'learningCheck', 'testeVariants', 'joinRecap'])
@@ -20,7 +20,7 @@ for (const l of videos) {
   if (l.leconSeule) for (const k of ['consigne', 'solution', 'indice', 'petitDefi']) assert.equal(l[k], undefined, `${l.titre} : leçon seule, sans exercice (« ${k} »)`);
   assert.ok(l.studio.reflex.extra.includes('<ol class="fk-syn-map is-recap"'), `${l.titre} : le réflexe à retenir reste`);
 }
-/* Depuis le 26 octobre, tous les cours de l’app sont en vidéo (Sécurité et droits, le dernier cours texte, est devenu le chapitre 19) :
+/* Depuis le 26 octobre, tous les cours de l’app sont en vidéo (Sécurité et droits, le dernier cours texte, est devenu le chapitre 20) :
    le modèle « guide » des cours texte est vérifié sur les trois cours d’exemple (tests/fixtures : les anciennes leçons 50, 57 et 64). */
 assert.equal(allLessons.filter(l => !l.video).length, 0, 'plus aucun cours texte dans l’app');
 const lessons = ['guide-texte-droits.js', 'guide-texte-index.js', 'guide-texte-create-view.js']

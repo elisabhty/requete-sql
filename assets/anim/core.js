@@ -310,7 +310,7 @@ const SMS_ICO = {
    cmp : version compacte (sans date ni barre de saisie), là où la place manque ; nth : rang parmi les SMS du même expéditeur (smsRank) ;
    hello : la première bulle, quand la page ne veut pas « Bonjour, » (8e élément du message : {sms: true, hello: 'Bonjour !'}) ; null : aucune (data-hi). */
 function smsCard(id, k, first, last, ini, body, cmp = false, nth = 0, hello, photo, bye){
-  const parts = smsParts(body, hello, bye), name = last ? first + ' ' + last : first, said = hello === null ? 0 : 1;   // Lina (chapitre 19) n’a pas de nom
+  const parts = smsParts(body, hello, bye), name = last ? first + ' ' + last : first, said = hello === null ? 0 : 1;   // Lina (chapitre 20) n’a pas de nom
   /* Une photo jointe (photo : {id, src, alt}) : une bulle d’image juste avant « Merci ! » ; un appui l’agrandit
      (Elisa, 25 octobre, 17 h 05 : « afficher sous son message la photo du shaker rose cassé ; un appui permet d’agrandir la photo »).
      Un message qui finit sur son propre merci (bye: null) envoie sa photo en dernier : la consigne « Touche la photo » se pose dessous,
@@ -909,7 +909,7 @@ function Course(cfg){
     if (EMBED) dispatchEvent(new Event('resize'));
     return {duration: out, fps: FPS, cues: CUES.filter(c => !inCut(c.t)).map(c => Object.assign({}, c, {t: unwarp(c.t)})), overflow: checkCaptions(captions),
       notesT: notesAt != null ? unwarp(notesAt) : null,
-      /* notesUntil : le bouton « Ajouter à mes notes » s’en va quand la vidéo continue après le résumé (chapitre 19). Le lecteur le lit ici,
+      /* notesUntil : le bouton « Ajouter à mes notes » s’en va quand la vidéo continue après le résumé (chapitre 20). Le lecteur le lit ici,
          sur la page : il suit la vidéo telle qu’elle est, sans dépendre d’un temps recopié à la main dans la fiche de la leçon. */
       notesUntil: cfg.notesUntil != null ? unwarp(cfg.notesUntil) : null, holds: +total.toFixed(3), holdList: HOLDS, clashes: holdClashes(picks.concat(opens).map(p => p.at)).concat(cfg.extraClashes ? cfg.extraClashes() : []),
       textIssues: QS.has('check') ? textIssues() : undefined,

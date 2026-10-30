@@ -1,4 +1,4 @@
-/* Projet NutriBoost, chapitre 14 (leçon 83 « Procédures et fonctions stockées ») : la vidéo interactive assets/anim/projet-procedures.html,
+/* Projet NutriBoost, chapitre 15 (leçon 83 « Procédures et fonctions stockées ») : la vidéo interactive assets/anim/projet-procedures.html,
    testée aussi dans lesson-video.test.mjs. Ajoutée le 30 octobre (le scénario d’Elisa : 18 h 02, les commandes affluent ; une action ou un
    calcul ; la procédure expedier_commande et son paramètre ; la fonction calculer_points, 1 € dépensé = 2 points ; le duel ; les quatre
    tickets). Premier cours du module « Triggers et concurrence », juste avant Les triggers. Leçon seule.
@@ -27,12 +27,12 @@ vm.runInContext(page.slice(a, b), D);
 const val = expr => JSON.parse(vm.runInContext(`JSON.stringify(${expr})`, D));
 const strip = h => h.replace(/<br>/g, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/[  ]/g, ' ').replace(/\s+/g, ' ').trim();
 
-/* ---------- La base de la vidéo, telle que le chapitre 13 la laisse ---------- */
+/* ---------- La base de la vidéo, telle que le chapitre 14 la laisse ---------- */
 const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(root, 'vendor/sqljs', f)});
 function base() {
   const db = new SQL.Database();
   db.run(vm.runInContext('SCHEMA_SQL', ctx));
-  /* Le chapitre 10 (MERGE) : la Fibre Prébiotique à 150, Oméga 3 à 75, la Spiruline Bio ajoutée. */
+  /* Le chapitre 11 (MERGE) : la Fibre Prébiotique à 150, Oméga 3 à 75, la Spiruline Bio ajoutée. */
   db.run("UPDATE produits SET stock = 150 WHERE id = 1; UPDATE produits SET stock = 75 WHERE id = 7; INSERT INTO produits VALUES (9, 'Spiruline Bio', 'Nutrition', 22.90, 40);");
   db.run(`PRAGMA foreign_keys = ON;
     CREATE TABLE coachs (id INTEGER PRIMARY KEY, prenom TEXT NOT NULL, nom TEXT NOT NULL, email TEXT NOT NULL);
@@ -120,7 +120,7 @@ test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajo
   assert.equal([...page.matchAll(/return \{text: '([^']+)'/g)].length, 6, 'six indices écrits : un par moment');
 });
 
-test('la base du chapitre 13 : onze tables et leurs lignes ; les dernières commandes de la page sont celles de la base', () => {
+test('la base du chapitre 14 : onze tables et leurs lignes ; les dernières commandes de la page sont celles de la base', () => {
   const db = base(), TB = val('TB');
   for (const [, , , name, n] of TB) assert.equal(count(db, name), n, `${name} : ${n} lignes`);
   assert.equal(TB.length, 11);
@@ -129,7 +129,7 @@ test('la base du chapitre 13 : onze tables et leurs lignes ; les dernières comm
     'les commandes 11 à 16 de la page sont celles de la base');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.');
-  assert.equal(caps[1], 'Au chapitre 13, un savepoint<br>t’a permis d’annuler<br>une partie d’une transaction.', 'le chapitre précédent');
+  assert.equal(caps[1], 'Au chapitre 14, un savepoint<br>t’a permis d’annuler<br>une partie d’une transaction.', 'le chapitre précédent');
 });
 
 test('la procédure : l’identifiant de la commande est son paramètre ; CALL expedier_commande(13), puis (14), expédie ces deux commandes, et elles seules', () => {
@@ -167,8 +167,8 @@ test('les demandes et les tickets : une action va avec la procédure, une valeur
   for (const x of [...val('DEMANDES'), ...val('TICKETS')]) assert.ok(strip(x[2]).length > 40, `${x[0]} : une correction qui explique`);
 });
 
-test('chapitre 14 : écran titre, la carte PostgreSQL, SQLite ; annoncé par SAVEPOINT, il annonce Les triggers, qui s’ouvrent sur lui', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 14 : Procédures et fonctions stockées</title>') && page.includes('<div class="tagpill">Projet · Chapitre 14</div>')
+test('chapitre 15 : écran titre, la carte PostgreSQL, SQLite ; annoncé par SAVEPOINT, il annonce Les triggers, qui s’ouvrent sur lui', () => {
+  assert.ok(page.includes('<title>Requête · Projet, chapitre 15 : Procédures et fonctions stockées</title>') && page.includes('<div class="tagpill">Projet · Chapitre 15</div>')
     && page.includes('<div class="abs sub">et fonctions stockées</div>'));
   const eg = [...page.matchAll(/\['eg\d', (?:'([^']*)'|"([^"]*)")\]/g)].map(m => (m[1] ?? m[2]).replace(/\{\w+\|([^}]*)\}/g, '$1'));
   assert.equal(eg.length, 10, 'dix lignes, commentaire compris');
@@ -177,10 +177,10 @@ test('chapitre 14 : écran titre, la carte PostgreSQL, SQLite ; annoncé par SAV
   assert.ok(caps.includes('Dans SQLite, la base de l’app,<br>elles n’existent pas.'), 'SQLite n’en a pas');
   assert.throws(() => base().run('CREATE PROCEDURE expedier_commande(id_commande INT) AS SELECT 1;'), /syntax error/, 'SQLite refuse CREATE PROCEDURE');
   const sp = fs.readFileSync(path.join(root, 'assets/anim/projet-savepoint.html'), 'utf8');
-  assert.ok(sp.includes('Prochaine leçon · Procédures et fonctions</span>'), 'le chapitre 13 annonce celui-ci');
+  assert.ok(sp.includes('Prochaine leçon · Procédures et fonctions</span>'), 'le chapitre 14 annonce celui-ci');
   assert.ok(page.includes('Prochaine leçon · Les triggers</span>'), 'il annonce Les triggers');
   const trig = fs.readFileSync(path.join(root, 'assets/anim/projet-trigger.html'), 'utf8');
-  assert.ok(trig.includes('Au chapitre 14, une procédure<br>stockée t’a permis de réutiliser<br>un traitement.'), 'Les triggers s’ouvrent sur ce chapitre');
+  assert.ok(trig.includes('Au chapitre 15, une procédure<br>stockée t’a permis de réutiliser<br>un traitement.'), 'Les triggers s’ouvrent sur ce chapitre');
   const rows = [...page.matchAll(/<div class="rrow"><div class="rico emo">([^<]+)<\/div><div class="rtxt">(.*?)<\/div><\/div>/g)].map(m => {
     const [phrase, detail] = m[2].split('<span class="rs">');
     return [m[1], strip(phrase), strip(detail.replace(/<\/span>$/, ''))];

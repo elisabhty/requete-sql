@@ -8987,7 +8987,7 @@ guide({ id:66, titre:"DROP", résumé:"Supprimer une table de la base",
      touche les quatre) ; DROP TABLE inscriptions, la fin du nom oubliée, réussirait sans erreur, avec ses sept lignes : une table
      supprimée ne se récupère pas (moment 5). Enfin le script de mise en ligne de Karim tourne aussi sur le serveur de test, où la copie
      n’existe pas : « no such table » arrête la mise en ligne, d’où DROP TABLE IF EXISTS (moment 6). La fin annonce la prochaine leçon du
-     cours : « tu apprendras à ajouter des données dans tes tables avec INSERT INTO ». Six moments « À toi », comme aux
+     cours : « tu rangeras les tables de ta base en espaces, avec les schémas ». Six moments « À toi », comme aux
      chapitres du projet ; leçon seule : ni exercice ni quiz, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on
      rejoue les moments ratés. Elle remplace l’ancien cours texte (DELETE vide / DROP supprime, DROP VIEW et DROP INDEX, TRUNCATE,
      exercice sur la table commandes). */
@@ -9000,13 +9000,37 @@ guide({ id:66, titre:"DROP", résumé:"Supprimer une table de la base",
       ["🛟","<code>IF EXISTS</code> évite une erreur si la table n’existe pas.","Il ne protège pas contre la suppression de la mauvaise table.","DROP TABLE IF EXISTS inscriptions_excel;"]
     ],label:"Les trois idées à retenir"}
   ]
+}),
+guide({ id:84, titre:"Les schémas", résumé:"Ranger les tables par espace",
+  /* Projet, chapitre 7, en vidéo interactive : l’animation (assets/anim/projet-schemas.html, moteur commun assets/anim/core.js)
+     est le cours. Ajoutée le 30 octobre (le scénario d’Elisa : une base devenue difficile à gérer, tout est mélangé ; la ranger en espaces
+     sans supprimer ni recréer les tables ; CREATE SCHEMA, l’adresse schéma.table, deux tables du même nom, trois requêtes à réparer),
+     transposé aux deux équipes de NutriBoost. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 6, tu as
+     retiré la copie du fichier Excel avec DROP TABLE » : la copie est barrée, neuf tables puis huit). Karim écrit : les tables de la
+     boutique et des ateliers sont mélangées. Moment 1 : l’élève range les huit tables (boutique : clients, commandes, fidelite, produits ;
+     bienetre : coachs, ateliers, inscriptions, cartes). CREATE SCHEMA boutique, puis (moment 2) CREATE SCHEMA bienetre (ni CREATE TABLE, ni
+     CREATE DATABASE) ; ALTER TABLE … SET SCHEMA y range chaque table sans la recréer. Moment 3 : l’adresse des inscriptions,
+     bienetre.inscriptions (ni boutique.inscriptions, ni inscriptions.bienetre). Moment 4 : l’équipe des ateliers crée sa propre table
+     clients ; boutique.clients et bienetre.clients ne se confondent pas. Moment 5 : trois requêtes retrouvent leur schéma. Enfin, SQLite,
+     la base de l’app, n’a pas de CREATE SCHEMA : ses tables sont dans le schéma main (moment 6 : SELECT * FROM main.clients) ; la base du
+     projet garde donc ses tables telles quelles. La fin annonce INSERT INTO. Six moments « À toi », comme aux chapitres du projet ; leçon
+     seule : ni exercice ni quiz, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments ratés. */
+  leconSeule:true,
+  video:{anim:'assets/anim/projet-schemas.html?app&embed',thumb:'assets/anim/projet-schemas-thumb.webp',duree:'2 min 11',moments:6,seuil:4},
+  reflex:[
+    {recap:[
+      ["🗂️","Un <b>schéma</b> range les tables d’une base en espaces.","<code>CREATE SCHEMA boutique;</code> crée l’espace de la boutique."],
+      ["📍","<code>boutique.commandes</code> est une <b>adresse</b> : schéma.table.","Deux schémas peuvent contenir deux tables qui portent le même nom."],
+      ["⚠️","Les schémas <b>dépendent du SGBD</b>.","SQLite n’a pas de <code>CREATE SCHEMA</code> : ses tables sont rangées dans <code>main</code>."]
+    ],label:"Les trois idées à retenir"}
+  ]
 })
 ]},
 { titre:"Écrire et modifier les données", sous:"INSERT, UPDATE, DELETE", lessons:[
 guide({ id:26, titre:"INSERT", résumé:"Ajouter des lignes",
-  /* Projet, chapitre 7, en vidéo interactive : l’animation (assets/anim/projet-insert.html, moteur commun assets/anim/core.js)
-     est le cours. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 6, tu as retiré la copie du fichier
-     Excel avec DROP TABLE »), sur la base que le chapitre 6 laisse : huit tables, dont inscriptions (7 lignes) et cartes (3 lignes).
+  /* Projet, chapitre 8, en vidéo interactive : l’animation (assets/anim/projet-insert.html, moteur commun assets/anim/core.js)
+     est le cours. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 7, tu as découvert les schémas,
+     qui rangent les tables par espace »), sur la base que le chapitre 7 laisse : huit tables, dont inscriptions (7 lignes) et cartes (3 lignes).
      Karim Benali, le développeur back end, a rempli les tables jusqu’ici et passe la main (« Jusqu’ici, Karim, le développeur, s’est chargé
      d’ajouter les données dans les tables de NutriBoost. À ton tour de prendre la main ! », mots d’Elisa) : quatre mails, trois situations.
      Mail de Karim (congé, relais, première tâche urgente) : enregistrer l’inscription de Lucas Bernard à l’atelier Cuisine saine du
@@ -9040,9 +9064,9 @@ guide({ id:26, titre:"INSERT", résumé:"Ajouter des lignes",
   ]
 }),
 guide({ id:27, titre:"UPDATE", résumé:"Modifier des lignes",
-  /* Projet, chapitre 8, en vidéo interactive : l’animation (assets/anim/projet-update.html, moteur commun assets/anim/core.js)
-     est le cours. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 7, tu as ajouté des lignes
-     avec INSERT INTO »), sur la base que le chapitre 7 laisse : huit tables, dont inscriptions (11 lignes) et cartes (3 lignes,
+  /* Projet, chapitre 9, en vidéo interactive : l’animation (assets/anim/projet-update.html, moteur commun assets/anim/core.js)
+     est le cours. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 8, tu as ajouté des lignes
+     avec INSERT INTO »), sur la base que le chapitre 8 laisse : huit tables, dont inscriptions (11 lignes) et cartes (3 lignes,
      Hugo Laurent à 18 séances). À la rentrée, trois mails arrivent : aucune demande n’ajoute de ligne, toutes modifient des lignes
      qui existent déjà. Mail de Moussa Diallo : l’atelier Pilates est décalé d’un jour, du 17 au 18 septembre. Moment 1 : l’élève
      touche la case à modifier (la date de l’atelier Pilates). UPDATE choisit la table, SET précise la colonne et sa nouvelle valeur, WHERE sélectionne la ligne ;
@@ -9071,9 +9095,9 @@ guide({ id:27, titre:"UPDATE", résumé:"Modifier des lignes",
   ]
 }),
 guide({ id:28, titre:"DELETE", résumé:"Supprimer des lignes",
-  /* Projet, chapitre 9, en vidéo interactive : l’animation (assets/anim/projet-delete.html, moteur commun assets/anim/core.js)
-     est le cours. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 8, tu as modifié des lignes
-     avec UPDATE »), sur la base que le chapitre 8 laisse : huit tables, dont clients (10 lignes, deux Nathan) et inscriptions
+  /* Projet, chapitre 10, en vidéo interactive : l’animation (assets/anim/projet-delete.html, moteur commun assets/anim/core.js)
+     est le cours. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 9, tu as modifié des lignes
+     avec UPDATE »), sur la base que le chapitre 9 laisse : huit tables, dont clients (10 lignes, deux Nathan) et inscriptions
      (11 lignes). Trois messages du service client arrivent (deux SMS, puis un mail), et toutes les demandes sont des suppressions. SMS pour Léa Simon : elle ne viendra pas à
      l’atelier Cuisine saine du 19 septembre, son inscription est annulée. Moment 1 : l’élève touche cette inscription dans la
      table inscriptions ; DELETE FROM choisit la table, WHERE sélectionne la ligne (moment 2 : WHERE id = 4 ; WHERE id = 7 est
@@ -9082,7 +9106,7 @@ guide({ id:28, titre:"DELETE", résumé:"Supprimer des lignes",
      contient deux Nathan, le prénom seul ne suffit pas (moment 3 : WHERE id = 10 ; WHERE prenom = 'Nathan' supprimerait aussi
      Nathan Petit, WHERE id = 4 est l’identifiant de Nathan Petit). Aucune autre table ne fait référence à Nathan Dupont : sa
      ligne peut être supprimée. Mail pour Hugo Laurent : il déménage, ses deux inscriptions (identifiants 6 et 9, client 6)
-     sont supprimées par une seule requête, après leur lecture par un SELECT qui a le même WHERE, comme au chapitre 8 (moment 4 :
+     sont supprimées par une seule requête, après leur lecture par un SELECT qui a le même WHERE, comme au chapitre 9 (moment 4 :
      WHERE client_id = 6 ; WHERE id = 6 ne supprimerait qu’une inscription, WHERE client_id > 6 celles de Gabriel Michel et d’Inès
      Lefebvre). L’oubli du WHERE est d’abord imaginé : la requête est exécutée sans la moindre erreur et les huit inscriptions
      restantes disparaissent (moment 5 : l’élève touche ces huit lignes) ; la table existe encore, mais elle est vide, alors qu’au
@@ -9091,7 +9115,7 @@ guide({ id:28, titre:"DELETE", résumé:"Supprimer des lignes",
      MERGE ». Six moments « À toi », comme aux chapitres du projet ; leçon seule : ni exercice ni quiz, validée avec 4 exercices
      réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments ratés. Elle remplace l’ancien cours texte DELETE (le compte
      de Nathan Dupont et la table fidelite, la sous-requête dans le WHERE, l’exercice sur les commandes d’une seule unité) ; la clé
-     étrangère qui refuse la suppression est reprise au chapitre 11. */
+     étrangère qui refuse la suppression est reprise au chapitre 12. */
   leconSeule:true,
   video:{anim:'assets/anim/projet-delete.html?app&embed',thumb:'assets/anim/projet-delete-thumb.webp',duree:'3 min 00',moments:6,seuil:4},
   reflex:[
@@ -9103,10 +9127,10 @@ guide({ id:28, titre:"DELETE", résumé:"Supprimer des lignes",
   ]
 }),
 guide({ id:82, titre:"MERGE", résumé:"Synchroniser deux tables",
-  /* Projet, chapitre 10, en vidéo interactive : l’animation (assets/anim/projet-merge.html, moteur commun assets/anim/core.js)
+  /* Projet, chapitre 11, en vidéo interactive : l’animation (assets/anim/projet-merge.html, moteur commun assets/anim/core.js)
      est le cours. Ajoutée le 30 octobre (Elisa : un mini-jeu de synchronisation d’urgence, « choix → feedback immédiat → progression →
-     piège → boss final »). Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 9, tu as supprimé des
-     lignes avec DELETE »), sur la base que le chapitre 9 laisse : huit tables, dont produits (8 lignes). L’équipe logistique envoie
+     piège → boss final »). Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 10, tu as supprimé des
+     lignes avec DELETE »), sur la base que le chapitre 10 laisse : huit tables, dont produits (8 lignes). L’équipe logistique envoie
      une alerte par SMS : l’entrepôt a envoyé son inventaire, les stocks du site ne correspondent plus, le Magnésium n’y figure pas
      (son fabricant le livre directement) et les ventes du soir commencent dans 5 minutes. L’inventaire est importé dans une table
      temporaire, entrepot : la Fibre Prébiotique passe de 120 à 150, Oméga 3 de 90 à 75, la Spiruline Bio (produit 9, Nutrition,
@@ -9118,7 +9142,7 @@ guide({ id:82, titre:"MERGE", résumé:"Synchroniser deux tables",
      ni remis à 0). La requête est exécutée : 3 lignes traitées, 2 modifiées, 1 ajoutée ; la table produits compte 9 lignes. Moment 6,
      le boss : la requête d’un collègue a inversé les deux actions, l’élève les remet dans leur branche. Enfin, MERGE n’existe pas dans
      SQLite, la base de l’app : le même résultat s’écrit INSERT … SELECT … WHERE true ON CONFLICT (id) DO UPDATE SET stock =
-     excluded.stock (chapitre 7). La fin annonce ON DELETE. Six moments « À toi », comme aux chapitres du projet ; leçon seule : ni
+     excluded.stock (chapitre 8). La fin annonce ON DELETE. Six moments « À toi », comme aux chapitres du projet ; leçon seule : ni
      exercice ni quiz, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments ratés. */
   leconSeule:true,
   video:{anim:'assets/anim/projet-merge.html?app&embed',thumb:'assets/anim/projet-merge-thumb.webp',duree:'3 min 09',moments:6,seuil:4},
@@ -9133,11 +9157,11 @@ guide({ id:82, titre:"MERGE", résumé:"Synchroniser deux tables",
 ]},
 { titre:"Contraintes et intégrité", sous:"Les règles que les données doivent respecter", lessons:[
 guide({ id:68, titre:"ON DELETE", résumé:"Décider du sort des lignes liées",
-  /* Projet, chapitre 11, en vidéo interactive : l’animation (assets/anim/projet-ondelete.html, moteur commun assets/anim/core.js)
+  /* Projet, chapitre 12, en vidéo interactive : l’animation (assets/anim/projet-ondelete.html, moteur commun assets/anim/core.js)
      est le cours. Refondue le 25 octobre sur la seule histoire des avis (Elisa, 12 h 51 : l’ancien cours sur ON DELETE était
      incompréhensible ; 12 h 52 : le client remplit une feuille, l’équipe enregistre l’avis et sa note dans la base ; 13 h 17 : la base
      partagée ne doit pas être modifiée pour Nathan Petit, dont d’autres chapitres ont besoin). Elle s’ouvre comme les autres chapitres
-     (« Depuis le chapitre 1… », « Au chapitre 10, tu as synchronisé deux tables avec MERGE »), sur la base que le chapitre 10 laisse : huit
+     (« Depuis le chapitre 1… », « Au chapitre 11, tu as synchronisé deux tables avec MERGE »), sur la base que le chapitre 11 laisse : huit
      tables, 9 clients, 8 inscriptions, 9 produits. 1 · Inès Lefebvre (la neuvième cliente) vient de participer à un atelier, goûte plusieurs produits
      et remplit une feuille d’avis : Protéine Végétale, cinq étoiles, un commentaire, sa signature. 2 · L’équipe récupère la feuille :
      l’avis doit s’afficher à chaque visite sur le site, donc être enregistré dans la base. Une table avis (id, client_id, produit_id, note,
@@ -9156,11 +9180,11 @@ guide({ id:68, titre:"ON DELETE", résumé:"Décider du sort des lignes liées",
      situations sous CASCADE, SET NULL ou RESTRICT (moment 6) ; CASCADE supprime sans demander de confirmation. La fin annonce la prochaine
      leçon du cours : « tu apprendras à tout valider ou tout annuler avec une transaction ». Choix de scénario : Inès Lefebvre n’a ni
      commande, ni carte, ni points de fidélité ; son unique inscription (Yoga du matin) est supposée déjà supprimée hors écran, comme au
-     chapitre 9 : après ce chapitre, la base compte 8 clients et 7 inscriptions, et une table avis d’une ligne dont le client vaut NULL. Nathan
+     chapitre 10 : après ce chapitre, la base compte 8 clients et 7 inscriptions, et une table avis d’une ligne dont le client vaut NULL. Nathan
      Petit n’est pas touché. La vidéo montre le produit 6 (Protéine Végétale). Six moments « À toi », comme aux chapitres du projet ; leçon
      seule : ni exercice ni quiz dans la vidéo, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments
      ratés. Elle remplace l’ancien cours texte ON DELETE (la table satisfaction, les paniers) et le cours « Les contraintes en action »
-     (supprimé : NOT NULL, UNIQUE et CHECK sont vus aux chapitres 4, 7 et 8, la clé étrangère qui refuse au chapitre 11). */
+     (supprimé : NOT NULL, UNIQUE et CHECK sont vus aux chapitres 4, 8 et 9, la clé étrangère qui refuse au chapitre 12). */
   leconSeule:true,
   video:{anim:'assets/anim/projet-ondelete.html?app&embed',thumb:'assets/anim/projet-ondelete-thumb.webp',duree:'4 min 07',moments:6,seuil:4},
   reflex:[
@@ -9174,10 +9198,10 @@ guide({ id:68, titre:"ON DELETE", résumé:"Décider du sort des lignes liées",
 ]},
 { titre:"Transactions", sous:"Tout valider ou tout annuler", lessons:[
 guide({ id:62, titre:"Transactions", résumé:"Valider les modifications ensemble",
-  /* Projet, chapitre 12, en vidéo interactive : l’animation (assets/anim/projet-transaction.html, moteur commun assets/anim/core.js)
+  /* Projet, chapitre 13, en vidéo interactive : l’animation (assets/anim/projet-transaction.html, moteur commun assets/anim/core.js)
      est le cours. La trame est celle d’Elisa (25 octobre, 17 h 05, « Cours 1 — TRANSACTION : valider les modifications ensemble »),
      ses bulles gardées mot pour mot, une phrase par bulle. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… »,
-     « Au chapitre 11, tu as décidé du sort des lignes liées avec ON DELETE »), sur la base que le chapitre 11 laisse : neuf tables.
+     « Au chapitre 12, tu as décidé du sort des lignes liées avec ON DELETE »), sur la base que le chapitre 12 laisse : neuf tables.
      1 · Un colis abîmé : Léa Simon (la cliente 7) écrit au service client, par SMS, avec la photo de son shaker inox rose personnalisé
      « Léa », arrivé cassé (l’app s’arrête sur la photo, qu’un appui agrandit) ; le service client nous écrit à son tour (« Léa vient de nous
      envoyer un message… ») et demande de mettre à jour le stock et d’enregistrer le remplacement (Elisa, 18 h 36). 2 · Deux modifications à réaliser, qui doivent réussir ensemble : le
@@ -9207,10 +9231,10 @@ guide({ id:62, titre:"Transactions", résumé:"Valider les modifications ensembl
   ]
 }),
 guide({ id:63, titre:"SAVEPOINT", résumé:"Annuler une partie des modifications",
-  /* Projet, chapitre 13, en vidéo interactive : l’animation (assets/anim/projet-savepoint.html, moteur commun assets/anim/core.js)
+  /* Projet, chapitre 14, en vidéo interactive : l’animation (assets/anim/projet-savepoint.html, moteur commun assets/anim/core.js)
      est le cours. La trame est celle d’Elisa (25 octobre, 17 h 05, « Cours 2 — SAVEPOINT : annuler une partie des modifications »),
      ses bulles gardées mot pour mot, une phrase par bulle. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… »,
-     « Au chapitre 12, une transaction t’a permis de tout valider ou de tout annuler »), sur la base que le chapitre 12 laisse : dix
+     « Au chapitre 13, une transaction t’a permis de tout valider ou de tout annuler »), sur la base que le chapitre 13 laisse : dix
      tables. 1 · Un petit geste pour Léa : le service client écrit tout de suite, par SMS (les mots d’Elisa, 25 octobre, 19 h 13 :
      « Pour nous excuser du shaker arrivé abîmé, peux-tu ajouter une tisane gratuite au colis de remplacement de Léa ? ») ; on reprend
      le remplacement de Léa Simon juste avant sa validation (30 shakers, aucun remplacement ; BEGIN TRANSACTION, l’UPDATE du stock,
@@ -9230,7 +9254,7 @@ guide({ id:63, titre:"SAVEPOINT", résumé:"Annuler une partie des modifications
      l’app s’arrête sur la photo, qu’un appui agrandit) ; grâce au savepoint, le cadeau a changé sans refaire le remplacement. 9 · Quelle commande choisir : six situations à
      ranger sous ROLLBACK TO SAVEPOINT, ROLLBACK ou COMMIT (moment 6) ; un savepoint ne valide rien. La fin annonce la prochaine leçon,
      les triggers. Choix de scénario : les chiffres de la base du projet (shaker 30 → 29, tisane 60 → 59 → 60, protéine 45 → 44), le
-     remplacement 1 comme au chapitre 12, le cadeau 1 (la tisane annulée, la protéine le reprend).
+     remplacement 1 comme au chapitre 13, le cadeau 1 (la tisane annulée, la protéine le reprend).
      Six moments « À toi », comme aux chapitres du projet ; leçon seule : ni exercice ni quiz dans la vidéo, validée avec 4 exercices
      réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments ratés. Elle remplace l’ancien cours texte SAVEPOINT (les
      expéditions du jour). */
@@ -9247,11 +9271,11 @@ guide({ id:63, titre:"SAVEPOINT", résumé:"Annuler une partie des modifications
 ]},
 { titre:"Triggers et concurrence", sous:"Automatiser et isoler les écritures", lessons:[
 guide({ id:83, titre:"Procédures et fonctions stockées", résumé:"Réutiliser un traitement ou un calcul",
-  /* Projet, chapitre 14, en vidéo interactive : l’animation (assets/anim/projet-procedures.html, moteur commun assets/anim/core.js)
+  /* Projet, chapitre 15, en vidéo interactive : l’animation (assets/anim/projet-procedures.html, moteur commun assets/anim/core.js)
      est le cours. Ajoutée le 30 octobre (le scénario d’Elisa : 18 h 02, les commandes affluent ; une action ou un calcul ; la procédure
      expedier_commande et son paramètre ; la fonction calculer_points, 1 € dépensé = 2 points ; le duel ; les quatre tickets). Elle s’ouvre
-     comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 13, un savepoint t’a permis d’annuler une partie d’une
-     transaction »), sur la base que le chapitre 13 laisse : onze tables. L’équipe logistique écrit par SMS : pour chaque commande, on
+     comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 14, un savepoint t’a permis d’annuler une partie d’une
+     transaction »), sur la base que le chapitre 14 laisse : onze tables. L’équipe logistique écrit par SMS : pour chaque commande, on
      répète les mêmes opérations. Moment 1 : l’élève range deux demandes (A : passer la commande 13 au statut « expédiée », une action ;
      B : calculer les points d’un achat de 80 €, une valeur). L’UPDATE de l’équipe pour la commande 13 devient la procédure stockée
      expedier_commande ; moment 2 : elle reçoit l’identifiant de la commande, son paramètre (ni le nom de la table, ni le mot UPDATE).
@@ -9273,10 +9297,10 @@ guide({ id:83, titre:"Procédures et fonctions stockées", résumé:"Réutiliser
   ]
 }),
 guide({ id:70, titre:"Les triggers", résumé:"Déclencher une action automatiquement",
-  /* Projet, chapitre 15, en vidéo interactive : l’animation (assets/anim/projet-trigger.html, moteur commun assets/anim/core.js)
+  /* Projet, chapitre 16, en vidéo interactive : l’animation (assets/anim/projet-trigger.html, moteur commun assets/anim/core.js)
      est le cours. La trame est celle d’Elisa (25 octobre, 20 h 52, « TRIGGER — Qui a changé le prix du collagène ? »), ses bulles
-     gardées mot pour mot, une phrase par bulle. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 14,
-     une procédure stockée t’a permis de réutiliser un traitement »), sur la base que le chapitre 14 laisse : onze tables (les commandes 13
+     gardées mot pour mot, une phrase par bulle. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 15,
+     une procédure stockée t’a permis de réutiliser un traitement »), sur la base que le chapitre 15 laisse : onze tables (les commandes 13
      et 14 y sont expédiées).
      1 · Qui a changé le prix ? La responsable commerciale écrit par SMS, avec les mots d’Elisa (« Le collagène est passé de 39,90 € à
      34,90 €, mais je ne retrouve pas la date du changement. Peux-tu faire en sorte que chaque modification de prix soit désormais
@@ -9310,11 +9334,11 @@ guide({ id:70, titre:"Les triggers", résumé:"Déclencher une action automatiqu
   ]
 }),
 guide({ id:71, titre:"Concurrence et isolation", résumé:"Gérer les accès simultanés",
-  /* Projet, chapitre 16, en vidéo interactive : l’animation (assets/anim/projet-concurrence.html, moteur commun assets/anim/core.js)
+  /* Projet, chapitre 17, en vidéo interactive : l’animation (assets/anim/projet-concurrence.html, moteur commun assets/anim/core.js)
      est le cours. La trame est celle d’Elisa (25 octobre, 20 h 52, « CONCURRENCE — Deux clients, une seule place » et « ISOLATION —
      Sécuriser la dernière place »), ses bulles gardées mot pour mot, une phrase par bulle, les prénoms complétés comme le veut sa charte
      (Léa Simon, la cliente 7 ; Nathan Petit, le client 4). Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au
-     chapitre 15, un trigger t’a permis de garder chaque changement de prix »), sur la base que le chapitre 15 laisse : douze tables, et
+     chapitre 16, un trigger t’a permis de garder chaque changement de prix »), sur la base que le chapitre 16 laisse : douze tables, et
      une nouvelle date de l’atelier Cuisine saine (l’atelier 6, le 14 novembre, avec Julie Nguyen). 1 · Deux clients, une seule place :
      l’équipe ateliers écrit par SMS, avec les mots d’Elisa (« Deux clients ont reçu une confirmation pour la dernière place de notre
      atelier. Peux-tu comprendre ce qui s’est passé et éviter que ça se reproduise ? ») ; la colonne places_restantes de la table ateliers
@@ -9347,11 +9371,11 @@ guide({ id:71, titre:"Concurrence et isolation", résumé:"Gérer les accès sim
 ]},
 { titre:"Vues, index et optimisation", sous:"Structurer et accélérer", lessons:[
 guide({ id:64, titre:"CREATE VIEW", résumé:"Enregistrer une requête sous un nom",
-  /* Projet, chapitre 17, en vidéo interactive : l’animation (assets/anim/projet-vue.html, moteur commun assets/anim/core.js) est le
+  /* Projet, chapitre 18, en vidéo interactive : l’animation (assets/anim/projet-vue.html, moteur commun assets/anim/core.js) est le
      cours. La trame est celle d’Elisa (26 octobre, 10 h 52, « CREATE VIEW — La sélection surprise dévoilée trop tôt »), ses bulles et
      ses messages gardés mot pour mot, une phrase par bulle ; la photo de la box est la sienne (11 h 16). Elle s’ouvre comme les autres
-     chapitres (« Depuis le chapitre 1… », « Au chapitre 16, un verrou a gardé la dernière place pour une seule réservation »), sur la
-     base que le chapitre 16 laisse : douze tables. 1 · La box surprise : NutriBoost prépare une box surprise ; une agence doit créer la
+     chapitres (« Depuis le chapitre 1… », « Au chapitre 17, un verrou a gardé la dernière place pour une seule réservation »), sur la
+     base que le chapitre 17 laisse : douze tables. 1 · La box surprise : NutriBoost prépare une box surprise ; une agence doit créer la
      page de présentation à partir du catalogue produits, sans recevoir ni les stocks ni les produits qui ne font pas partie de la
      sélection. Camille Roux, la responsable des opérations, écrit par SMS (« Salut ! L’agence prépare la page de notre prochaine box.
      Elle a besoin du nom, de la catégorie et du prix des produits sélectionnés. La sélection peut encore changer, donc évitons les
@@ -9388,11 +9412,11 @@ guide({ id:64, titre:"CREATE VIEW", résumé:"Enregistrer une requête sous un n
   ]
 }),
 guide({ id:57, titre:"Les index et EXPLAIN", résumé:"Accélérer une recherche et lire son plan",
-  /* Projet, chapitre 18, en vidéo interactive : l’animation (assets/anim/projet-index.html, moteur commun assets/anim/core.js) est le
+  /* Projet, chapitre 19, en vidéo interactive : l’animation (assets/anim/projet-index.html, moteur commun assets/anim/core.js) est le
      cours. La trame est celle d’Elisa (26 octobre, 10 h 52, « INDEX / EXPLAIN — La file d’attente s’allonge »), transposée à la
      préparation des commandes avec sa photo de remplacement (11 h 57 : le bon « Commande NB-10482 » et son QR code, « Recherche de la
      commande… ») ; ses bulles sont gardées mot pour mot, le billet devenant la commande. Elle s’ouvre comme les autres chapitres
-     (« Depuis le chapitre 1… », « Au chapitre 17, une vue a présenté la sélection de la box à l’agence »). 1 · La file d’attente
+     (« Depuis le chapitre 1… », « Au chapitre 18, une vue a présenté la sélection de la box à l’agence »). 1 · La file d’attente
      s’allonge : au service logistique, on scanne le QR code de chaque commande ; « Recherche de la commande… » reste affiché, la file des
      commandes à préparer s’allonge ; l’équipe logistique écrit par SMS (« On vient de lancer les expéditions du jour et la recherche des
      commandes est trop lente ! La table contient 500 000 commandes, y compris les anciennes. Peux-tu regarder ce qui se passe ? »).
@@ -9422,10 +9446,10 @@ guide({ id:57, titre:"Les index et EXPLAIN", résumé:"Accélérer une recherche
 ]},
 { titre:"Sécurité et droits", sous:"Contrôler les accès", lessons:[
 guide({ id:50, titre:"Sécurité et droits", résumé:"Contrôler les accès avec GRANT et REVOKE",
-  /* Projet, chapitre 19 (le dernier), en vidéo interactive : l’animation (assets/anim/projet-droits.html, moteur commun
+  /* Projet, chapitre 20 (le dernier), en vidéo interactive : l’animation (assets/anim/projet-droits.html, moteur commun
      assets/anim/core.js) est le cours. La trame est celle d’Elisa (26 octobre, 11 h 57, « Sécurité et droits — Un accès trop
      large »), ses bulles et ses messages gardés mot pour mot, une phrase par bulle ; la photo de Lina est la sienne. Elle s’ouvre
-     comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 18, un index a accéléré la recherche des commandes »).
+     comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 19, un index a accéléré la recherche des commandes »).
      1 · Un accès trop large : l’écran de gestion de NutriBoost (les commandes, les produits, les fiches clients) ; une nouvelle
      collègue doit préparer les colis ; avec un compte trop large, elle pourrait aussi, sans faire exprès, modifier les prix et supprimer des clients ;
      Camille Roux, responsable des opérations, écrit par SMS (« Bonjour ! Lina rejoint l’équipe pour nous aider à préparer les
@@ -9679,6 +9703,8 @@ const CARTES={
     m:"<code>ON</code> reconnaît la même ligne. <code>WHEN MATCHED</code> met à jour, <code>WHEN NOT MATCHED</code> ajoute ; une ligne absente de la source ne change pas. Dans SQLite : <code>INSERT … ON CONFLICT DO UPDATE</code>."},
  83:{k:"PROCÉDURE · FONCTION",t:"Réutiliser un traitement ou un calcul",s:"CALL expedier_commande(13);\n\nSELECT calculer_points(80);",
     m:"Une <b>procédure</b> exécute un traitement (<code>CALL</code>) ; une <b>fonction</b> renvoie une valeur, utilisable dans une requête. Les deux reçoivent des paramètres. Leur syntaxe dépend du SGBD ; SQLite n’en a pas."},
+ 84:{k:"SCHÉMA",t:"Ranger les tables par espace",s:"CREATE SCHEMA boutique;\n\nSELECT *\nFROM boutique.commandes;",
+    m:"Un <b>schéma</b> regroupe des tables. <code>schéma.table</code> est leur adresse : deux schémas peuvent avoir une table du même nom. Leur syntaxe dépend du SGBD ; SQLite range tout dans <code>main</code>."},
  50:{k:"GRANT / REVOKE",t:"Accorder uniquement les accès nécessaires",s:"GRANT SELECT ON commandes_expedition TO lina;\nGRANT UPDATE (statut) ON commandes TO lina;\n\nREVOKE SELECT ON commandes_expedition FROM lina;",
     m:"<code>GRANT</code> accorde un droit, <code>REVOKE</code> le retire (le compte se place après <code>FROM</code>). Un droit porte sur une vue, une table ou certaines colonnes. Principe : uniquement les accès nécessaires, revus quand une mission change ou se termine. Un SGBD serveur gère des comptes ; SQLite, non."}
 };
@@ -12741,6 +12767,7 @@ const SQ_ALIASES={
   61:'create table creer table creer une table structure types colonnes contraintes integer real text type de colonne primary key cle primaire not null obligatoire unique doublon default valeur par defaut check condition foreign key references cle etrangere ordre de creation schema.sql schema nutriboost coachs ateliers inscriptions cartes de membre',
   65:'alter table ajouter colonne modifier structure renommer add column rename column rename to drop column supprimer colonne default valeur par defaut null update structure ou valeurs faire evoluer les tables',
   66:'drop table supprimer une table retirer table delete from vider table copie fichier excel inscriptions_excel cle etrangere foreign key constraint failed no such table if exists drop table if exists table liee nom de table nutriboost serveur de test',
+  84:'schema schemas create schema espace espaces ranger organiser tables adresse schema.table nom complet meme nom set schema alter table main sqlite sgbd boutique bienetre',
   26:'insert into ajouter des lignes ligne insertion inserer values nouvelle ligne plusieurs lignes en une requete on conflict upsert do update do nothing doublon doublons conflit inscription inscriptions atelier carte pack seances colonne obligatoire not null unique ordre des valeurs valeurs inversees nutriboost',
   27:'update modifier mettre a jour set lignes valeurs changer where oubli du where sans where toutes les lignes select avant de modifier lire calculer valeur calculee ancienne valeur regle de la table check modification refusee atelier date carte cartes seances nutriboost',
   28:'delete from supprimer effacer lignes ligne supprimer une ligne where oubli du where sans where toutes les lignes vider une table vider table select avant de supprimer lire identifiant client_id plusieurs lignes annuler inscription inscriptions compte atelier nutriboost insert update',
@@ -15014,7 +15041,7 @@ function lvEnded(){
 }
 /* L’écran de fin du parcours SQL, après la vidéo de fin (Elisa, 27 octobre, 8 h 01) : « Bravo ! » dans la bulle, « Quel chemin parcouru ! »,
    ce que tu as fait (les mêmes nombres que la vidéo), puis « Découvrir les défis » (principal) et « Retour à l’accueil ». */
-const SQL_REQUETES=176;   // les requêtes différentes des cours : voir FSTAT dans assets/anim/fin-sql.html
+const SQL_REQUETES=184;   // les requêtes différentes des cours : voir FSTAT dans assets/anim/fin-sql.html
 function lvFinEndHtml(){
   const n=[[MODULES.length,'modules'],[TOTAL,'cours'],[SQL_REQUETES,'requêtes']];
   return `<div class="lv-fe" role="group" aria-labelledby="lv-fe-h">
@@ -15114,7 +15141,7 @@ function lvNotePlace(){
 }
 function lvNoteSync(){
   const N=LV&&LV.note; if(!N)return;
-  /* until : le bouton s’en va quand la vidéo continue après le résumé (chapitre 19 : la finale « Le chemin parcouru »). */
+  /* until : le bouton s’en va quand la vidéo continue après le résumé (chapitre 20 : la finale « Le chemin parcouru »). */
   /* La fin du bouton : celle que donne la page de l’animation (notesUntil), sinon celle de la fiche. */
   const V=LV.video, I=V.info, until=I&&I.notesUntil!=null?I.notesUntil:N.cfg.until;
   const on=!LV.root.classList.contains('is-end')&&!V.ended&&V.currentTime>=N.cfg.t&&(until==null||V.currentTime<until);
@@ -25758,7 +25785,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-30-procedures-v2186';
+  const SW_CACHE='requete-2026-10-30-schemas-v2187';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

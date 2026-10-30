@@ -1,4 +1,4 @@
-/* Projet NutriBoost, chapitre 16 (leçon 71 « Concurrence et isolation ») : la vidéo interactive assets/anim/projet-concurrence.html, testée aussi dans
+/* Projet NutriBoost, chapitre 17 (leçon 71 « Concurrence et isolation ») : la vidéo interactive assets/anim/projet-concurrence.html, testée aussi dans
    lesson-video.test.mjs. La trame est celle d’Elisa (25 octobre, 20 h 52, « CONCURRENCE — Deux clients, une seule place » et « ISOLATION — Sécuriser
    la dernière place ») : l’équipe ateliers écrit que deux clients ont reçu une confirmation pour la dernière place de l’atelier ; Léa Simon et Nathan
    Petit consultent la même page (« Plus qu’une place ! »), réservent au même moment, et les places restantes passent à -1. Rejouées avec un verrou
@@ -39,15 +39,15 @@ const instructions = () => sql('Q_RES').split(/;\n?/).map(s => s.trim()).filter(
 
 /* ---------- La base de la vidéo ---------- */
 const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(root, 'vendor/sqljs', f)});
-/* La base NutriBoost telle que le chapitre 15 la laisse (douze tables : la table historique_prix garde le changement de prix du collagène), avec la
+/* La base NutriBoost telle que le chapitre 16 la laisse (douze tables : la table historique_prix garde le changement de prix du collagène), avec la
    nouvelle date de l’atelier Cuisine saine programmée par l’équipe ateliers : l’atelier 6, le 14 novembre, avec Julie Nguyen (la coach 3), dans sa
    petite salle de 8 places ; la colonne places_restantes compte les places encore libres : il en reste 1. */
 function base() {
   const db = new SQL.Database();
   db.run(vm.runInContext('SCHEMA_SQL', ctx));
-  /* Le chapitre 10 (MERGE, 30 octobre) : l’inventaire de l’entrepôt met à jour la Fibre Prébiotique (150) et Oméga 3 (75), et ajoute la Spiruline Bio. */
+  /* Le chapitre 11 (MERGE, 30 octobre) : l’inventaire de l’entrepôt met à jour la Fibre Prébiotique (150) et Oméga 3 (75), et ajoute la Spiruline Bio. */
   db.run("UPDATE produits SET stock = 150 WHERE id = 1; UPDATE produits SET stock = 75 WHERE id = 7; INSERT INTO produits VALUES (9, 'Spiruline Bio', 'Nutrition', 22.90, 40);");
-  /* Le chapitre 14 (procédures et fonctions stockées, 30 octobre) : CALL expedier_commande(13), puis (14). */
+  /* Le chapitre 15 (procédures et fonctions stockées, 30 octobre) : CALL expedier_commande(13), puis (14). */
   db.run("UPDATE commandes SET statut = 'expédiée' WHERE id IN (13, 14);");
   db.run(`PRAGMA foreign_keys = ON;
     CREATE TABLE coachs (id INTEGER PRIMARY KEY, prenom TEXT NOT NULL, nom TEXT NOT NULL, email TEXT NOT NULL);
@@ -180,7 +180,7 @@ test('les phrases d’Elisa (25 octobre, 20 h 52) : sa trame, une phrase par bul
   assert.ok(page.includes('Elisa, 25 octobre, 20 h 52'), 'la page garde la trace de la trame d’Elisa');
 });
 
-test('la base du chapitre 15 : douze tables ; l’atelier 6 (l’atelier Cuisine saine du 14 novembre) n’a plus qu’une place', () => {
+test('la base du chapitre 16 : douze tables ; l’atelier 6 (l’atelier Cuisine saine du 14 novembre) n’a plus qu’une place', () => {
   const db = base(), TB = val('TB');
   assert.deepEqual(TB.map(t => t[3]), ['clients', 'commandes', 'fidelite', 'produits', 'coachs', 'ateliers', 'inscriptions', 'cartes', 'avis', 'remplacements', 'cadeaux', 'historique_prix']);
   assert.deepEqual(TB.map(t => t[3]).sort(), tables(db), 'aucune table de la base n’est oubliée à l’écran');
@@ -273,15 +273,15 @@ test('le message : l’équipe ateliers écrit par SMS ; l’app s’arrête sur
   assert.ok(page.includes('(MAILS[n][6] || {}).hello, (MAILS[n][6] || {}).photo, (MAILS[n][6] || {}).bye)'), 'la page passe au moteur la formule et la fin du SMS');
 });
 
-test('chapitre 16 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 16 : Concurrence et isolation</title>') && page.includes('<div class="tagpill">Projet · Chapitre 16</div>')
+test('chapitre 17 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
+  assert.ok(page.includes('<title>Requête · Projet, chapitre 17 : Concurrence et isolation</title>') && page.includes('<div class="tagpill">Projet · Chapitre 17</div>')
     && page.includes('<span>C</span><span>O</span><span>N</span><span>C</span><span>U</span><span>R</span><span>R</span><span>E</span><span>N</span><span>C</span><span>E</span>')
-    && page.includes('<div class="abs sub">Gérer les accès simultanés</div>'), 'écran titre : « Projet · Chapitre 16 », CONCURRENCE, « Gérer les accès simultanés »');
+    && page.includes('<div class="abs sub">Gérer les accès simultanés</div>'), 'écran titre : « Projet · Chapitre 17 », CONCURRENCE, « Gérer les accès simultanés »');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.');
-  assert.equal(caps[1], 'Au chapitre 15, un trigger<br>t’a permis de garder<br>chaque changement de prix.', 'le chapitre précédent');
+  assert.equal(caps[1], 'Au chapitre 16, un trigger<br>t’a permis de garder<br>chaque changement de prix.', 'le chapitre précédent');
   const tg = fs.readFileSync(path.join(root, 'assets/anim/projet-trigger.html'), 'utf8');
-  assert.ok(tg.includes('deux clients<br>réserveront la dernière place') && tg.includes('Prochaine leçon · Concurrence et isolation</span>'), 'le chapitre 15 annonce celui-ci');
+  assert.ok(tg.includes('deux clients<br>réserveront la dernière place') && tg.includes('Prochaine leçon · Concurrence et isolation</span>'), 'le chapitre 16 annonce celui-ci');
   assert.ok(caps.includes('Dans la prochaine leçon, tu découvriras<br>les vues : des requêtes enregistrées<br>sous un nom.') && page.includes('Prochaine leçon · CREATE VIEW</span>'), 'annonce de la prochaine leçon');
   assert.equal(caps[caps.length - 2], 'Pour finir, voici les <b>trois idées à retenir</b>.');
 });
