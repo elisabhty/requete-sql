@@ -1,6 +1,6 @@
 /* Un cours texte complet, gardé comme exemple pour les tests : l’ancienne leçon 64, CREATE VIEW en texte (situation, problème
    animé, mission, étapes avec leurs cadres Exécuter, carte « Mission accomplie » avec son dashboard, exercice), telle qu’elle était
-   jusqu’au 26 octobre 2026. Elle est devenue le chapitre 16 du projet, en vidéo (assets/anim/projet-vue.html) ; il ne reste presque
+   jusqu’au 26 octobre 2026. Elle est devenue le chapitre 17 du projet, en vidéo (assets/anim/projet-vue.html) ; il ne reste presque
    plus de cours texte dans l’app, mais le moteur des cours texte reste testé sur celui-ci (identifiant 964 : aucune leçon de l’app).
    Les tests l’évaluent dans le contexte de index.html : guide(…) renvoie la leçon. */
 guide({ id:964, titre:"CREATE VIEW", résumé:"Enregistrer une requête sous un nom",

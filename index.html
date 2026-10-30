@@ -9246,11 +9246,38 @@ guide({ id:63, titre:"SAVEPOINT", résumé:"Annuler une partie des modifications
 })
 ]},
 { titre:"Triggers et concurrence", sous:"Automatiser et isoler les écritures", lessons:[
+guide({ id:83, titre:"Procédures et fonctions stockées", résumé:"Réutiliser un traitement ou un calcul",
+  /* Projet, chapitre 14, en vidéo interactive : l’animation (assets/anim/projet-procedures.html, moteur commun assets/anim/core.js)
+     est le cours. Ajoutée le 30 octobre (le scénario d’Elisa : 18 h 02, les commandes affluent ; une action ou un calcul ; la procédure
+     expedier_commande et son paramètre ; la fonction calculer_points, 1 € dépensé = 2 points ; le duel ; les quatre tickets). Elle s’ouvre
+     comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 13, un savepoint t’a permis d’annuler une partie d’une
+     transaction »), sur la base que le chapitre 13 laisse : onze tables. L’équipe logistique écrit par SMS : pour chaque commande, on
+     répète les mêmes opérations. Moment 1 : l’élève range deux demandes (A : passer la commande 13 au statut « expédiée », une action ;
+     B : calculer les points d’un achat de 80 €, une valeur). L’UPDATE de l’équipe pour la commande 13 devient la procédure stockée
+     expedier_commande ; moment 2 : elle reçoit l’identifiant de la commande, son paramètre (ni le nom de la table, ni le mot UPDATE).
+     CALL expedier_commande(13), puis (14) : les commandes 13 et 14 passent à « expédiée » (les chapitres suivants ne s’en servent pas).
+     L’équipe fidélité écrit à son tour : la fonction stockée calculer_points renvoie le double du montant ; SELECT calculer_points(80)
+     renvoie 160 ; moment 3, un réglage : l’élève fait glisser le montant jusqu’à 240 points (120 €). Moments 4 et 5, le duel : la
+     commande 15 (une procédure), les points de 75 € (une fonction). Moment 6 : quatre tickets à ranger. Leur création dépend du SGBD :
+     une carte montre CREATE PROCEDURE et CREATE FUNCTION dans PostgreSQL ; SQLite, la base de l’app, n’en a pas. La fin annonce les
+     triggers. Six moments « À toi », comme aux chapitres du projet ; leçon seule : ni exercice ni quiz, validée avec 4 exercices
+     réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments ratés. */
+  leconSeule:true,
+  video:{anim:'assets/anim/projet-procedures.html?app&embed',thumb:'assets/anim/projet-procedures-thumb.webp',duree:'3 min 07',moments:6,seuil:4},
+  reflex:[
+    {recap:[
+      ["🛠️","Une <b>procédure stockée</b> exécute un traitement réutilisable.","Tu l’appelles avec <code>CALL</code> : <code>CALL expedier_commande(13);</code>"],
+      ["🧮","Une <b>fonction stockée</b> renvoie un résultat réutilisable.","Tu l’utilises dans une requête : <code>SELECT calculer_points(80);</code>"],
+      ["⚠️","Leur syntaxe <b>dépend du SGBD</b>.","Les deux reçoivent des paramètres. SQLite, la base de l’app, n’en a pas."]
+    ],label:"Les trois idées à retenir"}
+  ]
+}),
 guide({ id:70, titre:"Les triggers", résumé:"Déclencher une action automatiquement",
-  /* Projet, chapitre 14, en vidéo interactive : l’animation (assets/anim/projet-trigger.html, moteur commun assets/anim/core.js)
+  /* Projet, chapitre 15, en vidéo interactive : l’animation (assets/anim/projet-trigger.html, moteur commun assets/anim/core.js)
      est le cours. La trame est celle d’Elisa (25 octobre, 20 h 52, « TRIGGER — Qui a changé le prix du collagène ? »), ses bulles
-     gardées mot pour mot, une phrase par bulle. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 13,
-     un savepoint t’a permis d’annuler une partie d’une transaction »), sur la base que le chapitre 13 laisse : onze tables.
+     gardées mot pour mot, une phrase par bulle. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 14,
+     une procédure stockée t’a permis de réutiliser un traitement »), sur la base que le chapitre 14 laisse : onze tables (les commandes 13
+     et 14 y sont expédiées).
      1 · Qui a changé le prix ? La responsable commerciale écrit par SMS, avec les mots d’Elisa (« Le collagène est passé de 39,90 € à
      34,90 €, mais je ne retrouve pas la date du changement. Peux-tu faire en sorte que chaque modification de prix soit désormais
      conservée automatiquement ? ») ; la table produits ne garde que le prix actuel du collagène (le produit 2, Collagène Marin) :
@@ -9283,11 +9310,11 @@ guide({ id:70, titre:"Les triggers", résumé:"Déclencher une action automatiqu
   ]
 }),
 guide({ id:71, titre:"Concurrence et isolation", résumé:"Gérer les accès simultanés",
-  /* Projet, chapitre 15, en vidéo interactive : l’animation (assets/anim/projet-concurrence.html, moteur commun assets/anim/core.js)
+  /* Projet, chapitre 16, en vidéo interactive : l’animation (assets/anim/projet-concurrence.html, moteur commun assets/anim/core.js)
      est le cours. La trame est celle d’Elisa (25 octobre, 20 h 52, « CONCURRENCE — Deux clients, une seule place » et « ISOLATION —
      Sécuriser la dernière place »), ses bulles gardées mot pour mot, une phrase par bulle, les prénoms complétés comme le veut sa charte
      (Léa Simon, la cliente 7 ; Nathan Petit, le client 4). Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au
-     chapitre 14, un trigger t’a permis de garder chaque changement de prix »), sur la base que le chapitre 14 laisse : douze tables, et
+     chapitre 15, un trigger t’a permis de garder chaque changement de prix »), sur la base que le chapitre 15 laisse : douze tables, et
      une nouvelle date de l’atelier Cuisine saine (l’atelier 6, le 14 novembre, avec Julie Nguyen). 1 · Deux clients, une seule place :
      l’équipe ateliers écrit par SMS, avec les mots d’Elisa (« Deux clients ont reçu une confirmation pour la dernière place de notre
      atelier. Peux-tu comprendre ce qui s’est passé et éviter que ça se reproduise ? ») ; la colonne places_restantes de la table ateliers
@@ -9320,11 +9347,11 @@ guide({ id:71, titre:"Concurrence et isolation", résumé:"Gérer les accès sim
 ]},
 { titre:"Vues, index et optimisation", sous:"Structurer et accélérer", lessons:[
 guide({ id:64, titre:"CREATE VIEW", résumé:"Enregistrer une requête sous un nom",
-  /* Projet, chapitre 16, en vidéo interactive : l’animation (assets/anim/projet-vue.html, moteur commun assets/anim/core.js) est le
+  /* Projet, chapitre 17, en vidéo interactive : l’animation (assets/anim/projet-vue.html, moteur commun assets/anim/core.js) est le
      cours. La trame est celle d’Elisa (26 octobre, 10 h 52, « CREATE VIEW — La sélection surprise dévoilée trop tôt »), ses bulles et
      ses messages gardés mot pour mot, une phrase par bulle ; la photo de la box est la sienne (11 h 16). Elle s’ouvre comme les autres
-     chapitres (« Depuis le chapitre 1… », « Au chapitre 15, un verrou a gardé la dernière place pour une seule réservation »), sur la
-     base que le chapitre 15 laisse : douze tables. 1 · La box surprise : NutriBoost prépare une box surprise ; une agence doit créer la
+     chapitres (« Depuis le chapitre 1… », « Au chapitre 16, un verrou a gardé la dernière place pour une seule réservation »), sur la
+     base que le chapitre 16 laisse : douze tables. 1 · La box surprise : NutriBoost prépare une box surprise ; une agence doit créer la
      page de présentation à partir du catalogue produits, sans recevoir ni les stocks ni les produits qui ne font pas partie de la
      sélection. Camille Roux, la responsable des opérations, écrit par SMS (« Salut ! L’agence prépare la page de notre prochaine box.
      Elle a besoin du nom, de la catégorie et du prix des produits sélectionnés. La sélection peut encore changer, donc évitons les
@@ -9361,11 +9388,11 @@ guide({ id:64, titre:"CREATE VIEW", résumé:"Enregistrer une requête sous un n
   ]
 }),
 guide({ id:57, titre:"Les index et EXPLAIN", résumé:"Accélérer une recherche et lire son plan",
-  /* Projet, chapitre 17, en vidéo interactive : l’animation (assets/anim/projet-index.html, moteur commun assets/anim/core.js) est le
+  /* Projet, chapitre 18, en vidéo interactive : l’animation (assets/anim/projet-index.html, moteur commun assets/anim/core.js) est le
      cours. La trame est celle d’Elisa (26 octobre, 10 h 52, « INDEX / EXPLAIN — La file d’attente s’allonge »), transposée à la
      préparation des commandes avec sa photo de remplacement (11 h 57 : le bon « Commande NB-10482 » et son QR code, « Recherche de la
      commande… ») ; ses bulles sont gardées mot pour mot, le billet devenant la commande. Elle s’ouvre comme les autres chapitres
-     (« Depuis le chapitre 1… », « Au chapitre 16, une vue a présenté la sélection de la box à l’agence »). 1 · La file d’attente
+     (« Depuis le chapitre 1… », « Au chapitre 17, une vue a présenté la sélection de la box à l’agence »). 1 · La file d’attente
      s’allonge : au service logistique, on scanne le QR code de chaque commande ; « Recherche de la commande… » reste affiché, la file des
      commandes à préparer s’allonge ; l’équipe logistique écrit par SMS (« On vient de lancer les expéditions du jour et la recherche des
      commandes est trop lente ! La table contient 500 000 commandes, y compris les anciennes. Peux-tu regarder ce qui se passe ? »).
@@ -9395,10 +9422,10 @@ guide({ id:57, titre:"Les index et EXPLAIN", résumé:"Accélérer une recherche
 ]},
 { titre:"Sécurité et droits", sous:"Contrôler les accès", lessons:[
 guide({ id:50, titre:"Sécurité et droits", résumé:"Contrôler les accès avec GRANT et REVOKE",
-  /* Projet, chapitre 18 (le dernier), en vidéo interactive : l’animation (assets/anim/projet-droits.html, moteur commun
+  /* Projet, chapitre 19 (le dernier), en vidéo interactive : l’animation (assets/anim/projet-droits.html, moteur commun
      assets/anim/core.js) est le cours. La trame est celle d’Elisa (26 octobre, 11 h 57, « Sécurité et droits — Un accès trop
      large »), ses bulles et ses messages gardés mot pour mot, une phrase par bulle ; la photo de Lina est la sienne. Elle s’ouvre
-     comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 17, un index a accéléré la recherche des commandes »).
+     comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 18, un index a accéléré la recherche des commandes »).
      1 · Un accès trop large : l’écran de gestion de NutriBoost (les commandes, les produits, les fiches clients) ; une nouvelle
      collègue doit préparer les colis ; avec un compte trop large, elle pourrait aussi, sans faire exprès, modifier les prix et supprimer des clients ;
      Camille Roux, responsable des opérations, écrit par SMS (« Bonjour ! Lina rejoint l’équipe pour nous aider à préparer les
@@ -9650,6 +9677,8 @@ const CARTES={
     m:"Définitif. Même garde-fou que UPDATE. Attention aux orphelins dans les tables liées."},
  82:{k:"MERGE",t:"Synchroniser deux tables",s:"MERGE INTO produits\nUSING entrepot\nON produits.id = entrepot.id\nWHEN MATCHED THEN\n  UPDATE\n  SET stock = entrepot.stock\nWHEN NOT MATCHED THEN\n  INSERT (id, nom, stock)\n  VALUES (entrepot.id, entrepot.nom, entrepot.stock);",
     m:"<code>ON</code> reconnaît la même ligne. <code>WHEN MATCHED</code> met à jour, <code>WHEN NOT MATCHED</code> ajoute ; une ligne absente de la source ne change pas. Dans SQLite : <code>INSERT … ON CONFLICT DO UPDATE</code>."},
+ 83:{k:"PROCÉDURE · FONCTION",t:"Réutiliser un traitement ou un calcul",s:"CALL expedier_commande(13);\n\nSELECT calculer_points(80);",
+    m:"Une <b>procédure</b> exécute un traitement (<code>CALL</code>) ; une <b>fonction</b> renvoie une valeur, utilisable dans une requête. Les deux reçoivent des paramètres. Leur syntaxe dépend du SGBD ; SQLite n’en a pas."},
  50:{k:"GRANT / REVOKE",t:"Accorder uniquement les accès nécessaires",s:"GRANT SELECT ON commandes_expedition TO lina;\nGRANT UPDATE (statut) ON commandes TO lina;\n\nREVOKE SELECT ON commandes_expedition FROM lina;",
     m:"<code>GRANT</code> accorde un droit, <code>REVOKE</code> le retire (le compte se place après <code>FROM</code>). Un droit porte sur une vue, une table ou certaines colonnes. Principe : uniquement les accès nécessaires, revus quand une mission change ou se termine. Un SGBD serveur gère des comptes ; SQLite, non."}
 };
@@ -12719,6 +12748,7 @@ const SQ_ALIASES={
   68:'on delete cascade set null restrict supprimer lignes liees cle etrangere foreign key constraint failed suppression refusee client compte avis ancien client feuille table avis not null create table regle detacher nutriboost',
   62:'transaction transactions begin transaction start transaction commit rollback valider annuler modifications ensemble non valide definitives stock remplacement table remplacements shaker colis personnalisation prenom not null constraint failed nutriboost',
   63:'savepoint point de retour point de sauvegarde rollback to savepoint rollback to annuler une partie partiel transaction repere historique cadeau cadeaux tisane proteine proteine vegetale remplacement colis commit nutriboost',
+  83:'procedure procedures stockee stockees fonction fonctions stockees call create procedure create function parametre parametres reutiliser traitement calcul expedier commande calculer points fidelite returns sgbd postgresql',
   70:'trigger triggers declencheur declencher automatiquement action evenement after update on when old new current_timestamp create trigger garder_prix historique historique_prix prix collagene changement responsable commerciale stock nutriboost',
   71:'concurrence isolation verrou verrouiller lock for update select for update transaction begin commit rollback reservation derniere place places restantes places_restantes atelier cuisine saine acces simultanes simultane inscription conflit nutriboost',
   64:'create view vue vues requete enregistree sous un nom nommer as select from where catalogue_box catalogue box surprise selection selection_box agence colonnes lignes consulter consultation donnees actuelles recreer droits acces camille produits tisane proteine magnesium karim developpeur nutriboost',
@@ -14984,7 +15014,7 @@ function lvEnded(){
 }
 /* L’écran de fin du parcours SQL, après la vidéo de fin (Elisa, 27 octobre, 8 h 01) : « Bravo ! » dans la bulle, « Quel chemin parcouru ! »,
    ce que tu as fait (les mêmes nombres que la vidéo), puis « Découvrir les défis » (principal) et « Retour à l’accueil ». */
-const SQL_REQUETES=169;   // les requêtes différentes des cours : voir FSTAT dans assets/anim/fin-sql.html
+const SQL_REQUETES=176;   // les requêtes différentes des cours : voir FSTAT dans assets/anim/fin-sql.html
 function lvFinEndHtml(){
   const n=[[MODULES.length,'modules'],[TOTAL,'cours'],[SQL_REQUETES,'requêtes']];
   return `<div class="lv-fe" role="group" aria-labelledby="lv-fe-h">
@@ -15084,7 +15114,7 @@ function lvNotePlace(){
 }
 function lvNoteSync(){
   const N=LV&&LV.note; if(!N)return;
-  /* until : le bouton s’en va quand la vidéo continue après le résumé (chapitre 18 : la finale « Le chemin parcouru »). */
+  /* until : le bouton s’en va quand la vidéo continue après le résumé (chapitre 19 : la finale « Le chemin parcouru »). */
   /* La fin du bouton : celle que donne la page de l’animation (notesUntil), sinon celle de la fiche. */
   const V=LV.video, I=V.info, until=I&&I.notesUntil!=null?I.notesUntil:N.cfg.until;
   const on=!LV.root.classList.contains('is-end')&&!V.ended&&V.currentTime>=N.cfg.t&&(until==null||V.currentTime<until);
@@ -25728,7 +25758,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-30-couleurs-v2185';
+  const SW_CACHE='requete-2026-10-30-procedures-v2186';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

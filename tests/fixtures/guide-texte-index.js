@@ -1,6 +1,6 @@
 /* Un cours texte complet, gardé comme exemple pour les tests : l’ancienne leçon 57, Les index et EXPLAIN en texte (la commande
    retrouvée par son numéro, l’objet à thème « outil interne » de la carte « Mission accomplie », la ligne du plan, le tampon
-   « Accès direct »), telle qu’elle était jusqu’au 26 octobre 2026. Elle est devenue le chapitre 17 du projet, en vidéo
+   « Accès direct »), telle qu’elle était jusqu’au 26 octobre 2026. Elle est devenue le chapitre 18 du projet, en vidéo
    (assets/anim/projet-index.html) ; le moteur des cours texte reste testé sur celui-ci (identifiant 957 : aucune leçon de l’app).
    Les tests l’évaluent dans le contexte de index.html : guide(…) renvoie la leçon. */
 guide({ id:957, titre:"Les index et EXPLAIN", résumé:"Accélérer une recherche et lire son plan",

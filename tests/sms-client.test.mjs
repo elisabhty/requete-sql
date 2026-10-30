@@ -63,7 +63,7 @@ test('la première bulle : « Bonjour, » par défaut ; la page peut choisir la 
 });
 
 test('un message sans formule (hello: null) : la conversation commence par la première phrase, la bannière aussi, et tout se lit', () => {
-  /* Elisa, 26 octobre, 10 h 52 (chapitre 16) : le second message de Camille commence directement, « Petit changement : … ». */
+  /* Elisa, 26 octobre, 10 h 52 (chapitre 17) : le second message de Camille commence directement, « Petit changement : … ». */
   const body = ['Petit changement : on remplace finalement la tisane par le magnésium.', 'Il faut recréer la vue ?'];
   assert.deepEqual([...S.smsParts(body, null, null)], body, 'ni « Bonjour, » ni « Merci ! »');
   assert.deepEqual([...S.smsParts(body, null)], [...body, 'Merci !'], 'sans formule, mais avec « Merci ! »');
@@ -74,7 +74,7 @@ test('un message sans formule (hello: null) : la conversation commence par la pr
   assert.ok(!S.smsCard(1, 'k-pr', 'Camille', 'Roux', 'CR', body, false, 0, 'Salut !').includes('data-hi'), 'avec une formule, rien ne change');
 });
 
-test('une collègue sans nom de famille (Lina, chapitre 18) : son prénom seul, sans espace de trop', () => {
+test('une collègue sans nom de famille (Lina, chapitre 19) : son prénom seul, sans espace de trop', () => {
   /* Elisa, 26 octobre, 11 h 57 : « Message de Lina » ; son badge ne porte que son prénom. */
   const body = ['Je peux consulter les expéditions !', 'Le colis de Léa Simon est prêt.'];
   const h = S.smsCard(2, 'k-in', 'Lina', '', 'L', body, false, 0, null, undefined, null);
@@ -213,11 +213,11 @@ for (const f of AVEC_SMS) {
     assert.ok(R.rendEnSms(src), 'smsCard pour un SMS, smsIn dans mailIn');
     assert.ok(/isSms\(tag, MAILS\[n\]\[6\]\) \? smsCard\(n \+ 1, k, /.test(src) && /function mailIn\(n, t, T\)\{\n  if \(isSms\(MAILS\[n - 1\]\[2\], MAILS\[n - 1\]\[6\]\)\) \{ if \(!APP\) fingerTap\(\$\('#ml' \+ n\), T\); return smsIn\(n, t, T/.test(src), 'même câblage dans chaque page');
     /* Une page qui a aussi un mail (coach, équipe, service client sans option) garde son code : avatar à enveloppe, adresse, signature.
-       Le chapitre 10 (l’équipe logistique, le 30 octobre) et les chapitres 12 à 18 n’ont que des SMS (Léa Simon, puis le service client ; deux fois le service client ; la responsable commerciale ;
+       Le chapitre 10 (l’équipe logistique, le 30 octobre) et les chapitres 12 à 19 n’ont que des SMS (Léa Simon, puis le service client ; deux fois le service client ; la responsable commerciale ;
        l’équipe ateliers ; deux fois Camille, la responsable de la box ; l’équipe logistique ; Camille Roux, responsable des opérations, puis Lina,
        puis Camille Roux de nouveau) : ils n’embarquent pas le code du mail. */
     if (M.some(m => !estSms(m))) assert.ok(src.includes('<i class="mav">') && src.includes('Nouveau mail'), 'la carte de mail existe toujours');
-    else assert.ok(!src.includes('Nouveau mail') && ['projet-merge.html', 'projet-transaction.html', 'projet-savepoint.html', 'projet-trigger.html', 'projet-concurrence.html', 'projet-vue.html', 'projet-index.html', 'projet-droits.html'].includes(f), 'que des SMS : aux chapitres 10 et 12 à 18 seulement, sans le code du mail');
+    else assert.ok(!src.includes('Nouveau mail') && ['projet-merge.html', 'projet-procedures.html', 'projet-transaction.html', 'projet-savepoint.html', 'projet-trigger.html', 'projet-concurrence.html', 'projet-vue.html', 'projet-index.html', 'projet-droits.html'].includes(f), 'que des SMS : aux chapitres 10 et 12 à 19 seulement, sans le code du mail');
     /* L’app s’arrête sur la notification : « Touche le message… » pour un client, « Touche le mail… » sinon. */
     assert.ok(/msg = (?:\/\^client\/\.test\(MAILS\[n\]\[2\]\) \|\| \(MAILS\[n\]\[6\] \|\| \{\}\)\.sms|mailSms\(n\)) \? 'message' : 'mail'/.test(src) && src.includes('prompt: `Touche le ${msg} pour l’ouvrir.`') && src.includes('label: `Ouvrir le ${msg} '), 'consigne et étiquette du toucher');
   });

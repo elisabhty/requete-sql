@@ -1,4 +1,4 @@
-/* Projet NutriBoost, chapitre 18 (leçon 50 « Sécurité et droits ») : la vidéo interactive assets/anim/projet-droits.html, testée aussi dans
+/* Projet NutriBoost, chapitre 19 (leçon 50 « Sécurité et droits ») : la vidéo interactive assets/anim/projet-droits.html, testée aussi dans
    lesson-video.test.mjs. La trame est celle d’Elisa (26 octobre, 11 h 57, « Sécurité et droits — Un accès trop large »), le dernier chapitre
    du projet, avec sa photo de Lina : Lina rejoint l’équipe pour un mois ; la vue commandes_expedition présente les quatre colonnes utiles à la
    préparation des colis ; GRANT SELECT lui ouvre la vue, GRANT UPDATE (statut) la seule colonne statut de la table commandes ; sa tentative de
@@ -35,16 +35,18 @@ const Q = vm.createContext({});
 vm.runInContext([...page.matchAll(/^const Q_[A-Z0-9]+ = [\s\S]*?\]\];$/gm)].map(m => m[0]).join('\n') + ';this.Q = {Q_GSEL, Q_GUPD, Q_LINA, Q_REV};', Q);
 const sql = q => Q.Q[q].map(([s]) => s).filter(s => !s.trim().startsWith('--')).join('\n').replace(/\{\w+\|([^{}]*)\}/g, '$1');
 
-/* ---------- La base du projet, telle que le chapitre 17 la laisse ---------- */
+/* ---------- La base du projet, telle que le chapitre 18 la laisse ---------- */
 const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(root, 'vendor/sqljs', f)});
-/* Les tables des chapitres 1 à 16 (comme dans tests/index-lesson.test.mjs), puis les commandes du jour du chapitre 17 (NB-10001 à NB-10490 :
+/* Les tables des chapitres 1 à 17 (comme dans tests/index-lesson.test.mjs), puis les commandes du jour du chapitre 18 (NB-10001 à NB-10490 :
    NB-10482 est celle de Léa Simon, la cliente 7 ; NB-10483 celle de Nathan Petit, le client 4). Les 499 510 anciennes commandes de 2019
-   à 2025, sans rôle ici, ne sont pas recréées : leur nombre est vérifié contre celui du chapitre 17. Puis la vue commandes_expedition. */
+   à 2025, sans rôle ici, ne sont pas recréées : leur nombre est vérifié contre celui du chapitre 18. Puis la vue commandes_expedition. */
 function base() {
   const db = new SQL.Database();
   db.run(vm.runInContext('SCHEMA_SQL', ctx));
   /* Le chapitre 10 (MERGE, 30 octobre) : l’inventaire de l’entrepôt met à jour la Fibre Prébiotique (150) et Oméga 3 (75), et ajoute la Spiruline Bio. */
   db.run("UPDATE produits SET stock = 150 WHERE id = 1; UPDATE produits SET stock = 75 WHERE id = 7; INSERT INTO produits VALUES (9, 'Spiruline Bio', 'Nutrition', 22.90, 40);");
+  /* Le chapitre 14 (procédures et fonctions stockées, 30 octobre) : CALL expedier_commande(13), puis (14). */
+  db.run("UPDATE commandes SET statut = 'expédiée' WHERE id IN (13, 14);");
   db.run(`PRAGMA foreign_keys = ON;
     CREATE TABLE coachs (id INTEGER PRIMARY KEY, prenom TEXT NOT NULL, nom TEXT NOT NULL, email TEXT NOT NULL);
     CREATE TABLE ateliers (id INTEGER PRIMARY KEY, titre TEXT NOT NULL, date_atelier DATE, coach_id INTEGER NOT NULL REFERENCES coachs(id), places INTEGER DEFAULT 12);
@@ -245,15 +247,15 @@ test('les commandes de la trame : GRANT SELECT sur la vue, GRANT UPDATE (statut)
 });
 
 test('la base, rejouée dans SQLite : la vue commandes_expedition, les commandes de Léa Simon et de Nathan Petit, le prix du Collagène Marin', () => {
-  /* Les douze tables de la base, comme au chapitre 17 */
+  /* Les douze tables de la base, comme au chapitre 18 */
   const TB = val('TB');
   const tables = DB.exec("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name")[0].values.map(r => r[0]);
   assert.deepEqual(TB.map(t => t[3]).sort(), tables, 'aucune table de la base n’est oubliée à l’écran (les vues et l’index n’en sont pas)');
   for (const [, , , name, n] of TB) if (name !== 'commandes') assert.equal(count(DB, name), n, `${name} : ${n} lignes`);
   const ix = fs.readFileSync(path.join(root, 'assets/anim/projet-index.html'), 'utf8');
   const TB16 = vm.runInContext(ix.slice(ix.indexOf('const TB = ['), ix.indexOf('];', ix.indexOf('const TB = [')) + 2) + ';TB', vm.createContext({}));
-  assert.equal(JSON.stringify(TB), JSON.stringify(TB16), 'la base telle que le chapitre 17 la laisse : 500 000 commandes');
-  /* La vue : ses quatre colonnes, et les deux commandes que Lina prépare (celles du chapitre 17) */
+  assert.equal(JSON.stringify(TB), JSON.stringify(TB16), 'la base telle que le chapitre 18 la laisse : 500 000 commandes');
+  /* La vue : ses quatre colonnes, et les deux commandes que Lina prépare (celles du chapitre 18) */
   const v = DB.exec("SELECT * FROM commandes_expedition WHERE numero_commande IN ('NB-10482', 'NB-10483') ORDER BY numero_commande")[0];
   assert.deepEqual(v.columns, val('VCOLS'));
   assert.deepEqual(v.values, val('VUE'), 'NB-10482 · Léa Simon · 41 avenue Jaurès, Paris ; NB-10483 · Nathan Petit · 5 rue Victor Hugo, Paris');
@@ -264,22 +266,22 @@ test('la base, rejouée dans SQLite : la vue commandes_expedition, les commandes
   assert.ok(DB.exec("SELECT COUNT(*) FROM commandes WHERE statut = 'expédiée'")[0].values[0][0] > 1, '« expédiée », comme les autres commandes expédiées');
   /* Les sept colonnes de la table commandes ; UPDATE (statut) n’en ouvre qu’une */
   assert.deepEqual(DB.exec("SELECT name FROM pragma_table_info('commandes')")[0].values.map(r => r[0]), val('CMCOLS'));
-  /* La requête de Lina vise le Collagène Marin, à 34,90 € depuis le chapitre 14 ; refusée, le prix reste inchangé */
+  /* La requête de Lina vise le Collagène Marin, à 34,90 € depuis le chapitre 15 ; refusée, le prix reste inchangé */
   assert.deepEqual(DB.exec('SELECT id, nom, prix FROM produits WHERE id = 2')[0].values, [[2, 'Collagène Marin', 34.9]]);
   assert.deepEqual(val('PROD'), {id: 2, nom: 'Collagène Marin', prix: '34,90 €'});
   assert.deepEqual(DB.exec('SELECT prix FROM produits WHERE id = 3')[0].values, [[19.9]], 'le Magnésium, sur l’écran de gestion : 19,90 €');
   assert.ok(page.includes("gsr('<b>Magnésium</b><span class=\"pz\">19,90 €</span>')"));
 });
 
-test('chapitre 18 : écran titre, ouverture comme aux autres chapitres, la photo d’Elisa, puis la fin du projet', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 18 : Sécurité et droits</title>') && page.includes('<div class="tagpill">Projet · Chapitre 18</div>')
+test('chapitre 19 : écran titre, ouverture comme aux autres chapitres, la photo d’Elisa, puis la fin du projet', () => {
+  assert.ok(page.includes('<title>Requête · Projet, chapitre 19 : Sécurité et droits</title>') && page.includes('<div class="tagpill">Projet · Chapitre 19</div>')
     && page.includes('<span>G</span><span>R</span><span>A</span><span>N</span><span class="sp">T</span><span>R</span><span>E</span><span>V</span><span>O</span><span>K</span><span>E</span>')
-    && page.includes('<div class="abs sub">Contrôler les accès avec GRANT et REVOKE</div>'), 'écran titre : « Projet · Chapitre 18 », GRANT REVOKE, le résumé de la leçon');
+    && page.includes('<div class="abs sub">Contrôler les accès avec GRANT et REVOKE</div>'), 'écran titre : « Projet · Chapitre 19 », GRANT REVOKE, le résumé de la leçon');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.');
-  assert.equal(caps[1], 'Au chapitre 17, un index a accéléré<br>la recherche des commandes.', 'le chapitre précédent');
+  assert.equal(caps[1], 'Au chapitre 18, un index a accéléré<br>la recherche des commandes.', 'le chapitre précédent');
   const ix = fs.readFileSync(path.join(root, 'assets/anim/projet-index.html'), 'utf8');
-  assert.ok(ix.includes('Dans la prochaine leçon,<br>une nouvelle collègue aura besoin<br>des bons accès.') && ix.includes('Prochaine leçon · Sécurité et droits</span>'), 'le chapitre 17 annonce celui-ci');
+  assert.ok(ix.includes('Dans la prochaine leçon,<br>une nouvelle collègue aura besoin<br>des bons accès.') && ix.includes('Prochaine leçon · Sécurité et droits</span>'), 'le chapitre 18 annonce celui-ci');
   /* Le compte trop large, au conditionnel : son compte ne dispose encore d’aucun accès aux tables (la précision d’Elisa, plus loin) */
   assert.ok(caps.includes('Mais avec un compte trop large,<br>elle pourrait aussi, sans faire exprès,<br>modifier les prix, supprimer des clients.'));
   /* Le dernier chapitre : pas de prochaine leçon, la fin du projet */
@@ -330,8 +332,8 @@ test('zones à toucher : les accès de la fiche font 100 px, les parties de la c
 
 test('ce qu’est une vue, et à quoi elle sert ; les interrupteurs ne passent au vert qu’avec GRANT (Elisa, 26 octobre, 22 h 30)', () => {
   const lus = val('CAPTIONS').map(c => strip(c[2]));
-  const i = lus.indexOf('Tu réutilises ici la notion de vue, découverte au chapitre 16.');
-  assert.deepEqual(lus.slice(i, i + 8), ['Tu réutilises ici la notion de vue, découverte au chapitre 16.', 'Une vue est une requête enregistrée sous un nom.',
+  const i = lus.indexOf('Tu réutilises ici la notion de vue, découverte au chapitre 17.');
+  assert.deepEqual(lus.slice(i, i + 8), ['Tu réutilises ici la notion de vue, découverte au chapitre 17.', 'Une vue est une requête enregistrée sous un nom.',
     'Les informations utiles à Lina sont dans la table commandes et la table clients.', 'Ces tables contiennent aussi des données qu’elle n’a pas à voir, comme l’e-mail ou le téléphone.',
     'Une vue lui montre uniquement le nécessaire, sans lui ouvrir les tables entières.', 'Une vue commandes_expedition a été préparée.',
     'Elle contient uniquement ces quatre colonnes.', 'La vue ne copie pas les données : elle les lit dans les tables à chaque consultation.']);
@@ -370,9 +372,9 @@ test('la vidéo de fin (fin-sql.html) : le bravo du projet, le merci des équipe
   assert.ok(fin.includes("'Avant ton départ, toute l’équipe tenait à te dire merci 💜'") && fin.includes("'Tu peux être fier du chemin parcouru ! 💜'") && !fin.includes("'Ta mission touche à sa fin.'"), 'le merci des équipes');
   assert.ok(fin.includes("'Bonjour à toute l’équipe,'") && fin.includes("'À bientôt 👋'"), 'ta réponse, mot pour mot');
   assert.ok(fin.includes("sel: '#gnb'") && fin.includes("sel: '#bsend'"), 'l’app s’arrête sur le message, puis sur « Envoyer »');
-  assert.ok(fin.includes("cap('k3', \"15 modules, 63 cours<br>et 169 requêtes SQL.\", 4.8);") && fin.includes("const FSTAT = [[15, 'modules'], [63, 'cours'], [169, 'requêtes']];"),
-    'le nombre de requêtes des cours (plus « 18 chapitres », déjà parmi les 63 cours ; le cours MERGE en ajoute trois, le 30 octobre)');
-  /* Plus aucun exercice dans les cours (Elisa, 28 octobre) : les 169 requêtes sont celles des vidéos */
+  assert.ok(fin.includes("cap('k3', \"15 modules, 64 cours<br>et 176 requêtes SQL.\", 4.8);") && fin.includes("const FSTAT = [[15, 'modules'], [64, 'cours'], [176, 'requêtes']];"),
+    'le nombre de requêtes des cours (plus « 19 chapitres », déjà parmi les 64 cours ; le 30 octobre, le cours MERGE en ajoute trois, Procédures et fonctions stockées sept)');
+  /* Plus aucun exercice dans les cours (Elisa, 28 octobre) : les 176 requêtes sont celles des vidéos */
   const M = html.slice(html.indexOf('const MODULES = ['), html.indexOf('const CHALLENGES=['));
   assert.equal(new Set([...M.matchAll(/\n  solution:"((?:[^"\\]|\\.)*)"/g)].map(m => m[1])).size, 0, 'plus de requête d’exercice');
   assert.ok(fin.includes("cap('k5', \"Et maintenant, place à la pratique :<br>des défis t’attendent !\", 4.6);"), 'et maintenant, la pratique');
@@ -386,6 +388,6 @@ test('la vidéo de fin (fin-sql.html) : le bravo du projet, le merci des équipe
     && fe.includes('<p>Tu as terminé ton parcours SQL. Prends un instant pour découvrir tout ce que tu as appris.</p>'), 'ses mots');
   assert.ok(fe.includes('Découvrir les défis</button>') && fe.includes('<button type="button" class="lv-fe-home">Retour à l’accueil</button>'), 'ses deux boutons');
   assert.ok(html.includes("end.querySelector('.lv-fe-go').addEventListener('click',()=>lvFinLeave('defis'));") && html.includes("end.querySelector('.lv-fe-home').addEventListener('click',()=>lvFinLeave('learn'));"), 'les défis, ou l’accueil');
-  assert.ok(html.includes('const SQL_REQUETES=169;') && fin.includes("[169, 'requêtes']"), 'les mêmes nombres que la vidéo');
+  assert.ok(html.includes('const SQL_REQUETES=176;') && fin.includes("[176, 'requêtes']"), 'les mêmes nombres que la vidéo');
   assert.ok(html.includes('if(!LV||LV.fin)return;'), 'pas de point de reprise pour la fin');
 });

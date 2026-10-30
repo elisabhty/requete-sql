@@ -192,11 +192,11 @@ test('moment 5 et l’exécution : le Magnésium reste tel quel ; 3 lignes trait
   assert.deepEqual(produits(lite), attendu, 'INSERT … ON CONFLICT : la même table que MERGE');
   assert.throws(() => avecInventaire().run(SQLITE.replace(' WHERE true', '')), /syntax error/, 'WHERE true est obligatoire dans cette forme');
   assert.ok(page.includes("b += out('o-run', 'ok', 'Requête exécutée', '3 lignes traitées : 2 modifiées, 1 ajoutée.');"));
-  /* Les stocks que les chapitres 12 à 14 reprennent ne bougent pas : collagène 80, tisane 60, protéine 45, shaker 30. */
+  /* Les stocks que les chapitres 12 à 15 reprennent ne bougent pas : collagène 80, tisane 60, protéine 45, shaker 30. */
   for (const [id, n] of [[2, 80], [5, 60], [6, 45], [8, 30]]) assert.equal(attendu[id - 1][4], n);
   const vue = fs.readFileSync(path.join(root, 'assets/anim/projet-vue.html'), 'utf8');
   assert.ok(vue.includes("[1, 'Fibre Prébiotique', 'Bien-être', '29.90', 150, 0, 0],") && vue.includes("[7, 'Oméga 3', 'Bien-être', '24.90', 75, 0, 0],")
-    && vue.includes("[9, 'Spiruline Bio', 'Nutrition', '22.90', 40, 0, 0]"), 'le catalogue du chapitre 16 suit la synchronisation');
+    && vue.includes("[9, 'Spiruline Bio', 'Nutrition', '22.90', 40, 0, 0]"), 'le catalogue du chapitre 17 suit la synchronisation');
 });
 
 test('moment 6 : la requête du collègue a inversé les deux actions ; chacune retourne dans sa branche', () => {

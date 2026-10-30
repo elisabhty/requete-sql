@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-10-30-couleurs-v2185';
+const CACHE = 'requete-2026-10-30-procedures-v2186';
 
 const PRECACHE = [
   './memo-collection.css?v=5',
@@ -98,6 +98,7 @@ const PRECACHE = [
   './assets/anim/projet-ondelete.html?app&embed',
   './assets/anim/projet-transaction.html?app&embed',
   './assets/anim/projet-savepoint.html?app&embed',
+  './assets/anim/projet-procedures.html?app&embed',
   './assets/anim/projet-trigger.html?app&embed',
   './assets/anim/projet-concurrence.html?app&embed',
   './assets/anim/projet-vue.html?app&embed',
@@ -175,6 +176,7 @@ const PRECACHE = [
   './assets/anim/projet-transaction-shaker.webp',
   './assets/anim/projet-savepoint-thumb.webp',
   './assets/anim/projet-savepoint-colis.webp',
+  './assets/anim/projet-procedures-thumb.webp',
   './assets/anim/projet-trigger-thumb.webp',
   './assets/anim/projet-concurrence-thumb.webp',
   './assets/anim/projet-concurrence-atelier.webp',

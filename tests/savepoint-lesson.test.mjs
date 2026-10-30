@@ -75,12 +75,12 @@ const lignes = (db, t) => (db.exec(`SELECT * FROM ${t} ORDER BY id`)[0] || {valu
 /* Le début de la transaction, rejoué (le remplacement du chapitre 12), puis le point de retour et le cadeau. */
 const jusquAuCadeau = db => ['Q_BEGIN', 'Q_UP8', 'Q_INR', 'Q_SP', 'Q_UP5', 'Q_INC'].forEach(q => db.run(sql(q)));
 
-test('SAVEPOINT : juste après Transactions, dans le module « Transactions », et juste avant Les triggers', () => {
+test('SAVEPOINT : juste après Transactions, dans le module « Transactions », et juste avant Procédures et fonctions stockées', () => {
   const m = modules.find(x => x.titre === 'Transactions');
   assert.deepEqual([...m.lessons.map(l => l.id)], [62, 63], 'Transactions, puis SAVEPOINT');
   const liste = lessons.map(l => l.id);
   assert.equal(liste.indexOf(63), liste.indexOf(62) + 1);
-  assert.equal(liste[liste.indexOf(63) + 1], 70, 'Les triggers viennent juste après');
+  assert.equal(liste[liste.indexOf(63) + 1], 83, 'Procédures et fonctions stockées viennent juste après (30 octobre)');
   assert.equal(l63.titre, 'SAVEPOINT');
   assert.equal(l63.résumé, 'Annuler une partie des modifications', 'le sous-titre de la trame d’Elisa');
 });
@@ -99,9 +99,9 @@ test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', ()
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 231.86);
-  assert.ok(page.includes('notesAt: 231.86,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 239.06);
+  assert.equal(val('NOTES'), 231.76);
+  assert.ok(page.includes('notesAt: 231.76,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 238.96);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   /* Les parties de la trame d’Elisa, avec l’ouverture commune à tous les chapitres du projet dans la première ; le 25 octobre (19 h 13), Léa Simon
@@ -307,8 +307,8 @@ test('chapitre 13 : écran titre, ouverture comme aux autres chapitres, annonce 
   assert.equal(caps[1], 'Au chapitre 12, une transaction<br>t’a permis de tout valider<br>ou de tout annuler.', 'le chapitre précédent');
   const tx = fs.readFileSync(path.join(root, 'assets/anim/projet-transaction.html'), 'utf8');
   assert.ok(tx.includes('avec <code>SAVEPOINT</code>.') && tx.includes('Prochaine leçon · SAVEPOINT</span>'), 'le chapitre 12 annonce celui-ci');
-  assert.ok(caps.includes('Dans la prochaine leçon, tu découvriras<br>les triggers : des actions lancées<br>automatiquement par une modification.') && page.includes('Prochaine leçon · Les triggers</span>'), 'annonce de la prochaine leçon');
-  assert.equal(lessons[lessons.findIndex(l => l.id === 63) + 1].titre, 'Les triggers');
+  assert.ok(caps.includes('Dans la prochaine leçon, tu enregistreras<br>des traitements et des calculs<br>dans la base.') && page.includes('Prochaine leçon · Procédures et fonctions</span>'), 'annonce de la prochaine leçon');
+  assert.equal(lessons[lessons.findIndex(l => l.id === 63) + 1].titre, 'Procédures et fonctions stockées');
   assert.equal(caps[caps.length - 2], 'Pour finir, voici les <b>trois idées à retenir</b>.');
 });
 
