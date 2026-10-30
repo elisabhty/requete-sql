@@ -9079,7 +9079,7 @@ guide({ id:27, titre:"UPDATE", résumé:"Modifier des lignes",
      12, 7 et 20 ; « = 2 » remplacerait les soldes, « … WHERE id = 1 » ne modifierait que la carte 1). Mail du service client : Nathan Petit
      s’inscrit à un stage de 8 séances, on retire 8 séances à sa carte, qui n’en compte que 7 : 7 − 8 = −1, la règle CHECK
      (seances_restantes >= 0) du chapitre 4 refuse la modification et la carte garde ses 7 séances (moment 6). La fin annonce la
-     prochaine leçon du cours : « tu apprendras à supprimer des lignes avec DELETE ». Six moments « À toi », comme aux chapitres du
+     prochaine leçon du cours : « tu apprendras à synchroniser deux tables avec MERGE ». Six moments « À toi », comme aux chapitres du
      projet ; leçon seule : ni exercice ni quiz, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue
      les moments ratés. Elle remplace l’ancien cours texte UPDATE (hausse de 10 % des prix de la table produits ; laissés de côté :
      plusieurs colonnes dans le SET, changes(), sous-requête dans le WHERE ou dans le SET, CASE, UPDATE … FROM, règle UNIQUE sur
@@ -9094,10 +9094,38 @@ guide({ id:27, titre:"UPDATE", résumé:"Modifier des lignes",
     ],label:"Les trois idées à retenir"}
   ]
 }),
+guide({ id:82, titre:"MERGE", résumé:"Synchroniser deux tables",
+  /* Projet, chapitre 10, en vidéo interactive : l’animation (assets/anim/projet-merge.html, moteur commun assets/anim/core.js)
+     est le cours. Ajoutée le 30 octobre (Elisa : un mini-jeu de synchronisation d’urgence, « choix → feedback immédiat → progression →
+     piège → boss final »). Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 9, tu as modifié des
+     lignes avec UPDATE »), sur la base que le chapitre 9 laisse : huit tables, dont produits (8 lignes). L’équipe logistique envoie
+     une alerte par SMS : l’entrepôt a envoyé son inventaire, les stocks du site ne correspondent plus, le Magnésium n’y figure pas
+     (son fabricant le livre directement) et les ventes du soir commencent dans 5 minutes. L’inventaire est importé dans une table
+     temporaire, entrepot : la Fibre Prébiotique passe de 120 à 150, Oméga 3 de 90 à 75, la Spiruline Bio (produit 9, Nutrition,
+     22,90 €, 40 unités) est nouvelle. Moment 1 : l’élève range les quatre produits (UPDATE, INSERT, ne rien faire). MERGE INTO
+     produits USING entrepot ; moment 2 : la condition ON produits.id = entrepot.id (le nom n’est pas sûr ; le stock ferait
+     correspondre la Fibre Prébiotique, 150, à la Vitamine D, 150). Moment 3 : WHEN MATCHED THEN UPDATE SET stock = entrepot.stock
+     (INSERT serait refusé, DELETE retirerait deux produits). Moment 4 : l’élève touche la ligne sans correspondance, la Spiruline Bio,
+     que WHEN NOT MATCHED THEN INSERT ajoute. Moment 5, le piège : le Magnésium, absent de l’inventaire, reste tel quel (ni supprimé,
+     ni remis à 0). La requête est exécutée : 3 lignes traitées, 2 modifiées, 1 ajoutée ; la table produits compte 9 lignes. Moment 6,
+     le boss : la requête d’un collègue a inversé les deux actions, l’élève les remet dans leur branche. Enfin, MERGE n’existe pas dans
+     SQLite, la base de l’app : le même résultat s’écrit INSERT … SELECT … WHERE true ON CONFLICT (id) DO UPDATE SET stock =
+     excluded.stock (chapitre 8). La fin annonce DELETE (depuis le 30 octobre, MERGE vient avant DELETE). Six moments « À toi », comme aux chapitres du projet ; leçon seule : ni
+     exercice ni quiz, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments ratés. */
+  leconSeule:true,
+  video:{anim:'assets/anim/projet-merge.html?app&embed',thumb:'assets/anim/projet-merge-thumb.webp',duree:'3 min 08',moments:6,seuil:4},
+  reflex:[
+    {recap:[
+      ["🔀","<code>MERGE</code> compare deux tables et choisit l’action <b>ligne par ligne</b>.","<code>ON</code> indique comment reconnaître la même ligne : en général, l’identifiant."],
+      ["🧭","<code>WHEN MATCHED</code> met à jour, <code>WHEN NOT MATCHED</code> <b>ajoute</b>.","Les lignes absentes de la source ne changent pas : rien n’est supprimé sans action <code>DELETE</code>."],
+      ["🔁","Dans SQLite, <code>MERGE</code> <b>n’existe pas</b>.","On obtient le même résultat avec <code>INSERT … ON CONFLICT DO UPDATE</code>."]
+    ],label:"Les trois idées à retenir"}
+  ]
+}),
 guide({ id:28, titre:"DELETE", résumé:"Supprimer des lignes",
-  /* Projet, chapitre 10, en vidéo interactive : l’animation (assets/anim/projet-delete.html, moteur commun assets/anim/core.js)
-     est le cours. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 9, tu as modifié des lignes
-     avec UPDATE »), sur la base que le chapitre 9 laisse : huit tables, dont clients (10 lignes, deux Nathan) et inscriptions
+  /* Projet, chapitre 11, en vidéo interactive : l’animation (assets/anim/projet-delete.html, moteur commun assets/anim/core.js)
+     est le cours. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 10, tu as synchronisé deux
+     tables avec MERGE »), sur la base que le chapitre 10 laisse : huit tables, dont clients (10 lignes, deux Nathan) et inscriptions
      (11 lignes). Trois messages du service client arrivent (deux SMS, puis un mail), et toutes les demandes sont des suppressions. SMS pour Léa Simon : elle ne viendra pas à
      l’atelier Cuisine saine du 19 septembre, son inscription est annulée. Moment 1 : l’élève touche cette inscription dans la
      table inscriptions ; DELETE FROM choisit la table, WHERE sélectionne la ligne (moment 2 : WHERE id = 4 ; WHERE id = 7 est
@@ -9111,8 +9139,8 @@ guide({ id:28, titre:"DELETE", résumé:"Supprimer des lignes",
      Lefebvre). L’oubli du WHERE est d’abord imaginé : la requête est exécutée sans la moindre erreur et les huit inscriptions
      restantes disparaissent (moment 5 : l’élève touche ces huit lignes) ; la table existe encore, mais elle est vide, alors qu’au
      chapitre 6 DROP TABLE supprimait la table elle-même. Moment 6 : INSERT INTO, UPDATE ou DELETE FROM, l’élève range six demandes.
-     La fin annonce la prochaine leçon du cours : « tu apprendras à synchroniser deux tables en une seule requête, avec
-     MERGE ». Six moments « À toi », comme aux chapitres du projet ; leçon seule : ni exercice ni quiz, validée avec 4 exercices
+     La fin annonce la prochaine leçon du cours : « tu apprendras à supprimer une ligne que d’autres tables référencent, avec
+     ON DELETE ». Six moments « À toi », comme aux chapitres du projet ; leçon seule : ni exercice ni quiz, validée avec 4 exercices
      réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments ratés. Elle remplace l’ancien cours texte DELETE (le compte
      de Nathan Dupont et la table fidelite, la sous-requête dans le WHERE, l’exercice sur les commandes d’une seule unité) ; la clé
      étrangère qui refuse la suppression est reprise au chapitre 12. */
@@ -9125,34 +9153,6 @@ guide({ id:28, titre:"DELETE", résumé:"Supprimer des lignes",
       ["🎯","Une condition peut cibler <b>plusieurs lignes</b>.","Dans <code>inscriptions</code>, <code>id</code> cible une inscription précise, tandis que <code>client_id</code> cible toutes les inscriptions d’un client."]
     ],label:"Les trois idées à retenir"}
   ]
-}),
-guide({ id:82, titre:"MERGE", résumé:"Synchroniser deux tables",
-  /* Projet, chapitre 11, en vidéo interactive : l’animation (assets/anim/projet-merge.html, moteur commun assets/anim/core.js)
-     est le cours. Ajoutée le 30 octobre (Elisa : un mini-jeu de synchronisation d’urgence, « choix → feedback immédiat → progression →
-     piège → boss final »). Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 10, tu as supprimé des
-     lignes avec DELETE »), sur la base que le chapitre 10 laisse : huit tables, dont produits (8 lignes). L’équipe logistique envoie
-     une alerte par SMS : l’entrepôt a envoyé son inventaire, les stocks du site ne correspondent plus, le Magnésium n’y figure pas
-     (son fabricant le livre directement) et les ventes du soir commencent dans 5 minutes. L’inventaire est importé dans une table
-     temporaire, entrepot : la Fibre Prébiotique passe de 120 à 150, Oméga 3 de 90 à 75, la Spiruline Bio (produit 9, Nutrition,
-     22,90 €, 40 unités) est nouvelle. Moment 1 : l’élève range les quatre produits (UPDATE, INSERT, ne rien faire). MERGE INTO
-     produits USING entrepot ; moment 2 : la condition ON produits.id = entrepot.id (le nom n’est pas sûr ; le stock ferait
-     correspondre la Fibre Prébiotique, 150, à la Vitamine D, 150). Moment 3 : WHEN MATCHED THEN UPDATE SET stock = entrepot.stock
-     (INSERT serait refusé, DELETE retirerait deux produits). Moment 4 : l’élève touche la ligne sans correspondance, la Spiruline Bio,
-     que WHEN NOT MATCHED THEN INSERT ajoute. Moment 5, le piège : le Magnésium, absent de l’inventaire, reste tel quel (ni supprimé,
-     ni remis à 0). La requête est exécutée : 3 lignes traitées, 2 modifiées, 1 ajoutée ; la table produits compte 9 lignes. Moment 6,
-     le boss : la requête d’un collègue a inversé les deux actions, l’élève les remet dans leur branche. Enfin, MERGE n’existe pas dans
-     SQLite, la base de l’app : le même résultat s’écrit INSERT … SELECT … WHERE true ON CONFLICT (id) DO UPDATE SET stock =
-     excluded.stock (chapitre 8). La fin annonce ON DELETE. Six moments « À toi », comme aux chapitres du projet ; leçon seule : ni
-     exercice ni quiz, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments ratés. */
-  leconSeule:true,
-  video:{anim:'assets/anim/projet-merge.html?app&embed',thumb:'assets/anim/projet-merge-thumb.webp',duree:'3 min 09',moments:6,seuil:4},
-  reflex:[
-    {recap:[
-      ["🔀","<code>MERGE</code> compare deux tables et choisit l’action <b>ligne par ligne</b>.","<code>ON</code> indique comment reconnaître la même ligne : en général, l’identifiant."],
-      ["🧭","<code>WHEN MATCHED</code> met à jour, <code>WHEN NOT MATCHED</code> <b>ajoute</b>.","Les lignes absentes de la source ne changent pas : rien n’est supprimé sans action <code>DELETE</code>."],
-      ["🔁","Dans SQLite, <code>MERGE</code> <b>n’existe pas</b>.","On obtient le même résultat avec <code>INSERT … ON CONFLICT DO UPDATE</code>."]
-    ],label:"Les trois idées à retenir"}
-  ]
 })
 ]},
 { titre:"Contraintes et intégrité", sous:"Les règles que les données doivent respecter", lessons:[
@@ -9161,7 +9161,7 @@ guide({ id:68, titre:"ON DELETE", résumé:"Décider du sort des lignes liées",
      est le cours. Refondue le 25 octobre sur la seule histoire des avis (Elisa, 12 h 51 : l’ancien cours sur ON DELETE était
      incompréhensible ; 12 h 52 : le client remplit une feuille, l’équipe enregistre l’avis et sa note dans la base ; 13 h 17 : la base
      partagée ne doit pas être modifiée pour Nathan Petit, dont d’autres chapitres ont besoin). Elle s’ouvre comme les autres chapitres
-     (« Depuis le chapitre 1… », « Au chapitre 11, tu as synchronisé deux tables avec MERGE »), sur la base que le chapitre 11 laisse : huit
+     (« Depuis le chapitre 1… », « Au chapitre 11, tu as supprimé des lignes avec DELETE »), sur la base que le chapitre 11 laisse : huit
      tables, 9 clients, 8 inscriptions, 9 produits. 1 · Inès Lefebvre (la neuvième cliente) vient de participer à un atelier, goûte plusieurs produits
      et remplit une feuille d’avis : Protéine Végétale, cinq étoiles, un commentaire, sa signature. 2 · L’équipe récupère la feuille :
      l’avis doit s’afficher à chaque visite sur le site, donc être enregistré dans la base. Une table avis (id, client_id, produit_id, note,
@@ -9180,7 +9180,7 @@ guide({ id:68, titre:"ON DELETE", résumé:"Décider du sort des lignes liées",
      situations sous CASCADE, SET NULL ou RESTRICT (moment 6) ; CASCADE supprime sans demander de confirmation. La fin annonce la prochaine
      leçon du cours : « tu apprendras à tout valider ou tout annuler avec une transaction ». Choix de scénario : Inès Lefebvre n’a ni
      commande, ni carte, ni points de fidélité ; son unique inscription (Yoga du matin) est supposée déjà supprimée hors écran, comme au
-     chapitre 10 : après ce chapitre, la base compte 8 clients et 7 inscriptions, et une table avis d’une ligne dont le client vaut NULL. Nathan
+     chapitre 11 : après ce chapitre, la base compte 8 clients et 7 inscriptions, et une table avis d’une ligne dont le client vaut NULL. Nathan
      Petit n’est pas touché. La vidéo montre le produit 6 (Protéine Végétale). Six moments « À toi », comme aux chapitres du projet ; leçon
      seule : ni exercice ni quiz dans la vidéo, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments
      ratés. Elle remplace l’ancien cours texte ON DELETE (la table satisfaction, les paniers) et le cours « Les contraintes en action »
@@ -25785,7 +25785,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-30-schemas-v2187';
+  const SW_CACHE='requete-2026-10-30-merge-avant-delete-v2188';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

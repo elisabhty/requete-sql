@@ -516,7 +516,7 @@ export const REGLES = [
     id: 'service-client',
     titre: 'Le service client, jamais « l’accueil » : c’est lui qui centralise les demandes des clients',
     demande: 'Elisa, 25 octobre (00 h 32, Réf 3) : « Finalement ce sera plus l’accueil mais le service client », à corriger partout. Au chapitre 5, l’équipe l’annonce (« Désormais, le service client centralise ' +
-      'les demandes des clients ») ; aux chapitres 9, 10 et 12, c’est le service client qui écrit. « Accueillir » et « une page d’accueil » restent des mots comme les autres.',
+      'les demandes des clients ») ; aux chapitres 9, 11 et 12, c’est le service client qui écrit. « Accueillir » et « une page d’accueil » restent des mots comme les autres.',
     genres: [...prose, 'option', 'etiquette'],
     projetSeulement: true,   // posée le 25 octobre pour les chapitres du projet (les anciens cours seront remplacés par les chapitres 13 à 19)
     verifie: ({plain}) => /(?<![\p{L}-])(?<!page d’)(?<!écran d’)accueil(?![\p{L}-])/iu.test(plain) ? ['« l’accueil » : écrire « le service client »'] : [],
@@ -634,9 +634,9 @@ export const EXCEPTIONS = [
   {regle: 'service-client-relaie', page: 'projet-transaction', contient: 'Je viens de recevoir ma commande',
     raison: 'Trame d’Elisa (25 octobre, 17 h 05, « Cours 1 — TRANSACTION ») : « La conversation avec Léa s’ouvre et son message s’affiche », sa photo dessous ; 18 h 36 : ce message est envoyé au service client, qui nous écrit ensuite.'},
   {regle: 'client', page: 'projet-transaction', contient: 'Léa vient de nous envoyer un message',
-    raison: 'Mots d’Elisa (25 octobre, 18 h 36) : le SMS du service client, « Léa vient de nous envoyer un message… », comme celui du chapitre 10 ; les légendes nomment Léa Simon en entier.'},
+    raison: 'Mots d’Elisa (25 octobre, 18 h 36) : le SMS du service client, « Léa vient de nous envoyer un message… », comme celui du chapitre 11 ; les légendes nomment Léa Simon en entier.'},
   {regle: 'client', page: 'projet-savepoint', contient: 'Je viens d’avoir Léa',
-    raison: 'Mots d’Elisa (25 octobre, 17 h 05, « Cours 2 — SAVEPOINT ») : le SMS du service client, « Je viens d’avoir Léa : elle nous remercie… », comme celui du chapitre 10 ; les légendes nomment Léa Simon en entier.'},
+    raison: 'Mots d’Elisa (25 octobre, 17 h 05, « Cours 2 — SAVEPOINT ») : le SMS du service client, « Je viens d’avoir Léa : elle nous remercie… », comme celui du chapitre 11 ; les légendes nomment Léa Simon en entier.'},
   {regle: 'client', page: 'projet-savepoint', contient: '1 shaker rose personnalisé',
     raison: 'Mots d’Elisa (même trame) : le récapitulatif du colis, « 1 shaker rose personnalisé « Léa » » ; « Léa » est le prénom imprimé sur le shaker, pas une façon de nommer la cliente.'},
   /* Elisa, 25 octobre, 19 h 13 : le premier SMS du service client, et le dernier message, celui de Léa Simon, colis reçu */

@@ -112,8 +112,8 @@ window.MODULES=[
     {titre:"Écrire et modifier les données", sous:"INSERT, UPDATE, DELETE", lecons:[
       ["INSERT", "Ajouter des lignes", 238],
       ["UPDATE", "Modifier des lignes", 185],
-      ["DELETE", "Supprimer des lignes", 180],
-      ["MERGE", "Synchroniser deux tables", 189]
+      ["MERGE", "Synchroniser deux tables", 188],
+      ["DELETE", "Supprimer des lignes", 180]
     ]},
     {titre:"Contraintes et intégrité", sous:"Les règles que les données doivent respecter", lecons:[
       ["ON DELETE", "Décider du sort des lignes liées", 247]

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="color-scheme" content="light">
 <meta name="format-detection" content="telephone=no">
-<title>Requête · Projet, chapitre 10 : DELETE</title>
+<title>Requête · Projet, chapitre 11 : DELETE</title>
 <link rel="stylesheet" href="core.css">
 <style>
 #s0 .sub{font-size:66px}
@@ -197,7 +197,7 @@
 
   <!-- 0 · Intro -->
   <section class="scene" id="s0">
-    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 10</div></div>
+    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 11</div></div>
     <div class="abs hilite"></div>
     <div class="abs title"><span>D</span><span>E</span><span>L</span><span>E</span><span>T</span><span>E</span></div>
     <div class="abs sub">Supprimer des lignes</div>
@@ -277,7 +277,7 @@ const MO = MAILS.map((m, n) => mailOutAt(n));   // le départ de chaque message,
 
 /* 1 · Trois demandes : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) */
 cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
-cap('r2', "Au chapitre 9, tu as modifié<br>des lignes avec <code>UPDATE</code>.", 3.0);
+cap('r2', "Au chapitre 10, tu as synchronisé<br>deux tables avec <code>MERGE</code>.", 3.0);
 cap('c2', "Trois autres demandes arrivent.", 2.8);
 const MAIL1 = mailBlock(0);
 /* 2 · Supprimer une ligne */
@@ -321,7 +321,7 @@ cap('c24', "Pour changer le contenu d’une table,<br>il existe trois mots-clés
 toi('p6');
 cap('c25', "Retirer des séances ne supprime pas<br>de ligne : c’est un <code>UPDATE</code>.", 3.6);
 /* la suite : la prochaine leçon */
-cap('c26', "Dans la prochaine leçon, tu apprendras<br>à synchroniser deux tables<br>en une seule requête, avec <code>MERGE</code>.", 7.0);
+cap('c26', "Dans la prochaine leçon, tu apprendras<br>à supprimer une ligne que d’autres<br>tables référencent, avec <code>ON DELETE</code>.", 7.0);
 /* 7 · À retenir */
 chap({label:'À retenir'});
 const RECAP = SCH.t;
@@ -339,10 +339,11 @@ const CHAPTERS = SCH.chaps.map((c, i) => ({n: i + 1, label: c.label, a: c.a, b: 
 const QUESTIONS = [];
 
 /* ---------- Le cas : la base des ateliers NutriBoost (le même dans tous les chapitres du projet) ---------- */
-/* La base telle que le chapitre 9 la laisse : huit tables, les mêmes lignes que dans l’app (clients 10, commandes 16, fidelite 4, produits 8)
-   et qu’aux chapitres 5 à 9 (coachs 4, ateliers 5, inscriptions 11, cartes 3).   [clé, couleur, emoji, nom, lignes] */
+/* La base telle que le chapitre 10 la laisse : huit tables, les mêmes lignes que dans l’app (clients 10, commandes 16, fidelite 4) et qu’aux
+   chapitres 5 à 9 (coachs 4, ateliers 5, inscriptions 11, cartes 3), avec un produit de plus (la Spiruline Bio, ajoutée par MERGE au chapitre 10).
+   [clé, couleur, emoji, nom, lignes] */
 const TB = [
-  ['cl', 'k-cl', '👥', 'clients', 10], ['cm', 'k-cm', '🛒', 'commandes', 16], ['fi', 'k-fi', '⭐', 'fidelite', 4], ['pr', 'k-pr', '📦', 'produits', 8],
+  ['cl', 'k-cl', '👥', 'clients', 10], ['cm', 'k-cm', '🛒', 'commandes', 16], ['fi', 'k-fi', '⭐', 'fidelite', 4], ['pr', 'k-pr', '📦', 'produits', 9],
   ['co', 'k-co', '🧑‍🏫', 'coachs', 4], ['at', 'k-at', '📅', 'ateliers', 5], ['in', 'k-in', '📝', 'inscriptions', 11], ['ca', 'k-nb', '💳', 'cartes', 3]
 ];
 /* La table inscriptions : [id, identifiant du client, nom du client, identifiant de l’atelier, titre de l’atelier, date d’inscription]. */
@@ -507,7 +508,7 @@ function dom(){
     `<div class="mr"><span class="mt">maintenant</span><i class="mdot"></i></div></div><div class="mb"><p>${['Bonjour,', ...[].concat(body), (MAILS[n][6] || {}).bye || 'Merci !', sign].map((x, j, a) => `<span class="sn${j === a.length - 1 ? ' s' : ''}">${x}</span>`).join('')}</p></div></div>`).join('') +
     '<div class="abs emo tapf" id="tapf">👆</div>';
   /* La suite : la prochaine leçon */
-  $('#sk').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🔀</span>Prochaine leçon · MERGE</span></div>';
+  $('#sk').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🔗</span>Prochaine leçon · ON DELETE</span></div>';
   // les requêtes, découpées en caractères pour la frappe
   $$('.sq .ln').forEach(splitChars);
 }
@@ -644,10 +645,9 @@ function build(){
   sceneOn('#sa', 5.0);
   show('#bc', A.r1, {y: 60}, 0.55); cue(A.r1, 'whoosh', 0.5);
   TB.forEach(([k], q) => { const t = A.r1 + 0.3 + q * 0.15; show('#bw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q % 5); });
-  // « Au chapitre 9, tu as modifié des lignes » : les deux tables modifiées, les ateliers et les cartes
-  on('#bw-at .hl', A.r2 + 0.3, 0.2); cue(A.r2 + 0.3, 'tick', 0.5, 1);
-  on('#bw-ca .hl', A.r2 + 0.9, 0.2); cue(A.r2 + 0.9, 'tick', 0.5, 3);
-  off(['#bw-at .hl', '#bw-ca .hl'], A.r2 + 2.2, 0.3);
+  // « Au chapitre 10, tu as synchronisé deux tables avec MERGE » : la table produits, mise à jour par l’inventaire de l’entrepôt
+  on('#bw-pr .hl', A.r2 + 0.5, 0.2); cue(A.r2 + 0.5, 'tick', 0.5, 2);
+  off('#bw-pr .hl', A.r2 + 2.2, 0.3);
   // trois autres demandes arrivent : le paquet « 3 demandes à traiter » (deux SMS, puis un mail)
   show('#dem', A.c2 + 0.3, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.c2 + 0.3, 'pop', 0.7, 1);
   // le SMS du service client : Léa vient de le prévenir qu’elle ne pourra pas participer à l’atelier Cuisine saine

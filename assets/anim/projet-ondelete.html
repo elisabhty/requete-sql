@@ -375,7 +375,7 @@ const MO = MAILS.map((m, n) => mailOutAt(n));   // le départ de chaque message,
 
 /* 1 · Après l’atelier : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) */
 cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
-cap('r2', "Au chapitre 11, tu as synchronisé<br>deux tables avec <code>MERGE</code>.", 3.0);
+cap('r2', "Au chapitre 11, tu as supprimé<br>des lignes avec <code>DELETE</code>.", 3.0);
 cap('a1', "Inès Lefebvre vient de participer<br>à un atelier NutriBoost.", 3.8);
 cap('a2', "Elle a pu goûter<br>plusieurs de nos produits.", 3.6);
 cap('a3', "Elle souhaite maintenant<br>partager son expérience.", 3.6);
@@ -464,9 +464,9 @@ const CHAPTERS = SCH.chaps.map((c, i) => ({n: i + 1, label: c.label, a: c.a, b: 
 const QUESTIONS = [];
 
 /* ---------- Le cas : la base des ateliers NutriBoost (le même dans tous les chapitres du projet) ---------- */
-/* La base telle que le chapitre 11 la laisse : huit tables, avec un client et trois inscriptions de moins que dans l’app
-   (Nathan Dupont, l’inscription de Léa Simon et les deux d’Hugo Laurent sont supprimés au chapitre 10), et un produit de plus
-   (la Spiruline Bio, ajoutée au chapitre 11 par MERGE avec l’inventaire de l’entrepôt). Nathan Petit est toujours là : le chapitre 13 en a besoin.
+/* La base telle que le chapitre 11 la laisse : huit tables, avec un produit de plus que dans l’app (la Spiruline Bio, ajoutée au chapitre 10 par
+   MERGE avec l’inventaire de l’entrepôt), un client et trois inscriptions de moins (Nathan Dupont, l’inscription de Léa Simon et les deux
+   d’Hugo Laurent, supprimés au chapitre 11). Nathan Petit est toujours là : le chapitre 13 en a besoin.
    Ici, seule Inès Lefebvre (la neuvième cliente) quitte NutriBoost, et son avis est la première ligne de la nouvelle table avis.
    [clé, couleur, emoji, nom, lignes] */
 const TB = [
@@ -828,9 +828,10 @@ function build(){
   sceneOn('#sa', 5.0);
   show('#bc', A.r1, {y: 60}, 0.55); cue(A.r1, 'whoosh', 0.5);
   TB.forEach(([k], q) => { const t = A.r1 + 0.3 + q * 0.15; show('#bw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q % 5); });
-  // « Au chapitre 11, tu as synchronisé deux tables avec MERGE » : la table produits, mise à jour par l’inventaire de l’entrepôt
-  on('#bw-pr .hl', A.r2 + 0.5, 0.2); cue(A.r2 + 0.5, 'tick', 0.5, 2);
-  off('#bw-pr .hl', A.r2 + 2.2, 0.3);
+  // « Au chapitre 11, tu as supprimé des lignes » : les deux tables dont des lignes ont disparu, les inscriptions et les clients
+  on('#bw-in .hl', A.r2 + 0.3, 0.2); cue(A.r2 + 0.3, 'tick', 0.5, 1);
+  on('#bw-cl .hl', A.r2 + 0.9, 0.2); cue(A.r2 + 0.9, 'tick', 0.5, 3);
+  off(['#bw-in .hl', '#bw-cl .hl'], A.r2 + 2.2, 0.3);
   // Inès Lefebvre vient de participer à un atelier : son ticket
   hide('#bc', B.r2 - 0.1, {y: -30}, 0.35);
   sceneOff('#sa', B.r2 + 0.3);
@@ -1242,7 +1243,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 237.98, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 237.78, picks: PICKS, opens: OPENS,
   glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝🔑🔗✉️👆📬🔄🛑🔀📍💬🌱🍵🐟🌐📩🗑️🧭🏷️🌿👤✓✕!…«»·−',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>

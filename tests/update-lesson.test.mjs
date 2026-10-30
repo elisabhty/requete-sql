@@ -56,12 +56,12 @@ const dates = db => db.exec('SELECT date_atelier FROM ateliers ORDER BY id')[0].
 const soldes = db => db.exec('SELECT seances_restantes FROM cartes ORDER BY id')[0].values.flat();
 const NOUVELLE = '2026-09-18';
 
-test('UPDATE : deuxième cours du module « Écrire et modifier les données », juste après INSERT et juste avant DELETE', () => {
+test('UPDATE : deuxième cours du module « Écrire et modifier les données », juste après INSERT et juste avant MERGE', () => {
   const m = modules.find(x => x.titre === 'Écrire et modifier les données');
-  assert.deepEqual([...m.lessons.map(l => l.id)], [26, 27, 28, 82], 'INSERT, UPDATE, DELETE, MERGE');
+  assert.deepEqual([...m.lessons.map(l => l.id)], [26, 27, 82, 28], 'INSERT, UPDATE, MERGE, DELETE');
   const ids = lessons.map(l => l.id);
   assert.equal(ids.indexOf(27), ids.indexOf(26) + 1, 'UPDATE vient juste après INSERT');
-  assert.equal(ids.indexOf(28), ids.indexOf(27) + 1, 'DELETE vient juste après');
+  assert.equal(ids.indexOf(82), ids.indexOf(27) + 1, 'MERGE vient juste après (depuis le 30 octobre)');
   assert.equal(l27.titre, 'UPDATE');
   assert.equal(l27.résumé, 'Modifier des lignes');
 });
@@ -285,7 +285,7 @@ test('les trois mails : Moussa Diallo, l’équipe NutriBoost, puis le service c
   assert.ok(opens.map(o => o.label).join('|') === 'Ouvrir le mail de Moussa Diallo|Ouvrir le mail de L’équipe NutriBoost|Ouvrir le mail du service client NutriBoost');
 });
 
-/* ---------- Propre au chapitre 9 : la suite du chapitre 8, l’annonce de la leçon DELETE ---------- */
+/* ---------- Propre au chapitre 9 : la suite du chapitre 8, l’annonce de la leçon MERGE ---------- */
 test('chapitre 9 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
   assert.ok(page.includes('<title>Requête · Projet, chapitre 9 : UPDATE</title>') && page.includes('<div class="tagpill">Projet · Chapitre 9</div>')
     && page.includes('<span>U</span><span>P</span><span>D</span><span>A</span><span>T</span><span>E</span>') && page.includes('<div class="abs sub">Modifier des lignes</div>')
@@ -297,8 +297,8 @@ test('chapitre 9 : écran titre, ouverture comme aux autres chapitres, annonce d
   const insert = fs.readFileSync(path.join(root, 'assets/anim/projet-insert.html'), 'utf8');
   assert.ok(insert.includes('à modifier les données avec <code>UPDATE</code>.') && insert.includes('Prochaine leçon · UPDATE</span>'), 'le chapitre 8 annonce celui-ci');
   /* Il annonce à son tour la leçon suivante du cours : DELETE. */
-  assert.ok(caps.includes('Dans la prochaine leçon, tu apprendras<br>à supprimer des lignes avec <code>DELETE</code>.') && page.includes('Prochaine leçon · DELETE</span>'), 'annonce de la prochaine leçon');
-  assert.equal(lessons[lessons.findIndex(l => l.id === 27) + 1].id, 28);
+  assert.ok(caps.includes('Dans la prochaine leçon, tu apprendras<br>à synchroniser deux tables avec <code>MERGE</code>.') && page.includes('Prochaine leçon · MERGE</span>'), 'annonce de la prochaine leçon');
+  assert.equal(lessons[lessons.findIndex(l => l.id === 27) + 1].id, 82);
   assert.equal(lessons.find(l => l.id === 28).titre, 'DELETE');
   assert.equal(caps[caps.length - 2], 'Pour finir, voici les <b>trois idées à retenir</b>.');
 });

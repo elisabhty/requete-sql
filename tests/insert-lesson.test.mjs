@@ -54,7 +54,7 @@ const count = (db, t) => db.exec(`SELECT COUNT(*) FROM ${t}`)[0].values[0][0];
 
 test('INSERT : premier cours du module « Écrire et modifier les données », juste après DROP et juste avant UPDATE ; « INSERT multiple et gestion de conflit » y est fusionné', () => {
   const m = modules.find(x => x.titre === 'Écrire et modifier les données');
-  assert.deepEqual([...m.lessons.map(l => l.id)], [26, 27, 28, 82], 'INSERT, UPDATE, DELETE, MERGE : le cours 69 n’existe plus');
+  assert.deepEqual([...m.lessons.map(l => l.id)], [26, 27, 82, 28], 'INSERT, UPDATE, MERGE, DELETE : le cours 69 n’existe plus');
   const ids = lessons.map(l => l.id);
   assert.equal(ids.indexOf(26), ids.indexOf(84) + 1, 'INSERT vient juste après Les schémas (30 octobre)');
   assert.equal(ids.indexOf(27), ids.indexOf(26) + 1, 'UPDATE vient juste après');
