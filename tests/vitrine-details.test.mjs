@@ -255,7 +255,7 @@ test('« cas pratiques » à la place de « défis métier » sur la vitrine, la
   assert.match(lire('connexion.html'), /<span class="sticker sun">25 cas pratiques<svg/, 'autocollant de la page de connexion');
   const v = lire('video.html');
   assert.ok(v.includes('<span>Des <em>cas pratiques</em>,</span>'), 'titre de la scène');
-  assert.ok(v.includes("[99.5, 'Cas pratiques']"), 'chapitre');
+  assert.ok(v.includes("[101.5, 'Cas pratiques']"), 'chapitre');
   assert.ok(v.includes('<div class="stk sun" id="stk-df">25 cas pratiques<svg'), 'autocollant de la vidéo');
   assert.ok(v.includes('<b>25 cas pratiques</b>'), 'tuile des fonctionnalités');
   assert.ok(v.includes('<div class="df-stamp" id="df-stamp">Cas résolu&nbsp;!</div>'));
@@ -298,10 +298,11 @@ test('contact : pièces jointes (images et fichiers), choisies, glissées ou col
   assert.match(css, /@media \(hover:none\)\{\.ct-drop-pc\{display:none\}\}/, 'sur téléphone, pas d’invitation à glisser des fichiers');
 });
 
-test('vidéo : « Et si ton prochain pas était vers la data ? », sur deux lignes, sans toucher la source', () => {
-  assert.ok(video.includes('<p class="abs" id="rc-link">Et si ton prochain pas<br>était vers la <em>data</em>&nbsp;?</p>'), 'au tutoiement de la vidéo');
-  assert.ok(video.includes('selon France Stratégie. Et si ton prochain pas était vers la data ?'), 'texte lu par VoiceOver');
-  assert.doesNotMatch(video, /Et si c’était la/);
+/* Elisa, 30 octobre, 17 h 02, puis 20 h 01 : « Et si le prochain était vers la data ? » (le prochain pas, après « sauter le pas ») */
+test('vidéo : « Et si le prochain était vers la data ? », sur deux lignes, sans toucher la source', () => {
+  assert.ok(video.includes('<p class="abs" id="rc-link">Et si le prochain<br>était vers la <em>data</em>&nbsp;?</p>'), 'au tutoiement de la vidéo');
+  assert.ok(video.includes('selon France Stratégie. Et si le prochain était vers la data ?'), 'texte lu par VoiceOver');
+  assert.doesNotMatch(video, /Et si c’était la|Et si ton prochain pas/);
   const top = id => +video.match(new RegExp(`#${id}\\{left:\\d+px;top:(\\d+)px`))[1];
   assert.ok(top('rc-link') + 2 * 52 * 1.1 + 12 < top('src'), 'deux lignes au-dessus de la ligne de source');
   assert.ok(top('rc-cap') + 2 * 50 * 1.2 < top('rc-link'), 'sous « Près d’1 actif sur 2 envisage de sauter le pas. »');
@@ -315,7 +316,7 @@ test('vidéo : « Apprends le SQL maintenant. » puis les neuf tuiles des foncti
   const s8 = scene('s8'), s9 = scene('s9');
   assert.ok(s8.includes('<h2 class="ttl"><span class="mask"><span>Apprends le SQL</span></span><span class="mask"><span><em>maintenant</em>.</span></span></h2>'), 'titre');
   assert.ok(s8.includes('<p class="abs sub">Pratique sur de vraies<br>données avec <b>Requête</b>.</p>'), 'sous-titre');
-  assert.ok(s8.includes('Le SQL, pensé pour les futurs data analysts.</p>'), 'accroche');
+  assert.ok(s8.includes('L’app, pensée pour les futurs data analysts.</p>'), 'accroche (Elisa, 20 h 41 : « L’app, pensé pour les futurs data analysts »)');
   assert.doesNotMatch(video, /1<sup>re<\/sup> application|1re application/, 'plus de « 1re application des data analysts »');
   assert.ok(s9.includes('<span>Du premier <code>SELECT</code></span>') && s9.includes('<span>aux requêtes <em>avancées</em>,</span>'), 'titre');
   assert.ok(s9.includes('<p class="abs sub">progresse à ton rythme.</p>'), 'la phrase continue sous le titre');
@@ -323,14 +324,27 @@ test('vidéo : « Apprends le SQL maintenant. » puis les neuf tuiles des foncti
   assert.deepEqual(tuiles, ['65 cours immersifs', 'Un labo&nbsp;SQL interactif', '25 cas pratiques', 'Importe tes propres données',
     '30 questions d’entretien', 'Cartes mémo &amp; stickers', 'Défie tes amis', 'Ta série de jours',
     'Et bien plus encore<small>Découvre-les maintenant&nbsp;!</small>']);
-  /* Quatre rangées de deux, puis « Et bien plus encore » sur toute la largeur, fini avant 860 px :
-     sur un téléphone de 360 px, « Commencer » commence vers 876 px à la fin de la vidéo */
+  /* Quatre rangées de deux, puis « Et bien plus encore » sur toute la largeur (Elisa, 20 h 01 : « tout est tassé »).
+     Sur ordinateur et tablette (cadre d’au moins 420 px), des tuiles hautes et espacées, finies avant 1 020 px : les deux
+     boutons de fin, côte à côte, commencent vers 1 160 px. Sur téléphone, plus serrées, finies avant 880 px : les boutons
+     empilés commencent vers 945 px sur un écran de 320 px, 1 010 px sur 390 px. */
   assert.match(video, /\.ft\.more\{grid-column:1\/-1;/);
-  const top = +video.match(/#feat\{left:80px;top:(\d+)px;/)[1], gap = +video.match(/#feat\{[^}]*gap:(\d+)px /)[1];
-  const h = +video.match(/\.ft\{height:(\d+)px;/)[1], hm = +video.match(/\.ft\.more\{grid-column:1\/-1;height:(\d+)px;/)[1];
-  assert.ok(top + 4 * h + 4 * gap + hm <= 860, `les tuiles finissent à ${top + 4 * h + 4 * gap + hm} px`);
+  const fin = (top, gap, h, hm) => top + 4 * h + 4 * gap + hm;
+  const grand = fin(+video.match(/#feat\{left:80px;top:(\d+)px;/)[1], +video.match(/#feat\{[^}]*gap:(\d+)px /)[1],
+    +video.match(/\.ft\{position:relative;overflow:hidden;height:(\d+)px;/)[1], +video.match(/\.ft\.more\{grid-column:1\/-1;height:(\d+)px;/)[1]);
+  assert.ok(grand <= 1020, `ordinateur : les tuiles finissent à ${grand} px`);
+  const tel = video.slice(video.indexOf('@container cadre (max-width:419.98px){'), video.indexOf('\n}', video.indexOf('@container cadre (max-width:419.98px){')));
+  const petit = fin(+tel.match(/#feat\{top:(\d+)px;/)[1], +tel.match(/#feat\{top:\d+px;gap:(\d+)px\}/)[1], +tel.match(/\.ft\{height:(\d+)px;/)[1], +tel.match(/\.ft\.more\{height:(\d+)px\}/)[1]);
+  assert.ok(petit <= 880, `téléphone : les tuiles finissent à ${petit} px`);
+  assert.ok(video.includes('#frame{container:cadre/inline-size}'), 'le cadre de la vidéo est un conteneur');
+  assert.match(video, /@container cadre \(min-width:420px\)\{\s*#end\{flex-direction:row;/, 'boutons côte à côte sur un grand cadre');
+  /* À la fin : micro-animations (les icônes sautent l’une après l’autre, « Et bien plus encore » brille, « Commencer » scintille) */
+  assert.match(video, /#frame:has\(#end\.on\) \.ft \.ico\{animation:ftHop /);
+  assert.match(video, /#frame:has\(#end\.on\) \.ft\.more::after\{animation:ftShine /);
+  assert.match(video, /#end\.on a::after\{animation:ctaShine /);
+  assert.match(video, /#end\.on a,#end\.on button\{animation:endPop [^}]*backwards\}/, 'l’entrée ne bloque pas le survol');
   /* Texte lu par VoiceOver */
-  assert.ok(video.includes("'Apprends le SQL maintenant. Pratique sur de vraies données avec Requête. Le SQL, pensé pour les futurs data analysts. Des cours interactifs"));
+  assert.ok(video.includes("'Apprends le SQL maintenant. Pratique sur de vraies données avec Requête. L’app, pensée pour les futurs data analysts. Des cours interactifs"));
   assert.ok(video.includes("'Du premier SELECT aux requêtes avancées, progresse à ton rythme. 65 cours immersifs, un labo SQL interactif, 25 cas pratiques."));
 });
 
@@ -341,28 +355,70 @@ test('vidéo : « Apprends le SQL maintenant. » puis les neuf tuiles des foncti
 test('vidéo : la scène « La méthode » cite ses sources, sans logo d’université, et suit le calendrier des révisions de l’appli', () => {
   const i = video.indexOf('<section class="scene" id="sme">'), sc = video.slice(i, video.indexOf('</section>', i));
   assert.ok(i > video.indexOf('<section class="scene" id="s8">') && i < video.indexOf('<section class="scene" id="sdf">'), 'entre la démo et les cas pratiques');
-  assert.ok(sc.includes('<span>Une méthode qui s’appuie</span></span><span class="mask"><span>sur la <em>recherche</em>.</span>'), 'titre');
   assert.doesNotMatch(sc, /<img|Harvard|Stanford|Emory|Yale|Oxford|Cambridge|Sorbonne|MIT\b/, 'aucun logo ni nom d’université');
-  assert.ok(video.includes("[82, 'Requête'], [94.5, 'La méthode'], [99.5, 'Cas pratiques']"), 'chapitre de 5 secondes');
-  assert.match(video, /scene\('sme', 94\.5, 99\.5\);/);
-  assert.match(video, /scene\('sdf', 99\.5, 107\);/, 'la suite décalée de 5 secondes');
-  assert.match(video, /const DURATION = 130;/);
-  /* Chaque chiffre a sa source : sous le chiffre, dans la ligne du bas, dans le panneau « Sources » */
-  for (const [n, qui] of [['225', 'Freeman et al., 2014'], ['317', 'Cepeda et al., 2006'], ['2<i>&nbsp;/&nbsp;10</i>', 'Dunlosky et al., 2013']])
-    assert.match(sc, new RegExp(`<b(?: id="me-n\\d")?>${n}</b><span>[^<]+</span><small>${qui}</small>`), `${qui} sous son chiffre`);
-  assert.ok(video.includes("[94.5, 'Sources : <b>Freeman et al.</b>, PNAS, 2014 · <b>Dunlosky et al.</b>, Psychological Science in the Public Interest, 2013 · <b>Cepeda et al.</b>, Psychological Bulletin, 2006.'],\n  [99.5, '']"), 'ligne de source');
+  /* Elisa, 30 octobre, 20 h 01 : « on ne voit pas ce qu’il y a écrit, c’est flou », puis ses textes, mot pour mot */
+  assert.ok(sc.includes('<span>Une méthode fondée</span></span><span class="mask"><span>sur la <em>recherche</em>.</span>'), 'titre');
+  const txt = h => h.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&gt;/g, '>').replace(/\s+/g, ' ').trim();
+  const cartes = [...sc.matchAll(/<div class="me-c">([\s\S]*?)\n      <\/div>/g)].map(m => [m[1].match(/<h3>([^<]+)<\/h3>/)[1],
+    txt(m[1].match(/<p class="me-r">([\s\S]*?)<\/p>/)[1]).replace(/^>_/, ''), txt(m[1].match(/<p class="me-s">([\s\S]*?)<\/p>/)[1])]);
+  assert.deepEqual(cartes, [
+    ['Pratiquer plutôt qu’écouter', 'Tu écris et tu exécutes de vraies requêtes.', 'L’apprentissage actif améliore les résultats par rapport à un cours uniquement magistral.'],
+    ['Se tester avant de voir la réponse', 'Tu cherches d’abord, puis tu découvres la solution.', 'Se tester régulièrement fait partie des techniques d’apprentissage les plus efficaces.'],
+    ['Réviser au bon moment', 'Tu retrouves les notions à intervalles réguliers :', 'Espacer les révisions aide à mieux retenir sur la durée.']]);
+  assert.ok(sc.includes('<b><span id="me-x15">1,5</span>×</b><p>plus de risques d’échouer avec un enseignement magistral qu’avec un apprentissage actif.</p>'));
+  assert.doesNotMatch(sc, /me-n|Environ 6|184&nbsp;articles|<small>/, 'plus de petits chiffres sous les cartes');
+  /* Des textes lisibles même quand la vidéo est petite : 23 px au moins dans l’image de 1 080 px */
+  const st = video.slice(video.indexOf('/* S8b · La méthode'), video.indexOf('#sdf .ttl,#sdt .ttl{'));
+  for (const sel of ['.me-h h3', '.me-r', '.me-s', '.me-jl .jj', '#me-x p']) {
+    const px = +st.match(new RegExp(sel.replace(/[.#]/g, '\\$&') + '\\{[^}]*font:\\d+ (\\d+)px'))[1];
+    assert.ok(px >= 23, `${sel} : ${px} px`);
+  }
+  /* Sept secondes pour la lire ; la suite décalée */
+  assert.ok(video.includes("[82, 'Requête'], [94.5, 'La méthode'], [101.5, 'Cas pratiques']"), 'chapitre de 7 secondes');
+  assert.match(video, /scene\('sme', 94\.5, 101\.5\);/);
+  assert.match(video, /scene\('sdf', 101\.5, 111\.5\);/, 'la suite décalée');
+  assert.match(video, /const DURATION = 134\.5;/);
+  /* Les sources : dans la ligne du bas, et avec leurs chiffres dans le panneau « Sources » */
+  assert.ok(video.includes("[94.5, 'Sources : <b>Freeman et al.</b>, PNAS, 2014 · <b>Dunlosky et al.</b>, Psychological Science in the Public Interest, 2013 · <b>Cepeda et al.</b>, Psychological Bulletin, 2006.'],\n  [101.5, '']"), 'ligne de source');
   for (const doi of ['10.1073/pnas.1319030111', '10.1177/1529100612453266', '10.1037/0033-2909.132.3.354'])
     assert.ok(video.includes(`<a href="https://doi.org/${doi}" target="_blank" rel="noopener">`), `panneau Sources : ${doi}`);
   assert.ok(video.includes('méta-analyse de 225 études, cours de sciences à l’université') && video.includes('317 expériences tirées de 184 articles'));
-  assert.ok(sc.includes('Environ 6&nbsp;% de mieux aux examens avec un apprentissage actif.') && sc.includes('<b><span id="me-x15">1,5</span>&nbsp;fois</b><p>plus de risques d’échouer en écoutant un cours magistral qu’en pratiquant.'));
   assert.match(video, /T\.fromTo\(P, \{x15: 1\}, \{x15: 1\.5,/, 'le compteur s’arrête à 1,5');
-  assert.match(video, /T\.fromTo\(P, \{m1: 0\}, \{m1: 225,/); assert.match(video, /T\.fromTo\(P, \{m3: 0\}, \{m3: 317,/);
+  assert.doesNotMatch(video, /\{m1: 225|\{m3: 317/);
   /* Ce que fait Requête : le calendrier des révisions est celui de l’appli (INTERVALS) */
   const app = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const INTERVALS = JSON.parse(app.match(/const INTERVALS=(\[[\d,]+\]);/)[1]);
   assert.deepEqual([...sc.matchAll(/<span class="jj">J\+(\d+)<\/span>/g)].map(m => +m[1]), INTERVALS);
-  assert.ok(video.includes('les révisions reviennent à J+1, J+3, J+7, J+21 et J+60'), 'texte lu par VoiceOver');
+  assert.ok(video.includes('à intervalles réguliers, à J+1, J+3, J+7, J+21 et J+60'), 'texte lu par VoiceOver');
   assert.ok(video.includes('Les résultats de recherche viennent d’études publiées, pas d’une mesure faite sur Requête.'), 'précision dans le panneau Sources');
+});
+
+/* Elisa, 30 octobre, 20 h 01 : « met dans la vidéo : défie tes amis (sur les cas pratiques) ». Après « Cas résolu ! », la
+   salle de défi de l’appli sur le même cas : son code, « le plus rapide gagne », le classement de la manche (médailles,
+   pseudos, temps, 3, 2 puis 1 point), et les réactions des amis. */
+test('vidéo : défie tes amis sur le cas pratique, comme la salle de défi de l’appli', () => {
+  const app = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const i = video.indexOf('<section class="scene" id="sdf">'), sc = video.slice(i, video.indexOf('</section>', i));
+  const d = sc.slice(sc.indexOf('<div class="abs" id="duel">'));
+  assert.ok(sc.indexOf('id="df-stamp"') < sc.indexOf('id="duel"'), 'après le cas résolu');
+  assert.ok(d.includes('<b>Défie tes amis</b>') && d.includes('<p class="du-sub">Même cas, même chrono&nbsp;: le plus rapide gagne.</p>'), 'Elisa, 20 h 41');
+  assert.ok(app.includes('chacun résout ce défi au même moment, le plus rapide gagne.'), 'la règle de l’appli');
+  const code = d.match(/<span class="du-code">Salle <b>([A-Z0-9]+)<\/b><\/span>/)[1], ALPH = app.match(/const JEU_ALPH='([A-Z0-9]+)';/)[1];
+  assert.ok(code.length === 6 && [...code].every(c => ALPH.includes(c)), `code de salle ${code}, comme ceux de l’appli`);
+  const rangs = [...d.matchAll(/<li(?: class="me")?><span class="du-md">(.)(?:.)?<\/span><span class="du-av"[^>]*>.<\/span><b>([^<]+)<\/b><em class="du-t">(\d:\d\d)<\/em><small>\+(\d)<\/small>/gu)]
+    .map(m => [m[2], m[3], +m[4]]);
+  assert.deepEqual(rangs, [['Toi', '1:12', 3], ['Inès', '1:31', 2], ['Hugo', '1:48', 1]]);
+  assert.deepEqual(JSON.parse(app.match(/const JEU_POINTS=(\[[\d,]+\]);/)[1]), [3, 2, 1], 'points de l’appli');
+  assert.ok(video.includes('const meX = $(\'#me-x15\'), duT = $$(\'#duel .du-t\'), DUS = [72, 91, 108];'), 'les temps montent jusqu’à 1:12, 1:31 et 1:48');
+  /* Dans la scène des cas pratiques, entre le tampon et la fin de la scène */
+  const at = sel => +video.match(new RegExp(`rise\\('${sel}', ([\\d.]+)`))[1];
+  assert.ok(at('#duel') > 105.9 && at('#duel') < 110.5);
+  assert.ok(video.includes('Et défie tes amis : même cas, même chrono, le plus rapide gagne.'), 'texte lu par VoiceOver');
+  /* Elisa, 20 h 41 : l’énoncé du cas réécrit ; c’est celui de l’appli, mot pour mot, en deux temps : la question, puis la consigne */
+  const q = app.match(/titre:"Le meilleur client",niv:'\w',q:"([^"]+)"/)[1], vu = t => t.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ');
+  assert.equal(q, 'Quel client a commandé le plus d’unités ? Affiche son prénom et le nombre total d’unités commandées, du plus élevé au plus faible.');
+  assert.equal(vu(sc.match(/<p class="df-q">([^<]+)<\/p>/)[1]) + ' ' + sc.match(/<p class="df-i">([^<]+)<\/p>/)[1], q, 'la vidéo montre l’énoncé de l’appli');
+  assert.ok(video.includes('« Quel client a commandé le plus d’unités ? »'), 'texte lu par VoiceOver');
 });
 
 /* Elisa, 30 octobre, 18 h 05 : « le message n’est pas actualisé avec le nombre de fichiers ». Avec 4 fichiers, la page disait
@@ -389,7 +445,7 @@ test('contact : la zone des pièces jointes compte les fichiers, et le message s
   assert.deepEqual(zone(0), ['Ajouter une image ou un fichier', 'AIDE', false, false]);
   assert.deepEqual(zone(1), ['Ajouter un autre fichier', '1 fichier sur 5 (400\u00a0Ko). Tu peux encore en ajouter 4.', false, false]);
   assert.deepEqual(zone(4), ['Ajouter un autre fichier', '4 fichiers sur 5 (1,6\u00a0Mo). Tu peux encore en ajouter 1.', false, false]);
-  assert.deepEqual(zone(5), ['5 fichiers sur 5', 'C’est le maximum : retire un fichier pour en ajouter un autre.', true, true]);
+  assert.deepEqual(zone(5), ['5 fichiers sur 5', 'C’est le maximum\u00a0: retire un fichier pour en ajouter un autre.', true, true]);
   sujet = 'Signaler un bug';
   assert.deepEqual(zone(0).slice(0, 1), ['Ajouter une capture d’écran']);
   assert.deepEqual(zone(2).slice(0, 2), ['Ajouter une autre capture', '2 fichiers sur 5 (800\u00a0Ko). Tu peux encore en ajouter 3.']);
@@ -407,3 +463,165 @@ test('vidéo : « Se connecter » dans la barre du haut, qui mène au formulaire
   assert.ok(bar.includes('<span class="lg">Retour</span>') && bar.includes('<span>Passer<span class="lg">&nbsp;la vidéo</span></span>'));
 });
 
+
+/* Elisa, 30 octobre, 19 h 48 : sous « Ton objectif ? », « centré mieux formaté » ; les avis : « l’image et l’avis grossissent
+   puis rapetissent quand ça passe à l’autre » ; dans la barre du haut : « supprimer Salaires ». */
+test('« Salaires » n’est plus dans les menus (barre du haut, menu du téléphone, pieds de page) ; la carte reste', () => {
+  for (const page of ['index.html', 'module.html', 'mentions-legales.html', 'confidentialite.html', 'conditions.html'])
+    assert.doesNotMatch(lire(page), /<a href="(?:\.\/)?#salaires">Salaires<\/a>/, page);
+  const h = lire('index.html'), nav = h.slice(h.indexOf('<nav class="links"'), h.indexOf('</nav>', h.indexOf('<nav class="links"')));
+  assert.deepEqual([...nav.matchAll(/<a href="#(\w+)">([^<]+)<\/a>/g)].map(m => m[2]), ['Parcours', 'Pourquoi le SQL', 'Questions']);
+  assert.equal((h.match(/id="salaires"/g) || []).length, 1, 'la carte « Salaire » est toujours dans « Pourquoi le SQL »');
+});
+
+test('sous « Ton objectif ? » : le lien et les trois promesses sont centrés, en trois colonnes égales sur téléphone', () => {
+  const h = lire('index.html');
+  /* Le lien passe sur deux lignes entières (« Pas encore sûr·e ? » puis « Découvre les parcours ↓ »), jamais au milieu */
+  assert.match(h, /<a class="pick-alt" href="#modules"><span>Pas encore sûr·e&nbsp;\?<\/span> <span>Découvre les parcours<svg[^>]*aria-hidden="true">/);
+  assert.match(css, /\.pick-alt\{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;[^}]*text-align:center\}/);
+  assert.match(css, /\.pick-alt span\{display:inline-flex;align-items:center;gap:6px;white-space:nowrap\}/);
+  /* Les promesses : centrées sous la carte (même largeur qu’elle), coupées toutes au même endroit sur téléphone */
+  const tr = h.slice(h.indexOf('<ul class="trust'), h.indexOf('</ul>', h.indexOf('<ul class="trust')));
+  assert.deepEqual([...tr.matchAll(/<\/svg><span><span>([^<]+)<\/span> <span>([^<]+)<\/span><\/span><\/li>/g)].map(m => [m[1], m[2]]),
+    [['Dès 10&nbsp;min', 'par jour'], ['Rien à', 'installer'], ['Même', 'hors ligne']]);
+  assert.match(css, /\.trust\{margin:20px 0 0;display:flex;flex-wrap:wrap;justify-content:center;gap:8px 18px;max-width:470px;/);
+  assert.ok(css.includes('.pick{position:relative;margin-top:28px;max-width:470px;'), 'la carte fait 470 px au plus, comme la ligne');
+  const etroit = css.slice(css.indexOf('@media (max-width:489.98px),(min-width:700px) and (max-width:959.98px){'));
+  assert.match(etroit, /^@media[^{]*\{\s*\.trust\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+  assert.match(etroit, /\.trust li>span>span\{display:block\}/);
+});
+
+test('avis : la carte du moment et sa photo grossissent, puis rapetissent quand le carrousel passe à la suivante', async () => {
+  const vm = await import('node:vm');
+  const h = lire('index.html');
+  /* Le carrousel, exécuté seul avec trois cartes de 360 px */
+  const src = h.slice(h.indexOf('    var cards=[].slice.call(track.children)'), h.indexOf('    /* Défilement tout seul'));
+  const el = i => { const cls = new Set(), on = {}; return {cls, on, offsetLeft: 20 + i * 378, offsetWidth: 360,
+    classList: {toggle: (c, v) => v ? cls.add(c) : cls.delete(c)}, addEventListener: (e, f) => { on[e] = f; }}; };
+  const cards = [0, 1, 2].map(el), pts = [0, 1, 2].map(el), ev = {}, scrolls = [];
+  const track = {children: cards, offsetLeft: 0, clientWidth: 1200, scrollWidth: 1200, scrollLeft: 0,
+    addEventListener: (e, f) => { ev[e] = f; }, scrollTo: o => { scrolls.push(o.left); track.scrollLeft = o.left; }};
+  const ctx = vm.createContext({track, dots: {children: pts}, REDUIT: false, Math, setTimeout: f => f(), clearTimeout: () => {}});
+  vm.runInContext(src, ctx);
+  const dumoment = () => cards.map(c => c.cls.has('cur') ? 1 : 0).join('') + '/' + pts.map(p => p.cls.has('on') ? 1 : 0).join('');
+  assert.equal(dumoment(), '100/100', 'au départ, le premier avis');
+  /* Toutes les cartes tiennent à l’écran : le carrousel avance quand même d’un avis à l’autre, sans défiler */
+  for (const attendu of ['010/010', '001/001', '100/100']) { vm.runInContext('vers((cur+1)%cards.length)', ctx); assert.equal(dumoment(), attendu); }
+  assert.deepEqual(scrolls, [], 'rien à faire défiler');
+  /* Sur téléphone (la piste défile) : le défilement automatique centre l’avis, sans que son passage le change */
+  track.clientWidth = 400; track.scrollWidth = 1196;
+  vm.runInContext('vers(1)', ctx);
+  assert.deepEqual(scrolls, [378]); ev.scroll(); assert.equal(dumoment(), '010/010');
+  /* Quand on fait défiler soi-même, l’avis du moment est celui du milieu ; toucher une carte la met en avant */
+  ev.pointerdown(); track.scrollLeft = 756; ev.scroll(); assert.equal(dumoment(), '001/001');
+  cards[0].on.click(); assert.equal(dumoment(), '100/100');
+  /* Ce qui grossit : la carte (qui se redresse) et la photo ; les autres rapetissent */
+  assert.match(css, /\.av-card\{scale:\.95;transition:[^}]*scale \.65s cubic-bezier\(\.34,1\.56,\.64,1\)/);
+  assert.match(css, /\.av-card\.cur\{scale:1\.04;rotate:calc\(-1 \* var\(--r,0deg\)\);/);
+  assert.match(css, /\.av-card\.cur \.av-head\{scale:1\.16\}/);
+  assert.match(css, /\.av-card header\{gap:17px\}/, 'la photo agrandie ne touche pas le prénom');
+  assert.doesNotMatch(h, /var setDot=/, 'l’avis du moment ne se déduit plus seulement du défilement');
+});
+
+/* 30 octobre (21 h) : « une fusée en stickers au lieu du trophée, fusée animée ». */
+test('héros : une fusée en autocollant, animée, remplace le trophée de la pastille', () => {
+  const h = lire('index.html');
+  const k = h.match(/<span class="kicker n1 load">([\s\S]*?)<span>La plateforme qui te fait passer <span class="nw">au niveau supérieur<\/span><\/span><\/span>/);
+  assert.ok(k, 'la pastille garde son texte');
+  assert.doesNotMatch(k[1], /class="tro"/, 'plus de trophée');
+  assert.match(k[1], /^<svg class="fz" viewBox="0 0 48 48" aria-hidden="true"><g transform="rotate\(45 24 24\)">/, 'fusée décorative, penchée vers le haut');
+  assert.ok(k[1].includes('<g fill="#fff" stroke="#fff" stroke-width="7" stroke-linejoin="round">'), 'le bord blanc des autocollants');
+  assert.ok(k[1].includes('<g stroke="#1B1640" stroke-width="2.5" stroke-linejoin="round">'), 'le trait encre des autocollants');
+  assert.match(k[1], /<g class="fz-fl">/, 'la flamme');
+  assert.match(k[1], /<g class="fz-tr" /, 'les traînées');
+  /* L’autocollant déborde de la pastille : plus de overflow:hidden, le reflet glisse dans son propre fond arrondi */
+  const pastille = css.match(/\.kicker\.n1\{[^}]*\}/)[0];
+  assert.ok(pastille.endsWith('position:relative}') && !pastille.includes('overflow:hidden'), 'la fusée n’est pas rognée');
+  assert.match(css, /\.kicker\.n1::after\{[^}]*inset:0;border-radius:inherit;[^}]*no-repeat;animation:shimfond 4s/);
+  assert.match(css, /\.kicker\.n1 \.fz\{[^}]*position:relative;z-index:1;[^}]*animation:fz-arrive \.9s var\(--press\) \.3s backwards,fz-vol 4s ease-in-out 1\.2s infinite\}/, 'elle arrive, puis vole');
+  assert.match(css, /\.kicker\.n1 \.fz-fl\{animation:fz-pousse 4s ease-in-out 1\.2s infinite\}/, 'la poussée suit le vol');
+  for (const nom of ['shimfond', 'fz-arrive', 'fz-vol', 'fz-pousse', 'fz-flamme', 'fz-trainee']) assert.match(css, new RegExp(`@keyframes ${nom}\\{`), nom);
+  /* Mouvement réduit : tout s’arrête, et la règle vient après celles qu’elle annule (même poids) */
+  const reduit = css.indexOf('.kicker.n1::after,.kicker.n1 .fz,.kicker.n1 .fz g,.kicker.n1 .fz path{animation:none;transition:none}');
+  assert.ok(reduit > css.indexOf('.kicker.n1 .fz-tr path{'), 'mouvement réduit respecté');
+});
+
+/* 30 octobre (21 h 10) : « centre le bouton ». Vers 360 px, « Découvrir Requête » passait sur deux lignes, calé à gauche. */
+test('connexion : « Découvrir Requête » tient sur une ligne, centré dans son bouton', () => {
+  const h = lire('connexion.html');
+  assert.ok(h.includes('<a class="cx-back" href="./"><svg viewBox="0 0 24 24"') && h.includes('</svg>Découvrir Requête</a>'));
+  const r = h.match(/\n\.cx-back\{([^}]*)\}/)[1];
+  assert.ok(r.includes('display:inline-flex;align-items:center;justify-content:center;') && r.includes('white-space:nowrap;'), 'centré, sans retour à la ligne');
+  assert.ok(h.includes('@media (max-width:399px){.cx-top{gap:8px}.cx-back{padding:0 11px}}'), 'sur petit écran, il tient à côté du logo');
+});
+
+/* 30 octobre (21 h 17) : « fais une carte en dessous avec la partie entretien (à mettre dans l’ordre des autres) au lieu de
+   mettre à part », « monte “Requête, bientôt dans ta poche” », et un nouveau texte pour les parcours. */
+test('la prépa entretien devient une carte des atouts ; « bientôt dans ta poche » remonte ; texte des parcours', () => {
+  const h = lire('index.html');
+  assert.ok(!h.includes('<section class="block" id="entretien"'), 'plus de section à part');
+  /* Sans la carte « Sans réseau » (30 octobre, 22 h 50), elle suit « Cas pratiques et révisions » */
+  const cas = h.indexOf('<div class="panel tile db w3 rv d1 t-cas">'), en = h.indexOf('<div class="panel tile db w6 rv t-en" id="entretien">');
+  assert.ok(cas > 0 && en > cas && h.indexOf('<div class="panel tile', cas + 1) === en, 'la carte suit « Cas pratiques et révisions »');
+  assert.ok(en < h.indexOf('</section>', h.indexOf('<section class="block" id="programme"')), 'dans « Tout pour apprendre vraiment »');
+  const carte = h.slice(en, h.indexOf('</section>', en));
+  const tete = carte.match(/<div class="db-head"><span class="db-ic c6"><svg[^>]*aria-hidden="true">[\s\S]*?<\/svg><\/span><span class="db-t"><small>Prépa entretien<\/small><\/span><span class="db-badge or">(\d+) thèmes<\/span><\/div>\s*<h3>Entraîne-toi pour l’entretien<\/h3>/);
+  assert.ok(tete, 'même en-tête que les autres cartes : icône, libellé, pastille, puis le titre');
+  assert.equal(+tete[1], (carte.match(/<ul class="en-themes"[^>]*>(.*?)<\/ul>/s)[1].match(/<li>/g) || []).length, 'la pastille compte les thèmes');
+  assert.ok(h.includes('<a href="#entretien">Prépa entretien</a>'), 'le lien du pied de page mène à la carte');
+  assert.match(css, /\.bento \.w6\{grid-column:1\/-1\}/, 'sur toute la largeur de la grille');
+  assert.match(css, /@container tuile \(min-width:720px\)\{\s*\.en-in\{display:grid;grid-template-columns:minmax\(0,1fr\) minmax\(0,1\.12fr\);gap:40px;align-items:start\}/, 'texte et aperçu côte à côte quand la carte est large');
+  /* L’ordre des sections : l’appli sur mobile vient juste après les atouts */
+  const ordre = [...h.matchAll(/<section class="[^"]*" id="([\w-]+)"/g)].map(m => m[1]);
+  assert.deepEqual(ordre.slice(ordre.indexOf('programme'), ordre.indexOf('programme') + 4), ['programme', 'mobile', 'progression', 'comment']);
+  /* Les parcours */
+  assert.ok(h.includes('<h2 id="modules-h">Un parcours pour <em>chaque objectif</em>.</h2>'));
+  assert.ok(h.includes('<p class="sec-lead" style="margin:6px auto 0">Du premier pas au niveau avancé, chaque parcours te guide avec des modules, des cours, des cas pratiques et des révisions pour progresser étape par étape.</p>'));
+  assert.ok(!h.includes('Chaque parcours est complet'));
+});
+
+/* 30 octobre (21 h 33) : nouveau texte de la page de connexion ; « quand on vient pour la première fois après la connexion,
+   il y a un bug dans l’animation, puis on n’atterrit pas sur la page d’accueil directement ». Deux causes : la page de
+   l’appli se rechargeait à la première ouverture (le service worker qui s’installe en prend le contrôle), ce qui relançait
+   l’animation d’arrivée après un éclair de l’écran de chargement ; et « Se connecter » ouvrait le parcours de bienvenue. */
+test('connexion : nouveau texte, « Se connecter » mène à l’accueil, sans rechargement à la première ouverture', async () => {
+  const vm = await import('node:vm');
+  const cx = lire('connexion.html');
+  assert.ok(cx.includes('<h1 id="cx-h">Ta prochaine requête <em>t’attend</em>.</h1>'));
+  assert.ok(cx.includes('<p>Retrouve tes cours, tes cas pratiques, tes données, ta collection, exactement là où tu les avais laissés.</p>'));
+  assert.ok(cx.includes("const APP = '../?depuis=vitrine', ACCUEIL = '../?depuis=connexion';"), 'chaque bouton dit qu’on arrive de la vitrine');
+  assert.ok(cx.includes("enter(go, 'Connexion…', 'C’est parti !', ACCUEIL);"), '« Se connecter » : directement l’accueil');
+  assert.ok(cx.includes("enter(e.currentTarget, 'Préparation…', 'Bienvenue !'));") && cx.includes('leave(); });'), 'créer un compte, continuer sans compte : le parcours reste');
+  const app = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  /* Le service worker ne recharge la page que s’il en remplace un autre (une vraie nouvelle version) */
+  assert.ok(app.includes('const _swHadController=!!navigator.serviceWorker.controller;'));
+  assert.ok(app.includes("if(_swRefreshing||!_swHadController)return;"));
+  /* L’arrivée : exécutée seule, avec et sans ?depuis=connexion */
+  const src = app.slice(app.indexOf('function maybeOnboard(){'), app.indexOf('function startOnboarding(){', app.indexOf('function maybeOnboard(){')));
+  const arrive = (search, onboarded = false) => {
+    const appels = [], url = 'https://requete.app/' + search + '#x';
+    const store = k => ({removeItem: c => appels.push(`oublie ${k} ${c}`)});
+    const ctx = vm.createContext({URL, URLSearchParams, location: {search, href: url}, appels,
+      sessionStorage: store('session'), localStorage: store('local'), NAV_KEY: 'nav', NAV_KEY_LONG: 'nav-long',
+      history: {state: null, replaceState: (s, t, u) => appels.push('url ' + u)},
+      state: {lessons: {}, plan: null, profile: {}, onboarded, accountMode: null},
+      apercuPlan: (n, r, f) => ({niveau: n, rythme: r, freq: f, sessions: []}), obVitrineGoal: () => 'reconversion',
+      save: () => appels.push('save'), startOnboarding: () => appels.push('parcours'), switchTab: t => appels.push('onglet ' + t),
+      renderGreeting() {}, renderHomeHero() {}, renderProgress() {}, renderPlanning() {}, renderCompte() {}});
+    vm.runInContext(src + '\nmaybeOnboard();', ctx);
+    return {appels, state: ctx.state};
+  };
+  const a = arrive('?depuis=connexion');
+  assert.deepEqual(a.appels, ['url /#x', 'oublie session nav', 'oublie local nav-long', 'save', 'onglet learn'], 'l’adresse est nettoyée, l’ancien écran oublié, puis l’accueil');
+  assert.ok(a.state.onboarded && a.state.plan.niveau === 'debutant' && a.state.plan.rythme === 'regulier' && a.state.plan.freq === 7);
+  assert.equal(a.state.profile.goal, 'reconversion', 'l’objectif choisi sur la vitrine');
+  assert.equal(a.state.accountMode, 'guest');
+  assert.deepEqual(arrive('').appels, ['parcours'], 'sans « Se connecter », le parcours de bienvenue');
+  /* Chaque connexion ouvre l’accueil, même déjà inscrit : l’écran de la dernière visite est oublié (Elisa, 30 octobre, 22 h 50) */
+  assert.deepEqual(arrive('?depuis=connexion', true).appels, ['url /#x', 'oublie session nav', 'oublie local nav-long', 'onglet learn']);
+  assert.deepEqual(arrive('?depuis=vitrine', true).appels, ['url /#x', 'oublie session nav', 'oublie local nav-long', 'onglet learn'], '« Créer un compte », « Continuer sans compte »');
+  assert.deepEqual(arrive('?depuis=vitrine').appels, ['url /#x', 'oublie session nav', 'oublie local nav-long', 'parcours'], 'pas encore inscrit : le parcours de bienvenue');
+  assert.deepEqual(arrive('', true).appels, [], 'l’appli rouverte seule reprend où l’on en était');
+  const boot = app.slice(app.indexOf('    maybeOnboard();\n'), app.indexOf('    jeuFromUrl();'));
+  assert.equal(boot, '    maybeOnboard();\n    restoreNav();\n', 'restoreNav passe après : il ne trouve plus rien à reprendre');
+});

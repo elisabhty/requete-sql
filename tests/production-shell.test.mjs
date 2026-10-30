@@ -108,7 +108,7 @@ assert(!html.includes('${planManageHTML(p)}'), 'réglage de rythme redondant ret
 assert(account.includes('acct-hero') && account.includes('class="acct-id"') && account.includes('Modifier mon profil') && account.includes('Mode local actif'), 'profil, niveau et mode de stockage explicites');
 assert(account.includes('Ma progression') && account.includes('acct-stats') && account.includes('id="acct-progress"'), 'progression réelle regroupée dans une seule carte, atteignable depuis la série de l’accueil');
 assert(html.includes('function accountLevel(percent)') && account.includes('acct-level-track') && account.includes('Prochain cap') && account.includes('Niveau ${level.rank}'), 'niveau SQL et prochain palier calculés depuis la progression réelle');
-assert(account.includes('Cette semaine') && account.includes('acct-week') && account.includes('weekComplete') && account.includes('LQ_MOON_SVG'), 'semaine reliée aux séances du planning, repos en lune comme à l’accueil');
+assert(account.includes('Tes 7 prochains jours') && account.includes('const date=addJ(auj(),i)') && !account.includes('const monday=') && account.includes('acct-week') && account.includes('weekComplete') && account.includes('LQ_MOON_SVG'), 'les 7 jours du planning à partir d’aujourd’hui (Elisa, 30 octobre : « c’est pas cette semaine, c’est aujourd’hui »), repos en lune comme à l’accueil');
 assert(account.includes('Accomplissements') && account.includes('acct-badges') && account.includes('accomplissements()') && html.includes("label:'Première requête'") && !account.includes('<details class="account-subsection'), 'accomplissements visibles d’emblée, débloqués par des actions réelles (la même liste que les stickers)');
 assert(account.includes('LQ_FLAME_SVG') && account.includes("accountStatIcon('lessons')") && account.includes("accountStatIcon('challenges')"), 'les trois chiffres utilisent des pictogrammes dédiés, la flamme de la série comme à l’accueil');
 assert(!account.includes('🔥') && !account.includes("?'🔥':'○'"), 'aucun emoji dans Mon compte : pictogrammes SVG uniquement');
@@ -144,7 +144,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 const glissantes = fs.readFileSync(path.join(ROOT, 'assets/anim/fenetres-glissantes.html'), 'utf8');
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && ['UNBOUNDED PRECEDING', '2 PRECEDING', '2 FOLLOWING', 'CURRENT ROW'].every(c => glissantes.includes(c)) && html.includes('NTILE(4)'), 'cadres (dans la vidéo) et fonctions de fenêtre avancées (défi NTILE) couverts');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-10-30-clavier-video-v2190') && html.includes('requete-2026-10-30-clavier-video-v2190') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-10-30-appui-v2196') && html.includes('requete-2026-10-30-appui-v2196') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);

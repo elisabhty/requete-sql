@@ -60,7 +60,8 @@ test('accueil : arrivée collée une fois par séance, coucou au toucher, autoco
   const hero = entre('function renderHomeHero(){', 'const HOME_STEP_OK=');
   assert.ok(hero.includes("const intro=typeof mascotWavedThisSession!=='undefined'&&!mascotWavedThisSession&&!mascotReduced()&&typeof host.querySelector==='function'&&!host.querySelector('.mascot-stk')&&!!document.querySelector('#scr-learn.active');"));
   assert.ok(hero.includes('if(intro){mascotWavedThisSession=true;'), 'une seule arrivée par séance');
-  assert.ok(hero.includes("mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',hi:nxt==null?'Bravo\\u00a0!':'Coucou\\u00a0!',intro})"));
+  /* « Ravi de te revoir ! » plutôt que « Coucou ! » sur l’accueil (Elisa, 30 octobre, 22 h 58) ; l’écran de bienvenue garde « Coucou ! » */
+  assert.ok(hero.includes("mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',hi:nxt==null?'Bravo\\u00a0!':'Ravi de te revoir\\u00a0!',intro})"));
   assert.ok(hero.includes("for(const sel of ['.mstk-kw','.mstk-bub'])") && hero.includes('fresh.replaceWith(old);'), 'gardé, textes remis à jour');
   const wave = entre('function mascotWave(btn){', 'function mascotGreetOnce(){');
   assert.ok(wave.includes("btn.classList.add('is-hello');") && wave.includes('void btn.offsetWidth;') && wave.includes("setTimeout(()=>btn.classList.remove('is-hello'),2900)"));
