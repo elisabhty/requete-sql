@@ -130,7 +130,7 @@ test('anciens cours : les vidéos et les leçons en texte sont lues', () => {
   assert.ok(VIDEOS.length >= 40, `${VIDEOS.length} vidéos`);
   for (const f of VIDEOS) assert.ok(R.textesVideo(f).length >= 20, `${f} : ${R.textesVideo(f).length} textes lus`);
   assert.ok(LECONS_ANCIENNES.length >= 45, `${LECONS_ANCIENNES.length} leçons`);   // les chapitres du projet remplacent un à un les anciens cours texte
-  /* Depuis le 26 octobre, plus aucune leçon en texte (Sécurité et droits est devenue le chapitre 17) : la fiche de chaque ancienne leçon (titre, résumé,
+  /* Depuis le 26 octobre, plus aucune leçon en texte (Sécurité et droits est devenue le chapitre 18) : la fiche de chaque ancienne leçon (titre, résumé,
      récapitulatif de sa vidéo…) est lue. */
   /* Une leçon seule (le cours 0 depuis le 28 octobre) n’a plus de consigne ni d’indice : sa fiche, c’est son titre, son résumé et son récapitulatif. */
   for (const l of LECONS_ANCIENNES) assert.ok(R.textesFiche(l.id).length >= (l.seule ? 5 : 6), `leçon ${l.id} (${l.titre}) : ${R.textesFiche(l.id).length} textes lus`);

@@ -1,4 +1,4 @@
-/* Projet NutriBoost, chapitre 12 (leçon 63 « SAVEPOINT ») : la vidéo interactive assets/anim/projet-savepoint.html, testée aussi dans lesson-video.test.mjs.
+/* Projet NutriBoost, chapitre 13 (leçon 63 « SAVEPOINT ») : la vidéo interactive assets/anim/projet-savepoint.html, testée aussi dans lesson-video.test.mjs.
    La trame est celle d’Elisa (25 octobre, 17 h 05, « Cours 2 — SAVEPOINT : annuler une partie des modifications »), reprise le 25 octobre à 19 h 13 :
    le service client demande, par SMS, d’ajouter une tisane au colis de remplacement de Léa Simon ; on reprend le remplacement juste avant sa validation.
    Un point de retour (SAVEPOINT avant_cadeau) est posé avant le cadeau ; Léa Simon préfère un autre cadeau : ROLLBACK TO SAVEPOINT annule la tisane
@@ -37,11 +37,13 @@ const sql = q => Q.Q[q].map(([s]) => s).filter(s => !s.trim().startsWith('--')).
 
 /* ---------- La base de la vidéo ---------- */
 const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(root, 'vendor/sqljs', f)});
-/* La base NutriBoost telle que le chapitre 11 la laisse : les tables de la boutique (SCHEMA_SQL), les quatre tables des ateliers, la table avis
-   (chapitre 10) et la table remplacements (chapitre 11, où le remplacement de Léa Simon est validé). Dix tables. */
+/* La base NutriBoost telle que le chapitre 12 la laisse : les tables de la boutique (SCHEMA_SQL), les quatre tables des ateliers, la table avis
+   (chapitre 11) et la table remplacements (chapitre 12, où le remplacement de Léa Simon est validé). Dix tables. */
 function base({remplacement = true} = {}) {
   const db = new SQL.Database();
   db.run(vm.runInContext('SCHEMA_SQL', ctx));
+  /* Le chapitre 10 (MERGE, 30 octobre) : l’inventaire de l’entrepôt met à jour la Fibre Prébiotique (150) et Oméga 3 (75), et ajoute la Spiruline Bio. */
+  db.run("UPDATE produits SET stock = 150 WHERE id = 1; UPDATE produits SET stock = 75 WHERE id = 7; INSERT INTO produits VALUES (9, 'Spiruline Bio', 'Nutrition', 22.90, 40);");
   db.run(`PRAGMA foreign_keys = ON;
     CREATE TABLE coachs (id INTEGER PRIMARY KEY, prenom TEXT NOT NULL, nom TEXT NOT NULL, email TEXT NOT NULL);
     CREATE TABLE ateliers (id INTEGER PRIMARY KEY, titre TEXT NOT NULL, date_atelier DATE, coach_id INTEGER NOT NULL REFERENCES coachs(id), places INTEGER DEFAULT 12);
@@ -64,13 +66,13 @@ function base({remplacement = true} = {}) {
 }
 /* La table des cadeaux offerts : le client, le produit, la quantité ; vide au départ. */
 const CADEAUX = 'CREATE TABLE cadeaux (id INTEGER PRIMARY KEY, client_id INTEGER NOT NULL REFERENCES clients(id), produit_id INTEGER NOT NULL REFERENCES produits(id), quantite INTEGER NOT NULL);';
-/* La situation de départ du chapitre : juste avant la validation du chapitre 11, donc 30 shakers et aucun remplacement. */
+/* La situation de départ du chapitre : juste avant la validation du chapitre 12, donc 30 shakers et aucun remplacement. */
 const depart = () => { const db = base({remplacement: false}); db.run(CADEAUX); return db; };
 const tables = db => db.exec("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name")[0].values.map(r => r[0]);
 const count = (db, t) => db.exec(`SELECT COUNT(*) FROM ${t}`)[0].values[0][0];
 const stock = (db, id) => db.exec(`SELECT stock FROM produits WHERE id = ${id}`)[0].values[0][0];
 const lignes = (db, t) => (db.exec(`SELECT * FROM ${t} ORDER BY id`)[0] || {values: []}).values;
-/* Le début de la transaction, rejoué (le remplacement du chapitre 11), puis le point de retour et le cadeau. */
+/* Le début de la transaction, rejoué (le remplacement du chapitre 12), puis le point de retour et le cadeau. */
 const jusquAuCadeau = db => ['Q_BEGIN', 'Q_UP8', 'Q_INR', 'Q_SP', 'Q_UP5', 'Q_INC'].forEach(q => db.run(sql(q)));
 
 test('SAVEPOINT : juste après Transactions, dans le module « Transactions », et juste avant Les triggers', () => {
@@ -169,13 +171,13 @@ test('les phrases d’Elisa (25 octobre, 17 h 05 et 19 h 13) : sa trame, une phr
   assert.ok(!page.includes('Aucun cadeau ajouté'), 'le colis part avec la protéine');
 });
 
-test('la base du chapitre 11 : dix tables ; le shaker (produit 8, 30 en stock) et la tisane (produit 5, Tisane Détox, 60 en stock)', () => {
+test('la base du chapitre 12 : dix tables ; le shaker (produit 8, 30 en stock) et la tisane (produit 5, Tisane Détox, 60 en stock)', () => {
   const db = base(), TB = val('TB');
   assert.deepEqual(TB.map(t => t[3]), ['clients', 'commandes', 'fidelite', 'produits', 'coachs', 'ateliers', 'inscriptions', 'cartes', 'avis', 'remplacements']);
   assert.deepEqual(TB.map(t => t[3]).sort(), tables(db), 'aucune table de la base n’est oubliée à l’écran');
   for (const [, , , name, n] of TB) assert.equal(count(db, name), n, `${name} : ${n} lignes`);
   assert.ok(page.includes('<span>10 tables</span>'), '10 tables');
-  assert.deepEqual(lignes(db, 'remplacements'), [[1, 7, 8, 1, 'Léa']], 'le remplacement de Léa Simon, validé au chapitre 11');
+  assert.deepEqual(lignes(db, 'remplacements'), [[1, 7, 8, 1, 'Léa']], 'le remplacement de Léa Simon, validé au chapitre 12');
   const d = depart();
   assert.deepEqual(d.exec('SELECT id, nom, stock FROM produits WHERE id IN (5, 6, 8) ORDER BY id')[0].values, [[5, 'Tisane Détox', 60], [6, 'Protéine Végétale', 45], [8, 'Shaker Inox', 30]],
     'la situation de départ : 60 tisanes, 45 protéines végétales, 30 shakers');
@@ -273,7 +275,7 @@ test('les messages : le service client écrit deux fois par SMS, puis Léa Simon
   assert.deepEqual(opens.map(o => o.sel), ['#ml1', '#ml2', '#bsav', '#bval', '#ml3', '#ph1']);
   assert.deepEqual(opens.map(o => o.label), ['Ouvrir le message du service client NutriBoost', 'Ouvrir le message du service client NutriBoost', 'Revenir au savepoint', 'Valider le remplacement',
     'Ouvrir le message de Léa Simon', 'Agrandir la photo du colis']);
-  /* La photo : l’app s’arrête dessus une fois les bulles lues ; agrandie au toucher, comme au chapitre 11 ; le message part une fois la photo revenue. */
+  /* La photo : l’app s’arrête dessus une fois les bulles lues ; agrandie au toucher, comme au chapitre 12 ; le message part une fois la photo revenue. */
   assert.equal(opens[5].prompt, 'Touche la photo pour l’agrandir.');
   assert.ok(opens[5].at > opens[4].at && opens[5].at < picks[5].at && val('OUT3') > opens[5].at + 1.2, 'la photo, après l’ouverture du message, avant son départ');
   for (const t of ['zoomPhoto(PH);', 'mailOut(3, OUT3);', "sceneOff('#sm', OUT3 + 0.45);", '<div class="abs zph fly" id="zph"><img src="${MAILS[2][6].photo.src}" alt=""></div>', 'hold(T + 0.7, ZOOM_HOLD);'])
@@ -296,15 +298,15 @@ test('les messages : le service client écrit deux fois par SMS, puis Léa Simon
   assert.ok(page.includes('Elisa, 25 octobre, 17 h 05'), 'la page garde la trace de la trame d’Elisa');
 });
 
-test('chapitre 12 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 12 : SAVEPOINT</title>') && page.includes('<div class="tagpill">Projet · Chapitre 12</div>')
+test('chapitre 13 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
+  assert.ok(page.includes('<title>Requête · Projet, chapitre 13 : SAVEPOINT</title>') && page.includes('<div class="tagpill">Projet · Chapitre 13</div>')
     && page.includes('<span>S</span><span>A</span><span>V</span><span>E</span><span>P</span><span>O</span><span>I</span><span>N</span><span>T</span>')
-    && page.includes('<div class="abs sub">Annuler une partie des modifications</div>'), 'écran titre : « Projet · Chapitre 12 », SAVEPOINT, « Annuler une partie des modifications »');
+    && page.includes('<div class="abs sub">Annuler une partie des modifications</div>'), 'écran titre : « Projet · Chapitre 13 », SAVEPOINT, « Annuler une partie des modifications »');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.');
-  assert.equal(caps[1], 'Au chapitre 11, une transaction<br>t’a permis de tout valider<br>ou de tout annuler.', 'le chapitre précédent');
+  assert.equal(caps[1], 'Au chapitre 12, une transaction<br>t’a permis de tout valider<br>ou de tout annuler.', 'le chapitre précédent');
   const tx = fs.readFileSync(path.join(root, 'assets/anim/projet-transaction.html'), 'utf8');
-  assert.ok(tx.includes('avec <code>SAVEPOINT</code>.') && tx.includes('Prochaine leçon · SAVEPOINT</span>'), 'le chapitre 11 annonce celui-ci');
+  assert.ok(tx.includes('avec <code>SAVEPOINT</code>.') && tx.includes('Prochaine leçon · SAVEPOINT</span>'), 'le chapitre 12 annonce celui-ci');
   assert.ok(caps.includes('Dans la prochaine leçon, tu découvriras<br>les triggers : des actions lancées<br>automatiquement par une modification.') && page.includes('Prochaine leçon · Les triggers</span>'), 'annonce de la prochaine leçon');
   assert.equal(lessons[lessons.findIndex(l => l.id === 63) + 1].titre, 'Les triggers');
   assert.equal(caps[caps.length - 2], 'Pour finir, voici les <b>trois idées à retenir</b>.');

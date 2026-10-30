@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="color-scheme" content="light">
 <meta name="format-detection" content="telephone=no">
-<title>Requête · Projet, chapitre 15 : CREATE VIEW</title>
+<title>Requête · Projet, chapitre 16 : CREATE VIEW</title>
 <link rel="stylesheet" href="core.css">
 <style>
 #s0 .title{font-size:132px;top:452px;letter-spacing:-3px}
@@ -24,8 +24,8 @@
 @keyframes pvf{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 
 /* Couleur de chaque sujet : client, équipe NutriBoost (et carte de membre), inscription, coach, atelier,
-   puis les tables de la boutique : commande, produit, fidélité ; l’avis (chapitre 10), le remplacement (chapitre 11), le cadeau
-   (chapitre 12), l’historique des prix (chapitre 13) ; puis la vue catalogue_box (ce chapitre) et l’agence */
+   puis les tables de la boutique : commande, produit, fidélité ; l’avis (chapitre 11), le remplacement (chapitre 12), le cadeau
+   (chapitre 13), l’historique des prix (chapitre 14) ; puis la vue catalogue_box (ce chapitre) et l’agence */
 .k-co{--c:#2F80ED;--cs:#E6F0FD;--ci:#1D5FA8}
 .k-at{--c:#E8892B;--cs:#FFF1E2;--ci:#9A5B00}
 .k-cl{--c:#6A4DF4;--cs:#EEE9FF;--ci:#5335E0}
@@ -214,7 +214,7 @@
 
   <!-- 0 · Intro -->
   <section class="scene" id="s0">
-    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 15</div></div>
+    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 16</div></div>
     <div class="abs hilite"></div>
     <div class="abs title"><span>C</span><span>R</span><span>E</span><span>A</span><span>T</span><span class="sp">E</span><span>V</span><span>I</span><span>E</span><span>W</span></div>
     <div class="abs sub">Enregistrer une requête sous un nom</div>
@@ -302,7 +302,7 @@ const mailBlock = (n, extra = 0) => { const t = SCH.t; SCH.t = +(SCH.t + MO[n] +
 /* 1 · La box surprise. L’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) ; puis la box, avec la photo
    d’Elisa et le contexte de sa trame (Elisa, 26 octobre, 10 h 52 : « NutriBoost prépare une box surprise… »), et le message de Camille. */
 cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
-cap('r2', "Au chapitre 14, un verrou<br>a gardé la dernière place<br>pour une seule réservation.", 3.8);
+cap('r2', "Au chapitre 15, un verrou<br>a gardé la dernière place<br>pour une seule réservation.", 3.8);
 cap('o1', "NutriBoost prépare une box surprise.", 3.2);
 cap('o2', "Une agence doit créer la page<br>de présentation à partir<br>du catalogue produits.", 4.2);
 cap('o3', "Mais elle ne doit recevoir ni les stocks<br>ni les produits qui ne font pas partie<br>de la sélection.", 4.8);
@@ -381,25 +381,27 @@ const CHAPTERS = SCH.chaps.map((c, i) => ({n: i + 1, label: c.label, a: c.a, b: 
 const QUESTIONS = [];
 
 /* ---------- Le cas : la base des ateliers NutriBoost (la même dans tous les chapitres du projet) ---------- */
-/* La base telle que le chapitre 14 la laisse : douze tables ; l’inscription de Léa Simon à l’atelier Cuisine saine du 14 novembre est confirmée
+/* La base telle que le chapitre 15 la laisse : douze tables ; l’inscription de Léa Simon à l’atelier Cuisine saine du 14 novembre est confirmée
    (huit inscriptions). [clé, couleur, emoji, nom, lignes] */
 const TB = [
-  ['cl', 'k-cl', '👥', 'clients', 8], ['cm', 'k-cm', '🛒', 'commandes', 16], ['fi', 'k-fi', '⭐', 'fidelite', 4], ['pr', 'k-pr', '📦', 'produits', 8],
+  ['cl', 'k-cl', '👥', 'clients', 8], ['cm', 'k-cm', '🛒', 'commandes', 16], ['fi', 'k-fi', '⭐', 'fidelite', 4], ['pr', 'k-pr', '📦', 'produits', 9],
   ['co', 'k-co', '🧑‍🏫', 'coachs', 4], ['at', 'k-at', '📅', 'ateliers', 6], ['in', 'k-in', '📝', 'inscriptions', 8], ['ca', 'k-nb', '💳', 'cartes', 3],
   ['av', 'k-av', '💬', 'avis', 1], ['rp', 'k-rp', '🔁', 'remplacements', 1], ['cd', 'k-cd', '🎁', 'cadeaux', 1], ['hp', 'k-hp', '🏷️', 'historique_prix', 1]
 ];
-/* Le catalogue interne : la table produits telle que les chapitres précédents la laissent (le collagène à 34,90 € depuis le chapitre 13 ; le stock
-   du collagène, de la protéine et du shaker diminué d’une unité aux chapitres 11 à 13), avec la colonne selection_box ajoutée par Karim, le
+/* Le catalogue interne : la table produits telle que les chapitres précédents la laissent (la Fibre Prébiotique à 150 et l’Oméga 3 à 75, puis la
+   Spiruline Bio ajoutée par MERGE au chapitre 10 ; le collagène à 34,90 € depuis le chapitre 14 ; le stock du collagène, de la protéine et du shaker
+   diminué d’une unité aux chapitres 12 à 14), avec la colonne selection_box ajoutée par Karim, le
    développeur : 1 pour un produit de la box, 0 sinon. [identifiant, nom, catégorie, prix, stock, selection_box avant, après le changement de Camille] */
 const PRODUITS = [
-  [1, 'Fibre Prébiotique', 'Bien-être', '29.90', 120, 0, 0],
+  [1, 'Fibre Prébiotique', 'Bien-être', '29.90', 150, 0, 0],
   [2, 'Collagène Marin', 'Beauté', '34.90', 79, 0, 0],
   [3, 'Magnésium', 'Bien-être', '19.90', 500, 0, 1],
   [4, 'Vitamine D', 'Nutrition', '14.90', 150, 0, 0],
   [5, 'Tisane Détox', 'Boisson', '12.50', 60, 1, 1],
   [6, 'Protéine Végétale', 'Nutrition', '34.90', 44, 1, 0],
-  [7, 'Oméga 3', 'Bien-être', '24.90', 90, 0, 0],
-  [8, 'Shaker Inox', 'Accessoire', '15.00', 29, 1, 1]
+  [7, 'Oméga 3', 'Bien-être', '24.90', 75, 0, 0],
+  [8, 'Shaker Inox', 'Accessoire', '15.00', 29, 1, 1],
+  [9, 'Spiruline Bio', 'Nutrition', '22.90', 40, 0, 0]
 ];
 const BOX = PRODUITS.filter(p => p[5]).map(p => p[0]), BOX2 = PRODUITS.filter(p => p[6]).map(p => p[0]);   // [5, 6, 8], puis [3, 5, 8] : le magnésium remplace la protéine
 /* Moment 1 : un produit touché à tort ; moment 5 : d’où vient chaque case de la ligne du magnésium. */
@@ -408,7 +410,8 @@ const WHY1 = {
   2: 'Le Collagène Marin n’est pas coché : sa colonne <code>selection_box</code> vaut 0.',
   3: 'Le Magnésium n’est pas coché : sa colonne <code>selection_box</code> vaut 0.',
   4: 'La Vitamine D n’est pas cochée : sa colonne <code>selection_box</code> vaut 0.',
-  7: 'L’Oméga 3 n’est pas coché : sa colonne <code>selection_box</code> vaut 0.'
+  7: 'L’Oméga 3 n’est pas coché : sa colonne <code>selection_box</code> vaut 0.',
+  9: 'La Spiruline Bio n’est pas cochée : sa colonne <code>selection_box</code> vaut 0.'
 };
 const WHY5 = {
   c0: 'Le nom apparaît dans la vue, mais ce n’est pas lui qui y fait entrer le magnésium : c’est la condition du <code>WHERE</code>.',
@@ -438,7 +441,7 @@ const PICKS = [
     {label: 'nom, prix et stock', why: 'Le stock doit rester interne : l’agence ne doit pas le recevoir. Elle a besoin de la catégorie, pas du stock.'},
     {label: 'Toutes les colonnes, avec SELECT *', why: 'Avec <code>SELECT *</code>, la vue présenterait aussi le stock et la colonne <code>selection_box</code>, que l’agence ne doit pas recevoir.'}]},
   {at: atp('p3'), from: A.d1, kind: 'pick', text: true, prompt: 'Que va afficher la consultation de la vue catalogue_box ?', options: [
-    {label: 'Les 8 produits du catalogue, avec leur stock', why: 'La vue enregistre une requête avec son <code>WHERE</code> : seuls les produits dont <code>selection_box</code> vaut 1 apparaissent, sans leur stock.'},
+    {label: 'Les 9 produits du catalogue, avec leur stock', why: 'La vue enregistre une requête avec son <code>WHERE</code> : seuls les produits dont <code>selection_box</code> vaut 1 apparaissent, sans leur stock.'},
     {label: 'Les 3 produits de la box : nom, catégorie et prix', ok: true, why: '<code>SELECT *</code> affiche toutes les colonnes de la vue : le nom, la catégorie et le prix des trois produits sélectionnés.'},
     {label: 'Rien, car une vue ne contient aucune ligne', why: 'Consulter la vue exécute la requête qu’elle enregistre : le résultat présente les trois produits de la box.'}]},
   {at: atp('p4'), from: A.e1, kind: 'pick', text: true, prompt: 'La sélection a changé : faut-il recréer la vue catalogue_box ?', options: [
@@ -521,7 +524,7 @@ function dom(){
       head([['c0', 'nom'], ['c1', 'categorie'], ['c2', 'prix'], ['c3', 'stock'], ['c4', 'selection_box']]),
       PRODUITS.map(([id, nom, cat, prix, stock, s1, s2]) => line('tp' + id, cell(0, `<i class="v">${nom}</i>`) + cell(1, `<i class="v">${cat}</i>`) + cell(2, `<i class="v">${prix}</i>`) +
         cell(3, `<i class="v">${stock}</i>`) + cell(4, (s1 === s2 ? sw('sb' + id, [coche(s1)], 'sb') : sw('sb' + id, [coche(s1), coche(s2)], 'sb')) + (id === 3 ? '<i class="hc" id="hc3"></i>' : '')))).join(''),
-      '<span class="vwc" id="vwc"><span class="emo">📋</span>catalogue_box</span><span class="bn"><span>8 lignes</span></span>');
+      '<span class="vwc" id="vwc"><span class="emo">📋</span>catalogue_box</span><span class="bn"><span>9 lignes</span></span>');
   // les requêtes : la vue, puis sa consultation
   w += ed('evw', Q_VIEW, 'catalogue_box.sql') + ed('esl', Q_SEL, 'consultation.sql');
   w += button('bcre', 'cy', '📋', 'Créer la vue') + button('bexe', '', PLAY, 'Exécuter');
@@ -693,7 +696,7 @@ function build(){
   sceneOn('#sa', 5.0);
   show('#bc', A.r1, {y: 60}, 0.55); cue(A.r1, 'whoosh', 0.5);
   TB.forEach(([k], q) => { const t = A.r1 + 0.3 + q * 0.15; show('#bw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q % 5); });
-  // « Au chapitre 14, un verrou » : la dernière place de l’atelier Cuisine saine, pour une seule inscription
+  // « Au chapitre 15, un verrou » : la dernière place de l’atelier Cuisine saine, pour une seule inscription
   on('#bw-at .hl', A.r2 + 0.6, 0.2); cue(A.r2 + 0.6, 'tick', 0.5, 2);
   on('#bw-in .hl', A.r2 + 1.3, 0.2); cue(A.r2 + 1.3, 'tick', 0.5, 4);
   off(['#bw-at .hl', '#bw-in .hl'], A.r2 + 3.0, 0.3);
@@ -919,7 +922,7 @@ const IX = (() => {
   const CELLS = [['c0', 'Nom : Magnésium'], ['c1', 'Catégorie : Bien-être'], ['c2', 'Prix : 19.90'], ['c3', 'Stock : 500'], ['c4', 'selection_box : 1']];
   const cellOf = k => $(`#rtp3 .${k}`);
   function spots(i){
-    // moment 1 : les huit produits du catalogue
+    // moment 1 : les neuf produits du catalogue
     if (i === 0) return PRODUITS.map(([id, nom]) => Object.assign({k: String(id), label: nom}, rel($('#rtp' + id))));
     if (i === 4) return CELLS.map(([k, label]) => Object.assign({k, label}, rel(cellOf(k))));
     // moment 6 : dans la vue, ou hors de la vue

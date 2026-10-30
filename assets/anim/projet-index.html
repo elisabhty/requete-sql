@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="color-scheme" content="light">
 <meta name="format-detection" content="telephone=no">
-<title>Requête · Projet, chapitre 16 : Les index et EXPLAIN</title>
+<title>Requête · Projet, chapitre 17 : Les index et EXPLAIN</title>
 <link rel="stylesheet" href="core.css">
 <style>
 #s0 .title{font-size:200px;top:398px;letter-spacing:-5px}
@@ -23,8 +23,8 @@
 @keyframes pvf{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 
 /* Couleur de chaque sujet : client, équipe NutriBoost (et carte de membre), inscription, coach, atelier,
-   puis les tables de la boutique : commande, produit, fidélité ; l’avis (chapitre 10), le remplacement (chapitre 11), le cadeau
-   (chapitre 12), l’historique des prix (chapitre 13), la vue catalogue_box (chapitre 15) ; puis l’index et le plan d’exécution (ce chapitre) */
+   puis les tables de la boutique : commande, produit, fidélité ; l’avis (chapitre 11), le remplacement (chapitre 12), le cadeau
+   (chapitre 13), l’historique des prix (chapitre 14), la vue catalogue_box (chapitre 16) ; puis l’index et le plan d’exécution (ce chapitre) */
 .k-co{--c:#2F80ED;--cs:#E6F0FD;--ci:#1D5FA8}
 .k-at{--c:#E8892B;--cs:#FFF1E2;--ci:#9A5B00}
 .k-cl{--c:#6A4DF4;--cs:#EEE9FF;--ci:#5335E0}
@@ -234,7 +234,7 @@
 
   <!-- 0 · Intro -->
   <section class="scene" id="s0">
-    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 16</div></div>
+    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 17</div></div>
     <div class="abs hilite"></div>
     <div class="abs title"><span>I</span><span>N</span><span>D</span><span>E</span><span>X</span></div>
     <div class="abs sub">Accélérer une recherche et lire son plan</div>
@@ -313,7 +313,7 @@ const mailBlock = (n, extra = 0) => { const t = SCH.t; SCH.t = +(SCH.t + MO[n] +
 /* 1 · La file d’attente s’allonge. L’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) ; puis le scan
    d’une commande, avec la photo d’Elisa (« un scan, « Recherche de … » reste affiché, la file s’allonge »), et le message de l’équipe logistique. */
 cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
-cap('r2', "Au chapitre 15, une vue a présenté<br>la sélection de la box à l’agence.", 3.8);
+cap('r2', "Au chapitre 16, une vue a présenté<br>la sélection de la box à l’agence.", 3.8);
 cap('o1', "Au service logistique, on scanne<br>le QR code de chaque commande.", 4.0);
 cap('o1b', "L’écran doit alors afficher<br>les produits à préparer<br>et leurs quantités.", 3.8);   // Elisa, 29 octobre, 17 h 44 : ce que le scan doit afficher   // Elisa, 29 octobre, 17 h 44
 cap('o2', "Mais l’écran affiche<br>« Recherche de la commande… ».", 3.6);
@@ -390,10 +390,10 @@ const CHAPTERS = SCH.chaps.map((c, i) => ({n: i + 1, label: c.label, a: c.a, b: 
 const QUESTIONS = [];
 
 /* ---------- Le cas : la base des ateliers NutriBoost (la même dans tous les chapitres du projet) ---------- */
-/* La base telle que le chapitre 15 la laisse (douze tables ; la vue catalogue_box n’est pas une table), avec la table commandes de la boutique
+/* La base telle que le chapitre 16 la laisse (douze tables ; la vue catalogue_box n’est pas une table), avec la table commandes de la boutique
    telle que l’équipe logistique la décrit : 500 000 lignes, y compris les anciennes commandes. [clé, couleur, emoji, nom, lignes] */
 const TB = [
-  ['cl', 'k-cl', '👥', 'clients', 8], ['cm', 'k-cm', '🛒', 'commandes', 500000], ['fi', 'k-fi', '⭐', 'fidelite', 4], ['pr', 'k-pr', '📦', 'produits', 8],
+  ['cl', 'k-cl', '👥', 'clients', 8], ['cm', 'k-cm', '🛒', 'commandes', 500000], ['fi', 'k-fi', '⭐', 'fidelite', 4], ['pr', 'k-pr', '📦', 'produits', 9],
   ['co', 'k-co', '🧑‍🏫', 'coachs', 4], ['at', 'k-at', '📅', 'ateliers', 6], ['in', 'k-in', '📝', 'inscriptions', 8], ['ca', 'k-nb', '💳', 'cartes', 3],
   ['av', 'k-av', '💬', 'avis', 1], ['rp', 'k-rp', '🔁', 'remplacements', 1], ['cd', 'k-cd', '🎁', 'cadeaux', 1], ['hp', 'k-hp', '🏷️', 'historique_prix', 1]
 ];
@@ -690,7 +690,7 @@ function build(){
   sceneOn('#sa', 5.0);
   show('#bc', A.r1, {y: 60}, 0.55); cue(A.r1, 'whoosh', 0.5);
   TB.forEach(([k], q) => { const t = A.r1 + 0.3 + q * 0.15; show('#bw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q % 5); });
-  // « Au chapitre 15, une vue » : la vue catalogue_box lit la table produits
+  // « Au chapitre 16, une vue » : la vue catalogue_box lit la table produits
   on('#bw-pr .hl', A.r2 + 0.8, 0.2); cue(A.r2 + 0.8, 'tick', 0.5, 2);
   off('#bw-pr .hl', A.r2 + 3.0, 0.3);
   // au service logistique, on scanne le QR code de chaque commande : la photo d’Elisa, qui avance doucement vers l’écran

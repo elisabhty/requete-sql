@@ -85,7 +85,7 @@ test('bilan : le bouton arrive quand il est à l’écran, l’ajout se voit (co
 test('les vidéos n’ont plus « Ce que tu retiens » ni le bouton « Ajouter à mes notes »', () => {
   assert.ok(!/video:\{[^}]*notes:\{t:/.test(html), 'aucune leçon n’a de bouton de notes dans sa vidéo');
   const pages = [...html.matchAll(/video:\{anim:'assets\/anim\/([a-z0-9-]+\.html)\?app&embed'/g)].map(m => m[1]);
-  assert.equal(pages.length, 62);
+  assert.equal(pages.length, 63);
   for (const p of pages) {
     const src = fs.readFileSync(path.join(root, 'assets/anim', p), 'utf8');
     assert.ok(/label: ?'À retenir'/.test(src), `${p} : son chapitre « À retenir » (gardé dans la page, ?recap le remontre)`);

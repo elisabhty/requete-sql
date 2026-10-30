@@ -1127,7 +1127,7 @@ const COURSES = [
       "{label: 'SELECT\u00a0*\u00a0FROM\u00a0ateliers WHERE\u00a0id\u00a0=\u00a02', ok: true},", "{label: 'SET seances_restantes\u00a0= seances_restantes\u00a0+\u00a02', ok: true},",
       "{label: 'Le solde deviendrait négatif, ce que CHECK interdit', ok: true}]}",
       "b += out('o-5', 'warn', 'Requête exécutée', '5 lignes modifiées.');", "c += out('o-ck', 'err', 'Requête refusée', 'CHECK constraint failed:<br>seances_restantes &gt;= 0', 'm', true);", 'Prochaine leçon · DELETE']},
-  {id: 28, next: 68, titre: 'DELETE', page: 'projet-delete.html', thumb: 'projet-delete-thumb.webp', duree: '3 min 00', notesAt: 140.34,
+  {id: 28, next: 82, titre: 'DELETE', page: 'projet-delete.html', thumb: 'projet-delete-thumb.webp', duree: '3 min 00', notesAt: 140.34,
     table: 'inscriptions',
     bubble: 'Supprime les lignes qui ne doivent plus être conservées avec <span class="ic">DELETE</span>.',
     chapters: ['Trois demandes', 'Supprimer une ligne', 'Le bon client', 'Plusieurs lignes', 'L’oubli du WHERE', 'Trois mots-clés', 'À retenir'],
@@ -1136,8 +1136,19 @@ const COURSES = [
       // Les six moments : l’inscription à toucher, la fin de requête (une inscription, un compte, deux inscriptions), les huit inscriptions sans WHERE, les six demandes à ranger
       "{at: atp('p1'), from: A.c4, kind: 'tap', need: 1,", "{label: 'WHERE id = 4', ok: true},", "{label: 'WHERE id = 10', ok: true}]},", "{label: 'WHERE client_id = 6', ok: true},",
       "{at: atp('p5'), from: A.c19, kind: 'tap', need: 8,", "{at: atp('p6'), from: A.c24, kind: 'sort',",
-      "b += out('o-8', 'warn', 'Requête exécutée', '8 lignes supprimées.');", "c += out('o-2', 'ok', 'Requête exécutée', '1 ligne supprimée.');", 'Prochaine leçon · ON DELETE']},
-  {id: 68, next: 62, titre: 'ON DELETE', page: 'projet-ondelete.html', thumb: 'projet-ondelete-thumb.webp', duree: '4 min 07', notesAt: 237.73,
+      "b += out('o-8', 'warn', 'Requête exécutée', '8 lignes supprimées.');", "c += out('o-2', 'ok', 'Requête exécutée', '1 ligne supprimée.');", 'Prochaine leçon · MERGE']},
+  /* Le chapitre 10, ajouté le 30 octobre (Elisa : le mini-jeu de synchronisation d’urgence) : l’alerte stock, l’inventaire de l’entrepôt,
+     MERGE par étapes, le piège du Magnésium, la requête du collègue aux actions inversées, puis l’équivalent SQLite. */
+  {id: 82, next: 68, titre: 'MERGE', page: 'projet-merge.html', thumb: 'projet-merge-thumb.webp', duree: '3 min 09', notesAt: 165.3,
+    table: 'produits',
+    bubble: 'Utilise <span class="ic">MERGE</span> pour mettre à jour les lignes&nbsp;existantes et ajouter les nouvelles en une seule&nbsp;requête.',
+    chapters: ['L’alerte stock', 'Une action par produit', 'La clé de comparaison', 'MATCHED ou NOT MATCHED', 'Le piège', 'La requête du collègue', 'Et dans SQLite ?', 'À retenir'],
+    traps: ["const BINS = [['up', 'UPDATE', 'mettre à jour le stock'], ['in', 'INSERT', 'ajouter le produit'], ['no', 'Ne rien faire', 'garder la ligne telle quelle']];",
+      // Les six moments : les quatre produits à ranger, la condition ON, l’action de WHEN MATCHED, la ligne sans correspondance, le piège du Magnésium, les deux actions du collègue
+      "{at: atp('p1'), from: A.c3, kind: 'sort',", "{label: 'ON produits.id = entrepot.id', ok: true},", "{label: 'UPDATE SET stock = entrepot.stock', ok: true},",
+      "{at: atp('p4'), from: A.c18, kind: 'tap', need: 1,", "{label: 'Il reste tel quel', ok: true}]},", "{at: atp('p6'), from: A.c26, kind: 'sort',",
+      "b += out('o-run', 'ok', 'Requête exécutée', '3 lignes traitées : 2 modifiées, 1 ajoutée.');", "['eq4', 'SET stock = {qx|excluded}.stock;']", 'Prochaine leçon · ON DELETE']},
+  {id: 68, next: 62, titre: 'ON DELETE', page: 'projet-ondelete.html', thumb: 'projet-ondelete-thumb.webp', duree: '4 min 07', notesAt: 237.98,
     table: 'avis', article: 'une',
     bubble: 'Définis ce qui doit arriver aux données&nbsp;liées lorsqu’une&nbsp;ligne est supprimée.',
     chapters: ['Après l’atelier', 'De la feuille à la base', 'Quelque temps plus tard…', 'Le moment de la suppression', 'Découvrir ON DELETE', 'À toi de choisir', 'Retour sur le site web', 'Chaque cas, sa règle', 'À retenir'],
@@ -1276,10 +1287,10 @@ for (const c of COURSES) {
     for (const f of [c.page, 'core.css', 'core.js', 'gsap.min.js', 'mascotte.webp', c.thumb, ...images, ...(page.includes('src="moments.js"') ? ['moments.js'] : []), ...(page.includes('src="mail.js"') ? ['mail.js'] : [])])
       total += fs.statSync(path.join(ROOT, 'assets/anim', f)).size;
     for (const f of ANIM_FONTS) total += fs.statSync(path.join(ROOT, 'assets/fonts', f)).size;
-    /* 490 Ko (470 jusqu’au 26 octobre, puis 480) : le moteur commun grandit avec les chapitres du projet (le SMS sans formule du chapitre 15),
+    /* 490 Ko (470 jusqu’au 26 octobre, puis 480) : le moteur commun grandit avec les chapitres du projet (le SMS sans formule du chapitre 16),
        et les premières leçons chargent moments.js pour leurs moments « À toi » (Elisa, 26 octobre, 14 h 59 ; l’introduction, la plus lourde,
        en a cinq). */
-    /* Le chapitre 17, le dernier, porte en plus la fin de l’apprentissage (la conversation des équipes, la lettre d’Elisa et la finale
+    /* Le chapitre 18, le dernier, porte en plus la fin de l’apprentissage (la conversation des équipes, la lettre d’Elisa et la finale
        « Le chemin parcouru », 26 octobre, 23 h 53) : 520 Ko pour lui seul. */
     /* 500 Ko depuis le 27 octobre : moments.js porte aussi les cartes des moments (relier, ranger, une requête à lire ; Elisa, 13 h 48). */
     /* 510 Ko depuis le 29 octobre : le moteur commun porte la nouvelle intro dans la DA de la vitrine (carte violette, pastilles, ~8 Ko). */
@@ -2881,7 +2892,7 @@ test('mail à toucher : le bouton lecture ne l’ouvre pas, et l’image s’arr
 });
 
 test('moment « À toi » : la légende de l’image se cache tant que la feuille est ouverte (elle dépassait au-dessus quand l’image est réduite)', () => {
-  /* Elisa, 25 octobre, 16 h 56 : « il y a un cadre en dessous, ça fait bizarre, vérifie ailleurs si on a ça ». Au dernier moment du chapitre 10, l’image
+  /* Elisa, 25 octobre, 16 h 56 : « il y a un cadre en dessous, ça fait bizarre, vérifie ailleurs si on a ça ». Au dernier moment du chapitre 11, l’image
      réduite pour la feuille garde sa taille quand la feuille raccourcit (étiquettes rangées) : la carte de légende « À toi ! », remontée avec l’image,
      dépassait au-dessus de la feuille. Le lecteur la cache pendant tous les moments, de toutes les vidéos. */
   const show = cut('function lvPkShow(i,p){', 'function lvPkValid(');
@@ -2900,7 +2911,7 @@ test('boutons retour en pastille ronde : Safari ne coupe plus leur relief (overf
   assert.ok(/html\.lq #app \.home-back svg\{[^}]*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour des écrans : relief entier');
   assert.ok(/html\.lq #scr-lesson \.navbar \.back svg\{\s*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour de la leçon (« ‹ Accueil ») : relief entier');
   assert.ok(html.includes('.tab svg{overflow:visible;'), 'onglets : l’ombre de l’onglet actif n’est pas coupée non plus');
-  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=22">'), 'la feuille de style du thème est rechargée');
+  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=23">'), 'la feuille de style du thème est rechargée');
 });
 
 test('arrêt « toucher » sur un bouton : un doigt seul qui monte et descend, sans bulle ; le bouton s’enfonce dès l’appui et remonte au relâcher', () => {
