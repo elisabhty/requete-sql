@@ -43,7 +43,7 @@ const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/s
 function base() {
   const db = new SQL.Database();
   db.run(vm.runInContext('SCHEMA_SQL', ctx));
-  /* Le chapitre 11 (MERGE, 30 octobre) : l’inventaire de l’entrepôt met à jour la Fibre Prébiotique (150) et Oméga 3 (75), et ajoute la Spiruline Bio. */
+  /* Le chapitre 10 (MERGE, 30 octobre) : l’inventaire de l’entrepôt met à jour la Fibre Prébiotique (150) et Oméga 3 (75), et ajoute la Spiruline Bio. */
   db.run("UPDATE produits SET stock = 150 WHERE id = 1; UPDATE produits SET stock = 75 WHERE id = 7; INSERT INTO produits VALUES (9, 'Spiruline Bio', 'Nutrition', 22.90, 40);");
   /* Le chapitre 15 (procédures et fonctions stockées, 30 octobre) : CALL expedier_commande(13), puis (14). */
   db.run("UPDATE commandes SET statut = 'expédiée' WHERE id IN (13, 14);");
@@ -262,7 +262,7 @@ test('le changement de Camille : sans recréer la vue, sa consultation présente
 test('moments 1 et 5 : les produits cochés ; la valeur qui fait entrer le magnésium dans la vue', () => {
   const db = catalogue();
   assert.deepEqual(lignes(db, 'SELECT id FROM produits WHERE selection_box = 1 ORDER BY id').map(r => r[0]), val('BOX'), 'moment 1 : les produits que la vue gardera');
-  assert.deepEqual(Object.keys(val('WHY1')).map(Number), [1, 2, 3, 4, 7, 9], 'une correction pour chaque produit hors de la box (la Spiruline Bio, ajoutée au chapitre 11, comprise)');
+  assert.deepEqual(Object.keys(val('WHY1')).map(Number), [1, 2, 3, 4, 7, 9], 'une correction pour chaque produit hors de la box (la Spiruline Bio, ajoutée au chapitre 10, comprise)');
   assert.equal(val('PICKS')[0].prompt, 'Touche les produits qui font partie de la sélection.');
   /* Moment 5 : la case selection_box du magnésium (c4) ; le WHERE de la vue ne regarde qu’elle. */
   assert.deepEqual(Object.keys(val('WHY5')).sort(), ['c0', 'c1', 'c2', 'c3']);

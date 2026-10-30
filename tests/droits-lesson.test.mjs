@@ -43,7 +43,7 @@ const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/s
 function base() {
   const db = new SQL.Database();
   db.run(vm.runInContext('SCHEMA_SQL', ctx));
-  /* Le chapitre 11 (MERGE, 30 octobre) : l’inventaire de l’entrepôt met à jour la Fibre Prébiotique (150) et Oméga 3 (75), et ajoute la Spiruline Bio. */
+  /* Le chapitre 10 (MERGE, 30 octobre) : l’inventaire de l’entrepôt met à jour la Fibre Prébiotique (150) et Oméga 3 (75), et ajoute la Spiruline Bio. */
   db.run("UPDATE produits SET stock = 150 WHERE id = 1; UPDATE produits SET stock = 75 WHERE id = 7; INSERT INTO produits VALUES (9, 'Spiruline Bio', 'Nutrition', 22.90, 40);");
   /* Le chapitre 15 (procédures et fonctions stockées, 30 octobre) : CALL expedier_commande(13), puis (14). */
   db.run("UPDATE commandes SET statut = 'expédiée' WHERE id IN (13, 14);");

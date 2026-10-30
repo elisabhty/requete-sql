@@ -91,7 +91,7 @@ test('l’heure d’envoi : « 07:00 » à « 18:59 », la même pour un même e
   assert.notEqual(S.smsTime('Léa Simon'), S.smsTime('Nathan Dupont'), 'deux expéditeurs, deux heures');
 });
 
-test('deux SMS du même expéditeur (le service client, aux chapitres 10 et 12) : sept minutes d’écart, jamais la même heure', () => {
+test('deux SMS du même expéditeur (le service client, aux chapitres 11 et 12) : sept minutes d’écart, jamais la même heure', () => {
   const nom = 'Le service client NutriBoost', min = h => +h.slice(0, 2) * 60 + +h.slice(3);
   assert.equal(S.smsTime(nom, 0), S.smsTime(nom), 'le premier SMS garde l’heure de l’expéditeur');
   assert.equal(min(S.smsTime(nom, 1)) - min(S.smsTime(nom, 0)), 7);
@@ -213,11 +213,11 @@ for (const f of AVEC_SMS) {
     assert.ok(R.rendEnSms(src), 'smsCard pour un SMS, smsIn dans mailIn');
     assert.ok(/isSms\(tag, MAILS\[n\]\[6\]\) \? smsCard\(n \+ 1, k, /.test(src) && /function mailIn\(n, t, T\)\{\n  if \(isSms\(MAILS\[n - 1\]\[2\], MAILS\[n - 1\]\[6\]\)\) \{ if \(!APP\) fingerTap\(\$\('#ml' \+ n\), T\); return smsIn\(n, t, T/.test(src), 'même câblage dans chaque page');
     /* Une page qui a aussi un mail (coach, équipe, service client sans option) garde son code : avatar à enveloppe, adresse, signature.
-       Le chapitre 11 (l’équipe logistique, le 30 octobre) et les chapitres 13 à 20 n’ont que des SMS (Léa Simon, puis le service client ; deux fois le service client ; la responsable commerciale ;
+       Le chapitre 10 (l’équipe logistique, le 30 octobre) et les chapitres 13 à 20 n’ont que des SMS (Léa Simon, puis le service client ; deux fois le service client ; la responsable commerciale ;
        l’équipe ateliers ; deux fois Camille, la responsable de la box ; l’équipe logistique ; Camille Roux, responsable des opérations, puis Lina,
        puis Camille Roux de nouveau) : ils n’embarquent pas le code du mail. */
     if (M.some(m => !estSms(m))) assert.ok(src.includes('<i class="mav">') && src.includes('Nouveau mail'), 'la carte de mail existe toujours');
-    else assert.ok(!src.includes('Nouveau mail') && ['projet-merge.html', 'projet-procedures.html', 'projet-transaction.html', 'projet-savepoint.html', 'projet-trigger.html', 'projet-concurrence.html', 'projet-vue.html', 'projet-index.html', 'projet-droits.html'].includes(f), 'que des SMS : aux chapitres 11 et 13 à 20 seulement, sans le code du mail');
+    else assert.ok(!src.includes('Nouveau mail') && ['projet-merge.html', 'projet-procedures.html', 'projet-transaction.html', 'projet-savepoint.html', 'projet-trigger.html', 'projet-concurrence.html', 'projet-vue.html', 'projet-index.html', 'projet-droits.html'].includes(f), 'que des SMS : aux chapitres 10 et 13 à 20 seulement, sans le code du mail');
     /* L’app s’arrête sur la notification : « Touche le message… » pour un client, « Touche le mail… » sinon. */
     assert.ok(/msg = (?:\/\^client\/\.test\(MAILS\[n\]\[2\]\) \|\| \(MAILS\[n\]\[6\] \|\| \{\}\)\.sms|mailSms\(n\)) \? 'message' : 'mail'/.test(src) && src.includes('prompt: `Touche le ${msg} pour l’ouvrir.`') && src.includes('label: `Ouvrir le ${msg} '), 'consigne et étiquette du toucher');
   });
@@ -226,7 +226,7 @@ test('chapitre 1 : la conversation est compacte et serrée (elle tient sous le f
   const src = lire('projet-normaliser.html');
   assert.ok(src.includes('smsCard(n + 1, k, w[1], w[2], w[4], body, true)') && src.includes('return smsIn(n, t, T, true);'), 'version compacte et cadence serrée');
 });
-test('chapitre 10 : le service client relaie les trois demandes : deux SMS (« Léa vient de nous prévenir… », « Nathan Dupont nous a demandé… »), puis le mail d’Hugo Laurent', () => {
+test('chapitre 11 : le service client relaie les trois demandes : deux SMS (« Léa vient de nous prévenir… », « Nathan Dupont nous a demandé… »), puis le mail d’Hugo Laurent', () => {
   const src = lire('projet-delete.html'), M = R.donnees('projet-delete.html').MAILS;
   assert.deepEqual(M.map(m => `${m[0][0]} ${m[0][1]} [${m[2]}]`), Array(3).fill('Le service client NutriBoost [équipe]'));
   assert.deepEqual(M.map(m => !!(m[6] && m[6].sms)), [true, true, false], 'les deux premiers messages du service client portent l’option {sms: true}, le dernier est un mail');
@@ -282,7 +282,7 @@ for (const f of ['projet-delete.html', 'projet-ondelete.html']) {
     assert.ok(/mailOut\(\d, MAIL\d \+ MO\[\d\]\);/.test(src) && !/MAIL\d \+ (?:3\.8|4\.1|4\.15)\b/.test(src), 'le départ de chaque message suit sa longueur (plus de 3,8 s, 4,1 s ou 4,15 s écrits en dur)');
   });
 }
-test('chapitre 10 : la légende annonce les SMS ; le chapitre 12, qui n’a qu’un mail, n’en annonce pas', () => {
+test('chapitre 11 : la légende annonce les SMS ; le chapitre 12, qui n’a qu’un mail, n’en annonce pas', () => {
   assert.ok(lire('projet-delete.html').includes('cap(\'c2\', "Trois autres demandes arrivent.", 2.8);'));   // Elisa, 25 octobre, 08 h 17 (Réf 1)
   assert.ok(!/autres demandes arrivent/.test(lire('projet-ondelete.html')), 'le chapitre 12 ne dit pas « demandes arrivent » : une carte-titre « Quelque temps plus tard… », puis le mail');
 });

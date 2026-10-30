@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="color-scheme" content="light">
 <meta name="format-detection" content="telephone=no">
-<title>Requête · Projet, chapitre 11 : MERGE</title>
+<title>Requête · Projet, chapitre 10 : MERGE</title>
 <link rel="stylesheet" href="core.css">
 <style>
 #s0 .sub{font-size:66px}
@@ -160,7 +160,7 @@
 
   <!-- 0 · Intro -->
   <section class="scene" id="s0">
-    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 11</div></div>
+    <div class="abs tag0"><div class="tagpill">Projet · Chapitre 10</div></div>
     <div class="abs hilite"></div>
     <div class="abs title"><span>M</span><span>E</span><span>R</span><span>G</span><span>E</span></div>
     <div class="abs sub">Synchroniser deux tables</div>
@@ -234,7 +234,7 @@ const MO = MAILS.map((m, n) => mailOutAt(n));   // le départ du message, depuis
 
 /* 1 · L’alerte stock : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) */
 cap('r1', "Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
-cap('r2', "Au chapitre 10, tu as supprimé<br>des lignes avec <code>DELETE</code>.", 3.0);
+cap('r2', "Au chapitre 9, tu as modifié<br>des lignes avec <code>UPDATE</code>.", 3.0);
 cap('c2', "Ce soir, une alerte arrive<br>de l’équipe logistique.", 2.8);
 const MAIL1 = mailBlock(0);
 /* 2 · Une action par produit */
@@ -286,7 +286,7 @@ cap('c30', "On obtient le même résultat<br>avec <code>ON CONFLICT</code>, vu a
 cap('c31', "<code>excluded</code> désigne la ligne<br>que l’on voulait ajouter.", 3.6);
 cap('c32', "Ici, <code>WHERE true</code> garde<br>toutes les lignes de l’inventaire.", 3.6);
 /* la suite : la prochaine leçon */
-cap('c33', "Dans la prochaine leçon, tu apprendras<br>à supprimer une ligne que d’autres<br>tables référencent, avec <code>ON DELETE</code>.", 7.0);
+cap('c33', "Dans la prochaine leçon, tu apprendras<br>à supprimer des lignes avec <code>DELETE</code>.", 7.0);
 /* 8 · À retenir */
 chap({label:'À retenir'});
 const RECAP = SCH.t;
@@ -304,11 +304,11 @@ const CHAPTERS = SCH.chaps.map((c, i) => ({n: i + 1, label: c.label, a: c.a, b: 
 const QUESTIONS = [];
 
 /* ---------- Le cas : la base des ateliers NutriBoost (la même dans tous les chapitres du projet) ---------- */
-/* La base telle que le chapitre 10 la laisse : huit tables ; l’inscription de Léa Simon, le compte de Nathan Dupont et les deux inscriptions
-   d’Hugo Laurent ont été supprimés (clients 9, inscriptions 8).   [clé, couleur, emoji, nom, lignes] */
+/* La base telle que le chapitre 9 la laisse : huit tables, les mêmes lignes que dans l’app (clients 10, commandes 16, fidelite 4, produits 8)
+   et qu’aux chapitres 5 à 9 (coachs 4, ateliers 5, inscriptions 11, cartes 3).   [clé, couleur, emoji, nom, lignes] */
 const TB = [
-  ['cl', 'k-cl', '👥', 'clients', 9], ['cm', 'k-cm', '🛒', 'commandes', 16], ['fi', 'k-fi', '⭐', 'fidelite', 4], ['pr', 'k-pr', '📦', 'produits', 8],
-  ['co', 'k-co', '🧑‍🏫', 'coachs', 4], ['at', 'k-at', '📅', 'ateliers', 5], ['in', 'k-in', '📝', 'inscriptions', 8], ['ca', 'k-nb', '💳', 'cartes', 3]
+  ['cl', 'k-cl', '👥', 'clients', 10], ['cm', 'k-cm', '🛒', 'commandes', 16], ['fi', 'k-fi', '⭐', 'fidelite', 4], ['pr', 'k-pr', '📦', 'produits', 8],
+  ['co', 'k-co', '🧑‍🏫', 'coachs', 4], ['at', 'k-at', '📅', 'ateliers', 5], ['in', 'k-in', '📝', 'inscriptions', 11], ['ca', 'k-nb', '💳', 'cartes', 3]
 ];
 /* La table produits, telle que l’app la crée : [id, nom, catégorie, prix, stock]. */
 const PRODUITS = [
@@ -478,7 +478,7 @@ function dom(){
     (MAILS[n][6] || {}).hello, (MAILS[n][6] || {}).photo, (MAILS[n][6] || {}).bye) : '').join('') +
     '<div class="abs emo tapf" id="tapf">👆</div>';
   /* La suite : la prochaine leçon */
-  $('#sk').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🔗</span>Prochaine leçon · ON DELETE</span></div>';
+  $('#sk').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🗑️</span>Prochaine leçon · DELETE</span></div>';
   // les requêtes, découpées en caractères pour la frappe
   $$('.sq .ln').forEach(splitChars);
 }
@@ -576,10 +576,10 @@ function build(){
   sceneOn('#sa', 5.0);
   show('#bc', A.r1, {y: 60}, 0.55); cue(A.r1, 'whoosh', 0.5);
   TB.forEach(([k], q) => { const t = A.r1 + 0.3 + q * 0.15; show('#bw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q % 5); });
-  // « Au chapitre 10, tu as supprimé des lignes » : les deux tables d’où des lignes sont parties, les inscriptions et les clients
-  on('#bw-in .hl', A.r2 + 0.3, 0.2); cue(A.r2 + 0.3, 'tick', 0.5, 1);
-  on('#bw-cl .hl', A.r2 + 0.9, 0.2); cue(A.r2 + 0.9, 'tick', 0.5, 3);
-  off(['#bw-in .hl', '#bw-cl .hl'], A.r2 + 2.2, 0.3);
+  // « Au chapitre 9, tu as modifié des lignes » : les deux tables modifiées, les ateliers et les cartes
+  on('#bw-at .hl', A.r2 + 0.3, 0.2); cue(A.r2 + 0.3, 'tick', 0.5, 1);
+  on('#bw-ca .hl', A.r2 + 0.9, 0.2); cue(A.r2 + 0.9, 'tick', 0.5, 3);
+  off(['#bw-at .hl', '#bw-ca .hl'], A.r2 + 2.2, 0.3);
   // une alerte arrive : la pastille rouge, et la table produits qu’elle concerne
   show('#dem', A.c2 + 0.3, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.c2 + 0.3, 'pop', 0.7, 1);
   tl.to('#dem .emo', {rotation: -16, duration: 0.14, yoyo: true, repeat: 5, ease: 'sine.inOut'}, A.c2 + 0.8);
@@ -853,7 +853,7 @@ const IX = (() => {
 window.IX = IX;
 
 Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 165.3, picks: PICKS, opens: OPENS,
-  glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝🔑🏭🚨🔀🧭🔁🧩🔗👆✓!…«»·−→',
+  glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝🔑🏭🚨🔀🧭🔁🧩🔗👆✓!…«»·−→🗑️',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>
 </body>

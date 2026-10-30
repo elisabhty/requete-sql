@@ -1,4 +1,4 @@
-/* Projet NutriBoost, chapitre 10 (leçon 28 « DELETE ») : la vidéo interactive assets/anim/projet-delete.html, testée aussi dans lesson-video.test.mjs.
+/* Projet NutriBoost, chapitre 11 (leçon 28 « DELETE ») : la vidéo interactive assets/anim/projet-delete.html, testée aussi dans lesson-video.test.mjs.
    Trois messages demandent de supprimer des lignes. Le service client, qui centralise les demandes des clients depuis le chapitre 5
    (Elisa, 25 octobre : « plus l’accueil mais le service client »), les relaie : un SMS prévient que Léa Simon ne pourra pas participer à l’atelier Cuisine saine, un SMS
    dit que Nathan Dupont veut supprimer son compte (il y a deux Nathan), puis un mail annonce qu’Hugo Laurent déménage (deux inscriptions). Troisième cours du module « Écrire et modifier les données ». Leçon seule : ni cours texte, ni exercice. Elle remplace
@@ -38,6 +38,8 @@ const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/s
 function base() {
   const db = new SQL.Database();
   db.run(vm.runInContext('SCHEMA_SQL', ctx));
+  /* Le chapitre 10 (MERGE, 30 octobre) : l’inventaire de l’entrepôt met à jour la Fibre Prébiotique (150) et Oméga 3 (75), et ajoute la Spiruline Bio. */
+  db.run("UPDATE produits SET stock = 150 WHERE id = 1; UPDATE produits SET stock = 75 WHERE id = 7; INSERT INTO produits VALUES (9, 'Spiruline Bio', 'Nutrition', 22.90, 40);");
   db.run(`PRAGMA foreign_keys = ON;
     CREATE TABLE coachs (id INTEGER PRIMARY KEY, prenom TEXT NOT NULL, nom TEXT NOT NULL, email TEXT NOT NULL);
     CREATE TABLE ateliers (id INTEGER PRIMARY KEY, titre TEXT NOT NULL, date_atelier DATE, coach_id INTEGER NOT NULL REFERENCES coachs(id), places INTEGER DEFAULT 12);
@@ -58,12 +60,12 @@ const count = (db, t) => db.exec(`SELECT COUNT(*) FROM ${t}`)[0].values[0][0];
 const ids = db => db.exec('SELECT id FROM inscriptions ORDER BY id')[0]?.values.flat() ?? [];
 const TOUTES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 
-test('DELETE : troisième cours du module « Écrire et modifier les données », juste après UPDATE ; le cours suivant du parcours est MERGE', () => {
+test('DELETE : quatrième cours du module « Écrire et modifier les données », juste après MERGE ; le cours suivant du parcours est ON DELETE', () => {
   const m = modules.find(x => x.titre === 'Écrire et modifier les données');
-  assert.deepEqual([...m.lessons.map(l => l.id)], [26, 27, 28, 82], 'INSERT, UPDATE, DELETE, MERGE');
+  assert.deepEqual([...m.lessons.map(l => l.id)], [26, 27, 82, 28], 'INSERT, UPDATE, MERGE, DELETE');
   const liste = lessons.map(l => l.id);
-  assert.equal(liste.indexOf(28), liste.indexOf(27) + 1, 'DELETE vient juste après UPDATE');
-  assert.equal(liste[liste.indexOf(28) + 1], 82, 'MERGE vient juste après (30 octobre)');
+  assert.equal(liste.indexOf(28), liste.indexOf(82) + 1, 'DELETE vient juste après MERGE (depuis le 30 octobre)');
+  assert.equal(liste[liste.indexOf(28) + 1], 68, 'ON DELETE vient juste après');
   assert.equal(l28.titre, 'DELETE');
   assert.equal(l28.résumé, 'Supprimer des lignes');
 });
@@ -299,20 +301,20 @@ test('les trois messages : le service client relaie Léa Simon (SMS), Nathan Dup
   assert.deepEqual(sorties, [3.52, 3.52, 3.8], 'le départ : +2,68 s + 0,28 s par ligne après la première');
 });
 
-/* ---------- Propre au chapitre 10 : la suite du chapitre 9, l’annonce de la leçon MERGE ---------- */
-test('chapitre 10 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 10 : DELETE</title>') && page.includes('<div class="tagpill">Projet · Chapitre 10</div>')
+/* ---------- Propre au chapitre 11 : la suite du chapitre 10 (MERGE), l’annonce de la leçon ON DELETE ---------- */
+test('chapitre 11 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
+  assert.ok(page.includes('<title>Requête · Projet, chapitre 11 : DELETE</title>') && page.includes('<div class="tagpill">Projet · Chapitre 11</div>')
     && page.includes('<span>D</span><span>E</span><span>L</span><span>E</span><span>T</span><span>E</span>') && page.includes('<div class="abs sub">Supprimer des lignes</div>')
-    && page.includes('Supprime les lignes qui ne doivent plus être conservées avec <span class="ic">DELETE</span>.'), 'écran titre : « Projet · Chapitre 10 », DELETE, « Supprimer des lignes »');
+    && page.includes('Supprime les lignes qui ne doivent plus être conservées avec <span class="ic">DELETE</span>.'), 'écran titre : « Projet · Chapitre 11 », DELETE, « Supprimer des lignes »');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les chapitres 2 à 9');
-  assert.equal(caps[1], 'Au chapitre 9, tu as modifié<br>des lignes avec <code>UPDATE</code>.', 'le chapitre précédent');
-  /* La fin du chapitre 9 annonce « DELETE » : c’est ce chapitre. */
-  const update = fs.readFileSync(path.join(root, 'assets/anim/projet-update.html'), 'utf8');
-  assert.ok(update.includes('à supprimer des lignes avec <code>DELETE</code>.') && update.includes('Prochaine leçon · DELETE</span>'), 'le chapitre 9 annonce celui-ci');
-  /* Il annonce à son tour la leçon suivante du cours : MERGE, pour synchroniser deux tables (depuis le 30 octobre ; ON DELETE vient ensuite). */
-  assert.ok(caps.includes('Dans la prochaine leçon, tu apprendras<br>à synchroniser deux tables<br>en une seule requête, avec <code>MERGE</code>.') && page.includes('Prochaine leçon · MERGE</span>'), 'annonce de la prochaine leçon');
-  assert.equal(lessons[lessons.findIndex(l => l.id === 28) + 1].titre, 'MERGE');
+  assert.equal(caps[1], 'Au chapitre 10, tu as synchronisé<br>deux tables avec <code>MERGE</code>.', 'le chapitre précédent');
+  /* La fin du chapitre 10 annonce « DELETE » : c’est ce chapitre. */
+  const merge = fs.readFileSync(path.join(root, 'assets/anim/projet-merge.html'), 'utf8');
+  assert.ok(merge.includes('à supprimer des lignes avec <code>DELETE</code>.') && merge.includes('Prochaine leçon · DELETE</span>'), 'le chapitre 10 annonce celui-ci');
+  /* Il annonce à son tour la leçon suivante du cours : ON DELETE, pour une ligne que d’autres tables référencent. */
+  assert.ok(caps.includes('Dans la prochaine leçon, tu apprendras<br>à supprimer une ligne que d’autres<br>tables référencent, avec <code>ON DELETE</code>.') && page.includes('Prochaine leçon · ON DELETE</span>'), 'annonce de la prochaine leçon');
+  assert.equal(lessons[lessons.findIndex(l => l.id === 28) + 1].titre, 'ON DELETE');
   assert.equal(caps[caps.length - 2], 'Pour finir, voici les <b>trois idées à retenir</b>.');
   assert.ok(base().exec("SELECT COUNT(*) FROM inscriptions i JOIN clients c ON c.id = i.client_id WHERE c.id = 4")[0].values[0][0] > 0, 'une ligne que d’autres tables référencent existe : Nathan Petit');
 });

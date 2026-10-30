@@ -1,4 +1,4 @@
-/* Projet NutriBoost, chapitre 11 (leçon 82 « MERGE ») : la vidéo interactive assets/anim/projet-merge.html, testée aussi dans lesson-video.test.mjs.
+/* Projet NutriBoost, chapitre 10 (leçon 82 « MERGE ») : la vidéo interactive assets/anim/projet-merge.html, testée aussi dans lesson-video.test.mjs.
    Ajoutée le 30 octobre (Elisa : un mini-jeu de synchronisation d’urgence, « choix → feedback immédiat → progression → piège → boss final »).
    L’équipe logistique envoie une alerte : l’inventaire de l’entrepôt ne correspond plus aux stocks du site, les ventes du soir commencent
    dans 5 minutes. L’élève décide d’une action par produit, construit MERGE pas à pas (ON, WHEN MATCHED, WHEN NOT MATCHED), évite le piège
@@ -32,7 +32,7 @@ const sp = s => s.replace(/[  ]/g, ' ');
 
 /* ---------- La base de la vidéo ---------- */
 const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(root, 'vendor/sqljs', f)});
-/* La base NutriBoost telle que le chapitre 10 la laisse : les quatre tables de la boutique (SCHEMA_SQL de l’app : produits 8) et les quatre tables
+/* La base NutriBoost telle que le chapitre 9 la laisse (MERGE vient avant DELETE depuis le 30 octobre) : les quatre tables de la boutique (SCHEMA_SQL de l’app : produits 8) et les quatre tables
    des ateliers ; Nathan Dupont, l’inscription de Léa Simon et les deux d’Hugo Laurent ont été supprimés. Huit tables. */
 function base() {
   const db = new SQL.Database();
@@ -44,10 +44,9 @@ function base() {
     CREATE TABLE cartes (id INTEGER PRIMARY KEY, client_id INTEGER NOT NULL UNIQUE REFERENCES clients(id), seances_restantes INTEGER NOT NULL DEFAULT 10 CHECK (seances_restantes >= 0));
     INSERT INTO coachs VALUES (1,'Salma','Haddad','salma@pro.fr'),(2,'Moussa','Diallo','moussa@mail.fr'),(3,'Julie','Nguyen','julie@mail.fr'),(4,'Diego','Ramos','diego@mail.fr');
     INSERT INTO ateliers VALUES (1,'Récupération','2026-09-12',1,12),(2,'Pilates','2026-09-18',2,12),(3,'Cuisine saine','2026-09-19',3,12),(4,'Méditation','2026-09-24',4,12),(5,'Yoga du matin','2026-10-03',2,12);
-    INSERT INTO inscriptions VALUES (1,1,1,'2026-09-01'),(2,4,1,'2026-09-02'),(3,5,2,'2026-09-03'),(5,3,1,'2026-09-05'),(7,1,4,'2026-09-07'),
-      (8,2,3,'2026-09-08'),(10,8,5,'2026-09-09'),(11,9,5,'2026-09-09');
-    INSERT INTO cartes VALUES (1,1,12),(2,4,7),(3,6,20);
-    DELETE FROM clients WHERE id = 10;`);
+    INSERT INTO inscriptions VALUES (1,1,1,'2026-09-01'),(2,4,1,'2026-09-02'),(3,5,2,'2026-09-03'),(4,7,3,'2026-09-04'),(5,3,1,'2026-09-05'),(6,6,4,'2026-09-06'),(7,1,4,'2026-09-07'),
+      (8,2,3,'2026-09-08'),(9,6,5,'2026-09-09'),(10,8,5,'2026-09-09'),(11,9,5,'2026-09-09');
+    INSERT INTO cartes VALUES (1,1,12),(2,4,7),(3,6,20);`);
   return db;
 }
 /* La base avec l’inventaire importé : la table temporaire entrepot, telle que la page la montre. */
@@ -63,12 +62,12 @@ const produits = db => db.exec('SELECT id, nom, categorie, printf(\'%.2f\', prix
 const count = (db, t) => db.exec(`SELECT COUNT(*) FROM ${t}`)[0].values[0][0];
 const tables = db => db.exec("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name")[0].values.map(r => r[0]);
 
-test('MERGE : quatrième cours du module « Écrire et modifier les données », juste après DELETE ; le cours suivant du parcours est ON DELETE', () => {
+test('MERGE : troisième cours du module « Écrire et modifier les données », juste après UPDATE ; le cours suivant du parcours est DELETE', () => {
   const m = modules.find(x => x.titre === 'Écrire et modifier les données');
-  assert.deepEqual([...m.lessons.map(l => l.id)], [26, 27, 28, 82], 'INSERT, UPDATE, DELETE, MERGE');
+  assert.deepEqual([...m.lessons.map(l => l.id)], [26, 27, 82, 28], 'INSERT, UPDATE, MERGE, DELETE');
   const liste = lessons.map(l => l.id);
-  assert.equal(liste.indexOf(82), liste.indexOf(28) + 1, 'MERGE vient juste après DELETE');
-  assert.equal(liste[liste.indexOf(82) + 1], 68, 'ON DELETE vient juste après');
+  assert.equal(liste.indexOf(82), liste.indexOf(27) + 1, 'MERGE vient juste après UPDATE (depuis le 30 octobre)');
+  assert.equal(liste[liste.indexOf(82) + 1], 28, 'DELETE vient juste après');
   assert.equal(l82.titre, 'MERGE');
   assert.equal(l82.résumé, 'Synchroniser deux tables');
   assert.equal(new Set(liste).size, liste.length, 'un identifiant par leçon');
@@ -122,7 +121,7 @@ test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajo
   assert.equal([...page.matchAll(/return \{text: '([^']+)'/g)].length, 6, 'six indices écrits : un par moment');
 });
 
-test('la page montre la base du chapitre 10 : huit tables et leurs lignes ; la table produits est celle de l’app', () => {
+test('la page montre la base du chapitre 9 : huit tables et leurs lignes ; la table produits est celle de l’app', () => {
   const db = base(), TB = val('TB');
   assert.deepEqual(tables(db), ['ateliers', 'cartes', 'clients', 'coachs', 'commandes', 'fidelite', 'inscriptions', 'produits']);
   for (const [, , , name, n] of TB) assert.equal(count(db, name), n, `${name} : ${n} lignes`);
@@ -130,7 +129,7 @@ test('la page montre la base du chapitre 10 : huit tables et leurs lignes ; la t
   assert.ok(page.includes('<span>8 tables</span>') && page.includes('<span id="pc0">8 lignes</span><span id="pc1">9 lignes</span>'), 'la table produits passe de 8 à 9 lignes');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les autres chapitres');
-  assert.equal(caps[1], 'Au chapitre 10, tu as supprimé<br>des lignes avec <code>DELETE</code>.', 'le chapitre précédent');
+  assert.equal(caps[1], 'Au chapitre 9, tu as modifié<br>des lignes avec <code>UPDATE</code>.', 'le chapitre précédent');
 });
 
 test('moment 1 : chaque produit reçoit l’action que MERGE prendra ensuite', () => {
@@ -206,13 +205,13 @@ test('moment 6 : la requête du collègue a inversé les deux actions ; chacune 
   assert.ok(page.includes("alt('ec5b', '  UPDATE SET stock = entrepot.stock', 5)") && page.includes("alt('ec7b', '  INSERT (…) VALUES (…);', 7)"), 'puis remise en place');
 });
 
-test('chapitre 11 : écran titre, annonce par DELETE, annonce de ON DELETE, et récapitulatif dans la vidéo comme dans la fiche', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 11 : MERGE</title>') && page.includes('<div class="tagpill">Projet · Chapitre 11</div>')
+test('chapitre 10 : écran titre, annonce par UPDATE, annonce de DELETE, et récapitulatif dans la vidéo comme dans la fiche', () => {
+  assert.ok(page.includes('<title>Requête · Projet, chapitre 10 : MERGE</title>') && page.includes('<div class="tagpill">Projet · Chapitre 10</div>')
     && page.includes('<span>M</span><span>E</span><span>R</span><span>G</span><span>E</span>') && page.includes('<div class="abs sub">Synchroniser deux tables</div>'));
-  const del = fs.readFileSync(path.join(root, 'assets/anim/projet-delete.html'), 'utf8');
-  assert.ok(del.includes('en une seule requête, avec <code>MERGE</code>.') && del.includes('Prochaine leçon · MERGE</span>'), 'le chapitre 10 annonce celui-ci');
+  const upd = fs.readFileSync(path.join(root, 'assets/anim/projet-update.html'), 'utf8');
+  assert.ok(upd.includes('deux tables avec <code>MERGE</code>.') && upd.includes('Prochaine leçon · MERGE</span>'), 'le chapitre 9 annonce celui-ci');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.ok(caps.includes('Dans la prochaine leçon, tu apprendras<br>à supprimer une ligne que d’autres<br>tables référencent, avec <code>ON DELETE</code>.') && page.includes('Prochaine leçon · ON DELETE</span>'));
+  assert.ok(caps.includes('Dans la prochaine leçon, tu apprendras<br>à supprimer des lignes avec <code>DELETE</code>.') && page.includes('Prochaine leçon · DELETE</span>'));
   const rows = [...page.matchAll(/<div class="rrow"><div class="rico emo">([^<]+)<\/div><div class="rtxt">(.*?)<\/div><\/div>/g)].map(m => {
     const [phrase, detail] = m[2].split('<span class="rs">');
     return [m[1], strip(phrase), strip(detail.replace(/<\/span>$/, ''))];

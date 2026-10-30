@@ -32,7 +32,7 @@ const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/s
 function base() {
   const db = new SQL.Database();
   db.run(vm.runInContext('SCHEMA_SQL', ctx));
-  /* Le chapitre 11 (MERGE) : la Fibre Prébiotique à 150, Oméga 3 à 75, la Spiruline Bio ajoutée. */
+  /* Le chapitre 10 (MERGE) : la Fibre Prébiotique à 150, Oméga 3 à 75, la Spiruline Bio ajoutée. */
   db.run("UPDATE produits SET stock = 150 WHERE id = 1; UPDATE produits SET stock = 75 WHERE id = 7; INSERT INTO produits VALUES (9, 'Spiruline Bio', 'Nutrition', 22.90, 40);");
   db.run(`PRAGMA foreign_keys = ON;
     CREATE TABLE coachs (id INTEGER PRIMARY KEY, prenom TEXT NOT NULL, nom TEXT NOT NULL, email TEXT NOT NULL);
