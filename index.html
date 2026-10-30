@@ -6636,7 +6636,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=24">
+<link rel="stylesheet" href="ludique.css?v=25">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -7130,6 +7130,15 @@ html[data-motion="reduce"] .lv-end-cat,html[data-motion="reduce"] .lv-end-bravo{
 @keyframes lvFeIn{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.lv-fe>*{animation:none!important;opacity:1!important;transform:none!important}}
 html[data-motion="reduce"] .lv-fe>*{animation:none!important;opacity:1!important;transform:none!important}
+/* Sur ordinateur et tablette (dès 600 px), l’app est un cadre arrondi au milieu de la fenêtre (680 px de large dès 700 px) : le lecteur
+   se pose dans ce cadre au lieu de prendre toute la largeur (Elisa, 30 octobre, 16 h 47 : « il faut que la vidéo soit centrée, pas prendre
+   toute la largeur »). L’écran de fin du parcours suit le lecteur. */
+@media (min-width:600px){
+  .lv{top:14px;bottom:14px;left:0;right:0;width:min(1120px,calc(100% - 28px));margin:0 auto;border-radius:34px;overflow:hidden;
+    box-shadow:0 34px 80px -36px rgba(26,28,42,.48),0 0 0 1px rgba(255,255,255,.62)}
+  .lv.is-fin-end .lv-end{position:absolute}
+}
+@media (min-width:700px){.lv{width:680px}}
 @media (max-height:700px){.lv-fe{padding-top:calc(env(safe-area-inset-top,0px) + 58px)}.lv-fe .lv-end-cat{margin-top:34px}.lv-fe .mascot-stk{width:86px}.lv-fe h2{font-size:30px}.lv-fe-stats{margin-top:16px}}
 /* Dans le cours : la vignette qui rouvre la vidéo */
 /* Le cours en vidéo tient en un écran, sans rien à faire défiler : la barre du bas est déjà dans le flux (collante), pas de
@@ -7605,6 +7614,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
   <!-- Barre de touches SQL -->
   <div class="kbar" id="kbar"><div class="kbar-wrap">
     <button type="button" class="kbar-dock" id="kbar-dock" aria-label="Masquer le clavier" title="Masquer le clavier"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <span class="kbar-lab" aria-hidden="true">Insérer</span>
     <div class="kbar-in" id="kbar-in"></div>
   </div></div>
 
@@ -12368,7 +12378,7 @@ function syncKbarOffset(){
   if(on&&!kbar.classList.contains('kb-down')){ const oh=kbar.offsetHeight; if(oh>=44) kbarOpenH=oh; }
   const kh=on?kbarOpenH:0;
   document.documentElement.style.setProperty('--kbar-offset',((kbLift?kb:0)+kh)+'px');
-  kbar.style.bottom=kbLift?kb+'px':'0px';
+  kbar.style.bottom=kbLift?kb+'px':'';   // sans clavier à l’écran : la feuille de style décide (bas de l’écran, ou bas du cadre sur ordinateur)
   updateKbarDock();
 }
 function showKbar(on){
@@ -25816,7 +25826,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-30-mascotte-autocollant-v2189';
+  const SW_CACHE='requete-2026-10-30-clavier-video-v2190';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
