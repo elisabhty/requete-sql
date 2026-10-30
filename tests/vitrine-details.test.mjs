@@ -255,7 +255,7 @@ test('« cas pratiques » à la place de « défis métier » sur la vitrine, la
   assert.match(lire('connexion.html'), /<span class="sticker sun">25 cas pratiques<svg/, 'autocollant de la page de connexion');
   const v = lire('video.html');
   assert.ok(v.includes('<span>Des <em>cas pratiques</em>,</span>'), 'titre de la scène');
-  assert.ok(v.includes("[94.5, 'Cas pratiques']"), 'chapitre');
+  assert.ok(v.includes("[99.5, 'Cas pratiques']"), 'chapitre');
   assert.ok(v.includes('<div class="stk sun" id="stk-df">25 cas pratiques<svg'), 'autocollant de la vidéo');
   assert.ok(v.includes('<b>25 cas pratiques</b>'), 'tuile des fonctionnalités');
   assert.ok(v.includes('<div class="df-stamp" id="df-stamp">Cas résolu&nbsp;!</div>'));
@@ -271,7 +271,7 @@ test('contact : « Donner mon avis » affiche les étoiles (pas de « Ma note »
   for (let n = 1; n <= 5; n++)
     assert.ok(fs_[1].includes(`<input type="radio" name="note" value="${n}">`) && fs_[1].includes(`<span class="sr">${n} étoile${n > 1 ? 's' : ''} sur 5</span>`), `étoile ${n}`);
   /* Visibles seulement pour « Donner mon avis », avec un libellé de message adapté */
-  assert.ok(h.includes(`var majSujet=function(){var a=estAvis();rate.hidden=!a;lbl.textContent=a?'Ton avis, en quelques mots':'Ton message';};`));
+  assert.ok(h.includes(`var majSujet=function(){var a=estAvis();rate.hidden=!a;lbl.textContent=a?'Ton avis, en quelques mots':'Ton message';majDrop();};`));
   /* La note touchée dans « Et toi, tu en penses quoi ? » est cochée dans le formulaire, le message reste vide */
   assert.ok(h.includes(`var nr=note&&f.querySelector('input[name=note][value="'+note+'"]');if(nr){nr.checked=true;nr.dispatchEvent(new Event('change',{bubbles:true}));}`));
   assert.doesNotMatch(h, /ta\.value='Ma note/, 'plus de « Ma note » écrit dans la zone de texte');
@@ -279,3 +279,131 @@ test('contact : « Donner mon avis » affiche les étoiles (pas de « Ma note »
   assert.ok(h.includes(`var corps=(n?'Ma note : '+n+'/5\\n\\n':'')+msg+`));
   assert.match(css, /\.ct-stars label\.on svg path\{fill:var\(--sun\);stroke:var\(--ink\)\}/);
 });
+
+/* Elisa, 30 octobre, 17 h 02 : « pouvoir mettre pièces jointes image fichier ». */
+test('contact : pièces jointes (images et fichiers), choisies, glissées ou collées, sans serveur', () => {
+  const h = lire('index.html');
+  assert.ok(h.includes('<input type="file" id="ctfile" multiple accept="image/*,.pdf,.txt,.csv,.tsv,.xls,.xlsx,.json,.sql,.sqlite,.sqlite3,.db">'), 'plusieurs fichiers : images, PDF, tableurs, SQLite');
+  assert.ok(h.includes('<b id="ctdropt">Ajouter une image ou un fichier</b>') && h.includes("dropT.textContent=capt?'Ajouter une capture d’écran':'Ajouter une image ou un fichier';"), 'une capture pour un bug ou un problème de connexion');
+  assert.ok(h.includes("if(PJ.length>=5){refus=refus||'5 fichiers au plus") && h.includes("if(file.size>10e6){refus=refus||'« '+file.name+' » dépasse 10\\u00a0Mo.'"), 'limites : 5 fichiers, 10 Mo');
+  assert.ok(h.includes("drop.addEventListener('drop',function(e){if(e.dataTransfer&&e.dataTransfer.files.length)ajouterPJ(e.dataTransfer.files);});"), 'glisser-déposer');
+  assert.ok(h.includes("if(fs&&fs.length&&!cd.getData('text/plain')){e.preventDefault();var avant=PJ.length;ajouterPJ(fs);"), 'une capture collée dans le message devient une pièce jointe (le texte collé reste du texte)');
+  assert.ok(h.includes("x.setAttribute('aria-label','Retirer '+file.name);"), 'chaque fichier se retire');
+  /* L’envoi : la feuille de partage de l’appareil reçoit les fichiers ; sinon la messagerie, qui rappelle les fichiers à joindre */
+  assert.ok(h.includes("if(CONTACT_EMAIL&&PJ.length&&navigator.canShare&&navigator.share&&navigator.canShare({files:PJ})){") && h.includes("navigator.share({title:'[Requête] '+sujet,text:'À envoyer à '+CONTACT_EMAIL+'\\n\\n'+corps,files:PJ})"), 'partage avec les fichiers');
+  assert.ok(h.includes("(PJ.length?'\\n\\nPièces jointes : '+noms:'')") && h.includes('avant d’envoyer.'), 'le message nomme les fichiers');
+  assert.ok(h.includes('Ton prénom, ton e-mail, ton message et tes fichiers servent seulement à te répondre.'), 'mention sous le formulaire');
+  assert.ok(lire('confidentialite.html').includes('ton message et les fichiers que tu y joins (captures d’écran, documents), seulement pour te répondre.'), 'politique de confidentialité');
+  assert.match(css, /\.ct-drop\{position:relative;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:16px;border:2px dashed #D3C8FF;/);
+  assert.match(css, /@media \(hover:none\)\{\.ct-drop-pc\{display:none\}\}/, 'sur téléphone, pas d’invitation à glisser des fichiers');
+});
+
+test('vidéo : « Et si ton prochain pas était vers la data ? », sur deux lignes, sans toucher la source', () => {
+  assert.ok(video.includes('<p class="abs" id="rc-link">Et si ton prochain pas<br>était vers la <em>data</em>&nbsp;?</p>'), 'au tutoiement de la vidéo');
+  assert.ok(video.includes('selon France Stratégie. Et si ton prochain pas était vers la data ?'), 'texte lu par VoiceOver');
+  assert.doesNotMatch(video, /Et si c’était la/);
+  const top = id => +video.match(new RegExp(`#${id}\\{left:\\d+px;top:(\\d+)px`))[1];
+  assert.ok(top('rc-link') + 2 * 52 * 1.1 + 12 < top('src'), 'deux lignes au-dessus de la ligne de source');
+  assert.ok(top('rc-cap') + 2 * 50 * 1.2 < top('rc-link'), 'sous « Près d’1 actif sur 2 envisage de sauter le pas. »');
+});
+
+/* Elisa, 30 octobre, 17 h 10 : scène « Requête » (« Apprends le SQL maintenant. ») et scène « Fonctionnalités »
+   (« Du premier SELECT aux requêtes avancées, progresse à ton rythme. ») : Requête ne propose pas seulement des
+   cours, c’est tout un environnement pour apprendre et pratiquer le SQL. */
+test('vidéo : « Apprends le SQL maintenant. » puis les neuf tuiles des fonctionnalités, au-dessus des boutons de fin', () => {
+  const scene = id => { const i = video.indexOf(`<section class="scene" id="${id}">`); return video.slice(i, video.indexOf('</section>', i)); };
+  const s8 = scene('s8'), s9 = scene('s9');
+  assert.ok(s8.includes('<h2 class="ttl"><span class="mask"><span>Apprends le SQL</span></span><span class="mask"><span><em>maintenant</em>.</span></span></h2>'), 'titre');
+  assert.ok(s8.includes('<p class="abs sub">Pratique sur de vraies<br>données avec <b>Requête</b>.</p>'), 'sous-titre');
+  assert.ok(s8.includes('Le SQL, pensé pour les futurs data analysts.</p>'), 'accroche');
+  assert.doesNotMatch(video, /1<sup>re<\/sup> application|1re application/, 'plus de « 1re application des data analysts »');
+  assert.ok(s9.includes('<span>Du premier <code>SELECT</code></span>') && s9.includes('<span>aux requêtes <em>avancées</em>,</span>'), 'titre');
+  assert.ok(s9.includes('<p class="abs sub">progresse à ton rythme.</p>'), 'la phrase continue sous le titre');
+  const tuiles = [...s9.matchAll(/<div class="ft(?: more)?">.*?<b>(.*?)<\/b><\/div>/g)].map(m => m[1]);
+  assert.deepEqual(tuiles, ['65 cours immersifs', 'Un labo&nbsp;SQL interactif', '25 cas pratiques', 'Importe tes propres données',
+    '30 questions d’entretien', 'Cartes mémo &amp; stickers', 'Défie tes amis', 'Ta série de jours',
+    'Et bien plus encore<small>Découvre-les maintenant&nbsp;!</small>']);
+  /* Quatre rangées de deux, puis « Et bien plus encore » sur toute la largeur, fini avant 860 px :
+     sur un téléphone de 360 px, « Commencer » commence vers 876 px à la fin de la vidéo */
+  assert.match(video, /\.ft\.more\{grid-column:1\/-1;/);
+  const top = +video.match(/#feat\{left:80px;top:(\d+)px;/)[1], gap = +video.match(/#feat\{[^}]*gap:(\d+)px /)[1];
+  const h = +video.match(/\.ft\{height:(\d+)px;/)[1], hm = +video.match(/\.ft\.more\{grid-column:1\/-1;height:(\d+)px;/)[1];
+  assert.ok(top + 4 * h + 4 * gap + hm <= 860, `les tuiles finissent à ${top + 4 * h + 4 * gap + hm} px`);
+  /* Texte lu par VoiceOver */
+  assert.ok(video.includes("'Apprends le SQL maintenant. Pratique sur de vraies données avec Requête. Le SQL, pensé pour les futurs data analysts. Des cours interactifs"));
+  assert.ok(video.includes("'Du premier SELECT aux requêtes avancées, progresse à ton rythme. 65 cours immersifs, un labo SQL interactif, 25 cas pratiques."));
+});
+
+/* Elisa, 30 octobre, 17 h 31 : un écran d’onboarding avec des logos de Harvard, Stanford et Emory (« est-ce qu’on peut
+   intégrer qchose comme ça dans la vidéo ? »). Pas de logos d’universités : Requête n’a aucun lien avec elles. À la place,
+   17 h 56 (« oui ») : une scène « Une méthode qui s’appuie sur la recherche », juste après la démo, avec trois résultats
+   publiés, leur source, et ce que fait Requête. La vidéo passe à 2 min 10. */
+test('vidéo : la scène « La méthode » cite ses sources, sans logo d’université, et suit le calendrier des révisions de l’appli', () => {
+  const i = video.indexOf('<section class="scene" id="sme">'), sc = video.slice(i, video.indexOf('</section>', i));
+  assert.ok(i > video.indexOf('<section class="scene" id="s8">') && i < video.indexOf('<section class="scene" id="sdf">'), 'entre la démo et les cas pratiques');
+  assert.ok(sc.includes('<span>Une méthode qui s’appuie</span></span><span class="mask"><span>sur la <em>recherche</em>.</span>'), 'titre');
+  assert.doesNotMatch(sc, /<img|Harvard|Stanford|Emory|Yale|Oxford|Cambridge|Sorbonne|MIT\b/, 'aucun logo ni nom d’université');
+  assert.ok(video.includes("[82, 'Requête'], [94.5, 'La méthode'], [99.5, 'Cas pratiques']"), 'chapitre de 5 secondes');
+  assert.match(video, /scene\('sme', 94\.5, 99\.5\);/);
+  assert.match(video, /scene\('sdf', 99\.5, 107\);/, 'la suite décalée de 5 secondes');
+  assert.match(video, /const DURATION = 130;/);
+  /* Chaque chiffre a sa source : sous le chiffre, dans la ligne du bas, dans le panneau « Sources » */
+  for (const [n, qui] of [['225', 'Freeman et al., 2014'], ['317', 'Cepeda et al., 2006'], ['2<i>&nbsp;/&nbsp;10</i>', 'Dunlosky et al., 2013']])
+    assert.match(sc, new RegExp(`<b(?: id="me-n\\d")?>${n}</b><span>[^<]+</span><small>${qui}</small>`), `${qui} sous son chiffre`);
+  assert.ok(video.includes("[94.5, 'Sources : <b>Freeman et al.</b>, PNAS, 2014 · <b>Dunlosky et al.</b>, Psychological Science in the Public Interest, 2013 · <b>Cepeda et al.</b>, Psychological Bulletin, 2006.'],\n  [99.5, '']"), 'ligne de source');
+  for (const doi of ['10.1073/pnas.1319030111', '10.1177/1529100612453266', '10.1037/0033-2909.132.3.354'])
+    assert.ok(video.includes(`<a href="https://doi.org/${doi}" target="_blank" rel="noopener">`), `panneau Sources : ${doi}`);
+  assert.ok(video.includes('méta-analyse de 225 études, cours de sciences à l’université') && video.includes('317 expériences tirées de 184 articles'));
+  assert.ok(sc.includes('Environ 6&nbsp;% de mieux aux examens avec un apprentissage actif.') && sc.includes('<b><span id="me-x15">1,5</span>&nbsp;fois</b><p>plus de risques d’échouer en écoutant un cours magistral qu’en pratiquant.'));
+  assert.match(video, /T\.fromTo\(P, \{x15: 1\}, \{x15: 1\.5,/, 'le compteur s’arrête à 1,5');
+  assert.match(video, /T\.fromTo\(P, \{m1: 0\}, \{m1: 225,/); assert.match(video, /T\.fromTo\(P, \{m3: 0\}, \{m3: 317,/);
+  /* Ce que fait Requête : le calendrier des révisions est celui de l’appli (INTERVALS) */
+  const app = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const INTERVALS = JSON.parse(app.match(/const INTERVALS=(\[[\d,]+\]);/)[1]);
+  assert.deepEqual([...sc.matchAll(/<span class="jj">J\+(\d+)<\/span>/g)].map(m => +m[1]), INTERVALS);
+  assert.ok(video.includes('les révisions reviennent à J+1, J+3, J+7, J+21 et J+60'), 'texte lu par VoiceOver');
+  assert.ok(video.includes('Les résultats de recherche viennent d’études publiées, pas d’une mesure faite sur Requête.'), 'précision dans le panneau Sources');
+});
+
+/* Elisa, 30 octobre, 18 h 05 : « le message n’est pas actualisé avec le nombre de fichiers ». Avec 4 fichiers, la page disait
+   encore « 5 fichiers au plus » : le message d’erreur restait après qu’on avait retiré un fichier. Désormais la zone donne le
+   compte (« 4 fichiers sur 5 »), se ferme à 5, et un message sur les pièces jointes s’efface dès que la liste change. */
+test('contact : la zone des pièces jointes compte les fichiers, et le message suit la liste', async () => {
+  const vm = await import('node:vm');
+  const h = lire('index.html');
+  assert.ok(h.includes('<small id="ctdrops">Capture d’écran, PDF, CSV… jusqu’à 5 fichiers de 10&nbsp;Mo.'), 'aide de la zone, réécrite avec le compte');
+  assert.ok(h.includes("x.addEventListener('click',function(){PJ.splice(i,1);oubliePJ();peindrePJ();"), 'retirer un fichier efface le message sur les pièces jointes');
+  assert.ok(h.includes('    oubliePJ();\n    if(refus)direPJ(refus,\'ko\');'), 'chaque ajout repart d’un message à jour');
+  assert.ok(h.includes("    majDrop();\n  };"), 'la zone se redessine avec la liste');
+  assert.ok(h.includes("'capture-'+(++nCapt)+'.'"), 'deux captures collées ne prennent jamais le même nom');
+  assert.match(css, /\.ct-drop\.full,\.ct-drop\.full:hover\{cursor:default;/, 'zone fermée à 5 fichiers');
+  /* La zone, exécutée seule : 0, 1, 4 et 5 fichiers, sujet ordinaire ou « bug » */
+  const src = h.slice(h.indexOf("  var poids=function(o){"), h.indexOf("  var majSujet=function(){"));
+  const cls = new Set(), dropT = {textContent: ''}, dropS = {textContent: '', innerHTML: ''}, pjIn = {disabled: false};
+  let sujet = 'Une question';
+  const ctx = vm.createContext({PJ: [], AIDE: 'AIDE', dropT, dropS, pjIn,
+    drop: {classList: {toggle: (c, on) => on ? cls.add(c) : cls.delete(c)}},
+    f: {querySelector: () => ({value: sujet})}});
+  vm.runInContext(src.replace(/\bvar /g, 'this.'), ctx);
+  const zone = n => { ctx.PJ = Array.from({length: n}, () => ({size: 400e3})); vm.runInContext('this.PJ = PJ; majDrop()', ctx); return [dropT.textContent, n ? dropS.textContent : dropS.innerHTML, cls.has('full'), pjIn.disabled]; };
+  assert.deepEqual(zone(0), ['Ajouter une image ou un fichier', 'AIDE', false, false]);
+  assert.deepEqual(zone(1), ['Ajouter un autre fichier', '1 fichier sur 5 (400\u00a0Ko). Tu peux encore en ajouter 4.', false, false]);
+  assert.deepEqual(zone(4), ['Ajouter un autre fichier', '4 fichiers sur 5 (1,6\u00a0Mo). Tu peux encore en ajouter 1.', false, false]);
+  assert.deepEqual(zone(5), ['5 fichiers sur 5', 'C’est le maximum : retire un fichier pour en ajouter un autre.', true, true]);
+  sujet = 'Signaler un bug';
+  assert.deepEqual(zone(0).slice(0, 1), ['Ajouter une capture d’écran']);
+  assert.deepEqual(zone(2).slice(0, 2), ['Ajouter une autre capture', '2 fichiers sur 5 (800\u00a0Ko). Tu peux encore en ajouter 3.']);
+});
+
+/* Elisa, 30 octobre, 18 h 05 (sur la page de la vidéo) : « mettre un bouton se connecter ». */
+test('vidéo : « Se connecter » dans la barre du haut, qui mène au formulaire de connexion', () => {
+  const bar = video.slice(video.indexOf('<div class="bar top">'), video.indexOf('</div>', video.indexOf('<div class="bar top">')));
+  const liens = [...bar.matchAll(/<a class="pill[^"]*" href="([^"]+)"(?: aria-label="([^"]+)")?>/g)].map(m => [m[1], m[2] || '']);
+  assert.deepEqual(liens, [['./', 'Retour'], ['connexion.html#cx-form', ''], ['connexion.html', 'Passer la vidéo']]);
+  assert.match(bar, /<a class="pill login" href="connexion\.html#cx-form"><svg class="me"[^>]*aria-hidden="true">.*?<\/svg>Se connecter<\/a>/s, 'icône et texte « Se connecter »');
+  assert.ok(lire('connexion.html').includes('<form class="cx-card" id="cx-form"'), 'le formulaire de connexion existe');
+  /* Sur téléphone, les trois boutons tiennent : « Retour » en flèche, « Passer la vidéo » en « Passer », « Se connecter » écrit */
+  assert.match(video, /@media \(max-width:460px\)\{\.bar-r\{gap:8px\}\.pill\{padding:0 13px\}\.pill \.lg\{display:none\}\.pill\.back\{width:44px;/);
+  assert.ok(bar.includes('<span class="lg">Retour</span>') && bar.includes('<span>Passer<span class="lg">&nbsp;la vidéo</span></span>'));
+});
+
