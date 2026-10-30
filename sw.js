@@ -20,6 +20,7 @@ const CACHE = 'requete-2026-10-30-merge-avant-delete-v2188';
 
 const PRECACHE = [
   './memo-collection.css?v=5',
+  './onboarding-vitrine.css?v=1',
   './',
   './index.html',
   './home-journey.css',
