@@ -16187,10 +16187,13 @@ function lvText(el,h,host){
   for(const c of tries){ set(c); if(lines()<=n0)return; }
   set(base);
 }
-/* Voix off des moments (LvVoice) : la consigne à l’ouverture, « Bien vu ! » réussi du premier coup, « Pas tout à fait… » à la première
-   erreur, l’indice quand il s’affiche (une fois chacun) ; la consigne d’un message à toucher. Son coupé : rien. */
+/* Voix off des moments (LvVoice) : la consigne à l’ouverture, « Bien vu ! » ou « Bien rattrapé ! » une fois le moment réussi, « Pas tout
+   à fait… » à la première erreur, l’indice quand il s’affiche (une fois chacun) ; la consigne d’un message à toucher. Son coupé : rien. */
 function lvVoiceV(){ return LV&&LV.video&&LV.video.voice||null; }
 function lvVoiceSay(c){ if(c&&LV&&LV.video&&!LV.video.muted)LvVoice.say(c); }
+/* Moment réussi : « Bien vu ! » du premier coup, « Bien rattrapé ! » après une erreur (Elisa, 31 octobre, 13 h 14 : « quand c’est raté
+   et bien rattrapé elle dit rien ») ; un cours qui n’a pas encore cette phrase dit « Bien vu ! ». */
+function lvVoiceWin(first){ const V=lvVoiceV(); if(V)lvVoiceSay(first?V.ok:(V.late||V.ok)); }
 function lvVoiceKo(P){ const V=lvVoiceV(); if(!V||!P)return; if(P.hinted&&!P.tipSaid){ P.tipSaid=true; lvVoiceSay(V.tips[P.i]); } else if(!P.koSaid){ P.koSaid=true; lvVoiceSay(V.ko); } }
 function lvPkShow(i,p){
   if(!LV||!p)return;
@@ -16377,7 +16380,7 @@ function lvPkVerdict(P,k,btn,ok,r){
     P.box.querySelectorAll('.lv-pk-opt').forEach(b=>{ if(b!==btn)b.classList.add('is-gone'); });
     LV.video.sfx('true');
     if(first)setTimeout(()=>{ if(LV&&LV.pk===P)LvSfx.play('chord',0,.55,0); },160);
-    if(first){ const V=lvVoiceV(); if(V)lvVoiceSay(V.ok); }
+    lvVoiceWin(first);
     if(navigator.vibrate)navigator.vibrate([10,60,20]);
     let rect=null; try{ const IX=lvPkIX(); rect=IX&&IX.slot?IX.slot(P.i):null; }catch(e){}
     if(!prefersReduceMotion()&&rect)lvPkBurst(rect);
@@ -17105,7 +17108,7 @@ function lvPkWin(P,why,rect){
   }else if(wEl){ wEl.hidden=true; P.box.querySelector('.lv-pk-t').hidden=false; }   // la légende qui suit explique : la consigne revient, sans la correction d’une erreur
   LV.video.sfx('true');
   if(first)setTimeout(()=>{ if(LV&&LV.pk===P)LvSfx.play('chord',0,.55,0); },160);
-  if(first){ const V=lvVoiceV(); if(V)lvVoiceSay(V.ok); }
+  lvVoiceWin(first);
   if(navigator.vibrate)navigator.vibrate([10,60,20]);
   if(!prefersReduceMotion()&&rect&&rect.w)lvPkBurst(rect);
   const sr=LV.root.querySelector('.lv-sr'); if(sr)sr.textContent=(first?'Bien vu : ':'Bien rattrapé, mais seul le premier essai compte : moment raté. ')+String(why).replace(/<[^>]+>/g,'');
