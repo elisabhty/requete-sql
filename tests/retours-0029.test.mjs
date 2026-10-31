@@ -72,5 +72,6 @@ test('un défi tourne sur sa base : exécution, correction, pas à pas, schéma 
   assert.ok(app.includes('const database=dId?new SQL.Database(defiBaseBytes(dId)):db;'), 'schéma de la base du défi');
   assert.ok(app.includes("tt.textContent=dId?`Schéma · base ${DEFI_BASES[dId].nom}`:'Schéma · base du cours';"));
   assert.ok(app.includes('if(dId){const d=new SQL.Database(defiBaseBytes(dId));try{tabs=listTables(d);}finally{d.close();}}'), 'tables proposées après « no such table »');
+  assert.ok(app.includes("const id=dId?'defi:'+dId:(activeDbId||'cours')+':'+(database?schemaVersion(database):'-');"), 'tables et colonnes proposées au clavier');
   assert.ok(app.includes("Défi · ${NIV[c.niv].l}${defiBaseId(c)?` · Base ${esc(DEFI_BASES[defiBaseId(c)].nom)}`:''}"), 'la base dans l’en-tête du défi');
 });
