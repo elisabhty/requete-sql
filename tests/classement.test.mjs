@@ -54,12 +54,12 @@ test('pseudos : la même liste dans l’appli et sur le serveur, et les mêmes v
     assert.equal(ev(`jeuPseudoOk(${JSON.stringify(p)})`), false, p);
 });
 
-test('le barème du serveur : 100 à 210 points par manche trouvée entre amis, 160 au plus seul ; une partie ne compte qu’une fois', () => {
+test('le barème du serveur : 100 à 250 points par manche trouvée entre amis, 200 au plus seul ; une partie ne compte qu’une fois', () => {
   const score = sql.slice(sql.lastIndexOf('create or replace function public.jeu_score'));
-  assert.match(score, /v_pts < v_ok \* 100 or v_pts > v_ok \* \(case when v_solo then 160 else 210 end\)/);
+  assert.match(score, /v_pts < v_ok \* 100 or v_pts > v_ok \* \(case when v_solo then 200 else 250 end\)/);
   assert.match(score, /v_n not between 1 and 5/);
   assert.match(score, /on conflict do nothing;\n  if found then/);
-  assert.ok(app.includes('const JEU_PTS_OK=100,JEU_PTS_RANG=[50,30,15],JEU_PTS_VITE=60;'), 'le barème de l’appli : 100 + 50 + 60 = 210, seul 100 + 60 = 160');
+  assert.ok(app.includes('const JEU_PTS_OK=100,JEU_PTS_RANG=[50,30,15],JEU_PTS_VITE=100;'), 'le barème de l’appli (16 h 49) : le défi vaut 200 au départ, + 50 au premier = 250 ; seul 200');
   for (const f of ['jeu_score', 'jeu_renommer', 'jeu_classement', 'jeu_signaler', 'jeu_oublier'])
     assert.match(sql, new RegExp(`grant execute on function public\\.${f}\\(`), f);
   for (const t of ['jeu_joueur', 'jeu_partie', 'jeu_signalement']) assert.match(sql, new RegExp(`alter table public\\.${t} enable row level security;`), t);
@@ -92,7 +92,8 @@ test('une partie terminée part au classement, une seule fois, et attend le rés
   assert.equal(bad.calls.length, 0);
   assert.equal(bad.salle().clsRefus, 'Connard');
   bad.ev("CLS.data={top:[{id:'a',pseudo:'Léa',pts:10,parties:1,rang:1}],moi:null,total:1}");
-  assert.match(bad.ev('clsTopHTML()'), /Ton pseudo « Connard » n’est pas accepté au classement : change-le dans Mon compte/);
+  const refus = bad.ev('clsTopHTML()');
+  assert.match(refus, /Ton pseudo « Connard » n’est pas accepté au classement\.<\/p><button type="button" class="perf-top-btn" onclick="psFeuille\(\{raison:'refuse'\}\)">Choisir mon pseudo<\/button>/, 'le pseudo ne se change plus dans Mon compte : on le choisit, une fois');
   /* Une partie hors barème refusée par le serveur ne repart pas */
   const inv = makeCls({ reply: fn => fn === 'jeu_score' ? [false, { message: 'partie invalide' }] : [true, { top: [], total: 0 }] });
   inv.ev("clsEnvoyer({u:'XXXXXX1111',pts:999,n:1,ok:1,solo:1,niv:'f'})"); await flush(); await flush();
@@ -146,7 +147,10 @@ test('la progression garde ce qu’il faut au classement, et Mon compte permet d
   for (const k of ['salle.cle=salleSrc.cle', 'salle.clsId=salleSrc.clsId', 'salle.horsCls=1', 'salle.masques=m', 'salle.envoi=q', 'salle.clsRefus=r'])
     assert.ok(ns.includes(k), k);
   assert.ok(app.includes('<b>${clsOn()?\'Retirer mes scores du classement\':\'Revenir au classement général\'}</b>'), 'Mon compte › Données');
-  assert.ok(app.includes("if(typeof clsRenommer==='function')clsRenommer();"), 'un nouveau pseudo suit au classement');
+  for (const k of ['salle.pseudo=p', 'salle.pseudoVu=salleBig(salleSrc.pseudoVu)']) assert.ok(ns.includes(k), k);
+  assert.ok(!app.includes('function clsRenommer(') && !app.includes('clsRenommer()'), 'le pseudo ne se change plus (16 h 49)');
+  const prendre = sql.slice(sql.lastIndexOf('create or replace function public.jeu_pseudo_prendre'));
+  assert.match(prendre, /update public\.jeu_joueur set pseudo = v_deja where cle = v_cle;/, 'le pseudo réservé est celui du classement');
   assert.ok(app.includes("if(cle&&typeof clsRpc==='function')clsRpc('jeu_oublier',{p_cle:cle})"), 'effacer la progression efface aussi les scores du classement');
   assert.ok(app.includes('<div class="perf-block perf-top" id="perf-top">${clsTopHTML()}</div>'), 'le Top 5 dans « Tes performances »');
 });

@@ -42,23 +42,26 @@ test('ref 4 — Défis : la salle seule, tirée au sort au niveau choisi ; ses r
   for (const gone of ['function setDefisLevel(', 'function defiListRow(', 'id="defis-list"', 'id="defis-free"', 'def-list-static'])
     assert.ok(!app.includes(gone), 'retiré : ' + gone);
   const rules = fn('renderDefisRules');
-  for (const part of ['<li><b>🎯 Défi réussi</b><span>+${JEU_PTS_OK}</span></li>', '+${JEU_PTS_RANG[0]}</span><small>Entre amis · 2e : +${JEU_PTS_RANG[1]} · 3e : +${JEU_PTS_RANG[2]}</small>',
-    '<li><b>⚡ Rapidité</b><span>jusqu’à +${JEU_PTS_VITE}</span><small>1 point de moins toutes les 3 secondes, plus rien à 3 min</small></li>',
+  /* 16 h 49 : « la rapidité, c’est juste du bonus, on n’enlève pas de points : 200 à la base puis ça descend » */
+  for (const part of ['<li><b>🎯 Défi trouvé</b><span>jusqu’à ${JEU_PTS_OK+JEU_PTS_VITE}</span><small>Il vaut ${JEU_PTS_OK+JEU_PTS_VITE} points quand le chrono démarre, puis sa valeur baisse doucement : ${JEU_PTS_OK} points à 3 min. Plus tu trouves vite, plus tu marques.</small></li>',
+    '+${JEU_PTS_RANG[0]}</span><small>Entre amis · 2e : +${JEU_PTS_RANG[1]} · 3e : +${JEU_PTS_RANG[2]}</small>',
     '<small>Le plus rapide au total passe devant ; même temps : ex æquo</small>'])
     assert.ok(rules.includes(part), part);
+  assert.ok(!rules.includes('Rapidité') && !rules.includes('moins toutes les'), 'plus de ligne « Rapidité » à part');
   assert.ok(app.includes(':`<button class="next-btn" onclick="openJeu()">Salle de défi →</button>`'), 'après un défi : vers la salle');
 });
 
-test('ref 4 — les points : 100 la réussite, +50 / +30 / +15 aux trois premiers, jusqu’à +60 de rapidité ; le chrono en 00:00', () => {
+test('ref 4 — les points : le défi vaut 200 au départ, 100 à 3 min ; +50 / +30 / +15 aux trois premiers ; le chrono en 00:00', () => {
   const ctx = vm.createContext({});
-  vm.runInContext(['const JEU_ROUND_MS=180000;', 'const JEU_PTS_OK=100,JEU_PTS_RANG=[50,30,15],JEU_PTS_VITE=60;', line('jeuChrono'), line('jeuSpeedPts'), line('jeuPts')].join('\n'), ctx);
-  assert.ok(app.includes('const JEU_ROUND_MS=180000;') && app.includes('const JEU_PTS_OK=100,JEU_PTS_RANG=[50,30,15],JEU_PTS_VITE=60;'));
+  vm.runInContext(['const JEU_ROUND_MS=180000;', 'const JEU_PTS_OK=100,JEU_PTS_RANG=[50,30,15],JEU_PTS_VITE=100;', line('jeuChrono'), line('jeuSpeedPts'), line('jeuValeur'), line('jeuPts')].join('\n'), ctx);
+  assert.ok(app.includes('const JEU_ROUND_MS=180000;') && app.includes('const JEU_PTS_OK=100,JEU_PTS_RANG=[50,30,15],JEU_PTS_VITE=100;'));
   const ev = c => JSON.parse(JSON.stringify(vm.runInContext(c, ctx)));
   assert.deepEqual(ev("[0,999,72000,179999].map(jeuChrono)"), ['00:00', '00:00', '01:12', '02:59']);
-  assert.deepEqual(ev('[0,3000,3001,72000,177000,180000,250000].map(jeuSpeedPts)'), [60, 59, 58, 36, 1, 0, 0]);
-  assert.deepEqual(ev('jeuPts(72000,0,false)'), { ok: 100, rang: 50, vite: 36, pts: 186 });
+  assert.deepEqual(ev('[0,1800,1801,3000,72000,177000,180000,250000].map(jeuSpeedPts)'), [100, 99, 99, 99, 60, 2, 0, 0]);
+  assert.deepEqual(ev('[0,1000,1801,90000,179999,180000,250000].map(jeuValeur)'), [200, 200, 199, 150, 101, 100, 100], '200 à la base, puis ça descend, sans jamais passer sous 100');
+  assert.deepEqual(ev('jeuPts(72000,0,false)'), { ok: 100, rang: 50, vite: 60, pts: 210 });
   assert.deepEqual(ev('[1,2,3].map(i=>jeuPts(91000,i,false).rang)'), [30, 15, 0], 'au-delà du 3e : pas de bonus de rang');
-  assert.deepEqual(ev('jeuPts(72000,0,true)'), { ok: 100, rang: 0, vite: 36, pts: 136 }, 'seul : la réussite et la rapidité');
+  assert.deepEqual(ev('jeuPts(72000,0,true)'), { ok: 100, rang: 0, vite: 60, pts: 160 }, 'seul : la valeur du défi au moment trouvé');
   /* Même temps, même place et même bonus ; à points égaux, le temps total départage */
   assert.ok(fn('jeuRanking').includes('return rows.map(([pid,ms])=>{const i=rows.findIndex(y=>y[1]===ms);return Object.assign({pid,ms,place:i+1},jeuPts(ms,i,J.solo||r.one));});'), 'seul dans la salle : pas de bonus de rang (retours de 16 h 29)');
   assert.ok(fn('jeuScores').includes('.sort((a,b)=>b.pts-a.pts||a.ms-b.ms||a.name.localeCompare(b.name));'));
@@ -106,8 +109,9 @@ test('micro-interactions au lieu des notifications : l’action se voit là où 
   assert.ok(fn('lqSay').includes("s.setAttribute('role','status');s.setAttribute('aria-live','polite');"));
   assert.ok(fn('lqPlanDone').includes("'À jour'"));
   assert.ok(app.includes("lqDone(document.querySelector(`#db-tables .db-tblock[data-table=\"${CSS.escape(name)}\"]`),'Restaurée',"));
-  /* Depuis le 31 octobre, 8 h 06, le prénom est un pseudo (choisi dès l’onboarding, le même dans les salles de défi). */
-  assert.ok(app.includes("lqDone(document.querySelector('#scr-compte .acct-id-copy b'),'Enregistré','Pseudo enregistré');"));
+  /* Depuis le 31 octobre, 8 h 06, le prénom est un pseudo ; depuis 16 h 49, il est réservé une fois pour toutes : la feuille se
+     ferme et le lecteur d’écran l’entend. */
+  assert.ok(fn('psValider').includes("lqSay('Pseudo réservé : '+(r.pseudo||v));"));
   assert.ok(css.includes('.lq-say{position:absolute;width:1px;height:1px;') && css.includes('html.lq .lq-done{position:fixed;') && css.includes('@keyframes lqDone{'));
 });
 

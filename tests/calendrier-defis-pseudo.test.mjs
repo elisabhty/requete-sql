@@ -108,7 +108,7 @@ function perfCtx(salle) {
     /* Le Top 5 de tous les joueurs a ses propres tests (classement.test.mjs) */
     clsTopHTML: () => '', clsFlush() {}, clsCharger() {},
   });
-  vm.runInContext(fn('jeuChrono') + fn('perfDay') + fn('perfWith') + fn('perfGame') + fn('perfBadge') + fn('perfColor') + fn('perfPodiumHTML') + fn('perfMateHTML') + fn('renderDefisPerf') + ';renderDefisPerf();', ctx);
+  vm.runInContext(fn('jeuChrono') + fn('perfDay') + fn('perfWith') + fn('perfGame') + fn('perfBadge') + fn('perfColor') + fn('perfPodiumHTML') + fn('perfMateHTML') + fn('perfCapHTML') + fn('perfTeintes') + fn('renderDefisPerf') + ';renderDefisPerf();', ctx);
   return host.innerHTML;
 }
 
@@ -146,7 +146,7 @@ test('réf 4 — « Tes performances » : les chiffres, la réussite, les temps,
   /* L’arrivée à l’écran anime, une fois ; mouvement réduit : tout est là d’emblée */
   const rv = fn('perfReveal');
   assert.ok(rv.includes("new IntersectionObserver(") && rv.includes("card.classList.add('is-in');actCountUp(card);") && rv.includes("card.classList.add('is-in','is-static');actCountUp(card,true);"));
-  assert.ok(fn('perfPick').includes("cap.textContent=b.dataset.cap||'';"), 'toucher une barre la détaille');
+  assert.ok(fn('perfPick').includes("cap.innerHTML=b.dataset.caph||esc(b.dataset.cap||'');"), 'toucher une barre la détaille (joueur par joueur à plusieurs)');
   for (const part of ['html.lq .perf-card.is-in .perf-bar i{transform:scaleY(1)}', 'html.lq .perf-card.is-in .perf-ring{stroke-dashoffset:var(--v)}',
     'html.lq .perf-card.is-in .perf-lvbar i{transform:scaleX(1)}', 'html.lq .perf-chart{position:relative;isolation:isolate;overflow:hidden;',
     'html.lq .perf-card.is-static *,html.lq .perf-card.is-static *::after{animation:none!important;transition:none!important}'])
@@ -176,38 +176,43 @@ test('réf 4 — chaque partie nourrit le tableau ; la sauvegarde le garde propr
   assert.deepEqual(plain(ctx.normalizeState({}).salle), { pts: 0, parties: 0, best: 0, manches: 0, trouves: 0, tms: 0, fast: 0, amis: 0, pl: [0, 0, 0], lv: { f: [0, 0], m: [0, 0], d: [0, 0] }, hist: [], mates: {} });
 });
 
-test('réf 5 — le pseudo se choisit dans l’onboarding, et la salle ne le redemande plus', () => {
+test('réf 5 — le pseudo se choisit dans l’onboarding, et la salle ne le redemande plus (16 h 49 : il ne se change plus)', () => {
   const ob = cut("}else if(slide==='name'){", "}else if(slide==='goal'){");
-  assert.ok(ob.includes('<span>Ton pseudo <small class="ob-field-opt">prénom ou surnom</small></span>') && ob.includes('maxlength="16"') && ob.includes('required aria-required="true"'));
+  assert.ok(ob.includes("<span>Ton pseudo <small class=\"ob-field-opt\">${mien?'réservé, il ne se change plus':'unique dans l’appli'}</small></span>") && ob.includes('maxlength="16"') && ob.includes('required aria-required="true"'));
   assert.ok(ob.includes('celui que tes amis voient dans les salles de défi'), 'on dit à quoi il sert');
-  assert.ok(ob.includes("obSetFooter('Continuer',()=>{if(jeuNom(draft.name))obGoto('goal');},'','','Un surnom suffit : pas besoin de ton vrai nom',!jeuNom(draft.name));"), 'l’étape n’est plus facultative');
+  assert.ok(ob.includes("obSetFooter('Continuer',obPseudoSuivant,'','','Un surnom suffit : pas besoin de ton vrai nom',!jeuNom(mien||draft.name));"), 'l’étape n’est pas facultative : « Continuer » réserve le pseudo');
   assert.ok(!ob.includes('Passer pour le moment'));
   assert.ok(fn('obInput').includes("if(next&&OB_SLIDES[obStep]==='name')next.disabled=!jeuNom(draft.name);"), '« Continuer » s’allume dès qu’un pseudo est tapé');
+  assert.ok(fn('obInput').includes("if(psMien())return;") && fn('obInput').includes("psVerif('ob',draft.name);"), 'vérifié en direct ; déjà réservé, il ne bouge plus');
   assert.ok(fnLast('finishOnboard').includes("if(n)localStorage.setItem('rq-jeu-nom',n);"), 'le pseudo de l’onboarding devient celui de la salle');
-  assert.ok(fn('saveAccountName').includes("localStorage.setItem('rq-jeu-nom',n);else localStorage.removeItem('rq-jeu-nom');"), 'Mon compte change le même pseudo');
-  for (const id of ['jeu-nom', 'jeu-nom-join', 'jeu-nom-defi']) assert.ok(app.includes(`\${jeuNomField('${id}')}`), id);
+  assert.ok(!app.includes('function saveAccountName(') && !app.includes('id="acc-name"'), 'Mon compte ne le change plus');
+  assert.ok(fn('psAdopter').includes("localStorage.setItem('rq-jeu-nom',n);"), 'le pseudo réservé est celui de toute l’appli');
+  for (const id of ['jeu-nom', 'jeu-nom-defi']) assert.ok(app.includes(`\${jeuNomField('${id}')}`), id);
+  assert.ok(!app.includes("${jeuNomField('jeu-nom-join')}"), 'rejoindre avec un code : le pseudo n’y est plus rappelé (réf. 5)');
   assert.ok(!app.includes('<label class="jeu-lab" for="jeu-nom">Ton pseudo</label>'), 'plus de champ vide dans la salle');
   const store = {};
   const ctx = vm.createContext({
     state: { name: 'Elisa' }, localStorage: { getItem: k => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); } },
-    esc: s => String(s).replace(/</g, '&lt;'), escAttr: s => String(s).replace(/"/g, '&quot;'), saved: 0,
+    esc: s => String(s).replace(/</g, '&lt;'), escAttr: s => String(s).replace(/"/g, '&quot;'), saved: 0, PS_LOCK_SVG: '<svg data-k="lock"></svg>',
   });
   ctx.save = () => { ctx.saved++; };
   vm.runInContext(fn('jeuNom') + fn('jeuSavedNom') + fn('jeuInitial') + fn('jeuNomField'), ctx);
   const chip = vm.runInContext("jeuNomField('jeu-nom')", ctx);
-  assert.ok(chip.includes('<small>Ton pseudo</small><b>Elisa</b>') && chip.includes('<input id="jeu-nom" type="hidden" value="Elisa">') && chip.includes("onclick=\"jeuNomEdit('jeu-nom')\""));
+  assert.ok(chip.includes('<small>Tu joues en tant que</small><b>Elisa</b>') && chip.includes('<input id="jeu-nom" type="hidden" value="Elisa">'));
+  assert.ok(chip.includes('class="jeu-me-lock"') && chip.includes('<svg data-k="lock"></svg>') && !chip.includes('jeuNomEdit'), 'verrouillé : plus de « Changer »');
   ctx.state.name = '';
   const field = vm.runInContext("jeuNomField('jeu-nom')", ctx);
-  assert.ok(field.includes('Choisis ton pseudo') && field.includes('<input id="jeu-nom" class="jeu-input" maxlength="16"') && !field.includes('hidden'), 'pas encore de pseudo (étape passée avant) : on le demande une fois');
-  /* Le pseudo tapé dans la salle devient celui de toute l’appli */
-  const input = { value: '  Zoé  ', type: 'text', focus() {} };
-  Object.assign(ctx, { document: { querySelector: () => input }, jeuMsgEl: () => null, renderGreeting() { ctx.greet = 1; }, renderLearnAvatar() { ctx.av = 1; } });
+  assert.ok(field.includes('<b>Choisis ton pseudo</b>') && field.includes('onclick="psFeuille({})"') && !field.includes('<input'), 'pas encore de pseudo : la feuille pour le choisir');
+  /* La salle prend le pseudo de l’appli ; sans pseudo, la feuille s’ouvre et rien ne part */
+  const opened = [];
+  Object.assign(ctx, { psFeuille: o => opened.push(o), jeuMsgEl: () => null });
   vm.runInContext(fn('jeuAskNom'), ctx);
+  assert.equal(vm.runInContext("jeuAskNom('jeu-nom')", ctx), null);
+  assert.equal(opened.length, 1, 'la feuille « Choisis ton pseudo »');
+  store['rq-jeu-nom'] = '  Zoé  ';
   assert.equal(vm.runInContext("jeuAskNom('jeu-nom')", ctx), 'Zoé');
-  assert.equal(ctx.state.name, 'Zoé'); assert.equal(store['rq-jeu-nom'], 'Zoé'); assert.equal(ctx.saved, 1); assert.ok(ctx.greet && ctx.av, 'accueil et avatar à jour');
-  vm.runInContext("jeuAskNom('jeu-nom')", ctx);
-  assert.equal(ctx.saved, 1, 'le même pseudo : rien à réenregistrer');
-  for (const part of ['html.lq .jeu-me{display:flex;align-items:center;', 'html.lq .jeu-me-edit{', 'html.lq #onboarding .ob-field-opt{'])
+  assert.equal(ctx.saved, 0, 'la salle ne réenregistre rien');
+  for (const part of ['html.lq .jeu-me{display:flex;align-items:center;', 'html.lq .jeu-me-lock{', 'html.lq #onboarding .ob-field-opt{'])
     assert.ok(s46.includes(part), part);
 });
 

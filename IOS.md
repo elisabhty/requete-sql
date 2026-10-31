@@ -49,6 +49,9 @@ npm run ios
   internes, jamais montrées aux joueurs). Dans App Store Connect, déclarer :
   « Contenu de jeu » et « Autre contenu utilisateur » (le pseudo), « Identifiant utilisateur » (l’identifiant
   au hasard) ; usages « Fonctionnalités de l’app » et « Analyses » (les défis réussis) ; non utilisés pour le pistage.
+- **Pseudo unique** : choisi dans l’onboarding, réservé dans la table `jeu_pseudo` (même identifiant au hasard que le
+  classement), il ne se change plus ; libéré après 12 mois sans ouverture de l’appli (tâche `jeu-pseudo-menage`, chaque nuit).
+  Pour libérer un pseudo sur demande : `delete from jeu_pseudo where pseudo = '…'` dans l’éditeur SQL de Supabase.
 - **Statistiques des défis** (savoir quand en ajouter) : dans le tableau de bord Supabase, Table Editor, les vues
   `stats_defis_resume` (en une ligne : joueurs, moyenne, combien ont tout fini, par niveau), `stats_defis_joueurs`
   (un joueur par ligne) et `stats_defis_par_defi` (combien de joueurs ont réussi chaque défi). Rien n’est lisible
