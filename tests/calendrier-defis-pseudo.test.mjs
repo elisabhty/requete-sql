@@ -176,40 +176,41 @@ test('réf 4 — chaque partie nourrit le tableau ; la sauvegarde le garde propr
   assert.deepEqual(plain(ctx.normalizeState({}).salle), { pts: 0, parties: 0, best: 0, manches: 0, trouves: 0, tms: 0, fast: 0, amis: 0, pl: [0, 0, 0], lv: { f: [0, 0], m: [0, 0], d: [0, 0] }, hist: [], mates: {} });
 });
 
-test('réf 5 — le pseudo se choisit dans l’onboarding, et la salle ne le redemande plus (16 h 49 : il ne se change plus)', () => {
-  const ob = cut("}else if(slide==='name'){", "}else if(slide==='goal'){");
-  assert.ok(ob.includes("<span>Ton pseudo <small class=\"ob-field-opt\">${mien?'réservé, il ne se change plus':'unique dans l’appli'}</small></span>") && ob.includes('maxlength="16"') && ob.includes('required aria-required="true"'));
-  assert.ok(ob.includes('celui que tes amis voient dans les salles de défi'), 'on dit à quoi il sert');
-  assert.ok(ob.includes("obSetFooter('Continuer',obPseudoSuivant,'','','Un surnom suffit : pas besoin de ton vrai nom',!jeuNom(mien||draft.name));"), 'l’étape n’est pas facultative : « Continuer » réserve le pseudo');
-  assert.ok(!ob.includes('Passer pour le moment'));
-  assert.ok(fn('obInput').includes("if(next&&OB_SLIDES[obStep]==='name')next.disabled=!jeuNom(draft.name);"), '« Continuer » s’allume dès qu’un pseudo est tapé');
-  assert.ok(fn('obInput').includes("if(psMien())return;") && fn('obInput').includes("psVerif('ob',draft.name);"), 'vérifié en direct ; déjà réservé, il ne bouge plus');
-  assert.ok(fnLast('finishOnboard').includes("if(n)localStorage.setItem('rq-jeu-nom',n);"), 'le pseudo de l’onboarding devient celui de la salle');
+test('réf 5 — le prénom dans l’onboarding (17 h 53), le pseudo juste après sur sa mini-page ; la salle ne le redemande plus', () => {
+  const ob = cut("}else if(slide==='name'){", "}else if(slide==='pseudo'){");
+  assert.ok(ob.includes('<span>Ton prénom</span>') && ob.includes('autocomplete="given-name"'), 'le prénom, pour saluer');
+  assert.ok(ob.includes('Ton pseudo, celui que tes amis verront, se choisit à la fin.'), 'on dit où va le pseudo');
+  const page = cut("}else if(slide==='pseudo'){", "}else if(slide==='goal'){");
+  assert.ok(page.includes('maxlength="16"') && page.includes('required aria-required="true"') && page.includes('Un surnom suffit : pas besoin de ton vrai nom.'));
+  assert.ok(!fnLast('finishOnboard').includes("localStorage.setItem('rq-jeu-nom'"), 'le prénom ne devient plus le pseudo des salles');
+  assert.ok(fnLast('finishOnboard').includes('psPage({voulu:psAncien(),suite:()=>obTerminer(action)})'), 'la mini-page du pseudo, puis l’appli');
   assert.ok(!app.includes('function saveAccountName(') && !app.includes('id="acc-name"'), 'Mon compte ne le change plus');
-  assert.ok(fn('psAdopter').includes("localStorage.setItem('rq-jeu-nom',n);"), 'le pseudo réservé est celui de toute l’appli');
+  assert.ok(fn('psAdopter').includes("localStorage.setItem('rq-jeu-nom',n);") && !fn('psAdopter').includes('state.name='), 'le pseudo réservé ne touche pas au prénom');
   for (const id of ['jeu-nom', 'jeu-nom-defi']) assert.ok(app.includes(`\${jeuNomField('${id}')}`), id);
   assert.ok(!app.includes("${jeuNomField('jeu-nom-join')}"), 'rejoindre avec un code : le pseudo n’y est plus rappelé (réf. 5)');
   assert.ok(!app.includes('<label class="jeu-lab" for="jeu-nom">Ton pseudo</label>'), 'plus de champ vide dans la salle');
   const store = {};
   const ctx = vm.createContext({
-    state: { name: 'Elisa' }, localStorage: { getItem: k => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); } },
+    state: { name: 'Elisa', salle: { pseudo: 'Léa_sql' } }, localStorage: { getItem: k => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); } },
     esc: s => String(s).replace(/</g, '&lt;'), escAttr: s => String(s).replace(/"/g, '&quot;'), saved: 0, PS_LOCK_SVG: '<svg data-k="lock"></svg>',
   });
   ctx.save = () => { ctx.saved++; };
   vm.runInContext(fn('jeuNom') + fn('jeuSavedNom') + fn('jeuInitial') + fn('jeuNomField'), ctx);
   const chip = vm.runInContext("jeuNomField('jeu-nom')", ctx);
-  assert.ok(chip.includes('<small>Tu joues en tant que</small><b>Elisa</b>') && chip.includes('<input id="jeu-nom" type="hidden" value="Elisa">'));
+  assert.ok(chip.includes('<small>Tu joues en tant que</small><b>Léa_sql</b>') && chip.includes('<input id="jeu-nom" type="hidden" value="Léa_sql">'), 'le pseudo, pas le prénom');
   assert.ok(chip.includes('class="jeu-me-lock"') && chip.includes('<svg data-k="lock"></svg>') && !chip.includes('jeuNomEdit'), 'verrouillé : plus de « Changer »');
-  ctx.state.name = '';
+  ctx.state.salle = {};
   const field = vm.runInContext("jeuNomField('jeu-nom')", ctx);
-  assert.ok(field.includes('<b>Choisis ton pseudo</b>') && field.includes('onclick="psFeuille({})"') && !field.includes('<input'), 'pas encore de pseudo : la feuille pour le choisir');
-  /* La salle prend le pseudo de l’appli ; sans pseudo, la feuille s’ouvre et rien ne part */
+  assert.ok(field.includes('<b>Choisis ton pseudo</b>') && field.includes('onclick="psPage({})"') && !field.includes('<input'), 'pas encore de pseudo : la mini-page pour le choisir');
+  /* La salle prend le pseudo réservé ; sans lui, la mini-page s’ouvre et rien ne part */
   const opened = [];
-  Object.assign(ctx, { psFeuille: o => opened.push(o), jeuMsgEl: () => null });
+  Object.assign(ctx, { psPage: o => opened.push(o), jeuMsgEl: () => null });
   vm.runInContext(fn('jeuAskNom'), ctx);
   assert.equal(vm.runInContext("jeuAskNom('jeu-nom')", ctx), null);
-  assert.equal(opened.length, 1, 'la feuille « Choisis ton pseudo »');
-  store['rq-jeu-nom'] = '  Zoé  ';
+  assert.equal(opened.length, 1, 'la mini-page « Choisis ton pseudo »');
+  store['rq-jeu-nom'] = 'Zoé';
+  assert.equal(vm.runInContext("jeuAskNom('jeu-nom')", ctx), null, 'un ancien pseudo non réservé ne suffit pas');
+  ctx.state.salle.pseudo = '  Zoé  ';
   assert.equal(vm.runInContext("jeuAskNom('jeu-nom')", ctx), 'Zoé');
   assert.equal(ctx.saved, 0, 'la salle ne réenregistre rien');
   for (const part of ['html.lq .jeu-me{display:flex;align-items:center;', 'html.lq .jeu-me-lock{', 'html.lq #onboarding .ob-field-opt{'])

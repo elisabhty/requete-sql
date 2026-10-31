@@ -190,6 +190,7 @@ test('la base : jeu_defis ne crée personne, vérifie ce qu’elle reçoit ; tro
   assert.match(sql, /revoke all on public\.stats_defis_joueurs, public\.stats_defis_resume, public\.stats_defis_par_defi from anon, authenticated;/);
   assert.match(sql, /count\(\*\) filter \(where total > 0 and n >= total\) as ont_tout_fini/);
   /* Dit dans les textes de confidentialité (site et appli) */
-  assert.ok(priv.includes('La liste des défis que tu as réussis l’accompagne (jamais tes requêtes)'));
-  assert.equal(app.split('La liste de tes défis réussis l’accompagne, sans être montrée à personne').length - 1, 2);
+  /* 17 h 53 : un défi se rejoue, on ne parle plus de défis « réussis » */
+  assert.ok(priv.includes('La liste des défis que tu as déjà trouvés l’accompagne (jamais tes requêtes)'));
+  assert.equal(app.split('La liste des défis que tu as déjà trouvés l’accompagne, sans être montrée à personne').length - 1, 2);
 });

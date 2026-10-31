@@ -1,0 +1,57 @@
+/* Elisa, 31 octobre, 17 h 53 et 18 h 02 :
+   « il n’y aura pas de suppression de pseudo si la personne a encore son compte (ménage) » (supabase : retours-1649) ;
+   « laisse tomber le fait qu’un défi ne peut pas être rejoué s’il est réussi : il peut être rejoué, et ne pas mettre que ce sont des
+     défis réussis » (le tirage : salle-defis) ;
+   « réf. 1 : est-ce que tu as pris en compte quand on jouera à 6, 7, 8 joueurs dans l’historique ? » (retours-1649, réf. 6) ;
+   « non, ici ce sera le prénom, et une fois connecté la première fois, une mini-page pour le choix du pseudo » (retours-1649) ;
+   18 h 02 (la tuile « Défis 0/25 ») : « ici, mettre le nombre de points et le nombre de manches réussies, un chiffre dynamique (0/0,
+   1/1 quand on en gagne une, 1/2 quand on en gagne une et en perd une) ; modifier le KPI ailleurs s’il est présent ». */
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
+const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i + a.length); assert.ok(j > i, b); return app.slice(i, j); };
+const fn = name => { const a = app.indexOf(`function ${name}(`); assert.ok(a > 0, name); return app.slice(a, app.indexOf('\n}', a) + 2); };
+
+test('l’indicateur des défis : les manches trouvées sur jouées (0/0, 1/1, 1/2…) et les points', () => {
+  const ctx = vm.createContext({ state: {} });
+  vm.runInContext(cut('function salleKpi(', '/* Entrée « Salle de défi »'), ctx);
+  const k = s => { ctx.state = { salle: s }; return JSON.parse(JSON.stringify(vm.runInContext('salleKpi()', ctx))); };
+  assert.deepEqual(k(undefined), { tr: 0, ma: 0, pts: 0, lv: {} }, 'avant la première partie : 0/0');
+  assert.deepEqual(k({ manches: 1, trouves: 1, pts: 225 }), { tr: 1, ma: 1, pts: 225, lv: {} }, 'une gagnée : 1/1');
+  assert.deepEqual(k({ manches: 2, trouves: 1, pts: 225, lv: { f: [2, 1] } }), { tr: 1, ma: 2, pts: 225, lv: { f: [2, 1] } }, 'une gagnée, une perdue : 1/2');
+  assert.deepEqual(k({ manches: 2, trouves: 5, pts: -4 }), { tr: 2, ma: 2, pts: 0, lv: {} }, 'jamais plus de trouvées que de jouées');
+  assert.equal(vm.runInContext('sallePts(1230)', ctx), '1 230 pts');
+  assert.equal(vm.runInContext('sallePts(1)', ctx), '1 pt');
+});
+
+test('le KPI partout où il était : planning, Mon compte, Pratiquer, les niveaux de la salle ; plus de défis « réussis »', () => {
+  const over = cut('function planOverviewHTML(st){', 'function planManageHTML(');
+  assert.ok(over.includes('<div class="pgr-stat is-d"><small>Défis</small><b>${kd.tr}<em>/${kd.ma}</em></b><i class="pgr-meter" aria-hidden="true"><b style="width:${pD}%"></b></i><p>manches trouvées<b>${sallePts(kd.pts)}</b></p></div>'), 'la tuile du planning');
+  assert.ok(over.includes('pD=kd.ma?Math.round(kd.tr/kd.ma*100):0'), 'la jauge : la part de manches trouvées');
+  const compte = cut('function renderCompte(){', 'function accPseudoHTML(');
+  assert.ok(compte.includes('<div class="acct-stat is-defis" style="--i:2"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg(\'target\')}</span><b>${kd.tr}<em>/${kd.ma}</em></b><small>manches trouvées</small><small class="acct-stat-pts">${sallePts(kd.pts)}</small></div>'), 'Mon compte');
+  const hub = fn('renderJourneyHub');
+  assert.ok(hub.includes("['defis','Défis',`${kd.tr}/${kd.ma} manches trouvées · ${sallePts(kd.pts)}`,\"switchTab('defis')\",kd.ma?Math.round(kd.tr/kd.ma*100):null],"), 'Pratiquer');
+  assert.ok(hub.includes('<p class="journey-kicker">Salle de défi</p><h2>Un défi tiré au sort</h2>'), 'le cadre du haut de Pratiquer');
+  const room = fn('renderDefisRoom');
+  assert.ok(room.includes("return `${ok}/${n} trouvée${ok>1?'s':''}`;"), 'sous chaque niveau : ses manches');
+  assert.ok(fn('renderDefis').includes('sub.textContent=`${all.length} défis, tirés au sort au niveau que tu choisis.`;'));
+  for (const gone of ['réussis sur ${nDefis}', 'Tout est réussi', 'Prochain défi · ${nOk}', "/${l.length} réussis", 'défi${nOk>1?\'s\':\'\'} réussi', 'Réussis 10 défis.', 'que tu n’as pas encore réussi', 'qu’aucun de vous n’a encore réussi'])
+    assert.ok(!app.includes(gone), 'retiré : ' + gone);
+  assert.ok(app.includes("how:'Trouve 10 défis différents.'"));
+  for (const part of ['.pgr-stat.is-d>p{margin:9px 0 0;', 'html.lq .acct-stat b em{', 'html.lq .acct-stat small.acct-stat-pts{'])
+    assert.ok(css.includes(part), part);
+});
+
+test('le classement sans pseudo : on peut le choisir d’ici ; Données et confidentialité : supprimer son pseudo', () => {
+  const top = fn('clsTopHTML');
+  assert.ok(top.includes('const meLine=!jeuSavedNom()?`<p class="perf-top-me">Choisis ton pseudo pour entrer au classement. <button type="button" class="perf-top-pick" onclick="psPage({})">Choisir mon pseudo</button></p>`'));
+  const data = cut('<details class="plus-details" id="plus-data">', '</details>');
+  assert.ok(data.includes("${psMien()?`<button class=\"acc-row danger\" type=\"button\" onclick=\"psSupprimer()\">"));
+  assert.ok(data.includes('Tes points sont effacés du serveur, ton pseudo reste à toi'), '« Retirer mes scores » garde le pseudo');
+  assert.ok(fn('clsQuitter').includes('Ton pseudo reste à toi, et ta progression sur cet appareil.'));
+});

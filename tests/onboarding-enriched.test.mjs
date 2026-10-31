@@ -29,7 +29,7 @@ console.log('\n=== Onboarding : parcours, pratique réelle et accessibilité ===
 assert(onboarding.length > 5000, 'bloc onboarding localisé (repères de découpe intacts)');
 
 console.log('\n--- Le parcours ---');
-assert(html.includes("const OB_SLIDES = ['welcome','name','goal','level','rhythm','practice','account','ready']"), 'les huit étapes du parcours sont déclarées dans l’ordre');
+assert(html.includes("const OB_SLIDES = ['welcome','name','goal','level','rhythm','practice','account','ready','pseudo']"), 'les huit étapes du parcours sont déclarées dans l’ordre (puis la mini-page du pseudo, 17 h 53)');
 assert(onboarding.includes("if(slide==='welcome')obGoto('name')") && onboarding.includes("else if(slide==='rhythm')obGoto('practice')") && onboarding.includes("else if(slide==='practice')obGoto(obAfterPractice())"), 'obNext enchaîne les étapes dans cet ordre (compte sauté sans fournisseur, vers ready directement)');
 assert(onboarding.includes("obEntry") && onboarding.includes('function obBack()'), 'chaque étape peut revenir en arrière');
 

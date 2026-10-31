@@ -87,6 +87,7 @@ const ctx = vm.createContext({});
 vm.runInContext(take('function jour0(', 'function parseD(') + take('function parseD(', 'function openItem('), ctx);
 vm.runInContext(take('function moduleProgressData(', 'function prefersReduceMotion('), ctx);
 vm.runInContext(take('function pgrActivity(', 'function planManageHTML('), ctx);
+vm.runInContext(take('function salleKpi(', '/* Entrée « Salle de défi »'), ctx);
 const today = ctx.dstr(ctx.auj()), day = n => ctx.dstr(ctx.addJ(ctx.auj(), n));
 Object.assign(ctx, {
   MODULES: [{ titre: 'Introduction', lessons: [{ id: 0 }] }, { titre: 'Lire une table', lessons: [{ id: 1 }, { id: 2 }] }],

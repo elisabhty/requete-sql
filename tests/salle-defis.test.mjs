@@ -163,7 +163,8 @@ function makeClient(world, name, { skew = 0 } = {}) {
       }
       throw new Error('fonction inconnue : ' + fn);
     },
-    state: { defis: {}, name }, SQL: {}, esc: s => String(s).replace(/</g, '&lt;'), highlight: s => s, DEF_CHEV_SVG: '', JEU_FRIENDS_SVG: '', lqStkSvg: k => `<svg data-k="${k}"></svg>`,
+    /* Le pseudo des salles : celui réservé (state.salle.pseudo, 17 h 53), jamais le prénom */
+    state: { defis: {}, name, salle: { pseudo: name } }, SQL: {}, esc: s => String(s).replace(/</g, '&lt;'), highlight: s => s, DEF_CHEV_SVG: '', JEU_FRIENDS_SVG: '', lqStkSvg: k => `<svg data-k="${k}"></svg>`,
     editorBlock: () => '<textarea id="ed-lesson"></textarea>', setupEditor() {}, celebrate() {}, annulerBilanAuto() {}, showScreen() {},
     prefersReduceMotion: () => false, lessonBackLabel: () => 'Défis', leaveLessonScreen() {}, switchTab() {}, renderDefis() {}, activeTab: 'defis',
     noteActivityDay() { c.acts = (c.acts || 0) + 1; }, save() {}, renderProgress() {}, renderPlanning() {}, setLessonOut: h => { c.out = h; }, renderTable: () => '', errBox: m => m,
@@ -526,62 +527,52 @@ test('solo : la manche dure 10 min au plus ; trouvée après 7 min, elle rapport
   assert.equal(s.ev('state.salle.pts'), 75);
 });
 
-test('le tirage préfère les défis non réussis, sans jamais bloquer', () => {
+/* Elisa, 31 octobre, 17 h 53 : « laisse tomber le fait qu’un défi ne peut pas être rejoué s’il est réussi : il peut être rejoué, et ne
+   pas mettre que ce sont des défis réussis ». Le tirage ne regarde plus ce que chacun a déjà trouvé : pas deux fois le même défi dans
+   une partie, et de préférence pas déjà joué dans la salle. */
+test('un défi déjà trouvé peut revenir au tirage : seul, tous les défis faciles déjà trouvés, la partie se joue', () => {
   const w = new World();
   const s = makeClient(w, 'Seul');
   s.ev("jeuNiv='f';jeuNb=5");
-  s.ev("jeuChallenges('f').slice(0,3).forEach(c=>state.defis[c.id]=true)");
-  s.ev("jeuStart('SOLO33',true,null,{solo:true})"); sec(w, 4);
-  const first = s.ev('JEU.rounds[0].cid');
-  assert.equal(s.ev(`state.defis['${first}']`), undefined, 'le premier tirage n’est pas déjà réussi');
+  s.ev("jeuChallenges('f').forEach(c=>state.defis[c.id]=true)");
+  s.ev("jeuStart('SOLO33',true,null,{solo:true})"); sec(w, 1);
+  assert.match(s.html, /Un défi au hasard, au niveau choisi\./);
+  assert.doesNotMatch(s.html, /réussi/, 'plus de « pas encore réussi »');
+  sec(w, 3);
   for (let n = 1; n < 5; n++) { s.ev('jeuClose()'); sec(w, 1); s.ev('jeuNextRound()'); sec(w, 4); }
-  assert.equal(new Set(s.ev('JEU.rounds.map(r=>r.cid)')).size, 5, '5 manches faciles = les 5 défis, même réussis');
+  assert.equal(new Set(s.ev('JEU.rounds.map(r=>r.cid)')).size, 5, '5 manches faciles = les 5 défis, tous déjà trouvés, sans doublon');
 });
 
-/* Elisa, 31 octobre, 15 h 52 : « quand un joueur réussit un défi il est considéré comme validé pour lui et la sélection ne va pas
-   choisir le défi, pareil pour l’autre ». Chacun donne ses défis réussis dans son « hello » ; un défi trouvé dans la salle compte aussi. */
-test('le tirage ne prend jamais un défi déjà réussi par l’un des joueurs présents', () => {
+test('entre amis : le tirage ignore ce que chacun a déjà trouvé ; l’arrivée ne transporte plus de liste', () => {
   const w = new World();
   const h = makeClient(w, 'Hôte'); h.ev("jeuNiv='f';jeuNb=1");
   const g = makeClient(w, 'Ami');
   const ids = h.ev("jeuChallenges('f').map(c=>c.id)");
-  assert.equal(ids.length, 5);
   g.ev(`${JSON.stringify(ids.slice(0, 4))}.forEach(id=>state.defis[id]=true)`);
   h.host('OKOK42'); sec(w, 1);
   g.join('OKOK42'); sec(w, 3);
-  const gp = g.pid();
-  assert.deepEqual(h.ev(`Array.from(JEU.okOf[${JSON.stringify(gp)}]||[])`).sort(), ids.slice(0, 4).sort(), 'l’hôte connaît les défis réussis par l’ami');
-  for (let k = 0; k < 12; k++) assert.equal(h.ev('jeuPick()'), ids[4], 'le seul défi que personne n’a réussi');
-  h.ev('jeuNextRound()'); sec(w, 1);
-  assert.equal(g.J('rounds[0].cid'), ids[4], 'le même défi chez l’ami');
-  assert.match(g.html, /qu’aucun de vous n’a encore réussi/, 'le tirage le dit');
-  /* L’ami parti : ses défis réussis ne comptent plus */
-  g.ev('jeuStop()'); sec(w, 40);
-  assert.deepEqual(h.live(), ['Hôte']);
+  assert.equal(h.ev('typeof jeuOkCount'), 'undefined'); assert.equal(h.ev('typeof jeuOkList'), 'undefined');
+  assert.equal(h.ev("'okOf' in JEU"), false);
   const seen = new Set(); for (let k = 0; k < 80; k++) seen.add(h.ev('jeuPick()'));
-  assert.ok(seen.size > 1, 'seul dans la salle : tous les défis non joués reviennent');
+  assert.equal(seen.size, 5, 'les 5 défis faciles peuvent sortir, même ceux que l’ami a déjà trouvés');
+  h.ev('jeuNextRound()'); sec(w, 1);
+  assert.equal(g.J('rounds[0].cid'), h.J('rounds[0].cid'), 'le même défi chez l’ami');
+  assert.match(g.html, /Tout le monde reçoit le même défi\./);
 });
 
-test('un défi trouvé dans la salle compte comme réussi pour son joueur : il n’est plus tiré, même après « rejouer »', () => {
+test('un défi trouvé dans la salle peut revenir après « Rejouer »', () => {
   const w = new World();
   const h = makeClient(w, 'Hôte'); h.ev("jeuNiv='f';jeuNb=1");
   h.host('OKOK43'); sec(w, 1);
   const g = makeClient(w, 'Ami'); g.join('OKOK43'); sec(w, 3);
-  const gp = g.pid();
   h.ev('jeuNextRound()'); sec(w, 4.5);
   const x = h.ev('JEU.rounds[0].cid');
   g.found(); sec(w, 2);
-  assert.equal(g.ev(`state.defis['${x}']`), true, 'validé pour l’ami');
-  assert.equal(h.ev(`!!state.defis['${x}']`), false, 'pas pour l’hôte, qui ne l’a pas trouvé');
-  assert.equal(h.ev(`JEU.okOf[${JSON.stringify(gp)}].has('${x}')`), true, 'l’hôte le sait');
-  assert.equal(h.ev(`jeuOkCount('${x}')`), 1);
+  assert.equal(g.ev(`state.defis['${x}']`), true, 'trouvé par l’ami (sa progression le garde)');
   h.ev('jeuClose()'); sec(w, 1); h.ev('jeuFinish()'); sec(w, 1); h.ev('jeuAgain()'); sec(w, 1);
-  h.ev('JEU.recent.clear()');                 /* même sans la mémoire « déjà joué dans cette salle » */
-  for (let k = 0; k < 30; k++) assert.notEqual(h.ev('jeuPick()'), x, 'réussi par l’ami : jamais retiré');
-  /* Tout réussi par l’un ou l’autre : le tirage continue, avec ceux que le moins de joueurs ont réussis */
-  h.ev("jeuChallenges('f').forEach(c=>state.defis[c.id]=true)");
-  const p = h.ev('jeuPick()');
-  assert.ok(h.ev("jeuChallenges('f').map(c=>c.id)").includes(p) && p !== x, 'réussi par un seul joueur plutôt que par les deux : ' + p);
+  h.ev('JEU.recent.clear()');
+  const seen = new Set(); for (let k = 0; k < 80; k++) seen.add(h.ev('jeuPick()'));
+  assert.ok(seen.has(x), 'trouvé, il peut revenir');
 });
 
 /* Elisa, 31 octobre, 16 h 29 : « si personne ne rejoint la salle, alors c’est comme si on est seule ». */
