@@ -1,7 +1,9 @@
 /* Salle de défi : le moteur (index.html) est exécuté dans plusieurs contextes isolés,
-   un par joueur, reliés par un faux relais ntfy et une horloge virtuelle. On vérifie
-   la salle d'attente, les 6 joueurs maximum, « prêt », le tirage au sort, les points,
-   le relais d'hôte, la salle fantôme, « rejouer », le solo sans réseau. */
+   un par joueur, reliés par une fausse base Supabase (fonctions jeu_envoyer,
+   jeu_historique, jeu_balise et canal en direct par WebSocket) et une horloge
+   virtuelle. On vérifie la salle d'attente, les 6 joueurs maximum, « prêt », le
+   tirage au sort, les points, le relais d'hôte, la salle fantôme, « rejouer », le
+   solo sans réseau, les coupures et les reconnexions. */
 import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
@@ -11,10 +13,12 @@ const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const engineSrc = html.slice(html.indexOf('/* ---------- Salle de défi : un défi tiré au sort'), html.indexOf('/* Le même défi, seul ou à plusieurs'));
 const challengesSrc = html.slice(html.indexOf('const CHALLENGES=['), html.indexOf('const NIV='));
 assert.ok(engineSrc.includes('function jeuStart(') && challengesSrc.includes('c1'), 'moteur et défis localisés');
+const SB = engineSrc.match(/const JEU_SB='([^']+)'/)[1];
+const VOLATILE = ['ping', 'react'];
 
-/* ---------- Monde : horloge virtuelle + relais ---------- */
+/* ---------- Monde : horloge virtuelle + base ---------- */
 class World {
-  constructor() { this.now = 1_800_000_000_000; this.timers = []; this.seq = 0; this.topics = new Map(); this.posts = 0; this.latency = 60; }
+  constructor() { this.now = 1_800_000_000_000; this.timers = []; this.seq = 0; this.rooms = new Map(); this.posts = 0; this.histCalls = 0; this.latency = 60; }
   setTimeout(fn, ms) { const t = { at: this.now + Math.max(0, ms || 0), fn, id: ++this.seq, iv: 0 }; this.timers.push(t); return t.id; }
   setInterval(fn, ms) { const t = { at: this.now + ms, fn, id: ++this.seq, iv: ms }; this.timers.push(t); return t.id; }
   clear(id) { this.timers = this.timers.filter(t => t.id !== id); }
@@ -29,41 +33,89 @@ class World {
     }
     this.now = end;
   }
-  topic(name) { if (!this.topics.has(name)) this.topics.set(name, { hist: [], subs: new Set() }); return this.topics.get(name); }
-  publish(name, body) {
+  room(code) { if (!this.rooms.has(code)) this.rooms.set(code, { n: 0, all: [], subs: new Set() }); return this.rooms.get(code); }
+  /* jeu_envoyer : numéro dans la salle, heure du serveur, gardé, diffusé en direct. */
+  publish(code, m) {
     this.posts++;
-    const t = this.topic(name), m = { id: 'm' + (++this.seq), time: Math.floor(this.now / 1000), message: body, event: 'message' };
-    t.hist.push(m);
-    t.subs.forEach(s => this.setTimeout(() => s.deliver(m), this.latency));
+    const r = this.room(code), row = { n: ++r.n, at: this.now, m: JSON.parse(JSON.stringify(m)) };
+    r.all.push(row);
+    r.subs.forEach(s => this.setTimeout(() => s.deliver(row), this.latency));
+    return { n: row.n, at: row.at };
   }
+  /* jeu_historique : après le numéro donné, 500 au plus ; signes de vie et réactions seulement s’ils ont moins de 90 s. */
+  history(code, after) {
+    this.histCalls++;
+    const rows = this.room(code).all.filter(r => r.n > after && (!VOLATILE.includes(r.m.t) || this.now - r.at <= 90000));
+    return JSON.parse(JSON.stringify(rows.slice(0, 500)));
+  }
+}
+
+/* Une promesse réglée par l’horloge virtuelle : ses then s’exécutent pendant w.advance(), comme les réponses du
+   réseau pendant la partie (le moteur n’enchaîne ses promesses qu’avec then). */
+class WP {
+  constructor() { this.s = 0; this.v = undefined; this.cb = []; }
+  static at(w, ms, f) { const p = new WP(); w.setTimeout(() => { try { p.set(1, f()); } catch (e) { p.set(2, e); } }, ms); return p; }
+  static of(v) { const p = new WP(); p.set(1, v); return p; }
+  set(s, v) {
+    if (this.s) return;
+    if (s === 1 && v && typeof v.then === 'function') { v.then(x => this.set(1, x), e => this.set(2, e)); return; }
+    this.s = s; this.v = v; const cb = this.cb; this.cb = []; cb.forEach(f => f());
+  }
+  then(ok, ko) {
+    const q = new WP();
+    const run = () => {
+      const f = this.s === 1 ? ok : ko;
+      if (typeof f !== 'function') { q.set(this.s, this.v); return; }
+      try { q.set(1, f(this.v)); } catch (e) { q.set(2, e); }
+    };
+    if (this.s) run(); else this.cb.push(run);
+    return q;
+  }
+  catch(ko) { return this.then(undefined, ko); }
 }
 
 /* ---------- Joueur : un contexte vm avec le moteur et ses dépendances factices ---------- */
 function makeClient(world, name, { skew = 0 } = {}) {
   const ctx = vm.createContext({});
   const store = {}, session = {};
-  const c = { name, ctx, offline: false, deaf: false, failPosts: 0, html: '', toasts: [], out: '', ed: { value: '' }, root: null, misc: { 'back-label': {}, 'nav-title': {}, 'lesson-body': {} } };
+  const c = { name, ctx, offline: false, deaf: false, failPosts: 0, lose: 0, beacons: 0, html: '', toasts: [], out: '', ed: { value: '' }, root: null, misc: { 'back-label': {}, 'nav-title': {}, 'lesson-body': {} }, sockets: 0 };
   c.root = { classList: { remove() {}, add() {} }, offsetWidth: 0, set innerHTML(v) { c.html = v; }, get innerHTML() { return c.html; } };
-  class FakeES {
+  /* Le canal en direct (Supabase Realtime, protocole 1.0.0) : rejoindre « realtime:salle:CODE », battements,
+     diffusion. Hors ligne : rien ne passe ; sourd : rien n’arrive (ni le direct, ni les réponses de jeu_historique). */
+  class FakeWS {
     constructor(url) {
-      this.topic = url.replace('https://ntfy.sh/', '').replace('/sse?since=all', '');
-      this.closed = false; this.seen = new Set();
-      world.setTimeout(() => this.connect(), world.latency);
-      c.es = this;
+      assert.ok(url.startsWith(SB.replace(/^http/, 'ws') + '/realtime/v1/websocket?apikey='), url);
+      this.readyState = 0; this.room = null; this.topic = '';
+      c.ws = this; c.sockets++;
+      world.setTimeout(() => {
+        if (this.readyState !== 0) return;
+        if (c.offline) { this.readyState = 3; this.onclose && this.onclose({}); return; }
+        this.readyState = 1; this.onopen && this.onopen({});
+      }, world.latency);
     }
-    connect() {
-      if (this.closed || c.offline) { if (!this.closed) this.onerror && this.onerror(); return; }
-      this.onopen && this.onopen();
-      const t = world.topic(this.topic);
-      t.hist.slice().forEach(m => this.deliver(m));
-      t.subs.add(this);
+    send(s) {
+      if (this.readyState !== 1) throw new Error('fermé');
+      if (c.offline) return;
+      const f = JSON.parse(s);
+      world.setTimeout(() => this.server(f), world.latency);
     }
-    deliver(m) {
-      if (this.closed || c.offline || c.deaf) return;
-      this.onmessage && this.onmessage({ data: JSON.stringify({ id: m.id, time: m.time, event: 'message', message: m.message }) });
+    server(f) {
+      if (this.readyState !== 1) return;
+      if (f.event === 'phx_join') {
+        assert.equal(f.payload.config.private, false, 'canal public');
+        this.topic = f.topic; this.room = world.room(f.topic.replace('realtime:salle:', '')); this.room.subs.add(this);
+        this.push({ ref: f.ref, event: 'phx_reply', payload: { status: 'ok', response: { postgres_changes: [] } }, topic: f.topic });
+      } else if (f.event === 'heartbeat') this.push({ ref: f.ref, event: 'phx_reply', payload: { status: 'ok', response: {} }, topic: 'phoenix' });
+      else if (f.event === 'phx_leave' && this.room) this.room.subs.delete(this);
     }
-    close() { this.closed = true; world.topic(this.topic).subs.delete(this); }
+    push(o) { world.setTimeout(() => this.recv(o), world.latency); }
+    /* c.lose : le direct perd les n prochains messages gardés (pas les signes de vie) pour ce joueur. */
+    deliver(row) { if (c.lose > 0 && !VOLATILE.includes(row.m.t)) { c.lose--; return; } this.recv({ ref: null, event: 'broadcast', payload: { event: 'm', meta: { id: 'x' }, payload: { m: row.m, n: row.n, at: row.at, id: 'x' }, type: 'broadcast' }, topic: this.topic }); }
+    recv(o) { if (this.readyState !== 1 || c.offline || c.deaf) return; this.onmessage && this.onmessage({ data: JSON.stringify(o) }); }
+    close() { if (this.readyState === 3) return; this.readyState = 3; if (this.room) this.room.subs.delete(this); world.setTimeout(() => this.onclose && this.onclose({}), 0); }
   }
+  const rpcName = url => (url.match(/\/rest\/v1\/rpc\/([a-z_]+)/) || [])[1];
+  const resp = (ok, body) => ({ ok, status: ok ? 200 : 503, json: () => WP.of(JSON.parse(JSON.stringify(body === undefined ? null : body))) });
   const stubs = {
     console, Date: { now: () => world.now + skew },
     setTimeout: (f, ms) => world.setTimeout(f, ms), clearTimeout: id => world.clear(id),
@@ -80,13 +132,36 @@ function makeClient(world, name, { skew = 0 } = {}) {
       querySelector: sel => /#jeu-nom/.test(sel) ? { value: name, focus() {}, closest: () => null } : null,
       querySelectorAll: () => [],
     },
-    navigator: { vibrate() {}, sendBeacon: (url, body) => { if (c.offline) return false; world.publish(url.replace('https://ntfy.sh/', ''), body); return true; } },
-    EventSource: FakeES,
+    navigator: {
+      vibrate() {},
+      /* jeu_balise : texte brut {"salle", "m"}, la clé dans l’adresse (pas d’en-tête possible). */
+      sendBeacon: (url, body) => {
+        assert.equal(rpcName(url), 'jeu_balise'); assert.match(url, /[?&]apikey=sb_publishable_/);
+        if (c.offline) return false;
+        c.beacons++;
+        const b = JSON.parse(body);
+        world.setTimeout(() => world.publish(b.salle, b.m), world.latency);
+        return true;
+      },
+    },
+    WebSocket: FakeWS,
     fetch: (url, opt) => {
-      if (c.offline) return Promise.resolve({ ok: false });
-      if (c.failPosts > 0) { c.failPosts--; return Promise.resolve({ ok: false }); }
-      world.setTimeout(() => world.publish(url.replace('https://ntfy.sh/', ''), opt.body), world.latency);
-      return Promise.resolve({ ok: true });
+      const fn = rpcName(url), body = JSON.parse(opt.body);
+      assert.ok(String(url).startsWith(SB + '/rest/v1/rpc/'), url);
+      assert.match(opt.headers.apikey, /^sb_publishable_/);
+      if (c.offline) return WP.at(world, world.latency, () => resp(false));
+      if (fn === 'jeu_envoyer') {
+        if (c.failPosts > 0) { c.failPosts--; return WP.at(world, world.latency, () => resp(false)); }
+        let res = null;
+        world.setTimeout(() => { res = world.publish(body.p_salle, body.p_m); }, world.latency);
+        return WP.at(world, 2 * world.latency, () => resp(true, res));
+      }
+      if (fn === 'jeu_historique') {
+        let rows = [];
+        world.setTimeout(() => { rows = world.history(body.p_salle, body.p_apres); }, world.latency);
+        return WP.at(world, 2 * world.latency, () => resp(!c.offline && !c.deaf, rows));
+      }
+      throw new Error('fonction inconnue : ' + fn);
     },
     state: { defis: {}, name }, SQL: {}, esc: s => String(s).replace(/</g, '&lt;'), highlight: s => s, DEF_CHEV_SVG: '', JEU_FRIENDS_SVG: '', lqStkSvg: k => `<svg data-k="${k}"></svg>`,
     editorBlock: () => '<textarea id="ed-lesson"></textarea>', setupEditor() {}, celebrate() {}, annulerBilanAuto() {}, showScreen() {},
@@ -106,6 +181,11 @@ function makeClient(world, name, { skew = 0 } = {}) {
   c.ev = code => { const r = vm.runInContext(code, ctx); return r && typeof r === 'object' ? JSON.parse(JSON.stringify(r)) : r; };
   c.host = (code, opts = '{nomId:"jeu-nom"}', cid = 'null') => c.ev(`jeuStart(${JSON.stringify(code)},true,${cid},${opts})`);
   c.join = code => c.ev(`jeuJoin(${JSON.stringify(code)})`);
+  /* Réseau retrouvé (événement « online ») : nouvelle connexion tout de suite. */
+  c.reconnect = () => c.ev('JEU&&JEU.t.wake&&JEU.t.wake(true)');
+  /* Ce que la base a livré à ce joueur (chaque objet une seule fois : jeuDrain rejoue les mêmes objets). */
+  c.logRelay = () => c.ev("(function(){__relay=[];const o=jeuOnMsg;jeuOnMsg=function(m){if(m&&m.fromRelay&&!m.__log){m.__log=1;__relay.push(m.u);}return o(m);};})()");
+  c.relay = () => c.ev('__relay');
   c.view = () => c.ev('JEU?JEU.view:null');
   c.J = expr => c.ev(`JEU.${expr}`);
   c.pid = () => c.ev('JEU.me');
@@ -295,7 +375,7 @@ test('l’hôte disparaît sans prévenir : relais après le délai de présence
   sec(w, 60);
   assert.equal(guests[1].J('hostPid'), guests[0].pid());
   assert.deepEqual(guests[1].live(), ['Ami1', 'Ami2'], 'l’hôte absent n’est plus listé');
-  host.offline = false; host.es.connect();
+  host.offline = false; host.reconnect();
   sec(w, 3);
   assert.equal(host.J('hostPid'), guests[0].pid(), 'l’ancien hôte se range derrière le nouveau');
   assert.equal(host.ev('jeuIsHost()'), false);
@@ -360,7 +440,7 @@ test('hors ligne au moment de rejoindre : on attend le réseau au lieu de dire �
   const host = makeClient(w, 'Hôte'); host.host('NET123'); sec(w, 1);
   const g = makeClient(w, 'Ami'); g.offline = true; g.join('NET123'); sec(w, 20);
   assert.equal(g.view(), 'join'); assert.match(g.ev('jeuNetHTML()'), /Connexion perdue/);
-  g.offline = false; g.es.connect(); g.ev('jeuSend({t:"ping"})'); sec(w, 5);
+  g.offline = false; g.reconnect(); g.ev('jeuSend({t:"ping"})'); sec(w, 5);
   assert.notEqual(g.view(), 'lost');
 });
 
@@ -371,7 +451,7 @@ test('un joueur en retard de signe de vie disparaît de la manche, et revient av
   assert.deepEqual(host.live(), ['Hôte', 'Ami1']);
   host.found(); guests[0].found(); sec(w, 1);
   assert.equal(host.view(), 'res0');
-  guests[1].offline = false; guests[1].es.connect(); guests[1].ev('jeuPing()'); sec(w, 2);
+  guests[1].offline = false; guests[1].reconnect(); guests[1].ev('jeuPing()'); sec(w, 2);
   assert.ok(host.live().includes('Ami2'));
 });
 
@@ -397,6 +477,7 @@ test('solo : aucun message réseau, tirage immédiat, points selon la rapidité'
   assert.equal(s.ev('state.salle.pts'), rk.reduce((a, x) => a + x.pts, 0)); assert.equal(s.ev('state.salle.parties'), 1);
   assert.equal(s.ev('JEU.rounds.every(r=>state.defis[r.cid])'), true);
   assert.equal(w.posts, 0, 'rien n’est envoyé au relais en solo');
+  assert.equal(s.sockets, 0, 'ni connexion au direct');
   assert.equal(new Set(s.ev('JEU.rounds.map(r=>r.cid)')).size, 3);
   s.ev('jeuAgain()'); sec(w, 0.5);
   assert.equal(s.view(), 'draw0', 'rejouer en solo enchaîne directement');
@@ -486,7 +567,7 @@ test('un ami dont la réception est coupée (mais qui envoie encore) ne vole pas
   assert.equal(guests[0].ev('jeuIsHost()'), false, 'il ne se déclare pas hôte');
   assert.equal(host.ev('jeuIsHost()'), true);
   assert.equal(guests[1].J('hostPid'), host.pid());
-  guests[0].deaf = false; guests[0].es.connect(); sec(w, 25);
+  guests[0].deaf = false; guests[0].reconnect(); sec(w, 25);
   assert.equal(guests[0].J('hostPid'), host.pid(), 'tout redevient normal à son retour');
   assert.ok(guests[0].live().includes('Hôte'));
 });
@@ -550,7 +631,7 @@ test('un envoi refusé par le relais est renvoyé : arrivée, manche et « trouv
 
 test('hôte figé un moment (partage du code) : il revient avant d’être remplacé', () => {
   const { w, host, guests } = room({ n: 3 });
-  host.offline = true; sec(w, 65); host.offline = false; host.es.connect(); host.ev('jeuResume()'); sec(w, 40);
+  host.offline = true; sec(w, 65); host.offline = false; host.reconnect(); host.ev('jeuResume()'); sec(w, 40);
   for (const g of guests) assert.equal(g.J('hostPid'), host.pid(), g.name + ' : toujours le même hôte');
   assert.equal(host.ev('jeuIsHost()'), true);
 });
@@ -566,7 +647,7 @@ test('rejeu après reconnexion : un joueur parti n’est pas « ressuscité »',
   const { w, host, guests } = room({ n: 3 });
   host.deaf = true; sec(w, 6); guests[1].offline = true; sec(w, 70);
   assert.ok(!host.live().includes('Ami2') || true);
-  host.deaf = false; host.es.connect(); sec(w, 12);
+  host.deaf = false; host.reconnect(); sec(w, 12);
   assert.deepEqual(host.live(), ['Hôte', 'Ami1'], 'Ami2 reste absent après le rejeu');
 });
 
@@ -676,4 +757,158 @@ test('tableau de performance : en solo, pas de place ; une manche abandonnée co
   s.ev("jeuNb=1;jeuNiv='f'"); s.ev('jeuAgain()'); sec(w, 4); s.found(); sec(w, 1); s.ev('jeuFinish()'); sec(w, 1);
   assert.equal(s.ev('state.salle.hist.length'), 2, 'la nouvelle partie passe devant');
   assert.equal(s.ev('state.salle.hist[0].ok'), 1);
+});
+
+/* ---------- La base Supabase : ordre, historique, coupures ---------- */
+/* Ce qu’un joueur a reçu de la base suit l’ordre de la base (numéros croissants), sans doublon. */
+function assertInOrder(w, code, c) {
+  const order = w.room(code).all.map(r => r.m.u), got = c.relay();
+  assert.equal(new Set(got).size, got.length, c.name + ' : chaque message une seule fois');
+  let last = -1;
+  for (const u of got) { const i = order.indexOf(u); assert.ok(i > last, c.name + ' : dans l’ordre de la base (' + u + ')'); last = i; }
+  return got;
+}
+
+test('base : chacun reçoit les messages dans l’ordre de la base, une seule fois, historique compris', () => {
+  const w = new World();
+  const host = makeClient(w, 'Hôte'); host.ev('jeuNb=3'); host.host('BASE01'); host.logRelay(); sec(w, 1);
+  const a = makeClient(w, 'Ami1'); a.join('BASE01'); a.logRelay(); sec(w, 1.5);
+  a.ev('jeuToggleReady()'); sec(w, 1);
+  host.ev('jeuNextRound()'); sec(w, 4.5);
+  const late = makeClient(w, 'Retard'); late.join('BASE01'); late.logRelay(); sec(w, 2);
+  host.found(); a.found(); late.found(); a.ev('jeuReact("🔥")'); sec(w, 3);
+  for (const c of [host, a, late]) assertInOrder(w, 'BASE01', c);
+  assert.deepEqual(late.ev('JEU.seq'), host.ev('JEU.seq'), 'le même ordre d’arrivée pour tous (relais d’hôte)');
+  const got = new Set(late.relay());
+  assert.ok(w.room('BASE01').all.filter(r => !VOLATILE.includes(r.m.t)).every(r => got.has(r.m.u)), 'l’arrivant a tout relu : arrivées, réglages, « prêt », manche, temps');
+  assert.equal(late.view(), 'res0', 'l’arrivant a relu la manche en cours');
+});
+
+test('base : un message perdu par le direct est relu dans la base et livré avant le suivant', () => {
+  const { w, host, guests } = room({ n: 3 });
+  const [a, b] = guests; a.logRelay();
+  a.lose = 1;                                   /* le direct perd la manche pour Ami1 */
+  host.ev('jeuNextRound()'); sec(w, 0.5);
+  assert.equal(a.J('rounds.length'), 0, 'rien reçu pour l’instant');
+  b.ev('jeuSend({t:"ping"})'); sec(w, 1);       /* le numéro suivant arrive : il en manque un */
+  assert.ok(a.J('rounds[0]'), 'la manche a été relue');
+  const got = assertInOrder(w, 'ROOM42', a);
+  const all = w.room('ROOM42').all, round = all.find(r => r.m.t === 'round').m.u;
+  assert.ok(got.indexOf(round) >= 0 && got.indexOf(round) < got.length - 1, 'la manche avant le signe de vie qui suit');
+  sec(w, 4); assert.equal(a.view(), 'play0');
+});
+
+test('base : son propre message ne revient pas par le direct : la salle est relue 3 s après', () => {
+  const w = new World();
+  const host = makeClient(w, 'Hôte'); host.host('ECHO01'); sec(w, 1);
+  const a = makeClient(w, 'Ami'); a.join('ECHO01'); sec(w, 3);
+  const calls = w.histCalls;
+  a.lose = 1; const u = a.ev('jeuSend({t:"ready",on:true})');
+  sec(w, 1);
+  assert.equal(a.ev(`JEU.seenR.has(${JSON.stringify(u)})`), false, 'pas encore revenu');
+  sec(w, 3);
+  assert.equal(a.ev(`JEU.seenR.has(${JSON.stringify(u)})`), true, 'revenu par la base');
+  assert.ok(w.histCalls > calls, 'la salle a été relue');
+  assert.equal(host.ev(`JEU.ready[${JSON.stringify(a.pid())}]`), true, 'l’hôte l’a bien reçu');
+});
+
+test('base : connexion morte (battements sans réponse) : reconnexion toute seule, puis relecture de ce qui a été manqué', () => {
+  const { w, host, guests } = room({ n: 3 });
+  const a = guests[0], before = a.sockets;
+  a.deaf = true; sec(w, 35);
+  assert.ok(a.sockets > before, 'la connexion muette a été abandonnée');
+  assert.deepEqual(a.ev('[JEU.t.stats().joined,JEU.t.stats().up]'), [false, false], 'coupée, et la salle le sait');
+  host.ev('jeuNextRound()'); sec(w, 5);
+  assert.equal(a.J('rounds.length'), 0);
+  a.deaf = false; sec(w, 30);                   /* sans rien faire : le prochain essai passe */
+  assert.equal(a.J('net'), true);
+  assert.equal(a.ev('JEU.t.stats().joined'), true, 'de nouveau en direct');
+  assert.ok(a.J('rounds[0]'), 'la manche manquée a été relue');
+  assert.equal(a.view(), 'play0');
+  assert.deepEqual(a.live(), ['Hôte', 'Ami1', 'Ami2']);
+});
+
+test('base : hors ligne puis réseau retrouvé : ce qui n’était pas parti part, et la salle reprend', () => {
+  const { w, host, guests } = room({ n: 2 });
+  const a = guests[0];
+  a.offline = true; sec(w, 2);
+  a.ev('jeuToggleReady()'); sec(w, 6);
+  assert.equal(a.J('net'), false);
+  assert.ok(a.J('out.length') >= 1, '« prêt » attend le réseau');
+  assert.equal(host.ev(`!!JEU.ready[${JSON.stringify(a.pid())}]`), false);
+  a.offline = false; a.reconnect(); sec(w, 4);
+  assert.equal(a.J('net'), true);
+  assert.equal(a.J('out.length'), 0, 'plus rien en attente');
+  assert.equal(host.ev(`JEU.ready[${JSON.stringify(a.pid())}]`), true, '« prêt » est arrivé chez l’hôte');
+});
+
+test('base : en quittant, le dernier message part par jeu_balise (même si la page se ferme)', () => {
+  const { w, host, guests } = room({ n: 3 });
+  const a = guests[1], pid = a.pid();
+  a.ev('jeuStop()'); sec(w, 0.5);
+  assert.equal(a.beacons, 1, 'un seul envoi, par la balise');
+  assert.equal(host.ev(`!!JEU.left[${JSON.stringify(pid)}]`), true, 'l’hôte sait tout de suite qu’il est parti');
+  sec(w, 1); assert.equal(a.ws.readyState, 3, 'et sa connexion est fermée');
+});
+
+test('base : une longue salle (plus de 500 messages gardés) se relit page par page, dans l’ordre', () => {
+  const w = new World();
+  const host = makeClient(w, 'Hôte'); host.host('LONG01'); sec(w, 1);
+  const a = makeClient(w, 'Ami'); a.join('LONG01'); sec(w, 2);
+  for (let i = 0; i < 601; i++) { a.ev('jeuToggleReady()'); if (i % 50 === 49) sec(w, 0.3); }
+  sec(w, 2);
+  const want = host.ev(`!!JEU.ready[${JSON.stringify(a.pid())}]`);
+  assert.equal(want, true, '601 bascules : prêt');
+  const calls = w.histCalls;
+  const late = makeClient(w, 'Retard'); late.join('LONG01'); late.logRelay(); sec(w, 3);
+  assert.ok(w.histCalls - calls >= 2, 'deux pages au moins : ' + (w.histCalls - calls));
+  assertInOrder(w, 'LONG01', late);
+  assert.equal(late.ev(`!!JEU.ready[${JSON.stringify(a.pid())}]`), want, 'le dernier « prêt » compte');
+  assert.equal(late.view(), 'lobby');
+});
+
+test('base : direct bloqué (WebSocket refusé par le réseau) : la salle se suit quand même, en relisant l’historique', () => {
+  const w = new World();
+  const host = makeClient(w, 'Hôte'); host.ev('jeuNb=3'); host.host('BLOC01'); sec(w, 1);
+  const a = makeClient(w, 'Bloqué');
+  a.ctx.WebSocket = class { constructor() { throw new Error('bloqué'); } };
+  a.join('BLOC01'); sec(w, 10);
+  assert.ok(a.ev('JEU.t.stats().polls') > 0, 'il relit la salle');
+  assert.equal(a.view(), 'lobby', 'il est dans la salle');
+  assert.deepEqual(host.live(), ['Hôte', 'Bloqué'], 'l’hôte le voit');
+  host.ev('jeuNextRound()'); sec(w, 7);          /* relue toutes les 2,5 s : jusqu’à 2,5 s de retard */
+  assert.equal(a.view(), 'play0', 'la manche arrive');
+  sec(w, 70);
+  assert.deepEqual(a.live(), ['Hôte', 'Bloqué'], 'les signes de vie de l’hôte arrivent aussi : il reste présent');
+  a.found(); sec(w, 4);
+  assert.notEqual(host.J(`rounds[0].found[${JSON.stringify(a.pid())}]`), undefined, 'son temps arrive chez l’hôte');
+});
+
+/* L’appli et la base (supabase/migrations) parlent la même langue : mêmes fonctions, mêmes paramètres, canal public
+   « salle:CODE », 500 messages par page, signes de vie et réactions à part ; et la base ne s’ouvre que par ces fonctions. */
+test('base : l’appli et les fonctions SQL de supabase/migrations restent d’accord', () => {
+  const dir = new URL('../supabase/migrations/', import.meta.url);
+  const sql = fs.readdirSync(dir).filter(f => f.endsWith('.sql')).sort().map(f => fs.readFileSync(new URL(f, dir), 'utf8')).join('\n');
+  const last = name => { const i = sql.lastIndexOf('create or replace function public.' + name); assert.ok(i >= 0, name); return sql.slice(i, sql.indexOf('$$;', sql.indexOf('$$', i) + 2) + 3); };
+  const env = last('jeu_envoyer('), hist = last('jeu_historique('), bal = last('jeu_balise(');
+  assert.match(env, /jeu_envoyer\(p_salle text, p_m jsonb\)/);
+  assert.match(hist, /jeu_historique\(p_salle text, p_apres integer default 0\)/);
+  assert.match(bal, /jeu_balise\(text\)/);
+  for (const f of [env, hist, bal, last('jeu_menage(')]) { assert.match(f, /security definer/); assert.match(f, /set search_path = ''/); }
+  assert.match(env, /realtime\.send\(jsonb_build_object\('n', v_n, 'at', v_at, 'm', p_m\), 'm', 'salle:' \|\| p_salle, false\)/, 'diffusion publique sur salle:CODE');
+  assert.match(hist, /limit 500;/);
+  assert.ok(engineSrc.includes('full=rows.length>=500'), 'pagination de 500 côté appli');
+  assert.match(hist, /not in \('ping', 'react'\) or j\.cree > now\(\) - interval '90 seconds'/);
+  assert.ok(engineSrc.includes("const JEU_VOLATILE=['ping','react'];"), 'mêmes messages volatils');
+  assert.ok(engineSrc.includes("topic='realtime:salle:'+code") && engineSrc.includes('private:false'), 'canal public côté appli');
+  assert.ok(engineSrc.includes("rpc('jeu_envoyer',{p_salle:code,p_m:m})") && engineSrc.includes("rpc('jeu_historique',{p_salle:code,p_apres:S.last})"));
+  assert.ok(engineSrc.includes("api+'jeu_balise?apikey='+JEU_SB_KEY"));
+  assert.match(sql, /alter table public\.jeu_salle enable row level security;/);
+  assert.match(sql, /alter table public\.jeu_msg enable row level security;/);
+  assert.match(sql, /revoke all on table public\.jeu_salle, public\.jeu_msg from anon, authenticated;/);
+  assert.match(sql, /revoke all on function public\.jeu_menage\(\) from public, anon, authenticated;/);
+  assert.doesNotMatch(sql, /grant execute on function public\.jeu_menage/, 'le ménage n’est pas appelable de l’extérieur');
+  assert.match(sql, /cron\.schedule\('jeu-menage', '23 \* \* \* \*'/);
+  assert.match(engineSrc, /const JEU_SB_KEY='sb_publishable_[A-Za-z0-9_]+';/, 'seule la clé publique est dans l’appli');
+  assert.doesNotMatch(html, /service_role|sb_secret_/, 'aucune clé secrète');
 });

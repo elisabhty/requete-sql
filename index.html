@@ -14337,7 +14337,7 @@ if(typeof window!=='undefined'){
     document.querySelectorAll('#modules .home-module[open]').forEach(d=>lqDrawPath(d,false));
   },120);});
 }
-const JEU_NOTE_HTML='<p class="jeu-note">🔒 Seuls ton pseudo, tes temps et tes réactions sont partagés, jamais tes requêtes. Ils passent par ntfy.sh, un service public, et s’effacent au bout de 12&nbsp;h. Il faut une connexion internet.</p>';
+const JEU_NOTE_HTML='<p class="jeu-note">🔒 Seuls ton pseudo, tes temps et tes réactions sont partagés, jamais tes requêtes. Ils passent par le serveur de l’appli (Supabase, à Paris) et s’effacent au bout de 24&nbsp;h. Il faut une connexion internet.</p>';
 /* Même défi, seul ou à plusieurs : le choix se fait dans l’écran du défi. Ici, seulement l’entrée « j’ai reçu un code ». */
 const JEU_FRIENDS_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.4-3 2.6-4.8 5.5-4.8s5.1 1.8 5.5 4.8"/><path d="M16 5.2a3 3 0 0 1 0 5.6M17.5 14.4c1.8.5 3 2 3.3 4.6"/></svg>';
 function jeuEligible(c){return !!c&&!/^\s*EXPLAIN/i.test(c.sol)&&!c.noExec;}
@@ -20024,16 +20024,20 @@ function buildSommaire(){
 /* ---------- Salle de défi : un défi tiré au sort, seul ou entre amis ----------
    On choisit un niveau et un mode, puis on entre dans une salle : le défi est
    tiré au sort au dernier moment, le même pour tous. Seul, tout reste sur
-   l’appareil (aucun réseau). À plusieurs, l’app n’a pas de serveur : les
-   messages de la salle (pseudo, présence, manche, temps, réactions) passent
-   par ntfy.sh, un service public de messages. Les requêtes restent sur le
-   téléphone de chaque joueur : seul le temps de résolution est partagé.
+   l’appareil (aucun réseau). À plusieurs, les messages de la salle (pseudo,
+   présence, manche, temps, réactions) passent par la base Supabase de l’appli
+   (projet « requete-sql », à Paris) : voir jeuSupabase. Les requêtes restent sur
+   le téléphone de chaque joueur : seul le temps de résolution est partagé.
    ?jeu=local remplace le réseau par un canal entre onglets du même navigateur
    (tests).
    Présence : chaque joueur envoie un signe de vie toutes les 20 s ; sans nouvelles
    au bout de 55 s (ou après « bye »), il n’est plus dans la salle. L’hôte part :
    le plus ancien arrivé encore présent le remplace (message « host »). */
-const JEU_RELAY='https://ntfy.sh/';
+/* La base des salles entre amis. La clé « publishable » est faite pour être publique : avec elle, on ne peut
+   qu’appeler jeu_envoyer, jeu_historique et jeu_balise ; rien d’autre de la base n’est lisible ni modifiable. */
+const JEU_SB='https://ynuenrxozcpkrjdbeftc.supabase.co';
+const JEU_SB_KEY='sb_publishable_xhqZIRNKel3gXW_rH_GajQ_8Jb7iNhv';
+const JEU_HB_MS=15000;
 const JEU_ROUND_MS=180000;
 const JEU_DRAW_MS=3300;
 const JEU_MAX=6;
@@ -20095,8 +20099,8 @@ function jeuQue(n){return (jeuVoy(n)?'qu’':'que ')+esc(n);}
 function jeuChrono(ms){const s=Math.max(0,Math.floor(ms/1000));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
 function jeuChallenges(niv){return CHALLENGES.filter(c=>c.niv===niv&&!/^\s*EXPLAIN/i.test(c.sol)&&!c.noExec);}
 
-/* Transport : ntfy.sh (flux SSE + publication POST), canal local pour les tests,
-   ou rien du tout en solo. Chaque message reçu du relais porte fromRelay : c’est
+/* Transport : la base Supabase entre amis, un canal local pour les tests, ou rien
+   du tout en solo. Chaque message reçu du relais (la base) porte fromRelay : c’est
    l’ordre du relais, le même pour tout le monde, qui départage les arrivées. */
 function jeuTransport(code,onMsg,onNet,solo){
   if(solo){setTimeout(()=>onNet(true),0);return{send(){return Promise.resolve(true);},beacon(){},close(){}};}
@@ -20115,27 +20119,165 @@ function jeuTransport(code,onMsg,onNet,solo){
     },beacon(m){t.send(m);},close(){bc.close();}};
     return t;
   }
-  const topic='requete-sql-'+code,seen=new Set();
-  let es=null;
-  try{
-    es=new EventSource(JEU_RELAY+topic+'/sse?since=all');
-    es.onopen=()=>onNet(true);
-    es.onerror=()=>onNet(false);
-    es.onmessage=e=>{
-      let d;try{d=JSON.parse(e.data);}catch(x){return;}
-      if(!d||d.event!=='message'||seen.has(d.id))return;
-      seen.add(d.id);
-      let m;try{m=JSON.parse(d.message);}catch(x){return;}
-      if(!m||typeof m!=='object')return;
-      m.at=(d.time||0)*1000;m.fromRelay=true;onMsg(m);
+  return jeuSupabase(code,onMsg,onNet);
+}
+/* Entre amis (Elisa, 31 octobre : « on passe à la partie défis : est-ce qu’on doit brancher Supabase ? »).
+   Envoyer : la fonction jeu_envoyer de la base numérote le message dans sa salle (1, 2, 3… : l’ordre d’arrivée,
+   le même pour tous), le date avec l’horloge du serveur, le garde 24 h (sauf signes de vie et réactions), puis le
+   diffuse en direct sur le canal public « salle:CODE ». Recevoir : on écoute ce canal (WebSocket) ; en arrivant,
+   en revenant ou quand un numéro manque, on relit ce qui a été gardé (jeu_historique), et tout est livré une seule
+   fois, dans l’ordre des numéros. Un battement toutes les 15 s vérifie la connexion ; sans réponse, on se
+   reconnecte (vite d’abord, puis toutes les 15 s au plus). Sans direct depuis 6 s (WebSocket bloqué par un réseau
+   d’entreprise, coupure), on relit la salle toutes les 2,5 s : l’historique garde aussi 90 s de signes de vie. La
+   salle n’apprend que les changements d’état (connectée / coupée). Les promesses ne sont enchaînées qu’avec then
+   (pas d’async/await) : les tests font tourner ce code sur une horloge virtuelle. */
+function jeuSupabase(code,onMsg,onNet){
+  const topic='realtime:salle:'+code,api=JEU_SB+'/rest/v1/rpc/';
+  const S={ws:null,joined:false,closed:false,up:null,downAt:Date.now(),ref:0,joinRef:'',hbRef:'',jt:0,rt:0,pt:0,ht:0,retry:0,last:0,buf:[],loading:false,again:false,hfail:0,polls:0};
+  const net=ok=>{if(S.up!==ok&&!S.closed){S.up=ok;onNet(ok);}};
+  const rpc=(fn,body)=>{
+    const opt={method:'POST',headers:{apikey:JEU_SB_KEY,'Content-Type':'application/json'},body:JSON.stringify(body)};
+    let to=0;
+    if(typeof AbortController!=='undefined'){const ctl=new AbortController();opt.signal=ctl.signal;to=setTimeout(()=>ctl.abort(),10000);}
+    return fetch(api+fn,opt).then(r=>{clearTimeout(to);return r;},e=>{clearTimeout(to);throw e;});
+  };
+  const put=(ws,o)=>{try{ws.send(JSON.stringify(o));return true;}catch(e){return false;}};
+  /* Livrer dans l’ordre des numéros ce qui attend (jusqu’au numéro upto), chaque numéro une seule fois. */
+  const keep=(n,at,m)=>{n=+n;if(n>S.last&&!S.buf.some(b=>b.n===n))S.buf.push({n,at:+at||0,m});};
+  const flush=upto=>{
+    S.buf.sort((a,b)=>a.n-b.n);
+    while(S.buf.length&&!S.closed&&S.buf[0].n<=upto){
+      const r=S.buf.shift();
+      if(r.n<=S.last)continue;
+      S.last=r.n;
+      if(r.m&&typeof r.m==='object')onMsg(Object.assign({},r.m,{at:r.at,fromRelay:true}));
+    }
+  };
+  /* Relire ce qui a été gardé après le dernier numéro livré ; pendant ce temps, le direct attend son tour. */
+  const catchUp=()=>{
+    if(S.closed)return;
+    if(S.loading){S.again=true;return;}
+    S.loading=true;S.again=false;clearTimeout(S.ht);
+    rpc('jeu_historique',{p_salle:code,p_apres:S.last}).then(r=>r.ok?r.json():null).then(rows=>{
+      S.loading=false;
+      if(S.closed)return;
+      if(!Array.isArray(rows))return retryHist();
+      S.hfail=0;
+      if(!S.joined)net(true);
+      rows.forEach(r=>{if(r)keep(r.n,r.at,r.m);});
+      const full=rows.length>=500;
+      flush(full?+rows[rows.length-1].n:Infinity);
+      if(full||S.again)catchUp();
+    },()=>{S.loading=false;if(!S.closed)retryHist();});
+  };
+  /* L’historique ne répond pas : on réessaie ; au bout de trois fois, le direct en attente passe quand même. */
+  const retryHist=()=>{
+    if(++S.hfail>=3)flush(Infinity);
+    if(S.joined)S.ht=setTimeout(catchUp,3000);else net(false);
+  };
+  const frame=(ws,d)=>{
+    let f;try{f=JSON.parse(d);}catch(e){return;}
+    if(!f||typeof f!=='object')return;
+    if(f.topic==='phoenix'){if(f.ref&&f.ref===S.hbRef){S.hbRef='';clearTimeout(S.pt);}return;}
+    if(f.topic!==topic)return;
+    if(f.event==='phx_reply'&&f.ref===S.joinRef){if(f.payload&&f.payload.status==='ok')joined();else drop(ws);return;}
+    if(f.event==='phx_close'||f.event==='phx_error')return drop(ws);
+    if(f.event!=='broadcast'||!S.joined)return;
+    const p=f.payload&&f.payload.payload;
+    if(!p||!(+p.n>S.last))return;
+    keep(p.n,p.at,p.m);
+    if(S.loading)return;
+    if(S.buf.length===1&&S.buf[0].n===S.last+1)return flush(Infinity);
+    /* Un numéro manque (message perdu, ou signe de vie qui n’est pas gardé) : on relit avant de livrer. */
+    catchUp();
+  };
+  const connect=()=>{
+    if(S.closed)return;
+    clearTimeout(S.rt);clearTimeout(S.jt);
+    let ws;
+    try{ws=new WebSocket(JEU_SB.replace(/^http/,'ws')+'/realtime/v1/websocket?apikey='+JEU_SB_KEY+'&vsn=1.0.0');}catch(e){return down(null);}
+    S.ws=ws;S.joined=false;S.hbRef='';
+    S.jt=setTimeout(()=>drop(ws),12000);
+    ws.onopen=()=>{
+      if(S.ws!==ws)return;
+      S.joinRef=String(++S.ref);
+      put(ws,{topic,event:'phx_join',payload:{config:{broadcast:{ack:false,self:false},presence:{enabled:false},postgres_changes:[],private:false}},ref:S.joinRef,join_ref:S.joinRef});
     };
-  }catch(e){onNet(false);}
+    ws.onmessage=e=>{if(S.ws===ws)frame(ws,e.data);};
+    ws.onclose=()=>down(ws);
+  };
+  const joined=()=>{clearTimeout(S.jt);S.joined=true;S.retry=0;catchUp();net(true);};
+  const down=ws=>{
+    if(ws&&S.ws!==ws)return;
+    clearTimeout(S.jt);clearTimeout(S.pt);
+    const was=S.joined;
+    if(was)S.downAt=Date.now();
+    S.ws=null;S.joined=false;S.hbRef='';
+    if(S.closed)return;
+    /* Une connexion perdue (ou jamais établie) se dit tout de suite ; un essai raté pendant qu’on suit la salle par
+       l’historique ne change rien. */
+    if(was||S.up===null)net(false);
+    clearTimeout(S.rt);S.rt=setTimeout(connect,[500,1500,4000,8000,15000][Math.min(S.retry++,4)]);
+  };
+  const drop=ws=>{
+    if(!ws||S.ws!==ws)return;
+    try{ws.onclose=null;ws.close();}catch(e){}
+    down(ws);
+  };
+  const beat=()=>{S.hbRef='h'+(++S.ref);return put(S.ws,{topic:'phoenix',event:'heartbeat',payload:{},ref:S.hbRef});};
+  const hb=setInterval(()=>{
+    const ws=S.ws;if(!ws||!S.joined)return;
+    /* Le battement précédent est resté sans réponse : la connexion est morte (téléphone en veille, réseau changé…). */
+    if(S.hbRef||!beat())drop(ws);
+  },JEU_HB_MS);
+  /* Pas de direct depuis 6 s : on suit la salle en relisant l’historique. */
+  const poll=setInterval(()=>{
+    if(S.closed||S.joined||S.loading||Date.now()-S.downAt<6000)return;
+    S.polls++;catchUp();
+  },2500);
+  connect();
   return{
-    send(m){return fetch(JEU_RELAY+topic,{method:'POST',body:JSON.stringify(m)}).then(r=>r.ok).catch(()=>false);},
-    beacon(m){try{if(!(navigator.sendBeacon&&navigator.sendBeacon(JEU_RELAY+topic,JSON.stringify(m))))fetch(JEU_RELAY+topic,{method:'POST',body:JSON.stringify(m),keepalive:true}).catch(()=>{});}catch(e){}},
-    close(){if(es)es.close();}
+    send(m){
+      return rpc('jeu_envoyer',{p_salle:code,p_m:m}).then(r=>{
+        if(!r.ok)return false;
+        /* Son propre message doit revenir par le direct : sinon, on relit la salle (le direct a pu en perdre). */
+        r.json().then(x=>{const n=x&&+x.n;if(n>0)setTimeout(()=>{if(!S.closed&&S.joined&&S.last<n)catchUp();},3000);},()=>{});
+        return true;
+      },()=>false);
+    },
+    /* En quittant : un dernier message même si la page se ferme (texte brut, sans en-tête : navigator.sendBeacon). */
+    beacon(m){
+      const url=api+'jeu_balise?apikey='+JEU_SB_KEY,body=JSON.stringify({salle:code,m});
+      try{if(!(navigator.sendBeacon&&navigator.sendBeacon(url,body)))fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body,keepalive:true}).catch(()=>{});}catch(e){}
+    },
+    /* Retour au premier plan : on vérifie la connexion tout de suite ; réseau retrouvé (force) : on se reconnecte. */
+    wake(force){
+      if(S.closed)return;
+      if(force||(!S.joined&&!S.ws)){
+        const ws=S.ws;if(S.joined)S.downAt=Date.now();S.ws=null;S.joined=false;
+        if(ws){try{ws.onclose=null;ws.close();}catch(e){}}
+        clearTimeout(S.jt);clearTimeout(S.pt);S.retry=0;S.hbRef='';connect();
+        return;
+      }
+      if(!S.joined)return;
+      const ws=S.ws;
+      if(!S.hbRef&&!beat())return drop(ws);
+      clearTimeout(S.pt);S.pt=setTimeout(()=>{if(S.ws===ws&&S.hbRef)drop(ws);},5000);
+    },
+    stats(){return{joined:S.joined,up:S.up,last:S.last,polls:S.polls,waiting:S.buf.length};},
+    close(){
+      S.closed=true;
+      clearInterval(hb);clearInterval(poll);clearTimeout(S.rt);clearTimeout(S.jt);clearTimeout(S.pt);clearTimeout(S.ht);
+      const ws=S.ws;S.ws=null;S.joined=false;
+      if(ws){try{ws.onclose=null;if(ws.readyState===1)put(ws,{topic,event:'phx_leave',payload:{},ref:String(++S.ref),join_ref:S.joinRef});ws.close();}catch(e){}}
+    }
   };
 }
+/* Retour au premier plan, réseau retrouvé : la salle vérifie sa connexion sans attendre le prochain battement. */
+try{
+  window.addEventListener('online',()=>{if(JEU&&JEU.t&&JEU.t.wake)JEU.t.wake(true);});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&JEU&&JEU.t&&JEU.t.wake)JEU.t.wake(false);});
+}catch(e){}
 
 /* Défis : entrée « Salle de défi » (niveau, avec qui, manches), puis la salle
    elle-même s’ouvre en plein écran (comme une leçon). */
@@ -26098,7 +26240,7 @@ function paintOb(){
     const privacy=obLegalMode==='privacy';
     html=`<div class="ob-screen ob-legal-screen">${obBackButton()}<h1 class="ob-title" id="ob-title">${privacy?'Politique de confidentialité':'Conditions d’utilisation'}</h1>
       <div class="legal-copy">${privacy
-        ? `<p>Tu peux utiliser Requête <b>sans compte</b>. Dans ce mode, ta progression reste uniquement sur cet appareil.</p><ul><li>Leçons, défis, notes, planning et bases importées sont enregistrés localement.</li><li>Le moteur SQL tourne dans ton navigateur.</li><li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le service public ntfy.sh. Ces messages s’effacent au bout de 12&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li></ul><p>Si tu choisis plus tard de te connecter, Requête indiquera clairement quelles données seront synchronisées et permettra de supprimer ton compte.</p>`
+        ? `<p>Tu peux utiliser Requête <b>sans compte</b>. Dans ce mode, ta progression reste uniquement sur cet appareil.</p><ul><li>Leçons, défis, notes, planning et bases importées sont enregistrés localement.</li><li>Le moteur SQL tourne dans ton navigateur.</li><li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li></ul><p>Si tu choisis plus tard de te connecter, Requête indiquera clairement quelles données seront synchronisées et permettra de supprimer ton compte.</p>`
         : `<p>Requête est une application d’apprentissage du SQL. Le contenu est fourni à des fins pédagogiques.</p><p>Tu peux commencer sans compte, exporter ta progression et l’effacer depuis Mon compte.</p><p>Les options de connexion ne deviennent actives que lorsqu’un fournisseur d’authentification sécurisé est configuré.</p>`}</div></div>`;
     obSetFooter('','','','','');
   }else if(slide==='welcome'){
@@ -26746,7 +26888,7 @@ function openLegal(kind){
       <p>Requête est une app d’apprentissage SQL. Tu peux l’utiliser <b>sans compte</b> : ta progression reste alors sur cet appareil.</p>
       <ul>
         <li>Prénom, leçons, défis, notes et planning : stockés en local dans le navigateur.</li>
-        <li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le service public ntfy.sh. Ces messages s’effacent au bout de 12&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
+        <li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
         <li>Le moteur SQL tourne dans le navigateur.</li>
         <li>Le rappel quotidien n’envoie une notification que si tu l’actives (permission du navigateur), à l’heure choisie.</li>
       </ul>
@@ -26986,7 +27128,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-31-fin-sans-bande-v2210';
+  const SW_CACHE='requete-2026-10-31-defis-supabase-v2211';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
