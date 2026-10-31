@@ -6644,7 +6644,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=45">
+<link rel="stylesheet" href="ludique.css?v=46">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -9966,6 +9966,9 @@ async function boot(){
     jeuFromUrl();
     resetLeconFromUrl();
     apercuFromUrl();
+    setTimeout(()=>{try{psVerifier();}catch(e){}},2500);
+  /* Hors ligne à l’ouverture : le pseudo est réservé au retour du réseau. */
+  window.addEventListener('online',()=>{try{psVerifier();}catch(e){}});
     /* Retour d’« Importer une progression » : Mon compte, et la carte « Tes données » dit que c’est fait. */
     try{if(sessionStorage.getItem('rq-import-ok')){sessionStorage.removeItem('rq-import-ok');switchTab('compte');setTimeout(()=>lqDone(document.querySelector('#scr-compte .acct-data'),'Importée','Progression importée'),500);}}catch(e){}
     tickRappel();
@@ -12233,6 +12236,9 @@ function normalizeState(raw){
   if(uuid(salleSrc.clsId))salle.clsId=salleSrc.clsId;
   if(salleSrc.horsCls)salle.horsCls=1;
   if(typeof salleSrc.defisEnv==='string'&&salleSrc.defisEnv.length<=4000)salle.defisEnv=salleSrc.defisEnv;
+  /* Le pseudo réservé (jeu_pseudo) et la date de sa dernière confirmation. */
+  if(typeof salleSrc.pseudo==='string'){const p=salleNom(salleSrc.pseudo);if(p)salle.pseudo=p;}
+  if(salleSrc.pseudoVu)salle.pseudoVu=salleBig(salleSrc.pseudoVu);
   if(salleSrc.clsRefus){const r=salleNom(salleSrc.clsRefus);if(r)salle.clsRefus=r;}
   if(Array.isArray(salleSrc.masques)){const m=salleSrc.masques.filter(uuid).slice(-50);if(m.length)salle.masques=m;}
   if(Array.isArray(salleSrc.envoi)){
@@ -14375,7 +14381,8 @@ if(typeof window!=='undefined'){
     document.querySelectorAll('#modules .home-module[open]').forEach(d=>lqDrawPath(d,false));
   },120);});
 }
-const JEU_NOTE_HTML='<p class="jeu-note">🔒 Seuls ton pseudo, tes temps et tes réactions sont partagés, jamais tes requêtes. Ils passent par le serveur de l’appli (Supabase, à Paris) et s’effacent au bout de 24&nbsp;h. Il faut une connexion internet.</p>';
+/* Réf. 4 (16 h 49) : « garder que la première phrase ». */
+const JEU_NOTE_HTML='<p class="jeu-note">🔒 Seuls ton pseudo, tes temps et tes réactions sont partagés, jamais tes requêtes.</p>';
 /* Même défi, seul ou à plusieurs : le choix se fait dans l’écran du défi. Ici, seulement l’entrée « j’ai reçu un code ». */
 const JEU_FRIENDS_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.4-3 2.6-4.8 5.5-4.8s5.1 1.8 5.5 4.8"/><path d="M16 5.2a3 3 0 0 1 0 5.6M17.5 14.4c1.8.5 3 2 3.3 4.6"/></svg>';
 function jeuEligible(c){return !!c&&!/^\s*EXPLAIN/i.test(c.sol)&&!c.noExec;}
@@ -14386,7 +14393,6 @@ function renderDefisJoin(){
     <summary><span class="def-join-ico" aria-hidden="true">${JEU_FRIENDS_SVG}</span><span><b>Un code reçu ?</b><small>Rejoins la salle d’un ami en direct</small></span>${DEF_CHEV_SVG}</summary>
     <div class="def-join-body">
       ${c?`<p class="jeu-card-h">Tu es invité·e dans la salle <b class="jeu-code-inline">${c}</b></p>`:''}
-      ${jeuNomField('jeu-nom-join')}
       ${c?'':`<label class="jeu-lab" for="jeu-code">Code de la salle</label>
       <input id="jeu-code" class="jeu-input is-code" autocapitalize="characters" autocomplete="off" placeholder="ABC123" oninput="this.value=jeuCleanCode(this.value)">`}
       <button type="button" class="journey-primary" onclick="jeuJoin(${c?`'${c}'`:`document.getElementById('jeu-code').value`})"><span>Rejoindre la salle</span>${DEF_CHEV_SVG}</button>
@@ -14542,18 +14548,11 @@ function clsFlush(){
     CLS.flushing=false;
     const m=String(e&&e.message||'');
     const s2=clsSalle();
+    if(/pris/.test(m)){if(typeof psFeuille==='function'&&!document.getElementById('lq-ask'))psFeuille({raison:'pris',voulu:nom});return;}
     if(/pseudo/.test(m)){s2.clsRefus=nom;save();clsPaint();return;}
     /* Une partie que le serveur refuse (barème) ne repart pas ; le reste attend le réseau. */
     if(/partie invalide/.test(m)){s2.envoi=(s2.envoi||[]).filter(x=>x.u!==q[0].u);save();if(s2.envoi.length)clsFlush();}
   });
-}
-/* Le pseudo change (Mon compte, salle de défi) : le classement suit. */
-function clsRenommer(){
-  const s=clsSalle(),nom=jeuSavedNom();
-  if(!clsOn()||!s.clsId||!nom)return;
-  if(!jeuPseudoOk(nom)){s.clsRefus=nom;save();return;}
-  delete s.clsRefus;save();
-  clsRpc('jeu_renommer',{p_cle:clsCle(),p_pseudo:nom}).then(()=>{CLS.at=0;},e=>{if(/pseudo/.test(String(e&&e.message||''))){clsSalle().clsRefus=nom;save();}});
 }
 /* Les défis réussis, pour savoir quand en ajouter (Elisa, 31 octobre, 15 h 52 : « est-ce que je pourrais voir le nombre de défis
    réussis par user ? pour voir combien je devrais en rajouter au fil du temps ») : la liste des défis réussis et, par niveau, le
@@ -14593,7 +14592,8 @@ function clsTopHTML(){
   if(!d)return head+(CLS.err?`<p class="perf-top-msg">Classement indisponible pour le moment : il faut une connexion internet.</p><button type="button" class="perf-top-btn" onclick="clsCharger(true)">Réessayer</button>`
     :`<ol class="perf-top-list is-wait" aria-label="Chargement du classement">${[0,1,2,3,4].map(i=>`<li style="--i:${i}"><span class="perf-top-rk"></span><b class="jeu-av is-empty"></b><span class="perf-top-n"><b></b></span></li>`).join('')}</ol>`);
   const me=d.moi&&d.moi.id,top=(d.top||[]).filter(x=>x&&!hide.has(x.id)).slice(0,5);
-  const refus=s.clsRefus?`<p class="perf-top-msg is-warn">Ton pseudo « ${esc(s.clsRefus)} » n’est pas accepté au classement : change-le dans Mon compte pour y apparaître.</p>`:'';
+  /* Un pseudo d’avant refusé par le filtre (il n’a pas pu être réservé) : la feuille pour en choisir un, une fois pour toutes. */
+  const refus=s.clsRefus?`<p class="perf-top-msg is-warn">Ton pseudo « ${esc(s.clsRefus)} » n’est pas accepté au classement.</p><button type="button" class="perf-top-btn" onclick="psFeuille({raison:'refuse'})">Choisir mon pseudo</button>`:'';
   if(!top.length)return head+refus+`<p class="perf-top-msg">Personne n’est encore classé : termine une partie, seul ou entre amis, pour ouvrir le classement.</p>`;
   const rows=top.map((x,i)=>{const mine=x.id===me,rk=+x.rang||i+1;
     return `<li class="${mine?'is-me ':''}is-r${Math.min(rk,4)}" style="--i:${i}"><span class="perf-top-rk">${rk<=3?lqStkSvg('medal'+rk):rk}</span>`+
@@ -14636,6 +14636,141 @@ function clsQuitter(){
       lqSay('Tes scores sont retirés du classement.');
     });
 }
+/* ---------- Pseudo unique ----------
+   Elisa, 31 octobre, 16 h 49 : « ne pas pouvoir changer de pseudo → intégration Supabase, pseudo unique par personne (base), ou on
+   propose un pseudo s’il est pris (micro-animation), choix du pseudo à la connexion ». Le pseudo se choisit dans l’onboarding : la base
+   (jeu_pseudo, supabase/migrations) dit en direct s’il est libre et en propose trois s’il est pris ; « Continuer » le réserve pour cet
+   appareil (sa clé secrète, celle du classement, qui voyage avec « Exporter ma progression »). Ensuite il ne se change plus, ni dans
+   les salles ni dans Mon compte. Un pseudo choisi avant ce changement (ou hors ligne) est réservé à l’ouverture de l’appli ; s’il est
+   déjà pris, une feuille propose d’en choisir un autre. */
+const PS={seq:0,t:null,etat:{},apres:null};
+const PS_LOCK_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
+function psMien(){const s=state.salle;return s&&typeof s.pseudo==='string'?jeuNom(s.pseudo):'';}
+function psLibre(p){return clsRpc('jeu_pseudo_libre',{p_pseudo:p,p_cle:clsCle()});}
+function psAdopter(p){
+  const n=jeuNom(p);if(!n)return;
+  const s=clsSalle();s.pseudo=n;s.pseudoVu=Date.now();delete s.clsRefus;
+  const change=jeuNom(state.name)!==n;state.name=n;
+  try{localStorage.setItem('rq-jeu-nom',n);}catch(e){}
+  save();
+  if(change)try{if(typeof renderGreeting==='function')renderGreeting();if(typeof renderLearnAvatar==='function')renderLearnAvatar();}catch(e){}
+}
+function psPrendre(p){
+  return clsRpc('jeu_pseudo_prendre',{p_cle:clsCle(),p_pseudo:p}).then(r=>{if(r&&r.ok&&r.pseudo)psAdopter(r.pseudo);return r||{ok:false};});
+}
+/* L’état du champ, sous lui : « Vérification… » (trois points), « Disponible » (coche menthe), « déjà pris » (le champ tremble, trois
+   pseudos libres arrivent en pastilles l’une après l’autre ; en toucher une la met dans le champ). */
+const PS_TXT={
+  verif:()=>'<i class="ps-dots" aria-hidden="true"><b></b><b></b><b></b></i>Vérification…',
+  libre:()=>'<i class="ps-ok" aria-hidden="true">✓</i>Disponible : il sera à toi',
+  mien:()=>'<i class="ps-ok" aria-hidden="true">✓</i>C’est ton pseudo',
+  pris:(v,n)=>`<i class="ps-no" aria-hidden="true">!</i>« ${esc(v)} » est déjà pris.${n?' Prends-en un libre :':''}`,
+  refuse:(v,n)=>`<i class="ps-no" aria-hidden="true">!</i>Ce pseudo n’est pas accepté.${n?' Prends-en un libre :':''}`,
+  invalide:()=>'<i class="ps-no" aria-hidden="true">!</i>De 1 à 16 caractères.',
+  horsligne:()=>'Pas de réseau : il sera vérifié dès ton retour en ligne.'
+};
+function psAfficher(scope,etat,v,idees){
+  PS.etat[scope]=etat||'';
+  const e=document.getElementById(scope+'-ps-etat'),d=document.getElementById(scope+'-ps-idees'),inp=document.getElementById(scope+'-pseudo');
+  const id=Array.isArray(idees)?idees.filter(x=>typeof x==='string'&&jeuNom(x)).map(jeuNom).slice(0,3):[];
+  const ko=etat==='pris'||etat==='refuse';
+  if(e){e.className='ps-etat'+(etat?' is-'+etat:'');e.innerHTML=etat&&PS_TXT[etat]?PS_TXT[etat](v,id.length):'';}
+  if(d)d.innerHTML=ko?id.map((x,i)=>`<button type="button" class="ps-idee" style="--i:${i}" data-v="${escAttr(x)}" onclick="psIdee('${scope}',this.dataset.v)">${esc(x)}</button>`).join(''):'';
+  if(inp){
+    inp.classList.toggle('is-ok',etat==='libre'||etat==='mien');inp.classList.toggle('is-ko',ko||etat==='invalide');
+    if(ko&&!prefersReduceMotion()){inp.classList.remove('is-shake');void inp.offsetWidth;inp.classList.add('is-shake');}
+    if(ko&&typeof buzz==='function')buzz('warning');
+  }
+  psBouton(scope,v);
+}
+function psPeut(scope,v){return !!jeuNom(v)&&!['pris','refuse','invalide'].includes(PS.etat[scope]||'');}
+function psBouton(scope,v){
+  const b=document.getElementById(scope==='ob'?'ob-next':'ps-ok');
+  if(b&&(scope!=='ob'||OB_SLIDES[obStep]==='name'))b.disabled=!psPeut(scope,v);
+}
+function psVerif(scope,val){
+  const v=jeuNom(val),my=++PS.seq;clearTimeout(PS.t);
+  if(!v){psAfficher(scope,'',v);return;}
+  if(psMien()===v){psAfficher(scope,'mien',v);return;}
+  psAfficher(scope,'verif',v);
+  PS.t=setTimeout(()=>{
+    psLibre(v).then(r=>{if(my!==PS.seq)return;psAfficher(scope,r&&r.ok?'libre':((r&&r.raison)||'pris'),v,r&&r.idees);},
+      ()=>{if(my===PS.seq)psAfficher(scope,'horsligne',v);});
+  },380);
+}
+function psIdee(scope,v){
+  const inp=document.getElementById(scope+'-pseudo');if(!inp)return;
+  inp.value=v;
+  if(scope==='ob')obInput('name',v);else psVerif(scope,v);
+  if(!prefersReduceMotion()){inp.classList.remove('is-pick');void inp.offsetWidth;inp.classList.add('is-pick');}
+  if(typeof buzz==='function')buzz('selection');
+}
+/* La feuille « Choisis ton pseudo » (dans la DA des autres feuilles) : un pseudo d’avant déjà pris, ou une salle entre amis sans pseudo. */
+function psFeuille(o){
+  o=o||{};
+  const old=document.getElementById('lq-ask');if(old)old.remove();
+  const voulu=jeuNom(o.voulu||state.name||''),ko=o.raison==='pris'||o.raison==='refuse';
+  const texte=o.raison==='pris'?`« ${voulu} » est déjà pris : un pseudo est unique dans toute l’appli. Choisis le tien, il ne se changera plus.`
+    :o.raison==='refuse'?'Ce pseudo n’est pas accepté. Choisis-en un autre : il ne se changera plus.'
+    :'Il est unique dans toute l’appli : c’est ton nom dans les salles de défi et au classement. Il ne se changera plus.';
+  const el=document.createElement('div');
+  el.id='lq-ask';el.className='lq-ask has-field ps-sheet';
+  el.innerHTML=`<button type="button" class="lq-ask-back" tabindex="-1" aria-label="Plus tard"></button>
+    <div class="lq-ask-sheet" role="dialog" aria-modal="true" aria-labelledby="lq-ask-t" aria-describedby="lq-ask-p">
+      <button type="button" class="lq-x lq-ask-x" aria-label="Fermer">${LQ_X_SVG}</button>
+      <div class="lq-ask-cap"><span class="lq-ask-stk" aria-hidden="true">${lqStkSvg('user')}</span><div class="lq-ask-cap-t"><h2 id="lq-ask-t">Choisis ton pseudo</h2><p id="lq-ask-p">${esc(texte)}</p></div></div>
+      <label class="lq-ask-field"><input id="ps-pseudo" type="text" maxlength="16" placeholder="Ex. Léa" value="${escAttr(ko?'':voulu)}" autocomplete="nickname" autocapitalize="words" enterkeyhint="done" aria-describedby="ps-ps-etat" oninput="psVerif('ps',this.value)"></label>
+      <p class="ps-etat" id="ps-ps-etat" role="status" aria-live="polite"></p>
+      <div class="ps-idees" id="ps-ps-idees"></div>
+      <div class="lq-ask-btns"><button type="button" class="lq-btn lq-ask-oui" id="ps-ok">C’est mon pseudo</button><button type="button" class="lq-btn-2 lq-ask-non">Plus tard</button></div>
+    </div>`;
+  const fin=()=>{document.removeEventListener('keydown',key,true);el.classList.remove('on');el.classList.add('off');setTimeout(()=>el.remove(),prefersReduceMotion()?0:260);PS.apres=null;};
+  const key=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();fin();}else if(e.key==='Enter'&&document.activeElement&&document.activeElement.id==='ps-pseudo'){e.preventDefault();psValider();}};
+  el.querySelector('.lq-ask-back').onclick=fin;el.querySelector('.lq-ask-x').onclick=fin;el.querySelector('.lq-ask-non').onclick=fin;
+  el.querySelector('#ps-ok').onclick=psValider;
+  el._fin=fin;
+  document.addEventListener('keydown',key,true);
+  document.body.appendChild(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{el.classList.add('on');try{el.querySelector('#ps-pseudo').focus({preventScroll:true});}catch(e){}}));
+  if(ko)psAfficher('ps',o.raison,voulu,o.idees);else if(voulu)psVerif('ps',voulu);else psBouton('ps','');
+}
+function psValider(){
+  const inp=document.getElementById('ps-pseudo'),v=jeuNom(inp&&inp.value);if(!v||!psPeut('ps',v))return;
+  const b=document.getElementById('ps-ok');if(b){b.disabled=true;b.classList.add('is-busy');}
+  psPrendre(v).then(r=>{
+    if(b)b.classList.remove('is-busy');
+    if(r&&r.ok){
+      const el=document.getElementById('lq-ask'),f=PS.apres;PS.apres=null;
+      if(el&&el._fin)el._fin();
+      lqSay('Pseudo réservé : '+(r.pseudo||v));
+      try{if(activeTab==='compte'&&typeof renderCompte==='function')renderCompte();if(activeTab==='defis'&&typeof renderDefis==='function')renderDefis();}catch(e){}
+      if(f)f();
+      return;
+    }
+    psAfficher('ps',(r&&r.raison)||'pris',v,r&&r.idees);
+  },()=>{if(b)b.classList.remove('is-busy');psAfficher('ps','horsligne',v);});
+}
+/* À l’ouverture de l’appli : le pseudo est réservé (ou sa réservation notée, une fois par jour) ; déjà pris : la feuille. */
+function psVerifier(){
+  try{
+    if(!state.onboarded||(typeof navigator!=='undefined'&&navigator.onLine===false))return;
+    const s=state.salle||{},mien=psMien();
+    if(mien&&s.pseudoVu&&Date.now()-s.pseudoVu<20*3600e3)return;
+    const voulu=mien||jeuNom(state.name);
+    if(!voulu)return;
+    psPrendre(voulu).then(r=>{
+      if(r&&r.ok){const em=document.querySelector('.acc-pseudo em');if(em)em.textContent='Unique dans l’appli · il ne se change pas';return;}
+      if(r&&(r.raison==='pris'||r.raison==='refuse')&&!document.getElementById('lq-ask'))psFeuille({raison:r.raison,idees:r.idees,voulu});
+    },()=>{});
+  }catch(e){}
+}
+/* Une salle entre amis a besoin du pseudo réservé : on le réserve d’abord (sans réseau, on continue : la salle le dira). */
+function jeuAvecPseudo(f){
+  const n=jeuSavedNom();
+  if(!n){PS.apres=f;psFeuille({});return;}
+  if(psMien()===n){f();return;}
+  psPrendre(n).then(r=>{if(r&&r.ok)f();else{PS.apres=f;psFeuille({raison:(r&&r.raison)||'pris',idees:r&&r.idees,voulu:n});}},()=>f());
+}
 function renderDefisPerf(){
   const host=document.getElementById('defis-perf');if(!host)return;
   const s=state.salle&&typeof state.salle==='object'?state.salle:{},num=v=>Math.max(0,Math.floor(+v||0));
@@ -14649,11 +14784,17 @@ function renderDefisPerf(){
     <span class="perf-rate-n">${manches?`<b data-count-to="${rate}" data-delay=".25" data-dur="1" data-suffix=" %">${rate} %</b>`:'<b>—</b>'}</span></div>
     <p class="perf-rate-t"><b>Réussite</b><small>${manches?`${trouves} ${plur(trouves,'manche')} ${plur(trouves,'trouvée')} sur ${manches}`:'Les manches que tu trouves comptent ici.'}</small></p></div>`;
   const times=`<div class="perf-times"><div style="--i:4"><small>Temps moyen</small><b>${trouves?jeuChrono(avg):'—'}</b></div><div style="--i:5"><small>Le plus rapide</small><b>${fast?jeuChrono(fast):'—'}</b></div></div>`;
-  /* Les 10 dernières parties, de la plus ancienne à la plus récente ; la meilleure en jaune soleil. */
-  const last=hist.slice(0,10).reverse(),top=Math.max(1,...last.map(h=>h.pts)),bi=last.length?last.reduce((b,h,i)=>h.pts>last[b].pts?i:b,0):-1;
+  /* Les 10 dernières parties, de la plus ancienne à la plus récente ; la meilleure en jaune soleil. Les parties à plusieurs ressortent
+     (Elisa, 31 octobre, 16 h 49 : « mettre en évidence quand on a joué à 2, 3, 4, 5, avec aussi leur nombre de points ») : le nombre de
+     joueurs au pied de la barre, et les points de chacun des autres en pastilles de sa couleur, à leur hauteur ; toucher la barre
+     écrit la partie dessous, joueur par joueur. */
+  const last=hist.slice(0,10).reverse(),vsOf=h=>!h.solo&&Array.isArray(h.ppl)&&h.ppl.length>1;
+  const top=Math.max(1,...last.map(h=>Math.max(h.pts,...(vsOf(h)?h.ppl.map(x=>+x.pts||0):[0])))),bi=last.length?last.reduce((b,h,i)=>h.pts>last[b].pts?i:b,0):-1;
+  const vsAny=last.some(vsOf);
   const chart=last.length
-    ?`<div class="perf-chart" role="group" aria-label="Points des ${last.length} dernières parties">${last.map((h,i)=>`<button type="button" class="perf-bar${i===bi?' is-best':''}${i===last.length-1?' is-on':''}" style="--h:${Math.max(5,Math.round(h.pts/top*100))}%;--i:${i}" data-cap="${escAttr(`${perfDay(h.at)} · ${perfGame(h)} · ${h.pts} ${plur(h.pts,'point')}`)}" aria-label="${escAttr(`${perfDay(h.at)}, ${h.pts} ${plur(h.pts,'point')}`)}" onclick="perfPick(this)">${i===bi?`<em>${h.pts}</em>`:''}<i></i></button>`).join('')}</div>
-      <p class="perf-cap" aria-live="polite">${esc(`${perfDay(last[last.length-1].at)} · ${perfGame(last[last.length-1])} · ${last[last.length-1].pts} ${plur(last[last.length-1].pts,'point')}`)}</p>`
+    ?`<div class="perf-chart${vsAny?' has-vs':''}" role="group" aria-label="Points des ${last.length} dernières parties">${last.map((h,i)=>{const vs=vsOf(h),autres=vs?h.ppl.filter(x=>!x.me).slice(0,4):[],tt=vs?perfTeintes(h.ppl):{};
+      return `<button type="button" class="perf-bar${i===bi?' is-best':''}${i===last.length-1?' is-on':''}${vs?' is-vs':''}" style="--h:${Math.max(5,Math.round(h.pts/top*100))}%;--i:${i}" data-cap="${escAttr(`${perfDay(h.at)} · ${perfGame(h)} · ${h.pts} ${plur(h.pts,'point')}`)}" data-caph="${escAttr(perfCapHTML(h))}" aria-label="${escAttr(`${perfDay(h.at)}, ${h.pts} ${plur(h.pts,'point')}${vs?`, à ${h.ppl.length} joueurs`:''}`)}" onclick="perfPick(this)">${i===bi?`<em>${h.pts}</em>`:''}<i></i>${autres.map((x,k)=>`<span class="perf-o" data-c="${tt[x.n]}" style="--y:${Math.max(4,Math.round((+x.pts||0)/top*100))}%;--k:${k}" aria-hidden="true"></span>`).join('')}${vs?`<b class="perf-n" aria-hidden="true">${h.ppl.length}</b>`:''}</button>`;}).join('')}</div>
+      <p class="perf-cap" aria-live="polite">${perfCapHTML(last[last.length-1])}</p>${vsAny?'<p class="perf-legend"><span class="perf-legend-o" aria-hidden="true"></span>les points de tes amis<span class="perf-legend-n" aria-hidden="true">3</span>le nombre de joueurs</p>':''}`
     :`<div class="perf-chart is-ghost" aria-hidden="true">${[38,62,46,80,54,70].map((h,i)=>`<span class="perf-bar" style="--h:${h}%;--i:${i}"><i></i></span>`).join('')}</div>
       <p class="perf-cap">${parties?'Tes prochaines parties s’afficheront ici, en barres.':'Joue ta première partie : tes points s’afficheront ici, partie après partie.'}</p>`;
   const lvRows=['f','m','d'].map((k,i)=>{const a=Array.isArray(lv[k])?lv[k]:[0,0],n=num(a[0]),ok=Math.min(num(a[1]),n);
@@ -14688,12 +14829,28 @@ function renderDefisPerf(){
   perfReveal(host.firstElementChild);
   clsFlush();clsCharger();if(typeof clsDefis==='function')clsDefis();
 }
+/* Sous les barres : la partie choisie. Seul : le jour, la partie, les points. À plusieurs (pseudos connus) : chaque joueur, sa
+   couleur, ses points, dans l’ordre du classement de la partie. */
+function perfCapHTML(h){
+  if(!h)return '';
+  const pts=n=>`${n} point${n>1?'s':''}`;
+  if(h.solo||!Array.isArray(h.ppl)||h.ppl.length<2)return esc(`${perfDay(h.at)} · ${perfGame(h)} · ${pts(h.pts)}`);
+  const ppl=h.ppl.slice().sort((a,b)=>(a.place||9)-(b.place||9)||(b.pts||0)-(a.pts||0)),tt=perfTeintes(ppl);
+  return `<span class="perf-cap-t">${esc(`${perfDay(h.at)} · à ${ppl.length} · ${JEU_NIVL[h.niv]||'Facile'}`)}</span><span class="perf-cap-ppl">${ppl.map(x=>`<span${x.me?' class="is-me"':''}><i class="jeu-av" data-c="${x.me?0:tt[x.n]}" aria-hidden="true">${jeuInitial(x.n)}</i>${x.me?'Toi':esc(x.n)}<b>${+x.pts||0}</b></span>`).join('')}</span>`;
+}
+/* Les couleurs d’une partie à plusieurs : chacun la couleur de son pseudo, une autre si deux se ressemblent (on doit pouvoir dire
+   quel point est à qui) ; le violet reste à « Toi ». */
+function perfTeintes(ppl){
+  const pris=new Set([0]),m={};
+  (Array.isArray(ppl)?ppl:[]).filter(x=>x&&!x.me).forEach(x=>{if(m[x.n])return;let c=perfColor(x.n)||1;for(let k=0;k<5&&pris.has(c);k++)c=c%5+1;pris.add(c);m[x.n]=c;});
+  return m;
+}
 /* Toucher une barre : elle passe devant, sa partie s’écrit dessous. */
 function perfPick(b){
   const box=b&&b.closest('.perf-block');if(!box)return;
   box.querySelectorAll('.perf-bar.is-on').forEach(x=>x.classList.remove('is-on'));
   b.classList.add('is-on');b.classList.remove('is-poke');void b.offsetWidth;b.classList.add('is-poke');
-  const cap=box.querySelector('.perf-cap');if(cap)cap.textContent=b.dataset.cap||'';
+  const cap=box.querySelector('.perf-cap');if(cap)cap.innerHTML=b.dataset.caph||esc(b.dataset.cap||'');
   if(typeof buzz==='function')buzz('selection');
 }
 /* Le tableau s’anime quand il arrive à l’écran (il est sous la salle) : une seule fois par affichage. */
@@ -14717,9 +14874,8 @@ function renderDefisRules(){
   host.innerHTML=`<section class="room-rules" aria-labelledby="room-rules-h">
     <h2 id="room-rules-h"><span class="room-rules-stk" aria-hidden="true">${lqStkSvg('target')}</span>Comment on marque des points</h2>
     <ul>
-      <li><b>🎯 Défi réussi</b><span>+${JEU_PTS_OK}</span></li>
+      <li><b>🎯 Défi trouvé</b><span>jusqu’à ${JEU_PTS_OK+JEU_PTS_VITE}</span><small>Il vaut ${JEU_PTS_OK+JEU_PTS_VITE} points quand le chrono démarre, puis sa valeur baisse doucement : ${JEU_PTS_OK} points à 3 min. Plus tu trouves vite, plus tu marques.</small></li>
       <li><b>🥇 Premier à trouver</b><span>+${JEU_PTS_RANG[0]}</span><small>Entre amis · 2e : +${JEU_PTS_RANG[1]} · 3e : +${JEU_PTS_RANG[2]}</small></li>
-      <li><b>⚡ Rapidité</b><span>jusqu’à +${JEU_PTS_VITE}</span><small>1 point de moins toutes les 3 secondes, plus rien à 3 min</small></li>
       <li><b>⚖️ Égalité</b><span>chrono</span><small>Le plus rapide au total passe devant ; même temps : ex æquo</small></li>
     </ul>
   </section>`;
@@ -20233,7 +20389,8 @@ const JEU_SB_KEY='sb_publishable_xhqZIRNKel3gXW_rH_GajQ_8Jb7iNhv';
 const JEU_HB_MS=15000;
 const JEU_ROUND_MS=180000;
 const JEU_DRAW_MS=3300;
-const JEU_MAX=6;
+/* Cinq joueurs par salle au plus (Elisa, 31 octobre, 16 h 49). */
+const JEU_MAX=5;
 const JEU_PING_MS=20000;
 const JEU_AWAY_MS=55000;
 const JEU_HOST_WAIT=25000;
@@ -20241,10 +20398,12 @@ const JEU_HOST_FAST=1500;
 const JEU_REACTS=['👏','🔥','😅','🤯'];
 const JEU_ALPH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /* Points d’une manche (Elisa, 31 octobre, 1 h 34 : « des points si on réussit en premier par rapport à ses amis, et par rapport au
-   temps, qui rajoute des points : comment se départager ? ») : réussir rapporte 100 points ; entre amis, les trois premiers à
-   trouver gagnent un bonus (50, 30, 15) ; la rapidité ajoute jusqu’à 60 points, un de moins toutes les 3 secondes (plus rien à
-   3 min). À égalité de points, le plus rapide au total passe devant (une manche non trouvée compte 3 min) ; même temps : ex æquo. */
-const JEU_PTS_OK=100,JEU_PTS_RANG=[50,30,15],JEU_PTS_VITE=60;
+   temps » ; 16 h 49 : « la rapidité, c’est juste du bonus, on n’enlève pas de points : un nombre de points à la base qui baisse en
+   fonction du temps, par exemple 200 à la base puis ça descend ») : le défi vaut 200 points quand le chrono démarre, puis sa valeur
+   baisse doucement (un point toutes les 1,8 seconde) jusqu’à 100 points à 3 min : on ne perd jamais rien, on gagne moins. Entre
+   amis, les trois premiers à trouver ont un bonus (50, 30, 15). À égalité de points, le plus rapide au total passe devant (une
+   manche non trouvée compte 3 min) ; même temps : ex æquo. */
+const JEU_PTS_OK=100,JEU_PTS_RANG=[50,30,15],JEU_PTS_VITE=100;
 const JEU_NIVL={f:'Facile',m:'Moyen',d:'Difficile'};
 let JEU=null,jeuNiv='f',jeuNb=1,jeuMode='solo';
 (function jeuLoadPrefs(){
@@ -20259,23 +20418,14 @@ function jeuSavePrefs(){try{localStorage.setItem('rq-jeu-prefs',JSON.stringify({
 function jeuRand(n){const a=new Uint32Array(n);crypto.getRandomValues(a);return [...a].map(x=>JEU_ALPH[x%JEU_ALPH.length]).join('');}
 function jeuPid(){let p='';try{p=sessionStorage.getItem('rq-jeu-pid')||'';}catch(e){}if(!p){p=jeuRand(10);try{sessionStorage.setItem('rq-jeu-pid',p);}catch(e){}}return p;}
 function jeuNom(v){return Array.from(String(v||'').replace(/[\u0000-\u001f<>\u200b-\u200f\u202a-\u202e\u2060-\u206f\u2800\u3164\ufeff]/g,'').replace(/\s+/g,' ').trim()).slice(0,16).join('');}
-function jeuSavedNom(){let n='';try{n=localStorage.getItem('rq-jeu-nom')||'';}catch(e){}return jeuNom(n||state.name||'');}
-/* Elisa, 31 octobre, 8 h 06 : « le pseudo doit déjà être défini avant, dans l’onboarding ». La salle ne redemande plus le pseudo :
-   « Ton pseudo : Léa · Changer ». Un champ ne s’affiche que si aucun pseudo n’a encore été choisi (étape passée avant ce
-   changement) ; le pseudo tapé devient alors celui de toute l’appli. */
+/* Le pseudo de l’appli : celui réservé sur le serveur s’il l’est (il fait foi, même après un import), sinon celui choisi. */
+function jeuSavedNom(){const s=state.salle,r=s&&typeof s.pseudo==='string'?jeuNom(s.pseudo):'';if(r)return r;let n='';try{n=localStorage.getItem('rq-jeu-nom')||'';}catch(e){}return jeuNom(n||state.name||'');}
+/* Le pseudo dans la salle : « Tu joues en tant que Léa », avec un cadenas (Elisa, 31 octobre, 16 h 49 : « ne pas pouvoir changer de
+   pseudo »). Sans pseudo encore : de quoi le choisir (la feuille, avec la vérification en direct). */
 function jeuNomField(id){
   const nom=jeuSavedNom();
-  if(!nom)return `<label class="jeu-lab" for="${id}">Choisis ton pseudo</label>
-      <input id="${id}" class="jeu-input" maxlength="16" autocomplete="nickname" autocapitalize="words" placeholder="Ex. Léa" value="">
-      <p class="jeu-hint">Une seule fois : il est gardé pour toute l’appli, et modifiable dans Mon compte.</p>`;
-  return `<div class="jeu-me" data-nom="${id}"><b class="jeu-av" data-c="0" aria-hidden="true">${jeuInitial(nom)}</b><span class="jeu-me-t"><small>Ton pseudo</small><b>${esc(nom)}</b></span><button type="button" class="jeu-me-edit" onclick="jeuNomEdit('${id}')" aria-label="Changer de pseudo">Changer</button><input id="${id}" type="hidden" value="${escAttr(nom)}"></div>`;
-}
-function jeuNomEdit(id){
-  const box=document.querySelector(`.screen.active .jeu-me[data-nom="${id}"]`);if(!box)return;
-  const wrap=document.createElement('div');wrap.className='jeu-me-field';
-  wrap.innerHTML=`<label class="jeu-lab" for="${id}">Ton pseudo</label><input id="${id}" class="jeu-input" maxlength="16" autocomplete="nickname" autocapitalize="words" placeholder="Ex. Léa" value="${escAttr(jeuSavedNom())}">`;
-  box.replaceWith(wrap);
-  const inp=wrap.querySelector('input');if(inp){inp.focus();try{inp.select();}catch(e){}}
+  if(!nom)return `<button type="button" class="jeu-me is-vide" onclick="psFeuille({})"><b class="jeu-av is-empty" aria-hidden="true">?</b><span class="jeu-me-t"><small>Pour jouer entre amis</small><b>Choisis ton pseudo</b></span></button>`;
+  return `<div class="jeu-me" data-nom="${id}"><b class="jeu-av" data-c="0" aria-hidden="true">${jeuInitial(nom)}</b><span class="jeu-me-t"><small>Tu joues en tant que</small><b>${esc(nom)}</b></span><span class="jeu-me-lock" title="Ton pseudo est unique et ne se change pas" aria-label="Pseudo verrouillé">${PS_LOCK_SVG}</span><input id="${id}" type="hidden" value="${escAttr(nom)}"></div>`;
 }
 function jeuCleanCode(v){
   v=String(v||'');
@@ -20488,20 +20638,16 @@ function jeuSetOpt(k,v,btn){
   btn.parentElement.querySelectorAll('button').forEach(b=>{const on=b===btn;b.classList.toggle('on',on);b.setAttribute('aria-checked',on);});
 }
 function jeuMsgEl(id){
+  const zone={'jeu-nom':'#defis-room','jeu-nom-join':'#defis-join','jeu-nom-defi':'#defi-friends-block'}[id||'jeu-nom'];
+  const ici=zone&&document.querySelector('.screen.active '+zone+' .jeu-msg');if(ici)return ici;
   const inp=document.querySelector('.screen.active #'+(id||'jeu-nom'));
   const box=inp&&inp.closest('.jeu-card,.def-join-body,.room-card');
   return (box&&box.querySelector('.jeu-msg'))||document.querySelector('.screen.active .jeu-msg');
 }
+/* Le pseudo de la salle : celui de l’appli, réservé et qui ne se change plus (16 h 49). Pas encore de pseudo : la feuille. */
 function jeuAskNom(id){
-  const inp=document.querySelector('.screen.active #'+(id||'jeu-nom')),n=jeuNom(inp&&inp.value);
-  const msg=jeuMsgEl(id);
-  if(!n){if(msg)msg.textContent='Choisis d’abord un pseudo.';if(inp&&inp.type!=='hidden')inp.focus();return null;}
-  try{localStorage.setItem('rq-jeu-nom',n);}catch(e){}
-  /* Un seul pseudo dans l’appli : celui de la salle est aussi le nom de l’accueil et du compte. */
-  if(jeuNom(state.name)!==n){
-    state.name=n;
-    try{save();if(typeof renderGreeting==='function')renderGreeting();if(typeof renderLearnAvatar==='function')renderLearnAvatar();if(typeof clsRenommer==='function')clsRenommer();}catch(e){}
-  }
+  const n=jeuSavedNom();
+  if(!n){if(typeof psFeuille==='function')psFeuille({});else{const msg=jeuMsgEl(id);if(msg)msg.textContent='Choisis d’abord un pseudo.';}return null;}
   return n;
 }
 /* Écran Défis : les choix de la salle se changent sur place (rien n’est redessiné). */
@@ -20523,8 +20669,9 @@ function jeuRoomSet(k,v){
 }
 function jeuEnterRoom(){
   if(jeuMode==='solo')jeuStart(jeuRand(6),true,null,{solo:true});
-  else jeuStart(jeuRand(6),true,null,{nomId:'jeu-nom'});
+  else jeuPseudoPuis(()=>jeuStart(jeuRand(6),true,null,{nomId:'jeu-nom'}));
 }
+function jeuPseudoPuis(f){if(typeof jeuAvecPseudo==='function')jeuAvecPseudo(f);else f();}
 function jeuStart(code,host,cid,opts){
   opts=opts||{};
   const solo=!!opts.solo;
@@ -20569,7 +20716,7 @@ function jeuStart(code,host,cid,opts){
 function jeuJoin(code){
   const c=jeuCleanCode(code),msg=jeuMsgEl('jeu-nom-join');
   if(c.length!==6){if(msg)msg.textContent='Le code fait 6 caractères.';return;}
-  jeuStart(c,false,null,{nomId:'jeu-nom-join'});
+  jeuPseudoPuis(()=>jeuStart(c,false,null,{nomId:'jeu-nom-join'}));
 }
 function jeuSend(m){
   if(!JEU)return '';
@@ -20839,8 +20986,10 @@ function jeuRoundDone(n){
   if(J.solo||(J.synced&&Date.now()-J.syncAt>4000&&Date.now()-J.echoAt<=JEU_PING_MS*1.6))r.done=true;
   return true;
 }
-/* Rapidité : de +60 à l’instant où la manche commence, un point de moins toutes les 3 secondes, plus rien au bout des 3 min. */
-function jeuSpeedPts(ms){return Math.max(0,Math.min(JEU_PTS_VITE,Math.floor((JEU_ROUND_MS-ms)/3000)));}
+/* La part du temps : 100 quand la manche commence (pendant les 1,8 premières secondes), puis un point de moins toutes les 1,8 seconde,
+   0 à 3 min. La valeur du défi à un instant (jeuValeur) : 200 au départ, 100 à 3 min. */
+function jeuSpeedPts(ms){return Math.max(0,Math.min(JEU_PTS_VITE,Math.ceil((JEU_ROUND_MS-ms)/(JEU_ROUND_MS/JEU_PTS_VITE))));}
+function jeuValeur(ms){return JEU_PTS_OK+jeuSpeedPts(ms);}
 /* Les points d’un joueur qui trouve en ms, i-ème à trouver (0 : le premier) : le détail sert à l’écran (réussite, rang, rapidité). */
 function jeuPts(ms,i,solo){const rang=solo?0:(JEU_PTS_RANG[i]||0),vite=jeuSpeedPts(ms);return {ok:JEU_PTS_OK,rang,vite,pts:JEU_PTS_OK+rang+vite};}
 function jeuRanking(n){
@@ -20866,7 +21015,8 @@ function jeuScores(){
 /* Même score et même temps total = même place (ex æquo) ; sinon le plus rapide passe devant. */
 function jeuPlaces(sc){let place=0;sc.forEach((x,i)=>{if(i===0||x.pts<sc[i-1].pts||x.ms>sc[i-1].ms)place=i+1;x.place=place;});return sc;}
 /* Le détail des points d’une manche : « 100 réussite · +50 1er · +46 rapidité ». */
-function jeuPtsDetail(x){return `<span class="jeu-pd"><i>${x.ok} réussite</i>${x.rang?`<i class="is-rang">+${x.rang} ${['1er','2e','3e'][JEU_PTS_RANG.indexOf(x.rang)]||''}</i>`:''}<i class="is-vite">+${x.vite} rapidité</i></span>`;}
+/* Le détail : ce que valait le défi quand on l’a trouvé, et le bonus de place entre amis (« Défi 193 · 2e +30 »). */
+function jeuPtsDetail(x){return `<span class="jeu-pd"><i>Défi ${x.ok+x.vite}</i>${x.rang?`<i class="is-rang">${['1er','2e','3e'][JEU_PTS_RANG.indexOf(x.rang)]||''} +${x.rang}</i>`:''}</span>`;}
 /* Seul dans la salle (personne n’a rejoint, ou tous sont partis) et personne d’autre n’a trouvé cette manche : tout se dessine
    comme seul (ni liste de joueurs, ni réactions, ni « Clore la manche », ni annonce « seul·e dans la salle »). */
 function jeuSoloLike(n){
@@ -20924,7 +21074,8 @@ function jeuTick(){
   jeuHostWatch();
   const n=jeuCur(),el=document.getElementById('jeu-timer');
   /* Le chrono seul, sans barre de temps (Elisa, 31 octobre, 15 h 16, réf. 5 : « ne pas mettre la barre, laisse que le chrono ») */
-  if(el&&n>=0){const took=Date.now()-J.rounds[n].t1;el.textContent=jeuChrono(took);el.classList.toggle('is-low',JEU_ROUND_MS-took<30000);}
+  if(el&&n>=0){const took=Date.now()-J.rounds[n].t1;el.textContent=jeuChrono(took);el.classList.toggle('is-low',JEU_ROUND_MS-took<30000);
+    const vn=document.getElementById('jeu-val-n');if(vn){const v=String(jeuValeur(Math.max(0,took)));if(vn.textContent!==v)vn.textContent=v;}}
   if(jeuView()!==J.view||jeuSig()!==J.sig)jeuPaint();
 }
 /* Redessiner la même vue (réglage changé, nouvel hôte, temps reçu…) sans perdre la page, le focus
@@ -21116,7 +21267,9 @@ function jeuRender(){
     const mine=r.found[J.me]!=null,sl=jeuSoloLike(n);J.slShown=sl;edOn=!mine;
     const took0=Date.now()-r.t1;
     /* Une seule action pendant la manche : « Exécuter » (le schéma passe dans la barre de l’éditeur, plus de « Pas à pas »). */
-    html=`<div class="jeu-bar"><span class="l-kicker">Manche ${n+1}/${J.nb} · ${JEU_NIVL[c.niv]}</span><b class="jeu-timer${JEU_ROUND_MS-took0<30000?' is-low':''}" id="jeu-timer" role="timer" aria-label="Chrono de la manche">${jeuChrono(took0)}</b></div>
+    /* Tant qu’on cherche : ce que vaut le défi, qui baisse avec le chrono (200 → 100). */
+    const val=mine?'':`<b class="jeu-val" id="jeu-val" title="Ce que vaut le défi maintenant">${JEU_COIN_SVG}<span id="jeu-val-n">${jeuValeur(Math.max(0,took0))}</span><small>pts</small></b>`;
+    html=`<div class="jeu-bar"><span class="l-kicker">Manche ${n+1}/${J.nb} · ${JEU_NIVL[c.niv]}</span><span class="jeu-bar-r">${val}<b class="jeu-timer${JEU_ROUND_MS-took0<30000?' is-low':''}" id="jeu-timer" role="timer" aria-label="Chrono de la manche">${jeuChrono(took0)}</b></span></div>
       <div id="jeu-netslot">${jeuNetHTML()}</div>
       ${sl?'':`<ul class="jeu-mates" id="jeu-players" aria-label="Qui a trouvé">${jeuMatesHTML(n)}</ul>`}
       <h1>${esc(c.titre)}</h1>
@@ -21429,7 +21582,7 @@ function challengeHowHTML(c){
         <p class="jeu-lab">Nombre de manches</p>
         <div class="jeu-seg" role="radiogroup" aria-label="Nombre de manches">${[[1,'Ce défi'],[3,'3 manches'],[5,'5 manches']].map(([n,l])=>`<button type="button" role="radio" aria-checked="${jeuNb===n}" class="${jeuNb===n?'on':''}" onclick="jeuSetOpt('nb',${n},this)">${l}</button>`).join('')}</div>
         <p class="jeu-hint">Les manches en plus sont des défis du même niveau.</p>
-        <button type="button" class="journey-primary" onclick="jeuStart(jeuRand(6),true,'${c.id}',{nomId:'jeu-nom-defi'})"><span>Ouvrir la salle</span>${DEF_CHEV_SVG}</button>
+        <button type="button" class="journey-primary" onclick="jeuPseudoPuis(()=>jeuStart(jeuRand(6),true,'${c.id}',{nomId:'jeu-nom-defi'}))"><span>Ouvrir la salle</span>${DEF_CHEV_SVG}</button>
         <p class="jeu-msg" role="status" aria-live="polite"></p>
       </div>
       ${JEU_NOTE_HTML}
@@ -26342,10 +26495,25 @@ function obPick(champ,val){
 }
 function obInput(champ,val){
   if(champ==='name'){
+    if(psMien())return;
     draft.name=String(val||'').slice(0,32);obNamePreview();
     const next=document.getElementById('ob-next');if(next&&OB_SLIDES[obStep]==='name')next.disabled=!jeuNom(draft.name);
+    psVerif('ob',draft.name);
   }
   if(champ==='referral')draft.referral=String(val||'').slice(0,80);
+}
+/* « Continuer » sur le pseudo : il est réservé pour l’appareil ; pris entre-temps, les pseudos libres s’affichent ; sans réseau, on
+   continue (il sera réservé à la prochaine ouverture de l’appli). */
+function obPseudoSuivant(){
+  const mien=psMien();
+  if(mien){draft.name=mien;obGoto('goal');return;}
+  const n=jeuNom(draft.name);if(!n||!psPeut('ob',n))return;
+  const btn=document.getElementById('ob-next');if(btn){btn.disabled=true;btn.classList.add('is-busy');}
+  psPrendre(n).then(r=>{
+    if(btn)btn.classList.remove('is-busy');
+    if(r&&r.ok){draft.name=r.pseudo||n;if(typeof buzz==='function')buzz('success');obGoto('goal');return;}
+    psAfficher('ob',(r&&r.raison)||'pris',n,r&&r.idees);
+  },()=>{if(btn)btn.classList.remove('is-busy');obGoto('goal');});
 }
 function obRunPractice(){
   if(draft.practiceDone)return;
@@ -26576,7 +26744,7 @@ function paintOb(){
     const privacy=obLegalMode==='privacy';
     html=`<div class="ob-screen ob-legal-screen">${obBackButton()}<h1 class="ob-title" id="ob-title">${privacy?'Politique de confidentialité':'Conditions d’utilisation'}</h1>
       <div class="legal-copy">${privacy
-        ? `<p>Tu peux utiliser Requête <b>sans compte</b>. Dans ce mode, ta progression reste uniquement sur cet appareil.</p><ul><li>Leçons, défis, notes, planning et bases importées sont enregistrés localement.</li><li>Le moteur SQL tourne dans ton navigateur.</li><li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec un identifiant tiré au hasard (pas ton nom ni ton e-mail). La liste de tes défis réussis l’accompagne, sans être montrée à personne&nbsp;: elle nous dit quand ajouter de nouveaux défis. Tu peux retirer tes scores à tout moment dans Mon compte, Données et confidentialité.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li></ul><p>Si tu choisis plus tard de te connecter, Requête indiquera clairement quelles données seront synchronisées et permettra de supprimer ton compte.</p>`
+        ? `<p>Tu peux utiliser Requête <b>sans compte</b>. Dans ce mode, ta progression reste uniquement sur cet appareil.</p><ul><li>Leçons, défis, notes, planning et bases importées sont enregistrés localement.</li><li>Le moteur SQL tourne dans ton navigateur.</li><li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>Ton <b>pseudo</b> est unique : il est réservé sur le serveur de l’appli avec un identifiant tiré au hasard (pas ton nom ni ton e-mail), et libéré après 12&nbsp;mois sans ouvrir l’appli.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec ce même identifiant. La liste de tes défis réussis l’accompagne, sans être montrée à personne&nbsp;: elle nous dit quand ajouter de nouveaux défis. Tu peux retirer tes scores à tout moment dans Mon compte, Données et confidentialité.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li></ul><p>Si tu choisis plus tard de te connecter, Requête indiquera clairement quelles données seront synchronisées et permettra de supprimer ton compte.</p>`
         : `<p>Requête est une application d’apprentissage du SQL. Le contenu est fourni à des fins pédagogiques.</p><p>Tu peux commencer sans compte, exporter ta progression et l’effacer depuis Mon compte.</p><p>Les options de connexion ne deviennent actives que lorsqu’un fournisseur d’authentification sécurisé est configuré.</p>`}</div></div>`;
     obSetFooter('','','','','');
   }else if(slide==='welcome'){
@@ -26607,16 +26775,21 @@ function paintOb(){
       <p class="ob-legal-note">En continuant, tu acceptes les <a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions d’utilisation</a> et la <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Politique de confidentialité</a>.</p></div>`;
     obSetFooter('Continuer sans compte',obChooseGuest,'','','');
   }else if(slide==='name'){
-    const nameValue=esc(draft.name||'').replace(/"/g,'&quot;');
+    /* Le pseudo, unique dans l’appli (Elisa, 31 octobre, 16 h 49 : « pseudo unique par personne, ou on propose un pseudo s’il est pris,
+       choix du pseudo à la connexion ») : la base dit en direct s’il est libre et en propose trois s’il est pris ; « Continuer » le
+       réserve. Déjà réservé (Personnalisation, Revoir l’intro) : il s’affiche, verrouillé. */
+    const mien=psMien();
+    const nameValue=esc(mien||draft.name||'').replace(/"/g,'&quot;');
     html=`<div class="ob-screen ob-profile ob-name">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Apprenons à mieux<br> te <em>connaître</em>.</h1>
       <p class="ob-lead">Quelques étapes rapides pour personnaliser ton départ.</p>
-      ${obMascotQuestion('Enchantée ! Quel pseudo choisis-tu ?')}
-      <label class="ob-field"><span>Ton pseudo <small class="ob-field-opt">prénom ou surnom</small></span><input type="text" maxlength="16" value="${nameValue}" placeholder="Ex. Léa" autocomplete="nickname" autocapitalize="words" enterkeyhint="next" required aria-required="true" aria-describedby="ob-name-help" oninput="obInput('name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();if(jeuNom(draft.name))obGoto('goal');}"></label>
+      ${obMascotQuestion(mien?'Ton pseudo est réservé : il te suit partout dans l’appli.':'Enchantée ! Quel pseudo choisis-tu ?')}
+      <label class="ob-field${mien?' is-locked':''}"><span>Ton pseudo <small class="ob-field-opt">${mien?'réservé, il ne se change plus':'unique dans l’appli'}</small></span><input id="ob-pseudo" type="text" maxlength="16" value="${nameValue}" placeholder="Ex. Léa" autocomplete="nickname" autocapitalize="words" enterkeyhint="next" required aria-required="true" aria-describedby="ob-ps-etat ob-name-help"${mien?' readonly aria-readonly="true"':''} oninput="obInput('name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();obPseudoSuivant();}">${mien?`<i class="ob-field-lock" aria-hidden="true">${PS_LOCK_SVG}</i>`:''}</label>
+      <p class="ps-etat${mien?' is-mien':''}" id="ob-ps-etat" role="status" aria-live="polite">${mien?PS_TXT.mien():''}</p>
+      <div class="ps-idees" id="ob-ps-idees"></div>
       <div class="ob-name-preview" id="ob-name-preview" aria-hidden="true"><span class="ob-name-initial" id="ob-name-initial"></span><span id="ob-name-greet"></span></div>
-      <p class="ob-helper" id="ob-name-help">C’est ton nom dans l’appli, et celui que tes amis voient dans les salles de défi. Tu pourras le changer dans Mon compte.</p></div>`;
-    /* Elisa, 31 octobre, 8 h 06 : « le pseudo doit déjà être défini avant, dans l’onboarding (inscription) ». L’étape n’est plus
-       facultative : « Continuer » attend un pseudo (un surnom suffit), et la salle de défi ne le redemande plus. */
-    obSetFooter('Continuer',()=>{if(jeuNom(draft.name))obGoto('goal');},'','','Un surnom suffit : pas besoin de ton vrai nom',!jeuNom(draft.name));
+      <p class="ob-helper" id="ob-name-help">${mien?'Il est unique dans toute l’appli : c’est ton nom ici, dans les salles de défi et au classement.':'C’est ton nom dans l’appli, celui que tes amis voient dans les salles de défi et au classement. Il est unique, et ne se changera plus.'}</p></div>`;
+    obSetFooter('Continuer',obPseudoSuivant,'','','Un surnom suffit : pas besoin de ton vrai nom',!jeuNom(mien||draft.name));
+    if(!mien&&jeuNom(draft.name))setTimeout(()=>{if(OB_SLIDES[obStep]==='name')psVerif('ob',draft.name);},0);
   }else if(slide==='goal'){
     html=`<div class="ob-screen ob-profile ob-goal">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Fixons ton <em>objectif</em><br>d’apprentissage.</h1>
       <p class="ob-lead">Cela nous aide à construire un départ qui te ressemble.</p>
@@ -27040,7 +27213,7 @@ function renderCompte(){
   const profile=state.profile||{};
   const profileGoal=(OB_GOALS.find(g=>g[0]===profile.goal)||[])[1]||'';
   const profileJob=(OB_JOBS.find(j=>j[0]===profile.job)||[])[1]||'';
-  const profileSummary=[profileGoal,profileJob,nivLab].filter(Boolean).join(' · ')||'Prénom, objectif et niveau';
+  const profileSummary=[profileGoal,profileJob,nivLab].filter(Boolean).join(' · ')||'Objectif, niveau et rythme';
   const CHEV=ACCT_CHEV;
   const plural=(n,word)=>`${n} ${word}${n>1?'s':''}`;
   const accountTitle=name||(connected?'Mon profil':'Ton espace Requête');
@@ -27148,11 +27321,7 @@ function renderCompte(){
     <details class="plus-details" id="plus-profile-settings">
       <summary><span>Profil et objectif</span><small>Adapte le parcours à tes besoins</small><i aria-hidden="true">×</i></summary>
       <div class="plus-details-body">
-        <div class="acc-field">
-          <label for="acc-name">Pseudo</label>
-          <input id="acc-name" type="text" maxlength="16" value="${esc(name).replace(/"/g,'&quot;')}" placeholder="Ex. Léa" autocomplete="nickname" enterkeyhint="done" onkeydown="if(event.key==='Enter'){event.preventDefault();saveAccountName();}">
-          <button class="acc-save" type="button" onpointerdown="event.preventDefault()" onclick="saveAccountName()">Enregistrer</button>
-        </div>
+        ${accPseudoHTML(jeuSavedNom())}
         <button class="acc-row" type="button" onclick="closePlusDetails();startOnboarding('name')">
           <span class="acc-row-ico" aria-hidden="true">${plusIcon('target')}</span>
           <div class="at"><b>Personnalisation</b><small>${esc(profileSummary)}</small></div>
@@ -27249,7 +27418,7 @@ function openLegal(kind){
       <p>Requête est une app d’apprentissage SQL. Tu peux l’utiliser <b>sans compte</b> : ta progression reste alors sur cet appareil.</p>
       <ul>
         <li>Prénom, leçons, défis, notes et planning : stockés en local dans le navigateur.</li>
-        <li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec un identifiant tiré au hasard (pas ton nom ni ton e-mail). La liste de tes défis réussis l’accompagne, sans être montrée à personne&nbsp;: elle nous dit quand ajouter de nouveaux défis. Tu peux retirer tes scores à tout moment dans Mon compte, Données et confidentialité.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
+        <li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>Ton <b>pseudo</b> est unique : il est réservé sur le serveur de l’appli avec un identifiant tiré au hasard (pas ton nom ni ton e-mail), et libéré après 12&nbsp;mois sans ouvrir l’appli.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec ce même identifiant. La liste de tes défis réussis l’accompagne, sans être montrée à personne&nbsp;: elle nous dit quand ajouter de nouveaux défis. Tu peux retirer tes scores à tout moment dans Mon compte, Données et confidentialité.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
         <li>Le moteur SQL tourne dans le navigateur.</li>
         <li>Le rappel quotidien n’envoie une notification que si tu l’actives (permission du navigateur), à l’heure choisie.</li>
       </ul>
@@ -27277,16 +27446,13 @@ function openLegal(kind){
   if(body){ body.innerHTML=html[kind]||''; body.scrollTop=0; }
   const fab=document.getElementById('fab'); if(fab) fab.classList.add('hide');
 }
-function saveAccountName(){
-  const inp=document.getElementById('acc-name');
-  state.name=((inp&&inp.value)||'').trim().slice(0,32);
-  /* Le même pseudo dans les salles de défi. */
-  try{const n=jeuNom(state.name);if(n)localStorage.setItem('rq-jeu-nom',n);else localStorage.removeItem('rq-jeu-nom');}catch(e){}
-  closePlusDetails();
-  save(); renderGreeting(); renderCompte();
-  if(typeof clsRenommer==='function')clsRenommer();
-  lqDone(document.querySelector('#scr-compte .acct-id-copy b'),'Enregistré','Pseudo enregistré');
-  if(navigator.vibrate)navigator.vibrate(10);
+/* Le pseudo dans Mon compte : affiché, verrouillé (Elisa, 31 octobre, 16 h 49 : « ne pas pouvoir changer de pseudo »). Sans pseudo
+   encore (étape passée avant) : de quoi le choisir. */
+function accPseudoHTML(name){
+  const n=jeuNom(name);
+  if(!n)return `<button type="button" class="acc-pseudo is-vide" onclick="closePlusDetails();psFeuille({})"><span class="acc-pseudo-av" aria-hidden="true">?</span><span class="acc-pseudo-t"><small>Pseudo</small><b>Choisis ton pseudo</b></span>${ACCT_CHEV}</button>`;
+  const ok=psMien()===n;
+  return `<div class="acc-pseudo"><span class="acc-pseudo-av" aria-hidden="true">${jeuInitial(n)}</span><span class="acc-pseudo-t"><small>Pseudo</small><b>${esc(n)}</b><em>${ok?'Unique dans l’appli · il ne se change pas':'Il sera réservé dès que tu seras en ligne'}</em></span><span class="acc-pseudo-lock" aria-hidden="true">${PS_LOCK_SVG}</span></div>`;
 }
 function replayOnboarding(){
   closePlusDetails();
@@ -27355,13 +27521,17 @@ function importProgress(){
   };
   inp.click();
 }
+/* Les deux confirmations dans la DA de l’appli (Elisa, 31 octobre, 16 h 49 : « faire une notif in-app avec la même DA que le site,
+   pareil s’il y a encore une notif comme ça ») : c’était la dernière fenêtre du navigateur. */
 async function resetAllProgress(){
-  if(!confirm('Effacer toute ta progression ? Cette action est définitive (sauf si tu as exporté avant).'))return;
-  if(!confirm('Dernière confirmation : leçons, défis, notes et planning seront vidés.'))return;
+  if(!await lqAsk({ico:'🗑️',titre:'Effacer toute ta progression ?',texte:'Leçons, défis, cartes, notes, planning et points de salle seront vidés sur cet appareil, et tes scores retirés du classement. C’est définitif, sauf si tu as exporté ta progression avant.',oui:'Continuer',non:'Annuler',danger:true}))return;
+  if(!await lqAsk({ico:'🗑️',titre:'Dernière confirmation',texte:'Tout effacer maintenant ? Ton pseudo, lui, reste à toi.',oui:'Tout effacer',non:'Garder ma progression',danger:true}))return;
   /* La feuille se ferme une fois l’action faite (réf. 9) ; les points du classement général partent avec la progression. */
   closePlusDetails();
   try{const cle=state.salle&&state.salle.cle;if(cle&&typeof clsRpc==='function')clsRpc('jeu_oublier',{p_cle:cle}).catch(()=>{});}catch(e){}
+  const id=state.salle&&state.salle.cle?{cle:state.salle.cle,pseudo:state.salle.pseudo,pseudoVu:state.salle.pseudoVu}:null;
   state={lessons:{},defis:{},notes:[],plan:null,onboarded:true,name:state.name||'',profile:state.profile||{},accountMode:state.accountMode||'guest',accountProvider:state.accountProvider,accountLabel:state.accountLabel,entretien:state.entretien||{}};
+  if(id)state.salle=id;
   save(); stkSync(); buildDb(); baseBytes=db.export(); attachDateFns(db); /* voir boot : export() perd les fonctions ajoutées au moteur */
   renderModules(); renderDefis(); renderProgress();
   renderCollection(); renderNotes(); renderPlanning(); renderCompte(); renderGreeting();
@@ -27530,7 +27700,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-31-manche-epuree-v2215';
+  const SW_CACHE='requete-2026-10-31-pseudo-unique-v2216';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

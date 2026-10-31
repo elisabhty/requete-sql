@@ -234,30 +234,32 @@ test('« prêt » : chaque ami se déclare, l’hôte voit le compteur', () => {
   assert.equal(host.ev('jeuToggleReady()'), undefined, 'l’hôte est toujours prêt : pas de bascule');
 });
 
-test('6 joueurs au maximum : le 7e voit « salle complète », les autres ne changent pas', () => {
-  const { w, host, guests } = room({ n: 6 });
-  assert.equal(host.live().length, 6);
+/* Elisa, 31 octobre, 16 h 49 : « max 5 pour une salle » */
+test('5 joueurs au maximum : le 6e voit « salle complète », les autres ne changent pas', () => {
+  assert.ok(html.includes('const JEU_MAX=5;'));
+  const { w, host, guests } = room({ n: 5 });
+  assert.equal(host.live().length, 5);
   const late = makeClient(w, 'Trop'); late.join('ROOM42'); sec(w, 4);
   assert.equal(late.view(), 'full');
   assert.match(late.html, /salle est complète/);
-  for (const c of [host, ...guests]) assert.equal(c.live().length, 6, c.name + ' n’affiche pas le 7e');
+  for (const c of [host, ...guests]) assert.equal(c.live().length, 5, c.name + ' n’affiche pas le 6e');
   assert.ok(!host.live().includes('Trop'));
   /* Une place se libère : la même personne peut réessayer. */
-  guests[4].ev('jeuStop()'); sec(w, 2);
-  assert.equal(host.live().length, 5);
+  guests[3].ev('jeuStop()'); sec(w, 2);
+  assert.equal(host.live().length, 4);
   const retry = makeClient(w, 'Trop'); retry.ev(`sessionStorage.setItem('rq-jeu-pid',${JSON.stringify(late.pid())})`);
   late.ev('jeuStop()'); retry.join('ROOM42'); sec(w, 4);
   assert.equal(retry.view(), 'lobby', 'réadmise quand il y a de la place');
-  assert.equal(host.live().length, 6);
+  assert.equal(host.live().length, 5);
 });
 
 test('les fantômes de l’historique ne comptent pas dans la limite et ne sont pas affichés', () => {
   const { w, host, guests } = room({ n: 4 });
   guests.forEach(g => g.ev('jeuStop()')); sec(w, 70);
   assert.deepEqual(host.live(), ['Hôte']);
-  const fresh = [1, 2, 3, 4, 5].map(i => { const g = makeClient(w, 'N' + i); g.join('ROOM42'); sec(w, 1.5); return g; });
+  const fresh = [1, 2, 3, 4].map(i => { const g = makeClient(w, 'N' + i); g.join('ROOM42'); sec(w, 1.5); return g; });
   sec(w, 3);
-  assert.equal(host.live().length, 6, 'les 3 partis ont libéré leur place');
+  assert.equal(host.live().length, 5, 'les 3 partis ont libéré leur place');
   assert.ok(fresh.every(g => g.view() === 'lobby'));
 });
 
@@ -275,10 +277,11 @@ test('tirage au sort : même défi pour tous, compte à rebours, puis la manche 
 });
 
 /* Elisa, 31 octobre, 1 h 34 : « le chrono compte de 00:00 à … pour avoir des points si on réussit en premier par rapport à ses amis
-   + par rapport au temps, qui rajoute des points ». Chaque réussite vaut 100 ; les trois premiers prennent +50, +30, +15 ; la
-   rapidité ajoute jusqu’à +60 (un point de moins toutes les 3 secondes, plus rien à 3 min). */
-const vite = ms => Math.max(0, Math.min(60, Math.floor((180000 - ms) / 3000)));
-test('manche : 100 la réussite, +50 / +30 / +15 aux trois premiers, jusqu’à +60 de rapidité ; la manche se termine quand tous ont trouvé', () => {
+   + par rapport au temps, qui rajoute des points » ; 16 h 49 : « la rapidité, c’est juste du bonus, on n’enlève pas de points : un
+   nombre de points à la base qui baisse en fonction du temps (par ex. 200 à la base puis ça descend) ». Le défi vaut 200 quand le
+   chrono démarre (et pendant 1,8 s), puis un point de moins toutes les 1,8 s, 100 à 3 min (100 + la part du temps) ; les trois premiers prennent +50, +30, +15. */
+const vite = ms => Math.max(0, Math.min(100, Math.ceil((180000 - ms) / 1800)));
+test('manche : le défi vaut 200 au départ, 100 à 3 min ; +50 / +30 / +15 aux trois premiers ; la manche se termine quand tous ont trouvé', () => {
   const { w, host, guests } = room({ n: 3 });
   host.ev('jeuNextRound()'); sec(w, 4.5);
   guests[1].found(); sec(w, 5); host.found(); sec(w, 1);
@@ -298,8 +301,10 @@ test('manche : 100 la réussite, +50 / +30 / +15 aux trois premiers, jusqu’à 
   }
   assert.ok(rk[0].vite > rk[2].vite, 'plus on est rapide, plus la rapidité rapporte');
   for (const x of rk) assert.ok(host.html.includes(`<small>+${x.pts}</small>`), 'les points gagnés dans le classement : ' + x.pts);
-  /* Le détail des points sur sa seule ligne (Elisa, 31 octobre, 16 h 29 : « il y a trop de trucs ») : l’hôte est 2e */
-  assert.match(host.html, /class="jeu-pd"><i>100 réussite<\/i><i class="is-rang">\+30 2e<\/i><i class="is-vite">\+\d+ rapidité<\/i>/, 'le détail des points');
+  /* Le détail des points sur sa seule ligne (Elisa, 31 octobre, 16 h 29 : « il y a trop de trucs ») : l’hôte est 2e ; ce que
+     valait le défi quand il l’a trouvé, puis son bonus de 2e (16 h 49 : plus de « rapidité » à part, c’est la valeur du défi) */
+  assert.ok(host.html.includes(`class="jeu-pd"><i>Défi ${rk[1].ok + rk[1].vite}</i><i class="is-rang">2e +30</i></span>`), 'le détail des points');
+  assert.doesNotMatch(host.html, /rapidité<\/i>/);
   assert.equal((host.html.match(/class="jeu-pd"/g) || []).length, 1, 'seulement sur sa propre ligne');
   assert.match(host.html, /<em>00:\d\d<\/em>/, 'le temps en 00:00');
   assert.match(host.html, /Manche suivante/);
@@ -782,19 +787,19 @@ test('égalité en tête : les ex æquo gagnent tous les deux, pas de médaille 
   const places = h.ev('jeuPlaces(jeuScores()).map(x=>x.place)');
   assert.deepEqual(places, [1, 1], 'même temps, mêmes points : deux premiers');
   const rk = h.ev('jeuRanking(0).map(x=>[x.place,x.rang,x.pts])');
-  assert.deepEqual(rk, [[1, 50, 209], [1, 50, 209]], 'le même temps vaut le même bonus de rang');
+  assert.deepEqual(rk, [[1, 50, 250], [1, 50, 250]], 'le même temps vaut le même bonus de rang (le défi valait encore 200 à 1 s)');
   /* Départage : à points égaux, le temps total le plus court passe devant */
   const w3 = new World();
   const a = makeClient(w3, 'Hôte'); a.ev('jeuNb=2'); a.host('TIE002'); sec(w3, 1);
   const b = makeClient(w3, 'Ami'); b.join('TIE002'); sec(w3, 3);
   a.ev('jeuNextRound()'); sec(w3, 4.5);
-  /* Manche 1 : l’hôte 1er en 30,001 s, l’ami 2e en 32,999 s ; manche 2 : l’ami 1er en 30,001 s, l’hôte 2e en 30,002 s.
-     Même rapidité partout (+49) : 378 points chacun ; l’hôte a mis moins de temps en tout. */
-  a.ev('jeuSend({t:"found",n:0,ms:30001})'); b.ev('jeuSend({t:"found",n:0,ms:32999})'); sec(w3, 2);
+  /* Manche 1 : l’hôte 1er en 30,001 s, l’ami 2e en 30,5 s ; manche 2 : l’ami 1er en 30,001 s, l’hôte 2e en 30,002 s.
+     Le défi valait 184 à chaque fois : 448 points chacun ; l’hôte a mis moins de temps en tout. */
+  a.ev('jeuSend({t:"found",n:0,ms:30001})'); b.ev('jeuSend({t:"found",n:0,ms:30500})'); sec(w3, 2);
   a.ev('jeuNextRound()'); sec(w3, 4.5);
   b.ev('jeuSend({t:"found",n:1,ms:30001})'); a.ev('jeuSend({t:"found",n:1,ms:30002})'); sec(w3, 2);
   const sc = a.ev('jeuPlaces(jeuScores()).map(x=>[x.name,x.pts,x.place])');
-  assert.deepEqual(sc, [['Hôte', 378, 1], ['Ami', 378, 2]], 'à points égaux, le temps total le plus court passe devant');
+  assert.deepEqual(sc, [['Hôte', 448, 1], ['Ami', 448, 2]], 'à points égaux, le temps total le plus court passe devant');
   a.ev('jeuFinish()'); sec(w3, 1.5);
   assert.match(a.html, /jeu-tie/, 'le podium explique le départage');
 });

@@ -4884,3 +4884,108 @@ html.lq .jeu-podium+.jeu-tie{margin:12px 4px 0!important}
 /* 50e. Mouvement réduit */
 @media (prefers-reduced-motion:reduce){html.lq .jeu-mates *,html.lq .jeu-mates li.is-wait .jeu-av::after,html.lq .jeu-done,html.lq .jeu-done *{animation:none!important}}
 html[data-motion="reduce"].lq .jeu-mates *,html[data-motion="reduce"].lq .jeu-mates li.is-wait .jeu-av::after,html[data-motion="reduce"].lq .jeu-done,html[data-motion="reduce"].lq .jeu-done *{animation:none!important}
+
+/* ---------- 51. Retours du 31 octobre, 16 h 49 ---------- */
+/* 51a. La valeur du défi, à côté du chrono, tant qu’on cherche : elle baisse avec le temps (200 → 100). */
+html.lq .jeu-bar .l-kicker{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.lq .jeu-bar-r{flex:none;display:flex;align-items:center;gap:6px}
+html.lq .jeu-val{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 10px 0 4px;box-sizing:border-box;border:2px solid var(--line);border-radius:999px;background:#fff;
+  color:var(--accent-ink);font:800 15px/1 var(--display);font-variant-numeric:tabular-nums;box-shadow:0 3px 0 var(--lip)}
+html.lq .jeu-val .lq-stk{width:24px;height:24px}
+html.lq .jeu-val small{font:700 11px/1 var(--display);color:var(--ink-3)}
+
+/* 51b. Le pseudo, unique : sous le champ, « Vérification… » (trois points), « Disponible » (une coche menthe qui se pose), « déjà pris »
+   (le champ tremble, trois pseudos libres arrivent l’un après l’autre en pastilles ; en toucher une la met dans le champ). */
+.ps-etat{display:flex;align-items:center;gap:7px;margin:9px 2px 0;font:700 13.5px/1.35 var(--display,inherit);color:var(--ink-3)}
+.ps-etat:empty{display:none}
+.ps-etat.is-libre,.ps-etat.is-mien{color:#0F7A3A}
+.ps-etat.is-pris,.ps-etat.is-refuse,.ps-etat.is-invalide{color:var(--danger)}
+.ps-ok,.ps-no{flex:none;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;font:800 12px/1 var(--display,inherit);font-style:normal;animation:psPop .45s var(--pop,ease) both}
+.ps-ok{background:#9FF0C6;color:#0D5B3B}
+.ps-no{background:#FFD9DB;color:var(--danger)}
+@keyframes psPop{from{transform:scale(0) rotate(-40deg)}to{transform:none}}
+.ps-dots{display:inline-flex;gap:3px;margin-right:2px}
+.ps-dots b{width:5px;height:5px;border-radius:50%;background:currentColor;animation:psDot .9s ease-in-out infinite}
+.ps-dots b:nth-child(2){animation-delay:.15s}.ps-dots b:nth-child(3){animation-delay:.3s}
+@keyframes psDot{0%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+.ps-idees{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 2px}
+.ps-idees:empty{display:none}
+.ps-idee{min-height:40px;padding:0 15px;border:2px solid var(--line);border-radius:999px;background:#fff;color:var(--accent-ink);font:700 14.5px/1 var(--display,inherit);
+  box-shadow:0 3px 0 var(--lip);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  animation:psIdee .45s var(--pop,ease) backwards;animation-delay:calc(.08s + var(--i,0) * .09s);transition:transform .12s var(--press,ease),box-shadow .12s var(--press,ease)}
+.ps-idee:active{transform:translateY(3px);box-shadow:0 0 0 var(--lip)}
+.ps-idee:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+@keyframes psIdee{from{opacity:0;transform:translateY(12px) scale(.8) rotate(-4deg)}to{opacity:1;transform:none}}
+html.lq #onboarding .ob-field input.is-ok,#ps-pseudo.is-ok{border-color:#7FD9A8!important}
+html.lq #onboarding .ob-field input.is-ko,#ps-pseudo.is-ko{border-color:#F3A3A7!important}
+.is-shake{animation:psShake .42s cubic-bezier(.36,.07,.19,.97)}
+@keyframes psShake{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(3px)}30%,50%,70%{transform:translateX(-5px)}40%,60%{transform:translateX(5px)}}
+.is-pick{animation:psPick .4s var(--pop,ease)}
+@keyframes psPick{45%{transform:scale(1.025)}}
+html.lq #onboarding .ob-field{position:relative}
+html.lq #onboarding .ob-field.is-locked input{background:var(--surface-2)!important;color:var(--ink)!important;padding-right:46px!important}
+html.lq #onboarding .ob-field-lock{position:absolute;right:16px;bottom:19px;width:20px;height:20px;color:var(--ink-3)}
+html.lq #onboarding .ob-field-lock svg{width:20px;height:20px;display:block}
+#ob-next.is-busy,#ps-ok.is-busy{opacity:.72;pointer-events:none}
+html.lq .ps-sheet .ps-etat{margin:10px 4px 0}
+/* Sur le violet de l’onboarding : le texte en clair (le rouge et le vert foncés s’y lisent mal), la pastille garde sa couleur. */
+html #onboarding .ps-etat{color:rgba(255,255,255,.86)}
+html #onboarding .ps-etat.is-libre,html #onboarding .ps-etat.is-mien{color:#C8F8DD}
+html #onboarding .ps-etat.is-pris,html #onboarding .ps-etat.is-refuse,html #onboarding .ps-etat.is-invalide{color:#FFE0E2}
+html.lq .ps-sheet .ps-idees{margin:10px 2px 4px}
+
+/* 51c. Le pseudo, verrouillé : dans la salle (« Tu joues en tant que »), dans Mon compte */
+html.lq .jeu-me-lock{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:12px;background:var(--surface-2);color:var(--ink-3)}
+html.lq .jeu-me-lock svg{width:17px;height:17px}
+html.lq .jeu-me.is-vide{width:100%;font:inherit;text-align:left;cursor:pointer;border-color:#CFC4FF!important;background:#FAF8FF!important;-webkit-tap-highlight-color:transparent}
+html.lq .acc-pseudo{display:flex;align-items:center;gap:12px;width:100%;margin:2px 0 14px;padding:12px 14px;box-sizing:border-box;border:2px solid var(--line);border-radius:18px;background:#fff;
+  color:var(--ink);font:inherit;text-align:left}
+html.lq .acc-pseudo.is-vide{border-color:#CFC4FF;background:#FAF8FF;cursor:pointer;-webkit-tap-highlight-color:transparent}
+html.lq .acc-pseudo-av{flex:none;display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;font:700 17px/1 var(--display);box-shadow:0 2px 0 var(--accent-lip)}
+html.lq .acc-pseudo-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+html.lq .acc-pseudo-t small{font:700 12.5px/1.2 var(--display);color:var(--ink-3)}
+html.lq .acc-pseudo-t b{font:700 17px/1.2 var(--display);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.lq .acc-pseudo-t em{font-style:normal;font-size:12.5px;line-height:1.3;color:var(--ink-3)}
+html.lq .acc-pseudo-lock{flex:none;width:20px;height:20px;color:var(--ink-3)}
+html.lq .acc-pseudo-lock svg{width:20px;height:20px;display:block}
+
+/* 51d. Réf. 5 : « Un code reçu ? », de l’air : le code, puis le bouton, avec la même marge que les autres cartes ; le contour de focus
+   se pose à l’intérieur de la carte au lieu de doubler son bord. */
+html.lq .def-join>summary{border-radius:20px}
+html.lq .def-join>summary:focus-visible{box-shadow:inset 0 0 0 2.5px rgba(106,77,244,.45)!important;border-radius:20px!important}
+html.lq .def-join-body{padding:2px 16px 18px!important;gap:10px!important}
+html.lq .def-join-body>.jeu-lab{margin:4px 2px 0!important}
+html.lq .def-join-body>.journey-primary{margin-top:4px}
+html.lq .def-join-body>.jeu-msg:empty{display:none}
+
+/* 51e. Réf. 6 : « Tes dernières parties » : une partie à plusieurs se voit — sa barre en menthe, le nombre de joueurs à son pied, les
+   points de chacun des autres en pastilles de sa couleur, à leur hauteur ; dessous, la partie joueur par joueur. */
+html.lq .perf-bar.is-vs i{background:rgba(159,240,198,.82)}
+html.lq .perf-bar.is-vs.is-on i{background:#C9F7DF}
+html.lq .perf-bar.is-best i{background:var(--sun)}
+html.lq .perf-bar.is-best.is-on i{background:var(--sun-hi)}
+html.lq .perf-o{position:absolute;left:50%;bottom:var(--y);z-index:2;width:12px;height:12px;margin:0 0 -6px -6px;box-sizing:border-box;border:2px solid #fff;border-radius:50%;
+  background:hsl(338 70% 52%);box-shadow:0 1px 0 rgba(27,22,64,.35);pointer-events:none;
+  opacity:0;transform:translateX(calc((var(--k,0) - .5) * 6px)) scale(.3);transition:opacity .3s,transform .5s var(--pop);transition-delay:calc(.65s + var(--i,0) * .05s)}
+html.lq .perf-card.is-in .perf-o{opacity:1;transform:translateX(calc((var(--k,0) - .5) * 6px)) scale(1)}
+html.lq .perf-o[data-c="0"]{background:#8B6CFF}
+html.lq .perf-o[data-c="1"]{background:hsl(152 52% 40%)}
+html.lq .perf-o[data-c="2"]{background:hsl(24 88% 52%)}
+html.lq .perf-o[data-c="3"]{background:hsl(338 70% 52%)}
+html.lq .perf-o[data-c="4"]{background:hsl(202 78% 44%)}
+html.lq .perf-o[data-c="5"]{background:hsl(42 90% 44%)}
+html.lq .perf-n{position:absolute;left:50%;bottom:4px;z-index:3;min-width:17px;height:17px;padding:0 3px;box-sizing:border-box;border-radius:9px;translate:-50% 0;
+  background:#fff;color:#0D5B3B;font:800 10.5px/17px var(--display);text-align:center;box-shadow:0 1px 0 rgba(27,22,64,.25)}
+html.lq .perf-cap-t{display:block;margin:0 0 7px}
+html.lq .perf-cap-ppl{display:flex;flex-wrap:wrap;gap:6px}
+html.lq .perf-cap-ppl>span{display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 3px;border:2px solid var(--line);border-radius:999px;background:#fff;font:700 13px/1 var(--display);color:var(--ink);animation:dbColIn .3s cubic-bezier(.2,.8,.3,1.2) both}
+html.lq .perf-cap-ppl>span.is-me{border-color:#CFC4FF;background:#FAF8FF}
+html.lq .perf-cap-ppl .jeu-av{width:22px;height:22px;font-size:11px;font-style:normal;box-shadow:none!important}
+html.lq .perf-cap-ppl b{color:var(--accent-ink);font-variant-numeric:tabular-nums}
+html.lq .perf-legend{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:8px 2px 0;font-size:12px;line-height:1.3;color:var(--ink-3)}
+html.lq .perf-legend-o{flex:none;width:12px;height:12px;box-sizing:border-box;border-radius:50%;background:conic-gradient(hsl(152 52% 40%) 0 25%,hsl(24 88% 52%) 0 50%,hsl(202 78% 44%) 0 75%,hsl(338 70% 52%) 0);border:2px solid #fff;box-shadow:0 0 0 1.5px var(--line)}
+html.lq .perf-legend-n{flex:none;display:inline-grid;place-items:center;min-width:17px;height:17px;margin-left:8px;border-radius:9px;background:#fff;color:#0D5B3B;font:800 10.5px/1 var(--display);box-shadow:0 0 0 1.5px var(--line)}
+
+/* 51f. Mouvement réduit */
+@media (prefers-reduced-motion:reduce){.ps-ok,.ps-no,.ps-dots b,.ps-idee,.is-shake,.is-pick,html.lq .perf-cap-ppl>span{animation:none!important}html.lq .perf-o{transition:none!important}}
+html[data-motion="reduce"] .ps-ok,html[data-motion="reduce"] .ps-no,html[data-motion="reduce"] .ps-dots b,html[data-motion="reduce"] .ps-idee,html[data-motion="reduce"] .is-shake,html[data-motion="reduce"] .is-pick,html[data-motion="reduce"].lq .perf-cap-ppl>span{animation:none!important}

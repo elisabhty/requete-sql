@@ -203,7 +203,7 @@ function perfCtx(salle) {
     /* Le Top 5 de tous les joueurs a ses propres tests (classement.test.mjs) */
     clsTopHTML: () => '<p data-k="top5"></p>', clsFlush() {}, clsCharger() {},
   });
-  vm.runInContext(['jeuChrono', 'perfDay', 'perfWith', 'perfGame', 'perfBadge', 'perfColor', 'perfPodiumHTML', 'perfMateHTML', 'renderDefisPerf'].map(fn).join('') + ';renderDefisPerf();', ctx);
+  vm.runInContext(['jeuChrono', 'perfDay', 'perfWith', 'perfGame', 'perfBadge', 'perfColor', 'perfPodiumHTML', 'perfMateHTML', 'perfCapHTML', 'perfTeintes', 'renderDefisPerf'].map(fn).join('') + ';renderDefisPerf();', ctx);
   return host.innerHTML;
 }
 

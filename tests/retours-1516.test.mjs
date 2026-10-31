@@ -111,7 +111,9 @@ test('réf. 9 — une feuille se ferme une fois l’action faite, et reste au-de
   assert.ok(cut('function replayOnboarding(){', 'startOnboarding();').includes('closePlusDetails();'), 'Revoir l’intro');
   assert.ok(cut('async function resetAllProgress(){', 'state={').includes('closePlusDetails();'), 'Effacer la progression');
   assert.ok(cut('async function exportProgress(){', 'function importProgress(){').includes('closePlusDetails();'), 'Exporter');
-  assert.ok(app.includes('<button class="acc-save" type="button" onpointerdown="event.preventDefault()" onclick="saveAccountName()">Enregistrer</button>'), 'le toucher ne déplace pas la feuille');
+  /* 16 h 49 : le pseudo ne se change plus — plus de champ ni de bouton « Enregistrer » sous le clavier dans Mon compte */
+  const acc = cut('function accPseudoHTML(', 'function replayOnboarding(');
+  assert.ok(!app.includes('class="acc-save"') && acc.includes('<span class="acc-pseudo-lock" aria-hidden="true">${PS_LOCK_SVG}</span>'), 'le pseudo, verrouillé');
   assert.ok(app.includes("document.documentElement.style.setProperty('--kb',(kb>60?kb:0)+'px');"));
   assert.ok(s48.includes('html.lq #scr-compte .plus-details[open]{bottom:var(--kb,0px)!important;'));
 });
