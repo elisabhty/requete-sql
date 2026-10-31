@@ -30,15 +30,15 @@ test('l’indicateur des défis : les manches trouvées sur jouées (0/0, 1/1, 1
 
 test('le KPI partout où il était : planning, Mon compte, Pratiquer, les niveaux de la salle ; plus de défis « réussis »', () => {
   const over = cut('function planOverviewHTML(st){', 'function planManageHTML(');
-  assert.ok(over.includes('<div class="pgr-stat is-d"><small>Défis</small><b>${kd.tr}<em>/${kd.ma}</em></b><i class="pgr-meter" aria-hidden="true"><b style="width:${pD}%"></b></i><p>manches trouvées<b>${sallePts(kd.pts)}</b></p></div>'), 'la tuile du planning');
+  assert.ok(over.includes('<div class="pgr-stat is-d"><small>Défis</small><b>${kd.tr}<em>/${kd.ma}</em></b><i class="pgr-meter" aria-hidden="true"><b style="width:${pD}%"></b></i><p>manches réussies<b>${sallePts(kd.pts)}</b></p></div>'), 'la tuile du planning (18 h 28 : « réussies »)');
   assert.ok(over.includes('pD=kd.ma?Math.round(kd.tr/kd.ma*100):0'), 'la jauge : la part de manches trouvées');
   const compte = cut('function renderCompte(){', 'function accPseudoHTML(');
-  assert.ok(compte.includes('<div class="acct-stat is-defis" style="--i:2"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg(\'target\')}</span><b>${kd.tr}<em>/${kd.ma}</em></b><small>manches trouvées</small><small class="acct-stat-pts">${sallePts(kd.pts)}</small></div>'), 'Mon compte');
+  assert.ok(compte.includes('<div class="acct-stat is-defis" style="--i:2"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg(\'target\')}</span><b>${kd.tr}<em>/${kd.ma}</em></b><small>manches réussies</small><small class="acct-stat-pts">${sallePts(kd.pts)}</small></div>'), 'Mon compte');
   const hub = fn('renderJourneyHub');
-  assert.ok(hub.includes("['defis','Défis',`${kd.tr}/${kd.ma} manches trouvées · ${sallePts(kd.pts)}`,\"switchTab('defis')\",kd.ma?Math.round(kd.tr/kd.ma*100):null],"), 'Pratiquer');
+  assert.ok(hub.includes("['defis','Défis',`${kd.tr}/${kd.ma} manches réussies · ${sallePts(kd.pts)}`,\"switchTab('defis')\",kd.ma?Math.round(kd.tr/kd.ma*100):null],"), 'Pratiquer');
   assert.ok(hub.includes('<p class="journey-kicker">Salle de défi</p><h2>Un défi tiré au sort</h2>'), 'le cadre du haut de Pratiquer');
   const room = fn('renderDefisRoom');
-  assert.ok(room.includes("return `${ok}/${n} trouvée${ok>1?'s':''}`;"), 'sous chaque niveau : ses manches');
+  assert.ok(room.includes("return `${ok}/${n} réussie${ok>1?'s':''}`;"), 'sous chaque niveau : ses manches');
   assert.ok(fn('renderDefis').includes('sub.textContent=`${all.length} défis, tirés au sort au niveau que tu choisis.`;'));
   for (const gone of ['réussis sur ${nDefis}', 'Tout est réussi', 'Prochain défi · ${nOk}', "/${l.length} réussis", 'défi${nOk>1?\'s\':\'\'} réussi', 'Réussis 10 défis.', 'que tu n’as pas encore réussi', 'qu’aucun de vous n’a encore réussi'])
     assert.ok(!app.includes(gone), 'retiré : ' + gone);

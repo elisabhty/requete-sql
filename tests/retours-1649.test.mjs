@@ -65,14 +65,14 @@ function pseudoCtx({ reply = () => ({ ok: true }), salle, name = 'Elisa', onboar
     activeTab: 'learn', saves: 0,
   });
   ctx.save = () => { ctx.saves++; };
-  vm.runInContext(`var OB_SLIDES=${OB};` + line('jeuNom') + line('jeuSavedNom') + psBlock + fn('obInput'), ctx);
+  vm.runInContext(`var OB_SLIDES=${OB};` + cut('function jeuNom(v)', '/* Le pseudo dans la salle :') + psBlock + cut('function obPseudoTape(el){', 'function obInput(') + fn('obInput'), ctx);
   const run = () => { while (timers.length) timers.shift().f(); };
   const root = get('onboarding');
   return { ctx, ev: c => vm.runInContext(c, ctx), el: get, root, calls, buzzes, said, store, timers, run, asks, infos };
 }
 
 test('pseudo — la mini-page vérifie en direct : « déjà pris », le champ tremble, trois pseudos libres arrivent ; en toucher un le met dans le champ', async () => {
-  const p = pseudoCtx({ reply: (f, b) => (f === 'jeu_pseudo_libre' ? (b.p_pseudo === 'Léa' ? { ok: false, raison: 'pris', idees: ['Léa_sql', 'Léa.db', 'Léa42'] } : { ok: true }) : { ok: true }) });
+  const p = pseudoCtx({ reply: (f, b) => (f === 'jeu_pseudo_libre' ? (b.p_pseudo === '@léa' ? { ok: false, raison: 'pris', idees: ['@léa_sql', '@léa.db', '@léa42'] } : { ok: true }) : { ok: true }) });
   p.ev('psPage({})');
   assert.equal(p.ev("OB_SLIDES[obStep]"), 'pseudo', 'la mini-page, dans l’écran de l’onboarding');
   assert.ok(p.root.classList.contains('on') && !('aria-hidden' in p.root.attrs) && p.ctx.barre === true && p.ctx.painted === 1);
@@ -82,16 +82,16 @@ test('pseudo — la mini-page vérifie en direct : « déjà pris », le champ t
   assert.match(etat.innerHTML, /^<i class="ps-dots" aria-hidden="true"><b><\/b><b><\/b><b><\/b><\/i>Vérification…$/);
   assert.equal(p.calls.length, 0, 'on attend la fin de la frappe');
   p.run(); await flush();
-  assert.deepEqual(p.calls, [{ fn: 'jeu_pseudo_libre', body: { p_pseudo: 'Léa', p_cle: 'K'.repeat(32) } }], 'le pseudo nettoyé, avec la clé de l’appareil (le sien compte comme libre)');
+  assert.deepEqual(p.calls, [{ fn: 'jeu_pseudo_libre', body: { p_pseudo: '@léa', p_cle: 'K'.repeat(32) } }], 'le pseudo en identifiant (18 h 22 : @, minuscules, sans espace), avec la clé de l’appareil');
   assert.equal(etat.className, 'ps-etat is-pris');
-  assert.equal(etat.innerHTML, '<i class="ps-no" aria-hidden="true">!</i>« Léa » est déjà pris. Prends-en un libre :');
-  assert.equal(idees.innerHTML, ['Léa_sql', 'Léa.db', 'Léa42'].map((v, i) => `<button type="button" class="ps-idee" style="--i:${i}" data-v="${v}" onclick="psIdee('ob',this.dataset.v)">${v}</button>`).join(''), 'trois pastilles, l’une après l’autre (--i)');
+  assert.equal(etat.innerHTML, '<i class="ps-no" aria-hidden="true">!</i>« @léa » est déjà pris. Prends-en un libre :');
+  assert.equal(idees.innerHTML, ['@léa_sql', '@léa.db', '@léa42'].map((v, i) => `<button type="button" class="ps-idee" style="--i:${i}" data-v="${v}" onclick="psIdee('ob',this.dataset.v)">${v}</button>`).join(''), 'trois pastilles, l’une après l’autre (--i)');
   assert.ok(inp.classList.contains('is-ko') && !inp.classList.contains('is-ok'));
   assert.ok(p.buzzes.includes('warning'));
   assert.equal(next.disabled, true, '« C’est mon pseudo » attend un pseudo libre');
   /* Toucher une pastille : elle va dans le champ, et la vérification repart */
-  p.ev("psIdee('ob','Léa.db')");
-  assert.equal(inp.value, 'Léa.db'); assert.equal(p.ctx.draft.pseudo, 'Léa.db'); assert.equal(p.ctx.draft.name, 'Elisa', 'le prénom n’y est pour rien');
+  p.ev("psIdee('ob','@léa.db')");
+  assert.equal(inp.value, 'léa.db', 'le @ est posé devant le champ'); assert.equal(p.ctx.draft.pseudo, '@léa.db'); assert.equal(p.ctx.draft.name, 'Elisa', 'le prénom n’y est pour rien');
   assert.ok(p.buzzes.includes('selection'));
   p.run(); await flush();
   assert.equal(etat.className, 'ps-etat is-libre');
@@ -100,14 +100,14 @@ test('pseudo — la mini-page vérifie en direct : « déjà pris », le champ t
   assert.ok(inp.classList.contains('is-ok') && !inp.classList.contains('is-ko'));
   assert.equal(next.disabled, false);
   /* Une réponse en retard (frappe suivante déjà partie) est ignorée */
-  const q = pseudoCtx({ reply: (f, b) => (b.p_pseudo === 'Tom' ? { ok: false, raison: 'pris', idees: [] } : { ok: true }) });
+  const q = pseudoCtx({ reply: (f, b) => (b.p_pseudo === '@tom' ? { ok: false, raison: 'pris', idees: [] } : { ok: true }) });
   q.ev('psPage({})');
   q.ev("psVerif('ob','T');psVerif('ob','To')"); assert.equal(q.timers.length, 1, 'une seule vérification par pause de frappe');
   q.ev("psVerif('ob','Tom')"); q.run();
   q.ev("psVerif('ob','Tomy')"); await flush();
-  assert.equal(q.el('ob-ps-etat').className, 'ps-etat is-verif', 'la réponse pour « Tom » arrive trop tard : rien ne bouge');
+  assert.equal(q.el('ob-ps-etat').className, 'ps-etat is-verif', 'la réponse pour « @tom » arrive trop tard : rien ne bouge');
   q.run(); await flush();
-  assert.deepEqual(q.calls.map(c => c.body.p_pseudo), ['Tom', 'Tomy']);
+  assert.deepEqual(q.calls.map(c => c.body.p_pseudo), ['@tom', '@tomy']);
   assert.equal(q.el('ob-ps-etat').className, 'ps-etat is-libre');
   /* Les autres réponses du serveur */
   const r = pseudoCtx({ reply: () => ({ ok: false, raison: 'refuse', idees: ['Joueur_sql'] }) });
@@ -123,29 +123,29 @@ test('pseudo — « C’est mon pseudo » le réserve pour l’appareil, sans to
   p.ctx.suite = () => { p.ctx.s1 = (p.ctx.s1 || 0) + 1; }; p.ctx.ok = () => { p.ctx.s2 = (p.ctx.s2 || 0) + 1; };
   p.ev('psPage({suite,siOk:ok})');
   const next = p.el('ob-next');
-  p.ev("draft.pseudo='Léa.db';PS.etat.ob='libre';obPseudoSuivant()");
+  p.ev("draft.pseudo='@léa.db';PS.etat.ob='libre';obPseudoSuivant()");
   assert.ok(next.classList.contains('is-busy') && next.disabled, 'le bouton attend la réponse');
   await flush();
-  assert.deepEqual(p.calls, [{ fn: 'jeu_pseudo_prendre', body: { p_cle: 'K'.repeat(32), p_pseudo: 'Léa.db' } }]);
-  assert.equal(p.ctx.state.salle.pseudo, 'Léa.db'); assert.ok(p.ctx.state.salle.pseudoVu > 0);
+  assert.deepEqual(p.calls, [{ fn: 'jeu_pseudo_prendre', body: { p_cle: 'K'.repeat(32), p_pseudo: '@léa.db' } }]);
+  assert.equal(p.ctx.state.salle.pseudo, '@léa.db'); assert.ok(p.ctx.state.salle.pseudoVu > 0);
   assert.equal(p.ctx.state.name, 'Elisa', 'le prénom reste le prénom');
-  assert.equal(p.store['rq-jeu-nom'], 'Léa.db'); assert.ok(p.ctx.saves >= 1);
-  assert.deepEqual(p.said, ['Pseudo réservé : Léa.db']); assert.ok(p.buzzes.includes('success'));
+  assert.equal(p.store['rq-jeu-nom'], '@léa.db'); assert.ok(p.ctx.saves >= 1);
+  assert.deepEqual(p.said, ['Pseudo réservé : @léa.db']); assert.ok(p.buzzes.includes('success'));
   assert.ok(!p.root.classList.contains('on') && p.root.attrs['aria-hidden'] === 'true' && p.ctx.barre === false, 'la page se ferme');
   assert.equal(p.ctx.s1, 1, 'la suite (l’appli, après l’onboarding)'); assert.equal(p.ctx.s2, 1, 'et ce qui attendait le pseudo (une salle entre amis)');
-  assert.equal(p.ev('jeuSavedNom()'), 'Léa.db');
-  p.ev("psVerif('ob','Léa.db')");
+  assert.equal(p.ev('jeuSavedNom()'), '@léa.db');
+  p.ev("psVerif('ob','léa.db')");
   assert.equal(p.el('ob-ps-etat').innerHTML, '<i class="ps-ok" aria-hidden="true">✓</i>C’est ton pseudo');
   /* Pris entre-temps : on reste, avec des pseudos libres ; un pseudo pris ne part pas */
   const q = pseudoCtx({ reply: f => (f === 'jeu_pseudo_prendre' ? { ok: false, raison: 'pris', idees: ['Tom_sql'] } : { ok: true }) });
-  q.ev('psPage({})'); q.ev("draft.pseudo='Tom';PS.etat.ob='libre';obPseudoSuivant()"); await flush();
+  q.ev('psPage({})'); q.ev("draft.pseudo='@tom';PS.etat.ob='libre';obPseudoSuivant()"); await flush();
   assert.ok(q.root.classList.contains('on')); assert.equal(q.el('ob-ps-etat').className, 'ps-etat is-pris');
-  assert.match(q.el('ob-ps-idees').innerHTML, /data-v="Tom_sql"/); assert.equal(q.el('ob-next').disabled, true);
+  assert.match(q.el('ob-ps-idees').innerHTML, /data-v="@tom_sql"/); assert.equal(q.el('ob-next').disabled, true);
   assert.equal(q.ctx.state.salle, undefined, 'rien n’est réservé');
   q.ev("obPseudoSuivant()"); assert.equal(q.calls.length, 1);
   /* Sans réseau : on le dit, la page reste */
   const off = pseudoCtx({ reply: () => new TypeError('Failed to fetch') });
-  off.ev('psPage({})'); off.ev("draft.pseudo='Zoé';PS.etat.ob='horsligne';obPseudoSuivant()"); await flush();
+  off.ev('psPage({})'); off.ev("draft.pseudo='@zoé';PS.etat.ob='horsligne';obPseudoSuivant()"); await flush();
   assert.ok(off.root.classList.contains('on')); assert.match(off.el('ob-ps-etat').innerHTML, /Pas de réseau/);
   /* « Plus tard » : la suite continue, pas ce qui attendait le pseudo ; la page ne revient plus toute seule */
   const l = pseudoCtx();
@@ -174,7 +174,7 @@ test('pseudo — une salle entre amis a besoin du pseudo réservé ; à l’ouve
   const n = pseudoCtx(); n.store['rq-jeu-nom'] = 'Zoé';
   n.ev('psVerifier()');
   assert.ok(n.root.classList.contains('on'), 'pas encore de pseudo : la mini-page');
-  assert.equal(n.ctx.draft.pseudo, 'Zoé', 'le pseudo des salles d’avant, proposé');
+  assert.equal(n.ctx.draft.pseudo, '@zoé', 'le pseudo des salles d’avant, proposé (en identifiant)');
   assert.equal(n.ctx.state.salle.psPage, 1, 'une seule fois');
   n.ev('obPseudoPlusTard();psVerifier()'); assert.ok(!n.root.classList.contains('on'), 'elle ne revient pas toute seule');
   const old = pseudoCtx({ salle: { pseudo: 'Léa', pseudoVu: Date.now() - 21 * 3600e3 }, reply: () => ({ ok: true, pseudo: 'Léa' }) });
@@ -214,9 +214,11 @@ test('pseudo — l’onboarding demande le prénom ; la mini-page du pseudo suit
   assert.ok(fn('obInput').includes("if(champ==='name'){draft.name=String(val||'').slice(0,32);obNamePreview();}"));
   const page = cut("}else if(slide==='pseudo'){", "}else if(slide==='goal'){");
   assert.ok(page.includes('<h1 class="ob-title" id="ob-title">Choisis ton<br> <em>pseudo</em>.</h1>') && page.includes('C’est ton nom dans les salles de défi et au classement.'));
-  assert.ok(page.includes('<input id="ob-pseudo" type="text" maxlength="16"') && page.includes('autocomplete="nickname"') && page.includes('<p class="ps-etat" id="ob-ps-etat" role="status" aria-live="polite"></p>'));
+  /* 18 h 22 : le @ posé dans le champ, en minuscules, sans espace ; plus de « unique dans l’appli » ni de texte en bas */
+  assert.ok(page.includes('<label class="ob-field ob-field-at"><span>Ton pseudo</span><span class="ob-at-box"><b class="ob-at" aria-hidden="true">@</b><input id="ob-pseudo" type="text" maxlength="15"'));
+  assert.ok(page.includes('autocapitalize="none" autocorrect="off" spellcheck="false"') && page.includes('oninput="obPseudoTape(this)"') && page.includes('<p class="ps-etat" id="ob-ps-etat" role="status" aria-live="polite"></p>'));
   assert.ok(page.includes("obSetFooter('C’est mon pseudo',obPseudoSuivant,'Plus tard',obPseudoPlusTard,'',!v);"));
-  assert.ok(page.includes('Il est unique et ne se changera plus. Un surnom suffit : pas besoin de ton vrai nom.'));
+  assert.ok(!page.includes('unique dans l’appli') && !page.includes('Il est unique et ne se changera plus') && !page.includes('ob-helper'), 'ni « unique dans l’appli », ni texte en bas');
   assert.ok(app.includes("const OB_SLIDES = ['welcome','name','goal','level','rhythm','practice','account','ready','pseudo'];"));
   const back = app.slice(app.lastIndexOf('function obBack(){'), app.indexOf('\n}', app.lastIndexOf('function obBack(){')));
   assert.ok(back.includes("if(obStep===0||OB_SLIDES[obStep]==='pseudo')return;"), 'pas de retour depuis la mini-page');
@@ -242,7 +244,7 @@ test('pseudo — l’onboarding demande le prénom ; la mini-page du pseudo suit
   assert.ok(css.includes('html #onboarding .ps-etat.is-pris,html #onboarding .ps-etat.is-refuse,html #onboarding .ps-etat.is-invalide{color:#FFE0E2}'), 'lisible sur le violet');
   /* La progression garde le pseudo réservé */
   const ns = cut('function normalizeState(raw){', 'function normalize(');
-  assert.ok(ns.includes("if(typeof salleSrc.pseudo==='string'){const p=salleNom(salleSrc.pseudo);if(p)salle.pseudo=p;}") && ns.includes('if(salleSrc.pseudoVu)salle.pseudoVu=salleBig(salleSrc.pseudoVu);'));
+  assert.ok(ns.includes("if(typeof salleSrc.pseudo==='string'){const p=psForme(salleSrc.pseudo);if(p)salle.pseudo=p;}") && ns.includes('if(salleSrc.pseudoVu)salle.pseudoVu=salleBig(salleSrc.pseudoVu);'), 'sous sa forme d’identifiant (18 h 22)');
 });
 
 test('« notif in-app » : effacer la progression passe par deux feuilles de l’appli, plus aucune fenêtre du navigateur', async () => {
