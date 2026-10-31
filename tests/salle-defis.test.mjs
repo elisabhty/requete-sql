@@ -634,3 +634,41 @@ test('les points sont crédités même si on quitte avant le podium, et un défi
   s.ev('jeuStop()');
   assert.equal(s.ev('state.salle&&state.salle.pts'), pts, 'les points de la manche sont gardés');
 });
+
+/* Elisa, 31 octobre, 8 h 06 : « avoir un tableau de performance pour la page défis ». Chaque partie y est notée : manches jouées et
+   trouvées, temps, place entre amis, niveau, et l’historique des 12 dernières. */
+test('tableau de performance : une partie entre amis notée pour chacun, avec sa place', () => {
+  const { w, host, guests } = room({ n: 2, nb: 3, niv: 'm' });
+  for (let n = 0; n < 3; n++) {
+    host.ev('jeuNextRound()'); sec(w, 4.5);
+    host.found(); sec(w, 3);
+    if (n < 2) guests[0].found();
+    sec(w, 1.5);
+    if (n === 2) { host.ev('jeuClose()'); sec(w, 1.5); }
+  }
+  host.ev('jeuFinish()'); sec(w, 1.5);
+  const h = host.ev('state.salle'), g = guests[0].ev('state.salle');
+  assert.equal(h.manches, 3); assert.equal(h.trouves, 3); assert.equal(h.amis, 1); assert.deepEqual(h.pl, [1, 0, 0]);
+  assert.deepEqual(h.lv.m, [3, 3], 'niveau moyen : 3 manches, 3 trouvées');
+  assert.equal(h.hist.length, 1);
+  assert.deepEqual({ ...h.hist[0], at: 0 }, { at: 0, pts: h.pts, n: 3, ok: 3, ms: h.tms, niv: 'm', solo: 0, place: 1, players: 2 });
+  assert.equal(h.fast, Math.min(...host.ev('JEU.rounds.map(r=>r.found[JEU.me])')), 'la manche la plus rapide');
+  assert.equal(g.trouves, 2, 'l’ami a trouvé deux manches sur trois'); assert.equal(g.manches, 3);
+  assert.deepEqual(g.pl, [0, 1, 0]); assert.equal(g.hist[0].place, 2); assert.equal(g.hist[0].ok, 2);
+  host.ev('jeuRender()'); sec(w, 1);
+  assert.equal(host.ev('state.salle.hist.length'), 1, 'pas de double comptage');
+});
+
+test('tableau de performance : en solo, pas de place ; une manche abandonnée compte comme jouée', () => {
+  const w = new World();
+  const s = makeClient(w, 'Seul'); s.ev("jeuNb=1;jeuNiv='d'");
+  s.ev("jeuStart('SOLO66',true,null,{solo:true})"); sec(w, 4);
+  s.ev('jeuClose()'); sec(w, 1); s.ev('jeuFinish()'); sec(w, 1);
+  const st = s.ev('state.salle');
+  assert.equal(st.manches, 1); assert.equal(st.trouves, 0); assert.equal(st.fast || 0, 0); assert.equal(st.amis || 0, 0);
+  assert.deepEqual(st.lv.d, [1, 0]);
+  assert.deepEqual({ ...st.hist[0], at: 0 }, { at: 0, pts: 0, n: 1, ok: 0, ms: 0, niv: 'd', solo: 1, place: 0, players: 1 });
+  s.ev("jeuNb=1;jeuNiv='f'"); s.ev('jeuAgain()'); sec(w, 4); s.found(); sec(w, 1); s.ev('jeuFinish()'); sec(w, 1);
+  assert.equal(s.ev('state.salle.hist.length'), 2, 'la nouvelle partie passe devant');
+  assert.equal(s.ev('state.salle.hist[0].ok'), 1);
+});

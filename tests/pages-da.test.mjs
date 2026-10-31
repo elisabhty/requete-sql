@@ -65,14 +65,11 @@ test('Mon compte : les chiffres et chaque réglage portent leur autocollant ; la
     assert.ok(css.includes(part), part);
 });
 
-test('Planning : les tuiles d’« Avancement global » et le prochain cap portent leur autocollant ; le prochain cap passe en scène violette', () => {
-  assert.ok(app.includes('  brancherDrag();renderHomeToday();lqPlanStk();\n}'));
-  const p = fn('lqPlanStk');
-  assert.ok(p.includes("[['.pgr-stat.is-l','book'],['.pgr-stat.is-d','target'],['.pgr-stat.is-s','flame'],['.pgr-stat.is-t','clock'],['.pgr-chart','chart'],['.pgr-next','rocket']]"));
-  assert.ok(p.includes("if(el.querySelector(':scope>.pgr-stk'))return;"), 'une seule fois par tuile');
-  assert.ok(!fn('planOverviewHTML').includes('lqStkSvg'), 'le gabarit reste pur (testé ailleurs sans les autocollants)');
-  for (const part of ['html.lq #scr-planning .pgr-stk{position:absolute!important;', 'html.lq #scr-planning .pgr-next>span:not(.pgr-stk){padding-right:58px}',
-    'html.lq #scr-planning .pgr-next{isolation:isolate;overflow:hidden;', 'html.lq #scr-planning .pgr-next .pgr-go{background:var(--sun)!important;'])
+test('Planning : le prochain cap en scène violette ; plus d’autocollants sur les tuiles d’« Avancement global » (Elisa, 8 h 06)', () => {
+  assert.ok(app.includes('  brancherDrag();renderHomeToday();\n}'), 'plus de décoration après le rendu');
+  assert.ok(!app.includes('function lqPlanStk(') && !css.includes('.pgr-stk'), 'ni fonction ni style d’autocollant de tuile');
+  assert.ok(!css.includes('.pgr-stat.is-s .pgr-flame,html.lq #scr-planning .pgr-stat.is-t .pgr-t-main>small>svg{display:none}'), 'la flamme et l’horloge reviennent');
+  for (const part of ['html.lq #scr-planning .pgr-next{position:relative;isolation:isolate;overflow:hidden;', 'html.lq #scr-planning .pgr-next .pgr-go{background:var(--sun)!important;'])
     assert.ok(s44.includes(part), part);
 });
 
@@ -123,7 +120,7 @@ test('la notification de flamme reste, et s’anime : chute balancée, anneau, �
 
 test('mouvement réduit : tout est à sa place d’emblée', () => {
   const rm = s44.slice(s44.indexOf('/* 44j.'));
-  for (const sel of ['html.lq #app .lq-head-stk>svg', 'html.lq #app .journey-resource', 'html.lq #scr-planning .pgr-stk svg', 'html.lq .stk-board.is-empty::after', 'html.lq #scr-stickers .stk-grid>li',
+  for (const sel of ['html.lq #app .lq-head-stk>svg', 'html.lq #app .journey-resource', 'html.lq .stk-board.is-empty::after', 'html.lq #scr-stickers .stk-grid>li',
     'html.lq #scr-collection .coll-card', 'html.lq #scr-learn #modules>.home-module', '#lq-streak-toast,#lq-streak-toast *'])
     assert.ok(rm.includes(sel), sel);
   assert.ok(rm.includes('html.lq .sg-wrap.lq-reveal .sg-need:not(.is-in){opacity:1;transform:none}'));

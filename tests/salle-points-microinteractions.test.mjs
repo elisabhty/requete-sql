@@ -37,7 +37,7 @@ test('ref 3 — la barre Insérer ne coupe plus net sa dernière touche : le bor
 });
 
 test('ref 4 — Défis : la salle seule, tirée au sort au niveau choisi ; ses règles de points', () => {
-  assert.ok(app.includes('<div id="defis-room"></div>\n      <div id="defis-join" class="jeu"></div>\n      <div id="defis-rules"></div>'));
+  assert.ok(app.includes('<div id="defis-room"></div>\n      <div id="defis-perf"></div>\n      <div id="defis-join" class="jeu"></div>\n      <div id="defis-rules"></div>'));
   assert.ok(app.includes('<div class="eyebrow">Salle de défi</div>'), 'plus « Entraînement »');
   for (const gone of ['function setDefisLevel(', 'function defiListRow(', 'id="defis-list"', 'id="defis-free"', 'def-list-static'])
     assert.ok(!app.includes(gone), 'retiré : ' + gone);
@@ -106,7 +106,8 @@ test('micro-interactions au lieu des notifications : l’action se voit là où 
   assert.ok(fn('lqSay').includes("s.setAttribute('role','status');s.setAttribute('aria-live','polite');"));
   assert.ok(fn('lqPlanDone').includes("'À jour'"));
   assert.ok(app.includes("lqDone(document.querySelector(`#db-tables .db-tblock[data-table=\"${CSS.escape(name)}\"]`),'Restaurée',"));
-  assert.ok(app.includes("lqDone(document.querySelector('#scr-compte .acct-id-copy b'),'Enregistré','Prénom enregistré');"));
+  /* Depuis le 31 octobre, 8 h 06, le prénom est un pseudo (choisi dès l’onboarding, le même dans les salles de défi). */
+  assert.ok(app.includes("lqDone(document.querySelector('#scr-compte .acct-id-copy b'),'Enregistré','Pseudo enregistré');"));
   assert.ok(css.includes('.lq-say{position:absolute;width:1px;height:1px;') && css.includes('html.lq .lq-done{position:fixed;') && css.includes('@keyframes lqDone{'));
 });
 
