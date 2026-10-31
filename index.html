@@ -9612,6 +9612,481 @@ const CHALLENGE_GUIDES={
  c24:{notion:"FIRST_VALUE + PARTITION BY",raisonnement:"Crée une fenêtre par ville, l’ordonne par âge décroissant et reporte le prénom de la première ligne sur chaque client.",piege:"PARTITION BY conserve les lignes ; GROUP BY les regrouperait en une seule ligne par ville."},
  c25:{notion:"EXISTS corrélé",raisonnement:"Pour chaque client, teste s’il existe au moins une commande dont le client_id correspond. EXISTS s’arrête à la première ligne trouvée.",piege:"Sans la corrélation commandes.client_id = clients.id, tous les clients passent dès qu’il existe une commande."}
 };
+/* Les bases des défis (Elisa, 1er novembre, 0 h 29) : « Dans la partie défis, je ne veux pas travailler sur les défis de la base
+   ecom : je vais te donner des bases avec table cohérente ». Chaque défi dit sur quelle base il tourne (base:'aeroport') ; sans
+   base, c’est celle du cours. Les octets d’une base sont construits une fois, à la première demande (defiBaseBytes).
+   Aéroport : la base d’Elisa, passée en SQLite (dates et heures en texte) et corrigée pour que ses remarques soient vraies :
+   vols sans réservation 21, 38, 39 et 40 ; passagers sans réservation 44 à 55 ; Léa Petit (3) sans bagage sur ses deux vols ;
+   Oliver Smith (21) sur 6 vols ; AlphaJet 10 vols, SkyWings 7 ; bagages perdus 19, 59, 70, retardés 15, 16, 45, 85, poids
+   inconnu 67. */
+const DEFI_BASES={
+  aeroport:{nom:'Aéroport',
+    desc:'Bienvenue dans les coulisses d’un aéroport international. Vols, passagers, compagnies, avions et bagages : toutes les données nécessaires au fonctionnement de l’aéroport sont réunies ici. Explore la base pour résoudre les différentes missions.',
+    sql:`
+CREATE TABLE passagers (
+    id             INTEGER PRIMARY KEY,
+    prenom         VARCHAR(50)  NOT NULL,
+    nom            VARCHAR(50)  NOT NULL,
+    nationalite    VARCHAR(50)  NOT NULL,
+    date_naissance DATE         NOT NULL,
+    email          VARCHAR(120) NOT NULL UNIQUE
+);
+
+CREATE TABLE compagnies (
+    id    INTEGER PRIMARY KEY,
+    nom   VARCHAR(80) NOT NULL,
+    pays  VARCHAR(50) NOT NULL,
+    code  VARCHAR(3)  NOT NULL UNIQUE
+);
+
+CREATE TABLE avions (
+    id             INTEGER PRIMARY KEY,
+    modele         VARCHAR(50) NOT NULL,
+    immatriculation VARCHAR(12) NOT NULL UNIQUE,
+    capacite       INTEGER     NOT NULL,
+    compagnie_id   INTEGER     NOT NULL,
+    FOREIGN KEY (compagnie_id) REFERENCES compagnies(id)
+);
+
+CREATE TABLE aeroports (
+    id    INTEGER PRIMARY KEY,
+    nom   VARCHAR(100) NOT NULL,
+    ville VARCHAR(80)  NOT NULL,
+    pays  VARCHAR(50)  NOT NULL,
+    code  VARCHAR(3)   NOT NULL UNIQUE
+);
+
+CREATE TABLE vols (
+    id                  INTEGER PRIMARY KEY,
+    numero_vol          VARCHAR(10) NOT NULL UNIQUE,
+    compagnie_id        INTEGER     NOT NULL,
+    avion_id            INTEGER     NOT NULL,
+    aeroport_depart_id  INTEGER     NOT NULL,
+    aeroport_arrivee_id INTEGER     NOT NULL,
+    date_depart         DATE        NOT NULL,
+    heure_depart        TIME        NOT NULL,
+    heure_arrivee       TIME        NOT NULL,
+    statut              VARCHAR(20) NOT NULL,
+    FOREIGN KEY (compagnie_id)        REFERENCES compagnies(id),
+    FOREIGN KEY (avion_id)            REFERENCES avions(id),
+    FOREIGN KEY (aeroport_depart_id)  REFERENCES aeroports(id),
+    FOREIGN KEY (aeroport_arrivee_id) REFERENCES aeroports(id)
+);
+
+CREATE TABLE reservations (
+    id               INTEGER PRIMARY KEY,
+    passager_id      INTEGER      NOT NULL,
+    vol_id           INTEGER      NOT NULL,
+    classe           VARCHAR(20)  NOT NULL,
+    siege            VARCHAR(5)   NOT NULL,
+    prix             NUMERIC(8,2) NOT NULL,
+    date_reservation DATE         NOT NULL,
+    FOREIGN KEY (passager_id) REFERENCES passagers(id),
+    FOREIGN KEY (vol_id)      REFERENCES vols(id)
+);
+
+CREATE TABLE bagages (
+    id             INTEGER PRIMARY KEY,
+    reservation_id INTEGER     NOT NULL,
+    poids_kg       NUMERIC(5,2),
+    statut         VARCHAR(20) NOT NULL,
+    FOREIGN KEY (reservation_id) REFERENCES reservations(id)
+);
+
+INSERT INTO compagnies (id, nom, pays, code) VALUES
+(1, 'AlphaJet',    'France',        'ALX'),
+(2, 'SkyWings',    'Allemagne',     'SKY'),
+(3, 'NovaAir',     'Portugal',      'NVA'),
+(4, 'BlueHorizon', 'Espagne',       'BLH'),
+(5, 'AtlanticGo',  'Royaume-Uni',   'ATG'),
+(6, 'Skyline',     'Italie',        'SKL');
+
+INSERT INTO aeroports (id, nom, ville, pays, code) VALUES
+(1,  'Aéroport Paris-Charles-de-Gaulle', 'Paris',       'France',         'CDG'),
+(2,  'Aéroport de Lisbonne',             'Lisbonne',    'Portugal',       'LIS'),
+(3,  'Aéroport de Madrid-Barajas',       'Madrid',      'Espagne',        'MAD'),
+(4,  'Aéroport de Barcelone',            'Barcelone',   'Espagne',        'BCN'),
+(5,  'Aéroport de Berlin',               'Berlin',      'Allemagne',      'BER'),
+(6,  'Aéroport de Francfort',            'Francfort',   'Allemagne',      'FRA'),
+(7,  'Aéroport de Rome-Fiumicino',       'Rome',        'Italie',         'FCO'),
+(8,  'Aéroport de Milan-Malpensa',       'Milan',       'Italie',         'MXP'),
+(9,  'Aéroport de Londres-Heathrow',     'Londres',     'Royaume-Uni',    'LHR'),
+(10, 'Aéroport de Manchester',           'Manchester',  'Royaume-Uni',    'MAN'),
+(11, 'Aéroport de Genève',               'Genève',      'Suisse',         'GVA'),
+(12, 'Aéroport de Vienne',               'Vienne',      'Autriche',       'VIE'),
+(13, 'Aéroport d''Amsterdam',            'Amsterdam',   'Pays-Bas',       'AMS'),
+(14, 'Aéroport de Dublin',               'Dublin',      'Irlande',        'DUB'),
+(15, 'Aéroport de Copenhague',           'Copenhague',  'Danemark',       'CPH'),
+(16, 'Aéroport de New York-JFK',         'New York',    'États-Unis',     'JFK'),
+(17, 'Aéroport de Tokyo-Haneda',         'Tokyo',       'Japon',          'HND'),
+(18, 'Aéroport de Marrakech',            'Marrakech',   'Maroc',          'RAK');
+
+INSERT INTO avions (id, modele, immatriculation, capacite, compagnie_id) VALUES
+(1,  'Airbus A320',   'F-ALX01', 180, 1),
+(2,  'Airbus A321',   'F-ALX02', 220, 1),
+(3,  'Boeing 737-800','D-SKY01', 189, 2),
+(4,  'Airbus A320neo','D-SKY02', 180, 2),
+(5,  'Embraer E190',  'CS-NVA1', 100, 3),
+(6,  'Airbus A319',   'CS-NVA2', 144, 3),
+(7,  'Boeing 787-9',  'EC-BLH1', 296, 4),
+(8,  'Airbus A330',   'EC-BLH2', 260, 4),
+(9,  'Boeing 777-300', 'G-ATG01', 368, 5),
+(10, 'Airbus A350',   'G-ATG02', 300, 5),
+(11, 'Boeing 737 MAX', 'I-SKL01', 178, 6),
+(12, 'Airbus A220',   'I-SKL02', 140, 6),
+(13, 'Airbus A320',   'F-ALX03', 180, 1),
+(14, 'Boeing 787-8',  'G-ATG03', 242, 5);
+
+INSERT INTO passagers (id, prenom, nom, nationalite, date_naissance, email) VALUES
+(1,  'Camille', 'Moreau',    'Française',  '1990-04-12', 'camille.moreau@mail.fr'),
+(2,  'Hugo',    'Bernard',   'Française',  '1985-11-03', 'hugo.bernard@mail.fr'),
+(3,  'Léa',     'Petit',     'Française',  '1998-07-21', 'lea.petit@mail.fr'),
+(4,  'Noé',     'Durand',    'Française',  '2001-02-15', 'noe.durand@mail.fr'),
+(5,  'Emma',    'Roux',      'Française',  '1993-09-30', 'emma.roux@mail.fr'),
+(6,  'Lucas',   'Fournier',  'Française',  '1988-06-08', 'lucas.fournier@mail.fr'),
+(7,  'Chloé',   'Girard',    'Française',  '1995-12-19', 'chloe.girard@mail.fr'),
+(8,  'Nathan',  'Bonnet',    'Française',  '1979-03-25', 'nathan.bonnet@mail.fr'),
+(9,  'Manon',   'Lambert',   'Française',  '2000-08-14', 'manon.lambert@mail.fr'),
+(10, 'Jules',   'Fontaine',  'Française',  '1992-01-07', 'jules.fontaine@mail.fr'),
+(11, 'Anna',    'Schmidt',   'Allemande',  '1987-05-17', 'anna.schmidt@mail.de'),
+(12, 'Lukas',   'Weber',     'Allemande',  '1994-10-02', 'lukas.weber@mail.de'),
+(13, 'Sophie',  'Meyer',     'Allemande',  '1991-03-11', 'sophie.meyer@mail.de'),
+(14, 'Felix',   'Wagner',    'Allemande',  '1983-08-23', 'felix.wagner@mail.de'),
+(15, 'João',    'Silva',     'Portugaise', '1980-04-05', 'joao.silva@mail.pt'),
+(16, 'Maria',   'Costa',     'Portugaise', '1996-09-18', 'maria.costa@mail.pt'),
+(17, 'Pedro',   'Santos',    'Portugaise', '1990-11-29', 'pedro.santos@mail.pt'),
+(18, 'Lucia',   'Fernandez', 'Espagnole',  '1992-02-22', 'lucia.fernandez@mail.es'),
+(19, 'Diego',   'Ramirez',   'Espagnole',  '1986-07-13', 'diego.ramirez@mail.es'),
+(20, 'Marta',   'Lopez',     'Espagnole',  '1999-05-06', 'marta.lopez@mail.es'),
+(21, 'Oliver',  'Smith',     'Britannique','1981-12-01', 'oliver.smith@mail.uk'),
+(22, 'Emily',   'Johnson',   'Britannique','1995-06-27', 'emily.johnson@mail.uk'),
+(23, 'Harry',   'Brown',     'Britannique','1989-09-09', 'harry.brown@mail.uk'),
+(24, 'Chiara',  'Rossi',     'Italienne',  '1993-03-03', 'chiara.rossi@mail.it'),
+(25, 'Marco',   'Ferrari',   'Italienne',  '1984-10-16', 'marco.ferrari@mail.it'),
+(26, 'Giulia',  'Romano',    'Italienne',  '1997-08-08', 'giulia.romano@mail.it'),
+(27, 'Hans',    'Müller',    'Suisse',     '1978-05-20', 'hans.muller@mail.ch'),
+(28, 'Elena',   'Keller',    'Suisse',     '1990-01-30', 'elena.keller@mail.ch'),
+(29, 'Franz',   'Bauer',     'Autrichien', '1985-07-04', 'franz.bauer@mail.at'),
+(30, 'Lisa',    'Huber',     'Autrichien', '1998-11-11', 'lisa.huber@mail.at'),
+(31, 'Daan',    'Jansen',    'Néerlandais','1992-04-24', 'daan.jansen@mail.nl'),
+(32, 'Sanne',   'de Vries',  'Néerlandais','1996-10-10', 'sanne.devries@mail.nl'),
+(33, 'Sean',    'Murphy',    'Irlandais',  '1983-02-18', 'sean.murphy@mail.ie'),
+(34, 'Aoife',   'Kelly',     'Irlandais',  '1994-12-24', 'aoife.kelly@mail.ie'),
+(35, 'Lars',    'Nielsen',   'Danois',     '1987-06-15', 'lars.nielsen@mail.dk'),
+(36, 'Freja',   'Hansen',    'Danois',     '2000-09-05', 'freja.hansen@mail.dk'),
+(37, 'John',    'Miller',    'Américain',  '1975-03-13', 'john.miller@mail.us'),
+(38, 'Sarah',   'Davis',     'Américain',  '1989-08-19', 'sarah.davis@mail.us'),
+(39, 'Kenji',   'Tanaka',    'Japonais',   '1982-11-07', 'kenji.tanaka@mail.jp'),
+(40, 'Yuki',    'Sato',      'Japonais',   '1997-01-22', 'yuki.sato@mail.jp'),
+(41, 'Youssef', 'El Amrani', 'Marocaine',  '1991-05-09', 'youssef.elamrani@mail.ma'),
+(42, 'Salma',   'Bennani',   'Marocaine',  '1995-09-14', 'salma.bennani@mail.ma'),
+(43, 'Inès',    'Lefevre',   'Française',  '2002-04-18', 'ines.lefevre@mail.fr'),
+(44, 'Théo',    'Marchand',  'Française',  '1986-10-21', 'theo.marchand@mail.fr'),
+(45, 'Clara',   'Renard',    'Française',  '1993-12-02', 'clara.renard@mail.fr'),
+(46, 'Paul',    'Giraud',    'Française',  '1978-07-28', 'paul.giraud@mail.fr'),
+(47, 'Alice',   'Chevalier', 'Française',  '1999-03-16', 'alice.chevalier@mail.fr'),
+(48, 'Victor',  'Leroy',     'Française',  '1988-01-25', 'victor.leroy@mail.fr'),
+(49, 'Jade',    'Morel',     'Française',  '2001-06-06', 'jade.morel@mail.fr'),
+(50, 'Gabriel', 'Simon',     'Française',  '1984-09-12', 'gabriel.simon@mail.fr'),
+(51, 'Louise',  'Michel',    'Française',  '1996-02-27', 'louise.michel@mail.fr'),
+(52, 'Arthur',  'Nicolas',   'Française',  '1990-11-15', 'arthur.nicolas@mail.fr'),
+(53, 'Zoé',     'Perrin',    'Française',  '2003-08-03', 'zoe.perrin@mail.fr'),
+(54, 'Raphaël', 'Blanc',     'Française',  '1991-04-09', 'raphael.blanc@mail.fr'),
+(55, 'Nina',    'Guérin',    'Française',  '1994-12-30', 'nina.guerin@mail.fr');
+
+INSERT INTO vols (id, numero_vol, compagnie_id, avion_id, aeroport_depart_id, aeroport_arrivee_id, date_depart, heure_depart, heure_arrivee, statut) VALUES
+(1,  'ALX100', 1, 1,  1, 2,  '2025-06-10', '08:00', '09:30', 'Terminé'),
+(2,  'ALX101', 1, 1,  1, 3,  '2025-06-10', '10:15', '12:00', 'Terminé'),
+(3,  'ALX102', 1, 2,  1, 4,  '2025-06-10', '14:20', '16:05', 'Terminé'),
+(4,  'ALX103', 1, 1,  1, 9,  '2025-06-11', '07:45', '08:55', 'Terminé'),
+(5,  'ALX104', 1, 2,  1, 16, '2025-06-11', '11:30', '14:00', 'Terminé'),
+(6,  'ALX105', 1, 13, 1, 2,  '2025-06-12', '09:00', '10:30', 'Retardé'),
+(7,  'ALX106', 1, 1,  1, 5,  '2025-06-12', '13:15', '14:55', 'À l''heure'),
+(8,  'ALX107', 1, 2,  1, 7,  '2025-06-12', '16:00', '18:00', 'À l''heure'),
+(9,  'ALX108', 1, 13, 1, 18, '2025-06-13', '06:30', '09:15', 'Programmé'),
+(10, 'SKY200', 2, 3,  5, 1,  '2025-06-10', '09:00', '10:45', 'Terminé'),
+(11, 'SKY201', 2, 4,  6, 1,  '2025-06-10', '12:30', '14:10', 'Terminé'),
+(12, 'SKY202', 2, 3,  5, 9,  '2025-06-11', '15:00', '16:35', 'Terminé'),
+(13, 'SKY203', 2, 4,  5, 2,  '2025-06-12', '07:20', '09:35', 'À l''heure'),
+(14, 'SKY204', 2, 3,  6, 3,  '2025-06-12', '10:00', '12:35', 'Retardé'),
+(15, 'SKY205', 2, 4,  5, 13, '2025-06-12', '14:45', '16:10', 'À l''heure'),
+(16, 'SKY206', 2, 3,  6, 1,  '2025-06-13', '08:00', '09:45', 'Programmé'),
+(17, 'NVA300', 3, 5,  2, 1,  '2025-06-10', '07:30', '09:10', 'Terminé'),
+(18, 'NVA301', 3, 5,  2, 3,  '2025-06-11', '11:00', '12:20', 'Terminé'),
+(19, 'NVA302', 3, 6,  2, 9,  '2025-06-12', '09:30', '12:10', 'À l''heure'),
+(20, 'NVA303', 3, 5,  1, 2,  '2025-06-12', '18:00', '19:35', 'À l''heure'),
+(21, 'NVA304', 3, 6,  2, 14, '2025-06-13', '13:15', '15:45', 'Annulé'),
+(22, 'BLH400', 4, 7,  3, 1,  '2025-06-10', '08:45', '10:30', 'Terminé'),
+(23, 'BLH401', 4, 8,  4, 1,  '2025-06-10', '17:00', '18:45', 'Terminé'),
+(24, 'BLH402', 4, 7,  3, 16, '2025-06-11', '10:20', '13:10', 'Terminé'),
+(25, 'BLH403', 4, 8,  4, 2,  '2025-06-12', '09:10', '10:05', 'À l''heure'),
+(26, 'BLH404', 4, 7,  3, 4,  '2025-06-12', '15:30', '16:40', 'Retardé'),
+(27, 'BLH405', 4, 8,  4, 11, '2025-06-13', '11:00', '12:45', 'Programmé'),
+(28, 'ATG500', 5, 9,  9, 1,  '2025-06-10', '06:15', '08:35', 'Terminé'),
+(29, 'ATG501', 5, 10, 9, 16, '2025-06-10', '13:00', '16:30', 'Terminé'),
+(30, 'ATG502', 5, 9,  1, 9,  '2025-06-11', '18:00', '19:10', 'Terminé'),
+(31, 'ATG503', 5, 10, 9, 1,  '2025-06-12', '07:00', '09:20', 'À l''heure'),
+(32, 'ATG504', 5, 14, 1, 16, '2025-06-12', '11:45', '14:15', 'Retardé'),
+(33, 'ATG505', 5, 9,  9, 17, '2025-06-13', '10:30', '23:55', 'Programmé'),
+(34, 'SKL600', 6, 11, 7, 1,  '2025-06-10', '09:20', '11:25', 'Terminé'),
+(35, 'SKL601', 6, 12, 8, 1,  '2025-06-11', '14:10', '16:05', 'Terminé'),
+(36, 'SKL602', 6, 11, 7, 5,  '2025-06-12', '08:50', '10:40', 'À l''heure'),
+(37, 'SKL603', 6, 12, 8, 15, '2025-06-12', '12:00', '14:15', 'À l''heure'),
+(38, 'SKL604', 6, 11, 7, 3,  '2025-06-13', '17:30', '19:45', 'Annulé'),
+(39, 'ALX109', 1, 13, 1, 11, '2025-06-13', '15:00', '16:20', 'Programmé'),
+(40, 'SKL605', 6, 11, 7, 12, '2025-06-13', '09:15', '10:50', 'Programmé');
+
+INSERT INTO reservations (id, passager_id, vol_id, classe, siege, prix, date_reservation) VALUES
+-- Vol 1 (ALX100 CDG→LIS)
+(1,  1,  1, 'Économique', '12A', 120.00, '2025-05-20'),
+(2,  2,  1, 'Affaires',   '2A',  380.00, '2025-05-18'),
+(3,  3,  1, 'Économique', '14C', 110.00, '2025-05-22'),
+(4,  15, 1, 'Premium',    '7B',  220.00, '2025-05-21'),
+-- Vol 2 (ALX101 CDG→MAD)
+(5,  4,  2, 'Économique', '18B', 95.00,  '2025-05-25'),
+(6,  5,  2, 'Économique', '19C', 100.00, '2025-05-26'),
+(7,  18, 2, 'Affaires',   '3A',  340.00, '2025-05-24'),
+-- Vol 3 (ALX102 CDG→BCN)
+(8,  6,  3, 'Premium',    '8A',  210.00, '2025-05-27'),
+(9,  19, 3, 'Économique', '21D', 88.00,  '2025-05-28'),
+-- Vol 4 (ALX103 CDG→LHR)
+(10, 7,  4, 'Affaires',   '1C',  420.00, '2025-05-30'),
+(11, 21, 4, 'Économique', '16A', 130.00, '2025-05-29'),
+(12, 22, 4, 'Premium',    '6D',  240.00, '2025-05-30'),
+-- Vol 5 (ALX104 CDG→JFK)
+(13, 8,  5, 'Affaires',   '4B',  1250.00, '2025-05-15'),
+(14, 37, 5, 'Économique', '25C', 690.00,  '2025-05-17'),
+(15, 38, 5, 'Premium',    '10A', 980.00,  '2025-05-16'),
+-- Vol 6 (ALX105 CDG→LIS, retardé, presque complet)
+(16, 1,  6, 'Économique', '12A', 135.00, '2025-06-01'),
+(17, 3,  6, 'Économique', '14C', 130.00, '2025-06-02'),
+(18, 9,  6, 'Premium',    '7C',  225.00, '2025-06-01'),
+(19, 10, 6, 'Économique', '15B', 140.00, '2025-06-03'),
+(20, 16, 6, 'Économique', '16A', 125.00, '2025-06-02'),
+(21, 17, 6, 'Affaires',   '2C',  390.00, '2025-06-01'),
+(22, 43, 6, 'Économique', '18D', 150.00, '2025-06-03'),
+-- Vol 7 (ALX106 CDG→BER)
+(23, 2,  7, 'Économique', '11A', 110.00, '2025-06-04'),
+(24, 11, 7, 'Premium',    '5B',  210.00, '2025-06-04'),
+-- Vol 8 (ALX107 CDG→FCO)
+(25, 12, 8, 'Économique', '20A', 145.00, '2025-06-05'),
+(26, 24, 8, 'Affaires',   '3B',  410.00, '2025-06-05'),
+-- Vol 10 (SKY200 BER→CDG)
+(27, 11, 10, 'Économique', '14A', 100.00, '2025-05-20'),
+(28, 12, 10, 'Économique', '15B', 105.00, '2025-05-21'),
+(29, 13, 10, 'Premium',    '7A',  195.00, '2025-05-19'),
+-- Vol 11 (SKY201 FRA→CDG)
+(30, 14, 11, 'Économique', '22C', 115.00, '2025-05-23'),
+(31, 6,  11, 'Affaires',   '2B',  360.00, '2025-05-22'),
+-- Vol 12 (SKY202 BER→LHR)
+(32, 11, 12, 'Économique', '18C', 120.00, '2025-05-28'),
+(33, 13, 12, 'Premium',    '6A',  230.00, '2025-05-27'),
+-- Vol 13 (SKY203 BER→LIS, presque complet)
+(34, 12, 13, 'Économique', '10A', 130.00, '2025-06-01'),
+(35, 15, 13, 'Économique', '11B', 128.00, '2025-06-02'),
+(36, 16, 13, 'Affaires',   '1D',  400.00, '2025-06-01'),
+(37, 17, 13, 'Économique', '12C', 132.00, '2025-06-02'),
+(38, 22, 13, 'Premium',    '5A',  220.00, '2025-06-01'),
+-- Vol 14 (SKY204 FRA→MAD, retardé)
+(39, 13, 14, 'Économique', '19A', 105.00, '2025-06-03'),
+(40, 18, 14, 'Économique', '20B', 108.00, '2025-06-03'),
+-- Vol 17 (NVA300 LIS→CDG)
+(41, 15, 17, 'Économique', '13A', 120.00, '2025-05-18'),
+(42, 16, 17, 'Économique', '14B', 122.00, '2025-05-19'),
+(43, 1,  17, 'Affaires',   '2A',  350.00, '2025-05-17'),
+-- Vol 18 (NVA301 LIS→MAD)
+(44, 15, 18, 'Économique', '16C', 95.00,  '2025-05-26'),
+-- Vol 19 (NVA302 LIS→LHR, presque complet)
+(45, 15, 19, 'Premium',    '6B',  250.00, '2025-06-02'),
+(46, 16, 19, 'Économique', '18A', 140.00, '2025-06-03'),
+(47, 21, 19, 'Affaires',   '1B',  430.00, '2025-06-02'),
+(48, 22, 19, 'Économique', '19B', 145.00, '2025-06-03'),
+-- Vol 20 (NVA303 CDG→LIS)
+(49, 17, 20, 'Économique', '20C', 125.00, '2025-06-04'),
+(50, 1,  20, 'Premium',    '5C',  215.00, '2025-06-04'),
+-- Vol 22 (BLH400 MAD→CDG)
+(51, 18, 22, 'Économique', '15A', 110.00, '2025-05-20'),
+(52, 19, 22, 'Premium',    '7C',  205.00, '2025-05-19'),
+(53, 20, 22, 'Économique', '17B', 108.00, '2025-05-21'),
+-- Vol 23 (BLH401 BCN→CDG)
+(54, 19, 23, 'Affaires',   '3C',  380.00, '2025-05-22'),
+-- Vol 24 (BLH402 MAD→JFK)
+(55, 18, 24, 'Économique', '22A', 720.00, '2025-05-26'),
+(56, 37, 24, 'Premium',    '9B',  950.00, '2025-05-25'),
+-- Vol 25 (BLH403 BCN→LIS, presque complet)
+(57, 19, 25, 'Économique', '14A', 98.00,  '2025-06-01'),
+(58, 20, 25, 'Économique', '15B', 100.00, '2025-06-02'),
+(59, 15, 25, 'Premium',    '6C',  190.00, '2025-06-01'),
+-- Vol 26 (BLH404 MAD→BCN, retardé)
+(60, 18, 26, 'Économique', '13C', 85.00,  '2025-06-03'),
+(61, 20, 26, 'Premium',    '5D',  175.00, '2025-06-03'),
+-- Vol 28 (ATG500 LHR→CDG)
+(62, 21, 28, 'Affaires',   '2C',  420.00, '2025-05-18'),
+(63, 23, 28, 'Économique', '18A', 130.00, '2025-05-19'),
+-- Vol 29 (ATG501 LHR→JFK)
+(64, 21, 29, 'Économique', '25A', 680.00, '2025-05-24'),
+(65, 22, 29, 'Affaires',   '3A',  1180.00, '2025-05-23'),
+(66, 37, 29, 'Premium',    '10B', 940.00, '2025-05-25'),
+(67, 38, 29, 'Économique', '26C', 700.00, '2025-05-24'),
+-- Vol 31 (ATG503 LHR→CDG, presque complet)
+(68, 21, 31, 'Premium',    '6D',  235.00, '2025-06-01'),
+(69, 22, 31, 'Économique', '17C', 125.00, '2025-06-02'),
+(70, 23, 31, 'Affaires',   '2B',  405.00, '2025-06-01'),
+-- Vol 32 (ATG504 CDG→JFK, retardé)
+(71, 33, 32, 'Économique', '24A', 710.00, '2025-06-02'),
+(72, 37, 32, 'Affaires',   '4C',  1240.00, '2025-06-03'),
+(73, 38, 32, 'Premium',    '9C',  975.00, '2025-06-02'),
+-- Vol 34 (SKL600 FCO→CDG)
+(74, 24, 34, 'Économique', '16B', 115.00, '2025-05-20'),
+(75, 25, 34, 'Premium',    '7A',  205.00, '2025-05-19'),
+(76, 26, 34, 'Économique', '17C', 118.00, '2025-05-21'),
+-- Vol 35 (SKL601 MXP→CDG)
+(77, 25, 35, 'Affaires',   '2A',  370.00, '2025-05-24'),
+(78, 26, 35, 'Économique', '18A', 112.00, '2025-05-25'),
+-- Vol 36 (SKL602 FCO→BER, presque complet)
+(79, 24, 36, 'Premium',    '6A',  220.00, '2025-06-01'),
+(80, 25, 36, 'Économique', '15C', 125.00, '2025-06-02'),
+(81, 26, 36, 'Économique', '16D', 128.00, '2025-06-02'),
+-- Vol 37 (SKL603 MXP→CPH)
+(82, 24, 37, 'Économique', '14B', 110.00, '2025-06-03'),
+-- Vol 33 (ATG505 LHR→HND)
+(83, 39, 33, 'Affaires',   '3D',  1350.00, '2025-05-28'),
+(84, 40, 33, 'Économique', '22B', 820.00,  '2025-05-29'),
+(85, 21, 33, 'Premium',    '8C',  1050.00, '2025-05-28'),
+-- Vol 9 (ALX108 CDG→RAK)
+(86, 41, 9, 'Économique', '19A', 160.00, '2025-06-04'),
+(87, 42, 9, 'Premium',   '6D',  260.00, '2025-06-04'),
+-- Vol 30 (ATG502 CDG→LHR)
+(88, 23, 30, 'Économique', '15D', 120.00, '2025-06-01'),
+(89, 34, 30, 'Affaires',  '2D',  400.00, '2025-06-01'),
+-- Vol 27 (BLH405 BCN→GVA)
+(90, 27, 27, 'Économique', '12B', 115.00, '2025-06-05'),
+(91, 28, 27, 'Premium',    '6A',  205.00, '2025-06-06'),
+-- Vol 16 (SKY206 FRA→CDG)
+(92, 29, 16, 'Économique', '17A', 110.00, '2025-06-05'),
+(93, 30, 16, 'Économique', '17B', 110.00, '2025-06-05'),
+-- Vol 15 (SKY205 BER→AMS)
+(94, 31, 15, 'Économique', '14C', 98.00,  '2025-06-04'),
+(95, 32, 15, 'Affaires',   '2A',  310.00, '2025-06-03'),
+-- Vol 37 (SKL603 MXP→CPH)
+(96, 35, 37, 'Économique', '15A', 120.00, '2025-06-04'),
+(97, 36, 37, 'Premium',    '7B',  215.00, '2025-06-04');
+
+INSERT INTO bagages (id, reservation_id, poids_kg, statut) VALUES
+(1,  1,  18.50, 'Livré'),
+(2,  2,  22.00, 'Livré'),
+(3,  4,  15.20, 'Livré'),
+(4,  5,  12.00, 'Livré'),
+(5,  6,  20.50, 'Livré'),
+(6,  7,  24.00, 'Livré'),
+(7,  8,  17.80, 'Livré'),
+(8,  9,  14.00, 'Livré'),
+(9,  10, 21.00, 'Livré'),
+(10, 11, 19.00, 'Livré'),
+(11, 12, 23.50, 'Livré'),
+(12, 13, 25.00, 'Livré'),
+(13, 14, 20.00, 'Livré'),
+(14, 15, 22.50, 'Livré'),
+(15, 16, 18.00, 'Retardé'),
+(16, 94, 16.50, 'Retardé'),
+(17, 18, 20.00, 'Livré'),
+(18, 19, 19.50, 'Livré'),
+(19, 20, 17.00, 'Perdu'),
+(20, 21, 23.00, 'Livré'),
+(21, 22, 14.50, 'Enregistré'),
+(22, 23, 18.00, 'Livré'),
+(23, 24, 21.50, 'Livré'),
+(24, 25, 16.00, 'Livré'),
+(25, 26, 22.00, 'Livré'),
+(26, 27, 19.00, 'Livré'),
+(27, 28, 17.50, 'Livré'),
+(28, 29, 20.50, 'Livré'),
+(29, 30, 18.50, 'Livré'),
+(30, 31, 24.50, 'Livré'),
+(31, 32, 16.00, 'Livré'),
+(32, 33, 19.50, 'Livré'),
+(33, 34, 20.00, 'Livré'),
+(34, 35, 18.00, 'Livré'),
+(35, 36, 22.00, 'Livré'),
+(36, 37, 17.00, 'Livré'),
+(37, 38, 21.00, 'Livré'),
+(38, 39, 15.00, 'Livré'),
+(39, 40, 16.50, 'Livré'),
+(40, 41, 19.00, 'Livré'),
+(41, 42, 20.50, 'Livré'),
+(42, 43, 23.00, 'Livré'),
+(43, 44, 14.00, 'Livré'),
+(44, 45, 25.50, 'Livré'),
+(45, 46, 18.00, 'Retardé'),
+(46, 47, 21.00, 'Livré'),
+(47, 48, 17.50, 'Livré'),
+(48, 49, 19.00, 'Livré'),
+(49, 50, 22.50, 'Livré'),
+(50, 51, 18.00, 'Livré'),
+(51, 52, 20.00, 'Livré'),
+(52, 53, 16.00, 'Livré'),
+(53, 54, 23.50, 'Livré'),
+(54, 55, 21.00, 'Livré'),
+(55, 56, 19.50, 'Livré'),
+(56, 57, 17.00, 'Livré'),
+(57, 58, 18.50, 'Livré'),
+(58, 59, 22.00, 'Livré'),
+(59, 60, 15.50, 'Perdu'),
+(60, 61, 20.00, 'Livré'),
+(61, 62, 24.00, 'Livré'),
+(62, 63, 18.00, 'Livré'),
+(63, 64, 21.50, 'Livré'),
+(64, 65, 19.00, 'Livré'),
+(65, 66, 17.50, 'Livré'),
+(66, 67, 22.00, 'Livré'),
+(67, 68, NULL,   'En cabine'),
+(68, 69, 18.50, 'Livré'),
+(69, 70, 20.50, 'Livré'),
+(70, 71, 23.00, 'Perdu'),
+(71, 72, 25.00, 'Livré'),
+(72, 73, 21.00, 'Livré'),
+(73, 74, 18.00, 'Livré'),
+(74, 75, 17.50, 'Livré'),
+(75, 76, 19.00, 'Livré'),
+(76, 77, 22.50, 'Livré'),
+(77, 78, 16.00, 'Livré'),
+(78, 79, 20.00, 'Livré'),
+(79, 80, 18.50, 'Livré'),
+(80, 81, 21.00, 'Livré'),
+(81, 82, 17.00, 'Livré'),
+(82, 83, 24.00, 'Livré'),
+(83, 84, 20.50, 'Livré'),
+(84, 85, 22.00, 'Livré'),
+(85, 86, 19.00, 'Retardé'),
+(86, 87, 16.50, 'Livré'),
+(87, 88, 18.00, 'Livré'),
+(88, 89, 21.50, 'Livré'),
+(89, 90, 19.50, 'Enregistré'),
+(90, 91, 22.00, 'Enregistré'),
+(91, 92, 17.00, 'Enregistré'),
+(92, 93, 15.50, 'Enregistré'),
+(93, 95, 23.00, 'Livré'),
+(94, 96, 18.50, 'Livré'),
+(95, 97, 20.00, 'Livré');
+`}
+};
+const defiBaseOctets={};
+function defiBaseId(c){return c&&c.base&&DEFI_BASES[c.base]?c.base:null;}
+function defiBaseBytes(id){
+  if(!defiBaseOctets[id]){const d=new SQL.Database();try{d.run(DEFI_BASES[id].sql);defiBaseOctets[id]=d.export();}finally{d.close();}}
+  return defiBaseOctets[id];
+}
+/* Une copie de travail de la base du défi (celle du cours s’il n’en a pas) : mêmes réglages que sandbox(). */
+function defiSandbox(c){
+  const id=defiBaseId(c);if(!id)return sandbox();
+  const d=new SQL.Database(defiBaseBytes(id));attachDateFns(d);try{d.run('PRAGMA foreign_keys = ON');}catch(e){}return d;
+}
+/* Le défi affiché dans l’éditeur : celui ouvert seul, ou la manche en cours d’une salle. */
+function defiActif(){
+  if(mode==='defi')return current||null;
+  if(mode==='jeu'&&typeof JEU!=='undefined'&&JEU&&JEU.rounds){const r=JEU.rounds[jeuCur()];return r?CHALLENGES.find(x=>x.id===r.cid)||null:null;}
+  return null;
+}
 const NIV={f:{l:'Facile',c:'f'},m:{l:'Moyen',c:'m'},d:{l:'Difficile',c:'d'}};
 
 /* ============================================================
@@ -12050,7 +12525,10 @@ function errBox(msg){
   const m=msg.toLowerCase(); let aide='';
   if(m.includes('no such column')) aide="Vérifie l'orthographe exacte de la colonne — ou si tu voulais du texte, entoure-le de guillemets simples : <code>'texte'</code>.";
   else if(m.includes('no such table')){
-    const tabs=listTables(activeDb()||db);
+    /* Pendant un défi sur une autre base (Aéroport…), ce sont ses tables à elle. */
+    const dId=defiBaseId(defiActif());let tabs;
+    if(dId){const d=new SQL.Database(defiBaseBytes(dId));try{tabs=listTables(d);}finally{d.close();}}
+    else tabs=listTables(activeDb()||db);
     aide=tabs.length?`Tables disponibles : ${tabs.map(t=>'<code>'+esc(t)+'</code>').join(', ')}.`:"Aucune table dans la base active — importe un fichier pour commencer.";
   }
   else if(m.includes('syntax error')) aide="Requête mal formée — vérifie les mots-clés, les virgules et le point-virgule final.";
@@ -12829,7 +13307,7 @@ function openViz(taId, rawSql){
   if(!sql||!sel){vizSteps=[];vizEmpty(sql?'action':'vide',sql);return;}
   let tmp=null;
   try{
-    tmp=taId==='ed-console'?null:sandbox();
+    tmp=taId==='ed-console'?null:(defiActif()?defiSandbox(defiActif()):sandbox());
     vizSteps=buildSteps(sql,tmp||activeDb())||[];
   }catch(e){ vizSteps=[]; }
   finally{ if(tmp) try{tmp.close();}catch(e){} }
@@ -12864,9 +13342,12 @@ function schemaTableIcon(){
 function renderSchemaSheet(){
   const body=document.getElementById('schema-body');
   if(!body)return;
-  const database=db;
-  const tables=courseTableNames();
-  body.innerHTML=tables.map(name=>{
+  /* Pendant un défi sur une autre base (Aéroport…), le schéma est celui de cette base. */
+  const dId=defiBaseId(defiActif());
+  const database=dId?new SQL.Database(defiBaseBytes(dId)):db;
+  try{
+  const tables=dId?listTables(database):courseTableNames();
+  body.innerHTML=(dId?`<p class="sch-base"><b>Base ${esc(DEFI_BASES[dId].nom)}</b> ${esc(DEFI_BASES[dId].desc)}</p>`:'')+(tables.map(name=>{
     const meta=SCHEMA_META.find(t=>t.table===name);
     const n=database?tableRowCount(database,name):(meta?meta.n:'?');
     const cols=introspectTable(database,name,tables);
@@ -12880,12 +13361,15 @@ function renderSchemaSheet(){
         <span class="ct">${esc(c.t)}</span>
       </div>`).join('')||'<div class="sch-col"><span class="cn">—</span></div>'}
     </div>`;
-  }).join('')||'<p class="viz-e">Aucune table disponible.</p>';
+  }).join('')||'<p class="viz-e">Aucune table disponible.</p>');
+  }finally{if(dId)database.close();}
 }
 function openSchemaSheet(){
   renderSchemaSheet();
   /* L’en-tête violet des feuilles (Notes, Ajuster mon rythme), l’autocollant de la base : la DA de la vitrine (ludique.css, 41) */
-  const n=courseTableNames().length;
+  const dId=defiBaseId(defiActif());
+  const n=dId?document.querySelectorAll('#schema-body .sch-table').length:courseTableNames().length;
+  const tt=document.getElementById('schema-head-title');if(tt)tt.textContent=dId?`Schéma · base ${DEFI_BASES[dId].nom}`:'Schéma · base du cours';
   lqVizCap('schema-sheet','db',`${plur(n,'table')}, leurs colonnes et leurs clés.`);
   document.getElementById('schema-back').classList.add('on');
   document.getElementById('schema-sheet').classList.add('on');
@@ -21544,8 +22028,8 @@ function jeuRun(){
   r.tries=(r.tries||0)+1;
   let userRes,solRes,ms=null;
   try{
-    const dU=sandbox();const t0=performance.now();try{userRes=dU.exec(sql);ms=performance.now()-t0;}finally{dU.close();}
-    const dS=sandbox();try{solRes=dS.exec(c.sol);}finally{dS.close();}
+    const dU=defiSandbox(c);const t0=performance.now();try{userRes=dU.exec(sql);ms=performance.now()-t0;}finally{dU.close();}
+    const dS=defiSandbox(c);try{solRes=dS.exec(c.sol);}finally{dS.close();}
   }catch(e){setLessonOut(errBox(e.message));jeuEssaiRate(r);return;}
   if(exerciseResultsMatch(userRes,solRes,c,true)){
     const took=Date.now()-r.t1;
@@ -21650,7 +22134,7 @@ function openChallenge(cid){
   document.getElementById('back-label').textContent=lessonBackLabel();
   document.getElementById('nav-title').textContent='Défi';
   document.getElementById('lesson-body').innerHTML=`
-    <div class="l-kicker">Défi · ${NIV[c.niv].l}</div><h1>${c.titre}</h1>
+    <div class="l-kicker">Défi · ${NIV[c.niv].l}${defiBaseId(c)?` · Base ${esc(DEFI_BASES[defiBaseId(c)].nom)}`:''}</div><h1>${c.titre}</h1>
     <div class="consigne"><span class="tag">La question</span><p>${esc(c.q)}</p></div>
     ${jeuEligible(c)?challengeHowHTML(c):''}
     <div id="defi-solo-block">
@@ -21903,9 +22387,9 @@ function runLesson(){
       const d1=sandbox(); try{d1.run(sql); userRes=d1.exec(current.verif);}finally{d1.close();}
       const d2=sandbox(); try{d2.run(sol); solRes=d2.exec(current.verif);}finally{d2.close();}
     }else{
-      const dU=sandbox(); const t0=performance.now();
+      const dU=isDefi?defiSandbox(current):sandbox(); const t0=performance.now();
       try{userRes=dU.exec(sql); ms=performance.now()-t0;}finally{dU.close();}
-      const dS=sandbox(); try{solRes=dS.exec(sol);}finally{dS.close();}
+      const dS=isDefi?defiSandbox(current):sandbox(); try{solRes=dS.exec(sol);}finally{dS.close();}
     }
   }catch(e){ setLessonOut(errBox(e.message)); registerExoFail(); return; }
   const ok=exerciseResultsMatch(userRes,solRes,current,isDefi);
