@@ -6640,7 +6640,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=41">
+<link rel="stylesheet" href="ludique.css?v=42">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -9962,6 +9962,8 @@ async function boot(){
     jeuFromUrl();
     resetLeconFromUrl();
     apercuFromUrl();
+    /* Retour d’« Importer une progression » : Mon compte, et la carte « Tes données » dit que c’est fait. */
+    try{if(sessionStorage.getItem('rq-import-ok')){sessionStorage.removeItem('rq-import-ok');switchTab('compte');setTimeout(()=>lqDone(document.querySelector('#scr-compte .acct-data'),'Importée','Progression importée'),500);}}catch(e){}
     tickRappel();
     setInterval(tickRappel,30000);
     document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') tickRappel(); });
@@ -12220,6 +12222,21 @@ function normalizeState(raw){
     salle.mates[n.toLowerCase()]={n,g,w,l:Math.min(salleN(m.l),g-w),at:salleBig(m.at)};
   });
   Object.keys(salle.mates).sort((a,b)=>salle.mates[b].at-salle.mates[a].at).slice(30).forEach(k=>{delete salle.mates[k];});
+  /* Classement général (voir clsEnvoyer) : la clé secrète de l’appareil, les parties qui attendent le réseau, les joueurs masqués
+     (signalés), le choix de ne plus apparaître, l’identifiant public et un pseudo refusé par le filtre. */
+  if(typeof salleSrc.cle==='string'&&/^[A-Za-z0-9]{24,64}$/.test(salleSrc.cle))salle.cle=salleSrc.cle;
+  const uuid=v=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+  if(uuid(salleSrc.clsId))salle.clsId=salleSrc.clsId;
+  if(salleSrc.horsCls)salle.horsCls=1;
+  if(salleSrc.clsRefus){const r=salleNom(salleSrc.clsRefus);if(r)salle.clsRefus=r;}
+  if(Array.isArray(salleSrc.masques)){const m=salleSrc.masques.filter(uuid).slice(-50);if(m.length)salle.masques=m;}
+  if(Array.isArray(salleSrc.envoi)){
+    const q=salleSrc.envoi.filter(p=>p&&typeof p==='object'&&typeof p.u==='string'&&/^[A-Za-z0-9]{6,24}$/.test(p.u)).map(p=>{
+      const n=Math.max(1,Math.min(salleN(p.n),5)),ok=Math.min(salleN(p.ok),n);
+      return {u:p.u,pts:salleN(p.pts),n,ok,solo:p.solo?1:0,niv:['f','m','d'].includes(p.niv)?p.niv:'f'};
+    }).slice(-20);
+    if(q.length)salle.envoi=q;
+  }
   /* Temps d’apprentissage, en secondes : par jour (AAAA-MM-JJ) et par activité (l<id> leçon, d<id> défi, console,
      entretien, jeu). Voir studyTick. */
   const study={days:{},items:{}};
@@ -12794,25 +12811,41 @@ function openViz(taId, rawSql){
   document.getElementById('viz-back').classList.add('on');
   document.getElementById('viz').classList.add('on');
   showKbar(false);
-  if(!/^select/i.test(sql)){
-    vizSteps=[];body.innerHTML=`<div class="feedback warn"><div class="fi">i</div><div><b>Visualisation impossible</b>
-      <p>Le pas à pas ne fonctionne que sur les requêtes <code>SELECT</code>. Un INSERT, UPDATE ou DELETE n'a pas d'étapes intermédiaires à montrer.</p></div></div>`;
-    document.getElementById('viz-dots').innerHTML='';updateVizNav();return;
-  }
+  /* L’en-tête violet quadrillé des autres feuilles, l’autocollant du chemin (la DA de la vitrine) */
+  lqVizCap('viz','route','Ta requête, rejouée une étape à la fois.');
+  const sel=/^(with\b[\s\S]*?\)\s*)?select\b/i.test(sql);
+  if(!sql||!sel){vizSteps=[];vizEmpty(sql?'action':'vide',sql);return;}
   let tmp=null;
   try{
     tmp=taId==='ed-console'?null:sandbox();
     vizSteps=buildSteps(sql,tmp||activeDb())||[];
   }catch(e){ vizSteps=[]; }
   finally{ if(tmp) try{tmp.close();}catch(e){} }
-  if(!vizSteps.length){
-    body.innerHTML=`<div class="feedback warn"><div class="fi">i</div><div><b>Requête trop complexe à décomposer</b>
-      <p>Le visualiseur gère les requêtes SELECT classiques (FROM, WHERE, GROUP BY, HAVING, ORDER BY, LIMIT). Essaie une version plus simple.</p></div></div>`;
-    document.getElementById('viz-dots').innerHTML='';updateVizNav();return;
-  }
+  if(!vizSteps.length){vizEmpty('complexe',sql);return;}
+  document.getElementById('viz').classList.remove('is-empty');
   vizI=0;renderViz();
 }
-function closeViz(){document.getElementById('viz-back').classList.remove('on');document.getElementById('viz').classList.remove('on');document.getElementById('fab').classList.remove('hide');}
+/* Pas d’étapes à montrer (Elisa, 31 octobre, 15 h 16, réf. 7 : « améliorer la page dans la même DA que le site internet ») : un autocollant,
+   une phrase qui dit quoi faire, et le chemin d’un SELECT (FROM, WHERE, GROUP BY, ORDER BY) qui s’allume étape par étape, comme le pas à
+   pas le fera. Requête vide : « Écris d’abord ta requête » (et non plus « Visualisation impossible »). Un seul bouton : « Compris ». */
+function vizEmpty(kind,sql){
+  const verb=(String(sql||'').match(/^\s*([a-z]+)/i)||[])[1];
+  const T={
+    vide:{stk:'pen',t:'Écris d’abord ta requête',p:'Le pas à pas rejoue un <code>SELECT</code> une étape à la fois : la table lue, les lignes filtrées, les groupes, le tri. Écris ta requête dans l’éditeur, puis touche « Pas à pas ».'},
+    action:{stk:'bulb',t:'Le pas à pas suit les SELECT',p:`${verb?`<code>${esc(verb.toUpperCase())}</code>`:'Cette requête'} modifie la base d’un seul coup : il n’y a pas d’étapes intermédiaires à montrer. Exécute-la, puis regarde le résultat avec un <code>SELECT</code>.`},
+    complexe:{stk:'route',t:'Trop d’étapes imbriquées',p:'Le pas à pas suit les <code>SELECT</code> classiques : <code>FROM</code>, <code>WHERE</code>, <code>GROUP BY</code>, <code>HAVING</code>, <code>ORDER BY</code>, <code>LIMIT</code>. Essaie d’abord une version plus simple de ta requête.'}
+  }[kind]||{stk:'bulb',t:'Rien à montrer',p:''};
+  const path=['FROM','WHERE','GROUP BY','ORDER BY'].map((k,i)=>`<li style="--i:${i}"><code>${k}</code></li>`).join('');
+  document.getElementById('viz-body').innerHTML=`<div class="viz-none is-${kind}" role="status">
+      <span class="viz-none-stk" aria-hidden="true">${lqStkSvg(T.stk)}</span>
+      <h3>${T.t}</h3><p>${T.p}</p>
+      <ol class="viz-none-path" aria-label="Les étapes d’un SELECT">${path}</ol>
+    </div>`;
+  document.getElementById('viz-dots').innerHTML='';
+  document.getElementById('viz').classList.add('is-empty');
+  updateVizNav();
+}
+function closeViz(){document.getElementById('viz-back').classList.remove('on');document.getElementById('viz').classList.remove('on','is-empty');document.getElementById('fab').classList.remove('hide');}
 function schemaTableIcon(){
   return `<svg class="ti" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2.2" stroke="currentColor" stroke-width="1.8"/><path d="M4 10h16M9 10v9" stroke="currentColor" stroke-width="1.8"/></svg>`;
 }
@@ -12882,13 +12915,13 @@ function renderViz(){
 }
 function updateVizNav(){
   const p=document.getElementById('viz-prev'),n=document.getElementById('viz-next');
-  const last=!!vizSteps.length&&vizI>=vizSteps.length-1;
-  p.disabled=vizI<=0; n.disabled=!vizSteps.length;
-  n.textContent=last?'Terminer':'Étape suivante';
-  n.classList.toggle('is-end',last);
+  const none=!vizSteps.length,last=!none&&vizI>=vizSteps.length-1;
+  p.disabled=vizI<=0; p.hidden=none; n.disabled=false;
+  n.textContent=none?'Compris':last?'Terminer':'Étape suivante';
+  n.classList.toggle('is-end',last||none);
 }
-/* À la dernière étape, le bouton principal termine (il était grisé, sur « Fin »). */
-function vizGo(d){ if(d>0&&vizSteps.length&&vizI>=vizSteps.length-1){closeViz();return;} const i=vizI+d; if(i<0||i>=vizSteps.length)return; vizI=i; renderViz(); }
+/* À la dernière étape, le bouton principal termine (il était grisé, sur « Fin ») ; sans étapes, « Compris » ferme. */
+function vizGo(d){ if(d>0&&(!vizSteps.length||vizI>=vizSteps.length-1)){closeViz();return;} const i=vizI+d; if(i<0||i>=vizSteps.length)return; vizI=i; renderViz(); }
 
 /* ============================================================
    8. ÉCRANS
@@ -14449,6 +14482,133 @@ function perfRematch(niv){
   if(go){go.classList.remove('is-nudge');void go.offsetWidth;go.classList.add('is-nudge');setTimeout(()=>go.classList.remove('is-nudge'),1400);}
   if(typeof buzz==='function')buzz('light');
 }
+/* ---------- Classement général : le Top 5 de tous les joueurs de l’appli ----------
+   Elisa, 31 octobre, 15 h 16 : « dans la partie performance on n’a pas de top avec les personnes de l’appli (pas que nos amis → tous)
+   Top 5 », « voir les 3 dernières personnes avec qui on a joué », « dans quelques semaines je vais publier l’application sur Apple :
+   comment faire dans ce cas ». Sans compte : l’appareil tire une clé secrète au hasard, gardée dans la progression (elle voyage avec
+   « Exporter ma progression ») ; la base (Supabase, Paris, supabase/migrations) n’en garde que l’empreinte. Chaque partie terminée,
+   seul ou entre amis, envoie ses points une seule fois (identifiant u) ; le serveur vérifie le barème. Pour l’App Store (contenu créé
+   par les joueurs) : le pseudo est filtré (ici, avant l’envoi, et sur le serveur), chaque ligne a « Signaler » (le joueur disparaît
+   aussitôt de ton classement ; trois signalements le masquent pour tous), et Mon compte permet de retirer ses scores. */
+const JEU_PSEUDO_LONGS=['connard','connasse','salope','encul','batard','niquer','niktamer','ntamere','tamere','bougnoul','youpin','nigger','nigga','faggot','hitler','pedoph','tapette','gouine','bitch','fuck','whore','asshole','motherf','putain','enfoire','branleur','branlette','porno','pornhub','sodomi','zoophil','nazisme','chinetoque','bamboula','terroris','jihad','suicid'];
+const JEU_PSEUDO_COURTS=['con','cons','conne','connes','pute','putes','pd','pds','pede','pedes','fdp','ntm','tg','bite','bites','cul','sexe','sex','sexy','merde','nazi','nazis','kkk','sucer','suce','suceur','chatte','couille','couilles','dick','cock','pussy','porn','fag','fags','retard','nique','viol','violer','violeur','fion','zizi','teub','ass','tits','boobs','shit','cunt','slut','negre','negres','negro','bordel','daech','pedo','salaud'];
+/* Comme jeu_pseudo_ok sur le serveur : minuscules sans accents, chiffres lus comme des lettres ; les mots longs refusés partout, les
+   courts seulement en mot entier (« Kinoshita », « Montenegro » passent). */
+function jeuPseudoOk(p){
+  const A='àâäáãåāçćčéèêëēęíìîïīñńóòôöõøōúùûüūýÿœæß',B='aaaaaaaccceeeeeeiiiiinnooooooouuuuuyyoas',C='0134578@$!|€',D='oieastbasiie';
+  const v=Array.from(String(p||'').toLowerCase()).map(ch=>{let i=A.indexOf(ch);if(i>=0)return B[i];i=C.indexOf(ch);return i>=0?D[i]:ch;}).join('');
+  const colle=v.replace(/[^a-z]/g,'');
+  if(JEU_PSEUDO_LONGS.some(w=>colle.includes(w)))return false;
+  return !v.replace(/[^a-z]+/g,' ').trim().split(' ').some(m=>m&&JEU_PSEUDO_COURTS.includes(m));
+}
+const CLS={data:null,at:0,busy:false,err:'',flushing:false};
+function clsSalle(){return state.salle=state.salle&&typeof state.salle==='object'?state.salle:{pts:0,parties:0,best:0};}
+function clsOn(){return !(state.salle&&state.salle.horsCls);}
+function clsCle(){
+  const s=clsSalle();
+  if(typeof s.cle!=='string'||!/^[A-Za-z0-9]{24,64}$/.test(s.cle)){s.cle=jeuRand(32);save();}
+  return s.cle;
+}
+function clsRpc(fn,body){
+  return fetch(JEU_SB+'/rest/v1/rpc/'+fn,{method:'POST',headers:{apikey:JEU_SB_KEY,'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>r.json().catch(()=>null).then(j=>{if(!r.ok)throw Object.assign({status:r.status},j||{});return j;}));
+}
+/* Une partie terminée (jeuCreditGame) : elle part au classement, ou attend le réseau (20 au plus, dans la progression). */
+function clsEnvoyer(p){
+  if(!p||!(p.n>0))return;
+  const s=clsSalle();
+  s.envoi=(Array.isArray(s.envoi)?s.envoi:[]).concat([p]).slice(-20);
+  save();clsFlush();
+}
+function clsFlush(){
+  const s=clsSalle(),q=Array.isArray(s.envoi)?s.envoi:[];
+  if(CLS.flushing||!q.length||!clsOn())return;
+  const nom=jeuSavedNom();
+  if(!nom)return;
+  if(!jeuPseudoOk(nom)){if(s.clsRefus!==nom){s.clsRefus=nom;save();clsPaint();}return;}
+  CLS.flushing=true;
+  clsRpc('jeu_score',{p_cle:clsCle(),p_pseudo:nom,p_partie:q[0]}).then(r=>{
+    CLS.flushing=false;
+    const s2=clsSalle();s2.envoi=(s2.envoi||[]).filter(x=>x.u!==q[0].u);s2.clsId=r&&r.id||s2.clsId;delete s2.clsRefus;save();
+    if(CLS.data&&r)CLS.data.moi=Object.assign({},CLS.data.moi||{},{id:r.id,pts:r.pts,parties:r.parties,rang:r.rang,pseudo:nom});
+    CLS.at=0;
+    if(s2.envoi.length)clsFlush();else clsCharger(true);
+  },e=>{
+    CLS.flushing=false;
+    const m=String(e&&e.message||'');
+    const s2=clsSalle();
+    if(/pseudo/.test(m)){s2.clsRefus=nom;save();clsPaint();return;}
+    /* Une partie que le serveur refuse (barème) ne repart pas ; le reste attend le réseau. */
+    if(/partie invalide/.test(m)){s2.envoi=(s2.envoi||[]).filter(x=>x.u!==q[0].u);save();if(s2.envoi.length)clsFlush();}
+  });
+}
+/* Le pseudo change (Mon compte, salle de défi) : le classement suit. */
+function clsRenommer(){
+  const s=clsSalle(),nom=jeuSavedNom();
+  if(!clsOn()||!s.clsId||!nom)return;
+  if(!jeuPseudoOk(nom)){s.clsRefus=nom;save();return;}
+  delete s.clsRefus;save();
+  clsRpc('jeu_renommer',{p_cle:clsCle(),p_pseudo:nom}).then(()=>{CLS.at=0;},e=>{if(/pseudo/.test(String(e&&e.message||''))){clsSalle().clsRefus=nom;save();}});
+}
+function clsCharger(force){
+  if(CLS.busy||(!force&&CLS.data&&Date.now()-CLS.at<60000))return;
+  CLS.busy=true;
+  const cle=state.salle&&state.salle.cle;
+  clsRpc('jeu_classement',cle?{p_cle:cle}:{}).then(d=>{CLS.busy=false;CLS.data=d&&Array.isArray(d.top)?d:{top:[],moi:null,total:0};CLS.at=Date.now();CLS.err='';clsPaint();},
+    ()=>{CLS.busy=false;CLS.err='net';clsPaint();});
+}
+function clsPts(n){return (+n||0).toLocaleString('fr-FR');}
+function clsTopHTML(){
+  const s=state.salle&&typeof state.salle==='object'?state.salle:{},hide=new Set(Array.isArray(s.masques)?s.masques:[]);
+  const head=`<h3 class="perf-top-h"><span class="perf-top-stk" aria-hidden="true">${lqStkSvg('medal1')}</span>Top 5 · tous les joueurs</h3>`;
+  if(!clsOn())return head+`<p class="perf-top-msg">Tu n’apparais pas au classement général.</p><button type="button" class="perf-top-btn" onclick="clsQuitter()">Y apparaître avec mon pseudo</button>`;
+  const d=CLS.data;
+  if(!d)return head+(CLS.err?`<p class="perf-top-msg">Classement indisponible pour le moment : il faut une connexion internet.</p><button type="button" class="perf-top-btn" onclick="clsCharger(true)">Réessayer</button>`
+    :`<ol class="perf-top-list is-wait" aria-label="Chargement du classement">${[0,1,2,3,4].map(i=>`<li style="--i:${i}"><span class="perf-top-rk"></span><b class="jeu-av is-empty"></b><span class="perf-top-n"><b></b></span></li>`).join('')}</ol>`);
+  const me=d.moi&&d.moi.id,top=(d.top||[]).filter(x=>x&&!hide.has(x.id)).slice(0,5);
+  const refus=s.clsRefus?`<p class="perf-top-msg is-warn">Ton pseudo « ${esc(s.clsRefus)} » n’est pas accepté au classement : change-le dans Mon compte pour y apparaître.</p>`:'';
+  if(!top.length)return head+refus+`<p class="perf-top-msg">Personne n’est encore classé : termine une partie, seul ou entre amis, pour ouvrir le classement.</p>`;
+  const rows=top.map((x,i)=>{const mine=x.id===me,rk=+x.rang||i+1;
+    return `<li class="${mine?'is-me ':''}is-r${Math.min(rk,4)}" style="--i:${i}"><span class="perf-top-rk">${rk<=3?lqStkSvg('medal'+rk):rk}</span>`+
+      `<b class="jeu-av" data-c="${perfColor(x.pseudo)}" aria-hidden="true">${jeuInitial(x.pseudo)}</b>`+
+      `<span class="perf-top-n"><b>${esc(x.pseudo)}${mine?' <small>(toi)</small>':''}</b><small>${plur(+x.parties||0,'partie')}</small></span>`+
+      `<em>${clsPts(x.pts)}<small> pts</small></em>`+
+      (mine?'':`<button type="button" class="perf-top-flag" onclick="clsSignaler('${escAttr(x.id)}')" aria-label="${escAttr(`Signaler le pseudo ${x.pseudo}`)}">${CLS_FLAG_SVG}</button>`)+`</li>`;}).join('');
+  const meIn=me&&top.some(x=>x.id===me);
+  const meLine=d.moi&&!meIn&&d.moi.pts>0?`<p class="perf-top-me"><b>Toi : ${d.moi.rang}<sup>e</sup></b> sur ${clsPts(d.total)} · ${clsPts(d.moi.pts)} points</p>`
+    :!d.moi&&!((s.envoi||[]).length)?`<p class="perf-top-me">Termine une partie pour entrer au classement.</p>`:'';
+  return head+refus+`<ol class="perf-top-list">${rows}</ol>${meLine}<p class="perf-top-note">${esc(d.total>5?`${clsPts(d.total)} joueurs classés. `:'')}Tu y apparais avec ton pseudo. <button type="button" onclick="clsQuitter()">Ne plus apparaître</button></p>`;
+}
+const CLS_FLAG_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 21V4"/><path d="M5.5 4.5h11l-2 3.5 2 3.5h-11"/></svg>';
+function clsPaint(){
+  const el=document.getElementById('perf-top');if(!el)return;
+  el.innerHTML=clsTopHTML();
+  el.classList.remove('is-in');void el.offsetWidth;el.classList.add('is-in');
+}
+/* Signaler un pseudo : il disparaît tout de suite de ton classement (masqué pour toi), et le serveur le compte. */
+function clsSignaler(id){
+  const d=CLS.data,x=d&&(d.top||[]).find(y=>y.id===id);if(!x)return;
+  lqAsk({ico:'🚩',titre:`Signaler « ${x.pseudo} » ?`,texte:'Ce pseudo ne s’affichera plus dans ton classement. Après plusieurs signalements, il est masqué pour tout le monde et vérifié.',oui:'Signaler',non:'Annuler',danger:true})
+    .then(ok=>{
+      if(!ok)return;
+      const s=clsSalle();s.masques=(Array.isArray(s.masques)?s.masques:[]).filter(v=>v!==id).concat([id]).slice(-50);save();
+      clsPaint();lqSay(`${x.pseudo} est signalé et masqué.`);if(typeof buzz==='function')buzz('success');
+      clsRpc('jeu_signaler',{p_cle:clsCle(),p_joueur:id}).catch(()=>{});
+    });
+}
+/* Ne plus apparaître au classement (ses scores sont effacés du serveur), ou y revenir. */
+function clsQuitter(){
+  const s=clsSalle();
+  if(!clsOn()){delete s.horsCls;save();CLS.data=null;CLS.at=0;clsCharger(true);clsPaint();if(document.getElementById('compte-body'))renderCompte();lqSay('Tu apparais de nouveau au classement, dès ta prochaine partie.');return;}
+  lqAsk({ico:'🏆',titre:'Retirer tes scores du classement ?',texte:'Ton pseudo et tes points sont effacés du serveur, et tes prochaines parties ne sont plus envoyées. Ta progression reste sur cet appareil.',oui:'Retirer',non:'Annuler',danger:true})
+    .then(ok=>{
+      if(!ok)return;
+      const cle=s.cle;s.horsCls=1;s.envoi=[];delete s.clsId;save();
+      if(cle)clsRpc('jeu_oublier',{p_cle:cle}).catch(()=>{});
+      CLS.data=null;clsPaint();closePlusDetails();if(document.getElementById('compte-body'))renderCompte();
+      lqSay('Tes scores sont retirés du classement.');
+    });
+}
 function renderDefisPerf(){
   const host=document.getElementById('defis-perf');if(!host)return;
   const s=state.salle&&typeof state.salle==='object'?state.salle:{},num=v=>Math.max(0,Math.floor(+v||0));
@@ -14477,19 +14637,21 @@ function renderDefisPerf(){
   /* Entre amis (Elisa, 31 octobre, 9 h 24 : « mettre aussi le lien avec les personnes qu’on a joué, par exemple un podium animé ») :
      le podium de la dernière partie entre amis, les places gagnées, les amis affrontés et le score entre vous, et de quoi les redéfier. */
   const vsLast=hist.find(h=>!h.solo&&Array.isArray(h.ppl)&&h.ppl.length>1),meLast=vsLast&&vsLast.ppl.find(x=>x.me);
+  /* Les 3 dernières personnes avec qui on a joué (Elisa, 31 octobre, 15 h 16), la plus récente en premier, et le score entre vous. */
   const mates=Object.values(s.mates&&typeof s.mates==='object'?s.mates:{}).filter(m=>m&&m.n&&num(m.g)>0)
-    .map(m=>({n:m.n,g:num(m.g),w:num(m.w),l:num(m.l),at:num(m.at)})).sort((a,b)=>b.g-a.g||b.at-a.at).slice(0,5);
+    .map(m=>({n:m.n,g:num(m.g),w:num(m.w),l:num(m.l),at:num(m.at)})).sort((a,b)=>b.at-a.at||b.g-a.g).slice(0,3);
   const friends=`<div class="perf-block perf-friends"><h3>Entre amis</h3>
     <p class="perf-pod-cap">${vsLast?`<b>Ta dernière partie</b> · ${esc(perfDay(vsLast.at))} · ${esc(JEU_NIVL[vsLast.niv]||'Facile')} · ${esc(perfWith(vsLast))}`:'Ton prochain podium entre amis s’affichera ici.'}</p>
     ${perfPodiumHTML(vsLast)}${meLast&&meLast.place>3?`<p class="perf-pod-me">Toi : ${meLast.place}e · ${meLast.pts} ${plur(meLast.pts,'point')}</p>`:''}
     ${pods}
-    ${mates.length?`<h4>Tes adversaires</h4><ul class="perf-mates">${mates.map(perfMateHTML).join('')}</ul>`:''}
+    <h4>${mates.length>1?`Tes ${mates.length} derniers adversaires`:mates.length?'Ton dernier adversaire':'Tes derniers adversaires'}</h4>${mates.length?`<ul class="perf-mates">${mates.map(perfMateHTML).join('')}</ul>`:'<p class="perf-note">Tes 3 derniers adversaires s’afficheront ici, avec le score entre vous.</p>'}
     <button type="button" class="perf-rematch" onclick="perfRematch('${vsLast?vsLast.niv:''}')">${JEU_FRIENDS_SVG}<span>${mates.length?'Les redéfier':'Jouer entre amis'}</span>${DEF_CHEV_SVG}</button>
   </div>`;
   const rows=hist.slice(0,4).map((h,i)=>`<li style="--i:${i}"><span class="perf-rk${!h.solo&&h.place>=1&&h.place<=3?' is-medal':''}">${perfBadge(h)}</span><span class="perf-g"><b>${esc(perfGame(h))}</b><small>${perfDay(h.at)} · ${h.ok}/${h.n} ${plur(h.ok,'trouvé')}${h.ok?` · ${jeuChrono(h.ms)}`:''}</small></span><em>+${h.pts}</em></li>`).join('');
   host.innerHTML=`<section class="perf-card${parties?'':' is-empty'}" aria-labelledby="perf-h">
     <div class="perf-head"><span class="perf-stk" aria-hidden="true">${lqStkSvg('chart')}</span><div><p class="perf-kicker">Tableau de bord</p><h2 id="perf-h">Tes performances</h2></div></div>
     <div class="perf-kpis">${kpi(' is-sun',pts,plur(pts,'point'),0)}${kpi('',parties,plur(parties,'partie'),1)}${kpi('',best||null,'record',2)}</div>
+    <div class="perf-block perf-top" id="perf-top">${clsTopHTML()}</div>
     <div class="perf-duo">${ring}${times}</div>
     <div class="perf-block"><h3>Tes dernières parties</h3>${chart}</div>
     ${manches?`<div class="perf-block"><h3>Réussite par niveau</h3><ul class="perf-lv">${lvRows}</ul></div>
@@ -14497,6 +14659,7 @@ function renderDefisPerf(){
     ${rows?`<div class="perf-block"><h3>Historique</h3><ol class="perf-hist">${rows}</ol></div>`:''}
   </section>`;
   perfReveal(host.firstElementChild);
+  clsFlush();clsCharger();
 }
 /* Toucher une barre : elle passe devant, sa partie s’écrit dessous. */
 function perfPick(b){
@@ -20711,13 +20874,15 @@ function jeuTick(){
   jeuFlush();
   jeuHostWatch();
   const n=jeuCur(),el=document.getElementById('jeu-timer');
-  if(el&&n>=0){const took=Date.now()-J.rounds[n].t1;el.textContent=jeuChrono(took);el.classList.toggle('is-low',JEU_ROUND_MS-took<30000);
-    const bar=document.getElementById('jeu-tbar');if(bar)bar.style.setProperty('--t',Math.min(1,Math.max(0,took/JEU_ROUND_MS)).toFixed(3));}
+  /* Le chrono seul, sans barre de temps (Elisa, 31 octobre, 15 h 16, réf. 5 : « ne pas mettre la barre, laisse que le chrono ») */
+  if(el&&n>=0){const took=Date.now()-J.rounds[n].t1;el.textContent=jeuChrono(took);el.classList.toggle('is-low',JEU_ROUND_MS-took<30000);}
   if(jeuView()!==J.view||jeuSig()!==J.sig)jeuPaint();
 }
 /* Redessiner la même vue (réglage changé, nouvel hôte, temps reçu…) sans perdre la page, le focus
    ni la requête en cours de frappe. */
-function jeuHostBarHTML(){return jeuIsHost()?`<button type="button" class="jeu-close" onclick="jeuClose()">${JEU.solo?'Voir la solution':'Clore la manche maintenant'}</button>`:'';}
+/* Seul, pas de « Voir la solution » pendant la manche (Elisa, 31 octobre, 15 h 16, réf. 6) : la solution se découvre à la fin de la
+   manche (trouvée ou temps écoulé). Entre amis, l’hôte peut clore la manche pour tout le monde. */
+function jeuHostBarHTML(){return jeuIsHost()&&!JEU.solo?'<button type="button" class="jeu-close" onclick="jeuClose()">Clore la manche maintenant</button>':'';}
 function jeuRedraw(){
   const J=JEU;if(!J)return;
   /* En manche : seul le bouton de l’hôte change, l’éditeur n’est pas touché. */
@@ -20849,7 +21014,6 @@ function jeuRender(){
     const mine=r.found[J.me]!=null;
     const took0=Date.now()-r.t1;
     html=`<div class="jeu-bar"><span class="l-kicker">Manche ${n+1}/${J.nb} · ${JEU_NIVL[c.niv]}</span><b class="jeu-timer${JEU_ROUND_MS-took0<30000?' is-low':''}" id="jeu-timer" role="timer" aria-label="Chrono de la manche">${jeuChrono(took0)}</b></div>
-      <i class="jeu-tbar" id="jeu-tbar" style="--t:${Math.min(1,Math.max(0,took0/JEU_ROUND_MS)).toFixed(3)}" aria-hidden="true"></i>
       <h1>${esc(c.titre)}</h1>
       <div class="consigne"><span class="tag">La question</span><p>${esc(c.q)}</p></div>
       ${J.solo?'':`<ul class="jeu-players is-live" id="jeu-players" aria-label="Qui a trouvé">${jeuPlayersHTML('play')}</ul>`}
@@ -21020,6 +21184,8 @@ function jeuCreditGame(){
     s.hist=[Object.assign({at:Date.now(),pts,n:played.length,ok:mine.length,ms,niv:k,solo:J.solo?1:0,place,players:Math.max(1,sc.length)},ppl?{ppl}:{})]
       .concat(Array.isArray(s.hist)?s.hist:[]).slice(0,12);
     save();
+    /* Le classement général : la partie part une seule fois (u), seul ou entre amis. */
+    if(typeof clsEnvoyer==='function'&&played.length)clsEnvoyer({u:jeuRand(10),pts,n:Math.min(5,played.length),ok:mine.length,solo:J.solo?1:0,niv:k});
   }catch(e){}
 }
 function jeuRun(){
@@ -24974,7 +25140,7 @@ function renderEntretienFocus(x){
         `<div class="ent-answer-lock"><span class="ent-answer-lock-ico" aria-hidden="true">${lqStkSvg('bubble')}</span><b>À toi de répondre</b><p>Prends quelques secondes pour structurer ta réponse avant de regarder.</p><button type="button" class="ent-reveal-primary" onclick="revealEntretien('${x.id}')">${ENT_EYE_SVG}<span>Révéler la réponse</span></button></div>`}
     </section>
     ${revealed?`<div class="ent-assessment"><p>Comment évalues-tu ta réponse ?</p>${entFoot(x.id)}</div>
-      <button type="button" class="ent-next" onclick="nextEntretien('${x.id}')"><span>Question suivante</span>${ENT_CHEV_SVG}</button>`:''}
+      <button type="button" class="ent-next" onclick="nextEntretien('${x.id}')"><span>${entNextTarget(x.id)?'Question suivante':'Retour aux questions'}</span>${ENT_CHEV_SVG}</button>`:''}
   </article>`;
 }
 function renderEntretien(opts){
@@ -25071,17 +25237,23 @@ function startEntretien(){
   const target=pool.find(x=>!entOk(x.id))||pool[0]||entAllItems()[0];
   if(target)openEntretienQuestion(target.id);
 }
-function nextEntretien(id){
+/* « Question suivante » reste dans l’onglet choisi (Elisa, 31 octobre, 15 h 16, réf. 2 : « la question qui est à revoir si on est dans
+   l’onglet à revoir, toutes si on est dans toutes et maîtrisées quand on est dans maîtrisées ») : la suivante dans l’ordre de la liste,
+   à partir de la question ouverte, parmi celles de l’onglet (et du thème choisi). Plus aucune autre : retour à la liste. */
+function entInTab(x){ return entStatus==='ok'?entOk(x.id):entStatus==='review'?!entOk(x.id):true; }
+function entNextTarget(id){
   const pool=entAllItems().filter(x=>entFilter==='all'||x.q.cat===entFilter);
-  if(!pool.length)return;
-  const current=Math.max(0,pool.findIndex(x=>x.id===id));
-  let target=null;
-  for(let offset=1;offset<=pool.length;offset++){
-    const candidate=pool[(current+offset)%pool.length];
-    if(!entOk(candidate.id)){ target=candidate; break; }
+  const cur=pool.findIndex(x=>x.id===id);
+  for(let k=1;k<=pool.length;k++){
+    const c=pool[(Math.max(-1,cur)+k)%pool.length];
+    if(c.id!==id&&entInTab(c))return c;
   }
-  target=target||pool[(current+1)%pool.length];
-  openEntretienQuestion(target.id);
+  return null;
+}
+function nextEntretien(id){
+  const target=entNextTarget(id);
+  if(target){ openEntretienQuestion(target.id); return; }
+  entOpen=null; renderEntretien(); entScrollTop();
 }
 function entretienBack(){
   if(entOpen){
@@ -26240,7 +26412,7 @@ function paintOb(){
     const privacy=obLegalMode==='privacy';
     html=`<div class="ob-screen ob-legal-screen">${obBackButton()}<h1 class="ob-title" id="ob-title">${privacy?'Politique de confidentialité':'Conditions d’utilisation'}</h1>
       <div class="legal-copy">${privacy
-        ? `<p>Tu peux utiliser Requête <b>sans compte</b>. Dans ce mode, ta progression reste uniquement sur cet appareil.</p><ul><li>Leçons, défis, notes, planning et bases importées sont enregistrés localement.</li><li>Le moteur SQL tourne dans ton navigateur.</li><li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li></ul><p>Si tu choisis plus tard de te connecter, Requête indiquera clairement quelles données seront synchronisées et permettra de supprimer ton compte.</p>`
+        ? `<p>Tu peux utiliser Requête <b>sans compte</b>. Dans ce mode, ta progression reste uniquement sur cet appareil.</p><ul><li>Leçons, défis, notes, planning et bases importées sont enregistrés localement.</li><li>Le moteur SQL tourne dans ton navigateur.</li><li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec un identifiant tiré au hasard (pas ton nom ni ton e-mail). Tu peux retirer tes scores à tout moment dans Mon compte, Données et confidentialité.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li></ul><p>Si tu choisis plus tard de te connecter, Requête indiquera clairement quelles données seront synchronisées et permettra de supprimer ton compte.</p>`
         : `<p>Requête est une application d’apprentissage du SQL. Le contenu est fourni à des fins pédagogiques.</p><p>Tu peux commencer sans compte, exporter ta progression et l’effacer depuis Mon compte.</p><p>Les options de connexion ne deviennent actives que lorsqu’un fournisseur d’authentification sécurisé est configuré.</p>`}</div></div>`;
     obSetFooter('','','','','');
   }else if(slide==='welcome'){
@@ -26612,7 +26784,9 @@ function plusIcon(kind){
     help:'<circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.4 2.4 0 1 1 3.5 2.1c-.9.5-1.3 1-1.3 2M12 17h.01"/>',
     reading:'<path d="M3.5 18 8.5 5.5 13.5 18M5.5 13.5h6"/><path d="M14.5 18l3.2-7.5 3.3 7.5M15.6 15.5h4.2"/>',
     trash:'<path d="M4.5 7h15"/><path d="M9.5 7V4.5h5V7"/><path d="M6.5 7l1 12.5h9l1-12.5"/><path d="M10 11v5.5M14 11v5.5"/>',
-    replay:'<path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v4h4"/>'
+    replay:'<path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v4h4"/>',
+    import:'<path d="M12 3.5v11.5M7.5 10.5 12 15l4.5-4.5"/><path d="M5 13v7h14v-7"/>',
+    trophy:'<path d="M8 4h8v5.5a4 4 0 0 1-8 0z"/><path d="M8 6H5.5a2.6 2.6 0 0 0 2.8 3.6M16 6h2.5a2.6 2.6 0 0 1-2.8 3.6M12 13.5v3M8.5 20h7l-.8-3.5H9.3z"/>'
   };
   return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">${paths[kind]||paths.account}</svg>`;
 }
@@ -26636,8 +26810,19 @@ function closePlusDetails(){
   if(!el)return;
   const id=el.id;
   el.open=false;
+  try{if(document.activeElement&&el.contains(document.activeElement))document.activeElement.blur();}catch(e){}
   document.querySelector(`[onclick="openPlusDetails('${id}')"]`)?.focus({preventScroll:true});
 }
+/* Clavier ouvert (iPhone) : la feuille ouverte remonte au-dessus du clavier, là où on la voit. Sans cela, iOS laisse la feuille derrière le
+   clavier et décale la page : le toucher d’« Enregistrer » tombait à côté et la feuille ne se fermait pas (Elisa, 31 octobre, 15 h 16,
+   réf. 9). --kb : la hauteur cachée par le clavier, 0 sans clavier. */
+(function(){
+  const vv=window.visualViewport;if(!vv)return;
+  let raf=0;
+  const fit=()=>{raf=0;const kb=Math.max(0,Math.round(window.innerHeight-vv.height-vv.offsetTop));document.documentElement.style.setProperty('--kb',(kb>60?kb:0)+'px');};
+  const ask=()=>{if(!raf)raf=requestAnimationFrame(fit);};
+  vv.addEventListener('resize',ask);vv.addEventListener('scroll',ask);fit();
+})();
 /* Niveau SQL de Mon compte : un palier selon la part du parcours validée,
    et l’avancée jusqu’au palier suivant. */
 const ACCOUNT_LEVELS=[
@@ -26798,9 +26983,9 @@ function renderCompte(){
         <div class="acc-field">
           <label for="acc-name">Pseudo</label>
           <input id="acc-name" type="text" maxlength="16" value="${esc(name).replace(/"/g,'&quot;')}" placeholder="Ex. Léa" autocomplete="nickname" enterkeyhint="done" onkeydown="if(event.key==='Enter'){event.preventDefault();saveAccountName();}">
-          <button class="acc-save" type="button" onclick="saveAccountName()">Enregistrer</button>
+          <button class="acc-save" type="button" onpointerdown="event.preventDefault()" onclick="saveAccountName()">Enregistrer</button>
         </div>
-        <button class="acc-row" type="button" onclick="startOnboarding('name')">
+        <button class="acc-row" type="button" onclick="closePlusDetails();startOnboarding('name')">
           <span class="acc-row-ico" aria-hidden="true">${plusIcon('target')}</span>
           <div class="at"><b>Personnalisation</b><small>${esc(profileSummary)}</small></div>
           ${CHEV}</button>
@@ -26835,10 +27020,18 @@ function renderCompte(){
     <details class="plus-details" id="plus-data">
       <summary><span>Données et confidentialité</span><small>Tu gardes le contrôle de tes informations.</small><i aria-hidden="true">×</i></summary>
       <div class="plus-details-body">
-        <p class="account-data-note">Tes données d’apprentissage restent sur cet appareil tant que tu utilises le mode sans compte. Seule la salle de défi entre amis partage ton pseudo et tes temps avec les autres joueurs.</p>
+        <p class="account-data-note">Tes données d’apprentissage restent sur cet appareil tant que tu utilises le mode sans compte. Seuls la salle de défi entre amis (ton pseudo et tes temps, avec les autres joueurs) et le classement général (ton pseudo et tes points) passent par le serveur de l’appli.</p>
         <button class="acc-row" type="button" onclick="exportProgress()">
           <span class="acc-row-ico" aria-hidden="true">${plusIcon('export')}</span>
-          <div class="at"><b>Exporter ma progression</b><small>Fichier JSON, à garder de ton côté</small></div>
+          <div class="at"><b>Exporter ma progression</b><small>Leçons, défis, cartes, notes, planning et projets, dans un fichier</small></div>
+          ${CHEV}</button>
+        <button class="acc-row" type="button" onclick="importProgress()">
+          <span class="acc-row-ico" aria-hidden="true">${plusIcon('import')}</span>
+          <div class="at"><b>Importer une progression</b><small>Le fichier exporté, depuis un autre appareil</small></div>
+          ${CHEV}</button>
+        <button class="acc-row" type="button" onclick="clsQuitter()">
+          <span class="acc-row-ico" aria-hidden="true">${plusIcon('trophy')}</span>
+          <div class="at"><b>${clsOn()?'Retirer mes scores du classement':'Revenir au classement général'}</b><small>${clsOn()?'Ton pseudo et tes points sont effacés du serveur':'Ton pseudo et tes points réapparaissent au Top 5'}</small></div>
           ${CHEV}</button>
         <button class="acc-row danger" type="button" onclick="resetAllProgress()">
           <span class="acc-row-ico danger" aria-hidden="true">${plusIcon('trash')}</span>
@@ -26888,7 +27081,7 @@ function openLegal(kind){
       <p>Requête est une app d’apprentissage SQL. Tu peux l’utiliser <b>sans compte</b> : ta progression reste alors sur cet appareil.</p>
       <ul>
         <li>Prénom, leçons, défis, notes et planning : stockés en local dans le navigateur.</li>
-        <li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
+        <li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec un identifiant tiré au hasard (pas ton nom ni ton e-mail). Tu peux retirer tes scores à tout moment dans Mon compte, Données et confidentialité.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
         <li>Le moteur SQL tourne dans le navigateur.</li>
         <li>Le rappel quotidien n’envoie une notification que si tu l’actives (permission du navigateur), à l’heure choisie.</li>
       </ul>
@@ -26923,10 +27116,12 @@ function saveAccountName(){
   try{const n=jeuNom(state.name);if(n)localStorage.setItem('rq-jeu-nom',n);else localStorage.removeItem('rq-jeu-nom');}catch(e){}
   closePlusDetails();
   save(); renderGreeting(); renderCompte();
+  if(typeof clsRenommer==='function')clsRenommer();
   lqDone(document.querySelector('#scr-compte .acct-id-copy b'),'Enregistré','Pseudo enregistré');
   if(navigator.vibrate)navigator.vibrate(10);
 }
 function replayOnboarding(){
+  closePlusDetails();
   state.onboarded=false; save();
   startOnboarding();
 }
@@ -26950,15 +27145,54 @@ async function saveFile(blob,fileName,title){
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
   return 'download';
 }
+/* Exporter ma progression (Elisa, 31 octobre, 15 h 16, réf. 3 : « vérifie que c’est bien la progression qui est exportée ») : tout l’état
+   de l’appli (leçons et révisions, défis, cartes mémo, notes, planning, questions d’entretien, salle de défi et classement, autocollants,
+   réglages), et ce qui est gardé à côté : réponses et position des vidéos, quiz « À toi de choisir » réussis, requêtes à trous, projets
+   et bases importées. Le même fichier se réimporte (ici, ou dans l’appli iPhone) avec « Importer une progression ». */
+const EXPORT_EXTRA=k=>k===LV_ANS_KEY||k===LV_POS_KEY||k===PROJ_KEY||k===DBS_KEY||/^rq-(jc-pass|qf)-/.test(k)||
+  ['requete-console','requete-rappel','requete-rappel-heure','rq-video-vitesse','rq-jeu-prefs','rq-jeu-nom'].includes(k);
+function progressPayload(){
+  const extra={};
+  try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&EXPORT_EXTRA(k)){const v=localStorage.getItem(k);if(v!=null)extra[k]=v;}}}catch(e){}
+  return {v:1,app:'requete-sql',exportedAt:new Date().toISOString(),state:normalizeState(state),extra};
+}
 async function exportProgress(){
-  const payload={v:1,exportedAt:new Date().toISOString(),state};
-  const fileName='requete-sql-progression.json';
-  const how=await saveFile(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),fileName,'Ma progression Requête');
-  if(how)toast('Progression exportée',how==='share'?'Garde ce fichier de ton côté.':fileName);
+  const fileName=`requete-progression-${new Date().toISOString().slice(0,10)}.json`;
+  const how=await saveFile(new Blob([JSON.stringify(progressPayload(),null,2)],{type:'application/json'}),fileName,'Ma progression Requête');
+  if(!how)return;
+  closePlusDetails();
+  lqDone(document.querySelector('#scr-compte .acct-data'),'Exportée',how==='share'?'Progression exportée : garde ce fichier de ton côté.':`Progression exportée : ${fileName}`);
+}
+/* Importer une progression : le fichier d’« Exporter ma progression » remplace celle de cet appareil (après confirmation), puis l’appli
+   redémarre pour tout redessiner. */
+function importProgress(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='application/json,.json';
+  inp.onchange=()=>{
+    const f=inp.files&&inp.files[0];if(!f)return;
+    const rd=new FileReader();
+    rd.onload=()=>{
+      let p=null;try{p=JSON.parse(String(rd.result||''));}catch(e){}
+      if(!p||p.v!==1||!p.state||typeof p.state!=='object'){lqInfo('Fichier non reconnu','Choisis le fichier créé par « Exporter ma progression » (requete-progression-….json).','📄');return;}
+      const st=normalizeState(p.state),nl=Object.values(st.lessons||{}).filter(l=>l&&(l.done||l.level>0)).length,nd=Object.keys(st.defis||{}).length;
+      lqAsk({ico:'📥',titre:'Remplacer ta progression ?',texte:`Ce fichier contient ${plur(nl,'leçon')} commencée${nl>1?'s':''}, ${plur(nd,'défi')} réussi${nd>1?'s':''} et ${plur((st.notes||[]).length,'note')}. Ta progression actuelle sur cet appareil sera remplacée.`,oui:'Importer',non:'Annuler',danger:true})
+        .then(ok=>{
+          if(!ok)return;
+          try{Object.entries(p.extra&&typeof p.extra==='object'?p.extra:{}).forEach(([k,v])=>{if(EXPORT_EXTRA(k)&&typeof v==='string')localStorage.setItem(k,v);});}catch(e){}
+          state=st;state.onboarded=true;save();
+          try{sessionStorage.setItem('rq-import-ok','1');}catch(e){}
+          setTimeout(()=>location.reload(),350);
+        });
+    };
+    rd.readAsText(f);
+  };
+  inp.click();
 }
 async function resetAllProgress(){
   if(!confirm('Effacer toute ta progression ? Cette action est définitive (sauf si tu as exporté avant).'))return;
   if(!confirm('Dernière confirmation : leçons, défis, notes et planning seront vidés.'))return;
+  /* La feuille se ferme une fois l’action faite (réf. 9) ; les points du classement général partent avec la progression. */
+  closePlusDetails();
+  try{const cle=state.salle&&state.salle.cle;if(cle&&typeof clsRpc==='function')clsRpc('jeu_oublier',{p_cle:cle}).catch(()=>{});}catch(e){}
   state={lessons:{},defis:{},notes:[],plan:null,onboarded:true,name:state.name||'',profile:state.profile||{},accountMode:state.accountMode||'guest',accountProvider:state.accountProvider,accountLabel:state.accountLabel,entretien:state.entretien||{}};
   save(); stkSync(); buildDb(); baseBytes=db.export(); attachDateFns(db); /* voir boot : export() perd les fonctions ajoutées au moteur */
   renderModules(); renderDefis(); renderProgress();
@@ -27128,7 +27362,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-31-defis-supabase-v2211';
+  const SW_CACHE='requete-2026-10-31-top5-retours-v2212';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

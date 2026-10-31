@@ -105,6 +105,8 @@ function perfCtx(salle) {
     jeuInitial: n => String(n || '?').trim().charAt(0).toUpperCase(), JEU_FRIENDS_SVG: '<svg data-k="friends"></svg>', DEF_CHEV_SVG: '<svg data-k="chev"></svg>',
     esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'),
     escAttr: s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'),
+    /* Le Top 5 de tous les joueurs a ses propres tests (classement.test.mjs) */
+    clsTopHTML: () => '', clsFlush() {}, clsCharger() {},
   });
   vm.runInContext(fn('jeuChrono') + fn('perfDay') + fn('perfWith') + fn('perfGame') + fn('perfBadge') + fn('perfColor') + fn('perfPodiumHTML') + fn('perfMateHTML') + fn('renderDefisPerf') + ';renderDefisPerf();', ctx);
   return host.innerHTML;

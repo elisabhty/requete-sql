@@ -200,6 +200,8 @@ function perfCtx(salle) {
     esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'),
     escAttr: s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'),
     jeuInitial: n => String(n || '?').trim().charAt(0).toUpperCase(), JEU_FRIENDS_SVG: '<svg data-k="friends"></svg>', DEF_CHEV_SVG: '<svg data-k="chev"></svg>',
+    /* Le Top 5 de tous les joueurs a ses propres tests (classement.test.mjs) */
+    clsTopHTML: () => '<p data-k="top5"></p>', clsFlush() {}, clsCharger() {},
   });
   vm.runInContext(['jeuChrono', 'perfDay', 'perfWith', 'perfGame', 'perfBadge', 'perfColor', 'perfPodiumHTML', 'perfMateHTML', 'renderDefisPerf'].map(fn).join('') + ';renderDefisPerf();', ctx);
   return host.innerHTML;
@@ -220,14 +222,16 @@ test('réf 4 — « Entre amis » : le podium de la dernière partie, les advers
   assert.deepEqual(steps, ['<div class="jeu-step is-2" style="--i:0">', '<div class="jeu-step is-1 is-me" style="--i:1">', '<div class="jeu-step is-3" style="--i:2">'], '2e, 1er (toi), 3e');
   assert.ok(h.includes('<span class="jeu-step-n">Elisa <small>(toi)</small></span><small>412 pts</small>'));
   assert.ok(h.includes('<span class="jeu-medal perf-medal"><svg data-k="medal1"></svg></span>'), 'médailles autocollantes');
-  assert.ok(h.includes('<h4>Tes adversaires</h4><ul class="perf-mates">'));
+  /* Elisa, 31 octobre, 15 h 16 : « voir les 3 dernières personnes avec qui on a joué » */
+  assert.ok(h.includes('<h4>Tes 3 derniers adversaires</h4><ul class="perf-mates">'));
+  assert.ok(h.includes('<div class="perf-block perf-top" id="perf-top"><p data-k="top5"></p></div>'), 'le Top 5 de tous les joueurs, sous les chiffres');
   const mates = [...h.matchAll(/<li class="(is-\w+)" style="--i:\d"><b class="jeu-av" data-c="\d" aria-hidden="true">(.)<\/b><span class="perf-mate"><b>([^<]+)<\/b><small>([^<]+)<\/small><\/span><span class="perf-h2h" role="img" aria-label="([^"]+)"><em>(\d)<i>–<\/i>(\d)<\/em><small>([^<]+)<\/small>/g)]
     .map(m => [m[1], m[3], m[4], m[5], m[6] + '–' + m[7], m[8]]);
   assert.deepEqual(mates, [
-    ['is-down', 'Zoé', '3 parties ensemble · ' + mates[0][2].split(' · ')[1], '0 fois devant, 2 fois derrière, 1 ex æquo', '0–2', 'à rattraper'],
     ['is-eq', 'Léa', '2 parties ensemble · aujourd’hui', '1 fois devant, 1 fois derrière', '1–1', 'à égalité'],
     ['is-up', 'Tom', '1 partie ensemble · aujourd’hui', '1 fois devant, 0 fois derrière', '1–0', 'tu mènes'],
-  ], 'les plus affrontés d’abord, et le score entre vous');
+    ['is-down', 'Zoé', '3 parties ensemble · ' + mates[2][2].split(' · ')[1], '0 fois devant, 2 fois derrière, 1 ex æquo', '0–2', 'à rattraper'],
+  ], 'les plus récents d’abord (à égalité, les plus affrontés), et le score entre vous');
   assert.ok(h.includes(`<button type="button" class="perf-rematch" onclick="perfRematch('m')"><svg data-k="friends"></svg><span>Les redéfier</span>`), 'les redéfier, au niveau de la dernière partie');
   assert.ok(h.includes('<span class="perf-g"><b>Entre amis · Moyen · avec Léa et Tom</b>'), 'l’historique dit avec qui');
   /* Quatrième : sous le podium, sa place et ses points ; deux ex æquo partagent une marche ; une marche vide attend */
@@ -240,7 +244,8 @@ test('réf 4 — « Entre amis » : le podium de la dernière partie, les advers
   /* Seulement seul jusqu’ici : le podium vide qui attend, et de quoi jouer entre amis */
   const s = perfCtx({ pts: 300, parties: 1, best: 300, manches: 3, trouves: 3, amis: 0, pl: [0, 0, 0], lv: { f: [3, 3] }, hist: [{ at: now, pts: 300, n: 3, ok: 3, ms: 1, niv: 'f', solo: 1, place: 0, players: 1 }] });
   assert.ok(s.includes('Ton prochain podium entre amis s’affichera ici.') && s.includes('<div class="jeu-podium perf-podium is-ghost">'));
-  assert.ok(s.includes("onclick=\"perfRematch('')\"") && s.includes('<span>Jouer entre amis</span>') && !s.includes('Tes adversaires'));
+  assert.ok(s.includes("onclick=\"perfRematch('')\"") && s.includes('<span>Jouer entre amis</span>') && !s.includes('<ul class="perf-mates">'));
+  assert.ok(s.includes('<h4>Tes derniers adversaires</h4><p class="perf-note">Tes 3 derniers adversaires s’afficheront ici, avec le score entre vous.</p>'));
 });
 
 test('réf 4 — le podium s’anime quand il arrive à l’écran ; « Les redéfier » prépare la salle', () => {
