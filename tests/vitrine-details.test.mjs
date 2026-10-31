@@ -293,7 +293,8 @@ test('contact : pièces jointes (images et fichiers), choisies, glissées ou col
   assert.ok(h.includes("if(CONTACT_EMAIL&&PJ.length&&navigator.canShare&&navigator.share&&navigator.canShare({files:PJ})){") && h.includes("navigator.share({title:'[Requête] '+sujet,text:'À envoyer à '+CONTACT_EMAIL+'\\n\\n'+corps,files:PJ})"), 'partage avec les fichiers');
   assert.ok(h.includes("(PJ.length?'\\n\\nPièces jointes : '+noms:'')") && h.includes('avant d’envoyer.'), 'le message nomme les fichiers');
   assert.ok(h.includes('Ton prénom, ton e-mail, ton message et tes fichiers servent seulement à te répondre.'), 'mention sous le formulaire');
-  assert.ok(lire('confidentialite.html').includes('ton message et les fichiers que tu y joins (captures d’écran, documents), seulement pour te répondre.'), 'politique de confidentialité');
+  /* 18 h 49 : la même puce parle aussi des messages envoyés depuis l’appli (Nous contacter) */
+  assert.ok(lire('confidentialite.html').includes('ton message et les fichiers que tu y joins (captures d’écran, documents). Ces messages servent seulement à te répondre et à corriger l’appli'), 'politique de confidentialité');
   assert.match(css, /\.ct-drop\{position:relative;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:16px;border:2px dashed #D3C8FF;/);
   assert.match(css, /@media \(hover:none\)\{\.ct-drop-pc\{display:none\}\}/, 'sur téléphone, pas d’invitation à glisser des fichiers');
 });

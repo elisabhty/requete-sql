@@ -63,12 +63,20 @@ npm run ios
   pour tous), l’adresse de contact est sur le site. À surveiller : la vue `jeu_moderation` dans l’éditeur SQL de
   Supabase liste les pseudos signalés (Apple demande d’agir vite, sous 24 h) ; `update jeu_joueur set masque = true
   where id = '…'` masque un joueur.
+- **Nous contacter** (Mon compte, à la place de l’ancienne aide) : le sujet (bug, idée, question, autre), le message,
+  l’e-mail s’il est donné et, pour un bug, des infos techniques décochables (version, appareil, navigateur, mode, écran,
+  langue) partent dans la table `contact_message` (fonction `contact_envoyer`, 3 messages en 10 min et 20 par jour par
+  appareil ; effacés au bout de 3 ans). **Pour lire les messages** : tableau de bord Supabase, Table Editor, vue
+  `contact_boite` (le plus récent en haut) ; cocher `lu` dans `contact_message` une fois traité. Dans App Store Connect,
+  déclarer « Adresse e-mail » (facultative), « Autre contenu utilisateur » (le message) et « Autres données de
+  diagnostic » (les infos techniques) ; usage « Assistance client » (et « Fonctionnalités de l’app » pour les bugs) ;
+  non liés à l’identité, sans pistage. Cela répond aussi à l’exigence d’un moyen de contact dans l’app.
 - **Effacement** : « Retirer mes scores du classement » et « Effacer la progression » suppriment les données du
   serveur depuis l’appli (pas de compte, donc pas de suppression de compte à prévoir).
 - **Passer du site à l’app** : Mon compte › Données › « Exporter ma progression » sur le site, puis « Importer une
   progression » dans l’app : leçons, défis, notes, planning, projets et la place au classement suivent.
-- **Politique de confidentialité** : Apple demande une URL publique. Le texte existe dans l’app
-  (Compte › Données et confidentialité) : publie-le aussi sur une page web.
+- **Politique de confidentialité** : Apple demande une URL publique (decouvrir/confidentialite.html). Dans l’app,
+  Compte › Données et confidentialité › « Comprendre mes données » la résume.
 - **Suppression des données** : « Effacer la progression » existe déjà dans Compte.
   Si des comptes arrivent un jour, il faudra aussi pouvoir supprimer le compte depuis l’app.
 - **Rappel quotidien** : dans l’app, il devient une notification locale programmée chaque jour

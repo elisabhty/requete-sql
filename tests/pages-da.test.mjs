@@ -53,7 +53,8 @@ test('Pratiquer et Bibliothèque : un autocollant par entrée, les entrées arri
 });
 
 test('Mon compte : les chiffres et chaque réglage portent leur autocollant ; la carte d’identité en scène violette', () => {
-  assert.ok(app.includes("const ACCT_STK={account:'user',route:'route',bell:'bell',reading:'eye',privacy:'shield',help:'help'};"));
+  /* 18 h 49 : « Nous contacter » (la bulle) remplace l’aide */
+  assert.ok(app.includes("const ACCT_STK={account:'user',route:'route',bell:'bell',reading:'eye',privacy:'shield',help:'help',contact:'bubble'};"));
   const acct = app.slice(app.indexOf('function renderCompte(){'), app.indexOf('function openLegal('));
   assert.equal((acct.match(/<span class="plus-row-icon \w+ is-stk">\$\{lqStkSvg\(ACCT_STK\.\w+\)\}<\/span>/g) || []).length, 7);
   assert.ok(!acct.includes('${plusIcon(\'account\')}</span><span><b>Profil'), 'plus de pictogramme au trait dans les réglages');
