@@ -145,13 +145,83 @@ const READ_CPS = 17;
 const readTime = h => plain(h).length / READ_CPS;
 /* Pause supplémentaire à un instant précis (lire un tableau, une carte…), en plus de celles des légendes. */
 function hold(t, d){ EXTRA_HOLDS.push([+t.toFixed(2), d]); }
+/* Voix off (Elisa, 31 octobre : la voix d’Agathe, ElevenLabs). La page donne VOICE = {dir, intro, caps, say} : chaque légende
+   reçoit sa phrase, [fichier, début, fin] en secondes dans le fichier du chapitre (caps : [clé de la légende, fichier, début, fin]).
+   La phrase part VOICE_LEAD s après l’arrivée de la légende ; s’il manque du temps, l’image attend la fin de la phrase (au dernier
+   instant libre de la légende, rien en plein mouvement) et la légende reste encore VOICE_TAIL s. La voix de l’intro part à
+   VOICE_INTRO s. say : les phrases jouées hors de la timeline (consignes « À toi », réactions, indices, messages à toucher).
+   ?novoix : la vidéo sans voix, avec ses pauses de lecture d’origine. */
+const VOICE_LEAD = 0.15, VOICE_TAIL = 0.3, VOICE_INTRO = 0.35;
+let VCFG = null, VOICE_MISSING = [];   // la voix donnée par la page (VOICE), une fois rattachée aux légendes
+/* Clé d’une légende : l’empreinte de son texte, sans balises, accents ni ponctuation (l’outil d’intégration, tools/voix/integrer.mjs,
+   la calcule avec cette même fonction). Une empreinte plutôt que le texte : la page ne répète pas ses légendes. */
+const vkey = h => { let x = 5381; for (const ch of plain(h).normalize('NFD').replace(/\p{M}+/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()) x = (x * 33 + ch.charCodeAt(0)) | 0; return 'v' + (x >>> 0).toString(36); };
+/* La phrase d’une légende : un objet {voice} posé après ses valeurs (la 4e valeur reste le nombre de lignes). */
+const voiceOf = c => { for (let k = 3; k < c.length; k++) if (c[k] && c[k].voice) return c[k].voice; return null; };
+function withVoice(cfg){
+  VCFG = cfg.voice;
+  const caps = new Map((VCFG.caps || []).map(([k, f, a, b]) => [k, [f, a, b]])), used = new Set();
+  const captions = cfg.captions.map(c => {
+    const k = vkey(c[2]), v = caps.get(k);
+    if (!v) return c;
+    used.add(k);
+    return c.concat([{voice: v}]);
+  });
+  VOICE_MISSING = [...caps.keys()].filter(k => !used.has(k));
+  return Object.assign({}, cfg, {captions});
+}
+/* L’instant de [lo, hi] où poser une pause : le dernier où rien n’est en plein mouvement (hors ambiance) ; à défaut, celui qui
+   coupe le moins de choses, un mouvement lent (2 s ou plus : une image qui respire) comptant peu ; hi s’il n’y a rien de mieux. */
+function freeAt(lo, hi){
+  const tw = tl.getChildren(true, true, false).filter(c => !(c.vars && c.vars.data === 'amb'))
+    .map(c => [c.startTime(), c.startTime() + c.totalDuration()]).filter(([a, b]) => b - a > 0.002 && b > lo && a < hi);
+  const cost = t => tw.reduce((s, [a, b]) => s + (a < t - 0.001 && b > t + 0.001 ? (b - a >= 2 ? 0.1 : 1) : 0), 0);
+  const cand = [hi].concat(...tw.map(([a, b]) => [a - 0.01, b + 0.01])).filter(t => t >= lo && t <= hi).sort((x, y) => y - x);
+  let best = hi, bc = Infinity;
+  for (const t of cand) { const c = cost(t); if (c < bc - 1e-9) { bc = c; best = t; } if (!c) break; }
+  return best;
+}
+/* Pauses de la page entre lo et hi, sauf celle qui tomberait au même instant que at (les deux n’en font qu’une, mergeHolds). */
+const holdsIn = (lo, hi, at) => EXTRA_HOLDS.filter(([h]) => h > lo && h < hi && Math.abs(h - at) >= 0.12).reduce((s, h) => s + Math.max(0, h[1]), 0);
+/* Pause d’une légende lue par la voix : le temps de dire la phrase (ou de la lire, si c’est plus long). Les pauses de la page
+   dans la légende comptent, sauf celle qui tomberait au même instant (les deux n’en font qu’une, mergeHolds). */
+function voiceHold(a, b, v, readMiss){
+  const at = freeAt(a + 0.6, b - 0.25);
+  const room = (b - 0.2) - (a + VOICE_LEAD) - cutIn(a + VOICE_LEAD, b - 0.2) + holdsIn(a + VOICE_LEAD, b - 0.2, at);
+  const miss = Math.max(readMiss, (v[2] - v[1]) + VOICE_TAIL - room);
+  return miss > 0.05 ? [+at.toFixed(2), Math.ceil(miss * 20) / 20] : null;
+}
+/* Ce que le lecteur de l’app reçoit (window.__ready.voice) : chaque phrase {src, o : début dans le fichier, d : durée}, avec t
+   (son début dans la vidéo) pour celles de la timeline ; les consignes des moments (picks), leurs indices (tips), les messages à
+   toucher (opens), « Bien vu ! » (ok) et « Pas tout à fait… » (ko) ; les fichiers à précharger ; les légendes sans phrase (missing). */
+function voiceOut(captions, nPicks, nOpens, end){
+  if (!VCFG) return null;
+  const src = f => new URL((VCFG.dir || '') + f + '.mp3', location.href).href;
+  const clip = v => v ? {src: src(v[0]), o: +(+v[1]).toFixed(3), d: +(v[2] - v[1]).toFixed(3)} : null;
+  const clips = [];
+  if (VCFG.intro) clips.push(Object.assign({t: unwarp(VOICE_INTRO)}, clip(VCFG.intro)));
+  captions.forEach(c => { const v = voiceOf(c); if (v && c[0] < end) clips.push(Object.assign({t: unwarp(c[0] + VOICE_LEAD)}, clip(v))); });
+  const say = VCFG.say || {}, s = k => clip(say[k]), n = (k, m) => Array.from({length: m}, (_, i) => s(k + (i + 1)));
+  clips.sort((x, y) => x.t - y.t);
+  return {clips, picks: n('at', nPicks), tips: n('indice', nPicks), opens: n('touche', nOpens), ok: s('bienvu'), ko: s('presque'),
+    files: [...new Set(clips.map(c => c.src).concat(Object.values(say).map(v => src(v[0]))))], missing: VOICE_MISSING};
+}
+/* L’intro : la voix part à VOICE_INTRO s ; l’image attend qu’elle finisse avant que tout s’en aille (0,6 s avant le chapitre 1). */
+function introVoiceHold(chapters){
+  if (!VCFG || !VCFG.intro || !chapters.length) return [];
+  const end = chapters[0].a - 0.6, v = VCFG.intro, at = freeAt(VOICE_INTRO + 1.5, end - 0.05);
+  const miss = (v[2] - v[1]) + VOICE_TAIL - (end - VOICE_INTRO - cutIn(VOICE_INTRO, end) + holdsIn(VOICE_INTRO, end, at));
+  return miss > 0.05 ? [[+at.toFixed(2), Math.ceil(miss * 20) / 20]] : [];
+}
 /* Une légende reste lisible de son fondu d’entrée (a + 0,3 s) au début de son fondu de sortie (b − 0,2 s) ;
-   s’il manque du temps pour la lire, l’image s’arrête juste avant qu’elle ne s’efface. */
+   s’il manque du temps pour la lire, l’image s’arrête juste avant qu’elle ne s’efface. Lue par la voix : voiceHold. */
 function captionHolds(captions, end){
   const out = [];
-  captions.forEach(([a, b, text]) => {
+  captions.forEach(([a, b, text, ...more]) => {
     if (b >= end) return;
     const miss = readTime(text) - ((b - 0.2) - (a + 0.3) - cutIn(a + 0.3, b - 0.2));
+    const v = voiceOf([a, b, text, ...more]);
+    if (v) { const h = voiceHold(a, b, v, miss); if (h) out.push(h); return; }
     if (miss > 0.05) out.push([+(b - 0.25).toFixed(2), Math.ceil(miss * 20) / 20]);
   });
   return out;
@@ -893,13 +963,18 @@ function recapEnd(a, end){
 const RECAP_REST = 1.2;
 function recapRest(captions, end){
   const c = captions[captions.length - 1];
-  const miss = c && c[1] >= end ? readTime(c[2]) - ((end - 0.05) - (c[0] + 0.3) - cutIn(c[0] + 0.3, end)) : 0;
+  let miss = c && c[1] >= end ? readTime(c[2]) - ((end - 0.05) - (c[0] + 0.3) - cutIn(c[0] + 0.3, end)) : 0;
+  /* Lue par la voix : l’image reste jusqu’à la fin de la phrase, puis encore VOICE_TAIL s. */
+  const v = c && c[1] >= end ? voiceOf(c) : null;
+  if (v) miss = Math.max(miss, (v[2] - v[1]) + VOICE_TAIL - ((end - 0.05) - (c[0] + VOICE_LEAD) - cutIn(c[0] + VOICE_LEAD, end)));
   return [[+(end - 0.02).toFixed(2), Math.ceil((Math.max(0, miss) + RECAP_REST) * 20) / 20]];
 }
 
 /* ---------- Le cours ---------- */
 /* cfg : {duration, chapters, captions, questions, picks, notesAt, glyphs, dom(), build(), onRender(T)} */
 function Course(cfg){
+  /* La voix off, avant les moments : chaque légende emporte sa phrase là où les moments la déplacent. */
+  if (cfg.voice && !QS.has('novoix')) cfg = withVoice(cfg);
   /* Les moments « À toi » ajoutés aux cours d’avant le projet (moments.js) : leurs temps deviennent ceux de la vidéo avec ses moments. */
   if (cfg.moments && !QS.has('nomoments')) cfg = withMoments(cfg);   // ?nomoments : la vidéo sans ses moments (pour en placer de nouveaux)
   let {duration, chapters, captions, questions = [], picks = [], opens = [], notesAt = null} = cfg;
@@ -959,7 +1034,7 @@ function Course(cfg){
     if (RECAP_A != null) { duration = recapEnd(RECAP_A, duration); captions = captions.filter(c => c[0] < duration - 0.3); rest = recapRest(captions, duration); }
     tl.set({}, {}, duration);
     confettiCues();
-    HOLDS = mergeHolds(captionHolds(captions, duration).concat(EXTRA_HOLDS.filter(h => h[0] < duration), rest)).concat(CUTS.filter(c => c[0] < duration)).sort((x, y) => x[0] - y[0]);
+    HOLDS = mergeHolds(captionHolds(captions, duration).concat(EXTRA_HOLDS.filter(h => h[0] < duration), rest, introVoiceHold(chapters))).concat(CUTS.filter(c => c[0] < duration)).sort((x, y) => x[0] - y[0]);
     capFxPrune(HOLDS.filter(h => h[1] > 0).map(h => h[0]).concat(picks.concat(opens).map(p => p.at)), CUTS);
     const total = HOLDS.reduce((a, h) => a + h[1], 0);
     out = +(duration + total).toFixed(3);
@@ -993,7 +1068,9 @@ function Course(cfg){
       /* hand : {x, y}, le bout d’un doigt seul (sans bulle), en fraction de l’élément, quand la légende dit déjà quoi faire (Elisa, 25 octobre, 16 h 21). */
       opens: opens.map(o => ({t: unwarp(o.at), sel: o.sel, prompt: fr(o.prompt), label: o.label, hand: o.hand || null})),
       /* Légendes en texte : le lecteur les annonce à VoiceOver au fil de l’animation. */
-      captions: captions.map(c => ({a: unwarp(c[0]), b: unwarp(Math.min(c[1], duration)), text: plain(c[2])}))};
+      captions: captions.map(c => ({a: unwarp(c[0]), b: unwarp(Math.min(c[1], duration)), text: plain(c[2])})),
+      /* Voix off : les phrases calées sur la vidéo (t : leur début, en temps de la vidéo) et celles jouées à part (say) ; null sans voix. */
+      voice: voiceOut(captions, picks.length, opens.length, duration)};
   })();
   /* Une seule image, à l’instant donné (?at=2.9) : sert à fabriquer la vignette du cours. */
   if (QS.has('at')) window.__ready.then(() => renderAt(+QS.get('at') || 0));

@@ -14973,6 +14973,88 @@ const LvSfx=(()=>{
     stop(){ live.forEach(s=>{ try{s.stop();}catch(e){} }); live.clear(); }
   };
 })();
+/* ---------- Voix off des cours (Elisa, 31 octobre : la voix d’Agathe, ElevenLabs) ----------
+   La page du cours donne ses phrases (__ready.voice) : celles de la timeline (t : début dans la vidéo, o : début dans le fichier,
+   d : durée) et celles dites à part (consignes « À toi », réactions, indices, messages à toucher). Une seule balise <audio> les lit
+   toutes : lancée une fois pendant le premier appui sur Lire (unlock), elle joue ensuite sans appui sur iPhone, et passe même en
+   mode silencieux, comme une vidéo. Les fichiers du cours sont gardés en mémoire (blob) : une phrase part sans attendre le réseau.
+   La vitesse de la vidéo s’applique à la voix sans changer sa hauteur ; le bouton son la coupe avec le reste. */
+const LvVoice=(()=>{
+  let el=null, muted=false, rate=1, src='', seekTo=null, sayClip=null, sayRaf=0, playT=-1e9, onBlock=null, noBlob=false;
+  const blobs=new Map(), loading=new Map(), bad=new Set();
+  function audio(){
+    if(el)return el;
+    el=document.createElement('audio');
+    el.preload='auto'; el.setAttribute('playsinline',''); el.setAttribute('x-webkit-airplay','deny');
+    try{ el.preservesPitch=true; el.webkitPreservesPitch=true; el.mozPreservesPitch=true; }catch(e){}
+    el.addEventListener('loadedmetadata',()=>{ if(seekTo!=null){ try{ el.currentTime=seekTo; }catch(e){} seekTo=null; } el.playbackRate=rate; });
+    /* Fichier en mémoire illisible (certaines vues web refusent les blob:) : on repasse par son adresse, une fois ; sinon il est sauté. */
+    el.addEventListener('error',()=>{ if(!src)return; if(el.src.startsWith('blob:')){ noBlob=true; const at=seekTo!=null?seekTo:el.currentTime; el.src=src; seekTo=at; try{ el.load(); }catch(e){} if(sayClip||!el.paused)go(); } else bad.add(src); });
+    el.muted=muted;
+    return el;
+  }
+  /* Une phrase : le fichier (en mémoire s’il y est déjà), puis la position ; un autre fichier se charge avant d’y aller. */
+  function load(s,at){
+    const a=audio();
+    if(src!==s){ src=s; seekTo=at; a.src=(!noBlob&&blobs.get(s))||s; a.defaultPlaybackRate=rate; a.playbackRate=rate; try{ a.load(); }catch(e){} return; }
+    if(a.readyState>=1){ seekTo=null; if(Math.abs(a.currentTime-at)>.04)try{ a.currentTime=at; }catch(e){} }
+    else seekTo=at;
+  }
+  function go(){
+    const a=audio(); if(muted||bad.has(src))return;
+    if(a.playbackRate!==rate)a.playbackRate=rate;
+    if(!a.paused)return;
+    const now=performance.now(); if(now-playT<150)return; playT=now;
+    const p=a.play(); if(p&&p.then)p.then(()=>{ a._ok=true; },e=>{ if(e&&e.name==='NotAllowedError'&&onBlock)onBlock(); });
+  }
+  return {
+    /* Fichiers du cours : téléchargés deux à la fois, dans l’ordre de la vidéo. */
+    preload(files){
+      const list=(files||[]).filter(f=>!blobs.has(f)&&!loading.has(f)); let i=0;
+      const next=()=>{ if(i>=list.length)return; const f=list[i++];
+        loading.set(f,fetch(f).then(r=>r.ok?r.blob():null).then(b=>{ if(b&&b.size)blobs.set(f,URL.createObjectURL(b)); else bad.add(f); }).catch(()=>{}).finally(()=>{ loading.delete(f); next(); })); };
+      next(); next();
+    },
+    /* Pendant un appui (Lire, le son remis) : la balise est lancée puis arrêtée aussitôt, ce qui la déverrouille sur iPhone ;
+       refait à chaque appui tant qu’aucune phrase n’a pu jouer. */
+    unlock(first){
+      const a=audio(); if(a._ok||!a.paused)return;
+      if(!src&&first)load(first.src,first.o);
+      try{ const p=a.play(); if(p&&p.catch)p.catch(()=>{}); a.pause(); }catch(e){}
+    },
+    /* Phrase de la timeline, à off s de son début. */
+    start(c,off){ this.stopSay(); load(c.src,c.o+Math.max(0,off)); playT=-1e9; go(); },
+    /* À chaque image : la voix suit la vidéo (relancée si elle s’est arrêtée, recalée si elle a dérivé de plus de 0,3 s). */
+    keep(c,off){
+      if(muted)return;
+      if(sayClip||src!==c.src){ this.start(c,off); return; }
+      const a=audio();
+      if(a.readyState>=2&&seekTo==null&&!a.seeking&&Math.abs((a.currentTime-c.o)-off)>.3*Math.max(1,rate))try{ a.currentTime=c.o+off; }catch(e){}
+      go();
+    },
+    /* La phrase peut-elle partir (fichier chargé, position atteinte) ? Un fichier en échec ne fait jamais attendre. */
+    ready(){ const a=el; return !a||muted||bad.has(src)||(a.readyState>=3&&seekTo==null&&!a.seeking); },
+    pause(){ if(el&&!el.paused)el.pause(); },
+    stop(){ this.stopSay(); if(el&&!el.paused)el.pause(); },
+    /* Phrase dite à part (consigne, réaction, indice) : jouée jusqu’à la fin de son passage, puis la balise s’arrête. */
+    say(c){
+      if(!c||muted)return;
+      const a=audio(); this.stopSay(); sayClip=c; load(c.src,c.o); playT=-1e9; go();
+      const end=c.o+c.d;
+      const tick=()=>{ if(sayClip!==c)return;
+        if(a.readyState>=2&&seekTo==null&&!a.seeking&&(a.currentTime>=end-.02||a.ended)){ a.pause(); sayClip=null; return; }
+        go(); sayRaf=requestAnimationFrame(tick); };
+      sayRaf=requestAnimationFrame(tick);
+    },
+    stopSay(){ if(!sayClip)return; cancelAnimationFrame(sayRaf); sayClip=null; if(el&&!el.paused)el.pause(); },
+    setRate(r){ rate=+r||1; if(el){ el.defaultPlaybackRate=rate; el.playbackRate=rate; } },
+    setMuted(m){ muted=!!m; if(el)el.muted=muted; if(muted)this.stop(); },
+    onBlocked(fn){ onBlock=fn; },
+    /* Fermeture du cours : la mémoire est rendue. */
+    release(){ this.stop(); if(el){ try{ el.removeAttribute('src'); el.load(); }catch(e){} el=null; } src=''; seekTo=null; blobs.forEach(u=>{ try{ URL.revokeObjectURL(u); }catch(e){} }); blobs.clear(); bad.clear(); },
+    stats(){ return {src,state:el?el.readyState:-1,paused:!el||el.paused,t:el?+el.currentTime.toFixed(2):0,rate:el?el.playbackRate:rate,cached:blobs.size,saying:!!sayClip,muted}; }
+  };
+})();
 /* ---------- Animation jouée comme une vidéo ----------
    L’animation du cours vit dans une page à part (iframe, même origine) qui expose renderAt(t) et __ready.
    LvAnim lui donne l’interface d’une balise <video> (play, pause, currentTime, playbackRate, muted, événements),
@@ -14984,6 +15066,8 @@ class LvAnim{
     this._rate=1; this.defaultPlaybackRate=1; this._muted=false;
     this.raf=0; this.last=0; this.ci=0; this.lastTU=0; this.wantPlay=false; this.dead=false;
     this.cues=[]; this.chapters=[]; this.questions=[]; this.picks=[]; this.opens=[]; this.captions=[]; this.answered=new Set();
+    /* Voix off (LvVoice) : vc, la phrase en cours (indice dans voice.clips) ; vwait, l’image attend que la phrase puisse partir. */
+    this.voice=null; this.vc=-1; this.vwait=0;
     const fail=()=>{ if(this.dead||this.info)return; this.dead=true; this._emit('error'); };
     this.timer=setTimeout(fail,12000);
     frame.addEventListener('load',async()=>{
@@ -14995,6 +15079,9 @@ class LvAnim{
         this.win=w; this.info=info; this.duration=info.duration;
         this.cues=(info.cues||[]).slice().sort((a,b)=>a.t-b.t);
         this.chapters=info.chapters||[]; this.questions=info.questions||[]; this.picks=info.picks||[]; this.opens=info.opens||[]; this.captions=info.captions||[];
+        /* Voix off : les fichiers se téléchargent dès l’ouverture ; une voix bloquée (iPhone, sans appui) met la vidéo en pause, comme le son. */
+        this.voice=info.voice&&info.voice.clips&&info.voice.clips.length?info.voice:null;
+        if(this.voice){ LvVoice.preload(this.voice.files); LvVoice.onBlocked(()=>{ if(!this.dead&&!this.paused&&!this._muted){ this.pause(); this._emit('blocked'); } }); }
         /* Moments « À toi » : la page joue ses sons d’aperçu par le lecteur (bouton son respecté). */
         try{ w.__sfx=(k,p,g)=>LvSfx.play(k,p||0,g==null?1:g,0); }catch(e){}
         this._render();
@@ -15010,15 +15097,18 @@ class LvAnim{
   set currentTime(v){
     v=Math.max(0,+v||0); if(this.duration>0)v=Math.min(v,this.duration);
     this.t=v; this.ended=this.duration>0&&v>=this.duration;
-    LvSfx.stop(); this._seekCues(); this._render();
+    LvSfx.stop(); LvVoice.stop(); this.vc=-1; this.vwait=0; this._seekCues(); this._render();
     this._emit('timeupdate'); this._emit('seeked');
   }
   get playbackRate(){ return this._rate; }
-  set playbackRate(r){ this._rate=+r||1; }
+  set playbackRate(r){ this._rate=+r||1; LvVoice.setRate(this._rate); }
   get muted(){ return this._muted; }
-  set muted(m){ this._muted=!!m; LvSfx.setMuted(this._muted); }
+  set muted(m){ this._muted=!!m; LvSfx.setMuted(this._muted); LvVoice.setMuted(this._muted); if(!this._muted){ this.vc=-1; if(this.voice)LvVoice.unlock(this.voice.clips.find(c=>c.t+c.d>this.t)||this.voice.clips[0]); } }
   play(){
     LvSfx.resume(); LvSfx.setMuted(this._muted);
+    /* La voix aussi se déverrouille pendant l’appui (sur la phrase à venir, dont le fichier se charge déjà). */
+    LvVoice.setMuted(this._muted); LvVoice.setRate(this._rate);
+    if(this.voice&&!this._muted)LvVoice.unlock(this.voice.clips.find(c=>c.t+c.d>this.t)||this.voice.clips[0]);
     if(this.dead)return Promise.reject(new Error('animation'));
     /* Jamais de lecture silencieuse par surprise : si le son ne peut pas démarrer (cours ouvert sans appui), la vidéo attend
        le premier appui sur Lire, qui la lance avec le son. Son coupé par l’élève : rien à attendre. */
@@ -15027,14 +15117,24 @@ class LvAnim{
     if(!this.info){ this.wantPlay=true; return Promise.resolve(); }
     this._start(); return Promise.resolve();
   }
-  pause(){ this.wantPlay=false; if(this.paused)return; this.paused=true; cancelAnimationFrame(this.raf); LvSfx.stop(); LvSfx.idle(); this._emit('pause'); }
+  pause(){ this.wantPlay=false; if(this.paused)return; this.paused=true; cancelAnimationFrame(this.raf); LvVoice.pause(); this.vwait=0; LvSfx.stop(); LvSfx.idle(); this._emit('pause'); }
   answer(i){ this.answered.add(i); }
   sfx(kind){ LvSfx.play(kind,0,.9,0); }
   /* Appelé après le fondu de fermeture : si un autre cours s’est ouvert entre-temps, son son reste intact. */
-  destroy(){ this.dead=true; this.paused=true; cancelAnimationFrame(this.raf); clearTimeout(this.timer); if(typeof LV==='undefined'||!LV){ LvSfx.stop(); LvSfx.idle(); LvSfx.release(); } this._l={}; try{ this.frame.src='about:blank'; }catch(e){} }
+  destroy(){ this.dead=true; this.paused=true; cancelAnimationFrame(this.raf); clearTimeout(this.timer); if(typeof LV==='undefined'||!LV){ LvSfx.stop(); LvSfx.idle(); LvSfx.release(); LvVoice.release(); } this._l={}; try{ this.frame.src='about:blank'; }catch(e){} }
   _render(){ if(this.win)try{ this.win.renderAt(this.t); }catch(e){} }
   _seekCues(){ let i=0; while(i<this.cues.length&&this.cues[i].t<=this.t)i++; this.ci=i; }
-  _start(){ this.wantPlay=false; if(!this.paused||this.dead)return; this.paused=false; this.last=performance.now(); this.deaf=0; this._emit('play'); this._loop(); }
+  _start(){ this.wantPlay=false; if(!this.paused||this.dead)return; this.paused=false; this.last=performance.now(); this.deaf=0; this.vwait=0; this._emit('play'); this._loop(); }
+  /* La phrase de la voix à l’instant t (indice dans voice.clips), -1 entre deux phrases. */
+  _vAt(t){ const cs=this.voice?this.voice.clips:[]; for(let i=0;i<cs.length;i++){ const c=cs[i]; if(t<c.t)break; if(t<c.t+c.d)return i; } return -1; }
+  /* La voix suit la vidéo : une phrase qui commence part (l’image l’attend si son fichier n’est pas prêt, 2,5 s au plus), celle en cours
+     est tenue calée (à 0,3 s près, plus en lecture rapide), et la voix se tait entre deux phrases. */
+  _voice(t,now){
+    if(!this.voice||this._muted)return;
+    const k=this._vAt(t);
+    if(k!==this.vc){ this.vc=k; if(k<0){ LvVoice.pause(); return; } const c=this.voice.clips[k]; LvVoice.start(c,t-c.t); if(!LvVoice.ready())this.vwait=now; return; }
+    if(k>=0){ const c=this.voice.clips[k]; LvVoice.keep(c,t-c.t); }
+  }
   _loop(){
     this.raf=requestAnimationFrame(now=>{
       if(this.paused||this.dead)return;
@@ -15044,6 +15144,8 @@ class LvAnim{
         if(!this.deaf)this.deaf=now;
         else if(now-this.deaf>2000){ this.deaf=0; this.pause(); this._emit('blocked'); return; }
       }else this.deaf=0;
+      /* La phrase qui commence n’est pas encore prête (son fichier arrive) : l’image l’attend, 2,5 s au plus. */
+      if(this.vwait){ if(LvVoice.ready()||now-this.vwait>2500)this.vwait=0; else{ this.last=now; this._loop(); return; } }
       const dt=Math.min(.25,Math.max(0,(now-this.last)/1000)); this.last=now;
       let t=this.t+dt*this._rate, q=-1, pk=-1, op=-1;
       for(let i=0;i<this.questions.length;i++){ const qt=this.questions[i].t; if(qt>this.t&&qt<=t){ t=qt; q=i; break; } }
@@ -15051,8 +15153,11 @@ class LvAnim{
       /* Mail reçu : l’image s’arrête sur la notification, à chaque visionnage, jusqu’à ce que l’élève la touche. */
       for(let i=0;i<this.opens.length;i++){ const ot=this.opens[i].t; if(ot>this.t&&ot<=t){ if((q<0&&pk<0)||ot<t){ t=ot; op=i; q=-1; pk=-1; } break; } }
       const end=t>=this.duration; if(end)t=this.duration;
+      this._voice(t,now);
       while(this.ci<this.cues.length&&this.cues[this.ci].t<=t){ const c=this.cues[this.ci]; if(c.t>this.t){ if(c.type==='confetti')lvConfetti(this.frame,c); else LvSfx.play(c.type,c.pitch||0,c.gain==null?1:c.gain,.36*Math.sin(this.ci*2.399)); } this.ci++; }
       this.t=t; this._render();
+      /* Arrêt (question, moment, message à toucher, fin) : la voix se tait ; le lecteur y dit la consigne à part (LvVoice.say). */
+      if(q>=0||pk>=0||op>=0||end){ LvVoice.pause(); this.vc=-1; this.vwait=0; }
       if(now-this.lastTU>=80||end||q>=0||pk>=0||op>=0){ this.lastTU=now; this._emit('timeupdate'); }
       if(q>=0){ this.paused=true; this._emit('pause'); this._emit('question',{i:q,q:this.questions[q]}); return; }
       if(pk>=0){ this.paused=true; this._emit('pause'); this._emit('pick',{i:pk,p:this.picks[pk]}); return; }
@@ -16082,6 +16187,11 @@ function lvText(el,h,host){
   for(const c of tries){ set(c); if(lines()<=n0)return; }
   set(base);
 }
+/* Voix off des moments (LvVoice) : la consigne à l’ouverture, « Bien vu ! » réussi du premier coup, « Pas tout à fait… » à la première
+   erreur, l’indice quand il s’affiche (une fois chacun) ; la consigne d’un message à toucher. Son coupé : rien. */
+function lvVoiceV(){ return LV&&LV.video&&LV.video.voice||null; }
+function lvVoiceSay(c){ if(c&&LV&&LV.video&&!LV.video.muted)LvVoice.say(c); }
+function lvVoiceKo(P){ const V=lvVoiceV(); if(!V||!P)return; if(P.hinted&&!P.tipSaid){ P.tipSaid=true; lvVoiceSay(V.tips[P.i]); } else if(!P.koSaid){ P.koSaid=true; lvVoiceSay(V.ko); } }
 function lvPkShow(i,p){
   if(!LV||!p)return;
   const rawPrompt=p.prompt, rawHint=p.hint||'';
@@ -16143,6 +16253,8 @@ function lvPkShow(i,p){
   if(prefersReduceMotion())box.classList.add('on');
   else requestAnimationFrame(()=>requestAnimationFrame(()=>box.classList.add('on')));
   if(!kept){ LvSfx.play('pop',5,.55,0); if(navigator.vibrate)navigator.vibrate(8); }
+  if(P.hinted)P.tipSaid=true;
+  if(!kept){ const V=lvVoiceV(); if(V)lvVoiceSay(V.picks[i]); }
   const sr=LV.root.querySelector('.lv-sr'); if(sr)sr.textContent=`${kept?'Déjà fait':'À toi'} : ${String(p.prompt).replace(/<[^>]+>/g,'')}`;
   try{box.querySelector(kept?'.lv-pk-go':'.lv-pk-card').focus({preventScroll:true});}catch(e){}
 }
@@ -16265,6 +16377,7 @@ function lvPkVerdict(P,k,btn,ok,r){
     P.box.querySelectorAll('.lv-pk-opt').forEach(b=>{ if(b!==btn)b.classList.add('is-gone'); });
     LV.video.sfx('true');
     if(first)setTimeout(()=>{ if(LV&&LV.pk===P)LvSfx.play('chord',0,.55,0); },160);
+    if(first){ const V=lvVoiceV(); if(V)lvVoiceSay(V.ok); }
     if(navigator.vibrate)navigator.vibrate([10,60,20]);
     let rect=null; try{ const IX=lvPkIX(); rect=IX&&IX.slot?IX.slot(P.i):null; }catch(e){}
     if(!prefersReduceMotion()&&rect)lvPkBurst(rect);
@@ -16282,6 +16395,7 @@ function lvPkVerdict(P,k,btn,ok,r){
     P.box.classList.add('is-ko');
     kick.textContent='✕ Essaie un autre choix';
     if(P.tries===2)lvPkHint(P);
+    lvVoiceKo(P);
     LV.video.sfx('false');
     if(navigator.vibrate)navigator.vibrate([20,60,20]);
     setTimeout(()=>{ btn.classList.remove('is-ko'); btn.classList.add('is-out'); btn.setAttribute('aria-disabled','true'); },460);
@@ -16442,6 +16556,7 @@ function lvCapHide(on){ try{ const w=LV&&LV.video&&LV.video.win, d=w&&w.document
 function lvPkClose(answered){
   const P=LV&&LV.pk; if(!P)return;
   LV.pk=null;
+  LvVoice.stopSay();
   if(P.ro)P.ro.disconnect();
   clearTimeout(P.timer); clearTimeout(P.demo); if(P.demoEl)P.demoEl.remove();
   clearTimeout(P.fitT); lvZoomTo(1);   // l’image réduite pour le plateau reprend sa taille
@@ -16488,6 +16603,7 @@ function lvOpShow(i,o){
   LV.root.appendChild(layer);
   LV.root.classList.add('is-q','is-op');
   LV.op={i,o,r,rad,layer};
+  { const V=lvVoiceV(); if(V)lvVoiceSay(V.opens[i]); }
   lvOpPlace();
   const b=layer.querySelector('.lv-op-spot');
   b.addEventListener('pointerdown',e=>lvPkRipple(e.clientX,e.clientY));
@@ -16533,6 +16649,7 @@ function lvOpNudge(){
 function lvOpClose(){
   const P=LV&&LV.op; if(!P)return;
   LV.op=null; LV.root.classList.remove('is-q','is-op');
+  LvVoice.stopSay();
   clearTimeout(P.nudgeT);
   if(!P.hit&&P.layer.classList.contains('is-down')){ try{ LV.video.win.__opPress(P.i,false); }catch(e){} }
   const L=P.layer; L.classList.remove('on'); L.classList.add('off');
@@ -16963,6 +17080,7 @@ function lvPkActed(P,r,el,chip,el2,args){
   P.box.classList.add('is-ko');
   kick.textContent='✕ Essaie encore';
   if(P.miss>=2)lvPkHint(P);
+  lvVoiceKo(P);
   if(why&&wEl){ wEl.className='lv-pk-why ko'; wEl.hidden=false; tEl.hidden=true; lvText(wEl,why); }
   [el,el2,chip].forEach(x=>{ if(!x)return; x.classList.remove('is-ko'); void x.offsetWidth; x.classList.add('is-ko'); setTimeout(()=>x.classList.remove('is-ko'),460); });
   LV.video.sfx('false');
@@ -16987,6 +17105,7 @@ function lvPkWin(P,why,rect){
   }else if(wEl){ wEl.hidden=true; P.box.querySelector('.lv-pk-t').hidden=false; }   // la légende qui suit explique : la consigne revient, sans la correction d’une erreur
   LV.video.sfx('true');
   if(first)setTimeout(()=>{ if(LV&&LV.pk===P)LvSfx.play('chord',0,.55,0); },160);
+  if(first){ const V=lvVoiceV(); if(V)lvVoiceSay(V.ok); }
   if(navigator.vibrate)navigator.vibrate([10,60,20]);
   if(!prefersReduceMotion()&&rect&&rect.w)lvPkBurst(rect);
   const sr=LV.root.querySelector('.lv-sr'); if(sr)sr.textContent=(first?'Bien vu : ':'Bien rattrapé, mais seul le premier essai compte : moment raté. ')+String(why).replace(/<[^>]+>/g,'');
