@@ -32,12 +32,13 @@ test('réf. 1 — la salle d’attente : le niveau et ses barres, les manches, �
 test('réf. 2 et 3 — « En attente d’un joueur », des boutons secondaires et des cartes d’annonce dans la DA', () => {
   assert.ok(app.includes('<span>En attente d’un joueur…</span></li>') && !app.includes('En attente d’un ami'));
   const net = cut('function jeuNoteHTML(', '\nfunction jeuLobbyLabel(){');
-  assert.ok(net.includes("jeuNoteHTML('is-off',JEU_ICO.wifi,'Connexion perdue','La partie reprendra dès que le réseau revient.')"));
-  assert.ok(net.includes("jeuNoteHTML('is-soft',lqStkSvg('user'),'Tu es seul·e dans la salle','Les autres joueurs ont quitté la salle : tu peux continuer seul·e.')"));
+  assert.ok(net.includes("jeuNoteHTML('is-off',JEU_ICO.wifi,'Connexion perdue','La partie reprend dès que le réseau revient.')"));
+  /* 16 h 29 : seul dans la salle, tout se dessine comme seul : plus d’annonce « seul·e dans la salle » (retours-1629.test.mjs) */
+  assert.ok(!net.includes('seul·e dans la salle'));
   assert.ok(net.includes('<div class="jeu-net ${cls}" role="status"><span class="jeu-net-ico" aria-hidden="true">${ico}</span><span class="jeu-net-tx"><b>${titre}</b><small>${texte}</small></span></div>'));
   assert.ok(!app.includes('📡 Connexion perdue'), 'plus de bandeau à émoji');
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
-  assert.ok(r.includes("${jeuBtn2('level','Changer de niveau','openJeu()')}") && r.includes("${jeuBtn2('quit','Quitter la salle','goBack()')}"));
+  assert.ok(r.includes("jeuBtn2('level','Changer de niveau','openJeu()')") && r.includes("jeuBtn2('quit','Quitter la salle','goBack()')"));
   assert.ok(!/class="jeu-close" onclick="[^"]+">[A-Z]/.test(r), 'chaque bouton du bas a son pictogramme');
   const ctx = vm.createContext({});
   vm.runInContext(cut('const JEU_ICO={', '\nfunction jeuHostBarHTML(){'), ctx);
@@ -45,7 +46,7 @@ test('réf. 2 et 3 — « En attente d’un joueur », des boutons secondaires e
   assert.match(b, /^<button type="button" class="jeu-close" onclick="jeuClose\(\)"><svg viewBox="0 0 24 24" aria-hidden="true">.+<\/svg><span>Clore la manche pour tous<\/span><\/button>$/);
   for (const k of ['html.lq .jeu-close{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:50px;', 'text-decoration:none!important;box-shadow:0 4px 0 var(--lip)',
     'html.lq .jeu-close:active{transform:translateY(4px);box-shadow:0 0 0 var(--lip)}', 'html.lq #jeu-hostbar .jeu-close svg{color:var(--danger-fill)}',
-    'html.lq .jeu-net{display:flex;align-items:center;gap:12px;', 'html.lq .jeu-net.is-off{border-color:#FFE08A;', '@keyframes jeuNoteIn'])
+    'html.lq .jeu-net{display:flex;align-items:center;gap:10px;', 'html.lq .jeu-net.is-off{border-color:#FFE08A;', '@keyframes jeuNoteIn'])
     assert.ok(s49.includes(k), k);
 });
 
@@ -65,7 +66,8 @@ test('du tirage à la manche : 3, 2, 1 plus courts, puis un fondu enchaîné (la
   const root = { innerHTML: '', children: kids, offsetWidth: 0, classList: { add: (...a) => a.forEach(x => cls.add(x)), remove: (...a) => a.forEach(x => cls.delete(x)) } };
   for (const k of ['.jeu.jeu-cascade>*{animation:jeuCascade .5s cubic-bezier(.2,.8,.3,1.1) backwards;animation-delay:calc(.1s + var(--k,0) * 60ms)}', '.jeu.jeu-cascade>h1{animation-name:jeuCascadeTitle}', '.jeu>.jeu-ghost,.jeu.jeu-cascade>.jeu-ghost{animation:jeuGhost .46s', '@keyframes jeuGhost{0%{opacity:1;transform:none}65%{opacity:0;', '.jeu{position:relative}'])
     assert.ok(s49.includes(k), k);
-  const tail = r.slice(r.indexOf('  root.innerHTML=html;'), r.indexOf("  if(v.startsWith('play')&&document.getElementById('ed-lesson')){"));
+  const tail = r.slice(r.indexOf('  root.innerHTML=html;'), r.indexOf("  if(edOn&&document.getElementById('ed-lesson')){"));
+  assert.ok(tail.length > 50 && !tail.includes('edOn'), 'la fin du dessin localisée');
   const ctx = vm.createContext({ root, html: '<x>', keep: false, fromDraw: true, ghost: null, setTimeout });
   vm.runInContext(tail, ctx);
   assert.ok(cls.has('jeu-cascade') && !cls.has('jeu-in'));
@@ -77,14 +79,15 @@ test('du tirage à la manche : 3, 2, 1 plus courts, puis un fondu enchaîné (la
 test('les points gagnés en notification animée : à la manche trouvée et en fin de partie', () => {
   const pop = cut('function jeuPtsPop(o){', '\n/* Points de la partie (une seule fois)');
   assert.ok(pop.includes("if(!o||!(o.pts>0)||typeof document==='undefined'||typeof document.createElement!=='function'"), 'rien sans points ni sans page');
-  assert.ok(pop.includes('<span class="jpp-coin"><i class="jpp-ring"></i>${JEU_COIN_SVG}${\'<i class="jpp-sp"></i>\'.repeat(6)}</span>'));
-  assert.ok(pop.includes('<i style="--j:0">${d.ok} réussite</i>') && pop.includes('<i class="is-vite" style="--j:2">+${d.vite} rapidité</i>'));
-  assert.ok(pop.includes('Total de salle : <b data-n="${o.total}" data-from="${Math.max(0,o.total-o.pts)}" data-fmt="fr">'), 'le total roule de l’ancien au nouveau');
+  /* Épurée à 16 h 29 (« pas assez clean ») : la pièce, le nombre ; le total en fin de partie ; plus de pastilles ni d’étincelles */
+  assert.ok(pop.includes('t.innerHTML=`<span class="jpp-coin">${JEU_COIN_SVG}</span><b><em class="jpp-n" data-n="${o.pts}">'));
+  assert.ok(!pop.includes('jpp-pd') && !pop.includes('jpp-sp') && !pop.includes('jpp-ring'));
+  assert.ok(pop.includes('total <b data-n="${o.total}" data-from="${Math.max(0,o.total-o.pts)}" data-fmt="fr">'), 'le total roule de l’ancien au nouveau');
   assert.ok(pop.includes("if(typeof lqSay==='function')lqSay(`+${o.pts} points`"), 'le lecteur d’écran entend le résultat');
   assert.ok(pop.includes("t.setAttribute('aria-hidden','true')"));
   assert.ok(pop.includes("const st=document.getElementById('lq-streak-toast'),low=st&&st.classList.contains('on')"), 'sous la flamme du jour si elle tombe en même temps');
   const run = cut('function jeuRun(){', '\nfunction jeuStop(){');
-  assert.ok(run.includes("{const x=jeuRanking(n).find(y=>y.pid===J.me);if(x)jeuPtsPop({kind:'round',pts:x.pts,detail:x});}"));
+  assert.ok(run.includes("{const x=jeuRanking(n).find(y=>y.pid===J.me);if(x)jeuPtsPop({kind:'round',pts:x.pts});}"));
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
   assert.ok(r.includes("const cg=jeuCreditGame();") && r.includes("if(cg&&cg.pts>0)setTimeout(()=>{if(JEU===J&&J.view==='final')jeuPtsPop({kind:'game',pts:cg.pts,total:cg.total});},950);"));
   assert.ok(app.includes('    return {pts,total:s.pts};\n  }catch(e){return null;}'), 'la partie créditée une seule fois renvoie ses points');
@@ -99,9 +102,10 @@ test('les points gagnés en notification animée : à la manche trouvée et en f
   assert.equal(el.textContent, (1100).toLocaleString('fr-FR'));
   while (frames.length) { t += 100; frames.shift()(t); }
   assert.equal(el.textContent, (1274).toLocaleString('fr-FR'));
-  for (const k of ['#jeu-pts-pop{position:fixed;left:50%;top:calc(var(--safe-top,0px) + 14px);z-index:9991;', '#jeu-pts-pop.on{transform:translate(-50%,0);opacity:1;animation:lqStIn .7s',
-    '#jeu-pts-pop.on .jpp-coin svg{animation:jppCoin', '#jeu-pts-pop.on .jpp-ring{animation:lqStRing', '#jeu-pts-pop.on .jpp-sp{animation:lqStSpark', '#jeu-pts-pop.on .jpp-pd i{animation:jppPd'])
+  for (const k of ['#jeu-pts-pop{position:fixed;left:50%;top:calc(var(--safe-top,0px) + 12px);z-index:9991;', 'border-radius:999px;background:#fff;border:2px solid var(--line);box-shadow:0 4px 0 var(--lip)',
+    '#jeu-pts-pop.on{transform:translate(-50%,0);opacity:1}', '#jeu-pts-pop.on .jpp-coin svg{animation:jppCoin', '@keyframes jppCoin{0%{transform:scale(.4) rotateY(180deg)}'])
     assert.ok(s49.includes(k), k);
+  assert.ok(!s49.includes('.jpp-ring') && !s49.includes('.jpp-sp') && !s49.includes('.jpp-pd'));
   assert.ok(s49.includes('#jeu-pts-pop,#jeu-pts-pop *,.collectible.lock .memo-go>svg{animation:none!important}'), 'mouvement réduit');
 });
 
