@@ -6640,7 +6640,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=40">
+<link rel="stylesheet" href="ludique.css?v=41">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -8270,7 +8270,7 @@ guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, cl
      ni exercice ni quiz. Cinq moments « À toi » ; la leçon se valide avec 4 exercices réussis du premier coup sur 5 (seuil:4, un
      raté au plus, comme tous les cours de 3 à 5 moments), sinon on rejoue les moments ratés. */
   leconSeule:true,
-  video:{anim:'assets/anim/bases-relationnelles.html?app&embed',thumb:'assets/anim/bases-relationnelles-thumb.webp',duree:'9 min 35',moments:5,seuil:4},
+  video:{anim:'assets/anim/bases-relationnelles.html?app&embed',thumb:'assets/anim/bases-relationnelles-thumb.webp',duree:'9 min 40',moments:5,seuil:4},
   reflex:[
     {recap:[
       ["🗂️","Une <b>table</b> range un sujet : <code>clients</code>, <code>produits</code>, <code>commandes</code>.","Ses colonnes sont des caractéristiques, ses lignes des enregistrements."],
@@ -14980,7 +14980,7 @@ const LvSfx=(()=>{
    mode silencieux, comme une vidéo. Les fichiers du cours sont gardés en mémoire (blob) : une phrase part sans attendre le réseau.
    La vitesse de la vidéo s’applique à la voix sans changer sa hauteur ; le bouton son la coupe avec le reste. */
 const LvVoice=(()=>{
-  let el=null, muted=false, rate=1, src='', seekTo=null, sayClip=null, sayRaf=0, playT=-1e9, onBlock=null, noBlob=false;
+  let el=null, muted=false, rate=1, src='', seekTo=null, sayClip=null, sayRaf=0, playT=-1e9, onBlock=null, noBlob=false, endClip=null, endRaf=0;
   const blobs=new Map(), loading=new Map(), bad=new Set();
   function audio(){
     if(el)return el;
@@ -15023,7 +15023,19 @@ const LvVoice=(()=>{
       try{ const p=a.play(); if(p&&p.catch)p.catch(()=>{}); a.pause(); }catch(e){}
     },
     /* Phrase de la timeline, à off s de son début. */
-    start(c,off){ this.stopSay(); load(c.src,c.o+Math.max(0,off)); playT=-1e9; go(); },
+    start(c,off){ this.stopSay(); this.stopEnd(); load(c.src,c.o+Math.max(0,off)); playT=-1e9; go(); },
+    /* La vidéo a passé la fin de la phrase : le son, qui suit l’image avec un léger retard (le temps que la balise parte), finit son
+       dernier mot, jusqu’à la fin du passage dans le fichier, puis s’arrête (Elisa, 31 octobre, 13 h 20 : « le dernier mot est coupé »). */
+    finish(c){
+      const a=el; if(!c)return;   // pas de phrase en cours : une fin déjà en route continue
+      this.stopEnd();
+      if(!a||a.paused||sayClip)return;
+      if(src!==c.src){ a.pause(); return; }
+      const end=c.o+c.d, t0=performance.now(); endClip=c;
+      const tick=()=>{ if(endClip!==c)return; if(a.paused||a.ended||a.currentTime>=end-.01||performance.now()-t0>1500){ if(!a.paused)a.pause(); endClip=null; return; } endRaf=requestAnimationFrame(tick); };
+      endRaf=requestAnimationFrame(tick);
+    },
+    stopEnd(){ if(!endClip)return; cancelAnimationFrame(endRaf); endClip=null; },
     /* À chaque image : la voix suit la vidéo (relancée si elle s’est arrêtée, recalée si elle a dérivé de plus de 0,3 s). */
     keep(c,off){
       if(muted)return;
@@ -15034,12 +15046,12 @@ const LvVoice=(()=>{
     },
     /* La phrase peut-elle partir (fichier chargé, position atteinte) ? Un fichier en échec ne fait jamais attendre. */
     ready(){ const a=el; return !a||muted||bad.has(src)||(a.readyState>=3&&seekTo==null&&!a.seeking); },
-    pause(){ if(el&&!el.paused)el.pause(); },
-    stop(){ this.stopSay(); if(el&&!el.paused)el.pause(); },
+    pause(){ this.stopEnd(); if(el&&!el.paused)el.pause(); },
+    stop(){ this.stopSay(); this.stopEnd(); if(el&&!el.paused)el.pause(); },
     /* Phrase dite à part (consigne, réaction, indice) : jouée jusqu’à la fin de son passage, puis la balise s’arrête. */
     say(c){
       if(!c||muted)return;
-      const a=audio(); this.stopSay(); sayClip=c; load(c.src,c.o); playT=-1e9; go();
+      const a=audio(); this.stopSay(); this.stopEnd(); sayClip=c; load(c.src,c.o); playT=-1e9; go();
       const end=c.o+c.d;
       const tick=()=>{ if(sayClip!==c)return;
         if(a.readyState>=2&&seekTo==null&&!a.seeking&&(a.currentTime>=end-.02||a.ended)){ a.pause(); sayClip=null; return; }
@@ -15128,11 +15140,11 @@ class LvAnim{
   /* La phrase de la voix à l’instant t (indice dans voice.clips), -1 entre deux phrases. */
   _vAt(t){ const cs=this.voice?this.voice.clips:[]; for(let i=0;i<cs.length;i++){ const c=cs[i]; if(t<c.t)break; if(t<c.t+c.d)return i; } return -1; }
   /* La voix suit la vidéo : une phrase qui commence part (l’image l’attend si son fichier n’est pas prêt, 2,5 s au plus), celle en cours
-     est tenue calée (à 0,3 s près, plus en lecture rapide), et la voix se tait entre deux phrases. */
+     est tenue calée (à 0,3 s près, plus en lecture rapide), et la voix se tait entre deux phrases, une fois son dernier mot fini. */
   _voice(t,now){
     if(!this.voice||this._muted)return;
     const k=this._vAt(t);
-    if(k!==this.vc){ this.vc=k; if(k<0){ LvVoice.pause(); return; } const c=this.voice.clips[k]; LvVoice.start(c,t-c.t); if(!LvVoice.ready())this.vwait=now; return; }
+    if(k!==this.vc){ const was=this.vc>=0?this.voice.clips[this.vc]:null; this.vc=k; if(k<0){ LvVoice.finish(was); return; } const c=this.voice.clips[k]; LvVoice.start(c,t-c.t); if(!LvVoice.ready())this.vwait=now; return; }
     if(k>=0){ const c=this.voice.clips[k]; LvVoice.keep(c,t-c.t); }
   }
   _loop(){
@@ -15157,7 +15169,7 @@ class LvAnim{
       while(this.ci<this.cues.length&&this.cues[this.ci].t<=t){ const c=this.cues[this.ci]; if(c.t>this.t){ if(c.type==='confetti')lvConfetti(this.frame,c); else LvSfx.play(c.type,c.pitch||0,c.gain==null?1:c.gain,.36*Math.sin(this.ci*2.399)); } this.ci++; }
       this.t=t; this._render();
       /* Arrêt (question, moment, message à toucher, fin) : la voix se tait ; le lecteur y dit la consigne à part (LvVoice.say). */
-      if(q>=0||pk>=0||op>=0||end){ LvVoice.pause(); this.vc=-1; this.vwait=0; }
+      if(q>=0||pk>=0||op>=0||end){ LvVoice.finish(this.vc>=0?this.voice.clips[this.vc]:null); this.vc=-1; this.vwait=0; }
       if(now-this.lastTU>=80||end||q>=0||pk>=0||op>=0){ this.lastTU=now; this._emit('timeupdate'); }
       if(q>=0){ this.paused=true; this._emit('pause'); this._emit('question',{i:q,q:this.questions[q]}); return; }
       if(pk>=0){ this.paused=true; this._emit('pause'); this._emit('pick',{i:pk,p:this.picks[pk]}); return; }
@@ -15711,9 +15723,11 @@ const LV_PIP={
   ok:'<svg viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="M6.2 12.6l3.9 3.9 7.7-8.2" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   ko:'<svg viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="M8 8l8 8M16 8l-8 8" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg>'
 };
-/* L’écran de fin : la fête (win) ou « Encore un effort ! ». */
+/* L’écran de fin : la fête (win) ou « Encore un effort ! ». Une leçon seule qui a sa voix le dit aussi (Elisa, 31 octobre, 13 h 20 : l’écran
+   « Encore un effort ! » restait muet). */
 function lvEndShow(root,id,win){
   root.classList.toggle('is-win',win);
+  { const V=lvVoiceV(); if(V&&V.end&&!LV.fin&&current&&current.id===id&&current.leconSeule)lvVoiceSay(win?V.end.win:LV.retry?V.end.retry:null); }
   lvCardSync(id);
   root.classList.add('is-end');
   root.querySelector('.lv-end').hidden=false;
@@ -26970,7 +26984,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-31-voix-agathe-v2207';
+  const SW_CACHE='requete-2026-10-31-voix-fins-v2208';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
