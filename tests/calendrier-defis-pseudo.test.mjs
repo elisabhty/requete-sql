@@ -102,10 +102,11 @@ function perfCtx(salle) {
   const ctx = vm.createContext({
     document: { getElementById: id => id === 'defis-perf' ? host : null }, state: { salle },
     JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, lqStkSvg: k => `<svg data-k="${k}"></svg>`, perfReveal() {}, Date, Math,
+    jeuInitial: n => String(n || '?').trim().charAt(0).toUpperCase(), JEU_FRIENDS_SVG: '<svg data-k="friends"></svg>', DEF_CHEV_SVG: '<svg data-k="chev"></svg>',
     esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'),
     escAttr: s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'),
   });
-  vm.runInContext(fn('jeuChrono') + fn('perfDay') + fn('perfGame') + fn('perfBadge') + fn('renderDefisPerf') + ';renderDefisPerf();', ctx);
+  vm.runInContext(fn('jeuChrono') + fn('perfDay') + fn('perfWith') + fn('perfGame') + fn('perfBadge') + fn('perfColor') + fn('perfPodiumHTML') + fn('perfMateHTML') + fn('renderDefisPerf') + ';renderDefisPerf();', ctx);
   return host.innerHTML;
 }
 
@@ -130,7 +131,7 @@ test('réf 4 — « Tes performances » : les chiffres, la réussite, les temps,
   assert.ok(h.includes('<b>2</b><small>1re place</small>') && h.includes('Sur 5 parties entre amis.'), 'les podiums entre amis');
   const rows = h.match(/<li style="--i:\d"><span class="perf-rk/g);
   assert.equal(rows.length, 4, 'les quatre dernières parties');
-  assert.ok(h.includes('<span class="perf-rk is-medal">🥇</span><span class="perf-g"><b>Entre amis · Moyen · 3 joueurs</b><small>Aujourd’hui · 3/3 trouvés · 03:21</small></span><em>+412</em>'));
+  assert.ok(h.includes('<span class="perf-rk is-medal"><svg data-k="medal1"></svg></span><span class="perf-g"><b>Entre amis · Moyen · 3 joueurs</b><small>Aujourd’hui · 3/3 trouvés · 03:21</small></span><em>+412</em>'), 'la médaille autocollante, et le nombre de joueurs quand les pseudos ne sont pas connus');
   assert.ok(h.includes('<span class="perf-rk">0/1</span>') && h.includes('<span class="perf-rk">✓</span>'), 'seul : coché, ou trouvés sur joués');
   /* Avant la première partie : le même tableau, vide, qui dit ce qui s’y affichera */
   const e = perfCtx({ pts: 0, parties: 0, best: 0 });
@@ -169,8 +170,8 @@ test('réf 4 — chaque partie nourrit le tableau ; la sauvegarde le garde propr
     hist: [{ at: 10, pts: 5, n: 2, ok: 7, niv: 'q', solo: 1 }, 'x', { at: 0, n: 1 }, { at: 20, pts: 9, n: 1, ok: 1, niv: 'd', place: 2, players: 3 }] } }).salle;
   assert.deepEqual(plain(st), { pts: 30, parties: 2, best: 20, manches: 3, trouves: 3, tms: 0, fast: 0, amis: 1, pl: [1, 0, 0],
     lv: { f: [3, 3], m: [0, 0], d: [0, 0] },
-    hist: [{ at: 20, pts: 9, n: 1, ok: 1, ms: 0, niv: 'd', solo: 0, place: 2, players: 3 }, { at: 10, pts: 5, n: 2, ok: 2, ms: 0, niv: 'f', solo: 1, place: 0, players: 1 }] });
-  assert.deepEqual(plain(ctx.normalizeState({}).salle), { pts: 0, parties: 0, best: 0, manches: 0, trouves: 0, tms: 0, fast: 0, amis: 0, pl: [0, 0, 0], lv: { f: [0, 0], m: [0, 0], d: [0, 0] }, hist: [] });
+    hist: [{ at: 20, pts: 9, n: 1, ok: 1, ms: 0, niv: 'd', solo: 0, place: 2, players: 3 }, { at: 10, pts: 5, n: 2, ok: 2, ms: 0, niv: 'f', solo: 1, place: 0, players: 1 }], mates: {} });
+  assert.deepEqual(plain(ctx.normalizeState({}).salle), { pts: 0, parties: 0, best: 0, manches: 0, trouves: 0, tms: 0, fast: 0, amis: 0, pl: [0, 0, 0], lv: { f: [0, 0], m: [0, 0], d: [0, 0] }, hist: [], mates: {} });
 });
 
 test('réf 5 — le pseudo se choisit dans l’onboarding, et la salle ne le redemande plus', () => {

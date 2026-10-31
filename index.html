@@ -115,8 +115,11 @@
   /* overscroll-behavior-y:contain : arrivé en haut ou en bas d’un écran, Safari iOS passait le geste à la page entière
      (overscroll-behavior:auto = « la page peut prendre le relais ») : toute l’app rebondissait, et le geste suivant restait
      à la page le temps du rebond, ou dès que le doigt partait un peu vers le bord. Le défilement « accrochait », surtout
-     juste en arrivant sur un écran (tout en haut). L’écran garde son propre rebond et ne passe plus jamais la main. */
-  .screen{position:absolute;inset:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;padding-bottom:calc(120px + var(--safe-bottom) + var(--kbar-offset));display:none}
+     juste en arrivant sur un écran (tout en haut). L’écran garde son propre rebond et ne passe plus jamais la main.
+     Plus de -webkit-overflow-scrolling:touch (31 octobre) : depuis iOS 13, tout défilement est natif et cette propriété ne
+     faisait plus qu’une chose : isoler l’écran dans son propre empilement, sur iPhone seulement (l’écran ne s’y comportait donc
+     pas comme sur les autres navigateurs, où l’app est vérifiée). */
+  .screen{position:absolute;inset:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;padding-bottom:calc(120px + var(--safe-bottom) + var(--kbar-offset));display:none}
   .screen.active{display:block}
   .screen.leaving{display:block;animation:screenOut .26s cubic-bezier(.32,.72,.28,1) both;z-index:1;pointer-events:none}
   .screen.push{animation:pushIn .34s cubic-bezier(.32,.72,.28,1);z-index:2;background:var(--bg)}
@@ -6478,21 +6481,23 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 
   /* Tirer pour actualiser (Elisa, 26 octobre, 21 h 55 : « J’ai l’impression que l’on peut pas rafraîchir les pages » ;
      22 h 06 : « je veux quelque chose de plus moderne »). Les écrans gardent leur propre défilement (overscroll-behavior-y:contain,
-     voir .screen) : le geste de Safari ne passe jamais à la page. Tout en haut d’un écran, tirer fait descendre l’écran avec
-     une résistance ; l’indicateur se dessine trait par trait dans l’espace libéré, comme sur iPhone ; relâcher au-delà du
-     seuil le fait tourner, l’écran attend un instant puis l’app se recharge (la progression est gardée dans localStorage). */
-  .ptr{position:absolute;left:50%;top:0;z-index:0;width:28px;height:28px;margin-left:-14px;color:var(--ink-2,#4A4566);opacity:0;pointer-events:none;will-change:transform,opacity}
+     voir .screen) : le geste de Safari ne passe jamais à la page. Tout en haut d’un écran, tirer fait rebondir l’écran (le rebond
+     natif de l’iPhone, plus aucun script ne le remplace : voir pullToRefresh, 31 octobre) ; une pastille blanche descend dans
+     l’espace libéré et s’y dessine trait par trait ; relâcher au-delà du seuil la fait tourner, puis l’app se recharge (la
+     progression est gardée dans localStorage). La pastille passe au-dessus des écrans, sous la barre d’onglets. */
+  .ptr{position:absolute;left:50%;top:calc(var(--safe-top) + 6px);z-index:27;width:38px;height:38px;margin-left:-19px;border-radius:50%;background:#fff;
+    box-shadow:0 0 0 1px rgba(34,28,70,.06),0 6px 16px -6px rgba(34,28,70,.35);color:var(--ink-2,#4A4566);opacity:0;pointer-events:none;
+    transform:translate3d(0,-22px,0) scale(.55);will-change:transform,opacity}
   /* L’indicateur tourne avec le doigt, puis en continu pendant le rechargement (Elisa, 26 octobre, 22 h 52 : « on dirait qu’elle est
      figée, il faudrait qu’elle soit rotative »). Deux couches : .ptr-r suit le geste, .ptr-s tourne seule, sans à-coup ni saut
      d’angle entre les deux ; une rotation simple (transform) que le navigateur continue même quand la page se recharge. */
-  .ptr-r,.ptr-s{position:absolute;inset:0}
+  .ptr-r,.ptr-s{position:absolute;left:5px;top:5px;width:28px;height:28px}
+  .ptr-s{left:0;top:0}
   .ptr i{position:absolute;left:12.5px;top:1px;width:3px;height:8px;border-radius:2px;background:currentColor;transform-origin:1.5px 13px;opacity:0;transition:opacity .12s linear}
   .ptr.is-loading .ptr-s{animation:ptrSpin .75s linear infinite}
   .ptr.is-loading i{transition:none}
   @keyframes ptrSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
   @media (prefers-reduced-motion:reduce){.ptr.is-loading .ptr-s{animation-duration:2.4s}}
-  .stage>.screen.ptr-pull{z-index:1}
-  .stage>.screen.ptr-back{transition:transform .42s cubic-bezier(.22,1,.36,1)}
 </style>
 <link rel="stylesheet" href="anim-responsive.css?v=1">
 <link rel="stylesheet" href="ux-polish.css?v=1">
@@ -6635,7 +6640,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=39">
+<link rel="stylesheet" href="ludique.css?v=40">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -7262,7 +7267,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
 <div id="app">
   <div id="loader"><i class="ld-spark s1" aria-hidden="true"></i><i class="ld-spark s2" aria-hidden="true"></i><i class="ld-spark s3" aria-hidden="true"></i>
     <div class="logo-badge">&gt;_</div><b class="ld-name">Requête</b><div class="spinner"></div>
-    <p>Préparation de ta base de données SQLite…</p></div>
+    <p>Préparation de ta base de données…</p></div>
   <!-- Script à part : il tourne même si le gros JS a une erreur de syntaxe. -->
   <script>
   (function(){
@@ -12194,11 +12199,25 @@ function normalizeState(raw){
   salle.pl=[0,1,2].map(i=>salleN((Array.isArray(salleSrc.pl)?salleSrc.pl:[])[i]));
   salle.lv={};
   ['f','m','d'].forEach(k=>{const a=Array.isArray(salleObj(salleSrc.lv)[k])?salleObj(salleSrc.lv)[k]:[];const n=salleN(a[0]);salle.lv[k]=[n,Math.min(salleN(a[1]),n)];});
+  /* Les joueurs d’une partie entre amis, et les amis affrontés (Elisa, 31 octobre, 9 h 24 : « mettre aussi le lien avec les personnes
+     qu’on a joué, par exemple un podium animé ») : pour une partie, chaque pseudo avec ses points et sa place (« me » : soi) ; pour un
+     ami, les parties jouées ensemble (g), celles où l’on a fini devant lui (w) ou derrière (l), la dernière fois (at). */
+  const salleNom=v=>Array.from(String(v==null?'':v).replace(/[\u0000-\u001f<>\u200b-\u200f\u202a-\u202e\u2060-\u206f\u2800\u3164\ufeff]/g,'').replace(/\s+/g,' ').trim()).slice(0,16).join('');
   salle.hist=(Array.isArray(salleSrc.hist)?salleSrc.hist:[]).filter(h=>h&&typeof h==='object'&&!Array.isArray(h)).map(h=>{
     const n=Math.min(salleN(h.n),20);
-    return {at:salleBig(h.at),pts:salleN(h.pts),n,ok:Math.min(salleN(h.ok),n),ms:salleBig(h.ms),niv:['f','m','d'].includes(h.niv)?h.niv:'f',
-      solo:h.solo?1:0,place:Math.min(salleN(h.place),99),players:Math.max(1,Math.min(salleN(h.players),99))};
+    const ppl=!h.solo&&Array.isArray(h.ppl)?h.ppl.filter(o=>o&&typeof o==='object'&&!Array.isArray(o)).slice(0,8)
+      .map(o=>Object.assign({n:salleNom(o.n)||'Joueur',pts:salleN(o.pts),place:Math.max(1,Math.min(salleN(o.place),99))},o.me?{me:1}:{})).sort((a,b)=>a.place-b.place):[];
+    return Object.assign({at:salleBig(h.at),pts:salleN(h.pts),n,ok:Math.min(salleN(h.ok),n),ms:salleBig(h.ms),niv:['f','m','d'].includes(h.niv)?h.niv:'f',
+      solo:h.solo?1:0,place:Math.min(salleN(h.place),99),players:Math.max(1,Math.min(salleN(h.players),99))},ppl.length>1?{ppl}:{});
   }).filter(h=>h.at>0&&h.n>0).sort((a,b)=>b.at-a.at).slice(0,12);
+  salle.mates={};
+  Object.keys(salleObj(salleSrc.mates)).forEach(k=>{
+    const m=salleSrc.mates[k];if(!m||typeof m!=='object'||Array.isArray(m))return;
+    const n=salleNom(m.n||k),g=Math.min(salleN(m.g),9999);if(!n||!g)return;
+    const w=Math.min(salleN(m.w),g);
+    salle.mates[n.toLowerCase()]={n,g,w,l:Math.min(salleN(m.l),g-w),at:salleBig(m.at)};
+  });
+  Object.keys(salle.mates).sort((a,b)=>salle.mates[b].at-salle.mates[a].at).slice(30).forEach(k=>{delete salle.mates[k];});
   /* Temps d’apprentissage, en secondes : par jour (AAAA-MM-JJ) et par activité (l<id> leçon, d<id> défi, console,
      entretien, jeu). Voir studyTick. */
   const study={days:{},items:{}};
@@ -12873,15 +12892,18 @@ function vizGo(d){ if(d>0&&vizSteps.length&&vizI>=vizSteps.length-1){closeViz();
    8. ÉCRANS
    ============================================================ */
 const tabScrollPositions={};
-/* Sur mobile, un glissement vertical qui commence sur la barre de navigation
-   du bas fait défiler l’écran en dessous (la barre n’est pas dans la zone qui
-   défile). Un simple toucher reste un clic ; un glissement horizontal garde le
+/* Sur mobile, un glissement vertical qui commence sur la barre d’outils du clavier (.kbar) fait défiler l’écran en dessous
+   (la barre n’est pas dans la zone qui défile). Un simple toucher reste un clic ; un glissement horizontal garde le
    défilement propre de la barre.
-   Les écouteurs sont posés sur les barres elles-mêmes, jamais sur tout le document : un écouteur tactile non passif
-   sur le document oblige l’iPhone à attendre le script avant chaque défilement, partout dans l’app. */
+   Les écouteurs sont posés sur la barre elle-même, jamais sur tout le document : un écouteur tactile non passif
+   sur le document oblige l’iPhone à attendre le script avant chaque défilement, partout dans l’app.
+   La barre d’onglets a son propre geste (lqTabbarScroll) : jusqu’au 31 octobre, les deux étaient posés sur elle, et un
+   glissement y faisait défiler l’écran deux fois (deux distances, deux élans qui se disputaient l’écran). Ici, elle ne garde
+   que la molette. Et l’élan s’arrête dès qu’un doigt se pose, comme un défilement natif : il ne se bat plus avec lui. */
 (function(){
-  const BARS='.tabbar,.kbar';
-  let st=null;
+  const BARS='.kbar';
+  let st=null,seq=0;
+  document.addEventListener('touchstart',()=>{seq++;},{capture:true,passive:true});
   const scroller=()=>document.querySelector('.screen.active');
   const reduce=()=>window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   const start=e=>{
@@ -12906,8 +12928,8 @@ const tabScrollPositions={};
   const end=()=>{
     if(!st)return;
     if(st.mode==='y'){
-      const el=st.el;let v=st.v*16;
-      if(!reduce()){const step=()=>{if(Math.abs(v)<.5)return;el.scrollTop+=v;v*=.94;requestAnimationFrame(step);};requestAnimationFrame(step);}
+      const el=st.el,my=seq;let v=st.v*16;
+      if(!reduce()){const step=()=>{if(seq!==my||Math.abs(v)<.5)return;el.scrollTop+=v;v*=.94;requestAnimationFrame(step);};requestAnimationFrame(step);}
       const kill=ev=>{ev.preventDefault();ev.stopPropagation();};
       document.addEventListener('click',kill,{capture:true,once:true});
       setTimeout(()=>document.removeEventListener('click',kill,{capture:true}),350);
@@ -12926,6 +12948,7 @@ const tabScrollPositions={};
     bar.addEventListener('touchcancel',()=>{st=null;},{passive:true});
     bar.addEventListener('wheel',wheel,{passive:false});
   });
+  document.querySelectorAll('#app>.tabbar').forEach(bar=>bar.addEventListener('wheel',wheel,{passive:false}));
 })();
 /* Elisa, 31 octobre, 8 h 06 : « pouvoir scroller même quand on est sur la barre du bas de nav ». Un glissement vertical commencé sur
    la barre d’onglets fait défiler l’écran ouvert, avec l’élan du doigt ; un simple toucher change toujours d’onglet, et un glissement
@@ -12935,6 +12958,8 @@ function lqTabbarScroll(){
   if(!bar||bar.dataset.scroll)return;
   bar.dataset.scroll='1';
   let x0=0,y0=0,top0=0,lastY=0,last=0,v=0,raf=0,drag=false,scr=null,mute=0;
+  /* Un doigt posé n’importe où arrête l’élan, comme sur un défilement natif (sinon il continue d’écrire scrollTop sous le doigt). */
+  if(typeof document.addEventListener==='function')document.addEventListener('touchstart',()=>cancelAnimationFrame(raf),{capture:true,passive:true});
   bar.addEventListener('touchstart',e=>{
     cancelAnimationFrame(raf);scr=null;drag=false;
     if(e.touches.length!==1)return;
@@ -13340,6 +13365,16 @@ function primaryTabFor(tab){
   if(['notes','collection','stickers','entretien','sgbd','library'].includes(tab))return 'library';
   return tab;
 }
+/* L’onglet ouvert reste visible quand la barre défile (petits écrans) : seule la barre bouge, à l’horizontale. scrollIntoView
+   faisait aussi défiler tous ses parents, #app et la scène compris (un overflow:hidden se défile par script) : sur iPhone,
+   l’app pouvait rester décalée de quelques pixels sous la barre d’adresse. */
+function lqTabIntoView(t){
+  const bar=t&&t.closest&&t.closest('.tabbar');
+  if(!bar||bar.scrollWidth<=bar.clientWidth+1)return;
+  const l=t.offsetLeft,r=l+t.offsetWidth;
+  if(l<bar.scrollLeft)bar.scrollLeft=l;
+  else if(r>bar.scrollLeft+bar.clientWidth)bar.scrollLeft=r-bar.clientWidth;
+}
 function syncTabUI(tab){
   const primary=primaryTabFor(tab);
   document.querySelectorAll('.tab').forEach(t=>{
@@ -13348,7 +13383,7 @@ function syncTabUI(tab){
     t.setAttribute('aria-selected',on?'true':'false');
     t.setAttribute('aria-controls','scr-'+t.dataset.tab);
     t.tabIndex=on?0:-1;
-    if(on)requestAnimationFrame(()=>t.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'}));
+    if(on)requestAnimationFrame(()=>lqTabIntoView(t));
   });
   const quickFab=document.getElementById('fab');
   if(quickFab)quickFab.classList.toggle('context-hide',['learn','defis','planning','console','notes','collection','stickers','entretien','sgbd','compte','practice','library','jeu'].includes(tab));
@@ -14222,6 +14257,8 @@ function renderModules(){
     const doneNow=new Set(allLessons.filter(l=>state.lessons[l.id]?.done).map(l=>String(l.id)));
     if(lqDoneSnapshot)doneNow.forEach(id=>{if(!lqDoneSnapshot.has(id))host.querySelector(`.row[data-lid="${id}"]`)?.classList.add('lq-just-done');});
     lqDoneSnapshot=doneNow;
+    /* Une leçon vient d’être validée : le repère « Tu es ici » arrive sur la suivante, une fois sa pastille remplie (ludique.css, 48b). */
+    if(host.querySelector('.row.lq-just-done'))host.querySelector('.row.current')?.classList.add('lq-arrive');
   }
   lqAfterModules(host);
 }
@@ -14361,13 +14398,54 @@ function perfDay(at){
   const k=Math.round((t-new Date(d.getFullYear(),d.getMonth(),d.getDate()))/864e5);
   return k<=0?'Aujourd’hui':k===1?'Hier':d.getDate()+' '+['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'][d.getMonth()];
 }
+/* Avec qui : les pseudos des autres joueurs (« avec Léa et Tom », « avec Léa, Tom +2 ») ; une partie notée avant qu’on garde les
+   pseudos dit seulement combien ils étaient. */
+function perfWith(h){
+  const o=Array.isArray(h.ppl)?h.ppl.filter(x=>!x.me).map(x=>x.n):[];
+  if(!o.length)return `${h.players} joueurs`;
+  return 'avec '+(o.length<=2?o.join(' et '):`${o.slice(0,2).join(', ')} +${o.length-2}`);
+}
 function perfGame(h){
-  return `${h.solo?'Seul':'Entre amis'} · ${JEU_NIVL[h.niv]||'Facile'}${!h.solo&&h.players>1?` · ${h.players} joueurs`:''}`;
+  return `${h.solo?'Seul':'Entre amis'} · ${JEU_NIVL[h.niv]||'Facile'}${!h.solo&&h.players>1?` · ${perfWith(h)}`:''}`;
 }
 function perfBadge(h){
-  if(!h.solo&&h.place>=1&&h.place<=3)return ['🥇','🥈','🥉'][h.place-1];
+  if(!h.solo&&h.place>=1&&h.place<=3)return lqStkSvg('medal'+h.place);
   if(!h.solo&&h.place>3)return h.place+'e';
   return h.ok>=h.n?'✓':h.ok+'/'+h.n;
+}
+/* La couleur d’un ami : toujours la même (son pseudo la choisit), sur le podium comme dans la liste. */
+function perfColor(n){let c=0;for(const ch of String(n||''))c=(c*31+ch.codePointAt(0))>>>0;return c%6;}
+/* Le podium de la dernière partie entre amis, celui de la fin de partie : les marches montent, les médailles tombent, les pseudos
+   arrivent, quand le tableau entre à l’écran. Sans partie entre amis : le même podium, vide, qui attend. */
+function perfPodiumHTML(h){
+  const ppl=h&&Array.isArray(h.ppl)?h.ppl:[];
+  return `<div class="jeu-podium perf-podium${ppl.length?'':' is-ghost'}">${[2,1,3].map((pl,i)=>{
+    const g=ppl.filter(x=>x.place===pl).slice(0,2);
+    return `<div class="jeu-step is-${pl}${g.length?'':' is-empty'}${g.some(x=>x.me)?' is-me':''}" style="--i:${i}"><span class="jeu-medal perf-medal">${lqStkSvg('medal'+pl)}</span>`+
+      `<span class="jeu-step-av">${g.length?g.map(x=>`<b class="jeu-av" data-c="${perfColor(x.n)}" aria-hidden="true">${jeuInitial(x.n)}</b>`).join(''):'<b class="jeu-av is-empty" aria-hidden="true">?</b>'}</span>`+
+      `<span class="jeu-step-n">${g.length?g.map(x=>esc(x.n)+(x.me?' <small>(toi)</small>':'')).join('<br>'):'—'}</span>`+
+      `<small>${g.length?`${g[0].pts} pt${g[0].pts>1?'s':''}`:'&nbsp;'}</small><i><em>${pl}</em></i></div>`;
+  }).join('')}</div>`;
+}
+/* Un ami affronté : ses parties avec toi, et le score entre vous (les parties où tu as fini devant, puis derrière lui). */
+function perfMateHTML(m,i){
+  const lead=m.w>m.l?'is-up':m.w<m.l?'is-down':'is-eq',eq=Math.max(0,m.g-m.w-m.l);
+  const lab=m.w>m.l?'tu mènes':m.w<m.l?'à rattraper':'à égalité';
+  const aria=`${m.w} fois devant, ${m.l} fois derrière${eq?`, ${eq} ex æquo`:''}`;
+  return `<li class="${lead}" style="--i:${i}"><b class="jeu-av" data-c="${perfColor(m.n)}" aria-hidden="true">${jeuInitial(m.n)}</b>`+
+    `<span class="perf-mate"><b>${esc(m.n)}</b><small>${m.g} partie${m.g>1?'s':''} ensemble${m.at?` · ${esc(perfDay(m.at).toLowerCase())}`:''}</small></span>`+
+    `<span class="perf-h2h" role="img" aria-label="${escAttr(aria)}"><em>${m.w}<i>–</i>${m.l}</em><small>${lab}</small></span></li>`;
+}
+/* « Les redéfier » : la salle passe en « Entre amis », au niveau de la dernière partie, et l’écran remonte jusqu’à elle. */
+function perfRematch(niv){
+  jeuRoomSet('mode','friends');
+  if(niv&&JEU_NIVL[niv])jeuRoomSet('niv',niv);
+  const card=document.getElementById('defis-room'),scr=card&&card.closest('.screen');
+  if(scr){const top=scr.scrollTop+card.getBoundingClientRect().top-scr.getBoundingClientRect().top-64;
+    try{scr.scrollTo({top:Math.max(0,top),behavior:prefersReduceMotion()?'auto':'smooth'});}catch(e){scr.scrollTop=Math.max(0,top);}}
+  const go=card&&card.querySelector('.room-go');
+  if(go){go.classList.remove('is-nudge');void go.offsetWidth;go.classList.add('is-nudge');setTimeout(()=>go.classList.remove('is-nudge'),1400);}
+  if(typeof buzz==='function')buzz('light');
 }
 function renderDefisPerf(){
   const host=document.getElementById('defis-perf');if(!host)return;
@@ -14392,8 +14470,20 @@ function renderDefisPerf(){
   const lvRows=['f','m','d'].map((k,i)=>{const a=Array.isArray(lv[k])?lv[k]:[0,0],n=num(a[0]),ok=Math.min(num(a[1]),n);
     return `<li class="is-${k}" style="--i:${i}"><b>${JEU_NIVL[k]}</b><span class="perf-lvbar"><i style="--w:${n?Math.round(ok/n*100):0}%"></i></span><em>${n?`${ok}/${n}`:'—'}</em></li>`;}).join('');
   const amis=num(s.amis);
-  const pods=`<div class="perf-pods">${['🥇','🥈','🥉'].map((m,i)=>`<span style="--i:${i}"><i aria-hidden="true">${m}</i><b>${num(pl[i])}</b><small>${['1re','2e','3e'][i]} place</small></span>`).join('')}</div>
+  const pods=`<div class="perf-pods">${[0,1,2].map(i=>`<span style="--i:${i}"><i aria-hidden="true">${lqStkSvg('medal'+(i+1))}</i><b>${num(pl[i])}</b><small>${['1re','2e','3e'][i]} place</small></span>`).join('')}</div>
     <p class="perf-note">${amis?`Sur ${amis} ${plur(amis,'partie')} entre amis.`:'Ouvre une salle « Entre amis » et partage le code pour monter sur le podium.'}</p>`;
+  /* Entre amis (Elisa, 31 octobre, 9 h 24 : « mettre aussi le lien avec les personnes qu’on a joué, par exemple un podium animé ») :
+     le podium de la dernière partie entre amis, les places gagnées, les amis affrontés et le score entre vous, et de quoi les redéfier. */
+  const vsLast=hist.find(h=>!h.solo&&Array.isArray(h.ppl)&&h.ppl.length>1),meLast=vsLast&&vsLast.ppl.find(x=>x.me);
+  const mates=Object.values(s.mates&&typeof s.mates==='object'?s.mates:{}).filter(m=>m&&m.n&&num(m.g)>0)
+    .map(m=>({n:m.n,g:num(m.g),w:num(m.w),l:num(m.l),at:num(m.at)})).sort((a,b)=>b.g-a.g||b.at-a.at).slice(0,5);
+  const friends=`<div class="perf-block perf-friends"><h3>Entre amis</h3>
+    <p class="perf-pod-cap">${vsLast?`<b>Ta dernière partie</b> · ${esc(perfDay(vsLast.at))} · ${esc(JEU_NIVL[vsLast.niv]||'Facile')} · ${esc(perfWith(vsLast))}`:'Ton prochain podium entre amis s’affichera ici.'}</p>
+    ${perfPodiumHTML(vsLast)}${meLast&&meLast.place>3?`<p class="perf-pod-me">Toi : ${meLast.place}e · ${meLast.pts} ${plur(meLast.pts,'point')}</p>`:''}
+    ${pods}
+    ${mates.length?`<h4>Tes adversaires</h4><ul class="perf-mates">${mates.map(perfMateHTML).join('')}</ul>`:''}
+    <button type="button" class="perf-rematch" onclick="perfRematch('${vsLast?vsLast.niv:''}')">${JEU_FRIENDS_SVG}<span>${mates.length?'Les redéfier':'Jouer entre amis'}</span>${DEF_CHEV_SVG}</button>
+  </div>`;
   const rows=hist.slice(0,4).map((h,i)=>`<li style="--i:${i}"><span class="perf-rk${!h.solo&&h.place>=1&&h.place<=3?' is-medal':''}">${perfBadge(h)}</span><span class="perf-g"><b>${esc(perfGame(h))}</b><small>${perfDay(h.at)} · ${h.ok}/${h.n} ${plur(h.ok,'trouvé')}${h.ok?` · ${jeuChrono(h.ms)}`:''}</small></span><em>+${h.pts}</em></li>`).join('');
   host.innerHTML=`<section class="perf-card${parties?'':' is-empty'}" aria-labelledby="perf-h">
     <div class="perf-head"><span class="perf-stk" aria-hidden="true">${lqStkSvg('chart')}</span><div><p class="perf-kicker">Tableau de bord</p><h2 id="perf-h">Tes performances</h2></div></div>
@@ -14401,7 +14491,7 @@ function renderDefisPerf(){
     <div class="perf-duo">${ring}${times}</div>
     <div class="perf-block"><h3>Tes dernières parties</h3>${chart}</div>
     ${manches?`<div class="perf-block"><h3>Réussite par niveau</h3><ul class="perf-lv">${lvRows}</ul></div>
-    <div class="perf-block"><h3>Podiums entre amis</h3>${pods}</div>`:''}
+    ${friends}`:''}
     ${rows?`<div class="perf-block"><h3>Historique</h3><ol class="perf-hist">${rows}</ol></div>`:''}
   </section>`;
   perfReveal(host.firstElementChild);
@@ -14415,15 +14505,19 @@ function perfPick(b){
   if(typeof buzz==='function')buzz('selection');
 }
 /* Le tableau s’anime quand il arrive à l’écran (il est sous la salle) : une seule fois par affichage. */
-let perfObs=null;
+let perfObs=null,perfPodObs=null;
 function perfReveal(card){
   if(!card)return;
   if(perfObs){perfObs.disconnect();perfObs=null;}
+  if(perfPodObs){perfPodObs.disconnect();perfPodObs=null;}
   const go=()=>{card.classList.add('is-in');actCountUp(card);};
-  const scr=card.closest('.screen');
-  if(prefersReduceMotion()||!scr||typeof IntersectionObserver==='undefined'){card.classList.add('is-in','is-static');actCountUp(card,true);return;}
+  const scr=card.closest('.screen'),fr=card.querySelector('.perf-friends'),pod=fr&&fr.querySelector('.perf-podium');
+  if(prefersReduceMotion()||!scr||typeof IntersectionObserver==='undefined'){card.classList.add('is-in','is-static');actCountUp(card,true);if(fr)fr.classList.add('is-in');return;}
   perfObs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){perfObs.disconnect();perfObs=null;go();}}),{root:scr,rootMargin:'0px 0px -12% 0px'});
   perfObs.observe(card);
+  /* Le podium « Entre amis » est bas dans le tableau : il s’anime quand lui-même arrive à l’écran, pas avec le haut du tableau. */
+  if(pod){perfPodObs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){perfPodObs.disconnect();perfPodObs=null;fr.classList.add('is-in');}}),{root:scr,threshold:.45});
+    perfPodObs.observe(pod);}
 }
 /* Le barème, dit simplement : ce qui rapporte des points et qui passe devant à égalité. */
 function renderDefisRules(){
@@ -20516,7 +20610,7 @@ function jeuRender(){
       const top=[2,1,3].map(pl=>sc.filter(x=>x.place===pl&&x.pts>0));
       const winner=sc.some(x=>x.pid===J.me&&x.place===1&&x.pts>0);
       html=head('Salle de défi · Fin de partie',winner?'Tu as gagné ! 🏆':'Le podium',`${J.nb} manche${J.nb>1?'s':''} jouée${J.nb>1?'s':''}.`)+
-        `<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];return `<div class="jeu-step is-${pl}${g.length?'':' is-empty'}${g.some(x=>x.pid===J.me)?' is-me':''}"><span class="jeu-medal">${['🥇','🥈','🥉'][pl-1]}</span><span class="jeu-step-av">${g.length?g.map(x=>`<b class="jeu-av" data-c="${jeuOrder().indexOf(x.pid)%6}" aria-hidden="true">${jeuInitial(x.name)}</b>`).join(''):''}</span><span class="jeu-step-n">${g.length?g.map(x=>esc(x.name)+(x.pid===J.me?' <small>(toi)</small>':'')).join('<br>'):'—'}</span><small>${g.length?g[0].pts+' pt'+(g[0].pts>1?'s':'')+' · '+jeuChrono(g[0].ms):''}</small><i><em>${pl}</em></i></div>`;}).join('')}</div>
+        `<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];return `<div class="jeu-step is-${pl}${g.length?'':' is-empty'}${g.some(x=>x.pid===J.me)?' is-me':''}"><span class="jeu-medal">${lqStkSvg('medal'+pl)}</span><span class="jeu-step-av">${g.length?g.map(x=>`<b class="jeu-av" data-c="${jeuOrder().indexOf(x.pid)%6}" aria-hidden="true">${jeuInitial(x.name)}</b>`).join(''):''}</span><span class="jeu-step-n">${g.length?g.map(x=>esc(x.name)+(x.pid===J.me?' <small>(toi)</small>':'')).join('<br>'):'—'}</span><small>${g.length?g[0].pts+' pt'+(g[0].pts>1?'s':'')+' · '+jeuChrono(g[0].ms):''}</small><i><em>${pl}</em></i></div>`;}).join('')}</div>
         <div class="jeu-card"><p class="jeu-card-h">Classement final</p><ol class="jeu-rank is-score">${sc.map(x=>`<li><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${jeuChrono(x.ms)}</small></li>`).join('')}</ol>
           <p class="jeu-tie">⚖️ À égalité de points, le plus rapide au total passe devant (une manche non trouvée compte 3 min).</p></div>
         ${host?`<button type="button" class="journey-primary" onclick="jeuAgain()"><span>Rejouer dans cette salle</span>${DEF_CHEV_SVG}</button>`:`<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>L’hôte peut relancer une partie dans cette salle.</p>`}
@@ -20632,7 +20726,18 @@ function jeuCreditGame(){
     if(vs){s.amis=(s.amis||0)+1;if(place>=1&&place<=3&&pts>0){s.pl=Array.isArray(s.pl)?s.pl:[0,0,0];s.pl[place-1]=(s.pl[place-1]||0)+1;}}
     const lv=s.lv=s.lv&&typeof s.lv==='object'?s.lv:{},k=['f','m','d'].includes(J.niv)?J.niv:'f',l=Array.isArray(lv[k])?lv[k]:[0,0];
     lv[k]=[(l[0]||0)+played.length,(l[1]||0)+mine.length];
-    s.hist=[{at:Date.now(),pts,n:played.length,ok:mine.length,ms,niv:k,solo:J.solo?1:0,place,players:Math.max(1,sc.length)}]
+    /* Entre amis : le podium de la partie (pseudos, points, places) et, pour chaque ami, la partie jouée ensemble, devant ou derrière lui. */
+    const ppl=vs?sc.slice(0,8).map(x=>Object.assign({n:jeuNom(x.name)||'Joueur',pts:x.pts,place:x.place},x.pid===J.me?{me:1}:{})):null;
+    if(vs&&me){
+      const mates=s.mates=s.mates&&typeof s.mates==='object'&&!Array.isArray(s.mates)?s.mates:{};
+      sc.forEach(x=>{
+        if(x.pid===J.me)return;const n=jeuNom(x.name);if(!n)return;
+        const key=n.toLowerCase(),m=mates[key]&&typeof mates[key]==='object'?mates[key]:{g:0,w:0,l:0};
+        m.n=n;m.g=(m.g||0)+1;if(me.place<x.place)m.w=(m.w||0)+1;else if(me.place>x.place)m.l=(m.l||0)+1;m.at=Date.now();mates[key]=m;
+      });
+      Object.keys(mates).sort((a,b)=>(mates[b].at||0)-(mates[a].at||0)).slice(30).forEach(key=>{delete mates[key];});
+    }
+    s.hist=[Object.assign({at:Date.now(),pts,n:played.length,ok:mine.length,ms,niv:k,solo:J.solo?1:0,place,players:Math.max(1,sc.length)},ppl?{ppl}:{})]
       .concat(Array.isArray(s.hist)?s.hist:[]).slice(0,12);
     save();
   }catch(e){}
@@ -23347,6 +23452,11 @@ function lqStkSvg(k){
     export:['<path d="M8 22h32v16a5 5 0 0 1-5 5H13a5 5 0 0 1-5-5z"/><path d="M24 30V6M14 14l10-10 10 10" fill="none" stroke-width="13"/>',
       `<path d="M8 22h32v16a5 5 0 0 1-5 5H13a5 5 0 0 1-5-5z" fill="#DDD4FF" ${W} ${J}/><path d="M14 30h20" stroke="#fff" stroke-width="2.6" ${R}/><path d="M24 31V7.5M15.5 15.5l8.5-8.5 8.5 8.5" fill="none" stroke="${I}" stroke-width="8.4" ${R} ${J}/><path d="M24 31V7.5M15.5 15.5l8.5-8.5 8.5 8.5" fill="none" stroke="#6A4DF4" stroke-width="3.8" ${R} ${J}/>`]
   };
+  /* Médailles du podium (Elisa, 31 octobre, 9 h 24) : deux rubans, la médaille or, argent ou bronze, sa place gravée. */
+  const MED={medal1:'#FFC83D',medal2:'#DCE0EE',medal3:'#F4A86A'};
+  if(MED[k]){const n=k.slice(-1);
+    T[k]=['<path d="M11 3.5h9.5l6 15.5h-9.5zM37 3.5h-9.5l-6 15.5h9.5z"/><circle cx="24" cy="30.5" r="13"/>',
+      `<path d="M11 3.5h9.5l6 15.5h-9.5z" fill="#6A4DF4" ${W} ${J}/><path d="M37 3.5h-9.5l-6 15.5h9.5z" fill="#9FF0C6" ${W} ${J}/><circle cx="24" cy="30.5" r="13" fill="${MED[k]}" ${W}/><circle cx="24" cy="30.5" r="9.2" fill="none" stroke="#fff" stroke-width="1.8" opacity=".75"/><text x="24" y="35.4" text-anchor="middle" font-family="Bricolage Grotesque,system-ui,sans-serif" font-weight="800" font-size="14" fill="${I}">${n}</text>`];}
   const d=T[k]; if(!d)return '';
   return `<svg class="lq-stk" viewBox="0 0 48 48" aria-hidden="true"><g fill="${I}" stroke="${I}" stroke-width="7" ${J} ${R} opacity=".28" transform="translate(0 2.6)">${d[0]}</g><g fill="#fff" stroke="#fff" stroke-width="7" ${J} ${R}>${d[0]}</g>${d[1]}</svg>`;
 }
@@ -26647,65 +26757,68 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(lvCardFit).cat
 
 boot();
 
-/* Tirer pour actualiser : tout en haut de l’écran affiché, tirer vers le bas fait descendre l’écran (voir .ptr).
-   Le geste n’est pas pris quand il commence dans un champ de saisie, dans une liste déjà défilée, ou quand
-   l’écran l’utilise déjà (glisser une activité du planning, un sticker : ces gestes appellent preventDefault). */
+/* Tirer pour actualiser : tout en haut de l’écran affiché, tirer vers le bas fait apparaître une pastille qui se dessine trait
+   par trait (voir .ptr) ; relâcher au-delà du seuil recharge l’app.
+   Elisa, 31 octobre, 9 h 24 : « Le scroll est très compliqué sur mobile -> enquête sur le pb car ça fait plusieurs fois que je te
+   le dis ». La cause : la première version prenait la main sur Safari (preventDefault) pour faire descendre l’écran elle-même ;
+   pour cela, son écouteur tactile non passif était posé sur la scène, l’ancêtre de TOUS les écrans. Avec un tel écouteur,
+   l’iPhone attend la réponse du script avant de commencer chaque défilement, partout dans l’app : le geste « accroche », surtout
+   quand l’accueil anime quelque chose. Désormais les trois écouteurs sont passifs et le geste reste à Safari : l’écran garde son
+   rebond natif, la pastille se dessine par-dessus, dans l’espace libéré en haut. Pas de geste dans un champ de saisie, une liste
+   déjà défilée, ou quand l’écran utilise déjà le doigt (glisser une activité du planning, un sticker). */
 (function pullToRefresh(){
   const stage=document.querySelector('#app > .stage'); if(!stage)return;
   const ptr=document.createElement('div'); ptr.className='ptr'; ptr.setAttribute('aria-hidden','true');
   const N=8; ptr.innerHTML='<span class="ptr-r"><span class="ptr-s">'+Array.from({length:N},(_,k)=>`<i style="transform:rotate(${k*360/N}deg);opacity:0"></i>`).join('')+'</span></span>';
-  stage.insertBefore(ptr,stage.firstChild);
+  stage.appendChild(ptr);
   const spokes=[...ptr.querySelectorAll('i')], rot=ptr.firstChild;
-  const SEUIL=60, TENU=56, LIM=160;
-  /* Résistance d’élastique : l’écran suit le doigt, de moins en moins vite. */
-  const elastique=d=>LIM*(1-1/(d*0.75/LIM+1));
+  const SEUIL=64, TENU=16, LIM=150;
+  /* Le rebond de Safari : l’écran suit le doigt de moins en moins vite ; la pastille suit la même courbe. */
+  const elastique=d=>LIM*(1-1/(d*0.55/LIM+1));
   let y0=0,x0=0,off=0,on=false,pull=false,busy=false,scr=null;
   const draw=o=>{
     const k=Math.min(o/SEUIL,1);
     spokes.forEach((s,i)=>{ s.style.opacity=k*N>i?String(0.25+0.75*(i+1)/N):'0'; });
-    const y=Math.max(4,o/2-14);
-    ptr.style.transform=`translateY(${y}px)`;
-    ptr.style.opacity=String(Math.min(1,o/24));
+    ptr.style.transform=`translate3d(0,${Math.round(o*.62-22)}px,0) scale(${(.55+.45*k).toFixed(3)})`;
+    ptr.style.opacity=String(Math.min(1,o/26));
     rot.style.transform=`rotate(${Math.round(o*3)}deg)`;   // les traits tournent avec le doigt
   };
   const back=()=>{
-    if(scr){ const s=scr; s.classList.add('ptr-back'); s.style.transform='';
-      setTimeout(()=>{ s.classList.remove('ptr-back','ptr-pull'); },440); }
-    ptr.style.transition='opacity .25s ease-out'; ptr.style.opacity='0';
-    setTimeout(()=>{ ptr.style.transition=''; rot.style.transform=''; },260);
+    ptr.style.transition='opacity .2s ease-out,transform .2s ease-out'; ptr.style.opacity='0';
+    setTimeout(()=>{ if(!busy){ ptr.style.transition=''; rot.style.transform=''; } },220);
     on=pull=false; off=0; scr=null;
   };
   stage.addEventListener('touchstart',e=>{
     on=false; if(busy||e.touches.length!==1)return;
     const t=e.target, s=t&&t.closest&&t.closest('.screen.active'); if(!s||s.scrollTop>0)return;
-    if(t.closest('input,textarea,select,[contenteditable="true"],.cm-editor'))return;
+    if(t.closest('input,textarea,select,[contenteditable="true"],.cm-editor,.stk-board'))return;
     for(let n=t;n&&n!==s;n=n.parentElement)if(n.scrollTop>0)return;
     on=true; pull=false; scr=s; y0=e.touches[0].clientY; x0=e.touches[0].clientX;
   },{passive:true});
   stage.addEventListener('touchmove',e=>{
     if(!on)return;
     const t=e.touches[0], dy=t.clientY-y0, dx=t.clientX-x0;
-    if(e.defaultPrevented||(typeof dragging!=='undefined'&&dragging!==null)){ if(pull)back(); else on=false; return; }
+    if(e.defaultPrevented||e.touches.length!==1||(typeof dragging!=='undefined'&&dragging!==null)){ if(pull)back(); else on=false; return; }
     if(!pull){
       if(Math.abs(dx)>Math.abs(dy)||dy<=0||scr.scrollTop>0){ if(Math.abs(dx)+Math.abs(dy)>6)on=false; return; }
-      if(dy<6)return;
-      pull=true; y0=t.clientY; scr.classList.add('ptr-pull'); scr.classList.remove('ptr-back');
+      if(dy<8)return;
+      pull=true; y0=t.clientY; ptr.style.transition='';
     }
-    if(e.cancelable)e.preventDefault();   // l’écran descend à la place du rebond de Safari
+    /* Le doigt repart vers le haut au-delà de son départ : l’écran défile, ce n’est plus un « tirer ». */
+    if(scr.scrollTop>0||t.clientY<y0-6){ back(); return; }
     off=elastique(Math.max(0,t.clientY-y0));
-    scr.style.transform=`translateY(${off}px)`;
     draw(off);
-  },{passive:false});
+  },{passive:true});
   const end=()=>{
     if(!on)return; on=false;
     if(!pull)return;
-    if(off<SEUIL){ back(); return; }
+    if(off<SEUIL||!scr||scr.scrollTop>0){ back(); return; }
     busy=true;
-    const s=scr; s.classList.add('ptr-back'); s.style.transform=`translateY(${TENU}px)`;
-    const y=TENU/2-14; ptr.style.transform=`translateY(${y}px)`; ptr.style.opacity='1';
-    ptr.style.transition='transform .42s cubic-bezier(.22,1,.36,1)';
+    ptr.style.transition='transform .42s cubic-bezier(.22,1,.36,1),opacity .2s ease-out';
+    ptr.style.transform=`translate3d(0,${TENU}px,0) scale(1)`; ptr.style.opacity='1';
     spokes.forEach((sp,i)=>{ sp.style.opacity=String(0.2+0.8*(i+1)/N); });   // tous les traits, du plus clair au plus foncé : une traîne qui tourne
     ptr.classList.add('is-loading');
+    try{ if(navigator.vibrate&&navigator.userActivation&&navigator.userActivation.hasBeenActive)navigator.vibrate(8); }catch(err){}
     /* Le service worker vérifie d’abord s’il y a une nouvelle version ; la page est rechargée de toute façon,
        après au moins 0,7 s de rotation, pour qu’on la voie tourner. */
     const t0=Date.now(), go=()=>setTimeout(()=>location.reload(),Math.max(150,700-(Date.now()-t0)));
@@ -26717,13 +26830,25 @@ boot();
   stage.addEventListener('touchcancel',()=>{ if(on&&pull)back(); on=false; },{passive:true});
 })();
 
+/* #app et la scène ne défilent jamais : seul l’écran ouvert défile. Un scrollIntoView ou un champ qui prend le focus peuvent
+   pourtant les décaler (un overflow:hidden se défile par script), et l’app restait alors remontée de quelques pixels, une bande
+   vide sous la barre d’onglets. Hors saisie (le clavier de l’iPhone peut avoir besoin de ce décalage le temps d’écrire), on les
+   remet aussitôt à zéro ; et à la fermeture du clavier. */
+(function lockShell(){
+  const els=['#app','#app>.stage'].map(q=>document.querySelector(q)).filter(Boolean);
+  const typing=()=>{const a=document.activeElement;return !!(a&&a.matches&&a.matches('input,textarea,select,[contenteditable="true"]'));};
+  const reset=()=>{ if(typing())return; els.forEach(el=>{ if(el.scrollTop||el.scrollLeft){ el.scrollTop=0; el.scrollLeft=0; } }); };
+  els.forEach(el=>el.addEventListener('scroll',reset,{passive:true}));
+  document.addEventListener('focusout',()=>setTimeout(reset,350));
+})();
+
 /* Service worker : met l'app en cache pour qu'elle démarre sans réseau.
    Enregistré après boot pour ne pas retarder le premier affichage.
    Ignoré en file:// (protocole non supporté). */
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-31-retours-0837-v2205';
+  const SW_CACHE='requete-2026-10-31-retours-0924-v2206';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

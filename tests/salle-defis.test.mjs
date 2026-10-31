@@ -88,7 +88,7 @@ function makeClient(world, name, { skew = 0 } = {}) {
       world.setTimeout(() => world.publish(url.replace('https://ntfy.sh/', ''), opt.body), world.latency);
       return Promise.resolve({ ok: true });
     },
-    state: { defis: {}, name }, SQL: {}, esc: s => String(s).replace(/</g, '&lt;'), highlight: s => s, DEF_CHEV_SVG: '', JEU_FRIENDS_SVG: '',
+    state: { defis: {}, name }, SQL: {}, esc: s => String(s).replace(/</g, '&lt;'), highlight: s => s, DEF_CHEV_SVG: '', JEU_FRIENDS_SVG: '', lqStkSvg: k => `<svg data-k="${k}"></svg>`,
     editorBlock: () => '<textarea id="ed-lesson"></textarea>', setupEditor() {}, celebrate() {}, annulerBilanAuto() {}, showScreen() {},
     prefersReduceMotion: () => false, lessonBackLabel: () => 'Défis', leaveLessonScreen() {}, switchTab() {}, renderDefis() {}, activeTab: 'defis',
     noteActivityDay() { c.acts = (c.acts || 0) + 1; }, save() {}, renderProgress() {}, renderPlanning() {}, setLessonOut: h => { c.out = h; }, renderTable: () => '', errBox: m => m,
@@ -651,7 +651,12 @@ test('tableau de performance : une partie entre amis notée pour chacun, avec sa
   assert.equal(h.manches, 3); assert.equal(h.trouves, 3); assert.equal(h.amis, 1); assert.deepEqual(h.pl, [1, 0, 0]);
   assert.deepEqual(h.lv.m, [3, 3], 'niveau moyen : 3 manches, 3 trouvées');
   assert.equal(h.hist.length, 1);
-  assert.deepEqual({ ...h.hist[0], at: 0 }, { at: 0, pts: h.pts, n: 3, ok: 3, ms: h.tms, niv: 'm', solo: 0, place: 1, players: 2 });
+  assert.deepEqual({ ...h.hist[0], at: 0 }, { at: 0, pts: h.pts, n: 3, ok: 3, ms: h.tms, niv: 'm', solo: 0, place: 1, players: 2,
+    ppl: [{ n: 'Hôte', pts: h.pts, place: 1, me: 1 }, { n: 'Ami1', pts: g.pts, place: 2 }] }, 'le podium de la partie, avec les pseudos');
+  /* Elisa, 31 octobre, 9 h 24 : « mettre aussi le lien avec les personnes qu’on a joué » — chacun garde l’autre parmi ses adversaires */
+  assert.deepEqual({ ...h.mates.ami1, at: 0 }, { n: 'Ami1', g: 1, w: 1, l: 0, at: 0 }, 'l’hôte a fini devant Ami1');
+  assert.deepEqual({ ...g.mates['hôte'], at: 0 }, { n: 'Hôte', g: 1, w: 0, l: 1, at: 0 }, 'Ami1 a fini derrière l’hôte');
+  assert.ok(h.mates.ami1.at > 0, 'la dernière partie ensemble est datée');
   assert.equal(h.fast, Math.min(...host.ev('JEU.rounds.map(r=>r.found[JEU.me])')), 'la manche la plus rapide');
   assert.equal(g.trouves, 2, 'l’ami a trouvé deux manches sur trois'); assert.equal(g.manches, 3);
   assert.deepEqual(g.pl, [0, 1, 0]); assert.equal(g.hist[0].place, 2); assert.equal(g.hist[0].ok, 2);

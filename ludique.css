@@ -2767,7 +2767,9 @@ html.lq .journey-new{display:inline-block;margin-left:8px;padding:3px 8px;border
 html.lq{--sun:#FFC83D;--sun-hi:#FFD86B;--sun-lip:#E0A100;--mint:#9FF0C6;--deep:linear-gradient(165deg,#7556F8 0%,#5538E6 52%,#4528CA 100%)}
 @keyframes lqFlow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
 @keyframes lqTwinkle{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(.7) rotate(20deg);opacity:.75}}
-@keyframes lqPing{0%{box-shadow:0 0 0 0 rgba(159,240,198,.55)}70%,100%{box-shadow:0 0 0 8px rgba(159,240,198,0)}}
+/* L’onde autour du point vert : un anneau qui grandit et s’efface (transform et opacity seulement). Avant le 31 octobre, elle animait
+   box-shadow, que l’iPhone redessine sur le fil principal à chaque image, sans fin, tant que l’accueil est ouvert. */
+@keyframes lqPing{0%{transform:scale(1);opacity:.55}70%,100%{transform:scale(3);opacity:0}}
 
 /* Carte de la séance : violet profond, quadrillage, lueur jaune */
 html.lq .lq-hero{isolation:isolate;overflow:hidden;background:var(--deep);box-shadow:0 6px 0 #3A22B0,0 26px 44px -26px rgba(40,20,140,.55)}
@@ -2782,7 +2784,9 @@ html.lq .lq-hero::after{content:"";position:absolute;right:16px;top:14px;width:1
 html.lq .lq-hero-mod{background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.22)}
 html.lq .lq-hero-mod b{background:var(--mint);color:#1B1640}
 html.lq .lq-hero-kicker{display:flex;align-items:center;gap:8px;margin:0 0 4px;font:800 12.5px/1.3 var(--display);letter-spacing:.07em;text-transform:uppercase;color:var(--mint)}
-html.lq .lq-hero-kicker::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--mint);animation:lqPing 2.4s infinite}
+html.lq .lq-hero-kicker{position:relative}
+html.lq .lq-hero-kicker::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--mint)}
+html.lq .lq-hero-kicker::after{content:"";position:absolute;left:0;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;background:var(--mint);pointer-events:none;animation:lqPing 2.4s ease-out infinite}
 html.lq .lq-hero-title{color:var(--sun-hi)}
 html.lq .lq-hero-sub{color:rgba(255,255,255,.86)}
 /* Bouton jaune sur le violet, comme « Commencer » sur la vitrine */
@@ -2804,7 +2808,7 @@ html.lq #scr-learn .home-module.is-current .home-module-copy small.lq-unit-k{col
 html.lq #scr-learn .home-module.is-current .home-module-copy b{color:var(--sun-hi)!important}
 html.lq .home-module.is-current .home-module-progress>i{background:var(--mint)!important}
 
-@media (prefers-reduced-motion:reduce){html.lq .lq-hero::after,html.lq .lq-hero-kicker::before,html.lq .lq-streak{animation:none!important}}
+@media (prefers-reduced-motion:reduce){html.lq .lq-hero::after,html.lq .lq-hero-kicker::after,html.lq .lq-streak{animation:none!important}html.lq .lq-hero-kicker::after{opacity:0}}
 
 /* ---------- 31. Mascotte en autocollant ----------
    Elisa, 30 octobre : « pas pro » le médaillon gris. Comme sur la vitrine, la mascotte est un autocollant
@@ -4443,3 +4447,153 @@ html[data-motion="reduce"].lq .dp-pause .dp-sp,html[data-motion="reduce"].lq .dp
 /* Dans un cours ou un défi, la justesse se lit sur la carte « Correct » ou « Pas encore » : le nombre de lignes reste neutre. */
 html.lq #scr-lesson .result-meta .rm-n{background:var(--accent-soft);color:var(--accent-ink)}
 html.lq #scr-lesson .result-meta .rm-n svg{display:none}
+
+/* ==========================================================================
+   48. Retours de 9 h 24 (31 octobre)
+   ========================================================================== */
+/* 48a. Réf 5 : « est-ce qu’on peut améliorer l’espace du bas ? En bas de la barre de nav je trouve ça fait bizarre ». Dans Safari
+   d’iOS 26, la page (100dvh) s’arrête au-dessus des boutons flottants de Safari ; dessous, jusqu’au bord de l’écran, c’est le fond
+   du document qui se voit : il était lavande, une bande sous la barre d’onglets blanche. Le document est maintenant blanc comme la
+   barre : elle semble descendre jusqu’au bord, sous les boutons de Safari, comme dans une app. La page garde son fond lavande
+   (body), et l’app installée sur l’écran d’accueil, qui occupe tout l’écran, ne change pas. Pendant un cours (pas de barre
+   d’onglets), le bas reprend la couleur du cours. */
+html.lq{background:#fff}
+html.lq body{background:var(--bg)}
+html.lq:has(body.in-lesson),html.lq:has(#onboarding.on){background:var(--bg)}
+html.lq:has(#lesson-video.on){background:#4529CC}
+html.lq:has(#loader:not(.fade-out)){background:#4528CA}
+html.lq:has(.mu.is-a){background:#16123A!important}
+
+/* 48b. Réf 2 : « améliorer le tu es ici et l’animation ». La leçon en cours du chemin se voit d’un coup d’œil : sa pastille passe au
+   jaune (la couleur des boutons « Commencer »), cerclée de violet et soulignée de sa lèvre ; deux ondes partent d’elle à tour de rôle,
+   comme un repère sur une carte. « Tu es ici » devient une bulle violette avec une épingle jaune, accrochée à la pastille par sa
+   pointe, qui flotte doucement. À l’ouverture du module, la bulle arrive juste après sa pastille ; quand on vient de valider la leçon
+   d’avant, la pastille d’avant se remplit d’abord, puis le repère « arrive » sur la suivante. Seulement transform et opacity (rien
+   n’est redessiné à chaque image) ; rien ne bouge avec « Réduire les animations ». */
+html.lq #scr-learn #modules .home-module .row.current .lz-num{
+  --lipc:var(--m-lip);width:66px!important;height:66px!important;margin-left:calc(var(--zz,0px) - 2px)!important;
+  background:var(--sun)!important;border:4px solid #fff!important;color:#1B1640!important;font-size:23px!important;
+  box-shadow:0 0 0 3px var(--m),0 6px 0 3px var(--m-lip)!important}
+html.lq #scr-learn #modules .home-module .row.current:active .lz-num{transform:translateY(5px)!important;box-shadow:0 0 0 3px var(--m),0 1px 0 3px var(--m-lip)!important}
+html.lq #scr-learn #modules .home-module .row.current .lz-num::before,
+html.lq #scr-learn #modules .home-module .row.current .lz-num::after{
+  content:'';position:absolute;inset:-9px;margin:0;width:auto;height:auto;border-radius:50%;border:3px solid var(--m);background:none;
+  -webkit-mask:none;mask:none;opacity:0;pointer-events:none;animation:lqSonar 2.8s cubic-bezier(.2,.6,.35,1) infinite}
+html.lq #scr-learn #modules .home-module .row.current .lz-num::after{animation-delay:1.4s}
+@keyframes lqSonar{0%{transform:scale(.9);opacity:.6}75%,100%{transform:scale(1.6);opacity:0}}
+html.lq #scr-learn #modules .home-module .row .catalog-lesson-state.next,
+html.lq #course-search-results .row .catalog-lesson-state.next{
+  position:relative;display:inline-flex;align-items:center;gap:6px;margin:0 0 8px 7px;padding:6px 12px 6px 9px;border-radius:12px;
+  background:var(--m);color:#fff;font:800 12.5px/1.15 var(--display);letter-spacing:.01em;box-shadow:0 3px 0 var(--m-lip);transform-origin:0 100%}
+html.lq #scr-learn #modules .home-module .row .catalog-lesson-state.next::before,
+html.lq #course-search-results .row .catalog-lesson-state.next::before{content:'';flex:none;width:14px;height:14px;background:var(--sun);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill-rule='evenodd' d='M12 1.8a7.6 7.6 0 0 0-7.6 7.6c0 5.5 6.3 12.1 7 12.8a.85.85 0 0 0 1.2 0c.7-.7 7-7.3 7-12.8A7.6 7.6 0 0 0 12 1.8Zm0 10.5a2.9 2.9 0 1 1 0-5.8 2.9 2.9 0 0 1 0 5.8Z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill-rule='evenodd' d='M12 1.8a7.6 7.6 0 0 0-7.6 7.6c0 5.5 6.3 12.1 7 12.8a.85.85 0 0 0 1.2 0c.7-.7 7-7.3 7-12.8A7.6 7.6 0 0 0 12 1.8Zm0 10.5a2.9 2.9 0 1 1 0-5.8 2.9 2.9 0 0 1 0 5.8Z'/%3E%3C/svg%3E") center/contain no-repeat}
+/* La pointe de la bulle, vers la pastille */
+html.lq #scr-learn #modules .home-module .row .catalog-lesson-state.next::after,
+html.lq #course-search-results .row .catalog-lesson-state.next::after{content:'';position:absolute;left:-7px;bottom:5px;width:9px;height:14px;
+  background:var(--m);-webkit-clip-path:polygon(0 72%,100% 0,100% 100%);clip-path:polygon(0 72%,100% 0,100% 100%)}
+html.lq #scr-learn #modules .home-module .row.current .catalog-lesson-state.next{animation:lqHereBob 2.8s ease-in-out infinite}
+@keyframes lqHereBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes lqHerePop{0%{opacity:0;transform:translate(-10px,6px) scale(.5)}60%{opacity:1;transform:translate(0,-3px) scale(1.06)}100%{opacity:1;transform:none}}
+/* À l’ouverture du module : la pastille, puis la bulle */
+html.lq #scr-learn #modules .home-module>.list.lq-in>.row.current .catalog-lesson-state.next{
+  animation:lqHerePop .55s var(--pop) both,lqHereBob 2.8s ease-in-out infinite!important;
+  animation-delay:calc(min(var(--k,0),12) * 35ms + 280ms),calc(min(var(--k,0),12) * 35ms + 900ms)!important}
+/* La leçon d’avant vient d’être validée : le repère arrive une fois sa pastille remplie */
+html.lq #scr-learn #modules .home-module .row.current.lq-arrive .lz-num{animation:lqNodeIn .55s var(--pop) 1.2s both!important}
+html.lq #scr-learn #modules .home-module>.list>.row.current.lq-arrive .catalog-lesson-state.next{
+  animation:lqHerePop .55s var(--pop) 1.45s both,lqHereBob 2.8s ease-in-out 2.1s infinite!important}
+html.lq #scr-learn #modules .home-module .row.current.lq-arrive .lz-num::before{animation-delay:1.7s}
+html.lq #scr-learn #modules .home-module .row.current.lq-arrive .lz-num::after{animation-delay:3.1s}
+@media (max-width:360px){
+  html.lq #scr-learn #modules .home-module .row.current .lz-num{width:58px!important;height:58px!important;font-size:20px!important}
+}
+@media (prefers-reduced-motion:reduce){
+  html.lq #scr-learn #modules .home-module .row.current .lz-num::before,html.lq #scr-learn #modules .home-module .row.current .lz-num::after{animation:none!important;opacity:0!important}
+  html.lq #scr-learn #modules .home-module .row.current .catalog-lesson-state.next,
+  html.lq #scr-learn #modules .home-module .row.current.lq-arrive .lz-num{animation:none!important}
+}
+html[data-motion="reduce"] #scr-learn #modules .home-module .row.current .lz-num::before,
+html[data-motion="reduce"] #scr-learn #modules .home-module .row.current .lz-num::after{animation:none!important;opacity:0!important}
+html[data-motion="reduce"] #scr-learn #modules .home-module .row.current .catalog-lesson-state.next,
+html[data-motion="reduce"] #scr-learn #modules .home-module .row.current.lq-arrive .lz-num{animation:none!important}
+
+/* 48c. Réf 3 : « fait attention à la responsivité ». « Un code reçu ? » était plus étroit que les autres cartes de la page : sa carte
+   gardait la marge de l’ancienne mise en page (14 px) en plus de celle de son bloc. Toutes les cartes de Défis ont maintenant la même
+   largeur et le même écart, de 320 px à la tablette. */
+html.lq #defis-join>.def-join{margin:0!important}
+
+/* 48d. Réf 4 : « mettre aussi le lien avec les personnes qu’on a joué, par exemple un podium animé ». Dans « Tes performances », le
+   bloc « Entre amis » : le podium de la dernière partie (la scène violette de la fin de partie ; les marches montent, les médailles
+   tombent, les pseudos arrivent quand le tableau entre à l’écran), les places gagnées, les amis affrontés avec le score entre vous
+   (vert quand tu mènes, pêche quand tu es à rattraper), et « Les redéfier », qui prépare la salle « Entre amis ». */
+html.lq .perf-pod-cap{margin:0 2px;color:var(--ink-2);font-size:13px;line-height:1.4}
+html.lq .perf-pod-cap b{color:var(--ink);font-weight:700}
+html.lq .perf-podium{margin:10px 0 0!important;padding:22px 10px 0}
+/* Les médailles autocollantes (or, argent, bronze), au podium de fin de partie comme ici */
+html.lq .jeu-podium .jeu-medal{position:relative;display:block;width:38px;height:38px;font-size:0!important;line-height:0;text-shadow:none}
+html.lq .jeu-podium .jeu-medal svg{display:block;width:100%;height:100%}
+html.lq .jeu-podium .jeu-step.is-1 .jeu-medal{width:44px;height:44px}
+html.lq .perf-podium .jeu-medal{width:36px;height:36px}
+html.lq .perf-podium .jeu-step.is-1 .jeu-medal{width:42px;height:42px}
+html.lq .perf-podium .jeu-step.is-1 .jeu-medal::after{content:"";position:absolute;right:-12px;top:-4px;width:13px;height:13px;background:#fff;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 1c.9 6 4.9 10 11 11-6.1 1-10.1 5-11 11-.9-6-4.9-10-11-11 6.1-1 10.1-5 11-11Z'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 1c.9 6 4.9 10 11 11-6.1 1-10.1 5-11 11-.9-6-4.9-10-11-11 6.1-1 10.1-5 11-11Z'/%3E%3C/svg%3E") center/contain no-repeat;
+  animation:lqTwinkle 2.6s ease-in-out infinite}
+html.lq .perf-podium .jeu-step-av .jeu-av{width:40px;height:40px;font-size:16px}
+html.lq .perf-podium .jeu-step.is-1 .jeu-step-av .jeu-av{width:48px;height:48px;font-size:20px}
+html.lq .perf-podium .jeu-step.is-1>i{height:92px!important}
+html.lq .perf-podium .jeu-step.is-2>i{height:66px!important}
+html.lq .perf-podium .jeu-step.is-3>i{height:46px!important}
+html.lq .perf-podium .jeu-step>i em{top:6px;font-size:22px}
+html.lq .perf-podium .jeu-av.is-empty{background:rgba(255,255,255,.14)!important;border:2px solid rgba(255,255,255,.45)!important;color:rgba(255,255,255,.85)!important;box-shadow:none!important}
+html.lq .perf-podium.is-ghost .jeu-step{opacity:.6}
+/* Le podium attend que le tableau arrive à l’écran ; puis les marches, les médailles, les joueurs, dans l’ordre des places */
+html.lq .perf-friends:not(.is-in) .perf-podium :is(.jeu-step>i,.jeu-medal,.jeu-step-av,.jeu-step-n,.jeu-step>small){animation-play-state:paused!important}
+html.lq .perf-podium .jeu-step-av{animation:perfAvDrop .55s var(--pop) .6s both}
+html.lq .perf-podium .jeu-step-n,html.lq .perf-podium .jeu-step>small{animation:perfFade .4s ease-out .75s both}
+html.lq .perf-podium .jeu-step.is-2 .jeu-step-av{animation-delay:.78s}
+html.lq .perf-podium .jeu-step.is-2 :is(.jeu-step-n),html.lq .perf-podium .jeu-step.is-2>small{animation-delay:.92s}
+html.lq .perf-podium .jeu-step.is-3 .jeu-step-av{animation-delay:.94s}
+html.lq .perf-podium .jeu-step.is-3 :is(.jeu-step-n),html.lq .perf-podium .jeu-step.is-3>small{animation-delay:1.08s}
+@keyframes perfAvDrop{0%{opacity:0;transform:translateY(-26px) scale(.6)}60%{opacity:1;transform:translateY(3px) scale(1.06)}100%{opacity:1;transform:none}}
+@keyframes perfFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+html.lq .perf-pod-me{margin:8px 2px 0;font:700 13px/1.3 var(--display);color:var(--accent-ink)}
+html.lq .perf-friends .perf-pods{margin-top:10px}
+html.lq .perf-pods i{font-size:0!important;line-height:0!important;text-shadow:none!important}
+html.lq .perf-pods i svg{display:block;width:30px;height:30px}
+html.lq .perf-rk.is-medal svg{display:block;width:30px;height:30px}
+html.lq .perf-friends h4{margin:16px 2px 8px;font:700 13px/1.2 var(--display);color:var(--ink-2)}
+html.lq .perf-mates{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+html.lq .perf-mates li{display:grid;grid-template-columns:36px minmax(0,1fr) auto;align-items:center;gap:10px;padding:8px 10px 8px 8px;border-radius:15px;background:var(--accent-soft)}
+html.lq .perf-mates .jeu-av{width:36px;height:36px;font-size:15px}
+html.lq .perf-mate{display:flex;flex-direction:column;gap:2px;min-width:0}
+html.lq .perf-mate b{overflow:hidden;font:700 14.5px/1.2 var(--display);color:var(--ink);text-overflow:ellipsis;white-space:nowrap}
+html.lq .perf-mate small{color:var(--ink-3);font-size:12px;line-height:1.3}
+html.lq .perf-h2h{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+html.lq .perf-h2h em{display:inline-flex;align-items:center;gap:3px;padding:3px 10px;border-radius:99px;background:#fff;box-shadow:0 2px 0 var(--lip);color:var(--ink);font:800 13.5px/1.2 var(--display);font-style:normal;font-variant-numeric:tabular-nums}
+html.lq .perf-h2h em i{font-style:normal;opacity:.5}
+html.lq .perf-h2h small{color:var(--ink-3);font:700 11px/1.2 var(--display);white-space:nowrap}
+html.lq .perf-mates li.is-up .perf-h2h em{background:var(--mint);box-shadow:0 2px 0 #5FC99A;color:#0E4A2E}
+html.lq .perf-mates li.is-up .perf-h2h small{color:#1E7A4F}
+html.lq .perf-mates li.is-down .perf-h2h em{background:#FFE1D1;box-shadow:0 2px 0 #F4A86A;color:#8A3A12}
+html.lq .perf-mates li.is-down .perf-h2h small{color:#A24A1E}
+html.lq .perf-friends.is-in .perf-mates li{animation:dbColIn .34s cubic-bezier(.2,.8,.3,1.2) calc(.9s + var(--i,0) * .06s) both}
+html.lq .perf-rematch{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:50px;margin-top:12px;padding:0 16px;border:2px solid var(--line);border-radius:16px;
+  background:#fff;box-shadow:0 4px 0 var(--lip);color:var(--accent-ink);font:700 15px/1.2 var(--display);cursor:pointer;-webkit-appearance:none;appearance:none;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:transform .12s var(--press),box-shadow .12s var(--press)}
+html.lq .perf-rematch svg{flex:none;width:20px;height:20px}
+html.lq .perf-rematch svg:last-child{width:16px;height:16px;opacity:.7}
+html.lq .perf-rematch:active{transform:translateY(4px);box-shadow:0 0 0 var(--lip)}
+html.lq .room-go.is-nudge{animation:perfNudge .9s var(--pop) .35s}
+@keyframes perfNudge{0%,100%{transform:none}30%{transform:scale(1.05)}55%{transform:scale(.98)}75%{transform:scale(1.02)}}
+@media (max-width:360px){
+  html.lq .perf-podium{padding:20px 6px 0}
+  html.lq .perf-podium .jeu-step-n{font-size:12.5px!important}
+  html.lq .perf-podium .jeu-step-av .jeu-av{width:36px;height:36px;font-size:15px}
+  html.lq .perf-podium .jeu-step.is-1 .jeu-step-av .jeu-av{width:44px;height:44px;font-size:18px}
+}
+@media (prefers-reduced-motion:reduce){
+  html.lq .perf-podium *,html.lq .perf-podium *::after,html.lq .room-go.is-nudge{animation:none!important}
+}
+html[data-motion="reduce"] .perf-podium *,html[data-motion="reduce"] .perf-podium *::after,html[data-motion="reduce"] .room-go.is-nudge{animation:none!important}
