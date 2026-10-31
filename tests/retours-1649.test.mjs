@@ -180,7 +180,7 @@ test('pseudo — une salle entre amis a besoin du pseudo réservé ; à l’ouve
   const old = pseudoCtx({ salle: { pseudo: 'Léa', pseudoVu: Date.now() - 21 * 3600e3 }, reply: () => ({ ok: true, pseudo: 'Léa' }) });
   old.ev('psVerifier()'); await flush();
   assert.deepEqual(old.calls.map(x => x.body.p_pseudo), ['Léa'], 'une fois par jour, la réservation est vérifiée');
-  assert.equal(old.el('acc-pseudo-em').textContent, 'Unique dans l’appli · il ne se change pas');
+  assert.equal(old.el('acc-pseudo-em').textContent, 'Il ne se change pas');
   const lost = pseudoCtx({ salle: { pseudo: 'Léa', pseudoVu: 1 }, reply: () => ({ ok: false, raison: 'pris', idees: ['Léa.db'] }) });
   lost.ev('psVerifier()'); await flush();
   assert.equal(lost.ctx.state.salle.pseudo, undefined, 'pris par quelqu’un d’autre : il n’est plus le sien');
@@ -230,7 +230,7 @@ test('pseudo — l’onboarding demande le prénom ; la mini-page du pseudo suit
   const ctx = vm.createContext({ PS_LOCK_SVG: '<svg data-k="lock"></svg>', ACCT_CHEV: '<svg data-k="chev"></svg>', esc, mien: '' });
   vm.runInContext(line('jeuNom') + line('jeuInitial') + fn('accPseudoHTML') + 'function psMien(){return mien;}', ctx);
   ctx.mien = 'Léa';
-  assert.equal(vm.runInContext("accPseudoHTML('Léa')", ctx), '<div class="acc-pseudo"><span class="acc-pseudo-av" aria-hidden="true">L</span><span class="acc-pseudo-t"><small>Pseudo</small><b>Léa</b><em>Unique dans l’appli · il ne se change pas</em></span><span class="acc-pseudo-lock" aria-hidden="true"><svg data-k="lock"></svg></span></div>');
+  assert.equal(vm.runInContext("accPseudoHTML('Léa')", ctx), '<div class="acc-pseudo"><span class="acc-pseudo-av" aria-hidden="true">L</span><span class="acc-pseudo-t"><small>Pseudo</small><b>Léa</b><em>Il ne se change pas</em></span><span class="acc-pseudo-lock" aria-hidden="true"><svg data-k="lock"></svg></span></div>');
   ctx.mien = '';
   assert.equal(vm.runInContext("accPseudoHTML('')", ctx), '<button type="button" class="acc-pseudo is-vide" onclick="closePlusDetails();psPage({})"><span class="acc-pseudo-av" aria-hidden="true">?</span><span class="acc-pseudo-t"><small>Pseudo</small><b>Choisis ton pseudo</b></span><svg data-k="chev"></svg></button>');
   assert.ok(app.includes('        ${accPseudoHTML(jeuSavedNom())}'));
