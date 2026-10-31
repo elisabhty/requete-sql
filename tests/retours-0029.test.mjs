@@ -19,8 +19,8 @@ test('Aéroport : 7 tables, les volumes annoncés, aucune clé étrangère orphe
   const d = base();
   const n = t => d.exec(`SELECT COUNT(*) FROM ${t}`)[0].values[0][0];
   assert.deepEqual(['passagers', 'compagnies', 'avions', 'aeroports', 'vols'].map(n), [55, 6, 14, 18, 40]);
-  assert.equal(n('reservations'), 97);
-  assert.equal(n('bagages'), 95);
+  assert.equal(n('reservations'), 130);
+  assert.equal(n('bagages'), 128);
   assert.equal(d.exec('PRAGMA foreign_key_check').length, 0);
   /* Dates et heures en texte (SQLite ne lit pas DATE '…') */
   assert.ok(!/\b(DATE|TIME) '/.test(sqlAero));
@@ -46,6 +46,21 @@ test('les remarques de la base sont vraies dans les données', () => {
   assert.equal(col(d, 'SELECT COUNT(*) FROM (SELECT 1 FROM reservations GROUP BY vol_id, siege HAVING COUNT(*)>1)')[0], 0);
   assert.equal(col(d, 'SELECT COUNT(*) FROM reservations r JOIN vols v ON v.id=r.vol_id WHERE r.date_reservation>v.date_depart')[0], 0);
   assert.equal(col(d, "SELECT COUNT(*) FROM reservations r JOIN vols v ON v.id=r.vol_id WHERE v.statut='Annulé'")[0], 0);
+  d.close();
+});
+
+test('0 h 42 : nationalités au féminin, avions qui repartent d’où ils ont atterri, vols les plus réservés', () => {
+  const d = base();
+  assert.deepEqual(col(d, 'SELECT DISTINCT nationalite FROM passagers ORDER BY 1'), ['Allemande', 'Américaine', 'Autrichienne', 'Britannique', 'Danoise', 'Espagnole', 'Française', 'Irlandaise', 'Italienne', 'Japonaise', 'Marocaine', 'Néerlandaise', 'Portugaise', 'Suisse']);
+  /* Le même jour, le vol suivant d’un avion part de l’aéroport où il vient d’atterrir, et ses vols ne se chevauchent pas */
+  assert.equal(col(d, `SELECT COUNT(*) FROM vols a JOIN vols b ON a.avion_id=b.avion_id AND a.date_depart=b.date_depart AND b.heure_depart>a.heure_arrivee
+    AND b.aeroport_depart_id<>a.aeroport_arrivee_id AND NOT EXISTS (SELECT 1 FROM vols c WHERE c.avion_id=a.avion_id AND c.date_depart=a.date_depart
+    AND c.heure_depart>a.heure_arrivee AND c.heure_depart<b.heure_depart)`)[0], 0);
+  assert.equal(col(d, 'SELECT COUNT(*) FROM vols a JOIN vols b ON a.avion_id=b.avion_id AND a.id<b.id AND a.date_depart=b.date_depart AND a.heure_depart<b.heure_arrivee AND b.heure_depart<a.heure_arrivee')[0], 0);
+  /* Les six vols annoncés « presque complets » sont les six plus réservés, nettement devant */
+  const top = d.exec('SELECT vol_id, COUNT(*) n FROM reservations GROUP BY 1 ORDER BY n DESC, vol_id')[0].values;
+  assert.deepEqual(top.slice(0, 6).map(v => v[0]).sort((a, b) => a - b), [6, 13, 19, 25, 31, 36]);
+  assert.ok(top[5][1] >= 9 && top[6][1] <= 4);
   d.close();
 });
 
