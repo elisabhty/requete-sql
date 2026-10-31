@@ -106,41 +106,50 @@ async function main(){
     if (!a.startsWith('o') && !a.startsWith('y')) { console.log('D’accord, rien n’est fait.'); return; }
   }
 
-  let ok = 0;
+  /* Trois façons de demander, de la plus complète à la plus simple : avec le minutage et la continuité entre chapitres
+     (texte d’avant et d’après, langue) ; avec le minutage seul ; l’audio seul, puis l’alignement forcé d’ElevenLabs.
+     Une façon refusée par le modèle (400, 422) passe à la suivante, et la suivante reste retenue pour les fichiers d’après. */
+  let level = 0, ok = 0;
+  const q = `?output_format=${encodeURIComponent(job.format || 'mp3_44100_128')}`;
   for (const el of todo) {
     process.stdout.write(`  ${el.id.padEnd(8)} `);
-    const body = {text: el.texte, model_id: job.modele, language_code: job.langue};
-    if (el.avant) body.previous_text = el.avant;
-    if (el.apres) body.next_text = el.apres;
-    const q = `?output_format=${encodeURIComponent(job.format || 'mp3_44100_128')}`;
-    let r = await call(key, `/v1/text-to-speech/${job.voix.id}/with-timestamps${q}`, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
-    let audio = null, rec = null;
-    if (r.ok) {
-      const j = await r.json();
-      audio = Buffer.from(j.audio_base64, 'base64');
-      rec = {alignment: j.alignment || null, normalized_alignment: j.normalized_alignment || null};
-    } else if (r.status === 400 || r.status === 422) {
-      /* Minutage refusé pour ce modèle : l’audio seul, puis l’alignement forcé d’ElevenLabs sur le texte prononcé. */
-      const why = await detail(r);
-      r = await call(key, `/v1/text-to-speech/${job.voix.id}${q}`, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
-      if (!r.ok) { console.log('échec : ' + why + ' / ' + await detail(r)); continue; }
-      audio = Buffer.from(await r.arrayBuffer());
-      rec = {alignment: null, why};
-      const fd = new FormData();
-      fd.append('file', new Blob([audio], {type: 'audio/mpeg'}), el.id + '.mp3');
-      fd.append('text', el.texte.replace(/\[[^\]]*\]\s*/g, ''));
-      const fa = await call(key, '/v1/forced-alignment', {method: 'POST', body: fd});
-      if (fa.ok) rec.forced = await fa.json();
-    } else {
-      const d = await detail(r);
+    const full = {text: el.texte, model_id: job.modele, language_code: job.langue};
+    if (el.avant) full.previous_text = el.avant;
+    if (el.apres) full.next_text = el.apres;
+    const min = {text: el.texte, model_id: job.modele};
+    let audio = null, rec = null, r = null, why = '';
+    for (let lv = level; lv < 3 && !audio; lv++) {
+      const body = JSON.stringify(lv === 0 ? full : min);
+      r = await call(key, `/v1/text-to-speech/${job.voix.id}${lv < 2 ? '/with-timestamps' : ''}${q}`, {method: 'POST', headers: {'Content-Type': 'application/json'}, body});
+      if (r.ok) {
+        level = lv;
+        if (lv < 2) {
+          const j = await r.json();
+          audio = Buffer.from(j.audio_base64, 'base64');
+          rec = {alignment: j.alignment || null, normalized_alignment: j.normalized_alignment || null};
+        } else {
+          audio = Buffer.from(await r.arrayBuffer());
+          rec = {alignment: null, why};
+          const fd = new FormData();
+          fd.append('file', new Blob([audio], {type: 'audio/mpeg'}), el.id + '.mp3');
+          fd.append('text', el.texte.replace(/\[[^\]]*\]\s*/g, ''));
+          const fa = await call(key, '/v1/forced-alignment', {method: 'POST', body: fd});
+          if (fa.ok) rec.forced = await fa.json();
+        }
+      } else if (r.status === 400 || r.status === 422) {
+        why = await detail(r);
+      } else break;
+    }
+    if (!audio) {
+      const d = r && !r.ok && r.status !== 400 && r.status !== 422 ? await detail(r) : why;
       console.log('échec : ' + d);
-      if (r.status === 401) { forget(); console.log('\nElevenLabs refuse cette clé. Relance le script et colle une autre clé (avec l’accès « Text to Speech »).'); process.exit(1); }
+      if (r && r.status === 401) { forget(); console.log('\nElevenLabs refuse cette clé. Relance le script et colle une autre clé (avec l’accès « Text to Speech »).'); process.exit(1); }
       if (/quota|credits|limit/i.test(d)) { console.log('\nPlus assez de crédits : arrêt. Ce qui est déjà généré est gardé.'); process.exit(1); }
       continue;
     }
     fs.writeFileSync(path.join(out, el.id + '.mp3'), audio);
     fs.writeFileSync(path.join(out, el.id + '.json'), JSON.stringify(Object.assign({id: el.id, texte: el.texte, phrases: el.phrases || null,
-      voix: job.voix, modele: job.modele, request_id: r.headers.get('request-id') || null, cree: new Date().toISOString()}, rec)));
+      voix: job.voix, modele: job.modele, niveau: level, request_id: r.headers.get('request-id') || null, cree: new Date().toISOString()}, rec)));
     ok++;
     console.log(`ok (${Math.round(audio.length / 1024)} Ko)`);
   }
