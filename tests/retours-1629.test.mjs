@@ -60,7 +60,7 @@ test('seul dans la salle : comme seul (ni bande, ni réactions, ni « Clore », 
   const sl = cut('function jeuSoloLike(n){', '\nfunction jeuRoomEmpty(){');
   assert.ok(sl.includes('return jeuLive().length<2&&(!r||Object.keys(r.found).every(p=>p===J.me));'));
   assert.ok(app.includes("jeuSend({t:'round',n,cid:J.plan[n]||jeuPick(),one:jeuLive().length<2?1:0});"), 'la manche dit si elle commence seule, le même drapeau chez tous');
-  assert.ok(app.includes('Object.assign({pid,ms,place:i+1},jeuPts(ms,i,J.solo||r.one))'));
+  assert.ok(app.includes('Object.assign({pid,ms,place:i+1},jeuPts(ms,i,J.solo||r.one,!!(r.first&&r.first[pid])))'));
   assert.ok(app.includes("if(jeuSoloLike(n)!==J.slShown){J.keep=v;J.view='';jeuPaint();return;}"), 'quelqu’un arrive ou part : la manche se redessine (la requête tapée reste)');
   assert.ok(!app.includes('Tu es seul·e dans la salle'), 'plus d’annonce « seul·e dans la salle »');
   assert.ok(app.includes("const seul=J.solo||sc.every(x=>x.pid===J.me);"), 'fin de partie seul : le bilan, pas le podium');

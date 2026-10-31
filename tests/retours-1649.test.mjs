@@ -303,29 +303,36 @@ test('« notif in-app » : effacer la progression passe par deux feuilles de l�
   assert.ok(ask.includes("o.danger") || ask.includes('danger'), 'une variante « danger »');
 });
 
-test('points — le défi vaut 200 au départ puis baisse (100 à 3 min), affiché à côté du chrono ; la rapidité n’est plus une ligne à part', () => {
-  const ctx = vm.createContext({});
-  vm.runInContext(['const JEU_ROUND_MS=180000;', 'const JEU_PTS_OK=100,JEU_PTS_RANG=[50,30,15],JEU_PTS_VITE=100;', line('jeuSpeedPts'), line('jeuValeur'), line('jeuPts')].join('\n'), ctx);
-  const v = vm.runInContext('Array.from({length:181},(_,s)=>jeuValeur(s*1000))', ctx);
-  assert.equal(v[0], 200); assert.equal(v[180], 100);
-  assert.ok(v.every((x, i) => i === 0 || x <= v[i - 1]), 'elle ne fait que baisser');
-  assert.ok(v.every(x => x >= 100 && x <= 200), 'on ne perd jamais de points');
-  assert.equal(vm.runInContext('jeuValeur(400000)', ctx), 100, 'après 3 min : 100');
-  assert.deepEqual(plain(vm.runInContext('jeuPts(0,0,false)', ctx)), { ok: 100, rang: 50, vite: 100, pts: 250 }, 'au plus 250 entre amis');
-  assert.deepEqual(plain(vm.runInContext('jeuPts(0,0,true)', ctx)), { ok: 100, rang: 0, vite: 100, pts: 200 }, 'au plus 200 seul');
-  /* La valeur, dans la barre de jeu, tant qu’on cherche ; le chrono la fait baisser */
-  assert.ok(app.includes('const val=mine?\'\':`<b class="jeu-val" id="jeu-val" title="Ce que vaut le défi maintenant">${JEU_COIN_SVG}<span id="jeu-val-n">${jeuValeur(Math.max(0,took0))}</span><small>pts</small></b>`;'));
-  assert.ok(fn('jeuTick').includes("const vn=document.getElementById('jeu-val-n');if(vn){const v=String(jeuValeur(Math.max(0,took)));if(vn.textContent!==v)vn.textContent=v;}"));
+test('points — la valeur du défi, palier par palier, à côté du chrono ; « +25 » tant que la première requête peut être la bonne', () => {
+  /* Le barème a ses propres tests (salle-points-microinteractions, salle-defis : 17 h 39) ; ici, ce que montre la barre de jeu */
+  assert.ok(app.includes('const val=mine?\'\':`<b class="jeu-val" id="jeu-val" title="Ce que vaut le défi maintenant">${JEU_COIN_SVG}<span id="jeu-val-n">${jeuValeur(Math.max(0,took0))}</span><small>pts</small>${r.tries?\'\':`<i class="jeu-val-b" id="jeu-val-b" title="Si ta première requête est la bonne">+${JEU_PTS_ESSAI}</i>`}</b>`;'));
+  const tick = fn('jeuTick');
+  assert.ok(tick.includes("const vn=document.getElementById('jeu-val-n');if(vn){const v=String(jeuValeur(Math.max(0,took)));if(vn.textContent!==v){vn.textContent=v;"), 'le palier change avec le chrono');
+  assert.ok(tick.includes("pv.classList.remove('is-drop');void pv.offsetWidth;pv.classList.add('is-drop');"), 'un petit saut quand il change');
   assert.ok(app.includes('<span class="jeu-bar-r">${val}<b class="jeu-timer'), 'à côté du chrono');
-  /* Le détail des points : la valeur du défi au moment trouvé, puis le bonus de place */
-  const d = vm.createContext({ JEU_PTS_RANG: [50, 30, 15] });
+  /* Le premier essai manqué : le « +25 » s’envole */
+  const run = fn('jeuRun');
+  assert.ok(run.includes('r.tries=(r.tries||0)+1;') && run.includes("jeuSend({t:'found',n,ms:took,p1:r.tries===1?1:0});"), 'chaque exécution est un essai ; le premier juste est annoncé à tous');
+  assert.ok(run.includes('}catch(e){setLessonOut(errBox(e.message));jeuEssaiRate(r);return;}'), 'une erreur compte comme un essai');
+  const els = {}, ctx = vm.createContext({ prefersReduceMotion: () => false, setTimeout: f => { ctx.later = f; } });
+  const b = { classList: { list: [], add(c) { this.list.push(c); } }, remove() { b.gone = true; } };
+  ctx.document = { getElementById: id => (id === 'jeu-val-b' ? b : els[id] || null) };
+  vm.runInContext(fn('jeuEssaiRate'), ctx);
+  ctx.jeuEssaiRate({ tries: 2 }); assert.deepEqual(b.classList.list, [], 'déjà parti au premier essai');
+  ctx.jeuEssaiRate({ tries: 1 }); assert.deepEqual(b.classList.list, ['is-out']); ctx.later(); assert.ok(b.gone);
+  assert.ok(app.includes("if(m.p1===1)(r.first=r.first||{})[m.pid]=1;"), 'reçu : le premier essai de chacun, pour que tout le monde compte les mêmes points');
+  /* Le détail des points et la carte « Trouvé » */
+  const d = vm.createContext({ JEU_PTS_RANG: [50, 30, 20, 10] });
   vm.runInContext(line('jeuPtsDetail'), d);
-  assert.equal(vm.runInContext('jeuPtsDetail({ok:100,vite:84,rang:30})', d), '<span class="jeu-pd"><i>Défi 184</i><i class="is-rang">2e +30</i></span>');
-  assert.equal(vm.runInContext('jeuPtsDetail({ok:100,vite:60,rang:0})', d), '<span class="jeu-pd"><i>Défi 160</i></span>', 'seul : la valeur du défi');
-  const rules = fn('renderDefisRules');
-  assert.ok(rules.includes('<li><b>🎯 Défi trouvé</b><span>jusqu’à ${JEU_PTS_OK+JEU_PTS_VITE}</span>') && !rules.includes('Rapidité'));
+  assert.equal(vm.runInContext('jeuPtsDetail({val:175,essai:25,rang:30,place:2})', d), '<span class="jeu-pd"><i>Défi 175</i><i class="is-essai">1er essai +25</i><i class="is-rang">2e +30</i></span>');
+  assert.equal(vm.runInContext('jeuPtsDetail({val:100,essai:0,rang:10,place:4})', d), '<span class="jeu-pd"><i>Défi 100</i><i class="is-rang">4e +10</i></span>');
+  assert.equal(vm.runInContext('jeuPtsDetail({val:150,essai:0,rang:0,place:1})', d), '<span class="jeu-pd"><i>Défi 150</i></span>', 'seul : la valeur du défi');
+  assert.ok(fn('jeuFoundHTML').includes("+(x.essai?' · du premier coup ✨':'')"));
   for (const part of ['html.lq .jeu-bar-r{flex:none;display:flex;align-items:center;gap:6px}', 'html.lq .jeu-val{display:inline-flex;', 'font-variant-numeric:tabular-nums'])
     assert.ok(s51.includes(part), part);
+  const s52 = css.slice(css.indexOf('/* ---------- 52.'));
+  for (const part of ['html.lq .jeu-val-b{position:absolute;', '@keyframes jeuValBOut{', 'html.lq .jeu-val.is-drop #jeu-val-n{', 'html.lq .jeu-pd i.is-essai{'])
+    assert.ok(s52.includes(part), part);
 });
 
 test('réf. 4 et 5 — la note de la salle garde sa première phrase ; « Un code reçu ? » respire, sans rappel du pseudo', () => {
