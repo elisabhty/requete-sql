@@ -3907,3 +3907,212 @@ html.lq .table-pos.is-drag>i{transition:none;background:var(--accent-ink)}
 @media (hover:hover) and (pointer:fine){html.lq .table-pos:hover>i{background:var(--accent-ink)}}
 @media (prefers-reduced-motion:reduce){html.lq #scr-console .console-schema-panel .db-trow>.db-tnote{animation:none!important}}
 html[data-motion="reduce"].lq #scr-console .console-schema-panel .db-trow>.db-tnote{animation:none!important}
+
+/* ---------- 44. Les pages de l’appli dans la DA de la vitrine ----------
+   Elisa, 31 octobre, 2 h 18 : « améliorer les pages Stickers, Selon le SGBD, Carte mémo avec la DA du site (stickers, animation,
+   micro-interactions, responsivité), notamment les pages de chaque onglet : Accueil, Planning, Pratiquer, Bibliothèque, Compte ; laisser
+   la notif de flamme mais ajouter micro-interaction, animation ». Rien ne bouge en mouvement réduit (fin de section). */
+@keyframes lqHeadIn{0%{opacity:0;transform:scale(.3) rotate(-28deg) translateY(-10px)}55%{opacity:1;transform:scale(1.14) rotate(5deg)}78%{transform:scale(.96) rotate(-2deg)}100%{transform:none}}
+@keyframes lqHeadPoke{0%{transform:none}25%{transform:translateY(-12px) rotate(-12deg) scale(1.08)}50%{transform:translateY(0) rotate(8deg) scale(.95)}72%{transform:rotate(-4deg)}100%{transform:none}}
+@keyframes lqHubIn{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes lqBarIn{from{transform:scaleX(0)}to{transform:none}}
+@keyframes lqStkPop{0%{opacity:0;transform:scale(.2) rotate(-30deg)}60%{opacity:1;transform:scale(1.15) rotate(6deg)}100%{transform:none}}
+@keyframes lqZone{0%,100%{opacity:.55;transform:scale(1)}50%{opacity:1;transform:scale(.985)}}
+
+/* 44a. Le haut des pages : rubrique au tiret, titre souligné au trait jaune, autocollant collé de travers (il se colle à chaque arrivée) */
+/* flow-root : l’autocollant flotte à droite du titre sans déborder sur la suite (une grille voisine se serait rétrécie de sa largeur) */
+html.lq #app .lgtitle.lq-head{--hs:clamp(56px,17vw,74px);display:flow-root}
+html.lq #app .lgtitle.lq-head>.lq-head-stk{float:right;position:relative;z-index:1;display:block;width:var(--hs);height:var(--hs);margin:-4px -4px 4px 12px;rotate:-7deg;cursor:pointer;-webkit-tap-highlight-color:transparent}
+html.lq #app .lgtitle.lq-head>.lq-head-stk>svg{display:block;width:100%;height:100%}
+html.lq #app .screen.active>.lgtitle.lq-head>.lq-head-stk>svg{animation:lqHeadIn .62s var(--pop) .1s backwards}
+html.lq #app .lgtitle.lq-head>.lq-head-stk.is-poke>svg{animation:lqHeadPoke .6s var(--pop)}
+html.lq #app .lq-head-sp{position:absolute;width:14px;height:14px;background:var(--sun);pointer-events:none;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 1c.9 6 4.9 10 11 11-6.1 1-10.1 5-11 11-.9-6-4.9-10-11-11 6.1-1 10.1-5 11-11Z'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 1c.9 6 4.9 10 11 11-6.1 1-10.1 5-11 11-.9-6-4.9-10-11-11 6.1-1 10.1-5 11-11Z'/%3E%3C/svg%3E") center/contain no-repeat;
+  animation:lqTwinkle 3s ease-in-out infinite}
+html.lq #app .lq-head-sp:first-of-type{left:-12px;top:2px}
+html.lq #app .lq-head-sp:last-of-type{right:-6px;bottom:-4px;width:10px;height:10px;background:var(--accent);animation-delay:1.3s}
+html.lq #app .lgtitle.lq-head .eyebrow{display:flex!important;align-items:center;gap:8px;margin:0 0 6px;font:800 12px/1.2 var(--display)!important;letter-spacing:.13em!important;text-transform:uppercase!important;color:var(--accent)!important}
+html.lq #app .lgtitle.lq-head .eyebrow::before{content:"";flex:none;width:18px;height:3px;border-radius:3px;background:currentColor}
+html.lq #app .lgtitle.lq-head h1{font-size:clamp(28px,8.6vw,34px)}
+html.lq #app .lgtitle.lq-head h1 .lq-tu{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 30' preserveAspectRatio='none'%3E%3Cpath d='M4 20C70 8 170 6 296 14' fill='none' stroke='%23FFC83D' stroke-width='9' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat 0 100%/100% .24em;
+  padding-bottom:.06em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+html.lq #app .lgtitle.lq-head p.sub{margin-top:8px}
+
+/* 44b. Pratiquer et Bibliothèque : l’autocollant de chaque entrée, qui se redresse au survol et s’écrase à l’appui ; les entrées arrivent
+   l’une après l’autre, la barre de progression se remplit */
+html.lq #app .journey-resource .journey-tool-icon.is-stk{width:54px;height:54px;background:none!important;border-radius:0!important;overflow:visible;rotate:-6deg;transition:rotate .3s var(--pop),transform .25s var(--pop)}
+html.lq #app .journey-resource:nth-child(even) .journey-tool-icon.is-stk{rotate:6deg}
+html.lq #app .journey-resource .journey-tool-icon.is-stk svg{width:54px!important;height:54px!important;stroke:none!important;fill:none}
+html.lq #app .journey-resource:active .journey-tool-icon.is-stk{transform:scale(.9);rotate:-10deg}
+@media (hover:hover) and (pointer:fine){html.lq #app .journey-resource:hover .journey-tool-icon.is-stk{rotate:0deg;transform:scale(1.08)}}
+html.lq #app .screen.active .journey-hub-list>.journey-resource{animation:lqHubIn .46s cubic-bezier(.2,.8,.3,1.15) backwards!important;animation-delay:calc(.08s + var(--i,0) * .055s)!important}
+html.lq #app .screen.active .journey-resource-bar>i{transform-origin:left;animation:lqBarIn .9s cubic-bezier(.2,.8,.2,1) .35s backwards}
+/* La carte du prochain défi (et « À réviser ») : la scène violette de la vitrine, titre jaune, bouton jaune, autocollant */
+html.lq .journey-spotlight,html.lq .coll-overview,html.lq .notes-overview,html.lq .ent-hero{isolation:isolate;overflow:hidden;background:var(--deep)!important;box-shadow:0 6px 0 #3A22B0,0 24px 40px -26px rgba(40,20,140,.55)!important}
+html.lq .journey-spotlight::before,html.lq .coll-overview::before,html.lq .notes-overview::before,html.lq .ent-hero::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(240px 200px at 92% 0%,rgba(255,216,107,.24),transparent 70%),
+    linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px) 0 0/26px 26px,linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px) 0 0/26px 26px;
+  -webkit-mask-image:radial-gradient(ellipse 90% 85% at 78% 18%,#000 25%,transparent 85%);mask-image:radial-gradient(ellipse 90% 85% at 78% 18%,#000 25%,transparent 85%)}
+html.lq .journey-spotlight .journey-kicker{color:var(--mint)!important;font:800 12.5px/1.3 var(--display)!important;letter-spacing:.07em!important;text-transform:uppercase!important;padding-right:62px}
+html.lq .journey-spotlight h2{color:var(--sun-hi)!important;padding-right:62px}
+html.lq .journey-spotlight .journey-primary{background:var(--sun)!important;color:#1B1640!important;box-shadow:0 5px 0 var(--sun-lip)!important}
+html.lq .journey-spotlight .journey-primary:active{box-shadow:0 0 0 var(--sun-lip)!important}
+html.lq .journey-spot-stk{position:absolute;right:14px;top:12px;width:56px;height:56px;rotate:8deg;pointer-events:none}
+html.lq .journey-spot-stk svg{display:block;width:100%;height:100%}
+html.lq #app .screen.active .journey-spot-stk svg{animation:lqStkPop .6s var(--pop) .2s backwards}
+html.lq .coll-overview-copy strong,html.lq .notes-overview-copy b,html.lq .ent-hero-txt b{color:var(--sun-hi)!important}
+html.lq .coll-overview-copy small,html.lq .notes-overview-copy small,html.lq .ent-hero-kicker{color:var(--mint)!important}
+html.lq .coll-overview-next button,html.lq .ent-hero .ent-hero-cta{background:var(--sun)!important;color:#1B1640!important;box-shadow:0 5px 0 var(--sun-lip)!important}
+html.lq .coll-overview-next button:active,html.lq .ent-hero .ent-hero-cta:active{box-shadow:0 0 0 var(--sun-lip)!important}
+
+/* 44c. Mon compte : les chiffres et les réglages portent leur autocollant ; chaque ligne répond à l’appui */
+html.lq #scr-compte .acct-stat-ico.is-stk{width:46px!important;height:46px!important;background:none!important;box-shadow:none!important;border-radius:0!important;rotate:-6deg}
+html.lq #scr-compte .acct-stat:nth-child(2) .acct-stat-ico.is-stk{rotate:5deg}
+html.lq #scr-compte .acct-stat-ico.is-stk svg{width:46px!important;height:46px!important}
+html.lq #scr-compte .acct-stat.is-streak:not(.is-on) .acct-stat-ico.is-stk svg{opacity:.5;filter:saturate(.15)}
+html.lq #scr-compte.active .acct-stat-ico.is-stk svg{animation:lqStkPop .55s var(--pop) backwards;animation-delay:calc(.15s + var(--i,0) * .08s)}
+html.lq #scr-compte .acct-stat:nth-child(1) .acct-stat-ico.is-stk svg{--i:0}
+html.lq #scr-compte .acct-stat:nth-child(2) .acct-stat-ico.is-stk svg{--i:1}
+html.lq #scr-compte .acct-stat:nth-child(3) .acct-stat-ico.is-stk svg{--i:2}
+html.lq #scr-compte .plus-row-icon.is-stk,html.lq #scr-compte .acct-data-ico.is-stk{width:46px!important;height:46px!important;background:none!important;border-radius:0!important;box-shadow:none!important;rotate:-6deg;transition:rotate .3s var(--pop),transform .25s var(--pop)}
+html.lq #scr-compte .account-setting-row:nth-child(even) .plus-row-icon.is-stk{rotate:6deg}
+html.lq #scr-compte .plus-row-icon.is-stk svg,html.lq #scr-compte .acct-data-ico.is-stk svg{width:42px!important;height:42px!important;stroke:none!important;fill:none}
+html.lq #scr-compte .account-setting-row:active .plus-row-icon.is-stk{transform:scale(.88);rotate:-12deg}
+@media (hover:hover) and (pointer:fine){html.lq #scr-compte .account-setting-row:hover .plus-row-icon.is-stk{rotate:0deg;transform:scale(1.08)}}
+html.lq #scr-compte .account-setting-row{transition:background .16s ease}
+html.lq #scr-compte .account-setting-row:active{background:#F7F4FF!important}
+
+/* La carte d’identité de Mon compte : la même scène violette que l’accueil, le niveau en menthe, la barre du prochain cap en jaune */
+html.lq .acct-hero{isolation:isolate;overflow:hidden;background:var(--deep)!important;box-shadow:0 6px 0 #3A22B0,0 24px 40px -26px rgba(40,20,140,.55)!important}
+html.lq .acct-hero::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(240px 200px at 92% 0%,rgba(255,216,107,.24),transparent 70%),
+    linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px) 0 0/26px 26px,linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px) 0 0/26px 26px;
+  -webkit-mask-image:radial-gradient(ellipse 90% 85% at 78% 18%,#000 25%,transparent 85%);mask-image:radial-gradient(ellipse 90% 85% at 78% 18%,#000 25%,transparent 85%)}
+html.lq .acct-hero .acct-id-copy small{color:var(--mint)!important}
+html.lq .acct-hero .acct-level{background:rgba(20,10,60,.24)}
+html.lq .acct-hero .acct-level-next{color:var(--sun-hi)}
+html.lq .acct-hero .acct-level-track i{background:var(--sun)}
+html.lq #scr-compte.active .acct-hero .acct-level-track i{transform-origin:left;animation:lqBarIn .9s cubic-bezier(.2,.8,.2,1) .3s backwards}
+
+/* 44d. Planning : les tuiles d’« Avancement global » et le prochain cap portent leur autocollant ; le prochain cap passe en scène violette */
+html.lq #scr-planning .pgr-stat,html.lq #scr-planning .pgr-chart,html.lq #scr-planning .pgr-next{position:relative}
+html.lq #scr-planning .pgr-stk{position:absolute!important;z-index:1;top:-19px;right:-7px;display:block!important;width:34px;height:34px;padding:0!important;rotate:10deg;pointer-events:none}
+html.lq #scr-planning .pgr-stk svg{display:block;width:100%;height:100%}
+html.lq #scr-planning .pgr-stat.is-d>.pgr-stk{rotate:-8deg}
+html.lq #scr-planning .pgr-stat.is-s .pgr-flame,html.lq #scr-planning .pgr-stat.is-t .pgr-t-main>small>svg{display:none}
+html.lq #scr-planning .pgr-stat.is-s:not(.on)>.pgr-stk svg{opacity:.5;filter:saturate(.15)}
+html.lq #scr-planning .pgr-chart>.pgr-stk{top:-16px;right:8px;width:44px;height:44px;rotate:-8deg}
+html.lq #scr-planning .planning-progress[open] .pgr-stk svg{animation:lqStkPop .55s var(--pop) backwards;animation-delay:calc(.12s + var(--i,0) * .07s)}
+html.lq #scr-planning .pgr-next{isolation:isolate;overflow:hidden;padding:16px!important;border-radius:22px!important;background:var(--deep)!important;box-shadow:0 5px 0 #3A22B0,0 20px 36px -24px rgba(40,20,140,.55)}
+html.lq #scr-planning .pgr-next::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(200px 160px at 90% 0%,rgba(255,216,107,.24),transparent 70%),linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px) 0 0/24px 24px,linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px) 0 0/24px 24px;
+  -webkit-mask-image:radial-gradient(ellipse 90% 90% at 80% 15%,#000 25%,transparent 85%);mask-image:radial-gradient(ellipse 90% 90% at 80% 15%,#000 25%,transparent 85%)}
+html.lq #scr-planning .pgr-next>.pgr-stk{top:12px;right:12px;width:50px;height:50px;rotate:0deg}
+html.lq #scr-planning .pgr-next>span:not(.pgr-stk){padding-right:58px}
+html.lq #scr-planning .pgr-next small{color:var(--mint)!important}
+html.lq #scr-planning .pgr-next>span>b{color:var(--sun-hi)!important}
+html.lq #scr-planning .pgr-next>span>em{color:rgba(255,255,255,.86)!important}
+html.lq #scr-planning .pgr-next .pgr-go{background:var(--sun)!important;color:#1B1640!important;box-shadow:0 5px 0 var(--sun-lip)!important;border-color:transparent!important}
+html.lq #scr-planning .pgr-next .pgr-go:active{box-shadow:0 0 0 var(--sun-lip)!important;transform:translateY(5px)}
+html.lq #scr-planning .pgr-next .pl-overview-adjust{background:rgba(255,255,255,.16)!important;color:#fff!important;border:2px solid rgba(255,255,255,.4)!important;box-shadow:0 4px 0 rgba(20,10,60,.2)!important}
+html.lq #scr-planning .pgr-next .pl-overview-adjust svg{color:#fff}
+
+/* 44e. Stickers : le tableau devient la scène violette de la vitrine (quadrillage, lueurs, étincelles), la zone où coller respire tant
+   qu’il est vide ; « Nouveau » est une étiquette jaune collée de travers ; les stickers de la planche arrivent l’un après l’autre */
+html.lq .stk-board{background:radial-gradient(260px 200px at 88% 6%,rgba(255,216,107,.24),transparent 70%),radial-gradient(240px 180px at 0% 100%,rgba(159,240,198,.16),transparent 70%),
+    linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px) 0 0/24px 24px,linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px) 0 0/24px 24px,var(--deep);
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.08),0 6px 0 #3A22B0,0 24px 44px -28px rgba(40,20,140,.6)}
+html.lq .stk-board.is-target{box-shadow:inset 0 0 0 3px var(--sun-hi),0 6px 0 #3A22B0}
+html.lq .stk-board-logo{color:rgba(255,255,255,.1)}
+html.lq .stk-board.is-empty::after{content:"";position:absolute;inset:14px;border:2.5px dashed rgba(255,255,255,.32);border-radius:18px;pointer-events:none;animation:lqZone 2.6s ease-in-out infinite}
+html.lq .stk-empty b{color:var(--sun-hi)}
+html.lq .stk-empty span{color:rgba(255,255,255,.86)}
+html.lq .stk-sheet-sec .acct-head span{padding:4px 10px;border-radius:99px;background:var(--sun);color:#1B1640;font:800 12.5px/1.2 var(--display);box-shadow:0 2px 0 var(--sun-lip)}
+html.lq .stk-group span{padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent-ink);font:700 12.5px/1.4 var(--display)}
+html.lq .stk-new{background:var(--sun)!important;color:#1B1640!important;rotate:-7deg;box-shadow:0 2px 0 var(--sun-lip)}
+html.lq #scr-stickers.active .stk-grid>li{animation:lqHubIn .42s var(--pop) backwards;animation-delay:calc(.1s + var(--i,0) * .035s)}
+html.lq #scr-stickers .stk-board-actions .stk-btn{transition:transform .12s var(--press),box-shadow .12s var(--press)}
+
+/* 44f. Selon le SGBD : l’introduction en fiche, la barre des thèmes accrochée en haut (le thème lu s’allume), les thèmes en
+   autocollants, « cours » en étiquette jaune ; deux colonnes de fiches sur un grand écran */
+html.lq .sg-intro{position:relative;display:flow-root;background:#fff!important;border:2px solid var(--line)!important;box-shadow:0 4px 0 var(--lip)}
+html.lq .sg-intro-stk{float:left;width:46px;height:46px;margin:0 12px 4px -2px;rotate:-8deg}
+html.lq .sg-intro-stk svg{display:block;width:100%;height:100%}
+html.lq .sg-chips{position:sticky;top:calc(var(--safe-top) + 44px);z-index:20;background:var(--bg);transition:box-shadow .2s ease;
+  -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent)}
+html.lq #sgbd-sheet-body .sg-chips{top:0}
+html.lq .sg-chips:not(.is-start){-webkit-mask-image:linear-gradient(90deg,transparent,#000 26px,#000 calc(100% - 30px),transparent);mask-image:linear-gradient(90deg,transparent,#000 26px,#000 calc(100% - 30px),transparent)}
+html.lq .sg-chips.is-end{-webkit-mask-image:linear-gradient(90deg,transparent,#000 26px);mask-image:linear-gradient(90deg,transparent,#000 26px)}
+html.lq .sg-chips.is-end.is-start{-webkit-mask-image:none;mask-image:none}
+html.lq .sg-chips.is-stuck{box-shadow:0 2px 0 var(--line)}
+html.lq .sg-chips .fchip{transition:background .2s ease,color .2s ease,transform .25s var(--pop),box-shadow .2s ease}
+html.lq .sg-chips .fchip.on{transform:translateY(-1px) scale(1.04)}
+html.lq .sg-sec h2 span{display:grid;place-items:center;flex:none;width:40px;height:40px;border-radius:13px;background:#fff;border:2px solid var(--line);box-shadow:0 3px 0 var(--lip);rotate:-7deg;font-size:20px;line-height:1;transition:rotate .3s var(--pop)}
+html.lq .sg-sec.is-focus h2 span{rotate:4deg;border-color:#CFC4FF;box-shadow:0 3px 0 #CFC4FF}
+html.lq .sg-who i{background:var(--sun)!important;color:#1B1640!important;box-shadow:0 2px 0 var(--sun-lip);rotate:-3deg}
+html.lq .sg-wrap.lq-reveal .sg-need{transition:opacity .45s ease,transform .55s cubic-bezier(.2,.8,.3,1.15)}
+html.lq .sg-wrap.lq-reveal .sg-need:not(.is-in){opacity:0;transform:translateY(16px) scale(.98)}
+@media (min-width:760px){
+  html.lq #scr-sgbd .sg-sec{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px;align-items:start}
+  html.lq #scr-sgbd .sg-sec>h2{grid-column:1/-1}
+}
+
+/* 44g. Cartes mémo : chaque carte arrive à son tour et se retourne d’un rien à l’appui, comme une fiche qu’on prend en main */
+html.lq #scr-collection.active .coll-module[open] .coll-card{animation:lqHubIn .42s cubic-bezier(.2,.8,.3,1.15) backwards;animation-delay:calc(.08s + var(--i,0) * .04s)}
+html.lq #scr-collection .coll-card{transition:transform .18s var(--press),box-shadow .18s var(--press)}
+html.lq #scr-collection .coll-card:active{transform:perspective(600px) rotateY(-12deg) scale(.97)}
+@media (hover:hover) and (pointer:fine){html.lq #scr-collection .coll-card:not(.lock):hover{transform:translateY(-2px) rotate(-1deg)}}
+html.lq #scr-collection .coll-card.lock{border-style:dashed!important}
+@media (min-width:900px){html.lq #scr-collection .coll-grid{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}}
+
+/* 44h. Accueil : « Tous les cours » en rubrique au tiret, « Ton parcours » souligné au trait jaune, les modules arrivent l’un après l’autre */
+html.lq #scr-learn .home-catalog-head>div>span{display:flex;align-items:center;gap:8px;font:800 12px/1.2 var(--display)!important;letter-spacing:.13em!important;text-transform:uppercase!important;color:var(--accent)!important}
+html.lq #scr-learn .home-catalog-head>div>span::before{content:"";flex:none;width:18px;height:3px;border-radius:3px;background:currentColor}
+html.lq #scr-learn .home-catalog-head h2{width:fit-content;max-width:100%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 30' preserveAspectRatio='none'%3E%3Cpath d='M4 20C70 8 170 6 296 14' fill='none' stroke='%23FFC83D' stroke-width='9' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat 0 100%/100% .24em;padding-bottom:.06em}
+html.lq #scr-learn.active #modules>.home-module{animation:lqHubIn .46s cubic-bezier(.2,.8,.3,1.15) backwards!important;animation-delay:calc(.1s + min(var(--i,0),8) * .05s)!important}
+
+/* 44i. La notification de flamme : elle tombe en se balançant, la flamme s’allume dans un anneau jaune et lâche des étincelles, « +1 » se
+   colle sur sa case, et le compteur roule de la veille à aujourd’hui */
+@keyframes lqStIn{0%{transform:translate(-50%,-150%) rotate(-5deg)}55%{transform:translate(-50%,8px) rotate(2deg)}78%{transform:translate(-50%,-2px) rotate(-.6deg)}100%{transform:translate(-50%,0)}}
+@keyframes lqStRing{0%{opacity:0;transform:scale(.5)}25%{opacity:1}100%{opacity:0;transform:scale(1.7)}}
+@keyframes lqStSpark{0%{opacity:0;transform:rotate(var(--a)) translateY(0) scale(.4)}20%{opacity:1}100%{opacity:0;transform:rotate(var(--a)) translateY(-30px) scale(1)}}
+@keyframes lqStPlus{0%{opacity:0;transform:scale(.2) rotate(-40deg)}60%{opacity:1;transform:scale(1.2) rotate(8deg)}100%{opacity:1;transform:rotate(-8deg)}}
+@keyframes lqStNew{from{opacity:0;transform:translateY(90%)}to{opacity:1;transform:none}}
+@keyframes lqStOld{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-90%)}}
+@keyframes lqStGlow{0%,100%{box-shadow:0 0 0 0 rgba(255,200,61,0)}50%{box-shadow:0 0 0 6px rgba(255,200,61,.28)}}
+#lq-streak-toast.on{animation:lqStIn .7s var(--pop) both}
+#lq-streak-toast .lq-st-flame{position:relative;overflow:visible;background:radial-gradient(circle at 50% 70%,#FFE7B0,#FFF0DC 70%)!important}
+#lq-streak-toast.on .lq-st-flame{animation:lqStGlow 1.6s ease-in-out .5s 2}
+#lq-streak-toast .lq-st-ring{position:absolute;inset:-4px;border-radius:18px;border:3px solid var(--sun);opacity:0;pointer-events:none}
+#lq-streak-toast.on .lq-st-ring{animation:lqStRing .9s ease-out .35s both}
+#lq-streak-toast .lq-st-sp{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#FF9A3D;opacity:0;pointer-events:none}
+#lq-streak-toast .lq-st-sp:nth-of-type(2){--a:-70deg;background:var(--sun)}
+#lq-streak-toast .lq-st-sp:nth-of-type(3){--a:-25deg}
+#lq-streak-toast .lq-st-sp:nth-of-type(4){--a:20deg;background:var(--sun)}
+#lq-streak-toast .lq-st-sp:nth-of-type(5){--a:65deg}
+#lq-streak-toast .lq-st-sp:nth-of-type(6){--a:115deg;background:#FF6B6B}
+#lq-streak-toast .lq-st-sp:nth-of-type(7){--a:-115deg;background:#FF6B6B}
+#lq-streak-toast.on .lq-st-sp{animation:lqStSpark .75s cubic-bezier(.2,.7,.3,1) .45s both}
+#lq-streak-toast .lq-st-plus{position:absolute;right:-9px;top:-9px;padding:3px 6px 2px;border-radius:8px;border:2px solid #fff;background:var(--sun);color:#1B1640;font:800 11.5px/1 var(--display);font-style:normal;box-shadow:0 2px 0 var(--sun-lip);opacity:0}
+#lq-streak-toast.on .lq-st-plus{animation:lqStPlus .5s var(--pop) .7s both}
+/* Le compteur : le nouveau chiffre monte à la place de l’ancien (clip-path coupe sans toucher à la ligne de base du texte) */
+#lq-streak-toast .lq-st-odo{position:relative;display:inline-block;-webkit-clip-path:inset(0 -6px);clip-path:inset(0 -6px)}
+#lq-streak-toast .lq-st-new{display:inline-block}
+#lq-streak-toast .lq-st-old{position:absolute;left:0;top:0;opacity:0}
+#lq-streak-toast.on .lq-st-new{animation:lqStNew .45s var(--pop) .8s both}
+#lq-streak-toast.on .lq-st-old{animation:lqStOld .4s ease-in .8s both}
+
+/* 44j. Mouvement réduit : tout est à sa place d’emblée */
+@media (prefers-reduced-motion:reduce){
+  html.lq #app .lq-head-stk>svg,html.lq #app .lq-head-sp,html.lq #app .journey-resource,html.lq #app .journey-resource-bar>i,html.lq .journey-spot-stk svg,html.lq #scr-compte .acct-stat-ico.is-stk svg,
+  html.lq #scr-planning .pgr-stk svg,html.lq .stk-board.is-empty::after,html.lq #scr-compte .acct-hero .acct-level-track i,html.lq #scr-stickers .stk-grid>li,html.lq #scr-collection .coll-card,html.lq #scr-learn #modules>.home-module,
+  #lq-streak-toast,#lq-streak-toast *{animation:none!important}
+  #lq-streak-toast .lq-st-plus{opacity:1;rotate:-8deg}
+  html.lq .sg-wrap.lq-reveal .sg-need:not(.is-in){opacity:1;transform:none}
+}
+html[data-motion="reduce"].lq #app .lq-head-stk>svg,html[data-motion="reduce"].lq #app .lq-head-sp,html[data-motion="reduce"].lq #app .journey-resource,html[data-motion="reduce"].lq #app .journey-resource-bar>i,
+html[data-motion="reduce"].lq .journey-spot-stk svg,html[data-motion="reduce"].lq #scr-compte .acct-stat-ico.is-stk svg,html[data-motion="reduce"].lq #scr-compte .acct-hero .acct-level-track i,html[data-motion="reduce"].lq #scr-planning .pgr-stk svg,html[data-motion="reduce"].lq .stk-board.is-empty::after,
+html[data-motion="reduce"].lq #scr-stickers .stk-grid>li,html[data-motion="reduce"].lq #scr-collection .coll-card,html[data-motion="reduce"].lq #scr-learn #modules>.home-module,
+html[data-motion="reduce"] #lq-streak-toast,html[data-motion="reduce"] #lq-streak-toast *{animation:none!important}
+html[data-motion="reduce"] #lq-streak-toast .lq-st-plus{opacity:1;rotate:-8deg}
