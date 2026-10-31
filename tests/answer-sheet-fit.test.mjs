@@ -137,7 +137,8 @@ test('moteur des animations : window.__contentBottom, bas du contenu visible sur
   assert.ok(core.includes('function contentBottom(){') && core.includes('window.renderAt = renderAt;\n  window.__contentBottom = contentBottom;'),
     'exposé par le moteur, avec renderAt');
   const body = core.slice(core.indexOf('function contentBottom(){'), core.indexOf('/* ---------- Le cours ---------- */'));
-  for (const part of ["$$(veil ? '.mb' : '.card, .code, .mb', stage).forEach(take);", "if (!veil) $$('section.scene > *', stage).forEach(el => { if (isBox(el)) take(el); });",
+  /* La carte du moment : seulement celle posée sur la scène (#stage > .mb), pas le corps des emails des cours (.mail .mb, Elisa, 31 octobre, 1 h 02). */
+  for (const part of ["$$(veil ? ':scope > .mb' : '.card, .code, :scope > .mb', stage).forEach(take);", "if (!veil) $$('section.scene > *', stage).forEach(el => { if (isBox(el)) take(el); });",
     "if (!veil) $$('section.scene > .pack > span', stage).forEach(take);", "const veil = $('.mb-veil', stage);",
     "el.closest('#cap, #chapter, #chap') || shown(el) < 0.3", "(r.bottom - sr.top) / k"])
     assert.ok(body.includes(part), `mesure : ${part}`);

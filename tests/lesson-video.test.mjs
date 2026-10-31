@@ -1317,7 +1317,9 @@ for (const c of COURSES) {
        « Le chemin parcouru », 26 octobre, 23 h 53) : 520 Ko pour lui seul. */
     /* 500 Ko depuis le 27 octobre : moments.js porte aussi les cartes des moments (relier, ranger, une requête à lire ; Elisa, 13 h 48). */
     /* 510 Ko depuis le 29 octobre : le moteur commun porte la nouvelle intro dans la DA de la vitrine (carte violette, pastilles, ~8 Ko). */
-    assert.ok(total < (c.maxKo || 510) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
+    /* 520 Ko depuis le 31 octobre (et 10 Ko de plus pour les cours qui ont leur propre plafond) : les bulles des légendes (la mascotte
+       qui parle, les mots qui arrivent, le surligneur ; Elisa, 30 octobre, 23 h 42), ~6 Ko dans le moteur commun. */
+    assert.ok(total < ((c.maxKo || 510) + 10) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
     for (const f of [`./assets/anim/${c.page}?app&embed`, `./assets/anim/${c.thumb}`]) assert.ok(sw.includes(`'${f}'`), `préchargé : ${f}`);
   });
 }
@@ -2934,7 +2936,7 @@ test('boutons retour en pastille ronde : Safari ne coupe plus leur relief (overf
   assert.ok(/html\.lq #app \.home-back svg\{[^}]*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour des écrans : relief entier');
   assert.ok(/html\.lq #scr-lesson \.navbar \.back svg\{\s*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour de la leçon (« ‹ Accueil ») : relief entier');
   assert.ok(html.includes('.tab svg{overflow:visible;'), 'onglets : l’ombre de l’onglet actif n’est pas coupée non plus');
-  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=30">'), 'la feuille de style du thème est rechargée');
+  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=33">'), 'la feuille de style du thème est rechargée');
 });
 
 test('arrêt « toucher » sur un bouton : un doigt seul qui monte et descend, sans bulle ; le bouton s’enfonce dès l’appui et remonte au relâcher', () => {
@@ -3056,8 +3058,9 @@ test('leçon seule : on n’avance pas au-delà d’un moment « À toi » pas r
   assert.ok(cut('function leconSeuleBilan(first){', 'function lvFail(){').includes('if(!lvReussi(current))return;'), 'ni bilan ni validation sous le seuil');
   assert.ok(cut('guide({ id:44,', 'guide({ id:45,').includes(',moments:9,seuil:7}'), 'leçon 44 : 7 exercices réussis sur 9 (deux ratés au plus), comme le chapitre 1 du projet');
   /* Le bouton annonce la règle avec les mots d’Elisa (23 octobre, 11:57 : « Valide la leçon : réussis au moins 4 exercices sur 6 »), sans point final (c’est un bouton) :
-     retour à la ligne après les deux-points, espaces insécables avant « : », dans « 4 exercices » et « sur 6 ». Les deux autres règles gardent leurs mots. */
-  assert.ok(html.includes('Valide la leçon&nbsp;: <br>réussis au moins ${lvSeuil(l)}&nbsp;exercices sur&nbsp;${v.moments}') && !html.includes('Réussis ${lvSeuil(l)} exercices sur') && !html.includes('exercices sur ${v.moments} pour valider la leçon'),
+     retour à la ligne après les deux-points, espaces insécables avant « : », dans « 4 exercices » et « sur 6 », et entre les deux (30 octobre :
+     « 4 exercices sur 5 » reste d’un seul tenant, « sur 5 » ne finit plus seul sur sa ligne). Les deux autres règles gardent leurs mots. */
+  assert.ok(html.includes('Valide la leçon&nbsp;: <br>réussis au moins ${lvSeuil(l)}&nbsp;exercices&nbsp;sur&nbsp;${v.moments}') && !html.includes('Réussis ${lvSeuil(l)} exercices sur') && !html.includes('exercices sur ${v.moments} pour valider la leçon'),
     'le bouton du cours annonce la règle : « Valide la leçon : réussis au moins N exercices sur M »');
   assert.ok(html.includes('Termine la vidéo avec ${lvErreursMax(l)} erreur') && html.includes("'Termine la vidéo pour valider la leçon'"), 'les règles à erreurs au plus et sans seuil gardent leurs mots');
   assert.ok(cut('guide({ id:56,', 'guide({ id:72,').includes(",moments:6,seuil:4}"), 'leçon 56 : 4 exercices réussis sur 6 (deux ratés au plus)');

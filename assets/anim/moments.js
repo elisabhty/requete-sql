@@ -78,8 +78,11 @@ function momentIX(P){
       d.className = 'mb'; d.style.top = (b.y || 640) + 'px'; if (b.h) d.style.minHeight = b.h + 'px';
       d.innerHTML = fr(b.html || '');
       const st = $('#stage');
-      /* Un voile sous la carte : la scène de la vidéo, à moitié recouverte, dépassait autour d’elle (lignes de tableau, bout de requête). */
-      if (st && b.veil !== false) { const v = document.createElement('div'); v.className = 'mb-veil'; st.append(v); X.add.push(v); }
+      /* Un voile sous la carte : la scène de la vidéo, à moitié recouverte, dépassait autour d’elle (lignes de tableau, bout de requête).
+         La scène s’efface le temps du moment (mb-veiled) : la carte se pose seule sur le fond violet du cours. Le voile était un aplat
+         lavande, l’ancien fond des vidéos : sur le violet, il restait comme un grand cadre blanc autour de la carte (Elisa, 31 octobre,
+         1 h 02 : « faire attention, car on a des cadres blancs qui restent »). Il ne peint plus rien : il marque seulement le moment. */
+      if (st && b.veil !== false) { const v = document.createElement('div'); v.className = 'mb-veil'; st.append(v); X.add.push(v); mark(st, 'mb-veiled'); }
       if (st) { st.append(d); X.add.push(d); if (typeof frDom === 'function') try { frDom(d); } catch (e) {} }
       X.board = d;
     }
@@ -96,13 +99,13 @@ function momentIX(P){
      la zone à toucher tombait à côté de la case. */
   const lay = (el, ref) => {
     const host = ref || $('#stage');
-    if (el && host && el.closest('.mb')) { let x = 0, y = 0, e = el; while (e && e !== host) { x += e.offsetLeft; y += e.offsetTop; e = e.offsetParent; }
+    if (el && host && el.closest('#stage > .mb')) { let x = 0, y = 0, e = el; while (e && e !== host) { x += e.offsetLeft; y += e.offsetTop; e = e.offsetParent; }
       if (e === host) return {x, y, w: el.offsetWidth, h: el.offsetHeight}; }
     return rel(el, ref);
   };
   /* Un lien réussi : un trait entre les deux éléments, sur la carte du moment (ou sur la scène). */
   const line = (a, b) => {
-    const host = (a && a.closest('.mb')) || $('#stage'); if (!a || !b || !host) return;
+    const host = (a && a.closest('#stage > .mb')) || $('#stage'); if (!a || !b || !host) return;
     const r = lay(a, host), q = lay(b, host);
     let svg = host.querySelector(':scope > svg.mb-ln');
     if (!svg) { svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('class', 'mb-ln'); host.append(svg); X.add.push(svg); }
@@ -249,9 +252,12 @@ function withMoments(cfg){
   const s = document.createElement('style');
   s.textContent = '.pk-on{outline:6px solid #16A34A;outline-offset:-6px}.pk-ko{outline:6px solid #EF4F55;outline-offset:-6px}body.lv-pk-open #cap{visibility:hidden!important}'
     /* La carte d’un moment (relier, ranger, compléter une requête) : une carte blanche, comme celles des scènes. Entrée non maintenue
-       (backwards) : maintenue, Safari gardait la carte dans un calque et son texte paraissait flou sur iPhone. */
-    + '.mb{position:absolute;left:64px;width:952px;z-index:40;box-sizing:border-box;padding:44px 44px 48px;border-radius:48px;background:#fff;box-shadow:0 0 0 3px #E6E1F6,0 12px 0 #DCD5F2;font-family:Inter,system-ui,sans-serif;color:#1F1B3A;animation:mbIn .35s cubic-bezier(.2,.9,.3,1.3) backwards}'
-    + '.mb-veil{position:absolute;left:0;right:0;top:190px;bottom:0;z-index:39;background:#F4F2FC;animation:mbVeil .25s ease-out backwards}@keyframes mbVeil{from{opacity:0}to{opacity:1}}'
+       (backwards) : maintenue, Safari gardait la carte dans un calque et son texte paraissait flou sur iPhone. Seule la carte posée sur
+       la scène (#stage > .mb) : le corps des emails des cours jointure-3-tables et union s’appelle aussi .mb ; il prenait ce style
+       (carte absolue de 952 px), sortait de son email et s’y retrouvait coupé net (Elisa, 31 octobre, 1 h 02 : « comportement bizarre »). */
+    + '#stage>.mb{position:absolute;left:64px;width:952px;z-index:40;box-sizing:border-box;padding:44px 44px 48px;border-radius:48px;background:#fff;box-shadow:0 0 0 3px #E6E1F6,0 12px 0 #DCD5F2;font-family:Inter,system-ui,sans-serif;color:#1F1B3A;animation:mbIn .35s cubic-bezier(.2,.9,.3,1.3) backwards}'
+    + '.mb-veil{position:absolute;left:0;right:0;top:190px;bottom:0;z-index:39;pointer-events:none}'
+    + '#stage.mb-veiled>:not(#progress):not(#header):not(#cap):not(.mb):not(.mb-veil):not(.mb-ln){opacity:0!important;transition:opacity .25s ease-out}'
     + '@keyframes mbIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}'
     + '.mb-k{display:inline-block;margin-bottom:22px;padding:10px 22px;border-radius:999px;background:#EEE9FF;color:#5335E0;font:800 34px/1.1 "Bricolage Grotesque",Inter,sans-serif}'
     + '.mb-cols{position:relative;display:flex;justify-content:space-between;gap:150px}.mb-col{flex:1;display:flex;flex-direction:column;gap:26px}'
@@ -272,7 +278,7 @@ function withMoments(cfg){
     + '.mb-chars>span>small{margin-top:8px;font:700 28px/1 Inter,sans-serif;color:#8A86A8}.mb-chars>span.n{background:#EEE9FF;color:#5335E0}'
     + 'svg.mb-ln{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}svg.mb-ln line{stroke:#16A34A;stroke-width:8;stroke-linecap:round}'
     /* Mini-jeux (tune) : des lignes qui passent ou non (portique), des pastilles qui disparaissent (doublons), des étages (ascenseur). */
-    + '.mb .mb-q{margin-bottom:24px}'
+    + '#stage>.mb .mb-q{margin-bottom:24px}'
     + '.mg-hd{display:flex;align-items:center;gap:20px;margin-bottom:24px}.mg-hd>.mb-k{flex:none;margin:0}.mg-hd>.mb-q{flex:1;min-width:0;margin:0;padding:22px 28px;white-space:nowrap}'
     + '.mg-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}'
     + '.mg-r{position:relative;display:flex;align-items:center;gap:12px;min-height:88px;padding:0 18px 0 58px;box-sizing:border-box;border-radius:24px;background:#F6F4FF;box-shadow:inset 0 0 0 3px #DCD5F2;font:600 30px/1.1 Inter,sans-serif;letter-spacing:-.01em;white-space:nowrap;transition:opacity .3s,transform .35s cubic-bezier(.2,.9,.3,1.3),background-color .25s,box-shadow .25s}'

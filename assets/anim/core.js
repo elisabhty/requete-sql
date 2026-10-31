@@ -411,7 +411,32 @@ function buildChrome(chapters, captions){
     d.className = 'c';
     if (c[3] > 3) d.dataset.lines = c[3];   // 4e valeur d’une légende : nombre de lignes (4 au plus), la carte monte le temps de la lire
     d.innerHTML = `<p>${fr(c[2])}</p>`;
+    capWords(d.firstChild);
     cap.append(d);
+  });
+  /* La mascotte tient la bulle : un autocollant rond accroché sous son coin gauche, qui « parle » à chaque phrase (chromeTimeline) */
+  const stk = document.createElement('div');
+  stk.className = 'cap-stk';
+  stk.setAttribute('aria-hidden', 'true');
+  cap.append(stk);
+}
+/* Bulles (Elisa, 30 octobre, 23 h 42 : « améliorer aussi les bulles, stickers, animation, micro-interaction ») : chaque mot d’une
+   légende dans un <span class="w"> en ligne, pour qu’ils apparaissent l’un après l’autre. Coupe aux espaces ordinaires seulement :
+   les mots collés par une espace insécable (« 4 exercices », « commande : ») restent ensemble ; le code reste d’un seul tenant. Les
+   spans restent en ligne : mêmes retours à la ligne, mêmes mesures pour checkCaptions et textIssues. */
+function capWords(p){
+  const walker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT), nodes = [];
+  while (walker.nextNode()) if (!walker.currentNode.parentElement.closest('code, .ic')) nodes.push(walker.currentNode);
+  nodes.forEach(n => {
+    const parts = n.textContent.split(/([ \t\n\r]+)/);
+    if (parts.length < 2 && !parts[0].trim()) return;
+    const f = document.createDocumentFragment();
+    parts.forEach(t => {
+      if (!t) return;
+      if (/^[ \t\n\r]+$/.test(t)) { f.append(t); return; }
+      const w = document.createElement('span'); w.className = 'w'; w.textContent = t; f.append(w);
+    });
+    n.replaceWith(f);
   });
 }
 function chromeTimeline(chapters, captions, duration){
@@ -431,16 +456,49 @@ function chromeTimeline(chapters, captions, duration){
   gsap.set(capCard, {autoAlpha: 0, y: 40});
   tl.to(capCard, {autoAlpha: 1, y: 0, duration: 0.6, ease: 'expo.out'}, captions[0][0] - 0.3);
   if (!APP) tl.to(capCard, {autoAlpha: 0, y: 40, duration: 0.45, ease: 'power2.in'}, duration - 0.5);
+  /* La mascotte de la bulle arrive en sautant avec la première phrase, puis fait un petit bond à chaque phrase, comme si elle parlait ;
+     la bulle se tasse d’un rien à chaque nouvelle phrase. Tout passe par la timeline : on peut reculer, avancer, mettre en pause. */
+  const stk = $('#cap .cap-stk');
+  gsap.set(capCard, {transformOrigin: '50% 100%'});
+  if (stk) {
+    gsap.set(stk, {scale: 0, rotation: -40, transformOrigin: '50% 50%'});
+    tl.to(stk, {scale: 1, rotation: -8, duration: 0.62, ease: 'back.out(2.2)'}, captions[0][0] - 0.05); capKeep([stk, {scale: 1, rotation: -8}]);
+  }
   $$('#cap .c').forEach((el, i) => {
     const [a, b] = captions[i];
     gsap.set(el, {autoAlpha: 0, y: 26});
     tl.to(el, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'power3.out'}, a);
+    /* Les mots arrivent l’un après l’autre (en une demi-seconde au plus), puis le jaune passe sous les mots en gras, comme au surligneur */
+    const ws = el.querySelectorAll('.w, code, .ic');
+    if (ws.length) { tl.fromTo(ws, {opacity: 0}, {opacity: 1, duration: 0.26, stagger: Math.min(0.022, 0.5 / ws.length), ease: 'power1.out'}, a + 0.03); capKeep([ws, {opacity: 1}]); }
+    const bs = el.querySelectorAll('b');
+    if (bs.length) { tl.fromTo(bs, {backgroundSize: '0% 100%'}, {backgroundSize: '100% 100%', duration: 0.5, stagger: 0.14, ease: 'power2.inOut'}, a + 0.34); capKeep([bs, {backgroundSize: '100% 100%'}]); }
+    if (i && stk) { tl.to(stk, {keyframes: [{y: -14, rotation: -15, duration: 0.15, ease: 'power2.out'}, {y: 0, rotation: -4, duration: 0.17, ease: 'power2.in'},
+      {rotation: -8, duration: 0.34, ease: 'elastic.out(1, 0.45)'}]}, a); capKeep(); }
+    if (i) { tl.to(capCard, {keyframes: [{scaleY: 0.985, scaleX: 1.006, duration: 0.09, ease: 'power2.out'}, {scaleY: 1, scaleX: 1, duration: 0.45, ease: 'elastic.out(1, 0.55)'}]}, a); capKeep(); }
     if (b < duration) tl.to(el, {autoAlpha: 0, y: -18, duration: 0.25, ease: 'power2.in'}, b - 0.2);
     if (captions[i][3] > 3) {
       const up = Math.round(44 * 1.32);
       tl.to(capCard, {top: capCard.offsetTop - up, height: capCard.offsetHeight + up, duration: 0.3, ease: 'power2.out'}, a);
       tl.to(capCard, {top: capCard.offsetTop, height: capCard.offsetHeight, duration: 0.3, ease: 'power2.in'}, b - 0.2);
     }
+  });
+}
+
+/* Animations des bulles (mascotte qui saute, carte qui se tasse, mots qui arrivent, surligneur) : si une pause de lecture, un moment
+   « À toi », un mail à ouvrir ou un passage coupé tombe pendant l’une d’elles, l’image s’arrêterait en plein mouvement. Elle est
+   retirée : la mascotte ne saute pas cette fois, les mots et le surligneur s’affichent d’un coup. Mêmes règles que holdClashes. */
+let CAP_FX = [];
+/* tl.to() rend la timeline elle-même : l’animation qu’on vient d’ajouter est tl.recent(). done : l’état final à poser si on la retire. */
+function capKeep(done){ CAP_FX.push({tw: tl.recent(), done}); }
+function capFxPrune(holds, cuts){
+  CAP_FX = CAP_FX.filter(f => {
+    const a = f.tw.startTime(), b = a + f.tw.totalDuration();
+    const hit = holds.some(h => a < h - 0.001 && b > h + 0.001) || cuts.some(([h, d]) => a < h - d - 0.001 && b > h + 0.001);
+    if (!hit) return true;
+    f.tw.kill();
+    if (f.done) gsap.set(f.done[0], f.done[1]);
+    return false;
   });
 }
 
@@ -806,7 +864,7 @@ function contentBottom(){
   const take = el => { if (!el.classList.contains('stamp') && !el.classList.contains('fly') && !el.parentElement.closest('.card, .code')) set.add(el); };
   /* La carte d’un moment « À toi » (moments.js) compte aussi ; posée sur un voile, elle est seule à compter. */
   const veil = $('.mb-veil', stage);
-  $$(veil ? '.mb' : '.card, .code, .mb', stage).forEach(take);
+  $$(veil ? ':scope > .mb' : '.card, .code, :scope > .mb', stage).forEach(take);
   if (!veil) $$('section.scene > *', stage).forEach(el => { if (isBox(el)) take(el); });
   /* Une pastille centrée (.pack : « 6 situations à ranger », « 2 clés étrangères »…) : son conteneur est transparent et c’est elle qui porte le cadre.
      Sans elle, la feuille de réponse la recouvrait (Elisa, 25 octobre, 15 h 48 : « la pastille qu’on ne voit pas »). */
@@ -902,6 +960,7 @@ function Course(cfg){
     tl.set({}, {}, duration);
     confettiCues();
     HOLDS = mergeHolds(captionHolds(captions, duration).concat(EXTRA_HOLDS.filter(h => h[0] < duration), rest)).concat(CUTS.filter(c => c[0] < duration)).sort((x, y) => x[0] - y[0]);
+    capFxPrune(HOLDS.filter(h => h[1] > 0).map(h => h[0]).concat(picks.concat(opens).map(p => p.at)), CUTS);
     const total = HOLDS.reduce((a, h) => a + h[1], 0);
     out = +(duration + total).toFixed(3);
     introPills(out, picks.length);

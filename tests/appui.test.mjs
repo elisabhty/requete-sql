@@ -32,7 +32,7 @@ const lancer = ({ reduit = false, souris = false, drag = false } = {}) => {
     document: {
       documentElement: { style: { setProperty() {} }, classList: { add() {} }, getAttribute: () => null },
       head: { appendChild: n => ajoutes.push(n) },
-      body: { classList: { contains: c => drag && c === 'dragging' } },
+      body: { classList: { contains: c => drag && c === 'dragging' }, appendChild() {} },
       createElement: () => ({ style: { setProperty() {} }, setAttribute() {}, classList: { add() {} } }),
       addEventListener: (type, fn, opt) => { (ecoute[type] = ecoute[type] || []).push({ fn, capture: opt === true }); },
     },

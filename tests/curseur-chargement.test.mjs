@@ -23,17 +23,19 @@ test('le curseur est chargé par l’appli et par chaque page de la vitrine, ave
   assert.ok(sw.includes("'./assets/curseur.js',"), 'préchargé par le service worker');
 });
 
-test('le curseur : ordinateur seulement, flèche et main en autocollant, halo qui suit ; rien au doigt ni en mouvement réduit', () => {
+test('le curseur : ordinateur seulement, flèche et main en autocollant, étincelles à l’arrivée, onde au clic ; rien au doigt ni en mouvement réduit', () => {
   assert.ok(cur.includes("window.matchMedia('(hover: hover) and (pointer: fine)')") && cur.includes('if (!mq || !mq.matches) return;'), 'souris ou pavé tactile seulement');
   assert.ok(cur.includes("matchMedia('(prefers-reduced-motion: reduce)').matches) || root.getAttribute('data-motion') === 'reduce'"), 'réglage du système ou de l’appli');
-  assert.ok(cur.includes('var montrer = function (premier) {\n    if (reduit()) return;'), 'mouvement réduit : pas de halo');
+  assert.ok(cur.includes("var arrivee = function (x, y) { if (vu) return; vu = true; if (!reduit()) etincelles(x, y); };"), 'mouvement réduit : pas d’étincelles');
   assert.ok(cur.includes("if (!vrai(e) || reduit()) return;"), 'ni onde au clic');
+  /* Elisa, 30 octobre, 23 h 42 : « pas ouf le rond du sélecteur » : plus de rond qui suit la souris (il couvrait le texte) */
+  assert.ok(!cur.includes('rq-halo') && !cur.includes('requestAnimationFrame(anime)'), 'plus de halo qui suit la souris');
   assert.ok(!/cursor\s*:\s*none/.test(cur), 'le curseur du système reste : jamais caché');
   for (const part of ["'#6A4DF4'", '#6A4DF4" stroke="#1B1640" stroke-width="3.6"', 'stroke="#fff" stroke-width="1.6"', 'fill="#6A4DF4" stroke="#1B1640" stroke-width="1.7"'])
     assert.ok(cur.includes(part.replace(/'/g, '')) || cur.includes(part), part);
   assert.ok(cur.includes(":not(.stk-cell):not(.stk-item):not(.qf-card):not(.hdl)") && cur.includes('body:not(.dragging)'), 'les poignées à glisser gardent leur curseur');
-  assert.ok(cur.includes("halo.classList.toggle('is-cache', el.tagName === 'IFRAME');"), 'le halo s’efface sur une vidéo intégrée');
-  assert.ok(cur.includes("document.addEventListener('mouseout', function (e) { if (!e.relatedTarget) cacher(); }"), '… et quand la souris sort de la page');
+  assert.ok(cur.includes("document.addEventListener('mouseout', function (e) { if (!e.relatedTarget) vu = false; }"), 'la souris sort puis revient : nouvelles étincelles');
+  assert.ok(cur.includes("o.className = 'rq-onde' + (touche(e.target) ? '' : ' v');"), 'onde jaune sur ce qui se touche, violette ailleurs');
 
   /* Exécuté : sans souris, rien ne change ; avec, la classe, la feuille de style et les deux curseurs */
   const lancer = souris => {
@@ -58,7 +60,7 @@ test('le curseur : ordinateur seulement, flèche et main en autocollant, halo qu
   assert.match(avec.props['--rq-cur-h'], /^url\("data:image\/svg\+xml;charset=utf-8,%3Csvg[^"]+"\) 12 3, pointer$/, 'la main, bout du doigt à 12 × 3');
   const css = avec.ajoutes[0].textContent;
   assert.ok(css.startsWith('@media (hover:hover) and (pointer:fine){') && css.includes('html.rq-cur,html.rq-cur body{cursor:var(--rq-cur-a)}') && css.includes('{cursor:text!important}'));
-  assert.ok(css.includes('.rq-halo.is-touche{border-color:#FFC83D;') && css.includes('@keyframes rqOnde') && css.includes('@keyframes rqEclat'), 'halo jaune sur ce qui se touche, onde, étincelles');
+  assert.ok(!css.includes('.rq-halo') && css.includes('@keyframes rqOnde') && css.includes('@keyframes rqEclat'), 'onde et étincelles, sans halo');
 });
 
 test('accueil : « Ravi de te revoir ! » à la place de « Coucou ! », en deux lignes au-dessus du chat ; le titre se coupe en français', () => {
@@ -79,11 +81,10 @@ test('page du cours : l’affiche remplit la vignette, le bouton du bas en pasti
   vm.runInContext(cut('function lvCardFit(){', '/* Leçon seule validée') + ';this.fit=lvCardFit;', ctx);
   ctx.fit(); assert.equal(props['--lv-fit'], '223px', '50 px de trop sur une vignette de 260 × 360 : 36 px de largeur en moins');
   const s37 = lq.slice(lq.indexOf('/* ---------- 37.'));
+  /* Le bouton du bas (refait le 30 octobre à 23 h 42, voir bulles-bouton.test.mjs) */
   for (const part of [
-    'html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]{position:relative;display:block;', 'background:linear-gradient(180deg,#FFF8E1,#FFEDBE)!important;',
-    'html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]:has(br)::first-line{color:#8A5A00;', '::before{content:"";position:absolute;left:10px;',
-    '::after{content:"↑";position:absolute;right:9px;', 'animation:lqGateNudge 3.4s ease-in-out 1.8s infinite', '@keyframes lqGateNudge{0%,72%,100%{translate:0 0}',
-    '.is-go::after{animation:lqGateGo', ':active{background:linear-gradient(180deg,#FFF1C9,#FFE6A6)!important;', ':hover{translate:0 -2px;',
+    'html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]{position:relative;display:block;', 'background:linear-gradient(165deg,#7B5CFF 0%,#6146F2 55%,#5536E4 100%)!important;',
+    'html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]:has(br)::first-line{color:var(--sun-hi);', '.is-go::after{animation:lqGateGo', ':hover{translate:0 -2px;',
     'html.lq #scr-lesson .lv-hero .lv-card:hover{top:-3px;', 'html.lq #scr-lesson .lv-hero .lv-card:hover .lv-card-play{scale:1.1}'])
     assert.ok(s37.includes(part), part);
   assert.ok(!/\.lv-card:hover\{[^}]*transform/.test(s37), 'la vignette ne bouge que par sa position (Safari)');
@@ -92,11 +93,11 @@ test('page du cours : l’affiche remplit la vignette, le bouton du bas en pasti
   assert.ok(app.includes('class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">'));
 });
 
-test('l’écran de chargement dans la DA : violet quadrillé, logo en autocollant, étincelles, nom, barre jaune', () => {
+test('l’écran de chargement dans la DA : violet quadrillé, logo en autocollant, étincelles, nom, anneau qui tourne', () => {
   assert.ok(app.includes('<div id="loader"><i class="ld-spark s1" aria-hidden="true"></i><i class="ld-spark s2" aria-hidden="true"></i><i class="ld-spark s3" aria-hidden="true"></i>\n    <div class="logo-badge">&gt;_</div><b class="ld-name">Requête</b><div class="spinner"></div>'));
   const s37 = lq.slice(lq.indexOf('/* ---------- 37.'));
   for (const part of ['html.lq #loader{background:var(--deep)!important;', 'html.lq #loader .logo-badge{width:88px;height:88px;', 'border:4px solid #fff;',
-    'animation:ldSlap .7s', 'html.lq #loader .spinner::after{background:var(--sun)!important;', 'html.lq #loader .ld-spark{', 'html.lq #loader.fade-out .logo-badge{animation:ldOut'])
+    'animation:ldIn .8s', 'html.lq #loader .spinner::after{', 'animation:ldSpin 1.2s linear infinite}', 'html.lq #loader .ld-spark{', 'html.lq #loader.fade-out .logo-badge{animation:ldOut'])
     assert.ok(s37.includes(part), part);
   assert.match(s37, /@media \(prefers-reduced-motion:reduce\)\{[^}]*html\.lq #loader \.logo-badge,[^}]*\{animation:none!important\}/, 'mouvement réduit');
   /* L’erreur du moteur SQL reste lisible : texte blanc sur le violet */

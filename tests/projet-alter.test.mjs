@@ -64,7 +64,8 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
   for (const f of [FILE, 'core.css', 'core.js', 'gsap.min.js', 'mascotte.webp', THUMB]) total += fs.statSync(path.join(ANIM, f)).size;
   for (const f of FONTS) total += fs.statSync(path.join(ROOT, 'assets/fonts', f)).size;
   /* 490 Kio depuis le 29 octobre : le moteur commun porte la nouvelle intro dans la DA de la vitrine (~9 Kio). */
-  assert.ok(total < 490 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
+  /* 500 Kio depuis le 31 octobre : les bulles des légendes (la mascotte qui parle, les mots qui arrivent, le surligneur ; Elisa, 30 octobre, 23 h 42), ~6 Kio. */
+  assert.ok(total < 500 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
   assert.ok(fs.statSync(path.join(ANIM, THUMB)).size > 1000, 'vignette');
 });
 

@@ -4,10 +4,9 @@
    - La flèche est un autocollant de la vitrine : violet, liseré blanc, trait encre, petite ombre. Sur ce qui se touche (lien, bouton,
      carte, puce), une main blanche à manche violet (le sweat de la mascotte) ; le texte garde sa barre de saisie. Ce sont des curseurs
      du système, dessinés en SVG puis peints en double résolution : nets sur un écran Retina, sans aucun retard.
-   - Un halo les suit avec un léger ressort. Quand la souris entre dans la page, il s’ouvre et lâche quelques étincelles ; sur ce qui
-     se touche, il grossit et passe au jaune soleil ; il se resserre à l’appui et laisse une onde au clic ; il s’efface quand la
-     souris sort de la page, passe sur un champ de texte ou sur une vidéo intégrée.
-   Mouvement réduit (réglage du système ou de l’appli) : les curseurs seuls, sans halo ni étincelles.
+   - Quand la souris entre dans la page, quelques étincelles ; au clic, une onde, jaune soleil sur ce qui se touche, violette ailleurs.
+     Plus de rond qui suit la souris (Elisa, 30 octobre, 23 h 42 : « pas ouf le rond du sélecteur ») : il couvrait le texte qu’on lisait.
+   Mouvement réduit (réglage du système ou de l’appli) : les curseurs seuls, sans étincelles ni onde.
    Et partout, au doigt comme à la souris : le rebond des boutons au relâché (plus bas, « L’appui »). */
 (function () {
   'use strict';
@@ -104,7 +103,7 @@
     peindre(mainSvg, 2, function (d) { p.h2 = d; pret(); });
   }
 
-  /* Ce qui se touche : la main et le halo jaune. Les poignées à glisser gardent leur curseur. */
+  /* Ce qui se touche : la main (et l’onde jaune au clic). Les poignées à glisser gardent leur curseur. */
   var TOUCHE = 'a[href],button,summary,label[for],select,[role="button"],[role="tab"],[role="link"],[role="switch"],[role="menuitem"],[onclick],.chip,input[type="checkbox"],input[type="radio"],input[type="submit"],input[type="button"]';
   var SAISIE = 'input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="submit"]):not([type="button"]):not([type="file"]),textarea,[contenteditable="true"],[contenteditable=""]';
   var EXCLU = ':not(:disabled):not([aria-disabled="true"]:not([data-jc-gate])):not(.stk-cell):not(.stk-item):not(.qf-card):not(.hdl)';
@@ -112,14 +111,6 @@
     + 'html.rq-cur,html.rq-cur body{cursor:var(--rq-cur-a)}'
     + 'html.rq-cur body:not(.dragging) :is(' + TOUCHE + ')' + EXCLU + '{cursor:var(--rq-cur-h)!important}'
     + 'html.rq-cur :is(' + SAISIE + '){cursor:text!important}'
-    + '.rq-halo{position:fixed;left:0;top:0;z-index:2147483646;width:36px;height:36px;margin:-18px 0 0 -18px;border-radius:50%;box-sizing:border-box;pointer-events:none;'
-    + 'border:2px solid rgba(106,77,244,.62);background:radial-gradient(circle,rgba(106,77,244,.1) 0 55%,rgba(106,77,244,0) 72%);'
-    + 'box-shadow:0 0 0 1.5px rgba(255,255,255,.55),0 8px 22px -10px rgba(40,20,140,.45);opacity:0;will-change:transform;'
-    + 'transition:opacity .28s ease,border-color .22s ease,background .22s ease,box-shadow .22s ease}'
-    + '.rq-halo.is-on{opacity:1}'
-    + '.rq-halo.is-touche{border-color:#FFC83D;background:radial-gradient(circle,rgba(255,200,61,.24) 0 55%,rgba(255,200,61,0) 72%);'
-    + 'box-shadow:0 0 0 1.5px rgba(27,22,64,.16),0 0 22px rgba(255,200,61,.42)}'
-    + '.rq-halo.is-saisie,.rq-halo.is-cache{opacity:0}'
     + '.rq-onde{position:fixed;z-index:2147483645;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:2px solid #FFC83D;pointer-events:none;'
     + 'animation:rqOnde .55s cubic-bezier(.2,.7,.3,1) forwards}'
     + '.rq-onde.v{border-color:#6A4DF4}'
@@ -131,29 +122,45 @@
     + 'mask:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Cpath d=\'M12 1c.9 6 4.9 10 11 11-6.1 1-10.1 5-11 11-.9-6-4.9-10-11-11 6.1-1 10.1-5 11-11Z\'/%3E%3C/svg%3E") center/contain no-repeat}'
     + '@keyframes rqEclat{0%{opacity:0;transform:translate(0,0) scale(.3) rotate(0)}18%{opacity:1}100%{opacity:0;transform:translate(var(--x),var(--y)) scale(1) rotate(var(--r))}}'
     + '}';
+  /* Les barres de défilement (Elisa, 30 octobre, 23 h 42 : « est-ce possible d’améliorer la barre de nav, présente à plusieurs
+     endroits ») : un rail transparent, une poignée lavande arrondie et détachée du bord, qui fonce et s’élargit au survol et passe au
+     violet quand on la tient ; claire sur le code sombre. Seulement là où le système montre des barres permanentes (souris branchée,
+     réglage « toujours ») : html.rq-sb, posé après une mesure. Avec les barres qui s’effacent d’elles-mêmes (pavé tactile), rien ne
+     change : pas de gouttière ajoutée. Chrome fait passer les réglages standards (scrollbar-width, scrollbar-color) avant ces styles :
+     les écrans de l’appli les remettent à « auto » ; Firefox, qui n’a que les réglages standards, prend les couleurs. */
+  var SOMBRE = '.editor-shell,.esql,.nsql,.ncode,.ne-sql-shell,.ex-code,.qf-editor';
+  /* La barre de la page elle-même (html) et celles de tout ce qui défile dedans */
+  var sb = function (p) { return 'html.rq-sb::-webkit-scrollbar' + p + ',html.rq-sb ::-webkit-scrollbar' + p; };
+  css += '@media (hover:hover) and (pointer:fine){@supports selector(::-webkit-scrollbar){'
+    + sb('') + '{width:12px;height:12px}'
+    + sb('-track') + ',' + sb('-corner') + '{background:transparent}'
+    + sb('-button') + '{display:none;width:0;height:0}'
+    + sb('-thumb') + '{min-height:44px;min-width:44px;border:3.5px solid transparent;border-radius:99px;background:#CBC1F5;background-clip:padding-box}'
+    + sb('-thumb:hover') + '{border-width:2.5px;background-color:#A797F0}'
+    + sb('-thumb:active') + '{border-width:2.5px;background-color:#6A4DF4}'
+    + 'html.rq-sb :is(' + SOMBRE + ')::-webkit-scrollbar-thumb,html.rq-sb :is(' + SOMBRE + ') ::-webkit-scrollbar-thumb{background-color:rgba(255,255,255,.3)}'
+    + 'html.rq-sb :is(' + SOMBRE + ')::-webkit-scrollbar-thumb:hover,html.rq-sb :is(' + SOMBRE + ') ::-webkit-scrollbar-thumb:hover{background-color:rgba(255,255,255,.5)}'
+    + 'html.rq-sb .screen{scrollbar-width:auto;scrollbar-color:auto}'
+    + '}@supports not selector(::-webkit-scrollbar){html.rq-sb,html.rq-sb .screen{scrollbar-color:#CBC1F5 transparent}}}';
   var style = document.createElement('style');
   style.id = 'rq-curseur';
   style.textContent = css;
   (document.head || root).appendChild(style);
   root.classList.add('rq-cur');
+  var barres = function () {
+    if (!document.body) return;
+    try {
+      var d = document.createElement('div');
+      d.style.cssText = 'position:absolute;top:-9999px;left:-9999px;width:120px;height:120px;overflow:scroll;visibility:hidden';
+      document.body.appendChild(d);
+      root.classList.toggle('rq-sb', d.offsetWidth - d.clientWidth > 0);
+      d.remove();
+    } catch (e) {}
+  };
+  if (document.body) barres(); else document.addEventListener('DOMContentLoaded', barres);
 
-  var halo = null, mx = -100, my = -100, x = -100, y = -100, s = .4, vu = false, bas = false, touche = false, boucle = 0;
-  var cible = function () { return (touche ? 1.42 : 1) * (bas ? .82 : 1); };
-  var anime = function () {
-    boucle = 0;
-    if (!halo) return;
-    x += (mx - x) * .3; y += (my - y) * .3; s += (cible() - s) * .22;
-    halo.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,0) scale(' + s.toFixed(3) + ')';
-    if (Math.abs(mx - x) > .15 || Math.abs(my - y) > .15 || Math.abs(cible() - s) > .002) boucle = requestAnimationFrame(anime);
-  };
-  var relance = function () { if (!boucle) boucle = requestAnimationFrame(anime); };
-  var creer = function () {
-    if (halo || !document.body) return;
-    halo = document.createElement('div');
-    halo.className = 'rq-halo';
-    halo.setAttribute('aria-hidden', 'true');
-    document.body.appendChild(halo);
-  };
+  /* Les étincelles : quand la souris arrive dans la page (une fois), et de nouveau si elle en sort puis revient */
+  var vu = false;
   var etincelles = function (px, py) {
     if (!document.body) return;
     var cols = ['#FFC83D', '#9FF0C6', '#6A4DF4', '#FF8FB8', '#FFD86B', '#B9A8FF'];
@@ -170,53 +177,22 @@
       setTimeout(function (n) { return function () { n.remove(); }; }(e), 760);
     }
   };
-  var montrer = function (premier) {
-    if (reduit()) return;
-    creer();
-    if (!halo) return;
-    if (!vu) { x = mx; y = my; s = .2; vu = true; if (premier !== false) etincelles(mx, my); }
-    halo.classList.add('is-on');
-    relance();
-  };
-  var cacher = function () { if (halo) halo.classList.remove('is-on'); };
-  var lire = function (el) {
-    if (!halo || !el || el.nodeType !== 1) return;
-    var saisie = !!(el.closest && el.closest(SAISIE));
-    var t = !saisie && !!(el.closest && el.closest(TOUCHE));
-    if (t) { var b = el.closest(TOUCHE); if (b.disabled || (b.getAttribute('aria-disabled') === 'true' && !b.hasAttribute('data-jc-gate'))) t = false; }
-    halo.classList.toggle('is-saisie', saisie);
-    halo.classList.toggle('is-cache', el.tagName === 'IFRAME');
-    if (t !== touche) { touche = t; halo.classList.toggle('is-touche', t); relance(); }
-  };
   var vrai = function (e) { return !e.pointerType || e.pointerType === 'mouse' || e.pointerType === 'pen'; };
-  document.addEventListener('pointermove', function (e) {
-    if (!vrai(e)) { cacher(); return; }
-    mx = e.clientX; my = e.clientY;
-    if (!halo || !halo.classList.contains('is-on')) montrer();
-    else relance();
-  }, { passive: true });
-  document.addEventListener('pointerover', function (e) { if (vrai(e)) lire(e.target); }, { passive: true });
+  var arrivee = function (x, y) { if (vu) return; vu = true; if (!reduit()) etincelles(x, y); };
+  document.addEventListener('pointermove', function (e) { if (vrai(e)) arrivee(e.clientX, e.clientY); }, { passive: true });
+  /* La souris quitte la fenêtre, puis revient : nouvelles étincelles là où elle rentre */
+  document.addEventListener('mouseout', function (e) { if (!e.relatedTarget) vu = false; }, { passive: true });
+  /* Au clic : une onde, jaune soleil sur ce qui se touche, violette ailleurs */
+  var touche = function (el) {
+    var b = el && el.closest && el.closest(TOUCHE);
+    return !!b && !b.disabled && !(b.getAttribute('aria-disabled') === 'true' && !b.hasAttribute('data-jc-gate'));
+  };
   document.addEventListener('pointerdown', function (e) {
     if (!vrai(e) || reduit()) return;
-    bas = true; relance();
     var o = document.createElement('i');
-    o.className = 'rq-onde' + (touche ? '' : ' v');
+    o.className = 'rq-onde' + (touche(e.target) ? '' : ' v');
     o.setAttribute('aria-hidden', 'true');
     o.style.left = e.clientX + 'px'; o.style.top = e.clientY + 'px';
     if (document.body) { document.body.appendChild(o); setTimeout(function () { o.remove(); }, 600); }
   }, { passive: true });
-  var relache = function () { if (bas) { bas = false; relance(); } };
-  document.addEventListener('pointerup', relache, { passive: true });
-  document.addEventListener('pointercancel', relache, { passive: true });
-  /* La souris quitte la fenêtre, puis revient : le halo s’efface, puis se rouvre là où elle rentre */
-  document.addEventListener('mouseout', function (e) { if (!e.relatedTarget) cacher(); }, { passive: true });
-  document.addEventListener('mouseover', function (e) {
-    if (e.relatedTarget) return;
-    mx = e.clientX; my = e.clientY;
-    if (halo && vu) { x = mx; y = my; s = .5; }
-    montrer();
-  }, { passive: true });
-  window.addEventListener('blur', cacher);
-  /* Le réglage « Animations réduites » de l’appli change en cours de route */
-  if (window.MutationObserver) new MutationObserver(function () { if (reduit()) cacher(); }).observe(root, { attributes: true, attributeFilter: ['data-motion'] });
 })();
