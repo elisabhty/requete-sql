@@ -60,7 +60,7 @@ test('ref 4 — les points : 100 la réussite, +50 / +30 / +15 aux trois premier
   assert.deepEqual(ev('[1,2,3].map(i=>jeuPts(91000,i,false).rang)'), [30, 15, 0], 'au-delà du 3e : pas de bonus de rang');
   assert.deepEqual(ev('jeuPts(72000,0,true)'), { ok: 100, rang: 0, vite: 36, pts: 136 }, 'seul : la réussite et la rapidité');
   /* Même temps, même place et même bonus ; à points égaux, le temps total départage */
-  assert.ok(fn('jeuRanking').includes('return rows.map(([pid,ms])=>{const i=rows.findIndex(y=>y[1]===ms);return Object.assign({pid,ms,place:i+1},jeuPts(ms,i,J.solo));});'));
+  assert.ok(fn('jeuRanking').includes('return rows.map(([pid,ms])=>{const i=rows.findIndex(y=>y[1]===ms);return Object.assign({pid,ms,place:i+1},jeuPts(ms,i,J.solo||r.one));});'), 'seul dans la salle : pas de bonus de rang (retours de 16 h 29)');
   assert.ok(fn('jeuScores').includes('.sort((a,b)=>b.pts-a.pts||a.ms-b.ms||a.name.localeCompare(b.name));'));
   assert.ok(fn('jeuScores').includes('J.order.forEach(p=>{if(!got.has(p))t[p]=(t[p]||0)+JEU_ROUND_MS;});'), 'une manche non trouvée compte 3 min');
   assert.ok(line('jeuPlaces').includes('if(i===0||x.pts<sc[i-1].pts||x.ms>sc[i-1].ms)place=i+1;'));
@@ -74,7 +74,7 @@ test('ref 4 — le chrono monte (sans barre de temps), le podium a trois marches
   assert.ok(app.includes('id="jeu-timer" role="timer" aria-label="Chrono de la manche">${jeuChrono(took0)}</b>'));
   assert.ok(app.includes('`<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];'), 'argent, or, bronze');
   assert.ok(app.includes("<em>${jeuChrono(x.ms)}</em><small>+${x.pts}</small>"), 'chaque ligne : le temps et les points gagnés');
-  assert.ok(app.includes("<span class=\"jeu-rk\">${J.solo?'✓':(medal[x.place-1]||x.place)}</span>"), 'les ex æquo partagent la médaille');
+  assert.ok(app.includes("<span class=\"jeu-rk\">${sl?'✓':(medal[x.place-1]||x.place)}</span>"), 'les ex æquo partagent la médaille');
   for (const part of ['html.lq .jeu-timer', 'html.lq .jeu-podium', 'html.lq .jeu-pd i'])
     assert.ok(s42.includes(part), part);
 });

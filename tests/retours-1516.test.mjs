@@ -80,8 +80,8 @@ test('réf. 4 — la même marge de 20 px sur toutes les pages, et les pastilles
 test('réf. 5 et 6 — pendant une manche : le chrono seul, et pas de « Voir la solution » seul', () => {
   assert.ok(!app.includes('id="jeu-tbar"'), 'plus de barre de temps');
   const bar = cut('function jeuHostBarHTML(){', '\nfunction jeuRedraw(){');
-  /* Le bouton de l’hôte, devenu un bouton secondaire de l’appli (retours de 15 h 52, réf. 3 : voir retours-1552.test.mjs). */
-  assert.ok(bar.includes("return jeuIsHost()&&!JEU.solo?jeuBtn2('flag','Clore la manche pour tous','jeuClose()'):'';"));
+  /* Le bouton de l’hôte : un petit bouton dans la carte « Trouvé », à plusieurs seulement (retours de 15 h 52 et 16 h 29). */
+  assert.ok(bar.includes("return jeuIsHost()&&!jeuSoloLike(jeuCur())?`<button type=\"button\" class=\"jeu-mini\" onclick=\"jeuClose()\">${JEU_ICO.flag}<span>Clore la manche pour tous</span></button>`:'';"));
   assert.ok(!bar.includes('Voir la solution'));
 });
 

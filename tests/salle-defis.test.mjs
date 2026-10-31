@@ -298,7 +298,9 @@ test('manche : 100 la réussite, +50 / +30 / +15 aux trois premiers, jusqu’à 
   }
   assert.ok(rk[0].vite > rk[2].vite, 'plus on est rapide, plus la rapidité rapporte');
   for (const x of rk) assert.ok(host.html.includes(`<small>+${x.pts}</small>`), 'les points gagnés dans le classement : ' + x.pts);
-  assert.match(host.html, /class="jeu-pd"><i>100 réussite<\/i><i class="is-rang">\+50 1er<\/i><i class="is-vite">\+\d+ rapidité<\/i>/, 'le détail des points');
+  /* Le détail des points sur sa seule ligne (Elisa, 31 octobre, 16 h 29 : « il y a trop de trucs ») : l’hôte est 2e */
+  assert.match(host.html, /class="jeu-pd"><i>100 réussite<\/i><i class="is-rang">\+30 2e<\/i><i class="is-vite">\+\d+ rapidité<\/i>/, 'le détail des points');
+  assert.equal((host.html.match(/class="jeu-pd"/g) || []).length, 1, 'seulement sur sa propre ligne');
   assert.match(host.html, /<em>00:\d\d<\/em>/, 'le temps en 00:00');
   assert.match(host.html, /Manche suivante/);
   assert.match(guests[0].html, /La manche suivante arrive/);
@@ -554,6 +556,50 @@ test('un défi trouvé dans la salle compte comme réussi pour son joueur : il n
   assert.ok(h.ev("jeuChallenges('f').map(c=>c.id)").includes(p) && p !== x, 'réussi par un seul joueur plutôt que par les deux : ' + p);
 });
 
+/* Elisa, 31 octobre, 16 h 29 : « si personne ne rejoint la salle, alors c’est comme si on est seule ». */
+test('salle entre amis sans personne : la partie se joue comme seul (écran, points, bilan)', () => {
+  const w = new World();
+  const h = makeClient(w, 'Hôte'); h.ev("jeuNiv='f';jeuNb=2");
+  h.host('ALONE1'); sec(w, 1);
+  assert.equal(h.view(), 'lobby');
+  assert.match(h.ev('jeuLobbyHint()'), /Si tu lances maintenant, tu joues seul·e\./);
+  h.ev('jeuNextRound()'); sec(w, 4.5);
+  assert.equal(h.view(), 'play0');
+  assert.equal(h.J('rounds[0].one'), true, 'la manche commence seule');
+  assert.doesNotMatch(h.html, /jeu-mates|jeu-reacts|jeu-mini|seul·e dans la salle/, 'rien des écrans à plusieurs');
+  h.found(); sec(w, 1);
+  assert.equal(h.view(), 'res0', 'seul : les résultats tout de suite');
+  assert.match(h.html, /Ton résultat/); assert.doesNotMatch(h.html, /Classement de la manche|\(toi\)/);
+  const x = h.ev('jeuRanking(0)[0]');
+  assert.equal(x.rang, 0, 'pas de bonus de rang quand on est seul'); assert.equal(x.pts, 100 + x.vite);
+  h.ev('jeuNextRound()'); sec(w, 4.5); h.found(); sec(w, 1);
+  h.ev('jeuFinish()'); sec(w, 1.5);
+  assert.equal(h.view(), 'final');
+  assert.match(h.html, /Tout trouvé|Ton bilan/, 'le bilan, pas le podium');
+  assert.doesNotMatch(h.html, /jeu-podium|Tu as gagné/);
+  assert.match(h.html, /Rejouer/); assert.match(h.html, /Quitter la salle/);
+  assert.equal(h.ev('state.salle.hist[0].solo'), 1, 'notée « Seul » dans Tes performances');
+});
+
+test('un ami arrive pendant une manche commencée seul : la bande des joueurs apparaît, la manche reste sans bonus de rang', () => {
+  const w = new World();
+  const h = makeClient(w, 'Hôte'); h.ev("jeuNiv='f';jeuNb=1");
+  h.host('ALONE2'); sec(w, 1);
+  h.ev('jeuNextRound()'); sec(w, 4.5);
+  assert.doesNotMatch(h.html, /jeu-mates/);
+  const g = makeClient(w, 'Ami'); g.join('ALONE2'); sec(w, 4);
+  assert.equal(g.view(), 'play0', 'il arrive dans la manche');
+  assert.match(h.html, /class="jeu-mates"/, 'chez l’hôte, la bande apparaît (sans perdre la requête en cours)');
+  assert.match(g.html, /class="jeu-mates"/);
+  g.found(); sec(w, 1);
+  assert.equal(h.view(), 'play0');
+  assert.equal(h.ev('jeuRanking(0)[0].rang'), 0, 'commencée seule : pas de bonus de rang, le même chez tous');
+  assert.equal(g.ev('jeuRanking(0)[0].rang'), 0);
+  assert.match(g.html, /class="jeu-done"/); assert.match(g.html, /Hôte cherche encore/);
+  assert.match(h.ev('jeuMatesHTML(0)'), /class="is-found[^"]*"><b class="jeu-av" data-c="1" aria-hidden="true">A<i class="jeu-mate-ok">/, 'la coche de l’ami dans la bande (mise à jour sur place)');
+  assert.match(h.ev('jeuMatesHTML(0)'), /<span class="jeu-sr">Ami : trouvé en 00:0\d<\/span>/, 'dit au lecteur d’écran');
+});
+
 test('un défi précis (« Avec des amis » sur sa page) ouvre la salle comme première manche', () => {
   const w = new World();
   const h = makeClient(w, 'Hôte'); h.ev('jeuNb=3');
@@ -597,12 +643,15 @@ test('toutes les vues se dessinent sans erreur (échappement des pseudos compris
   const grab = () => { seen.add(host.view().replace(/\d+$/, '')); return host.html; };
   const lobby = grab(); assert.doesNotMatch(lobby, /<img/);
   host.ev('jeuNextRound()'); sec(w, 1); grab();
-  sec(w, 4); const play = grab(); assert.match(play, /jeu-reacts/);
-  host.found(); evil.found(); sec(w, 2); const res = grab(); assert.match(res, /Classement de la manche/); assert.doesNotMatch(res, /<img/);
+  sec(w, 4); const play = grab(); assert.match(play, /class="jeu-mates"/); assert.doesNotMatch(play, /jeu-reacts|jeu-mini/, 'pendant qu’on cherche : rien que la manche');
+  assert.doesNotMatch(play, /<img/);
+  host.found(); sec(w, 1); const wait = grab(); assert.match(wait, /class="jeu-done"/); assert.match(wait, /cherche encore/); assert.match(wait, /jeu-reacts/); assert.match(wait, /Clore la manche pour tous/);
+  assert.doesNotMatch(wait, /id="ed-lesson"/, 'la carte « Trouvé » remplace l’éditeur');
+  evil.found(); sec(w, 2); const res = grab(); assert.match(res, /Classement de la manche/); assert.doesNotMatch(res, /<img/);
   host.ev('jeuClose()'); host.ev('jeuNextRound()'); sec(w, 5); host.ev('jeuClose()'); sec(w, 1);
   host.ev('jeuNextRound()'); sec(w, 5); host.ev('jeuClose()'); sec(w, 1);
   host.ev('jeuFinish()'); sec(w, 1);
-  const fin = grab(); assert.match(fin, /Classement final/);
+  const fin = grab(); assert.match(fin, /class="jeu-podium"/); assert.doesNotMatch(fin, /Classement final/, 'deux joueurs, tous deux sur le podium : pas de liste en double');
   assert.deepEqual([...seen].sort(), ['draw', 'final', 'lobby', 'play', 'res']);
 });
 

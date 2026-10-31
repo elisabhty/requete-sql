@@ -101,7 +101,7 @@ test('une partie terminée part au classement, une seule fois, et attend le rés
   const out = makeCls({ salle: { horsCls: 1 } });
   out.ev("clsEnvoyer({u:'WWWWWW1111',pts:100,n:1,ok:1,solo:1,niv:'f'})"); await flush();
   assert.equal(out.calls.length, 0);
-  assert.ok(app.includes("if(typeof clsEnvoyer==='function'&&played.length)clsEnvoyer({u:jeuRand(10),pts,n:Math.min(5,played.length),ok:mine.length,solo:J.solo?1:0,niv:k});"), 'jeuCreditGame envoie chaque partie');
+  assert.ok(app.includes("if(typeof clsEnvoyer==='function'&&played.length)clsEnvoyer({u:jeuRand(10),pts,n:Math.min(5,played.length),ok:mine.length,solo:J.solo||played.every(r=>r.one)?1:0,niv:k});"), 'jeuCreditGame envoie chaque partie (seule si aucune manche n’avait de bonus de rang)');
 });
 
 test('le Top 5 : médailles, ta ligne, ta place si tu n’y es pas, signaler, et les états (chargement, hors ligne, absent)', async () => {

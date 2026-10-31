@@ -6644,7 +6644,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=44">
+<link rel="stylesheet" href="ludique.css?v=45">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -14884,17 +14884,20 @@ function mountSqlCopyButtons(root){
     wrap.insertAdjacentHTML('beforeend',sqlCopyBtn());
   });
 }
-const editorBlock=(withViz,fname='exercice.sql')=>{
-  const noExec=current&&current.noExec;
+/* Défis en salle (o.jeu) : une seule grande action, « Exécuter » ; le schéma des tables devient une petite pastille dans la barre de
+   l’éditeur, et « Pas à pas » n’y est pas (Elisa, 31 octobre, 16 h 29 : « il y a trop de boutons »). */
+const ED_SCHEMA_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M9.5 10v9" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+const editorBlock=(withViz,fname='exercice.sql',o)=>{
+  const noExec=current&&current.noExec,jeu=!!(o&&o.jeu);
   return `
   <div class="editor-shell">
-    <div class="editor-bar"><span class="dot v"></span><span class="fname">${fname}</span>${sqlCopyBtn('data-ed="ed-lesson"')}${sqlClearBtn('ed-lesson')}</div>
+    <div class="editor-bar"><span class="dot v"></span><span class="fname">${fname}</span>${jeu?`<button type="button" class="ed-schema" onclick="openSchemaSheet()" aria-label="Voir le schéma des tables">${ED_SCHEMA_SVG}<span>Schéma</span></button>`:''}${sqlCopyBtn('data-ed="ed-lesson"')}${sqlClearBtn('ed-lesson')}</div>
     <div class="editor-area"><pre><code id="hl-lesson"></code></pre>
     <textarea aria-label="Requête SQL de l’exercice" id="ed-lesson" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="Écris ta requête ici…"></textarea></div>
   </div>
   <div class="run-row"><button class="btn-run" onclick="runLesson()">${RUN_ICO} ${noExec?'Vérifier':'Exécuter'}</button>
-  <button class="btn-ghost" type="button" onclick="openSchemaSheet()">Schéma</button>
-  ${withViz&&!noExec?`<button class="btn-ghost" type="button" onclick="openViz('ed-lesson')">Pas à pas</button>`:''}</div>
+  ${jeu?'':`<button class="btn-ghost" type="button" onclick="openSchemaSheet()">Schéma</button>`}
+  ${withViz&&!noExec&&!jeu?`<button class="btn-ghost" type="button" onclick="openViz('ed-lesson')">Pas à pas</button>`:''}</div>
   <div id="lesson-out" role="status" aria-live="polite" aria-atomic="true" style="overflow-anchor:none"></div>
   <div id="hint-slot"></div>`;
 };
@@ -20538,7 +20541,7 @@ function jeuStart(code,host,cid,opts){
     synced:!!host,syncAt:host?Date.now():0,echoAt:Date.now(),helloU:'',helloAt:0,skew:0,full:false,lost:false,claimAt:0,
     sid:jeuRand(6),opens:0,graceUntil:0,claimGrace:0,cfgCv:0,cfgSaved:null,readyCv:{},early:[],claimBest:null,replaying:false,replayEnd:0,resumeU:'',goneAt:0,lastTick:Date.now(),out:[],flushAt:0,flushing:false,keep:null,
     tick:null,ping:null,t:null,lastReact:0,plan:picked?[picked.id]:[],
-    recent:new Set(),shown:new Set(),announced:new Set(),scored:false,played:false,drawT:[],okOf:{}};
+    recent:new Set(),shown:new Set(),announced:new Set(),scored:false,played:false,drawT:[],okOf:{},okSeen:new Set(),slShown:null};
   JEU.players[me]={name:nom,at:Date.now()};JEU.order.push(me);JEU.seen[me]=Date.now();
   const G=JEU;
   JEU.t=jeuTransport(code,m=>{if(JEU===G)jeuOnMsg(m);},ok=>{const J=JEU;if(!J||J!==G)return;J.net=ok;if(ok){J.opens++;if(J.opens>1)jeuResume();}jeuPaint();},solo);
@@ -20725,7 +20728,7 @@ function jeuOnMsg(m){
       let t0=Date.now();
       if(hist)t0=m.at||t0;
       else if(replay&&m.at)t0=Math.min(t0,m.at-J.skew);
-      J.rounds[n]={cid:m.cid,t0,t1:t0+JEU_DRAW_MS,found:{},hist,relayAt:m.at||0,by:m.pid,u:m.u,conf:!!m.fromRelay};
+      J.rounds[n]={cid:m.cid,t0,t1:t0+JEU_DRAW_MS,found:{},hist,relayAt:m.at||0,by:m.pid,u:m.u,conf:!!m.fromRelay,one:!!m.one};
       if(J.synced)J.played=true;
       addP();jeuDrain();break;}
     case 'found':{
@@ -20845,7 +20848,7 @@ function jeuRanking(n){
   /* À temps égal, l’ordre des identifiants range la liste : la même chez tout le monde. Mais le même temps, à la milliseconde près,
      vaut la même place et le même bonus : deux premiers ex æquo prennent chacun +50, le suivant est 3e (+15). */
   const rows=Object.entries(r.found).sort((a,b)=>a[1]-b[1]||(a[0]<b[0]?-1:a[0]>b[0]?1:0));
-  return rows.map(([pid,ms])=>{const i=rows.findIndex(y=>y[1]===ms);return Object.assign({pid,ms,place:i+1},jeuPts(ms,i,J.solo));});
+  return rows.map(([pid,ms])=>{const i=rows.findIndex(y=>y[1]===ms);return Object.assign({pid,ms,place:i+1},jeuPts(ms,i,J.solo||r.one));});
 }
 /* Les scores : points de toutes les manches terminées ; à égalité, le temps total (une manche non trouvée compte 3 min). */
 function jeuScores(){
@@ -20864,6 +20867,13 @@ function jeuScores(){
 function jeuPlaces(sc){let place=0;sc.forEach((x,i)=>{if(i===0||x.pts<sc[i-1].pts||x.ms>sc[i-1].ms)place=i+1;x.place=place;});return sc;}
 /* Le détail des points d’une manche : « 100 réussite · +50 1er · +46 rapidité ». */
 function jeuPtsDetail(x){return `<span class="jeu-pd"><i>${x.ok} réussite</i>${x.rang?`<i class="is-rang">+${x.rang} ${['1er','2e','3e'][JEU_PTS_RANG.indexOf(x.rang)]||''}</i>`:''}<i class="is-vite">+${x.vite} rapidité</i></span>`;}
+/* Seul dans la salle (personne n’a rejoint, ou tous sont partis) et personne d’autre n’a trouvé cette manche : tout se dessine
+   comme seul (ni liste de joueurs, ni réactions, ni « Clore la manche », ni annonce « seul·e dans la salle »). */
+function jeuSoloLike(n){
+  const J=JEU;if(J.solo)return true;
+  const r=n>=0?J.rounds[n]:null;
+  return jeuLive().length<2&&(!r||Object.keys(r.found).every(p=>p===J.me));
+}
 function jeuRoomEmpty(){
   const J=JEU;
   return !J.solo&&!J.created&&J.synced&&Date.now()-J.syncAt>JEU_HOST_WAIT&&Date.now()>=J.claimGrace&&jeuLive().length<2;
@@ -20927,10 +20937,11 @@ const JEU_ICO={
   flag:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V4.5M6 4.5h10.5l-2.2 4 2.2 4H6" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   quit:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H7.5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2H14M10.5 12h9M16.5 8.5 20 12l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   level:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18.5v-4M12 18.5v-8M18 18.5V5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
+  check:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5l4.2 4.2L18.5 8" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   wifi:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.2a12.5 12.5 0 0 1 17 0M6.6 12.6a8 8 0 0 1 10.8 0M9.8 15.9a3.4 3.4 0 0 1 4.4 0" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/><path d="M4 4l16 16" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/></svg>'
 };
 function jeuBtn2(ico,label,on){return `<button type="button" class="jeu-close" onclick="${on}">${JEU_ICO[ico]}<span>${label}</span></button>`;}
-function jeuHostBarHTML(){return jeuIsHost()&&!JEU.solo?jeuBtn2('flag','Clore la manche pour tous','jeuClose()'):'';}
+function jeuHostBarHTML(){return jeuIsHost()&&!jeuSoloLike(jeuCur())?`<button type="button" class="jeu-mini" onclick="jeuClose()">${JEU_ICO.flag}<span>Clore la manche pour tous</span></button>`:'';}
 function jeuRedraw(){
   const J=JEU;if(!J)return;
   /* En manche : seul le bouton de l’hôte change, l’éditeur n’est pas touché. */
@@ -20961,10 +20972,29 @@ function jeuPlayersHTML(kind){
 }
 /* Les annonces de la salle (réseau coupé, seul dans la salle) : une carte de l’appli, son pictogramme, une phrase courte. */
 function jeuNoteHTML(cls,ico,titre,texte){return `<div class="jeu-net ${cls}" role="status"><span class="jeu-net-ico" aria-hidden="true">${ico}</span><span class="jeu-net-tx"><b>${titre}</b><small>${texte}</small></span></div>`;}
+/* Pendant la manche (à plusieurs) : une bande d’avatars sous le chrono, plus une liste (Elisa, 31 octobre, 16 h 29 : « il y a trop de
+   boutons, trop de trucs », « les cadres verts ne font pas assez clean »). Qui a trouvé prend une coche menthe et son temps ;
+   la coche se pose une seule fois (is-fresh). */
+function jeuMatesHTML(n){
+  const J=JEU,r=J.rounds[n];if(!r)return '';
+  const all=jeuOrder();
+  return all.filter(p=>jeuPresent(p)||r.found[p]!=null).map(pid=>{
+    const p=J.players[pid]||{name:'Joueur'},me=pid===J.me,ok=r.found[pid]!=null,away=!jeuPresent(pid);
+    const key=n+':'+pid,fresh=ok&&!J.okSeen.has(key);if(ok)J.okSeen.add(key);
+    const nom=me?'Toi':esc(p.name),etat=ok?`trouvé en ${jeuChrono(r.found[pid])}`:away?'parti·e':'cherche';
+    return `<li class="${ok?'is-found':'is-wait'}${away?' is-away':''}${fresh?' is-fresh':''}"><b class="jeu-av" data-c="${all.indexOf(pid)%6}" aria-hidden="true">${jeuInitial(p.name)}${ok?`<i class="jeu-mate-ok">${JEU_ICO.check}</i>`:''}</b><span class="jeu-mate-l" aria-hidden="true">${ok?jeuChrono(r.found[pid]):nom}</span><span class="jeu-sr">${nom} : ${etat}</span></li>`;
+  }).join('');
+}
+function jeuWaitLine(n){
+  const J=JEU,r=J.rounds[n];if(!r)return '';
+  const wait=jeuLive().filter(p=>p!==J.me&&r.found[p]==null).map(p=>esc((J.players[p]||{}).name||'Joueur'));
+  if(!wait.length)return '<i class="jeu-dot" aria-hidden="true"></i>Tout le monde a trouvé, les résultats arrivent…';
+  const who=wait.length===1?wait[0]:wait.length===2?wait.join(' et '):`${wait.slice(0,2).join(', ')} +${wait.length-2}`;
+  return `<i class="jeu-dot" aria-hidden="true"></i>${who} ${wait.length>1?'cherchent':'cherche'} encore…`;
+}
 function jeuNetHTML(){
   const J=JEU;
-  if(J.net===false)return jeuNoteHTML('is-off',JEU_ICO.wifi,'Connexion perdue','La partie reprendra dès que le réseau revient.');
-  if(!J.solo&&J.synced&&J.hostPid&&(J.rounds.length||J.over)&&jeuLive().length<2&&Date.now()-J.syncAt>JEU_HOST_WAIT&&Date.now()>=J.claimGrace)return jeuNoteHTML('is-soft',lqStkSvg('user'),'Tu es seul·e dans la salle','Les autres joueurs ont quitté la salle : tu peux continuer seul·e.');
+  if(J.net===false)return jeuNoteHTML('is-off',JEU_ICO.wifi,'Connexion perdue','La partie reprend dès que le réseau revient.');
   return '';
 }
 function jeuLobbyLabel(){
@@ -20973,7 +21003,7 @@ function jeuLobbyLabel(){
 }
 function jeuLobbyHint(){
   const live=jeuLive();
-  if(live.length<2)return 'Pour l’instant tu es seul·e : partage le code, tes amis apparaissent ici dès qu’ils rejoignent.';
+  if(live.length<2)return 'Personne n’a encore rejoint : partage le code. Si tu lances maintenant, tu joues seul·e.';
   const wait=live.filter(p=>!jeuIsReady(p));
   return wait.length?`Pas encore prêt : ${wait.map(p=>esc((JEU.players[p]||{}).name||'Joueur')).join(', ')}. Tu peux lancer quand tu veux.`:'Tout le monde est prêt.';
 }
@@ -20989,8 +21019,15 @@ function jeuAnnounce(){
 function jeuPatch(v){
   const J=JEU;
   jeuAnnounce();
-  const pl=document.getElementById('jeu-players');
-  if(pl)pl.innerHTML=jeuPlayersHTML(v==='lobby'?'lobby':v.startsWith('play')?'play':'res');
+  if(v.startsWith('play')){
+    const n=+v.slice(4);
+    if(jeuSoloLike(n)!==J.slShown){J.keep=v;J.view='';jeuPaint();return;}
+    const pl=document.getElementById('jeu-players');if(pl)pl.innerHTML=jeuMatesHTML(n);
+    const wl=document.getElementById('jeu-waitline');if(wl)wl.innerHTML=jeuWaitLine(n);
+  }else{
+    const pl=document.getElementById('jeu-players');
+    if(pl)pl.innerHTML=jeuPlayersHTML(v==='lobby'?'lobby':'res');
+  }
   const net=document.getElementById('jeu-netslot');if(net)net.innerHTML=jeuNetHTML();
   const go=document.getElementById('jeu-go');
   if(go){go.disabled=false;const l=document.getElementById('jeu-go-label');if(l&&v==='lobby')l.textContent=jeuLobbyLabel();}
@@ -21035,7 +21072,7 @@ function jeuRender(){
      15 h 52, réf. 1 : « c’est pas 3 min par manche, c’est un chrono qui part de 0 »). */
   const chips=()=>`<ul class="jeu-chips" aria-label="La partie"><li class="jeu-chip is-${J.niv}" style="--i:0">${jeuNivBars(J.niv)}${JEU_NIVL[J.niv]}</li><li class="jeu-chip" style="--i:1">${lqStkSvg('cards')}${J.nb} manche${J.nb>1?'s':''}</li><li class="jeu-chip" style="--i:2">${lqStkSvg('clock')}Chrono dès 00:00</li></ul>`;
   const host=jeuIsHost();
-  let html='';
+  let html='',edOn=false;
   if(v==='join'){
     html=head('Salle de défi','Connexion à la salle…','')+`<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>On rejoint la salle ${J.code}.</p><div id="jeu-netslot">${jeuNetHTML()}</div>`;
   }else if(v==='lost'){
@@ -21076,54 +21113,57 @@ function jeuRender(){
   }else if(v.startsWith('play')){
     const n=+v.slice(4),r=J.rounds[n],c=CHALLENGES.find(x=>x.id===r.cid);
     current=c;exoFails=0;
-    const mine=r.found[J.me]!=null;
+    const mine=r.found[J.me]!=null,sl=jeuSoloLike(n);J.slShown=sl;edOn=!mine;
     const took0=Date.now()-r.t1;
+    /* Une seule action pendant la manche : « Exécuter » (le schéma passe dans la barre de l’éditeur, plus de « Pas à pas »). */
     html=`<div class="jeu-bar"><span class="l-kicker">Manche ${n+1}/${J.nb} · ${JEU_NIVL[c.niv]}</span><b class="jeu-timer${JEU_ROUND_MS-took0<30000?' is-low':''}" id="jeu-timer" role="timer" aria-label="Chrono de la manche">${jeuChrono(took0)}</b></div>
+      <div id="jeu-netslot">${jeuNetHTML()}</div>
+      ${sl?'':`<ul class="jeu-mates" id="jeu-players" aria-label="Qui a trouvé">${jeuMatesHTML(n)}</ul>`}
       <h1>${esc(c.titre)}</h1>
       <div class="consigne"><span class="tag">La question</span><p>${esc(c.q)}</p></div>
-      ${J.solo?'':`<ul class="jeu-players is-live" id="jeu-players" aria-label="Qui a trouvé">${jeuPlayersHTML('play')}</ul>`}
-      ${mine?jeuFoundHTML(r,J.me):editorBlock(true,'defi-entre-amis.sql')}
-      ${J.solo?'':`<div class="jeu-reacts" aria-label="Réagir">${JEU_REACTS.map(e=>`<button type="button" onclick="jeuReact('${e}')" aria-label="Réagir ${e}">${e}</button>`).join('')}</div>`}
-      <div id="jeu-hostbar">${jeuHostBarHTML()}</div>
-      <div id="jeu-netslot">${jeuNetHTML()}</div>`;
+      ${mine?jeuFoundHTML(r,J.me):editorBlock(false,'defi.sql',{jeu:1})}`;
   }else if(v.startsWith('res')){
-    const n=+v.slice(3),r=J.rounds[n],c=CHALLENGES.find(x=>x.id===r.cid),rk=jeuRanking(n),last=n>=J.nb-1;
+    const n=+v.slice(3),r=J.rounds[n],c=CHALLENGES.find(x=>x.id===r.cid),rk=jeuRanking(n),last=n>=J.nb-1,sl=jeuSoloLike(n);
     const medal=['🥇','🥈','🥉'];
-    const lines=rk.map((x,i)=>`<li style="--i:${i}"><span class="jeu-rk">${J.solo?'✓':(medal[x.place-1]||x.place)}</span><b>${esc((J.players[x.pid]||{}).name||'Joueur')}${x.pid===J.me&&!J.solo?' <small>(toi)</small>':''}${jeuPtsDetail(x)}</b><em>${jeuChrono(x.ms)}</em><small>+${x.pts}</small></li>`).join('')||'<li class="is-empty">Personne n’a trouvé cette fois.</li>';
-    const sc=jeuScores();
-    const sub=r.found[J.me]!=null?`Tu as trouvé en ${jeuChrono(r.found[J.me])}.`:((r.closed?(J.solo?'Manche abandonnée.':'Manche close par l’hôte.'):'Temps écoulé.')+' Voici une solution possible.');
-    const next=host?`<button type="button" class="journey-primary" id="jeu-go" onclick="${last?'jeuFinish()':'jeuNextRound()'}"><span>${last?(J.solo?'Voir mon bilan':'Voir le podium'):'Manche suivante'}</span>${DEF_CHEV_SVG}</button>`
+    /* Le détail des points seulement sur sa propre ligne : le reste dit le temps et les points, sans pastilles en trop. */
+    const lines=rk.map((x,i)=>`<li style="--i:${i}"${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${sl?'✓':(medal[x.place-1]||x.place)}</span><b>${esc((J.players[x.pid]||{}).name||'Joueur')}${x.pid===J.me&&!sl?' <small>(toi)</small>':''}</b><em>${jeuChrono(x.ms)}</em><small>+${x.pts}</small>${x.pid===J.me?jeuPtsDetail(x):''}</li>`).join('')||'<li class="is-empty">Personne n’a trouvé cette fois.</li>';
+    const sc=jeuScores(),got=r.found[J.me]!=null;
+    const sub=got?`Tu as trouvé en ${jeuChrono(r.found[J.me])}.`:((r.closed?(sl?'Manche abandonnée.':'Manche close par l’hôte.'):'Temps écoulé.')+' Voici une solution possible.');
+    const next=host?`<button type="button" class="journey-primary" id="jeu-go" onclick="${last?'jeuFinish()':'jeuNextRound()'}"><span>${last?(sl?'Voir mon bilan':'Voir le podium'):'Manche suivante'}</span>${DEF_CHEV_SVG}</button>`
       :`<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>${last?'Le podium arrive…':'La manche suivante arrive…'}</p>`;
+    /* La solution se replie quand on a trouvé ; les scores cumulés n’apparaissent qu’à partir de la 2e manche, et à plusieurs. */
     html=head(`Manche ${n+1}/${J.nb} terminée`,esc(c.titre),sub)+
-      `<div class="jeu-card"><p class="jeu-card-h">${J.solo?'Ton résultat':'Classement de la manche'}</p><ol class="jeu-rank">${lines}</ol></div>
-      <div class="jeu-card"><p class="jeu-card-h">Une solution</p><div class="ex-code">${highlight(c.sol)}</div></div>
-      ${J.solo&&J.nb<2?'':`<div class="jeu-card"><p class="jeu-card-h">Scores</p><ol class="jeu-rank is-score">${jeuPlaces(sc).map(x=>`<li><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${jeuChrono(x.ms)}</small></li>`).join('')}</ol></div>`}
-      ${next}
-      <div id="jeu-netslot">${jeuNetHTML()}</div>`;
+      `<div id="jeu-netslot">${jeuNetHTML()}</div>
+      <div class="jeu-card"><p class="jeu-card-h">${sl?'Ton résultat':'Classement de la manche'}</p><ol class="jeu-rank">${lines}</ol></div>
+      <details class="jeu-card jeu-sol"${got?'':' open'}><summary class="jeu-card-h">Une solution</summary><div class="ex-code">${highlight(c.sol)}</div></details>
+      ${sl||n<1?'':`<div class="jeu-card"><p class="jeu-card-h">Scores</p><ol class="jeu-rank is-score">${jeuPlaces(sc).map(x=>`<li${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${jeuChrono(x.ms)}</small></li>`).join('')}</ol></div>`}
+      ${next}`;
   }else if(v==='final'){
     const sc=jeuScores();
     const cg=jeuCreditGame();
     /* Les points de la partie arrivent en notification, une fois le podium ou le bilan posé. */
     if(cg&&cg.pts>0)setTimeout(()=>{if(JEU===J&&J.view==='final')jeuPtsPop({kind:'game',pts:cg.pts,total:cg.total});},950);
-    if(J.solo){
+    const seul=J.solo||sc.every(x=>x.pid===J.me);
+    if(seul){
       const rows=J.rounds.map((r,i)=>r?{r,c:CHALLENGES.find(x=>x.id===r.cid),ms:r.found[J.me]}:null).filter(Boolean);
       const got=rows.filter(x=>x.ms!=null),pts=(sc[0]||{}).pts||0;
       const avg=got.length?jeuChrono(got.reduce((a,x)=>a+x.ms,0)/got.length):'—';
       const all=got.length===rows.length&&rows.length>0;
       html=head('Fin de la partie',all?'Tout trouvé ! 🏆':'Ton bilan',`${rows.length} manche${rows.length>1?'s':''} jouée${rows.length>1?'s':''} · niveau ${JEU_NIVL[J.niv].toLowerCase()}.`)+
         `<div class="jeu-bilan"><div><b data-n="${pts}">${pts}</b><small>point${pts>1?'s':''}</small></div><div><b>${got.length}/${rows.length}</b><small>trouvé${got.length>1?'s':''}</small></div><div><b>${avg}</b><small>temps moyen</small></div></div>
-        <div class="jeu-card"><p class="jeu-card-h">Manche par manche</p><ol class="jeu-rank">${rows.map((x,i)=>{const k=J.rounds.indexOf(x.r),y=x.ms!=null?jeuRanking(k).find(z=>z.pid===J.me):null;return `<li style="--i:${i}"><span class="jeu-rk">${i+1}</span><b>${esc(x.c.titre)}${y?jeuPtsDetail(y):''}</b><em>${x.ms!=null?jeuChrono(x.ms):'—'}</em><small>${y?'+'+y.pts:'0'}</small></li>`;}).join('')}</ol></div>
+        <div class="jeu-card"><p class="jeu-card-h">Manche par manche</p><ol class="jeu-rank">${rows.map((x,i)=>{const k=J.rounds.indexOf(x.r),y=x.ms!=null?jeuRanking(k).find(z=>z.pid===J.me):null;return `<li style="--i:${i}"><span class="jeu-rk">${i+1}</span><b>${esc(x.c.titre)}</b><em>${x.ms!=null?jeuChrono(x.ms):'—'}</em><small>${y?'+'+y.pts:'0'}</small>${y?jeuPtsDetail(y):''}</li>`;}).join('')}</ol></div>
         <button type="button" class="journey-primary" onclick="jeuAgain()"><span>Rejouer</span>${DEF_CHEV_SVG}</button>
-        ${jeuBtn2('level','Changer de niveau','openJeu()')}`;
+        ${J.solo?jeuBtn2('level','Changer de niveau','openJeu()'):jeuBtn2('quit','Quitter la salle','goBack()')}`;
       if(all)setTimeout(celebrate,300);
     }else{
       jeuPlaces(sc);
       const top=[2,1,3].map(pl=>sc.filter(x=>x.place===pl&&x.pts>0));
       const winner=sc.some(x=>x.pid===J.me&&x.place===1&&x.pts>0);
+      const surPodium=new Set(top.flat().map(x=>x.pid)),liste=sc.some(x=>!surPodium.has(x.pid));
+      const tie=sc.some((x,i)=>i>0&&x.pts>0&&x.pts===sc[i-1].pts)?`<p class="jeu-tie">⚖️ À égalité de points, le plus rapide au total passe devant (une manche non trouvée compte 3 min).</p>`:'';
       html=head('Salle de défi · Fin de partie',winner?'Tu as gagné ! 🏆':'Le podium',`${J.nb} manche${J.nb>1?'s':''} jouée${J.nb>1?'s':''}.`)+
         `<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];return `<div class="jeu-step is-${pl}${g.length?'':' is-empty'}${g.some(x=>x.pid===J.me)?' is-me':''}"><span class="jeu-medal">${lqStkSvg('medal'+pl)}</span><span class="jeu-step-av">${g.length?g.map(x=>`<b class="jeu-av" data-c="${jeuOrder().indexOf(x.pid)%6}" aria-hidden="true">${jeuInitial(x.name)}</b>`).join(''):''}</span><span class="jeu-step-n">${g.length?g.map(x=>esc(x.name)+(x.pid===J.me?' <small>(toi)</small>':'')).join('<br>'):'—'}</span><small>${g.length?g[0].pts+' pt'+(g[0].pts>1?'s':'')+' · '+jeuChrono(g[0].ms):''}</small><i><em>${pl}</em></i></div>`;}).join('')}</div>
-        <div class="jeu-card"><p class="jeu-card-h">Classement final</p><ol class="jeu-rank is-score">${sc.map(x=>`<li><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${jeuChrono(x.ms)}</small></li>`).join('')}</ol>
-          <p class="jeu-tie">⚖️ À égalité de points, le plus rapide au total passe devant (une manche non trouvée compte 3 min).</p></div>
+        ${liste?`<div class="jeu-card"><p class="jeu-card-h">Classement final</p><ol class="jeu-rank is-score">${sc.map(x=>`<li${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${jeuChrono(x.ms)}</small></li>`).join('')}</ol>${tie}</div>`:tie}
         ${host?`<button type="button" class="journey-primary" onclick="jeuAgain()"><span>Rejouer dans cette salle</span>${DEF_CHEV_SVG}</button>`:`<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>L’hôte peut relancer une partie dans cette salle.</p>`}
         ${jeuBtn2('quit','Quitter la salle','goBack()')}
         <div id="jeu-netslot">${jeuNetHTML()}</div>`;
@@ -21149,7 +21189,7 @@ function jeuRender(){
     else root.classList.add('jeu-in');
   }
   if(ghost){root.appendChild(ghost);setTimeout(()=>{if(ghost.parentNode)ghost.parentNode.removeChild(ghost);},560);}
-  if(v.startsWith('play')&&document.getElementById('ed-lesson')){
+  if(edOn&&document.getElementById('ed-lesson')){
     setupEditor('ed-lesson','hl-lesson');
     if(typed){const ed=document.getElementById('ed-lesson');ed.value=typed;ed.dispatchEvent(new Event('input'));}
   }
@@ -21162,7 +21202,9 @@ function jeuNextRound(){
   const J=JEU;if(!J||!jeuIsHost())return;
   const n=jeuCur()+1;if(n>=J.nb)return;
   const btn=document.getElementById('jeu-go');if(btn)btn.disabled=true;
-  jeuSend({t:'round',n,cid:J.plan[n]||jeuPick()});
+  /* Personne d’autre dans la salle : la manche se joue comme seul (pas de bonus de rang, Elisa, 31 octobre, 16 h 29 : « si personne
+     ne rejoint la salle, alors c’est comme si on est seule »). Le drapeau voyage avec la manche : le même chez tous. */
+  jeuSend({t:'round',n,cid:J.plan[n]||jeuPick(),one:jeuLive().length<2?1:0});
 }
 function jeuClose(){
   const n=jeuCur(),J=JEU;
@@ -21223,13 +21265,20 @@ function jeuCredit(cid){
     state.defis[cid]=true;noteActivityDay();save();renderProgress();renderPlanning();
   }catch(e){}
 }
-/* Trouvé : le temps, la place parmi ceux qui ont déjà trouvé (entre amis, définitive à la fin de la manche), les points gagnés et
-   leur détail. Les points montent de 0 à leur valeur (jeuCountUp) : on voit ce qu’on vient de gagner. */
-function jeuFoundHTML(r,pid,took){
-  const J=JEU,n=J.rounds.indexOf(r),rk=jeuRanking(n),k=rk.findIndex(y=>y.pid===pid),x=rk[k]||Object.assign({pid,ms:took||0},jeuPts(took||0,0,true));
-  const pos=k<0?-1:x.place-1;
-  const place=J.solo||pos<0?'':` · ${pos===0?'1er à trouver 🥇':pos===1?'2e à trouver 🥈':pos===2?'3e à trouver 🥉':(pos+1)+'e à trouver'}`;
-  return `<div class="feedback ok jeu-found"><div class="fi">✓</div><div><b>Trouvé en ${jeuChrono(x.ms)}${place}</b><p class="jeu-found-pts"><strong data-n="${x.pts}">+${x.pts}</strong> points ${jeuPtsDetail(x)}</p><p>${J.solo?'Bien joué !':'Le classement s’affiche à la fin de la manche.'}</p></div></div>`;
+/* Trouvé : la carte prend la place de l’éditeur. Blanche, comme les autres cartes de l’appli (plus le grand cadre vert) : la médaille
+   (ou la coche), le temps et la place, les points ; à plusieurs, qui cherche encore, les réactions et, pour l’hôte, « Clore la
+   manche » ; la requête et son résultat restent repliés. */
+const JEU_OK_STK='<svg class="lq-stk" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="26.6" r="20" fill="#1B1640" opacity=".28"/><circle cx="24" cy="24" r="20" fill="#fff"/><circle cx="24" cy="24" r="16.3" fill="#9FF0C6" stroke="#1B1640" stroke-width="2.5"/><path d="M16.3 24.6l5.2 5.2 10.4-11.2" fill="none" stroke="#1B1640" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function jeuFoundHTML(r,pid){
+  const J=JEU,n=J.rounds.indexOf(r),rk=jeuRanking(n),k=rk.findIndex(y=>y.pid===pid),x=rk[k]||Object.assign({pid,ms:0,place:1},jeuPts(0,0,true));
+  const sl=jeuSoloLike(n),pos=k<0?-1:x.place-1;
+  const place=sl||pos<0?'Bien joué !':pos===0?'1er à trouver':`${pos+1}e à trouver`;
+  const stk=!sl&&pos>=0&&pos<3?lqStkSvg('medal'+(pos+1)):JEU_OK_STK;
+  return `<section class="jeu-done" id="jeu-done" aria-label="Trouvé">
+      <div class="jeu-done-head"><span class="jeu-done-stk" aria-hidden="true">${stk}</span><span class="jeu-done-t"><b>Trouvé en ${jeuChrono(x.ms)}</b><small>${place}</small></span><strong class="jeu-done-pts"><em data-n="${x.pts}">+${x.pts}</em> pts</strong></div>
+      ${sl?'':`<div class="jeu-done-wait"><p id="jeu-waitline">${jeuWaitLine(n)}</p><div class="jeu-reacts" aria-label="Réagir">${JEU_REACTS.map(e=>`<button type="button" onclick="jeuReact('${e}')" aria-label="Réagir ${e}">${e}</button>`).join('')}</div></div><div id="jeu-hostbar">${jeuHostBarHTML()}</div>`}
+      ${r.mine?`<details class="jeu-done-sql"><summary>Ta requête et son résultat</summary>${r.mine}</details>`:''}
+    </section>`;
 }
 function jeuCountUp(el){
   if(!el||prefersReduceMotion())return;
@@ -21239,31 +21288,28 @@ function jeuCountUp(el){
   el.textContent=f(from); requestAnimationFrame(step);
 }
 /* Les points gagnés, en notification (Elisa, 31 octobre, 15 h 52 : « faire une notification sur le nombre de points obtenus avec
-   animation, micro-interaction ») : elle tombe du haut comme celle de la flamme, la pièce s’allume dans un anneau et lâche des
-   étincelles, le nombre monte de 0 à ses points, puis le détail (réussite, rang, rapidité) se pose pastille après pastille. En fin de
-   partie : les points de la partie, et le total de salle qui roule jusqu’au nouveau. Le lecteur d’écran entend le résultat (lqSay). */
-const JEU_COIN_SVG='<svg class="lq-stk" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="26.6" r="20" fill="#1B1640" opacity=".28"/><circle cx="24" cy="24" r="20" fill="#fff"/><circle cx="24" cy="24" r="16.3" fill="#FFC83D" stroke="#1B1640" stroke-width="2.5"/><circle cx="24" cy="24" r="11.6" fill="none" stroke="#E0A100" stroke-width="2"/><path d="M24 15.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="#fff" stroke="#1B1640" stroke-width="2" stroke-linejoin="round"/><path d="M14.6 17.5a11 11 0 0 1 5-4.6" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".85"/></svg>';
+   animation, micro-interaction » ; 16 h 29 : « pas assez clean ») : une pastille blanche qui descend du haut, la pièce qui tourne, le
+   nombre qui monte ; en fin de partie, le total de salle à côté. Le détail des points est dans la carte « Trouvé » et les résultats.
+   Le lecteur d’écran entend le résultat (lqSay). */
+const JEU_COIN_SVG='<svg class="lq-stk" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="26.6" r="20" fill="#1B1640" opacity=".28"/><circle cx="24" cy="24" r="20" fill="#fff"/><circle cx="24" cy="24" r="16.3" fill="#FFC83D" stroke="#1B1640" stroke-width="2.5"/><circle cx="24" cy="24" r="11.6" fill="none" stroke="#E0A100" stroke-width="2"/><path d="M24 15.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="#fff" stroke="#1B1640" stroke-width="2" stroke-linejoin="round"/></svg>';
 function jeuPtsPop(o){
   if(!o||!(o.pts>0)||typeof document==='undefined'||typeof document.createElement!=='function'||!document.body||!document.body.appendChild)return;
   let t=document.getElementById('jeu-pts-pop');
   if(!t){t=document.createElement('div');t.id='jeu-pts-pop';t.setAttribute('aria-hidden','true');document.body.appendChild(t);}
-  const still=prefersReduceMotion(),game=o.kind==='game',d=o.detail;
+  const still=prefersReduceMotion(),game=o.kind==='game'&&o.total>0;
   const fmt=v=>(+v||0).toLocaleString('fr-FR');
-  const sub=game&&o.total>0
-    ?`<small class="jpp-sub">Total de salle : <b data-n="${o.total}" data-from="${Math.max(0,o.total-o.pts)}" data-fmt="fr">${fmt(still?o.total:Math.max(0,o.total-o.pts))}</b> pts</small>`
-    :d?`<span class="jpp-pd"><i style="--j:0">${d.ok} réussite</i>${d.rang?`<i class="is-rang" style="--j:1">+${d.rang} ${['1er','2e','3e'][JEU_PTS_RANG.indexOf(d.rang)]||''}</i>`:''}<i class="is-vite" style="--j:2">+${d.vite} rapidité</i></span>`:'';
-  t.innerHTML=`<span class="jpp-coin"><i class="jpp-ring"></i>${JEU_COIN_SVG}${'<i class="jpp-sp"></i>'.repeat(6)}</span><span class="jpp-tx"><b><em class="jpp-n" data-n="${o.pts}">+${still?o.pts:0}</em> point${o.pts>1?'s':''}${game?' gagnés':''}</b>${sub}</span>`;
+  t.innerHTML=`<span class="jpp-coin">${JEU_COIN_SVG}</span><b><em class="jpp-n" data-n="${o.pts}">+${still?o.pts:0}</em> point${o.pts>1?'s':''}</b>${game?`<small class="jpp-sub">total <b data-n="${o.total}" data-from="${Math.max(0,o.total-o.pts)}" data-fmt="fr">${fmt(still?o.total:Math.max(0,o.total-o.pts))}</b></small>`:''}`;
   /* La flamme du jour peut tomber au même moment : les points se posent juste dessous. */
   const st=document.getElementById('lq-streak-toast'),low=st&&st.classList.contains('on')?Math.round(st.getBoundingClientRect().bottom+10):0;
   if(low)t.style.top=low+'px';else t.style.removeProperty('top');
   t.classList.remove('on');void t.offsetWidth;t.classList.add('on');
   if(!still){
-    const n=t.querySelector('.jpp-n');setTimeout(()=>jeuCountUp(n),260);
-    const b=t.querySelector('.jpp-sub b');if(b)setTimeout(()=>jeuCountUp(b),900);
+    const n=t.querySelector('.jpp-n');setTimeout(()=>jeuCountUp(n),220);
+    const b=t.querySelector('.jpp-sub b');if(b)setTimeout(()=>jeuCountUp(b),700);
   }
-  if(typeof lqSay==='function')lqSay(`+${o.pts} points`+(game&&o.total>0?`, total de salle : ${o.total} points`:''));
-  if(game&&typeof buzz==='function')buzz('success');
-  clearTimeout(jeuPtsPop.t);jeuPtsPop.t=setTimeout(()=>t.classList.remove('on'),game?3800:3000);
+  if(typeof lqSay==='function')lqSay(`+${o.pts} points`+(game?`, total de salle : ${o.total} points`:''));
+  if(o.kind==='game'&&typeof buzz==='function')buzz('success');
+  clearTimeout(jeuPtsPop.t);jeuPtsPop.t=setTimeout(()=>t.classList.remove('on'),game?3200:2400);
 }
 /* Points de la partie (une seule fois) : cumulés dans « Tes points de salle ». */
 function jeuCreditGame(){
@@ -21293,11 +21339,11 @@ function jeuCreditGame(){
       });
       Object.keys(mates).sort((a,b)=>(mates[b].at||0)-(mates[a].at||0)).slice(30).forEach(key=>{delete mates[key];});
     }
-    s.hist=[Object.assign({at:Date.now(),pts,n:played.length,ok:mine.length,ms,niv:k,solo:J.solo?1:0,place,players:Math.max(1,sc.length)},ppl?{ppl}:{})]
+    s.hist=[Object.assign({at:Date.now(),pts,n:played.length,ok:mine.length,ms,niv:k,solo:vs?0:1,place,players:Math.max(1,sc.length)},ppl?{ppl}:{})]
       .concat(Array.isArray(s.hist)?s.hist:[]).slice(0,12);
     save();
     /* Le classement général : la partie part une seule fois (u), seul ou entre amis. */
-    if(typeof clsEnvoyer==='function'&&played.length)clsEnvoyer({u:jeuRand(10),pts,n:Math.min(5,played.length),ok:mine.length,solo:J.solo?1:0,niv:k});
+    if(typeof clsEnvoyer==='function'&&played.length)clsEnvoyer({u:jeuRand(10),pts,n:Math.min(5,played.length),ok:mine.length,solo:J.solo||played.every(r=>r.one)?1:0,niv:k});
     return {pts,total:s.pts};
   }catch(e){return null;}
 }
@@ -21314,11 +21360,12 @@ function jeuRun(){
   if(exerciseResultsMatch(userRes,solRes,c,true)){
     const took=Date.now()-r.t1;
     document.querySelectorAll('#lesson-body .btn-run').forEach(b=>b.disabled=true);
+    r.mine=`<div class="ex-code">${highlight(sql)}</div>${renderTable(userRes,ms)}`;
     jeuCredit(c.id);
     jeuSend({t:'found',n,ms:took});
-    setLessonOut(jeuFoundHTML(r,J.me,took)+renderTable(userRes,ms));
-    jeuCountUp(document.querySelector('#lesson-body .jeu-found-pts strong'));
-    {const x=jeuRanking(n).find(y=>y.pid===J.me);if(x)jeuPtsPop({kind:'round',pts:x.pts,detail:x});}
+    if(JEU===J&&J.view==='play'+n){J.keep=J.view;J.view='';jeuRender();}
+    jeuCountUp(document.querySelector('#jeu-done .jeu-done-pts em'));
+    {const x=jeuRanking(n).find(y=>y.pid===J.me);if(x)jeuPtsPop({kind:'round',pts:x.pts});}
     if(navigator.vibrate)navigator.vibrate([10,40,20]);
     return;
   }
@@ -26732,6 +26779,10 @@ function lqConfetti(opts){
 }
 function lqStreakToast(){
   if(typeof document==='undefined'||!document.documentElement.classList.contains('lq'))return;
+  /* Les points d’un défi en salle viennent de tomber au même endroit : la flamme attend qu’ils repartent (une notification à la fois). */
+  const pop=document.getElementById('jeu-pts-pop');
+  if(pop&&pop.classList.contains('on')&&(lqStreakToast.wait||0)<4){lqStreakToast.wait=(lqStreakToast.wait||0)+1;setTimeout(lqStreakToast,700);return;}
+  lqStreakToast.wait=0;
   const n=typeof streakJours==='function'?streakJours():0;
   if(!n)return;
   let t=document.getElementById('lq-streak-toast');
@@ -27479,7 +27530,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-31-salle-da-v2214';
+  const SW_CACHE='requete-2026-10-31-manche-epuree-v2215';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
