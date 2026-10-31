@@ -94,7 +94,7 @@ test('une partie terminée part au classement, une seule fois, et attend le rés
   assert.equal(bad.salle().clsRefus, 'Connard');
   bad.ev("CLS.data={top:[{id:'a',pseudo:'Léa',pts:10,parties:1,rang:1}],moi:null,total:1}");
   const refus = bad.ev('clsTopHTML()');
-  assert.match(refus, /Ton pseudo « Connard » n’est pas accepté au classement\.<\/p><button type="button" class="perf-top-btn" onclick="psFeuille\(\{raison:'refuse'\}\)">Choisir mon pseudo<\/button>/, 'le pseudo ne se change plus dans Mon compte : on le choisit, une fois');
+  assert.match(refus, /Ton pseudo « Connard » n’est pas accepté au classement\.<\/p><button type="button" class="perf-top-btn" onclick="psPage\(\{raison:'refuse'\}\)">Choisir mon pseudo<\/button>/, 'le pseudo ne se change plus dans Mon compte : on le choisit, une fois (la mini-page)');
   /* Une partie hors barème refusée par le serveur ne repart pas */
   const inv = makeCls({ reply: fn => fn === 'jeu_score' ? [false, { message: 'partie invalide' }] : [true, { top: [], total: 0 }] });
   inv.ev("clsEnvoyer({u:'XXXXXX1111',pts:999,n:1,ok:1,solo:1,niv:'f'})"); await flush(); await flush();

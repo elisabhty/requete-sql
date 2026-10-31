@@ -45,7 +45,7 @@ test('Pratiquer et Bibliothèque : un autocollant par entrée, les entrées arri
   assert.ok(app.includes("const JOURNEY_STK={defis:'target',console:'term',cards:'cards',stickers:'peel',notes:'note',interview:'mic',sgbd:'db',courses:'book'};"));
   const hub = fn('renderJourneyHub');
   assert.ok(hub.includes('style="--i:${i}"') && hub.includes("<span class=\"journey-tool-icon${JOURNEY_STK[kind]?' is-stk':''}\">${JOURNEY_STK[kind]?lqStkSvg(JOURNEY_STK[kind]):journeyIcon(kind)}</span>"));
-  assert.equal((hub.match(/<span class="journey-spot-stk" aria-hidden="true">/g) || []).length, 3, 'prochain défi, tout réussi, à réviser');
+  assert.equal((hub.match(/<span class="journey-spot-stk" aria-hidden="true">/g) || []).length, 2, 'la salle de défi (17 h 53 : plus de « prochain défi » ni de « tout réussi »), à réviser');
   for (const part of ['html.lq #app .journey-resource .journey-tool-icon.is-stk svg{width:54px!important;height:54px!important;stroke:none!important;fill:none}',
     'html.lq #app .screen.active .journey-hub-list>.journey-resource{animation:lqHubIn', 'html.lq #app .screen.active .journey-resource-bar>i{transform-origin:left;animation:lqBarIn',
     'html.lq .journey-spotlight h2{color:var(--sun-hi)!important;', 'html.lq .journey-spotlight .journey-primary{background:var(--sun)!important;color:#1B1640!important;'])

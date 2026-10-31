@@ -114,7 +114,7 @@ test('micro-interactions au lieu des notifications : l’action se voit là où 
   assert.ok(app.includes("lqDone(document.querySelector(`#db-tables .db-tblock[data-table=\"${CSS.escape(name)}\"]`),'Restaurée',"));
   /* Depuis le 31 octobre, 8 h 06, le prénom est un pseudo ; depuis 16 h 49, il est réservé une fois pour toutes : la feuille se
      ferme et le lecteur d’écran l’entend. */
-  assert.ok(fn('psValider').includes("lqSay('Pseudo réservé : '+(r.pseudo||v));"));
+  assert.ok(fn('obPseudoSuivant').includes("lqSay('Pseudo réservé : '+(r.pseudo||n));"), 'la mini-page du pseudo (17 h 53)');
   assert.ok(css.includes('.lq-say{position:absolute;width:1px;height:1px;') && css.includes('html.lq .lq-done{position:fixed;') && css.includes('@keyframes lqDone{'));
 });
 

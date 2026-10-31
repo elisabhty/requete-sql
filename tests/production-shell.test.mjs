@@ -123,7 +123,7 @@ assert(html.includes('function closePlusDetails()') && account.includes('account
 assert(account.includes('Mode local actif') && account.includes('Connexion optionnelle') && account.includes("action:'exportProgress()'"), 'stockage local expliqué clairement, export de la progression en un appui');
 assert(!account.includes('acc-premium') && !account.includes('4,99 €'), 'fausse offre Premium retirée du parcours de production');
 assert(html.includes("const OB_PROFILE_SLIDES=['name','goal','level','rhythm','practice']") && html.includes("function obFlowSteps(){return obAuthReady()?[...OB_PROFILE_SLIDES,'account']:[...OB_PROFILE_SLIDES];}"), 'onboarding : 6 étapes, personnalisation d’abord puis sauvegarde du succès (compte sauté sans fournisseur branché)');
-assert(html.includes("const OB_SLIDES = ['welcome','name','goal','level','rhythm','practice','account','ready']"), 'parcours cohérent : prouver, personnaliser, pratiquer, sauvegarder');
+assert(html.includes("const OB_SLIDES = ['welcome','name','goal','level','rhythm','practice','account','ready','pseudo']"), 'parcours cohérent : prouver, personnaliser, pratiquer, sauvegarder (puis la mini-page du pseudo, 17 h 53)');
 assert(html.includes('function obLevelPath()') && html.includes("const stages=['SELECT','Filtres & tris','Jointures','Analyses']") && onboarding.includes('${obLevelPath()}'), 'progression SQL illustrée par un chemin compact et accessible, réagissant au niveau choisi');
 assert(onboarding.includes('ob-proof-stats') && onboarding.includes('<strong>${TOTAL}</strong><span>leçons courtes</span>') && onboarding.includes('<strong>${nDefis}</strong><span>défis SQL</span>'), 'preuves chiffrées reliées au contenu réel : nombre de leçons et de défis calculés, pas des chiffres fixes');
 assert(onboarding.includes('Étape ${active+1} sur ${steps.length}') && onboarding.includes('const remaining='), 'étape et durée restante annoncées dynamiquement');
@@ -149,7 +149,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 const glissantes = fs.readFileSync(path.join(ROOT, 'assets/anim/fenetres-glissantes.html'), 'utf8');
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && ['UNBOUNDED PRECEDING', '2 PRECEDING', '2 FOLLOWING', 'CURRENT ROW'].every(c => glissantes.includes(c)) && html.includes('NTILE(4)'), 'cadres (dans la vidéo) et fonctions de fenêtre avancées (défi NTILE) couverts');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-10-31-bareme-paliers-v2217') && html.includes('requete-2026-10-31-bareme-paliers-v2217') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-10-31-prenom-pseudo-v2218') && html.includes('requete-2026-10-31-prenom-pseudo-v2218') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);

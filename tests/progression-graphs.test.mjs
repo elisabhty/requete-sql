@@ -11,6 +11,8 @@ const take = (a, b) => html.slice(html.indexOf(a), html.indexOf(b, html.indexOf(
 vm.runInContext(take('function jour0(', 'function parseD(') + take('function parseD(', 'function openItem('), ctx);
 vm.runInContext(take('function moduleProgressData(', 'function prefersReduceMotion('), ctx);
 vm.runInContext(take('function pgrActivity(', 'function planManageHTML('), ctx);
+/* La tuile Défis : les manches de la salle (18 h 02) */
+vm.runInContext(take('function salleKpi(', '/* Entrée « Salle de défi »'), ctx);
 
 const today = ctx.dstr(ctx.auj());
 const day = n => ctx.dstr(ctx.addJ(ctx.auj(), n));
@@ -20,7 +22,7 @@ Object.assign(ctx, {
     { titre: 'Lire une table', lessons: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }] },
     { titre: 'Jointures <b>', lessons: [{ id: 5 }, { id: 6 }] },
   ],
-  state: { lessons: { 0: { done: true }, 1: { done: true }, 2: { done: true }, 5: { done: true } }, actDays: {}, plan: null },
+  state: { lessons: { 0: { done: true }, 1: { done: true }, 2: { done: true }, 5: { done: true } }, actDays: {}, plan: null, salle: { manches: 2, trouves: 1, pts: 1230 } },
   esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'),
   escAttr: s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'),
   PL_OK_SVG: '<svg class="ok"></svg>', FLAME_SVG: '<svg class="flame"></svg>', PLAN_SLIDERS_SVG: '', DEF_CHEV_SVG: '',
@@ -74,7 +76,9 @@ const st = { total: 82, done: 13, reste: 69, nL: 58, resteL: 47, nD: 24, resteD:
 const card = ctx.planOverviewHTML(st);
 assert.match(card, /16<small>%<\/small>/);
 assert.match(card, /aria-label="16 % du parcours validé : 11 leçons et 2 défis sur 82 activités"/);
-assert.match(card, /<b>11<em>\/58<\/em>/); assert.match(card, /<b>2<em>\/24<\/em>/);
+assert.match(card, /<b>11<em>\/58<\/em>/);
+/* La tuile Défis (Elisa, 31 octobre, 18 h 02) : 1 manche trouvée sur 2, et les points */
+assert.match(card, /<div class="pgr-stat is-d"><small>Défis<\/small><b>1<em>\/2<\/em><\/b><i class="pgr-meter" aria-hidden="true"><b style="width:50%"><\/b><\/i><p>manches trouvées<b>1\u202f230 pts<\/b><\/p><\/div>/);
 assert.match(card, /Record 5 j/);
 assert.equal(card.split('<li class="is-').length - 1, 14, '14 barres');
 assert.match(card, /Cette semaine : <b>7 activités<\/b>, 7 de plus que la semaine d’avant/);

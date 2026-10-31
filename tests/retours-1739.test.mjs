@@ -68,8 +68,8 @@ test('le cadre : des filets pleins, des marches jaunes qui montent, le mouvement
 test('Supabase — jeu_score accepte le nouveau barème : de 50 à 225 points par manche trouvée seul, jusqu’à 275 entre amis', () => {
   const dir = new URL('../supabase/migrations/', import.meta.url);
   const files = fs.readdirSync(dir).filter(f => f.endsWith('.sql')).sort();
-  assert.equal(files.at(-1), '20261031164606_bareme_paliers.sql', 'la dernière migration, appliquée le 31 octobre');
-  const m = fs.readFileSync(new URL(files.at(-1), dir), 'utf8');
+  assert.ok(files.includes('20261031164606_bareme_paliers.sql'), 'la migration appliquée le 31 octobre');
+  const m = fs.readFileSync(new URL('20261031164606_bareme_paliers.sql', dir), 'utf8');
   assert.match(m, /or v_pts is null or v_pts < v_ok \* 50 or v_pts > v_ok \* \(case when v_solo then 225 else 275 end\) or v_niv not in \('f', 'm', 'd'\) then/);
   assert.ok(m.includes("grant execute on function public.jeu_score(text, text, jsonb) to anon, authenticated;"));
   /* Le reste de la fonction ne change pas */

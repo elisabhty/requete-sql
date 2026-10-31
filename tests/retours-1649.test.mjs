@@ -25,64 +25,59 @@ const flush = () => new Promise(r => setImmediate(r));
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const escAttr = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 
-/* ---------- Un faux DOM : des éléments par identifiant, la feuille ajoutée au corps de page ---------- */
+/* ---------- Un faux DOM : des éléments par identifiant ; l’écran de l’onboarding (#onboarding) accueille la mini-page du pseudo ---------- */
 function mkEl(id) {
-  const cls = new Set();
+  const cls = new Set(), attrs = {};
   return {
-    id, value: '', disabled: false, innerHTML: '', textContent: '', offsetWidth: 0, removed: false,
+    id, value: '', disabled: false, innerHTML: '', textContent: '', offsetWidth: 0, removed: false, attrs,
     classList: {
       add: (...c) => c.forEach(x => cls.add(x)), remove: (...c) => c.forEach(x => cls.delete(x)), contains: c => cls.has(c),
       toggle: (c, f) => { const on = f === undefined ? !cls.has(c) : !!f; if (on) cls.add(c); else cls.delete(c); return on; },
     },
+    setAttribute: (k, v) => { attrs[k] = String(v); }, removeAttribute: k => { delete attrs[k]; },
     get className() { return [...cls].join(' '); },
     set className(v) { cls.clear(); String(v).split(/\s+/).filter(Boolean).forEach(x => cls.add(x)); },
   };
 }
 const psBlock = cut('/* ---------- Pseudo unique ----------', 'function renderDefisPerf(){');
+const OB = app.match(/const OB_SLIDES = (\[[^\]]+\]);/)[1];
 
-function pseudoCtx({ reply = () => ({ ok: true }), salle, name = '', onboarded = true, online = true } = {}) {
-  const els = {}, listeners = [], calls = [], buzzes = [], said = [], store = {}, gotos = [], timers = [];
-  let sheet = null, tid = 0;
+function pseudoCtx({ reply = () => ({ ok: true }), salle, name = 'Elisa', onboarded = true, online = true } = {}) {
+  const els = {}, calls = [], buzzes = [], said = [], store = {}, timers = [], asks = [], infos = [];
+  let tid = 0;
   const get = id => (els[id] ||= mkEl(id));
   const document = {
-    getElementById: id => (id === 'lq-ask' ? sheet : get(id)),
+    getElementById: id => get(id),
     querySelector: sel => (sel === '.acc-pseudo em' ? get('acc-pseudo-em') : null),
-    createElement: () => {
-      const el = mkEl(''), q = {};
-      el.querySelector = sel => (sel.startsWith('#') ? get(sel.slice(1)) : (q[sel] ||= mkEl(sel)));
-      el.remove = () => { el.removed = true; if (sheet === el) sheet = null; };
-      return el;
-    },
-    body: { appendChild: el => { if (el.id === 'lq-ask') sheet = el; } },
-    addEventListener: (t, f, c) => listeners.push({ t, f, c }),
-    removeEventListener: (t, f) => { const i = listeners.findIndex(l => l.f === f); if (i >= 0) listeners.splice(i, 1); },
-    activeElement: null,
   };
   const ctx = vm.createContext({
     state: { name, onboarded, ...(salle ? { salle: JSON.parse(JSON.stringify(salle)) } : {}) },
     document, navigator: { onLine: online }, Date, Math, JSON,
-    localStorage: { getItem: k => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); } },
+    localStorage: { getItem: k => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; } },
     setTimeout: (f, ms) => { const id = ++tid; timers.push({ id, f, ms }); return id; },
     clearTimeout: id => { const i = timers.findIndex(t => t.id === id); if (i >= 0) timers.splice(i, 1); },
-    requestAnimationFrame: f => f(),
-    esc, escAttr, prefersReduceMotion: () => false, buzz: k => buzzes.push(k),
-    lqStkSvg: k => `<svg data-k="${k}"></svg>`, LQ_X_SVG: '<svg data-k="x"></svg>', lqSay: t => said.push(t),
-    clsCle: () => 'K'.repeat(32), clsSalle: () => (ctx.state.salle ||= {}),
+    esc, escAttr, prefersReduceMotion: () => true, buzz: k => buzzes.push(k), lqSay: t => said.push(t),
+    lqAsk: o => { asks.push(plain(o)); return Promise.resolve(ctx.askAnswer !== false); }, lqInfo: (...a) => infos.push(a),
+    clsCle: () => 'K'.repeat(32), clsSalle: () => (ctx.state.salle ||= {}), CLS: { data: { top: [] }, at: 5 },
     clsRpc: (f, body) => { calls.push({ fn: f, body: plain(body) }); const r = reply(f, body); return r instanceof Error ? Promise.reject(r) : Promise.resolve(r); },
-    renderGreeting() { ctx.greet = (ctx.greet || 0) + 1; }, renderLearnAvatar() {},
-    OB_SLIDES: ['welcome', 'name', 'goal'], obStep: 1, draft: { name: '' }, obNamePreview() {}, obGoto: s => gotos.push(s),
+    renderCompte() { ctx.compte = (ctx.compte || 0) + 1; }, renderDefis() {}, closePlusDetails() { ctx.closed = (ctx.closed || 0) + 1; },
+    obStep: 1, draft: { name: 'Elisa' }, obNamePreview() {}, obBarreEtat: on => { ctx.barre = on; }, brancherObSwipeV2() {}, paintOb() { ctx.painted = (ctx.painted || 0) + 1; },
     activeTab: 'learn', saves: 0,
   });
   ctx.save = () => { ctx.saves++; };
-  vm.runInContext(line('jeuNom') + line('jeuSavedNom') + psBlock + fn('obInput') + fn('obPseudoSuivant'), ctx);
+  vm.runInContext(`var OB_SLIDES=${OB};` + line('jeuNom') + line('jeuSavedNom') + psBlock + fn('obInput'), ctx);
   const run = () => { while (timers.length) timers.shift().f(); };
-  return { ctx, ev: c => vm.runInContext(c, ctx), el: get, calls, buzzes, said, store, gotos, timers, run, listeners, sheet: () => sheet };
+  const root = get('onboarding');
+  return { ctx, ev: c => vm.runInContext(c, ctx), el: get, root, calls, buzzes, said, store, timers, run, asks, infos };
 }
 
-test('pseudo — vérifié en direct : « déjà pris », le champ tremble, trois pseudos libres arrivent ; en toucher un le met dans le champ', async () => {
+test('pseudo — la mini-page vérifie en direct : « déjà pris », le champ tremble, trois pseudos libres arrivent ; en toucher un le met dans le champ', async () => {
   const p = pseudoCtx({ reply: (f, b) => (f === 'jeu_pseudo_libre' ? (b.p_pseudo === 'Léa' ? { ok: false, raison: 'pris', idees: ['Léa_sql', 'Léa.db', 'Léa42'] } : { ok: true }) : { ok: true }) });
+  p.ev('psPage({})');
+  assert.equal(p.ev("OB_SLIDES[obStep]"), 'pseudo', 'la mini-page, dans l’écran de l’onboarding');
+  assert.ok(p.root.classList.contains('on') && !('aria-hidden' in p.root.attrs) && p.ctx.barre === true && p.ctx.painted === 1);
   const etat = p.el('ob-ps-etat'), idees = p.el('ob-ps-idees'), inp = p.el('ob-pseudo'), next = p.el('ob-next');
-  p.ev("obInput('name','  Léa ')");
+  p.ev("obInput('pseudo','  Léa ')");
   assert.equal(etat.className, 'ps-etat is-verif');
   assert.match(etat.innerHTML, /^<i class="ps-dots" aria-hidden="true"><b><\/b><b><\/b><b><\/b><\/i>Vérification…$/);
   assert.equal(p.calls.length, 0, 'on attend la fin de la frappe');
@@ -91,14 +86,13 @@ test('pseudo — vérifié en direct : « déjà pris », le champ tremble, troi
   assert.equal(etat.className, 'ps-etat is-pris');
   assert.equal(etat.innerHTML, '<i class="ps-no" aria-hidden="true">!</i>« Léa » est déjà pris. Prends-en un libre :');
   assert.equal(idees.innerHTML, ['Léa_sql', 'Léa.db', 'Léa42'].map((v, i) => `<button type="button" class="ps-idee" style="--i:${i}" data-v="${v}" onclick="psIdee('ob',this.dataset.v)">${v}</button>`).join(''), 'trois pastilles, l’une après l’autre (--i)');
-  assert.ok(inp.classList.contains('is-ko') && inp.classList.contains('is-shake') && !inp.classList.contains('is-ok'), 'le champ tremble');
+  assert.ok(inp.classList.contains('is-ko') && !inp.classList.contains('is-ok'));
   assert.ok(p.buzzes.includes('warning'));
-  assert.equal(next.disabled, true, '« Continuer » attend un pseudo libre');
-  /* Toucher une pastille : elle va dans le champ, qui pulse, et la vérification repart */
+  assert.equal(next.disabled, true, '« C’est mon pseudo » attend un pseudo libre');
+  /* Toucher une pastille : elle va dans le champ, et la vérification repart */
   p.ev("psIdee('ob','Léa.db')");
-  assert.equal(inp.value, 'Léa.db'); assert.equal(p.ctx.draft.name, 'Léa.db');
-  assert.ok(inp.classList.contains('is-pick') && p.buzzes.includes('selection'));
-  assert.equal(etat.className, 'ps-etat is-verif');
+  assert.equal(inp.value, 'Léa.db'); assert.equal(p.ctx.draft.pseudo, 'Léa.db'); assert.equal(p.ctx.draft.name, 'Elisa', 'le prénom n’y est pour rien');
+  assert.ok(p.buzzes.includes('selection'));
   p.run(); await flush();
   assert.equal(etat.className, 'ps-etat is-libre');
   assert.equal(etat.innerHTML, '<i class="ps-ok" aria-hidden="true">✓</i>Disponible : il sera à toi');
@@ -107,6 +101,7 @@ test('pseudo — vérifié en direct : « déjà pris », le champ tremble, troi
   assert.equal(next.disabled, false);
   /* Une réponse en retard (frappe suivante déjà partie) est ignorée */
   const q = pseudoCtx({ reply: (f, b) => (b.p_pseudo === 'Tom' ? { ok: false, raison: 'pris', idees: [] } : { ok: true }) });
+  q.ev('psPage({})');
   q.ev("psVerif('ob','T');psVerif('ob','To')"); assert.equal(q.timers.length, 1, 'une seule vérification par pause de frappe');
   q.ev("psVerif('ob','Tom')"); q.run();
   q.ev("psVerif('ob','Tomy')"); await flush();
@@ -116,159 +111,136 @@ test('pseudo — vérifié en direct : « déjà pris », le champ tremble, troi
   assert.equal(q.el('ob-ps-etat').className, 'ps-etat is-libre');
   /* Les autres réponses du serveur */
   const r = pseudoCtx({ reply: () => ({ ok: false, raison: 'refuse', idees: ['Joueur_sql'] }) });
-  r.ev("psVerif('ob','Connard')"); r.run(); await flush();
+  r.ev('psPage({})'); r.ev("psVerif('ob','Connard')"); r.run(); await flush();
   assert.equal(r.el('ob-ps-etat').innerHTML, '<i class="ps-no" aria-hidden="true">!</i>Ce pseudo n’est pas accepté. Prends-en un libre :');
   const off = pseudoCtx({ reply: () => new TypeError('Failed to fetch') });
-  off.ev("psVerif('ob','Zoé')"); off.run(); await flush();
+  off.ev('psPage({})'); off.ev("psVerif('ob','Zoé')"); off.run(); await flush();
   assert.equal(off.el('ob-ps-etat').innerHTML, 'Pas de réseau : il sera vérifié dès ton retour en ligne.');
-  assert.equal(off.el('ob-next').disabled, false, 'hors ligne : on peut continuer');
 });
 
-test('pseudo — « Continuer » le réserve pour l’appareil ; ensuite il ne bouge plus', async () => {
+test('pseudo — « C’est mon pseudo » le réserve pour l’appareil, sans toucher au prénom ; « Plus tard » ferme la page', async () => {
   const p = pseudoCtx({ reply: (f, b) => (f === 'jeu_pseudo_prendre' ? { ok: true, pseudo: b.p_pseudo } : { ok: true }) });
+  p.ctx.suite = () => { p.ctx.s1 = (p.ctx.s1 || 0) + 1; }; p.ctx.ok = () => { p.ctx.s2 = (p.ctx.s2 || 0) + 1; };
+  p.ev('psPage({suite,siOk:ok})');
   const next = p.el('ob-next');
-  p.ev("draft.name='Léa.db';PS.etat.ob='libre';obPseudoSuivant()");
+  p.ev("draft.pseudo='Léa.db';PS.etat.ob='libre';obPseudoSuivant()");
   assert.ok(next.classList.contains('is-busy') && next.disabled, 'le bouton attend la réponse');
   await flush();
   assert.deepEqual(p.calls, [{ fn: 'jeu_pseudo_prendre', body: { p_cle: 'K'.repeat(32), p_pseudo: 'Léa.db' } }]);
   assert.equal(p.ctx.state.salle.pseudo, 'Léa.db'); assert.ok(p.ctx.state.salle.pseudoVu > 0);
-  assert.equal(p.ctx.state.name, 'Léa.db'); assert.equal(p.store['rq-jeu-nom'], 'Léa.db');
-  assert.ok(p.ctx.saves >= 1 && p.ctx.greet === 1, 'enregistré, l’accueil à jour');
-  assert.deepEqual(p.gotos, ['goal']); assert.ok(p.buzzes.includes('success')); assert.ok(!next.classList.contains('is-busy'));
-  /* Réservé : le champ ne change plus rien, il dit « C’est ton pseudo » sans rien demander au serveur */
-  p.ev("obInput('name','Autre')");
-  assert.equal(p.ctx.draft.name, 'Léa.db');
+  assert.equal(p.ctx.state.name, 'Elisa', 'le prénom reste le prénom');
+  assert.equal(p.store['rq-jeu-nom'], 'Léa.db'); assert.ok(p.ctx.saves >= 1);
+  assert.deepEqual(p.said, ['Pseudo réservé : Léa.db']); assert.ok(p.buzzes.includes('success'));
+  assert.ok(!p.root.classList.contains('on') && p.root.attrs['aria-hidden'] === 'true' && p.ctx.barre === false, 'la page se ferme');
+  assert.equal(p.ctx.s1, 1, 'la suite (l’appli, après l’onboarding)'); assert.equal(p.ctx.s2, 1, 'et ce qui attendait le pseudo (une salle entre amis)');
+  assert.equal(p.ev('jeuSavedNom()'), 'Léa.db');
   p.ev("psVerif('ob','Léa.db')");
   assert.equal(p.el('ob-ps-etat').innerHTML, '<i class="ps-ok" aria-hidden="true">✓</i>C’est ton pseudo');
-  p.ev('obPseudoSuivant()');
-  assert.equal(p.calls.length, 1); assert.deepEqual(p.gotos, ['goal', 'goal']);
-  /* Pris entre-temps : on reste, avec des pseudos libres */
+  /* Pris entre-temps : on reste, avec des pseudos libres ; un pseudo pris ne part pas */
   const q = pseudoCtx({ reply: f => (f === 'jeu_pseudo_prendre' ? { ok: false, raison: 'pris', idees: ['Tom_sql'] } : { ok: true }) });
-  q.ev("draft.name='Tom';PS.etat.ob='libre';obPseudoSuivant()"); await flush();
-  assert.deepEqual(q.gotos, []); assert.equal(q.el('ob-ps-etat').className, 'ps-etat is-pris');
+  q.ev('psPage({})'); q.ev("draft.pseudo='Tom';PS.etat.ob='libre';obPseudoSuivant()"); await flush();
+  assert.ok(q.root.classList.contains('on')); assert.equal(q.el('ob-ps-etat').className, 'ps-etat is-pris');
   assert.match(q.el('ob-ps-idees').innerHTML, /data-v="Tom_sql"/); assert.equal(q.el('ob-next').disabled, true);
   assert.equal(q.ctx.state.salle, undefined, 'rien n’est réservé');
-  q.ev("PS.etat.ob='pris';obPseudoSuivant()");
-  assert.equal(q.calls.length, 1, 'un pseudo pris ne repart pas');
-  /* Sans réseau : on continue, il sera réservé à l’ouverture suivante */
+  q.ev("obPseudoSuivant()"); assert.equal(q.calls.length, 1);
+  /* Sans réseau : on le dit, la page reste */
   const off = pseudoCtx({ reply: () => new TypeError('Failed to fetch') });
-  off.ev("draft.name='Zoé';PS.etat.ob='horsligne';obPseudoSuivant()"); await flush();
-  assert.deepEqual(off.gotos, ['goal']); assert.equal(off.ctx.state.salle, undefined);
+  off.ev('psPage({})'); off.ev("draft.pseudo='Zoé';PS.etat.ob='horsligne';obPseudoSuivant()"); await flush();
+  assert.ok(off.root.classList.contains('on')); assert.match(off.el('ob-ps-etat').innerHTML, /Pas de réseau/);
+  /* « Plus tard » : la suite continue, pas ce qui attendait le pseudo ; la page ne revient plus toute seule */
+  const l = pseudoCtx();
+  l.ctx.suite = () => { l.ctx.s1 = 1; }; l.ctx.ok = () => { l.ctx.s2 = 1; };
+  l.ev('psPage({suite,siOk:ok})'); l.ev('obPseudoPlusTard()');
+  assert.ok(!l.root.classList.contains('on')); assert.equal(l.ctx.s1, 1); assert.equal(l.ctx.s2, undefined);
+  assert.equal(l.ctx.state.salle.psPage, 1);
+  assert.equal(l.calls.length, 0);
 });
 
-test('pseudo — une salle entre amis a besoin du pseudo réservé ; à l’ouverture de l’appli, un pseudo d’avant est réservé', async () => {
-  const opened = [];
-  const mk = o => { const c = pseudoCtx(o); c.ctx.psFeuille = x => opened.push(plain(x)); c.ctx.ran = 0; c.ctx.go = () => { c.ctx.ran++; }; return c; };
-  const a = mk();
+test('pseudo — une salle entre amis a besoin du pseudo réservé ; à l’ouverture de l’appli, la mini-page une fois ; supprimer son pseudo', async () => {
+  const a = pseudoCtx();
+  a.ctx.ran = 0; a.ctx.go = () => { a.ctx.ran++; };
   a.ev('jeuAvecPseudo(go)');
-  assert.deepEqual(opened.splice(0), [{}], 'pas de pseudo : la feuille');
-  assert.equal(a.ctx.ran, 0); assert.equal(a.ev('PS.apres===go'), true, 'la salle s’ouvrira une fois le pseudo choisi');
-  const b = mk({ salle: { pseudo: 'Léa' } });
+  assert.ok(a.root.classList.contains('on') && a.ctx.ran === 0 && a.ev('PS.siOk===go'), 'pas de pseudo : la mini-page, la salle ensuite');
+  const b = pseudoCtx({ salle: { pseudo: 'Léa' } });
+  b.ctx.ran = 0; b.ctx.go = () => { b.ctx.ran++; };
   b.ev('jeuAvecPseudo(go)');
   assert.equal(b.ctx.ran, 1); assert.equal(b.calls.length, 0, 'déjà réservé : tout de suite');
-  const c = mk({ name: 'Zoé', reply: (f, x) => ({ ok: true, pseudo: x.p_pseudo }) });
-  c.ev('jeuAvecPseudo(go)'); await flush();
-  assert.equal(c.ctx.ran, 1); assert.equal(c.ctx.state.salle.pseudo, 'Zoé');
-  const d = mk({ name: 'Zoé', reply: () => ({ ok: false, raison: 'pris', idees: ['Zoé_sql'] }) });
-  d.ev('jeuAvecPseudo(go)'); await flush();
-  assert.deepEqual(opened.splice(0), [{ raison: 'pris', idees: ['Zoé_sql'], voulu: 'Zoé' }]); assert.equal(d.ctx.ran, 0);
-  const e = mk({ name: 'Zoé', reply: () => new TypeError('Failed to fetch') });
-  e.ev('jeuAvecPseudo(go)'); await flush();
-  assert.equal(e.ctx.ran, 1, 'sans réseau, la salle le dira');
-  /* Le pseudo réservé fait foi (même si un autre traîne, après un import) */
-  const f = mk({ name: 'Zoé', salle: { pseudo: 'Léa' } });
-  f.store['rq-jeu-nom'] = 'Zoé';
-  assert.equal(f.ev('jeuSavedNom()'), 'Léa');
-  /* À l’ouverture */
-  for (const o of [{ name: 'Zoé', onboarded: false }, { name: 'Zoé', online: false }, { salle: { pseudo: 'Léa', pseudoVu: Date.now() - 3600e3 } }, {}]) {
-    const v = mk(o); v.ev('psVerifier()'); await flush();
-    assert.equal(v.calls.length, 0, JSON.stringify(o));
+  assert.equal(pseudoCtx({ name: 'Zoé' }).ev('jeuSavedNom()'), '', 'le prénom n’est jamais un pseudo');
+  /* À l’ouverture de l’appli */
+  for (const o of [{ onboarded: false }, { online: false }, { salle: { pseudo: 'Léa', pseudoVu: Date.now() - 3600e3 } }, { salle: { psPage: 1 } }]) {
+    const v = pseudoCtx(o); v.ev('psVerifier()'); await flush();
+    assert.equal(v.calls.length, 0, JSON.stringify(o)); assert.ok(!v.root.classList.contains('on'), JSON.stringify(o));
   }
-  const old = mk({ salle: { pseudo: 'Léa', pseudoVu: Date.now() - 21 * 3600e3 }, reply: () => ({ ok: true, pseudo: 'Léa' }) });
+  const n = pseudoCtx(); n.store['rq-jeu-nom'] = 'Zoé';
+  n.ev('psVerifier()');
+  assert.ok(n.root.classList.contains('on'), 'pas encore de pseudo : la mini-page');
+  assert.equal(n.ctx.draft.pseudo, 'Zoé', 'le pseudo des salles d’avant, proposé');
+  assert.equal(n.ctx.state.salle.psPage, 1, 'une seule fois');
+  n.ev('obPseudoPlusTard();psVerifier()'); assert.ok(!n.root.classList.contains('on'), 'elle ne revient pas toute seule');
+  const old = pseudoCtx({ salle: { pseudo: 'Léa', pseudoVu: Date.now() - 21 * 3600e3 }, reply: () => ({ ok: true, pseudo: 'Léa' }) });
   old.ev('psVerifier()'); await flush();
-  assert.deepEqual(old.calls.map(x => x.body.p_pseudo), ['Léa'], 'une fois par jour, la visite est notée (le pseudo n’est libéré qu’après 12 mois sans visite)');
-  assert.equal(old.el('acc-pseudo-em').textContent, 'Unique dans l’appli · il ne se change pas', 'Mon compte suit');
-  const taken = mk({ name: 'Zoé', reply: () => ({ ok: false, raison: 'pris', idees: ['Zoé.db'] }) });
-  taken.ev('psVerifier()'); await flush();
-  assert.deepEqual(opened.splice(0), [{ raison: 'pris', idees: ['Zoé.db'], voulu: 'Zoé' }], 'déjà pris par quelqu’un d’autre : la feuille');
+  assert.deepEqual(old.calls.map(x => x.body.p_pseudo), ['Léa'], 'une fois par jour, la réservation est vérifiée');
+  assert.equal(old.el('acc-pseudo-em').textContent, 'Unique dans l’appli · il ne se change pas');
+  const lost = pseudoCtx({ salle: { pseudo: 'Léa', pseudoVu: 1 }, reply: () => ({ ok: false, raison: 'pris', idees: ['Léa.db'] }) });
+  lost.ev('psVerifier()'); await flush();
+  assert.equal(lost.ctx.state.salle.pseudo, undefined, 'pris par quelqu’un d’autre : il n’est plus le sien');
+  assert.ok(lost.root.classList.contains('on') && lost.ev("PS.page.raison") === 'pris');
   const boot = cut('async function boot(){', 'function initSpotlight(){');
   assert.ok(boot.includes("setTimeout(()=>{try{psVerifier();}catch(e){}},2500);") && boot.includes("window.addEventListener('online',()=>{try{psVerifier();}catch(e){}});"), 'au démarrage, et au retour du réseau');
-  /* Une partie envoyée avec un pseudo déjà pris (ancienne version) : la feuille */
-  assert.ok(fn('clsFlush').includes("if(/pris/.test(m)){if(typeof psFeuille==='function'&&!document.getElementById('lq-ask'))psFeuille({raison:'pris',voulu:nom});return;}"));
+  assert.ok(fn('clsFlush').includes("if(/pris/.test(m)){const s3=clsSalle();delete s3.pseudo;delete s3.pseudoVu;save();if(typeof psPage==='function'&&!psPageOuverte())psPage({raison:'pris',voulu:nom});return;}"));
   for (const f of ['jeuEnterRoom', 'jeuJoin']) assert.ok(fn(f).includes('jeuPseudoPuis(()=>jeuStart('), f);
-  assert.ok(app.includes(`onclick="jeuPseudoPuis(()=>jeuStart(jeuRand(6),true,'\${c.id}',{nomId:'jeu-nom-defi'}))"`), 'la page d’un défi aussi');
+  /* Supprimer son pseudo (Mon compte › Données) : libéré avec les scores, la progression reste */
+  const d = pseudoCtx({ salle: { pseudo: 'Léa', pseudoVu: 9, clsId: 'x', envoi: [{ u: 'A' }], pts: 400 }, reply: () => ({ ok: true }) });
+  d.store['rq-jeu-nom'] = 'Léa';
+  d.ev('psSupprimer()'); await flush(); await flush();
+  assert.equal(d.asks[0].titre, 'Supprimer « Léa » ?'); assert.equal(d.asks[0].danger, true);
+  assert.deepEqual(d.calls, [{ fn: 'jeu_pseudo_liberer', body: { p_cle: 'K'.repeat(32) } }]);
+  assert.deepEqual(plain(d.ctx.state.salle), { envoi: [], pts: 400, psPage: 1 }, 'le pseudo et le classement partent ; les points de la progression restent');
+  assert.equal(d.store['rq-jeu-nom'], undefined); assert.deepEqual(d.said, ['Ton pseudo est supprimé.']); assert.ok(d.ctx.compte >= 1);
+  const k = pseudoCtx({ salle: { pseudo: 'Léa' } }); k.ctx.askAnswer = false;
+  k.ev('psSupprimer()'); await flush();
+  assert.equal(k.calls.length, 0); assert.equal(k.ctx.state.salle.pseudo, 'Léa', '« Garder mon pseudo »');
+  const o = pseudoCtx({ salle: { pseudo: 'Léa' }, reply: () => new TypeError('Failed to fetch') });
+  o.ev('psSupprimer()'); await flush(); await flush();
+  assert.equal(o.ctx.state.salle.pseudo, 'Léa'); assert.equal(o.infos[0][0], 'Pas de réseau');
 });
 
-test('pseudo — la feuille « Choisis ton pseudo », dans la DA des autres feuilles : idées, réservation, « Plus tard », Échap', async () => {
-  const f = pseudoCtx({ reply: (x, b) => (x === 'jeu_pseudo_prendre' ? { ok: true, pseudo: b.p_pseudo } : { ok: true }) });
-  f.ctx.after = () => { f.ctx.done = (f.ctx.done || 0) + 1; };
-  f.ev("PS.apres=after;psFeuille({raison:'pris',voulu:'Léa',idees:['Léa_sql','Léa42']})");
-  const sheet = f.sheet();
-  assert.equal(sheet.className, 'lq-ask has-field ps-sheet on');
-  const h = sheet.innerHTML;
-  assert.ok(h.includes('<div class="lq-ask-sheet" role="dialog" aria-modal="true" aria-labelledby="lq-ask-t" aria-describedby="lq-ask-p">'));
-  assert.ok(h.includes('<span class="lq-ask-stk" aria-hidden="true"><svg data-k="user"></svg></span><div class="lq-ask-cap-t"><h2 id="lq-ask-t">Choisis ton pseudo</h2>'));
-  assert.ok(h.includes('<p id="lq-ask-p">« Léa » est déjà pris : un pseudo est unique dans toute l’appli. Choisis le tien, il ne se changera plus.</p>'));
-  assert.ok(h.includes('<input id="ps-pseudo" type="text" maxlength="16" placeholder="Ex. Léa" value=""'), 'le champ vide, prêt pour un autre');
-  assert.ok(h.includes('id="ps-ok">C’est mon pseudo</button><button type="button" class="lq-btn-2 lq-ask-non">Plus tard</button>'));
-  assert.equal(f.el('ps-ps-etat').className, 'ps-etat is-pris');
-  assert.match(f.el('ps-ps-idees').innerHTML, /data-v="Léa_sql" onclick="psIdee\('ps',this\.dataset\.v\)">Léa_sql<\/button>/);
-  assert.equal(f.el('ps-ok').disabled, true);
-  f.el('ps-pseudo').value = 'Léa'; f.ev('psValider()');
-  assert.equal(f.calls.length, 0, 'un pseudo pris ne part pas');
-  f.ev("psIdee('ps','Léa42')");
-  assert.equal(f.el('ps-pseudo').value, 'Léa42');
-  f.run(); await flush();
-  assert.equal(f.el('ps-ps-etat').className, 'ps-etat is-libre'); assert.equal(f.el('ps-ok').disabled, false);
-  f.ev('psValider()');
-  assert.ok(f.el('ps-ok').classList.contains('is-busy'));
-  await flush();
-  assert.deepEqual(f.calls.at(-1), { fn: 'jeu_pseudo_prendre', body: { p_cle: 'K'.repeat(32), p_pseudo: 'Léa42' } });
-  assert.equal(f.ctx.state.salle.pseudo, 'Léa42');
-  assert.deepEqual(f.said, ['Pseudo réservé : Léa42'], 'le lecteur d’écran l’entend');
-  assert.equal(f.ctx.done, 1, 'la salle qui attendait s’ouvre');
-  assert.ok(sheet.classList.contains('off')); f.run();
-  assert.equal(f.sheet(), null, 'la feuille s’en va'); assert.equal(f.ev('PS.apres'), null);
-  /* Échap ferme, sans rien réserver ; l’écouteur s’en va avec la feuille */
-  const g = pseudoCtx({ name: 'Zoé' });
-  g.ev('psFeuille({})');
-  assert.ok(g.sheet().innerHTML.includes('Il est unique dans toute l’appli : c’est ton nom dans les salles de défi et au classement. Il ne se changera plus.'));
-  assert.ok(g.sheet().innerHTML.includes('value="Zoé"'), 'le pseudo d’avant, proposé');
-  const key = g.listeners.find(l => l.t === 'keydown');
-  assert.equal(key.c, true, 'en capture');
-  key.f({ key: 'Escape', preventDefault() {}, stopPropagation() {} }); g.run();
-  assert.equal(g.sheet(), null); assert.equal(g.listeners.length, 0);
-  assert.equal(g.ctx.state.salle, undefined);
-  /* Les micro-animations, et le mouvement réduit */
-  for (const part of ['.ps-idee{min-height:40px;', 'animation:psIdee .45s var(--pop,ease) backwards;animation-delay:calc(.08s + var(--i,0) * .09s)',
-    '@keyframes psIdee{from{opacity:0;transform:translateY(12px) scale(.8) rotate(-4deg)}to{opacity:1;transform:none}}',
-    '.is-shake{animation:psShake .42s', '@keyframes psPop{', '.ps-dots b{', '@keyframes psDot{',
-    '@media (prefers-reduced-motion:reduce){.ps-ok,.ps-no,.ps-dots b,.ps-idee,.is-shake,.is-pick'])
-    assert.ok(s51.includes(part), part);
-});
-
-test('pseudo — l’onboarding le demande et le réserve ; Mon compte et la salle le montrent, verrouillé', () => {
-  const ob = cut("}else if(slide==='name'){", "}else if(slide==='goal'){");
-  assert.ok(ob.includes('<input id="ob-pseudo" type="text" maxlength="16"') && ob.includes(`\${mien?' readonly aria-readonly="true"':''}`), 'déjà réservé : en lecture seule');
-  assert.ok(ob.includes('<p class="ps-etat${mien?\' is-mien\':\'\'}" id="ob-ps-etat" role="status" aria-live="polite">${mien?PS_TXT.mien():\'\'}</p>') && ob.includes('<div class="ps-idees" id="ob-ps-idees"></div>'));
-  assert.ok(ob.includes(`\${mien?\`<i class="ob-field-lock" aria-hidden="true">\${PS_LOCK_SVG}</i>\`:''}`));
-  assert.ok(ob.includes('Il est unique, et ne se changera plus.'));
-  assert.ok(ob.includes("if(!mien&&jeuNom(draft.name))setTimeout(()=>{if(OB_SLIDES[obStep]==='name')psVerif('ob',draft.name);},0);"), 'un pseudo déjà tapé est vérifié en revenant');
+test('pseudo — l’onboarding demande le prénom ; la mini-page du pseudo suit, dans sa DA ; Mon compte le montre, verrouillé', () => {
+  /* Elisa, 31 octobre, 17 h 53 : « non, ici ce sera le prénom, et une fois connecté la première fois, une mini-page pour le pseudo » */
+  const name = cut("}else if(slide==='name'){", "}else if(slide==='pseudo'){");
+  assert.ok(name.includes('<label class="ob-field"><span>Ton prénom</span><input id="ob-prenom" type="text" maxlength="32"') && name.includes('autocomplete="given-name"'));
+  assert.ok(name.includes("obMascotQuestion('Enchantée ! Comment dois-je t’appeler ?')") && name.includes("obSetFooter('Continuer',()=>obGoto('goal'),'Passer pour le moment',()=>obGoto('goal'),"));
+  assert.ok(!name.includes('psVerif') && !name.includes('ob-ps-etat'), 'le prénom ne passe plus par la base');
+  assert.ok(fn('obInput').includes("if(champ==='name'){draft.name=String(val||'').slice(0,32);obNamePreview();}"));
+  const page = cut("}else if(slide==='pseudo'){", "}else if(slide==='goal'){");
+  assert.ok(page.includes('<h1 class="ob-title" id="ob-title">Choisis ton<br> <em>pseudo</em>.</h1>') && page.includes('C’est ton nom dans les salles de défi et au classement.'));
+  assert.ok(page.includes('<input id="ob-pseudo" type="text" maxlength="16"') && page.includes('autocomplete="nickname"') && page.includes('<p class="ps-etat" id="ob-ps-etat" role="status" aria-live="polite"></p>'));
+  assert.ok(page.includes("obSetFooter('C’est mon pseudo',obPseudoSuivant,'Plus tard',obPseudoPlusTard,'',!v);"));
+  assert.ok(page.includes('Il est unique et ne se changera plus. Un surnom suffit : pas besoin de ton vrai nom.'));
+  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','goal','level','rhythm','practice','account','ready','pseudo'];"));
+  const back = app.slice(app.lastIndexOf('function obBack(){'), app.indexOf('\n}', app.lastIndexOf('function obBack(){')));
+  assert.ok(back.includes("if(obStep===0||OB_SLIDES[obStep]==='pseudo')return;"), 'pas de retour depuis la mini-page');
+  /* La fin de l’onboarding : la mini-page, puis l’appli */
+  const fin = app.slice(app.lastIndexOf('function finishOnboard(action){'), app.indexOf('function obTerminer(action){'));
+  assert.ok(fin.includes("if(!psMien()&&typeof psPage==='function'){const s=clsSalle();s.psPage=1;save();psPage({voulu:psAncien(),suite:()=>obTerminer(action)});return;}"));
+  assert.ok(!fin.includes("localStorage.setItem('rq-jeu-nom'"), 'le prénom ne devient plus le pseudo des salles');
   /* Mon compte */
   const ctx = vm.createContext({ PS_LOCK_SVG: '<svg data-k="lock"></svg>', ACCT_CHEV: '<svg data-k="chev"></svg>', esc, mien: '' });
   vm.runInContext(line('jeuNom') + line('jeuInitial') + fn('accPseudoHTML') + 'function psMien(){return mien;}', ctx);
   ctx.mien = 'Léa';
   assert.equal(vm.runInContext("accPseudoHTML('Léa')", ctx), '<div class="acc-pseudo"><span class="acc-pseudo-av" aria-hidden="true">L</span><span class="acc-pseudo-t"><small>Pseudo</small><b>Léa</b><em>Unique dans l’appli · il ne se change pas</em></span><span class="acc-pseudo-lock" aria-hidden="true"><svg data-k="lock"></svg></span></div>');
   ctx.mien = '';
-  assert.ok(vm.runInContext("accPseudoHTML('Léa')", ctx).includes('<em>Il sera réservé dès que tu seras en ligne</em>'));
-  assert.equal(vm.runInContext("accPseudoHTML('')", ctx), '<button type="button" class="acc-pseudo is-vide" onclick="closePlusDetails();psFeuille({})"><span class="acc-pseudo-av" aria-hidden="true">?</span><span class="acc-pseudo-t"><small>Pseudo</small><b>Choisis ton pseudo</b></span><svg data-k="chev"></svg></button>');
-  assert.ok(app.includes('        ${accPseudoHTML(jeuSavedNom())}'), 'le pseudo réservé, celui des salles');
-  for (const gone of ['id="acc-name"', 'class="acc-save"', 'function saveAccountName(', 'function clsRenommer(', 'function jeuNomEdit('])
+  assert.equal(vm.runInContext("accPseudoHTML('')", ctx), '<button type="button" class="acc-pseudo is-vide" onclick="closePlusDetails();psPage({})"><span class="acc-pseudo-av" aria-hidden="true">?</span><span class="acc-pseudo-t"><small>Pseudo</small><b>Choisis ton pseudo</b></span><svg data-k="chev"></svg></button>');
+  assert.ok(app.includes('        ${accPseudoHTML(jeuSavedNom())}'));
+  assert.ok(app.includes('<div class="at"><b>Supprimer mon pseudo</b><small>« ${esc(psMien())} » est libéré, avec tes scores</small></div>'), 'Données et confidentialité');
+  for (const gone of ['id="acc-name"', 'class="acc-save"', 'function saveAccountName(', 'function clsRenommer(', 'function jeuNomEdit(', 'function psFeuille(', 'function psValider('])
     assert.ok(!app.includes(gone), 'retiré : ' + gone);
-  for (const part of ['html.lq .acc-pseudo{display:flex;', 'html.lq .jeu-me-lock{', 'html.lq .jeu-me.is-vide{', 'html.lq #onboarding .ob-field.is-locked input{'])
+  for (const part of ['html.lq .acc-pseudo{display:flex;', 'html.lq .jeu-me-lock{', 'html.lq .jeu-me.is-vide{', '.ps-idee{min-height:40px;',
+    '@keyframes psIdee{from{opacity:0;transform:translateY(12px) scale(.8) rotate(-4deg)}to{opacity:1;transform:none}}', '.is-shake{animation:psShake .42s'])
     assert.ok(s51.includes(part), part);
   assert.ok(!/is-vide\{[^}]*dashed/.test(s51), 'pas de pointillés');
-  /* La progression garde le pseudo réservé, même effacée */
+  assert.ok(css.includes('html #onboarding .ps-etat.is-pris,html #onboarding .ps-etat.is-refuse,html #onboarding .ps-etat.is-invalide{color:#FFE0E2}'), 'lisible sur le violet');
+  /* La progression garde le pseudo réservé */
   const ns = cut('function normalizeState(raw){', 'function normalize(');
   assert.ok(ns.includes("if(typeof salleSrc.pseudo==='string'){const p=salleNom(salleSrc.pseudo);if(p)salle.pseudo=p;}") && ns.includes('if(salleSrc.pseudoVu)salle.pseudoVu=salleBig(salleSrc.pseudoVu);'));
 });
@@ -358,7 +330,7 @@ function perfHTML(salle) {
   return { h: host.innerHTML, ctx };
 }
 
-test('réf. 6 — « Tes dernières parties » : les parties à 2, 3, 4, 5 ressortent, avec les points de chacun', () => {
+test('réf. 6 — « Tes dernières parties » : les parties à 2, 3, 4, 5 (et jusqu’à 8) ressortent, avec les points de chacun', () => {
   const now = Date.now();
   const ppl5 = [{ n: 'Léa', pts: 420, place: 1 }, { n: 'Elisa', pts: 380, place: 2, me: 1 }, { n: 'Tom', pts: 300, place: 3 }, { n: 'Ana <3', pts: 150, place: 4 }, { n: 'Zoé', pts: 0, place: 5 }];
   const salle = { pts: 1200, parties: 3, best: 380, manches: 7, trouves: 6, tms: 6e5, fast: 3e4, amis: 2, pl: [0, 1, 0], lv: { f: [7, 6] },
@@ -370,9 +342,10 @@ test('réf. 6 — « Tes dernières parties » : les parties à 2, 3, 4, 5 resso
   const bars = [...h.matchAll(/<button type="button" class="perf-bar([^"]*)"[\s\S]*?<\/button>/g)];
   assert.equal(bars.length, 3);
   assert.deepEqual(bars.map(b => b[1]), [' is-vs', '', ' is-best is-on is-vs'], 'de la plus ancienne à la plus récente : les parties à plusieurs ressortent');
-  const dots = b => [...b[0].matchAll(/<span class="perf-o" data-c="(\d)" style="--y:(\d+)%;--k:(\d)" aria-hidden="true"><\/span>/g)].map(m => [+m[1], +m[2], +m[3]]);
-  assert.deepEqual(dots(bars[0]), [[vm.runInContext("perfColor('Léa')||1", ctx), Math.round(180 / 420 * 100), 0]], 'à deux : un point, celui de l’autre, à sa hauteur, de sa couleur');
+  const dots = b => [...b[0].matchAll(/<span class="perf-o" data-c="(\d)" style="--y:(\d+)%;--x:(-?\d+)px" aria-hidden="true"><\/span>/g)].map(m => [+m[1], +m[2], +m[3]]);
+  assert.deepEqual(dots(bars[0]), [[vm.runInContext("perfColor('Léa')||1", ctx), Math.round(180 / 420 * 100), -2]], 'à deux : un point, celui de l’autre, à sa hauteur, de sa couleur');
   assert.deepEqual(dots(bars[2]).map(d => d[1]), [100, 71, 36, 4], 'à cinq : les quatre autres (0 point : au pied)');
+  assert.deepEqual(dots(bars[2]).map(d => d[2]), [-2, 2, -5, 5], 'en zigzag autour du milieu de la barre');
   const c5 = dots(bars[2]).map(d => d[0]);
   assert.equal(new Set(c5).size, 4, 'quatre couleurs différentes : on sait quel point est à qui');
   assert.ok(!c5.includes(0), 'le violet reste à « Toi »');
@@ -385,27 +358,38 @@ test('réf. 6 — « Tes dernières parties » : les parties à 2, 3, 4, 5 resso
   const chips = [...cap.matchAll(/<span( class="is-me")?><i class="jeu-av" data-c="(\d)" aria-hidden="true">[^<]*<\/i>([^<]+)<b>(\d+)<\/b><\/span>/g)].map(m => [m[3], +m[4], !!m[1], +m[2]]);
   assert.deepEqual(chips.map(x => x.slice(0, 3)), [['Léa', 420, false], ['Toi', 380, true], ['Tom', 300, false], ['Ana &lt;3', 150, false], ['Zoé', 0, false]], 'les pseudos échappés, « Toi » pour soi');
   assert.equal(chips[1][3], 0, '« Toi » en violet');
-  const ord = ['Léa', 'Tom', 'Ana <3', 'Zoé'], byName = Object.fromEntries(ord.map((n, i) => [n, c5[i]]));
-  assert.deepEqual(chips.filter(x => !x[2]).map(x => x[3]), ord.map(n => byName[n]), 'chaque pastille a la couleur de son point');
+  assert.deepEqual(chips.filter(x => !x[2]).map(x => x[3]), c5, 'chaque pastille a la couleur de son point');
   assert.ok(h.includes('<p class="perf-legend"><span class="perf-legend-o" aria-hidden="true"></span>les points de tes amis<span class="perf-legend-n" aria-hidden="true">3</span>le nombre de joueurs</p>'), 'une légende');
-  const tt = plain(vm.runInContext("perfTeintes([{n:'A'},{n:'A'},{n:'Moi',me:1},{n:'B'},{n:'C'},{n:'D'},{n:'E'}])", ctx));
-  assert.equal(Object.keys(tt).length, 5); assert.equal(new Set(Object.values(tt)).size, 5, 'cinq autres au plus : cinq couleurs');
-  assert.ok(Object.values(tt).every(c => c >= 1 && c <= 5));
   assert.ok(bars[0][0].includes(`data-caph="${escAttr(vm.runInContext('perfCapHTML(state.salle.hist[2])', ctx))}"`), 'toucher une barre écrit sa partie');
   assert.equal(vm.runInContext('perfCapHTML(state.salle.hist[1])', ctx), 'Hier · Seul · Facile · 250 points');
+  /* Elisa, 17 h 53 : « et à 6, 7, 8 joueurs dans l’historique ? » — les 7 autres, 7 couleurs différentes, serrés autour de la barre */
+  const ppl8 = ['Léa', 'Tom', 'Ana', 'Zoé', 'Hugo', 'Inès', 'Paul'].map((n, i) => ({ n, pts: 400 - i * 50, place: i + 2 })).concat([{ n: 'Elisa', pts: 420, place: 1, me: 1 }]);
+  const g8 = perfHTML({ ...salle, hist: [{ at: now, pts: 420, n: 3, ok: 3, ms: 1, niv: 'd', solo: 0, place: 1, players: 8, ppl: ppl8 }] });
+  const b8 = [...g8.h.matchAll(/<button type="button" class="perf-bar([^"]*)"[\s\S]*?<\/button>/g)][0];
+  const d8 = dots(b8);
+  assert.equal(d8.length, 7, 'les 7 autres');
+  assert.equal(new Set(d8.map(d => d[0])).size, 7, '7 couleurs différentes'); assert.ok(d8.every(d => d[0] >= 1 && d[0] <= 7));
+  assert.ok(d8.every(d => Math.abs(d[2]) <= 11), 'dans la largeur de la barre : ' + d8.map(d => d[2]));
+  assert.ok(b8[0].includes('<b class="perf-n" aria-hidden="true">8</b>'));
+  const cap8 = g8.h.match(/<p class="perf-cap" aria-live="polite">([\s\S]*?)<\/p>/)[1];
+  assert.ok(cap8.startsWith('<span class="perf-cap-t">Aujourd’hui · à 8 · Difficile</span>') && (cap8.match(/<i class="jeu-av"/g) || []).length === 8, 'les 8, joueur par joueur');
+  /* Plus de joueurs que de pseudos gardés : le nombre dit vrai */
+  const g9 = perfHTML({ ...salle, hist: [{ at: now, pts: 420, n: 3, ok: 3, ms: 1, niv: 'd', solo: 0, place: 1, players: 9, ppl: ppl8 }] });
+  assert.ok(g9.h.includes('<b class="perf-n" aria-hidden="true">9</b>'));
   /* Que des parties seul : rien de plus */
   const solo = perfHTML({ ...salle, hist: [salle.hist[1]] }).h;
   assert.ok(!solo.includes('is-vs') && !solo.includes('perf-legend') && !solo.includes('perf-o'));
-  for (const part of ['html.lq .perf-bar.is-vs i{', 'html.lq .perf-o{position:absolute;left:50%;bottom:var(--y);', 'html.lq .perf-card.is-in .perf-o{opacity:1;',
+  for (const part of ['html.lq .perf-bar.is-vs i{', 'html.lq .perf-o{position:absolute;left:50%;bottom:var(--y);', 'html.lq .perf-card.is-in .perf-o{opacity:1;transform:translateX(var(--x,0px)) scale(1)}',
     'html.lq .perf-n{position:absolute;', 'html.lq .perf-cap-ppl>span.is-me{', 'html.lq .perf-legend{'])
     assert.ok(s51.includes(part), part);
+  assert.ok(css.includes('html.lq .perf-o[data-c="7"],html.lq .perf-cap-ppl .jeu-av[data-c="7"]{'), 'deux couleurs de plus');
   /* Cinq joueurs par salle au plus */
   assert.ok(app.includes('const JEU_MAX=5;'));
   assert.ok(app.includes('max:Math.max(1,Math.min(JEU_MAX,+m.max||JEU_MAX))'), 'une ancienne salle à 6 est ramenée à 5');
 });
 
-test('Supabase — le pseudo unique (jeu_pseudo) et le nouveau barème', () => {
-  assert.ok(files.includes('20261031160846_pseudos_uniques.sql'), 'la migration appliquée le 31 octobre');
+test('Supabase — le pseudo unique (jeu_pseudo), sans ménage : il reste à la personne tant qu’elle ne le supprime pas', () => {
+  assert.ok(files.includes('20261031160846_pseudos_uniques.sql') && files.includes('20261031170407_pseudo_sans_menage.sql'), 'les migrations appliquées le 31 octobre');
   const m = fs.readFileSync(new URL('20261031160846_pseudos_uniques.sql', dir), 'utf8');
   assert.match(m, /create table public\.jeu_pseudo \(\n  cle text primary key,[^\n]*\n  pseudo text not null,\n  norme text not null unique,/);
   assert.match(m, /alter table public\.jeu_pseudo enable row level security;\nrevoke all on table public\.jeu_pseudo from anon, authenticated;/);
@@ -413,19 +397,20 @@ test('Supabase — le pseudo unique (jeu_pseudo) et le nouveau barème', () => {
   assert.match(m, /translate\(lower\(btrim\(coalesce\(p, ''\)\)\), 'àâäáãåāçćčéèêëēęíìîïīñńóòôöõøōúùûüūýÿœæß', 'aaaaaaaccceeeeeeiiiiinnooooooouuuuuyyoas'\)/);
   assert.equal(Array.from('àâäáãåāçćčéèêëēęíìîïīñńóòôöõøōúùûüūýÿœæß').length, Array.from('aaaaaaaccceeeeeeiiiiinnooooooouuuuuyyoas').length, 'autant de lettres de chaque côté');
   assert.match(m, /if v_deja is not null then\n    update public\.jeu_pseudo set vu = now\(\) where cle = v_cle and vu < now\(\) - interval '1 hour';\n    return jsonb_build_object\('ok', true, 'pseudo', v_deja\);/, 'un appareil, un pseudo : il ne se change plus');
-  assert.match(m, /v_pts < v_ok \* 100 or v_pts > v_ok \* \(case when v_solo then 200 else 250 end\)/, '200 au plus seul, 250 entre amis');
-  assert.match(m, /raise exception 'pseudo déjà pris' using errcode = '23505', hint = 'pseudo';/);
   for (const f of ['jeu_pseudo_libre(text, text)', 'jeu_pseudo_prendre(text, text)'])
     assert.ok(m.includes(`grant execute on function public.${f} to anon, authenticated;`), f);
-  for (const f of ['jeu_pseudo_norme(text)', 'jeu_pseudo_idees(text)', 'jeu_pseudo_menage()'])
+  for (const f of ['jeu_pseudo_norme(text)', 'jeu_pseudo_idees(text)'])
     assert.ok(m.includes(`revoke all on function public.${f} from public, anon, authenticated;`) && !m.includes(`grant execute on function public.${f}`), f);
-  assert.match(m, /delete from public\.jeu_pseudo where vu < now\(\) - interval '12 months';/);
-  assert.ok(m.includes("select cron.schedule('jeu-pseudo-menage', '41 3 * * *', 'select public.jeu_pseudo_menage()');"));
-  /* Les règles du site disent la même chose */
+  /* 17 h 53 : « il n’y aura pas de suppression de pseudo si la personne a encore son compte » */
+  const s = fs.readFileSync(new URL('20261031170407_pseudo_sans_menage.sql', dir), 'utf8');
+  assert.ok(s.includes("select cron.unschedule('jeu-pseudo-menage');\ndrop function if exists public.jeu_pseudo_menage();"), 'plus de ménage des pseudos');
+  assert.match(s, /create or replace function public\.jeu_pseudo_liberer\(p_cle text\)[\s\S]*delete from public\.jeu_joueur where cle = v_cle;\n  delete from public\.jeu_pseudo where cle = v_cle;/);
+  assert.ok(s.includes('grant execute on function public.jeu_pseudo_liberer(text) to anon, authenticated;'));
+  /* Les règles du site et de l’appli disent la même chose */
   const conf = fs.readFileSync(new URL('../decouvrir/confidentialite.html', import.meta.url), 'utf8');
-  assert.ok(conf.includes('Ton pseudo.'), 'politique de confidentialité');
+  assert.ok(conf.includes('Il ne se change plus ensuite, et il reste à toi tant que tu ne le supprimes pas') && !conf.includes('12&nbsp;mois sans ouvrir'), 'politique de confidentialité');
   const ios = fs.readFileSync(new URL('../IOS.md', import.meta.url), 'utf8');
-  assert.ok(ios.includes('jeu-pseudo-menage') && ios.includes("delete from jeu_pseudo where pseudo = '"), 'IOS.md : la modération');
-  for (const t of ['est unique : il est réservé sur le serveur de l’appli avec un identifiant tiré au hasard (pas ton nom ni ton e-mail), et libéré après 12&nbsp;mois sans ouvrir l’appli.'])
-    assert.equal(app.split(t).length - 1, 2, 'les deux textes « Confidentialité » de l’appli');
+  assert.ok(ios.includes('n’est jamais\n  libéré tout seul (pas de ménage)') && ios.includes("delete from jeu_pseudo where pseudo = '") && !ios.includes('jeu-pseudo-menage'), 'IOS.md');
+  assert.equal(app.split('et reste à toi tant que tu ne le supprimes pas (Mon compte, Données et confidentialité). Ton prénom, lui, reste sur cet appareil.').length - 1, 2, 'les deux textes « Confidentialité » de l’appli');
+  assert.ok(!app.includes('libéré après 12&nbsp;mois'));
 });
