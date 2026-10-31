@@ -120,8 +120,8 @@ test('réf 4 — « Tes performances » : les chiffres, la réussite, les temps,
   assert.match(h, /class="perf-kpi is-sun" style="--i:0"><b data-count-to="2316"[^>]*>2316<\/b><small>points<\/small>/, 'les points, en jaune soleil, qui montent');
   assert.match(h, /data-count-to="8"[^>]*>8<\/b><small>parties<\/small>/);
   assert.match(h, /data-count-to="512"[^>]*>512<\/b><small>record<\/small>/);
-  assert.match(h, /data-count-to="78"[^>]*>78\u202f%<\/b>/, 'réussite : 14 manches trouvées sur 18');
-  assert.ok(h.includes('<small>14 manches trouvées sur 18</small>'));
+  assert.match(h, /data-count-to="78"[^>]*>78\u202f%<\/b>/, 'réussite : 14 manches réussies sur 18');
+  assert.ok(h.includes('<small>14 manches réussies sur 18</small>'), '18 h 28 : « réussies », pas « trouvées »');
   assert.ok(h.includes('<small>Temps moyen</small><b>01:23</b>') && h.includes('<small>Le plus rapide</small><b>00:38</b>'));
   const bars = h.match(/class="perf-bar[^"]*"/g);
   assert.equal(bars.length, 5, 'une barre par partie');
@@ -133,7 +133,7 @@ test('réf 4 — « Tes performances » : les chiffres, la réussite, les temps,
   assert.ok(h.includes('<b>2</b><small>1re place</small>') && h.includes('Sur 5 parties entre amis.'), 'les podiums entre amis');
   const rows = h.match(/<li style="--i:\d"><span class="perf-rk/g);
   assert.equal(rows.length, 4, 'les quatre dernières parties');
-  assert.ok(h.includes('<span class="perf-rk is-medal"><svg data-k="medal1"></svg></span><span class="perf-g"><b>Entre amis · Moyen · 3 joueurs</b><small>Aujourd’hui · 3/3 trouvés · 03:21</small></span><em>+412</em>'), 'la médaille autocollante, et le nombre de joueurs quand les pseudos ne sont pas connus');
+  assert.ok(h.includes('<span class="perf-rk is-medal"><svg data-k="medal1"></svg></span><span class="perf-g"><b>Entre amis · Moyen · 3 joueurs</b><small>Aujourd’hui · 3/3 réussies · 03:21</small></span><em>+412</em>'), 'la médaille autocollante, et le nombre de joueurs quand les pseudos ne sont pas connus');
   assert.ok(h.includes('<span class="perf-rk">0/1</span>') && h.includes('<span class="perf-rk">✓</span>'), 'seul : coché, ou trouvés sur joués');
   /* Avant la première partie : le même tableau, vide, qui dit ce qui s’y affichera */
   const e = perfCtx({ pts: 0, parties: 0, best: 0 });
@@ -181,7 +181,7 @@ test('réf 5 — le prénom dans l’onboarding (17 h 53), le pseudo juste aprè
   assert.ok(ob.includes('<span>Ton prénom</span>') && ob.includes('autocomplete="given-name"'), 'le prénom, pour saluer');
   assert.ok(ob.includes('Ton pseudo, celui que tes amis verront, se choisit à la fin.'), 'on dit où va le pseudo');
   const page = cut("}else if(slide==='pseudo'){", "}else if(slide==='goal'){");
-  assert.ok(page.includes('maxlength="16"') && page.includes('required aria-required="true"') && page.includes('Un surnom suffit : pas besoin de ton vrai nom.'));
+  assert.ok(page.includes('maxlength="15"') && page.includes('required aria-required="true"') && page.includes('<b class="ob-at" aria-hidden="true">@</b>'), 'un identifiant : @ puis 15 caractères');
   assert.ok(!fnLast('finishOnboard').includes("localStorage.setItem('rq-jeu-nom'"), 'le prénom ne devient plus le pseudo des salles');
   assert.ok(fnLast('finishOnboard').includes('psPage({voulu:psAncien(),suite:()=>obTerminer(action)})'), 'la mini-page du pseudo, puis l’appli');
   assert.ok(!app.includes('function saveAccountName(') && !app.includes('id="acc-name"'), 'Mon compte ne le change plus');

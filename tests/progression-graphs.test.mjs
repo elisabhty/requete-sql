@@ -78,7 +78,7 @@ assert.match(card, /16<small>%<\/small>/);
 assert.match(card, /aria-label="16 % du parcours validé : 11 leçons et 2 défis sur 82 activités"/);
 assert.match(card, /<b>11<em>\/58<\/em>/);
 /* La tuile Défis (Elisa, 31 octobre, 18 h 02) : 1 manche trouvée sur 2, et les points */
-assert.match(card, /<div class="pgr-stat is-d"><small>Défis<\/small><b>1<em>\/2<\/em><\/b><i class="pgr-meter" aria-hidden="true"><b style="width:50%"><\/b><\/i><p>manches trouvées<b>1\u202f230 pts<\/b><\/p><\/div>/);
+assert.match(card, /<div class="pgr-stat is-d"><small>Défis<\/small><b>1<em>\/2<\/em><\/b><i class="pgr-meter" aria-hidden="true"><b style="width:50%"><\/b><\/i><p>manches réussies<b>1\u202f230 pts<\/b><\/p><\/div>/);
 assert.match(card, /Record 5 j/);
 assert.equal(card.split('<li class="is-').length - 1, 14, '14 barres');
 assert.match(card, /Cette semaine : <b>7 activités<\/b>, 7 de plus que la semaine d’avant/);
