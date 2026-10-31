@@ -6638,7 +6638,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=33">
+<link rel="stylesheet" href="ludique.css?v=34">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -10769,7 +10769,16 @@ function renderConsoleSchemaSummary(){
   const st=consoleSchemaStats();
   const bits=[plur(st.tables,'table')];
   if(st.rows!=null&&st.tables)bits.push(plur(st.rows,'ligne'));
-  if(meta)meta.textContent=st.tables?bits.join(' · '):'Aucune table';
+  const ico=summary.querySelector('.console-schema-icon');
+  if(ico&&!ico.dataset.stk){ ico.innerHTML=lqStkSvg('db'); ico.dataset.stk='1'; }
+  if(meta){
+    const html=st.tables?bits.map(b=>`<span>${b}</span>`).join(''):'Aucune table';
+    if(meta.innerHTML!==html){
+      const shown=meta.dataset.shown===activeDbId;
+      meta.innerHTML=html; meta.dataset.shown=activeDbId;
+      if(shown&&!prefersReduceMotion()){ meta.classList.remove('is-bump'); void meta.offsetWidth; meta.classList.add('is-bump'); }
+    }
+  }
   if(action)action.textContent=consoleSchemaOpen?'Masquer':'Voir';
   summary.classList.toggle('open',consoleSchemaOpen);
   summary.setAttribute('aria-expanded',consoleSchemaOpen?'true':'false');
@@ -11108,6 +11117,23 @@ function listTables(database){
 function tableRowCount(database,name){
   try{const r=database.exec('SELECT COUNT(*) FROM '+quoteIdent(name));return r[0]?r[0].values[0][0]:0;}catch(e){return '?';}
 }
+/* Ce que le schéma montrait au dernier affichage (base, version du schéma, colonnes et lignes de chaque table) : à l’affichage suivant,
+   une table qui apparaît, des colonnes qui changent ou des lignes en plus se voient d’un coup d’œil (Elisa, 31 octobre, 1 h 07 :
+   « vérifier qu’il est mis à jour en direct à chaque modification du schéma »). Les colonnes ne sont relues que si le schéma a changé. */
+let dbWsSnap=null;
+function dbTableSig(database,name){
+  try{ const r=database.exec(`PRAGMA table_info(${quoteIdent(name)})`); return r[0]?r[0].values.map(v=>v[1]+':'+v[2]+':'+v[5]).join(','):''; }catch(e){ return ''; }
+}
+function dbWsDiff(database,tables){
+  const prev=dbWsSnap&&dbWsSnap.id===activeDbId?dbWsSnap:null, v=schemaVersion(database), snap={id:activeDbId,v,t:{}}, out={};
+  tables.forEach(t=>{
+    const was=prev&&prev.t[t], sig=was&&prev.v===v?was.sig:dbTableSig(database,t), n=tableRowCount(database,t);
+    snap.t[t]={sig,n};
+    out[t]=!prev?'':!was?'is-new':was.sig!==sig?'is-changed':was.n!==n?'is-more':'';
+  });
+  dbWsSnap=snap;
+  return out;
+}
 function renderDbWorkspace(){
   const bar=document.getElementById('db-bar');
   const host=document.getElementById('db-tables');
@@ -11123,6 +11149,7 @@ function renderDbWorkspace(){
     return;
   }
   const tables=listTables(database);
+  const fresh=dbWsDiff(database,tables);
   if(openTableSchema && !tables.includes(openTableSchema)) openTableSchema=null;
   if(lab) lab.textContent=`Dans « ${activeName} » · ${tables.length} table${tables.length>1?'s':''}`;
   if(!tables.length){
@@ -11156,7 +11183,7 @@ function renderDbWorkspace(){
       <div class="db-trow ${open?'open':''}">
         <button type="button" class="db-tmain" onclick="toggleTableSchema(decodeURIComponent('${enc}'))" aria-expanded="${open?'true':'false'}" title="${open?'Masquer les colonnes':'Voir les colonnes, PK et FK'}">
           <span class="db-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-          <span class="tk">table</span>
+          <span class="tk">table</span><span class="db-tico" aria-hidden="true">${lqStkSvg('table')}</span>
           <span class="db-tname"><span class="tn">${esc(t)}</span><span class="tc">${typeof n==='number'?plur(n,'ligne'):`${n}\u00a0lig.`}</span></span>
           <span class="db-thint">${open?'Masquer':'Colonnes ›'}</span>
         </button>
@@ -11170,6 +11197,8 @@ function renderDbWorkspace(){
       ${colsHtml}
     </div>`;
   }).join('');
+  /* Ce qui vient de changer s’anime une fois (ludique.css, 41) : rien en mouvement réduit */
+  if(!prefersReduceMotion())tables.forEach(t=>{ if(!fresh[t])return; const el=host.querySelector(`.db-tblock[data-table="${CSS.escape(t)}"]`); if(el)el.classList.add(fresh[t]); });
 }
 function toggleTableSchema(name){
   openTableSchema=openTableSchema===name?null:name;
@@ -11975,16 +12004,22 @@ function runConsole(){
     }else show();
   };
   const finish=()=>{
+    /* Le schéma suit chaque requête, même celle qui échoue en route : dans « CREATE TABLE … ; INSERT … » où l’INSERT échoue, la table
+       est déjà créée (SQLite garde les instructions passées). Avant, seule une requête réussie mettait le schéma à jour, et seule une
+       requête qui ne commençait pas par SELECT sauvegardait le projet. Maintenant : dès que le schéma ou les lignes ont changé. */
+    const database=activeDb(), v0=schemaVersion(database), c0=dbChanges(database);
+    const touched=()=>!!database&&(schemaVersion(database)!==v0||dbChanges(database)!==c0);
     try{
-      const{res,ms}=execQuery(sql,activeDb());
+      const{res,ms}=execQuery(sql,database);
       const n=(res&&res[0])?res[0].values.length:null;
       paint(`<div class="console-out-ready result-live">${renderTable(res,ms)}</div>`);
       recordConsoleRun(sql,true,{n:n==null?null:fmtLignes(n),ms});
-      if(activeDbId!=='cours'&&!/^\s*select\b/i.test(sql)) persistCustomDbs();
+      if(activeDbId!=='cours'&&touched()) persistCustomDbs();
       renderDbWorkspace();
     }catch(e){
       paint(`<div class="console-out-ready result-live">${errBox(e.message)}</div>`);
       recordConsoleRun(sql,false,{err:String(e.message||'Erreur').slice(0,80)});
+      if(touched()){ if(activeDbId!=='cours') persistCustomDbs(); renderDbWorkspace(); }
     }
   };
   if(prefersReduceMotion())finish();
@@ -12112,6 +12147,11 @@ const KEYS=[['SELECT',1],['FROM',1],['WHERE',1],['*',0],["'",0],[',',0],['=',0],
 /* Numéro de version du schéma : SQLite l'augmente à chaque CREATE, ALTER ou DROP. */
 function schemaVersion(database){
   try{const r=database.exec('PRAGMA schema_version');return r[0]?r[0].values[0][0]:0;}catch(e){return 0;}
+}
+/* Lignes ajoutées, modifiées ou supprimées depuis l’ouverture de la base (SQLite les compte toutes) : avec la version du schéma, dit
+   si une requête a changé quelque chose, même quand elle échoue en route. */
+function dbChanges(database){
+  try{const r=database.exec('SELECT total_changes()');return r[0]?r[0].values[0][0]:0;}catch(e){return 0;}
 }
 function kbarSchemaCatalog(){
   const database=activeDb()||db;
@@ -12634,7 +12674,7 @@ function renderSchemaSheet(){
     const n=database?tableRowCount(database,name):(meta?meta.n:'?');
     const cols=introspectTable(database,name,tables);
     return `<div class="sch-table">
-      <div class="sch-head">${schemaTableIcon()}<b>${esc(name)}</b><small>${n} ligne${n>1?'s':''}</small></div>
+      <div class="sch-head"><span class="sch-stk" aria-hidden="true">${lqStkSvg('table')}</span>${schemaTableIcon()}<b>${esc(name)}</b><small>${n} ligne${n>1?'s':''}</small></div>
       ${cols.map(c=>`<div class="sch-col">
         <span class="cn">${esc(c.c)}</span>
         ${c.b==='pk'?'<span class="badge pk">PK</span>':''}
@@ -12647,6 +12687,9 @@ function renderSchemaSheet(){
 }
 function openSchemaSheet(){
   renderSchemaSheet();
+  /* L’en-tête violet des feuilles (Notes, Ajuster mon rythme), l’autocollant de la base : la DA de la vitrine (ludique.css, 41) */
+  const n=courseTableNames().length;
+  lqVizCap('schema-sheet','db',`${plur(n,'table')}, leurs colonnes et leurs clés.`);
   document.getElementById('schema-back').classList.add('on');
   document.getElementById('schema-sheet').classList.add('on');
   showKbar(false);
@@ -14800,7 +14843,7 @@ function openLessonVideo(fin){
       </div>`:''}
       <div class="lv-end" hidden>
         <div class="lv-end-card" role="group" aria-labelledby="lv-end-h">
-          <div class="lv-end-top"><span class="lv-end-cat">${mascotMedalHtml()}${l.leconSeule?'<span class="lv-end-bravo" aria-hidden="true">Bravo&nbsp;!</span>':''}</span><h2 id="lv-end-h">${l.leconSeule?'Leçon terminée&nbsp;!':'À toi de jouer&nbsp;!'}</h2></div>
+          <div class="lv-end-top"><i class="lv-end-sp s1" aria-hidden="true"></i><i class="lv-end-sp s2" aria-hidden="true"></i><i class="lv-end-sp s3" aria-hidden="true"></i>${l.leconSeule?'<span class="lv-end-stamp" aria-hidden="true">✓ Validée</span>':''}<span class="lv-end-cat">${mascotMedalHtml()}${l.leconSeule?'<span class="lv-end-bravo" aria-hidden="true">Bravo&nbsp;!</span>':''}</span><h2 id="lv-end-h">${l.leconSeule?'Leçon terminée&nbsp;!':'À toi de jouer&nbsp;!'}</h2>${l.leconSeule?'<span class="lv-end-pips" aria-hidden="true" hidden></span>':''}</div>
           ${l.leconSeule?'<p class="lv-end-score" hidden></p>':''}
           <button type="button" class="lq-btn lv-go">${l.leconSeule?'Terminer la leçon':'Passer à l’exercice'}</button>
           <button type="button" class="lq-btn-2 lv-again">${LV_ICO.replay}<span>Revoir la vidéo</span></button>
@@ -15118,6 +15161,14 @@ function lvEnded(){
       sc.hidden=false;
     }
     if(LV.retry)LV.rates=lvPkRates(id,n);
+    /* Une pastille par moment « À toi », dans l’en-tête : réussi (✓, menthe), raté (✗, corail), pas fait. Réussi veut dire ce que la
+       règle de la leçon compte : du premier coup (seuil), ou sans erreur (règle des erreurs). Elles arrivent une à une (ludique.css, 40). */
+    const pips=root.querySelector('.lv-end-pips');
+    if(pips){
+      pips.innerHTML=Array.from({length:n},(_,i)=>{ const a=lvPkGet(id,i), k=a?((max!=null?lvPkErr(a)===0:!!a.first)?'ok':'ko'):'no';
+        return `<i class="lv-pip is-${k}" style="--i:${i}">${LV_PIP[k]||''}</i>`; }).join('');
+      pips.hidden=!n;
+    }
     const nr=LV.rates.length;
     root.querySelector('#lv-end-h').innerHTML=LV.retry?'Encore un effort&nbsp;!':'Leçon terminée&nbsp;!';
     root.querySelector('.lv-go').textContent=LV.retry?(nr>1?`Rejouer les ${nr} moments ratés`:nr?'Rejouer le moment raté':'Recommencer la vidéo'):'Terminer la leçon';
@@ -15184,6 +15235,11 @@ function lvFinLeave(tab){
   closeLessonVideo(true);
   exitLessonToTab(tab);
 }
+/* Les pastilles de l’écran de fin : une coche qui se dessine, une croix (pathLength=1 : le trait se trace en CSS). */
+const LV_PIP={
+  ok:'<svg viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="M6.2 12.6l3.9 3.9 7.7-8.2" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  ko:'<svg viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="M8 8l8 8M16 8l-8 8" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg>'
+};
 /* L’écran de fin : la fête (win) ou « Encore un effort ! ». */
 function lvEndShow(root,id,win){
   root.classList.toggle('is-win',win);
@@ -22276,10 +22332,23 @@ function setLateRecoveryCollapsed(collapsed,source){
   details.setAttribute('aria-hidden',collapsed?'true':'false');
   head.setAttribute('aria-expanded',collapsed?'false':'true');
   card.classList.toggle('is-collapsed',!!collapsed);
+  /* Déplié : les activités et les choix arrivent de nouveau l’un après l’autre */
+  card.classList.remove('is-reveal');
+  if(!collapsed&&!prefersReduceMotion()){ void card.offsetWidth; card.classList.add('is-reveal'); }
   if(navigator.vibrate)navigator.vibrate(4);
 }
 function toggleLateRecovery(button){
   setLateRecoveryCollapsed(!button.closest('.late-recovery')?.classList.contains('is-collapsed'),button);
+}
+/* Un choix de rattrapage touché (Elisa, 31 octobre, 1 h 07 : « micro-interaction ») : il s’enfonce, son icône sautille, des étincelles
+   en partent, puis le planning se met à jour. Un seul geste compte (double appui), et rien n’attend en mouvement réduit. */
+let lrSeenKey='';
+function lrPick(btn,fn){
+  if(!btn||btn.dataset.picked)return;
+  if(prefersReduceMotion()){ fn(); return; }
+  btn.dataset.picked='1'; btn.classList.add('is-picked'); buzz('success');
+  lqBurst(btn,btn.querySelector('.lr-option-icon'));
+  setTimeout(fn,320);
 }
 /* Le choix conseillé dépend du retard : peu → aujourd’hui, quelques-unes →
    réparties, beaucoup → tout le planning décalé. */
@@ -22302,12 +22371,14 @@ function lateRecoveryHTML(){
   const order=[rec,...['shift','spread','today'].filter(k=>k!==rec)].filter(k=>options[k]);
   const optionsHTML=order.map((k,i)=>{
     const o=options[k],primary=i===0;
-    return `<button type="button" class="lr-option${primary?' is-primary':''}" data-option="${k}" onclick="${o.action}">
+    return `<button type="button" class="lr-option${primary?' is-primary':''}" data-option="${k}" onclick="lrPick(this,()=>{${o.action}})">
           <span class="lr-option-icon" aria-hidden="true">${o.icon}</span>
           <span class="lr-option-copy"><span class="lr-option-title"><b>${o.title}</b>${primary?'<em>Conseillé</em>':''}</span><small>${esc(o.copy)}</small></span>
         </button>`;
   }).join('');
-  return `<section class="late-recovery${lateRecoveryCollapsed?' is-collapsed':''}" id="late-recovery" aria-labelledby="late-recovery-title">
+  /* La carte s’anime quand elle apparaît (de nouvelles activités à replacer), pas à chaque mise à jour du planning (ludique.css, 14 bis). */
+  const key=d.ids.map(String).join('|'),fresh=key!==lrSeenKey; lrSeenKey=key;
+  return `<section class="late-recovery${lateRecoveryCollapsed?' is-collapsed':''}${fresh?' is-fresh':''}" id="late-recovery" aria-labelledby="late-recovery-title">
     <h2 class="lr-heading"><button type="button" class="lr-head" aria-expanded="${lateRecoveryCollapsed?'false':'true'}" aria-controls="late-recovery-details" onclick="toggleLateRecovery(this)">
       <span class="lr-icon" aria-hidden="true">${LATE_BANNER_ICO}</span>
       <span class="lr-copy"><span class="lr-title" id="late-recovery-title">${plur(d.count,'activité')} à replacer</span><span class="lr-meta">${passed}</span></span>
@@ -26080,7 +26151,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-31-chargement-v2199';
+  const SW_CACHE='requete-2026-10-31-fin-schema-v2200';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
