@@ -61,30 +61,36 @@ function silences(L){
   return out;
 }
 /* Bords des phrases d’un chapitre. Le minutage d’ElevenLabs donne à la ponctuation finale le silence qui suit : une phrase
-   « finit » quand la suivante commence. La parole s’arrête donc au début de ce silence, et la phrase suivante part à sa fin :
-   chaque coupe tombe dans le silence, sans mordre sur la voisine, et sans garder la pause entière (0,12 s après la voix). */
+   « finit » quand la suivante commence. La parole s’arrête donc dans ce silence, et la phrase suivante part à sa fin : chaque
+   coupe tombe dans le silence, sans mordre sur la voisine, et sans garder toute la pause. La fin d’un mot (un « s », un « e »
+   qui s’éteint) reste sous le seuil des silences : elle se cherche au quart de ce seuil, et la phrase garde encore 0,15 s
+   après elle (Elisa, 31 octobre, 13 h 20 : « parfois à la fin des phrases le dernier mot est coupé »). */
 function bounds(L, spans, dur){
-  const S = silences(L);
-  const near = (t, lo, hi, end) => S.filter(x => x[end] >= t + lo && x[end] <= t + hi).sort((x, y) => Math.abs(x[end] - t) - Math.abs(y[end] - t))[0];
-  const out = spans.map(([s, e], k) => {
-    const pre = near(s, -0.3, 0.15, 1), post = near(e, -0.15, 0.3, 1);
+  const S = silences(L), low = L.thr * 0.25, n = L.rms.length;
+  const still = (i, k) => { for (let j = i; j < i + k; j++) if (j >= 0 && j < n && L.rms[j] >= low) return false; return true; };
+  /* Dernière trame de voix au début de la pause [s0, s1] (au quart du seuil), et première trame de voix à sa fin. */
+  const tail = (s0, s1) => { let last = Math.round(s0 * 100) - 1; for (let i = last + 1; i < Math.round(s1 * 100); i++) { if (L.rms[i] >= low) last = i; else if (still(i, 6)) break; } return (last + 1) / 100; };
+  const head = (s0, s1) => { let first = Math.round(s1 * 100); for (let i = first - 1; i >= Math.round(s0 * 100); i--) { if (L.rms[i] >= low) first = i; else if (still(i - 5, 6)) break; } return first / 100; };
+  /* La pause entre deux phrases : le silence qui finit là où la phrase suivante commence (le minutage situe bien les débuts ;
+     la fin d’une phrase, lui, la place parfois avant sa dernière syllabe, et un « t » ou un « p » y fait un court silence). */
+  const pause = t => S.filter(x => x[1] >= t - 0.3 && x[1] <= t + 0.15).sort((x, y) => Math.abs(x[1] - t) - Math.abs(y[1] - t))[0];
+  const cuts = spans.map(([s], k) => k ? pause(s) : null);
+  return spans.map(([s, e], k) => {
+    const pre = k ? cuts[k] : pause(s), post = k + 1 < spans.length ? cuts[k + 1] : S.filter(x => x[0] >= e - 0.3 && x[1] >= dur - 0.05)[0];
     /* Sans silence devant (la voix enchaîne dès le début du fichier, dans la continuité du chapitre d’avant) : depuis le début. */
-    const a = pre ? pre[1] - 0.05 : k ? s - 0.05 : 0;
-    const b = post && post[0] > s + 0.2 ? Math.min(post[0] + 0.12, post[1] - 0.02) : e + 0.05;
-    return [a, b];
+    let a = pre ? head(pre[0], pre[1]) - 0.06 : k ? (spans[k - 1][1] + s) / 2 : 0;
+    let b = post ? Math.min(tail(post[0], post[1]) + 0.15, post[1] - 0.02) : k + 1 < spans.length ? (e + spans[k + 1][0]) / 2 : dur;
+    if (pre && k) a = Math.max(a, tail(pre[0], pre[1]) + 0.16);   // jamais avant la fin de la phrase d’avant
+    return [r3(Math.max(0, a)), r3(Math.min(dur, Math.max(b, a + 0.3)))];
   });
-  out.forEach((c, k) => {
-    c[0] = Math.max(0, c[0], k ? out[k - 1][1] + 0.01 : 0);
-    c[1] = Math.min(dur, c[1], k + 1 < out.length ? Math.max(c[0] + 0.3, spans[k + 1][0] - 0.03) : dur);
-  });
-  return out.map(([a, b]) => [r3(a), r3(b)]);
 }
-/* Début et fin de la parole d’un fichier court (consigne) : premier et dernier passage au-dessus du seuil. */
+/* Début et fin de la parole d’un fichier court (consigne) : premier et dernier passage au-dessus du quart du seuil. */
 function speech(L, dur){
+  const low = L.thr * 0.25;
   let i = 0, j = L.rms.length - 1;
-  while (i < j && L.rms[i] < L.thr) i++;
-  while (j > i && L.rms[j] < L.thr) j--;
-  return [r3(Math.max(0, i / 100 - 0.05)), r3(Math.min(dur, (j + 1) / 100 + 0.08))];
+  while (i < j && L.rms[i] < low) i++;
+  while (j > i && L.rms[j] < low) j--;
+  return [r3(Math.max(0, i / 100 - 0.06)), r3(Math.min(dur, (j + 1) / 100 + 0.15))];
 }
 /* Minutage d’ElevenLabs : caractères et temps (timestamps, sinon alignement forcé). */
 function timing(rec){

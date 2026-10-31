@@ -193,8 +193,8 @@ function voiceHold(a, b, v, readMiss){
 }
 /* Ce que le lecteur de l’app reçoit (window.__ready.voice) : chaque phrase {src, o : début dans le fichier, d : durée}, avec t
    (son début dans la vidéo) pour celles de la timeline ; les consignes des moments (picks), leurs indices (tips), les messages à
-   toucher (opens), « Bien vu ! » (ok), « Bien rattrapé ! » (late) et « Pas tout à fait… » (ko) ; les fichiers à précharger ; les légendes
-   sans phrase (missing). */
+   toucher (opens), « Bien vu ! » (ok), « Bien rattrapé ! » (late), « Pas tout à fait… » (ko), l’écran de fin (end : leçon validée ou
+   « Encore un effort ! ») ; les fichiers à précharger ; les légendes sans phrase (missing). */
 function voiceOut(captions, nPicks, nOpens, end){
   if (!VCFG) return null;
   const src = f => new URL((VCFG.dir || '') + f + '.mp3', location.href).href;
@@ -205,6 +205,7 @@ function voiceOut(captions, nPicks, nOpens, end){
   const say = VCFG.say || {}, s = k => clip(say[k]), n = (k, m) => Array.from({length: m}, (_, i) => s(k + (i + 1)));
   clips.sort((x, y) => x.t - y.t);
   return {clips, picks: n('at', nPicks), tips: n('indice', nPicks), opens: n('touche', nOpens), ok: s('bienvu'), late: s('rattrape'), ko: s('presque'),
+    end: {win: s('finbravo'), retry: s('fineffort')},
     files: [...new Set(clips.map(c => c.src).concat(Object.values(say).map(v => src(v[0]))))], missing: VOICE_MISSING};
 }
 /* L’intro : la voix part à VOICE_INTRO s ; l’image attend qu’elle finisse avant que tout s’en aille (0,6 s avant le chapitre 1). */
