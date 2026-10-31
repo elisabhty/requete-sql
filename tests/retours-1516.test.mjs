@@ -113,7 +113,7 @@ test('réf. 9 — une feuille se ferme une fois l’action faite, et reste au-de
   assert.ok(cut('async function exportProgress(){', 'function importProgress(){').includes('closePlusDetails();'), 'Exporter');
   /* 16 h 49 : le pseudo ne se change plus — plus de champ ni de bouton « Enregistrer » sous le clavier dans Mon compte */
   const acc = cut('function accPseudoHTML(', 'function replayOnboarding(');
-  assert.ok(!app.includes('class="acc-save"') && acc.includes('<span class="acc-pseudo-lock" aria-hidden="true">${PS_LOCK_SVG}</span>'), 'le pseudo, verrouillé');
+  assert.ok(!app.includes('class="acc-save"') && acc.includes('<span class="acc-pseudo-lock" aria-label="Pseudo verrouillé" role="img">${PS_LOCK_SVG}</span>'), 'le pseudo, verrouillé');
   assert.ok(app.includes("document.documentElement.style.setProperty('--kb',(kb>60?kb:0)+'px');"));
   assert.ok(s48.includes('html.lq #scr-compte .plus-details[open]{bottom:var(--kb,0px)!important;'));
 });
