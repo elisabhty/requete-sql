@@ -6644,7 +6644,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=50">
+<link rel="stylesheet" href="ludique.css?v=51">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -12239,6 +12239,8 @@ function normalizeState(raw){
   /* Le pseudo réservé (jeu_pseudo) et la date de sa dernière confirmation. */
   if(typeof salleSrc.pseudo==='string'){const p=psForme(salleSrc.pseudo);if(p)salle.pseudo=p;}
   if(salleSrc.pseudoVu)salle.pseudoVu=salleBig(salleSrc.pseudoVu);
+  /* « Plus tard » sur la mini-page du pseudo : gardé d’un lancement à l’autre, sinon elle revenait à chaque ouverture. */
+  if(salleSrc.psPage)salle.psPage=1;
   if(salleSrc.clsRefus){const r=salleNom(salleSrc.clsRefus);if(r)salle.clsRefus=r;}
   if(Array.isArray(salleSrc.masques)){const m=salleSrc.masques.filter(uuid).slice(-50);if(m.length)salle.masques=m;}
   if(Array.isArray(salleSrc.envoi)){
@@ -14766,7 +14768,7 @@ function psVerifier(){
     }
     if(s.pseudoVu&&Date.now()-s.pseudoVu<20*3600e3)return;
     psPrendre(mien).then(r=>{
-      if(r&&r.ok){const em=document.querySelector('.acc-pseudo em');if(em)em.textContent='Unique dans l’appli · il ne se change pas';return;}
+      if(r&&r.ok){const em=document.querySelector('.acc-pseudo em');if(em)em.textContent='Il ne se change pas';return;}
       if(r&&(r.raison==='pris'||r.raison==='refuse')){const s2=clsSalle();delete s2.pseudo;delete s2.pseudoVu;save();if(!psPageOuverte())psPage({raison:r.raison,idees:r.idees,voulu:mien});}
     },()=>{});
   }catch(e){}
@@ -20471,7 +20473,7 @@ function jeuSavedNom(){const s=state.salle;return s&&typeof s.pseudo==='string'?
 function jeuNomField(id){
   const nom=jeuSavedNom();
   if(!nom)return `<button type="button" class="jeu-me is-vide" onclick="psPage({})"><b class="jeu-av is-empty" aria-hidden="true">?</b><span class="jeu-me-t"><small>Pour jouer entre amis</small><b>Choisis ton pseudo</b></span></button>`;
-  return `<div class="jeu-me" data-nom="${id}"><b class="jeu-av" data-c="0" aria-hidden="true">${jeuInitial(nom)}</b><span class="jeu-me-t"><small>Tu joues en tant que</small><b>${esc(nom)}</b></span><span class="jeu-me-lock" title="Ton pseudo est unique et ne se change pas" aria-label="Pseudo verrouillé">${PS_LOCK_SVG}</span><input id="${id}" type="hidden" value="${escAttr(nom)}"></div>`;
+  return `<div class="jeu-me" data-nom="${id}"><b class="jeu-av" data-c="0" aria-hidden="true">${jeuInitial(nom)}</b><span class="jeu-me-t"><small>Tu joues en tant que</small><b>${esc(nom)}</b></span><span class="jeu-me-lock" title="Ton pseudo ne se change pas" aria-label="Pseudo verrouillé">${PS_LOCK_SVG}</span><input id="${id}" type="hidden" value="${escAttr(nom)}"></div>`;
 }
 function jeuCleanCode(v){
   v=String(v||'');
@@ -27503,7 +27505,7 @@ function accPseudoHTML(name){
   const n=jeuNom(name);
   if(!n)return `<button type="button" class="acc-pseudo is-vide" onclick="closePlusDetails();psPage({})"><span class="acc-pseudo-av" aria-hidden="true">?</span><span class="acc-pseudo-t"><small>Pseudo</small><b>Choisis ton pseudo</b></span>${ACCT_CHEV}</button>`;
   const ok=psMien()===n;
-  return `<div class="acc-pseudo"><span class="acc-pseudo-av" aria-hidden="true">${jeuInitial(n)}</span><span class="acc-pseudo-t"><small>Pseudo</small><b>${esc(n)}</b><em>${ok?'Unique dans l’appli · il ne se change pas':'Il sera réservé dès que tu seras en ligne'}</em></span><span class="acc-pseudo-lock" aria-hidden="true">${PS_LOCK_SVG}</span></div>`;
+  return `<div class="acc-pseudo"><span class="acc-pseudo-av" aria-hidden="true">${jeuInitial(n)}</span><span class="acc-pseudo-t"><small>Pseudo</small><b>${esc(n)}</b><em>${ok?'Il ne se change pas':'Il sera réservé dès que tu seras en ligne'}</em></span><span class="acc-pseudo-lock" aria-hidden="true">${PS_LOCK_SVG}</span></div>`;
 }
 function replayOnboarding(){
   closePlusDetails();
@@ -27751,7 +27753,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-31-pseudo-arobase-v2220';
+  const SW_CACHE='requete-2026-10-31-pseudo-ligne-v2221';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
