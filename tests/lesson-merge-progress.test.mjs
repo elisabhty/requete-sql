@@ -64,7 +64,9 @@ Object.assign(ctx, {
   NIVEAUX: [{ k: 'debutant', from: 0 }], leconsDepuis: () => [], itemDone: id => !!ctx.state.lessons[id]?.done,
   dstr: () => '2026-10-05', auj: () => new Date(2026, 9, 5), addJ: d => d, parseD: d => new Date(d),
 });
-ctx.state = { lessons: {}, plan: { niveau: 'debutant', per: 3, archive: [3, 0, 1, 36], sessions: [
+/* Le cours 0 est validé : depuis le 31 octobre (Elisa, 8 h 06 : « les activités terminées ne doivent pas être retirées du
+   calendrier »), il revient dans le calendrier, au jour de sa validation, au lieu de rester dans l’archive. */
+ctx.state = { lessons: { 0: { done: true } }, plan: { niveau: 'debutant', per: 3, archive: [3, 0, 1, 36], sessions: [
   { d: '2026-10-05', lessons: [24, 11, 75] },
   { d: '2026-10-06', lessons: [12, 29, 6] },
   { d: '2026-10-07', lessons: [3] },
@@ -72,7 +74,7 @@ ctx.state = { lessons: {}, plan: { niveau: 'debutant', per: 3, archive: [3, 0, 1
 ] } };
 vm.runInContext('nettoyerPlan()', ctx);
 const plan = JSON.parse(JSON.stringify(ctx.state.plan));
-assert.deepEqual(plan.sessions, [{ d: '2026-10-05', lessons: [11] }, { d: '2026-10-06', lessons: [12, 6] }, { d: '2026-10-08', lessons: [57] }], 'les cours fusionnés quittent le parcours, les séances vides disparaissent');
-assert.deepEqual(plan.archive, [0], 'et l’archive (le cours 0 reste, le cours 1 part)');
+assert.deepEqual(plan.sessions, [{ d: '2026-10-05', lessons: [11, 0] }, { d: '2026-10-06', lessons: [12, 6] }, { d: '2026-10-08', lessons: [57] }], 'les cours fusionnés quittent le parcours, les séances vides disparaissent, le cours 0 validé revient au calendrier');
+assert.deepEqual(plan.archive, [], 'l’archive se vide (le cours 0 est dans le calendrier, les cours fusionnés partent)');
 
 console.log('Fusion de cours : progression et parcours conservés, quiz et cartes à jour : OK.');

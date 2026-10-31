@@ -44,7 +44,7 @@ test('la feuille : l’ampoule autocollante et l’étiquette « À retenir », 
   assert.ok(open.includes("cardTilt(document.querySelector('#card-body .cd-share'));"));
   const tilt = fn('cardTilt');
   assert.ok(tilt.includes("(typeof prefersReduceMotion==='function'&&prefersReduceMotion())") && tilt.includes("['pointerleave','pointercancel','pointerup'].forEach(t=>el.addEventListener(t,flat));"));
-  assert.ok(app.includes("e.target.closest('.lq-head-stk,.cd-memo-stk')"), 'l’ampoule se rallume au toucher');
+  assert.ok(app.includes("e.target.closest('.lq-head-stk,.cd-memo-stk,.perf-stk,.room-stk')"), 'l’ampoule se rallume au toucher');
   const svg = vm.runInContext(fn('lqStkSvg') + ';lqStkSvg("bulb")', vm.createContext({}));
   assert.ok(svg.startsWith('<svg class="lq-stk" viewBox="0 0 48 48"') && svg.includes('#FFC83D'), 'l’ampoule, dans le dessin des autocollants');
 });

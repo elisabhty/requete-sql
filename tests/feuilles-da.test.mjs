@@ -78,12 +78,13 @@ test('les défis quittent le planning : nouveau parcours en leçons seules, un p
     CHALLENGES: [{ id: 'c1' }, { id: 'c2' }],
   });
   ctx.save = () => { ctx.saved++; };
-  ctx.state = { lessons: {}, defis: {}, plan: { niveau: 'debutant', per: 3, archive: [0, 'c2'], sessions: [
+  /* La leçon 0 est validée : depuis le 31 octobre, 8 h 06, elle revient au calendrier (cochée) au lieu de rester dans l’archive. */
+  ctx.state = { lessons: { 0: { done: true } }, defis: {}, plan: { niveau: 'debutant', per: 3, archive: [0, 'c2'], sessions: [
     { d: '2026-10-30', lessons: [1, 'c1', 2] }, { d: '2026-10-31', lessons: ['c2'] }, { d: '2026-11-01', lessons: [3] }] } };
   vm.runInContext('nettoyerPlan()', ctx);
   const plan = JSON.parse(JSON.stringify(ctx.state.plan));
-  assert.deepEqual(plan.sessions, [{ d: '2026-10-30', lessons: [1, 2] }, { d: '2026-11-01', lessons: [3] }], 'les défis sortent, la séance qui n’avait qu’un défi disparaît');
-  assert.deepEqual(plan.archive, [0]);
+  assert.deepEqual(plan.sessions, [{ d: '2026-10-30', lessons: [1, 2, 0] }, { d: '2026-11-01', lessons: [3] }], 'les défis sortent, la séance qui n’avait qu’un défi disparaît, la leçon validée revient au calendrier');
+  assert.deepEqual(plan.archive, []);
   assert.equal(ctx.saved, 1, 'enregistré une fois');
   for (const t of ['Les défis suivent les prérequis', 'leçon ou défi', 'Leçons + défis', 'Glisse une leçon ou un défi']) assert.ok(!app.includes(t), `plus de « ${t} »`);
   const over = cut('function planOverviewHTML(st){', 'function planManageHTML(');

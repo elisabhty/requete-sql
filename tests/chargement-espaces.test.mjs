@@ -37,7 +37,8 @@ test('chargement : un anneau où une comète tourne sans fin, à la place de la 
   assert.ok(!lq.includes('ldSlap'), 'plus de claquement');
   const entree = s37.match(/@keyframes ldIn\{0%\{([^}]*)\}/)[1];
   assert.ok(entree.includes('opacity:0') && px(entree, /scale\(([\d.]+)\)/) >= .9 && px(entree, /rotate\(-?([\d.]+)deg\)/) <= 8, entree);
-  assert.ok(regle(s37, 'html.lq #loader .logo-badge').includes('animation:ldIn .8s cubic-bezier(.2,.75,.25,1) .05s both,ldFloat 4.6s ease-in-out .9s infinite'));
+  /* Elisa, 31 octobre, 8 h 06 : le logo s’allume vite (l’écran ne restait que 0,3 s, le logo à moitié visible) */
+  assert.ok(regle(s37, 'html.lq #loader .logo-badge').includes('animation:ldIn .42s cubic-bezier(.2,.75,.25,1) both,ldFloat 4.6s ease-in-out .9s infinite'));
   assert.ok(px(s37, /@keyframes ldOut\{to\{opacity:0;transform:scale\(([\d.]+)\)\}\}/) <= 1.06, 'au départ, il s’efface sans bondir');
   /* Mouvement réduit : l’anneau s’arrête aussi (comète et tête) */
   const reduit = cut(lq, '@media (prefers-reduced-motion:reduce){\n  html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]::after', '/* ---------- 38.');

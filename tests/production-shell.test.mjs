@@ -98,7 +98,8 @@ assert(html.includes("complete?'Toutes les leçons sont validées'") && html.inc
    sort quand on rentre, parmi le niveau de difficulté) ». L’onglet ne garde que la salle, ses règles et rejoindre un ami. */
 assert(html.includes('<div id="defis-room"></div>') && html.includes('<div id="defis-join" class="jeu"></div>') && html.includes('<div id="defis-rules"></div>'), 'Défis : la salle, rejoindre, les règles des points');
 assert(!html.includes('function setDefisLevel(') && !html.includes('function defiListRow(') && !html.includes('id="defis-list"') && !html.includes('def-list-static'), 'plus d’entraînement libre ni de liste de défis dans l’onglet');
-assert(html.includes('function renderDefis(){') && html.includes('renderDefisRoom();renderDefisJoin();renderDefisRules();'), 'l’onglet se dessine en trois blocs');
+/* Elisa, 31 octobre, 8 h 06 : « avoir un tableau de performance pour la page défis » : « Tes performances » sous la salle. */
+assert(html.includes('function renderDefis(){') && html.includes('renderDefisRoom();renderDefisPerf();renderDefisJoin();renderDefisRules();'), 'l’onglet se dessine en quatre blocs, le tableau de performance sous la salle');
 assert(html.includes('<li><b>🎯 Défi réussi</b><span>+${JEU_PTS_OK}</span></li>') && html.includes('<li><b>⚡ Rapidité</b><span>jusqu’à +${JEU_PTS_VITE}</span>'), 'règles des points écrites depuis les constantes de la salle');
 assert(html.includes("function jeuChrono(ms){const s=Math.max(0,Math.floor(ms/1000));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}"), 'chrono qui monte depuis 00:00');
 assert(html.includes('<span class="room-stk" aria-hidden="true">${lqStkSvg(\'target\')}</span>') && html.includes('<h2 id="room-h">Entre dans la salle</h2>'), 'la salle, en tête de l’onglet, à la DA de l’appli');
@@ -147,7 +148,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 const glissantes = fs.readFileSync(path.join(ROOT, 'assets/anim/fenetres-glissantes.html'), 'utf8');
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && ['UNBOUNDED PRECEDING', '2 PRECEDING', '2 FOLLOWING', 'CURRENT ROW'].every(c => glissantes.includes(c)) && html.includes('NTILE(4)'), 'cadres (dans la vidéo) et fonctions de fenêtre avancées (défi NTILE) couverts');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-10-31-carte-da-v2203') && html.includes('requete-2026-10-31-carte-da-v2203') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-10-31-perf-pseudo-v2204') && html.includes('requete-2026-10-31-perf-pseudo-v2204') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);

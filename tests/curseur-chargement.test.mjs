@@ -97,7 +97,7 @@ test('l’écran de chargement dans la DA : violet quadrillé, logo en autocolla
   assert.ok(app.includes('<div id="loader"><i class="ld-spark s1" aria-hidden="true"></i><i class="ld-spark s2" aria-hidden="true"></i><i class="ld-spark s3" aria-hidden="true"></i>\n    <div class="logo-badge">&gt;_</div><b class="ld-name">Requête</b><div class="spinner"></div>'));
   const s37 = lq.slice(lq.indexOf('/* ---------- 37.'));
   for (const part of ['html.lq #loader{background:var(--deep)!important;', 'html.lq #loader .logo-badge{width:88px;height:88px;', 'border:4px solid #fff;',
-    'animation:ldIn .8s', 'html.lq #loader .spinner::after{', 'animation:ldSpin 1.2s linear infinite}', 'html.lq #loader .ld-spark{', 'html.lq #loader.fade-out .logo-badge{animation:ldOut'])
+    'animation:ldIn .42s', 'html.lq #loader .spinner::after{', 'animation:ldSpin 1.2s linear infinite}', 'html.lq #loader .ld-spark{', 'html.lq #loader.fade-out .logo-badge{animation:ldOut'])
     assert.ok(s37.includes(part), part);
   assert.match(s37, /@media \(prefers-reduced-motion:reduce\)\{[^}]*html\.lq #loader \.logo-badge,[^}]*\{animation:none!important\}/, 'mouvement réduit');
   /* L’erreur du moteur SQL reste lisible : texte blanc sur le violet */

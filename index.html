@@ -1938,8 +1938,6 @@
   .room-go svg{width:18px;height:18px;flex:none}
   .room-card .jeu-msg{margin:10px 2px 0!important}
   .room-card .jeu-note{margin:14px 2px 0!important}
-  .room-stats{margin:14px 2px 0;padding-top:12px;border-top:.5px solid rgba(39,42,54,.09);color:var(--ink-3);font-size:12.5px;font-weight:650}
-  .room-stats b{color:var(--accent-ink);font-weight:800}
   .def-free{margin:26px 19px 0}
   .def-free h2{margin:0;font-size:19px;font-weight:800;letter-spacing:-.48px;line-height:1.2}
   .def-free p{margin:5px 0 0;color:#696C76;font-size:13.5px;line-height:1.42}
@@ -6637,7 +6635,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=37">
+<link rel="stylesheet" href="ludique.css?v=38">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -7342,6 +7340,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
         </div>
       </div>
       <div id="defis-room"></div>
+      <div id="defis-perf"></div>
       <div id="defis-join" class="jeu"></div>
       <div id="defis-rules"></div>
     </section>
@@ -9802,6 +9801,8 @@ function markDone(id,review){
   if(review) cur.level=Math.min(cur.level+1,INTERVALS.length-1);
   else if(cur.done) {} else cur.level=0;
   cur.done=true; cur.due=Date.now()+INTERVALS[cur.level]*DAY;
+  /* Le jour de la validation (la première fois) : le planning garde l’activité à ce jour-là, cochée */
+  if(!cur.at) cur.at=Date.now();
   state.lessons[id]=cur; noteActivityDay(); save();
 }
 
@@ -9898,12 +9899,20 @@ function bootFatal(){
    `<div class="logo-badge" style="background:var(--danger);box-shadow:none">!</div>
     <p><b>Impossible de charger le moteur SQL.</b><br>Vérifie ta connexion, puis recharge la page.</p>`;
 }
+/* Elisa, 31 octobre, 8 h 06 : « pour cette page, fais un truc de chargement ou mets-le en dessous ». L’écran ne restait que 0,3 s :
+   le logo n’avait pas fini d’apparaître, et le nom, l’anneau qui tourne et la phrase, dessous, pas encore du tout. Ils s’affichent
+   maintenant d’emblée (ludique.css, 37), et l’écran reste au moins LOADER_MIN_MS après l’ouverture de la page, le temps de voir
+   l’anneau tourner ; un chargement plus long n’attend rien de plus. */
+const LOADER_MIN_MS=1000;
 function hideLoader(){
   if(window.nativeAppReady)window.nativeAppReady();
   const loader=document.getElementById('loader');
-  if(!loader)return;
-  loader.classList.add('fade-out');
-  setTimeout(()=>{loader.style.display='none';}, 380);
+  if(!loader||loader.classList.contains('fade-out'))return;
+  const t=typeof performance!=='undefined'&&performance.now?performance.now():LOADER_MIN_MS;
+  setTimeout(()=>{
+    loader.classList.add('fade-out');
+    setTimeout(()=>{loader.style.display='none';}, 380);
+  },Math.max(0,LOADER_MIN_MS-t));
 }
 async function boot(){
   /* Seul l'échec du moteur SQL est fatal. Une erreur de rendu ne doit pas
@@ -9917,6 +9926,7 @@ async function boot(){
     buildDb(); baseBytes=db.export(); attachDateFns(db);
   }catch(e){ bootFatal(); return; }
   try{lqHeads();}catch(e){}
+  try{lqTabbarScroll();}catch(e){}
   try{
     await wipeStorageIfUpdated();
     const saved=await Store.get(KEY);
@@ -12077,6 +12087,8 @@ function normalizeState(raw){
       if(Number.isFinite(dueVal)) entry.due=dueVal;
       const lastSeenVal=Number(entrySource.lastSeen);
       if(Number.isFinite(lastSeenVal)) entry.lastSeen=lastSeenVal;
+      const atVal=Number(entrySource.at);
+      if(entry.done&&Number.isFinite(atVal)&&atVal>0) entry.at=atVal;
       // Saving must preserve the learner's validated steps and editor work.
       const steps=entrySource.etapes;
       if(steps&&typeof steps==='object'&&!Array.isArray(steps)){
@@ -12109,10 +12121,23 @@ function normalizeState(raw){
     });
   }
   const actSince=typeof source.actSince==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(source.actSince)?source.actSince:null;
-  /* Points gagnés dans les salles de défi (seul ou entre amis). */
+  /* Points gagnés dans les salles de défi (seul ou entre amis), et de quoi tenir le tableau « Tes performances » (Elisa, 31 octobre,
+     8 h 06) : manches jouées et trouvées, temps, places entre amis, réussite par niveau, les 12 dernières parties. */
   const salleSrc=source.salle&&typeof source.salle==='object'&&!Array.isArray(source.salle)?source.salle:{};
   const salleN=v=>{const n=Math.floor(Number(v));return Number.isFinite(n)&&n>0?Math.min(n,999999):0;};
-  const salle={pts:salleN(salleSrc.pts),parties:salleN(salleSrc.parties),best:salleN(salleSrc.best)};
+  const salleBig=v=>{const n=Math.floor(Number(v));return Number.isFinite(n)&&n>0?Math.min(n,1e13):0;};
+  const salle={pts:salleN(salleSrc.pts),parties:salleN(salleSrc.parties),best:salleN(salleSrc.best),manches:salleN(salleSrc.manches)};
+  salle.trouves=Math.min(salleN(salleSrc.trouves),salle.manches);
+  salle.tms=salleBig(salleSrc.tms);salle.fast=salleN(salleSrc.fast);salle.amis=salleN(salleSrc.amis);
+  const salleObj=v=>v&&typeof v==='object'&&!Array.isArray(v)?v:{};
+  salle.pl=[0,1,2].map(i=>salleN((Array.isArray(salleSrc.pl)?salleSrc.pl:[])[i]));
+  salle.lv={};
+  ['f','m','d'].forEach(k=>{const a=Array.isArray(salleObj(salleSrc.lv)[k])?salleObj(salleSrc.lv)[k]:[];const n=salleN(a[0]);salle.lv[k]=[n,Math.min(salleN(a[1]),n)];});
+  salle.hist=(Array.isArray(salleSrc.hist)?salleSrc.hist:[]).filter(h=>h&&typeof h==='object'&&!Array.isArray(h)).map(h=>{
+    const n=Math.min(salleN(h.n),20);
+    return {at:salleBig(h.at),pts:salleN(h.pts),n,ok:Math.min(salleN(h.ok),n),ms:salleBig(h.ms),niv:['f','m','d'].includes(h.niv)?h.niv:'f',
+      solo:h.solo?1:0,place:Math.min(salleN(h.place),99),players:Math.max(1,Math.min(salleN(h.players),99))};
+  }).filter(h=>h.at>0&&h.n>0).sort((a,b)=>b.at-a.at).slice(0,12);
   /* Temps d’apprentissage, en secondes : par jour (AAAA-MM-JJ) et par activité (l<id> leçon, d<id> défi, console,
      entretien, jeu). Voir studyTick. */
   const study={days:{},items:{}};
@@ -12841,6 +12866,43 @@ const tabScrollPositions={};
     bar.addEventListener('wheel',wheel,{passive:false});
   });
 })();
+/* Elisa, 31 octobre, 8 h 06 : « pouvoir scroller même quand on est sur la barre du bas de nav ». Un glissement vertical commencé sur
+   la barre d’onglets fait défiler l’écran ouvert, avec l’élan du doigt ; un simple toucher change toujours d’onglet, et un glissement
+   ne déclenche pas l’onglet sous le doigt. */
+function lqTabbarScroll(){
+  const bar=typeof document!=='undefined'&&document.querySelector('#app>.tabbar');
+  if(!bar||bar.dataset.scroll)return;
+  bar.dataset.scroll='1';
+  let x0=0,y0=0,top0=0,lastY=0,last=0,v=0,raf=0,drag=false,scr=null,mute=0;
+  bar.addEventListener('touchstart',e=>{
+    cancelAnimationFrame(raf);scr=null;drag=false;
+    if(e.touches.length!==1)return;
+    const t=e.touches[0];x0=t.clientX;y0=lastY=t.clientY;last=performance.now();v=0;
+    scr=document.querySelector('#app>.stage .screen.active');top0=scr?scr.scrollTop:0;
+  },{passive:true});
+  bar.addEventListener('touchmove',e=>{
+    if(!scr||e.touches.length!==1)return;
+    const t=e.touches[0],dy=t.clientY-y0;
+    if(!drag){if(Math.abs(dy)<8||Math.abs(dy)<Math.abs(t.clientX-x0))return;drag=true;}
+    if(e.cancelable)e.preventDefault();
+    const now=performance.now(),dt=Math.max(1,now-last);
+    v=.75*v+.25*((lastY-t.clientY)/dt);last=now;lastY=t.clientY;
+    scr.scrollTop=top0-dy;
+  },{passive:false});
+  const end=()=>{
+    const el=scr;scr=null;
+    if(!el||!drag)return;
+    drag=false;mute=Date.now()+400;
+    if(prefersReduceMotion()||Math.abs(v)<.05)return;
+    let prev=performance.now();
+    const step=now=>{const dt=Math.min(40,now-prev);prev=now;const before=el.scrollTop;el.scrollTop+=v*dt;v*=Math.pow(.95,dt/16);
+      if(Math.abs(v)>.02&&el.scrollTop!==before)raf=requestAnimationFrame(step);};
+    raf=requestAnimationFrame(step);
+  };
+  bar.addEventListener('touchend',end,{passive:true});
+  bar.addEventListener('touchcancel',end,{passive:true});
+  bar.addEventListener('click',e=>{if(Date.now()<mute){e.preventDefault();e.stopPropagation();}},true);
+}
 function navigateMainTabs(event){
   if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
   const tabs=[...event.currentTarget.querySelectorAll('.tab')];
@@ -14145,13 +14207,12 @@ const JEU_FRIENDS_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor
 function jeuEligible(c){return !!c&&!/^\s*EXPLAIN/i.test(c.sol)&&!c.noExec;}
 function renderDefisJoin(){
   const host=document.getElementById('defis-join');if(!host)return;
-  const c=jeuInvite,nom=jeuSavedNom();
+  const c=jeuInvite;
   host.innerHTML=`<details class="def-join"${c?' open':''}>
     <summary><span class="def-join-ico" aria-hidden="true">${JEU_FRIENDS_SVG}</span><span><b>Un code reçu ?</b><small>Rejoins la salle d’un ami en direct</small></span>${DEF_CHEV_SVG}</summary>
     <div class="def-join-body">
       ${c?`<p class="jeu-card-h">Tu es invité·e dans la salle <b class="jeu-code-inline">${c}</b></p>`:''}
-      <label class="jeu-lab" for="jeu-nom-join">Ton pseudo</label>
-      <input id="jeu-nom-join" class="jeu-input" maxlength="16" autocomplete="nickname" placeholder="Ex. Léa" value="${escAttr(nom)}">
+      ${jeuNomField('jeu-nom-join')}
       ${c?'':`<label class="jeu-lab" for="jeu-code">Code de la salle</label>
       <input id="jeu-code" class="jeu-input is-code" autocapitalize="characters" autocomplete="off" placeholder="ABC123" oninput="this.value=jeuCleanCode(this.value)">`}
       <button type="button" class="journey-primary" onclick="jeuJoin(${c?`'${c}'`:`document.getElementById('jeu-code').value`})"><span>Rejoindre la salle</span>${DEF_CHEV_SVG}</button>
@@ -14162,7 +14223,7 @@ function renderDefisJoin(){
 /* Entrée « Salle de défi » : un niveau, seul ou entre amis, un nombre de manches ; le défi est tiré au sort. */
 function renderDefisRoom(){
   const host=document.getElementById('defis-room');if(!host)return;
-  const friends=jeuMode==='friends',s=state.salle||{};
+  const friends=jeuMode==='friends';
   const stat=k=>{const l=jeuChallenges(k);return `${l.filter(c=>state.defis&&state.defis[c.id]).length}/${l.length} réussis`;};
   const seg=(key,items,cur)=>items.map(([v,l,x])=>`<button type="button" role="radio" aria-checked="${cur===v}" class="room-opt${cur===v?' on':''}" data-set="${key}" data-v="${v}"${x||''} onclick="jeuRoomSet('${key}',${typeof v==='number'?v:`'${v}'`})">${l}</button>`).join('');
   /* L’en-tête violet quadrillé de la vitrine, l’autocollant de la cible ; dessous, sur blanc, les réglages (ludique.css, 42). */
@@ -14177,12 +14238,10 @@ function renderDefisRoom(){
       <div class="room-seg" role="radiogroup" aria-labelledby="room-mode-l">${seg('mode',[['solo','Seul'],['friends',JEU_FRIENDS_SVG+'Entre amis']],jeuMode)}</div></div>
     <div class="room-field"><p class="jeu-lab" id="room-nb-l">Nombre de manches</p>
       <div class="room-seg" role="radiogroup" aria-labelledby="room-nb-l">${seg('nb',[[1,'1'],[3,'3'],[5,'5']].map(([v,l])=>[v,l,v>jeuChallenges(jeuNiv).length?' disabled':'']),jeuNb)}</div></div>
-    <div class="room-field" data-friends${friends?'':' hidden'}><label class="jeu-lab" for="jeu-nom">Ton pseudo</label>
-      <input id="jeu-nom" class="jeu-input" maxlength="16" autocomplete="nickname" placeholder="Ex. Léa" value="${escAttr(jeuSavedNom())}"></div>
+    <div class="room-field" data-friends${friends?'':' hidden'}>${jeuNomField('jeu-nom')}</div>
     <button type="button" class="room-go" onclick="jeuEnterRoom()"><span>${friends?'Ouvrir la salle':'Tirer un défi'}</span>${DEF_CHEV_SVG}</button>
     <p class="jeu-msg" role="status" aria-live="polite"></p>
     <div data-friends${friends?'':' hidden'}>${JEU_NOTE_HTML}</div>
-    ${s.parties?`<p class="room-stats"><span><b>${s.pts}</b> point${s.pts>1?'s':''} en salle</span><span><b>${s.parties}</b> partie${s.parties>1?'s':''}</span>${s.best?`<span>Record : <b>${s.best}</b></span>`:''}</p>`:''}
   </section>`;
 }
 /* L’écran Défis : la salle de défi seule (Elisa, 31 octobre, 1 h 34 : « pas de défis libres ni d’entraînement libre, que la salle de
@@ -14191,10 +14250,83 @@ function renderDefisRoom(){
 function renderDefis(){
   if(!document.getElementById('defis-room'))return;
   if(JEU)jeuStop();
-  renderDefisRoom();renderDefisJoin();renderDefisRules();
+  renderDefisRoom();renderDefisPerf();renderDefisJoin();renderDefisRules();
   const all=CHALLENGES.filter(jeuEligible),nOk=all.filter(c=>state.defis&&state.defis[c.id]).length;
   const sub=document.getElementById('defis-sub');
   if(sub)sub.textContent=nOk?`${nOk} défi${nOk>1?'s':''} réussi${nOk>1?'s':''} sur ${all.length} : chaque manche en tire un au sort.`:`${all.length} défis, tirés au sort au niveau que tu choisis.`;
+}
+/* « Tes performances » (Elisa, 31 octobre, 8 h 06 : « avoir un tableau de performance pour la page défis ») : les points, les parties
+   et le record ; la réussite (manches trouvées) et les temps ; les points des dernières parties en barres (toucher une barre la
+   détaille) ; la réussite par niveau ; les podiums entre amis ; les dernières parties. Avant la première partie, le même tableau,
+   vide, dit ce qui s’y affichera. Les chiffres montent et les barres poussent quand le tableau arrive à l’écran. */
+function perfDay(at){
+  const d=new Date(at),t=new Date();t.setHours(0,0,0,0);
+  const k=Math.round((t-new Date(d.getFullYear(),d.getMonth(),d.getDate()))/864e5);
+  return k<=0?'Aujourd’hui':k===1?'Hier':d.getDate()+' '+['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'][d.getMonth()];
+}
+function perfGame(h){
+  return `${h.solo?'Seul':'Entre amis'} · ${JEU_NIVL[h.niv]||'Facile'}${!h.solo&&h.players>1?` · ${h.players} joueurs`:''}`;
+}
+function perfBadge(h){
+  if(!h.solo&&h.place>=1&&h.place<=3)return ['🥇','🥈','🥉'][h.place-1];
+  if(!h.solo&&h.place>3)return h.place+'e';
+  return h.ok>=h.n?'✓':h.ok+'/'+h.n;
+}
+function renderDefisPerf(){
+  const host=document.getElementById('defis-perf');if(!host)return;
+  const s=state.salle&&typeof state.salle==='object'?state.salle:{},num=v=>Math.max(0,Math.floor(+v||0));
+  const pts=num(s.pts),parties=num(s.parties),best=num(s.best),manches=num(s.manches),trouves=Math.min(num(s.trouves),manches);
+  const hist=Array.isArray(s.hist)?s.hist.slice(0,12):[],lv=s.lv&&typeof s.lv==='object'?s.lv:{},pl=Array.isArray(s.pl)?s.pl:[0,0,0];
+  const rate=manches?Math.round(trouves/manches*100):0,avg=trouves?num(s.tms)/trouves:0,fast=num(s.fast);
+  const plur=(n,w)=>`${w}${n>1?'s':''}`;
+  const kpi=(cls,v,lab,i)=>`<div class="perf-kpi${cls}${v!=null&&String(v).length>4?' is-long':''}" style="--i:${i}"><b${v==null?'':` data-count-to="${v}" data-delay="${.12+i*.08}" data-dur=".9"`}>${v==null?'—':v}</b><small>${lab}</small></div>`;
+  const R=26,C=+(2*Math.PI*R).toFixed(2);
+  const ring=`<div class="perf-ratebox" style="--i:3"><div class="perf-rate"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="perf-ring-bg" cx="32" cy="32" r="${R}"/><circle class="perf-ring" cx="32" cy="32" r="${R}" style="--c:${C}px;--v:${(C*(1-rate/100)).toFixed(2)}px"/></svg>
+    <span class="perf-rate-n">${manches?`<b data-count-to="${rate}" data-delay=".25" data-dur="1" data-suffix=" %">${rate} %</b>`:'<b>—</b>'}</span></div>
+    <p class="perf-rate-t"><b>Réussite</b><small>${manches?`${trouves} ${plur(trouves,'manche')} ${plur(trouves,'trouvée')} sur ${manches}`:'Les manches que tu trouves comptent ici.'}</small></p></div>`;
+  const times=`<div class="perf-times"><div style="--i:4"><small>Temps moyen</small><b>${trouves?jeuChrono(avg):'—'}</b></div><div style="--i:5"><small>Le plus rapide</small><b>${fast?jeuChrono(fast):'—'}</b></div></div>`;
+  /* Les 10 dernières parties, de la plus ancienne à la plus récente ; la meilleure en jaune soleil. */
+  const last=hist.slice(0,10).reverse(),top=Math.max(1,...last.map(h=>h.pts)),bi=last.length?last.reduce((b,h,i)=>h.pts>last[b].pts?i:b,0):-1;
+  const chart=last.length
+    ?`<div class="perf-chart" role="group" aria-label="Points des ${last.length} dernières parties">${last.map((h,i)=>`<button type="button" class="perf-bar${i===bi?' is-best':''}${i===last.length-1?' is-on':''}" style="--h:${Math.max(5,Math.round(h.pts/top*100))}%;--i:${i}" data-cap="${escAttr(`${perfDay(h.at)} · ${perfGame(h)} · ${h.pts} ${plur(h.pts,'point')}`)}" aria-label="${escAttr(`${perfDay(h.at)}, ${h.pts} ${plur(h.pts,'point')}`)}" onclick="perfPick(this)">${i===bi?`<em>${h.pts}</em>`:''}<i></i></button>`).join('')}</div>
+      <p class="perf-cap" aria-live="polite">${esc(`${perfDay(last[last.length-1].at)} · ${perfGame(last[last.length-1])} · ${last[last.length-1].pts} ${plur(last[last.length-1].pts,'point')}`)}</p>`
+    :`<div class="perf-chart is-ghost" aria-hidden="true">${[38,62,46,80,54,70].map((h,i)=>`<span class="perf-bar" style="--h:${h}%;--i:${i}"><i></i></span>`).join('')}</div>
+      <p class="perf-cap">${parties?'Tes prochaines parties s’afficheront ici, en barres.':'Joue ta première partie : tes points s’afficheront ici, partie après partie.'}</p>`;
+  const lvRows=['f','m','d'].map((k,i)=>{const a=Array.isArray(lv[k])?lv[k]:[0,0],n=num(a[0]),ok=Math.min(num(a[1]),n);
+    return `<li class="is-${k}" style="--i:${i}"><b>${JEU_NIVL[k]}</b><span class="perf-lvbar"><i style="--w:${n?Math.round(ok/n*100):0}%"></i></span><em>${n?`${ok}/${n}`:'—'}</em></li>`;}).join('');
+  const amis=num(s.amis);
+  const pods=`<div class="perf-pods">${['🥇','🥈','🥉'].map((m,i)=>`<span style="--i:${i}"><i aria-hidden="true">${m}</i><b>${num(pl[i])}</b><small>${['1re','2e','3e'][i]} place</small></span>`).join('')}</div>
+    <p class="perf-note">${amis?`Sur ${amis} ${plur(amis,'partie')} entre amis.`:'Ouvre une salle « Entre amis » et partage le code pour monter sur le podium.'}</p>`;
+  const rows=hist.slice(0,4).map((h,i)=>`<li style="--i:${i}"><span class="perf-rk${!h.solo&&h.place>=1&&h.place<=3?' is-medal':''}">${perfBadge(h)}</span><span class="perf-g"><b>${esc(perfGame(h))}</b><small>${perfDay(h.at)} · ${h.ok}/${h.n} ${plur(h.ok,'trouvé')}${h.ok?` · ${jeuChrono(h.ms)}`:''}</small></span><em>+${h.pts}</em></li>`).join('');
+  host.innerHTML=`<section class="perf-card${parties?'':' is-empty'}" aria-labelledby="perf-h">
+    <div class="perf-head"><span class="perf-stk" aria-hidden="true">${lqStkSvg('chart')}</span><div><p class="perf-kicker">Tableau de bord</p><h2 id="perf-h">Tes performances</h2></div></div>
+    <div class="perf-kpis">${kpi(' is-sun',pts,plur(pts,'point'),0)}${kpi('',parties,plur(parties,'partie'),1)}${kpi('',best||null,'record',2)}</div>
+    <div class="perf-duo">${ring}${times}</div>
+    <div class="perf-block"><h3>Tes dernières parties</h3>${chart}</div>
+    ${manches?`<div class="perf-block"><h3>Réussite par niveau</h3><ul class="perf-lv">${lvRows}</ul></div>
+    <div class="perf-block"><h3>Podiums entre amis</h3>${pods}</div>`:''}
+    ${rows?`<div class="perf-block"><h3>Historique</h3><ol class="perf-hist">${rows}</ol></div>`:''}
+  </section>`;
+  perfReveal(host.firstElementChild);
+}
+/* Toucher une barre : elle passe devant, sa partie s’écrit dessous. */
+function perfPick(b){
+  const box=b&&b.closest('.perf-block');if(!box)return;
+  box.querySelectorAll('.perf-bar.is-on').forEach(x=>x.classList.remove('is-on'));
+  b.classList.add('is-on');b.classList.remove('is-poke');void b.offsetWidth;b.classList.add('is-poke');
+  const cap=box.querySelector('.perf-cap');if(cap)cap.textContent=b.dataset.cap||'';
+  if(typeof buzz==='function')buzz('selection');
+}
+/* Le tableau s’anime quand il arrive à l’écran (il est sous la salle) : une seule fois par affichage. */
+let perfObs=null;
+function perfReveal(card){
+  if(!card)return;
+  if(perfObs){perfObs.disconnect();perfObs=null;}
+  const go=()=>{card.classList.add('is-in');actCountUp(card);};
+  const scr=card.closest('.screen');
+  if(prefersReduceMotion()||!scr||typeof IntersectionObserver==='undefined'){card.classList.add('is-in','is-static');actCountUp(card,true);return;}
+  perfObs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){perfObs.disconnect();perfObs=null;go();}}),{root:scr,rootMargin:'0px 0px -12% 0px'});
+  perfObs.observe(card);
 }
 /* Le barème, dit simplement : ce qui rapporte des points et qui passe devant à égalité. */
 function renderDefisRules(){
@@ -16848,7 +16980,7 @@ function resetLeconFromUrl(){
   let id=0; try{ id=+new URLSearchParams(location.search).get('reset')||0; }catch(e){}
   if(!id||!allLessons.some(l=>l.id===id))return;
   const s=state.lessons[id]||{level:0};
-  s.etapes={}; s.done=false; s.level=0; delete s.due; delete s.draft;
+  s.etapes={}; s.done=false; s.level=0; delete s.due; delete s.draft; delete s.at;
   state.lessons[id]=s;
   save();
   lvForget(id);
@@ -16868,6 +17000,7 @@ async function recommencerLecon(){
   s.level=0;
   delete s.due;
   delete s.draft;
+  delete s.at;
   state.lessons[id]=s;
   exoFails=0;
   lessonStepDir=1;
@@ -19601,6 +19734,23 @@ function jeuRand(n){const a=new Uint32Array(n);crypto.getRandomValues(a);return 
 function jeuPid(){let p='';try{p=sessionStorage.getItem('rq-jeu-pid')||'';}catch(e){}if(!p){p=jeuRand(10);try{sessionStorage.setItem('rq-jeu-pid',p);}catch(e){}}return p;}
 function jeuNom(v){return Array.from(String(v||'').replace(/[\u0000-\u001f<>\u200b-\u200f\u202a-\u202e\u2060-\u206f\u2800\u3164\ufeff]/g,'').replace(/\s+/g,' ').trim()).slice(0,16).join('');}
 function jeuSavedNom(){let n='';try{n=localStorage.getItem('rq-jeu-nom')||'';}catch(e){}return jeuNom(n||state.name||'');}
+/* Elisa, 31 octobre, 8 h 06 : « le pseudo doit déjà être défini avant, dans l’onboarding ». La salle ne redemande plus le pseudo :
+   « Ton pseudo : Léa · Changer ». Un champ ne s’affiche que si aucun pseudo n’a encore été choisi (étape passée avant ce
+   changement) ; le pseudo tapé devient alors celui de toute l’appli. */
+function jeuNomField(id){
+  const nom=jeuSavedNom();
+  if(!nom)return `<label class="jeu-lab" for="${id}">Choisis ton pseudo</label>
+      <input id="${id}" class="jeu-input" maxlength="16" autocomplete="nickname" autocapitalize="words" placeholder="Ex. Léa" value="">
+      <p class="jeu-hint">Une seule fois : il est gardé pour toute l’appli, et modifiable dans Mon compte.</p>`;
+  return `<div class="jeu-me" data-nom="${id}"><b class="jeu-av" data-c="0" aria-hidden="true">${jeuInitial(nom)}</b><span class="jeu-me-t"><small>Ton pseudo</small><b>${esc(nom)}</b></span><button type="button" class="jeu-me-edit" onclick="jeuNomEdit('${id}')" aria-label="Changer de pseudo">Changer</button><input id="${id}" type="hidden" value="${escAttr(nom)}"></div>`;
+}
+function jeuNomEdit(id){
+  const box=document.querySelector(`.screen.active .jeu-me[data-nom="${id}"]`);if(!box)return;
+  const wrap=document.createElement('div');wrap.className='jeu-me-field';
+  wrap.innerHTML=`<label class="jeu-lab" for="${id}">Ton pseudo</label><input id="${id}" class="jeu-input" maxlength="16" autocomplete="nickname" autocapitalize="words" placeholder="Ex. Léa" value="${escAttr(jeuSavedNom())}">`;
+  box.replaceWith(wrap);
+  const inp=wrap.querySelector('input');if(inp){inp.focus();try{inp.select();}catch(e){}}
+}
 function jeuCleanCode(v){
   v=String(v||'');
   /* Un lien ou une invitation collée : le code est dans « ?partie=XXXXXX ». */
@@ -19681,8 +19831,13 @@ function jeuMsgEl(id){
 function jeuAskNom(id){
   const inp=document.querySelector('.screen.active #'+(id||'jeu-nom')),n=jeuNom(inp&&inp.value);
   const msg=jeuMsgEl(id);
-  if(!n){if(msg)msg.textContent='Choisis d’abord un pseudo.';if(inp)inp.focus();return null;}
+  if(!n){if(msg)msg.textContent='Choisis d’abord un pseudo.';if(inp&&inp.type!=='hidden')inp.focus();return null;}
   try{localStorage.setItem('rq-jeu-nom',n);}catch(e){}
+  /* Un seul pseudo dans l’appli : celui de la salle est aussi le nom de l’accueil et du compte. */
+  if(jeuNom(state.name)!==n){
+    state.name=n;
+    try{save();if(typeof renderGreeting==='function')renderGreeting();if(typeof renderLearnAvatar==='function')renderLearnAvatar();}catch(e){}
+  }
   return n;
 }
 /* Écran Défis : les choix de la salle se changent sur place (rien n’est redessiné). */
@@ -20368,9 +20523,20 @@ function jeuCreditGame(){
   const J=JEU;if(!J||J.scored||!J.played||!J.rounds.some(Boolean))return;
   J.scored=true;
   try{
-    const me=jeuScores().find(x=>x.pid===J.me),pts=me?me.pts:0;
+    const sc=jeuPlaces(jeuScores()),me=sc.find(x=>x.pid===J.me),pts=me?me.pts:0;
     const s=state.salle=state.salle&&typeof state.salle==='object'?state.salle:{pts:0,parties:0,best:0};
     s.pts=(s.pts||0)+pts;s.parties=(s.parties||0)+1;s.best=Math.max(s.best||0,pts);
+    /* Le tableau « Tes performances » : les manches comptées comme dans les scores (terminées, ou toutes à la fin de la partie). */
+    const cur=jeuCur(),played=J.rounds.filter((r,n)=>r&&(n<cur||jeuRoundDone(n)||J.over));
+    const mine=played.map(r=>r.found[J.me]).filter(v=>v!=null&&Number.isFinite(+v)).map(v=>Math.max(0,Math.round(+v)));
+    const ms=mine.reduce((a,v)=>a+v,0),vs=!J.solo&&sc.length>1,place=vs&&me?me.place:0;
+    s.manches=(s.manches||0)+played.length;s.trouves=(s.trouves||0)+mine.length;s.tms=(s.tms||0)+ms;
+    if(mine.length)s.fast=s.fast?Math.min(s.fast,...mine):Math.min(...mine);
+    if(vs){s.amis=(s.amis||0)+1;if(place>=1&&place<=3&&pts>0){s.pl=Array.isArray(s.pl)?s.pl:[0,0,0];s.pl[place-1]=(s.pl[place-1]||0)+1;}}
+    const lv=s.lv=s.lv&&typeof s.lv==='object'?s.lv:{},k=['f','m','d'].includes(J.niv)?J.niv:'f',l=Array.isArray(lv[k])?lv[k]:[0,0];
+    lv[k]=[(l[0]||0)+played.length,(l[1]||0)+mine.length];
+    s.hist=[{at:Date.now(),pts,n:played.length,ok:mine.length,ms,niv:k,solo:J.solo?1:0,place,players:Math.max(1,sc.length)}]
+      .concat(Array.isArray(s.hist)?s.hist:[]).slice(0,12);
     save();
   }catch(e){}
 }
@@ -20442,7 +20608,6 @@ function jeuFromUrl(){
 }
 /* Le même défi, seul ou à plusieurs : on choisit ici, puis on reçoit un code à partager. */
 function challengeHowHTML(c){
-  const nom=jeuSavedNom();
   return `<div class="def-modes" id="defi-how" role="tablist" aria-label="Faire ce défi seul ou avec des amis">
       <button type="button" role="tab" aria-selected="true" class="def-mode on" onclick="setChallengeHow('solo')">Seul</button>
       <button type="button" role="tab" aria-selected="false" class="def-mode" onclick="setChallengeHow('friends')">${JEU_FRIENDS_SVG}Avec des amis</button>
@@ -20451,8 +20616,7 @@ function challengeHowHTML(c){
       <div class="jeu-card">
         <p class="jeu-card-h">Ce défi, en salle avec tes amis</p>
         <p class="jeu-hint">Tu reçois un code à partager : chacun résout ce défi au même moment, le plus rapide gagne.</p>
-        <label class="jeu-lab" for="jeu-nom-defi">Ton pseudo</label>
-        <input id="jeu-nom-defi" class="jeu-input" maxlength="16" autocomplete="nickname" placeholder="Ex. Léa" value="${escAttr(nom)}">
+        ${jeuNomField('jeu-nom-defi')}
         <p class="jeu-lab">Nombre de manches</p>
         <div class="jeu-seg" role="radiogroup" aria-label="Nombre de manches">${[[1,'Ce défi'],[3,'3 manches'],[5,'5 manches']].map(([n,l])=>`<button type="button" role="radio" aria-checked="${jeuNb===n}" class="${jeuNb===n?'on':''}" onclick="jeuSetOpt('nb',${n},this)">${l}</button>`).join('')}</div>
         <p class="jeu-hint">Les manches en plus sont des défis du même niveau.</p>
@@ -22285,6 +22449,15 @@ function courtJour(iso){
 /* Retire du parcours les items qui n'existent plus, dédoublonne et ajoute les leçons oubliées. */
 function nettoyerPlan(){
   const p=state.plan; if(!p||!Array.isArray(p.sessions))return;
+  /* Un ancien planning retirait les activités déjà validées du calendrier (« 8 activités déjà terminées ont été retirées du
+     calendrier ») : elles y reviennent, au jour où elles ont été validées, cochées. Celles qui ne sont plus validées repartent
+     dans le planning (plus bas, avec les leçons manquantes). */
+  let rearch=false;
+  if(Array.isArray(p.archive)&&p.archive.length){
+    const ids=p.archive.map(parseItemId);
+    p.sessions=planMergeSessions(p.sessions,planAnchorDone(p,ids.filter(id=>itemDone(id))));
+    p.archive=[];rearch=true;
+  }
   const okL=new Set(allLessons.map(l=>l.id));
   /* Un défi enregistré dans un ancien planning en sort : les défis se font maintenant dans Pratiquer (Elisa, 30 octobre, 22 h 11). */
   const valide=id=>!isDefiId(id)&&okL.has(id);
@@ -22322,7 +22495,31 @@ function nettoyerPlan(){
     });
     change=true;
   }
-  if(change){trierSessions();save();}
+  if(change||rearch){trierSessions();save();}
+}
+/* Le jour où une activité a été validée (Elisa, 31 octobre, 8 h 06 : « les activités terminées ne doivent pas être retirées du
+   calendrier, mais bien voir qu’elles ont été validées ») : la date enregistrée à la validation ; à défaut (validée avant ce relevé),
+   son jour de séance s’il est déjà passé, puis la veille de sa première révision, sinon aujourd’hui. Jamais dans le futur. */
+function itemDoneDay(id,seance){
+  const t=dstr(auj()),s=!isDefiId(id)&&state.lessons?state.lessons[id]:null;
+  const ok=d=>d&&d<=t;
+  if(s&&s.at){const d=dstr(new Date(s.at));if(ok(d))return d;}
+  if(ok(seance))return seance;
+  if(s&&s.due&&!(s.level>0)){const d=dstr(new Date(s.due-INTERVALS[0]*DAY));if(ok(d))return d;}
+  return t;
+}
+/* Les activités validées restent dans le calendrier, au jour de leur validation (une séance par jour, déjà cochée). */
+function planAnchorDone(p,done){
+  const seance={},byDay={};
+  (p&&p.sessions||[]).forEach(s=>(s.lessons||[]).forEach(raw=>{seance[typeof raw+':'+String(raw)]=s.d;}));
+  (done||[]).forEach(id=>{const d=itemDoneDay(id,seance[typeof id+':'+String(id)]);(byDay[d]=byDay[d]||[]).push(id);});
+  return Object.keys(byDay).sort().map(d=>({d,lessons:byDay[d]}));
+}
+/* Deux listes de séances, réunies jour par jour (les activités validées d’abord) */
+function planMergeSessions(a,b){
+  const m=new Map();
+  [...(a||[]),...(b||[])].forEach(s=>{if(!s||!s.d||!Array.isArray(s.lessons))return;const x=m.get(s.d);if(x)s.lessons.forEach(id=>{if(!x.lessons.includes(id))x.lessons.push(id);});else m.set(s.d,{d:s.d,lessons:[...s.lessons]});});
+  return [...m.values()].sort((x,y)=>x.d<y.d?-1:x.d>y.d?1:0);
 }
 function migrerPlan(){
   const p=state.plan; if(!p||!p.sessions||!p.sessions.length)return;
@@ -22440,8 +22637,8 @@ function lqPlanDone(say){
 function decalerPlanning(){
   const p=state.plan,prev=latePlanShiftPreview();
   if(!p||!prev){toast('Tout est déjà terminé');return;}
-  p.archive=prev.data.done.slice();
-  p.sessions=distribuerSessions(prev.data.remaining,prev.dates);
+  p.sessions=planMergeSessions(planAnchorDone(p,prev.data.done),distribuerSessions(prev.data.remaining,prev.dates));
+  p.archive=[];
   trierSessions();semaineOffset=0;jourSel=dstr(auj());lateRecoveryCollapsed=false;save();renderPlanning();
   lqPlanDone(`Planning décalé : tout reprend aujourd’hui, fin le ${dateCourte(prev.end)}`);
 }
@@ -22677,8 +22874,8 @@ function planAdjustCommit(preview){
   const p=state.plan;if(!p)return;
   const sc=document.getElementById('scr-planning'),scrollY=sc?sc.scrollTop:0;
   const triggerWasTop=planAdjustTrigger?.classList?.contains('pl-overview-adjust');
-  p.archive=preview.data.done.slice();
-  p.sessions=distribuerSessions(preview.data.remaining,preview.dates);
+  p.sessions=planMergeSessions(planAnchorDone(p,preview.data.done),distribuerSessions(preview.data.remaining,preview.dates));
+  p.archive=[];
   p.per=preview.choice.per;
   p.freq=preview.choice.freq;
   p.rythme=preview.choice.per===2?'calme':(preview.choice.per===5?'intensif':'regulier');
@@ -23066,7 +23263,7 @@ function lqHeadPoke(el){
   clearTimeout(el._pokeT);el._pokeT=setTimeout(()=>el.classList.remove('is-poke'),700);
 }
 if(typeof document!=='undefined'&&document.addEventListener)document.addEventListener('click',e=>{
-  const st=e.target&&e.target.closest&&e.target.closest('.lq-head-stk,.cd-memo-stk');
+  const st=e.target&&e.target.closest&&e.target.closest('.lq-head-stk,.cd-memo-stk,.perf-stk,.room-stk');
   if(st)lqHeadPoke(st);
 });
 /* L’icône d’une feuille (un émoji, ou le pictogramme de « Recommencer ») devient son autocollant ; une icône inconnue se pose sur une
@@ -23391,7 +23588,6 @@ function renderSemaine(){
       ${vis?`<button type="button" class="pl-chips-more" aria-controls="pl-day-list" aria-expanded="${listOpen?'true':'false'}" data-more="${hiddenN}" onclick="togglePlanDayList(this)">${planDayMoreLabel(listOpen,hiddenN)}</button>`:''}
     </div>
     ${nextDayPreviewHTML()}
-    ${p.archive&&p.archive.length?`<p class="pl-hint" style="text-align:left">${plur(p.archive.length,'activité')} déjà terminée${p.archive.length>1?'s':''} ${p.archive.length>1?'ont':'a'} été retirée${p.archive.length>1?'s':''} du calendrier.</p>`:''}
     <p class="pl-hint">Appuie longuement sur une activité pour la réordonner, ou utilise son calendrier pour la déplacer.</p>`;
 }
 const PL_OK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
@@ -23653,19 +23849,7 @@ function renderPlanning(){
     <section class="pl-week" aria-label="Calendrier et activités de la semaine">${renderSemaine()}</section>
     <details class="planning-progress" data-pp="glob"${ppOpen.glob?' open':''} ontoggle="ppToggle('glob',this)"><summary>Avancement global<span>${st.done}/${st.total} activités validées</span><i class="pgr-sum-bar" aria-hidden="true"><b style="width:${st.total?Math.round(st.done/st.total*100):0}%"></b></i></summary>${planOverviewHTML(st)}</details>
     ${moduleExplorerHtml()}`;
-  brancherDrag();renderHomeToday();lqPlanStk();
-}
-/* Les tuiles d’« Avancement global » portent leur autocollant, collé de travers sur un coin (Elisa, 31 octobre, 2 h 18 : « la DA du
-   site, stickers, animation ») : leçons, défis, série, temps d’étude, les 14 derniers jours et le prochain cap. */
-function lqPlanStk(){
-  const host=document.getElementById('planning-body');
-  if(!host||typeof lqStkSvg!=='function')return;
-  [['.pgr-stat.is-l','book'],['.pgr-stat.is-d','target'],['.pgr-stat.is-s','flame'],['.pgr-stat.is-t','clock'],['.pgr-chart','chart'],['.pgr-next','rocket']].forEach(([sel,k],i)=>{
-    host.querySelectorAll(sel).forEach(el=>{
-      if(el.querySelector(':scope>.pgr-stk'))return;
-      el.insertAdjacentHTML('afterbegin',`<span class="pgr-stk" style="--i:${i}" aria-hidden="true">${lqStkSvg(k)}</span>`);
-    });
-  });
+  brancherDrag();renderHomeToday();
 }
 function focusPlanningToday(){
   semaineOffset=0;jourSel=dstr(auj());renderPlanning();
@@ -25315,7 +25499,10 @@ function obPick(champ,val){
   obSelectionTimer=setTimeout(()=>root.classList.remove('ob-selection-update'),340);
 }
 function obInput(champ,val){
-  if(champ==='name'){draft.name=String(val||'').slice(0,32);obNamePreview();}
+  if(champ==='name'){
+    draft.name=String(val||'').slice(0,32);obNamePreview();
+    const next=document.getElementById('ob-next');if(next&&OB_SLIDES[obStep]==='name')next.disabled=!jeuNom(draft.name);
+  }
   if(champ==='referral')draft.referral=String(val||'').slice(0,80);
 }
 function obRunPractice(){
@@ -25566,11 +25753,13 @@ function paintOb(){
     const nameValue=esc(draft.name||'').replace(/"/g,'&quot;');
     html=`<div class="ob-screen ob-profile ob-name">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Apprenons à mieux<br> te <em>connaître</em>.</h1>
       <p class="ob-lead">Quelques étapes rapides pour personnaliser ton départ.</p>
-      ${obMascotQuestion('Enchantée ! Comment dois-je t’appeler ?')}
-      <label class="ob-field"><span>Prénom</span><input type="text" maxlength="32" value="${nameValue}" placeholder="Ton prénom" autocomplete="given-name" enterkeyhint="next" oninput="obInput('name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();obGoto('goal');}"></label>
+      ${obMascotQuestion('Enchantée ! Quel pseudo choisis-tu ?')}
+      <label class="ob-field"><span>Ton pseudo <small class="ob-field-opt">prénom ou surnom</small></span><input type="text" maxlength="16" value="${nameValue}" placeholder="Ex. Léa" autocomplete="nickname" autocapitalize="words" enterkeyhint="next" required aria-required="true" aria-describedby="ob-name-help" oninput="obInput('name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();if(jeuNom(draft.name))obGoto('goal');}"></label>
       <div class="ob-name-preview" id="ob-name-preview" aria-hidden="true"><span class="ob-name-initial" id="ob-name-initial"></span><span id="ob-name-greet"></span></div>
-      <p class="ob-helper">Tu pourras le modifier plus tard.</p></div>`;
-    obSetFooter('Continuer',()=>obGoto('goal'),'Passer pour le moment',()=>obGoto('goal'),'1 question facultative · tes réponses restent modifiables');
+      <p class="ob-helper" id="ob-name-help">C’est ton nom dans l’appli, et celui que tes amis voient dans les salles de défi. Tu pourras le changer dans Mon compte.</p></div>`;
+    /* Elisa, 31 octobre, 8 h 06 : « le pseudo doit déjà être défini avant, dans l’onboarding (inscription) ». L’étape n’est plus
+       facultative : « Continuer » attend un pseudo (un surnom suffit), et la salle de défi ne le redemande plus. */
+    obSetFooter('Continuer',()=>{if(jeuNom(draft.name))obGoto('goal');},'','','Un surnom suffit : pas besoin de ton vrai nom',!jeuNom(draft.name));
   }else if(slide==='goal'){
     html=`<div class="ob-screen ob-profile ob-goal">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Fixons ton <em>objectif</em><br>d’apprentissage.</h1>
       <p class="ob-lead">Cela nous aide à construire un départ qui te ressemble.</p>
@@ -25646,6 +25835,7 @@ function finishOnboard(action){
   if(!draft.freq)draft.freq=7;
   state.plan=apercuPlan(draft.niveau,draft.rythme,draft.freq);
   state.name=String(draft.name||state.name||'').trim().slice(0,32);
+  try{const n=jeuNom(state.name);if(n)localStorage.setItem('rq-jeu-nom',n);}catch(e){}
   state.profile={
     goal:draft.goal||'',
     ageRange:draft.ageRange||'',
@@ -26085,8 +26275,8 @@ function renderCompte(){
       <summary><span>Profil et objectif</span><small>Adapte le parcours à tes besoins</small><i aria-hidden="true">×</i></summary>
       <div class="plus-details-body">
         <div class="acc-field">
-          <label for="acc-name">Prénom</label>
-          <input id="acc-name" type="text" maxlength="32" value="${esc(name).replace(/"/g,'&quot;')}" placeholder="Sur cet appareil" autocomplete="given-name" enterkeyhint="done" onkeydown="if(event.key==='Enter'){event.preventDefault();saveAccountName();}">
+          <label for="acc-name">Pseudo</label>
+          <input id="acc-name" type="text" maxlength="16" value="${esc(name).replace(/"/g,'&quot;')}" placeholder="Ex. Léa" autocomplete="nickname" enterkeyhint="done" onkeydown="if(event.key==='Enter'){event.preventDefault();saveAccountName();}">
           <button class="acc-save" type="button" onclick="saveAccountName()">Enregistrer</button>
         </div>
         <button class="acc-row" type="button" onclick="startOnboarding('name')">
@@ -26202,9 +26392,11 @@ function openLegal(kind){
 function saveAccountName(){
   const inp=document.getElementById('acc-name');
   state.name=((inp&&inp.value)||'').trim().slice(0,32);
+  /* Le même pseudo dans les salles de défi. */
+  try{const n=jeuNom(state.name);if(n)localStorage.setItem('rq-jeu-nom',n);else localStorage.removeItem('rq-jeu-nom');}catch(e){}
   closePlusDetails();
   save(); renderGreeting(); renderCompte();
-  lqDone(document.querySelector('#scr-compte .acct-id-copy b'),'Enregistré','Prénom enregistré');
+  lqDone(document.querySelector('#scr-compte .acct-id-copy b'),'Enregistré','Pseudo enregistré');
   if(navigator.vibrate)navigator.vibrate(10);
 }
 function replayOnboarding(){
@@ -26394,7 +26586,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-31-carte-da-v2203';
+  const SW_CACHE='requete-2026-10-31-perf-pseudo-v2204';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
