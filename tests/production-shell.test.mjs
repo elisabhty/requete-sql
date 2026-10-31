@@ -94,12 +94,14 @@ assert(html.includes('const session=recommendedSession();') && html.includes('se
 assert(html.includes('class="module home-module ${complete') && html.includes('<summary class="home-module-summary">') && html.includes('Tous les cours'), 'long catalogue remplacé par des modules compacts consultables à la demande');
 assert(html.includes('class="lesson-validation"') && html.includes('<em>Validé</em>'), 'chaque leçon terminée porte un libellé Validé explicite');
 assert(html.includes("complete?'Toutes les leçons sont validées'") && html.includes('class="home-module-valid">Validé</em>'), 'un module porte Validé uniquement lorsque toutes ses leçons le sont');
-assert(html.includes('def-focus-kicker') && html.includes("'Prochain défi'") && html.includes('def-focus-total'), 'Défis met en avant la prochaine action et le nombre restant');
-assert(html.includes('def-focus-stats') && html.includes('doneByNiv') && html.includes('Faciles</small>'), 'progression des défis calculée pour chaque difficulté');
-assert(html.includes('aria-label="${pct}% des défis réussis"') && html.includes('def-focus-icon'), 'pourcentage global des défis annoncé de façon accessible');
-assert(html.includes('class="def-row-valid"') && html.includes('<em>Validé</em>'), 'chaque défi réussi porte un libellé Validé explicite');
-assert(html.includes("selectedDone===selected.length?'Niveau validé':'Choisis ton défi'"), 'niveau entier explicitement validé lorsque tous ses défis sont réussis');
-assert(html.includes('renderDefis(catalogOnly=false)') && html.includes('renderDefis(true)') && html.includes('def-list-static'), 'changement de difficulté sans reconstruction du bandeau ni animation blanche');
+/* Elisa, 31 octobre, 1 h 34 : « pour Défis : il n’y a pas de défis libres, d’entraînement libre, que la salle de défi (tirage au
+   sort quand on rentre, parmi le niveau de difficulté) ». L’onglet ne garde que la salle, ses règles et rejoindre un ami. */
+assert(html.includes('<div id="defis-room"></div>') && html.includes('<div id="defis-join" class="jeu"></div>') && html.includes('<div id="defis-rules"></div>'), 'Défis : la salle, rejoindre, les règles des points');
+assert(!html.includes('function setDefisLevel(') && !html.includes('function defiListRow(') && !html.includes('id="defis-list"') && !html.includes('def-list-static'), 'plus d’entraînement libre ni de liste de défis dans l’onglet');
+assert(html.includes('function renderDefis(){') && html.includes('renderDefisRoom();renderDefisJoin();renderDefisRules();'), 'l’onglet se dessine en trois blocs');
+assert(html.includes('<li><b>🎯 Défi réussi</b><span>+${JEU_PTS_OK}</span></li>') && html.includes('<li><b>⚡ Rapidité</b><span>jusqu’à +${JEU_PTS_VITE}</span>'), 'règles des points écrites depuis les constantes de la salle');
+assert(html.includes("function jeuChrono(ms){const s=Math.max(0,Math.floor(ms/1000));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}"), 'chrono qui monte depuis 00:00');
+assert(html.includes('<span class="room-stk" aria-hidden="true">${lqStkSvg(\'target\')}</span>') && html.includes('<h2 id="room-h">Entre dans la salle</h2>'), 'la salle, en tête de l’onglet, à la DA de l’appli');
 assert(html.includes('function planOverviewHTML(st)') && html.includes('class="pgr-donut"') && html.includes('Avancement global') && html.includes('Prochain cap'), 'Parcours présente un résumé global, un pourcentage et la prochaine activité');
 assert(html.includes('class="pgr-stats"') && html.includes('doneLessons') && html.includes('doneChallenges') && html.includes('class="pgr-bars"'), 'statistiques et graphique d’activité du parcours calculés depuis les leçons et défis réellement validés');
 assert(html.includes('Les 7 prochains jours') && html.includes('pl-week-legend') && html.includes('weekComplete'), 'planning hebdomadaire annonce les séances prévues et validées');
@@ -145,7 +147,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 const glissantes = fs.readFileSync(path.join(ROOT, 'assets/anim/fenetres-glissantes.html'), 'utf8');
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && ['UNBOUNDED PRECEDING', '2 PRECEDING', '2 FOLLOWING', 'CURRENT ROW'].every(c => glissantes.includes(c)) && html.includes('NTILE(4)'), 'cadres (dans la vidéo) et fonctions de fenêtre avancées (défi NTILE) couverts');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-10-31-fin-schema-v2200') && html.includes('requete-2026-10-31-fin-schema-v2200') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-10-31-defis-points-v2201') && html.includes('requete-2026-10-31-defis-points-v2201') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);

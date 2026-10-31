@@ -395,7 +395,8 @@ test('vidéo : la scène « La méthode » cite ses sources, sans logo d’unive
 
 /* Elisa, 30 octobre, 20 h 01 : « met dans la vidéo : défie tes amis (sur les cas pratiques) ». Après « Cas résolu ! », la
    salle de défi de l’appli sur le même cas : son code, « le plus rapide gagne », le classement de la manche (médailles,
-   pseudos, temps, 3, 2 puis 1 point), et les réactions des amis. */
+   pseudos, temps, points), et les réactions des amis. Depuis le 31 octobre (1 h 34), les points sont ceux de la salle :
+   100 pour la réussite, +50, +30, +15 aux trois premiers, et jusqu’à +60 de rapidité ; le chrono s’écrit 00:00. */
 test('vidéo : défie tes amis sur le cas pratique, comme la salle de défi de l’appli', () => {
   const app = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const i = video.indexOf('<section class="scene" id="sdf">'), sc = video.slice(i, video.indexOf('</section>', i));
@@ -405,11 +406,16 @@ test('vidéo : défie tes amis sur le cas pratique, comme la salle de défi de l
   assert.ok(app.includes('chacun résout ce défi au même moment, le plus rapide gagne.'), 'la règle de l’appli');
   const code = d.match(/<span class="du-code">Salle <b>([A-Z0-9]+)<\/b><\/span>/)[1], ALPH = app.match(/const JEU_ALPH='([A-Z0-9]+)';/)[1];
   assert.ok(code.length === 6 && [...code].every(c => ALPH.includes(c)), `code de salle ${code}, comme ceux de l’appli`);
-  const rangs = [...d.matchAll(/<li(?: class="me")?><span class="du-md">(.)(?:.)?<\/span><span class="du-av"[^>]*>.<\/span><b>([^<]+)<\/b><em class="du-t">(\d:\d\d)<\/em><small>\+(\d)<\/small>/gu)]
+  const rangs = [...d.matchAll(/<li(?: class="me")?><span class="du-md">(.)(?:.)?<\/span><span class="du-av"[^>]*>.<\/span><b>([^<]+)<\/b><em class="du-t">(\d\d:\d\d)<\/em><small>\+(\d+)<\/small>/gu)]
     .map(m => [m[2], m[3], +m[4]]);
-  assert.deepEqual(rangs, [['Toi', '1:12', 3], ['Inès', '1:31', 2], ['Hugo', '1:48', 1]]);
-  assert.deepEqual(JSON.parse(app.match(/const JEU_POINTS=(\[[\d,]+\]);/)[1]), [3, 2, 1], 'points de l’appli');
-  assert.ok(video.includes('const meX = $(\'#me-x15\'), duT = $$(\'#duel .du-t\'), DUS = [72, 91, 108];'), 'les temps montent jusqu’à 1:12, 1:31 et 1:48');
+  assert.deepEqual(rangs, [['Toi', '01:12', 186], ['Inès', '01:31', 159], ['Hugo', '01:48', 139]]);
+  /* Les points de l’appli, recalculés : réussite + rang + rapidité (1 point de moins toutes les 3 s, plafonné) */
+  const [, OK, RANG, VITE] = app.match(/const JEU_PTS_OK=(\d+),JEU_PTS_RANG=(\[[\d,]+\]),JEU_PTS_VITE=(\d+);/), ROUND = +app.match(/const JEU_ROUND_MS=(\d+);/)[1];
+  assert.ok(app.includes('function jeuSpeedPts(ms){return Math.max(0,Math.min(JEU_PTS_VITE,Math.floor((JEU_ROUND_MS-ms)/3000)));}'));
+  assert.deepEqual([72, 91, 108].map((s, i) => +OK + JSON.parse(RANG)[i] + Math.max(0, Math.min(+VITE, Math.floor((ROUND - s * 1000) / 3000)))), [186, 159, 139], 'points de l’appli');
+  assert.ok(app.includes("<em>${jeuChrono(x.ms)}</em><small>+${x.pts}</small>"), 'la ligne de l’appli : le temps, puis les points gagnés');
+  assert.ok(video.includes('const meX = $(\'#me-x15\'), duT = $$(\'#duel .du-t\'), DUS = [72, 91, 108];'), 'les temps montent jusqu’à 01:12, 01:31 et 01:48');
+  assert.ok(video.includes("e.textContent = String(Math.floor(v / 60)).padStart(2, '0') + ':' + String(v % 60).padStart(2, '0');"), 'le chrono s’écrit comme dans l’appli');
   /* Dans la scène des cas pratiques, entre le tampon et la fin de la scène */
   const at = sel => +video.match(new RegExp(`rise\\('${sel}', ([\\d.]+)`))[1];
   assert.ok(at('#duel') > 105.9 && at('#duel') < 110.5);

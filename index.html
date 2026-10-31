@@ -5195,7 +5195,6 @@
   .def-list-head>span{flex:none;padding:5px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-family:var(--mono);font-size:10.5px;font-weight:750}
   #scr-defis .def-list-head{animation:softPanelIn .38s var(--spring-ios) .06s both}
   #scr-defis .def-list{overflow:hidden;border:1px solid rgba(39,42,54,.075);border-radius:24px;background:rgba(255,255,255,.97);box-shadow:0 17px 38px -29px rgba(31,33,45,.42),inset 0 .5px 0 #fff;animation:softPanelIn .42s var(--spring-ios) .1s both}
-  #scr-defis .def-list-static .def-list-head,#scr-defis .def-list-static .def-list,#scr-defis .def-list-static .def-row .def-row-num,#scr-defis .def-list-static .def-row .def-row-copy,#scr-defis .def-list-static .def-row .def-row-chev,#scr-defis .def-levels-static .def-level.on{animation:none!important}
   #scr-defis .def-row{
     position:relative;width:100%;min-height:72px;padding:12px 13px;border:0;background:transparent;color:var(--ink);font-family:var(--ui);text-align:left;
     display:flex;align-items:center;gap:12px;cursor:pointer;touch-action:manipulation;transition:background .16s,transform .16s var(--spring-ios)
@@ -6638,7 +6637,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=34">
+<link rel="stylesheet" href="ludique.css?v=35">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -7337,17 +7336,14 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
       <button type="button" class="home-back root-home-back" onclick="returnToParent()" aria-label="Retour à Pratiquer"><svg viewBox="0 0 12 20" fill="none" aria-hidden="true"><path d="M10 2L3 10l7 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Pratiquer</span></button>
       <div class="lgtitle">
         <div>
-          <div class="eyebrow">Entraînement</div>
+          <div class="eyebrow">Salle de défi</div>
           <h1>Défis</h1>
-          <p class="sub" id="defis-sub">Tous les défis, du plus simple au grand bain.</p>
+          <p class="sub" id="defis-sub">Des défis tirés au sort, au niveau que tu choisis.</p>
         </div>
       </div>
       <div id="defis-room"></div>
       <div id="defis-join" class="jeu"></div>
-      <div class="def-free" id="defis-free"><h2>Entraînement libre</h2><p>Choisis toi-même un défi, sans tirage au sort ni chrono.</p></div>
-      <div id="defis-hero"></div>
-      <div class="def-levels" id="defis-levels" role="tablist" aria-label="Filtrer les défis par difficulté"></div>
-      <div id="defis-list" class="group-stack"></div>
+      <div id="defis-rules"></div>
     </section>
 
     <!-- DÉTAIL (leçon / défi / révision) -->
@@ -10561,7 +10557,7 @@ async function editDbNote(id){
   projOf(id).desc=v; saveProjState();
   renderConsoleScreen();
   lqFresh(document.querySelector('#scr-console .console-desc'));
-  toast(v?'Description enregistrée':'Description retirée');
+  lqSay(v?'Description enregistrée':'Description retirée');
 }
 async function editTableNote(name){
   const v=await lqPrompt({ico:'🗂️',titre:`Table « ${name} »`,texte:'Décris en quelques mots ce que contient chaque ligne.',
@@ -10570,7 +10566,7 @@ async function editTableNote(name){
   const p=projOf(activeDbId); p.tdesc=p.tdesc||{}; p.tdesc[name]=v; saveProjState();
   renderDbWorkspace();
   lqFresh(document.querySelector(`#db-tables .db-tblock[data-table="${CSS.escape(name)}"]`));
-  toast(v?'Description enregistrée':'Description retirée');
+  lqSay(v?'Description enregistrée':'Description retirée');
 }
 function projectName(id){
   if(id==='cours') return 'Cours';
@@ -10751,7 +10747,7 @@ async function renameDb(id){
   const name=await lqPrompt({ico:'✏️',titre:'Renommer le projet',valeur:meta.name,placeholder:'Analyse des ventes',max:40,oui:'Renommer'});
   if(!name||name===meta.name)return;
   meta.name=name.slice(0,40);
-  persistCustomDbs();renderConsoleHome();toast('Projet renommé');
+  persistCustomDbs();renderConsoleHome();lqDone(document.querySelector(`#scr-console [data-db="${CSS.escape(id)}"]`)||document.querySelector('#scr-console .console-title-row h1'),'Renommé','Projet renommé');
 }
 function consoleSchemaStats(){
   const database=activeDb();
@@ -10971,8 +10967,8 @@ function pinConsoleQuery(){
   const p=projOf(activeDbId);
   const key=consoleSqlKey(t);
   const idx=p.pins.findIndex(it=>consoleSqlKey(it.sql)===key);
-  if(idx>=0){p.pins=removeConsoleQuery(p.pins,t);toast('Requête désépinglée');}
-  else{p.pins=promoteConsoleQuery(p.pins,{sql:t,ts:Date.now()},PIN_MAX);toast('Requête épinglée','Retrouve-la dans l’onglet Épinglées');}
+  if(idx>=0){p.pins=removeConsoleQuery(p.pins,t);lqSay('Requête désépinglée');}
+  else{p.pins=promoteConsoleQuery(p.pins,{sql:t,ts:Date.now()},PIN_MAX);lqSay('Requête épinglée : retrouve-la dans l’onglet Épinglées');}
   saveProjState();
   renderConsoleSide();
   lqPinFx(document.getElementById('console-pin-current'),idx<0);
@@ -10988,13 +10984,13 @@ function lqPinFx(btn,on){
 }
 function unpinConsoleQuery(i){
   const p=projOf(activeDbId);if(!p.pins[i])return;
-  p.pins=removeConsoleQuery(p.pins,p.pins[i].sql);saveProjState();renderConsoleSide();toast('Requête désépinglée');
+  p.pins=removeConsoleQuery(p.pins,p.pins[i].sql);saveProjState();renderConsoleSide();lqSay('Requête désépinglée');
 }
 function toggleHistoryPin(i){
   const p=projOf(activeDbId),it=p.hist[i];if(!it)return;
   const sql=String(it.sql||'').trim(),key=consoleSqlKey(sql),idx=p.pins.findIndex(x=>consoleSqlKey(x.sql)===key);
-  if(idx>=0){p.pins=removeConsoleQuery(p.pins,sql);toast('Requête désépinglée');}
-  else{p.pins=promoteConsoleQuery(p.pins,{sql,ts:Date.now()},PIN_MAX);toast('Requête épinglée');}
+  if(idx>=0){p.pins=removeConsoleQuery(p.pins,sql);lqSay('Requête désépinglée');}
+  else{p.pins=promoteConsoleQuery(p.pins,{sql,ts:Date.now()},PIN_MAX);lqSay('Requête épinglée');}
   saveProjState();renderConsoleSide();
   lqPinFx(document.querySelector(`#console-hist .console-query-pin[data-pin-key="${CSS.escape(key)}"]`),idx<0);
 }
@@ -11002,7 +10998,7 @@ function clearConsoleHistory(){
   const p=projOf(activeDbId);if(!p.hist.length)return;
   lqAsk({ico:'🧹',titre:'Effacer l’historique ?',texte:'Les requêtes exécutées dans ce projet ne seront plus listées.',oui:'Effacer',non:'Garder',danger:true}).then(ok=>{
     if(!ok)return;
-    p.hist=[];saveProjState();renderConsoleSide();toast('Historique effacé');
+    p.hist=[];saveProjState();renderConsoleSide();lqSay('Historique effacé');
   });
 }
 function loadHistSql(i){
@@ -11023,8 +11019,7 @@ function fillConsoleSql(sql){
   fitSqlEditor(ta);
   persistEditor('ed-console');
   updateConsolePinButton();
-  requestAnimationFrame(()=>document.querySelector('#scr-console .console-editor-shell')?.scrollIntoView({behavior:prefersReduceMotion()?'auto':'smooth',block:'nearest'}));
-  toast('Requête ouverte dans l’éditeur');
+  requestAnimationFrame(()=>{const sh=document.querySelector('#scr-console .console-editor-shell');sh?.scrollIntoView({behavior:prefersReduceMotion()?'auto':'smooth',block:'nearest'});lqDone(sh,'Prête','Requête ouverte dans l’éditeur');});
 }
 function clearConsoleEditor(){
   const ta=document.getElementById('ed-console');
@@ -11068,7 +11063,7 @@ async function resetTable(name){
   renderConsoleChips();
   renderConsoleSchemaSummary();
   requestAnimationFrame(()=>flashTableReset(name));
-  toast(`Table « ${name} » restaurée`,activeDbId==='cours'?'Données du cours rétablies':'État initial du fichier rétabli');
+  lqDone(document.querySelector(`#db-tables .db-tblock[data-table="${CSS.escape(name)}"]`),'Restaurée',`Table « ${name} » restaurée : ${activeDbId==='cours'?'données du cours rétablies':'état initial du fichier rétabli'}`);
 }
 function switchDb(id){
   if(id!=='cours'&&!customDbs[id])return;
@@ -11080,7 +11075,7 @@ function switchDb(id){
   renderConsoleChips();
   renderConsoleSchemaSummary();
   const name=(dbCatalog.find(d=>d.id===id)||{}).name||id;
-  toast('Base active · '+name);
+  lqSay('Base active : '+name);
 }
 function promptNewDb(){
   openProjectCreator();
@@ -11175,25 +11170,28 @@ function renderDbWorkspace(){
     const note=tableNote(activeDbId,t);
     /* La description dit ce qu’elle est (Elisa, 31 octobre, 0 h 19 : « on ne comprend pas c’est la description de quoi ») : une petite
        fiche dans la carte de sa table, « Description de la table » au-dessus du texte, le crayon pour la modifier. */
-    const noteHtml=note?`<button type="button" class="db-tnote" onclick="editTableNote(decodeURIComponent('${enc}'))" aria-label="Description de ${escAttr(t)} : ${escAttr(note)}. Modifier"><i class="db-tnote-k" aria-hidden="true">${lqStkSvg('note')}</i><span><small>Description de la table</small>${esc(note)}</span><i aria-hidden="true">${CONSOLE_EDIT_SVG}</i></button>`
+    /* Elisa, 31 octobre, 1 h 34 : « mettre la description en haut de SELECT etc. plutôt, et qu’elle ne s’affiche que quand on déplie » :
+       la fiche se glisse dans la ligne de la table, entre son nom et ses actions, seulement quand la table est dépliée. */
+    const noteHtml=!open?'':note?`<button type="button" class="db-tnote" onclick="editTableNote(decodeURIComponent('${enc}'))" aria-label="Description de ${escAttr(t)} : ${escAttr(note)}. Modifier"><i class="db-tnote-k" aria-hidden="true">${lqStkSvg('note')}</i><span><small>Description de la table</small>${esc(note)}</span><i aria-hidden="true">${CONSOLE_EDIT_SVG}</i></button>`
       :open?`<button type="button" class="db-tnote is-empty" onclick="editTableNote(decodeURIComponent('${enc}'))"><i aria-hidden="true">${NOTE_PLUS_SVG}</i><span>Ajouter une description de la table</span></button>`:'';
     /* Le nom prend toute la ligne (il ne se coupe plus en « conta… »), le nombre de lignes dessous ; les actions se rangent à droite, ou
-       sous le nom quand la carte est étroite (Elisa : « ce n’est pas responsive ») */
+       sous le nom quand la carte est étroite (Elisa : « ce n’est pas responsive »). Un long nom passe à la ligne après un « _ » plutôt
+       qu’au milieu d’un mot (« requete_sql_progression__ / 4_ », et non un « _ » seul en bas). */
     return `<div class="db-tblock" data-table="${escAttr(t)}">
       <div class="db-trow ${open?'open':''}">
         <button type="button" class="db-tmain" onclick="toggleTableSchema(decodeURIComponent('${enc}'))" aria-expanded="${open?'true':'false'}" title="${open?'Masquer les colonnes':'Voir les colonnes, PK et FK'}">
           <span class="db-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           <span class="tk">table</span><span class="db-tico" aria-hidden="true">${lqStkSvg('table')}</span>
-          <span class="db-tname"><span class="tn">${esc(t)}</span><span class="tc">${typeof n==='number'?plur(n,'ligne'):`${n}\u00a0lig.`}</span></span>
+          <span class="db-tname"><span class="tn">${esc(t).replace(/_/g,'_<wbr>')}</span><span class="tc">${typeof n==='number'?plur(n,'ligne'):`${n}\u00a0lig.`}</span></span>
           <span class="db-thint">${open?'Masquer':'Colonnes ›'}</span>
         </button>
+        ${noteHtml}
         <span class="db-tacts">
         <button type="button" class="tb" onclick="queryTable(decodeURIComponent('${enc}'))">SELECT</button>
         <button type="button" class="tb reset-table" data-table="${escAttr(t)}" onclick="resetTable(decodeURIComponent('${enc}'))" aria-label="${resettable?`Réinitialiser la table ${escAttr(t)}`:`Aucun état initial pour la table ${escAttr(t)}`}" title="${resettable?'Restaurer les données initiales':'Aucun état initial enregistré'}" ${resettable?'':'disabled'}>${CONSOLE_RESET_SVG}<span>Restaurer</span></button>
         <button type="button" class="tb danger drop-table" onclick="dropTable(decodeURIComponent('${enc}'))" aria-label="Supprimer la table ${escAttr(t)}" title="Supprimer la table">${CONSOLE_TRASH_SVG}</button>
         </span>
       </div>
-      ${noteHtml}
       ${colsHtml}
     </div>`;
   }).join('');
@@ -11216,7 +11214,7 @@ async function dropTable(name){
     renderDbWorkspace();
     renderConsoleSchemaSummary();
     const p=projOf(activeDbId); if(p.tdesc&&p.tdesc[name]!=null){delete p.tdesc[name];saveProjState();}
-    toast('Table supprimée');
+    lqSay('Table supprimée');
   }catch(e){ lqInfo('Suppression impossible',String(e.message||e)); }
 }
 /* ---------- Import CSV / JSON / SQL ---------- */
@@ -11651,7 +11649,7 @@ async function confirmImport(){
           : `<div class="feedback ok"><div class="fi">✓</div><div><b>Import réussi</b><p>${tabs.length?`Tables : ${tabs.map(t=>'<code>'+esc(t)+'</code>').join(', ')}.`:'Script exécuté.'}</p></div></div>`;
       }
     }
-    toast(asDb?'Projet importé':'Table importée');
+    lqSay(asDb?'Projet importé':'Table importée');
   }catch(e){
     lqInfo('Import impossible',String(e.message||e));
   }
@@ -11911,6 +11909,37 @@ function tableSwipePeek(shell){
     setTimeout(()=>{if(wrap.scrollLeft<=60)wrap.scrollTo({left:0,behavior:'smooth'});},620);
   },700);
 }
+/* La barre de position se tire, à la souris comme au doigt : c’est la seule barre sous le tableau, la barre native est masquée
+   (ludique.css, 43 — Elisa, 31 octobre, 1 h 34 : « deux barres au lieu d’une »). Un appui hors de la poignée l’y amène. */
+function tablePosDrag(shell,pos){
+  const wrap=shell.querySelector('.table-wrap');
+  if(!wrap||!pos)return;
+  let grab=null;
+  const geo=()=>{
+    const r=pos.getBoundingClientRect(), max=wrap.scrollWidth-wrap.clientWidth;
+    const thumb=r.width*Math.min(1,wrap.clientWidth/Math.max(1,wrap.scrollWidth));
+    return {r,max,thumb,room:r.width-thumb};
+  };
+  const place=e=>{
+    const g=geo(); if(g.max<=0||g.room<=0)return;
+    const left=Math.max(0,Math.min(g.room,e.clientX-g.r.left-grab));
+    wrap.scrollLeft=left/g.room*g.max;
+  };
+  pos.addEventListener('pointerdown',e=>{
+    const g=geo(); if(g.max<=0||g.room<=0)return;
+    const cur=g.room*(wrap.scrollLeft/g.max), x=e.clientX-g.r.left;
+    grab=(x>=cur&&x<=cur+g.thumb)?x-cur:g.thumb/2;
+    try{pos.setPointerCapture(e.pointerId);}catch(_){}
+    pos.classList.add('is-drag');
+    place(e);
+    e.preventDefault();
+  });
+  pos.addEventListener('pointermove',e=>{ if(grab!=null)place(e); });
+  const end=()=>{ grab=null; pos.classList.remove('is-drag'); };
+  pos.addEventListener('pointerup',end);
+  pos.addEventListener('pointercancel',end);
+  pos.addEventListener('lostpointercapture',end);
+}
 function bindTableSwipe(root){
   const scope=root&&root.querySelectorAll?root:document;
   const shells=root&&root.classList&&root.classList.contains('table-scroll')?[root]:[...scope.querySelectorAll('.table-scroll')];
@@ -11923,6 +11952,7 @@ function bindTableSwipe(root){
       if(!shell.querySelector('.table-pos')){
         const pos=document.createElement('div');pos.className='table-pos';pos.setAttribute('aria-hidden','true');pos.innerHTML='<i></i>';
         shell.appendChild(pos);
+        tablePosDrag(shell,pos);
       }
       const overlay=shell.querySelector('.table-swipe');
       if(overlay&&!overlay.querySelector('.table-next')){
@@ -12014,12 +12044,15 @@ function runConsole(){
       const n=(res&&res[0])?res[0].values.length:null;
       paint(`<div class="console-out-ready result-live">${renderTable(res,ms)}</div>`);
       recordConsoleRun(sql,true,{n:n==null?null:fmtLignes(n),ms});
-      if(activeDbId!=='cours'&&touched()) persistCustomDbs();
+      const moved=touched();
+      if(activeDbId!=='cours'&&moved) persistCustomDbs();
       renderDbWorkspace();
+      /* La première table créée ici fait disparaître « Ta base est vide » et montre ses exemples ; la dernière supprimée les retire. */
+      if(moved) renderConsoleChips();
     }catch(e){
       paint(`<div class="console-out-ready result-live">${errBox(e.message)}</div>`);
       recordConsoleRun(sql,false,{err:String(e.message||'Erreur').slice(0,80)});
-      if(touched()){ if(activeDbId!=='cours') persistCustomDbs(); renderDbWorkspace(); }
+      if(touched()){ if(activeDbId!=='cours') persistCustomDbs(); renderDbWorkspace(); renderConsoleChips(); }
     }
   };
   if(prefersReduceMotion())finish();
@@ -12350,6 +12383,7 @@ function refreshKbarNow(ta){
     const ds=schema?` data-schema="${schema}"`:'';
     return `<button type="button" class="${cls}" data-k="${escAttr(k)}"${ds}>${esc(k)}</button>`;
   }).join('');
+  requestAnimationFrame(kbarEdges);
   if(bar.classList.contains('on')) syncKbarOffset();
 }
 function refreshKbar(ta,immediate){
@@ -12388,8 +12422,18 @@ function kbarDockToggle(){
     activeTA.focus({preventScroll:true});
   }
 }
+/* La barre « Insérer » défile de côté : ses bords s’estompent là où il reste des touches à voir, plutôt que de couper net une touche
+   (Elisa, 31 octobre, 1 h 34 : « il y a une coupure je crois »). kbarEdges() pose is-start / is-end (ludique.css, 43). */
+function kbarEdges(){
+  const box=document.getElementById('kbar-in');if(!box)return;
+  const max=box.scrollWidth-box.clientWidth;
+  box.classList.toggle('is-start',box.scrollLeft<=2);
+  box.classList.toggle('is-end',max<=2||box.scrollLeft>=max-2);
+}
 function buildKbar(){
   refreshKbar(null,true);
+  const kin=document.getElementById('kbar-in');
+  if(kin&&!kin.dataset.edges){ kin.dataset.edges='1'; kin.addEventListener('scroll',kbarEdges,{passive:true}); addEventListener('resize',()=>requestAnimationFrame(kbarEdges)); }
   const bar=document.getElementById('kbar');
   const dock=document.getElementById('kbar-dock');
   if(dock){
@@ -13778,7 +13822,7 @@ function renderJourneyHub(tab){
     const next=challenges.find(c=>!(state.defis&&state.defis[c.id]));
     const nOk=challenges.filter(c=>state.defis&&state.defis[c.id]).length;
     lead=next
-      ?`<section class="journey-spotlight"><p class="journey-kicker">Prochain défi · ${nOk} / ${challenges.length}</p><h2>${esc(next.titre)}</h2><p>${esc(next.q)}</p><button type="button" class="journey-primary" onclick="openChallenge('${next.id}')"><span>Relever le défi</span>${DEF_CHEV_SVG}</button></section>`
+      ?`<section class="journey-spotlight"><p class="journey-kicker">Prochain défi · ${nOk} / ${challenges.length}</p><h2>${esc(next.titre)}</h2><p>${esc(next.q)}</p><button type="button" class="journey-primary" onclick="switchTab('defis')"><span>Entrer dans la salle</span>${DEF_CHEV_SVG}</button></section>`
       :(challenges.length?`<section class="journey-spotlight"><p class="journey-kicker">Défis</p><h2>Tout est réussi</h2><p>Rejoue un défi pour garder tes automatismes.</p><button type="button" class="journey-primary" onclick="switchTab('defis')"><span>Revoir les défis</span>${DEF_CHEV_SVG}</button></section>`:'');
   }else if(stats.due){
     lead=`<section class="journey-spotlight"><p class="journey-kicker">À réviser</p><h2>${stats.due} leçon${stats.due>1?'s':''} à revoir</h2><p>Quelques minutes pour fixer ce que tu as déjà vu.</p><button type="button" class="journey-primary" onclick="startReview()"><span>Commencer la révision</span>${DEF_CHEV_SVG}</button></section>`;
@@ -13924,17 +13968,8 @@ function lessonListRow(l){
     ${due?'<span class="catalog-lesson-state review">À réviser</span>':cur?'<span class="catalog-lesson-state next">Tu es ici</span>':''}
     ${ok?`<span class="lesson-validation"><span class="lesson-status" aria-hidden="true">${ENT_OK_SVG}</span><em>Validé</em></span>`:`<svg class="chev" aria-hidden="true" width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M1.5 1.5L7 7.5l-5.5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`}</button>`;
 }
-let defisLevel='f';
 const DEF_FLAG_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4.5"/><path d="M5 5c4-2.6 7 2.2 14-.4v10c-7 2.6-10-2.2-14 .4"/></svg>';
 const DEF_CHEV_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
-function defiListRow(c,i){
-  const ok=!!(state.defis&&state.defis[c.id]);
-  return `<button type="button" class="def-row${ok?' done':''}" onclick="openChallenge('${c.id}')">
-    <span class="def-row-num" aria-hidden="true">${String(i+1).padStart(2,'0')}</span>
-    <span class="def-row-copy"><b>${esc(c.titre)}</b><small>${esc(c.q)}</small></span>
-    ${ok?`<span class="def-row-valid"><span class="def-row-status" aria-hidden="true">${ENT_OK_SVG}</span><em>Validé</em></span>`:`<span class="def-row-chev" aria-hidden="true">${DEF_CHEV_SVG}</span>`}
-  </button>`;
-}
 /* Place d’une leçon dans son module (numéro 1…n affiché sur le chemin). */
 const LESSON_POS=new Map();
 function lessonPos(id){
@@ -13982,7 +14017,7 @@ function renderModules(){
     const complete=done===tot;
     const secs=moduleStudySecs(mod);
     const status=complete?'Toutes les leçons sont validées':done?`${tot-done} leçon${tot-done>1?'s':''} restante${tot-done>1?'s':''}`:(mod.sous||'À découvrir');
-    return `<details class="module home-module ${complete?'validated':''}${moduleIndex===curMod?' is-current':''}" data-module-index="${moduleIndex}" data-mc="${moduleIndex%8}" style="--i:${moduleIndex}"${openModules.has(String(moduleIndex))?' open':''} ontoggle="lqModuleToggle(this)"><summary class="home-module-summary"><span class="home-module-num">${complete?ENT_OK_SVG:String(moduleIndex+1)}</span><span class="home-module-copy"><small class="lq-unit-k">Module ${moduleIndex+1}${moduleIndex===curMod?' · en cours':''}</small><b>${esc(mod.titre)}</b><small>${esc(status)}${secs>=60?studyPill(secs,'home-module-time'):''}</small></span><span class="home-module-side">${complete?`<em class="home-module-valid">Validé</em>`:`<span class="home-module-count">${done}/${tot}</span>`}<span class="home-module-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></span><span class="home-module-progress" role="progressbar" aria-label="Progression du module ${esc(mod.titre)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></span></summary><div class="list">${rows}</div></details>`;
+    return `<details class="module home-module ${complete?'validated':''}${moduleIndex===curMod?' is-current':''}" data-module-index="${moduleIndex}" data-mc="${moduleIndex%8}" style="--i:${moduleIndex}"${openModules.has(String(moduleIndex))?' open':''} ontoggle="lqModuleToggle(this)"><summary class="home-module-summary"><span class="home-module-num">${complete?ENT_OK_SVG:String(moduleIndex+1)}</span><span class="home-module-copy"><small class="lq-unit-k">Module ${moduleIndex+1}${moduleIndex===curMod?' · en cours':''}${secs>=60?studyPill(secs,'home-module-time'):''}</small><b>${esc(mod.titre)}</b><small>${esc(status)}</small></span><span class="home-module-side">${complete?`<em class="home-module-valid">Validé</em>`:`<span class="home-module-count">${done}/${tot}</span>`}<span class="home-module-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></span><span class="home-module-progress" role="progressbar" aria-label="Progression du module ${esc(mod.titre)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></span></summary><div class="list">${rows}</div></details>`;
   }).join('');
   const toolsOpen=catalogToolsOpen||!!courseSearch||courseFilter!=='all';
   host.innerHTML=`<div class="home-catalog-head"><div><span>Tous les cours</span><h2>Ton parcours</h2><p>${allDone} leçon${allDone>1?'s':''} validée${allDone>1?'s':''} sur ${TOTAL}</p></div><button type="button" class="lq-search-toggle" onclick="toggleCatalogTools(this)" aria-expanded="${toolsOpen}" aria-controls="catalog-tools">${LQ_SEARCH_SVG}<span>Chercher</span></button></div><div id="catalog-tools" class="catalog-tools"${toolsOpen?'':' hidden'}><div class="catalog-search"><label for="course-search">Trouver une notion</label><div><input id="course-search" type="search" placeholder="SELECT, jointure, dates…" value="${escAttr(courseSearch)}" oninput="filterCourseCatalog(this.value)" onkeydown="courseSearchKeydown(event)" aria-controls="course-search-results" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" inputmode="search"><button id="clear-course-search" type="button" onclick="clearCourseSearch()" aria-label="Effacer la recherche de cours" hidden>Effacer</button></div><p id="course-search-status" role="status" aria-live="polite" aria-atomic="true"></p><div id="course-search-suggest" class="sq-suggest"></div></div>${courseCatalogFiltersHTML()}</div><div id="course-search-results" hidden></div>${modulesHTML}`;
@@ -14095,10 +14130,12 @@ function renderDefisRoom(){
   const friends=jeuMode==='friends',s=state.salle||{};
   const stat=k=>{const l=jeuChallenges(k);return `${l.filter(c=>state.defis&&state.defis[c.id]).length}/${l.length} réussis`;};
   const seg=(key,items,cur)=>items.map(([v,l,x])=>`<button type="button" role="radio" aria-checked="${cur===v}" class="room-opt${cur===v?' on':''}" data-set="${key}" data-v="${v}"${x||''} onclick="jeuRoomSet('${key}',${typeof v==='number'?v:`'${v}'`})">${l}</button>`).join('');
+  /* L’en-tête violet quadrillé de la vitrine, l’autocollant de la cible ; dessous, sur blanc, les réglages (ludique.css, 42). */
   host.innerHTML=`<section class="room-card" aria-labelledby="room-h">
+    <div class="room-head"><span class="room-stk" aria-hidden="true">${lqStkSvg('target')}</span><div>
     <p class="room-kicker">Salle de défi</p>
-    <h2 id="room-h">Entre dans une salle</h2>
-    <p class="room-sub">Un défi tiré au sort, au niveau que tu choisis.</p>
+    <h2 id="room-h">Entre dans la salle</h2>
+    <p class="room-sub">Un défi tiré au sort, au niveau que tu choisis. Le chrono part de 00:00.</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
     <div class="room-field"><p class="jeu-lab" id="room-niv-l">Niveau</p>
       <div class="room-levels" role="radiogroup" aria-labelledby="room-niv-l">${['f','m','d'].map(k=>`<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}" data-set="niv" data-v="${k}" onclick="jeuRoomSet('niv','${k}')"><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b><small>${stat(k)}</small></button>`).join('')}</div></div>
     <div class="room-field"><p class="jeu-lab" id="room-mode-l">Avec qui ?</p>
@@ -14110,61 +14147,32 @@ function renderDefisRoom(){
     <button type="button" class="room-go" onclick="jeuEnterRoom()"><span>${friends?'Ouvrir la salle':'Tirer un défi'}</span>${DEF_CHEV_SVG}</button>
     <p class="jeu-msg" role="status" aria-live="polite"></p>
     <div data-friends${friends?'':' hidden'}>${JEU_NOTE_HTML}</div>
-    ${s.parties?`<p class="room-stats"><b>${s.pts}</b> point${s.pts>1?'s':''} en salle · ${s.parties} partie${s.parties>1?'s':''} jouée${s.parties>1?'s':''}</p>`:''}
+    ${s.parties?`<p class="room-stats"><span><b>${s.pts}</b> point${s.pts>1?'s':''} en salle</span><span><b>${s.parties}</b> partie${s.parties>1?'s':''}</span>${s.best?`<span>Record : <b>${s.best}</b></span>`:''}</p>`:''}
   </section>`;
 }
-function renderDefis(catalogOnly=false){
-  const host=document.getElementById('defis-list');
-  if(!host)return;
+/* L’écran Défis : la salle de défi seule (Elisa, 31 octobre, 1 h 34 : « pas de défis libres ni d’entraînement libre, que la salle de
+   défis : tirage au sort quand on entre, parmi le niveau de difficulté »), puis « Un code reçu ? » et le barème des points. Les défis
+   du planning s’ouvrent toujours depuis le planning (openChallenge). */
+function renderDefis(){
+  if(!document.getElementById('defis-room'))return;
   if(JEU)jeuStop();
-  if(!catalogOnly){renderDefisRoom();renderDefisJoin();}
-  const challenges=defisParProgression();
-  const nOk=challenges.filter(c=>state.defis&&state.defis[c.id]).length;
+  renderDefisRoom();renderDefisJoin();renderDefisRules();
+  const all=CHALLENGES.filter(jeuEligible),nOk=all.filter(c=>state.defis&&state.defis[c.id]).length;
   const sub=document.getElementById('defis-sub');
-  if(sub) sub.textContent=nOk===0
-    ? `${challenges.length} défis pour mettre tes acquis à l’épreuve.`
-    : `${nOk} défi${nOk>1?'s':''} réussi${nOk>1?'s':''} sur ${challenges.length}.`;
-  const hero=document.getElementById('defis-hero');
-  const next=challenges.find(c=>!(state.defis&&state.defis[c.id]))||challenges[0];
-  const pct=challenges.length?Math.round(nOk/challenges.length*100):0;
-  const byNiv={f:[],m:[],d:[]};
-  challenges.forEach(c=>byNiv[c.niv].push(c));
-  const doneByNiv=Object.fromEntries(Object.entries(byNiv).map(([k,items])=>[k,items.filter(c=>state.defis&&state.defis[c.id]).length]));
-  if(hero&&next&&!catalogOnly){
-    const allDone=nOk===challenges.length;
-    hero.innerHTML=`<section class="def-focus">
-      <div class="def-focus-top"><span class="def-focus-kicker">${allDone?'Collection complète':'Prochain défi'}</span><span class="def-focus-total"><b>${challenges.length-nOk}</b> restant${challenges.length-nOk>1?'s':''}</span></div>
-      <div class="def-focus-main">
-        <span class="def-focus-icon" style="--p:${pct}" role="img" aria-label="${pct}% des défis réussis"><b>${pct}%</b></span>
-        <div class="def-focus-copy">
-          <span class="def-focus-level ${next.niv}">${allDone?'Tout réussi':NIV[next.niv].l}</span>
-          <h2>${allDone?'Tous les défis sont réussis':esc(next.titre)}</h2>
-          <p>${allDone?'Rejoue un défi pour garder tes automatismes.':esc(next.q)}</p>
-        </div>
-      </div>
-      <div class="def-focus-stats"><div><b>${doneByNiv.f}/${byNiv.f.length}</b><small>Faciles</small></div><div><b>${doneByNiv.m}/${byNiv.m.length}</b><small>Moyens</small></div><div><b>${doneByNiv.d}/${byNiv.d.length}</b><small>Difficiles</small></div></div>
-      <div class="def-focus-foot">
-        <div class="def-focus-progress"><strong>${nOk} / ${challenges.length} réussis</strong></div>
-        <button type="button" class="def-focus-cta" onclick="openChallenge('${next.id}')"><span>${allDone?'Rejouer un défi':'Relever le défi'}</span>${DEF_CHEV_SVG}</button>
-      </div>
-    </section>`;
-  }
-  const levels=[['f','Faciles'],['m','Moyens'],['d','Difficiles']];
-  const tabs=document.getElementById('defis-levels');
-  if(tabs)tabs.innerHTML=levels.map(([k,l])=>`<button type="button" role="tab" aria-selected="${defisLevel===k?'true':'false'}" class="def-level${defisLevel===k?' on':''}${doneByNiv[k]===byNiv[k].length?' done':''}" onclick="setDefisLevel('${k}')"><span>${l}</span><small>${doneByNiv[k]}/${byNiv[k].length}</small></button>`).join('');
-  const selected=byNiv[defisLevel]||byNiv.f;
-  const selectedLabel=(levels.find(x=>x[0]===defisLevel)||levels[0])[1].toLowerCase();
-  const selectedDone=selected.filter(c=>state.defis&&state.defis[c.id]).length;
-  host.innerHTML=`<div class="def-list-head"><div><p>${selectedDone===selected.length?'Niveau validé':'Choisis ton défi'}</p><h2>Défis ${selectedLabel}</h2></div><span>${selectedDone}/${selected.length}</span></div>
-    <div class="def-list">${selected.map(defiListRow).join('')}</div>`;
+  if(sub)sub.textContent=nOk?`${nOk} défi${nOk>1?'s':''} réussi${nOk>1?'s':''} sur ${all.length} : chaque manche en tire un au sort.`:`${all.length} défis, tirés au sort au niveau que tu choisis.`;
 }
-function setDefisLevel(level){
-  if(!['f','m','d'].includes(level))return;
-  defisLevel=level;
-  document.getElementById('defis-list')?.classList.add('def-list-static');
-  document.getElementById('defis-levels')?.classList.add('def-levels-static');
-  renderDefis(true);
-  if(navigator.vibrate)navigator.vibrate(6);
+/* Le barème, dit simplement : ce qui rapporte des points et qui passe devant à égalité. */
+function renderDefisRules(){
+  const host=document.getElementById('defis-rules');if(!host)return;
+  host.innerHTML=`<section class="room-rules" aria-labelledby="room-rules-h">
+    <h2 id="room-rules-h"><span class="room-rules-stk" aria-hidden="true">${lqStkSvg('target')}</span>Comment on marque des points</h2>
+    <ul>
+      <li><b>🎯 Défi réussi</b><span>+${JEU_PTS_OK}</span></li>
+      <li><b>🥇 Premier à trouver</b><span>+${JEU_PTS_RANG[0]}</span><small>Entre amis · 2e : +${JEU_PTS_RANG[1]} · 3e : +${JEU_PTS_RANG[2]}</small></li>
+      <li><b>⚡ Rapidité</b><span>jusqu’à +${JEU_PTS_VITE}</span><small>1 point de moins toutes les 3 secondes, plus rien à 3 min</small></li>
+      <li><b>⚖️ Égalité</b><span>chrono</span><small>Le plus rapide au total passe devant ; même temps : ex æquo</small></li>
+    </ul>
+  </section>`;
 }
 function showScreen(){
   const scr=document.getElementById('scr-lesson');
@@ -14222,7 +14230,7 @@ function exitLessonToTab(tab){
 }
 function goBack(){
   if(typeof lessonVideoOpen==='function'&&lessonVideoOpen()){closeLessonVideo();return;}
-  if(mode==='jeu'&&!jeuLeaveOk())return;
+  if(mode==='jeu'&&!jeuLeaveOk()){jeuLeaveAsk(goBack);return;}
   closeSchemaSheet();
   if(typeof closeLessonWhere==='function')closeLessonWhere(true);
   // Le bouton supérieur annonce l’écran d’origine ; les boutons Cours/Exercice
@@ -14257,7 +14265,7 @@ async function copySqlText(sql){
   try{
     if(navigator.clipboard&&navigator.clipboard.writeText) await navigator.clipboard.writeText(sql);
     else throw new Error('no clipboard');
-    toast('Requête copiée');
+    lqSay('Requête copiée');
     if(navigator.vibrate)navigator.vibrate(8);
     return true;
   }catch(e){
@@ -14269,7 +14277,7 @@ async function copySqlText(sql){
       const ok=document.execCommand('copy');
       document.body.removeChild(ta);
       if(!ok) throw new Error('exec failed');
-      toast('Requête copiée');
+      lqSay('Requête copiée');
       if(navigator.vibrate)navigator.vibrate(8);
       return true;
     }catch(e2){ toast('Copie impossible'); return false; }
@@ -19538,7 +19546,11 @@ const JEU_HOST_WAIT=25000;
 const JEU_HOST_FAST=1500;
 const JEU_REACTS=['👏','🔥','😅','🤯'];
 const JEU_ALPH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-const JEU_POINTS=[3,2,1];
+/* Points d’une manche (Elisa, 31 octobre, 1 h 34 : « des points si on réussit en premier par rapport à ses amis, et par rapport au
+   temps, qui rajoute des points : comment se départager ? ») : réussir rapporte 100 points ; entre amis, les trois premiers à
+   trouver gagnent un bonus (50, 30, 15) ; la rapidité ajoute jusqu’à 60 points, un de moins toutes les 3 secondes (plus rien à
+   3 min). À égalité de points, le plus rapide au total passe devant (une manche non trouvée compte 3 min) ; même temps : ex æquo. */
+const JEU_PTS_OK=100,JEU_PTS_RANG=[50,30,15],JEU_PTS_VITE=60;
 const JEU_NIVL={f:'Facile',m:'Moyen',d:'Difficile'};
 let JEU=null,jeuNiv='f',jeuNb=1,jeuMode='solo';
 (function jeuLoadPrefs(){
@@ -19565,8 +19577,8 @@ function jeuCleanCode(v){
 function jeuVoy(n){return /^[aeiouyàâäéèêëîïôöùûüœæ]/i.test(String(n||''));}
 function jeuDe(n){return (jeuVoy(n)?'d’':'de ')+esc(n);}
 function jeuQue(n){return (jeuVoy(n)?'qu’':'que ')+esc(n);}
-function jeuFmt(ms){const s=Math.max(0,Math.round(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
-function jeuFmtLong(ms){const s=Math.max(0,Math.round(ms/1000));return s<60?`${s} s`:`${Math.floor(s/60)} min ${String(s%60).padStart(2,'0')}`;}
+/* Le chrono de la manche monte depuis 00:00 (Elisa : « le chrono compte de 00:00 à … ») ; les temps s’écrivent de la même façon. */
+function jeuChrono(ms){const s=Math.max(0,Math.floor(ms/1000));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
 function jeuChallenges(niv){return CHALLENGES.filter(c=>c.niv===niv&&!/^\s*EXPLAIN/i.test(c.sol)&&!c.noExec);}
 
 /* Transport : ntfy.sh (flux SSE + publication POST), canal local pour les tests,
@@ -19961,23 +19973,34 @@ function jeuRoundDone(n){
   if(J.solo||(J.synced&&Date.now()-J.syncAt>4000&&Date.now()-J.echoAt<=JEU_PING_MS*1.6))r.done=true;
   return true;
 }
-/* Seul : 3 points si trouvé en moins d’1 min, 2 en moins de 2 min, 1 ensuite. */
-function jeuSoloPts(ms){return ms<JEU_ROUND_MS/3?3:ms<JEU_ROUND_MS*2/3?2:1;}
+/* Rapidité : de +60 à l’instant où la manche commence, un point de moins toutes les 3 secondes, plus rien au bout des 3 min. */
+function jeuSpeedPts(ms){return Math.max(0,Math.min(JEU_PTS_VITE,Math.floor((JEU_ROUND_MS-ms)/3000)));}
+/* Les points d’un joueur qui trouve en ms, i-ème à trouver (0 : le premier) : le détail sert à l’écran (réussite, rang, rapidité). */
+function jeuPts(ms,i,solo){const rang=solo?0:(JEU_PTS_RANG[i]||0),vite=jeuSpeedPts(ms);return {ok:JEU_PTS_OK,rang,vite,pts:JEU_PTS_OK+rang+vite};}
 function jeuRanking(n){
   const J=JEU,r=J.rounds[n];if(!r)return[];
-  /* À temps égal, l’ordre des pseudos départage : le même classement chez tout le monde. */
+  /* À temps égal, l’ordre des identifiants range la liste : la même chez tout le monde. Mais le même temps, à la milliseconde près,
+     vaut la même place et le même bonus : deux premiers ex æquo prennent chacun +50, le suivant est 3e (+15). */
   const rows=Object.entries(r.found).sort((a,b)=>a[1]-b[1]||(a[0]<b[0]?-1:a[0]>b[0]?1:0));
-  return rows.map(([pid,ms],i)=>({pid,ms,pts:J.solo?jeuSoloPts(ms):(JEU_POINTS[i]||1)}));
+  return rows.map(([pid,ms])=>{const i=rows.findIndex(y=>y[1]===ms);return Object.assign({pid,ms,place:i+1},jeuPts(ms,i,J.solo));});
 }
+/* Les scores : points de toutes les manches terminées ; à égalité, le temps total (une manche non trouvée compte 3 min). */
 function jeuScores(){
-  const J=JEU,s={},cur=jeuCur();J.order.forEach(p=>s[p]=0);
-  J.rounds.forEach((r,n)=>{if(r&&(n<cur||jeuRoundDone(n)||J.over))jeuRanking(n).forEach(x=>{s[x.pid]=(s[x.pid]||0)+x.pts;});});
+  const J=JEU,s={},t={},cur=jeuCur();J.order.forEach(p=>{s[p]=0;t[p]=0;});
+  J.rounds.forEach((r,n)=>{
+    if(!(r&&(n<cur||jeuRoundDone(n)||J.over)))return;
+    const rk=jeuRanking(n),got=new Set(rk.map(x=>x.pid));
+    rk.forEach(x=>{s[x.pid]=(s[x.pid]||0)+x.pts;t[x.pid]=(t[x.pid]||0)+x.ms;});
+    J.order.forEach(p=>{if(!got.has(p))t[p]=(t[p]||0)+JEU_ROUND_MS;});
+  });
   return jeuOrder().filter(p=>jeuPresent(p)||s[p]>0)
-    .map(pid=>({pid,name:(J.players[pid]||{}).name||'Joueur',pts:s[pid]||0}))
-    .sort((a,b)=>b.pts-a.pts||a.name.localeCompare(b.name));
+    .map(pid=>({pid,name:(J.players[pid]||{}).name||'Joueur',pts:s[pid]||0,ms:t[pid]||0}))
+    .sort((a,b)=>b.pts-a.pts||a.ms-b.ms||a.name.localeCompare(b.name));
 }
-/* Même score = même place, comme RANK(). */
-function jeuPlaces(sc){let place=0;sc.forEach((x,i)=>{if(i===0||x.pts<sc[i-1].pts)place=i+1;x.place=place;});return sc;}
+/* Même score et même temps total = même place (ex æquo) ; sinon le plus rapide passe devant. */
+function jeuPlaces(sc){let place=0;sc.forEach((x,i)=>{if(i===0||x.pts<sc[i-1].pts||x.ms>sc[i-1].ms)place=i+1;x.place=place;});return sc;}
+/* Le détail des points d’une manche : « 100 réussite · +50 1er · +46 rapidité ». */
+function jeuPtsDetail(x){return `<span class="jeu-pd"><i>${x.ok} réussite</i>${x.rang?`<i class="is-rang">+${x.rang} ${['1er','2e','3e'][JEU_PTS_RANG.indexOf(x.rang)]||''}</i>`:''}<i class="is-vite">+${x.vite} rapidité</i></span>`;}
 function jeuRoomEmpty(){
   const J=JEU;
   return !J.solo&&!J.created&&J.synced&&Date.now()-J.syncAt>JEU_HOST_WAIT&&Date.now()>=J.claimGrace&&jeuLive().length<2;
@@ -20027,7 +20050,8 @@ function jeuTick(){
   jeuFlush();
   jeuHostWatch();
   const n=jeuCur(),el=document.getElementById('jeu-timer');
-  if(el&&n>=0){const left=JEU_ROUND_MS-(Date.now()-J.rounds[n].t1);el.textContent=jeuFmt(left);el.classList.toggle('is-low',left<30000);}
+  if(el&&n>=0){const took=Date.now()-J.rounds[n].t1;el.textContent=jeuChrono(took);el.classList.toggle('is-low',JEU_ROUND_MS-took<30000);
+    const bar=document.getElementById('jeu-tbar');if(bar)bar.style.setProperty('--t',Math.min(1,Math.max(0,took/JEU_ROUND_MS)).toFixed(3));}
   if(jeuView()!==J.view||jeuSig()!==J.sig)jeuPaint();
 }
 /* Redessiner la même vue (réglage changé, nouvel hôte, temps reçu…) sans perdre la page, le focus
@@ -20055,7 +20079,7 @@ function jeuPlayersHTML(kind){
     J.shown.add(pid);
     let state='';
     if(kind==='lobby')state=jeuIsReady(pid)?'<em class="jeu-state is-ready">✓ prêt</em>':'<em class="jeu-state">pas prêt</em>';
-    else if(r)state=`<em class="jeu-state">${found?'✓ '+jeuFmt(r.found[pid]):(away?'parti·e':'…')}</em>`;
+    else if(r)state=`<em class="jeu-state">${found?'✓ '+jeuChrono(r.found[pid]):(away?'parti·e':'…')}</em>`;
     return `<li class="${found?'is-found':''}${away?' is-away':''}${isNew?' is-new':''}"><b class="jeu-av" data-c="${all.indexOf(pid)%6}" aria-hidden="true">${jeuInitial(p.name)}</b><span>${esc(p.name)}${me?' <small>(toi)</small>':''}${host?' <small class="jeu-tag">hôte</small>':''}</span>${state}</li>`;
   });
   if(kind==='lobby'&&list.length<J.max)rows.push('<li class="jeu-slot" aria-hidden="true"><b class="jeu-av is-empty"></b><span>En attente d’un ami…</span></li>');
@@ -20118,7 +20142,7 @@ function jeuRender(){
   J.view=v;J.sig=sig;
   J.drawT.forEach(clearTimeout);J.drawT=[];
   const head=(k,t,s)=>`<div class="l-kicker">${k}</div><h1>${t}</h1>${s?`<p class="l-sub" id="jeu-sub">${s}</p>`:''}`;
-  const chips=()=>`<div class="jeu-chips"><span class="jeu-chip is-${J.niv}">${JEU_NIVL[J.niv]}</span><span class="jeu-chip">${J.nb} manche${J.nb>1?'s':''}</span><span class="jeu-chip">3 min par manche</span></div>`;
+  const chips=()=>`<div class="jeu-chips"><span class="jeu-chip is-${J.niv}">${JEU_NIVL[J.niv]}</span><span class="jeu-chip">${J.nb} manche${J.nb>1?'s':''}</span><span class="jeu-chip">⏱ 3 min max par manche</span></div>`;
   const host=jeuIsHost();
   let html='';
   if(v==='join'){
@@ -20162,26 +20186,28 @@ function jeuRender(){
     const n=+v.slice(4),r=J.rounds[n],c=CHALLENGES.find(x=>x.id===r.cid);
     current=c;exoFails=0;
     const mine=r.found[J.me]!=null;
-    html=`<div class="jeu-bar"><span class="l-kicker">Manche ${n+1}/${J.nb} · ${JEU_NIVL[c.niv]}</span><b class="jeu-timer" id="jeu-timer">${jeuFmt(JEU_ROUND_MS-(Date.now()-r.t1))}</b></div>
+    const took0=Date.now()-r.t1;
+    html=`<div class="jeu-bar"><span class="l-kicker">Manche ${n+1}/${J.nb} · ${JEU_NIVL[c.niv]}</span><b class="jeu-timer${JEU_ROUND_MS-took0<30000?' is-low':''}" id="jeu-timer" role="timer" aria-label="Chrono de la manche">${jeuChrono(took0)}</b></div>
+      <i class="jeu-tbar" id="jeu-tbar" style="--t:${Math.min(1,Math.max(0,took0/JEU_ROUND_MS)).toFixed(3)}" aria-hidden="true"></i>
       <h1>${esc(c.titre)}</h1>
       <div class="consigne"><span class="tag">La question</span><p>${esc(c.q)}</p></div>
       ${J.solo?'':`<ul class="jeu-players is-live" id="jeu-players" aria-label="Qui a trouvé">${jeuPlayersHTML('play')}</ul>`}
-      ${mine?`<div class="feedback ok"><div class="fi">✓</div><div><b>Trouvé en ${jeuFmtLong(r.found[J.me])}</b><p>${J.solo?'Voici ton résultat dans un instant.':'Attends la fin de la manche pour voir le classement.'}</p></div></div>`:editorBlock(true,'defi-entre-amis.sql')}
+      ${mine?jeuFoundHTML(r,J.me):editorBlock(true,'defi-entre-amis.sql')}
       ${J.solo?'':`<div class="jeu-reacts" aria-label="Réagir">${JEU_REACTS.map(e=>`<button type="button" onclick="jeuReact('${e}')" aria-label="Réagir ${e}">${e}</button>`).join('')}</div>`}
       <div id="jeu-hostbar">${jeuHostBarHTML()}</div>
       <div id="jeu-netslot">${jeuNetHTML()}</div>`;
   }else if(v.startsWith('res')){
     const n=+v.slice(3),r=J.rounds[n],c=CHALLENGES.find(x=>x.id===r.cid),rk=jeuRanking(n),last=n>=J.nb-1;
     const medal=['🥇','🥈','🥉'];
-    const lines=rk.map((x,i)=>`<li><span class="jeu-rk">${J.solo?'✓':(medal[i]||i+1)}</span><b>${esc((J.players[x.pid]||{}).name||'Joueur')}</b><em>${jeuFmt(x.ms)}</em><small>+${x.pts}</small></li>`).join('')||'<li class="is-empty">Personne n’a trouvé cette fois.</li>';
+    const lines=rk.map((x,i)=>`<li style="--i:${i}"><span class="jeu-rk">${J.solo?'✓':(medal[x.place-1]||x.place)}</span><b>${esc((J.players[x.pid]||{}).name||'Joueur')}${x.pid===J.me&&!J.solo?' <small>(toi)</small>':''}${jeuPtsDetail(x)}</b><em>${jeuChrono(x.ms)}</em><small>+${x.pts}</small></li>`).join('')||'<li class="is-empty">Personne n’a trouvé cette fois.</li>';
     const sc=jeuScores();
-    const sub=r.found[J.me]!=null?`Tu as trouvé en ${jeuFmtLong(r.found[J.me])}.`:((r.closed?(J.solo?'Manche abandonnée.':'Manche close par l’hôte.'):'Temps écoulé.')+' Voici une solution possible.');
+    const sub=r.found[J.me]!=null?`Tu as trouvé en ${jeuChrono(r.found[J.me])}.`:((r.closed?(J.solo?'Manche abandonnée.':'Manche close par l’hôte.'):'Temps écoulé.')+' Voici une solution possible.');
     const next=host?`<button type="button" class="journey-primary" id="jeu-go" onclick="${last?'jeuFinish()':'jeuNextRound()'}"><span>${last?(J.solo?'Voir mon bilan':'Voir le podium'):'Manche suivante'}</span>${DEF_CHEV_SVG}</button>`
       :`<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>${last?'Le podium arrive…':'La manche suivante arrive…'}</p>`;
     html=head(`Manche ${n+1}/${J.nb} terminée`,esc(c.titre),sub)+
       `<div class="jeu-card"><p class="jeu-card-h">${J.solo?'Ton résultat':'Classement de la manche'}</p><ol class="jeu-rank">${lines}</ol></div>
       <div class="jeu-card"><p class="jeu-card-h">Une solution</p><div class="ex-code">${highlight(c.sol)}</div></div>
-      ${J.solo&&J.nb<2?'':`<div class="jeu-card"><p class="jeu-card-h">Scores</p><ol class="jeu-rank is-score">${jeuPlaces(sc).map(x=>`<li><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em></li>`).join('')}</ol></div>`}
+      ${J.solo&&J.nb<2?'':`<div class="jeu-card"><p class="jeu-card-h">Scores</p><ol class="jeu-rank is-score">${jeuPlaces(sc).map(x=>`<li><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${jeuChrono(x.ms)}</small></li>`).join('')}</ol></div>`}
       ${next}
       <div id="jeu-netslot">${jeuNetHTML()}</div>`;
   }else if(v==='final'){
@@ -20190,11 +20216,11 @@ function jeuRender(){
     if(J.solo){
       const rows=J.rounds.map((r,i)=>r?{r,c:CHALLENGES.find(x=>x.id===r.cid),ms:r.found[J.me]}:null).filter(Boolean);
       const got=rows.filter(x=>x.ms!=null),pts=(sc[0]||{}).pts||0;
-      const avg=got.length?jeuFmtLong(got.reduce((a,x)=>a+x.ms,0)/got.length):'—';
+      const avg=got.length?jeuChrono(got.reduce((a,x)=>a+x.ms,0)/got.length):'—';
       const all=got.length===rows.length&&rows.length>0;
       html=head('Fin de la partie',all?'Tout trouvé ! 🏆':'Ton bilan',`${rows.length} manche${rows.length>1?'s':''} jouée${rows.length>1?'s':''} · niveau ${JEU_NIVL[J.niv].toLowerCase()}.`)+
-        `<div class="jeu-bilan"><div><b>${pts}</b><small>point${pts>1?'s':''}</small></div><div><b>${got.length}/${rows.length}</b><small>trouvé${got.length>1?'s':''}</small></div><div><b>${avg}</b><small>temps moyen</small></div></div>
-        <div class="jeu-card"><p class="jeu-card-h">Manche par manche</p><ol class="jeu-rank">${rows.map((x,i)=>`<li><span class="jeu-rk">${i+1}</span><b>${esc(x.c.titre)}</b><em>${x.ms!=null?jeuFmt(x.ms):'—'}</em><small>${x.ms!=null?'+'+jeuSoloPts(x.ms):'0'}</small></li>`).join('')}</ol></div>
+        `<div class="jeu-bilan"><div><b data-n="${pts}">${pts}</b><small>point${pts>1?'s':''}</small></div><div><b>${got.length}/${rows.length}</b><small>trouvé${got.length>1?'s':''}</small></div><div><b>${avg}</b><small>temps moyen</small></div></div>
+        <div class="jeu-card"><p class="jeu-card-h">Manche par manche</p><ol class="jeu-rank">${rows.map((x,i)=>{const k=J.rounds.indexOf(x.r),y=x.ms!=null?jeuRanking(k).find(z=>z.pid===J.me):null;return `<li style="--i:${i}"><span class="jeu-rk">${i+1}</span><b>${esc(x.c.titre)}${y?jeuPtsDetail(y):''}</b><em>${x.ms!=null?jeuChrono(x.ms):'—'}</em><small>${y?'+'+y.pts:'0'}</small></li>`;}).join('')}</ol></div>
         <button type="button" class="journey-primary" onclick="jeuAgain()"><span>Rejouer</span>${DEF_CHEV_SVG}</button>
         <button type="button" class="jeu-close" onclick="openJeu()">Changer de niveau</button>`;
       if(all)setTimeout(celebrate,300);
@@ -20203,8 +20229,9 @@ function jeuRender(){
       const top=[2,1,3].map(pl=>sc.filter(x=>x.place===pl&&x.pts>0));
       const winner=sc.some(x=>x.pid===J.me&&x.place===1&&x.pts>0);
       html=head('Salle de défi · Fin de partie',winner?'Tu as gagné ! 🏆':'Le podium',`${J.nb} manche${J.nb>1?'s':''} jouée${J.nb>1?'s':''}.`)+
-        `<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];return `<div class="jeu-step is-${pl}${g.length?'':' is-empty'}"><span class="jeu-medal">${['🥇','🥈','🥉'][pl-1]}</span><span class="jeu-step-n">${g.length?g.map(x=>esc(x.name)).join('<br>'):'—'}</span><small>${g.length?g[0].pts+' pt'+(g[0].pts>1?'s':''):''}</small><i></i></div>`;}).join('')}</div>
-        <div class="jeu-card"><p class="jeu-card-h">Classement final</p><ol class="jeu-rank is-score">${sc.map(x=>`<li><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em></li>`).join('')}</ol></div>
+        `<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];return `<div class="jeu-step is-${pl}${g.length?'':' is-empty'}${g.some(x=>x.pid===J.me)?' is-me':''}"><span class="jeu-medal">${['🥇','🥈','🥉'][pl-1]}</span><span class="jeu-step-av">${g.length?g.map(x=>`<b class="jeu-av" data-c="${jeuOrder().indexOf(x.pid)%6}" aria-hidden="true">${jeuInitial(x.name)}</b>`).join(''):''}</span><span class="jeu-step-n">${g.length?g.map(x=>esc(x.name)+(x.pid===J.me?' <small>(toi)</small>':'')).join('<br>'):'—'}</span><small>${g.length?g[0].pts+' pt'+(g[0].pts>1?'s':'')+' · '+jeuChrono(g[0].ms):''}</small><i><em>${pl}</em></i></div>`;}).join('')}</div>
+        <div class="jeu-card"><p class="jeu-card-h">Classement final</p><ol class="jeu-rank is-score">${sc.map(x=>`<li><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${jeuChrono(x.ms)}</small></li>`).join('')}</ol>
+          <p class="jeu-tie">⚖️ À égalité de points, le plus rapide au total passe devant (une manche non trouvée compte 3 min).</p></div>
         ${host?`<button type="button" class="journey-primary" onclick="jeuAgain()"><span>Rejouer dans cette salle</span>${DEF_CHEV_SVG}</button>`:`<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>L’hôte peut relancer une partie dans cette salle.</p>`}
         <button type="button" class="jeu-close" onclick="goBack()">Quitter la salle</button>
         <div id="jeu-netslot">${jeuNetHTML()}</div>`;
@@ -20230,7 +20257,10 @@ function jeuNextRound(){
 }
 function jeuClose(){
   const n=jeuCur(),J=JEU;
-  if(J&&jeuIsHost()&&n>=0&&confirm(J.solo?'Abandonner cette manche ?':'Clore la manche pour tout le monde ?'))jeuSend({t:'close',n});
+  if(!J||!jeuIsHost()||n<0)return;
+  lqAsk(J.solo?{ico:'🏁',titre:'Voir la solution ?',texte:'La manche s’arrête : elle ne rapporte pas de point.',oui:'Voir la solution',non:'Continuer'}
+    :{ico:'⏱',titre:'Clore la manche pour tout le monde ?',texte:'Ceux qui n’ont pas encore trouvé ne marquent pas de point.',oui:'Clore la manche',non:'Continuer'})
+    .then(ok=>{if(ok&&JEU===J&&jeuCur()===n)jeuSend({t:'close',n});});
 }
 function jeuFinish(){if(JEU&&jeuIsHost())jeuSend({t:'end'});}
 /* Nouvelle partie dans la même salle (même code, mêmes joueurs). Seul : on enchaîne. */
@@ -20261,13 +20291,10 @@ function jeuReact(e){
   if(!JEU||Date.now()-JEU.lastReact<1500)return;
   JEU.lastReact=Date.now();jeuSend({t:'react',e});jeuToast(`Toi ${e}`);
 }
-function jeuToast(txt){
-  const root=document.getElementById('jeu-root');if(!root)return;
-  let box=document.getElementById('jeu-toasts');
-  if(!box){box=document.createElement('div');box.id='jeu-toasts';box.className='jeu-toasts';box.setAttribute('aria-live','polite');document.body.appendChild(box);}
-  const t=document.createElement('p');t.textContent=txt;box.appendChild(t);
-  setTimeout(()=>t.remove(),2600);
-}
+/* Arrivées, départs, nouvel hôte : annoncés au lecteur d’écran ; à l’écran, c’est la liste des joueurs qui le montre (la ligne arrive
+   en sautillant, l’étiquette « hôte » change de place), plus de bulles en bas de l’écran (Elisa, 31 octobre, 1 h 34 : « ne pas mettre
+   de notification, mais des micro-interactions »). */
+function jeuToast(txt){ if(typeof lqSay==='function')lqSay(txt); }
 async function jeuShare(){
   const J=JEU;if(!J)return;
   /* Dans l’app iOS, l’adresse locale (capacitor://) ne s’ouvre pas chez les amis :
@@ -20286,6 +20313,20 @@ function jeuCredit(cid){
     if(!state.defis)state.defis={};
     state.defis[cid]=true;noteActivityDay();save();renderProgress();renderPlanning();
   }catch(e){}
+}
+/* Trouvé : le temps, la place parmi ceux qui ont déjà trouvé (entre amis, définitive à la fin de la manche), les points gagnés et
+   leur détail. Les points montent de 0 à leur valeur (jeuCountUp) : on voit ce qu’on vient de gagner. */
+function jeuFoundHTML(r,pid,took){
+  const J=JEU,n=J.rounds.indexOf(r),rk=jeuRanking(n),k=rk.findIndex(y=>y.pid===pid),x=rk[k]||Object.assign({pid,ms:took||0},jeuPts(took||0,0,true));
+  const pos=k<0?-1:x.place-1;
+  const place=J.solo||pos<0?'':` · ${pos===0?'1er à trouver 🥇':pos===1?'2e à trouver 🥈':pos===2?'3e à trouver 🥉':(pos+1)+'e à trouver'}`;
+  return `<div class="feedback ok jeu-found"><div class="fi">✓</div><div><b>Trouvé en ${jeuChrono(x.ms)}${place}</b><p class="jeu-found-pts"><strong data-n="${x.pts}">+${x.pts}</strong> points ${jeuPtsDetail(x)}</p><p>${J.solo?'Bien joué !':'Le classement s’affiche à la fin de la manche.'}</p></div></div>`;
+}
+function jeuCountUp(el){
+  if(!el||prefersReduceMotion())return;
+  const to=+el.dataset.n||0,t0=performance.now(),D=700,plus=el.textContent.trim().startsWith('+');
+  const step=now=>{ if(!el.isConnected)return; const k=Math.min(1,(now-t0)/D),v=Math.round(to*(1-Math.pow(1-k,3))); el.textContent=(plus?'+':'')+v; if(k<1)requestAnimationFrame(step); };
+  el.textContent=(plus?'+':'')+'0'; requestAnimationFrame(step);
 }
 /* Points de la partie (une seule fois) : cumulés dans « Tes points de salle ». */
 function jeuCreditGame(){
@@ -20311,9 +20352,10 @@ function jeuRun(){
   if(exerciseResultsMatch(userRes,solRes,c,true)){
     const took=Date.now()-r.t1;
     document.querySelectorAll('#lesson-body .btn-run').forEach(b=>b.disabled=true);
-    setLessonOut(`<div class="feedback ok"><div class="fi">✓</div><div><b>Trouvé en ${jeuFmtLong(took)}</b><p>${J.solo?'Bien joué !':'Attends la fin de la manche pour voir le classement.'}</p></div></div>`+renderTable(userRes,ms));
     jeuCredit(c.id);
     jeuSend({t:'found',n,ms:took});
+    setLessonOut(jeuFoundHTML(r,J.me,took)+renderTable(userRes,ms));
+    jeuCountUp(document.querySelector('#lesson-body .jeu-found-pts strong'));
     if(navigator.vibrate)navigator.vibrate([10,40,20]);
     return;
   }
@@ -20333,12 +20375,22 @@ function jeuStop(){
   document.getElementById('jeu-toasts')?.remove();
 }
 /* Quitter une salle en cours : on confirme (la manche en cours serait perdue). */
-function jeuLeaveOk(){
-  const J=JEU;if(!J)return true;
+/* Quitter une salle : une question seulement quand il y a quelque chose à perdre, posée par l’app (lqAsk) et non par une boîte du
+   navigateur (Elisa, 31 octobre, 1 h 34 : « le bouton Défis pour retourner ne marche pas » : dans le panneau, la boîte « confirm »
+   ne s’affichait pas et le retour restait bloqué). jeuLeaveOk() dit si l’on peut partir sans demander ; jeuLeaveAsk(suite) demande,
+   puis relance la suite si l’on confirme. */
+function jeuLeaveQuestion(){
+  const J=JEU;if(!J||J.leaveOk)return null;
   const v=J.view||'';
-  if(/^(play|draw)/.test(v))return confirm(J.solo?'Quitter la partie ? Ta manche en cours sera perdue.':'Quitter la salle ? Ta manche en cours sera perdue.');
-  if(!J.solo&&jeuIsHost()&&v!=='final'&&jeuLive().length>1)return confirm('Quitter la salle ? Un autre joueur deviendra l’hôte.');
-  return true;
+  if(/^(play|draw)/.test(v))return {ico:'🏁',titre:J.solo?'Quitter la partie ?':'Quitter la salle ?',texte:'Ta manche en cours sera perdue.',oui:'Quitter',non:'Rester',danger:true};
+  if(!J.solo&&jeuIsHost()&&v!=='final'&&jeuLive().length>1)return {ico:'👋',titre:'Quitter la salle ?',texte:'Un autre joueur deviendra l’hôte.',oui:'Quitter',non:'Rester'};
+  return null;
+}
+function jeuLeaveOk(){return !jeuLeaveQuestion();}
+function jeuLeaveAsk(suite){
+  const q=jeuLeaveQuestion(),J=JEU;
+  if(!q){suite();return;}
+  lqAsk(q).then(ok=>{if(ok&&JEU===J){J.leaveOk=true;suite();}});
 }
 if(typeof document!=='undefined'&&typeof document.addEventListener==='function')document.addEventListener('visibilitychange',()=>{if(!document.hidden&&JEU)jeuResume();});
 if(typeof window!=='undefined'&&window.addEventListener)window.addEventListener('pagehide',()=>{const J=JEU;if(J&&!J.solo&&J.synced&&!J.full){try{J.t.beacon({v:1,t:'bye',pid:J.me,name:J.nom,u:jeuRand(8),g:J.g});}catch(e){}}});
@@ -20658,10 +20710,9 @@ function runLesson(){
       if(premier) celebrate();
       head=`<div class="feedback ok"><div class="fi">✓</div><div><b>Défi résolu</b><p>Ta requête donne exactement le bon résultat.</p></div></div>`;
       const nxtPlan=state.plan&&infoJour()&&infoJour().today&&infoJour().today.lessons.find(id=>!itemDone(id));
-      const nxt=defisParProgression().find(c=>!state.defis[c.id]);
       setLessonOut(head+table+(nxtPlan!=null
         ?`<button class="next-btn" onclick="openItem(${isDefiId(nxtPlan)?`'${nxtPlan}'`:nxtPlan})">Continuer la séance →</button>`
-        :(nxt?`<button class="next-btn" onclick="openChallenge('${nxt.id}')">Défi suivant →</button>`:'')));
+        :`<button class="next-btn" onclick="openJeu()">Salle de défi →</button>`));
       pulseCta('#lesson-out .next-btn');
     }else if(mode==='review'){
       markDone(current.id,true); renderModules(); renderProgress(); renderPlanning();
@@ -21479,7 +21530,7 @@ let stkSel=null,stkJust=null,stkFocus=null,stkOpenId=null,stkReturn=null;
 function openStickers(id){
   if(document.body.classList.contains('in-lesson')){
     /* Pendant une partie de Jouer, partir demande confirmation, comme le bouton retour. */
-    if(mode==='jeu'&&!jeuLeaveOk())return;
+    if(mode==='jeu'&&!jeuLeaveOk()){jeuLeaveAsk(()=>openStickers(id));return;}
     stkFocus=id||null;exitLessonToTab('stickers');return;
   }
   stkFocus=id||null;
@@ -22300,13 +22351,17 @@ function latePlanShiftPreview(){
   const dates=datesMotif(auj(),freq,Math.ceil(count/per));
   return {data,count,per,freq,dates,end:dates[dates.length-1]};
 }
+/* Le planning vient de changer (rattrapage, décalage, nouveau rythme) : la séance du jour s’allume, une coche « À jour » s’y pose. */
+function lqPlanDone(say){
+  requestAnimationFrame(()=>lqDone(document.querySelector('#planning-body .studio-today')||document.querySelector('#planning-body .pl-day.is-today')||document.querySelector('#planning-body .wk-day.today'),'À jour',say));
+}
 function decalerPlanning(){
   const p=state.plan,prev=latePlanShiftPreview();
   if(!p||!prev){toast('Tout est déjà terminé');return;}
   p.archive=prev.data.done.slice();
   p.sessions=distribuerSessions(prev.data.remaining,prev.dates);
   trierSessions();semaineOffset=0;jourSel=dstr(auj());lateRecoveryCollapsed=false;save();renderPlanning();
-  toast('Planning décalé',`Tout reprend aujourd’hui · fin le ${dateCourte(prev.end)}`);
+  lqPlanDone(`Planning décalé : tout reprend aujourd’hui, fin le ${dateCourte(prev.end)}`);
 }
 function openLateRecoveryFromHome(el){
   lateRecoveryCollapsed=false;
@@ -22555,7 +22610,7 @@ function planAdjustCommit(preview){
     if(nextTrigger)nextTrigger.focus({preventScroll:true});
   });
   planAdjustTrigger=null;
-  toast(`Nouveau rythme appliqué · ${plur(preview.n,'séance')}`,'Le parcours repart d’aujourd’hui');
+  lqPlanDone(`Nouveau rythme appliqué : ${plur(preview.n,'séance')}, le parcours repart d’aujourd’hui`);
 }
 /* ---------- Déplacements ---------- */
 function deplacerVers(lid,iso,atIndex){
@@ -22632,7 +22687,7 @@ function rattraper(){
   ids.forEach(id=>s.lessons.push(id));
   p.sessions=p.sessions.filter(x=>x.d>=cible||x.lessons.length>0);
   trierSessions();semaineOffset=0;jourSel=cible;lateRecoveryCollapsed=false;save();renderPlanning();
-  toast(`${plur(ids.length,'activité')} ajoutée${ids.length>1?'s':''} à aujourd’hui`,'Ton planning est à jour');
+  lqPlanDone(`${plur(ids.length,'activité')} ajoutée${ids.length>1?'s':''} à aujourd’hui`);
 }
 function prochainesSessionsPourRetard(p,n,todayIso){
   const targets=p.sessions.filter(s=>s.d>todayIso).sort((a,b)=>a.d.localeCompare(b.d)).slice(0,n);
@@ -22659,7 +22714,7 @@ function etalerRetard(){
   d.ids.forEach((id,i)=>targets[i%targets.length].lessons.push(id));
   p.sessions=p.sessions.filter(s=>s.lessons.length>0);
   trierSessions();semaineOffset=0;jourSel=d.info.t;lateRecoveryCollapsed=false;save();renderPlanning();
-  toast(`${plur(d.count,'activité')} répartie${d.count>1?'s':''} sur ${plur(targets.length,'séance')}`,'Ton planning est à jour');
+  lqPlanDone(`${plur(d.count,'activité')} répartie${d.count>1?'s':''} sur ${plur(targets.length,'séance')}`);
 }
 function toastLift(t){
   t.style.removeProperty('--toast-lift');
@@ -22798,6 +22853,31 @@ function lqSaved(btn,label){
   if(!still&&typeof lqBurst==='function')lqBurst(btn,btn.querySelector('.lq-saved-ico'));
   if(typeof buzz==='function')buzz('success');
   return new Promise(r=>setTimeout(r,still?0:560));
+}
+/* « C’est fait », sur place (Elisa, 31 octobre, 1 h 34 : « ne pas mettre de notification, mais des micro-interactions pour bien faire
+   comprendre que l’action est faite ») : la chose touchée s’allume (lqFresh), une petite coche se pose sur son coin avec un mot
+   (« Prête », « Restaurée »…), le téléphone vibre ; le lecteur d’écran l’entend (lqSay). Plus rien ne s’affiche en bas de l’écran. */
+function lqSay(t){
+  if(!t||typeof document==='undefined')return;
+  let s=document.getElementById('lq-say');
+  if(!s){s=document.createElement('p');s.id='lq-say';s.className='lq-say';s.setAttribute('role','status');s.setAttribute('aria-live','polite');document.body.appendChild(s);}
+  s.textContent='';setTimeout(()=>{s.textContent=t;},40);
+}
+function lqDone(el,label,say){
+  lqSay(say||label);
+  if(!el)return;
+  lqFresh(el);
+  if(typeof buzz==='function')buzz('success');
+  if(prefersReduceMotion())return;
+  const r=el.getBoundingClientRect();if(!r.width)return;
+  const c=document.createElement('span');c.className='lq-done';c.setAttribute('aria-hidden','true');
+  c.innerHTML=`<i>${CHECK_SVG}</i>${label?`<b>${esc(label)}</b>`:''}`;
+  /* La coche suit sa chose pendant qu’elle vit (l’écran défile souvent au même moment, vers l’éditeur par exemple). */
+  const at=b=>{c.style.left=Math.round(Math.min(innerWidth-10,Math.max(10,b.right-6)))+'px';c.style.top=Math.round(Math.max(10,b.top+4))+'px';};
+  at(r);document.body.appendChild(c);
+  const follow=()=>{if(!c.isConnected||!el.isConnected)return;at(el.getBoundingClientRect());requestAnimationFrame(follow);};
+  requestAnimationFrame(follow);
+  setTimeout(()=>c.remove(),1300);
 }
 /* La chose enregistrée s’allume un instant là où elle s’affiche (un halo jaune soleil qui s’éteint) */
 function lqFresh(el){
@@ -24328,7 +24408,7 @@ function renderNotesSurface(wrap,prefix,opts){
       <span>Commence par une idée, une requête à revoir ou une question.</span><div class="notes-starters"><button type="button" onclick="${go}('Ce que je retiens : ')">Ce que je retiens</button><button type="button" onclick="${go}('Requête à revoir : ')">Requête à revoir</button><button type="button" onclick="${go}('Question : ')">Une question</button></div></div>`;
   }else if(!list.length){
     html=notesFilterChips(fCount)+`<div class="notes-empty"><div class="ne-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></div><b>Aucun résultat</b>
-      <span>Rien pour « ${esc(searchQ)} » dans tes ${plur(all.length,'note')}. Les accents et les majuscules ne comptent pas.</span><button type="button" class="sq-reset" onclick="clearSearch('${isScreen?'screen':'sheet'}')">Effacer la recherche</button></div>`;
+      <span>Rien pour « ${esc(searchQ)} » dans ${all.length>1?`tes ${all.length} notes`:'ta note'}.</span><button type="button" class="sq-reset" onclick="clearSearch('${isScreen?'screen':'sheet'}')">Effacer la recherche</button></div>`;
   }else if(searchQ){
     html=notesFilterChips(fCount)+notesSectionHtml('Résultats',list);
   }else if(notesFilter!=='all'){
@@ -24493,7 +24573,7 @@ function saveNote(){
   const still=typeof motionOff==='function'&&motionOff();
   if(ok&&b&&!b.disabled){
     b.disabled=true; b.classList.add('is-saved');
-    lqSaved(b,'Enregistrée').then(()=>{backToNotesList();toast(wasNew?'Note enregistrée':'Modifications enregistrées',wasNew?'Retrouve-la dans tes notes.':'Ta note est à jour.');});
+    lqSaved(b,'Enregistrée').then(()=>{backToNotesList();lqSay(wasNew?'Note enregistrée':'Modifications enregistrées');});
     return;
   }
   backToNotesList();
@@ -24512,7 +24592,7 @@ function togglePin(){
   /* L’épingle compte tout de suite (sans attendre « Enregistrer ») dès que la note a un contenu. */
   const has=String(e.txt||'').trim()||String(e.sql||'').trim();
   const ok=has&&persistEditingNote();
-  toast(e.pin?'Note épinglée':'Note désépinglée',ok?(e.pin?'Elle s’affiche en haut de tes notes.':'Elle reprend sa place dans la liste.'):'Écris ta note, puis enregistre-la.');
+  lqSay((e.pin?'Note épinglée':'Note désépinglée')+(ok?'':' : écris ta note, puis enregistre-la'));
 }
 function togglePinFromList(id){
   const n=(state.notes||[]).find(x=>x.id===id); if(!n)return;
@@ -24521,7 +24601,7 @@ function togglePinFromList(id){
   n.pin=!n.pin; save(); notesEnter=false; renderNotes();
   notesFlip(before,id);
   lqPinFx(root&&root.querySelector(`.ncard[data-id="${id}"] .npin-btn`)||notesRoot()?.querySelector(`.ncard[data-id="${id}"] .npin-btn`),n.pin);
-  toast(n.pin?'Note épinglée':'Note désépinglée',n.pin?'Elle s’affiche en haut de tes notes.':'Elle reprend sa place dans la liste.');
+  lqSay(n.pin?'Note épinglée : elle s’affiche en haut de tes notes':'Note désépinglée');
 }
 function deleteNote(id){
   const all=state.notes||[],i=all.findIndex(x=>x.id===id),gone=i>=0?all[i]:null;
@@ -24536,7 +24616,7 @@ function deleteNote(id){
       state.notes=state.notes||[];
       if(!state.notes.some(x=>x.id===gone.id))state.notes.splice(Math.min(i,state.notes.length),0,gone);
       noteFreshId=gone.id; notesEnter=false; save(); renderNotes();
-      toast('Note restaurée');
+      lqSay('Note restaurée');
     });
   };
   /* La note s’efface avant de revenir à la liste. */
@@ -25961,7 +26041,7 @@ function saveAccountName(){
   state.name=((inp&&inp.value)||'').trim().slice(0,32);
   closePlusDetails();
   save(); renderGreeting(); renderCompte();
-  toast('Prénom enregistré');
+  lqDone(document.querySelector('#scr-compte .acct-id-copy b'),'Enregistré','Prénom enregistré');
   if(navigator.vibrate)navigator.vibrate(10);
 }
 function replayOnboarding(){
@@ -26151,7 +26231,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-31-fin-schema-v2200';
+  const SW_CACHE='requete-2026-10-31-defis-points-v2201';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
