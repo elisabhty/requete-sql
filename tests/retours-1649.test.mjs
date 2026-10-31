@@ -230,9 +230,10 @@ test('pseudo — l’onboarding demande le prénom ; la mini-page du pseudo suit
   const ctx = vm.createContext({ PS_LOCK_SVG: '<svg data-k="lock"></svg>', ACCT_CHEV: '<svg data-k="chev"></svg>', esc, mien: '' });
   vm.runInContext(line('jeuNom') + line('jeuInitial') + fn('accPseudoHTML') + 'function psMien(){return mien;}', ctx);
   ctx.mien = 'Léa';
-  assert.equal(vm.runInContext("accPseudoHTML('Léa')", ctx), '<div class="acc-pseudo"><span class="acc-pseudo-av" aria-hidden="true">L</span><span class="acc-pseudo-t"><small>Pseudo</small><b>Léa</b></span><span class="acc-pseudo-lock" aria-label="Pseudo verrouillé" role="img"><svg data-k="lock"></svg></span></div>');
+  /* 1er novembre, 0 h 06 : la carte prend la DA du site (cadenas dans la pastille de l’avatar, trait sous le pseudo) */
+  assert.equal(vm.runInContext("accPseudoHTML('Léa')", ctx), '<div class="acc-pseudo" style="--l:3"><span class="acc-pseudo-av"><span aria-hidden="true">L</span><span class="acc-pseudo-lock" aria-label="Pseudo verrouillé" role="img"><svg data-k="lock"></svg></span></span><span class="acc-pseudo-t"><small>Pseudo</small><b><span class="acc-pseudo-nm">Léa<svg class="acc-pseudo-sw" viewBox="0 0 300 30" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M4 20C70 8 170 6 296 14"/></svg></span></b></span></div>');
   ctx.mien = '';
-  assert.equal(vm.runInContext("accPseudoHTML('')", ctx), '<button type="button" class="acc-pseudo is-vide" onclick="closePlusDetails();psPage({})"><span class="acc-pseudo-av" aria-hidden="true">?</span><span class="acc-pseudo-t"><small>Pseudo</small><b>Choisis ton pseudo</b></span><svg data-k="chev"></svg></button>');
+  assert.equal(vm.runInContext("accPseudoHTML('')", ctx), '<button type="button" class="acc-pseudo is-vide" onclick="closePlusDetails();psPage({})"><span class="acc-pseudo-av" aria-hidden="true">?</span><span class="acc-pseudo-t"><small>Pseudo</small><b><span class="acc-pseudo-nm">Choisis ton pseudo</span></b></span><span class="acc-pseudo-go" aria-hidden="true"><svg data-k="chev"></svg></span></button>');
   assert.ok(app.includes('        ${accPseudoHTML(jeuSavedNom())}'));
   assert.ok(app.includes('<div class="at"><b>Supprimer mon pseudo</b><small>« ${esc(psMien())} » est libéré, avec tes scores</small></div>'), 'Données et confidentialité');
   for (const gone of ['id="acc-name"', 'class="acc-save"', 'function saveAccountName(', 'function clsRenommer(', 'function jeuNomEdit(', 'function psFeuille(', 'function psValider('])

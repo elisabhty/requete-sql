@@ -16,8 +16,10 @@ test('« Profil et objectif » : « Pseudo », le pseudo et le cadenas — ni «
   const ctx = vm.createContext({ PS_LOCK_SVG: '<svg data-k="lock"></svg>', ACCT_CHEV: '<svg data-k="chev"></svg>', esc: v => String(v) });
   vm.runInContext(cut('function jeuNom(v)', '\n') + cut('function jeuInitial(name){', '\n') + cut('function accPseudoHTML(name){', 'function replayOnboarding(){'), ctx);
   const html = vm.runInContext("accPseudoHTML('@elisa')", ctx);
-  assert.equal(html, '<div class="acc-pseudo"><span class="acc-pseudo-av" aria-hidden="true">E</span><span class="acc-pseudo-t"><small>Pseudo</small><b>@elisa</b></span><span class="acc-pseudo-lock" aria-label="Pseudo verrouillé" role="img"><svg data-k="lock"></svg></span></div>');
-  assert.ok(!html.includes('<em>') && !/se change/.test(html), 'pas de sous-titre');
+  /* 1er novembre, 0 h 06 : la carte prend la DA du site (le @ à part pour le colorer, le trait sous le pseudo, le cadenas
+     dans la pastille de l’avatar) — le texte reste « Pseudo », le pseudo et le cadenas. */
+  assert.equal(html, '<div class="acc-pseudo" style="--l:6"><span class="acc-pseudo-av"><span aria-hidden="true">E</span><span class="acc-pseudo-lock" aria-label="Pseudo verrouillé" role="img"><svg data-k="lock"></svg></span></span><span class="acc-pseudo-t"><small>Pseudo</small><b><i class="acc-pseudo-at">@</i><span class="acc-pseudo-nm">elisa<svg class="acc-pseudo-sw" viewBox="0 0 300 30" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M4 20C70 8 170 6 296 14"/></svg></span></b></span></div>');
+  assert.ok(!html.includes('<em>') && !/se change/.test(html) && !/unique/i.test(html), 'pas de sous-titre ni « Unique »');
   /* Ni après la vérification du jour, ni dans la bulle du cadenas des salles */
   assert.ok(app.includes("psPrendre(mien).then(r=>{\n      if(r&&r.ok)return;"));
   assert.ok(!app.includes("document.querySelector('.acc-pseudo em')"));
@@ -25,19 +27,15 @@ test('« Profil et objectif » : « Pseudo », le pseudo et le cadenas — ni «
   assert.ok(!/title="[^"]*ne se change pas/.test(app));
 });
 
-test('la ligne du pseudo s’aligne sur « Personnalisation » et « Revoir l’intro » au lieu de déborder de la feuille', () => {
-  for (const part of [
-    /* Même hauteur que les autres lignes (66 px), maintenant qu’elle a deux lignes de texte comme elles */
-    'html.lq #scr-compte .plus-details-body>.acc-pseudo{width:100%;min-height:66px;margin:0;padding:12px 18px;border:0;border-radius:0;background:#fff}',
-    'html.lq #scr-compte .plus-details-body>.acc-pseudo.is-vide{background:#FAF8FF}',
-    /* L’avatar a la taille des icônes des lignes (40 px) : son texte tombe sur le leur */
-    'html.lq #scr-compte .plus-details-body>.acc-pseudo .acc-pseudo-av{width:40px;height:40px}',
-    'html.lq #scr-compte .plus-details-body>.acc-pseudo+.acc-row{border-top:2px solid var(--line-2)}'])
-    assert.ok(css.includes(part), part);
+test('le pseudo ne déborde plus de la feuille : même marge (18 px) que « Personnalisation » et « Revoir l’intro »', () => {
+  /* 1er novembre, 0 h 06 : la ligne redevient une carte (DA du site), mais toujours posée dans la marge des lignes de la
+     feuille, jamais collée aux bords. */
+  assert.ok(css.includes('html.lq #scr-compte .plus-details-body>.acc-pseudo{position:relative;isolation:isolate;display:flex;align-items:center;gap:16px;\n  width:calc(100% - 36px);min-height:0;margin:22px 18px 16px;'));
+  assert.ok(!css.includes('html.lq #scr-compte .plus-details-body>.acc-pseudo{width:100%;'), 'plus de cadre pleine largeur');
   /* Les lignes de la feuille ont la même marge (18 px) et des icônes de 40 px */
   assert.ok(css.includes('html.lq #scr-compte .plus-details-body>.acc-row{min-height:66px;padding:12px 18px!important;'));
   assert.ok(css.includes('html.lq #scr-compte .acc-row-ico{flex:none;width:40px;height:40px;'));
-  assert.ok(css.indexOf('/* 52h.') > css.indexOf('html.lq .acc-pseudo{display:flex;'), 'après la règle de base du cadre');
+  assert.ok(css.indexOf('/* 52i.') > css.indexOf('html.lq .acc-pseudo{display:flex;'), 'après la règle de base du cadre');
 });
 
 test('« Plus tard » sur la mini-page du pseudo tient d’un lancement à l’autre', () => {
