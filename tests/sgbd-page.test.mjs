@@ -16,9 +16,11 @@ test('la page compare SQLite à quatre SGBD, besoin par besoin', () => {
   assert.equal(new Set(page.map(s => s.id)).size, page.length, 'thèmes uniques');
   for (const s of page) for (const [besoin, codes] of s.rows) assert.equal(codes.length, 5, `${s.t} · ${besoin}`);
   const need = ctx.sgbdNeedHtml(page.find(s => s.id === 'dates').rows.find(r => r[0] === 'Extraire l’année'));
-  assert.match(need, /<div class="sg-row is-lite"><span class="sg-who"><span class="sg-n">SQLite<\/span><br><i>cours<\/i><\/span><code class="sg-code">STRFTIME\('%Y', d\)<\/code>/);
+  /* Elisa, 31 octobre, 8 h 37 : « ne rien surligner et ne pas mettre cours » : SQLite s’écrit comme les autres */
+  assert.match(need, /<div class="sg-row"><span class="sg-who"><span class="sg-n">SQLite<\/span><\/span><code class="sg-code">STRFTIME\('%Y', d\)<\/code>/);
+  assert.ok(!need.includes('is-lite') && !need.includes('<i>cours</i>'), 'ni surlignage ni « cours »');
   assert.match(need, /PostgreSQL<\/span> · <span class="sg-n">Oracle<\/span><\/span><code class="sg-code">EXTRACT\(YEAR FROM d\)/, 'mêmes écritures regroupées');
-  assert.match(ctx.sgbdNeedHtml(page.find(s => s.id === 'nombres').rows[0]), /<span class="sg-who">Partout<br><i>cours<\/i><\/span>/, 'identique partout');
+  assert.match(ctx.sgbdNeedHtml(page.find(s => s.id === 'nombres').rows[0]), /<span class="sg-who">Partout<\/span>/, 'identique partout');
 });
 
 test('chaque renvoi des cours mène à un thème de la page, et s’ouvre dans une feuille', () => {

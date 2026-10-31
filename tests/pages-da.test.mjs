@@ -92,7 +92,7 @@ test('Selon le SGBD : la barre des thèmes accrochée en haut allume le thème l
   assert.ok(fn('sgbdJump').includes("const stuck=cs&&cs.position==='sticky'?(parseFloat(cs.top)||0)+bar.offsetHeight:0;") && fn('sgbdJump').includes('-12-stuck;'));
   assert.ok(app.includes("<div class=\"sg-intro\"><span class=\"sg-intro-stk\" aria-hidden=\"true\">${typeof lqStkSvg==='function'?lqStkSvg('info'):''}</span>"));
   for (const part of ['html.lq .sg-chips{position:sticky;top:calc(var(--safe-top) + 44px);z-index:20;background:var(--bg);', 'html.lq #sgbd-sheet-body .sg-chips{top:0}',
-    'html.lq .sg-sec h2 span{display:grid;place-items:center;', 'html.lq .sg-who i{background:var(--sun)!important;color:#1B1640!important;',
+    'html.lq .sg-sec h2 span{display:grid;place-items:center;',
     'html.lq .sg-wrap.lq-reveal .sg-need:not(.is-in){opacity:0;transform:translateY(16px) scale(.98)}', '@media (min-width:760px){\n  html.lq #scr-sgbd .sg-sec{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));'])
     assert.ok(s44.includes(part), part);
 });
