@@ -40,15 +40,15 @@ test('moteur : chaque légende reçoit sa phrase par sa clé, et le lecteur reç
   assert.ok(/^v[0-9a-z]{1,7}$/.test(vkey('Le SGBD interprète <code>email</code> comme un nouveau titre.')), 'une empreinte courte : la page ne répète pas ses légendes');
   const cfg = vm.runInContext('withVoice', ctx)({voice: {dir: '../voix/cours/', intro: ['ch00', 0.2, 4.2],
     caps: [[vkey('Bonjour à toi.'), 'ch01', 0.5, 2.5], [vkey('Absente'), 'ch01', 3, 4]],
-    say: {at1: ['at1', 0.1, 2], touche1: ['touche1', 0, 1], bienvu: ['bienvu', 0, 0.8], presque: ['presque', 0, 2], indice1: ['indice1', 0, 1.5]}},
+    say: {at1: ['at1', 0.1, 2], touche1: ['touche1', 0, 1], bienvu: ['bienvu', 0, 0.8], rattrape: ['rattrape', 0, 1.1], presque: ['presque', 0, 2], indice1: ['indice1', 0, 1.5]}},
     captions: [[5, 8, 'Bonjour à toi.', 3], [9, 12, 'Sans voix.']]});
   assert.deepEqual(JSON.parse(JSON.stringify(cfg.captions)), [[5, 8, 'Bonjour à toi.', 3, {voice: ['ch01', 0.5, 2.5]}], [9, 12, 'Sans voix.']]);
   assert.deepEqual(JSON.parse(JSON.stringify(vm.runInContext('VOICE_MISSING', ctx))), [vkey('Absente')], 'phrase sans légende signalée');
   const out = JSON.parse(JSON.stringify(ctx.voiceOut(cfg.captions, 1, 1, 100)));
   assert.deepEqual(out.clips, [{t: 0.35, src: 'https://exemple.fr/assets/voix/cours/ch00.mp3', o: 0.2, d: 4}, {t: 5.15, src: 'https://exemple.fr/assets/voix/cours/ch01.mp3', o: 0.5, d: 2}]);
   assert.equal(out.picks[0].src, 'https://exemple.fr/assets/voix/cours/at1.mp3'); assert.equal(out.tips[0].d, 1.5); assert.equal(out.opens[0].d, 1);
-  assert.equal(out.ok.d, 0.8); assert.equal(out.ko.d, 2);
-  assert.equal(out.files.length, 7, 'fichiers à précharger, sans doublon');
+  assert.equal(out.ok.d, 0.8); assert.equal(out.late.d, 1.1); assert.equal(out.ko.d, 2);
+  assert.equal(out.files.length, 8, 'fichiers à précharger, sans doublon');
   assert.ok(core.includes("if (cfg.voice && !QS.has('novoix')) cfg = withVoice(cfg);") && core.indexOf('cfg = withVoice(cfg)') < core.indexOf('cfg = withMoments(cfg)'),
     'la voix avant les moments : chaque légende emporte sa phrase là où les moments la déplacent');
   assert.ok(core.includes('rest, introVoiceHold(chapters))') && core.includes('voice: voiceOut(captions, picks.length, opens.length, duration)};'), 'pause de l’intro, export au lecteur');
@@ -77,8 +77,9 @@ test('lecteur : une seule balise audio, déverrouillée au premier appui, qui su
     'if(this.vwait){ if(LvVoice.ready()||now-this.vwait>2500)this.vwait=0; else{ this.last=now; this._loop(); return; } }'])
     assert.ok(anim.includes(s), s);
   assert.ok(cut('function lvPkShow(i,p){', 'function lvPkValid(').includes('if(!kept){ const V=lvVoiceV(); if(V)lvVoiceSay(V.picks[i]); }'), 'consigne du moment dite à l’ouverture (pas s’il est déjà fait)');
-  assert.ok(cut('function lvPkVerdict(', 'function lvPkFrom(').includes('if(first){ const V=lvVoiceV(); if(V)lvVoiceSay(V.ok); }') && cut('function lvPkVerdict(', 'function lvPkFrom(').includes('lvVoiceKo(P);'));
-  assert.ok(cut('function lvPkWin(', 'function lvEndHide(').includes('if(first){ const V=lvVoiceV(); if(V)lvVoiceSay(V.ok); }'));
+  assert.ok(cut('function lvPkVerdict(', 'function lvPkFrom(').includes('lvVoiceWin(first);') && cut('function lvPkVerdict(', 'function lvPkFrom(').includes('lvVoiceKo(P);'));
+  assert.ok(cut('function lvPkWin(', 'function lvEndHide(').includes('lvVoiceWin(first);'), 'gestes : la même réaction');
+  assert.ok(html.includes('function lvVoiceWin(first){ const V=lvVoiceV(); if(V)lvVoiceSay(first?V.ok:(V.late||V.ok)); }'), 'réussi après une erreur : « Bien rattrapé ! »');
   assert.ok(cut('function lvOpShow(i,o){', 'function lvOpPlace(').includes('{ const V=lvVoiceV(); if(V)lvVoiceSay(V.opens[i]); }'), 'message à toucher : sa consigne');
   assert.ok(cut('function lvPkClose(answered){', 'function lvOpShow(').includes('LvVoice.stopSay();') && cut('function lvOpClose(){', 'const LV_PK_ICO=').includes('LvVoice.stopSay();'));
 });
