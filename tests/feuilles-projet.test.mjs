@@ -101,7 +101,7 @@ test('épingler : la punaise en autocollant partout ; elle se plante en sautant,
 test('tables d’un projet : le nom en entier, « 1 ligne » dessous, les actions groupées ; la description se dit « Description de la table »', () => {
   const w = cut(app, 'function renderDbWorkspace(){', 'function toggleTableSchema(name){');
   for (const part of ['<div class="db-tblock" data-table="${escAttr(t)}">', '<span class="db-tname"><span class="tn">${esc(t).replace(/_/g,\'_<wbr>\')}</span><span class="tc">${typeof n===\'number\'?plur(n,\'ligne\'):',
-    '<span class="db-tacts">', '<i class="db-tnote-k" aria-hidden="true">${lqStkSvg(\'note\')}</i><span><small>Description de la table</small>${esc(note)}</span>',
+    '<span class="db-tacts">', '<span><small>Description de la table</small>${esc(note)}</span>',
     'aria-label="Description de ${escAttr(t)} : ${escAttr(note)}. Modifier"', '<span>Ajouter une description de la table</span>'])
     assert.ok(w.includes(part), part);
   assert.ok(!w.includes('lig.</span>\n          <span class="db-thint">'), 'plus de « 1 lig. » collé au nom');

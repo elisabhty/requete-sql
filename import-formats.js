@@ -5,7 +5,13 @@
    ImportFormats.sniff(octets, nom)        → 'sqlite' | 'zip' | 'cfb' | 'text'
    ImportFormats.readWorkbook(octets, nom) → Promise<{sheets: [{name, rows: [[valeur…]…]}]}>
    ImportFormats.decodeText(octets)        → texte (UTF-8, sinon Windows-1252)
-   ImportFormats.parseDelimited(texte)     → {delimiter, rows} */
+   ImportFormats.detectEncoding(octets)    → {encoding, text, repaired}
+   ImportFormats.parseDelimited(texte)     → {delimiter, rows}
+   Elisa, 31 octobre, 8 h 37 : « pour l’import de fichier, détecter automatiquement l’encodage pour mettre sous forme de colonnes, bien
+   formatées (UTF-8, etc.) ». L’encodage se lit sur la marque d’ordre des octets (UTF-8, UTF-16, UTF-32), sinon sur le contenu : UTF-16
+   sans marque (un octet nul sur deux, l’export « Texte Unicode » d’Excel), UTF-8 valide (réparé s’il a été lu deux fois : « Ã© »),
+   sinon Windows-1252 ou Mac Roman, le plus lisible des deux. Les fins de ligne Windows, Unix et anciens Mac, la ligne « sep=; »
+   d’Excel et les espaces autour des cellules sont pris en charge. */
 (function (root) {
   'use strict';
   const u8 = b => (b instanceof Uint8Array ? b : new Uint8Array(b));
@@ -20,28 +26,72 @@
     return 'text';
   }
 
-  /* ---------- Texte ---------- */
-  function decodeText(bytes) {
+  /* ---------- Texte : l’encodage ---------- */
+  const dec = (label, b, fatal) => { try { return new TextDecoder(label, fatal ? {fatal: true} : undefined).decode(b); } catch (e) { return null; } };
+  /* UTF-16 gros-boutiste : les octets inversés deux à deux, puis lus en petit-boutiste (au cas où le décodeur ne le connaît pas). */
+  const utf16be = b => dec('utf-16be', b) ?? dec('utf-16le', b.slice(0, b.length & ~1).map((x, i, a) => a[i ^ 1])) ?? '';
+  /* Windows-1252, octet par caractère : de quoi relire un texte UTF-8 qui a été lu (et réenregistré) en Windows-1252. */
+  const CP1252 = '€\u0081‚ƒ„…†‡ˆ‰Š‹Œ\u008DŽ\u008F\u0090‘’“”•–—˜™š›œ\u009DžŸ';
+  const cpByte = ch => { const c = ch.charCodeAt(0); if (c < 0x80 || (c >= 0xA0 && c <= 0xFF)) return c; const i = CP1252.indexOf(ch); return i < 0 ? -1 : 0x80 + i; };
+  const MOJI = /Ã[\u00A0-\u00BF\u0152\u0153\u0160\u0161\u0178\u017D\u017E\u02C6\u02DC\u2013-\u2026\u2030\u2039\u203A\u20AC\u2122]|Â[\u00A0-\u00BF]|â€/g;
+  function repairMojibake(s) {
+    const hits = (s.match(MOJI) || []).length;
+    if (!hits) return {text: s, repaired: false};
+    const bytes = [];
+    for (const ch of s) { const v = cpByte(ch); if (v < 0) return {text: s, repaired: false}; bytes.push(v); }
+    const fixed = dec('utf-8', new Uint8Array(bytes), true);
+    if (fixed == null || (fixed.match(MOJI) || []).length >= hits) return {text: s, repaired: false};
+    return {text: fixed, repaired: true};
+  }
+  /* Un texte français bien lu : des lettres accentuées ; mal lu : des caractères de contrôle ou des symboles rares. */
+  const frScore = s => (s.match(/[éèêëàâäîïôöûüùçœæÉÈÊÀÂÎÔÛÇŒ]/g) || []).length * 2 - (s.match(/[\u0080-\u009F]/g) || []).length * 3
+    - (s.match(/[ŽžŠšˆ‡†ƒ‰‹›˜™ÐÞþ¤¦¨¯´¸¬]/g) || []).length * 2;
+  function detectEncoding(bytes) {
     const b = u8(bytes);
-    let s = utf8.decode(b);
-    // Un CSV enregistré par Excel en français est souvent en Windows-1252 : ses accents deviennent illisibles en UTF-8.
-    if (s.includes('�')) { try { s = new TextDecoder('windows-1252').decode(b); } catch (e) {} }
-    return s.replace(/^﻿/, '');
+    if (b[0] === 0xEF && b[1] === 0xBB && b[2] === 0xBF) return {encoding: 'UTF-8', text: dec('utf-8', b.subarray(3)) ?? '', repaired: false};
+    if (b[0] === 0xFF && b[1] === 0xFE && b[2] === 0 && b[3] === 0) return {encoding: 'UTF-32', text: dec('utf-32le', b.subarray(4)) ?? '', repaired: false};
+    if (b[0] === 0xFF && b[1] === 0xFE) return {encoding: 'UTF-16', text: dec('utf-16le', b.subarray(2)) ?? '', repaired: false};
+    if (b[0] === 0xFE && b[1] === 0xFF) return {encoding: 'UTF-16', text: utf16be(b.subarray(2)), repaired: false};
+    /* Sans marque : un octet nul sur deux, c’est de l’UTF-16 (texte latin) */
+    const n = Math.min(b.length, 8192);
+    if (n >= 4) {
+      let even = 0, odd = 0;
+      for (let i = 0; i < n; i++) if (b[i] === 0) { if (i & 1) odd++; else even++; }
+      if (odd > n * 0.3 && even < n * 0.05) return {encoding: 'UTF-16', text: dec('utf-16le', b) ?? '', repaired: false};
+      if (even > n * 0.3 && odd < n * 0.05) return {encoding: 'UTF-16', text: utf16be(b), repaired: false};
+    }
+    const u = dec('utf-8', b, true);
+    if (u != null) { const r = repairMojibake(u); return {encoding: 'UTF-8', text: r.text, repaired: r.repaired}; }
+    /* Pas de l’UTF-8 : Windows-1252 (Excel en français) ou Mac Roman (anciens Mac), le plus lisible des deux */
+    const w = dec('windows-1252', b) ?? utf8.decode(b), m = dec('macintosh', b);
+    if (m != null && frScore(m) > frScore(w)) return {encoding: 'Mac Roman', text: m, repaired: false};
+    return {encoding: 'Windows-1252', text: w, repaired: false};
+  }
+  function decodeText(bytes) {
+    return detectEncoding(bytes).text.replace(/^\uFEFF/, '');
   }
   const outsideQuotes = (line, d) => { let n = 0, q = false; for (const ch of line) { if (ch === '"') q = !q; else if (!q && ch === d) n++; } return n; };
+  /* La ligne « sep=; » qu’Excel ajoute parfois en tête : elle donne le séparateur, et n’est pas une ligne de données. */
+  const SEP_LINE = /^\uFEFF?sep=(.)[ \t]*(?:\r\n|\r|\n)/i;
   function detectDelimiter(text) {
-    const lines = text.split(/\r?\n/).filter(l => l.trim()).slice(0, 25);
+    const t = String(text), hint = SEP_LINE.exec(t);
+    if (hint) return hint[1];
+    const lines = t.split(/\r\n|\r|\n/).filter(l => l.trim()).slice(0, 40);
     let best = ',', score = 0;
     for (const d of ['\t', ';', ',', '|']) {
       const counts = lines.map(l => outsideQuotes(l, d)), first = counts[0];
       if (!first) continue;
+      /* Le même nombre de séparateurs sur le plus de lignes possible ; à égalité, le plus de colonnes */
       const s = counts.filter(c => c === first).length * 1000 + first;
       if (s > score) { score = s; best = d; }
     }
     return best;
   }
+  const DELIM_NAME = {',': 'virgule', ';': 'point-virgule', '\t': 'tabulation', '|': 'barre verticale'};
   function parseDelimited(text, delimiter) {
-    const s = String(text).replace(/^﻿/, ''), d = delimiter || detectDelimiter(s);
+    let s = String(text).replace(/^\uFEFF/, '');
+    const d = delimiter || detectDelimiter(s);
+    s = s.replace(SEP_LINE, '').replace(/\r\n?/g, '\n');
     const rows = []; let row = [], cell = '', q = false;
     for (let i = 0; i < s.length; i++) {
       const ch = s[i];
@@ -55,7 +105,8 @@
       else if (ch !== '\r') cell += ch;
     }
     if (cell.length || row.length) { row.push(cell); rows.push(row); }
-    return {delimiter: d, rows: rows.filter(r => r.some(c => String(c).trim() !== ''))};
+    /* Les espaces autour d’une cellule (« Paris ; 12 ») ne font pas partie de la valeur */
+    return {delimiter: d, delimiterName: DELIM_NAME[d] || d, rows: rows.filter(r => r.some(c => String(c).trim() !== '')).map(r => r.map(c => c.replace(/^[ \t\u00A0]+|[ \t\u00A0]+$/g, '')))};
   }
 
   /* ---------- Dates des tableurs : un nombre de jours depuis le 30 décembre 1899 (ou le 1er janvier 1904) ---------- */
@@ -347,5 +398,5 @@
     throw new Error('archive sans classeur reconnu');
   }
 
-  root.ImportFormats = {sniff, decodeText, detectDelimiter, parseDelimited, readWorkbook, serialToIso, isDateFormat};
+  root.ImportFormats = {sniff, decodeText, detectEncoding, repairMojibake, detectDelimiter, parseDelimited, readWorkbook, serialToIso, isDateFormat};
 })(typeof window !== 'undefined' ? window : globalThis);

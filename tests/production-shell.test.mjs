@@ -59,7 +59,8 @@ assert(defisRoot.includes('root-home-back') && planningRoot.includes('root-home-
 assert((html.match(/class="home-back root-home-back"/g)||[]).length===6, 'retour cohérent sur les six pages concernées, « Selon le SGBD » et « Stickers » comprises (Mon compte est un onglet)');
 assert(html.includes('function returnToHome()') && html.includes("title.focus({preventScroll:true})"), 'retour Accueil centralisé avec restitution accessible du focus');
 assert(html.includes("function lessonBackLabel(){return ({planning:'Planning',defis:'Défis',practice:'Pratiquer',library:'Bibliothèque',jeu:'Défis'"), 'leçon renvoyée vers son écran d’origine avec un libellé clair');
-assert(html.includes("label.textContent=focused?'Questions':'Bibliothèque'") && html.includes("focused?'Retour aux questions':'Retour à la bibliothèque'"), 'Entretien revient aux questions avant de revenir à la bibliothèque');
+/* Depuis le 31 octobre (8 h 37, Réf 11), le retour de l’Entretien ramène là d’où l’on vient (la bibliothèque par défaut) */
+assert(html.includes("label.textContent=focused?'Questions':backTo[0]") && html.includes("focused?'Retour aux questions':'Retour '+backTo[1]") && html.includes("library:['Bibliothèque','à la bibliothèque']"), 'Entretien revient aux questions avant de revenir à la page d’où l’on vient');
 assert(html.includes('function returnToParent()') && html.includes("if(!parent||parent===activeTab||parent==='learn'){returnToHome();return;}"), 'les sous-pages reviennent à leur rubrique (Pratiquer, Bibliothèque)');
 assert(html.includes('<link rel="stylesheet" href="design-premium.css') && serviceWorker.includes("'./design-premium.css'"), 'système de design chargé en dernier et disponible hors ligne');
 assert(html.includes('<script src="design-premium.js') && serviceWorker.includes("'./design-premium.js'") && html.includes('window.pNavBack?.()'), 'barre de titre compacte et transitions de navigation chargées');
@@ -148,7 +149,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 const glissantes = fs.readFileSync(path.join(ROOT, 'assets/anim/fenetres-glissantes.html'), 'utf8');
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && ['UNBOUNDED PRECEDING', '2 PRECEDING', '2 FOLLOWING', 'CURRENT ROW'].every(c => glissantes.includes(c)) && html.includes('NTILE(4)'), 'cadres (dans la vidéo) et fonctions de fenêtre avancées (défi NTILE) couverts');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-10-31-perf-pseudo-v2204') && html.includes('requete-2026-10-31-perf-pseudo-v2204') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-10-31-retours-0837-v2205') && html.includes('requete-2026-10-31-retours-0837-v2205') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
