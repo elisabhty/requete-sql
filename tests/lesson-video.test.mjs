@@ -339,7 +339,7 @@ test('son de l’animation : contexte neuf à chaque cours, remplacé s’il ne 
   S.wake();
   assert.equal(made.length, 4, 'son déjà actif : rien ne change');
   const anim = cut('class LvAnim{', 'function lessonVideoOn(l)');
-  assert.ok(anim.includes("if(typeof LV==='undefined'||!LV){ LvSfx.stop(); LvSfx.idle(); LvSfx.release(); }"), 'fondu de fermeture : le son d’un cours ouvert entre-temps reste intact');
+  assert.ok(anim.includes("if(typeof LV==='undefined'||!LV){ LvSfx.stop(); LvSfx.idle(); LvSfx.release(); LvVoice.release(); }"), 'fondu de fermeture : le son (et la voix) d’un cours ouvert entre-temps reste intact');
   const open = cut('function openLessonVideo(fin){', 'function lvPlay(){'), close = cut('function closeLessonVideo(instant){', 'function lessonStepMeta(){');
   assert.ok(open.includes("document.addEventListener('touchend',lvWake,{capture:true,passive:true});") && open.includes("document.addEventListener('click',lvWake,true);"), 'un appui pendant la lecture réveille le son');
   assert.ok(close.includes("document.removeEventListener('touchend',lvWake,{capture:true});") && close.includes("document.removeEventListener('click',lvWake,true);"));
@@ -478,7 +478,7 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '9 min 19', notesAt: 492.4, maxKo: 730,   // 730 Ko depuis le 29 octobre (nouvelle intro du moteur commun, ~9 Ko, et sa vignette refaite dans la DA de la vitrine, 22 → 36 Ko) ; 700 Ko depuis le 28 octobre : le recrutement (SMS, l’image du badge d’Elisa, 75 Ko) et le site qui interroge le SGBD
+  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '9 min 19', notesAt: 492.4, maxKo: 760,   // 760 Ko depuis le 31 octobre (la voix off d’Agathe : ses phrases calées dans la page, ~9 Ko) ; 730 Ko depuis le 29 octobre (nouvelle intro du moteur commun, ~9 Ko, et sa vignette refaite dans la DA de la vitrine, 22 → 36 Ko) ; 700 Ko depuis le 28 octobre : le recrutement (SMS, l’image du badge d’Elisa, 75 Ko) et le site qui interroge le SGBD
     table: 'clients',
     bubble: 'Découvre comment les données sont organisées en tables et reliées entre elles.',
     chapters: ['Situation', 'Le problème', 'Ta mission', 'Le découpage', 'Base de données et SGBD', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],
@@ -1319,7 +1319,9 @@ for (const c of COURSES) {
     /* 510 Ko depuis le 29 octobre : le moteur commun porte la nouvelle intro dans la DA de la vitrine (carte violette, pastilles, ~8 Ko). */
     /* 520 Ko depuis le 31 octobre (et 10 Ko de plus pour les cours qui ont leur propre plafond) : les bulles des légendes (la mascotte
        qui parle, les mots qui arrivent, le surligneur ; Elisa, 30 octobre, 23 h 42), ~6 Ko dans le moteur commun. */
-    assert.ok(total < ((c.maxKo || 510) + 10) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
+    /* 530 Ko depuis le 31 octobre, midi (et 10 Ko de plus pour les cours qui ont leur propre plafond) : la voix off dans le moteur
+       commun (les phrases calées sur les légendes, ~6 Ko) ; les fichiers audio, eux, sont à part (assets/voix). */
+    assert.ok(total < ((c.maxKo || 520) + 10) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
     for (const f of [`./assets/anim/${c.page}?app&embed`, `./assets/anim/${c.thumb}`]) assert.ok(sw.includes(`'${f}'`), `préchargé : ${f}`);
   });
 }

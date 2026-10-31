@@ -265,6 +265,11 @@ self.addEventListener('fetch', (e) => {
      les charger lui-même ; hors ligne, l’image fixe (poster) s’affiche. */
   if (url.pathname.endsWith('.mp4')) return;
 
+  /* Voix off des cours (assets/voix) : le lecteur les télécharge en entier (fetch, rangées au passage par la règle générale)
+     et les lit depuis la mémoire. Si la balise audio les demande elle-même par morceaux (Range), on la laisse faire, comme
+     pour les vidéos. Elles ne sont pas préchargées : une fois écoutées, elles restent dans le cache. */
+  if (url.pathname.endsWith('.mp3') && req.headers.has('range')) return;
+
   /* Page vitrine (decouvrir/) : ses pages et ses fichiers (vitrine.css, modules.js, images) passent par
      le réseau d’abord et sont rangés sous leur propre adresse. Jamais sous index.html, sinon l’app hors
      ligne s’ouvrirait sur la vitrine ; jamais servis du cache quand le réseau répond, sinon une page à jour
