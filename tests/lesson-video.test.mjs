@@ -478,7 +478,7 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '9 min 19', notesAt: 492.4, maxKo: 760,   // 760 Ko depuis le 31 octobre (la voix off d’Agathe : ses phrases calées dans la page, ~9 Ko) ; 730 Ko depuis le 29 octobre (nouvelle intro du moteur commun, ~9 Ko, et sa vignette refaite dans la DA de la vitrine, 22 → 36 Ko) ; 700 Ko depuis le 28 octobre : le recrutement (SMS, l’image du badge d’Elisa, 75 Ko) et le site qui interroge le SGBD
+  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '9 min 35', notesAt: 492.4, maxKo: 760,   // 760 Ko depuis le 31 octobre (la voix off d’Agathe : ses phrases calées dans la page, ~9 Ko) ; 730 Ko depuis le 29 octobre (nouvelle intro du moteur commun, ~9 Ko, et sa vignette refaite dans la DA de la vitrine, 22 → 36 Ko) ; 700 Ko depuis le 28 octobre : le recrutement (SMS, l’image du badge d’Elisa, 75 Ko) et le site qui interroge le SGBD
     table: 'clients',
     bubble: 'Découvre comment les données sont organisées en tables et reliées entre elles.',
     chapters: ['Situation', 'Le problème', 'Ta mission', 'Le découpage', 'Base de données et SGBD', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],

@@ -2,8 +2,8 @@
 /* Voix off : des fichiers d’ElevenLabs (tools/voix/sortie/<cours>/, faits par generer.mjs) à la page du cours.
    node tools/voix/integrer.mjs <cours> [dossier des fichiers bruts]     (ffmpeg et ffprobe requis)
 
-   - chaque chapitre est découpé phrase par phrase : le minutage d’ElevenLabs situe la phrase, le niveau du son ajuste ses
-     bords (la phrase commence et finit dans un silence, sans mordre sur la voisine) ;
+   - chaque chapitre est découpé phrase par phrase : le minutage d’ElevenLabs situe la phrase, les silences placent ses bords
+     (la phrase commence et finit dans un silence, sans mordre sur la voisine, sans garder toute la pause qui suit) ;
    - chaque phrase va à sa légende (même texte, dans l’ordre), la clé de la légende est celle du moteur (vkey de core.js) ;
    - les fichiers sont réencodés en mono 64 kb/s dans assets/voix/<cours>/ ;
    - la page reçoit VOICE (entre les repères « Voix off » du fichier) et voice: VOICE dans Course({…}). */
@@ -54,13 +54,30 @@ function levels(f){
   const sorted = Array.from(out).sort((a, b) => a - b), p95 = sorted[Math.floor(sorted.length * 0.95)] || 0.1;
   return {rms: out, thr: Math.max(0.004, 0.07 * p95)};
 }
-const quiet = (L, i, n) => { for (let k = i; k < i + n; k++) if (k >= 0 && k < L.rms.length && L.rms[k] >= L.thr) return false; return true; };
-/* Bords d’une phrase : du dernier silence avant son début au premier silence après sa fin, sans passer les limites (lo, hi). */
-function edges(L, s, e, lo, hi){
-  let a = Math.max(lo, s - 0.08), b = Math.min(hi, e + 0.15);
-  for (let i = Math.floor(s * 100); i >= Math.max(0, Math.ceil((s - 0.3) * 100)); i--) if (quiet(L, i - 3, 3)) { a = Math.max(lo, i / 100 - 0.04); break; }
-  for (let i = Math.ceil(e * 100); i <= Math.floor((e + 0.5) * 100); i++) if (quiet(L, i, 5)) { b = Math.min(hi, i / 100 + 0.06); break; }
-  return [r3(Math.max(0, a)), r3(b)];
+/* Silences d’au moins 80 ms : [début, fin] en secondes. */
+function silences(L){
+  const out = []; let run = 0;
+  for (let i = 0; i <= L.rms.length; i++) { if (i < L.rms.length && L.rms[i] < L.thr) run++; else { if (run >= 8) out.push([(i - run) / 100, i / 100]); run = 0; } }
+  return out;
+}
+/* Bords des phrases d’un chapitre. Le minutage d’ElevenLabs donne à la ponctuation finale le silence qui suit : une phrase
+   « finit » quand la suivante commence. La parole s’arrête donc au début de ce silence, et la phrase suivante part à sa fin :
+   chaque coupe tombe dans le silence, sans mordre sur la voisine, et sans garder la pause entière (0,12 s après la voix). */
+function bounds(L, spans, dur){
+  const S = silences(L);
+  const near = (t, lo, hi, end) => S.filter(x => x[end] >= t + lo && x[end] <= t + hi).sort((x, y) => Math.abs(x[end] - t) - Math.abs(y[end] - t))[0];
+  const out = spans.map(([s, e], k) => {
+    const pre = near(s, -0.3, 0.15, 1), post = near(e, -0.15, 0.3, 1);
+    /* Sans silence devant (la voix enchaîne dès le début du fichier, dans la continuité du chapitre d’avant) : depuis le début. */
+    const a = pre ? pre[1] - 0.05 : k ? s - 0.05 : 0;
+    const b = post && post[0] > s + 0.2 ? Math.min(post[0] + 0.12, post[1] - 0.02) : e + 0.05;
+    return [a, b];
+  });
+  out.forEach((c, k) => {
+    c[0] = Math.max(0, c[0], k ? out[k - 1][1] + 0.01 : 0);
+    c[1] = Math.min(dur, c[1], k + 1 < out.length ? Math.max(c[0] + 0.3, spans[k + 1][0] - 0.03) : dur);
+  });
+  return out.map(([a, b]) => [r3(a), r3(b)]);
 }
 /* Début et fin de la parole d’un fichier court (consigne) : premier et dernier passage au-dessus du seuil. */
 function speech(L, dur){
@@ -120,10 +137,7 @@ for (const el of job.elements) {
   const T = timing(rec);
   let spans = T ? locate(T, el.phrases) : null;
   if (!spans || spans.some(x => !x)) { report.push(`${el.id} : minutage incomplet, découpage aux silences`); spans = bySilence(L, el.phrases.length, dur); }
-  const clips = spans.map(([s, e], k) => {
-    const lo = k ? (spans[k - 1][1] + s) / 2 : 0, hi = k + 1 < spans.length ? (e + spans[k + 1][0]) / 2 : dur;
-    return edges(L, s, e, lo, hi);
-  });
+  const clips = bounds(L, spans, dur);
   if (el.id === 'ch00') { intro = [el.id, clips[0][0], clips[clips.length - 1][1]]; continue; }
   /* Chaque phrase à sa légende : la plus ressemblante parmi les suivantes, dans l’ordre. */
   el.phrases.forEach((p, k) => {

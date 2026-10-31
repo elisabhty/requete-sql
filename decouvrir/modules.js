@@ -41,7 +41,7 @@ window.MODULES=[
   themes:['Requêtes SELECT','Filtres et tris','Fonctions','Agrégats','Jointures','Sous-requêtes','CTE','Fonctions de fenêtre','Modélisation','Création de tables','Transactions','Index et performance','Sécurité'],
   programme:[
     {titre:"Introduction", sous:"Bases de données, tables, relations et SELECT", lecons:[
-      ["Les bases de données relationnelles", "Tables, clés et lecture avec SELECT", 559]
+      ["Les bases de données relationnelles", "Tables, clés et lecture avec SELECT", 575]
     ]},
     {titre:"Lire une table", sous:"SELECT, filtres, tri et pagination", lecons:[
       ["Renommer avec AS", "Donner un nom lisible à une colonne du résultat", 91],

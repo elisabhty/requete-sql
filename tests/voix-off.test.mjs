@@ -174,4 +174,7 @@ test('outils de la voix : la clé ElevenLabs reste sur le Mac, les fichiers brut
   assert.ok(read('.gitignore').includes('\ntools/voix/sortie/\n'));
   const sw = read('sw.js');
   assert.ok(sw.includes("if (url.pathname.endsWith('.mp3') && req.headers.has('range')) return;"), 'la balise audio peut demander ses morceaux elle-même');
+  const ml = read('decouvrir/mentions-legales.html');
+  assert.ok(ml.includes('<li><a href="#voix">Voix des cours</a></li>') && ml.includes('<section id="voix"><h2>Voix des cours</h2><p>La voix qui lit les cours vidéo de l’appli est une <b>voix de synthèse</b>, générée avec ElevenLabs'),
+    'mentions légales : la voix des cours est une voix de synthèse (ElevenLabs)');
 });
