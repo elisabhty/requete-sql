@@ -1873,7 +1873,9 @@
   .jeu-dot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--accent);animation:jeuPulse 1.2s ease-in-out infinite}
   @keyframes jeuPulse{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
   .jeu-hint{margin:10px 0 0!important;font-size:12.5px!important;color:var(--ink-3)!important}
-  .jeu-net{margin:14px 0 0!important;padding:10px 12px;border-radius:12px;background:var(--warn-soft);color:var(--warn)!important;font-size:13.5px!important;font-weight:600}
+  .jeu-net{display:flex;align-items:center;gap:10px;margin:14px 0 0!important;padding:10px 12px;border-radius:12px;background:var(--warn-soft);color:var(--warn)!important;font-size:13.5px!important;font-weight:600}
+  .jeu-net-ico svg{width:30px;height:30px;display:block}
+  .jeu-net-tx{display:flex;flex-direction:column;gap:2px}
   .jeu-bar{display:flex;align-items:center;justify-content:space-between;gap:10px}
   .jeu-bar .l-kicker{margin:0!important}
   .jeu-timer{flex:none;padding:5px 11px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
@@ -1881,7 +1883,8 @@
   .jeu-reacts{display:flex;justify-content:center;gap:10px;margin:18px 0 0}
   .jeu-reacts button{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:21px;cursor:pointer;transition:transform .15s}
   .jeu-reacts button:active{transform:scale(.88)}
-  .jeu-close{display:block;margin:14px auto 0;padding:8px 12px;border:0;background:none;font:inherit;font-size:13px;font-weight:700;color:var(--ink-3);text-decoration:underline;cursor:pointer}
+  .jeu-close{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:14px 0 0;padding:12px 16px;border:1px solid var(--line);border-radius:14px;background:#fff;font:inherit;font-size:14px;font-weight:700;color:var(--ink-2);cursor:pointer}
+  .jeu-close svg{width:18px;height:18px;flex:none}
   .jeu-rank{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
   .jeu-rank li{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;background:#FAFAFC;border:1px solid var(--line-2)}
   .jeu-rank li b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
@@ -1945,7 +1948,8 @@
   .def-free h2{margin:0;font-size:19px;font-weight:800;letter-spacing:-.48px;line-height:1.2}
   .def-free p{margin:5px 0 0;color:#696C76;font-size:13.5px;line-height:1.42}
   /* Salle de défi : salle d'attente, tirage au sort, bilan */
-  .jeu-chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0}
+  .jeu-chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0;padding:0;list-style:none}
+  .jeu-chip .lq-stk,.jeu-chip .jeu-bars{width:22px;height:22px;margin-right:6px}
   .jeu-chip{display:inline-flex;align-items:center;padding:5px 11px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:12.5px;font-weight:750}
   .jeu-chip.is-f{background:var(--success-soft);color:var(--success)}
   .jeu-chip.is-m{background:var(--warn-soft);color:var(--warn)}
@@ -6640,7 +6644,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=43">
+<link rel="stylesheet" href="ludique.css?v=44">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -12228,6 +12232,7 @@ function normalizeState(raw){
   const uuid=v=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
   if(uuid(salleSrc.clsId))salle.clsId=salleSrc.clsId;
   if(salleSrc.horsCls)salle.horsCls=1;
+  if(typeof salleSrc.defisEnv==='string'&&salleSrc.defisEnv.length<=4000)salle.defisEnv=salleSrc.defisEnv;
   if(salleSrc.clsRefus){const r=salleNom(salleSrc.clsRefus);if(r)salle.clsRefus=r;}
   if(Array.isArray(salleSrc.masques)){const m=salleSrc.masques.filter(uuid).slice(-50);if(m.length)salle.masques=m;}
   if(Array.isArray(salleSrc.envoi)){
@@ -14531,7 +14536,7 @@ function clsFlush(){
     CLS.flushing=false;
     const s2=clsSalle();s2.envoi=(s2.envoi||[]).filter(x=>x.u!==q[0].u);s2.clsId=r&&r.id||s2.clsId;delete s2.clsRefus;save();
     if(CLS.data&&r)CLS.data.moi=Object.assign({},CLS.data.moi||{},{id:r.id,pts:r.pts,parties:r.parties,rang:r.rang,pseudo:nom});
-    CLS.at=0;
+    CLS.at=0;clsDefis();
     if(s2.envoi.length)clsFlush();else clsCharger(true);
   },e=>{
     CLS.flushing=false;
@@ -14549,6 +14554,28 @@ function clsRenommer(){
   if(!jeuPseudoOk(nom)){s.clsRefus=nom;save();return;}
   delete s.clsRefus;save();
   clsRpc('jeu_renommer',{p_cle:clsCle(),p_pseudo:nom}).then(()=>{CLS.at=0;},e=>{if(/pseudo/.test(String(e&&e.message||''))){clsSalle().clsRefus=nom;save();}});
+}
+/* Les défis réussis, pour savoir quand en ajouter (Elisa, 31 octobre, 15 h 52 : « est-ce que je pourrais voir le nombre de défis
+   réussis par user ? pour voir combien je devrais en rajouter au fil du temps ») : la liste des défis réussis et, par niveau, le
+   nombre réussi sur le nombre de défis de l’appli. Elle suit le classement (même identifiant tiré au hasard, même « Retirer mes
+   scores »), seulement quand elle change ; elle n’est lisible que dans le tableau de bord Supabase (vues stats_defis_*). */
+function clsDefisSig(){
+  if(typeof CHALLENGES==='undefined')return null;
+  const ok=CHALLENGES.filter(c=>state.defis&&state.defis[c.id]),niv={};
+  ['f','m','d'].forEach(k=>{niv[k]=[ok.filter(c=>c.niv===k).length,CHALLENGES.filter(c=>c.niv===k).length];});
+  const ids=ok.map(c=>c.id);
+  return {ids,niv,sig:ids.join(',')+'|'+CHALLENGES.length};
+}
+function clsDefis(){
+  try{
+    const s=clsSalle(),d=clsDefisSig();
+    if(!d||!clsOn()||!s.clsId||CLS.defis||s.defisEnv===d.sig)return;
+    CLS.defis=true;
+    clsRpc('jeu_defis',{p_cle:clsCle(),p_defis:d.ids,p_niv:d.niv}).then(r=>{
+      CLS.defis=false;
+      if(r&&r.ok){clsSalle().defisEnv=d.sig;save();const n=clsDefisSig();if(n&&n.sig!==d.sig)clsDefis();}
+    },()=>{CLS.defis=false;});
+  }catch(e){CLS.defis=false;}
 }
 function clsCharger(force){
   if(CLS.busy||(!force&&CLS.data&&Date.now()-CLS.at<60000))return;
@@ -14600,10 +14627,10 @@ function clsSignaler(id){
 function clsQuitter(){
   const s=clsSalle();
   if(!clsOn()){delete s.horsCls;save();CLS.data=null;CLS.at=0;clsCharger(true);clsPaint();if(document.getElementById('compte-body'))renderCompte();lqSay('Tu apparais de nouveau au classement, dès ta prochaine partie.');return;}
-  lqAsk({ico:'🏆',titre:'Retirer tes scores du classement ?',texte:'Ton pseudo et tes points sont effacés du serveur, et tes prochaines parties ne sont plus envoyées. Ta progression reste sur cet appareil.',oui:'Retirer',non:'Annuler',danger:true})
+  lqAsk({ico:'🏆',titre:'Retirer tes scores du classement ?',texte:'Ton pseudo, tes points et la liste de tes défis réussis sont effacés du serveur, et tes prochaines parties ne sont plus envoyées. Ta progression reste sur cet appareil.',oui:'Retirer',non:'Annuler',danger:true})
     .then(ok=>{
       if(!ok)return;
-      const cle=s.cle;s.horsCls=1;s.envoi=[];delete s.clsId;save();
+      const cle=s.cle;s.horsCls=1;s.envoi=[];delete s.clsId;delete s.defisEnv;save();
       if(cle)clsRpc('jeu_oublier',{p_cle:cle}).catch(()=>{});
       CLS.data=null;clsPaint();closePlusDetails();if(document.getElementById('compte-body'))renderCompte();
       lqSay('Tes scores sont retirés du classement.');
@@ -14659,7 +14686,7 @@ function renderDefisPerf(){
     ${rows?`<div class="perf-block"><h3>Historique</h3><ol class="perf-hist">${rows}</ol></div>`:''}
   </section>`;
   perfReveal(host.firstElementChild);
-  clsFlush();clsCharger();
+  clsFlush();clsCharger();if(typeof clsDefis==='function')clsDefis();
 }
 /* Toucher une barre : elle passe devant, sa partie s’écrit dessous. */
 function perfPick(b){
@@ -20511,13 +20538,13 @@ function jeuStart(code,host,cid,opts){
     synced:!!host,syncAt:host?Date.now():0,echoAt:Date.now(),helloU:'',helloAt:0,skew:0,full:false,lost:false,claimAt:0,
     sid:jeuRand(6),opens:0,graceUntil:0,claimGrace:0,cfgCv:0,cfgSaved:null,readyCv:{},early:[],claimBest:null,replaying:false,replayEnd:0,resumeU:'',goneAt:0,lastTick:Date.now(),out:[],flushAt:0,flushing:false,keep:null,
     tick:null,ping:null,t:null,lastReact:0,plan:picked?[picked.id]:[],
-    recent:new Set(),shown:new Set(),announced:new Set(),scored:false,played:false,drawT:[]};
+    recent:new Set(),shown:new Set(),announced:new Set(),scored:false,played:false,drawT:[],okOf:{}};
   JEU.players[me]={name:nom,at:Date.now()};JEU.order.push(me);JEU.seen[me]=Date.now();
   const G=JEU;
   JEU.t=jeuTransport(code,m=>{if(JEU===G)jeuOnMsg(m);},ok=>{const J=JEU;if(!J||J!==G)return;J.net=ok;if(ok){J.opens++;if(J.opens>1)jeuResume();}jeuPaint();},solo);
   if(host){JEU.ready[me]=true;jeuSend({t:'cfg',niv,n:nb,max:JEU.max});}
   JEU.helloAt=Date.now();
-  const hu=jeuSend({t:'hello'});
+  const hu=jeuSend({t:'hello',ok:jeuOkList()});
   if(!host)JEU.helloU=hu;
   jeuInvite='';
   annulerBilanAuto();
@@ -20587,7 +20614,7 @@ function jeuResume(){
   /* Jusqu’au retour de ce « hello » par le relais, ce qui arrive est du rejeu (messages manqués) : il
      informe, mais ne prouve pas que son auteur est là maintenant. */
   J.replaying=true;J.replayEnd=Date.now()+6000;
-  J.resumeU=jeuSend({t:'hello'});
+  J.resumeU=jeuSend({t:'hello',ok:jeuOkList()});
 }
 function jeuIsHost(){const J=JEU;return !!J&&J.hostPid===J.me&&!(J.replaying&&Date.now()<J.replayEnd);}
 function jeuPresent(pid){
@@ -20665,6 +20692,7 @@ function jeuOnMsg(m){
       if(m.pid!==J.me||mine)J.helloOf[m.pid]=m.u;
       if(!addP())return;
       delete J.left[m.pid];
+      if(Array.isArray(m.ok))J.okOf[m.pid]=new Set(m.ok.filter(x=>typeof x==='string').slice(0,300));
       /* Un arrivant en direct : on se signale tout de suite, pour qu’il nous voie. */
       if(m.pid!==J.me&&J.synced&&!J.solo&&!replay)setTimeout(()=>{if(JEU===J&&!J.full)jeuSend({t:'ping'});},Math.random()*600);
       if(m.pid!==J.me)jeuMaybeDeny(m.pid,m.u);
@@ -20708,6 +20736,7 @@ function jeuOnMsg(m){
       if(r.found[m.pid]!=null)return;
       if(!addP())return;
       r.found[m.pid]=Math.max(0,Math.min(JEU_ROUND_MS,+m.ms||0));
+      (J.okOf[m.pid]=J.okOf[m.pid]||new Set()).add(r.cid);
       if(m.pid===J.me)J.played=true;
       if(m.pid!==J.me&&!J.solo&&J.synced&&!replay)jeuToast(`${name} a trouvé ✓`);
       /* Un temps qui arrive pendant l’écran de résultats : le classement se met à jour. */
@@ -20769,12 +20798,24 @@ function jeuSynced(m){
   J.skew=(m.at||Date.now())-J.helloAt;
   J.rounds.forEach(r=>{if(r&&r.hist){r.t0=Math.min(Date.now(),(r.relayAt||Date.now())-J.skew);r.t1=r.t0+JEU_DRAW_MS;r.hist=false;}});
 }
-/* Tirage au sort du défi d’une manche (hôte) : pas deux fois le même dans une
-   partie, de préférence pas déjà joué dans cette salle, ni déjà réussi par l’hôte. */
+/* Les défis que j’ai déjà réussis (dans mon « hello ») : l’hôte ne les tire pas au sort. */
+function jeuOkList(){try{return CHALLENGES.filter(c=>state.defis&&state.defis[c.id]).map(c=>c.id).slice(0,300);}catch(e){return [];}}
+/* Combien de joueurs présents ont déjà réussi ce défi (moi compris) : avant la partie (leur « hello ») ou dans cette salle. */
+function jeuOkCount(id){
+  const J=JEU;
+  return jeuLive().reduce((a,p)=>a+(p===J.me?(state.defis&&state.defis[id]?1:0):(J.okOf[p]&&J.okOf[p].has(id)?1:0)),0);
+}
+/* Tirage au sort du défi d’une manche (hôte) : pas deux fois le même dans une partie, et jamais un défi déjà réussi par l’un des
+   joueurs présents (Elisa, 31 octobre, 15 h 52 : « quand un joueur réussit un défi il est considéré comme validé pour lui et la
+   sélection ne va pas choisir le défi, pareil pour l’autre »). Quand tous l’ont déjà été : ceux que le moins de joueurs ont réussis.
+   De préférence pas déjà joué dans cette salle. */
 function jeuPick(){
   const J=JEU,all=jeuChallenges(J.niv).map(c=>c.id);
   const inGame=new Set(J.rounds.filter(Boolean).map(r=>r.cid));
   let pool=all.filter(id=>!inGame.has(id));
+  if(!pool.length)return all[0];
+  const min=Math.min(...pool.map(jeuOkCount));
+  pool=pool.filter(id=>jeuOkCount(id)===min);
   /* Pas un défi déjà joué dans cette salle ; quand tout a été joué, on repart de zéro (sauf le dernier). */
   let fresh=pool.filter(id=>!J.recent.has(id));
   if(!fresh.length){
@@ -20783,9 +20824,7 @@ function jeuPick(){
     fresh=pool.filter(id=>id!==last);
     if(!fresh.length)fresh=pool;
   }
-  pool=fresh;
-  const todo=pool.filter(id=>!(state.defis&&state.defis[id]));if(todo.length)pool=todo;
-  return pool[Math.floor(Math.random()*pool.length)]||all[0];
+  return fresh[Math.floor(Math.random()*fresh.length)]||all[0];
 }
 function jeuCur(){const J=JEU;for(let i=J.rounds.length-1;i>=0;i--)if(J.rounds[i])return i;return -1;}
 function jeuRoundDone(n){
@@ -20882,7 +20921,16 @@ function jeuTick(){
    ni la requête en cours de frappe. */
 /* Seul, pas de « Voir la solution » pendant la manche (Elisa, 31 octobre, 15 h 16, réf. 6) : la solution se découvre à la fin de la
    manche (trouvée ou temps écoulé). Entre amis, l’hôte peut clore la manche pour tout le monde. */
-function jeuHostBarHTML(){return jeuIsHost()&&!JEU.solo?'<button type="button" class="jeu-close" onclick="jeuClose()">Clore la manche maintenant</button>':'';}
+/* Les boutons du bas de la salle (clore la manche, changer de niveau, quitter) : des boutons secondaires de l’appli, avec leur
+   pictogramme, plus des liens soulignés (Elisa, 31 octobre, 15 h 52, réf. 3 : « l’UI/UX et la DA du site ne sont pas respectées »). */
+const JEU_ICO={
+  flag:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V4.5M6 4.5h10.5l-2.2 4 2.2 4H6" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  quit:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H7.5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2H14M10.5 12h9M16.5 8.5 20 12l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  level:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18.5v-4M12 18.5v-8M18 18.5V5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
+  wifi:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.2a12.5 12.5 0 0 1 17 0M6.6 12.6a8 8 0 0 1 10.8 0M9.8 15.9a3.4 3.4 0 0 1 4.4 0" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/><path d="M4 4l16 16" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/></svg>'
+};
+function jeuBtn2(ico,label,on){return `<button type="button" class="jeu-close" onclick="${on}">${JEU_ICO[ico]}<span>${label}</span></button>`;}
+function jeuHostBarHTML(){return jeuIsHost()&&!JEU.solo?jeuBtn2('flag','Clore la manche pour tous','jeuClose()'):'';}
 function jeuRedraw(){
   const J=JEU;if(!J)return;
   /* En manche : seul le bouton de l’hôte change, l’éditeur n’est pas touché. */
@@ -20908,13 +20956,15 @@ function jeuPlayersHTML(kind){
     else if(r)state=`<em class="jeu-state">${found?'✓ '+jeuChrono(r.found[pid]):(away?'parti·e':'…')}</em>`;
     return `<li class="${found?'is-found':''}${away?' is-away':''}${isNew?' is-new':''}"><b class="jeu-av" data-c="${all.indexOf(pid)%6}" aria-hidden="true">${jeuInitial(p.name)}</b><span>${esc(p.name)}${me?' <small>(toi)</small>':''}${host?' <small class="jeu-tag">hôte</small>':''}</span>${state}</li>`;
   });
-  if(kind==='lobby'&&list.length<J.max)rows.push('<li class="jeu-slot" aria-hidden="true"><b class="jeu-av is-empty"></b><span>En attente d’un ami…</span></li>');
+  if(kind==='lobby'&&list.length<J.max)rows.push('<li class="jeu-slot" aria-hidden="true"><b class="jeu-av is-empty"></b><span>En attente d’un joueur…</span></li>');
   return rows.join('');
 }
+/* Les annonces de la salle (réseau coupé, seul dans la salle) : une carte de l’appli, son pictogramme, une phrase courte. */
+function jeuNoteHTML(cls,ico,titre,texte){return `<div class="jeu-net ${cls}" role="status"><span class="jeu-net-ico" aria-hidden="true">${ico}</span><span class="jeu-net-tx"><b>${titre}</b><small>${texte}</small></span></div>`;}
 function jeuNetHTML(){
   const J=JEU;
-  if(J.net===false)return '<p class="jeu-net">📡 Connexion perdue : la partie reprendra dès que le réseau revient.</p>';
-  if(!J.solo&&J.synced&&J.hostPid&&(J.rounds.length||J.over)&&jeuLive().length<2&&Date.now()-J.syncAt>JEU_HOST_WAIT&&Date.now()>=J.claimGrace)return '<p class="jeu-net is-soft">Les autres joueurs ont quitté la salle.</p>';
+  if(J.net===false)return jeuNoteHTML('is-off',JEU_ICO.wifi,'Connexion perdue','La partie reprendra dès que le réseau revient.');
+  if(!J.solo&&J.synced&&J.hostPid&&(J.rounds.length||J.over)&&jeuLive().length<2&&Date.now()-J.syncAt>JEU_HOST_WAIT&&Date.now()>=J.claimGrace)return jeuNoteHTML('is-soft',lqStkSvg('user'),'Tu es seul·e dans la salle','Les autres joueurs ont quitté la salle : tu peux continuer seul·e.');
   return '';
 }
 function jeuLobbyLabel(){
@@ -20949,13 +20999,25 @@ function jeuPatch(v){
   const rd=document.getElementById('jeu-ready');
   if(rd){const on=!!J.ready[J.me];rd.setAttribute('aria-pressed',on);rd.classList.toggle('on',on);const l=rd.querySelector('span');if(l)l.textContent=on?'Je suis prêt ✓':'Je suis prêt';}
 }
+/* Le tirage : 3, 2, 1 (0,7 s chacun), puis le défi tiré reste 1,2 s à l’écran. À l’heure de la manche, la scène violette s’efface
+   en montant pendant que la manche arrive en cascade dessous, un fondu enchaîné sans écran vide (Elisa, 31 octobre, 15 h 52 : « le
+   passage de l’écran de hasard à la suite n’est pas du tout fluide »). JEU_DRAW_MS (le début du chrono, le même chez tous) ne change pas. */
+const JEU_DRAW_STEP=700;
 function jeuDrawStep(n){
   const J=JEU,r=J&&J.rounds[n];
   if(!r||jeuView()!=='draw'+n)return;
   const box=document.getElementById('jeu-draw'),cnt=document.getElementById('jeu-count');if(!box||!cnt)return;
-  const t=Date.now()-r.t0,step=t<800?3:t<1600?2:t<2400?1:0;
+  const t=Date.now()-r.t0,step=t<JEU_DRAW_STEP?3:t<2*JEU_DRAW_STEP?2:t<3*JEU_DRAW_STEP?1:0;
   if(step>0){if(cnt.textContent!==String(step)){cnt.textContent=step;cnt.classList.remove('is-pop');void cnt.offsetWidth;cnt.classList.add('is-pop');}box.dataset.step=step;}
-  else{box.classList.add('is-reveal');const d=document.getElementById('jeu-drawn');if(d)d.hidden=false;}
+  else{box.classList.add('is-reveal');const d=document.getElementById('jeu-drawn');if(d)d.hidden=false;if(typeof buzz==='function')buzz('light');}
+}
+/* Le niveau en trois barres, comme sur l’écran Défis (Facile : une, Moyen : deux, Difficile : trois). */
+function jeuNivBars(k){return `<i class="jeu-bars is-${k}" aria-hidden="true"><b></b><b></b><b></b></i>`;}
+/* Sous le tirage : la règle qui vient de jouer (un défi que personne dans la salle n’a encore réussi). */
+function jeuDrawNote(cid){
+  const J=JEU,neuf=jeuOkCount(cid)===0;
+  if(J.solo)return neuf?'Un défi au hasard, que tu n’as pas encore réussi.':'Un défi au hasard, au niveau choisi.';
+  return neuf?'Le même défi pour tous, qu’aucun de vous n’a encore réussi.':'Tout le monde reçoit le même défi.';
 }
 function jeuRender(){
   const J=JEU,root=document.getElementById('jeu-root');if(!J||!root)return;
@@ -20963,12 +21025,15 @@ function jeuRender(){
   const sig=jeuSig();
   if(v===J.view){J.sig=sig;jeuPatch(v);return;}
   const keep=J.keep===v;J.keep=null;
+  const fromDraw=/^draw/.test(J.view||'')&&v==='play'+J.view.slice(4);
   const prevEd=keep&&document.getElementById('ed-lesson'),typed=prevEd?prevEd.value:null;
   const focusKey=keep&&document.activeElement&&document.activeElement.dataset?document.activeElement.dataset.fk:null;
   J.view=v;J.sig=sig;
   J.drawT.forEach(clearTimeout);J.drawT=[];
   const head=(k,t,s)=>`<div class="l-kicker">${k}</div><h1>${t}</h1>${s?`<p class="l-sub" id="jeu-sub">${s}</p>`:''}`;
-  const chips=()=>`<div class="jeu-chips"><span class="jeu-chip is-${J.niv}">${JEU_NIVL[J.niv]}</span><span class="jeu-chip">${J.nb} manche${J.nb>1?'s':''}</span><span class="jeu-chip">⏱ 3 min max par manche</span></div>`;
+  /* Les réglages de la partie en autocollants : le niveau et ses barres, les manches, le chrono qui part de 00:00 (Elisa, 31 octobre,
+     15 h 52, réf. 1 : « c’est pas 3 min par manche, c’est un chrono qui part de 0 »). */
+  const chips=()=>`<ul class="jeu-chips" aria-label="La partie"><li class="jeu-chip is-${J.niv}" style="--i:0">${jeuNivBars(J.niv)}${JEU_NIVL[J.niv]}</li><li class="jeu-chip" style="--i:1">${lqStkSvg('cards')}${J.nb} manche${J.nb>1?'s':''}</li><li class="jeu-chip" style="--i:2">${lqStkSvg('clock')}Chrono dès 00:00</li></ul>`;
   const host=jeuIsHost();
   let html='';
   if(v==='join'){
@@ -21002,11 +21067,11 @@ function jeuRender(){
         <p class="l-kicker">Manche ${n+1}/${J.nb} · ${JEU_NIVL[c.niv]}</p>
         <h1>Tirage au sort</h1>
         <div class="jeu-deck" aria-hidden="true"><i></i><i></i><i></i><b class="jeu-count" id="jeu-count">3</b></div>
-        <div class="jeu-drawn" id="jeu-drawn" role="status" aria-live="polite" hidden><span class="jeu-chip is-${c.niv}">${JEU_NIVL[c.niv]}</span><b>${esc(c.titre)}</b><small>C’est parti !</small></div>
-        <p class="jeu-draw-note">${J.solo?'Un défi au hasard, au niveau choisi.':'Tout le monde reçoit le même défi.'}</p>
+        <div class="jeu-drawn" id="jeu-drawn" role="status" aria-live="polite" hidden><span class="jeu-chip is-${c.niv}">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span><b>${esc(c.titre)}</b><small>C’est parti !</small></div>
+        <p class="jeu-draw-note">${jeuDrawNote(c.id)}</p>
       </div>`;
     const wait=ms=>Math.max(0,ms-(Date.now()-r.t0));
-    J.drawT=[800,1600,2400].map(ms=>setTimeout(()=>jeuDrawStep(n),wait(ms)+10));
+    J.drawT=[1,2,3].map(k=>setTimeout(()=>jeuDrawStep(n),wait(k*JEU_DRAW_STEP)+10));
     J.drawT.push(setTimeout(jeuPaint,Math.max(0,r.t1-Date.now())+30));
   }else if(v.startsWith('play')){
     const n=+v.slice(4),r=J.rounds[n],c=CHALLENGES.find(x=>x.id===r.cid);
@@ -21037,7 +21102,9 @@ function jeuRender(){
       <div id="jeu-netslot">${jeuNetHTML()}</div>`;
   }else if(v==='final'){
     const sc=jeuScores();
-    jeuCreditGame();
+    const cg=jeuCreditGame();
+    /* Les points de la partie arrivent en notification, une fois le podium ou le bilan posé. */
+    if(cg&&cg.pts>0)setTimeout(()=>{if(JEU===J&&J.view==='final')jeuPtsPop({kind:'game',pts:cg.pts,total:cg.total});},950);
     if(J.solo){
       const rows=J.rounds.map((r,i)=>r?{r,c:CHALLENGES.find(x=>x.id===r.cid),ms:r.found[J.me]}:null).filter(Boolean);
       const got=rows.filter(x=>x.ms!=null),pts=(sc[0]||{}).pts||0;
@@ -21047,7 +21114,7 @@ function jeuRender(){
         `<div class="jeu-bilan"><div><b data-n="${pts}">${pts}</b><small>point${pts>1?'s':''}</small></div><div><b>${got.length}/${rows.length}</b><small>trouvé${got.length>1?'s':''}</small></div><div><b>${avg}</b><small>temps moyen</small></div></div>
         <div class="jeu-card"><p class="jeu-card-h">Manche par manche</p><ol class="jeu-rank">${rows.map((x,i)=>{const k=J.rounds.indexOf(x.r),y=x.ms!=null?jeuRanking(k).find(z=>z.pid===J.me):null;return `<li style="--i:${i}"><span class="jeu-rk">${i+1}</span><b>${esc(x.c.titre)}${y?jeuPtsDetail(y):''}</b><em>${x.ms!=null?jeuChrono(x.ms):'—'}</em><small>${y?'+'+y.pts:'0'}</small></li>`;}).join('')}</ol></div>
         <button type="button" class="journey-primary" onclick="jeuAgain()"><span>Rejouer</span>${DEF_CHEV_SVG}</button>
-        <button type="button" class="jeu-close" onclick="openJeu()">Changer de niveau</button>`;
+        ${jeuBtn2('level','Changer de niveau','openJeu()')}`;
       if(all)setTimeout(celebrate,300);
     }else{
       jeuPlaces(sc);
@@ -21058,13 +21125,30 @@ function jeuRender(){
         <div class="jeu-card"><p class="jeu-card-h">Classement final</p><ol class="jeu-rank is-score">${sc.map(x=>`<li><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${jeuChrono(x.ms)}</small></li>`).join('')}</ol>
           <p class="jeu-tie">⚖️ À égalité de points, le plus rapide au total passe devant (une manche non trouvée compte 3 min).</p></div>
         ${host?`<button type="button" class="journey-primary" onclick="jeuAgain()"><span>Rejouer dans cette salle</span>${DEF_CHEV_SVG}</button>`:`<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>L’hôte peut relancer une partie dans cette salle.</p>`}
-        <button type="button" class="jeu-close" onclick="goBack()">Quitter la salle</button>
+        ${jeuBtn2('quit','Quitter la salle','goBack()')}
         <div id="jeu-netslot">${jeuNetHTML()}</div>`;
       if(winner)setTimeout(celebrate,300);
     }
   }
+  /* Fondu enchaîné : une copie de la scène du tirage reste posée par-dessus et s’efface pendant que la manche arrive. */
+  let ghost=null;
+  if(fromDraw&&!prefersReduceMotion()&&root.getBoundingClientRect){
+    const old=document.getElementById('jeu-draw');
+    if(old&&old.cloneNode){
+      const rr=root.getBoundingClientRect(),ro=old.getBoundingClientRect();
+      ghost=old.cloneNode(true);ghost.removeAttribute('id');ghost.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));
+      ghost.classList.add('jeu-ghost');ghost.setAttribute('aria-hidden','true');
+      ghost.style.cssText=`position:absolute;left:${ro.left-rr.left}px;top:${ro.top-rr.top}px;width:${ro.width}px;height:${ro.height}px;margin:0;z-index:3;pointer-events:none`;
+    }
+  }
   root.innerHTML=html;
-  if(!keep){root.classList.remove('jeu-in');void root.offsetWidth;root.classList.add('jeu-in');}
+  if(!keep){
+    root.classList.remove('jeu-in','jeu-cascade');void root.offsetWidth;
+    /* Juste après le tirage : la manche arrive en cascade (la barre et le chrono, le titre, la question, l’éditeur…). */
+    if(fromDraw&&root.children){Array.from(root.children).forEach((el,i)=>{if(el.style)el.style.setProperty('--k',Math.min(i,7));});root.classList.add('jeu-cascade');}
+    else root.classList.add('jeu-in');
+  }
+  if(ghost){root.appendChild(ghost);setTimeout(()=>{if(ghost.parentNode)ghost.parentNode.removeChild(ghost);},560);}
   if(v.startsWith('play')&&document.getElementById('ed-lesson')){
     setupEditor('ed-lesson','hl-lesson');
     if(typed){const ed=document.getElementById('ed-lesson');ed.value=typed;ed.dispatchEvent(new Event('input'));}
@@ -21149,9 +21233,37 @@ function jeuFoundHTML(r,pid,took){
 }
 function jeuCountUp(el){
   if(!el||prefersReduceMotion())return;
-  const to=+el.dataset.n||0,t0=performance.now(),D=700,plus=el.textContent.trim().startsWith('+');
-  const step=now=>{ if(!el.isConnected)return; const k=Math.min(1,(now-t0)/D),v=Math.round(to*(1-Math.pow(1-k,3))); el.textContent=(plus?'+':'')+v; if(k<1)requestAnimationFrame(step); };
-  el.textContent=(plus?'+':'')+'0'; requestAnimationFrame(step);
+  const to=+el.dataset.n||0,from=+el.dataset.from||0,t0=performance.now(),D=700,plus=el.textContent.trim().startsWith('+'),fr=el.dataset.fmt==='fr';
+  const f=v=>(plus?'+':'')+(fr?v.toLocaleString('fr-FR'):v);
+  const step=now=>{ if(!el.isConnected)return; const k=Math.min(1,(now-t0)/D),v=Math.round(from+(to-from)*(1-Math.pow(1-k,3))); el.textContent=f(v); if(k<1)requestAnimationFrame(step); };
+  el.textContent=f(from); requestAnimationFrame(step);
+}
+/* Les points gagnés, en notification (Elisa, 31 octobre, 15 h 52 : « faire une notification sur le nombre de points obtenus avec
+   animation, micro-interaction ») : elle tombe du haut comme celle de la flamme, la pièce s’allume dans un anneau et lâche des
+   étincelles, le nombre monte de 0 à ses points, puis le détail (réussite, rang, rapidité) se pose pastille après pastille. En fin de
+   partie : les points de la partie, et le total de salle qui roule jusqu’au nouveau. Le lecteur d’écran entend le résultat (lqSay). */
+const JEU_COIN_SVG='<svg class="lq-stk" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="26.6" r="20" fill="#1B1640" opacity=".28"/><circle cx="24" cy="24" r="20" fill="#fff"/><circle cx="24" cy="24" r="16.3" fill="#FFC83D" stroke="#1B1640" stroke-width="2.5"/><circle cx="24" cy="24" r="11.6" fill="none" stroke="#E0A100" stroke-width="2"/><path d="M24 15.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="#fff" stroke="#1B1640" stroke-width="2" stroke-linejoin="round"/><path d="M14.6 17.5a11 11 0 0 1 5-4.6" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".85"/></svg>';
+function jeuPtsPop(o){
+  if(!o||!(o.pts>0)||typeof document==='undefined'||typeof document.createElement!=='function'||!document.body||!document.body.appendChild)return;
+  let t=document.getElementById('jeu-pts-pop');
+  if(!t){t=document.createElement('div');t.id='jeu-pts-pop';t.setAttribute('aria-hidden','true');document.body.appendChild(t);}
+  const still=prefersReduceMotion(),game=o.kind==='game',d=o.detail;
+  const fmt=v=>(+v||0).toLocaleString('fr-FR');
+  const sub=game&&o.total>0
+    ?`<small class="jpp-sub">Total de salle : <b data-n="${o.total}" data-from="${Math.max(0,o.total-o.pts)}" data-fmt="fr">${fmt(still?o.total:Math.max(0,o.total-o.pts))}</b> pts</small>`
+    :d?`<span class="jpp-pd"><i style="--j:0">${d.ok} réussite</i>${d.rang?`<i class="is-rang" style="--j:1">+${d.rang} ${['1er','2e','3e'][JEU_PTS_RANG.indexOf(d.rang)]||''}</i>`:''}<i class="is-vite" style="--j:2">+${d.vite} rapidité</i></span>`:'';
+  t.innerHTML=`<span class="jpp-coin"><i class="jpp-ring"></i>${JEU_COIN_SVG}${'<i class="jpp-sp"></i>'.repeat(6)}</span><span class="jpp-tx"><b><em class="jpp-n" data-n="${o.pts}">+${still?o.pts:0}</em> point${o.pts>1?'s':''}${game?' gagnés':''}</b>${sub}</span>`;
+  /* La flamme du jour peut tomber au même moment : les points se posent juste dessous. */
+  const st=document.getElementById('lq-streak-toast'),low=st&&st.classList.contains('on')?Math.round(st.getBoundingClientRect().bottom+10):0;
+  if(low)t.style.top=low+'px';else t.style.removeProperty('top');
+  t.classList.remove('on');void t.offsetWidth;t.classList.add('on');
+  if(!still){
+    const n=t.querySelector('.jpp-n');setTimeout(()=>jeuCountUp(n),260);
+    const b=t.querySelector('.jpp-sub b');if(b)setTimeout(()=>jeuCountUp(b),900);
+  }
+  if(typeof lqSay==='function')lqSay(`+${o.pts} points`+(game&&o.total>0?`, total de salle : ${o.total} points`:''));
+  if(game&&typeof buzz==='function')buzz('success');
+  clearTimeout(jeuPtsPop.t);jeuPtsPop.t=setTimeout(()=>t.classList.remove('on'),game?3800:3000);
 }
 /* Points de la partie (une seule fois) : cumulés dans « Tes points de salle ». */
 function jeuCreditGame(){
@@ -21186,7 +21298,8 @@ function jeuCreditGame(){
     save();
     /* Le classement général : la partie part une seule fois (u), seul ou entre amis. */
     if(typeof clsEnvoyer==='function'&&played.length)clsEnvoyer({u:jeuRand(10),pts,n:Math.min(5,played.length),ok:mine.length,solo:J.solo?1:0,niv:k});
-  }catch(e){}
+    return {pts,total:s.pts};
+  }catch(e){return null;}
 }
 function jeuRun(){
   const J=JEU;if(!J)return;
@@ -21205,6 +21318,7 @@ function jeuRun(){
     jeuSend({t:'found',n,ms:took});
     setLessonOut(jeuFoundHTML(r,J.me,took)+renderTable(userRes,ms));
     jeuCountUp(document.querySelector('#lesson-body .jeu-found-pts strong'));
+    {const x=jeuRanking(n).find(y=>y.pid===J.me);if(x)jeuPtsPop({kind:'round',pts:x.pts,detail:x});}
     if(navigator.vibrate)navigator.vibrate([10,40,20]);
     return;
   }
@@ -21556,6 +21670,7 @@ function runLesson(){
     if(isDefi){
       const premier=!state.defis[current.id];
       state.defis[current.id]=true; noteActivityDay(); save(); renderDefis(); renderProgress(); renderPlanning();
+      if(typeof clsDefis==='function')clsDefis();
       if(premier) celebrate();
       head=`<div class="feedback ok"><div class="fi">✓</div><div><b>Défi résolu</b><p>Ta requête donne exactement le bon résultat.</p></div></div>`;
       const nxtPlan=state.plan&&infoJour()&&infoJour().today&&infoJour().today.lessons.find(id=>!itemDone(id));
@@ -21680,6 +21795,8 @@ function setFilter(f){ collFilter=f;document.getElementById('scr-collection')?.c
 /* Une identité commune pour l’album, la récompense et la fiche mémo :
    une carte blanche comme le reste de l’appli, le mot-clé SQL en violet. */
 const MEMO_LOCK=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>`;
+/* « Voir la leçon » d’une carte à débloquer : une pastille et sa flèche qui avance (Elisa, 31 octobre, 15 h 52, réf. 4 ; ludique.css, 49e). */
+const MEMO_GO_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6.5 18.5 12 13 17.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function collectibleFace(id,locked=false){
   const c=CARTES[id],mod=MODULES[moduleOf(id)];
   const cards=allLessons.filter(l=>CARTES[l.id]);
@@ -21739,7 +21856,7 @@ function renderCollection(){
     const cards=items.map((l,i)=>{
       const u=isUnlocked(l.id);
       const c=CARTES[l.id];
-      if(!u) return `<button type="button" class="coll-card collectible lock" onclick="openLesson(${l.id})" aria-label="${escAttr(`Carte à débloquer avec la leçon ${l.titre}. Ouvrir la leçon`)}">${collectibleFace(l.id,true)}<span class="memo-copy"><b>${esc(l.titre)}</b><span>Voir la leçon</span></span></button>`;
+      if(!u) return `<button type="button" class="coll-card collectible lock" onclick="openLesson(${l.id})" aria-label="${escAttr(`Carte à débloquer avec la leçon ${l.titre}. Ouvrir la leçon`)}">${collectibleFace(l.id,true)}<span class="memo-copy"><b>${esc(l.titre)}</b><span class="memo-go">Voir la leçon${MEMO_GO_SVG}</span></span></button>`;
       const due=revisable(l)&&isDue(l.id),level=(state.lessons[l.id]&&state.lessons[l.id].level)||0;
       const badge=due?'<em class="coll-badge is-due">À revoir</em>':level>=2?'<em class="coll-badge is-ok">Acquise</em>':'';
       const unlock=lastUnlockedId===l.id?' unlocking':'';
@@ -26412,7 +26529,7 @@ function paintOb(){
     const privacy=obLegalMode==='privacy';
     html=`<div class="ob-screen ob-legal-screen">${obBackButton()}<h1 class="ob-title" id="ob-title">${privacy?'Politique de confidentialité':'Conditions d’utilisation'}</h1>
       <div class="legal-copy">${privacy
-        ? `<p>Tu peux utiliser Requête <b>sans compte</b>. Dans ce mode, ta progression reste uniquement sur cet appareil.</p><ul><li>Leçons, défis, notes, planning et bases importées sont enregistrés localement.</li><li>Le moteur SQL tourne dans ton navigateur.</li><li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec un identifiant tiré au hasard (pas ton nom ni ton e-mail). Tu peux retirer tes scores à tout moment dans Mon compte, Données et confidentialité.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li></ul><p>Si tu choisis plus tard de te connecter, Requête indiquera clairement quelles données seront synchronisées et permettra de supprimer ton compte.</p>`
+        ? `<p>Tu peux utiliser Requête <b>sans compte</b>. Dans ce mode, ta progression reste uniquement sur cet appareil.</p><ul><li>Leçons, défis, notes, planning et bases importées sont enregistrés localement.</li><li>Le moteur SQL tourne dans ton navigateur.</li><li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec un identifiant tiré au hasard (pas ton nom ni ton e-mail). La liste de tes défis réussis l’accompagne, sans être montrée à personne&nbsp;: elle nous dit quand ajouter de nouveaux défis. Tu peux retirer tes scores à tout moment dans Mon compte, Données et confidentialité.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li></ul><p>Si tu choisis plus tard de te connecter, Requête indiquera clairement quelles données seront synchronisées et permettra de supprimer ton compte.</p>`
         : `<p>Requête est une application d’apprentissage du SQL. Le contenu est fourni à des fins pédagogiques.</p><p>Tu peux commencer sans compte, exporter ta progression et l’effacer depuis Mon compte.</p><p>Les options de connexion ne deviennent actives que lorsqu’un fournisseur d’authentification sécurisé est configuré.</p>`}</div></div>`;
     obSetFooter('','','','','');
   }else if(slide==='welcome'){
@@ -27081,7 +27198,7 @@ function openLegal(kind){
       <p>Requête est une app d’apprentissage SQL. Tu peux l’utiliser <b>sans compte</b> : ta progression reste alors sur cet appareil.</p>
       <ul>
         <li>Prénom, leçons, défis, notes et planning : stockés en local dans le navigateur.</li>
-        <li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec un identifiant tiré au hasard (pas ton nom ni ton e-mail). Tu peux retirer tes scores à tout moment dans Mon compte, Données et confidentialité.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
+        <li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec un identifiant tiré au hasard (pas ton nom ni ton e-mail). La liste de tes défis réussis l’accompagne, sans être montrée à personne&nbsp;: elle nous dit quand ajouter de nouveaux défis. Tu peux retirer tes scores à tout moment dans Mon compte, Données et confidentialité.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
         <li>Le moteur SQL tourne dans le navigateur.</li>
         <li>Le rappel quotidien n’envoie une notification que si tu l’actives (permission du navigateur), à l’heure choisie.</li>
       </ul>
@@ -27362,7 +27479,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-31-top5-toi-v2213';
+  const SW_CACHE='requete-2026-10-31-salle-da-v2214';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
