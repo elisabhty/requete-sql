@@ -302,6 +302,23 @@ html.embed #stage::before{content:none}
 #s0.nv .iv-spark.s3{color:#fff}
 .sqlrow .lbl,.sqlrow .arw{color:rgba(255,255,255,.82)}
 svg.lk,.lks,svg.ar{filter:drop-shadow(0 0 2.5px rgba(255,255,255,.95))}
+/* Dans le lecteur de l’app, la croix de fermeture est posée en haut à gauche, par-dessus la scène : la carte violette de l’intro (et
+   tout ce qui l’accompagne) descend de 64 px pour ne jamais la toucher (Elisa, 31 octobre, 0 h 19 : « bouton en haut à gauche trop
+   proche du cadre »). Seule, la page garde sa place. (Copie de core.css.) */
+html.embed #s0.nv{translate:0 64px}
+/* ---------- Bulles : la mascotte parle (copie de core.css) ----------
+   Elisa, 30 octobre, 23 h 42 : « améliorer aussi les bulles, stickers, animation, micro-interaction ». La légende garde sa carte
+   blanche, ses lignes et sa place ; elle devient une bulle de BD (une pointe vers le bas à gauche) et la mascotte la dit, en
+   autocollant rond (fond soleil, liseré blanc, ombre à rebord) accroché sous son coin gauche ; elle fait un petit bond à chaque
+   phrase (core.js, chromeTimeline). L’autocollant n’entre dans la carte que de 32 px, sous la dernière ligne (44 px de marge) :
+   jamais sur le texte, même à quatre lignes (la carte grandit vers le haut). Les mots arrivent l’un après l’autre, puis le gras
+   passe au surligneur jaune. */
+#cap .cap-stk{position:absolute;z-index:2;left:-49px;bottom:-118px;width:150px;height:150px;box-sizing:border-box;border-radius:50%;pointer-events:none;
+  background:url(mascotte.webp) -6px 12px/146px auto no-repeat,radial-gradient(circle at 50% 34%,#FFE08A,#FFC83D 72%);
+  border:8px solid #fff;box-shadow:0 9px 0 var(--rebord),0 22px 36px -14px rgba(10,4,60,.55)}
+#cap::after{content:"";position:absolute;left:86px;bottom:-49px;width:78px;height:52px;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' viewBox='0 0 78 52'%3E%3Cpath d='M0 0H78L0 43Z' fill='rgba(27,22,64,.3)' transform='translate(0 9)'/%3E%3Cpath d='M0 0H78L0 43Z' fill='%23fff'/%3E%3C/svg%3E") 0 0/100% 100% no-repeat}
+#cap .c b{background:linear-gradient(transparent 58%,rgba(255,200,61,.62) 58%,rgba(255,200,61,.62) 90%,transparent 90%) 0 0/0% 100% no-repeat}
 /* Fond violet de la vitrine (core.css, « Couleurs de la vitrine », Elisa, 30 octobre) : ce qui est posé directement sur le fond passe en clair */
 .qlabel{color:rgba(255,255,255,.86)}
 .sqlrow .lbl,.sqlrow .arw{color:rgba(255,255,255,.82)}
@@ -693,8 +710,13 @@ function buildDom(){
     const d = document.createElement('div');
     d.className = 'c';
     d.innerHTML = `<p>${fr(c[2])}</p>`;
+    capWords(d.firstChild);
     cap.append(d);
   });
+  const stk = document.createElement('div');
+  stk.className = 'cap-stk';
+  stk.setAttribute('aria-hidden', 'true');
+  cap.append(stk);
   // Tableau partagé (10 lignes)
   const rows = $('#rows');
   CLIENTS.forEach((c, i) => {
@@ -950,10 +972,16 @@ function build(){
   gsap.set(capCard, {autoAlpha: 0, y: 40});
   tl.to(capCard, {autoAlpha: 1, y: 0, duration: 0.6, ease: 'expo.out'}, 5.0);
   if (!APP) tl.to(capCard, {autoAlpha: 0, y: 40, duration: 0.45, ease: 'power2.in'}, 92.6);
+  /* La mascotte arrive avec la première phrase (comme le moteur commun, core.js) */
+  const stk = $('#cap .cap-stk');
+  gsap.set(capCard, {transformOrigin: '50% 100%'});
+  gsap.set(stk, {scale: 0, rotation: -40, transformOrigin: '50% 50%'});
+  tl.to(stk, {scale: 1, rotation: -8, duration: 0.62, ease: 'back.out(2.2)'}, CAPTIONS[0][0] - 0.05); capKeep([stk, {scale: 1, rotation: -8}]);
   $$('#cap .c').forEach((el, i) => {
     const [a, b] = CAPTIONS[i];
     gsap.set(el, {autoAlpha: 0, y: 26});
     tl.to(el, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'power3.out'}, a);
+    capFx(el, a, i > 0);
     tl.to(el, {autoAlpha: 0, y: -18, duration: 0.25, ease: 'power2.in'}, b - 0.2);
   });
 
@@ -1211,7 +1239,7 @@ function contentBottom(){
   const shown = el => { let o = 1; for (let n = el; n && n !== document.body; n = n.parentElement) {
     const cs = getComputedStyle(n); if (cs.display === 'none' || cs.visibility === 'hidden') return 0; o *= parseFloat(cs.opacity); } return o; };
   let best = null;
-  $$('.card, .code, section.scene > .abs', stage).forEach(el => {
+  $$('.card, .code, section.scene > .abs, :scope > .mb', stage).forEach(el => {
     if (el.closest('#cap, #chapter') || shown(el) < 0.3) return;
     const r = el.getBoundingClientRect(); if (!r.width || !r.height) return;
     const b = (r.bottom - sr.top) / k; if (best === null || b > best) best = b;
@@ -1241,13 +1269,60 @@ function applyMoments(){
   MP.captions.filter(c => c[2] === 'À toi !').forEach(([a, b]) => {
     const d = document.createElement('div');
     d.className = 'c'; d.innerHTML = `<p>${fr('À toi !')}</p>`;
-    $('#cap').append(d);
+    capWords(d.firstChild);
+    $('#cap').insertBefore(d, $('#cap .cap-stk'));
     gsap.set(d, {autoAlpha: 0, y: 26});
     tl.to(d, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'power3.out'}, a);
+    capFx(d, a, true);
     tl.to(d, {autoAlpha: 0, y: -18, duration: 0.25, ease: 'power2.in'}, b - 0.2);
   });
+  /* Pauses (positives), passages coupés (négatives) et moments connus : les animations des bulles qui en chevauchent une sont retirées */
+  capFxPrune(HOLDS.filter(h => h[1] > 0).map(h => h[0]).concat(MP.picks.map(p => p.at)), HOLDS.filter(h => h[1] < 0).map(([t, d]) => [t - d, -d]));
   window.__moments = MP.picks;
   window.IX = momentIX(MP.picks);
+}
+
+/* Bulles (Elisa, 30 octobre, 23 h 42 ; copie du moteur commun, core.js) : mots dans des <span class="w"> en ligne, coupés aux espaces
+   ordinaires seulement ; à chaque phrase, les mots arrivent l’un après l’autre, le gras passe au surligneur jaune, la mascotte fait un
+   petit bond et la carte se tasse d’un rien. Une animation qu’une pause, un moment ou un passage coupé arrêterait en plein mouvement
+   est retirée (capFxPrune). */
+function capWords(p){
+  const walker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT), nodes = [];
+  while (walker.nextNode()) if (!walker.currentNode.parentElement.closest('code, .ic')) nodes.push(walker.currentNode);
+  nodes.forEach(n => {
+    const parts = n.textContent.split(/([ \t\n\r]+)/);
+    if (parts.length < 2 && !parts[0].trim()) return;
+    const f = document.createDocumentFragment();
+    parts.forEach(t => {
+      if (!t) return;
+      if (/^[ \t\n\r]+$/.test(t)) { f.append(t); return; }
+      const w = document.createElement('span'); w.className = 'w'; w.textContent = t; f.append(w);
+    });
+    n.replaceWith(f);
+  });
+}
+const CAP_FX = [];
+function capKeep(done){ CAP_FX.push({tw: tl.recent(), done}); }
+function capFx(el, a, hop){
+  const stk = $('#cap .cap-stk'), capCard = $('#cap');
+  const ws = el.querySelectorAll('.w, code, .ic');
+  if (ws.length) { tl.fromTo(ws, {opacity: 0}, {opacity: 1, duration: 0.26, stagger: Math.min(0.022, 0.5 / ws.length), ease: 'power1.out'}, a + 0.03); capKeep([ws, {opacity: 1}]); }
+  const bs = el.querySelectorAll('b');
+  if (bs.length) { tl.fromTo(bs, {backgroundSize: '0% 100%'}, {backgroundSize: '100% 100%', duration: 0.5, stagger: 0.14, ease: 'power2.inOut'}, a + 0.34); capKeep([bs, {backgroundSize: '100% 100%'}]); }
+  if (!hop) return;
+  tl.to(stk, {keyframes: [{y: -14, rotation: -15, duration: 0.15, ease: 'power2.out'}, {y: 0, rotation: -4, duration: 0.17, ease: 'power2.in'},
+    {rotation: -8, duration: 0.34, ease: 'elastic.out(1, 0.45)'}]}, a); capKeep();
+  tl.to(capCard, {keyframes: [{scaleY: 0.985, scaleX: 1.006, duration: 0.09, ease: 'power2.out'}, {scaleY: 1, scaleX: 1, duration: 0.45, ease: 'elastic.out(1, 0.55)'}]}, a); capKeep();
+}
+function capFxPrune(holds, cuts){
+  for (let i = CAP_FX.length - 1; i >= 0; i--) {
+    const f = CAP_FX[i], a = f.tw.startTime(), b = a + f.tw.totalDuration();
+    const hit = holds.some(h => a < h - 0.001 && b > h + 0.001) || cuts.some(([h, d]) => a < h + 0.001 && b > h - d - 0.001);
+    if (!hit) continue;
+    f.tw.kill();
+    if (f.done) gsap.set(f.done[0], f.done[1]);
+    CAP_FX.splice(i, 1);
+  }
 }
 
 /* Rendu d'une image : position dans la timeline + petits effets dépendant du temps */

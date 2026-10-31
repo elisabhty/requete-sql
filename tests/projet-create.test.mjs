@@ -62,7 +62,8 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
   /* 480 Kio (470 jusqu’au 27 octobre) : le moteur commun arrête chaque vidéo avant son chapitre « À retenir » (recapEnd, recapRest). */
   /* 490 Kio depuis le 29 octobre : le moteur commun porte la nouvelle intro dans la DA de la vitrine (~8 Kio). */
   /* 495 Kio depuis le 30 octobre : le fond violet de la vitrine dans core.css, et les traits du plan en clair sur ce fond (~2 Kio). */
-  assert.ok(total < 495 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
+  /* 505 Kio depuis le 31 octobre : les bulles des légendes (la mascotte qui parle, les mots qui arrivent, le surligneur ; Elisa, 30 octobre, 23 h 42), ~6 Kio. */
+  assert.ok(total < 505 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
   assert.ok(fs.statSync(path.join(ANIM, THUMB)).size > 1000, 'vignette');
 });
 

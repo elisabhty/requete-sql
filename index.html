@@ -6506,7 +6506,7 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 <script src="design-premium.js?v=1402" defer></script>
 <script src="import-formats.js?v=2" defer></script>
 <!-- Curseur de la vitrine et de l’appli (sur ordinateur seulement) : flèche et main en autocollant, halo qui suit (Elisa, 30 octobre, 22 h 58) -->
-<script src="assets/curseur.js?v=92b21ffd" defer></script>
+<script src="assets/curseur.js?v=60b94b87" defer></script>
 <script>
 /* ---------- App iOS (Capacitor) ----------
    Dans l’app native, window.Capacitor est présent dès le chargement.
@@ -6638,7 +6638,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=30">
+<link rel="stylesheet" href="ludique.css?v=33">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -7257,8 +7257,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
 .sg-row.is-lite .sg-code{background:var(--accent-soft,#EEE9FF);color:var(--accent-ink,#5335E0)}
 .sg-txt{font-size:13.5px;font-weight:600;line-height:1.45;color:var(--ink-2,#4E4872);padding-top:3px}
 .sg-note{margin:6px 2px 2px;font-size:12.5px;line-height:1.45;color:var(--ink-3,#6A6490)}
-.sg-note code,.sg-foot code{font-size:.92em}
-.sg-foot{margin:16px 2px 0;font-size:12.5px;line-height:1.5;color:var(--ink-3,#6A6490)}
+.sg-note code{font-size:.92em}
 /* Renvoi depuis un cours : un lien dans le texte */
 .sgbd-link{display:inline;padding:0;margin:0;border:0;background:none;font:inherit;font-weight:700;color:var(--accent-ink,#5335E0);text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:2px;cursor:pointer}
 #sgbd-back{z-index:84}
@@ -10561,6 +10560,7 @@ async function editDbNote(id){
   if(v==null)return;
   projOf(id).desc=v; saveProjState();
   renderConsoleScreen();
+  lqFresh(document.querySelector('#scr-console .console-desc'));
   toast(v?'Description enregistrée':'Description retirée');
 }
 async function editTableNote(name){
@@ -10569,6 +10569,7 @@ async function editTableNote(name){
   if(v==null)return;
   const p=projOf(activeDbId); p.tdesc=p.tdesc||{}; p.tdesc[name]=v; saveProjState();
   renderDbWorkspace();
+  lqFresh(document.querySelector(`#db-tables .db-tblock[data-table="${CSS.escape(name)}"]`));
   toast(v?'Description enregistrée':'Description retirée');
 }
 function projectName(id){
@@ -10892,7 +10893,7 @@ function updateConsolePinButton(){
   const run=document.getElementById('btn-run-console');
   if(run&&!run.classList.contains('running'))run.disabled=!hasSql;
   btn.classList.toggle('on',on);btn.setAttribute('aria-pressed',on?'true':'false');
-  const glyph=btn.querySelector('.console-pin-glyph');if(glyph)glyph.innerHTML=on?CONSOLE_UNPIN_SVG:CONSOLE_PIN_SVG;
+  const glyph=btn.querySelector('.console-pin-glyph');if(glyph&&!glyph.querySelector('.lq-stk'))glyph.innerHTML=lqStkSvg('pin');
   const label=btn.querySelector('b');if(label)label.textContent=on?'Désépingler cette requête':'Épingler cette requête';
 }
 function renderConsoleSide(){
@@ -10914,9 +10915,9 @@ function renderConsoleSide(){
             <span class="console-query-copy"><code>${esc(it.sql)}</code><small>${esc(fmtPinnedWhen(it.ts))}</small></span>
             <span class="console-query-chev" aria-hidden="true">${CONSOLE_CHEV_SVG}</span>
           </button>
-          <button type="button" class="console-query-pin on" onclick="unpinConsoleQuery(${i})" aria-label="Désépingler cette requête" aria-pressed="true">${CONSOLE_UNPIN_SVG}</button>
+          <button type="button" class="console-query-pin on" onclick="unpinConsoleQuery(${i})" aria-label="Désépingler cette requête" aria-pressed="true">${lqStkSvg('pin')}</button>
         </div>`).join('')
-      : `<p class="console-query-empty"><b>${q?'Aucun résultat':'Aucune requête épinglée'}</b>${q?'Essaie un autre mot-clé.':'Épingle une requête utile pour la retrouver ici.'}${q?'<button type="button" class="sq-reset" onclick="clearConsoleQuerySearch()">Effacer la recherche</button>':''}</p>`;
+      : `<p class="console-query-empty">${q?'':`<span class="console-query-stk" aria-hidden="true">${lqStkSvg('pin')}</span>`}<b>${q?'Aucun résultat':'Aucune requête épinglée'}</b>${q?'Essaie un autre mot-clé.':'Épingle une requête utile pour la retrouver ici.'}${q?'<button type="button" class="sq-reset" onclick="clearConsoleQuerySearch()">Effacer la recherche</button>':''}</p>`;
     if(qTok.length)SQ.mark(pins.querySelectorAll('code'),qTok);
   }
   if(hist){
@@ -10931,7 +10932,7 @@ function renderConsoleSide(){
               <span class="console-query-copy"><code>${esc(it.sql)}</code><small>${esc(meta)}</small></span>
               <span class="console-query-chev" aria-hidden="true">${CONSOLE_CHEV_SVG}</span>
             </button>
-            <button type="button" class="console-query-pin ${on?'on':''}" onclick="toggleHistoryPin(${i})" aria-label="${on?'Désépingler':'Épingler'} cette requête" aria-pressed="${on?'true':'false'}">${on?CONSOLE_UNPIN_SVG:CONSOLE_PIN_SVG}</button>
+            <button type="button" class="console-query-pin ${on?'on':''}" data-pin-key="${escAttr(consoleSqlKey(it.sql))}" onclick="toggleHistoryPin(${i})" aria-label="${on?'Désépingler':'Épingler'} cette requête" aria-pressed="${on?'true':'false'}">${lqStkSvg('pin')}</button>
           </div>`;
         }).join('')
       : `<p class="console-query-empty"><b>${q?'Aucun résultat':consoleHistFilter==='err'?'Aucune erreur':consoleHistFilter==='ok'?'Aucune exécution réussie':'Historique vide'}</b>${q?'Essaie un autre mot-clé.':'Chaque exécution apparaîtra ici avec son résultat.'}${q?'<button type="button" class="sq-reset" onclick="clearConsoleQuerySearch()">Effacer la recherche</button>':''}</p>`;
@@ -10965,6 +10966,16 @@ function pinConsoleQuery(){
   else{p.pins=promoteConsoleQuery(p.pins,{sql:t,ts:Date.now()},PIN_MAX);toast('Requête épinglée','Retrouve-la dans l’onglet Épinglées');}
   saveProjState();
   renderConsoleSide();
+  lqPinFx(document.getElementById('console-pin-current'),idx<0);
+}
+/* Épingler (Elisa, 31 octobre, 0 h 19 : « améliorer le bouton d’épingle en fonction de la DA du site, ici ou ailleurs ») : la punaise se
+   plante en sautant, avec des confettis ; désépinglée, elle se décroche d’un petit bond (CSS, .is-pin / .is-unpin). */
+function lqPinFx(btn,on){
+  if(!btn||(typeof prefersReduceMotion==='function'&&prefersReduceMotion()))return;
+  btn.classList.remove('is-pin','is-unpin'); void btn.offsetWidth; btn.classList.add(on?'is-pin':'is-unpin');
+  clearTimeout(btn._pinT); btn._pinT=setTimeout(()=>btn.classList.remove('is-pin','is-unpin'),800);
+  if(on&&typeof lqBurst==='function'){ const k=btn.querySelector('.lq-stk'); if(k)lqBurst(btn,k); }
+  if(typeof buzz==='function')buzz(on?'success':'light');
 }
 function unpinConsoleQuery(i){
   const p=projOf(activeDbId);if(!p.pins[i])return;
@@ -10976,6 +10987,7 @@ function toggleHistoryPin(i){
   if(idx>=0){p.pins=removeConsoleQuery(p.pins,sql);toast('Requête désépinglée');}
   else{p.pins=promoteConsoleQuery(p.pins,{sql,ts:Date.now()},PIN_MAX);toast('Requête épinglée');}
   saveProjState();renderConsoleSide();
+  lqPinFx(document.querySelector(`#console-hist .console-query-pin[data-pin-key="${CSS.escape(key)}"]`),idx<0);
 }
 function clearConsoleHistory(){
   const p=projOf(activeDbId);if(!p.hist.length)return;
@@ -11134,20 +11146,25 @@ function renderDbWorkspace(){
       </div>`).join('')||'<div class="db-empty">Aucune colonne.</div>'}
     </div>`:'';
     const note=tableNote(activeDbId,t);
-    const noteHtml=note?`<button type="button" class="db-tnote" onclick="editTableNote(decodeURIComponent('${enc}'))" aria-label="Description de ${escAttr(t)} : ${escAttr(note)}. Modifier"><span>${esc(note)}</span><i aria-hidden="true">${CONSOLE_EDIT_SVG}</i></button>`
-      :open?`<button type="button" class="db-tnote is-empty" onclick="editTableNote(decodeURIComponent('${enc}'))"><i aria-hidden="true">${NOTE_PLUS_SVG}</i><span>Ajouter une description</span></button>`:'';
-    return `<div class="db-tblock">
+    /* La description dit ce qu’elle est (Elisa, 31 octobre, 0 h 19 : « on ne comprend pas c’est la description de quoi ») : une petite
+       fiche dans la carte de sa table, « Description de la table » au-dessus du texte, le crayon pour la modifier. */
+    const noteHtml=note?`<button type="button" class="db-tnote" onclick="editTableNote(decodeURIComponent('${enc}'))" aria-label="Description de ${escAttr(t)} : ${escAttr(note)}. Modifier"><i class="db-tnote-k" aria-hidden="true">${lqStkSvg('note')}</i><span><small>Description de la table</small>${esc(note)}</span><i aria-hidden="true">${CONSOLE_EDIT_SVG}</i></button>`
+      :open?`<button type="button" class="db-tnote is-empty" onclick="editTableNote(decodeURIComponent('${enc}'))"><i aria-hidden="true">${NOTE_PLUS_SVG}</i><span>Ajouter une description de la table</span></button>`:'';
+    /* Le nom prend toute la ligne (il ne se coupe plus en « conta… »), le nombre de lignes dessous ; les actions se rangent à droite, ou
+       sous le nom quand la carte est étroite (Elisa : « ce n’est pas responsive ») */
+    return `<div class="db-tblock" data-table="${escAttr(t)}">
       <div class="db-trow ${open?'open':''}">
         <button type="button" class="db-tmain" onclick="toggleTableSchema(decodeURIComponent('${enc}'))" aria-expanded="${open?'true':'false'}" title="${open?'Masquer les colonnes':'Voir les colonnes, PK et FK'}">
           <span class="db-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           <span class="tk">table</span>
-          <span class="tn">${esc(t)}</span>
-          <span class="tc">${n} lig.</span>
+          <span class="db-tname"><span class="tn">${esc(t)}</span><span class="tc">${typeof n==='number'?plur(n,'ligne'):`${n}\u00a0lig.`}</span></span>
           <span class="db-thint">${open?'Masquer':'Colonnes ›'}</span>
         </button>
+        <span class="db-tacts">
         <button type="button" class="tb" onclick="queryTable(decodeURIComponent('${enc}'))">SELECT</button>
         <button type="button" class="tb reset-table" data-table="${escAttr(t)}" onclick="resetTable(decodeURIComponent('${enc}'))" aria-label="${resettable?`Réinitialiser la table ${escAttr(t)}`:`Aucun état initial pour la table ${escAttr(t)}`}" title="${resettable?'Restaurer les données initiales':'Aucun état initial enregistré'}" ${resettable?'':'disabled'}>${CONSOLE_RESET_SVG}<span>Restaurer</span></button>
         <button type="button" class="tb danger drop-table" onclick="dropTable(decodeURIComponent('${enc}'))" aria-label="Supprimer la table ${escAttr(t)}" title="Supprimer la table">${CONSOLE_TRASH_SVG}</button>
+        </span>
       </div>
       ${noteHtml}
       ${colsHtml}
@@ -13658,7 +13675,6 @@ function sgbdBodyHtml(focus){
 </div>
     <nav class="fbar sg-chips" aria-label="Thèmes">${SGBD_PAGE.map(s=>`<button type="button" class="fchip${s.id===focus?' on':''}" data-sgbd-jump="${s.id}">${esc(s.t)}</button>`).join('')}</nav>
     ${SGBD_PAGE.map(s=>`<section class="sg-sec${s.id===focus?' is-focus':''}" data-sg="${s.id}"><h2><span aria-hidden="true">${s.ico}</span>${esc(s.t)}</h2>${s.rows.map(sgbdNeedHtml).join('')}</section>`).join('')}
-    <p class="sg-foot">Dans les exemples, <code>d</code>, <code>debut</code> et <code>fin</code> sont des colonnes de date, comme <code>date_commande</code>.</p>
   </div>`;
 }
 function renderSgbdScreen(){
@@ -14707,6 +14723,7 @@ function lvCardSync(id){
   const had=document.activeElement===c;
   c.replaceWith(n);
   if(had)try{n.focus({preventScroll:true});}catch(e){}
+  const pp=document.querySelector('#lesson-body .ls-next[data-jc-gate] .ls-pips'); if(pp)pp.outerHTML=lvGatePips(current);
   /* La vidéo refermée, l’écran du cours redevient visible : la vignette se remesure pour tenir dans l’écran. */
   if(typeof requestAnimationFrame==='function')requestAnimationFrame(lvCardFit);
 }
@@ -14727,14 +14744,22 @@ function lvNavSync(id){
   const b=document.querySelector('#lesson-body .ls-next[data-jc-gate]');
   if(b){ b.removeAttribute('aria-disabled'); b.removeAttribute('data-jc-gate'); b.textContent='Voir le bilan'; b.onclick=()=>setLessonStep(3); }
 }
+/* Bouton du bas d’un cours à valider (Elisa, 30 octobre, 23 h 42 : « pas ouf le bouton ») : la cible en autocollant et, pour la règle
+   « réussis au moins N exercices sur M », une pastille par moment de la vidéo (menthe : réussi du premier coup ; corail : réussi après
+   une erreur ; vide : à faire). Le décor suit le texte du bouton (aria-hidden) : l’annonce du bouton reste la règle, mot pour mot. */
+function lvGatePips(l){
+  const n=(l&&l.video&&l.video.moments)||0; if(!n||!lvSeuil(l)||lvErreursMax(l)!=null)return '';
+  return `<i class="ls-pips">${Array.from({length:n},(_,j)=>{ const a=lvPkGet(l.id,j); return `<i${a?` class="${a.first?'ok':'try'}"`:''}></i>`; }).join('')}</i>`;
+}
+function lvGateDeco(l){ return `<i class="ls-gate-x" aria-hidden="true"><i class="ls-gate-stk">${typeof lqStkSvg==='function'?lqStkSvg('target'):''}</i>${l?lvGatePips(l):''}</i>`; }
 function lessonVideoSlide(l){
   const v=l.video, m=moduleDeLecon(l.id), locked=jcGateLocked(l), card=lvCardHtml(l);
   /* La carte du cours reprend celle de l’accueil (DA de la vitrine) : pastille du module, titre jaune, vignette collée dessus. */
   const mi=m&&typeof MODULES!=='undefined'?MODULES.indexOf(m):-1;
   return `
       <div class="ls-nav">
-        ${l.leconSeule?(state.lessons[l.id]&&state.lessons[l.id].done?'<button class="ls-next" type="button" onclick="setLessonStep(3)">Voir le bilan</button>':`<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">${lvErreursMax(l)!=null?`Termine la vidéo avec ${lvErreursMax(l)} erreur${lvErreursMax(l)>1?'s':''} au plus`:lvSeuil(l)?`Valide la leçon&nbsp;: <br>réussis au moins ${lvSeuil(l)}&nbsp;exercices sur&nbsp;${v.moments}`:'Termine la vidéo pour valider la leçon'}</button>`)
-          :locked?'<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">Termine la vidéo pour continuer</button>':'<button class="ls-next" type="button" onclick="setLessonStep(1)">Passer à l’exercice</button>'}
+        ${l.leconSeule?(state.lessons[l.id]&&state.lessons[l.id].done?'<button class="ls-next" type="button" onclick="setLessonStep(3)">Voir le bilan</button>':`<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">${lvErreursMax(l)!=null?`Termine la vidéo avec ${lvErreursMax(l)} erreur${lvErreursMax(l)>1?'s':''} au plus`:lvSeuil(l)?`Valide la leçon&nbsp;: <br>réussis au moins ${lvSeuil(l)}&nbsp;exercices&nbsp;sur&nbsp;${v.moments}`:'Termine la vidéo pour valider la leçon'}${lvGateDeco(l)}</button>`)
+          :locked?`<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">Termine la vidéo pour continuer${lvGateDeco(null)}</button>`:'<button class="ls-next" type="button" onclick="setLessonStep(1)">Passer à l’exercice</button>'}
       </div>
       <div class="ls-main lv-main">
         <div class="lesson-rich lv-lesson lv-hero">
@@ -22436,6 +22461,12 @@ function applyPlanAdjustment(){
   const p=state.plan;if(!p)return;
   const preview=planAdjustPreview(p);
   if(!preview.count){toast('Tout est déjà terminé');closePlanAdjust();return;}
+  const btn=document.querySelector('#plan-adjust-footer .pl-adjust-apply');
+  if(btn){ if(btn._saving)return; btn._saving=1; lqSaved(btn,'Rythme appliqué').then(()=>planAdjustCommit(preview)); return; }
+  planAdjustCommit(preview);
+}
+function planAdjustCommit(preview){
+  const p=state.plan;if(!p)return;
   const sc=document.getElementById('scr-planning'),scrollY=sc?sc.scrollTop:0;
   const triggerWasTop=planAdjustTrigger?.classList?.contains('pl-overview-adjust');
   p.archive=preview.data.done.slice();
@@ -22667,7 +22698,7 @@ function lqPrompt(o){
       setTimeout(()=>el.remove(),prefersReduceMotion()?0:260);
       res(v);
     };
-    const ok=()=>fin(input.value.replace(/\s+$/,'').replace(/^\s+/,''));
+    const ok=()=>{ if(fini||el._saving)return; el._saving=1; const v=input.value.replace(/\s+$/,'').replace(/^\s+/,''); lqSaved(el.querySelector('.lq-ask-oui'),lqSavedLabel(o.oui||'Enregistrer')).then(()=>fin(v)); };
     const key=e=>{
       if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); fin(null); }
       else if(e.key==='Enter'&&(!multi||e.metaKey||e.ctrlKey)){ e.preventDefault(); ok(); }
@@ -22681,6 +22712,27 @@ function lqPrompt(o){
     document.body.appendChild(el);
     requestAnimationFrame(()=>requestAnimationFrame(()=>{ el.classList.add('on'); try{ input.focus({preventScroll:true}); const n=input.value.length; input.setSelectionRange(n,n); }catch(e){} fit(); }));
   });
+}
+
+/* On enregistre (Elisa, 31 octobre, 0 h 19 : « micro-interaction quand on enregistre quelque chose, ici ou ailleurs ») : le bouton passe
+   au vert menthe, la coche se dessine en sautant, des confettis partent, le libellé devient « Enregistré » ; une vibration de réussite.
+   Rend une promesse tenue un demi-temps plus tard : la feuille ne descend qu’après (tout de suite en mouvement réduit). */
+const LQ_SAVED={'Enregistrer':'Enregistré','Renommer':'Renommé','Ajouter':'Ajouté','Créer':'Créé','Valider':'Validé'};
+function lqSavedLabel(oui){ return LQ_SAVED[oui]||oui; }
+function lqSaved(btn,label){
+  if(!btn)return Promise.resolve();
+  const still=typeof prefersReduceMotion==='function'&&prefersReduceMotion();
+  btn.classList.add('lq-saved'); btn.setAttribute('aria-disabled','true');
+  btn.innerHTML=`<span class="lq-saved-ico" aria-hidden="true">${CHECK_SVG}</span><span>${esc(label||'Enregistré')}</span>`;
+  if(!still&&typeof lqBurst==='function')lqBurst(btn,btn.querySelector('.lq-saved-ico'));
+  if(typeof buzz==='function')buzz('success');
+  return new Promise(r=>setTimeout(r,still?0:560));
+}
+/* La chose enregistrée s’allume un instant là où elle s’affiche (un halo jaune soleil qui s’éteint) */
+function lqFresh(el){
+  if(!el||(typeof prefersReduceMotion==='function'&&prefersReduceMotion()))return;
+  el.classList.remove('lq-fresh'); void el.offsetWidth; el.classList.add('lq-fresh');
+  clearTimeout(el._freshT); el._freshT=setTimeout(()=>el.classList.remove('lq-fresh'),1300);
 }
 
 /* Autocollants des feuilles, de la page d’un projet et des questions d’entretien (Elisa, 30 octobre, 22 h 11 : « à passer au niveau
@@ -22710,6 +22762,10 @@ function lqStkSvg(k){
       `<path d="M8 12v24c0 4 7.2 7 16 7s16-3 16-7V12z" fill="#fff"/><path d="M8 20c0 4 7.2 7 16 7s16-3 16-7v8c0 4-7.2 7-16 7s-16-3-16-7z" fill="#9FF0C6"/><path d="M8 28c0 4 7.2 7 16 7s16-3 16-7v8c0 4-7.2 7-16 7s-16-3-16-7z" fill="#FFC83D"/><path d="M8 20c0 4 7.2 7 16 7s16-3 16-7M8 28c0 4 7.2 7 16 7s16-3 16-7" fill="none" ${W}/><path d="M8 12v24c0 4 7.2 7 16 7s16-3 16-7V12" fill="none" ${W}/><ellipse cx="24" cy="12" rx="16" ry="7" fill="#6A4DF4" ${W}/><path d="M15.5 10.4c2.3-1.4 5.3-2.2 8.5-2.2" stroke="#fff" stroke-width="2" ${R} opacity=".7"/><circle cx="33" cy="30" r="1.7" fill="${I}"/><circle cx="33" cy="22" r="1.7" fill="${I}"/>`],
     mic:['<rect x="15" y="4" width="18" height="26" rx="9"/><path d="M9 20a15 15 0 0 0 30 0M24 35v5.5M16 41h16" fill="none" stroke-width="10"/>',
       `<path d="M9 20a15 15 0 0 0 30 0M24 35v5.5M16 41h16" fill="none" stroke="${I}" stroke-width="3" ${R}/><rect x="15" y="4" width="18" height="26" rx="9" fill="#FFC83D"/><path d="M15 17v-4a9 9 0 0 1 18 0v4z" fill="#6A4DF4"/><path d="M19.5 10h2.5M26 10h2.5M19.5 13.5h2.5M26 13.5h2.5" stroke="#fff" stroke-width="2" ${R} opacity=".6"/><path d="M15 17h18" ${W}/><rect x="15" y="4" width="18" height="26" rx="9" fill="none" ${W}/><path d="M19.5 22v3" stroke="#fff" stroke-width="2.2" ${R} opacity=".85"/>`],
+    pin:['<g transform="rotate(28 24 24)"><rect x="15" y="5" width="18" height="7.5" rx="3.6"/><path d="M19 12h10l-2.2 9.5h-5.6z"/><rect x="13" y="21" width="22" height="6.5" rx="3.2"/><path d="M24 27.5v15" fill="none"/></g>',
+      `<g transform="rotate(28 24 24)"><path d="M24 28v14" stroke="${I}" stroke-width="3" ${R}/><rect x="13" y="21" width="22" height="6.5" rx="3.2" fill="#FF6B6B" ${W}/><path d="M19 12h10l-2.2 9.5h-5.6z" fill="#FF9494" ${W} ${J}/><rect x="15" y="5" width="18" height="7.5" rx="3.6" fill="#FF6B6B" ${W}/><path d="M18.6 8.7h7.2" stroke="#fff" stroke-width="2" ${R} opacity=".8"/></g>`],
+    target:['<circle cx="21" cy="27" r="16"/><path d="M21 27L39 9" fill="none"/><path d="M36.5 4.5l2.3 5.7 5.7 2.3-4.6 4.6-5.7-2.3-2.3-5.7z"/>',
+      `<circle cx="21" cy="27" r="16" fill="#FF6B6B" ${W}/><circle cx="21" cy="27" r="11" fill="#fff"/><circle cx="21" cy="27" r="6.4" fill="#FF6B6B"/><circle cx="21" cy="27" r="2.8" fill="#FFC83D" stroke="${I}" stroke-width="1.6"/><path d="M21.5 26.5L37.5 10.5" stroke="${I}" stroke-width="3.2" ${R}/><path d="M36.5 4.5l2.3 5.7 5.7 2.3-4.6 4.6-5.7-2.3-2.3-5.7z" fill="#6A4DF4" stroke="${I}" stroke-width="2" ${J}/><path d="M37 9.6l3.4 3.4" stroke="#fff" stroke-width="1.6" ${R} opacity=".85"/>`],
     bubble:['<path d="M10 7h28a6 6 0 0 1 6 6v16a6 6 0 0 1-6 6H23l-9 7v-7h-4a6 6 0 0 1-6-6V13a6 6 0 0 1 6-6z"/>',
       `<path d="M10 7h28a6 6 0 0 1 6 6v16a6 6 0 0 1-6 6H23l-9 7v-7h-4a6 6 0 0 1-6-6V13a6 6 0 0 1 6-6z" fill="#fff" ${W} ${J}/><g class="lq-stk-wave" stroke="#6A4DF4" stroke-width="3.2" ${R}><path d="M13 19.5v3"/><path d="M18.5 16v10"/><path d="M24 13v16"/><path d="M29.5 16.5v9"/><path d="M35 19v4"/></g>`]
   };
@@ -23212,7 +23268,7 @@ function planAdjustSheetHTML(p){
       </div>
     </fieldset>
     <div class="pl-adjust-impact" aria-live="polite">
-      <span class="pl-impact-icon" aria-hidden="true">${IMPACT_CHART_ICO}</span>
+      <span class="pl-impact-icon is-stk" aria-hidden="true">${lqStkSvg('target')}</span>
       <div><b>Ton nouveau parcours</b><strong>${copy.summary}</strong>${planAdjustDeltaHTML(copy.delta)}<p>${copy.impact}</p></div>
     </div>
     <p class="pl-adjust-safe">Aucun changement avant ta validation.</p>`;
@@ -23253,6 +23309,7 @@ function openPlanAdjust(trigger){
   planAdjustDraft=initialPlanAdjustDraft(state.plan);
   planAdjustTrigger=trigger||document.activeElement;
   renderPlanAdjustSheet();
+  lqVizCap('plan-adjust-sheet',PL_STK_CAL,'Choisis un rythme confortable.');
   const back=document.getElementById('plan-adjust-back'),sheet=document.getElementById('plan-adjust-sheet');
   const stage=document.querySelector('#app>.stage'),tabs=document.querySelector('#app>.tabbar');
   if(stage)stage.inert=true;
@@ -23743,9 +23800,29 @@ function currentContext(){
   return '';
 }
 function quickNote(){ openNotesHub(); }
+/* En-tête des feuilles du bas dans la DA (Elisa, 31 octobre, 0 h 19 : « regarde la page note pour l’améliorer au niveau de la DA du
+   site », « pareil » pour « Ajuster mon rythme ») : le violet profond quadrillé des feuilles « Description », un autocollant qui se colle
+   à l’ouverture, le titre en jaune soleil, une ligne d’explication. Le titre reste le même élément (aria-labelledby, textes mis à jour). */
+function lqVizCap(id,stk,sub){
+  const sheet=document.getElementById(id),head=sheet&&sheet.querySelector('.viz-head'),b=head&&head.querySelector('b');
+  if(!b)return;
+  if(!head.classList.contains('viz-cap')){
+    head.classList.add('viz-cap'); sheet.classList.add('has-cap');
+    const t=document.createElement('div'); t.className='viz-cap-t';
+    b.replaceWith(t); t.appendChild(b);
+    const s=document.createElement('small'); s.className='viz-cap-sub'; t.appendChild(s);
+    const k=document.createElement('span'); k.className='viz-cap-stk'; k.setAttribute('aria-hidden','true'); head.insertBefore(k,t);
+  }
+  const k=head.querySelector('.viz-cap-stk'),key=String(stk).slice(0,48);
+  if(k.dataset.k!==key){ k.innerHTML=String(stk).startsWith('<svg')?stk:lqStkSvg(stk); k.dataset.k=key; }
+  head.querySelector('.viz-cap-sub').textContent=sub||'';
+  if(!(typeof prefersReduceMotion==='function'&&prefersReduceMotion())){ k.classList.remove('is-in'); void k.offsetWidth; k.classList.add('is-in'); }
+}
 function openNotesHub(){
   noteView='list'; editingNote=null;
   document.getElementById('note-head').textContent='Notes';
+  const nb=(state.notes||[]).length;
+  lqVizCap('note-sheet','note',nb?`${plur(nb,'note')} · tes idées et tes requêtes`:'Tes idées et tes requêtes, au même endroit.');
   document.getElementById('note-back').classList.add('on');
   document.getElementById('note-sheet').classList.add('on');
   document.getElementById('fab').classList.add('hide');
@@ -24066,7 +24143,7 @@ function noteCardHtml(n,i){
         ${n.sql?`<div class="nsql">${highlight(n.sql)}</div>`:''}
         <div class="nfoot"><span class="ndate">${fmtDate(n.ts)}</span>
           <button type="button" class="nmore" aria-expanded="false" onclick="event.stopPropagation();toggleNoteMore(this)">Voir tout</button>
-          <button class="npin-btn" type="button" aria-label="${n.pin?'Désépingler':'Épingler'}" aria-pressed="${n.pin?'true':'false'}" onclick="event.stopPropagation();togglePinFromList('${n.id}')">${PIN_SVG}</button>
+          <button class="npin-btn" type="button" aria-label="${n.pin?'Désépingler':'Épingler'}" aria-pressed="${n.pin?'true':'false'}" onclick="event.stopPropagation();togglePinFromList('${n.id}')">${lqStkSvg('pin')}</button>
         </div>
       </div>`;
 }
@@ -24175,8 +24252,9 @@ function renderNotesSurface(wrap,prefix,opts){
   }
   let html='';
   if(!all.length){
-    html=`<div class="notes-empty"><div class="ne-i">✎</div><b>Aucune note</b>
-      <span>Commence par une idée, une requête à revoir ou une question.</span>${isScreen?`<div class="notes-starters"><button type="button" onclick="startNotePrompt('Ce que je retiens : ')">Ce que je retiens</button><button type="button" onclick="startNotePrompt('Requête à revoir : ')">Requête à revoir</button><button type="button" onclick="startNotePrompt('Question : ')">Une question</button></div>`:''}</div>`;
+    const go=isScreen?'startNotePrompt':'startNoteHere';
+    html=`<div class="notes-empty"><div class="ne-i is-stk" aria-hidden="true">${lqStkSvg('note')}</div><b>Aucune note</b>
+      <span>Commence par une idée, une requête à revoir ou une question.</span><div class="notes-starters"><button type="button" onclick="${go}('Ce que je retiens : ')">Ce que je retiens</button><button type="button" onclick="${go}('Requête à revoir : ')">Requête à revoir</button><button type="button" onclick="${go}('Question : ')">Une question</button></div></div>`;
   }else if(!list.length){
     html=notesFilterChips(fCount)+`<div class="notes-empty"><div class="ne-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></div><b>Aucun résultat</b>
       <span>Rien pour « ${esc(searchQ)} » dans tes ${plur(all.length,'note')}. Les accents et les majuscules ne comptent pas.</span><button type="button" class="sq-reset" onclick="clearSearch('${isScreen?'screen':'sheet'}')">Effacer la recherche</button></div>`;
@@ -24252,6 +24330,14 @@ function startNewNote(){
   openNote(null,{ctx:currentContext(),sql});
 }
 function startNotePrompt(txt){ openNote(null,{txt:txt||''}); }
+/* Depuis la feuille des notes (dans une leçon, la console) : l’amorce garde l’endroit et la requête en cours, comme « Nouvelle note » */
+function startNoteHere(txt){
+  let sql='';
+  const act=document.querySelector('.screen.active');
+  if(act&&act.id==='scr-console')sql=document.getElementById('ed-console').value.trim();
+  else if(act&&act.id==='scr-lesson'){const t=document.getElementById('ed-lesson');if(t)sql=t.value.trim();}
+  openNote(null,{ctx:currentContext(),sql,txt:txt||''});
+}
 function noteFromCard(id){
   const c=CARTES[id]; closeCard();
   openNote(null,{ctx:`Carte ${id} · ${c.k}`,sql:c.s,txt:noteTextFromHtml(c.m)});
@@ -24272,6 +24358,7 @@ function openNote(id,pre){
   noteView='edit';
   editingNote=n?{...n,isNew:false}:{id:'n'+Date.now()+Math.random().toString(36).slice(2,6),txt:(pre&&pre.txt)||'',sql:(pre&&pre.sql)||'',ctx:(pre&&pre.ctx)||'',ts:Date.now(),pin:false,isNew:true};
   document.getElementById('note-head').textContent=n?'Note':'Nouvelle note';
+  lqVizCap('note-sheet','pen',n?'Retouche-la, épingle-la ou garde-la telle quelle.':'Une idée, une requête à revoir ou une question.');
   document.getElementById('note-back').classList.add('on');
   document.getElementById('note-sheet').classList.add('on');
   document.getElementById('fab').classList.add('hide');
@@ -24290,7 +24377,7 @@ function openNote(id,pre){
     </div>
     <div class="ne-row">
       <button class="prim" type="button" onclick="saveNote()">Enregistrer</button>
-      <button class="sec ${e.pin?'pin-on':''}" type="button" aria-pressed="${e.pin?'true':'false'}" onclick="togglePin()">${PIN_SVG}<span>${e.pin?'Épinglée':'Épingler'}</span></button>
+      <button class="sec ne-pin ${e.pin?'pin-on':''}" type="button" aria-pressed="${e.pin?'true':'false'}" onclick="togglePin()">${lqStkSvg('pin')}<span>${e.pin?'Épinglée':'Épingler'}</span></button>
       ${n?`<button class="del" type="button" onclick="deleteNote('${e.id}')">Supprimer</button>`:''}
     </div>
     ${e.sql?`<div class="ne-row" style="margin-top:9px"><button class="sec" style="flex:1" type="button" onclick="noteToConsole()">Ouvrir dans la console</button></div>`:''}`;
@@ -24334,9 +24421,8 @@ function saveNote(){
   const b=document.querySelector('#note-body .ne-row .prim');
   const still=typeof motionOff==='function'&&motionOff();
   if(ok&&b&&!b.disabled){
-    b.disabled=true; b.classList.add('is-saved'); b.innerHTML=`${CHECK_SVG}<span>Enregistrée</span>`;
-    if(navigator.vibrate)navigator.vibrate(8);
-    setTimeout(()=>{backToNotesList();toast(wasNew?'Note enregistrée':'Modifications enregistrées',wasNew?'Retrouve-la dans tes notes.':'Ta note est à jour.');},still?0:650);
+    b.disabled=true; b.classList.add('is-saved');
+    lqSaved(b,'Enregistrée').then(()=>{backToNotesList();toast(wasNew?'Note enregistrée':'Modifications enregistrées',wasNew?'Retrouve-la dans tes notes.':'Ta note est à jour.');});
     return;
   }
   backToNotesList();
@@ -24350,10 +24436,7 @@ function togglePin(){
     btn.classList.toggle('pin-on',e.pin);
     const sp=btn.querySelector('span'); if(sp) sp.textContent=e.pin?'Épinglée':'Épingler';
     btn.setAttribute('aria-pressed',e.pin?'true':'false');
-    const ic=btn.querySelector('svg');
-    if(ic&&ic.animate&&!(typeof motionOff==='function'&&motionOff()))ic.animate(e.pin
-      ?[{transform:'scale(.55) rotate(-30deg)'},{transform:'scale(1.3) rotate(10deg)',offset:.55},{transform:'rotate(-16deg)'}]
-      :[{transform:'rotate(-16deg)'},{transform:'scale(.8) rotate(8deg)',offset:.5},{transform:'none'}],{duration:460,easing:'cubic-bezier(.2,.9,.3,1)'});
+    lqPinFx(btn,e.pin);
   }
   /* L’épingle compte tout de suite (sans attendre « Enregistrer ») dès que la note a un contenu. */
   const has=String(e.txt||'').trim()||String(e.sql||'').trim();
@@ -24366,6 +24449,7 @@ function togglePinFromList(id){
   if(root)root.querySelectorAll('.ncard[data-id]').forEach(el=>before.set(el.dataset.id,el.getBoundingClientRect().top));
   n.pin=!n.pin; save(); notesEnter=false; renderNotes();
   notesFlip(before,id);
+  lqPinFx(root&&root.querySelector(`.ncard[data-id="${id}"] .npin-btn`)||notesRoot()?.querySelector(`.ncard[data-id="${id}"] .npin-btn`),n.pin);
   toast(n.pin?'Note épinglée':'Note désépinglée',n.pin?'Elle s’affiche en haut de tes notes.':'Elle reprend sa place dans la liste.');
 }
 function deleteNote(id){
@@ -25996,7 +26080,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-30-appui-v2196';
+  const SW_CACHE='requete-2026-10-31-chargement-v2199';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

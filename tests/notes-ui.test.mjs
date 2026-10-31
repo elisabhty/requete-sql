@@ -69,11 +69,12 @@ test('éditeur de note : Supprimer supprime vraiment, et peut être annulé', ()
 test('éditeur de note : Enregistrer et Épingler donnent un retour visible', () => {
   assert.equal((html.match(/\nfunction togglePin\(/g) || []).length, 1, 'une seule fonction togglePin (l’ancienne masquait la nouvelle)');
   const save = fnSrc('saveNote');
-  assert.ok(/b\.innerHTML=`\$\{CHECK_SVG\}<span>Enregistrée<\/span>`/.test(save), 'le bouton passe à « ✓ Enregistrée »');
+  /* 31 octobre : le même retour que partout où l’on enregistre (lqSaved : menthe, coche qui se dessine, confettis) */
+  assert.ok(/lqSaved\(b,'Enregistrée'\)\.then\(/.test(save) && /btn\.innerHTML=`<span class="lq-saved-ico" aria-hidden="true">\$\{CHECK_SVG\}<\/span><span>\$\{esc\(label\|\|'Enregistré'\)\}<\/span>`/.test(html), 'le bouton passe à « ✓ Enregistrée »');
   assert.ok(/toast\(wasNew\?'Note enregistrée':'Modifications enregistrées'/.test(save), 'toast de confirmation');
   const pin = fnSrc('togglePin');
   assert.ok(/persistEditingNote\(\)/.test(pin), 'l’épingle compte tout de suite');
-  assert.ok(/toast\(e\.pin\?'Note épinglée':'Note désépinglée'/.test(pin) && /ic\.animate\(/.test(pin), 'toast et épingle qui bascule');
+  assert.ok(/toast\(e\.pin\?'Note épinglée':'Note désépinglée'/.test(pin) && /lqPinFx\(btn,e\.pin\);/.test(pin), 'toast et épingle qui se plante (lqPinFx)');
   assert.ok(/toast\(n\.pin\?'Note épinglée':'Note désépinglée'/.test(fnSrc('togglePinFromList')), 'même retour depuis la liste');
   const css = fs.readFileSync(path.join(root, 'ludique.css'), 'utf8');
   assert.ok(/html\.lq \.ne-row \.sec\.pin-on\{background:var\(--accent-soft\)!important;border-color:var\(--accent\)!important/.test(css), '« Épinglée » se voit (le style ludique forçait le bouton en blanc)');

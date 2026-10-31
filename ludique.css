@@ -365,11 +365,12 @@ html.lq #app>.tabbar .tab.has-late:not(.active)::after{
 }
 html.lq #app>.tabbar .tab-avatar{border-width:1.8px}
 @media (prefers-reduced-motion:reduce){html.lq #app>.tabbar .tab::before{transition:opacity .15s linear}}
-/* Cinq onglets sur un petit écran : chacun prend la largeur de son libellé,
-   pour que « Bibliothèque » ne déborde jamais sur ses voisins. */
-@media (max-width:379px){
-  html.lq #app>.tabbar .tab{flex:1 1 auto!important;min-width:0!important}
-}
+/* Cinq colonnes égales à toutes les largeurs : les icônes sont espacées régulièrement, et l’onglet ouvert garde sa pastille loin du
+   bord (Elisa, 31 octobre, 0 h 40 : « problème d’espacement »). Avant, sous 380 px, chaque onglet prenait la largeur de son libellé :
+   les écarts variaient d’un onglet à l’autre, et dès que les libellés ne tenaient plus, « Accueil » et « Compte » débordaient de
+   l’écran. Le libellé rapetisse un peu avec l’écran (11 px, puis jusqu’à 10 px vers 330 px) : « Bibliothèque », le plus long,
+   tient dans sa colonne ; au pire il mord sur la marge de ses voisins, qui ont des libellés courts, jamais sur le bord. */
+html.lq #app>.tabbar .tab{flex:1 1 0!important;min-width:0!important;font-size:clamp(10px,3vw,11px)!important}
 
 /* ---------- 8. Bouton ✎ flottant ---------- */
 html.lq body:not(.in-lesson) .fab{
@@ -407,29 +408,32 @@ html.lq .lq-streak:active{transform:translateY(3px);box-shadow:0 0 0 var(--lip)}
 html.lq .lq-streak:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 html.lq .lq-streak-flame{flex:none;width:36px;height:36px;display:grid;place-items:center;border-radius:12px;background:#FFF0DC}
 html.lq .lq-streak-flame svg{width:24px;height:24px;transform-origin:50% 90%;animation:lqFlicker 3.4s ease-in-out infinite}
-html.lq .lq-streak:not(.is-on) .lq-streak-flame{background:var(--surface-2)}
+/* Pas encore de flamme (Elisa, 31 octobre, 0 h 40 : « ça fait trop gris sombre quand il n’y a pas encore de flamme ») : la case de la
+   flamme est pêche, la flamme pâle mais chaude, prête à s’allumer ; les jours sans flamme sont des ronds blancs à peine cerclés,
+   plus des pastilles gris-lilas. */
+html.lq .lq-streak:not(.is-on) .lq-streak-flame{background:linear-gradient(160deg,#FFF7EA,#FFEBD2);box-shadow:inset 0 0 0 1.5px #FFE0BD}
 html.lq .lq-streak:not(.is-on) .lq-streak-flame svg{animation:none}
 html.lq .lq-streak svg .f-o{fill:var(--flame-b)}
 html.lq .lq-streak svg .f-i{fill:var(--flame-a)}
-html.lq .lq-streak:not(.is-on) .lq-streak-flame .f-o{fill:#D5CFEA}
-html.lq .lq-streak:not(.is-on) .lq-streak-flame .f-i{fill:#EAE6F6}
+html.lq .lq-streak:not(.is-on) .lq-streak-flame .f-o{fill:#FFC58C}
+html.lq .lq-streak:not(.is-on) .lq-streak-flame .f-i{fill:#FFEBC4}
 html.lq .lq-streak-copy{flex:none;display:flex;flex-direction:column;gap:3px;min-width:0}
 html.lq .lq-streak-copy b{font-family:var(--display);font-size:16px;font-weight:700;letter-spacing:-.01em;line-height:1;color:var(--ink);white-space:nowrap}
 html.lq .lq-streak-copy small{font-size:12px;line-height:1;color:var(--ink-2);white-space:nowrap}
 html.lq .lq-week{flex:1 1 auto;display:flex;justify-content:space-between;gap:4px;min-width:0}
 html.lq .lq-day{flex:0 1 26px;min-width:19px;display:flex;flex-direction:column;align-items:center;gap:3px}
-html.lq .lq-day i{position:relative;width:26px;max-width:100%;height:auto;aspect-ratio:1/1;box-sizing:border-box;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);font-style:normal}
+html.lq .lq-day i{position:relative;width:26px;max-width:100%;height:auto;aspect-ratio:1/1;box-sizing:border-box;border-radius:50%;display:grid;place-items:center;background:#fff;box-shadow:inset 0 0 0 1.5px #ECE7FA;font-style:normal}
 html.lq .lq-day i svg{width:15px;height:15px;transform-origin:50% 90%}
 html.lq .lq-day small{font:700 10px/1 var(--display);color:var(--ink-3)}
-html.lq .lq-day.is-done i{background:#FFEAD1}
-html.lq .lq-day.is-missed .f-o{fill:#D9D3EC}
-html.lq .lq-day.is-missed .f-i{fill:#ECE8F7}
-html.lq .lq-day.is-today i{background:#fff;border:2px dashed #FF9A3D}
+html.lq .lq-day.is-done i{background:#FFEAD1;box-shadow:none}
+html.lq .lq-day.is-missed .f-o{fill:#E3DDF5}
+html.lq .lq-day.is-missed .f-i{fill:#F4F1FC}
+html.lq .lq-day.is-today i{background:#FFF9F1;border:2px dashed #FF9A3D;box-shadow:none}
 html.lq .lq-day.is-today .f-o{fill:#FFD5AE}
 html.lq .lq-day.is-today .f-i{fill:#FFF0DF}
 html.lq .lq-day.is-now small{color:var(--ink)}
 html.lq .lq-day.is-rest .f-m{fill:#B9B1DC}
-html.lq .lq-day.is-future i{background:transparent;border:2px solid var(--line-2)}
+html.lq .lq-day.is-future i{background:transparent;border:1.5px dashed #E2DCF5;box-shadow:none}
 html.lq .lq-day.is-future .f-o{fill:#E9E5F6}
 html.lq .lq-day.is-future .f-i{fill:#F4F2FB}
 html.lq .lq-streak:active .lq-day.is-done svg{animation:lqWiggle .5s ease both}
@@ -1150,8 +1154,11 @@ html.lq .acct-avatar i{
 html.lq .acct-avatar i svg{width:13px;height:13px}
 html.lq .acct-id:active .acct-avatar{transform:translateY(4px);box-shadow:0 0 0 rgba(20,10,60,.24)}
 html.lq .acct-id-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
-html.lq .acct-id-copy b{font:700 24px/1.15 var(--display);letter-spacing:-.015em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-html.lq .acct-id-copy small{font-size:15px;line-height:1.3;font-weight:600;color:#fff}
+/* Le titre passe à la ligne plutôt que d’être coupé (« Ton espace Req… ») : deux lignes au plus, équilibrées (« Ton espace / Requête »),
+   un peu plus petit sur les écrans étroits ; un prénom très long se coupe proprement à la fin de la deuxième ligne. */
+html.lq .acct-id-copy b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;padding-bottom:.06em;
+  font:700 clamp(20px,6vw,24px)/1.16 var(--display);letter-spacing:-.015em;white-space:normal;overflow-wrap:anywhere;text-wrap:balance}
+html.lq .acct-id-copy small{font-size:15px;line-height:1.3;font-weight:600;color:#fff;text-wrap:balance}
 html.lq .acct-level{margin-top:16px;padding:14px 14px 15px;border-radius:18px;background:rgba(20,10,60,.18)}
 html.lq .acct-level-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13.5px;line-height:1.3;font-weight:600}
 html.lq .acct-level-head small,html.lq .acct-level-head em{font:inherit;font-style:normal;color:#fff;text-transform:none;letter-spacing:0}
@@ -1174,9 +1181,9 @@ html.lq .acct-stat.is-streak .acct-stat-ico{background:#FFF0DC}
 html.lq .acct-stat.is-streak .acct-stat-ico svg{width:22px;height:22px;stroke:none}
 html.lq .acct-stat.is-streak .f-o{fill:var(--flame-b)}
 html.lq .acct-stat.is-streak .f-i{fill:var(--flame-a)}
-html.lq .acct-stat.is-streak:not(.is-on) .acct-stat-ico{background:var(--surface-2)}
-html.lq .acct-stat.is-streak:not(.is-on) .f-o{fill:#D5CFEA}
-html.lq .acct-stat.is-streak:not(.is-on) .f-i{fill:#EAE6F6}
+html.lq .acct-stat.is-streak:not(.is-on) .acct-stat-ico{background:linear-gradient(160deg,#FFF7EA,#FFEBD2);box-shadow:inset 0 0 0 1.5px #FFE0BD}
+html.lq .acct-stat.is-streak:not(.is-on) .f-o{fill:#FFC58C}
+html.lq .acct-stat.is-streak:not(.is-on) .f-i{fill:#FFEBC4}
 html.lq .acct-stat b{margin-top:8px;font:700 28px/1 var(--display);color:var(--ink)}
 html.lq .acct-stat small{margin-top:4px;font-size:13.5px;line-height:1.25;color:var(--ink-2)}
 
@@ -1186,12 +1193,14 @@ html.lq .acct-head+.acct-card{margin-top:0}
 html.lq .acct-card-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 html.lq .acct-card-head b{font:700 17px/1.25 var(--display);color:var(--ink)}
 html.lq .acct-card-head span{font:700 14px/1.2 var(--display);color:var(--accent-ink);white-space:nowrap}
-html.lq .acct-card-foot{margin:14px 0 0;font-size:14px;line-height:1.4;color:var(--ink-2)}
+html.lq .acct-card-foot{margin:16px 0 0;font-size:14px;line-height:1.4;color:var(--ink-2)}
 
 /* Cette semaine : repos (lune), séance prévue (anneau), en cours, faite (coche) */
-html.lq .acct-week{margin:14px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
-html.lq .acct-day{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
-html.lq .acct-day i{width:36px;max-width:100%;height:auto;aspect-ratio:1/1;box-sizing:border-box;border-radius:50%;display:grid;place-items:center;font-style:normal;background:var(--surface-2)}
+/* Toujours de l’air entre deux ronds (Elisa, 31 octobre, 0 h 40 : « problème d’espace » : les ronds se touchaient, et l’anneau du
+   jour mordait sur son voisin) : chaque rond laisse 8 px dans sa colonne, entre 24 et 34 px de diamètre selon la largeur */
+html.lq .acct-week{margin:16px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
+html.lq .acct-day{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0}
+html.lq .acct-day i{width:clamp(24px,calc(100% - 8px),34px);height:auto;aspect-ratio:1/1;box-sizing:border-box;border-radius:50%;display:grid;place-items:center;font-style:normal;background:var(--surface-2)}
 html.lq .acct-day i svg{width:16px;height:16px}
 html.lq .acct-day .f-m{fill:#B9B1DC}
 html.lq .acct-day.is-planned i{background:#fff;border:2px solid var(--lip)}
@@ -1199,7 +1208,7 @@ html.lq .acct-day.is-started i{background:var(--accent-soft);border:2px solid va
 html.lq .acct-day.is-started i span{font:700 11px/1 var(--display);color:var(--accent-ink)}
 html.lq .acct-day.is-done i{background:var(--accent);color:#fff}
 html.lq .acct-day.is-done i svg{width:18px;height:18px}
-html.lq .acct-day.is-today i{box-shadow:0 0 0 3px #fff,0 0 0 5px #C9BCFF}
+html.lq .acct-day.is-today i{box-shadow:0 0 0 2px #fff,0 0 0 4px #C9BCFF}
 html.lq .acct-day small{font:700 12px/1.2 var(--display);color:var(--ink-3)}
 html.lq .acct-day.is-today small{color:var(--ink)}
 
@@ -2530,7 +2539,7 @@ html.lq #app .planning-progress>summary,html.lq #app .plan-modules>summary{row-g
 .pgr-mod{display:flex;align-items:center;gap:12px;padding:12px;border:2px solid var(--line-2);border-radius:18px;background:#fff}
 .pgr-mod .pgr-ring{width:46px;height:46px}
 .pgr-mod-b{flex:1;min-width:0}
-.pgr-mod-b h3{margin:0;font:700 15px/1.25 var(--display);color:var(--ink)}
+.pgr-mod-b h3{margin:0;font:700 15px/1.25 var(--display);color:var(--ink);text-wrap:balance}
 .pgr-mod-meta{display:flex;align-items:center;gap:9px;margin-top:7px}
 .pgr-mod-meta .pgr-meter{flex:1;margin:0}
 .pgr-mod-meta em{font:700 11.5px var(--ui);color:var(--ink-2);font-variant-numeric:tabular-nums}
@@ -2538,6 +2547,15 @@ html.lq #app .planning-progress>summary,html.lq #app .plan-modules>summary{row-g
 .pgr-mod>button{flex:none;min-height:44px;padding:0 14px;border:2px solid var(--line);border-radius:14px;background:#fff;color:var(--accent-ink);font:700 13px var(--display);box-shadow:0 3px 0 var(--lip);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .pgr-mod>button:active{transform:translateY(3px);box-shadow:none}
 .pgr-mod.is-flash{animation:pgrFlash 1.3s ease}
+/* Liste étroite (téléphone) : le bouton passe sous le module, sur toute la largeur de la carte ; le titre garde toute la ligne au lieu
+   d’être coincé en trois ou quatre lignes à côté de « Commencer » (Elisa, 31 octobre, 0 h 40 : « problème de responsivité »). On regarde
+   la largeur de la liste elle-même, pas celle de l’écran : la carte change d’allure là où la place manque vraiment. */
+.pgr-mods{container-type:inline-size}
+@container (max-width:419.98px){
+  .pgr-mod{flex-wrap:wrap;row-gap:12px}
+  .pgr-mod-b{flex:1 1 calc(100% - 58px)}
+  .pgr-mod>button{flex:1 1 100%;width:100%}
+}
 @keyframes pgrFlash{0%,65%{box-shadow:0 0 0 4px rgba(106,77,244,.4)}100%{box-shadow:0 0 0 0 rgba(106,77,244,0)}}
 .pgr-empty{margin:8px 2px 2px;font:500 13.5px/1.5 var(--ui);color:var(--ink-2)}
 .pgr-sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -2546,7 +2564,6 @@ html.lq #app .planning-progress>summary,html.lq #app .plan-modules>summary{row-g
   .pgr-top{gap:12px}.pgr-donut{width:88px;height:88px}.pgr-donut>i{font-size:22px}
   .pgr-stats{gap:6px}.pgr-stat{padding:9px 8px 10px}.pgr-stat>b,.pgr-t-main>b{font-size:21px}
   .pgr-map{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .pgr-mod{flex-wrap:wrap}.pgr-mod-b{flex-basis:calc(100% - 60px)}.pgr-mod>button{width:100%}
   .pgr-actions{flex-wrap:wrap}.pgr-actions .pl-overview-adjust{flex:1}
 }
 @media (prefers-reduced-motion:reduce){.pgr-arc,.pgr-bars li>i,.pgr-mod.is-flash{animation:none!important}.pgr-meter b,.pgr-chip,.pgr-tile{transition:none!important}}
@@ -3189,63 +3206,90 @@ html.lq #scr-lesson .lv-hero .lv-card-play{transition:scale .28s var(--pop)}
   html.lq #scr-lesson .lv-hero .lv-card:hover .lv-prize{animation-duration:1.6s}
 }
 
-/* Le bouton du bas d’un cours pas encore validé : la règle sur une pastille jaune soleil (comme « Carte à gagner »), une cible en
-   autocollant à gauche, la flèche ↑ dans un rond violet à droite, qui fait signe vers la vidéo de temps en temps. Il s’enfonce à
-   l’appui (son rebord disparaît), se soulève au survol ; au toucher, la flèche s’élance vers la vidéo. */
-@keyframes lqGateNudge{0%,72%,100%{translate:0 0}78%{translate:0 -4px}84%{translate:0 0}90%{translate:0 -2px}}
-@keyframes lqGateGo{0%{translate:0 0;opacity:1}42%{translate:0 -16px;opacity:0}43%{translate:0 10px;opacity:0}100%{translate:0 0;opacity:1}}
-@keyframes lqGatePulse{0%,100%{scale:1}50%{scale:1.09}}
+/* Le bouton du bas d’un cours pas encore validé (Elisa, 30 octobre, 23 h 42 : « pas ouf le bouton », après « pas homogène avec le
+   reste » à 22 h 58) : le bouton violet à rebord des autres écrans (« Passer à l’exercice », « Question suivante »). La cible en
+   autocollant déborde de son coin gauche, la règle s’écrit en blanc (« Valide la leçon : » en jaune soleil), les moments de la
+   vidéo s’alignent en pastilles en face (menthe : réussi du premier coup), et ▶ dans un rond jaune à droite : un appui ouvre la
+   vidéo. Il s’enfonce à l’appui, se soulève au survol ; la cible tremble et le ▶ file quand on le touche. */
+@keyframes lqGateFloat{0%,100%{translate:0 0;rotate:-10deg}50%{translate:0 -3px;rotate:-6deg}}
+@keyframes lqGateHit{0%{rotate:-10deg;scale:1}22%{rotate:-22deg;scale:1.14}46%{rotate:2deg;scale:.96}70%{rotate:-14deg;scale:1.04}100%{rotate:-10deg;scale:1}}
+@keyframes lqGateBreath{0%,100%{scale:1}50%{scale:1.07}}
+@keyframes lqGateGo{0%{scale:1}30%{scale:.86}62%{scale:1.16}100%{scale:1}}
 html.lq #lesson-body .ls-nav:has(.ls-next[data-jc-gate]){padding:6px!important;box-shadow:0 4px 0 var(--lip),0 14px 30px -18px rgba(34,28,70,.45)!important}
-html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]{position:relative;display:block;min-height:58px;padding:9px 46px 10px 52px!important;text-align:left;
-  background:linear-gradient(180deg,#FFF8E1,#FFEDBE)!important;color:#1B1640!important;border-radius:20px!important;
-  box-shadow:inset 0 0 0 2px #F2CB66,0 4px 0 #E2B84A!important;font:700 14.5px/1.28 var(--display)!important;letter-spacing:-.012em!important}
-html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]:has(br)::first-line{color:#8A5A00;font-size:13px}
-html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]::before{content:"";position:absolute;left:10px;top:50%;width:31px;height:31px;margin-top:-15.5px;border-radius:50%;pointer-events:none;
-  background:radial-gradient(circle,#1B1640 0 2.8px,#FFC83D 3.4px 6.2px,#fff 6.8px 9.4px,#FF6B6B 10px);
-  box-shadow:0 0 0 2.5px #1B1640,0 0 0 5px #fff,0 4px 0 4.5px rgba(27,22,64,.2);rotate:-8deg;animation:lqGatePulse 2.8s ease-in-out 1s infinite}
-html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]::after{content:"↑";position:absolute;right:9px;top:50%;display:grid;place-items:center;width:30px;height:30px;margin-top:-15px;
-  border-radius:50%;background:var(--accent);color:#fff;font:800 17px/1 var(--display);box-shadow:0 3px 0 var(--accent-lip);
-  animation:lqGateNudge 3.4s ease-in-out 1.8s infinite;transition:translate .3s var(--pop)}
-html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]:active{background:linear-gradient(180deg,#FFF1C9,#FFE6A6)!important;box-shadow:inset 0 0 0 2px #E9BC48,0 0 0 #E2B84A!important}
-html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]:active::after{top:50%;translate:0 -3px;animation:none}
-html.lq #lesson-body .ls-nav .ls-next[data-jc-gate].is-go::after{animation:lqGateGo .64s cubic-bezier(.3,.7,.3,1) both}
+html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]{position:relative;display:block;min-height:62px;padding:10px 54px 11px 56px!important;text-align:left;overflow:visible;
+  background:linear-gradient(165deg,#7B5CFF 0%,#6146F2 55%,#5536E4 100%)!important;color:#fff!important;border-radius:18px!important;
+  box-shadow:0 4px 0 var(--accent-lip),inset 0 1px 0 rgba(255,255,255,.18)!important;font:700 15px/1.27 var(--display)!important;letter-spacing:-.012em!important;
+  text-wrap:balance;transition:transform .12s var(--press),box-shadow .12s var(--press),translate .2s var(--press)!important}
+html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]:has(br)::first-line{color:var(--sun-hi);font-size:12.5px;letter-spacing:.01em}
+/* Plus de cible dessinée ni de flèche ↑ : la cible est un autocollant (.ls-gate-stk), le ▶ est le rond de droite */
+html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]::before{content:none!important}
+html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]::after{content:"";position:absolute;right:9px;top:50%;width:36px;height:36px;margin-top:-18px;border-radius:50%;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Cpath d='M14.2 11.6c0-1.3 1.4-2.1 2.5-1.4l9.1 5.6a1.7 1.7 0 0 1 0 2.9l-9.1 5.6c-1.1.7-2.5-.1-2.5-1.4z' fill='%231B1640'/%3E%3C/svg%3E") center/100% no-repeat,
+    radial-gradient(circle at 50% 35%,#FFE08A,#FFC83D 70%);
+  box-shadow:0 0 0 2.5px #fff,0 4px 0 2.5px rgba(27,22,64,.32);animation:lqGateBreath 2.8s ease-in-out 1.2s infinite;transition:translate .25s var(--pop)}
+html.lq #lesson-body .ls-nav .ls-next[data-jc-gate] .ls-gate-x{position:static;display:contents;font-style:normal}
+html.lq #lesson-body .ls-nav .ls-next[data-jc-gate] .ls-gate-stk{position:absolute;left:-7px;top:50%;width:52px;height:52px;margin-top:-27px;pointer-events:none;rotate:-10deg;
+  animation:lqGateFloat 4.2s ease-in-out .6s infinite}
+html.lq #lesson-body .ls-nav .ls-next[data-jc-gate] .ls-gate-stk svg{display:block;width:100%;height:100%}
+html.lq #lesson-body .ls-nav .ls-next[data-jc-gate] .ls-pips{position:absolute;right:54px;top:13px;display:flex;gap:3.5px}
+html.lq #lesson-body .ls-nav .ls-next[data-jc-gate] .ls-pips i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.22);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.45)}
+html.lq #lesson-body .ls-nav .ls-next[data-jc-gate] .ls-pips i.ok{background:var(--mint);box-shadow:0 0 0 1.5px rgba(27,22,64,.25)}
+html.lq #lesson-body .ls-nav .ls-next[data-jc-gate] .ls-pips i.try{background:#FFB4A8;box-shadow:0 0 0 1.5px rgba(27,22,64,.25)}
+html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]:active{transform:translateY(4px)!important;box-shadow:0 0 0 var(--accent-lip),inset 0 1px 0 rgba(255,255,255,.18)!important;opacity:1!important}
+html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]:active::after{translate:3px 0;animation:none;scale:.92}
+html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]:active .ls-gate-stk{animation:lqGateHit .5s cubic-bezier(.3,.7,.3,1)}
+html.lq #lesson-body .ls-nav .ls-next[data-jc-gate].is-go::after{animation:lqGateGo .5s cubic-bezier(.3,.7,.3,1) both}
 @media (hover:hover) and (pointer:fine){
-  html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]:hover{translate:0 -2px;box-shadow:inset 0 0 0 2px #EDBE48,0 6px 0 #E2B84A!important}
-  html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]:hover::after{animation:none;translate:0 -3px}
-  html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]:hover::before{animation-duration:1.2s}
+  html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]:hover{translate:0 -2px;box-shadow:0 6px 0 var(--accent-lip),inset 0 1px 0 rgba(255,255,255,.18)!important}
+  html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]:hover::after{animation:none;translate:3px 0}
+  html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]:hover .ls-gate-stk{animation:lqGateHit .6s cubic-bezier(.3,.7,.3,1)}
 }
 
-/* L’écran de chargement : le violet profond quadrillé de la vitrine (lueur jaune, reflet menthe), le logo en autocollant qui se colle
-   d’un claquement puis flotte, trois étincelles, le nom en blanc, une barre jaune soleil ; au départ, le logo grossit et s’efface. */
-@keyframes ldSlap{0%{opacity:0;transform:translateY(-16px) rotate(-18deg) scale(1.5)}50%{opacity:1;transform:translateY(2px) rotate(4deg) scale(.92)}74%{transform:rotate(-2deg) scale(1.04)}100%{opacity:1;transform:none}}
+/* L’écran de chargement : le violet profond quadrillé de la vitrine (lueur jaune, reflet menthe), le logo en autocollant qui se pose
+   en douceur puis flotte, trois étincelles, le nom en blanc et, dessous, un anneau où une comète jaune soleil tourne sans fin.
+   Elisa, 31 octobre, 0 h 40 : « je veux que le truc tourne ou quelque chose comme ça, car ça fait mal aux yeux : ça vient et ça apparaît
+   d’un coup » : la barre balayait de gauche à droite puis réapparaissait d’un bond à gauche, et le logo arrivait d’un claquement
+   (une fois et demie plus grand, tourné). Tout est maintenant continu : l’anneau tourne d’un mouvement régulier, sans début ni fin
+   visibles ; le logo, le nom, l’anneau et la phrase montent et s’allument l’un après l’autre ; au départ, tout s’efface doucement. */
+@keyframes ldIn{0%{opacity:0;transform:translateY(-10px) rotate(-7deg) scale(.94)}100%{opacity:1;transform:none}}
 @keyframes ldFloat{0%,100%{translate:0 0}50%{translate:0 -5px}}
 @keyframes ldUp{from{opacity:0;transform:translateY(8px)}}
-@keyframes ldOut{to{opacity:0;transform:scale(1.18)}}
+@keyframes ldSpin{to{transform:rotate(1turn)}}
+@keyframes ldOut{to{opacity:0;transform:scale(1.05)}}
 html.lq #loader{background:var(--deep)!important;color:#fff;isolation:isolate;overflow:hidden;gap:14px}
 html.lq #loader::before{z-index:-1;background:radial-gradient(320px 260px at 50% 34%,rgba(255,216,107,.24),transparent 70%),radial-gradient(300px 260px at 0% 100%,rgba(159,240,198,.14),transparent 70%),
     linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px) 0 0/30px 30px,linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px) 0 0/30px 30px;
   -webkit-mask-image:radial-gradient(ellipse 85% 75% at 50% 40%,#000 30%,transparent 92%);mask-image:radial-gradient(ellipse 85% 75% at 50% 40%,#000 30%,transparent 92%)}
 html.lq #loader .logo-badge{width:88px;height:88px;box-sizing:border-box;border-radius:26px;border:4px solid #fff;background:linear-gradient(150deg,#7B5CFF,#4B2FD6)!important;color:var(--sun-hi);
   font:700 32px/1 var(--mono);box-shadow:0 0 0 2.5px #1B1640,0 8px 0 2.5px rgba(16,8,52,.42)!important;rotate:-6deg;
-  animation:ldSlap .7s cubic-bezier(.3,.7,.3,1) .05s both,ldFloat 4.6s ease-in-out .8s infinite}
-html.lq #loader .ld-name{margin-top:4px;font:700 27px/1 var(--display);letter-spacing:-.02em;color:#fff;animation:ldUp .45s ease-out .3s both}
-html.lq #loader .spinner{width:150px!important;height:10px!important;border-radius:99px;background:rgba(255,255,255,.2)!important;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.16);animation:ldUp .45s ease-out .4s both}
-html.lq #loader .spinner::after{background:var(--sun)!important;box-shadow:0 0 12px rgba(255,216,107,.6)}
-html.lq #loader p{color:rgba(255,255,255,.86);font-size:14.5px;animation:ldUp .45s ease-out .5s both}
+  animation:ldIn .8s cubic-bezier(.2,.75,.25,1) .05s both,ldFloat 4.6s ease-in-out .9s infinite}
+html.lq #loader .ld-name{margin-top:4px;font:700 27px/1 var(--display);letter-spacing:-.02em;color:#fff;animation:ldUp .6s ease-out .25s both}
+/* L’anneau : la piste blanche translucide, la comète (un dégradé conique en anneau, de transparent à jaune soleil) et sa tête ronde
+   lumineuse, qui tournent ensemble en 1,2 s, à vitesse constante */
+html.lq #loader .spinner{position:relative;width:46px!important;height:46px!important;margin:6px 0 2px;border-radius:50%;background:none!important;overflow:visible;
+  box-shadow:inset 0 0 0 6px rgba(255,255,255,.16);animation:ldUp .6s ease-out .4s both}
+html.lq #loader .spinner::after{inset:0;width:auto;border-radius:50%;box-shadow:none;
+  background:conic-gradient(rgba(255,200,61,0) 0 120deg,rgba(255,200,61,.5) 250deg,var(--sun) 359deg,rgba(255,200,61,0) 0)!important;
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 6.5px),#000 calc(100% - 6px));mask:radial-gradient(farthest-side,transparent calc(100% - 6.5px),#000 calc(100% - 6px));
+  animation:ldSpin 1.2s linear infinite}
+html.lq #loader .spinner::before{content:"";position:absolute;top:0;left:calc(50% - 3px);width:6px;height:6px;border-radius:50%;background:var(--sun);
+  box-shadow:0 0 10px 2px rgba(255,200,61,.5);transform-origin:3px 23px;animation:ldSpin 1.2s linear infinite}
+html.lq #loader p{color:rgba(255,255,255,.86);font-size:14.5px;text-wrap:balance;animation:ldUp .6s ease-out .55s both}
 html.lq #loader .ld-spark{position:absolute;width:18px;height:18px;background:#fff;pointer-events:none;
   -webkit-mask:var(--mstk-star) center/contain no-repeat;mask:var(--mstk-star) center/contain no-repeat;animation:lqTwinkle 3s ease-in-out infinite}
 html.lq #loader .ld-spark.s1{left:calc(50% - 88px);top:calc(50% - 118px)}
 html.lq #loader .ld-spark.s2{left:calc(50% + 62px);top:calc(50% - 82px);width:12px;height:12px;background:var(--sun-hi);animation-delay:-1s}
 html.lq #loader .ld-spark.s3{left:calc(50% + 38px);top:calc(50% - 138px);width:10px;height:10px;background:var(--mint);animation-delay:-2s}
-html.lq #loader.fade-out .logo-badge{animation:ldOut .36s ease-in forwards}
+html.lq #loader.fade-out .logo-badge{animation:ldOut .4s ease-in forwards}
 html.lq #loader.fatal .logo-badge{rotate:0deg;animation:none}
 
 @media (prefers-reduced-motion:reduce){
-  html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]::before,html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]::after,
-  html.lq #loader .logo-badge,html.lq #loader .ld-name,html.lq #loader .spinner,html.lq #loader p,html.lq #loader .ld-spark{animation:none!important}
+  html.lq #lesson-body .ls-nav .ls-next[data-jc-gate]::after,html.lq #lesson-body .ls-nav .ls-next[data-jc-gate] .ls-gate-stk,
+  html.lq #loader .logo-badge,html.lq #loader .ld-name,html.lq #loader .spinner,html.lq #loader .spinner::before,html.lq #loader .spinner::after,html.lq #loader p,html.lq #loader .ld-spark{animation:none!important}
 }
-html[data-motion="reduce"].lq #lesson-body .ls-nav .ls-next[data-jc-gate]::before,html[data-motion="reduce"].lq #lesson-body .ls-nav .ls-next[data-jc-gate]::after,
+html[data-motion="reduce"].lq #lesson-body .ls-nav .ls-next[data-jc-gate]::after,html[data-motion="reduce"].lq #lesson-body .ls-nav .ls-next[data-jc-gate] .ls-gate-stk,
 html[data-motion="reduce"].lq #loader .logo-badge,html[data-motion="reduce"].lq #loader .ld-name,html[data-motion="reduce"].lq #loader .spinner,
+html[data-motion="reduce"].lq #loader .spinner::before,html[data-motion="reduce"].lq #loader .spinner::after,
 html[data-motion="reduce"].lq #loader p,html[data-motion="reduce"].lq #loader .ld-spark{animation:none!important}
 
 /* ---------- 38. L’appui : chaque bouton répond ----------
@@ -3298,3 +3342,147 @@ html[data-motion="reduce"].lq .ent-focus.is-reveal .ent-answer-card>*,html[data-
 html[data-motion="reduce"].lq .ent-focus.is-reveal .ent-next{animation:none!important}
 html[data-motion="reduce"].lq .ent-focus .ent-assessment .estat:active svg{scale:none}
 html[data-motion="reduce"].lq .ent-focus .ent-next:active svg{transform:none}
+
+/* ---------- 39. Feuilles, page d’un projet, épingles, enregistrement ----------
+   Elisa, 31 octobre, 0 h 19 (huit captures) : « regarde la page note pour l’améliorer au niveau de la DA du site », « pareil »
+   (Ajuster mon rythme), « la taille change en fonction de l’onglet : je veux que ce soit toujours la même taille d’écran »,
+   « micro-interaction quand on enregistre quelque chose, ici ou ailleurs », « améliorer le bouton d’épingle (ici ou ailleurs) »,
+   « ce n’est pas responsive, et on ne comprend pas c’est la description de quoi au niveau de la table », « pas assez d’espace entre
+   les éléments (juste un petit peu) ». */
+
+/* Toujours la même largeur : la place de la barre de défilement est gardée, qu’il y ait de quoi défiler ou non (barres permanentes,
+   souris branchée ; sans effet là où elles s’effacent d’elles-mêmes) */
+html.lq .screen,html.lq .viz-body{scrollbar-gutter:stable}
+
+/* Feuilles du bas (Notes, Ajuster mon rythme) : l’en-tête violet quadrillé des feuilles « Description », l’autocollant à gauche */
+html.lq .viz.has-cap{overflow:hidden}
+html.lq .viz-head.viz-cap{isolation:isolate;overflow:hidden;align-items:center;gap:13px;padding:26px 16px 18px!important;background:var(--deep)!important;border-bottom:0!important;color:#fff}
+html.lq .viz-head.viz-cap::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(240px 190px at 90% 0%,rgba(255,216,107,.3),transparent 70%),radial-gradient(220px 170px at 0% 100%,rgba(159,240,198,.16),transparent 70%),
+    linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px) 0 0/26px 26px,linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px) 0 0/26px 26px;
+  -webkit-mask-image:radial-gradient(ellipse 100% 95% at 60% 10%,#000 35%,transparent 95%);mask-image:radial-gradient(ellipse 100% 95% at 60% 10%,#000 35%,transparent 95%)}
+html.lq .viz-head.viz-cap::after{content:"";position:absolute;right:64px;top:22px;width:14px;height:14px;pointer-events:none;background:#fff;
+  -webkit-mask:var(--mstk-star) center/contain no-repeat;mask:var(--mstk-star) center/contain no-repeat;animation:lqTwinkle 3.2s ease-in-out infinite}
+html.lq .viz-head.viz-cap .grab{background:rgba(255,255,255,.42)!important}
+html.lq .viz-cap-stk{flex:none;width:58px;height:58px;margin:-6px -2px -6px -4px;rotate:-7deg}
+html.lq .viz-cap-stk svg{display:block;float:none;width:100%;height:100%;margin:0;rotate:0deg;overflow:visible;animation:mstkFloat 5.2s ease-in-out 1.1s infinite}
+html.lq .viz-cap-stk.is-in{animation:lqAskSlap .7s cubic-bezier(.3,.7,.3,1) .12s both}
+html.lq .viz-cap-t{flex:1;min-width:0}
+html.lq .viz-head.viz-cap .viz-cap-t b{display:block;color:var(--sun-hi)!important;font:700 21px/1.12 var(--display)!important;letter-spacing:-.015em!important;outline:none}
+html.lq .viz-cap-sub{display:block;margin-top:4px;color:rgba(255,255,255,.88);font:600 13.5px/1.35 var(--display);text-wrap:pretty}
+html.lq .viz-cap-sub:empty{display:none}
+html.lq .viz-head.viz-cap button{flex:none;align-self:flex-start;margin-top:-4px;background:#fff!important;border:0!important;box-shadow:0 3px 0 rgba(27,22,64,.38)!important;color:#1B1640!important}
+html.lq .viz-head.viz-cap button:active{transform:translateY(3px)!important;box-shadow:0 0 0 rgba(27,22,64,.38)!important}
+html.lq #plan-adjust-sheet.has-cap .pl-adjust-lead{display:none}
+html.lq #plan-adjust-sheet.has-cap .viz-body{padding-top:18px}
+
+/* Notes vides : l’autocollant qui flotte, les trois amorces */
+html.lq .notes-empty .ne-i.is-stk{width:82px;height:82px;margin:0 auto 10px;background:none!important;box-shadow:none!important;border-radius:0;rotate:-6deg}
+html.lq .notes-empty .ne-i.is-stk svg{display:block;width:100%;height:100%;animation:mstkFloat 5.2s ease-in-out .4s infinite}
+html.lq .notes-empty{position:relative;border:2px solid var(--line)!important;border-radius:24px!important;background:#fff!important;box-shadow:0 4px 0 var(--lip)!important}
+html.lq .notes-empty::after{content:"";position:absolute;right:22px;top:20px;width:14px;height:14px;pointer-events:none;background:var(--sun);
+  -webkit-mask:var(--mstk-star) center/contain no-repeat;mask:var(--mstk-star) center/contain no-repeat;animation:lqTwinkle 3.4s ease-in-out infinite}
+html.lq #note-sheet .notes-starters{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:16px}
+html.lq #note-sheet .notes-starters button{min-height:42px;padding:8px 13px;font:700 14px/1.2 var(--display)}
+
+/* « Ton nouveau parcours » : une fiche blanche à rebord, la cible en autocollant */
+html.lq #plan-adjust-sheet .pl-adjust-impact{align-items:center;padding:14px 14px 15px!important;border:2px solid var(--line)!important;background:#fff!important;box-shadow:0 4px 0 var(--lip)}
+html.lq #plan-adjust-sheet .pl-impact-icon.is-stk{flex:none;width:50px;height:50px;background:none!important;box-shadow:none!important;border:0!important;rotate:-8deg}
+html.lq #plan-adjust-sheet .pl-impact-icon.is-stk svg{display:block;width:100%;height:100%}
+html.lq #plan-adjust-sheet .pl-adjust-impact b{color:var(--accent-ink)}
+html.lq #plan-adjust-sheet .pl-adjust-impact strong{color:var(--ink)}
+
+/* Enregistré : le bouton passe au menthe, la coche saute en se dessinant (confettis : .lq-burst) */
+@keyframes lqSavedPop{0%{scale:.95}45%{scale:1.04}100%{scale:1}}
+html.lq .lq-saved{position:relative;overflow:visible!important;pointer-events:none;background:var(--mint)!important;color:#0A6B45!important;border-color:transparent!important;
+  box-shadow:0 4px 0 #62D6A0!important;animation:lqSavedPop .5s cubic-bezier(.3,1.5,.5,1) both}
+html.lq .lq-saved .lq-saved-ico{display:inline-grid;place-items:center;width:25px;height:25px;margin-right:9px;border-radius:50%;background:#fff;color:#0A6B45;vertical-align:-6px;
+  box-shadow:0 2px 0 rgba(10,107,69,.25);animation:lqCheckPop .52s cubic-bezier(.3,1.5,.5,1) both}
+html.lq .lq-saved .lq-saved-ico svg{display:block;width:15px;height:15px}
+html.lq .lq-saved .lq-saved-ico svg path{stroke-dasharray:23;animation:lqCheckDraw .38s cubic-bezier(.4,0,.2,1) .1s both}
+html.lq .ne-row .prim.lq-saved svg{width:15px;height:15px;stroke-dasharray:none;stroke-dashoffset:0}
+/* … et ce qu’on vient d’enregistrer s’allume là où il s’affiche */
+@keyframes lqFresh{0%{outline:3px solid rgba(255,200,61,.95);outline-offset:0}100%{outline:3px solid rgba(255,200,61,0);outline-offset:10px}}
+html.lq .lq-fresh{animation:lqFresh 1.2s cubic-bezier(.2,.7,.3,1)}
+/* La notification de réussite : la coche saute et se dessine */
+html.lq .toast.on .tmini.ok svg{animation:lqCheckPop .5s cubic-bezier(.3,1.5,.5,1) .05s both}
+html.lq .toast.on .tmini.ok svg path{stroke-dasharray:23;animation:lqCheckDraw .36s ease-out .14s both}
+
+/* Épingler : la punaise en autocollant partout (console, historique, notes) ; elle se plante en sautant, se décroche d’un bond */
+@keyframes lqPinPlant{0%{translate:0 -12px;rotate:-34deg;scale:1.25}55%{translate:0 2px;rotate:6deg;scale:.92}78%{rotate:-3deg;scale:1.04}100%{translate:0 0;rotate:0deg;scale:1}}
+@keyframes lqPinPull{0%{translate:0 0;rotate:0deg}40%{translate:0 -7px;rotate:-24deg}100%{translate:0 0;rotate:-14deg}}
+html.lq #scr-console .console-pin-current{position:relative;overflow:visible;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:54px;margin:0 0 14px;padding:8px 16px;
+  border:2px solid var(--line)!important;border-radius:16px!important;background:#fff!important;box-shadow:0 4px 0 var(--lip)!important;color:var(--accent-ink)!important;
+  font:700 16px/1.2 var(--display)!important;transition:transform .12s var(--press),box-shadow .12s var(--press),background-color .2s}
+html.lq #scr-console .console-pin-current b{font:inherit}
+html.lq #scr-console .console-pin-current .console-pin-glyph{display:block;flex:none;width:32px;height:32px;margin:-4px 0;padding:0;border:0;border-radius:0;background:none!important;box-shadow:none!important;rotate:-14deg;transition:rotate .3s var(--pop)}
+html.lq #scr-console .console-pin-current .console-pin-glyph svg{display:block;width:100%;height:100%}
+html.lq #scr-console .console-pin-current:active:not(:disabled){transform:translateY(4px);box-shadow:0 0 0 var(--lip)!important}
+html.lq #scr-console .console-pin-current.on{background:#FFF4D6!important;border-color:#F2C24B!important;box-shadow:0 4px 0 #E8C25C!important;color:#7A5200!important}
+html.lq #scr-console .console-pin-current.on .console-pin-glyph{rotate:0deg}
+html.lq #scr-console .console-pin-current:disabled{opacity:.5;box-shadow:0 2px 0 var(--lip)!important}
+html.lq #scr-console .console-pin-current:disabled .console-pin-glyph{filter:grayscale(1);opacity:.7}
+@media (hover:hover) and (pointer:fine){html.lq #scr-console .console-pin-current:hover:not(:disabled) .console-pin-glyph{rotate:-4deg}}
+html.lq #scr-console .console-query-pin{position:relative;overflow:visible;width:44px;height:44px;border:2px solid var(--line)!important;border-radius:14px!important;background:#fff!important;box-shadow:0 3px 0 var(--lip)!important;color:inherit}
+html.lq #scr-console .console-query-pin svg{width:28px;height:28px;rotate:-14deg;filter:grayscale(.85);opacity:.6;transition:rotate .3s var(--pop),filter .2s,opacity .2s}
+html.lq #scr-console .console-query-pin.on{background:#FFF4D6!important;border-color:#F2C24B!important;box-shadow:0 3px 0 #E8C25C!important}
+html.lq #scr-console .console-query-pin.on svg{rotate:0deg;filter:none;opacity:1}
+html.lq #scr-console .console-query-pin:active{transform:translateY(3px);box-shadow:0 0 0 var(--lip)!important}
+html.lq .ncard .npin-btn{position:relative;overflow:visible;border:0!important;background:none!important}
+html.lq .ncard .npin-btn svg{width:26px;height:26px;rotate:-14deg;filter:grayscale(.85);opacity:.55;transition:rotate .3s var(--pop),filter .2s,opacity .2s}
+html.lq .ncard.pin .npin-btn svg{rotate:0deg;filter:none;opacity:1}
+html.lq .ne-row .sec.ne-pin{position:relative;overflow:visible;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+html.lq .ne-row .sec.ne-pin svg{width:28px;height:28px;margin:-4px 0;rotate:-14deg;transform:none!important;transition:rotate .3s var(--pop)}
+html.lq .ne-row .sec.ne-pin.pin-on{background:#FFF4D6!important;border-color:#F2C24B!important;box-shadow:0 4px 0 #E8C25C!important;color:#7A5200!important}
+html.lq .ne-row .sec.ne-pin.pin-on svg{rotate:0deg}
+html.lq .is-pin .lq-stk{animation:lqPinPlant .56s cubic-bezier(.3,1.4,.5,1) both}
+html.lq .is-unpin .lq-stk{animation:lqPinPull .42s cubic-bezier(.3,.7,.3,1) both}
+/* Aucune requête épinglée : la punaise qui flotte */
+html.lq #scr-console .console-query-empty .console-query-stk{display:block;width:58px;height:58px;margin:0 auto 8px;rotate:-10deg}
+html.lq #scr-console .console-query-empty .console-query-stk svg{display:block;width:100%;height:100%;animation:mstkFloat 5.2s ease-in-out .4s infinite}
+
+/* Page d’un projet : un peu plus d’air entre la carte, les onglets, le schéma et les tables */
+html.lq #scr-console .console-title-row.is-project{margin-bottom:16px}
+html.lq #scr-console .console-project-tabs{margin-bottom:16px!important}
+html.lq #scr-console .console-schema-summary{margin-bottom:14px!important}
+html.lq #scr-console .console-schema-panel{margin-bottom:22px!important;gap:14px!important}
+html.lq #scr-console .console-schema-panel .db-tables{gap:10px!important}
+
+/* Lignes de tables : le nom en entier (il passe à la ligne s’il le faut), le nombre de lignes dessous, les actions groupées à droite —
+   sous le nom quand la carte est étroite. La description se lit comme une fiche : « Description de la table », puis le texte. */
+html.lq #scr-console .console-schema-panel .db-tblock{container-type:inline-size;border-radius:16px;background:#fff;box-shadow:0 0 0 2px var(--line),0 3px 0 2px var(--lip)}
+html.lq #scr-console .console-schema-panel .db-trow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:8px 8px 8px 6px!important;border:0!important;background:none!important;box-shadow:none!important}
+html.lq #scr-console .console-schema-panel .db-trow.open{background:none!important}
+html.lq #scr-console .console-schema-panel .db-tmain{flex:1 1 150px;min-width:0;display:flex;align-items:center;gap:8px;padding:4px!important}
+html.lq #scr-console .console-schema-panel .db-trow .tk{display:none}
+html.lq #scr-console .console-schema-panel .db-tname{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;text-align:left}
+html.lq #scr-console .console-schema-panel .db-trow .tn{display:block;margin:0;font:700 14.5px/1.25 var(--mono);color:var(--ink);white-space:normal;overflow-wrap:anywhere;text-overflow:clip;overflow:visible}
+html.lq #scr-console .console-schema-panel .db-trow .tc{margin:0!important;padding:0!important;font:600 12.5px/1.2 var(--display);color:var(--ink-3)}
+html.lq #scr-console .console-schema-panel .db-thint{display:none}
+html.lq #scr-console .console-schema-panel .db-tacts{display:flex;align-items:center;gap:6px;margin-left:auto;flex:none}
+@container (max-width:330px){
+  html.lq #scr-console .console-schema-panel .db-tacts{width:100%;justify-content:flex-end;padding:0 0 2px 34px;box-sizing:border-box}
+}
+html.lq #scr-console .console-schema-panel .db-tnote{display:flex;align-items:flex-start;gap:10px;width:auto;margin:0 10px 10px!important;padding:10px 12px!important;border-radius:14px;
+  background:#F6F3FF!important;box-shadow:inset 0 0 0 1.5px #E4DCFF;color:var(--ink-2)!important;font:500 14px/1.4 var(--ui);text-align:left}
+html.lq #scr-console .console-schema-panel .db-tnote span{flex:1;min-width:0;overflow-wrap:anywhere}
+html.lq #scr-console .console-schema-panel .db-tnote small{display:block;margin-bottom:2px;color:var(--accent-ink);font:700 11.5px/1.2 var(--display);letter-spacing:.04em;text-transform:uppercase}
+html.lq #scr-console .console-schema-panel .db-tnote .db-tnote-k{flex:none;width:30px;height:30px;margin:-2px 0 0 -2px;opacity:1!important;rotate:-6deg}
+html.lq #scr-console .console-schema-panel .db-tnote .db-tnote-k svg{width:30px;height:30px}
+html.lq #scr-console .console-schema-panel .db-tnote>i:last-child{opacity:.7!important;width:16px;height:16px;margin-top:2px}
+html.lq #scr-console .console-schema-panel .db-tnote>i:last-child svg{width:16px;height:16px}
+html.lq #scr-console .console-schema-panel .db-tnote:active{transform:scale(.985)}
+html.lq #scr-console .console-schema-panel .db-tnote.is-empty{align-items:center;justify-content:center;background:transparent!important;box-shadow:inset 0 0 0 1.5px #D9CFFF;border:0;color:var(--accent-ink)!important;font:700 14px/1.2 var(--display)}
+html.lq #scr-console .console-schema-panel .db-tnote.is-empty span{flex:0 1 auto}
+html.lq #scr-console .console-schema-panel .db-cols{margin:0 10px 10px}
+
+@media (prefers-reduced-motion:reduce){
+  html.lq .viz-cap-stk,html.lq .viz-cap-stk svg,html.lq .viz-head.viz-cap::after,html.lq .notes-empty .ne-i.is-stk svg,html.lq .notes-empty::after,html.lq .lq-saved,html.lq .lq-saved .lq-saved-ico,
+  html.lq .lq-saved .lq-saved-ico svg path,html.lq .lq-fresh,html.lq .toast.on .tmini.ok svg,html.lq .toast.on .tmini.ok svg path,html.lq .is-pin .lq-stk,html.lq .is-unpin .lq-stk,
+  html.lq #scr-console .console-query-empty .console-query-stk svg{animation:none!important}
+}
+html[data-motion="reduce"].lq .viz-cap-stk,html[data-motion="reduce"].lq .viz-cap-stk svg,html[data-motion="reduce"].lq .viz-head.viz-cap::after,html[data-motion="reduce"].lq .notes-empty .ne-i.is-stk svg,
+html[data-motion="reduce"].lq .notes-empty::after,html[data-motion="reduce"].lq .lq-saved,html[data-motion="reduce"].lq .lq-saved .lq-saved-ico,html[data-motion="reduce"].lq .lq-saved .lq-saved-ico svg path,
+html[data-motion="reduce"].lq .lq-fresh,html[data-motion="reduce"].lq .toast.on .tmini.ok svg,html[data-motion="reduce"].lq .toast.on .tmini.ok svg path,html[data-motion="reduce"].lq .is-pin .lq-stk,
+html[data-motion="reduce"].lq .is-unpin .lq-stk,html[data-motion="reduce"].lq #scr-console .console-query-empty .console-query-stk svg{animation:none!important}
+html.lq #plan-adjust-sheet .pl-impact-delta:not(.is-good):not(.is-warn){background:var(--accent-soft)}
