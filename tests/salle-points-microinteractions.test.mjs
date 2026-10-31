@@ -66,16 +66,16 @@ test('ref 4 — les points : 100 la réussite, +50 / +30 / +15 aux trois premier
   assert.ok(line('jeuPlaces').includes('if(i===0||x.pts<sc[i-1].pts||x.ms>sc[i-1].ms)place=i+1;'));
 });
 
-test('ref 4 — le chrono monte, la barre se remplit, le podium a trois marches', () => {
+test('ref 4 — le chrono monte (sans barre de temps), le podium a trois marches', () => {
   const tick = fn('jeuTick');
   assert.ok(tick.includes('const took=Date.now()-J.rounds[n].t1;el.textContent=jeuChrono(took);'), 'le temps écoulé, pas le temps restant');
-  assert.ok(tick.includes("bar.style.setProperty('--t',Math.min(1,Math.max(0,took/JEU_ROUND_MS)).toFixed(3));"));
+  /* Elisa, 31 octobre, 15 h 16, réf. 5 : « ne pas mettre la barre, laisse que le chrono » */
+  assert.ok(!tick.includes('jeu-tbar') && !app.includes('<i class="jeu-tbar"'), 'plus de barre de temps');
   assert.ok(app.includes('id="jeu-timer" role="timer" aria-label="Chrono de la manche">${jeuChrono(took0)}</b>'));
-  assert.ok(app.includes('<i class="jeu-tbar" id="jeu-tbar" style="--t:'));
   assert.ok(app.includes('`<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];'), 'argent, or, bronze');
   assert.ok(app.includes("<em>${jeuChrono(x.ms)}</em><small>+${x.pts}</small>"), 'chaque ligne : le temps et les points gagnés');
   assert.ok(app.includes("<span class=\"jeu-rk\">${J.solo?'✓':(medal[x.place-1]||x.place)}</span>"), 'les ex æquo partagent la médaille');
-  for (const part of ['html.lq .jeu-timer', 'html.lq .jeu-tbar', 'html.lq .jeu-podium', 'html.lq .jeu-pd i'])
+  for (const part of ['html.lq .jeu-timer', 'html.lq .jeu-podium', 'html.lq .jeu-pd i'])
     assert.ok(s42.includes(part), part);
 });
 

@@ -145,6 +145,11 @@ test('l’exécution pas à pas : des verbes (lire, filtrer, regrouper, calculer
   ].flatMap(q => ctx.buildSteps(q).flatMap(s => [s.t, s.e]));
   for (const t of textes) assert.doesNotMatch(t, /\b[Oo]n (coupe|charge|forme|garde|trie|filtre|calcule)\b|paquet|SQL (commence|n’a pas pu)|— /, t);
   const nav = cut('function updateVizNav(){', '/* ============================================================\n   8. ÉCRANS');
-  assert.ok(nav.includes("n.textContent=last?'Terminer':'Étape suivante';") && nav.includes('n.disabled=!vizSteps.length;') && nav.includes('closeViz();return;'), '« Terminer » ferme, plus de « Fin » grisé');
+  assert.ok(nav.includes("n.textContent=none?'Compris':last?'Terminer':'Étape suivante';") && nav.includes('if(d>0&&(!vizSteps.length||vizI>=vizSteps.length-1)){closeViz();return;}'), '« Terminer » ferme, plus de « Fin » grisé ; sans étapes, « Compris »');
+  /* Elisa, 31 octobre, 15 h 16, réf. 7 : la page « Visualisation impossible » dans la DA du site */
+  const empty = cut('function vizEmpty(kind,sql){', 'function closeViz(){');
+  assert.ok(empty.includes("vide:{stk:'pen',t:'Écris d’abord ta requête'") && empty.includes("action:{stk:'bulb',t:'Le pas à pas suit les SELECT'") && empty.includes("complexe:{stk:'route'"));
+  assert.ok(empty.includes('<ol class="viz-none-path"') && !app.includes('<b>Visualisation impossible</b>'), 'plus de « Visualisation impossible » sur une requête vide');
+  assert.ok(app.includes("lqVizCap('viz','route','Ta requête, rejouée une étape à la fois.');"), 'l’en-tête violet des autres feuilles');
   assert.ok(app.includes('<div class="viz-stepnum"><span>Étape ${vizI+1} sur ${vizSteps.length}</span><b>${esc(s.n)}</b></div>'));
 });
