@@ -169,6 +169,7 @@ test('le cours « Les bases de données relationnelles » a sa voix : chaque phr
   for (let i = 1; i <= M; i++) assert.ok(VOICE.say['at' + i] && VOICE.say['indice' + i], `moment ${i} : consigne et indice`);
   for (let i = 1; i <= O; i++) assert.ok(VOICE.say['touche' + i], `message ${i} : consigne`);
   assert.ok(VOICE.say.bienvu && VOICE.say.presque && VOICE.say.rattrape, 'réactions : « Bien vu ! », « Bien rattrapé ! », « Pas tout à fait… »');
+  assert.ok(VOICE.say.finbravo && VOICE.say.fineffort, 'écran de fin : leçon validée, ou « Encore un effort ! »');
   const files = new Set([VOICE.intro[0], ...VOICE.caps.map(c => c[1]), ...Object.values(VOICE.say).map(v => v[0])]);
   for (const f of files) {
     const p = path.join(ROOT, 'assets/voix/bases-relationnelles', f + '.mp3');
