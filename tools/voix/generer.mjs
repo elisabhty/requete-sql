@@ -143,8 +143,10 @@ async function main(){
     if (!audio) {
       const d = r && !r.ok && r.status !== 400 && r.status !== 422 ? await detail(r) : why;
       console.log('échec : ' + d);
+      /* La clé a sa propre limite de crédits (réglée à sa création) : on la garde, il suffit de remonter sa limite. */
+      if (/api key[^.]*quota/i.test(d)) { console.log('\nCette clé a une limite de crédits trop basse. Sur elevenlabs.io › Developers › API Keys, modifie-la (ou crée une clé\nsans limite, ou avec 10 000 crédits), puis relance la même commande.' + (/quota of 0\b/.test(d) ? ' Sa limite est à 0.' : '')); process.exit(1); }
+      if (/quota|credits remaining|not enough credits/i.test(d)) { console.log('\nPlus assez de crédits sur ton compte : arrêt. Ce qui est déjà généré est gardé.'); process.exit(1); }
       if (r && r.status === 401) { forget(); console.log('\nElevenLabs refuse cette clé. Relance le script et colle une autre clé (avec l’accès « Text to Speech »).'); process.exit(1); }
-      if (/quota|credits|limit/i.test(d)) { console.log('\nPlus assez de crédits : arrêt. Ce qui est déjà généré est gardé.'); process.exit(1); }
       continue;
     }
     fs.writeFileSync(path.join(out, el.id + '.mp3'), audio);
