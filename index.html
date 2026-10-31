@@ -6643,7 +6643,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=53">
+<link rel="stylesheet" href="ludique.css?v=54">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -27498,11 +27498,17 @@ function openLegal(kind){
 }
 /* Le pseudo dans Mon compte : affiché, verrouillé (Elisa, 31 octobre, 16 h 49 : « ne pas pouvoir changer de pseudo »), sans
    sous-titre (18 h 45 : « enlève “il ne se change pas” ») — le cadenas suffit. Sans pseudo encore (étape passée avant) : de quoi
-   le choisir. */
+   le choisir.
+   Elisa, 1er novembre, 0 h 06 : « améliore la vue du pseudo en DA avec le site internet ». La ligne devient la carte du site
+   (aplat violet du héros, avatar contouré comme sur les avis, le cadenas dans sa pastille, le @ en jaune, le trait menthe qui
+   se dessine sous le pseudo comme sous « le SQL »). Le texte ne change pas : « Pseudo », le pseudo, le cadenas — toujours
+   sans sous-titre ni mention d’unicité (18 h 39). */
 function accPseudoHTML(name){
   const n=jeuNom(name);
-  if(!n)return `<button type="button" class="acc-pseudo is-vide" onclick="closePlusDetails();psPage({})"><span class="acc-pseudo-av" aria-hidden="true">?</span><span class="acc-pseudo-t"><small>Pseudo</small><b>Choisis ton pseudo</b></span>${ACCT_CHEV}</button>`;
-  return `<div class="acc-pseudo"><span class="acc-pseudo-av" aria-hidden="true">${jeuInitial(n)}</span><span class="acc-pseudo-t"><small>Pseudo</small><b>${esc(n)}</b></span><span class="acc-pseudo-lock" aria-label="Pseudo verrouillé" role="img">${PS_LOCK_SVG}</span></div>`;
+  if(!n)return `<button type="button" class="acc-pseudo is-vide" onclick="closePlusDetails();psPage({})"><span class="acc-pseudo-av" aria-hidden="true">?</span><span class="acc-pseudo-t"><small>Pseudo</small><b><span class="acc-pseudo-nm">Choisis ton pseudo</span></b></span><span class="acc-pseudo-go" aria-hidden="true">${ACCT_CHEV}</span></button>`;
+  const at=n.charAt(0)==='@',nom=at?n.slice(1):n;
+  const trait='<svg class="acc-pseudo-sw" viewBox="0 0 300 30" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M4 20C70 8 170 6 296 14"/></svg>';
+  return `<div class="acc-pseudo" style="--l:${Array.from(n).length}"><span class="acc-pseudo-av"><span aria-hidden="true">${jeuInitial(n)}</span><span class="acc-pseudo-lock" aria-label="Pseudo verrouillé" role="img">${PS_LOCK_SVG}</span></span><span class="acc-pseudo-t"><small>Pseudo</small><b>${at?'<i class="acc-pseudo-at">@</i>':''}<span class="acc-pseudo-nm">${esc(nom)}${trait}</span></b></span></div>`;
 }
 /* ---------- Comprendre mes données ----------
    Elisa, 31 octobre, 18 h 49 : « comprendre mes données dans Données et confidentialité ». En tête de la feuille, un bloc qui
@@ -27891,7 +27897,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-31-nous-contacter-v2223';
+  const SW_CACHE='requete-2026-11-01-carte-pseudo-v2224';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
