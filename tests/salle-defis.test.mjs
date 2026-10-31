@@ -217,7 +217,7 @@ test('salle d’attente : chacun voit les autres en direct, avec l’hôte en pr
   assert.equal(guests[0].J('nb'), 3, 'le réglage de l’hôte arrive chez les amis');
   assert.match(host.html, /Invite tes amis/);
   assert.match(guests[0].html, /Salle de Hôte/);
-  assert.match(host.html, /En attente d’un ami/, 'une place libre est annoncée');
+  assert.match(host.html, /En attente d’un joueur/, 'une place libre est annoncée');
   assert.ok(host.toasts.some(t => /Ami2 a rejoint la salle/.test(t)), 'annonce d’arrivée');
 });
 
@@ -506,6 +506,52 @@ test('le tirage préfère les défis non réussis, sans jamais bloquer', () => {
   assert.equal(s.ev(`state.defis['${first}']`), undefined, 'le premier tirage n’est pas déjà réussi');
   for (let n = 1; n < 5; n++) { s.ev('jeuClose()'); sec(w, 1); s.ev('jeuNextRound()'); sec(w, 4); }
   assert.equal(new Set(s.ev('JEU.rounds.map(r=>r.cid)')).size, 5, '5 manches faciles = les 5 défis, même réussis');
+});
+
+/* Elisa, 31 octobre, 15 h 52 : « quand un joueur réussit un défi il est considéré comme validé pour lui et la sélection ne va pas
+   choisir le défi, pareil pour l’autre ». Chacun donne ses défis réussis dans son « hello » ; un défi trouvé dans la salle compte aussi. */
+test('le tirage ne prend jamais un défi déjà réussi par l’un des joueurs présents', () => {
+  const w = new World();
+  const h = makeClient(w, 'Hôte'); h.ev("jeuNiv='f';jeuNb=1");
+  const g = makeClient(w, 'Ami');
+  const ids = h.ev("jeuChallenges('f').map(c=>c.id)");
+  assert.equal(ids.length, 5);
+  g.ev(`${JSON.stringify(ids.slice(0, 4))}.forEach(id=>state.defis[id]=true)`);
+  h.host('OKOK42'); sec(w, 1);
+  g.join('OKOK42'); sec(w, 3);
+  const gp = g.pid();
+  assert.deepEqual(h.ev(`Array.from(JEU.okOf[${JSON.stringify(gp)}]||[])`).sort(), ids.slice(0, 4).sort(), 'l’hôte connaît les défis réussis par l’ami');
+  for (let k = 0; k < 12; k++) assert.equal(h.ev('jeuPick()'), ids[4], 'le seul défi que personne n’a réussi');
+  h.ev('jeuNextRound()'); sec(w, 1);
+  assert.equal(g.J('rounds[0].cid'), ids[4], 'le même défi chez l’ami');
+  assert.match(g.html, /qu’aucun de vous n’a encore réussi/, 'le tirage le dit');
+  /* L’ami parti : ses défis réussis ne comptent plus */
+  g.ev('jeuStop()'); sec(w, 40);
+  assert.deepEqual(h.live(), ['Hôte']);
+  const seen = new Set(); for (let k = 0; k < 80; k++) seen.add(h.ev('jeuPick()'));
+  assert.ok(seen.size > 1, 'seul dans la salle : tous les défis non joués reviennent');
+});
+
+test('un défi trouvé dans la salle compte comme réussi pour son joueur : il n’est plus tiré, même après « rejouer »', () => {
+  const w = new World();
+  const h = makeClient(w, 'Hôte'); h.ev("jeuNiv='f';jeuNb=1");
+  h.host('OKOK43'); sec(w, 1);
+  const g = makeClient(w, 'Ami'); g.join('OKOK43'); sec(w, 3);
+  const gp = g.pid();
+  h.ev('jeuNextRound()'); sec(w, 4.5);
+  const x = h.ev('JEU.rounds[0].cid');
+  g.found(); sec(w, 2);
+  assert.equal(g.ev(`state.defis['${x}']`), true, 'validé pour l’ami');
+  assert.equal(h.ev(`!!state.defis['${x}']`), false, 'pas pour l’hôte, qui ne l’a pas trouvé');
+  assert.equal(h.ev(`JEU.okOf[${JSON.stringify(gp)}].has('${x}')`), true, 'l’hôte le sait');
+  assert.equal(h.ev(`jeuOkCount('${x}')`), 1);
+  h.ev('jeuClose()'); sec(w, 1); h.ev('jeuFinish()'); sec(w, 1); h.ev('jeuAgain()'); sec(w, 1);
+  h.ev('JEU.recent.clear()');                 /* même sans la mémoire « déjà joué dans cette salle » */
+  for (let k = 0; k < 30; k++) assert.notEqual(h.ev('jeuPick()'), x, 'réussi par l’ami : jamais retiré');
+  /* Tout réussi par l’un ou l’autre : le tirage continue, avec ceux que le moins de joueurs ont réussis */
+  h.ev("jeuChallenges('f').forEach(c=>state.defis[c.id]=true)");
+  const p = h.ev('jeuPick()');
+  assert.ok(h.ev("jeuChallenges('f').map(c=>c.id)").includes(p) && p !== x, 'réussi par un seul joueur plutôt que par les deux : ' + p);
 });
 
 test('un défi précis (« Avec des amis » sur sa page) ouvre la salle comme première manche', () => {

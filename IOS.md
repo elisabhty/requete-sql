@@ -45,9 +45,14 @@ npm run ios
   Formule gratuite de Supabase : le projet se met en pause après 7 jours sans aucune partie ; il se relance
   depuis le tableau de bord Supabase (ou passer à la formule Pro pour une vraie mise en production).
 - **Classement général (Top 5 de tous les joueurs)** : pseudo, points, nombre de parties et un identifiant tiré
-  au hasard par l’appareil (la base n’en garde que l’empreinte). Dans App Store Connect, déclarer :
+  au hasard par l’appareil (la base n’en garde que l’empreinte), plus la liste des défis réussis (statistiques
+  internes, jamais montrées aux joueurs). Dans App Store Connect, déclarer :
   « Contenu de jeu » et « Autre contenu utilisateur » (le pseudo), « Identifiant utilisateur » (l’identifiant
-  au hasard) ; usage « Fonctionnalités de l’app » ; non utilisés pour le pistage.
+  au hasard) ; usages « Fonctionnalités de l’app » et « Analyses » (les défis réussis) ; non utilisés pour le pistage.
+- **Statistiques des défis** (savoir quand en ajouter) : dans le tableau de bord Supabase, Table Editor, les vues
+  `stats_defis_resume` (en une ligne : joueurs, moyenne, combien ont tout fini, par niveau), `stats_defis_joueurs`
+  (un joueur par ligne) et `stats_defis_par_defi` (combien de joueurs ont réussi chaque défi). Rien n’est lisible
+  depuis l’appli.
 - **Règle 1.2 (contenu créé par les utilisateurs)** : les pseudos sont filtrés (appli et serveur, jeu_pseudo_ok),
   chaque ligne du classement a « Signaler » (le joueur est aussitôt masqué pour soi ; 3 signalements le masquent
   pour tous), l’adresse de contact est sur le site. À surveiller : la vue `jeu_moderation` dans l’éditeur SQL de
