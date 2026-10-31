@@ -71,11 +71,13 @@ test('éditeur de note : Enregistrer et Épingler donnent un retour visible', ()
   const save = fnSrc('saveNote');
   /* 31 octobre : le même retour que partout où l’on enregistre (lqSaved : menthe, coche qui se dessine, confettis) */
   assert.ok(/lqSaved\(b,'Enregistrée'\)\.then\(/.test(save) && /btn\.innerHTML=`<span class="lq-saved-ico" aria-hidden="true">\$\{CHECK_SVG\}<\/span><span>\$\{esc\(label\|\|'Enregistré'\)\}<\/span>`/.test(html), 'le bouton passe à « ✓ Enregistrée »');
-  assert.ok(/toast\(wasNew\?'Note enregistrée':'Modifications enregistrées'/.test(save), 'toast de confirmation');
+  /* 31 octobre, 1 h 34 (« ne pas mettre de notification mais des micro-interactions ») : le bouton qui passe à « ✓ Enregistrée » suffit ;
+     la phrase reste annoncée au lecteur d’écran (lqSay), sans notification à l’écran */
+  assert.ok(/lqSay\(wasNew\?'Note enregistrée':'Modifications enregistrées'\)/.test(save) && !/toast\(wasNew\?'Note enregistrée'/.test(save), 'annoncé, sans notification');
   const pin = fnSrc('togglePin');
   assert.ok(/persistEditingNote\(\)/.test(pin), 'l’épingle compte tout de suite');
-  assert.ok(/toast\(e\.pin\?'Note épinglée':'Note désépinglée'/.test(pin) && /lqPinFx\(btn,e\.pin\);/.test(pin), 'toast et épingle qui se plante (lqPinFx)');
-  assert.ok(/toast\(n\.pin\?'Note épinglée':'Note désépinglée'/.test(fnSrc('togglePinFromList')), 'même retour depuis la liste');
+  assert.ok(/lqSay\(\(e\.pin\?'Note épinglée':'Note désépinglée'\)/.test(pin) && /lqPinFx\(btn,e\.pin\);/.test(pin) && !/toast\(/.test(pin), 'l’épingle qui se plante (lqPinFx), annoncée sans notification');
+  assert.ok(/lqSay\(n\.pin\?'Note épinglée/.test(fnSrc('togglePinFromList')) && /lqPinFx\(/.test(fnSrc('togglePinFromList')), 'même retour depuis la liste');
   const css = fs.readFileSync(path.join(root, 'ludique.css'), 'utf8');
   assert.ok(/html\.lq \.ne-row \.sec\.pin-on\{background:var\(--accent-soft\)!important;border-color:var\(--accent\)!important/.test(css), '« Épinglée » se voit (le style ludique forçait le bouton en blanc)');
   assert.ok(/\.ne-row button svg\{width:16px;height:16px;flex:none\}/.test(html), 'l’icône d’épingle n’est plus écrasée sur téléphone');

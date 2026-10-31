@@ -127,7 +127,8 @@ test('par module : le temps passé sur ses leçons, à partir d’une minute', (
   assert.match(rows, /Module 02 · En cours<span class="pgr-mod-time"><span class="pgr-sr">Temps d’étude : <\/span><svg[^>]*>[\s\S]*?<\/svg>25\smin<\/span><\/p>/, 'pastille ⏱ 25 min');
   assert.match(rows, /Module 01 · Terminé<\/p>/, 'moins d’une minute : rien d’affiché');
   const src = html.slice(html.indexOf('function renderModules('), html.indexOf('function toggleCatalogTools('));
-  assert.ok(src.includes("${esc(status)}${secs>=60?studyPill(secs,'home-module-time'):''}"), 'et sur les modules de l’accueil');
+  /* Sur la ligne « Module 1 · en cours », plus au bout de la description où elle tombait seule sur sa ligne (Elisa, 31 octobre, 1 h 34) */
+  assert.ok(src.includes("${moduleIndex===curMod?' · en cours':''}${secs>=60?studyPill(secs,'home-module-time'):''}</small><b>${esc(mod.titre)}</b><small>${esc(status)}</small>"), 'et sur les modules de l’accueil');
   ctx.state.study = { days: {}, items: { l1: 90 } };
   assert.match(vm.runInContext('moduleProgressRows("all")', ctx), /Module 02 · En cours/, 'une minute d’étude suffit pour qu’un module soit « en cours »');
 });

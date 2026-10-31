@@ -67,8 +67,9 @@ test('activités à replacer : en-tête violet, autocollant, « Conseillé » en
 test('console : le schéma et la sauvegarde suivent toute requête qui change la base, même celle qui échoue en route', () => {
   const run = cut(app, 'function runConsole(){', 'function normalizeState(raw){');
   assert.ok(run.includes('const database=activeDb(), v0=schemaVersion(database), c0=dbChanges(database);'));
-  assert.ok(run.includes("if(activeDbId!=='cours'&&touched()) persistCustomDbs();") && !run.includes('!/^\\s*select\\b/i.test(sql)'), 'sauvegardé quand la base a changé, quelle que soit la première instruction');
-  assert.ok(run.includes("if(touched()){ if(activeDbId!=='cours') persistCustomDbs(); renderDbWorkspace(); }"), 'requête en erreur : ce qui est déjà fait se voit et se garde');
+  assert.ok(run.includes("const moved=touched();") && run.includes("if(activeDbId!=='cours'&&moved) persistCustomDbs();") && !run.includes('!/^\\s*select\\b/i.test(sql)'), 'sauvegardé quand la base a changé, quelle que soit la première instruction');
+  assert.ok(run.includes("if(touched()){ if(activeDbId!=='cours') persistCustomDbs(); renderDbWorkspace(); renderConsoleChips(); }"), 'requête en erreur : ce qui est déjà fait se voit et se garde');
+  assert.ok(run.includes('if(moved) renderConsoleChips();'), 'la première table créée retire « Ta base est vide » et montre ses exemples');
 });
 
 test('SQLite : une requête en erreur garde ses instructions passées, et le compteur le dit', async () => {

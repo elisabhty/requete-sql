@@ -95,6 +95,8 @@ function makeClient(world, name, { skew = 0 } = {}) {
     exoFailDiag: () => 'x', exerciseRequiresOrder: () => false, exerciseResultsMatch: (a, b) => JSON.stringify(a) === JSON.stringify(b),
     sandbox: () => ({ exec: sql => [{ columns: ['q'], values: [[sql]] }], close() {} }),
     performance: { now: () => world.now }, confirm: () => true, toast() {},
+    /* La fenêtre de l’appli (lqAsk) répond tout de suite « oui » ; un test peut la remplacer pour compter ou refuser. */
+    lqAsk: () => ({ then: f => f(true) }),
     mode: '', current: null, exoFails: 0,
   };
   Object.assign(ctx, stubs);
@@ -192,7 +194,11 @@ test('tirage au sort : même défi pour tous, compte à rebours, puis la manche 
   assert.ok(host.ev('CHALLENGES.find(c=>c.id===JEU.rounds[0].cid).niv') === 'f', 'au niveau choisi');
 });
 
-test('manche : classement 3-2-1, la manche se termine quand tous les présents ont trouvé', () => {
+/* Elisa, 31 octobre, 1 h 34 : « le chrono compte de 00:00 à … pour avoir des points si on réussit en premier par rapport à ses amis
+   + par rapport au temps, qui rajoute des points ». Chaque réussite vaut 100 ; les trois premiers prennent +50, +30, +15 ; la
+   rapidité ajoute jusqu’à +60 (un point de moins toutes les 3 secondes, plus rien à 3 min). */
+const vite = ms => Math.max(0, Math.min(60, Math.floor((180000 - ms) / 3000)));
+test('manche : 100 la réussite, +50 / +30 / +15 aux trois premiers, jusqu’à +60 de rapidité ; la manche se termine quand tous ont trouvé', () => {
   const { w, host, guests } = room({ n: 3 });
   host.ev('jeuNextRound()'); sec(w, 4.5);
   guests[1].found(); sec(w, 5); host.found(); sec(w, 1);
@@ -200,8 +206,20 @@ test('manche : classement 3-2-1, la manche se termine quand tous les présents o
   assert.match(host.html, /Ami2|✓/);
   sec(w, 20); guests[0].found(); sec(w, 1);
   for (const c of [host, ...guests]) assert.equal(c.view(), 'res0', c.name);
-  const rk = host.ev('jeuRanking(0).map(x=>JEU.players[x.pid].name+":"+x.pts)');
-  assert.deepEqual(rk, ['Ami2:3', 'Hôte:2', 'Ami1:1']);
+  const rk = host.ev('jeuRanking(0).map(x=>({name:JEU.players[x.pid].name,ms:x.ms,ok:x.ok,rang:x.rang,vite:x.vite,pts:x.pts,place:x.place}))');
+  assert.deepEqual(rk.map(x => x.name), ['Ami2', 'Hôte', 'Ami1']);
+  assert.deepEqual(rk.map(x => x.rang), [50, 30, 15], 'le premier à trouver marque le plus');
+  assert.deepEqual(rk.map(x => x.place), [1, 2, 3]);
+  assert.ok(rk[0].ms < rk[1].ms && rk[1].ms < rk[2].ms, 'du plus rapide au plus lent');
+  for (const x of rk) {
+    assert.equal(x.ok, 100, x.name + ' : la réussite');
+    assert.equal(x.vite, vite(x.ms), x.name + ' : la rapidité');
+    assert.equal(x.pts, x.ok + x.rang + x.vite, x.name + ' : le total');
+  }
+  assert.ok(rk[0].vite > rk[2].vite, 'plus on est rapide, plus la rapidité rapporte');
+  for (const x of rk) assert.ok(host.html.includes(`<small>+${x.pts}</small>`), 'les points gagnés dans le classement : ' + x.pts);
+  assert.match(host.html, /class="jeu-pd"><i>100 réussite<\/i><i class="is-rang">\+50 1er<\/i><i class="is-vite">\+\d+ rapidité<\/i>/, 'le détail des points');
+  assert.match(host.html, /<em>00:\d\d<\/em>/, 'le temps en 00:00');
   assert.match(host.html, /Manche suivante/);
   assert.match(guests[0].html, /La manche suivante arrive/);
   assert.equal(host.ev('state.defis[JEU.rounds[0].cid]'), true, 'réussi en salle : compte dans la progression');
@@ -222,8 +240,11 @@ test('manches enchaînées sans doublon, podium, points cumulés une seule fois'
   assert.doesNotMatch(guests[0].html, /Rejouer dans cette salle/);
   assert.match(guests[0].html, /L’hôte peut relancer/);
   assert.equal(host.ev('state.salle.parties'), 1);
-  assert.equal(host.ev('state.salle.pts'), 9, 'trois manches gagnées : 3 × 3 points');
-  assert.equal(guests[0].ev('state.salle.pts'), 6);
+  const sum = c => c.ev('JEU.rounds.reduce((s,r,i)=>s+((jeuRanking(i).find(x=>x.pid===JEU.me)||{pts:0}).pts),0)');
+  assert.equal(host.ev('state.salle.pts'), sum(host), 'les points des trois manches, une seule fois');
+  assert.ok(sum(host) > sum(guests[0]) && sum(guests[0]) >= 3 * 130, 'l’hôte, toujours premier, devant son ami');
+  assert.equal(guests[0].ev('state.salle.pts'), sum(guests[0]));
+  assert.equal(host.ev('jeuScores()[0].pts'), sum(host), 'le podium dit les mêmes points');
   host.ev('jeuRender()'); sec(w, 1);
   assert.equal(host.ev('state.salle.parties'), 1, 'pas de double comptage');
 });
@@ -363,14 +384,17 @@ test('solo : aucun message réseau, tirage immédiat, points selon la rapidité'
   assert.match(s.html, /Un défi au hasard/);
   sec(w, 3.5); assert.equal(s.view(), 'play0');
   assert.doesNotMatch(s.html, /jeu-players|jeu-reacts/, 'ni liste de joueurs ni réactions');
-  sec(w, 20); s.found(); sec(w, 1);                        /* < 60 s → 3 pts */
+  sec(w, 20); s.found(); sec(w, 1);                        /* vers 20 s : 100 + une grosse part de rapidité */
   assert.equal(s.view(), 'res0'); assert.match(s.html, /Ton résultat/);
-  s.ev('jeuNextRound()'); sec(w, 4); sec(w, 80); s.found(); sec(w, 1);   /* < 120 s → 2 pts */
-  s.ev('jeuNextRound()'); sec(w, 4); sec(w, 150); s.found(); sec(w, 1);  /* après 120 s → 1 pt */
-  assert.deepEqual(s.ev('JEU.rounds.map((r,i)=>jeuRanking(i)[0].pts)'), [3, 2, 1]);
+  s.ev('jeuNextRound()'); sec(w, 4); sec(w, 80); s.found(); sec(w, 1);   /* vers 80 s */
+  s.ev('jeuNextRound()'); sec(w, 4); sec(w, 150); s.found(); sec(w, 1);  /* vers 150 s */
+  const rk = s.ev('JEU.rounds.map((r,i)=>jeuRanking(i)[0])');
+  assert.deepEqual(rk.map(x => x.rang), [0, 0, 0], 'seul : pas de bonus de rang');
+  assert.deepEqual(rk.map(x => x.pts), rk.map(x => 100 + vite(x.ms)), 'seul : 100 + la rapidité');
+  assert.ok(rk[0].pts > rk[1].pts && rk[1].pts > rk[2].pts && rk[2].pts >= 100, 'plus vite, plus de points : ' + rk.map(x => x.pts));
   s.ev('jeuFinish()'); sec(w, 1);
   assert.equal(s.view(), 'final'); assert.match(s.html, /Tout trouvé/); assert.match(s.html, /Rejouer/);
-  assert.equal(s.ev('state.salle.pts'), 6); assert.equal(s.ev('state.salle.parties'), 1);
+  assert.equal(s.ev('state.salle.pts'), rk.reduce((a, x) => a + x.pts, 0)); assert.equal(s.ev('state.salle.parties'), 1);
   assert.equal(s.ev('JEU.rounds.every(r=>state.defis[r.cid])'), true);
   assert.equal(w.posts, 0, 'rien n’est envoyé au relais en solo');
   assert.equal(new Set(s.ev('JEU.rounds.map(r=>r.cid)')).size, 3);
@@ -403,7 +427,7 @@ test('le tirage préfère les défis non réussis, sans jamais bloquer', () => {
   assert.equal(new Set(s.ev('JEU.rounds.map(r=>r.cid)')).size, 5, '5 manches faciles = les 5 défis, même réussis');
 });
 
-test('défi choisi dans l’entraînement libre : il ouvre la salle comme première manche', () => {
+test('un défi précis (« Avec des amis » sur sa page) ouvre la salle comme première manche', () => {
   const w = new World();
   const h = makeClient(w, 'Hôte'); h.ev('jeuNb=3');
   h.ev("jeuStart('PICK55',true,'c1',{nomId:'jeu-nom'})"); sec(w, 1);
@@ -413,16 +437,29 @@ test('défi choisi dans l’entraînement libre : il ouvre la salle comme premi�
   assert.equal(h.J('niv'), 'm', 'le niveau suit le défi choisi');
 });
 
-test('quitter une salle : confirmation seulement quand il y a quelque chose à perdre', () => {
-  const { w, host } = room({ n: 3 });
-  let asked = 0; host.ctx.confirm = () => { asked++; return false; };
+/* Elisa, 31 octobre, 1 h 34 : « le bouton Défis pour retourner ne marche pas ». La question passait par confirm(), que la page
+   ne montrait pas toujours : le retour restait sans effet. Maintenant, la fenêtre de l’appli (lqAsk), puis on part vraiment. */
+test('quitter une salle : la fenêtre de l’appli, seulement quand il y a quelque chose à perdre, et « Quitter » fait partir', () => {
+  const { w, host, guests } = room({ n: 3 });
+  const asks = []; let answer = false, left = 0;
+  host.ctx.lqAsk = q => { asks.push(q.titre); return { then: f => f(answer) }; };
+  host.ctx.__left = () => { left++; };
+  assert.equal(guests[0].ev('jeuLeaveOk()'), true, 'un ami en salle d’attente part sans question');
   assert.equal(host.ev('jeuLeaveOk()'), false, 'hôte avec des amis dans la salle');
-  assert.equal(asked, 1);
+  host.ev('jeuLeaveAsk(()=>__left())');
+  assert.deepEqual(asks, ['Quitter la salle ?']); assert.equal(left, 0, '« Rester » : on reste');
   host.ev('jeuNextRound()'); sec(w, 1);
   assert.equal(host.ev('jeuLeaveOk()'), false, 'pendant le tirage');
-  const solo = makeClient(w, 'Seul'); let a2 = 0; solo.ctx.confirm = () => { a2++; return true; };
+  answer = true; host.ev('jeuLeaveAsk(()=>__left())');
+  assert.equal(left, 1, '« Quitter » : on part');
+  assert.equal(host.ev('jeuLeaveOk()'), true, 'accepté une fois : on ne redemande pas');
+  assert.ok(html.includes("if(mode==='jeu'&&!jeuLeaveOk()){jeuLeaveAsk(goBack);return;}"), 'le bouton retour passe par la fenêtre');
+  assert.ok(!engineSrc.includes('confirm('), 'plus de confirm() dans la salle');
+  const solo = makeClient(w, 'Seul'); let a2 = 0, gone = 0;
+  solo.ctx.lqAsk = q => { a2++; return { then: f => f(true) }; }; solo.ctx.__left = () => { gone++; };
   solo.ev("jeuStart('SOLO44',true,null,{solo:true})"); sec(w, 5);
-  assert.equal(solo.ev('jeuLeaveOk()'), true); assert.equal(a2, 1);
+  assert.equal(solo.ev('jeuLeaveOk()'), false, 'manche en cours, même seul');
+  solo.ev('jeuLeaveAsk(()=>__left())'); assert.equal(a2, 1); assert.equal(gone, 1);
 });
 
 test('toutes les vues se dessinent sans erreur (échappement des pseudos compris)', () => {
@@ -567,7 +604,23 @@ test('égalité en tête : les ex æquo gagnent tous les deux, pas de médaille 
   h.ev('jeuNextRound()'); sec(w2, 4.5);
   h.ev('jeuSend({t:"found",n:0,ms:1000})'); g.ev('jeuSend({t:"found",n:0,ms:1000})'); sec(w2, 2); h.ev('jeuFinish()'); sec(w2, 2);
   const places = h.ev('jeuPlaces(jeuScores()).map(x=>x.place)');
-  assert.ok(places[0] === 1, 'au moins un premier');
+  assert.deepEqual(places, [1, 1], 'même temps, mêmes points : deux premiers');
+  const rk = h.ev('jeuRanking(0).map(x=>[x.place,x.rang,x.pts])');
+  assert.deepEqual(rk, [[1, 50, 209], [1, 50, 209]], 'le même temps vaut le même bonus de rang');
+  /* Départage : à points égaux, le temps total le plus court passe devant */
+  const w3 = new World();
+  const a = makeClient(w3, 'Hôte'); a.ev('jeuNb=2'); a.host('TIE002'); sec(w3, 1);
+  const b = makeClient(w3, 'Ami'); b.join('TIE002'); sec(w3, 3);
+  a.ev('jeuNextRound()'); sec(w3, 4.5);
+  /* Manche 1 : l’hôte 1er en 30,001 s, l’ami 2e en 32,999 s ; manche 2 : l’ami 1er en 30,001 s, l’hôte 2e en 30,002 s.
+     Même rapidité partout (+49) : 378 points chacun ; l’hôte a mis moins de temps en tout. */
+  a.ev('jeuSend({t:"found",n:0,ms:30001})'); b.ev('jeuSend({t:"found",n:0,ms:32999})'); sec(w3, 2);
+  a.ev('jeuNextRound()'); sec(w3, 4.5);
+  b.ev('jeuSend({t:"found",n:1,ms:30001})'); a.ev('jeuSend({t:"found",n:1,ms:30002})'); sec(w3, 2);
+  const sc = a.ev('jeuPlaces(jeuScores()).map(x=>[x.name,x.pts,x.place])');
+  assert.deepEqual(sc, [['Hôte', 378, 1], ['Ami', 378, 2]], 'à points égaux, le temps total le plus court passe devant');
+  a.ev('jeuFinish()'); sec(w3, 1.5);
+  assert.match(a.html, /jeu-tie/, 'le podium explique le départage');
 });
 
 test('les points sont crédités même si on quitte avant le podium, et un défi déjà réussi allume la série', () => {
@@ -576,6 +629,8 @@ test('les points sont crédités même si on quitte avant le podium, et un défi
   s.ev("jeuChallenges('f').forEach(c=>state.defis[c.id]=true)");
   s.ev("jeuStart('SOLO55',true,null,{solo:true})"); sec(w, 4); s.found(); sec(w, 1);
   assert.equal(s.acts, 1, 'la série compte même pour un défi déjà réussi');
+  const pts = s.ev('jeuRanking(0)[0].pts');
+  assert.ok(pts > 100, 'réussite + rapidité : ' + pts);
   s.ev('jeuStop()');
-  assert.equal(s.ev('state.salle&&state.salle.pts'), 3, 'les 3 points de la manche sont gardés');
+  assert.equal(s.ev('state.salle&&state.salle.pts'), pts, 'les points de la manche sont gardés');
 });
