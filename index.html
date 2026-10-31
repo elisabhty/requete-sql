@@ -6640,7 +6640,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=42">
+<link rel="stylesheet" href="ludique.css?v=43">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -14571,7 +14571,7 @@ function clsTopHTML(){
   const rows=top.map((x,i)=>{const mine=x.id===me,rk=+x.rang||i+1;
     return `<li class="${mine?'is-me ':''}is-r${Math.min(rk,4)}" style="--i:${i}"><span class="perf-top-rk">${rk<=3?lqStkSvg('medal'+rk):rk}</span>`+
       `<b class="jeu-av" data-c="${perfColor(x.pseudo)}" aria-hidden="true">${jeuInitial(x.pseudo)}</b>`+
-      `<span class="perf-top-n"><b>${esc(x.pseudo)}${mine?' <small>(toi)</small>':''}</b><small>${plur(+x.parties||0,'partie')}</small></span>`+
+      `<span class="perf-top-n"><b>${esc(x.pseudo)}</b><small>${mine?'<i>Toi</i> · ':''}${plur(+x.parties||0,'partie')}</small></span>`+
       `<em>${clsPts(x.pts)}<small> pts</small></em>`+
       (mine?'':`<button type="button" class="perf-top-flag" onclick="clsSignaler('${escAttr(x.id)}')" aria-label="${escAttr(`Signaler le pseudo ${x.pseudo}`)}">${CLS_FLAG_SVG}</button>`)+`</li>`;}).join('');
   const meIn=me&&top.some(x=>x.id===me);
@@ -20470,7 +20470,7 @@ function jeuAskNom(id){
   /* Un seul pseudo dans l’appli : celui de la salle est aussi le nom de l’accueil et du compte. */
   if(jeuNom(state.name)!==n){
     state.name=n;
-    try{save();if(typeof renderGreeting==='function')renderGreeting();if(typeof renderLearnAvatar==='function')renderLearnAvatar();}catch(e){}
+    try{save();if(typeof renderGreeting==='function')renderGreeting();if(typeof renderLearnAvatar==='function')renderLearnAvatar();if(typeof clsRenommer==='function')clsRenommer();}catch(e){}
   }
   return n;
 }
@@ -27362,7 +27362,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-31-top5-retours-v2212';
+  const SW_CACHE='requete-2026-10-31-top5-toi-v2213';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
