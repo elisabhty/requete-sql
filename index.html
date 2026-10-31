@@ -6644,7 +6644,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=46">
+<link rel="stylesheet" href="ludique.css?v=47">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -14869,16 +14869,32 @@ function perfReveal(card){
     perfPodObs.observe(pod);}
 }
 /* Le barème, dit simplement : ce qui rapporte des points et qui passe devant à égalité. */
+/* « Comment on marque des points » (Elisa, 31 octobre, 17 h 39 : « mettre à jour le cadre point ») : les paliers de temps en marches
+   d’escalier qui descendent, le premier essai, le classement entre amis, l’égalité, et ce que rapporte une manche parfaite. */
+let roomRulesObs=null;
 function renderDefisRules(){
   const host=document.getElementById('defis-rules');if(!host)return;
+  const top=JEU_PALIERS[0][1],mn=t=>String(t/60).replace('.',','),last=JEU_PALIERS[JEU_PALIERS.length-1][0];
+  const marches=JEU_PALIERS.map(([t,p],i)=>{const a=i?JEU_PALIERS[i-1][0]:0;return {p,lab:i?`${mn(a)}–${mn(t)}`:`≤ ${mn(t)}`,dit:i?`de ${mn(a)} à ${mn(t)} min`:`jusqu’à ${mn(t)} min`};})
+    .concat([{p:JEU_PTS_MIN,lab:`${mn(last)} +`,dit:`après ${mn(last)} min`}]);
   host.innerHTML=`<section class="room-rules" aria-labelledby="room-rules-h">
     <h2 id="room-rules-h"><span class="room-rules-stk" aria-hidden="true">${lqStkSvg('target')}</span>Comment on marque des points</h2>
     <ul>
-      <li><b>🎯 Défi trouvé</b><span>jusqu’à ${JEU_PTS_OK+JEU_PTS_VITE}</span><small>Il vaut ${JEU_PTS_OK+JEU_PTS_VITE} points quand le chrono démarre, puis sa valeur baisse doucement : ${JEU_PTS_OK} points à 3 min. Plus tu trouves vite, plus tu marques.</small></li>
-      <li><b>🥇 Premier à trouver</b><span>+${JEU_PTS_RANG[0]}</span><small>Entre amis · 2e : +${JEU_PTS_RANG[1]} · 3e : +${JEU_PTS_RANG[2]}</small></li>
+      <li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à ${top}</span><small>Plus tu trouves vite, plus le défi rapporte. La manche s’arrête à ${JEU_ROUND_MS/60000}&nbsp;min.</small>
+        <ol class="room-paliers" aria-label="Points selon le temps pour trouver">${marches.map((m,i)=>`<li style="--h:${Math.round(m.p/top*52)}px;--i:${i}"><b>${m.p}</b><i aria-hidden="true"></i><small aria-hidden="true">${m.lab}</small><em class="lq-sr"> points ${m.dit}</em></li>`).join('')}</ol>
+        <p class="room-paliers-u" aria-hidden="true">minutes pour trouver</p></li>
+      <li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI}</span><small>Ta première requête exécutée est la bonne</small></li>
+      <li><b>🥇 Premier entre amis</b><span>+${JEU_PTS_RANG[0]}</span><small>2e : +${JEU_PTS_RANG[1]} · 3e : +${JEU_PTS_RANG[2]} · 4e : +${JEU_PTS_RANG[3]}</small></li>
       <li><b>⚖️ Égalité</b><span>chrono</span><small>Le plus rapide au total passe devant ; même temps : ex æquo</small></li>
     </ul>
+    <p class="room-rules-max"><span>Manche parfaite</span><b>${top+JEU_PTS_ESSAI}</b><small>seul</small><i aria-hidden="true">·</i><b>${top+JEU_PTS_ESSAI+JEU_PTS_RANG[0]}</b><small>entre amis</small></p>
   </section>`;
+  /* Les marches montent quand le cadre arrive à l’écran (il est en bas de l’onglet) ; mouvement réduit : tout de suite. */
+  const sec=host.firstElementChild;if(!sec)return;
+  if(roomRulesObs){roomRulesObs.disconnect();roomRulesObs=null;}
+  if(typeof IntersectionObserver!=='function'||prefersReduceMotion()){sec.classList.add('is-in');return;}
+  roomRulesObs=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){sec.classList.add('is-in');roomRulesObs.disconnect();roomRulesObs=null;}},{threshold:.3});
+  roomRulesObs.observe(sec);
 }
 function showScreen(){
   const scr=document.getElementById('scr-lesson');
@@ -20387,7 +20403,8 @@ function buildSommaire(){
 const JEU_SB='https://ynuenrxozcpkrjdbeftc.supabase.co';
 const JEU_SB_KEY='sb_publishable_xhqZIRNKel3gXW_rH_GajQ_8Jb7iNhv';
 const JEU_HB_MS=15000;
-const JEU_ROUND_MS=180000;
+/* La manche s’arrête quand tout le monde a trouvé, ou au bout de 10 min (17 h 39 : les paliers vont au-delà de 7 min). */
+const JEU_ROUND_MS=600000;
 const JEU_DRAW_MS=3300;
 /* Cinq joueurs par salle au plus (Elisa, 31 octobre, 16 h 49). */
 const JEU_MAX=5;
@@ -20397,13 +20414,13 @@ const JEU_HOST_WAIT=25000;
 const JEU_HOST_FAST=1500;
 const JEU_REACTS=['👏','🔥','😅','🤯'];
 const JEU_ALPH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-/* Points d’une manche (Elisa, 31 octobre, 1 h 34 : « des points si on réussit en premier par rapport à ses amis, et par rapport au
-   temps » ; 16 h 49 : « la rapidité, c’est juste du bonus, on n’enlève pas de points : un nombre de points à la base qui baisse en
-   fonction du temps, par exemple 200 à la base puis ça descend ») : le défi vaut 200 points quand le chrono démarre, puis sa valeur
-   baisse doucement (un point toutes les 1,8 seconde) jusqu’à 100 points à 3 min : on ne perd jamais rien, on gagne moins. Entre
-   amis, les trois premiers à trouver ont un bonus (50, 30, 15). À égalité de points, le plus rapide au total passe devant (une
-   manche non trouvée compte 3 min) ; même temps : ex æquo. */
-const JEU_PTS_OK=100,JEU_PTS_RANG=[50,30,15],JEU_PTS_VITE=100;
+/* Points d’une manche (Elisa, 31 octobre, 17 h 39 : « des paliers : ≤ 1 min 200, 1 à 2 min 175, 2 à 3 min 150, 3 à 4 min 125, 4 à
+   5 min 100, 5 à 7 min 75, 7 min et + 50 ; puis +25 si réussi du premier essai ; en multijoueur 🥇 +50, 🥈 +30, 🥉 +20, 4e +10,
+   5e +0. Une manche parfaite donne 225 seul et 275 entre amis, et quelqu’un qui prend 4–5 minutes n’est pas massacré : il gagne
+   encore 100 points ; c’est plus adapté à Requête, les défis demandent plusieurs étapes de réflexion »). Les paliers suivent le
+   chrono affiché (01:00 vaut encore 200, 01:01 vaut 175). Le premier essai : la première requête exécutée est la bonne. À égalité
+   de points, le plus rapide au total passe devant (une manche non trouvée compte la durée d’une manche) ; même temps : ex æquo. */
+const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];
 const JEU_NIVL={f:'Facile',m:'Moyen',d:'Difficile'};
 let JEU=null,jeuNiv='f',jeuNb=1,jeuMode='solo';
 (function jeuLoadPrefs(){
@@ -20870,7 +20887,7 @@ function jeuOnMsg(m){
       if(!CHALLENGES.some(c=>c.id===m.cid))return;
       /* Chrono : l’heure de réception quand le message arrive en direct. Pour une manche déjà commencée
          (historique), l’heure du relais, ramenée à l’horloge de ce téléphone dès que la salle est connue.
-         Le tirage au sort dure JEU_DRAW_MS ; la manche (3 min) commence après. */
+         Le tirage au sort dure JEU_DRAW_MS ; la manche (10 min au plus) commence après. */
       const hist=!J.synced;
       let t0=Date.now();
       if(hist)t0=m.at||t0;
@@ -20886,6 +20903,8 @@ function jeuOnMsg(m){
       if(r.found[m.pid]!=null)return;
       if(!addP())return;
       r.found[m.pid]=Math.max(0,Math.min(JEU_ROUND_MS,+m.ms||0));
+      /* Trouvé du premier essai (p1) : +25 pour tout le monde, puisque chacun compte les points de chacun. */
+      if(m.p1===1)(r.first=r.first||{})[m.pid]=1;
       (J.okOf[m.pid]=J.okOf[m.pid]||new Set()).add(r.cid);
       if(m.pid===J.me)J.played=true;
       if(m.pid!==J.me&&!J.solo&&J.synced&&!replay)jeuToast(`${name} a trouvé ✓`);
@@ -20986,20 +21005,18 @@ function jeuRoundDone(n){
   if(J.solo||(J.synced&&Date.now()-J.syncAt>4000&&Date.now()-J.echoAt<=JEU_PING_MS*1.6))r.done=true;
   return true;
 }
-/* La part du temps : 100 quand la manche commence (pendant les 1,8 premières secondes), puis un point de moins toutes les 1,8 seconde,
-   0 à 3 min. La valeur du défi à un instant (jeuValeur) : 200 au départ, 100 à 3 min. */
-function jeuSpeedPts(ms){return Math.max(0,Math.min(JEU_PTS_VITE,Math.ceil((JEU_ROUND_MS-ms)/(JEU_ROUND_MS/JEU_PTS_VITE))));}
-function jeuValeur(ms){return JEU_PTS_OK+jeuSpeedPts(ms);}
+/* Ce que vaut le défi quand on le trouve en ms : son palier, d’après les secondes du chrono affiché. */
+function jeuValeur(ms){const s=Math.floor(Math.max(0,+ms||0)/1000);for(const [t,p] of JEU_PALIERS)if(s<=t)return p;return JEU_PTS_MIN;}
 /* Les points d’un joueur qui trouve en ms, i-ème à trouver (0 : le premier) : le détail sert à l’écran (réussite, rang, rapidité). */
-function jeuPts(ms,i,solo){const rang=solo?0:(JEU_PTS_RANG[i]||0),vite=jeuSpeedPts(ms);return {ok:JEU_PTS_OK,rang,vite,pts:JEU_PTS_OK+rang+vite};}
+function jeuPts(ms,i,solo,p1){const val=jeuValeur(ms),essai=p1?JEU_PTS_ESSAI:0,rang=solo?0:(JEU_PTS_RANG[i]||0);return {val,essai,rang,pts:val+essai+rang};}
 function jeuRanking(n){
   const J=JEU,r=J.rounds[n];if(!r)return[];
   /* À temps égal, l’ordre des identifiants range la liste : la même chez tout le monde. Mais le même temps, à la milliseconde près,
      vaut la même place et le même bonus : deux premiers ex æquo prennent chacun +50, le suivant est 3e (+15). */
   const rows=Object.entries(r.found).sort((a,b)=>a[1]-b[1]||(a[0]<b[0]?-1:a[0]>b[0]?1:0));
-  return rows.map(([pid,ms])=>{const i=rows.findIndex(y=>y[1]===ms);return Object.assign({pid,ms,place:i+1},jeuPts(ms,i,J.solo||r.one));});
+  return rows.map(([pid,ms])=>{const i=rows.findIndex(y=>y[1]===ms);return Object.assign({pid,ms,place:i+1},jeuPts(ms,i,J.solo||r.one,!!(r.first&&r.first[pid])));});
 }
-/* Les scores : points de toutes les manches terminées ; à égalité, le temps total (une manche non trouvée compte 3 min). */
+/* Les scores : points de toutes les manches terminées ; à égalité, le temps total (une manche non trouvée compte toute la manche). */
 function jeuScores(){
   const J=JEU,s={},t={},cur=jeuCur();J.order.forEach(p=>{s[p]=0;t[p]=0;});
   J.rounds.forEach((r,n)=>{
@@ -21016,7 +21033,7 @@ function jeuScores(){
 function jeuPlaces(sc){let place=0;sc.forEach((x,i)=>{if(i===0||x.pts<sc[i-1].pts||x.ms>sc[i-1].ms)place=i+1;x.place=place;});return sc;}
 /* Le détail des points d’une manche : « 100 réussite · +50 1er · +46 rapidité ». */
 /* Le détail : ce que valait le défi quand on l’a trouvé, et le bonus de place entre amis (« Défi 193 · 2e +30 »). */
-function jeuPtsDetail(x){return `<span class="jeu-pd"><i>Défi ${x.ok+x.vite}</i>${x.rang?`<i class="is-rang">${['1er','2e','3e'][JEU_PTS_RANG.indexOf(x.rang)]||''} +${x.rang}</i>`:''}</span>`;}
+function jeuPtsDetail(x){return `<span class="jeu-pd"><i>Défi ${x.val}</i>${x.essai?`<i class="is-essai">1er essai +${x.essai}</i>`:''}${x.rang?`<i class="is-rang">${x.place===1?'1er':x.place+'e'} +${x.rang}</i>`:''}</span>`;}
 /* Seul dans la salle (personne n’a rejoint, ou tous sont partis) et personne d’autre n’a trouvé cette manche : tout se dessine
    comme seul (ni liste de joueurs, ni réactions, ni « Clore la manche », ni annonce « seul·e dans la salle »). */
 function jeuSoloLike(n){
@@ -21075,7 +21092,8 @@ function jeuTick(){
   const n=jeuCur(),el=document.getElementById('jeu-timer');
   /* Le chrono seul, sans barre de temps (Elisa, 31 octobre, 15 h 16, réf. 5 : « ne pas mettre la barre, laisse que le chrono ») */
   if(el&&n>=0){const took=Date.now()-J.rounds[n].t1;el.textContent=jeuChrono(took);el.classList.toggle('is-low',JEU_ROUND_MS-took<30000);
-    const vn=document.getElementById('jeu-val-n');if(vn){const v=String(jeuValeur(Math.max(0,took)));if(vn.textContent!==v)vn.textContent=v;}}
+    /* Un palier passé : la valeur change, la pastille fait un petit saut (sauf mouvement réduit). */
+    const vn=document.getElementById('jeu-val-n');if(vn){const v=String(jeuValeur(Math.max(0,took)));if(vn.textContent!==v){vn.textContent=v;const pv=vn.parentNode;if(pv&&pv.classList&&!prefersReduceMotion()){pv.classList.remove('is-drop');void pv.offsetWidth;pv.classList.add('is-drop');}}}}
   if(jeuView()!==J.view||jeuSig()!==J.sig)jeuPaint();
 }
 /* Redessiner la même vue (réglage changé, nouvel hôte, temps reçu…) sans perdre la page, le focus
@@ -21267,8 +21285,9 @@ function jeuRender(){
     const mine=r.found[J.me]!=null,sl=jeuSoloLike(n);J.slShown=sl;edOn=!mine;
     const took0=Date.now()-r.t1;
     /* Une seule action pendant la manche : « Exécuter » (le schéma passe dans la barre de l’éditeur, plus de « Pas à pas »). */
-    /* Tant qu’on cherche : ce que vaut le défi, qui baisse avec le chrono (200 → 100). */
-    const val=mine?'':`<b class="jeu-val" id="jeu-val" title="Ce que vaut le défi maintenant">${JEU_COIN_SVG}<span id="jeu-val-n">${jeuValeur(Math.max(0,took0))}</span><small>pts</small></b>`;
+    /* Tant qu’on cherche : ce que vaut le défi, palier par palier (200, 175, 150…), et +25 tant que la première requête peut être la
+       bonne (il tombe au premier essai manqué). */
+    const val=mine?'':`<b class="jeu-val" id="jeu-val" title="Ce que vaut le défi maintenant">${JEU_COIN_SVG}<span id="jeu-val-n">${jeuValeur(Math.max(0,took0))}</span><small>pts</small>${r.tries?'':`<i class="jeu-val-b" id="jeu-val-b" title="Si ta première requête est la bonne">+${JEU_PTS_ESSAI}</i>`}</b>`;
     html=`<div class="jeu-bar"><span class="l-kicker">Manche ${n+1}/${J.nb} · ${JEU_NIVL[c.niv]}</span><span class="jeu-bar-r">${val}<b class="jeu-timer${JEU_ROUND_MS-took0<30000?' is-low':''}" id="jeu-timer" role="timer" aria-label="Chrono de la manche">${jeuChrono(took0)}</b></span></div>
       <div id="jeu-netslot">${jeuNetHTML()}</div>
       ${sl?'':`<ul class="jeu-mates" id="jeu-players" aria-label="Qui a trouvé">${jeuMatesHTML(n)}</ul>`}
@@ -21313,7 +21332,7 @@ function jeuRender(){
       const top=[2,1,3].map(pl=>sc.filter(x=>x.place===pl&&x.pts>0));
       const winner=sc.some(x=>x.pid===J.me&&x.place===1&&x.pts>0);
       const surPodium=new Set(top.flat().map(x=>x.pid)),liste=sc.some(x=>!surPodium.has(x.pid));
-      const tie=sc.some((x,i)=>i>0&&x.pts>0&&x.pts===sc[i-1].pts)?`<p class="jeu-tie">⚖️ À égalité de points, le plus rapide au total passe devant (une manche non trouvée compte 3 min).</p>`:'';
+      const tie=sc.some((x,i)=>i>0&&x.pts>0&&x.pts===sc[i-1].pts)?`<p class="jeu-tie">⚖️ À égalité de points, le plus rapide au total passe devant (une manche non trouvée compte ${JEU_ROUND_MS/60000} min).</p>`:'';
       html=head('Salle de défi · Fin de partie',winner?'Tu as gagné ! 🏆':'Le podium',`${J.nb} manche${J.nb>1?'s':''} jouée${J.nb>1?'s':''}.`)+
         `<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];return `<div class="jeu-step is-${pl}${g.length?'':' is-empty'}${g.some(x=>x.pid===J.me)?' is-me':''}"><span class="jeu-medal">${lqStkSvg('medal'+pl)}</span><span class="jeu-step-av">${g.length?g.map(x=>`<b class="jeu-av" data-c="${jeuOrder().indexOf(x.pid)%6}" aria-hidden="true">${jeuInitial(x.name)}</b>`).join(''):''}</span><span class="jeu-step-n">${g.length?g.map(x=>esc(x.name)+(x.pid===J.me?' <small>(toi)</small>':'')).join('<br>'):'—'}</span><small>${g.length?g[0].pts+' pt'+(g[0].pts>1?'s':'')+' · '+jeuChrono(g[0].ms):''}</small><i><em>${pl}</em></i></div>`;}).join('')}</div>
         ${liste?`<div class="jeu-card"><p class="jeu-card-h">Classement final</p><ol class="jeu-rank is-score">${sc.map(x=>`<li${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${jeuChrono(x.ms)}</small></li>`).join('')}</ol>${tie}</div>`:tie}
@@ -21425,7 +21444,7 @@ const JEU_OK_STK='<svg class="lq-stk" viewBox="0 0 48 48" aria-hidden="true"><ci
 function jeuFoundHTML(r,pid){
   const J=JEU,n=J.rounds.indexOf(r),rk=jeuRanking(n),k=rk.findIndex(y=>y.pid===pid),x=rk[k]||Object.assign({pid,ms:0,place:1},jeuPts(0,0,true));
   const sl=jeuSoloLike(n),pos=k<0?-1:x.place-1;
-  const place=sl||pos<0?'Bien joué !':pos===0?'1er à trouver':`${pos+1}e à trouver`;
+  const place=(sl||pos<0?'Bien joué !':pos===0?'1er à trouver':`${pos+1}e à trouver`)+(x.essai?' · du premier coup ✨':'');
   const stk=!sl&&pos>=0&&pos<3?lqStkSvg('medal'+(pos+1)):JEU_OK_STK;
   return `<section class="jeu-done" id="jeu-done" aria-label="Trouvé">
       <div class="jeu-done-head"><span class="jeu-done-stk" aria-hidden="true">${stk}</span><span class="jeu-done-t"><b>Trouvé en ${jeuChrono(x.ms)}</b><small>${place}</small></span><strong class="jeu-done-pts"><em data-n="${x.pts}">+${x.pts}</em> pts</strong></div>
@@ -21505,17 +21524,19 @@ function jeuRun(){
   const n=jeuCur(),r=J.rounds[n];if(!r||jeuRoundDone(n)||r.found[J.me]!=null||Date.now()<r.t1)return;
   const c=CHALLENGES.find(x=>x.id===r.cid),sql=document.getElementById('ed-lesson').value.trim();
   if(!sql)return;
+  /* Chaque exécution est un essai : la première requête juste vaut +25. */
+  r.tries=(r.tries||0)+1;
   let userRes,solRes,ms=null;
   try{
     const dU=sandbox();const t0=performance.now();try{userRes=dU.exec(sql);ms=performance.now()-t0;}finally{dU.close();}
     const dS=sandbox();try{solRes=dS.exec(c.sol);}finally{dS.close();}
-  }catch(e){setLessonOut(errBox(e.message));return;}
+  }catch(e){setLessonOut(errBox(e.message));jeuEssaiRate(r);return;}
   if(exerciseResultsMatch(userRes,solRes,c,true)){
     const took=Date.now()-r.t1;
     document.querySelectorAll('#lesson-body .btn-run').forEach(b=>b.disabled=true);
     r.mine=`<div class="ex-code">${highlight(sql)}</div>${renderTable(userRes,ms)}`;
     jeuCredit(c.id);
-    jeuSend({t:'found',n,ms:took});
+    jeuSend({t:'found',n,ms:took,p1:r.tries===1?1:0});
     if(JEU===J&&J.view==='play'+n){J.keep=J.view;J.view='';jeuRender();}
     jeuCountUp(document.querySelector('#jeu-done .jeu-done-pts em'));
     {const x=jeuRanking(n).find(y=>y.pid===J.me);if(x)jeuPtsPop({kind:'round',pts:x.pts});}
@@ -21525,6 +21546,14 @@ function jeuRun(){
   const diag=exoFailDiag(sql,c.sol,userRes,solRes,exerciseRequiresOrder(c,true));
   const table=(!userRes||!userRes.length)?'':renderTable(userRes,ms);
   setLessonOut(`<div class="feedback warn"><div class="fi">≈</div><div><b>Pas encore</b><p>${diag}</p></div></div>${table}`);
+  jeuEssaiRate(r);
+}
+/* Le premier essai manqué : le « +25 » de la barre s’envole. */
+function jeuEssaiRate(r){
+  if(!r||r.tries!==1)return;
+  const b=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-val-b'):null;if(!b)return;
+  if(prefersReduceMotion()){b.remove();return;}
+  b.classList.add('is-out');setTimeout(()=>{try{b.remove();}catch(e){}},360);
 }
 function jeuStop(){
   const J=JEU;if(!J)return;
@@ -27700,7 +27729,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-31-pseudo-unique-v2216';
+  const SW_CACHE='requete-2026-10-31-bareme-paliers-v2217';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

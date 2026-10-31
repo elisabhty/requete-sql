@@ -42,28 +42,31 @@ test('ref 4 — Défis : la salle seule, tirée au sort au niveau choisi ; ses r
   for (const gone of ['function setDefisLevel(', 'function defiListRow(', 'id="defis-list"', 'id="defis-free"', 'def-list-static'])
     assert.ok(!app.includes(gone), 'retiré : ' + gone);
   const rules = fn('renderDefisRules');
-  /* 16 h 49 : « la rapidité, c’est juste du bonus, on n’enlève pas de points : 200 à la base puis ça descend » */
-  for (const part of ['<li><b>🎯 Défi trouvé</b><span>jusqu’à ${JEU_PTS_OK+JEU_PTS_VITE}</span><small>Il vaut ${JEU_PTS_OK+JEU_PTS_VITE} points quand le chrono démarre, puis sa valeur baisse doucement : ${JEU_PTS_OK} points à 3 min. Plus tu trouves vite, plus tu marques.</small></li>',
-    '+${JEU_PTS_RANG[0]}</span><small>Entre amis · 2e : +${JEU_PTS_RANG[1]} · 3e : +${JEU_PTS_RANG[2]}</small>',
+  /* 17 h 39 : les paliers de temps, +25 du premier coup, le classement entre amis jusqu’au 4e */
+  for (const part of ['<li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à ${top}</span><small>Plus tu trouves vite, plus le défi rapporte. La manche s’arrête à ${JEU_ROUND_MS/60000}&nbsp;min.</small>',
+    '<li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI}</span><small>Ta première requête exécutée est la bonne</small></li>',
+    '<li><b>🥇 Premier entre amis</b><span>+${JEU_PTS_RANG[0]}</span><small>2e : +${JEU_PTS_RANG[1]} · 3e : +${JEU_PTS_RANG[2]} · 4e : +${JEU_PTS_RANG[3]}</small></li>',
     '<small>Le plus rapide au total passe devant ; même temps : ex æquo</small>'])
     assert.ok(rules.includes(part), part);
   assert.ok(!rules.includes('Rapidité') && !rules.includes('moins toutes les'), 'plus de ligne « Rapidité » à part');
   assert.ok(app.includes(':`<button class="next-btn" onclick="openJeu()">Salle de défi →</button>`'), 'après un défi : vers la salle');
 });
 
-test('ref 4 — les points : le défi vaut 200 au départ, 100 à 3 min ; +50 / +30 / +15 aux trois premiers ; le chrono en 00:00', () => {
+test('ref 4 — les points en paliers (17 h 39) : 200 → 50 selon le temps, +25 du premier coup, +50 / +30 / +20 / +10 ; le chrono en 00:00', () => {
   const ctx = vm.createContext({});
-  vm.runInContext(['const JEU_ROUND_MS=180000;', 'const JEU_PTS_OK=100,JEU_PTS_RANG=[50,30,15],JEU_PTS_VITE=100;', line('jeuChrono'), line('jeuSpeedPts'), line('jeuValeur'), line('jeuPts')].join('\n'), ctx);
-  assert.ok(app.includes('const JEU_ROUND_MS=180000;') && app.includes('const JEU_PTS_OK=100,JEU_PTS_RANG=[50,30,15],JEU_PTS_VITE=100;'));
+  vm.runInContext(['const JEU_ROUND_MS=600000;', 'const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];', line('jeuChrono'), line('jeuValeur'), line('jeuPts')].join('\n'), ctx);
+  assert.ok(app.includes('const JEU_ROUND_MS=600000;') && app.includes('const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];'));
   const ev = c => JSON.parse(JSON.stringify(vm.runInContext(c, ctx)));
   assert.deepEqual(ev("[0,999,72000,179999].map(jeuChrono)"), ['00:00', '00:00', '01:12', '02:59']);
-  assert.deepEqual(ev('[0,1800,1801,3000,72000,177000,180000,250000].map(jeuSpeedPts)'), [100, 99, 99, 99, 60, 2, 0, 0]);
-  assert.deepEqual(ev('[0,1000,1801,90000,179999,180000,250000].map(jeuValeur)'), [200, 200, 199, 150, 101, 100, 100], '200 à la base, puis ça descend, sans jamais passer sous 100');
-  assert.deepEqual(ev('jeuPts(72000,0,false)'), { ok: 100, rang: 50, vite: 60, pts: 210 });
-  assert.deepEqual(ev('[1,2,3].map(i=>jeuPts(91000,i,false).rang)'), [30, 15, 0], 'au-delà du 3e : pas de bonus de rang');
-  assert.deepEqual(ev('jeuPts(72000,0,true)'), { ok: 100, rang: 0, vite: 60, pts: 160 }, 'seul : la valeur du défi au moment trouvé');
+  assert.deepEqual(ev('[0,59000,60999,61000,120999,121000,180999,181000,240999,241000,300999,301000,420999,421000,599999].map(jeuValeur)'),
+    [200, 200, 200, 175, 175, 150, 150, 125, 125, 100, 100, 75, 75, 50, 50], 'les paliers suivent le chrono affiché : 01:00 vaut encore 200, 01:01 vaut 175');
+  assert.deepEqual(ev('jeuPts(72000,0,false,true)'), { val: 175, essai: 25, rang: 50, pts: 250 });
+  assert.deepEqual(ev('jeuPts(30000,0,false,true)'), { val: 200, essai: 25, rang: 50, pts: 275 }, 'une manche parfaite entre amis : 275');
+  assert.deepEqual(ev('jeuPts(30000,0,true,true)'), { val: 200, essai: 25, rang: 0, pts: 225 }, 'seul : 225 au plus');
+  assert.deepEqual(ev('jeuPts(270000,0,true,false)'), { val: 100, essai: 0, rang: 0, pts: 100 }, '4 à 5 min : encore 100 points');
+  assert.deepEqual(ev('[0,1,2,3,4].map(i=>jeuPts(91000,i,false).rang)'), [50, 30, 20, 10, 0], '5e : +0');
   /* Même temps, même place et même bonus ; à points égaux, le temps total départage */
-  assert.ok(fn('jeuRanking').includes('return rows.map(([pid,ms])=>{const i=rows.findIndex(y=>y[1]===ms);return Object.assign({pid,ms,place:i+1},jeuPts(ms,i,J.solo||r.one));});'), 'seul dans la salle : pas de bonus de rang (retours de 16 h 29)');
+  assert.ok(fn('jeuRanking').includes('return rows.map(([pid,ms])=>{const i=rows.findIndex(y=>y[1]===ms);return Object.assign({pid,ms,place:i+1},jeuPts(ms,i,J.solo||r.one,!!(r.first&&r.first[pid])));});'), 'seul dans la salle : pas de bonus de rang (retours de 16 h 29) ; le premier essai de chacun');
   assert.ok(fn('jeuScores').includes('.sort((a,b)=>b.pts-a.pts||a.ms-b.ms||a.name.localeCompare(b.name));'));
   assert.ok(fn('jeuScores').includes('J.order.forEach(p=>{if(!got.has(p))t[p]=(t[p]||0)+JEU_ROUND_MS;});'), 'une manche non trouvée compte 3 min');
   assert.ok(line('jeuPlaces').includes('if(i===0||x.pts<sc[i-1].pts||x.ms>sc[i-1].ms)place=i+1;'));

@@ -54,12 +54,13 @@ test('pseudos : la même liste dans l’appli et sur le serveur, et les mêmes v
     assert.equal(ev(`jeuPseudoOk(${JSON.stringify(p)})`), false, p);
 });
 
-test('le barème du serveur : 100 à 250 points par manche trouvée entre amis, 200 au plus seul ; une partie ne compte qu’une fois', () => {
+test('le barème du serveur : 50 à 275 points par manche trouvée entre amis, 225 au plus seul ; une partie ne compte qu’une fois', () => {
   const score = sql.slice(sql.lastIndexOf('create or replace function public.jeu_score'));
-  assert.match(score, /v_pts < v_ok \* 100 or v_pts > v_ok \* \(case when v_solo then 200 else 250 end\)/);
+  assert.match(score, /v_pts < v_ok \* 50 or v_pts > v_ok \* \(case when v_solo then 225 else 275 end\)/);
   assert.match(score, /v_n not between 1 and 5/);
   assert.match(score, /on conflict do nothing;\n  if found then/);
-  assert.ok(app.includes('const JEU_PTS_OK=100,JEU_PTS_RANG=[50,30,15],JEU_PTS_VITE=100;'), 'le barème de l’appli (16 h 49) : le défi vaut 200 au départ, + 50 au premier = 250 ; seul 200');
+  assert.ok(app.includes('const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];'),
+    'le barème de l’appli (17 h 39) : 200 en 1 min au plus, + 25 du premier coup = 225 seul, + 50 au premier = 275 ; au moins 50');
   for (const f of ['jeu_score', 'jeu_renommer', 'jeu_classement', 'jeu_signaler', 'jeu_oublier'])
     assert.match(sql, new RegExp(`grant execute on function public\\.${f}\\(`), f);
   for (const t of ['jeu_joueur', 'jeu_partie', 'jeu_signalement']) assert.match(sql, new RegExp(`alter table public\\.${t} enable row level security;`), t);

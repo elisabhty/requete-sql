@@ -263,7 +263,7 @@ test('les fantômes de l’historique ne comptent pas dans la limite et ne sont 
   assert.ok(fresh.every(g => g.view() === 'lobby'));
 });
 
-test('tirage au sort : même défi pour tous, compte à rebours, puis la manche de 3 min', () => {
+test('tirage au sort : même défi pour tous, compte à rebours, puis la manche (10 min au plus)', () => {
   const { w, host, guests, all } = room({ n: 3 });
   host.ev('jeuNextRound()'); sec(w, 0.8);
   const cid = host.J('rounds[0].cid');
@@ -277,33 +277,39 @@ test('tirage au sort : même défi pour tous, compte à rebours, puis la manche 
 });
 
 /* Elisa, 31 octobre, 1 h 34 : « le chrono compte de 00:00 à … pour avoir des points si on réussit en premier par rapport à ses amis
-   + par rapport au temps, qui rajoute des points » ; 16 h 49 : « la rapidité, c’est juste du bonus, on n’enlève pas de points : un
-   nombre de points à la base qui baisse en fonction du temps (par ex. 200 à la base puis ça descend) ». Le défi vaut 200 quand le
-   chrono démarre (et pendant 1,8 s), puis un point de moins toutes les 1,8 s, 100 à 3 min (100 + la part du temps) ; les trois premiers prennent +50, +30, +15. */
-const vite = ms => Math.max(0, Math.min(100, Math.ceil((180000 - ms) / 1800)));
-test('manche : le défi vaut 200 au départ, 100 à 3 min ; +50 / +30 / +15 aux trois premiers ; la manche se termine quand tous ont trouvé', () => {
+   + par rapport au temps » ; 17 h 39 : des paliers — ≤ 1 min 200, 1 à 2 min 175, 2 à 3 min 150, 3 à 4 min 125, 4 à 5 min 100, 5 à
+   7 min 75, 7 min et + 50 ; +25 si réussi du premier essai ; 🥇 +50, 🥈 +30, 🥉 +20, 4e +10, 5e +0. Les paliers suivent le chrono
+   affiché (01:00 vaut encore 200). */
+const valeur = ms => { const s = Math.floor(ms / 1000); for (const [t, p] of [[60, 200], [120, 175], [180, 150], [240, 125], [300, 100], [420, 75]]) if (s <= t) return p; return 50; };
+test('manche : les paliers de temps, +25 du premier coup, +50 / +30 / +20 aux premiers ; la manche se termine quand tous ont trouvé', () => {
   const { w, host, guests } = room({ n: 3 });
   host.ev('jeuNextRound()'); sec(w, 4.5);
-  guests[1].found(); sec(w, 5); host.found(); sec(w, 1);
+  assert.match(guests[0].html, /<i class="jeu-val-b" id="jeu-val-b" title="Si ta première requête est la bonne">\+25<\/i>/, '« +25 » tant que la première requête peut être la bonne');
+  guests[1].found(); sec(w, 5);
+  /* L’hôte se trompe d’abord : il trouve au deuxième essai */
+  host.ed.value = 'SELECT 1'; host.ev('jeuRun()'); assert.equal(host.J('rounds[0].tries'), 1);
+  host.found(); sec(w, 1);
   assert.equal(host.view(), 'play0', 'Ami1 n’a pas encore trouvé : la manche continue');
   assert.match(host.html, /Ami2|✓/);
-  sec(w, 20); guests[0].found(); sec(w, 1);
+  sec(w, 65); guests[0].found(); sec(w, 1);
   for (const c of [host, ...guests]) assert.equal(c.view(), 'res0', c.name);
-  const rk = host.ev('jeuRanking(0).map(x=>({name:JEU.players[x.pid].name,ms:x.ms,ok:x.ok,rang:x.rang,vite:x.vite,pts:x.pts,place:x.place}))');
+  const rk = host.ev('jeuRanking(0).map(x=>({name:JEU.players[x.pid].name,ms:x.ms,val:x.val,essai:x.essai,rang:x.rang,pts:x.pts,place:x.place}))');
   assert.deepEqual(rk.map(x => x.name), ['Ami2', 'Hôte', 'Ami1']);
-  assert.deepEqual(rk.map(x => x.rang), [50, 30, 15], 'le premier à trouver marque le plus');
+  assert.deepEqual(rk.map(x => x.rang), [50, 30, 20], 'le premier à trouver marque le plus');
   assert.deepEqual(rk.map(x => x.place), [1, 2, 3]);
   assert.ok(rk[0].ms < rk[1].ms && rk[1].ms < rk[2].ms, 'du plus rapide au plus lent');
+  assert.deepEqual(rk.map(x => x.val), [200, 200, 175], 'trouvé en moins d’une minute : 200 ; après 1 min : 175');
+  assert.deepEqual(rk.map(x => x.essai), [25, 0, 25], 'l’hôte s’est trompé une fois : pas de +25');
   for (const x of rk) {
-    assert.equal(x.ok, 100, x.name + ' : la réussite');
-    assert.equal(x.vite, vite(x.ms), x.name + ' : la rapidité');
-    assert.equal(x.pts, x.ok + x.rang + x.vite, x.name + ' : le total');
+    assert.equal(x.val, valeur(x.ms), x.name + ' : le palier');
+    assert.equal(x.pts, x.val + x.essai + x.rang, x.name + ' : le total');
   }
-  assert.ok(rk[0].vite > rk[2].vite, 'plus on est rapide, plus la rapidité rapporte');
+  assert.deepEqual(rk.map(x => x.pts), [275, 230, 220]);
   for (const x of rk) assert.ok(host.html.includes(`<small>+${x.pts}</small>`), 'les points gagnés dans le classement : ' + x.pts);
   /* Le détail des points sur sa seule ligne (Elisa, 31 octobre, 16 h 29 : « il y a trop de trucs ») : l’hôte est 2e ; ce que
-     valait le défi quand il l’a trouvé, puis son bonus de 2e (16 h 49 : plus de « rapidité » à part, c’est la valeur du défi) */
-  assert.ok(host.html.includes(`class="jeu-pd"><i>Défi ${rk[1].ok + rk[1].vite}</i><i class="is-rang">2e +30</i></span>`), 'le détail des points');
+     valait le défi quand il l’a trouvé, puis son bonus de 2e */
+  assert.ok(host.html.includes('class="jeu-pd"><i>Défi 200</i><i class="is-rang">2e +30</i></span>'), 'le détail des points');
+  assert.ok(guests[1].html.includes('class="jeu-pd"><i>Défi 200</i><i class="is-essai">1er essai +25</i><i class="is-rang">1er +50</i></span>'), 'du premier coup');
   assert.doesNotMatch(host.html, /rapidité<\/i>/);
   assert.equal((host.html.match(/class="jeu-pd"/g) || []).length, 1, 'seulement sur sa propre ligne');
   assert.match(host.html, /<em>00:\d\d<\/em>/, 'le temps en 00:00');
@@ -471,14 +477,14 @@ test('solo : aucun message réseau, tirage immédiat, points selon la rapidité'
   assert.match(s.html, /Un défi au hasard/);
   sec(w, 3.5); assert.equal(s.view(), 'play0');
   assert.doesNotMatch(s.html, /jeu-players|jeu-reacts/, 'ni liste de joueurs ni réactions');
-  sec(w, 20); s.found(); sec(w, 1);                        /* vers 20 s : 100 + une grosse part de rapidité */
+  sec(w, 20); s.found(); sec(w, 1);                        /* vers 20 s : 200 */
   assert.equal(s.view(), 'res0'); assert.match(s.html, /Ton résultat/);
   s.ev('jeuNextRound()'); sec(w, 4); sec(w, 80); s.found(); sec(w, 1);   /* vers 80 s */
   s.ev('jeuNextRound()'); sec(w, 4); sec(w, 150); s.found(); sec(w, 1);  /* vers 150 s */
   const rk = s.ev('JEU.rounds.map((r,i)=>jeuRanking(i)[0])');
   assert.deepEqual(rk.map(x => x.rang), [0, 0, 0], 'seul : pas de bonus de rang');
-  assert.deepEqual(rk.map(x => x.pts), rk.map(x => 100 + vite(x.ms)), 'seul : 100 + la rapidité');
-  assert.ok(rk[0].pts > rk[1].pts && rk[1].pts > rk[2].pts && rk[2].pts >= 100, 'plus vite, plus de points : ' + rk.map(x => x.pts));
+  assert.deepEqual(rk.map(x => x.pts), rk.map(x => valeur(x.ms) + 25), 'seul : le palier, +25 du premier coup');
+  assert.deepEqual(rk.map(x => x.pts), [225, 200, 175], 'vers 20 s, 80 s et 150 s : 200, 175 et 150, +25');
   s.ev('jeuFinish()'); sec(w, 1);
   assert.equal(s.view(), 'final'); assert.match(s.html, /Tout trouvé/); assert.match(s.html, /Rejouer/);
   assert.equal(s.ev('state.salle.pts'), rk.reduce((a, x) => a + x.pts, 0)); assert.equal(s.ev('state.salle.parties'), 1);
@@ -501,6 +507,23 @@ test('solo : manche abandonnée ou temps écoulé = 0 point, le défi n’est pa
   assert.match(s.html, /Ton bilan/); assert.match(s.html, /0\/1/);
   assert.equal(s.ev('state.salle.pts'), 0);
   assert.equal(s.ev('Object.keys(state.defis).length'), 0);
+});
+
+test('solo : la manche dure 10 min au plus ; trouvée après 7 min, elle rapporte encore 50 (+25 du premier coup)', () => {
+  const w = new World();
+  const s = makeClient(w, 'Seul'); s.ev("jeuNb=2;jeuNiv='m'");
+  s.ev("jeuStart('SOLO44',true,null,{solo:true})"); sec(w, 4);
+  sec(w, 8 * 60);
+  assert.equal(s.view(), 'play0', 'à 8 min, on cherche encore');
+  assert.equal(s.ev('jeuValeur(Date.now()-JEU.rounds[0].t1)'), 50, 'le défi vaut 50 au-delà de 7 min');
+  s.found(); sec(w, 1);
+  assert.equal(s.ev('jeuRanking(0)[0].pts'), 75, '50 + 25');
+  s.ev('jeuNextRound()'); sec(w, 4);
+  sec(w, 9.5 * 60); assert.equal(s.view(), 'play1');
+  sec(w, 31); assert.equal(s.view(), 'res1', 'à 10 min, la manche s’arrête');
+  assert.match(s.html, /Temps écoulé\./);
+  s.ev('jeuFinish()'); sec(w, 1);
+  assert.equal(s.ev('state.salle.pts'), 75);
 });
 
 test('le tirage préfère les défis non réussis, sans jamais bloquer', () => {
@@ -576,7 +599,7 @@ test('salle entre amis sans personne : la partie se joue comme seul (écran, poi
   assert.equal(h.view(), 'res0', 'seul : les résultats tout de suite');
   assert.match(h.html, /Ton résultat/); assert.doesNotMatch(h.html, /Classement de la manche|\(toi\)/);
   const x = h.ev('jeuRanking(0)[0]');
-  assert.equal(x.rang, 0, 'pas de bonus de rang quand on est seul'); assert.equal(x.pts, 100 + x.vite);
+  assert.equal(x.rang, 0, 'pas de bonus de rang quand on est seul'); assert.equal(x.pts, x.val + x.essai); assert.equal(x.essai, 25);
   h.ev('jeuNextRound()'); sec(w, 4.5); h.found(); sec(w, 1);
   h.ev('jeuFinish()'); sec(w, 1.5);
   assert.equal(h.view(), 'final');
@@ -787,19 +810,19 @@ test('égalité en tête : les ex æquo gagnent tous les deux, pas de médaille 
   const places = h.ev('jeuPlaces(jeuScores()).map(x=>x.place)');
   assert.deepEqual(places, [1, 1], 'même temps, mêmes points : deux premiers');
   const rk = h.ev('jeuRanking(0).map(x=>[x.place,x.rang,x.pts])');
-  assert.deepEqual(rk, [[1, 50, 250], [1, 50, 250]], 'le même temps vaut le même bonus de rang (le défi valait encore 200 à 1 s)');
+  assert.deepEqual(rk, [[1, 50, 250], [1, 50, 250]], 'le même temps vaut le même bonus de rang (200 + 50, sans premier essai annoncé)');
   /* Départage : à points égaux, le temps total le plus court passe devant */
   const w3 = new World();
   const a = makeClient(w3, 'Hôte'); a.ev('jeuNb=2'); a.host('TIE002'); sec(w3, 1);
   const b = makeClient(w3, 'Ami'); b.join('TIE002'); sec(w3, 3);
   a.ev('jeuNextRound()'); sec(w3, 4.5);
   /* Manche 1 : l’hôte 1er en 30,001 s, l’ami 2e en 30,5 s ; manche 2 : l’ami 1er en 30,001 s, l’hôte 2e en 30,002 s.
-     Le défi valait 184 à chaque fois : 448 points chacun ; l’hôte a mis moins de temps en tout. */
+     Le défi valait 200 à chaque fois : 480 points chacun ; l’hôte a mis moins de temps en tout. */
   a.ev('jeuSend({t:"found",n:0,ms:30001})'); b.ev('jeuSend({t:"found",n:0,ms:30500})'); sec(w3, 2);
   a.ev('jeuNextRound()'); sec(w3, 4.5);
   b.ev('jeuSend({t:"found",n:1,ms:30001})'); a.ev('jeuSend({t:"found",n:1,ms:30002})'); sec(w3, 2);
   const sc = a.ev('jeuPlaces(jeuScores()).map(x=>[x.name,x.pts,x.place])');
-  assert.deepEqual(sc, [['Hôte', 448, 1], ['Ami', 448, 2]], 'à points égaux, le temps total le plus court passe devant');
+  assert.deepEqual(sc, [['Hôte', 480, 1], ['Ami', 480, 2]], 'à points égaux, le temps total le plus court passe devant');
   a.ev('jeuFinish()'); sec(w3, 1.5);
   assert.match(a.html, /jeu-tie/, 'le podium explique le départage');
 });
