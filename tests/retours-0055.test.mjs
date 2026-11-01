@@ -18,16 +18,35 @@ const DEFIS = JSON.parse(JSON.stringify(ctx.CHALLENGES));
 const aero = cut("aeroport:{nom:'Aéroport',", '\n`}');
 const base = () => { const d = new SQL.Database(); d.run(aero.slice(aero.indexOf('sql:`') + 5)); return d; };
 
-test('les défis sont ceux de la base Aéroport : 33 Facile et 9 Moyen, chacun avec sa situation, sa mission, son indice', () => {
-  /* 8 h 39 : le lot Facile n° 2 (af11 à af23) ; 8 h 47 : le lot n° 3 (af24 à af32) ; 8 h 59 : af33 et le lot Moyen (am1 à am9) */
-  assert.equal(DEFIS.length, 42);
-  assert.deepEqual(DEFIS.map(c => c.id), [...Array.from({ length: 33 }, (_, i) => 'af' + (i + 1)), ...Array.from({ length: 9 }, (_, i) => 'am' + (i + 1))]);
+test('les défis sont ceux de la base Aéroport : 33 Facile, 9 Moyen et 10 Difficile', () => {
+  assert.equal(DEFIS.length, 52);
+  assert.deepEqual(DEFIS.map(c => c.id), [...Array.from({ length: 33 }, (_, i) => 'af' + (i + 1)), ...Array.from({ length: 9 }, (_, i) => 'am' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'ad' + (i + 1))]);
   for (const c of DEFIS) {
-    assert.equal(c.base, 'aeroport', c.id); assert.equal(c.niv, c.id.startsWith('am') ? 'm' : 'f', c.id);
+    assert.equal(c.base, 'aeroport', c.id); assert.equal(c.niv, c.id.startsWith('af') ? 'f' : c.id.startsWith('am') ? 'm' : 'd', c.id);
     assert.ok(c.contexte && c.q && c.indice && c.sol && c.titre && Number.isInteger(c.apres), c.id);
   }
   assert.ok(!/\b(clients|commandes|produits)\b/.test(DEFIS.map(c => c.sol).join(' ')), 'plus rien sur la base du cours');
   assert.ok(app.includes('const CHALLENGE_GUIDES={};'));
+});
+
+test('lot Difficile : les dix requêtes utilisent les notions annoncées et leurs résultats correspondent à Aéroport', () => {
+  const hard = DEFIS.filter(c => c.niv === 'd');
+  assert.equal(hard.length, 10);
+  const d = base();
+  const rows = id => d.exec(DEFIS.find(c => c.id === id).sol)[0].values;
+  assert.deepEqual(rows('ad1').slice(0, 3), [['AlphaJet', 26], ['SkyWings', 18], ['AtlanticGo', 14]]);
+  assert.deepEqual(rows('ad2').slice(0, 5), [['Lisbonne', 36, 1], ['Paris', 31, 2], ['Londres', 17, 3], ['New York', 12, 4], ['Berlin', 11, 5]]);
+  assert.equal(rows('ad3').length, 22, 'la moyenne inclut les passagers sans réservation à 0 €');
+  assert.deepEqual(rows('ad3')[0], ['John', 'Miller', 4016, 3372.96]);
+  assert.deepEqual(rows('ad4').slice(0, 3), [['NVA302', 144, 10, 6.9], ['ALX105', 180, 11, 6.1], ['SKY203', 180, 10, 5.6]]);
+  assert.deepEqual(rows('ad5').slice(0, 3), [['ALX104', 2920, 1], ['ALX105', 1989, 2], ['ALX100', 830, 3]]);
+  assert.deepEqual(rows('ad6')[0], [1, 'ATG500', '2025-05-18', 420, null, null]);
+  assert.equal(rows('ad7').length, 18);
+  assert.equal(rows('ad8').length, 10);
+  assert.deepEqual(rows('ad10'), [['Diego', 'Ramirez', 'BLH401', 2]]);
+  const aff = rows('ad9').filter(r => r[0] === 'BlueHorizon');
+  assert.deepEqual(aff, [['BlueHorizon', 'Économique', 1965, 1], ['BlueHorizon', 'Premium', 1941, 2], ['BlueHorizon', 'Affaires', 760, 3]]);
+  d.close();
 });
 
 test('chaque solution s’exécute sur Aéroport, et un défi trié n’a pas d’égalité qui rendrait l’ordre ambigu', () => {
