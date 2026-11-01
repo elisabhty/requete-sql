@@ -228,11 +228,12 @@ const {A, B} = SCH;
 /* Le mail reçu : [qui (prénom, nom, initiales), sujet (couleur), étiquette, adresse, demande (ses paragraphes), signature].
    Karim, le développeur, écrit par mail, comme aux chapitres 4 et 6. Le scénario est celui d’Elisa (30 octobre : la base devient difficile
    à gérer, tout est mélangé ; ranger la base sans supprimer ni recréer les tables), transposé aux deux équipes de NutriBoost, la boutique et
-   les ateliers. Ses retours à la ligne sont posés à la main pour le texte en 42 px. */
+   les ateliers. Le texte va à la ligne de lui-même, sur toute la largeur du mail (Elisa, 1er novembre, 21 h 21 : « améliorer le formatage
+   du mail » : les retours posés à la main laissaient des lignes courtes). */
 const MAILS = [
   [['Karim', 'Benali', 'KB'], 'k-dv', 'développeur', 'karim@nutriboost.fr', [
-    'La base grandit, et les tables<br>de la boutique et des ateliers<br>sont toutes mélangées.',
-    'Peux-tu les ranger en deux espaces,<br>sans supprimer ni recréer<br>aucune table ?'], 'Karim']
+    'La base grandit, et les tables de la boutique et des ateliers sont toutes mélangées.',
+    'Peux-tu les ranger en deux espaces, sans supprimer ni recréer aucune table ?'], 'Karim']
 ];
 const mailSms = n => /^client/.test(MAILS[n][2]) || !!(MAILS[n][6] || {}).sms;
 const mailRows = n => mailSms(n) ? 2 + [].concat(MAILS[n][4]).flatMap(p => p.split(/(?<=[.!?])\s+(?=[A-ZÀÂÉÈÊÎÔÛÇ])/)).length
@@ -248,7 +249,7 @@ cap('c2', "Huit tables restent,<br>toutes dans le même espace.", 3.0);
 const MAIL1 = mailBlock(0);
 /* 2 · Deux espaces */
 chap({label:'Deux espaces'});
-cap('c3', "Deux équipes se partagent la base :<br>la boutique et les ateliers.", 3.6);
+cap('c3', "La base est organisée en deux espaces :<br>la boutique et les ateliers.", 3.6);
 toi('p1');
 cap('c4', "Clients, commandes, produits<br>et fidélité vont avec la boutique.", 3.8);
 cap('c5', "Coachs, ateliers, inscriptions<br>et cartes vont avec les ateliers.", 3.8);
@@ -264,12 +265,12 @@ chap({label:'Une adresse'});
 cap('c10', "Une développeuse a besoin<br>des commandes de la boutique.", 3.4);
 cap('c11', "<code>boutique.commandes</code> se lit comme<br>une adresse : le schéma,<br>puis la table.", 4.6);
 toi('p3');
-cap('c12', "Les inscriptions sont rangées<br>dans le schéma <code>bienetre</code>.", 3.6);
+cap('c12', "Les inscriptions sont rangées<br>dans le schéma <code>bien_etre</code>.", 3.6);
 /* 5 · Le même nom */
 chap({label:'Le même nom'});
 cap('c13', "L’équipe des ateliers crée<br>sa propre table <code>clients</code>.", 3.6);
 toi('p4');
-cap('c14', "<code>boutique.clients</code> et <code>bienetre.clients</code><br>sont deux tables différentes.", 4.4);
+cap('c14', "<code>boutique.clients</code><br>et <code>bien_etre.clients</code><br>sont deux tables différentes.", 4.4);
 /* 6 · Les requêtes à réparer */
 chap({label:'Les requêtes à réparer'});
 cap('c15', "Trois requêtes ont perdu<br>leur schéma.", 2.8);
@@ -309,7 +310,7 @@ const TB = [
   ['xl', 'k-xl', '📄', 'inscriptions_excel', '']
 ];
 /* Les deux schémas : [clé, nom, emoji, couleur, l’équipe]. */
-const ESPACES = [['b', 'boutique', '🛒', 'k-sb', 'la boutique'], ['a', 'bienetre', '🧘', 'k-sa', 'les ateliers']];
+const ESPACES = [['b', 'boutique', '🛒', 'k-sb', 'la boutique'], ['a', 'bien_etre', '🧘', 'k-sa', 'les ateliers']];
 const TABLES = TB.filter(t => t[4]);
 /* Moment 1 : chaque table, l’espace où la ranger, et pourquoi. */
 const POURQUOI = {
@@ -324,32 +325,32 @@ const POURQUOI = {
 };
 /* Moment 5 : les trois requêtes qui ont perdu leur schéma [requête, espace, pourquoi]. */
 const REQUETES = [
-  ['SELECT * FROM ___.cartes;', 'a', 'Les cartes de membre comptent les séances d’ateliers : elles sont rangées dans le schéma <code>bienetre</code>.'],
+  ['SELECT * FROM ___.cartes;', 'a', 'Les cartes de membre comptent les séances d’ateliers : elles sont rangées dans le schéma <code>bien_etre</code>.'],
   ['SELECT * FROM ___.fidelite;', 'b', 'Les points de fidélité récompensent les achats : ils sont rangés dans le schéma <code>boutique</code>.'],
-  ['SELECT * FROM ___.coachs;', 'a', 'Les coachs animent les ateliers : leur table est rangée dans le schéma <code>bienetre</code>.']
+  ['SELECT * FROM ___.coachs;', 'a', 'Les coachs animent les ateliers : leur table est rangée dans le schéma <code>bien_etre</code>.']
 ];
 
 /* Les six moments « À toi » : l’image s’arrête, l’élève range ou choisit ; la page montre aussitôt le résultat.
    from : début du passage qui amène chaque moment, d’où repartent « ↺ Revoir » et « Rejouer ». */
 const atp = k => +(A[k] + 2.35).toFixed(2);
 const PICKS = [
-  {at: atp('p1'), from: A.c3, kind: 'sort', prompt: 'Range chaque table dans l’espace de son équipe.',
+  {at: atp('p1'), from: A.c3, kind: 'sort', prompt: 'Range chaque table dans son espace.',
     hint: 'Sélectionne une table, puis appuie sur l’espace qui convient. Tu peux aussi la faire glisser directement.', next: '« {x} » : la boutique, ou les ateliers ?',
     options: TABLES.map(t => ({label: t[3]}))},
   {at: atp('p2'), from: A.c6, kind: 'pick', text: true, prompt: 'Quelle requête crée l’espace des ateliers ?', options: [
-    {label: 'CREATE TABLE bienetre;', why: '<code>CREATE TABLE</code> crée une table, avec ses colonnes ; un espace qui regroupe des tables est un schéma.'},
-    {label: 'CREATE SCHEMA bienetre;', ok: true},
-    {label: 'CREATE DATABASE bienetre;', why: '<code>CREATE DATABASE</code> créerait une autre base, séparée : les tables des ateliers doivent rester dans la base NutriBoost.'}]},
+    {label: 'CREATE TABLE bien_etre;', why: '<code>CREATE TABLE</code> crée une table, avec ses colonnes ; un espace qui regroupe des tables est un schéma.'},
+    {label: 'CREATE SCHEMA bien_etre;', ok: true},
+    {label: 'CREATE DATABASE bien_etre;', why: '<code>CREATE DATABASE</code> créerait une autre base, séparée : les tables des ateliers doivent rester dans la base NutriBoost.'}]},
   {at: atp('p3'), from: A.c10, kind: 'pick', text: true, prompt: 'Quelle adresse désigne la table des inscriptions ?', options: [
-    {label: 'boutique.inscriptions', why: 'Les inscriptions aux ateliers sont rangées dans le schéma <code>bienetre</code>, pas dans celui de la boutique.'},
-    {label: 'bienetre.inscriptions', ok: true},
-    {label: 'inscriptions.bienetre', why: 'Une adresse commence par le schéma, puis donne la table : <code>schéma.table</code>.'}]},
+    {label: 'boutique.inscriptions', why: 'Les inscriptions aux ateliers sont rangées dans le schéma <code>bien_etre</code>, pas dans celui de la boutique.'},
+    {label: 'bien_etre.inscriptions', ok: true},
+    {label: 'inscriptions.bien_etre', why: 'Une adresse commence par le schéma, puis donne la table : <code>schéma.table</code>.'}]},
   {at: atp('p4'), from: A.c13, kind: 'pick', text: true, prompt: 'Deux tables clients, dans deux schémas : est-ce un problème ?', options: [
     {label: 'Oui, la seconde remplace la première', why: 'Chaque table reste dans son schéma : la <b>table&nbsp;clients</b> de la boutique n’est pas touchée.'},
     {label: 'Non, leur schéma les distingue', ok: true},
-    {label: 'Oui, il faut renommer l’une des deux', why: 'Leur adresse complète les distingue déjà : <code>boutique.clients</code> et <code>bienetre.clients</code> ne se confondent pas.'}]},
+    {label: 'Oui, il faut renommer l’une des deux', why: 'Leur adresse complète les distingue déjà : <code>boutique.clients</code> et <code>bien_etre.clients</code> ne se confondent pas.'}]},
   {at: atp('p5'), from: A.c15, kind: 'sort', prompt: 'Range chaque requête avec le schéma qui lui manque.',
-    hint: 'Sélectionne une requête, puis appuie sur le schéma qui convient. Tu peux aussi la faire glisser directement.', next: '« {x} » : boutique, ou bienetre ?',
+    hint: 'Sélectionne une requête, puis appuie sur le schéma qui convient. Tu peux aussi la faire glisser directement.', next: '« {x} » : boutique, ou bien_etre ?',
     options: REQUETES.map(x => ({label: x[0]}))},
   {at: atp('p6'), from: A.c18, kind: 'pick', text: true, prompt: 'Dans SQLite, quelle requête lit la table clients en précisant son schéma ?', options: [
     {label: 'SELECT * FROM boutique.clients;', why: 'SQLite ne connaît pas de schéma <code>boutique</code> : la requête est refusée, la table est introuvable.'},
@@ -392,11 +393,11 @@ function dom(){
     `<div class="cs">${TABLES.map((t, i) => t[4] === k ? `<div class="rc" id="sbu${i}">${t[3]}</div>` : '').join('')}</div></div>`).join('') +
     '<div class="abs pack" id="bpack" style="top:820px"><span><span class="emo">🗂️</span>8 tables à ranger</span></div>';
   /* Les schémas : leur création ; les deux dossiers et leurs tables ; le rangement d’une table ; les adresses ; le même nom */
-  let c = editor('es', 'schemas.sql', [['es0', '-- Créer les deux espaces'], ['es1', '{ks1|CREATE SCHEMA} boutique;'], ['es2', '{ks2|CREATE SCHEMA} bienetre;']],
-    hole('hole2', 2) + alt('es2b', 'CREATE TABLE bienetre;', 2) + alt('es2c', 'CREATE DATABASE bienetre;', 2));
-  c += editor('eq', 'adresses.sql', [['eq0', '-- Lire une table avec son adresse'], ['eq1', 'SELECT * FROM {aq1|boutique.commandes};'], ['eq2', 'SELECT * FROM {aq2|bienetre.inscriptions};']],
-    hole('hole3', 2) + alt('eq2b', 'SELECT * FROM boutique.inscriptions;', 2) + alt('eq2c', 'SELECT * FROM inscriptions.bienetre;', 2));
-  c += editor('en', 'deux-clients.sql', [['en0', '-- Deux tables, deux adresses'], ['en1', 'SELECT * FROM {an1|boutique.clients};'], ['en2', 'SELECT * FROM {an2|bienetre.clients};']]);
+  let c = editor('es', 'schemas.sql', [['es0', '-- Créer les deux espaces'], ['es1', '{ks1|CREATE SCHEMA} boutique;'], ['es2', '{ks2|CREATE SCHEMA} bien_etre;']],
+    hole('hole2', 2) + alt('es2b', 'CREATE TABLE bien_etre;', 2) + alt('es2c', 'CREATE DATABASE bien_etre;', 2));
+  c += editor('eq', 'adresses.sql', [['eq0', '-- Lire une table avec son adresse'], ['eq1', 'SELECT * FROM {aq1|boutique.commandes};'], ['eq2', 'SELECT * FROM {aq2|bien_etre.inscriptions};']],
+    hole('hole3', 2) + alt('eq2b', 'SELECT * FROM boutique.inscriptions;', 2) + alt('eq2c', 'SELECT * FROM inscriptions.bien_etre;', 2));
+  c += editor('en', 'deux-clients.sql', [['en0', '-- Deux tables, deux adresses'], ['en1', 'SELECT * FROM {an1|boutique.clients};'], ['en2', 'SELECT * FROM {an2|bien_etre.clients};']]);
   c += `<div class="abs card fv" id="fv"><div class="bh"><span class="emo">🗄️</span><span>Base NutriBoost</span><span class="bn"><span>2 schémas</span></span></div><div class="cols">` +
     ESPACES.map(([k, n, emo, kc]) => `<div class="fd ${kc}" id="fd-${k}"><div class="fh"><span class="emo">${emo}</span><span id="fn-${k}">${n}</span><i class="tg">schéma</i></div>` +
       TABLES.filter(t => t[4] === k).map(([tk, , temo, name]) => ft(`f-${tk}`, temo, name)).join('') +
@@ -498,8 +499,8 @@ function fingerTap(M, T){
 
 /* Réponses des moments « À toi » : ce que la timeline montre juste après l’arrêt (et que l’aperçu montre pendant l’arrêt). */
 const M1_ANS = ['#sd .dbn .rc'];
-const M2_ANS = ['#es2'], M2_HIDE = ['#hole2'];                          // CREATE SCHEMA bienetre;
-const M3_ANS = ['#eq2', '#f-in .hl'], M3_HIDE = ['#hole3'];             // bienetre.inscriptions
+const M2_ANS = ['#es2'], M2_HIDE = ['#hole2'];                          // CREATE SCHEMA bien_etre;
+const M3_ANS = ['#eq2', '#f-in .hl'], M3_HIDE = ['#hole3'];             // bien_etre.inscriptions
 const M4_ANS = ['#f-cl .hl', '#f-cl2 .hl'];                             // deux tables clients, chacune dans son dossier
 const M5_ANS = ['#st .dbn .rc'];
 const M6_ANS = ['#el1', '#o-lite'], M6_HIDE = ['#hole6'];               // main.clients
@@ -567,7 +568,7 @@ function build(){
   sqType('es1', A.c7 + 0.6, 26);
   pulse('#ks1', A.c7 + 1.8, 1, GLOW); bump('#fn-b', A.c7 + 1.8, 1.12); cue(A.c7 + 1.8, 'tick', 0.5, 2);
   on('#hole2', A.c7 + 2.6, 0.3); cue(A.c7 + 2.6, 'tick', 0.5, 3);
-  // À toi : la seconde (réponse : CREATE SCHEMA bienetre;)
+  // À toi : la seconde (réponse : CREATE SCHEMA bien_etre;)
   tl.set(M2_ANS, {autoAlpha: 1}, set2(PICKS[1].at));
   tl.set(M2_HIDE, {autoAlpha: 0}, set2(PICKS[1].at));
   // les deux schémas, vides ; ALTER TABLE … SET SCHEMA : chaque table rejoint son dossier
@@ -587,14 +588,14 @@ function build(){
   bump('#adr .t', A.c11 + 3.0, 1.08); cue(A.c11 + 3.0, 'tick', 0.5, 4);
   on('#hole3', A.c11 + 3.6, 0.3);
   off('#f-cm .hl', A.p3 + 0.1, 0.3);
-  // À toi : l’adresse des inscriptions (réponse : bienetre.inscriptions)
+  // À toi : l’adresse des inscriptions (réponse : bien_etre.inscriptions)
   tl.set(M3_ANS, {autoAlpha: 1}, set2(PICKS[2].at));
   tl.set(M3_HIDE, {autoAlpha: 0}, set2(PICKS[2].at));
   pulse('#aq2', A.c12 + 0.4, 1, GLOW); cue(A.c12 + 0.4, 'tick', 0.5, 3);
   off(['#f-in .hl', '#adr'], B.c12 - 0.1, 0.3);
 
   /* ===== 5 · Le même nom ===== */
-  // l’équipe des ateliers crée sa propre table clients : elle arrive dans le dossier bienetre
+  // l’équipe des ateliers crée sa propre table clients : elle arrive dans le dossier bien_etre
   hide('#eq', A.c13, {y: -20}, 0.3);
   tl.fromTo('#f-cl2', {autoAlpha: 0, x: -30, scale: 0.9}, {autoAlpha: 1, x: 0, scale: 1, duration: 0.45, ease: 'back.out(1.8)', immediateRender: false}, A.c13 + 1.4);
   cue(A.c13 + 1.4, 'pop', 0.6, 3);

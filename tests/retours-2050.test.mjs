@@ -31,5 +31,5 @@ test('réf. 3 : les zones où l’on range les étiquettes sont blanches, plus g
 });
 
 test('le badge « Votre formatrice » : centré en bas du portrait, sans descendre vers le lecteur (21 h 04)', () => {
-  assert.ok(anim('bases-relationnelles.html').includes('#cap .cap-stk::after{content:"Votre formatrice";position:absolute;left:50%;bottom:10px;top:auto;translate:-50% 0;'));
+  assert.ok(anim('bases-relationnelles.html').includes('#cap .cap-stk::after{content:"Votre formatrice";position:absolute;left:50%;bottom:-6px;top:auto;translate:-50% 0;'));
 });
