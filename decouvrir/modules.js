@@ -51,14 +51,14 @@ window.MODULES=[
       ["AND et OR", "Combiner plusieurs conditions", 143],
       ["NOT", "Exclure selon une condition", 150],
       ["NULL", "La valeur absente", 124],
-      ["LIKE", "Chercher un motif", 169],
+      ["LIKE", "Chercher un motif", 170],
       ["IN", "Filtrer avec une liste", 143],
       ["BETWEEN", "Filtrer un intervalle", 149],
-      ["ORDER BY", "Ordonner le résultat", 130],
+      ["ORDER BY", "Ordonner le résultat", 131],
       ["LIMIT et OFFSET", "Limiter le résultat et le découper en pages", 217]
     ]},
     {titre:"Fonctions et expressions", sous:"Transformer les valeurs ligne par ligne", lecons:[
-      ["Fonctions de texte", "Transformer, nettoyer et découper du texte", 201],
+      ["Fonctions de texte", "Transformer, nettoyer et découper du texte", 203],
       ["Fonctions numériques", "Calculer, arrondir et manipuler des nombres", 151],
       ["Fonctions de dates et heures", "Obtenir, extraire et calculer avec une date", 149],
       ["Fonctions de conversion de types", "Passer d’un type à un autre", 162],
@@ -66,9 +66,9 @@ window.MODULES=[
       ["COALESCE", "Remplacer les valeurs absentes", 149]
     ]},
     {titre:"Agrégats et regroupements", sous:"Calculer, regrouper et agréger", lecons:[
-      ["COUNT", "Compter les lignes", 138],
-      ["SUM, AVG, MIN et MAX", "Somme, moyenne, minimum et maximum", 152],
-      ["GROUP BY", "Un calcul par groupe", 139],
+      ["COUNT", "Compter les lignes", 139],
+      ["SUM, AVG, MIN et MAX", "Somme, moyenne, minimum et maximum", 153],
+      ["GROUP BY", "Un calcul par groupe", 141],
       ["HAVING", "Filtrer après regroupement", 145],
       ["GROUP_CONCAT", "Rassembler les textes d’un groupe", 164]
     ]},
@@ -80,18 +80,18 @@ window.MODULES=[
       ["CROSS JOIN", "Créer toutes les combinaisons", 156],
       ["Jointure de 3 tables", "Relier toute l’histoire", 214],
       ["JOIN + GROUP BY", "Compter les commandes par ville", 166],
-      ["SELF JOIN", "Retrouver les clients qui habitent dans la même ville", 172],
+      ["SELF JOIN", "Retrouver les clients qui habitent dans la même ville", 173],
       ["Plusieurs conditions dans ON", "Relier seulement les produits encore en stock", 195],
       ["Quel JOIN choisir ?", "Choisir la bonne jointure selon les lignes à garder", 202]
     ]},
     {titre:"Sous-requêtes et ensembles", sous:"IN, EXISTS, CTE et UNION", lecons:[
       ["Sous-requête dans WHERE avec IN", "Quels clients ont déjà commandé du Magnésium ?", 236],
       ["Sous-requête dans SELECT", "Calculer une valeur pour chaque ligne", 204],
-      ["Sous-requête dans FROM", "Utiliser une sous-requête comme table", 195],
+      ["Sous-requête dans FROM", "Utiliser une sous-requête comme table", 197],
       ["EXISTS et NOT EXISTS", "Tester la présence ou l’absence d’une ligne liée", 223],
-      ["WITH (CTE)", "Créer et réutiliser un résultat intermédiaire", 220],
+      ["WITH (CTE)", "Créer et réutiliser un résultat intermédiaire", 222],
       ["UNION et UNION ALL", "Empiler deux résultats, avec ou sans doublons", 219],
-      ["INTERSECT et EXCEPT", "Comparer deux résultats", 178],
+      ["INTERSECT et EXCEPT", "Comparer deux résultats", 179],
       ["WITH RECURSIVE (CTE RECURSIVE)", "Créer une suite automatiquement", 199]
     ]},
     {titre:"Fonctions de fenêtre", sous:"Calculer sans regrouper les lignes", lecons:[
@@ -117,17 +117,17 @@ window.MODULES=[
       ["MERGE", "Synchroniser deux tables", 190],
       ["DELETE", "Supprimer des lignes", 182]
     ]},
-    {titre:"Contraintes et intégrité", sous:"Les règles que les données doivent respecter", lecons:[
+    {titre:"Intégrité des tables liées", sous:"Ce que deviennent les lignes liées", lecons:[
       ["ON DELETE", "Décider du sort des lignes liées", 248]
     ]},
-    {titre:"Transactions", sous:"Tout valider ou tout annuler", lecons:[
+    {titre:"Transactions et concurrence", sous:"Tout valider, tout annuler, sans conflit", lecons:[
       ["Transactions", "Valider les modifications ensemble", 260],
-      ["SAVEPOINT", "Annuler une partie des modifications", 254]
-    ]},
-    {titre:"Triggers et concurrence", sous:"Automatiser et isoler les écritures", lecons:[
-      ["Procédures et fonctions stockées", "Réutiliser un traitement ou un calcul", 188],
-      ["Les triggers", "Déclencher une action automatiquement", 248],
+      ["SAVEPOINT", "Annuler une partie des modifications", 254],
       ["Concurrence et isolation", "Gérer les accès simultanés", 250]
+    ]},
+    {titre:"Procédures et triggers", sous:"Automatiser les traitements", lecons:[
+      ["Procédures et fonctions stockées", "Réutiliser un traitement ou un calcul", 188],
+      ["Les triggers", "Déclencher une action automatiquement", 248]
     ]},
     {titre:"Vues, index et optimisation", sous:"Structurer et accélérer", lecons:[
       ["CREATE VIEW", "Enregistrer une requête sous un nom", 233],

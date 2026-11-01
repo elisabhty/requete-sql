@@ -6,13 +6,13 @@ import test from 'node:test';
 
 const anim = f => fs.readFileSync(new URL('../assets/anim/' + f, import.meta.url), 'utf8');
 const ORDRE = ['normaliser', 'cles', 'uml', 'create', 'alter', 'drop', 'schemas', 'insert', 'update', 'merge', 'delete', 'ondelete',
-  'transaction', 'savepoint', 'procedures', 'trigger', 'concurrence', 'vue', 'index', 'droits'];
+  'transaction', 'savepoint', 'concurrence', 'procedures', 'trigger', 'vue', 'index', 'droits'];
 
 test('projet : chaque vidéo rappelle la leçon d’avant et annonce la leçon d’après, avec les mêmes mots', () => {
   /* Elisa, 1er novembre, 21 h 30 : l’app montre des modules et des leçons, pas de « chapitre N » : « Dans la leçon précédente, … »,
      « Depuis le début du module 8, … » (le projet commence au module 8), et l’écran titre dit le module de la leçon. */
   const MODULE = {normaliser: 8, cles: 8, uml: 8, create: 9, alter: 9, drop: 9, schemas: 9, insert: 10, update: 10, merge: 10, delete: 10, ondelete: 11,
-    transaction: 12, savepoint: 12, procedures: 13, trigger: 13, concurrence: 13, vue: 14, index: 14, droits: 15};
+    transaction: 12, savepoint: 12, procedures: 13, trigger: 13, concurrence: 12, vue: 14, index: 14, droits: 15};
   ORDRE.forEach((c, k) => {
     const s = anim(`projet-${c}.html`), n = k + 1;
     if (n > 1) assert.ok(s.includes('"Dans la leçon précédente, '), `${c} : « Dans la leçon précédente »`);

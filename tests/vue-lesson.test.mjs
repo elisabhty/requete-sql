@@ -88,7 +88,7 @@ test('CREATE VIEW : juste après Concurrence et isolation, en tête du module «
   const m = modules.find(x => x.titre === 'Vues, index et optimisation');
   assert.deepEqual([...m.lessons.map(l => l.id)].slice(0, 2), [64, 57], 'CREATE VIEW, puis Les index et EXPLAIN');
   const liste = lessons.map(l => l.id);
-  assert.equal(liste.indexOf(64), liste.indexOf(71) + 1, 'juste après Concurrence et isolation');
+  assert.equal(liste.indexOf(64), liste.indexOf(70) + 1, 'juste après Les triggers (Elisa, 1er novembre, 23 h 07 : Concurrence et isolation rejoint les transactions)');
   assert.equal(l64.titre, 'CREATE VIEW');
   assert.equal(l64.résumé, 'Enregistrer une requête sous un nom');
 });
@@ -108,9 +108,9 @@ test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', ()
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 211.54);
-  assert.ok(page.includes('notesAt: 211.54,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 218.74);
+  assert.equal(val('NOTES'), 211.24);
+  assert.ok(page.includes('notesAt: 211.24,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 218.44);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   /* La trame d’Elisa : la box et le message de Camille, le catalogue, la vue créée puis consultée, le changement de sélection, les droits ;
@@ -297,9 +297,9 @@ test('chapitre 18 : écran titre, ouverture comme aux autres chapitres, la box s
     && page.includes('<div class="abs sub">Enregistrer une requête sous un nom</div>'), 'écran titre : « Projet · Module 14 », CREATE VIEW, « Enregistrer une requête sous un nom »');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.');
-  assert.equal(caps[1], 'Dans la leçon précédente, un verrou<br>a gardé la dernière place<br>pour une seule réservation.', 'le chapitre précédent');
-  const cc = fs.readFileSync(path.join(root, 'assets/anim/projet-concurrence.html'), 'utf8');
-  assert.ok(cc.includes('les vues : des requêtes enregistrées') && cc.includes('Prochaine leçon · CREATE VIEW</span>'), 'le chapitre 17 annonce celui-ci');
+  assert.equal(caps[1], 'Dans la leçon précédente, un trigger<br>t’a permis de garder<br>chaque changement de prix.', 'la leçon précédente');
+  const cc = fs.readFileSync(path.join(root, 'assets/anim/projet-trigger.html'), 'utf8');
+  assert.ok(cc.includes('les vues : des requêtes enregistrées') && cc.includes('Prochaine leçon · CREATE VIEW</span>'), 'Les triggers annoncent celle-ci');
   assert.ok(caps.includes('Dans la prochaine leçon,<br>la file des commandes à préparer<br>s’allongera.') && page.includes('Prochaine leçon · Les index et EXPLAIN</span>'),
     'annonce de la prochaine leçon');
   assert.equal(lessons[lessons.findIndex(l => l.id === 64) + 1].titre, 'Les index et EXPLAIN');

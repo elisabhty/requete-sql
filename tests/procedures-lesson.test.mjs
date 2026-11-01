@@ -1,7 +1,7 @@
 /* Projet NutriBoost, chapitre 15 (leçon 83 « Procédures et fonctions stockées ») : la vidéo interactive assets/anim/projet-procedures.html,
    testée aussi dans lesson-video.test.mjs. Ajoutée le 30 octobre (le scénario d’Elisa : 18 h 02, les commandes affluent ; une action ou un
    calcul ; la procédure expedier_commande et son paramètre ; la fonction calculer_points, 1 € dépensé = 2 points ; le duel ; les quatre
-   tickets). Premier cours du module « Triggers et concurrence », juste avant Les triggers. Leçon seule.
+   tickets). Premier cours du module « Procédures et triggers », juste avant Les triggers (depuis le 1er novembre, juste après Concurrence et isolation). Leçon seule.
    SQLite, la base de l’app, n’a ni procédure ni fonction stockée : ce que la vidéo affirme est rejoué ici avec la requête qu’elles enregistrent. */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -53,7 +53,11 @@ function base() {
       quantite INTEGER NOT NULL, personnalisation TEXT NOT NULL);
     INSERT INTO remplacements VALUES (1, 7, 8, 1, 'Léa'); UPDATE produits SET stock = stock - 1 WHERE id = 8;
     CREATE TABLE cadeaux (id INTEGER PRIMARY KEY, client_id INTEGER NOT NULL REFERENCES clients(id), produit_id INTEGER NOT NULL REFERENCES produits(id), quantite INTEGER NOT NULL);
-    INSERT INTO cadeaux (client_id, produit_id, quantite) VALUES (7, 6, 1); UPDATE produits SET stock = stock - 1 WHERE id = 6;`);
+    INSERT INTO cadeaux (client_id, produit_id, quantite) VALUES (7, 6, 1); UPDATE produits SET stock = stock - 1 WHERE id = 6;
+    /* Concurrence et isolation (depuis le 1er novembre, juste après SAVEPOINT) : l’atelier 6, Cuisine saine du 14 novembre, et la place de Léa Simon. */
+    ALTER TABLE ateliers ADD COLUMN places_restantes INTEGER;
+    INSERT INTO ateliers VALUES (6, 'Cuisine saine', '2026-11-14', 3, 8, 1);
+    INSERT INTO inscriptions (client_id, atelier_id, date_inscription) VALUES (7, 6, '2026-10-25'); UPDATE ateliers SET places_restantes = places_restantes - 1 WHERE id = 6;`);
   return db;
 }
 const count = (db, t) => db.exec(`SELECT COUNT(*) FROM ${t}`)[0].values[0][0];
@@ -61,11 +65,11 @@ const statuts = db => db.exec('SELECT id, statut FROM commandes WHERE id >= 11 O
 /* La procédure, telle que la vidéo l’enregistre : l’UPDATE de l’équipe, l’identifiant de la commande en paramètre. */
 const expedier = (db, id) => { db.run("UPDATE commandes SET statut = 'expédiée' WHERE id = ?;", [id]); return db.getRowsModified(); };
 
-test('Procédures et fonctions stockées : premier cours du module « Triggers et concurrence », juste après SAVEPOINT et juste avant Les triggers', () => {
-  const m = modules.find(x => x.titre === 'Triggers et concurrence');
-  assert.deepEqual([...m.lessons.map(l => l.id)], [83, 70, 71]);
+test('Procédures et fonctions stockées : premier cours du module « Procédures et triggers », juste après Concurrence et isolation et juste avant Les triggers (Elisa, 1er novembre, 23 h 07 : Concurrence et isolation rejoint les transactions)', () => {
+  const m = modules.find(x => x.titre === 'Procédures et triggers');
+  assert.deepEqual([...m.lessons.map(l => l.id)], [83, 70]);
   const liste = lessons.map(l => l.id);
-  assert.equal(liste.indexOf(83), liste.indexOf(63) + 1, 'juste après SAVEPOINT');
+  assert.equal(liste.indexOf(83), liste.indexOf(71) + 1, 'juste après Concurrence et isolation');
   assert.equal(liste[liste.indexOf(83) + 1], 70, 'Les triggers viennent juste après');
   assert.equal(l83.titre, 'Procédures et fonctions stockées');
   assert.equal(l83.résumé, 'Réutiliser un traitement ou un calcul');
@@ -129,7 +133,7 @@ test('la base du chapitre 14 : onze tables et leurs lignes ; les dernières comm
     'les commandes 11 à 16 de la page sont celles de la base');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.');
-  assert.equal(caps[1], 'Dans la leçon précédente, un savepoint<br>t’a permis d’annuler<br>une partie d’une transaction.', 'le chapitre précédent');
+  assert.equal(caps[1], 'Dans la leçon précédente, un verrou<br>a gardé la dernière place<br>pour une seule réservation.', 'la leçon précédente');
 });
 
 test('la procédure : l’identifiant de la commande est son paramètre ; CALL expedier_commande(13), puis (14), expédie ces deux commandes, et elles seules', () => {
@@ -176,8 +180,8 @@ test('chapitre 15 : écran titre, la carte PostgreSQL, SQLite ; annoncé par SAV
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.ok(caps.includes('Dans SQLite, la base de l’app,<br>elles n’existent pas.'), 'SQLite n’en a pas');
   assert.throws(() => base().run('CREATE PROCEDURE expedier_commande(id_commande INT) AS SELECT 1;'), /syntax error/, 'SQLite refuse CREATE PROCEDURE');
-  const sp = fs.readFileSync(path.join(root, 'assets/anim/projet-savepoint.html'), 'utf8');
-  assert.ok(sp.includes('Prochaine leçon · Procédures et fonctions stockées</span>'), 'le chapitre 14 annonce celui-ci');
+  const sp = fs.readFileSync(path.join(root, 'assets/anim/projet-concurrence.html'), 'utf8');
+  assert.ok(sp.includes('Prochaine leçon · Procédures et fonctions stockées</span>'), 'Concurrence et isolation annonce celle-ci');
   assert.ok(page.includes('Prochaine leçon · Les triggers</span>'), 'il annonce Les triggers');
   const trig = fs.readFileSync(path.join(root, 'assets/anim/projet-trigger.html'), 'utf8');
   assert.ok(trig.includes('Dans la leçon précédente, une procédure stockée t’a permis de réutiliser un traitement.'), 'Les triggers s’ouvrent sur ce chapitre');

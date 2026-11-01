@@ -261,7 +261,7 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
   /* 5 · la requête qui retire les numéros et leur colonne */
   assert.ok(P[4].text && P[4].prompt === 'Quelle requête retire les numéros et leur colonne de la table coachs ?');
   assert.deepEqual(P[4].options, [{label: 'ALTER TABLE coachs RENAME COLUMN telephone TO ancien_telephone', why: 'Renommer garde la colonne et ses numéros : seul son nom changerait.'},
-    {label: 'UPDATE coachs SET telephone = NULL', why: 'Les numéros seraient effacés, mais la colonne telephone resterait, vide.'}, {label: 'ALTER TABLE coachs DROP COLUMN telephone', ok: true}]);
+    {label: 'ALTER TABLE coachs ADD COLUMN telephone TEXT', why: 'ADD COLUMN ajoute une colonne : telephone existe déjà, la requête serait refusée et les numéros resteraient.'}, {label: 'ALTER TABLE coachs DROP COLUMN telephone', ok: true}]);
   /* 6 · structure ou valeurs */
   assert.ok(P[5].prompt === 'Range chaque demande selon la requête qui la réalise.' && P[5].next === '« {x} » : quelle requête ?');
   assert.deepEqual(W.OPS.map(o => o[2]), ['ADD COLUMN', 'RENAME COLUMN', 'DROP COLUMN', 'UPDATE'], 'les quatre cases');
@@ -428,11 +428,11 @@ CREATE TABLE cartes (
   /* RENAME TO renommerait la table elle-même (la requête est seulement montrée : la table garde son nom). */
   db.run('SAVEPOINT rt'); db.run(sqlText('rt'));
   assert.equal(q("SELECT name FROM sqlite_master WHERE name IN ('cartes', 'cartes_membre')"), '[["cartes_membre"]]'); db.run('ROLLBACK TO rt'); db.run('RELEASE rt');
-  /* 5 · Moment 5 : renommer garde la colonne et ses numéros ; UPDATE la vide ; DROP COLUMN la retire avec ses valeurs. */
+  /* 5 · Moment 5 : renommer garde la colonne et ses numéros ; ADD COLUMN est refusée (elle existe) ; DROP COLUMN la retire avec ses valeurs. */
   db.run('SAVEPOINT m5'); db.run('ALTER TABLE coachs RENAME COLUMN telephone TO ancien_telephone;');
   assert.ok(cols('coachs').includes('ancien_telephone') && q('SELECT COUNT(ancien_telephone) FROM coachs') === '[[4]]', 'renommer garde les numéros'); db.run('ROLLBACK TO m5');
-  db.run('UPDATE coachs SET telephone = NULL;');
-  assert.ok(cols('coachs').includes('telephone') && q('SELECT COUNT(telephone) FROM coachs') === '[[0]]', 'UPDATE : la colonne resterait, vide'); db.run('ROLLBACK TO m5'); db.run('RELEASE m5');
+  assert.throws(() => db.run('ALTER TABLE coachs ADD COLUMN telephone TEXT;'), /duplicate column name: telephone/, 'ADD COLUMN : refusée, la colonne existe déjà');
+  assert.equal(q('SELECT COUNT(telephone) FROM coachs'), '[[4]]', 'les numéros restent'); db.run('ROLLBACK TO m5'); db.run('RELEASE m5');
   db.run(sqlText('dr'));
   assert.equal(cols('coachs'), '[["id,prenom,nom,email"]]', 'la colonne telephone a disparu');
   /* 6 · Cuisine saine passe de 12 à 8 : une valeur change, aucune colonne. */

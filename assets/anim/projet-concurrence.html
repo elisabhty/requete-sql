@@ -209,7 +209,7 @@
 
   <!-- 0 · Intro -->
   <section class="scene" id="s0">
-    <div class="abs tag0"><div class="tagpill">Projet · Module 13</div></div>
+    <div class="abs tag0"><div class="tagpill">Projet · Module 12</div></div>
     <div class="abs hilite"></div>
     <div class="abs title"><span>C</span><span>O</span><span>N</span><span>C</span><span>U</span><span>R</span><span>R</span><span>E</span><span>N</span><span>C</span><span>E</span></div>
     <div class="abs sub">Gérer les accès simultanés</div>
@@ -288,7 +288,7 @@ const mailBlock = (n, extra = 0) => { const t = SCH.t; SCH.t = +(SCH.t + MO[n] +
    ateliers écrit tout de suite. Puis les deux téléphones (Elisa : « Léa et Nathan consultent le même atelier. Sur leurs écrans : « Plus
    qu’une place ! » »). */
 cap('r1', "Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
-cap('r2', "Dans la leçon précédente, un trigger<br>t’a permis de garder<br>chaque changement de prix.", 3.8);
+cap('r2', "Dans la leçon précédente, un savepoint<br>t’a permis d’annuler<br>une partie d’une transaction.", 3.8);   // Elisa, 1er novembre, 23 h 07 : Concurrence et isolation rejoint les transactions (module 12), juste après SAVEPOINT
 const MAIL1 = mailBlock(0);
 cap('a1', "Revenons juste avant<br>les deux réservations.", 3.0);
 cap('a2', "Il ne reste qu’une place<br>à l’atelier Cuisine saine<br>du 14 novembre.", 3.8);
@@ -365,7 +365,7 @@ toi('p6');
 cap('g2', "Une transaction seule ne suffit pas<br>à éviter tous les conflits.", 3.8);
 cap('g3', "<span class=\"dense\">Le niveau d’isolation et les mécanismes<br>utilisés, comme les verrous, déterminent<br>comment les accès simultanés sont gérés.</span>", 6.2);
 /* la suite : la prochaine leçon */
-cap('g4', "Dans la prochaine leçon, tu découvriras<br>les vues : des requêtes enregistrées<br>sous un nom.", 7.0);
+cap('g4', "Dans la prochaine leçon, tu enregistreras des traitements et des calculs dans la base.", 7.0);
 /* 8 · À retenir */
 chap({label:'À retenir'});
 const RECAP = SCH.t;
@@ -383,13 +383,14 @@ const CHAPTERS = SCH.chaps.map((c, i) => ({n: i + 1, label: c.label, a: c.a, b: 
 const QUESTIONS = [];
 
 /* ---------- Le cas : la base des ateliers NutriBoost (la même dans tous les chapitres du projet) ---------- */
-/* La base telle que le chapitre 16 la laisse : douze tables, avec la table historique_prix (le changement de prix du collagène). L’équipe
+/* La base telle que SAVEPOINT la laisse (depuis le 1er novembre, 23 h 07, cette leçon vient juste après) : onze tables, avec la table
+   cadeaux (la Protéine Végétale offerte à Léa Simon) ; l’historique des prix n’arrive qu’avec les triggers, plus loin. L’équipe
    ateliers a programmé une nouvelle date de l’atelier Cuisine saine : l’atelier 6, le 14 novembre (six ateliers).
    [clé, couleur, emoji, nom, lignes] */
 const TB = [
   ['cl', 'k-cl', '👥', 'clients', 8], ['cm', 'k-cm', '🛒', 'commandes', 16], ['fi', 'k-fi', '⭐', 'fidelite', 4], ['pr', 'k-pr', '📦', 'produits', 9],
   ['co', 'k-co', '🧑‍🏫', 'coachs', 4], ['at', 'k-at', '📅', 'ateliers', 6], ['in', 'k-in', '📝', 'inscriptions', 7], ['ca', 'k-nb', '💳', 'cartes', 3],
-  ['av', 'k-av', '💬', 'avis', 1], ['rp', 'k-rp', '🔁', 'remplacements', 1], ['cd', 'k-cd', '🎁', 'cadeaux', 1], ['hp', 'k-hp', '🏷️', 'historique_prix', 1]
+  ['av', 'k-av', '💬', 'avis', 1], ['rp', 'k-rp', '🔁', 'remplacements', 1], ['cd', 'k-cd', '🎁', 'cadeaux', 1]
 ];
 /* L’atelier de la trame : l’atelier Cuisine saine du 14 novembre (l’atelier 6, avec Julie Nguyen, la coach 3), dans sa petite salle de 8 places
    (chapitre 5) ; il ne lui reste qu’une place. Léa Simon est la cliente 7, Nathan Petit le client 4 ; ils réservent le 25 octobre. */
@@ -502,8 +503,8 @@ function phone(p, steps){
     '</div></div>';
 }
 function dom(){
-  /* La base et ses douze tables : le rappel du chapitre précédent */
-  $('#sa').innerHTML = `<div class="abs card bc" id="bc"><div class="bh"><span class="emo">🗄️</span><span>Base NutriBoost</span><span class="bn"><span>12 tables</span></span></div>` +
+  /* La base et ses onze tables : le rappel de la leçon précédente */
+  $('#sa').innerHTML = `<div class="abs card bc" id="bc"><div class="bh"><span class="emo">🗄️</span><span>Base NutriBoost</span><span class="bn"><span>11 tables</span></span></div>` +
     TB.map(([k, kc, emo, name, n]) => `<div class="srow ${kc}" id="bw-${k}"><i class="hl"></i><div class="sn"><span class="emo">${emo}</span>` +
       `<span class="nm">${name}</span><i class="sp"></i><b class="nb"><span>${n} ${n > 1 ? 'lignes' : 'ligne'}</span></b></div></div>`).join('') + '</div>';
   /* Le message de l’équipe ateliers (il finit sur sa question) */
@@ -535,7 +536,7 @@ function dom(){
     `<div class="cs">${ITEMS.map((x, i) => x[1] === k ? `<div class="rc" id="sbu${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
     '<div class="abs pack" id="bpack"><span><span class="emo">📬</span>6 situations à ranger</span></div>';
   /* La suite : la prochaine leçon */
-  $('#sn').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🔖</span>Prochaine leçon · CREATE VIEW</span></div>';
+  $('#sn').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🛠️</span>Prochaine leçon · Procédures et fonctions stockées</span></div>';
   // la requête, découpée en caractères (elle arrive déjà tapée)
   $$('.sq .ln').forEach(splitChars);
 }
@@ -658,10 +659,10 @@ function build(){
   sceneOn('#sa', 5.0);
   show('#bc', A.r1, {y: 60}, 0.55); cue(A.r1, 'whoosh', 0.5);
   TB.forEach(([k], q) => { const t = A.r1 + 0.3 + q * 0.15; show('#bw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q % 5); });
-  // « Au chapitre 16, un trigger » : la table historique_prix ; puis la table ateliers, avec sa nouvelle date
-  on('#bw-hp .hl', A.r2 + 0.6, 0.2); cue(A.r2 + 0.6, 'tick', 0.5, 2);
+  // « Dans la leçon précédente, un savepoint » : la table cadeaux ; puis la table ateliers, avec sa nouvelle date
+  on('#bw-cd .hl', A.r2 + 0.6, 0.2); cue(A.r2 + 0.6, 'tick', 0.5, 2);
   on('#bw-at .hl', A.r2 + 1.6, 0.2); cue(A.r2 + 1.6, 'tick', 0.5, 4);
-  off(['#bw-hp .hl', '#bw-at .hl'], A.r2 + 3.1, 0.3);
+  off(['#bw-cd .hl', '#bw-at .hl'], A.r2 + 3.1, 0.3);
   // l’équipe ateliers écrit : la base laisse la place à son message, la légende s’efface le temps du message (jamais de carte vide)
   capOff(B.r2 - 0.2);
   hide('#bc', B.r2 - 0.1, {y: -30}, 0.35);
@@ -941,7 +942,7 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 250.89, picks: PICKS, opens: OPENS,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 251.19, picks: PICKS, opens: OPENS,
   glyphs: '🗄️👥🛒⭐📦🧑‍🏫📅📝💳💬🔁🎁🏷️🔑🔗🔒⏳🔥✅↩️🧑‍🍳👆📬🔖🛡️✓✕!…«»·−→‹',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>
