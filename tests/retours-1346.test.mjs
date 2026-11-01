@@ -18,7 +18,7 @@ test('la salle de défi se place au niveau de la personne, les trois niveaux res
   assert.deepEqual([1, 2, 3, 4, 5].map(auto), ['f', 'm', 'm', 'd', 'd']);
   assert.ok(app.includes('  if(!jeuNivUser)jeuNiv=jeuNivAuto();'), 'tant qu’on n’a pas choisi soi-même');
   assert.ok(app.includes("if(k==='niv'){jeuNiv=v;jeuNivUser=true;}"), 'un niveau touché est retenu');
-  assert.ok(app.includes("${k===auto&&!vide?'<em class=\"room-lv-auto\">Ton niveau</em>':''}"));
+  assert.ok(app.includes("${k===auto&&!vide?'<em class=\"room-lv-auto\">Niveau recommandé</em>':''}"));
   assert.ok(css.includes('html.lq .room-level .room-lv-auto{position:absolute;'));
 });
 
