@@ -82,7 +82,7 @@ test('réf 6 — les pages légales ouvrent celles du site', () => {
 
 test('réf 7 — Exécuter répond, puis l’écran va au résultat', () => {
   const run = fn('runConsole');
-  assert.ok(run.includes("fb=[true,n==null?'Exécutée':plur(n,'ligne')];") && run.includes("fb=[false,'Erreur'];"));
+  assert.ok(run.includes("fb=[true,n==null?'Exécutée':plur(n,'ligne')];") && run.includes("fb=[false,verrou&&/readonly|query_only/i.test(e.message)?'Lecture seule':'Erreur'];"));
   assert.ok(run.includes('if(fb)runFeedback(btn,fb[0],fb[1]); requestAnimationFrame(()=>scrollToResult(out));'));
   assert.ok(fn('setLessonOut').includes("if(html&&typeof scrollToResult==='function')scrollToResult(out);"), 'aussi dans un cours ou un défi');
   assert.ok(fn('setRunLoading').includes("clearTimeout(btn._fb);btn.classList.remove('is-ok','is-ko');"), 'une nouvelle exécution efface le retour précédent');

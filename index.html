@@ -6646,7 +6646,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=84">
+<link rel="stylesheet" href="ludique.css?v=85">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -14747,7 +14747,8 @@ const DEMO_SQL={
   voyages:'SELECT nom, duree_jours, prix_base, niveau\nFROM circuits\nORDER BY prix_base;',
   salle_sport:'SELECT nom, capacite_max, niveau\nFROM cours\nORDER BY nom;'
 };
-function demoLabel(id){return id==='cours'?'Base des cours':'Base '+DEFI_BASES[id].nom;}
+/* Elisa, 1er novembre, 18 h 42 : « Base NutriBoost » plutôt que « Base des cours ». */
+function demoLabel(id){return id==='cours'?'Base NutriBoost':'Base '+DEFI_BASES[id].nom;}
 /* Ce que contient une base de démo, en une ligne : « Vols, passagers, compagnies, avions et bagages ». */
 function demoTagline(id){
   if(id==='cours')return 'La boutique NutriBoost : clients, produits, commandes et fidélité';
@@ -15425,6 +15426,7 @@ function flashTableReset(name){
   },prefersReduceMotion()?450:1000);
 }
 async function resetTable(name){
+  if(isDemoDb(activeDbId))return;
   const database=activeDb(),snapshot=getTableBaseline(activeDbId,name);
   if(!database||!snapshot){toast('Aucun état initial pour cette table');return;}
   const origin=activeDbId==='cours'?'les données d’origine du cours':'les données du fichier importé';
@@ -15511,7 +15513,12 @@ function renderDbWorkspace(){
   const lab=document.getElementById('db-tables-lab');
   if(!bar||!host)return;
   const activeName=projectName(activeDbId);
-  bar.innerHTML=`<button type="button" class="db-pill add" onclick="document.getElementById('data-import').click()">${CONSOLE_UPLOAD_SVG}<span>Importer</span></button>`;
+  /* 18 h 42 : « ne pas pouvoir importer, modifier, supprimer les bases d’entraînement (toutes), même par requête ». Elles sont en
+     lecture seule : pas d’import ni de bouton qui les modifie, et les requêtes qui écriraient sont refusées (PRAGMA query_only). */
+  const verrou=isDemoDb(activeDbId);
+  bar.innerHTML=verrou
+    ?`<span class="db-pill is-lock"><span aria-hidden="true">🔒</span><span>Base d’entraînement · lecture seule</span></span><button type="button" class="db-pill add" onclick="openProjectCreator()">${CONSOLE_PLUS_SVG}<span>Créer un projet</span></button>`
+    :`<button type="button" class="db-pill add" onclick="document.getElementById('data-import').click()">${CONSOLE_UPLOAD_SVG}<span>Importer</span></button>`;
   const database=activeDb();
   renderConsoleSchemaSummary();
   if(!database){
@@ -15570,8 +15577,8 @@ function renderDbWorkspace(){
         ${noteHtml}
         <span class="db-tacts">
         <button type="button" class="tb" onclick="queryTable(decodeURIComponent('${enc}'))">SELECT</button>
-        <button type="button" class="tb reset-table" data-table="${escAttr(t)}" onclick="resetTable(decodeURIComponent('${enc}'))" aria-label="${resettable?`Réinitialiser la table ${escAttr(t)}`:`Aucun état initial pour la table ${escAttr(t)}`}" title="${resettable?'Restaurer les données initiales':'Aucun état initial enregistré'}" ${resettable?'':'disabled'}>${CONSOLE_RESET_SVG}<span>Restaurer</span></button>
-        <button type="button" class="tb danger drop-table" onclick="dropTable(decodeURIComponent('${enc}'))" aria-label="Supprimer la table ${escAttr(t)}" title="Supprimer la table">${CONSOLE_TRASH_SVG}</button>
+        ${verrou?'':`<button type="button" class="tb reset-table" data-table="${escAttr(t)}" onclick="resetTable(decodeURIComponent('${enc}'))" aria-label="${resettable?`Réinitialiser la table ${escAttr(t)}`:`Aucun état initial pour la table ${escAttr(t)}`}" title="${resettable?'Restaurer les données initiales':'Aucun état initial enregistré'}" ${resettable?'':'disabled'}>${CONSOLE_RESET_SVG}<span>Restaurer</span></button>
+        <button type="button" class="tb danger drop-table" onclick="dropTable(decodeURIComponent('${enc}'))" aria-label="Supprimer la table ${escAttr(t)}" title="Supprimer la table">${CONSOLE_TRASH_SVG}</button>`}
         </span>
         ${colsHtml}
       </div>`:''}
@@ -15589,6 +15596,7 @@ function queryTable(name){
   runConsole();
 }
 async function dropTable(name){
+  if(isDemoDb(activeDbId))return;
   if(!await lqAsk({ico:'🗑️',titre:`Supprimer la table « ${name} » ?`,texte:'Ses lignes seront supprimées du projet.',oui:'Supprimer',non:'Garder',danger:true}))return;
   try{
     activeDb().run('DROP TABLE IF EXISTS '+quoteIdent(name));
@@ -16459,6 +16467,12 @@ function scrollToResult(out){
   if(r.top>=top-4&&r.top<=top+(sr.bottom-top)*.42)return;
   scr.scrollTo({top:Math.max(0,scr.scrollTop+(r.top-top)),behavior:prefersReduceMotion()?'auto':'smooth'});
 }
+/* Une requête qui écrirait dans une base d’entraînement : ce qu’on peut faire, et où s’entraîner à écrire. */
+function consoleLockBox(){
+  return `<div class="feedback warn console-lock"><div class="fi" aria-hidden="true">🔒</div><div><b>Base d’entraînement en lecture seule</b>`+
+    `<p>Tu peux tout lire avec <code>SELECT</code>, mais pas modifier ses données ni sa structure (<code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, <code>CREATE</code>, <code>DROP</code>…). Pour t’entraîner à écrire, crée ton propre projet.</p>`+
+    `<button type="button" class="console-lock-go" onclick="openProjectCreator()">Créer un projet</button></div></div>`;
+}
 function runConsole(){
   const sql=document.getElementById('ed-console').value.trim();
   const out=document.getElementById('console-out');
@@ -16483,7 +16497,11 @@ function runConsole(){
        requête qui ne commençait pas par SELECT sauvegardait le projet. Maintenant : dès que le schéma ou les lignes ont changé. */
     const database=activeDb(), v0=schemaVersion(database), c0=dbChanges(database);
     const touched=()=>!!database&&(schemaVersion(database)!==v0||dbChanges(database)!==c0);
+    const verrou=isDemoDb(activeDbId)&&!!database;
+    if(verrou)try{database.run('PRAGMA query_only=ON');}catch(e){}
     try{
+      /* PRAGMA (query_only=OFF…), ATTACH, VACUUM : refusés n’importe où dans le texte (hors chaînes et commentaires). */
+      if(verrou&&/\b(?:ATTACH|DETACH|VACUUM|REINDEX|PRAGMA)\b/i.test(sql.replace(/'(?:[^']|'')*'|"(?:[^"]|"")*"|--[^\n]*|\/\*[\s\S]*?\*\//g,' ')))throw new Error('attempt to write a readonly database');
       const{res,ms}=execQuery(sql,database);
       const n=(res&&res[0])?res[0].values.length:null;
       fb=[true,n==null?'Exécutée':plur(n,'ligne')];
@@ -16495,10 +16513,12 @@ function runConsole(){
       /* La première table créée ici fait disparaître « Ta base est vide » et montre ses exemples ; la dernière supprimée les retire. */
       if(moved) renderConsoleChips();
     }catch(e){
-      fb=[false,'Erreur'];
-      paint(`<div class="console-out-ready result-live">${errBox(e.message)}</div>`);
+      fb=[false,verrou&&/readonly|query_only/i.test(e.message)?'Lecture seule':'Erreur'];
+      paint(`<div class="console-out-ready result-live">${verrou&&/readonly|query_only/i.test(e.message)?consoleLockBox():errBox(e.message)}</div>`);
       recordConsoleRun(sql,false,{err:String(e.message||'Erreur').slice(0,80)});
       if(touched()){ if(activeDbId!=='cours') persistCustomDbs(); renderDbWorkspace(); renderConsoleChips(); }
+    }finally{
+      if(verrou)try{database.run('PRAGMA query_only=OFF');}catch(e){}
     }
   };
   if(prefersReduceMotion())finish();
@@ -32927,7 +32947,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-entretien-v2271';
+  const SW_CACHE='requete-2026-11-01-verrou-v2272';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
