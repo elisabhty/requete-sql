@@ -258,3 +258,11 @@ test('19 h 25 : le bonjour, le niveau et la séance fusionnés en haut de la car
 test('19 h 32 : une sous-page (Console, Selon le SGBD…) ouverte depuis une carte s’ouvre en haut', () => {
   assert.ok(app.includes('  if(primaryTabFor(name)!==name&&!tabBackNav)tabScrollPositions[name]=0;\n  activeTab=name;'));
 });
+
+test('19 h 36 – 19 h 39 : le haut de la carte sur une ligne (bonjour + séance du jour), le niveau collé sur le chat', () => {
+  assert.ok(app.includes("const sessionLine=!session?'Parcours terminé'"), 'parcours terminé');
+  assert.ok(app.includes(":session.d===todayISO?`Aujourd’hui · ${session.minutes} min`") && app.includes("'Aujourd’hui · Fait ✓':'Aujourd’hui · Pause'"), 'Aujourd’hui · 12 min / Pause');
+  assert.ok(app.includes("{const a=old.querySelector('.mstk-niv'),b=fresh.querySelector('.mstk-niv');if(a&&b&&a.outerHTML!==b.outerHTML)a.replaceWith(b.cloneNode(true));}"), 'étiquette remise à jour quand la mascotte est gardée');
+  assert.ok(css.includes('html.lq .mstk-niv{left:auto;right:-2px;translate:none;max-width:118px}'), 'reste dans la carte à 360 px');
+  assert.ok(css.includes('html.lq .lq-hero.has-hi::after{display:none}'), 'l’étoile ne chevauche plus la séance');
+});
