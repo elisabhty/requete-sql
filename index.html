@@ -6643,7 +6643,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=58">
+<link rel="stylesheet" href="ludique.css?v=59">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -9560,11 +9560,10 @@ const CHALLENGES=[
   sol:"SELECT DISTINCT p.prenom, p.nom, v.numero_vol FROM reservations r JOIN passagers p ON p.id = r.passager_id JOIN vols v ON v.id = r.vol_id WHERE r.classe = 'Affaires' ORDER BY p.nom, p.prenom, v.numero_vol;",
   indice:"Pense à DISTINCT ou à GROUP BY pour éviter les doublons."},
 ];
-/* La consigne d’un défi : la situation (contexte), la question, et l’indice caché derrière « Un indice » (Elisa, 1er novembre, 0 h 49 :
-   « on pourra mettre des indices aussi ? »). Seul ou en salle, le même bloc. */
+/* La consigne d’un défi : la situation (contexte) et la question. Seul ou en salle, le même bloc. Pas d’indice affiché (Elisa,
+   1er novembre, 1 h 20 : « non pas d’indice au départ ni jamais finalement ») : le champ indice des défis reste dans les données. */
 function defiConsigneHTML(c){
-  return `${c.contexte?`<p class="defi-ctx">${esc(c.contexte)}</p>`:''}<div class="consigne"><span class="tag">La question</span><p>${esc(c.q)}</p></div>`+
-    (c.indice?`<details class="defi-indice"><summary>Un indice</summary><p>${esc(c.indice)}</p></details>`:'');
+  return `${c.contexte?`<p class="defi-ctx">${esc(c.contexte)}</p>`:''}<div class="consigne"><span class="tag">La question</span><p>${esc(c.q)}</p></div>`;
 }
 function defisParProgression(){
   return CHALLENGES.slice().sort((a,b)=>(a.apres||Infinity)-(b.apres||Infinity)||a.id.localeCompare(b.id));
@@ -13419,6 +13418,7 @@ function renderSchemaSheet(){
   }finally{if(dId)database.close();}
 }
 function openSchemaSheet(){
+  document.querySelectorAll('.sch-attn').forEach(b=>b.classList.remove('sch-attn'));
   renderSchemaSheet();
   /* L’en-tête violet des feuilles (Notes, Ajuster mon rythme), l’autocollant de la base : la DA de la vitrine (ludique.css, 41) */
   const dId=defiBaseId(defiActif());
@@ -15628,16 +15628,19 @@ function mountSqlCopyButtons(root){
 /* Défis en salle (o.jeu) : une seule grande action, « Exécuter » ; le schéma des tables devient une petite pastille dans la barre de
    l’éditeur, et « Pas à pas » n’y est pas (Elisa, 31 octobre, 16 h 29 : « il y a trop de boutons »). */
 const ED_SCHEMA_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M9.5 10v9" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+/* Pendant un défi, le bouton Schéma bouge tant qu’on ne l’a pas ouvert (Elisa, 1er novembre, 1 h 20 : « micro animé la partie schéma
+   pour qu’on la voie direct (il faudra la regarder avant) ») : un anneau qui pulse, un petit balancement, une pastille jaune. */
+function schAttn(){return mode==='defi'||mode==='jeu'?' sch-attn':'';}
 const editorBlock=(withViz,fname='exercice.sql',o)=>{
   const noExec=current&&current.noExec,jeu=!!(o&&o.jeu);
   return `
   <div class="editor-shell">
-    <div class="editor-bar"><span class="dot v"></span><span class="fname">${fname}</span>${jeu?`<button type="button" class="ed-schema" onclick="openSchemaSheet()" aria-label="Voir le schéma des tables">${ED_SCHEMA_SVG}<span>Schéma</span></button>`:''}${sqlCopyBtn('data-ed="ed-lesson"')}${sqlClearBtn('ed-lesson')}</div>
+    <div class="editor-bar"><span class="dot v"></span><span class="fname">${fname}</span>${jeu?`<button type="button" class="ed-schema${schAttn()}" onclick="openSchemaSheet()" aria-label="Voir le schéma des tables">${ED_SCHEMA_SVG}<span>Schéma</span></button>`:''}${sqlCopyBtn('data-ed="ed-lesson"')}${sqlClearBtn('ed-lesson')}</div>
     <div class="editor-area"><pre><code id="hl-lesson"></code></pre>
     <textarea aria-label="Requête SQL de l’exercice" id="ed-lesson" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="Écris ta requête ici…"></textarea></div>
   </div>
   <div class="run-row"><button class="btn-run" onclick="runLesson()">${RUN_ICO} ${noExec?'Vérifier':'Exécuter'}</button>
-  ${jeu?'':`<button class="btn-ghost" type="button" onclick="openSchemaSheet()">Schéma</button>`}
+  ${jeu?'':`<button class="btn-ghost${schAttn()}" type="button" onclick="openSchemaSheet()">Schéma</button>`}
   ${withViz&&!noExec&&!jeu?`<button class="btn-ghost" type="button" onclick="openViz('ed-lesson')">Pas à pas</button>`:''}</div>
   <div id="lesson-out" role="status" aria-live="polite" aria-atomic="true" style="overflow-anchor:none"></div>
   <div id="hint-slot"></div>`;
@@ -22194,7 +22197,31 @@ function setChallengeHow(k){
   const solo=document.getElementById('defi-solo-block'),fr=document.getElementById('defi-friends-block');
   if(solo)solo.hidden=friends;
   if(fr)fr.hidden=!friends;
+  const tm=document.getElementById('defi-timer');if(tm)tm.hidden=friends;
+  if(friends)defiChronoStop();else if(mode==='defi'&&current&&!defiChrono&&!document.querySelector('#lesson-out .defi-fin'))defiChronoStart(current);
   if(navigator.vibrate)navigator.vibrate(6);
+}
+/* Un défi seul (ouvert depuis le planning) se ferme à 10 min, comme une manche de la salle, seul ou entre amis (Elisa, 1er novembre,
+   1 h 20 : « défi seul ou à plusieurs doit fermer à 10 min ») : le chrono jaune part de 00:00 ; à 10 min, l’éditeur se bloque, une
+   solution s’affiche et « Recommencer » relance le défi. Trouvé avant : le chrono s’arrête sur le temps mis. */
+let defiChrono=null;
+function defiChronoStop(){if(defiChrono)clearInterval(defiChrono.t);defiChrono=null;}
+function defiChronoStart(c){
+  defiChronoStop();
+  const t0=Date.now();
+  const tick=()=>{
+    const el=document.getElementById('defi-timer');
+    if(mode!=='defi'||current!==c||!el){defiChronoStop();return;}
+    if(document.querySelector('#lesson-out .feedback.ok')){el.classList.add('is-ok');defiChronoStop();return;}
+    const took=Date.now()-t0;el.textContent=jeuChrono(Math.min(took,JEU_ROUND_MS));el.classList.toggle('is-low',JEU_ROUND_MS-took<30000);
+    if(took>=JEU_ROUND_MS){defiChronoStop();defiTempsEcoule(c);}
+  };
+  defiChrono={t:setInterval(tick,500)};tick();
+}
+function defiTempsEcoule(c){
+  document.querySelectorAll('#defi-solo-block .btn-run').forEach(b=>b.disabled=true);
+  const ed=document.getElementById('ed-lesson');if(ed)ed.readOnly=true;
+  setLessonOut(`<div class="feedback warn defi-fin"><div class="fi">⏱️</div><div><b>Temps écoulé</b><p>Un défi se joue en ${JEU_ROUND_MS/60000}&nbsp;min au plus. Une solution&nbsp;:</p><div class="ex-code">${highlight(c.sol)}</div><button type="button" class="room-go" onclick="openChallenge('${c.id}')"><span>Recommencer</span></button></div></div>`);
 }
 function openChallenge(cid){
   const c=CHALLENGES.find(x=>x.id===cid); const g=CHALLENGE_GUIDES[cid]||{};
@@ -22205,7 +22232,7 @@ function openChallenge(cid){
   document.getElementById('back-label').textContent=lessonBackLabel();
   document.getElementById('nav-title').textContent='Défi';
   document.getElementById('lesson-body').innerHTML=`
-    <div class="l-kicker">Défi · ${NIV[c.niv].l}${defiBaseId(c)?` · Base ${esc(DEFI_BASES[defiBaseId(c)].nom)}`:''}</div><h1>${c.titre}</h1>
+    <div class="defi-top"><div class="l-kicker">Défi · ${NIV[c.niv].l}${defiBaseId(c)?` · Base ${esc(DEFI_BASES[defiBaseId(c)].nom)}`:''}</div><b class="jeu-timer" id="defi-timer" role="timer" aria-label="Chrono du défi, 10 minutes au plus">00:00</b></div><h1>${c.titre}</h1>
     ${defiConsigneHTML(c)}
     ${jeuEligible(c)?challengeHowHTML(c):''}
     <div id="defi-solo-block">
@@ -22213,6 +22240,7 @@ function openChallenge(cid){
     ${editorBlock(true,'defi.sql')}
     </div>`;
   setupEditor('ed-lesson','hl-lesson'); showScreen();
+  defiChronoStart(c);
   saveNav();
 }
 function startReview(ids){
@@ -28448,7 +28476,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-kpi-defis-v2228';
+  const SW_CACHE='requete-2026-11-01-defi-chrono-v2229';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

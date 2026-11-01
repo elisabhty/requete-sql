@@ -43,14 +43,23 @@ test('chaque solution s’exécute sur Aéroport, et un défi trié n’a pas d�
   }
 });
 
-test('la consigne d’un défi : la situation, la question, « Un indice » à déplier — seul comme en salle', () => {
+test('la consigne d’un défi : la situation et la question, sans indice (1 h 20) — seul comme en salle', () => {
   vm.runInContext(cut('function defiConsigneHTML(c){', 'function defisParProgression(){'), Object.assign(ctx, { esc: s => String(s).replace(/</g, '&lt;') }));
   ctx.c = DEFIS[8];
   const html = vm.runInContext('defiConsigneHTML(c)', ctx);
   assert.ok(html.startsWith('<p class="defi-ctx">Le service qualité'));
-  assert.ok(html.includes('<div class="consigne"><span class="tag">La question</span><p>Affiche l’identifiant du bagage'));
-  assert.ok(html.endsWith('<details class="defi-indice"><summary>Un indice</summary><p>En SQL, on teste l’absence de valeur avec IS NULL, jamais avec = NULL.</p></details>'));
+  assert.ok(html.endsWith('<div class="consigne"><span class="tag">La question</span><p>Affiche l’identifiant du bagage, son statut et l’identifiant de la réservation pour tous les bagages dont le poids n’est pas renseigné, triés par identifiant de bagage.</p></div>'));
+  assert.ok(!app.includes('<summary>Un indice</summary>'), 'pas d’indice');
   assert.equal((app.match(/\$\{defiConsigneHTML\(c\)\}/g) || []).length, 2, 'défi seul et manche en salle');
+});
+
+test('1 h 20 : le Schéma attire l’œil pendant un défi ; un défi seul se ferme à 10 min', () => {
+  assert.ok(app.includes("function schAttn(){return mode==='defi'||mode==='jeu'?' sch-attn':'';}"));
+  assert.ok(app.includes('class="ed-schema${schAttn()}"') && app.includes('class="btn-ghost${schAttn()}"'));
+  assert.ok(app.includes("document.querySelectorAll('.sch-attn').forEach(b=>b.classList.remove('sch-attn'));"), 'ouvert une fois : il s’arrête');
+  assert.ok(app.includes('if(took>=JEU_ROUND_MS){defiChronoStop();defiTempsEcoule(c);}'));
+  assert.ok(app.includes("document.querySelectorAll('#defi-solo-block .btn-run').forEach(b=>b.disabled=true);"));
+  assert.ok(app.includes('  defiChronoStart(c);\n  saveNav();'));
 });
 
 test('un niveau sans défi est « Bientôt » et ne se choisit pas', () => {
