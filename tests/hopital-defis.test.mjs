@@ -20,7 +20,7 @@ const base = () => { const db = new SQL.Database(); db.run(seed); return db; };
 const challenge = id => hospital.find(c => c.id === id);
 
  test('le catalogue contient les 30 défis Hôpital, dix par niveau', () => {
-  assert.equal(challenges.length, 87);
+  assert.equal(challenges.length, 117);
   assert.equal(hospital.length, 30);
   for (const [prefix, level] of [['hf', 'f'], ['hm', 'm'], ['hd', 'd']]) {
     const group = hospital.filter(c => c.id.startsWith(prefix));
@@ -35,7 +35,7 @@ test('le seed Hôpital conserve ses clés et le parcours pédagogique couvre les
   const db = base();
   assert.equal(db.exec('SELECT COUNT(*) FROM consultations')[0].values[0][0], 50);
   assert.equal(db.exec('PRAGMA foreign_key_check').length, 0);
-  assert.deepEqual(db.exec("SELECT COUNT(DISTINCT m.service_id) FROM consultations c JOIN medecins m ON m.id=c.medecin_id WHERE c.patient_id=1")[0].values, [[6]]);
+  assert.deepEqual(db.exec("SELECT COUNT(DISTINCT m.service_id) FROM consultations c JOIN medecins m ON m.id=c.medecin_id WHERE c.patient_id=4")[0].values, [[6]]);
   db.close();
 });
 
@@ -56,11 +56,11 @@ test('les résultats Hôpital repères sont cohérents avec les données', () =>
   const db = base();
   const rows = id => db.exec(challenge(id).sol)[0].values;
   assert.deepEqual(rows('hf7'), [[13, '1 g', 7], [28, '1 g', 7]]);
-  assert.deepEqual(rows('hm8'), [['Camille', 'Moreau', 6, 7]]);
-  assert.deepEqual(rows('hd5'), [['Camille', 'Moreau', 6, 1.13]]);
-  assert.equal(rows('hd3').length, 7);
+  assert.deepEqual(rows('hm8'), [['Noé', 'Durand', 6, 6]]);
+  assert.deepEqual(rows('hd5'), [['Noé', 'Durand', 6, 1.13]]);
+  assert.equal(rows('hd3').length, 2);
   assert.equal(rows('hd8').length, 5);
-  assert.deepEqual(rows('hd8')[0], ['Camille', 'Moreau', '2024-10-22', 'Pédiatrie', 'Cardiologie']);
-  assert.deepEqual(rows('hd10'), [['Camille', 'Moreau']]);
+  assert.deepEqual(rows('hd8')[0], ['Noé', 'Durand', '2024-10-22', 'Cardiologie', 'Pédiatrie']);
+  assert.deepEqual(rows('hd10'), [['Noé', 'Durand']]);
   db.close();
 });
