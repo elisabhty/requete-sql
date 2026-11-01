@@ -11,7 +11,7 @@ const conf = fs.readFileSync(new URL('../decouvrir/confidentialite.html', import
 
 test('réf. 1 : rejoindre une salle et ses impasses sont la carte de l’écran Défis, code en tuiles', () => {
   assert.ok(app.includes('const etat=(stk,titre,sub,corps,cls)=>`<section class="room-card jeu-etat'));
-  assert.ok(app.includes("html=etat('rocket','On t’ouvre la porte…','Connexion à la salle de ton ami.'"), 'on rejoint la salle');
+  assert.ok(app.includes("html=etat('rocket','Tu rejoins la salle…','La salle de ton ami s’ouvre dans un instant.'"), 'on rejoint la salle');
   assert.ok(app.includes("html=etat('help','Salle introuvable',"), 'salle introuvable');
   assert.ok(app.includes("html=etat('user','Cette salle est vide',") && app.includes("html=etat('user','La salle est complète',"));
   assert.ok(!app.includes("head('Salle de défi','Salle introuvable'"), 'plus de page de l’ancienne DA');
