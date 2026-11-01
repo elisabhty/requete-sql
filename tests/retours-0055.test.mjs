@@ -16,19 +16,25 @@ const DEFIS = JSON.parse(JSON.stringify(ctx.CHALLENGES));
 const AERO = DEFIS.filter(c => c.base === 'aeroport');
 const WOK = DEFIS.filter(c => c.base === 'wok');
 const FROMAGERIE = DEFIS.filter(c => c.base === 'fromagerie');
+const VOYAGES = DEFIS.filter(c => c.base === 'voyages');
+const LABO = DEFIS.filter(c => c.base === 'labo');
 const aero = cut("aeroport:{nom:'Aéroport',", '\n`}');
 const base = () => { const d = new SQL.Database(); d.run(aero.slice(aero.indexOf('sql:`') + 5)); return d; };
 
-test('les défis comptent 57 Aéroport, 30 Hôpital, 30 Wok Chinois et 30 Fromagerie', () => {
-  assert.equal(DEFIS.length, 147);
+test('les défis comptent 57 Aéroport et 30 sur chacune des cinq autres bases', () => {
+  assert.equal(DEFIS.length, 207);
   assert.equal(AERO.length, 57);
   assert.equal(DEFIS.filter(c => c.base === 'hopital').length, 30);
   assert.equal(WOK.length, 30);
   assert.equal(FROMAGERIE.length, 30);
+  assert.equal(VOYAGES.length, 30);
+  assert.equal(LABO.length, 30);
   assert.deepEqual(WOK.map(c => c.id), [...Array.from({ length: 10 }, (_, i) => 'wf' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'wm' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'wd' + (i + 1))]);
   assert.deepEqual(FROMAGERIE.map(c => c.id), [...Array.from({ length: 10 }, (_, i) => 'ff' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'fm' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'fd' + (i + 1))]);
+  assert.deepEqual(VOYAGES.map(c => c.id), [...Array.from({ length: 10 }, (_, i) => 'vf' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'vm' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'vd' + (i + 1))]);
+  assert.deepEqual(LABO.map(c => c.id), [...Array.from({ length: 10 }, (_, i) => 'lf' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'lm' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'ld' + (i + 1))]);
   for (const c of DEFIS) {
-    assert.ok(['aeroport', 'hopital', 'wok', 'fromagerie'].includes(c.base), c.id);
+    assert.ok(['aeroport', 'hopital', 'wok', 'fromagerie', 'voyages', 'labo'].includes(c.base), c.id);
     assert.equal(c.niv, ({ f: 'f', m: 'm', d: 'd' })[c.id[1]], c.id);
     assert.ok(c.contexte && c.q && c.indice && c.sol && c.titre && Number.isInteger(c.apres), c.id);
   }
