@@ -92,3 +92,12 @@ test('8 h 55 puis 9 h 12 : après un SELECT, une seule rangée « Pas à pas » 
 test('9 h 16 : le curseur de l’éditeur suit le texte (la copie colorée a la graisse de la zone de saisie)', () => {
   assert.ok(css.includes('html.lq .editor-area pre code,html.lq .editor-area pre code span{font-weight:inherit!important;font-style:normal!important;letter-spacing:inherit!important;font-synthesis:none}'));
 });
+
+test('9 h 19 : pas à pas dans la DA du site, épingle en icône animée partout, salle sans le chrono, Défis en haut', () => {
+  assert.ok(css.includes('html.lq .viz-row{position:relative;isolation:isolate;overflow:hidden;gap:14px;padding:13px 14px;border-radius:20px;color:#fff;'));
+  assert.ok(app.includes("${i?'<em>›</em>':''}<i style=\"--i:${i}\">${k}</i>"));
+  assert.ok(app.includes(`onclick="togglePin()" title="\${e.pin?'Désépingler':'Épingler'}">\${lqStkSvg('pin')}<span class="sr">`), 'l’épingle de la note en icône');
+  assert.ok(css.includes('@keyframes pinSway{'));
+  assert.ok(app.includes('<p class="room-sub">Un défi tiré au sort, au niveau que tu choisis.</p>'));
+  assert.ok(app.includes("if(name==='defis')tabScrollPositions.defis=0;"));
+});
