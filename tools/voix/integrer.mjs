@@ -147,7 +147,8 @@ for (const el of job.elements) {
   if (el.id === 'ch00') { intro = [el.id, clips[0][0], clips[clips.length - 1][1]]; continue; }
   /* Chaque phrase à sa légende : la plus ressemblante parmi les suivantes, dans l’ordre. */
   el.phrases.forEach((p, k) => {
-    const q = norm(p); let best = -1, bs = 0;
+    /* legendes : le texte de la légende quand la phrase dite en diffère (code lu à voix haute, preparer.mjs). */
+    const q = norm((el.legendes && el.legendes[k]) || p); let best = -1, bs = 0;
     for (let j = ci; j < Math.min(CAPTIONS.length, ci + 4); j++) { const v = sim(q, capN[j]); if (v > bs) { bs = v; best = j; } }
     if (best < 0 || bs < 0.8) { report.push(`${el.id} · phrase ${k + 1} sans légende (${Math.round(bs * 100)} %) : ${p}`); return; }
     ci = best + 1;
