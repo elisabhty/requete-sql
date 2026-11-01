@@ -6643,7 +6643,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=57">
+<link rel="stylesheet" href="ludique.css?v=58">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -14941,6 +14941,10 @@ function salleKpi(){
   const s=state.salle&&typeof state.salle==='object'?state.salle:{},n=v=>Math.max(0,Math.floor(+v||0)),ma=n(s.manches);
   return {tr:Math.min(n(s.trouves),ma),ma,pts:n(s.pts),lv:s.lv&&typeof s.lv==='object'?s.lv:{}};
 }
+/* Les tuiles Défis (Elisa, 1er novembre, 1 h 12 : « améliore l’ui ux des kpi ») : plus de « 0/0 » ni de libellé qui déborde.
+   Mon compte : les points en grand (comme « jours de série » et « leçons » à côté), les manches réussies sur jouées en pastille.
+   Planning : réussies sur jouées, la jauge, « à jouer » au début, et les points dans une pièce jaune qui tient dans la tuile. */
+const KPI_COIN_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#FFC83D" stroke="#1B1640" stroke-width="2"/><path d="M12 7.6l1.3 2.7 3 .4-2.2 2.1.5 3-2.6-1.4-2.6 1.4.5-3-2.2-2.1 3-.4z" fill="#fff" stroke="#1B1640" stroke-width="1.4" stroke-linejoin="round"/></svg>';
 function sallePts(n){return `${(+n||0).toLocaleString('fr-FR')} pt${n>1?'s':''}`;}
 /* Entrée « Salle de défi » : un niveau, seul ou entre amis, un nombre de manches ; le défi est tiré au sort. */
 function renderDefisRoom(){
@@ -25279,7 +25283,7 @@ function planOverviewHTML(st){
     </div>
     <div class="pgr-stats">
       <div class="pgr-stat is-l"><small>Leçons</small><b>${doneLessons}<em>/${st.nL}</em></b><i class="pgr-meter" aria-hidden="true"><b style="width:${pL}%"></b></i></div>
-      <div class="pgr-stat is-d"><small>Défis</small><b>${kd.tr}<em>/${kd.ma}</em></b><i class="pgr-meter" aria-hidden="true"><b style="width:${pD}%"></b></i><p>manches réussies<b>${sallePts(kd.pts)}</b></p></div>
+      <div class="pgr-stat is-d"><small>Défis</small><b>${kd.ma?`${kd.tr}<em>/${kd.ma}</em>`:'0'}</b><i class="pgr-meter" aria-hidden="true"><b style="width:${pD}%"></b></i><p>${kd.ma?`réussie${kd.tr>1?'s':''}`:'à jouer'}</p><span class="kpi-pts">${KPI_COIN_SVG}${sallePts(kd.pts)}</span></div>
       <div class="pgr-stat is-s${streak?' on':''}"><small>Série</small><b>${streak?`<span class="pgr-flame" aria-hidden="true">${FLAME_SVG}</span>`:''}${streak}<em> j</em></b><p>Record ${record} j</p></div>
       ${timeTile}
     </div>
@@ -27876,7 +27880,7 @@ function renderCompte(){
         <div class="acct-stats">
           <div class="acct-stat is-streak${st.streak?' is-on':''}" style="--i:0"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg('flame')}</span><b>${st.streak}</b><small>jour${st.streak>1?'s':''} de série</small></div>
           <div class="acct-stat" style="--i:1"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg('book')}</span><b>${st.lessons}</b><small>leçon${st.lessons>1?'s':''}</small></div>
-          <div class="acct-stat is-defis" style="--i:2"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg('target')}</span><b>${kd.tr}<em>/${kd.ma}</em></b><small>manches réussies</small><small class="acct-stat-pts">${sallePts(kd.pts)}</small></div>
+          <div class="acct-stat is-defis" style="--i:2"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg('target')}</span><b>${(+kd.pts||0).toLocaleString('fr-FR')}</b><small>point${kd.pts>1?'s':''} en défis</small><span class="kpi-chip${kd.ma?'':' is-vide'}">${kd.ma?`${kd.tr}/${kd.ma} réussie${kd.tr>1?'s':''}`:'À jouer'}</span></div>
         </div>
         <div class="acct-card acct-week-card">
           <div class="acct-card-head"><b>Tes 7 prochains jours</b>${weekPlanned?`<span>${weekComplete} / ${plural(weekPlanned,'séance')}</span>`:''}</div>
@@ -28444,7 +28448,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-joueur-da-v2227';
+  const SW_CACHE='requete-2026-11-01-kpi-defis-v2228';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
