@@ -212,7 +212,7 @@ test('vitrine : objectifs, sous-titre des avis, plus de « Sans compte » ; le n
   for (const [k] of objectifs) assert.match(goals, new RegExp(`\\['${k}',`), `objectif ${k} dans l’appli`);
   /* « Analyse tes propres données » : l’appli importe bien des fichiers */
   assert.ok(app.includes('<b>Importer un fichier</b>'));
-  assert.ok(vitrine.includes("'Des premiers SELECT aux entretiens techniques\\u00a0: découvre l’expérience de celles et ceux qui utilisent Requête.'"), 'sous-titre des avis');
+  assert.ok(vitrine.includes("'Découvre des retours d’expérience sur l’apprentissage du SQL avec Requête, de la pratique aux entretiens.'"), 'sous-titre des avis');
   assert.doesNotMatch(vitrine, /Ce qu’en disent celles et ceux/);
   /* Un compte sera nécessaire pour payer : la vitrine ne promet plus « Sans compte » */
   const module = fs.readFileSync(path.join(root, 'decouvrir/module.html'), 'utf8');

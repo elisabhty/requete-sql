@@ -95,7 +95,7 @@ test('les défis quittent le planning : nouveau parcours en leçons seules, un p
 test('la page d’un projet : carte violette, base en autocollant, pastille du type de projet ; exemples qui montrent leur SELECT', () => {
   const scr = cut('function renderConsoleScreen(){', 'function renderConsoleHome(){');
   assert.ok(scr.includes("row.classList.toggle('is-project',inWork)") && scr.includes("lqStkSvg('db')"));
-  assert.ok(scr.includes("sub.innerHTML=`<b>${isDemoDb(activeDbId)?'Base de démo':'Projet local'}</b><span>${plur(st.tables,'table')}</span>`;"));
+  assert.ok(scr.includes("sub.innerHTML=`<b>${isDemoDb(activeDbId)?'Base de démo':'Projet local'}</b>`;"), 'le nombre de tables est dans la barre Schéma (13 h 46)');
   const chips = cut('function renderConsoleChips(){', '/* Projet vide');
   assert.ok(chips.includes("l:'Aperçu de la table',q:`SELECT * FROM ${t}\\nLIMIT 50;`") && chips.includes('<code><span>${highlight(line)}</span></code>'));
   const ctx = vm.createContext({ esc, escAttr: esc, highlight: s => `[${s}]` });
@@ -128,9 +128,15 @@ test('l’exécution pas à pas : des verbes (lire, filtrer, regrouper, calculer
   assert.deepEqual(titres("SELECT ville, COUNT(*) AS n FROM clients WHERE age > 25 GROUP BY ville HAVING COUNT(*) >= 2 ORDER BY n DESC LIMIT 3;"),
     ['Lire la table clients', 'Filtrer les lignes', 'Regrouper les lignes', 'Filtrer les groupes', 'Calculer pour chaque groupe', 'Trier, puis limiter']);
   assert.deepEqual(titres('SELECT * FROM clients LIMIT 5;'), ['Lire la table clients', 'Garder toutes les colonnes', 'Limiter le résultat']);
+  assert.equal(ctx.buildSteps('SELECT * FROM clients LIMIT 5;')[0].e, 'La requête lit la table <code>clients</code> telle qu’elle est enregistrée (10 lignes). À cette étape, aucune ligne n’est filtrée ni triée.');
+  assert.equal(ctx.buildSteps('SELECT * FROM clients LIMIT 5;')[1].e, '<code>SELECT *</code> conserve toutes les colonnes des lignes qui arrivent à cette étape.');
+  db.run('CREATE TABLE singleton (id INTEGER); INSERT INTO singleton VALUES (1);');
+  assert.equal(ctx.buildSteps('SELECT * FROM singleton;')[0].e, 'La requête lit la table <code>singleton</code> telle qu’elle est enregistrée (1 ligne). À cette étape, aucune ligne n’est filtrée ni triée.');
   assert.deepEqual(titres('SELECT COUNT(*) FROM commandes;'), ['Lire la table commandes', 'Calculer sur toutes les lignes']);
   assert.deepEqual(titres('SELECT prenom FROM clients ORDER BY prenom;'), ['Lire la table clients', 'Garder les colonnes demandées', 'Trier le résultat']);
-  assert.equal(titres('SELECT clients.prenom FROM clients JOIN commandes ON commandes.client_id = clients.id;')[0], 'Relier les tables');
+  const jointure = ctx.buildSteps('SELECT clients.prenom FROM clients JOIN commandes ON commandes.client_id = clients.id;');
+  assert.equal(jointure[0].t, 'Relier les tables');
+  assert.match(jointure[0].e, /en reliant les tables/);
   const lim = ctx.buildSteps('SELECT * FROM clients LIMIT 5;').at(-1).e;
   assert.match(lim, /<code>LIMIT 5<\/code> garde les 5 premières lignes du résultat\. Sans <code>ORDER BY<\/code>, rien ne garantit lesquelles/);
   const tout = ctx.buildSteps('SELECT * FROM clients LIMIT 500;').at(-1).e;
@@ -153,4 +159,6 @@ test('l’exécution pas à pas : des verbes (lire, filtrer, regrouper, calculer
   assert.ok(empty.includes('<ol class="viz-none-path"') && !app.includes('<b>Visualisation impossible</b>'), 'plus de « Visualisation impossible » sur une requête vide');
   assert.ok(app.includes("lqVizCap('viz','route','Ta requête, rejouée une étape à la fois.');"), 'l’en-tête violet des autres feuilles');
   assert.ok(app.includes('<div class="viz-stepnum"><span>Étape ${vizI+1} sur ${vizSteps.length}</span><b>${esc(s.n)}</b></div>'));
+  assert.ok(app.includes('.viz-dots i{flex:none;width:9px;height:9px;border-radius:999px;background:#C9C4DC;'));
+  assert.ok(app.includes('.viz-dots i.on{width:22px;background:var(--accent);'));
 });

@@ -73,9 +73,9 @@
         game.t.sync?.();
       } else {
         setLessonOut(`<div class="feedback warn"><div class="fi">≈</div><div><b>Pas encore</b><p>${esc(result.error || 'Le résultat ne correspond pas à la consigne.')}</p></div></div>`);
-        const challenge = CHALLENGES.find(c => c.id === round.cid);
         jeuEssaiRate(round);
-        if (challenge) jeuIndice(round, challenge, sql);
+        if(typeof coachRoomTick==='function')coachRoomTick();
+        if(typeof coachKo==='function'){setLessonOut('');coachKo(result.error || 'Le résultat ne correspond pas à la consigne.');}
       }
     } catch (error) {
       if (JEU === game && jeuCur() === n) setLessonOut(errBox(error?.name === 'AbortError' ? 'La vérification prend du temps. Réessaie : tes points ne seront pas comptés deux fois.' : String(error?.message || 'Vérification indisponible. Réessaie.')));

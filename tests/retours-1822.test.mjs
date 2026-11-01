@@ -55,7 +55,8 @@ test('la mini-page : le @ dans le champ, sans « unique dans l’appli » ni tex
 });
 
 test('Mon compte : le pseudo sous le prénom ; « manches réussies » partout au lieu de « trouvées »', () => {
-  assert.ok(app.includes('<span class="acct-id-copy"><span class="acct-identity-line"><b>${esc(accountTitle)}</b>') && app.includes('</em>`:\'\'}</span>${lvlBadgeHTML(level,\'is-on-deep\')}'), 'identité sur une ligne, niveau ensuite');
+  /* Elisa, 1er novembre (« Aligne le pseudo avec le prénom ») : le pseudo sur la ligne du prénom, le niveau dessous. */
+  assert.ok(app.includes('<span class="acct-id-copy"><span class="acct-identity-line"><b>${esc(accountTitle)}</b>${psMien()?`<em class="acct-id-pseudo">${esc(psMien())}</em>`:\'\'}</span>${lvlBadgeHTML(level,\'is-on-deep\')}</span>'));
   assert.ok(app.includes("aria-label=\"${escAttr(`Modifier mon profil. ${accountTitle}${psMien()?`, pseudo ${psMien()}`:''}, niveau ${level.rank} : ${level.label}`)}\""));
   assert.ok(css.includes('html.lq .acct-id-copy .acct-id-pseudo{align-self:flex-start;'));
   for (const part of ["`réussie${kd.tr>1?'s':''}`:'à jouer'", "${kd.tr}/${kd.ma} réussie${kd.tr>1?'s':''}",

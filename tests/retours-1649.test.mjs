@@ -219,7 +219,7 @@ test('pseudo — l’onboarding demande le prénom ; la mini-page du pseudo suit
   assert.ok(page.includes('autocapitalize="none" autocorrect="off" spellcheck="false"') && page.includes('oninput="obPseudoTape(this)"') && page.includes('<p class="ps-etat" id="ob-ps-etat" role="status" aria-live="polite"></p>'));
   assert.ok(page.includes("obSetFooter('C’est mon pseudo',obPseudoSuivant,'Plus tard',obPseudoPlusTard,'',!v);"));
   assert.ok(!page.includes('unique dans l’appli') && !page.includes('Il est unique et ne se changera plus') && !page.includes('ob-helper'), 'ni « unique dans l’appli », ni texte en bas');
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','goal','level','rhythm','practice','account','ready','pseudo'];"));
+  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','goal','level','rhythm','build','promise','pact','practice','account','ready','pseudo'];"));
   const back = app.slice(app.lastIndexOf('function obBack(){'), app.indexOf('\n}', app.lastIndexOf('function obBack(){')));
   assert.ok(back.includes("if(obStep===0||OB_SLIDES[obStep]==='pseudo')return;"), 'pas de retour depuis la mini-page');
   /* La fin de l’onboarding : la mini-page, puis l’appli */
@@ -289,7 +289,7 @@ test('points — la valeur du défi, palier par palier, à côté du chrono ; «
   /* Le premier essai manqué : le « +25 » s’envole */
   const run = fn('jeuRun');
   assert.ok(run.includes('r.tries=(r.tries||0)+1;') && run.includes("jeuSend({t:'found',n,ms:took,p1:r.tries===1?1:0});"), 'chaque exécution est un essai ; le premier juste est annoncé à tous');
-  assert.ok(run.includes('}catch(e){setLessonOut(errBox(e.message));jeuEssaiRate(r);jeuIndice(r,c,sql);return;}'), 'une erreur compte comme un essai (et débloque un indice, 8 h 59)');
+  assert.ok(run.includes("}catch(e){setLessonOut(errBox(e.message));jeuEssaiRate(r);coachKo('La requête ne s’exécute pas : lis le message juste en dessous.');return;}"), 'une erreur compte comme un essai, et la carte le dit (14 h 33 : les indices arrivent à la même minute pour tous)');
   const els = {}, ctx = vm.createContext({ prefersReduceMotion: () => false, setTimeout: f => { ctx.later = f; } });
   const b = { classList: { list: [], add(c) { this.list.push(c); } }, remove() { b.gone = true; } };
   ctx.document = { getElementById: id => (id === 'jeu-val-b' ? b : els[id] || null) };

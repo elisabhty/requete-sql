@@ -119,16 +119,18 @@ test('programme : les 15 parties sont des modules, comme dans l’appli ; la fic
   }
 });
 
-test('connexion : le décor tient sur tous les écrans (pas de débordement, pastille ronde à la bonne taille)', () => {
+test('connexion : décor compact, sans mascotte ni pastille ronde, avec salut ; plus de flamme (13 h 46 : « pas beau »)', () => {
   const h = lire('connexion.html');
-  /* Les confettis de l’étiquette « Aperçu » sortaient de l’écran sur mobile (18 px de défilement de côté) */
-  assert.match(h, /\.cx-tag::before,\.cx-tag::after\{display:none\}/);
-  /* Petits écrans : le collage se règle sur sa largeur ; « Aperçu » passe à gauche, loin du chat */
-  const mob = h.slice(h.indexOf('@media (max-width:959px){'), h.indexOf('}\n', h.indexOf('.cx-tag{right:auto;left:22px')) + 2);
-  for (const r of ['.cx-stage{container-type:inline-size', '.cx-round{width:clamp(92px,26cqw,104px)', '.cx-masc{--mw:clamp(120px,40cqw,160px)', '.cx-bubble{left:auto;right:22%;top:-34px', '.cx-tag{right:auto;left:22px'])
+  assert.doesNotMatch(h, /<span class="sticker lav cx-tag">Aperçu<\/span>/);
+  assert.doesNotMatch(h, /mascotte\.webp|class="cx-masc"|class="cx-round"/);
+  assert.match(h, /class="cx-bubble" id="cx-bubble">Re-bonjour&nbsp;!/);
+  assert.doesNotMatch(h, /class="cx-streak" id="cx-streak"/, 'la flamme +1 est retirée');
+  assert.ok(h.includes('  .cx-show{padding-bottom:112px}\n  .cx-stage{min-height:100px;margin-top:12px}'), 'deux rangées aérées, le cadre plus haut');
+  const mobStart = h.indexOf('@media (max-width:959px){');
+  const mob = h.slice(mobStart, h.indexOf('@media (max-width:359px){', mobStart));
+  for (const r of ['.cx-stage{container-type:inline-size;min-height:clamp(112px,34vw,150px)', '.cx-streak{font-size:clamp(12px,3.5cqw,14px)', '.cx-bubble{right:0;bottom:20px'])
     assert.ok(mob.includes(r), `mobile : ${r}`);
-  /* Ordinateur : le chat se règle sur la largeur et la hauteur du décor ; « GROUP BY » s’efface quand le décor est étroit */
-  assert.match(h, /\.cx-stage\{container-type:size\}\n  \.cx-masc\{width:clamp\(150px,min\(34cqw,40cqh\),280px\)\}/);
+  assert.match(h, /@media \(max-width:359px\)\{[\s\S]*?\.cx-stage\{min-height:76px\}[\s\S]*?\.cx-s\.s5\{display:block;[\s\S]*?\.cx-panel\{margin-top:-72px\}/);
   assert.match(h, /@container \(max-width:499px\)\{\.k3\{display:none\}\}/);
 });
 
@@ -200,9 +202,35 @@ test('« Se connecter » partout à la place de « Ouvrir l’appli », et la ca
     assert.doesNotMatch(h, /Ouvrir l’appli/, `${page} : plus de « Ouvrir l’appli »`);
     const menu = h.slice(h.indexOf('<nav class="menu" id="menu"'), h.indexOf('</nav>', h.indexOf('<nav class="menu" id="menu"')));
     assert.ok(menu.includes('<a class="btn btn-s btn-lg" href="connexion.html">Se connecter</a>'), `${page} : bouton du menu`);
+    for (const label of ['Choisir un objectif', 'Parcours de formation', 'Questions fréquentes'])
+      assert.ok(menu.includes(`>${label}</a>`), `${page} : « ${label} » dans le menu mobile`);
+    assert.ok(!menu.includes('>Ton objectif</a>') && !menu.includes('>Les parcours</a>') && !menu.includes('>Questions</a>'), `${page} : anciens libellés retirés`);
+    assert.ok(menu.includes('Donner ton avis</a>') && menu.includes('#avis'), `${page} : lien pour donner son avis`);
   }
+  const home = lire('index.html');
+  const menu = home.slice(home.indexOf('<nav class="menu" id="menu"'), home.indexOf('</nav>', home.indexOf('<nav class="menu" id="menu"')));
+  assert.ok(menu.includes('>Pourquoi apprendre SQL</a>') && menu.includes('>Requête sur mobile</a>') && menu.includes('>Nous contacter</a>'));
   /* .avis coupait tout ce qui dépassait, y compris l’ombre de sa dernière carte : on ne coupe plus que sur les côtés */
   assert.match(css, /@supports \(overflow:clip\)\{\.avis\{overflow:visible;overflow-x:clip\}\}/);
+});
+
+test('navigation mobile : même espacement entre les boutons et le menu', () => {
+  assert.match(css, /@media \(max-width:959px\)\{\s*\.nav \.wrap\{gap:6px\}\s*\.nav-cta\{gap:6px\}/);
+  assert.match(css, /@media \(max-width:380px\)\{\s*\.nav \.wrap\{gap:6px\}/);
+});
+
+test('FAQ de la vitrine : questions et réponses visibles identiques aux données structurées', () => {
+  const html = lire('index.html');
+  const faq = html.slice(html.indexOf('<section class="faq"'), html.indexOf('<!-- Appel final -->'));
+  const schema = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+  const cards = [...faq.matchAll(/<details class="qa rv"><summary>([\s\S]*?)<span class="pm"[\s\S]*?<p>([\s\S]*?)<\/p>/g)];
+  const plain = value => value.replace(/<[^>]*>/g, '').replace(/&nbsp;|&#160;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\s+/g, ' ').trim();
+  assert.equal(cards.length, 11, '11 questions dans la FAQ visible');
+  assert.equal(schema.mainEntity.length, cards.length, '11 entrées dans le balisage FAQPage');
+  cards.forEach((card, index) => {
+    assert.equal(plain(card[1]), schema.mainEntity[index].name, `question ${index + 1}`);
+    assert.equal(plain(card[2]), schema.mainEntity[index].acceptedAnswer.text, `réponse ${index + 1}`);
+  });
 });
 
 test('avis : Aminata C. (même personne que l’ancien avis « En reconversion »), photos sur les trois cartes écrites', () => {
@@ -250,17 +278,17 @@ test('témoignages : « Ils recommandent » dans le lecteur, pour montrer que ce
 test('« cas pratiques » à la place de « défis métier » sur la vitrine, la vidéo et les pages légales', () => {
   const pages = ['index.html', 'module.html', 'connexion.html', 'video.html', 'mentions-legales.html', 'confidentialite.html', 'conditions.html', 'modules.js'];
   for (const f of pages) assert.doesNotMatch(lire(f), /[Dd]éfis? métier/, `${f} : plus de « défis métier »`);
-  assert.match(lire('index.html'), /<li>25 cas pratiques<\/li>/, 'ce qui est inclus');
+  assert.match(lire('index.html'), /<li>207 cas pratiques<\/li>/, 'ce qui est inclus');
   assert.match(lire('index.html'), /<h3>Cas pratiques et révisions<\/h3>/);
-  assert.match(lire('connexion.html'), /<span class="sticker sun">25 cas pratiques<svg/, 'autocollant de la page de connexion');
+  assert.match(lire('connexion.html'), /<span class="sticker sun">207 cas pratiques<svg/, 'autocollant de la page de connexion');
   const v = lire('video.html');
   assert.ok(v.includes('<span>Des <em>cas pratiques</em>,</span>'), 'titre de la scène');
   assert.ok(v.includes("[101.5, 'Cas pratiques']"), 'chapitre');
-  assert.ok(v.includes('<div class="stk sun" id="stk-df">25 cas pratiques<svg'), 'autocollant de la vidéo');
-  assert.ok(v.includes('<b>25 cas pratiques</b>'), 'tuile des fonctionnalités');
+  assert.ok(v.includes('<div class="stk sun" id="stk-df">207 cas pratiques<svg'), 'autocollant de la vidéo');
+  assert.ok(v.includes('<b>207 cas pratiques</b>'), 'tuile des fonctionnalités');
   assert.ok(v.includes('<div class="df-stamp" id="df-stamp">Cas résolu&nbsp;!</div>'));
   /* Le défi entre amis est une autre fonction de l’appli : il garde son nom */
-  assert.match(lire('index.html'), /des défis SQL à lancer entre amis/);
+  assert.match(lire('index.html'), /lancer des défis entre amis/);
 });
 
 test('contact : « Donner mon avis » affiche les étoiles (pas de « Ma note » écrit dans le message)', () => {
@@ -322,7 +350,7 @@ test('vidéo : « Apprends le SQL maintenant. » puis les neuf tuiles des foncti
   assert.ok(s9.includes('<span>Du premier <code>SELECT</code></span>') && s9.includes('<span>aux requêtes <em>avancées</em>,</span>'), 'titre');
   assert.ok(s9.includes('<p class="abs sub">progresse à ton rythme.</p>'), 'la phrase continue sous le titre');
   const tuiles = [...s9.matchAll(/<div class="ft(?: more)?">.*?<b>(.*?)<\/b><\/div>/g)].map(m => m[1]);
-  assert.deepEqual(tuiles, ['65 cours immersifs', 'Un labo&nbsp;SQL interactif', '25 cas pratiques', 'Importe tes propres données',
+  assert.deepEqual(tuiles, ['65 cours immersifs', 'Un labo&nbsp;SQL interactif', '207 cas pratiques', 'Importe tes propres données',
     '30 questions d’entretien', 'Cartes mémo &amp; stickers', 'Défie tes amis', 'Ta série de jours',
     'Et bien plus encore<small>Découvre-les maintenant&nbsp;!</small>']);
   /* Quatre rangées de deux, puis « Et bien plus encore » sur toute la largeur (Elisa, 20 h 01 : « tout est tassé »).
@@ -346,7 +374,7 @@ test('vidéo : « Apprends le SQL maintenant. » puis les neuf tuiles des foncti
   assert.match(video, /#end\.on a,#end\.on button\{animation:endPop [^}]*backwards\}/, 'l’entrée ne bloque pas le survol');
   /* Texte lu par VoiceOver */
   assert.ok(video.includes("'Apprends le SQL maintenant. Pratique sur de vraies données avec Requête. L’app, pensée pour les futurs data analysts. Des cours interactifs"));
-  assert.ok(video.includes("'Du premier SELECT aux requêtes avancées, progresse à ton rythme. 65 cours immersifs, un labo SQL interactif, 25 cas pratiques."));
+  assert.ok(video.includes("'Du premier SELECT aux requêtes avancées, progresse à ton rythme. 65 cours immersifs, un labo SQL interactif, 207 cas pratiques."));
 });
 
 /* Elisa, 30 octobre, 17 h 31 : un écran d’onboarding avec des logos de Harvard, Stanford et Emory (« est-ce qu’on peut
@@ -477,7 +505,7 @@ test('« Salaires » n’est plus dans les menus (barre du haut, menu du télép
   for (const page of ['index.html', 'module.html', 'mentions-legales.html', 'confidentialite.html', 'conditions.html'])
     assert.doesNotMatch(lire(page), /<a href="(?:\.\/)?#salaires">Salaires<\/a>/, page);
   const h = lire('index.html'), nav = h.slice(h.indexOf('<nav class="links"'), h.indexOf('</nav>', h.indexOf('<nav class="links"')));
-  assert.deepEqual([...nav.matchAll(/<a href="#(\w+)">([^<]+)<\/a>/g)].map(m => m[2]), ['Parcours', 'Pourquoi le SQL', 'Questions']);
+  assert.deepEqual([...nav.matchAll(/<a href="#(\w+)">([^<]+)<\/a>/g)].map(m => m[2]), ['Parcours de formation', 'Pourquoi apprendre SQL', 'Questions fréquentes']);
   assert.equal((h.match(/id="salaires"/g) || []).length, 1, 'la carte « Salaire » est toujours dans « Pourquoi le SQL »');
 });
 
@@ -490,7 +518,7 @@ test('sous « Ton objectif ? » : le lien et les trois promesses sont centrés, 
   /* Les promesses : centrées sous la carte (même largeur qu’elle), coupées toutes au même endroit sur téléphone */
   const tr = h.slice(h.indexOf('<ul class="trust'), h.indexOf('</ul>', h.indexOf('<ul class="trust')));
   assert.deepEqual([...tr.matchAll(/<\/svg><span><span>([^<]+)<\/span> <span>([^<]+)<\/span><\/span><\/li>/g)].map(m => [m[1], m[2]]),
-    [['Dès 10&nbsp;min', 'par jour'], ['Rien à', 'installer'], ['Même', 'hors ligne']]);
+    [['10&nbsp;min', 'par jour'], ['Aucune', 'installation'], ['Disponible', 'hors ligne']]);
   assert.match(css, /\.trust\{margin:20px 0 0;display:flex;flex-wrap:wrap;justify-content:center;gap:8px 18px;max-width:470px;/);
   assert.ok(css.includes('.pick{position:relative;margin-top:28px;max-width:470px;'), 'la carte fait 470 px au plus, comme la ligne');
   const etroit = css.slice(css.indexOf('@media (max-width:489.98px),(min-width:700px) and (max-width:959.98px){'));
