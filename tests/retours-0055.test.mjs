@@ -88,12 +88,16 @@ test('chaque solution Aéroport s’exécute et son ordre reste stable', () => {
   }
 });
 
-test('la consigne d’un défi : la situation et la question, sans indice (1 h 20) — seul comme en salle', () => {
+test('la consigne autonome d’un défi apparaît une seule fois, sans indice, seul comme en salle', () => {
   vm.runInContext(cut('function defiConsigneHTML(c){', '\n/* Les indices d’un défi raté'), Object.assign(ctx, { esc: s => String(s).replace(/</g, '&lt;') }));
   ctx.c = DEFIS[8];
   const html = vm.runInContext('defiConsigneHTML(c)', ctx);
-  assert.ok(html.startsWith('<p class="defi-ctx">Le service qualité'));
-  assert.ok(html.endsWith('<div class="consigne"><span class="tag">La question</span><p>Affiche l’identifiant du bagage, son statut et l’identifiant de la réservation pour tous les bagages dont le poids n’est pas renseigné, triés par identifiant de bagage.</p></div>'));
+  assert.ok(html.includes(ctx.c.contexte), 'tout le contexte est visible');
+  assert.ok(html.includes(ctx.c.q), 'le résultat et le tri attendus sont dans le contexte');
+  assert.equal(html.split(ctx.c.q).length - 1, 1, 'pas de répétition de la consigne');
+  assert.ok(!html.includes(ctx.c.sol), 'pas de solution dans la mission');
+  ctx.c = { contexte: '<script>intrusion</script>', q: 'Autre texte' };
+  assert.ok(!vm.runInContext('defiConsigneHTML(c)', ctx).includes('<script>'), 'le contexte reste du texte');
   assert.ok(!app.includes('<summary>Un indice</summary>'), 'pas d’indice');
   assert.equal((app.match(/\$\{defiConsigneHTML\(c\)\}/g) || []).length, 2, 'défi seul et manche en salle');
 });

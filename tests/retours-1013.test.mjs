@@ -11,13 +11,15 @@ const ctx = vm.createContext({});
 vm.runInContext(cut('const CHALLENGES=[', '\n/* La consigne d’un défi').replace('const CHALLENGES=', 'CHALLENGES='), ctx);
 const D = id => ctx.CHALLENGES.find(c => c.id === id);
 
-test('les situations du lot Moyen, plus riches, ajustées à la base', () => {
-  for (const id of ['am1', 'am2', 'am3', 'am4', 'am5', 'am6', 'am7', 'am8', 'am9', 'af33']) assert.ok(D(id).contexte.length > 300, `${id} : une situation complète`);
-  assert.ok(D('am1').contexte.startsWith('Nous sommes lundi matin, et la compagnie aérienne doit rendre son rapport d’activité hebdomadaire'));
-  assert.ok(!/complet/.test(D('am1').contexte), 'aucun vol n’est complet dans la base');
-  assert.ok(!/plusieurs réservations sur le même vol/.test(D('am5').contexte), 'jamais deux réservations d’un passager sur un même vol');
-  assert.ok(D('am4').contexte.includes('plus cher que le prix moyen de cette classe'), 'la sous-requête, pas le prix moyen par classe (déjà af21)');
-  assert.ok(D('af33').contexte.startsWith('Le service qualité de l’aéroport effectue son audit mensuel.') && D('af33').niv === 'f');
-  assert.ok(D('am9').contexte.includes('dépasse 3 %') && D('am9').q.includes('dépasse 3 %'));
+test('les contextes du lot Moyen définissent seuls le résultat et les règles de calcul', () => {
+  for (const id of ['am1', 'am2', 'am3', 'am4', 'am5', 'am6', 'am7', 'am8', 'am9', 'af33']) {
+    assert.ok(D(id).contexte.includes(D(id).q), `${id} : aucune consigne externe nécessaire`);
+    assert.doesNotMatch(D(id).contexte, /voir la question|comme précédemment/i);
+  }
+  assert.ok(D('am1').contexte.includes('compteur à 0'), 'les vols sans réservation restent présents');
+  assert.ok(D('am3').contexte.includes('plusieurs aéroports'), 'le regroupement est par ville');
+  assert.ok(D('am4').contexte.includes('moyenne de cette classe'), 'la référence est la classe Économique');
+  assert.ok(D('af33').contexte.includes('statut') && D('af33').niv === 'f');
+  assert.match(D('am9').contexte, /non arrondi dépasse strictement 3 %/);
   assert.ok(!cut('function defiConsigneHTML(c){', '\n}').includes('indice'), 'pas d’indice au départ dans la consigne');
 });
