@@ -156,7 +156,7 @@ test('réf 4 — « Tes performances » : les chiffres, la réussite, les temps,
 
 test('réf 4 — « le trait est grossier » : le contour ne cerne plus l’en-tête violet, la pastille choisie reste dans son rail', () => {
   assert.ok(s46.includes('html.lq .room-card{border:0!important;padding:0 18px 18px!important;box-shadow:inset 0 0 0 2px var(--line),0 5px 0 var(--lip)!important}'), 'le contour passe sous l’en-tête');
-  assert.ok(s46.includes('html.lq .room-head{margin:0 -18px 4px;'), 'l’en-tête va jusqu’au bord');
+  assert.ok(s46.includes('html.lq .room-head{margin:0 -18px;'), 'l’en-tête va jusqu’au bord (resserré par Elisa, « Tighten challenge room spacing »)');
   assert.ok(s46.includes('html.lq .room-seg{padding:4px 4px 7px!important}'), 'le relief de la pastille tient dans le rail');
   assert.ok(!app.includes('room-stats') && !css.includes('room-stats'), 'plus de pastilles sous un pointillé épais');
 });
