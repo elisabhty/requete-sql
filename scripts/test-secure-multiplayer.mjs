@@ -51,6 +51,9 @@ try{
  }
  if(process.env.CHECK_LEGACY_REVOKED==='1'){
   assert.equal((await rpc('jeu_envoyer',{p_salle:code,p_m:{t:'found'}})).ok,false);
+  assert.equal((await rpc('jeu_historique',{p_salle:code,p_apres:0})).ok,false);
+  assert.equal((await rpc('jeu_balise',{'':JSON.stringify({salle:code,m:{t:'found'}})})).ok,false);
+  assert.equal((await rpc('jeu_defis',{p_cle:host.key,p_defis:['FAKE'],p_niv:{f:[999,999]}})).ok,false);
   assert.equal((await rpc('jeu_score',{p_cle:host.key,p_pseudo:host.pseudo,p_partie:{u:'FORGED1234',pts:275,n:1,ok:1,solo:0,niv:'f'}})).ok,false);
  }
  console.log('PASS: room membership, maximum 5, host rights, impersonation refused, direct success refused, private verification, SQL validation, first-try bonus, server timing, server scoring, idempotency, private history and verified progress.');
