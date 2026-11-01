@@ -6641,7 +6641,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=94">
+<link rel="stylesheet" href="ludique.css?v=95">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -18639,16 +18639,25 @@ function renderHomeHero(){
      terminée) ; une séance en retard : « À reprendre · 8 min » ; plus rien du tout : « Parcours terminé ». */
   const todayISO=dstr(auj());
   const seanceJour=state.plan&&Array.isArray(state.plan.sessions)?state.plan.sessions.find(x=>x.d===todayISO&&Array.isArray(x.lessons)&&x.lessons.length):null;
-  const sessionLine=!session?'Parcours terminé'
-    :session.d<todayISO?`À reprendre · ${session.minutes} min`
-    :session.d===todayISO?`Aujourd’hui · ${session.minutes} min`
-    :seanceJour&&seanceJour.lessons.every(itemDone)?'Aujourd’hui · Fait ✓':'Aujourd’hui · Pause';
+  /* 19 h 48 : « Ta session » à la place d’« Aujourd’hui », avec une animation à elle : un petit sablier dont le sable coule puis qui
+     se retourne (séance à faire), arrêté et qui somnole quand c’est la pause, une coche qui se trace quand c’est fait ; les minutes défilent de 0
+     jusqu’à la durée à la première ouverture. */
+  const sesEtat=!session?'end':session.d<todayISO?'late':session.d===todayISO?'run':seanceJour&&seanceJour.lessons.every(itemDone)?'done':'pause';
+  const sessionLine=sesEtat==='end'?'Parcours terminé'
+    :sesEtat==='late'?`À reprendre · ${session.minutes} min`
+    :sesEtat==='run'?`Ta session · ${session.minutes} min`
+    :sesEtat==='done'?'Ta session · Faite':'Ta session · Pause';
+  const sesIc=sesEtat==='run'||sesEtat==='late'
+    ?'<svg viewBox="0 0 14 16"><g class="lq-sab"><path class="lq-sab-f" d="M2.5 1.2h9M2.5 14.8h9M4 1.2c0 3.6 2.6 4.6 2.6 6.8S4 11.2 4 14.8M10 1.2c0 3.6-2.6 4.6-2.6 6.8s2.6 3.2 2.6 6.8"/><path class="lq-sab-t" d="M4.9 3.4h4.2L7 7.2z"/><path class="lq-sab-b" d="M7 9.4l2.6 4.4H4.4z"/><path class="lq-sab-s" d="M7 7.4v6"/></g></svg>'
+    :sesEtat==='pause'?'<svg viewBox="0 0 14 16"><g class="lq-sab is-couche"><path class="lq-sab-f" d="M2.5 1.2h9M2.5 14.8h9M4 1.2c0 3.6 2.6 4.6 2.6 6.8S4 11.2 4 14.8M10 1.2c0 3.6-2.6 4.6-2.6 6.8s2.6 3.2 2.6 6.8"/><path class="lq-sab-t" d="M5.6 4.6h2.8L7 7z"/><path class="lq-sab-b" d="M7 11l1.6 2.8H5.4z"/></g><text class="lq-zz" x="11" y="3">z</text></svg>'
+    :'<svg viewBox="0 0 16 16"><circle class="lq-chk-o" cx="8" cy="8" r="6.6"/><path class="lq-chk" d="M4.8 8.3l2.2 2.2 4.2-4.6"/></svg>';
+  const sesTxt=esc(sessionLine).replace(/(\d+) min$/,'<b class="lq-ses-n" data-n="$1">$1</b>\u00a0min');
   /* Elisa, 1er novembre, 19 h 25 : « fusionner les 2 » : le bonjour, le niveau et la séance passent en haut de la carte violette du
      cours (au lieu d’un bloc au-dessus) ; la série vient sous la carte. */
   /* 19 h 36 : « moins de choses, sur une ligne » : le bonjour et la séance du jour sur la même ligne ; 19 h 39 : le niveau
      (« Niv. 2 · Constructeur de requêtes ») se colle sur la mascotte, à la place du mot-clé SQL. */
   const nivC=typeof niveauCompte==='function'?niveauCompte():null;
-  const heading=`<div class="lq-hero-hi"><p class="lq-hi-title" aria-hidden="true">${hiHtml}</p><div class="journey-session-meta"><span aria-label="${escAttr(session?.summary||'Toutes tes activités sont validées')}">${esc(sessionLine)}</span><time datetime="${dateISO}">${esc(date)}</time></div></div>`;
+  const heading=`<div class="lq-hero-hi"><p class="lq-hi-title" aria-hidden="true">${hiHtml}</p><div class="journey-session-meta"><span class="lq-ses is-${sesEtat}" aria-label="${escAttr(session?.summary||'Toutes tes activités sont validées')}"><i class="lq-ses-ic" aria-hidden="true">${sesIc}</i><span aria-hidden="true">${sesTxt}</span></span><time datetime="${dateISO}">${esc(date)}</time></div></div>`;
   /* Première ouverture de l’accueil dans la séance : l’autocollant se colle sur la carte (une seule fois). */
   const intro=typeof mascotWavedThisSession!=='undefined'&&!mascotWavedThisSession&&!mascotReduced()&&typeof host.querySelector==='function'&&!host.querySelector('.mascot-stk')&&!!document.querySelector('#scr-learn.active');
   if(intro){mascotWavedThisSession=true;setTimeout(()=>{const b=host.querySelector('.mascot-stk.is-intro');if(b)b.classList.remove('is-intro');},3800);}
@@ -18658,6 +18667,7 @@ function renderHomeHero(){
     const keep=lqKeepMascot(host);
     host.innerHTML=`<section class="journey-complete lq-hero is-complete has-hi" data-mc="0">${heading}<span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><div class="lq-hero-main"><div class="lq-hero-body"><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div>${mascot}</div><button class="journey-primary lq-hero-cta" type="button" onclick="switchTab('practice')"><span>Continuer à pratiquer</span></button></section>${streak}${extras}`;
     lqKeepMascot(host,keep);
+    lqSesCount(host);
     return;
   }
   const meta=itemMeta(nxt),defi=isDefiId(nxt),mod=moduleDeLecon(nxt);
@@ -18687,6 +18697,19 @@ function renderHomeHero(){
   const keep=lqKeepMascot(host);
   host.innerHTML=`<section class="lq-hero journey-session has-hi" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}${chip}<div class="lq-hero-main"><div class="lq-hero-body"><p class="lq-hero-kicker">${esc(kicker)}</p><h3 class="lq-hero-title">${esc(meta.titre)}</h3><p class="lq-hero-sub">${esc(sub)}</p></div>${mascot}</div>${pips}<button type="button" class="journey-primary lq-hero-cta" aria-label="${escAttr(ctaLabel+' : '+meta.titre)}" onclick="openItem(${arg},${currentStep})"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span>${esc(ctaLabel)}</span></button></section>${streak}${extras}`;
   lqKeepMascot(host,keep);
+  lqSesCount(host);
+}
+/* « Ta session · 12 min » : les minutes défilent de 0 jusqu’à la durée, une fois par ouverture de l’appli (pas à chaque rendu). */
+let lqSesCounted=false;
+function lqSesCount(host){
+  const n=host&&typeof host.querySelector==='function'?host.querySelector('.lq-ses-n[data-n]'):null;
+  if(!n||lqSesCounted||!document.querySelector('#scr-learn.active'))return;
+  lqSesCounted=true;
+  if(typeof mascotReduced==='function'&&mascotReduced())return;
+  const fin=+n.dataset.n||0,t0=performance.now(),D=900;
+  n.textContent='0';
+  const pas=t=>{const k=Math.min(1,(t-t0)/D),e=1-Math.pow(1-k,3);n.textContent=String(Math.round(fin*e));if(k<1)requestAnimationFrame(pas);};
+  setTimeout(()=>requestAnimationFrame(pas),350);
 }
 /* L’autocollant de la mascotte est gardé d’un rendu de l’accueil à l’autre : le recréer relançait son
    balancement (petit saut) ; son mot-clé et sa bulle sont remis à jour. */
@@ -33034,7 +33057,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-chat-niv-v2286';
+  const SW_CACHE='requete-2026-11-01-ta-session-v2287';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
