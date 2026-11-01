@@ -163,12 +163,12 @@ test('Données et confidentialité : « Comprendre mes données » en tête, qui
 });
 
 test('la confidentialité dit où partent les messages (appli, site, notes App Store)', () => {
-  const li = '<li>Les messages envoyés depuis <b>Nous contacter</b> (Mon compte)&nbsp;: ton message, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus.</li>';
+  const li = '<li>Les messages envoyés depuis <b>Nous contacter</b> (Mon compte)&nbsp;: ton message, les captures ou fichiers que tu joins, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus.</li>';
   assert.equal(app.split(li).length - 1, 2, 'dans la confidentialité de l’appli et dans le choix « sans compte »');
   assert.ok(site.includes('<li><b>Messages de contact.</b> Depuis l’appli (Mon compte, «&nbsp;Nous contacter&nbsp;»), ton message, son sujet'));
   assert.ok(site.includes('ou depuis l’appli (Mon compte, «&nbsp;Nous contacter&nbsp;»).'), 'les droits s’exercent aussi depuis l’appli');
   assert.ok(ios.includes('vue\n  `contact_boite`') || ios.includes('`contact_boite`'), 'où lire les messages');
-  assert.ok(ios.includes('« Adresse e-mail » (facultative), « Autre contenu utilisateur » (le message) et « Autres données de\n  diagnostic »'));
+  assert.ok(ios.includes('« Adresse e-mail » (facultative), « Autre contenu utilisateur » (le message et les fichiers joints),\n  « Photos ou vidéos » (les captures jointes) et « Autres données de\n  diagnostic »'));
 });
 
 test('Supabase — les messages : écrits seulement par contact_envoyer, lisibles seulement dans le tableau de bord', () => {
@@ -190,7 +190,8 @@ test('Supabase — les messages : écrits seulement par contact_envoyer, lisible
     "select cron.schedule('contact-menage', '29 4 * * *', 'select public.contact_menage()');"])
     assert.ok(sql.includes(part), part);
   /* L’appli envoie exactement ces arguments */
-  assert.ok(app.includes("clsRpc('contact_envoyer',{p_cle:clsCle(),p_type:CT.type,p_message:msg,p_email:mail||null,p_infos:CT.type==='bug'&&CT.infos?ctInfos():null})"));
+  assert.ok(app.includes("const corps={p_cle:clsCle(),p_type:CT.type,p_message:msg,p_email:mail||null,p_infos:CT.type==='bug'&&CT.infos?ctInfos():null};"));
+  assert.ok(app.includes("const r=await clsRpc('contact_envoyer',corps);"));
 });
 
 test('la DA : pastilles en relief comme le rappel, champs lilas, carte lilas qui se déplie', () => {
