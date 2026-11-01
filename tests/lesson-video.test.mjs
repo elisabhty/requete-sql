@@ -767,7 +767,7 @@ const COURSES = [
       '<span class="sw" id="sw4"><span class="a">?</span><span class="b">5</span></span>', '<span class="kw">WHERE</span> <span class="glow" id="w5">stock &lt; 50</span>;',
       '<span class="glow" id="as6b"><span class="kw">AS</span> categories</span>', '✓ Compteurs à jour']},
   /* SUM, AVG, MIN et MAX (1er novembre, Elisa, 22 h 47 : « de manière gamifiée ») : le tableau de bord du stock, une étoile par compteur. */
-  {id: 85, next: 16, titre: 'SUM, AVG, MIN et MAX', page: 'agregats.html', thumb: 'agregats-thumb.jpg', duree: '2 min 26', notesAt: 140.1,
+  {id: 85, next: 16, titre: 'SUM, AVG, MIN et MAX', page: 'agregats.html', thumb: 'agregats-thumb.jpg', duree: '2 min 45', notesAt: 140.1,
     table: 'produits',
     bubble: 'Additionne, fais la moyenne ou trouve les extrêmes d’une&nbsp;colonne.',
     chapters: ['Situation', 'SUM', 'AVG', 'MIN et MAX', 'D’autres colonnes', 'Le résultat', 'À retenir'],
@@ -1335,7 +1335,9 @@ for (const c of COURSES) {
        d’après (Elisa, 1er novembre, 21 h 30), ~4 Ko dans le moteur commun ; ses phrases sont dans liens.js. */
     /* 545 Ko depuis le 2 novembre (et 5 Ko de plus pour les cours qui ont leur propre plafond) : les légendes équilibrées (capBalance),
        la carte d’intro qui recule sous la bulle du lien et le cadre du contenu pour le zoom des moments (Elisa, 1er nov., 23 h 33 et 23 h 46), ~4 Ko. */
-    assert.ok(total < ((c.maxKo || 520) + 25) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
+    /* 555 Ko depuis le 2 novembre, 0 h 40 (et 10 Ko de plus pour les cours qui ont leur propre plafond) : la caméra du lecteur sur grand
+       écran (la scène grandit dans la place libre, Elisa, 2 novembre, 0 h 26, réf. 4), ~7 Ko dans le moteur commun. */
+    assert.ok(total < ((c.maxKo || 520) + 35) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
     for (const f of [`./assets/anim/${c.page}?app&embed`, `./assets/anim/${c.thumb}`]) assert.ok(sw.includes(`'${f}'`), `préchargé : ${f}`);
   });
 }

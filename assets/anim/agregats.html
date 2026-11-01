@@ -9,6 +9,7 @@
 <style>
 #s0 .bubble{left:514px;width:532px}
 .nw{white-space:nowrap}
+.k-lg{--c:#E58F16;--cs:#FFF1DC;--ci:#9A5B00}
 
 /* Code : deux lignes (chapitres 2 et 3), requête complète (chapitre 6) */
 .code.sm .body{font-size:34px;line-height:54px;padding:28px 36px}
@@ -124,7 +125,7 @@
     <div class="abs bubble">Additionne, fais la moyenne ou trouve les extrêmes d’une&nbsp;colonne.</div>
   </section>
 
-  <!-- 1 · Situation : les quatre compteurs du tableau de bord, encore vides -->
+  <!-- 1 · Situation : le mail de l’équipe logistique (dom), puis les quatre indicateurs du tableau de bord, encore vides -->
   <section class="scene" id="s1">
     <div class="abs card dash" id="dash1" style="top:290px"></div>
     <div class="abs card need">
@@ -246,12 +247,14 @@
 <script src="liens.js"></script>
 <script src="core.js"></script>
 <script src="moments.js"></script>
+<script src="mail.js"></script>
 <script>
 'use strict';
 /* SUM, AVG, MIN et MAX (Elisa, 1er novembre, 22 h 47 : « fais la leçon de manière gamifiée ») : entre COUNT et GROUP BY, la leçon
    qui manquait (les quatre fonctions passaient en quinze secondes dans GROUP BY, et HAVING s’en sert). Le jeu : le tableau de bord du
    stock a quatre compteurs à remplir, jusqu’à « 4 / 4 · Tableau de bord complet ». Elisa, 2 novembre, 0 h 10 : sans les étoiles à gagner
-   (réf. 1), sans la phrase « il faut trouver la barre la plus longue » (réf. 2) ; ces deux passages sont coupés (cut).
+   (réf. 1), sans la phrase « il faut trouver la barre la plus longue » (réf. 2, passage coupé). Elisa, 2 novembre, 0 h 26 : la leçon
+   s’ouvre sur le mail de l’équipe logistique (le tableau de bord a été supprimé, ses indicateurs sont à recalculer) ; « indicateurs ».
    Toutes les valeurs sont celles de la base de l’app (vérifiées dans SQLite par tests/agregats-lesson.test.mjs). */
 const DURATION = 147.6;
 
@@ -263,6 +266,14 @@ const CLIENTS = [['Sophie', 34], ['Lucas', 28], ['Emma', 45], ['Nathan', 31], ['
 /* Les quatre compteurs : [emoji, libellé, valeur affichée, fonction] */
 const KPIS = [['📦', 'Stock total', '1 075', 'SUM(stock)'], ['💶', 'Prix moyen', '23,99 €', 'AVG(prix)'], ['🔻', 'Prix le plus bas', '12,50 €', 'MIN(prix)'], ['🔺', 'Prix le plus élevé', '39,90 €', 'MAX(prix)']];
 const eur = v => v.toFixed(2).replace('.', ',') + '&nbsp;€';
+/* La mission (Elisa, 2 novembre, 0 h 26) : l’équipe logistique écrit, le tableau de bord du stock a été supprimé et ses indicateurs sont
+   vides ; il faut les recalculer au plus vite, et SQL le fera plutôt qu’un calcul à la main. L’app s’arrête sur la notification jusqu’au toucher. */
+const MAIL = {id: 'ml1', qui: ['L’équipe logistique', 'EL'], k: 'k-lg', tag: 'logistique', de: 'logistique@nutriboost.fr', corps: [
+  'Le tableau de bord du stock a été supprimé par erreur : tous ses indicateurs sont vides.',
+  'Il nous faut à nouveau le stock total, le prix moyen, le prix le plus bas et le prix le plus élevé.',
+  'Peux-tu les recalculer au plus vite ?'], signe: 'L’équipe logistique NutriBoost'};
+const MAIL_T = 5.2, MAIL_OPEN = 6.8;
+const OPENS = [{at: MAIL_OPEN, sel: '#ml1', prompt: 'Touche le mail pour l’ouvrir.', label: 'Ouvrir le mail de l’équipe logistique'}];
 
 const CHAPTERS = [
   {n:1, label:'Situation',         a:5.0,   b:26.8},
@@ -276,30 +287,31 @@ const CHAPTERS = [
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
 const CAPTIONS = [
-  [5.3, 10.4,    "Le tableau de bord du stock affiche quatre <b>compteurs</b>, encore vides."],
-  [15.9, 21.2,   "<code>COUNT</code> compte des lignes : ici, il faut calculer sur les <b>valeurs</b> d’une colonne."],
-  [21.3, 26.4,   "Quatre fonctions s’en chargent : <code>SUM</code>, <code>AVG</code>, <code>MIN</code> et <code>MAX</code>."],
+  [10.4, 13.2,   "Les quatre <b>indicateurs</b> du stock sont encore vides."],
+  [13.3, 15.8,   "À nous de les calculer !"],
+  [15.9, 21.2,   "Ici, on veut calculer à partir des <b>valeurs</b> d’une colonne."],
+  [21.3, 26.4,   "Quatre fonctions permettent de faire ces calculs : <code>SUM</code>, <code>AVG</code>, <code>MIN</code> et <code>MAX</code>."],
   [27.1, 31.6,   "<code>SUM</code> <b>additionne</b> toutes les valeurs d’une colonne."],
-  [31.7, 36.5,   "Pour le premier compteur, <code>SUM(stock)</code> additionne le stock de la <b>table produits</b>."],
+  [31.7, 36.5,   "Pour le premier indicateur, <code>SUM(stock)</code> additionne le stock de la <b>table produits</b>."],
   [36.7, 41.4,   "Les stocks s’ajoutent au total,<br>un produit après l’autre."],
   [41.5, 46.0,   "Résultat : <b>une seule ligne</b>, avec 1 075 unités en stock."],
-  [46.1, 50.3,   "Premier compteur rempli : le <b>stock total</b>, 1 075 unités."],
+  [46.1, 50.3,   "Premier indicateur calculé : le <b>stock total</b>, 1 075 unités."],
   [51.0, 55.6,   "<code>AVG</code> calcule la <b>moyenne</b> des valeurs d’une colonne."],
   [55.7, 61.0,   "Elle additionne les 8 prix,<br>puis divise le total par 8."],
   [61.1, 65.8,   "191,90 € divisé par 8 donne <b>23,9875</b> : trop de décimales pour un prix."],
   [65.9, 71.0,   "Avec <code>ROUND(AVG(prix), 2)</code>, le prix moyen devient <b>23,99 €</b>."],
   [71.1, 76.0,   "Comme <code>COUNT(colonne)</code>, <code>AVG</code> ignore les valeurs <code>NULL</code>."],
-  [76.1, 80.0,   "Deuxième compteur rempli : le <b>prix moyen</b>, 23,99 €."],
+  [76.1, 80.0,   "Deuxième indicateur calculé : le <b>prix moyen</b>, 23,99 €."],
   [80.7, 85.6,   "<code>MIN</code> garde la <b>plus petite</b> valeur, <code>MAX</code> la <b>plus grande</b>."],
   [90.4, 95.0,   "<code>MAX(prix)</code> donne <b>39,90</b> : le prix du Collagène Marin."],
   [95.1, 99.8,   "<code>MIN(prix)</code> donne <b>12,50</b> : celui de la Tisane Détox."],
   [99.9, 104.9,  "Attention : <code>MIN</code> et <code>MAX</code> donnent une <b>valeur</b>, pas le nom du produit."],
-  [105.0, 109.0, "Troisième et quatrième compteurs remplis : le prix le plus <b>bas</b> et le plus <b>élevé</b>."],
+  [105.0, 109.0, "Troisième et quatrième indicateurs calculés : le prix le plus <b>bas</b> et le plus <b>élevé</b>."],
   [109.7, 114.5, "Elles s’utilisent sur toutes les colonnes contenant des nombres, comme, par exemple, l’âge des clients."],
   [114.7, 119.4, "<code>AVG(age)</code> donne <b>35,4</b> ans, <code>MIN(age)</code> 26 et <code>MAX(age)</code> 52."],
-  [120.1, 125.0, "Une seule requête remplit<br>les quatre compteurs, chacun<br>nommé avec <code>AS</code>."],
+  [120.1, 125.0, "Une seule requête calcule<br>les quatre indicateurs, chacun<br>nommé avec <code>AS</code>."],
   [125.1, 129.6, "Résultat : <b>une seule ligne</b>, avec quatre valeurs."],
-  [129.7, 134.4, "Les quatre compteurs sont remplis : le tableau de bord est complet !"],
+  [129.7, 134.4, "Les quatre indicateurs sont calculés : le tableau de bord est complet !"],
   [135.1, 139.9, "Pour finir, voici les <b>trois idées à retenir</b>."],
   APP ? [140.1, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
       : [140.1, 999, "<code>SUM</code>, <code>AVG</code>, <code>MIN</code> et <code>MAX</code> résument une colonne en un seul nombre."]
@@ -345,6 +357,7 @@ function dash(id, filled){
         `</div>`; }).join('')}</div>`;
 }
 function dom(){
+  $('#s1').insertAdjacentHTML('afterbegin', lessonMailCard(MAIL));
   dash('#dash1', []); dash('#dash2', []); dash('#dash3', [0]); dash('#dash4', [0, 1]); dash('#dash6', [0, 1, 2, 3]);
   // le niveau suivant, déjà écrit au dos du compteur de niveau (il se retourne quand le compteur se remplit)
   [['#dash2', 1], ['#dash3', 2], ['#dash4', 4]].forEach(([id, n]) => { $(id + ' .lv .b').textContent = n + ' / 4'; });
@@ -389,15 +402,18 @@ function build(){
 
   /* ===== 1 · Situation ===== */
   sceneOn('#s1', 5.0);
+  // Le mail de l’équipe logistique arrive seul (la première légende vient après lui) ; l’élève l’ouvre, le lit, puis il s’en va.
+  const mailEnd = lessonMailIn('#ml1', lessonMailFit('#ml1'), MAIL_T, MAIL_OPEN);
+  lessonMailOut('#ml1', +(mailEnd + 0.45).toFixed(2));
+  // Les quatre indicateurs vides : la mission commence
   gsap.set('#dash1', {autoAlpha: 0, y: 120, rotation: -6});
-  tl.to('#dash1', {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, 5.15);
-  cue(5.15, 'whoosh', 0.8);
+  tl.to('#dash1', {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, 10.0);
+  cue(10.0, 'whoosh', 0.8);
   const k1 = $$('#dash1 .kpi');
   gsap.set(k1, {autoAlpha: 0, y: 24, scale: 0.9});
-  tl.to(k1, {autoAlpha: 1, y: 0, scale: 1, duration: 0.45, ease: 'back.out(1.8)', stagger: 0.15}, 5.9);
-  k1.forEach((_, i) => cue(5.9 + i * 0.15, 'pop', 0.7, i * 2));
-  // (le passage des étoiles à gagner est coupé : 10,45 → 15,85)
-  cut(10.45, 5.4);
+  tl.to(k1, {autoAlpha: 1, y: 0, scale: 1, duration: 0.45, ease: 'back.out(1.8)', stagger: 0.15}, 10.75);
+  k1.forEach((_, i) => cue(10.75 + i * 0.15, 'pop', 0.7, i * 2));
+  tl.to($$('#dash1 .kv'), {borderColor: '#F7C97F', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut', stagger: 0.1}, 13.35);   // vides : à calculer
   // COUNT compte des lignes : les valeurs de la table produits, elles, sont à calculer
   stackBelow('#s1 .need', '#dash1');   // la liste se cale sous le tableau de bord, sans le toucher
   show('#s1 .need', 16.1, {y: 60});
@@ -605,8 +621,8 @@ function build(){
   if (APP) cue(140.15, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 140.1, moments: MOMENTS,
-  glyphs: '🗃️📦💶🔻🔺⚖️📊👑⚠️👥🔎➕📏🧾✓✕÷=…·?€', dom, build});
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 140.1, moments: MOMENTS, opens: OPENS,
+  glyphs: '✉️👆🗃️📦💶🔻🔺⚖️📊👑⚠️👥🔎➕📏🧾✓✕÷=…·?€', dom, build});
 </script>
 </body>
 </html>

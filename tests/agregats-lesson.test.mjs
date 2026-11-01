@@ -61,9 +61,14 @@ test('le jeu : quatre compteurs à remplir, jusqu’à « 4 / 4 · Tableau de bo
   assert.ok(page.includes("function gagne(id, i, t){") && page.includes('✓ 4 / 4 · Tableau de bord complet') && page.includes("confetti($('#badge6'), 132.0);"));
   /* Elisa, 2 novembre, 0 h 10 : « enlève la partie gagne ces étoiles » (réf. 1) et « supprimer » la phrase de la barre la plus longue (réf. 2). */
   assert.ok(!/étoile|★|\.star/.test(page.slice(page.indexOf('<style>'), page.indexOf('</style>')) + page.slice(page.indexOf('const CAPTIONS'), page.indexOf('const QUESTIONS'))), 'plus d’étoile, ni dans le style ni dans les légendes');
-  assert.ok(page.includes('cut(10.45, 5.4);') && page.includes('cut(85.65, 4.55);') && !page.slice(page.indexOf('const CAPTIONS'), page.indexOf('const QUESTIONS')).includes('barre la plus longue'), 'les deux passages coupés');
+  assert.ok(!page.includes('cut(10.45, 5.4);') && page.includes('cut(85.65, 4.55);') && !page.slice(page.indexOf('const CAPTIONS'), page.indexOf('const QUESTIONS')).includes('barre la plus longue'), 'les deux passages coupés');
   assert.ok(page.includes('"Elles s’utilisent sur toutes les colonnes contenant des nombres, comme, par exemple, l’âge des clients."'), 'réf. 3');
   assert.ok(page.includes("prompt: 'Associe chaque question à la fonction qui permet d’y répondre.',"), 'réf. 4');
+  /* Elisa, 2 novembre, 0 h 26 : le mail de l’équipe logistique ouvre la mission ; « indicateurs » ; les deux phrases réécrites. */
+  assert.ok(page.includes("qui: ['L’équipe logistique', 'EL']") && page.includes("const OPENS = [{at: MAIL_OPEN, sel: '#ml1', prompt: 'Touche le mail pour l’ouvrir.', label: 'Ouvrir le mail de l’équipe logistique'}];"), 'le mail');
+  for (const c of ['"Les quatre <b>indicateurs</b> du stock sont encore vides."', '"À nous de les calculer !"', '"Ici, on veut calculer à partir des <b>valeurs</b> d’une colonne."',
+    '"Quatre fonctions permettent de faire ces calculs : <code>SUM</code>, <code>AVG</code>, <code>MIN</code> et <code>MAX</code>."']) assert.ok(page.includes(c), c);
+  assert.ok(!/compteur/.test(page.slice(page.indexOf('const CAPTIONS'), page.indexOf('const QUESTIONS'))), 'les légendes disent « indicateurs »');
   for (const [id, n] of [['#dash2', 0], ['#dash3', 1], ['#dash4', 2], ['#dash4', 3]]) assert.ok(page.includes(`gagne('${id}', ${n},`), `compteur ${n + 1} gagné`);
 });
 

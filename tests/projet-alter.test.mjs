@@ -67,7 +67,8 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
   /* 500 Kio depuis le 31 octobre : les bulles des légendes (la mascotte qui parle, les mots qui arrivent, le surligneur ; Elisa, 30 octobre, 23 h 42), ~6 Kio. */
   /* 510 Kio depuis le 31 octobre, midi : la voix off dans le moteur commun (les phrases calées sur les légendes), ~6 Kio. */
   /* 520 Kio depuis le 1er novembre : la carte d’intro recule sous la bulle « Dans la leçon précédente… » (Elisa, 1er nov., 23 h 33), ~1 Kio, sur un budget déjà plein. */
-  assert.ok(total < 520 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
+  /* 530 Kio depuis le 2 novembre, 0 h 40 : la caméra du lecteur sur grand écran (~7 Kio). */
+  assert.ok(total < 530 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
   assert.ok(fs.statSync(path.join(ANIM, THUMB)).size > 1000, 'vignette');
 });
 
