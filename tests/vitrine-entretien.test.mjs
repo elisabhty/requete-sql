@@ -45,7 +45,7 @@ test('le nombre de questions et de thèmes annoncé correspond à l’appli', ()
   assert.ok(texte(section).includes(`${n} questions d’entretien SQL`), `vitrine : « ${n} questions d’entretien SQL »`);
   assert.ok(texte(scene).includes(`${n} questions d’entretien`), `vidéo : autocollant « ${n} questions d’entretien »`);
   assert.match(video, new RegExp(`'Entraîne-toi pour l’entretien : ${n} questions d’entretien SQL`), 'vidéo : texte lu par les lecteurs d’écran');
-  const faq = vitrine.slice(vitrine.indexOf('Est-ce que ça aide à préparer un entretien'));
+  const faq = vitrine.slice(vitrine.indexOf('Le parcours prépare-t-il aux entretiens SQL'));
   assert.ok(texte(faq).includes(`${n} questions d’entretien SQL en ${THEMES.length} thèmes`), 'FAQ visible');
   assert.match(vitrine, new RegExp(`"text":"Oui. L’appli propose ${n} questions d’entretien SQL en ${THEMES.length} thèmes`), 'FAQ des moteurs de recherche');
   const puces = [...section.matchAll(/<ul class="en-themes"[^>]*>(.*?)<\/ul>/gs)].map(m => [...m[1].matchAll(/<li>([^<]+)<\/li>/g)].map(x => x[1]))[0];
