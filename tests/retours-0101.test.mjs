@@ -35,3 +35,14 @@ test('réf. 3 : le nom d’un projet s’affiche en entier, coupé après ses _ 
   assert.ok(app.includes("<b>${demo?'Base des cours':esc(d.name).replace(/([_.-])/g,'$1<wbr>')}</b>"));
   assert.ok(css.includes('html.lq .console-project-copy b{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:break-word;'));
 });
+
+/* 1 h 07 — « Tu joues en tant que » dans la DA du site ; la note sans « jamais tes requêtes » ; les lignes de « Profil et
+   objectif » en cartes, cohérentes avec la carte du pseudo. */
+test('1 h 07 : la carte du joueur, la note de la salle, les cartes de « Profil et objectif »', () => {
+  assert.ok(app.includes('<span class="jeu-me-av"><b class="jeu-av" data-c="0" aria-hidden="true">${jeuInitial(nom)}</b><span class="jeu-me-lock" aria-label="Pseudo verrouillé" role="img">${PS_LOCK_SVG}</span></span>'));
+  assert.ok(app.includes("<b>${at?'<i class=\"jeu-me-at\">@</i>':''}${esc(at?nom.slice(1):nom)}</b>"));
+  assert.ok(css.includes('html.lq body .jeu-me .jeu-av{display:grid;place-items:center;width:46px;height:46px;'));
+  assert.ok(app.includes("const JEU_NOTE_HTML='<p class=\"jeu-note\">🔒 Seuls ton pseudo, tes temps et tes réactions sont partagés.</p>';"));
+  assert.ok(!app.includes('sont partagés, jamais tes requêtes'));
+  assert.ok(css.includes('html.lq #plus-profile-settings .plus-details-body>.acc-row{width:calc(100% - 36px);margin:0 18px 12px;'));
+});
