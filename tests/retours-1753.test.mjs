@@ -30,10 +30,11 @@ test('l’indicateur des défis : les manches trouvées sur jouées (0/0, 1/1, 1
 
 test('le KPI partout où il était : planning, Mon compte, Pratiquer, les niveaux de la salle ; plus de défis « réussis »', () => {
   const over = cut('function planOverviewHTML(st){', 'function planManageHTML(');
-  assert.ok(over.includes('<div class="pgr-stat is-d"><small>Défis</small><b>${kd.tr}<em>/${kd.ma}</em></b><i class="pgr-meter" aria-hidden="true"><b style="width:${pD}%"></b></i><p>manches réussies<b>${sallePts(kd.pts)}</b></p></div>'), 'la tuile du planning (18 h 28 : « réussies »)');
+  /* 1er novembre, 1 h 12 : « améliore l’ui ux des kpi » */
+  assert.ok(over.includes(`<div class="pgr-stat is-d"><small>Défis</small><b>\${kd.ma?\`\${kd.tr}<em>/\${kd.ma}</em>\`:'0'}</b><i class="pgr-meter" aria-hidden="true"><b style="width:\${pD}%"></b></i><p>\${kd.ma?\`réussie\${kd.tr>1?'s':''}\`:'à jouer'}</p><span class="kpi-pts">\${KPI_COIN_SVG}\${sallePts(kd.pts)}</span></div>`), 'la tuile du planning');
   assert.ok(over.includes('pD=kd.ma?Math.round(kd.tr/kd.ma*100):0'), 'la jauge : la part de manches trouvées');
   const compte = cut('function renderCompte(){', 'function accPseudoHTML(');
-  assert.ok(compte.includes('<div class="acct-stat is-defis" style="--i:2"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg(\'target\')}</span><b>${kd.tr}<em>/${kd.ma}</em></b><small>manches réussies</small><small class="acct-stat-pts">${sallePts(kd.pts)}</small></div>'), 'Mon compte');
+  assert.ok(compte.includes(`<div class="acct-stat is-defis" style="--i:2"><span class="acct-stat-ico is-stk" aria-hidden="true">\${lqStkSvg('target')}</span><b>\${(+kd.pts||0).toLocaleString('fr-FR')}</b><small>point\${kd.pts>1?'s':''} en défis</small><span class="kpi-chip\${kd.ma?'':' is-vide'}">\${kd.ma?\`\${kd.tr}/\${kd.ma} réussie\${kd.tr>1?'s':''}\`:'À jouer'}</span></div>`), 'Mon compte');
   const hub = fn('renderJourneyHub');
   assert.ok(hub.includes("['defis','Défis',`${kd.tr}/${kd.ma} manches réussies · ${sallePts(kd.pts)}`,\"switchTab('defis')\",kd.ma?Math.round(kd.tr/kd.ma*100):null],"), 'Pratiquer');
   assert.ok(hub.includes('<p class="journey-kicker">Salle de défi</p><h2>Un défi tiré au sort</h2>'), 'le cadre du haut de Pratiquer');
@@ -43,7 +44,7 @@ test('le KPI partout où il était : planning, Mon compte, Pratiquer, les niveau
   for (const gone of ['réussis sur ${nDefis}', 'Tout est réussi', 'Prochain défi · ${nOk}', "/${l.length} réussis", 'défi${nOk>1?\'s\':\'\'} réussi', 'Réussis 10 défis.', 'que tu n’as pas encore réussi', 'qu’aucun de vous n’a encore réussi'])
     assert.ok(!app.includes(gone), 'retiré : ' + gone);
   assert.ok(app.includes("how:'Trouve 10 défis différents.'"));
-  for (const part of ['.pgr-stat.is-d>p{margin:9px 0 0;', 'html.lq .acct-stat b em{', 'html.lq .acct-stat small.acct-stat-pts{'])
+  for (const part of ['html.lq .pgr-stat.is-d>p{margin:8px 0 0!important;', 'html.lq .acct-stat .kpi-chip{', 'html.lq .kpi-pts{'])
     assert.ok(css.includes(part), part);
 });
 

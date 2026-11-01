@@ -89,7 +89,7 @@ test('les défis quittent le planning : nouveau parcours en leçons seules, un p
   for (const t of ['Les défis suivent les prérequis', 'leçon ou défi', 'Leçons + défis', 'Glisse une leçon ou un défi']) assert.ok(!app.includes(t), `plus de « ${t} »`);
   const over = cut('function planOverviewHTML(st){', 'function planManageHTML(');
   /* 18 h 02 : la tuile Défis dit les manches trouvées sur jouées (0/0, 1/1, 1/2…) et les points de la salle */
-  assert.ok(over.includes('const kd=salleKpi();') && over.includes('<b>${kd.tr}<em>/${kd.ma}</em></b>') && over.includes('<p>manches réussies<b>${sallePts(kd.pts)}</b></p>'), 'la tuile Défis : les manches de la salle');
+  assert.ok(over.includes('const kd=salleKpi();') && over.includes('<div class="pgr-stat is-d"><small>Défis</small>') && over.includes("'à jouer'") && over.includes('<span class="kpi-pts">${KPI_COIN_SVG}${sallePts(kd.pts)}</span>'), 'la tuile Défis : les manches de la salle (1er novembre, 1 h 12 : réussies sur jouées, points en pièce)');
 });
 
 test('la page d’un projet : carte violette, base en autocollant, pastille du type de projet ; exemples qui montrent leur SELECT', () => {
