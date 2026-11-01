@@ -206,6 +206,11 @@ test('« Se connecter » partout à la place de « Ouvrir l’appli », et la ca
   assert.match(css, /@supports \(overflow:clip\)\{\.avis\{overflow:visible;overflow-x:clip\}\}/);
 });
 
+test('navigation mobile : même espacement entre les boutons et le menu', () => {
+  assert.match(css, /@media \(max-width:959px\)\{\s*\.nav \.wrap\{gap:6px\}\s*\.nav-cta\{gap:6px\}/);
+  assert.match(css, /@media \(max-width:380px\)\{\s*\.nav \.wrap\{gap:6px\}/);
+});
+
 test('avis : Aminata C. (même personne que l’ancien avis « En reconversion »), photos sur les trois cartes écrites', () => {
   const h = lire('index.html');
   assert.doesNotMatch(h, /Julie K\./, 'un seul nom pour un même avis');
