@@ -1333,7 +1333,9 @@ for (const c of COURSES) {
        commun (les phrases calées sur les légendes, ~6 Ko) ; les fichiers audio, eux, sont à part (assets/voix). */
     /* 540 Ko depuis le 1er novembre (et 10 Ko de plus pour les cours qui ont leur propre plafond) : le lien avec la leçon d’avant et celle
        d’après (Elisa, 1er novembre, 21 h 30), ~4 Ko dans le moteur commun ; ses phrases sont dans liens.js. */
-    assert.ok(total < ((c.maxKo || 520) + 20) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
+    /* 545 Ko depuis le 2 novembre (et 5 Ko de plus pour les cours qui ont leur propre plafond) : les légendes équilibrées (capBalance),
+       la carte d’intro qui recule sous la bulle du lien et le cadre du contenu pour le zoom des moments (Elisa, 1er nov., 23 h 33 et 23 h 46), ~4 Ko. */
+    assert.ok(total < ((c.maxKo || 520) + 25) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
     for (const f of [`./assets/anim/${c.page}?app&embed`, `./assets/anim/${c.thumb}`]) assert.ok(sw.includes(`'${f}'`), `préchargé : ${f}`);
   });
 }

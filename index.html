@@ -21549,13 +21549,36 @@ function lvPkFit(P,settled){
   if(B==null)return;
   const st=LV.root.querySelector('.lv-stage'), r=st.getBoundingClientRect(), R=LV.root.getBoundingClientRect();
   const sig=Math.round(r.width)+'x'+Math.round(r.height);
-  if(P.fitSig!==sig){ P.fitSig=sig; P.zoom=1; }
+  if(P.fitSig!==sig){ P.fitSig=sig; P.zoom=null; }
   const oy=r.top-R.top, yb=lvPt(0,B,1).y, top=parseFloat(P.box.style.top)||0, room=yb-oy;
   if(!(room>0))return;
-  const z=top-yb<LV_PK_MIN?Math.max(LV_PK_ZMIN,Math.min(1,(top-LV_PK_GAP-oy)/room)):1;
-  P.zoom=P.done||settled?z:Math.min(P.zoom==null?1:P.zoom,z);
+  const z=top-yb<LV_PK_MIN?Math.max(LV_PK_ZMIN,Math.min(1,(top-LV_PK_GAP-oy)/room)):lvPkZoomIn(w,r,R,top);
+  P.zoom=P.done||settled||P.zoom==null?z:Math.min(P.zoom,z);
   lvZoomTo(P.zoom);
   if(!settled)wait();
+}
+/* Elisa, 1er novembre, 23 h 46 (réf. 2) : « on voit mal en fonction des écrans … il y a de l’espace autour donc peut zoomer ». Sur un écran
+   large (ordinateur, tablette), l’image est bordée de vide sur les côtés et sous son contenu : pendant un moment « À toi », elle grandit
+   (jusqu’à ×1,5, toujours autour du milieu de son bord haut) tant que tout son contenu visible, puce du chapitre comprise, reste dans le
+   lecteur, à LV_PK_SIDE px des bords, au-dessus de la feuille (LV_PK_GAP) et à l’écart de la croix. Sur un téléphone, l’image remplit déjà
+   la largeur : rien ne change. */
+const LV_PK_ZMAX=1.5, LV_PK_SIDE=16;
+function lvPkZoomIn(w,r,R,top){
+  let F=null; try{ F=typeof w.__contentFrame==='function'?w.__contentFrame():null; }catch(e){}
+  if(!F)return 1;
+  const a=lvPt(F.l,F.t,1), c=lvPt(F.r,F.b,1); if(!a||!c)return 1;
+  const ox=r.left-R.left+r.width/2, oy=r.top-R.top, L=r.left-R.left+LV_PK_SIDE, Rt=r.right-R.left-LV_PK_SIDE;
+  let z=LV_PK_ZMAX;
+  if(c.y>oy)z=Math.min(z,(top-LV_PK_GAP-oy)/(c.y-oy));
+  if(a.x<ox)z=Math.min(z,(ox-L)/(ox-a.x));
+  if(c.x>ox)z=Math.min(z,(Rt-ox)/(c.x-ox));
+  /* La croix (en haut à gauche) : le coin du contenu agrandi ne passe pas dessous. */
+  const x=LV.root.querySelector('.lv-close'), xr=x&&x.getBoundingClientRect();
+  if(xr&&xr.width){
+    const xb=xr.bottom-R.top+8, xe=xr.right-R.left+8;
+    for(let k=0;k<20&&z>1;k++){ const tl=oy+(a.y-oy)*z, ll=ox+(a.x-ox)*z; if(tl>=xb||ll>=xe)break; z-=.02; }
+  }
+  return z<1.04?1:+z.toFixed(4);
 }
 /* L’image prend sa taille de réduction en 0,3 s, les zones tactiles posées dessus la suivent à chaque image. */
 function lvZoomTo(z){
@@ -33124,7 +33147,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-lien-sous-intro-v2304';
+  const SW_CACHE='requete-2026-11-02-textes-zoom-v2305';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

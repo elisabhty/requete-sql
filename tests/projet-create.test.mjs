@@ -64,7 +64,8 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
   /* 495 Kio depuis le 30 octobre : le fond violet de la vitrine dans core.css, et les traits du plan en clair sur ce fond (~2 Kio). */
   /* 505 Kio depuis le 31 octobre : les bulles des légendes (la mascotte qui parle, les mots qui arrivent, le surligneur ; Elisa, 30 octobre, 23 h 42), ~6 Kio. */
   /* 515 Kio depuis le 1er novembre : la voix off (~6 Kio) et le lien avec la leçon d’avant et celle d’après (~4 Kio) dans le moteur commun. */
-  assert.ok(total < 515 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
+  /* 525 Kio depuis le 2 novembre : légendes équilibrées, carte d’intro sous la bulle du lien, cadre du contenu pour le zoom des moments (~4 Kio). */
+  assert.ok(total < 525 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
   assert.ok(fs.statSync(path.join(ANIM, THUMB)).size > 1000, 'vignette');
 });
 
