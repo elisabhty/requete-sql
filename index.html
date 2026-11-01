@@ -6643,7 +6643,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=56">
+<link rel="stylesheet" href="ludique.css?v=57">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -14916,7 +14916,7 @@ if(typeof window!=='undefined'){
   },120);});
 }
 /* Réf. 4 (16 h 49) : « garder que la première phrase ». */
-const JEU_NOTE_HTML='<p class="jeu-note">🔒 Seuls ton pseudo, tes temps et tes réactions sont partagés, jamais tes requêtes.</p>';
+const JEU_NOTE_HTML='<p class="jeu-note">🔒 Seuls ton pseudo, tes temps et tes réactions sont partagés.</p>';
 /* Même défi, seul ou à plusieurs : le choix se fait dans l’écran du défi. Ici, seulement l’entrée « j’ai reçu un code ». */
 const JEU_FRIENDS_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.4-3 2.6-4.8 5.5-4.8s5.1 1.8 5.5 4.8"/><path d="M16 5.2a3 3 0 0 1 0 5.6M17.5 14.4c1.8.5 3 2 3.3 4.6"/></svg>';
 function jeuEligible(c){return !!c&&!/^\s*EXPLAIN/i.test(c.sol)&&!c.noExec;}
@@ -21012,8 +21012,11 @@ function jeuSavedNom(){const s=state.salle;return s&&typeof s.pseudo==='string'?
    pseudo »). Sans pseudo encore : de quoi le choisir (la feuille, avec la vérification en direct). */
 function jeuNomField(id){
   const nom=jeuSavedNom();
-  if(!nom)return `<button type="button" class="jeu-me is-vide" onclick="psPage({})"><b class="jeu-av is-empty" aria-hidden="true">?</b><span class="jeu-me-t"><small>Pour jouer entre amis</small><b>Choisis ton pseudo</b></span></button>`;
-  return `<div class="jeu-me" data-nom="${id}"><b class="jeu-av" data-c="0" aria-hidden="true">${jeuInitial(nom)}</b><span class="jeu-me-t"><small>Tu joues en tant que</small><b>${esc(nom)}</b></span><span class="jeu-me-lock" aria-label="Pseudo verrouillé" role="img">${PS_LOCK_SVG}</span><input id="${id}" type="hidden" value="${escAttr(nom)}"></div>`;
+  /* Elisa, 1er novembre, 1 h 07 : « Tu joues en tant que » dans la DA du site, comme la carte du pseudo de Mon compte : aplat
+     violet, avatar contouré d’encre, cadenas dans sa pastille jaune, surtitre menthe, @ en jaune. */
+  if(!nom)return `<button type="button" class="jeu-me is-vide" onclick="psPage({})"><b class="jeu-av is-empty" aria-hidden="true">?</b><span class="jeu-me-t"><small>Pour jouer entre amis</small><b>Choisis ton pseudo</b></span><span class="jeu-me-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span></button>`;
+  const at=nom.charAt(0)==='@';
+  return `<div class="jeu-me" data-nom="${id}"><span class="jeu-me-av"><b class="jeu-av" data-c="0" aria-hidden="true">${jeuInitial(nom)}</b><span class="jeu-me-lock" aria-label="Pseudo verrouillé" role="img">${PS_LOCK_SVG}</span></span><span class="jeu-me-t"><small>Tu joues en tant que</small><b>${at?'<i class="jeu-me-at">@</i>':''}${esc(at?nom.slice(1):nom)}</b></span><input id="${id}" type="hidden" value="${escAttr(nom)}"></div>`;
 }
 function jeuCleanCode(v){
   v=String(v||'');
@@ -28441,7 +28444,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-salle-da-v2226';
+  const SW_CACHE='requete-2026-11-01-joueur-da-v2227';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
