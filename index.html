@@ -10953,6 +10953,7 @@ function coachNext(){
 function coachPaint(){
   const sl=document.getElementById('hint-slot');if(!sl||!COACH||COACH.c!==current)return;
   sl.innerHTML=defiIndicesHTML(COACH.c,COACH.n,COACH.view,COACH.diag,coachNext(),COACH.kind);
+  if(COACH.kind==='solo'&&typeof defiSesSave==='function')defiSesSave();
   const card=sl.querySelector('.coach');
   if(card&&COACH.fx&&!prefersReduceMotion()){card.classList.add(COACH.fx);setTimeout(()=>card.classList.remove('is-new-hint','is-new-ko'),900);}
   /* La carte est au-dessus de l’éditeur : si elle est sortie de l’écran au moment d’un essai raté, une pastille sous « Exécuter » y ramène. */
@@ -16133,6 +16134,7 @@ function persistEditor(taId){
     if(status)status.textContent='Brouillon enregistré';
     updateConsolePinButton();
   }
+  else if(taId==='ed-lesson'&&current&&mode==='defi'){defiSesSave();}
   else if(taId==='ed-lesson'&&current&&mode==='lesson'){
     const s=state.lessons[current.id]||(state.lessons[current.id]={level:0});
     s.draft=ta.value; save();
@@ -26107,17 +26109,30 @@ function setChallengeHow(k){
    solution s’affiche et « Recommencer » relance le défi. Trouvé avant : le chrono s’arrête sur le temps mis. */
 let defiChrono=null;
 function defiChronoStop(){if(defiChrono)clearInterval(defiChrono.t);defiChrono=null;}
-function defiChronoStart(c){
+function defiChronoStart(c,depart){
   defiChronoStop();
-  const t0=Date.now();
+  const t0=depart||Date.now();
   const tick=()=>{
     const el=document.getElementById('defi-timer');
     if(mode!=='defi'||current!==c||!el){defiChronoStop();return;}
-    if(document.querySelector('#lesson-out .feedback.ok')){el.classList.add('is-ok');defiChronoStop();return;}
+    if(document.querySelector('#lesson-out .feedback.ok')){el.classList.add('is-ok');defiChronoStop();defiSesClear();return;}
     const took=Date.now()-t0;el.textContent=jeuChrono(Math.min(took,JEU_ROUND_MS));el.classList.toggle('is-low',JEU_ROUND_MS-took<30000);
-    if(took>=JEU_ROUND_MS){defiChronoStop();defiTempsEcoule(c);}
+    if(took>=JEU_ROUND_MS){defiChronoStop();defiSesClear();defiTempsEcoule(c);}
   };
-  defiChrono={t:setInterval(tick,500)};tick();
+  defiChrono={t:setInterval(tick,500),t0};tick();
+}
+/* Elisa, 1er novembre, 16 h 31 : « dans un défi, quand on recharge, on perd l’avancée ». Le défi en cours (sa requête, le chrono
+   parti à telle heure, les essais ratés, les indices déjà donnés et le dernier « Pas encore ») est gardé sur l’appareil ; au
+   rechargement, le défi rouvre là où on en était. Un défi réussi, terminé par le temps ou relancé depuis la liste repart de zéro. */
+const DEFI_SES_KEY='rq-defi-en-cours';
+function defiSesRead(){try{const o=JSON.parse(localStorage.getItem(DEFI_SES_KEY)||'null');return o&&typeof o==='object'&&typeof o.cid==='string'?o:null;}catch(e){return null;}}
+function defiSesClear(){try{localStorage.removeItem(DEFI_SES_KEY);}catch(e){}}
+function defiSesSave(){
+  if(typeof mode==='undefined'||mode!=='defi'||!current||!defiChrono)return;
+  const ed=document.getElementById('ed-lesson');
+  const o={cid:current.id,t0:defiChrono.t0,sql:ed?ed.value.slice(0,20000):'',fails:exoFails||0,
+    n:COACH&&COACH.c===current?COACH.n:0,view:COACH&&COACH.c===current?COACH.view:0,diag:COACH&&COACH.c===current?String(COACH.diag||'').slice(0,600):''};
+  try{localStorage.setItem(DEFI_SES_KEY,JSON.stringify(o));}catch(e){}
 }
 /* Le résultat qu’il fallait obtenir (jamais la requête), à la fin du chrono ou d’une manche. */
 function defiAttenduHTML(c){
@@ -26144,8 +26159,22 @@ function openChallenge(cid){
     ${editorBlock(true,'defi.sql',{coach:1})}
     </div>`;
   setupEditor('ed-lesson','hl-lesson'); showScreen();
+  /* Au rechargement (restoringNav), le défi reprend où on l’avait laissé, s’il reste du temps ; sinon il repart de zéro. */
+  const ses=restoringNav?defiSesRead():null;
+  const reprise=ses&&ses.cid===cid&&ses.t0>0&&Date.now()-ses.t0<JEU_ROUND_MS?ses:null;
+  if(!reprise)defiSesClear();
   coachReset(c,'solo');
-  defiChronoStart(c);
+  defiChronoStart(c,reprise?reprise.t0:0);
+  if(reprise){
+    const ed=document.getElementById('ed-lesson');
+    if(ed&&reprise.sql){ed.value=String(reprise.sql);syncHL('ed-lesson','hl-lesson');fitSqlEditor(ed);syncEditorClear('ed-lesson');}
+    exoFails=Math.max(0,Math.floor(+reprise.fails||0));
+    COACH.n=Math.min(3,Math.max(0,Math.floor(+reprise.n||0)));COACH.view=Math.min(COACH.n,Math.max(0,Math.floor(+reprise.view||0)));
+    /* Le « Pas encore » gardé : seulement du texte, <code>, <b> et <br>, sans attribut. */
+    COACH.diag=reprise.diag?String(reprise.diag).replace(/<(?!\/?(?:code|b|br)\b)[^>]*>/gi,'').replace(/<(\/?)(code|b|br)\b[^>]*>/gi,'<$1$2>'):'';
+    coachPaint();
+  }
+  defiSesSave();
   saveNav();
 }
 function startReview(ids){
@@ -32666,7 +32695,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-cles-v2265';
+  const SW_CACHE='requete-2026-11-01-reprise-v2266';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

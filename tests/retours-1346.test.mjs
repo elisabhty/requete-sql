@@ -165,3 +165,14 @@ test('16 h 26 : dans « Clés et relations », le premier CREATE TABLE annonce q
   assert.ok(cles.includes("a += sqlCard('sq-pk', SQL.pk, 64, 952, 'Tu apprendras à écrire ces tables dans le prochain module.');"));
   assert.ok(cles.includes('${note ? `<div class="sq-note"><span class="emo">✍️</span>${note}</div>` : \'\'}'));
 });
+
+test('16 h 31 : recharger pendant un défi ne fait plus perdre l’avancée', () => {
+  assert.ok(app.includes("const DEFI_SES_KEY='rq-defi-en-cours';"));
+  const open = cut('function openChallenge(cid){', '\nfunction startReview(');
+  assert.ok(open.includes('const ses=restoringNav?defiSesRead():null;'), 'seulement au rechargement');
+  assert.ok(open.includes('Date.now()-ses.t0<JEU_ROUND_MS'), 'tant qu’il reste du temps');
+  assert.ok(open.includes('defiChronoStart(c,reprise?reprise.t0:0);'), 'le chrono reprend à son heure de départ');
+  assert.ok(app.includes("else if(taId==='ed-lesson'&&current&&mode==='defi'){defiSesSave();}"), 'la requête est gardée à la frappe');
+  assert.ok(app.includes("if(COACH.kind==='solo'&&typeof defiSesSave==='function')defiSesSave();"), 'les indices et le « Pas encore » aussi');
+  assert.ok(app.includes("el.classList.add('is-ok');defiChronoStop();defiSesClear();return;"), 'un défi réussi repart de zéro');
+});
