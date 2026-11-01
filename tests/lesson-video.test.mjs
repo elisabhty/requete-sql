@@ -25,14 +25,14 @@ test('WHERE : le cours a son animation, son image fixe et sa vignette, présente
   assert.ok(m, 'champ video du cours WHERE');
   assert.equal(m[1], 'assets/anim/where.html?app&embed');
   for (const f of m.slice(1, 3)) assert.ok(fs.statSync(path.join(ROOT, f.split('?')[0])).size > 1000, `fichier présent : ${f}`);
-  assert.equal(m[3], '1 min 49');
+  assert.equal(m[3], '1 min 52');
   assert.ok(!/notes:\{/.test(where), 'pas de bouton « Ajouter à mes notes » dans la vidéo : il est dans le bilan (Elisa, 27 octobre, 9 h 43)');
   /* « Ce que tu retiens » n’est plus dans la vidéo : elle s’arrête sur la dernière image du résultat, avant sa sortie (82,5 s), la légende encore là. */
   const wp = fs.readFileSync(path.join(ROOT, 'assets/anim/where.html'), 'utf8');
   assert.ok(wp.includes('const END = RECAP ? null : 82.48;') && wp.includes('CHAPTERS.length = 6;') && wp.includes('CAPTIONS[16] = [CAPTIONS[16][0], 999, CAPTIONS[16][2]];'), 'la vidéo s’arrête avant « À retenir », sa dernière légende reste affichée');
   assert.ok(wp.includes('<span>/ ${CHAPTERS.length} · ${c.label}</span>'), 'l’étiquette compte les chapitres restants (6 / 6)');
   /* Les moments « À toi » (Elisa, 26 octobre, 14 h 59) : la page garde son propre moteur et passe par moments.js (momentPlan, momentIX). */
-  assert.ok(/duree:'1 min 49',moments:3,seuil:2\}/.test(where) && /\n  leconSeule:true,/.test(where), 'trois moments ; leçon seule, validée avec deux moments réussis du premier coup (Elisa, 28 octobre)');
+  assert.ok(/duree:'1 min 52',moments:3,seuil:2\}/.test(where) && /\n  leconSeule:true,/.test(where), 'trois moments ; leçon seule, validée avec deux moments réussis du premier coup (Elisa, 28 octobre)');
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/where.html'), 'utf8');
   assert.ok(page.includes('<script src="gsap.min.js"></script>\n<script src="moments.js"></script>') && page.includes('  build();\n  applyMoments();'), 'moments.js, puis les moments insérés une fois la timeline construite');
   const M = momentsDe('where.html');
@@ -559,14 +559,14 @@ const COURSES = [
       'Les prénoms, sous le titre <span class="ic">email</span>', 'near "FROM": syntax error',
       // Les trois idées : les tables, les clés (et leur déclaration), SELECT
       '<span class="ic blk">FOREIGN KEY (client_id)<br>&nbsp;&nbsp;REFERENCES clients(id)</span>', '<span class="ic blk">SELECT prenom, nom, email</span>']},
-  {id: 2, next: 13, titre: 'Renommer avec AS', page: 'as.html', thumb: 'as-thumb.jpg', duree: '1 min 31', notesAt: 69.1,
+  {id: 2, next: 13, titre: 'Renommer avec AS', page: 'as.html', thumb: 'as-thumb.jpg', duree: '1 min 34', notesAt: 69.1,
     table: 'produits',
     bubble: 'Utilise <span class="ic">AS</span> pour donner un nom plus clair à une colonne dans le résultat.',
     /* Resserrée le 28 octobre (Elisa, 17 h 15 : « La leçon a tellement une redondance (as) ? ») : le mail dit la demande, sans carte
        ni chapitre « Le problème » pour la redire ; les guillemets : deux erreurs, puis un alias qui s’en passe. */
     chapters: ['Situation', 'Renommer une colonne', 'Avec ou sans guillemets', 'Le résultat', 'À retenir'],
     traps: ['near "du": syntax error', 'near "(": syntax error', '"Nom du produit"', 'Sans espace ni symbole']},
-  {id: 13, next: 4, titre: 'DISTINCT', page: 'distinct.html', thumb: 'distinct-thumb.jpg', duree: '2 min 18', notesAt: 109.05,
+  {id: 13, next: 4, titre: 'DISTINCT', page: 'distinct.html', thumb: 'distinct-thumb.jpg', duree: '2 min 20', notesAt: 109.05,
     table: 'clients',
     bubble: 'Utilise <span class="ic">DISTINCT</span> pour afficher chaque valeur une seule fois.',
     chapters: ['Situation', 'Le problème', 'À la main', 'DISTINCT', 'Plusieurs colonnes', 'Le piège', 'Le résultat', 'À retenir'],

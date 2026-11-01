@@ -30,6 +30,6 @@ test('réf. 3 : les zones où l’on range les étiquettes sont blanches, plus g
   assert.ok(n >= 15, `${n} pages`);
 });
 
-test('le badge « Votre formatrice » : centré sur le portrait', () => {
-  assert.ok(anim('bases-relationnelles.html').includes('#cap .cap-stk::after{content:"Votre formatrice";position:absolute;left:50%;top:-30px;translate:-50% 0;'));
+test('le badge « Votre formatrice » : centré en bas du portrait, sans descendre vers le lecteur (21 h 04)', () => {
+  assert.ok(anim('bases-relationnelles.html').includes('#cap .cap-stk::after{content:"Votre formatrice";position:absolute;left:50%;bottom:10px;top:auto;translate:-50% 0;'));
 });

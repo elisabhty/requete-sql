@@ -168,7 +168,12 @@ ${lines}],
 let out = page;
 const a = out.indexOf('/* Voix off (tools/voix/integrer.mjs'), b = out.indexOf('/* Fin de la voix off */\n');
 if (a >= 0 && b > a) out = out.slice(0, a) + block + out.slice(b + '/* Fin de la voix off */\n'.length);
-else { const at = out.lastIndexOf('\nCourse({'); out = out.slice(0, at + 1) + block + out.slice(at + 1); }
+else {
+  /* Le moteur commun : avant Course({…}) ; where.html (son propre moteur) : avant window.__ready. */
+  let at = out.lastIndexOf('\nCourse({'); if (at < 0) at = out.indexOf('\nwindow.__ready = (async () => {');
+  if (at < 0) { console.log('Ni Course({…}) ni window.__ready dans la page : rien n’est écrit.'); process.exit(1); }
+  out = out.slice(0, at + 1) + block + out.slice(at + 1);
+}
 /* voice: VOICE en fin de la première ligne de Course({…}) : son début reste celui que vérifient les tests. */
 if (!/\bvoice: VOICE\b/.test(out)) out = out.replace(/(\nCourse\(\{[^\n]*,)\n/, '$1 voice: VOICE,\n');
 fs.writeFileSync(PAGE, out);
