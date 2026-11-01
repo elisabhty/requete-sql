@@ -9022,10 +9022,10 @@ guide({ id:84, titre:"Les schémas", résumé:"Ranger les tables par espace",
      transposé aux deux équipes de NutriBoost. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 6, tu as
      retiré la copie du fichier Excel avec DROP TABLE » : la copie est barrée, neuf tables puis huit). Karim écrit : les tables de la
      boutique et des ateliers sont mélangées. Moment 1 : l’élève range les huit tables (boutique : clients, commandes, fidelite, produits ;
-     bienetre : coachs, ateliers, inscriptions, cartes). CREATE SCHEMA boutique, puis (moment 2) CREATE SCHEMA bienetre (ni CREATE TABLE, ni
+     bien_etre : coachs, ateliers, inscriptions, cartes). CREATE SCHEMA boutique, puis (moment 2) CREATE SCHEMA bien_etre (ni CREATE TABLE, ni
      CREATE DATABASE) ; ALTER TABLE … SET SCHEMA y range chaque table sans la recréer. Moment 3 : l’adresse des inscriptions,
-     bienetre.inscriptions (ni boutique.inscriptions, ni inscriptions.bienetre). Moment 4 : l’équipe des ateliers crée sa propre table
-     clients ; boutique.clients et bienetre.clients ne se confondent pas. Moment 5 : trois requêtes retrouvent leur schéma. Enfin, SQLite,
+     bien_etre.inscriptions (ni boutique.inscriptions, ni inscriptions.bien_etre). Moment 4 : l’équipe des ateliers crée sa propre table
+     clients ; boutique.clients et bien_etre.clients ne se confondent pas. Moment 5 : trois requêtes retrouvent leur schéma. Enfin, SQLite,
      la base de l’app, n’a pas de CREATE SCHEMA : ses tables sont dans le schéma main (moment 6 : SELECT * FROM main.clients) ; la base du
      projet garde donc ses tables telles quelles. La fin annonce INSERT INTO. Six moments « À toi », comme aux chapitres du projet ; leçon
      seule : ni exercice ni quiz, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments ratés. */
@@ -17557,7 +17557,7 @@ const SQ_ALIASES={
   61:'create table creer table creer une table structure types colonnes contraintes integer real text type de colonne primary key cle primaire not null obligatoire unique doublon default valeur par defaut check condition foreign key references cle etrangere ordre de creation schema.sql schema nutriboost coachs ateliers inscriptions cartes de membre',
   65:'alter table ajouter colonne modifier structure renommer add column rename column rename to drop column supprimer colonne default valeur par defaut null update structure ou valeurs faire evoluer les tables',
   66:'drop table supprimer une table retirer table delete from vider table copie fichier excel inscriptions_excel cle etrangere foreign key constraint failed no such table if exists drop table if exists table liee nom de table nutriboost serveur de test',
-  84:'schema schemas create schema espace espaces ranger organiser tables adresse schema.table nom complet meme nom set schema alter table main sqlite sgbd boutique bienetre',
+  84:'schema schemas create schema espace espaces ranger organiser tables adresse schema.table nom complet meme nom set schema alter table main sqlite sgbd boutique bien_etre',
   26:'insert into ajouter des lignes ligne insertion inserer values nouvelle ligne plusieurs lignes en une requete on conflict upsert do update do nothing doublon doublons conflit inscription inscriptions atelier carte pack seances colonne obligatoire not null unique ordre des valeurs valeurs inversees nutriboost',
   27:'update modifier mettre a jour set lignes valeurs changer where oubli du where sans where toutes les lignes select avant de modifier lire calculer valeur calculee ancienne valeur regle de la table check modification refusee atelier date carte cartes seances nutriboost',
   28:'delete from supprimer effacer lignes ligne supprimer une ligne where oubli du where sans where toutes les lignes vider une table vider table select avant de supprimer lire identifiant client_id plusieurs lignes annuler inscription inscriptions compte atelier nutriboost insert update',
@@ -21510,7 +21510,7 @@ const LV_PK_GAP=18, LV_PK_MIN=16, LV_PK_ZMIN=.7, LV_PK_WAIT=150, LV_PK_BOT=22;
 function lvPkFit(P,settled){
   const V=LV&&LV.video, w=V&&V.win; if(!w||typeof w.__contentBottom!=='function')return;
   const wait=()=>{ clearTimeout(P.fitT); P.fitT=setTimeout(()=>{ if(LV&&LV.pk===P)lvPkFit(P,true); },LV_PK_WAIT); };
-  const go=P.box.querySelector('.lv-pk-go'), calm=!P.busy&&!(P.done&&go&&go.hidden);
+  const go=P.box.querySelector('.lv-pk-go'), calm=!P.busy&&!P.drag&&!(P.done&&go&&go.hidden);
   /* Après l’ouverture : on attend que l’état se pose ; la correction posée, on mesure tout de suite, puis de nouveau un peu plus tard. */
   if(P.fitDone&&!calm){ wait(); return; }
   P.fitDone=true;
@@ -22008,8 +22008,12 @@ function lvGlisse(el,can,slop,on){
   const tactile='ontouchstart' in window;
   let g=null;
   /* Le glisser ne démarre que si le geste est encore possible (plateau toujours ouvert, étiquette libre). */
-  const go=(x,y)=>{ if(!g.on){ if(Math.hypot(x-g.sx,y-g.sy)<g.slop)return; if(!can()){ g=null; return; } g.on=true; on.start(g.sx,g.sy); } on.move(x,y); };
-  const stop=cancel=>{ const G=g; g=null; if(G&&G.on){ el._noClick=performance.now()+450; on.end(cancel); } return G; };
+  /* Réf. 4 (Elisa, 1er novembre, 21 h 21 : « les étiquettes ont du mal et buguent en plein milieu ») : pendant le glisser, l’image ne
+     se réduit ni ne regrossit (lvPkFit attend, LV.pk.drag) : les places mesurées au départ restent celles de l’écran ; à la fin, tout se
+     replace. */
+  const drag=on=>{ try{ if(LV&&LV.pk){ LV.pk.drag=on; if(!on)setTimeout(()=>{ if(LV&&LV.pk&&!LV.pk.drag&&typeof lvPkPlace==='function')lvPkPlace(); },60); } }catch(e){} };
+  const go=(x,y)=>{ if(!g.on){ if(Math.hypot(x-g.sx,y-g.sy)<g.slop)return; if(!can()){ g=null; return; } g.on=true; drag(true); on.start(g.sx,g.sy); } on.move(x,y); };
+  const stop=cancel=>{ const G=g; g=null; if(G&&G.on){ el._noClick=performance.now()+450; try{ on.end(cancel); }finally{ drag(false); } } return G; };
   el.addEventListener('pointerdown',e=>{
     if((tactile&&e.pointerType!=='mouse')||e.button!==0||!can())return;
     if(g)stop(true);
@@ -33074,7 +33078,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-voix-as-distinct-where-v2293';
+  const SW_CACHE='requete-2026-11-01-schemas-glisser-v2294';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
