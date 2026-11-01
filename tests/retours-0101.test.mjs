@@ -78,3 +78,10 @@ test('8 h 53 : le pas à pas « utilise » les lignes de la table (plus « part 
   assert.ok(app.includes("`La requête utilise ${nb===1?'la seule ligne':`les ${nb} lignes`} de <code>${esc(simple?nom:from)}</code>, telles qu’elles sont enregistrées. Rien n’est encore filtré ni trié.`"));
   assert.ok(app.includes('const nom=!joint&&tm?(tm[1]||tm[2]||tm[3]||tm[4]):\'\',simple=!!nom;'));
 });
+
+test('8 h 55 : après une exécution dans la Console, le pas à pas en grand et son bouton qui pulse', () => {
+  assert.ok(app.includes("paint(`<div class=\"console-out-ready result-live\">${vizCtaHTML(sql,'ed-console')}${renderTable(res,ms)}</div>`);\n      vizAttn();"));
+  assert.ok(app.includes("const et=[['FROM',1],['WHERE',c.where],['GROUP BY',c.group],['HAVING',c.having],['SELECT',1],['ORDER BY',c.order],['LIMIT',c.limit]]"), 'les étapes dans l’ordre d’exécution');
+  assert.ok(app.includes("document.querySelectorAll('.viz-attn').forEach(b=>b.classList.remove('viz-attn'));"), 'ouvert : il s’arrête');
+  assert.ok(app.includes("const c=typeof splitClauses==='function'?splitClauses(sql):null;\n  if(!c)return '';"), 'seulement pour un SELECT');
+});
