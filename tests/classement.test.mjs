@@ -147,7 +147,8 @@ test('la progression garde ce qu’il faut au classement, et Mon compte permet d
   const ns = app.slice(app.indexOf('function normalizeState(raw){'), app.indexOf('function normalize(', app.indexOf('function normalizeState(raw){')));
   for (const k of ['salle.cle=salleSrc.cle', 'salle.clsId=salleSrc.clsId', 'salle.horsCls=1', 'salle.masques=m', 'salle.envoi=q', 'salle.clsRefus=r'])
     assert.ok(ns.includes(k), k);
-  assert.ok(app.includes('<b>${clsOn()?\'Retirer mes scores du classement\':\'Revenir au classement général\'}</b>'), 'Mon compte › Données');
+  /* 1er novembre, 1 h 01 : « ne pas pouvoir […] supprimer les scores du classement » — seul le retour reste, pour qui l’avait quitté */
+  assert.ok(app.includes("${clsOn()?'':`<button class=\"acc-row\" type=\"button\" onclick=\"clsQuitter()\">") && !app.includes('Retirer mes scores du classement'), 'Mon compte › Données');
   for (const k of ['salle.pseudo=p', 'salle.pseudoVu=salleBig(salleSrc.pseudoVu)']) assert.ok(ns.includes(k), k);
   assert.ok(!app.includes('function clsRenommer(') && !app.includes('clsRenommer()'), 'le pseudo ne se change plus (16 h 49)');
   const prendre = sql.slice(sql.lastIndexOf('create or replace function public.jeu_pseudo_prendre'));

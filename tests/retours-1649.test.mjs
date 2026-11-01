@@ -235,7 +235,8 @@ test('pseudo — l’onboarding demande le prénom ; la mini-page du pseudo suit
   ctx.mien = '';
   assert.equal(vm.runInContext("accPseudoHTML('')", ctx), '<button type="button" class="acc-pseudo is-vide" onclick="closePlusDetails();psPage({})"><span class="acc-pseudo-av" aria-hidden="true">?</span><span class="acc-pseudo-t"><small>Pseudo</small><b><span class="acc-pseudo-nm">Choisis ton pseudo</span></b></span><span class="acc-pseudo-go" aria-hidden="true"><svg data-k="chev"></svg></span></button>');
   assert.ok(app.includes('        ${accPseudoHTML(jeuSavedNom())}'));
-  assert.ok(app.includes('<div class="at"><b>Supprimer mon pseudo</b><small>« ${esc(psMien())} » est libéré, avec tes scores</small></div>'), 'Données et confidentialité');
+  /* 1er novembre, 1 h 01 : « ne pas pouvoir supprimer son pseudo » dans l’appli — sur demande, depuis « Nous contacter » */
+  assert.ok(!app.includes('<b>Supprimer mon pseudo</b>') && app.includes('pour le supprimer, écris-nous depuis Mon compte, «&nbsp;Nous contacter&nbsp;».'), 'Données et confidentialité');
   for (const gone of ['id="acc-name"', 'class="acc-save"', 'function saveAccountName(', 'function clsRenommer(', 'function jeuNomEdit(', 'function psFeuille(', 'function psValider('])
     assert.ok(!app.includes(gone), 'retiré : ' + gone);
   for (const part of ['html.lq .acc-pseudo{display:flex;', 'html.lq .jeu-me-lock{', 'html.lq .jeu-me.is-vide{', '.ps-idee{min-height:40px;',
@@ -413,9 +414,9 @@ test('Supabase — le pseudo unique (jeu_pseudo), sans ménage : il reste à la 
   assert.ok(s.includes('grant execute on function public.jeu_pseudo_liberer(text) to anon, authenticated;'));
   /* Les règles du site et de l’appli disent la même chose */
   const conf = fs.readFileSync(new URL('../decouvrir/confidentialite.html', import.meta.url), 'utf8');
-  assert.ok(conf.includes('Il ne se change plus ensuite, et il reste à toi tant que tu ne le supprimes pas') && !conf.includes('12&nbsp;mois sans ouvrir'), 'politique de confidentialité');
+  assert.ok(conf.includes('Il ne se change plus ensuite, et il reste à toi&nbsp;; pour le supprimer (avec tes scores), il suffit de nous le demander') && !conf.includes('12&nbsp;mois sans ouvrir'), 'politique de confidentialité');
   const ios = fs.readFileSync(new URL('../IOS.md', import.meta.url), 'utf8');
   assert.ok(ios.includes('n’est jamais\n  libéré tout seul (pas de ménage)') && ios.includes("delete from jeu_pseudo where pseudo = '") && !ios.includes('jeu-pseudo-menage'), 'IOS.md');
-  assert.equal(app.split('et reste à toi tant que tu ne le supprimes pas (Mon compte, Données et confidentialité). Ton prénom, lui, reste sur cet appareil.').length - 1, 2, 'les deux textes « Confidentialité » de l’appli');
+  assert.equal(app.split('et reste à toi : pour le supprimer, écris-nous depuis Mon compte, «&nbsp;Nous contacter&nbsp;». Ton prénom, lui, reste sur cet appareil.').length - 1, 2, 'les deux textes « Confidentialité » de l’appli');
   assert.ok(!app.includes('libéré après 12&nbsp;mois'));
 });
