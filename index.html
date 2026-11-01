@@ -6643,7 +6643,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=65">
+<link rel="stylesheet" href="ludique.css?v=66">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -9674,11 +9674,129 @@ const CHALLENGES=[
   q:"Affiche le nombre total de sièges de tous les avions.",
   sol:"SELECT SUM(capacite) FROM avions;",
   indice:"SUM sur la colonne de la capacité."},
+ {id:'af33',apres:16,titre:"L’état des bagages",niv:'f',base:'aeroport',ordered:true,
+  contexte:"Le service qualité veut un état des lieux des bagages traités par l’aéroport. Il demande la répartition des bagages selon leur statut (livré, enregistré, retardé, perdu, en cabine), pour repérer les anomalies d’un coup d’œil.",
+  q:"Affiche chaque statut de bagage et son nombre de bagages, du plus grand nombre au plus petit.",
+  sol:"SELECT statut, COUNT(*) AS nb_bagages FROM bagages GROUP BY statut ORDER BY nb_bagages DESC;",
+  indice:"Un regroupement sur le statut, et un comptage."},
+ /* Lot Moyen (Elisa, 1er novembre, 8 h 59 : « corrige ce qu’il y a à corriger »). Corrections faites sur sa liste :
+    – « Prix moyen par classe » était déjà le défi Facile af21 : remplacé par une vraie sous-requête (« Les billets Économique
+      au-dessus de la moyenne »), la notion que le lot annonçait sans la faire travailler ;
+    – « Bagages par statut » (un simple GROUP BY, comme af30) passe en Facile (af33) ;
+    – « Taux de remplissage > 30 % » ne renvoyait aucun vol (55 passagers pour des avions de 100 à 368 places) : seuil à 5 % ;
+    – les tris qui laissaient des égalités disent comment les départager (vols à égalité, passagers à 820 €…). */
+ {id:'am1',apres:41,titre:"Combien de passagers par vol ?",niv:'m',base:'aeroport',ordered:true,
+  contexte:"La compagnie aérienne prépare son rapport d’activité hebdomadaire. Pour évaluer la demande sur chaque liaison, elle a besoin de connaître le nombre de passagers ayant réservé sur chaque vol, y compris les vols qui n’ont encore aucun passager. Ce chiffre servira ensuite à comparer les vols entre eux et à ajuster les fréquences.",
+  q:"Affiche le numéro de vol, la date de départ et le nombre de réservations de chaque vol, y compris les vols sans réservation (compteur à 0), triés par nombre de réservations décroissant, puis par numéro de vol.",
+  sol:"SELECT v.numero_vol, v.date_depart, COUNT(r.id) AS nb_reservations FROM vols v LEFT JOIN reservations r ON r.vol_id = v.id GROUP BY v.id, v.numero_vol, v.date_depart ORDER BY nb_reservations DESC, v.numero_vol;",
+  indice:"Un LEFT JOIN garde les vols sans réservation ; compte une colonne de reservations plutôt que toutes les lignes."},
+ {id:'am2',apres:41,titre:"Le chiffre d’affaires des compagnies",niv:'m',base:'aeroport',ordered:true,
+  contexte:"Le directeur financier de l’aéroport veut comparer la contribution de chaque compagnie aérienne au chiffre d’affaires global. Il demande un classement des compagnies selon le montant total des billets vendus sur leurs vols.",
+  q:"Affiche le nom de chaque compagnie et son chiffre d’affaires total (la somme des prix de ses réservations), triés par chiffre d’affaires décroissant.",
+  sol:"SELECT c.nom, SUM(r.prix) AS chiffre_affaires FROM compagnies c JOIN vols v ON v.compagnie_id = c.id JOIN reservations r ON r.vol_id = v.id GROUP BY c.id, c.nom ORDER BY chiffre_affaires DESC;",
+  indice:"Enchaîne compagnies → vols → réservations, puis additionne les prix pour chaque compagnie."},
+ {id:'am3',apres:41,titre:"Les destinations les plus populaires",niv:'m',base:'aeroport',ordered:true,
+  contexte:"L’office de tourisme de l’aéroport souhaite connaître les destinations qui attirent le plus de voyageurs, afin de négocier de nouvelles lignes avec les compagnies. Il demande un classement des villes d’arrivée selon le nombre de réservations.",
+  q:"Affiche la ville d’arrivée et le nombre de réservations des 5 destinations les plus réservées, triées par nombre de réservations décroissant, puis par ville en cas d’égalité.",
+  sol:"SELECT a.ville, COUNT(r.id) AS nb_reservations FROM vols v JOIN aeroports a ON a.id = v.aeroport_arrivee_id JOIN reservations r ON r.vol_id = v.id GROUP BY a.id, a.ville ORDER BY nb_reservations DESC, a.ville LIMIT 5;",
+  indice:"Relie les vols aux aéroports par l’aéroport d’arrivée, puis aux réservations ; regroupe par ville."},
+ {id:'am4',apres:45,titre:"Les billets Économique au-dessus de la moyenne",niv:'m',base:'aeroport',ordered:true,
+  contexte:"Le service des réclamations reçoit des courriers de voyageurs surpris par le prix de leur billet en classe Économique. Avant de répondre, la responsable veut repérer les billets Économique vendus plus cher que le prix moyen de cette classe, et savoir sur quels vols ils ont été achetés.",
+  q:"Affiche l’identifiant de la réservation, le numéro de vol et le prix des billets en classe « Économique » plus chers que le prix moyen des billets Économique, du plus cher au moins cher.",
+  sol:"SELECT r.id, v.numero_vol, r.prix FROM reservations r JOIN vols v ON v.id = r.vol_id WHERE r.classe = 'Économique' AND r.prix > (SELECT AVG(prix) FROM reservations WHERE classe = 'Économique') ORDER BY r.prix DESC;",
+  indice:"La moyenne se calcule dans une sous-requête, entre parenthèses, puis se compare au prix de chaque billet."},
+ {id:'am5',apres:17,titre:"Les voyageurs fidèles",niv:'m',base:'aeroport',ordered:true,
+  contexte:"La compagnie souhaite fidéliser ses meilleurs clients. Elle veut identifier les passagers qui ont voyagé sur plus d’un vol différent, afin de leur proposer une carte de fidélité avec des avantages à bord.",
+  q:"Affiche le prénom, le nom et le nombre de vols différents des passagers qui ont réservé au moins 2 vols différents, triés par nombre de vols décroissant, puis par nom.",
+  sol:"SELECT p.prenom, p.nom, COUNT(DISTINCT r.vol_id) AS nb_vols FROM passagers p JOIN reservations r ON r.passager_id = p.id GROUP BY p.id, p.prenom, p.nom HAVING COUNT(DISTINCT r.vol_id) >= 2 ORDER BY nb_vols DESC, p.nom;",
+  indice:"Compte les vols différents de chaque passager, puis garde seulement ceux qui en ont au moins 2 : ce filtre-là vient après le regroupement."},
+ {id:'am6',apres:55,titre:"Voyager léger",niv:'m',base:'aeroport',ordered:true,
+  contexte:"Le service bagages veut créer une file d’embarquement express pour les voyageurs qui partent sans valise. Il cherche les passagers qui ont réservé au moins un vol, mais dont aucune réservation n’a de bagage enregistré. Un passager qui a plusieurs réservations ne compte que si toutes sont sans bagage.",
+  q:"Affiche le prénom et le nom des passagers qui ont au moins une réservation et dont aucune réservation n’a de bagage, triés par nom puis par prénom.",
+  sol:"SELECT p.prenom, p.nom FROM passagers p WHERE EXISTS (SELECT 1 FROM reservations r WHERE r.passager_id = p.id) AND NOT EXISTS (SELECT 1 FROM reservations r JOIN bagages b ON b.reservation_id = r.id WHERE r.passager_id = p.id) ORDER BY p.nom, p.prenom;",
+  indice:"Il faut deux conditions : le passager a des réservations, et il n’existe aucun bagage pour elles. Attention aux passagers qui ont plusieurs réservations."},
+ {id:'am7',apres:20,titre:"Les vols fantômes",niv:'m',base:'aeroport',ordered:true,
+  contexte:"La direction étudie la rentabilité de ses lignes. Avant de décider d’éventuelles suppressions, elle veut la liste des vols qui n’ont enregistré aucune réservation, avec la compagnie qui les opère et leur destination.",
+  q:"Affiche le numéro de vol, le nom de la compagnie, la ville d’arrivée et le statut des vols sans aucune réservation, triés par date de départ puis par numéro de vol.",
+  sol:"SELECT v.numero_vol, c.nom, a.ville, v.statut FROM vols v JOIN compagnies c ON c.id = v.compagnie_id JOIN aeroports a ON a.id = v.aeroport_arrivee_id LEFT JOIN reservations r ON r.vol_id = v.id WHERE r.id IS NULL ORDER BY v.date_depart, v.numero_vol;",
+  indice:"Les vols sans réservation se trouvent avec une jointure externe et IS NULL ; la compagnie et la destination demandent deux jointures de plus."},
+ {id:'am8',apres:17,titre:"Les gros clients",niv:'m',base:'aeroport',ordered:true,
+  contexte:"La compagnie prépare une offre premium pour ses clients les plus fidèles en valeur. Elle veut identifier les passagers dont le montant total des réservations dépasse 500 €, afin de leur proposer un service personnalisé.",
+  q:"Affiche le prénom, le nom et le total dépensé des passagers dont la somme des réservations dépasse 500 €, triés par total décroissant, puis par nom en cas d’égalité.",
+  sol:"SELECT p.prenom, p.nom, SUM(r.prix) AS total_depense FROM passagers p JOIN reservations r ON r.passager_id = p.id GROUP BY p.id, p.prenom, p.nom HAVING SUM(r.prix) > 500 ORDER BY total_depense DESC, p.nom;",
+  indice:"Additionne les prix de chaque passager, puis filtre sur ce total : un filtre sur une somme ne se met pas dans WHERE."},
+ {id:'am9',apres:41,titre:"Les vols les mieux remplis",niv:'m',base:'aeroport',ordered:true,
+  contexte:"Les avions des compagnies sont bien plus grands que la demande actuelle : la plupart des vols décollent presque vides. Pour savoir où la demande commence à décoller, le service réseau cherche les rares vols dont le taux de remplissage (réservations ÷ capacité de l’avion) dépasse 5 %.",
+  q:"Affiche le numéro de vol, la capacité de l’avion, le nombre de réservations et le taux de remplissage en pourcentage (arrondi à 1 décimale) des vols dont le taux dépasse 5 %, triés par taux décroissant.",
+  sol:"SELECT v.numero_vol, av.capacite, COUNT(r.id) AS nb_reservations, ROUND(100.0 * COUNT(r.id) / av.capacite, 1) AS taux_pct FROM vols v JOIN avions av ON av.id = v.avion_id LEFT JOIN reservations r ON r.vol_id = v.id GROUP BY v.id, v.numero_vol, av.capacite HAVING 100.0 * COUNT(r.id) / av.capacite > 5 ORDER BY taux_pct DESC;",
+  indice:"Relie les vols aux avions et aux réservations, compte les réservations par vol, puis calcule le pourcentage (attention à la division entière : écris 100.0)."},
 ];
 /* La consigne d’un défi : la situation (contexte) et la question. Seul ou en salle, le même bloc. Pas d’indice affiché (Elisa,
    1er novembre, 1 h 20 : « non pas d’indice au départ ni jamais finalement ») : le champ indice des défis reste dans les données. */
 function defiConsigneHTML(c){
   return `${c.contexte?`<p class="defi-ctx">${esc(c.contexte)}</p>`:''}<div class="consigne"><span class="tag">La question</span><p>${esc(c.q)}</p></div>`;
+}
+/* Les indices d’un défi raté (Elisa, 1er novembre, 8 h 59 : « si on réussit pas du premier coup, commencer par un premier indice,
+   un deuxième après, puis troisième max, mais sans jamais dévoiler la requête, même après »). Rien au départ (1 h 20). Trois
+   paliers, du plus large au plus précis, un par essai raté (relancer la même requête n’en débloque pas un de plus) :
+   1. Où chercher : les tables à utiliser, lues dans la solution ;
+   2. La piste : la notion à mobiliser (le champ « indice » du défi) ;
+   3. La forme de la requête : ses mots-clés dans l’ordre, chaque nom et chaque valeur remplacés par « … ».
+   La requête n’est jamais montrée : ni après le 3e indice, ni à la fin du chrono, ni à la fin d’une manche en salle (on y voit le
+   résultat qu’il fallait obtenir). À chaque essai raté, un diagnostic dit ce qui cloche (lignes, colonnes, ordre, valeurs). */
+function defiTables(sol){
+  const out=[];
+  String(sol||'').replace(/\b(?:FROM|JOIN)\s+([A-Za-z_][A-Za-z0-9_]*)/gi,(m,t)=>{if(!/^SELECT$/i.test(t)&&!out.includes(t))out.push(t);return m;});
+  return out;
+}
+const DEFI_MOTS=new Set(['SELECT','DISTINCT','FROM','JOIN','LEFT','INNER','ON','WHERE','AND','OR','NOT','IN','EXISTS','LIKE','BETWEEN','IS','NULL','GROUP','BY','HAVING','ORDER','ASC','DESC','LIMIT','OFFSET','CASE','WHEN','THEN','ELSE','END','UNION','ALL','WITH']);
+const DEFI_FONCS=new Set(['COUNT','SUM','AVG','MIN','MAX','ROUND','STRFTIME','UPPER','LOWER','IFNULL','COALESCE','LENGTH','SUBSTR','DATE','JULIANDAY']);
+function defiSquelette(sol){
+  const toks=String(sol||'').replace(/;\s*$/,'').match(/'(?:[^']|'')*'|[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?|\d+(?:\.\d+)?|<>|!=|>=|<=|\|\||[=<>*\/+\-(),]/g)||[];
+  const out=[];
+  toks.forEach((t,i)=>{
+    const u=t.toUpperCase();
+    const k=DEFI_MOTS.has(u)||(DEFI_FONCS.has(u)&&toks[i+1]==='(')?u:/^(?:<>|!=|>=|<=|\|\||[=<>*\/+\-()])$/.test(t)?t:'…';
+    if(k==='…'&&out[out.length-1]==='…')return;
+    out.push(k);
+  });
+  /* Une ligne par grande clause (hors parenthèses), les fonctions collées à leur parenthèse. */
+  const NL=new Set(['FROM','WHERE','GROUP','HAVING','ORDER','LIMIT']);
+  let txt='',depth=0;
+  out.forEach((t,i)=>{
+    const prev=out[i-1];
+    const ligne=i>0&&depth===0&&(NL.has(t)||((t==='LEFT'||t==='INNER')||(t==='JOIN'&&prev!=='LEFT'&&prev!=='INNER')));
+    if(i===0)txt=t;
+    else if(ligne)txt+='\n'+t;
+    else if(t===')'||prev==='('||(t==='('&&DEFI_FONCS.has(prev)))txt+=t;
+    else txt+=' '+t;
+    if(t==='(')depth++;else if(t===')')depth=Math.max(0,depth-1);
+  });
+  return txt;
+}
+function defiIndicesHTML(c,n){
+  n=Math.min(3,n||0);
+  if(!c||!n)return '';
+  const tb=defiTables(c.sol).map(t=>`<code>${esc(t)}</code>`);
+  const liste=tb.length<2?tb.join(''):tb.slice(0,-1).join(', ')+' et '+tb[tb.length-1];
+  const I=[
+    ['Où chercher',!tb.length?'Ouvre le schéma : la consigne nomme les informations à trouver, chacune vit dans une table.':tb.length===1?`Tout se trouve dans une seule table : ${liste}.`:`Tu auras besoin de ${tb.length} tables : ${liste}.`],
+    ['La piste',esc(c.indice||'Relis la consigne mot à mot : chaque information demandée est une colonne, chaque condition un filtre.')],
+    ['La forme de la requête',`Ses mots-clés dans l’ordre ; chaque nom et chaque valeur sont remplacés par «&nbsp;…&nbsp;».<div class="ex-code">${highlight(defiSquelette(c.sol))}</div>`]
+  ];
+  return `<div class="defi-indices" aria-live="polite">${I.slice(0,n).map(([t,h],i)=>`<div class="defi-ind${i===n-1?' is-new':''}"><b><span>Indice ${i+1}/3</span>${t}</b><div class="defi-ind-t">${h}</div></div>`).join('')}`+
+    `${n>=3?'<p class="defi-ind-fin">C’était le dernier indice. La requête ne sera pas dévoilée : à toi de la trouver.</p>':''}</div>`;
+}
+/* Ce qui cloche dans un essai raté, sans rien dévoiler de la requête. */
+function defiDiag(userRes,solRes,c){
+  const U=userRes&&userRes[0],S=solRes&&solRes[0];
+  const nU=U?U.values.length:0,nS=S?S.values.length:0,cU=U?U.columns.length:0,cS=S?S.columns.length:0;
+  const pl=(n,m)=>n+' '+m+(n>1?'s':'');
+  if(!nU&&nS)return `Ta requête ne renvoie aucune ligne ; il en faut ${nS}.`;
+  if(cU!==cS)return `On attend ${pl(cS,'colonne')} ; ta requête en renvoie ${cU}.`;
+  if(nU!==nS)return `Ta requête renvoie ${pl(nU,'ligne')} ; il en faut ${nS}.`;
+  if(c&&c.ordered&&typeof memeResultatColonnesLibres==='function'&&memeResultatColonnesLibres(U,S,false))return 'Les bonnes lignes sont là, mais pas dans le bon ordre : relis le tri demandé.';
+  return 'Le bon nombre de lignes, mais pas les bonnes valeurs : vérifie tes filtres et tes calculs.';
 }
 function defisParProgression(){
   return CHALLENGES.slice().sort((a,b)=>(a.apres||Infinity)-(b.apres||Infinity)||a.id.localeCompare(b.id));
@@ -22031,14 +22149,14 @@ function jeuRender(){
     /* Le détail des points seulement sur sa propre ligne : le reste dit le temps et les points, sans pastilles en trop. */
     const lines=rk.map((x,i)=>`<li style="--i:${i}"${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${sl?'✓':(medal[x.place-1]||x.place)}</span><b>${esc((J.players[x.pid]||{}).name||'Joueur')}${x.pid===J.me&&!sl?' <small>(toi)</small>':''}</b><em>${jeuChrono(x.ms)}</em><small>+${x.pts}</small>${x.pid===J.me?jeuPtsDetail(x):''}</li>`).join('')||'<li class="is-empty">Personne n’a trouvé cette fois.</li>';
     const sc=jeuScores(),got=r.found[J.me]!=null;
-    const sub=got?`Tu as trouvé en ${jeuChrono(r.found[J.me])}.`:((r.closed?(sl?'Manche abandonnée.':'Manche close par l’hôte.'):'Temps écoulé.')+' Voici une solution possible.');
+    const sub=got?`Tu as trouvé en ${jeuChrono(r.found[J.me])}.`:((r.closed?(sl?'Manche abandonnée.':'Manche close par l’hôte.'):'Temps écoulé.')+' Voici le résultat qu’il fallait obtenir.');
     const next=host?`<button type="button" class="journey-primary" id="jeu-go" onclick="${last?'jeuFinish()':'jeuNextRound()'}"><span>${last?(sl?'Voir mon bilan':'Voir le podium'):'Manche suivante'}</span>${DEF_CHEV_SVG}</button>`
       :`<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>${last?'Le podium arrive…':'La manche suivante arrive…'}</p>`;
     /* La solution se replie quand on a trouvé ; les scores cumulés n’apparaissent qu’à partir de la 2e manche, et à plusieurs. */
     html=head(`Manche ${n+1}/${J.nb} terminée`,esc(c.titre),sub)+
       `<div id="jeu-netslot">${jeuNetHTML()}</div>
       <div class="jeu-card"><p class="jeu-card-h">${sl?'Ton résultat':'Classement de la manche'}</p><ol class="jeu-rank">${lines}</ol></div>
-      <details class="jeu-card jeu-sol"${got?'':' open'}><summary class="jeu-card-h">Une solution</summary><div class="ex-code">${highlight(c.sol)}</div></details>
+      <details class="jeu-card jeu-sol"${got?'':' open'}><summary class="jeu-card-h">Le résultat attendu</summary>${typeof defiAttenduHTML==='function'?defiAttenduHTML(c):''}</details>
       ${sl||n<1?'':`<div class="jeu-card"><p class="jeu-card-h">Scores</p><ol class="jeu-rank is-score">${jeuPlaces(sc).map(x=>`<li${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${jeuChrono(x.ms)}</small></li>`).join('')}</ol></div>`}
       ${next}`;
   }else if(v==='final'){
@@ -22261,7 +22379,7 @@ function jeuRun(){
   try{
     const dU=defiSandbox(c);const t0=performance.now();try{userRes=dU.exec(sql);ms=performance.now()-t0;}finally{dU.close();}
     const dS=defiSandbox(c);try{solRes=dS.exec(c.sol);}finally{dS.close();}
-  }catch(e){setLessonOut(errBox(e.message));jeuEssaiRate(r);return;}
+  }catch(e){setLessonOut(errBox(e.message));jeuEssaiRate(r);jeuIndice(r,c,sql);return;}
   if(exerciseResultsMatch(userRes,solRes,c,true)){
     const took=Date.now()-r.t1;
     document.querySelectorAll('#lesson-body .btn-run').forEach(b=>b.disabled=true);
@@ -22274,10 +22392,19 @@ function jeuRun(){
     if(navigator.vibrate)navigator.vibrate([10,40,20]);
     return;
   }
-  const diag=exoFailDiag(sql,c.sol,userRes,solRes,exerciseRequiresOrder(c,true));
+  const diag=typeof defiDiag==='function'?defiDiag(userRes,solRes,c):exoFailDiag(sql,c.sol,userRes,solRes,exerciseRequiresOrder(c,true));
   const table=(!userRes||!userRes.length)?'':renderTable(userRes,ms);
   setLessonOut(`<div class="feedback warn"><div class="fi">≈</div><div><b>Pas encore</b><p>${diag}</p></div></div>${table}`);
   jeuEssaiRate(r);
+  jeuIndice(r,c,sql);
+}
+/* En salle aussi, un indice par essai raté (trois au plus, la même requête relancée n’en débloque pas), sous l’éditeur. */
+function jeuIndice(r,c,sql){
+  if(!r)return;
+  const k=String(sql||'').replace(/\s+/g,' ').trim();
+  if(k!==r.lastKo){r.lastKo=k;r.ind=Math.min(3,(r.ind||0)+1);}
+  const s=typeof document!=='undefined'&&document.getElementById?document.getElementById('hint-slot'):null;
+  if(s&&typeof defiIndicesHTML==='function')s.innerHTML=defiIndicesHTML(c,r.ind);
 }
 /* Le premier essai manqué : le « +25 » de la barre s’envole. */
 function jeuEssaiRate(r){
@@ -22375,17 +22502,21 @@ function defiChronoStart(c){
   };
   defiChrono={t:setInterval(tick,500)};tick();
 }
+/* Le résultat qu’il fallait obtenir (jamais la requête), à la fin du chrono ou d’une manche. */
+function defiAttenduHTML(c){
+  try{const d=defiSandbox(c);try{const r=d.exec(c.sol);return r&&r.length?renderTable(r):'';}finally{d.close();}}catch(e){return '';}
+}
 function defiTempsEcoule(c){
   document.querySelectorAll('#defi-solo-block .btn-run').forEach(b=>b.disabled=true);
   const ed=document.getElementById('ed-lesson');if(ed)ed.readOnly=true;
-  setLessonOut(`<div class="feedback warn defi-fin"><div class="fi">⏱️</div><div><b>Temps écoulé</b><p>Un défi se joue en ${JEU_ROUND_MS/60000}&nbsp;min au plus. Une solution&nbsp;:</p><div class="ex-code">${highlight(c.sol)}</div><button type="button" class="room-go" onclick="openChallenge('${c.id}')"><span>Recommencer</span></button></div></div>`);
+  setLessonOut(`<div class="feedback warn defi-fin"><div class="fi">⏱️</div><div><b>Temps écoulé</b><p>Un défi se joue en ${JEU_ROUND_MS/60000}&nbsp;min au plus. Voici ce qu’il fallait obtenir&nbsp;:</p>${defiAttenduHTML(c)}<button type="button" class="room-go" onclick="openChallenge('${c.id}')"><span>Recommencer</span></button></div></div>`);
 }
 function openChallenge(cid){
   const c=CHALLENGES.find(x=>x.id===cid); const g=CHALLENGE_GUIDES[cid]||{};
   annulerBilanAuto();
   current=c; mode='defi';
   lqSetLessonColor(cid);
-  exoFails=0;
+  exoFails=0; defiDernierKo=null;
   document.getElementById('back-label').textContent=lessonBackLabel();
   document.getElementById('nav-title').textContent='Défi';
   document.getElementById('lesson-body').innerHTML=`
@@ -22419,8 +22550,10 @@ function openReview(id){
   setupEditor('ed-lesson','hl-lesson'); showScreen();
   saveNav();
 }
-function registerExoFail(){
+let defiDernierKo=null;
+function registerExoFail(sql){
   if(mode==='lesson')return;
+  if(mode==='defi'&&sql!=null){const k=String(sql).replace(/\s+/g,' ').trim();if(k===defiDernierKo){renderExoHelp();return;}defiDernierKo=k;}
   exoFails++;
   renderExoHelp();
 }
@@ -22428,7 +22561,9 @@ function renderExoHelp(){
   if(mode==='lesson')return;
   const s=document.getElementById('hint-slot');
   if(!s||!current||exoFails<1){if(s&&exoFails<1)s.innerHTML='';return;}
-  const sol=mode==='defi'?current.sol:current.solution;
+  /* Un défi : les indices, jamais la solution (8 h 59). */
+  if(mode==='defi'){s.innerHTML=defiIndicesHTML(current,exoFails);return;}
+  const sol=current.solution;
   let html='';
   if(exoFails>=1){
     if(current.exemple)
@@ -22647,7 +22782,7 @@ function runLesson(){
       try{userRes=dU.exec(sql); ms=performance.now()-t0;}finally{dU.close();}
       const dS=isDefi?defiSandbox(current):sandbox(); try{solRes=dS.exec(sol);}finally{dS.close();}
     }
-  }catch(e){ setLessonOut(errBox(e.message)); registerExoFail(); return; }
+  }catch(e){ setLessonOut(errBox(e.message)); registerExoFail(sql); return; }
   const ok=exerciseResultsMatch(userRes,solRes,current,isDefi);
   if(ok){
     const table=renderTable(userRes,ms);
@@ -22658,6 +22793,7 @@ function runLesson(){
       if(typeof clsDefis==='function')clsDefis();
       if(premier) celebrate();
       head=`<div class="feedback ok"><div class="fi">✓</div><div><b>Défi résolu</b><p>Ta requête donne exactement le bon résultat.</p></div></div>`;
+      {const hs=document.getElementById('hint-slot');if(hs)hs.innerHTML='';}
       const nxtPlan=state.plan&&infoJour()&&infoJour().today&&infoJour().today.lessons.find(id=>!itemDone(id));
       setLessonOut(head+table+(nxtPlan!=null
         ?`<button class="next-btn" onclick="openItem(${isDefiId(nxtPlan)?`'${nxtPlan}'`:nxtPlan})">Continuer la séance →</button>`
@@ -22691,12 +22827,12 @@ function runLesson(){
       if(leconFinie) finaliserLecon();
     }
   }else{
-    const diag=exoFailDiag(sql,sol,userRes,solRes,ordered);
+    const diag=isDefi?defiDiag(userRes,solRes,current):exoFailDiag(sql,sol,userRes,solRes,ordered);
     if(mode==='review'){ const st=state.lessons[current.id]; if(st){st.level=0;st.due=Date.now()+DAY;save();} }
     // Évite le double message : pas de bandeau vert « Requête exécutée / Aucune ligne » sous le warn.
     const table=(!userRes||!userRes.length)?'':renderTable(userRes,ms);
     setLessonOut(`<div class="feedback warn"><div class="fi">≈</div><div><b>La requête tourne, mais…</b><p>${diag}</p></div></div>${table}`);
-    registerExoFail();
+    registerExoFail(sql);
   }
 }
 function guessFkTarget(col,tables){
@@ -28633,7 +28769,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-pas-a-pas-v2235';
+  const SW_CACHE='requete-2026-11-01-moyen-indices-v2236';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -71,7 +71,8 @@ test('seul dans la salle : comme seul (ni bande, ni réactions, ni « Clore », 
 test('résultats et fin de partie allégés ; la notification des points en une pastille', () => {
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
   assert.ok(r.includes("${x.pid===J.me?jeuPtsDetail(x):''}"), 'le détail des points sur sa seule ligne');
-  assert.ok(r.includes('<details class="jeu-card jeu-sol"${got?\'\':\' open\'}><summary class="jeu-card-h">Une solution</summary>'), 'la solution repliée quand on a trouvé');
+  /* 1er novembre, 8 h 59 : plus jamais la requête ; le résultat attendu, replié quand on a trouvé */
+  assert.ok(r.includes('<details class="jeu-card jeu-sol"${got?\'\':\' open\'}><summary class="jeu-card-h">Le résultat attendu</summary>') && !r.includes('highlight(c.sol)'), 'le résultat attendu replié quand on a trouvé');
   assert.ok(r.includes("${sl||n<1?'':`<div class=\"jeu-card\"><p class=\"jeu-card-h\">Scores</p>"), 'les scores cumulés à partir de la 2e manche');
   assert.ok(r.includes('const surPodium=new Set(top.flat().map(x=>x.pid)),liste=sc.some(x=>!surPodium.has(x.pid));'), 'la liste finale seulement si le podium ne dit pas tout');
   assert.ok(r.includes("const tie=sc.some((x,i)=>i>0&&x.pts>0&&x.pts===sc[i-1].pts)?"), 'le mot sur l’égalité seulement s’il y a égalité');

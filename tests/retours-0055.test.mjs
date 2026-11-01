@@ -18,12 +18,12 @@ const DEFIS = JSON.parse(JSON.stringify(ctx.CHALLENGES));
 const aero = cut("aeroport:{nom:'Aéroport',", '\n`}');
 const base = () => { const d = new SQL.Database(); d.run(aero.slice(aero.indexOf('sql:`') + 5)); return d; };
 
-test('les défis sont ceux de la base Aéroport : 32 Facile, chacun avec sa situation, sa mission, son indice', () => {
-  /* 8 h 39 : le lot Facile n° 2 (af11 à af23) ; 8 h 47 : le lot n° 3 (af24 à af32) */
-  assert.equal(DEFIS.length, 32);
-  assert.deepEqual(DEFIS.map(c => c.id), Array.from({ length: 32 }, (_, i) => 'af' + (i + 1)));
+test('les défis sont ceux de la base Aéroport : 33 Facile et 9 Moyen, chacun avec sa situation, sa mission, son indice', () => {
+  /* 8 h 39 : le lot Facile n° 2 (af11 à af23) ; 8 h 47 : le lot n° 3 (af24 à af32) ; 8 h 59 : af33 et le lot Moyen (am1 à am9) */
+  assert.equal(DEFIS.length, 42);
+  assert.deepEqual(DEFIS.map(c => c.id), [...Array.from({ length: 33 }, (_, i) => 'af' + (i + 1)), ...Array.from({ length: 9 }, (_, i) => 'am' + (i + 1))]);
   for (const c of DEFIS) {
-    assert.equal(c.base, 'aeroport', c.id); assert.equal(c.niv, 'f', c.id);
+    assert.equal(c.base, 'aeroport', c.id); assert.equal(c.niv, c.id.startsWith('am') ? 'm' : 'f', c.id);
     assert.ok(c.contexte && c.q && c.indice && c.sol && c.titre && Number.isInteger(c.apres), c.id);
   }
   assert.ok(!/\b(clients|commandes|produits)\b/.test(DEFIS.map(c => c.sol).join(' ')), 'plus rien sur la base du cours');
@@ -45,7 +45,7 @@ test('chaque solution s’exécute sur Aéroport, et un défi trié n’a pas d�
 });
 
 test('la consigne d’un défi : la situation et la question, sans indice (1 h 20) — seul comme en salle', () => {
-  vm.runInContext(cut('function defiConsigneHTML(c){', 'function defisParProgression(){'), Object.assign(ctx, { esc: s => String(s).replace(/</g, '&lt;') }));
+  vm.runInContext(cut('function defiConsigneHTML(c){', '\n/* Les indices d’un défi raté'), Object.assign(ctx, { esc: s => String(s).replace(/</g, '&lt;') }));
   ctx.c = DEFIS[8];
   const html = vm.runInContext('defiConsigneHTML(c)', ctx);
   assert.ok(html.startsWith('<p class="defi-ctx">Le service qualité'));
