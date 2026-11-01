@@ -17165,7 +17165,7 @@ if(typeof window!=='undefined'){
   },120);});
 }
 /* Réf. 4 (16 h 49) : « garder que la première phrase ». */
-const JEU_NOTE_HTML='<p class="jeu-note">🔒 Seuls ton pseudo, tes temps et tes réactions sont partagés.</p>';
+const JEU_NOTE_HTML='<p class="jeu-note">🔒 Tes amis voient ton pseudo, tes temps et tes réactions. Tes requêtes sont vérifiées en ligne et restent privées.</p>';
 /* Même défi, seul ou à plusieurs : le choix se fait dans l’écran du défi. Ici, seulement l’entrée « j’ai reçu un code ». */
 const JEU_FRIENDS_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.4-3 2.6-4.8 5.5-4.8s5.1 1.8 5.5 4.8"/><path d="M16 5.2a3 3 0 0 1 0 5.6M17.5 14.4c1.8.5 3 2 3.3 4.6"/></svg>';
 function jeuEligible(c){return !!c&&!/^\s*EXPLAIN/i.test(c.sol)&&!c.noExec;}
@@ -17325,19 +17325,20 @@ function clsRpc(fn,body){
 }
 /* Une partie terminée (jeuCreditGame) : elle part au classement, ou attend le réseau (20 au plus, dans la progression). */
 function clsEnvoyer(p){
-  if(!p||!(p.n>0))return;
+  if(!p||!p.salle||!Number.isInteger(p.g))return;
   const s=clsSalle();
   s.envoi=(Array.isArray(s.envoi)?s.envoi:[]).concat([p]).slice(-20);
   save();clsFlush();
 }
 function clsFlush(){
-  const s=clsSalle(),q=Array.isArray(s.envoi)?s.envoi:[];
+  const s=clsSalle(),q=(Array.isArray(s.envoi)?s.envoi:[]).filter(p=>p.salle&&Number.isInteger(p.g));
+  s.envoi=q;
   if(CLS.flushing||!q.length||!clsOn())return;
   const nom=jeuSavedNom();
   if(!nom)return;
   if(!jeuPseudoOk(nom)){if(s.clsRefus!==nom){s.clsRefus=nom;save();clsPaint();}return;}
   CLS.flushing=true;
-  clsRpc('jeu_score',{p_cle:clsCle(),p_pseudo:nom,p_partie:q[0]}).then(r=>{
+  clsRpc('jeu_score_v2',{p_cle:clsCle(),p_pseudo:nom,p_partie:q[0]}).then(r=>{
     CLS.flushing=false;
     const s2=clsSalle();s2.envoi=(s2.envoi||[]).filter(x=>x.u!==q[0].u);s2.clsId=r&&r.id||s2.clsId;delete s2.clsRefus;save();
     if(CLS.data&&r)CLS.data.moi=Object.assign({},CLS.data.moi||{},{id:r.id,pts:r.pts,parties:r.parties,rang:r.rang,pseudo:nom});
@@ -17350,7 +17351,7 @@ function clsFlush(){
     if(/pris/.test(m)){const s3=clsSalle();delete s3.pseudo;delete s3.pseudoVu;save();if(typeof psPage==='function'&&!psPageOuverte())psPage({raison:'pris',voulu:nom});return;}
     if(/pseudo/.test(m)){s2.clsRefus=nom;save();clsPaint();return;}
     /* Une partie que le serveur refuse (barème) ne repart pas ; le reste attend le réseau. */
-    if(/partie invalide/.test(m)){s2.envoi=(s2.envoi||[]).filter(x=>x.u!==q[0].u);save();if(s2.envoi.length)clsFlush();}
+    if(/partie invalide|partie non vérifiée|partie périmée|partie non terminée/.test(m)){s2.envoi=(s2.envoi||[]).filter(x=>x.u!==q[0].u);save();if(s2.envoi.length)clsFlush();}
   });
 }
 /* Les défis réussis, pour savoir quand en ajouter (Elisa, 31 octobre, 15 h 52 : « est-ce que je pourrais voir le nombre de défis
@@ -17369,7 +17370,7 @@ function clsDefis(){
     const s=clsSalle(),d=clsDefisSig();
     if(!d||!clsOn()||!s.clsId||CLS.defis||s.defisEnv===d.sig)return;
     CLS.defis=true;
-    clsRpc('jeu_defis',{p_cle:clsCle(),p_defis:d.ids,p_niv:d.niv}).then(r=>{
+    clsRpc('jeu_defis_v2',{p_cle:clsCle(),p_defis:d.ids,p_niv:d.niv}).then(r=>{
       CLS.defis=false;
       if(r&&r.ok){clsSalle().defisEnv=d.sig;save();const n=clsDefisSig();if(n&&n.sig!==d.sig)clsDefis();}
     },()=>{CLS.defis=false;});
@@ -17705,6 +17706,7 @@ function renderDefisRules(){
       <li><b>🥇 Premier entre amis</b><span>+${JEU_PTS_RANG[0]}</span><small>2e : +${JEU_PTS_RANG[1]} · 3e : +${JEU_PTS_RANG[2]} · 4e : +${JEU_PTS_RANG[3]}</small></li>
       <li><b>⚖️ Égalité</b><span>chrono</span><small>Le plus rapide au total passe devant ; même temps : ex æquo</small></li>
     </ul>
+    <p class="jeu-note">Le classement en ligne compte les parties vérifiées. Hors connexion, tes points restent sur cet appareil.</p>
     <p class="room-rules-max"><span>Manche parfaite</span><b>${top+JEU_PTS_ESSAI}</b><small>seul</small><i aria-hidden="true">·</i><b>${top+JEU_PTS_ESSAI+JEU_PTS_RANG[0]}</b><small>entre amis</small></p>
   </section>`;
   /* Les marches montent quand le cadre arrive à l’écran (il est en bas de l’onglet) ; mouvement réduit : tout de suite. */
@@ -23254,7 +23256,7 @@ let JEU=null,jeuNiv='f',jeuNb=1,jeuMode='solo';
 })();
 function jeuSavePrefs(){try{localStorage.setItem('rq-jeu-prefs',JSON.stringify({niv:jeuNiv,nb:jeuNb,mode:jeuMode}));}catch(e){}}
 function jeuRand(n){const a=new Uint32Array(n);crypto.getRandomValues(a);return [...a].map(x=>JEU_ALPH[x%JEU_ALPH.length]).join('');}
-function jeuPid(){let p='';try{p=sessionStorage.getItem('rq-jeu-pid')||'';}catch(e){}if(!p){p=jeuRand(10);try{sessionStorage.setItem('rq-jeu-pid',p);}catch(e){}}return p;}
+function jeuPid(){if(window.REQUETE_SECURE_MULTIPLAYER&&window.REQUETE_JEU_ID)return window.REQUETE_JEU_ID.pid;let p='';try{p=sessionStorage.getItem('rq-jeu-pid')||'';}catch(e){}if(!p){p=jeuRand(10);try{sessionStorage.setItem('rq-jeu-pid',p);}catch(e){}}return p;}
 function jeuNom(v){return Array.from(String(v||'').replace(/[\u0000-\u001f<>\u200b-\u200f\u202a-\u202e\u2060-\u206f\u2800\u3164\ufeff]/g,'').replace(/\s+/g,' ').trim()).slice(0,16).join('');}
 /* Le pseudo s’écrit comme un identifiant (Elisa, 31 octobre, 18 h 22 : « ne pas pouvoir mettre de majuscules, tout sera en minuscules
    avec un @ au début, et faire attention aux espaces ») : @ puis 15 caractères au plus, en minuscules — lettres (accents compris),
@@ -23323,12 +23325,15 @@ function jeuTransport(code,onMsg,onNet,solo){
    (pas d’async/await) : les tests font tourner ce code sur une horloge virtuelle. */
 function jeuSupabase(code,onMsg,onNet){
   const topic='realtime:salle:'+code,api=JEU_SB+'/rest/v1/rpc/';
+  const secure=!!window.REQUETE_SECURE_MULTIPLAYER;
+  let sends=Promise.resolve(),noticeAt=0,enrolled=!secure;
   const S={ws:null,joined:false,closed:false,up:null,downAt:Date.now(),ref:0,joinRef:'',hbRef:'',jt:0,rt:0,pt:0,ht:0,retry:0,last:0,buf:[],loading:false,again:false,hfail:0,polls:0};
   const net=ok=>{if(S.up!==ok&&!S.closed){S.up=ok;onNet(ok);}};
   const rpc=(fn,body)=>{
     const opt={method:'POST',headers:{apikey:JEU_SB_KEY,'Content-Type':'application/json'},body:JSON.stringify(body)};
     let to=0;
     if(typeof AbortController!=='undefined'){const ctl=new AbortController();opt.signal=ctl.signal;to=setTimeout(()=>ctl.abort(),10000);}
+    if(secure){opt.body=JSON.stringify(Object.assign({},body,{p_cle:clsCle()}));fn+='_v2';}
     return fetch(api+fn,opt).then(r=>{clearTimeout(to);return r;},e=>{clearTimeout(to);throw e;});
   };
   const put=(ws,o)=>{try{ws.send(JSON.stringify(o));return true;}catch(e){return false;}};
@@ -23345,7 +23350,7 @@ function jeuSupabase(code,onMsg,onNet){
   };
   /* Relire ce qui a été gardé après le dernier numéro livré ; pendant ce temps, le direct attend son tour. */
   const catchUp=()=>{
-    if(S.closed)return;
+    if(S.closed||(secure&&!enrolled))return;
     if(S.loading){S.again=true;return;}
     S.loading=true;S.again=false;clearTimeout(S.ht);
     rpc('jeu_historique',{p_salle:code,p_apres:S.last}).then(r=>r.ok?r.json():null).then(rows=>{
@@ -23373,6 +23378,9 @@ function jeuSupabase(code,onMsg,onNet){
     if(f.event==='phx_reply'&&f.ref===S.joinRef){if(f.payload&&f.payload.status==='ok')joined();else drop(ws);return;}
     if(f.event==='phx_close'||f.event==='phx_error')return drop(ws);
     if(f.event!=='broadcast'||!S.joined)return;
+    // Public WebSocket broadcasts are only notifications. Only HTTPS history
+    // from the authenticated server can deliver a ranked game message.
+    if(secure){if(Date.now()-noticeAt>150){noticeAt=Date.now();catchUp();}else S.ht=setTimeout(catchUp,180);return;}
     const p=f.payload&&f.payload.payload;
     if(!p||!(+p.n>S.last))return;
     keep(p.n,p.at,p.m);
@@ -23428,16 +23436,19 @@ function jeuSupabase(code,onMsg,onNet){
   connect();
   return{
     send(m){
-      return rpc('jeu_envoyer',{p_salle:code,p_m:m}).then(r=>{
-        if(!r.ok)return false;
+      const send=()=>rpc('jeu_envoyer',{p_salle:code,p_m:m}).then(r=>{
+        if(!r.ok){if(secure)r.clone().json().then(e=>{if(JEU&&JEU.code===code){if(/salle pleine/.test(e.message||''))JEU.full=true;JEU.securityError=e.message||'';jeuPaint();}},()=>{});return false;}
+        if(secure&&(m.t==='cfg'||m.t==='hello')){enrolled=true;catchUp();}
         /* Son propre message doit revenir par le direct : sinon, on relit la salle (le direct a pu en perdre). */
         r.json().then(x=>{const n=x&&+x.n;if(n>0)setTimeout(()=>{if(!S.closed&&S.joined&&S.last<n)catchUp();},3000);},()=>{});
         return true;
       },()=>false);
+      if(!secure)return send();
+      const result=sends.then(send,send);sends=result.catch(()=>false);return result;
     },
     /* En quittant : un dernier message même si la page se ferme (texte brut, sans en-tête : navigator.sendBeacon). */
     beacon(m){
-      const url=api+'jeu_balise?apikey='+JEU_SB_KEY,body=JSON.stringify({salle:code,m});
+      const url=api+(secure?'jeu_balise_v2':'jeu_balise')+'?apikey='+JEU_SB_KEY,body=JSON.stringify(Object.assign({salle:code,m},secure?{cle:clsCle()}:{}));
       try{if(!(navigator.sendBeacon&&navigator.sendBeacon(url,body)))fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body,keepalive:true}).catch(()=>{});}catch(e){}
     },
     /* Retour au premier plan : on vérifie la connexion tout de suite ; réseau retrouvé (force) : on se reconnecte. */
@@ -23454,6 +23465,7 @@ function jeuSupabase(code,onMsg,onNet){
       if(!S.hbRef&&!beat())return drop(ws);
       clearTimeout(S.pt);S.pt=setTimeout(()=>{if(S.ws===ws&&S.hbRef)drop(ws);},5000);
     },
+    sync:catchUp,
     stats(){return{joined:S.joined,up:S.up,last:S.last,polls:S.polls,waiting:S.buf.length};},
     close(){
       S.closed=true;
@@ -23530,17 +23542,17 @@ function jeuStart(code,host,cid,opts){
   const niv=picked?picked.niv:jeuNiv;
   const nb=Math.max(1,Math.min(jeuNb,jeuChallenges(niv).length||1));
   const me=jeuPid();
-  JEU={code,solo,created:!!host,me,nom,hostPid:host?me:null,niv,nb,max:solo?1:JEU_MAX,g:0,
+  JEU={code,solo,ranked:!!opts.secure,created:!!host,me,nom,hostPid:host?me:null,niv,nb,max:solo?1:JEU_MAX,g:0,
     players:{},order:[],rounds:[],over:false,net:solo?true:null,view:'',sig:'',
     seenU:new Set(),seenR:new Set(),seq:[],seen:{},ready:{},left:{},denied:{},helloOf:{},
-    synced:!!host,syncAt:host?Date.now():0,echoAt:Date.now(),helloU:'',helloAt:0,skew:0,full:false,lost:false,claimAt:0,
+    synced:!!host,syncAt:host?Date.now():0,echoAt:Date.now(),helloU:'',helloAt:0,skew:opts.secure?(window.REQUETE_JEU_ID?.skew||0):0,full:false,lost:false,claimAt:0,
     sid:jeuRand(6),opens:0,graceUntil:0,claimGrace:0,cfgCv:0,cfgSaved:null,readyCv:{},early:[],claimBest:null,replaying:false,replayEnd:0,resumeU:'',goneAt:0,lastTick:Date.now(),out:[],flushAt:0,flushing:false,keep:null,
     tick:null,ping:null,t:null,lastReact:0,plan:picked?[picked.id]:[],
     recent:new Set(),shown:new Set(),announced:new Set(),scored:false,played:false,drawT:[],okSeen:new Set(),slShown:null};
   JEU.players[me]={name:nom,at:Date.now()};JEU.order.push(me);JEU.seen[me]=Date.now();
   const G=JEU;
-  JEU.t=jeuTransport(code,m=>{if(JEU===G)jeuOnMsg(m);},ok=>{const J=JEU;if(!J||J!==G)return;J.net=ok;if(ok){J.opens++;if(J.opens>1)jeuResume();}jeuPaint();},solo);
-  if(host){JEU.ready[me]=true;jeuSend({t:'cfg',niv,n:nb,max:JEU.max});}
+  JEU.t=jeuTransport(code,m=>{if(JEU===G)jeuOnMsg(m);},ok=>{const J=JEU;if(!J||J!==G)return;J.net=ok;if(ok){J.opens++;if(J.opens>1)jeuResume();}jeuPaint();},solo&&!opts.secure);
+  if(host){JEU.ready[me]=true;jeuSend({t:'cfg',niv,n:nb,max:JEU.max,solo:solo?1:0});}
   JEU.helloAt=Date.now();
   const hu=jeuSend({t:'hello'});
   if(!host)JEU.helloU=hu;
@@ -23553,12 +23565,12 @@ function jeuStart(code,host,cid,opts){
   document.getElementById('lesson-body').innerHTML='<div class="jeu" id="jeu-root"></div>';
   showScreen();
   JEU.tick=setInterval(jeuTick,500);
-  if(!solo)JEU.ping=setInterval(jeuPing,JEU_PING_MS);
+  if(!solo||opts.secure)JEU.ping=setInterval(jeuPing,JEU_PING_MS);
   if(!host){
     const J=JEU,wait=()=>{if(JEU!==J||J.hostPid)return;if(J.net===false){J.waitCfg=setTimeout(wait,3000);return;}J.view='';J.lost=true;jeuPaint();};
     J.waitCfg=setTimeout(wait,7000);
   }
-  if(solo)jeuNextRound();
+  if(solo&&!opts.secure)jeuNextRound();
   jeuPaint();
 }
 function jeuJoin(code){
@@ -23574,13 +23586,13 @@ function jeuSend(m){
   if(m.t==='cfg'||m.t==='ready'||m.t==='host')m.cv=Date.now();
   if(m.g===undefined)m.g=JEU.g;
   const J=JEU;
-  jeuOnMsg(Object.assign({},m,{at:Date.now()}));
+  if(!J.ranked)jeuOnMsg(Object.assign({},m,{at:Date.now()}));
   if(JEU===J)jeuPost(m);
   return m.u;
 }
 const JEU_VOLATILE=['ping','react'];
 function jeuPost(m){
-  const J=JEU;if(!J||J.solo)return;
+  const J=JEU;if(!J||(J.solo&&!J.ranked))return;
   J.t.send(m).then(ok=>{
     if(JEU!==J)return;
     if(ok){J.out=J.out.filter(e=>e.m!==m);if(J.net===false){J.net=true;jeuPaint();}}
@@ -23637,7 +23649,7 @@ function jeuOnMsg(m){
   const J=JEU;if(!J||!m||m.v!==1||!m.pid)return;
   /* « Moi » = ce démarrage (même pseudo d’appareil + même session). Mes messages d’un démarrage
      précédent sont de l’historique comme les autres : je retrouve ainsi ma salle et mes temps. */
-  const mine=m.pid===J.me&&m.s===J.sid;
+  const mine=m.pid===J.me&&(J.ranked||m.s===J.sid);
   const replay=J.replaying&&Date.now()<J.replayEnd;
   const name=jeuNom(m.name)||'Joueur';
   /* Ordre du relais (une seule fois par message) : mon propre « hello » revenu du relais sépare
@@ -23678,6 +23690,7 @@ function jeuOnMsg(m){
     case 'cfg':{
       if(J.hostPid&&J.hostPid!==m.pid)return;
       J.hostPid=m.pid;
+      if(J.ranked&&J.solo&&mine&&!J.rounds.length)setTimeout(()=>{if(JEU===J&&!J.rounds.length)jeuNextRound();},100);
       const cv=+m.cv||0;
       if(cv>=J.cfgCv){
         J.cfgCv=cv;
@@ -23723,6 +23736,7 @@ function jeuOnMsg(m){
       if(hist)t0=m.at||t0;
       else if(replay&&m.at)t0=Math.min(t0,m.at-J.skew);
       J.rounds[n]={cid:m.cid,t0,t1:t0+JEU_DRAW_MS,found:{},hist,relayAt:m.at||0,by:m.pid,u:m.u,conf:!!m.fromRelay,one:!!m.one};
+      if(J.ranked&&m.startAt){const rr=J.rounds[n];rr.t1=+m.startAt-J.skew;rr.t0=rr.t1-JEU_DRAW_MS;}
       if(J.synced)J.played=true;
       addP();jeuDrain();break;}
     case 'found':{
@@ -23735,7 +23749,7 @@ function jeuOnMsg(m){
       r.found[m.pid]=Math.max(0,Math.min(JEU_ROUND_MS,+m.ms||0));
       /* Trouvé du premier essai (p1) : +25 pour tout le monde, puisque chacun compte les points de chacun. */
       if(m.p1===1)(r.first=r.first||{})[m.pid]=1;
-      if(m.pid===J.me)J.played=true;
+      if(m.pid===J.me){J.played=true;if(J.ranked){const c=CHALLENGES.find(c=>c.id===r.cid);if(c)jeuCredit(c.id);}}
       if(m.pid!==J.me&&!J.solo&&J.synced&&!replay)jeuToast(`${name} a trouvé ✓`);
       /* Un temps qui arrive pendant l’écran de résultats : le classement se met à jour. */
       if(J.view==='res'+(+m.n))jeuRedraw();
@@ -23760,6 +23774,7 @@ function jeuOnMsg(m){
       J.rounds.forEach(r=>{if(r)J.recent.add(r.cid);});
       J.g=m.g|0;J.rounds=[];J.over=false;J.ready={};J.plan=[];J.scored=false;J.played=false;J.view='';
       jeuApplyCfg();jeuDrain();
+      if(J.ranked&&J.solo&&jeuIsHost())setTimeout(()=>{if(JEU===J)jeuNextRound();},100);
       break;}
     case 'bye':
       if(m.pid===J.me)return;
@@ -23896,7 +23911,7 @@ function jeuHostWatch(){
   J.claimAt=now;
   jeuSend({t:'host',from:J.hostPid});
 }
-function jeuPing(){const J=JEU;if(!J||J.solo||!J.synced||J.full)return;jeuSend({t:'ping'});}
+function jeuPing(){const J=JEU;if(!J||(J.solo&&!J.ranked)||!J.synced||J.full)return;jeuSend({t:'ping'});}
 /* Ce qui change à l’écran sans nouveau message : arrivées, départs, prêts. */
 function jeuSig(){
   const J=JEU,n=jeuCur(),r=n>=0?J.rounds[n]:null;
@@ -24213,7 +24228,7 @@ function jeuFinish(){if(JEU&&jeuIsHost())jeuSend({t:'end'});}
 function jeuAgain(){
   const J=JEU;if(!J||!jeuIsHost()||!J.over)return;
   jeuSend({t:'again',g:J.g+1});
-  if(J.solo)jeuNextRound();
+  if(J.solo&&!J.ranked)jeuNextRound();
 }
 /* Salle d’attente : l’hôte peut encore changer le niveau et le nombre de manches. */
 function jeuLobbySet(k,v){
@@ -24338,7 +24353,7 @@ function jeuCreditGame(){
       .concat(Array.isArray(s.hist)?s.hist:[]).slice(0,12);
     save();
     /* Le classement général : la partie part une seule fois (u), seul ou entre amis. */
-    if(typeof clsEnvoyer==='function'&&played.length)clsEnvoyer({u:jeuRand(10),pts,n:Math.min(5,played.length),ok:mine.length,solo:J.solo||played.every(r=>r.one)?1:0,niv:k});
+    if(typeof clsEnvoyer==='function'&&played.length&&J.ranked)clsEnvoyer({u:J.code+'-'+J.g,salle:J.code,g:J.g});
     return {pts,total:s.pts};
   }catch(e){return null;}
 }
@@ -24392,7 +24407,7 @@ function jeuStop(){
   /* On quitte avant le podium : les points déjà gagnés ne sont pas perdus. */
   try{if(!J.scored&&J.played){const me=jeuScores().find(x=>x.pid===J.me);if(me&&me.pts>0)jeuCreditGame();}}catch(e){}
   /* Prévenir les autres tout de suite : l’hôte qui part passe la main sans attendre. */
-  if(!J.solo&&J.synced&&!J.full){try{J.t.beacon({v:1,t:'bye',pid:J.me,name:J.nom,u:jeuRand(8),g:J.g});}catch(e){}}
+  if((!J.solo||J.ranked)&&J.synced&&!J.full){try{J.t.beacon({v:1,t:'bye',pid:J.me,name:J.nom,u:jeuRand(8),g:J.g});}catch(e){}}
   clearInterval(J.tick);clearInterval(J.ping);clearTimeout(J.waitCfg);J.drawT.forEach(clearTimeout);
   setTimeout(()=>{try{J.t&&J.t.close();}catch(e){}},600);
   JEU=null;
@@ -30880,7 +30895,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-profile-identity-v2249';
+  const SW_CACHE='requete-2026-11-01-secure-multiplayer-v2250';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
@@ -30915,5 +30930,6 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 }
 </script>
 <script src="onboarding-focus.js"></script>
+<script src="multiplayer-security.js"></script>
 </body>
 </html>

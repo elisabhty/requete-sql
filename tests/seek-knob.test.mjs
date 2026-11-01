@@ -13,7 +13,7 @@ import assert from 'node:assert/strict';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-const css = html.replace(/\/\*[\s\S]*?\*\//g, '');
+const css = [...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
 
 const take = (from, to) => {
   const a = html.indexOf(from), b = html.indexOf(to, a + 1);

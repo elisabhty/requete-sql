@@ -42,7 +42,7 @@ test('1 h 07 : la carte du joueur, la note de la salle, les cartes de « Profil 
   assert.ok(app.includes('<span class="jeu-me-av"><b class="jeu-av" data-c="0" aria-hidden="true">${jeuInitial(nom)}</b><span class="jeu-me-lock" aria-label="Pseudo verrouillé" role="img">${PS_LOCK_SVG}</span></span>'));
   assert.ok(app.includes("<b>${at?'<i class=\"jeu-me-at\">@</i>':''}${esc(at?nom.slice(1):nom)}</b>"));
   assert.ok(css.includes('html.lq body .jeu-me .jeu-av{display:grid;place-items:center;width:46px;height:46px;'));
-  assert.ok(app.includes("const JEU_NOTE_HTML='<p class=\"jeu-note\">🔒 Seuls ton pseudo, tes temps et tes réactions sont partagés.</p>';"));
+  assert.ok(app.includes("const JEU_NOTE_HTML='<p class=\"jeu-note\">🔒 Tes amis voient ton pseudo, tes temps et tes réactions. Tes requêtes sont vérifiées en ligne et restent privées.</p>';"));
   assert.ok(!app.includes('sont partagés, jamais tes requêtes'));
   assert.ok(css.includes('html.lq #plus-profile-settings .plus-details-body>.acc-row{width:calc(100% - 36px);margin:0 18px 12px;'));
 });

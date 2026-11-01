@@ -1021,7 +1021,7 @@ test('base : l’appli et les fonctions SQL de supabase/migrations restent d’a
   assert.ok(engineSrc.includes("const JEU_VOLATILE=['ping','react'];"), 'mêmes messages volatils');
   assert.ok(engineSrc.includes("topic='realtime:salle:'+code") && engineSrc.includes('private:false'), 'canal public côté appli');
   assert.ok(engineSrc.includes("rpc('jeu_envoyer',{p_salle:code,p_m:m})") && engineSrc.includes("rpc('jeu_historique',{p_salle:code,p_apres:S.last})"));
-  assert.ok(engineSrc.includes("api+'jeu_balise?apikey='+JEU_SB_KEY"));
+  assert.ok(engineSrc.includes("(secure?'jeu_balise_v2':'jeu_balise')") && engineSrc.includes("cle:clsCle()"));
   assert.match(sql, /alter table public\.jeu_salle enable row level security;/);
   assert.match(sql, /alter table public\.jeu_msg enable row level security;/);
   assert.match(sql, /revoke all on table public\.jeu_salle, public\.jeu_msg from anon, authenticated;/);

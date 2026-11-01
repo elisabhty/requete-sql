@@ -312,7 +312,7 @@ test('points — la valeur du défi, palier par palier, à côté du chrono ; «
 });
 
 test('réf. 4 et 5 — la note de la salle garde sa première phrase ; « Un code reçu ? » respire, sans rappel du pseudo', () => {
-  assert.ok(app.includes("const JEU_NOTE_HTML='<p class=\"jeu-note\">🔒 Seuls ton pseudo, tes temps et tes réactions sont partagés.</p>';"));
+  assert.ok(app.includes("const JEU_NOTE_HTML='<p class=\"jeu-note\">🔒 Tes amis voient ton pseudo, tes temps et tes réactions. Tes requêtes sont vérifiées en ligne et restent privées.</p>';"));
   assert.ok(!app.includes('et s’effacent au bout de 24&nbsp;h. Il faut une connexion internet.</p>'));
   const join = fn('renderDefisJoin');
   assert.ok(!join.includes('jeuNomField'), 'le pseudo n’y est plus rappelé');

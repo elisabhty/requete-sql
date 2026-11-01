@@ -64,7 +64,7 @@ test('seul dans la salle : comme seul (ni bande, ni réactions, ni « Clore », 
   assert.ok(app.includes("if(jeuSoloLike(n)!==J.slShown){J.keep=v;J.view='';jeuPaint();return;}"), 'quelqu’un arrive ou part : la manche se redessine (la requête tapée reste)');
   assert.ok(!app.includes('Tu es seul·e dans la salle'), 'plus d’annonce « seul·e dans la salle »');
   assert.ok(app.includes("const seul=J.solo||sc.every(x=>x.pid===J.me);"), 'fin de partie seul : le bilan, pas le podium');
-  assert.ok(app.includes("solo:J.solo||played.every(r=>r.one)?1:0,niv:k});"), 'au classement : une partie sans bonus de rang compte comme seule');
+  assert.ok(app.includes("salle:J.code,g:J.g});"), 'au classement : la partie est identifiée, les bonus sont calculés sur le serveur');
   assert.ok(app.includes("'Personne n’a encore rejoint : partage le code. Si tu lances maintenant, tu joues seul·e.'"));
 });
 
