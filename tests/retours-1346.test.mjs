@@ -133,3 +133,9 @@ test('15 h 57 : « Commencer » à la première ouverture d’un cours, « Conti
   assert.equal(vm.runInContext('t({id:8})', ctx), false);
   assert.equal(ctx.saved, 2, 'retenu sur l’appareil');
 });
+
+test('16 h : une feuille versionnée n’est servie du cache que sous sa version exacte ; cartes de niveau resserrées', () => {
+  assert.ok(sw.includes('const versionne = /[?&]v=/.test(url.search);') && sw.includes('const hit = await cache.match(req, { ignoreSearch: !versionne });'));
+  assert.ok(sw.includes("return (versionne && await cache.match(req, { ignoreSearch: true })) || Response.error();"), 'hors ligne, l’ancienne copie dépanne');
+  assert.ok(css.includes('html.lq .room-level{min-height:0!important;justify-content:center;gap:6px;padding:13px 6px 13px!important}'));
+});
