@@ -351,7 +351,7 @@ test('vidéo : « Apprends le SQL maintenant. » puis les neuf tuiles des foncti
   assert.ok(s9.includes('<p class="abs sub">progresse à ton rythme.</p>'), 'la phrase continue sous le titre');
   const tuiles = [...s9.matchAll(/<div class="ft(?: more)?">.*?<b>(.*?)<\/b><\/div>/g)].map(m => m[1]);
   assert.deepEqual(tuiles, ['65 cours immersifs', 'Un labo&nbsp;SQL interactif', '267 cas pratiques', 'Importe tes propres données',
-    '30 questions d’entretien', 'Cartes mémo &amp; stickers', 'Défie tes amis', 'Ta série de jours',
+    '75 questions d’entretien', 'Cartes mémo &amp; stickers', 'Défie tes amis', 'Ta série de jours',
     'Et bien plus encore<small>Découvre-les maintenant&nbsp;!</small>']);
   /* Quatre rangées de deux, puis « Et bien plus encore » sur toute la largeur (Elisa, 20 h 01 : « tout est tassé »).
      Sur ordinateur et tablette (cadre d’au moins 420 px), des tuiles hautes et espacées, finies avant 1 020 px : les deux
@@ -374,7 +374,7 @@ test('vidéo : « Apprends le SQL maintenant. » puis les neuf tuiles des foncti
   assert.match(video, /#end\.on a,#end\.on button\{animation:endPop [^}]*backwards\}/, 'l’entrée ne bloque pas le survol');
   /* Texte lu par VoiceOver */
   assert.ok(video.includes("'Apprends le SQL maintenant. Pratique sur de vraies données avec Requête. L’app, pensée pour les futurs data analysts. Des cours interactifs"));
-  assert.ok(video.includes("'Du premier SELECT aux requêtes avancées, progresse à ton rythme. 65 cours immersifs, un labo SQL interactif, 267 cas pratiques."));
+  assert.ok(video.includes("'Du premier SELECT aux requêtes avancées, progresse à ton rythme. 65 cours immersifs, un labo SQL interactif, 267 cas pratiques et 75 questions d’entretien"));
 });
 
 /* Elisa, 30 octobre, 17 h 31 : un écran d’onboarding avec des logos de Harvard, Stanford et Emory (« est-ce qu’on peut
@@ -600,9 +600,9 @@ test('la prépa entretien devient une carte des atouts ; « bientôt dans ta poc
   assert.ok(cas > 0 && en > cas && h.indexOf('<div class="panel tile', cas + 1) === en, 'la carte suit « Cas pratiques et révisions »');
   assert.ok(en < h.indexOf('</section>', h.indexOf('<section class="block" id="programme"')), 'dans « Tout pour apprendre vraiment »');
   const carte = h.slice(en, h.indexOf('</section>', en));
-  const tete = carte.match(/<div class="db-head"><span class="db-ic c6"><svg[^>]*aria-hidden="true">[\s\S]*?<\/svg><\/span><span class="db-t"><small>Prépa entretien<\/small><\/span><span class="db-badge or">(\d+) thèmes<\/span><\/div>\s*<h3>Entraîne-toi pour l’entretien<\/h3>/);
+  const tete = carte.match(/<div class="db-head"><span class="db-ic c6"><svg[^>]*aria-hidden="true">[\s\S]*?<\/svg><\/span><span class="db-t"><small>Prépa entretien<\/small><\/span><span class="db-badge or">(\d+) niveaux<\/span><\/div>\s*<h3>Entraîne-toi pour l’entretien<\/h3>/);
   assert.ok(tete, 'même en-tête que les autres cartes : icône, libellé, pastille, puis le titre');
-  assert.equal(+tete[1], (carte.match(/<ul class="en-themes"[^>]*>(.*?)<\/ul>/s)[1].match(/<li>/g) || []).length, 'la pastille compte les thèmes');
+  assert.equal(+tete[1], (carte.match(/<ul class="en-themes"[^>]*>(.*?)<\/ul>/s)[1].match(/<li>/g) || []).length, 'la pastille compte les niveaux');
   assert.ok(h.includes('<a href="#entretien">Prépa entretien</a>'), 'le lien du pied de page mène à la carte');
   assert.match(css, /\.bento \.w6\{grid-column:1\/-1\}/, 'sur toute la largeur de la grille');
   assert.match(css, /@container tuile \(min-width:720px\)\{\s*\.en-in\{display:grid;grid-template-columns:minmax\(0,1fr\) minmax\(0,1\.12fr\);gap:40px;align-items:start\}/, 'texte et aperçu côte à côte quand la carte est large');

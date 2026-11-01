@@ -306,6 +306,8 @@ test('points — la valeur du défi, palier par palier, à côté du chrono ; «
   assert.ok(fn('jeuFoundHTML').includes("+(x.essai?' · du premier coup ✨':'')"));
   for (const part of ['html.lq .jeu-bar-r{flex:none;display:flex;align-items:center;gap:6px}', 'html.lq .jeu-val{display:inline-flex;', 'font-variant-numeric:tabular-nums'])
     assert.ok(s51.includes(part), part);
+  assert.ok(s51.includes('html.lq .jeu-bar .l-kicker{display:block;flex:1 1 0%;min-width:0;'), 'la pastille de manche peut prendre l’espace restant');
+  assert.ok(s51.includes('@media (max-width:760px){') && s51.includes('html.lq #scr-lesson .jeu-bar>.l-kicker{flex:1 1 100%;width:100%;white-space:normal;'), 'sur une vue étroite, le libellé complet passe au-dessus des points et du chrono');
   const s52 = css.slice(css.indexOf('/* ---------- 52.'));
   for (const part of ['html.lq .jeu-val-b{position:absolute;', '@keyframes jeuValBOut{', 'html.lq .jeu-val.is-drop #jeu-val-n{', 'html.lq .jeu-pd i.is-essai{'])
     assert.ok(s52.includes(part), part);
