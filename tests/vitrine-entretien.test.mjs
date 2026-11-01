@@ -44,7 +44,9 @@ test('l’appli a bien ses questions d’entretien, lues ici sans en perdre', ()
   assert.equal(QUESTIONS.length, 75);
   assert.deepEqual(NIVEAUX, ['Débutant', 'Intermédiaire', 'Avancé']);
   assert.deepEqual(NIVEAUX.map(n => QUESTIONS.filter(q => q.niveau === n).length), [25, 25, 25]);
-  assert.deepEqual(FILTRES.map(f => f.key), NOTIONS, 'les filtres correspondent aux notions de la banque');
+  assert.deepEqual([...FILTRES.map(f => f.key)].sort(), [...NOTIONS].sort(), 'les notions de la liste sont celles de la banque (rangées dans l’ordre où on les apprend, 18 h 48)');
+  assert.equal(FILTRES[0].key, 'SELECT', 'SELECT en haut');
+  assert.ok(!NOTIONS.some(n => ['Requêtes', 'Bases', 'Entretien'].includes(n)), 'plus de notion qui ne veut rien dire');
   assert.ok(QUESTIONS.every(q => q.id && q.cat && q.q && q.a && q.niveau && q.dialectes?.length), 'chaque carte a ses métadonnées');
 });
 
@@ -76,9 +78,9 @@ test('la liste rassemble chaque notion dans un seul groupe', () => {
   assert.ok(groupStart > 0 && groupEnd > groupStart, 'fonction de regroupement trouvée');
   vm.runInContext(app.slice(groupStart, groupEnd), ctx);
   const groups = JSON.parse(JSON.stringify(vm.runInContext('entGroupItems(ENTRETIEN.map((q,i)=>({q,id:String(i)})))', ctx)));
-  assert.deepEqual(groups.map(g => g.cat), NOTIONS);
+  assert.deepEqual(groups.map(g => g.cat), FILTRES.map(f => f.key), 'les groupes suivent l’ordre des notions (SELECT en haut)');
   assert.equal(new Set(groups.map(g => g.cat)).size, groups.length);
-  assert.deepEqual(groups.map(g => g.items.length), NOTIONS.map(cat => QUESTIONS.filter(q => q.cat === cat).length));
+  assert.deepEqual(groups.map(g => g.items.length), groups.map(g => QUESTIONS.filter(q => q.cat === g.cat).length));
 });
 
 test('le nombre de questions et de niveaux annoncé correspond à l’appli', () => {

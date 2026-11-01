@@ -24,7 +24,7 @@ test('la salle de défi se place au niveau de la personne, les trois niveaux res
 
 test('la bulle de la première leçon porte le portrait détouré', () => {
   assert.ok(fs.existsSync(new URL('../assets/anim/formatrice.webp', import.meta.url)));
-  assert.ok(lecon.includes('#cap .cap-stk{background:url(formatrice.webp) 50% 6px/150px auto no-repeat,'));
+  assert.ok(lecon.includes('#cap .cap-stk{background:url(formatrice.webp) 50% 0/134px 134px no-repeat,'));
   assert.ok(sw.includes("'./assets/anim/formatrice.webp',"), 'hors ligne aussi');
 });
 
@@ -207,4 +207,12 @@ test('18 h 42 : « Base NutriBoost » ; les bases d’entraînement en lecture s
   assert.ok(app.includes("if(verrou&&/\\b(?:ATTACH|DETACH|VACUUM|REINDEX|PRAGMA)\\b/i.test("), 'on ne peut pas rouvrir l’écriture par PRAGMA');
   assert.ok(app.includes('<span>Base d’entraînement · lecture seule</span>'));
   assert.ok(app.includes("async function dropTable(name){\n  if(isDemoDb(activeDbId))return;") && app.includes("async function resetTable(name){\n  if(isDemoDb(activeDbId))return;"));
+});
+
+test('18 h 48 : questions d’entretien en entier, notions qui ont un sens, nouvelle photo de la formatrice avec sa pastille', () => {
+  assert.ok(app.includes('#scr-entretien .ecard .eq{display:block;overflow:visible}') && !app.includes('#scr-entretien .ecard .eq{display:-webkit-box;-webkit-line-clamp:2;'));
+  assert.ok(app.includes("const ENTRETIEN_CATS=[['all','Toutes les notions'],['SELECT','SELECT'],"));
+  const lecon = fs.readFileSync(new URL('../assets/anim/bases-relationnelles.html', import.meta.url), 'utf8');
+  assert.ok(lecon.includes('#cap .cap-stk::after{content:"Votre formatrice";'));
+  assert.ok(lecon.includes('#cap .cap-stk{background:url(formatrice.webp) 50% 0/134px 134px no-repeat,'));
 });
