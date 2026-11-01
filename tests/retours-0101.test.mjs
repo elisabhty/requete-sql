@@ -88,3 +88,7 @@ test('8 h 55 puis 9 h 12 : après un SELECT, une seule rangée « Pas à pas » 
   const row = app.slice(app.indexOf('<div class="run-row console-run-row">'), app.indexOf('<div id="console-out"'));
   assert.ok(row.includes('id="btn-run-console"') && row.includes('class="console-pin-current is-icon"') && row.includes('<b class="sr">Épingler cette requête</b>'), 'épingler : une icône dans la rangée d’Exécuter');
 });
+
+test('9 h 16 : le curseur de l’éditeur suit le texte (la copie colorée a la graisse de la zone de saisie)', () => {
+  assert.ok(css.includes('html.lq .editor-area pre code,html.lq .editor-area pre code span{font-weight:inherit!important;font-style:normal!important;letter-spacing:inherit!important;font-synthesis:none}'));
+});
