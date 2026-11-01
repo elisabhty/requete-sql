@@ -35,7 +35,8 @@ test('lot Moyen : les corrections (doublon, niveau, seuil impossible, égalités
 
 test('les trois indices : où chercher, la piste, la forme ; jamais la requête — un à la fois (14 h 33)', () => {
   const c = D('af5');
-  assert.equal(ctx.defiIndicesHTML(c, 0), '', 'rien avant le premier essai raté');
+  const h0 = ctx.defiIndicesHTML(c, 0);
+  assert.ok(h0.includes('À toi de jouer') && !h0.includes('Indice'), 'avant le premier essai raté : « À toi de jouer », aucun indice (15 h 36)');
   const h1 = ctx.defiIndicesHTML(c, 1), h2 = ctx.defiIndicesHTML(c, 2), h3 = ctx.defiIndicesHTML(c, 3), h9 = ctx.defiIndicesHTML(c, 9);
   assert.ok(h1.includes('Indice 1/3') && h1.includes('Tu auras besoin de 4 tables : <code>bagages</code>, <code>reservations</code>, <code>passagers</code> et <code>vols</code>.'));
   assert.ok(!h1.includes('Indice 2/3'));
@@ -43,7 +44,7 @@ test('les trois indices : où chercher, la piste, la forme ; jamais la requête 
   assert.ok(h3.includes('Indice 3/3') && h3.includes('C’était le dernier indice') && !h3.includes(c.indice));
   assert.ok(ctx.defiIndicesHTML(c, 3, 1).includes('Indice 1/3'), 'une pastille ramène à un indice déjà donné');
   assert.equal(h9, h3, 'trois au plus');
-  assert.ok(ctx.defiIndicesHTML(c, 1, 0, 'On attend 1 colonne.').includes('<b>Pas encore</b><p>On attend 1 colonne.</p>'), '« Pas encore » dans la même carte');
+  assert.ok(ctx.defiIndicesHTML(c, 1, 0, 'On attend 1 colonne.').includes('<span class="coach-st-k">Pas encore</span><p>On attend 1 colonne.</p>'), '« Pas encore » dans la même carte');
   assert.equal(ctx.defiSquelette(c.sol), 'SELECT …\nFROM …\nJOIN … ON … = …\nJOIN … ON … = …\nJOIN … ON … = …\nWHERE … = …\nORDER BY …');
   for (const x of ctx.CHALLENGES) {
     const sq = ctx.defiSquelette(x.sol);

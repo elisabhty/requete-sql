@@ -37,7 +37,7 @@ test('Console : la barre Schéma dans la carte du projet, « Voir » qui s’ani
 
 test('avant un cours, sa page de départ dans la DA du site, avec un seul bouton « Commencer »', () => {
   const open = cut('function openLesson(id, restoreStep){', '/* « Quel JOIN choisir ? »');
-  assert.ok(open.includes("if(restoreStep==null&&!restoringNav&&typeof lessonStartShow==='function'){"), 'pas lors d’une reprise automatique');
+  assert.ok(open.includes("if(!restoringNav&&typeof lessonStartShow==='function'){"), 'pas lors d’une reprise automatique');
   assert.ok(open.includes('lessonStartShow(l,()=>{if(current===l&&lessonStep===0&&lessonVideoOn(l))openLessonVideo();});'), 'la vidéo démarre au « Commencer »');
   assert.ok(open.includes("<button type=\"button\" class=\"lst-go\"><span>${done?'Revoir le cours':started?'Reprendre':'Commencer'}</span>${DEF_CHEV_SVG}</button>"));
   assert.ok(open.includes("<p class=\"lst-kicker\">${m?`Module ${mi+1} · ${esc(m.titre)}`:'Cours'}</p>"));
@@ -63,7 +63,7 @@ test('onboarding : le parcours qui se construit, la promesse en grand chiffre, l
 });
 
 test('14 h 33 : un seul cadre pour « Pas encore » et l’indice ; en salle, les indices à la même minute pour tous ; la base dans la barre', () => {
-  assert.ok(app.includes("${coach?'<div id=\"hint-slot\"></div>':''}"), 'la carte avant le résultat');
+  assert.ok(app.includes("${coach?'<div id=\"hint-slot\"></div>':''}"), 'la carte des indices');
   assert.ok(app.includes("if(isDefi&&COACH&&COACH.c===current){setLessonOut(table);COACH.diag=diag;COACH.fx='is-new-ko';}"), 'défi seul');
   assert.ok(app.includes('const due=JEU_IND_T.filter(t=>Date.now()-r.t1>=t).length;'), 'en salle : le temps de la manche, le même pour tous');
   assert.ok(app.includes("pour tout le monde dans <b id=\"coach-cd\">${jeuChrono(next)}</b>"));
@@ -74,7 +74,7 @@ test('14 h 33 : un seul cadre pour « Pas encore » et l’indice ; en salle, le
 
 test('14 h 43 : la croix de la page de départ ramène à l’accueil ; « Gagne des stickers et des cartes mémo »', () => {
   const open = cut('function lessonStartShow(l,go){', '\n}\n');
-  assert.ok(open.includes("if(ok)go&&go();else leaveLessonScreen('learn');"));
+  assert.ok(open.includes("if(!ok)leaveLessonScreen('learn',true);"));
   assert.ok(open.includes("plan.push(['Gagne des stickers et des cartes mémo','À collectionner : chaque cours terminé en débloque de nouveaux.']);"));
 });
 
@@ -99,4 +99,27 @@ test('15 h 12 : l’onboarding repasse son ajustement une fois polices, images e
   const ob = fs.readFileSync(new URL('../onboarding-vitrine.css', import.meta.url), 'utf8');
   assert.ok(ob.includes('html #onboarding.ob-vitrine.ob-fit-4 .ob-sign{height:78px;margin-top:10px}'));
   assert.ok(ob.includes('html #onboarding.ob-vitrine .ob-provider{grid-template-columns:28px minmax(0,1fr) auto!important;'));
+});
+
+test('15 h 36 : page de départ pour tous les cours, la croix va droit à l’accueil, espacements réguliers', () => {
+  assert.ok(app.includes("  if(!restoringNav&&typeof lessonStartShow==='function'){"), 'aussi quand on arrive par une étape précise');
+  const open = cut('function lessonStartShow(l,go){', '\n}\n');
+  assert.ok(open.includes("if(!ok)leaveLessonScreen('learn',true);"), 'l’accueil se met en place sans la glissade du cours');
+  assert.ok(app.includes("if(!scr||!target||prefersReduceMotion()||restoringNav||instant){ finish(); return; }"));
+  assert.ok(app.includes("root.classList.toggle('lst-scroll',need()>root.clientHeight);"), 'filet : défiler plutôt que couper');
+  const i = css.indexOf('/* 55d'); assert.ok(i > 0);
+  assert.ok(css.slice(i).includes('.lst{justify-content:center;gap:18px}'));
+});
+
+test('15 h 36 : la carte des indices dans la DA, juste après la question ; « À toi de jouer » qui se retourne en indice', () => {
+  const eb = cut('const editorBlock=(withViz,fname=', '\n};');
+  assert.ok(eb.indexOf("${coach?'<div id=\"hint-slot\"></div>':''}") < eb.indexOf('<div class="editor-shell">'), 'la carte au-dessus de l’éditeur');
+  assert.ok(!app.includes('La syntaxe reste à construire par toi.'), 'la phrase d’aide passe dans la carte');
+  const f = cut('function defiIndicesHTML(c,n,view,diag,next,kind){', '\n}\n');
+  assert.ok(f.includes('<span class="coach-tag is-go">À toi de jouer<i class="coach-caret" aria-hidden="true"></i></span>'));
+  assert.ok(f.includes('<span class="coach-tag is-hint">Indice ${v}/3</span>'));
+  assert.ok(f.includes("room?'':' Un nom de colonne te manque&nbsp;? Touche <b>Schéma</b>."), 'en salle, pas de promesse d’indice par essai');
+  assert.ok(app.includes("coachPeek(card,COACH.fx==='is-new-hint');"), 'une pastille ramène à la carte si elle est hors de l’écran');
+  for (const part of ['html.lq .coach.is-new-hint .coach-tag.is-hint{animation:coachFlip .6s var(--pop) both}', 'html.lq .coach-caret{', 'html.lq .coach-st-k{flex:none;padding:3px 9px;border-radius:99px;background:#E0457B;'])
+    assert.ok(css.includes(part), part);
 });
