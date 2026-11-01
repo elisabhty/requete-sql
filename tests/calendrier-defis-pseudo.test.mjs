@@ -119,7 +119,7 @@ test('réf 4 — « Tes performances » : les chiffres, la réussite, les temps,
   assert.match(h, /<h2 id="perf-h">Tes performances<\/h2>/);
   assert.match(h, /class="perf-kpi is-sun" style="--i:0"><b data-count-to="2316"[^>]*>2316<\/b><small>points<\/small>/, 'les points, en jaune soleil, qui montent');
   assert.match(h, /data-count-to="8"[^>]*>8<\/b><small>parties<\/small>/);
-  assert.match(h, /data-count-to="512"[^>]*>512<\/b><small>record<\/small>/);
+  assert.match(h, /data-count-to="512"[^>]*>512<\/b><small>record<em>en une partie<\/em><\/small>/);
   assert.match(h, /data-count-to="78"[^>]*>78\u202f%<\/b>/, 'réussite : 14 manches réussies sur 18');
   assert.ok(h.includes('<small>14 manches réussies sur 18</small>'), '18 h 28 : « réussies », pas « trouvées »');
   assert.ok(h.includes('<small>Temps moyen</small><b>01:23</b>') && h.includes('<small>Le plus rapide</small><b>00:38</b>'));
@@ -137,7 +137,7 @@ test('réf 4 — « Tes performances » : les chiffres, la réussite, les temps,
   assert.ok(h.includes('<span class="perf-rk">0/1</span>') && h.includes('<span class="perf-rk">✓</span>'), 'seul : coché, ou trouvés sur joués');
   /* Avant la première partie : le même tableau, vide, qui dit ce qui s’y affichera */
   const e = perfCtx({ pts: 0, parties: 0, best: 0 });
-  assert.ok(e.includes('perf-card is-empty') && e.includes('<b>—</b><small>record</small>') && e.includes('perf-chart is-ghost'));
+  assert.ok(e.includes('perf-card is-empty') && e.includes('<b>—</b><small>record<em>en une partie</em></small>') && e.includes('perf-chart is-ghost'));
   assert.ok(e.includes('Joue ta première partie : tes points s’afficheront ici, partie après partie.'));
   assert.ok(!e.includes('Réussite par niveau') && !e.includes('Historique'), 'pas de blocs vides');
   /* Les parties jouées avant ce tableau : les chiffres connus, le reste viendra */
