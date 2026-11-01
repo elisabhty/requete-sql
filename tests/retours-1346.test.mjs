@@ -233,3 +233,10 @@ test('19 h 02 : sur la planche, sous chaque sticker, en petit, ce qui le fait ga
   assert.ok(app.includes("cap:`Module ${i+1} terminé`"));
   assert.ok(app.includes("${s.cap?`<small class=\"stk-cap\">${esc(s.cap)}</small>`:''}</li>`;"));
 });
+
+test('19 h 04 : les polices du site dans l’app (Inter, JetBrains Mono, Bricolage), plus de polices Google ; note du classement retirée', () => {
+  assert.ok(css.includes("@font-face{font-family:'Inter';src:url(assets/fonts/inter-medium.woff2)") && css.includes("  --ui:'Inter',-apple-system,") && css.includes("  --mono:'JBM','JetBrains Mono',"));
+  assert.ok(!app.includes('fonts.googleapis.com') && !app.includes('Plus Jakarta'));
+  assert.ok(sw.includes("'./assets/fonts/inter-medium.woff2'"));
+  assert.ok(!app.includes('Le classement en ligne compte les parties vérifiées.'));
+});
