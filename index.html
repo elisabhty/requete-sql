@@ -6645,7 +6645,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=75">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=2">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=3">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -29559,7 +29559,7 @@ function fillConsole(i){
 let obStep=0;
 let obLock=false;
 /* « pseudo » : la mini-page du pseudo, après l’onboarding (hors du tunnel compté). */
-const OB_SLIDES = ['welcome','name','goal','level','rhythm','practice','account','ready','pseudo'];
+const OB_SLIDES = ['welcome','name','goal','level','rhythm','build','promise','pact','practice','account','ready','pseudo'];
 const OB_STEPS = OB_SLIDES.length;
 let obSwipeOn = false;
 function greetingForHour(hour){
@@ -29903,7 +29903,7 @@ let obJustEntered=false;
 let obSelectionTimer=0;
 let obDemoTimers=[];
 let obSwipe2On=false;
-const OB_PROFILE_SLIDES=['name','goal','level','rhythm','practice'];
+const OB_PROFILE_SLIDES=['name','goal','level','rhythm','build','promise','pact','practice'];
 const OB_GOALS=[
   ['career','Me reconvertir dans la data','briefcase'],
   ['interview','Réussir un entretien','person'],
@@ -29987,7 +29987,10 @@ function obNext(){
   else if(slide==='name')obGoto('goal');
   else if(slide==='goal')obGoto('level');
   else if(slide==='level')obGoto('rhythm');
-  else if(slide==='rhythm')obGoto('practice');
+  else if(slide==='rhythm')obGoto('build');
+  else if(slide==='build')obGoto('promise');
+  else if(slide==='promise')obGoto('pact');
+  else if(slide==='pact')obGoto('practice');
   else if(slide==='practice')obGoto(obAfterPractice());
   else if(slide==='account')obChooseGuest();
   else finishOnboard('home');
@@ -30123,6 +30126,92 @@ function obLevelPath(){
     :`<b>${start===1?'Une étape':start+' étapes'}</b> considérée${start>1?'s':''} acquise${start>1?'s':''} · le parcours démarre plus loin.`;
   return `<div class="ob-path" role="img" aria-label="Parcours en quatre étapes : ${stages.join(', ')}. Départ à ${stages[start]}."><div class="ob-path-track">${steps}</div><small class="ob-path-note">${note}</small></div>`;
 }
+/* Ce que le plan réellement généré contient : départ, leçons, séances, date de fin, niveau des défis, modules. */
+function obPlanInfo(){
+  const niv=draft.niveau||'debutant',ryt=RYTHMES.find(r=>r.k===(draft.rythme||'regulier'))||RYTHMES[1],freq=draft.freq||7;
+  let p={sessions:[]};try{p=apercuPlan(niv,ryt.k,freq);}catch(e){}
+  const ids=[].concat(...p.sessions.map(x=>x.lessons||[])).filter(id=>!isDefiId(id));
+  const first=allLessons.find(l=>l.id===ids[0]);
+  const last=p.sessions.length?p.sessions[p.sessions.length-1].d:dstr(auj());
+  const days=Math.max(1,Math.round((parseD(last)-auj())/864e5)+1);
+  const end=parseD(last),endLabel=(end.getDate()===1?'1er':end.getDate())+' '+end.toLocaleDateString('fr-FR',{month:'long'});
+  const startId=(NIVEAUX.find(n=>n.k===niv)||NIVEAUX[0]).from,startMod=moduleDeLecon(startId);
+  let seen=false;
+  const modules=MODULES.map(m=>{const start=m===startMod;if(start)seen=true;return {t:m.titre,start,skip:!seen};});
+  const rank={debutant:1,bases:2,inter:4}[niv]||1;
+  return {goal:(OB_GOALS.find(g=>g[0]===draft.goal)||[])[1]||'Progresser en SQL',first:first?first.titre:'SELECT',lessons:ids.length,
+    sessions:p.sessions.length,minutes:obRythmeMinutes(ryt),freqLabel:(FREQS.find(f=>f.k===freq)||FREQS[0]).t,days,endLabel,
+    defiNiv:rank>=4?'Difficile':rank>=2?'Moyen':'Facile',modules};
+}
+/* La construction : 5 briques en 2,4 s, la barre de 0 à 100 %, puis le bouton s’allume. */
+function obRunBuild(){
+  const reduce=prefersReduceMotion(),T=reduce?0:2400;
+  const t0=performance.now();
+  const tick=()=>{
+    if(OB_SLIDES[obStep]!=='build')return;
+    const k=T?Math.min(1,(performance.now()-t0)/T):1;
+    const f=document.getElementById('ob-build-fill'),pc=document.getElementById('ob-build-pct');
+    if(f)f.style.transform=`scaleX(${k})`;
+    if(pc)pc.textContent=Math.round(k*100)+' %';
+    document.querySelectorAll('#ob-body .ob-build-list li').forEach((li,i)=>li.classList.toggle('is-done',k>=(i+1)/5-.02));
+    document.querySelectorAll('#ob-body .ob-build-path span').forEach((sp,i,all)=>sp.classList.toggle('is-in',k>=i/all.length));
+    if(k<1){obDemoTimers.push(setTimeout(tick,40));return;}
+    const btn=document.getElementById('ob-next');if(btn)btn.disabled=false;
+    document.querySelector('#ob-body .ob-build')?.classList.add('is-built');
+    if(pc)pc.textContent='Parcours construit ✓';
+    if(typeof buzz==='function')buzz('success');
+  };
+  obDemoTimers.push(setTimeout(tick,reduce?0:300));
+}
+/* Le grand chiffre monte de 0 à sa valeur. */
+function obRunBig(){
+  const el=document.getElementById('ob-big-n');if(!el)return;
+  const n=+el.dataset.n||0;if(prefersReduceMotion()){el.textContent=n;return;}
+  const t0=performance.now(),T=900;
+  const tick=()=>{if(!el.isConnected)return;const k=Math.min(1,(performance.now()-t0)/T),e=1-Math.pow(1-k,3);el.textContent=Math.round(n*e);if(k<1)requestAnimationFrame(tick);};
+  el.textContent='0';requestAnimationFrame(tick);
+}
+/* La signature au doigt ou à la souris, dans le cadre. */
+function obSignInit(){
+  const cv=document.getElementById('ob-sign-cv');if(!cv)return;
+  const box=cv.parentElement,r=box.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);
+  cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);
+  const g=cv.getContext('2d');g.scale(dpr,dpr);g.lineCap='round';g.lineJoin='round';g.lineWidth=3;g.strokeStyle='#1B1640';
+  if(draft.pacte&&draft.pacte.startsWith('data:')){const im=new Image();im.onload=()=>g.drawImage(im,0,0,r.width,r.height);im.src=draft.pacte;}
+  let on=false,last=null,ink=0;
+  const pt=e=>{const b=cv.getBoundingClientRect();return [e.clientX-b.left,e.clientY-b.top];};
+  cv.onpointerdown=e=>{on=true;last=pt(e);try{cv.setPointerCapture(e.pointerId);}catch(x){}e.preventDefault();};
+  cv.onpointermove=e=>{if(!on)return;const p=pt(e);g.beginPath();g.moveTo(last[0],last[1]);g.lineTo(p[0],p[1]);g.stroke();ink+=Math.hypot(p[0]-last[0],p[1]-last[1]);last=p;box.classList.add('is-drawing');e.preventDefault();};
+  cv.onpointerup=cv.onpointercancel=()=>{
+    if(!on)return;on=false;
+    if(ink>40){
+      try{draft.pacte=cv.toDataURL('image/png');}catch(x){draft.pacte='1';}
+      box.classList.add('is-signed');
+      const btn=document.getElementById('ob-next');if(btn)btn.disabled=false;
+      document.querySelector('#ob-body .ob-pact-card')?.classList.add('is-signed');
+      if(typeof buzz==='function')buzz('success');
+    }
+  };
+}
+function obSignClear(){
+  draft.pacte=null;
+  const cv=document.getElementById('ob-sign-cv');if(cv)cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
+  document.getElementById('ob-sign')?.classList.remove('is-signed','is-drawing');
+  document.querySelector('#ob-body .ob-pact-card')?.classList.remove('is-signed');
+  const btn=document.getElementById('ob-next');if(btn)btn.disabled=true;
+  obSignInit();
+}
+/* « Pour l’onboarding, il faut que tout tienne sur une page, il ne faut pas qu’on ait à scroller pour tout voir » (13 h 46). Si
+   l’écran déborde, il se resserre par paliers (titres, mascotte, cartes plus compactes, puis textes secondaires retirés). */
+function obFit(){
+  const body=document.getElementById('ob-body'),root=document.getElementById('onboarding');if(!body||!root)return;
+  root.classList.remove('ob-fit-1','ob-fit-2','ob-fit-3');
+  for(const c of ['ob-fit-1','ob-fit-2','ob-fit-3']){
+    if(body.scrollHeight<=body.clientHeight+1)break;
+    root.classList.add(c);
+  }
+}
+if(typeof window!=='undefined')window.addEventListener('resize',()=>{const r=document.getElementById('onboarding');if(r&&r.classList.contains('on'))obFit();});
 function obRhythmSummary(){
   const r=RYTHMES.find(x=>x.k===(draft.rythme||'regulier'))||RYTHMES[1];
   return `<div class="ob-rhythm-summary" role="status"><span aria-hidden="true">◎</span><span>Ta séance type : <b>${plur(r.per,'activité')} · ≈ ${obRythmeMinutes(r)} min</b> · modifiable à tout moment.</span></div>`;
@@ -30339,7 +30428,46 @@ function paintOb(){
       ${obMascotQuestion('Même dix minutes suffisent pour avancer.')}
       <div class="ob-answer-list ob-rhythm-list" role="radiogroup" aria-label="Temps par séance">${RYTHMES.map((r,i)=>`<button type="button" role="radio" aria-checked="${draft.rythme===r.k?'true':'false'}" class="ob-answer ${draft.rythme===r.k?'on':''}" style="--d:${i*60}ms" onclick="obPick('rythme','${r.k}')"><span class="ob-radio" aria-hidden="true"></span><span><b>${obRythmeMinutes(r)} minutes</b><small>${subtitles[r.k]||''}</small></span><span class="ob-rhythm-min">${r.k==='regulier'?'Conseillé':''}</span></button>`).join('')}</div>
       ${obRhythmSummary()}</div>`;
-    obSetFooter('Passer à la pratique',()=>obGoto('practice'),'','','');
+    obSetFooter('Construire mon parcours',()=>obGoto('build'),'','','');
+  }else if(slide==='build'){
+    /* Elisa, 1er novembre, 13 h 46 : « une page où on voit bien que le parcours se construit ». Les briques du parcours arrivent l’une
+       après l’autre, cochées, pendant que la barre se remplit ; puis le bouton s’allume. Tout vient du plan réellement généré. */
+    const b=obPlanInfo();
+    const rows=[['◎','Ton objectif',b.goal],['▶','Ton point de départ',b.first],['≡',`${b.lessons} leçons`,'dans le bon ordre, pour toi'],
+      ['◷',`${plur(b.sessions,'séance')} de ${b.minutes} min`,b.freqLabel],['⚑','Tes défis',`au niveau ${b.defiNiv}`]];
+    html=`<div class="ob-screen ob-profile ob-build">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">On construit<br><em>ton parcours</em>…</h1>
+      <div class="ob-build-card"><div class="ob-build-bar" aria-hidden="true"><i id="ob-build-fill"></i></div><p class="ob-build-pct" id="ob-build-pct" aria-live="polite">0 %</p>
+        <ul class="ob-build-list">${rows.map(([ico,t,d],i)=>`<li style="--i:${i}"><span class="ob-build-ico" aria-hidden="true">${ico}</span><span><b>${esc(t)}</b><small>${esc(d)}</small></span><i class="ob-build-ok" aria-hidden="true"></i></li>`).join('')}</ul>
+        <div class="ob-build-path" aria-hidden="true">${b.modules.map((m,i)=>`<span class="${m.skip?'is-skip':m.start?'is-start':''}" style="--i:${i}">${esc(m.t)}</span>`).join('')}</div></div></div>`;
+    obSetFooter('Voir ce que tu vas apprendre',()=>obGoto('promise'),'','','',true);
+    obRunBuild();
+  }else if(slide==='promise'){
+    /* « Comme la réf. 3 (Duolingo) : une page pour dire… tu apprendras en 30 jours » : un grand chiffre jaune en relief, puis la phrase. */
+    const b=obPlanInfo(),firstName=(draft.name||'').trim();
+    const goalLine={career:'c’est assez pour tes premiers entretiens de data analyst.',interview:'c’est assez pour répondre aux questions SQL d’un entretien.',
+      work:'c’est assez pour interroger tes données sans attendre personne.',advanced:'et la suite t’emmène jusqu’aux requêtes les plus avancées.',
+      curious:'et tu sauras enfin ce que font les requêtes.'}[draft.goal]||'et tu écriras tes requêtes en toute autonomie.';
+    const lead=firstName?`${esc(firstName)}, ${esc(goalLine)}`:esc(goalLine.charAt(0).toUpperCase()+goalLine.slice(1));
+    html=`<div class="ob-screen ob-profile ob-promise">${obFlowHeader(slide)}
+      <div class="ob-big" aria-hidden="true"><b id="ob-big-n" data-n="${b.days}">${b.days}</b><span>jours</span></div>
+      <img class="ob-promise-stk" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">
+      <h1 class="ob-title" id="ob-title">Avec <em>${b.minutes} minutes</em> par jour, tu termines tes <em>${b.lessons} leçons</em> d’ici le ${esc(b.endLabel)}.</h1>
+      <p class="ob-lead">${lead}</p></div>`;
+    obSetFooter('Continuer',()=>obGoto('pact'),'','','');
+    obRunBig();
+  }else if(slide==='pact'){
+    /* « Une page où la personne va signer (dans un cadre) pour dire qu’elle va bien suivre les cours pour s’améliorer ». Le cadre du
+       certificat, le texte de l’engagement à son nom et à son rythme, la zone où signer au doigt ; « Je m’engage » s’allume une fois
+       signé (la signature reste sur l’appareil). */
+    const b=obPlanInfo(),firstName=(draft.name||'').trim();
+    html=`<div class="ob-screen ob-profile ob-pact">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Ton <em>engagement</em>.</h1>
+      <div class="ob-pact-card${draft.pacte?' is-signed':''}"><p class="ob-pact-k">Mon contrat d’apprentissage</p>
+        <p class="ob-pact-txt">Moi, <b>${firstName?esc(firstName):'futur·e pro du SQL'}</b>, je m’engage à suivre mes séances de <b>${b.minutes} minutes</b>, ${esc(b.freqLabel.toLowerCase())}, pour progresser en SQL${draft.goal&&b.goal?` et atteindre mon objectif : <b>${esc(b.goal.charAt(0).toLowerCase()+b.goal.slice(1))}</b>`:''}.</p>
+        <div class="ob-sign${draft.pacte?' is-signed':''}" id="ob-sign"><canvas id="ob-sign-cv" aria-label="Zone de signature : signe avec ton doigt ou ta souris" role="img"></canvas><span class="ob-sign-ph" aria-hidden="true">Signe ici</span><i class="ob-sign-line" aria-hidden="true"></i></div>
+        <div class="ob-pact-foot"><small>Le ${new Date().getDate()===1?'1er':new Date().getDate()} ${esc(new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'}))}</small><button type="button" class="ob-sign-clear" id="ob-sign-clear" onclick="obSignClear()">Effacer</button></div>
+        <span class="ob-pact-stamp" aria-hidden="true">Signé ✓</span></div></div>`;
+    obSetFooter('Je m’engage',()=>{draft.pacteAt=Date.now();obGoto('practice');},'Plus tard',()=>obGoto('practice'),'',!draft.pacte);
+    setTimeout(obSignInit,0);
   }else{
     const p=apercuPlan(draft.niveau||'debutant',draft.rythme||'regulier',draft.freq||7);
     const ryt=RYTHMES.find(r=>r.k===(draft.rythme||'regulier'))||RYTHMES[1];
@@ -30364,6 +30492,7 @@ function paintOb(){
   body.classList.remove('out');
   body.innerHTML=html;
   body.scrollTop=0;
+  obFit();
   /* Salve de confettis à l'arrivée sur l'écran final : le parcours vient
      d'être construit, c'est le moment de réussite de l'onboarding. */
   if(slide==='ready'){ setTimeout(()=>{ if(OB_SLIDES[obStep]==='ready'&&typeof celebrate==='function') celebrate(); },260); }
@@ -30388,7 +30517,8 @@ function finishOnboard(action){
     ageRange:draft.ageRange||'',
     job:draft.job||'',
     source:draft.source||'',
-    referral:draft.source==='referral'?(draft.referral||''):''
+    referral:draft.source==='referral'?(draft.referral||''):'',
+    ...(draft.pacte?{pacte:{at:draft.pacteAt||Date.now(),sig:draft.pacte}}:{})
   };
   state.accountMode=draft.accountMode||state.accountMode||'guest';
   state.onboarded=true;
@@ -31504,7 +31634,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-commencer-v2252';
+  const SW_CACHE='requete-2026-11-01-engagement-v2253';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
