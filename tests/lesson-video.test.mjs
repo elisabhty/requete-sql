@@ -1108,14 +1108,14 @@ const COURSES = [
       "a += out('o6', 'err', 'Erreur SQL', 'no such table: inscriptions_excel', 'm');", "<span id=\"bt-b\">Serveur de test</span>", 'Prochaine leçon · Les schémas']},
   /* Le chapitre 7, ajouté le 30 octobre (le scénario d’Elisa : une base où tout est mélangé, à ranger en espaces) : les deux équipes de NutriBoost,
      CREATE SCHEMA, l’adresse schéma.table, deux tables du même nom, trois requêtes à réparer, puis SQLite et son schéma main. */
-  {id: 84, next: 26, titre: 'Les schémas', page: 'projet-schemas.html', thumb: 'projet-schemas-thumb.webp', duree: '2 min 12', notesAt: 121.9,
+  {id: 84, next: 26, titre: 'Les schémas', page: 'projet-schemas.html', thumb: 'projet-schemas-thumb.webp', duree: '2 min 19', notesAt: 121.35,
     table: 'clients',
     bubble: 'Organise les tables d’une grande base en espaces distincts grâce aux schémas.',
-    chapters: ['Une base qui grandit', 'Deux espaces', 'CREATE SCHEMA', 'Une adresse', 'Le même nom', 'Les requêtes à réparer', 'Et dans SQLite ?', 'À retenir'],
+    chapters: ['Une base qui grandit', 'Deux espaces', 'CREATE SCHEMA', 'Une adresse', 'Le même nom', 'Les requêtes à réparer', 'À retenir'],
     traps: ["const ESPACES = [['b', 'boutique', '🛒', 'k-sb', 'la boutique'], ['a', 'bien_etre', '🧘', 'k-sa', 'les ateliers']];",
-      // Les six moments : les huit tables à ranger, CREATE SCHEMA, l’adresse des inscriptions, deux tables clients, trois requêtes à réparer, main.clients
+      // Les cinq moments : les huit tables à ranger, CREATE SCHEMA, l’adresse des inscriptions, deux tables clients, trois requêtes à réparer
       "{at: atp('p1'), from: A.c3, kind: 'sort',", "{label: 'CREATE SCHEMA bien_etre;', ok: true},", "{label: 'bien_etre.inscriptions', ok: true},",
-      "{label: 'Non, leur schéma les distingue', ok: true},", "{at: atp('p5'), from: A.c15, kind: 'sort',", "{label: 'SELECT * FROM main.clients;', ok: true},",
+      "{label: 'Non, leur schéma les distingue', ok: true},", "{at: atp('p5'), from: A.c15, kind: 'sort',",
       "['ea1', '{ka1|ALTER TABLE} clients'], ['ea2', '{ka2|SET SCHEMA} boutique;']", 'Prochaine leçon · INSERT']},
   {id: 26, next: 27, titre: 'INSERT', page: 'projet-insert.html', thumb: 'projet-insert-thumb.webp', duree: '3 min 59', notesAt: 162.2,
     table: 'inscriptions',
