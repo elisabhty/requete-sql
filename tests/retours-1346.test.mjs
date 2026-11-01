@@ -222,3 +222,8 @@ test('18 h 56 : un ✓ quand l’écriture marche dans l’app, la légende dans
   assert.ok(!app.includes('Toutes ces écritures marchent dans l’app'));
   assert.ok(css.includes('html.lq .ent-hero .ent-hero-cta>svg:last-child{display:block!important;width:20px;height:20px;flex:none;animation:lstArrow 1.6s ease-in-out infinite}'));
 });
+
+test('19 h 00 : la ligne de notre moteur n’est plus surlignée en jaune, elle garde « Notre moteur »', () => {
+  assert.ok(css.includes('html.lq .sg-row.is-moteur{margin:0;padding:8px 2px;border-radius:0;background:none;box-shadow:none;'));
+  assert.ok(app.includes("${moteur?'<em class=\"sg-tag\">Notre moteur</em>':''}"));
+});
