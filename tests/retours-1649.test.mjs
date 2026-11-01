@@ -289,7 +289,7 @@ test('points — la valeur du défi, palier par palier, à côté du chrono ; «
   /* Le premier essai manqué : le « +25 » s’envole */
   const run = fn('jeuRun');
   assert.ok(run.includes('r.tries=(r.tries||0)+1;') && run.includes("jeuSend({t:'found',n,ms:took,p1:r.tries===1?1:0});"), 'chaque exécution est un essai ; le premier juste est annoncé à tous');
-  assert.ok(run.includes('}catch(e){setLessonOut(errBox(e.message));jeuEssaiRate(r);return;}'), 'une erreur compte comme un essai');
+  assert.ok(run.includes('}catch(e){setLessonOut(errBox(e.message));jeuEssaiRate(r);jeuIndice(r,c,sql);return;}'), 'une erreur compte comme un essai (et débloque un indice, 8 h 59)');
   const els = {}, ctx = vm.createContext({ prefersReduceMotion: () => false, setTimeout: f => { ctx.later = f; } });
   const b = { classList: { list: [], add(c) { this.list.push(c); } }, remove() { b.gone = true; } };
   ctx.document = { getElementById: id => (id === 'jeu-val-b' ? b : els[id] || null) };
