@@ -767,7 +767,7 @@ const COURSES = [
       '<span class="sw" id="sw4"><span class="a">?</span><span class="b">5</span></span>', '<span class="kw">WHERE</span> <span class="glow" id="w5">stock &lt; 50</span>;',
       '<span class="glow" id="as6b"><span class="kw">AS</span> categories</span>', '✓ Compteurs à jour']},
   /* SUM, AVG, MIN et MAX (1er novembre, Elisa, 22 h 47 : « de manière gamifiée ») : le tableau de bord du stock, une étoile par compteur. */
-  {id: 85, next: 16, titre: 'SUM, AVG, MIN et MAX', page: 'agregats.html', thumb: 'agregats-thumb.jpg', duree: '2 min 33', notesAt: 140.1,
+  {id: 85, next: 16, titre: 'SUM, AVG, MIN et MAX', page: 'agregats.html', thumb: 'agregats-thumb.jpg', duree: '2 min 26', notesAt: 140.1,
     table: 'produits',
     bubble: 'Additionne, fais la moyenne ou trouve les extrêmes d’une&nbsp;colonne.',
     chapters: ['Situation', 'SUM', 'AVG', 'MIN et MAX', 'D’autres colonnes', 'Le résultat', 'À retenir'],
@@ -775,7 +775,7 @@ const COURSES = [
       '<span class="b">23,9875</span>', '<div class="rg1 th"><div>ROUND(AVG(prix), 2)</div></div>', '<span class="x">✕ ni additionné, ni compté</span>',
       '<span>Une valeur, pas un produit</span>', '<span class="ko">✕ pas dans le résultat</span>', '<span>L’âge des 10 clients</span>',
       "{label: '1 075 unités', ok: true,", "kind: 'tap', need: 1,", "{label: 'L’âge du client le plus jeune', to: 'N',",
-      '<span class="glow" id="as6d"><span class="kw">AS</span> prix_max</span>', '★ 4 / 4 · Tableau de bord complet']},
+      '<span class="glow" id="as6d"><span class="kw">AS</span> prix_max</span>', '✓ 4 / 4 · Tableau de bord complet']},
   {id: 16, next: 17, titre: 'GROUP BY', page: 'group-by.html', thumb: 'group-by-thumb.jpg', duree: '2 min 21', notesAt: 126.3,
     table: 'clients',
     bubble: 'Regroupe les lignes qui ont un point commun pour effectuer des calculs par groupe.',

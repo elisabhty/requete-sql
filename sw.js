@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-02-textes-zoom-v2305';
+const CACHE = 'requete-2026-11-02-agregats-retours-v2306';
 
 const PRECACHE = [
   './onboarding-focus.js',

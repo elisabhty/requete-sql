@@ -23,13 +23,12 @@
 .sw>span{grid-area:1/1;white-space:nowrap}
 .sw .b{opacity:0}
 
-/* ---------- Le tableau de bord du stock : quatre compteurs, une étoile par compteur rempli ---------- */
+/* ---------- Le tableau de bord du stock : quatre compteurs à remplir ---------- */
 .dash{left:64px;width:952px;padding:0 0 28px;overflow:hidden}
 .db-bar{height:76px;display:flex;align-items:center;gap:14px;padding:0 26px 0 34px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
 .db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
 .db-bar>span{margin-left:12px}
 .db-bar .lvl{margin-left:auto;height:52px;padding:0 20px;border-radius:999px;background:#fff;border:3px solid var(--line);display:flex;align-items:center;gap:8px;font-family:var(--display);font-size:28px;font-weight:800;color:var(--accent-ink)}
-.db-bar .lvl .st{color:#F2B600}
 .kpis{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:24px 30px 0}
 .kpi{position:relative;display:flex;align-items:center;gap:18px;padding:20px 22px;border-radius:28px;background:var(--surface-2)}
 .kpi .ke{font-size:50px}
@@ -38,8 +37,6 @@
 .kpi .kv{height:76px;min-width:190px;padding:0 18px;display:flex;align-items:center;justify-content:center;border-radius:18px;border:3px dashed #D8D1F2;background:#fff;font-family:var(--display);font-size:50px;font-weight:800;line-height:1;color:var(--accent-ink)}
 .kpi .kv .a{color:#C9C1E8}
 .kpi .kf{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--ink-3)}
-.kpi .star{position:absolute;right:16px;top:12px;font-size:40px;color:#E2DCF5}
-.kpi .star .on{position:absolute;inset:0;color:#F2B600;opacity:0}
 #s1 .need-row .nl{font-size:34px;white-space:nowrap}
 .tag.calc{background:#FFF4E5;color:#9A5B00}
 .fns{left:0;width:1080px;display:flex;justify-content:center;gap:18px}
@@ -228,7 +225,7 @@
       <div class="rows"><div class="rgR tr tb"><div>1075</div><div>23.99</div><div>12.5</div><div>39.9</div></div></div>
     </div>
     <div class="abs card dash" id="dash6" style="top:300px"></div>
-    <div class="abs badge" id="badge6" style="top:900px"><span>★ 4 / 4 · Tableau de bord complet</span></div>
+    <div class="abs badge" id="badge6" style="top:900px"><span>✓ 4 / 4 · Tableau de bord complet</span></div>
   </section>
 
   <!-- 7 · À retenir -->
@@ -253,7 +250,8 @@
 'use strict';
 /* SUM, AVG, MIN et MAX (Elisa, 1er novembre, 22 h 47 : « fais la leçon de manière gamifiée ») : entre COUNT et GROUP BY, la leçon
    qui manquait (les quatre fonctions passaient en quinze secondes dans GROUP BY, et HAVING s’en sert). Le jeu : le tableau de bord du
-   stock a quatre compteurs à remplir ; chaque compteur rempli gagne son étoile, jusqu’à « 4 / 4 · Tableau de bord complet ».
+   stock a quatre compteurs à remplir, jusqu’à « 4 / 4 · Tableau de bord complet ». Elisa, 2 novembre, 0 h 10 : sans les étoiles à gagner
+   (réf. 1), sans la phrase « il faut trouver la barre la plus longue » (réf. 2) ; ces deux passages sont coupés (cut).
    Toutes les valeurs sont celles de la base de l’app (vérifiées dans SQLite par tests/agregats-lesson.test.mjs). */
 const DURATION = 147.6;
 
@@ -279,31 +277,29 @@ const CHAPTERS = [
 /* Légendes : [début, fin, texte] (temps de la timeline). */
 const CAPTIONS = [
   [5.3, 10.4,    "Le tableau de bord du stock affiche quatre <b>compteurs</b>, encore vides."],
-  [10.5, 15.8,   "Chaque compteur rempli gagne son étoile : il y en a <b>quatre</b> à gagner."],
   [15.9, 21.2,   "<code>COUNT</code> compte des lignes : ici, il faut calculer sur les <b>valeurs</b> d’une colonne."],
   [21.3, 26.4,   "Quatre fonctions s’en chargent : <code>SUM</code>, <code>AVG</code>, <code>MIN</code> et <code>MAX</code>."],
   [27.1, 31.6,   "<code>SUM</code> <b>additionne</b> toutes les valeurs d’une colonne."],
   [31.7, 36.5,   "Pour le premier compteur, <code>SUM(stock)</code> additionne le stock de la <b>table produits</b>."],
   [36.7, 41.4,   "Les stocks s’ajoutent au total,<br>un produit après l’autre."],
   [41.5, 46.0,   "Résultat : <b>une seule ligne</b>, avec 1 075 unités en stock."],
-  [46.1, 50.3,   "Premier compteur rempli : le stock total gagne son étoile."],
+  [46.1, 50.3,   "Premier compteur rempli : le <b>stock total</b>, 1 075 unités."],
   [51.0, 55.6,   "<code>AVG</code> calcule la <b>moyenne</b> des valeurs d’une colonne."],
   [55.7, 61.0,   "Elle additionne les 8 prix,<br>puis divise le total par 8."],
   [61.1, 65.8,   "191,90 € divisé par 8 donne <b>23,9875</b> : trop de décimales pour un prix."],
   [65.9, 71.0,   "Avec <code>ROUND(AVG(prix), 2)</code>, le prix moyen devient <b>23,99 €</b>."],
   [71.1, 76.0,   "Comme <code>COUNT(colonne)</code>, <code>AVG</code> ignore les valeurs <code>NULL</code>."],
-  [76.1, 80.0,   "Deuxième compteur rempli : le prix moyen gagne son étoile."],
+  [76.1, 80.0,   "Deuxième compteur rempli : le <b>prix moyen</b>, 23,99 €."],
   [80.7, 85.6,   "<code>MIN</code> garde la <b>plus petite</b> valeur, <code>MAX</code> la <b>plus grande</b>."],
-  [85.7, 90.2,   "Pour le prix le plus élevé, il faut trouver la barre la plus longue."],
   [90.4, 95.0,   "<code>MAX(prix)</code> donne <b>39,90</b> : le prix du Collagène Marin."],
   [95.1, 99.8,   "<code>MIN(prix)</code> donne <b>12,50</b> : celui de la Tisane Détox."],
   [99.9, 104.9,  "Attention : <code>MIN</code> et <code>MAX</code> donnent une <b>valeur</b>, pas le nom du produit."],
-  [105.0, 109.0, "Troisième et quatrième compteurs remplis : deux étoiles de plus !"],
-  [109.7, 114.5, "Elles marchent sur toute colonne<br>de nombres, comme l’âge des clients."],
+  [105.0, 109.0, "Troisième et quatrième compteurs remplis : le prix le plus <b>bas</b> et le plus <b>élevé</b>."],
+  [109.7, 114.5, "Elles s’utilisent sur toutes les colonnes contenant des nombres, comme, par exemple, l’âge des clients."],
   [114.7, 119.4, "<code>AVG(age)</code> donne <b>35,4</b> ans, <code>MIN(age)</code> 26 et <code>MAX(age)</code> 52."],
   [120.1, 125.0, "Une seule requête remplit<br>les quatre compteurs, chacun<br>nommé avec <code>AS</code>."],
   [125.1, 129.6, "Résultat : <b>une seule ligne</b>, avec quatre valeurs."],
-  [129.7, 134.4, "Les quatre étoiles sont gagnées : le tableau de bord est complet !"],
+  [129.7, 134.4, "Les quatre compteurs sont remplis : le tableau de bord est complet !"],
   [135.1, 139.9, "Pour finir, voici les <b>trois idées à retenir</b>."],
   APP ? [140.1, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
       : [140.1, 999, "<code>SUM</code>, <code>AVG</code>, <code>MIN</code> et <code>MAX</code> résument une colonne en un seul nombre."]
@@ -326,7 +322,7 @@ const MOMENTS = [
     win: '<code>MAX(prix)</code> trouve 39,90 €, le prix du Collagène Marin : la barre la plus longue.',
     tip: 'MAX : la plus grande valeur, donc la barre la plus longue.'},
   // l’âge des 10 clients, sans calcul : avant que la vidéo ne donne AVG, MIN et MAX
-  {at: 114.6, from: 109.45, kind: 'sort', prompt: 'Range chaque question avec la fonction qui y répond.',
+  {at: 114.6, from: 109.45, kind: 'sort', prompt: 'Associe chaque question à la fonction qui permet d’y répondre.',
     hint: 'Sélectionne une question, puis appuie sur la fonction qui convient. Tu peux aussi la faire glisser directement.', next: '{x} : appuie sur la fonction qui y répond.',
     board: {y: 430, html: '<span class="mb-k">Quelle fonction ?</span><div class="mb-cols" style="gap:24px"><div class="mb-col"><div class="mb-bin" id="mbS"><b>SUM</b><div class="mb-drop"></div></div><div class="mb-bin" id="mbN"><b>MIN</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin" id="mbA"><b>AVG</b><div class="mb-drop"></div></div><div class="mb-bin" id="mbX"><b>MAX</b><div class="mb-drop"></div></div></div></div>'},
     spots: [{k: 'S', sel: '#mbS', label: 'SUM, la somme'}, {k: 'A', sel: '#mbA', label: 'AVG, la moyenne'}, {k: 'N', sel: '#mbN', label: 'MIN, la plus petite valeur'}, {k: 'X', sel: '#mbX', label: 'MAX, la plus grande valeur'}],
@@ -339,18 +335,18 @@ const MOMENTS = [
     tip: 'Total : SUM. Moyenne : AVG. Plus petit : MIN. Plus grand : MAX.'}
 ];
 
-/* Le tableau de bord : les quatre compteurs ; `filled` : ceux déjà remplis (valeur et étoile visibles). */
+/* Le tableau de bord : les quatre compteurs ; `filled` : ceux déjà remplis (valeur visible). */
 function dash(id, filled){
   const n = filled.length;
   $(id).innerHTML = `<div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Stock · Tableau de bord</span>` +
-    `<span class="lvl"><span class="st">★</span><span class="sw lv"><span class="a">${n} / 4</span><span class="b">${n} / 4</span></span></span></div>` +
+    `<span class="lvl"><span class="sw lv"><span class="a">${n} / 4</span><span class="b">${n} / 4</span></span></span></div>` +
     `<div class="kpis">${KPIS.map(([e, l, v, f], i) => { const on = filled.includes(i);
       return `<div class="kpi"><span class="ke emo">${e}</span><span class="kb"><span class="kl">${l}</span><span class="kv"${on ? ' style="border-color:transparent"' : ''}><span class="sw"><span class="a"${on ? ' style="opacity:0"' : ''}>?</span><span class="b"${on ? ' style="opacity:1"' : ''}>${v}</span></span></span><span class="kf">${f}</span></span>` +
-        `<span class="star">★<span class="on"${on ? ' style="opacity:1"' : ''}>★</span></span></div>`; }).join('')}</div>`;
+        `</div>`; }).join('')}</div>`;
 }
 function dom(){
   dash('#dash1', []); dash('#dash2', []); dash('#dash3', [0]); dash('#dash4', [0, 1]); dash('#dash6', [0, 1, 2, 3]);
-  // le niveau suivant, déjà écrit au dos du compteur de niveau (il se retourne quand l’étoile tombe)
+  // le niveau suivant, déjà écrit au dos du compteur de niveau (il se retourne quand le compteur se remplit)
   [['#dash2', 1], ['#dash3', 2], ['#dash4', 4]].forEach(([id, n]) => { $(id + ' .lv .b').textContent = n + ' / 4'; });
   $('#sl2').innerHTML = PRODUITS.map(([n, , s]) => `<div class="si"><span>${n}</span><span class="q">${s}</span><i class="pl">+</i></div>`).join('');
   let tot = 0;
@@ -376,13 +372,11 @@ function flip(sw, t, sound = true){
 }
 const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
 const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
-/* Un compteur se remplit : sa valeur se retourne, son étoile tombe en tournant, le niveau du tableau de bord monte. */
+/* Un compteur se remplit : sa valeur se retourne, le compteur rebondit, le niveau du tableau de bord monte. */
 function gagne(id, i, t){
   const k = $$(id + ' .kpi')[i];
   flip(k.querySelector('.kv .sw'), t);
   tl.to(k.querySelector('.kv'), {borderColor: 'rgba(216,209,242,0)', duration: 0.3}, t);
-  const st = k.querySelector('.star .on');
-  tl.fromTo(st, {opacity: 0, scale: 2.4, rotation: -120}, {opacity: 1, scale: 1, rotation: 0, duration: 0.5, ease: 'back.out(2.2)', immediateRender: false}, t + 0.35);
   cue(t + 0.4, 'chord', 0.6);
   bump(k, t + 0.85, 1.04);
 }
@@ -402,9 +396,8 @@ function build(){
   gsap.set(k1, {autoAlpha: 0, y: 24, scale: 0.9});
   tl.to(k1, {autoAlpha: 1, y: 0, scale: 1, duration: 0.45, ease: 'back.out(1.8)', stagger: 0.15}, 5.9);
   k1.forEach((_, i) => cue(5.9 + i * 0.15, 'pop', 0.7, i * 2));
-  // quatre étoiles à gagner : elles brillent une à une, le niveau 0 / 4
-  $$('#dash1 .star').forEach((s, i) => { tl.to(s, {color: '#F2B600', scale: 1.25, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 11.4 + i * 0.3); cue(11.4 + i * 0.3, 'tick', 0.5, i + 2); });
-  bump('#dash1 .lvl', 13.0, 1.12, 1);
+  // (le passage des étoiles à gagner est coupé : 10,45 → 15,85)
+  cut(10.45, 5.4);
   // COUNT compte des lignes : les valeurs de la table produits, elles, sont à calculer
   stackBelow('#s1 .need', '#dash1');   // la liste se cale sous le tableau de bord, sans le toucher
   show('#s1 .need', 16.1, {y: 60});
@@ -458,7 +451,7 @@ function build(){
   cue(41.75, 'pop', 0.8, 4);
   bump('#tbl2 .tb div', 42.8, 1.15, 1);
   hide(['#s2code', '#tbl2'], 45.7, {y: -40}, 0.4);
-  // Premier compteur : sa valeur, son étoile, le niveau 1 / 4
+  // Premier compteur : sa valeur, le niveau 1 / 4
   show('#dash2', 46.2, {y: 50});
   cue(46.2, 'whoosh', 0.7);
   gagne('#dash2', 0, 46.9);
@@ -524,6 +517,8 @@ function build(){
   tl.to($$('#bl4 .bf:not(.gold):not(.green)'), {scaleX: 1, duration: 0.6, ease: 'power3.out', stagger: 0.12}, 81.0);
   tl.to($$('#bl4 .bp'), {autoAlpha: 1, duration: 0.3, stagger: 0.12}, 81.4);
   br.forEach((_, i) => cue(81.0 + i * 0.12, 'tick', 0.45, i % 5));
+  // (la phrase « il faut trouver la barre la plus longue » est coupée : 85,65 → 90,2)
+  cut(85.65, 4.55);
   // (moment 2 : la barre que trouve MAX(prix))
   // MAX : la plus longue, couronnée ; MIN : la plus courte
   tl.to(br[1], {backgroundColor: '#FFF4E5', duration: 0.3}, 90.6);
@@ -546,7 +541,7 @@ function build(){
   show('#nm4b', 102.8, {y: 0, x: -24}, 0.4, 'power3.out');
   cue(102.8, 'miss', 0.7);
   hide('#trap4', 104.8);
-  // Troisième et quatrième compteurs : le niveau 4 / 4… presque ; deux étoiles d’un coup
+  // Troisième et quatrième compteurs : le niveau 4 / 4
   show('#dash4', 105.2, {y: 50});
   cue(105.2, 'whoosh', 0.7);
   gagne('#dash4', 2, 105.9);
@@ -590,10 +585,10 @@ function build(){
   cue(125.45, 'pop', 0.8, 4);
   tl.to($$('#tbl6 .tb div'), {scale: 1.12, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.25}, 126.6);
   hide(['#s6code', '#tbl6'], 129.5, {y: -40}, 0.4);
-  // Le tableau de bord complet : les quatre étoiles brillent, le badge, les confettis
+  // Le tableau de bord complet : les quatre compteurs rebondissent, le badge, les confettis
   show('#dash6', 129.9, {y: 50});
   cue(129.9, 'whoosh', 0.7);
-  $$('#dash6 .star .on').forEach((s, i) => { tl.fromTo(s, {scale: 1}, {scale: 1.4, duration: 0.16, yoyo: true, repeat: 1, ease: 'power1.inOut', immediateRender: false}, 130.5 + i * 0.2); cue(130.5 + i * 0.2, 'tick', 0.5, i + 2); });
+  $$('#dash6 .kpi').forEach((k, i) => { bump(k, 130.5 + i * 0.2, 1.05); cue(130.5 + i * 0.2, 'tick', 0.5, i + 2); });
   bump('#dash6 .lvl', 131.4, 1.2, 1); cue(131.4, 'pop', 0.7, 5);
   stackBelow('#badge6', '#dash6', 0, 50);
   show('#badge6', 131.9, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
@@ -611,7 +606,7 @@ function build(){
 }
 
 Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 140.1, moments: MOMENTS,
-  glyphs: '🗃️📦💶🔻🔺★⚖️📊👑⚠️👥🔎➕📏🧾✓✕÷=…·?€', dom, build});
+  glyphs: '🗃️📦💶🔻🔺⚖️📊👑⚠️👥🔎➕📏🧾✓✕÷=…·?€', dom, build});
 </script>
 </body>
 </html>
