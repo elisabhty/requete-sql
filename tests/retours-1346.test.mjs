@@ -200,3 +200,11 @@ test('18 h 38 : entretien — familles de notions, « Voir selon le SGBD », pr�
   assert.ok(app.includes('Avec JSONB, PostgreSQL permet d’aller chercher des informations directement à l’intérieur d’un document JSON. <code>-&gt;</code> récupère une valeur JSON, <code>-&gt;&gt;</code> récupère sa valeur sous forme de texte et <code>@&gt;</code> permet de vérifier si le JSON contient une information précise.'));
   assert.ok(css.includes('html.lq .ent-focus .ent-nav{display:flex;gap:10px;margin-top:14px}'));
 });
+
+test('18 h 42 : « Base NutriBoost » ; les bases d’entraînement en lecture seule (ni import, ni bouton qui modifie, ni requête qui écrit)', () => {
+  assert.ok(app.includes("function demoLabel(id){return id==='cours'?'Base NutriBoost':'Base '+DEFI_BASES[id].nom;}"));
+  assert.ok(app.includes("if(verrou)try{database.run('PRAGMA query_only=ON');}catch(e){}") && app.includes("if(verrou)try{database.run('PRAGMA query_only=OFF');}catch(e){}"));
+  assert.ok(app.includes("if(verrou&&/\\b(?:ATTACH|DETACH|VACUUM|REINDEX|PRAGMA)\\b/i.test("), 'on ne peut pas rouvrir l’écriture par PRAGMA');
+  assert.ok(app.includes('<span>Base d’entraînement · lecture seule</span>'));
+  assert.ok(app.includes("async function dropTable(name){\n  if(isDemoDb(activeDbId))return;") && app.includes("async function resetTable(name){\n  if(isDemoDb(activeDbId))return;"));
+});
