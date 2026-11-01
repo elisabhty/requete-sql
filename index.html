@@ -6641,7 +6641,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=92">
+<link rel="stylesheet" href="ludique.css?v=94">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -18592,7 +18592,8 @@ let mascotWavedThisSession=false;
 function mascotMedalHtml(o){
   o=o||{};
   const sp=o.kw?'<i class="mstk-sp mstk-sp-a" aria-hidden="true"></i><i class="mstk-sp mstk-sp-b" aria-hidden="true"></i>':'';
-  const kw=o.kw?`<span class="mstk-kw" aria-hidden="true">${esc(o.kw)}</span>`:'';
+  const kw=o.niv?`<span class="mstk-niv" role="img" aria-label="${escAttr(`Niveau ${o.niv.rank} : ${o.niv.label}`)}"><i><span>Niv.</span>${o.niv.rank}</i><b>${esc(o.niv.label)}</b></span>`
+    :o.kw?`<span class="mstk-kw" aria-hidden="true">${esc(o.kw)}</span>`:'';
   const hi=o.hi?`<span class="mstk-bub" aria-hidden="true">${esc(o.hi)}</span>`:'';
   return `<button type="button" class="mascot-stk${o.intro?' is-intro':''}" onclick="mascotWave(this)" aria-label="La mascotte Requête te fait coucou">${sp}<span class="mstk-fx" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><img class="mstk-cat" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">${kw}${hi}</button>`;
 }
@@ -18634,15 +18635,25 @@ function renderHomeHero(){
   const hiWord=typeof greetingForHour==='function'?greetingForHour(new Date().getHours()):'Bonjour';
   /* Le salut sert de titre visible ; le h1 masqué de l’écran le lit déjà. */
   const hiHtml=`<span class="lq-nw">${esc(hiWord)}</span>${name?`, ${esc(name)}`:''}`;
-  const sessionLine=session?(session.label==='Ta séance du jour'?`Ta séance · ${session.minutes} min`:session.label):'Parcours terminé';
+  /* 19 h 36 : « Aujourd’hui · 12 min » ; rien de prévu aujourd’hui : « Aujourd’hui · Pause » (ou « Fait » si la séance du jour est
+     terminée) ; une séance en retard : « À reprendre · 8 min » ; plus rien du tout : « Parcours terminé ». */
+  const todayISO=dstr(auj());
+  const seanceJour=state.plan&&Array.isArray(state.plan.sessions)?state.plan.sessions.find(x=>x.d===todayISO&&Array.isArray(x.lessons)&&x.lessons.length):null;
+  const sessionLine=!session?'Parcours terminé'
+    :session.d<todayISO?`À reprendre · ${session.minutes} min`
+    :session.d===todayISO?`Aujourd’hui · ${session.minutes} min`
+    :seanceJour&&seanceJour.lessons.every(itemDone)?'Aujourd’hui · Fait ✓':'Aujourd’hui · Pause';
   /* Elisa, 1er novembre, 19 h 25 : « fusionner les 2 » : le bonjour, le niveau et la séance passent en haut de la carte violette du
      cours (au lieu d’un bloc au-dessus) ; la série vient sous la carte. */
-  const heading=`<div class="lq-hero-hi"><p class="lq-hi-title" aria-hidden="true">${hiHtml}</p><div class="journey-session-meta">${typeof niveauCompte==='function'?lvlBadgeHTML(niveauCompte(),'is-home is-on-deep'):''}<span aria-label="${escAttr(session?.summary||'Toutes tes activités sont validées')}">${esc(sessionLine)}</span><time datetime="${dateISO}">${esc(date)}</time></div></div>`;
+  /* 19 h 36 : « moins de choses, sur une ligne » : le bonjour et la séance du jour sur la même ligne ; 19 h 39 : le niveau
+     (« Niv. 2 · Constructeur de requêtes ») se colle sur la mascotte, à la place du mot-clé SQL. */
+  const nivC=typeof niveauCompte==='function'?niveauCompte():null;
+  const heading=`<div class="lq-hero-hi"><p class="lq-hi-title" aria-hidden="true">${hiHtml}</p><div class="journey-session-meta"><span aria-label="${escAttr(session?.summary||'Toutes tes activités sont validées')}">${esc(sessionLine)}</span><time datetime="${dateISO}">${esc(date)}</time></div></div>`;
   /* Première ouverture de l’accueil dans la séance : l’autocollant se colle sur la carte (une seule fois). */
   const intro=typeof mascotWavedThisSession!=='undefined'&&!mascotWavedThisSession&&!mascotReduced()&&typeof host.querySelector==='function'&&!host.querySelector('.mascot-stk')&&!!document.querySelector('#scr-learn.active');
   if(intro){mascotWavedThisSession=true;setTimeout(()=>{const b=host.querySelector('.mascot-stk.is-intro');if(b)b.classList.remove('is-intro');},3800);}
   /* « Ravi de te revoir ! » plutôt que « Coucou ! » (Elisa, 30 octobre, 22 h 58) ; le premier écran de bienvenue garde « Coucou ! ». */
-  const mascot=typeof mascotMedalHtml==='function'?mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',hi:nxt==null?'Bravo\u00a0!':'Ravi de te revoir\u00a0!',intro}):'';
+  const mascot=typeof mascotMedalHtml==='function'?mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',niv:nivC,hi:nxt==null?'Bravo\u00a0!':'Ravi de te revoir\u00a0!',intro}):'';
   if(nxt==null){
     const keep=lqKeepMascot(host);
     host.innerHTML=`<section class="journey-complete lq-hero is-complete has-hi" data-mc="0">${heading}<span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><div class="lq-hero-main"><div class="lq-hero-body"><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div>${mascot}</div><button class="journey-primary lq-hero-cta" type="button" onclick="switchTab('practice')"><span>Continuer à pratiquer</span></button></section>${streak}${extras}`;
@@ -18685,6 +18696,7 @@ function lqKeepMascot(host,old){
   const fresh=host.querySelector('.mascot-stk');
   if(old&&fresh&&old!==fresh){
     for(const sel of ['.mstk-kw','.mstk-bub']){const a=old.querySelector(sel),b=fresh.querySelector(sel);if(a&&b&&a.textContent!==b.textContent)a.textContent=b.textContent;}
+    {const a=old.querySelector('.mstk-niv'),b=fresh.querySelector('.mstk-niv');if(a&&b&&a.outerHTML!==b.outerHTML)a.replaceWith(b.cloneNode(true));}
     fresh.replaceWith(old);
   }
   return null;
@@ -33022,7 +33034,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-haut-v2284';
+  const SW_CACHE='requete-2026-11-01-chat-niv-v2286';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
