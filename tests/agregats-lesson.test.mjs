@@ -56,9 +56,14 @@ test('chaque valeur de la vidéo est celle de SQLite, sur la base de l’app', (
   assert.deepEqual([r.columns, r.values], [['stock_total', 'prix_moyen', 'prix_min', 'prix_max'], [[1075, 23.99, 12.5, 39.9]]]);
 });
 
-test('le jeu : quatre compteurs, une étoile chacun, jusqu’à « 4 / 4 · Tableau de bord complet »', () => {
+test('le jeu : quatre compteurs à remplir, jusqu’à « 4 / 4 · Tableau de bord complet » (sans étoiles à gagner)', () => {
   assert.deepEqual(val('KPIS').map(k => k[3]), ['SUM(stock)', 'AVG(prix)', 'MIN(prix)', 'MAX(prix)']);
-  assert.ok(page.includes("function gagne(id, i, t){") && page.includes('★ 4 / 4 · Tableau de bord complet') && page.includes("confetti($('#badge6'), 132.0);"));
+  assert.ok(page.includes("function gagne(id, i, t){") && page.includes('✓ 4 / 4 · Tableau de bord complet') && page.includes("confetti($('#badge6'), 132.0);"));
+  /* Elisa, 2 novembre, 0 h 10 : « enlève la partie gagne ces étoiles » (réf. 1) et « supprimer » la phrase de la barre la plus longue (réf. 2). */
+  assert.ok(!/étoile|★|\.star/.test(page.slice(page.indexOf('<style>'), page.indexOf('</style>')) + page.slice(page.indexOf('const CAPTIONS'), page.indexOf('const QUESTIONS'))), 'plus d’étoile, ni dans le style ni dans les légendes');
+  assert.ok(page.includes('cut(10.45, 5.4);') && page.includes('cut(85.65, 4.55);') && !page.slice(page.indexOf('const CAPTIONS'), page.indexOf('const QUESTIONS')).includes('barre la plus longue'), 'les deux passages coupés');
+  assert.ok(page.includes('"Elles s’utilisent sur toutes les colonnes contenant des nombres, comme, par exemple, l’âge des clients."'), 'réf. 3');
+  assert.ok(page.includes("prompt: 'Associe chaque question à la fonction qui permet d’y répondre.',"), 'réf. 4');
   for (const [id, n] of [['#dash2', 0], ['#dash3', 1], ['#dash4', 2], ['#dash4', 3]]) assert.ok(page.includes(`gagne('${id}', ${n},`), `compteur ${n + 1} gagné`);
 });
 
