@@ -505,6 +505,66 @@ function buildChrome(chapters, captions){
    légende dans un <span class="w"> en ligne, pour qu’ils apparaissent l’un après l’autre. Coupe aux espaces ordinaires seulement :
    les mots collés par une espace insécable (« 4 exercices », « commande : ») restent ensemble ; le code reste d’un seul tenant. Les
    spans restent en ligne : mêmes retours à la ligne, mêmes mesures pour checkCaptions et textIssues. */
+/* Légendes équilibrées (Elisa, 1er nov., 23 h 46 : « faire attention au formatage des textes ») : un morceau de phrase, entre deux
+   retours voulus, qui se replie de lui-même est recoupé au mieux, avec le même nombre de lignes : longueurs voisines, jamais un mot
+   seul, pas de mot court en fin de ligne ; une expression collée, du code ou un gras de quatre mots au plus restent entiers. */
+function capBalance(p, box){
+  box = box || p.closest('.c') || p.parentElement; const cs = getComputedStyle(box);
+  const avail = (box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)) * (box.getBoundingClientRect().width / (box.offsetWidth || 1));
+  if (!(avail > 0)) return;
+  const segs = [[]], r = document.createRange();
+  const walker = document.createTreeWalker(p, NodeFilter.SHOW_ELEMENT);
+  while (walker.nextNode()) {
+    const n = walker.currentNode;
+    if (n.tagName === 'BR') { segs.push([]); continue; }
+    const atom = n.matches('code, .ic') || (n.classList.contains('w') && !n.parentElement.closest('code, .ic'));
+    if (!atom || (n.matches('code, .ic') && n.parentElement.closest('code, .ic'))) continue;
+    const rs = [...n.getClientRects()].filter(x => x.width > 0);
+    if (!rs.length) continue;
+    segs[segs.length - 1].push({n, top: rs[0].top, h: rs[0].height, left: rs[0].left, right: rs[rs.length - 1].right, w: n.textContent});
+  }
+  const glued = (a, b) => {
+    r.setStartAfter(a.n); r.setEndBefore(b.n);
+    if (!/[ \t\n\r]/.test(r.toString())) return true;
+    const nw = a.n.closest('.nw'); if (nw && nw.contains(b.n)) return true;
+    const bb = a.n.closest('b');
+    return !!(bb && bb.contains(b.n) && bb.textContent.trim().split(/[\s ]+/).length <= 4);
+  };
+  segs.forEach(T => {
+    if (T.length < 2) return;
+    const lines = []; T.forEach((t, i) => { if (!i || Math.abs(t.top - T[i - 1].top) > t.h * 0.6) lines.push(i); });
+    const k = lines.length; if (k < 2) return;
+    const gaps = []; T.forEach((t, i) => { if (i && !lines.includes(i)) gaps.push(t.left - T[i - 1].right); });
+    const sp = gaps.length ? gaps.sort((a, b) => a - b)[gaps.length >> 1] : T[0].h * 0.25;
+    const ws = T.map(t => t.right - t.left), gl = T.map((t, i) => i ? (lines.includes(i) ? sp : t.left - T[i - 1].right) : 0);
+    const ok = T.map((t, i) => i > 0 && !glued(T[i - 1], t));
+    const width = (i, j) => { let s = 0; for (let x = i; x <= j; x++) s += ws[x] + (x > i ? gl[x] : 0); return s; };
+    const N = T.length, INF = 1e18;
+    /* Coût d’une ligne : son écart à la longueur moyenne (lignes voisines, pas de dernière ligne en bout de phrase), plus une
+       pénalité pour un mot seul ou un mot court en fin de ligne. */
+    const avg = width(0, N - 1) / k;
+    const cost = (i, j, last) => {
+      const w = width(i, j); if (w > avail - 1) return INF;
+      let c = (w - avg) * (w - avg);
+      if (i === j) c += (avail * 0.6) ** 2;
+      if (!last && shortWord(T[j].w)) c += (avail * 0.25) ** 2;
+      return c;
+    };
+    const best = Array.from({length: k + 1}, () => new Array(N + 1).fill(INF)), from = Array.from({length: k + 1}, () => new Array(N + 1).fill(-1));
+    best[0][0] = 0;
+    for (let m = 1; m <= k; m++) for (let j = 1; j <= N; j++) for (let i = m - 1; i < j; i++) {
+      if (best[m - 1][i] >= INF || (i > 0 && !ok[i])) continue;
+      const c = cost(i, j - 1, m === k && j === N); if (c >= INF) continue;
+      const v = best[m - 1][i] + c;
+      if (v < best[m][j] - 0.01) { best[m][j] = v; from[m][j] = i; }
+    }
+    if (best[k][N] >= INF) return;
+    const cut = []; for (let m = k, j = N; m > 0; j = from[m][j], m--) if (from[m][j] > 0) cut.push(from[m][j]);
+    cut.sort((a, b) => a - b);
+    if (cut.join() === lines.slice(1).join()) return;
+    cut.forEach(i => { const br = document.createElement('br'); br.className = 'ab'; T[i].n.before(br); });
+  });
+}
 function capWords(p){
   const walker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT), nodes = [];
   while (walker.nextNode()) if (!walker.currentNode.parentElement.closest('code, .ic')) nodes.push(walker.currentNode);
@@ -515,7 +575,8 @@ function capWords(p){
     parts.forEach(t => {
       if (!t) return;
       if (/^[ \t\n\r]+$/.test(t)) { f.append(t); return; }
-      const w = document.createElement('span'); w.className = 'w'; w.textContent = t; f.append(w);
+      /* Un mot à trait d’union (« sous-requête », « e-mail ») ne se coupe pas à son tiret. */
+      const w = document.createElement('span'); w.className = /\w-\w/.test(t) ? 'w nw' : 'w'; w.textContent = t; f.append(w);
     });
     n.replaceWith(f);
   });
@@ -616,12 +677,14 @@ function introScene(){
   /* Sous-titre : deux lignes au plus */
   let fsub = 84; sub.style.top = (tb + 82) + 'px'; sub.style.fontSize = fsub + 'px';
   while (sub.scrollHeight > fsub * 1.06 * 2 + 4 && fsub > 52) { fsub -= 4; sub.style.fontSize = fsub + 'px'; }
+  capWords(sub); capBalance(sub, sub);   /* deux lignes de longueurs voisines, pas de mot seul */
   const pills = mk('<div class="abs iv-pills"><span class="iv-pill w"><span class="iv-shine"></span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5Z"/></svg><b class="iv-dur"></b></span><span class="iv-pill g iv-mom"></span></div>');
   sub.after(pills);
   pills.style.top = (tb + 82 + sub.scrollHeight + 48) + 'px';
   /* Bulle : elle tient entre le haut de la mascotte et le bas de la carte */
   let fb = 44; bubble.style.fontSize = fb + 'px';
   while ((bubble.offsetHeight > 470 || bubble.scrollWidth > bubble.clientWidth + 1) && fb > 30) { fb -= 2; bubble.style.fontSize = fb + 'px'; }
+  capWords(bubble); capBalance(bubble, bubble);   /* lignes de longueurs voisines dans la bulle, pas de mot seul */
   ['<svg class="abs iv-spark s1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">',
     '<svg class="abs iv-spark s2" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">',
     '<svg class="abs iv-spark s3" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">',
@@ -934,7 +997,7 @@ function holdClashes(extra = []){
 /* Bas du contenu visible, sur la maquette 1080 × 1920 : cartes, éditeurs et encadrés (ni la légende, ni la puce de chapitre, ni les
    tampons ni ce qui s’envole). Le lecteur s’en sert pour que la feuille de réponse ne touche jamais le contenu : quand elle monte trop
    haut (petit écran, question longue), il réduit l’image juste assez. null quand il n’y a rien à voir. */
-function contentBottom(){
+function contentBox(){
   const stage = $('#stage'); if (!stage) return null;
   const sr = stage.getBoundingClientRect(), k = sr.width / 1080 || 1;
   const shown = el => { let o = 1; for (let n = el; n && n !== document.body; n = n.parentElement) {
@@ -954,9 +1017,20 @@ function contentBottom(){
   set.forEach(el => {
     if (el.closest('#cap, #chapter, #chap') || shown(el) < 0.3) return;
     const r = el.getBoundingClientRect(); if (!r.width || !r.height) return;
-    const b = (r.bottom - sr.top) / k; if (best === null || b > best) best = b;
+    const x = {l: (r.left - sr.left) / k, t: (r.top - sr.top) / k, r: (r.right - sr.left) / k, b: (r.bottom - sr.top) / k};
+    best = best ? {l: Math.min(best.l, x.l), t: Math.min(best.t, x.t), r: Math.max(best.r, x.r), b: Math.max(best.b, x.b)} : x;
   });
-  return best === null ? null : +best.toFixed(1);
+  return best;
+}
+function contentBottom(){ const b = contentBox(); return b ? +b.b.toFixed(1) : null; }
+/* Le cadre du contenu visible (scène et puce du chapitre, en px de la scène) : le lecteur de l’app agrandit l’image pendant un moment
+   « À toi » quand il reste de la place autour (Elisa, 1er novembre, 23 h 46 : « il y a de l’espace autour donc peut zoomer »). */
+function contentFrame(){
+  const b = contentBox(); if (!b) return null;
+  const ch = $$('#chapter .chip').find(c => +getComputedStyle(c).opacity > 0.3 && getComputedStyle(c).visibility !== 'hidden');
+  if (ch) { const sr = $('#stage').getBoundingClientRect(), k = sr.width / 1080 || 1, r = ch.getBoundingClientRect();
+    b.l = Math.min(b.l, (r.left - sr.left) / k); b.r = Math.max(b.r, (r.right - sr.left) / k); b.t = Math.min(b.t, (r.top - sr.top) / k); }
+  return {l: +b.l.toFixed(1), t: +b.t.toFixed(1), r: +b.r.toFixed(1), b: +b.b.toFixed(1)};
 }
 
 /* ---------- La fin de la vidéo, avant le chapitre « À retenir » ---------- */
@@ -1002,6 +1076,7 @@ function pontDom(LI){
   ['avant', 'apres'].forEach(k => {
     if (!LI[k]) return;
     const d = document.createElement('div'); d.className = 'c c-pont'; d.dataset.pont = k; d.innerHTML = `<p>${fr(LI[k])}</p>`;
+    capWords(d.firstChild);
     cap.insertBefore(d, cap.querySelector('.cap-stk')); out[k] = d;
   });
   if (LI.apres && LI.suite) {
@@ -1088,6 +1163,7 @@ function Course(cfg){
   }
   window.renderAt = renderAt;
   window.__contentBottom = contentBottom;
+  window.__contentFrame = contentFrame;
   /* L’élève appuie sur l’élément d’un arrêt « opens » : le lecteur le signale dès le toucher, avant le relâcher, et l’élément s’enfonce
      aussitôt (press : l’état enfoncé) ; il revient au repos (rest) si le doigt glisse hors de la zone, et remonte d’un rebond au relâcher
      ('release'), pendant que la lecture reprend et que la page joue la suite (Elisa, 25 octobre, 16 h 22 : « micro interaction quand on appuie
@@ -1114,6 +1190,7 @@ function Course(cfg){
     confettiCues();
     /* Le lien avec la leçon d’avant : une pause sur la carte de l’intro, juste avant qu’elle ne s’en aille (liens.js). */
     const LI = pontLiens(), PEL = pontDom(LI);
+    $$('#cap .c p').forEach(p => capBalance(p));
     const pontAv = LI && LI.avant && chapters.length ? [+Math.min(4.35, chapters[0].a - 0.7).toFixed(2), pontDur(LI.avant, 'avant')] : null;
     HOLDS = mergeHolds(captionHolds(captions, duration).concat(EXTRA_HOLDS.filter(h => h[0] < duration), rest, introVoiceHold(chapters))).concat(CUTS.filter(c => c[0] < duration)).sort((x, y) => x[0] - y[0]);
     if (pontAv) HOLDS = HOLDS.concat([pontAv]).sort((x, y) => x[0] - y[0]);

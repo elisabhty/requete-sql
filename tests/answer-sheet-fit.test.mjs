@@ -150,9 +150,9 @@ test('lecteur : la feuille se place sans réduction, se règle sur le contenu et
 });
 
 test('moteur des animations : window.__contentBottom, bas du contenu visible sur la maquette 1080 × 1920', () => {
-  assert.ok(core.includes('function contentBottom(){') && core.includes('window.renderAt = renderAt;\n  window.__contentBottom = contentBottom;'),
-    'exposé par le moteur, avec renderAt');
-  const body = core.slice(core.indexOf('function contentBottom(){'), core.indexOf('/* ---------- Le cours ---------- */'));
+  assert.ok(core.includes('function contentBottom(){ const b = contentBox(); return b ? +b.b.toFixed(1) : null; }') && core.includes('window.renderAt = renderAt;\n  window.__contentBottom = contentBottom;\n  window.__contentFrame = contentFrame;'),
+    'exposé par le moteur, avec renderAt (et le cadre du contenu, pour agrandir l’image pendant un moment)');
+  const body = core.slice(core.indexOf('function contentBox(){'), core.indexOf('/* ---------- Le cours ---------- */'));
   /* La carte du moment : seulement celle posée sur la scène (#stage > .mb), pas le corps des emails des cours (.mail .mb, Elisa, 31 octobre, 1 h 02). */
   for (const part of ["$$(veil ? ':scope > .mb' : '.card, .code, :scope > .mb', stage).forEach(take);", "if (!veil) $$('section.scene > *', stage).forEach(el => { if (isBox(el)) take(el); });",
     "if (!veil) $$('section.scene > .pack > span', stage).forEach(take);", "const veil = $('.mb-veil', stage);",
