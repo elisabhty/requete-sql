@@ -20,7 +20,7 @@ const base = () => { const db = new SQL.Database(); db.run(seed); return db; };
 const challenge = id => hospital.find(c => c.id === id);
 
  test('le catalogue contient les 30 défis Hôpital, dix par niveau', () => {
-  assert.equal(challenges.length, 117);
+  assert.equal(challenges.length, 147);
   assert.equal(hospital.length, 30);
   for (const [prefix, level] of [['hf', 'f'], ['hm', 'm'], ['hd', 'd']]) {
     const group = hospital.filter(c => c.id.startsWith(prefix));

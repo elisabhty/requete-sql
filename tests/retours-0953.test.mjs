@@ -540,7 +540,7 @@ const VOLUMES = {
   hopital: { services: 6, medecins: 14, infirmiers: 10, patients: 40, consultations: 50, hospitalisations: 29, prescriptions: 60 },
   wok: { categories: 6, plats: 20, ingredients: 15, plats_ingredients: 30, clients: 30, serveurs: 8, tables_resto: 10, commandes: 42, lignes_commande: 74, avis: 20 },
   zoo: { especes: 15, enclos: 10, animaux: 35, soigneurs: 8, affectations_soigneurs: 14, repas: 40, visiteurs: 30, billets: 45, avis: 20 },
-  fromagerie: { producteurs: 12, laits: 4, fromages: 25, affinages: 20, lots: 30, clients: 30, ventes: 50, degustations: 20 },
+  fromagerie: { producteurs: 12, laits: 4, fromages: 25, affinages: 20, lots: 30, clients: 30, ventes: 55, degustations: 20 },
   labo: { equipes: 6, chercheurs: 20, projets: 15, experiences: 40, echantillons: 35, resultats: 45, publications: 15, affectations_chercheurs: 46 },
   voyages: { destinations: 12, guides: 10, circuits: 20, clients: 30, reservations: 45, paiements: 50, affectations_guides: 25, avis: 25 },
 };
