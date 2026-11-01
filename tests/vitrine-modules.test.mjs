@@ -61,7 +61,7 @@ test('le service worker sert la vitrine réseau d’abord, sous sa propre adress
   const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
   const vitrine = sw.indexOf("url.pathname.includes('/decouvrir/')");
   const navigation = sw.indexOf("if (req.mode === 'navigate') {");
-  const cacheDabord = sw.indexOf('const hit = await cache.match(req, { ignoreSearch: true });');
+  const cacheDabord = sw.indexOf('const hit = await cache.match(req, { ignoreSearch: !versionne });');
   assert.ok(vitrine > 0, 'branche decouvrir/ présente');
   assert.ok(vitrine < navigation && vitrine < cacheDabord, 'traitée avant la navigation (rangée sous index.html) et avant le cache d’abord');
   const bloc = sw.slice(vitrine, sw.indexOf('return;\n  }', vitrine));

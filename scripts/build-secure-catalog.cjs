@@ -9,5 +9,5 @@ fs.writeFileSync('supabase/functions/jeu-verifier/sqlite.mjs',sqljs);
 const compat=html.slice(html.indexOf('const SQLX='),html.indexOf('function buildDb()'));
 fs.writeFileSync('supabase/functions/jeu-verifier/sql-compat.mjs',compat+'\nexport {attachDateFns,sqlCompat};\n');
 const matcher=html.slice(html.indexOf('function normCell('),html.indexOf('function fmtLignes('));
-fs.writeFileSync('supabase/functions/jeu-verifier/matcher.mjs',matcher+'\nexport {exerciseResultsMatch};\n');
+fs.writeFileSync('supabase/functions/jeu-verifier/matcher.mjs',matcher+'\nexport {exerciseResultsMatch,execChallengeResult};\n');
 console.log('Catalog:',catalog.challenges.length,'challenges');

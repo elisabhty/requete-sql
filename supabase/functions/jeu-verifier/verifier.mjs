@@ -1,6 +1,6 @@
 import initSqlJs from './sqlite.mjs';
 import {attachDateFns,sqlCompat} from './sql-compat.mjs';
-import {exerciseResultsMatch} from './matcher.mjs';
+import {exerciseResultsMatch,execChallengeResult} from './matcher.mjs';
 let engine;
 export async function sqlite(testBinary){
   if(!engine)engine=(async()=>{
@@ -29,7 +29,7 @@ export async function verify(catalog,id,sql){
   const query=safeSelect(sql),SQL=await sqlite(),db=attachDateFns(new SQL.Database());
   try{
     db.run(catalog.bases[c.base]||catalog.schema);
-    const expected=db.exec(c.sol);
+    const expected=execChallengeResult(db,c.sol);
     // These limits are applied before any user statement and cannot be changed by it.
     db.run('PRAGMA query_only=ON; PRAGMA hard_heap_limit=33554432; PRAGMA temp_store=MEMORY;');
     const st=db.prepare(query),columns=st.getColumnNames(),values=[];

@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-01-defis-contextes-v2261';
+const CACHE = 'requete-2026-11-01-contextes-verifies-v2269';
 
 const PRECACHE = [
   './onboarding-focus.js',
@@ -340,9 +340,14 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
+  /* Une feuille ou un script versionné (ludique.css?v=80) n’est servi du cache que sous son adresse exacte : juste après
+     une mise en ligne, la page (toujours prise sur le réseau) demandait la nouvelle version et recevait l’ancienne, rangée
+     sans tenir compte du ?v= (Elisa, 1er novembre, 16 h : la carte de niveau gardait l’ancien vide en bas). Hors ligne, la
+     copie rangée sous une autre version prend le relais. */
   e.respondWith((async () => {
     const cache = await caches.open(CACHE);
-    const hit = await cache.match(req, { ignoreSearch: true });
+    const versionne = /[?&]v=/.test(url.search);
+    const hit = await cache.match(req, { ignoreSearch: !versionne });
     if (hit) return hit;
     try {
       const res = await fetch(req);
@@ -351,7 +356,7 @@ self.addEventListener('fetch', (e) => {
       }
       return res;
     } catch (err) {
-      return Response.error();
+      return (versionne && await cache.match(req, { ignoreSearch: true })) || Response.error();
     }
   })());
 });

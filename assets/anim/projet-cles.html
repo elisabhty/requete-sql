@@ -86,6 +86,8 @@
 .sq .dot{width:14px;height:14px}
 .sq .fname{margin-left:8px;font-size:22px}
 .sq .body{padding:18px 30px;font-size:28px;line-height:42px}
+.sq .sq-note{display:flex;align-items:center;gap:12px;padding:12px 30px 16px;border-top:2px solid rgba(255,255,255,.08);color:#FFD86B;font:700 23px/1.25 var(--ui,system-ui)}
+.sq .sq-note .emo{font-size:24px}
 .sq .ln{height:42px}
 .sq .cmt{color:var(--t-com)}
 .sq .caret i{top:-31px;width:4px;height:37px}
@@ -375,7 +377,7 @@ function table(id, k, name, emo, cols, rows, x, w, rh, extra = ''){
 const ID = (k, ini, w = '90px') => ({h: 'id', w: ini ? 'var(--w0)' : w, k, pk: true, ini});
 /* Carte de code (SQL) : chaque ligne a son curseur (en fin de ligne, et après chaque passage tapé plus tard) et son surlignage. */
 const SQL_KW = /CREATE TABLE|PRIMARY KEY|FOREIGN KEY|REFERENCES|UNIQUE/g, CARET = '<span class="caret"><i></i></span>';
-function sqlCard(id, lines, x, w){
+function sqlCard(id, lines, x, w, note){
   const body = lines.map(([lid, s, n]) => {
     const cmt = s.trim() === '…';
     const h = s.replace(/\{(\w+)\|([^{}]*)\}/g, '<span class="glow" id="$1">$2</span>')
@@ -383,7 +385,7 @@ function sqlCard(id, lines, x, w){
     return `<span class="ln${cmt ? ' cmt' : ''}" id="${lid}">${h}${cmt ? '' : CARET}<i class="band${n === 2 ? ' bd2' : ''}"></i></span>`;
   }).join('');
   return `<div class="abs code sq" id="${id}" style="left:${x}px;width:${w}px"><div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i>` +
-    `<span class="fname">schema.sql</span></div><div class="body">${body}</div></div>`;
+    `<span class="fname">schema.sql</span></div><div class="body">${body}</div>${note ? `<div class="sq-note"><span class="emo">✍️</span>${note}</div>` : ''}</div>`;
 }
 /* Mails en 42 px (Elisa, 28 octobre, 16 h 19 : agrandis dans la longueur) : la fin d’une phrase reste soudée, pour ne pas laisser un mot
    seul sur sa dernière ligne ; le texte du mail ne change pas. */
@@ -398,7 +400,8 @@ function dom(){
   a += table('ta-in', 'k-in', 'inscriptions', '📝', [ID('k-in', true), {h: 'date_inscription', w: '1fr'}],
     INSCR.map(x => ({id: x[0], v: [x[0], x[3]]})), 634, 382, 58);
   a += '<div class="abs mq" id="ta-mq" style="left:634px;width:382px"><span class="miss" id="ms1"><i class="mi"><b class="q">?</b><b class="k">🔑</b></i>client</span><span class="miss" id="ms2"><i class="mi"><b class="q">?</b><b class="k">🔑</b></i>atelier</span></div>';
-  a += sqlCard('sq-pk', SQL.pk, 64, 952);   // la clé primaire, en SQL
+  /* Elisa, 1er novembre, 16 h 26 : CREATE TABLE s’apprend au module suivant ; la première fois qu’il apparaît, la carte le dit. */
+  a += sqlCard('sq-pk', SQL.pk, 64, 952, 'Tu apprendras à créer ces tables dans le prochain module.');   // la clé primaire, en SQL
   $('#sa').innerHTML = a;
   /* 3 et 5 · Les inscriptions, reliées aux clients et aux ateliers (client_id, atelier_id ajoutées au chapitre 3) */
   let b = table('tb-cl', 'k-cl', 'clients', '👥', [ID('k-cl', false, '80px'), {h: 'prenom', w: '128px'}, {h: 'nom', w: '1fr'}],
@@ -483,7 +486,7 @@ function layout(){
   $$('.ml:not(.sms)').forEach(el => { el.style.height = 'auto'; const h = el.offsetHeight; el.style.height = '';
     el.style.top = Math.max(236, Math.round((236 + 1790) / 2 - h / 2)) + 'px'; });
   // Les requêtes : sous les tables (1 et 2, la carte de membre) ; à la place de la table ateliers (3, puis 5)
-  $('#sq-pk').style.top = (bottom('#ta-in') + 9 + 40) + 'px';
+  $('#sq-pk').style.top = (bottom('#ta-in') + 9 + 22) + 'px';   // 22 (au lieu de 40) : la carte a gagné la ligne « prochain module »
   $('#sq-fk').style.top = $('#sq-nn').style.top = '236px';
   $('#sq-ca').style.top = (bottom('#td-cl') + 9 + 40) + 'px';
   // 4 : sous les deux tables resserrées ; SC4 : où vont alors la pastille et les ateliers

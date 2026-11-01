@@ -67,7 +67,7 @@ test('0 h 42 : nationalités au féminin, avions qui repartent d’où ils ont a
 
 test('un défi tourne sur sa base : exécution, correction, pas à pas, schéma et tables proposées', () => {
   assert.ok(app.includes("function defiSandbox(c){\n  const id=defiBaseId(c);if(!id)return sandbox();"), 'sans base : celle du cours');
-  assert.ok(app.includes('const dU=defiSandbox(c);const t0=performance.now();') && app.includes('const dS=defiSandbox(c);try{solRes=dS.exec(c.sol);}'), 'salle de défi');
+  assert.ok(app.includes('const dU=defiSandbox(c);const t0=performance.now();') && app.includes('const dS=defiSandbox(c);try{solRes=execChallengeResult(dS,c.sol);}'), 'salle de défi');
   assert.ok(app.includes('const dU=isDefi?defiSandbox(current):sandbox();') && app.includes('const dS=isDefi?defiSandbox(current):sandbox();'), 'défi seul');
   assert.ok(app.includes("tmp=taId==='ed-console'?null:(defiActif()?defiSandbox(defiActif()):sandbox());"), 'pas à pas');
   assert.ok(app.includes('const database=dId?new SQL.Database(defiBaseBytes(dId)):db;'), 'schéma de la base du défi');

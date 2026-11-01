@@ -18,6 +18,12 @@ test('un faux résultat, une ligne en moins ou le mauvais ordre ne valident rien
  assert.equal(await verify(catalog,'af14','SELECT DISTINCT nationalite FROM passagers ORDER BY nationalite DESC'),false);
  await assert.rejects(verify(catalog,'inconnu','SELECT 1'),/inconnu/);
 });
+test('les trois résultats vides sont acceptés avec leurs colonnes, mais pas un SELECT vide à une colonne',async()=>{
+ for(const id of ['zm8','zd6','sm9']){
+  assert.equal(await verify(catalog,id,catalog.challenges.find(c=>c.id===id).sol),true,id);
+  assert.equal(await verify(catalog,id,'SELECT 1 WHERE 0'),false,id+': mauvais nombre de colonnes');
+ }
+});
 test('les écritures, instructions multiples et primitives coûteuses sont refusées',async()=>{
  for(const q of ["DELETE FROM vols","SELECT 1; DROP TABLE vols", "WITH x AS (SELECT 1) DELETE FROM vols",'PRAGMA query_only=OFF','ATTACH DATABASE \'x\' AS evil','SELECT randomblob(999999999)','WITH RECURSIVE x AS (SELECT 1) SELECT * FROM x'])assert.throws(()=>safeSelect(q),/lecture/);
  await assert.rejects(verify(catalog,'af1','SELECT 1; SELECT 2'),/lecture/);

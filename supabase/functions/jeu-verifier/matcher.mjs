@@ -1,4 +1,14 @@
 function normCell(v){return typeof v==='number'?Math.round(v*1000)/1000:(typeof v==='string'&&/^-?\d+(?:\.\d+)?$/.test(v)?Math.round(Number(v)*1000)/1000:v);}
+// sql.js exec() drops column metadata when SELECT returns zero rows.
+// Challenge validation still needs the expected number of columns in that case.
+function execChallengeResult(database,sql){
+  const statement=database.prepare(sql);
+  try{
+    const columns=statement.getColumnNames(),values=[];
+    while(statement.step())values.push(statement.get());
+    return columns.length?[{columns,values}]:[];
+  }finally{statement.free();}
+}
 function normalize(result,ordered){
   if(!result||result.length===0)return "∅";
   const rows=result[0].values.map(r=>JSON.stringify(r.map(normCell)));
@@ -25,6 +35,7 @@ function exerciseResultsMatch(actual,expected,lesson,isChallenge=false){
    qui redonne exactement le résultat attendu (lignes triées ou non selon le défi) ; seules sont essayées les colonnes qui ont les
    mêmes valeurs qu’une colonne attendue. */
 function memeResultatColonnesLibres(a,e,ordered){
+  if(!a||!e||!a.columns||!e.columns||a.columns.length!==e.columns.length||a.values.length!==e.values.length)return false;
   if(normalize([a],ordered)===normalize([e],ordered))return true;
   const n=e&&e.columns?e.columns.length:0;
   if(!a||!a.columns||a.columns.length!==n||a.values.length!==e.values.length||n<2||n>10)return false;
@@ -40,4 +51,4 @@ function memeResultatColonnesLibres(a,e,ordered){
   return essai(0);
 }
 
-export {exerciseResultsMatch};
+export {exerciseResultsMatch,execChallengeResult};
