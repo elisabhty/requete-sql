@@ -177,7 +177,7 @@ test('chapitre 15 : écran titre, la carte PostgreSQL, SQLite ; annoncé par SAV
   assert.ok(caps.includes('Dans SQLite, la base de l’app,<br>elles n’existent pas.'), 'SQLite n’en a pas');
   assert.throws(() => base().run('CREATE PROCEDURE expedier_commande(id_commande INT) AS SELECT 1;'), /syntax error/, 'SQLite refuse CREATE PROCEDURE');
   const sp = fs.readFileSync(path.join(root, 'assets/anim/projet-savepoint.html'), 'utf8');
-  assert.ok(sp.includes('Prochaine leçon · Procédures et fonctions</span>'), 'le chapitre 14 annonce celui-ci');
+  assert.ok(sp.includes('Prochaine leçon · Procédures et fonctions stockées</span>'), 'le chapitre 14 annonce celui-ci');
   assert.ok(page.includes('Prochaine leçon · Les triggers</span>'), 'il annonce Les triggers');
   const trig = fs.readFileSync(path.join(root, 'assets/anim/projet-trigger.html'), 'utf8');
   assert.ok(trig.includes('Dans la leçon précédente, une procédure stockée t’a permis de réutiliser un traitement.'), 'Les triggers s’ouvrent sur ce chapitre');

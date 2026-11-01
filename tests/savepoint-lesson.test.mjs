@@ -307,7 +307,7 @@ test('chapitre 14 : écran titre, ouverture comme aux autres chapitres, annonce 
   assert.equal(caps[1], 'Dans la leçon précédente, une transaction t’a permis de tout valider ou de tout annuler.', 'le chapitre précédent');
   const tx = fs.readFileSync(path.join(root, 'assets/anim/projet-transaction.html'), 'utf8');
   assert.ok(tx.includes('avec <code>SAVEPOINT</code>.') && tx.includes('Prochaine leçon · SAVEPOINT</span>'), 'le chapitre 13 annonce celui-ci');
-  assert.ok(caps.includes('Dans la prochaine leçon, tu enregistreras des traitements et des calculs dans la base.') && page.includes('Prochaine leçon · Procédures et fonctions</span>'), 'annonce de la prochaine leçon');
+  assert.ok(caps.includes('Dans la prochaine leçon, tu enregistreras des traitements et des calculs dans la base.') && page.includes('Prochaine leçon · Procédures et fonctions stockées</span>'), 'annonce de la prochaine leçon');
   assert.equal(lessons[lessons.findIndex(l => l.id === 63) + 1].titre, 'Procédures et fonctions stockées');
   assert.equal(caps[caps.length - 2], 'Pour finir, voici les <b>trois idées à retenir</b>.');
 });

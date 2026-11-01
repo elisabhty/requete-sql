@@ -368,7 +368,7 @@ test('la vidéo de fin (fin-sql.html) : le bravo du projet, le merci des équipe
   const grab = name => { const m = fin.match(new RegExp(`const ${name} = ([\\s\\S]*?);\\n`)); return m && m[1]; };
   assert.ok(fin.includes('<script src="gsap.min.js"></script>\n<script src="core.js"></script>') && !/https?:\/\//.test(fin), 'moteur commun, rien depuis Internet');
   for (const l of ['Projet terminé', 'Merci pour tout', 'Le chemin parcouru']) assert.ok(fin.includes(`label:'${l}'`), `chapitre ${l}`);
-  assert.ok(fin.includes("cap('g4', \"Bravo : tu as terminé<br>le dernier chapitre<br>du projet NutriBoost !\", 5.0);") && fin.includes('Projet NutriBoost terminé !'), 'le bravo du projet');
+  assert.ok(fin.includes("cap('g4', \"Bravo : tu as terminé<br>la dernière leçon<br>du projet NutriBoost !\", 5.0);") && fin.includes('Projet NutriBoost terminé !'), 'le bravo du projet');
   assert.ok(fin.includes("'Avant ton départ, toute l’équipe tenait à te dire merci 💜'") && fin.includes("'Tu peux être fier du chemin parcouru ! 💜'") && !fin.includes("'Ta mission touche à sa fin.'"), 'le merci des équipes');
   assert.ok(fin.includes("'Bonjour à toute l’équipe,'") && fin.includes("'À bientôt 👋'"), 'ta réponse, mot pour mot');
   assert.ok(fin.includes("sel: '#gnb'") && fin.includes("sel: '#bsend'"), 'l’app s’arrête sur le message, puis sur « Envoyer »');

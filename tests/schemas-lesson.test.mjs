@@ -164,7 +164,7 @@ test('chapitre 7 : écran titre ; annoncé par DROP, il annonce INSERT, qui s’
     && page.includes('<div class="abs sub">Ranger les tables par espace</div>'));
   const drop = fs.readFileSync(path.join(root, 'assets/anim/projet-drop.html'), 'utf8');
   assert.ok(drop.includes('Prochaine leçon · Les schémas</span>'), 'le chapitre 6 annonce celui-ci');
-  assert.ok(page.includes('Prochaine leçon · INSERT INTO</span>'), 'il annonce INSERT');
+  assert.ok(page.includes('Prochaine leçon · INSERT</span>'), 'il annonce INSERT');
   const ins = fs.readFileSync(path.join(root, 'assets/anim/projet-insert.html'), 'utf8');
   assert.ok(ins.includes('Dans la leçon précédente, tu as découvert les schémas, qui rangent les tables par espace.'), 'INSERT s’ouvre sur ce chapitre');
   const rows = [...page.matchAll(/<div class="rrow"><div class="rico emo">([^<]+)<\/div><div class="rtxt">(.*?)<\/div><\/div>/g)].map(m => {

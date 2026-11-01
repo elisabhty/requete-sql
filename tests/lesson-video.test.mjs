@@ -1116,7 +1116,7 @@ const COURSES = [
       // Les six moments : les huit tables à ranger, CREATE SCHEMA, l’adresse des inscriptions, deux tables clients, trois requêtes à réparer, main.clients
       "{at: atp('p1'), from: A.c3, kind: 'sort',", "{label: 'CREATE SCHEMA bien_etre;', ok: true},", "{label: 'bien_etre.inscriptions', ok: true},",
       "{label: 'Non, leur schéma les distingue', ok: true},", "{at: atp('p5'), from: A.c15, kind: 'sort',", "{label: 'SELECT * FROM main.clients;', ok: true},",
-      "['ea1', '{ka1|ALTER TABLE} clients'], ['ea2', '{ka2|SET SCHEMA} boutique;']", 'Prochaine leçon · INSERT INTO']},
+      "['ea1', '{ka1|ALTER TABLE} clients'], ['ea2', '{ka2|SET SCHEMA} boutique;']", 'Prochaine leçon · INSERT']},
   {id: 26, next: 27, titre: 'INSERT', page: 'projet-insert.html', thumb: 'projet-insert-thumb.webp', duree: '3 min 59', notesAt: 162.2,
     table: 'inscriptions',
     bubble: 'Ajoute de nouvelles lignes dans une table avec <span class="ic">INSERT</span>.',
@@ -1194,7 +1194,7 @@ const COURSES = [
       // seulement le cadeau, ce qu’il faut encore après le retour au savepoint, les six situations à ranger
       "{at: atp('p1'), from: A.a6, kind: 'pick', text: true,", "{label: 'Avec un point de retour posé avant le cadeau', ok: true,", "{at: atp('p2'), from: A.c4, kind: 'tap', need: 2,",
       "{label: 'Les quatre, cadeau compris', ok: true,", "{label: 'ROLLBACK TO SAVEPOINT avant_cadeau', ok: true,", "{label: 'Un COMMIT, qui terminera la transaction', ok: true,",
-      "{at: atp('p6'), from: A.g1, kind: 'sort',", "const Q_RT = [['-- Revenir au point de retour'], ['ROLLBACK TO SAVEPOINT avant_cadeau;']]", 'Prochaine leçon · Procédures et fonctions']},
+      "{at: atp('p6'), from: A.g1, kind: 'sort',", "const Q_RT = [['-- Revenir au point de retour'], ['ROLLBACK TO SAVEPOINT avant_cadeau;']]", 'Prochaine leçon · Procédures et fonctions stockées']},
   /* Le chapitre 15, ajouté le 30 octobre (le scénario d’Elisa : 18 h 02, les commandes affluent) : une action ou une valeur, la procédure
      expedier_commande et son paramètre, la fonction calculer_points et son réglage, le duel, les quatre tickets, puis leur création dans PostgreSQL. */
   {id: 83, next: 70, titre: 'Procédures et fonctions stockées', page: 'projet-procedures.html', thumb: 'projet-procedures-thumb.webp', duree: '3 min 08', notesAt: 161.82,
