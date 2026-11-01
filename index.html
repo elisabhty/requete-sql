@@ -9505,9 +9505,9 @@ guide({ id:50, titre:"Sécurité et droits", résumé:"Contrôler les accès ave
    3. DÉFIS
    ============================================================ */
 const CHALLENGES=[
- /* Défis sur la base Aéroport (Elisa, 1er novembre, 0 h 55 : « je veux les défis sur la base aeroport mtn ») : le lot Facile, chacun
-    avec sa situation (contexte), sa mission (q), son indice (« Avant de commencer ») et sa solution. Le résultat attendu est celui
-    de la solution, calculé par l’appli. Les anciens défis sur clients, commandes et produits sont retirés. */
+ /* Défis sur la base Aéroport (Elisa, 1er novembre, 0 h 55 : « je veux les défis sur la base aeroport mtn ») : les lots Facile,
+   Moyen et Difficile, chacun avec sa situation (contexte), sa mission (q), son indice et sa solution. Le résultat attendu est
+   calculé par l’appli. Les anciens défis sur clients, commandes et produits sont retirés. */
  {id:'af1',apres:11,titre:"Quels vols sont retardés ?",niv:'f',base:'aeroport',ordered:true,
   contexte:"Nous sommes en pleine journée de pointe à l’aéroport international. Au hall des départs, le tableau d’affichage clignote et plusieurs vols accumulent du retard. La responsable de la salle d’embarquement doit prendre le micro pour annoncer aux voyageurs les vols concernés et éviter la cohue aux portes.",
   q:"Affiche le numéro de vol, la date de départ et l’heure de départ de tous les vols dont le statut est « Retardé », triés par date puis par heure de départ.",
@@ -9685,7 +9685,7 @@ const CHALLENGES=[
     – « Taux de remplissage > 30 % » ne renvoyait aucun vol (55 passagers pour des avions de 100 à 368 places) : seuil à 5 % ;
     – les tris qui laissaient des égalités disent comment les départager (vols à égalité, passagers à 820 €…).
     10 h 13 : le même lot, réécrit avec beaucoup plus de contexte (chaque situation se lit seule). Les situations sont reprises,
-    ajustées à la base (aucun vol n’est complet ; un passager n’a jamais deux réservations sur le même vol) et à ces corrections ;
+    ajustées à la base (aucun vol n’est complet ; une réservation pédagogique en doublon est présente pour le passager 19 sur le vol 23) et à ces corrections ;
     « Avant de commencer » n’est pas affiché (pas d’indice au départ) ; le seuil de remplissage passe à 3 %, comme elle le
     proposait (5 vols au lieu de 4 ; réduire les capacités aurait faussé les défis sur la flotte). */
  {id:'am1',apres:41,titre:"Combien de passagers par vol ?",niv:'m',base:'aeroport',ordered:true,
@@ -9733,6 +9733,59 @@ const CHALLENGES=[
   q:"Affiche le numéro de vol, la capacité de l’avion, le nombre de réservations et le taux de remplissage en pourcentage (arrondi à 1 décimale) des vols dont le taux dépasse 3 %, triés par taux décroissant.",
   sol:"SELECT v.numero_vol, av.capacite, COUNT(r.id) AS nb_reservations, ROUND(100.0 * COUNT(r.id) / av.capacite, 1) AS taux_pct FROM vols v JOIN avions av ON av.id = v.avion_id LEFT JOIN reservations r ON r.vol_id = v.id GROUP BY v.id, v.numero_vol, av.capacite HAVING 100.0 * COUNT(r.id) / av.capacite > 3 ORDER BY taux_pct DESC;",
   indice:"Relie les vols aux avions et aux réservations, compte les réservations par vol, puis calcule le pourcentage (attention à la division entière : écris 100.0)."},
+ /* Lot Difficile (Elisa, 1er novembre, « voici le lot Difficile sur la base Aéroport ») : dix missions sur les classements,
+    fonctions de fenêtre, CTE, sous-requêtes et analyses croisées. Une réservation doublonnée est ajoutée dans le seed pour que
+    le défi 10 ait un résultat vérifiable. */
+ {id:'ad1',apres:56,titre:"Les compagnies qui transportent le plus de passagers",niv:'d',base:'aeroport',ordered:true,
+  contexte:"La direction de l’aéroport prépare son rapport annuel et veut comparer le trafic des compagnies. Certaines exploitent de nombreux vols court-courriers, d’autres quelques vols long-courriers très fréquentés. Pour établir un classement pertinent, elle demande le nombre de passagers distincts ayant réservé sur les vols de chaque compagnie.",
+  q:"Affiche le nom de chaque compagnie et son nombre de passagers distincts, du plus grand au plus petit, puis par nom de compagnie en cas d’égalité.",
+  sol:"SELECT c.nom AS compagnie, COUNT(DISTINCT r.passager_id) AS nb_passagers FROM compagnies c JOIN vols v ON v.compagnie_id = c.id JOIN reservations r ON r.vol_id = v.id GROUP BY c.id, c.nom ORDER BY nb_passagers DESC, c.nom;",
+  indice:"Relie compagnies, vols et réservations. Un passager qui a pris plusieurs vols d’une même compagnie ne doit être compté qu’une fois."},
+ {id:'ad2',apres:57,titre:"Classement des destinations",niv:'d',base:'aeroport',ordered:true,
+  contexte:"L’office de tourisme prépare un palmarès des destinations desservies par l’aéroport. Pour comparer leur fréquentation, il veut compter les réservations par ville d’arrivée puis attribuer le même rang aux destinations ex æquo.",
+  q:"Affiche la ville d’arrivée, son nombre de réservations et son rang avec RANK(), triés par rang croissant puis par ville.",
+  sol:"SELECT a.ville, COUNT(r.id) AS nb_reservations, RANK() OVER (ORDER BY COUNT(r.id) DESC) AS rang FROM vols v JOIN aeroports a ON a.id = v.aeroport_arrivee_id JOIN reservations r ON r.vol_id = v.id GROUP BY a.id, a.ville ORDER BY rang, a.ville;",
+  indice:"Regroupe d’abord les réservations par ville d’arrivée, puis applique RANK() sur leur nombre."},
+ {id:'ad3',apres:58,titre:"Les passagers au-dessus de la moyenne",niv:'d',base:'aeroport',ordered:true,
+  contexte:"Le service commercial prépare une campagne de fidélisation. Il veut repérer les passagers dont les dépenses totales dépassent la moyenne de tous les passagers inscrits, y compris ceux qui n’ont encore rien réservé. Pour chaque personne ciblée, il souhaite connaître le montant dépensé et l’écart à cette moyenne.",
+  q:"Affiche le prénom, le nom, le total dépensé et l’écart à la moyenne globale (arrondi à deux décimales) des passagers qui dépensent plus que cette moyenne, du total le plus élevé au plus faible puis par nom et prénom.",
+  sol:"WITH totaux AS (SELECT p.id, p.prenom, p.nom, COALESCE(SUM(r.prix), 0) AS total FROM passagers p LEFT JOIN reservations r ON r.passager_id = p.id GROUP BY p.id, p.prenom, p.nom), moyenne AS (SELECT AVG(total) AS valeur FROM totaux) SELECT t.prenom, t.nom, t.total, ROUND(t.total - m.valeur, 2) AS ecart_moyenne FROM totaux t CROSS JOIN moyenne m WHERE t.total > m.valeur ORDER BY t.total DESC, t.nom, t.prenom;",
+  indice:"Calcule d’abord le total de chaque passager avec une jointure externe pour conserver ceux sans réservation. Compare ensuite ces totaux à leur moyenne."},
+ {id:'ad4',apres:59,titre:"Taux de remplissage des vols",niv:'d',base:'aeroport',ordered:true,
+  contexte:"La direction des opérations veut comparer le remplissage de tous les vols pour mieux affecter les avions. Le rapport doit inclure aussi les vols sans réservation, avec leur capacité, leur nombre de réservations et leur taux en pourcentage.",
+  q:"Affiche le numéro de vol, la capacité de l’avion, le nombre de réservations et le taux de remplissage (arrondi à une décimale), pour tous les vols, triés par taux décroissant puis par numéro de vol.",
+  sol:"SELECT v.numero_vol, av.capacite, COUNT(r.id) AS nb_reservations, ROUND(100.0 * COUNT(r.id) / av.capacite, 1) AS taux_pct FROM vols v JOIN avions av ON av.id = v.avion_id LEFT JOIN reservations r ON r.vol_id = v.id GROUP BY v.id, v.numero_vol, av.capacite ORDER BY taux_pct DESC, v.numero_vol;",
+  indice:"Compte les réservations de chaque vol en conservant ceux qui n’en ont aucune, puis divise par la capacité de l’avion et multiplie par 100."},
+ {id:'ad5',apres:60,titre:"Classement des vols AlphaJet par chiffre d’affaires",niv:'d',base:'aeroport',ordered:true,
+  contexte:"AlphaJet prépare sa revue annuelle de performance et veut classer ses vols selon le chiffre d’affaires des réservations. La direction souhaite conserver dans le rapport les vols sans réservation, qui apparaîtront avec un chiffre d’affaires nul.",
+  q:"Affiche le numéro de vol, son chiffre d’affaires et son rang avec RANK() pour chaque vol AlphaJet, triés par rang puis par numéro de vol.",
+  sol:"SELECT v.numero_vol, COALESCE(SUM(r.prix), 0) AS chiffre_affaires, RANK() OVER (ORDER BY COALESCE(SUM(r.prix), 0) DESC) AS rang FROM vols v JOIN compagnies c ON c.id = v.compagnie_id LEFT JOIN reservations r ON r.vol_id = v.id WHERE c.nom = 'AlphaJet' GROUP BY v.id, v.numero_vol ORDER BY rang, v.numero_vol;",
+  indice:"Filtre AlphaJet, conserve tous ses vols, additionne les prix par vol puis classe les sommes avec RANK()."},
+ {id:'ad6',apres:61,titre:"Évolution du prix des réservations",niv:'d',base:'aeroport',ordered:true,
+  contexte:"Le service client étudie les habitudes d’achat d’Oliver Smith. Pour chaque réservation, il veut comparer le prix payé à celui de la réservation précédente et suivre leur chronologie, y compris lorsque plusieurs réservations ont la même date.",
+  q:"Pour Oliver Smith, affiche le numéro de réservation dans la chronologie, le numéro de vol, la date, le prix, le prix précédent avec LAG() et la différence. Trie par date puis par identifiant de réservation.",
+  sol:"WITH historique AS (SELECT r.id AS reservation_id, v.numero_vol, r.date_reservation, r.prix, ROW_NUMBER() OVER (ORDER BY r.date_reservation, r.id) AS numero_etape, LAG(r.prix) OVER (ORDER BY r.date_reservation, r.id) AS prix_precedent FROM reservations r JOIN passagers p ON p.id = r.passager_id JOIN vols v ON v.id = r.vol_id WHERE p.prenom = 'Oliver' AND p.nom = 'Smith') SELECT numero_etape, numero_vol, date_reservation, prix, prix_precedent, prix - prix_precedent AS difference FROM historique ORDER BY date_reservation, reservation_id;",
+  indice:"Dans la même fenêtre ordonnée par date et identifiant, ROW_NUMBER() numérote les réservations et LAG() récupère le prix précédent."},
+ {id:'ad7',apres:62,titre:"Les passagers multi-compagnies",niv:'d',base:'aeroport',ordered:true,
+  contexte:"Le service marketing veut identifier les voyageurs qui ont découvert plusieurs compagnies, afin de leur proposer des offres de fidélité adaptées. Il faut compter les compagnies et les vols distincts de chaque passager, sans compter deux fois une réservation répétée sur un même vol.",
+  q:"Affiche le prénom, le nom, le nombre de compagnies distinctes et le nombre de vols distincts des passagers ayant voyagé avec au moins deux compagnies, triés par nombre de compagnies décroissant, puis par nombre de vols, nom et prénom.",
+  sol:"SELECT p.prenom, p.nom, COUNT(DISTINCT v.compagnie_id) AS nb_compagnies, COUNT(DISTINCT r.vol_id) AS nb_vols FROM passagers p JOIN reservations r ON r.passager_id = p.id JOIN vols v ON v.id = r.vol_id GROUP BY p.id, p.prenom, p.nom HAVING COUNT(DISTINCT v.compagnie_id) >= 2 ORDER BY nb_compagnies DESC, nb_vols DESC, p.nom, p.prenom;",
+  indice:"Relie les quatre tables, compte les identifiants distincts des compagnies et des vols, puis filtre les passagers avec HAVING."},
+ {id:'ad8',apres:63,titre:"Les vols au-dessus de la moyenne de leur compagnie",niv:'d',base:'aeroport',ordered:true,
+  contexte:"La direction veut comparer les vols à la demande habituelle de leur propre compagnie plutôt qu’à une moyenne générale. Les vols sans réservation doivent aussi compter dans le calcul de cette moyenne.",
+  q:"Affiche le numéro de vol, le nom de la compagnie, le nombre de réservations et la moyenne de la compagnie (arrondie à deux décimales) pour les vols qui dépassent cette moyenne, triés par compagnie, réservations décroissantes puis numéro de vol.",
+  sol:"WITH stats AS (SELECT v.id AS vol_id, v.numero_vol, v.compagnie_id, c.nom AS compagnie, COUNT(r.id) AS nb_reservations FROM vols v JOIN compagnies c ON c.id = v.compagnie_id LEFT JOIN reservations r ON r.vol_id = v.id GROUP BY v.id, v.numero_vol, v.compagnie_id, c.nom), moyennes AS (SELECT compagnie_id, AVG(nb_reservations) AS moyenne FROM stats GROUP BY compagnie_id) SELECT s.numero_vol, s.compagnie, s.nb_reservations, ROUND(m.moyenne, 2) AS moyenne_compagnie FROM stats s JOIN moyennes m ON m.compagnie_id = s.compagnie_id WHERE s.nb_reservations > m.moyenne ORDER BY s.compagnie, s.nb_reservations DESC, s.numero_vol;",
+  indice:"Dans une première CTE, compte les réservations pour chaque vol. Dans une seconde, calcule la moyenne de ces comptes par compagnie."},
+ {id:'ad9',apres:64,titre:"Chiffre d’affaires par compagnie et classe",niv:'d',base:'aeroport',ordered:true,
+  contexte:"Le comité de direction veut comparer la contribution des classes Économique, Premium et Affaires au chiffre d’affaires de chaque compagnie. Un classement séparé par compagnie permettra de voir quelle classe génère le plus de recettes chez chacune.",
+  q:"Affiche la compagnie, la classe, le chiffre d’affaires et le rang de la classe dans sa compagnie avec RANK(), triés par compagnie, rang puis classe en cas d’égalité.",
+  sol:"SELECT c.nom AS compagnie, r.classe, SUM(r.prix) AS chiffre_affaires, RANK() OVER (PARTITION BY c.id ORDER BY SUM(r.prix) DESC) AS rang_classe FROM compagnies c JOIN vols v ON v.compagnie_id = c.id JOIN reservations r ON r.vol_id = v.id GROUP BY c.id, c.nom, r.classe ORDER BY c.nom, rang_classe, r.classe;",
+  indice:"Regroupe par compagnie et classe, additionne les prix, puis partitionne RANK() par compagnie."},
+ {id:'ad10',apres:65,titre:"Les réservations en doublon sur un vol",niv:'d',base:'aeroport',ordered:true,
+  contexte:"Le service client mène un audit après avoir repéré une anomalie dans les réservations de démonstration. La base contient un cas pédagogique où un même passager a réservé deux fois sur le même vol. L’équipe veut retrouver ces doublons avant de contacter les personnes concernées.",
+  q:"Affiche le prénom, le nom, le numéro de vol et le nombre de réservations pour chaque couple passager-vol ayant plus d’une réservation, triés par nombre de réservations décroissant, nom, prénom puis numéro de vol.",
+  sol:"SELECT p.prenom, p.nom, v.numero_vol, COUNT(r.id) AS nb_reservations FROM reservations r JOIN passagers p ON p.id = r.passager_id JOIN vols v ON v.id = r.vol_id GROUP BY p.id, p.prenom, p.nom, v.id, v.numero_vol HAVING COUNT(r.id) > 1 ORDER BY nb_reservations DESC, p.nom, p.prenom, v.numero_vol;",
+  indice:"Regroupe les réservations par passager et par vol, puis HAVING conserve les groupes qui comptent plus d’une réservation."},
 ];
 /* La consigne d’un défi : la situation (contexte) et la question. Seul ou en salle, le même bloc. Pas d’indice affiché (Elisa,
    1er novembre, 1 h 20 : « non pas d’indice au départ ni jamais finalement ») : le champ indice des défis reste dans les données. */
@@ -9748,12 +9801,12 @@ function defiConsigneHTML(c){
    La requête n’est jamais montrée : ni après le 3e indice, ni à la fin du chrono, ni à la fin d’une manche en salle (on y voit le
    résultat qu’il fallait obtenir). À chaque essai raté, un diagnostic dit ce qui cloche (lignes, colonnes, ordre, valeurs). */
 function defiTables(sol){
-  const out=[];
-  String(sol||'').replace(/\b(?:FROM|JOIN)\s+([A-Za-z_][A-Za-z0-9_]*)/gi,(m,t)=>{if(!/^SELECT$/i.test(t)&&!out.includes(t))out.push(t);return m;});
+  const out=[],ctes=new Set([...String(sol||'').matchAll(/(?:\bWITH\b|,)\s*([A-Za-z_][A-Za-z0-9_]*)\s+(?:\([^)]*\)\s*)?AS\s*\(/gi)].map(m=>m[1].toLowerCase()));
+  String(sol||'').replace(/\b(?:FROM|JOIN)\s+([A-Za-z_][A-Za-z0-9_]*)/gi,(m,t)=>{if(!/^SELECT$/i.test(t)&&!ctes.has(t.toLowerCase())&&!out.includes(t))out.push(t);return m;});
   return out;
 }
-const DEFI_MOTS=new Set(['SELECT','DISTINCT','FROM','JOIN','LEFT','INNER','ON','WHERE','AND','OR','NOT','IN','EXISTS','LIKE','BETWEEN','IS','NULL','GROUP','BY','HAVING','ORDER','ASC','DESC','LIMIT','OFFSET','CASE','WHEN','THEN','ELSE','END','UNION','ALL','WITH']);
-const DEFI_FONCS=new Set(['COUNT','SUM','AVG','MIN','MAX','ROUND','STRFTIME','UPPER','LOWER','IFNULL','COALESCE','LENGTH','SUBSTR','DATE','JULIANDAY']);
+const DEFI_MOTS=new Set(['SELECT','DISTINCT','FROM','JOIN','LEFT','INNER','CROSS','ON','WHERE','AND','OR','NOT','IN','EXISTS','LIKE','BETWEEN','IS','NULL','GROUP','BY','HAVING','ORDER','ASC','DESC','LIMIT','OFFSET','CASE','WHEN','THEN','ELSE','END','UNION','ALL','WITH','OVER','PARTITION']);
+const DEFI_FONCS=new Set(['COUNT','SUM','AVG','MIN','MAX','ROUND','STRFTIME','UPPER','LOWER','IFNULL','COALESCE','LENGTH','SUBSTR','DATE','JULIANDAY','RANK','DENSE_RANK','ROW_NUMBER','LAG','LEAD']);
 function defiSquelette(sol){
   const toks=String(sol||'').replace(/;\s*$/,'').match(/'(?:[^']|'')*'|[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?|\d+(?:\.\d+)?|<>|!=|>=|<=|\|\||[=<>*\/+\-(),]/g)||[];
   const out=[];
@@ -10222,7 +10275,8 @@ INSERT INTO reservations (id, passager_id, vol_id, classe, siege, prix, date_res
 (127, 18, 36, 'Économique', '19B', 137.00, '2025-05-24'),
 (128, 12, 36, 'Économique', '15D', 138.00, '2025-05-29'),
 (129, 11, 36, 'Économique', '10B', 125.00, '2025-05-28'),
-(130, 2, 36, 'Économique', '25C', 143.00, '2025-05-27');
+(130, 2, 36, 'Économique', '25C', 143.00, '2025-05-27'),
+(131, 19, 23, 'Affaires', '4D', 380.00, '2025-05-22');
 
 INSERT INTO bagages (id, reservation_id, poids_kg, statut) VALUES
 (1,  1,  18.50, 'Livré'),
@@ -10352,7 +10406,8 @@ INSERT INTO bagages (id, reservation_id, poids_kg, statut) VALUES
 (125, 127, 23.80, 'Livré'),
 (126, 128, 20.80, 'Livré'),
 (127, 129, 23.10, 'Livré'),
-(128, 130, 16.70, 'Livré');
+(128, 130, 16.70, 'Livré'),
+(129, 131, 19.00, 'Livré');
 `},
   hopital:{nom:'Hôpital',
     tables:{"services": "Les services de l’hôpital, chacun à son étage avec son nombre de lits.", "medecins": "Les médecins, chacun rattaché à un service, avec sa spécialité.", "infirmiers": "Le personnel infirmier, rattaché à un service.", "patients": "Toutes les personnes admises à l’hôpital, qu’elles aient déjà été vues ou non : la table de référence des patients.", "consultations": "Chaque rendez-vous d’un patient avec un médecin : sa date, sa durée et le diagnostic posé.", "hospitalisations": "Les séjours des patients dans un service, avec le médecin responsable, le lit et les dates d’entrée et de sortie.", "prescriptions": "Les médicaments prescrits pendant une consultation, avec leur dosage et la durée du traitement."},

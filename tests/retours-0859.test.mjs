@@ -49,6 +49,11 @@ test('les trois indices : où chercher, la piste, la forme ; jamais la requête'
       assert.ok(!sq.includes(t), `${x.id} : « ${t} » ne doit pas paraître dans le squelette`);
   }
   assert.equal(ctx.defiSquelette(D('am4').sol).split('\n')[3], 'WHERE … = … AND … > (SELECT AVG(…) FROM … WHERE … = …)');
+  assert.deepEqual(Array.from(ctx.defiTables(D('ad3').sol)), ['passagers', 'reservations'], 'les CTE ne sont pas prises pour des tables');
+  assert.deepEqual(Array.from(ctx.defiTables(D('ad8').sol)), ['vols', 'compagnies', 'reservations']);
+  assert.ok(ctx.defiSquelette(D('ad2').sol).includes('RANK() OVER (ORDER BY COUNT(…) DESC)'));
+  assert.ok(ctx.defiSquelette(D('ad6').sol).includes('ROW_NUMBER() OVER') && ctx.defiSquelette(D('ad6').sol).includes('LAG(…) OVER'));
+  assert.ok(ctx.defiSquelette(D('ad9').sol).includes('PARTITION BY …'));
 });
 
 test('le diagnostic dit ce qui cloche sans rien dévoiler', () => {

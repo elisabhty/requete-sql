@@ -19,8 +19,8 @@ test('Aéroport : 7 tables, les volumes annoncés, aucune clé étrangère orphe
   const d = base();
   const n = t => d.exec(`SELECT COUNT(*) FROM ${t}`)[0].values[0][0];
   assert.deepEqual(['passagers', 'compagnies', 'avions', 'aeroports', 'vols'].map(n), [55, 6, 14, 18, 40]);
-  assert.equal(n('reservations'), 130);
-  assert.equal(n('bagages'), 128);
+  assert.equal(n('reservations'), 131);
+  assert.equal(n('bagages'), 129);
   assert.equal(d.exec('PRAGMA foreign_key_check').length, 0);
   /* Dates et heures en texte (SQLite ne lit pas DATE '…') */
   assert.ok(!/\b(DATE|TIME) '/.test(sqlAero));
@@ -34,6 +34,7 @@ test('les remarques de la base sont vraies dans les données', () => {
   assert.deepEqual(col(d, 'SELECT passager_id FROM reservations GROUP BY 1 HAVING COUNT(DISTINCT vol_id) > 1 ORDER BY 1'), [1, 2, 3, 6, 11, 12, 13, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 37, 38]);
   assert.deepEqual(col(d, 'SELECT vol_id FROM reservations WHERE passager_id = 1 ORDER BY 1'), [1, 6, 17, 20], 'Camille Moreau');
   assert.equal(col(d, 'SELECT COUNT(*) FROM reservations WHERE passager_id = 21')[0], 6, 'Oliver Smith');
+  assert.deepEqual(col(d, 'SELECT passager_id || \'/\' || vol_id || \'/\' || COUNT(*) FROM reservations GROUP BY passager_id, vol_id HAVING COUNT(*) > 1'), ['19/23/2'], 'doublon pédagogique pour le défi Difficile 10');
   assert.deepEqual(col(d, 'SELECT DISTINCT r.passager_id FROM reservations r LEFT JOIN bagages b ON b.reservation_id=r.id WHERE b.id IS NULL'), [3], 'Léa Petit, seule sans bagage');
   assert.deepEqual(col(d, 'SELECT COUNT(*) FROM vols GROUP BY compagnie_id ORDER BY compagnie_id').slice(0, 2), [10, 7], 'AlphaJet et SkyWings');
   assert.deepEqual(col(d, "SELECT id FROM vols WHERE statut='Annulé' ORDER BY 1"), [21, 38]);
