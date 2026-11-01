@@ -53,7 +53,7 @@ test('moteur : chaque légende reçoit sa phrase par sa clé, et le lecteur reç
   assert.equal(out.files.length, 10, 'fichiers à précharger, sans doublon');
   assert.ok(core.includes("if (cfg.voice && !QS.has('novoix')) cfg = withVoice(cfg);") && core.indexOf('cfg = withVoice(cfg)') < core.indexOf('cfg = withMoments(cfg)'),
     'la voix avant les moments : chaque légende emporte sa phrase là où les moments la déplacent');
-  assert.ok(core.includes('rest, introVoiceHold(chapters))') && core.includes('voice: voiceOut(captions, picks.length, opens.length, duration)};'), 'pause de l’intro, export au lecteur');
+  assert.ok(core.includes('rest, introVoiceHold(chapters))') && core.includes('voice: pontVoice(voiceOut(captions, picks.length, opens.length, duration)),'), 'pause de l’intro, export au lecteur');
 });
 
 test('moteur : une pause tombe au dernier instant où rien ne bouge (sinon sur un mouvement lent)', () => {

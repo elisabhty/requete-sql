@@ -208,6 +208,15 @@ function voiceOut(captions, nPicks, nOpens, end){
     end: {win: s('finbravo'), retry: s('fineffort')},
     files: [...new Set(clips.map(c => c.src).concat(Object.values(say).map(v => src(v[0]))))], missing: VOICE_MISSING};
 }
+/* Les phrases du lien avec la leçon d’avant et d’après (VOICE.say.lienavant / lienapres), à leur instant dans la vidéo. */
+function pontVoice(v){
+  if (!v || !VCFG || !VCFG.say) return v;
+  const src = f => new URL((VCFG.dir || '') + f + '.mp3', location.href).href;
+  const intro = v.clips.find(c => VCFG.intro && c.src === src(VCFG.intro[0])), after = intro ? intro.t + intro.d + 0.15 : 0;
+  PONTS.forEach(p => { const s = VCFG.say['lien' + p.k]; if (s) v.clips.push({t: +Math.max(p.a + PONT_FADE, p.k === 'avant' ? after : 0).toFixed(3), src: src(s[0]), o: +(+s[1]).toFixed(3), d: +(s[2] - s[1]).toFixed(3)}); });
+  v.clips.sort((x, y) => x.t - y.t);
+  return v;
+}
 /* L’intro : la voix part à VOICE_INTRO s ; l’image attend qu’elle finisse avant que tout s’en aille (0,6 s avant le chapitre 1). */
 function introVoiceHold(chapters){
   if (!VCFG || !VCFG.intro || !chapters.length) return [];
@@ -536,7 +545,7 @@ function chromeTimeline(chapters, captions, duration){
     gsap.set(stk, {scale: 0, rotation: -40, transformOrigin: '50% 50%'});
     tl.to(stk, {scale: 1, rotation: -8, duration: 0.62, ease: 'back.out(2.2)'}, captions[0][0] - 0.05); capKeep([stk, {scale: 1, rotation: -8}]);
   }
-  $$('#cap .c').forEach((el, i) => {
+  $$('#cap .c:not(.c-pont)').forEach((el, i) => {
     const [a, b] = captions[i];
     gsap.set(el, {autoAlpha: 0, y: 26});
     tl.to(el, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'power3.out'}, a);
@@ -685,7 +694,7 @@ function recapScene(t0, rowTimes){
 /* Chaque légende tient-elle dans la carte (3 lignes au plus) ? */
 function checkCaptions(captions){
   const out = [];
-  $$('#cap .c').forEach((el, i) => {
+  $$('#cap .c:not(.c-pont)').forEach((el, i) => {
     const p = el.querySelector('p');
     const prev = el.style.visibility;
     el.style.visibility = 'visible';
@@ -972,6 +981,50 @@ function recapRest(captions, end){
   return [[+(end - 0.02).toFixed(2), Math.ceil((Math.max(0, miss) + RECAP_REST) * 20) / 20]];
 }
 
+/* ---------- Le lien avec la leçon d’avant et celle d’après (liens.js) ----------
+   Elisa, 1er novembre, 21 h 30 : « faire ça pour toutes les leçons, vérifier la cohérence » (comme les vidéos du projet). Juste après
+   l’intro, « Dans la leçon précédente, tu as… » ; à la fin, « Dans la prochaine leçon, tu… », avec la pastille « Prochaine leçon · … »
+   sur l’image vidée. Chacune a sa pause (l’image attend le temps de la lire, ou de l’entendre : VOICE.say.lienavant / lienapres).
+   Les textes et l’ordre des leçons sont dans liens.js ; ?noliens : la vidéo sans eux. */
+const PONT_FADE = 0.3;
+let PONTS = [];   // {k : 'avant' | 'apres', a, b : début et fin en temps de la vidéo, el : sa légende}
+const pontPage = () => (location.pathname.split('/').pop() || '').replace(/\.html$/, '');
+function pontLiens(){
+  try { return typeof window.liensDe === 'function' && !QS.has('noliens') ? window.liensDe(pontPage()) : null; } catch (e) { return null; }
+}
+function pontDur(html, k){
+  const v = VCFG && VCFG.say && VCFG.say['lien' + k];
+  return +(Math.max(readTime(html) + 0.9, v ? (v[2] - v[1]) + VOICE_TAIL + 0.4 : 0) + 2 * PONT_FADE).toFixed(2);
+}
+function pontDom(LI){
+  const cap = $('#cap'), out = {};
+  if (!cap || !LI) return out;
+  ['avant', 'apres'].forEach(k => {
+    if (!LI[k]) return;
+    const d = document.createElement('div'); d.className = 'c c-pont'; d.dataset.pont = k; d.innerHTML = `<p>${fr(LI[k])}</p>`;
+    cap.insertBefore(d, cap.querySelector('.cap-stk')); out[k] = d;
+  });
+  if (LI.apres && LI.suite) {
+    const pill = document.createElement('div'); pill.className = 'pont-pill'; pill.setAttribute('aria-hidden', 'true');
+    /* Un titre long passe à la ligne avant sa parenthèse : « WITH RECURSIVE / (CTE RECURSIVE) ». */
+    const t = LI.suite.length > 22 ? LI.suite.replace(/ \(/, '<br>(') : LI.suite;
+    pill.innerHTML = `<span>Prochaine leçon · ${fr(t)}</span>`;
+    $('#stage').append(pill);
+  }
+  return out;
+}
+/* À chaque image : la légende du lien qui doit se voir (et l’image qui s’efface derrière la pastille, à la fin). */
+function pontRender(T){
+  const body = document.body; if (!body) return;
+  const on = PONTS.find(p => T >= p.a && T <= p.b);
+  if (!on) { if (body.classList.contains('pont-on')) { body.classList.remove('pont-on', 'pont-fin'); PONTS.forEach(p => p.el && p.el.classList.remove('on')); } return; }
+  const fin = on.k === 'apres';
+  const al = Math.max(0, Math.min(1, (T - on.a) / PONT_FADE, fin ? 1 : (on.b - T) / PONT_FADE));
+  body.style.setProperty('--pont-a', al.toFixed(3));
+  body.classList.add('pont-on'); body.classList.toggle('pont-fin', fin);
+  PONTS.forEach(p => p.el && p.el.classList.toggle('on', p === on));
+}
+
 /* ---------- Le cours ---------- */
 /* cfg : {duration, chapters, captions, questions, picks, notesAt, glyphs, dom(), build(), onRender(T)} */
 function Course(cfg){
@@ -1009,6 +1062,7 @@ function Course(cfg){
     }
     /* La page peut suivre le rendu (aperçu d’un moment « À toi » retiré quand la timeline montre la même image). */
     if (cfg.onRender) cfg.onRender(T);
+    if (PONTS.length) pontRender(T);
   }
   window.renderAt = renderAt;
   window.__contentBottom = contentBottom;
@@ -1036,10 +1090,18 @@ function Course(cfg){
     if (RECAP_A != null) { duration = recapEnd(RECAP_A, duration); captions = captions.filter(c => c[0] < duration - 0.3); rest = recapRest(captions, duration); }
     tl.set({}, {}, duration);
     confettiCues();
+    /* Le lien avec la leçon d’avant : une pause sur la carte de l’intro, juste avant qu’elle ne s’en aille (liens.js). */
+    const LI = pontLiens(), PEL = pontDom(LI);
+    const pontAv = LI && LI.avant && chapters.length ? [+Math.min(4.35, chapters[0].a - 0.7).toFixed(2), pontDur(LI.avant, 'avant')] : null;
     HOLDS = mergeHolds(captionHolds(captions, duration).concat(EXTRA_HOLDS.filter(h => h[0] < duration), rest, introVoiceHold(chapters))).concat(CUTS.filter(c => c[0] < duration)).sort((x, y) => x[0] - y[0]);
+    if (pontAv) HOLDS = HOLDS.concat([pontAv]).sort((x, y) => x[0] - y[0]);
     capFxPrune(HOLDS.filter(h => h[1] > 0).map(h => h[0]).concat(picks.concat(opens).map(p => p.at)), CUTS);
     const total = HOLDS.reduce((a, h) => a + h[1], 0);
     out = +(duration + total).toFixed(3);
+    PONTS = [];
+    if (pontAv) { const a = unwarp(pontAv[0]); PONTS.push({k: 'avant', a, b: +(a + pontAv[1]).toFixed(3), el: PEL.avant, html: LI.avant}); }
+    /* … et avec la leçon d’après : la vidéo s’allonge, la dernière image s’efface derrière la pastille. */
+    if (LI && LI.apres) { const d = pontDur(LI.apres, 'apres'); PONTS.push({k: 'apres', a: out, b: +(out + d).toFixed(3), el: PEL.apres, html: LI.apres}); out = +(out + d).toFixed(3); }
     introPills(out, picks.length);
     renderAt(0);
     if (EMBED) dispatchEvent(new Event('resize'));
@@ -1070,9 +1132,12 @@ function Course(cfg){
       /* hand : {x, y}, le bout d’un doigt seul (sans bulle), en fraction de l’élément, quand la légende dit déjà quoi faire (Elisa, 25 octobre, 16 h 21). */
       opens: opens.map(o => ({t: unwarp(o.at), sel: o.sel, prompt: fr(o.prompt), label: o.label, hand: o.hand || null})),
       /* Légendes en texte : le lecteur les annonce à VoiceOver au fil de l’animation. */
-      captions: captions.map(c => ({a: unwarp(c[0]), b: unwarp(Math.min(c[1], duration)), text: plain(c[2])})),
+      captions: captions.map(c => ({a: unwarp(c[0]), b: unwarp(Math.min(c[1], duration)), text: plain(c[2])}))
+        .concat(PONTS.map(p => ({a: p.a, b: p.b, text: plain(p.html).replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')}))).sort((x, y) => x.a - y.a),
       /* Voix off : les phrases calées sur la vidéo (t : leur début, en temps de la vidéo) et celles jouées à part (say) ; null sans voix. */
-      voice: voiceOut(captions, picks.length, opens.length, duration)};
+      voice: pontVoice(voiceOut(captions, picks.length, opens.length, duration)),
+      /* Le lien avec la leçon d’avant et celle d’après : leurs instants dans la vidéo (liens.js). */
+      liens: PONTS.map(p => ({k: p.k, a: p.a, b: p.b, text: plain(p.html).replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')}))};
   })();
   /* Une seule image, à l’instant donné (?at=2.9) : sert à fabriquer la vignette du cours. */
   if (QS.has('at')) window.__ready.then(() => renderAt(+QS.get('at') || 0));

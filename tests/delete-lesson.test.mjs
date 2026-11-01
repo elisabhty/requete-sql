@@ -250,7 +250,7 @@ test('moment 5 : sans WHERE, la requête est exécutée sans erreur et les huit 
   assert.ok(caps.includes('Et si tu oublies <code>WHERE</code> ?'), 'l’oubli du WHERE est une question : rien n’est supprimé pour de bon (Elisa, 25 octobre, Réf 4)');
   assert.ok(caps.includes('Sans condition, toutes les lignes<br>de la <b>table inscriptions</b><br>seront supprimées.'), 'la réponse : toutes les lignes de la table inscriptions (Elisa, 25 octobre, Réf 4)');
   assert.ok(caps.includes('Avec <code>DELETE FROM inscriptions</code>,<br>tu indiques que tu veux supprimer<br>des lignes dans la <b>table inscriptions</b>.'), 'DELETE FROM inscriptions : la table où supprimer des lignes (Elisa, 25 octobre, Réf 1)');
-  assert.ok(caps.includes('Au chapitre 6, c’est <code>DROP TABLE</code><br>qui supprimait la table elle-même.'));
+  assert.ok(caps.includes('Dans la leçon DROP, c’est <code>DROP TABLE</code><br>qui supprimait la table elle-même.'));
   assert.ok(page.includes("out('o-8', 'warn', 'Requête exécutée', '8 lignes supprimées.')") && page.includes("out('o-ex', 'ok', 'Requête exécutée', 'Aucune erreur.')"), 'la page montre les deux résultats');
   assert.equal(val('PICKS')[4].need, val('REST').length, 'l’élève touche les huit lignes');
 });
@@ -303,12 +303,12 @@ test('les trois messages : le service client relaie Léa Simon (SMS), Nathan Dup
 
 /* ---------- Propre au chapitre 11 : la suite du chapitre 10 (MERGE), l’annonce de la leçon ON DELETE ---------- */
 test('chapitre 11 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 11 : DELETE</title>') && page.includes('<div class="tagpill">Projet · Chapitre 11</div>')
+  assert.ok(page.includes('<title>Requête · Projet : DELETE</title>') && page.includes('<div class="tagpill">Projet · Module 10</div>')
     && page.includes('<span>D</span><span>E</span><span>L</span><span>E</span><span>T</span><span>E</span>') && page.includes('<div class="abs sub">Supprimer des lignes</div>')
-    && page.includes('Supprime les lignes qui ne doivent plus être conservées avec <span class="ic">DELETE</span>.'), 'écran titre : « Projet · Chapitre 11 », DELETE, « Supprimer des lignes »');
+    && page.includes('Supprime les lignes qui ne doivent plus être conservées avec <span class="ic">DELETE</span>.'), 'écran titre : « Projet · Module 10 », DELETE, « Supprimer des lignes »');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les chapitres 2 à 9');
-  assert.equal(caps[1], 'Au chapitre 10, tu as synchronisé<br>deux tables avec <code>MERGE</code>.', 'le chapitre précédent');
+  assert.equal(caps[0], 'Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les chapitres 2 à 9');
+  assert.equal(caps[1], 'Dans la leçon précédente, tu as synchronisé<br>deux tables avec <code>MERGE</code>.', 'le chapitre précédent');
   /* La fin du chapitre 10 annonce « DELETE » : c’est ce chapitre. */
   const merge = fs.readFileSync(path.join(root, 'assets/anim/projet-merge.html'), 'utf8');
   assert.ok(merge.includes('à supprimer des lignes avec <code>DELETE</code>.') && merge.includes('Prochaine leçon · DELETE</span>'), 'le chapitre 10 annonce celui-ci');

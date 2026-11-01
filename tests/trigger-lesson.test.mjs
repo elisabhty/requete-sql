@@ -101,9 +101,9 @@ test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', ()
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 244.94);
-  assert.ok(page.includes('notesAt: 244.94,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 252.14);
+  assert.equal(val('NOTES'), 245.94);
+  assert.ok(page.includes('notesAt: 245.94,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 253.14);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   /* Les trois parties de la trame d’Elisa (le message, la table d’historique et le trigger, la vérification avec le stock), découpées comme dans
@@ -283,12 +283,12 @@ test('le message : la responsable commerciale écrit par SMS ; l’app s’arrê
 });
 
 test('chapitre 16 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 16 : TRIGGER</title>') && page.includes('<div class="tagpill">Projet · Chapitre 16</div>')
+  assert.ok(page.includes('<title>Requête · Projet : TRIGGER</title>') && page.includes('<div class="tagpill">Projet · Module 13</div>')
     && page.includes('<span>T</span><span>R</span><span>I</span><span>G</span><span>G</span><span>E</span><span>R</span>')
-    && page.includes('<div class="abs sub">Déclencher une action automatiquement</div>'), 'écran titre : « Projet · Chapitre 16 », TRIGGER, « Déclencher une action automatiquement »');
+    && page.includes('<div class="abs sub">Déclencher une action automatiquement</div>'), 'écran titre : « Projet · Module 13 », TRIGGER, « Déclencher une action automatiquement »');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.');
-  assert.equal(caps[1], 'Au chapitre 15, une procédure<br>stockée t’a permis de réutiliser<br>un traitement.', 'le chapitre précédent');
+  assert.equal(caps[0], 'Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.');
+  assert.equal(caps[1], 'Dans la leçon précédente, une procédure stockée t’a permis de réutiliser un traitement.', 'le chapitre précédent');
   const pr = fs.readFileSync(path.join(root, 'assets/anim/projet-procedures.html'), 'utf8');
   assert.ok(pr.includes('les triggers : des actions lancées') && pr.includes('Prochaine leçon · Les triggers</span>'), 'le chapitre 15 annonce celui-ci');
   assert.ok(page.includes("on('#bw-cm .hl', A.r2 + 0.6, 0.2);"), 'la table commandes, que la procédure a expédiée, s’allume avec cette légende');

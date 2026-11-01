@@ -13,7 +13,7 @@ const ctx = vm.createContext({});
 vm.runInContext('var window=this;' + fs.readFileSync(path.join(root, 'decouvrir/modules.js'), 'utf8'), ctx);
 const { MODULES, VITRINE } = ctx;
 
-/* Chapitres de l’appli : { titre, sous, lessons:[ guide({ id, titre, résumé, … video:{… duree:'2 min 16' …} }) ] } */
+/* Chapitres de l’appli : { titre, sous, lessons:[ guide({ id, titre, résumé, … video:{… duree:'2 min 29' …} }) ] } */
 const app = (() => {
   const start = html.indexOf('const MODULES = [');
   const body = html.slice(start, html.indexOf('\n];', start));

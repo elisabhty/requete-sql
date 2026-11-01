@@ -99,9 +99,9 @@ test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', ()
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 231.76);
-  assert.ok(page.includes('notesAt: 231.76,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 238.96);
+  assert.equal(val('NOTES'), 232.76);
+  assert.ok(page.includes('notesAt: 232.76,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 239.96);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   /* Les parties de la trame d’Elisa, avec l’ouverture commune à tous les chapitres du projet dans la première ; le 25 octobre (19 h 13), Léa Simon
@@ -299,15 +299,15 @@ test('les messages : le service client écrit deux fois par SMS, puis Léa Simon
 });
 
 test('chapitre 14 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 14 : SAVEPOINT</title>') && page.includes('<div class="tagpill">Projet · Chapitre 14</div>')
+  assert.ok(page.includes('<title>Requête · Projet : SAVEPOINT</title>') && page.includes('<div class="tagpill">Projet · Module 12</div>')
     && page.includes('<span>S</span><span>A</span><span>V</span><span>E</span><span>P</span><span>O</span><span>I</span><span>N</span><span>T</span>')
-    && page.includes('<div class="abs sub">Annuler une partie des modifications</div>'), 'écran titre : « Projet · Chapitre 14 », SAVEPOINT, « Annuler une partie des modifications »');
+    && page.includes('<div class="abs sub">Annuler une partie des modifications</div>'), 'écran titre : « Projet · Module 12 », SAVEPOINT, « Annuler une partie des modifications »');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.');
-  assert.equal(caps[1], 'Au chapitre 13, une transaction<br>t’a permis de tout valider<br>ou de tout annuler.', 'le chapitre précédent');
+  assert.equal(caps[0], 'Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.');
+  assert.equal(caps[1], 'Dans la leçon précédente, une transaction t’a permis de tout valider ou de tout annuler.', 'le chapitre précédent');
   const tx = fs.readFileSync(path.join(root, 'assets/anim/projet-transaction.html'), 'utf8');
   assert.ok(tx.includes('avec <code>SAVEPOINT</code>.') && tx.includes('Prochaine leçon · SAVEPOINT</span>'), 'le chapitre 13 annonce celui-ci');
-  assert.ok(caps.includes('Dans la prochaine leçon, tu enregistreras<br>des traitements et des calculs<br>dans la base.') && page.includes('Prochaine leçon · Procédures et fonctions</span>'), 'annonce de la prochaine leçon');
+  assert.ok(caps.includes('Dans la prochaine leçon, tu enregistreras des traitements et des calculs dans la base.') && page.includes('Prochaine leçon · Procédures et fonctions</span>'), 'annonce de la prochaine leçon');
   assert.equal(lessons[lessons.findIndex(l => l.id === 63) + 1].titre, 'Procédures et fonctions stockées');
   assert.equal(caps[caps.length - 2], 'Pour finir, voici les <b>trois idées à retenir</b>.');
 });

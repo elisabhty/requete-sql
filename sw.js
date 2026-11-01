@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-01-defis-verifies-v2295';
+const CACHE = 'requete-2026-11-01-liens-lecons-v2296';
 
 const PRECACHE = [
   './onboarding-focus.js',
@@ -117,6 +117,7 @@ const PRECACHE = [
   './assets/anim/fin-sql.html?app&embed',
   './assets/anim/core.css',
   './assets/anim/core.js',
+  './assets/anim/liens.js',
   './assets/anim/moments.js',
   './assets/anim/mail.js',
   './assets/anim/gsap.min.js',

@@ -128,8 +128,8 @@ test('la base du chapitre 14 : onze tables et leurs lignes ; les dernières comm
   assert.deepEqual(val('COMMANDES'), db.exec("SELECT c.id, c.numero_commande, c.client_id, COALESCE(cl.prenom || ' ' || cl.nom, ''), c.statut FROM commandes c LEFT JOIN clients cl ON cl.id = c.client_id WHERE c.id >= 11 ORDER BY c.id")[0].values,
     'les commandes 11 à 16 de la page sont celles de la base');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.');
-  assert.equal(caps[1], 'Au chapitre 14, un savepoint<br>t’a permis d’annuler<br>une partie d’une transaction.', 'le chapitre précédent');
+  assert.equal(caps[0], 'Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.');
+  assert.equal(caps[1], 'Dans la leçon précédente, un savepoint<br>t’a permis d’annuler<br>une partie d’une transaction.', 'le chapitre précédent');
 });
 
 test('la procédure : l’identifiant de la commande est son paramètre ; CALL expedier_commande(13), puis (14), expédie ces deux commandes, et elles seules', () => {
@@ -168,7 +168,7 @@ test('les demandes et les tickets : une action va avec la procédure, une valeur
 });
 
 test('chapitre 15 : écran titre, la carte PostgreSQL, SQLite ; annoncé par SAVEPOINT, il annonce Les triggers, qui s’ouvrent sur lui', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 15 : Procédures et fonctions stockées</title>') && page.includes('<div class="tagpill">Projet · Chapitre 15</div>')
+  assert.ok(page.includes('<title>Requête · Projet : Procédures et fonctions stockées</title>') && page.includes('<div class="tagpill">Projet · Module 13</div>')
     && page.includes('<div class="abs sub">et fonctions stockées</div>'));
   const eg = [...page.matchAll(/\['eg\d', (?:'([^']*)'|"([^"]*)")\]/g)].map(m => (m[1] ?? m[2]).replace(/\{\w+\|([^}]*)\}/g, '$1'));
   assert.equal(eg.length, 10, 'dix lignes, commentaire compris');
@@ -180,7 +180,7 @@ test('chapitre 15 : écran titre, la carte PostgreSQL, SQLite ; annoncé par SAV
   assert.ok(sp.includes('Prochaine leçon · Procédures et fonctions</span>'), 'le chapitre 14 annonce celui-ci');
   assert.ok(page.includes('Prochaine leçon · Les triggers</span>'), 'il annonce Les triggers');
   const trig = fs.readFileSync(path.join(root, 'assets/anim/projet-trigger.html'), 'utf8');
-  assert.ok(trig.includes('Au chapitre 15, une procédure<br>stockée t’a permis de réutiliser<br>un traitement.'), 'Les triggers s’ouvrent sur ce chapitre');
+  assert.ok(trig.includes('Dans la leçon précédente, une procédure stockée t’a permis de réutiliser un traitement.'), 'Les triggers s’ouvrent sur ce chapitre');
   const rows = [...page.matchAll(/<div class="rrow"><div class="rico emo">([^<]+)<\/div><div class="rtxt">(.*?)<\/div><\/div>/g)].map(m => {
     const [phrase, detail] = m[2].split('<span class="rs">');
     return [m[1], strip(phrase), strip(detail.replace(/<\/span>$/, ''))];

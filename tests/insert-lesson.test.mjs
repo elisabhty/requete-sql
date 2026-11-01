@@ -343,12 +343,12 @@ test('Réf 9 : la requête qui crée ou recharge reste affichée pendant la dern
 
 /* ---------- Propre au chapitre 8 : la suite du chapitre 6, l’annonce du chapitre 9 ---------- */
 test('chapitre 8 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 8 : INSERT INTO</title>') && page.includes('<div class="tagpill">Projet · Chapitre 8</div>')
+  assert.ok(page.includes('<title>Requête · Projet : INSERT INTO</title>') && page.includes('<div class="tagpill">Projet · Module 10</div>')
     && page.includes('<span>I</span><span>N</span><span>S</span><span>E</span><span>R</span><span>T</span>') && page.includes('<div class="abs sub">Ajouter des lignes</div>')
-    && page.includes('Ajoute de nouvelles lignes dans une table avec <span class="ic">INSERT</span>.'), 'écran titre : « Projet · Chapitre 8 », INSERT, « Ajouter des lignes »');
+    && page.includes('Ajoute de nouvelles lignes dans une table avec <span class="ic">INSERT</span>.'), 'écran titre : « Projet · Module 10 », INSERT, « Ajouter des lignes »');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les chapitres 2 à 6');
-  assert.equal(caps[1], 'Au chapitre 7, tu as découvert<br>les schémas, qui rangent<br>les tables par espace.', 'le chapitre précédent');
+  assert.equal(caps[0], 'Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les chapitres 2 à 6');
+  assert.equal(caps[1], 'Dans la leçon précédente, tu as découvert les schémas, qui rangent les tables par espace.', 'le chapitre précédent');
   /* La fin du chapitre 7 annonce « INSERT INTO » : c’est ce chapitre. */
   const sch = fs.readFileSync(path.join(root, 'assets/anim/projet-schemas.html'), 'utf8');
   assert.ok(sch.includes('à ajouter des données dans tes tables<br>avec <code>INSERT INTO</code>.') && sch.includes('Prochaine leçon · INSERT INTO</span>'), 'le chapitre 7 annonce celui-ci');

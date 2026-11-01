@@ -63,7 +63,8 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
   /* 490 Kio depuis le 29 octobre : le moteur commun porte la nouvelle intro dans la DA de la vitrine (~8 Kio). */
   /* 495 Kio depuis le 30 octobre : le fond violet de la vitrine dans core.css, et les traits du plan en clair sur ce fond (~2 Kio). */
   /* 505 Kio depuis le 31 octobre : les bulles des légendes (la mascotte qui parle, les mots qui arrivent, le surligneur ; Elisa, 30 octobre, 23 h 42), ~6 Kio. */
-  assert.ok(total < 505 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
+  /* 515 Kio depuis le 1er novembre : la voix off (~6 Kio) et le lien avec la leçon d’avant et celle d’après (~4 Kio) dans le moteur commun. */
+  assert.ok(total < 515 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
   assert.ok(fs.statSync(path.join(ANIM, THUMB)).size > 1000, 'vignette');
 });
 
@@ -148,13 +149,13 @@ test(`${FILE} : deux réponses enchaînées, clear() retire la classe de flash()
 /* ---------- Propre au chapitre 4 ---------- */
 
 test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapitre 5 et récapitulatif`, () => {
-  assert.ok(page.includes('<div class="tagpill">Projet · Chapitre 4</div>') && page.includes('<span>C</span><span>R</span><span>E</span><span>A</span><span>T</span><span>E</span>')
-    && page.includes('<div class="abs sub">Les tables des ateliers</div>'), 'écran titre : « Projet · Chapitre 4 », CREATE, « Les tables des ateliers »');
+  assert.ok(page.includes('<div class="tagpill">Projet · Module 9</div>') && page.includes('<span>C</span><span>R</span><span>E</span><span>A</span><span>T</span><span>E</span>')
+    && page.includes('<div class="abs sub">Les tables des ateliers</div>'), 'écran titre : « Projet · Module 9 », CREATE, « Les tables des ateliers »');
   assert.ok(page.includes('<div class="abs bubble">Crée une nouvelle table en définissant ses colonnes, leurs types et leurs règles.</div>'), 'bulle de la mascotte');
   /* Les bulles du scénario validé, dans l’ordre, avec les six « À toi ! » ; seuls les <br> et les espaces insécables sont libres. */
   const BULLES = [
-    'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.',
-    'Au chapitre 3, tu as dessiné le plan de la base avec un diagramme de classes UML.',
+    'Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.',
+    'Dans la leçon précédente, tu as dessiné le plan de la base avec un diagramme de classes UML.',
     'Tu l’as ensuite traduit en cinq tables, avec leurs colonnes et leurs clés.',
     'La table clients existe déjà : il reste quatre tables à créer.',
     'Tu les écris dans le fichier schema.sql : une requête CREATE TABLE par table.',
@@ -177,7 +178,7 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
     'À toi !',
     'Une date a son propre type : DATE, au format année-mois-jour, comme \'2026-09-12\'.',
     'coach_id est un entier, comme l’identifiant auquel il fait référence.',
-    'La clé étrangère se déclare avec FOREIGN KEY et REFERENCES, comme au chapitre 2.',
+    'La clé étrangère se déclare avec FOREIGN KEY et REFERENCES, comme dans la leçon Clés et relations.',
     'Reste à savoir si coach_id peut rester vide.',
     'À toi !',
     'Le 1 du côté de Coach signifie que chaque atelier est animé par un seul coach.',
@@ -207,7 +208,7 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
     'Ajoute ce résumé à tes notes pour le retrouver facilement.'];
   assert.deepEqual(D.CAPTIONS.map(c => flat(c[2])), BULLES, 'les bulles du scénario, mot pour mot et dans l’ordre');
   /* Les deux premières légendes, communes aux chapitres 4 à 6 (contrat de continuité), et la devise hors de l’app. */
-  assert.ok(page.includes('"Au chapitre 3, tu as dessiné<br>le plan de la base<br>avec un <b class=\\"nw\\">diagramme de classes UML</b>."'), 'le diagramme de classes UML, insécable');
+  assert.ok(page.includes('"Dans la leçon précédente, tu as dessiné<br>le plan de la base<br>avec un <b class=\\"nw\\">diagramme de classes UML</b>."'), 'le diagramme de classes UML, insécable');
   assert.ok(page.includes(': [198.9, 999, "Un plan d’abord,<br>puis une requête par table :<br>c’est ainsi qu’une base prend forme."]'), 'devise (hors de l’app)');
   /* La seule légende trop longue pour trois lignes ordinaires : interlettrage un peu serré, mots intacts. */
   assert.ok(page.includes('#cap .ser{letter-spacing:-1.2px}') && page.includes('"<span class=\\"ser\\">On écrit <code>CREATE TABLE</code>, le nom de la table,<br>'), 'légende de CREATE TABLE en trois lignes');
@@ -222,7 +223,7 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
   /* Le mail de Karim ouvre le chapitre ; celui de l’équipe arrive avant le moment des trois règles de la carte de membre. */
   assert.ok(D.OPENS[0].at < D.CHAPTERS[1].a && D.OPENS[1].at > D.PICKS[3].at && D.OPENS[1].at < D.PICKS[4].from, 'chaque mail avant le moment qui s’en sert');
   /* L’annonce du chapitre suivant, sous son vrai titre. */
-  assert.ok(page.includes('<span class="emo">🔧</span>Chapitre 5 · ALTER TABLE</span>'), 'pilule « 🔧 Chapitre 5 · ALTER TABLE »');
+  assert.ok(page.includes('<span class="emo">🔧</span>Prochaine leçon · ALTER TABLE</span>'), 'pilule « 🔧 Chapitre 5 · ALTER TABLE »');
   /* Les trois idées à retenir : un titre (sans numéro), puis sa précision (comme dans la leçon « Quel JOIN choisir ? »). */
   const recap = page.slice(page.indexOf('<div class="abs card recap" id="recap">'), page.indexOf('</section>', page.indexOf('id="recap"')));
   const rows = [...recap.matchAll(/<div class="rtxt">([\s\S]*?)<\/div><\/div>/g)].map(m => m[1]);
@@ -282,7 +283,7 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
     {label: 'Ses colonnes, mais aucune ligne', ok: true}, {label: 'Une ligne vide, prête à remplir', why: 'Une table neuve ne contient aucune ligne, pas même une ligne vide.'}]);
   assert.ok(page.includes('<i class="z0">0 ligne</i><i class="z1">${ATELIERS.length} lignes ?</i><i class="z2">1 ligne vide ?</i>'), 'chaque réponse se voit sur la table ateliers');
   /* L’indice 💡 de chaque moment, après deux erreurs : une piste, passée par la typographie française. */
-  for (const h of ["'Il faut une valeur à la fois unique et jamais vide : la clé du chapitre 2.',", "'Suis les flèches : chaque table vise-t-elle une table déjà là ?',",
+  for (const h of ["'Il faut une valeur à la fois unique et jamais vide : la clé primaire, vue dans la leçon Clés et relations.',", "'Suis les flèches : chaque table vise-t-elle une table déjà là ?',",
     "'Pour chaque colonne, imagine une valeur : des lettres, un nombre, une date ?',", "'Pour un atelier donné, combien de coachs ? Ce nombre s’écrit du côté de la classe Coach.',",
     "'Valeur de départ, condition à vérifier, pas de doublon : à chaque règle son mot-clé.',", "'CREATE TABLE décrit les colonnes : qui a déjà enregistré des ateliers dans cette table ?'][i];",
     'return h ? {text: fr(h)} : null;'])
