@@ -22,7 +22,9 @@ const QUESTIONS = JSON.parse(JSON.stringify(ctx.ENTRETIEN));
 const catsStart = app.indexOf('const ENTRETIEN_CATS=');
 const catsEnd = app.indexOf(';', catsStart);
 vm.runInContext(app.slice(catsStart, catsEnd + 1).replace('const ENTRETIEN_CATS=', 'ENTRETIEN_CATS='), ctx);
-const NIVEAUX = JSON.parse(JSON.stringify(ctx.ENTRETIEN_CATS)).filter(([k]) => k !== 'all').map(([, label]) => label);
+const FILTRES = JSON.parse(JSON.stringify(ctx.ENTRETIEN_CATS)).filter(([k]) => k !== 'all').map(([key, label]) => ({ key, label }));
+const NIVEAUX = [...new Set(QUESTIONS.map(q => q.niveau))];
+const NOTIONS = [...new Set(QUESTIONS.map(q => q.cat))];
 
 /* Texte affiché : sans balises, entités décodées, espaces insécables ramenées à des espaces simples */
 const texte = h => h.replace(/<[^>]+>/g, '')
@@ -42,7 +44,32 @@ test('l’appli a bien ses questions d’entretien, lues ici sans en perdre', ()
   assert.equal(QUESTIONS.length, 75);
   assert.deepEqual(NIVEAUX, ['Débutant', 'Intermédiaire', 'Avancé']);
   assert.deepEqual(NIVEAUX.map(n => QUESTIONS.filter(q => q.niveau === n).length), [25, 25, 25]);
+  assert.deepEqual(FILTRES.map(f => f.key), NOTIONS, 'les filtres correspondent aux notions de la banque');
   assert.ok(QUESTIONS.every(q => q.id && q.cat && q.q && q.a && q.niveau && q.dialectes?.length), 'chaque carte a ses métadonnées');
+});
+
+test('les filtres de la banque sélectionnent les notions, pas les niveaux', () => {
+  const fnsStart = app.indexOf('function entMark(');
+  const fnsEnd = app.indexOf('function entFoot(', fnsStart);
+  const ctx = vm.createContext({ state: { entretien: {} } });
+  vm.runInContext(app.slice(start, end + 3).replace('const ENTRETIEN=', 'ENTRETIEN=') + ';', ctx);
+  vm.runInContext(app.slice(fnsStart, fnsEnd) + '\nlet entFilter="all",entStatus="all";', ctx);
+  for (const notion of NOTIONS) {
+    const actual = JSON.parse(JSON.stringify(vm.runInContext(`(entFilter=${JSON.stringify(notion)},entVisibleItems().map(x=>x.q.cat))`, ctx)));
+    assert.ok(actual.length > 0 && actual.every(cat => cat === notion), `${notion}: seules ses questions sont affichées`);
+    assert.equal(actual.length, QUESTIONS.filter(q => q.cat === notion).length, `${notion}: compteur exact`);
+  }
+});
+
+test('la liste rassemble chaque notion dans un seul groupe', () => {
+  const groupStart = app.indexOf('function entGroupItems(');
+  const groupEnd = app.indexOf('\nfunction entFoot(', groupStart);
+  assert.ok(groupStart > 0 && groupEnd > groupStart, 'fonction de regroupement trouvée');
+  vm.runInContext(app.slice(groupStart, groupEnd), ctx);
+  const groups = JSON.parse(JSON.stringify(vm.runInContext('entGroupItems(ENTRETIEN.map((q,i)=>({q,id:String(i)})))', ctx)));
+  assert.deepEqual(groups.map(g => g.cat), NOTIONS);
+  assert.equal(new Set(groups.map(g => g.cat)).size, groups.length);
+  assert.deepEqual(groups.map(g => g.items.length), NOTIONS.map(cat => QUESTIONS.filter(q => q.cat === cat).length));
 });
 
 test('le nombre de questions et de niveaux annoncé correspond à l’appli', () => {

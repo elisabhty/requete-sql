@@ -30008,7 +30008,7 @@ const ENTRETIEN=[
  {id:'ent-v2-74',niveau:'Avancé',cat:'Pagination',dialectes:['PostgreSQL','MySQL','SQL Server'],q:"Comment fonctionne la pagination avec LIMIT/OFFSET ou OFFSET/FETCH ?",a:"LIMIT/OFFSET et OFFSET/FETCH sautent un nombre de lignes puis en retournent une quantité donnée; OFFSET/FETCH exige un ORDER BY dans SQL Server. Un ordre stable est nécessaire, et un grand OFFSET peut coûter cher; la pagination par clé est souvent préférable à grande échelle.",sql:"PostgreSQL / MySQL : SELECT * FROM clients ORDER BY id LIMIT 10 OFFSET 20;\nSQL Server : SELECT * FROM clients ORDER BY id OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY;"},
  {id:'ent-v2-75',niveau:'Avancé',cat:'Entretien',dialectes:['Standard'],q:"Comment trouver le deuxième salaire le plus élevé d’une table ?",a:"Pour le deuxième salaire distinct, on classe les valeurs avec DENSE_RANK() en ordre décroissant puis on garde le rang 2. Si l’entretien demande la deuxième ligne plutôt que le deuxième salaire distinct, il faut préciser la règle de gestion des ex æquo.",sql:"WITH r AS (SELECT salaire, DENSE_RANK() OVER (ORDER BY salaire DESC) AS rang FROM employes) SELECT DISTINCT salaire FROM r WHERE rang = 2;"}
 ];
-const ENTRETIEN_CATS=[['all','Tous niveaux'],['Débutant','Débutant'],['Intermédiaire','Intermédiaire'],['Avancé','Avancé']];
+const ENTRETIEN_CATS=[['all','Toutes les notions'],['Bases','Bases'],['Requêtes','Requêtes'],['Filtres','Filtres'],['NULL','NULL'],['Agrégats','Agrégats'],['Jointures','Jointures'],['Dates','Dates'],['Chaînes','Chaînes'],['Conditions','Conditions'],['Contraintes','Contraintes'],['Ensembles','Ensembles'],['Alias','Alias'],['Sous-requêtes','Sous-requêtes'],['CTE','CTE'],['Doublons','Doublons'],['Fonctions fenêtre','Fonctions fenêtre'],['Index','Index'],['Transactions','Transactions'],['Vues','Vues'],['Modélisation','Modélisation'],['JSON','JSON'],['Performances','Performances'],['MERGE','MERGE'],['Procédures','Procédures'],['Triggers','Triggers'],['Sécurité','Sécurité'],['Pagination','Pagination'],['Entretien','Entretien']];
 let entFilter='all';
 let entStatus='review';
 let entOpen=null;
@@ -30033,11 +30033,16 @@ function entNum(q){
 function entAllItems(){ return ENTRETIEN.map((q,i)=>({q,id:entId(q,i),n:entNum(q),i})); }
 function entVisibleItems(){
   return entAllItems().filter(x=>{
-    if(entFilter!=='all'&&x.q.niveau!==entFilter)return false;
+    if(entFilter!=='all'&&x.q.cat!==entFilter)return false;
     if(entStatus==='ok')return entOk(x.id);
     if(entStatus==='review')return !entOk(x.id);
     return true;
   });
+}
+function entGroupItems(items){
+  return ENTRETIEN_CATS.filter(([key])=>key!=='all')
+    .map(([cat])=>({cat,items:items.filter(x=>x.q.cat===cat)}))
+    .filter(group=>group.items.length);
 }
 function entFoot(id){
   const mark=entRawMark(id);
@@ -30067,8 +30072,8 @@ function paintEntProgress(){
   const ok=entTotalOk(), total=ENTRETIEN.length;
   const remaining=total-ok;
   const pct=total?Math.round(ok/total*100):0;
-  const levels=ENTRETIEN_CATS.filter(([k])=>k!=='all').map(([k])=>ENTRETIEN.filter(q=>q.niveau===k));
-  const masteredTopics=levels.filter(items=>items.length&&items.every(q=>entOk(entId(q,ENTRETIEN.indexOf(q))))).length;
+  const notions=ENTRETIEN_CATS.filter(([k])=>k!=='all').map(([k])=>ENTRETIEN.filter(q=>q.cat===k));
+  const masteredTopics=notions.filter(items=>items.length&&items.every(q=>entOk(entId(q,ENTRETIEN.indexOf(q))))).length;
   const reviewed=ENTRETIEN.filter((q,i)=>entRawMark(entId(q,i))==='review').length;
   const title=ok===total?'Tout est maîtrisé':(ok?'Continue sur ta lancée':'Prêt pour une question ?');
   const sub=ok===total?'Refais un tour pour garder les réflexes.':'Réponds d’abord, compare ensuite.';
@@ -30080,7 +30085,7 @@ function paintEntProgress(){
     </div>
     <div class="ent-hero-stats"><strong>${ok} / ${total} maîtrisées</strong><span>${remainingLabel}</span></div>
     <div class="ent-progress-line" role="progressbar" aria-label="Questions maîtrisées" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${ok}"><i style="width:${pct}%"></i></div>
-    <div class="ent-readiness-stats"><div><b>${ok}</b><small>Maîtrisées</small></div><div><b>${reviewed}</b><small>À retravailler</small></div><div><b>${masteredTopics}/${levels.length}</b><small>Niveaux validés</small></div></div>
+    <div class="ent-readiness-stats"><div><b>${ok}</b><small>Maîtrisées</small></div><div><b>${reviewed}</b><small>À retravailler</small></div><div><b>${masteredTopics}/${notions.length}</b><small>Notions validées</small></div></div>
     <button type="button" class="ent-hero-cta" onclick="startEntretien()"><span>${cta}</span>${ENT_CHEV_SVG}</button>`;
 }
 function renderEntretienFocus(x){
@@ -30137,7 +30142,7 @@ function renderEntretien(opts){
   const fbar=document.getElementById('ent-filters');
   if(fbar){
     fbar.innerHTML=ENTRETIEN_CATS.map(([k,l])=>{
-      const n=k==='all'?ENTRETIEN.length:ENTRETIEN.filter(q=>q.niveau===k).length;
+      const n=k==='all'?ENTRETIEN.length:ENTRETIEN.filter(q=>q.cat===k).length;
       return `<button type="button" class="fchip ${entFilter===k?'on':''}" aria-pressed="${entFilter===k?'true':'false'}" onclick="setEntFilter('${k}')">${l}<small>${n}</small></button>`;
     }).join('');
   }
@@ -30152,26 +30157,21 @@ function renderEntretien(opts){
     list.innerHTML=intro+`<div class="ent-empty"><span class="ent-empty-ico">${ENT_OK_SVG}</span><b>${emptyTitle}</b><span>${emptyCopy}</span><button type="button" onclick="${isDone?'startEntretien()':"setEntStatus('review')"}">${isDone?'Revoir une question':'Voir les questions à revoir'}</button></div>`;
     return;
   }
-  const groups=[];
-  items.forEach(x=>{
-    const last=groups[groups.length-1];
-    if(!last||last.niveau!==x.q.niveau) groups.push({niveau:x.q.niveau,items:[x]});
-    else last.items.push(x);
-  });
+  const groups=entGroupItems(items);
   list.innerHTML=intro+groups.map((g,groupIndex)=>{
-    const catItems=entAllItems().filter(x=>x.q.niveau===g.niveau);
+    const catItems=entAllItems().filter(x=>x.q.cat===g.cat);
     const nOk=catItems.filter(x=>entOk(x.id)).length;
     const complete=nOk===catItems.length;
     const progress=entStatus==='review'?`${g.items.length} à revoir`:(entStatus==='ok'?`${g.items.length} maîtrisées`:`${nOk}/${catItems.length} maîtrisées`);
     return `<details class="ent-group ent-topic${complete?' complete':''}">
-    <summary><span class="ent-topic-num">${complete?ENT_OK_SVG:String(groupIndex+1).padStart(2,'0')}</span><span class="ent-topic-copy"><b>${g.niveau}</b><small>${progress}</small></span><span class="ent-topic-side"><em>${complete?'Validé':`${nOk}/${catItems.length}`}</em><i aria-hidden="true">⌄</i></span></summary>
+    <summary><span class="ent-topic-num">${complete?ENT_OK_SVG:String(groupIndex+1).padStart(2,'0')}</span><span class="ent-topic-copy"><b>${g.cat}</b><small>${progress}</small></span><span class="ent-topic-side"><em>${complete?'Validé':`${nOk}/${catItems.length}`}</em><i aria-hidden="true">⌄</i></span></summary>
     <div class="ent-group-list">${g.items.map(x=>{
       const q=x.q, id=x.id;
       const ok=entOk(id);
       return `<div class="ecard${ok?' ok':''}" data-id="${id}">
       <button type="button" class="eh" onclick="openEntretienQuestion('${id}')">
         <span class="eno" aria-hidden="true">${ok?ENT_OK_SVG:x.n}</span>
-        <span class="eq">${q.q}<small>${q.cat}</small></span>
+        <span class="eq">${q.q}<small>${q.niveau}</small></span>
         ${ok?'<span class="ent-mastered-label">Maîtrisée</span>':`<span class="echev" aria-hidden="true">${ENT_CHEV_SVG}</span>`}
       </button>
     </div>`;
@@ -30204,7 +30204,7 @@ function openEntretienQuestion(id){
   if(navigator.vibrate)navigator.vibrate(6);
 }
 function startEntretien(){
-  const pool=entAllItems().filter(x=>entFilter==='all'||x.q.niveau===entFilter);
+  const pool=entAllItems().filter(x=>entFilter==='all'||x.q.cat===entFilter);
   const target=pool.find(x=>!entOk(x.id))||pool[0]||entAllItems()[0];
   if(target)openEntretienQuestion(target.id);
 }
@@ -30213,7 +30213,7 @@ function startEntretien(){
    à partir de la question ouverte, parmi celles de l’onglet (et du thème choisi). Plus aucune autre : retour à la liste. */
 function entInTab(x){ return entStatus==='ok'?entOk(x.id):entStatus==='review'?!entOk(x.id):true; }
 function entNextTarget(id){
-  const pool=entAllItems().filter(x=>entFilter==='all'||x.q.niveau===entFilter);
+  const pool=entAllItems().filter(x=>entFilter==='all'||x.q.cat===entFilter);
   const cur=pool.findIndex(x=>x.id===id);
   for(let k=1;k<=pool.length;k++){
     const c=pool[(Math.max(-1,cur)+k)%pool.length];
