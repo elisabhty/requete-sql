@@ -6644,7 +6644,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=77">
+<link rel="stylesheet" href="ludique.css?v=78">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -10627,16 +10627,22 @@ function defiIndices(c){
 const JEU_IND_T=[150000,300000,450000];
 let COACH=null;
 function coachReset(c,kind,round){COACH={c,kind,round,n:0,view:0,diag:'',fx:''};coachPaint();}
-function defiIndicesHTML(c,n,view,diag,next){
+/* Elisa, 1er novembre, 15 h 36 : la carte « dans la DA du site », remontée juste après la question, « avec un À toi de jouer animé
+   qui se transforme en indice ». Carte blanche à rebord lilas ; en tête, une étiquette violette « À toi de jouer » avec un curseur qui
+   clignote ; au premier indice, l’étiquette se retourne et devient la vignette jaune « Indice 1/3 ». Le dernier essai raté s’affiche
+   dans un encart rose « Pas encore » ; en salle, le compte à rebours de l’indice suivant ferme la carte. */
+function defiIndicesHTML(c,n,view,diag,next,kind){
   n=Math.min(3,n||0);
-  if(!c||(!n&&!diag&&next==null))return '';
-  const I=defiIndices(c),v=Math.min(n,Math.max(1,view||n));
-  const st=diag?`<div class="coach-st"><span class="coach-ico" aria-hidden="true">≈</span><div><b>Pas encore</b><p>${diag}</p></div></div>`:'';
-  const hint=n?`<div class="coach-hint" data-v="${v}"><div class="coach-h"><span class="coach-tag">Indice ${v}/3</span><b>${I[v-1][0]}</b>`+
-    `<span class="coach-dots" role="group" aria-label="Indices">${[1,2,3].map(i=>`<button type="button" class="coach-dot${i<=n?' is-on':''}${i===v?' is-cur':''}"${i>n?' disabled':''} onclick="coachVoir(${i})" aria-label="Indice ${i}${i>n?', pas encore donné':''}" aria-pressed="${i===v}"></button>`).join('')}</span></div>`+
-    `<div class="coach-t">${I[v-1][1]}</div>${n>=3&&v===3?'<p class="coach-fin">C’était le dernier indice. La requête ne sera pas dévoilée : à toi de la trouver.</p>':''}</div>`:'';
+  if(!c)return '';
+  const I=defiIndices(c),v=Math.min(n,Math.max(1,view||n)),room=kind==='room';
+  const tag=n?`<span class="coach-tag is-hint">Indice ${v}/3</span>`:`<span class="coach-tag is-go">À toi de jouer<i class="coach-caret" aria-hidden="true"></i></span>`;
+  const dots=n?`<span class="coach-dots" role="group" aria-label="Indices">${[1,2,3].map(i=>`<button type="button" class="coach-dot${i<=n?' is-on':''}${i===v?' is-cur':''}"${i>n?' disabled':''} onclick="coachVoir(${i})" aria-label="Indice ${i}${i>n?', pas encore donné':''}" aria-pressed="${i===v}"></button>`).join('')}</span>`:'';
+  const head=`<div class="coach-h">${tag}${n?`<b>${I[v-1][0]}</b>`:''}${dots}</div>`;
+  const body=n?`<div class="coach-hint" data-v="${v}"><div class="coach-t">${I[v-1][1]}</div>${n>=3&&v===3?'<p class="coach-fin">C’était le dernier indice. La requête ne sera pas dévoilée : à toi de la trouver.</p>':''}</div>`
+    :`<p class="coach-intro">Écris ta requête, puis touche <b>Exécuter</b>.${room?'':' Un nom de colonne te manque&nbsp;? Touche <b>Schéma</b>. Si tu bloques, un indice arrive après chaque essai raté.'}</p>`;
+  const st=diag?`<div class="coach-st"><span class="coach-st-k">Pas encore</span><p>${diag}</p></div>`:'';
   const nx=next!=null&&n<3?`<p class="coach-next"><i aria-hidden="true"></i>${n?'Indice suivant':'Premier indice'} pour tout le monde dans <b id="coach-cd">${jeuChrono(next)}</b></p>`:'';
-  return `<section class="coach${n?' has-hint':''}${diag?' has-ko':''}" aria-live="polite">${st}${hint}${nx}</section>`;
+  return `<section class="coach${n?' has-hint':' is-go'}${diag?' has-ko':''}" aria-live="polite">${head}${body}${st}${nx}</section>`;
 }
 function coachNext(){
   if(!COACH||COACH.kind!=='room'||typeof JEU==='undefined'||!JEU)return null;
@@ -10645,10 +10651,27 @@ function coachNext(){
 }
 function coachPaint(){
   const sl=document.getElementById('hint-slot');if(!sl||!COACH||COACH.c!==current)return;
-  sl.innerHTML=defiIndicesHTML(COACH.c,COACH.n,COACH.view,COACH.diag,coachNext());
+  sl.innerHTML=defiIndicesHTML(COACH.c,COACH.n,COACH.view,COACH.diag,coachNext(),COACH.kind);
   const card=sl.querySelector('.coach');
   if(card&&COACH.fx&&!prefersReduceMotion()){card.classList.add(COACH.fx);setTimeout(()=>card.classList.remove('is-new-hint','is-new-ko'),900);}
+  /* La carte est au-dessus de l’éditeur : si elle est sortie de l’écran au moment d’un essai raté, une pastille sous « Exécuter » y ramène. */
+  if(card&&(COACH.fx==='is-new-ko'||COACH.fx==='is-new-hint'))coachPeek(card,COACH.fx==='is-new-hint');
   COACH.fx='';
+}
+function coachPeek(card,hint){
+  document.getElementById('coach-peek')?.remove();
+  if(typeof IntersectionObserver==='undefined')return;
+  const b=document.createElement('button');
+  b.type='button';b.id='coach-peek';b.className='coach-peek';b.hidden=true;
+  b.innerHTML=`<span aria-hidden="true">↑</span>${COACH.diag?(hint?'Pas encore · voir l’indice':'Pas encore · voir pourquoi'):'Nouvel indice · le voir'}`;
+  const io=new IntersectionObserver(([e])=>{b.hidden=e.isIntersecting;});
+  const bye=()=>{io.disconnect();b.remove();};
+  b.onclick=()=>{bye();card.scrollIntoView({behavior:prefersReduceMotion()?'auto':'smooth',block:'center'});};
+  document.body.appendChild(b);io.observe(card);
+  /* Elle disparaît d’elle-même au bout de quelques secondes, ou dès qu’on quitte le défi. */
+  setTimeout(()=>{if(b.isConnected)b.classList.add('is-out');setTimeout(()=>{if(b.isConnected)bye();},300);},6000);
+  const sl=document.getElementById('hint-slot');
+  const mo=new MutationObserver(()=>{if(!card.isConnected){mo.disconnect();bye();}});if(sl)mo.observe(sl,{childList:true});
 }
 function coachVoir(i){if(!COACH||i<1||i>COACH.n)return;COACH.view=i;coachPaint();const t=document.querySelector('#hint-slot .coach-hint');if(t&&!prefersReduceMotion()){t.classList.add('is-swap');}}
 /* Un essai raté : ce qui cloche en haut de la carte, qui secoue d’un rien. */
@@ -18660,7 +18683,7 @@ function showScreen(){
   lvCardFit();
   setTimeout(()=>scr.classList.remove('push'),340);
 }
-function leaveLessonScreen(toTab){
+function leaveLessonScreen(toTab,instant){
   annulerBilanAuto();
   stkLeaveLesson();
   if(mode==='jeu')jeuStop();
@@ -18679,7 +18702,7 @@ function leaveLessonScreen(toTab){
     refreshTabScreen(tab);
     saveNav({view:'tab',tab});
   };
-  if(!scr||!target||prefersReduceMotion()||restoringNav){ finish(); return; }
+  if(!scr||!target||prefersReduceMotion()||restoringNav||instant){ finish(); return; }
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active','push','push-back'));
   target.classList.add('active');
   scr.classList.add('active','push-back');
@@ -18803,7 +18826,7 @@ const ED_SCHEMA_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y
 function schAttn(){return typeof mode!=='undefined'&&(mode==='defi'||mode==='jeu')?' sch-attn':'';}
 const editorBlock=(withViz,fname='exercice.sql',o)=>{
   const noExec=current&&current.noExec,jeu=!!(o&&o.jeu),coach=jeu||!!(o&&o.coach);
-  return `
+  return `${coach?'<div id="hint-slot"></div>':''}
   <div class="editor-shell">
     <div class="editor-bar"><span class="dot v"></span><span class="fname">${fname}</span>${jeu?`<button type="button" class="ed-schema${schAttn()}" onclick="openSchemaSheet()" aria-label="Voir le schéma des tables">${ED_SCHEMA_SVG}<span>Schéma</span></button>`:''}${sqlCopyBtn('data-ed="ed-lesson"')}${sqlClearBtn('ed-lesson')}</div>
     <div class="editor-area"><pre><code id="hl-lesson"></code></pre>
@@ -18812,7 +18835,6 @@ const editorBlock=(withViz,fname='exercice.sql',o)=>{
   <div class="run-row"><button class="btn-run" onclick="runLesson()">${RUN_ICO} ${noExec?'Vérifier':'Exécuter'}</button>
   ${jeu?'':`<button class="btn-ghost${schAttn()}" type="button" onclick="openSchemaSheet()">Schéma</button>`}
   ${withViz&&!noExec&&!jeu?`<button class="btn-ghost" type="button" onclick="openViz('ed-lesson')">Pas à pas</button>`:''}</div>
-  ${coach?'<div id="hint-slot"></div>':''}
   <div id="lesson-out" role="status" aria-live="polite" aria-atomic="true" style="overflow-anchor:none"></div>
   ${coach?'':'<div id="hint-slot"></div>'}`;
 };
@@ -18847,7 +18869,9 @@ function openLesson(id, restoreStep){
   saveNav();
   /* Elisa, 1er novembre, 13 h 46 : « avant un cours, toujours avoir une page avec la DA du site internet : Commencer ». Ouvrir un
      cours (pas une reprise automatique au lancement) passe par sa page de départ ; la vidéo démarre au « Commencer ». */
-  if(restoreStep==null&&!restoringNav&&typeof lessonStartShow==='function'){
+  /* 15 h 36 : « généraliser la page avant de commencer à tous les cours » : aussi quand on arrive par une étape précise (les pastilles
+     Leçon / Exercice / Quiz et le bouton de l’accueil). Seule la reprise automatique au lancement de l’app la saute. */
+  if(!restoringNav&&typeof lessonStartShow==='function'){
     lessonStartShow(l,()=>{if(current===l&&lessonStep===0&&lessonVideoOn(l))openLessonVideo();});
     return;
   }
@@ -18889,10 +18913,12 @@ function lessonStartShow(l,go){
   document.body.appendChild(root);
   lstFit();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(lstFit);
   const close=ok=>{
+    /* La croix ramène toujours à l’accueil (14 h 43), et directement (15 h 36) : l’accueil se met en place sous la page, sans la
+       glissade de l’écran du cours, puis la page s’efface par-dessus. */
+    if(!ok)leaveLessonScreen('learn',true);
     root.classList.add('is-out');
     setTimeout(()=>root.remove(),prefersReduceMotion()?0:220);
-    /* La croix ramène toujours à l’accueil (14 h 43). */
-    if(ok)go&&go();else leaveLessonScreen('learn');
+    if(ok)go&&go();
   };
   root.querySelector('.lst-go').onclick=()=>{if(typeof buzz==='function')buzz('light');close(true);};
   root.querySelector('.lst-close').onclick=()=>close(false);
@@ -18911,6 +18937,8 @@ function lstFit(){
     if(need()<=root.clientHeight)break;
     root.classList.add(c);
   }
+  /* Filet de sécurité : si même le dernier palier ne suffit pas (zoom très fort), on peut faire défiler plutôt que couper. */
+  root.classList.toggle('lst-scroll',need()>root.clientHeight);
 }
 if(typeof window!=='undefined')window.addEventListener('resize',()=>{if(document.getElementById('lesson-start'))lstFit();});
 /* « Quel JOIN choisir ? » : l'exercice se débloque avec au moins 5/6 au quiz « À toi de choisir ». */
@@ -25505,7 +25533,6 @@ function openChallenge(cid){
     ${defiConsigneHTML(c)}
     ${jeuEligible(c)?challengeHowHTML(c):''}
     <div id="defi-solo-block">
-    <p style="font-size:13.5px;color:var(--ink-2);margin:0 4px 14px">La syntaxe reste à construire par toi. Touche <b>Schéma</b> sous l’éditeur si un nom de colonne te manque.</p>
     ${editorBlock(true,'defi.sql',{coach:1})}
     </div>`;
   setupEditor('ed-lesson','hl-lesson'); showScreen();
@@ -32031,7 +32058,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-secure-multiplayer-v2258';
+  const SW_CACHE='requete-2026-11-01-coach-v2259';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
