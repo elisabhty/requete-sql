@@ -6644,9 +6644,9 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=76">
+<link rel="stylesheet" href="ludique.css?v=77">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=3">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -18885,6 +18885,7 @@ function lessonStartShow(l,go){
     <ol class="lst-plan">${plan.map(([t,d],i)=>`<li style="--i:${i}"><b class="lst-n">${i+1}</b><span><b>${t}</b><small>${d}</small></span></li>`).join('')}</ol>
     <button type="button" class="lst-go"><span>${done?'Revoir le cours':started?'Reprendre':'Commencer'}</span>${DEF_CHEV_SVG}</button>`;
   document.body.appendChild(root);
+  lstFit();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(lstFit);
   const close=ok=>{
     root.classList.add('is-out');
     setTimeout(()=>root.remove(),prefersReduceMotion()?0:220);
@@ -18896,6 +18897,20 @@ function lessonStartShow(l,go){
   root.tabIndex=-1;
   requestAnimationFrame(()=>{try{root.focus({preventScroll:true});}catch(e){}});
 }
+/* 15 h 12 : « doit tenir sur une page, rien de coupé ». Comme l’onboarding (obFit), on resserre par paliers jusqu’à ce que tout tienne. */
+function lstFit(){
+  const root=document.getElementById('lesson-start');if(!root)return;
+  const C=['lst-fit-1','lst-fit-2','lst-fit-3','lst-fit-4','lst-fit-5'];
+  root.classList.remove(...C);
+  /* Hauteur réelle du contenu, sans les décalages des animations d’entrée (translateY) qui gonfleraient scrollHeight. */
+  const need=()=>{const cs=getComputedStyle(root),kids=[...root.children];
+    return kids.reduce((h,k)=>h+k.offsetHeight,0)+(kids.length-1)*(parseFloat(cs.rowGap)||0)+parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom)+4;};
+  for(const c of C){
+    if(need()<=root.clientHeight)break;
+    root.classList.add(c);
+  }
+}
+if(typeof window!=='undefined')window.addEventListener('resize',()=>{if(document.getElementById('lesson-start'))lstFit();});
 /* « Quel JOIN choisir ? » : l'exercice se débloque avec au moins 5/6 au quiz « À toi de choisir ». */
 const JC_PASS=new Set();
 function jcPassed(id){
@@ -30559,10 +30574,21 @@ function obSignClear(){
 }
 /* « Pour l’onboarding, il faut que tout tienne sur une page, il ne faut pas qu’on ait à scroller pour tout voir » (13 h 46). Si
    l’écran déborde, il se resserre par paliers (titres, mascotte, cartes plus compactes, puis textes secondaires retirés). */
+/* 15 h 12 : « rien de coupé ». obFit repasse quand les polices, les images et l’animation d’accueil ont fini de se poser
+   (mesurer trop tôt laissait la démo de l’accueil coupée), et un 4e palier serre encore sur les très petits écrans. */
+function obFitSoon(){
+  const st=obStep;
+  obFit();
+  const again=()=>{if(obStep===st)obFit();};
+  if(typeof document!=='undefined'&&document.fonts&&document.fonts.ready)document.fonts.ready.then(again);
+  document.querySelectorAll('#ob-body img').forEach(im=>{if(!im.complete)im.addEventListener('load',again,{once:true});});
+  [350,900,1800].forEach(t=>setTimeout(again,t));
+}
 function obFit(){
   const body=document.getElementById('ob-body'),root=document.getElementById('onboarding');if(!body||!root)return;
-  root.classList.remove('ob-fit-1','ob-fit-2','ob-fit-3');
-  for(const c of ['ob-fit-1','ob-fit-2','ob-fit-3']){
+  const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4'];
+  root.classList.remove(...C);
+  for(const c of C){
     if(body.scrollHeight<=body.clientHeight+1)break;
     root.classList.add(c);
   }
@@ -30848,7 +30874,7 @@ function paintOb(){
   body.classList.remove('out');
   body.innerHTML=html;
   body.scrollTop=0;
-  obFit();
+  obFitSoon();
   /* Salve de confettis à l'arrivée sur l'écran final : le parcours vient
      d'être construit, c'est le moment de réussite de l'onboarding. */
   if(slide==='ready'){ setTimeout(()=>{ if(OB_SLIDES[obStep]==='ready'&&typeof celebrate==='function') celebrate(); },260); }
@@ -31990,7 +32016,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-rythme-v2256';
+  const SW_CACHE='requete-2026-11-01-tient-v2257';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
