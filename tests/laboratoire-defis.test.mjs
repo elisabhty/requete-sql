@@ -20,7 +20,7 @@ const base = () => { const db = new SQL.Database(); db.run(seed); return db; };
 const challenge = id => laboratory.find(c => c.id === id);
 
 test('le catalogue contient trente défis Laboratoire, dix par niveau', () => {
-  assert.equal(challenges.length, 207);
+  assert.equal(challenges.length, 267);
   assert.equal(laboratory.length, 30);
   for (const [prefix, level] of [['lf', 'f'], ['lm', 'm'], ['ld', 'd']]) {
     const group = laboratory.filter(c => c.id.startsWith(prefix));
