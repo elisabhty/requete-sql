@@ -525,7 +525,7 @@ const CHECKS = {
   ]
  ]
 };
-const NOMS = { hopital: 'Hôpital', wok: 'Wok', zoo: 'Zoo', fromagerie: 'Fromagerie', labo: 'Laboratoire de recherche', voyages: 'Agence de voyages' };
+const NOMS = { hopital: 'Hôpital', wok: 'Wok chinois', zoo: 'Zoo', fromagerie: 'Fromagerie', labo: 'Laboratoire de recherche', voyages: 'Agence de voyages' };
 const VOLUMES = {
   hopital: { services: 6, medecins: 14, infirmiers: 10, patients: 40, consultations: 45, hospitalisations: 29, prescriptions: 60 },
   wok: { categories: 6, plats: 20, ingredients: 15, plats_ingredients: 30, clients: 30, serveurs: 8, tables_resto: 10, commandes: 40, lignes_commande: 72, avis: 20 },
@@ -584,6 +584,8 @@ test('la Console : sept bases d’entraînement en plus de celle du cours, const
   assert.ok(app.includes("function openConsoleProject(id){\n  if(id!=='cours'&&!customDbs[id]&&!demoDb(id))return;"));
   assert.ok(app.includes("const n=database?listTables(database).length:isDemoDb(id)?Object.keys(DEFI_BASES[id].tables||{}).length:0;"), 'le nombre de tables sans construire la base');
   assert.ok(app.includes('<div class="console-projects-head"><h2>Bases d’entraînement</h2><span>${plur(demos.length,\'base\')}</span></div>'));
+  assert.ok(app.includes("wok:{nom:'Wok chinois',"), 'la Console nomme la base comme un restaurant chinois');
+  assert.ok(app.includes('Bienvenue dans un restaurant chinois spécialisé dans la cuisine au wok.'), 'description de la base Wok');
   assert.ok(app.includes("${mine.length?`<div class=\"console-projects-head\"><h2>Tes projets</h2>"), 'tes projets d’abord, s’il y en a');
   for (const id of Object.keys(NOMS)) assert.ok(new RegExp(`\\n  ${id}:'SELECT `).test(cut('const DEMO_SQL={', '\n};')), `requête de départ : ${id}`);
   assert.ok(app.includes("  if(isDemoDb(target)){toast(`La ${demoLabel(target).replace(/^Base/,'base')} est protégée`);return null;}"));
