@@ -162,7 +162,7 @@ test('16 h 03 : le clavier « Insérer » ne pose plus d’espace en trop', () =
 
 test('16 h 26 : dans « Clés et relations », le premier CREATE TABLE annonce qu’on apprendra à l’écrire au module suivant', () => {
   const cles = fs.readFileSync(new URL('../assets/anim/projet-cles.html', import.meta.url), 'utf8');
-  assert.ok(cles.includes("a += sqlCard('sq-pk', SQL.pk, 64, 952, 'Tu apprendras à écrire ces tables dans le prochain module.');"));
+  assert.ok(cles.includes("a += sqlCard('sq-pk', SQL.pk, 64, 952, 'Tu apprendras à créer ces tables dans le prochain module.');"));
   assert.ok(cles.includes('${note ? `<div class="sq-note"><span class="emo">✍️</span>${note}</div>` : \'\'}'));
 });
 
