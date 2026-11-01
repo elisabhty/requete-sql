@@ -6646,7 +6646,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=82">
+<link rel="stylesheet" href="ludique.css?v=83">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -14399,6 +14399,14 @@ const SQLX=(()=>{
     return right?a.join('')+fill:fill+a.join('');
   }
   function trunc(x,d){
+    /* TRUNC d’une date (Oracle) : TRUNC(SYSDATE) → le jour, TRUNC(d, 'MM') → le 1er du mois, 'YYYY' → le 1er janvier, 'Q' → le trimestre. */
+    if(typeof x==='string'&&num(x)===null){const p=sqlDate(x);if(!p)return null;const D=p.d,Y=D.getUTCFullYear(),M=D.getUTCMonth();
+      const f=isNull(d)||d===undefined?'DD':String(d).toUpperCase();
+      if(/^(YYYY|YYY|YY|Y|YEAR|SYYYY)$/.test(f))return ymd(new Date(Date.UTC(Y,0,1)));
+      if(/^(Q)$/.test(f))return ymd(new Date(Date.UTC(Y,M-M%3,1)));
+      if(/^(MM|MON|MONTH|RM)$/.test(f))return ymd(new Date(Date.UTC(Y,M,1)));
+      if(/^(IW)$/.test(f))return ymd(new Date(Date.UTC(Y,M,D.getUTCDate()-((D.getUTCDay()+6)%7))));
+      return ymd(new Date(Date.UTC(Y,M,D.getUTCDate())));}
     x=num(x);if(x===null)return null;
     const f=Math.pow(10,num(d)||0);
     return (x<0?Math.ceil(x*f):Math.floor(x*f))/f;
@@ -14484,10 +14492,33 @@ const SQLX=(()=>{
     REGEXP_SUBSTR:(s,p)=>{if(isNull(s)||isNull(p))return null;const r=rx(p);const m=r&&r.exec(str(s));return m?m[0]:null;},
     REGEXP_COUNT:(s,p)=>{if(isNull(s)||isNull(p))return null;let r;try{r=new RegExp(String(p),'g');}catch(e){return null;}return (str(s).match(r)||[]).length;},
     TRUNC:(x,d)=>trunc(x,d),TRUNCATE:(x,d)=>trunc(x,d),
+    /* Elisa, 1er novembre, 18 h 24 : « vérifie si on peut encore plus booster le moteur ». Fonctions courantes qui manquaient. */
+    WEEK:(x,mode)=>{const p=sqlDate(x);if(!p)return null;const d=p.d;if([1,3].includes(num(mode)))return isoWeek(d);
+      const y0=Date.UTC(d.getUTCFullYear(),0,1),yd=Math.round((Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate())-y0)/864e5);return Math.floor((yd+7-d.getUTCDay())/7);},
+    NEXT_DAY:(x,j)=>{const p=sqlDate(x);if(!p||isNull(j))return null;const k=String(j).trim().toLowerCase().slice(0,3);
+      const N={sun:0,dim:0,mon:1,lun:1,tue:2,mar:2,wed:3,mer:3,thu:4,jeu:4,fri:5,ven:5,sat:6,sam:6}[k];if(N===undefined)return null;
+      const d=p.d;let e=(N-d.getUTCDay()+7)%7||7;return ymd(new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()+e)));},
+    DATENAME:(u,x)=>{const p=sqlDate(x);if(!p)return null;const k=unit(u);if(k==='month')return MONTHS[p.d.getUTCMonth()];if(k==='dow'||/^(weekday|dw)$/i.test(String(u)))return DAYS[p.d.getUTCDay()];const v=part(u,p.d);return v===null?null:String(v);},
+    DATALENGTH:x=>isNull(x)?null:new TextEncoder().encode(str(x)).length,
+    BIT_LENGTH:x=>isNull(x)?null:8*new TextEncoder().encode(str(x)).length,
+    PATINDEX:(pat,s)=>{if(isNull(pat)||isNull(s))return null;let q=String(pat);const debut=!q.startsWith('%');q=q.replace(/^%+|%+$/g,'');
+      const re=q.split('').map(c=>c==='_'?'.':c==='%'?'.*':c.replace(/[.*+?^${}()|\\]/g,'\\$&')).join('').replace(/\\\[/g,'[').replace(/\\\]/g,']');
+      let r;try{r=new RegExp((debut?'^':'')+re,'i');}catch(e){return null;}const m=r.exec(str(s));return m?m.index+1:0;},
+    STUFF:(s,a,n,t)=>{if(isNull(s)||num(a)===null||num(n)===null)return null;const c=chars(str(s)),i=num(a)-1;if(i<0||i>c.length)return null;
+      return c.slice(0,i).join('')+(isNull(t)?'':str(t))+c.slice(i+num(n)).join('');},
+    ISNUMERIC:x=>isNull(x)?0:(typeof x==='number'||/^\s*[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?\s*$/i.test(String(x))?1:0),
+    GETUTCDATE:()=>out(new Date(),true),
+    UNIX_TIMESTAMP:x=>{if(x===undefined)return Math.floor(Date.now()/1000);const p=sqlDate(x);return p?Math.floor(p.d.getTime()/1000):null;},
+    FROM_UNIXTIME:n=>num(n)===null?null:out(new Date(num(n)*1000),true),
+    FIELD:(x,...a)=>{if(isNull(x))return 0;const i=a.findIndex(v=>same(x,v));return i+1;},
+    ELT:(n,...a)=>{const i=num(n);return i>=1&&i<=a.length?a[i-1]:null;},
+    FIND_IN_SET:(x,l)=>{if(isNull(x)||isNull(l))return null;const i=str(l).split(',').indexOf(str(x));return i+1;},
+    UUID:()=>typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16);}),
     GREATEST:(...a)=>pick(a,1),LEAST:(...a)=>pick(a,-1),
     RAND:()=>Math.random(),
     DECODE:(x,...a)=>{for(let i=0;i+1<a.length;i+=2)if(same(x,a[i]))return a[i+1];return a.length%2?a[a.length-1]:null;}
   };
+  variadic.NEWID=variadic.UUID;variadic.GEN_RANDOM_UUID=variadic.UUID;
   /* Agrégats : LISTAGG d’Oracle, écarts-types et variances (STDEV, VARIANCE et MEDIAN existent déjà dans le moteur). */
   const stats=(kind,sample)=>({init:()=>[],step:(st,x)=>{if(num(x)!==null)st.push(num(x));return st;},finalize:st=>{
     const a=st||[],n=a.length;if(!n||(sample&&n<2))return null;
@@ -14497,8 +14528,18 @@ const SQLX=(()=>{
     LISTAGG:{variadic:true,init:()=>({v:[],sep:null}),step:(st,x,sep)=>{if(!isNull(x))st.v.push(str(x));if(st.sep===null&&sep!==undefined)st.sep=isNull(sep)?'':str(sep);return st;},
       finalize:st=>st&&st.v.length?st.v.join(st.sep===null?'':st.sep):null},
     STDDEV:stats('sd',true),STDDEV_SAMP:stats('sd',true),STDDEV_POP:stats('sd',false),STDEVP:stats('sd',false),
-    VAR_SAMP:stats('var',true),VAR_POP:stats('var',false),VAR:stats('var',true),VARP:stats('var',false)
+    VAR_SAMP:stats('var',true),VAR_POP:stats('var',false),VAR:stats('var',true),VARP:stats('var',false),
+    /* 18 h 24 : tous vrais / au moins un vrai (PostgreSQL), percentiles et valeur la plus fréquente (réécrits depuis WITHIN GROUP). */
+    BOOL_AND:{init:()=>null,step:(st,x)=>isNull(x)?st:(st===null?(num(x)?1:0):(st&&num(x)?1:0)),finalize:st=>st},
+    BOOL_OR:{init:()=>null,step:(st,x)=>isNull(x)?st:(st===null?(num(x)?1:0):(st||num(x)?1:0)),finalize:st=>st},
+    PERCENTILE_CONT:{init:()=>({v:[],p:null}),step:(st,x,p)=>{if(num(x)!==null)st.v.push(num(x));if(st.p===null&&num(p)!==null)st.p=num(p);return st;},
+      finalize:st=>{if(!st||!st.v.length||st.p===null)return null;const a=st.v.sort((x,y)=>x-y),r=st.p*(a.length-1),lo=Math.floor(r),hi=Math.ceil(r);return a[lo]+(a[hi]-a[lo])*(r-lo);}},
+    PERCENTILE_DISC:{init:()=>({v:[],p:null}),step:(st,x,p)=>{if(!isNull(x))st.v.push(x);if(st.p===null&&num(p)!==null)st.p=num(p);return st;},
+      finalize:st=>{if(!st||!st.v.length||st.p===null)return null;const a=st.v.sort((x,y)=>typeof x==='number'&&typeof y==='number'?x-y:String(x).localeCompare(String(y)));return a[Math.max(0,Math.ceil(st.p*a.length)-1)];}},
+    MODE:{init:()=>new Map(),step:(st,x)=>{if(!isNull(x))st.set(x,(st.get(x)||0)+1);return st;},
+      finalize:st=>{let best=null,n=0;if(st)for(const [k,c] of st){if(c>n||(c===n&&k<best)){best=k;n=c;}}return best;}}
   };
+  aggregate.EVERY=aggregate.BOOL_AND;
   return {fixed,variadic,aggregate};
 })();
 /* Écritures d’autres SGBD réécrites pour SQLite juste avant l’exécution (hors textes entre guillemets et commentaires) :
@@ -14506,7 +14547,7 @@ const SQLX=(()=>{
    ISNULL(a, b) → IFNULL(a, b) ; CONVERT(type, x) et CAST(x AS DATE) ; DATE_ADD(d, INTERVAL 7 DAY) et d + INTERVAL '7 days' ;
    LISTAGG / STRING_AGG … WITHIN GROUP (ORDER BY …) → GROUP_CONCAT(… ORDER BY …) ; ILIKE → LIKE ; x::int → CAST(x AS INTEGER). */
 function sqlCompat(sql){
-  if(typeof sql!=='string'||!/\b(?:TOP|FETCH|OFFSET|EXTRACT|DATEADD|DATEDIFF|DATEPART|DATETRUNC|ISNULL|CONVERT|CAST|INTERVAL|WITHIN|ILIKE|SYSDATE|SYSTIMESTAMP|CURRENT_DATE|CURRENT_TIME|CURRENT_TIMESTAMP|SEPARATOR|POSITION|FORMAT)\b|::/i.test(sql))return sql;
+  if(typeof sql!=='string'||!/\b(?:TOP|FETCH|OFFSET|EXTRACT|DATEADD|DATEDIFF|DATEPART|DATETRUNC|ISNULL|CONVERT|CAST|INTERVAL|WITHIN|ILIKE|SYSDATE|SYSTIMESTAMP|CURRENT_DATE|CURRENT_TIME|CURRENT_TIMESTAMP|SEPARATOR|POSITION|FORMAT|TRUNCATE|SERIAL|BIGSERIAL|SMALLSERIAL|AUTO_INCREMENT|IDENTITY|TRY_CAST|TRY_CONVERT|SUBSTRING|TRIM|RLIKE|PERCENTILE_CONT|PERCENTILE_DISC|MODE|DATENAME|TIMESTAMPDIFF|TIMESTAMPADD)\b|::|~/i.test(sql))return sql;
   const keep=[];
   let t=sql.replace(/'(?:[^']|'')*'|"(?:[^"]|"")*"|`[^`]*`|\[[^\]]*\]|--[^\n]*|\/\*[\s\S]*?\*\//g,m=>{keep.push(m);return '\u0001'+(keep.length-1)+'\u0002';});
   const PH=/^\u0001(\d+)\u0002$/;
@@ -14532,10 +14573,16 @@ function sqlCompat(sql){
     if(/^DOUBLE/i.test(ty))return `CAST(${x} AS REAL)`;
     return `CAST(${x} AS ${ty})`;};
   t=t.replace(/\bEXTRACT\s*\(\s*([A-Za-z]+)\s+FROM\s+/gi,(m,u)=>`DATE_PART('${u.toLowerCase()}', `);
-  t=t.replace(/\b(DATEADD|DATEDIFF|DATEPART|DATETRUNC)\s*\(\s*(year|yyyy|yy|quarter|qq|q|month|mm|m|week|wk|ww|dayofyear|dy|y|day|dd|d|hour|hh|minute|mi|n|second|ss|s|weekday|dw)\s*,/gi,
+  t=t.replace(/\bTRY_CAST\s*\(/gi,'CAST(').replace(/\bTRY_CONVERT\s*\(/gi,'CONVERT(').replace(/\bTIMESTAMPDIFF\s*\(/gi,'DATEDIFF(').replace(/\bTIMESTAMPADD\s*\(/gi,'DATEADD(');
+  t=t.replace(/\b(DATEADD|DATEDIFF|DATEPART|DATETRUNC|DATENAME)\s*\(\s*(year|yyyy|yy|quarter|qq|q|month|mm|m|week|wk|ww|dayofyear|dy|y|day|dd|d|hour|hh|minute|mi|n|second|ss|s|weekday|dw)\s*,/gi,
     (m,f,u)=>`${/^DATETRUNC$/i.test(f)?'DATE_TRUNC':f}('${u.toLowerCase()}',`);
-  t=t.replace(/\bISNULL\s*\(/gi,'IFNULL(').replace(/\bILIKE\b/gi,'LIKE');
+  t=t.replace(/\bISNULL\s*\(/gi,'IFNULL(').replace(/\bILIKE\b/gi,'LIKE').replace(/\bNOT\s+RLIKE\b/gi,'NOT REGEXP').replace(/\bRLIKE\b/gi,'REGEXP');
+  /* x ~ 'motif' (PostgreSQL) → x REGEXP 'motif' ; !~ → NOT REGEXP. Seulement entre deux opérandes, pas le ~ unaire (non binaire). */
+  t=t.replace(/([\w)\u0002])(\s+)(!?)~\*?(\s+)(?=[\u0001\w(])/g,(m,a,s1,neg,s2,off,all)=>{const w=/([A-Za-z_]\w*)$/.exec(all.slice(0,off+1));
+    if(w&&/^(SELECT|WHERE|AND|OR|NOT|ON|THEN|ELSE|WHEN|CASE|RETURN|IN|IS|BY|AS|HAVING|SET|VALUES)$/i.test(w[1]))return m;return `${a}${s1}${neg?'NOT ':''}REGEXP${s2}`;});
   t=t.replace(/\bSYSDATE\b(?!\s*\()/gi,'SYSDATE()').replace(/\bSYSTIMESTAMP\b(?!\s*\()/gi,'NOW()').replace(/\b(CURRENT_DATE|CURRENT_TIMESTAMP|CURRENT_TIME)\s*\(\s*\)/gi,'$1');
+  /* CURRENT_DATE - 1 (PostgreSQL), SYSDATE + 7 (Oracle) : des jours. */
+  t=t.replace(/\b(CURRENT_DATE|SYSDATE\(\))\s*([+-])\s*(\d+(?:\.\d+)?)\b(?![.(])(?!\s+(?:YEAR|MONTH|WEEK|DAY|HOUR|MINUTE|SECOND)S?\b)/gi,(m,x,sg,n)=>`DATEADD('day', ${sg==='-'?'-':''}${n}, ${/^SYSDATE/i.test(x)?'SYSDATE()':'CURRENT_DATE'})`);
   t=t.replace(/\bOFFSET\s+(\d+)\s+ROWS?\s+FETCH\s+(?:FIRST|NEXT)\s+(\d+)\s+ROWS?\s+ONLY\b/gi,'LIMIT $2 OFFSET $1')
      .replace(/\bFETCH\s+(?:FIRST|NEXT)\s+(\d+)\s+ROWS?\s+ONLY\b/gi,'LIMIT $1').replace(/\bFETCH\s+(?:FIRST|NEXT)\s+ROWS?\s+ONLY\b/gi,'LIMIT 1')
      .replace(/\bOFFSET\s+(\d+)\s+ROWS?\b/gi,'LIMIT -1 OFFSET $1');
@@ -14548,12 +14595,28 @@ function sqlCompat(sql){
   calls(/\b(DATE_ADD|DATE_SUB|ADDDATE|SUBDATE)\s*\(/gi,(inner,after,m)=>{const a=splitTop(inner);if(a.length!==2)return null;
     const iv=/^\s*INTERVAL\s+([\s\S]+?)\s+([A-Za-z]+)\s*$/i.exec(a[1]);if(!iv)return null;
     const neg=/SUB/i.test(m[1]);return [`DATEADD('${iv[2].toLowerCase()}', ${neg?'-(':''}${iv[1].trim()}${neg?')':''}, ${a[0].trim()})`];});
+  /* Un intervalle, simple ('7 days', 7 DAY) ou composé ('1 month - 1 day', '1 year 2 months') : [[nombre signé, unité], …] */
+  const ivParts=(txt,u1)=>{const out=[];let sg=1,rest=String(txt).trim();
+    const re=/^([+-])?\s*(\d+(?:\.\d+)?)\s*([A-Za-z]+)?\s*/;
+    while(rest){const q=re.exec(rest);if(!q||!q[0])return null;const unit=q[3]||(out.length?null:u1);if(!unit)return null;
+      if(q[1])sg=q[1]==='-'?-1:1;out.push([sg*+q[2],unit.toLowerCase()]);rest=rest.slice(q[0].length);}
+    return out.length?out:null;};
+  const ivApply=(x,sign,parts)=>parts.reduce((acc,[n,u])=>`DATEADD('${u}', ${sign==='-'?-n:n}, ${acc})`,x);
+  const ivOf=(ph,u1,n,u2)=>{if(ph){const v=textOf(ph);return v===null?null:ivParts(v,u1);}return ivParts(n+' '+u2);};
+  const SQL_MOTS=/^(SELECT|FROM|WHERE|AND|OR|NOT|ON|AS|BY|THEN|ELSE|WHEN|CASE|RETURN|IN|IS|LIKE|BETWEEN|SET|VALUES|HAVING|USING)$/i;
   t=t.replace(/((?:[A-Za-z_]\w*\.)?[A-Za-z_]\w*(?:\s*\(\s*\))?|\u0001\d+\u0002)\s*([+-])\s*INTERVAL\s+(?:(\u0001\d+\u0002)(?:\s+([A-Za-z]+)\b)?|(\d+)\s+([A-Za-z]+)\b)/g,
     (m,x,sign,ph,u1,n,u2)=>{
-      let num=n,unit=u2;
-      if(ph){const v=textOf(ph);if(v===null)return m;const q=/^\s*(-?\d+(?:\.\d+)?)\s*([A-Za-z]+)?\s*$/.exec(v);if(!q)return m;num=q[1];unit=q[2]||u1;}
-      if(!unit||/^(SELECT|FROM|WHERE|AND|OR|NOT|ON|AS|BY|THEN|ELSE|WHEN|CASE|RETURN|IN|IS|LIKE)$/i.test(x))return m;
-      return `DATEADD('${unit.toLowerCase()}', ${sign==='-'?'-':''}${num}, ${x})`;});
+      if(SQL_MOTS.test(x))return m;
+      const parts=ivOf(ph,u1,n,u2);return parts?ivApply(x,sign,parts):m;});
+  /* … et après un appel de fonction ou une parenthèse : DATE_TRUNC('month', d) + INTERVAL '1 month - 1 day' (16 h 24, « booster le moteur ») */
+  for(let guard=0;guard<50;guard++){
+    const m=/\)\s*([+-])\s*INTERVAL\s+(?:(\u0001\d+\u0002)(?:\s+([A-Za-z]+)\b)?|(\d+)\s+([A-Za-z]+)\b)/.exec(t);if(!m)break;
+    const e=m.index;let a=open(t,e);if(a<0)break;
+    const fn=/[A-Za-z_]\w*\s*$/.exec(t.slice(0,a));if(fn&&!SQL_MOTS.test(fn[0].trim()))a-=fn[0].length;
+    const parts=ivOf(m[2],m[3],m[4],m[5]);if(!parts)break;
+    const rep=ivApply(t.slice(a,e+1),m[1],parts);
+    t=t.slice(0,a)+rep+t.slice(m.index+m[0].length);
+  }
   calls(/\b(LISTAGG|STRING_AGG)\s*\(/gi,(inner,after)=>{
     const w=/^\s*WITHIN\s+GROUP\s*\(/i.exec(after);if(!w)return null;
     const p=w.index+w[0].length-1,e=close(after,p);if(e<0)return null;
@@ -14564,6 +14627,20 @@ function sqlCompat(sql){
   calls(/\bGROUP_CONCAT\s*\(/gi,inner=>{const m=/^([\s\S]*?)\s+SEPARATOR\s+(\u0001\d+\u0002)\s*$/i.exec(inner);if(!m)return null;
     const ob=/^([\s\S]*?)\s+(ORDER\s+BY\s+[\s\S]+)$/i.exec(m[1]);
     return [ob?`GROUP_CONCAT(${ob[1].trim()}, ${m[2]} ${ob[2].trim()})`:`GROUP_CONCAT(${m[1].trim()}, ${m[2]})`];});
+  /* SUBSTRING(x FROM a FOR b) ; TRIM(BOTH|LEADING|TRAILING c FROM x) (norme SQL, PostgreSQL) */
+  /* Le texte, parenthèses intérieures masquées (même longueur) : un FROM de sous-requête ne compte pas. */
+  const flat=s=>{let d=0,o='';for(const c of s){if(c==='('){d++;o+=d>1?' ':c;continue;}if(c===')'){o+=d>1?' ':c;d--;continue;}o+=d>0?' ':c;}return o;};
+  const topSplit=(inner,re)=>{const m=re.exec(flat(inner));if(!m)return null;let k=0;return m.slice(1).map(g=>{if(g===undefined)return undefined;const i=flat(inner).indexOf(g,k);k=i+g.length;return inner.slice(i,i+g.length);});};
+  calls(/\bSUBSTRING\s*\(/gi,inner=>{const m=topSplit(inner,/^([\s\S]+?)\s+FROM\s+([\s\S]+?)(?:\s+FOR\s+([\s\S]+))?$/i);return m?[`SUBSTR(${m[0].trim()}, ${m[1].trim()}${m[2]?', '+m[2].trim():''})`]:null;});
+  calls(/\bTRIM\s*\(/gi,inner=>{const g=topSplit(inner,/^\s*(BOTH|LEADING|TRAILING)?\s*([\s\S]*?)\s*\bFROM\s+([\s\S]+)$/i);const m=g&&[null,...g];if(!m||(!m[1]&&!m[2]))return null;
+    const f={LEADING:'LTRIM',TRAILING:'RTRIM'}[String(m[1]||'').toUpperCase()]||'TRIM';return [`${f}(${m[3].trim()}${m[2]?', '+m[2].trim():''})`];});
+  /* PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY x) ; MODE() WITHIN GROUP (ORDER BY x) */
+  calls(/\b(PERCENTILE_CONT|PERCENTILE_DISC|MODE)\s*\(/gi,(inner,after,m)=>{
+    const w=/^\s*WITHIN\s+GROUP\s*\(/i.exec(after);if(!w)return null;
+    const p=w.index+w[0].length-1,e=close(after,p);if(e<0)return null;
+    const ob=/^\s*ORDER\s+BY\s+([\s\S]+?)(?:\s+(ASC|DESC))?\s*$/i.exec(after.slice(p+1,e));if(!ob)return null;
+    const f=m[1].toUpperCase();if(f==='MODE')return [`MODE(${ob[1]})`,e+1];
+    const q=inner.trim(),desc=/DESC/i.test(ob[2]||'');return [`${f}(${ob[1]}, ${desc?`1 - (${q})`:q})`,e+1];});
   calls(/\bPOSITION\s*\(/gi,inner=>{const m=/^([\s\S]+?)\s+IN\s+([\s\S]+)$/i.exec(inner);return m?[`INSTR(${m[2].trim()}, ${m[1].trim()})`]:null;});
   calls(/\bFORMAT\s*\(/gi,inner=>{const a=splitTop(inner);if(a.length!==2)return null;const f=textOf(a[1]);
     if(f===null||f.includes('%')||!/yyyy|yy|MM|dd|HH|mm|ss/.test(f))return null;
@@ -14573,12 +14650,24 @@ function sqlCompat(sql){
   for(let k=t.indexOf('::');k>=0;k=t.indexOf('::',k+2)){
     const after=/^::\s*([A-Za-z]\w*(?:\s+precision)?(?:\s*\(\s*\d+(?:\s*,\s*\d+)?\s*\))?)/i.exec(t.slice(k));if(!after)continue;
     let a=k;
-    if(t[k-1]===')'){a=open(t,k-1);if(a<0)continue;const fn=/[A-Za-z_]\w*\s*$/.exec(t.slice(0,a));if(fn)a-=fn[0].length;}
+    if(t[k-1]===')'){a=open(t,k-1);if(a<0)continue;const fn=/[A-Za-z_]\w*\s*$/.exec(t.slice(0,a));if(fn&&!SQL_MOTS.test(fn[0].trim()))a-=fn[0].length;}
     else{const op=/(?:(?:[A-Za-z_]\w*\.)?[A-Za-z_]\w*|\d+(?:\.\d+)?|\u0001\d+\u0002)$/.exec(t.slice(0,k));if(!op)continue;a=k-op[0].length;}
     const ty=after[1].replace(/\bint\b|\binteger\b|\bbigint\b|\bsmallint\b/i,'INTEGER').replace(/\btext\b|\bvarchar\b/i,'TEXT');
     const rep=castTo(t.slice(a,k),ty);
     t=t.slice(0,a)+rep+t.slice(k+after[0].length);k=a+rep.length-2;
   }
+  /* TRUNCATE TABLE t → DELETE FROM t (début d’instruction seulement : TRUNCATE(x, 2) reste la fonction de MySQL). */
+  t=t.replace(/(^|;)(\s*(?:\u0001\d+\u0002\s*)*)TRUNCATE\s+(?:TABLE\s+)?(?=[A-Za-z_"`\[\u0001])/gi,'$1$2DELETE FROM ');
+  /* Un identifiant qui s’incrémente, écrit à la PostgreSQL (SERIAL), MySQL (AUTO_INCREMENT), SQL Server (IDENTITY(1,1)) ou Oracle
+     (GENERATED … AS IDENTITY) : SQLite ne l’accepte qu’en INTEGER PRIMARY KEY. Sans cette réécriture, la table se créait mais ses id
+     restaient vides (NULL) à chaque INSERT. */
+  t=t.split(';').map(st=>{
+    if(!/^\s*(?:\u0001\d+\u0002\s*)*CREATE\s+(?:TEMP(?:ORARY)?\s+)?TABLE\b/i.test(st))return st;
+    const AI=/\b([A-Za-z_]\w*|"[^"]+"|`[^`]+`)\s+(?:(?:BIG|SMALL)?SERIAL\d?\b|(?:INT|INTEGER|BIGINT|SMALLINT|MEDIUMINT|TINYINT|NUMBER|NUMERIC|DECIMAL)(?:\s*\([^)]*\))?(?:\s+UNSIGNED)?(?:\s+NOT\s+NULL)?\s+(?:AUTO_INCREMENT\b|IDENTITY(?:\s*\([^)]*\))?|GENERATED\s+(?:ALWAYS\s+|BY\s+DEFAULT\s+(?:ON\s+NULL\s+)?)?AS\s+IDENTITY(?:\s*\([^)]*\))?))((?:\s+NOT\s+NULL)?(?:\s+PRIMARY\s+KEY)?)/gi;
+    return st.replace(AI,(m,name,tail)=>{
+      const pk=/PRIMARY\s+KEY/i.test(tail),autre=/PRIMARY\s+KEY/i.test(st.replace(m,''));
+      return pk||!autre?`${name} INTEGER PRIMARY KEY`:`${name} INTEGER`;});
+  }).join(';');
   /* SELECT TOP n … → … LIMIT n (instruction par instruction, avant un commentaire final) */
   t=t.split(';').map(st=>{
     const m=/^(\s*SELECT\s+(?:DISTINCT\s+)?)TOP\s*\(?\s*(\d+)\s*\)?\s+/i.exec(st);
@@ -18322,22 +18411,33 @@ const SGBD_PAGE=[
     ['Le niveau par défaut',['SERIALIZABLE','READ COMMITTED','REPEATABLE READ','READ COMMITTED','READ COMMITTED']]
   ]}
 ];
+/* Elisa, 1er novembre, 18 h 24 : « surligner (DA du site) quand ça concerne notre moteur ». La ligne de SQLite, le moteur de l’app,
+   est surlignée en jaune soleil avec l’étiquette « Notre moteur » ; le moteur ayant été « boosté », la plupart des écritures des
+   autres SGBD marchent aussi dans l’app : la fiche le dit (pastille menthe), et les rares qui n’y marchent pas portent « pas dans
+   l’app ». Ces exceptions sont vérifiées par tests/sgbd-moteur.test.mjs, qui fait tourner toutes les autres dans le moteur. */
+const SGBD_HORS_APP=new Set(['d + 7','fin - debut','ALTER TABLE t ALTER COLUMN c TYPE INTEGER','ALTER TABLE t MODIFY COLUMN c INT',
+  'ALTER TABLE t ALTER COLUMN c INT','ALTER TABLE t MODIFY c NUMBER','SET TRANSACTION ISOLATION LEVEL …']);
 function sgbdNeedHtml([besoin,codes,opt={}]){
   const groups=[];
   codes.forEach((c,i)=>{const g=groups.find(x=>x.c===c);if(g)g.who.push(i);else groups.push({c,who:[i]});});
   const isTxt=i=>opt.txt===true||(Array.isArray(opt.txt)&&opt.txt.includes(i));
-  /* Elisa, 31 octobre, 8 h 37 : « ne rien surligner et ne pas mettre cours » : SQLite s’écrit comme les autres SGBD. */
   const rows=groups.map(g=>{
-    const who=g.who.length===SGBD_NOMS.length?'Partout':g.who.map(i=>`<span class="sg-n">${SGBD_NOMS[i]}</span>`).join(' · ');
-    const val=isTxt(g.who[0])?`<span class="sg-txt">${esc(g.c)}</span>`:`<code class="sg-code">${esc(g.c)}</code>`;
-    return `<div class="sg-row"><span class="sg-who">${who}</span>${val}</div>`;
+    /* « Partout » (les cinq écrivent pareil) n’est pas surligné : rien n’y distingue notre moteur. */
+    const moteur=g.who.includes(0)&&g.who.length<SGBD_NOMS.length,txt=isTxt(g.who[0]),off=!txt&&SGBD_HORS_APP.has(g.c);
+    const who=g.who.length===SGBD_NOMS.length?'Partout':g.who.map(i=>`<span class="sg-n${i===0?' is-moteur':''}">${SGBD_NOMS[i]}</span>`).join(' · ');
+    const val=txt?`<span class="sg-txt">${esc(g.c)}</span>`:`<code class="sg-code">${esc(g.c)}</code>`;
+    return `<div class="sg-row${moteur?' is-moteur':''}${off?' is-off':''}"><span class="sg-who">${who}${moteur?'<em class="sg-tag">Notre moteur</em>':''}</span>`+
+      `<span class="sg-val">${val}${off?'<em class="sg-off">pas dans l’app</em>':''}</span></div>`;
   }).join('');
-  return `<article class="sg-need"><h3>${esc(besoin)}</h3>${rows}${opt.note?`<p class="sg-note">${opt.note}</p>`:''}</article>`;
+  const codesApp=groups.filter(g=>!isTxt(g.who[0]));
+  const toutes=codesApp.length>1&&codesApp.every(g=>!SGBD_HORS_APP.has(g.c));
+  return `<article class="sg-need"><h3>${esc(besoin)}</h3>${rows}${opt.note?`<p class="sg-note">${opt.note}</p>`:''}`+
+    `${toutes?'<p class="sg-ok"><span aria-hidden="true">✓</span>Toutes ces écritures marchent dans l’app</p>':''}</article>`;
 }
 function sgbdBodyHtml(focus){
   return `<div class="sg-wrap">
     <div class="sg-intro"><span class="sg-intro-stk" aria-hidden="true">${typeof lqStkSvg==='function'?lqStkSvg('info'):''}</span><p>Les requêtes sont exécutées avec <b>SQLite</b>, le moteur SQL intégré à l’application. Les autres SGBD écrivent parfois le même besoin autrement : voici la correspondance, besoin par besoin.</p>
-      <p>Dans l’app, le moteur comprend aussi la plupart des fonctions de PostgreSQL, MySQL, SQL Server et Oracle : tu peux les essayer dans la console.</p>
+      <p>Dans l’app, le moteur comprend aussi la plupart des fonctions de PostgreSQL, MySQL, SQL Server et Oracle : tu peux les essayer dans la console. <span class="sg-leg"><em class="sg-tag">Notre moteur</em> repère la ligne de SQLite.</span></p>
 </div>
     <nav class="fbar sg-chips" aria-label="Thèmes">${SGBD_PAGE.map(s=>`<button type="button" class="fchip${s.id===focus?' on':''}" data-sgbd-jump="${s.id}">${esc(s.t)}</button>`).join('')}</nav>
     ${SGBD_PAGE.map(s=>`<section class="sg-sec${s.id===focus?' is-focus':''}" data-sg="${s.id}"><h2><span aria-hidden="true">${s.ico}</span>${esc(s.t)}</h2>${s.rows.map(sgbdNeedHtml).join('')}</section>`).join('')}
@@ -32780,7 +32880,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-titres-v2269';
+  const SW_CACHE='requete-2026-11-01-moteur-v2270';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
