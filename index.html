@@ -14048,7 +14048,9 @@ function restoreNav(){
     if(nav.fromTab) activeTab=nav.fromTab;
     /* Comparer à null, pas à la vérité : la première leçon a l'id 0, que
        JavaScript tient pour faux — elle retombait sur l'accueil. */
-    if(nav.view==='lesson'&&nav.lessonId!=null&&allLessons.some(l=>l.id===nav.lessonId)){
+    if(nav.view==='tab'&&nav.tab==='entretien'){
+      switchTab('entretien');entSesRestore();
+    }else if(nav.view==='lesson'&&nav.lessonId!=null&&allLessons.some(l=>l.id===nav.lessonId)){
       openLesson(nav.lessonId,nav.lessonStep);
     }else if(nav.view==='defi'&&nav.defiId!=null&&CHALLENGES.some(c=>c.id===nav.defiId)){
       openChallenge(nav.defiId);
@@ -16135,6 +16137,7 @@ function persistEditor(taId){
     updateConsolePinButton();
   }
   else if(taId==='ed-lesson'&&current&&mode==='defi'){defiSesSave();}
+  else if(taId==='ed-lesson'&&current&&mode==='review'){revSesSave();}
   else if(taId==='ed-lesson'&&current&&mode==='lesson'){
     const s=state.lessons[current.id]||(state.lessons[current.id]={level:0});
     s.draft=ta.value; save();
@@ -26182,7 +26185,25 @@ function startReview(ids){
   if(!reviewQueue.length)return;
   openReview(reviewQueue[0]);
 }
+/* Elisa, 1er novembre, 16 h 48 : « est-ce qu’il y a cette erreur ailleurs ? » (recharger fait perdre l’avancée). En révision, on
+   perdait la requête, l’aide déjà débloquée et la file des leçons à revoir ensuite. Elles sont gardées sur l’appareil et reprises au
+   rechargement ; une leçon déjà révisée passe directement à la suivante de la file. */
+const REV_SES_KEY='rq-revision-en-cours';
+function revSesRead(){try{const o=JSON.parse(localStorage.getItem(REV_SES_KEY)||'null');return o&&typeof o==='object'&&Number.isInteger(o.id)?o:null;}catch(e){return null;}}
+function revSesSave(done){
+  if(typeof mode==='undefined'||mode!=='review'||!current)return;
+  const ed=document.getElementById('ed-lesson');
+  const o={id:current.id,queue:reviewQueue.filter(Number.isInteger).slice(0,200),sql:ed?ed.value.slice(0,20000):'',fails:exoFails||0,done:done?1:0};
+  try{localStorage.setItem(REV_SES_KEY,JSON.stringify(o));}catch(e){}
+}
 function openReview(id){
+  let ses=restoringNav?revSesRead():null;
+  if(ses&&ses.id===id){
+    const q=(Array.isArray(ses.queue)?ses.queue:[]).filter(x=>Number.isInteger(x)&&allLessons.some(l=>l.id===x));
+    if(q.length)reviewQueue=q;
+    /* Leçon déjà révisée avant le rechargement : on enchaîne sur la suivante de la file. */
+    if(ses.done){if(q.length){id=q[0];}ses=null;}
+  }else ses=null;
   const l=allLessons.find(x=>x.id===id); current=l; mode='review';
   lqSetLessonColor(id);
   exoFails=0;
@@ -26194,6 +26215,13 @@ function openReview(id){
     <p style="font-size:13.5px;color:var(--ink-2);margin:0 4px 14px">Le cours est masqué volontairement. ${(()=>{const r=reviewQueue.filter(x=>x!==id).length;return r?`Encore ${r} leçon${r>1?'s':''} à revoir après celle-ci.`:'C’est la dernière leçon à revoir.';})()}</p>
     ${editorBlock(false,'revision.sql')}`;
   setupEditor('ed-lesson','hl-lesson'); showScreen();
+  if(ses){
+    const ed=document.getElementById('ed-lesson');
+    if(ed&&ses.sql){ed.value=String(ses.sql);syncHL('ed-lesson','hl-lesson');fitSqlEditor(ed);syncEditorClear('ed-lesson');}
+    exoFails=Math.max(0,Math.floor(+ses.fails||0));
+    if(exoFails)renderExoHelp();
+  }
+  revSesSave();
   saveNav();
 }
 let defiDernierKo=null;
@@ -26202,6 +26230,7 @@ function registerExoFail(sql){
   if(mode==='defi'&&sql!=null){const k=String(sql).replace(/\s+/g,' ').trim();if(k===defiDernierKo){renderExoHelp();return;}defiDernierKo=k;}
   exoFails++;
   renderExoHelp();
+  if(mode==='review')revSesSave();
 }
 function renderExoHelp(){
   if(mode==='lesson')return;
@@ -26397,7 +26426,7 @@ function runLesson(){
     if(check.ok){
       if(mode==='review'){
         markDone(current.id,true); renderModules(); renderProgress(); renderPlanning();
-        reviewQueue.shift();
+        reviewQueue.shift();revSesSave(true);
         setLessonOut(`<div class="feedback ok"><div class="fi">✓</div><div><b>Bien retenu</b><p>${(current.noExecOk&&current.noExecOk.t)||'GRANT SELECT suffit pour consulter <code>clients</code>.'}</p></div></div>`+(reviewQueue.length?`<button class="next-btn" onclick="openReview(${reviewQueue[0]})">Réviser la suivante →</button>`
           :`<button class="next-btn" onclick="goBack()">Révisions terminées ✓</button>`));
         pulseCta('#lesson-out .next-btn');
@@ -26447,7 +26476,7 @@ function runLesson(){
       pulseCta('#lesson-out .next-btn');
     }else if(mode==='review'){
       markDone(current.id,true); renderModules(); renderProgress(); renderPlanning();
-      reviewQueue.shift();
+      reviewQueue.shift();revSesSave(true);
       head=`<div class="feedback ok"><div class="fi">✓</div><div><b>Bien retenu</b><p>Cette leçon reviendra plus tard, à un intervalle plus long.</p></div></div>`;
       setLessonOut(head+table+(reviewQueue.length?`<button class="next-btn" onclick="openReview(${reviewQueue[0]})">Réviser la suivante →</button>`
         :`<button class="next-btn" onclick="goBack()">Révisions terminées ✓</button>`));
@@ -30033,6 +30062,7 @@ function renderEntretien(opts){
   opts=opts||{};
   const list=document.getElementById('ent-list');
   if(!list)return;
+  if(!restoringNav)entSesSave();
   const screen=document.getElementById('scr-entretien');
   const prev=list.querySelector('.ent-focus');
   const prevId=prev?prev.getAttribute('data-id'):'';
@@ -30110,6 +30140,15 @@ function entScrollTop(){
   if(!screen)return;
   screen.scrollTop=0;
   requestAnimationFrame(()=>{ screen.scrollTop=0; });
+}
+/* 16 h 48 : la question d’entretien ouverte (et sa réponse dévoilée) rouvre au rechargement, au lieu de revenir à la liste. */
+const ENT_SES_KEY='rq-entretien-ouvert';
+function entSesSave(){try{if(entOpen)localStorage.setItem(ENT_SES_KEY,JSON.stringify({id:entOpen,rev:entRevealed[entOpen]?1:0}));else localStorage.removeItem(ENT_SES_KEY);}catch(e){}}
+function entSesRestore(){
+  let o=null;try{o=JSON.parse(localStorage.getItem(ENT_SES_KEY)||'null');}catch(e){}
+  if(!o||!entAllItems().some(x=>x.id===o.id))return;
+  if(o.rev)entRevealed[o.id]=1;
+  openEntretienQuestion(o.id);
 }
 function openEntretienQuestion(id){
   if(!entAllItems().some(x=>x.id===id))return;
@@ -32695,7 +32734,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-creer-v2267';
+  const SW_CACHE='requete-2026-11-01-rechargement-v2268';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
