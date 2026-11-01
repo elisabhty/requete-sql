@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-01-schemas-retours-v2299';
+const CACHE = 'requete-2026-11-01-agregats-v2300';
 
 const PRECACHE = [
   './onboarding-focus.js',
@@ -69,6 +69,7 @@ const PRECACHE = [
   './assets/anim/case.html?app&embed',
   './assets/anim/coalesce.html?app&embed',
   './assets/anim/count.html?app&embed',
+  './assets/anim/agregats.html?app&embed',
   './assets/anim/group-by.html?app&embed',
   './assets/anim/having.html?app&embed',
   './assets/anim/group-concat.html?app&embed',
@@ -148,6 +149,7 @@ const PRECACHE = [
   './assets/anim/case-thumb.jpg',
   './assets/anim/coalesce-thumb.jpg',
   './assets/anim/count-thumb.jpg',
+  './assets/anim/agregats-thumb.jpg',
   './assets/anim/group-by-thumb.jpg',
   './assets/anim/having-thumb.jpg',
   './assets/anim/group-concat-thumb.jpg',
