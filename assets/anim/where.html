@@ -1252,7 +1252,50 @@ window.__contentBottom = contentBottom;
    s’ajoute à chaque moment. Une animation en cours à l’instant d’un moment est signalée (clashes). */
 let MP = null;
 const MOMENT_CLASHES = [];
+/* Voix off (Elisa, 1er novembre : la voix d’Agathe, comme les cours du moteur commun). VOICE (tools/voix/integrer.mjs) donne à chaque
+   légende sa phrase [fichier, début, fin] ; elle part VOICE_LEAD s après l’arrivée de la légende, et si la légende est trop courte
+   pour la dire, sa pause de lecture s’allonge (ou une pause s’ajoute juste avant son départ). L’intro est dite à VOICE_INTRO s.
+   Mêmes règles et même clé de légende (vkey) que core.js. ?novoix : la vidéo sans voix. */
+const VOICE_LEAD = 0.15, VOICE_TAIL = 0.3, VOICE_INTRO = 0.35;
+let VCFG = null, VCAPS = new Map();   // posés au départ de applyMoments (VOICE est déclarée plus bas dans la page)
+function voiceInit(){
+  VCFG = typeof VOICE !== 'undefined' && !new URLSearchParams(location.search).has('novoix') ? VOICE : null;
+  VCAPS = new Map(((VCFG && VCFG.caps) || []).map(([k, f, a, b]) => [k, [f, a, b]]));
+}
+const vPlain = h => fr(h).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, NB)
+  .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&[a-z]+;/g, 'x');
+const vkey = h => { let x = 5381; for (const ch of vPlain(h).normalize('NFD').replace(/\p{M}+/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()) x = (x * 33 + ch.charCodeAt(0)) | 0; return 'v' + (x >>> 0).toString(36); };
+/* Les pauses de lecture, allongées là où la voix a besoin de plus de temps (temps de la timeline d’avant les moments). */
+function voiceHolds(base){
+  if (!VCFG) return base;
+  const out = base.map(h => h.slice());
+  const add = (lo, hi, at, need) => {
+    const inside = out.filter(h => h[0] > lo - 0.01 && h[0] < hi + 0.01);
+    const room = hi - lo + inside.reduce((s, h) => s + h[1], 0), miss = need - room;
+    if (miss <= 0.05) return;
+    const d = Math.ceil(miss * 20) / 20;
+    if (inside.length) inside[inside.length - 1][1] = +(inside[inside.length - 1][1] + d).toFixed(2); else out.push([+at.toFixed(2), d]);
+  };
+  if (VCFG.intro && CHAPTERS.length) { const end = CHAPTERS[0].a - 0.6; add(VOICE_INTRO, end, end - 0.05, VCFG.intro[2] - VCFG.intro[1] + VOICE_TAIL); }
+  CAPTIONS.forEach(([a, b, text]) => { const v = VCAPS.get(vkey(text)); if (v && b < DURATION) add(a + VOICE_LEAD, b - 0.2, b - 0.25, v[2] - v[1] + VOICE_TAIL); });
+  return out.sort((x, y) => x[0] - y[0]);
+}
+/* Ce que le lecteur de l’app reçoit (window.__ready.voice), comme avec core.js. */
+function voiceOut(){
+  if (!VCFG) return null;
+  const src = f => new URL((VCFG.dir || '') + f + '.mp3', location.href).href;
+  const clip = v => v ? {src: src(v[0]), o: +(+v[1]).toFixed(3), d: +(v[2] - v[1]).toFixed(3)} : null;
+  const clips = [], used = new Set();
+  if (VCFG.intro) clips.push(Object.assign({t: unwarp(VOICE_INTRO)}, clip(VCFG.intro)));
+  MP.captions.forEach(c => { const k = vkey(c[2]), v = VCAPS.get(k); if (v && c[0] < MP.duration) { used.add(k); clips.push(Object.assign({t: unwarp(c[0] + VOICE_LEAD)}, clip(v))); } });
+  const say = VCFG.say || {}, s = k => clip(say[k]), n = (k, m) => Array.from({length: m}, (_, i) => s(k + (i + 1)));
+  clips.sort((x, y) => x.t - y.t);
+  return {clips, picks: n('at', MP.picks.length), tips: n('indice', MP.picks.length), opens: [], ok: s('bienvu'), late: s('rattrape'), ko: s('presque'),
+    end: {win: s('finbravo'), retry: s('fineffort')},
+    files: [...new Set(clips.map(c => c.src).concat(Object.values(say).map(v => src(v[0]))))], missing: [...VCAPS.keys()].filter(k => !used.has(k))};
+}
 function applyMoments(){
+  voiceInit();
   MP = momentPlan(MOMENTS, CAPTIONS, CHAPTERS, DURATION, NOTES_AT);
   const T = MOMENTS.map(m => m.at), before = t => T.filter(x => t >= x - 1e-6).length;
   tl.getChildren(false, true, true).forEach(c => {
@@ -1265,7 +1308,8 @@ function applyMoments(){
   });
   CUES.forEach(q => { q.t = MP.s1(q.t); });
   CONFETTI.forEach(c => { c.t = MP.s1(c.t); });
-  HOLDS = (END ? HOLDS0.filter(h => h[0] < END).concat([[END - 0.02, 1.2]]) : HOLDS0).map(([t, d]) => [MP.s0(t), d]).concat(MP.cuts.map(([t, d]) => [t, -d])).sort((x, y) => x[0] - y[0]);
+  const H0 = voiceHolds(HOLDS0);
+  HOLDS = (END ? H0.filter(h => h[0] < END).concat([[END - 0.02, 1.2]]) : H0).map(([t, d]) => [MP.s0(t), d]).concat(MP.cuts.map(([t, d]) => [t, -d])).sort((x, y) => x[0] - y[0]);
   MP.captions.filter(c => c[2] === 'À toi !').forEach(([a, b]) => {
     const d = document.createElement('div');
     d.className = 'c'; d.innerHTML = `<p>${fr('À toi !')}</p>`;
@@ -1351,6 +1395,31 @@ function checkCaptions(){
   return out;
 }
 
+/* Voix off (tools/voix/integrer.mjs, voix Agathe d’ElevenLabs, eleven_v4) : chaque phrase calée sur sa légende,
+   [clé de la légende, fichier, début, fin] en secondes ; say : les phrases dites à part (consignes « À toi », réactions, indices). */
+const VOICE = {dir: '../voix/where/', intro: ["ch00",0,6.58],
+  caps: [
+    ["v2fzpk9","ch01",0,3.18],
+    ["v1bw4zll","ch01",3.39,7.04],
+    ["vy2gn47","ch01",7.28,11.33],
+    ["vlutk53","ch02",0,4.13],
+    ["v1cr3ehq","ch02",4.18,9.93],
+    ["v1ir2sd5","ch02",10.26,14.07],
+    ["vhl8lvy","ch03",0,4.22],
+    ["v1uq0l16","ch03",4.57,10.11],
+    ["v14pfieg","ch03",10.51,14.96],
+    ["v46bcnc","ch03",15.31,18.29],
+    ["v1j9fwjd","ch04",0.01,3.08],
+    ["v1nt3d66","ch04",3.39,7.97],
+    ["v1xgvon7","ch05",0.03,4],
+    ["vzcau25","ch05",4.36,9.38],
+    ["v3skaa8","ch05",9.9,16.3],
+    ["vuj2476","ch06",0,4.78],
+    ["vlehbb7","ch06",4.98,9.98],
+    ["v1uarxau","ch07",0.02,2.83],
+    ["v1h0tc4w","ch07",3.15,7.66]],
+  say: {"at1":["at1",0.06,4.9],"at2":["at2",0.04,4.41],"at3":["at3",0.13,5.564],"indice1":["indice1",0.01,5.956],"bienvu":["bienvu",0.06,1.09],"rattrape":["rattrape",0.03,1.25],"presque":["presque",0.19,3.49],"finbravo":["finbravo",0,2.46],"fineffort":["fineffort",0.04,3.77]}};
+/* Fin de la voix off */
 window.__ready = (async () => {
   buildDom();
   frDom(document.getElementById('stage'));
@@ -1378,7 +1447,8 @@ window.__ready = (async () => {
       controls: (p.controls || []).map(c => ({k: c.k, type: c.type, label: fr(c.label || ''), min: c.min, max: c.max, step: c.step, value: c.value,
         choices: c.choices || null, code: !!c.code, unit: c.unit || ''})), ico: p.ico || ''})),
     /* Légendes en texte : le lecteur les annonce à VoiceOver au fil de l’animation. */
-    captions: MP.captions.map(c => ({a: unwarp(c[0]), b: unwarp(Math.min(c[1], MP.duration)), text: fr(c[2]).replace(/<[^>]+>/g, '')}))};
+    captions: MP.captions.map(c => ({a: unwarp(c[0]), b: unwarp(Math.min(c[1], MP.duration)), text: fr(c[2]).replace(/<[^>]+>/g, '')})),
+    voice: voiceOut()};
 })();
 window.renderAt = renderAt;
 

@@ -25,14 +25,14 @@ test('WHERE : le cours a son animation, son image fixe et sa vignette, présente
   assert.ok(m, 'champ video du cours WHERE');
   assert.equal(m[1], 'assets/anim/where.html?app&embed');
   for (const f of m.slice(1, 3)) assert.ok(fs.statSync(path.join(ROOT, f.split('?')[0])).size > 1000, `fichier présent : ${f}`);
-  assert.equal(m[3], '1 min 49');
+  assert.equal(m[3], '1 min 52');
   assert.ok(!/notes:\{/.test(where), 'pas de bouton « Ajouter à mes notes » dans la vidéo : il est dans le bilan (Elisa, 27 octobre, 9 h 43)');
   /* « Ce que tu retiens » n’est plus dans la vidéo : elle s’arrête sur la dernière image du résultat, avant sa sortie (82,5 s), la légende encore là. */
   const wp = fs.readFileSync(path.join(ROOT, 'assets/anim/where.html'), 'utf8');
   assert.ok(wp.includes('const END = RECAP ? null : 82.48;') && wp.includes('CHAPTERS.length = 6;') && wp.includes('CAPTIONS[16] = [CAPTIONS[16][0], 999, CAPTIONS[16][2]];'), 'la vidéo s’arrête avant « À retenir », sa dernière légende reste affichée');
   assert.ok(wp.includes('<span>/ ${CHAPTERS.length} · ${c.label}</span>'), 'l’étiquette compte les chapitres restants (6 / 6)');
   /* Les moments « À toi » (Elisa, 26 octobre, 14 h 59) : la page garde son propre moteur et passe par moments.js (momentPlan, momentIX). */
-  assert.ok(/duree:'1 min 49',moments:3,seuil:2\}/.test(where) && /\n  leconSeule:true,/.test(where), 'trois moments ; leçon seule, validée avec deux moments réussis du premier coup (Elisa, 28 octobre)');
+  assert.ok(/duree:'1 min 52',moments:3,seuil:2\}/.test(where) && /\n  leconSeule:true,/.test(where), 'trois moments ; leçon seule, validée avec deux moments réussis du premier coup (Elisa, 28 octobre)');
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/where.html'), 'utf8');
   assert.ok(page.includes('<script src="gsap.min.js"></script>\n<script src="moments.js"></script>') && page.includes('  build();\n  applyMoments();'), 'moments.js, puis les moments insérés une fois la timeline construite');
   const M = momentsDe('where.html');
@@ -498,7 +498,7 @@ const COURSES = [
       "'Nous gérons actuellement nos données dans Excel, mais ce fichier atteint ses limites : doublons, erreurs de saisie et difficultés de suivi.'",
       "'Nous avons besoin d’une base de données structurée pour centraliser nos informations et faciliter leur gestion au quotidien.'",
       "'En tant que développeur/analyste, ta mission sera de concevoir cette base, puis de l’implémenter dans un système de gestion de bases de données (SGBD) et de nous accompagner dans l’analyse de nos besoins au vu de la croissance rapide de notre marque.'",
-      "'Souhaites-tu nous accompagner dans ce projet ?'", "const REPONSE = ['Avec plaisir !', 'Je suis prêt à démarrer.'];",
+      "'Souhaites-tu nous accompagner dans ce projet ?'", "const REPONSE = ['Avec plaisir !', 'On commence quand tu veux !'];",
       "const BIENVENUE = ['Bienvenue dans l’équipe !', 'Voici ton badge.', 'Commençons par découvrir nos besoins ensemble.'];",
       '<span class="emo">🤝</span>J’accepte la mission', 'const CONV_TOP = 249, CONV_MAX = 1790,', 'tl.to(smsV, {height: h,', '<img src="badge-nutriboost.webp"', 'Bienvenue dans l’équipe NutriBoost !',
       'Ta mission : analyser les besoins métier,<br>concevoir la <b>base de données</b><br>et l’implémenter dans le SGBD.', 'Analyste-développeur', 'opens: OPENS,',
@@ -559,14 +559,14 @@ const COURSES = [
       'Les prénoms, sous le titre <span class="ic">email</span>', 'near "FROM": syntax error',
       // Les trois idées : les tables, les clés (et leur déclaration), SELECT
       '<span class="ic blk">FOREIGN KEY (client_id)<br>&nbsp;&nbsp;REFERENCES clients(id)</span>', '<span class="ic blk">SELECT prenom, nom, email</span>']},
-  {id: 2, next: 13, titre: 'Renommer avec AS', page: 'as.html', thumb: 'as-thumb.jpg', duree: '1 min 31', notesAt: 69.1,
+  {id: 2, next: 13, titre: 'Renommer avec AS', page: 'as.html', thumb: 'as-thumb.jpg', duree: '1 min 34', notesAt: 69.1,
     table: 'produits',
     bubble: 'Utilise <span class="ic">AS</span> pour donner un nom plus clair à une colonne dans le résultat.',
     /* Resserrée le 28 octobre (Elisa, 17 h 15 : « La leçon a tellement une redondance (as) ? ») : le mail dit la demande, sans carte
        ni chapitre « Le problème » pour la redire ; les guillemets : deux erreurs, puis un alias qui s’en passe. */
     chapters: ['Situation', 'Renommer une colonne', 'Avec ou sans guillemets', 'Le résultat', 'À retenir'],
     traps: ['near "du": syntax error', 'near "(": syntax error', '"Nom du produit"', 'Sans espace ni symbole']},
-  {id: 13, next: 4, titre: 'DISTINCT', page: 'distinct.html', thumb: 'distinct-thumb.jpg', duree: '2 min 18', notesAt: 109.05,
+  {id: 13, next: 4, titre: 'DISTINCT', page: 'distinct.html', thumb: 'distinct-thumb.jpg', duree: '2 min 20', notesAt: 109.05,
     table: 'clients',
     bubble: 'Utilise <span class="ic">DISTINCT</span> pour afficher chaque valeur une seule fois.',
     chapters: ['Situation', 'Le problème', 'À la main', 'DISTINCT', 'Plusieurs colonnes', 'Le piège', 'Le résultat', 'À retenir'],
@@ -1112,9 +1112,9 @@ const COURSES = [
     table: 'clients',
     bubble: 'Organise les tables d’une grande base en espaces distincts grâce aux schémas.',
     chapters: ['Une base qui grandit', 'Deux espaces', 'CREATE SCHEMA', 'Une adresse', 'Le même nom', 'Les requêtes à réparer', 'Et dans SQLite ?', 'À retenir'],
-    traps: ["const ESPACES = [['b', 'boutique', '🛒', 'k-sb', 'la boutique'], ['a', 'bienetre', '🧘', 'k-sa', 'les ateliers']];",
+    traps: ["const ESPACES = [['b', 'boutique', '🛒', 'k-sb', 'la boutique'], ['a', 'bien_etre', '🧘', 'k-sa', 'les ateliers']];",
       // Les six moments : les huit tables à ranger, CREATE SCHEMA, l’adresse des inscriptions, deux tables clients, trois requêtes à réparer, main.clients
-      "{at: atp('p1'), from: A.c3, kind: 'sort',", "{label: 'CREATE SCHEMA bienetre;', ok: true},", "{label: 'bienetre.inscriptions', ok: true},",
+      "{at: atp('p1'), from: A.c3, kind: 'sort',", "{label: 'CREATE SCHEMA bien_etre;', ok: true},", "{label: 'bien_etre.inscriptions', ok: true},",
       "{label: 'Non, leur schéma les distingue', ok: true},", "{at: atp('p5'), from: A.c15, kind: 'sort',", "{label: 'SELECT * FROM main.clients;', ok: true},",
       "['ea1', '{ka1|ALTER TABLE} clients'], ['ea2', '{ka2|SET SCHEMA} boutique;']", 'Prochaine leçon · INSERT INTO']},
   {id: 26, next: 27, titre: 'INSERT', page: 'projet-insert.html', thumb: 'projet-insert-thumb.webp', duree: '3 min 58', notesAt: 162.2,
@@ -1646,7 +1646,7 @@ test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la 
      Elisa, 16 h 35 : « ça dépasse en bas » : la carte s’arrête 22 px au-dessus du bas du lecteur (son liseré et son ombre restent au-dessus de la barre
      de Safari) ; le bouton lecture a de l’air dessous ; la barre qui change de taille replace tout. */
   const place = cut('function lvPkPlace(){', '/* Le contenu de l’image reste au-dessus du plateau');
-  assert.ok(place.includes('lim=R.height-pb-LV_PK_BOT;') && html.includes('LV_PK_WAIT=400, LV_PK_BOT=22;'), 'la carte s’arrête 22 px au-dessus du bas du lecteur');
+  assert.ok(place.includes('lim=R.height-pb-LV_PK_BOT;') && html.includes('LV_PK_WAIT=150, LV_PK_BOT=22;'), 'la carte s’arrête 22 px au-dessus du bas du lecteur');
   assert.ok(place.includes("P.box.style.top=Math.max(0,lim-card.offsetHeight).toFixed(1)+'px'"), 'la carte est posée tout en bas, quelle que soit sa hauteur');
   assert.ok(!/visualViewport|vv\.|1496|1830|minHeight/.test(place), 'ni le bas visible de Safari, ni la place de la légende, ni hauteur forcée');
   assert.ok(html.includes("function lvPkShow(i,p){") && cut('function lvPkShow(i,p){', 'function lvPkValid(').includes('lvCapHide(true);'), 'la légende de l’image est cachée pendant le moment');
@@ -2938,7 +2938,7 @@ test('boutons retour en pastille ronde : Safari ne coupe plus leur relief (overf
   assert.ok(/html\.lq #app \.home-back svg\{[^}]*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour des écrans : relief entier');
   assert.ok(/html\.lq #scr-lesson \.navbar \.back svg\{\s*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour de la leçon (« ‹ Accueil ») : relief entier');
   assert.ok(html.includes('.tab svg{overflow:visible;'), 'onglets : l’ombre de l’onglet actif n’est pas coupée non plus');
-  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=81">'), 'la feuille de style du thème est rechargée');
+  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=98">'), 'la feuille de style du thème est rechargée');
 });
 
 test('arrêt « toucher » sur un bouton : un doigt seul qui monte et descend, sans bulle ; le bouton s’enfonce dès l’appui et remonte au relâcher', () => {

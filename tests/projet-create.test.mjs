@@ -201,7 +201,7 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
     'Les quatre nouvelles tables sont encore vides.',
     'Karim y ajoutera les données avec la commande INSERT INTO.',
     'Elle permet d’insérer de nouvelles lignes dans une table.',
-    'Dans le prochain chapitre, tu feras évoluer ces tables avec ALTER TABLE.',
+    'Dans la prochaine leçon, tu feras évoluer ces tables avec ALTER TABLE.',
     'Créer une table, c’est définir ses colonnes et les données qu’elles peuvent contenir.',
     'C’est aussi définir les règles à respecter.',
     'Ajoute ce résumé à tes notes pour le retrouver facilement.'];

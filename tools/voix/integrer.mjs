@@ -147,7 +147,8 @@ for (const el of job.elements) {
   if (el.id === 'ch00') { intro = [el.id, clips[0][0], clips[clips.length - 1][1]]; continue; }
   /* Chaque phrase à sa légende : la plus ressemblante parmi les suivantes, dans l’ordre. */
   el.phrases.forEach((p, k) => {
-    const q = norm(p); let best = -1, bs = 0;
+    /* legendes : le texte de la légende quand la phrase dite en diffère (code lu à voix haute, preparer.mjs). */
+    const q = norm((el.legendes && el.legendes[k]) || p); let best = -1, bs = 0;
     for (let j = ci; j < Math.min(CAPTIONS.length, ci + 4); j++) { const v = sim(q, capN[j]); if (v > bs) { bs = v; best = j; } }
     if (best < 0 || bs < 0.8) { report.push(`${el.id} · phrase ${k + 1} sans légende (${Math.round(bs * 100)} %) : ${p}`); return; }
     ci = best + 1;
@@ -167,7 +168,12 @@ ${lines}],
 let out = page;
 const a = out.indexOf('/* Voix off (tools/voix/integrer.mjs'), b = out.indexOf('/* Fin de la voix off */\n');
 if (a >= 0 && b > a) out = out.slice(0, a) + block + out.slice(b + '/* Fin de la voix off */\n'.length);
-else { const at = out.lastIndexOf('\nCourse({'); out = out.slice(0, at + 1) + block + out.slice(at + 1); }
+else {
+  /* Le moteur commun : avant Course({…}) ; where.html (son propre moteur) : avant window.__ready. */
+  let at = out.lastIndexOf('\nCourse({'); if (at < 0) at = out.indexOf('\nwindow.__ready = (async () => {');
+  if (at < 0) { console.log('Ni Course({…}) ni window.__ready dans la page : rien n’est écrit.'); process.exit(1); }
+  out = out.slice(0, at + 1) + block + out.slice(at + 1);
+}
 /* voice: VOICE en fin de la première ligne de Course({…}) : son début reste celui que vérifient les tests. */
 if (!/\bvoice: VOICE\b/.test(out)) out = out.replace(/(\nCourse\(\{[^\n]*,)\n/, '$1 voice: VOICE,\n');
 fs.writeFileSync(PAGE, out);

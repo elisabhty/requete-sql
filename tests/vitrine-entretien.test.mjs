@@ -1,10 +1,10 @@
 /* Vitrine : la section « Prépa entretien » (decouvrir/index.html) et la scène « Entretiens » de la vidéo
-   (decouvrir/video.html) montrent l’écran « Entretien SQL » de l’appli (ENTRETIEN dans index.html). Le nombre de
-   questions et de thèmes, la question montrée (« WHERE ou HAVING ? ») avec son numéro, son thème, sa réponse et
-   son exemple, et les libellés de l’écran doivent rester ceux de l’appli : une question ajoutée, déplacée ou
-   réécrite dans l’appli doit l’être ici aussi. */
+  (decouvrir/video.html) montrent l’écran « Entretien SQL » de l’appli (ENTRETIEN dans index.html). Le nombre de
+  questions et de niveaux, la question montrée (question 6) avec son numéro, son niveau, son thème, sa réponse et
+  son exemple, ainsi que les libellés, doivent rester synchronisés avec l’appli. */
 import fs from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -13,13 +13,18 @@ const app = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const vitrine = fs.readFileSync(path.join(root, 'decouvrir/index.html'), 'utf8');
 const video = fs.readFileSync(path.join(root, 'decouvrir/video.html'), 'utf8');
 
-/* Questions de l’appli : { id:'…', cat:'…', q:"…", a:"…", sql:"…" } */
+/* Questions de l’appli, exécutées pour contrôler leurs métadonnées complètes. */
 const start = app.indexOf('const ENTRETIEN=[');
-const body = app.slice(start, app.indexOf('\n];', start));
-const QUESTIONS = [...body.matchAll(/\{id:'[^']+',cat:'([^']+)',q:"([^"]+)",a:"((?:[^"\\]|\\.)*)"(?:,sql:"((?:[^"\\]|\\.)*)")?\}/g)]
-  .map(m => ({ cat: m[1], q: m[2], a: m[3], sql: m[4] === undefined ? null : m[4].replace(/\\n/g, '\n') }));
-const catsLine = app.slice(app.indexOf('const ENTRETIEN_CATS='), app.indexOf('\n', app.indexOf('const ENTRETIEN_CATS=')));
-const THEMES = [...catsLine.matchAll(/\['([^']+)','([^']+)'\]/g)].filter(m => m[1] !== 'all').map(m => m[2]);
+const end = app.indexOf('\n];', start);
+const ctx = vm.createContext({});
+vm.runInContext(app.slice(start, end + 3).replace('const ENTRETIEN=', 'ENTRETIEN=') + ';', ctx);
+const QUESTIONS = JSON.parse(JSON.stringify(ctx.ENTRETIEN));
+const catsStart = app.indexOf('const ENTRETIEN_CATS=');
+const catsEnd = app.indexOf(';', catsStart);
+vm.runInContext(app.slice(catsStart, catsEnd + 1).replace('const ENTRETIEN_CATS=', 'ENTRETIEN_CATS='), ctx);
+const FILTRES = JSON.parse(JSON.stringify(ctx.ENTRETIEN_CATS)).filter(([k]) => k !== 'all').map(([key, label]) => ({ key, label }));
+const NIVEAUX = [...new Set(QUESTIONS.map(q => q.niveau))];
+const NOTIONS = [...new Set(QUESTIONS.map(q => q.cat))];
 
 /* Texte affiché : sans balises, entités décodées, espaces insécables ramenées à des espaces simples */
 const texte = h => h.replace(/<[^>]+>/g, '')
@@ -36,32 +41,71 @@ const scene = (() => {
 
 test('l’appli a bien ses questions d’entretien, lues ici sans en perdre', () => {
   assert.ok(start > 0, 'tableau ENTRETIEN trouvé dans index.html');
-  assert.equal(QUESTIONS.length, (body.match(/^\s*\{id:'/gm) || []).length, 'chaque question du tableau est lue');
-  assert.ok(QUESTIONS.length >= 10 && THEMES.length >= 2);
+  assert.equal(QUESTIONS.length, 141, '75 questions, puis 27 (19 h 12), puis 39 (19 h 19)');
+  assert.deepEqual(NIVEAUX, ['Débutant', 'Intermédiaire', 'Avancé']);
+  assert.deepEqual(NIVEAUX.map(n => QUESTIONS.filter(q => q.niveau === n).length), [47, 47, 47]);
+  assert.deepEqual([...FILTRES.map(f => f.key)].sort(), [...NOTIONS].sort(), 'les notions de la liste sont celles de la banque (rangées dans l’ordre où on les apprend, 18 h 48)');
+  assert.equal(FILTRES[0].key, 'SELECT', 'SELECT en haut');
+  assert.ok(!NOTIONS.some(n => ['Requêtes', 'Bases', 'Entretien'].includes(n)), 'plus de notion qui ne veut rien dire');
+  assert.ok(QUESTIONS.every(q => q.id && q.cat && q.q && q.a && q.niveau && q.dialectes?.length), 'chaque carte a ses métadonnées');
 });
 
-test('le nombre de questions et de thèmes annoncé correspond à l’appli', () => {
+test('les filtres de la banque sélectionnent des familles de notions, pas les niveaux (18 h 38 : « trop de notions »)', () => {
+  const fnsStart = app.indexOf('function entMark(');
+  const fnsEnd = app.indexOf('function entFoot(', fnsStart);
+  const famStart = app.indexOf('const ENT_FAMILLES=');
+  const famEnd = app.indexOf('const ENTRETIEN_CATS=', famStart);
+  const ctx = vm.createContext({ state: { entretien: {} } });
+  vm.runInContext(app.slice(start, end + 3).replace('const ENTRETIEN=', 'ENTRETIEN=') + ';', ctx);
+  vm.runInContext(app.slice(famStart, famEnd).replace(/^const /gm, 'var ') + app.slice(fnsStart, fnsEnd) + '\nvar entFilter="all",entStatus="all";', ctx);
+  const familles = JSON.parse(JSON.stringify(vm.runInContext('ENT_FAMILLES', ctx))).filter(([k]) => k !== 'all');
+  assert.ok(familles.length <= 8, `${familles.length} familles au plus`);
+  const toutes = familles.flatMap(([, , cats]) => cats);
+  assert.deepEqual([...toutes].sort(), [...NOTIONS].sort(), 'chaque notion est dans exactement une famille');
+  let total = 0;
+  for (const [key, label, cats] of familles) {
+    const actual = JSON.parse(JSON.stringify(vm.runInContext(`(entFilter=${JSON.stringify(key)},entVisibleItems().map(x=>x.q.cat))`, ctx)));
+    assert.ok(actual.length > 0 && actual.every(cat => cats.includes(cat)), `${label} : seules ses questions sont affichées`);
+    assert.equal(actual.length, QUESTIONS.filter(q => cats.includes(q.cat)).length, `${label} : compteur exact`);
+    total += actual.length;
+  }
+  assert.equal(total, QUESTIONS.length);
+});
+
+test('la liste rassemble chaque notion dans un seul groupe', () => {
+  const groupStart = app.indexOf('function entGroupItems(');
+  const groupEnd = app.indexOf('\nfunction entFoot(', groupStart);
+  assert.ok(groupStart > 0 && groupEnd > groupStart, 'fonction de regroupement trouvée');
+  vm.runInContext(app.slice(groupStart, groupEnd), ctx);
+  const groups = JSON.parse(JSON.stringify(vm.runInContext('entGroupItems(ENTRETIEN.map((q,i)=>({q,id:String(i)})))', ctx)));
+  assert.deepEqual(groups.map(g => g.cat), FILTRES.map(f => f.key), 'les groupes suivent l’ordre des notions (SELECT en haut)');
+  assert.equal(new Set(groups.map(g => g.cat)).size, groups.length);
+  assert.deepEqual(groups.map(g => g.items.length), groups.map(g => QUESTIONS.filter(q => q.cat === g.cat).length));
+});
+
+test('le nombre de questions et de niveaux annoncé correspond à l’appli', () => {
   const n = QUESTIONS.length;
   assert.ok(texte(section).includes(`${n} questions d’entretien SQL`), `vitrine : « ${n} questions d’entretien SQL »`);
   assert.ok(texte(scene).includes(`${n} questions d’entretien`), `vidéo : autocollant « ${n} questions d’entretien »`);
-  assert.match(video, new RegExp(`'Entraîne-toi pour l’entretien : ${n} questions d’entretien SQL`), 'vidéo : texte lu par les lecteurs d’écran');
+  assert.match(video, new RegExp(`'Entraîne-toi pour l’entretien : ${n} questions SQL`), 'vidéo : texte lu par les lecteurs d’écran');
   const faq = vitrine.slice(vitrine.indexOf('Le parcours prépare-t-il aux entretiens SQL'));
-  assert.ok(texte(faq).includes(`${n} questions d’entretien SQL en ${THEMES.length} thèmes`), 'FAQ visible');
-  assert.match(vitrine, new RegExp(`"text":"Oui. L’appli propose ${n} questions d’entretien SQL en ${THEMES.length} thèmes`), 'FAQ des moteurs de recherche');
+  assert.ok(texte(faq).includes(`${n} questions d’entretien SQL réparties en trois niveaux`), 'FAQ visible');
+  assert.match(vitrine, new RegExp(`"text":"Oui. L’appli propose ${n} questions d’entretien SQL réparties en trois niveaux`), 'FAQ des moteurs de recherche');
   const puces = [...section.matchAll(/<ul class="en-themes"[^>]*>(.*?)<\/ul>/gs)].map(m => [...m[1].matchAll(/<li>([^<]+)<\/li>/g)].map(x => x[1]))[0];
-  assert.deepEqual(puces, THEMES, 'les thèmes listés sont ceux de l’appli, dans le même ordre');
-  assert.ok(texte(section).includes(`thèmes validés sur ${THEMES.length}`));
+  assert.deepEqual(puces, ['Débutant · 47', 'Intermédiaire · 47', 'Avancé · 47'], 'la vitrine annonce les trois niveaux équilibrés');
+  assert.ok(texte(section).includes('niveau validé sur 3'));
 });
 
-test('la question montrée est celle de l’appli : même numéro, même thème, même réponse, même exemple', () => {
-  const i = QUESTIONS.findIndex(x => texte(x.q) === 'WHERE ou HAVING ?');
-  assert.ok(i >= 0, 'la question « WHERE ou HAVING ? » existe dans l’appli');
+test('la question montrée est celle de l’appli : même numéro, niveau, thème, réponse et exemple', () => {
+  const i = QUESTIONS.findIndex(x => x.id === 'ent-v2-06');
+  assert.ok(i >= 0, 'la question WHERE/HAVING existe dans l’appli');
   const x = QUESTIONS[i], n = QUESTIONS.length;
   assert.ok(texte(section).includes(`Question ${i + 1} sur ${n}`), `vitrine : « Question ${i + 1} sur ${n} »`);
   assert.ok(texte(scene).includes(`Question ${i + 1}/${n}`), `vidéo : « Question ${i + 1}/${n} »`);
   for (const [nom, h] of [['vitrine', section], ['vidéo', scene]]) {
-    assert.ok(texte(h).includes('WHERE ou HAVING ?'), `${nom} : la question`);
+    assert.ok(texte(h).includes(x.q), `${nom} : la question`);
     assert.ok(texte(h).includes(x.cat), `${nom} : le thème « ${x.cat} »`);
+    assert.ok(texte(h).includes(x.niveau), `${nom} : le niveau « ${x.niveau} »`);
   }
   const rep = section.match(/<div class="en-open">\s*<small>Réponse attendue<\/small>\s*<p>(.*?)<\/p>/s);
   assert.ok(rep, 'vitrine : réponse attendue présente');

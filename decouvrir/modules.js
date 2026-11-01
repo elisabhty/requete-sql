@@ -44,9 +44,9 @@ window.MODULES=[
       ["Les bases de données relationnelles", "Tables, clés et lecture avec SELECT", 580]
     ]},
     {titre:"Lire une table", sous:"SELECT, filtres, tri et pagination", lecons:[
-      ["Renommer avec AS", "Donner un nom lisible à une colonne du résultat", 91],
-      ["DISTINCT", "Valeurs uniques", 138],
-      ["WHERE", "Filtrer les lignes", 109],
+      ["Renommer avec AS", "Donner un nom lisible à une colonne du résultat", 94],
+      ["DISTINCT", "Valeurs uniques", 140],
+      ["WHERE", "Filtrer les lignes", 112],
       ["Comparer des valeurs", "Filtrer avec =, !=, >, <, >=, <=", 128],
       ["AND et OR", "Combiner plusieurs conditions", 132],
       ["NOT", "Exclure selon une condition", 138],
