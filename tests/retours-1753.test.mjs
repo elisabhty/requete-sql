@@ -46,6 +46,8 @@ test('le KPI partout où il était : planning, Mon compte, Pratiquer, les niveau
   assert.ok(app.includes("how:'Trouve 10 défis différents.'"));
   for (const part of ['html.lq .pgr-stat.is-d>p{margin:8px 0 0!important;', 'html.lq .acct-stat .kpi-chip{', 'html.lq .kpi-pts{'])
     assert.ok(css.includes(part), part);
+  assert.ok(css.includes('html.lq .room-head{margin:0 -18px;padding:14px 18px 12px}'), 'bandeau de salle resserré');
+  assert.ok(css.includes('html.lq .room-field{margin-top:12px}'), 'choix rapprochés du bandeau');
 });
 
 test('le classement sans pseudo : on peut le choisir d’ici ; Données et confidentialité : supprimer son pseudo', () => {
