@@ -15940,7 +15940,9 @@ function normalizeState(raw){
     stickers.board.push({id:b.id,x:n(b.x,0,1,.5),y:n(b.y,0,1,.5),r:n(b.r,-180,180,0),s:n(b.s,.5,2,1)});
   });
   const since=Math.floor(Number(stkSrc.since));if(since>0)stickers.since=since;
-  return {lessons,defis,notes,plan,onboarded,name,profile,accountMode,entretien,preferences,actDays,actSince,salle,study,stickers};
+  /* Les cours déjà ouverts une fois (15 h 57 : « Commencer » la première fois, « Continuer » ensuite). */
+  const lecOuvertes=Array.isArray(source.lecOuvertes)?[...new Set(source.lecOuvertes.filter(Number.isInteger))].slice(-400):[];
+  return {lessons,defis,notes,plan,onboarded,name,profile,accountMode,entretien,preferences,actDays,actSince,salle,study,stickers,lecOuvertes};
 }
 /* Un nombre écrit en texte ('07', '2026') vaut ce nombre : STRFTIME('%m', date) et MONTH(date) donnent le même résultat. */
 function normCell(v){return typeof v==='number'?Math.round(v*1000)/1000:(typeof v==='string'&&/^-?\d+(?:\.\d+)?$/.test(v)?Math.round(Number(v)*1000)/1000:v);}
@@ -18882,7 +18884,10 @@ function openLesson(id, restoreStep){
 function lessonStartShow(l,go){
   document.getElementById('lesson-start')?.remove();
   const m=moduleDeLecon(l.id),mi=m?MODULES.indexOf(m):-1,pos=m?m.lessons.findIndex(x=>x.id===l.id)+1:0;
-  const done=lecCompletee(l.id),started=!done&&nbFaites(l.id)>0;
+  /* 15 h 57 : « Commencer » à la première ouverture du cours, « Continuer » ensuite (le cours a déjà été ouvert ou entamé). */
+  const done=lecCompletee(l.id),ouverts=Array.isArray(state.lecOuvertes)?state.lecOuvertes:[];
+  const started=!done&&(nbFaites(l.id)>0||ouverts.includes(l.id));
+  if(!ouverts.includes(l.id)){state.lecOuvertes=[...ouverts,l.id].slice(-400);try{save();}catch(e){}}
   const chips=[];
   if(lessonHasVideo(l))chips.push(`<span class="lst-chip is-play"><i aria-hidden="true">▶</i>Cours en vidéo${l.video.duree?` · ${esc(l.video.duree)}`:''}</span>`);
   else chips.push('<span class="lst-chip">Cours</span>');
@@ -18908,7 +18913,7 @@ function lessonStartShow(l,go){
       <img class="lst-stk" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">
     </div>
     <ol class="lst-plan">${plan.map(([t,d],i)=>`<li style="--i:${i}"><b class="lst-n">${i+1}</b><span><b>${t}</b><small>${d}</small></span></li>`).join('')}</ol>
-    <button type="button" class="lst-go"><span>${done?'Revoir le cours':started?'Reprendre':'Commencer'}</span>${DEF_CHEV_SVG}</button>`;
+    <button type="button" class="lst-go"><span>${done?'Revoir le cours':started?'Continuer':'Commencer'}</span>${DEF_CHEV_SVG}</button>`;
   document.body.appendChild(root);
   lstFit();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(lstFit);
   const close=ok=>{
@@ -32057,7 +32062,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-niv-v2261';
+  const SW_CACHE='requete-2026-11-01-continuer-v2262';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
