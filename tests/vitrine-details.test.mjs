@@ -201,7 +201,13 @@ test('« Se connecter » partout à la place de « Ouvrir l’appli », et la ca
     assert.doesNotMatch(h, /Ouvrir l’appli/, `${page} : plus de « Ouvrir l’appli »`);
     const menu = h.slice(h.indexOf('<nav class="menu" id="menu"'), h.indexOf('</nav>', h.indexOf('<nav class="menu" id="menu"')));
     assert.ok(menu.includes('<a class="btn btn-s btn-lg" href="connexion.html">Se connecter</a>'), `${page} : bouton du menu`);
+    for (const label of ['Choisir un objectif', 'Parcours de formation', 'Questions fréquentes'])
+      assert.ok(menu.includes(`>${label}</a>`), `${page} : « ${label} » dans le menu mobile`);
+    assert.ok(!menu.includes('>Ton objectif</a>') && !menu.includes('>Les parcours</a>') && !menu.includes('>Questions</a>'), `${page} : anciens libellés retirés`);
   }
+  const home = lire('index.html');
+  const menu = home.slice(home.indexOf('<nav class="menu" id="menu"'), home.indexOf('</nav>', home.indexOf('<nav class="menu" id="menu"')));
+  assert.ok(menu.includes('>Pourquoi apprendre SQL</a>') && menu.includes('>Requête sur mobile</a>') && menu.includes('>Nous contacter</a>'));
   /* .avis coupait tout ce qui dépassait, y compris l’ombre de sa dernière carte : on ne coupe plus que sur les côtés */
   assert.match(css, /@supports \(overflow:clip\)\{\.avis\{overflow:visible;overflow-x:clip\}\}/);
 });
@@ -497,7 +503,7 @@ test('« Salaires » n’est plus dans les menus (barre du haut, menu du télép
   for (const page of ['index.html', 'module.html', 'mentions-legales.html', 'confidentialite.html', 'conditions.html'])
     assert.doesNotMatch(lire(page), /<a href="(?:\.\/)?#salaires">Salaires<\/a>/, page);
   const h = lire('index.html'), nav = h.slice(h.indexOf('<nav class="links"'), h.indexOf('</nav>', h.indexOf('<nav class="links"')));
-  assert.deepEqual([...nav.matchAll(/<a href="#(\w+)">([^<]+)<\/a>/g)].map(m => m[2]), ['Parcours', 'Pourquoi le SQL', 'Questions']);
+  assert.deepEqual([...nav.matchAll(/<a href="#(\w+)">([^<]+)<\/a>/g)].map(m => m[2]), ['Parcours de formation', 'Pourquoi apprendre SQL', 'Questions fréquentes']);
   assert.equal((h.match(/id="salaires"/g) || []).length, 1, 'la carte « Salaire » est toujours dans « Pourquoi le SQL »');
 });
 
