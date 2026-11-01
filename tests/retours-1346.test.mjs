@@ -187,3 +187,7 @@ test('16 h 48 : la révision et la question d’entretien ouverte survivent auss
   assert.ok(app.includes("if(nav.view==='tab'&&nav.tab==='entretien'){\n      switchTab('entretien');entSesRestore();"));
   assert.ok(app.includes('  if(!restoringNav)entSesSave();'));
 });
+
+test('18 h 20 : sous le bouton retour, le titre de la page descend, le même écart partout', () => {
+  assert.ok(css.includes('html.lq #app .screen>.home-back{margin-bottom:28px}'));
+});
