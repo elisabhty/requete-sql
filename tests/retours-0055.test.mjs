@@ -18,9 +18,10 @@ const DEFIS = JSON.parse(JSON.stringify(ctx.CHALLENGES));
 const aero = cut("aeroport:{nom:'Aéroport',", '\n`}');
 const base = () => { const d = new SQL.Database(); d.run(aero.slice(aero.indexOf('sql:`') + 5)); return d; };
 
-test('les défis sont ceux de la base Aéroport : 10 Facile, chacun avec sa situation, sa mission, son indice', () => {
-  assert.equal(DEFIS.length, 10);
-  assert.deepEqual(DEFIS.map(c => c.id), ['af1', 'af2', 'af3', 'af4', 'af5', 'af6', 'af7', 'af8', 'af9', 'af10']);
+test('les défis sont ceux de la base Aéroport : 23 Facile, chacun avec sa situation, sa mission, son indice', () => {
+  /* 8 h 39 : le lot Facile n° 2 (af11 à af23) s’ajoute au premier */
+  assert.equal(DEFIS.length, 23);
+  assert.deepEqual(DEFIS.map(c => c.id), Array.from({ length: 23 }, (_, i) => 'af' + (i + 1)));
   for (const c of DEFIS) {
     assert.equal(c.base, 'aeroport', c.id); assert.equal(c.niv, 'f', c.id);
     assert.ok(c.contexte && c.q && c.indice && c.sol && c.titre && Number.isInteger(c.apres), c.id);
