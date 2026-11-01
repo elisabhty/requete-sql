@@ -55,6 +55,8 @@ test('les 30 solutions Laboratoire renvoient des résultats non vides et des tri
 test('les résultats repères des défis Laboratoire correspondent au seed', () => {
   const db = base();
   const rows = id => db.exec(challenge(id).sol)[0].values;
+  assert.equal(challenge('ld7').titre, 'Quels projets sont plus financés que la moyenne de leur équipe ?');
+  assert.equal(challenge('ld8').titre, 'Quel est le classement des projets par nombre de publications avec RANK() ?');
   assert.equal(rows('lf1').length, 9);
   assert.equal(rows('lf2').length, 6);
   assert.deepEqual(rows('lf4')[0], [7, 'Intensité fluorescence', 'Microscopie confocale']);
