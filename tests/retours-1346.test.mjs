@@ -176,3 +176,14 @@ test('16 h 31 : recharger pendant un défi ne fait plus perdre l’avancée', ()
   assert.ok(app.includes("if(COACH.kind==='solo'&&typeof defiSesSave==='function')defiSesSave();"), 'les indices et le « Pas encore » aussi');
   assert.ok(app.includes("el.classList.add('is-ok');defiChronoStop();defiSesClear();return;"), 'un défi réussi repart de zéro');
 });
+
+test('16 h 48 : la révision et la question d’entretien ouverte survivent aussi au rechargement', () => {
+  const rev = cut('function openReview(id){', '\nlet defiDernierKo');
+  assert.ok(rev.includes('let ses=restoringNav?revSesRead():null;'));
+  assert.ok(rev.includes('if(ses.done){if(q.length){id=q[0];}ses=null;}'), 'une leçon déjà révisée passe à la suivante');
+  assert.ok(rev.includes('exoFails=Math.max(0,Math.floor(+ses.fails||0));'), 'l’aide déjà débloquée revient');
+  assert.ok(app.includes("else if(taId==='ed-lesson'&&current&&mode==='review'){revSesSave();}"), 'la requête est gardée à la frappe');
+  assert.equal(app.split('reviewQueue.shift();revSesSave(true);').length - 1, 2, 'les deux réussites de révision');
+  assert.ok(app.includes("if(nav.view==='tab'&&nav.tab==='entretien'){\n      switchTab('entretien');entSesRestore();"));
+  assert.ok(app.includes('  if(!restoringNav)entSesSave();'));
+});
