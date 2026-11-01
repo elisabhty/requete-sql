@@ -16297,16 +16297,25 @@ function insertKey(k,schemaKind){
     else if(!isSchema&&kn&&kn.startsWith(tok.text)&&/^[A-Z]/.test(kn)) start=tok.start;
   }
   let txt=k, caret=k.length;
+  /* Elisa, 1er novembre, 16 h 03 : « ça met un espace en trop quand je sélectionne dans le clavier ». Les espaces se posent
+     seulement là où il en manque : avant le mot s’il est collé au précédent ; après un mot-clé (FROM, WHERE…) seulement si rien
+     ne suit déjà ; jamais après une fonction (COUNT(*) est souvent suivie d’une virgule ou de AS) ; et la virgule se colle au
+     mot d’avant, en effaçant l’espace laissé derrière lui. */
+  const lead=()=>start>0&&!/[\s(]$/.test(v.slice(0,start))?' ':'';
+  const suitEspace=/^\s/.test(v.slice(end));
   if(isSchema){
     const ctx=kbarClauseContext(ta);
     const trail=v.slice(0,start);
-    const leadSp=start>0&&!/\s$/.test(trail)&&!/,(\s*)$/.test(trail)?' ':'';
+    const leadSp=start>0&&!/[\s(]$/.test(trail)&&!/,(\s*)$/.test(trail)?' ':'';
     txt=leadSp+k;
-    if(ctx.kind==='table'||ctx.kind==='column'||schemaKind==='table') txt+=' ';
+    if((ctx.kind==='table'||ctx.kind==='column'||schemaKind==='table')&&!suitEspace&&!/\($/.test(trail)) txt+=' ';
     caret=txt.length;
-  } else if(k==='()'||k.endsWith('()')){caret=k.length-1;}
+  } else if(k==='()'||k.endsWith('()')){const l=/^[A-Z]/.test(k)?lead():'';txt=l+k;caret=l.length+k.length-1;}
   else if(k==="'"){txt="''";caret=1;}
-  else if(/^[A-Z]/.test(k)&&k!==';'){txt=(start>0&&!/\s$/.test(v.slice(0,start))?' ':'')+k+' ';caret=txt.length;}
+  else if(k===','){while(start>0&&/[ \t]/.test(v[start-1]))start--;txt=suitEspace?',':', ';caret=txt.length;}
+  else if(k===')'||k===';'){while(start>0&&/[ \t]/.test(v[start-1]))start--;}
+  else if(/^[A-Z]/.test(k)&&/\)$/.test(k)){txt=lead()+k;caret=txt.length;}
+  else if(/^[A-Z]/.test(k)&&k!==';'){txt=lead()+k+(suitEspace?'':' ');caret=txt.length;}
   ta.value=v.slice(0,start)+txt+v.slice(end);
   const pos=start+caret; ta.setSelectionRange(pos,pos);
   ta.dispatchEvent(new Event('input')); ta.focus();
@@ -32062,7 +32071,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-sw-v2263';
+  const SW_CACHE='requete-2026-11-01-clavier-v2264';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

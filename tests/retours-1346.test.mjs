@@ -139,3 +139,23 @@ test('16 h : une feuille versionnée n’est servie du cache que sous sa version
   assert.ok(sw.includes("return (versionne && await cache.match(req, { ignoreSearch: true })) || Response.error();"), 'hors ligne, l’ancienne copie dépanne');
   assert.ok(css.includes('html.lq .room-level{min-height:0!important;justify-content:center;gap:6px;padding:13px 6px 13px!important}'));
 });
+
+test('16 h 03 : le clavier « Insérer » ne pose plus d’espace en trop', () => {
+  const src = cut('function insertKey(k,schemaKind){', '\nlet kbarOpenH');
+  const ctx = vm.createContext({ activeTA: null, kbarTokenAt: () => null, kbarKeyNorm: k => k.replace(/\(\*\)/g, '').replace(/[()';%]/g, '').trim().toUpperCase(), kbarClauseContext: () => ({ kind: 'column' }), Event: class { constructor(t) { this.type = t; } } });
+  vm.runInContext(src, ctx);
+  const tape = (v, k, at = v.length, kind = '') => {
+    const ta = { value: v, selectionStart: at, selectionEnd: at, setSelectionRange(a) { this.selectionStart = this.selectionEnd = a; }, dispatchEvent() {}, focus() {} };
+    ctx.activeTA = ta; vm.runInContext(`insertKey(${JSON.stringify(k)},${JSON.stringify(kind)})`, ctx);
+    return ta.value.slice(0, ta.selectionStart) + '|' + ta.value.slice(ta.selectionStart);
+  };
+  assert.equal(tape('SELECT ', 'COUNT(*)'), 'SELECT COUNT(*)|', 'pas d’espace après une fonction');
+  assert.equal(tape('SELECT COUNT(*)', ','), 'SELECT COUNT(*), |');
+  assert.equal(tape('SELECT nom ', ','), 'SELECT nom, |', 'la virgule efface l’espace laissé avant elle');
+  assert.equal(tape('SELECT *', 'FROM'), 'SELECT * FROM |', 'un mot-clé garde son espace après');
+  assert.equal(tape('SELECT * ', 'FROM'), 'SELECT * FROM |');
+  assert.equal(tape('SELECT  nom', 'FROM', 7), 'SELECT FROM| nom', 'pas de second espace si un espace suit déjà');
+  assert.equal(tape('SELECT ', 'SUM()'), 'SELECT SUM(|)');
+  assert.equal(tape('SELECT COUNT(', 'nom', 13, 'column'), 'SELECT COUNT(nom|', 'dans une parenthèse, ni avant ni après');
+  assert.equal(tape('SELECT COUNT(nom ', ')'), 'SELECT COUNT(nom)|');
+});
