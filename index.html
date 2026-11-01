@@ -6644,7 +6644,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=79">
+<link rel="stylesheet" href="ludique.css?v=80">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -18144,8 +18144,7 @@ function renderDefisRoom(){
   if(!jeuChallenges(jeuNiv).length){const k=['f','m','d'].find(x=>jeuChallenges(x).length);if(k)jeuNiv=k;}
   const auto=jeuNivAuto();
   const friends=jeuMode==='friends';
-  /* Sous chaque niveau : ses manches réussies sur jouées (18 h 02 ; 18 h 28 : « réussies », pas « trouvées »). */
-  const kd=salleKpi(),stat=k=>{const l=Array.isArray(kd.lv[k])?kd.lv[k]:[0,0],n=Math.max(0,+l[0]||0),ok=Math.min(Math.max(0,+l[1]||0),n);return `${ok}/${n} réussie${ok>1?'s':''}`;};
+  /* 15 h 54 : plus de sous-texte sous les niveaux (« 0/0 réussie » faisait vide) ; seul un niveau encore vide dit « Bientôt ». */
   const seg=(key,items,cur)=>items.map(([v,l,x])=>`<button type="button" role="radio" aria-checked="${cur===v}" class="room-opt${cur===v?' on':''}" data-set="${key}" data-v="${v}"${x||''} onclick="jeuRoomSet('${key}',${typeof v==='number'?v:`'${v}'`})">${l}</button>`).join('');
   /* L’en-tête violet quadrillé de la vitrine, l’autocollant de la cible ; dessous, sur blanc, les réglages (ludique.css, 42). */
   host.innerHTML=`<section class="room-card" aria-labelledby="room-h">
@@ -18154,7 +18153,7 @@ function renderDefisRoom(){
     <h2 id="room-h">Entre dans la salle</h2>
     <p class="room-sub">Un défi tiré au sort, au niveau que tu choisis.</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
     <div class="room-field"><p class="jeu-lab" id="room-niv-l">Niveau</p>
-      <div class="room-levels" role="radiogroup" aria-labelledby="room-niv-l">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="jeuRoomSet('niv','${k}')"${vide?' disabled':''}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b><small>${vide?'Bientôt':stat(k)}</small>${k===auto&&!vide?'<em class="room-lv-auto">Niveau recommandé</em>':''}</button>`;}).join('')}</div></div>
+      <div class="room-levels" role="radiogroup" aria-labelledby="room-niv-l">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="jeuRoomSet('niv','${k}')"${vide?' disabled':''}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b>${vide?'<small>Bientôt</small>':''}${k===auto&&!vide?'<em class="room-lv-auto">Niveau recommandé</em>':''}</button>`;}).join('')}</div></div>
     <div class="room-field"><p class="jeu-lab" id="room-mode-l">Avec qui ?</p>
       <div class="room-seg" role="radiogroup" aria-labelledby="room-mode-l">${seg('mode',[['solo','Seul'],['friends',JEU_FRIENDS_SVG+'Entre amis']],jeuMode)}</div></div>
     <div class="room-field"><p class="jeu-lab" id="room-nb-l">Nombre de manches</p>
@@ -32058,7 +32057,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-reco-v2260';
+  const SW_CACHE='requete-2026-11-01-niv-v2261';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
