@@ -1,4 +1,4 @@
-/* Les cours suivent SQLite ; la page « Selon le SGBD » de la Bibliothèque fait la correspondance avec
+/* Les requêtes sont exécutées avec SQLite ; la page « Selon le SGBD » de la Bibliothèque fait la correspondance avec
    PostgreSQL, MySQL, SQL Server et Oracle. Les remarques des cours renvoient vers elle. */
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -13,6 +13,8 @@ const page = vm.runInContext('SGBD_PAGE', ctx);
 
 test('la page compare SQLite à quatre SGBD, besoin par besoin', () => {
   assert.equal(JSON.stringify(vm.runInContext('SGBD_NOMS', ctx)), JSON.stringify(['SQLite', 'PostgreSQL', 'MySQL', 'SQL Server', 'Oracle']));
+  assert.doesNotMatch(html, /<h1>Selon le SGBD<\/h1>\s*<p class="sub">/);
+  assert.match(html, /Les requêtes sont exécutées avec <b>SQLite<\/b>, le moteur SQL intégré à l’application\./);
   assert.equal(new Set(page.map(s => s.id)).size, page.length, 'thèmes uniques');
   for (const s of page) for (const [besoin, codes] of s.rows) assert.equal(codes.length, 5, `${s.t} · ${besoin}`);
   const need = ctx.sgbdNeedHtml(page.find(s => s.id === 'dates').rows.find(r => r[0] === 'Extraire l’année'));

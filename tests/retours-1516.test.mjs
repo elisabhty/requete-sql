@@ -16,7 +16,7 @@ const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j 
 
 test('réf. 1 — le retour « Questions » d’une question ouverte a la même place à droite que les autres retours', () => {
   assert.ok(css.includes('padding:var(--safe-top) 26px 0 16px;background:transparent;border-bottom:0;box-shadow:none;'));
-  assert.ok(css.includes('html.lq #app .screen>.home-back{isolation:isolate;padding-right:26px;'), 'les autres retours : 26 px, la pastille à 12 px du bord');
+  assert.ok(css.includes('html.lq #app .screen>.home-back{isolation:isolate;padding-right:34px;'), 'les autres retours : 34 px, la pastille à 12 px du bord');
 });
 
 test('réf. 2 — « Question suivante » reste dans l’onglet : à revoir, toutes ou maîtrisées', () => {
