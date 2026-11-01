@@ -77,3 +77,7 @@ test('14 h 43 : la croix de la page de départ ramène à l’accueil ; « Gagne
   assert.ok(open.includes("if(ok)go&&go();else leaveLessonScreen('learn');"));
   assert.ok(open.includes("plan.push(['Gagne des stickers et des cartes mémo','À collectionner : chaque cours terminé en débloque de nouveaux.']);"));
 });
+
+test('14 h 56 : l’étape 1 dit, pour tous les cours, « Avance à ton rythme et mets la vidéo en pause quand tu veux. »', () => {
+  assert.ok(app.includes("plan.push(['Regarde le cours','Avance à ton rythme et mets la vidéo en pause quand tu veux.']);"));
+});
