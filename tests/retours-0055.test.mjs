@@ -54,7 +54,7 @@ test('la consigne d’un défi : la situation et la question, sans indice (1 h 2
 });
 
 test('1 h 20 : le Schéma attire l’œil pendant un défi ; un défi seul se ferme à 10 min', () => {
-  assert.ok(app.includes("function schAttn(){return mode==='defi'||mode==='jeu'?' sch-attn':'';}"));
+  assert.ok(app.includes("function schAttn(){return typeof mode!=='undefined'&&(mode==='defi'||mode==='jeu')?' sch-attn':'';}"));
   assert.ok(app.includes('class="ed-schema${schAttn()}"') && app.includes('class="btn-ghost${schAttn()}"'));
   assert.ok(app.includes("document.querySelectorAll('.sch-attn').forEach(b=>b.classList.remove('sch-attn'));"), 'ouvert une fois : il s’arrête');
   assert.ok(app.includes('if(took>=JEU_ROUND_MS){defiChronoStop();defiTempsEcoule(c);}'));
