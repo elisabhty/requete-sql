@@ -32,7 +32,7 @@ test('réf. 2 : ni « Supprimer mon pseudo » ni « Retirer mes scores » ; les 
 });
 
 test('réf. 3 : le nom d’un projet s’affiche en entier, coupé après ses _ - .', () => {
-  assert.ok(app.includes("<b>${demo?'Base des cours':esc(d.name).replace(/([_.-])/g,'$1<wbr>')}</b>"));
+  assert.ok(app.includes("<b>${d.id==='cours'?'Base des cours':d.id==='aeroport'?'Base Aéroport':esc(d.name).replace(/([_.-])/g,'$1<wbr>')}</b>"));
   assert.ok(css.includes('html.lq .console-project-copy b{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:break-word;'));
 });
 
@@ -49,4 +49,15 @@ test('1 h 07 : la carte du joueur, la note de la salle, les cartes de « Profil 
 
 test('1 h 29 : le bouton « Importer » de la Console garde son relief (la barre qui défile lui laisse la place)', () => {
   assert.ok(css.includes('html.lq #scr-console .console-schema-panel .db-bar{padding:2px 2px 6px;margin:-2px -2px -6px}'));
+});
+
+test('1 h 32 : la base Aéroport dans « Tes projets », de l’espace sous les retours, plus de phrase sous les projets', () => {
+  assert.ok(app.includes("function isDemoDb(id){return id==='cours'||id==='aeroport';}"));
+  assert.ok(app.includes("if(!dbCatalog.some(d=>d.id==='aeroport'))dbCatalog.splice(1,0,{id:'aeroport',name:'Aéroport'});"));
+  assert.ok(app.includes('    await loadCustomDbs();\n    ensureAeroportDb();'), 'recréée à chaque ouverture');
+  assert.ok(app.includes('  const payload=dbCatalog.filter(d=>!isDemoDb(d.id)).map(d=>{'), 'jamais enregistrée avec les projets');
+  assert.ok(app.includes("async function renameDb(id){\n  if(isDemoDb(id))return;") && app.includes("function deleteDb(id){\n  if(isDemoDb(id)) return;"), 'ni renommée ni supprimée');
+  assert.ok(app.includes("d.id==='aeroport'?'Base Aéroport'"));
+  assert.ok(css.includes('html.lq #app .p-bar{height:calc(var(--safe-top) + 52px);padding-bottom:8px;box-sizing:border-box;margin-bottom:calc(-1 * (var(--safe-top) + 52px))}'));
+  assert.ok(!app.includes('Chaque projet garde sa base, son brouillon et son historique.'));
 });

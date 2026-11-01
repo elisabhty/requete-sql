@@ -6643,7 +6643,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=61">
+<link rel="stylesheet" href="ludique.css?v=62">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -10458,6 +10458,7 @@ async function boot(){
         id:'n'+k+Date.now(),txt:String(old[k]),sql:'',ctx:CARTES[k]?`Carte ${k} · ${CARTES[k].k}`:'',ts:Date.now(),pin:false}));
     }
     await loadCustomDbs();
+    ensureAeroportDb();
     loadProjState();
     renderModules(); renderDefis(); renderProgress(); renderCollection(); renderNotes(); renderPlanning(); buildKbar();
     setupEditor('ed-console','hl-console');
@@ -10930,6 +10931,19 @@ function buildDb(){ if(db)db.close(); db=new SQL.Database(); attachDateFns(db); 
    client laisserait passer des commandes orphelines. */
 function sandbox(){ const d=new SQL.Database(baseBytes); attachDateFns(d); try{ d.run('PRAGMA foreign_keys = ON'); }catch(e){} return d; }
 function activeDb(){ return activeDbId==='cours'?db:customDbs[activeDbId]; }
+/* Les bases de démo de la Console (Elisa, 1er novembre, 1 h 32 : « mettre la base aeroport ici ») : celle du cours et Aéroport,
+   la base des défis. Aéroport se recrée à chaque ouverture de l’appli depuis DEFI_BASES (jamais enregistrée avec les projets),
+   sans renommer ni supprimer ; ses tables se restaurent à leur état d’origine comme celles d’un fichier importé. */
+function isDemoDb(id){return id==='cours'||id==='aeroport';}
+function ensureAeroportDb(){
+  if(customDbs.aeroport||typeof DEFI_BASES==='undefined'||!DEFI_BASES.aeroport)return;
+  try{
+    customDbs.aeroport=attachDateFns(new SQL.Database(defiBaseBytes('aeroport')));
+    tableBaselines.aeroport={};
+    listTables(customDbs.aeroport).forEach(name=>rememberTableBaseline(customDbs.aeroport,'aeroport',name));
+    if(!dbCatalog.some(d=>d.id==='aeroport'))dbCatalog.splice(1,0,{id:'aeroport',name:'Aéroport'});
+  }catch(e){}
+}
 function quoteIdent(name){ return '"'+String(name).replace(/"/g,'""')+'"'; }
 function quoteSqlText(value){return "'"+String(value).replace(/'/g,"''")+"'";}
 function safeIdent(s){
@@ -11016,7 +11030,7 @@ function restoreTableBaseline(database,name,snapshot){
   }
 }
 async function persistCustomDbs(){
-  const payload=dbCatalog.filter(d=>d.id!=='cours').map(d=>{
+  const payload=dbCatalog.filter(d=>!isDemoDb(d.id)).map(d=>{
     const database=customDbs[d.id]; if(!database)return null;
     const b64=u8ToB64(database.export());
     attachDateFns(database);   // export() ferme puis rouvre la base : les fonctions ajoutées au moteur sont à reposer
@@ -11032,7 +11046,7 @@ async function loadCustomDbs(){
     const list=JSON.parse(raw)||[];
     let seeded=false;
     list.forEach(item=>{
-      if(!item||!item.id||!item.b64)return;
+      if(!item||!item.id||!item.b64||isDemoDb(item.id))return;
       customDbs[item.id]=attachDateFns(new SQL.Database(b64ToU8(item.b64)));
       tableBaselines[item.id]=item.baselines&&typeof item.baselines==='object'?item.baselines:{};
       if(!Object.keys(tableBaselines[item.id]).length){
@@ -11073,7 +11087,7 @@ const NOTE_PLUS_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 const DEMO_NOTES={desc:'La boutique NutriBoost des cours : ses clients, ses produits, leurs commandes et la fidélité.',
   tables:{clients:'Les clients de la boutique : nom, adresse, ville, âge, e-mail et téléphone.',produits:'Le catalogue : chaque produit, sa catégorie, son prix et son stock.',
     commandes:'Les commandes : quel client, quel produit, quelle quantité, et quand.',fidelite:'Les cartes de fidélité et leurs points, une par client inscrit.'}};
-function dbNote(id){ const p=projOf(id); return p.desc!=null?p.desc:(id==='cours'?DEMO_NOTES.desc:''); }
+function dbNote(id){ const p=projOf(id); return p.desc!=null?p.desc:(id==='cours'?DEMO_NOTES.desc:id==='aeroport'?'L’aéroport des défis : ses vols, passagers, compagnies, avions, réservations et bagages.':''); }
 function tableNote(id,t){ const m=projOf(id).tdesc||{}; return m[t]!=null?m[t]:(id==='cours'?(DEMO_NOTES.tables[t]||''):''); }
 async function editDbNote(id){
   id=id||activeDbId;
@@ -11124,7 +11138,7 @@ function applyConsoleDraft(){
   const ta=document.getElementById('ed-console');
   if(!ta)return;
   const p=projOf(activeDbId);
-  ta.value=p.draft||(activeDbId==='cours'?COURS_DEFAULT_SQL:'');
+  ta.value=p.draft||(activeDbId==='cours'?COURS_DEFAULT_SQL:activeDbId==='aeroport'?'SELECT numero_vol, date_depart, heure_depart, statut\nFROM vols\nORDER BY date_depart, heure_depart;':'');
   syncHL('ed-console','hl-console');
   fitSqlEditor(ta);
   updateConsolePinButton();
@@ -11161,14 +11175,14 @@ function renderConsoleScreen(){
   if(sub){
     if(inWork){
       const st=projectStats(activeDbId);
-      sub.innerHTML=`<b>${activeDbId==='cours'?'Base de démo':'Projet local'}</b><span>${plur(st.tables,'table')}</span>`;
+      sub.innerHTML=`<b>${isDemoDb(activeDbId)?'Base de démo':'Projet local'}</b><span>${plur(st.tables,'table')}</span>`;
     }else sub.textContent='Écris, teste et garde tes requêtes.';
   }
   if(pill){
     pill.hidden=true;
     pill.onclick=openProjectCreator;
   }
-  if(fname) fname.textContent=(activeDbId==='cours'?'cours':'projet')+'.sql';
+  if(fname) fname.textContent=(activeDbId==='cours'?'cours':activeDbId==='aeroport'?'aeroport':'projet')+'.sql';
   const desc=document.getElementById('console-desc');
   if(desc){
     const d=inWork?dbNote(activeDbId):'';
@@ -11194,7 +11208,7 @@ function renderConsoleHome(){
   if(!host)return;
   const items=dbCatalog.map(d=>{
     const st=projectStats(d.id);
-    const demo=d.id==='cours';
+    const demo=isDemoDb(d.id);
     const bits=[st.tables?plur(st.tables,'table'):'Aucune table'];
     if(st.pins)bits.push(`${st.pins} épinglée${st.pins>1?'s':''}`);
     if(st.hist)bits.push(`${st.hist} exécution${st.hist>1?'s':''}`);
@@ -11205,7 +11219,7 @@ function renderConsoleHome(){
     return `<div class="console-project-row">
       <button type="button" class="console-project-open" onclick="openConsoleProject('${d.id}')">
         <span class="console-project-icon">${CONSOLE_DB_SVG}</span>
-        <span class="console-project-copy"><b>${demo?'Base des cours':esc(d.name).replace(/([_.-])/g,'$1<wbr>')}</b><small${dbNote(d.id)?'':' class="is-muted"'}>${esc(dbNote(d.id)||'Projet local · sans description')}</small><em>${esc(bits.join(' · '))}</em></span>
+        <span class="console-project-copy"><b>${d.id==='cours'?'Base des cours':d.id==='aeroport'?'Base Aéroport':esc(d.name).replace(/([_.-])/g,'$1<wbr>')}</b><small${dbNote(d.id)?'':' class="is-muted"'}>${esc(dbNote(d.id)||'Projet local · sans description')}</small><em>${esc(bits.join(' · '))}</em></span>
         <span class="console-project-chev" aria-hidden="true">${CONSOLE_CHEV_SVG}</span>
       </button>
       ${actions}
@@ -11221,8 +11235,7 @@ function renderConsoleHome(){
       <button type="button" class="console-quick-action" onclick="document.getElementById('data-import').click()"><span class="console-quick-icon">${CONSOLE_UPLOAD_SVG}</span><span class="console-quick-copy"><b>Importer un fichier</b><small>Excel, CSV, JSON, SQL ou SQLite</small></span><span class="console-quick-chev" aria-hidden="true">${CONSOLE_CHEV_SVG}</span></button>
     </div>${create}
     <div class="console-projects-head"><h2>Tes projets</h2><span>${plur(dbCatalog.length,'projet')}</span></div>
-    <div class="console-project-list">${items}</div>
-    <p class="console-projects-note">Chaque projet garde sa base, son brouillon et son historique.</p>`;
+    <div class="console-project-list">${items}</div>`;
   if(consoleCreateOpen)requestAnimationFrame(()=>document.getElementById('console-project-name')?.focus());
 }
 function openConsoleProject(id){
@@ -11269,7 +11282,7 @@ function createProjectFromForm(event){
   toast('Projet créé','Importe un fichier ou crée une table.');
 }
 async function renameDb(id){
-  if(id==='cours')return;
+  if(isDemoDb(id))return;
   const meta=dbCatalog.find(d=>d.id===id);if(!meta)return;
   const name=await lqPrompt({ico:'✏️',titre:'Renommer le projet',valeur:meta.name,placeholder:'Analyse des ventes',max:40,oui:'Renommer'});
   if(!name||name===meta.name)return;
@@ -11609,7 +11622,7 @@ function promptNewDb(){
 }
 function deleteActiveDb(){ deleteDb(activeDbId); }
 function deleteDb(id){
-  if(id==='cours') return;
+  if(isDemoDb(id)) return;
   const meta=dbCatalog.find(d=>d.id===id);
   if(!meta||!customDbs[id]) return;
   lqAsk({ico:'🗑️',titre:`Supprimer « ${meta.name} » ?`,texte:'La base, ses tables, son brouillon et son historique seront supprimés de cet appareil.',oui:'Supprimer',non:'Garder',danger:true}).then(ok=>{if(ok)deleteDbNow(id);});
@@ -12072,9 +12085,9 @@ function openImportSheet(){
       : 'Le fichier devient une table dans le projet choisi.';
   }
 
-  const customs=dbCatalog.filter(d=>d.id!=='cours');
+  const customs=dbCatalog.filter(d=>!isDemoDb(d.id));
   /* Depuis un projet ouvert : une table y va directement ; une base aussi, si le projet est encore vide. */
-  const inProject=consoleView==='work' && activeDbId!=='cours' && customDbs[activeDbId];
+  const inProject=consoleView==='work' && !isDemoDb(activeDbId) && customDbs[activeDbId];
   const preferred=(inProject && (!asDb || !listTables(customDbs[activeDbId]).length))
     ? activeDbId
     : '__new__';
@@ -12134,6 +12147,7 @@ function createImportedTables(database,tables){
 function resolveImportTarget(){
   let target=document.getElementById('imp-db').value;
   if(target==='cours'){toast('La base du cours est protégée');return null;}
+  if(target==='aeroport'){toast('La base Aéroport est protégée');return null;}
   if(target==='__new__'){
     const raw=document.getElementById('imp-newname').value.trim()
       || pendingImport.defaultDbName
@@ -28476,7 +28490,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-importer-v2231';
+  const SW_CACHE='requete-2026-11-01-projet-aeroport-v2232';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
