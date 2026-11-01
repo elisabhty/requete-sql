@@ -32,7 +32,7 @@ test('réf. 2 : ni « Supprimer mon pseudo » ni « Retirer mes scores » ; les 
 });
 
 test('réf. 3 : le nom d’un projet s’affiche en entier, coupé après ses _ - .', () => {
-  assert.ok(app.includes("<b>${d.id==='cours'?'Base des cours':d.id==='aeroport'?'Base Aéroport':esc(d.name).replace(/([_.-])/g,'$1<wbr>')}</b>"));
+  assert.ok(app.includes("<b>${demo?esc(demoLabel(d.id)):esc(d.name).replace(/([_.-])/g,'$1<wbr>')}</b>"));
   assert.ok(css.includes('html.lq .console-project-copy b{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:break-word;'));
 });
 
@@ -52,18 +52,19 @@ test('1 h 29 : le bouton « Importer » de la Console garde son relief (la barre
 });
 
 test('1 h 32 : la base Aéroport dans « Tes projets », de l’espace sous les retours, plus de phrase sous les projets', () => {
-  assert.ok(app.includes("function isDemoDb(id){return id==='cours'||id==='aeroport';}"));
-  assert.ok(app.includes("if(!dbCatalog.some(d=>d.id==='aeroport'))dbCatalog.splice(1,0,{id:'aeroport',name:'Aéroport'});"));
-  assert.ok(app.includes('    await loadCustomDbs();\n    ensureAeroportDb();'), 'recréée à chaque ouverture');
+  /* 9 h 53 : toutes les bases des défis, Aéroport en tête */
+  assert.ok(app.includes("function isDemoDb(id){return id==='cours'||(typeof DEFI_BASES!=='undefined'&&Object.prototype.hasOwnProperty.call(DEFI_BASES,id));}"));
+  assert.ok(app.includes("dbCatalog.splice(at,0,...ids.map(id=>({id,name:DEFI_BASES[id].nom})));"));
+  assert.ok(app.includes('    await loadCustomDbs();\n    ensureDemoDbs();'), 'recréées à chaque ouverture');
   assert.ok(app.includes('  const payload=dbCatalog.filter(d=>!isDemoDb(d.id)).map(d=>{'), 'jamais enregistrée avec les projets');
   assert.ok(app.includes("async function renameDb(id){\n  if(isDemoDb(id))return;") && app.includes("function deleteDb(id){\n  if(isDemoDb(id)) return;"), 'ni renommée ni supprimée');
-  assert.ok(app.includes("d.id==='aeroport'?'Base Aéroport'"));
+  assert.ok(app.includes("function demoLabel(id){return id==='cours'?'Base des cours':'Base '+DEFI_BASES[id].nom;}"));
   assert.ok(css.includes('html.lq #app .p-bar{height:calc(var(--safe-top) + 52px);padding-bottom:8px;box-sizing:border-box;margin-bottom:calc(-1 * (var(--safe-top) + 52px))}'));
   assert.ok(!app.includes('Chaque projet garde sa base, son brouillon et son historique.'));
 });
 
 test('1 h 44 : la description de la base Aéroport est celle du fichier d’Elisa', () => {
-  assert.ok(app.includes("id==='aeroport'?DEFI_BASES.aeroport.desc:''"));
+  assert.ok(app.includes("isDemoDb(id)?DEFI_BASES[id].desc:''"));
   assert.ok(app.includes("desc:'Bienvenue dans les coulisses d’un aéroport international. Vols, passagers, compagnies, avions et bagages : toutes les données nécessaires au fonctionnement de l’aéroport sont réunies ici. Explore la base pour résoudre les différentes missions.'"));
 });
 
