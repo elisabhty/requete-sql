@@ -25,6 +25,7 @@ window.LIENS = [
   {page: 'case', titre: 'CASE', passe: 'tu as affiché une valeur selon une condition avec <code>CASE</code>', futur: 'tu afficheras une valeur selon une condition avec <code>CASE</code>'},
   {page: 'coalesce', titre: 'COALESCE', passe: 'tu as remplacé les valeurs absentes avec <code>COALESCE</code>', futur: 'tu remplaceras les valeurs absentes avec <code>COALESCE</code>'},
   {page: 'count', titre: 'COUNT', passe: 'tu as compté des lignes avec <code>COUNT</code>', futur: 'tu compteras des lignes avec <code>COUNT</code>'},
+  {page: 'agregats', titre: 'SUM, AVG, MIN et MAX', passe: 'tu as calculé un total, une moyenne et les extrêmes d’une colonne avec <code>SUM</code>, <code>AVG</code>, <code>MIN</code> et <code>MAX</code>', futur: 'tu calculeras un total, une moyenne et les extrêmes d’une colonne avec <code>SUM</code>, <code>AVG</code>, <code>MIN</code> et <code>MAX</code>'},
   {page: 'group-by', titre: 'GROUP BY', passe: 'tu as fait un calcul par groupe avec <code>GROUP BY</code>', futur: 'tu feras un calcul par groupe avec <code>GROUP BY</code>'},
   {page: 'having', titre: 'HAVING', passe: 'tu as filtré des groupes avec <code>HAVING</code>', futur: 'tu filtreras des groupes avec <code>HAVING</code>'},
   {page: 'group-concat', titre: 'GROUP_CONCAT', passe: 'tu as rassemblé les textes d’un groupe avec <code>GROUP_CONCAT</code>', futur: 'tu rassembleras les textes d’un groupe avec <code>GROUP_CONCAT</code>'},

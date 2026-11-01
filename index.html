@@ -8535,6 +8535,21 @@ guide({ id:14, titre:"COUNT", résumé:"Compter les lignes",
     ],label:"Les trois idées à retenir"}
   ]
 }),
+guide({ id:85, titre:"SUM, AVG, MIN et MAX", résumé:"Somme, moyenne, minimum et maximum",
+  /* Cours en vidéo : l’animation (assets/anim/agregats.html, moteur commun assets/anim/core.js) est le cours. Ajouté le 1er novembre
+     (Elisa, 22 h 47 : « fais la leçon de manière gamifiée ») : les quatre fonctions ne passaient qu’en quinze secondes dans GROUP BY,
+     et HAVING s’en sert. La vidéo remplit les quatre compteurs du tableau de bord du stock, une étoile par compteur :
+     SUM(stock) = 1 075, ROUND(AVG(prix), 2) = 23,99, MIN(prix) = 12,50, MAX(prix) = 39,90 ; puis l’âge des clients. */
+  leconSeule:true,
+  video:{anim:'assets/anim/agregats.html?app&embed',thumb:'assets/anim/agregats-thumb.jpg',duree:'2 min 32',moments:3,seuil:2},
+  reflex:[
+    {recap:[
+      ["➕","<code>SUM</code> <b>additionne</b> les valeurs d’une colonne, <code>AVG</code> en fait la <b>moyenne</b> :",null,"ROUND(AVG(prix), 2)"],
+      ["📏","<code>MIN</code> et <code>MAX</code> donnent la <b>plus petite</b> et la <b>plus grande</b> valeur :",null,"MIN(prix), MAX(prix)"],
+      ["🧾","Comme <code>COUNT</code>, elles donnent <b>une seule ligne</b> ; les <code>NULL</code> sont ignorés."]
+    ],label:"Les trois idées à retenir"}
+  ]
+}),
 guide({ id:16, titre:"GROUP BY", résumé:"Un calcul par groupe",
   /* Cours en vidéo : l’animation (assets/anim/group-by.html, moteur commun assets/anim/core.js) est le cours.
      La vidéo suit la répartition des conseillers entre les villes. */
@@ -13835,6 +13850,8 @@ const CARTES={
     m:"<code>CAST(expression AS type)</code> convertit explicitement une valeur. Convertir change le type ; formater change la présentation. Une conversion peut échouer. Pour les autres SGBD, voir la page <button type='button' class='sgbd-link' data-sgbd='conversion'>Selon le SGBD</button> de la Bibliothèque."},
  14:{k:"COUNT",t:"Compter les lignes",s:"SELECT COUNT(*) FROM table;",
     m:"<code>COUNT(*)</code> compte toutes les lignes. <code>COUNT(colonne)</code> ignore les <code>NULL</code>. <code>COUNT(DISTINCT colonne)</code> compte les valeurs différentes."},
+ 85:{k:"SUM · AVG · MIN · MAX",t:"Somme, moyenne, minimum et maximum",s:"SELECT SUM(stock),\n  ROUND(AVG(prix), 2),\n  MIN(prix), MAX(prix)\nFROM produits;",
+    m:"<code>SUM</code> additionne, <code>AVG</code> fait la moyenne, <code>MIN</code> et <code>MAX</code> donnent la plus petite et la plus grande valeur. Le résultat tient en une ligne ; les <code>NULL</code> sont ignorés."},
  16:{k:"GROUP BY",t:"Un calcul par groupe",s:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville;",
     m:"<code>GROUP BY</code> rassemble les lignes qui partagent la même valeur, puis permet de calculer sur chaque groupe."},
  17:{k:"HAVING",t:"Filtrer les groupes",s:"GROUP BY …\nHAVING …",
@@ -17535,6 +17552,7 @@ const SQ_ALIASES={
   21:'case when then else condition si sinon etiquette categorie conditionnel',
   23:'coalesce ifnull nullif remplacer null valeur par defaut',
   14:'count compter nombre de lignes comptage count(*) count distinct',
+  85:'sum avg min max somme moyenne minimum maximum total additionner plus petit plus grand extremes agregat agregats fonctions d agregation',
   16:'group by regrouper grouper groupe par agregat calcul par groupe avg sum min max moyenne somme total maximum minimum fonctions d agregation agregats',
   17:'having filtrer groupes apres regroupement condition sur agregat',
   76:'group concat rassembler concatener liste texte groupe string agg',
@@ -33102,7 +33120,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-schemas-retours-v2299';
+  const SW_CACHE='requete-2026-11-01-agregats-v2300';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
