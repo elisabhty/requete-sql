@@ -6643,7 +6643,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=74">
+<link rel="stylesheet" href="ludique.css?v=75">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -18490,8 +18490,54 @@ function openLesson(id, restoreStep){
   else lessonStep=0;
   renderLessonFlow(); showScreen(); brancherCtaScroll();
   saveNav();
+  /* Elisa, 1er novembre, 13 h 46 : « avant un cours, toujours avoir une page avec la DA du site internet : Commencer ». Ouvrir un
+     cours (pas une reprise automatique au lancement) passe par sa page de départ ; la vidéo démarre au « Commencer ». */
+  if(restoreStep==null&&!restoringNav&&typeof lessonStartShow==='function'){
+    lessonStartShow(l,()=>{if(current===l&&lessonStep===0&&lessonVideoOn(l))openLessonVideo();});
+    return;
+  }
   /* Cours en vidéo : elle démarre dès l’ouverture du cours (pas lors d’une reprise automatique au lancement de l’app). */
   if(lessonStep===0&&lessonVideoOn(l)&&!restoringNav)openLessonVideo();
+}
+/* La page de départ d’un cours, dans la DA du site : la carte violette quadrillée, le module en menthe, le titre en jaune soleil,
+   ce que contient le cours en pastilles, la mascotte, et un seul bouton, « Commencer » (« Revoir le cours » une fois terminé). */
+function lessonStartShow(l,go){
+  document.getElementById('lesson-start')?.remove();
+  const m=moduleDeLecon(l.id),mi=m?MODULES.indexOf(m):-1,pos=m?m.lessons.findIndex(x=>x.id===l.id)+1:0;
+  const done=lecCompletee(l.id),started=!done&&nbFaites(l.id)>0;
+  const chips=[];
+  if(lessonHasVideo(l))chips.push(`<span class="lst-chip is-play"><i aria-hidden="true">▶</i>Cours en vidéo${l.video.duree?` · ${esc(l.video.duree)}`:''}</span>`);
+  else chips.push('<span class="lst-chip">Cours</span>');
+  /* Ce que tu vas faire, dans l’ordre : des cartes blanches en relief, numérotées. */
+  const plan=[];
+  if(lessonHasVideo(l))plan.push(['Regarde le cours',`En vidéo${l.video.duree?`, ${esc(l.video.duree)}`:''} : tu peux mettre en pause à tout moment.`]);
+  else plan.push(['Lis le cours','Les idées clés, avec des exemples sur une vraie base.']);
+  if(l.video&&l.video.moments)plan.push([`Réponds aux ${l.video.moments} moments «&nbsp;À toi&nbsp;»`,'La vidéo s’arrête : à toi d’écrire ou de choisir.']);
+  if(!leconSeule(l.id))plan.push(['Valide l’exercice',qcmDe(l.id).length?`Une requête à écrire, puis ${plur(qcmDe(l.id).length,'question')}.`:'Une requête à écrire sur la base du cours.']);
+  const root=document.createElement('div');
+  root.id='lesson-start';root.className='lst';root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-labelledby','lst-t');
+  root.innerHTML=`<div class="lst-card">
+      <button type="button" class="lst-close" aria-label="Plus tard">×</button>
+      <i class="lst-sp s1" aria-hidden="true"></i><i class="lst-sp s2" aria-hidden="true"></i>
+      <p class="lst-kicker">${m?`Module ${mi+1} · ${esc(m.titre)}`:'Cours'}</p>
+      ${pos?`<p class="lst-pos">Leçon ${pos} sur ${m.lessons.length}</p>`:''}
+      <h1 class="lst-title" id="lst-t">${esc(l.titre)}</h1>
+      ${l.résumé?`<p class="lst-sub">${esc(l.résumé)}</p>`:''}
+      <div class="lst-chips">${chips.join('')}</div>
+      <img class="lst-stk" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">
+    </div>
+    <ol class="lst-plan">${plan.map(([t,d],i)=>`<li style="--i:${i}"><b class="lst-n">${i+1}</b><span><b>${t}</b><small>${d}</small></span></li>`).join('')}</ol>
+    <button type="button" class="lst-go"><span>${done?'Revoir le cours':started?'Reprendre':'Commencer'}</span>${DEF_CHEV_SVG}</button>`;
+  document.body.appendChild(root);
+  const close=ok=>{
+    root.classList.add('is-out');
+    setTimeout(()=>root.remove(),prefersReduceMotion()?0:220);
+    if(ok)go&&go();else goBack();
+  };
+  root.querySelector('.lst-go').onclick=()=>{if(typeof buzz==='function')buzz('light');close(true);};
+  root.querySelector('.lst-close').onclick=()=>close(false);
+  root.tabIndex=-1;
+  requestAnimationFrame(()=>{try{root.focus({preventScroll:true});}catch(e){}});
 }
 /* « Quel JOIN choisir ? » : l'exercice se débloque avec au moins 5/6 au quiz « À toi de choisir ». */
 const JC_PASS=new Set();
@@ -31458,7 +31504,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-portrait-v2251';
+  const SW_CACHE='requete-2026-11-01-commencer-v2252';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
