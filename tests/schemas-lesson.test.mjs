@@ -68,24 +68,24 @@ test('recherche, carte mémo, et leçon seule sans texte de secours ni exercice'
   const mots = html.match(/\n  84:'([^']+)',/)[1];
   assert.ok(['schema', 'create schema', 'adresse', 'meme nom', 'main', 'sqlite'].every(m => mots.includes(m)), 'trouvé par la recherche');
   assert.ok(l84.leconSeule && l84.video && !l84.situation && !l84.consigne && !l84.solution && !l84.petitDefi && !l84.learningCheck && !l84.testeVariants && !l84.anatomie, 'la vidéo est le cours');
-  assert.equal(l84.video.moments, 6); assert.equal(l84.video.seuil, 4);
+  assert.equal(l84.video.moments, 5); assert.equal(l84.video.seuil, 4);
   assert.equal(l84.video.anim, 'assets/anim/projet-schemas.html?app&embed');
   const carte = vm.runInContext('CARTES[84]', ctx);
   assert.ok(carte && carte.s.includes('CREATE SCHEMA boutique;') && carte.s.includes('FROM boutique.commandes;'), 'une carte mémo à débloquer');
   const recap = l84.studio.reflex.extra;
-  assert.ok(recap.includes('Les trois idées à retenir') && ['🗂️', '📍', '⚠️'].every(e => recap.includes(e)), 'les trois idées à retenir, comme à la fin de la vidéo');
+  assert.ok(recap.includes('Les trois idées à retenir') && ['🗂️', '🚚', '📍'].every(e => recap.includes(e)), 'les trois idées à retenir, comme à la fin de la vidéo');
   const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
   assert.ok(sw.includes("'./assets/anim/projet-schemas.html?app&embed'") && sw.includes("'./assets/anim/projet-schemas-thumb.webp'"), 'gardée pour le hors ligne');
 });
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 121.9);
-  assert.ok(page.includes('notesAt: 121.9,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 129.1);
+  assert.equal(val('NOTES'), 121.35);
+  assert.ok(page.includes('notesAt: 121.35,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 128.55);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
-  assert.deepEqual(chaps.map(c => c.label), ['Une base qui grandit', 'Deux espaces', 'CREATE SCHEMA', 'Une adresse', 'Le même nom', 'Les requêtes à réparer', 'Et dans SQLite ?', 'À retenir']);
+  assert.deepEqual(chaps.map(c => c.label), ['Une base qui grandit', 'Deux espaces', 'CREATE SCHEMA', 'Une adresse', 'Le même nom', 'Les requêtes à réparer', 'À retenir'], 'plus de partie SQLite (Elisa, 1er novembre, 22 h 21)');
   caps.forEach(([, , t, lines], k) => {
     const txt = strip(t);
     assert.ok(/^[A-ZÀ-ÖØ-Þ0-9«]/.test(txt) || /^(<b[^>]*>)?<code>/.test(t), `légende ${k + 1} : une phrase qui commence (« ${txt.slice(0, 50)} »)`);
@@ -94,8 +94,8 @@ test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajo
     assert.equal(lines, undefined, `légende ${k + 1} : trois lignes au plus`);
     assert.ok(t.split('<br>').length <= 3, `légende ${k + 1} : trois lignes au plus`);
   });
-  assert.deepEqual(picks.map(p => p.kind), ['sort', 'pick', 'pick', 'pick', 'sort', 'pick']);
-  assert.deepEqual(picks.map(p => p.at), ['p1', 'p2', 'p3', 'p4', 'p5', 'p6'].map(k => +(val(`A.${k}`) + 2.35).toFixed(2)));
+  assert.deepEqual(picks.map(p => p.kind), ['sort', 'pick', 'pick', 'pick', 'sort']);
+  assert.deepEqual(picks.map(p => p.at), ['p1', 'p2', 'p3', 'p4', 'p5'].map(k => +(val(`A.${k}`) + 2.35).toFixed(2)));
   assert.ok(picks.every((p, k) => !k || p.at > picks[k - 1].at && p.from < p.at), 'dans l’ordre, chaque reprise commence avant son moment');
   for (const p of picks.filter(p => p.kind === 'pick')) {
     assert.equal(p.options.filter(o => o.ok).length, 1, `${p.prompt} : une seule bonne réponse`);
@@ -104,7 +104,7 @@ test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajo
   }
   assert.deepEqual([picks[0].options.length, picks[4].options.length], [8, 3], 'huit tables, puis trois requêtes');
   assert.ok(picks.every(p => !/cette requête|ci-dessus|ci-dessous/.test(p.prompt)), 'aucune question ne renvoie à une requête de l’image');
-  assert.equal([...page.matchAll(/return \{text: '([^']+)'/g)].length, 6, 'six indices écrits : un par moment');
+  assert.equal([...page.matchAll(/return \{text: '([^']+)'/g)].length, 5, 'cinq indices écrits : un par moment');
 });
 
 test('la base du chapitre 6 : huit tables (la copie du fichier Excel barrée puis retirée), chacune rangée dans l’espace de son équipe', () => {
@@ -146,17 +146,25 @@ test('les schémas, rejoués dans SQLite avec ATTACH : schéma.table, deux table
   for (const [q, k] of R) assert.throws(() => db.exec(q.replace('___', k === 'b' ? 'bien_etre' : 'boutique')), /no such table/, `${q} : pas dans l’autre schéma`);
 });
 
-test('SQLite : pas de CREATE SCHEMA ; main.clients lit la table clients ; boutique.clients et clients.main sont refusés', () => {
-  const db = base();
-  assert.throws(() => db.run('CREATE SCHEMA boutique;'), /syntax error/, 'SQLite ne connaît pas CREATE SCHEMA');
-  assert.equal(db.exec('SELECT * FROM main.clients;')[0].values.length, 10, 'main.clients : les dix clients de la base');
-  assert.throws(() => db.exec('SELECT * FROM boutique.clients;'), /no such table: boutique\.clients/);
-  assert.throws(() => db.exec('SELECT * FROM clients.main;'), /no such table: clients\.main/);
-  assert.deepEqual(val('PICKS')[5].options.map(o => [o.label, !!o.ok]), [['SELECT * FROM boutique.clients;', false], ['SELECT * FROM main.clients;', true], ['SELECT * FROM clients.main;', false]]);
-  assert.ok(page.includes("out('o-lite', 'ok', 'Requête exécutée', 'les 10 clients de la base.')") && page.includes("out('pv6-0', 'warn', 'Requête refusée', 'no such table: boutique.clients')"));
-  const caps = val('CAPTIONS').map(c => c[2]);
-  assert.ok(caps.includes('La base du projet garde donc<br>ses tables telles quelles.'), 'les chapitres suivants gardent la base telle quelle');
+test('les mots d’Elisa (1er novembre, 22 h 21) : le mail, l’indice, les bulles qui amènent les schémas, l’adresse et le même nom', () => {
+  const mail = val('MAILS')[0][4];
+  assert.deepEqual(mail, ['La base NutriBoost commence à bien grandir, et les tables de la boutique et des ateliers sont toutes mélangées.',
+    'Peux-tu les organiser dans deux espaces distincts, sans supprimer ni recréer aucune table ?'], 'le mail de Karim, mot pour mot');
+  assert.ok(page.includes("if (i === 0) return {text: 'Demande-toi à quoi sert chaque table : vendre des produits ou organiser les ateliers.'};"), 'l’indice du moment 1');
+  const caps = val('CAPTIONS').map(c => strip(c[2]));
+  const suite = ['Pour organiser les tables sans les recréer, on peut utiliser des schémas.', 'Voyons comment ça fonctionne.',
+    'Commençons par créer l’espace de la boutique avec CREATE SCHEMA boutique.', 'À toi !', 'Faisons pareil pour les ateliers avec CREATE SCHEMA bien_etre.',
+    'CREATE SCHEMA crée un nouvel espace dans la base pour y organiser des tables.', 'Nos deux schémas sont prêts !', 'Maintenant, il faut y ranger les tables.'];
+  const k = caps.indexOf(suite[0]);
+  assert.ok(k > 0, 'la bulle qui annonce les schémas');
+  assert.deepEqual(caps.slice(k, k + suite.length), suite, 'CREATE SCHEMA : dans cet ordre ; « Faisons pareil » vient après le moment, pour ne pas donner la réponse');
+  for (const t of ['Une développeuse veut consulter les commandes de la boutique.', 'Maintenant qu’elles sont rangées dans un schéma, il faut préciser où se trouve la table.',
+    'L’équipe des ateliers a elle aussi besoin d’une table clients.', 'Aucun problème : chaque schéma peut avoir sa propre table clients.', 'Même nom, mais deux tables différentes grâce aux schémas.'])
+    assert.ok(caps.includes(t), t);
+  assert.equal(val('PICKS')[1].prompt, 'Quelle requête crée le schéma bien_etre ?');
   assert.deepEqual(val('PICKS')[1].options.map(o => [o.label, !!o.ok]), [['CREATE TABLE bien_etre;', false], ['CREATE SCHEMA bien_etre;', true], ['CREATE DATABASE bien_etre;', false]]);
+  assert.ok(page.includes("['en1', '{an1|boutique.clients}'], ['en2', '{an2|bien_etre.clients}']"), 'les deux adresses, l’une sous l’autre');
+  assert.ok(!/SQLite|main\.clients|CREATE SCHEMA<\/code> n’existe pas/.test(page.slice(page.indexOf('<script>'))), 'plus de partie SQLite');
 });
 
 test('chapitre 7 : écran titre ; annoncé par DROP, il annonce INSERT, qui s’ouvre sur lui ; le récapitulatif dans la vidéo comme dans la fiche', () => {
@@ -172,7 +180,7 @@ test('chapitre 7 : écran titre ; annoncé par DROP, il annonce INSERT, qui s’
     return [m[1], strip(phrase), strip(detail.replace(/<\/span>$/, ''))];
   });
   const fiche = html.slice(html.indexOf('guide({ id:84,'), html.indexOf('guide({ id:26,'));
-  const idees = [...fiche.matchAll(/\["(🗂️|📍|⚠️)","([^"]*)","([^"]*)"\]/g)].map(m => [m[1], strip(m[2]), strip(m[3])]);
+  const idees = [...fiche.matchAll(/\["(🗂️|🚚|📍)","([^"]*)","([^"]*)"\]/g)].map(m => [m[1], strip(m[2]), strip(m[3])]);
   assert.equal(rows.length, 3);
   assert.deepEqual(idees, rows, 'la fiche de la leçon dit la même chose que la vidéo');
   assert.ok(!/SQL (voit|comprend|sait|lit|examine)\b/.test(page), 'SQL n’est jamais personnifié');

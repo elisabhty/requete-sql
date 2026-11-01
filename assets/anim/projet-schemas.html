@@ -126,14 +126,11 @@
 .mb .sn.s{margin-top:0}
 .tapf{z-index:20;font-size:120px;margin:-8px 0 0 -44px;opacity:0;visibility:hidden}
 
-/* La suite : la prochaine leçon ; SQLite et son schéma unique */
+/* La suite : la prochaine leçon */
 .keyc{left:0;width:1080px;display:flex;justify-content:center}
 .keyc>span{height:96px;padding:0 40px 0 26px;border-radius:999px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 9px 0 #4B30CC;color:#fff;font-size:36px;font-weight:700;display:flex;align-items:center;gap:16px;white-space:nowrap}
 .keyc .emo{font-size:44px}
 .keyc code{font-family:var(--mono);font-weight:800;background:none;color:#fff;padding:0}
-.lite{left:0;width:1080px;display:flex;justify-content:center}
-.lite>span{height:84px;padding:0 34px 0 22px;border-radius:999px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);font-size:31px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:14px;white-space:nowrap}
-.lite code{font-family:var(--mono);font-weight:800;color:var(--accent-ink)}
 
 /* ---------- À retenir ---------- */
 #s7 .rtitle{top:196px}
@@ -190,8 +187,6 @@
   <section class="scene" id="sc"></section>
   <!-- Les requêtes qui ont perdu leur schéma -->
   <section class="scene" id="st"></section>
-  <!-- Et dans SQLite ? -->
-  <section class="scene" id="sl"></section>
   <!-- La suite : la prochaine leçon -->
   <section class="scene" id="sk"></section>
 
@@ -200,8 +195,8 @@
     <div class="abs rtitle">Les trois idées à retenir</div>
     <div class="abs card recap" id="recap">
       <div class="rrow"><div class="rico emo">🗂️</div><div class="rtxt">Un <b>schéma</b> range les tables<br>d’une base en espaces.<span class="rs"><code>CREATE SCHEMA boutique;</code><br>crée l’espace de la boutique.</span></div></div>
+      <div class="rrow"><div class="rico emo">🚚</div><div class="rtxt"><code>ALTER TABLE … SET SCHEMA</code><br><b>range une table</b> sans la recréer.<span class="rs"><code>ALTER TABLE clients SET SCHEMA boutique;</code></span></div></div>
       <div class="rrow"><div class="rico emo">📍</div><div class="rtxt"><code>boutique.commandes</code> est<br>une <b>adresse</b> : schéma.table.<span class="rs">Deux schémas peuvent contenir<br>deux tables qui portent le même nom.</span></div></div>
-      <div class="rrow"><div class="rico emo">⚠️</div><div class="rtxt">Les schémas <b>dépendent du SGBD</b>.<span class="rs">SQLite n’a pas de <code>CREATE SCHEMA</code> :<br>ses tables sont rangées dans <code>main</code>.</span></div></div>
     </div>
   </section>
 
@@ -233,8 +228,8 @@ const {A, B} = SCH;
    du mail » : les retours posés à la main laissaient des lignes courtes). */
 const MAILS = [
   [['Karim', 'Benali', 'KB'], 'k-dv', 'développeur', 'karim@nutriboost.fr', [
-    'La base grandit, et les tables de la boutique et des ateliers sont toutes mélangées.',
-    'Peux-tu les ranger en deux espaces, sans supprimer ni recréer aucune table ?'], 'Karim']
+    'La base NutriBoost commence à bien grandir, et les tables de la boutique et des ateliers sont toutes mélangées.',
+    'Peux-tu les organiser dans deux espaces distincts, sans supprimer ni recréer aucune table ?'], 'Karim']
 ];
 const mailSms = n => /^client/.test(MAILS[n][2]) || !!(MAILS[n][6] || {}).sms;
 const mailRows = n => mailSms(n) ? 2 + [].concat(MAILS[n][4]).flatMap(p => p.split(/(?<=[.!?])\s+(?=[A-ZÀÂÉÈÊÎÔÛÇ])/)).length
@@ -256,38 +251,38 @@ cap('c4', "Clients, commandes, produits<br>et fidélité vont avec la boutique."
 cap('c5', "Coachs, ateliers, inscriptions<br>et cartes vont avec les ateliers.", 3.8);
 /* 3 · CREATE SCHEMA */
 chap({label:'CREATE SCHEMA'});
-cap('c6', "Chaque espace devient un <b>schéma</b> :<br>il regroupe des tables.", 3.6);
-cap('c7', "Pour la boutique, tu écris<br><code>CREATE SCHEMA boutique</code>.", 3.6);   // la requête s’écrit pendant la bulle
+/* Elisa, 1er novembre, 22 h 21 (réf. 3 à 6) : on annonce l’outil (« Voyons comment ça fonctionne »), on crée la boutique, l’élève crée
+   les ateliers, puis la phrase qui le dit, la mini-explication de CREATE SCHEMA et la transition vers le rangement. */
+cap('c6', "Pour organiser les tables<br>sans les recréer, on peut<br>utiliser des <b>schémas</b>.", 3.8);
+cap('c6b', "Voyons comment ça fonctionne.", 2.2);
+cap('c7', "Commençons par créer<br>l’espace de la boutique<br>avec <code>CREATE SCHEMA boutique</code>.", 4.0);   // la requête s’écrit pendant la bulle
 toi('p2');
-cap('c8', "Les deux schémas sont créés,<br>vides pour l’instant.", 3.2);
+cap('c7b', "Faisons pareil pour les ateliers<br>avec <code>CREATE SCHEMA bien_etre</code>.", 3.6);
+cap('c7c', "<code>CREATE SCHEMA</code> crée un nouvel espace<br>dans la base pour y organiser<br>des tables.", 4.4);
+cap('c8', "Nos deux schémas sont prêts !", 2.4);
+cap('c8b', "Maintenant, il faut y ranger les tables.", 2.8);
 cap('c9', "Avec <code>ALTER TABLE … SET SCHEMA</code>,<br>chaque table rejoint son espace,<br>sans être recréée.", 5.4);
 /* 4 · Une adresse */
 chap({label:'Une adresse'});
-cap('c10', "Une développeuse a besoin<br>des commandes de la boutique.", 3.4);
+cap('c10', "Une développeuse veut consulter<br>les commandes de la boutique.", 3.4);
+cap('c10b', "Maintenant qu’elles sont rangées<br>dans un schéma, il faut préciser<br>où se trouve la table.", 4.4);   // la requête s’écrit pendant la bulle
 cap('c11', "<code>boutique.commandes</code> se lit comme<br>une adresse : le schéma,<br>puis la table.", 4.6);
 toi('p3');
 cap('c12', "Les inscriptions sont rangées<br>dans le schéma <code>bien_etre</code>.", 3.6);
 /* 5 · Le même nom */
 chap({label:'Le même nom'});
-cap('c13', "L’équipe des ateliers crée<br>sa propre table <code>clients</code>.", 3.6);
+cap('c13', "L’équipe des ateliers a elle aussi<br>besoin d’une table <code>clients</code>.", 3.6);
 toi('p4');
-cap('c14', "<code>boutique.clients</code><br>et <code>bien_etre.clients</code><br>sont deux tables différentes.", 4.4);
+cap('c13b', "Aucun problème : chaque schéma<br>peut avoir sa propre table <code>clients</code>.", 3.8);
+cap('c14', "Même nom, mais deux tables<br>différentes grâce aux schémas.", 3.6);
 /* 6 · Les requêtes à réparer */
 chap({label:'Les requêtes à réparer'});
 cap('c15', "Trois requêtes ont perdu<br>leur schéma.", 2.8);
 toi('p5');
 cap('c16', "Chaque table se lit maintenant<br>avec son adresse complète.", 3.6);
-/* 7 · Et dans SQLite ? */
-chap({label:'Et dans SQLite ?'});
-cap('c17', "Les schémas dépendent du système<br>de gestion de base de données.", 3.8);
-cap('c18', "Dans SQLite, la base de l’app,<br><code>CREATE SCHEMA</code> n’existe pas.", 3.6);
-cap('c19', "Toutes ses tables sont rangées<br>dans un seul schéma : <code>main</code>.", 3.6);
-toi('p6');
-cap('c20', "<code>main.clients</code> désigne<br>la <b>table clients</b> de la base.", 3.4);
-cap('c21', "La base du projet garde donc<br>ses tables telles quelles.", 3.4);
 /* la suite : la prochaine leçon */
 cap('c22', "Dans la prochaine leçon, tu apprendras<br>à ajouter des données dans tes tables<br>avec <code>INSERT INTO</code>.", 6.1);
-/* 8 · À retenir */
+/* 7 · À retenir */
 chap({label:'À retenir'});
 const RECAP = SCH.t;
 cap('c23', "Pour finir, voici les <b>trois idées à retenir</b>.", 4.8, 0.4);
@@ -331,14 +326,14 @@ const REQUETES = [
   ['SELECT * FROM ___.coachs;', 'a', 'Les coachs animent les ateliers : leur table est rangée dans le schéma <code>bien_etre</code>.']
 ];
 
-/* Les six moments « À toi » : l’image s’arrête, l’élève range ou choisit ; la page montre aussitôt le résultat.
+/* Les cinq moments « À toi » : l’image s’arrête, l’élève range ou choisit ; la page montre aussitôt le résultat.
    from : début du passage qui amène chaque moment, d’où repartent « ↺ Revoir » et « Rejouer ». */
 const atp = k => +(A[k] + 2.35).toFixed(2);
 const PICKS = [
   {at: atp('p1'), from: A.c3, kind: 'sort', prompt: 'Range chaque table dans son espace.',
     hint: 'Sélectionne une table, puis appuie sur l’espace qui convient. Tu peux aussi la faire glisser directement.', next: '« {x} » : la boutique, ou les ateliers ?',
     options: TABLES.map(t => ({label: t[3]}))},
-  {at: atp('p2'), from: A.c6, kind: 'pick', text: true, prompt: 'Quelle requête crée l’espace des ateliers ?', options: [
+  {at: atp('p2'), from: A.c6, kind: 'pick', text: true, prompt: 'Quelle requête crée le schéma bien_etre ?', options: [
     {label: 'CREATE TABLE bien_etre;', why: '<code>CREATE TABLE</code> crée une table, avec ses colonnes ; un espace qui regroupe des tables est un schéma.'},
     {label: 'CREATE SCHEMA bien_etre;', ok: true},
     {label: 'CREATE DATABASE bien_etre;', why: '<code>CREATE DATABASE</code> créerait une autre base, séparée : les tables des ateliers doivent rester dans la base NutriBoost.'}]},
@@ -347,16 +342,12 @@ const PICKS = [
     {label: 'bien_etre.inscriptions', ok: true},
     {label: 'inscriptions.bien_etre', why: 'Une adresse commence par le schéma, puis donne la table : <code>schéma.table</code>.'}]},
   {at: atp('p4'), from: A.c13, kind: 'pick', text: true, prompt: 'Deux tables clients, dans deux schémas : est-ce un problème ?', options: [
-    {label: 'Oui, la seconde remplace la première', why: 'Chaque table reste dans son schéma : la <b>table&nbsp;clients</b> de la boutique n’est pas touchée.'},
+    {label: 'Oui, la seconde remplace la première', why: 'Chaque table reste dans son schéma : la <b>table clients</b> de la boutique n’est pas touchée.'},
     {label: 'Non, leur schéma les distingue', ok: true},
     {label: 'Oui, il faut renommer l’une des deux', why: 'Leur adresse complète les distingue déjà : <code>boutique.clients</code> et <code>bien_etre.clients</code> ne se confondent pas.'}]},
   {at: atp('p5'), from: A.c15, kind: 'sort', prompt: 'Range chaque requête avec le schéma qui lui manque.',
     hint: 'Sélectionne une requête, puis appuie sur le schéma qui convient. Tu peux aussi la faire glisser directement.', next: '« {x} » : boutique, ou bien_etre ?',
-    options: REQUETES.map(x => ({label: x[0]}))},
-  {at: atp('p6'), from: A.c18, kind: 'pick', text: true, prompt: 'Dans SQLite, quelle requête lit la table clients en précisant son schéma ?', options: [
-    {label: 'SELECT * FROM boutique.clients;', why: 'SQLite ne connaît pas de schéma <code>boutique</code> : la requête est refusée, la table est introuvable.'},
-    {label: 'SELECT * FROM main.clients;', ok: true},
-    {label: 'SELECT * FROM clients.main;', why: 'Une adresse commence par le schéma, puis donne la table : <code>main.clients</code>, et non l’inverse.'}]}
+    options: REQUETES.map(x => ({label: x[0]}))}
 ];
 
 const OPENS = [MAIL1].map((t, n) => {
@@ -398,7 +389,7 @@ function dom(){
     hole('hole2', 2) + alt('es2b', 'CREATE TABLE bien_etre;', 2) + alt('es2c', 'CREATE DATABASE bien_etre;', 2));
   c += editor('eq', 'adresses.sql', [['eq0', '-- Lire une table avec son adresse'], ['eq1', 'SELECT * FROM {aq1|boutique.commandes};'], ['eq2', 'SELECT * FROM {aq2|bien_etre.inscriptions};']],
     hole('hole3', 2) + alt('eq2b', 'SELECT * FROM boutique.inscriptions;', 2) + alt('eq2c', 'SELECT * FROM inscriptions.bien_etre;', 2));
-  c += editor('en', 'deux-clients.sql', [['en0', '-- Deux tables, deux adresses'], ['en1', 'SELECT * FROM {an1|boutique.clients};'], ['en2', 'SELECT * FROM {an2|bien_etre.clients};']]);
+  c += editor('en', 'deux-clients.sql', [['en0', '-- Même nom, deux tables'], ['en1', '{an1|boutique.clients}'], ['en2', '{an2|bien_etre.clients}']]);
   c += `<div class="abs card fv" id="fv"><div class="bh"><span class="emo">🗄️</span><span>Base NutriBoost</span><span class="bn"><span>2 schémas</span></span></div><div class="cols">` +
     ESPACES.map(([k, n, emo, kc]) => `<div class="fd ${kc}" id="fd-${k}"><div class="fh"><span class="emo">${emo}</span><span id="fn-${k}">${n}</span><i class="tg">schéma</i></div>` +
       TABLES.filter(t => t[4] === k).map(([tk, , temo, name]) => ft(`f-${tk}`, temo, name)).join('') +
@@ -410,10 +401,6 @@ function dom(){
   $('#st').innerHTML = ESPACES.map(([k, n, emo], q) => `<div class="abs dbn" id="dt-${k}" data-k="${k}" style="top:${300 + q * 262}px"><div class="hh"><span class="dn">${emo} ${n}</span><span class="dd">le schéma qui manque</span></div>` +
     `<div class="cs">${REQUETES.map((x, i) => x[1] === k ? `<div class="rc" id="stk${i}">${x[0].replace('___', n)}</div>` : '').join('')}</div></div>`).join('') +
     '<div class="abs pack" id="tpack" style="top:860px"><span><span class="emo">🔧</span>3 requêtes à réparer</span></div>';
-  /* Et dans SQLite ? Un seul schéma, main */
-  $('#sl').innerHTML = '<div class="abs lite" id="lite" style="top:400px"><span><span class="emo">🪶</span>SQLite · un seul schéma : <code>main</code></span></div>' +
-    editor('el', 'sqlite.sql', [['el0', '-- Dans SQLite'], ['el1', 'SELECT * FROM {al1|main.clients};']], hole('hole6', 1) + alt('el1b', 'SELECT * FROM boutique.clients;', 1) + alt('el1c', 'SELECT * FROM clients.main;', 1)) +
-    out('o-lite', 'ok', 'Requête exécutée', 'les 10 clients de la base.') + out('pv6-0', 'warn', 'Requête refusée', 'no such table: boutique.clients');
   /* Le mail */
   $('#sm').innerHTML = MAILS.map(([w, k, tag, from, body, sign], n) => isSms(tag, MAILS[n][6]) ? smsCard(n + 1, k, w[0], w[1], w[2], body, false, smsRank(MAILS, n), (MAILS[n][6] || {}).hello) : `<div class="abs card ml ${k}" id="ml${n + 1}"><div class="mh"><i class="mav">${w[2]}<b class="mbg emo">✉️</b></i>` +
     `<div class="mw"><div class="mn"><b>${w[0]} ${w[1]}</b><small class="mtg">${tag}</small></div><div class="ms"><span class="m0">Nouveau mail</span><span class="m1">${from}</span></div></div>` +
@@ -434,9 +421,6 @@ function layout(){
   const F = Math.max(bottom('#es'), bottom('#eq'), bottom('#en')) + 9 + 24;
   $('#fv').style.top = F + 'px';
   ['#ea', '#adr'].forEach(s => { $(s).style.top = (bottom('#fv') + 9 + 24) + 'px'; });
-  // SQLite : la pastille, la requête, son résultat
-  $('#el').style.top = (bottom('#lite') + 6 + 40) + 'px';
-  ['#o-lite', '#pv6-0'].forEach(s => { $(s).style.top = (bottom('#el') + 9 + 24) + 'px'; });
   $('#dem').style.top = (bottom('#bc') + 9 + 34) + 'px';
   // le mail : hauteur une fois déplié, centré dans la hauteur libre
   $$('.ml').forEach((el, n) => { el.style.height = 'auto'; MH[n + 1] = el.offsetHeight; el.style.height = '';
@@ -504,12 +488,10 @@ const M2_ANS = ['#es2'], M2_HIDE = ['#hole2'];                          // CREAT
 const M3_ANS = ['#eq2', '#f-in .hl'], M3_HIDE = ['#hole3'];             // bien_etre.inscriptions
 const M4_ANS = ['#f-cl .hl', '#f-cl2 .hl'];                             // deux tables clients, chacune dans son dossier
 const M5_ANS = ['#st .dbn .rc'];
-const M6_ANS = ['#el1', '#o-lite'], M6_HIDE = ['#hole6'];               // main.clients
-/* Les mauvaises réponses des moments 2, 3 et 6 : la ligne qu’elles donnent, ce qu’elles désignent. */
+/* Les mauvaises réponses des moments 2, 3 et 4 : la ligne qu’elles donnent, ce qu’elles désignent. */
 const W2 = {0: ['#es2b'], 2: ['#es2c']};
 const W3 = {0: ['#eq2b'], 2: ['#eq2c']};
 const W4 = {0: ['#f-cl .xx'], 2: ['#f-cl2 .xx']};
-const W6 = {0: ['#el1b', '#pv6-0'], 2: ['#el1c', '#pv6-0']};
 const set2 = t => +(t + 0.02).toFixed(2);
 
 function build(){
@@ -517,8 +499,8 @@ function build(){
   gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
   hold(2.3, 2.5);   // le temps de lire la bulle de la mascotte
   layout();
-  gsap.set(['.sq', '.out', '.pack', '#bc', '#fv', '#adr', '#keyc', '#lite', '.dbn'], {autoAlpha: 0});
-  gsap.set(['#es2', '#eq2', '#el1', '#hole2', '#hole3', '#hole6', '#bn-b', '.dbn .rc', '.ft', '#f-cl2'], {autoAlpha: 0});
+  gsap.set(['.sq', '.out', '.pack', '#bc', '#fv', '#adr', '#keyc', '.dbn'], {autoAlpha: 0});
+  gsap.set(['#es2', '#eq2', '#hole2', '#hole3', '#bn-b', '.dbn .rc', '.ft', '#f-cl2'], {autoAlpha: 0});
 
   /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
      la consigne, la légende ne la répète pas. Le passage d’attente est coupé (rien ne s’y anime). */
@@ -572,6 +554,9 @@ function build(){
   // À toi : la seconde (réponse : CREATE SCHEMA bien_etre;)
   tl.set(M2_ANS, {autoAlpha: 1}, set2(PICKS[1].at));
   tl.set(M2_HIDE, {autoAlpha: 0}, set2(PICKS[1].at));
+  // « Faisons pareil pour les ateliers » : la seconde ligne brille, son dossier aussi ; CREATE SCHEMA, puis les deux dossiers prêts
+  pulse('#ks2', A.c7b + 0.4, 1, GLOW); bump('#fn-a', A.c7b + 0.4, 1.12); cue(A.c7b + 0.4, 'tick', 0.5, 2);
+  pulse('#ks1', A.c7c + 0.4, 1, GLOW); pulse('#ks2', A.c7c + 0.4, 1, GLOW); cue(A.c7c + 0.4, 'tick', 0.5, 3);
   // les deux schémas, vides ; ALTER TABLE … SET SCHEMA : chaque table rejoint son dossier
   bump('#fd-b', A.c8 + 0.4, 1.02); bump('#fd-a', A.c8 + 1.0, 1.02); cue(A.c8 + 0.4, 'tick', 0.5, 2);
   show('#ea', A.c9 + 0.1, {y: 30}, 0.45); cue(A.c9 + 0.1, 'whoosh', 0.45, 1);
@@ -581,9 +566,11 @@ function build(){
   /* ===== 4 · Une adresse ===== */
   // les commandes de la boutique : la requête, l’adresse sous les dossiers
   hide(['#es', '#ea'], A.c10, {y: -20}, 0.3);
-  show('#eq', A.c10 + 0.3, {y: 20}, 0.4); cue(A.c10 + 0.3, 'whoosh', 0.4, 1);
-  sqType('eq1', A.c10 + 0.7, 30);
-  on('#f-cm .hl', A.c10 + 2.0, 0.25); cue(A.c10 + 2.0, 'tick', 0.5, 2);
+  on('#f-cm .hl', A.c10 + 0.9, 0.25); cue(A.c10 + 0.9, 'tick', 0.5, 2);
+  // « il faut préciser où se trouve la table » : la requête s’écrit, avec son schéma
+  show('#eq', A.c10b + 0.3, {y: 20}, 0.4); cue(A.c10b + 0.3, 'whoosh', 0.4, 1);
+  sqType('eq1', A.c10b + 0.8, 30);
+  pulse('#aq1', A.c10b + 2.6, 1, GLOW);
   show('#adr', A.c11 + 0.2, {y: 20, scale: 0.96}, 0.45, 'back.out(1.6)'); cue(A.c11 + 0.2, 'chord', 0.6);
   bump('#adr .s', A.c11 + 1.8, 1.08); cue(A.c11 + 1.8, 'tick', 0.5, 2);
   bump('#adr .t', A.c11 + 3.0, 1.08); cue(A.c11 + 3.0, 'tick', 0.5, 4);
@@ -602,8 +589,10 @@ function build(){
   cue(A.c13 + 1.4, 'pop', 0.6, 3);
   // À toi : deux tables clients (réponse : leur schéma les distingue)
   tl.set(M4_ANS, {autoAlpha: 1}, set2(PICKS[3].at));
-  show('#en', A.c14 + 0.1, {y: 20}, 0.4); cue(A.c14 + 0.1, 'whoosh', 0.4, 1);
-  pulse('#an1', A.c14 + 0.8, 1, GLOW); pulse('#an2', A.c14 + 2.0, 1, GLOW); cue(A.c14 + 0.8, 'tick', 0.5, 2);
+  // « Aucun problème » : les deux adresses, l’une sous l’autre ; « Même nom, mais deux tables différentes »
+  show('#en', A.c13b + 0.1, {y: 20}, 0.4); cue(A.c13b + 0.1, 'whoosh', 0.4, 1);
+  sqType('en1', A.c13b + 0.6, 30); sqType('en2', A.c13b + 1.4, 30);
+  pulse('#an1', A.c14 + 0.4, 1, GLOW); pulse('#an2', A.c14 + 1.4, 1, GLOW); cue(A.c14 + 0.4, 'tick', 0.5, 2);
   hide(['#en', '#fv'], B.c14 - 0.1, {y: -40}, 0.4);
   sceneOff('#sc', B.c14 + 0.4);
 
@@ -617,19 +606,8 @@ function build(){
   tl.set('#tpack', {autoAlpha: 0}, set2(PICKS[4].at));
   bump('#dt-b', A.c16 + 0.4, 1.03); bump('#dt-a', A.c16 + 1.2, 1.03); cue(A.c16 + 0.4, 'tick', 0.5, 2);
   hide('#st .dbn', B.c16 - 0.1, {y: -40}, 0.4);
-  sceneOff('#st', B.c16 + 0.4);
+  sceneOff('#st', A.c22 + 0.3);
 
-  /* ===== 7 · Et dans SQLite ? ===== */
-  sceneOn('#sl', A.c17);
-  show('#lite', A.c19 + 0.3, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.c19 + 0.3, 'pop', 0.7, 1);
-  show('#el', A.c19 + 1.2, {y: 30}, 0.45); cue(A.c19 + 1.2, 'whoosh', 0.45, 1);
-  on('#hole6', A.c19 + 1.8, 0.3);
-  // À toi : la requête de SQLite (réponse : main.clients, et son résultat)
-  tl.set(M6_ANS, {autoAlpha: 1}, set2(PICKS[5].at));
-  tl.set(M6_HIDE, {autoAlpha: 0}, set2(PICKS[5].at));
-  pulse('#al1', A.c20 + 0.4, 1, GLOW); cue(A.c20 + 0.4, 'tick', 0.5, 2);
-  hide(['#lite', '#el', '#o-lite'], B.c21 - 0.1, {y: -30}, 0.4);
-  sceneOff('#sl', A.c22 + 0.3);
   // la suite : la prochaine leçon
   sceneOn('#sk', A.c22);
   show('#keyc', A.c22 + 0.1, {y: 30, scale: 0.9}, 0.5, 'back.out(1.8)'); cue(A.c22 + 0.1, 'whoosh', 0.6);
@@ -637,7 +615,7 @@ function build(){
   hide('#keyc', B.c22 - 0.1, {y: -30}, 0.4);
   sceneOff('#sk', RECAP);
 
-  /* ===== 8 · À retenir ===== */
+  /* ===== 7 · À retenir ===== */
   recapScene(RECAP, [RECAP + 0.7, RECAP + 2.1, RECAP + 3.5]);
   const rt = $$('#s7 .rtxt'), rs = $$('#s7 .rs'), rd = (h, n = 20) => Math.ceil(readTime(h) * n) / n;
   gsap.set(rs, {autoAlpha: 0, y: 10});
@@ -692,26 +670,24 @@ const IX = (() => {
     if (i === 4) { const q = REQUETES[n]; return sortAct(n, q[1] === b, q[2], $('#dt-' + b), '#stk' + n, REQUETES.length); }
     return {ok: false};
   }
-  /* Choix d’une réponse (moments 2, 3, 4 et 6) : ce que donnerait ce choix. */
+  /* Choix d’une réponse (moments 2, 3 et 4) : ce que donnerait ce choix. */
   function pick(i, k){
     clear(); start(i);
     const P = PICKS[i], o = P.options[k], ok = !!o.ok;
     if (i === 1) { if (ok) { marks(M2_ANS); marks(M2_HIDE, 'pvh'); } else { marks(W2[k]); marks(['#hole2'], 'pvh'); } }
     if (i === 2) { if (ok) { marks(M3_ANS); marks(M3_HIDE, 'pvh'); } else { marks(W3[k]); marks(['#hole3'], 'pvh'); } }
     if (i === 3) marks(ok ? M4_ANS : W4[k]);
-    if (i === 5) { if (ok) { marks(M6_ANS); marks(M6_HIDE, 'pvh'); } else { marks(W6[k]); marks(['#hole6'], 'pvh'); } }
     sfx(ok ? 'pop' : 'miss', 2, 0.5);
     return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));
   }
   /* Indice, après deux erreurs : une piste. */
   function hint(i){
     const h = (() => {
-      if (i === 0) return {text: 'Demande-toi quelle équipe utilise chaque table : celle qui vend, ou celle qui anime les ateliers.'};
+      if (i === 0) return {text: 'Demande-toi à quoi sert chaque table : vendre des produits ou organiser les ateliers.'};
       if (i === 1) return {text: 'Une table existe déjà pour les ateliers : il faut un espace qui regroupe des tables, dans la même base.'};
       if (i === 2) return {text: 'Une adresse donne d’abord le schéma, puis la table ; les inscriptions vont avec les ateliers.'};
       if (i === 3) return {text: 'Pense à deux dossiers qui contiennent chacun un fichier du même nom.'};
-      if (i === 4) return {text: 'Cherche l’équipe qui utilise chaque table : la boutique, ou les ateliers.'};
-      if (i === 5) return {text: 'SQLite n’a qu’un schéma, celui de la base elle-même : <code>main</code>.'};
+      if (i === 4) return {text: 'Demande-toi à quoi sert chaque table : vendre des produits ou organiser les ateliers.'};
       return null;
     })();
     return h && Object.assign(h, {text: fr(h.text)});
@@ -727,8 +703,8 @@ const IX = (() => {
 })();
 window.IX = IX;
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 121.9, picks: PICKS, opens: OPENS,
-  glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝📄🚨🗂️🛒🧘🔧🪶✍️📍⚠️✉️👆✓!…«»·−',
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 121.35, picks: PICKS, opens: OPENS,
+  glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝📄🚨🗂️🛒🧘🔧🚚✍️📍✉️👆✓!…«»·−',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>
 </body>

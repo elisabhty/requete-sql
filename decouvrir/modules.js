@@ -108,7 +108,7 @@ window.MODULES=[
       ["CREATE TABLE", "Créer la structure d’une table", 259],
       ["ALTER TABLE", "Faire évoluer la structure d’une table", 288],
       ["DROP", "Supprimer une table de la base", 157],
-      ["Les schémas", "Ranger les tables par espace", 132]
+      ["Les schémas", "Ranger les tables par espace", 139]
     ]},
     {titre:"Écrire et modifier les données", sous:"INSERT, UPDATE, DELETE", lecons:[
       ["INSERT", "Ajouter des lignes", 239],

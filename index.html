@@ -9016,26 +9016,24 @@ guide({ id:66, titre:"DROP", résumé:"Supprimer une table de la base",
   ]
 }),
 guide({ id:84, titre:"Les schémas", résumé:"Ranger les tables par espace",
-  /* Projet, chapitre 7, en vidéo interactive : l’animation (assets/anim/projet-schemas.html, moteur commun assets/anim/core.js)
+  /* Projet, module 9, en vidéo interactive : l’animation (assets/anim/projet-schemas.html, moteur commun assets/anim/core.js)
      est le cours. Ajoutée le 30 octobre (le scénario d’Elisa : une base devenue difficile à gérer, tout est mélangé ; la ranger en espaces
-     sans supprimer ni recréer les tables ; CREATE SCHEMA, l’adresse schéma.table, deux tables du même nom, trois requêtes à réparer),
-     transposé aux deux équipes de NutriBoost. Elle s’ouvre comme les autres chapitres (« Depuis le chapitre 1… », « Au chapitre 6, tu as
-     retiré la copie du fichier Excel avec DROP TABLE » : la copie est barrée, neuf tables puis huit). Karim écrit : les tables de la
-     boutique et des ateliers sont mélangées. Moment 1 : l’élève range les huit tables (boutique : clients, commandes, fidelite, produits ;
-     bien_etre : coachs, ateliers, inscriptions, cartes). CREATE SCHEMA boutique, puis (moment 2) CREATE SCHEMA bien_etre (ni CREATE TABLE, ni
-     CREATE DATABASE) ; ALTER TABLE … SET SCHEMA y range chaque table sans la recréer. Moment 3 : l’adresse des inscriptions,
-     bien_etre.inscriptions (ni boutique.inscriptions, ni inscriptions.bien_etre). Moment 4 : l’équipe des ateliers crée sa propre table
-     clients ; boutique.clients et bien_etre.clients ne se confondent pas. Moment 5 : trois requêtes retrouvent leur schéma. Enfin, SQLite,
-     la base de l’app, n’a pas de CREATE SCHEMA : ses tables sont dans le schéma main (moment 6 : SELECT * FROM main.clients) ; la base du
-     projet garde donc ses tables telles quelles. La fin annonce INSERT INTO. Six moments « À toi », comme aux chapitres du projet ; leçon
-     seule : ni exercice ni quiz, validée avec 4 exercices réussis du premier coup sur 6 (seuil:4), sinon on rejoue les moments ratés. */
+     sans supprimer ni recréer les tables), transposé aux deux équipes de NutriBoost ; revue le 1er novembre à 22 h 21 (le mail de Karim,
+     les bulles « Pour organiser les tables sans les recréer, on peut utiliser des schémas », « Commençons par… », « Faisons pareil… »,
+     « Nos deux schémas sont prêts ! », l’adresse puis « Même nom, mais deux tables différentes grâce aux schémas » ; plus de partie
+     SQLite). Moment 1 : l’élève range les huit tables (boutique : clients, commandes, fidelite, produits ; bien_etre : coachs, ateliers,
+     inscriptions, cartes). CREATE SCHEMA boutique, puis (moment 2) CREATE SCHEMA bien_etre (ni CREATE TABLE, ni CREATE DATABASE) ;
+     ALTER TABLE … SET SCHEMA y range chaque table sans la recréer. Moment 3 : l’adresse des inscriptions, bien_etre.inscriptions.
+     Moment 4 : l’équipe des ateliers a sa propre table clients ; boutique.clients et bien_etre.clients ne se confondent pas.
+     Moment 5 : trois requêtes retrouvent leur schéma. La fin annonce INSERT. Cinq moments « À toi » ; leçon seule : ni exercice ni
+     quiz, validée avec 4 exercices réussis du premier coup sur 5 (seuil:4), sinon on rejoue les moments ratés. */
   leconSeule:true,
-  video:{anim:'assets/anim/projet-schemas.html?app&embed',thumb:'assets/anim/projet-schemas-thumb.webp',duree:'2 min 12',moments:6,seuil:4},
+  video:{anim:'assets/anim/projet-schemas.html?app&embed',thumb:'assets/anim/projet-schemas-thumb.webp',duree:'2 min 19',moments:5,seuil:4},
   reflex:[
     {recap:[
       ["🗂️","Un <b>schéma</b> range les tables d’une base en espaces.","<code>CREATE SCHEMA boutique;</code> crée l’espace de la boutique."],
-      ["📍","<code>boutique.commandes</code> est une <b>adresse</b> : schéma.table.","Deux schémas peuvent contenir deux tables qui portent le même nom."],
-      ["⚠️","Les schémas <b>dépendent du SGBD</b>.","SQLite n’a pas de <code>CREATE SCHEMA</code> : ses tables sont rangées dans <code>main</code>."]
+      ["🚚","<code>ALTER TABLE … SET SCHEMA</code> <b>range une table</b> sans la recréer.","<code>ALTER TABLE clients SET SCHEMA boutique;</code>"],
+      ["📍","<code>boutique.commandes</code> est une <b>adresse</b> : schéma.table.","Deux schémas peuvent contenir deux tables qui portent le même nom."]
     ],label:"Les trois idées à retenir"}
   ]
 })
@@ -21980,10 +21978,13 @@ function lvPkDrag(P,btn,zonesFn,onDrop){
         const fx=parseFloat(f.style.left)+parseFloat(f.style.width)/2, fy=parseFloat(f.style.top)+parseFloat(f.style.height)/2;
         f.animate([{transform:f.style.transform,opacity:1},{transform:`translate(${((z.x1+z.x2)/2-fx).toFixed(1)}px,${((z.y1+z.y2)/2-fy).toFixed(1)}px) scale(.35)`,opacity:0}],
           {duration:260,easing:'cubic-bezier(.4,0,.6,1)',fill:'forwards'}).onfinish=()=>f.remove();
+        setTimeout(()=>f.remove(),420);   // la copie s’en va même si l’animation ne finit pas (onglet caché, lecteur refermé)
         return;
       }
-      if(prefersReduceMotion()||!f.animate){ f.remove(); btn.classList.remove('is-lift'); return; }
-      f.animate([{transform:f.style.transform},{transform:'none'}],{duration:220,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'}).onfinish=()=>{ f.remove(); btn.classList.remove('is-lift'); };
+      const back=()=>{ f.remove(); btn.classList.remove('is-lift'); };
+      if(prefersReduceMotion()||!f.animate){ back(); return; }
+      f.animate([{transform:f.style.transform},{transform:'none'}],{duration:220,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'}).onfinish=back;
+      setTimeout(back,380);
     }
   });
 }
@@ -22023,8 +22024,20 @@ function lvGlisse(el,can,slop,on){
      se réduit ni ne regrossit (lvPkFit attend, LV.pk.drag) : les places mesurées au départ restent celles de l’écran ; à la fin, tout se
      replace. */
   const drag=on=>{ try{ if(LV&&LV.pk){ LV.pk.drag=on; if(!on)setTimeout(()=>{ if(LV&&LV.pk&&!LV.pk.drag&&typeof lvPkPlace==='function')lvPkPlace(); },60); } }catch(e){} };
-  const go=(x,y)=>{ if(!g.on){ if(Math.hypot(x-g.sx,y-g.sy)<g.slop)return; if(!can()){ g=null; return; } g.on=true; drag(true); on.start(g.sx,g.sy); } on.move(x,y); };
-  const stop=cancel=>{ const G=g; g=null; if(G&&G.on){ el._noClick=performance.now()+450; try{ on.end(cancel); }finally{ drag(false); } } return G; };
+  /* Réf. 2 (Elisa, 1er novembre, 22 h 21 : « étiquette coincée ») : la fin du geste ne dépend plus seulement de l’étiquette. Si elle
+     perd le pointeur en route (capture perdue, fenêtre qui perd la main, doigt levé ailleurs), la fenêtre entière termine le geste :
+     l’étiquette se pose là où elle est, ou revient ; elle ne reste jamais suspendue au-dessus de l’image. */
+  const filet=on=>{ const f=filet.fn||(filet.fn={
+      up:e=>{ if(!g||!g.on||(g.id!=null)!==e.type.startsWith('touch'))return; if(g.id!=null&&![...e.changedTouches].some(t=>t.identifier===g.id))return; stop(/cancel$/.test(e.type)); },   // un geste au doigt finit par le doigt, à la souris par le pointeur
+      out:()=>{ if(g&&g.on)stop(true); },
+      vis:()=>{ if(document.hidden&&g&&g.on)stop(true); } });
+    const m=on?'addEventListener':'removeEventListener', w=typeof window!=='undefined'&&window, d=typeof document!=='undefined'&&document;
+    if(w&&typeof w[m]==='function'){ ['pointerup','pointercancel','touchend','touchcancel'].forEach(t=>w[m](t,f.up,true)); w[m]('blur',f.out); }
+    if(d&&typeof d[m]==='function')d[m]('visibilitychange',f.vis);
+  };
+  const go=(x,y)=>{ if(!g.on){ if(Math.hypot(x-g.sx,y-g.sy)<g.slop)return; if(!can()){ g=null; return; } g.on=true; drag(true); filet(true); on.start(g.sx,g.sy); } on.move(x,y); };
+  const stop=cancel=>{ const G=g; g=null; if(G&&G.on){ filet(false); el._noClick=performance.now()+450; try{ on.end(cancel); }finally{ drag(false); } } return G; };
+  el.addEventListener('lostpointercapture',()=>{ if(g&&g.on&&g.id==null)stop(false); });
   el.addEventListener('pointerdown',e=>{
     if((tactile&&e.pointerType!=='mouse')||e.button!==0||!can())return;
     if(g)stop(true);
@@ -33089,7 +33102,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-voix-liens-v2298';
+  const SW_CACHE='requete-2026-11-01-schemas-retours-v2299';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

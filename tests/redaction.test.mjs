@@ -84,11 +84,12 @@ for (const r of R.REGLES_DE_PAGE) {
 /* ---------- 2. Chaque chapitre du projet : toutes les règles, sans tolérance ---------- */
 const PAGES = R.pagesProjet();
 test('les chapitres du projet sont tous trouvés, avec de quoi lire', () => {
+  /* Cinq consignes au moins : Les schémas en a cinq depuis le 1er novembre (Elisa, 22 h 21 : plus de partie SQLite). */
   assert.ok(PAGES.length >= 8, `huit chapitres au moins (${PAGES.join(', ')})`);
   for (const f of PAGES) {
     const ts = R.textes(f);
     const par = g => ts.filter(t => t.genre === g).length;
-    assert.ok(par('legende') >= 25 && par('consigne') >= 6 && par('mail') >= 1 && par('recap') >= 3 && par('etiquette') >= 6, `${f} : légendes ${par('legende')}, consignes ${par('consigne')}, mails ${par('mail')}, récapitulatif ${par('recap')}, chapitres ${par('etiquette')}`);
+    assert.ok(par('legende') >= 25 && par('consigne') >= 5 && par('mail') >= 1 && par('recap') >= 3 && par('etiquette') >= 6, `${f} : légendes ${par('legende')}, consignes ${par('consigne')}, mails ${par('mail')}, récapitulatif ${par('recap')}, chapitres ${par('etiquette')}`);
     assert.ok(ts.length >= 80, `${f} : ${ts.length} textes lus`);
   }
 });

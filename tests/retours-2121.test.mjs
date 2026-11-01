@@ -9,8 +9,8 @@ const anim = f => fs.readFileSync(new URL('../assets/anim/' + f, import.meta.url
 
 test('réf. 1 : les mails vont à la ligne d’eux-mêmes, sur toute leur largeur', () => {
   const s = anim('projet-schemas.html');
-  assert.ok(s.includes("'La base grandit, et les tables de la boutique et des ateliers sont toutes mélangées.',"));
-  assert.ok(s.includes("'Peux-tu les ranger en deux espaces, sans supprimer ni recréer aucune table ?'], 'Karim']"));
+  assert.ok(s.includes("'La base NutriBoost commence à bien grandir, et les tables de la boutique et des ateliers sont toutes mélangées.',"));
+  assert.ok(s.includes("'Peux-tu les organiser dans deux espaces distincts, sans supprimer ni recréer aucune table ?'], 'Karim']"));
   for (const f of ['projet-schemas.html', 'projet-delete.html']) {
     const p = anim(f), m = p.slice(p.indexOf('const MAILS = ['), p.indexOf('\n];', p.indexOf('const MAILS = [')));
     assert.ok(!m.includes('<br>'), `${f} : plus de retour posé à la main`);
@@ -25,7 +25,7 @@ test('réf. 2 et 3 : la légende, la consigne, et le schéma bien_etre', () => {
 });
 
 test('réf. 4 : pendant un glisser, l’image ne se réduit ni ne regrossit ; tout se replace à la fin', () => {
-  assert.ok(app.includes("const go=(x,y)=>{ if(!g.on){ if(Math.hypot(x-g.sx,y-g.sy)<g.slop)return; if(!can()){ g=null; return; } g.on=true; drag(true); on.start(g.sx,g.sy); } on.move(x,y); };"));
+  assert.ok(app.includes("const go=(x,y)=>{ if(!g.on){ if(Math.hypot(x-g.sx,y-g.sy)<g.slop)return; if(!can()){ g=null; return; } g.on=true; drag(true); filet(true); on.start(g.sx,g.sy); } on.move(x,y); };"));
   assert.ok(app.includes('try{ on.end(cancel); }finally{ drag(false); }'));
   assert.ok(app.includes('calm=!P.busy&&!P.drag&&!(P.done&&go&&go.hidden);'));
 });
