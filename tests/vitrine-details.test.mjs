@@ -127,7 +127,7 @@ test('connexion : décor compact, sans mascotte ni pastille ronde, avec salut et
   assert.match(h, /class="cx-streak" id="cx-streak"[^>]*>[\s\S]*?<span>\+1<\/span>/);
   const mobStart = h.indexOf('@media (max-width:959px){');
   const mob = h.slice(mobStart, h.indexOf('@media (max-width:359px){', mobStart));
-  for (const r of ['.cx-stage{container-type:inline-size;min-height:clamp(112px,34vw,150px)', '.cx-streak{font-size:clamp(12px,3.5cqw,14px)', '.cx-bubble{right:0;bottom:2px'])
+  for (const r of ['.cx-stage{container-type:inline-size;min-height:clamp(112px,34vw,150px)', '.cx-streak{font-size:clamp(12px,3.5cqw,14px)', '.cx-bubble{right:0;bottom:20px'])
     assert.ok(mob.includes(r), `mobile : ${r}`);
   assert.match(h, /@media \(max-width:359px\)\{[\s\S]*?\.cx-stage\{min-height:76px\}[\s\S]*?\.cx-s\.s5\{display:block;[\s\S]*?\.cx-panel\{margin-top:-72px\}/);
   assert.match(h, /@container \(max-width:499px\)\{\.k3\{display:none\}\}/);
