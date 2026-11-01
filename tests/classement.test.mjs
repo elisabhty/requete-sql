@@ -70,13 +70,13 @@ test('le barème du serveur : 50 à 275 points par manche trouvée entre amis, 2
 });
 
 test('une partie terminée part au classement, une seule fois, et attend le réseau si besoin', async () => {
-  const c = makeCls({ reply: fn => fn === 'jeu_score' ? [true, { id: '11111111-2222-4333-8444-555555555555', pts: 204, parties: 1, rang: 3 }] : [true, { top: [], moi: null, total: 0 }] });
-  c.ev("clsEnvoyer({u:'ABCDEF1234',pts:204,n:1,ok:1,solo:0,niv:'f'})");
+  const c = makeCls({ reply: fn => fn === 'jeu_score_v2' ? [true, { id: '11111111-2222-4333-8444-555555555555', pts: 204, parties: 1, rang: 3 }] : [true, { top: [], moi: null, total: 0 }] });
+  c.ev("clsEnvoyer({u:'ABCDEF1234',salle:'AB12CD',g:0})");
   await flush(); await flush();
-  const sc = c.calls.find(x => x.fn === 'jeu_score');
+  const sc = c.calls.find(x => x.fn === 'jeu_score_v2');
   assert.equal(sc.body.p_cle, 'R'.repeat(32), 'la clé de l’appareil, tirée au hasard');
   assert.equal(sc.body.p_pseudo, 'Elisa');
-  assert.deepEqual(sc.body.p_partie, { u: 'ABCDEF1234', pts: 204, n: 1, ok: 1, solo: 0, niv: 'f' });
+  assert.deepEqual(sc.body.p_partie, { u: 'ABCDEF1234', salle: 'AB12CD', g: 0 });
   assert.equal(sc.apikey, 'sb_publishable_test', 'la clé publique seulement');
   assert.equal(c.salle().cle, 'R'.repeat(32), 'gardée dans la progression (exportée avec elle)');
   assert.equal((c.salle().envoi || []).length, 0, 'plus rien en attente');
@@ -85,25 +85,26 @@ test('une partie terminée part au classement, une seule fois, et attend le rés
   /* Hors connexion : la partie attend */
   const off = makeCls();
   off.ctx.fetch = () => Promise.reject(new TypeError('Failed to fetch'));
-  off.ev("clsEnvoyer({u:'ZZZZZZ1111',pts:100,n:1,ok:1,solo:1,niv:'m'})"); await flush(); await flush();
+  off.ev("clsEnvoyer({u:'ZZZZZZ1111',salle:'AB12CD',g:0})"); await flush(); await flush();
   assert.equal(off.salle().envoi.length, 1, 'elle repartira');
   /* Pseudo refusé par le filtre : rien n’est envoyé, le message le dit */
   const bad = makeCls({ nom: 'Connard' });
-  bad.ev("clsEnvoyer({u:'YYYYYY1111',pts:100,n:1,ok:1,solo:1,niv:'m'})"); await flush();
+  bad.ev("clsEnvoyer({u:'YYYYYY1111',salle:'AB12CD',g:0})"); await flush();
   assert.equal(bad.calls.length, 0);
   assert.equal(bad.salle().clsRefus, 'Connard');
   bad.ev("CLS.data={top:[{id:'a',pseudo:'Léa',pts:10,parties:1,rang:1}],moi:null,total:1}");
   const refus = bad.ev('clsTopHTML()');
   assert.match(refus, /Ton pseudo « Connard » n’est pas accepté au classement\.<\/p><button type="button" class="perf-top-btn" onclick="psPage\(\{raison:'refuse'\}\)">Choisir mon pseudo<\/button>/, 'le pseudo ne se change plus dans Mon compte : on le choisit, une fois (la mini-page)');
   /* Une partie hors barème refusée par le serveur ne repart pas */
-  const inv = makeCls({ reply: fn => fn === 'jeu_score' ? [false, { message: 'partie invalide' }] : [true, { top: [], total: 0 }] });
-  inv.ev("clsEnvoyer({u:'XXXXXX1111',pts:999,n:1,ok:1,solo:1,niv:'f'})"); await flush(); await flush();
+  const inv = makeCls({ reply: fn => fn === 'jeu_score_v2' ? [false, { message: 'partie invalide' }] : [true, { top: [], total: 0 }] });
+  inv.ev("clsEnvoyer({u:'XXXXXX1111',salle:'AB12CD',g:0})"); await flush(); await flush();
   assert.equal((inv.salle().envoi || []).length, 0);
   /* Ne plus apparaître : rien ne part */
   const out = makeCls({ salle: { horsCls: 1 } });
-  out.ev("clsEnvoyer({u:'WWWWWW1111',pts:100,n:1,ok:1,solo:1,niv:'f'})"); await flush();
+  out.ev("clsEnvoyer({u:'WWWWWW1111',salle:'AB12CD',g:0})"); await flush();
   assert.equal(out.calls.length, 0);
-  assert.ok(app.includes("if(typeof clsEnvoyer==='function'&&played.length)clsEnvoyer({u:jeuRand(10),pts,n:Math.min(5,played.length),ok:mine.length,solo:J.solo||played.every(r=>r.one)?1:0,niv:k});"), 'jeuCreditGame envoie chaque partie (seule si aucune manche n’avait de bonus de rang)');
+  assert.ok(app.includes("if(typeof clsEnvoyer==='function'&&played.length&&J.ranked)clsEnvoyer({u:J.code+'-'+J.g,salle:J.code,g:J.g});"), 'seuls les reçus de parties vérifiées partent au classement');
+  const forged=makeCls();forged.ev("clsEnvoyer({u:'FAKE1234',pts:99999,n:1,ok:1})");await flush();assert.equal(forged.calls.length,0,'un score local sans reçu ne part jamais');
 });
 
 test('le Top 5 : médailles, ta ligne, ta place si tu n’y es pas, signaler, et les états (chargement, hors ligne, absent)', async () => {

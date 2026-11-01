@@ -1,0 +1,13 @@
+const fs=require('node:fs'),vm=require('node:vm');
+const html=fs.readFileSync('index.html','utf8'),ctx={};vm.createContext(ctx);vm.runInContext(html.slice(html.indexOf('const CHALLENGES=['),html.indexOf('const NIV='))+';globalThis.data={challenges:CHALLENGES.map(({id,niv,base,sol,ordered,noExec})=>({id,niv,base,sol,ordered:!!ordered,noExec:!!noExec})),bases:DEFI_BASES};',ctx);
+const schema=html.match(/const SCHEMA_SQL = `([\s\S]*?)`;/)[1];
+const catalog={challenges:ctx.data.challenges.filter(c=>!c.noExec&&!/^\s*EXPLAIN/i.test(c.sol)),bases:Object.fromEntries(Object.entries(ctx.data.bases).map(([k,v])=>[k,v.sql])),schema};
+fs.writeFileSync('supabase/functions/jeu-verifier/catalog.json',JSON.stringify(catalog));
+let sqljs=fs.readFileSync('vendor/sqljs/sql-wasm.js','utf8');
+sqljs='let module;\n'+sqljs.replace('Da="object"==typeof process&&"object"==typeof process.versions&&"string"==typeof process.versions.node','Da=false')+'\nexport default initSqlJs;\n';
+fs.writeFileSync('supabase/functions/jeu-verifier/sqlite.mjs',sqljs);
+const compat=html.slice(html.indexOf('const SQLX='),html.indexOf('function buildDb()'));
+fs.writeFileSync('supabase/functions/jeu-verifier/sql-compat.mjs',compat+'\nexport {attachDateFns,sqlCompat};\n');
+const matcher=html.slice(html.indexOf('function normCell('),html.indexOf('function fmtLignes('));
+fs.writeFileSync('supabase/functions/jeu-verifier/matcher.mjs',matcher+'\nexport {exerciseResultsMatch};\n');
+console.log('Catalog:',catalog.challenges.length,'challenges');

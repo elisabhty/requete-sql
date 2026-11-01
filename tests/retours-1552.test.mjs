@@ -153,7 +153,7 @@ test('les défis réussis suivent le classement, seulement quand ils changent, j
   c = makeCls({ salle: { clsId: id, cle: 'K'.repeat(32) }, defis: { c1: true, c3: true, c9: true, c4: false } });
   c.ev('clsDefis()'); await flush(); await flush();
   assert.equal(c.calls.length, 1);
-  assert.equal(c.calls[0].fn, 'jeu_defis');
+  assert.equal(c.calls[0].fn, 'jeu_defis_v2');
   assert.deepEqual(c.calls[0].body, { p_cle: 'K'.repeat(32), p_defis: ['c1', 'c3'], p_niv: { f: [1, 2], m: [1, 2], d: [0, 1] } }, 'seulement les défis de l’appli, réussis');
   assert.equal(c.ctx.state.salle.defisEnv, 'c1,c3|5');
   c.ev('clsDefis()'); await flush();
@@ -162,10 +162,10 @@ test('les défis réussis suivent le classement, seulement quand ils changent, j
   assert.equal(c.calls.length, 2);
   assert.deepEqual(c.calls[1].body.p_defis, ['c1', 'c3', 'c5']);
   /* Une partie envoyée au classement : la liste suit */
-  c = makeCls({ salle: { cle: 'K'.repeat(32) }, defis: { c2: true }, reply: fn => fn === 'jeu_score' ? [true, { id, pts: 160, parties: 1, rang: 1 }] : fn === 'jeu_defis' ? [true, { ok: true, n: 1 }] : [true, { top: [], moi: null, total: 0 }] });
-  c.ev("clsEnvoyer({u:'ABCDEF1234',pts:160,n:1,ok:1,solo:1,niv:'f'})");
+  c = makeCls({ salle: { cle: 'K'.repeat(32) }, defis: { c2: true }, reply: fn => fn === 'jeu_score_v2' ? [true, { id, pts: 160, parties: 1, rang: 1 }] : fn === 'jeu_defis_v2' ? [true, { ok: true, n: 1 }] : [true, { top: [], moi: null, total: 0 }] });
+  c.ev("clsEnvoyer({u:'ABCDEF1234',salle:'ABCDEF',g:0})");
   for (let k = 0; k < 6; k++) await flush();
-  assert.deepEqual(c.calls.map(x => x.fn).filter(f => f !== 'jeu_classement'), ['jeu_score', 'jeu_defis']);
+  assert.deepEqual(c.calls.map(x => x.fn).filter(f => f !== 'jeu_classement'), ['jeu_score_v2', 'jeu_defis_v2']);
   /* Le serveur ne connaît pas (encore) le joueur : on réessaiera plus tard */
   c = makeCls({ salle: { clsId: id, cle: 'K'.repeat(32) }, defis: { c1: true }, reply: () => [true, { ok: false, n: 1 }] });
   c.ev('clsDefis()'); await flush(); await flush();
