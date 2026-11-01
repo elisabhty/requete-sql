@@ -218,14 +218,15 @@ test('18 h 48 : questions d’entretien en entier, notions qui ont un sens, nouv
 });
 
 test('18 h 56 : un ✓ quand l’écriture marche dans l’app, la légende dans le cadre du haut ; flèche animée dans « Continuer la préparation »', () => {
-  assert.ok(app.includes('<p class="sg-legende"><span><em class="sg-tag">Notre moteur</em> la ligne de SQLite</span><span><i class="sg-check" aria-hidden="true">✓</i> marche dans l’app</span></p>'));
+  /* 2 novembre, 0 h 51 : plus de « Notre moteur » dans la légende, et le « ! » rouge des écritures qui ne marchent pas dans l’app */
+  assert.ok(app.includes('<p class="sg-legende"><span><i class="sg-check" aria-hidden="true">✓</i> marche dans l’app</span><span><i class="sg-bang" aria-hidden="true">!</i> pas dans l’app</span></p>'));
   assert.ok(!app.includes('Toutes ces écritures marchent dans l’app'));
   assert.ok(css.includes('html.lq .ent-hero .ent-hero-cta>svg:last-child{display:block!important;width:20px;height:20px;flex:none;animation:lstArrow 1.6s ease-in-out infinite}'));
 });
 
-test('19 h 00 : la ligne de notre moteur n’est plus surlignée en jaune, elle garde « Notre moteur »', () => {
+test('19 h 00 : la ligne de notre moteur n’est plus surlignée en jaune (et, depuis le 2 novembre, 0 h 51, n’a plus « Notre moteur »)', () => {
   assert.ok(css.includes('html.lq .sg-row.is-moteur{margin:0;padding:8px 2px;border-radius:0;background:none;box-shadow:none;'));
-  assert.ok(app.includes("${moteur?'<em class=\"sg-tag\">Notre moteur</em>':''}"));
+  assert.ok(!app.includes('<em class="sg-tag">Notre moteur</em>'));
 });
 
 test('19 h 02 : sur la planche, sous chaque sticker, en petit, ce qui le fait gagner', () => {
