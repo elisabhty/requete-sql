@@ -6641,7 +6641,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=91">
+<link rel="stylesheet" href="ludique.css?v=92">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -18631,7 +18631,9 @@ function renderHomeHero(){
   /* Le salut sert de titre visible ; le h1 masqué de l’écran le lit déjà. */
   const hiHtml=`<span class="lq-nw">${esc(hiWord)}</span>${name?`, ${esc(name)}`:''}`;
   const sessionLine=session?(session.label==='Ta séance du jour'?`Ta séance · ${session.minutes} min`:session.label):'Parcours terminé';
-  const heading=`<div class="journey-heading lq-heading"><div class="jh-copy"><p class="lq-hi-title" aria-hidden="true">${hiHtml}</p><div class="journey-session-meta">${typeof niveauCompte==='function'?lvlBadgeHTML(niveauCompte(),'is-home'):''}<span aria-label="${escAttr(session?.summary||'Toutes tes activités sont validées')}">${esc(sessionLine)}</span><time datetime="${dateISO}">${esc(date)}</time></div></div></div>`;
+  /* Elisa, 1er novembre, 19 h 25 : « fusionner les 2 » : le bonjour, le niveau et la séance passent en haut de la carte violette du
+     cours (au lieu d’un bloc au-dessus) ; la série vient sous la carte. */
+  const heading=`<div class="lq-hero-hi"><p class="lq-hi-title" aria-hidden="true">${hiHtml}</p><div class="journey-session-meta">${typeof niveauCompte==='function'?lvlBadgeHTML(niveauCompte(),'is-home is-on-deep'):''}<span aria-label="${escAttr(session?.summary||'Toutes tes activités sont validées')}">${esc(sessionLine)}</span><time datetime="${dateISO}">${esc(date)}</time></div></div>`;
   /* Première ouverture de l’accueil dans la séance : l’autocollant se colle sur la carte (une seule fois). */
   const intro=typeof mascotWavedThisSession!=='undefined'&&!mascotWavedThisSession&&!mascotReduced()&&typeof host.querySelector==='function'&&!host.querySelector('.mascot-stk')&&!!document.querySelector('#scr-learn.active');
   if(intro){mascotWavedThisSession=true;setTimeout(()=>{const b=host.querySelector('.mascot-stk.is-intro');if(b)b.classList.remove('is-intro');},3800);}
@@ -18639,7 +18641,7 @@ function renderHomeHero(){
   const mascot=typeof mascotMedalHtml==='function'?mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',hi:nxt==null?'Bravo\u00a0!':'Ravi de te revoir\u00a0!',intro}):'';
   if(nxt==null){
     const keep=lqKeepMascot(host);
-    host.innerHTML=`${heading}${streak}<section class="journey-complete lq-hero is-complete" data-mc="0"><span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><div class="lq-hero-main"><div class="lq-hero-body"><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div>${mascot}</div><button class="journey-primary lq-hero-cta" type="button" onclick="switchTab('practice')"><span>Continuer à pratiquer</span></button></section>${extras}`;
+    host.innerHTML=`<section class="journey-complete lq-hero is-complete has-hi" data-mc="0">${heading}<span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><div class="lq-hero-main"><div class="lq-hero-body"><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div>${mascot}</div><button class="journey-primary lq-hero-cta" type="button" onclick="switchTab('practice')"><span>Continuer à pratiquer</span></button></section>${streak}${extras}`;
     lqKeepMascot(host,keep);
     return;
   }
@@ -18668,7 +18670,7 @@ function renderHomeHero(){
   const chip=mod?`<span class="lq-hero-mod"><b>Module ${modIndex+1}</b>${esc(mod.titre)}</span>`:defi?`<span class="lq-hero-mod"><b>Défi</b>${esc(niv||'SQL')}</span>`:`<span class="lq-hero-mod"><b>Leçon</b>${esc(meta.sous||'')}</span>`;
   const sub=defi?(ch?.q||'Mets tes acquis à l’épreuve.'):(lesson?.résumé||meta.sous||'Mets tes acquis à l’épreuve.');
   const keep=lqKeepMascot(host);
-  host.innerHTML=`${heading}${streak}<section class="lq-hero journey-session" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${chip}<div class="lq-hero-main"><div class="lq-hero-body"><p class="lq-hero-kicker">${esc(kicker)}</p><h3 class="lq-hero-title">${esc(meta.titre)}</h3><p class="lq-hero-sub">${esc(sub)}</p></div>${mascot}</div>${pips}<button type="button" class="journey-primary lq-hero-cta" aria-label="${escAttr(ctaLabel+' : '+meta.titre)}" onclick="openItem(${arg},${currentStep})"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span>${esc(ctaLabel)}</span></button></section>${extras}`;
+  host.innerHTML=`<section class="lq-hero journey-session has-hi" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}${chip}<div class="lq-hero-main"><div class="lq-hero-body"><p class="lq-hero-kicker">${esc(kicker)}</p><h3 class="lq-hero-title">${esc(meta.titre)}</h3><p class="lq-hero-sub">${esc(sub)}</p></div>${mascot}</div>${pips}<button type="button" class="journey-primary lq-hero-cta" aria-label="${escAttr(ctaLabel+' : '+meta.titre)}" onclick="openItem(${arg},${currentStep})"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span>${esc(ctaLabel)}</span></button></section>${streak}${extras}`;
   lqKeepMascot(host,keep);
 }
 /* L’autocollant de la mascotte est gardé d’un rendu de l’accueil à l’autre : le recréer relançait son
@@ -33016,7 +33018,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-chargement-v2282';
+  const SW_CACHE='requete-2026-11-01-fusion-v2283';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
