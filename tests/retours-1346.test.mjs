@@ -71,3 +71,9 @@ test('14 h 33 : un seul cadre pour « Pas encore » et l’indice ; en salle, le
   for (const part of ['html.lq .coach.is-new-ko .coach-st{animation:coachKo .45s ease}', 'html.lq .coach-dot.is-cur{transform:scale(1.3);', 'html.lq .coach-tag{flex:none;padding:4px 10px;border-radius:99px;background:var(--sun);'])
     assert.ok(css.includes(part), part);
 });
+
+test('14 h 43 : la croix de la page de départ ramène à l’accueil ; « Gagne des stickers et des cartes mémo »', () => {
+  const open = cut('function lessonStartShow(l,go){', '\n}\n');
+  assert.ok(open.includes("if(ok)go&&go();else leaveLessonScreen('learn');"));
+  assert.ok(open.includes("plan.push(['Gagne des stickers et des cartes mémo','À collectionner : chaque cours terminé en débloque de nouveaux.']);"));
+});
