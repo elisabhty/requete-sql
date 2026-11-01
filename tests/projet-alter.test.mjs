@@ -55,7 +55,7 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
     '"Le numéro est renseigné<br>une seule fois par coach."',
     '"Les coachs reçoivent de nombreux<br>appels et messages pendant les cours."',
     '"Ce sont des questions<br>que le service client peut gérer."',
-    '"Dans le prochain chapitre,<br>tu apprendras à supprimer<br>une table entière."',
+    '"Dans la prochaine leçon,<br>tu apprendras à supprimer<br>une table entière."',
     '"Tu le feras avec <code>DROP TABLE</code> :<br>la table disparaît<br>avec toutes ses données."'])
     assert.ok(page.includes(s), `légende découpée : ${s.slice(0, 60)}`);
   /* Même budget que le test COURSES : page + vignette + moteur + GSAP + mascotte + 5 polices < 450 Kio. */
@@ -192,7 +192,7 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
     'Comme pour les numéros des coachs, Karim s’en charge avec UPDATE.',
     'Avec DROP COLUMN, on supprime la colonne age et tous les âges qu’elle contient.',
     'UPDATE permet de modifier les valeurs en conservant la colonne.',
-    'Dans le prochain chapitre, tu apprendras à supprimer une table entière.',
+    'Dans la prochaine leçon, tu apprendras à supprimer une table entière.',
     'Tu le feras avec DROP TABLE : la table disparaît avec toutes ses données.',
     'Pour finir, voici les trois idées à retenir.',
     'Ajoute ce résumé à tes notes pour le retrouver facilement.'];
