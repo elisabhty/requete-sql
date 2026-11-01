@@ -72,3 +72,9 @@ test('1 h 48 : la barre Schéma de la Console sans autocollant', () => {
   assert.ok(css.includes('html.lq #scr-console .console-schema-summary .console-schema-icon{display:none}'));
   assert.ok(css.includes('html.lq #scr-console .console-schema-summary{grid-template-columns:minmax(0,1fr) auto 19px!important;'));
 });
+
+test('8 h 53 : le pas à pas « utilise » les lignes de la table (plus « part »), nom sans guillemets ni alias', () => {
+  assert.ok(!app.includes('La requête part '));
+  assert.ok(app.includes("`La requête utilise ${nb===1?'la seule ligne':`les ${nb} lignes`} de <code>${esc(simple?nom:from)}</code>, telles qu’elles sont enregistrées. Rien n’est encore filtré ni trié.`"));
+  assert.ok(app.includes('const nom=!joint&&tm?(tm[1]||tm[2]||tm[3]||tm[4]):\'\',simple=!!nom;'));
+});

@@ -13373,11 +13373,15 @@ function buildSteps(sql,database){
   let base;
   try{base=S(`SELECT * FROM ${c.from}`)[0];}catch(e){return null;}
   if(!base)return null;
-  const from=c.from.trim(),nb=base.values.length;
-  const simple=/^[A-Za-zÀ-ÿ_][A-Za-zÀ-ÿ0-9_]*$/.test(from),joint=/\bJOIN\b/i.test(from);
-  steps.push({n:'FROM',t:joint?'Relier les tables':simple?`Lire la table ${from}`:'Lire les données',
-    e:joint?`La requête part des lignes obtenues en reliant les tables (<code>${esc(from)}</code>) : ${lignes(nb)}, avant tout filtre ou tri.`
-      :`La requête part ${nb===1?'de la seule ligne':`des ${nb} lignes`} ${simple?`de la table <b>${esc(from)}</b>`:`de <code>${esc(from)}</code>`}, telles qu’elles sont enregistrées. Rien n’est encore filtré ni trié.`,
+  /* Le nom de la table, sans ses guillemets ("aeroports", `aeroports`, [aeroports]) ni son alias (aeroports a, aeroports AS a). */
+  const from=c.from.trim(),nb=base.values.length,joint=/\bJOIN\b/i.test(from);
+  const tm=/^(?:"([^"]+)"|`([^`]+)`|\[([^\]]+)\]|([A-Za-zÀ-ÿ_][A-Za-zÀ-ÿ0-9_]*))(?:\s+(?:AS\s+)?[A-Za-zÀ-ÿ_][A-Za-zÀ-ÿ0-9_]*)?$/i.exec(from);
+  const nom=!joint&&tm?(tm[1]||tm[2]||tm[3]||tm[4]):'',simple=!!nom;
+  /* Elisa, 1er novembre, 8 h 53 : « ne pas mettre "part", je ne trouve pas ça classe » → « La requête utilise les 18 lignes de
+     aeroports, telles qu’elles sont enregistrées. Rien n’est encore filtré ni trié. » */
+  steps.push({n:'FROM',t:joint?'Relier les tables':simple?`Lire la table ${nom}`:'Lire les données',
+    e:joint?`La requête utilise les lignes obtenues en reliant les tables (<code>${esc(from)}</code>) : ${lignes(nb)}, avant tout filtre ou tri.`
+      :`La requête utilise ${nb===1?'la seule ligne':`les ${nb} lignes`} de <code>${esc(simple?nom:from)}</code>, telles qu’elles sont enregistrées. Rien n’est encore filtré ni trié.`,
     cols:base.columns,rows:base.values.map(v=>({v}))});
   let kept=base.values;
   const whereSql=c.where?' WHERE '+c.where:'';
