@@ -119,7 +119,8 @@ test('schéma de la console : ce qui vient de changer s’anime (nouvelle table,
 
 test('feuille « Schéma » : l’en-tête violet des feuilles et les cartes des tables', () => {
   assert.ok(cut(app, 'function openSchemaSheet(){', 'function closeSchemaSheet(){').includes("lqVizCap('schema-sheet','db',`${plur(n,'table')}, leurs colonnes et leurs clés.`);"));
-  assert.ok(cut(app, 'function renderSchemaSheet(){', 'function openSchemaSheet(){').includes(`<span class="sch-stk" aria-hidden="true">\${lqStkSvg('table')}</span>`));
+  /* 1er novembre, 1 h 26 : « enlever les stickers sur les tables » */
+  assert.ok(!cut(app, 'function renderSchemaSheet(){', 'function openSchemaSheet(){').includes('sch-stk') && !app.includes("lqStkSvg('table')"));
   for (const part of ['html.lq #schema-sheet .sch-table{margin:0 16px 14px;border:2px solid var(--line);', 'html.lq #schema-sheet .sch-col .badge.pk{background:var(--sun);', 'html.lq #schema-sheet.on .sch-table{animation:dbColIn'])
     assert.ok(s41.includes(part), part);
 });
