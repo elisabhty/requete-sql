@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-01-contextes-verifies-v2269';
+const CACHE = 'requete-2026-11-01-defis-verifies-v2295';
 
 const PRECACHE = [
   './onboarding-focus.js',
@@ -36,6 +36,11 @@ const PRECACHE = [
   './ludique.css',
   './assets/fonts/bricolage-grotesque-bold.woff2',
   './assets/fonts/bricolage-grotesque-regular.woff2',
+  './assets/fonts/inter-medium.woff2',
+  './assets/fonts/inter-semibold.woff2',
+  './assets/fonts/inter-bold.woff2',
+  './assets/fonts/inter-extrabold.woff2',
+  './assets/fonts/jetbrains-mono.woff2',
   './vendor/sqljs/sql-wasm.js',
   './vendor/sqljs/sql-wasm.wasm',
   './assets/mascotte-requete.png',
@@ -194,11 +199,6 @@ const PRECACHE = [
   './assets/anim/projet-droits-thumb.webp',
   './assets/anim/projet-droits-lina.webp',
   './assets/anim/projet-droits-equipe.webp',
-  './assets/fonts/jetbrains-mono.woff2',
-  './assets/fonts/inter-medium.woff2',
-  './assets/fonts/inter-semibold.woff2',
-  './assets/fonts/inter-bold.woff2',
-  './assets/fonts/inter-extrabold.woff2',
 ];
 
 /* Deux temps (Elisa, 26 octobre, 22 h 20 : « les vidéos mettent du temps à charger au début maintenant »).

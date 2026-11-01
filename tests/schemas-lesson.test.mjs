@@ -48,8 +48,8 @@ const tables = db => db.exec("SELECT name FROM sqlite_master WHERE type = 'table
 /* Les deux espaces de la vidéo, rejoués avec ATTACH : chaque table de la base est copiée dans son schéma. */
 function espaces() {
   const db = base();
-  db.run("ATTACH DATABASE ':memory:' AS boutique; ATTACH DATABASE ':memory:' AS bienetre;");
-  for (const [, , , name, k] of val('TABLES')) db.run(`CREATE TABLE ${k === 'b' ? 'boutique' : 'bienetre'}.${name} AS SELECT * FROM main.${name};`);
+  db.run("ATTACH DATABASE ':memory:' AS boutique; ATTACH DATABASE ':memory:' AS bien_etre;");
+  for (const [, , , name, k] of val('TABLES')) db.run(`CREATE TABLE ${k === 'b' ? 'boutique' : 'bien_etre'}.${name} AS SELECT * FROM main.${name};`);
   return db;
 }
 
@@ -131,19 +131,19 @@ test('les schémas, rejoués dans SQLite avec ATTACH : schéma.table, deux table
   const db = espaces();
   const n = q => db.exec(q)[0].values.length;
   assert.equal(n('SELECT * FROM boutique.commandes;'), 16, 'boutique.commandes : les seize commandes');
-  assert.equal(n('SELECT * FROM bienetre.inscriptions;'), 7, 'bienetre.inscriptions : les sept inscriptions');
+  assert.equal(n('SELECT * FROM bien_etre.inscriptions;'), 7, 'bien_etre.inscriptions : les sept inscriptions');
   assert.throws(() => db.exec('SELECT * FROM boutique.inscriptions;'), /no such table: boutique\.inscriptions/, 'les inscriptions ne sont pas dans la boutique');
-  assert.throws(() => db.exec('SELECT * FROM inscriptions.bienetre;'), /no such table: inscriptions\.bienetre/, 'l’adresse commence par le schéma');
+  assert.throws(() => db.exec('SELECT * FROM inscriptions.bien_etre;'), /no such table: inscriptions\.bien_etre/, 'l’adresse commence par le schéma');
   /* L’équipe des ateliers crée sa propre table clients : deux tables du même nom, dans deux schémas. */
-  db.run('CREATE TABLE bienetre.clients (id INTEGER PRIMARY KEY, prenom TEXT, nom TEXT);');
-  db.run("INSERT INTO bienetre.clients VALUES (1, 'Julie', 'Nguyen');");
-  assert.deepEqual([n('SELECT * FROM boutique.clients;'), n('SELECT * FROM bienetre.clients;')], [10, 1], 'deux tables distinctes : la seconde ne remplace pas la première');
+  db.run('CREATE TABLE bien_etre.clients (id INTEGER PRIMARY KEY, prenom TEXT, nom TEXT);');
+  db.run("INSERT INTO bien_etre.clients VALUES (1, 'Julie', 'Nguyen');");
+  assert.deepEqual([n('SELECT * FROM boutique.clients;'), n('SELECT * FROM bien_etre.clients;')], [10, 1], 'deux tables distinctes : la seconde ne remplace pas la première');
   assert.deepEqual(val('PICKS')[3].options.map(o => [o.label, !!o.ok]), [['Oui, la seconde remplace la première', false], ['Non, leur schéma les distingue', true], ['Oui, il faut renommer l’une des deux', false]]);
   /* Les trois requêtes qui avaient perdu leur schéma. */
   const R = val('REQUETES');
-  assert.deepEqual(R.map(x => x[0].replace('___', x[1] === 'b' ? 'boutique' : 'bienetre')), ['SELECT * FROM bienetre.cartes;', 'SELECT * FROM boutique.fidelite;', 'SELECT * FROM bienetre.coachs;']);
-  for (const [q, k] of R) assert.ok(n(q.replace('___', k === 'b' ? 'boutique' : 'bienetre')) > 0, `${q} : la table est dans ce schéma`);
-  for (const [q, k] of R) assert.throws(() => db.exec(q.replace('___', k === 'b' ? 'bienetre' : 'boutique')), /no such table/, `${q} : pas dans l’autre schéma`);
+  assert.deepEqual(R.map(x => x[0].replace('___', x[1] === 'b' ? 'boutique' : 'bien_etre')), ['SELECT * FROM bien_etre.cartes;', 'SELECT * FROM boutique.fidelite;', 'SELECT * FROM bien_etre.coachs;']);
+  for (const [q, k] of R) assert.ok(n(q.replace('___', k === 'b' ? 'boutique' : 'bien_etre')) > 0, `${q} : la table est dans ce schéma`);
+  for (const [q, k] of R) assert.throws(() => db.exec(q.replace('___', k === 'b' ? 'bien_etre' : 'boutique')), /no such table/, `${q} : pas dans l’autre schéma`);
 });
 
 test('SQLite : pas de CREATE SCHEMA ; main.clients lit la table clients ; boutique.clients et clients.main sont refusés', () => {
@@ -156,7 +156,7 @@ test('SQLite : pas de CREATE SCHEMA ; main.clients lit la table clients ; boutiq
   assert.ok(page.includes("out('o-lite', 'ok', 'Requête exécutée', 'les 10 clients de la base.')") && page.includes("out('pv6-0', 'warn', 'Requête refusée', 'no such table: boutique.clients')"));
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.ok(caps.includes('La base du projet garde donc<br>ses tables telles quelles.'), 'les chapitres suivants gardent la base telle quelle');
-  assert.deepEqual(val('PICKS')[1].options.map(o => [o.label, !!o.ok]), [['CREATE TABLE bienetre;', false], ['CREATE SCHEMA bienetre;', true], ['CREATE DATABASE bienetre;', false]]);
+  assert.deepEqual(val('PICKS')[1].options.map(o => [o.label, !!o.ok]), [['CREATE TABLE bien_etre;', false], ['CREATE SCHEMA bien_etre;', true], ['CREATE DATABASE bien_etre;', false]]);
 });
 
 test('chapitre 7 : écran titre ; annoncé par DROP, il annonce INSERT, qui s’ouvre sur lui ; le récapitulatif dans la vidéo comme dans la fiche', () => {

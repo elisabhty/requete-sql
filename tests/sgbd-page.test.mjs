@@ -1,4 +1,4 @@
-/* Les cours suivent SQLite ; la page « Selon le SGBD » de la Bibliothèque fait la correspondance avec
+/* Les requêtes sont exécutées avec SQLite ; la page « Selon le SGBD » de la Bibliothèque fait la correspondance avec
    PostgreSQL, MySQL, SQL Server et Oracle. Les remarques des cours renvoient vers elle. */
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -13,13 +13,18 @@ const page = vm.runInContext('SGBD_PAGE', ctx);
 
 test('la page compare SQLite à quatre SGBD, besoin par besoin', () => {
   assert.equal(JSON.stringify(vm.runInContext('SGBD_NOMS', ctx)), JSON.stringify(['SQLite', 'PostgreSQL', 'MySQL', 'SQL Server', 'Oracle']));
+  assert.doesNotMatch(html, /<h1>Selon le SGBD<\/h1>\s*<p class="sub">/);
+  assert.match(html, /Les requêtes sont exécutées avec <b>SQLite<\/b>, le moteur SQL intégré à l’application\./);
   assert.equal(new Set(page.map(s => s.id)).size, page.length, 'thèmes uniques');
   for (const s of page) for (const [besoin, codes] of s.rows) assert.equal(codes.length, 5, `${s.t} · ${besoin}`);
   const need = ctx.sgbdNeedHtml(page.find(s => s.id === 'dates').rows.find(r => r[0] === 'Extraire l’année'));
-  /* Elisa, 31 octobre, 8 h 37 : « ne rien surligner et ne pas mettre cours » : SQLite s’écrit comme les autres */
-  assert.match(need, /<div class="sg-row"><span class="sg-who"><span class="sg-n">SQLite<\/span><\/span><code class="sg-code">STRFTIME\('%Y', d\)<\/code>/);
-  assert.ok(!need.includes('is-lite') && !need.includes('<i>cours</i>'), 'ni surlignage ni « cours »');
-  assert.match(need, /PostgreSQL<\/span> · <span class="sg-n">Oracle<\/span><\/span><code class="sg-code">EXTRACT\(YEAR FROM d\)/, 'mêmes écritures regroupées');
+  /* Elisa, 1er novembre, 18 h 24 (remplace le « ne rien surligner » du 31 octobre) : la ligne de notre moteur est surlignée, « Notre moteur » */
+  assert.match(need, /<div class="sg-row is-moteur"><span class="sg-who"><span class="sg-n is-moteur">SQLite<\/span><em class="sg-tag">Notre moteur<\/em><\/span><span class="sg-val"><span class="sg-okrow"><code class="sg-code">STRFTIME\('%Y', d\)<\/code><i class="sg-check" role="img" aria-label="Marche dans l’app">✓<\/i>/);
+  assert.ok(!need.includes('<i>cours</i>'), 'pas de « cours »');
+  assert.match(need, /PostgreSQL<\/span> · <span class="sg-n">Oracle<\/span><\/span><span class="sg-val"><span class="sg-okrow"><code class="sg-code">EXTRACT\(YEAR FROM d\)/, 'mêmes écritures regroupées');
+  assert.equal((need.match(/class="sg-check"/g) || []).length, 3, '18 h 56 : un ✓ par écriture qui marche dans l’app');
+  const ecart = ctx.sgbdNeedHtml(page.find(s => s.id === 'dates').rows.find(r => r[0] === 'L’écart en jours entre deux dates'));
+  assert.ok(ecart.includes('<span class="sg-val"><code class="sg-code">fin - debut</code></span>'), 'l’exception n’a pas de ✓');
   assert.match(ctx.sgbdNeedHtml(page.find(s => s.id === 'nombres').rows[0]), /<span class="sg-who">Partout<\/span>/, 'identique partout');
 });
 

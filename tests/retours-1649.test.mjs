@@ -306,6 +306,8 @@ test('points — la valeur du défi, palier par palier, à côté du chrono ; «
   assert.ok(fn('jeuFoundHTML').includes("+(x.essai?' · du premier coup ✨':'')"));
   for (const part of ['html.lq .jeu-bar-r{flex:none;display:flex;align-items:center;gap:6px}', 'html.lq .jeu-val{display:inline-flex;', 'font-variant-numeric:tabular-nums'])
     assert.ok(s51.includes(part), part);
+  assert.ok(s51.includes('html.lq .jeu-bar .l-kicker{display:block;flex:1 1 0%;min-width:0;'), 'la pastille de manche peut prendre l’espace restant');
+  assert.ok(s51.includes('@media (max-width:760px){') && s51.includes('html.lq #scr-lesson .jeu-bar>.l-kicker{flex:1 1 100%;width:100%;white-space:normal;'), 'sur une vue étroite, le libellé complet passe au-dessus des points et du chrono');
   const s52 = css.slice(css.indexOf('/* ---------- 52.'));
   for (const part of ['html.lq .jeu-val-b{position:absolute;', '@keyframes jeuValBOut{', 'html.lq .jeu-val.is-drop #jeu-val-n{', 'html.lq .jeu-pd i.is-essai{'])
     assert.ok(s52.includes(part), part);
@@ -367,7 +369,7 @@ test('réf. 6 — « Tes dernières parties » : les parties à 2, 3, 4, 5 (et j
   assert.ok(h.includes('<p class="perf-legend"><span><i class="perf-legend-o" aria-hidden="true"></i>les points de tes amis</span><span class="perf-legend-t">au pied de chaque barre : le nombre de joueurs</span></p>'), 'une légende, sans chiffre trompeur');
   assert.ok(!app.includes('perf-legend-n') && !css.includes('perf-legend-n'));
   assert.ok(bars[0][0].includes(`data-caph="${escAttr(vm.runInContext('perfCapHTML(state.salle.hist[2])', ctx))}"`), 'toucher une barre écrit sa partie');
-  assert.equal(vm.runInContext('perfCapHTML(state.salle.hist[1])', ctx), 'Hier · Seul · Facile · 250 points');
+  assert.equal(vm.runInContext('perfCapHTML(state.salle.hist[1])', ctx), 'Hier · En solo · Facile · 250 points');
   /* Elisa, 17 h 53 : « et à 6, 7, 8 joueurs dans l’historique ? » — les 7 autres, 7 couleurs différentes, serrés autour de la barre */
   const ppl8 = ['Léa', 'Tom', 'Ana', 'Zoé', 'Hugo', 'Inès', 'Paul'].map((n, i) => ({ n, pts: 400 - i * 50, place: i + 2 })).concat([{ n: 'Elisa', pts: 420, place: 1, me: 1 }]);
   const g8 = perfHTML({ ...salle, hist: [{ at: now, pts: 420, n: 3, ok: 3, ms: 1, niv: 'd', solo: 0, place: 1, players: 8, ppl: ppl8 }] });

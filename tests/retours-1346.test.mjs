@@ -24,7 +24,7 @@ test('la salle de défi se place au niveau de la personne, les trois niveaux res
 
 test('la bulle de la première leçon porte le portrait détouré', () => {
   assert.ok(fs.existsSync(new URL('../assets/anim/formatrice.webp', import.meta.url)));
-  assert.ok(lecon.includes('#cap .cap-stk{background:url(formatrice.webp) 50% 6px/150px auto no-repeat,'));
+  assert.ok(lecon.includes('#cap .cap-stk{background:url(formatrice.webp) 50% 0/134px 134px no-repeat,'));
   assert.ok(sw.includes("'./assets/anim/formatrice.webp',"), 'hors ligne aussi');
 });
 
@@ -186,4 +186,104 @@ test('16 h 48 : la révision et la question d’entretien ouverte survivent auss
   assert.equal(app.split('reviewQueue.shift();revSesSave(true);').length - 1, 2, 'les deux réussites de révision');
   assert.ok(app.includes("if(nav.view==='tab'&&nav.tab==='entretien'){\n      switchTab('entretien');entSesRestore();"));
   assert.ok(app.includes('  if(!restoringNav)entSesSave();'));
+});
+
+test('18 h 20 : sous le bouton retour, le titre de la page descend, le même écart partout', () => {
+  assert.ok(css.includes('html.lq #app .screen>.home-back{margin-bottom:12px}'));
+});
+
+test('18 h 38 : entretien — familles de notions, « Voir selon le SGBD », précédente et suivante côte à côte, réponse JSONB', () => {
+  assert.ok(app.includes("fbar.innerHTML=ENT_FAMILLES.map(([k,l])=>{"));
+  assert.ok(app.includes(`onclick="entVoirSgbd('\${x.id}','\${entSgbdTheme(x.q)}')"`));
+  assert.ok(app.includes("entOpen=parent==='entretien'&&activeTab==='sgbd'&&entSgbdRetour?entSgbdRetour:null;"), 'le retour ramène à la question');
+  assert.ok(app.includes('<div class="ent-nav">${entPrevTarget(x.id)?`<button type="button" class="ent-prev" onclick="prevEntretien('));
+  assert.ok(app.includes('Avec JSONB, PostgreSQL permet d’aller chercher des informations directement à l’intérieur d’un document JSON. <code>-&gt;</code> récupère une valeur JSON, <code>-&gt;&gt;</code> récupère sa valeur sous forme de texte et <code>@&gt;</code> permet de vérifier si le JSON contient une information précise.'));
+  assert.ok(css.includes('html.lq .ent-focus .ent-nav{display:flex;gap:10px;margin-top:14px}'));
+});
+
+test('18 h 42 : « Base NutriBoost » ; les bases d’entraînement en lecture seule (ni import, ni bouton qui modifie, ni requête qui écrit)', () => {
+  assert.ok(app.includes("function demoLabel(id){return id==='cours'?'Base NutriBoost':'Base '+DEFI_BASES[id].nom;}"));
+  assert.ok(app.includes("if(verrou)try{database.run('PRAGMA query_only=ON');}catch(e){}") && app.includes("if(verrou)try{database.run('PRAGMA query_only=OFF');}catch(e){}"));
+  assert.ok(app.includes("if(verrou&&/\\b(?:ATTACH|DETACH|VACUUM|REINDEX|PRAGMA)\\b/i.test("), 'on ne peut pas rouvrir l’écriture par PRAGMA');
+  assert.ok(app.includes('<span>Base d’entraînement · lecture seule</span>'));
+  assert.ok(app.includes("async function dropTable(name){\n  if(isDemoDb(activeDbId))return;") && app.includes("async function resetTable(name){\n  if(isDemoDb(activeDbId))return;"));
+});
+
+test('18 h 48 : questions d’entretien en entier, notions qui ont un sens, nouvelle photo de la formatrice avec sa pastille', () => {
+  assert.ok(app.includes('#scr-entretien .ecard .eq{display:block;overflow:visible}') && !app.includes('#scr-entretien .ecard .eq{display:-webkit-box;-webkit-line-clamp:2;'));
+  assert.ok(app.includes("const ENTRETIEN_CATS=[['all','Toutes les notions'],['SELECT','SELECT'],"));
+  const lecon = fs.readFileSync(new URL('../assets/anim/bases-relationnelles.html', import.meta.url), 'utf8');
+  assert.ok(lecon.includes('#cap .cap-stk::after{content:"Votre formatrice";'));
+  assert.ok(lecon.includes('#cap .cap-stk{background:url(formatrice.webp) 50% 0/134px 134px no-repeat,'));
+});
+
+test('18 h 56 : un ✓ quand l’écriture marche dans l’app, la légende dans le cadre du haut ; flèche animée dans « Continuer la préparation »', () => {
+  assert.ok(app.includes('<p class="sg-legende"><span><em class="sg-tag">Notre moteur</em> la ligne de SQLite</span><span><i class="sg-check" aria-hidden="true">✓</i> marche dans l’app</span></p>'));
+  assert.ok(!app.includes('Toutes ces écritures marchent dans l’app'));
+  assert.ok(css.includes('html.lq .ent-hero .ent-hero-cta>svg:last-child{display:block!important;width:20px;height:20px;flex:none;animation:lstArrow 1.6s ease-in-out infinite}'));
+});
+
+test('19 h 00 : la ligne de notre moteur n’est plus surlignée en jaune, elle garde « Notre moteur »', () => {
+  assert.ok(css.includes('html.lq .sg-row.is-moteur{margin:0;padding:8px 2px;border-radius:0;background:none;box-shadow:none;'));
+  assert.ok(app.includes("${moteur?'<em class=\"sg-tag\">Notre moteur</em>':''}"));
+});
+
+test('19 h 02 : sur la planche, sous chaque sticker, en petit, ce qui le fait gagner', () => {
+  assert.ok(app.includes("{id:'requete',label:'Première requête',cap:'1ʳᵉ requête'"));
+  assert.ok(app.includes("cap:`Module ${i+1} terminé`"));
+  assert.ok(app.includes("${s.cap?`<small class=\"stk-cap\">${esc(s.cap)}</small>`:''}</li>`;"));
+});
+
+test('19 h 04 : les polices du site dans l’app (Inter, JetBrains Mono, Bricolage), plus de polices Google ; note du classement retirée', () => {
+  assert.ok(css.includes("@font-face{font-family:'Inter';src:url(assets/fonts/inter-medium.woff2)") && css.includes("  --ui:'Inter',-apple-system,") && css.includes("  --mono:'JBM','JetBrains Mono',"));
+  assert.ok(!app.includes('fonts.googleapis.com') && !app.includes('Plus Jakarta'));
+  assert.ok(sw.includes("'./assets/fonts/inter-medium.woff2'"));
+  assert.ok(!app.includes('Le classement en ligne compte les parties vérifiées.'));
+});
+
+test('19 h 08 : l’en-tête de l’accueil se resserre', () => {
+  assert.ok(css.includes('html.lq #scr-learn #home-hero>.journey-heading{margin-top:6px!important;margin-bottom:10px!important}'));
+});
+
+test('19 h 22 : l’icône de chargement (tirer pour recharger) descend moins bas', () => {
+  assert.ok(app.includes('const SEUIL=64, TENU=8, LIM=150;') && app.includes('translate3d(0,${Math.round(Math.min(o*.5-22,TENU+6))}px,0)'));
+});
+
+test('19 h 25 : le bonjour, le niveau et la séance fusionnés en haut de la carte du cours ; la série dessous', () => {
+  assert.ok(app.includes('host.innerHTML=`<section class="lq-hero journey-session has-hi" data-mc="${mc}" aria-label="${defi?\'Prochain défi\':\'Ta prochaine leçon\'}">${heading}${chip}'));
+  assert.ok(app.includes('<span>${esc(ctaLabel)}</span></button></section>${streak}${extras}`;'));
+  assert.ok(css.includes('html.lq .lq-hero.has-hi .lq-hero-hi{position:relative;z-index:1;margin:0 0 14px;padding:0 0 14px;border-bottom:1.5px solid rgba(255,255,255,.18)}'));
+});
+
+test('19 h 32 : une sous-page (Console, Selon le SGBD…) ouverte depuis une carte s’ouvre en haut', () => {
+  assert.ok(app.includes('  if(primaryTabFor(name)!==name&&!tabBackNav)tabScrollPositions[name]=0;\n  activeTab=name;'));
+});
+
+test('19 h 36 – 19 h 39 : le haut de la carte sur une ligne (bonjour + séance du jour), le niveau collé sur le chat', () => {
+  assert.ok(app.includes("const sessionLine=sesEtat==='end'?'Parcours terminé'"), 'parcours terminé');
+  /* 19 h 48 : « Ta session » à la place d’« Aujourd’hui » */
+  assert.ok(app.includes(":sesEtat==='run'?`Ta session · ${session.minutes} min`") && app.includes(":sesEtat==='done'?'Ta session · Faite':'Ta session · Pause';"), 'Ta session · 12 min / Faite / Pause');
+  assert.ok(!app.includes('`Aujourd’hui · ${session.minutes} min`'), 'plus d’« Aujourd’hui »');
+  assert.ok(app.includes("{const a=old.querySelector('.mstk-niv'),b=fresh.querySelector('.mstk-niv');if(a&&b&&a.outerHTML!==b.outerHTML)a.replaceWith(b.cloneNode(true));}"), 'étiquette remise à jour quand la mascotte est gardée');
+  assert.ok(css.includes('html.lq .mstk-niv{left:auto;right:-2px;translate:none;max-width:118px}'), 'reste dans la carte à 360 px');
+  assert.ok(css.includes('html.lq .lq-hero.has-hi::after{display:none}'), 'l’étoile ne chevauche plus la séance');
+});
+
+test('19 h 48 : « Ta session » a son animation (sablier qui coule et se retourne, somnole en pause, coche qui se trace ; minutes qui défilent)', () => {
+  assert.ok(app.includes('<span class="lq-ses is-${sesEtat}"') && app.includes('<i class="lq-ses-ic" aria-hidden="true">${sesIc}</i>'));
+  assert.ok(app.includes('<g class="lq-sab">') && app.includes('<g class="lq-sab is-couche">') && app.includes('<path class="lq-chk"'), 'les trois icônes');
+  assert.ok(app.includes("replace(/(\\d+) min$/,'<b class=\"lq-ses-n\" data-n=\"$1\">$1</b>\\u00a0min')"), 'le nombre de minutes balisé');
+  assert.ok(app.includes("if(!n||lqSesCounted||!document.querySelector('#scr-learn.active'))return;") && app.includes("if(typeof mascotReduced==='function'&&mascotReduced())return;"), 'une fois, accueil visible, mouvement non réduit');
+  assert.equal((app.match(/lqSesCount\(host\);/g) || []).length, 2, 'les deux rendus de la carte');
+  for (const k of ['@keyframes lqSabFlip{0%,80%{rotate:0deg}100%{rotate:180deg}}', '@keyframes lqSabHaut{0%{scale:1 1}78%,100%{scale:0 0}}', '@keyframes lqSabDort{0%,100%{rotate:-9deg}50%{rotate:9deg}}', '@keyframes lqChk{to{stroke-dashoffset:0}}', 'html.lq[data-motion="reduce"] .lq-ses-ic *{animation:none!important}'])
+    assert.ok(css.includes(k), k);
+});
+
+test('19 h 53 : moins d’espace entre la série et « Ton parcours »', () => {
+  assert.ok(css.includes('html.lq #scr-learn #modules{margin-top:6px;padding-top:16px}'));
+});
+
+test('19 h 55 : parcours terminé, plus de « Tu es ici »', () => {
+  assert.ok(app.includes('try{const s=recommendedSession();if(s&&!isDefiId(s.id))id=s.id;fini=!s;}catch(e){}'));
+  assert.ok(app.includes('if(fini){lqPathCurrent=null;setTimeout(()=>{lqPathCurrent=undefined;},0);return null;}'));
 });

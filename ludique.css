@@ -26,10 +26,20 @@
    sautent ni de clignotement). */
 @font-face{font-family:'Bricolage Grotesque';src:url(assets/fonts/bricolage-grotesque-regular.woff2) format('woff2');font-weight:300 550;font-style:normal;font-display:optional}
 @font-face{font-family:'Bricolage Grotesque';src:url(assets/fonts/bricolage-grotesque-bold.woff2) format('woff2');font-weight:551 900;font-style:normal;font-display:optional}
+/* Elisa, 1er novembre, 19 h 04 : « homogénéiser l’écriture, la taille et la police entre l’app et le site ». L’app prend les polices
+   du site : Inter pour le texte (au lieu de la police système, SF Pro sur Apple), JetBrains Mono pour le code (au lieu de SF Mono),
+   Bricolage Grotesque pour les titres, avec les mêmes fichiers (assets/fonts) et les mêmes graisses. */
+@font-face{font-family:'Inter';src:url(assets/fonts/inter-medium.woff2) format('woff2');font-weight:300 550;font-style:normal;font-display:swap}
+@font-face{font-family:'Inter';src:url(assets/fonts/inter-semibold.woff2) format('woff2');font-weight:551 650;font-style:normal;font-display:swap}
+@font-face{font-family:'Inter';src:url(assets/fonts/inter-bold.woff2) format('woff2');font-weight:651 760;font-style:normal;font-display:swap}
+@font-face{font-family:'Inter';src:url(assets/fonts/inter-extrabold.woff2) format('woff2');font-weight:761 900;font-style:normal;font-display:swap}
+@font-face{font-family:'JBM';src:url(assets/fonts/jetbrains-mono.woff2) format('woff2');font-weight:100 800;font-style:normal;font-display:swap}
 
 /* ---------- 1. Jetons ---------- */
 html.lq{
-  --display:'Bricolage Grotesque',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  --display:'Bricolage Grotesque','Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  --ui:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  --mono:'JBM','JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
 
   --bg:#F4F2FC;
   --surface:#FFFFFF;
@@ -4327,7 +4337,8 @@ html.lq #scr-compte .plus-details-body{padding-bottom:calc(var(--safe-bottom) + 
 
 /* 47b. Réf 4 et 11 : les retours en haut à gauche se voient : une pastille blanche en relief, la flèche dans un rond violet, et le nom
    de la page où l’on revient. Quand la page défile, le nom se replie et le rond reste. */
-html.lq #app .screen>.home-back{isolation:isolate;padding-right:26px;gap:9px;transition:padding .22s var(--spring-ios,ease)}
+html.lq #app .screen>.home-back{isolation:isolate;padding-right:34px;gap:10px;transition:padding .22s var(--spring-ios,ease)}
+html.lq #scr-sgbd>.home-back{margin-bottom:40px}
 html.lq #app .screen>.home-back::before{content:"";position:absolute;z-index:-1;top:calc(var(--safe-top) + 3px);bottom:3px;left:12px;right:12px;
   border:2px solid var(--line);border-radius:99px;background:#fff;box-shadow:0 3px 0 var(--lip);transition:transform .12s var(--press),box-shadow .12s var(--press)}
 html.lq #app .screen>.home-back svg,html.lq #scr-lesson .navbar .back svg{
@@ -4887,8 +4898,13 @@ html[data-motion="reduce"].lq .jeu-mates *,html[data-motion="reduce"].lq .jeu-ma
 
 /* ---------- 51. Retours du 31 octobre, 16 h 49 ---------- */
 /* 51a. La valeur du défi, à côté du chrono, tant qu’on cherche : elle baisse avec le temps (200 → 100). */
-html.lq .jeu-bar .l-kicker{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.lq .jeu-bar .l-kicker{display:block;flex:1 1 0%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 html.lq .jeu-bar-r{flex:none;display:flex;align-items:center;gap:6px}
+@media (max-width:760px){
+  html.lq #scr-lesson .jeu-bar{flex-wrap:wrap;justify-content:flex-start;gap:8px}
+  html.lq #scr-lesson .jeu-bar>.l-kicker{flex:1 1 100%;width:100%;white-space:normal;overflow:visible;text-overflow:clip;line-height:1.2}
+  html.lq #scr-lesson .jeu-bar>.jeu-bar-r{margin-left:auto;max-width:100%}
+}
 html.lq .jeu-val{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 10px 0 4px;box-sizing:border-box;border:2px solid var(--line);border-radius:999px;background:#fff;
   color:var(--accent-ink);font:800 15px/1 var(--display);font-variant-numeric:tabular-nums;box-shadow:0 3px 0 var(--lip)}
 html.lq .jeu-val .lq-stk{width:24px;height:24px}
@@ -5775,3 +5791,184 @@ html.lq .room-level{min-height:0;justify-content:center;padding:16px 6px 14px}
 html.lq .room-level.is-bientot{min-height:88px}
 /* 16 h : « trop d’espace en bas des niveaux » : la carte épouse son contenu, autant d’air en haut qu’en bas. */
 html.lq .room-level{min-height:0!important;justify-content:center;gap:6px;padding:13px 6px 13px!important}
+/* Elisa, 1er novembre, 18 h 20 : « à pousser vers la verticale, pareil ailleurs ». Sous le bouton retour, le titre de la page
+   (Selon le SGBD, Mes notes, Cartes mémo, Stickers, Console, Entretien, Défis…) descend d’un cran, le même écart partout. */
+html.lq #app .screen>.home-back{margin-bottom:12px}
+html.lq #scr-sgbd>.home-back{margin-bottom:12px}
+/* 18 h 58 : « un peu trop d’espace » : 12 px sous le retour (au lieu de 28), le même partout. */
+/* 55e — Selon le SGBD : la ligne de notre moteur (SQLite) surlignée en jaune soleil, avec l’étiquette autocollant « Notre moteur » ;
+   la pastille menthe « Toutes ces écritures marchent dans l’app » ; « pas dans l’app » en gris sur les rares exceptions (18 h 24). */
+html.lq .sg-row.is-moteur{margin:2px -8px;padding:9px 10px;border-top-color:transparent;border-radius:14px;background:#FFF4D2;box-shadow:inset 3px 0 0 var(--sun)}
+html.lq .sg-row.is-moteur+.sg-row{border-top-color:transparent}
+html.lq .sg-row.is-moteur .sg-who{color:#7A5300}
+html.lq .sg-row.is-moteur .sg-code{background:#fff;box-shadow:inset 0 0 0 1.5px #F3D27A}
+html.lq .sg-n.is-moteur{color:#7A5300}
+html.lq .sg-tag{display:inline-block;margin-top:5px;padding:3px 8px;border-radius:8px;background:var(--sun);color:var(--ink);font:800 9.5px/1.2 var(--display);font-style:normal;
+  letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;box-shadow:0 2px 0 var(--sun-lip);rotate:-2deg}
+html.lq .sg-who .sg-tag{display:table}
+html.lq .sg-leg{white-space:nowrap}
+html.lq .sg-leg .sg-tag{margin:0 2px 0 0;vertical-align:1px}
+html.lq .sg-val{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0}
+html.lq .sg-val>.sg-code{align-self:stretch}
+html.lq .sg-row.is-off .sg-code{opacity:.75}
+html.lq .sg-off{padding:2px 8px;border-radius:99px;background:#EFEDF5;color:var(--ink-3);font:700 11px/1.3 var(--ui);font-style:normal}
+html.lq .sg-ok{display:flex;align-items:center;gap:7px;margin:10px 0 2px;padding:7px 11px;border-radius:12px;background:#E3FBEF;color:#147A4E;font:700 12.5px/1.3 var(--ui)}
+html.lq .sg-ok span{display:grid;place-items:center;flex:none;width:18px;height:18px;border-radius:50%;background:#1E9E68;color:#fff;font:800 11px/1 var(--display)}
+/* 55f — Entretien (Elisa, 1er novembre, 18 h 38) : « Question précédente » et « Question suivante » côte à côte ; le bouton « Voir selon
+   le SGBD » sous l’exemple, en carte de la vitrine (rebord lilas, autocollant info, chevron). */
+html.lq .ent-focus .ent-nav{display:flex;gap:10px;margin-top:14px}
+html.lq .ent-focus .ent-nav>button{flex:1 1 0;min-width:0;margin:0!important}
+html.lq .ent-focus .ent-prev{display:flex;align-items:center;justify-content:center;gap:8px;min-height:54px;padding:0 14px;border:2px solid var(--line);border-radius:16px;
+  background:#fff;color:var(--accent-ink);font:700 16px/1.1 var(--display);box-shadow:0 4px 0 var(--lip);cursor:pointer;transition:transform .12s var(--press),box-shadow .12s var(--press)}
+html.lq .ent-focus .ent-prev svg{width:18px;height:18px;flex:none;transform:scaleX(-1)}
+html.lq .ent-focus .ent-prev:active{transform:translateY(4px);box-shadow:0 0 0 var(--lip)}
+html.lq .ent-focus .ent-nav .ent-next{padding-left:12px;padding-right:12px}
+html.lq .ent-focus .ent-nav span{min-width:0;overflow-wrap:anywhere;text-align:center}
+@media (max-width:380px){html.lq .ent-focus .ent-nav>button{font-size:14.5px}}
+html.lq .ent-focus.is-reveal .ent-prev{animation:lqRevealIn .46s cubic-bezier(.2,.9,.3,1.1) .28s both}
+html.lq .ent-sgbd{display:flex;align-items:center;gap:12px;width:100%;margin:14px 0 0;padding:10px 14px 10px 10px;border:2px solid var(--line);border-radius:16px;background:#fff;
+  color:var(--ink);text-align:left;box-shadow:0 4px 0 var(--lip);cursor:pointer;transition:transform .12s var(--press),box-shadow .12s var(--press)}
+html.lq .ent-sgbd:active{transform:translateY(4px);box-shadow:0 0 0 var(--lip)}
+html.lq .ent-sgbd-ico{flex:none;width:40px;height:40px;rotate:-6deg}
+html.lq .ent-sgbd-ico svg{display:block;width:100%;height:100%}
+html.lq .ent-sgbd>span:nth-child(2){display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+html.lq .ent-sgbd b{color:var(--accent-ink);font:800 15.5px/1.2 var(--display)}
+html.lq .ent-sgbd small{color:var(--ink-3);font:600 12.5px/1.3 var(--ui)}
+html.lq .ent-sgbd>svg{flex:none;width:18px;height:18px;color:var(--accent-ink)}
+html.lq .eans code{padding:1px 7px;border-radius:7px;background:var(--accent-soft);color:var(--accent-ink);font:700 .9em/1.4 var(--mono)}
+@media (prefers-reduced-motion:reduce){html.lq .ent-focus.is-reveal .ent-prev{animation:none!important}}
+/* 55g — Console : base d’entraînement en lecture seule (Elisa, 1er novembre, 18 h 42). */
+html.lq .db-pill.is-lock{display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border-radius:14px;background:#FFF4D2;color:#7A5300;font:700 13.5px/1.2 var(--display);box-shadow:inset 0 0 0 1.5px #F3D27A}
+html.lq #db-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+html.lq .console-lock code{padding:1px 6px;border-radius:6px;background:rgba(255,255,255,.7);font:700 .9em var(--mono)}
+html.lq .console-lock-go{margin-top:10px;min-height:42px;padding:0 16px;border:0;border-radius:13px;background:var(--accent);color:#fff;font:700 14.5px/1 var(--display);box-shadow:0 3px 0 var(--accent-lip);cursor:pointer}
+html.lq .console-lock-go:active{transform:translateY(3px);box-shadow:0 0 0 var(--accent-lip)}
+/* 55h — Selon le SGBD : un ✓ menthe au bout de chaque écriture qui marche dans l’app ; la légende dans le cadre du haut (18 h 56). */
+html.lq .sg-okrow{display:flex;align-items:flex-start;gap:8px;align-self:stretch;min-width:0}
+html.lq .sg-okrow>.sg-code{flex:1;min-width:0}
+html.lq .sg-check{display:inline-grid;place-items:center;flex:none;width:22px;height:22px;margin-top:4px;border-radius:50%;background:#1E9E68;color:#fff;
+  font:800 12px/1 var(--display);font-style:normal;box-shadow:0 2px 0 #147A4E}
+html.lq .sg-legende{display:flex;flex-wrap:wrap;gap:8px 16px;margin:12px 0 0;padding-top:12px;border-top:2px dashed var(--line);color:var(--ink-2);font:600 13.5px/1.3 var(--ui)}
+html.lq .sg-legende>span{display:inline-flex;align-items:center;gap:7px}
+html.lq .sg-legende .sg-tag{margin:0}
+html.lq .sg-legende .sg-check{margin:0}
+/* Entretien : « Continuer la préparation » avec sa flèche animée (même geste que « Commencer » d’un cours). */
+html.lq .ent-hero .ent-hero-cta>svg:last-child{display:block!important;width:20px;height:20px;flex:none;animation:lstArrow 1.6s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){html.lq .ent-hero .ent-hero-cta>svg:last-child{animation:none}}
+html[data-motion="reduce"].lq .ent-hero .ent-hero-cta>svg:last-child{animation:none!important}
+/* 19 h 00 : « ne pas surligner en jaune et mettre Notre moteur » : la ligne de SQLite redevient une ligne comme les autres, avec
+   seulement l’étiquette « Notre moteur ». */
+html.lq .sg-row.is-moteur{margin:0;padding:8px 2px;border-radius:0;background:none;box-shadow:none;border-top-color:var(--line-2,#EFECFA)}
+html.lq .sg-need h3+.sg-row.is-moteur{border-top-color:var(--line-2,#EFECFA)}
+html.lq .sg-row.is-moteur+.sg-row{border-top-color:var(--line-2,#EFECFA)}
+html.lq .sg-row.is-moteur .sg-who,html.lq .sg-n.is-moteur{color:var(--ink-3,#6A6490)}
+html.lq .sg-row.is-moteur .sg-code{background:var(--surface-2,#F1EEFC);box-shadow:none}
+/* 55i — Planche de stickers : sous chaque sticker, en petit, ce qui le fait gagner (19 h 02). */
+html.lq .stk-grid>li{display:flex;flex-direction:column;align-items:center;min-width:0}
+html.lq .stk-cap{display:block;max-width:100%;margin:-2px 2px 8px;color:var(--ink-3);font:700 11.5px/1.25 var(--ui);text-align:center;overflow-wrap:anywhere}
+/* 55j — Accueil (Elisa, 1er novembre, 19 h 08 : « il y a trop d’espace, on peut optimiser ») : l’en-tête se resserre. Le logo, le
+   bonjour, le niveau et la série se suivent avec des écarts réguliers et plus courts (8 à 12 px au lieu de 14 à 24). */
+html.lq #scr-learn>.lgtitle{padding-top:calc(var(--safe-top) + 10px)!important}
+html.lq #scr-learn>.lgtitle .journey-brand{margin-bottom:0!important}
+html.lq #scr-learn #home-hero>.journey-heading{margin-top:6px!important;margin-bottom:10px!important}
+html.lq #scr-learn .journey-heading .journey-session-meta{margin-top:8px!important}
+html.lq #scr-learn #home-hero>.lq-streak{margin-bottom:12px!important}
+/* 55k — Accueil (Elisa, 1er novembre, 19 h 25 : « fusionner les 2 ») : le bonjour, le niveau et la séance en haut de la carte violette.
+   Le salut en blanc (son trait jaune soleil reste), le niveau sur fond translucide, la séance en lilas clair ; un trait fin les
+   sépare du module. La série passe sous la carte. */
+html.lq .lq-hero.has-hi .lq-hero-hi{position:relative;z-index:1;margin:0 0 14px;padding:0 0 14px;border-bottom:1.5px solid rgba(255,255,255,.18)}
+html.lq .lq-hero.has-hi .lq-hi-title{margin:0;color:#fff;font-size:24px;line-height:1.1}
+html.lq .lq-hero.has-hi .journey-session-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:10px;font:600 14px/1.3 var(--ui);color:rgba(255,255,255,.86)}
+html.lq .lq-hero.has-hi .journey-session-meta>.lvl-badge{font:700 13.5px/1.2 var(--display)}
+html.lq .lq-hero.has-hi .journey-session-meta time{display:none}
+html.lq #scr-learn #home-hero>.lq-hero.has-hi{margin-top:6px}
+html.lq #scr-learn #home-hero>.lq-hero.has-hi+.lq-streak{margin-top:14px}
+html.lq .lq-hero.has-hi .lvl-badge.is-home{border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.14);color:#fff;box-shadow:none}
+html.lq .lq-hero.has-hi .lvl-badge.is-home>span{color:var(--mint)}
+html.lq #home-hero .lq-hero.has-hi .journey-session-meta,html.lq #home-hero .lq-hero.has-hi .journey-session-meta>span{color:rgba(255,255,255,.86)!important}
+/* 55l — Haut de la carte de l’accueil sur une ligne (19 h 36) : « Bonsoir, Elisa » + la pastille jaune « Niv. 2 » à gauche, la
+   séance du jour en petite étiquette à droite ; si la place manque (prénom long, petit écran), l’étiquette passe dessous. */
+html.lq .lq-hero.has-hi .lq-hero-hi{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 14px;padding:0 0 12px}
+html.lq .lq-hero.has-hi .lq-hi-title{font-size:22px;white-space:nowrap}
+html.lq .lq-hi-niv{flex:none;display:inline-flex;align-items:baseline;gap:3px;padding:4px 9px;border-radius:999px;background:var(--sun);color:#1B1640;
+  font:800 14px/1 var(--display);box-shadow:0 2px 0 var(--sun-lip);cursor:default}
+html.lq .lq-hi-niv .lvl-k{font:800 10.5px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;opacity:.75}
+html.lq .lq-hero.has-hi .journey-session-meta{flex:none;margin:0 0 0 auto!important;gap:0}
+html.lq .lq-hero.has-hi .journey-session-meta>span{padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);
+  color:#fff!important;font:700 12.5px/1.1 var(--ui);white-space:nowrap}
+/* « Commencer la leçon » : la flèche de lecture avance et revient, comme les autres boutons d’action. */
+html.lq .lq-hero .lq-hero-cta .lq-play svg{animation:lqPlayNudge 1.6s ease-in-out infinite}
+@keyframes lqPlayNudge{0%,100%{transform:none}50%{transform:translateX(3px)}}
+@media (prefers-reduced-motion:reduce){html.lq .lq-hero .lq-hero-cta .lq-play svg{animation:none}}
+html[data-motion="reduce"].lq .lq-hero .lq-hero-cta .lq-play svg{animation:none!important}
+html.lq .lq-hero.has-hi .lq-hero-hi{gap:8px}
+html.lq .lq-hero.has-hi .lq-hi-title{font-size:20px}
+html.lq .lq-hi-niv{padding:3px 8px;font-size:13px}
+html.lq .lq-hi-niv .lvl-k{font-size:10px}
+html.lq .lq-hero.has-hi .journey-session-meta>span{padding:4px 9px;font-size:12px}
+html.lq .lq-hero.has-hi .lq-hero-hi{gap:6px}
+html.lq .lq-hero.has-hi .journey-session-meta>span{padding:0;background:none;box-shadow:none;color:rgba(255,255,255,.88)!important;font:700 12.5px/1.2 var(--ui)}
+html.lq .lq-hero.has-hi .lq-hi-title{font-size:18.5px}
+/* 19 h 39 : « le Niv. 2 Constructeur… : le mettre sur le chat ». L’étiquette du niveau se colle en bas de la mascotte de l’accueil,
+   légèrement de travers comme un autocollant : la pastille jaune « Niv. 2 », puis le nom du niveau sur fond sombre. */
+html.lq .mstk-niv{position:absolute;z-index:3;left:50%;bottom:-6px;display:flex;flex-direction:column;align-items:center;gap:0;width:max-content;max-width:132px;
+  translate:-42% 0;rotate:-5deg;pointer-events:none;animation:mstkFloat 5.2s ease-in-out -2s infinite}
+html.lq .mstk-niv>i{position:relative;z-index:1;display:inline-flex;align-items:baseline;gap:3px;margin-bottom:-6px;padding:4px 9px;border-radius:999px;background:var(--sun);
+  color:#1B1640;font:800 13px/1 var(--display);font-style:normal;box-shadow:0 2px 0 var(--sun-lip)}
+html.lq .mstk-niv>i>span{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;opacity:.75}
+html.lq .mstk-niv>b{display:block;padding:9px 9px 6px;border-radius:10px;background:#1E1A3B;color:var(--mint);font:700 11px/1.2 var(--display);text-align:center;
+  box-shadow:0 3px 0 #0F0B2A;text-wrap:balance}
+html.lq .mascot-stk.is-intro .mstk-niv{animation:mstkPop .5s cubic-bezier(.34,1.56,.64,1) .62s both,mstkFloat 5.2s ease-in-out 1.12s infinite}
+@media (prefers-reduced-motion:reduce){html.lq .mstk-niv{animation:none!important}}
+html.lq .lq-hero.has-hi .lq-hi-title{font-size:20px}
+/* L’étiquette reste dans la carte à toutes les largeurs : calée sur le bord droit du chat, plus étroite ; l’étoile décorative du coin
+   haut droit ne chevauche plus « Aujourd’hui · 6 min » (elle passe sous la ligne). */
+html.lq .mstk-niv{left:auto;right:-2px;translate:none;max-width:118px}
+html.lq .mstk-niv>b{font-size:10.5px;padding:8px 8px 5px}
+html.lq .lq-hero.has-hi::after{display:none}
+/* 19 h 48 : « Ta session » et son animation. Le sablier : le sable du haut coule vers le bas (filet qui scintille), puis le sablier se
+   retourne d’un coup, sans à-coup (en fin de tour, le sable plein en bas devient le sable plein en haut). Pause : le sablier à moitié
+   plein, arrêté, se balance doucement, un petit « z » s’envole. Faite / Parcours terminé : la coche se trace dans son rond. */
+html.lq .lq-hero.has-hi .journey-session-meta>.lq-ses{display:inline-flex;align-items:center;gap:6px}
+html.lq .lq-ses-n{font:inherit;font-variant-numeric:tabular-nums;color:var(--sun)}
+html.lq .lq-ses-ic{flex:none;display:inline-grid;place-items:center;width:15px;height:17px;font-style:normal}
+html.lq .lq-ses-ic svg{width:100%;height:100%;overflow:visible}
+html.lq .lq-sab{transform-box:view-box;transform-origin:7px 8px;animation:lqSabFlip 4.2s cubic-bezier(.65,0,.35,1) infinite}
+html.lq .lq-sab-f{fill:none;stroke:#fff;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+html.lq .lq-sab-t,html.lq .lq-sab-b{fill:var(--sun)}
+html.lq .lq-sab-t{transform-box:view-box;transform-origin:7px 7.2px;animation:lqSabHaut 4.2s linear infinite}
+html.lq .lq-sab-b{transform-box:view-box;transform-origin:7px 13.8px;animation:lqSabBas 4.2s linear infinite}
+html.lq .lq-sab-s{stroke:var(--sun);stroke-width:1;stroke-dasharray:1.2 1.3;animation:lqSabFilet 4.2s linear infinite}
+@keyframes lqSabFlip{0%,80%{rotate:0deg}100%{rotate:180deg}}
+@keyframes lqSabHaut{0%{scale:1 1}78%,100%{scale:0 0}}
+@keyframes lqSabBas{0%{scale:0 0}78%,100%{scale:1 1}}
+@keyframes lqSabFilet{0%{opacity:1;stroke-dashoffset:0}76%{opacity:1;stroke-dashoffset:-10}80%,100%{opacity:0;stroke-dashoffset:-10}}
+html.lq .lq-sab.is-couche{animation:lqSabDort 3.6s ease-in-out infinite}
+html.lq .lq-sab.is-couche .lq-sab-t,html.lq .lq-sab.is-couche .lq-sab-b{animation:none}
+@keyframes lqSabDort{0%,100%{rotate:-9deg}50%{rotate:9deg}}
+html.lq .lq-zz{fill:var(--mint);font:800 6px/1 var(--display);animation:lqZz 3.6s ease-out infinite}
+@keyframes lqZz{0%{opacity:0;translate:0 3px}25%{opacity:1}80%,100%{opacity:0;translate:3px -4px}}
+html.lq .lq-chk-o{fill:var(--mint);opacity:.22}
+html.lq .lq-chk{fill:none;stroke:var(--mint);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:12;stroke-dashoffset:12;animation:lqChk .6s cubic-bezier(.3,1.4,.6,1) .5s forwards}
+@keyframes lqChk{to{stroke-dashoffset:0}}
+html.lq .lq-ses.is-late .lq-ses-n{color:#FFB3C7}
+@media (prefers-reduced-motion:reduce){html.lq .lq-ses-ic *{animation:none!important}html.lq .lq-chk{stroke-dashoffset:0}}
+html.lq[data-motion="reduce"] .lq-ses-ic *{animation:none!important}
+html.lq[data-motion="reduce"] .lq-chk{stroke-dashoffset:0}
+/* 19 h 53 : « trop d’espace » entre la série et « Tous les cours · Ton parcours » : 44 px ramenés à 22 px (le même rythme que
+   l’écart entre la carte du cours et la série). */
+html.lq #scr-learn #modules{margin-top:6px;padding-top:16px}
+
+/* 54. Parcours terminé (Elisa, 1er novembre, 20 h 31) : « Continuer à pratiquer » avec une flèche qui avance et revient ; au
+   toucher, elle file à droite avant d’ouvrir les défis. */
+html.lq .lq-hero .lq-hero-cta-defis .lq-fleche{display:inline-grid;place-items:center;width:22px;height:22px}
+html.lq .lq-hero .lq-hero-cta-defis .lq-fleche svg{display:block;width:22px;height:22px;animation:lqFlecheNudge 1.6s ease-in-out infinite}
+html.lq .lq-hero .lq-hero-cta-defis.is-go .lq-fleche svg{animation:lqFlecheFile .3s cubic-bezier(.5,0,.75,0) forwards}
+@keyframes lqFlecheNudge{0%,100%{transform:none}50%{transform:translateX(4px)}}
+@keyframes lqFlecheFile{0%{transform:none;opacity:1}100%{transform:translateX(38px);opacity:0}}
+@media (prefers-reduced-motion:reduce){html.lq .lq-hero .lq-hero-cta-defis .lq-fleche svg{animation:none}}
+html[data-motion="reduce"].lq .lq-hero .lq-hero-cta-defis .lq-fleche svg{animation:none!important}
+
+/* 55. Réf. 1 (Elisa, 1er novembre, 20 h 50 : « les cadres n’ont pas la même largeur ») : la barre « Valide la leçon » sous la carte
+   de la vidéo prend exactement sa largeur (plus de cadre de 6 px autour, qui la rétrécissait). */
+html.lq #lesson-body .ls-nav:has(.ls-next[data-jc-gate]){margin-left:0!important;margin-right:0!important;padding:0!important;background:none!important;border:0!important;box-shadow:none!important}

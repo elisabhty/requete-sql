@@ -58,7 +58,7 @@ test('1 h 32 : la base Aéroport dans « Tes projets », de l’espace sous les 
   assert.ok(app.includes('    await loadCustomDbs();\n    ensureDemoDbs();'), 'recréées à chaque ouverture');
   assert.ok(app.includes('  const payload=dbCatalog.filter(d=>!isDemoDb(d.id)).map(d=>{'), 'jamais enregistrée avec les projets');
   assert.ok(app.includes("async function renameDb(id){\n  if(isDemoDb(id))return;") && app.includes("function deleteDb(id){\n  if(isDemoDb(id)) return;"), 'ni renommée ni supprimée');
-  assert.ok(app.includes("function demoLabel(id){return id==='cours'?'Base des cours':'Base '+DEFI_BASES[id].nom;}"));
+  assert.ok(app.includes("function demoLabel(id){return id==='cours'?'Base NutriBoost':'Base '+DEFI_BASES[id].nom;}"));
   assert.ok(css.includes('html.lq #app .p-bar{height:calc(var(--safe-top) + 52px);padding-bottom:8px;box-sizing:border-box;margin-bottom:calc(-1 * (var(--safe-top) + 52px))}'));
   assert.ok(!app.includes('Chaque projet garde sa base, son brouillon et son historique.'));
 });
