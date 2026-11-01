@@ -9674,7 +9674,7 @@ const CHALLENGES=[
   sol:"SELECT SUM(capacite) FROM avions;",
   indice:"SUM sur la colonne de la capacité."},
  {id:'af33',apres:16,titre:"L’état des bagages",niv:'f',base:'aeroport',ordered:true,
-  contexte:"Le service qualité veut un état des lieux des bagages traités par l’aéroport. Il demande la répartition des bagages selon leur statut (livré, enregistré, retardé, perdu, en cabine), pour repérer les anomalies d’un coup d’œil.",
+  contexte:"Le service qualité de l’aéroport effectue son audit mensuel. Il veut un état des lieux de la gestion des bagages : combien sont livrés, combien sont retardés, combien ont été perdus, etc. Cette répartition permettra d’identifier les anomalies et de justifier d’éventuelles actions correctives auprès des compagnies aériennes. Le responsable demande un décompte par statut, du plus fréquent au moins fréquent.",
   q:"Affiche chaque statut de bagage et son nombre de bagages, du plus grand nombre au plus petit.",
   sol:"SELECT statut, COUNT(*) AS nb_bagages FROM bagages GROUP BY statut ORDER BY nb_bagages DESC;",
   indice:"Un regroupement sur le statut, et un comptage."},
@@ -9683,51 +9683,55 @@ const CHALLENGES=[
       au-dessus de la moyenne »), la notion que le lot annonçait sans la faire travailler ;
     – « Bagages par statut » (un simple GROUP BY, comme af30) passe en Facile (af33) ;
     – « Taux de remplissage > 30 % » ne renvoyait aucun vol (55 passagers pour des avions de 100 à 368 places) : seuil à 5 % ;
-    – les tris qui laissaient des égalités disent comment les départager (vols à égalité, passagers à 820 €…). */
+    – les tris qui laissaient des égalités disent comment les départager (vols à égalité, passagers à 820 €…).
+    10 h 13 : le même lot, réécrit avec beaucoup plus de contexte (chaque situation se lit seule). Les situations sont reprises,
+    ajustées à la base (aucun vol n’est complet ; un passager n’a jamais deux réservations sur le même vol) et à ces corrections ;
+    « Avant de commencer » n’est pas affiché (pas d’indice au départ) ; le seuil de remplissage passe à 3 %, comme elle le
+    proposait (5 vols au lieu de 4 ; réduire les capacités aurait faussé les défis sur la flotte). */
  {id:'am1',apres:41,titre:"Combien de passagers par vol ?",niv:'m',base:'aeroport',ordered:true,
-  contexte:"La compagnie aérienne prépare son rapport d’activité hebdomadaire. Pour évaluer la demande sur chaque liaison, elle a besoin de connaître le nombre de passagers ayant réservé sur chaque vol, y compris les vols qui n’ont encore aucun passager. Ce chiffre servira ensuite à comparer les vols entre eux et à ajuster les fréquences.",
+  contexte:"Nous sommes lundi matin, et la compagnie aérienne doit rendre son rapport d’activité hebdomadaire au directeur commercial. Dans son bureau, l’équipe d’analyse examine les chiffres de la semaine passée : certains vols sont très demandés, d’autres semblent voler à vide. Pour évaluer précisément la demande sur chaque liaison et décider d’ajuster les fréquences, elle a besoin de connaître le nombre de passagers ayant réservé sur chaque vol. Le problème : certains vols n’ont encore reçu aucune réservation, et il ne faut surtout pas les oublier dans le rapport — un vol vide est une information tout aussi importante qu’un vol très demandé.",
   q:"Affiche le numéro de vol, la date de départ et le nombre de réservations de chaque vol, y compris les vols sans réservation (compteur à 0), triés par nombre de réservations décroissant, puis par numéro de vol.",
   sol:"SELECT v.numero_vol, v.date_depart, COUNT(r.id) AS nb_reservations FROM vols v LEFT JOIN reservations r ON r.vol_id = v.id GROUP BY v.id, v.numero_vol, v.date_depart ORDER BY nb_reservations DESC, v.numero_vol;",
   indice:"Un LEFT JOIN garde les vols sans réservation ; compte une colonne de reservations plutôt que toutes les lignes."},
  {id:'am2',apres:41,titre:"Le chiffre d’affaires des compagnies",niv:'m',base:'aeroport',ordered:true,
-  contexte:"Le directeur financier de l’aéroport veut comparer la contribution de chaque compagnie aérienne au chiffre d’affaires global. Il demande un classement des compagnies selon le montant total des billets vendus sur leurs vols.",
+  contexte:"La direction financière de l’aéroport prépare son bilan trimestriel. Autour de la table, les responsables se demandent quelle compagnie aérienne contribue le plus aux recettes de l’aéroport. Certaines compagnies exploitent de nombreuses lignes, d’autres seulement quelques-unes, et les prix des billets varient fortement selon la classe et la destination. Pour arbitrer les futurs contrats d’exploitation et renégocier les redevances, le directeur veut un classement des compagnies par montant total des réservations effectuées sur leurs vols.",
   q:"Affiche le nom de chaque compagnie et son chiffre d’affaires total (la somme des prix de ses réservations), triés par chiffre d’affaires décroissant.",
   sol:"SELECT c.nom, SUM(r.prix) AS chiffre_affaires FROM compagnies c JOIN vols v ON v.compagnie_id = c.id JOIN reservations r ON r.vol_id = v.id GROUP BY c.id, c.nom ORDER BY chiffre_affaires DESC;",
   indice:"Enchaîne compagnies → vols → réservations, puis additionne les prix pour chaque compagnie."},
  {id:'am3',apres:41,titre:"Les destinations les plus populaires",niv:'m',base:'aeroport',ordered:true,
-  contexte:"L’office de tourisme de l’aéroport souhaite connaître les destinations qui attirent le plus de voyageurs, afin de négocier de nouvelles lignes avec les compagnies. Il demande un classement des villes d’arrivée selon le nombre de réservations.",
+  contexte:"L’office de tourisme de la ville collabore avec l’aéroport pour développer de nouvelles lignes aériennes. Avant de rencontrer les compagnies, ses responsables veulent savoir quelles destinations attirent le plus de voyageurs au départ de l’aéroport. Ces données leur permettront de négocier en priorité des vols vers les villes les plus demandées, et d’identifier les liaisons sous-exploitées. Le directeur de l’office demande un top 5 des villes d’arrivée par nombre de réservations.",
   q:"Affiche la ville d’arrivée et le nombre de réservations des 5 destinations les plus réservées, triées par nombre de réservations décroissant, puis par ville en cas d’égalité.",
   sol:"SELECT a.ville, COUNT(r.id) AS nb_reservations FROM vols v JOIN aeroports a ON a.id = v.aeroport_arrivee_id JOIN reservations r ON r.vol_id = v.id GROUP BY a.id, a.ville ORDER BY nb_reservations DESC, a.ville LIMIT 5;",
   indice:"Relie les vols aux aéroports par l’aéroport d’arrivée, puis aux réservations ; regroupe par ville."},
  {id:'am4',apres:45,titre:"Les billets Économique au-dessus de la moyenne",niv:'m',base:'aeroport',ordered:true,
-  contexte:"Le service des réclamations reçoit des courriers de voyageurs surpris par le prix de leur billet en classe Économique. Avant de répondre, la responsable veut repérer les billets Économique vendus plus cher que le prix moyen de cette classe, et savoir sur quels vols ils ont été achetés.",
+  contexte:"Le service marketing de la compagnie aérienne prépare une nouvelle grille tarifaire pour la saison à venir. Avant de fixer les prix, il veut vérifier la cohérence de la politique actuelle en classe Économique : certains voyageurs ont-ils payé nettement plus que les autres pour la même classe ? Pour détecter ces écarts, l’équipe veut repérer les billets Économique vendus plus cher que le prix moyen de cette classe, et savoir sur quels vols ils ont été achetés, afin d’ajuster les tarifs et de rester compétitive.",
   q:"Affiche l’identifiant de la réservation, le numéro de vol et le prix des billets en classe « Économique » plus chers que le prix moyen des billets Économique, du plus cher au moins cher.",
   sol:"SELECT r.id, v.numero_vol, r.prix FROM reservations r JOIN vols v ON v.id = r.vol_id WHERE r.classe = 'Économique' AND r.prix > (SELECT AVG(prix) FROM reservations WHERE classe = 'Économique') ORDER BY r.prix DESC;",
   indice:"La moyenne se calcule dans une sous-requête, entre parenthèses, puis se compare au prix de chaque billet."},
  {id:'am5',apres:17,titre:"Les voyageurs fidèles",niv:'m',base:'aeroport',ordered:true,
-  contexte:"La compagnie souhaite fidéliser ses meilleurs clients. Elle veut identifier les passagers qui ont voyagé sur plus d’un vol différent, afin de leur proposer une carte de fidélité avec des avantages à bord.",
+  contexte:"La compagnie aérienne lance un programme de fidélité pour récompenser ses meilleurs clients. Pour cibler les voyageurs les plus réguliers, le service marketing doit identifier les passagers ayant voyagé sur plus d’un vol différent au cours de la saison. Attention : ce qui compte, ce sont les vols réellement différents, pas le nombre de lignes dans les réservations. La liste devra être triée par nombre de vols, du plus fidèle au moins fidèle.",
   q:"Affiche le prénom, le nom et le nombre de vols différents des passagers qui ont réservé au moins 2 vols différents, triés par nombre de vols décroissant, puis par nom.",
   sol:"SELECT p.prenom, p.nom, COUNT(DISTINCT r.vol_id) AS nb_vols FROM passagers p JOIN reservations r ON r.passager_id = p.id GROUP BY p.id, p.prenom, p.nom HAVING COUNT(DISTINCT r.vol_id) >= 2 ORDER BY nb_vols DESC, p.nom;",
   indice:"Compte les vols différents de chaque passager, puis garde seulement ceux qui en ont au moins 2 : ce filtre-là vient après le regroupement."},
  {id:'am6',apres:55,titre:"Voyager léger",niv:'m',base:'aeroport',ordered:true,
-  contexte:"Le service bagages veut créer une file d’embarquement express pour les voyageurs qui partent sans valise. Il cherche les passagers qui ont réservé au moins un vol, mais dont aucune réservation n’a de bagage enregistré. Un passager qui a plusieurs réservations ne compte que si toutes sont sans bagage.",
+  contexte:"Le service bagages de l’aéroport cherche à fluidifier le passage aux contrôles. Il a remarqué que certains voyageurs se présentent sans aucun bagage en soute, ce qui leur permet d’emprunter une file d’embarquement rapide. Pour adapter la signalisation et les procédures, l’équipe veut identifier les passagers qui ont réservé un vol sans enregistrer aucun bagage. Attention : un passager peut avoir plusieurs réservations ; il ne doit figurer dans la liste que si toutes ses réservations sont sans bagage.",
   q:"Affiche le prénom et le nom des passagers qui ont au moins une réservation et dont aucune réservation n’a de bagage, triés par nom puis par prénom.",
   sol:"SELECT p.prenom, p.nom FROM passagers p WHERE EXISTS (SELECT 1 FROM reservations r WHERE r.passager_id = p.id) AND NOT EXISTS (SELECT 1 FROM reservations r JOIN bagages b ON b.reservation_id = r.id WHERE r.passager_id = p.id) ORDER BY p.nom, p.prenom;",
   indice:"Il faut deux conditions : le passager a des réservations, et il n’existe aucun bagage pour elles. Attention aux passagers qui ont plusieurs réservations."},
  {id:'am7',apres:20,titre:"Les vols fantômes",niv:'m',base:'aeroport',ordered:true,
-  contexte:"La direction étudie la rentabilité de ses lignes. Avant de décider d’éventuelles suppressions, elle veut la liste des vols qui n’ont enregistré aucune réservation, avec la compagnie qui les opère et leur destination.",
+  contexte:"La direction de la compagnie étudie la rentabilité de ses lignes. Certains vols programmés n’ont enregistré aucune réservation, et la direction veut savoir lesquels avant de décider d’éventuelles annulations ou réaffectations d’appareils. Pour chaque vol concerné, elle souhaite connaître la compagnie, la destination et le statut actuel, afin de prioriser les décisions.",
   q:"Affiche le numéro de vol, le nom de la compagnie, la ville d’arrivée et le statut des vols sans aucune réservation, triés par date de départ puis par numéro de vol.",
   sol:"SELECT v.numero_vol, c.nom, a.ville, v.statut FROM vols v JOIN compagnies c ON c.id = v.compagnie_id JOIN aeroports a ON a.id = v.aeroport_arrivee_id LEFT JOIN reservations r ON r.vol_id = v.id WHERE r.id IS NULL ORDER BY v.date_depart, v.numero_vol;",
   indice:"Les vols sans réservation se trouvent avec une jointure externe et IS NULL ; la compagnie et la destination demandent deux jointures de plus."},
  {id:'am8',apres:17,titre:"Les gros clients",niv:'m',base:'aeroport',ordered:true,
-  contexte:"La compagnie prépare une offre premium pour ses clients les plus fidèles en valeur. Elle veut identifier les passagers dont le montant total des réservations dépasse 500 €, afin de leur proposer un service personnalisé.",
+  contexte:"La compagnie aérienne prépare une offre premium pour ses clients à forte valeur. Avant de lancer la campagne, le service commercial veut identifier les passagers dont le montant total des réservations dépasse 500 €. Ces voyageurs représentent une clientèle stratégique à fidéliser avec des services personnalisés (salons d’attente, surclassements, bagages inclus). Le classement devra être trié du plus gros dépensier au moins gros.",
   q:"Affiche le prénom, le nom et le total dépensé des passagers dont la somme des réservations dépasse 500 €, triés par total décroissant, puis par nom en cas d’égalité.",
   sol:"SELECT p.prenom, p.nom, SUM(r.prix) AS total_depense FROM passagers p JOIN reservations r ON r.passager_id = p.id GROUP BY p.id, p.prenom, p.nom HAVING SUM(r.prix) > 500 ORDER BY total_depense DESC, p.nom;",
   indice:"Additionne les prix de chaque passager, puis filtre sur ce total : un filtre sur une somme ne se met pas dans WHERE."},
  {id:'am9',apres:41,titre:"Les vols les mieux remplis",niv:'m',base:'aeroport',ordered:true,
-  contexte:"Les avions des compagnies sont bien plus grands que la demande actuelle : la plupart des vols décollent presque vides. Pour savoir où la demande commence à décoller, le service réseau cherche les rares vols dont le taux de remplissage (réservations ÷ capacité de l’avion) dépasse 5 %.",
-  q:"Affiche le numéro de vol, la capacité de l’avion, le nombre de réservations et le taux de remplissage en pourcentage (arrondi à 1 décimale) des vols dont le taux dépasse 5 %, triés par taux décroissant.",
-  sol:"SELECT v.numero_vol, av.capacite, COUNT(r.id) AS nb_reservations, ROUND(100.0 * COUNT(r.id) / av.capacite, 1) AS taux_pct FROM vols v JOIN avions av ON av.id = v.avion_id LEFT JOIN reservations r ON r.vol_id = v.id GROUP BY v.id, v.numero_vol, av.capacite HAVING 100.0 * COUNT(r.id) / av.capacite > 5 ORDER BY taux_pct DESC;",
+  contexte:"La compagnie aérienne veut optimiser l’affectation de ses avions. Ses appareils sont bien plus grands que la demande actuelle : la plupart des vols décollent presque vides, ce qui coûte cher en carburant. Avant de réaffecter des appareils plus petits, la direction demande la liste des vols dont le taux de remplissage (nombre de réservations ÷ capacité de l’avion) dépasse 3 %, avec le détail de la capacité et du nombre de passagers. Ces vols sont considérés comme suffisamment remplis pour conserver leur appareil actuel.",
+  q:"Affiche le numéro de vol, la capacité de l’avion, le nombre de réservations et le taux de remplissage en pourcentage (arrondi à 1 décimale) des vols dont le taux dépasse 3 %, triés par taux décroissant.",
+  sol:"SELECT v.numero_vol, av.capacite, COUNT(r.id) AS nb_reservations, ROUND(100.0 * COUNT(r.id) / av.capacite, 1) AS taux_pct FROM vols v JOIN avions av ON av.id = v.avion_id LEFT JOIN reservations r ON r.vol_id = v.id GROUP BY v.id, v.numero_vol, av.capacite HAVING 100.0 * COUNT(r.id) / av.capacite > 3 ORDER BY taux_pct DESC;",
   indice:"Relie les vols aux avions et aux réservations, compte les réservations par vol, puis calcule le pourcentage (attention à la division entière : écris 100.0)."},
 ];
 /* La consigne d’un défi : la situation (contexte) et la question. Seul ou en salle, le même bloc. Pas d’indice affiché (Elisa,
@@ -30876,7 +30880,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-satures-v2244';
+  const SW_CACHE='requete-2026-11-01-moyen-v2245';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

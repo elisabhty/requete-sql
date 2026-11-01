@@ -26,9 +26,9 @@ test('lot Moyen : les corrections (doublon, niveau, seuil impossible, égalités
   assert.ok(!moyen.some(c => /AVG\(prix\), 2\) AS prix_moyen FROM reservations GROUP BY classe/.test(c.sol)), 'le prix moyen par classe reste le Facile af21');
   assert.ok(/\(SELECT AVG\(prix\) FROM reservations WHERE classe = 'Économique'\)/.test(D('am4').sol), 'à sa place, une sous-requête');
   assert.equal(D('af33').niv, 'f', 'bagages par statut : un simple GROUP BY, en Facile');
-  assert.ok(D('am9').sol.includes('> 5 ORDER BY') && !D('am9').sol.includes('> 30'), 'seuil de remplissage atteignable');
+  assert.ok(D('am9').sol.includes('> 3 ORDER BY') && !D('am9').sol.includes('> 30'), 'seuil de remplissage atteignable (3 %, 10 h 13)');
   const d = base();
-  assert.equal(d.exec(D('am9').sol)[0].values.length, 4);
+  assert.equal(d.exec(D('am9').sol)[0].values.length, 5);
   assert.ok(D('am8').q.includes('puis par nom en cas d’égalité') && D('am1').q.includes('puis par numéro de vol'));
   d.close();
 });
