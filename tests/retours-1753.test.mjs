@@ -39,7 +39,7 @@ test('le KPI partout où il était : planning, Mon compte, Pratiquer, les niveau
   assert.ok(hub.includes("['defis','Défis',`${kd.tr}/${kd.ma} manches réussies · ${sallePts(kd.pts)}`,\"switchTab('defis')\",kd.ma?Math.round(kd.tr/kd.ma*100):null],"), 'Pratiquer');
   assert.ok(hub.includes('<p class="journey-kicker">Salle de défi</p><h2>Un défi tiré au sort</h2>'), 'le cadre du haut de Pratiquer');
   const room = fn('renderDefisRoom');
-  assert.ok(room.includes("return `${ok}/${n} réussie${ok>1?'s':''}`;"), 'sous chaque niveau : ses manches');
+  assert.ok(!room.includes("réussie${ok>1?'s':''}") && !room.includes('stat(k)'), 'plus de sous-texte sous les niveaux (15 h 54)');
   assert.ok(fn('renderDefis').includes('sub.textContent=`${all.length} défis, tirés au sort au niveau que tu choisis.`;'));
   for (const gone of ['réussis sur ${nDefis}', 'Tout est réussi', 'Prochain défi · ${nOk}', "/${l.length} réussis", 'défi${nOk>1?\'s\':\'\'} réussi', 'Réussis 10 défis.', 'que tu n’as pas encore réussi', 'qu’aucun de vous n’a encore réussi'])
     assert.ok(!app.includes(gone), 'retiré : ' + gone);

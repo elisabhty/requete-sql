@@ -108,7 +108,7 @@ test('1 h 20 : le Schéma attire l’œil pendant un défi ; un défi seul se fe
 });
 
 test('un niveau sans défi est « Bientôt » et ne se choisit pas', () => {
-  assert.ok(app.includes("<small>${vide?'Bientôt':stat(k)}</small>"));
+  assert.ok(app.includes("${vide?'<small>Bientôt</small>':''}"));
   assert.ok(app.includes("if(!jeuChallenges(jeuNiv).length){const k=['f','m','d'].find(x=>jeuChallenges(x).length);if(k)jeuNiv=k;}"));
   assert.ok(app.includes("if(k==='niv'&&!(JEU_NIVL[v]&&jeuChallenges(v).length))return;"), 'écran Défis');
   assert.ok(app.includes("if(k==='niv'&&JEU_NIVL[v]&&jeuChallenges(v).length)J.niv=v;"), 'salle d’attente');
