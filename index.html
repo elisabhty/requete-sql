@@ -6641,7 +6641,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=96">
+<link rel="stylesheet" href="ludique.css?v=97">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -18665,7 +18665,7 @@ function renderHomeHero(){
   const mascot=typeof mascotMedalHtml==='function'?mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',niv:nivC,hi:nxt==null?'Bravo\u00a0!':'Ravi de te revoir\u00a0!',intro}):'';
   if(nxt==null){
     const keep=lqKeepMascot(host);
-    host.innerHTML=`<section class="journey-complete lq-hero is-complete has-hi" data-mc="0">${heading}<span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><div class="lq-hero-main"><div class="lq-hero-body"><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div>${mascot}</div><button class="journey-primary lq-hero-cta" type="button" onclick="switchTab('practice')"><span>Continuer à pratiquer</span></button></section>${streak}${extras}`;
+    host.innerHTML=`<section class="journey-complete lq-hero is-complete has-hi" data-mc="0">${heading}<span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><div class="lq-hero-main"><div class="lq-hero-body"><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div>${mascot}</div><button class="journey-primary lq-hero-cta lq-hero-cta-defis" type="button" aria-label="Continuer à pratiquer : les défis" onclick="homeVersDefis(this)"><span>Continuer à pratiquer</span><span class="lq-fleche" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></span></button></section>${streak}${extras}`;
     lqKeepMascot(host,keep);
     lqSesCount(host);
     return;
@@ -32503,6 +32503,16 @@ function renderCompte(){
   }  /* L’initiale de l’onglet Compte suit le prénom. */
   if(typeof renderLearnAvatar==='function')renderLearnAvatar();
 }
+/* Parcours terminé : « Continuer à pratiquer » mène aux défis (Elisa, 1er novembre, 20 h 31 : « avec une flèche, et ça nous ramène
+   vers les défis, animation flèche »). La flèche avance et revient au repos ; au toucher, elle file vers la droite, puis les défis. */
+function homeVersDefis(btn){
+  if(typeof buzz==='function')buzz('light');
+  const calme=typeof prefersReduceMotion==='function'&&prefersReduceMotion();
+  if(!btn||calme){switchTab('defis');return;}
+  if(btn.classList.contains('is-go'))return;
+  btn.classList.add('is-go');
+  setTimeout(()=>{btn.classList.remove('is-go');switchTab('defis');},300);
+}
 function appVersionLabel(){
   const v=window.APP_VERSION||'';
   const m=v.match(/v\d+$/);
@@ -33060,7 +33070,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-fin-ici-v2289';
+  const SW_CACHE='requete-2026-11-01-pratiquer-defis-v2290';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
