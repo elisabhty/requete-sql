@@ -240,3 +240,7 @@ test('19 h 04 : les polices du site dans l’app (Inter, JetBrains Mono, Bricola
   assert.ok(sw.includes("'./assets/fonts/inter-medium.woff2'"));
   assert.ok(!app.includes('Le classement en ligne compte les parties vérifiées.'));
 });
+
+test('19 h 08 : l’en-tête de l’accueil se resserre', () => {
+  assert.ok(css.includes('html.lq #scr-learn #home-hero>.journey-heading{margin-top:6px!important;margin-bottom:10px!important}'));
+});
