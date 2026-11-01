@@ -119,12 +119,13 @@ test('programme : les 15 parties sont des modules, comme dans l’appli ; la fic
   }
 });
 
-test('connexion : décor compact, sans mascotte ni pastille ronde, avec salut et flamme +1', () => {
+test('connexion : décor compact, sans mascotte ni pastille ronde, avec salut ; plus de flamme (13 h 46 : « pas beau »)', () => {
   const h = lire('connexion.html');
   assert.doesNotMatch(h, /<span class="sticker lav cx-tag">Aperçu<\/span>/);
   assert.doesNotMatch(h, /mascotte\.webp|class="cx-masc"|class="cx-round"/);
   assert.match(h, /class="cx-bubble" id="cx-bubble">Re-bonjour&nbsp;!/);
-  assert.match(h, /class="cx-streak" id="cx-streak"[^>]*>[\s\S]*?<span>\+1<\/span>/);
+  assert.doesNotMatch(h, /class="cx-streak" id="cx-streak"/, 'la flamme +1 est retirée');
+  assert.ok(h.includes('  .cx-show{padding-bottom:112px}\n  .cx-stage{min-height:100px;margin-top:12px}'), 'deux rangées aérées, le cadre plus haut');
   const mobStart = h.indexOf('@media (max-width:959px){');
   const mob = h.slice(mobStart, h.indexOf('@media (max-width:359px){', mobStart));
   for (const r of ['.cx-stage{container-type:inline-size;min-height:clamp(112px,34vw,150px)', '.cx-streak{font-size:clamp(12px,3.5cqw,14px)', '.cx-bubble{right:0;bottom:20px'])
