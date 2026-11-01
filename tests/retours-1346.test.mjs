@@ -260,9 +260,21 @@ test('19 h 32 : une sous-page (Console, Selon le SGBD…) ouverte depuis une car
 });
 
 test('19 h 36 – 19 h 39 : le haut de la carte sur une ligne (bonjour + séance du jour), le niveau collé sur le chat', () => {
-  assert.ok(app.includes("const sessionLine=!session?'Parcours terminé'"), 'parcours terminé');
-  assert.ok(app.includes(":session.d===todayISO?`Aujourd’hui · ${session.minutes} min`") && app.includes("'Aujourd’hui · Fait ✓':'Aujourd’hui · Pause'"), 'Aujourd’hui · 12 min / Pause');
+  assert.ok(app.includes("const sessionLine=sesEtat==='end'?'Parcours terminé'"), 'parcours terminé');
+  /* 19 h 48 : « Ta session » à la place d’« Aujourd’hui » */
+  assert.ok(app.includes(":sesEtat==='run'?`Ta session · ${session.minutes} min`") && app.includes(":sesEtat==='done'?'Ta session · Faite':'Ta session · Pause';"), 'Ta session · 12 min / Faite / Pause');
+  assert.ok(!app.includes('`Aujourd’hui · ${session.minutes} min`'), 'plus d’« Aujourd’hui »');
   assert.ok(app.includes("{const a=old.querySelector('.mstk-niv'),b=fresh.querySelector('.mstk-niv');if(a&&b&&a.outerHTML!==b.outerHTML)a.replaceWith(b.cloneNode(true));}"), 'étiquette remise à jour quand la mascotte est gardée');
   assert.ok(css.includes('html.lq .mstk-niv{left:auto;right:-2px;translate:none;max-width:118px}'), 'reste dans la carte à 360 px');
   assert.ok(css.includes('html.lq .lq-hero.has-hi::after{display:none}'), 'l’étoile ne chevauche plus la séance');
+});
+
+test('19 h 48 : « Ta session » a son animation (sablier qui coule et se retourne, somnole en pause, coche qui se trace ; minutes qui défilent)', () => {
+  assert.ok(app.includes('<span class="lq-ses is-${sesEtat}"') && app.includes('<i class="lq-ses-ic" aria-hidden="true">${sesIc}</i>'));
+  assert.ok(app.includes('<g class="lq-sab">') && app.includes('<g class="lq-sab is-couche">') && app.includes('<path class="lq-chk"'), 'les trois icônes');
+  assert.ok(app.includes("replace(/(\\d+) min$/,'<b class=\"lq-ses-n\" data-n=\"$1\">$1</b>\\u00a0min')"), 'le nombre de minutes balisé');
+  assert.ok(app.includes("if(!n||lqSesCounted||!document.querySelector('#scr-learn.active'))return;") && app.includes("if(typeof mascotReduced==='function'&&mascotReduced())return;"), 'une fois, accueil visible, mouvement non réduit');
+  assert.equal((app.match(/lqSesCount\(host\);/g) || []).length, 2, 'les deux rendus de la carte');
+  for (const k of ['@keyframes lqSabFlip{0%,80%{rotate:0deg}100%{rotate:180deg}}', '@keyframes lqSabHaut{0%{scale:1 1}78%,100%{scale:0 0}}', '@keyframes lqSabDort{0%,100%{rotate:-9deg}50%{rotate:9deg}}', '@keyframes lqChk{to{stroke-dashoffset:0}}', 'html.lq[data-motion="reduce"] .lq-ses-ic *{animation:none!important}'])
+    assert.ok(css.includes(k), k);
 });
