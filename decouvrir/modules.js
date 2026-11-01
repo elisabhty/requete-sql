@@ -46,7 +46,7 @@ window.MODULES=[
     {titre:"Lire une table", sous:"SELECT, filtres, tri et pagination", lecons:[
       ["Renommer avec AS", "Donner un nom lisible à une colonne du résultat", 107],
       ["DISTINCT", "Valeurs uniques", 151],
-      ["WHERE", "Filtrer les lignes", 124],
+      ["WHERE", "Filtrer les lignes", 126],
       ["Comparer des valeurs", "Filtrer avec =, !=, >, <, >=, <=", 139],
       ["AND et OR", "Combiner plusieurs conditions", 143],
       ["NOT", "Exclure selon une condition", 150],

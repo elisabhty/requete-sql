@@ -25,14 +25,14 @@ test('WHERE : le cours a son animation, son image fixe et sa vignette, présente
   assert.ok(m, 'champ video du cours WHERE');
   assert.equal(m[1], 'assets/anim/where.html?app&embed');
   for (const f of m.slice(1, 3)) assert.ok(fs.statSync(path.join(ROOT, f.split('?')[0])).size > 1000, `fichier présent : ${f}`);
-  assert.equal(m[3], '2 min 04');
+  assert.equal(m[3], '2 min 06');
   assert.ok(!/notes:\{/.test(where), 'pas de bouton « Ajouter à mes notes » dans la vidéo : il est dans le bilan (Elisa, 27 octobre, 9 h 43)');
   /* « Ce que tu retiens » n’est plus dans la vidéo : elle s’arrête sur la dernière image du résultat, avant sa sortie (82,5 s), la légende encore là. */
   const wp = fs.readFileSync(path.join(ROOT, 'assets/anim/where.html'), 'utf8');
   assert.ok(wp.includes('const END = RECAP ? null : 82.48;') && wp.includes('CHAPTERS.length = 6;') && wp.includes('CAPTIONS[16] = [CAPTIONS[16][0], 999, CAPTIONS[16][2]];'), 'la vidéo s’arrête avant « À retenir », sa dernière légende reste affichée');
   assert.ok(wp.includes('<span>/ ${CHAPTERS.length} · ${c.label}</span>'), 'l’étiquette compte les chapitres restants (6 / 6)');
   /* Les moments « À toi » (Elisa, 26 octobre, 14 h 59) : la page garde son propre moteur et passe par moments.js (momentPlan, momentIX). */
-  assert.ok(/duree:'2 min 04',moments:3,seuil:2\}/.test(where) && /\n  leconSeule:true,/.test(where), 'trois moments ; leçon seule, validée avec deux moments réussis du premier coup (Elisa, 28 octobre)');
+  assert.ok(/duree:'2 min 06',moments:3,seuil:2\}/.test(where) && /\n  leconSeule:true,/.test(where), 'trois moments ; leçon seule, validée avec deux moments réussis du premier coup (Elisa, 28 octobre)');
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/where.html'), 'utf8');
   assert.ok(page.includes('<script src="gsap.min.js"></script>\n<script src="liens.js"></script>\n<script src="moments.js"></script>') && page.includes('  build();\n  applyMoments();'), 'moments.js, puis les moments insérés une fois la timeline construite');
   const M = momentsDe('where.html');
