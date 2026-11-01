@@ -6643,7 +6643,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=55">
+<link rel="stylesheet" href="ludique.css?v=56">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -7603,7 +7603,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
   </div>
 
   <!-- Bouton flottant : prendre une note -->
-  <button class="fab" id="fab" onclick="quickNote()" title="Notes" aria-label="Ouvrir les notes">✎</button>
+  <button class="fab" id="fab" onclick="quickNote()" title="Notes" aria-label="Ouvrir les notes"><svg class="fab-pen" viewBox="0 0 24 24" aria-hidden="true"><path class="fab-pen-b" d="M14.6 4.6l4.8 4.8-9.6 9.6-5.6 1.4 1.4-5.6z"/><path class="fab-pen-t" d="M14.6 4.6l1.7-1.7a1.7 1.7 0 0 1 2.4 0l2.4 2.4a1.7 1.7 0 0 1 0 2.4l-1.7 1.7"/><path class="fab-pen-l" d="M5.6 15.4l3 3"/></svg></button>
 
   <!-- Toast de déblocage -->
   <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true" onclick="toastGo()">
@@ -11206,7 +11206,7 @@ function renderConsoleHome(){
     return `<div class="console-project-row">
       <button type="button" class="console-project-open" onclick="openConsoleProject('${d.id}')">
         <span class="console-project-icon">${CONSOLE_DB_SVG}</span>
-        <span class="console-project-copy"><b>${esc(demo?'Base des cours':d.name)}</b><small${dbNote(d.id)?'':' class="is-muted"'}>${esc(dbNote(d.id)||'Projet local · sans description')}</small><em>${esc(bits.join(' · '))}</em></span>
+        <span class="console-project-copy"><b>${demo?'Base des cours':esc(d.name).replace(/([_.-])/g,'$1<wbr>')}</b><small${dbNote(d.id)?'':' class="is-muted"'}>${esc(dbNote(d.id)||'Projet local · sans description')}</small><em>${esc(bits.join(' · '))}</em></span>
         <span class="console-project-chev" aria-hidden="true">${CONSOLE_CHEV_SVG}</span>
       </button>
       ${actions}
@@ -21800,17 +21800,23 @@ function jeuRender(){
   const chips=()=>`<ul class="jeu-chips" aria-label="La partie"><li class="jeu-chip is-${J.niv}" style="--i:0">${jeuNivBars(J.niv)}${JEU_NIVL[J.niv]}</li><li class="jeu-chip" style="--i:1">${lqStkSvg('cards')}${J.nb} manche${J.nb>1?'s':''}</li><li class="jeu-chip" style="--i:2">${lqStkSvg('clock')}Chrono dès 00:00</li></ul>`;
   const host=jeuIsHost();
   let html='',edOn=false;
+  /* Entrer dans une salle, et ses impasses (Elisa, 1er novembre, 1 h 01, réf. 1 : « rejoint la salle » et « Salle introuvable » étaient
+     de l’ancienne DA). La carte de l’écran Défis : l’en-tête violet quadrillé, l’autocollant, le surtitre menthe, le titre jaune ;
+     dessous, le code de la salle en tuiles, puis le bouton violet. */
+  const etat=(stk,titre,sub,corps,cls)=>`<section class="room-card jeu-etat${cls?' '+cls:''}" aria-labelledby="jeu-etat-h">
+      <div class="room-head"><span class="room-stk" aria-hidden="true">${lqStkSvg(stk)}</span><div>
+      <p class="room-kicker">Salle de défi</p><h1 id="jeu-etat-h">${titre}</h1><p class="room-sub" id="jeu-sub">${sub}</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
+      <div class="jeu-etat-code"><small>Code de la salle</small><span aria-label="${esc(J.code.split('').join(' '))}">${J.code.split('').map((ch,i)=>`<b style="--i:${i}" aria-hidden="true">${esc(ch)}</b>`).join('')}</span></div>
+      ${corps}</section>`;
+  const retour=`<button type="button" class="room-go" onclick="openJeu()"><span>Revenir aux défis</span>${DEF_CHEV_SVG}</button>`;
   if(v==='join'){
-    html=head('Salle de défi','Connexion à la salle…','')+`<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>On rejoint la salle ${J.code}.</p><div id="jeu-netslot">${jeuNetHTML()}</div>`;
+    html=etat('rocket','On t’ouvre la porte…','Connexion à la salle de ton ami.',`<p class="jeu-etat-wait" role="status"><i aria-hidden="true"></i><i aria-hidden="true"></i><i aria-hidden="true"></i><span>On rejoint la salle</span></p><div id="jeu-netslot">${jeuNetHTML()}</div>`,'is-join');
   }else if(v==='lost'){
-    html=head('Salle de défi','Salle introuvable','Aucune salle ne correspond à ce code. Vérifie-le auprès de ton ami, ou ouvre ta propre salle.')+
-      `<button type="button" class="journey-primary" onclick="openJeu()"><span>Revenir aux défis</span>${DEF_CHEV_SVG}</button>`;
+    html=etat('help','Salle introuvable','Aucune salle ne correspond à ce code. Vérifie-le auprès de ton ami, ou ouvre ta propre salle.',retour,'is-lost');
   }else if(v==='empty'){
-    html=head('Salle de défi','Cette salle est vide','Les joueurs sont partis. Ouvre ta propre salle pour rejouer avec tes amis.')+
-      `<button type="button" class="journey-primary" onclick="openJeu()"><span>Revenir aux défis</span>${DEF_CHEV_SVG}</button>`;
+    html=etat('user','Cette salle est vide','Les joueurs sont partis. Ouvre ta propre salle pour rejouer avec tes amis.',retour,'is-lost');
   }else if(v==='full'){
-    html=head('Salle de défi','La salle est complète',`Une salle accueille ${J.max} joueurs au maximum. Demande à l’hôte de libérer une place, ou ouvre ta propre salle.`)+
-      `<button type="button" class="journey-primary" onclick="openJeu()"><span>Revenir aux défis</span>${DEF_CHEV_SVG}</button>`;
+    html=etat('user','La salle est complète',`Une salle accueille ${J.max} joueurs au maximum. Demande à l’hôte de libérer une place, ou ouvre ta propre salle.`,retour,'is-lost');
   }else if(v==='lobby'){
     const hostName=(J.players[J.hostPid]||{}).name||'l’hôte';
     const set=host?`<div class="jeu-card jeu-set"><p class="jeu-lab" id="jeu-set-niv">Niveau</p>
@@ -27322,7 +27328,7 @@ function paintOb(){
     const privacy=obLegalMode==='privacy';
     html=`<div class="ob-screen ob-legal-screen">${obBackButton()}<h1 class="ob-title" id="ob-title">${privacy?'Politique de confidentialité':'Conditions d’utilisation'}</h1>
       <div class="legal-copy">${privacy
-        ? `<p>Tu peux utiliser Requête <b>sans compte</b>. Dans ce mode, ta progression reste uniquement sur cet appareil.</p><ul><li>Leçons, défis, notes, planning et bases importées sont enregistrés localement.</li><li>Le moteur SQL tourne dans ton navigateur.</li><li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>Ton <b>pseudo</b> est unique : il est réservé sur le serveur de l’appli avec un identifiant tiré au hasard (pas ton nom ni ton e-mail), et reste à toi tant que tu ne le supprimes pas (Mon compte, Données et confidentialité). Ton prénom, lui, reste sur cet appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec ce même identifiant. La liste des défis que tu as déjà trouvés l’accompagne, sans être montrée à personne&nbsp;: elle nous dit quand ajouter de nouveaux défis. Tu peux retirer tes scores à tout moment dans Mon compte, Données et confidentialité.</li><li>Les messages envoyés depuis <b>Nous contacter</b> (Mon compte)&nbsp;: ton message, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li></ul><p>Si tu choisis plus tard de te connecter, Requête indiquera clairement quelles données seront synchronisées et permettra de supprimer ton compte.</p>`
+        ? `<p>Tu peux utiliser Requête <b>sans compte</b>. Dans ce mode, ta progression reste uniquement sur cet appareil.</p><ul><li>Leçons, défis, notes, planning et bases importées sont enregistrés localement.</li><li>Le moteur SQL tourne dans ton navigateur.</li><li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>Ton <b>pseudo</b> est unique : il est réservé sur le serveur de l’appli avec un identifiant tiré au hasard (pas ton nom ni ton e-mail), et reste à toi : pour le supprimer, écris-nous depuis Mon compte, «&nbsp;Nous contacter&nbsp;». Ton prénom, lui, reste sur cet appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec ce même identifiant. La liste des défis que tu as déjà trouvés l’accompagne, sans être montrée à personne&nbsp;: elle nous dit quand ajouter de nouveaux défis. Pour retirer tes scores, écris-nous depuis Mon compte, «&nbsp;Nous contacter&nbsp;».</li><li>Les messages envoyés depuis <b>Nous contacter</b> (Mon compte)&nbsp;: ton message, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li></ul><p>Si tu choisis plus tard de te connecter, Requête indiquera clairement quelles données seront synchronisées et permettra de supprimer ton compte.</p>`
         : `<p>Requête est une application d’apprentissage du SQL. Le contenu est fourni à des fins pédagogiques.</p><p>Tu peux commencer sans compte, exporter ta progression et l’effacer depuis Mon compte.</p><p>Les options de connexion ne deviennent actives que lorsqu’un fournisseur d’authentification sécurisé est configuré.</p>`}</div></div>`;
     obSetFooter('','','','','');
   }else if(slide==='welcome'){
@@ -27957,14 +27963,10 @@ function renderCompte(){
           <span class="acc-row-ico" aria-hidden="true">${plusIcon('import')}</span>
           <div class="at"><b>Importer une progression</b><small>Le fichier exporté, depuis un autre appareil</small></div>
           ${CHEV}</button>
-        <button class="acc-row" type="button" onclick="clsQuitter()">
+        ${clsOn()?'':`<button class="acc-row" type="button" onclick="clsQuitter()">
           <span class="acc-row-ico" aria-hidden="true">${plusIcon('trophy')}</span>
-          <div class="at"><b>${clsOn()?'Retirer mes scores du classement':'Revenir au classement général'}</b><small>${clsOn()?'Tes points sont effacés du serveur, ton pseudo reste à toi':'Ton pseudo et tes points réapparaissent au Top 5'}</small></div>
-          ${CHEV}</button>
-        ${psMien()?`<button class="acc-row danger" type="button" onclick="psSupprimer()">
-          <span class="acc-row-ico danger" aria-hidden="true">${plusIcon('trash')}</span>
-          <div class="at"><b>Supprimer mon pseudo</b><small>« ${esc(psMien())} » est libéré, avec tes scores</small></div>
-          ${CHEV}</button>`:''}
+          <div class="at"><b>Revenir au classement général</b><small>Ton pseudo et tes points réapparaissent au Top 5</small></div>
+          ${CHEV}</button>`}
         <button class="acc-row danger" type="button" onclick="resetAllProgress()">
           <span class="acc-row-ico danger" aria-hidden="true">${plusIcon('trash')}</span>
           <div class="at"><b>Effacer la progression</b><small>Leçons, défis, notes et planning</small></div>
@@ -28017,7 +28019,7 @@ function openLegal(kind){
       <p>Requête est une app d’apprentissage SQL. Tu peux l’utiliser <b>sans compte</b> : ta progression reste alors sur cet appareil.</p>
       <ul>
         <li>Prénom, leçons, défis, notes et planning : stockés en local dans le navigateur.</li>
-        <li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>Ton <b>pseudo</b> est unique : il est réservé sur le serveur de l’appli avec un identifiant tiré au hasard (pas ton nom ni ton e-mail), et reste à toi tant que tu ne le supprimes pas (Mon compte, Données et confidentialité). Ton prénom, lui, reste sur cet appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec ce même identifiant. La liste des défis que tu as déjà trouvés l’accompagne, sans être montrée à personne&nbsp;: elle nous dit quand ajouter de nouveaux défis. Tu peux retirer tes scores à tout moment dans Mon compte, Données et confidentialité.</li><li>Les messages envoyés depuis <b>Nous contacter</b> (Mon compte)&nbsp;: ton message, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
+        <li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>Ton <b>pseudo</b> est unique : il est réservé sur le serveur de l’appli avec un identifiant tiré au hasard (pas ton nom ni ton e-mail), et reste à toi : pour le supprimer, écris-nous depuis Mon compte, «&nbsp;Nous contacter&nbsp;». Ton prénom, lui, reste sur cet appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec ce même identifiant. La liste des défis que tu as déjà trouvés l’accompagne, sans être montrée à personne&nbsp;: elle nous dit quand ajouter de nouveaux défis. Pour retirer tes scores, écris-nous depuis Mon compte, «&nbsp;Nous contacter&nbsp;».</li><li>Les messages envoyés depuis <b>Nous contacter</b> (Mon compte)&nbsp;: ton message, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
         <li>Le moteur SQL tourne dans le navigateur.</li>
         <li>Le rappel quotidien n’envoie une notification que si tu l’actives (permission du navigateur), à l’heure choisie.</li>
       </ul>
@@ -28069,7 +28071,7 @@ function accDonneesHTML(){
               <li><b>Tes messages</b> envoyés depuis «&nbsp;Nous contacter&nbsp;», avec ton e-mail si tu le donnes, pour te répondre.</li>
             </ul>
             <h4>Tu gardes la main</h4>
-            <p>Juste en dessous&nbsp;: exporter ta progression, retirer tes scores du classement, supprimer ton pseudo ou tout effacer.</p>
+            <p>Juste en dessous&nbsp;: exporter ta progression ou tout effacer. Pour supprimer ton pseudo ou retirer tes scores du classement, écris-nous depuis «&nbsp;Nous contacter&nbsp;».</p>
           </div>
         </div>`;
 }
@@ -28439,7 +28441,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-defis-aeroport-v2225';
+  const SW_CACHE='requete-2026-11-01-salle-da-v2226';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

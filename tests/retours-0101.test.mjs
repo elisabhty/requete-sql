@@ -1,0 +1,37 @@
+/* Elisa, 1er novembre, 1 h 01 — réf. 1 : « rejoint la salle » et « Salle introuvable », deux pages de l’ancienne DA, et le crayon,
+   dans la DA du site (le crayon discret, clair) ; réf. 2 : « ne pas pouvoir supprimer son pseudo et supprimer les scores du
+   classement » ; réf. 3 : « texte coupé » (nom de projet). */
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
+const conf = fs.readFileSync(new URL('../decouvrir/confidentialite.html', import.meta.url), 'utf8');
+
+test('réf. 1 : rejoindre une salle et ses impasses sont la carte de l’écran Défis, code en tuiles', () => {
+  assert.ok(app.includes('const etat=(stk,titre,sub,corps,cls)=>`<section class="room-card jeu-etat'));
+  assert.ok(app.includes("html=etat('rocket','On t’ouvre la porte…','Connexion à la salle de ton ami.'"), 'on rejoint la salle');
+  assert.ok(app.includes("html=etat('help','Salle introuvable',"), 'salle introuvable');
+  assert.ok(app.includes("html=etat('user','Cette salle est vide',") && app.includes("html=etat('user','La salle est complète',"));
+  assert.ok(!app.includes("head('Salle de défi','Salle introuvable'"), 'plus de page de l’ancienne DA');
+  assert.ok(css.includes('html.lq .jeu-etat-code b{display:grid;place-items:center;width:40px;height:48px;'));
+});
+
+test('réf. 1 : le crayon est dessiné, discret dans une leçon ou un défi', () => {
+  assert.ok(app.includes('<button class="fab" id="fab" onclick="quickNote()" title="Notes" aria-label="Ouvrir les notes"><svg class="fab-pen"'));
+  assert.ok(!app.includes('aria-label="Ouvrir les notes">✎</button>'));
+  assert.ok(css.includes('html.lq body.in-lesson .fab{display:grid;place-items:center;background:var(--accent-soft)!important;color:var(--accent-ink)!important;border:0!important;'));
+});
+
+test('réf. 2 : ni « Supprimer mon pseudo » ni « Retirer mes scores » ; les textes disent de nous écrire', () => {
+  const data = app.slice(app.indexOf('<details class="plus-details" id="plus-data">'), app.indexOf('</details>', app.indexOf('<details class="plus-details" id="plus-data">')));
+  assert.ok(!data.includes('psSupprimer()') && !data.includes('Retirer mes scores'));
+  assert.ok(app.includes('Pour supprimer ton pseudo ou retirer tes scores du classement, écris-nous depuis «&nbsp;Nous contacter&nbsp;».'));
+  assert.ok(!conf.includes('«&nbsp;Supprimer mon pseudo&nbsp;»') && !conf.includes('«&nbsp;Retirer mes scores du classement&nbsp;»'));
+});
+
+test('réf. 3 : le nom d’un projet s’affiche en entier, coupé après ses _ - .', () => {
+  assert.ok(app.includes("<b>${demo?'Base des cours':esc(d.name).replace(/([_.-])/g,'$1<wbr>')}</b>"));
+  assert.ok(css.includes('html.lq .console-project-copy b{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:break-word;'));
+});

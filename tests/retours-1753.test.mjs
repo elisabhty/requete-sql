@@ -51,7 +51,7 @@ test('le classement sans pseudo : on peut le choisir d’ici ; Données et confi
   const top = fn('clsTopHTML');
   assert.ok(top.includes('const meLine=!jeuSavedNom()?`<p class="perf-top-me">Choisis ton pseudo pour entrer au classement. <button type="button" class="perf-top-pick" onclick="psPage({})">Choisir mon pseudo</button></p>`'));
   const data = cut('<details class="plus-details" id="plus-data">', '</details>');
-  assert.ok(data.includes("${psMien()?`<button class=\"acc-row danger\" type=\"button\" onclick=\"psSupprimer()\">"));
-  assert.ok(data.includes('Tes points sont effacés du serveur, ton pseudo reste à toi'), '« Retirer mes scores » garde le pseudo');
-  assert.ok(fn('clsQuitter').includes('Ton pseudo reste à toi, et ta progression sur cet appareil.'));
+  /* 1er novembre, 1 h 01 : ni « Supprimer mon pseudo » ni « Retirer mes scores » dans Données et confidentialité */
+  assert.ok(!data.includes('psSupprimer()') && !data.includes('Retirer mes scores'));
+  assert.ok(data.includes('Revenir au classement général'), 'qui avait quitté le classement peut y revenir');
 });
