@@ -45,3 +45,19 @@ test('avant un cours, sa page de départ dans la DA du site, avec un seul bouton
   assert.ok(css.includes('.lst-card{position:relative;isolation:isolate;overflow:visible;padding:26px 22px 30px;border-radius:30px;background:var(--deep);'));
   assert.ok(css.includes('.lst-go{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:62px;'));
 });
+
+test('onboarding : le parcours qui se construit, la promesse en grand chiffre, l’engagement signé ; tout tient sur un écran', () => {
+  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','goal','level','rhythm','build','promise','pact','practice','account','ready','pseudo'];"));
+  const ob = cut('function obPlanInfo(){', 'function obRhythmSummary(){');
+  assert.ok(ob.includes("const days=Math.max(1,Math.round((parseD(last)-auj())/864e5)+1);"), 'le nombre de jours vient du plan réellement généré');
+  assert.ok(ob.includes("if(ink>40){"), 'une vraie signature, pas un point');
+  assert.ok(ob.includes("for(const c of ['ob-fit-1','ob-fit-2','ob-fit-3']){"), 'se resserre par paliers tant que ça déborde');
+  assert.ok(app.includes('<div class="ob-big" aria-hidden="true"><b id="ob-big-n" data-n="${b.days}">${b.days}</b><span>jours</span></div>'));
+  assert.ok(app.includes('<p class="ob-pact-k">Mon contrat d’apprentissage</p>'));
+  assert.ok(app.includes("obSetFooter('Je m’engage',()=>{draft.pacteAt=Date.now();obGoto('practice');},'Plus tard',()=>obGoto('practice'),'',!draft.pacte);"), '« Je m’engage » s’allume une fois signé');
+  assert.ok(app.includes("...(draft.pacte?{pacte:{at:draft.pacteAt||Date.now(),sig:draft.pacte}}:{})"), 'la signature reste sur l’appareil, dans le profil');
+  const v = fs.readFileSync(new URL('../onboarding-vitrine.css', import.meta.url), 'utf8');
+  for (const part of ['html #onboarding.ob-vitrine .ob-big b{font:800 clamp(120px,40vw,168px)/.9 var(--v-display);', 'html #onboarding.ob-vitrine .ob-pact-card{position:relative;',
+    'html #onboarding.ob-vitrine .ob-build-path span.is-start{background:var(--v-sun);', 'html #onboarding.ob-vitrine.ob-fit-3 .ob-chat{display:none!important}'])
+    assert.ok(v.includes(part), part);
+});
