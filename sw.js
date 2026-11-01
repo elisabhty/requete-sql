@@ -16,13 +16,13 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-01-secure-multiplayer-v2250';
+const CACHE = 'requete-2026-11-01-secure-multiplayer-v2258';
 
 const PRECACHE = [
   './onboarding-focus.js',
   './multiplayer-security.js',
   './memo-collection.css?v=5',
-  './onboarding-vitrine.css?v=2',
+  './onboarding-vitrine.css?v=4',
   './',
   './index.html',
   './home-journey.css',
@@ -116,6 +116,7 @@ const PRECACHE = [
   './assets/anim/mail.js',
   './assets/anim/gsap.min.js',
   './assets/anim/mascotte.webp',
+  './assets/anim/formatrice.webp',
   './assets/anim/bases-relationnelles-thumb.webp',
   './assets/anim/nutriboost.webp',
   './assets/anim/badge-nutriboost.webp',

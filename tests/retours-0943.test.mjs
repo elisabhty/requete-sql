@@ -43,7 +43,7 @@ test('le niveau choisi à l’onboarding compte : « Je débute » palier 1, « 
 test('le badge : la pastille jaune « Niv. 2 », puis le nom ; sous le prénom dans Mon compte et à l’accueil', () => {
   const { lv, badge } = niveau('bases');
   assert.equal(badge(lv), '<span class="lvl-badge is-home" role="img" aria-label="Niveau 2 : Constructeur de requêtes"><i aria-hidden="true"><span class="lvl-k">Niv.</span>2</i><span aria-hidden="true">Constructeur de requêtes</span></span>');
-  assert.ok(app.includes('</em>`:\'\'}</span>${lvlBadgeHTML(level,\'is-on-deep\')}'), 'Mon compte : sous la ligne prénom et pseudo');
+  assert.ok(app.includes("<span class=\"acct-identity-line\"><b>${esc(accountTitle)}</b>") && app.includes("</span>${lvlBadgeHTML(level,'is-on-deep')}</span>"), 'Mon compte : sous la ligne du prénom (et du pseudo)');
   assert.ok(app.includes("<div class=\"journey-session-meta\">${typeof niveauCompte==='function'?lvlBadgeHTML(niveauCompte(),'is-home'):''}"), 'accueil : sous « Bonjour », avant la séance');
   for (const part of [
     'html.lq .lvl-badge>i{flex:none;display:inline-flex;align-items:baseline;gap:3px;height:24px;padding:0 9px;border-radius:999px;background:var(--sun);',

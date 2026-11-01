@@ -1,11 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import vm from 'node:vm';
 import {sqlite,verify,safeSelect} from '../supabase/functions/jeu-verifier/verifier.mjs';
 const catalog=JSON.parse(fs.readFileSync(new URL('../supabase/functions/jeu-verifier/catalog.json',import.meta.url)));
 await sqlite(new Uint8Array(fs.readFileSync(new URL('../vendor/sqljs/sql-wasm.wasm',import.meta.url))));
-test('le vérificateur accepte les 42 solutions et les écritures équivalentes',async()=>{
- assert.equal(catalog.challenges.length,42);
+test('le vérificateur accepte toutes les solutions du catalogue et les écritures équivalentes',async()=>{
+ const app=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
+ const ids=vm.runInNewContext(app.slice(app.indexOf('const CHALLENGES=['),app.indexOf('const NIV='))+";CHALLENGES.filter(c=>!c.noExec&&!/^\\s*EXPLAIN/i.test(c.sol)).map(c=>c.id)");
+ assert.deepEqual(catalog.challenges.map(c=>c.id),Array.from(ids));
  for(const c of catalog.challenges)assert.equal(await verify(catalog,c.id,c.sol),true,c.id);
  assert.equal(await verify(catalog,'af2',"SELECT email AS courriel, nom, prenom FROM passagers WHERE nationalite='Française' ORDER BY nom,prenom"),true);
 });

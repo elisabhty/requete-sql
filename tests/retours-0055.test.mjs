@@ -1,6 +1,4 @@
-/* Elisa, 1er novembre, 0 h 55 : « je veux les defis sur la base aeroport mtn ». Les défis de la base du cours sont retirés ; le
-   lot Facile Aéroport arrive (situation, mission, indice, solution). Moyen et Difficile : « Bientôt » le temps que leurs lots
-   arrivent. */
+/* Les défis de chaque base partagent leur seed SQL et gardent un résultat déterministe. */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -15,23 +13,69 @@ const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j 
 const ctx = vm.createContext({});
 vm.runInContext(cut('const CHALLENGES=[', '\nfunction defisParProgression(){').replace('const CHALLENGES=', 'CHALLENGES='), ctx);
 const DEFIS = JSON.parse(JSON.stringify(ctx.CHALLENGES));
+const AERO = DEFIS.filter(c => c.base === 'aeroport');
+const WOK = DEFIS.filter(c => c.base === 'wok');
+const FROMAGERIE = DEFIS.filter(c => c.base === 'fromagerie');
+const VOYAGES = DEFIS.filter(c => c.base === 'voyages');
+const LABO = DEFIS.filter(c => c.base === 'labo');
 const aero = cut("aeroport:{nom:'Aéroport',", '\n`}');
 const base = () => { const d = new SQL.Database(); d.run(aero.slice(aero.indexOf('sql:`') + 5)); return d; };
 
-test('les défis sont ceux de la base Aéroport : 33 Facile et 9 Moyen, chacun avec sa situation, sa mission, son indice', () => {
-  /* 8 h 39 : le lot Facile n° 2 (af11 à af23) ; 8 h 47 : le lot n° 3 (af24 à af32) ; 8 h 59 : af33 et le lot Moyen (am1 à am9) */
-  assert.equal(DEFIS.length, 42);
-  assert.deepEqual(DEFIS.map(c => c.id), [...Array.from({ length: 33 }, (_, i) => 'af' + (i + 1)), ...Array.from({ length: 9 }, (_, i) => 'am' + (i + 1))]);
+test('les défis comptent 57 Aéroport et 30 sur chacune des cinq autres bases', () => {
+  assert.equal(DEFIS.length, 207);
+  assert.equal(AERO.length, 57);
+  assert.equal(DEFIS.filter(c => c.base === 'hopital').length, 30);
+  assert.equal(WOK.length, 30);
+  assert.equal(FROMAGERIE.length, 30);
+  assert.equal(VOYAGES.length, 30);
+  assert.equal(LABO.length, 30);
+  assert.deepEqual(WOK.map(c => c.id), [...Array.from({ length: 10 }, (_, i) => 'wf' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'wm' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'wd' + (i + 1))]);
+  assert.deepEqual(FROMAGERIE.map(c => c.id), [...Array.from({ length: 10 }, (_, i) => 'ff' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'fm' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'fd' + (i + 1))]);
+  assert.deepEqual(VOYAGES.map(c => c.id), [...Array.from({ length: 10 }, (_, i) => 'vf' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'vm' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'vd' + (i + 1))]);
+  assert.deepEqual(LABO.map(c => c.id), [...Array.from({ length: 10 }, (_, i) => 'lf' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'lm' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'ld' + (i + 1))]);
   for (const c of DEFIS) {
-    assert.equal(c.base, 'aeroport', c.id); assert.equal(c.niv, c.id.startsWith('am') ? 'm' : 'f', c.id);
+    assert.ok(['aeroport', 'hopital', 'wok', 'fromagerie', 'voyages', 'labo'].includes(c.base), c.id);
+    assert.equal(c.niv, ({ f: 'f', m: 'm', d: 'd' })[c.id[1]], c.id);
     assert.ok(c.contexte && c.q && c.indice && c.sol && c.titre && Number.isInteger(c.apres), c.id);
   }
-  assert.ok(!/\b(clients|commandes|produits)\b/.test(DEFIS.map(c => c.sol).join(' ')), 'plus rien sur la base du cours');
+  assert.ok(!/\b(clients|commandes|produits)\b/.test(AERO.map(c => c.sol).join(' ')), 'plus rien sur la base du cours dans le lot Aéroport');
   assert.ok(app.includes('const CHALLENGE_GUIDES={};'));
 });
 
-test('chaque solution s’exécute sur Aéroport, et un défi trié n’a pas d’égalité qui rendrait l’ordre ambigu', () => {
-  for (const c of DEFIS) {
+test('les cinq nouveaux défis Moyen exécutent leurs agrégats sur Aéroport', () => {
+  const d = base();
+  const rows = id => d.exec(DEFIS.find(c => c.id === id).sol)[0].values;
+  assert.deepEqual(rows('am10'), [['AlphaJet', 9], ['BlueHorizon', 5], ['NovaAir', 5], ['SkyWings', 5], ['Skyline', 5], ['AtlanticGo', 4]]);
+  assert.equal(rows('am11').length, 19);
+  assert.deepEqual(rows('am11')[0], ['Harry', 'Brown', 3]);
+  assert.deepEqual(rows('am12'), [['2025-05', 'Affaires', 12, 598], ['2025-05', 'Premium', 15, 422], ['2025-05', 'Économique', 43, 190], ['2025-06', 'Affaires', 9, 486], ['2025-06', 'Premium', 17, 260], ['2025-06', 'Économique', 35, 140]]);
+  assert.deepEqual(rows('am13'), [['SKY203', 'Lisbonne', 7, 10], ['ALX105', 'Lisbonne', 6, 11], ['BLH403', 'Lisbonne', 6, 9], ['NVA302', 'Londres', 5, 10], ['ATG503', 'Paris', 5, 9], ['SKL602', 'Berlin', 5, 9]]);
+  assert.deepEqual(rows('am14'), [['AlphaJet', 17, 9, 6], ['SkyWings', 16, 4, 3], ['Skyline', 13, 3, 1], ['BlueHorizon', 12, 6, 2], ['AtlanticGo', 10, 6, 7], ['NovaAir', 10, 4, 2]]);
+  d.close();
+});
+
+test('lot Difficile Aéroport : les dix requêtes utilisent les notions annoncées et leurs résultats correspondent aux données', () => {
+  const hard = AERO.filter(c => c.niv === 'd');
+  assert.equal(hard.length, 10);
+  const d = base();
+  const rows = id => d.exec(DEFIS.find(c => c.id === id).sol)[0].values;
+  assert.deepEqual(rows('ad1').slice(0, 3), [['AlphaJet', 26], ['SkyWings', 18], ['AtlanticGo', 14]]);
+  assert.deepEqual(rows('ad2').slice(0, 5), [['Lisbonne', 36, 1], ['Paris', 31, 2], ['Londres', 17, 3], ['New York', 12, 4], ['Berlin', 11, 5]]);
+  assert.equal(rows('ad3').length, 22, 'la moyenne inclut les passagers sans réservation à 0 €');
+  assert.deepEqual(rows('ad3')[0], ['John', 'Miller', 4016, 3372.96]);
+  assert.deepEqual(rows('ad4').slice(0, 3), [['NVA302', 144, 10, 6.9], ['ALX105', 180, 11, 6.1], ['SKY203', 180, 10, 5.6]]);
+  assert.deepEqual(rows('ad5').slice(0, 3), [['ALX104', 2920, 1], ['ALX105', 1989, 2], ['ALX100', 830, 3]]);
+  assert.deepEqual(rows('ad6')[0], [1, 'ATG500', '2025-05-18', 420, null, null]);
+  assert.equal(rows('ad7').length, 18);
+  assert.equal(rows('ad8').length, 10);
+  assert.deepEqual(rows('ad10'), [['Diego', 'Ramirez', 'BLH401', 2]]);
+  const aff = rows('ad9').filter(r => r[0] === 'BlueHorizon');
+  assert.deepEqual(aff, [['BlueHorizon', 'Économique', 1965, 1], ['BlueHorizon', 'Premium', 1941, 2], ['BlueHorizon', 'Affaires', 760, 3]]);
+  d.close();
+});
+
+test('chaque solution Aéroport s’exécute et son ordre reste stable', () => {
+  for (const c of AERO) {
     const d = base();
     const r = d.exec(c.sol);
     assert.ok(r[0] && r[0].values.length > 0, `${c.id} : au moins une ligne`);
