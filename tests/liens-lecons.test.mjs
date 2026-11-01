@@ -51,3 +51,13 @@ test('le moteur commun et la page WHERE montrent les liens : une pause sur l’i
   assert.ok(css.includes('body.pont-fin .pont-pill{opacity:var(--pont-a,1);visibility:visible}'), 'la pastille de fin');
   assert.ok(read('sw.js').includes("'./assets/anim/liens.js',"), 'liens.js disponible hors ligne');
 });
+
+test('dans le projet, chaque pastille « Prochaine leçon · … » porte le titre de la leçon suivante dans l’app', () => {
+  const projet = LIENS.map((l, i) => [l, i]).filter(([l]) => l.page.startsWith('projet-'));
+  for (const [l, i] of projet) {
+    const next = LIENS[i + 1], page = read(`assets/anim/${l.page}.html`);
+    if (!next) { assert.ok(!page.includes('Prochaine leçon · '), `${l.page} : la dernière leçon n’annonce rien`); continue; }
+    const pills = [...page.matchAll(/Prochaine leçon · ([^<']+)</g)].map(m => m[1]);
+    assert.deepEqual(pills, [next.titre], `${l.page} : « Prochaine leçon · ${next.titre} »`);
+  }
+});

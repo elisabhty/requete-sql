@@ -351,7 +351,7 @@ test('chapitre 8 : écran titre, ouverture comme aux autres chapitres, annonce d
   assert.equal(caps[1], 'Dans la leçon précédente, tu as découvert les schémas, qui rangent les tables par espace.', 'le chapitre précédent');
   /* La fin du chapitre 7 annonce « INSERT INTO » : c’est ce chapitre. */
   const sch = fs.readFileSync(path.join(root, 'assets/anim/projet-schemas.html'), 'utf8');
-  assert.ok(sch.includes('à ajouter des données dans tes tables<br>avec <code>INSERT INTO</code>.') && sch.includes('Prochaine leçon · INSERT INTO</span>'), 'le chapitre 7 annonce celui-ci');
+  assert.ok(sch.includes('à ajouter des données dans tes tables<br>avec <code>INSERT INTO</code>.') && sch.includes('Prochaine leçon · INSERT</span>'), 'le chapitre 7 annonce celui-ci');
   /* Il annonce à son tour la leçon suivante du cours : UPDATE. */
   assert.ok(caps.includes('Dans la prochaine leçon, tu apprendras<br>à modifier les données avec <code>UPDATE</code>.') && page.includes('Prochaine leçon · UPDATE</span>'), 'annonce de la prochaine leçon');
   assert.equal(lessons[lessons.findIndex(l => l.id === 26) + 1].id, 27);

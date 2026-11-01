@@ -186,10 +186,10 @@ test('« Comment ça marche » : les trois étapes reprennent le planning, la s�
   assert.ok(['lente&nbsp;!', '500&nbsp;000', 'passe&nbsp;?'].every(s => e3.includes(s)), 'espaces insécables');
   const chapitres = [...mods.matchAll(/\bid:\s*(\d+)\s*,\s*titre:"([^"]+)"[\s\S]{0,900}?assets\/anim\/(projet-[\w-]+)\.html/g)];
   const vus = new Set(chapitres.map(m => m[3])), ordre = [...vus], n = ordre.indexOf('projet-index') + 1;
-  assert.ok(e3.includes(`<span class="db-badge ok">${vus.size} chapitres</span>`) && e3.includes(`${vus.size} chapitres de projet`), `${vus.size} chapitres`);
+  assert.ok(e3.includes(`<span class="db-badge ok">${vus.size} leçons</span>`) && e3.includes(`${vus.size} leçons de projet`), `${vus.size} leçons (Elisa, 1er novembre : des modules et des leçons, comme dans l’appli)`);
   assert.equal(n, 19, 'les index : chapitre 19 du projet');
   const titre = chapitres.find(m => m[3] === 'projet-index')[2];
-  assert.ok(proj.includes('NutriBoost') && e3.includes(`<span class="hw3-k">Projet NutriBoost · chapitre ${n}</span><b>${titre}</b>`), 'le chapitre montré');
+  assert.ok(proj.includes('NutriBoost') && e3.includes(`<span class="hw3-k">Projet NutriBoost · module 14</span><b>${titre}</b>`), 'la leçon montrée, avec son module dans l’appli');
   assert.ok(css.includes(`.hw3-bar i{display:block;width:${Math.round(n / vus.size * 100)}%;`), 'la barre : 19 chapitres sur 20');
   const ch = app.slice(app.indexOf('const CHALLENGES'), app.indexOf('\n];', app.indexOf('const CHALLENGES')));
   assert.ok(e3.includes(`${(ch.match(/^\s*\{\s*id:/gm) || []).length} cas pratiques`));
