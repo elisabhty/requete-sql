@@ -119,15 +119,17 @@ test('programme : les 15 parties sont des modules, comme dans l’appli ; la fic
   }
 });
 
-test('connexion : le décor tient sur tous les écrans, sans badge aperçu ni débordement', () => {
+test('connexion : décor compact, sans mascotte ni pastille ronde, avec salut et flamme +1', () => {
   const h = lire('connexion.html');
   assert.doesNotMatch(h, /<span class="sticker lav cx-tag">Aperçu<\/span>/);
+  assert.doesNotMatch(h, /mascotte\.webp|class="cx-masc"|class="cx-round"/);
+  assert.match(h, /class="cx-bubble" id="cx-bubble">Re-bonjour&nbsp;!/);
+  assert.match(h, /class="cx-streak" id="cx-streak"[^>]*>[\s\S]*?<span>\+1<\/span>/);
   const mobStart = h.indexOf('@media (max-width:959px){');
   const mob = h.slice(mobStart, h.indexOf('@media (max-width:359px){', mobStart));
-  for (const r of ['.cx-stage{container-type:inline-size', '.cx-round{width:clamp(92px,26cqw,104px)', '.cx-masc{--mw:clamp(120px,40cqw,160px)', '.cx-bubble{left:auto;right:22%;top:-34px'])
+  for (const r of ['.cx-stage{container-type:inline-size;min-height:clamp(112px,34vw,150px)', '.cx-streak{font-size:clamp(12px,3.5cqw,14px)', '.cx-bubble{right:0;bottom:2px'])
     assert.ok(mob.includes(r), `mobile : ${r}`);
-  /* Ordinateur : le chat se règle sur la largeur et la hauteur du décor ; « GROUP BY » s’efface quand le décor est étroit */
-  assert.match(h, /\.cx-stage\{container-type:size\}\n  \.cx-masc\{width:clamp\(150px,min\(34cqw,40cqh\),280px\)\}/);
+  assert.match(h, /@media \(max-width:359px\)\{[\s\S]*?\.cx-stage\{min-height:76px\}[\s\S]*?\.cx-s\.s5\{display:block;[\s\S]*?\.cx-panel\{margin-top:-72px\}/);
   assert.match(h, /@container \(max-width:499px\)\{\.k3\{display:none\}\}/);
 });
 
