@@ -39,7 +39,7 @@ test('avant un cours, sa page de départ dans la DA du site, avec un seul bouton
   const open = cut('function openLesson(id, restoreStep){', '/* « Quel JOIN choisir ? »');
   assert.ok(open.includes("if(!restoringNav&&typeof lessonStartShow==='function'){"), 'pas lors d’une reprise automatique');
   assert.ok(open.includes('lessonStartShow(l,()=>{if(current===l&&lessonStep===0&&lessonVideoOn(l))openLessonVideo();});'), 'la vidéo démarre au « Commencer »');
-  assert.ok(open.includes("<button type=\"button\" class=\"lst-go\"><span>${done?'Revoir le cours':started?'Reprendre':'Commencer'}</span>${DEF_CHEV_SVG}</button>"));
+  assert.ok(open.includes("<button type=\"button\" class=\"lst-go\"><span>${done?'Revoir le cours':started?'Continuer':'Commencer'}</span>${DEF_CHEV_SVG}</button>"));
   assert.ok(open.includes("<p class=\"lst-kicker\">${m?`Module ${mi+1} · ${esc(m.titre)}`:'Cours'}</p>"));
   assert.ok(open.includes('<ol class="lst-plan">'), 'ce que tu vas faire, dans l’ordre');
   assert.ok(css.includes('.lst-card{position:relative;isolation:isolate;overflow:visible;padding:26px 22px 30px;border-radius:30px;background:var(--deep);'));
@@ -122,4 +122,14 @@ test('15 h 36 : la carte des indices dans la DA, juste après la question ; « �
   assert.ok(app.includes("coachPeek(card,COACH.fx==='is-new-hint');"), 'une pastille ramène à la carte si elle est hors de l’écran');
   for (const part of ['html.lq .coach.is-new-hint .coach-tag.is-hint{animation:coachFlip .6s var(--pop) both}', 'html.lq .coach-caret{', 'html.lq .coach-st-k{flex:none;padding:3px 9px;border-radius:99px;background:#E0457B;'])
     assert.ok(css.includes(part), part);
+});
+
+test('15 h 57 : « Commencer » à la première ouverture d’un cours, « Continuer » ensuite', () => {
+  const ctx = vm.createContext({ state: {}, saved: 0, save() { ctx.saved++; }, lecCompletee: () => false, nbFaites: () => 0 });
+  const open = cut('function lessonStartShow(l,go){', '  const chips=[];');
+  vm.runInContext(open.replace('function lessonStartShow(l,go){', 'function t(l){').replace(/document\.getElementById\('lesson-start'\)\?\.remove\(\);/, '').replace(/const m=moduleDeLecon[^\n]*\n/, '') + 'return started;}', ctx);
+  assert.equal(vm.runInContext('t({id:7})', ctx), false, 'première fois : Commencer');
+  assert.equal(vm.runInContext('t({id:7})', ctx), true, 'ensuite : Continuer');
+  assert.equal(vm.runInContext('t({id:8})', ctx), false);
+  assert.equal(ctx.saved, 2, 'retenu sur l’appareil');
 });
