@@ -1,6 +1,4 @@
-/* Elisa, 1er novembre, 0 h 55 : « je veux les defis sur la base aeroport mtn ». Les défis de la base du cours sont retirés ; le
-   lot Facile Aéroport arrive (situation, mission, indice, solution). Moyen et Difficile : « Bientôt » le temps que leurs lots
-   arrivent. */
+/* Les défis Aéroport, du Facile au Difficile, partagent leur seed SQL et gardent un résultat déterministe. */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -18,15 +16,27 @@ const DEFIS = JSON.parse(JSON.stringify(ctx.CHALLENGES));
 const aero = cut("aeroport:{nom:'Aéroport',", '\n`}');
 const base = () => { const d = new SQL.Database(); d.run(aero.slice(aero.indexOf('sql:`') + 5)); return d; };
 
-test('les défis sont ceux de la base Aéroport : 33 Facile, 9 Moyen et 10 Difficile', () => {
-  assert.equal(DEFIS.length, 52);
-  assert.deepEqual(DEFIS.map(c => c.id), [...Array.from({ length: 33 }, (_, i) => 'af' + (i + 1)), ...Array.from({ length: 9 }, (_, i) => 'am' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'ad' + (i + 1))]);
+test('les défis sont ceux de la base Aéroport : 33 Facile, 14 Moyen et 10 Difficile', () => {
+  assert.equal(DEFIS.length, 57);
+  assert.deepEqual(DEFIS.map(c => c.id), [...Array.from({ length: 33 }, (_, i) => 'af' + (i + 1)), ...Array.from({ length: 14 }, (_, i) => 'am' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'ad' + (i + 1))]);
   for (const c of DEFIS) {
     assert.equal(c.base, 'aeroport', c.id); assert.equal(c.niv, c.id.startsWith('af') ? 'f' : c.id.startsWith('am') ? 'm' : 'd', c.id);
     assert.ok(c.contexte && c.q && c.indice && c.sol && c.titre && Number.isInteger(c.apres), c.id);
   }
   assert.ok(!/\b(clients|commandes|produits)\b/.test(DEFIS.map(c => c.sol).join(' ')), 'plus rien sur la base du cours');
   assert.ok(app.includes('const CHALLENGE_GUIDES={};'));
+});
+
+test('les cinq nouveaux défis Moyen exécutent leurs agrégats sur Aéroport', () => {
+  const d = base();
+  const rows = id => d.exec(DEFIS.find(c => c.id === id).sol)[0].values;
+  assert.deepEqual(rows('am10'), [['AlphaJet', 9], ['BlueHorizon', 5], ['NovaAir', 5], ['SkyWings', 5], ['Skyline', 5], ['AtlanticGo', 4]]);
+  assert.equal(rows('am11').length, 19);
+  assert.deepEqual(rows('am11')[0], ['Harry', 'Brown', 3]);
+  assert.deepEqual(rows('am12'), [['2025-05', 'Affaires', 12, 598], ['2025-05', 'Premium', 15, 422], ['2025-05', 'Économique', 43, 190], ['2025-06', 'Affaires', 9, 486], ['2025-06', 'Premium', 17, 260], ['2025-06', 'Économique', 35, 140]]);
+  assert.deepEqual(rows('am13'), [['SKY203', 'Lisbonne', 7, 10], ['ALX105', 'Lisbonne', 6, 11], ['BLH403', 'Lisbonne', 6, 9], ['NVA302', 'Londres', 5, 10], ['ATG503', 'Paris', 5, 9], ['SKL602', 'Berlin', 5, 9]]);
+  assert.deepEqual(rows('am14'), [['AlphaJet', 17, 9, 6], ['SkyWings', 16, 4, 3], ['Skyline', 13, 3, 1], ['BlueHorizon', 12, 6, 2], ['AtlanticGo', 10, 6, 7], ['NovaAir', 10, 4, 2]]);
+  d.close();
 });
 
 test('lot Difficile : les dix requêtes utilisent les notions annoncées et leurs résultats correspondent à Aéroport', () => {

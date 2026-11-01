@@ -22,7 +22,7 @@ const base = () => { const d = new SQL.Database(); d.run(aero.slice(aero.indexOf
 
 test('lot Moyen : les corrections (doublon, niveau, seuil impossible, égalités)', () => {
   const moyen = ctx.CHALLENGES.filter(c => c.niv === 'm');
-  assert.equal(moyen.length, 9);
+  assert.equal(moyen.length, 14);
   assert.ok(!moyen.some(c => /AVG\(prix\), 2\) AS prix_moyen FROM reservations GROUP BY classe/.test(c.sol)), 'le prix moyen par classe reste le Facile af21');
   assert.ok(/\(SELECT AVG\(prix\) FROM reservations WHERE classe = 'Économique'\)/.test(D('am4').sol), 'à sa place, une sous-requête');
   assert.equal(D('af33').niv, 'f', 'bagages par statut : un simple GROUP BY, en Facile');

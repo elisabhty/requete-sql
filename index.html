@@ -9733,6 +9733,31 @@ const CHALLENGES=[
   q:"Affiche le numéro de vol, la capacité de l’avion, le nombre de réservations et le taux de remplissage en pourcentage (arrondi à 1 décimale) des vols dont le taux dépasse 3 %, triés par taux décroissant.",
   sol:"SELECT v.numero_vol, av.capacite, COUNT(r.id) AS nb_reservations, ROUND(100.0 * COUNT(r.id) / av.capacite, 1) AS taux_pct FROM vols v JOIN avions av ON av.id = v.avion_id LEFT JOIN reservations r ON r.vol_id = v.id GROUP BY v.id, v.numero_vol, av.capacite HAVING 100.0 * COUNT(r.id) / av.capacite > 3 ORDER BY taux_pct DESC;",
   indice:"Relie les vols aux avions et aux réservations, compte les réservations par vol, puis calcule le pourcentage (attention à la division entière : écris 100.0)."},
+ {id:'am10',apres:42,titre:"Les destinations de chaque compagnie",niv:'m',base:'aeroport',ordered:true,
+  contexte:"Le service développement prépare les prochaines liaisons et veut comparer l’étendue du réseau des compagnies présentes à l’aéroport. Pour éviter de compter plusieurs fois une ville desservie par différents vols, le rapport doit compter les destinations distinctes de chaque compagnie.",
+  q:"Affiche le nom des compagnies qui desservent au moins trois destinations différentes et leur nombre de destinations, triés du réseau le plus étendu au plus réduit puis par nom.",
+  sol:"SELECT c.nom, COUNT(DISTINCT v.aeroport_arrivee_id) AS nb_destinations FROM compagnies c JOIN vols v ON v.compagnie_id = c.id GROUP BY c.id, c.nom HAVING COUNT(DISTINCT v.aeroport_arrivee_id) >= 3 ORDER BY nb_destinations DESC, c.nom;",
+  indice:"Relie les compagnies à leurs vols, compte les identifiants d’aéroport d’arrivée distincts, puis filtre les groupes avec HAVING."},
+ {id:'am11',apres:43,titre:"Les passagers qui voyagent dans plusieurs classes",niv:'m',base:'aeroport',ordered:true,
+  contexte:"Le programme de fidélité veut repérer les voyageurs qui ont déjà essayé plusieurs niveaux de confort. Une même personne peut avoir plusieurs billets dans la même classe : il faut compter les classes différentes, pas les réservations.",
+  q:"Affiche le prénom, le nom et le nombre de classes différentes des passagers ayant réservé dans au moins deux classes, triés par nombre de classes décroissant, puis par nom et prénom.",
+  sol:"SELECT p.prenom, p.nom, COUNT(DISTINCT r.classe) AS nb_classes FROM passagers p JOIN reservations r ON r.passager_id = p.id GROUP BY p.id, p.prenom, p.nom HAVING COUNT(DISTINCT r.classe) >= 2 ORDER BY nb_classes DESC, p.nom, p.prenom;",
+  indice:"Regroupe les réservations par passager et compte les valeurs distinctes de classe. Le seuil se vérifie après le regroupement."},
+ {id:'am12',apres:44,titre:"Le prix des billets selon le mois et la classe",niv:'m',base:'aeroport',ordered:true,
+  contexte:"L’équipe tarifaire compare les ventes de mai et de juin pour ajuster ses prix. Elle veut suivre le nombre de billets et le prix moyen dans chaque classe, mois par mois, plutôt que de mélanger toutes les périodes.",
+  q:"Pour chaque mois de réservation et chaque classe, affiche le nombre de billets et le prix moyen arrondi à l’euro, triés par mois puis par classe.",
+  sol:"SELECT strftime('%Y-%m', date_reservation) AS mois, classe, COUNT(*) AS nb_reservations, ROUND(AVG(prix), 0) AS prix_moyen FROM reservations GROUP BY mois, classe ORDER BY mois, classe;",
+  indice:"Extrais le mois de la date de réservation, puis regroupe par mois et par classe pour compter les billets et calculer leur prix moyen."},
+ {id:'am13',apres:46,titre:"Les vols qui réunissent plusieurs nationalités",niv:'m',base:'aeroport',ordered:true,
+  contexte:"Le service d’accueil veut repérer les vols dont les passagers viennent d’horizons variés afin de prévoir l’assistance à l’arrivée. Pour chaque vol, il compare le nombre de nationalités différentes et le nombre de réservations.",
+  q:"Affiche le numéro du vol, la ville d’arrivée, le nombre de nationalités différentes et le nombre de réservations pour les vols réunissant au moins trois nationalités, triés par diversité décroissante, nombre de réservations décroissant puis numéro de vol.",
+  sol:"SELECT v.numero_vol, a.ville, COUNT(DISTINCT p.nationalite) AS nb_nationalites, COUNT(r.id) AS nb_reservations FROM vols v JOIN aeroports a ON a.id = v.aeroport_arrivee_id JOIN reservations r ON r.vol_id = v.id JOIN passagers p ON p.id = r.passager_id GROUP BY v.id, v.numero_vol, a.ville HAVING COUNT(DISTINCT p.nationalite) >= 3 ORDER BY nb_nationalites DESC, nb_reservations DESC, v.numero_vol;",
+  indice:"Relie les vols à leur destination et aux passagers réservés, puis compte les nationalités distinctes par vol."},
+ {id:'am14',apres:47,titre:"Les classes de billets par compagnie",niv:'m',base:'aeroport',ordered:true,
+  contexte:"La direction commerciale compare la composition des ventes de chaque compagnie pour mieux adapter ses offres. Elle veut compter séparément les billets Économique, Premium et Affaires dans un même tableau.",
+  q:"Affiche le nom de chaque compagnie et le nombre de billets vendus dans chacune des trois classes, triés par nombre de billets Économique décroissant puis par nom de compagnie.",
+  sol:"SELECT c.nom, SUM(CASE WHEN r.classe = 'Économique' THEN 1 ELSE 0 END) AS nb_economique, SUM(CASE WHEN r.classe = 'Premium' THEN 1 ELSE 0 END) AS nb_premium, SUM(CASE WHEN r.classe = 'Affaires' THEN 1 ELSE 0 END) AS nb_affaires FROM compagnies c JOIN vols v ON v.compagnie_id = c.id JOIN reservations r ON r.vol_id = v.id GROUP BY c.id, c.nom ORDER BY nb_economique DESC, c.nom;",
+  indice:"Regroupe les réservations par compagnie et utilise CASE dans les sommes pour compter séparément chaque classe."},
  /* Lot Difficile (Elisa, 1er novembre, « voici le lot Difficile sur la base Aéroport ») : dix missions sur les classements,
     fonctions de fenêtre, CTE, sous-requêtes et analyses croisées. Une réservation doublonnée est ajoutée dans le seed pour que
     le défi 10 ait un résultat vérifiable. */
@@ -17253,8 +17278,7 @@ function sallePts(n){return `${(+n||0).toLocaleString('fr-FR')} pt${n>1?'s':''}`
 /* Entrée « Salle de défi » : un niveau, seul ou entre amis, un nombre de manches ; le défi est tiré au sort. */
 function renderDefisRoom(){
   const host=document.getElementById('defis-room');if(!host)return;
-  /* Un niveau sans défi (Moyen et Difficile, le temps que leurs lots Aéroport arrivent) est grisé, « Bientôt » ; la salle se
-     replace sur le premier niveau qui en a. */
+  /* Un niveau sans défi est grisé et la salle se replace sur le premier niveau disponible. */
   if(!jeuChallenges(jeuNiv).length){const k=['f','m','d'].find(x=>jeuChallenges(x).length);if(k)jeuNiv=k;}
   const friends=jeuMode==='friends';
   /* Sous chaque niveau : ses manches réussies sur jouées (18 h 02 ; 18 h 28 : « réussies », pas « trouvées »). */

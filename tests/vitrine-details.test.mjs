@@ -277,14 +277,14 @@ test('témoignages : « Ils recommandent » dans le lecteur, pour montrer que ce
 test('« cas pratiques » à la place de « défis métier » sur la vitrine, la vidéo et les pages légales', () => {
   const pages = ['index.html', 'module.html', 'connexion.html', 'video.html', 'mentions-legales.html', 'confidentialite.html', 'conditions.html', 'modules.js'];
   for (const f of pages) assert.doesNotMatch(lire(f), /[Dd]éfis? métier/, `${f} : plus de « défis métier »`);
-  assert.match(lire('index.html'), /<li>52 cas pratiques<\/li>/, 'ce qui est inclus');
+  assert.match(lire('index.html'), /<li>57 cas pratiques<\/li>/, 'ce qui est inclus');
   assert.match(lire('index.html'), /<h3>Cas pratiques et révisions<\/h3>/);
-  assert.match(lire('connexion.html'), /<span class="sticker sun">52 cas pratiques<svg/, 'autocollant de la page de connexion');
+  assert.match(lire('connexion.html'), /<span class="sticker sun">57 cas pratiques<svg/, 'autocollant de la page de connexion');
   const v = lire('video.html');
   assert.ok(v.includes('<span>Des <em>cas pratiques</em>,</span>'), 'titre de la scène');
   assert.ok(v.includes("[101.5, 'Cas pratiques']"), 'chapitre');
-  assert.ok(v.includes('<div class="stk sun" id="stk-df">52 cas pratiques<svg'), 'autocollant de la vidéo');
-  assert.ok(v.includes('<b>52 cas pratiques</b>'), 'tuile des fonctionnalités');
+  assert.ok(v.includes('<div class="stk sun" id="stk-df">57 cas pratiques<svg'), 'autocollant de la vidéo');
+  assert.ok(v.includes('<b>57 cas pratiques</b>'), 'tuile des fonctionnalités');
   assert.ok(v.includes('<div class="df-stamp" id="df-stamp">Cas résolu&nbsp;!</div>'));
   /* Le défi entre amis est une autre fonction de l’appli : il garde son nom */
   assert.match(lire('index.html'), /lancer des défis entre amis/);
@@ -349,7 +349,7 @@ test('vidéo : « Apprends le SQL maintenant. » puis les neuf tuiles des foncti
   assert.ok(s9.includes('<span>Du premier <code>SELECT</code></span>') && s9.includes('<span>aux requêtes <em>avancées</em>,</span>'), 'titre');
   assert.ok(s9.includes('<p class="abs sub">progresse à ton rythme.</p>'), 'la phrase continue sous le titre');
   const tuiles = [...s9.matchAll(/<div class="ft(?: more)?">.*?<b>(.*?)<\/b><\/div>/g)].map(m => m[1]);
-  assert.deepEqual(tuiles, ['65 cours immersifs', 'Un labo&nbsp;SQL interactif', '52 cas pratiques', 'Importe tes propres données',
+  assert.deepEqual(tuiles, ['65 cours immersifs', 'Un labo&nbsp;SQL interactif', '57 cas pratiques', 'Importe tes propres données',
     '30 questions d’entretien', 'Cartes mémo &amp; stickers', 'Défie tes amis', 'Ta série de jours',
     'Et bien plus encore<small>Découvre-les maintenant&nbsp;!</small>']);
   /* Quatre rangées de deux, puis « Et bien plus encore » sur toute la largeur (Elisa, 20 h 01 : « tout est tassé »).
@@ -373,7 +373,7 @@ test('vidéo : « Apprends le SQL maintenant. » puis les neuf tuiles des foncti
   assert.match(video, /#end\.on a,#end\.on button\{animation:endPop [^}]*backwards\}/, 'l’entrée ne bloque pas le survol');
   /* Texte lu par VoiceOver */
   assert.ok(video.includes("'Apprends le SQL maintenant. Pratique sur de vraies données avec Requête. L’app, pensée pour les futurs data analysts. Des cours interactifs"));
-  assert.ok(video.includes("'Du premier SELECT aux requêtes avancées, progresse à ton rythme. 65 cours immersifs, un labo SQL interactif, 52 cas pratiques."));
+  assert.ok(video.includes("'Du premier SELECT aux requêtes avancées, progresse à ton rythme. 65 cours immersifs, un labo SQL interactif, 57 cas pratiques."));
 });
 
 /* Elisa, 30 octobre, 17 h 31 : un écran d’onboarding avec des logos de Harvard, Stanford et Emory (« est-ce qu’on peut
