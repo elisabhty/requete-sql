@@ -216,3 +216,9 @@ test('18 h 48 : questions d’entretien en entier, notions qui ont un sens, nouv
   assert.ok(lecon.includes('#cap .cap-stk::after{content:"Votre formatrice";'));
   assert.ok(lecon.includes('#cap .cap-stk{background:url(formatrice.webp) 50% 0/134px 134px no-repeat,'));
 });
+
+test('18 h 56 : un ✓ quand l’écriture marche dans l’app, la légende dans le cadre du haut ; flèche animée dans « Continuer la préparation »', () => {
+  assert.ok(app.includes('<p class="sg-legende"><span><em class="sg-tag">Notre moteur</em> la ligne de SQLite</span><span><i class="sg-check" aria-hidden="true">✓</i> marche dans l’app</span></p>'));
+  assert.ok(!app.includes('Toutes ces écritures marchent dans l’app'));
+  assert.ok(css.includes('html.lq .ent-hero .ent-hero-cta>svg:last-child{display:block!important;width:20px;height:20px;flex:none;animation:lstArrow 1.6s ease-in-out infinite}'));
+});
