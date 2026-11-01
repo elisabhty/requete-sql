@@ -6643,7 +6643,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=75">
+<link rel="stylesheet" href="ludique.css?v=76">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=3">
 <style id="lesson-video-css">
@@ -10309,18 +10309,63 @@ function defiSquelette(sol){
   });
   return txt;
 }
-function defiIndicesHTML(c,n){
-  n=Math.min(3,n||0);
-  if(!c||!n)return '';
+function defiIndices(c){
   const tb=defiTables(c.sol).map(t=>`<code>${esc(t)}</code>`);
   const liste=tb.length<2?tb.join(''):tb.slice(0,-1).join(', ')+' et '+tb[tb.length-1];
-  const I=[
+  return [
     ['Où chercher',!tb.length?'Ouvre le schéma : la consigne nomme les informations à trouver, chacune vit dans une table.':tb.length===1?`Tout se trouve dans une seule table : ${liste}.`:`Tu auras besoin de ${tb.length} tables : ${liste}.`],
     ['La piste',esc(c.indice||'Relis la consigne mot à mot : chaque information demandée est une colonne, chaque condition un filtre.')],
     ['La forme de la requête',`Ses mots-clés dans l’ordre ; chaque nom et chaque valeur sont remplacés par «&nbsp;…&nbsp;».<div class="ex-code">${highlight(defiSquelette(c.sol))}</div>`]
   ];
-  return `<div class="defi-indices" aria-live="polite">${I.slice(0,n).map(([t,h],i)=>`<div class="defi-ind${i===n-1?' is-new':''}"><b><span>Indice ${i+1}/3</span>${t}</b><div class="defi-ind-t">${h}</div></div>`).join('')}`+
-    `${n>=3?'<p class="defi-ind-fin">C’était le dernier indice. La requête ne sera pas dévoilée : à toi de la trouver.</p>':''}</div>`;
+}
+/* Elisa, 1er novembre, 14 h 33 : « homogénéiser, fusionner pour faire un seul cadre » (« Pas encore » et les indices étaient deux
+   cadres de styles différents) ; « les indices se mettent au même moment pour tout le monde, et un par un, pas 1 + 2 ». Une seule
+   carte sous l’éditeur, avant le résultat : en haut ce qui cloche dans le dernier essai, dessous l’indice du moment, seul, avec ses
+   trois pastilles (on peut revoir un indice déjà donné en touchant sa pastille). Seul, un indice par essai raté ; en salle, ils
+   arrivent à la même minute pour tout le monde (2 min 30, 5 min, 7 min 30), et la carte dit dans combien de temps vient le suivant. */
+const JEU_IND_T=[150000,300000,450000];
+let COACH=null;
+function coachReset(c,kind,round){COACH={c,kind,round,n:0,view:0,diag:'',fx:''};coachPaint();}
+function defiIndicesHTML(c,n,view,diag,next){
+  n=Math.min(3,n||0);
+  if(!c||(!n&&!diag&&next==null))return '';
+  const I=defiIndices(c),v=Math.min(n,Math.max(1,view||n));
+  const st=diag?`<div class="coach-st"><span class="coach-ico" aria-hidden="true">≈</span><div><b>Pas encore</b><p>${diag}</p></div></div>`:'';
+  const hint=n?`<div class="coach-hint" data-v="${v}"><div class="coach-h"><span class="coach-tag">Indice ${v}/3</span><b>${I[v-1][0]}</b>`+
+    `<span class="coach-dots" role="group" aria-label="Indices">${[1,2,3].map(i=>`<button type="button" class="coach-dot${i<=n?' is-on':''}${i===v?' is-cur':''}"${i>n?' disabled':''} onclick="coachVoir(${i})" aria-label="Indice ${i}${i>n?', pas encore donné':''}" aria-pressed="${i===v}"></button>`).join('')}</span></div>`+
+    `<div class="coach-t">${I[v-1][1]}</div>${n>=3&&v===3?'<p class="coach-fin">C’était le dernier indice. La requête ne sera pas dévoilée : à toi de la trouver.</p>':''}</div>`:'';
+  const nx=next!=null&&n<3?`<p class="coach-next"><i aria-hidden="true"></i>${n?'Indice suivant':'Premier indice'} pour tout le monde dans <b id="coach-cd">${jeuChrono(next)}</b></p>`:'';
+  return `<section class="coach${n?' has-hint':''}${diag?' has-ko':''}" aria-live="polite">${st}${hint}${nx}</section>`;
+}
+function coachNext(){
+  if(!COACH||COACH.kind!=='room'||typeof JEU==='undefined'||!JEU)return null;
+  const r=JEU.rounds&&JEU.rounds[COACH.round];if(!r||COACH.n>=3)return null;
+  return Math.max(0,JEU_IND_T[COACH.n]-(Date.now()-r.t1));
+}
+function coachPaint(){
+  const sl=document.getElementById('hint-slot');if(!sl||!COACH||COACH.c!==current)return;
+  sl.innerHTML=defiIndicesHTML(COACH.c,COACH.n,COACH.view,COACH.diag,coachNext());
+  const card=sl.querySelector('.coach');
+  if(card&&COACH.fx&&!prefersReduceMotion()){card.classList.add(COACH.fx);setTimeout(()=>card.classList.remove('is-new-hint','is-new-ko'),900);}
+  COACH.fx='';
+}
+function coachVoir(i){if(!COACH||i<1||i>COACH.n)return;COACH.view=i;coachPaint();const t=document.querySelector('#hint-slot .coach-hint');if(t&&!prefersReduceMotion()){t.classList.add('is-swap');}}
+/* Un essai raté : ce qui cloche en haut de la carte, qui secoue d’un rien. */
+function coachKo(diag){if(!COACH)return;COACH.diag=diag;COACH.fx='is-new-ko';coachPaint();}
+/* Un nouvel indice : il prend la place du précédent, la carte rebondit. */
+function coachSet(n){if(!COACH)return;n=Math.min(3,n);if(n>COACH.n){COACH.n=n;COACH.view=n;COACH.fx='is-new-hint';if(typeof buzz==='function')buzz('light');}coachPaint();}
+/* En salle : à chaque seconde, les indices du moment et le compte à rebours. */
+function coachRoomTick(){
+  if(typeof JEU==='undefined'||!JEU)return;
+  const J=JEU,n=jeuCur(),r=J.rounds&&J.rounds[n];
+  if(!r||!String(J.view||'').startsWith('play')||!document.getElementById('hint-slot'))return;
+  const c=CHALLENGES.find(x=>x.id===r.cid);if(!c)return;
+  if(!COACH||COACH.kind!=='room'||COACH.round!==n||COACH.c!==c)COACH={c,kind:'room',round:n,n:0,view:0,diag:'',fx:''};
+  const due=JEU_IND_T.filter(t=>Date.now()-r.t1>=t).length;
+  if(due>COACH.n){coachSet(due);return;}
+  const cd=document.getElementById('coach-cd'),nx=coachNext();
+  if(cd&&nx!=null)cd.textContent=jeuChrono(nx);
+  else if(!document.querySelector('#hint-slot .coach'))coachPaint();
 }
 /* Ce qui cloche dans un essai raté, sans rien dévoiler de la requête. */
 function defiDiag(userRes,solRes,c){
@@ -18448,7 +18493,7 @@ const ED_SCHEMA_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y
    pour qu’on la voie direct (il faudra la regarder avant) ») : un anneau qui pulse, un petit balancement, une pastille jaune. */
 function schAttn(){return typeof mode!=='undefined'&&(mode==='defi'||mode==='jeu')?' sch-attn':'';}
 const editorBlock=(withViz,fname='exercice.sql',o)=>{
-  const noExec=current&&current.noExec,jeu=!!(o&&o.jeu);
+  const noExec=current&&current.noExec,jeu=!!(o&&o.jeu),coach=jeu||!!(o&&o.coach);
   return `
   <div class="editor-shell">
     <div class="editor-bar"><span class="dot v"></span><span class="fname">${fname}</span>${jeu?`<button type="button" class="ed-schema${schAttn()}" onclick="openSchemaSheet()" aria-label="Voir le schéma des tables">${ED_SCHEMA_SVG}<span>Schéma</span></button>`:''}${sqlCopyBtn('data-ed="ed-lesson"')}${sqlClearBtn('ed-lesson')}</div>
@@ -18458,8 +18503,9 @@ const editorBlock=(withViz,fname='exercice.sql',o)=>{
   <div class="run-row"><button class="btn-run" onclick="runLesson()">${RUN_ICO} ${noExec?'Vérifier':'Exécuter'}</button>
   ${jeu?'':`<button class="btn-ghost${schAttn()}" type="button" onclick="openSchemaSheet()">Schéma</button>`}
   ${withViz&&!noExec&&!jeu?`<button class="btn-ghost" type="button" onclick="openViz('ed-lesson')">Pas à pas</button>`:''}</div>
+  ${coach?'<div id="hint-slot"></div>':''}
   <div id="lesson-out" role="status" aria-live="polite" aria-atomic="true" style="overflow-anchor:none"></div>
-  <div id="hint-slot"></div>`;
+  ${coach?'':'<div id="hint-slot"></div>'}`;
 };
 
 let lessonStep=0; // 0 leçon · 1 exercice · 2 quiz
@@ -24538,6 +24584,7 @@ function jeuTick(){
     /* Un palier passé : la valeur change, la pastille fait un petit saut (sauf mouvement réduit). */
     const vn=document.getElementById('jeu-val-n');if(vn){const v=String(jeuValeur(Math.max(0,took)));if(vn.textContent!==v){vn.textContent=v;const pv=vn.parentNode;if(pv&&pv.classList&&!prefersReduceMotion()){pv.classList.remove('is-drop');void pv.offsetWidth;pv.classList.add('is-drop');}}}}
   if(jeuView()!==J.view||jeuSig()!==J.sig)jeuPaint();
+  else coachRoomTick();
 }
 /* Redessiner la même vue (réglage changé, nouvel hôte, temps reçu…) sans perdre la page, le focus
    ni la requête en cours de frappe. */
@@ -24735,7 +24782,7 @@ function jeuRender(){
     /* Tant qu’on cherche : ce que vaut le défi, palier par palier (200, 175, 150…), et +25 tant que la première requête peut être la
        bonne (il tombe au premier essai manqué). */
     const val=mine?'':`<b class="jeu-val" id="jeu-val" title="Ce que vaut le défi maintenant">${JEU_COIN_SVG}<span id="jeu-val-n">${jeuValeur(Math.max(0,took0))}</span><small>pts</small>${r.tries?'':`<i class="jeu-val-b" id="jeu-val-b" title="Si ta première requête est la bonne">+${JEU_PTS_ESSAI}</i>`}</b>`;
-    html=`<div class="jeu-bar"><span class="l-kicker">Manche ${n+1}/${J.nb} · ${JEU_NIVL[c.niv]}</span><span class="jeu-bar-r">${val}<b class="jeu-timer${JEU_ROUND_MS-took0<30000?' is-low':''}" id="jeu-timer" role="timer" aria-label="Chrono de la manche">${jeuChrono(took0)}</b></span></div>
+    html=`<div class="jeu-bar"><span class="l-kicker">Manche ${n+1}/${J.nb} · ${JEU_NIVL[c.niv]}${defiBaseId(c)?` · Base ${esc(DEFI_BASES[defiBaseId(c)].nom)}`:''}</span><span class="jeu-bar-r">${val}<b class="jeu-timer${JEU_ROUND_MS-took0<30000?' is-low':''}" id="jeu-timer" role="timer" aria-label="Chrono de la manche">${jeuChrono(took0)}</b></span></div>
       <div id="jeu-netslot">${jeuNetHTML()}</div>
       ${sl?'':`<ul class="jeu-mates" id="jeu-players" aria-label="Qui a trouvé">${jeuMatesHTML(n)}</ul>`}
       <h1>${esc(c.titre)}</h1>
@@ -24813,6 +24860,7 @@ function jeuRender(){
     if(typed){const ed=document.getElementById('ed-lesson');ed.value=typed;ed.dispatchEvent(new Event('input'));}
   }
   if(v.startsWith('draw'))jeuDrawStep(+v.slice(4));
+  if(v.startsWith('play'))coachRoomTick();
   jeuAnnounce();
   if(focusKey){const f=root.querySelector(`[data-fk="${focusKey}"]`);if(f&&f.focus)f.focus({preventScroll:true});}
   const scr=document.getElementById('scr-lesson');if(scr&&!keep)scr.scrollTop=0;
@@ -24977,7 +25025,7 @@ function jeuRun(){
   try{
     const dU=defiSandbox(c);const t0=performance.now();try{userRes=dU.exec(sql);ms=performance.now()-t0;}finally{dU.close();}
     const dS=defiSandbox(c);try{solRes=dS.exec(c.sol);}finally{dS.close();}
-  }catch(e){setLessonOut(errBox(e.message));jeuEssaiRate(r);jeuIndice(r,c,sql);return;}
+  }catch(e){setLessonOut(errBox(e.message));jeuEssaiRate(r);coachKo('La requête ne s’exécute pas : lis le message juste en dessous.');return;}
   if(exerciseResultsMatch(userRes,solRes,c,true)){
     const took=Date.now()-r.t1;
     document.querySelectorAll('#lesson-body .btn-run').forEach(b=>b.disabled=true);
@@ -24992,18 +25040,12 @@ function jeuRun(){
   }
   const diag=typeof defiDiag==='function'?defiDiag(userRes,solRes,c):exoFailDiag(sql,c.sol,userRes,solRes,exerciseRequiresOrder(c,true));
   const table=(!userRes||!userRes.length)?'':renderTable(userRes,ms);
-  setLessonOut(`<div class="feedback warn"><div class="fi">≈</div><div><b>Pas encore</b><p>${diag}</p></div></div>${table}`);
+  setLessonOut(table);
   jeuEssaiRate(r);
-  jeuIndice(r,c,sql);
+  coachRoomTick();
+  coachKo(diag);
 }
-/* En salle aussi, un indice par essai raté (trois au plus, la même requête relancée n’en débloque pas), sous l’éditeur. */
-function jeuIndice(r,c,sql){
-  if(!r)return;
-  const k=String(sql||'').replace(/\s+/g,' ').trim();
-  if(k!==r.lastKo){r.lastKo=k;r.ind=Math.min(3,(r.ind||0)+1);}
-  const s=typeof document!=='undefined'&&document.getElementById?document.getElementById('hint-slot'):null;
-  if(s&&typeof defiIndicesHTML==='function')s.innerHTML=defiIndicesHTML(c,r.ind);
-}
+/* En salle, les indices ne dépendent plus des essais : ils arrivent à la même minute pour tout le monde (coachRoomTick, 14 h 33). */
 /* Le premier essai manqué : le « +25 » de la barre s’envole. */
 function jeuEssaiRate(r){
   if(!r||r.tries!==1)return;
@@ -25123,9 +25165,10 @@ function openChallenge(cid){
     ${jeuEligible(c)?challengeHowHTML(c):''}
     <div id="defi-solo-block">
     <p style="font-size:13.5px;color:var(--ink-2);margin:0 4px 14px">La syntaxe reste à construire par toi. Touche <b>Schéma</b> sous l’éditeur si un nom de colonne te manque.</p>
-    ${editorBlock(true,'defi.sql')}
+    ${editorBlock(true,'defi.sql',{coach:1})}
     </div>`;
   setupEditor('ed-lesson','hl-lesson'); showScreen();
+  coachReset(c,'solo');
   defiChronoStart(c);
   saveNav();
 }
@@ -25159,8 +25202,8 @@ function renderExoHelp(){
   if(mode==='lesson')return;
   const s=document.getElementById('hint-slot');
   if(!s||!current||exoFails<1){if(s&&exoFails<1)s.innerHTML='';return;}
-  /* Un défi : les indices, jamais la solution (8 h 59). */
-  if(mode==='defi'){s.innerHTML=defiIndicesHTML(current,exoFails);return;}
+  /* Un défi : les indices, jamais la solution (8 h 59), dans la carte unique (14 h 33). */
+  if(mode==='defi'){if(!COACH||COACH.c!==current)COACH={c:current,kind:'solo',n:0,view:0,diag:'',fx:''};coachSet(exoFails);return;}
   const sol=current.solution;
   let html='';
   if(exoFails>=1){
@@ -25380,7 +25423,7 @@ function runLesson(){
       try{userRes=dU.exec(sql); ms=performance.now()-t0;}finally{dU.close();}
       const dS=isDefi?defiSandbox(current):sandbox(); try{solRes=dS.exec(sol);}finally{dS.close();}
     }
-  }catch(e){ setLessonOut(errBox(e.message)); registerExoFail(sql); return; }
+  }catch(e){ setLessonOut(errBox(e.message)); if(isDefi&&COACH&&COACH.c===current){COACH.diag='La requête ne s’exécute pas : lis le message juste en dessous.';COACH.fx='is-new-ko';} registerExoFail(sql); return; }
   const ok=exerciseResultsMatch(userRes,solRes,current,isDefi);
   if(ok){
     const table=renderTable(userRes,ms);
@@ -25429,7 +25472,9 @@ function runLesson(){
     if(mode==='review'){ const st=state.lessons[current.id]; if(st){st.level=0;st.due=Date.now()+DAY;save();} }
     // Évite le double message : pas de bandeau vert « Requête exécutée / Aucune ligne » sous le warn.
     const table=(!userRes||!userRes.length)?'':renderTable(userRes,ms);
-    setLessonOut(`<div class="feedback warn"><div class="fi">≈</div><div><b>La requête tourne, mais…</b><p>${diag}</p></div></div>${table}`);
+    /* Un défi : « Pas encore » passe dans la carte des indices ; dessous, le résultat obtenu. */
+    if(isDefi&&COACH&&COACH.c===current){setLessonOut(table);COACH.diag=diag;COACH.fx='is-new-ko';}
+    else setLessonOut(`<div class="feedback warn"><div class="fi">≈</div><div><b>La requête tourne, mais…</b><p>${diag}</p></div></div>${table}`);
     registerExoFail(sql);
   }
 }
@@ -31634,7 +31679,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-engagement-v2253';
+  const SW_CACHE='requete-2026-11-01-coach-v2254';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
