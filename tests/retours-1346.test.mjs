@@ -278,3 +278,7 @@ test('19 h 48 : « Ta session » a son animation (sablier qui coule et se retour
   for (const k of ['@keyframes lqSabFlip{0%,80%{rotate:0deg}100%{rotate:180deg}}', '@keyframes lqSabHaut{0%{scale:1 1}78%,100%{scale:0 0}}', '@keyframes lqSabDort{0%,100%{rotate:-9deg}50%{rotate:9deg}}', '@keyframes lqChk{to{stroke-dashoffset:0}}', 'html.lq[data-motion="reduce"] .lq-ses-ic *{animation:none!important}'])
     assert.ok(css.includes(k), k);
 });
+
+test('19 h 53 : moins d’espace entre la série et « Ton parcours »', () => {
+  assert.ok(css.includes('html.lq #scr-learn #modules{margin-top:6px;padding-top:16px}'));
+});
