@@ -61,3 +61,8 @@ test('1 h 32 : la base Aéroport dans « Tes projets », de l’espace sous les 
   assert.ok(css.includes('html.lq #app .p-bar{height:calc(var(--safe-top) + 52px);padding-bottom:8px;box-sizing:border-box;margin-bottom:calc(-1 * (var(--safe-top) + 52px))}'));
   assert.ok(!app.includes('Chaque projet garde sa base, son brouillon et son historique.'));
 });
+
+test('1 h 44 : la description de la base Aéroport est celle du fichier d’Elisa', () => {
+  assert.ok(app.includes("id==='aeroport'?DEFI_BASES.aeroport.desc:''"));
+  assert.ok(app.includes("desc:'Bienvenue dans les coulisses d’un aéroport international. Vols, passagers, compagnies, avions et bagages : toutes les données nécessaires au fonctionnement de l’aéroport sont réunies ici. Explore la base pour résoudre les différentes missions.'"));
+});
