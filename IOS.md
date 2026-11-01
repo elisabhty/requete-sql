@@ -68,9 +68,15 @@ npm run ios
   langue) partent dans la table `contact_message` (fonction `contact_envoyer`, 3 messages en 10 min et 20 par jour par
   appareil ; effacés au bout de 3 ans). **Pour lire les messages** : tableau de bord Supabase, Table Editor, vue
   `contact_boite` (le plus récent en haut) ; cocher `lu` dans `contact_message` une fois traité. Dans App Store Connect,
-  déclarer « Adresse e-mail » (facultative), « Autre contenu utilisateur » (le message) et « Autres données de
+  déclarer « Adresse e-mail » (facultative), « Autre contenu utilisateur » (le message et les fichiers joints),
+  « Photos ou vidéos » (les captures jointes) et « Autres données de
   diagnostic » (les infos techniques) ; usage « Assistance client » (et « Fonctionnalités de l’app » pour les bugs) ;
   non liés à l’identité, sans pistage. Cela répond aussi à l’exigence d’un moyen de contact dans l’app.
+  **Pièces jointes** (1er novembre) : jusqu’à 3 par message, 5 Mo chacune, dans l’espace de stockage privé
+  `contact-pieces` (l’appli peut y déposer, jamais y lire). Leurs chemins sont dans la colonne `pieces` de
+  `contact_boite` : Storage › contact-pieces, puis le dossier du même nom, pour les ouvrir. Le ménage des 3 ans
+  n’efface que les messages : supprimer à la main les fichiers des messages traités (et les dossiers sans message,
+  si un envoi a échoué après le dépôt).
 - **Effacement** : « Retirer mes scores du classement » et « Effacer la progression » suppriment les données du
   serveur depuis l’appli (pas de compte, donc pas de suppression de compte à prévoir).
 - **Passer du site à l’app** : Mon compte › Données › « Exporter ma progression » sur le site, puis « Importer une
