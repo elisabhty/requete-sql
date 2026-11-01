@@ -119,13 +119,12 @@ test('programme : les 15 parties sont des modules, comme dans l’appli ; la fic
   }
 });
 
-test('connexion : le décor tient sur tous les écrans (pas de débordement, pastille ronde à la bonne taille)', () => {
+test('connexion : le décor tient sur tous les écrans, sans badge aperçu ni débordement', () => {
   const h = lire('connexion.html');
-  /* Les confettis de l’étiquette « Aperçu » sortaient de l’écran sur mobile (18 px de défilement de côté) */
-  assert.match(h, /\.cx-tag::before,\.cx-tag::after\{display:none\}/);
-  /* Petits écrans : le collage se règle sur sa largeur ; « Aperçu » passe à gauche, loin du chat */
-  const mob = h.slice(h.indexOf('@media (max-width:959px){'), h.indexOf('}\n', h.indexOf('.cx-tag{right:auto;left:22px')) + 2);
-  for (const r of ['.cx-stage{container-type:inline-size', '.cx-round{width:clamp(92px,26cqw,104px)', '.cx-masc{--mw:clamp(120px,40cqw,160px)', '.cx-bubble{left:auto;right:22%;top:-34px', '.cx-tag{right:auto;left:22px'])
+  assert.doesNotMatch(h, /<span class="sticker lav cx-tag">Aperçu<\/span>/);
+  const mobStart = h.indexOf('@media (max-width:959px){');
+  const mob = h.slice(mobStart, h.indexOf('@media (max-width:359px){', mobStart));
+  for (const r of ['.cx-stage{container-type:inline-size', '.cx-round{width:clamp(92px,26cqw,104px)', '.cx-masc{--mw:clamp(120px,40cqw,160px)', '.cx-bubble{left:auto;right:22%;top:-34px'])
     assert.ok(mob.includes(r), `mobile : ${r}`);
   /* Ordinateur : le chat se règle sur la largeur et la hauteur du décor ; « GROUP BY » s’efface quand le décor est étroit */
   assert.match(h, /\.cx-stage\{container-type:size\}\n  \.cx-masc\{width:clamp\(150px,min\(34cqw,40cqh\),280px\)\}/);
