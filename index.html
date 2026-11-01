@@ -6643,7 +6643,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=62">
+<link rel="stylesheet" href="ludique.css?v=63">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -9581,6 +9581,10 @@ const CHALLENGE_GUIDES={};
    plus) — complets, c’est impossible avec 55 passagers et des avions de 100 à 368 places. */
 const DEFI_BASES={
   aeroport:{nom:'Aéroport',
+    /* Elisa, 1er novembre, 1 h 45 : la description de chaque table et de chaque colonne, affichée dans le schéma (défis et
+       Console). Les « À savoir » de son texte (« utile pour les défis sur… ») ne sont pas repris : pas d’indice (1 h 20). */
+    tables:{"passagers": "Toutes les personnes enregistrées auprès de l’aéroport, qu’elles aient déjà voyagé ou non : la table de référence des identités.", "compagnies": "Les compagnies aériennes qui opèrent à l’aéroport, chacune avec un code IATA fictif de 3 lettres.", "avions": "La flotte de chaque compagnie : chaque avion est rattaché à une compagnie et a une capacité en sièges.", "aeroports": "Les aéroports desservis, au départ ou à l’arrivée : l’aéroport principal et toutes les destinations et origines.", "vols": "La table centrale : chaque ligne est un vol, avec sa compagnie, son avion, ses aéroports de départ et d’arrivée, ses horaires et son statut.", "reservations": "Le lien entre passagers et vols : chaque réservation est un passager sur un vol, avec sa classe, son siège, son prix et sa date d’achat.", "bagages": "Les bagages des réservations : chacun est rattaché à une réservation et suit un statut de traitement."},
+    cols:{"passagers": {"id": "Identifiant unique du passager.", "prenom": "Prénom du passager.", "nom": "Nom de famille du passager.", "nationalite": "Nationalité (ex. « Française », « Allemande », « Japonaise »).", "date_naissance": "Date de naissance.", "email": "Adresse e-mail, unique pour chaque passager."}, "compagnies": {"id": "Identifiant unique de la compagnie.", "nom": "Nom commercial (ex. « AlphaJet », « SkyWings »).", "pays": "Pays d’origine de la compagnie.", "code": "Code IATA fictif, unique (ex. ALX, SKY, NVA)."}, "avions": {"id": "Identifiant unique de l’avion.", "modele": "Modèle de l’appareil (ex. « Airbus A320 », « Boeing 737-800 »).", "immatriculation": "Immatriculation de l’avion, unique (ex. F-ALX01).", "capacite": "Nombre total de sièges.", "compagnie_id": "Compagnie propriétaire de l’avion."}, "aeroports": {"id": "Identifiant unique de l’aéroport.", "nom": "Nom officiel de l’aéroport.", "ville": "Ville desservie.", "pays": "Pays de l’aéroport.", "code": "Code IATA, unique (ex. CDG, LIS, JFK)."}, "vols": {"id": "Identifiant unique du vol.", "numero_vol": "Numéro commercial du vol, unique (ex. ALX100, SKY204).", "compagnie_id": "Compagnie qui opère le vol.", "avion_id": "Avion affecté au vol.", "aeroport_depart_id": "Aéroport de départ.", "aeroport_arrivee_id": "Aéroport d’arrivée.", "date_depart": "Date du départ.", "heure_depart": "Heure de départ prévue.", "heure_arrivee": "Heure d’arrivée prévue.", "statut": "Statut du vol : « À l’heure », « Retardé », « Annulé », « Terminé » ou « Programmé »."}, "reservations": {"id": "Identifiant unique de la réservation.", "passager_id": "Passager qui a réservé.", "vol_id": "Vol concerné.", "classe": "Classe de voyage : « Économique », « Premium » ou « Affaires ».", "siege": "Numéro de siège (ex. 12A, 2C).", "prix": "Prix payé, en euros.", "date_reservation": "Date à laquelle la réservation a été faite."}, "bagages": {"id": "Identifiant unique du bagage.", "reservation_id": "Réservation à laquelle le bagage est rattaché.", "poids_kg": "Poids en kilogrammes ; vide (NULL) pour un bagage en cabine non pesé.", "statut": "Statut du bagage : « Enregistré », « Livré », « Retardé », « Perdu » ou « En cabine »."}},
     desc:'Bienvenue dans les coulisses d’un aéroport international. Vols, passagers, compagnies, avions et bagages : toutes les données nécessaires au fonctionnement de l’aéroport sont réunies ici. Explore la base pour résoudre les différentes missions.',
     sql:`
 CREATE TABLE passagers (
@@ -11088,7 +11092,9 @@ const DEMO_NOTES={desc:'La boutique NutriBoost des cours : ses clients, ses pro
   tables:{clients:'Les clients de la boutique : nom, adresse, ville, âge, e-mail et téléphone.',produits:'Le catalogue : chaque produit, sa catégorie, son prix et son stock.',
     commandes:'Les commandes : quel client, quel produit, quelle quantité, et quand.',fidelite:'Les cartes de fidélité et leurs points, une par client inscrit.'}};
 function dbNote(id){ const p=projOf(id); return p.desc!=null?p.desc:(id==='cours'?DEMO_NOTES.desc:id==='aeroport'?DEFI_BASES.aeroport.desc:''); }
-function tableNote(id,t){ const m=projOf(id).tdesc||{}; return m[t]!=null?m[t]:(id==='cours'?(DEMO_NOTES.tables[t]||''):''); }
+function tableNote(id,t){ const m=projOf(id).tdesc||{}; return m[t]!=null?m[t]:(id==='cours'?(DEMO_NOTES.tables[t]||''):(DEFI_BASES[id]&&DEFI_BASES[id].tables&&DEFI_BASES[id].tables[t])||''); }
+/* La description d’une colonne, pour les bases qui en ont (Aéroport). */
+function colNote(id,t,c){ const b=typeof DEFI_BASES!=='undefined'&&DEFI_BASES[id];return (b&&b.cols&&b.cols[t]&&b.cols[t][c])||''; }
 async function editDbNote(id){
   id=id||activeDbId;
   const v=await lqPrompt({ico:'📝',titre:'Description du projet',texte:'Quelques mots pour te rappeler ce que contient cette base.',
@@ -11705,6 +11711,7 @@ function renderDbWorkspace(){
         ${c.b==='fk'?'<span class="badge fk">FK</span>':''}
         ${c.ref?`<span class="cref">→ ${esc(c.ref)}</span>`:''}
         <span class="ct">${esc(c.t)}</span>
+        ${colNote(activeDbId,t,c.c)?`<small class="cd">${esc(colNote(activeDbId,t,c.c))}</small>`:''}
       </div>`).join('')||'<div class="db-empty">Aucune colonne.</div>'}
     </div>`:'';
     const note=tableNote(activeDbId,t);
@@ -13420,12 +13427,14 @@ function renderSchemaSheet(){
     const cols=introspectTable(database,name,tables);
     return `<div class="sch-table">
       <div class="sch-head">${schemaTableIcon()}<b>${esc(name)}</b><small>${n} ligne${n>1?'s':''}</small></div>
+      ${dId&&tableNote(dId,name)?`<p class="sch-tnote">${esc(tableNote(dId,name))}</p>`:''}
       ${cols.map(c=>`<div class="sch-col">
         <span class="cn">${esc(c.c)}</span>
         ${c.b==='pk'?'<span class="badge pk">PK</span>':''}
         ${c.b==='fk'?'<span class="badge fk">FK</span>':''}
         ${c.ref?`<span class="cref">→ ${esc(c.ref)}</span>`:''}
         <span class="ct">${esc(c.t)}</span>
+        ${dId&&colNote(dId,name,c.c)?`<small class="cd">${esc(colNote(dId,name,c.c))}</small>`:''}
       </div>`).join('')||'<div class="sch-col"><span class="cn">—</span></div>'}
     </div>`;
   }).join('')||'<p class="viz-e">Aucune table disponible.</p>');
@@ -28490,7 +28499,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-projet-aeroport-v2232';
+  const SW_CACHE='requete-2026-11-01-descriptions-v2233';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
