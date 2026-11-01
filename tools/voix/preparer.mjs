@@ -5,6 +5,7 @@
    - ch00 : l’ouverture (le titre du cours, puis la phrase de la bulle) ;
    - ch01… : un fichier par chapitre, ses légendes dans l’ordre (telles que l’app les voit), phrase par phrase ;
    - at1… : les consignes des moments « À toi », indice1… : leurs indices (même numéro que le moment), touche1… : « Touche … » ;
+   - lienavant, lienapres : le lien avec la leçon d’avant et celle d’après (assets/anim/liens.js) ;
    - bienvu, rattrape, presque, finbravo, fineffort : les phrases communes, reprises du premier cours (copiées dans
      tools/voix/sortie/<cours>/ : generer.mjs ne les refait pas, elles ne coûtent rien).
    La prononciation : DIRE ci-dessous (le code dit à voix haute) ; la phrase gardée pour caler la voix reste celle qui est dite. */
@@ -40,7 +41,9 @@ const DIRE = [[/\bSELECT \*/g, 'SELECT étoile'], [/(\w)_(\w)/g, '$1 underscore 
   [/ = /g, ' égale '], [/ \+ /g, ' avec '], [/'([^']+)'/g, '$1'], [/\s*;\s*$/g, '.']];
 /* Une phrase qui ne se lit pas telle quelle : sa version dite (la légende, elle, ne change pas). */
 const PHRASES = {
-  "'paris' ≠ 'Paris' : écris la valeur telle qu’elle figure dans la table.": 'Attention aux majuscules : paris n’est pas Paris. Écris la valeur telle qu’elle figure dans la table.'
+  "'paris' ≠ 'Paris' : écris la valeur telle qu’elle figure dans la table.": 'Attention aux majuscules : paris n’est pas Paris. Écris la valeur telle qu’elle figure dans la table.',
+  'Dans la prochaine leçon, tu compareras des valeurs avec =, > ou <.': 'Dans la prochaine leçon, tu compareras des valeurs avec les signes égal, plus grand que et plus petit que.',
+  'Dans la leçon précédente, tu as comparé des valeurs avec =, > ou <.': 'Dans la leçon précédente, tu as comparé des valeurs avec les signes égal, plus grand que et plus petit que.'
 };
 const dire = s => PHRASES[s] || DIRE.reduce((t, [a, b]) => t.replace(a, b), s);
 
@@ -67,6 +70,9 @@ const out = el.map(e => Object.assign({id: e.id, titre: e.titre, texte: '[cheerf
 moments.forEach((m, i) => out.push({id: 'at' + (i + 1), texte: '[cheerful] À toi ! ' + dire(plain(m.prompt || ''))}));
 moments.forEach((m, i) => { if (m.hint) out.push({id: 'indice' + (i + 1), texte: '[warmly] ' + dire(plain(m.hint))}); });
 opens.forEach((o, i) => out.push({id: 'touche' + (i + 1), texte: '[cheerful] ' + dire(plain(o.prompt))}));
+/* Le lien avec la leçon d’avant et celle d’après (assets/anim/liens.js) : lienavant, lienapres, dits pendant leur pause. */
+const liens = (() => { const c = vm.createContext({window: {}}); vm.runInContext(fs.readFileSync(path.join(ROOT, 'assets', 'anim', 'liens.js'), 'utf8'), c); return c.window.liensDe(cours) || {}; })();
+for (const k of ['avant', 'apres']) if (liens[k]) out.push({id: 'lien' + k, texte: '[cheerful] ' + dire(plain(liens[k]).replace(/&gt;/g, '>').replace(/&lt;/g, '<'))});
 const COMMUNES = ['bienvu', 'rattrape', 'presque', 'finbravo', 'fineffort'];
 COMMUNES.forEach(id => out.push(base.elements.find(x => x.id === id)));
 
