@@ -46,3 +46,7 @@ test('1 h 07 : la carte du joueur, la note de la salle, les cartes de « Profil 
   assert.ok(!app.includes('sont partagés, jamais tes requêtes'));
   assert.ok(css.includes('html.lq #plus-profile-settings .plus-details-body>.acc-row{width:calc(100% - 36px);margin:0 18px 12px;'));
 });
+
+test('1 h 29 : le bouton « Importer » de la Console garde son relief (la barre qui défile lui laisse la place)', () => {
+  assert.ok(css.includes('html.lq #scr-console .console-schema-panel .db-bar{padding:2px 2px 6px;margin:-2px -2px -6px}'));
+});
