@@ -41,9 +41,9 @@ const scene = (() => {
 
 test('l’appli a bien ses questions d’entretien, lues ici sans en perdre', () => {
   assert.ok(start > 0, 'tableau ENTRETIEN trouvé dans index.html');
-  assert.equal(QUESTIONS.length, 102, '75 questions, puis 27 ajoutées (19 h 12)');
+  assert.equal(QUESTIONS.length, 141, '75 questions, puis 27 (19 h 12), puis 39 (19 h 19)');
   assert.deepEqual(NIVEAUX, ['Débutant', 'Intermédiaire', 'Avancé']);
-  assert.deepEqual(NIVEAUX.map(n => QUESTIONS.filter(q => q.niveau === n).length), [34, 34, 34]);
+  assert.deepEqual(NIVEAUX.map(n => QUESTIONS.filter(q => q.niveau === n).length), [47, 47, 47]);
   assert.deepEqual([...FILTRES.map(f => f.key)].sort(), [...NOTIONS].sort(), 'les notions de la liste sont celles de la banque (rangées dans l’ordre où on les apprend, 18 h 48)');
   assert.equal(FILTRES[0].key, 'SELECT', 'SELECT en haut');
   assert.ok(!NOTIONS.some(n => ['Requêtes', 'Bases', 'Entretien'].includes(n)), 'plus de notion qui ne veut rien dire');
@@ -92,7 +92,7 @@ test('le nombre de questions et de niveaux annoncé correspond à l’appli', ()
   assert.ok(texte(faq).includes(`${n} questions d’entretien SQL réparties en trois niveaux`), 'FAQ visible');
   assert.match(vitrine, new RegExp(`"text":"Oui. L’appli propose ${n} questions d’entretien SQL réparties en trois niveaux`), 'FAQ des moteurs de recherche');
   const puces = [...section.matchAll(/<ul class="en-themes"[^>]*>(.*?)<\/ul>/gs)].map(m => [...m[1].matchAll(/<li>([^<]+)<\/li>/g)].map(x => x[1]))[0];
-  assert.deepEqual(puces, ['Débutant · 34', 'Intermédiaire · 34', 'Avancé · 34'], 'la vitrine annonce les trois niveaux équilibrés');
+  assert.deepEqual(puces, ['Débutant · 47', 'Intermédiaire · 47', 'Avancé · 47'], 'la vitrine annonce les trois niveaux équilibrés');
   assert.ok(texte(section).includes('niveau validé sur 3'));
 });
 
