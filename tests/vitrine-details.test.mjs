@@ -211,6 +211,20 @@ test('navigation mobile : même espacement entre les boutons et le menu', () => 
   assert.match(css, /@media \(max-width:380px\)\{\s*\.nav \.wrap\{gap:6px\}/);
 });
 
+test('FAQ de la vitrine : questions et réponses visibles identiques aux données structurées', () => {
+  const html = lire('index.html');
+  const faq = html.slice(html.indexOf('<section class="faq"'), html.indexOf('<!-- Appel final -->'));
+  const schema = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+  const cards = [...faq.matchAll(/<details class="qa rv"><summary>([\s\S]*?)<span class="pm"[\s\S]*?<p>([\s\S]*?)<\/p>/g)];
+  const plain = value => value.replace(/<[^>]*>/g, '').replace(/&nbsp;|&#160;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\s+/g, ' ').trim();
+  assert.equal(cards.length, 11, '11 questions dans la FAQ visible');
+  assert.equal(schema.mainEntity.length, cards.length, '11 entrées dans le balisage FAQPage');
+  cards.forEach((card, index) => {
+    assert.equal(plain(card[1]), schema.mainEntity[index].name, `question ${index + 1}`);
+    assert.equal(plain(card[2]), schema.mainEntity[index].acceptedAnswer.text, `réponse ${index + 1}`);
+  });
+});
+
 test('avis : Aminata C. (même personne que l’ancien avis « En reconversion »), photos sur les trois cartes écrites', () => {
   const h = lire('index.html');
   assert.doesNotMatch(h, /Julie K\./, 'un seul nom pour un même avis');
