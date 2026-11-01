@@ -419,7 +419,7 @@ const PICKS = [
     options: NOMS.map(n => ({label: n[0]}))},
   {at: 171.15, from: 163.12, kind: 'pick', text: true, prompt: 'Quelle requête retire les numéros et leur colonne de la table coachs ?', options: [
     {label: 'ALTER TABLE coachs RENAME COLUMN telephone TO ancien_telephone', why: 'Renommer garde la colonne et ses numéros : seul son nom changerait.'},
-    {label: 'UPDATE coachs SET telephone = NULL', why: 'Les numéros seraient effacés, mais la colonne telephone resterait, vide.'},
+    {label: 'ALTER TABLE coachs ADD COLUMN telephone TEXT', why: 'ADD COLUMN ajoute une colonne : telephone existe déjà, la requête serait refusée et les numéros resteraient.'},
     {label: 'ALTER TABLE coachs DROP COLUMN telephone', ok: true}]},
   {at: 200.15, from: 181.3, kind: 'sort', prompt: 'Range chaque demande selon la requête qui la réalise.',
     hint: 'Sélectionne une demande, puis appuie sur la requête qui la réalise. Tu peux aussi la faire glisser directement.', next: '« {x} » : quelle requête ?',
@@ -1170,8 +1170,9 @@ const IX = (() => {
       if (ok) marks(M5_ANS);
       // renommer : la colonne reste, avec ses numéros, sous un autre nom
       if (k === 0) { flash($('#tc-co .hd .c4 .h0'), 'pvh', 1300); flash($('#tc-co .hd .c4 .h1'), 'pvs', 1300); flash($('#tc-co .hd .c4'), 'kof', 650); }
-      // UPDATE : la colonne reste, vide
-      if (k === 1) { flashAll(['#tc-co .r .c4 .l1'], 'pvh', 1300); flashAll(['#tc-co .r .c4 .l3'], 'pvs', 1300); flashAll(['#tc-co .r .c4'], 'kof', 650); }
+      // ADD COLUMN : la colonne telephone existe déjà, la requête est refusée (Elisa, 1er novembre, 23 h 07 : une mauvaise réponse
+      // faite de commandes déjà vues, et non UPDATE, qui n’arrive que trois leçons plus tard)
+      if (k === 1) { flash($('#tc-co .hd .c4'), 'kof', 650); flashAll(['#tc-co .r .c4'], 'kof', 650); }
       sfx(ok ? 'pop' : 'miss', 2, 0.5);
     }
     return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));

@@ -76,11 +76,11 @@ const lignes = (db, t) => (db.exec(`SELECT * FROM ${t} ORDER BY id`)[0] || {valu
 const jusquAuCadeau = db => ['Q_BEGIN', 'Q_UP8', 'Q_INR', 'Q_SP', 'Q_UP5', 'Q_INC'].forEach(q => db.run(sql(q)));
 
 test('SAVEPOINT : juste après Transactions, dans le module « Transactions », et juste avant Procédures et fonctions stockées', () => {
-  const m = modules.find(x => x.titre === 'Transactions');
-  assert.deepEqual([...m.lessons.map(l => l.id)], [62, 63], 'Transactions, puis SAVEPOINT');
+  const m = modules.find(x => x.titre === 'Transactions et concurrence');
+  assert.deepEqual([...m.lessons.map(l => l.id)], [62, 63, 71], 'Transactions, SAVEPOINT, puis Concurrence et isolation');
   const liste = lessons.map(l => l.id);
   assert.equal(liste.indexOf(63), liste.indexOf(62) + 1);
-  assert.equal(liste[liste.indexOf(63) + 1], 83, 'Procédures et fonctions stockées viennent juste après (30 octobre)');
+  assert.equal(liste[liste.indexOf(63) + 1], 71, 'Concurrence et isolation vient juste après (Elisa, 1er novembre, 23 h 07 : Concurrence et isolation rejoint les transactions)');
   assert.equal(l63.titre, 'SAVEPOINT');
   assert.equal(l63.résumé, 'Annuler une partie des modifications', 'le sous-titre de la trame d’Elisa');
 });
@@ -307,8 +307,8 @@ test('chapitre 14 : écran titre, ouverture comme aux autres chapitres, annonce 
   assert.equal(caps[1], 'Dans la leçon précédente, une transaction t’a permis de tout valider ou de tout annuler.', 'le chapitre précédent');
   const tx = fs.readFileSync(path.join(root, 'assets/anim/projet-transaction.html'), 'utf8');
   assert.ok(tx.includes('avec <code>SAVEPOINT</code>.') && tx.includes('Prochaine leçon · SAVEPOINT</span>'), 'le chapitre 13 annonce celui-ci');
-  assert.ok(caps.includes('Dans la prochaine leçon, tu enregistreras des traitements et des calculs dans la base.') && page.includes('Prochaine leçon · Procédures et fonctions stockées</span>'), 'annonce de la prochaine leçon');
-  assert.equal(lessons[lessons.findIndex(l => l.id === 63) + 1].titre, 'Procédures et fonctions stockées');
+  assert.ok(caps.includes('Dans la prochaine leçon, deux clients<br>réserveront la dernière place<br>d’un atelier en même temps.') && page.includes('Prochaine leçon · Concurrence et isolation</span>'), 'annonce de la prochaine leçon');
+  assert.equal(lessons[lessons.findIndex(l => l.id === 63) + 1].titre, 'Concurrence et isolation');
   assert.equal(caps[caps.length - 2], 'Pour finir, voici les <b>trois idées à retenir</b>.');
 });
 

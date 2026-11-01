@@ -39,7 +39,8 @@ const instructions = () => sql('Q_RES').split(/;\n?/).map(s => s.trim()).filter(
 
 /* ---------- La base de la vidéo ---------- */
 const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(root, 'vendor/sqljs', f)});
-/* La base NutriBoost telle que le chapitre 16 la laisse (douze tables : la table historique_prix garde le changement de prix du collagène), avec la
+/* La base NutriBoost telle que SAVEPOINT la laisse (onze tables, depuis le 1er novembre : cette leçon suit SAVEPOINT ; l’historique des prix et
+   les commandes expédiées par procédure n’arrivent qu’après), avec la
    nouvelle date de l’atelier Cuisine saine programmée par l’équipe ateliers : l’atelier 6, le 14 novembre, avec Julie Nguyen (la coach 3), dans sa
    petite salle de 8 places ; la colonne places_restantes compte les places encore libres : il en reste 1. */
 function base() {
@@ -47,8 +48,6 @@ function base() {
   db.run(vm.runInContext('SCHEMA_SQL', ctx));
   /* Le chapitre 10 (MERGE, 30 octobre) : l’inventaire de l’entrepôt met à jour la Fibre Prébiotique (150) et Oméga 3 (75), et ajoute la Spiruline Bio. */
   db.run("UPDATE produits SET stock = 150 WHERE id = 1; UPDATE produits SET stock = 75 WHERE id = 7; INSERT INTO produits VALUES (9, 'Spiruline Bio', 'Nutrition', 22.90, 40);");
-  /* Le chapitre 15 (procédures et fonctions stockées, 30 octobre) : CALL expedier_commande(13), puis (14). */
-  db.run("UPDATE commandes SET statut = 'expédiée' WHERE id IN (13, 14);");
   db.run(`PRAGMA foreign_keys = ON;
     CREATE TABLE coachs (id INTEGER PRIMARY KEY, prenom TEXT NOT NULL, nom TEXT NOT NULL, email TEXT NOT NULL);
     CREATE TABLE ateliers (id INTEGER PRIMARY KEY, titre TEXT NOT NULL, date_atelier DATE, coach_id INTEGER NOT NULL REFERENCES coachs(id), places INTEGER DEFAULT 12);
@@ -69,8 +68,6 @@ function base() {
     INSERT INTO remplacements VALUES (1, 7, 8, 1, 'Léa'); UPDATE produits SET stock = stock - 1 WHERE id = 8;
     CREATE TABLE cadeaux (id INTEGER PRIMARY KEY, client_id INTEGER NOT NULL REFERENCES clients(id), produit_id INTEGER NOT NULL REFERENCES produits(id), quantite INTEGER NOT NULL);
     INSERT INTO cadeaux (client_id, produit_id, quantite) VALUES (7, 6, 1); UPDATE produits SET stock = stock - 1 WHERE id = 6;
-    CREATE TABLE historique_prix (produit_id INTEGER REFERENCES produits(id), ancien_prix REAL, nouveau_prix REAL, date_changement TEXT);
-    INSERT INTO historique_prix VALUES (2, 39.9, 34.9, '2026-10-25 14:32:00'); UPDATE produits SET prix = 34.9, stock = stock - 1 WHERE id = 2;
     ALTER TABLE ateliers ADD COLUMN places_restantes INTEGER;
     INSERT INTO ateliers VALUES (6, 'Cuisine saine', '2026-11-14', 3, 8, 1);`);
   return db;
@@ -90,12 +87,12 @@ function reserve(db, client = 7, fin = 'COMMIT') {
   return vu;
 }
 
-test('Concurrence et isolation : juste après Les triggers, dans le module « Triggers et concurrence », juste avant CREATE VIEW', () => {
-  const m = modules.find(x => x.titre === 'Triggers et concurrence');
-  assert.deepEqual([...m.lessons.map(l => l.id)], [83, 70, 71], 'Procédures et fonctions stockées, Les triggers, puis Concurrence et isolation');
+test('Concurrence et isolation : juste après SAVEPOINT, dans le module « Transactions et concurrence », juste avant Procédures et fonctions stockées (Elisa, 1er novembre, 23 h 07 : Concurrence et isolation rejoint les transactions)', () => {
+  const m = modules.find(x => x.titre === 'Transactions et concurrence');
+  assert.deepEqual([...m.lessons.map(l => l.id)], [62, 63, 71], 'Transactions, SAVEPOINT, puis Concurrence et isolation');
   const liste = lessons.map(l => l.id);
-  assert.equal(liste.indexOf(71), liste.indexOf(70) + 1);
-  assert.equal(lessons[liste.indexOf(71) + 1].titre, 'CREATE VIEW', 'CREATE VIEW vient juste après');
+  assert.equal(liste.indexOf(71), liste.indexOf(63) + 1);
+  assert.equal(lessons[liste.indexOf(71) + 1].titre, 'Procédures et fonctions stockées', 'Procédures et fonctions stockées viennent juste après');
   assert.equal(l71.titre, 'Concurrence et isolation');
   assert.equal(l71.résumé, 'Gérer les accès simultanés', 'les mots du « À retenir » d’Elisa');
 });
@@ -114,9 +111,9 @@ test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', ()
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 250.89);
-  assert.ok(page.includes('notesAt: 250.89,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 258.09);
+  assert.equal(val('NOTES'), 251.19);
+  assert.ok(page.includes('notesAt: 251.19,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 258.39);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   /* Les deux parties de la trame d’Elisa, avec ses titres (« Deux clients, une seule place », la sécurisation de la dernière place), découpées
@@ -180,12 +177,12 @@ test('les phrases d’Elisa (25 octobre, 20 h 52) : sa trame, une phrase par bul
   assert.ok(page.includes('Elisa, 25 octobre, 20 h 52'), 'la page garde la trace de la trame d’Elisa');
 });
 
-test('la base du chapitre 16 : douze tables ; l’atelier 6 (l’atelier Cuisine saine du 14 novembre) n’a plus qu’une place', () => {
+test('la base que SAVEPOINT laisse : onze tables ; l’atelier 6 (l’atelier Cuisine saine du 14 novembre) n’a plus qu’une place', () => {
   const db = base(), TB = val('TB');
-  assert.deepEqual(TB.map(t => t[3]), ['clients', 'commandes', 'fidelite', 'produits', 'coachs', 'ateliers', 'inscriptions', 'cartes', 'avis', 'remplacements', 'cadeaux', 'historique_prix']);
+  assert.deepEqual(TB.map(t => t[3]), ['clients', 'commandes', 'fidelite', 'produits', 'coachs', 'ateliers', 'inscriptions', 'cartes', 'avis', 'remplacements', 'cadeaux']);
   assert.deepEqual(TB.map(t => t[3]).sort(), tables(db), 'aucune table de la base n’est oubliée à l’écran');
   for (const [, , , name, n] of TB) assert.equal(count(db, name), n, `${name} : ${n} lignes`);
-  assert.ok(page.includes('<span>12 tables</span>'), '12 tables');
+  assert.ok(page.includes('<span>11 tables</span>'), '11 tables');
   assert.deepEqual(db.exec('SELECT id, titre, date_atelier, coach_id, places_restantes FROM ateliers WHERE id = 6')[0].values, [[6, 'Cuisine saine', '2026-11-14', 3, 1]]);
   assert.deepEqual(val('ATELIER'), {id: 6, titre: 'Cuisine saine', date: '2026-11-14', coach: 3, places: 8, restantes: 1});
   assert.deepEqual(db.exec('SELECT prenom, nom FROM coachs WHERE id = 3')[0].values, [['Julie', 'Nguyen']], 'avec Julie Nguyen, sur les téléphones');
@@ -274,15 +271,15 @@ test('le message : l’équipe ateliers écrit par SMS ; l’app s’arrête sur
 });
 
 test('chapitre 17 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet : Concurrence et isolation</title>') && page.includes('<div class="tagpill">Projet · Module 13</div>')
+  assert.ok(page.includes('<title>Requête · Projet : Concurrence et isolation</title>') && page.includes('<div class="tagpill">Projet · Module 12</div>')
     && page.includes('<span>C</span><span>O</span><span>N</span><span>C</span><span>U</span><span>R</span><span>R</span><span>E</span><span>N</span><span>C</span><span>E</span>')
-    && page.includes('<div class="abs sub">Gérer les accès simultanés</div>'), 'écran titre : « Projet · Module 13 », CONCURRENCE, « Gérer les accès simultanés »');
+    && page.includes('<div class="abs sub">Gérer les accès simultanés</div>'), 'écran titre : « Projet · Module 12 », CONCURRENCE, « Gérer les accès simultanés »');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.');
-  assert.equal(caps[1], 'Dans la leçon précédente, un trigger<br>t’a permis de garder<br>chaque changement de prix.', 'le chapitre précédent');
-  const tg = fs.readFileSync(path.join(root, 'assets/anim/projet-trigger.html'), 'utf8');
-  assert.ok(tg.includes('deux clients<br>réserveront la dernière place') && tg.includes('Prochaine leçon · Concurrence et isolation</span>'), 'le chapitre 16 annonce celui-ci');
-  assert.ok(caps.includes('Dans la prochaine leçon, tu découvriras<br>les vues : des requêtes enregistrées<br>sous un nom.') && page.includes('Prochaine leçon · CREATE VIEW</span>'), 'annonce de la prochaine leçon');
+  assert.equal(caps[1], 'Dans la leçon précédente, un savepoint<br>t’a permis d’annuler<br>une partie d’une transaction.', 'la leçon précédente');
+  const sp = fs.readFileSync(path.join(root, 'assets/anim/projet-savepoint.html'), 'utf8');
+  assert.ok(sp.includes('deux clients<br>réserveront la dernière place') && sp.includes('Prochaine leçon · Concurrence et isolation</span>'), 'SAVEPOINT annonce celle-ci');
+  assert.ok(caps.includes('Dans la prochaine leçon, tu enregistreras des traitements et des calculs dans la base.') && page.includes('Prochaine leçon · Procédures et fonctions stockées</span>'), 'annonce de la prochaine leçon');
   assert.equal(caps[caps.length - 2], 'Pour finir, voici les <b>trois idées à retenir</b>.');
 });
 

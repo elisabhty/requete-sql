@@ -5,7 +5,7 @@
    transmet sa demande : supprimer le compte, conserver l’avis sous la mention « Ancien client ». ON DELETE RESTRICT, CASCADE et SET NULL sont montrés sur cette
    clé étrangère ; SET NULL conserve l’avis, la colonne client_id doit donc accepter NULL ; c’est le site, non la base, qui affiche « Ancien client ».
    Inès Lefebvre remplace Nathan Petit de la trame d’Elisa : la base partagée ne doit pas être modifiée pour Nathan, dont d’autres chapitres ont besoin (13 h 17).
-   Seul cours du module « Contraintes et intégrité » : il remplace l’ancien cours ON DELETE (la table satisfaction, les paniers) et le cours
+   Seul cours du module « Intégrité des tables liées » (ex-« Contraintes et intégrité ») : il remplace l’ancien cours ON DELETE (la table satisfaction, les paniers) et le cours
    « Les contraintes en action » (67, supprimé). Leçon seule : ni cours texte, ni exercice.
    Ce que la vidéo montre (FOREIGN KEY constraint failed, les trois règles, NOT NULL qui s’y oppose, NULL que le site remplace par « Ancien client ») est ici rejoué
    dans SQLite : c’est ce que la base répond vraiment. */
@@ -88,10 +88,10 @@ const supprimerCompte = db => db.run('DELETE FROM clients WHERE id = 9;');
 /* Ce que le site lit : l’avis de la fiche produit, avec le prénom de son auteur ou, à défaut, « Ancien client ». */
 const FICHE = "SELECT COALESCE(c.prenom, 'Ancien client'), a.note, a.commentaire FROM avis a LEFT JOIN clients c ON c.id = a.client_id WHERE a.produit_id = 6";
 
-test('ON DELETE : seul cours du module « Contraintes et intégrité », juste après DELETE et juste avant Transactions ; la leçon 67 n’existe plus', () => {
-  const m = modules.find(x => x.titre === 'Contraintes et intégrité');
+test('ON DELETE : seul cours du module « Intégrité des tables liées », juste après DELETE et juste avant Transactions ; la leçon 67 n’existe plus', () => {
+  const m = modules.find(x => x.titre === 'Intégrité des tables liées');
   assert.deepEqual([...m.lessons.map(l => l.id)], [68], 'ON DELETE est seul dans son module');
-  assert.equal(m.sous, 'Les règles que les données doivent respecter', 'le sous-titre du module ne fait pas agir la base');
+  assert.equal(m.sous, 'Ce que deviennent les lignes liées', 'le sous-titre du module ne fait pas agir la base');
   const liste = lessons.map(l => l.id);
   assert.equal(liste.indexOf(68), liste.indexOf(28) + 1, 'ON DELETE vient juste après DELETE');
   assert.equal(liste[liste.indexOf(68) + 1], 62, 'Transactions vient juste après');

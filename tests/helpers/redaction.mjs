@@ -223,7 +223,7 @@ export function leconsDuProjet() {
    99 pour tout autre texte (les exemples des règles) : une règle posée « à partir du chapitre N » les regarde. */
 const NUMEROS_DE_CHAPITRE = new Map();
 const ORDRE_DU_PROJET = ['normaliser', 'cles', 'uml', 'create', 'alter', 'drop', 'schemas', 'insert', 'update', 'merge', 'delete', 'ondelete',
-  'transaction', 'savepoint', 'procedures', 'trigger', 'concurrence', 'vue', 'index', 'droits'].map(c => 'projet-' + c);
+  'transaction', 'savepoint', 'concurrence', 'procedures', 'trigger', 'vue', 'index', 'droits'].map(c => 'projet-' + c);
 export function chapitreDe(page) {
   if (NUMEROS_DE_CHAPITRE.has(page)) return NUMEROS_DE_CHAPITRE.get(page);
   const f = /^leçon \d+$/.test(page) ? leconsDuProjet().find(l => l.id === +page.slice(6))?.page : /^projet-[a-z-]+$/.test(page) ? `${page}.html` : null;

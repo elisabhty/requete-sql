@@ -94,7 +94,7 @@ test('accomplissements : une seule liste, pour Mon compte et pour les stickers',
 
 test('dessins : un par module, dans l’ordre de MODULES, et un par accomplissement ; les plus rares en holo', () => {
   const titles = [...take('const MODULES = [', 'let state=').matchAll(/^\{ titre:"([^"]+)"/gm)].map(m => m[1]);
-  assert.deepEqual(titles, ['Introduction', 'Lire une table', 'Fonctions et expressions', 'Agrégats et regroupements', 'Jointures', 'Sous-requêtes et ensembles', 'Fonctions de fenêtre', 'Modéliser', 'Créer et faire évoluer les tables', 'Écrire et modifier les données', 'Contraintes et intégrité', 'Transactions', 'Triggers et concurrence', 'Vues, index et optimisation', 'Sécurité et droits'], 'un module ajouté ou déplacé demande son sticker');
+  assert.deepEqual(titles, ['Introduction', 'Lire une table', 'Fonctions et expressions', 'Agrégats et regroupements', 'Jointures', 'Sous-requêtes et ensembles', 'Fonctions de fenêtre', 'Modéliser', 'Créer et faire évoluer les tables', 'Écrire et modifier les données', 'Intégrité des tables liées', 'Transactions et concurrence', 'Procédures et triggers', 'Vues, index et optimisation', 'Sécurité et droits'], 'un module ajouté ou déplacé demande son sticker');
   const ctx = vm.createContext({});
   vm.runInContext(take('const STK_INK=', 'const STK_B=') + take('const STK_MODULE_IDS=', 'function accomplissements('), ctx);
   const ids = vm.runInContext('STK_MODULE_IDS', ctx), art = vm.runInContext('Object.keys(STK_ART)', ctx);

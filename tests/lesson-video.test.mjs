@@ -613,7 +613,7 @@ const COURSES = [
     traps: ['<span class="ln" id="ql3"><span class="kw">WHERE</span> email <span class="kw glow" id="isn3">IS NULL</span>;', '<span class="tv nul">NULL</span><b>aucune valeur</b>',
       '<span class="tv">\'\'</span><b>un texte vide</b>', '<span class="tv">0</span><b>le nombre zéro</b>', '<span class="kw">WHERE</span> email = <span class="kw">NULL</span>;',
       '<b>Aucune ligne</b><span class="s">= NULL ne permet pas de détecter<br>une valeur absente.</span>', '<span class="kw glow" id="isnn5">IS NOT NULL</span>', '2 + 8 = <em>10 clients</em>']},
-  {id: 8, next: 9, titre: 'LIKE', page: 'like.html', thumb: 'like-thumb.jpg', duree: '2 min 49', notesAt: 123.9,
+  {id: 8, next: 9, titre: 'LIKE', page: 'like.html', thumb: 'like-thumb.jpg', duree: '2 min 50', notesAt: 123.9,
     maxKo: 560,   // la photo du colis (47 Ko, Elisa, 29 octobre, 0 h 06), comme celles de WHERE et AND et OR
     table: 'clients',
     bubble: 'Recherche du texte à partir d’un&nbsp;motif avec <span class="ic">LIKE</span>.',
@@ -647,7 +647,7 @@ const COURSES = [
       '<span id="geA">&gt;=</span><span class="kw glow" id="btA">BETWEEN</span>', '<span id="dcB"><span class="rep" id="r2">date_commande<i class="mbox"></i></span> &lt;= </span>',
       '<span class="x2" id="x2">× 2</span>', 'Sa date est-elle dans l’intervalle ?', '<span class="op" id="op2">&lt;=</span>20 juillet · inclus',
       '<span class="str bad" id="bd1">\'2026-07-20\'</span>', 'À l’envers, l’intervalle est vide.', '✓ 4 confirmations renvoyées en français']},
-  {id: 11, next: 12, titre: 'ORDER BY', page: 'order-by.html', thumb: 'order-by-thumb.jpg', duree: '2 min 10', notesAt: 95.8,
+  {id: 11, next: 12, titre: 'ORDER BY', page: 'order-by.html', thumb: 'order-by-thumb.jpg', duree: '2 min 11', notesAt: 95.8,
     table: 'produits',
     bubble: 'Trie les résultats dans l’ordre souhaité avec <span class="ic">ORDER BY</span>.',
     chapters: ['Situation', 'Le problème', 'ORDER BY en action', 'Le sens du tri', 'Deux critères', 'Le résultat', 'À retenir'],
@@ -679,7 +679,7 @@ const COURSES = [
       '<b>Tableaux de bord</b><span class="rs">Suivre les dernières commandes en direct.</span>',
       '<b>API</b><span class="rs">Renvoyer une partie des résultats à chaque demande.</span>',
       '<b>Scripts de traitement</b><span class="rs">Récupérer des données par lots.</span>']},
-  {id: 51, next: 52, titre: 'Fonctions de texte', page: 'fonctions-texte.html', thumb: 'fonctions-texte-thumb.jpg', duree: '3 min 21', notesAt: 171.1,
+  {id: 51, next: 52, titre: 'Fonctions de texte', page: 'fonctions-texte.html', thumb: 'fonctions-texte-thumb.jpg', duree: '3 min 23', notesAt: 171.1,
     table: 'clients',
     bubble: 'Transforme, découpe ou assemble du texte grâce aux fonctions de texte.',
     chapters: ['Situation', 'Le problème', 'UPPER en action', 'Assembler avec ||', 'Une fonction par besoin', 'Le numéro de rue', 'Le résultat', 'À retenir'],
@@ -756,7 +756,7 @@ const COURSES = [
       '<span>NULL ou texte vide&nbsp;?</span>', '(<span class="str glow" id="q5">\'\'</span>, <span class="str">\'Non renseigné\'</span>)',
       '<b>La case reste vide</b><span class="s">Un texte vide n’est jamais remplacé.</span>',
       '<span class="kw">AS</span> email', '✓ Aucune case vide à l’écran', 'La table clients ne change pas']},
-  {id: 14, next: 85, titre: 'COUNT', page: 'count.html', thumb: 'count-thumb.jpg', duree: '2 min 18', notesAt: 125.1,
+  {id: 14, next: 85, titre: 'COUNT', page: 'count.html', thumb: 'count-thumb.jpg', duree: '2 min 19', notesAt: 125.1,
     table: 'produits',
     bubble: 'Utilise <span class="ic">COUNT</span> pour compter le nombre de lignes d’un&nbsp;résultat.',
     chapters: ['Situation', 'Le problème', 'COUNT(*) en action', 'Valeurs différentes', 'Compter une partie', 'Le résultat', 'À retenir'],
@@ -767,7 +767,7 @@ const COURSES = [
       '<span class="sw" id="sw4"><span class="a">?</span><span class="b">5</span></span>', '<span class="kw">WHERE</span> <span class="glow" id="w5">stock &lt; 50</span>;',
       '<span class="glow" id="as6b"><span class="kw">AS</span> categories</span>', '✓ Compteurs à jour']},
   /* SUM, AVG, MIN et MAX (1er novembre, Elisa, 22 h 47 : « de manière gamifiée ») : le tableau de bord du stock, une étoile par compteur. */
-  {id: 85, next: 16, titre: 'SUM, AVG, MIN et MAX', page: 'agregats.html', thumb: 'agregats-thumb.jpg', duree: '2 min 32', notesAt: 140.1,
+  {id: 85, next: 16, titre: 'SUM, AVG, MIN et MAX', page: 'agregats.html', thumb: 'agregats-thumb.jpg', duree: '2 min 33', notesAt: 140.1,
     table: 'produits',
     bubble: 'Additionne, fais la moyenne ou trouve les extrêmes d’une&nbsp;colonne.',
     chapters: ['Situation', 'SUM', 'AVG', 'MIN et MAX', 'D’autres colonnes', 'Le résultat', 'À retenir'],
@@ -776,7 +776,7 @@ const COURSES = [
       '<span>Une valeur, pas un produit</span>', '<span class="ko">✕ pas dans le résultat</span>', '<span>L’âge des 10 clients</span>',
       "{label: '1 075 unités', ok: true,", "kind: 'tap', need: 1,", "{label: 'L’âge du client le plus jeune', to: 'N',",
       '<span class="glow" id="as6d"><span class="kw">AS</span> prix_max</span>', '★ 4 / 4 · Tableau de bord complet']},
-  {id: 16, next: 17, titre: 'GROUP BY', page: 'group-by.html', thumb: 'group-by-thumb.jpg', duree: '2 min 19', notesAt: 126.3,
+  {id: 16, next: 17, titre: 'GROUP BY', page: 'group-by.html', thumb: 'group-by-thumb.jpg', duree: '2 min 21', notesAt: 126.3,
     table: 'clients',
     bubble: 'Regroupe les lignes qui ont un point commun pour effectuer des calculs par groupe.',
     chapters: ['Situation', 'Le problème', 'GROUP BY en action', 'Un calcul par groupe', 'Le piège', 'Le résultat', 'À retenir'],
@@ -878,7 +878,7 @@ const COURSES = [
       '<span class="glow" id="j3"><span class="kw">INNER JOIN</span> commandes</span>', '<span class="sw" id="tt3"><span class="a">Après le JOIN</span><span class="b">Après GROUP BY et COUNT()</span></span>',
       '<span class="m">near "INNER": syntax error</span>', '<span class="nt rd" id="nt5b">↑ les 15 commandes d’un coup</span>',
       '<span>Nantes&nbsp;: aucune commande, donc aucune ligne</span>', '✓ Paris en tête, devant Lyon']},
-  {id: 42, next: 49, titre: 'SELF JOIN', page: 'self-join.html', thumb: 'self-join-thumb.jpg', duree: '2 min 52', notesAt: 158.4,
+  {id: 42, next: 49, titre: 'SELF JOIN', page: 'self-join.html', thumb: 'self-join-thumb.jpg', duree: '2 min 53', notesAt: 158.4,
     table: 'commandes',
     bubble: 'Relie une table à elle-même pour comparer ou associer ses propres lignes.',
     chapters: ['Situation', 'Le problème', 'SELF JOIN en action', 'Avec elle-même', 'Le piège', 'Le résultat', 'À retenir'],
@@ -938,7 +938,7 @@ const COURSES = [
       '<span class="kw">WHERE</span> produit_id = <span class="glow" id="v3">5</span>', '📌 Le 5 est écrit en dur&nbsp;: la Tisane Détox seulement',
       '= <span class="glow" id="pi4">produits.id</span>)', '<span class="glow" id="f5"><span class="kw">FROM</span> commandes</span>)',
       '✕ La Tisane Détox risque d’être écartée à tort', '<span class="glow" id="as6"><span class="kw">AS</span> derniere_commande</span>', '✓ Tisane Détox relancée']},
-  {id: 48, next: 55, titre: 'Sous-requête dans FROM', page: 'sous-requete-from.html', thumb: 'sous-requete-from-thumb.jpg', duree: '3 min 15', notesAt: 175.8,
+  {id: 48, next: 55, titre: 'Sous-requête dans FROM', page: 'sous-requete-from.html', thumb: 'sous-requete-from-thumb.jpg', duree: '3 min 17', notesAt: 175.8,
     table: 'commandes',
     bubble: 'Utilise le résultat d’une&nbsp;requête comme une table temporaire dans <span class="ic">FROM</span>.',
     chapters: ['Situation', 'Le problème', 'La sous-requête', 'La table dérivée', 'Le piège', 'Le résultat', 'À retenir'],
@@ -954,7 +954,7 @@ const COURSES = [
       '<span class="rv">✓ 1 ligne trouvée&nbsp;: la commande n°5</span><span class="vd ok">EXISTS → vrai</span>', '<span class="rv no">Aucune ligne trouvée</span><span class="vd ko">EXISTS → faux</span>',
       'commandes.client_id = <span class="glow" id="ci4">clients.id</span>', '<span class="glow" id="w5"><span class="kw">WHERE</span> commandes.produit_id = 1</span>',
       '✕ Inès Lefebvre et Nathan Dupont n’ont jamais commandé', '✓ 4 clients prévenus', '<span class="ic">NOT EXISTS</span> → les 6 autres clients']},
-  {id: 59, next: 73, titre: 'WITH (CTE)', page: 'with-cte.html', thumb: 'with-cte-thumb.jpg', duree: '3 min 40', notesAt: 205.8,
+  {id: 59, next: 73, titre: 'WITH (CTE)', page: 'with-cte.html', thumb: 'with-cte-thumb.jpg', duree: '3 min 42', notesAt: 205.8,
     table: 'clients',
     bubble: 'Prépare un résultat intermédiaire avec <span class="ic">WITH</span> pour construire une requête plus lisible.',
     chapters: ['Situation', 'Le problème', 'La CTE', 'Lire la CTE', 'Le piège', 'Le résultat', 'À retenir'],
@@ -972,7 +972,7 @@ const COURSES = [
       '<span class="m">SELECTs to the left and right of UNION ALL do not have the same number of result columns</span>',
       '<span class="k ko">3 colonnes</span>', '✓ Un indicateur de plus = une ligne de plus', '✓ Tableau de bord à jour',
       '<div class="mn-l"><span class="ic">UNION</span> rallonge</div>']},
-  {id: 80, next: 77, titre: 'INTERSECT et EXCEPT', page: 'intersect-except.html', thumb: 'intersect-except-thumb.jpg', duree: '2 min 58', notesAt: 159.2,
+  {id: 80, next: 77, titre: 'INTERSECT et EXCEPT', page: 'intersect-except.html', thumb: 'intersect-except-thumb.jpg', duree: '2 min 59', notesAt: 159.2,
     table: 'produits',
     bubble: 'Compare deux résultats pour trouver leurs lignes communes ou leurs différences.',
     chapters: ['Situation', 'Le problème', 'INTERSECT', 'EXCEPT', 'Le piège', 'Le résultat', 'À retenir'],
@@ -1192,7 +1192,7 @@ const COURSES = [
       "{at: atp('p1'), from: A.c1, kind: 'tap', need: 1,", "{at: atp('p2'), from: A.f1, kind: 'pick', text: true,", "{label: '30 : la valeur de départ', ok: true,",
       "{label: 'COMMIT', ok: true,", "{label: 'Annuler avec ROLLBACK', ok: true,", "{label: 'Recommencer toute la transaction', ok: true,", "{at: atp('p6'), from: A.i1, kind: 'sort',",
       "w += out('o-i1', 'err', 'Remplacement non enregistré', 'NOT NULL constraint failed:<br>remplacements.personnalisation', 'm', true);", 'Prochaine leçon · SAVEPOINT']},
-  {id: 63, next: 83, titre: 'SAVEPOINT', page: 'projet-savepoint.html', thumb: 'projet-savepoint-thumb.webp', duree: '4 min 14', notesAt: 232.76,
+  {id: 63, next: 71, titre: 'SAVEPOINT', page: 'projet-savepoint.html', thumb: 'projet-savepoint-thumb.webp', duree: '4 min 14', notesAt: 232.76,
     table: 'cadeaux',
     bubble: 'Crée un point de sauvegarde pour annuler seulement une partie d’une&nbsp;transaction.',
     chapters: ['Un petit geste pour Léa', 'Pouvoir revenir en arrière', 'Ajouter le cadeau', 'Léa préfère un autre cadeau', 'Observer ce qui est annulé', 'Ajouter la protéine',
@@ -1204,7 +1204,7 @@ const COURSES = [
       // seulement le cadeau, ce qu’il faut encore après le retour au savepoint, les six situations à ranger
       "{at: atp('p1'), from: A.a6, kind: 'pick', text: true,", "{label: 'Avec un point de retour posé avant le cadeau', ok: true,", "{at: atp('p2'), from: A.c4, kind: 'tap', need: 2,",
       "{label: 'Les quatre, cadeau compris', ok: true,", "{label: 'ROLLBACK TO SAVEPOINT avant_cadeau', ok: true,", "{label: 'Un COMMIT, qui terminera la transaction', ok: true,",
-      "{at: atp('p6'), from: A.g1, kind: 'sort',", "const Q_RT = [['-- Revenir au point de retour'], ['ROLLBACK TO SAVEPOINT avant_cadeau;']]", 'Prochaine leçon · Procédures et fonctions stockées']},
+      "{at: atp('p6'), from: A.g1, kind: 'sort',", "const Q_RT = [['-- Revenir au point de retour'], ['ROLLBACK TO SAVEPOINT avant_cadeau;']]", 'Prochaine leçon · Concurrence et isolation']},
   /* Le chapitre 15, ajouté le 30 octobre (le scénario d’Elisa : 18 h 02, les commandes affluent) : une action ou une valeur, la procédure
      expedier_commande et son paramètre, la fonction calculer_points et son réglage, le duel, les quatre tickets, puis leur création dans PostgreSQL. */
   {id: 83, next: 70, titre: 'Procédures et fonctions stockées', page: 'projet-procedures.html', thumb: 'projet-procedures-thumb.webp', duree: '3 min 08', notesAt: 161.82,
@@ -1216,7 +1216,7 @@ const COURSES = [
       "{at: atp('p1'), from: A.c3, kind: 'sort',", "{label: 'L’identifiant de la commande', ok: true},", "{at: atp('p3'), from: A.c19, kind: 'tune',",
       "{label: 'Une procédure stockée', ok: true},", "{label: 'Une fonction stockée', ok: true}]},", "{at: atp('p6'), from: A.c25, kind: 'sort',",
       "['ec1', '{kc1|CALL} expedier_commande({pa1|13});']", "['eg1', '{gp|CREATE PROCEDURE} expedier_commande(id_commande INT)']", 'Prochaine leçon · Les triggers']},
-  {id: 70, next: 71, titre: 'Les triggers', page: 'projet-trigger.html', thumb: 'projet-trigger-thumb.webp', duree: '4 min 08', notesAt: 245.94,
+  {id: 70, next: 64, titre: 'Les triggers', page: 'projet-trigger.html', thumb: 'projet-trigger-thumb.webp', duree: '4 min 08', notesAt: 245.94,
     table: 'historique_prix',
     bubble: 'Déclenche automatiquement une action lorsqu’un&nbsp;événement précis se produit dans la base.',
     chapters: ['Qui a changé le prix ?', 'Garder chaque changement', 'Créer le trigger', 'Modifier le prix', 'Lire la nouvelle ligne', 'Vérifier avec le stock',
@@ -1228,8 +1228,8 @@ const COURSES = [
       "{at: atp('p1'), from: A.a1, kind: 'pick', text: true,", "{label: 'Un UPDATE remplace l’ancien prix, sans garder de trace', ok: true,",
       "{at: atp('p2'), from: A.c1, kind: 'pick', text: true,", "{label: 'Après une modification de prix d’un produit', ok: true,", "{label: '39.90, le prix avant la modification', ok: true,",
       "{at: atp('p4'), from: A.d5, kind: 'tap', need: 1,", "{label: 'Non, aucune ligne n’est ajoutée', ok: true,", "{at: atp('p6'), from: A.g1, kind: 'sort',",
-      "['{twh|WHEN OLD.prix &lt;&gt; NEW.prix}']", 'Prochaine leçon · Concurrence et isolation']},
-  {id: 71, next: 64, titre: 'Concurrence et isolation', page: 'projet-concurrence.html', thumb: 'projet-concurrence-thumb.webp', duree: '4 min 10', notesAt: 250.89,
+      "['{twh|WHEN OLD.prix &lt;&gt; NEW.prix}']", 'Prochaine leçon · CREATE VIEW']},
+  {id: 71, next: 83, titre: 'Concurrence et isolation', page: 'projet-concurrence.html', thumb: 'projet-concurrence-thumb.webp', duree: '4 min 10', notesAt: 251.19,
     table: 'inscriptions',
     bubble: 'Comprends comment la base gère plusieurs opérations effectuées au même moment.',
     chapters: ['Deux clients, une seule place', 'Au ralenti', 'La concurrence', 'Verrouiller la ligne', 'Rejouer avec le verrou', 'Et avec ROLLBACK ?',
@@ -1240,8 +1240,8 @@ const COURSES = [
       // Nathan Petit pendant le verrou, ce qu’il voit une fois le verrou libéré, la place après ROLLBACK, les six situations à ranger
       "{at: atp('p1'), from: A.b0, kind: 'tap', need: 1,", "{label: 'Verrouiller la ligne de l’atelier pendant la réservation', ok: true,",
       "{label: 'Elle attend de pouvoir verrouiller la même ligne', ok: true,", "{label: '0 place : aucune inscription pour lui', ok: true,",
-      "{label: 'Elle reste disponible pour Nathan Petit', ok: true,", "{at: atp('p6'), from: A.g1, kind: 'sort',", "['{xfu|FOR UPDATE};']", 'Prochaine leçon · CREATE VIEW']},
-  {id: 64, next: 57, titre: 'CREATE VIEW', page: 'projet-vue.html', thumb: 'projet-vue-thumb.webp', duree: '3 min 53', notesAt: 211.54,
+      "{label: 'Elle reste disponible pour Nathan Petit', ok: true,", "{at: atp('p6'), from: A.g1, kind: 'sort',", "['{xfu|FOR UPDATE};']", 'Prochaine leçon · Procédures et fonctions stockées']},
+  {id: 64, next: 57, titre: 'CREATE VIEW', page: 'projet-vue.html', thumb: 'projet-vue-thumb.webp', duree: '3 min 53', notesAt: 211.24,
     table: 'produits',
     bubble: 'Enregistre une requête sous forme de vue pour consulter facilement un résultat réutilisable.',
     chapters: ['La box surprise', 'Le catalogue interne', 'Créer la vue', 'Consulter la vue', 'Petit changement', 'Et les droits ?', 'Dans la vue ou non ?', 'À retenir'],
@@ -2950,7 +2950,7 @@ test('boutons retour en pastille ronde : Safari ne coupe plus leur relief (overf
   assert.ok(/html\.lq #app \.home-back svg\{[^}]*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour des écrans : relief entier');
   assert.ok(/html\.lq #scr-lesson \.navbar \.back svg\{\s*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour de la leçon (« ‹ Accueil ») : relief entier');
   assert.ok(html.includes('.tab svg{overflow:visible;'), 'onglets : l’ombre de l’onglet actif n’est pas coupée non plus');
-  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=98">'), 'la feuille de style du thème est rechargée');
+  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=99">'), 'la feuille de style du thème est rechargée');
 });
 
 test('arrêt « toucher » sur un bouton : un doigt seul qui monte et descend, sans bulle ; le bouton s’enfonce dès l’appui et remonte au relâcher', () => {

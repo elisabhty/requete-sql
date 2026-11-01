@@ -76,7 +76,7 @@ const stock = db => db.exec('SELECT stock FROM produits WHERE id = 8')[0].values
 const remplacements = db => (db.exec('SELECT id, client_id, produit_id, quantite, personnalisation FROM remplacements ORDER BY id')[0] || {values: []}).values;
 
 test('Transactions : premier cours du module « Transactions », juste après ON DELETE et juste avant SAVEPOINT', () => {
-  const m = modules.find(x => x.titre === 'Transactions');
+  const m = modules.find(x => x.titre === 'Transactions et concurrence');
   assert.deepEqual([...m.lessons.map(l => l.id)].slice(0, 2), [62, 63], 'Transactions, puis SAVEPOINT');
   const liste = lessons.map(l => l.id);
   assert.equal(liste.indexOf(62), liste.indexOf(68) + 1, 'Transactions vient juste après ON DELETE');

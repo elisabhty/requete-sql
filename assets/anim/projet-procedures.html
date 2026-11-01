@@ -248,7 +248,7 @@ const MO = MAILS.map((m, n) => mailOutAt(n));   // le départ de chaque message,
 
 /* 1 · Les commandes affluent : l’ouverture est celle de tous les chapitres du projet (le chapitre précédent, puis la base) */
 cap('r1', "Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.", 2.7, 0.3);
-cap('r2', "Dans la leçon précédente, un savepoint<br>t’a permis d’annuler<br>une partie d’une transaction.", 3.8);
+cap('r2', "Dans la leçon précédente, un verrou<br>a gardé la dernière place<br>pour une seule réservation.", 3.8);   // Elisa, 1er novembre, 23 h 07 : Concurrence et isolation rejoint les transactions (module 12), juste après SAVEPOINT
 cap('c2', "À 18 h 02, les commandes affluent.", 2.8);
 const MAIL1 = mailBlock(0);
 /* 2 · Action ou calcul ? */
@@ -317,11 +317,12 @@ const CHAPTERS = SCH.chaps.map((c, i) => ({n: i + 1, label: c.label, a: c.a, b: 
 const QUESTIONS = [];
 
 /* ---------- Le cas : la base des ateliers NutriBoost (la même dans tous les chapitres du projet) ---------- */
-/* La base telle que le chapitre 14 la laisse : onze tables, avec la table cadeaux (la Protéine Végétale offerte à Léa Simon, validée).
+/* La base telle que Concurrence et isolation la laisse : onze tables, avec la table cadeaux (la Protéine Végétale offerte à Léa Simon,
+   validée), l’atelier Cuisine saine du 14 novembre (l’atelier 6) et l’inscription de Léa Simon (la huitième).
    [clé, couleur, emoji, nom, lignes] */
 const TB = [
   ['cl', 'k-cl', '👥', 'clients', 8], ['cm', 'k-cm', '🛒', 'commandes', 16], ['fi', 'k-fi', '⭐', 'fidelite', 4], ['pr', 'k-pr', '📦', 'produits', 9],
-  ['co', 'k-co', '🧑‍🏫', 'coachs', 4], ['at', 'k-at', '📅', 'ateliers', 5], ['in', 'k-in', '📝', 'inscriptions', 7], ['ca', 'k-nb', '💳', 'cartes', 3],
+  ['co', 'k-co', '🧑‍🏫', 'coachs', 4], ['at', 'k-at', '📅', 'ateliers', 6], ['in', 'k-in', '📝', 'inscriptions', 8], ['ca', 'k-nb', '💳', 'cartes', 3],
   ['av', 'k-av', '💬', 'avis', 1], ['rp', 'k-rp', '🔁', 'remplacements', 1], ['cd', 'k-cd', '🎁', 'cadeaux', 1]
 ];
 /* Les dernières lignes de la table commandes, telles que l’app les crée : [id, numéro, identifiant du client, son nom, statut].
@@ -548,9 +549,9 @@ function build(){
   show('#bc', A.r1, {y: 60}, 0.55); cue(A.r1, 'whoosh', 0.5);
   TB.forEach(([k], q) => { const t = A.r1 + 0.3 + q * 0.12; show('#bw-' + k, t, {y: 24}, 0.4); cue(t, 'tick', 0.45, q % 5); });
   // « Au chapitre 14, un savepoint t’a permis d’annuler une partie d’une transaction » : les cadeaux, puis les remplacements
-  on('#bw-cd .hl', A.r2 + 0.6, 0.2); cue(A.r2 + 0.6, 'tick', 0.5, 2);
-  on('#bw-rp .hl', A.r2 + 1.3, 0.2); cue(A.r2 + 1.3, 'tick', 0.5, 4);
-  off(['#bw-cd .hl', '#bw-rp .hl'], A.r2 + 3.0, 0.3);
+  on('#bw-at .hl', A.r2 + 0.6, 0.2); cue(A.r2 + 0.6, 'tick', 0.5, 2);
+  on('#bw-in .hl', A.r2 + 1.3, 0.2); cue(A.r2 + 1.3, 'tick', 0.5, 4);
+  off(['#bw-at .hl', '#bw-in .hl'], A.r2 + 3.0, 0.3);
   // 18 h 02 : la pastille rouge, et la table commandes qu’elle concerne
   show('#dem', A.c2 + 0.3, {y: 30, scale: 0.94}, 0.5, 'back.out(1.6)'); cue(A.c2 + 0.3, 'pop', 0.7, 1);
   tl.to('#dem .emo', {rotation: -16, duration: 0.14, yoyo: true, repeat: 5, ease: 'sine.inOut'}, A.c2 + 0.8);

@@ -65,7 +65,11 @@ function base() {
       quantite INTEGER NOT NULL, personnalisation TEXT NOT NULL);
     INSERT INTO remplacements VALUES (1, 7, 8, 1, 'Léa'); UPDATE produits SET stock = stock - 1 WHERE id = 8;
     CREATE TABLE cadeaux (id INTEGER PRIMARY KEY, client_id INTEGER NOT NULL REFERENCES clients(id), produit_id INTEGER NOT NULL REFERENCES produits(id), quantite INTEGER NOT NULL);
-    INSERT INTO cadeaux (client_id, produit_id, quantite) VALUES (7, 6, 1); UPDATE produits SET stock = stock - 1 WHERE id = 6;`);
+    INSERT INTO cadeaux (client_id, produit_id, quantite) VALUES (7, 6, 1); UPDATE produits SET stock = stock - 1 WHERE id = 6;
+    /* Concurrence et isolation (depuis le 1er novembre, juste après SAVEPOINT) : l’atelier 6, Cuisine saine du 14 novembre, et la place de Léa Simon. */
+    ALTER TABLE ateliers ADD COLUMN places_restantes INTEGER;
+    INSERT INTO ateliers VALUES (6, 'Cuisine saine', '2026-11-14', 3, 8, 1);
+    INSERT INTO inscriptions (client_id, atelier_id, date_inscription) VALUES (7, 6, '2026-10-25'); UPDATE ateliers SET places_restantes = places_restantes - 1 WHERE id = 6;`);
   return db;
 }
 /* La table que l’équipe commerciale ajoute : le produit concerné, l’ancien prix, le nouveau prix et la date du changement (mots d’Elisa). */
@@ -77,12 +81,12 @@ const count = (db, t) => db.exec(`SELECT COUNT(*) FROM ${t}`)[0].values[0][0];
 const lignes = (db, t) => (db.exec(`SELECT * FROM ${t}`)[0] || {values: []}).values;
 const produit = (db, id) => db.exec(`SELECT prix, stock FROM produits WHERE id = ${id}`)[0].values[0];
 
-test('Les triggers : juste après Procédures et fonctions stockées, dans le module « Triggers et concurrence », juste avant Concurrence et isolation', () => {
-  const m = modules.find(x => x.titre === 'Triggers et concurrence');
-  assert.deepEqual([...m.lessons.map(l => l.id)], [83, 70, 71], 'Procédures et fonctions stockées, Les triggers, puis Concurrence et isolation');
+test('Les triggers : juste après Procédures et fonctions stockées, dans le module « Procédures et triggers », juste avant CREATE VIEW (Elisa, 1er novembre, 23 h 07 : Concurrence et isolation rejoint les transactions)', () => {
+  const m = modules.find(x => x.titre === 'Procédures et triggers');
+  assert.deepEqual([...m.lessons.map(l => l.id)], [83, 70], 'Procédures et fonctions stockées, puis Les triggers');
   const liste = lessons.map(l => l.id);
   assert.equal(liste.indexOf(70), liste.indexOf(83) + 1, 'juste après Procédures et fonctions stockées (30 octobre)');
-  assert.equal(liste[liste.indexOf(70) + 1], 71, 'Concurrence et isolation vient juste après');
+  assert.equal(liste[liste.indexOf(70) + 1], 64, 'CREATE VIEW vient juste après');
   assert.equal(l70.titre, 'Les triggers');
   assert.equal(l70.résumé, 'Déclencher une action automatiquement');
 });
@@ -292,9 +296,9 @@ test('chapitre 16 : écran titre, ouverture comme aux autres chapitres, annonce 
   const pr = fs.readFileSync(path.join(root, 'assets/anim/projet-procedures.html'), 'utf8');
   assert.ok(pr.includes('les triggers : des actions lancées') && pr.includes('Prochaine leçon · Les triggers</span>'), 'le chapitre 15 annonce celui-ci');
   assert.ok(page.includes("on('#bw-cm .hl', A.r2 + 0.6, 0.2);"), 'la table commandes, que la procédure a expédiée, s’allume avec cette légende');
-  assert.ok(caps.includes('Dans la prochaine leçon, deux clients<br>réserveront la dernière place<br>d’un atelier en même temps.') && page.includes('Prochaine leçon · Concurrence et isolation</span>'),
+  assert.ok(caps.includes('Dans la prochaine leçon, tu découvriras<br>les vues : des requêtes enregistrées<br>sous un nom.') && page.includes('Prochaine leçon · CREATE VIEW</span>'),
     'annonce de la prochaine leçon');
-  assert.equal(lessons[lessons.findIndex(l => l.id === 70) + 1].titre, 'Concurrence et isolation');
+  assert.equal(lessons[lessons.findIndex(l => l.id === 70) + 1].titre, 'CREATE VIEW');
   assert.equal(caps[caps.length - 2], 'Pour finir, voici les <b>trois idées à retenir</b>.');
 });
 
@@ -307,7 +311,7 @@ test('le récapitulatif d’Elisa (26 octobre, 8 h 10), mot pour mot, dans la vi
     ['🔀', 'OLD et NEW donnent accès aux valeurs avant et après la modification.', 'OLD.prix correspond à l’ancien prix et NEW.prix au nouveau.'],
     ['🎯', 'WHEN précise la condition à remplir pour exécuter l’action.', 'Ici, une ligne est ajoutée à l’historique uniquement si l’ancien prix est différent du nouveau.']];
   assert.deepEqual(rows, RECAP, 'la vidéo : les trois idées');
-  const fiche = html.slice(html.indexOf('guide({ id:70,'), html.indexOf('guide({ id:71,'));
+  const fiche = html.slice(html.indexOf('guide({ id:70,'), html.indexOf('guide({ id:64,'));
   const idees = [...fiche.matchAll(/\["(⚡|🔀|🎯)","([^"]*)","([^"]*)"(?:,"([^"]*)")?\]/g)].map(m => [m[1], strip(m[2]), strip(m[3])]);
   assert.deepEqual(idees, RECAP, 'la fiche de la leçon dit la même chose que la vidéo');
   /* Les lignes se coupent entre les groupes de mots : jamais « lorsqu’un » ni « du nouveau. » seul en fin de ligne. */
@@ -319,7 +323,7 @@ test('ce que la vidéo ne reprend pas de l’ancien cours : plus de Magnésium, 
   const textes = JSON.stringify([val('CAPTIONS'), val('PICKS'), val('MAILS'), val('ITEMS'), val('WHY4')]);
   for (const mot of ['Magnésium', 'clients_supprimes', 'RAISE', 'BEFORE', 'journal']) assert.ok(!textes.includes(mot), `la vidéo ne parle pas de ${mot}`);
   assert.ok(!/SQL (voit|comprend|sait|lit)\b/.test(page) && !/la base (réagit|ajoute|garde)/.test(page), 'ni SQL ni la base ne sont personnifiés');
-  const fiche = html.slice(html.indexOf('guide({ id:70,'), html.indexOf('guide({ id:71,'));
+  const fiche = html.slice(html.indexOf('guide({ id:70,'), html.indexOf('guide({ id:64,'));
   assert.ok(!fiche.includes('sit:{') && !fiche.includes('testeVariants'), 'plus de cours texte Les triggers dans la fiche');
   assert.ok(!/dans historique_prix\b/.test(page) && val('CAPTIONS').filter(c => /table historique_prix|table produits/.test(c[2])).every(c => /<b>table (historique_prix|produits)<\/b>/.test(c[2])),
     'toujours la <b>table historique_prix</b>, la <b>table produits</b>');
