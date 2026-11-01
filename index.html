@@ -6643,7 +6643,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=72">
+<link rel="stylesheet" href="ludique.css?v=73">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -13295,7 +13295,7 @@ function colNote(id,t,c){ const b=typeof DEFI_BASES!=='undefined'&&DEFI_BASES[id
 async function editDbNote(id){
   id=id||activeDbId;
   const v=await lqPrompt({ico:'📝',titre:'Description du projet',texte:'Quelques mots pour te rappeler ce que contient cette base.',
-    valeur:dbNote(id),placeholder:'Ex. : les ventes 2025 de la boutique',max:140,multi:true});
+    valeur:dbNote(id),placeholder:'Ex. : les ventes 2025 de la boutique',max:400,multi:true});
   if(v==null)return;
   projOf(id).desc=v; saveProjState();
   renderConsoleScreen();
@@ -13304,7 +13304,7 @@ async function editDbNote(id){
 }
 async function editTableNote(name){
   const v=await lqPrompt({ico:'🗂️',titre:`Table « ${name} »`,texte:'Décris en quelques mots ce que contient chaque ligne.',
-    valeur:tableNote(activeDbId,name),placeholder:'Ex. : une ligne par vente, avec son montant',max:120,multi:true});
+    valeur:tableNote(activeDbId,name),placeholder:'Ex. : une ligne par vente, avec son montant',max:240,multi:true});
   if(v==null)return;
   const p=projOf(activeDbId); p.tdesc=p.tdesc||{}; p.tdesc[name]=v; saveProjState();
   renderDbWorkspace();
@@ -17636,7 +17636,7 @@ function renderDefisPerf(){
   const rows=hist.slice(0,4).map((h,i)=>`<li style="--i:${i}"><span class="perf-rk${!h.solo&&h.place>=1&&h.place<=3?' is-medal':''}">${perfBadge(h)}</span><span class="perf-g"><b>${esc(perfGame(h))}</b><small>${perfDay(h.at)} · ${h.ok}/${h.n} ${plur(h.ok,'réussie')}${h.ok?` · ${jeuChrono(h.ms)}`:''}</small></span><em>+${h.pts}</em></li>`).join('');
   host.innerHTML=`<section class="perf-card${parties?'':' is-empty'}" aria-labelledby="perf-h">
     <div class="perf-head"><span class="perf-stk" aria-hidden="true">${lqStkSvg('chart')}</span><div><p class="perf-kicker">Tableau de bord</p><h2 id="perf-h">Tes performances</h2></div></div>
-    <div class="perf-kpis">${kpi(' is-sun',pts,plur(pts,'point'),0)}${kpi('',parties,plur(parties,'partie'),1)}${kpi('',best||null,'record',2)}</div>
+    <div class="perf-kpis">${kpi(' is-sun',pts,plur(pts,'point'),0)}${kpi('',parties,plur(parties,'partie'),1)}${kpi('',best||null,'record<em>en une partie</em>',2)}</div>
     <div class="perf-block perf-top" id="perf-top">${clsTopHTML()}</div>
     <div class="perf-duo">${ring}${times}</div>
     <div class="perf-block"><h3>Tes dernières parties</h3>${chart}</div>
@@ -30880,7 +30880,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-moyen-v2245';
+  const SW_CACHE='requete-2026-11-01-record-v2246';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
