@@ -191,3 +191,12 @@ test('16 h 48 : la révision et la question d’entretien ouverte survivent auss
 test('18 h 20 : sous le bouton retour, le titre de la page descend, le même écart partout', () => {
   assert.ok(css.includes('html.lq #app .screen>.home-back{margin-bottom:28px}'));
 });
+
+test('18 h 38 : entretien — familles de notions, « Voir selon le SGBD », précédente et suivante côte à côte, réponse JSONB', () => {
+  assert.ok(app.includes("fbar.innerHTML=ENT_FAMILLES.map(([k,l])=>{"));
+  assert.ok(app.includes(`onclick="entVoirSgbd('\${x.id}','\${entSgbdTheme(x.q)}')"`));
+  assert.ok(app.includes("entOpen=parent==='entretien'&&activeTab==='sgbd'&&entSgbdRetour?entSgbdRetour:null;"), 'le retour ramène à la question');
+  assert.ok(app.includes('<div class="ent-nav">${entPrevTarget(x.id)?`<button type="button" class="ent-prev" onclick="prevEntretien('));
+  assert.ok(app.includes('Avec JSONB, PostgreSQL permet d’aller chercher des informations directement à l’intérieur d’un document JSON. <code>-&gt;</code> récupère une valeur JSON, <code>-&gt;&gt;</code> récupère sa valeur sous forme de texte et <code>@&gt;</code> permet de vérifier si le JSON contient une information précise.'));
+  assert.ok(css.includes('html.lq .ent-focus .ent-nav{display:flex;gap:10px;margin-top:14px}'));
+});
