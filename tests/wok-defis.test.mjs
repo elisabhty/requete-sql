@@ -59,8 +59,8 @@ test('les cas Wok représentatifs ont des résultats de référence', () => {
   assert.deepEqual(rows('wf1'), [['Poisson vapeur thaï', 16]]);
   assert.deepEqual(rows('wf8'), [['Franz', 'Bauer', 'franz.bauer@mail.at'], ['Lisa', 'Huber', 'lisa.huber@mail.at'], ['Elena', 'Keller', 'elena.keller@mail.ch']]);
   assert.deepEqual(rows('wm6'), [['Nouilles', 5], ['Farine', 4]]);
-  assert.equal(rows('wm8').length, 5);
-  assert.deepEqual(rows('wd1').slice(0, 3), [['Thomas', 'Lefevre', 430], ['Sophie', 'Martin', 405.2], ['Nadia', 'Cherif', 227.39999999999998]]);
+  assert.deepEqual(rows('wm8'), [['Hugo', 'Bernard', 4], ['Jules', 'Fontaine', 4], ['Léa', 'Petit', 4], ['Noé', 'Durand', 3]]);
+  assert.deepEqual(rows('wd1').slice(0, 3), [['Thomas', 'Lefevre', 430], ['Sophie', 'Martin', 387.2], ['Nadia', 'Cherif', 227.39999999999998]]);
   assert.deepEqual(rows('wd6'), [['Camille', 'Moreau', 3]]);
   assert.deepEqual(rows('wd9'), [['Camille', 'Moreau', 'Wok de nouilles au bœuf', 3]]);
   assert.deepEqual(rows('wd8').at(-1), ['Antoine', 'Girard', 0, 8]);
