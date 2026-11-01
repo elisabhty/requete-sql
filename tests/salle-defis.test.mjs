@@ -12,7 +12,7 @@ import test from 'node:test';
 const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const engineSrc = html.slice(html.indexOf('/* ---------- Salle de défi : un défi tiré au sort'), html.indexOf('/* Le même défi, seul ou à plusieurs'));
 const challengesSrc = html.slice(html.indexOf('const CHALLENGES=['), html.indexOf('const NIV='));
-assert.ok(engineSrc.includes('function jeuStart(') && challengesSrc.includes('c1'), 'moteur et défis localisés');
+assert.ok(engineSrc.includes('function jeuStart(') && challengesSrc.includes('af1'), 'moteur et défis localisés');
 const SB = engineSrc.match(/const JEU_SB='([^']+)'/)[1];
 const VOLATILE = ['ping', 'react'];
 
@@ -177,6 +177,11 @@ function makeClient(world, name, { skew = 0 } = {}) {
   };
   Object.assign(ctx, stubs);
   vm.runInContext(challengesSrc + '\n' + engineSrc, ctx);
+  /* 1er novembre, 0 h 55 : les défis de l’appli sont ceux de la base Aéroport, Facile seulement pour l’instant. Le moteur de la
+     salle se teste aussi en Moyen et en Difficile : six défis de test par niveau (la base est simulée, cf. sandbox). */
+  /* La base du défi (Aéroport…) est simulée comme celle du cours. */
+  vm.runInContext('defiSandbox=function(){return sandbox();};', ctx);
+  vm.runInContext("['m','d'].forEach(k=>{for(let i=1;i<=6;i++)CHALLENGES.push({id:'t'+k+i,niv:k,titre:'Défi test '+k+i,q:'Question '+k+i,sol:\"SELECT 't\"+k+i+\"'\"});});", ctx);
   /* La page est supposée déjà affichée : on capture les toasts. */
   vm.runInContext('jeuToast=function(t){__toasts.push(t);}', Object.assign(ctx, { __toasts: c.toasts }));
   c.ev = code => { const r = vm.runInContext(code, ctx); return r && typeof r === 'object' ? JSON.parse(JSON.stringify(r)) : r; };
@@ -554,7 +559,7 @@ test('entre amis : le tirage ignore ce que chacun a déjà trouvé ; l’arrivé
   assert.equal(h.ev('typeof jeuOkCount'), 'undefined'); assert.equal(h.ev('typeof jeuOkList'), 'undefined');
   assert.equal(h.ev("'okOf' in JEU"), false);
   const seen = new Set(); for (let k = 0; k < 80; k++) seen.add(h.ev('jeuPick()'));
-  assert.equal(seen.size, 5, 'les 5 défis faciles peuvent sortir, même ceux que l’ami a déjà trouvés');
+  assert.equal(seen.size, ids.length, 'tous les défis faciles peuvent sortir, même ceux que l’ami a déjà trouvés');
   h.ev('jeuNextRound()'); sec(w, 1);
   assert.equal(g.J('rounds[0].cid'), h.J('rounds[0].cid'), 'le même défi chez l’ami');
   assert.match(g.html, /Tout le monde reçoit le même défi\./);
@@ -622,10 +627,10 @@ test('un ami arrive pendant une manche commencée seul : la bande des joueurs ap
 test('un défi précis (« Avec des amis » sur sa page) ouvre la salle comme première manche', () => {
   const w = new World();
   const h = makeClient(w, 'Hôte'); h.ev('jeuNb=3');
-  h.ev("jeuStart('PICK55',true,'c1',{nomId:'jeu-nom'})"); sec(w, 1);
+  h.ev("jeuStart('PICK55',true,'tm1',{nomId:'jeu-nom'})"); sec(w, 1);
   const g = makeClient(w, 'Ami'); g.join('PICK55'); sec(w, 3);
   h.ev('jeuNextRound()'); sec(w, 1);
-  assert.equal(h.J('rounds[0].cid'), 'c1'); assert.equal(g.J('rounds[0].cid'), 'c1');
+  assert.equal(h.J('rounds[0].cid'), 'tm1'); assert.equal(g.J('rounds[0].cid'), 'tm1');
   assert.equal(h.J('niv'), 'm', 'le niveau suit le défi choisi');
 });
 

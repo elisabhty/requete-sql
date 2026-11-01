@@ -147,9 +147,9 @@ assert(html.includes('{ id:76, titre:"GROUP_CONCAT"') && html.includes('STRING_A
 assert(html.includes('{ id:77, titre:"WITH RECURSIVE (CTE RECURSIVE)"') && html.includes('condition d’arrêt'), 'CTE récursives expliquées avec leur garde-fou');
 assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION BY client_id'), 'comparaison aux lignes voisines couverte');
 const glissantes = fs.readFileSync(path.join(ROOT, 'assets/anim/fenetres-glissantes.html'), 'utf8');
-assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && ['UNBOUNDED PRECEDING', '2 PRECEDING', '2 FOLLOWING', 'CURRENT ROW'].every(c => glissantes.includes(c)) && html.includes('NTILE(4)'), 'cadres (dans la vidéo) et fonctions de fenêtre avancées (défi NTILE) couverts');
+assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && ['UNBOUNDED PRECEDING', '2 PRECEDING', '2 FOLLOWING', 'CURRENT ROW'].every(c => glissantes.includes(c)), 'cadres (dans la vidéo) couverts — le défi NTILE est parti avec les défis de la base du cours (1er novembre, 0 h 55)');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-11-01-carte-pseudo-v2224') && html.includes('requete-2026-11-01-carte-pseudo-v2224') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-11-01-defis-aeroport-v2225') && html.includes('requete-2026-11-01-defis-aeroport-v2225') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
