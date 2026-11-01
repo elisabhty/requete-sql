@@ -75,3 +75,18 @@ test('un défi tourne sur sa base : exécution, correction, pas à pas, schéma 
   assert.ok(app.includes("const id=dId?'defi:'+dId:(activeDbId||'cours')+':'+(database?schemaVersion(database):'-');"), 'tables et colonnes proposées au clavier');
   assert.ok(app.includes("Défi · ${NIV[c.niv].l}${defiBaseId(c)?` · Base ${esc(DEFI_BASES[defiBaseId(c)].nom)}`:''}"), 'la base dans l’en-tête du défi');
 });
+
+test('1 h 45 : chaque table et chaque colonne d’Aéroport a sa description, affichée dans le schéma et la Console', () => {
+  const m = app.match(/\n    tables:(\{[^\n]+\}),\n    cols:(\{[^\n]+\}),\n/);
+  assert.ok(m, 'descriptions dans DEFI_BASES.aeroport');
+  const tables = JSON.parse(m[1]), cols = JSON.parse(m[2]);
+  const d = base();
+  for (const t of col(d, "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")) {
+    assert.ok(tables[t], 'table ' + t);
+    for (const c of d.exec(`PRAGMA table_info(${t})`)[0].values.map(v => v[1])) assert.ok(cols[t] && cols[t][c], `${t}.${c}`);
+  }
+  d.close();
+  assert.ok(!/utile pour les défis/.test(m[1] + m[2]), 'pas d’indice');
+  assert.ok(app.includes('${dId&&tableNote(dId,name)?`<p class="sch-tnote">${esc(tableNote(dId,name))}</p>`:\'\'}'));
+  assert.ok(app.includes('${colNote(activeDbId,t,c.c)?`<small class="cd">${esc(colNote(activeDbId,t,c.c))}</small>`:\'\'}'));
+});
