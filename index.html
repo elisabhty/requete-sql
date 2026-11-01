@@ -6643,7 +6643,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=64">
+<link rel="stylesheet" href="ludique.css?v=65">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -12767,7 +12767,8 @@ function runConsole(){
       const{res,ms}=execQuery(sql,database);
       const n=(res&&res[0])?res[0].values.length:null;
       fb=[true,n==null?'Exécutée':plur(n,'ligne')];
-      paint(`<div class="console-out-ready result-live">${renderTable(res,ms)}</div>`);
+      paint(`<div class="console-out-ready result-live">${vizCtaHTML(sql,'ed-console')}${renderTable(res,ms)}</div>`);
+      vizAttn();
       recordConsoleRun(sql,true,{n:n==null?null:fmtLignes(n),ms});
       const moved=touched();
       if(activeDbId!=='cours'&&moved) persistCustomDbs();
@@ -13484,7 +13485,23 @@ function buildSteps(sql,database){
   return steps;
 }
 let vizSteps=[],vizI=0;
+/* Le pas à pas mis en avant après une exécution (Elisa, 1er novembre, 8 h 55 : « faire en sorte que le pas à pas apparaisse après
+   l’exécution en gros et qu’on mette en avant le bouton pas à pas, micro animé, pour bien faire voir qu’il est là »). Au-dessus du
+   résultat d’un SELECT, une grande carte : les étapes de la requête dans l’ordre où SQL les exécute, qui s’allument l’une après
+   l’autre, et un gros bouton « Voir le pas à pas ». Le petit bouton de la barre de l’éditeur pulse jusqu’à ce qu’on l’ouvre. */
+function vizCtaHTML(sql,taId){
+  const c=typeof splitClauses==='function'?splitClauses(sql):null;
+  if(!c)return '';
+  const et=[['FROM',1],['WHERE',c.where],['GROUP BY',c.group],['HAVING',c.having],['SELECT',1],['ORDER BY',c.order],['LIMIT',c.limit]].filter(x=>x[1]).map(x=>x[0]);
+  return `<section class="viz-cta" style="--n:${et.length}" aria-label="Exécution pas à pas">
+    <div class="viz-cta-h"><span class="viz-cta-k">Pas à pas</span><b>Vois comment SQL a lu ta requête</b><small>${et.length} étapes, dans l’ordre où elles s’exécutent.</small></div>
+    <ol class="viz-cta-steps" aria-hidden="true">${et.map((k,i)=>`<li style="--i:${i}">${k}</li>`).join('')}</ol>
+    <button type="button" class="viz-cta-go" onclick="openViz('${taId}')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg><span>Voir le pas à pas</span></button>
+  </section>`;
+}
+function vizAttn(){const b=document.querySelector('#scr-console .console-viz-tool');if(b)b.classList.add('viz-attn');}
 function openViz(taId, rawSql){
+  document.querySelectorAll('.viz-attn').forEach(b=>b.classList.remove('viz-attn'));
   document.getElementById('fab').classList.add('hide');
   const src=rawSql!==undefined?rawSql:(document.getElementById(taId)?document.getElementById(taId).value:'');
   const sql=src.trim();
@@ -28616,7 +28633,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-schema-console-v2234';
+  const SW_CACHE='requete-2026-11-01-pas-a-pas-v2235';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
