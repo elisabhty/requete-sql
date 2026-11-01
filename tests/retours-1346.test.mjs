@@ -39,7 +39,7 @@ test('avant un cours, sa page de départ dans la DA du site, avec un seul bouton
   const open = cut('function openLesson(id, restoreStep){', '/* « Quel JOIN choisir ? »');
   assert.ok(open.includes("if(!restoringNav&&typeof lessonStartShow==='function'){"), 'pas lors d’une reprise automatique');
   assert.ok(open.includes('lessonStartShow(l,()=>{if(current===l&&lessonStep===0&&lessonVideoOn(l))openLessonVideo();});'), 'la vidéo démarre au « Commencer »');
-  assert.ok(open.includes("<button type=\"button\" class=\"lst-go\"><span>${done?'Revoir le cours':started?'Reprendre':'Commencer'}</span>${DEF_CHEV_SVG}</button>"));
+  assert.ok(open.includes("<button type=\"button\" class=\"lst-go\"><span>${done?'Revoir le cours':started?'Continuer':'Commencer'}</span>${DEF_CHEV_SVG}</button>"));
   assert.ok(open.includes("<p class=\"lst-kicker\">${m?`Module ${mi+1} · ${esc(m.titre)}`:'Cours'}</p>"));
   assert.ok(open.includes('<ol class="lst-plan">'), 'ce que tu vas faire, dans l’ordre');
   assert.ok(css.includes('.lst-card{position:relative;isolation:isolate;overflow:visible;padding:26px 22px 30px;border-radius:30px;background:var(--deep);'));
@@ -122,4 +122,68 @@ test('15 h 36 : la carte des indices dans la DA, juste après la question ; « �
   assert.ok(app.includes("coachPeek(card,COACH.fx==='is-new-hint');"), 'une pastille ramène à la carte si elle est hors de l’écran');
   for (const part of ['html.lq .coach.is-new-hint .coach-tag.is-hint{animation:coachFlip .6s var(--pop) both}', 'html.lq .coach-caret{', 'html.lq .coach-st-k{flex:none;padding:3px 9px;border-radius:99px;background:#E0457B;'])
     assert.ok(css.includes(part), part);
+});
+
+test('15 h 57 : « Commencer » à la première ouverture d’un cours, « Continuer » ensuite', () => {
+  const ctx = vm.createContext({ state: {}, saved: 0, save() { ctx.saved++; }, lecCompletee: () => false, nbFaites: () => 0 });
+  const open = cut('function lessonStartShow(l,go){', '  const chips=[];');
+  vm.runInContext(open.replace('function lessonStartShow(l,go){', 'function t(l){').replace(/document\.getElementById\('lesson-start'\)\?\.remove\(\);/, '').replace(/const m=moduleDeLecon[^\n]*\n/, '') + 'return started;}', ctx);
+  assert.equal(vm.runInContext('t({id:7})', ctx), false, 'première fois : Commencer');
+  assert.equal(vm.runInContext('t({id:7})', ctx), true, 'ensuite : Continuer');
+  assert.equal(vm.runInContext('t({id:8})', ctx), false);
+  assert.equal(ctx.saved, 2, 'retenu sur l’appareil');
+});
+
+test('16 h : une feuille versionnée n’est servie du cache que sous sa version exacte ; cartes de niveau resserrées', () => {
+  assert.ok(sw.includes('const versionne = /[?&]v=/.test(url.search);') && sw.includes('const hit = await cache.match(req, { ignoreSearch: !versionne });'));
+  assert.ok(sw.includes("return (versionne && await cache.match(req, { ignoreSearch: true })) || Response.error();"), 'hors ligne, l’ancienne copie dépanne');
+  assert.ok(css.includes('html.lq .room-level{min-height:0!important;justify-content:center;gap:6px;padding:13px 6px 13px!important}'));
+});
+
+test('16 h 03 : le clavier « Insérer » ne pose plus d’espace en trop', () => {
+  const src = cut('function insertKey(k,schemaKind){', '\nlet kbarOpenH');
+  const ctx = vm.createContext({ activeTA: null, kbarTokenAt: () => null, kbarKeyNorm: k => k.replace(/\(\*\)/g, '').replace(/[()';%]/g, '').trim().toUpperCase(), kbarClauseContext: () => ({ kind: 'column' }), Event: class { constructor(t) { this.type = t; } } });
+  vm.runInContext(src, ctx);
+  const tape = (v, k, at = v.length, kind = '') => {
+    const ta = { value: v, selectionStart: at, selectionEnd: at, setSelectionRange(a) { this.selectionStart = this.selectionEnd = a; }, dispatchEvent() {}, focus() {} };
+    ctx.activeTA = ta; vm.runInContext(`insertKey(${JSON.stringify(k)},${JSON.stringify(kind)})`, ctx);
+    return ta.value.slice(0, ta.selectionStart) + '|' + ta.value.slice(ta.selectionStart);
+  };
+  assert.equal(tape('SELECT ', 'COUNT(*)'), 'SELECT COUNT(*)|', 'pas d’espace après une fonction');
+  assert.equal(tape('SELECT COUNT(*)', ','), 'SELECT COUNT(*), |');
+  assert.equal(tape('SELECT nom ', ','), 'SELECT nom, |', 'la virgule efface l’espace laissé avant elle');
+  assert.equal(tape('SELECT *', 'FROM'), 'SELECT * FROM |', 'un mot-clé garde son espace après');
+  assert.equal(tape('SELECT * ', 'FROM'), 'SELECT * FROM |');
+  assert.equal(tape('SELECT  nom', 'FROM', 7), 'SELECT FROM| nom', 'pas de second espace si un espace suit déjà');
+  assert.equal(tape('SELECT ', 'SUM()'), 'SELECT SUM(|)');
+  assert.equal(tape('SELECT COUNT(', 'nom', 13, 'column'), 'SELECT COUNT(nom|', 'dans une parenthèse, ni avant ni après');
+  assert.equal(tape('SELECT COUNT(nom ', ')'), 'SELECT COUNT(nom)|');
+});
+
+test('16 h 26 : dans « Clés et relations », le premier CREATE TABLE annonce qu’on apprendra à l’écrire au module suivant', () => {
+  const cles = fs.readFileSync(new URL('../assets/anim/projet-cles.html', import.meta.url), 'utf8');
+  assert.ok(cles.includes("a += sqlCard('sq-pk', SQL.pk, 64, 952, 'Tu apprendras à créer ces tables dans le prochain module.');"));
+  assert.ok(cles.includes('${note ? `<div class="sq-note"><span class="emo">✍️</span>${note}</div>` : \'\'}'));
+});
+
+test('16 h 31 : recharger pendant un défi ne fait plus perdre l’avancée', () => {
+  assert.ok(app.includes("const DEFI_SES_KEY='rq-defi-en-cours';"));
+  const open = cut('function openChallenge(cid){', '\nfunction startReview(');
+  assert.ok(open.includes('const ses=restoringNav?defiSesRead():null;'), 'seulement au rechargement');
+  assert.ok(open.includes('Date.now()-ses.t0<JEU_ROUND_MS'), 'tant qu’il reste du temps');
+  assert.ok(open.includes('defiChronoStart(c,reprise?reprise.t0:0);'), 'le chrono reprend à son heure de départ');
+  assert.ok(app.includes("else if(taId==='ed-lesson'&&current&&mode==='defi'){defiSesSave();}"), 'la requête est gardée à la frappe');
+  assert.ok(app.includes("if(COACH.kind==='solo'&&typeof defiSesSave==='function')defiSesSave();"), 'les indices et le « Pas encore » aussi');
+  assert.ok(app.includes("el.classList.add('is-ok');defiChronoStop();defiSesClear();return;"), 'un défi réussi repart de zéro');
+});
+
+test('16 h 48 : la révision et la question d’entretien ouverte survivent aussi au rechargement', () => {
+  const rev = cut('function openReview(id){', '\nlet defiDernierKo');
+  assert.ok(rev.includes('let ses=restoringNav?revSesRead():null;'));
+  assert.ok(rev.includes('if(ses.done){if(q.length){id=q[0];}ses=null;}'), 'une leçon déjà révisée passe à la suivante');
+  assert.ok(rev.includes('exoFails=Math.max(0,Math.floor(+ses.fails||0));'), 'l’aide déjà débloquée revient');
+  assert.ok(app.includes("else if(taId==='ed-lesson'&&current&&mode==='review'){revSesSave();}"), 'la requête est gardée à la frappe');
+  assert.equal(app.split('reviewQueue.shift();revSesSave(true);').length - 1, 2, 'les deux réussites de révision');
+  assert.ok(app.includes("if(nav.view==='tab'&&nav.tab==='entretien'){\n      switchTab('entretien');entSesRestore();"));
+  assert.ok(app.includes('  if(!restoringNav)entSesSave();'));
 });

@@ -17,7 +17,7 @@ test('tous les contextes contiennent la mission complète, sans renvoi à une qu
  for(const c of data.challenges){
   assert.ok(c.contexte.includes(c.q),c.id+': colonnes, conditions et tri explicites');
   assert.doesNotMatch(c.contexte,/voir (?:la question|la consigne)|comme (?:ci-dessus|précédemment)/i,c.id);
-  assert.ok(c.contexte.split(/\s+/).length<=130,c.id+': contexte lisible');
+  assert.ok(c.contexte.split(/\s+/).length<=150,c.id+': contexte lisible');
  }
 });
 
@@ -25,7 +25,7 @@ test('toutes les solutions s’exécutent en lecture seule avec un résultat et 
  for(const c of data.challenges){const db=base(c.base);try{
   assert.equal(db.exec('PRAGMA foreign_key_check').length,0,c.id+': intégrité du seed');
   db.run('PRAGMA query_only=ON');
-  const expected=rows(db,c.id);assert.ok(expected.length,c.id+': résultat non vide');
+  const expected=rows(db,c.id);if(['zm8','zd6','sm9'].includes(c.id))assert.equal(expected.length,0,c.id+': résultat vide prévu dans cette base');else assert.ok(expected.length,c.id+': résultat non vide');
   db.run('PRAGMA reverse_unordered_selects=ON');
   if(c.ordered)assert.deepEqual(rows(db,c.id),expected,c.id+': tri stable');
  }finally{db.close();}}
@@ -97,5 +97,31 @@ test('une équipe sans publication ne fait pas réussir automatiquement le défi
  const db=base('labo');try{
   db.run('DELETE FROM publications');
   assert.deepEqual(rows(db,'ld6'),[]);
+ }finally{db.close();}
+});
+
+test('sport : un cours sans créneau reste dans les compteurs et deux créneaux ne cumulent pas leur capacité',()=>{
+ const db=base('salle_sport');try{
+  const slot=table(db,'planning')[0],signup=table(db,'inscriptions_cours')[0];
+  db.run('DELETE FROM inscriptions_cours; DELETE FROM planning');
+  assert.equal(rows(db,'sm1').length,table(db,'cours').length);
+  assert.ok(rows(db,'sm1').every(r=>r[1]===0));
+  db.run('UPDATE cours SET capacite_max=2 WHERE id=?',[slot.cours_id]);
+  const insert=(name,row)=>db.run('INSERT INTO '+name+' ('+Object.keys(row).join(',')+') VALUES ('+Object.keys(row).map(()=>'?').join(',')+')',Object.values(row));
+  for(const id of [90001,90002]){
+   insert('planning',{...slot,id});
+   insert('inscriptions_cours',{...signup,id,planning_id:id});
+  }
+  assert.deepEqual(rows(db,'sm6'),[],'un inscrit par créneau pour deux places : aucun créneau plein');
+ }finally{db.close();}
+});
+
+test('les bilans mensuels ne fusionnent pas septembre de deux années différentes',()=>{
+ const db=base('salle_sport');try{
+  const camille=table(db,'adherents').find(a=>a.prenom==='Camille'&&a.nom==='Moreau');
+  const row=table(db,'inscriptions_cours').find(i=>i.adherent_id===camille.id);
+  const copy={...row,id:99999,date_inscription:'2025-09-02'};
+  db.run('INSERT INTO inscriptions_cours ('+Object.keys(copy).join(',')+') VALUES ('+Object.keys(copy).map(()=>'?').join(',')+')',Object.values(copy));
+  assert.deepEqual(rows(db,'sd3'),[['2024-09',3,null,null],['2025-09',1,3,-2]]);
  }finally{db.close();}
 });

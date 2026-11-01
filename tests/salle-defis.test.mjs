@@ -170,6 +170,7 @@ function makeClient(world, name, { skew = 0 } = {}) {
     noteActivityDay() { c.acts = (c.acts || 0) + 1; }, save() {}, renderProgress() {}, renderPlanning() {}, setLessonOut: h => { c.out = h; }, renderTable: () => '', errBox: m => m,
     exoFailDiag: () => 'x', exerciseRequiresOrder: () => false, exerciseResultsMatch: (a, b) => JSON.stringify(a) === JSON.stringify(b),
     sandbox: () => ({ exec: sql => [{ columns: ['q'], values: [[sql]] }], close() {} }),
+    execChallengeResult: (database,sql) => database.exec(sql),
     performance: { now: () => world.now }, confirm: () => true, toast() {},
     /* La fenêtre de l’appli (lqAsk) répond tout de suite « oui » ; un test peut la remplacer pour compter ou refuser. */
     lqAsk: () => ({ then: f => f(true) }),
@@ -558,7 +559,7 @@ test('entre amis : le tirage ignore ce que chacun a déjà trouvé ; l’arrivé
   g.join('OKOK42'); sec(w, 3);
   assert.equal(h.ev('typeof jeuOkCount'), 'undefined'); assert.equal(h.ev('typeof jeuOkList'), 'undefined');
   assert.equal(h.ev("'okOf' in JEU"), false);
-  const seen = new Set(); for (let k = 0; k < 600; k++) seen.add(h.ev('jeuPick()')); /* 32 défis faciles (1er novembre, 8 h 47) */
+  const seen = new Set(h.ev(`(()=>{const original=Math.random,picks=[];try{for(let k=0,total=jeuChallenges('f').length;k<total;k++){Math.random=()=> (k+.5)/total;picks.push(jeuPick());}}finally{Math.random=original;}return picks;})()`));
   assert.equal(seen.size, ids.length, 'tous les défis faciles peuvent sortir, même ceux que l’ami a déjà trouvés');
   h.ev('jeuNextRound()'); sec(w, 1);
   assert.equal(g.J('rounds[0].cid'), h.J('rounds[0].cid'), 'le même défi chez l’ami');
@@ -576,7 +577,7 @@ test('un défi trouvé dans la salle peut revenir après « Rejouer »', () => {
   assert.equal(g.ev(`state.defis['${x}']`), true, 'trouvé par l’ami (sa progression le garde)');
   h.ev('jeuClose()'); sec(w, 1); h.ev('jeuFinish()'); sec(w, 1); h.ev('jeuAgain()'); sec(w, 1);
   h.ev('JEU.recent.clear()');
-  const seen = new Set(); for (let k = 0; k < 600; k++) seen.add(h.ev('jeuPick()')); /* 32 défis faciles (1er novembre, 8 h 47) */
+  const seen = new Set(h.ev(`(()=>{const original=Math.random,picks=[];try{for(let k=0,total=jeuChallenges('f').length;k<total;k++){Math.random=()=> (k+.5)/total;picks.push(jeuPick());}}finally{Math.random=original;}return picks;})()`));
   assert.ok(seen.has(x), 'trouvé, il peut revenir');
 });
 

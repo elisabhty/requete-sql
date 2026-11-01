@@ -533,9 +533,41 @@ const CHECKS = {
    "SELECT group_concat(reservation_id) FROM (SELECT reservation_id FROM paiements GROUP BY 1 HAVING COUNT(*)>1 ORDER BY 1)",
    "1,3,5,7,9"
   ]
+ ],
+ "salle_sport": [
+  [
+   "adhérents sans abonnement : 39, 40",
+   "SELECT group_concat(a.id) FROM adherents a LEFT JOIN abonnements ab ON ab.adherent_id=a.id WHERE ab.id IS NULL",
+   "39,40"
+  ],
+  [
+   "adhérents sans cours : 39, 40",
+   "SELECT group_concat(a.id) FROM adherents a LEFT JOIN inscriptions_cours i ON i.adherent_id=a.id WHERE i.id IS NULL",
+   "39,40"
+  ],
+  [
+   "coach sans cours : 8",
+   "SELECT group_concat(co.id) FROM coachs co LEFT JOIN cours c ON c.coach_id=co.id WHERE c.id IS NULL",
+   "8"
+  ],
+  [
+   "cours saturés : plannings 5 et 9",
+   "SELECT group_concat(id) FROM (SELECT p.id FROM planning p JOIN cours c ON c.id=p.cours_id LEFT JOIN inscriptions_cours i ON i.planning_id=p.id GROUP BY p.id,c.capacite_max HAVING COUNT(i.id)>=c.capacite_max ORDER BY p.id)",
+   "5,9"
+  ],
+  [
+   "inscriptions présentes et absentes",
+   "SELECT COUNT(*) FROM inscriptions_cours WHERE presence=0",
+   15
+  ],
+  [
+   "abonnements Mensuel en cours : 3 adhérents",
+   "SELECT COUNT(DISTINCT adherent_id) FROM abonnements WHERE type='Mensuel' AND date_fin IS NULL",
+   3
+  ]
  ]
 };
-const NOMS = { hopital: 'Hôpital', wok: 'Wok Chinois', zoo: 'Zoo', fromagerie: 'Fromagerie', labo: 'Laboratoire de recherche', voyages: 'Agence de voyages' };
+const NOMS = { hopital: 'Hôpital', wok: 'Wok Chinois', zoo: 'Zoo', fromagerie: 'Fromagerie', labo: 'Laboratoire de recherche', voyages: 'Agence de voyages', salle_sport: 'Salle de sport' };
 const VOLUMES = {
   hopital: { services: 6, medecins: 14, infirmiers: 10, patients: 40, consultations: 50, hospitalisations: 29, prescriptions: 60 },
   wok: { categories: 6, plats: 20, ingredients: 15, plats_ingredients: 30, clients: 30, serveurs: 8, tables_resto: 10, commandes: 42, lignes_commande: 74, avis: 20 },
@@ -543,6 +575,7 @@ const VOLUMES = {
   fromagerie: { producteurs: 12, laits: 4, fromages: 25, affinages: 20, lots: 30, clients: 30, ventes: 55, degustations: 20 },
   labo: { equipes: 6, chercheurs: 20, projets: 15, experiences: 40, echantillons: 35, resultats: 45, publications: 15, affectations_chercheurs: 46 },
   voyages: { destinations: 12, guides: 10, circuits: 20, clients: 30, reservations: 50, paiements: 50, affectations_guides: 25, avis: 25 },
+  salle_sport: { adherents: 40, abonnements: 40, coachs: 8, salles: 6, cours: 12, planning: 14, inscriptions_cours: 88 },
 };
 
 for (const id of Object.keys(NOMS)) {
@@ -552,7 +585,7 @@ for (const id of Object.keys(NOMS)) {
     const d = base(id);
     for (const [t, n] of Object.entries(VOLUMES[id])) assert.equal(val(d, `SELECT COUNT(*) FROM ${t}`), n, `${t}`);
     assert.equal(d.exec('PRAGMA foreign_key_check').length, 0);
-    const m = e.match(/\n    tables:(\{[^\n]+\}),\n    cols:(\{[^\n]+\}),\n    desc:'([^']+)',/);
+    const m = e.match(/\n[ \t]+tables:(\{[^\n]+\}),\n[ \t]+cols:(\{[^\n]+\}),\n[ \t]+desc:'([^']+)',/);
     assert.ok(m, 'tables, colonnes, description');
     const tables = JSON.parse(m[1]), cols = JSON.parse(m[2]);
     assert.ok(m[3].startsWith('Bienvenue dans ') && m[3].endsWith('Explore la base pour résoudre les différentes missions.'));
@@ -588,7 +621,7 @@ test('quelques corrections, nommément', () => {
   assert.ok(!/[\u4e00-\u9fff]/.test(app), 'aucun caractère chinois dans l’appli');
 });
 
-test('la Console : sept bases d’entraînement en plus de celle du cours, construites à leur première ouverture', () => {
+test('la Console : huit bases d’entraînement en plus de celle du cours, construites à leur première ouverture', () => {
   assert.ok(app.includes("function isDemoDb(id){return id==='cours'||(typeof DEFI_BASES!=='undefined'&&Object.prototype.hasOwnProperty.call(DEFI_BASES,id));}"));
   assert.ok(app.includes("function activeDb(){ return activeDbId==='cours'?db:(customDbs[activeDbId]||demoDb(activeDbId)); }"));
   assert.ok(app.includes("function openConsoleProject(id){\n  if(id!=='cours'&&!customDbs[id]&&!demoDb(id))return;"));
@@ -596,6 +629,8 @@ test('la Console : sept bases d’entraînement en plus de celle du cours, const
   assert.ok(app.includes('<div class="console-projects-head"><h2>Bases d’entraînement</h2><span>${plur(demos.length,\'base\')}</span></div>'));
   assert.ok(app.includes("wok:{nom:'Wok Chinois',"), 'la Console nomme la base comme un restaurant chinois');
   assert.ok(app.includes('Bienvenue dans un restaurant chinois spécialisé dans la cuisine au wok.'), 'description de la base Wok');
+  assert.ok(app.includes("salle_sport:{nom:'Salle de sport',"), 'la Console nomme la nouvelle base');
+  assert.ok(app.includes('Bienvenue dans une salle de sport. Adhérents, coachs, cours collectifs, abonnements et inscriptions :'), 'description sans « urbaine »');
   assert.ok(app.includes("${mine.length?`<div class=\"console-projects-head\"><h2>Tes projets</h2>"), 'tes projets d’abord, s’il y en a');
   for (const id of Object.keys(NOMS)) assert.ok(new RegExp(`\\n  ${id}:'SELECT `).test(cut('const DEMO_SQL={', '\n};')), `requête de départ : ${id}`);
   assert.ok(app.includes("  if(isDemoDb(target)){toast(`La ${demoLabel(target).replace(/^Base/,'base')} est protégée`);return null;}"));

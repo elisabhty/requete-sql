@@ -2681,6 +2681,7 @@
   .editor-area pre code,.editor-area code{font-family:inherit;font-size:inherit;font-weight:inherit;font-style:inherit;line-height:inherit;letter-spacing:inherit;margin:0;padding:0;background:none;border-radius:0;white-space:inherit;tab-size:2;font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
   .editor-area pre{position:absolute;inset:0;pointer-events:none;color:var(--code-ink);z-index:0;overflow:hidden}
   .editor-area textarea{position:relative;display:block;width:100%;min-height:104px;max-height:none;resize:none;background:transparent;color:transparent;caret-color:#7A6FF0;z-index:1;touch-action:pan-y;overflow:hidden;overscroll-behavior:auto}
+  @media(max-height:760px){#scr-lesson .jeu .editor-area pre,#scr-lesson .jeu .editor-area textarea{padding-top:10px;padding-bottom:10px}#scr-lesson .jeu .editor-area textarea{min-height:60px}}
   .editor-area .t-kw{color:var(--t-kw);font-weight:600}
   .editor-area .t-fn{color:var(--t-fn)}.editor-area .t-str{color:var(--t-str)}
   .editor-area .t-num{color:var(--t-num)}.editor-area .t-com{color:var(--t-com);font-style:italic}
@@ -6644,7 +6645,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=79">
+<link rel="stylesheet" href="ludique.css?v=81">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -10002,12 +10003,12 @@ const CHALLENGES=[
      sol:"SELECT nom, stock, seuil_alerte FROM ingredients WHERE stock < seuil_alerte ORDER BY seuil_alerte - stock, nom;",
      indice:"Compare les deux colonnes de stock ; l’écart demandé se calcule en soustrayant stock du seuil."},
     {id:'wf8',apres:103,titre:"Quels clients n’ont jamais commandé ?",niv:'f',base:'wok',ordered:true,
-     contexte:"Le service fidélité veut contacter les clients inscrits qui n’ont jamais passé de commande. Affiche le prénom, le nom et l’e-mail des clients sans commande, triés par nom puis par prénom.",
+    contexte:"Le service fidélité veut contacter les clients inscrits qui n’ont jamais passé de commande. Affiche le prénom, le nom et l’e-mail des clients sans commande, triés par nom puis par prénom.",
      q:"Affiche le prénom, le nom et l’e-mail des clients sans commande, triés par nom puis par prénom.",
      sol:"SELECT cl.prenom, cl.nom, cl.email FROM clients cl LEFT JOIN commandes c ON c.client_id = cl.id WHERE c.id IS NULL ORDER BY cl.nom, cl.prenom;",
      indice:"Un LEFT JOIN conserve tous les clients ; une commande absente donne c.id à NULL."},
     {id:'wf9',apres:104,titre:"Quels serveurs n’ont jamais pris de commande ?",niv:'f',base:'wok',ordered:true,
-     contexte:"La responsable de salle recherche les serveurs auxquels aucune commande n’a été attribuée. Affiche le prénom, le nom et la date d’embauche des serveurs sans commande, triés par nom puis par prénom.",
+    contexte:"La responsable de salle recherche les serveurs auxquels aucune commande n’a été attribuée. Affiche le prénom, le nom et la date d’embauche des serveurs sans commande, triés par nom puis par prénom.",
      q:"Affiche le prénom, le nom et la date d’embauche des serveurs sans commande, triés par nom puis par prénom.",
      sol:"SELECT s.prenom, s.nom, s.date_embauche FROM serveurs s LEFT JOIN commandes c ON c.serveur_id = s.id WHERE c.id IS NULL ORDER BY s.nom, s.prenom;",
      indice:"Relie chaque serveur à ses commandes avec LEFT JOIN et garde ceux sans correspondance."},
@@ -10038,7 +10039,7 @@ const CHALLENGES=[
      indice:"Regroupe les lignes de commande par plat, puis calcule les unités et le chiffre d’affaires total."},
     {id:'wm5',apres:110,titre:"Quels clients ont dépensé plus de 100 € ?",niv:'m',base:'wok',ordered:true,
      contexte:"Le service fidélité recherche les clients dont le montant cumulé des commandes dépasse 100 €. Affiche le prénom, le nom et le total dépensé des clients dont le cumul des commandes dépasse strictement 100 €. Trie par total décroissant, puis nom et prénom. Exclus les commandes au statut « Annulée ». Le montant est la somme des quantités multipliées par les prix unitaires des lignes de commande.",
-     q:"Affiche le prénom, le nom et le total dépensé des clients dont le cumul des commandes dépasse strictement 100 €. Trie par total décroissant, puis nom et prénom.",
+    q:"Affiche le prénom, le nom et le total dépensé des clients dont le cumul des commandes dépasse strictement 100 €. Trie par total décroissant, puis nom et prénom.",
      sol:"SELECT cl.prenom, cl.nom, SUM(l.quantite * l.prix_unitaire) AS total_depense FROM clients cl JOIN commandes c ON c.client_id = cl.id JOIN lignes_commande l ON l.commande_id = c.id WHERE c.statut <> 'Annulée' GROUP BY cl.id, cl.prenom, cl.nom HAVING SUM(l.quantite * l.prix_unitaire) > 100 ORDER BY total_depense DESC, cl.nom, cl.prenom;",
      indice:"Additionne les montants des lignes par client et filtre le total avec HAVING."},
     {id:'wm6',apres:111,titre:"Quels ingrédients entrent dans plus de trois plats ?",niv:'m',base:'wok',ordered:true,
@@ -10057,7 +10058,7 @@ const CHALLENGES=[
      sol:"SELECT cl.prenom, cl.nom, COUNT(DISTINCT cat.id) AS nb_categories FROM clients cl JOIN commandes c ON c.client_id = cl.id JOIN lignes_commande l ON l.commande_id = c.id JOIN plats p ON p.id = l.plat_id JOIN categories cat ON cat.id = p.categorie_id WHERE c.statut <> 'Annulée' GROUP BY cl.id, cl.prenom, cl.nom HAVING COUNT(DISTINCT cat.id) >= 3 ORDER BY nb_categories DESC, cl.nom, cl.prenom;",
      indice:"Relie clients, commandes, lignes, plats et catégories. Le seuil porte sur un COUNT(DISTINCT), donc se place dans HAVING."},
     {id:'wm9',apres:114,titre:"Quelle répartition des avis par note ?",niv:'m',base:'wok',ordered:true,
-     contexte:"Le responsable qualité souhaite connaître la répartition de toutes les notes laissées par les clients. Affiche chaque note, son nombre d’avis et sa part en pourcentage du total arrondie à une décimale, triés par note décroissante. Le pourcentage est 100 × nombre d’avis pour la note ÷ nombre total d’avis.",
+    contexte:"Le responsable qualité souhaite connaître la répartition de toutes les notes laissées par les clients. Affiche chaque note, son nombre d’avis et sa part en pourcentage du total arrondie à une décimale, triés par note décroissante. Le pourcentage est 100 × nombre d’avis pour la note ÷ nombre total d’avis.",
      q:"Affiche chaque note, son nombre d’avis et sa part en pourcentage du total arrondie à une décimale, triés par note décroissante.",
      sol:"SELECT note, COUNT(*) AS nb_avis, ROUND(100.0 * COUNT(*) / (SELECT COUNT(*) FROM avis), 1) AS pourcentage FROM avis GROUP BY note ORDER BY note DESC;",
      indice:"Regroupe les avis par note puis divise chaque compte par le nombre total d’avis. Multiplier par 100.0 évite une division entière."},
@@ -10072,18 +10073,18 @@ const CHALLENGES=[
      sol:"SELECT s.prenom, s.nom, SUM(l.quantite * l.prix_unitaire) AS ca_total FROM serveurs s JOIN commandes c ON c.serveur_id = s.id JOIN lignes_commande l ON l.commande_id = c.id WHERE c.statut <> 'Annulée' GROUP BY s.id, s.prenom, s.nom ORDER BY ca_total DESC, s.nom, s.prenom LIMIT 3;",
      indice:"Relie serveurs, commandes et lignes de commande, puis additionne quantité multipliée par prix unitaire pour chaque serveur."},
     {id:'wd2',apres:117,titre:"Quel classement des clients par dépense ?",niv:'d',base:'wok',ordered:true,
-     contexte:"Le service fidélité classe les clients selon le montant cumulé de leurs commandes. Affiche le prénom, le nom, le total dépensé et le rang RANK() des clients ayant commandé, triés par rang puis nom et prénom. Ne retiens que les clients ayant une commande non annulée avec au moins une ligne. Le total est la somme de quantité × prix unitaire ; des totaux égaux partagent le même rang, avec saut au suivant. Exclus les commandes au statut « Annulée ».",
+    contexte:"Le service fidélité classe les clients selon le montant cumulé de leurs commandes. Affiche le prénom, le nom, le total dépensé et le rang RANK() des clients ayant commandé, triés par rang puis nom et prénom. Ne retiens que les clients ayant une commande non annulée avec au moins une ligne. Le total est la somme de quantité × prix unitaire ; des totaux égaux partagent le même rang, avec saut au suivant. Exclus les commandes au statut « Annulée ».",
      q:"Affiche le prénom, le nom, le total dépensé et le rang RANK() des clients ayant commandé, triés par rang puis nom et prénom.",
      sol:"SELECT cl.prenom, cl.nom, SUM(l.quantite * l.prix_unitaire) AS total_depense, RANK() OVER (ORDER BY SUM(l.quantite * l.prix_unitaire) DESC) AS rang FROM clients cl JOIN commandes c ON c.client_id = cl.id JOIN lignes_commande l ON l.commande_id = c.id WHERE c.statut <> 'Annulée' GROUP BY cl.id, cl.prenom, cl.nom ORDER BY rang, cl.nom, cl.prenom;",
      indice:"Regroupe d’abord les dépenses par client, puis applique RANK() sur la somme sans ajouter de départage dans la fenêtre."},
     {id:'wd3',apres:118,titre:"Comment évoluent les commandes de Camille Moreau ?",niv:'d',base:'wok',ordered:true,
-     contexte:"Le restaurant analyse l’évolution du montant des commandes de Camille Moreau. Affiche la date, le total de la commande, le total précédent avec LAG() et la différence pour chaque commande de Camille Moreau, triés par date puis identifiant. Calcule chaque total à partir des lignes (quantité × prix unitaire). La différence est le total actuel moins le précédent ; le précédent et la différence valent NULL sur la première commande. Exclus les commandes au statut « Annulée ».",
+    contexte:"Le restaurant analyse l’évolution du montant des commandes de Camille Moreau. Affiche la date, le total de la commande, le total précédent avec LAG() et la différence pour chaque commande de Camille Moreau, triés par date puis identifiant. Calcule chaque total à partir des lignes (quantité × prix unitaire). La différence est le total actuel moins le précédent ; le précédent et la différence valent NULL sur la première commande. Exclus les commandes au statut « Annulée ».",
      q:"Affiche la date, le total de la commande, le total précédent avec LAG() et la différence pour chaque commande de Camille Moreau, triés par date puis identifiant.",
      sol:"WITH totaux AS (SELECT c.id AS commande_id, c.client_id, c.date_commande, SUM(l.quantite * l.prix_unitaire) AS total FROM commandes c JOIN lignes_commande l ON l.commande_id = c.id WHERE c.statut <> 'Annulée' GROUP BY c.id, c.client_id, c.date_commande) SELECT t.date_commande, t.total, LAG(t.total) OVER (ORDER BY t.date_commande, t.commande_id) AS total_precedent, t.total - LAG(t.total) OVER (ORDER BY t.date_commande, t.commande_id) AS difference FROM totaux t JOIN clients cl ON cl.id = t.client_id WHERE cl.prenom = 'Camille' AND cl.nom = 'Moreau' ORDER BY t.date_commande, t.commande_id;",
      indice:"Calcule le total par commande dans une CTE, puis utilise LAG() selon la date et l’identifiant pour stabiliser la chronologie."},
     {id:'wd4',apres:119,titre:"Quels clients dépensent plus que la moyenne ?",niv:'d',base:'wok',ordered:true,
      contexte:"Le service fidélité recherche les clients dont le montant commandé dépasse la moyenne des clients ayant commandé. Affiche le prénom, le nom, le total dépensé et l’écart à la moyenne globale arrondi à deux décimales pour les clients au-dessus de cette moyenne, triés par total décroissant puis nom et prénom. La moyenne porte sur les totaux par client, uniquement pour les clients ayant une commande non annulée avec des lignes. Compare avant tout arrondi. Exclus les commandes au statut « Annulée ». Le montant est la somme des quantités multipliées par les prix unitaires des lignes de commande.",
-     q:"Affiche le prénom, le nom, le total dépensé et l’écart à la moyenne globale arrondi à deux décimales pour les clients au-dessus de cette moyenne, triés par total décroissant puis nom et prénom.",
+    q:"Affiche le prénom, le nom, le total dépensé et l’écart à la moyenne globale arrondi à deux décimales pour les clients au-dessus de cette moyenne, triés par total décroissant puis nom et prénom.",
      sol:"WITH totaux AS (SELECT cl.id, cl.prenom, cl.nom, SUM(l.quantite * l.prix_unitaire) AS total FROM clients cl JOIN commandes c ON c.client_id = cl.id JOIN lignes_commande l ON l.commande_id = c.id WHERE c.statut <> 'Annulée' GROUP BY cl.id, cl.prenom, cl.nom), moyenne AS (SELECT AVG(total) AS valeur FROM totaux) SELECT t.prenom, t.nom, t.total, ROUND(t.total - m.valeur, 2) AS ecart_moyenne FROM totaux t CROSS JOIN moyenne m WHERE t.total > m.valeur ORDER BY t.total DESC, t.nom, t.prenom;",
      indice:"Calcule d’abord le total dépensé par client, puis la moyenne de ces totaux dans une seconde CTE."},
     {id:'wd5',apres:120,titre:"Quels plats génèrent le plus de chiffre d’affaires dans leur catégorie ?",niv:'d',base:'wok',ordered:true,
@@ -10107,7 +10108,7 @@ const CHALLENGES=[
      sol:"SELECT s.prenom, s.nom, COALESCE(SUM(l.quantite * l.prix_unitaire), 0) AS ca_total, RANK() OVER (ORDER BY COALESCE(SUM(l.quantite * l.prix_unitaire), 0) DESC) AS rang FROM serveurs s LEFT JOIN commandes c ON c.serveur_id = s.id AND c.statut <> 'Annulée' LEFT JOIN lignes_commande l ON l.commande_id = c.id GROUP BY s.id, s.prenom, s.nom ORDER BY rang, s.nom, s.prenom;",
      indice:"Utilise des LEFT JOIN pour garder tous les serveurs et COALESCE pour remplacer un CA absent par zéro avant le classement."},
     {id:'wd9',apres:124,titre:"Quels clients commandent plusieurs fois le même plat ?",niv:'d',base:'wok',ordered:true,
-     contexte:"Le restaurant recherche les clients qui ont choisi un même plat dans plus de deux commandes distinctes. Affiche le prénom et le nom du client, le nom du plat et le nombre de commandes distinctes pour les couples ayant commandé le même plat dans plus de deux commandes, triés par nombre décroissant puis client et plat. Un plat compte une seule fois dans une commande, même s’il figure dans plusieurs lignes. Exclus les commandes au statut « Annulée ».",
+    contexte:"Le restaurant recherche les clients qui ont choisi un même plat dans plus de deux commandes distinctes. Affiche le prénom et le nom du client, le nom du plat et le nombre de commandes distinctes pour les couples ayant commandé le même plat dans plus de deux commandes, triés par nombre décroissant puis client et plat. Un plat compte une seule fois dans une commande, même s’il figure dans plusieurs lignes. Exclus les commandes au statut « Annulée ».",
      q:"Affiche le prénom et le nom du client, le nom du plat et le nombre de commandes distinctes pour les couples ayant commandé le même plat dans plus de deux commandes, triés par nombre décroissant puis client et plat.",
      sol:"SELECT cl.prenom, cl.nom, p.nom AS plat, COUNT(DISTINCT c.id) AS nb_commandes FROM clients cl JOIN commandes c ON c.client_id = cl.id JOIN lignes_commande l ON l.commande_id = c.id JOIN plats p ON p.id = l.plat_id WHERE c.statut <> 'Annulée' GROUP BY cl.id, cl.prenom, cl.nom, p.id, p.nom HAVING COUNT(DISTINCT c.id) > 2 ORDER BY nb_commandes DESC, cl.nom, cl.prenom, p.nom;",
      indice:"Regroupe par client et plat, puis compte les identifiants de commande distincts avant le filtre HAVING."},
@@ -10177,7 +10178,7 @@ const CHALLENGES=[
      sol:"SELECT f.nom, ROUND(AVG(d.note), 2) AS note_moyenne FROM fromages f JOIN degustations d ON d.fromage_id = f.id GROUP BY f.id, f.nom HAVING AVG(d.note) > 4 ORDER BY note_moyenne DESC, f.nom;",
      indice:"Calcule AVG après regroupement par fromage; HAVING filtre les groupes selon leur moyenne."},
     {id:'fm3',apres:138,titre:"Quels producteurs fabriquent plus de deux fromages ?",niv:'m',base:'fromagerie',ordered:true,
-     contexte:"La boutique veut identifier les producteurs qui fournissent plus de deux fromages différents. Affiche le nom du producteur et le nombre de fromages fabriqués lorsque ce nombre dépasse deux, du plus grand au plus petit puis par nom.",
+    contexte:"La boutique veut identifier les producteurs qui fournissent plus de deux fromages différents. Affiche le nom du producteur et le nombre de fromages fabriqués lorsque ce nombre dépasse deux, du plus grand au plus petit puis par nom.",
      q:"Affiche le nom du producteur et le nombre de fromages fabriqués lorsque ce nombre dépasse deux, du plus grand au plus petit puis par nom.",
      sol:"SELECT p.nom, COUNT(f.id) AS nb_fromages FROM producteurs p JOIN fromages f ON f.producteur_id = p.id GROUP BY p.id, p.nom HAVING COUNT(f.id) > 2 ORDER BY nb_fromages DESC, p.nom;",
      indice:"La clé étrangère producteur_id de fromages pointe vers l’identifiant de producteurs."},
@@ -10192,12 +10193,12 @@ const CHALLENGES=[
      sol:"SELECT c.prenom, c.nom, ROUND(SUM(v.prix_total), 2) AS total_depense FROM clients c JOIN ventes v ON v.client_id = c.id GROUP BY c.id, c.prenom, c.nom HAVING SUM(v.prix_total) > 50 ORDER BY total_depense DESC, c.nom, c.prenom;",
      indice:"Additionne les prix des ventes de chaque client et applique le seuil avec HAVING."},
     {id:'fm6',apres:141,titre:"Quelles ventes dépassent le prix moyen ?",niv:'m',base:'fromagerie',ordered:true,
-     contexte:"La caisse souhaite examiner les ventes dont le montant dépasse la moyenne de toutes les ventes. Affiche l’identifiant, la date et le montant des ventes supérieures à la moyenne, de la plus chère à la moins chère puis par identifiant. La moyenne est calculée sur le montant prix_total de toutes les lignes de vente.",
+    contexte:"La caisse souhaite examiner les ventes dont le montant dépasse la moyenne de toutes les ventes. Affiche l’identifiant, la date et le montant des ventes supérieures à la moyenne, de la plus chère à la moins chère puis par identifiant. La moyenne est calculée sur le montant prix_total de toutes les lignes de vente.",
      q:"Affiche l’identifiant, la date et le montant des ventes supérieures à la moyenne, de la plus chère à la moins chère puis par identifiant.",
      sol:"SELECT id, date_vente, prix_total FROM ventes WHERE prix_total > (SELECT AVG(prix_total) FROM ventes) ORDER BY prix_total DESC, id;",
      indice:"Une sous-requête peut calculer la moyenne générale à comparer à chaque vente."},
     {id:'fm7',apres:142,titre:"Quels types de pâte rapportent le plus ?",niv:'m',base:'fromagerie',ordered:true,
-     contexte:"La boutique compare les quantités vendues et le chiffre d’affaires selon le type de pâte. Affiche le type de pâte, le poids total vendu et le chiffre d’affaires, triés par chiffre d’affaires décroissant puis type de pâte. Utilise quantite_kg pour le poids et prix_total pour le montant. N’affiche que les types ayant des ventes et arrondis les deux sommes à deux décimales.",
+    contexte:"La boutique compare les quantités vendues et le chiffre d’affaires selon le type de pâte. Affiche le type de pâte, le poids total vendu et le chiffre d’affaires, triés par chiffre d’affaires décroissant puis type de pâte. Utilise quantite_kg pour le poids et prix_total pour le montant. N’affiche que les types ayant des ventes et arrondis les deux sommes à deux décimales.",
      q:"Affiche le type de pâte, le poids total vendu et le chiffre d’affaires, triés par chiffre d’affaires décroissant puis type de pâte.",
      sol:"SELECT f.type_pate, ROUND(SUM(v.quantite_kg), 2) AS poids_vendu, ROUND(SUM(v.prix_total), 2) AS chiffre_affaires FROM fromages f JOIN lots l ON l.fromage_id = f.id JOIN ventes v ON v.lot_id = l.id GROUP BY f.type_pate ORDER BY chiffre_affaires DESC, f.type_pate;",
      indice:"Relie les ventes aux fromages et regroupe les sommes par type de pâte."},
@@ -10247,7 +10248,7 @@ const CHALLENGES=[
      sol:"SELECT c.prenom, c.nom FROM clients c JOIN ventes v ON v.client_id = c.id JOIN lots l ON l.id = v.lot_id JOIN fromages f ON f.id = l.fromage_id GROUP BY c.id, c.prenom, c.nom HAVING COUNT(DISTINCT f.type_pate) = (SELECT COUNT(DISTINCT type_pate) FROM fromages) ORDER BY c.nom, c.prenom;",
      indice:"Compte les types de pâte distincts par client et compare ce nombre au total distinct présent dans fromages."},
     {id:'fd7',apres:152,titre:"Quels clients ont acheté plusieurs fois le même fromage ?",niv:'d',base:'fromagerie',ordered:true,
-     contexte:"La boutique recherche les clients qui ont acheté un même fromage dans plus de deux ventes distinctes. Affiche le prénom, le nom, le fromage et le nombre de ventes distinctes pour les couples ayant acheté le même fromage plus de deux fois, triés par nombre décroissant puis client et fromage. Compte les ventes distinctes, quel que soit le lot vendu pour un même fromage.",
+    contexte:"La boutique recherche les clients qui ont acheté un même fromage dans plus de deux ventes distinctes. Affiche le prénom, le nom, le fromage et le nombre de ventes distinctes pour les couples ayant acheté le même fromage plus de deux fois, triés par nombre décroissant puis client et fromage. Compte les ventes distinctes, quel que soit le lot vendu pour un même fromage.",
      q:"Affiche le prénom, le nom, le fromage et le nombre de ventes distinctes pour les couples ayant acheté le même fromage plus de deux fois, triés par nombre décroissant puis client et fromage.",
      sol:"SELECT c.prenom, c.nom, f.nom AS fromage, COUNT(DISTINCT v.id) AS nb_ventes FROM clients c JOIN ventes v ON v.client_id = c.id JOIN lots l ON l.id = v.lot_id JOIN fromages f ON f.id = l.fromage_id GROUP BY c.id, c.prenom, c.nom, f.id, f.nom HAVING COUNT(DISTINCT v.id) > 2 ORDER BY nb_ventes DESC, c.nom, c.prenom, f.nom;",
      indice:"Regroupe par client et fromage, puis compte les identifiants distincts de vente avant le filtre HAVING."},
@@ -10262,8 +10263,8 @@ const CHALLENGES=[
      sol:"SELECT c.prenom, c.nom, COUNT(DISTINCT f.type_pate) AS nb_types FROM clients c JOIN ventes v ON v.client_id = c.id JOIN lots l ON l.id = v.lot_id JOIN fromages f ON f.id = l.fromage_id GROUP BY c.id, c.prenom, c.nom HAVING COUNT(DISTINCT f.type_pate) > 2 ORDER BY nb_types DESC, c.nom, c.prenom;",
      indice:"Relie les achats aux types de pâte et compte les valeurs distinctes par client."},
     {id:'fd10',apres:155,titre:"Quels fromages se vendent au-dessus de leur prix moyen ?",niv:'d',base:'fromagerie',ordered:true,
-     contexte:"La direction compare le prix réellement vendu au kilo de chaque fromage à celui de l’ensemble des ventes. Affiche le nom du fromage et son prix moyen de vente au kilo lorsque celui-ci dépasse la moyenne générale des ventes au kilo, du prix le plus élevé au plus bas puis par nom. Le prix moyen au kilo est la somme des montants prix_total divisée par la somme des quantités vendues quantite_kg : c’est une moyenne pondérée. Applique la même formule à l’ensemble des ventes pour la référence globale ; compare avant arrondi et affiche le prix à deux décimales.",
-     q:"Affiche le nom du fromage et son prix moyen de vente au kilo lorsque celui-ci dépasse la moyenne générale des ventes au kilo, du prix le plus élevé au plus bas puis par nom.",
+    contexte:"La direction compare le prix réellement vendu au kilo de chaque fromage à celui de l’ensemble des ventes. Affiche le nom du fromage et son prix moyen de vente au kilo lorsque celui-ci dépasse la moyenne générale des ventes au kilo, du prix le plus élevé au plus bas puis par nom. Le prix moyen au kilo est la somme des montants prix_total divisée par la somme des quantités vendues quantite_kg : c’est une moyenne pondérée. Applique la même formule à l’ensemble des ventes pour la référence globale ; compare avant arrondi et affiche le prix à deux décimales.",
+    q:"Affiche le nom du fromage et son prix moyen de vente au kilo lorsque celui-ci dépasse la moyenne générale des ventes au kilo, du prix le plus élevé au plus bas puis par nom.",
      sol:"WITH prix AS (SELECT f.id, f.nom, SUM(v.prix_total) / SUM(v.quantite_kg) AS prix_moyen_kg FROM fromages f JOIN lots l ON l.fromage_id = f.id JOIN ventes v ON v.lot_id = l.id GROUP BY f.id, f.nom) SELECT nom, ROUND(prix_moyen_kg, 2) AS prix_moyen_kg FROM prix WHERE prix_moyen_kg > (SELECT SUM(prix_total) / SUM(quantite_kg) FROM ventes) ORDER BY prix_moyen_kg DESC, nom;",
      indice:"Calcule un prix au kilo pondéré pour chaque fromage, puis compare-le au prix moyen pondéré global."},
     {id:'vf1',apres:156,titre:"Quelles réservations ont été annulées ?",niv:'f',base:'voyages',ordered:true,
@@ -10292,8 +10293,8 @@ const CHALLENGES=[
      sol:"SELECT id, montant, date_paiement FROM paiements WHERE statut = 'En attente' ORDER BY montant DESC, id;",
      indice:"Filtre la table paiements sur le statut demandé."},
     {id:'vf6',apres:161,titre:"Quels circuits durent plus de dix jours ?",niv:'f',base:'voyages',ordered:true,
-     contexte:"Un client recherche les circuits dont la durée dépasse strictement dix jours. Affiche le nom, la durée et le prix de base des circuits de plus de dix jours, du plus long au plus court puis par nom.",
-     q:"Affiche le nom, la durée et le prix de base des circuits de plus de dix jours, du plus long au plus court puis par nom.",
+    contexte:"Un client recherche les circuits dont la durée dépasse strictement dix jours. Affiche le nom, la durée et le prix de base des circuits de plus de dix jours, du plus long au plus court puis par nom.",
+    q:"Affiche le nom, la durée et le prix de base des circuits de plus de dix jours, du plus long au plus court puis par nom.",
      sol:"SELECT nom, duree_jours, prix_base FROM circuits WHERE duree_jours > 10 ORDER BY duree_jours DESC, nom;",
      indice:"La durée en jours est une colonne de circuits."},
     {id:'vf7',apres:162,titre:"Quels clients n’ont jamais réservé ?",niv:'f',base:'voyages',ordered:true,
@@ -10302,7 +10303,7 @@ const CHALLENGES=[
      sol:"SELECT c.prenom, c.nom, c.ville FROM clients c LEFT JOIN reservations r ON r.client_id = c.id WHERE r.id IS NULL ORDER BY c.nom, c.prenom;",
      indice:"LEFT JOIN conserve les clients; les réservations absentes ont un identifiant NULL."},
     {id:'vf8',apres:163,titre:"Quels guides n’ont jamais été affectés ?",niv:'f',base:'voyages',ordered:true,
-     contexte:"Le planning recherche les guides qui n’ont encore été affectés à aucun circuit. Affiche le prénom, le nom et la langue des guides sans affectation, triés par nom puis prénom.",
+    contexte:"Le planning recherche les guides qui n’ont encore été affectés à aucun circuit. Affiche le prénom, le nom et la langue des guides sans affectation, triés par nom puis prénom.",
      q:"Affiche le prénom, le nom et la langue des guides sans affectation, triés par nom puis prénom.",
      sol:"SELECT g.prenom, g.nom, g.langue FROM guides g LEFT JOIN affectations_guides a ON a.guide_id = g.id WHERE a.id IS NULL ORDER BY g.nom, g.prenom;",
      indice:"Relie les guides à leurs affectations et conserve ceux sans correspondance."},
@@ -10312,7 +10313,7 @@ const CHALLENGES=[
      sol:"SELECT id, note, client_id FROM avis WHERE commentaire IS NULL ORDER BY note DESC, id;",
      indice:"Pour chercher une valeur absente, utilise IS NULL."},
     {id:'vf10',apres:165,titre:"Quels circuits n’ont jamais été réservés ?",niv:'f',base:'voyages',ordered:true,
-     contexte:"L’agence veut repérer les circuits qui n’ont encore reçu aucune réservation. Affiche le nom du circuit, sa destination et son prix de base pour les circuits sans réservation, du prix le plus élevé au plus bas puis par nom.",
+    contexte:"L’agence veut repérer les circuits qui n’ont encore reçu aucune réservation. Affiche le nom du circuit, sa destination et son prix de base pour les circuits sans réservation, du prix le plus élevé au plus bas puis par nom.",
      q:"Affiche le nom du circuit, sa destination et son prix de base pour les circuits sans réservation, du prix le plus élevé au plus bas puis par nom.",
      sol:"SELECT c.nom AS circuit, d.nom AS destination, c.prix_base FROM circuits c JOIN destinations d ON d.id = c.destination_id LEFT JOIN reservations r ON r.circuit_id = c.id WHERE r.id IS NULL ORDER BY c.prix_base DESC, c.nom;",
      indice:"LEFT JOIN permet de garder tous les circuits; une réservation absente se repère avec WHERE r.id IS NULL."},
@@ -10322,12 +10323,12 @@ const CHALLENGES=[
      sol:"SELECT d.nom AS destination, ROUND(SUM(p.montant), 2) AS chiffre_affaires FROM paiements p JOIN reservations r ON r.id = p.reservation_id JOIN circuits ci ON ci.id = r.circuit_id JOIN destinations d ON d.id = ci.destination_id WHERE p.statut = 'Payé' GROUP BY d.id, d.nom ORDER BY chiffre_affaires DESC, d.nom;",
      indice:"Suis les clés paiements → réservations → circuits → destinations, puis additionne les paiements au statut Payé."},
     {id:'vm2',apres:167,titre:"Combien de réservations par circuit ?",niv:'m',base:'voyages',ordered:true,
-     contexte:"La direction compare le nombre de réservations de tous les circuits, même ceux sans réservation. Affiche chaque circuit et son nombre de réservations, du plus réservé au moins réservé puis par nom. Une réservation compte une fois, quel que soit le nombre de personnes. Compte tous les statuts, y compris les annulations, et affiche zéro sans réservation.",
+    contexte:"La direction compare le nombre de réservations de tous les circuits, même ceux sans réservation. Affiche chaque circuit et son nombre de réservations, du plus réservé au moins réservé puis par nom. Une réservation compte une fois, quel que soit le nombre de personnes. Compte tous les statuts, y compris les annulations, et affiche zéro sans réservation.",
      q:"Affiche chaque circuit et son nombre de réservations, du plus réservé au moins réservé puis par nom.",
      sol:"SELECT c.nom AS circuit, COUNT(r.id) AS nb_reservations FROM circuits c LEFT JOIN reservations r ON r.circuit_id = c.id GROUP BY c.id, c.nom ORDER BY nb_reservations DESC, c.nom;",
      indice:"LEFT JOIN conserve les circuits sans réservation; COUNT(r.id) leur donne zéro."},
     {id:'vm3',apres:168,titre:"Quel est le panier moyen par client ?",niv:'m',base:'voyages',ordered:true,
-     contexte:"Le service commercial compare le montant moyen encaissé par réservation pour chaque client. Pour chaque client ayant au moins une réservation, affiche son prénom, son nom et le montant moyen encaissé par réservation, arrondi à deux décimales. Trie par moyenne décroissante, puis nom et prénom. Calcule le total des paiements au statut « Payé » par réservation, avec zéro si aucun paiement n’est payé, puis la moyenne de ces totaux par client. Toutes ses réservations comptent dans le dénominateur, y compris les réservations annulées ou non réglées. Exclus les clients sans réservation.",
+    contexte:"Le service commercial compare le montant moyen encaissé par réservation pour chaque client. Pour chaque client ayant au moins une réservation, affiche son prénom, son nom et le montant moyen encaissé par réservation, arrondi à deux décimales. Trie par moyenne décroissante, puis nom et prénom. Calcule le total des paiements au statut « Payé » par réservation, avec zéro si aucun paiement n’est payé, puis la moyenne de ces totaux par client. Toutes ses réservations comptent dans le dénominateur, y compris les réservations annulées ou non réglées. Exclus les clients sans réservation.",
      q:"Pour chaque client ayant au moins une réservation, affiche son prénom, son nom et le montant moyen encaissé par réservation, arrondi à deux décimales. Trie par moyenne décroissante, puis nom et prénom.",
      sol:"WITH totaux AS (SELECT r.id AS reservation_id, r.client_id, COALESCE(SUM(p.montant), 0) AS total FROM reservations r LEFT JOIN paiements p ON p.reservation_id = r.id AND p.statut = 'Payé' GROUP BY r.id, r.client_id) SELECT c.prenom, c.nom, ROUND(AVG(t.total), 2) AS panier_moyen FROM totaux t JOIN clients c ON c.id = t.client_id GROUP BY c.id, c.prenom, c.nom ORDER BY panier_moyen DESC, c.nom, c.prenom;",
      indice:"Calcule d’abord le total payé de chaque réservation dans une CTE, puis moyenne ces totaux par client."},
@@ -10342,7 +10343,7 @@ const CHALLENGES=[
      sol:"SELECT c.prenom, c.nom, ROUND(SUM(p.montant), 2) AS total_depense FROM clients c JOIN reservations r ON r.client_id = c.id JOIN paiements p ON p.reservation_id = r.id WHERE p.statut = 'Payé' GROUP BY c.id, c.prenom, c.nom HAVING SUM(p.montant) > 3000 ORDER BY total_depense DESC, c.nom, c.prenom;",
      indice:"Additionne les paiements par client, puis utilise HAVING pour filtrer les totaux."},
     {id:'vm6',apres:171,titre:"Quels guides ont accompagné plus de deux circuits ?",niv:'m',base:'voyages',ordered:true,
-     contexte:"Le planning recherche les guides affectés à plus de deux circuits différents. Affiche le prénom, le nom et le nombre de circuits distincts des guides affectés à plus de deux circuits, du plus grand nombre au plus petit puis par nom et prénom.",
+    contexte:"Le planning recherche les guides affectés à plus de deux circuits différents. Affiche le prénom, le nom et le nombre de circuits distincts des guides affectés à plus de deux circuits, du plus grand nombre au plus petit puis par nom et prénom.",
      q:"Affiche le prénom, le nom et le nombre de circuits distincts des guides affectés à plus de deux circuits, du plus grand nombre au plus petit puis par nom et prénom.",
      sol:"SELECT g.prenom, g.nom, COUNT(DISTINCT a.circuit_id) AS nb_circuits FROM guides g JOIN affectations_guides a ON a.guide_id = g.id GROUP BY g.id, g.prenom, g.nom HAVING COUNT(DISTINCT a.circuit_id) > 2 ORDER BY nb_circuits DESC, g.nom, g.prenom;",
      indice:"Compte les circuits distincts par guide et applique le seuil avec HAVING."},
@@ -10352,7 +10353,7 @@ const CHALLENGES=[
      sol:"WITH totaux AS (SELECT r.id, r.client_id, r.circuit_id, SUM(p.montant) AS total FROM reservations r JOIN paiements p ON p.reservation_id = r.id WHERE p.statut = 'Payé' GROUP BY r.id, r.client_id, r.circuit_id) SELECT t.id, cl.prenom, cl.nom, ci.nom AS circuit, ROUND(t.total, 2) AS total FROM totaux t JOIN clients cl ON cl.id = t.client_id JOIN circuits ci ON ci.id = t.circuit_id WHERE t.total > 5000 ORDER BY t.total DESC, t.id;",
      indice:"Calcule les paiements payés par réservation dans une CTE, puis filtre ces totaux."},
     {id:'vm8',apres:173,titre:"Quels clients ont réservé dans plusieurs destinations ?",niv:'m',base:'voyages',ordered:true,
-     contexte:"Le service fidélité recherche les clients ayant réservé des circuits dans au moins deux destinations différentes. Affiche le prénom, le nom et le nombre de destinations distinctes des clients ayant réservé dans au moins deux destinations, du plus grand nombre au plus petit puis par nom et prénom. Compte les destinations distinctes, pas les circuits ; toutes les réservations sont prises en compte, même annulées. Départage les égalités par nom puis prénom.",
+    contexte:"Le service fidélité recherche les clients ayant réservé des circuits dans au moins deux destinations différentes. Affiche le prénom, le nom et le nombre de destinations distinctes des clients ayant réservé dans au moins deux destinations, du plus grand nombre au plus petit puis par nom et prénom. Compte les destinations distinctes, pas les circuits ; toutes les réservations sont prises en compte, même annulées. Départage les égalités par nom puis prénom.",
      q:"Affiche le prénom, le nom et le nombre de destinations distinctes des clients ayant réservé dans au moins deux destinations, du plus grand nombre au plus petit puis par nom et prénom.",
      sol:"SELECT cl.prenom, cl.nom, COUNT(DISTINCT d.id) AS nb_destinations FROM clients cl JOIN reservations r ON r.client_id = cl.id JOIN circuits ci ON ci.id = r.circuit_id JOIN destinations d ON d.id = ci.destination_id GROUP BY cl.id, cl.prenom, cl.nom HAVING COUNT(DISTINCT d.id) >= 2 ORDER BY nb_destinations DESC, cl.nom, cl.prenom;",
      indice:"Relie clients aux destinations via réservations et circuits, puis compte les destinations distinctes."},
@@ -10362,7 +10363,7 @@ const CHALLENGES=[
      sol:"SELECT note, COUNT(*) AS nb_avis, ROUND(100.0 * COUNT(*) / (SELECT COUNT(*) FROM avis), 1) AS pourcentage FROM avis GROUP BY note ORDER BY note DESC;",
      indice:"Regroupe par note et divise le nombre d’avis du groupe par le nombre total d’avis."},
     {id:'vm10',apres:175,titre:"Quels circuits n’ont jamais reçu d’avis ?",niv:'m',base:'voyages',ordered:true,
-     contexte:"L’agence souhaite identifier les circuits sur lesquels aucun avis n’a été déposé. Affiche le nom du circuit, sa destination et son prix de base pour les circuits sans avis, du prix le plus élevé au plus bas puis par nom.",
+    contexte:"L’agence souhaite identifier les circuits sur lesquels aucun avis n’a été déposé. Affiche le nom du circuit, sa destination et son prix de base pour les circuits sans avis, du prix le plus élevé au plus bas puis par nom.",
      q:"Affiche le nom du circuit, sa destination et son prix de base pour les circuits sans avis, du prix le plus élevé au plus bas puis par nom.",
      sol:"SELECT ci.nom AS circuit, d.nom AS destination, ci.prix_base FROM circuits ci JOIN destinations d ON d.id = ci.destination_id LEFT JOIN avis a ON a.circuit_id = ci.id WHERE a.id IS NULL ORDER BY ci.prix_base DESC, ci.nom;",
      indice:"LEFT JOIN conserve tous les circuits; l’absence d’avis se détecte avec IS NULL."},
@@ -10372,17 +10373,17 @@ const CHALLENGES=[
      sol:"SELECT d.nom AS destination, d.pays, ROUND(SUM(p.montant), 2) AS ca_total FROM paiements p JOIN reservations r ON r.id = p.reservation_id JOIN circuits ci ON ci.id = r.circuit_id JOIN destinations d ON d.id = ci.destination_id WHERE p.statut = 'Payé' GROUP BY d.id, d.nom, d.pays ORDER BY ca_total DESC, d.nom LIMIT 3;",
      indice:"Additionne uniquement les paiements payés, après avoir relié chaque paiement à la destination de son circuit."},
     {id:'vd2',apres:177,titre:"Quel est le classement des clients par dépense ?",niv:'d',base:'voyages',ordered:true,
-     contexte:"Le service fidélité classe les clients selon le total de leurs paiements encaissés. Affiche le prénom, le nom, le total des paiements payés et le rang RANK(), triés par rang puis nom et prénom. Additionne seulement les paiements au statut « Payé » et n’inclus que les clients en ayant au moins un. Des totaux égaux partagent le même rang, avec saut au suivant (1, 1, 3). En cas de nom et prénom identiques au tri, utilise l’identifiant du client.",
+    contexte:"Le service fidélité classe les clients selon le total de leurs paiements encaissés. Affiche le prénom, le nom, le total des paiements payés et le rang RANK(), triés par rang puis nom et prénom. Additionne seulement les paiements au statut « Payé » et n’inclus que les clients en ayant au moins un. Des totaux égaux partagent le même rang, avec saut au suivant (1, 1, 3). En cas de nom et prénom identiques au tri, utilise l’identifiant du client.",
      q:"Affiche le prénom, le nom, le total des paiements payés et le rang RANK(), triés par rang puis nom et prénom.",
      sol:"SELECT cl.prenom, cl.nom, SUM(p.montant) AS total_depense, RANK() OVER (ORDER BY SUM(p.montant) DESC) AS rang FROM clients cl JOIN reservations r ON r.client_id = cl.id JOIN paiements p ON p.reservation_id = r.id WHERE p.statut = 'Payé' GROUP BY cl.id, cl.prenom, cl.nom ORDER BY rang, cl.nom, cl.prenom, cl.id;",
      indice:"Agrège les paiements par client; RANK classe ensuite les totaux sans départager les ex æquo."},
     {id:'vd3',apres:178,titre:"Comment évoluent les réservations de Camille Moreau ?",niv:'d',base:'voyages',ordered:true,
-     contexte:"Le service client analyse l’évolution des sommes encaissées sur les réservations de Camille Moreau. Pour les réservations de Camille Moreau ayant au moins un paiement au statut « Payé », affiche la date de réservation, le total encaissé, le total de la réservation précédente et la différence (total actuel moins précédent). Trie par date puis par identifiant de réservation. La date est celle de la réservation. Les autres paiements sont ignorés. Pour la première réservation retenue, le total précédent et la différence valent NULL.",
+    contexte:"Le service client analyse l’évolution des sommes encaissées sur les réservations de Camille Moreau. Pour les réservations de Camille Moreau ayant au moins un paiement au statut « Payé », affiche la date de réservation, le total encaissé, le total de la réservation précédente et la différence (total actuel moins précédent). Trie par date puis par identifiant de réservation. La date est celle de la réservation. Les autres paiements sont ignorés. Pour la première réservation retenue, le total précédent et la différence valent NULL.",
      q:"Pour les réservations de Camille Moreau ayant au moins un paiement au statut « Payé », affiche la date de réservation, le total encaissé, le total de la réservation précédente et la différence (total actuel moins précédent). Trie par date puis par identifiant de réservation.",
      sol:"WITH totaux AS (SELECT r.id, r.client_id, r.date_reservation, SUM(p.montant) AS total FROM reservations r JOIN paiements p ON p.reservation_id = r.id WHERE p.statut = 'Payé' GROUP BY r.id, r.client_id, r.date_reservation) SELECT t.date_reservation, t.total, LAG(t.total) OVER (ORDER BY t.date_reservation, t.id) AS total_precedent, t.total - LAG(t.total) OVER (ORDER BY t.date_reservation, t.id) AS difference FROM totaux t JOIN clients cl ON cl.id = t.client_id WHERE cl.prenom = 'Camille' AND cl.nom = 'Moreau' ORDER BY t.date_reservation, t.id;",
      indice:"Calcule d’abord le total payé par réservation, puis utilise LAG avec un ordre stable par date et identifiant."},
     {id:'vd4',apres:179,titre:"Quels clients dépensent plus que la moyenne ?",niv:'d',base:'voyages',ordered:true,
-     contexte:"Le service fidélité recherche les clients dont le total encaissé dépasse la moyenne des clients ayant payé. Affiche le prénom, le nom, le total encaissé et l’écart à la moyenne globale pour les clients dont le total dépasse strictement cette moyenne. Arrondis les deux montants à deux décimales. Trie par total non arrondi décroissant, puis nom et prénom. Calcule le total des paiements au statut « Payé » par client, puis la moyenne de ces totaux parmi les seuls clients ayant au moins un paiement payé.",
+    contexte:"Le service fidélité recherche les clients dont le total encaissé dépasse la moyenne des clients ayant payé. Affiche le prénom, le nom, le total encaissé et l’écart à la moyenne globale pour les clients dont le total dépasse strictement cette moyenne. Arrondis les deux montants à deux décimales. Trie par total non arrondi décroissant, puis nom et prénom. Calcule le total des paiements au statut « Payé » par client, puis la moyenne de ces totaux parmi les seuls clients ayant au moins un paiement payé.",
      q:"Affiche le prénom, le nom, le total encaissé et l’écart à la moyenne globale pour les clients dont le total dépasse strictement cette moyenne. Arrondis les deux montants à deux décimales. Trie par total non arrondi décroissant, puis nom et prénom.",
      sol:"WITH totaux AS (SELECT cl.id, cl.prenom, cl.nom, SUM(p.montant) AS total FROM clients cl JOIN reservations r ON r.client_id = cl.id JOIN paiements p ON p.reservation_id = r.id WHERE p.statut = 'Payé' GROUP BY cl.id, cl.prenom, cl.nom) SELECT prenom, nom, ROUND(total, 2) AS total_depense, ROUND(total - (SELECT AVG(total) FROM totaux), 2) AS ecart_moyenne FROM totaux WHERE total > (SELECT AVG(total) FROM totaux) ORDER BY total DESC, nom, prenom;",
      indice:"Une CTE calcule le total par client; compare ensuite chaque total à la moyenne des totaux."},
@@ -10397,22 +10398,22 @@ const CHALLENGES=[
      sol:"SELECT cl.prenom, cl.nom, COUNT(DISTINCT d.continent) AS nb_continents FROM clients cl JOIN reservations r ON r.client_id = cl.id JOIN circuits ci ON ci.id = r.circuit_id JOIN destinations d ON d.id = ci.destination_id GROUP BY cl.id, cl.prenom, cl.nom HAVING COUNT(DISTINCT d.continent) = (SELECT COUNT(DISTINCT continent) FROM destinations) ORDER BY cl.nom, cl.prenom;",
      indice:"Compte les continents distincts de chaque client et compare ce total au nombre de continents de destinations."},
     {id:'vd7',apres:182,titre:"Quels circuits dépassent la moyenne de voyageurs de leur destination ?",niv:'d',base:'voyages',ordered:true,
-     contexte:"La direction recherche les circuits dont le nombre de personnes réservées dépasse la moyenne de leur destination. Affiche la destination, le circuit, son nombre total de voyageurs et la moyenne de sa destination arrondie à deux décimales lorsque le circuit dépasse cette moyenne, triés par destination puis voyageurs décroissants. Additionne les personnes de toutes les réservations, même annulées. La moyenne porte sur les totaux par circuit de la destination, uniquement parmi les circuits ayant une réservation. Compare avant arrondi et départage les égalités par nom de circuit.",
+    contexte:"La direction recherche les circuits dont le nombre de personnes réservées dépasse la moyenne de leur destination. Affiche la destination, le circuit, son nombre total de voyageurs et la moyenne de sa destination arrondie à deux décimales lorsque le circuit dépasse cette moyenne, triés par destination puis voyageurs décroissants. Additionne les personnes de toutes les réservations, même annulées. La moyenne porte sur les totaux par circuit de la destination, uniquement parmi les circuits ayant une réservation. Compare avant arrondi et départage les égalités par nom de circuit.",
      q:"Affiche la destination, le circuit, son nombre total de voyageurs et la moyenne de sa destination arrondie à deux décimales lorsque le circuit dépasse cette moyenne, triés par destination puis voyageurs décroissants.",
      sol:"WITH volumes AS (SELECT d.id AS destination_id, d.nom AS destination, ci.id AS circuit_id, ci.nom AS circuit, SUM(r.nb_personnes) AS nb_personnes FROM destinations d JOIN circuits ci ON ci.destination_id = d.id JOIN reservations r ON r.circuit_id = ci.id GROUP BY d.id, d.nom, ci.id, ci.nom), moyennes AS (SELECT destination_id, AVG(nb_personnes) AS moyenne FROM volumes GROUP BY destination_id) SELECT v.destination, v.circuit, v.nb_personnes, ROUND(m.moyenne, 2) AS moyenne_destination FROM volumes v JOIN moyennes m ON m.destination_id = v.destination_id WHERE v.nb_personnes > m.moyenne ORDER BY v.destination, v.nb_personnes DESC, v.circuit;",
      indice:"Une CTE calcule les voyageurs par circuit, puis une seconde moyenne ces volumes par destination."},
     {id:'vd8',apres:183,titre:"Quel est le classement des guides par circuits accompagnés ?",niv:'d',base:'voyages',ordered:true,
-     contexte:"Le planning classe tous les guides selon le nombre de circuits différents auxquels ils sont affectés. Affiche le prénom, le nom, le nombre de circuits distincts et le rang RANK() de chaque guide, y compris ceux à zéro, triés par rang puis nom et prénom. Un circuit compte une seule fois par guide, même avec plusieurs affectations. Les nombres égaux partagent leur rang, avec saut au suivant.",
+    contexte:"Le planning classe tous les guides selon le nombre de circuits différents auxquels ils sont affectés. Affiche le prénom, le nom, le nombre de circuits distincts et le rang RANK() de chaque guide, y compris ceux à zéro, triés par rang puis nom et prénom. Un circuit compte une seule fois par guide, même avec plusieurs affectations. Les nombres égaux partagent leur rang, avec saut au suivant.",
      q:"Affiche le prénom, le nom, le nombre de circuits distincts et le rang RANK() de chaque guide, y compris ceux à zéro, triés par rang puis nom et prénom.",
      sol:"SELECT g.prenom, g.nom, COUNT(DISTINCT a.circuit_id) AS nb_circuits, RANK() OVER (ORDER BY COUNT(DISTINCT a.circuit_id) DESC) AS rang FROM guides g LEFT JOIN affectations_guides a ON a.guide_id = g.id GROUP BY g.id, g.prenom, g.nom ORDER BY rang, g.nom, g.prenom;",
      indice:"LEFT JOIN conserve les guides sans mission; compte les circuits distincts avant de classer avec RANK."},
     {id:'vd9',apres:184,titre:"Quels clients ont réservé plus de deux fois le même circuit ?",niv:'d',base:'voyages',ordered:true,
-     contexte:"L’agence recherche les clients qui ont réservé un même circuit plus de deux fois. Affiche le prénom, le nom, le circuit et le nombre de réservations distinctes des couples ayant réservé le même circuit plus de deux fois, triés par nombre décroissant puis client et circuit. Compte les réservations distinctes, tous statuts confondus, et départage les égalités par nom de client, prénom puis nom de circuit.",
+    contexte:"L’agence recherche les clients qui ont réservé un même circuit plus de deux fois. Affiche le prénom, le nom, le circuit et le nombre de réservations distinctes des couples ayant réservé le même circuit plus de deux fois, triés par nombre décroissant puis client et circuit. Compte les réservations distinctes, tous statuts confondus, et départage les égalités par nom de client, prénom puis nom de circuit.",
      q:"Affiche le prénom, le nom, le circuit et le nombre de réservations distinctes des couples ayant réservé le même circuit plus de deux fois, triés par nombre décroissant puis client et circuit.",
      sol:"SELECT cl.prenom, cl.nom, ci.nom AS circuit, COUNT(DISTINCT r.id) AS nb_reservations FROM clients cl JOIN reservations r ON r.client_id = cl.id JOIN circuits ci ON ci.id = r.circuit_id GROUP BY cl.id, cl.prenom, cl.nom, ci.id, ci.nom HAVING COUNT(DISTINCT r.id) > 2 ORDER BY nb_reservations DESC, cl.nom, cl.prenom, ci.nom;",
      indice:"Regroupe par client et circuit, compte les identifiants distincts de réservation, puis filtre avec HAVING."},
     {id:'vd10',apres:185,titre:"Quels clients dépensent plus que la moyenne de leur ville ?",niv:'d',base:'voyages',ordered:true,
-     contexte:"Le service fidélité recherche les clients dont le total encaissé dépasse la moyenne des clients ayant payé dans leur ville. Affiche la ville, le prénom, le nom, le total payé et la moyenne des clients de la ville arrondie à deux décimales lorsque le total la dépasse, triés par ville puis total décroissant. La moyenne de chaque ville porte uniquement sur les clients ayant au moins un paiement au statut « Payé ». Additionne ces seuls paiements, compare les totaux non arrondis et affiche total et moyenne à deux décimales. Départage les égalités par nom puis prénom.",
+    contexte:"Le service fidélité recherche les clients dont le total encaissé dépasse la moyenne des clients ayant payé dans leur ville. Affiche la ville, le prénom, le nom, le total payé et la moyenne des clients de la ville arrondie à deux décimales lorsque le total la dépasse, triés par ville puis total décroissant. La moyenne de chaque ville porte uniquement sur les clients ayant au moins un paiement au statut « Payé ». Additionne ces seuls paiements, compare les totaux non arrondis et affiche total et moyenne à deux décimales. Départage les égalités par nom puis prénom.",
      q:"Affiche la ville, le prénom, le nom, le total payé et la moyenne des clients de la ville arrondie à deux décimales lorsque le total la dépasse, triés par ville puis total décroissant.",
      sol:"WITH totaux AS (SELECT cl.id, cl.ville, cl.prenom, cl.nom, SUM(p.montant) AS total FROM clients cl JOIN reservations r ON r.client_id = cl.id JOIN paiements p ON p.reservation_id = r.id WHERE p.statut = 'Payé' GROUP BY cl.id, cl.ville, cl.prenom, cl.nom), moyennes AS (SELECT ville, AVG(total) AS moyenne FROM totaux GROUP BY ville) SELECT t.ville, t.prenom, t.nom, ROUND(t.total, 2) AS total_depense, ROUND(m.moyenne, 2) AS moyenne_ville FROM totaux t JOIN moyennes m ON m.ville = t.ville WHERE t.total > m.moyenne ORDER BY t.ville, t.total DESC, t.nom, t.prenom;",
      indice:"Une CTE calcule les dépenses payées par client, puis une seconde moyenne les totaux par ville."},
@@ -10467,22 +10468,22 @@ const CHALLENGES=[
      sol:"SELECT e.nom AS experience, e.statut, p.titre AS projet FROM experiences e JOIN projets p ON p.id = e.projet_id LEFT JOIN echantillons s ON s.experience_id = e.id WHERE s.id IS NULL ORDER BY e.nom, e.id;",
      indice:"LEFT JOIN garde toutes les expériences; celles sans prélèvement ont s.id à NULL."},
     {id:'lm1',apres:196,titre:"Combien d’expériences par projet ?",niv:'m',base:'labo',ordered:true,
-     contexte:"Le planning compare le nombre d’expériences de tous les projets, même ceux qui n’en ont aucune. Affiche le titre de chaque projet et son nombre d’expériences, du plus grand nombre au plus petit puis par titre.",
+    contexte:"Le planning compare le nombre d’expériences de tous les projets, même ceux qui n’en ont aucune. Affiche le titre de chaque projet et son nombre d’expériences, du plus grand nombre au plus petit puis par titre.",
      q:"Affiche le titre de chaque projet et son nombre d’expériences, du plus grand nombre au plus petit puis par titre.",
      sol:"SELECT p.titre, COUNT(e.id) AS nb_experiences FROM projets p LEFT JOIN experiences e ON e.projet_id = p.id GROUP BY p.id, p.titre ORDER BY nb_experiences DESC, p.titre;",
      indice:"LEFT JOIN conserve les projets sans expérience; COUNT(e.id) leur donne zéro."},
     {id:'lm2',apres:197,titre:"Quel est le budget total par équipe ?",niv:'m',base:'labo',ordered:true,
-     contexte:"La direction financière compare les budgets des projets rattachés à chaque équipe. Affiche le nom de l’équipe et le budget total de ses projets, du budget le plus élevé au plus faible puis par équipe. Additionne les budgets des projets de l’équipe, sans les multiplier par le nombre de chercheurs. N’affiche que les équipes ayant au moins un projet.",
+    contexte:"La direction financière compare les budgets des projets rattachés à chaque équipe. Affiche le nom de l’équipe et le budget total de ses projets, du budget le plus élevé au plus faible puis par équipe. Additionne les budgets des projets de l’équipe, sans les multiplier par le nombre de chercheurs. N’affiche que les équipes ayant au moins un projet.",
      q:"Affiche le nom de l’équipe et le budget total de ses projets, du budget le plus élevé au plus faible puis par équipe.",
      sol:"SELECT e.nom AS equipe, SUM(p.budget) AS budget_total FROM equipes e JOIN projets p ON p.equipe_id = e.id GROUP BY e.id, e.nom ORDER BY budget_total DESC, e.nom;",
      indice:"Relie equipes à projets, puis additionne les budgets par équipe."},
     {id:'lm3',apres:198,titre:"Quels chercheurs ont participé à plus de deux expériences ?",niv:'m',base:'labo',ordered:true,
-     contexte:"Le planning recherche les chercheurs responsables de plus de deux expériences. Affiche le prénom, le nom et le nombre d’expériences des chercheurs qui en ont mené plus de deux, du plus grand nombre au plus petit puis par nom et prénom. Le chercheur responsable est celui indiqué dans l’expérience, pas chaque chercheur affecté au projet. Tous les statuts d’expérience sont pris en compte.",
+    contexte:"Le planning recherche les chercheurs responsables de plus de deux expériences. Affiche le prénom, le nom et le nombre d’expériences des chercheurs qui en ont mené plus de deux, du plus grand nombre au plus petit puis par nom et prénom. Le chercheur responsable est celui indiqué dans l’expérience, pas chaque chercheur affecté au projet. Tous les statuts d’expérience sont pris en compte.",
      q:"Affiche le prénom, le nom et le nombre d’expériences des chercheurs qui en ont mené plus de deux, du plus grand nombre au plus petit puis par nom et prénom.",
      sol:"SELECT c.prenom, c.nom, COUNT(e.id) AS nb_experiences FROM chercheurs c JOIN experiences e ON e.chercheur_id = c.id GROUP BY c.id, c.prenom, c.nom HAVING COUNT(e.id) > 2 ORDER BY nb_experiences DESC, c.nom, c.prenom;",
      indice:"Compte les expériences par chercheur et filtre les groupes avec HAVING."},
     {id:'lm4',apres:199,titre:"Combien de publications par équipe ?",niv:'m',base:'labo',ordered:true,
-     contexte:"Le secrétariat scientifique compare les publications des projets de toutes les équipes. Affiche le nom de chaque équipe et le nombre de publications de ses projets, du plus grand nombre au plus petit puis par équipe. Compte chaque publication une seule fois, même avec plusieurs chercheurs affectés au projet. Affiche zéro pour une équipe sans publication.",
+    contexte:"Le secrétariat scientifique compare les publications des projets de toutes les équipes. Affiche le nom de chaque équipe et le nombre de publications de ses projets, du plus grand nombre au plus petit puis par équipe. Compte chaque publication une seule fois, même avec plusieurs chercheurs affectés au projet. Affiche zéro pour une équipe sans publication.",
      q:"Affiche le nom de chaque équipe et le nombre de publications de ses projets, du plus grand nombre au plus petit puis par équipe.",
      sol:"SELECT e.nom AS equipe, COUNT(DISTINCT pub.id) AS nb_publications FROM equipes e LEFT JOIN projets p ON p.equipe_id = e.id LEFT JOIN publications pub ON pub.projet_id = p.id GROUP BY e.id, e.nom ORDER BY nb_publications DESC, e.nom;",
      indice:"Relie equipes aux projets puis aux publications; COUNT(DISTINCT) évite les doublons et LEFT JOIN garde les équipes vides."},
@@ -10502,7 +10503,7 @@ const CHALLENGES=[
      sol:"SELECT p.titre, COUNT(r.id) FILTER (WHERE r.valide = 1) AS nb_valides FROM projets p LEFT JOIN experiences e ON e.projet_id = p.id LEFT JOIN resultats r ON r.experience_id = e.id GROUP BY p.id, p.titre ORDER BY nb_valides DESC, p.titre;",
      indice:"Utilise des LEFT JOIN jusqu’aux résultats et compte les identifiants dont valide vaut 1; la condition reste dans FILTER pour garder les projets à zéro."},
     {id:'lm8',apres:203,titre:"Quels chercheurs ont travaillé sur plusieurs projets ?",niv:'m',base:'labo',ordered:true,
-     contexte:"Le planning recherche les chercheurs affectés à plus de deux projets différents. Affiche le prénom, le nom et le nombre de projets distincts des chercheurs affectés à plus de deux projets, du plus grand nombre au plus petit puis par nom et prénom.",
+    contexte:"Le planning recherche les chercheurs affectés à plus de deux projets différents. Affiche le prénom, le nom et le nombre de projets distincts des chercheurs affectés à plus de deux projets, du plus grand nombre au plus petit puis par nom et prénom.",
      q:"Affiche le prénom, le nom et le nombre de projets distincts des chercheurs affectés à plus de deux projets, du plus grand nombre au plus petit puis par nom et prénom.",
      sol:"SELECT c.prenom, c.nom, COUNT(DISTINCT a.projet_id) AS nb_projets FROM chercheurs c JOIN affectations_chercheurs a ON a.chercheur_id = c.id GROUP BY c.id, c.prenom, c.nom HAVING COUNT(DISTINCT a.projet_id) > 2 ORDER BY nb_projets DESC, c.nom, c.prenom;",
      indice:"Compte les projets distincts par chercheur puis applique HAVING."},
@@ -10522,27 +10523,27 @@ const CHALLENGES=[
      sol:"SELECT c.prenom, c.nom, COUNT(e.id) AS nb_experiences FROM chercheurs c JOIN experiences e ON e.chercheur_id = c.id GROUP BY c.id, c.prenom, c.nom ORDER BY nb_experiences DESC, c.nom, c.prenom LIMIT 3;",
      indice:"Agrège les expériences par chercheur, puis trie les totaux avant de garder les trois premiers."},
     {id:'ld2',apres:207,titre:"Quel est le classement des projets par budget ?",niv:'d',base:'labo',ordered:true,
-     contexte:"La direction classe tous les projets selon leur budget. Affiche le titre, le budget et le rang RANK() de chaque projet, triés par rang puis titre. Les budgets égaux partagent le même rang, avec saut au suivant (1, 1, 3).",
+    contexte:"La direction classe tous les projets selon leur budget. Affiche le titre, le budget et le rang RANK() de chaque projet, triés par rang puis titre. Les budgets égaux partagent le même rang, avec saut au suivant (1, 1, 3).",
      q:"Affiche le titre, le budget et le rang RANK() de chaque projet, triés par rang puis titre.",
      sol:"SELECT titre, budget, RANK() OVER (ORDER BY budget DESC) AS rang FROM projets ORDER BY rang, titre;",
      indice:"RANK classe les budgets décroissants et conserve le même rang en cas d’égalité."},
     {id:'ld3',apres:208,titre:"Comment évolue la durée des expériences de Sophie Martin ?",niv:'d',base:'labo',ordered:true,
-     contexte:"Le planning analyse l’évolution de la durée des expériences menées par Sophie Martin. Affiche la date, la durée de chaque expérience de Sophie Martin, la durée de son expérience précédente avec LAG() et la différence, triées par date puis identifiant. Les durées sont en heures. La différence est la durée actuelle moins la précédente ; la précédente et la différence valent NULL sur la première expérience. Tous les statuts sont pris en compte.",
+    contexte:"Le planning analyse l’évolution de la durée des expériences menées par Sophie Martin. Affiche la date, la durée de chaque expérience de Sophie Martin, la durée de son expérience précédente avec LAG() et la différence, triées par date puis identifiant. Les durées sont en heures. La différence est la durée actuelle moins la précédente ; la précédente et la différence valent NULL sur la première expérience. Tous les statuts sont pris en compte.",
      q:"Affiche la date, la durée de chaque expérience de Sophie Martin, la durée de son expérience précédente avec LAG() et la différence, triées par date puis identifiant.",
      sol:"SELECT e.date_experience, e.duree_heures, LAG(e.duree_heures) OVER (ORDER BY e.date_experience, e.id) AS duree_precedente, e.duree_heures - LAG(e.duree_heures) OVER (ORDER BY e.date_experience, e.id) AS difference FROM experiences e JOIN chercheurs c ON c.id = e.chercheur_id WHERE c.prenom = 'Sophie' AND c.nom = 'Martin' ORDER BY e.date_experience, e.id;",
      indice:"Filtre les expériences de Sophie, puis LAG lit la durée précédente dans un ordre stable par date et identifiant."},
     {id:'ld4',apres:209,titre:"Quels chercheurs portent un budget supérieur à la moyenne de leur équipe ?",niv:'d',base:'labo',ordered:true,
-     contexte:"La direction compare les chercheurs d’une même équipe selon le budget cumulé des projets auxquels ils sont affectés. Affiche l’équipe, le prénom, le nom, le budget total des projets affectés et la moyenne des budgets totaux de l’équipe arrondie à deux décimales, pour les chercheurs au-dessus de cette moyenne, triés par équipe puis budget décroissant. Attribue à un chercheur le budget entier de chaque projet auquel il est affecté, sans le partager entre participants. La moyenne porte sur les chercheurs de son équipe ayant au moins une affectation. Compare avant arrondi et départage les égalités par nom puis prénom.",
-     q:"Affiche l’équipe, le prénom, le nom, le budget total des projets affectés et la moyenne des budgets totaux de l’équipe arrondie à deux décimales, pour les chercheurs au-dessus de cette moyenne, triés par équipe puis budget décroissant.",
+    contexte:"La direction compare les chercheurs d’une même équipe selon le budget cumulé des projets auxquels ils sont affectés. Affiche l’équipe, le prénom, le nom, le budget total des projets affectés et la moyenne des budgets totaux de l’équipe arrondie à deux décimales, pour les chercheurs au-dessus de cette moyenne, triés par équipe puis budget décroissant. Attribue à un chercheur le budget entier de chaque projet auquel il est affecté, sans le partager entre participants. La moyenne porte sur les chercheurs de son équipe ayant au moins une affectation. Compare avant arrondi et départage les égalités par nom puis prénom.",
+    q:"Affiche l’équipe, le prénom, le nom, le budget total des projets affectés et la moyenne des budgets totaux de l’équipe arrondie à deux décimales, pour les chercheurs au-dessus de cette moyenne, triés par équipe puis budget décroissant.",
      sol:"WITH budgets AS (SELECT e.id AS equipe_id, e.nom AS equipe, c.id AS chercheur_id, c.prenom, c.nom, SUM(p.budget) AS budget_total FROM equipes e JOIN chercheurs c ON c.equipe_id = e.id JOIN affectations_chercheurs a ON a.chercheur_id = c.id JOIN projets p ON p.id = a.projet_id GROUP BY e.id, e.nom, c.id, c.prenom, c.nom), moyennes AS (SELECT equipe_id, AVG(budget_total) AS moyenne FROM budgets GROUP BY equipe_id) SELECT b.equipe, b.prenom, b.nom, b.budget_total, ROUND(m.moyenne, 2) AS moyenne_equipe FROM budgets b JOIN moyennes m ON m.equipe_id = b.equipe_id WHERE b.budget_total > m.moyenne ORDER BY b.equipe, b.budget_total DESC, b.nom, b.prenom;",
      indice:"Calcule d’abord le budget des projets affectés par chercheur, puis la moyenne de ces totaux dans chaque équipe."},
     {id:'ld5',apres:210,titre:"Quel est le classement des projets par nombre de publications ?",niv:'d',base:'labo',ordered:true,
-     contexte:"Le secrétariat scientifique classe tous les projets selon leur nombre de publications. Affiche le titre, le nombre de publications et le rang RANK() de chaque projet, du plus publié au moins publié puis par titre. Compte les publications même sans date, et affiche zéro pour un projet sans publication. Les effectifs égaux partagent le même rang, avec saut au suivant.",
+    contexte:"Le secrétariat scientifique classe tous les projets selon leur nombre de publications. Affiche le titre, le nombre de publications et le rang RANK() de chaque projet, du plus publié au moins publié puis par titre. Compte les publications même sans date, et affiche zéro pour un projet sans publication. Les effectifs égaux partagent le même rang, avec saut au suivant.",
      q:"Affiche le titre, le nombre de publications et le rang RANK() de chaque projet, du plus publié au moins publié puis par titre.",
      sol:"SELECT p.titre, COUNT(pub.id) AS nb_publications, RANK() OVER (ORDER BY COUNT(pub.id) DESC) AS rang FROM projets p LEFT JOIN publications pub ON pub.projet_id = p.id GROUP BY p.id, p.titre ORDER BY rang, p.titre;",
      indice:"LEFT JOIN garde les projets sans article; COUNT(pub.id) donne zéro avant le classement RANK."},
     {id:'ld6',apres:211,titre:"Quels chercheurs ont publié dans toutes les revues de leur équipe ?",niv:'d',base:'labo',ordered:true,
-     contexte:"La direction recherche les chercheurs associés à des publications dans toutes les revues où leur équipe a publié. Affiche le prénom et le nom des chercheurs associés à des publications dans chacune des revues où leur équipe a publié. Trie par nom puis prénom. Un chercheur est associé à toutes les publications des projets auxquels il est affecté ; la base ne décrit pas les auteurs. Les revues de référence sont celles des projets de son équipe. Ne retiens que les équipes ayant publié et les chercheurs ayant au moins une affectation.",
+    contexte:"La direction recherche les chercheurs associés à des publications dans toutes les revues où leur équipe a publié. Affiche le prénom et le nom des chercheurs associés à des publications dans chacune des revues où leur équipe a publié. Trie par nom puis prénom. Un chercheur est associé à toutes les publications des projets auxquels il est affecté ; la base ne décrit pas les auteurs. Les revues de référence sont celles des projets de son équipe. Ne retiens que les équipes ayant publié et les chercheurs ayant au moins une affectation.",
      q:"Affiche le prénom et le nom des chercheurs associés à des publications dans chacune des revues où leur équipe a publié. Trie par nom puis prénom.",
      sol:"SELECT c.prenom, c.nom FROM chercheurs c WHERE EXISTS (SELECT 1 FROM publications team_pub JOIN projets team_p ON team_p.id = team_pub.projet_id WHERE team_p.equipe_id = c.equipe_id) AND EXISTS (SELECT 1 FROM affectations_chercheurs a WHERE a.chercheur_id = c.id) AND NOT EXISTS (SELECT 1 FROM publications pub JOIN projets p ON p.id = pub.projet_id WHERE p.equipe_id = c.equipe_id AND NOT EXISTS (SELECT 1 FROM affectations_chercheurs a2 JOIN publications pub2 ON pub2.projet_id = a2.projet_id WHERE a2.chercheur_id = c.id AND pub2.revue = pub.revue)) ORDER BY c.nom, c.prenom;",
      indice:"Vérifie qu’il n’existe aucune revue de l’équipe sans publication sur cette revue dans un projet affecté au chercheur."},
@@ -10552,7 +10553,7 @@ const CHALLENGES=[
      sol:"WITH stats AS (SELECT e.id AS equipe_id, e.nom AS equipe, p.id AS projet_id, p.titre, p.budget FROM equipes e JOIN projets p ON p.equipe_id = e.id), moyennes AS (SELECT equipe_id, AVG(budget) AS moyenne FROM stats GROUP BY equipe_id) SELECT s.equipe, s.titre, s.budget, ROUND(m.moyenne, 2) AS moyenne_equipe FROM stats s JOIN moyennes m ON m.equipe_id = s.equipe_id WHERE s.budget > m.moyenne ORDER BY s.equipe, s.budget DESC, s.titre;",
      indice:"Calcule la moyenne budgétaire de chaque équipe dans une CTE et compare chaque projet à celle-ci."},
     {id:'ld8',apres:213,titre:"Quel est le classement des projets par nombre de publications avec RANK() ?",niv:'d',base:'labo',ordered:true,
-     contexte:"La direction prépare un classement de tous les projets selon leur nombre de publications. Affiche le titre, le nombre de publications et le rang RANK() de chaque projet, triés par rang puis par titre. Compte chaque ligne de publication, même sans date. Inclus les projets sans publication avec zéro. Les effectifs égaux partagent leur rang, avec saut au suivant.",
+    contexte:"La direction prépare un classement de tous les projets selon leur nombre de publications. Affiche le titre, le nombre de publications et le rang RANK() de chaque projet, triés par rang puis par titre. Compte chaque ligne de publication, même sans date. Inclus les projets sans publication avec zéro. Les effectifs égaux partagent leur rang, avec saut au suivant.",
      q:"Affiche le titre, le nombre de publications et le rang RANK() de chaque projet, triés par rang puis par titre.",
      sol:"SELECT p.titre, COUNT(pub.id) AS nb_publications, RANK() OVER (ORDER BY COUNT(pub.id) DESC) AS rang FROM projets p LEFT JOIN publications pub ON pub.projet_id = p.id GROUP BY p.id, p.titre ORDER BY rang, p.titre;",
      indice:"Associe chaque projet à ses publications avec LEFT JOIN, puis classe les nombres avec RANK."},
@@ -10562,10 +10563,310 @@ const CHALLENGES=[
      sol:"SELECT c.prenom, c.nom, COUNT(DISTINCT e.projet_id) AS nb_projets FROM chercheurs c JOIN experiences e ON e.chercheur_id = c.id GROUP BY c.id, c.prenom, c.nom HAVING COUNT(DISTINCT e.projet_id) > 2 ORDER BY nb_projets DESC, c.nom, c.prenom;",
      indice:"Relie chercheurs à leurs expériences, compte les projets distincts puis filtre les groupes avec HAVING."},
     {id:'ld10',apres:215,titre:"Quels chercheurs dépassent le budget moyen de leur équipe ?",niv:'d',base:'labo',ordered:true,
-     contexte:"Chaque responsable d’équipe souhaite repérer les chercheurs dont le budget total affecté dépasse la moyenne de ses chercheurs affectés. Affiche le nom de l’équipe, le prénom et le nom du chercheur, son budget total affecté et la moyenne de l’équipe arrondie à deux décimales lorsque son total dépasse cette moyenne, triés par équipe puis budget décroissant. Un chercheur reçoit le budget entier de chacun de ses projets d’affectation, sans partage entre participants. La moyenne porte sur les chercheurs de l’équipe ayant au moins une affectation, y compris sur des projets d’autres équipes. Compare avant arrondi et départage les égalités par nom puis prénom.",
-     q:"Affiche le nom de l’équipe, le prénom et le nom du chercheur, son budget total affecté et la moyenne de l’équipe arrondie à deux décimales lorsque son total dépasse cette moyenne, triés par équipe puis budget décroissant.",
+    contexte:"Chaque responsable d’équipe souhaite repérer les chercheurs dont le budget total affecté dépasse la moyenne de ses chercheurs affectés. Affiche le nom de l’équipe, le prénom et le nom du chercheur, son budget total affecté et la moyenne de l’équipe arrondie à deux décimales lorsque son total dépasse cette moyenne, triés par équipe puis budget décroissant. Un chercheur reçoit le budget entier de chacun de ses projets d’affectation, sans partage entre participants. La moyenne porte sur les chercheurs de l’équipe ayant au moins une affectation, y compris sur des projets d’autres équipes. Compare avant arrondi et départage les égalités par nom puis prénom.",
+    q:"Affiche le nom de l’équipe, le prénom et le nom du chercheur, son budget total affecté et la moyenne de l’équipe arrondie à deux décimales lorsque son total dépasse cette moyenne, triés par équipe puis budget décroissant.",
      sol:"WITH budgets AS (SELECT e.id AS equipe_id, e.nom AS equipe, c.id AS chercheur_id, c.prenom, c.nom, SUM(p.budget) AS budget_total FROM equipes e JOIN chercheurs c ON c.equipe_id = e.id JOIN affectations_chercheurs a ON a.chercheur_id = c.id JOIN projets p ON p.id = a.projet_id GROUP BY e.id, e.nom, c.id, c.prenom, c.nom), moyennes AS (SELECT equipe_id, AVG(budget_total) AS moyenne FROM budgets GROUP BY equipe_id) SELECT b.equipe, b.prenom, b.nom, b.budget_total, ROUND(m.moyenne, 2) AS moyenne_equipe FROM budgets b JOIN moyennes m ON m.equipe_id = b.equipe_id WHERE b.budget_total > m.moyenne ORDER BY b.equipe, b.budget_total DESC, b.nom, b.prenom;",
      indice:"Calcule un total d’affectations par chercheur, puis moyenne ces totaux par équipe et compare."},
+    {id:'zd8',apres:216,titre:"Quel est le classement des soigneurs par nombre d’enclos avec RANK() ?",niv:'d',base:'zoo',ordered:true,
+     contexte:"Le planning classe tous les soigneurs selon le nombre d’enclos différents auxquels ils sont affectés. Affiche le prénom, le nom, le nombre d’enclos distincts et le rang RANK() de chaque soigneur, y compris ceux sans affectation, triés par rang puis nom, prénom et identifiant. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Un enclos ne compte qu’une fois par soigneur. Sans affectation, le compteur vaut zéro ; des nombres égaux partagent le même rang, avec saut au suivant.",
+     q:"Affiche le prénom, le nom, le nombre d’enclos distincts et le rang RANK() de chaque soigneur, y compris ceux sans affectation, triés par rang puis nom, prénom et identifiant.",
+     sol:"SELECT s.prenom, s.nom, COUNT(DISTINCT a.enclos_id) AS nb_enclos, RANK() OVER (ORDER BY COUNT(DISTINCT a.enclos_id) DESC) AS rang FROM soigneurs s LEFT JOIN affectations_soigneurs a ON a.soigneur_id = s.id GROUP BY s.id, s.prenom, s.nom ORDER BY rang, s.nom, s.prenom, s.id;",
+     indice:"LEFT JOIN conserve les soigneurs sans affectation; compte les enclos distincts, puis classe les effectifs avec RANK()."},
+    {id:'zd9',apres:217,titre:"Quels animaux ont eu des repas dans plusieurs types de repas ?",niv:'d',base:'zoo',ordered:true,
+     contexte:"Les soigneurs recherchent les animaux ayant reçu plusieurs types de repas. Affiche le nom de l’animal, le nombre de types de repas distincts et le nombre total de repas pour ceux ayant eu plus d’un type, triés par nombre de types décroissant puis nom et identifiant. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Le nombre de types est distinct, mais le nombre total de repas compte toutes les lignes.",
+     q:"Affiche le nom de l’animal, le nombre de types de repas distincts et le nombre total de repas pour ceux ayant eu plus d’un type, triés par nombre de types décroissant puis nom et identifiant.",
+     sol:"SELECT a.nom, COUNT(DISTINCT r.type_repas) AS nb_types, COUNT(r.id) AS nb_repas FROM animaux a JOIN repas r ON r.animal_id = a.id GROUP BY a.id, a.nom HAVING COUNT(DISTINCT r.type_repas) > 1 ORDER BY nb_types DESC, a.nom, a.id;",
+     indice:"Regroupe les repas par animal; HAVING garde ceux dont le nombre de types distincts dépasse un."},
+    {id:'zd10',apres:218,titre:"Quels visiteurs dépensent plus que la moyenne de leur ville ?",niv:'d',base:'zoo',ordered:true,
+     contexte:"Le service fidélité recherche les visiteurs dont le total de billets dépasse la moyenne des visiteurs de leur ville. Pour chaque visiteur dont le total de billets dépasse la moyenne de tous les visiteurs de sa ville (y compris ceux sans billet), affiche la ville, son prénom, son nom, son total et la moyenne arrondie à deux décimales; trie par ville puis total décroissant, nom et prénom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Le total est la somme des prix des billets, avec zéro pour un visiteur sans billet. Calcule la moyenne des totaux par visiteur dans chaque ville, puis compare avant arrondi.",
+    q:"Pour chaque visiteur dont le total de billets dépasse la moyenne de tous les visiteurs de sa ville (y compris ceux sans billet), affiche la ville, son prénom, son nom, son total et la moyenne arrondie à deux décimales; trie par ville puis total décroissant, nom et prénom.",
+     sol:"WITH totaux AS (SELECT v.id, v.ville, v.prenom, v.nom, COALESCE(SUM(b.prix), 0) AS total FROM visiteurs v LEFT JOIN billets b ON b.visiteur_id = v.id GROUP BY v.id, v.ville, v.prenom, v.nom), moyennes AS (SELECT ville, AVG(total) AS moyenne FROM totaux GROUP BY ville) SELECT t.ville, t.prenom, t.nom, t.total, ROUND(m.moyenne, 2) AS moyenne_ville FROM totaux t JOIN moyennes m ON m.ville = t.ville WHERE t.total > m.moyenne ORDER BY t.ville, t.total DESC, t.nom, t.prenom;",
+      indice:"Calcule les dépenses par visiteur avec LEFT JOIN pour inclure les zéros, puis la moyenne des totaux par ville."},
+      {id:'zf1',apres:249,titre:"Quels animaux n’ont pas encore été pesés ?",niv:'f',base:'zoo',ordered:true,
+       contexte:"Les soigneurs doivent compléter les fiches des animaux dont le poids n’a pas été renseigné. Affiche le nom, le sexe et la date d’arrivée des animaux dont le poids_kg n’est pas renseigné (sa valeur est NULL), triés par date d’arrivée puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+      q:"Affiche le nom, le sexe et la date d’arrivée des animaux dont le poids_kg n’est pas renseigné (sa valeur est NULL), triés par date d’arrivée puis nom.",
+       sol:"SELECT nom, sexe, date_arrivee FROM animaux WHERE poids_kg IS NULL ORDER BY date_arrivee, nom, id;",
+       indice:"Dans animaux, cherche les lignes où poids_kg IS NULL."},
+      {id:'zf2',apres:250,titre:"Quels animaux sont des lions ?",niv:'f',base:'zoo',ordered:true,
+       contexte:"L’équipe de la savane prépare la liste des lions et de leurs enclos. Affiche le nom de l’animal, le nom de son enclos et sa date de naissance pour les animaux de l’espèce Lion, triés par date puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+       q:"Affiche le nom de l’animal, le nom de son enclos et sa date de naissance pour les animaux de l’espèce Lion, triés par date puis nom.",
+       sol:"SELECT a.nom, en.nom AS enclos, a.date_naissance FROM animaux a JOIN especes e ON e.id = a.espece_id JOIN enclos en ON en.id = a.enclos_id WHERE e.nom_commun = 'Lion' ORDER BY a.date_naissance, a.nom, a.id;",
+       indice:"Relie animaux à especes et enclos, puis filtre sur le nom commun Lion."},
+      {id:'zf3',apres:251,titre:"Quels enclos sont de type Savane ?",niv:'f',base:'zoo',ordered:true,
+       contexte:"La direction compare les enclos de type « Savane » pour préparer leurs aménagements. Affiche le nom, la surface en mètres carrés et la capacité des enclos de type Savane, triés par surface décroissante puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+       q:"Affiche le nom, la surface en mètres carrés et la capacité des enclos de type Savane, triés par surface décroissante puis nom.",
+       sol:"SELECT nom, surface_m2, capacite FROM enclos WHERE type = 'Savane' ORDER BY surface_m2 DESC, nom, id;",
+       indice:"Filtre directement la table enclos sur la valeur Savane."},
+      {id:'zf4',apres:252,titre:"Quels soigneurs sont spécialisés en reptiles ?",niv:'f',base:'zoo',ordered:true,
+       contexte:"Le planning prépare l’annuaire des soigneurs spécialisés en reptiles. Affiche le prénom, le nom et la date d’embauche des soigneurs spécialisés en Reptiles, triés par nom puis prénom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+       q:"Affiche le prénom, le nom et la date d’embauche des soigneurs spécialisés en Reptiles, triés par nom puis prénom.",
+       sol:"SELECT prenom, nom, date_embauche FROM soigneurs WHERE specialite = 'Reptiles' ORDER BY nom, prenom, id;",
+       indice:"Filtre soigneurs sur la spécialité exacte Reptiles."},
+      {id:'zf5',apres:253,titre:"Quels repas sont distribués sans soigneur ?",niv:'f',base:'zoo',ordered:true,
+       contexte:"Les soigneurs vérifient les repas enregistrés sans soigneur responsable. Affiche l’identifiant, la date, l’heure et la quantité des repas automatiques, c’est-à-dire ceux dont soigneur_id est NULL, triés par date puis heure. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. La quantité est en kilogrammes ; un soigneur absent est représenté par NULL.",
+      q:"Affiche l’identifiant, la date, l’heure et la quantité des repas automatiques, c’est-à-dire ceux dont soigneur_id est NULL, triés par date puis heure.",
+       sol:"SELECT id, date_repas, heure_repas, quantite_kg FROM repas WHERE soigneur_id IS NULL ORDER BY date_repas, heure_repas, id;",
+       indice:"Les repas automatiques ont un soigneur_id égal à NULL."},
+      {id:'zf6',apres:254,titre:"Quels visiteurs habitent à Paris ?",niv:'f',base:'zoo',ordered:true,
+       contexte:"Le service visiteurs prépare une invitation pour les personnes domiciliées à Paris. Affiche le prénom, le nom et l’email des visiteurs qui habitent à Paris, triés par nom puis prénom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+       q:"Affiche le prénom, le nom et l’email des visiteurs qui habitent à Paris, triés par nom puis prénom.",
+       sol:"SELECT prenom, nom, email FROM visiteurs WHERE ville = 'Paris' ORDER BY nom, prenom, id;",
+       indice:"Dans visiteurs, filtre sur la ville Paris."},
+      {id:'zf7',apres:255,titre:"Quels billets sont de type Famille ?",niv:'f',base:'zoo',ordered:true,
+      contexte:"La billetterie vérifie les billets de type « Famille ». Affiche l’identifiant du billet, la date de visite et le prix des billets Famille, triés par date puis identifiant. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+       q:"Affiche l’identifiant du billet, la date de visite et le prix des billets Famille, triés par date puis identifiant.",
+       sol:"SELECT id, date_visite, prix FROM billets WHERE type_billet = 'Famille' ORDER BY date_visite, id;",
+       indice:"Filtre les billets sur type_billet = Famille."},
+      {id:'zf8',apres:256,titre:"Quels visiteurs n’ont jamais acheté de billet ?",niv:'f',base:'zoo',ordered:true,
+      contexte:"Le service visiteurs recherche les personnes inscrites qui n’ont encore acheté aucun billet. Affiche le prénom, le nom et l’email des visiteurs pour lesquels aucune ligne n’existe dans billets, triés par nom puis prénom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+      q:"Affiche le prénom, le nom et l’email des visiteurs pour lesquels aucune ligne n’existe dans billets, triés par nom puis prénom.",
+       sol:"SELECT v.prenom, v.nom, v.email FROM visiteurs v LEFT JOIN billets b ON b.visiteur_id = v.id WHERE b.id IS NULL ORDER BY v.nom, v.prenom, v.id;",
+       indice:"LEFT JOIN conserve les visiteurs; un billet absent se repère avec b.id IS NULL."},
+      {id:'zf9',apres:257,titre:"Quels avis n’ont pas de commentaire ?",niv:'f',base:'zoo',ordered:true,
+       contexte:"Le service qualité souhaite examiner les avis sans commentaire renseigné. Affiche l’identifiant de l’avis, sa note et l’identifiant du visiteur pour les avis dont commentaire est NULL, triés par note décroissante puis identifiant. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+      q:"Affiche l’identifiant de l’avis, sa note et l’identifiant du visiteur pour les avis dont commentaire est NULL, triés par note décroissante puis identifiant.",
+       sol:"SELECT id, note, visiteur_id FROM avis WHERE commentaire IS NULL ORDER BY note DESC, id;",
+       indice:"Repère les avis où commentaire est NULL, puis trie par note."},
+      {id:'zf10',apres:258,titre:"Quels animaux vivent dans la Plaine africaine ?",niv:'f',base:'zoo',ordered:true,
+       contexte:"Les soigneurs préparent l’inventaire des animaux de l’enclos « Plaine africaine ». Affiche le nom de l’animal, le nom commun de son espèce et son poids pour les animaux de la Plaine africaine, triés par nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+       q:"Affiche le nom de l’animal, le nom commun de son espèce et son poids pour les animaux de la Plaine africaine, triés par nom.",
+       sol:"SELECT a.nom, e.nom_commun, a.poids_kg FROM animaux a JOIN especes e ON e.id = a.espece_id JOIN enclos en ON en.id = a.enclos_id WHERE en.nom = 'Plaine africaine' ORDER BY a.nom, a.id;",
+       indice:"Relie animaux à especes et enclos, puis filtre sur le nom de l’enclos."},
+      {id:'zm1',apres:259,titre:"Combien d’animaux vivent dans chaque enclos ?",niv:'m',base:'zoo',ordered:true,
+       contexte:"Les soigneurs comparent l’effectif de tous les enclos à leur capacité d’accueil. Affiche le nom de l’enclos, sa capacité et le nombre d’animaux, en incluant les enclos sans animal, triés par nombre décroissant puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Un enclos sans animal doit apparaître avec zéro.",
+       q:"Affiche le nom de l’enclos, sa capacité et le nombre d’animaux, en incluant les enclos sans animal, triés par nombre décroissant puis nom.",
+       sol:"SELECT en.nom, en.capacite, COUNT(a.id) AS nb_animaux FROM enclos en LEFT JOIN animaux a ON a.enclos_id = en.id GROUP BY en.id, en.nom, en.capacite ORDER BY nb_animaux DESC, en.nom, en.id;",
+       indice:"LEFT JOIN garde les enclos vides; COUNT(a.id) donne leur total d’animaux."},
+      {id:'zm2',apres:260,titre:"Quelle quantité de nourriture chaque animal a-t-il reçue ?",niv:'m',base:'zoo',ordered:true,
+      contexte:"La réserve veut connaître les quantités de nourriture distribuées à chaque animal ayant reçu un repas. Affiche le nom de chaque animal ayant eu un repas, sa quantité totale en kilos et son nombre de repas, triés par quantité décroissante puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+       q:"Affiche le nom de chaque animal ayant eu un repas, sa quantité totale en kilos et son nombre de repas, triés par quantité décroissante puis nom.",
+       sol:"SELECT a.nom, SUM(r.quantite_kg) AS quantite_totale, COUNT(r.id) AS nb_repas FROM animaux a JOIN repas r ON r.animal_id = a.id GROUP BY a.id, a.nom ORDER BY quantite_totale DESC, a.nom, a.id;",
+       indice:"Relie les animaux à leurs repas, puis calcule SUM et COUNT par animal."},
+      {id:'zm3',apres:261,titre:"Quel chiffre d’affaires génère chaque type de billet ?",niv:'m',base:'zoo',ordered:true,
+      contexte:"La billetterie compare le nombre de billets et les recettes selon le type de billet. Affiche le type de billet, le nombre de billets et le chiffre d’affaires total, triés par recette décroissante puis type. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+       q:"Affiche le type de billet, le nombre de billets et le chiffre d’affaires total, triés par recette décroissante puis type.",
+       sol:"SELECT type_billet, COUNT(*) AS nb_billets, SUM(prix) AS chiffre_affaires FROM billets GROUP BY type_billet ORDER BY chiffre_affaires DESC, type_billet;",
+       indice:"Regroupe les billets par type et calcule COUNT et SUM."},
+      {id:'zm4',apres:262,titre:"Quels soigneurs ont le plus d’affectations ?",niv:'m',base:'zoo',ordered:true,
+       contexte:"Le planning compare les affectations de tous les soigneurs, même ceux sans enclos attribué. Affiche le prénom, le nom et le nombre d’enclos distincts de chaque soigneur, triés par nombre décroissant puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Compte chaque enclos une fois par soigneur, avec zéro sans affectation ; départage les noms identiques par prénom.",
+       q:"Affiche le prénom, le nom et le nombre d’enclos distincts de chaque soigneur, triés par nombre décroissant puis nom.",
+       sol:"SELECT s.prenom, s.nom, COUNT(DISTINCT a.enclos_id) AS nb_enclos FROM soigneurs s LEFT JOIN affectations_soigneurs a ON a.soigneur_id = s.id GROUP BY s.id, s.prenom, s.nom ORDER BY nb_enclos DESC, s.nom, s.prenom, s.id;",
+       indice:"LEFT JOIN garde tous les soigneurs; compte les enclos distincts par personne."},
+      {id:'zm5',apres:263,titre:"Quels animaux ont eu plusieurs repas ?",niv:'m',base:'zoo',ordered:true,
+       contexte:"Les soigneurs recherchent les animaux ayant reçu plus d’un repas enregistré. Affiche le nom des animaux ayant eu plus d’un repas et leur nombre de repas, triés par nombre décroissant puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+       q:"Affiche le nom des animaux ayant eu plus d’un repas et leur nombre de repas, triés par nombre décroissant puis nom.",
+       sol:"SELECT a.nom, COUNT(r.id) AS nb_repas FROM animaux a JOIN repas r ON r.animal_id = a.id GROUP BY a.id, a.nom HAVING COUNT(r.id) > 1 ORDER BY nb_repas DESC, a.nom, a.id;",
+       indice:"Groupe les repas par animal puis filtre les groupes avec HAVING COUNT > 1."},
+      {id:'zm6',apres:264,titre:"Combien de billets sont vendus par mois et par type ?",niv:'m',base:'zoo',ordered:true,
+      contexte:"La billetterie prépare un bilan mensuel des visites, ventilé par type de billet. Pour chaque mois de visite au format AAAA-MM et chaque type de billet, affiche le mois, le type et le nombre de billets. Trie par mois puis par type. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+      q:"Pour chaque mois de visite au format AAAA-MM et chaque type de billet, affiche le mois, le type et le nombre de billets. Trie par mois puis par type.",
+       sol:"SELECT strftime('%Y-%m', date_visite) AS mois, type_billet, COUNT(*) AS nb_billets FROM billets GROUP BY mois, type_billet ORDER BY mois, type_billet;",
+       indice:"Extrais le mois de date_visite avec strftime, puis regroupe par mois et type."},
+      {id:'zm7',apres:265,titre:"Quels visiteurs donnent une note moyenne supérieure à 4 ?",niv:'m',base:'zoo',ordered:true,
+       contexte:"Le service qualité recherche les visiteurs dont la note moyenne dépasse strictement 4. Affiche le prénom, le nom et la note moyenne arrondie à deux décimales des visiteurs dont la moyenne dépasse 4, triés par moyenne décroissante puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Filtre sur la moyenne non arrondie et trie sur la moyenne arrondie, puis nom et prénom.",
+       q:"Affiche le prénom, le nom et la note moyenne arrondie à deux décimales des visiteurs dont la moyenne dépasse 4, triés par moyenne décroissante puis nom.",
+       sol:"SELECT v.prenom, v.nom, ROUND(AVG(a.note), 2) AS note_moyenne FROM visiteurs v JOIN avis a ON a.visiteur_id = v.id GROUP BY v.id, v.prenom, v.nom HAVING AVG(a.note) > 4 ORDER BY note_moyenne DESC, v.nom, v.prenom, v.id;",
+       indice:"Calcule AVG(note) par visiteur puis utilise HAVING pour garder les moyennes supérieures à 4."},
+      {id:'zm8',apres:266,titre:"Quels enclos sont surpeuplés ?",niv:'m',base:'zoo',ordered:true,
+      contexte:"La direction veut repérer les enclos dont le nombre d’animaux dépasse la capacité d’accueil. Affiche le nom, la capacité et le nombre d’animaux des enclos dont l’effectif dépasse strictement la capacité. Trie par dépassement décroissant, puis par nom d’enclos. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Le dépassement est le nombre d’animaux moins la capacité. À dépassement égal, trie par nom d’enclos. Un résultat vide est valide si aucun enclos ne dépasse sa capacité.",
+      q:"Affiche le nom, la capacité et le nombre d’animaux des enclos dont l’effectif dépasse strictement la capacité. Trie par dépassement décroissant, puis par nom d’enclos.",
+       sol:"SELECT en.nom, en.capacite, COUNT(a.id) AS nb_animaux FROM enclos en JOIN animaux a ON a.enclos_id = en.id GROUP BY en.id, en.nom, en.capacite HAVING COUNT(a.id) > en.capacite ORDER BY COUNT(a.id) - en.capacite DESC, en.nom, en.id;",
+       indice:"Regroupe les animaux par enclos et compare leur nombre à la capacité avec HAVING."},
+      {id:'zm9',apres:267,titre:"Quels animaux n’ont jamais eu de repas ?",niv:'m',base:'zoo',ordered:true,
+       contexte:"Les soigneurs recherchent les animaux pour lesquels aucun repas n’est enregistré. Affiche le nom de l’animal, le nom commun de son espèce et le nom de son enclos lorsqu’aucune ligne de repas ne référence cet animal, triés par nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+      q:"Affiche le nom de l’animal, le nom commun de son espèce et le nom de son enclos lorsqu’aucune ligne de repas ne référence cet animal, triés par nom.",
+       sol:"SELECT a.nom, e.nom_commun, en.nom AS enclos FROM animaux a JOIN especes e ON e.id = a.espece_id JOIN enclos en ON en.id = a.enclos_id LEFT JOIN repas r ON r.animal_id = a.id WHERE r.id IS NULL ORDER BY a.nom, a.id;",
+       indice:"LEFT JOIN les repas aux animaux; un animal sans repas a r.id égal à NULL."},
+      {id:'zm10',apres:268,titre:"Combien d’avis chaque note reçoit-elle ?",niv:'m',base:'zoo',ordered:true,
+      contexte:"Le service qualité souhaite connaître la répartition des notes attribuées par les visiteurs. Affiche chaque note, son nombre d’avis et son pourcentage du total de tous les avis (arrondi à une décimale), triés par note décroissante. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+      q:"Affiche chaque note, son nombre d’avis et son pourcentage du total de tous les avis (arrondi à une décimale), triés par note décroissante.",
+       sol:"SELECT note, COUNT(*) AS nb_avis, ROUND(100.0 * COUNT(*) / (SELECT COUNT(*) FROM avis), 1) AS pourcentage FROM avis GROUP BY note ORDER BY note DESC;",
+       indice:"Regroupe les avis par note et divise l’effectif de chaque note par le nombre total d’avis."},
+      {id:'zd1',apres:269,titre:"Quel enclos accueille le plus d’animaux ?",niv:'d',base:'zoo',ordered:true,
+       contexte:"La direction souhaite identifier les trois enclos qui accueillent le plus d’animaux. Affiche le nom et le nombre d’animaux des trois enclos les plus peuplés, triés par nombre décroissant puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+       q:"Affiche le nom et le nombre d’animaux des trois enclos les plus peuplés, triés par nombre décroissant puis nom.",
+       sol:"SELECT en.nom, COUNT(a.id) AS nb_animaux FROM enclos en LEFT JOIN animaux a ON a.enclos_id = en.id GROUP BY en.id, en.nom ORDER BY nb_animaux DESC, en.nom, en.id LIMIT 3;",
+       indice:"Compte les animaux par enclos, puis trie les effectifs et conserve les trois premiers."},
+      {id:'zd2',apres:270,titre:"Quel est le classement des enclos par nombre d’animaux avec RANK() ?",niv:'d',base:'zoo',ordered:true,
+       contexte:"La direction classe tous les enclos selon leur nombre d’animaux. Affiche le nom de chaque enclos, son nombre d’animaux et son rang RANK(), y compris les enclos vides, triés par rang puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Les enclos vides ont zéro animal. Les ex æquo partagent leur rang, avec saut au suivant (1, 1, 3).",
+       q:"Affiche le nom de chaque enclos, son nombre d’animaux et son rang RANK(), y compris les enclos vides, triés par rang puis nom.",
+       sol:"SELECT en.nom, COUNT(a.id) AS nb_animaux, RANK() OVER (ORDER BY COUNT(a.id) DESC) AS rang FROM enclos en LEFT JOIN animaux a ON a.enclos_id = en.id GROUP BY en.id, en.nom ORDER BY rang, en.nom, en.id;",
+       indice:"LEFT JOIN conserve les enclos vides; RANK() classe leurs effectifs décroissants."},
+      {id:'zd3',apres:271,titre:"Comment évoluent les repas de Simba avec LAG() ?",niv:'d',base:'zoo',ordered:true,
+      contexte:"Les soigneurs comparent la quantité de chaque repas de Simba à celle de son repas précédent. Affiche la date, la quantité, la quantité précédente avec LAG() et la différence pour les repas de Simba, triés par date, heure et identifiant. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Les quantités sont en kilogrammes ; la différence est la quantité actuelle moins la précédente. La quantité précédente et la différence valent NULL pour le premier repas.",
+       q:"Affiche la date, la quantité, la quantité précédente avec LAG() et la différence pour les repas de Simba, triés par date, heure et identifiant.",
+       sol:"SELECT r.date_repas, r.quantite_kg, LAG(r.quantite_kg) OVER (ORDER BY r.date_repas, r.heure_repas, r.id) AS quantite_precedente, r.quantite_kg - LAG(r.quantite_kg) OVER (ORDER BY r.date_repas, r.heure_repas, r.id) AS difference FROM repas r JOIN animaux a ON a.id = r.animal_id WHERE a.nom = 'Simba' ORDER BY r.date_repas, r.heure_repas, r.id;",
+       indice:"Filtre les repas de Simba et ordonne-les de façon stable avant d’appliquer LAG()."},
+      {id:'zd4',apres:272,titre:"Quels soigneurs donnent plus de repas que la moyenne ?",niv:'d',base:'zoo',ordered:true,
+       contexte:"Le planning recherche les soigneurs qui ont assuré plus de repas que la moyenne de l’équipe. Affiche le prénom, le nom et le nombre de repas des soigneurs dont le total dépasse la moyenne des totaux de tous les soigneurs, y compris ceux à zéro; indique aussi cette moyenne arrondie à deux décimales, triés par nombre décroissant puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Les repas sans soigneur ne sont attribués à personne. La moyenne inclut tous les soigneurs avec zéro sans repas. Compare avant arrondi ; départage les noms identiques par prénom.",
+      q:"Affiche le prénom, le nom et le nombre de repas des soigneurs dont le total dépasse la moyenne des totaux de tous les soigneurs, y compris ceux à zéro; indique aussi cette moyenne arrondie à deux décimales, triés par nombre décroissant puis nom.",
+       sol:"WITH stats AS (SELECT s.id, s.prenom, s.nom, COUNT(r.id) AS nb_repas FROM soigneurs s LEFT JOIN repas r ON r.soigneur_id = s.id GROUP BY s.id, s.prenom, s.nom) SELECT prenom, nom, nb_repas, ROUND((SELECT AVG(nb_repas) FROM stats), 2) AS moyenne_globale FROM stats WHERE nb_repas > (SELECT AVG(nb_repas) FROM stats) ORDER BY nb_repas DESC, nom, prenom, id;",
+       indice:"Une CTE compte les repas par soigneur, puis compare chaque total à la moyenne de tous les soigneurs."},
+      {id:'zd5',apres:273,titre:"Quel est le classement des espèces par nombre d’animaux avec RANK() ?",niv:'d',base:'zoo',ordered:true,
+       contexte:"La direction classe toutes les espèces selon leur nombre d’animaux dans le zoo. Affiche chaque espèce, même sans animal, avec son nom commun, son nombre d’animaux et son rang RANK(), triés par rang puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Les espèces sans animal ont zéro. Des nombres égaux partagent leur rang, avec saut au suivant (1, 1, 3).",
+      q:"Affiche chaque espèce, même sans animal, avec son nom commun, son nombre d’animaux et son rang RANK(), triés par rang puis nom.",
+       sol:"SELECT e.nom_commun, COUNT(a.id) AS nb_animaux, RANK() OVER (ORDER BY COUNT(a.id) DESC) AS rang FROM especes e LEFT JOIN animaux a ON a.espece_id = e.id GROUP BY e.id, e.nom_commun ORDER BY rang, e.nom_commun, e.id;",
+       indice:"LEFT JOIN garde les espèces sans animal; classe les nombres avec RANK()."},
+      {id:'zd6',apres:274,titre:"Quels visiteurs ont acheté tous les types de billets ?",niv:'d',base:'zoo',ordered:true,
+      contexte:"Le service fidélité recherche les visiteurs ayant acheté tous les types de billets déjà vendus par le zoo. Affiche le prénom et le nom des visiteurs ayant acheté au moins un billet de chaque valeur distincte de type_billet présente dans billets, triés par nom puis prénom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. La référence est la liste des types distincts présents dans les billets vendus. Un résultat vide est valide si aucun visiteur ne les a tous achetés.",
+      q:"Affiche le prénom et le nom des visiteurs ayant acheté au moins un billet de chaque valeur distincte de type_billet présente dans billets, triés par nom puis prénom.",
+       sol:"SELECT v.prenom, v.nom FROM visiteurs v WHERE EXISTS (SELECT 1 FROM billets b WHERE b.visiteur_id = v.id) AND NOT EXISTS (SELECT 1 FROM (SELECT DISTINCT type_billet FROM billets) t WHERE NOT EXISTS (SELECT 1 FROM billets b2 WHERE b2.visiteur_id = v.id AND b2.type_billet = t.type_billet)) ORDER BY v.nom, v.prenom, v.id;",
+       indice:"Pour chaque visiteur, cherche s’il manque un type de billet parmi ceux qui existent."},
+      {id:'zd7',apres:275,titre:"Quels enclos dépassent la moyenne d’animaux de leur type ?",niv:'d',base:'zoo',ordered:true,
+       contexte:"La direction recherche les enclos plus peuplés que la moyenne des enclos du même type. Affiche le type, le nom de l’enclos et son nombre d’animaux lorsque cet effectif dépasse la moyenne du même type; la moyenne inclut tous les enclos de ce type, même vides, et est arrondie à deux décimales. Trie par type puis effectif décroissant. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Compare les effectifs à la moyenne non arrondie. À effectif égal, trie par nom d’enclos.",
+      q:"Affiche le type, le nom de l’enclos et son nombre d’animaux lorsque cet effectif dépasse la moyenne du même type; la moyenne inclut tous les enclos de ce type, même vides, et est arrondie à deux décimales. Trie par type puis effectif décroissant.",
+       sol:"WITH stats AS (SELECT en.id, en.nom, en.type, COUNT(a.id) AS nb_animaux FROM enclos en LEFT JOIN animaux a ON a.enclos_id = en.id GROUP BY en.id, en.nom, en.type), moyennes AS (SELECT type, AVG(nb_animaux) AS moyenne FROM stats GROUP BY type) SELECT s.type, s.nom, s.nb_animaux, ROUND(m.moyenne, 2) AS moyenne_type FROM stats s JOIN moyennes m ON m.type = s.type WHERE s.nb_animaux > m.moyenne ORDER BY s.type, s.nb_animaux DESC, s.nom, s.id;",
+       indice:"Calcule l’effectif de chaque enclos, puis la moyenne par type dans une seconde CTE."},
+        {id:'sf1',apres:219,titre:"Quels adhérents n’ont pas d’abonnement en cours ?",niv:'f',base:'salle_sport',ordered:true,
+      contexte:"L’accueil prépare la liste des adhérents qui n’ont aucun abonnement marqué en cours. Affiche le prénom et le nom des adhérents qui n’ont aucun abonnement marqué en cours (date_fin IS NULL): soit ils n’ont jamais eu d’abonnement, soit tous leurs abonnements ont une date de fin; trie par nom puis prénom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+      q:"Affiche le prénom et le nom des adhérents qui n’ont aucun abonnement marqué en cours (date_fin IS NULL): soit ils n’ont jamais eu d’abonnement, soit tous leurs abonnements ont une date de fin; trie par nom puis prénom.",
+      sol:"SELECT a.prenom, a.nom FROM adherents a WHERE NOT EXISTS (SELECT 1 FROM abonnements ab WHERE ab.adherent_id = a.id AND ab.date_fin IS NULL) ORDER BY a.nom, a.prenom, a.id;",
+      indice:"Un abonnement est en cours quand date_fin est NULL; cherche les adhérents pour lesquels il n’en existe aucun."},
+        {id:'sf2',apres:220,titre:"Quels coachs sont spécialisés en Yoga ?",niv:'f',base:'salle_sport',ordered:true,
+      contexte:"Le planning prépare l’annuaire des coachs dont la spécialité est « Yoga ». Affiche le prénom, le nom et la date d’embauche des coachs dont la spécialité est Yoga, triés par nom puis prénom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+      q:"Affiche le prénom, le nom et la date d’embauche des coachs dont la spécialité est Yoga, triés par nom puis prénom.",
+      sol:"SELECT prenom, nom, date_embauche FROM coachs WHERE specialite = 'Yoga' ORDER BY nom, prenom, id;",
+      indice:"Filtre la table coachs sur la valeur exacte de la spécialité."},
+        {id:'sf3',apres:221,titre:"Quels cours accueillent plus de 15 personnes ?",niv:'f',base:'salle_sport',ordered:true,
+      contexte:"L’accueil recherche les cours pouvant accueillir plus de quinze personnes. Affiche le nom du cours, sa capacité maximale, sa durée en minutes et son niveau lorsque sa capacité dépasse 15 places, triés par capacité décroissante puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+      q:"Affiche le nom du cours, sa capacité maximale, sa durée en minutes et son niveau lorsque sa capacité dépasse 15 places, triés par capacité décroissante puis nom.",
+      sol:"SELECT nom, capacite_max, duree_min, niveau FROM cours WHERE capacite_max > 15 ORDER BY capacite_max DESC, nom, id;",
+      indice:"Filtre les cours avec une comparaison numérique sur capacite_max."},
+        {id:'sf4',apres:222,titre:"Quels coachs n’animent aucun cours ?",niv:'f',base:'salle_sport',ordered:true,
+      contexte:"Le planning veut retrouver les coachs auxquels aucun cours n’est affecté. Affiche le prénom, le nom et la spécialité des coachs sans cours affecté, triés par nom puis prénom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+      q:"Affiche le prénom, le nom et la spécialité des coachs sans cours affecté, triés par nom puis prénom.",
+      sol:"SELECT c.prenom, c.nom, c.specialite FROM coachs c LEFT JOIN cours co ON co.coach_id = c.id WHERE co.id IS NULL ORDER BY c.nom, c.prenom, c.id;",
+      indice:"Garde tous les coachs avec LEFT JOIN puis repère ceux sans ligne correspondante dans cours."},
+        {id:'sf5',apres:223,titre:"Quels adhérents sont nés après le 1er janvier 2000 ?",niv:'f',base:'salle_sport',ordered:true,
+      contexte:"L’accueil prépare une offre pour les adhérents nés strictement après le 1er janvier 2000. Affiche le prénom, le nom et l’email des adhérents nés après le 1er janvier 2000, triés par date de naissance puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Si les dates et les noms sont égaux, départage par prénom.",
+      q:"Affiche le prénom, le nom et l’email des adhérents nés après le 1er janvier 2000, triés par date de naissance puis nom.",
+      sol:"SELECT prenom, nom, email FROM adherents WHERE date_naissance > '2000-01-01' ORDER BY date_naissance, nom, prenom, id;",
+      indice:"Les dates ISO se comparent directement; conserve celles strictement postérieures au 2000-01-01."},
+        {id:'sf6',apres:224,titre:"Quelles salles accueillent les cours collectifs ?",niv:'f',base:'salle_sport',ordered:true,
+      contexte:"Le planning compare les salles réservées aux cours collectifs. Affiche le nom, la surface en mètres carrés et le type des salles de type Cours collectifs, triés par surface décroissante puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+      q:"Affiche le nom, la surface en mètres carrés et le type des salles de type Cours collectifs, triés par surface décroissante puis nom.",
+      sol:"SELECT nom, surface_m2, type FROM salles WHERE type = 'Cours collectifs' ORDER BY surface_m2 DESC, nom, id;",
+      indice:"Filtre les salles sur le type exact puis trie sur la surface."},
+        {id:'sf7',apres:225,titre:"Quels adhérents n’ont aucune inscription à un cours ?",niv:'f',base:'salle_sport',ordered:true,
+      contexte:"L’accueil veut contacter les adhérents qui ne se sont inscrits à aucun créneau. Affiche le prénom, le nom et l’email des adhérents absents de toutes les inscriptions, triés par nom puis prénom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+      q:"Affiche le prénom, le nom et l’email des adhérents absents de toutes les inscriptions, triés par nom puis prénom.",
+      sol:"SELECT a.prenom, a.nom, a.email FROM adherents a LEFT JOIN inscriptions_cours i ON i.adherent_id = a.id WHERE i.id IS NULL ORDER BY a.nom, a.prenom, a.id;",
+      indice:"Relie les adhérents aux inscriptions avec LEFT JOIN et sélectionne les lignes sans correspondance."},
+        {id:'sf8',apres:226,titre:"Quels abonnements sont en cours ?",niv:'f',base:'salle_sport',ordered:true,
+      contexte:"L’accueil vérifie les abonnements marqués en cours dans la base. Affiche le prénom et le nom de l’adhérent, le type et le prix de chaque abonnement marqué en cours par date_fin IS NULL, triés par nom puis prénom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. « En cours » signifie uniquement date_fin = NULL, sans comparaison à la date du jour. Un adhérent peut avoir plusieurs contrats : affiche une ligne par contrat et départage par type puis identifiant de contrat.",
+      q:"Affiche le prénom et le nom de l’adhérent, le type et le prix de chaque abonnement marqué en cours par date_fin IS NULL, triés par nom puis prénom.",
+      sol:"SELECT a.prenom, a.nom, ab.type, ab.prix FROM abonnements ab JOIN adherents a ON a.id = ab.adherent_id WHERE ab.date_fin IS NULL ORDER BY a.nom, a.prenom, ab.type, ab.id;",
+      indice:"Un abonnement en cours se reconnaît à date_fin IS NULL; relie-le à son adhérent."},
+        {id:'sf9',apres:227,titre:"Quels cours sont de niveau Avancé ?",niv:'f',base:'salle_sport',ordered:true,
+      contexte:"Un adhérent recherche les cours dont le niveau est « Avancé ». Affiche le nom, la durée et la capacité maximale des cours de niveau Avancé, triés par durée décroissante puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+      q:"Affiche le nom, la durée et la capacité maximale des cours de niveau Avancé, triés par durée décroissante puis nom.",
+      sol:"SELECT nom, duree_min, capacite_max FROM cours WHERE niveau = 'Avancé' ORDER BY duree_min DESC, nom, id;",
+      indice:"Filtre sur le niveau Avancé, puis trie par durée décroissante."},
+        {id:'sf10',apres:228,titre:"Quels adhérents ne sont inscrits à aucun cours du lundi ?",niv:'f',base:'salle_sport',ordered:true,
+      contexte:"Le planning recherche les adhérents qui n’ont aucune inscription à un créneau du lundi. Affiche le prénom et le nom des adhérents qui n’apparaissent dans aucune inscription à un créneau du lundi, triés par nom puis prénom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Inclus les adhérents sans aucune inscription. Une inscription le lundi suffit à exclure l’adhérent, même s’il a été absent.",
+      q:"Affiche le prénom et le nom des adhérents qui n’apparaissent dans aucune inscription à un créneau du lundi, triés par nom puis prénom.",
+      sol:"SELECT a.prenom, a.nom FROM adherents a WHERE NOT EXISTS (SELECT 1 FROM inscriptions_cours i JOIN planning p ON p.id = i.planning_id WHERE i.adherent_id = a.id AND p.jour_semaine = 'Lundi') ORDER BY a.nom, a.prenom, a.id;",
+      indice:"Cherche avec NOT EXISTS une inscription de l’adhérent dont le créneau a lieu le lundi."},
+        {id:'sm1',apres:229,titre:"Combien d’inscriptions compte chaque cours ?",niv:'m',base:'salle_sport',ordered:true,
+      contexte:"Le planning compare le nombre d’inscriptions de tous les cours, même ceux qui ne sont pas encore programmés. Affiche le nom de chaque cours et son nombre d’inscriptions, y compris les cours sans inscription, triés par nombre décroissant puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Additionne les inscriptions de tous les créneaux du cours, sans distinguer présence et absence. Affiche zéro sans créneau ou sans inscription.",
+      q:"Affiche le nom de chaque cours et son nombre d’inscriptions, y compris les cours sans inscription, triés par nombre décroissant puis nom.",
+      sol:"SELECT c.nom, COUNT(i.id) AS nb_inscriptions FROM cours c LEFT JOIN planning p ON p.cours_id = c.id LEFT JOIN inscriptions_cours i ON i.planning_id = p.id GROUP BY c.id, c.nom ORDER BY nb_inscriptions DESC, c.nom, c.id;",
+      indice:"Relie les cours à leurs créneaux, puis utilise LEFT JOIN et COUNT(id) pour garder les créneaux sans inscrit."},
+        {id:'sm2',apres:230,titre:"Quelle recette génère chaque type d’abonnement ?",niv:'m',base:'salle_sport',ordered:true,
+      contexte:"La direction compare les montants des contrats d’abonnement selon leur type. Affiche le type d’abonnement, le nombre de contrats et la recette totale, triés par recette décroissante puis type. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Une ligne de la table abonnements est un contrat. Additionne son prix, contrats terminés et en cours inclus ; il ne s’agit pas d’un historique de paiements.",
+      q:"Affiche le type d’abonnement, le nombre de contrats et la recette totale, triés par recette décroissante puis type.",
+      sol:"SELECT type, COUNT(*) AS nb_abonnements, SUM(prix) AS recette FROM abonnements GROUP BY type ORDER BY recette DESC, type;",
+      indice:"Regroupe les abonnements par type puis utilise COUNT et SUM."},
+        {id:'sm3',apres:231,titre:"Quels adhérents se sont inscrits à plus de deux cours ?",niv:'m',base:'salle_sport',ordered:true,
+      contexte:"Le service fidélité recherche les adhérents inscrits à plus de deux créneaux différents. Affiche le prénom, le nom et le nombre de créneaux distincts des adhérents inscrits à plus de deux créneaux. Trie par nombre décroissant, puis nom et prénom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Un créneau est une ligne de planning : deux créneaux du même cours comptent séparément. La présence n’est pas requise.",
+      q:"Affiche le prénom, le nom et le nombre de créneaux distincts des adhérents inscrits à plus de deux créneaux. Trie par nombre décroissant, puis nom et prénom.",
+      sol:"SELECT a.prenom, a.nom, COUNT(DISTINCT i.planning_id) AS nb_creneaux FROM adherents a JOIN inscriptions_cours i ON i.adherent_id = a.id GROUP BY a.id, a.prenom, a.nom HAVING COUNT(DISTINCT i.planning_id) > 2 ORDER BY nb_creneaux DESC, a.nom, a.prenom, a.id;",
+      indice:"Groupe les inscriptions par adhérent, compte les créneaux distincts et filtre les groupes avec HAVING."},
+        {id:'sm4',apres:232,titre:"Quel est le taux de présence de chaque cours ?",niv:'m',base:'salle_sport',ordered:true,
+      contexte:"Le planning compare la présence des inscrits pour chaque cours ayant des inscriptions. Affiche le nom du cours, le nombre d’inscrits, le nombre de présents et le taux de présence en pourcentage arrondi à une décimale, triés par taux décroissant puis cours. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Additionne les inscriptions de tous les créneaux du cours. Le taux vaut 100 × inscriptions avec presence = 1 ÷ total des inscriptions ; exclus les cours sans inscription.",
+      q:"Affiche le nom du cours, le nombre d’inscrits, le nombre de présents et le taux de présence en pourcentage arrondi à une décimale, triés par taux décroissant puis cours.",
+      sol:"SELECT c.nom, COUNT(i.id) AS nb_inscrits, SUM(CASE WHEN i.presence THEN 1 ELSE 0 END) AS nb_presents, ROUND(100.0 * SUM(CASE WHEN i.presence THEN 1 ELSE 0 END) / COUNT(i.id), 1) AS taux_presence_pct FROM cours c JOIN planning p ON p.cours_id = c.id JOIN inscriptions_cours i ON i.planning_id = p.id GROUP BY c.id, c.nom ORDER BY taux_presence_pct DESC, c.nom, c.id;",
+      indice:"Compte les inscrits et additionne les présences avec CASE, puis divise par le nombre d’inscriptions."},
+        {id:'sm5',apres:233,titre:"Quels coachs animent le plus de cours ?",niv:'m',base:'salle_sport',ordered:true,
+      contexte:"La direction compare le nombre de cours différents affectés à chaque coach. Affiche le prénom, le nom et le nombre de cours distincts de chaque coach, y compris ceux sans cours, triés par nombre décroissant puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Un cours compte une fois par coach, même avec plusieurs créneaux. Sans cours, affiche zéro ; départage par nom puis prénom.",
+      q:"Affiche le prénom, le nom et le nombre de cours distincts de chaque coach, y compris ceux sans cours, triés par nombre décroissant puis nom.",
+      sol:"SELECT c.prenom, c.nom, COUNT(DISTINCT co.id) AS nb_cours FROM coachs c LEFT JOIN cours co ON co.coach_id = c.id GROUP BY c.id, c.prenom, c.nom ORDER BY nb_cours DESC, c.nom, c.prenom, c.id;",
+      indice:"LEFT JOIN conserve les coachs sans cours; compte les identifiants de cours distincts."},
+        {id:'sm6',apres:234,titre:"Quels cours ont atteint leur capacité ?",niv:'m',base:'salle_sport',ordered:true,
+      contexte:"Le planning recherche les créneaux dont le nombre d’inscrits atteint ou dépasse la capacité du cours. Affiche le nom du cours, le jour, l’heure de début, la capacité maximale et le nombre d’inscrits de chaque créneau qui atteint ou dépasse cette capacité. Trie par dépassement décroissant (inscrits moins capacité), puis nom du cours, jour et heure. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Compte séparément les inscriptions de chaque ligne de planning, sans distinguer présence et absence. Ne cumule pas les différents créneaux d’un même cours.",
+      q:"Affiche le nom du cours, le jour, l’heure de début, la capacité maximale et le nombre d’inscrits de chaque créneau qui atteint ou dépasse cette capacité. Trie par dépassement décroissant (inscrits moins capacité), puis nom du cours, jour et heure.",
+      sol:"SELECT c.nom, p.jour_semaine, p.heure_debut, c.capacite_max, COUNT(i.id) AS nb_inscrits FROM cours c JOIN planning p ON p.cours_id = c.id JOIN inscriptions_cours i ON i.planning_id = p.id GROUP BY p.id, c.id, c.nom, p.jour_semaine, p.heure_debut, c.capacite_max HAVING COUNT(i.id) >= c.capacite_max ORDER BY COUNT(i.id) - c.capacite_max DESC, c.nom, p.jour_semaine, p.heure_debut, p.id;",
+      indice:"Regroupe les inscriptions par identifiant de planning, puis compare chaque compteur à la capacité du cours."},
+        {id:'sm7',apres:235,titre:"Combien d’adhérents ont chaque type d’abonnement en cours ?",niv:'m',base:'salle_sport',ordered:true,
+      contexte:"L’accueil souhaite connaître le nombre d’adhérents ayant un abonnement en cours dans chaque formule. Affiche chaque type d’abonnement en cours et son nombre d’adhérents distincts, triés par nombre décroissant puis type. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal.",
+      q:"Affiche chaque type d’abonnement en cours et son nombre d’adhérents distincts, triés par nombre décroissant puis type.",
+      sol:"SELECT type, COUNT(DISTINCT adherent_id) AS nb_adherents FROM abonnements WHERE date_fin IS NULL GROUP BY type ORDER BY nb_adherents DESC, type;",
+      indice:"Filtre d’abord les abonnements sans date de fin, puis compte les adhérents distincts par type."},
+        {id:'sm8',apres:236,titre:"Quels adhérents ont assisté à un cours de Yoga ?",niv:'m',base:'salle_sport',ordered:true,
+      contexte:"Le planning recherche les adhérents qui ont été présents à au moins un cours de yoga. Affiche sans doublon le prénom et le nom des adhérents présents à au moins un cours dont le nom contient Yoga, triés par nom puis prénom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Une présence porte la valeur presence = 1. Affiche chaque couple prénom-nom une seule fois.",
+      q:"Affiche sans doublon le prénom et le nom des adhérents présents à au moins un cours dont le nom contient Yoga, triés par nom puis prénom.",
+      sol:"SELECT DISTINCT a.prenom, a.nom FROM adherents a JOIN inscriptions_cours i ON i.adherent_id = a.id JOIN planning p ON p.id = i.planning_id JOIN cours c ON c.id = p.cours_id WHERE c.nom LIKE '%Yoga%' AND i.presence = TRUE ORDER BY a.nom, a.prenom;",
+      indice:"Relie les inscriptions aux créneaux et aux cours, filtre les cours Yoga et les présences vraies."},
+        {id:'sm9',apres:237,titre:"Quels créneaux n’ont aucun inscrit ?",niv:'m',base:'salle_sport',ordered:true,
+      contexte:"Le planning veut retrouver les créneaux auxquels personne ne s’est inscrit. Affiche le nom du cours, le jour et l’heure de début des créneaux sans inscrit. Trie du lundi au dimanche, puis par heure, nom du cours et identifiant de créneau. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Une absence n’est pas une place libre : seules les lignes de planning sans inscription sont retenues. Un résultat vide est valide si tous les créneaux ont au moins un inscrit.",
+      q:"Affiche le nom du cours, le jour et l’heure de début des créneaux sans inscrit. Trie du lundi au dimanche, puis par heure, nom du cours et identifiant de créneau.",
+      sol:"SELECT c.nom, p.jour_semaine, p.heure_debut FROM cours c JOIN planning p ON p.cours_id = c.id LEFT JOIN inscriptions_cours i ON i.planning_id = p.id WHERE i.id IS NULL ORDER BY CASE p.jour_semaine WHEN 'Lundi' THEN 1 WHEN 'Mardi' THEN 2 WHEN 'Mercredi' THEN 3 WHEN 'Jeudi' THEN 4 WHEN 'Vendredi' THEN 5 WHEN 'Samedi' THEN 6 WHEN 'Dimanche' THEN 7 END, p.heure_debut, c.nom, p.id;",
+      indice:"LEFT JOIN les inscriptions à chaque créneau; l’absence d’inscrit correspond à i.id IS NULL."},
+        {id:'sm10',apres:238,titre:"Quels adhérents ont un abonnement expiré ?",niv:'m',base:'salle_sport',ordered:true,
+      contexte:"L’accueil vérifie les contrats dont la date de fin est déjà passée. À la date du jour, affiche le prénom, le nom et la date_fin de chaque abonnement dont la date de fin renseignée est passée; trie par date de fin puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. La date du jour est celle en UTC du moteur SQL. Une fin aujourd’hui n’est pas encore passée ; une date NULL ne doit pas être retenue. Départage par nom, prénom puis identifiant de contrat.",
+      q:"À la date du jour, affiche le prénom, le nom et la date_fin de chaque abonnement dont la date de fin renseignée est passée; trie par date de fin puis nom.",
+      sol:"SELECT a.prenom, a.nom, ab.date_fin FROM adherents a JOIN abonnements ab ON ab.adherent_id = a.id WHERE ab.date_fin IS NOT NULL AND ab.date_fin < CURRENT_DATE ORDER BY ab.date_fin, a.nom, a.prenom, ab.id;",
+      indice:"Écarte les NULL puis compare date_fin à CURRENT_DATE."},
+        {id:'sd1',apres:239,titre:"Quels coachs ont le plus d’inscriptions au total ?",niv:'d',base:'salle_sport',ordered:true,
+      contexte:"La direction recherche les trois coachs dont les cours réunissent le plus d’inscriptions. Affiche le prénom, le nom et le nombre total d’inscriptions des trois coachs les plus sollicités, triés par total décroissant puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Additionne toutes les inscriptions de tous les cours et créneaux du coach, même les absences. Départage les égalités par nom puis prénom.",
+      q:"Affiche le prénom, le nom et le nombre total d’inscriptions des trois coachs les plus sollicités, triés par total décroissant puis nom.",
+      sol:"SELECT c.prenom, c.nom, COUNT(i.id) AS nb_inscriptions FROM coachs c JOIN cours co ON co.coach_id = c.id JOIN planning p ON p.cours_id = co.id JOIN inscriptions_cours i ON i.planning_id = p.id GROUP BY c.id, c.prenom, c.nom ORDER BY nb_inscriptions DESC, c.nom, c.prenom, c.id LIMIT 3;",
+      indice:"Relie les coachs aux cours, aux créneaux puis aux inscriptions; agrège par coach avant de garder les trois premiers."},
+        {id:'sd2',apres:240,titre:"Quel est le classement des adhérents par nombre de cours avec RANK() ?",niv:'d',base:'salle_sport',ordered:true,
+      contexte:"Le service fidélité classe les adhérents selon le nombre de créneaux différents auxquels ils se sont inscrits. Affiche le prénom, le nom, le nombre de créneaux distincts et le rang de chaque adhérent ayant au moins une inscription. Trie par rang, puis nom et prénom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Un créneau correspond à un identifiant de planning, pas à un cours distinct. Les ex æquo ont le même rang, avec saut au suivant (1, 1, 3).",
+      q:"Affiche le prénom, le nom, le nombre de créneaux distincts et le rang de chaque adhérent ayant au moins une inscription. Trie par rang, puis nom et prénom.",
+      sol:"SELECT a.prenom, a.nom, COUNT(DISTINCT i.planning_id) AS nb_creneaux, RANK() OVER (ORDER BY COUNT(DISTINCT i.planning_id) DESC) AS rang FROM adherents a JOIN inscriptions_cours i ON i.adherent_id = a.id GROUP BY a.id, a.prenom, a.nom ORDER BY rang, a.nom, a.prenom, a.id;",
+      indice:"Compte les créneaux distincts par adhérent puis applique RANK() sur ces totaux décroissants."},
+        {id:'sd3',apres:241,titre:"Comment évoluent les inscriptions mensuelles de Camille Moreau avec LAG() ?",niv:'d',base:'salle_sport',ordered:true,
+      contexte:"L’accueil analyse l’évolution du nombre d’inscriptions mensuelles de Camille Moreau. Pour chaque mois où Camille Moreau a des inscriptions, affiche le mois au format AAAA-MM, son nombre d’inscriptions, le nombre du mois précédent présent dans son historique et la différence (actuel moins précédent). Trie par mois. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Le mois vient de la date d’inscription. N’ajoute pas de mois manquant : compare au précédent mois présent. Sur la première ligne, le nombre précédent et la différence valent NULL.",
+      q:"Pour chaque mois où Camille Moreau a des inscriptions, affiche le mois au format AAAA-MM, son nombre d’inscriptions, le nombre du mois précédent présent dans son historique et la différence (actuel moins précédent). Trie par mois.",
+      sol:"WITH stats AS (SELECT strftime('%Y-%m', i.date_inscription) AS mois, COUNT(i.id) AS nb_inscriptions FROM adherents a JOIN inscriptions_cours i ON i.adherent_id = a.id WHERE a.prenom = 'Camille' AND a.nom = 'Moreau' GROUP BY mois) SELECT mois, nb_inscriptions, LAG(nb_inscriptions) OVER (ORDER BY mois) AS nb_precedent, nb_inscriptions - LAG(nb_inscriptions) OVER (ORDER BY mois) AS difference FROM stats ORDER BY mois;",
+      indice:"Regroupe d’abord les inscriptions de Camille par mois, puis utilise LAG() pour lire le total du mois précédent."},
+        {id:'sd4',apres:242,titre:"Quels adhérents suivent plus de cours que la moyenne ?",niv:'d',base:'salle_sport',ordered:true,
+      contexte:"Le service fidélité recherche les adhérents inscrits à plus de créneaux que la moyenne des adhérents inscrits. Affiche le prénom, le nom, le nombre de créneaux distincts et l’écart à la moyenne arrondi à deux décimales pour les adhérents dont ce nombre dépasse strictement la moyenne des adhérents inscrits. Trie par nombre décroissant, puis nom et prénom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Compte les identifiants de planning distincts, sans distinguer présence et absence. La moyenne porte seulement sur les adhérents ayant au moins une inscription. Compare avant arrondi.",
+      q:"Affiche le prénom, le nom, le nombre de créneaux distincts et l’écart à la moyenne arrondi à deux décimales pour les adhérents dont ce nombre dépasse strictement la moyenne des adhérents inscrits. Trie par nombre décroissant, puis nom et prénom.",
+      sol:"WITH stats AS (SELECT a.id, a.prenom, a.nom, COUNT(DISTINCT i.planning_id) AS nb_creneaux FROM adherents a JOIN inscriptions_cours i ON i.adherent_id = a.id GROUP BY a.id, a.prenom, a.nom) SELECT prenom, nom, nb_creneaux, ROUND(nb_creneaux - (SELECT AVG(nb_creneaux) FROM stats), 2) AS ecart_moyenne FROM stats WHERE nb_creneaux > (SELECT AVG(nb_creneaux) FROM stats) ORDER BY nb_creneaux DESC, nom, prenom, id;",
+      indice:"Une CTE calcule le nombre de créneaux par adhérent; compare ensuite chaque total à la moyenne de ces totaux."},
+        {id:'sd5',apres:243,titre:"Quel est le classement des cours par taux de présence avec RANK() ?",niv:'d',base:'salle_sport',ordered:true,
+      contexte:"Le planning classe les cours selon la proportion d’inscriptions avec présence effective. Affiche le nom du cours, son taux de présence en pourcentage arrondi à une décimale et son rang RANK(), triés par rang puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Le taux vaut 100 × inscriptions avec presence = 1 ÷ total des inscriptions. Exclus les cours sans inscription et calcule les rangs sur les taux non arrondis ; des taux égaux partagent leur rang, avec saut au suivant.",
+      q:"Affiche le nom du cours, son taux de présence en pourcentage arrondi à une décimale et son rang RANK(), triés par rang puis nom.",
+      sol:"SELECT c.nom, ROUND(100.0 * SUM(CASE WHEN i.presence THEN 1 ELSE 0 END) / COUNT(i.id), 1) AS taux_presence_pct, RANK() OVER (ORDER BY 100.0 * SUM(CASE WHEN i.presence THEN 1 ELSE 0 END) / COUNT(i.id) DESC) AS rang FROM cours c JOIN planning p ON p.cours_id = c.id JOIN inscriptions_cours i ON i.planning_id = p.id GROUP BY c.id, c.nom ORDER BY rang, c.nom, c.id;",
+      indice:"Calcule les présences et les inscriptions par cours; classe ensuite les taux non arrondis avec RANK()."},
+        {id:'sd6',apres:244,titre:"Quels adhérents ont suivi tous les cours d’un même coach ?",niv:'d',base:'salle_sport',ordered:true,
+      contexte:"Le planning recherche les adhérents ayant participé à chacun des cours proposés par un même coach. Pour chaque coach, affiche le prénom et le nom des adhérents présents à au moins un créneau de chacun des cours de ce coach, ainsi que le nom complet du coach au format « Prénom Nom ». Trie par nom et prénom de l’adhérent, puis nom et prénom du coach. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Une présence suffit par cours, même si d’autres créneaux ont été manqués. La référence comprend tous les cours du coach, même sans créneau planifié.",
+      q:"Pour chaque coach, affiche le prénom et le nom des adhérents présents à au moins un créneau de chacun des cours de ce coach, ainsi que le nom complet du coach au format « Prénom Nom ». Trie par nom et prénom de l’adhérent, puis nom et prénom du coach.",
+      sol:"SELECT a.prenom, a.nom, co.prenom || ' ' || co.nom AS coach FROM adherents a JOIN inscriptions_cours i ON i.adherent_id = a.id JOIN planning p ON p.id = i.planning_id JOIN cours c ON c.id = p.cours_id JOIN coachs co ON co.id = c.coach_id WHERE i.presence = TRUE GROUP BY a.id, a.prenom, a.nom, co.id, co.prenom, co.nom HAVING COUNT(DISTINCT c.id) = (SELECT COUNT(DISTINCT c2.id) FROM cours c2 WHERE c2.coach_id = co.id) ORDER BY a.nom, a.prenom, co.nom, co.prenom;",
+      indice:"Groupe les présences par adhérent et coach; HAVING compare les cours suivis au nombre total de cours du coach."},
+        {id:'sd7',apres:245,titre:"Quels cours dépassent la moyenne des inscriptions de leur coach ?",niv:'d',base:'salle_sport',ordered:true,
+      contexte:"Chaque coach souhaite repérer ses cours dont le nombre d’inscriptions dépasse la moyenne de ses cours. Affiche le nom du coach, le nom du cours, le nombre d’inscrits et la moyenne de son coach arrondie à deux décimales lorsque le cours dépasse cette moyenne, triés par coach puis nombre décroissant. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Additionne les inscriptions de tous les créneaux de chaque cours. La moyenne porte sur tous les cours du coach, y compris ceux sans créneau ou sans inscription (zéro). Compare avant arrondi ; départage par nom de cours puis identifiant de cours.",
+      q:"Affiche le nom du coach, le nom du cours, le nombre d’inscrits et la moyenne de son coach arrondie à deux décimales lorsque le cours dépasse cette moyenne, triés par coach puis nombre décroissant.",
+      sol:"WITH stats AS (SELECT co.id AS coach_id, co.prenom || ' ' || co.nom AS coach, c.id AS cours_id, c.nom AS cours, COUNT(i.id) AS nb_inscrits FROM coachs co JOIN cours c ON c.coach_id = co.id LEFT JOIN planning p ON p.cours_id = c.id LEFT JOIN inscriptions_cours i ON i.planning_id = p.id GROUP BY co.id, co.prenom, co.nom, c.id, c.nom), moyennes AS (SELECT coach_id, AVG(nb_inscrits) AS moyenne FROM stats GROUP BY coach_id) SELECT s.coach, s.cours, s.nb_inscrits, ROUND(m.moyenne, 2) AS moyenne_coach FROM stats s JOIN moyennes m ON m.coach_id = s.coach_id WHERE s.nb_inscrits > m.moyenne ORDER BY s.coach, s.nb_inscrits DESC, s.cours, s.cours_id;",
+      indice:"Calcule d’abord les inscriptions par cours et coach, puis la moyenne des cours par coach dans une seconde CTE."},
+        {id:'sd8',apres:246,titre:"Quel est le classement des coachs par nombre d’inscrits avec RANK() ?",niv:'d',base:'salle_sport',ordered:true,
+      contexte:"La direction classe tous les coachs selon le nombre total d’inscriptions à leurs cours. Affiche le prénom, le nom, le nombre total d’inscrits et le rang RANK() de chaque coach, triés par rang puis nom et prénom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Toutes les inscriptions comptent, même les absences. Inclus les coachs sans cours ou sans inscription avec zéro ; les ex æquo ont le même rang, avec saut au suivant.",
+      q:"Affiche le prénom, le nom, le nombre total d’inscrits et le rang RANK() de chaque coach, triés par rang puis nom et prénom.",
+      sol:"SELECT c.prenom, c.nom, COUNT(i.id) AS nb_inscrits, RANK() OVER (ORDER BY COUNT(i.id) DESC) AS rang FROM coachs c LEFT JOIN cours co ON co.coach_id = c.id LEFT JOIN planning p ON p.cours_id = co.id LEFT JOIN inscriptions_cours i ON i.planning_id = p.id GROUP BY c.id, c.prenom, c.nom ORDER BY rang, c.nom, c.prenom, c.id;",
+      indice:"Enchaîne des LEFT JOIN depuis coachs pour conserver ceux sans cours; RANK() classe les totaux d’inscriptions."},
+        {id:'sd9',apres:247,titre:"Quels adhérents ont assisté à des cours dans plusieurs salles ?",niv:'d',base:'salle_sport',ordered:true,
+      contexte:"Le planning recherche les adhérents ayant participé à des créneaux dans au moins deux salles différentes. Affiche le prénom, le nom et le nombre de salles distinctes des adhérents présents dans au moins deux salles, triés par nombre de salles décroissant puis nom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Ne retiens que les inscriptions avec presence = 1 et compte chaque salle une seule fois par adhérent. Départage les égalités par nom puis prénom.",
+      q:"Affiche le prénom, le nom et le nombre de salles distinctes des adhérents présents dans au moins deux salles, triés par nombre de salles décroissant puis nom.",
+      sol:"SELECT a.prenom, a.nom, COUNT(DISTINCT p.salle_id) AS nb_salles FROM adherents a JOIN inscriptions_cours i ON i.adherent_id = a.id JOIN planning p ON p.id = i.planning_id WHERE i.presence = TRUE GROUP BY a.id, a.prenom, a.nom HAVING COUNT(DISTINCT p.salle_id) >= 2 ORDER BY nb_salles DESC, a.nom, a.prenom, a.id;",
+      indice:"Relie les présences au planning; compte les salles distinctes par adhérent puis filtre avec HAVING."},
+        {id:'sd10',apres:248,titre:"Quels adhérents ont payé plus que la moyenne de leur type d’abonnement ?",niv:'d',base:'salle_sport',ordered:true,
+      contexte:"La direction compare les montants des contrats de chaque adhérent à ceux des autres adhérents ayant la même formule. Affiche le type d’abonnement, le prénom, le nom, le montant total des contrats et la moyenne du type arrondie à deux décimales pour les adhérents dont le total dépasse cette moyenne. Trie par type, total décroissant, puis nom et prénom. Si toutes les clés de tri demandées sont égales, utilise l’identifiant croissant de l’élément principal. Additionne les prix des contrats terminés et en cours pour chaque couple adhérent-type. Calcule la moyenne de ces totaux parmi les adhérents ayant ce type de contrat. Compare avant arrondi : la base ne contient pas d’historique de paiements.",
+      q:"Affiche le type d’abonnement, le prénom, le nom, le montant total des contrats et la moyenne du type arrondie à deux décimales pour les adhérents dont le total dépasse cette moyenne. Trie par type, total décroissant, puis nom et prénom.",
+      sol:"WITH totaux AS (SELECT a.id, ab.type, a.prenom, a.nom, SUM(ab.prix) AS total FROM adherents a JOIN abonnements ab ON ab.adherent_id = a.id GROUP BY a.id, ab.type, a.prenom, a.nom), moyennes AS (SELECT type, AVG(total) AS moyenne FROM totaux GROUP BY type) SELECT t.type, t.prenom, t.nom, t.total, ROUND(m.moyenne, 2) AS moyenne_type FROM totaux t JOIN moyennes m ON m.type = t.type WHERE t.total > m.moyenne ORDER BY t.type, t.total DESC, t.nom, t.prenom, t.id;",
+      indice:"Calcule les paiements par adhérent et type, puis la moyenne des totaux dans chaque type."},
 ];
 /* La consigne d’un défi est autonome : situation, résultat, filtres, calculs et tri. Un seul bloc, seul ou en salle. Pas d’indice affiché (Elisa,
    1er novembre, 1 h 20 : « non pas d’indice au départ ni jamais finalement ») : le champ indice des défis reste dans les données. */
@@ -10652,6 +10953,7 @@ function coachNext(){
 function coachPaint(){
   const sl=document.getElementById('hint-slot');if(!sl||!COACH||COACH.c!==current)return;
   sl.innerHTML=defiIndicesHTML(COACH.c,COACH.n,COACH.view,COACH.diag,coachNext(),COACH.kind);
+  if(COACH.kind==='solo'&&typeof defiSesSave==='function')defiSesSave();
   const card=sl.querySelector('.coach');
   if(card&&COACH.fx&&!prefersReduceMotion()){card.classList.add(COACH.fx);setTimeout(()=>card.classList.remove('is-new-hint','is-new-ko'),900);}
   /* La carte est au-dessus de l’éditeur : si elle est sortie de l’écran au moment d’un essai raté, une pastille sous « Exécuter » y ramène. */
@@ -12142,12 +12444,12 @@ INSERT INTO repas (id, animal_id, soigneur_id, date_repas, heure_repas, type_rep
 (31, 28, 1, '2024-09-01', '07:00', 'Matin', 5),
 (32, 29, 1, '2024-09-01', '07:15', 'Matin', 4.5),
 (33, 30, 1, '2024-09-01', '07:30', 'Matin', 4.2),
-(34, 31, 2, '2024-09-01', '17:00', 'Soir', 2),
+(34, 32, 2, '2024-09-01', '17:00', 'Soir', 2),
 (35, 32, 2, '2024-09-01', '17:15', 'Soir', 1.8),
 (36, 33, 6, '2024-09-01', '08:00', 'Matin', 3),
 (37, 34, 4, '2024-09-01', '09:30', 'Matin', 0.4),
 (38, 35, 2, '2024-09-01', '15:30', 'Midi', 3.5),
-(39, 1, NULL, '2024-09-02', '18:00', 'Soir', 4.5),
+(39, 2, NULL, '2024-09-02', '18:00', 'Soir', 4.5),
 (40, 4, NULL, '2024-09-02', '17:00', 'Soir', 45);
 
 INSERT INTO visiteurs (id, prenom, nom, email, ville, date_inscription) VALUES
@@ -13191,6 +13493,297 @@ INSERT INTO avis (id, client_id, circuit_id, note, commentaire, date_avis) VALUE
 (23, 23, 7, 4, 'Islande à voir.', '2024-09-25'),
 (24, 27, 11, 5, 'Safari authentique, guide passionné.', '2024-11-05'),
 (25, 25, 2, 4, 'Bali aventure très bien.', '2024-10-15');
+`},
+  salle_sport:{nom:'Salle de sport',
+  tables:{"adherents":"Les adhérents du club, avec leurs coordonnées et leurs dates de naissance et d’inscription.","abonnements":"Les contrats souscrits par les adhérents, leur type, leur prix et leurs dates ; une date de fin NULL indique un abonnement en cours.","coachs":"Les coachs du club, leur spécialité et leur date d’embauche.","salles":"Les espaces du club, leur surface et leur type.","cours":"Les cours collectifs ou individuels, leur coach, leur durée, leur capacité et leur niveau.","planning":"Les créneaux hebdomadaires des cours, leur salle, leur jour et leur heure de début.","inscriptions_cours":"Les adhérents inscrits à chaque créneau, la date d’inscription et leur présence."},
+  cols:{"adherents":{"id":"Identifiant unique de l’adhérent.","prenom":"Prénom.","nom":"Nom de famille.","date_naissance":"Date de naissance.","email":"Adresse e-mail, unique.","date_inscription":"Date d’inscription au club."},"abonnements":{"id":"Identifiant unique de l’abonnement.","adherent_id":"Adhérent titulaire.","type":"Type d’abonnement : Mensuel, Annuel ou Étudiant.","prix":"Prix payé, en euros.","date_debut":"Date de début de l’abonnement.","date_fin":"Date de fin ; vide (NULL) si l’abonnement est en cours."},"coachs":{"id":"Identifiant unique du coach.","prenom":"Prénom.","nom":"Nom de famille.","specialite":"Spécialité du coach.","date_embauche":"Date d’embauche au club."},"salles":{"id":"Identifiant unique de la salle.","nom":"Nom de la salle.","surface_m2":"Surface en mètres carrés.","type":"Type de salle ou d’espace."},"cours":{"id":"Identifiant unique du cours.","nom":"Nom du cours.","coach_id":"Coach qui anime le cours.","duree_min":"Durée du cours, en minutes.","capacite_max":"Nombre maximal d’inscriptions par créneau.","niveau":"Niveau requis ou public visé."},"planning":{"id":"Identifiant unique du créneau.","cours_id":"Cours programmé.","salle_id":"Salle où se tient le cours.","jour_semaine":"Jour de la semaine.","heure_debut":"Heure de début."},"inscriptions_cours":{"id":"Identifiant unique de l’inscription.","adherent_id":"Adhérent inscrit.","planning_id":"Créneau choisi.","date_inscription":"Date de l’inscription au créneau.","presence":"Présence constatée : TRUE ou FALSE."}},
+  desc:'Bienvenue dans une salle de sport. Adhérents, coachs, cours collectifs, abonnements et inscriptions : toutes les données nécessaires à la gestion quotidienne du club sont réunies ici. Explore la base pour résoudre les différentes missions.',
+  sql:`
+CREATE TABLE adherents (
+  id               INTEGER PRIMARY KEY,
+  prenom           VARCHAR(50)  NOT NULL,
+  nom              VARCHAR(50)  NOT NULL,
+  date_naissance   DATE         NOT NULL,
+  email            VARCHAR(120) NOT NULL UNIQUE,
+  date_inscription DATE         NOT NULL
+);
+
+CREATE TABLE abonnements (
+  id          INTEGER PRIMARY KEY,
+  adherent_id INTEGER      NOT NULL,
+  type        VARCHAR(20)  NOT NULL,
+  prix        NUMERIC(7,2) NOT NULL,
+  date_debut  DATE         NOT NULL,
+  date_fin    DATE,
+  FOREIGN KEY (adherent_id) REFERENCES adherents(id)
+);
+
+CREATE TABLE coachs (
+  id            INTEGER PRIMARY KEY,
+  prenom        VARCHAR(50) NOT NULL,
+  nom           VARCHAR(50) NOT NULL,
+  specialite    VARCHAR(50) NOT NULL,
+  date_embauche DATE        NOT NULL
+);
+
+CREATE TABLE salles (
+  id         INTEGER PRIMARY KEY,
+  nom        VARCHAR(50) NOT NULL,
+  surface_m2 INTEGER     NOT NULL,
+  type       VARCHAR(30) NOT NULL
+);
+
+CREATE TABLE cours (
+  id           INTEGER PRIMARY KEY,
+  nom          VARCHAR(50) NOT NULL,
+  coach_id     INTEGER     NOT NULL,
+  duree_min    INTEGER     NOT NULL,
+  capacite_max INTEGER     NOT NULL,
+  niveau       VARCHAR(20) NOT NULL,
+  FOREIGN KEY (coach_id) REFERENCES coachs(id)
+);
+
+CREATE TABLE planning (
+  id           INTEGER PRIMARY KEY,
+  cours_id     INTEGER     NOT NULL,
+  salle_id     INTEGER     NOT NULL,
+  jour_semaine VARCHAR(15) NOT NULL,
+  heure_debut  TIME        NOT NULL,
+  FOREIGN KEY (cours_id) REFERENCES cours(id),
+  FOREIGN KEY (salle_id) REFERENCES salles(id)
+);
+
+CREATE TABLE inscriptions_cours (
+  id               INTEGER PRIMARY KEY,
+  adherent_id      INTEGER NOT NULL,
+  planning_id      INTEGER NOT NULL,
+  date_inscription DATE    NOT NULL,
+  presence         BOOLEAN NOT NULL,
+  FOREIGN KEY (adherent_id) REFERENCES adherents(id),
+  FOREIGN KEY (planning_id) REFERENCES planning(id)
+);
+
+INSERT INTO adherents (id, prenom, nom, date_naissance, email, date_inscription) VALUES
+(1, 'Camille', 'Moreau', '1992-04-12', 'camille.moreau@mail.fr', '2024-01-10'),
+(2, 'Hugo', 'Bernard', '1988-11-03', 'hugo.bernard@mail.fr', '2024-01-15'),
+(3, 'Léa', 'Petit', '1999-07-21', 'lea.petit@mail.fr', '2024-02-01'),
+(4, 'Noé', 'Durand', '2001-02-15', 'noe.durand@mail.fr', '2024-02-10'),
+(5, 'Emma', 'Roux', '1995-09-30', 'emma.roux@mail.fr', '2024-03-05'),
+(6, 'Lucas', 'Fournier', '1990-06-08', 'lucas.fournier@mail.fr', '2024-03-12'),
+(7, 'Chloé', 'Girard', '1997-12-19', 'chloe.girard@mail.fr', '2024-03-20'),
+(8, 'Nathan', 'Bonnet', '1985-03-25', 'nathan.bonnet@mail.fr', '2024-04-02'),
+(9, 'Manon', 'Lambert', '2000-08-14', 'manon.lambert@mail.fr', '2024-04-15'),
+(10, 'Jules', 'Fontaine', '1993-01-07', 'jules.fontaine@mail.fr', '2024-04-20'),
+(11, 'Anna', 'Schmidt', '1989-05-17', 'anna.schmidt@mail.de', '2024-05-01'),
+(12, 'Lukas', 'Weber', '1994-10-02', 'lukas.weber@mail.de', '2024-05-10'),
+(13, 'Sophie', 'Meyer', '1991-03-11', 'sophie.meyer@mail.de', '2024-05-15'),
+(14, 'Felix', 'Wagner', '1986-08-23', 'felix.wagner@mail.de', '2024-06-01'),
+(15, 'João', 'Silva', '1982-04-05', 'joao.silva@mail.pt', '2024-06-10'),
+(16, 'Maria', 'Costa', '1998-09-18', 'maria.costa@mail.pt', '2024-06-15'),
+(17, 'Pedro', 'Santos', '1990-11-29', 'pedro.santos@mail.pt', '2024-07-01'),
+(18, 'Lucia', 'Fernandez', '1993-02-22', 'lucia.fernandez@mail.es', '2024-07-10'),
+(19, 'Diego', 'Ramirez', '1987-07-13', 'diego.ramirez@mail.es', '2024-07-15'),
+(20, 'Marta', 'Lopez', '2000-05-06', 'marta.lopez@mail.es', '2024-08-01'),
+(21, 'Oliver', 'Smith', '1981-12-01', 'oliver.smith@mail.uk', '2024-08-10'),
+(22, 'Emily', 'Johnson', '1996-06-27', 'emily.johnson@mail.uk', '2024-08-15'),
+(23, 'Harry', 'Brown', '1990-09-09', 'harry.brown@mail.uk', '2024-09-01'),
+(24, 'Chiara', 'Rossi', '1994-03-03', 'chiara.rossi@mail.it', '2024-09-10'),
+(25, 'Marco', 'Ferrari', '1985-10-16', 'marco.ferrari@mail.it', '2024-09-15'),
+(26, 'Giulia', 'Romano', '1998-08-08', 'giulia.romano@mail.it', '2024-10-01'),
+(27, 'Hans', 'Müller', '1980-05-20', 'hans.muller@mail.ch', '2024-10-10'),
+(28, 'Elena', 'Keller', '1991-01-30', 'elena.keller@mail.ch', '2024-10-15'),
+(29, 'Franz', 'Bauer', '1987-07-04', 'franz.bauer@mail.at', '2024-11-01'),
+(30, 'Lisa', 'Huber', '1999-11-11', 'lisa.huber@mail.at', '2024-11-10'),
+(31, 'Daan', 'Jansen', '1994-04-24', 'daan.jansen@mail.nl', '2024-11-15'),
+(32, 'Sanne', 'de Vries', '1997-10-10', 'sanne.devries@mail.nl', '2024-12-01'),
+(33, 'Sean', 'Murphy', '1984-02-18', 'sean.murphy@mail.ie', '2024-12-10'),
+(34, 'Aoife', 'Kelly', '1995-12-24', 'aoife.kelly@mail.ie', '2024-12-15'),
+(35, 'Lars', 'Nielsen', '1989-06-15', 'lars.nielsen@mail.dk', '2025-01-05'),
+(36, 'Freja', 'Hansen', '2001-09-05', 'freja.hansen@mail.dk', '2025-01-10'),
+(37, 'John', 'Miller', '1978-03-13', 'john.miller@mail.us', '2025-01-15'),
+(38, 'Sarah', 'Davis', '1991-08-19', 'sarah.davis@mail.us', '2025-02-01'),
+(39, 'Kenji', 'Tanaka', '1983-11-07', 'kenji.tanaka@mail.jp', '2025-02-10'),
+(40, 'Yuki', 'Sato', '1999-01-22', 'yuki.sato@mail.jp', '2025-02-15');
+
+INSERT INTO abonnements (id, adherent_id, type, prix, date_debut, date_fin) VALUES
+(1, 1, 'Annuel', 480.00, '2024-01-10', '2025-01-10'),
+(2, 1, 'Annuel', 480.00, '2025-01-11', NULL),
+(3, 2, 'Mensuel', 45.00, '2024-01-15', '2024-02-15'),
+(4, 2, 'Mensuel', 45.00, '2024-02-16', '2024-03-16'),
+(5, 3, 'Étudiant', 25.00, '2024-02-01', NULL),
+(6, 4, 'Étudiant', 25.00, '2024-02-10', NULL),
+(7, 5, 'Annuel', 480.00, '2024-03-05', NULL),
+(8, 6, 'Mensuel', 45.00, '2024-03-12', '2024-04-12'),
+(9, 7, 'Étudiant', 25.00, '2024-03-20', NULL),
+(10, 8, 'Annuel', 480.00, '2024-04-02', NULL),
+(11, 9, 'Étudiant', 25.00, '2024-04-15', NULL),
+(12, 10, 'Mensuel', 45.00, '2024-04-20', '2024-05-20'),
+(13, 11, 'Annuel', 480.00, '2024-05-01', NULL),
+(14, 12, 'Mensuel', 45.00, '2024-05-10', '2024-06-10'),
+(15, 13, 'Annuel', 480.00, '2024-05-15', NULL),
+(16, 14, 'Mensuel', 45.00, '2024-06-01', '2024-07-01'),
+(17, 15, 'Annuel', 480.00, '2024-06-10', NULL),
+(18, 16, 'Étudiant', 25.00, '2024-06-15', NULL),
+(19, 17, 'Annuel', 480.00, '2024-07-01', NULL),
+(20, 18, 'Mensuel', 45.00, '2024-07-10', '2024-08-10'),
+(21, 19, 'Annuel', 480.00, '2024-07-15', NULL),
+(22, 20, 'Étudiant', 25.00, '2024-08-01', NULL),
+(23, 21, 'Annuel', 480.00, '2024-08-10', NULL),
+(24, 22, 'Mensuel', 45.00, '2024-08-15', '2024-09-15'),
+(25, 23, 'Annuel', 480.00, '2024-09-01', NULL),
+(26, 24, 'Étudiant', 25.00, '2024-09-10', NULL),
+(27, 25, 'Annuel', 480.00, '2024-09-15', NULL),
+(28, 26, 'Étudiant', 25.00, '2024-10-01', NULL),
+(29, 27, 'Mensuel', 45.00, '2024-10-10', '2024-11-10'),
+(30, 28, 'Annuel', 480.00, '2024-10-15', NULL),
+(31, 29, 'Mensuel', 45.00, '2024-11-01', NULL),
+(32, 30, 'Étudiant', 25.00, '2024-11-10', NULL),
+(33, 31, 'Annuel', 480.00, '2024-11-15', NULL),
+(34, 32, 'Étudiant', 25.00, '2024-12-01', NULL),
+(35, 33, 'Annuel', 480.00, '2024-12-10', NULL),
+(36, 34, 'Étudiant', 25.00, '2024-12-15', NULL),
+(37, 35, 'Mensuel', 45.00, '2025-01-05', NULL),
+(38, 36, 'Étudiant', 25.00, '2025-01-10', NULL),
+(39, 37, 'Annuel', 480.00, '2025-01-15', NULL),
+(40, 38, 'Mensuel', 45.00, '2025-02-01', NULL);
+
+INSERT INTO coachs (id, prenom, nom, specialite, date_embauche) VALUES
+(1, 'Sophie', 'Martin', 'Yoga', '2020-03-01'),
+(2, 'Karim', 'Benali', 'CrossFit', '2021-06-15'),
+(3, 'Laura', 'Dubois', 'Pilates', '2019-09-10'),
+(4, 'Thomas', 'Lefevre', 'Musculation', '2022-01-20'),
+(5, 'Nadia', 'Cherif', 'Zumba', '2023-04-05'),
+(6, 'Julien', 'Morel', 'Cardio', '2020-11-12'),
+(7, 'Emma', 'Rousseau', 'Yoga', '2024-02-18'),
+(8, 'Antoine', 'Girard', 'CrossFit', '2024-09-01');
+
+INSERT INTO salles (id, nom, surface_m2, type) VALUES
+(1, 'Salle Musculation', 200, 'Musculation'),
+(2, 'Salle Cardio', 150, 'Cardio'),
+(3, 'Studio Yoga', 80, 'Cours collectifs'),
+(4, 'Studio Pilates', 70, 'Cours collectifs'),
+(5, 'Salle CrossFit', 180, 'Cours collectifs'),
+(6, 'Salle Zumba', 120, 'Cours collectifs');
+
+INSERT INTO cours (id, nom, coach_id, duree_min, capacite_max, niveau) VALUES
+(1, 'Yoga Flow', 1, 60, 15, 'Débutant'),
+(2, 'CrossFit WOD', 2, 45, 12, 'Avancé'),
+(3, 'Pilates Core', 3, 50, 12, 'Intermédiaire'),
+(4, 'Musculation Libre', 4, 90, 20, 'Tous niveaux'),
+(5, 'Zumba Party', 5, 45, 25, 'Débutant'),
+(6, 'Cardio HIIT', 6, 30, 18, 'Intermédiaire'),
+(7, 'Yoga Doux', 7, 60, 15, 'Débutant'),
+(8, 'CrossFit Initiation', 2, 45, 10, 'Débutant'),
+(9, 'Pilates Avancé', 3, 50, 10, 'Avancé'),
+(10, 'Zumba Toning', 5, 45, 20, 'Intermédiaire'),
+(11, 'Cardio Endurance', 6, 45, 20, 'Avancé'),
+(12, 'Yoga Ashtanga', 1, 75, 12, 'Avancé');
+
+INSERT INTO planning (id, cours_id, salle_id, jour_semaine, heure_debut) VALUES
+(1, 1, 3, 'Lundi', '18:00'),
+(2, 2, 5, 'Lundi', '19:00'),
+(3, 3, 4, 'Mardi', '10:00'),
+(4, 4, 1, 'Mardi', '18:30'),
+(5, 5, 6, 'Mercredi', '18:00'),
+(6, 6, 2, 'Mercredi', '19:00'),
+(7, 7, 3, 'Jeudi', '09:00'),
+(8, 8, 5, 'Jeudi', '18:00'),
+(9, 9, 4, 'Vendredi', '10:00'),
+(10, 10, 6, 'Vendredi', '18:30'),
+(11, 11, 2, 'Samedi', '09:00'),
+(12, 12, 3, 'Samedi', '11:00'),
+(13, 1, 3, 'Mercredi', '18:00'),
+(14, 2, 5, 'Samedi', '17:00');
+
+INSERT INTO inscriptions_cours (id, adherent_id, planning_id, date_inscription, presence) VALUES
+(1, 1, 1, '2024-09-01', TRUE),
+(2, 3, 1, '2024-09-02', TRUE),
+(3, 5, 1, '2024-09-03', FALSE),
+(4, 9, 1, '2024-09-04', TRUE),
+(5, 11, 1, '2024-09-05', TRUE),
+(6, 2, 2, '2024-09-01', TRUE),
+(7, 6, 2, '2024-09-02', TRUE),
+(8, 10, 2, '2024-09-03', FALSE),
+(9, 12, 2, '2024-09-04', TRUE),
+(10, 7, 3, '2024-09-01', TRUE),
+(11, 13, 3, '2024-09-02', TRUE),
+(12, 15, 3, '2024-09-03', TRUE),
+(13, 8, 4, '2024-09-01', TRUE),
+(14, 10, 4, '2024-09-02', TRUE),
+(15, 14, 4, '2024-09-03', FALSE),
+(16, 16, 4, '2024-09-04', TRUE),
+(17, 17, 4, '2024-09-05', TRUE),
+(18, 1, 5, '2024-09-01', TRUE),
+(19, 3, 5, '2024-09-02', TRUE),
+(20, 5, 5, '2024-09-03', TRUE),
+(21, 7, 5, '2024-09-04', FALSE),
+(22, 9, 5, '2024-09-05', TRUE),
+(23, 11, 5, '2024-09-06', TRUE),
+(24, 13, 5, '2024-09-07', TRUE),
+(25, 15, 5, '2024-09-08', TRUE),
+(26, 17, 5, '2024-09-09', FALSE),
+(27, 18, 5, '2024-09-10', TRUE),
+(28, 19, 5, '2024-09-11', TRUE),
+(29, 20, 5, '2024-09-12', TRUE),
+(30, 21, 5, '2024-09-13', TRUE),
+(31, 22, 5, '2024-09-14', FALSE),
+(32, 23, 5, '2024-09-15', TRUE),
+(33, 24, 5, '2024-09-16', TRUE),
+(34, 25, 5, '2024-09-17', TRUE),
+(35, 26, 5, '2024-09-18', TRUE),
+(36, 27, 5, '2024-09-19', FALSE),
+(37, 28, 5, '2024-09-20', TRUE),
+(38, 29, 5, '2024-09-21', TRUE),
+(39, 30, 5, '2024-09-22', TRUE),
+(40, 31, 5, '2024-09-23', TRUE),
+(41, 32, 5, '2024-09-24', FALSE),
+(42, 33, 5, '2024-09-25', TRUE),
+(43, 2, 6, '2024-09-01', TRUE),
+(44, 4, 6, '2024-09-02', TRUE),
+(45, 6, 6, '2024-09-03', TRUE),
+(46, 8, 6, '2024-09-04', FALSE),
+(47, 10, 6, '2024-09-05', TRUE),
+(48, 12, 7, '2024-09-01', TRUE),
+(49, 14, 7, '2024-09-02', TRUE),
+(50, 16, 7, '2024-09-03', TRUE),
+(51, 2, 8, '2024-09-01', TRUE),
+(52, 6, 8, '2024-09-02', TRUE),
+(53, 10, 8, '2024-09-03', TRUE),
+(54, 12, 8, '2024-09-04', FALSE),
+(55, 14, 8, '2024-09-05', TRUE),
+(56, 16, 8, '2024-09-06', TRUE),
+(57, 18, 8, '2024-09-07', TRUE),
+(58, 20, 8, '2024-09-08', TRUE),
+(59, 22, 8, '2024-09-09', TRUE),
+(60, 24, 11, '2024-09-10', FALSE),
+(61, 7, 9, '2024-09-01', TRUE),
+(62, 13, 9, '2024-09-02', TRUE),
+(63, 15, 9, '2024-09-03', TRUE),
+(64, 17, 9, '2024-09-04', TRUE),
+(65, 19, 9, '2024-09-05', FALSE),
+(66, 21, 9, '2024-09-06', TRUE),
+(67, 23, 9, '2024-09-07', TRUE),
+(68, 25, 9, '2024-09-08', TRUE),
+(69, 27, 9, '2024-09-09', TRUE),
+(70, 29, 9, '2024-09-10', TRUE),
+(71, 3, 10, '2024-09-01', TRUE),
+(72, 5, 10, '2024-09-02', TRUE),
+(73, 7, 10, '2024-09-03', FALSE),
+(74, 9, 10, '2024-09-04', TRUE),
+(75, 2, 11, '2024-09-01', TRUE),
+(76, 4, 11, '2024-09-02', TRUE),
+(77, 6, 11, '2024-09-03', TRUE),
+(78, 35, 12, '2024-09-01', TRUE),
+(79, 3, 12, '2024-09-02', TRUE),
+(80, 5, 12, '2024-09-03', TRUE),
+(81, 9, 12, '2024-09-04', FALSE),
+(82, 11, 12, '2024-09-05', TRUE),
+(83, 34, 13, '2024-09-01', TRUE),
+(84, 1, 13, '2024-09-02', TRUE),
+(85, 36, 14, '2024-09-01', TRUE),
+(86, 37, 14, '2024-09-02', TRUE),
+(87, 38, 14, '2024-09-03', TRUE),
+(88, 12, 14, '2024-09-04', FALSE);
 `}
 };
 const defiBaseOctets={};
@@ -13455,7 +14048,9 @@ function restoreNav(){
     if(nav.fromTab) activeTab=nav.fromTab;
     /* Comparer à null, pas à la vérité : la première leçon a l'id 0, que
        JavaScript tient pour faux — elle retombait sur l'accueil. */
-    if(nav.view==='lesson'&&nav.lessonId!=null&&allLessons.some(l=>l.id===nav.lessonId)){
+    if(nav.view==='tab'&&nav.tab==='entretien'){
+      switchTab('entretien');entSesRestore();
+    }else if(nav.view==='lesson'&&nav.lessonId!=null&&allLessons.some(l=>l.id===nav.lessonId)){
       openLesson(nav.lessonId,nav.lessonStep);
     }else if(nav.view==='defi'&&nav.defiId!=null&&CHALLENGES.some(c=>c.id===nav.defiId)){
       openChallenge(nav.defiId);
@@ -14028,10 +14623,11 @@ function buildDb(){ if(db)db.close(); db=new SQL.Database(); attachDateFns(db); 
 function sandbox(){ const d=new SQL.Database(baseBytes); attachDateFns(d); try{ d.run('PRAGMA foreign_keys = ON'); }catch(e){} return d; }
 function activeDb(){ return activeDbId==='cours'?db:(customDbs[activeDbId]||demoDb(activeDbId)); }
 /* Les bases de démo de la Console (Elisa, 1er novembre, 1 h 32 : « mettre la base aeroport ici ») : celle du cours et les bases
-   des défis (Aéroport, puis Hôpital, Wok, Zoo, Fromagerie, Laboratoire et Agence de voyages, 9 h 53). Elles se recréent à chaque
+  des défis (Aéroport, puis Hôpital, Wok, Zoo, Fromagerie, Laboratoire et Agence de voyages, 9 h 53), plus Salle de sport en
+  attendant ses défis. Elles se recréent à chaque
    ouverture de l’appli depuis DEFI_BASES (jamais enregistrées avec les projets), sans renommer ni supprimer ; leurs tables se
    restaurent à leur état d’origine comme celles d’un fichier importé. Chacune n’est construite qu’à sa première ouverture (les
-   sept d’un coup retardaient l’ouverture de l’appli d’une demi-seconde). */
+  huit d’un coup retardaient l’ouverture de l’appli d’une demi-seconde). */
 function isDemoDb(id){return id==='cours'||(typeof DEFI_BASES!=='undefined'&&Object.prototype.hasOwnProperty.call(DEFI_BASES,id));}
 function ensureDemoDbs(){
   if(typeof DEFI_BASES==='undefined')return;
@@ -14058,7 +14654,8 @@ const DEMO_SQL={
   zoo:'SELECT nom, sexe, poids_kg\nFROM animaux\nORDER BY nom;',
   fromagerie:'SELECT nom, type_pate, prix_kg\nFROM fromages\nORDER BY prix_kg DESC;',
   labo:'SELECT titre, budget, statut\nFROM projets\nORDER BY budget DESC;',
-  voyages:'SELECT nom, duree_jours, prix_base, niveau\nFROM circuits\nORDER BY prix_base;'
+  voyages:'SELECT nom, duree_jours, prix_base, niveau\nFROM circuits\nORDER BY prix_base;',
+  salle_sport:'SELECT nom, capacite_max, niveau\nFROM cours\nORDER BY nom;'
 };
 function demoLabel(id){return id==='cours'?'Base des cours':'Base '+DEFI_BASES[id].nom;}
 /* Ce que contient une base de démo, en une ligne : « Vols, passagers, compagnies, avions et bagages ». */
@@ -15451,7 +16048,8 @@ function fitSqlEditor(ta){
   ta.style.maxHeight='none';
   ta.style.overflow='hidden';
   ta.style.height='auto';
-  const h=Math.max(104,ta.scrollHeight);
+  const minH=ta.closest('.jeu')&&window.innerHeight<=760?60:104;
+  const h=Math.max(minH,ta.scrollHeight);
   setH(h,null,'hidden');
 }
 /* iPhone, iOS 26 : la barre du formulaire (∧ ∨ ✓) et, dans Safari, l’adresse flottent au-dessus du clavier sans réduire la partie
@@ -15538,6 +16136,8 @@ function persistEditor(taId){
     if(status)status.textContent='Brouillon enregistré';
     updateConsolePinButton();
   }
+  else if(taId==='ed-lesson'&&current&&mode==='defi'){defiSesSave();}
+  else if(taId==='ed-lesson'&&current&&mode==='review'){revSesSave();}
   else if(taId==='ed-lesson'&&current&&mode==='lesson'){
     const s=state.lessons[current.id]||(state.lessons[current.id]={level:0});
     s.draft=ta.value; save();
@@ -15940,10 +16540,22 @@ function normalizeState(raw){
     stickers.board.push({id:b.id,x:n(b.x,0,1,.5),y:n(b.y,0,1,.5),r:n(b.r,-180,180,0),s:n(b.s,.5,2,1)});
   });
   const since=Math.floor(Number(stkSrc.since));if(since>0)stickers.since=since;
-  return {lessons,defis,notes,plan,onboarded,name,profile,accountMode,entretien,preferences,actDays,actSince,salle,study,stickers};
+  /* Les cours déjà ouverts une fois (15 h 57 : « Commencer » la première fois, « Continuer » ensuite). */
+  const lecOuvertes=Array.isArray(source.lecOuvertes)?[...new Set(source.lecOuvertes.filter(Number.isInteger))].slice(-400):[];
+  return {lessons,defis,notes,plan,onboarded,name,profile,accountMode,entretien,preferences,actDays,actSince,salle,study,stickers,lecOuvertes};
 }
 /* Un nombre écrit en texte ('07', '2026') vaut ce nombre : STRFTIME('%m', date) et MONTH(date) donnent le même résultat. */
 function normCell(v){return typeof v==='number'?Math.round(v*1000)/1000:(typeof v==='string'&&/^-?\d+(?:\.\d+)?$/.test(v)?Math.round(Number(v)*1000)/1000:v);}
+// sql.js exec() drops column metadata when SELECT returns zero rows.
+// Challenge validation still needs the expected number of columns in that case.
+function execChallengeResult(database,sql){
+  const statement=database.prepare(sql);
+  try{
+    const columns=statement.getColumnNames(),values=[];
+    while(statement.step())values.push(statement.get());
+    return columns.length?[{columns,values}]:[];
+  }finally{statement.free();}
+}
 function normalize(result,ordered){
   if(!result||result.length===0)return "∅";
   const rows=result[0].values.map(r=>JSON.stringify(r.map(normCell)));
@@ -15970,6 +16582,7 @@ function exerciseResultsMatch(actual,expected,lesson,isChallenge=false){
    qui redonne exactement le résultat attendu (lignes triées ou non selon le défi) ; seules sont essayées les colonnes qui ont les
    mêmes valeurs qu’une colonne attendue. */
 function memeResultatColonnesLibres(a,e,ordered){
+  if(!a||!e||!a.columns||!e.columns||a.columns.length!==e.columns.length||a.values.length!==e.values.length)return false;
   if(normalize([a],ordered)===normalize([e],ordered))return true;
   const n=e&&e.columns?e.columns.length:0;
   if(!a||!a.columns||a.columns.length!==n||a.values.length!==e.values.length||n<2||n>10)return false;
@@ -16295,16 +16908,25 @@ function insertKey(k,schemaKind){
     else if(!isSchema&&kn&&kn.startsWith(tok.text)&&/^[A-Z]/.test(kn)) start=tok.start;
   }
   let txt=k, caret=k.length;
+  /* Elisa, 1er novembre, 16 h 03 : « ça met un espace en trop quand je sélectionne dans le clavier ». Les espaces se posent
+     seulement là où il en manque : avant le mot s’il est collé au précédent ; après un mot-clé (FROM, WHERE…) seulement si rien
+     ne suit déjà ; jamais après une fonction (COUNT(*) est souvent suivie d’une virgule ou de AS) ; et la virgule se colle au
+     mot d’avant, en effaçant l’espace laissé derrière lui. */
+  const lead=()=>start>0&&!/[\s(]$/.test(v.slice(0,start))?' ':'';
+  const suitEspace=/^\s/.test(v.slice(end));
   if(isSchema){
     const ctx=kbarClauseContext(ta);
     const trail=v.slice(0,start);
-    const leadSp=start>0&&!/\s$/.test(trail)&&!/,(\s*)$/.test(trail)?' ':'';
+    const leadSp=start>0&&!/[\s(]$/.test(trail)&&!/,(\s*)$/.test(trail)?' ':'';
     txt=leadSp+k;
-    if(ctx.kind==='table'||ctx.kind==='column'||schemaKind==='table') txt+=' ';
+    if((ctx.kind==='table'||ctx.kind==='column'||schemaKind==='table')&&!suitEspace&&!/\($/.test(trail)) txt+=' ';
     caret=txt.length;
-  } else if(k==='()'||k.endsWith('()')){caret=k.length-1;}
+  } else if(k==='()'||k.endsWith('()')){const l=/^[A-Z]/.test(k)?lead():'';txt=l+k;caret=l.length+k.length-1;}
   else if(k==="'"){txt="''";caret=1;}
-  else if(/^[A-Z]/.test(k)&&k!==';'){txt=(start>0&&!/\s$/.test(v.slice(0,start))?' ':'')+k+' ';caret=txt.length;}
+  else if(k===','){while(start>0&&/[ \t]/.test(v[start-1]))start--;txt=suitEspace?',':', ';caret=txt.length;}
+  else if(k===')'||k===';'){while(start>0&&/[ \t]/.test(v[start-1]))start--;}
+  else if(/^[A-Z]/.test(k)&&/\)$/.test(k)){txt=lead()+k;caret=txt.length;}
+  else if(/^[A-Z]/.test(k)&&k!==';'){txt=lead()+k+(suitEspace?'':' ');caret=txt.length;}
   ta.value=v.slice(0,start)+txt+v.slice(end);
   const pos=start+caret; ta.setSelectionRange(pos,pos);
   ta.dispatchEvent(new Event('input')); ta.focus();
@@ -18144,8 +18766,7 @@ function renderDefisRoom(){
   if(!jeuChallenges(jeuNiv).length){const k=['f','m','d'].find(x=>jeuChallenges(x).length);if(k)jeuNiv=k;}
   const auto=jeuNivAuto();
   const friends=jeuMode==='friends';
-  /* Sous chaque niveau : ses manches réussies sur jouées (18 h 02 ; 18 h 28 : « réussies », pas « trouvées »). */
-  const kd=salleKpi(),stat=k=>{const l=Array.isArray(kd.lv[k])?kd.lv[k]:[0,0],n=Math.max(0,+l[0]||0),ok=Math.min(Math.max(0,+l[1]||0),n);return `${ok}/${n} réussie${ok>1?'s':''}`;};
+  /* 15 h 54 : plus de sous-texte sous les niveaux (« 0/0 réussie » faisait vide) ; seul un niveau encore vide dit « Bientôt ». */
   const seg=(key,items,cur)=>items.map(([v,l,x])=>`<button type="button" role="radio" aria-checked="${cur===v}" class="room-opt${cur===v?' on':''}" data-set="${key}" data-v="${v}"${x||''} onclick="jeuRoomSet('${key}',${typeof v==='number'?v:`'${v}'`})">${l}</button>`).join('');
   /* L’en-tête violet quadrillé de la vitrine, l’autocollant de la cible ; dessous, sur blanc, les réglages (ludique.css, 42). */
   host.innerHTML=`<section class="room-card" aria-labelledby="room-h">
@@ -18154,7 +18775,7 @@ function renderDefisRoom(){
     <h2 id="room-h">Entre dans la salle</h2>
     <p class="room-sub">Un défi tiré au sort, au niveau que tu choisis.</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
     <div class="room-field"><p class="jeu-lab" id="room-niv-l">Niveau</p>
-      <div class="room-levels" role="radiogroup" aria-labelledby="room-niv-l">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="jeuRoomSet('niv','${k}')"${vide?' disabled':''}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b><small>${vide?'Bientôt':stat(k)}</small>${k===auto&&!vide?'<em class="room-lv-auto">Niveau recommandé</em>':''}</button>`;}).join('')}</div></div>
+      <div class="room-levels" role="radiogroup" aria-labelledby="room-niv-l">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="jeuRoomSet('niv','${k}')"${vide?' disabled':''}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b>${vide?'<small>Bientôt</small>':''}${k===auto&&!vide?'<em class="room-lv-auto">Niveau recommandé</em>':''}</button>`;}).join('')}</div></div>
     <div class="room-field"><p class="jeu-lab" id="room-mode-l">Avec qui ?</p>
       <div class="room-seg" role="radiogroup" aria-labelledby="room-mode-l">${seg('mode',[['solo','Seul'],['friends',JEU_FRIENDS_SVG+'Entre amis']],jeuMode)}</div></div>
     <div class="room-field"><p class="jeu-lab" id="room-nb-l">Nombre de manches</p>
@@ -18883,7 +19504,10 @@ function openLesson(id, restoreStep){
 function lessonStartShow(l,go){
   document.getElementById('lesson-start')?.remove();
   const m=moduleDeLecon(l.id),mi=m?MODULES.indexOf(m):-1,pos=m?m.lessons.findIndex(x=>x.id===l.id)+1:0;
-  const done=lecCompletee(l.id),started=!done&&nbFaites(l.id)>0;
+  /* 15 h 57 : « Commencer » à la première ouverture du cours, « Continuer » ensuite (le cours a déjà été ouvert ou entamé). */
+  const done=lecCompletee(l.id),ouverts=Array.isArray(state.lecOuvertes)?state.lecOuvertes:[];
+  const started=!done&&(nbFaites(l.id)>0||ouverts.includes(l.id));
+  if(!ouverts.includes(l.id)){state.lecOuvertes=[...ouverts,l.id].slice(-400);try{save();}catch(e){}}
   const chips=[];
   if(lessonHasVideo(l))chips.push(`<span class="lst-chip is-play"><i aria-hidden="true">▶</i>Cours en vidéo${l.video.duree?` · ${esc(l.video.duree)}`:''}</span>`);
   else chips.push('<span class="lst-chip">Cours</span>');
@@ -18909,7 +19533,7 @@ function lessonStartShow(l,go){
       <img class="lst-stk" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">
     </div>
     <ol class="lst-plan">${plan.map(([t,d],i)=>`<li style="--i:${i}"><b class="lst-n">${i+1}</b><span><b>${t}</b><small>${d}</small></span></li>`).join('')}</ol>
-    <button type="button" class="lst-go"><span>${done?'Revoir le cours':started?'Reprendre':'Commencer'}</span>${DEF_CHEV_SVG}</button>`;
+    <button type="button" class="lst-go"><span>${done?'Revoir le cours':started?'Continuer':'Commencer'}</span>${DEF_CHEV_SVG}</button>`;
   document.body.appendChild(root);
   lstFit();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(lstFit);
   const close=ok=>{
@@ -25392,8 +26016,8 @@ function jeuRun(){
   r.tries=(r.tries||0)+1;
   let userRes,solRes,ms=null;
   try{
-    const dU=defiSandbox(c);const t0=performance.now();try{userRes=dU.exec(sql);ms=performance.now()-t0;}finally{dU.close();}
-    const dS=defiSandbox(c);try{solRes=dS.exec(c.sol);}finally{dS.close();}
+    const dU=defiSandbox(c);const t0=performance.now();try{userRes=execChallengeResult(dU,sql);ms=performance.now()-t0;}finally{dU.close();}
+    const dS=defiSandbox(c);try{solRes=execChallengeResult(dS,c.sol);}finally{dS.close();}
   }catch(e){setLessonOut(errBox(e.message));jeuEssaiRate(r);coachKo('La requête ne s’exécute pas : lis le message juste en dessous.');return;}
   if(exerciseResultsMatch(userRes,solRes,c,true)){
     const took=Date.now()-r.t1;
@@ -25499,21 +26123,34 @@ function setChallengeHow(k){
    solution s’affiche et « Recommencer » relance le défi. Trouvé avant : le chrono s’arrête sur le temps mis. */
 let defiChrono=null;
 function defiChronoStop(){if(defiChrono)clearInterval(defiChrono.t);defiChrono=null;}
-function defiChronoStart(c){
+function defiChronoStart(c,depart){
   defiChronoStop();
-  const t0=Date.now();
+  const t0=depart||Date.now();
   const tick=()=>{
     const el=document.getElementById('defi-timer');
     if(mode!=='defi'||current!==c||!el){defiChronoStop();return;}
-    if(document.querySelector('#lesson-out .feedback.ok')){el.classList.add('is-ok');defiChronoStop();return;}
+    if(document.querySelector('#lesson-out .feedback.ok')){el.classList.add('is-ok');defiChronoStop();defiSesClear();return;}
     const took=Date.now()-t0;el.textContent=jeuChrono(Math.min(took,JEU_ROUND_MS));el.classList.toggle('is-low',JEU_ROUND_MS-took<30000);
-    if(took>=JEU_ROUND_MS){defiChronoStop();defiTempsEcoule(c);}
+    if(took>=JEU_ROUND_MS){defiChronoStop();defiSesClear();defiTempsEcoule(c);}
   };
-  defiChrono={t:setInterval(tick,500)};tick();
+  defiChrono={t:setInterval(tick,500),t0};tick();
+}
+/* Elisa, 1er novembre, 16 h 31 : « dans un défi, quand on recharge, on perd l’avancée ». Le défi en cours (sa requête, le chrono
+   parti à telle heure, les essais ratés, les indices déjà donnés et le dernier « Pas encore ») est gardé sur l’appareil ; au
+   rechargement, le défi rouvre là où on en était. Un défi réussi, terminé par le temps ou relancé depuis la liste repart de zéro. */
+const DEFI_SES_KEY='rq-defi-en-cours';
+function defiSesRead(){try{const o=JSON.parse(localStorage.getItem(DEFI_SES_KEY)||'null');return o&&typeof o==='object'&&typeof o.cid==='string'?o:null;}catch(e){return null;}}
+function defiSesClear(){try{localStorage.removeItem(DEFI_SES_KEY);}catch(e){}}
+function defiSesSave(){
+  if(typeof mode==='undefined'||mode!=='defi'||!current||!defiChrono)return;
+  const ed=document.getElementById('ed-lesson');
+  const o={cid:current.id,t0:defiChrono.t0,sql:ed?ed.value.slice(0,20000):'',fails:exoFails||0,
+    n:COACH&&COACH.c===current?COACH.n:0,view:COACH&&COACH.c===current?COACH.view:0,diag:COACH&&COACH.c===current?String(COACH.diag||'').slice(0,600):''};
+  try{localStorage.setItem(DEFI_SES_KEY,JSON.stringify(o));}catch(e){}
 }
 /* Le résultat qu’il fallait obtenir (jamais la requête), à la fin du chrono ou d’une manche. */
 function defiAttenduHTML(c){
-  try{const d=defiSandbox(c);try{const r=d.exec(c.sol);return r&&r.length?renderTable(r):'';}finally{d.close();}}catch(e){return '';}
+  try{const d=defiSandbox(c);try{const r=execChallengeResult(d,c.sol);return r&&r.length?renderTable(r):'';}finally{d.close();}}catch(e){return '';}
 }
 function defiTempsEcoule(c){
   document.querySelectorAll('#defi-solo-block .btn-run').forEach(b=>b.disabled=true);
@@ -25536,8 +26173,22 @@ function openChallenge(cid){
     ${editorBlock(true,'defi.sql',{coach:1})}
     </div>`;
   setupEditor('ed-lesson','hl-lesson'); showScreen();
+  /* Au rechargement (restoringNav), le défi reprend où on l’avait laissé, s’il reste du temps ; sinon il repart de zéro. */
+  const ses=restoringNav?defiSesRead():null;
+  const reprise=ses&&ses.cid===cid&&ses.t0>0&&Date.now()-ses.t0<JEU_ROUND_MS?ses:null;
+  if(!reprise)defiSesClear();
   coachReset(c,'solo');
-  defiChronoStart(c);
+  defiChronoStart(c,reprise?reprise.t0:0);
+  if(reprise){
+    const ed=document.getElementById('ed-lesson');
+    if(ed&&reprise.sql){ed.value=String(reprise.sql);syncHL('ed-lesson','hl-lesson');fitSqlEditor(ed);syncEditorClear('ed-lesson');}
+    exoFails=Math.max(0,Math.floor(+reprise.fails||0));
+    COACH.n=Math.min(3,Math.max(0,Math.floor(+reprise.n||0)));COACH.view=Math.min(COACH.n,Math.max(0,Math.floor(+reprise.view||0)));
+    /* Le « Pas encore » gardé : seulement du texte, <code>, <b> et <br>, sans attribut. */
+    COACH.diag=reprise.diag?String(reprise.diag).replace(/<(?!\/?(?:code|b|br)\b)[^>]*>/gi,'').replace(/<(\/?)(code|b|br)\b[^>]*>/gi,'<$1$2>'):'';
+    coachPaint();
+  }
+  defiSesSave();
   saveNav();
 }
 function startReview(ids){
@@ -25545,7 +26196,25 @@ function startReview(ids){
   if(!reviewQueue.length)return;
   openReview(reviewQueue[0]);
 }
+/* Elisa, 1er novembre, 16 h 48 : « est-ce qu’il y a cette erreur ailleurs ? » (recharger fait perdre l’avancée). En révision, on
+   perdait la requête, l’aide déjà débloquée et la file des leçons à revoir ensuite. Elles sont gardées sur l’appareil et reprises au
+   rechargement ; une leçon déjà révisée passe directement à la suivante de la file. */
+const REV_SES_KEY='rq-revision-en-cours';
+function revSesRead(){try{const o=JSON.parse(localStorage.getItem(REV_SES_KEY)||'null');return o&&typeof o==='object'&&Number.isInteger(o.id)?o:null;}catch(e){return null;}}
+function revSesSave(done){
+  if(typeof mode==='undefined'||mode!=='review'||!current)return;
+  const ed=document.getElementById('ed-lesson');
+  const o={id:current.id,queue:reviewQueue.filter(Number.isInteger).slice(0,200),sql:ed?ed.value.slice(0,20000):'',fails:exoFails||0,done:done?1:0};
+  try{localStorage.setItem(REV_SES_KEY,JSON.stringify(o));}catch(e){}
+}
 function openReview(id){
+  let ses=restoringNav?revSesRead():null;
+  if(ses&&ses.id===id){
+    const q=(Array.isArray(ses.queue)?ses.queue:[]).filter(x=>Number.isInteger(x)&&allLessons.some(l=>l.id===x));
+    if(q.length)reviewQueue=q;
+    /* Leçon déjà révisée avant le rechargement : on enchaîne sur la suivante de la file. */
+    if(ses.done){if(q.length){id=q[0];}ses=null;}
+  }else ses=null;
   const l=allLessons.find(x=>x.id===id); current=l; mode='review';
   lqSetLessonColor(id);
   exoFails=0;
@@ -25557,6 +26226,13 @@ function openReview(id){
     <p style="font-size:13.5px;color:var(--ink-2);margin:0 4px 14px">Le cours est masqué volontairement. ${(()=>{const r=reviewQueue.filter(x=>x!==id).length;return r?`Encore ${r} leçon${r>1?'s':''} à revoir après celle-ci.`:'C’est la dernière leçon à revoir.';})()}</p>
     ${editorBlock(false,'revision.sql')}`;
   setupEditor('ed-lesson','hl-lesson'); showScreen();
+  if(ses){
+    const ed=document.getElementById('ed-lesson');
+    if(ed&&ses.sql){ed.value=String(ses.sql);syncHL('ed-lesson','hl-lesson');fitSqlEditor(ed);syncEditorClear('ed-lesson');}
+    exoFails=Math.max(0,Math.floor(+ses.fails||0));
+    if(exoFails)renderExoHelp();
+  }
+  revSesSave();
   saveNav();
 }
 let defiDernierKo=null;
@@ -25565,6 +26241,7 @@ function registerExoFail(sql){
   if(mode==='defi'&&sql!=null){const k=String(sql).replace(/\s+/g,' ').trim();if(k===defiDernierKo){renderExoHelp();return;}defiDernierKo=k;}
   exoFails++;
   renderExoHelp();
+  if(mode==='review')revSesSave();
 }
 function renderExoHelp(){
   if(mode==='lesson')return;
@@ -25760,7 +26437,7 @@ function runLesson(){
     if(check.ok){
       if(mode==='review'){
         markDone(current.id,true); renderModules(); renderProgress(); renderPlanning();
-        reviewQueue.shift();
+        reviewQueue.shift();revSesSave(true);
         setLessonOut(`<div class="feedback ok"><div class="fi">✓</div><div><b>Bien retenu</b><p>${(current.noExecOk&&current.noExecOk.t)||'GRANT SELECT suffit pour consulter <code>clients</code>.'}</p></div></div>`+(reviewQueue.length?`<button class="next-btn" onclick="openReview(${reviewQueue[0]})">Réviser la suivante →</button>`
           :`<button class="next-btn" onclick="goBack()">Révisions terminées ✓</button>`));
         pulseCta('#lesson-out .next-btn');
@@ -25788,8 +26465,8 @@ function runLesson(){
       const d2=sandbox(); try{d2.run(sol); solRes=d2.exec(current.verif);}finally{d2.close();}
     }else{
       const dU=isDefi?defiSandbox(current):sandbox(); const t0=performance.now();
-      try{userRes=dU.exec(sql); ms=performance.now()-t0;}finally{dU.close();}
-      const dS=isDefi?defiSandbox(current):sandbox(); try{solRes=dS.exec(sol);}finally{dS.close();}
+      try{userRes=isDefi?execChallengeResult(dU,sql):dU.exec(sql); ms=performance.now()-t0;}finally{dU.close();}
+      const dS=isDefi?defiSandbox(current):sandbox(); try{solRes=isDefi?execChallengeResult(dS,sol):dS.exec(sol);}finally{dS.close();}
     }
   }catch(e){ setLessonOut(errBox(e.message)); if(isDefi&&COACH&&COACH.c===current){COACH.diag='La requête ne s’exécute pas : lis le message juste en dessous.';COACH.fx='is-new-ko';} registerExoFail(sql); return; }
   const ok=exerciseResultsMatch(userRes,solRes,current,isDefi);
@@ -25810,7 +26487,7 @@ function runLesson(){
       pulseCta('#lesson-out .next-btn');
     }else if(mode==='review'){
       markDone(current.id,true); renderModules(); renderProgress(); renderPlanning();
-      reviewQueue.shift();
+      reviewQueue.shift();revSesSave(true);
       head=`<div class="feedback ok"><div class="fi">✓</div><div><b>Bien retenu</b><p>Cette leçon reviendra plus tard, à un intervalle plus long.</p></div></div>`;
       setLessonOut(head+table+(reviewQueue.length?`<button class="next-btn" onclick="openReview(${reviewQueue[0]})">Réviser la suivante →</button>`
         :`<button class="next-btn" onclick="goBack()">Révisions terminées ✓</button>`));
@@ -29396,6 +30073,7 @@ function renderEntretien(opts){
   opts=opts||{};
   const list=document.getElementById('ent-list');
   if(!list)return;
+  if(!restoringNav)entSesSave();
   const screen=document.getElementById('scr-entretien');
   const prev=list.querySelector('.ent-focus');
   const prevId=prev?prev.getAttribute('data-id'):'';
@@ -29473,6 +30151,15 @@ function entScrollTop(){
   if(!screen)return;
   screen.scrollTop=0;
   requestAnimationFrame(()=>{ screen.scrollTop=0; });
+}
+/* 16 h 48 : la question d’entretien ouverte (et sa réponse dévoilée) rouvre au rechargement, au lieu de revenir à la liste. */
+const ENT_SES_KEY='rq-entretien-ouvert';
+function entSesSave(){try{if(entOpen)localStorage.setItem(ENT_SES_KEY,JSON.stringify({id:entOpen,rev:entRevealed[entOpen]?1:0}));else localStorage.removeItem(ENT_SES_KEY);}catch(e){}}
+function entSesRestore(){
+  let o=null;try{o=JSON.parse(localStorage.getItem(ENT_SES_KEY)||'null');}catch(e){}
+  if(!o||!entAllItems().some(x=>x.id===o.id))return;
+  if(o.rev)entRevealed[o.id]=1;
+  openEntretienQuestion(o.id);
 }
 function openEntretienQuestion(id){
   if(!entAllItems().some(x=>x.id===id))return;
@@ -32058,7 +32745,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-defis-contextes-v2261';
+  const SW_CACHE='requete-2026-11-01-contextes-verifies-v2269';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

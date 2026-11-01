@@ -20,7 +20,7 @@ window.MODULES=[
   ],
   niveau:{de:1,a:3,texte:'Débutant à avancé'},
   badge:'Vidéo interactive',
-  defis:207,
+  defis:267,
   cartes:47,
   affiches:['where','inner-join','over'],
   details:[
