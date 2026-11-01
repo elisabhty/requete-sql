@@ -61,3 +61,16 @@ test('dans le projet, chaque pastille « Prochaine leçon · … » porte le tit
     assert.deepEqual(pills, [next.titre], `${l.page} : « Prochaine leçon · ${next.titre} »`);
   }
 });
+
+test('les cours en voix off disent aussi leurs liens : lienavant, lienapres, calés et présents dans assets/voix', () => {
+  const voix = LIENS.filter(l => /const VOICE = \{dir: '\.\.\/voix\//.test(read(`assets/anim/${l.page}.html`)));
+  assert.ok(voix.length >= 4, `${voix.length} cours en voix`);
+  for (const l of voix) {
+    const page = read(`assets/anim/${l.page}.html`), L = liensDe(l.page);
+    for (const k of ['avant', 'apres']) {
+      if (!L[k]) continue;
+      assert.ok(new RegExp(`"lien${k}":\\["lien${k}",[\\d.]+,[\\d.]+\\]`).test(page), `${l.page} : lien${k} calé`);
+      assert.ok(fs.existsSync(new URL(`../assets/voix/${l.page}/lien${k}.mp3`, import.meta.url)), `${l.page}/lien${k}.mp3`);
+    }
+  }
+});
