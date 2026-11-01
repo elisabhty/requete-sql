@@ -115,6 +115,9 @@ body.cx{min-height:100%;background:var(--bg)}
    de l’écran, et « Ta série continue » tient dans sa pastille (Elisa, 30 octobre) */
 @media (max-width:959px){
   .cx-show{padding-bottom:96px}
+  /* Elisa, 1er novembre, 13 h 46 : « un sticker flamme qui n’est pas beau et tout est tassé, car je voulais que le cadre de connexion
+     monte un peu ». Plus de pastille flamme ; deux rangées qui ne se touchent jamais : « 117 cas pratiques » et SELECT en haut,
+     « Cartes mémo » et la bulle en bas (« Tes propres données » reste sur ordinateur). Le cadre garde sa place, plus haut. */
   .cx-stage{container-type:inline-size;min-height:clamp(112px,34vw,150px)}
   .cx-s .sticker{font-size:clamp(12px,4.1cqw,15px);padding:.5em .78em .43em .86em}
   .cx-s.s5{display:block;left:0;top:auto;bottom:16px;opacity:1;animation:none}
@@ -129,6 +132,15 @@ body.cx{min-height:100%;background:var(--bg)}
   .cx-streak{font-size:clamp(12px,3.5cqw,14px)}
   .cx-streak svg{width:1.25em;height:1.25em}
   .cx-bubble{right:0;bottom:20px;font-size:clamp(13px,4.3cqw,15px)}
+}
+@media (max-width:959px){
+  .cx-show{padding-bottom:112px}
+  .cx-stage{min-height:100px;margin-top:12px}
+  .cx-s.s2,.cx-s.s5{display:none}
+  .s1{left:0;top:0}
+  .k1{right:0;top:6px}
+  .s3{left:2%;top:auto;bottom:2px}
+  .cx-bubble{right:0;bottom:6px}
 }
 @media (max-width:359px){
   .cx-show{padding-bottom:76px}
@@ -213,7 +225,6 @@ body.cx{min-height:100%;background:var(--bg)}
       <span class="cx-s s2"><span class="sticker">Tes propres données<svg viewBox="0 0 48 48"><path d="M11 5h18l9 9v29H11z" fill="#fff" stroke="#fff" stroke-width="7" stroke-linejoin="round"/><path d="M11 5h18l9 9v29H11z" fill="#fff" stroke="#1B1640" stroke-width="2.5" stroke-linejoin="round"/><path d="M29 5v9h9" fill="#DDD4FF" stroke="#1B1640" stroke-width="2.5" stroke-linejoin="round"/><rect x="15" y="20" width="19" height="15" rx="2" fill="#14955A" stroke="#1B1640" stroke-width="2.2"/><path d="M15 25.5h19M15 30.5h19M21.5 20v15" stroke="#fff" stroke-width="1.8"/></svg></span></span>
       <span class="cx-s s3"><span class="sticker lav">Cartes mémo<svg viewBox="0 0 48 48"><g fill="#fff" stroke="#fff" stroke-width="7" stroke-linejoin="round"><rect x="6" y="13" width="24" height="30" rx="5" transform="rotate(-10 18 28)"/><rect x="17" y="6" width="24" height="30" rx="5" transform="rotate(8 29 21)"/></g><rect x="6" y="13" width="24" height="30" rx="5" transform="rotate(-10 18 28)" fill="#FFC83D" stroke="#1B1640" stroke-width="2.5"/><rect x="17" y="6" width="24" height="30" rx="5" transform="rotate(8 29 21)" fill="#fff" stroke="#1B1640" stroke-width="2.5"/><path d="M23 15h11M22.5 20.5h8" transform="rotate(8 29 21)" stroke="#6A4DF4" stroke-width="3" stroke-linecap="round"/></svg></span></span>
       <span class="cx-s s4"><span class="sticker">65 cours courts<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="17" fill="#fff" stroke="#fff" stroke-width="7"/><circle cx="24" cy="24" r="17" fill="#6A4DF4" stroke="#1B1640" stroke-width="2.5"/><path d="M20 16.5v15l12-7.5z" fill="#fff" stroke="#1B1640" stroke-width="2" stroke-linejoin="round"/></svg></span></span>
-      <span class="cx-s s5"><span class="cx-streak" id="cx-streak" aria-label="Série : plus un jour"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13.2 2.5c.6 3.2-.5 4.8-2.2 6.3C9.5 10.1 8 11.5 8 14a4 4 0 0 0 8 0c0-1.6-.6-2.8-1.7-4.1 3.1 1.5 5.2 4.3 5.2 7.3a7.5 7.5 0 0 1-15 0c0-4.4 2.4-7.5 5-10.1 1.6-1.6 2.9-2.8 3.7-4.6Z" fill="#FF7A00" stroke="#1B1640" stroke-width="1.7" stroke-linejoin="round"/><path d="M12.1 13.2c.2 1.2-.3 1.7-.9 2.3-.6.6-1 1.2-1 2.1a1.8 1.8 0 0 0 3.6 0c0-.6-.2-1-.6-1.5 1.2.6 2 1.7 2 2.8a3.2 3.2 0 0 1-6.4 0c0-1.8 1-3 2-4.1.5-.5 1-1 1.3-1.6Z" fill="#FFD86B"/></svg><span>+1</span></span></span>
       <span class="cx-k k1">SELECT</span>
       <span class="cx-k k2">WHERE ville = <b>'Lyon'</b></span>
       <span class="cx-k k3">GROUP BY</span>
@@ -278,7 +289,7 @@ body.cx{min-height:100%;background:var(--bg)}
     btn.classList.add('is-load'); btn.setAttribute('aria-busy', 'true'); lbl.textContent = wait;
     setTimeout(() => {
       btn.classList.remove('is-load'); btn.classList.add('is-ok'); lbl.textContent = done;
-      say('C’est parti !'); streak.classList.remove('pop'); void streak.offsetWidth; streak.classList.add('pop'); confetti(btn);
+      say('C’est parti !'); if (streak) { streak.classList.remove('pop'); void streak.offsetWidth; streak.classList.add('pop'); } confetti(btn);
       setTimeout(() => leave(dest), reduce ? 0 : 750);
     }, reduce ? 0 : 650);
   }
