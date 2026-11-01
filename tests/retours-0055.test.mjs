@@ -1,4 +1,4 @@
-/* Les défis Aéroport, du Facile au Difficile, partagent leur seed SQL et gardent un résultat déterministe. */
+/* Les défis de chaque base partagent leur seed SQL et gardent un résultat déterministe. */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -13,13 +13,15 @@ const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j 
 const ctx = vm.createContext({});
 vm.runInContext(cut('const CHALLENGES=[', '\nfunction defisParProgression(){').replace('const CHALLENGES=', 'CHALLENGES='), ctx);
 const DEFIS = JSON.parse(JSON.stringify(ctx.CHALLENGES));
+const AERO = DEFIS.filter(c => c.base === 'aeroport');
 const aero = cut("aeroport:{nom:'Aéroport',", '\n`}');
 const base = () => { const d = new SQL.Database(); d.run(aero.slice(aero.indexOf('sql:`') + 5)); return d; };
 
 test('les défis sont ceux de la base Aéroport : 33 Facile, 14 Moyen et 10 Difficile', () => {
-  assert.equal(DEFIS.length, 57);
-  assert.deepEqual(DEFIS.map(c => c.id), [...Array.from({ length: 33 }, (_, i) => 'af' + (i + 1)), ...Array.from({ length: 14 }, (_, i) => 'am' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'ad' + (i + 1))]);
-  for (const c of DEFIS) {
+  assert.equal(DEFIS.length, 87);
+  assert.equal(AERO.length, 57);
+  assert.deepEqual(AERO.map(c => c.id), [...Array.from({ length: 33 }, (_, i) => 'af' + (i + 1)), ...Array.from({ length: 14 }, (_, i) => 'am' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'ad' + (i + 1))]);
+  for (const c of AERO) {
     assert.equal(c.base, 'aeroport', c.id); assert.equal(c.niv, c.id.startsWith('af') ? 'f' : c.id.startsWith('am') ? 'm' : 'd', c.id);
     assert.ok(c.contexte && c.q && c.indice && c.sol && c.titre && Number.isInteger(c.apres), c.id);
   }
@@ -39,8 +41,8 @@ test('les cinq nouveaux défis Moyen exécutent leurs agrégats sur Aéroport', 
   d.close();
 });
 
-test('lot Difficile : les dix requêtes utilisent les notions annoncées et leurs résultats correspondent à Aéroport', () => {
-  const hard = DEFIS.filter(c => c.niv === 'd');
+test('lot Difficile Aéroport : les dix requêtes utilisent les notions annoncées et leurs résultats correspondent aux données', () => {
+  const hard = AERO.filter(c => c.niv === 'd');
   assert.equal(hard.length, 10);
   const d = base();
   const rows = id => d.exec(DEFIS.find(c => c.id === id).sol)[0].values;
@@ -59,8 +61,8 @@ test('lot Difficile : les dix requêtes utilisent les notions annoncées et leur
   d.close();
 });
 
-test('chaque solution s’exécute sur Aéroport, et un défi trié n’a pas d’égalité qui rendrait l’ordre ambigu', () => {
-  for (const c of DEFIS) {
+test('chaque solution Aéroport s’exécute et son ordre reste stable', () => {
+  for (const c of AERO) {
     const d = base();
     const r = d.exec(c.sol);
     assert.ok(r[0] && r[0].values.length > 0, `${c.id} : au moins une ligne`);
