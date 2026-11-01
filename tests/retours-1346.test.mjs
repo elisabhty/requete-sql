@@ -34,3 +34,14 @@ test('Console : la barre Schéma dans la carte du projet, « Voir » qui s’ani
   assert.ok(css.includes('html.lq #scr-console .console-schema-summary:not(.open) .console-schema-action{animation:voirNudge 2.8s'));
   assert.ok(css.includes('html.lq #scr-console .console-title-row.is-project .console-schema-summary.in-hero{width:100%;'));
 });
+
+test('avant un cours, sa page de départ dans la DA du site, avec un seul bouton « Commencer »', () => {
+  const open = cut('function openLesson(id, restoreStep){', '/* « Quel JOIN choisir ? »');
+  assert.ok(open.includes("if(restoreStep==null&&!restoringNav&&typeof lessonStartShow==='function'){"), 'pas lors d’une reprise automatique');
+  assert.ok(open.includes('lessonStartShow(l,()=>{if(current===l&&lessonStep===0&&lessonVideoOn(l))openLessonVideo();});'), 'la vidéo démarre au « Commencer »');
+  assert.ok(open.includes("<button type=\"button\" class=\"lst-go\"><span>${done?'Revoir le cours':started?'Reprendre':'Commencer'}</span>${DEF_CHEV_SVG}</button>"));
+  assert.ok(open.includes("<p class=\"lst-kicker\">${m?`Module ${mi+1} · ${esc(m.titre)}`:'Cours'}</p>"));
+  assert.ok(open.includes('<ol class="lst-plan">'), 'ce que tu vas faire, dans l’ordre');
+  assert.ok(css.includes('.lst-card{position:relative;isolation:isolate;overflow:visible;padding:26px 22px 30px;border-radius:30px;background:var(--deep);'));
+  assert.ok(css.includes('.lst-go{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:62px;'));
+});
