@@ -6643,7 +6643,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=73">
+<link rel="stylesheet" href="ludique.css?v=74">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -13768,11 +13768,20 @@ function renderConsoleScreen(){
     const row=title.closest('.console-title-row'),hero=title.parentElement;
     if(row)row.classList.toggle('is-project',inWork);
     if(hero&&inWork&&!hero.querySelector('.console-hero-stk'))hero.insertAdjacentHTML('afterbegin',`<span class="console-hero-stk" aria-hidden="true">${lqStkSvg('db')}</span>`);
+    /* Elisa, 1er novembre, 13 h 46 (réf. 5) : « le bouton Schéma voir peut-être à l’intérieur du premier cadre ». Projet ouvert : la
+       barre Schéma passe dans la carte violette, sous la description ; le panneau des tables reste dans l’éditeur. */
+    const sum=document.getElementById('console-schema-summary'),pan=document.getElementById('console-schema-panel');
+    if(sum&&hero&&pan){
+      if(inWork&&sum.parentElement!==hero)hero.appendChild(sum);
+      else if(!inWork&&sum.parentElement===hero)pan.before(sum);
+      sum.classList.toggle('in-hero',inWork);
+    }
   }
   if(sub){
     if(inWork){
       const st=projectStats(activeDbId);
-      sub.innerHTML=`<b>${isDemoDb(activeDbId)?'Base de démo':'Projet local'}</b><span>${plur(st.tables,'table')}</span>`;
+      /* Le nombre de tables est dans la barre Schéma, juste dessous (13 h 46) : ici, la nature de la base seule. */
+      sub.innerHTML=`<b>${isDemoDb(activeDbId)?'Base de démo':'Projet local'}</b>`;void st;
     }else sub.textContent='Écris, teste et garde tes requêtes.';
   }
   if(pill){
@@ -13923,8 +13932,11 @@ function renderConsoleSchemaSummary(){
 }
 function toggleConsoleSchema(){
   consoleSchemaOpen=!consoleSchemaOpen;
+  /* La barre est dans la carte du projet : le panneau des tables s’ouvre dans l’éditeur, qu’on rejoint s’il le faut. */
+  if(consoleSchemaOpen&&consoleProjectPanel!=='editor'&&typeof setConsoleProjectPanel==='function')setConsoleProjectPanel('editor');
   if(consoleSchemaOpen)renderDbWorkspace();
   renderConsoleSchemaSummary();
+  if(consoleSchemaOpen){const pan=document.getElementById('console-schema-panel');if(pan)requestAnimationFrame(()=>{try{pan.scrollIntoView({block:'nearest',behavior:prefersReduceMotion()?'auto':'smooth'});}catch(e){}});}
 }
 function syncConsoleProjectPanels(){
   const panels={editor:'console-panel-editor',pins:'console-panel-pins',history:'console-panel-history'};
@@ -17598,7 +17610,9 @@ function sallePts(n){return `${(+n||0).toLocaleString('fr-FR')} pt${n>1?'s':''}`
 function renderDefisRoom(){
   const host=document.getElementById('defis-room');if(!host)return;
   /* Un niveau sans défi est grisé et la salle se replace sur le premier niveau disponible. */
+  if(!jeuNivUser)jeuNiv=jeuNivAuto();
   if(!jeuChallenges(jeuNiv).length){const k=['f','m','d'].find(x=>jeuChallenges(x).length);if(k)jeuNiv=k;}
+  const auto=jeuNivAuto();
   const friends=jeuMode==='friends';
   /* Sous chaque niveau : ses manches réussies sur jouées (18 h 02 ; 18 h 28 : « réussies », pas « trouvées »). */
   const kd=salleKpi(),stat=k=>{const l=Array.isArray(kd.lv[k])?kd.lv[k]:[0,0],n=Math.max(0,+l[0]||0),ok=Math.min(Math.max(0,+l[1]||0),n);return `${ok}/${n} réussie${ok>1?'s':''}`;};
@@ -17610,7 +17624,7 @@ function renderDefisRoom(){
     <h2 id="room-h">Entre dans la salle</h2>
     <p class="room-sub">Un défi tiré au sort, au niveau que tu choisis.</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
     <div class="room-field"><p class="jeu-lab" id="room-niv-l">Niveau</p>
-      <div class="room-levels" role="radiogroup" aria-labelledby="room-niv-l">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="jeuRoomSet('niv','${k}')"${vide?' disabled':''}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b><small>${vide?'Bientôt':stat(k)}</small></button>`;}).join('')}</div></div>
+      <div class="room-levels" role="radiogroup" aria-labelledby="room-niv-l">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="jeuRoomSet('niv','${k}')"${vide?' disabled':''}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b><small>${vide?'Bientôt':stat(k)}</small>${k===auto&&!vide?'<em class="room-lv-auto">Ton niveau</em>':''}</button>`;}).join('')}</div></div>
     <div class="room-field"><p class="jeu-lab" id="room-mode-l">Avec qui ?</p>
       <div class="room-seg" role="radiogroup" aria-labelledby="room-mode-l">${seg('mode',[['solo','Seul'],['friends',JEU_FRIENDS_SVG+'Entre amis']],jeuMode)}</div></div>
     <div class="room-field"><p class="jeu-lab" id="room-nb-l">Nombre de manches</p>
@@ -23641,16 +23655,27 @@ const JEU_ALPH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
    de points, le plus rapide au total passe devant (une manche non trouvée compte la durée d’une manche) ; même temps : ex æquo. */
 const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];
 const JEU_NIVL={f:'Facile',m:'Moyen',d:'Difficile'};
-let JEU=null,jeuNiv='f',jeuNb=1,jeuMode='solo';
+let JEU=null,jeuNiv='f',jeuNb=1,jeuMode='solo',jeuNivUser=false;
 (function jeuLoadPrefs(){
   try{
     const p=JSON.parse(localStorage.getItem('rq-jeu-prefs')||'{}');
     if(['f','m','d'].includes(p.niv))jeuNiv=p.niv;
+    jeuNivUser=p.nivUser===true;
     if([1,3,5].includes(p.nb))jeuNb=p.nb;
     if(p.mode==='solo'||p.mode==='friends')jeuMode=p.mode;
   }catch(e){}
 })();
-function jeuSavePrefs(){try{localStorage.setItem('rq-jeu-prefs',JSON.stringify({niv:jeuNiv,nb:jeuNb,mode:jeuMode}));}catch(e){}}
+function jeuSavePrefs(){try{localStorage.setItem('rq-jeu-prefs',JSON.stringify({niv:jeuNiv,nb:jeuNb,mode:jeuMode,nivUser:jeuNivUser}));}catch(e){}}
+/* Le niveau de défi de la personne (Elisa, 1er novembre, 13 h 46 : « filtrer en premier en fonction du niveau de la personne, pas
+   tout le monde sur Facile ; c’est juste filtrer, pas enlever ») : celui de Mon compte, qui tient compte de l’onboarding — Explorateur
+   SQL → Facile, Constructeur et Analyste relationnel → Moyen, Analyste SQL et au-delà → Difficile. La salle s’y place tant qu’on n’a
+   pas choisi soi-même un niveau ; les trois restent choisissables, seul ou entre amis. */
+function jeuNivAuto(){
+  let rank=1;try{if(typeof niveauCompte==='function')rank=niveauCompte().rank;}catch(e){}
+  const k=rank>=4?'d':rank>=2?'m':'f';
+  if(typeof jeuChallenges!=='function'||jeuChallenges(k).length)return k;
+  return ['m','f','d'].find(x=>jeuChallenges(x).length)||'f';
+}
 function jeuRand(n){const a=new Uint32Array(n);crypto.getRandomValues(a);return [...a].map(x=>JEU_ALPH[x%JEU_ALPH.length]).join('');}
 function jeuPid(){let p='';try{p=sessionStorage.getItem('rq-jeu-pid')||'';}catch(e){}if(!p){p=jeuRand(10);try{sessionStorage.setItem('rq-jeu-pid',p);}catch(e){}}return p;}
 function jeuNom(v){return Array.from(String(v||'').replace(/[\u0000-\u001f<>\u200b-\u200f\u202a-\u202e\u2060-\u206f\u2800\u3164\ufeff]/g,'').replace(/\s+/g,' ').trim()).slice(0,16).join('');}
@@ -23878,7 +23903,7 @@ function openJeu(code){
   if(jeuInvite)setTimeout(()=>{const j=document.getElementById('defis-join');if(j&&j.scrollIntoView)j.scrollIntoView({block:'center',behavior:prefersReduceMotion()?'auto':'smooth'});},380);
 }
 function jeuSetOpt(k,v,btn){
-  if(k==='niv')jeuNiv=v;else jeuNb=v;
+  if(k==='niv'){jeuNiv=v;jeuNivUser=true;}else jeuNb=v;
   jeuSavePrefs();
   btn.parentElement.querySelectorAll('button').forEach(b=>{const on=b===btn;b.classList.toggle('on',on);b.setAttribute('aria-checked',on);});
 }
@@ -23899,7 +23924,7 @@ function jeuAskNom(id){
 function jeuRoomSet(k,v){
   const card=document.getElementById('defis-room');if(!card)return;
   if(k==='niv'&&!(JEU_NIVL[v]&&jeuChallenges(v).length))return;
-  if(k==='niv')jeuNiv=v;
+  if(k==='niv'){jeuNiv=v;jeuNivUser=true;}
   else if(k==='nb'&&[1,3,5].includes(v))jeuNb=v;
   else if(k==='mode'&&(v==='solo'||v==='friends'))jeuMode=v;
   else return;
@@ -31278,7 +31303,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-latable-v2250';
+  const SW_CACHE='requete-2026-11-01-portrait-v2251';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
