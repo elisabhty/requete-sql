@@ -17917,6 +17917,10 @@ function switchTab(name){
   if(activeTab&&name!==activeTab&&primaryTabFor(name)!==name&&!tabBackNav&&!restoringNav)tabFrom[name]=activeTab;
   /* Défis s’ouvre toujours en haut, sur la salle (Elisa, 1er novembre, 9 h 19 : « quand j’entre dans la salle, être en haut au début »). */
   if(name==='defis')tabScrollPositions.defis=0;
+  /* Elisa, 1er novembre, 19 h 32 : « quand on clique sur Console SQL, on passe à la fin de la page ». Une sous-page (Console,
+     Selon le SGBD, Entretien, Notes, Cartes mémo, Stickers…) ouverte depuis une carte s’ouvre toujours en haut ; elle ne reprend plus
+     la position où on l’avait quittée (le bas, après un résultat). Les onglets du bas et les retours gardent leur position. */
+  if(primaryTabFor(name)!==name&&!tabBackNav)tabScrollPositions[name]=0;
   activeTab=name;
   syncTabBack(name);
   document.getElementById('fab')?.classList.remove('is-tucked');
@@ -33018,7 +33022,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-fusion-v2283';
+  const SW_CACHE='requete-2026-11-01-haut-v2284';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

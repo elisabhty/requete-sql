@@ -254,3 +254,7 @@ test('19 h 25 : le bonjour, le niveau et la séance fusionnés en haut de la car
   assert.ok(app.includes('<span>${esc(ctaLabel)}</span></button></section>${streak}${extras}`;'));
   assert.ok(css.includes('html.lq .lq-hero.has-hi .lq-hero-hi{position:relative;z-index:1;margin:0 0 14px;padding:0 0 14px;border-bottom:1.5px solid rgba(255,255,255,.18)}'));
 });
+
+test('19 h 32 : une sous-page (Console, Selon le SGBD…) ouverte depuis une carte s’ouvre en haut', () => {
+  assert.ok(app.includes('  if(primaryTabFor(name)!==name&&!tabBackNav)tabScrollPositions[name]=0;\n  activeTab=name;'));
+});
