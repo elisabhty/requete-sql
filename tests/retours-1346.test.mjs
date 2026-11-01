@@ -227,3 +227,9 @@ test('19 h 00 : la ligne de notre moteur n’est plus surlignée en jaune, elle 
   assert.ok(css.includes('html.lq .sg-row.is-moteur{margin:0;padding:8px 2px;border-radius:0;background:none;box-shadow:none;'));
   assert.ok(app.includes("${moteur?'<em class=\"sg-tag\">Notre moteur</em>':''}"));
 });
+
+test('19 h 02 : sur la planche, sous chaque sticker, en petit, ce qui le fait gagner', () => {
+  assert.ok(app.includes("{id:'requete',label:'Première requête',cap:'1ʳᵉ requête'"));
+  assert.ok(app.includes("cap:`Module ${i+1} terminé`"));
+  assert.ok(app.includes("${s.cap?`<small class=\"stk-cap\">${esc(s.cap)}</small>`:''}</li>`;"));
+});

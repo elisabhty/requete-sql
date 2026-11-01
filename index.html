@@ -6647,7 +6647,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=88">
+<link rel="stylesheet" href="ludique.css?v=89">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -27317,12 +27317,12 @@ function accomplissements(){
   const st=compteStats(),rec=streakRecord();
   const modules=MODULES.filter(m=>m.lessons.every(l=>itemDone(l.id))).length;
   return [
-    {id:'requete',label:'Première requête',now:Math.min(st.lessons+st.defis,1),goal:1,how:'Valide ta première leçon ou ton premier défi.'},
-    {id:'lecons10',label:'10 leçons',now:Math.min(st.lessons,10),goal:10,unit:'leçon',how:'Valide 10 leçons.'},
-    {id:'serie3',label:'Série de 3 jours',now:Math.min(st.streak,3),goal:3,ok:rec>=3,unit:'jour',how:'Atteins une série de 3 jours.'},
-    {id:'defis10',label:'10 défis',now:Math.min(st.defis,10),goal:10,unit:'défi',how:'Trouve 10 défis différents.'},
-    {id:'serie7',label:'Série de 7 jours',now:Math.min(st.streak,7),goal:7,ok:rec>=7,unit:'jour',how:'Atteins une série de 7 jours.'},
-    {id:'parcours',label:'Parcours terminé',now:modules,goal:MODULES.length,unit:'module',how:'Termine tous les modules.'}
+    {id:'requete',label:'Première requête',cap:'1ʳᵉ requête',now:Math.min(st.lessons+st.defis,1),goal:1,how:'Valide ta première leçon ou ton premier défi.'},
+    {id:'lecons10',label:'10 leçons',cap:'10 leçons validées',now:Math.min(st.lessons,10),goal:10,unit:'leçon',how:'Valide 10 leçons.'},
+    {id:'serie3',label:'Série de 3 jours',cap:'3 jours de suite',now:Math.min(st.streak,3),goal:3,ok:rec>=3,unit:'jour',how:'Atteins une série de 3 jours.'},
+    {id:'defis10',label:'10 défis',cap:'10 défis trouvés',now:Math.min(st.defis,10),goal:10,unit:'défi',how:'Trouve 10 défis différents.'},
+    {id:'serie7',label:'Série de 7 jours',cap:'7 jours de suite',now:Math.min(st.streak,7),goal:7,ok:rec>=7,unit:'jour',how:'Atteins une série de 7 jours.'},
+    {id:'parcours',label:'Parcours terminé',cap:'Tous les modules',now:modules,goal:MODULES.length,unit:'module',how:'Termine tous les modules.'}
   ].map(a=>({...a,ok:a.ok??a.now>=a.goal}));
 }
 /* state.stickers : got (id → date de gain, 1 si gagné avant l’arrivée des stickers), fresh (pas encore vus),
@@ -27339,9 +27339,9 @@ function stkList(){
   const S=stkState();
   const mods=MODULES.map((m,i)=>{
     const now=m.lessons.filter(l=>itemDone(l.id)).length;
-    return {id:STK_MODULE_IDS[i],kind:'module',num:i+1,name:m.titre,now,goal:m.lessons.length,unit:'leçon',ok:now===m.lessons.length};
+    return {id:STK_MODULE_IDS[i],kind:'module',num:i+1,name:m.titre,cap:`Module ${i+1} terminé`,now,goal:m.lessons.length,unit:'leçon',ok:now===m.lessons.length};
   });
-  const acc=accomplissements().map(a=>({id:a.id,kind:'acc',name:a.label,now:a.now,goal:a.goal,unit:a.unit,how:a.how,ok:a.ok}));
+  const acc=accomplissements().map(a=>({id:a.id,kind:'acc',name:a.label,cap:a.cap,now:a.now,goal:a.goal,unit:a.unit,how:a.how,ok:a.ok}));
   return mods.concat(acc).filter(s=>s.id&&STK_ART[s.id]).map(s=>({...s,got:S.got[s.id]||0,holo:STK_HOLO[s.id]||0}));
 }
 function stkInfo(id){return stkList().find(s=>s.id===id)||null;}
@@ -27484,10 +27484,11 @@ function renderStickers(){
   const empty=!won.length
     ?`<div class="stk-empty"><b>Ton tableau t’attend</b><span>Ton premier sticker arrive avec ta première activité validée.</span></div>`
     :!S.board.length?`<div class="stk-empty"><b>Colle tes stickers ici</b><span>Touche un sticker de ta planche${STK_TACTILE?', ou maintiens-le et fais-le glisser jusqu’ici':', ou fais-le glisser jusqu’ici'}.</span></div>`:'';
+  /* 19 h 02 : « dans le tableau, un sous-texte (petit) pour dire ce pour quoi on le gagne (ex. : 1ʳᵉ requête) ». */
   const cell=s=>{
     const placed=onBoard.has(s.id),state=!s.got?'lock':placed?'placed':'got';
     const label=(!s.got?`${s.name}, à gagner`:placed?`${s.name}, sur le tableau`:s.name)+(S.fresh[s.id]?', nouveau':'');
-    return `<li><button type="button" class="stk-cell is-${state}" data-id="${s.id}" aria-label="${escAttr(label)}" onclick="stkCellClick(this)">${stkArtHtml(s.id,s.got?'art':'lock')}${!s.got?STK_LOCK_SVG:''}${placed?'<em class="stk-on" aria-hidden="true">Sur le tableau</em>':''}${S.fresh[s.id]?'<em class="stk-new">Nouveau</em>':''}</button></li>`;
+    return `<li><button type="button" class="stk-cell is-${state}" data-id="${s.id}" aria-label="${escAttr(label)}" onclick="stkCellClick(this)">${stkArtHtml(s.id,s.got?'art':'lock')}${!s.got?STK_LOCK_SVG:''}${placed?'<em class="stk-on" aria-hidden="true">Sur le tableau</em>':''}${S.fresh[s.id]?'<em class="stk-new">Nouveau</em>':''}</button>${s.cap?`<small class="stk-cap">${esc(s.cap)}</small>`:''}</li>`;
   };
   const group=(title,items)=>`<div class="stk-group"><h3>${title}</h3><span>${items.filter(s=>s.got).length} sur ${items.length}</span></div><ul class="stk-grid">${items.map(cell).join('')}</ul>`;
   host.innerHTML=`
@@ -32952,7 +32953,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-moteur-v2276';
+  const SW_CACHE='requete-2026-11-01-stickers-v2277';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
