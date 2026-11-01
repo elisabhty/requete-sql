@@ -112,9 +112,9 @@ test('1 h 20 : le Schéma attire l’œil pendant un défi ; un défi seul se fe
   assert.ok(app.includes("function schAttn(){return typeof mode!=='undefined'&&(mode==='defi'||mode==='jeu')?' sch-attn':'';}"));
   assert.ok(app.includes('class="ed-schema${schAttn()}"') && app.includes('class="btn-ghost${schAttn()}"'));
   assert.ok(app.includes("document.querySelectorAll('.sch-attn').forEach(b=>b.classList.remove('sch-attn'));"), 'ouvert une fois : il s’arrête');
-  assert.ok(app.includes('if(took>=JEU_ROUND_MS){defiChronoStop();defiTempsEcoule(c);}'));
+  assert.ok(app.includes('if(took>=JEU_ROUND_MS){defiChronoStop();defiSesClear();defiTempsEcoule(c);}'));
   assert.ok(app.includes("document.querySelectorAll('#defi-solo-block .btn-run').forEach(b=>b.disabled=true);"));
-  assert.ok(app.includes('  defiChronoStart(c);\n  saveNav();'));
+  assert.ok(app.includes('  defiChronoStart(c,reprise?reprise.t0:0);'));
 });
 
 test('un niveau sans défi est « Bientôt » et ne se choisit pas', () => {
