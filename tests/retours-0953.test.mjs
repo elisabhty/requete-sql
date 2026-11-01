@@ -76,7 +76,27 @@ const CHECKS = {
   [
    "hospitalisations en cours",
    "SELECT group_concat(id) FROM (SELECT id FROM hospitalisations WHERE date_fin IS NULL ORDER BY 1)",
-   "7,8,11,14,15,16,17,19,21,22,23,24,25"
+   "7,8,11,14,15,16,17,19,21,22,23,24,25,26,27,28,29"
+  ],
+  [
+   "services saturés : Neurologie et Oncologie",
+   "SELECT group_concat(id) FROM (SELECT s.id FROM services s JOIN hospitalisations h ON h.service_id=s.id AND h.date_fin IS NULL GROUP BY s.id HAVING COUNT(*)>=s.capacite_lits ORDER BY 1)",
+   "4,5"
+  ],
+  [
+   "jamais plus de patients que de lits",
+   "SELECT COUNT(*) FROM (SELECT s.id FROM services s JOIN hospitalisations h ON h.service_id=s.id AND h.date_fin IS NULL GROUP BY s.id HAVING COUNT(*)>s.capacite_lits)",
+   0
+  ],
+  [
+   "numéro de lit dans la capacité du service",
+   "SELECT COUNT(*) FROM hospitalisations h JOIN services s ON s.id=h.service_id WHERE CAST(substr(h.lit, -2) AS INTEGER)>s.capacite_lits",
+   0
+  ],
+  [
+   "hospitalisation après une consultation dans le service",
+   "SELECT COUNT(*) FROM hospitalisations h WHERE NOT EXISTS (SELECT 1 FROM consultations c JOIN medecins m ON m.id=c.medecin_id WHERE c.patient_id=h.patient_id AND c.date_consultation<=h.date_debut)",
+   0
   ],
   [
    "patients vus plusieurs fois",
@@ -507,7 +527,7 @@ const CHECKS = {
 };
 const NOMS = { hopital: 'Hôpital', wok: 'Wok', zoo: 'Zoo', fromagerie: 'Fromagerie', labo: 'Laboratoire de recherche', voyages: 'Agence de voyages' };
 const VOLUMES = {
-  hopital: { services: 6, medecins: 14, infirmiers: 10, patients: 40, consultations: 45, hospitalisations: 25, prescriptions: 60 },
+  hopital: { services: 6, medecins: 14, infirmiers: 10, patients: 40, consultations: 45, hospitalisations: 29, prescriptions: 60 },
   wok: { categories: 6, plats: 20, ingredients: 15, plats_ingredients: 30, clients: 30, serveurs: 8, tables_resto: 10, commandes: 40, lignes_commande: 72, avis: 20 },
   zoo: { especes: 15, enclos: 10, animaux: 35, soigneurs: 8, affectations_soigneurs: 14, repas: 40, visiteurs: 30, billets: 45, avis: 20 },
   fromagerie: { producteurs: 12, laits: 4, fromages: 25, affinages: 20, lots: 30, clients: 30, ventes: 50, degustations: 20 },
@@ -541,6 +561,8 @@ for (const id of Object.keys(NOMS)) {
 test('quelques corrections, nommément', () => {
   const h = base('hopital');
   assert.equal(val(h, "SELECT COUNT(*) FROM consultations WHERE medecin_id IN (1, 2, 14) AND diagnostic = 'Angine'"), 0, 'pas d’angine chez le cardiologue');
+  /* 10 h 10 : « je préfère des services saturés » */
+  assert.equal(val(h, "SELECT group_concat(nom, ', ') FROM (SELECT s.nom FROM services s JOIN hospitalisations h ON h.service_id = s.id WHERE h.date_fin IS NULL GROUP BY s.id HAVING COUNT(*) >= s.capacite_lits ORDER BY s.id)"), 'Neurologie, Oncologie');
   h.close();
   const z = base('zoo');
   assert.equal(val(z, 'SELECT enclos_id FROM animaux WHERE id = 4'), 8, 'Dumbo chez les herbivores');
