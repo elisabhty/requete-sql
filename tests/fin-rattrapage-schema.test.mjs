@@ -109,7 +109,7 @@ test('schéma de la console : ce qui vient de changer s’anime (nouvelle table,
   /* Elisa, 31 octobre, 8 h 37 (Réf 9) : « ne pas mettre de stickers au niveau des tables » */
   assert.ok(!w.includes('db-tico') && !w.includes("lqStkSvg('table')"), 'plus d’autocollant sur les tables');
   const sum = cut(app, 'function renderConsoleSchemaSummary(){', 'function toggleConsoleSchema(){');
-  assert.ok(sum.includes("ico.innerHTML=lqStkSvg('db');") && sum.includes("const html=st.tables?bits.map(b=>`<span>${b}</span>`).join(''):'Aucune table';") && sum.includes("meta.classList.add('is-bump');"));
+  assert.ok(!sum.includes("lqStkSvg('db')") && sum.includes("const html=st.tables?bits.map(b=>`<span>${b}</span>`).join(''):'Aucune table';") && sum.includes("meta.classList.add('is-bump');"));
   for (const part of ['html.lq #scr-console .console-schema-summary{position:relative;isolation:isolate;overflow:hidden;border:0!important;background:var(--deep)!important;',
     'html.lq #scr-console #console-schema-meta.is-bump span{animation:dbBump', 'html.lq #scr-console .console-schema-panel .db-tblock.is-new::after{content:"Nouvelle";',
     'html.lq #scr-console .console-schema-panel .db-tblock.is-changed{animation:dbFlash', 'html.lq #scr-console .console-schema-panel .db-col .badge.pk{background:var(--sun);',

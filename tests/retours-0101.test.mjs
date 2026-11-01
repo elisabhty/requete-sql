@@ -66,3 +66,9 @@ test('1 h 44 : la description de la base Aéroport est celle du fichier d’Elis
   assert.ok(app.includes("id==='aeroport'?DEFI_BASES.aeroport.desc:''"));
   assert.ok(app.includes("desc:'Bienvenue dans les coulisses d’un aéroport international. Vols, passagers, compagnies, avions et bagages : toutes les données nécessaires au fonctionnement de l’aéroport sont réunies ici. Explore la base pour résoudre les différentes missions.'"));
 });
+
+test('1 h 48 : la barre Schéma de la Console sans autocollant', () => {
+  assert.ok(!app.includes("ico.innerHTML=lqStkSvg('db');"));
+  assert.ok(css.includes('html.lq #scr-console .console-schema-summary .console-schema-icon{display:none}'));
+  assert.ok(css.includes('html.lq #scr-console .console-schema-summary{grid-template-columns:minmax(0,1fr) auto 19px!important;'));
+});
