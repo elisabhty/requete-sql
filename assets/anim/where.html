@@ -327,6 +327,8 @@ html.embed #s0.nv{translate:0 64px}
    à la fin, l’image s’efface derrière la pastille « Prochaine leçon · … ». */
 body.pont-on #cap{opacity:var(--pont-a,1)!important;visibility:visible!important;transform:none!important}
 body.pont-fin #cap{opacity:1!important}
+/* La carte d’intro recule un peu (son haut ne bouge pas, loin de la croix) pour que la bulle du début commence sous elle (copie de core.css). */
+body.pont-on:not(.pont-fin) #s0.nv{scale:calc(1 - var(--pont-d,0) * var(--pont-a,1));transform-origin:540px 160px}
 body.pont-on #cap .c{visibility:hidden!important}
 body.pont-on #cap .c.c-pont.on{visibility:visible!important;opacity:1!important;transform:none!important}
 body.pont-on #cap .c.c-pont .w,body.pont-on #cap .c.c-pont code{opacity:1!important}
@@ -1425,6 +1427,24 @@ function pontPlan(){
   if (av) { const a = unwarp(av[0]); PONTS.push({k: 'avant', a, b: +(a + av[1]).toFixed(3), el: PEL.avant, html: LI.avant}); }
   if (LI && LI.apres) { const d = pontDur(LI.apres, 'apres'); PONTS.push({k: 'apres', a: OUT_DURATION, b: +(OUT_DURATION + d).toFixed(3), el: PEL.apres, html: LI.apres}); OUT_DURATION = +(OUT_DURATION + d).toFixed(3); }
 }
+/* De combien réduire l’intro (depuis le haut de sa carte) pour que la bulle commence sous elle, mascotte comprise, avec un écart : 0 si rien ne mord. */
+function pontUp(on){
+  const card = $('#s0 .iv-card'), st = $('#stage');
+  if (!card || !st || !on.el) return 0;
+  const k = st.getBoundingClientRect().width / 1080; if (!(k > 0)) return 0;
+  const c = card.getBoundingClientRect(), b = on.el.getBoundingClientRect();
+  if (!c.height || !b.height) return 0;
+  /* Le bas de l’intro : la carte (liseré blanc et rebord compris), et la mascotte, sa bulle et les étincelles qui en débordent. */
+  const haut = c.top - 10 * k;
+  let bas = c.bottom + 34 * k;
+  $$('#s0 .mascot, #s0 .bubble, #s0 .iv-spark').forEach(e => {
+    const r = e.getBoundingClientRect(), cs = getComputedStyle(e);
+    if (r.height && cs.visibility !== 'hidden' && +cs.opacity > 0.1) bas = Math.max(bas, r.bottom);
+  });
+  const need = bas + 22 * k - b.top;
+  return need > 0 ? +Math.min(0.25, need / (bas - haut)).toFixed(4) : 0;
+}
+if (typeof addEventListener === 'function') addEventListener('resize', () => PONTS.forEach(p => { delete p.up; }));
 function pontRender(T){
   const body = document.body; if (!body) return;
   const on = PONTS.find(p => T >= p.a && T <= p.b);
@@ -1434,6 +1454,9 @@ function pontRender(T){
   body.style.setProperty('--pont-a', al.toFixed(3));
   body.classList.add('pont-on'); body.classList.toggle('pont-fin', fin);
   PONTS.forEach(p => p.el && p.el.classList.toggle('on', p === on));
+  /* Mesure une fois la bulle en place (classe « pont-on » posée) ; la carte n’est pas encore réduite (--pont-d à 0). */
+  if (!fin && on.up === undefined) { body.style.setProperty('--pont-d', 0); on.up = pontUp(on); }
+  body.style.setProperty('--pont-d', fin ? 0 : (on.up || 0));
 }
 function pontVoice(v){
   if (!v || !VCFG || !VCFG.say) return v;
