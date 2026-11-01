@@ -6643,7 +6643,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=54">
+<link rel="stylesheet" href="ludique.css?v=55">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -9506,112 +9506,70 @@ guide({ id:50, titre:"Sécurité et droits", résumé:"Contrôler les accès ave
    3. DÉFIS
    ============================================================ */
 const CHALLENGES=[
- {id:'c1',apres:19,titre:"Le meilleur client",niv:'m',q:"Quel client a commandé le plus d’unités ? Affiche son prénom et le nombre total d’unités commandées, du plus élevé au plus faible.",
-  sol:"SELECT clients.prenom, SUM(commandes.quantite) AS total FROM commandes JOIN clients ON commandes.client_id=clients.id GROUP BY clients.id, clients.prenom ORDER BY total DESC;",ordered:true,
-  indice:"JOIN pour le prénom, GROUP BY sur l’identifiant et le prénom, SUM sur la quantité, ORDER BY décroissant."},
- {id:'c2',apres:16,titre:"Villes actives",niv:'f',q:"Quelles villes ont au moins 2 clients ? Affiche ville et effectif.",
-  sol:"SELECT ville, COUNT(*) AS nb FROM clients GROUP BY ville HAVING COUNT(*) >= 2;",
-  indice:"GROUP BY ville, puis HAVING COUNT(*) >= 2."},
- {id:'c3',apres:14,titre:"Panier moyen",niv:'f',q:"Quelle est la quantité moyenne commandée, toutes commandes confondues ?",
-  sol:"SELECT AVG(quantite) FROM commandes;",
-  indice:"Une seule agrégation sur la table commandes."},
- {id:'c4',apres:19,titre:"CA par produit",niv:'d',q:"Pour chaque produit, calcule le CA (quantité × prix). Affiche le nom et le CA, du plus élevé au plus faible.",
-  sol:"SELECT produits.nom, SUM(commandes.quantite * produits.prix) AS ca FROM commandes JOIN produits ON commandes.produit_id=produits.id GROUP BY produits.id, produits.nom ORDER BY ca DESC;",ordered:true,
-  indice:"Multiplie dans le SUM : <code>SUM(commandes.quantite * produits.prix)</code>."},
- {id:'c5',apres:20,titre:"Les inactifs",niv:'m',q:"Quels clients n’ont jamais passé de commande ? Affiche leur prénom.",
-  sol:"SELECT clients.prenom FROM clients LEFT JOIN commandes ON clients.id=commandes.client_id WHERE commandes.id IS NULL;",
-  indice:"LEFT JOIN depuis clients, puis lignes où la colonne de droite est NULL."},
- {id:'c6',apres:7,titre:"Fiches incomplètes",niv:'f',q:"Combien de clients n’ont pas d’email renseigné ?",
-  sol:"SELECT COUNT(*) FROM clients WHERE email IS NULL;",
-  indice:"COUNT(*) avec un filtre IS NULL."},
- {id:'c7',apres:45,titre:"Au-dessus de la moyenne",niv:'m',q:"Quels produits coûtent plus cher que le prix moyen ? Affiche le nom et le prix.",
-  sol:"SELECT nom, prix FROM produits WHERE prix > (SELECT AVG(prix) FROM produits);",
-  indice:"Sous-requête entre parenthèses pour la moyenne, puis comparaison."},
- {id:'c25',apres:55,titre:"Les clients actifs",niv:'f',q:"Quels clients ont déjà passé au moins une commande ? Affiche leur prénom, avec EXISTS.",
-  sol:"SELECT clients.prenom FROM clients WHERE EXISTS (SELECT 1 FROM commandes WHERE commandes.client_id = clients.id);",
-  indice:"EXISTS avec une sous-requête corrélée : <code>commandes.client_id = clients.id</code>."},
- {id:'c8',apres:53,titre:"Fin de mois",niv:'m',q:"Combien de commandes à partir du 20 juillet 2026 ?",
-  sol:"SELECT COUNT(*) FROM commandes WHERE date_commande >= '2026-07-20';",
-  indice:"Les dates se comparent comme du texte au format AAAA-MM-JJ."},
- {id:'c9',apres:19,titre:"Produit vedette",niv:'m',q:"Quel produit a été commandé le plus de fois (nombre de commandes) ? Affiche le nom et le compte, le plus commandé en premier.",
-  sol:"SELECT produits.nom, COUNT(*) AS nb FROM commandes JOIN produits ON commandes.produit_id=produits.id GROUP BY produits.id, produits.nom ORDER BY nb DESC;",ordered:true,
-  indice:"JOIN, GROUP BY sur le nom, COUNT(*), tri décroissant."},
- {id:'c10',apres:19,titre:"CA total",niv:'d',q:"Quel est le chiffre d’affaires total de toutes les commandes ?",
-  sol:"SELECT SUM(commandes.quantite * produits.prix) FROM commandes JOIN produits ON commandes.produit_id=produits.id;",
-  indice:"Un SUM sur le produit des deux colonnes, avec JOIN pour le prix."},
- {id:'c11',apres:21,titre:"Segmentation",niv:'d',q:"Affiche chaque client et une colonne segment : 'Actif' s’il a au moins une commande, sinon 'Dormant'. LEFT JOIN et CASE.",
-  sol:"SELECT clients.prenom, CASE WHEN COUNT(commandes.id) > 0 THEN 'Actif' ELSE 'Dormant' END AS segment FROM clients LEFT JOIN commandes ON clients.id=commandes.client_id GROUP BY clients.id, clients.prenom;",
-  indice:"LEFT JOIN + GROUP BY, puis CASE sur <code>COUNT(commandes.id)</code>."},
- {id:'c12',apres:19,titre:"Catégorie reine",niv:'d',q:"Quelle catégorie a généré le plus d’unités vendues ? Affiche la catégorie et le total, du plus grand au plus petit.",
-  sol:"SELECT produits.categorie, SUM(commandes.quantite) AS total FROM commandes JOIN produits ON commandes.produit_id=produits.id GROUP BY produits.categorie ORDER BY total DESC;",ordered:true,
-  indice:"JOIN, GROUP BY catégorie, SUM des quantités, tri décroissant."},
- {id:'c13',apres:19,titre:"CA des Parisiens",niv:'m',q:"Quel CA ont généré les clients de Paris ? (somme quantité × prix)",
-  sol:"SELECT SUM(commandes.quantite * produits.prix) FROM commandes JOIN clients ON commandes.client_id=clients.id JOIN produits ON commandes.produit_id=produits.id WHERE clients.ville='Paris';",
-  indice:"Deux JOIN (clients et produits), <code>WHERE clients.ville = 'Paris'</code>, puis SUM."},
- {id:'c14',apres:16,titre:"Catégories solo",niv:'m',q:"Quelles catégories ne contiennent qu’un seul produit ? Affiche la catégorie.",
-  sol:"SELECT categorie FROM produits GROUP BY categorie HAVING COUNT(*) = 1;",
-  indice:"GROUP BY categorie, puis <code>HAVING COUNT(*) = 1</code>."},
- {id:'c15',apres:53,titre:"Mois le plus chargé",niv:'m',q:"Quel mois (AAAA-MM) a le plus de commandes ? Affiche mois et nombre, du plus chargé au moins chargé.",
-  sol:"SELECT strftime('%Y-%m', date_commande) AS mois, COUNT(*) AS nb FROM commandes GROUP BY mois ORDER BY nb DESC;",ordered:true,
-  indice:"strftime('%Y-%m', …), GROUP BY, COUNT(*), ORDER BY nb DESC."},
- {id:'c16',apres:20,titre:"Panier moyen par ville",niv:'d',q:"Pour chaque ville, quantité moyenne commandée. Affiche ville et moyenne, de la plus haute à la plus basse.",
-  sol:"SELECT clients.ville, AVG(commandes.quantite) AS panier FROM commandes JOIN clients ON commandes.client_id=clients.id GROUP BY clients.ville ORDER BY panier DESC;",ordered:true,
-  indice:"JOIN clients, AVG(quantite), GROUP BY ville, ORDER BY la moyenne décroissante."},
- {id:'c17',apres:19,titre:"Best-seller par catégorie",niv:'d',q:"Pour chaque catégorie, le produit qui a vendu le plus d’unités. Affiche categorie, nom et total (une ligne par catégorie).",
-  sol:"WITH ventes AS (SELECT produits.categorie, produits.nom, SUM(commandes.quantite) AS total FROM commandes JOIN produits ON commandes.produit_id=produits.id GROUP BY produits.categorie, produits.nom), ranked AS (SELECT *, ROW_NUMBER() OVER (PARTITION BY categorie ORDER BY total DESC) AS rn FROM ventes) SELECT categorie, nom, total FROM ranked WHERE rn = 1;",
-  indice:"CTE des ventes, puis <code>ROW_NUMBER() OVER (PARTITION BY categorie ORDER BY total DESC)</code>, filtre rn = 1."},
- {id:'c18',apres:20,titre:"Multi-catégories",niv:'d',q:"Quels clients ont commandé des produits d’au moins 2 catégories ? Affiche leur prénom.",
-  sol:"SELECT clients.prenom FROM clients JOIN commandes ON clients.id=commandes.client_id JOIN produits ON commandes.produit_id=produits.id GROUP BY clients.id, clients.prenom HAVING COUNT(DISTINCT produits.categorie) >= 2;",
-  indice:"JOIN jusqu’à produits, puis <code>HAVING COUNT(DISTINCT produits.categorie) &gt;= 2</code>."},
- {id:'c19',apres:80,titre:"Intersection des villes",niv:'m',q:"Quelles villes ont à la fois un client de moins de 35 ans et un de 45 ans ou plus ? Affiche la ville (INTERSECT).",
-  sol:"SELECT ville FROM clients WHERE age < 35 INTERSECT SELECT ville FROM clients WHERE age >= 45;",
-  indice:"Deux SELECT sur ville avec filtres d’âge, reliés par INTERSECT."},
- {id:'c20',apres:77,titre:"Compte jusqu’à 10",niv:'f',q:"Avec WITH RECURSIVE, génère les entiers de 1 à 10 (colonne x), dans l’ordre.",
-  sol:"WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x < 10) SELECT x FROM n;",ordered:true,
-  indice:"Ancre à 1, puis x+1 tant que x < 10."},
- {id:'c21',apres:79,titre:"Quartiles de stock",niv:'m',q:"Affiche nom, stock et quartile = NTILE(4) OVER (ORDER BY stock), trié par stock.",
-  sol:"SELECT nom, stock, NTILE(4) OVER (ORDER BY stock) AS quartile FROM produits ORDER BY stock;",ordered:true,
-  indice:"NTILE(4) OVER (ORDER BY stock) AS quartile."},
- {id:'c22',apres:79,titre:"Moyenne mobile",niv:'d',q:"Pour chaque commande : id, quantite et moy_2 = moyenne sur précédente + actuelle (ROWS BETWEEN 1 PRECEDING AND CURRENT ROW), trié par id.",
-  sol:"SELECT id, quantite, AVG(quantite) OVER (ORDER BY id ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) AS moy_2 FROM commandes ORDER BY id;",ordered:true,
-  indice:"AVG(quantite) OVER (ORDER BY id ROWS BETWEEN 1 PRECEDING AND CURRENT ROW)."},
- {id:'c23',apres:28,titre:"Plan sur les emails",niv:'m',q:"Affiche le plan d’exécution (EXPLAIN QUERY PLAN) des clients dont l’email IS NULL.",
-  sol:"EXPLAIN QUERY PLAN SELECT * FROM clients WHERE email IS NULL;",
-  indice:"Préfixe par EXPLAIN QUERY PLAN."},
- {id:'c24',apres:79,titre:"Champions par ville",niv:'d',q:"Pour chaque client : prenom, ville, age et doyen = le plus âgé de sa ville (FIRST_VALUE), trié par ville puis age DESC.",
-  sol:"SELECT prenom, ville, age, FIRST_VALUE(prenom) OVER (PARTITION BY ville ORDER BY age DESC) AS doyen FROM clients ORDER BY ville, age DESC;",ordered:true,
-  indice:"FIRST_VALUE(prenom) OVER (PARTITION BY ville ORDER BY age DESC)."},
+ /* Défis sur la base Aéroport (Elisa, 1er novembre, 0 h 55 : « je veux les défis sur la base aeroport mtn ») : le lot Facile, chacun
+    avec sa situation (contexte), sa mission (q), son indice (« Avant de commencer ») et sa solution. Le résultat attendu est celui
+    de la solution, calculé par l’appli. Les anciens défis sur clients, commandes et produits sont retirés. */
+ {id:'af1',apres:11,titre:"Quels vols sont retardés ?",niv:'f',base:'aeroport',ordered:true,
+  contexte:"Nous sommes en pleine journée de pointe à l’aéroport international. Au hall des départs, le tableau d’affichage clignote et plusieurs vols accumulent du retard. La responsable de la salle d’embarquement doit prendre le micro pour annoncer aux voyageurs les vols concernés et éviter la cohue aux portes.",
+  q:"Affiche le numéro de vol, la date de départ et l’heure de départ de tous les vols dont le statut est « Retardé », triés par date puis par heure de départ.",
+  sol:"SELECT numero_vol, date_depart, heure_depart FROM vols WHERE statut = 'Retardé' ORDER BY date_depart, heure_depart;",
+  indice:"Consulte le schéma de la base. Repère la table des vols et la colonne statut."},
+ {id:'af2',apres:11,titre:"Quels passagers sont français ?",niv:'f',base:'aeroport',ordered:true,
+  contexte:"Le service client de l’aéroport prépare une campagne d’information réservée aux voyageurs de nationalité française. Pour envoyer les e-mails, l’équipe a besoin d’extraire la liste complète de ces passagers depuis la base.",
+  q:"Affiche le prénom, le nom et l’email de tous les passagers de nationalité « Française », triés par nom puis par prénom.",
+  sol:"SELECT prenom, nom, email FROM passagers WHERE nationalite = 'Française' ORDER BY nom, prenom;",
+  indice:"Consulte la table des passagers et la colonne nationalite."},
+ {id:'af3',apres:18,titre:"Quels vols partent vers l’Espagne ?",niv:'f',base:'aeroport',ordered:true,
+  contexte:"Un voyageur se présente au comptoir d’information. Il souhaite rejoindre l’Espagne et demande quels vols relient l’aéroport à une destination espagnole. L’agente doit lui fournir la liste des vols disponibles vers ce pays.",
+  q:"Affiche le numéro de vol, le nom de l’aéroport d’arrivée et la ville d’arrivée de tous les vols dont l’aéroport d’arrivée se trouve en Espagne, triés par ville d’arrivée puis par numéro de vol.",
+  sol:"SELECT v.numero_vol, a.nom, a.ville FROM vols v JOIN aeroports a ON a.id = v.aeroport_arrivee_id WHERE a.pays = 'Espagne' ORDER BY a.ville, v.numero_vol;",
+  indice:"Il faut relier la table des vols à la table des aéroports, sur l’aéroport d’arrivée."},
+ {id:'af4',apres:18,titre:"Les réservations les plus chères",niv:'f',base:'aeroport',ordered:true,
+  contexte:"Le service commercial souhaite analyser les réservations les plus onéreuses de la base pour étudier le profil de sa clientèle haut de gamme. Il demande un classement des dix réservations les plus chères.",
+  q:"Affiche l’identifiant de réservation, la classe, le prix et le numéro de vol des réservations, triées par prix décroissant. Limite le résultat aux 10 premières.",
+  sol:"SELECT r.id, r.classe, r.prix, v.numero_vol FROM reservations r JOIN vols v ON v.id = r.vol_id ORDER BY r.prix DESC LIMIT 10;",
+  indice:"Relie les tables reservations et vols, puis pense à ORDER BY … DESC et LIMIT."},
+ {id:'af5',apres:18,titre:"Quels bagages sont perdus ?",niv:'f',base:'aeroport',ordered:true,
+  contexte:"Au service bagages, plusieurs dossiers sont ouverts : des valises n’ont jamais été livrées à leurs propriétaires. Avant de lancer les indemnisations, l’équipe doit identifier précisément les passagers concernés et les vols impliqués.",
+  q:"Affiche l’identifiant du bagage, le prénom et le nom du passager, ainsi que le numéro de vol pour tous les bagages dont le statut est « Perdu », triés par identifiant de bagage.",
+  sol:"SELECT b.id, p.prenom, p.nom, v.numero_vol FROM bagages b JOIN reservations r ON r.id = b.reservation_id JOIN passagers p ON p.id = r.passager_id JOIN vols v ON v.id = r.vol_id WHERE b.statut = 'Perdu' ORDER BY b.id;",
+  indice:"Il faut enchaîner bagages → reservations → passagers, et reservations → vols."},
+ {id:'af6',apres:18,titre:"Quels vols partent de Paris ?",niv:'f',base:'aeroport',ordered:true,
+  contexte:"L’agent au sol chargé des affectations de portes doit préparer la journée. Il a besoin de la liste des vols qui décollent depuis Paris afin d’organiser les rotations et d’anticiper les files d’embarquement.",
+  q:"Affiche le numéro de vol, l’heure de départ et le statut de tous les vols dont l’aéroport de départ est situé à Paris, triés par heure de départ puis par numéro de vol.",
+  sol:"SELECT v.numero_vol, v.heure_depart, v.statut FROM vols v JOIN aeroports a ON a.id = v.aeroport_depart_id WHERE a.ville = 'Paris' ORDER BY v.heure_depart, v.numero_vol;",
+  indice:"Relie vols et aeroports sur l’aéroport de départ."},
+ {id:'af7',apres:20,titre:"Quels passagers n’ont jamais réservé ?",niv:'f',base:'aeroport',ordered:true,
+  contexte:"Le service marketing constate que de nombreux comptes passagers ont été créés mais n’ont jamais donné lieu à un achat. Pour préparer une relance ciblée, il souhaite obtenir la liste des passagers inscrits qui n’ont encore effectué aucune réservation.",
+  q:"Affiche le prénom, le nom et l’email des passagers qui n’apparaissent dans aucune réservation, triés par nom puis par prénom.",
+  sol:"SELECT p.prenom, p.nom, p.email FROM passagers p LEFT JOIN reservations r ON r.passager_id = p.id WHERE r.id IS NULL ORDER BY p.nom, p.prenom;",
+  indice:"Pense à une jointure externe (LEFT JOIN) ou à une sous-requête avec NOT IN ou NOT EXISTS."},
+ {id:'af8',apres:20,titre:"Quels vols n’ont aucune réservation ?",niv:'f',base:'aeroport',ordered:true,
+  contexte:"La compagnie aérienne examine ses vols à faible rentabilité. Avant de décider d’éventuelles annulations, elle veut repérer les vols qui n’ont encore enregistré aucune réservation.",
+  q:"Affiche le numéro de vol, la date de départ et le statut des vols qui n’ont aucune réservation, triés par date de départ puis par numéro de vol.",
+  sol:"SELECT v.numero_vol, v.date_depart, v.statut FROM vols v LEFT JOIN reservations r ON r.vol_id = v.id WHERE r.id IS NULL ORDER BY v.date_depart, v.numero_vol;",
+  indice:"Même logique que pour les passagers sans réservation, mais côté vols."},
+ {id:'af9',apres:7,titre:"Quels bagages n’ont pas de poids ?",niv:'f',base:'aeroport',ordered:true,
+  contexte:"Le service qualité effectue un audit des procédures d’enregistrement des bagages. Il a repéré que certains bagages n’ont pas été pesés, ce qui peut poser problème pour le calcul de la charge de l’avion. Il veut lister précisément ces cas.",
+  q:"Affiche l’identifiant du bagage, son statut et l’identifiant de la réservation pour tous les bagages dont le poids n’est pas renseigné, triés par identifiant de bagage.",
+  sol:"SELECT id, statut, reservation_id FROM bagages WHERE poids_kg IS NULL ORDER BY id;",
+  indice:"En SQL, on teste l’absence de valeur avec IS NULL, jamais avec = NULL."},
+ {id:'af10',apres:18,titre:"Qui voyage en classe Affaires ?",niv:'f',base:'aeroport',ordered:true,
+  contexte:"La compagnie prépare un geste commercial réservé à ses clients voyageant en classe Affaires. Pour personnaliser l’offre, elle doit identifier les passagers ayant au moins une réservation dans cette classe, ainsi que les vols concernés.",
+  q:"Affiche le prénom, le nom et le numéro de vol des passagers ayant une réservation en classe « Affaires », sans doublon, triés par nom, prénom puis numéro de vol.",
+  sol:"SELECT DISTINCT p.prenom, p.nom, v.numero_vol FROM reservations r JOIN passagers p ON p.id = r.passager_id JOIN vols v ON v.id = r.vol_id WHERE r.classe = 'Affaires' ORDER BY p.nom, p.prenom, v.numero_vol;",
+  indice:"Pense à DISTINCT ou à GROUP BY pour éviter les doublons."},
 ];
+/* La consigne d’un défi : la situation (contexte), la question, et l’indice caché derrière « Un indice » (Elisa, 1er novembre, 0 h 49 :
+   « on pourra mettre des indices aussi ? »). Seul ou en salle, le même bloc. */
+function defiConsigneHTML(c){
+  return `${c.contexte?`<p class="defi-ctx">${esc(c.contexte)}</p>`:''}<div class="consigne"><span class="tag">La question</span><p>${esc(c.q)}</p></div>`+
+    (c.indice?`<details class="defi-indice"><summary>Un indice</summary><p>${esc(c.indice)}</p></details>`:'');
+}
 function defisParProgression(){
   return CHALLENGES.slice().sort((a,b)=>(a.apres||Infinity)-(b.apres||Infinity)||a.id.localeCompare(b.id));
 }
-const CHALLENGE_GUIDES={
- c1:{notion:"JOIN + GROUP BY + SUM",raisonnement:"Relie chaque commande à son client, regroupe par identifiant et prénom du client, additionne les quantités, puis trie le total décroissant.",piege:"Ne compte pas les commandes si la question porte sur le nombre d’unités : COUNT(*) et SUM(quantite) ne répondent pas à la même question."},
- c2:{notion:"GROUP BY + HAVING",raisonnement:"Forme un groupe par ville, compte les clients de chaque groupe, puis conserve uniquement les effectifs d’au moins 2.",piege:"Le filtre porte sur COUNT(*), donc il se place dans HAVING et non dans WHERE."},
- c3:{notion:"Agrégation AVG",raisonnement:"La question demande un seul indicateur sur toutes les commandes : applique AVG directement à la colonne quantite.",piege:"Ne regroupe pas par client ou par produit : cela transformerait la moyenne globale en plusieurs moyennes."},
- c4:{notion:"JOIN + calcul + agrégation",raisonnement:"Relie les commandes aux produits pour récupérer le prix, calcule quantité × prix ligne par ligne, puis additionne par produit.",piege:"Ce CA est pédagogique : il utilise le prix actuel du catalogue. En production, le prix facturé doit être conservé sur la ligne de commande."},
- c5:{notion:"LEFT JOIN + IS NULL",raisonnement:"Pars des clients pour tous les conserver, rattache leurs commandes quand elles existent, puis sélectionne les lignes sans correspondance.",piege:"Un JOIN simple supprimerait précisément les clients que tu cherches."},
- c6:{notion:"NULL + IS NULL",raisonnement:"Compte les lignes dont la valeur email est absente avec le prédicat IS NULL.",piege:"NULL n’est ni une chaîne vide ni une valeur comparable avec =."},
- c7:{notion:"Sous-requête scalaire",raisonnement:"Calcule d’abord le prix moyen du catalogue, puis compare chaque produit à cette valeur dans la requête extérieure.",piege:"AVG(prix) ne peut pas être placé directement dans WHERE sans sous-requête ou agrégation adaptée."},
- c8:{notion:"Dates ISO + comparaison",raisonnement:"Le format AAAA-MM-JJ permet de comparer les dates comme du texte ; utilise la borne de début demandée.",piege:"Vérifie si la borne est incluse : à partir du 20 juillet signifie >= '2026-07-20'."},
- c9:{notion:"JOIN + COUNT + classement",raisonnement:"Relie les commandes aux produits, compte le nombre de commandes par produit, puis classe les comptes décroissants.",piege:"Le produit commandé le plus souvent n’est pas forcément celui qui totalise le plus d’unités."},
- c10:{notion:"SUM après une jointure",raisonnement:"Relie chaque commande à son produit, calcule la valeur de chaque ligne, puis additionne toutes les lignes sans GROUP BY.",piege:"Un GROUP BY produirait un CA par produit au lieu du CA global."},
- c11:{notion:"LEFT JOIN + COUNT + CASE",raisonnement:"Conserve chaque client, compte ses commandes avec COUNT(commandes.id), puis transforme le résultat en segment avec CASE.",piege:"COUNT(*) compterait aussi la ligne créée par le LEFT JOIN pour un client sans commande."},
- c12:{notion:"Agrégation par catégorie",raisonnement:"Relie commandes et produits, regroupe par catégorie, additionne les quantités vendues et trie les totaux.",piege:"Le total porte sur quantite, pas sur le nombre de lignes de commandes."},
- c13:{notion:"Deux JOIN + WHERE + SUM",raisonnement:"Relie les commandes aux clients et aux produits, filtre les clients de Paris, puis calcule la somme quantité × prix.",piege:"Applique le filtre sur clients.ville avant de conclure que le résultat représente tout le catalogue."},
- c14:{notion:"GROUP BY + HAVING égal à 1",raisonnement:"Regroupe les produits par catégorie, compte chaque groupe, puis garde exactement les groupes dont le compte vaut 1.",piege:"WHERE ne peut pas filtrer le résultat de COUNT ; utilise HAVING."},
- c15:{notion:"strftime + GROUP BY + ORDER BY",raisonnement:"Transforme chaque date en clé AAAA-MM, compte les commandes par mois, puis trie les comptes du plus grand au plus petit.",piege:"Grouper sur la date complète produirait une ligne par jour, pas une ligne par mois."},
- c16:{notion:"AVG après une jointure",raisonnement:"Rattache chaque commande à la ville de son client, calcule la moyenne des quantités par ville et classe les moyennes.",piege:"La moyenne porte sur les commandes, pas sur les clients : un client avec plusieurs commandes pèse plusieurs fois."},
- c17:{notion:"CTE + ROW_NUMBER par groupe",raisonnement:"Calcule les ventes par produit, numérote les produits dans chaque catégorie, puis conserve le rang 1.",piege:"Sans PARTITION BY, tu obtiendrais un seul meilleur produit pour tout le catalogue."},
- c18:{notion:"COUNT(DISTINCT)",raisonnement:"Relie chaque client aux produits commandés, compte les catégories distinctes par client et garde ceux qui atteignent au moins 2.",piege:"COUNT(*) compte les commandes ; COUNT(DISTINCT categorie) compte les catégories réellement différentes."},
- c19:{notion:"INTERSECT",raisonnement:"Construis deux ensembles de villes selon les deux critères d’âge, puis conserve uniquement leur intersection.",piege:"INTERSECT compare des résultats compatibles ; ce n’est pas une jointure qui ajoute des colonnes."},
- c20:{notion:"WITH RECURSIVE",raisonnement:"Définis une valeur de départ, ajoute 1 à chaque étape et arrête la récursion lorsque la borne est atteinte.",piege:"Une condition d’arrêt incorrecte peut produire une suite trop longue ou une récursion sans fin."},
- c21:{notion:"NTILE",raisonnement:"Ordonne les produits par stock et répartis les lignes dans 4 groupes aussi équilibrés que possible.",piege:"NTILE crée des tranches de lignes, pas quatre intervalles numériques de même largeur."},
- c22:{notion:"Fonction fenêtre + cadre ROWS",raisonnement:"Ordonne les commandes par identifiant et calcule, pour chaque ligne, la moyenne de la ligne actuelle et de la précédente.",piege:"L’ORDER BY de OVER définit l’ordre des lignes dans la fenêtre, et c’est le cadre ROWS BETWEEN qui choisit celles utilisées ; l’ORDER BY final sert à afficher le résultat."},
- c23:{notion:"EXPLAIN QUERY PLAN",raisonnement:"Préfixe le SELECT par EXPLAIN QUERY PLAN pour observer le chemin d’accès choisi par SQLite.",piege:"Le résultat est un plan technique, pas la liste des clients concernés."},
- c24:{notion:"FIRST_VALUE + PARTITION BY",raisonnement:"Crée une fenêtre par ville, l’ordonne par âge décroissant et reporte le prénom de la première ligne sur chaque client.",piege:"PARTITION BY conserve les lignes ; GROUP BY les regrouperait en une seule ligne par ville."},
- c25:{notion:"EXISTS corrélé",raisonnement:"Pour chaque client, teste s’il existe au moins une commande dont le client_id correspond. EXISTS s’arrête à la première ligne trouvée.",piege:"Sans la corrélation commandes.client_id = clients.id, tous les clients passent dès qu’il existe une commande."}
-};
+const CHALLENGE_GUIDES={};
 /* Les bases des défis (Elisa, 1er novembre, 0 h 29) : « Dans la partie défis, je ne veux pas travailler sur les défis de la base
    ecom : je vais te donner des bases avec table cohérente ». Chaque défi dit sur quelle base il tourne (base:'aeroport') ; sans
    base, c’est celle du cours. Les octets d’une base sont construits une fois, à la première demande (defiBaseBytes).
@@ -14987,6 +14945,9 @@ function sallePts(n){return `${(+n||0).toLocaleString('fr-FR')} pt${n>1?'s':''}`
 /* Entrée « Salle de défi » : un niveau, seul ou entre amis, un nombre de manches ; le défi est tiré au sort. */
 function renderDefisRoom(){
   const host=document.getElementById('defis-room');if(!host)return;
+  /* Un niveau sans défi (Moyen et Difficile, le temps que leurs lots Aéroport arrivent) est grisé, « Bientôt » ; la salle se
+     replace sur le premier niveau qui en a. */
+  if(!jeuChallenges(jeuNiv).length){const k=['f','m','d'].find(x=>jeuChallenges(x).length);if(k)jeuNiv=k;}
   const friends=jeuMode==='friends';
   /* Sous chaque niveau : ses manches réussies sur jouées (18 h 02 ; 18 h 28 : « réussies », pas « trouvées »). */
   const kd=salleKpi(),stat=k=>{const l=Array.isArray(kd.lv[k])?kd.lv[k]:[0,0],n=Math.max(0,+l[0]||0),ok=Math.min(Math.max(0,+l[1]||0),n);return `${ok}/${n} réussie${ok>1?'s':''}`;};
@@ -14998,7 +14959,7 @@ function renderDefisRoom(){
     <h2 id="room-h">Entre dans la salle</h2>
     <p class="room-sub">Un défi tiré au sort, au niveau que tu choisis. Le chrono part de 00:00.</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
     <div class="room-field"><p class="jeu-lab" id="room-niv-l">Niveau</p>
-      <div class="room-levels" role="radiogroup" aria-labelledby="room-niv-l">${['f','m','d'].map(k=>`<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}" data-set="niv" data-v="${k}" onclick="jeuRoomSet('niv','${k}')"><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b><small>${stat(k)}</small></button>`).join('')}</div></div>
+      <div class="room-levels" role="radiogroup" aria-labelledby="room-niv-l">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="jeuRoomSet('niv','${k}')"${vide?' disabled':''}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b><small>${vide?'Bientôt':stat(k)}</small></button>`;}).join('')}</div></div>
     <div class="room-field"><p class="jeu-lab" id="room-mode-l">Avec qui ?</p>
       <div class="room-seg" role="radiogroup" aria-labelledby="room-mode-l">${seg('mode',[['solo','Seul'],['friends',JEU_FRIENDS_SVG+'Entre amis']],jeuMode)}</div></div>
     <div class="room-field"><p class="jeu-lab" id="room-nb-l">Nombre de manches</p>
@@ -21280,7 +21241,8 @@ function jeuAskNom(id){
 /* Écran Défis : les choix de la salle se changent sur place (rien n’est redessiné). */
 function jeuRoomSet(k,v){
   const card=document.getElementById('defis-room');if(!card)return;
-  if(k==='niv'&&JEU_NIVL[v])jeuNiv=v;
+  if(k==='niv'&&!(JEU_NIVL[v]&&jeuChallenges(v).length))return;
+  if(k==='niv')jeuNiv=v;
   else if(k==='nb'&&[1,3,5].includes(v))jeuNb=v;
   else if(k==='mode'&&(v==='solo'||v==='friends'))jeuMode=v;
   else return;
@@ -21852,7 +21814,7 @@ function jeuRender(){
   }else if(v==='lobby'){
     const hostName=(J.players[J.hostPid]||{}).name||'l’hôte';
     const set=host?`<div class="jeu-card jeu-set"><p class="jeu-lab" id="jeu-set-niv">Niveau</p>
-        <div class="jeu-seg" role="radiogroup" aria-labelledby="jeu-set-niv">${['f','m','d'].map(k=>`<button type="button" role="radio" aria-checked="${J.niv===k}" class="${J.niv===k?'on':''}" data-fk="niv-${k}" onclick="jeuLobbySet('niv','${k}')">${JEU_NIVL[k]}</button>`).join('')}</div>
+        <div class="jeu-seg" role="radiogroup" aria-labelledby="jeu-set-niv">${['f','m','d'].map(k=>`<button type="button" role="radio" aria-checked="${J.niv===k}" class="${J.niv===k?'on':''}" data-fk="niv-${k}" onclick="jeuLobbySet('niv','${k}')"${jeuChallenges(k).length?'':' disabled'}>${JEU_NIVL[k]}</button>`).join('')}</div>
         <p class="jeu-lab" id="jeu-set-nb">Nombre de manches</p>
         <div class="jeu-seg" role="radiogroup" aria-labelledby="jeu-set-nb">${[1,3,5].map(n=>`<button type="button" role="radio" aria-checked="${J.nb===n}" class="${J.nb===n?'on':''}"${n>jeuChallenges(J.niv).length?' disabled':''} data-fk="nb-${n}" onclick="jeuLobbySet('nb',${n})">${n}</button>`).join('')}</div></div>`:'';
     const invite=`<div class="jeu-card jeu-invite"><p class="jeu-lab">Code de la salle</p><p class="jeu-code">${J.code}</p>
@@ -21888,7 +21850,7 @@ function jeuRender(){
       <div id="jeu-netslot">${jeuNetHTML()}</div>
       ${sl?'':`<ul class="jeu-mates" id="jeu-players" aria-label="Qui a trouvé">${jeuMatesHTML(n)}</ul>`}
       <h1>${esc(c.titre)}</h1>
-      <div class="consigne"><span class="tag">La question</span><p>${esc(c.q)}</p></div>
+      ${defiConsigneHTML(c)}
       ${mine?jeuFoundHTML(r,J.me):editorBlock(false,'defi.sql',{jeu:1})}`;
   }else if(v.startsWith('res')){
     const n=+v.slice(3),r=J.rounds[n],c=CHALLENGES.find(x=>x.id===r.cid),rk=jeuRanking(n),last=n>=J.nb-1,sl=jeuSoloLike(n);
@@ -21991,7 +21953,7 @@ function jeuAgain(){
 /* Salle d’attente : l’hôte peut encore changer le niveau et le nombre de manches. */
 function jeuLobbySet(k,v){
   const J=JEU;if(!J||!jeuIsHost()||J.rounds.length||J.over)return;
-  if(k==='niv'&&JEU_NIVL[v])J.niv=v;
+  if(k==='niv'&&JEU_NIVL[v]&&jeuChallenges(v).length)J.niv=v;
   else if(k==='nb'&&[1,3,5].includes(v))J.nb=v;
   else return;
   J.nb=Math.min(J.nb,jeuChallenges(J.niv).length||1);
@@ -22231,7 +22193,7 @@ function openChallenge(cid){
   document.getElementById('nav-title').textContent='Défi';
   document.getElementById('lesson-body').innerHTML=`
     <div class="l-kicker">Défi · ${NIV[c.niv].l}${defiBaseId(c)?` · Base ${esc(DEFI_BASES[defiBaseId(c)].nom)}`:''}</div><h1>${c.titre}</h1>
-    <div class="consigne"><span class="tag">La question</span><p>${esc(c.q)}</p></div>
+    ${defiConsigneHTML(c)}
     ${jeuEligible(c)?challengeHowHTML(c):''}
     <div id="defi-solo-block">
     <p style="font-size:13.5px;color:var(--ink-2);margin:0 4px 14px">La syntaxe reste à construire par toi. Touche <b>Schéma</b> sous l’éditeur si un nom de colonne te manque.</p>
@@ -28477,7 +28439,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-carte-pseudo-v2224';
+  const SW_CACHE='requete-2026-11-01-defis-aeroport-v2225';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
