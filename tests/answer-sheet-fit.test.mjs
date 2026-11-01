@@ -62,16 +62,32 @@ test('assez de place : aucune réduction (grand téléphone)', () => {
   assert.equal(p.pt(0, 1445).y, before);
 });
 
-test('la réduction ne dépasse pas 70 % et ne fait que croître pendant le moment', () => {
+/* Elisa, 1er novembre, 20 h 50 (réf. 3) : « parfois trop dézoomé sur ordi » : l’image restait réduite pour une feuille déjà
+   raccourcie. Une mesure de passage (pendant un changement) ne fait que réduire ; une fois l’état posé, l’image reprend sa taille. */
+test('la réduction ne dépasse pas 70 % ; elle ne regonfle qu’une fois l’état posé', () => {
   const p = player({top: 100});
   p.fit();
   assert.equal(p.ctx.LV.zoom, 0.7, 'plancher à 70 %');
   const q = player();
   q.fit();
   const z0 = q.ctx.LV.zoom;
-  q.ctx.__B = 1100;      // la correction est plus courte : le contenu aurait de la place
+  q.ctx.__B = 1100;      // la feuille a raccourci : le contenu a de la place
+  q.first();
+  assert.equal(q.ctx.LV.zoom, z0, 'pendant le changement, l’image ne regonfle pas');
   q.fit();
-  assert.equal(q.ctx.LV.zoom, z0, 'l’image ne regonfle pas entre la question et la correction');
+  assert.equal(q.ctx.LV.zoom, 1, 'l’état posé : l’image reprend sa taille');
+});
+
+test('réf. 4 : la feuille qui grandit est mesurée tout de suite, l’attente est courte, la réduction rapide', () => {
+  assert.ok(html.includes('const LV_PK_GAP=18, LV_PK_MIN=16, LV_PK_ZMIN=.7, LV_PK_WAIT=150, LV_PK_BOT=22;'));
+  assert.ok(html.includes('  if(P.fitDone&&!calm){ wait(); return; }'), 'au calme, pas d’attente');
+  assert.ok(html.includes('  const t0=performance.now(), D=200;'));
+  const q = player();
+  q.first();
+  const z0 = q.ctx.LV.zoom;
+  q.P.box.style.top = '380px';   // l’explication s’ajoute : la feuille monte
+  q.first();
+  assert.ok(q.ctx.LV.zoom < z0, 'réduite aussitôt, sans attendre');
 });
 
 test('la taille de l’écran change : la réduction est recalculée', () => {
@@ -159,22 +175,22 @@ test('les pastilles centrées (« 6 situations à ranger »…) comptent comme d
 const zoomOf = p => p.ctx.LV.zoom == null ? 1 : p.ctx.LV.zoom;
 const lastTimer = p => p.calls.timers[p.calls.timers.length - 1];
 
-test('question : seules comptent la mesure de l’ouverture et celles posées 400 ms après le dernier changement', () => {
+test('question : la feuille qui grandit est mesurée aussitôt ; une mesure posée suit 150 ms après le dernier changement', () => {
   // ouverture : la feuille manque de place, l’image se réduit tout de suite
   const p = player();
   p.first();
   const z0 = zoomOf(p);
   assert.ok(z0 < 1, 'réduite dès l’ouverture');
   assert.equal(p.calls.timers.length, 1);
-  assert.equal(p.calls.timers[0].ms, 400, 'une mesure posée est programmée');
-  // un changement du plateau passe par un état qui ne dure pas : il n’est pas pris en compte
+  assert.equal(p.calls.timers[0].ms, 150, 'une mesure posée est programmée');
+  // Elisa, 1er novembre, 20 h 50 (réf. 4) : la feuille monte (explication, indice) : l’image se réduit sans attendre, le texte reste visible
   p.P.box.style.top = '380px';
   p.first();
-  assert.equal(zoomOf(p), z0, 'état de passage ignoré');
+  const z1 = zoomOf(p);
+  assert.ok(z1 < z0, 'réduite aussitôt');
   assert.equal(p.calls.timers.length, 2, 'la mesure posée est reprogrammée');
-  // le plateau est posé : la mesure du moment compte
   lastTimer(p).fn();
-  assert.ok(zoomOf(p) < z0, 'la mesure posée est prise en compte');
+  assert.equal(zoomOf(p), z1, 'la mesure posée confirme');
 });
 
 test('réponse en cours : rien n’est mesuré, ni l’étiquette qui vole, ni la bonne réponse sans sa correction', () => {
@@ -190,7 +206,7 @@ test('réponse en cours : rien n’est mesuré, ni l’étiquette qui vole, ni l
   assert.equal(zoomOf(p), 1, 'pas de mesure pendant la réponse');
   assert.equal(p.frame.style.transform, undefined, 'l’image n’est pas touchée');
   const n = p.calls.timers.length;
-  assert.ok(n >= 2 && p.calls.timers[n - 1].ms === 400, 'la mesure est reprogrammée tant que l’état ne s’est pas posé');
+  assert.ok(n >= 2 && p.calls.timers[n - 1].ms === 150, 'la mesure est reprogrammée tant que l’état ne s’est pas posé');
   // bonne réponse donnée, correction pas encore posée (réponses encore là, pas de « Continuer »)
   p.P.busy = false; p.P.done = true; p.go.hidden = true;
   lastTimer(p).fn();
@@ -224,7 +240,7 @@ test('bonne réponse : l’image se règle sur la correction, qui est plus court
   assert.ok(zoomOf(p) < 1, 'la dernière mesure compte aussi');
 });
 
-test('la correction posée est mesurée aussitôt, puis une dernière fois 400 ms plus tard', () => {
+test('la correction posée est mesurée aussitôt, puis une dernière fois 150 ms plus tard', () => {
   const p = player();
   p.first();
   p.P.done = true; p.go.hidden = false;
@@ -232,5 +248,5 @@ test('la correction posée est mesurée aussitôt, puis une dernière fois 400 m
   const n = p.calls.timers.length;
   p.first();
   assert.equal(zoomOf(p), 1, 'mesurée aussitôt');
-  assert.ok(p.calls.timers.length > n && lastTimer(p).ms === 400, 'une dernière mesure est programmée');
+  assert.ok(p.calls.timers.length > n && lastTimer(p).ms === 150, 'une dernière mesure est programmée');
 });

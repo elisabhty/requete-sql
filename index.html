@@ -6641,7 +6641,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=97">
+<link rel="stylesheet" href="ludique.css?v=98">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -7313,7 +7313,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
         <div>
           <div class="eyebrow journey-brand">Requête</div>
           <h1 tabindex="-1">Bonjour</h1>
-          <p class="sub" id="learn-sub">Prêt·e pour ta prochaine requête ?</p>
+          <p class="sub" id="learn-sub">Envie d’écrire ta prochaine requête ?</p>
         </div>
         <div class="learn-side">
           <button class="streak-pill" id="home-streak" type="button" onclick="openAccountProgress()" aria-label="Jours d'affilée — voir mes stats" hidden></button>
@@ -18549,7 +18549,7 @@ function renderJourneyHub(tab){
   let lead='';
   if(tab==='practice'&&typeof CHALLENGES!=='undefined'){
     /* Un défi déjà trouvé se rejoue (17 h 53) : plus de « prochain défi » ni de « tout est réussi » ; la salle, et ses chiffres. */
-    lead=`<section class="journey-spotlight"><span class="journey-spot-stk" aria-hidden="true">${lqStkSvg('target')}</span><p class="journey-kicker">Salle de défi</p><h2>Un défi tiré au sort</h2><p>Seul ou entre amis, au niveau que tu choisis. Le chrono part de 00:00.</p><button type="button" class="journey-primary" onclick="switchTab('defis')"><span>Entrer dans la salle</span>${DEF_CHEV_SVG}</button></section>`;
+    lead=`<section class="journey-spotlight"><span class="journey-spot-stk" aria-hidden="true">${lqStkSvg('target')}</span><p class="journey-kicker">Salle de défi</p><h2>Un défi tiré au sort</h2><p>En solo ou entre amis, au niveau que tu choisis. Le chrono part de 00:00.</p><button type="button" class="journey-primary" onclick="switchTab('defis')"><span>Entrer dans la salle</span>${DEF_CHEV_SVG}</button></section>`;
   }else if(stats.due){
     lead=`<section class="journey-spotlight"><span class="journey-spot-stk" aria-hidden="true">${lqStkSvg('restore')}</span><p class="journey-kicker">À réviser</p><h2>${stats.due} leçon${stats.due>1?'s':''} à revoir</h2><p>Quelques minutes pour fixer ce que tu as déjà vu.</p><button type="button" class="journey-primary" onclick="startReview()"><span>Commencer la révision</span>${DEF_CHEV_SVG}</button></section>`;
   }
@@ -18928,7 +18928,7 @@ function renderDefisRoom(){
     <div class="room-field"><p class="jeu-lab" id="room-niv-l">Niveau</p>
       <div class="room-levels" role="radiogroup" aria-labelledby="room-niv-l">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="jeuRoomSet('niv','${k}')"${vide?' disabled':''}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b>${vide?'<small>Bientôt</small>':''}${k===auto&&!vide?'<em class="room-lv-auto">Niveau recommandé</em>':''}</button>`;}).join('')}</div></div>
     <div class="room-field"><p class="jeu-lab" id="room-mode-l">Avec qui ?</p>
-      <div class="room-seg" role="radiogroup" aria-labelledby="room-mode-l">${seg('mode',[['solo','Seul'],['friends',JEU_FRIENDS_SVG+'Entre amis']],jeuMode)}</div></div>
+      <div class="room-seg" role="radiogroup" aria-labelledby="room-mode-l">${seg('mode',[['solo','En solo'],['friends',JEU_FRIENDS_SVG+'Entre amis']],jeuMode)}</div></div>
     <div class="room-field"><p class="jeu-lab" id="room-nb-l">Nombre de manches</p>
       <div class="room-seg" role="radiogroup" aria-labelledby="room-nb-l">${seg('nb',[[1,'1'],[3,'3'],[5,'5']].map(([v,l])=>[v,l,v>jeuChallenges(jeuNiv).length?' disabled':'']),jeuNb)}</div></div>
     <div class="room-field" data-friends${friends?'':' hidden'}>${jeuNomField('jeu-nom')}</div>
@@ -18965,7 +18965,7 @@ function perfWith(h){
   return 'avec '+(o.length<=2?o.join(' et '):`${o.slice(0,2).join(', ')} +${o.length-2}`);
 }
 function perfGame(h){
-  return `${h.solo?'Seul':'Entre amis'} · ${JEU_NIVL[h.niv]||'Facile'}${!h.solo&&h.players>1?` · ${perfWith(h)}`:''}`;
+  return `${h.solo?'En solo':'Entre amis'} · ${JEU_NIVL[h.niv]||'Facile'}${!h.solo&&h.players>1?` · ${perfWith(h)}`:''}`;
 }
 function perfBadge(h){
   if(!h.solo&&h.place>=1&&h.place<=3)return lqStkSvg('medal'+h.place);
@@ -21502,13 +21502,17 @@ function lvPkPlace(){
    réponse est donnée mais que la correction n’est pas encore posée, le plateau et l’image passent par des états de passage qu’on ne mesure
    pas. Pendant la question, la réduction ne fait que croître (elle ne bat pas à chaque essai raté) ; une fois la bonne réponse donnée,
    elle se règle sur la correction, qui est plus courte, et l’image peut reprendre de la taille. */
-const LV_PK_GAP=18, LV_PK_MIN=16, LV_PK_ZMIN=.7, LV_PK_WAIT=400, LV_PK_BOT=22;
+/* Elisa, 1er novembre, 20 h 50 (réf. 3 et 4) : « parfois le temps de réaction est trop lent et cache le texte avant de dézoomer ou
+   regrossir » ; « parfois trop dézoomé sur ordi ». La feuille qui grandit (explication, indice) se mesure tout de suite, l’image se
+   réduit en 0,2 s ; et l’image reprend de la taille dès que la feuille raccourcit et que l’état s’est posé (0,15 s), même avant la bonne
+   réponse : elle ne restait plus réduite pour une explication déjà repliée. */
+const LV_PK_GAP=18, LV_PK_MIN=16, LV_PK_ZMIN=.7, LV_PK_WAIT=150, LV_PK_BOT=22;
 function lvPkFit(P,settled){
   const V=LV&&LV.video, w=V&&V.win; if(!w||typeof w.__contentBottom!=='function')return;
   const wait=()=>{ clearTimeout(P.fitT); P.fitT=setTimeout(()=>{ if(LV&&LV.pk===P)lvPkFit(P,true); },LV_PK_WAIT); };
   const go=P.box.querySelector('.lv-pk-go'), calm=!P.busy&&!(P.done&&go&&go.hidden);
   /* Après l’ouverture : on attend que l’état se pose ; la correction posée, on mesure tout de suite, puis de nouveau un peu plus tard. */
-  if(P.fitDone&&(!calm||(!settled&&!P.done))){ wait(); return; }
+  if(P.fitDone&&!calm){ wait(); return; }
   P.fitDone=true;
   let B=null; try{ B=w.__contentBottom(); }catch(e){}
   if(B==null)return;
@@ -21518,7 +21522,7 @@ function lvPkFit(P,settled){
   const oy=r.top-R.top, yb=lvPt(0,B,1).y, top=parseFloat(P.box.style.top)||0, room=yb-oy;
   if(!(room>0))return;
   const z=top-yb<LV_PK_MIN?Math.max(LV_PK_ZMIN,Math.min(1,(top-LV_PK_GAP-oy)/room)):1;
-  P.zoom=P.done?z:Math.min(P.zoom==null?1:P.zoom,z);
+  P.zoom=P.done||settled?z:Math.min(P.zoom==null?1:P.zoom,z);
   lvZoomTo(P.zoom);
   if(!settled)wait();
 }
@@ -21534,7 +21538,7 @@ function lvZoomTo(z){
     lvPkLayerPlace();
   };
   if(Math.abs(z-from)<.002||prefersReduceMotion()){ apply(z); return; }
-  const t0=performance.now(), D=300;
+  const t0=performance.now(), D=200;
   const step=now=>{
     if(!LV||LV.video!==V)return;
     const t=Math.min(1,(now-t0)/D), e=1-Math.pow(1-t,3);
@@ -25765,7 +25769,7 @@ function jeuPlayersHTML(kind){
     const away=!jeuPresent(pid),found=r&&r.found[pid]!=null,isNew=!J.shown.has(pid);
     J.shown.add(pid);
     let state='';
-    if(kind==='lobby')state=jeuIsReady(pid)?'<em class="jeu-state is-ready">✓ prêt</em>':'<em class="jeu-state">pas prêt</em>';
+    if(kind==='lobby')state=jeuIsReady(pid)?'<em class="jeu-state is-ready">✓ c’est bon</em>':'<em class="jeu-state">en attente</em>';
     else if(r)state=`<em class="jeu-state">${found?'✓ '+jeuChrono(r.found[pid]):(away?'parti·e':'…')}</em>`;
     return `<li class="${found?'is-found':''}${away?' is-away':''}${isNew?' is-new':''}"><b class="jeu-av" data-c="${all.indexOf(pid)%6}" aria-hidden="true">${jeuInitial(p.name)}</b><span>${esc(p.name)}${me?' <small>(toi)</small>':''}${host?' <small class="jeu-tag">hôte</small>':''}</span>${state}</li>`;
   });
@@ -25807,7 +25811,7 @@ function jeuLobbyHint(){
   const live=jeuLive();
   if(live.length<2)return 'Personne n’a encore rejoint : partage le code. Si tu lances maintenant, tu joues seul·e.';
   const wait=live.filter(p=>!jeuIsReady(p));
-  return wait.length?`Pas encore prêt : ${wait.map(p=>esc((JEU.players[p]||{}).name||'Joueur')).join(', ')}. Tu peux lancer quand tu veux.`:'Tout le monde est prêt.';
+  return wait.length?`En attente : ${wait.map(p=>esc((JEU.players[p]||{}).name||'Joueur')).join(', ')}. Tu peux lancer quand tu veux.`:'Tout le monde est prêt.';
 }
 /* Annonces : « Léa a rejoint la salle » / « Léa est partie », sans bruit au premier affichage. */
 function jeuAnnounce(){
@@ -25836,7 +25840,7 @@ function jeuPatch(v){
   const hint=document.getElementById('jeu-lobby-hint');if(hint)hint.innerHTML=jeuLobbyHint();
   const cnt=document.getElementById('jeu-n');if(cnt)cnt.textContent=`${jeuLive().length}/${J.max}`;
   const rd=document.getElementById('jeu-ready');
-  if(rd){const on=!!J.ready[J.me];rd.setAttribute('aria-pressed',on);rd.classList.toggle('on',on);const l=rd.querySelector('span');if(l)l.textContent=on?'Je suis prêt ✓':'Je suis prêt';}
+  if(rd){const on=!!J.ready[J.me];rd.setAttribute('aria-pressed',on);rd.classList.toggle('on',on);const l=rd.querySelector('span');if(l)l.textContent=on?'C’est bon pour moi ✓':'C’est bon pour moi';}
 }
 /* Le tirage : 3, 2, 1 (0,7 s chacun), puis le défi tiré reste 1,2 s à l’écran. À l’heure de la manche, la scène violette s’efface
    en montant pendant que la manche arrive en cascade dessous, un fondu enchaîné sans écran vide (Elisa, 31 octobre, 15 h 52 : « le
@@ -25900,7 +25904,7 @@ function jeuRender(){
         <button type="button" class="jeu-btn is-wide" onclick="jeuShare()">Partager l’invitation</button><p class="jeu-copied" id="jeu-copied" aria-live="polite"></p></div>`;
     const players=`<div class="jeu-card"><p class="jeu-card-h">Joueurs <span class="jeu-n" id="jeu-n">${jeuLive().length}/${J.max}</span></p><ul class="jeu-players" id="jeu-players">${jeuPlayersHTML('lobby')}</ul>
       ${host?`<button type="button" class="journey-primary" id="jeu-go" onclick="jeuNextRound()"><span id="jeu-go-label">${jeuLobbyLabel()}</span>${DEF_CHEV_SVG}</button><p class="jeu-hint" id="jeu-lobby-hint">${jeuLobbyHint()}</p>`
-        :`<button type="button" class="jeu-ready${J.ready[J.me]?' on':''}" id="jeu-ready" aria-pressed="${!!J.ready[J.me]}" onclick="jeuToggleReady()"><span>${J.ready[J.me]?'Je suis prêt ✓':'Je suis prêt'}</span></button>
+        :`<button type="button" class="jeu-ready${J.ready[J.me]?' on':''}" id="jeu-ready" aria-pressed="${!!J.ready[J.me]}" onclick="jeuToggleReady()"><span>${J.ready[J.me]?'C’est bon pour moi ✓':'C’est bon pour moi'}</span></button>
         <p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>En attente ${jeuQue(hostName)} lance la partie…</p>`}</div>`;
     /* Hôte : le code d’abord (pour inviter), puis les joueurs, puis les réglages. Ami : les joueurs d’abord. */
     html=head(`Salle d’attente · ${JEU_NIVL[J.niv]}`,host?'Invite tes amis':`Salle ${jeuDe(hostName)}`,'')+chips()+(host?invite+players+set:players+invite)+`<div id="jeu-netslot">${jeuNetHTML()}</div>`;
@@ -26241,7 +26245,7 @@ function jeuFromUrl(){
 /* Le même défi, seul ou à plusieurs : on choisit ici, puis on reçoit un code à partager. */
 function challengeHowHTML(c){
   return `<div class="def-modes" id="defi-how" role="tablist" aria-label="Faire ce défi seul ou avec des amis">
-      <button type="button" role="tab" aria-selected="true" class="def-mode on" onclick="setChallengeHow('solo')">Seul</button>
+      <button type="button" role="tab" aria-selected="true" class="def-mode on" onclick="setChallengeHow('solo')">En solo</button>
       <button type="button" role="tab" aria-selected="false" class="def-mode" onclick="setChallengeHow('friends')">${JEU_FRIENDS_SVG}Avec des amis</button>
     </div>
     <div id="defi-friends-block" class="jeu" hidden>
@@ -30317,7 +30321,7 @@ function paintEntProgress(){
   const notions=ENTRETIEN_CATS.filter(([k])=>k!=='all').map(([k])=>ENTRETIEN.filter(q=>q.cat===k));
   const masteredTopics=notions.filter(items=>items.length&&items.every(q=>entOk(entId(q,ENTRETIEN.indexOf(q))))).length;
   const reviewed=ENTRETIEN.filter((q,i)=>entRawMark(entId(q,i))==='review').length;
-  const title=ok===total?'Tout est maîtrisé':(ok?'Continue sur ta lancée':'Prêt pour une question ?');
+  const title=ok===total?'Tout est maîtrisé':(ok?'Continue sur ta lancée':'Une question pour t’entraîner ?');
   const sub=ok===total?'Refais un tour pour garder les réflexes.':'Réponds d’abord, compare ensuite.';
   const cta=ok===total?'Revoir une question':(ok?'Continuer la préparation':'Commencer une question');
   const remainingLabel=remaining===1?'1 question à revoir':`${remaining} questions à revoir`;
@@ -30649,7 +30653,7 @@ function renderNotesSurface(wrap,prefix,opts){
   const latest=all.reduce((recent,n)=>!recent||n.ts>recent.ts?n:recent,null);
   if(!wrap.querySelector(`#${listId}`)){
     wrap.innerHTML=`<div class="notes-hub${isScreen&&!all.length?' empty':''}">
-      ${isScreen?`<section class="notes-overview"><div class="notes-overview-top"><span class="notes-overview-icon">${PEN_SVG}</span><div class="notes-overview-copy"><small>Ton carnet personnel</small><b data-notes-total>${all.length?`${all.length} note${all.length>1?'s':''} enregistrée${all.length>1?'s':''}`:'Prêt pour ta première note'}</b><span data-notes-latest>${latest?`Dernière modification · ${fmtDate(latest.ts)}`:'Garde ici ce que tu veux réutiliser.'}</span></div></div><div class="notes-overview-stats"><div><b data-notes-count>${all.length}</b><small>Notes</small></div><div><b data-notes-pinned>${pinned}</b><small>Épinglées</small></div><div><b data-notes-sql>${withSql}</b><small>Requêtes SQL</small></div></div></section>`:''}
+      ${isScreen?`<section class="notes-overview"><div class="notes-overview-top"><span class="notes-overview-icon">${PEN_SVG}</span><div class="notes-overview-copy"><small>Ton carnet personnel</small><b data-notes-total>${all.length?`${all.length} note${all.length>1?'s':''} enregistrée${all.length>1?'s':''}`:'Ta première note t’attend'}</b><span data-notes-latest>${latest?`Dernière modification · ${fmtDate(latest.ts)}`:'Garde ici ce que tu veux réutiliser.'}</span></div></div><div class="notes-overview-stats"><div><b data-notes-count>${all.length}</b><small>Notes</small></div><div><b data-notes-pinned>${pinned}</b><small>Épinglées</small></div><div><b data-notes-sql>${withSql}</b><small>Requêtes SQL</small></div></div></section>`:''}
       <button class="notes-hub-new" type="button" onclick="startNewNote()">${PEN_SVG} Nouvelle note</button>
       <div class="searchbar ${searchQ?'has':''}" id="${prefix}-notes-searchbar">
         <span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></span>
@@ -30665,7 +30669,7 @@ function renderNotesSurface(wrap,prefix,opts){
     if(isScreen){
       wrap.querySelector('.notes-hub')?.classList.toggle('empty',!all.length);
       const total=wrap.querySelector('[data-notes-total]'),latestEl=wrap.querySelector('[data-notes-latest]');
-      if(total)total.textContent=all.length?`${all.length} note${all.length>1?'s':''} enregistrée${all.length>1?'s':''}`:'Prêt pour ta première note';
+      if(total)total.textContent=all.length?`${all.length} note${all.length>1?'s':''} enregistrée${all.length>1?'s':''}`:'Ta première note t’attend';
       if(latestEl)latestEl.textContent=latest?`Dernière modification · ${fmtDate(latest.ts)}`:'Garde ici ce que tu veux réutiliser.';
       const values={'[data-notes-count]':all.length,'[data-notes-pinned]':pinned,'[data-notes-sql]':withSql};Object.entries(values).forEach(([sel,val])=>{const el=wrap.querySelector(sel);if(el&&el.textContent!==String(val)){el.textContent=val;el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');}});
     }
@@ -33070,7 +33074,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-badge-formatrice-v2291';
+  const SW_CACHE='requete-2026-11-01-retours-2050-v2292';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

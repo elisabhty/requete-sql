@@ -82,7 +82,7 @@ assert(html.includes('<script src="design-premium.js') && serviceWorker.includes
 }
 assert(html.includes('id="scr-notes"') && html.includes('function renderNotesScreen('), 'Mes notes possède un écran racine dédié');
 assert(html.includes('class="notes-overview"') && html.includes('data-notes-count') && html.includes('data-notes-pinned') && html.includes('data-notes-sql'), 'Mes notes présente un tableau de bord calculé depuis le carnet réel');
-assert(html.includes("latest?`Dernière modification · ${fmtDate(latest.ts)}`") && html.includes('Prêt pour ta première note'), 'carnet adapte son prochain repère à son contenu');
+assert(html.includes("latest?`Dernière modification · ${fmtDate(latest.ts)}`") && html.includes('Ta première note t’attend'), 'carnet adapte son prochain repère à son contenu');
 /* Les trois amorces, sur l’écran des notes et dans la feuille (31 octobre : dans la feuille, elles gardent la leçon ou la requête en cours) */
 assert(html.includes("${go}('Ce que je retiens : ')") && html.includes("${go}('Requête à revoir : ')") && html.includes("${go}('Question : ')") && html.includes("const go=isScreen?'startNotePrompt':'startNoteHere';"), 'carnet vide propose trois amorces pédagogiques');
 assert(html.includes('function startNotePrompt(txt){ openNote(null,{txt:txt||\'\'}); }'), 'amorce ouvre directement une note préremplie');
@@ -149,7 +149,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 const glissantes = fs.readFileSync(path.join(ROOT, 'assets/anim/fenetres-glissantes.html'), 'utf8');
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && ['UNBOUNDED PRECEDING', '2 PRECEDING', '2 FOLLOWING', 'CURRENT ROW'].every(c => glissantes.includes(c)), 'cadres (dans la vidéo) couverts — le défi NTILE est parti avec les défis de la base du cours (1er novembre, 0 h 55)');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-11-01-badge-formatrice-v2291') && html.includes('requete-2026-11-01-badge-formatrice-v2291') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-11-01-retours-2050-v2292') && html.includes('requete-2026-11-01-retours-2050-v2292') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
