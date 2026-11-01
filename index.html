@@ -6643,7 +6643,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=66">
+<link rel="stylesheet" href="ludique.css?v=67">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -7459,7 +7459,6 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
 
           <div class="editor-shell console-editor-shell">
             <div class="editor-bar"><span class="dot v"></span><span class="console-file-meta"><span class="fname" id="console-fname">projet.sql</span><small id="console-draft-state">Brouillon enregistré</small></span>
-              <button type="button" class="sql-copy console-viz-tool" onclick="openViz('ed-console')" aria-label="Visualiser pas à pas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h7M4 12h11M4 17h15"/><circle cx="15" cy="7" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
               <button type="button" class="sql-copy" data-ed="ed-console" onclick="copySqlFrom(this)" aria-label="Copier la requête"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>
               <button type="button" class="sql-clear" data-ed="ed-console" hidden onclick="clearEditorSql('ed-console')" aria-label="Effacer la requête"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
             <div class="editor-area"><pre><code id="hl-console"></code></pre>
@@ -7468,11 +7467,11 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
 
           <div class="run-row console-run-row">
             <button class="btn-run" id="btn-run-console" type="button" onclick="runConsole()"><span class="run-label"><svg class="run-ico" viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="9"/><path class="tri" d="M10.4 8.2v7.6l6.4-3.8z"/></svg> Exécuter</span></button>
-          </div>
-          <button type="button" class="console-pin-current" id="console-pin-current" onclick="pinConsoleQuery()" aria-pressed="false">
+  <button type="button" class="console-pin-current is-icon" title="Épingler cette requête" id="console-pin-current" onclick="pinConsoleQuery()" aria-pressed="false">
             <span class="console-pin-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5M9 10.8a2 2 0 0 1-1.1 1.8l-1.8.9A2 2 0 0 0 5 15.3V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.7a2 2 0 0 0-1.1-1.8l-1.8-.9a2 2 0 0 1-1.1-1.8V7a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1z"/></svg></span>
-            <b>Épingler cette requête</b>
+            <b class="sr">Épingler cette requête</b>
           </button>
+          </div>
           <div id="console-out" aria-live="polite"></div>
         </section>
 
@@ -12886,7 +12885,6 @@ function runConsole(){
       const n=(res&&res[0])?res[0].values.length:null;
       fb=[true,n==null?'Exécutée':plur(n,'ligne')];
       paint(`<div class="console-out-ready result-live">${vizCtaHTML(sql,'ed-console')}${renderTable(res,ms)}</div>`);
-      vizAttn();
       recordConsoleRun(sql,true,{n:n==null?null:fmtLignes(n),ms});
       const moved=touched();
       if(activeDbId!=='cours'&&moved) persistCustomDbs();
@@ -13603,21 +13601,21 @@ function buildSteps(sql,database){
   return steps;
 }
 let vizSteps=[],vizI=0;
-/* Le pas à pas mis en avant après une exécution (Elisa, 1er novembre, 8 h 55 : « faire en sorte que le pas à pas apparaisse après
-   l’exécution en gros et qu’on mette en avant le bouton pas à pas, micro animé, pour bien faire voir qu’il est là »). Au-dessus du
-   résultat d’un SELECT, une grande carte : les étapes de la requête dans l’ordre où SQL les exécute, qui s’allument l’une après
-   l’autre, et un gros bouton « Voir le pas à pas ». Le petit bouton de la barre de l’éditeur pulse jusqu’à ce qu’on l’ouvre. */
+/* Le pas à pas mis en avant après une exécution (Elisa, 1er novembre, 8 h 55 : « le pas à pas en gros après l’exécution, le bouton
+   micro animé »), puis 9 h 12 : « trop de boutons encore, c’est pas UI/UX, réfléchir dessus ». Une seule action principale par
+   moment : avant d’exécuter, « Exécuter » (épingler n’est plus qu’une icône à sa droite) ; après un SELECT, une seule rangée
+   « Pas à pas » au-dessus du résultat, toute touchable, avec les étapes de la requête qui s’allument l’une après l’autre. Plus de
+   bouton « pas à pas » dans la barre de l’éditeur (il doublait celui-ci). */
 function vizCtaHTML(sql,taId){
   const c=typeof splitClauses==='function'?splitClauses(sql):null;
   if(!c)return '';
   const et=[['FROM',1],['WHERE',c.where],['GROUP BY',c.group],['HAVING',c.having],['SELECT',1],['ORDER BY',c.order],['LIMIT',c.limit]].filter(x=>x[1]).map(x=>x[0]);
-  return `<section class="viz-cta" style="--n:${et.length}" aria-label="Exécution pas à pas">
-    <div class="viz-cta-h"><span class="viz-cta-k">Pas à pas</span><b>Vois comment SQL a lu ta requête</b><small>${et.length} étapes, dans l’ordre où elles s’exécutent.</small></div>
-    <ol class="viz-cta-steps" aria-hidden="true">${et.map((k,i)=>`<li style="--i:${i}">${k}</li>`).join('')}</ol>
-    <button type="button" class="viz-cta-go" onclick="openViz('${taId}')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg><span>Voir le pas à pas</span></button>
-  </section>`;
+  return `<button type="button" class="viz-row" style="--n:${et.length}" onclick="openViz('${taId}')" aria-label="Voir le pas à pas : ${et.length} étapes, ${et.join(', ')}">
+    <span class="viz-row-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></svg></span>
+    <span class="viz-row-t"><b>Pas à pas</b><span class="viz-row-steps" aria-hidden="true">${et.map((k,i)=>`<i style="--i:${i}">${k}</i>`).join('')}</span></span>
+    <span class="viz-row-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
+  </button>`;
 }
-function vizAttn(){const b=document.querySelector('#scr-console .console-viz-tool');if(b)b.classList.add('viz-attn');}
 function openViz(taId, rawSql){
   document.querySelectorAll('.viz-attn').forEach(b=>b.classList.remove('viz-attn'));
   document.getElementById('fab').classList.add('hide');
@@ -28769,7 +28767,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-moyen-indices-v2236';
+  const SW_CACHE='requete-2026-11-01-console-epuree-v2237';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
