@@ -248,3 +248,9 @@ test('19 h 08 : l’en-tête de l’accueil se resserre', () => {
 test('19 h 22 : l’icône de chargement (tirer pour recharger) descend moins bas', () => {
   assert.ok(app.includes('const SEUIL=64, TENU=8, LIM=150;') && app.includes('translate3d(0,${Math.round(Math.min(o*.5-22,TENU+6))}px,0)'));
 });
+
+test('19 h 25 : le bonjour, le niveau et la séance fusionnés en haut de la carte du cours ; la série dessous', () => {
+  assert.ok(app.includes('host.innerHTML=`<section class="lq-hero journey-session has-hi" data-mc="${mc}" aria-label="${defi?\'Prochain défi\':\'Ta prochaine leçon\'}">${heading}${chip}'));
+  assert.ok(app.includes('<span>${esc(ctaLabel)}</span></button></section>${streak}${extras}`;'));
+  assert.ok(css.includes('html.lq .lq-hero.has-hi .lq-hero-hi{position:relative;z-index:1;margin:0 0 14px;padding:0 0 14px;border-bottom:1.5px solid rgba(255,255,255,.18)}'));
+});
