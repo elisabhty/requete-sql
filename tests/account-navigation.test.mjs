@@ -5,14 +5,17 @@ const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 /* Niveau de Mon compte : palier, prochain cap et avancée dans le palier. */
 const lvCtx=vm.createContext({});
 vm.runInContext(html.slice(html.indexOf('const ACCOUNT_LEVELS=['),html.indexOf('const ACCT_OK_SVG=')),lvCtx);
-let lv=lvCtx.accountLevel(0);
-assert.deepEqual([lv.rank,lv.label,lv.next,lv.pct],[1,'Explorateur SQL','Filtres et tris',0]);
-lv=lvCtx.accountLevel(10);assert.deepEqual([lv.rank,lv.pct],[1,67],'10 % du parcours = deux tiers du premier palier');
-lv=lvCtx.accountLevel(15);assert.deepEqual([lv.rank,lv.pct],[1,100]);
-lv=lvCtx.accountLevel(16);assert.deepEqual([lv.rank,lv.label,lv.pct],[2,'Constructeur de requêtes',4]);
-lv=lvCtx.accountLevel(100);assert.deepEqual([lv.rank,lv.label,lv.pct],[5,'Parcours maîtrisé',100]);
-lv=lvCtx.accountLevel(250);assert.equal(lv.rank,5,'au-delà de 100 %, le dernier palier');
-lv=lvCtx.accountLevel('abc');assert.deepEqual([lv.rank,lv.pct],[1,0],'valeur illisible : premier palier');
+/* Les paliers suivent les étapes de l’onboarding : 0, 11, 23, 33 leçons acquises sur 65 (1er novembre, 9 h 43). */
+const B=[11,23,33],T=65;
+let lv=lvCtx.accountLevel(0,B,T);
+assert.deepEqual([lv.rank,lv.label,lv.next,lv.pct,lv.etape],[1,'Explorateur SQL','Filtres et tris',0,'SELECT']);
+lv=lvCtx.accountLevel(10,B,T);assert.deepEqual([lv.rank,lv.pct],[1,91],'10 leçons sur les 11 du premier palier');
+lv=lvCtx.accountLevel(11,B,T);assert.deepEqual([lv.rank,lv.label,lv.next,lv.pct],[2,'Constructeur de requêtes','Jointures',0]);
+lv=lvCtx.accountLevel(23,B,T);assert.deepEqual([lv.rank,lv.label,lv.next],[3,'Analyste relationnel','Analyses']);
+lv=lvCtx.accountLevel(33,B,T);assert.deepEqual([lv.rank,lv.label,lv.next],[4,'Analyste SQL','Parcours maîtrisé']);
+lv=lvCtx.accountLevel(65,B,T);assert.deepEqual([lv.rank,lv.label,lv.pct],[5,'Parcours maîtrisé',100]);
+lv=lvCtx.accountLevel(250,B,T);assert.equal(lv.rank,5,'au-delà du parcours, le dernier palier');
+lv=lvCtx.accountLevel('abc',B,T);assert.deepEqual([lv.rank,lv.pct],[1,0],'valeur illisible : premier palier');
 /* Accès : l’onglet Compte, et la carte de série de l’accueil qui descend jusqu’à « Ma progression ». */
 const calls=[],scrolled=[];
 const nav=vm.createContext({
