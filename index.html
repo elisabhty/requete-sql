@@ -6643,7 +6643,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=71">
+<link rel="stylesheet" href="ludique.css?v=72">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -14990,7 +14990,7 @@ function renderHomeHero(){
   /* Le salut sert de titre visible ; le h1 masqué de l’écran le lit déjà. */
   const hiHtml=`<span class="lq-nw">${esc(hiWord)}</span>${name?`, ${esc(name)}`:''}`;
   const sessionLine=session?(session.label==='Ta séance du jour'?`Ta séance · ${session.minutes} min`:session.label):'Parcours terminé';
-  const heading=`<div class="journey-heading lq-heading"><div class="jh-copy"><p class="lq-hi-title" aria-hidden="true">${hiHtml}</p><div class="journey-session-meta"><span aria-label="${escAttr(session?.summary||'Toutes tes activités sont validées')}">${esc(sessionLine)}</span><time datetime="${dateISO}">${esc(date)}</time></div></div></div>`;
+  const heading=`<div class="journey-heading lq-heading"><div class="jh-copy"><p class="lq-hi-title" aria-hidden="true">${hiHtml}</p><div class="journey-session-meta">${typeof niveauCompte==='function'?lvlBadgeHTML(niveauCompte(),'is-home'):''}<span aria-label="${escAttr(session?.summary||'Toutes tes activités sont validées')}">${esc(sessionLine)}</span><time datetime="${dateISO}">${esc(date)}</time></div></div></div>`;
   /* Première ouverture de l’accueil dans la séance : l’autocollant se colle sur la carte (une seule fois). */
   const intro=typeof mascotWavedThisSession!=='undefined'&&!mascotWavedThisSession&&!mascotReduced()&&typeof host.querySelector==='function'&&!host.querySelector('.mascot-stk')&&!!document.querySelector('#scr-learn.active');
   if(intro){mascotWavedThisSession=true;setTimeout(()=>{const b=host.querySelector('.mascot-stk.is-intro');if(b)b.classList.remove('is-intro');},3800);}
@@ -28092,22 +28092,40 @@ function closePlusDetails(){
   const ask=()=>{if(!raf)raf=requestAnimationFrame(fit);};
   vv.addEventListener('resize',ask);vv.addEventListener('scroll',ask);fit();
 })();
-/* Niveau SQL de Mon compte : un palier selon la part du parcours validée,
-   et l’avancée jusqu’au palier suivant. */
+/* Niveau SQL : cinq paliers. Les quatre premiers sont les quatre étapes de l’onboarding (« Où en es-tu avec SQL ? » : SELECT,
+   Filtres & tris, Jointures, Analyses), le cinquième le parcours maîtrisé. Ce que le niveau choisi à l’onboarding considère comme
+   acquis compte comme acquis : « Je débute » part du palier 1, « Je connais les bases » du palier 2, « Je pratique déjà » du
+   palier 4 (Elisa, 1er novembre, 9 h 43 : « prendre en compte ce qu’on a mis dans l’onboarding »). */
 const ACCOUNT_LEVELS=[
-  {limit:15,label:'Explorateur SQL',next:'Filtres et tris'},
-  {limit:40,label:'Constructeur de requêtes',next:'Calculs et regroupements'},
-  {limit:70,label:'Analyste relationnel',next:'Jointures avancées'},
-  {limit:99,label:'Analyste SQL',next:'Expertise du parcours'},
-  {limit:100,label:'Parcours maîtrisé',next:'Entretenir tes acquis'}
+  {label:'Explorateur SQL',etape:'SELECT',next:'Filtres et tris'},
+  {label:'Constructeur de requêtes',etape:'Filtres & tris',next:'Jointures'},
+  {label:'Analyste relationnel',etape:'Jointures',next:'Analyses'},
+  {label:'Analyste SQL',etape:'Analyses',next:'Parcours maîtrisé'},
+  {label:'Parcours maîtrisé',etape:'Tout le parcours',next:'Entretenir tes acquis'}
 ];
-function accountLevel(percent){
-  const p=Math.max(0,Math.min(100,Number(percent)||0));
-  let i=ACCOUNT_LEVELS.findIndex(b=>p<=b.limit);
-  if(i<0)i=ACCOUNT_LEVELS.length-1;
-  const band=ACCOUNT_LEVELS[i],prev=i>0?ACCOUNT_LEVELS[i-1].limit:0;
-  const pct=p>=100?100:Math.max(0,Math.min(100,Math.round((p-prev)/Math.max(1,band.limit-prev)*100)));
-  return {label:band.label,next:band.next,pct,rank:i+1};
+/* acquis : leçons acquises ; bornes : rang de la leçon où commencent les paliers 2, 3 et 4 ; total : leçons du parcours. */
+function accountLevel(acquis,bornes,total){
+  const T=Math.max(1,Number(total)||1),a=Math.max(0,Math.min(T,Number(acquis)||0));
+  const b=[0].concat((Array.isArray(bornes)?bornes:[]).slice(0,3).map(x=>Math.max(0,Math.min(T,Number(x)||0)))).concat([T]);
+  while(b.length<5)b.splice(b.length-1,0,T);
+  let i=0;
+  if(a>=T)i=4;else for(let k=1;k<4;k++)if(a>=b[k])i=k;
+  const band=ACCOUNT_LEVELS[i];
+  const pct=i===4?100:Math.max(0,Math.min(100,Math.round((a-b[i])/Math.max(1,b[i+1]-b[i])*100)));
+  return {label:band.label,next:band.next,etape:band.etape,pct,rank:i+1};
+}
+/* Le niveau de l’utilisateur : leçons faites, plus celles d’avant son point de départ (onboarding ou réglage du profil). */
+function niveauCompte(){
+  const ids=allLessons.map(l=>l.id),rang=id=>Math.max(0,ids.indexOf(id));
+  const jointures=(MODULES.find(m=>m.titre==='Jointures')||{lessons:[]}).lessons[0];
+  const bornes=[rang(NIVEAUX[1].from),jointures?rang(jointures.id):rang(NIVEAUX[2].from),rang(NIVEAUX[2].from)];
+  const depart=rang((NIVEAUX.find(n=>n.k===(state.plan&&state.plan.niveau))||NIVEAUX[0]).from);
+  const acquis=ids.filter((id,i)=>i<depart||itemDone(id)).length;
+  return accountLevel(acquis,bornes,ids.length);
+}
+/* Le badge de niveau, au style de la vitrine : une pastille jaune soleil avec le numéro du palier, puis son nom. */
+function lvlBadgeHTML(level,cls){
+  return `<span class="lvl-badge${cls?' '+cls:''}" role="img" aria-label="${escAttr(`Niveau ${level.rank} : ${level.label}`)}"><i aria-hidden="true"><span class="lvl-k">Niv.</span>${level.rank}</i><span aria-hidden="true">${esc(level.label)}</span></span>`;
 }
 const ACCT_OK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const ACCT_PEN_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10.5-10.5a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg>';
@@ -28145,7 +28163,7 @@ function renderCompte(){
   const CHEV=ACCT_CHEV;
   const plural=(n,word)=>`${n} ${word}${n>1?'s':''}`;
   const accountTitle=name||(connected?'Mon profil':'Ton espace Requête');
-  const level=accountLevel(progress.percent);
+  const level=niveauCompte();
   /* Ta semaine : les 7 jours du planning, à partir d’aujourd’hui, comme « Les 7 prochains jours » du Planning (Elisa, 30 octobre,
      22 h 11 : « c’est pas cette semaine, c’est aujourd’hui, du coup pour vendredi » : plus de lundi à jeudi en lunes avant l’inscription). */
   const DAY_NAMES=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
@@ -28190,7 +28208,7 @@ function renderCompte(){
     <section class="acct-hero" aria-label="Ton profil">
       <button type="button" class="acct-id" onclick="openPlusDetails('plus-profile-settings')" aria-label="${escAttr(`Modifier mon profil. ${accountTitle}${psMien()?`, pseudo ${psMien()}`:''}, niveau ${level.rank} : ${level.label}`)}">
         <span class="acct-avatar" aria-hidden="true">${esc(initial)}<i>${ACCT_PEN_SVG}</i></span>
-        <span class="acct-id-copy"><b>${esc(accountTitle)}</b>${psMien()?`<em class="acct-id-pseudo">${esc(psMien())}</em>`:''}<small>Niveau ${level.rank} · ${esc(level.label)}</small></span>
+        <span class="acct-id-copy"><b>${esc(accountTitle)}</b>${lvlBadgeHTML(level,'is-on-deep')}${psMien()?`<em class="acct-id-pseudo">${esc(psMien())}</em>`:''}</span>
       </button>
       <div class="acct-level" role="group" aria-label="${escAttr(`Prochain cap : ${level.next}, atteint à ${level.pct} %. ${progress.percent} % du parcours validé.`)}">
         <div class="acct-level-head" aria-hidden="true"><small>Prochain cap</small><em>${progress.percent} % du parcours</em></div>
@@ -28891,7 +28909,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-pieces-v2241';
+  const SW_CACHE='requete-2026-11-01-niveaux-v2242';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
