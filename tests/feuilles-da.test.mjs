@@ -109,7 +109,7 @@ test('la page d’un projet : carte violette, base en autocollant, pastille du t
 
 test('la question d’entretien : sur la carte violette, micro en autocollant, onde ; les libellés restent ceux de la vitrine', () => {
   const f = cut('function renderEntretienFocus(x){', 'function renderEntretien(opts){');
-  assert.ok(f.includes('<header class="ent-focus-hero">') && f.includes("lqStkSvg('mic')") && f.includes("lqStkSvg('bubble')") && f.includes('class="ent-coach-ico ent-wave"'));
+  assert.ok(f.includes('<header class="ent-focus-hero">') && f.includes("lqStkSvg('bulb')") && f.includes("lqStkSvg('bubble')") && f.includes('class="ent-coach-ico ent-wave"'));
   for (const l of ['Réponds à voix haute, puis compare.', 'À toi de répondre', 'Révéler la réponse', 'Réponse attendue'])
     assert.ok(f.includes(l), l);
   assert.match(f, /Comment évalues-tu ta réponse(\s|&nbsp;|\u00a0|\u202f)\?/);
