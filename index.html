@@ -9810,7 +9810,24 @@ const CHALLENGE_GUIDES={};
    inconnu 67.
    0 h 42 : nationalités toutes au féminin ; un avion repart toujours de l’aéroport où il vient d’atterrir le même jour ; les
    vols « presque complets » (6, 13, 19, 25, 31, 36) deviennent les six plus réservés (9 à 11 réservations, les autres 4 au
-   plus) — complets, c’est impossible avec 55 passagers et des avions de 100 à 368 places. */
+   plus) — complets, c’est impossible avec 55 passagers et des avions de 100 à 368 places.
+   9 h 53 : six bases de plus, « intègre les bases et corrige ce qu’il y a à corriger » (en attendant leurs défis, elles
+   s’explorent dans la Console). Booléens en 1 / 0 ; chaque remarque des fichiers est vraie dans les données, et :
+   Hôpital — les patients vus en pédiatrie sont des enfants ; Thomas Lefevre consulte aussi (seul Rémi Chevalier reste sans
+   consultation) ; un cardiologue soigne une arythmie, pas une angine.
+   Wok — un client commande après son inscription ; le menu du soir le soir ; Emma Rousseau sert aussi (seul Antoine Girard
+   n’a aucune commande).
+   Zoo — les éléphants quittent l’enclos des lions ; la « Fosse aux crocodiles », où vivent aussi les hippopotames, devient la
+   « Rivière africaine » ; chaque enclos habité a un soigneur en poste, qui donne les repas ; Matin / Midi / Soir selon l’heure ;
+   billet acheté après l’inscription.
+   Fromagerie — Comté, Bleu d’Auvergne et Saint-Nectaire chez des producteurs de leur région ; un lot se vend une fois affiné
+   (dates d’affinage avancées, numéros de lot à jour) ; prix = quantité × prix au kilo.
+   Laboratoire — grades et rôles écrits d’une seule façon ; un projet en cours sans date de fin ; « jour J » en février 2025 :
+   les expériences planifiées sont à venir, les résultats des expériences en cours pas encore obtenus, les publications en
+   préparation sans date ; chaque chercheur affecté au projet de ses expériences.
+   Agence de voyages — le nom du circuit 7 (« Islande » suivi de deux caractères chinois) devient « Tour de l’Islande » ; les circuits 14 et 18 sans réservation, comme annoncé ;
+   montant = prix × voyageurs, les « paiements à 0 € » deviennent des soldes après un acompte de 30 % ; guides qui parlent la
+   langue du pays ; un avis seulement sur une réservation confirmée. */
 const DEFI_BASES={
   aeroport:{nom:'Aéroport',
     /* Elisa, 1er novembre, 1 h 45 : la description de chaque table et de chaque colonne, affichée dans le schéma (défis et
@@ -10331,6 +10348,1918 @@ INSERT INTO bagages (id, reservation_id, poids_kg, statut) VALUES
 (126, 128, 20.80, 'Livré'),
 (127, 129, 23.10, 'Livré'),
 (128, 130, 16.70, 'Livré');
+`},
+  hopital:{nom:'Hôpital',
+    tables:{"services": "Les services de l’hôpital, chacun à son étage avec son nombre de lits.", "medecins": "Les médecins, chacun rattaché à un service, avec sa spécialité.", "infirmiers": "Le personnel infirmier, rattaché à un service.", "patients": "Toutes les personnes admises à l’hôpital, qu’elles aient déjà été vues ou non : la table de référence des patients.", "consultations": "Chaque rendez-vous d’un patient avec un médecin : sa date, sa durée et le diagnostic posé.", "hospitalisations": "Les séjours des patients dans un service, avec le médecin responsable, le lit et les dates d’entrée et de sortie.", "prescriptions": "Les médicaments prescrits pendant une consultation, avec leur dosage et la durée du traitement."},
+    cols:{"services": {"id": "Identifiant unique du service.", "nom": "Nom du service (ex. « Cardiologie », « Urgences »).", "etage": "Étage du service (0 = rez-de-chaussée).", "capacite_lits": "Nombre de lits du service."}, "medecins": {"id": "Identifiant unique du médecin.", "prenom": "Prénom du médecin.", "nom": "Nom de famille du médecin.", "specialite": "Spécialité (ex. « Cardiologue », « Pédiatre »).", "date_embauche": "Date d’arrivée à l’hôpital.", "service_id": "Service du médecin."}, "infirmiers": {"id": "Identifiant unique de l’infirmier ou de l’infirmière.", "prenom": "Prénom.", "nom": "Nom de famille.", "service_id": "Service d’affectation.", "date_embauche": "Date d’arrivée à l’hôpital."}, "patients": {"id": "Identifiant unique du patient.", "prenom": "Prénom du patient.", "nom": "Nom de famille du patient.", "date_naissance": "Date de naissance.", "sexe": "Sexe : « F » ou « M ».", "ville": "Ville de résidence.", "date_admission": "Date d’enregistrement à l’hôpital."}, "consultations": {"id": "Identifiant unique de la consultation.", "patient_id": "Patient reçu.", "medecin_id": "Médecin consulté.", "date_consultation": "Date de la consultation.", "duree_min": "Durée en minutes.", "diagnostic": "Diagnostic posé ; vide (NULL) s’il ne l’est pas encore."}, "hospitalisations": {"id": "Identifiant unique de l’hospitalisation.", "patient_id": "Patient hospitalisé.", "service_id": "Service d’accueil.", "medecin_id": "Médecin responsable du séjour.", "date_debut": "Date d’entrée.", "date_fin": "Date de sortie ; vide (NULL) si le patient est encore hospitalisé.", "lit": "Numéro du lit (ex. « C101 »)."}, "prescriptions": {"id": "Identifiant unique de la prescription.", "consultation_id": "Consultation pendant laquelle le médicament est prescrit.", "medicament": "Nom du médicament.", "dosage": "Dosage (ex. « 500 mg »).", "duree_jours": "Durée du traitement en jours."}},
+    desc:'Bienvenue dans un hôpital universitaire. Patients, médecins, services, consultations, hospitalisations et prescriptions : toutes les données nécessaires au suivi médical et à la gestion des services sont réunies ici. Explore la base pour résoudre les différentes missions.',
+    sql:`
+CREATE TABLE services (
+    id            INTEGER PRIMARY KEY,
+    nom           VARCHAR(80) NOT NULL,
+    etage         INTEGER     NOT NULL,
+    capacite_lits INTEGER     NOT NULL
+);
+
+CREATE TABLE medecins (
+    id            INTEGER PRIMARY KEY,
+    prenom        VARCHAR(50) NOT NULL,
+    nom           VARCHAR(50) NOT NULL,
+    specialite    VARCHAR(50) NOT NULL,
+    date_embauche DATE        NOT NULL,
+    service_id    INTEGER     NOT NULL,
+    FOREIGN KEY (service_id) REFERENCES services(id)
+);
+
+CREATE TABLE infirmiers (
+    id            INTEGER PRIMARY KEY,
+    prenom        VARCHAR(50) NOT NULL,
+    nom           VARCHAR(50) NOT NULL,
+    service_id    INTEGER     NOT NULL,
+    date_embauche DATE        NOT NULL,
+    FOREIGN KEY (service_id) REFERENCES services(id)
+);
+
+CREATE TABLE patients (
+    id             INTEGER PRIMARY KEY,
+    prenom         VARCHAR(50) NOT NULL,
+    nom            VARCHAR(50) NOT NULL,
+    date_naissance DATE        NOT NULL,
+    sexe           VARCHAR(1)  NOT NULL, -- 'M' ou 'F'
+    ville          VARCHAR(80) NOT NULL,
+    date_admission DATE        NOT NULL
+);
+
+CREATE TABLE consultations (
+    id                INTEGER PRIMARY KEY,
+    patient_id        INTEGER     NOT NULL,
+    medecin_id        INTEGER     NOT NULL,
+    date_consultation DATE        NOT NULL,
+    duree_min         INTEGER     NOT NULL,
+    diagnostic        VARCHAR(100),      -- nullable
+    FOREIGN KEY (patient_id) REFERENCES patients(id),
+    FOREIGN KEY (medecin_id) REFERENCES medecins(id)
+);
+
+CREATE TABLE hospitalisations (
+    id          INTEGER PRIMARY KEY,
+    patient_id  INTEGER NOT NULL,
+    service_id  INTEGER NOT NULL,
+    medecin_id  INTEGER NOT NULL,
+    date_debut  DATE    NOT NULL,
+    date_fin    DATE,                   -- NULL = hospitalisation en cours
+    lit         VARCHAR(10) NOT NULL,
+    FOREIGN KEY (patient_id) REFERENCES patients(id),
+    FOREIGN KEY (service_id) REFERENCES services(id),
+    FOREIGN KEY (medecin_id) REFERENCES medecins(id)
+);
+
+CREATE TABLE prescriptions (
+    id              INTEGER PRIMARY KEY,
+    consultation_id INTEGER     NOT NULL,
+    medicament      VARCHAR(80) NOT NULL,
+    dosage          VARCHAR(50) NOT NULL,
+    duree_jours     INTEGER     NOT NULL,
+    FOREIGN KEY (consultation_id) REFERENCES consultations(id)
+);
+
+INSERT INTO services (id, nom, etage, capacite_lits) VALUES
+(1, 'Cardiologie', 2, 20),
+(2, 'Pédiatrie', 3, 15),
+(3, 'Chirurgie générale', 1, 25),
+(4, 'Neurologie', 4, 12),
+(5, 'Oncologie', 5, 18),
+(6, 'Urgences', 0, 30);
+
+INSERT INTO medecins (id, prenom, nom, specialite, date_embauche, service_id) VALUES
+(1, 'Sophie', 'Martin', 'Cardiologue', '2015-03-01', 1),
+(2, 'Karim', 'Benali', 'Cardiologue', '2017-06-15', 1),
+(3, 'Laura', 'Dubois', 'Pédiatre', '2016-09-10', 2),
+(4, 'Thomas', 'Lefevre', 'Pédiatre', '2019-01-20', 2),
+(5, 'Nadia', 'Cherif', 'Chirurgien', '2014-04-05', 3),
+(6, 'Julien', 'Morel', 'Chirurgien', '2018-11-12', 3),
+(7, 'Emma', 'Rousseau', 'Neurologue', '2017-02-18', 4),
+(8, 'Antoine', 'Girard', 'Neurologue', '2020-09-01', 4),
+(9, 'Claire', 'Fontaine', 'Oncologue', '2013-05-22', 5),
+(10, 'Marc', 'Lambert', 'Oncologue', '2016-08-30', 5),
+(11, 'Julie', 'Perrin', 'Urgentiste', '2018-03-14', 6),
+(12, 'Pierre', 'Blanc', 'Urgentiste', '2015-12-01', 6),
+(13, 'Hélène', 'Guerin', 'Urgentiste', '2021-07-19', 6),
+(14, 'Rémi', 'Chevalier', 'Cardiologue', '2023-01-10', 1);
+
+INSERT INTO infirmiers (id, prenom, nom, service_id, date_embauche) VALUES
+(1, 'Amélie', 'Roux', 1, '2018-02-01'),
+(2, 'Benoît', 'Fournier', 1, '2019-05-15'),
+(3, 'Céline', 'Girard', 2, '2017-09-01'),
+(4, 'David', 'Bonnet', 3, '2016-03-10'),
+(5, 'Élodie', 'Lambert', 3, '2020-06-20'),
+(6, 'Fabien', 'Petit', 4, '2019-11-05'),
+(7, 'Gaëlle', 'Durand', 5, '2015-04-12'),
+(8, 'Hugo', 'Moreau', 5, '2021-01-25'),
+(9, 'Inès', 'Simon', 6, '2018-08-30'),
+(10, 'Julien', 'Michel', 6, '2022-03-15');
+
+INSERT INTO patients (id, prenom, nom, date_naissance, sexe, ville, date_admission) VALUES
+(1, 'Camille', 'Moreau', '1952-04-12', 'F', 'Paris', '2024-09-01'),
+(2, 'Hugo', 'Bernard', '1948-11-03', 'M', 'Lyon', '2024-09-02'),
+(3, 'Léa', 'Petit', '2014-07-21', 'F', 'Marseille', '2024-09-03'),
+(4, 'Noé', 'Durand', '2015-02-15', 'M', 'Paris', '2024-09-04'),
+(5, 'Emma', 'Roux', '1995-09-30', 'F', 'Toulouse', '2024-09-05'),
+(6, 'Lucas', 'Fournier', '1990-06-08', 'M', 'Bordeaux', '2024-09-06'),
+(7, 'Chloé', 'Girard', '1997-12-19', 'F', 'Nantes', '2024-09-07'),
+(8, 'Nathan', 'Bonnet', '1985-03-25', 'M', 'Lille', '2024-09-08'),
+(9, 'Manon', 'Lambert', '2000-08-14', 'F', 'Paris', '2024-09-09'),
+(10, 'Jules', 'Fontaine', '1973-01-07', 'M', 'Strasbourg', '2024-09-10'),
+(11, 'Anna', 'Schmidt', '1989-05-17', 'F', 'Lyon', '2024-09-11'),
+(12, 'Lukas', 'Weber', '1994-10-02', 'M', 'Grenoble', '2024-09-12'),
+(13, 'Sophie', 'Meyer', '1991-03-11', 'F', 'Nice', '2024-09-13'),
+(14, 'Felix', 'Wagner', '1966-08-23', 'M', 'Paris', '2024-09-14'),
+(15, 'João', 'Silva', '1980-04-05', 'M', 'Marseille', '2024-09-15'),
+(16, 'Maria', 'Costa', '2016-09-18', 'F', 'Lyon', '2024-09-16'),
+(17, 'Pedro', 'Santos', '1990-11-29', 'M', 'Toulouse', '2024-09-17'),
+(18, 'Lucia', 'Fernandez', '1992-02-22', 'F', 'Bordeaux', '2024-09-18'),
+(19, 'Diego', 'Ramirez', '1987-07-13', 'M', 'Nantes', '2024-09-19'),
+(20, 'Marta', 'Lopez', '2012-05-06', 'F', 'Lille', '2024-09-20'),
+(21, 'Oliver', 'Smith', '1951-12-01', 'M', 'Paris', '2024-09-21'),
+(22, 'Emily', 'Johnson', '2017-06-27', 'F', 'Lyon', '2024-09-22'),
+(23, 'Harry', 'Brown', '1990-09-09', 'M', 'Marseille', '2024-09-23'),
+(24, 'Chiara', 'Rossi', '1994-03-03', 'F', 'Nice', '2024-09-24'),
+(25, 'Marco', 'Ferrari', '1965-10-16', 'M', 'Paris', '2024-09-25'),
+(26, 'Giulia', 'Romano', '1998-08-08', 'F', 'Toulouse', '2024-09-26'),
+(27, 'Hans', 'Müller', '1948-05-20', 'M', 'Strasbourg', '2024-09-27'),
+(28, 'Elena', 'Keller', '1991-01-30', 'F', 'Grenoble', '2024-09-28'),
+(29, 'Franz', 'Bauer', '2013-07-04', 'M', 'Lyon', '2024-09-29'),
+(30, 'Lisa', 'Huber', '1999-11-11', 'F', 'Bordeaux', '2024-09-30'),
+(31, 'Daan', 'Jansen', '1984-04-24', 'M', 'Nantes', '2024-10-01'),
+(32, 'Sanne', 'de Vries', '2018-10-10', 'F', 'Lille', '2024-10-02'),
+(33, 'Sean', 'Murphy', '1983-02-18', 'M', 'Marseille', '2024-10-03'),
+(34, 'Aoife', 'Kelly', '2015-12-24', 'F', 'Nice', '2024-10-04'),
+(35, 'Lars', 'Nielsen', '1959-06-15', 'M', 'Paris', '2024-10-05'),
+(36, 'Freja', 'Hansen', '2019-09-05', 'F', 'Lyon', '2024-10-06'),
+(37, 'John', 'Miller', '1945-03-13', 'M', 'Strasbourg', '2024-10-07'),
+(38, 'Sarah', 'Davis', '1989-08-19', 'F', 'Toulouse', '2024-10-08'),
+(39, 'Kenji', 'Tanaka', '1982-11-07', 'M', 'Grenoble', '2024-10-09'),
+(40, 'Yuki', 'Sato', '1999-01-22', 'F', 'Bordeaux', '2024-10-10');
+
+INSERT INTO consultations (id, patient_id, medecin_id, date_consultation, duree_min, diagnostic) VALUES
+(1, 1, 1, '2024-09-05', 30, 'Hypertension'),
+(2, 2, 2, '2024-09-06', 25, 'Arythmie'),
+(3, 3, 3, '2024-09-07', 20, NULL),
+(4, 4, 3, '2024-09-08', 15, 'Otite'),
+(5, 5, 5, '2024-09-09', 45, 'Appendicite'),
+(6, 6, 6, '2024-09-10', 40, 'Hernie'),
+(7, 7, 7, '2024-09-11', 35, 'Migraine'),
+(8, 8, 8, '2024-09-12', 30, NULL),
+(9, 9, 9, '2024-09-13', 50, 'Leucémie'),
+(10, 10, 10, '2024-09-14', 45, 'Lymphome'),
+(11, 11, 11, '2024-09-15', 20, 'Entorse'),
+(12, 12, 12, '2024-09-16', 25, 'Fracture'),
+(13, 13, 13, '2024-09-17', 30, NULL),
+(14, 14, 1, '2024-09-18', 40, 'Insuffisance cardiaque'),
+(15, 15, 5, '2024-09-19', 35, 'Cholécystite'),
+(16, 16, 3, '2024-09-20', 20, 'Grippe'),
+(17, 17, 11, '2024-09-21', 15, 'Contusion'),
+(18, 18, 9, '2024-09-22', 45, 'Cancer du sein'),
+(19, 19, 7, '2024-09-23', 30, 'Épilepsie'),
+(20, 20, 3, '2024-09-24', 20, NULL),
+(21, 21, 2, '2024-09-25', 35, 'Arythmie'),
+(22, 22, 4, '2024-09-26', 20, 'Rhume'),
+(23, 23, 12, '2024-09-27', 25, 'Fracture'),
+(24, 24, 8, '2024-09-28', 30, 'Sclérose'),
+(25, 25, 1, '2024-09-29', 40, 'Infarctus'),
+(26, 26, 9, '2024-09-30', 50, 'Cancer du poumon'),
+(27, 27, 8, '2024-10-01', 30, 'AVC'),
+(28, 28, 10, '2024-10-02', 45, NULL),
+(29, 29, 3, '2024-10-03', 20, 'Gastro-entérite'),
+(30, 30, 11, '2024-10-04', 15, 'Entorse'),
+(31, 31, 12, '2024-10-05', 25, 'Fracture'),
+(32, 32, 3, '2024-10-06', 20, 'Angine'),
+(33, 33, 13, '2024-10-07', 15, NULL),
+(34, 34, 4, '2024-10-08', 20, 'Otite'),
+(35, 35, 1, '2024-10-09', 45, 'Insuffisance cardiaque'),
+(36, 36, 4, '2024-10-10', 20, 'Grippe'),
+(37, 37, 2, '2024-10-11', 35, 'Hypertension'),
+(38, 38, 11, '2024-10-12', 20, NULL),
+(39, 1, 1, '2024-10-15', 30, 'Hypertension'),
+(40, 2, 2, '2024-10-16', 25, 'Arythmie'),
+(41, 3, 3, '2024-10-17', 20, 'Otite'),
+(42, 5, 5, '2024-10-18', 45, 'Appendicite'),
+(43, 7, 7, '2024-10-19', 35, 'Migraine'),
+(44, 9, 9, '2024-10-20', 50, 'Leucémie'),
+(45, 11, 11, '2024-10-21', 20, 'Entorse');
+
+INSERT INTO hospitalisations (id, patient_id, service_id, medecin_id, date_debut, date_fin, lit) VALUES
+(1, 1, 1, 1, '2024-09-05', '2024-09-10', 'C101'),
+(2, 2, 1, 2, '2024-09-06', '2024-09-12', 'C102'),
+(3, 4, 2, 3, '2024-09-08', '2024-09-11', 'P201'),
+(4, 5, 3, 5, '2024-09-09', '2024-09-15', 'CH301'),
+(5, 6, 3, 6, '2024-09-10', '2024-09-18', 'CH302'),
+(6, 7, 4, 7, '2024-09-11', '2024-09-14', 'N401'),
+(7, 9, 5, 9, '2024-09-13', NULL, 'O501'),
+(8, 10, 5, 10, '2024-09-14', NULL, 'O502'),
+(9, 14, 1, 1, '2024-09-18', '2024-09-25', 'C103'),
+(10, 15, 3, 5, '2024-09-19', '2024-09-23', 'CH303'),
+(11, 18, 5, 9, '2024-09-22', NULL, 'O503'),
+(12, 19, 4, 7, '2024-09-23', '2024-09-30', 'N402'),
+(13, 21, 1, 2, '2024-09-25', '2024-10-02', 'C104'),
+(14, 24, 4, 8, '2024-09-28', NULL, 'N403'),
+(15, 25, 1, 1, '2024-09-29', NULL, 'C105'),
+(16, 26, 5, 9, '2024-09-30', NULL, 'O504'),
+(17, 27, 4, 8, '2024-10-01', NULL, 'N404'),
+(18, 28, 5, 10, '2024-10-02', '2024-10-10', 'O505'),
+(19, 31, 3, 5, '2024-10-05', NULL, 'CH304'),
+(20, 32, 2, 3, '2024-10-06', '2024-10-09', 'P202'),
+(21, 33, 6, 11, '2024-10-07', NULL, 'U001'),
+(22, 34, 2, 3, '2024-10-08', NULL, 'P203'),
+(23, 35, 1, 1, '2024-10-09', NULL, 'C106'),
+(24, 37, 6, 12, '2024-10-11', NULL, 'U002'),
+(25, 38, 6, 11, '2024-10-12', NULL, 'U003');
+
+INSERT INTO prescriptions (id, consultation_id, medicament, dosage, duree_jours) VALUES
+(1, 1, 'Amlodipine', '5 mg', 30),
+(2, 1, 'Aspirine', '100 mg', 30),
+(3, 2, 'Bisoprolol', '2.5 mg', 30),
+(4, 4, 'Paracétamol', '500 mg', 5),
+(5, 5, 'Ibuprofène', '400 mg', 3),
+(6, 6, 'Paracétamol', '1 g', 5),
+(7, 7, 'Sumatriptan', '50 mg', 10),
+(8, 9, 'Imatinib', '400 mg', 90),
+(9, 10, 'Rituximab', '375 mg', 21),
+(10, 11, 'Ibuprofène', '400 mg', 5),
+(11, 12, 'Paracétamol', '1 g', 7),
+(12, 14, 'Furosémide', '40 mg', 30),
+(13, 15, 'Amoxicilline', '1 g', 7),
+(14, 16, 'Paracétamol', '500 mg', 5),
+(15, 17, 'Ibuprofène', '400 mg', 3),
+(16, 18, 'Tamoxifène', '20 mg', 90),
+(17, 19, 'Carbamazépine', '200 mg', 30),
+(18, 21, 'Bisoprolol', '2.5 mg', 30),
+(19, 22, 'Paracétamol', '500 mg', 5),
+(20, 23, 'Paracétamol', '1 g', 7),
+(21, 24, 'Interféron', '22 µg', 30),
+(22, 25, 'Aspirine', '100 mg', 30),
+(23, 26, 'Cisplatine', '50 mg', 21),
+(24, 27, 'Aspirine', '100 mg', 30),
+(25, 29, 'Smecta', '3 g', 5),
+(26, 30, 'Ibuprofène', '400 mg', 5),
+(27, 31, 'Paracétamol', '1 g', 7),
+(28, 32, 'Amoxicilline', '1 g', 7),
+(29, 34, 'Paracétamol', '500 mg', 5),
+(30, 35, 'Furosémide', '40 mg', 30),
+(31, 36, 'Paracétamol', '500 mg', 5),
+(32, 37, 'Amlodipine', '5 mg', 30),
+(33, 39, 'Amlodipine', '5 mg', 30),
+(34, 40, 'Bisoprolol', '2.5 mg', 30),
+(35, 41, 'Paracétamol', '500 mg', 5),
+(36, 42, 'Ibuprofène', '400 mg', 3),
+(37, 43, 'Sumatriptan', '50 mg', 10),
+(38, 44, 'Imatinib', '400 mg', 90),
+(39, 45, 'Ibuprofène', '400 mg', 5),
+(40, 3, 'Paracétamol', '500 mg', 3),
+(41, 8, 'Ibuprofène', '400 mg', 5),
+(42, 13, 'Paracétamol', '1 g', 5),
+(43, 20, 'Paracétamol', '500 mg', 3),
+(44, 28, 'Paracétamol', '1 g', 5),
+(45, 33, 'Ibuprofène', '400 mg', 3),
+(46, 38, 'Paracétamol', '500 mg', 5),
+(47, 1, 'Atorvastatine', '20 mg', 30),
+(48, 9, 'Acide folique', '5 mg', 30),
+(49, 10, 'Prednisone', '40 mg', 14),
+(50, 14, 'Bisoprolol', '2.5 mg', 30),
+(51, 18, 'Anastrozole', '1 mg', 30),
+(52, 24, 'Baclofène', '10 mg', 30),
+(53, 25, 'Clopidogrel', '75 mg', 30),
+(54, 26, 'Pémétrexed', '500 mg', 21),
+(55, 27, 'Clopidogrel', '75 mg', 30),
+(56, 35, 'Bisoprolol', '2.5 mg', 30),
+(57, 37, 'Atorvastatine', '20 mg', 30),
+(58, 39, 'Atorvastatine', '20 mg', 30),
+(59, 44, 'Acide folique', '5 mg', 30),
+(60, 2, 'Apixaban', '5 mg', 30);
+`},
+  wok:{nom:'Wok',
+    tables:{"categories": "Les rubriques de la carte : entrées, plats au wok, spécialités, desserts, boissons et menus.", "plats": "La carte du restaurant : chaque plat avec sa catégorie, son prix et sa disponibilité.", "ingredients": "Les ingrédients en réserve, avec leur stock et le seuil sous lequel il faut en recommander.", "plats_ingredients": "Le lien entre plats et ingrédients : la quantité de chaque ingrédient dans une portion.", "clients": "Les clients qui ont un compte au restaurant, qu’ils aient déjà commandé ou non.", "serveurs": "L’équipe en salle, avec la date d’embauche et le salaire.", "tables_resto": "Les tables du restaurant, leur nombre de places et leur emplacement.", "commandes": "La table centrale : chaque commande, avec son client, son serveur, sa table, sa date, son heure et son statut.", "lignes_commande": "Le détail des commandes : chaque ligne est un plat commandé, avec sa quantité et son prix à l’unité.", "avis": "Les notes laissées par les clients après une commande."},
+    cols:{"categories": {"id": "Identifiant unique de la catégorie.", "nom": "Nom de la catégorie (ex. « Entrées », « Menus »).", "description": "Ce que contient la catégorie."}, "plats": {"id": "Identifiant unique du plat.", "nom": "Nom du plat.", "categorie_id": "Catégorie du plat.", "prix": "Prix en euros.", "disponible": "1 si le plat est à la carte aujourd’hui, 0 sinon."}, "ingredients": {"id": "Identifiant unique de l’ingrédient.", "nom": "Nom de l’ingrédient.", "unite": "Unité du stock : « kg », « L » ou « pièce ».", "stock": "Quantité en réserve, dans son unité.", "seuil_alerte": "Seuil sous lequel il faut recommander."}, "plats_ingredients": {"id": "Identifiant unique de la ligne.", "plat_id": "Plat concerné.", "ingredient_id": "Ingrédient utilisé.", "quantite": "Quantité par portion, dans l’unité de l’ingrédient."}, "clients": {"id": "Identifiant unique du client.", "prenom": "Prénom du client.", "nom": "Nom de famille du client.", "email": "Adresse e-mail, unique.", "telephone": "Numéro de téléphone.", "date_inscription": "Date de création du compte."}, "serveurs": {"id": "Identifiant unique du serveur.", "prenom": "Prénom.", "nom": "Nom de famille.", "date_embauche": "Date d’embauche.", "salaire": "Salaire mensuel brut en euros."}, "tables_resto": {"id": "Identifiant unique de la table.", "numero": "Numéro affiché sur la table.", "nb_places": "Nombre de places.", "emplacement": "« Salle », « Terrasse » ou « Bar »."}, "commandes": {"id": "Identifiant unique de la commande.", "client_id": "Client qui commande ; vide (NULL) pour un client de passage, sans compte.", "serveur_id": "Serveur qui prend la commande.", "table_id": "Table servie.", "date_commande": "Date de la commande.", "heure_commande": "Heure de la commande.", "nb_personnes": "Nombre de convives.", "statut": "« En cours », « Servie », « Payée » ou « Annulée »."}, "lignes_commande": {"id": "Identifiant unique de la ligne.", "commande_id": "Commande concernée.", "plat_id": "Plat commandé.", "quantite": "Nombre de portions.", "prix_unitaire": "Prix d’une portion au moment de la commande."}, "avis": {"id": "Identifiant unique de l’avis.", "client_id": "Client qui donne son avis.", "commande_id": "Commande notée.", "note": "Note de 1 à 5.", "commentaire": "Commentaire ; vide (NULL) si le client n’a laissé qu’une note."}},
+    desc:'Bienvenue dans un restaurant wok en pleine effervescence. Plats, ingrédients, commandes, clients, serveurs et stocks : toutes les données nécessaires au service et à la gestion du restaurant sont réunies ici. Explore la base pour résoudre les différentes missions.',
+    sql:`
+CREATE TABLE categories (
+    id   INTEGER PRIMARY KEY,
+    nom  VARCHAR(50) NOT NULL,
+    description VARCHAR(150)
+);
+
+CREATE TABLE plats (
+    id           INTEGER PRIMARY KEY,
+    nom          VARCHAR(80)  NOT NULL,
+    categorie_id INTEGER      NOT NULL,
+    prix         NUMERIC(6,2) NOT NULL,
+    disponible   BOOLEAN      NOT NULL, -- 1 = oui, 0 = non
+    FOREIGN KEY (categorie_id) REFERENCES categories(id)
+);
+
+CREATE TABLE ingredients (
+    id        INTEGER PRIMARY KEY,
+    nom       VARCHAR(80) NOT NULL,
+    unite     VARCHAR(20) NOT NULL, -- kg, L, pièce
+    stock     NUMERIC(8,2) NOT NULL,
+    seuil_alerte NUMERIC(8,2) NOT NULL
+);
+
+CREATE TABLE plats_ingredients (
+    id            INTEGER PRIMARY KEY,
+    plat_id       INTEGER NOT NULL,
+    ingredient_id INTEGER NOT NULL,
+    quantite      NUMERIC(6,3) NOT NULL,
+    FOREIGN KEY (plat_id) REFERENCES plats(id),
+    FOREIGN KEY (ingredient_id) REFERENCES ingredients(id)
+);
+
+CREATE TABLE clients (
+    id          INTEGER PRIMARY KEY,
+    prenom      VARCHAR(50) NOT NULL,
+    nom         VARCHAR(50) NOT NULL,
+    email       VARCHAR(120) UNIQUE,
+    telephone   VARCHAR(20),
+    date_inscription DATE NOT NULL
+);
+
+CREATE TABLE serveurs (
+    id           INTEGER PRIMARY KEY,
+    prenom       VARCHAR(50) NOT NULL,
+    nom          VARCHAR(50) NOT NULL,
+    date_embauche DATE       NOT NULL,
+    salaire      NUMERIC(8,2) NOT NULL
+);
+
+CREATE TABLE tables_resto (
+    id          INTEGER PRIMARY KEY,
+    numero      INTEGER NOT NULL,
+    nb_places   INTEGER NOT NULL,
+    emplacement VARCHAR(30) NOT NULL -- Salle, Terrasse, Bar
+);
+
+CREATE TABLE commandes (
+    id             INTEGER PRIMARY KEY,
+    client_id      INTEGER,           -- nullable : commande sans compte client
+    serveur_id     INTEGER NOT NULL,
+    table_id       INTEGER NOT NULL,
+    date_commande  DATE    NOT NULL,
+    heure_commande TIME    NOT NULL,
+    nb_personnes   INTEGER NOT NULL,
+    statut         VARCHAR(20) NOT NULL, -- En cours, Servie, Payée, Annulée
+    FOREIGN KEY (client_id)  REFERENCES clients(id),
+    FOREIGN KEY (serveur_id) REFERENCES serveurs(id),
+    FOREIGN KEY (table_id)   REFERENCES tables_resto(id)
+);
+
+CREATE TABLE lignes_commande (
+    id             INTEGER PRIMARY KEY,
+    commande_id    INTEGER      NOT NULL,
+    plat_id        INTEGER      NOT NULL,
+    quantite       INTEGER      NOT NULL,
+    prix_unitaire  NUMERIC(6,2) NOT NULL,
+    FOREIGN KEY (commande_id) REFERENCES commandes(id),
+    FOREIGN KEY (plat_id)     REFERENCES plats(id)
+);
+
+CREATE TABLE avis (
+    id           INTEGER PRIMARY KEY,
+    client_id    INTEGER NOT NULL,
+    commande_id  INTEGER NOT NULL,
+    note         INTEGER NOT NULL CHECK (note BETWEEN 1 AND 5),
+    commentaire  VARCHAR(255), -- nullable
+    FOREIGN KEY (client_id)   REFERENCES clients(id),
+    FOREIGN KEY (commande_id) REFERENCES commandes(id)
+);
+
+INSERT INTO categories (id, nom, description) VALUES
+(1, 'Entrées', 'Nems, rouleaux, soupes'),
+(2, 'Plats au wok', 'Nouilles et riz sautés au wok'),
+(3, 'Spécialités', 'Plats signature du chef'),
+(4, 'Desserts', 'Douceurs asiatiques'),
+(5, 'Boissons', 'Thés, sodas, bières'),
+(6, 'Menus', 'Formules complètes');
+
+INSERT INTO plats (id, nom, categorie_id, prix, disponible) VALUES
+(1, 'Nems au poulet', 1, 4.5, 1),
+(2, 'Rouleaux de printemps', 1, 5, 1),
+(3, 'Soupe miso', 1, 3.5, 1),
+(4, 'Raviolis vapeur', 1, 6, 1),
+(5, 'Wok de nouilles au bœuf', 2, 12.5, 1),
+(6, 'Riz sauté aux légumes', 2, 10, 1),
+(7, 'Wok de poulet curry', 2, 12, 1),
+(8, 'Nouilles sautées aux crevettes', 2, 13.5, 1),
+(9, 'Canard laqué', 3, 18, 1),
+(10, 'Bœuf aux oignons', 3, 15.5, 1),
+(11, 'Poisson vapeur thaï', 3, 16, 0),
+(12, 'Perles de coco', 4, 4, 1),
+(13, 'Mochis glacés', 4, 5.5, 1),
+(14, 'Beignets de banane', 4, 4.5, 1),
+(15, 'Thé jasmin', 5, 2.5, 1),
+(16, 'Soda citron', 5, 3, 1),
+(17, 'Bière asiatique', 5, 4.5, 1),
+(18, 'Menu midi', 6, 13.9, 1),
+(19, 'Menu soir', 6, 19.9, 1),
+(20, 'Menu enfant', 6, 8.5, 1);
+
+INSERT INTO ingredients (id, nom, unite, stock, seuil_alerte) VALUES
+(1, 'Nouilles', 'kg', 45, 10),
+(2, 'Riz', 'kg', 60, 15),
+(3, 'Poulet', 'kg', 25, 8),
+(4, 'Bœuf', 'kg', 18, 6),
+(5, 'Crevettes', 'kg', 8, 5),
+(6, 'Légumes variés', 'kg', 30, 10),
+(7, 'Sauce soja', 'L', 12, 4),
+(8, 'Curry', 'kg', 3, 2),
+(9, 'Farine', 'kg', 20, 5),
+(10, 'Sucre', 'kg', 15, 5),
+(11, 'Coco', 'kg', 6, 3),
+(12, 'Banane', 'pièce', 40, 10),
+(13, 'Thé jasmin', 'kg', 2.5, 1),
+(14, 'Canard', 'kg', 5, 3),
+(15, 'Poisson', 'kg', 2, 4);
+
+INSERT INTO plats_ingredients (id, plat_id, ingredient_id, quantite) VALUES
+(1, 1, 3, 0.15),
+(2, 1, 9, 0.1),
+(3, 2, 6, 0.1),
+(4, 2, 9, 0.05),
+(5, 3, 7, 0.05),
+(6, 4, 9, 0.12),
+(7, 5, 1, 0.2),
+(8, 5, 4, 0.15),
+(9, 6, 2, 0.2),
+(10, 6, 6, 0.15),
+(11, 7, 1, 0.2),
+(12, 7, 3, 0.15),
+(13, 7, 8, 0.02),
+(14, 8, 1, 0.2),
+(15, 8, 5, 0.12),
+(16, 9, 14, 0.25),
+(17, 9, 7, 0.05),
+(18, 10, 4, 0.2),
+(19, 10, 7, 0.05),
+(20, 11, 15, 0.25),
+(21, 12, 11, 0.1),
+(22, 12, 10, 0.08),
+(23, 13, 10, 0.06),
+(24, 14, 12, 2),
+(25, 14, 9, 0.1),
+(26, 15, 13, 0.005),
+(27, 16, 10, 0.03),
+(28, 18, 1, 0.15),
+(29, 18, 3, 0.1),
+(30, 19, 1, 0.2);
+
+INSERT INTO clients (id, prenom, nom, email, telephone, date_inscription) VALUES
+(1, 'Camille', 'Moreau', 'camille.moreau@mail.fr', '0601020304', '2024-01-10'),
+(2, 'Hugo', 'Bernard', 'hugo.bernard@mail.fr', '0602030405', '2024-01-15'),
+(3, 'Léa', 'Petit', 'lea.petit@mail.fr', '0603040506', '2024-02-01'),
+(4, 'Noé', 'Durand', 'noe.durand@mail.fr', '0604050607', '2024-02-10'),
+(5, 'Emma', 'Roux', 'emma.roux@mail.fr', '0605060708', '2024-03-05'),
+(6, 'Lucas', 'Fournier', 'lucas.fournier@mail.fr', '0606070809', '2024-03-12'),
+(7, 'Chloé', 'Girard', 'chloe.girard@mail.fr', '0607080910', '2024-03-20'),
+(8, 'Nathan', 'Bonnet', 'nathan.bonnet@mail.fr', '0608091011', '2024-04-02'),
+(9, 'Manon', 'Lambert', 'manon.lambert@mail.fr', '0609101112', '2024-04-15'),
+(10, 'Jules', 'Fontaine', 'jules.fontaine@mail.fr', '0610111213', '2024-04-20'),
+(11, 'Anna', 'Schmidt', 'anna.schmidt@mail.de', '0611121314', '2024-05-01'),
+(12, 'Lukas', 'Weber', 'lukas.weber@mail.de', '0612131415', '2024-05-10'),
+(13, 'Sophie', 'Meyer', 'sophie.meyer@mail.de', '0613141516', '2024-05-15'),
+(14, 'Felix', 'Wagner', 'felix.wagner@mail.de', '0614151617', '2024-06-01'),
+(15, 'João', 'Silva', 'joao.silva@mail.pt', '0615161718', '2024-06-10'),
+(16, 'Maria', 'Costa', 'maria.costa@mail.pt', '0616171819', '2024-06-15'),
+(17, 'Pedro', 'Santos', 'pedro.santos@mail.pt', '0617181920', '2024-07-01'),
+(18, 'Lucia', 'Fernandez', 'lucia.fernandez@mail.es', '0618192021', '2024-07-10'),
+(19, 'Diego', 'Ramirez', 'diego.ramirez@mail.es', '0619202122', '2024-07-15'),
+(20, 'Marta', 'Lopez', 'marta.lopez@mail.es', '0620212223', '2024-08-01'),
+(21, 'Oliver', 'Smith', 'oliver.smith@mail.uk', '0621222324', '2024-08-10'),
+(22, 'Emily', 'Johnson', 'emily.johnson@mail.uk', '0622232425', '2024-08-15'),
+(23, 'Harry', 'Brown', 'harry.brown@mail.uk', '0623242526', '2024-09-01'),
+(24, 'Chiara', 'Rossi', 'chiara.rossi@mail.it', '0624252627', '2024-09-10'),
+(25, 'Marco', 'Ferrari', 'marco.ferrari@mail.it', '0625262728', '2024-09-11'),
+(26, 'Giulia', 'Romano', 'giulia.romano@mail.it', '0626272829', '2024-09-12'),
+(27, 'Hans', 'Müller', 'hans.muller@mail.ch', '0627282930', '2024-09-13'),
+(28, 'Elena', 'Keller', 'elena.keller@mail.ch', '0628293031', '2024-10-15'),
+(29, 'Franz', 'Bauer', 'franz.bauer@mail.at', '0629303132', '2024-11-01'),
+(30, 'Lisa', 'Huber', 'lisa.huber@mail.at', '0630313233', '2024-11-10');
+
+INSERT INTO serveurs (id, prenom, nom, date_embauche, salaire) VALUES
+(1, 'Sophie', 'Martin', '2020-03-01', 2100),
+(2, 'Karim', 'Benali', '2021-06-15', 2000),
+(3, 'Laura', 'Dubois', '2019-09-10', 2200),
+(4, 'Thomas', 'Lefevre', '2022-01-20', 1950),
+(5, 'Nadia', 'Cherif', '2023-04-05', 1850),
+(6, 'Julien', 'Morel', '2020-11-12', 2050),
+(7, 'Emma', 'Rousseau', '2024-02-18', 1800),
+(8, 'Antoine', 'Girard', '2024-09-01', 1800);
+
+INSERT INTO tables_resto (id, numero, nb_places, emplacement) VALUES
+(1, 1, 2, 'Salle'),
+(2, 2, 2, 'Salle'),
+(3, 3, 4, 'Salle'),
+(4, 4, 4, 'Salle'),
+(5, 5, 6, 'Terrasse'),
+(6, 6, 6, 'Terrasse'),
+(7, 7, 4, 'Terrasse'),
+(8, 8, 2, 'Bar'),
+(9, 9, 2, 'Bar'),
+(10, 10, 8, 'Salle');
+
+INSERT INTO commandes (id, client_id, serveur_id, table_id, date_commande, heure_commande, nb_personnes, statut) VALUES
+(1, 1, 1, 1, '2024-09-01', '12:15', 2, 'Payée'),
+(2, 2, 2, 3, '2024-09-01', '12:30', 4, 'Payée'),
+(3, 3, 3, 5, '2024-09-01', '13:00', 5, 'Payée'),
+(4, 4, 4, 8, '2024-09-02', '19:00', 2, 'Payée'),
+(5, 5, 5, 2, '2024-09-02', '19:30', 2, 'Payée'),
+(6, 6, 6, 4, '2024-09-03', '12:00', 4, 'Payée'),
+(7, 7, 1, 6, '2024-09-03', '20:00', 6, 'Payée'),
+(8, NULL, 2, 9, '2024-09-04', '12:45', 2, 'Payée'),
+(9, 8, 3, 7, '2024-09-04', '13:15', 4, 'Payée'),
+(10, 9, 4, 10, '2024-09-05', '19:15', 8, 'Payée'),
+(11, 10, 5, 1, '2024-09-05', '20:00', 2, 'Payée'),
+(12, 11, 6, 3, '2024-09-06', '12:30', 4, 'Payée'),
+(13, 12, 1, 5, '2024-09-06', '13:00', 6, 'Payée'),
+(14, 13, 2, 2, '2024-09-07', '19:45', 2, 'Payée'),
+(15, 14, 3, 4, '2024-09-07', '20:15', 4, 'Payée'),
+(16, 15, 4, 6, '2024-09-08', '12:00', 6, 'Payée'),
+(17, 16, 5, 8, '2024-09-08', '12:30', 2, 'Payée'),
+(18, 17, 6, 9, '2024-09-09', '13:15', 2, 'Payée'),
+(19, 18, 1, 10, '2024-09-09', '19:00', 8, 'Payée'),
+(20, 19, 2, 1, '2024-09-10', '19:30', 2, 'Payée'),
+(21, 20, 3, 3, '2024-09-10', '20:00', 4, 'Payée'),
+(22, NULL, 4, 5, '2024-09-11', '12:15', 6, 'Payée'),
+(23, 21, 5, 7, '2024-09-11', '13:00', 4, 'Payée'),
+(24, 22, 6, 2, '2024-09-12', '19:15', 2, 'Payée'),
+(25, 23, 1, 4, '2024-09-12', '20:30', 4, 'Payée'),
+(26, 24, 2, 6, '2024-09-13', '12:00', 6, 'Payée'),
+(27, 25, 3, 8, '2024-09-13', '12:45', 2, 'Payée'),
+(28, 26, 4, 9, '2024-09-14', '13:30', 2, 'Payée'),
+(29, 27, 5, 10, '2024-09-14', '19:00', 8, 'Payée'),
+(30, 1, 6, 3, '2024-09-15', '19:30', 4, 'Payée'),
+(31, 2, 1, 5, '2024-09-16', '12:15', 5, 'Payée'),
+(32, 3, 2, 7, '2024-09-17', '13:00', 4, 'Payée'),
+(33, 4, 7, 1, '2024-09-18', '19:15', 2, 'En cours'),
+(34, 5, 4, 2, '2024-09-19', '20:00', 2, 'En cours'),
+(35, 6, 5, 4, '2024-09-20', '12:30', 4, 'Servie'),
+(36, 7, 7, 6, '2024-09-21', '13:00', 6, 'Servie'),
+(37, 8, 1, 8, '2024-09-22', '19:45', 2, 'Annulée'),
+(38, 9, 2, 9, '2024-09-23', '20:15', 2, 'Annulée'),
+(39, NULL, 7, 3, '2024-09-24', '12:00', 4, 'Payée'),
+(40, 10, 4, 10, '2024-09-25', '19:30', 8, 'Payée');
+
+INSERT INTO lignes_commande (id, commande_id, plat_id, quantite, prix_unitaire) VALUES
+(1, 1, 5, 1, 12.5),
+(2, 1, 15, 2, 2.5),
+(3, 2, 1, 2, 4.5),
+(4, 2, 7, 2, 12),
+(5, 2, 15, 4, 2.5),
+(6, 3, 6, 2, 10),
+(7, 3, 9, 1, 18),
+(8, 3, 12, 2, 4),
+(9, 3, 16, 3, 3),
+(10, 4, 10, 1, 15.5),
+(11, 4, 17, 2, 4.5),
+(12, 5, 8, 1, 13.5),
+(13, 5, 5, 1, 12.5),
+(14, 6, 5, 2, 12.5),
+(15, 6, 6, 2, 10),
+(16, 7, 19, 4, 19.9),
+(17, 7, 15, 4, 2.5),
+(18, 8, 7, 1, 12),
+(19, 8, 15, 2, 2.5),
+(20, 9, 9, 1, 18),
+(21, 9, 1, 2, 4.5),
+(22, 10, 19, 6, 19.9),
+(23, 10, 17, 4, 4.5),
+(24, 11, 5, 1, 12.5),
+(25, 11, 13, 1, 5.5),
+(26, 12, 6, 2, 10),
+(27, 12, 15, 4, 2.5),
+(28, 13, 18, 4, 13.9),
+(29, 14, 7, 1, 12),
+(30, 14, 12, 1, 4),
+(31, 15, 10, 2, 15.5),
+(32, 15, 16, 2, 3),
+(33, 16, 18, 4, 13.9),
+(34, 17, 5, 1, 12.5),
+(35, 17, 15, 1, 2.5),
+(36, 18, 8, 1, 13.5),
+(37, 18, 13, 1, 5.5),
+(38, 19, 19, 6, 19.9),
+(39, 20, 6, 1, 10),
+(40, 20, 15, 1, 2.5),
+(41, 21, 5, 2, 12.5),
+(42, 21, 12, 2, 4),
+(43, 22, 18, 4, 13.9),
+(44, 23, 9, 1, 18),
+(45, 23, 15, 2, 2.5),
+(46, 24, 7, 1, 12),
+(47, 24, 13, 1, 5.5),
+(48, 25, 10, 1, 15.5),
+(49, 25, 17, 2, 4.5),
+(50, 26, 18, 4, 13.9),
+(51, 27, 8, 1, 13.5),
+(52, 27, 15, 1, 2.5),
+(53, 28, 5, 1, 12.5),
+(54, 28, 12, 1, 4),
+(55, 29, 19, 6, 19.9),
+(56, 30, 6, 2, 10),
+(57, 30, 15, 4, 2.5),
+(58, 31, 18, 4, 13.9),
+(59, 32, 8, 1, 13.5),
+(60, 32, 13, 1, 5.5),
+(61, 33, 5, 1, 12.5),
+(62, 33, 15, 1, 2.5),
+(63, 34, 7, 1, 12),
+(64, 35, 6, 2, 10),
+(65, 35, 16, 2, 3),
+(66, 36, 18, 4, 13.9),
+(67, 37, 9, 1, 18),
+(68, 38, 5, 1, 12.5),
+(69, 39, 7, 2, 12),
+(70, 39, 15, 4, 2.5),
+(71, 40, 19, 6, 19.9),
+(72, 40, 17, 2, 4.5);
+
+INSERT INTO avis (id, client_id, commande_id, note, commentaire) VALUES
+(1, 1, 1, 5, 'Excellent wok, service rapide.'),
+(2, 2, 2, 4, 'Bon repas, un peu bruyant.'),
+(3, 3, 3, 5, NULL),
+(4, 4, 4, 3, 'Correct sans plus.'),
+(5, 5, 5, 4, 'Très bon curry.'),
+(6, 6, 6, 5, 'Parfait pour le midi.'),
+(7, 7, 7, 4, NULL),
+(8, 8, 9, 5, 'Le canard laqué est délicieux.'),
+(9, 9, 10, 4, 'Menu soir généreux.'),
+(10, 10, 11, 3, 'Un peu d’attente.'),
+(11, 11, 12, 4, 'Nouilles savoureuses.'),
+(12, 12, 13, 5, 'Top !'),
+(13, 13, 14, 3, NULL),
+(14, 14, 15, 4, 'Bonne ambiance.'),
+(15, 15, 16, 5, 'Menu midi excellent rapport qualité-prix.'),
+(16, 16, 17, 4, NULL),
+(17, 17, 18, 3, 'Crevettes un peu trop cuites.'),
+(18, 18, 19, 5, 'Soirée parfaite.'),
+(19, 19, 20, 4, 'Service agréable.'),
+(20, 20, 21, 5, 'Je reviendrai.');
+`},
+  zoo:{nom:'Zoo',
+    tables:{"especes": "Les espèces présentes au zoo, avec leur classe, leur régime et leur statut de conservation.", "enclos": "Les enclos du parc, leur type, leur surface et le nombre d’animaux qu’ils peuvent accueillir.", "animaux": "La table centrale : chaque animal du zoo, avec son espèce, son enclos et ses informations.", "soigneurs": "L’équipe des soigneurs et leur spécialité.", "affectations_soigneurs": "Qui s’occupe de quel enclos, et depuis quand.", "repas": "Les repas donnés aux animaux, par un soigneur ou par un nourrisseur automatique.", "visiteurs": "Les visiteurs qui ont un compte, qu’ils soient déjà venus ou non.", "billets": "Les billets d’entrée vendus, avec leur type et leur prix.", "avis": "Les notes laissées par les visiteurs après leur visite."},
+    cols:{"especes": {"id": "Identifiant unique de l’espèce.", "nom_scientifique": "Nom latin (ex. « Panthera leo »).", "nom_commun": "Nom courant (ex. « Lion »).", "classe": "« Mammifère », « Oiseau » ou « Reptile ».", "regime": "« Carnivore », « Herbivore » ou « Omnivore ».", "statut_conservation": "Statut UICN : LC (préoccupation mineure), NT, VU, EN, CR (en danger critique)."}, "enclos": {"id": "Identifiant unique de l’enclos.", "nom": "Nom de l’enclos.", "type": "Type de milieu (ex. « Savane », « Volière »).", "surface_m2": "Surface en mètres carrés.", "capacite": "Nombre maximal d’animaux."}, "animaux": {"id": "Identifiant unique de l’animal.", "nom": "Nom donné à l’animal.", "espece_id": "Espèce de l’animal.", "enclos_id": "Enclos où il vit.", "date_naissance": "Date de naissance.", "sexe": "Sexe : « F » ou « M ».", "poids_kg": "Poids en kilos ; vide (NULL) s’il n’a pas encore été pesé.", "date_arrivee": "Date d’arrivée au zoo."}, "soigneurs": {"id": "Identifiant unique du soigneur.", "prenom": "Prénom.", "nom": "Nom de famille.", "specialite": "Spécialité (ex. « Reptiles », « Primates »).", "date_embauche": "Date d’embauche."}, "affectations_soigneurs": {"id": "Identifiant unique de l’affectation.", "soigneur_id": "Soigneur affecté.", "enclos_id": "Enclos dont il s’occupe.", "date_debut": "Début de l’affectation.", "date_fin": "Fin de l’affectation ; vide (NULL) si elle est toujours en cours."}, "repas": {"id": "Identifiant unique du repas.", "animal_id": "Animal nourri.", "soigneur_id": "Soigneur qui donne le repas ; vide (NULL) pour un repas automatique.", "date_repas": "Date du repas.", "heure_repas": "Heure du repas.", "type_repas": "« Matin », « Midi » ou « Soir ».", "quantite_kg": "Quantité de nourriture en kilos."}, "visiteurs": {"id": "Identifiant unique du visiteur.", "prenom": "Prénom.", "nom": "Nom de famille.", "email": "Adresse e-mail, unique.", "ville": "Ville de résidence.", "date_inscription": "Date de création du compte."}, "billets": {"id": "Identifiant unique du billet.", "visiteur_id": "Visiteur qui a acheté le billet ; vide (NULL) pour un billet acheté au guichet, sans compte.", "date_visite": "Date de la visite.", "type_billet": "« Adulte », « Enfant », « Étudiant », « Senior » ou « Famille ».", "prix": "Prix en euros."}, "avis": {"id": "Identifiant unique de l’avis.", "visiteur_id": "Visiteur qui donne son avis.", "date_avis": "Date de l’avis.", "note": "Note de 1 à 5.", "commentaire": "Commentaire ; vide (NULL) si le visiteur n’a laissé qu’une note."}},
+    desc:'Bienvenue dans un zoo municipal. Animaux, espèces, enclos, soigneurs, repas, visiteurs et billets : toutes les données nécessaires au fonctionnement quotidien du parc sont réunies ici. Explore la base pour résoudre les différentes missions.',
+    sql:`
+CREATE TABLE especes (
+    id            INTEGER PRIMARY KEY,
+    nom_scientifique VARCHAR(100) NOT NULL,
+    nom_commun    VARCHAR(80)  NOT NULL,
+    classe        VARCHAR(50)  NOT NULL, -- Mammifère, Oiseau, Reptile, etc.
+    regime        VARCHAR(30)  NOT NULL, -- Carnivore, Herbivore, Omnivore
+    statut_conservation VARCHAR(30) NOT NULL -- LC, NT, VU, EN, CR
+);
+
+CREATE TABLE enclos (
+    id         INTEGER PRIMARY KEY,
+    nom        VARCHAR(80) NOT NULL,
+    type       VARCHAR(50) NOT NULL, -- Savane, Jungle, Aquatique, Volière, etc.
+    surface_m2 INTEGER     NOT NULL,
+    capacite   INTEGER     NOT NULL
+);
+
+CREATE TABLE animaux (
+    id            INTEGER PRIMARY KEY,
+    nom           VARCHAR(50) NOT NULL,
+    espece_id     INTEGER     NOT NULL,
+    enclos_id     INTEGER     NOT NULL,
+    date_naissance DATE       NOT NULL,
+    sexe          VARCHAR(1)  NOT NULL, -- M ou F
+    poids_kg      NUMERIC(6,2),          -- nullable (pas encore pesé)
+    date_arrivee  DATE        NOT NULL,
+    FOREIGN KEY (espece_id) REFERENCES especes(id),
+    FOREIGN KEY (enclos_id) REFERENCES enclos(id)
+);
+
+CREATE TABLE soigneurs (
+    id            INTEGER PRIMARY KEY,
+    prenom        VARCHAR(50) NOT NULL,
+    nom           VARCHAR(50) NOT NULL,
+    specialite    VARCHAR(50) NOT NULL,
+    date_embauche DATE        NOT NULL
+);
+
+CREATE TABLE affectations_soigneurs (
+    id          INTEGER PRIMARY KEY,
+    soigneur_id INTEGER NOT NULL,
+    enclos_id   INTEGER NOT NULL,
+    date_debut  DATE    NOT NULL,
+    date_fin    DATE,                  -- NULL = affectation en cours
+    FOREIGN KEY (soigneur_id) REFERENCES soigneurs(id),
+    FOREIGN KEY (enclos_id)   REFERENCES enclos(id)
+);
+
+CREATE TABLE repas (
+    id          INTEGER PRIMARY KEY,
+    animal_id   INTEGER NOT NULL,
+    soigneur_id INTEGER,               -- nullable : repas automatique
+    date_repas  DATE    NOT NULL,
+    heure_repas TIME    NOT NULL,
+    type_repas  VARCHAR(30) NOT NULL,  -- Matin, Midi, Soir
+    quantite_kg NUMERIC(5,2) NOT NULL,
+    FOREIGN KEY (animal_id)   REFERENCES animaux(id),
+    FOREIGN KEY (soigneur_id) REFERENCES soigneurs(id)
+);
+
+CREATE TABLE visiteurs (
+    id             INTEGER PRIMARY KEY,
+    prenom         VARCHAR(50) NOT NULL,
+    nom            VARCHAR(50) NOT NULL,
+    email          VARCHAR(120) UNIQUE,
+    ville          VARCHAR(80) NOT NULL,
+    date_inscription DATE      NOT NULL
+);
+
+CREATE TABLE billets (
+    id            INTEGER PRIMARY KEY,
+    visiteur_id   INTEGER,             -- nullable : billet anonyme
+    date_visite   DATE    NOT NULL,
+    type_billet   VARCHAR(30) NOT NULL, -- Adulte, Enfant, Étudiant, Senior, Famille
+    prix          NUMERIC(6,2) NOT NULL,
+    FOREIGN KEY (visiteur_id) REFERENCES visiteurs(id)
+);
+
+CREATE TABLE avis (
+    id          INTEGER PRIMARY KEY,
+    visiteur_id INTEGER NOT NULL,
+    date_avis   DATE    NOT NULL,
+    note        INTEGER NOT NULL CHECK (note BETWEEN 1 AND 5),
+    commentaire VARCHAR(255),          -- nullable
+    FOREIGN KEY (visiteur_id) REFERENCES visiteurs(id)
+);
+
+INSERT INTO especes (id, nom_scientifique, nom_commun, classe, regime, statut_conservation) VALUES
+(1, 'Panthera leo', 'Lion', 'Mammifère', 'Carnivore', 'VU'),
+(2, 'Loxodonta africana', 'Éléphant', 'Mammifère', 'Herbivore', 'EN'),
+(3, 'Giraffa camelopardalis', 'Girafe', 'Mammifère', 'Herbivore', 'VU'),
+(4, 'Panthera tigris', 'Tigre', 'Mammifère', 'Carnivore', 'EN'),
+(5, 'Ursus maritimus', 'Ours polaire', 'Mammifère', 'Carnivore', 'VU'),
+(6, 'Gorilla gorilla', 'Gorille', 'Mammifère', 'Omnivore', 'CR'),
+(7, 'Struthio camelus', 'Autruche', 'Oiseau', 'Omnivore', 'LC'),
+(8, 'Phoenicopterus roseus', 'Flamant rose', 'Oiseau', 'Omnivore', 'LC'),
+(9, 'Crocodylus niloticus', 'Crocodile', 'Reptile', 'Carnivore', 'LC'),
+(10, 'Python regius', 'Python royal', 'Reptile', 'Carnivore', 'LC'),
+(11, 'Cercopithecus mona', 'Mona', 'Mammifère', 'Omnivore', 'LC'),
+(12, 'Ailuropoda melanoleuca', 'Panda géant', 'Mammifère', 'Herbivore', 'VU'),
+(13, 'Hippopotamus amphibius', 'Hippopotame', 'Mammifère', 'Herbivore', 'VU'),
+(14, 'Equus quagga', 'Zèbre', 'Mammifère', 'Herbivore', 'NT'),
+(15, 'Varanus komodoensis', 'Dragon de Komodo', 'Reptile', 'Carnivore', 'EN');
+
+INSERT INTO enclos (id, nom, type, surface_m2, capacite) VALUES
+(1, 'Plaine africaine', 'Savane', 5000, 12),
+(2, 'Jungle tropicale', 'Jungle', 2000, 8),
+(3, 'Volière géante', 'Volière', 1500, 30),
+(4, 'Bassin des reptiles', 'Aquatique', 800, 10),
+(5, 'Toundra polaire', 'Froid', 2500, 6),
+(6, 'Forêt des primates', 'Jungle', 1800, 10),
+(7, 'Bambouseraie', 'Jungle', 1200, 4),
+(8, 'Plaine des herbivores', 'Savane', 4000, 15),
+(9, 'Rivière africaine', 'Aquatique', 1600, 5),
+(10, 'Terrarium', 'Intérieur', 400, 20);
+
+INSERT INTO animaux (id, nom, espece_id, enclos_id, date_naissance, sexe, poids_kg, date_arrivee) VALUES
+(1, 'Simba', 1, 1, '2018-04-12', 'M', 190, '2019-06-01'),
+(2, 'Nala', 1, 1, '2019-07-21', 'F', 130, '2020-03-15'),
+(3, 'Kito', 1, 1, '2020-11-03', 'M', 160, '2021-09-10'),
+(4, 'Dumbo', 2, 8, '2015-02-15', 'M', 5400, '2016-01-20'),
+(5, 'Ellie', 2, 8, '2017-09-30', 'F', 4100, '2018-05-05'),
+(6, 'Long', 3, 8, '2019-06-08', 'M', 900, '2020-01-15'),
+(7, 'Sira', 3, 8, '2020-12-19', 'F', 800, '2021-07-01'),
+(8, 'Raya', 4, 2, '2016-03-25', 'F', 170, '2017-08-12'),
+(9, 'Tiger', 4, 2, '2018-08-14', 'M', 200, '2019-11-01'),
+(10, 'Nanuq', 5, 5, '2014-01-07', 'M', 450, '2015-04-20'),
+(11, 'Koda', 5, 5, '2017-05-17', 'F', 280, '2018-10-10'),
+(12, 'Kong', 6, 6, '2012-10-02', 'M', 180, '2013-03-05'),
+(13, 'Tina', 6, 6, '2015-03-11', 'F', 90, '2016-09-01'),
+(14, 'Gus', 7, 3, '2018-08-23', 'M', 120, '2019-04-20'),
+(15, 'Zaza', 7, 3, '2019-04-05', 'F', 100, '2020-05-15'),
+(16, 'Pink', 8, 3, '2020-09-18', 'F', 3.5, '2021-06-10'),
+(17, 'Flam', 8, 3, '2020-11-29', 'M', 3.2, '2021-06-10'),
+(18, 'Croco', 9, 9, '2010-02-22', 'M', 400, '2011-01-15'),
+(19, 'Lily', 9, 9, '2014-07-13', 'F', 280, '2015-08-01'),
+(20, 'Python', 10, 10, '2017-05-06', 'M', 1.8, '2018-03-10'),
+(21, 'Kaa', 10, 10, '2019-12-01', 'F', 1.5, '2020-09-15'),
+(22, 'Mona', 11, 6, '2018-06-27', 'F', 4.5, '2019-05-20'),
+(23, 'Kiki', 11, 6, '2019-09-09', 'M', 5, '2020-07-01'),
+(24, 'Bao', 12, 7, '2016-03-03', 'M', 110, '2017-02-15'),
+(25, 'Ling', 12, 7, '2018-10-16', 'F', 95, '2019-06-20'),
+(26, 'Hippo', 13, 9, '2013-08-08', 'M', 1500, '2014-05-10'),
+(27, 'Hippa', 13, 9, '2015-05-20', 'F', 1300, '2016-08-01'),
+(28, 'Zeb', 14, 8, '2017-01-30', 'M', 300, '2018-03-15'),
+(29, 'Zeba', 14, 8, '2018-07-04', 'F', 280, '2019-09-01'),
+(30, 'Zebi', 14, 8, '2019-11-11', 'M', 260, '2020-11-10'),
+(31, 'Kom', 15, 10, '2015-04-24', 'M', 70, '2016-03-20'),
+(32, 'Dora', 15, 10, '2017-10-10', 'F', 60, '2018-07-15'),
+(33, 'Léo', 1, 1, '2021-02-18', 'M', NULL, '2022-01-10'),
+(34, 'Mini', 11, 6, '2021-12-24', 'F', NULL, '2022-06-15'),
+(35, 'Rex', 9, 9, '2019-06-15', 'M', 350, '2020-05-01');
+
+INSERT INTO soigneurs (id, prenom, nom, specialite, date_embauche) VALUES
+(1, 'Sophie', 'Martin', 'Mammifères', '2015-03-01'),
+(2, 'Karim', 'Benali', 'Reptiles', '2017-06-15'),
+(3, 'Laura', 'Dubois', 'Oiseaux', '2016-09-10'),
+(4, 'Thomas', 'Lefevre', 'Primates', '2019-01-20'),
+(5, 'Nadia', 'Cherif', 'Aquatique', '2020-04-05'),
+(6, 'Julien', 'Morel', 'Mammifères', '2018-11-12'),
+(7, 'Emma', 'Rousseau', 'Oiseaux', '2021-02-18'),
+(8, 'Antoine', 'Girard', 'Polyvalent', '2023-09-01');
+
+INSERT INTO affectations_soigneurs (id, soigneur_id, enclos_id, date_debut, date_fin) VALUES
+(1, 1, 1, '2020-01-10', NULL),
+(2, 1, 8, '2021-03-15', NULL),
+(3, 2, 4, '2019-05-01', NULL),
+(4, 2, 9, '2019-05-01', NULL),
+(5, 2, 10, '2020-09-01', NULL),
+(6, 3, 3, '2018-04-20', NULL),
+(7, 3, 5, '2020-06-10', '2022-12-31'),
+(8, 4, 6, '2020-02-01', NULL),
+(9, 5, 9, '2021-07-01', NULL),
+(10, 6, 1, '2021-09-01', NULL),
+(11, 7, 3, '2022-03-01', NULL),
+(12, 1, 2, '2022-08-01', NULL),
+(13, 6, 5, '2023-01-02', NULL),
+(14, 6, 7, '2021-09-01', NULL);
+
+INSERT INTO repas (id, animal_id, soigneur_id, date_repas, heure_repas, type_repas, quantite_kg) VALUES
+(1, 1, 1, '2024-09-01', '08:00', 'Matin', 5),
+(2, 1, 1, '2024-09-01', '18:00', 'Soir', 4.5),
+(3, 2, 1, '2024-09-01', '08:30', 'Matin', 4),
+(4, 3, 6, '2024-09-01', '08:15', 'Matin', 4.5),
+(5, 4, 1, '2024-09-01', '09:00', 'Matin', 50),
+(6, 4, 1, '2024-09-01', '17:00', 'Soir', 45),
+(7, 5, 1, '2024-09-01', '09:30', 'Matin', 40),
+(8, 6, 1, '2024-09-01', '07:30', 'Matin', 8),
+(9, 7, 1, '2024-09-01', '07:45', 'Matin', 7.5),
+(10, 8, 1, '2024-09-01', '10:00', 'Matin', 3),
+(11, 9, 1, '2024-09-01', '10:30', 'Matin', 3.5),
+(12, 10, 6, '2024-09-01', '11:00', 'Midi', 6),
+(13, 10, 6, '2024-09-01', '19:00', 'Soir', 5.5),
+(14, 11, 6, '2024-09-01', '11:30', 'Midi', 4),
+(15, 12, 4, '2024-09-01', '12:00', 'Midi', 3),
+(16, 13, 4, '2024-09-01', '12:15', 'Midi', 2),
+(17, 14, 3, '2024-09-01', '13:00', 'Midi', 2),
+(18, 15, 7, '2024-09-01', '13:15', 'Midi', 1.8),
+(19, 16, 3, '2024-09-01', '14:00', 'Midi', 0.3),
+(20, 17, 7, '2024-09-01', '14:15', 'Midi', 0.28),
+(21, 18, 5, '2024-09-01', '15:00', 'Midi', 4),
+(22, 19, 5, '2024-09-01', '15:15', 'Midi', 3),
+(23, 20, 2, '2024-09-01', '16:00', 'Soir', 0.5),
+(24, 21, 2, '2024-09-01', '16:15', 'Soir', 0.45),
+(25, 22, 4, '2024-09-01', '08:45', 'Matin', 0.5),
+(26, 23, 4, '2024-09-01', '09:00', 'Matin', 0.55),
+(27, 24, 6, '2024-09-01', '10:00', 'Matin', 3),
+(28, 25, 6, '2024-09-01', '10:15', 'Matin', 2.8),
+(29, 26, 5, '2024-09-01', '11:00', 'Midi', 15),
+(30, 27, 5, '2024-09-01', '11:15', 'Midi', 14),
+(31, 28, 1, '2024-09-01', '07:00', 'Matin', 5),
+(32, 29, 1, '2024-09-01', '07:15', 'Matin', 4.5),
+(33, 30, 1, '2024-09-01', '07:30', 'Matin', 4.2),
+(34, 31, 2, '2024-09-01', '17:00', 'Soir', 2),
+(35, 32, 2, '2024-09-01', '17:15', 'Soir', 1.8),
+(36, 33, 6, '2024-09-01', '08:00', 'Matin', 3),
+(37, 34, 4, '2024-09-01', '09:30', 'Matin', 0.4),
+(38, 35, 2, '2024-09-01', '15:30', 'Midi', 3.5),
+(39, 1, NULL, '2024-09-02', '18:00', 'Soir', 4.5),
+(40, 4, NULL, '2024-09-02', '17:00', 'Soir', 45);
+
+INSERT INTO visiteurs (id, prenom, nom, email, ville, date_inscription) VALUES
+(1, 'Camille', 'Moreau', 'camille.moreau@mail.fr', 'Paris', '2024-01-10'),
+(2, 'Hugo', 'Bernard', 'hugo.bernard@mail.fr', 'Lyon', '2024-01-15'),
+(3, 'Léa', 'Petit', 'lea.petit@mail.fr', 'Marseille', '2024-02-01'),
+(4, 'Noé', 'Durand', 'noe.durand@mail.fr', 'Paris', '2024-02-10'),
+(5, 'Emma', 'Roux', 'emma.roux@mail.fr', 'Toulouse', '2024-03-05'),
+(6, 'Lucas', 'Fournier', 'lucas.fournier@mail.fr', 'Bordeaux', '2024-03-12'),
+(7, 'Chloé', 'Girard', 'chloe.girard@mail.fr', 'Nantes', '2024-03-20'),
+(8, 'Nathan', 'Bonnet', 'nathan.bonnet@mail.fr', 'Lille', '2024-04-02'),
+(9, 'Manon', 'Lambert', 'manon.lambert@mail.fr', 'Paris', '2024-04-15'),
+(10, 'Jules', 'Fontaine', 'jules.fontaine@mail.fr', 'Strasbourg', '2024-04-20'),
+(11, 'Anna', 'Schmidt', 'anna.schmidt@mail.de', 'Berlin', '2024-05-01'),
+(12, 'Lukas', 'Weber', 'lukas.weber@mail.de', 'Munich', '2024-05-10'),
+(13, 'Sophie', 'Meyer', 'sophie.meyer@mail.de', 'Hambourg', '2024-05-15'),
+(14, 'Felix', 'Wagner', 'felix.wagner@mail.de', 'Cologne', '2024-06-01'),
+(15, 'João', 'Silva', 'joao.silva@mail.pt', 'Lisbonne', '2024-06-10'),
+(16, 'Maria', 'Costa', 'maria.costa@mail.pt', 'Porto', '2024-06-15'),
+(17, 'Pedro', 'Santos', 'pedro.santos@mail.pt', 'Lisbonne', '2024-07-01'),
+(18, 'Lucia', 'Fernandez', 'lucia.fernandez@mail.es', 'Madrid', '2024-07-10'),
+(19, 'Diego', 'Ramirez', 'diego.ramirez@mail.es', 'Barcelone', '2024-07-15'),
+(20, 'Marta', 'Lopez', 'marta.lopez@mail.es', 'Madrid', '2024-08-01'),
+(21, 'Oliver', 'Smith', 'oliver.smith@mail.uk', 'Londres', '2024-08-10'),
+(22, 'Emily', 'Johnson', 'emily.johnson@mail.uk', 'Londres', '2024-08-15'),
+(23, 'Harry', 'Brown', 'harry.brown@mail.uk', 'Manchester', '2024-09-01'),
+(24, 'Chiara', 'Rossi', 'chiara.rossi@mail.it', 'Rome', '2024-09-10'),
+(25, 'Marco', 'Ferrari', 'marco.ferrari@mail.it', 'Milan', '2024-09-11'),
+(26, 'Giulia', 'Romano', 'giulia.romano@mail.it', 'Rome', '2024-09-12'),
+(27, 'Hans', 'Müller', 'hans.muller@mail.ch', 'Genève', '2024-09-13'),
+(28, 'Elena', 'Keller', 'elena.keller@mail.ch', 'Zurich', '2024-10-15'),
+(29, 'Franz', 'Bauer', 'franz.bauer@mail.at', 'Vienne', '2024-11-01'),
+(30, 'Lisa', 'Huber', 'lisa.huber@mail.at', 'Vienne', '2024-11-10');
+
+INSERT INTO billets (id, visiteur_id, date_visite, type_billet, prix) VALUES
+(1, 1, '2024-09-01', 'Adulte', 18),
+(2, 2, '2024-09-01', 'Adulte', 18),
+(3, 2, '2024-09-01', 'Enfant', 12),
+(4, 3, '2024-09-02', 'Étudiant', 14),
+(5, 4, '2024-09-02', 'Adulte', 18),
+(6, 5, '2024-09-03', 'Famille', 45),
+(7, 6, '2024-09-03', 'Adulte', 18),
+(8, 7, '2024-09-04', 'Étudiant', 14),
+(9, 8, '2024-09-04', 'Senior', 13),
+(10, 9, '2024-09-05', 'Adulte', 18),
+(11, 10, '2024-09-05', 'Famille', 45),
+(12, 11, '2024-09-06', 'Adulte', 18),
+(13, 12, '2024-09-06', 'Enfant', 12),
+(14, 13, '2024-09-07', 'Adulte', 18),
+(15, 14, '2024-09-07', 'Étudiant', 14),
+(16, 15, '2024-09-08', 'Adulte', 18),
+(17, 16, '2024-09-08', 'Senior', 13),
+(18, 17, '2024-09-09', 'Adulte', 18),
+(19, 18, '2024-09-09', 'Famille', 45),
+(20, 19, '2024-09-10', 'Étudiant', 14),
+(21, 20, '2024-09-10', 'Adulte', 18),
+(22, 21, '2024-09-11', 'Adulte', 18),
+(23, 22, '2024-09-11', 'Enfant', 12),
+(24, 23, '2024-09-12', 'Étudiant', 14),
+(25, 24, '2024-09-12', 'Adulte', 18),
+(26, 25, '2024-09-13', 'Senior', 13),
+(27, 26, '2024-09-13', 'Adulte', 18),
+(28, NULL, '2024-09-14', 'Adulte', 18),
+(29, NULL, '2024-09-14', 'Enfant', 12),
+(30, 27, '2024-09-15', 'Adulte', 18),
+(31, 1, '2024-09-16', 'Adulte', 18),
+(32, 2, '2024-09-17', 'Famille', 45),
+(33, 3, '2024-09-18', 'Étudiant', 14),
+(34, 4, '2024-09-19', 'Adulte', 18),
+(35, 5, '2024-09-20', 'Enfant', 12),
+(36, 6, '2024-09-21', 'Adulte', 18),
+(37, 7, '2024-09-22', 'Senior', 13),
+(38, 8, '2024-09-23', 'Adulte', 18),
+(39, 9, '2024-09-24', 'Famille', 45),
+(40, 10, '2024-09-25', 'Adulte', 18),
+(41, NULL, '2024-09-26', 'Étudiant', 14),
+(42, 11, '2024-09-27', 'Adulte', 18),
+(43, 12, '2024-09-28', 'Enfant', 12),
+(44, 13, '2024-09-29', 'Adulte', 18),
+(45, 14, '2024-09-30', 'Étudiant', 14);
+
+INSERT INTO avis (id, visiteur_id, date_avis, note, commentaire) VALUES
+(1, 1, '2024-09-02', 5, 'Superbe zoo, les lions sont magnifiques.'),
+(2, 2, '2024-09-02', 4, 'Belle journée en famille.'),
+(3, 3, '2024-09-03', 5, NULL),
+(4, 4, '2024-09-03', 3, 'Un peu déçu par la volière.'),
+(5, 5, '2024-09-04', 4, 'Très bon accueil.'),
+(6, 6, '2024-09-04', 5, 'Les enfants ont adoré.'),
+(7, 7, '2024-09-05', 4, NULL),
+(8, 8, '2024-09-05', 3, 'Manque d’ombre.'),
+(9, 9, '2024-09-06', 5, 'Le repas des lions était impressionnant.'),
+(10, 10, '2024-09-06', 4, 'Bonne visite.'),
+(11, 11, '2024-09-07', 4, 'Les pandas sont adorables.'),
+(12, 12, '2024-09-07', 5, 'Parfait.'),
+(13, 13, '2024-09-08', 3, NULL),
+(14, 14, '2024-09-08', 4, 'Belle diversité d’animaux.'),
+(15, 15, '2024-09-09', 5, 'À recommander.'),
+(16, 16, '2024-09-09', 4, NULL),
+(17, 17, '2024-09-10', 3, 'Quelques enclos un peu petits.'),
+(18, 18, '2024-09-10', 5, 'Très belle expérience.'),
+(19, 19, '2024-09-11', 4, 'Bon moment.'),
+(20, 20, '2024-09-11', 5, 'Nous reviendrons.');
+`},
+  fromagerie:{nom:'Fromagerie',
+    tables:{"producteurs": "Les fermes et fromageries qui fournissent la boutique, avec leur région et leur pays.", "laits": "Les laits utilisés : vache, chèvre, brebis ou bufflonne.", "fromages": "La table centrale : chaque fromage de la boutique, avec son producteur, son lait, sa pâte et son prix au kilo.", "affinages": "Les passages en cave : durée, température, humidité et dates de chaque affinage.", "lots": "Les lots produits : chaque lot est un fromage d’un poids donné, passé ou non par un affinage.", "clients": "Les clients qui ont un compte, qu’ils aient déjà acheté ou non.", "ventes": "Chaque vente : un lot, une quantité et un prix, avec ou sans compte client.", "degustations": "Les notes données par les clients aux fromages goûtés en boutique."},
+    cols:{"producteurs": {"id": "Identifiant unique du producteur.", "nom": "Nom du producteur.", "region": "Région de production.", "pays": "Pays du producteur.", "date_creation": "Date de création de l’exploitation."}, "laits": {"id": "Identifiant unique du lait.", "type": "« Vache », « Chèvre », « Brebis » ou « Bufflonne ».", "origine": "« Fermier » ou « Industriel »."}, "fromages": {"id": "Identifiant unique du fromage.", "nom": "Nom du fromage.", "producteur_id": "Producteur du fromage.", "lait_id": "Lait utilisé.", "type_pate": "Type de pâte (ex. « Pâte dure », « Pâte persillée »).", "prix_kg": "Prix au kilo en euros.", "disponible": "1 si le fromage est en vente, 0 sinon."}, "affinages": {"id": "Identifiant unique de l’affinage.", "fromage_id": "Fromage affiné.", "duree_jours": "Durée prévue en jours.", "temperature_c": "Température de la cave en °C.", "humidite_pct": "Humidité de la cave en %.", "date_debut": "Début de l’affinage.", "date_fin": "Fin de l’affinage ; vide (NULL) s’il est encore en cours."}, "lots": {"id": "Identifiant unique du lot.", "fromage_id": "Fromage du lot.", "affinage_id": "Affinage du lot ; vide (NULL) si le lot n’est pas passé en cave.", "poids_kg": "Poids du lot en kilos.", "date_production": "Date de production.", "numero_lot": "Numéro du lot, unique (ex. « BFT-240101-001 »)."}, "clients": {"id": "Identifiant unique du client.", "prenom": "Prénom.", "nom": "Nom de famille.", "email": "Adresse e-mail, unique.", "ville": "Ville de résidence.", "date_inscription": "Date de création du compte."}, "ventes": {"id": "Identifiant unique de la vente.", "client_id": "Client qui achète ; vide (NULL) pour une vente au comptoir, sans compte.", "lot_id": "Lot vendu.", "date_vente": "Date de la vente.", "quantite_kg": "Quantité vendue en kilos.", "prix_total": "Montant payé en euros."}, "degustations": {"id": "Identifiant unique de la dégustation.", "client_id": "Client qui goûte.", "fromage_id": "Fromage goûté.", "date_degustation": "Date de la dégustation.", "note": "Note de 1 à 5.", "commentaire": "Commentaire ; vide (NULL) si le client n’a laissé qu’une note."}},
+    desc:'Bienvenue dans une fromagerie artisanale. Fromages, producteurs, laits, affinages, lots et ventes : toutes les données nécessaires au suivi de la production et des ventes sont réunies ici. Explore la base pour résoudre les différentes missions.',
+    sql:`
+CREATE TABLE producteurs (
+    id        INTEGER PRIMARY KEY,
+    nom       VARCHAR(80) NOT NULL,
+    region    VARCHAR(50) NOT NULL,
+    pays      VARCHAR(50) NOT NULL,
+    date_creation DATE    NOT NULL
+);
+
+CREATE TABLE laits (
+    id        INTEGER PRIMARY KEY,
+    type      VARCHAR(30) NOT NULL, -- Vache, Chèvre, Brebis, Bufflonne
+    origine   VARCHAR(50) NOT NULL  -- Fermier, Industriel
+);
+
+CREATE TABLE fromages (
+    id            INTEGER PRIMARY KEY,
+    nom           VARCHAR(80)  NOT NULL,
+    producteur_id INTEGER      NOT NULL,
+    lait_id       INTEGER      NOT NULL,
+    type_pate     VARCHAR(30)  NOT NULL, -- Pâte dure, Pâte molle, Pâte persillée, etc.
+    prix_kg       NUMERIC(7,2) NOT NULL,
+    disponible    BOOLEAN      NOT NULL, -- 1 = oui, 0 = non
+    FOREIGN KEY (producteur_id) REFERENCES producteurs(id),
+    FOREIGN KEY (lait_id)       REFERENCES laits(id)
+);
+
+CREATE TABLE affinages (
+    id            INTEGER PRIMARY KEY,
+    fromage_id    INTEGER NOT NULL,
+    duree_jours   INTEGER NOT NULL,
+    temperature_c NUMERIC(4,1) NOT NULL,
+    humidite_pct  INTEGER NOT NULL,
+    date_debut    DATE    NOT NULL,
+    date_fin      DATE,                  -- NULL = affinage en cours
+    FOREIGN KEY (fromage_id) REFERENCES fromages(id)
+);
+
+CREATE TABLE lots (
+    id          INTEGER PRIMARY KEY,
+    fromage_id  INTEGER      NOT NULL,
+    affinage_id INTEGER,                -- nullable : lot non encore affiné
+    poids_kg    NUMERIC(6,2) NOT NULL,
+    date_production DATE     NOT NULL,
+    numero_lot  VARCHAR(20)  NOT NULL UNIQUE,
+    FOREIGN KEY (fromage_id)  REFERENCES fromages(id),
+    FOREIGN KEY (affinage_id) REFERENCES affinages(id)
+);
+
+CREATE TABLE clients (
+    id         INTEGER PRIMARY KEY,
+    prenom     VARCHAR(50) NOT NULL,
+    nom        VARCHAR(50) NOT NULL,
+    email      VARCHAR(120) UNIQUE,
+    ville      VARCHAR(80) NOT NULL,
+    date_inscription DATE  NOT NULL
+);
+
+CREATE TABLE ventes (
+    id           INTEGER PRIMARY KEY,
+    client_id    INTEGER,              -- nullable : vente au comptoir sans compte
+    lot_id       INTEGER      NOT NULL,
+    date_vente   DATE         NOT NULL,
+    quantite_kg  NUMERIC(6,2) NOT NULL,
+    prix_total   NUMERIC(8,2) NOT NULL,
+    FOREIGN KEY (client_id) REFERENCES clients(id),
+    FOREIGN KEY (lot_id)    REFERENCES lots(id)
+);
+
+CREATE TABLE degustations (
+    id          INTEGER PRIMARY KEY,
+    client_id   INTEGER NOT NULL,
+    fromage_id  INTEGER NOT NULL,
+    date_degustation DATE NOT NULL,
+    note        INTEGER NOT NULL CHECK (note BETWEEN 1 AND 5),
+    commentaire VARCHAR(255),         -- nullable
+    FOREIGN KEY (client_id)  REFERENCES clients(id),
+    FOREIGN KEY (fromage_id) REFERENCES fromages(id)
+);
+
+INSERT INTO producteurs (id, nom, region, pays, date_creation) VALUES
+(1, 'Ferme des Alpes', 'Savoie', 'France', '1998-03-15'),
+(2, 'Fromagerie du Larzac', 'Occitanie', 'France', '2005-06-01'),
+(3, 'Chèvrerie du Poitou', 'Nouvelle-Aquitaine', 'France', '2010-09-20'),
+(4, 'Bergerie des Pyrénées', 'Occitanie', 'France', '2001-04-10'),
+(5, 'Laiterie normande', 'Normandie', 'France', '1995-01-05'),
+(6, 'Caseificio Toscano', 'Toscane', 'Italie', '2008-07-12'),
+(7, 'Quesos Manchegos', 'Castille', 'Espagne', '2003-11-25'),
+(8, 'Alpenkäse GmbH', 'Bavière', 'Allemagne', '2012-02-18'),
+(9, 'Kaasboerderij Holland', 'Hollande', 'Pays-Bas', '1999-08-30'),
+(10, 'Fromagerie du Jura', 'Jura', 'Suisse', '2007-10-10'),
+(11, 'Ferme du Haut-Doubs', 'Franche-Comté', 'France', '2004-05-18'),
+(12, 'Fromagerie d''Auvergne', 'Auvergne', 'France', '2000-09-07');
+
+INSERT INTO laits (id, type, origine) VALUES
+(1, 'Vache', 'Fermier'),
+(2, 'Chèvre', 'Fermier'),
+(3, 'Brebis', 'Fermier'),
+(4, 'Bufflonne', 'Industriel');
+
+INSERT INTO fromages (id, nom, producteur_id, lait_id, type_pate, prix_kg, disponible) VALUES
+(1, 'Beaufort', 1, 1, 'Pâte dure', 28, 1),
+(2, 'Tomme de Savoie', 1, 1, 'Pâte semi-dure', 18, 1),
+(3, 'Roquefort', 2, 3, 'Pâte persillée', 32, 1),
+(4, 'Pélardon', 2, 2, 'Pâte molle', 26, 1),
+(5, 'Chabichou', 3, 2, 'Pâte molle', 22, 1),
+(6, 'Ossau-Iraty', 4, 3, 'Pâte dure', 30, 1),
+(7, 'Camembert', 5, 1, 'Pâte molle', 15, 1),
+(8, 'Livarot', 5, 1, 'Pâte molle', 19, 1),
+(9, 'Pont-l''Évêque', 5, 1, 'Pâte molle', 21, 1),
+(10, 'Pecorino Toscano', 6, 3, 'Pâte dure', 29, 1),
+(11, 'Parmigiano Reggiano', 6, 1, 'Pâte dure', 35, 1),
+(12, 'Gorgonzola', 6, 1, 'Pâte persillée', 27, 1),
+(13, 'Manchego', 7, 3, 'Pâte dure', 33, 1),
+(14, 'Queso Iberico', 7, 3, 'Pâte semi-dure', 26, 1),
+(15, 'Allgäuer Bergkäse', 8, 1, 'Pâte dure', 24, 1),
+(16, 'Gouda', 9, 1, 'Pâte dure', 16, 1),
+(17, 'Edam', 9, 1, 'Pâte semi-dure', 14, 1),
+(18, 'Gruyère', 10, 1, 'Pâte dure', 27, 1),
+(19, 'Vacherin Fribourgeois', 10, 1, 'Pâte semi-dure', 31, 1),
+(20, 'Mozzarella di Bufala', 6, 4, 'Pâte filée', 25, 1),
+(21, 'Bleu d''Auvergne', 12, 1, 'Pâte persillée', 23, 0),
+(22, 'Comté', 11, 1, 'Pâte dure', 29, 1),
+(23, 'Reblochon', 1, 1, 'Pâte molle', 24, 1),
+(24, 'Saint-Nectaire', 12, 1, 'Pâte semi-dure', 22, 1),
+(25, 'Crottin de Chavignol', 3, 2, 'Pâte molle', 20, 1);
+
+INSERT INTO affinages (id, fromage_id, duree_jours, temperature_c, humidite_pct, date_debut, date_fin) VALUES
+(1, 1, 180, 10, 90, '2024-01-01', '2024-06-29'),
+(2, 2, 60, 11, 85, '2024-05-01', '2024-06-30'),
+(3, 3, 90, 9, 95, '2024-04-01', '2024-06-30'),
+(4, 4, 30, 12, 80, '2024-07-01', '2024-07-31'),
+(5, 5, 45, 12, 80, '2024-06-25', '2024-08-09'),
+(6, 6, 120, 10, 88, '2024-05-01', '2024-08-29'),
+(7, 7, 21, 13, 85, '2024-08-10', '2024-08-31'),
+(8, 8, 30, 12, 85, '2024-08-05', '2024-09-04'),
+(9, 9, 45, 12, 85, '2024-07-25', '2024-09-08'),
+(10, 10, 90, 11, 82, '2024-06-20', '2024-09-18'),
+(11, 11, 365, 10, 75, '2023-09-01', '2024-08-31'),
+(12, 12, 60, 10, 92, '2024-07-15', '2024-09-13'),
+(13, 13, 90, 11, 80, '2024-06-10', '2024-09-08'),
+(14, 14, 60, 11, 82, '2024-07-20', '2024-09-18'),
+(15, 15, 120, 10, 85, '2024-05-15', '2024-09-12'),
+(16, 16, 90, 11, 80, '2024-06-25', '2024-09-23'),
+(17, 17, 60, 11, 82, '2024-07-05', '2024-09-03'),
+(18, 18, 180, 10, 85, '2024-04-01', '2024-09-28'),
+(19, 19, 90, 11, 88, '2024-09-15', NULL),
+(20, 22, 240, 10, 80, '2024-06-01', NULL);
+
+INSERT INTO lots (id, fromage_id, affinage_id, poids_kg, date_production, numero_lot) VALUES
+(1, 1, 1, 4.5, '2024-01-01', 'BFT-240101-001'),
+(2, 1, 1, 4.2, '2024-01-01', 'BFT-240101-002'),
+(3, 2, 2, 2.8, '2024-05-01', 'TMS-240501-001'),
+(4, 3, 3, 3, '2024-04-01', 'RQF-240401-001'),
+(5, 3, 3, 2.9, '2024-04-01', 'RQF-240401-002'),
+(6, 4, 4, 1.2, '2024-07-01', 'PLD-240701-001'),
+(7, 5, 5, 1.1, '2024-06-25', 'CHB-240625-001'),
+(8, 6, 6, 5, '2024-05-01', 'OSS-240501-001'),
+(9, 7, 7, 1, '2024-08-10', 'CAM-240810-001'),
+(10, 7, 7, 1, '2024-08-10', 'CAM-240810-002'),
+(11, 8, 8, 1.5, '2024-08-05', 'LIV-240805-001'),
+(12, 9, 9, 1.6, '2024-07-25', 'PLE-240725-001'),
+(13, 10, 10, 3.2, '2024-06-20', 'PEC-240620-001'),
+(14, 11, 11, 8, '2023-09-01', 'PAR-230901-001'),
+(15, 11, 11, 7.5, '2023-09-01', 'PAR-230901-002'),
+(16, 12, 12, 2.5, '2024-07-15', 'GOR-240715-001'),
+(17, 13, 13, 3, '2024-06-10', 'MAN-240610-001'),
+(18, 14, 14, 2.7, '2024-07-20', 'IBE-240720-001'),
+(19, 15, 15, 4.8, '2024-05-15', 'ALL-240515-001'),
+(20, 16, 16, 4, '2024-06-25', 'GOU-240625-001'),
+(21, 16, 16, 4.1, '2024-06-25', 'GOU-240625-002'),
+(22, 17, 17, 3.5, '2024-07-05', 'EDA-240705-001'),
+(23, 18, 18, 6, '2024-04-01', 'GRU-240401-001'),
+(24, 18, 18, 5.8, '2024-04-01', 'GRU-240401-002'),
+(25, 19, 19, 3, '2024-09-15', 'VCF-240915-001'),
+(26, 20, NULL, 2.5, '2024-09-15', 'MOZ-240915-001'),
+(27, 20, NULL, 2.6, '2024-09-15', 'MOZ-240915-002'),
+(28, 22, 20, 7, '2024-06-01', 'CMT-240601-001'),
+(29, 23, NULL, 1.8, '2024-09-20', 'REB-240920-001'),
+(30, 25, NULL, 0.8, '2024-09-25', 'CRO-240925-001');
+
+INSERT INTO clients (id, prenom, nom, email, ville, date_inscription) VALUES
+(1, 'Camille', 'Moreau', 'camille.moreau@mail.fr', 'Paris', '2024-01-10'),
+(2, 'Hugo', 'Bernard', 'hugo.bernard@mail.fr', 'Lyon', '2024-01-15'),
+(3, 'Léa', 'Petit', 'lea.petit@mail.fr', 'Marseille', '2024-02-01'),
+(4, 'Noé', 'Durand', 'noe.durand@mail.fr', 'Paris', '2024-02-10'),
+(5, 'Emma', 'Roux', 'emma.roux@mail.fr', 'Toulouse', '2024-03-05'),
+(6, 'Lucas', 'Fournier', 'lucas.fournier@mail.fr', 'Bordeaux', '2024-03-12'),
+(7, 'Chloé', 'Girard', 'chloe.girard@mail.fr', 'Nantes', '2024-03-20'),
+(8, 'Nathan', 'Bonnet', 'nathan.bonnet@mail.fr', 'Lille', '2024-04-02'),
+(9, 'Manon', 'Lambert', 'manon.lambert@mail.fr', 'Paris', '2024-04-15'),
+(10, 'Jules', 'Fontaine', 'jules.fontaine@mail.fr', 'Strasbourg', '2024-04-20'),
+(11, 'Anna', 'Schmidt', 'anna.schmidt@mail.de', 'Berlin', '2024-05-01'),
+(12, 'Lukas', 'Weber', 'lukas.weber@mail.de', 'Munich', '2024-05-10'),
+(13, 'Sophie', 'Meyer', 'sophie.meyer@mail.de', 'Hambourg', '2024-05-15'),
+(14, 'Felix', 'Wagner', 'felix.wagner@mail.de', 'Cologne', '2024-06-01'),
+(15, 'João', 'Silva', 'joao.silva@mail.pt', 'Lisbonne', '2024-06-10'),
+(16, 'Maria', 'Costa', 'maria.costa@mail.pt', 'Porto', '2024-06-15'),
+(17, 'Pedro', 'Santos', 'pedro.santos@mail.pt', 'Lisbonne', '2024-07-01'),
+(18, 'Lucia', 'Fernandez', 'lucia.fernandez@mail.es', 'Madrid', '2024-07-10'),
+(19, 'Diego', 'Ramirez', 'diego.ramirez@mail.es', 'Barcelone', '2024-07-15'),
+(20, 'Marta', 'Lopez', 'marta.lopez@mail.es', 'Madrid', '2024-08-01'),
+(21, 'Oliver', 'Smith', 'oliver.smith@mail.uk', 'Londres', '2024-08-10'),
+(22, 'Emily', 'Johnson', 'emily.johnson@mail.uk', 'Londres', '2024-08-15'),
+(23, 'Harry', 'Brown', 'harry.brown@mail.uk', 'Manchester', '2024-09-01'),
+(24, 'Chiara', 'Rossi', 'chiara.rossi@mail.it', 'Rome', '2024-09-10'),
+(25, 'Marco', 'Ferrari', 'marco.ferrari@mail.it', 'Milan', '2024-09-15'),
+(26, 'Giulia', 'Romano', 'giulia.romano@mail.it', 'Rome', '2024-10-01'),
+(27, 'Hans', 'Müller', 'hans.muller@mail.ch', 'Genève', '2024-10-05'),
+(28, 'Elena', 'Keller', 'elena.keller@mail.ch', 'Zurich', '2024-10-15'),
+(29, 'Franz', 'Bauer', 'franz.bauer@mail.at', 'Vienne', '2024-11-01'),
+(30, 'Lisa', 'Huber', 'lisa.huber@mail.at', 'Vienne', '2024-11-10');
+
+INSERT INTO ventes (id, client_id, lot_id, date_vente, quantite_kg, prix_total) VALUES
+(1, 1, 1, '2024-07-01', 0.5, 14),
+(2, 2, 1, '2024-07-02', 0.3, 8.4),
+(3, 3, 3, '2024-07-05', 0.4, 7.2),
+(4, 4, 4, '2024-07-10', 0.25, 8),
+(5, 5, 4, '2024-07-11', 0.2, 6.4),
+(6, 6, 6, '2024-08-05', 0.3, 7.8),
+(7, 7, 6, '2024-08-06', 0.4, 10.4),
+(8, 8, 7, '2024-08-15', 0.15, 3.3),
+(9, 9, 8, '2024-09-01', 0.6, 18),
+(10, 10, 8, '2024-09-02', 0.5, 15),
+(11, 11, 9, '2024-09-05', 0.25, 3.75),
+(12, 12, 9, '2024-09-06', 0.25, 3.75),
+(13, 13, 11, '2024-09-10', 0.4, 7.6),
+(14, 14, 12, '2024-09-15', 0.4, 8.4),
+(15, 15, 13, '2024-09-20', 0.5, 14.5),
+(16, 16, 14, '2024-09-25', 0.5, 17.5),
+(17, 17, 15, '2024-09-26', 0.5, 17.5),
+(18, 18, 16, '2024-09-28', 0.5, 13.5),
+(19, 19, 17, '2024-09-30', 0.5, 16.5),
+(20, 20, 18, '2024-10-01', 0.4, 10.4),
+(21, 21, 19, '2024-10-02', 0.5, 12),
+(22, 22, 20, '2024-10-03', 0.5, 8),
+(23, 23, 21, '2024-10-04', 0.5, 8),
+(24, 24, 22, '2024-10-05', 0.4, 5.6),
+(25, 25, 23, '2024-10-06', 0.5, 13.5),
+(26, 26, 24, '2024-10-07', 0.5, 13.5),
+(27, 27, 24, '2024-10-08', 0.4, 10.8),
+(28, NULL, 26, '2024-10-09', 0.3, 7.5),
+(29, NULL, 27, '2024-10-10', 0.25, 6.25),
+(30, 1, 2, '2024-10-11', 0.5, 14),
+(31, 2, 2, '2024-10-12', 0.5, 14),
+(32, 3, 29, '2024-10-13', 0.3, 7.2),
+(33, 4, 30, '2024-10-14', 0.2, 4),
+(34, 5, 1, '2024-10-15', 0.5, 14),
+(35, 6, 3, '2024-10-16', 0.4, 7.2),
+(36, 7, 6, '2024-10-17', 0.3, 7.8),
+(37, 8, 7, '2024-10-18', 0.15, 3.3),
+(38, 9, 8, '2024-10-19', 0.6, 18),
+(39, 10, 8, '2024-10-20', 0.5, 15),
+(40, 11, 9, '2024-10-21', 0.25, 3.75),
+(41, 12, 9, '2024-10-22', 0.25, 3.75),
+(42, 13, 11, '2024-10-23', 0.4, 7.6),
+(43, 14, 12, '2024-10-24', 0.4, 8.4),
+(44, 15, 13, '2024-10-25', 0.5, 14.5),
+(45, 16, 14, '2024-10-26', 0.5, 17.5),
+(46, 17, 15, '2024-10-27', 0.5, 17.5),
+(47, 18, 16, '2024-10-28', 0.5, 13.5),
+(48, 19, 17, '2024-10-29', 0.5, 16.5),
+(49, 20, 18, '2024-10-30', 0.4, 10.4),
+(50, 21, 19, '2024-10-31', 0.5, 12);
+
+INSERT INTO degustations (id, client_id, fromage_id, date_degustation, note, commentaire) VALUES
+(1, 1, 1, '2024-07-05', 5, 'Beaufort exceptionnel.'),
+(2, 2, 1, '2024-07-06', 4, NULL),
+(3, 3, 3, '2024-07-10', 5, 'Roquefort très affiné.'),
+(4, 4, 4, '2024-07-15', 3, 'Un peu sec.'),
+(5, 5, 5, '2024-08-15', 4, 'Chabichou crémeux.'),
+(6, 6, 7, '2024-08-20', 5, 'Camembert au top.'),
+(7, 7, 7, '2024-08-21', 4, NULL),
+(8, 8, 8, '2024-09-05', 3, 'Livarot trop fort pour moi.'),
+(9, 9, 10, '2024-09-25', 5, 'Pecorino parfait.'),
+(10, 10, 11, '2024-09-28', 5, NULL),
+(11, 11, 12, '2024-10-01', 4, 'Gorgonzola bien équilibré.'),
+(12, 12, 13, '2024-10-03', 5, 'Manchego délicieux.'),
+(13, 13, 14, '2024-10-05', 4, NULL),
+(14, 14, 16, '2024-10-07', 3, 'Gouda un peu fade.'),
+(15, 15, 17, '2024-10-09', 4, 'Edam correct.'),
+(16, 16, 18, '2024-10-11', 5, 'Gruyère remarquable.'),
+(17, 17, 19, '2024-10-13', 4, NULL),
+(18, 18, 20, '2024-10-15', 5, 'Mozzarella fondante.'),
+(19, 19, 22, '2024-10-17', 5, 'Comté au top.'),
+(20, 20, 23, '2024-10-19', 4, 'Reblochon crémeux.');
+`},
+  labo:{nom:'Laboratoire de recherche',
+    tables:{"equipes": "Les équipes du laboratoire et leur domaine.", "chercheurs": "Les membres du laboratoire, leur grade et leur équipe.", "projets": "Les projets de recherche, avec leur équipe, leur budget, leurs dates et leur statut.", "experiences": "La table centrale : chaque expérience menée dans un projet par un chercheur, avec sa date, sa durée et son statut.", "echantillons": "Les échantillons prélevés pour les expériences.", "resultats": "Les mesures obtenues par les expériences, validées ou en attente.", "publications": "Les articles tirés des projets, publiés ou en préparation.", "affectations_chercheurs": "Qui travaille sur quel projet, avec quel rôle et depuis quand."},
+    cols:{"equipes": {"id": "Identifiant unique de l’équipe.", "nom": "Nom de l’équipe.", "domaine": "Domaine (ex. « Biologie », « Physique »).", "date_creation": "Date de création de l’équipe."}, "chercheurs": {"id": "Identifiant unique du chercheur.", "prenom": "Prénom.", "nom": "Nom de famille.", "grade": "« Doctorant », « Post-doc », « Chargé de recherche » ou « Directeur ».", "equipe_id": "Équipe du chercheur.", "date_embauche": "Date d’arrivée au laboratoire."}, "projets": {"id": "Identifiant unique du projet.", "titre": "Titre du projet.", "equipe_id": "Équipe qui porte le projet.", "budget": "Budget en euros.", "date_debut": "Début du projet.", "date_fin": "Fin du projet ; vide (NULL) s’il est en cours.", "statut": "« En cours », « Terminé » ou « Suspendu »."}, "experiences": {"id": "Identifiant unique de l’expérience.", "projet_id": "Projet de l’expérience.", "chercheur_id": "Chercheur qui la mène.", "nom": "Nom de l’expérience.", "date_experience": "Date de l’expérience (à venir si elle est planifiée).", "duree_heures": "Durée en heures.", "statut": "« Planifiée », « En cours » ou « Terminée »."}, "echantillons": {"id": "Identifiant unique de l’échantillon.", "experience_id": "Expérience qui l’utilise.", "code_echantillon": "Code de l’échantillon, unique (ex. « ECH-001 »).", "type_echantillon": "Nature (ex. « Sang », « Roche », « Eau »).", "quantite_mg": "Quantité en milligrammes.", "date_prelevement": "Date du prélèvement."}, "resultats": {"id": "Identifiant unique du résultat.", "experience_id": "Expérience mesurée.", "mesure": "Ce qui est mesuré.", "valeur": "Valeur obtenue ; vide (NULL) si elle n’est pas encore connue.", "unite": "Unité de la mesure.", "date_resultat": "Date du résultat ; vide (NULL) s’il n’est pas encore obtenu.", "valide": "1 si le résultat est validé ; vide (NULL) s’il est en attente."}, "publications": {"id": "Identifiant unique de la publication.", "projet_id": "Projet dont elle est issue.", "titre": "Titre de l’article.", "revue": "Revue scientifique.", "date_publication": "Date de parution ; vide (NULL) si l’article est en préparation.", "doi": "Identifiant DOI, unique ; vide (NULL) avant parution."}, "affectations_chercheurs": {"id": "Identifiant unique de l’affectation.", "chercheur_id": "Chercheur affecté.", "projet_id": "Projet concerné.", "role": "« Responsable », « Chercheur », « Post-doc » ou « Doctorant ».", "date_debut": "Début de l’affectation.", "date_fin": "Fin de l’affectation ; vide (NULL) si elle est en cours."}},
+    desc:'Bienvenue dans un laboratoire de recherche scientifique. Chercheurs, projets, expériences, échantillons, résultats et publications : toutes les données nécessaires à la vie du laboratoire sont réunies ici. Explore la base pour résoudre les différentes missions.',
+    sql:`
+CREATE TABLE equipes (
+    id          INTEGER PRIMARY KEY,
+    nom         VARCHAR(80) NOT NULL,
+    domaine     VARCHAR(50) NOT NULL, -- Biologie, Chimie, Physique, Informatique, etc.
+    date_creation DATE      NOT NULL
+);
+
+CREATE TABLE chercheurs (
+    id          INTEGER PRIMARY KEY,
+    prenom      VARCHAR(50) NOT NULL,
+    nom         VARCHAR(50) NOT NULL,
+    grade       VARCHAR(30) NOT NULL, -- Doctorant, Post-doc, Chargé de recherche, Directeur
+    equipe_id   INTEGER     NOT NULL,
+    date_embauche DATE      NOT NULL,
+    FOREIGN KEY (equipe_id) REFERENCES equipes(id)
+);
+
+CREATE TABLE projets (
+    id            INTEGER PRIMARY KEY,
+    titre         VARCHAR(120) NOT NULL,
+    equipe_id     INTEGER      NOT NULL,
+    budget        NUMERIC(10,2) NOT NULL,
+    date_debut    DATE         NOT NULL,
+    date_fin      DATE,                   -- NULL = projet en cours
+    statut        VARCHAR(20)  NOT NULL,  -- En cours, Terminé, Suspendu
+    FOREIGN KEY (equipe_id) REFERENCES equipes(id)
+);
+
+CREATE TABLE experiences (
+    id            INTEGER PRIMARY KEY,
+    projet_id     INTEGER     NOT NULL,
+    chercheur_id  INTEGER     NOT NULL,
+    nom           VARCHAR(80) NOT NULL,
+    date_experience DATE      NOT NULL,
+    duree_heures  NUMERIC(5,1) NOT NULL,
+    statut        VARCHAR(20) NOT NULL,   -- Planifiée, En cours, Terminée, Échouée
+    FOREIGN KEY (projet_id)    REFERENCES projets(id),
+    FOREIGN KEY (chercheur_id) REFERENCES chercheurs(id)
+);
+
+CREATE TABLE echantillons (
+    id            INTEGER PRIMARY KEY,
+    experience_id INTEGER     NOT NULL,
+    code_echantillon VARCHAR(30) NOT NULL UNIQUE,
+    type_echantillon VARCHAR(50) NOT NULL, -- Sang, Eau, Roche, Cellules, etc.
+    quantite_mg   NUMERIC(8,2) NOT NULL,
+    date_prelevement DATE     NOT NULL,
+    FOREIGN KEY (experience_id) REFERENCES experiences(id)
+);
+
+CREATE TABLE resultats (
+    id            INTEGER PRIMARY KEY,
+    experience_id INTEGER     NOT NULL,
+    mesure        VARCHAR(80) NOT NULL,
+    valeur        NUMERIC(10,4),          -- nullable : résultat non encore obtenu
+    unite         VARCHAR(20),
+    date_resultat DATE,                   -- nullable
+    valide        BOOLEAN,                -- 1 = validé ; NULL = en attente de validation
+    FOREIGN KEY (experience_id) REFERENCES experiences(id)
+);
+
+CREATE TABLE publications (
+    id            INTEGER PRIMARY KEY,
+    projet_id     INTEGER     NOT NULL,
+    titre         VARCHAR(200) NOT NULL,
+    revue         VARCHAR(100) NOT NULL,
+    date_publication DATE,                -- nullable : en préparation
+    doi           VARCHAR(50) UNIQUE,
+    FOREIGN KEY (projet_id) REFERENCES projets(id)
+);
+
+CREATE TABLE affectations_chercheurs (
+    id            INTEGER PRIMARY KEY,
+    chercheur_id  INTEGER NOT NULL,
+    projet_id     INTEGER NOT NULL,
+    role          VARCHAR(50) NOT NULL,
+    date_debut    DATE    NOT NULL,
+    date_fin      DATE,                   -- NULL = affectation en cours
+    FOREIGN KEY (chercheur_id) REFERENCES chercheurs(id),
+    FOREIGN KEY (projet_id)    REFERENCES projets(id)
+);
+
+INSERT INTO equipes (id, nom, domaine, date_creation) VALUES
+(1, 'Équipe Génétique', 'Biologie', '2010-03-01'),
+(2, 'Équipe Catalyse', 'Chimie', '2012-09-15'),
+(3, 'Équipe Astrophysique', 'Physique', '2008-06-10'),
+(4, 'Équipe Intelligence Artificielle', 'Informatique', '2015-01-20'),
+(5, 'Équipe Écologie', 'Biologie', '2011-11-05'),
+(6, 'Équipe Matériaux', 'Physique', '2014-04-12');
+
+INSERT INTO chercheurs (id, prenom, nom, grade, equipe_id, date_embauche) VALUES
+(1, 'Sophie', 'Martin', 'Directeur', 1, '2010-03-01'),
+(2, 'Karim', 'Benali', 'Chargé de recherche', 1, '2013-06-15'),
+(3, 'Laura', 'Dubois', 'Post-doc', 1, '2019-09-10'),
+(4, 'Thomas', 'Lefevre', 'Doctorant', 1, '2022-01-20'),
+(5, 'Nadia', 'Cherif', 'Directeur', 2, '2012-09-15'),
+(6, 'Julien', 'Morel', 'Chargé de recherche', 2, '2015-11-12'),
+(7, 'Emma', 'Rousseau', 'Doctorant', 2, '2022-09-01'),
+(8, 'Antoine', 'Girard', 'Directeur', 3, '2008-06-10'),
+(9, 'Claire', 'Fontaine', 'Chargé de recherche', 3, '2014-05-22'),
+(10, 'Marc', 'Lambert', 'Post-doc', 3, '2020-08-30'),
+(11, 'Julie', 'Perrin', 'Directeur', 4, '2015-01-20'),
+(12, 'Pierre', 'Blanc', 'Chargé de recherche', 4, '2017-12-01'),
+(13, 'Hélène', 'Guerin', 'Doctorant', 4, '2022-07-19'),
+(14, 'Rémi', 'Chevalier', 'Directeur', 5, '2011-11-05'),
+(15, 'Inès', 'Simon', 'Chargé de recherche', 5, '2016-03-14'),
+(16, 'David', 'Bonnet', 'Post-doc', 5, '2021-09-01'),
+(17, 'Amélie', 'Roux', 'Directeur', 6, '2014-04-12'),
+(18, 'Benoît', 'Fournier', 'Chargé de recherche', 6, '2018-05-15'),
+(19, 'Céline', 'Girard', 'Doctorant', 6, '2023-01-10'),
+(20, 'Fabien', 'Petit', 'Post-doc', 6, '2024-02-01');
+
+INSERT INTO projets (id, titre, equipe_id, budget, date_debut, date_fin, statut) VALUES
+(1, 'Séquençage du génome bovin', 1, 250000, '2023-01-15', '2024-12-31', 'Terminé'),
+(2, 'Régulation de l''expression génique', 1, 180000, '2024-02-01', NULL, 'En cours'),
+(3, 'Catalyseurs verts', 2, 320000, '2022-09-01', '2024-08-31', 'Terminé'),
+(4, 'Nouveaux polymères biodégradables', 2, 275000, '2024-03-15', NULL, 'En cours'),
+(5, 'Observation des exoplanètes', 3, 500000, '2021-06-01', NULL, 'En cours'),
+(6, 'Modélisation des trous noirs', 3, 420000, '2023-09-01', NULL, 'En cours'),
+(7, 'Apprentissage profond frugal', 4, 210000, '2023-01-10', '2024-06-30', 'Terminé'),
+(8, 'IA explicable', 4, 300000, '2024-07-01', NULL, 'En cours'),
+(9, 'Biodiversité des zones humides', 5, 150000, '2022-04-01', '2024-10-31', 'Terminé'),
+(10, 'Impact du changement climatique', 5, 280000, '2024-01-01', NULL, 'En cours'),
+(11, 'Alliages à mémoire de forme', 6, 190000, '2023-05-01', '2024-11-30', 'Terminé'),
+(12, 'Matériaux supraconducteurs', 6, 350000, '2024-06-01', NULL, 'En cours'),
+(13, 'Étude des écosystèmes marins', 5, 220000, '2024-09-01', NULL, 'En cours'),
+(14, 'Optimisation combinatoire', 4, 160000, '2022-11-01', '2024-03-31', 'Suspendu'),
+(15, 'Spectroscopie des galaxies', 3, 380000, '2024-05-01', NULL, 'En cours');
+
+INSERT INTO experiences (id, projet_id, chercheur_id, nom, date_experience, duree_heures, statut) VALUES
+(1, 1, 1, 'Extraction ADN', '2023-03-10', 12, 'Terminée'),
+(2, 1, 2, 'Séquençage Sanger', '2023-04-15', 8, 'Terminée'),
+(3, 1, 3, 'Analyse bio-informatique', '2023-06-20', 20, 'Terminée'),
+(4, 1, 4, 'Validation des variants', '2023-09-10', 15, 'Terminée'),
+(5, 2, 1, 'PCR quantitative', '2024-03-05', 6, 'Terminée'),
+(6, 2, 2, 'Western blot', '2024-04-12', 10, 'Terminée'),
+(7, 2, 3, 'Microscopie confocale', '2024-05-20', 8, 'En cours'),
+(8, 2, 4, 'Analyse transcriptomique', '2025-03-10', 25, 'Planifiée'),
+(9, 3, 5, 'Synthèse catalyseur A', '2022-10-01', 18, 'Terminée'),
+(10, 3, 6, 'Test activité catalytique', '2022-12-05', 12, 'Terminée'),
+(11, 3, 7, 'Caractérisation XRD', '2023-02-15', 9, 'Terminée'),
+(12, 4, 5, 'Polymérisation', '2024-04-01', 15, 'Terminée'),
+(13, 4, 6, 'Test de dégradation', '2024-05-10', 20, 'En cours'),
+(14, 4, 7, 'Analyse mécanique', '2025-03-20', 8, 'Planifiée'),
+(15, 5, 8, 'Photométrie exoplanète', '2022-01-15', 30, 'Terminée'),
+(16, 5, 9, 'Spectroscopie atmosphérique', '2022-03-20', 25, 'Terminée'),
+(17, 5, 10, 'Analyse des transits', '2023-07-10', 20, 'Terminée'),
+(18, 6, 8, 'Simulation numérique', '2023-10-01', 40, 'Terminée'),
+(19, 6, 9, 'Analyse des ondes gravitationnelles', '2024-01-15', 35, 'En cours'),
+(20, 6, 10, 'Modélisation relativiste', '2025-04-01', 30, 'Planifiée'),
+(21, 7, 11, 'Entraînement réseau', '2023-02-10', 50, 'Terminée'),
+(22, 7, 12, 'Évaluation performances', '2023-05-15', 15, 'Terminée'),
+(23, 7, 13, 'Optimisation hyperparamètres', '2023-09-20', 25, 'Terminée'),
+(24, 8, 11, 'Analyse de sensibilité', '2024-08-01', 20, 'En cours'),
+(25, 8, 12, 'Tests utilisateurs', '2025-03-05', 15, 'Planifiée'),
+(26, 8, 13, 'Explicabilité locale', '2025-04-15', 18, 'Planifiée'),
+(27, 9, 14, 'Inventaire faune', '2022-05-01', 30, 'Terminée'),
+(28, 9, 15, 'Inventaire flore', '2022-06-10', 25, 'Terminée'),
+(29, 9, 16, 'Analyse eau', '2022-08-15', 12, 'Terminée'),
+(30, 10, 14, 'Suivi température', '2024-02-01', 40, 'En cours'),
+(31, 10, 15, 'Analyse sol', '2024-03-10', 20, 'En cours'),
+(32, 10, 16, 'Modélisation climatique', '2025-05-12', 50, 'Planifiée'),
+(33, 11, 17, 'Élaboration alliage', '2023-06-01', 15, 'Terminée'),
+(34, 11, 18, 'Test mémoire de forme', '2023-08-10', 12, 'Terminée'),
+(35, 11, 19, 'Analyse thermique', '2023-10-15', 9, 'Terminée'),
+(36, 12, 17, 'Synthèse supraconducteur', '2024-07-01', 25, 'En cours'),
+(37, 12, 18, 'Mesure résistivité', '2025-03-25', 15, 'Planifiée'),
+(38, 13, 14, 'Prélèvement marin', '2025-04-08', 20, 'Planifiée'),
+(39, 15, 8, 'Spectroscopie galaxie A', '2024-06-01', 18, 'Terminée'),
+(40, 15, 9, 'Spectroscopie galaxie B', '2024-07-15', 20, 'En cours');
+
+INSERT INTO echantillons (id, experience_id, code_echantillon, type_echantillon, quantite_mg, date_prelevement) VALUES
+(1, 1, 'ECH-001', 'Sang', 500, '2023-03-05'),
+(2, 1, 'ECH-002', 'Sang', 480, '2023-03-05'),
+(3, 2, 'ECH-003', 'Cellules', 200, '2023-04-10'),
+(4, 3, 'ECH-004', 'Cellules', 150, '2023-06-15'),
+(5, 4, 'ECH-005', 'Sang', 450, '2023-09-01'),
+(6, 5, 'ECH-006', 'Cellules', 120, '2024-03-01'),
+(7, 6, 'ECH-007', 'Cellules', 180, '2024-04-08'),
+(8, 7, 'ECH-008', 'Cellules', 130, '2024-05-15'),
+(9, 9, 'ECH-009', 'Roche', 800, '2022-09-25'),
+(10, 10, 'ECH-010', 'Roche', 750, '2022-11-30'),
+(11, 11, 'ECH-011', 'Roche', 600, '2023-02-10'),
+(12, 12, 'ECH-012', 'Roche', 500, '2024-03-28'),
+(13, 13, 'ECH-013', 'Roche', 450, '2024-05-05'),
+(14, 15, 'ECH-014', 'Eau', 300, '2022-01-10'),
+(15, 16, 'ECH-015', 'Eau', 280, '2022-03-15'),
+(16, 17, 'ECH-016', 'Eau', 320, '2023-07-05'),
+(17, 18, 'ECH-017', 'Cellules', 100, '2023-09-25'),
+(18, 19, 'ECH-018', 'Cellules', 110, '2024-01-10'),
+(19, 21, 'ECH-019', 'Cellules', 90, '2023-02-05'),
+(20, 22, 'ECH-020', 'Cellules', 95, '2023-05-10'),
+(21, 23, 'ECH-021', 'Cellules', 105, '2023-09-15'),
+(22, 24, 'ECH-022', 'Cellules', 115, '2024-07-25'),
+(23, 27, 'ECH-023', 'Eau', 250, '2022-04-25'),
+(24, 28, 'ECH-024', 'Eau', 240, '2022-06-05'),
+(25, 29, 'ECH-025', 'Eau', 260, '2022-08-10'),
+(26, 30, 'ECH-026', 'Eau', 230, '2024-01-25'),
+(27, 31, 'ECH-027', 'Roche', 400, '2024-03-05'),
+(28, 33, 'ECH-028', 'Roche', 550, '2023-05-25'),
+(29, 34, 'ECH-029', 'Roche', 520, '2023-08-05'),
+(30, 35, 'ECH-030', 'Roche', 480, '2023-10-10'),
+(31, 36, 'ECH-031', 'Roche', 600, '2024-06-25'),
+(32, 39, 'ECH-032', 'Eau', 180, '2024-05-25'),
+(33, 40, 'ECH-033', 'Eau', 170, '2024-07-10'),
+(34, 38, 'ECH-034', 'Eau', 160, '2024-09-25'),
+(35, 37, 'ECH-035', 'Roche', 420, '2024-08-05');
+
+INSERT INTO resultats (id, experience_id, mesure, valeur, unite, date_resultat, valide) VALUES
+(1, 1, 'Concentration ADN', 120.5, 'ng/µL', '2023-03-12', 1),
+(2, 2, 'Qualité séquençage', 98.2, '%', '2023-04-18', 1),
+(3, 3, 'Variants identifiés', 42, 'unités', '2023-06-25', 1),
+(4, 4, 'Taux validation', 95, '%', '2023-09-15', 1),
+(5, 5, 'Expression relative', 2.35, 'ratio', '2024-03-10', 1),
+(6, 6, 'Protéine détectée', 1, 'bool', '2024-04-15', 1),
+(7, 7, 'Intensité fluorescence', NULL, 'UA', NULL, NULL),
+(8, 9, 'Rendement synthèse', 85, '%', '2022-10-05', 1),
+(9, 10, 'Activité catalytique', 1200, 'U/mg', '2022-12-10', 1),
+(10, 11, 'Structure cristalline', 1, 'bool', '2023-02-20', 1),
+(11, 12, 'Taux polymérisation', 92, '%', '2024-04-10', 1),
+(12, 13, 'Masse dégradée', NULL, '%', NULL, NULL),
+(13, 15, 'Flux lumineux', 0.98, 'ratio', '2022-01-20', 1),
+(14, 16, 'Composition atmosphérique', 0.85, 'ratio', '2022-03-25', 1),
+(15, 17, 'Période orbitale', 3.45, 'jours', '2023-07-15', 1),
+(16, 18, 'Masse trou noir', 4200000, 'M☉', '2023-10-10', 1),
+(17, 19, 'Amplitude ondes', NULL, 'm', NULL, NULL),
+(18, 21, 'Précision modèle', 94.5, '%', '2023-02-20', 1),
+(19, 22, 'Temps inférence', 12.3, 'ms', '2023-05-20', 1),
+(20, 23, 'Score F1', 0.92, 'ratio', '2023-09-25', 1),
+(21, 24, 'Sensibilité moyenne', NULL, 'ratio', NULL, NULL),
+(22, 27, 'Richesse spécifique', 48, 'espèces', '2022-05-10', 1),
+(23, 28, 'Richesse floristique', 72, 'espèces', '2022-06-15', 1),
+(24, 29, 'pH eau', 7.2, 'pH', '2022-08-20', 1),
+(25, 30, 'Température moyenne', NULL, '°C', NULL, NULL),
+(26, 31, 'Matière organique', NULL, '%', NULL, NULL),
+(27, 33, 'Dureté alliage', 320, 'HV', '2023-06-10', 1),
+(28, 34, 'Mémoire de forme', 98, '%', '2023-08-15', 1),
+(29, 35, 'Température transition', 45, '°C', '2023-10-20', 1),
+(30, 36, 'Résistivité', NULL, 'Ω·cm', NULL, NULL),
+(31, 39, 'Décalage spectral', 0.045, 'ratio', '2024-06-10', 1),
+(32, 40, 'Décalage spectral', NULL, 'ratio', NULL, NULL),
+(33, 1, 'Ratio A260/280', 1.85, 'ratio', '2023-03-12', 1),
+(34, 5, 'Ct moyen', 22.5, 'cycles', '2024-03-10', 1),
+(35, 9, 'Surface spécifique', 150, 'm²/g', '2022-10-05', 1),
+(36, 10, 'Conversion substrat', 78, '%', '2022-12-10', 1),
+(37, 12, 'Module Young', 2.5, 'GPa', '2024-04-10', 1),
+(38, 18, 'Rayon Schwarzschild', 6200000000, 'km', '2023-10-10', 1),
+(39, 21, 'Temps entraînement', 120, 'min', '2023-02-20', 1),
+(40, 22, 'Mémoire utilisée', 512, 'MB', '2023-05-20', 1),
+(41, 27, 'Indice Shannon', 2.8, 'ratio', '2022-05-10', 1),
+(42, 28, 'Indice Simpson', 0.85, 'ratio', '2022-06-15', 1),
+(43, 33, 'Limite élasticité', 280, 'MPa', '2023-06-10', 1),
+(44, 34, 'Déformation récupérée', 95, '%', '2023-08-15', 1),
+(45, 39, 'Vitesse radiale', 1200, 'km/s', '2024-06-10', 1);
+
+INSERT INTO publications (id, projet_id, titre, revue, date_publication, doi) VALUES
+(1, 1, 'Séquençage complet du génome bovin', 'Nature Genetics', '2024-03-15', '10.1038/ng.2024.001'),
+(2, 1, 'Variants génétiques et phénotypes', 'Genome Research', '2024-06-20', '10.1101/gr.2024.002'),
+(3, 2, 'Régulation épigénétique chez les bovins', 'Cell', '2025-01-10', '10.1016/cell.2025.003'),
+(4, 3, 'Catalyseurs verts pour l''industrie', 'Science', '2024-09-01', '10.1126/science.2024.004'),
+(5, 4, 'Polymères biodégradables nouvelle génération', 'Advanced Materials', NULL, NULL),
+(6, 5, 'Détection d''exoplanètes par transit', 'Astronomy & Astrophysics', '2024-05-10', '10.1051/aa.2024.006'),
+(7, 5, 'Caractérisation atmosphérique', 'The Astrophysical Journal', '2024-11-20', '10.3847/apj.2024.007'),
+(8, 6, 'Modélisation des trous noirs supermassifs', 'Physical Review D', '2024-08-15', '10.1103/prd.2024.008'),
+(9, 7, 'Apprentissage profond frugal', 'Journal of Machine Learning Research', '2024-04-10', '10.5555/jmlr.2024.009'),
+(10, 8, 'IA explicable : état de l''art', 'Artificial Intelligence', NULL, NULL),
+(11, 9, 'Biodiversité des zones humides', 'Ecology Letters', '2024-07-15', '10.1111/ele.2024.011'),
+(12, 10, 'Impact du climat sur les écosystèmes', 'Global Change Biology', NULL, NULL),
+(13, 11, 'Alliages à mémoire de forme', 'Acta Materialia', '2024-10-05', '10.1016/acta.2024.013'),
+(14, 12, 'Supraconductivité à température ambiante', 'Nature Physics', NULL, NULL),
+(15, 15, 'Spectroscopie des galaxies lointaines', 'Monthly Notices of the Royal Astronomical Society', '2024-12-15', '10.1093/mnras.2024.015');
+
+INSERT INTO affectations_chercheurs (id, chercheur_id, projet_id, role, date_debut, date_fin) VALUES
+(1, 1, 1, 'Responsable', '2023-01-15', '2024-12-31'),
+(2, 2, 1, 'Chercheur', '2023-01-15', '2024-12-31'),
+(3, 3, 1, 'Doctorant', '2023-01-15', '2024-12-31'),
+(4, 4, 1, 'Doctorant', '2023-01-15', '2024-12-31'),
+(5, 1, 2, 'Responsable', '2024-02-01', NULL),
+(6, 2, 2, 'Chercheur', '2024-02-01', NULL),
+(7, 3, 2, 'Chercheur', '2024-02-01', NULL),
+(8, 5, 3, 'Responsable', '2022-09-01', '2024-08-31'),
+(9, 6, 3, 'Chercheur', '2022-09-01', '2024-08-31'),
+(10, 7, 3, 'Doctorant', '2022-09-01', '2024-08-31'),
+(11, 5, 4, 'Responsable', '2024-03-15', NULL),
+(12, 6, 4, 'Chercheur', '2024-03-15', NULL),
+(13, 8, 5, 'Responsable', '2021-06-01', NULL),
+(14, 9, 5, 'Chercheur', '2021-06-01', NULL),
+(15, 10, 5, 'Post-doc', '2022-01-01', '2024-12-31'),
+(16, 8, 6, 'Responsable', '2023-09-01', NULL),
+(17, 9, 6, 'Chercheur', '2023-09-01', NULL),
+(18, 11, 7, 'Responsable', '2023-01-10', '2024-06-30'),
+(19, 12, 7, 'Chercheur', '2023-01-10', '2024-06-30'),
+(20, 13, 7, 'Doctorant', '2023-01-10', '2024-06-30'),
+(21, 11, 8, 'Responsable', '2024-07-01', NULL),
+(22, 12, 8, 'Chercheur', '2024-07-01', NULL),
+(23, 14, 9, 'Responsable', '2022-04-01', '2024-10-31'),
+(24, 15, 10, 'Responsable', '2024-01-01', NULL),
+(25, 16, 10, 'Post-doc', '2024-01-01', NULL),
+(26, 17, 11, 'Responsable', '2023-05-01', '2024-11-30'),
+(27, 18, 11, 'Chercheur', '2023-05-01', '2024-11-30'),
+(28, 19, 11, 'Doctorant', '2023-05-01', '2024-11-30'),
+(29, 17, 12, 'Responsable', '2024-06-01', NULL),
+(30, 18, 12, 'Chercheur', '2024-06-01', NULL),
+(31, 19, 12, 'Doctorant', '2024-06-01', NULL),
+(32, 14, 13, 'Responsable', '2024-09-01', NULL),
+(33, 15, 13, 'Chercheur', '2024-09-01', NULL),
+(34, 16, 13, 'Post-doc', '2024-09-01', NULL),
+(35, 11, 14, 'Responsable', '2022-11-01', '2024-03-31'),
+(36, 12, 14, 'Chercheur', '2022-11-01', '2024-03-31'),
+(37, 13, 14, 'Doctorant', '2022-11-01', '2024-03-31'),
+(38, 8, 15, 'Responsable', '2024-05-01', NULL),
+(39, 9, 15, 'Chercheur', '2024-05-01', NULL),
+(40, 4, 2, 'Doctorant', '2024-02-01', NULL),
+(41, 7, 4, 'Doctorant', '2024-03-15', NULL),
+(42, 10, 6, 'Post-doc', '2023-09-01', NULL),
+(43, 13, 8, 'Doctorant', '2024-07-01', NULL),
+(44, 15, 9, 'Chercheur', '2022-04-01', '2024-10-31'),
+(45, 16, 9, 'Post-doc', '2022-04-01', '2024-10-31'),
+(46, 14, 10, 'Chercheur', '2024-01-01', NULL);
+`},
+  voyages:{nom:'Agence de voyages',
+    tables:{"destinations": "Les destinations proposées, avec leur pays, leur continent et leur climat.", "guides": "Les guides de l’agence et la langue qu’ils parlent.", "circuits": "Les voyages au catalogue : chaque circuit va vers une destination, avec sa durée, son prix et son niveau.", "clients": "Les clients qui ont un compte, qu’ils aient déjà réservé ou non.", "reservations": "La table centrale : chaque réservation d’un client sur un circuit, avec le nombre de voyageurs et son statut.", "paiements": "Les paiements des réservations : en une fois, ou un acompte puis le solde.", "affectations_guides": "Quel guide accompagne quel circuit, et à quelles dates.", "avis": "Les notes laissées par les clients sur les circuits qu’ils ont faits."},
+    cols:{"destinations": {"id": "Identifiant unique de la destination.", "nom": "Nom de la destination (ex. « Bali », « Patagonie »).", "pays": "Pays de la destination.", "continent": "Continent.", "climat": "« Tropical », « Tempéré », « Aride » ou « Polaire »."}, "guides": {"id": "Identifiant unique du guide.", "prenom": "Prénom.", "nom": "Nom de famille.", "langue": "Langue de la visite.", "date_embauche": "Date d’embauche."}, "circuits": {"id": "Identifiant unique du circuit.", "nom": "Nom du circuit.", "destination_id": "Destination du circuit.", "duree_jours": "Durée en jours.", "prix_base": "Prix par personne en euros.", "niveau": "« Facile », « Modéré » ou « Sportif »."}, "clients": {"id": "Identifiant unique du client.", "prenom": "Prénom.", "nom": "Nom de famille.", "email": "Adresse e-mail, unique.", "ville": "Ville de résidence.", "date_inscription": "Date de création du compte."}, "reservations": {"id": "Identifiant unique de la réservation.", "client_id": "Client qui réserve.", "circuit_id": "Circuit réservé.", "date_reservation": "Date de la réservation.", "nb_personnes": "Nombre de voyageurs.", "statut": "« Confirmée », « En attente » ou « Annulée »."}, "paiements": {"id": "Identifiant unique du paiement.", "reservation_id": "Réservation payée.", "montant": "Montant en euros.", "date_paiement": "Date du paiement.", "moyen": "« Carte », « Virement », « Espèces » ou « Chèque ».", "statut": "« Payé », « En attente » ou « Remboursé »."}, "affectations_guides": {"id": "Identifiant unique de l’affectation.", "guide_id": "Guide affecté.", "circuit_id": "Circuit accompagné.", "date_debut": "Premier jour.", "date_fin": "Dernier jour ; vide (NULL) si l’affectation est en cours."}, "avis": {"id": "Identifiant unique de l’avis.", "client_id": "Client qui donne son avis.", "circuit_id": "Circuit noté.", "note": "Note de 1 à 5.", "commentaire": "Commentaire ; vide (NULL) si le client n’a laissé qu’une note.", "date_avis": "Date de l’avis."}},
+    desc:'Bienvenue dans une agence de voyages. Destinations, circuits, clients, réservations, paiements et guides : toutes les données nécessaires à l’activité de l’agence sont réunies ici. Explore la base pour résoudre les différentes missions.',
+    sql:`
+CREATE TABLE destinations (
+    id        INTEGER PRIMARY KEY,
+    nom       VARCHAR(80) NOT NULL,
+    pays      VARCHAR(50) NOT NULL,
+    continent VARCHAR(30) NOT NULL,
+    climat    VARCHAR(30) NOT NULL  -- Tropical, Tempéré, Aride, Polaire
+);
+
+CREATE TABLE guides (
+    id            INTEGER PRIMARY KEY,
+    prenom        VARCHAR(50) NOT NULL,
+    nom           VARCHAR(50) NOT NULL,
+    langue        VARCHAR(50) NOT NULL,
+    date_embauche DATE        NOT NULL
+);
+
+CREATE TABLE circuits (
+    id             INTEGER PRIMARY KEY,
+    nom            VARCHAR(100) NOT NULL,
+    destination_id INTEGER      NOT NULL,
+    duree_jours    INTEGER      NOT NULL,
+    prix_base      NUMERIC(8,2) NOT NULL,
+    niveau         VARCHAR(30)  NOT NULL, -- Facile, Modéré, Sportif
+    FOREIGN KEY (destination_id) REFERENCES destinations(id)
+);
+
+CREATE TABLE clients (
+    id             INTEGER PRIMARY KEY,
+    prenom         VARCHAR(50) NOT NULL,
+    nom            VARCHAR(50) NOT NULL,
+    email          VARCHAR(120) UNIQUE,
+    ville          VARCHAR(80) NOT NULL,
+    date_inscription DATE      NOT NULL
+);
+
+CREATE TABLE reservations (
+    id              INTEGER PRIMARY KEY,
+    client_id       INTEGER      NOT NULL,
+    circuit_id      INTEGER      NOT NULL,
+    date_reservation DATE        NOT NULL,
+    nb_personnes    INTEGER      NOT NULL,
+    statut          VARCHAR(20)  NOT NULL, -- Confirmée, En attente, Annulée
+    FOREIGN KEY (client_id)  REFERENCES clients(id),
+    FOREIGN KEY (circuit_id) REFERENCES circuits(id)
+);
+
+CREATE TABLE paiements (
+    id             INTEGER PRIMARY KEY,
+    reservation_id INTEGER      NOT NULL,
+    montant        NUMERIC(9,2) NOT NULL,
+    date_paiement  DATE         NOT NULL,
+    moyen          VARCHAR(30)  NOT NULL, -- Carte, Virement, Espèces, Chèque
+    statut         VARCHAR(20)  NOT NULL, -- Payé, En attente, Remboursé
+    FOREIGN KEY (reservation_id) REFERENCES reservations(id)
+);
+
+CREATE TABLE affectations_guides (
+    id          INTEGER PRIMARY KEY,
+    guide_id    INTEGER NOT NULL,
+    circuit_id  INTEGER NOT NULL,
+    date_debut  DATE    NOT NULL,
+    date_fin    DATE,                  -- NULL = affectation en cours
+    FOREIGN KEY (guide_id)   REFERENCES guides(id),
+    FOREIGN KEY (circuit_id) REFERENCES circuits(id)
+);
+
+CREATE TABLE avis (
+    id             INTEGER PRIMARY KEY,
+    client_id      INTEGER NOT NULL,
+    circuit_id     INTEGER NOT NULL,
+    note           INTEGER NOT NULL CHECK (note BETWEEN 1 AND 5),
+    commentaire    VARCHAR(255),       -- nullable
+    date_avis      DATE    NOT NULL,
+    FOREIGN KEY (client_id)  REFERENCES clients(id),
+    FOREIGN KEY (circuit_id) REFERENCES circuits(id)
+);
+
+INSERT INTO destinations (id, nom, pays, continent, climat) VALUES
+(1, 'Bali', 'Indonésie', 'Asie', 'Tropical'),
+(2, 'Machu Picchu', 'Pérou', 'Amérique', 'Tempéré'),
+(3, 'Sahara', 'Maroc', 'Afrique', 'Aride'),
+(4, 'Islande', 'Islande', 'Europe', 'Polaire'),
+(5, 'Tokyo', 'Japon', 'Asie', 'Tempéré'),
+(6, 'Kenya', 'Kenya', 'Afrique', 'Tropical'),
+(7, 'Patagonie', 'Argentine', 'Amérique', 'Tempéré'),
+(8, 'Grèce antique', 'Grèce', 'Europe', 'Tempéré'),
+(9, 'Vietnam', 'Vietnam', 'Asie', 'Tropical'),
+(10, 'Norvège fjords', 'Norvège', 'Europe', 'Polaire'),
+(11, 'Amazonie', 'Brésil', 'Amérique', 'Tropical'),
+(12, 'Australie', 'Australie', 'Océanie', 'Aride');
+
+INSERT INTO guides (id, prenom, nom, langue, date_embauche) VALUES
+(1, 'Sophie', 'Martin', 'Français', '2015-03-01'),
+(2, 'Karim', 'Benali', 'Arabe', '2017-06-15'),
+(3, 'Laura', 'Dubois', 'Espagnol', '2016-09-10'),
+(4, 'Thomas', 'Lefevre', 'Anglais', '2019-01-20'),
+(5, 'Nadia', 'Cherif', 'Français', '2020-04-05'),
+(6, 'Julien', 'Morel', 'Japonais', '2018-11-12'),
+(7, 'Emma', 'Rousseau', 'Italien', '2021-02-18'),
+(8, 'Antoine', 'Girard', 'Allemand', '2023-09-01'),
+(9, 'Claire', 'Fontaine', 'Portugais', '2014-05-22'),
+(10, 'Marc', 'Lambert', 'Anglais', '2022-08-30');
+
+INSERT INTO circuits (id, nom, destination_id, duree_jours, prix_base, niveau) VALUES
+(1, 'Bali découverte', 1, 10, 1800, 'Facile'),
+(2, 'Bali aventure', 1, 14, 2400, 'Sportif'),
+(3, 'Inca Trail', 2, 12, 2800, 'Sportif'),
+(4, 'Machu Picchu express', 2, 7, 1900, 'Modéré'),
+(5, 'Désert du Sahara', 3, 5, 1200, 'Modéré'),
+(6, 'Sahara grand sud', 3, 8, 1600, 'Sportif'),
+(7, 'Tour de l''Islande', 4, 10, 2600, 'Modéré'),
+(8, 'Aurores boréales', 4, 6, 2200, 'Facile'),
+(9, 'Tokyo essentiel', 5, 8, 2100, 'Facile'),
+(10, 'Japon traditionnel', 5, 12, 2900, 'Modéré'),
+(11, 'Safari Kenya', 6, 9, 3200, 'Modéré'),
+(12, 'Grande migration', 6, 12, 3800, 'Sportif'),
+(13, 'Patagonie trek', 7, 15, 3400, 'Sportif'),
+(14, 'Patagonie découverte', 7, 10, 2500, 'Modéré'),
+(15, 'Grèce antique', 8, 8, 1700, 'Facile'),
+(16, 'Vietnam du nord', 9, 11, 1900, 'Modéré'),
+(17, 'Vietnam plages', 9, 9, 1600, 'Facile'),
+(18, 'Fjords norvégiens', 10, 7, 2300, 'Modéré'),
+(19, 'Amazonie immersion', 11, 12, 3000, 'Sportif'),
+(20, 'Australie outback', 12, 14, 3100, 'Sportif');
+
+INSERT INTO clients (id, prenom, nom, email, ville, date_inscription) VALUES
+(1, 'Camille', 'Moreau', 'camille.moreau@mail.fr', 'Paris', '2024-01-10'),
+(2, 'Hugo', 'Bernard', 'hugo.bernard@mail.fr', 'Lyon', '2024-01-15'),
+(3, 'Léa', 'Petit', 'lea.petit@mail.fr', 'Marseille', '2024-02-01'),
+(4, 'Noé', 'Durand', 'noe.durand@mail.fr', 'Paris', '2024-02-10'),
+(5, 'Emma', 'Roux', 'emma.roux@mail.fr', 'Toulouse', '2024-03-05'),
+(6, 'Lucas', 'Fournier', 'lucas.fournier@mail.fr', 'Bordeaux', '2024-03-12'),
+(7, 'Chloé', 'Girard', 'chloe.girard@mail.fr', 'Nantes', '2024-03-20'),
+(8, 'Nathan', 'Bonnet', 'nathan.bonnet@mail.fr', 'Lille', '2024-04-02'),
+(9, 'Manon', 'Lambert', 'manon.lambert@mail.fr', 'Paris', '2024-04-15'),
+(10, 'Jules', 'Fontaine', 'jules.fontaine@mail.fr', 'Strasbourg', '2024-04-20'),
+(11, 'Anna', 'Schmidt', 'anna.schmidt@mail.de', 'Berlin', '2024-05-01'),
+(12, 'Lukas', 'Weber', 'lukas.weber@mail.de', 'Munich', '2024-05-10'),
+(13, 'Sophie', 'Meyer', 'sophie.meyer@mail.de', 'Hambourg', '2024-05-15'),
+(14, 'Felix', 'Wagner', 'felix.wagner@mail.de', 'Cologne', '2024-06-01'),
+(15, 'João', 'Silva', 'joao.silva@mail.pt', 'Lisbonne', '2024-06-10'),
+(16, 'Maria', 'Costa', 'maria.costa@mail.pt', 'Porto', '2024-06-15'),
+(17, 'Pedro', 'Santos', 'pedro.santos@mail.pt', 'Lisbonne', '2024-07-01'),
+(18, 'Lucia', 'Fernandez', 'lucia.fernandez@mail.es', 'Madrid', '2024-07-10'),
+(19, 'Diego', 'Ramirez', 'diego.ramirez@mail.es', 'Barcelone', '2024-07-15'),
+(20, 'Marta', 'Lopez', 'marta.lopez@mail.es', 'Madrid', '2024-08-01'),
+(21, 'Oliver', 'Smith', 'oliver.smith@mail.uk', 'Londres', '2024-08-10'),
+(22, 'Emily', 'Johnson', 'emily.johnson@mail.uk', 'Londres', '2024-08-15'),
+(23, 'Harry', 'Brown', 'harry.brown@mail.uk', 'Manchester', '2024-09-01'),
+(24, 'Chiara', 'Rossi', 'chiara.rossi@mail.it', 'Rome', '2024-09-10'),
+(25, 'Marco', 'Ferrari', 'marco.ferrari@mail.it', 'Milan', '2024-09-15'),
+(26, 'Giulia', 'Romano', 'giulia.romano@mail.it', 'Rome', '2024-10-01'),
+(27, 'Hans', 'Müller', 'hans.muller@mail.ch', 'Genève', '2024-10-10'),
+(28, 'Elena', 'Keller', 'elena.keller@mail.ch', 'Zurich', '2024-10-15'),
+(29, 'Franz', 'Bauer', 'franz.bauer@mail.at', 'Vienne', '2024-11-01'),
+(30, 'Lisa', 'Huber', 'lisa.huber@mail.at', 'Vienne', '2024-11-10');
+
+INSERT INTO reservations (id, client_id, circuit_id, date_reservation, nb_personnes, statut) VALUES
+(1, 1, 1, '2024-02-01', 2, 'Confirmée'),
+(2, 2, 3, '2024-02-10', 1, 'Confirmée'),
+(3, 3, 9, '2024-02-15', 2, 'Confirmée'),
+(4, 4, 11, '2024-03-01', 4, 'Confirmée'),
+(5, 5, 13, '2024-03-10', 2, 'Confirmée'),
+(6, 6, 15, '2024-03-20', 2, 'Confirmée'),
+(7, 7, 16, '2024-04-01', 3, 'Confirmée'),
+(8, 8, 19, '2024-04-10', 2, 'Confirmée'),
+(9, 9, 2, '2024-04-20', 2, 'Confirmée'),
+(10, 10, 7, '2024-05-01', 2, 'Confirmée'),
+(11, 11, 10, '2024-05-10', 1, 'Confirmée'),
+(12, 12, 17, '2024-05-20', 4, 'Confirmée'),
+(13, 13, 8, '2024-06-01', 2, 'Confirmée'),
+(14, 14, 4, '2024-06-10', 2, 'Confirmée'),
+(15, 15, 6, '2024-06-20', 1, 'Confirmée'),
+(16, 16, 1, '2024-07-01', 2, 'Confirmée'),
+(17, 17, 3, '2024-07-10', 2, 'Confirmée'),
+(18, 18, 11, '2024-07-20', 3, 'Confirmée'),
+(19, 19, 13, '2024-08-01', 2, 'Confirmée'),
+(20, 20, 15, '2024-08-10', 4, 'Confirmée'),
+(21, 21, 9, '2024-08-20', 2, 'Confirmée'),
+(22, 22, 10, '2024-09-01', 2, 'Confirmée'),
+(23, 23, 7, '2024-09-10', 1, 'Confirmée'),
+(24, 24, 16, '2024-09-20', 2, 'En attente'),
+(25, 25, 2, '2024-10-01', 2, 'Confirmée'),
+(26, 26, 19, '2024-10-10', 1, 'Annulée'),
+(27, 27, 11, '2024-10-20', 2, 'Confirmée'),
+(28, 1, 4, '2024-11-01', 2, 'Confirmée'),
+(29, 2, 6, '2024-11-10', 1, 'En attente'),
+(30, 3, 8, '2024-11-20', 2, 'Confirmée'),
+(31, 4, 12, '2024-12-01', 4, 'Confirmée'),
+(32, 5, 13, '2024-12-10', 2, 'Annulée'),
+(33, 6, 17, '2024-12-20', 2, 'Confirmée'),
+(34, 7, 10, '2025-01-05', 2, 'Confirmée'),
+(35, 8, 20, '2025-01-15', 2, 'Confirmée'),
+(36, 9, 5, '2025-01-25', 1, 'Confirmée'),
+(37, 10, 1, '2025-02-01', 2, 'Confirmée'),
+(38, 11, 4, '2025-02-10', 1, 'Confirmée'),
+(39, 12, 6, '2025-02-20', 2, 'Confirmée'),
+(40, 13, 8, '2025-03-01', 2, 'Confirmée'),
+(41, 14, 12, '2025-03-10', 2, 'Confirmée'),
+(42, 15, 13, '2025-03-20', 2, 'Confirmée'),
+(43, 16, 8, '2025-04-01', 1, 'Confirmée'),
+(44, 17, 20, '2025-04-10', 2, 'Confirmée'),
+(45, 18, 5, '2025-04-20', 2, 'Confirmée');
+
+INSERT INTO paiements (id, reservation_id, montant, date_paiement, moyen, statut) VALUES
+(1, 1, 1080, '2024-02-05', 'Carte', 'Payé'),
+(2, 2, 2800, '2024-02-15', 'Virement', 'Payé'),
+(3, 3, 1260, '2024-02-20', 'Carte', 'Payé'),
+(4, 4, 12800, '2024-03-05', 'Virement', 'Payé'),
+(5, 5, 2040, '2024-03-15', 'Carte', 'Payé'),
+(6, 6, 3400, '2024-03-25', 'Carte', 'Payé'),
+(7, 7, 1710, '2024-04-05', 'Chèque', 'Payé'),
+(8, 8, 6000, '2024-04-15', 'Virement', 'Payé'),
+(9, 9, 1440, '2024-04-25', 'Carte', 'Payé'),
+(10, 10, 5200, '2024-05-05', 'Carte', 'Payé'),
+(11, 11, 2900, '2024-05-15', 'Espèces', 'Payé'),
+(12, 12, 6400, '2024-05-25', 'Carte', 'Payé'),
+(13, 13, 4400, '2024-06-05', 'Virement', 'Payé'),
+(14, 14, 3800, '2024-06-15', 'Carte', 'Payé'),
+(15, 15, 1600, '2024-06-25', 'Carte', 'Payé'),
+(16, 16, 3600, '2024-07-05', 'Virement', 'Payé'),
+(17, 17, 5600, '2024-07-15', 'Carte', 'Payé'),
+(18, 18, 9600, '2024-07-25', 'Chèque', 'Payé'),
+(19, 19, 6800, '2024-08-05', 'Carte', 'Payé'),
+(20, 20, 6800, '2024-08-15', 'Virement', 'Payé'),
+(21, 21, 4200, '2024-08-25', 'Carte', 'Payé'),
+(22, 22, 5800, '2024-09-05', 'Carte', 'Payé'),
+(23, 23, 2600, '2024-09-15', 'Espèces', 'Payé'),
+(24, 24, 3800, '2024-09-25', 'Carte', 'En attente'),
+(25, 25, 4800, '2024-10-05', 'Virement', 'Payé'),
+(26, 26, 3000, '2024-10-15', 'Carte', 'Remboursé'),
+(27, 27, 6400, '2024-10-25', 'Carte', 'Payé'),
+(28, 28, 3800, '2024-11-05', 'Virement', 'Payé'),
+(29, 29, 1600, '2024-11-15', 'Carte', 'En attente'),
+(30, 30, 4400, '2024-11-25', 'Carte', 'Payé'),
+(31, 31, 15200, '2024-12-05', 'Virement', 'Payé'),
+(32, 32, 6800, '2024-12-15', 'Carte', 'Remboursé'),
+(33, 33, 3200, '2024-12-25', 'Carte', 'Payé'),
+(34, 34, 5800, '2025-01-10', 'Virement', 'Payé'),
+(35, 35, 6200, '2025-01-20', 'Carte', 'Payé'),
+(36, 36, 1200, '2025-01-30', 'Espèces', 'Payé'),
+(37, 37, 3600, '2025-02-05', 'Carte', 'Payé'),
+(38, 38, 1900, '2025-02-15', 'Virement', 'Payé'),
+(39, 39, 3200, '2025-02-25', 'Carte', 'Payé'),
+(40, 40, 4400, '2025-03-05', 'Carte', 'Payé'),
+(41, 41, 7600, '2025-03-15', 'Virement', 'Payé'),
+(42, 42, 6800, '2025-03-25', 'Carte', 'Payé'),
+(43, 43, 2200, '2025-04-05', 'Carte', 'Payé'),
+(44, 44, 6200, '2025-04-15', 'Virement', 'Payé'),
+(45, 45, 2400, '2025-04-25', 'Carte', 'Payé'),
+(46, 1, 2520, '2024-02-25', 'Carte', 'Payé'),
+(47, 3, 2940, '2024-03-11', 'Carte', 'Payé'),
+(48, 5, 4760, '2024-04-04', 'Carte', 'Payé'),
+(49, 7, 3990, '2024-04-25', 'Chèque', 'Payé'),
+(50, 9, 3360, '2024-05-15', 'Carte', 'Payé');
+
+INSERT INTO affectations_guides (id, guide_id, circuit_id, date_debut, date_fin) VALUES
+(1, 1, 1, '2024-03-01', '2024-03-11'),
+(2, 1, 2, '2024-04-01', '2024-04-15'),
+(3, 3, 3, '2024-03-10', '2024-03-22'),
+(4, 2, 5, '2024-04-01', '2024-04-06'),
+(5, 2, 6, '2024-05-01', '2024-05-09'),
+(6, 3, 4, '2024-04-15', '2024-04-22'),
+(7, 3, 7, '2024-05-10', '2024-05-20'),
+(8, 4, 9, '2024-03-15', '2024-03-23'),
+(9, 4, 10, '2024-04-20', '2024-05-02'),
+(10, 5, 1, '2024-05-01', '2024-05-11'),
+(11, 5, 2, '2024-06-01', '2024-06-15'),
+(12, 6, 9, '2024-06-10', '2024-06-18'),
+(13, 6, 10, '2024-07-01', '2024-07-13'),
+(14, 7, 11, '2024-06-01', '2024-06-10'),
+(15, 7, 12, '2024-07-15', '2024-07-27'),
+(16, 3, 13, '2024-06-15', '2024-06-30'),
+(17, 3, 14, '2024-08-01', '2024-08-11'),
+(18, 10, 15, '2024-07-01', '2024-07-09'),
+(19, 10, 16, '2024-08-15', '2024-08-26'),
+(20, 1, 17, '2024-09-01', '2024-09-10'),
+(21, 2, 18, '2024-09-15', '2024-09-22'),
+(22, 9, 19, '2024-10-01', '2024-10-13'),
+(23, 4, 20, '2024-10-15', '2024-10-29'),
+(24, 5, 3, '2025-01-10', NULL),
+(25, 6, 11, '2025-02-01', NULL);
+
+INSERT INTO avis (id, client_id, circuit_id, note, commentaire, date_avis) VALUES
+(1, 1, 1, 5, 'Voyage magnifique, guide au top.', '2024-03-15'),
+(2, 2, 3, 5, 'Inca Trail inoubliable.', '2024-03-25'),
+(3, 3, 9, 4, 'Tokyo super, un peu cher.', '2024-03-30'),
+(4, 4, 11, 5, 'Safari exceptionnel, animaux au rendez-vous.', '2024-04-15'),
+(5, 5, 13, 5, NULL, '2024-04-25'),
+(6, 6, 15, 4, 'Belle découverte de la Grèce.', '2024-04-05'),
+(7, 7, 16, 4, 'Vietnam du nord très riche.', '2024-04-15'),
+(8, 8, 19, 5, 'Amazonie immersive, à refaire.', '2024-04-25'),
+(9, 9, 2, 3, 'Bali aventure un peu trop sportif pour moi.', '2024-05-05'),
+(10, 10, 7, 4, 'Islande superbe.', '2024-05-15'),
+(11, 11, 10, 5, 'Japon traditionnel parfait.', '2024-05-25'),
+(12, 12, 17, 4, 'Plages du Vietnam agréables.', '2024-06-05'),
+(13, 13, 8, 5, 'Aurores boréales magiques.', '2024-06-15'),
+(14, 14, 4, 3, NULL, '2024-06-25'),
+(15, 15, 6, 5, 'Sahara grandiose.', '2024-07-05'),
+(16, 16, 1, 4, 'Bali très dépaysant.', '2024-07-15'),
+(17, 17, 3, 5, 'Guide passionnant.', '2024-07-25'),
+(18, 18, 11, 4, 'Safari réussi.', '2024-08-05'),
+(19, 19, 13, 4, 'Patagonie sauvage.', '2024-08-15'),
+(20, 20, 15, 3, NULL, '2024-08-25'),
+(21, 21, 9, 5, 'Tokyo fascinant.', '2024-09-05'),
+(22, 22, 10, 4, 'Japon raffiné.', '2024-09-15'),
+(23, 23, 7, 4, 'Islande à voir.', '2024-09-25'),
+(24, 27, 11, 5, 'Safari authentique, guide passionné.', '2024-11-05'),
+(25, 25, 2, 4, 'Bali aventure très bien.', '2024-10-15');
 `}
 };
 const defiBaseOctets={};
@@ -10694,7 +12623,7 @@ async function boot(){
         id:'n'+k+Date.now(),txt:String(old[k]),sql:'',ctx:CARTES[k]?`Carte ${k} · ${CARTES[k].k}`:'',ts:Date.now(),pin:false}));
     }
     await loadCustomDbs();
-    ensureAeroportDb();
+    ensureDemoDbs();
     loadProjState();
     renderModules(); renderDefis(); renderProgress(); renderCollection(); renderNotes(); renderPlanning(); buildKbar();
     setupEditor('ed-console','hl-console');
@@ -11166,19 +13095,46 @@ function buildDb(){ if(db)db.close(); db=new SQL.Database(); attachDateFns(db); 
    schema ne sont pas verifiees dans les copies de travail — un DELETE sur un
    client laisserait passer des commandes orphelines. */
 function sandbox(){ const d=new SQL.Database(baseBytes); attachDateFns(d); try{ d.run('PRAGMA foreign_keys = ON'); }catch(e){} return d; }
-function activeDb(){ return activeDbId==='cours'?db:customDbs[activeDbId]; }
-/* Les bases de démo de la Console (Elisa, 1er novembre, 1 h 32 : « mettre la base aeroport ici ») : celle du cours et Aéroport,
-   la base des défis. Aéroport se recrée à chaque ouverture de l’appli depuis DEFI_BASES (jamais enregistrée avec les projets),
-   sans renommer ni supprimer ; ses tables se restaurent à leur état d’origine comme celles d’un fichier importé. */
-function isDemoDb(id){return id==='cours'||id==='aeroport';}
-function ensureAeroportDb(){
-  if(customDbs.aeroport||typeof DEFI_BASES==='undefined'||!DEFI_BASES.aeroport)return;
+function activeDb(){ return activeDbId==='cours'?db:(customDbs[activeDbId]||demoDb(activeDbId)); }
+/* Les bases de démo de la Console (Elisa, 1er novembre, 1 h 32 : « mettre la base aeroport ici ») : celle du cours et les bases
+   des défis (Aéroport, puis Hôpital, Wok, Zoo, Fromagerie, Laboratoire et Agence de voyages, 9 h 53). Elles se recréent à chaque
+   ouverture de l’appli depuis DEFI_BASES (jamais enregistrées avec les projets), sans renommer ni supprimer ; leurs tables se
+   restaurent à leur état d’origine comme celles d’un fichier importé. Chacune n’est construite qu’à sa première ouverture (les
+   sept d’un coup retardaient l’ouverture de l’appli d’une demi-seconde). */
+function isDemoDb(id){return id==='cours'||(typeof DEFI_BASES!=='undefined'&&Object.prototype.hasOwnProperty.call(DEFI_BASES,id));}
+function ensureDemoDbs(){
+  if(typeof DEFI_BASES==='undefined')return;
+  const ids=Object.keys(DEFI_BASES);
+  dbCatalog=dbCatalog.filter(d=>!isDemoDb(d.id)||d.id==='cours');
+  const at=dbCatalog.findIndex(d=>d.id==='cours')+1;
+  dbCatalog.splice(at,0,...ids.map(id=>({id,name:DEFI_BASES[id].nom})));
+}
+/* La copie de travail d’une base de démo, construite à la demande. */
+function demoDb(id){
+  if(customDbs[id]||!isDemoDb(id)||id==='cours')return customDbs[id]||null;
   try{
-    customDbs.aeroport=attachDateFns(new SQL.Database(defiBaseBytes('aeroport')));
-    tableBaselines.aeroport={};
-    listTables(customDbs.aeroport).forEach(name=>rememberTableBaseline(customDbs.aeroport,'aeroport',name));
-    if(!dbCatalog.some(d=>d.id==='aeroport'))dbCatalog.splice(1,0,{id:'aeroport',name:'Aéroport'});
-  }catch(e){}
+    customDbs[id]=attachDateFns(new SQL.Database(defiBaseBytes(id)));
+    tableBaselines[id]={};
+    listTables(customDbs[id]).forEach(name=>rememberTableBaseline(customDbs[id],id,name));
+  }catch(e){return null;}
+  return customDbs[id];
+}
+/* La première requête proposée dans chaque base de démo. */
+const DEMO_SQL={
+  aeroport:'SELECT numero_vol, date_depart, heure_depart, statut\nFROM vols\nORDER BY date_depart, heure_depart;',
+  hopital:'SELECT prenom, nom, specialite\nFROM medecins\nORDER BY nom;',
+  wok:'SELECT nom, prix, disponible\nFROM plats\nORDER BY prix DESC;',
+  zoo:'SELECT nom, sexe, poids_kg\nFROM animaux\nORDER BY nom;',
+  fromagerie:'SELECT nom, type_pate, prix_kg\nFROM fromages\nORDER BY prix_kg DESC;',
+  labo:'SELECT titre, budget, statut\nFROM projets\nORDER BY budget DESC;',
+  voyages:'SELECT nom, duree_jours, prix_base, niveau\nFROM circuits\nORDER BY prix_base;'
+};
+function demoLabel(id){return id==='cours'?'Base des cours':'Base '+DEFI_BASES[id].nom;}
+/* Ce que contient une base de démo, en une ligne : « Vols, passagers, compagnies, avions et bagages ». */
+function demoTagline(id){
+  if(id==='cours')return 'La boutique NutriBoost : clients, produits, commandes et fidélité';
+  const m=String(DEFI_BASES[id].desc).match(/\.\s+([^.:]+?)\s*:/);
+  return m?m[1]:DEFI_BASES[id].desc;
 }
 function quoteIdent(name){ return '"'+String(name).replace(/"/g,'""')+'"'; }
 function quoteSqlText(value){return "'"+String(value).replace(/'/g,"''")+"'";}
@@ -11323,7 +13279,7 @@ const NOTE_PLUS_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 const DEMO_NOTES={desc:'La boutique NutriBoost des cours : ses clients, ses produits, leurs commandes et la fidélité.',
   tables:{clients:'Les clients de la boutique : nom, adresse, ville, âge, e-mail et téléphone.',produits:'Le catalogue : chaque produit, sa catégorie, son prix et son stock.',
     commandes:'Les commandes : quel client, quel produit, quelle quantité, et quand.',fidelite:'Les cartes de fidélité et leurs points, une par client inscrit.'}};
-function dbNote(id){ const p=projOf(id); return p.desc!=null?p.desc:(id==='cours'?DEMO_NOTES.desc:id==='aeroport'?DEFI_BASES.aeroport.desc:''); }
+function dbNote(id){ const p=projOf(id); return p.desc!=null?p.desc:(id==='cours'?DEMO_NOTES.desc:isDemoDb(id)?DEFI_BASES[id].desc:''); }
 function tableNote(id,t){ const m=projOf(id).tdesc||{}; return m[t]!=null?m[t]:(id==='cours'?(DEMO_NOTES.tables[t]||''):(DEFI_BASES[id]&&DEFI_BASES[id].tables&&DEFI_BASES[id].tables[t])||''); }
 /* La description d’une colonne, pour les bases qui en ont (Aéroport). */
 function colNote(id,t,c){ const b=typeof DEFI_BASES!=='undefined'&&DEFI_BASES[id];return (b&&b.cols&&b.cols[t]&&b.cols[t][c])||''; }
@@ -11352,9 +13308,10 @@ function projectName(id){
 }
 function projectStats(id){
   const database=id==='cours'?db:customDbs[id];
-  const tables=database?listTables(database):[];
+  /* Une base de démo pas encore ouverte : ses tables sont celles de sa description. */
+  const n=database?listTables(database).length:isDemoDb(id)?Object.keys(DEFI_BASES[id].tables||{}).length:0;
   const p=projOf(id);
-  return {tables:tables.length,hist:p.hist.length,pins:p.pins.length};
+  return {tables:n,hist:p.hist.length,pins:p.pins.length};
 }
 function fmtHistWhen(ts){
   const d=new Date(ts);
@@ -11376,7 +13333,7 @@ function applyConsoleDraft(){
   const ta=document.getElementById('ed-console');
   if(!ta)return;
   const p=projOf(activeDbId);
-  ta.value=p.draft||(activeDbId==='cours'?COURS_DEFAULT_SQL:activeDbId==='aeroport'?'SELECT numero_vol, date_depart, heure_depart, statut\nFROM vols\nORDER BY date_depart, heure_depart;':'');
+  ta.value=p.draft||(activeDbId==='cours'?COURS_DEFAULT_SQL:DEMO_SQL[activeDbId]||'');
   syncHL('ed-console','hl-console');
   fitSqlEditor(ta);
   updateConsolePinButton();
@@ -11420,7 +13377,7 @@ function renderConsoleScreen(){
     pill.hidden=true;
     pill.onclick=openProjectCreator;
   }
-  if(fname) fname.textContent=(activeDbId==='cours'?'cours':activeDbId==='aeroport'?'aeroport':'projet')+'.sql';
+  if(fname) fname.textContent=(isDemoDb(activeDbId)?activeDbId:'projet')+'.sql';
   const desc=document.getElementById('console-desc');
   if(desc){
     const d=inWork?dbNote(activeDbId):'';
@@ -11444,7 +13401,9 @@ function renderConsoleScreen(){
 function renderConsoleHome(){
   const host=document.getElementById('console-home');
   if(!host)return;
-  const items=dbCatalog.map(d=>{
+  /* 9 h 53 : avec les sept bases des défis, la liste s’allongeait. Tes projets d’abord (s’il y en a), puis « Bases
+     d’entraînement », une ligne courte chacune : ce qu’elle contient, sans tout le texte de bienvenue. */
+  const row=d=>{
     const st=projectStats(d.id);
     const demo=isDemoDb(d.id);
     const bits=[st.tables?plur(st.tables,'table'):'Aucune table'];
@@ -11457,12 +13416,13 @@ function renderConsoleHome(){
     return `<div class="console-project-row">
       <button type="button" class="console-project-open" onclick="openConsoleProject('${d.id}')">
         <span class="console-project-icon">${CONSOLE_DB_SVG}</span>
-        <span class="console-project-copy"><b>${d.id==='cours'?'Base des cours':d.id==='aeroport'?'Base Aéroport':esc(d.name).replace(/([_.-])/g,'$1<wbr>')}</b><small${dbNote(d.id)?'':' class="is-muted"'}>${esc(dbNote(d.id)||'Projet local · sans description')}</small><em>${esc(bits.join(' · '))}</em></span>
+        <span class="console-project-copy"><b>${demo?esc(demoLabel(d.id)):esc(d.name).replace(/([_.-])/g,'$1<wbr>')}</b><small${demo||dbNote(d.id)?'':' class="is-muted"'}>${esc(demo?demoTagline(d.id):dbNote(d.id)||'Projet local · sans description')}</small><em>${esc(bits.join(' · '))}</em></span>
         <span class="console-project-chev" aria-hidden="true">${CONSOLE_CHEV_SVG}</span>
       </button>
       ${actions}
     </div>`;
-  }).join('');
+  };
+  const mine=dbCatalog.filter(d=>!isDemoDb(d.id)),demos=dbCatalog.filter(d=>isDemoDb(d.id));
   const create=consoleCreateOpen?`<form class="console-create-card" onsubmit="createProjectFromForm(event)">
     <label for="console-project-name">Nom du nouveau projet</label>
     <div class="console-create-row"><input id="console-project-name" name="projectName" maxlength="40" autocomplete="off" placeholder="Analyse des ventes"><button type="submit" class="console-create-cta">Créer</button></div>
@@ -11472,12 +13432,14 @@ function renderConsoleHome(){
       <button type="button" class="console-quick-action primary" onclick="openProjectCreator()"><span class="console-quick-icon">${CONSOLE_PLUS_SVG}</span><span class="console-quick-copy"><b>Nouveau projet</b></span><span class="console-quick-chev" aria-hidden="true">${CONSOLE_CHEV_SVG}</span></button>
       <button type="button" class="console-quick-action" onclick="document.getElementById('data-import').click()"><span class="console-quick-icon">${CONSOLE_UPLOAD_SVG}</span><span class="console-quick-copy"><b>Importer un fichier</b><small>Excel, CSV, JSON, SQL ou SQLite</small></span><span class="console-quick-chev" aria-hidden="true">${CONSOLE_CHEV_SVG}</span></button>
     </div>${create}
-    <div class="console-projects-head"><h2>Tes projets</h2><span>${plur(dbCatalog.length,'projet')}</span></div>
-    <div class="console-project-list">${items}</div>`;
+    ${mine.length?`<div class="console-projects-head"><h2>Tes projets</h2><span>${plur(mine.length,'projet')}</span></div>
+    <div class="console-project-list">${mine.map(row).join('')}</div>`:''}
+    <div class="console-projects-head"><h2>Bases d’entraînement</h2><span>${plur(demos.length,'base')}</span></div>
+    <div class="console-project-list is-demo">${demos.map(row).join('')}</div>`;
   if(consoleCreateOpen)requestAnimationFrame(()=>document.getElementById('console-project-name')?.focus());
 }
 function openConsoleProject(id){
-  if(id!=='cours'&&!customDbs[id])return;
+  if(id!=='cours'&&!customDbs[id]&&!demoDb(id))return;
   activeDbId=id;
   openTableSchema=null;
   kbarSchemaCache=null;
@@ -11845,7 +13807,7 @@ async function resetTable(name){
   lqDone(document.querySelector(`#db-tables .db-tblock[data-table="${CSS.escape(name)}"]`),'Restaurée',`Table « ${name} » restaurée : ${activeDbId==='cours'?'données du cours rétablies':'état initial du fichier rétabli'}`);
 }
 function switchDb(id){
-  if(id!=='cours'&&!customDbs[id])return;
+  if(id!=='cours'&&!customDbs[id]&&!demoDb(id))return;
   activeDbId=id;
   openTableSchema=null;
   kbarSchemaCache=null;
@@ -12387,7 +14349,7 @@ function createImportedTables(database,tables){
 function resolveImportTarget(){
   let target=document.getElementById('imp-db').value;
   if(target==='cours'){toast('La base du cours est protégée');return null;}
-  if(target==='aeroport'){toast('La base Aéroport est protégée');return null;}
+  if(isDemoDb(target)){toast(`La ${demoLabel(target).replace(/^Base/,'base')} est protégée`);return null;}
   if(target==='__new__'){
     const raw=document.getElementById('imp-newname').value.trim()
       || pendingImport.defaultDbName
@@ -28909,7 +30871,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-niveaux-v2242';
+  const SW_CACHE='requete-2026-11-01-bases-v2243';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
