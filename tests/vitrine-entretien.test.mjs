@@ -48,17 +48,26 @@ test('l’appli a bien ses questions d’entretien, lues ici sans en perdre', ()
   assert.ok(QUESTIONS.every(q => q.id && q.cat && q.q && q.a && q.niveau && q.dialectes?.length), 'chaque carte a ses métadonnées');
 });
 
-test('les filtres de la banque sélectionnent les notions, pas les niveaux', () => {
+test('les filtres de la banque sélectionnent des familles de notions, pas les niveaux (18 h 38 : « trop de notions »)', () => {
   const fnsStart = app.indexOf('function entMark(');
   const fnsEnd = app.indexOf('function entFoot(', fnsStart);
+  const famStart = app.indexOf('const ENT_FAMILLES=');
+  const famEnd = app.indexOf('const ENTRETIEN_CATS=', famStart);
   const ctx = vm.createContext({ state: { entretien: {} } });
   vm.runInContext(app.slice(start, end + 3).replace('const ENTRETIEN=', 'ENTRETIEN=') + ';', ctx);
-  vm.runInContext(app.slice(fnsStart, fnsEnd) + '\nlet entFilter="all",entStatus="all";', ctx);
-  for (const notion of NOTIONS) {
-    const actual = JSON.parse(JSON.stringify(vm.runInContext(`(entFilter=${JSON.stringify(notion)},entVisibleItems().map(x=>x.q.cat))`, ctx)));
-    assert.ok(actual.length > 0 && actual.every(cat => cat === notion), `${notion}: seules ses questions sont affichées`);
-    assert.equal(actual.length, QUESTIONS.filter(q => q.cat === notion).length, `${notion}: compteur exact`);
+  vm.runInContext(app.slice(famStart, famEnd).replace(/^const /gm, 'var ') + app.slice(fnsStart, fnsEnd) + '\nvar entFilter="all",entStatus="all";', ctx);
+  const familles = JSON.parse(JSON.stringify(vm.runInContext('ENT_FAMILLES', ctx))).filter(([k]) => k !== 'all');
+  assert.ok(familles.length <= 8, `${familles.length} familles au plus`);
+  const toutes = familles.flatMap(([, , cats]) => cats);
+  assert.deepEqual([...toutes].sort(), [...NOTIONS].sort(), 'chaque notion est dans exactement une famille');
+  let total = 0;
+  for (const [key, label, cats] of familles) {
+    const actual = JSON.parse(JSON.stringify(vm.runInContext(`(entFilter=${JSON.stringify(key)},entVisibleItems().map(x=>x.q.cat))`, ctx)));
+    assert.ok(actual.length > 0 && actual.every(cat => cats.includes(cat)), `${label} : seules ses questions sont affichées`);
+    assert.equal(actual.length, QUESTIONS.filter(q => cats.includes(q.cat)).length, `${label} : compteur exact`);
+    total += actual.length;
   }
+  assert.equal(total, QUESTIONS.length);
 });
 
 test('la liste rassemble chaque notion dans un seul groupe', () => {

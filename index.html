@@ -6646,7 +6646,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=83">
+<link rel="stylesheet" href="ludique.css?v=84">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -18045,7 +18045,9 @@ function returnToParent(){
   const parent=tabBackDest(activeTab);
   delete tabFrom[activeTab];
   if(!parent||parent===activeTab||parent==='learn'){returnToHome();return;}
-  entOpen=null;
+  /* Venu d’une question d’entretien (« Voir selon le SGBD ») : on y revient, question ouverte. */
+  entOpen=parent==='entretien'&&activeTab==='sgbd'&&entSgbdRetour?entSgbdRetour:null;
+  entSgbdRetour=null;
   tabBackNav=true;
   try{switchTab(parent);}finally{tabBackNav=false;}
   requestAnimationFrame(()=>{
@@ -30090,7 +30092,7 @@ const ENTRETIEN=[
  {id:'ent-v2-56',niveau:'Avancé',cat:'Agrégats',dialectes:['Standard'],q:"Comment réaliser un pivot sans opérateur PIVOT ?",a:"On utilise une agrégation conditionnelle: CASE WHEN affecte les lignes à des catégories, puis SUM ou COUNT agrège chaque catégorie en colonne.",sql:"SELECT client_id, SUM(CASE WHEN statut = 'Payée' THEN montant ELSE 0 END) AS montant_paye FROM commandes GROUP BY client_id;"},
  {id:'ent-v2-57',niveau:'Avancé',cat:'Agrégats',dialectes:['PostgreSQL'],q:"Comment simplifier une agrégation conditionnelle en PostgreSQL ?",a:"La clause FILTER applique une condition à une fonction d’agrégation sans répéter CASE. Elle s’utilise avec les agrégats pris en charge par PostgreSQL.",sql:"SELECT client_id, SUM(montant) FILTER (WHERE statut = 'Payée') FROM commandes GROUP BY client_id;"},
  {id:'ent-v2-58',niveau:'Avancé',cat:'Agrégats',dialectes:['SQL Server'],q:"Comment réaliser un pivot avec SQL Server ?",a:"L’opérateur PIVOT transforme les valeurs d’une colonne en colonnes distinctes en appliquant une fonction d’agrégation. Les colonnes de sortie doivent être indiquées dans la clause IN.",sql:"SELECT * FROM (SELECT client_id, statut, montant FROM commandes) src PIVOT (SUM(montant) FOR statut IN ([Payée], [Annulée])) p;"},
- {id:'ent-v2-59',niveau:'Avancé',cat:'JSON',dialectes:['PostgreSQL'],q:"Comment interroger des données JSONB en PostgreSQL ?",a:"-> retourne une valeur JSON, ->> retourne sa représentation texte, et @> teste si un document contient un autre document. JSONB est indexable avec les types d’index adaptés.",sql:"SELECT data->>'nom' FROM clients_json WHERE data @> '{\"ville\":\"Paris\"}';"},
+ {id:'ent-v2-59',niveau:'Avancé',cat:'JSON',dialectes:['PostgreSQL'],q:"Comment interroger des données JSONB en PostgreSQL ?",a:"Avec JSONB, PostgreSQL permet d’aller chercher des informations directement à l’intérieur d’un document JSON. <code>-&gt;</code> récupère une valeur JSON, <code>-&gt;&gt;</code> récupère sa valeur sous forme de texte et <code>@&gt;</code> permet de vérifier si le JSON contient une information précise.",sql:"SELECT data->>'nom' FROM clients_json WHERE data @> '{\"ville\":\"Paris\"}';"},
  {id:'ent-v2-60',niveau:'Avancé',cat:'JSON',dialectes:['MySQL'],q:"Comment interroger une colonne JSON en MySQL ?",a:"JSON_EXTRACT extrait une valeur selon un chemin JSON. MySQL accepte aussi -> pour obtenir une valeur JSON et ->> pour son équivalent texte non cité.",sql:"SELECT JSON_EXTRACT(data, '$.nom') FROM clients_json;"},
  {id:'ent-v2-61',niveau:'Avancé',cat:'JSON',dialectes:['SQL Server'],q:"Comment interroger du JSON avec SQL Server ?",a:"SQL Server fournit JSON_VALUE pour lire une valeur scalaire, JSON_QUERY pour un objet ou tableau et OPENJSON pour transformer un document JSON en lignes et colonnes.",sql:"SELECT JSON_VALUE(data, '$.nom') FROM clients_json;"},
  {id:'ent-v2-62',niveau:'Avancé',cat:'Performances',dialectes:['PostgreSQL','MySQL'],q:"À quoi sert un plan d’exécution ?",a:"Il décrit les opérations choisies par le moteur: accès aux tables et index, jointures, tris et estimations de cardinalité. EXPLAIN montre le plan estimé; EXPLAIN ANALYZE exécute la requête et fournit des mesures réelles, avec une syntaxe qui varie selon le SGBD.",sql:"EXPLAIN ANALYZE SELECT * FROM commandes WHERE client_id = 10;"},
@@ -30108,6 +30110,15 @@ const ENTRETIEN=[
  {id:'ent-v2-74',niveau:'Avancé',cat:'Pagination',dialectes:['PostgreSQL','MySQL','SQL Server'],q:"Comment fonctionne la pagination avec LIMIT/OFFSET ou OFFSET/FETCH ?",a:"LIMIT/OFFSET et OFFSET/FETCH sautent un nombre de lignes puis en retournent une quantité donnée; OFFSET/FETCH exige un ORDER BY dans SQL Server. Un ordre stable est nécessaire, et un grand OFFSET peut coûter cher; la pagination par clé est souvent préférable à grande échelle.",sql:"PostgreSQL / MySQL : SELECT * FROM clients ORDER BY id LIMIT 10 OFFSET 20;\nSQL Server : SELECT * FROM clients ORDER BY id OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY;"},
  {id:'ent-v2-75',niveau:'Avancé',cat:'Entretien',dialectes:['Standard'],q:"Comment trouver le deuxième salaire le plus élevé d’une table ?",a:"Pour le deuxième salaire distinct, on classe les valeurs avec DENSE_RANK() en ordre décroissant puis on garde le rang 2. Si l’entretien demande la deuxième ligne plutôt que le deuxième salaire distinct, il faut préciser la règle de gestion des ex æquo.",sql:"WITH r AS (SELECT salaire, DENSE_RANK() OVER (ORDER BY salaire DESC) AS rang FROM employes) SELECT DISTINCT salaire FROM r WHERE rang = 2;"}
 ];
+/* Elisa, 1er novembre, 18 h 38 : « il y a trop de notions, comment dégrossir ? ». Les 28 notions des questions restent (elles rangent la
+   liste) ; les filtres, eux, passent par 8 familles. */
+const ENT_FAMILLES=[['all','Toutes'],['bases','Bases',['Bases','Requêtes','Alias','Filtres','Pagination']],
+  ['fonctions','Fonctions',['NULL','Conditions','Dates','Chaînes']],['agregats','Agrégats',['Agrégats','Doublons']],
+  ['jointures','Jointures',['Jointures','Ensembles','Sous-requêtes','CTE']],['fenetres','Fonctions fenêtre',['Fonctions fenêtre','Entretien']],
+  ['conception','Conception',['Modélisation','Contraintes','JSON']],['transactions','Transactions',['Transactions','MERGE','Procédures','Triggers']],
+  ['performance','Performance',['Index','Performances','Vues','Sécurité']]];
+const ENT_FAMILLE_DE=Object.fromEntries(ENT_FAMILLES.flatMap(([k,,cats])=>(cats||[]).map(c=>[c,k])));
+function entInFilter(q){return entFilter==='all'||ENT_FAMILLE_DE[q.cat]===entFilter;}
 const ENTRETIEN_CATS=[['all','Toutes les notions'],['Bases','Bases'],['Requêtes','Requêtes'],['Filtres','Filtres'],['NULL','NULL'],['Agrégats','Agrégats'],['Jointures','Jointures'],['Dates','Dates'],['Chaînes','Chaînes'],['Conditions','Conditions'],['Contraintes','Contraintes'],['Ensembles','Ensembles'],['Alias','Alias'],['Sous-requêtes','Sous-requêtes'],['CTE','CTE'],['Doublons','Doublons'],['Fonctions fenêtre','Fonctions fenêtre'],['Index','Index'],['Transactions','Transactions'],['Vues','Vues'],['Modélisation','Modélisation'],['JSON','JSON'],['Performances','Performances'],['MERGE','MERGE'],['Procédures','Procédures'],['Triggers','Triggers'],['Sécurité','Sécurité'],['Pagination','Pagination'],['Entretien','Entretien']];
 let entFilter='all';
 let entStatus='review';
@@ -30133,7 +30144,7 @@ function entNum(q){
 function entAllItems(){ return ENTRETIEN.map((q,i)=>({q,id:entId(q,i),n:entNum(q),i})); }
 function entVisibleItems(){
   return entAllItems().filter(x=>{
-    if(entFilter!=='all'&&x.q.cat!==entFilter)return false;
+    if(!entInFilter(x.q))return false;
     if(entStatus==='ok')return entOk(x.id);
     if(entStatus==='review')return !entOk(x.id);
     return true;
@@ -30202,11 +30213,12 @@ function renderEntretienFocus(x){
     <section class="ent-answer-card" aria-live="polite">
       ${revealed?`<span class="ent-answer-label">Réponse attendue</span>
         <p class="eans">${x.q.a}</p>
-        ${x.q.sql?`<div class="esql sql-copy-wrap"><span class="esql-lab">Exemple SQL</span>${sqlCopyBtn()}<pre>${highlight(x.q.sql)}</pre></div>`:''}`:
+        ${x.q.sql?`<div class="esql sql-copy-wrap"><span class="esql-lab">Exemple SQL</span>${sqlCopyBtn()}<pre>${highlight(x.q.sql)}</pre></div>`:''}
+        ${entSgbdTheme(x.q)?`<button type="button" class="ent-sgbd" onclick="entVoirSgbd('${x.id}','${entSgbdTheme(x.q)}')"><span class="ent-sgbd-ico" aria-hidden="true">${typeof lqStkSvg==='function'?lqStkSvg('info'):''}</span><span><b>Voir selon le SGBD</b><small>${esc((SGBD_PAGE.find(s=>s.id===entSgbdTheme(x.q))||{}).t||'')} · SQLite, PostgreSQL, MySQL…</small></span>${ENT_CHEV_SVG}</button>`:''}`:
         `<div class="ent-answer-lock"><span class="ent-answer-lock-ico" aria-hidden="true">${lqStkSvg('bubble')}</span><b>À toi de répondre</b><p>Prends quelques secondes pour structurer ta réponse avant de regarder.</p><button type="button" class="ent-reveal-primary" onclick="revealEntretien('${x.id}')">${ENT_EYE_SVG}<span>Révéler la réponse</span></button></div>`}
     </section>
     ${revealed?`<div class="ent-assessment"><p>Comment évalues-tu ta réponse ?</p>${entFoot(x.id)}</div>
-      <button type="button" class="ent-next" onclick="nextEntretien('${x.id}')"><span>${entNextTarget(x.id)?'Question suivante':'Retour aux questions'}</span>${ENT_CHEV_SVG}</button>`:''}
+      <div class="ent-nav">${entPrevTarget(x.id)?`<button type="button" class="ent-prev" onclick="prevEntretien('${x.id}')">${ENT_CHEV_SVG}<span>Question précédente</span></button>`:''}<button type="button" class="ent-next" onclick="nextEntretien('${x.id}')"><span>${entNextTarget(x.id)?'Question suivante':'Retour aux questions'}</span>${ENT_CHEV_SVG}</button></div>`:''}
   </article>`;
 }
 function renderEntretien(opts){
@@ -30241,14 +30253,14 @@ function renderEntretien(opts){
   }
   const fbar=document.getElementById('ent-filters');
   if(fbar){
-    fbar.innerHTML=ENTRETIEN_CATS.map(([k,l])=>{
-      const n=k==='all'?ENTRETIEN.length:ENTRETIEN.filter(q=>q.cat===k).length;
+    fbar.innerHTML=ENT_FAMILLES.map(([k,l])=>{
+      const n=k==='all'?ENTRETIEN.length:ENTRETIEN.filter(q=>ENT_FAMILLE_DE[q.cat]===k).length;
       return `<button type="button" class="fchip ${entFilter===k?'on':''}" aria-pressed="${entFilter===k?'true':'false'}" onclick="setEntFilter('${k}')">${l}<small>${n}</small></button>`;
     }).join('');
   }
   const items=entVisibleItems();
   const title=entStatus==='ok'?'Questions maîtrisées':(entStatus==='all'?'Toutes les questions':'Questions à revoir');
-  const kicker=entFilter==='all'?'Préparation SQL':entFilter;
+  const kicker=entFilter==='all'?'Préparation SQL':((ENT_FAMILLES.find(f=>f[0]===entFilter)||[])[1]||'Préparation SQL');
   const intro=`<div class="ent-list-title"><div><p class="ent-list-kicker">${kicker}</p><h2>${title}</h2></div><span class="ent-list-count">${items.length}</span></div>`;
   if(!items.length){
     const isDone=entStatus==='review';
@@ -30304,7 +30316,7 @@ function openEntretienQuestion(id){
   if(navigator.vibrate)navigator.vibrate(6);
 }
 function startEntretien(){
-  const pool=entAllItems().filter(x=>entFilter==='all'||x.q.cat===entFilter);
+  const pool=entAllItems().filter(x=>entInFilter(x.q));
   const target=pool.find(x=>!entOk(x.id))||pool[0]||entAllItems()[0];
   if(target)openEntretienQuestion(target.id);
 }
@@ -30313,13 +30325,48 @@ function startEntretien(){
    à partir de la question ouverte, parmi celles de l’onglet (et du thème choisi). Plus aucune autre : retour à la liste. */
 function entInTab(x){ return entStatus==='ok'?entOk(x.id):entStatus==='review'?!entOk(x.id):true; }
 function entNextTarget(id){
-  const pool=entAllItems().filter(x=>entFilter==='all'||x.q.cat===entFilter);
+  const pool=entAllItems().filter(x=>entInFilter(x.q));
   const cur=pool.findIndex(x=>x.id===id);
   for(let k=1;k<=pool.length;k++){
     const c=pool[(Math.max(-1,cur)+k)%pool.length];
     if(c.id!==id&&entInTab(c))return c;
   }
   return null;
+}
+/* 18 h 38, réf. 4 : « Question précédente » à côté de « Question suivante » : la précédente dans le même onglet et le même filtre. */
+function entPrevTarget(id){
+  const pool=entAllItems().filter(x=>entInFilter(x.q));
+  const cur=pool.findIndex(x=>x.id===id);
+  for(let k=1;k<=pool.length;k++){
+    const c=pool[(Math.max(0,cur)-k+pool.length*2)%pool.length];
+    if(c.id!==id&&entInTab(c))return c;
+  }
+  return null;
+}
+function prevEntretien(id){const t=entPrevTarget(id);if(t)openEntretienQuestion(t.id);}
+/* 18 h 38, réf. 2 : « un bouton Voir selon le SGBD qui nous dirige vers l’onglet Selon le SGBD au bon endroit ». Le thème de la page
+   vient de la notion de la question, ou à défaut des fonctions qu’elle cite ; le retour ramène à la question. */
+const ENT_SGBD_CAT={Dates:'dates','Chaînes':'texte',NULL:'null',Conditions:'null',Pagination:'pagination',Transactions:'transactions',Contraintes:'tables'};
+function entSgbdTheme(q){
+  if(ENT_SGBD_CAT[q.cat])return ENT_SGBD_CAT[q.cat];
+  const t=`${q.q} ${q.a} ${q.sql||''}`;
+  if(/\b(GROUP_CONCAT|STRING_AGG|LISTAGG)\b/i.test(t))return 'agregats';
+  if(/\b(LIMIT|OFFSET|FETCH FIRST|TOP \d)\b/.test(t))return 'pagination';
+  if(/\b(COALESCE|IFNULL|NVL|ISNULL)\b/.test(t))return 'null';
+  if(/\b(CURRENT_DATE|DATEADD|DATEDIFF|EXTRACT|STRFTIME|NOW\(\))/.test(t))return 'dates';
+  if(/\b(CAST|CONVERT)\s*\(/.test(t))return 'conversion';
+  if(/\b(AUTO_INCREMENT|SERIAL|IDENTITY|TRUNCATE)\b/.test(t))return 'tables';
+  if(/\b(SUBSTR|SUBSTRING|CONCAT|LENGTH|UPPER|LOWER|REPLACE|INSTR)\s*\(/.test(t))return 'texte';
+  if(/\b(ROUND|CEIL|FLOOR)\s*\(/.test(t))return 'nombres';
+  if(/niveau d’isolation|isolation/i.test(t))return 'transactions';
+  return null;
+}
+let entSgbdRetour=null;
+function entVoirSgbd(id,theme){
+  entSgbdRetour=id;
+  switchTab('sgbd');
+  const root=document.querySelector('#sgbd-screen-body .sg-wrap');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>sgbdJump(root,theme,false)));
 }
 function nextEntretien(id){
   const target=entNextTarget(id);
@@ -32880,7 +32927,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-moteur-v2270';
+  const SW_CACHE='requete-2026-11-01-entretien-v2271';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
