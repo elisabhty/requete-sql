@@ -1013,6 +1013,24 @@ function pontDom(LI){
   }
   return out;
 }
+/* De combien réduire l’intro (depuis le haut de sa carte) pour que la bulle commence sous elle, mascotte comprise, avec un écart : 0 si rien ne mord. */
+function pontUp(on){
+  const card = $('#s0 .iv-card'), st = $('#stage');
+  if (!card || !st || !on.el) return 0;
+  const k = st.getBoundingClientRect().width / 1080; if (!(k > 0)) return 0;
+  const c = card.getBoundingClientRect(), b = on.el.getBoundingClientRect();
+  if (!c.height || !b.height) return 0;
+  /* Le bas de l’intro : la carte (liseré blanc et rebord compris), et la mascotte, sa bulle et les étincelles qui en débordent. */
+  const haut = c.top - 10 * k;
+  let bas = c.bottom + 34 * k;
+  $$('#s0 .mascot, #s0 .bubble, #s0 .iv-spark').forEach(e => {
+    const r = e.getBoundingClientRect(), cs = getComputedStyle(e);
+    if (r.height && cs.visibility !== 'hidden' && +cs.opacity > 0.1) bas = Math.max(bas, r.bottom);
+  });
+  const need = bas + 22 * k - b.top;
+  return need > 0 ? +Math.min(0.25, need / (bas - haut)).toFixed(4) : 0;
+}
+if (typeof addEventListener === 'function') addEventListener('resize', () => PONTS.forEach(p => { delete p.up; }));
 /* À chaque image : la légende du lien qui doit se voir (et l’image qui s’efface derrière la pastille, à la fin). */
 function pontRender(T){
   const body = document.body; if (!body) return;
@@ -1021,8 +1039,12 @@ function pontRender(T){
   const fin = on.k === 'apres';
   const al = Math.max(0, Math.min(1, (T - on.a) / PONT_FADE, fin ? 1 : (on.b - T) / PONT_FADE));
   body.style.setProperty('--pont-a', al.toFixed(3));
+  /* La bulle du début ne doit pas mordre sur la carte d’intro : la carte recule juste ce qu’il faut pendant la phrase. */
   body.classList.add('pont-on'); body.classList.toggle('pont-fin', fin);
   PONTS.forEach(p => p.el && p.el.classList.toggle('on', p === on));
+  /* Mesure une fois la bulle en place (classe « pont-on » posée) ; la carte n’est pas encore réduite (--pont-d à 0). */
+  if (!fin && on.up === undefined) { body.style.setProperty('--pont-d', 0); on.up = pontUp(on); }
+  body.style.setProperty('--pont-d', fin ? 0 : (on.up || 0));
 }
 
 /* ---------- Le cours ---------- */
