@@ -244,3 +244,7 @@ test('19 h 04 : les polices du site dans l’app (Inter, JetBrains Mono, Bricola
 test('19 h 08 : l’en-tête de l’accueil se resserre', () => {
   assert.ok(css.includes('html.lq #scr-learn #home-hero>.journey-heading{margin-top:6px!important;margin-bottom:10px!important}'));
 });
+
+test('19 h 22 : l’icône de chargement (tirer pour recharger) descend moins bas', () => {
+  assert.ok(app.includes('const SEUIL=64, TENU=8, LIM=150;') && app.includes('translate3d(0,${Math.round(Math.min(o*.5-22,TENU+6))}px,0)'));
+});

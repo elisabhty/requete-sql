@@ -32938,14 +32938,16 @@ boot();
   const N=8; ptr.innerHTML='<span class="ptr-r"><span class="ptr-s">'+Array.from({length:N},(_,k)=>`<i style="transform:rotate(${k*360/N}deg);opacity:0"></i>`).join('')+'</span></span>';
   stage.appendChild(ptr);
   const spokes=[...ptr.querySelectorAll('i')], rot=ptr.firstChild;
-  const SEUIL=64, TENU=16, LIM=150;
+  const SEUIL=64, TENU=8, LIM=150;
   /* Le rebond de Safari : l’écran suit le doigt de moins en moins vite ; la pastille suit la même courbe. */
   const elastique=d=>LIM*(1-1/(d*0.55/LIM+1));
   let y0=0,x0=0,off=0,on=false,pull=false,busy=false,scr=null;
   const draw=o=>{
     const k=Math.min(o/SEUIL,1);
     spokes.forEach((s,i)=>{ s.style.opacity=k*N>i?String(0.25+0.75*(i+1)/N):'0'; });
-    ptr.style.transform=`translate3d(0,${Math.round(o*.62-22)}px,0) scale(${(.55+.45*k).toFixed(3)})`;
+    /* 19 h 22 : « l’icône de chargement descend trop bas » : elle s’arrête juste sous le haut de l’écran (22 px au plus), sans
+       mordre sur le titre. */
+    ptr.style.transform=`translate3d(0,${Math.round(Math.min(o*.5-22,TENU+6))}px,0) scale(${(.55+.45*k).toFixed(3)})`;
     ptr.style.opacity=String(Math.min(1,o/26));
     rot.style.transform=`rotate(${Math.round(o*3)}deg)`;   // les traits tournent avec le doigt
   };
@@ -33014,7 +33016,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-entretien141-v2281';
+  const SW_CACHE='requete-2026-11-01-chargement-v2282';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
