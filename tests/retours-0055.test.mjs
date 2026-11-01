@@ -14,18 +14,22 @@ const ctx = vm.createContext({});
 vm.runInContext(cut('const CHALLENGES=[', '\nfunction defisParProgression(){').replace('const CHALLENGES=', 'CHALLENGES='), ctx);
 const DEFIS = JSON.parse(JSON.stringify(ctx.CHALLENGES));
 const AERO = DEFIS.filter(c => c.base === 'aeroport');
+const WOK = DEFIS.filter(c => c.base === 'wok');
 const aero = cut("aeroport:{nom:'Aéroport',", '\n`}');
 const base = () => { const d = new SQL.Database(); d.run(aero.slice(aero.indexOf('sql:`') + 5)); return d; };
 
-test('les défis sont ceux de la base Aéroport : 33 Facile, 14 Moyen et 10 Difficile', () => {
-  assert.equal(DEFIS.length, 87);
+test('les défis comptent 57 Aéroport, 30 Hôpital et 30 Wok Chinois', () => {
+  assert.equal(DEFIS.length, 117);
   assert.equal(AERO.length, 57);
-  assert.deepEqual(AERO.map(c => c.id), [...Array.from({ length: 33 }, (_, i) => 'af' + (i + 1)), ...Array.from({ length: 14 }, (_, i) => 'am' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'ad' + (i + 1))]);
-  for (const c of AERO) {
-    assert.equal(c.base, 'aeroport', c.id); assert.equal(c.niv, c.id.startsWith('af') ? 'f' : c.id.startsWith('am') ? 'm' : 'd', c.id);
+  assert.equal(DEFIS.filter(c => c.base === 'hopital').length, 30);
+  assert.equal(WOK.length, 30);
+  assert.deepEqual(WOK.map(c => c.id), [...Array.from({ length: 10 }, (_, i) => 'wf' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'wm' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'wd' + (i + 1))]);
+  for (const c of DEFIS) {
+    assert.ok(['aeroport', 'hopital', 'wok'].includes(c.base), c.id);
+    assert.equal(c.niv, ({ f: 'f', m: 'm', d: 'd' })[c.id[1]], c.id);
     assert.ok(c.contexte && c.q && c.indice && c.sol && c.titre && Number.isInteger(c.apres), c.id);
   }
-  assert.ok(!/\b(clients|commandes|produits)\b/.test(DEFIS.map(c => c.sol).join(' ')), 'plus rien sur la base du cours');
+  assert.ok(!/\b(clients|commandes|produits)\b/.test(AERO.map(c => c.sol).join(' ')), 'plus rien sur la base du cours dans le lot Aéroport');
   assert.ok(app.includes('const CHALLENGE_GUIDES={};'));
 });
 
