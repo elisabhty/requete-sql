@@ -517,7 +517,7 @@ test('sous « Ton objectif ? » : le lien et les trois promesses sont centrés, 
   /* Les promesses : centrées sous la carte (même largeur qu’elle), coupées toutes au même endroit sur téléphone */
   const tr = h.slice(h.indexOf('<ul class="trust'), h.indexOf('</ul>', h.indexOf('<ul class="trust')));
   assert.deepEqual([...tr.matchAll(/<\/svg><span><span>([^<]+)<\/span> <span>([^<]+)<\/span><\/span><\/li>/g)].map(m => [m[1], m[2]]),
-    [['Dès 10&nbsp;min', 'par jour'], ['Rien à', 'installer'], ['Même', 'hors ligne']]);
+    [['10&nbsp;min', 'par jour'], ['Aucune', 'installation'], ['Disponible', 'hors ligne']]);
   assert.match(css, /\.trust\{margin:20px 0 0;display:flex;flex-wrap:wrap;justify-content:center;gap:8px 18px;max-width:470px;/);
   assert.ok(css.includes('.pick{position:relative;margin-top:28px;max-width:470px;'), 'la carte fait 470 px au plus, comme la ligne');
   const etroit = css.slice(css.indexOf('@media (max-width:489.98px),(min-width:700px) and (max-width:959.98px){'));
