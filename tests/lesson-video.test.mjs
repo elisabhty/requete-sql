@@ -498,7 +498,7 @@ const COURSES = [
       "'Nous gérons actuellement nos données dans Excel, mais ce fichier atteint ses limites : doublons, erreurs de saisie et difficultés de suivi.'",
       "'Nous avons besoin d’une base de données structurée pour centraliser nos informations et faciliter leur gestion au quotidien.'",
       "'En tant que développeur/analyste, ta mission sera de concevoir cette base, puis de l’implémenter dans un système de gestion de bases de données (SGBD) et de nous accompagner dans l’analyse de nos besoins au vu de la croissance rapide de notre marque.'",
-      "'Souhaites-tu nous accompagner dans ce projet ?'", "const REPONSE = ['Avec plaisir !', 'Je suis prêt à démarrer.'];",
+      "'Souhaites-tu nous accompagner dans ce projet ?'", "const REPONSE = ['Avec plaisir !', 'On commence quand tu veux !'];",
       "const BIENVENUE = ['Bienvenue dans l’équipe !', 'Voici ton badge.', 'Commençons par découvrir nos besoins ensemble.'];",
       '<span class="emo">🤝</span>J’accepte la mission', 'const CONV_TOP = 249, CONV_MAX = 1790,', 'tl.to(smsV, {height: h,', '<img src="badge-nutriboost.webp"', 'Bienvenue dans l’équipe NutriBoost !',
       'Ta mission : analyser les besoins métier,<br>concevoir la <b>base de données</b><br>et l’implémenter dans le SGBD.', 'Analyste-développeur', 'opens: OPENS,',
@@ -1646,7 +1646,7 @@ test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la 
      Elisa, 16 h 35 : « ça dépasse en bas » : la carte s’arrête 22 px au-dessus du bas du lecteur (son liseré et son ombre restent au-dessus de la barre
      de Safari) ; le bouton lecture a de l’air dessous ; la barre qui change de taille replace tout. */
   const place = cut('function lvPkPlace(){', '/* Le contenu de l’image reste au-dessus du plateau');
-  assert.ok(place.includes('lim=R.height-pb-LV_PK_BOT;') && html.includes('LV_PK_WAIT=400, LV_PK_BOT=22;'), 'la carte s’arrête 22 px au-dessus du bas du lecteur');
+  assert.ok(place.includes('lim=R.height-pb-LV_PK_BOT;') && html.includes('LV_PK_WAIT=150, LV_PK_BOT=22;'), 'la carte s’arrête 22 px au-dessus du bas du lecteur');
   assert.ok(place.includes("P.box.style.top=Math.max(0,lim-card.offsetHeight).toFixed(1)+'px'"), 'la carte est posée tout en bas, quelle que soit sa hauteur');
   assert.ok(!/visualViewport|vv\.|1496|1830|minHeight/.test(place), 'ni le bas visible de Safari, ni la place de la légende, ni hauteur forcée');
   assert.ok(html.includes("function lvPkShow(i,p){") && cut('function lvPkShow(i,p){', 'function lvPkValid(').includes('lvCapHide(true);'), 'la légende de l’image est cachée pendant le moment');
@@ -2938,7 +2938,7 @@ test('boutons retour en pastille ronde : Safari ne coupe plus leur relief (overf
   assert.ok(/html\.lq #app \.home-back svg\{[^}]*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour des écrans : relief entier');
   assert.ok(/html\.lq #scr-lesson \.navbar \.back svg\{\s*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour de la leçon (« ‹ Accueil ») : relief entier');
   assert.ok(html.includes('.tab svg{overflow:visible;'), 'onglets : l’ombre de l’onglet actif n’est pas coupée non plus');
-  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=97">'), 'la feuille de style du thème est rechargée');
+  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=98">'), 'la feuille de style du thème est rechargée');
 });
 
 test('arrêt « toucher » sur un bouton : un doigt seul qui monte et descend, sans bulle ; le bouton s’enfonce dès l’appui et remonte au relâcher', () => {

@@ -232,7 +232,7 @@ test('« prêt » : chaque ami se déclare, l’hôte voit le compteur', () => {
   assert.equal(host.ev('jeuLobbyLabel()'), 'Lancer la partie · 1/3 prêts');
   guests[0].ev('jeuToggleReady()'); sec(w, 1);
   assert.equal(host.ev('jeuLobbyLabel()'), 'Lancer la partie · 2/3 prêts');
-  assert.match(host.ev('jeuLobbyHint()'), /Pas encore prêt : Ami2/);
+  assert.match(host.ev('jeuLobbyHint()'), /En attente : Ami2/);
   guests[1].ev('jeuToggleReady()'); sec(w, 1);
   assert.equal(host.ev('jeuLobbyHint()'), 'Tout le monde est prêt.');
   guests[1].ev('jeuToggleReady()'); sec(w, 1);
