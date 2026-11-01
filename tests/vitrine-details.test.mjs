@@ -204,6 +204,7 @@ test('« Se connecter » partout à la place de « Ouvrir l’appli », et la ca
     for (const label of ['Choisir un objectif', 'Parcours de formation', 'Questions fréquentes'])
       assert.ok(menu.includes(`>${label}</a>`), `${page} : « ${label} » dans le menu mobile`);
     assert.ok(!menu.includes('>Ton objectif</a>') && !menu.includes('>Les parcours</a>') && !menu.includes('>Questions</a>'), `${page} : anciens libellés retirés`);
+    assert.ok(menu.includes('Donner ton avis</a>') && menu.includes('#avis'), `${page} : lien pour donner son avis`);
   }
   const home = lire('index.html');
   const menu = home.slice(home.indexOf('<nav class="menu" id="menu"'), home.indexOf('</nav>', home.indexOf('<nav class="menu" id="menu"')));
