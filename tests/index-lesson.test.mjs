@@ -120,9 +120,9 @@ test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', ()
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 202.54);
-  assert.ok(page.includes('notesAt: 202.54,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 209.74);
+  assert.equal(val('NOTES'), 203.49);
+  assert.ok(page.includes('notesAt: 203.49,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 210.69);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   assert.deepEqual(chaps.map(c => c.label), ['La file d’attente s’allonge', 'La recherche de la commande', 'Lire le plan', 'Créer l’index', 'Le nouveau plan',
@@ -261,12 +261,12 @@ test('moments 4 et 5 : la partie du plan qui nomme l’index ; ce que donne le p
 });
 
 test('chapitre 19 : écran titre, ouverture comme aux autres chapitres, la photo d’Elisa, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 19 : Les index et EXPLAIN</title>') && page.includes('<div class="tagpill">Projet · Chapitre 19</div>')
+  assert.ok(page.includes('<title>Requête · Projet : Les index et EXPLAIN</title>') && page.includes('<div class="tagpill">Projet · Module 14</div>')
     && page.includes('<span>I</span><span>N</span><span>D</span><span>E</span><span>X</span>')
-    && page.includes('<div class="abs sub">Accélérer une recherche et lire son plan</div>'), 'écran titre : « Projet · Chapitre 19 », INDEX, « Accélérer une recherche et lire son plan »');
+    && page.includes('<div class="abs sub">Accélérer une recherche et lire son plan</div>'), 'écran titre : « Projet · Module 14 », INDEX, « Accélérer une recherche et lire son plan »');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.');
-  assert.equal(caps[1], 'Au chapitre 18, une vue a présenté<br>la sélection de la box à l’agence.', 'le chapitre précédent');
+  assert.equal(caps[0], 'Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.');
+  assert.equal(caps[1], 'Dans la leçon précédente, une vue a présenté<br>la sélection de la box à l’agence.', 'le chapitre précédent');
   const vw = fs.readFileSync(path.join(root, 'assets/anim/projet-vue.html'), 'utf8');
   assert.ok(vw.includes('Dans la prochaine leçon,<br>la file des commandes à préparer<br>s’allongera.') && vw.includes('Prochaine leçon · Les index et EXPLAIN</span>'), 'le chapitre 18 annonce celui-ci');
   assert.ok(caps.includes('Dans la prochaine leçon,<br>une nouvelle collègue aura besoin<br>des bons accès.') && page.includes('Prochaine leçon · Sécurité et droits</span>'), 'annonce de la prochaine leçon');

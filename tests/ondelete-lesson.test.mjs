@@ -118,9 +118,9 @@ test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', ()
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
   /* Le bouton des notes est écrit en clair dans Course(…) : il suit la dernière légende. */
-  assert.equal(val('NOTES'), 237.78);
-  assert.ok(page.includes('notesAt: 237.78,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 244.98);
+  assert.equal(val('NOTES'), 238.78);
+  assert.ok(page.includes('notesAt: 238.78,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 245.98);
   /* Des légendes qui se suivent sans se chevaucher, chaque chapitre commençant 0,4 s après la légende précédente. */
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
@@ -364,7 +364,7 @@ test('le message : un mail du service client relaie la demande d’Inès Lefebvr
   assert.ok(!/fromTo\('#bdel'|fromTo\('#bring'/.test(page), 'aucun « fromTo » sur le bouton ni sur l’anneau : en revenant en arrière, rien ne reste enfoncé ni allumé');
   assert.equal(opens[1].at, val('BTN')); assert.ok(opens[1].at > d2[0] + 1 && opens[1].at < d2[1] - 1, 'le bouton est visible, puis l’app s’arrête ; la légende ne reste pas longtemps après le toucher');
   assert.ok(opens[1].at > picks[0].at && opens[1].at < picks[1].at && opens[1].at > opens[0].at, 'après le moment 1 et le mail, avant le moment 2');
-  assert.ok(val('NOTES') === 237.78 && val('DURATION') === 244.98, 'un arrêt « toucher » n’allonge pas la vidéo');
+  assert.ok(val('NOTES') === 238.78 && val('DURATION') === 245.98, 'un arrêt « toucher » n’allonge pas la vidéo');
   assert.ok(page.includes("if (!APP) fingerTap($('#bdel'), BTN, '#tapw', 0.6, 62);") && page.includes("press($('#bdel'), BTN, '#A92A31', 9, false);"),
     'le doigt ne montre le geste que dans la vidéo seule ; dans l’app, le bouton s’enfonce au toucher de l’élève');
   assert.equal(l68.video.moments, 6, 'le bouton ne compte pas parmi les moments « À toi »');
@@ -382,12 +382,12 @@ test('le message : un mail du service client relaie la demande d’Inès Lefebvr
 
 /* ---------- Propre au chapitre 12 : la suite du chapitre 10 (MERGE, depuis le 30 octobre), l’annonce de la leçon Transactions ---------- */
 test('chapitre 12 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 12 : ON DELETE</title>') && page.includes('<div class="tagpill">Projet · Chapitre 12</div>')
+  assert.ok(page.includes('<title>Requête · Projet : ON DELETE</title>') && page.includes('<div class="tagpill">Projet · Module 11</div>')
     && page.includes('<span>O</span><span class="sp">N</span><span>D</span><span>E</span><span>L</span><span>E</span><span>T</span><span>E</span>') && page.includes('<div class="abs sub">Quand un compte disparaît</div>'),
-    'écran titre : « Projet · Chapitre 12 », ON DELETE, « Quand un compte disparaît »');
+    'écran titre : « Projet · Module 11 », ON DELETE, « Quand un compte disparaît »');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les chapitres 2 à 10');
-  assert.equal(caps[1], 'Au chapitre 11, tu as supprimé<br>des lignes avec <code>DELETE</code>.', 'le chapitre précédent');
+  assert.equal(caps[0], 'Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les chapitres 2 à 10');
+  assert.equal(caps[1], 'Dans la leçon précédente, tu as supprimé<br>des lignes avec <code>DELETE</code>.', 'le chapitre précédent');
   /* La fin du chapitre 11 annonce « ON DELETE » : c’est ce chapitre (depuis le 30 octobre, MERGE vient avant DELETE). */
   const del = fs.readFileSync(path.join(root, 'assets/anim/projet-delete.html'), 'utf8');
   assert.ok(del.includes('avec <code>ON DELETE</code>.') && del.includes('Prochaine leçon · ON DELETE</span>'), 'le chapitre 11 annonce celui-ci');

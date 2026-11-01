@@ -25,16 +25,16 @@ test('WHERE : le cours a son animation, son image fixe et sa vignette, présente
   assert.ok(m, 'champ video du cours WHERE');
   assert.equal(m[1], 'assets/anim/where.html?app&embed');
   for (const f of m.slice(1, 3)) assert.ok(fs.statSync(path.join(ROOT, f.split('?')[0])).size > 1000, `fichier présent : ${f}`);
-  assert.equal(m[3], '1 min 52');
+  assert.equal(m[3], '2 min 04');
   assert.ok(!/notes:\{/.test(where), 'pas de bouton « Ajouter à mes notes » dans la vidéo : il est dans le bilan (Elisa, 27 octobre, 9 h 43)');
   /* « Ce que tu retiens » n’est plus dans la vidéo : elle s’arrête sur la dernière image du résultat, avant sa sortie (82,5 s), la légende encore là. */
   const wp = fs.readFileSync(path.join(ROOT, 'assets/anim/where.html'), 'utf8');
   assert.ok(wp.includes('const END = RECAP ? null : 82.48;') && wp.includes('CHAPTERS.length = 6;') && wp.includes('CAPTIONS[16] = [CAPTIONS[16][0], 999, CAPTIONS[16][2]];'), 'la vidéo s’arrête avant « À retenir », sa dernière légende reste affichée');
   assert.ok(wp.includes('<span>/ ${CHAPTERS.length} · ${c.label}</span>'), 'l’étiquette compte les chapitres restants (6 / 6)');
   /* Les moments « À toi » (Elisa, 26 octobre, 14 h 59) : la page garde son propre moteur et passe par moments.js (momentPlan, momentIX). */
-  assert.ok(/duree:'1 min 52',moments:3,seuil:2\}/.test(where) && /\n  leconSeule:true,/.test(where), 'trois moments ; leçon seule, validée avec deux moments réussis du premier coup (Elisa, 28 octobre)');
+  assert.ok(/duree:'2 min 04',moments:3,seuil:2\}/.test(where) && /\n  leconSeule:true,/.test(where), 'trois moments ; leçon seule, validée avec deux moments réussis du premier coup (Elisa, 28 octobre)');
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/where.html'), 'utf8');
-  assert.ok(page.includes('<script src="gsap.min.js"></script>\n<script src="moments.js"></script>') && page.includes('  build();\n  applyMoments();'), 'moments.js, puis les moments insérés une fois la timeline construite');
+  assert.ok(page.includes('<script src="gsap.min.js"></script>\n<script src="liens.js"></script>\n<script src="moments.js"></script>') && page.includes('  build();\n  applyMoments();'), 'moments.js, puis les moments insérés une fois la timeline construite');
   const M = momentsDe('where.html');
   /* Mini-jeux (Elisa, 28 octobre, 8 h 50) : à chaque clause son rôle (SELECT, FROM, WHERE), les lignes où la condition est vraie, la condition à compléter
      (avant les deux pièges, Elisa, 21 h 05 : la réponse n’est plus visible pendant le moment). */
@@ -478,7 +478,7 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '9 min 40', notesAt: 492.4, maxKo: 760,   // 760 Ko depuis le 31 octobre (la voix off d’Agathe : ses phrases calées dans la page, ~9 Ko) ; 730 Ko depuis le 29 octobre (nouvelle intro du moteur commun, ~9 Ko, et sa vignette refaite dans la DA de la vitrine, 22 → 36 Ko) ; 700 Ko depuis le 28 octobre : le recrutement (SMS, l’image du badge d’Elisa, 75 Ko) et le site qui interroge le SGBD
+  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '9 min 46', notesAt: 492.4, maxKo: 760,   // 760 Ko depuis le 31 octobre (la voix off d’Agathe : ses phrases calées dans la page, ~9 Ko) ; 730 Ko depuis le 29 octobre (nouvelle intro du moteur commun, ~9 Ko, et sa vignette refaite dans la DA de la vitrine, 22 → 36 Ko) ; 700 Ko depuis le 28 octobre : le recrutement (SMS, l’image du badge d’Elisa, 75 Ko) et le site qui interroge le SGBD
     table: 'clients',
     bubble: 'Découvre comment les données sont organisées en tables et reliées entre elles.',
     chapters: ['Situation', 'Le problème', 'Ta mission', 'Le découpage', 'Base de données et SGBD', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],
@@ -559,14 +559,14 @@ const COURSES = [
       'Les prénoms, sous le titre <span class="ic">email</span>', 'near "FROM": syntax error',
       // Les trois idées : les tables, les clés (et leur déclaration), SELECT
       '<span class="ic blk">FOREIGN KEY (client_id)<br>&nbsp;&nbsp;REFERENCES clients(id)</span>', '<span class="ic blk">SELECT prenom, nom, email</span>']},
-  {id: 2, next: 13, titre: 'Renommer avec AS', page: 'as.html', thumb: 'as-thumb.jpg', duree: '1 min 34', notesAt: 69.1,
+  {id: 2, next: 13, titre: 'Renommer avec AS', page: 'as.html', thumb: 'as-thumb.jpg', duree: '1 min 47', notesAt: 69.1,
     table: 'produits',
     bubble: 'Utilise <span class="ic">AS</span> pour donner un nom plus clair à une colonne dans le résultat.',
     /* Resserrée le 28 octobre (Elisa, 17 h 15 : « La leçon a tellement une redondance (as) ? ») : le mail dit la demande, sans carte
        ni chapitre « Le problème » pour la redire ; les guillemets : deux erreurs, puis un alias qui s’en passe. */
     chapters: ['Situation', 'Renommer une colonne', 'Avec ou sans guillemets', 'Le résultat', 'À retenir'],
     traps: ['near "du": syntax error', 'near "(": syntax error', '"Nom du produit"', 'Sans espace ni symbole']},
-  {id: 13, next: 4, titre: 'DISTINCT', page: 'distinct.html', thumb: 'distinct-thumb.jpg', duree: '2 min 20', notesAt: 109.05,
+  {id: 13, next: 4, titre: 'DISTINCT', page: 'distinct.html', thumb: 'distinct-thumb.jpg', duree: '2 min 31', notesAt: 109.05,
     table: 'clients',
     bubble: 'Utilise <span class="ic">DISTINCT</span> pour afficher chaque valeur une seule fois.',
     chapters: ['Situation', 'Le problème', 'À la main', 'DISTINCT', 'Plusieurs colonnes', 'Le piège', 'Le résultat', 'À retenir'],
@@ -580,14 +580,14 @@ const COURSES = [
       "{label: 'Les deux', ok: true, why: '<code>DISTINCT</code> enlève les doublons du résultat, sans modifier les données de départ.'}",
       '<div class="vpill"><span>${v}</span></div>', 'Il porte sur la ligne entière : sa place est <b>juste après</b> le <code>SELECT</code>.',
       'Revenons à la <b>demande de l’équipe</b>.', '<span id="s6pr">, prenom</span>']},
-  {id: 5, next: 6, titre: 'Comparer des valeurs', page: 'comparer.html', thumb: 'comparer-thumb.jpg', duree: '2 min 08', notesAt: 102.2,
+  {id: 5, next: 6, titre: 'Comparer des valeurs', page: 'comparer.html', thumb: 'comparer-thumb.jpg', duree: '2 min 19', notesAt: 102.2,
     table: 'produits',
     bubble: 'Utilise les opérateurs de comparaison pour comparer une colonne à une valeur.',
     chapters: ['Situation', 'Le problème', 'La comparaison', 'Six opérateurs', 'La limite', 'Comparer un texte', 'Le résultat', 'À retenir'],
     traps: ['<span class="kw">WHERE</span> stock <span class="cbox" id="eqA">=<i class="mbox"></i></span><span class="glow" id="leA">&lt;=</span> 60;',
       'Son stock est-il inférieur<br>ou égal à 60 ?', '<span class="kw">WHERE</span> stock &lt; 60', '<span class="kw">WHERE</span> stock &lt;= 60',
       "<span class=\"kw\">WHERE</span> categorie != <span class=\"str glow\" id=\"s6str\">'Accessoire'</span>;", 'Un texte, entre guillemets simples']},
-  {id: 6, next: 22, titre: 'AND et OR', page: 'and-or.html', thumb: 'and-or-thumb.jpg', duree: '2 min 12', notesAt: 111.5,
+  {id: 6, next: 22, titre: 'AND et OR', page: 'and-or.html', thumb: 'and-or-thumb.jpg', duree: '2 min 23', notesAt: 111.5,
     maxKo: 560,   // la photo de la conférence (43 Ko), comme le badge du cours 0
     table: 'clients',
     bubble: 'Combine plusieurs conditions avec <span class="ic">AND</span> et <span class="ic">OR</span> pour préciser ton filtre.',
@@ -597,7 +597,7 @@ const COURSES = [
       '<span class="op2">AND</span>', '<span class="op2">OR</span>', 'AND est prioritaire sur OR', 'entre parenthèses : calculé en premier', 'Ne remplit pas<br>le critère d’âge',
       'Nathan Dupont, 30 ans, est ainsi invité alors qu’il ne devrait pas l’être.',
       '<span id="lp">(</span><span id="cP">ville = <span class="str">\'Paris\'</span></span> <span class="kw">OR</span> <span id="cL">ville = <span class="str">\'Lyon\'</span></span><span id="rp">)</span> <span class="kw" id="and5">AND</span> <span id="cA">age &gt; 30</span>']},
-  {id: 22, next: 7, titre: 'NOT', page: 'not.html', thumb: 'not-thumb.jpg', duree: '2 min 18', notesAt: 109.7,
+  {id: 22, next: 7, titre: 'NOT', page: 'not.html', thumb: 'not-thumb.jpg', duree: '2 min 30', notesAt: 109.7,
     table: 'clients',
     bubble: 'Utilise <span class="ic">NOT</span> pour exclure les lignes qui respectent une condition.',
     chapters: ['Situation', 'Le problème', 'NOT en action', 'NOT ou l’inverse', 'Les parenthèses', 'Le résultat', 'À retenir'],
@@ -606,14 +606,14 @@ const COURSES = [
       'date_inscription <span class="hv">&gt;=<i class="mbox"></i></span>&nbsp;<span class="str">\'2023-03-01\'</span>',
       '<span class="kw" id="not5">NOT</span> <span id="lp">(</span><span id="cP">ville = <span class="str">\'Paris\'</span></span> <span class="kw">AND</span> age &gt; 35<span id="rp">)</span>',
       'NOT inverse tout le groupe', 'NOT n’inverse que cette condition']},
-  {id: 7, next: 8, titre: 'NULL', page: 'null.html', thumb: 'null-thumb.jpg', duree: '1 min 53', notesAt: 91.7,
+  {id: 7, next: 8, titre: 'NULL', page: 'null.html', thumb: 'null-thumb.jpg', duree: '2 min 04', notesAt: 91.7,
     table: 'clients',
     bubble: 'Repère les données absentes avec <span class="ic">IS NULL</span> et <span class="ic">IS NOT NULL</span>.',
     chapters: ['Situation', 'Le problème', 'IS NULL en action', 'Le piège du = NULL', 'IS NOT NULL', 'Le résultat', 'À retenir'],
     traps: ['<span class="ln" id="ql3"><span class="kw">WHERE</span> email <span class="kw glow" id="isn3">IS NULL</span>;', '<span class="tv nul">NULL</span><b>aucune valeur</b>',
       '<span class="tv">\'\'</span><b>un texte vide</b>', '<span class="tv">0</span><b>le nombre zéro</b>', '<span class="kw">WHERE</span> email = <span class="kw">NULL</span>;',
       '<b>Aucune ligne</b><span class="s">= NULL ne permet pas de détecter<br>une valeur absente.</span>', '<span class="kw glow" id="isnn5">IS NOT NULL</span>', '2 + 8 = <em>10 clients</em>']},
-  {id: 8, next: 9, titre: 'LIKE', page: 'like.html', thumb: 'like-thumb.jpg', duree: '2 min 37', notesAt: 123.9,
+  {id: 8, next: 9, titre: 'LIKE', page: 'like.html', thumb: 'like-thumb.jpg', duree: '2 min 49', notesAt: 123.9,
     maxKo: 560,   // la photo du colis (47 Ko, Elisa, 29 octobre, 0 h 06), comme celles de WHERE et AND et OR
     table: 'clients',
     bubble: 'Recherche du texte à partir d’un&nbsp;motif avec <span class="ic">LIKE</span>.',
@@ -626,7 +626,7 @@ const COURSES = [
       '<span class="str glow" id="strB4">\'%ie%\'</span>', '<span class="cpl">\'l%\'</span><span class="tx">ou</span><span class="cpl">\'L%\'</span>',
       '<span class="str">\'<span class="glow" id="us5">_</span>a%\'</span>', "[['_', 0, 0], ['a', 1, 1], ['%', 2, 'end']]",
       'n’importe quelle suite, <b>même vide</b>', '<b>exactement un</b> caractère']},
-  {id: 9, next: 10, titre: 'IN', page: 'in.html', thumb: 'in-thumb.jpg', duree: '2 min 12', notesAt: 106.6,
+  {id: 9, next: 10, titre: 'IN', page: 'in.html', thumb: 'in-thumb.jpg', duree: '2 min 23', notesAt: 106.6,
     table: 'clients',
     bubble: 'Vérifie si une valeur appartient à une liste avec <span class="ic">IN</span>.',
     chapters: ['Situation', 'Le problème', 'IN en action', 'Écrire la liste', 'Une seule colonne', 'Le résultat', 'À retenir'],
@@ -638,7 +638,7 @@ const COURSES = [
       'Son identifiant est-il dans la liste ?', '<div class="tg" id="tgP"><i>( )</i>entre parenthèses</div>',
       '(<span class="hv str" id="hS1">\'Paris\'<i class="mbox"></i></span>, <span class="hv str" id="hS2">\'Nantes\'<i class="mbox"></i></span>)',
       '<span class="ln5" id="m5b">  <span class="kw">AND</span> age &gt; 35;', '✓ 3 lots prêts à partir']},
-  {id: 10, next: 11, titre: 'BETWEEN', page: 'between.html', thumb: 'between-thumb.jpg', duree: '2 min 18', notesAt: 98.4,
+  {id: 10, next: 11, titre: 'BETWEEN', page: 'between.html', thumb: 'between-thumb.jpg', duree: '2 min 29', notesAt: 98.4,
     table: 'commandes',
     bubble: 'Sélectionne les valeurs comprises entre deux limites avec <span class="ic">BETWEEN</span>.',
     chapters: ['Situation', 'Le problème', 'BETWEEN en action', 'Limites incluses', 'Limites à l’envers', 'Le résultat', 'À retenir'],
@@ -647,7 +647,7 @@ const COURSES = [
       '<span id="geA">&gt;=</span><span class="kw glow" id="btA">BETWEEN</span>', '<span id="dcB"><span class="rep" id="r2">date_commande<i class="mbox"></i></span> &lt;= </span>',
       '<span class="x2" id="x2">× 2</span>', 'Sa date est-elle dans l’intervalle ?', '<span class="op" id="op2">&lt;=</span>20 juillet · inclus',
       '<span class="str bad" id="bd1">\'2026-07-20\'</span>', 'À l’envers, l’intervalle est vide.', '✓ 4 confirmations renvoyées en français']},
-  {id: 11, next: 12, titre: 'ORDER BY', page: 'order-by.html', thumb: 'order-by-thumb.jpg', duree: '1 min 58', notesAt: 95.8,
+  {id: 11, next: 12, titre: 'ORDER BY', page: 'order-by.html', thumb: 'order-by-thumb.jpg', duree: '2 min 10', notesAt: 95.8,
     table: 'produits',
     bubble: 'Trie les résultats dans l’ordre souhaité avec <span class="ic">ORDER BY</span>.',
     chapters: ['Situation', 'Le problème', 'ORDER BY en action', 'Le sens du tri', 'Deux critères', 'Le résultat', 'À retenir'],
@@ -656,7 +656,7 @@ const COURSES = [
       '<span class="sus"><span class="emo">🔍</span>50 ou 500 ?</span>', '<span class="tx">30 → 500</span><span class="tx">500 → 30</span>',
       '<span class="tx">A → Z</span><span class="tx">Z → A</span>', '<span class="kw">ORDER BY</span> categorie, prix<span class="sens" id="descC"> <span class="kw glow">DESC</span></span>;',
       '✓ Vérifications prêtes']},
-  {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '3 min 25', notesAt: 173.5,
+  {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '3 min 37', notesAt: 173.5,
     maxKo: 530,   // les quatre démonstrations des usages (Elisa, 29 octobre, 12 h 02)
     table: 'produits',
     bubble: 'Choisis combien de lignes afficher et à partir de laquelle commencer.',
@@ -679,7 +679,7 @@ const COURSES = [
       '<b>Tableaux de bord</b><span class="rs">Suivre les dernières commandes en direct.</span>',
       '<b>API</b><span class="rs">Renvoyer une partie des résultats à chaque demande.</span>',
       '<b>Scripts de traitement</b><span class="rs">Récupérer des données par lots.</span>']},
-  {id: 51, next: 52, titre: 'Fonctions de texte', page: 'fonctions-texte.html', thumb: 'fonctions-texte-thumb.jpg', duree: '3 min 08', notesAt: 171.1,
+  {id: 51, next: 52, titre: 'Fonctions de texte', page: 'fonctions-texte.html', thumb: 'fonctions-texte-thumb.jpg', duree: '3 min 21', notesAt: 171.1,
     table: 'clients',
     bubble: 'Transforme, découpe ou assemble du texte grâce aux fonctions de texte.',
     chapters: ['Situation', 'Le problème', 'UPPER en action', 'Assembler avec ||', 'Une fonction par besoin', 'Le numéro de rue', 'Le résultat', 'À retenir'],
@@ -694,7 +694,7 @@ const COURSES = [
       '<span class="fi"><span class="ic">SUBSTR</span>récupère une partie du texte</span>', '<span class="fi"><span class="ic">REPLACE</span>remplace des caractères</span>',
       'hold(2.3, 4.6);', '<meta name="format-detection" content="telephone=no">', '✓ 10 étiquettes prêtes',
       'function ean13Svg(code){', "const bar = ean13Svg('3760123456784');", '.lb-bar svg{display:block;width:100%;height:100%}']},
-  {id: 52, next: 53, titre: 'Fonctions numériques', page: 'fonctions-numeriques.html', thumb: 'fonctions-numeriques-thumb.jpg', duree: '2 min 18', notesAt: 132.6,
+  {id: 52, next: 53, titre: 'Fonctions numériques', page: 'fonctions-numeriques.html', thumb: 'fonctions-numeriques-thumb.jpg', duree: '2 min 31', notesAt: 132.6,
     table: 'produits',
     bubble: 'Effectue des calculs et transforme des valeurs numériques avec les fonctions numériques.',
     chapters: ['Situation', 'Le problème', 'FLOOR en action', 'Calculer', 'Trois façons d’arrondir', 'Le résultat', 'À retenir'],
@@ -711,7 +711,7 @@ const COURSES = [
       '"Pendant la semaine des <b>points doublés</b>, organisée une fois dans l’année, <span class=\\"nw\\">seuls les euros entiers comptent</span>."',
       '"<code>FLOOR(prix)</code> retire les centimes, <span class=\\"nw\\">puis ×\\u00a02</span> calcule les points gagnés."', 'hold(2.3, 3.1);',
       '"Sur chaque fiche produit, le site web veut afficher les points gagnés à l’achat."']},
-  {id: 53, next: 54, titre: 'Fonctions de dates et heures', page: 'fonctions-dates.html', thumb: 'fonctions-dates-thumb.jpg', duree: '2 min 16', notesAt: 131.5,
+  {id: 53, next: 54, titre: 'Fonctions de dates et heures', page: 'fonctions-dates.html', thumb: 'fonctions-dates-thumb.jpg', duree: '2 min 29', notesAt: 131.5,
     table: 'commandes',
     bubble: 'Extrais, transforme et compare des dates et des heures.',
     chapters: ['Situation', 'Le problème', 'DATE en action', 'Le calendrier', 'Changer l’affichage', 'Le résultat', 'À retenir'],
@@ -721,7 +721,7 @@ const COURSES = [
       '<span class="pt">2026<span class="dim">-07-02</span></span><span class="pj">+</span><span class="pt">7</span>', '<b>Résultat : 2033</b><span class="s">La date est lue comme le nombre 2026.</span>',
       '<span class="cp bad" id="bad4">✕ <s>2026-07-35</s></span><span class="cp good" id="good4">✓ 2026-08-04</span>',
       '<span class="dc">\'+1 month\'</span>', '<span class="dc">\'%d/%m/%Y\'</span><span class="ol">à la française</span>', '<span class="dc">\'%d\'</span><span class="ol">le jour</span>', '<span class="ic">STRFTIME()</span> change<br>l’<b>affichage</b> d’une date&nbsp;:', '✓ 16 messages planifiés']},
-  {id: 54, next: 21, titre: 'Fonctions de conversion de types', page: 'conversion-types.html', thumb: 'conversion-types-thumb.jpg', duree: '2 min 30', notesAt: 148.4,
+  {id: 54, next: 21, titre: 'Fonctions de conversion de types', page: 'conversion-types.html', thumb: 'conversion-types-thumb.jpg', duree: '2 min 42', notesAt: 148.4,
     table: 'commandes',
     bubble: 'Utilise <span class="ic">CAST</span> pour convertir une valeur d’un&nbsp;type vers un autre.',
     chapters: ['Situation', 'Le problème', 'CAST en action', 'Extraire, puis convertir', 'Les types', 'Le résultat', 'À retenir'],
@@ -733,7 +733,7 @@ const COURSES = [
       '<span class="tcp">REAL</span><span class="tl">nombre à virgule</span><span class="tx">29.9</span>', 'Les décimales sont supprimées, sans arrondir',
       '<span class="ln" id="s6l4">  <span class="kw">typeof</span>(', '<div class="rgT th"><div>numero_commande</div><div>numero</div><div>type</div></div>',
       '✓ Nombre entier : numéro accepté', '✓ 16 commandes importées']},
-  {id: 21, next: 23, titre: 'CASE', page: 'case.html', thumb: 'case-thumb.jpg', duree: '2 min 24', notesAt: 141.5,
+  {id: 21, next: 23, titre: 'CASE', page: 'case.html', thumb: 'case-thumb.jpg', duree: '2 min 35', notesAt: 141.5,
     table: 'produits',
     bubble: 'Utilise <span class="ic">CASE</span> pour retourner un résultat différent selon une condition.',
     chapters: ['Situation', 'Le problème', 'CASE en action', 'L’ordre compte', 'Sans ELSE', 'Le résultat', 'À retenir'],
@@ -744,7 +744,7 @@ const COURSES = [
       '<span>Dans le mauvais ordre</span>', '<b>Aucun produit « À commander »</b><span class="s">Sous 50, le stock est aussi sous 100.</span>',
       '<span class="a com">  -- pas de ELSE</span>', '<span class="nul" id="nul5">NULL</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> alerte</span>', '✓ 8 alertes à jour']},
-  {id: 23, next: 14, titre: 'COALESCE', page: 'coalesce.html', thumb: 'coalesce-thumb.jpg', duree: '2 min 18', notesAt: 135.9,
+  {id: 23, next: 14, titre: 'COALESCE', page: 'coalesce.html', thumb: 'coalesce-thumb.jpg', duree: '2 min 29', notesAt: 135.9,
     table: 'clients',
     bubble: 'Utilise <span class="ic">COALESCE</span> pour remplacer une valeur <span class="ic">NULL</span> par une autre valeur.',
     chapters: ['Situation', 'Le problème', 'COALESCE en action', 'Plusieurs valeurs', 'Le texte vide', 'Le résultat', 'À retenir'],
@@ -756,7 +756,7 @@ const COURSES = [
       '<span>NULL ou texte vide&nbsp;?</span>', '(<span class="str glow" id="q5">\'\'</span>, <span class="str">\'Non renseigné\'</span>)',
       '<b>La case reste vide</b><span class="s">Un texte vide n’est jamais remplacé.</span>',
       '<span class="kw">AS</span> email', '✓ Aucune case vide à l’écran', 'La table clients ne change pas']},
-  {id: 14, next: 16, titre: 'COUNT', page: 'count.html', thumb: 'count-thumb.jpg', duree: '2 min 06', notesAt: 125.1,
+  {id: 14, next: 16, titre: 'COUNT', page: 'count.html', thumb: 'count-thumb.jpg', duree: '2 min 18', notesAt: 125.1,
     table: 'produits',
     bubble: 'Utilise <span class="ic">COUNT</span> pour compter le nombre de lignes d’un&nbsp;résultat.',
     chapters: ['Situation', 'Le problème', 'COUNT(*) en action', 'Valeurs différentes', 'Compter une partie', 'Le résultat', 'À retenir'],
@@ -766,7 +766,7 @@ const COURSES = [
       '<span class="x">✕ email ignoré</span>', '<span>Les catégories des 8 produits</span>', '<span class="kw glow" id="d4">DISTINCT</span> categorie)',
       '<span class="sw" id="sw4"><span class="a">?</span><span class="b">5</span></span>', '<span class="kw">WHERE</span> <span class="glow" id="w5">stock &lt; 50</span>;',
       '<span class="glow" id="as6b"><span class="kw">AS</span> categories</span>', '✓ Compteurs à jour']},
-  {id: 16, next: 17, titre: 'GROUP BY', page: 'group-by.html', thumb: 'group-by-thumb.jpg', duree: '2 min 09', notesAt: 126.3,
+  {id: 16, next: 17, titre: 'GROUP BY', page: 'group-by.html', thumb: 'group-by-thumb.jpg', duree: '2 min 19', notesAt: 126.3,
     table: 'clients',
     bubble: 'Regroupe les lignes qui ont un point commun pour effectuer des calculs par groupe.',
     chapters: ['Situation', 'Le problème', 'GROUP BY en action', 'Un calcul par groupe', 'Le piège', 'Le résultat', 'À retenir'],
@@ -778,7 +778,7 @@ const COURSES = [
       '<span class="glow" id="pn5">prenom</span>, ville, <span class="kw">COUNT</span>(*)', '<span class="vv" id="so5">Sophie</span>',
       '<span class="ok">SQLite&nbsp;: un prénom au choix</span><span class="ko">Autres bases&nbsp;: une erreur</span>', '<span class="cv">✕ ni l’un ni l’autre</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> nb_clients</span>', '✓ Paris en tête avec 4 clients']},
-  {id: 17, next: 76, titre: 'HAVING', page: 'having.html', thumb: 'having-thumb.jpg', duree: '2 min 13', notesAt: 131.4,
+  {id: 17, next: 76, titre: 'HAVING', page: 'having.html', thumb: 'having-thumb.jpg', duree: '2 min 25', notesAt: 131.4,
     table: 'clients',
     bubble: 'Utilise <span class="ic">HAVING</span> pour filtrer les résultats obtenus après un <span class="ic">GROUP BY</span>.',
     chapters: ['Situation', 'Le problème', 'HAVING en action', 'WHERE ou HAVING', 'Le piège', 'Le résultat', 'À retenir'],
@@ -790,7 +790,7 @@ const COURSES = [
       '<span class="emo">🎂</span>&nbsp;7 clients de 30 ans ou plus</span>', '<span class="kw">WHERE</span> <span class="glow" id="cw5"><span class="kw">COUNT</span>(*) &gt;= 2</span>',
       '<b>Erreur SQL</b><span class="m">misuse of aggregate: COUNT()</span>', '<span class="sk">HAVING</span><span class="sx">trie les groupes</span><span class="sc ok" id="sc5c">COUNT(*) ✓</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> nb_clients</span>', '✓ 2 ateliers&nbsp;: Paris et Lyon']},
-  {id: 76, next: 18, titre: 'GROUP_CONCAT', page: 'group-concat.html', thumb: 'group-concat-thumb.jpg', duree: '2 min 33', notesAt: 150.2,
+  {id: 76, next: 18, titre: 'GROUP_CONCAT', page: 'group-concat.html', thumb: 'group-concat-thumb.jpg', duree: '2 min 44', notesAt: 150.2,
     table: 'commandes',
     bubble: 'Regroupe les valeurs de plusieurs lignes dans un même résultat.',
     chapters: ['Situation', 'Le problème', 'GROUP_CONCAT en action', 'Séparateur et NULL', 'Le piège', 'Le résultat', 'À retenir'],
@@ -801,7 +801,7 @@ const COURSES = [
       '<span class="snote" id="sn4">une virgule sans espace</span>', '<span class="vc nul" id="vn4"><small>commande n°16</small><b>NULL</b>', '<span class="b">4, 1, 3, 5</span>',
       '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> statut <span class="kw">DESC</span></span>', '<span class="b">16, 15, 14, 13, 12</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> commandes</span>', '✓ 16 commandes, chacune sous son statut']},
-  {id: 18, next: 20, titre: 'INNER JOIN', page: 'inner-join.html', thumb: 'inner-join-thumb.jpg', duree: '2 min 05', notesAt: 120.9,
+  {id: 18, next: 20, titre: 'INNER JOIN', page: 'inner-join.html', thumb: 'inner-join-thumb.jpg', duree: '2 min 19', notesAt: 120.9,
     table: 'commandes',
     bubble: 'Relie deux tables et conserve uniquement les lignes qui ont une correspondance.',
     chapters: ['Situation', 'Le problème', 'INNER JOIN en action', 'Sans correspondance', 'Le piège', 'Le résultat', 'À retenir'],
@@ -812,7 +812,7 @@ const COURSES = [
       '<span class="qm" id="qm4"><span class="sw"><span class="a">?</span><span class="b">✕</span></span></span>',
       '<b>Erreur SQL</b><span class="m">ambiguous column name: id</span>', '<span class="glow" id="id5"><span id="pre5">commandes.</span>id</span>, prenom, nom',
       '<span>🤝 4 correspondances, 4 lignes</span>', '✓ 4 étiquettes imprimées']},
-  {id: 20, next: 38, titre: 'LEFT JOIN', page: 'left-join.html', thumb: 'left-join-thumb.jpg', duree: '2 min 28', notesAt: 145.4,
+  {id: 20, next: 38, titre: 'LEFT JOIN', page: 'left-join.html', thumb: 'left-join-thumb.jpg', duree: '2 min 40', notesAt: 145.4,
     table: 'clients',
     bubble: 'Relie deux tables tout&nbsp;en conservant toutes les lignes de la table de gauche.',
     chapters: ['Situation', 'Le problème', 'LEFT JOIN en action', 'Clients sans carte', 'Le piège', 'Le résultat', 'À retenir'],
@@ -821,7 +821,7 @@ const COURSES = [
       '<span class="glow" id="lw3">LEFT</span>', '<span class="glow" id="o3"><span class="kw">ON</span> clients.id = fidelite.client_id</span>', '<span>👥 10 clients, 10 lignes</span>',
       '<span class="glow" id="w4"><span class="kw">WHERE</span> fidelite.id <span class="kw">IS NULL</span></span>',
       '<span class="glow" id="f5"><span class="kw">FROM</span> fidelite</span>', 'Les 6 clients sans carte ont disparu', '✓ 4 clients sur 10 ont une carte']},
-  {id: 38, next: 39, titre: 'RIGHT JOIN', page: 'right-join.html', thumb: 'right-join-thumb.jpg', duree: '3 min 06', notesAt: 183.1,
+  {id: 38, next: 39, titre: 'RIGHT JOIN', page: 'right-join.html', thumb: 'right-join-thumb.jpg', duree: '3 min 20', notesAt: 183.1,
     table: 'commandes',
     bubble: 'Relie deux tables tout&nbsp;en conservant toutes les lignes de la table de droite.',
     chapters: ['Situation', 'Le problème', 'RIGHT JOIN en action', 'Commande sans client', 'Le piège', 'Le résultat', 'À retenir'],
@@ -830,7 +830,7 @@ const COURSES = [
       '<span class="glow" id="o3"><span class="kw">ON</span> clients.id = commandes.client_id</span>', '<span>🧾 16 commandes, 16 lignes</span>',
       '<span class="glow" id="w4"><span class="kw">WHERE</span> clients.id <span class="kw">IS NULL</span></span>',
       '<span class="kw">RIGHT JOIN</span> <span class="glow" id="c5">clients</span>', 'La commande n°16 a disparu', '✓ 16 commandes exportées, dont 1 sans client']},
-  {id: 39, next: 40, titre: 'FULL OUTER JOIN', page: 'full-outer-join.html', thumb: 'full-outer-join-thumb.jpg', duree: '2 min 59', notesAt: 175.6,
+  {id: 39, next: 40, titre: 'FULL OUTER JOIN', page: 'full-outer-join.html', thumb: 'full-outer-join-thumb.jpg', duree: '3 min 12', notesAt: 175.6,
     table: 'clients',
     bubble: 'Relie deux tables en conservant toutes les lignes, avec ou sans<wbr> correspondance.',
     chapters: ['Situation', 'Le problème', 'FULL OUTER JOIN en action', 'Sans correspondance', 'Le piège', 'Le résultat', 'À retenir'],
@@ -839,7 +839,7 @@ const COURSES = [
       '<span class="kw"><span class="glow" id="fo3">FULL OUTER</span> JOIN</span> commandes', '<span class="glow" id="o3"><span class="kw">ON</span> clients.id = commandes.client_id</span>',
       '<span>↔️ Aucune ligne n’est exclue</span>', '<span>🚫 NULL en l’absence de correspondance</span>', '<span class="bl">correspondances, une ligne chacune</span>',
       '✓ Aucune ligne oubliée, 3 à vérifier']},
-  {id: 40, next: 19, titre: 'CROSS JOIN', page: 'cross-join.html', thumb: 'cross-join-thumb.jpg', duree: '2 min 23', notesAt: 140.4,
+  {id: 40, next: 19, titre: 'CROSS JOIN', page: 'cross-join.html', thumb: 'cross-join-thumb.jpg', duree: '2 min 36', notesAt: 140.4,
     table: 'clients',
     bubble: 'Associe chaque ligne d’une&nbsp;table à toutes les lignes d’une&nbsp;autre table.',
     chapters: ['Situation', 'Le problème', 'CROSS JOIN en action', 'Les doublons', 'Le résultat', 'À retenir'],
@@ -848,7 +848,7 @@ const COURSES = [
       '<span class="glow" id="cj3"><span class="kw">CROSS JOIN</span></span> produits', '<span class="vi"><span class="emo">✖️</span>Pas de <span class="ic">ON</span>&nbsp;: aucune condition</span>',
       '<span id="d4" class="glow"><span class="kw">DISTINCT</span> </span>', '<span class="ic blk sm">6 villes × 8 produits = 48 combinaisons</span>',
       '✓ Chaque produit, dans chaque ville']},
-  {id: 19, next: 41, titre: 'Jointure de 3 tables', page: 'jointure-3-tables.html', thumb: 'jointure-3-tables-thumb.jpg', duree: '3 min 22', notesAt: '196.7',
+  {id: 19, next: 41, titre: 'Jointure de 3 tables', page: 'jointure-3-tables.html', thumb: 'jointure-3-tables-thumb.jpg', duree: '3 min 34', notesAt: '196.7',
     table: 'clients',
     bubble: 'Enchaîne plusieurs <span class="ic">JOIN</span> pour récupérer des données réparties dans trois tables.',
     chapters: ['Situation', 'Le problème', 'Deux JOIN en action', 'Filtrer', 'Le piège', 'Le résultat', 'À retenir'],
@@ -859,7 +859,7 @@ const COURSES = [
       '<span class="orph" id="op5b"><span class="emo">✕</span>Sophie Martin et Lucas Bernard oubliés</span>',
       '<span class="qx" id="qx6">sa qualité est compromise</span>', '<span class="of" id="of6a"><span class="emo">💶</span>Le remboursement du produit</span>',
       '✓ 2 emails envoyés']},
-  {id: 41, next: 42, titre: 'JOIN + GROUP BY', page: 'join-group-by.html', thumb: 'join-group-by-thumb.jpg', duree: '2 min 34', notesAt: 150.7,
+  {id: 41, next: 42, titre: 'JOIN + GROUP BY', page: 'join-group-by.html', thumb: 'join-group-by-thumb.jpg', duree: '2 min 46', notesAt: 150.7,
     table: 'clients',
     bubble: 'Relie plusieurs tables, puis regroupe les résultats pour effectuer des calculs.',
     chapters: ['Situation', 'Le problème', 'JOIN + GROUP BY en action', 'Le bon ordre', 'Le piège', 'Le résultat', 'À retenir'],
@@ -868,7 +868,7 @@ const COURSES = [
       '<span class="glow" id="j3"><span class="kw">INNER JOIN</span> commandes</span>', '<span class="sw" id="tt3"><span class="a">Après le JOIN</span><span class="b">Après GROUP BY et COUNT()</span></span>',
       '<span class="m">near "INNER": syntax error</span>', '<span class="nt rd" id="nt5b">↑ les 15 commandes d’un coup</span>',
       '<span>Nantes&nbsp;: aucune commande, donc aucune ligne</span>', '✓ Paris en tête, devant Lyon']},
-  {id: 42, next: 49, titre: 'SELF JOIN', page: 'self-join.html', thumb: 'self-join-thumb.jpg', duree: '2 min 41', notesAt: 158.4,
+  {id: 42, next: 49, titre: 'SELF JOIN', page: 'self-join.html', thumb: 'self-join-thumb.jpg', duree: '2 min 52', notesAt: 158.4,
     table: 'commandes',
     bubble: 'Relie une table à elle-même pour comparer ou associer ses propres lignes.',
     chapters: ['Situation', 'Le problème', 'SELF JOIN en action', 'Avec elle-même', 'Le piège', 'Le résultat', 'À retenir'],
@@ -877,7 +877,7 @@ const COURSES = [
       '<span class="glow" id="d3"><span class="kw">AND</span> c1.date_commande = c2.date_commande</span>', '<span class="dp rd">elle-même</span>',
       '<span class="sw" id="op5"><span class="a">&lt;&gt;</span><span class="b">&lt;</span></span>',
       '<span class="glow" id="w6"><span class="kw">AND</span> c1.id &lt; c2.id</span>', '✓ 2 colis au lieu de 4']},
-  {id: 49, next: 44, titre: 'Plusieurs conditions dans ON', page: 'plusieurs-conditions-on.html', thumb: 'plusieurs-conditions-on-thumb.jpg', duree: '3 min 03', notesAt: 177.6,
+  {id: 49, next: 44, titre: 'Plusieurs conditions dans ON', page: 'plusieurs-conditions-on.html', thumb: 'plusieurs-conditions-on-thumb.jpg', duree: '3 min 15', notesAt: 177.6,
     table: 'commandes',
     bubble: 'Ajoute plusieurs conditions dans <span class="ic">ON</span> pour rendre une jointure plus précise.',
     chapters: ['Situation', 'Le problème', 'AND en action', 'Une troisième condition', 'Le piège', 'Le résultat', 'À retenir'],
@@ -890,7 +890,7 @@ const COURSES = [
       '✓ 2 commandes pour le coursier', '<span class="c">Lyon ✕</span>', '"À ne pas confondre : 13 est l’identifiant de la commande, 1 celui de la cliente."',
       '"Première condition :<br>la commande n°13 appartient-elle<br>à la cliente Sophie Martin ?"', '"Deuxième condition :<br>Sophie Martin habite-t-elle à Paris ?<br>Oui, sa ville est Paris."',
       '<span class="bike" id="bike6"><span class="emo">🛵</span></span>', '<span class="lvr">✓ Livrée</span>']},
-  {id: 44, next: 45, titre: 'Quel JOIN choisir ?', page: 'quel-join-choisir.html', thumb: 'quel-join-choisir-thumb.jpg', duree: '3 min 11', notesAt: 218.5,
+  {id: 44, next: 45, titre: 'Quel JOIN choisir ?', page: 'quel-join-choisir.html', thumb: 'quel-join-choisir-thumb.jpg', duree: '3 min 22', notesAt: 218.5,
     table: 'clients',
     bubble: 'Apprends à choisir le type de <span class="ic">JOIN</span> adapté au résultat que tu veux obtenir.',
     chapters: ['Le cabinet des Tilleuls', 'L’aquarium de l’Atlas', 'La bibliothèque des Lumières', 'L’hôtel des Cimes', 'Le glacier parisien', 'L’agence Horizon', 'À retenir'],
@@ -912,7 +912,7 @@ const COURSES = [
       '<span class="cm hid" id="q5c">-- sans ON</span>', "if (out.length + rest.length <= 6) rest.forEach(s => { out.push(JSON.parse(s)); mk.push('m'); });",
       "leave(i, answered){ if (answered && X && X.ok && X.i === i) wait = i; else clear(); },",
       "tick(t = tl.time()){ if (wait < 0) return; const a = PICKS[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear(); }"]},
-  {id: 45, next: 47, titre: 'Sous-requête dans WHERE avec IN', page: 'sous-requete-in.html', thumb: 'sous-requete-in-thumb.jpg', duree: '3 min 43', notesAt: 213.5,
+  {id: 45, next: 47, titre: 'Sous-requête dans WHERE avec IN', page: 'sous-requete-in.html', thumb: 'sous-requete-in-thumb.jpg', duree: '3 min 56', notesAt: 213.5,
     table: 'clients',
     bubble: 'Utilise le résultat d’une&nbsp;requête comme liste de valeurs dans le filtre d’une&nbsp;autre.',
     chapters: ['Situation', 'Le problème', 'La sous-requête', 'IN en action', 'Le piège', 'Le résultat', 'À retenir'],
@@ -920,7 +920,7 @@ const COURSES = [
       '<span class="nt" id="nt3">commande n°16 · sans client</span>', '<span class="kw glow" id="k3">IN</span> <span class="glow" id="p3a">(</span>',
       '<span class="glow" id="eq5">=</span> (', '<span class="n2" id="n5">1 ligne</span><span class="ok2" id="ok5">✓ Aucune erreur</span>',
       '<span class="orph" id="m5a"><span class="emo">✕</span>Sophie Martin</span>', '✓ 4 clients à appeler']},
-  {id: 47, next: 48, titre: 'Sous-requête dans SELECT', page: 'sous-requete-select.html', thumb: 'sous-requete-select-thumb.jpg', duree: '3 min 12', notesAt: 187.2,
+  {id: 47, next: 48, titre: 'Sous-requête dans SELECT', page: 'sous-requete-select.html', thumb: 'sous-requete-select-thumb.jpg', duree: '3 min 24', notesAt: 187.2,
     table: 'produits',
     bubble: 'Ajoute à chaque ligne une valeur calculée par une autre requête.',
     chapters: ['Situation', 'Le problème', 'La sous-requête', 'Ligne par ligne', 'Le piège', 'Le résultat', 'À retenir'],
@@ -928,7 +928,7 @@ const COURSES = [
       '<span class="kw">WHERE</span> produit_id = <span class="glow" id="v3">5</span>', '📌 Le 5 est écrit en dur&nbsp;: la Tisane Détox seulement',
       '= <span class="glow" id="pi4">produits.id</span>)', '<span class="glow" id="f5"><span class="kw">FROM</span> commandes</span>)',
       '✕ La Tisane Détox risque d’être écartée à tort', '<span class="glow" id="as6"><span class="kw">AS</span> derniere_commande</span>', '✓ Tisane Détox relancée']},
-  {id: 48, next: 55, titre: 'Sous-requête dans FROM', page: 'sous-requete-from.html', thumb: 'sous-requete-from-thumb.jpg', duree: '3 min 02', notesAt: 175.8,
+  {id: 48, next: 55, titre: 'Sous-requête dans FROM', page: 'sous-requete-from.html', thumb: 'sous-requete-from-thumb.jpg', duree: '3 min 15', notesAt: 175.8,
     table: 'commandes',
     bubble: 'Utilise le résultat d’une&nbsp;requête comme une table temporaire dans <span class="ic">FROM</span>.',
     chapters: ['Situation', 'Le problème', 'La sous-requête', 'La table dérivée', 'Le piège', 'Le résultat', 'À retenir'],
@@ -936,7 +936,7 @@ const COURSES = [
       '<span class="glow" id="mul3">produits.prix * commandes.quantite</span>', '<span class="glow" id="al3"><span class="kw">AS</span> commandes_montants</span>',
       '<span class="t2"><span class="emo">🗃️</span><span>commandes_montants</span></span>', '<span class="m">no such column: quantite</span>',
       '<span class="col gh" id="gh5">✕ quantite</span>', '<div>46.71875</div>', '✓ Indicateur mis à jour']},
-  {id: 55, next: 59, titre: 'EXISTS et NOT EXISTS', page: 'exists.html', thumb: 'exists-thumb.jpg', duree: '3 min 30', notesAt: 204.3,
+  {id: 55, next: 59, titre: 'EXISTS et NOT EXISTS', page: 'exists.html', thumb: 'exists-thumb.jpg', duree: '3 min 43', notesAt: 204.3,
     table: 'clients',
     bubble: 'Vérifie si des lignes liées existent ou n’existent pas dans une autre table.',
     chapters: ['Situation', 'Le problème', 'EXISTS', 'La recherche corrélée', 'Le piège', 'Le résultat', 'À retenir'],
@@ -944,7 +944,7 @@ const COURSES = [
       '<span class="rv">✓ 1 ligne trouvée&nbsp;: la commande n°5</span><span class="vd ok">EXISTS → vrai</span>', '<span class="rv no">Aucune ligne trouvée</span><span class="vd ko">EXISTS → faux</span>',
       'commandes.client_id = <span class="glow" id="ci4">clients.id</span>', '<span class="glow" id="w5"><span class="kw">WHERE</span> commandes.produit_id = 1</span>',
       '✕ Inès Lefebvre et Nathan Dupont n’ont jamais commandé', '✓ 4 clients prévenus', '<span class="ic">NOT EXISTS</span> → les 6 autres clients']},
-  {id: 59, next: 73, titre: 'WITH (CTE)', page: 'with-cte.html', thumb: 'with-cte-thumb.jpg', duree: '3 min 29', notesAt: 205.8,
+  {id: 59, next: 73, titre: 'WITH (CTE)', page: 'with-cte.html', thumb: 'with-cte-thumb.jpg', duree: '3 min 40', notesAt: 205.8,
     table: 'clients',
     bubble: 'Prépare un résultat intermédiaire avec <span class="ic">WITH</span> pour construire une requête plus lisible.',
     chapters: ['Situation', 'Le problème', 'La CTE', 'Lire la CTE', 'Le piège', 'Le résultat', 'À retenir'],
@@ -952,7 +952,7 @@ const COURSES = [
       '<span class="glow" id="nn3"><span class="kw">WHERE</span> client_id <span class="kw">IS NOT NULL</span></span>',
       '<span class="glow" id="wh4"><span class="kw">WHERE</span> nb_commandes &gt;= 2</span>;', '<span class="m">no such table: totaux</span>',
       '<span class="glow" id="j6"><span class="kw">JOIN</span> totaux</span>', '✓ 6 invitations envoyées']},
-  {id: 73, next: 80, titre: 'UNION et UNION ALL', page: 'union.html', thumb: 'union-thumb.jpg', duree: '3 min 26', notesAt: 155.7,
+  {id: 73, next: 80, titre: 'UNION et UNION ALL', page: 'union.html', thumb: 'union-thumb.jpg', duree: '3 min 39', notesAt: 155.7,
     table: 'clients',
     bubble: 'Réunis les résultats de plusieurs requêtes les uns à la suite des autres.',
     chapters: ['Situation', 'Le problème', 'UNION ALL', 'Les noms de colonnes', 'Le piège', 'Le résultat', 'À retenir'],
@@ -962,7 +962,7 @@ const COURSES = [
       '<span class="m">SELECTs to the left and right of UNION ALL do not have the same number of result columns</span>',
       '<span class="k ko">3 colonnes</span>', '✓ Un indicateur de plus = une ligne de plus', '✓ Tableau de bord à jour',
       '<div class="mn-l"><span class="ic">UNION</span> rallonge</div>']},
-  {id: 80, next: 77, titre: 'INTERSECT et EXCEPT', page: 'intersect-except.html', thumb: 'intersect-except-thumb.jpg', duree: '2 min 47', notesAt: 159.2,
+  {id: 80, next: 77, titre: 'INTERSECT et EXCEPT', page: 'intersect-except.html', thumb: 'intersect-except-thumb.jpg', duree: '2 min 58', notesAt: 159.2,
     table: 'produits',
     bubble: 'Compare deux résultats pour trouver leurs lignes communes ou leurs différences.',
     chapters: ['Situation', 'Le problème', 'INTERSECT', 'EXCEPT', 'Le piège', 'Le résultat', 'À retenir'],
@@ -972,7 +972,7 @@ const COURSES = [
       '🏷️ Tisane Détox&nbsp;: à écouler en promotion', "tl.to(blocB, {y: -4 * LH, duration: 0.6, ease: 'power2.inOut'}, 113.0);",
       '✕ Des stocks confortables&nbsp;: 120, 500 et 150 unités', '✓ Commande envoyée au fournisseur',
       '<div class="mn-l"><span class="ic">EXCEPT</span><span>retire la seconde</span></div>']},
-  {id: 77, next: 60, titre: 'WITH RECURSIVE (CTE RECURSIVE)', page: 'with-recursive.html', thumb: 'with-recursive-thumb.jpg', duree: '3 min 06', notesAt: 159.2,
+  {id: 77, next: 60, titre: 'WITH RECURSIVE (CTE RECURSIVE)', page: 'with-recursive.html', thumb: 'with-recursive-thumb.jpg', duree: '3 min 19', notesAt: 159.2,
     table: 'commandes',
     bubble: 'Construis progressivement une suite de résultats à partir d’un&nbsp;point de départ.',
     chapters: ['Situation', 'Le problème', 'L’ancre', 'La partie récursive', 'Le piège', 'Le résultat', 'À retenir'],
@@ -982,7 +982,7 @@ const COURSES = [
       '<span class="glow" id="wh3"><span class="kw">WHERE</span> jour &lt; <span class="str">\'2026-07-31\'</span></span><i class="strike" id="sk5"></i>',
       '⏳ Exécution en cours…', '✕ Sans condition d’arrêt, la requête ne s’arrête jamais',
       '<span class="glow" id="ex6"><span class="kw">EXCEPT</span></span>', '✓ 19 promotions programmées']},
-  {id: 60, next: 74, titre: 'OVER()', page: 'over.html', thumb: 'over-thumb.jpg', duree: '3 min 06', notesAt: 159.2,
+  {id: 60, next: 74, titre: 'OVER()', page: 'over.html', thumb: 'over-thumb.jpg', duree: '3 min 18', notesAt: 159.2,
     table: 'produits',
     bubble: 'Effectue un calcul sur plusieurs&nbsp;lignes tout&nbsp;en conservant chaque ligne dans le résultat.',
     chapters: ['Situation', 'Le problème', 'OVER ()', 'PARTITION BY', 'Le piège', 'Le résultat', 'À retenir'],
@@ -991,7 +991,7 @@ const COURSES = [
       '<span class="glow" id="pb3"><span class="kw">PARTITION BY</span> categorie</span>', '<b class="v8">8</b><b class="vp">${nbDans(c)}</b>',
       '<span class="m">misuse of window function COUNT()</span>', '<div class="st ko" id="sw5"><b>2</b><span>WHERE</span></div>',
       '<span class="glow" id="wh6"><span class="kw">WHERE</span> nb_produits = 1</span>', '✓ 3 catégories à étoffer']},
-  {id: 74, next: 78, titre: 'Fonctions de rang', page: 'fonctions-rang.html', thumb: 'fonctions-rang-thumb.jpg', duree: '2 min 45', notesAt: 162.7,
+  {id: 74, next: 78, titre: 'Fonctions de rang', page: 'fonctions-rang.html', thumb: 'fonctions-rang-thumb.jpg', duree: '2 min 58', notesAt: 162.7,
     table: 'commandes',
     bubble: 'Attribue un classement aux lignes selon l’ordre défini.',
     chapters: ['Situation', 'Le problème', 'ROW_NUMBER()', 'PARTITION BY', 'Le piège', 'Le résultat', 'À retenir'],
@@ -1002,7 +1002,7 @@ const COURSES = [
       '<div class="fc" id="f5c"><div class="fn">DENSE_RANK()</div><b class="ok">1</b><b class="ok">1</b><b>2</b></div>',
       '<span class="glow" id="rk6"><span class="kw">RANK</span>() <span class="kw">OVER</span> (</span>', '🥇 Premier achat de 3 clients',
       '✓ Mise en avant pour les nouveaux clients']},
-  {id: 78, next: 79, titre: 'LAG et LEAD', page: 'lag-lead.html', thumb: 'lag-lead-thumb.jpg', duree: '3 min 08', notesAt: 163.2,
+  {id: 78, next: 79, titre: 'LAG et LEAD', page: 'lag-lead.html', thumb: 'lag-lead-thumb.jpg', duree: '3 min 20', notesAt: 163.2,
     table: 'commandes',
     bubble: 'Accède à la valeur de la ligne précédente ou suivante pour la comparer à la ligne actuelle.',
     chapters: ['Situation', 'Le problème', 'LAG() et LEAD()', 'Le délai en jours', 'Le piège', 'Le résultat', 'À retenir'],
@@ -1013,7 +1013,7 @@ const COURSES = [
       '<span class="glow" id="nb5"><span class="kw">ORDER BY</span> client_id, date_commande, id</span>', '<span class="jr" id="j5b">−23</span>',
       '✕ Lucas Bernard lit la commande de Sophie Martin', '<span class="glow" id="av6"><span class="kw">COALESCE</span>(<span class="kw">AVG</span>(jours_depuis), 10)</span>',
       '🔔 Hugo Laurent et Gabriel Michel&nbsp;: 10 jours par défaut', '✓ 8 rappels programmés']},
-  {id: 79, next: 56, titre: 'Fenêtres glissantes', page: 'fenetres-glissantes.html', thumb: 'fenetres-glissantes-thumb.jpg', duree: '2 min 49', notesAt: 162.7,
+  {id: 79, next: 56, titre: 'Fenêtres glissantes', page: 'fenetres-glissantes.html', thumb: 'fenetres-glissantes-thumb.jpg', duree: '3 min 02', notesAt: 162.7,
     table: 'commandes',
     bubble: 'Définis les lignes à prendre en compte autour de chaque ligne pour effectuer un calcul.',
     chapters: ['Situation', 'Le problème', 'Le cumul', 'La moyenne mobile', 'Le piège', 'Le résultat', 'À retenir'],
@@ -1022,7 +1022,7 @@ const COURSES = [
       '<span class="b"><span class="glow" id="p4"><span class="kw">2 PRECEDING</span></span></span>', '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> date_commande</span>',
       '✕ Les deux commandes du 2 juillet ont le même cumul', '<div class="lim" id="lim6"><span>Palier&nbsp;: 700&nbsp;€</span></div>',
       '✓ Palier franchi le 1er&nbsp;août']},
-  {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '3 min 03', notesAt: 159.3,
+  {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '3 min 09', notesAt: 159.3,
     table: 'inscriptions',
     bubble: 'Réorganise des données mélangées en plusieurs tables pour éviter les répétitions et les incohérences.',
     chapters: ['Le fichier Excel', 'Les copies', 'Supprimer, ajouter', 'Une table par sujet', 'Les tables remplies', 'À retenir'],
@@ -1031,7 +1031,7 @@ const COURSES = [
       // Les six moments : les copies de l’e-mail, la ligne à supprimer, la case client du Yoga, les colonnes à ranger, la table du Yoga, la table sans liens
       "{at: 40.0, from: 34.6, kind: 'tap', need: 3,", "{at: 61.6, from: 52.1, kind: 'tap', need: 1,", "{label: 'Tu crées une ligne d’atelier dans un tableau censé contenir des inscriptions.', ok: true,",
       "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 129.8, from: 119.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}", "{at: 141.4, from: 135.95, kind: 'pick',",
-      '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Chapitre 2 · Clés et relations',
+      '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Prochaine leçon · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
   {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 42', notesAt: 167.9,
     table: 'inscriptions',
@@ -1047,8 +1047,8 @@ const COURSES = [
       "{at: 110.45, from: 103.6, kind: 'pick', text: true,", "{label: 'Une nouvelle ligne dans la table inscriptions', ok: true},", "{at: 149.6, from: 133.3, kind: 'sort',",
       "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
-      "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.9);", 'Chapitre 3 · Modéliser avec UML']},
-  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '4 min 57', notesAt: 224.15,
+      "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.9);", 'Prochaine leçon · Modéliser avec UML']},
+  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '4 min 58', notesAt: 224.15,
     table: 'ateliers',
     bubble: 'Représente les tables et leurs relations avant de construire la base de données.',
     chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
@@ -1063,7 +1063,7 @@ const COURSES = [
       "const SHOP_ASSOCS = ASSOCS.concat([['pa', 'passe', '▾', 'cl', '0..1', 'cm', '0..*'], ['ce', 'concerne', '◂', 'cm', '0..*', 'pr', '1']]);",
       '<line id="ln-an"/><line id="ln-po"/><line id="ln-in"/><line id="ln-cx" class="dash"/>', "tl.to('#sb .mp:not(.ask) .mn', {opacity: 0.28,",
       'Prochaine leçon · CREATE TABLE']},
-  {id: 61, next: 65, titre: 'CREATE TABLE', page: 'projet-create.html', thumb: 'projet-create-thumb.webp', duree: '4 min 17', notesAt: 198.9,
+  {id: 61, next: 65, titre: 'CREATE TABLE', page: 'projet-create.html', thumb: 'projet-create-thumb.webp', duree: '4 min 19', notesAt: 198.9,
     table: 'coachs',
     bubble: 'Crée une nouvelle table en définissant ses colonnes, leurs types et leurs règles.',
     chapters: ['Le plan', 'La table coachs', 'L’ordre des tables', 'La table ateliers', 'La carte de membre', 'Exécuter', 'À retenir'],
@@ -1075,8 +1075,8 @@ const COURSES = [
       "{at: 51.85, from: 45.7, kind: 'pick', prompt: 'Quelle contrainte permet à <code>id</code> d’identifier chaque coach ?', options: [", "{label: 'PRIMARY KEY', ok: true},",
       "{at: 80.05, from: 68.1, kind: 'tap', need: 2, prompt: 'Touche les deux tables que tu peux écrire juste après coachs.'},", "const M2_ANS = {at: ['#p-at .hlo'], ca: ['#p-ca .hlo']};",
       "{at: 97.85, from: 89.9, kind: 'sort',", "{at: 115.65, from: 110.5, kind: 'tap', need: 1,", "{at: 155.85, from: 145.8, kind: 'sort',",
-      "{at: 182.45, from: 165.7, kind: 'pick', text: true,", "{label: 'Ses colonnes, mais aucune ligne', ok: true},", 'Chapitre 5 · ALTER TABLE']},
-  {id: 65, next: 66, titre: 'ALTER TABLE', page: 'projet-alter.html', thumb: 'projet-alter-thumb.webp', duree: '4 min 47', notesAt: 222.55,
+      "{at: 182.45, from: 165.7, kind: 'pick', text: true,", "{label: 'Ses colonnes, mais aucune ligne', ok: true},", 'Prochaine leçon · ALTER TABLE']},
+  {id: 65, next: 66, titre: 'ALTER TABLE', page: 'projet-alter.html', thumb: 'projet-alter-thumb.webp', duree: '4 min 48', notesAt: 222.55,
     table: 'ateliers',
     bubble: 'Modifie la structure d’une&nbsp;table existante sans avoir à la recréer.',
     chapters: ['Les demandes', 'Ajouter une colonne', 'Une colonne sans DEFAULT', 'Renommer une colonne', 'Supprimer une colonne', 'Structure ou valeurs', 'À retenir'],
@@ -1093,8 +1093,8 @@ const COURSES = [
       "  ['Passer l’atelier Pilates à 10 places', 'upd', 'Aucune colonne ne change : seule une valeur change.'],",
       '<span class="lc2" id="lc-${k}"><i class="e">0 ligne</i><i class="f">${n} lignes</i></span>', "kbp('kb1', 'INSERT INTO')", "kbp('kb2', 'UPDATE', 'up2')",
       "addCol('tb-at', 4, 150, 53.7, 0.16);", "crumble(COACHS.map(([id]) => `#tc-co-r${id} .c4 .l1`).reverse().concat('#tc-co .hd .c4 .h0').map(s => $(s)), 172.6);",
-      'Effacé avec la colonne', 'Chapitre 6 · DROP']},
-  {id: 66, next: 84, titre: 'DROP', page: 'projet-drop.html', thumb: 'projet-drop-thumb.jpg', duree: '2 min 36', notesAt: 122.1,
+      'Effacé avec la colonne', 'Prochaine leçon · DROP']},
+  {id: 66, next: 84, titre: 'DROP', page: 'projet-drop.html', thumb: 'projet-drop-thumb.jpg', duree: '2 min 37', notesAt: 122.1,
     table: 'clients',
     bubble: 'Supprime une table ou un autre objet devenu inutile dans la base de données.',
     chapters: ['La table de trop', 'Vider ou supprimer', 'La requête', 'Une table liée', 'Noms proches', 'IF EXISTS', 'À retenir'],
@@ -1108,7 +1108,7 @@ const COURSES = [
       "a += out('o6', 'err', 'Erreur SQL', 'no such table: inscriptions_excel', 'm');", "<span id=\"bt-b\">Serveur de test</span>", 'Prochaine leçon · Les schémas']},
   /* Le chapitre 7, ajouté le 30 octobre (le scénario d’Elisa : une base où tout est mélangé, à ranger en espaces) : les deux équipes de NutriBoost,
      CREATE SCHEMA, l’adresse schéma.table, deux tables du même nom, trois requêtes à réparer, puis SQLite et son schéma main. */
-  {id: 84, next: 26, titre: 'Les schémas', page: 'projet-schemas.html', thumb: 'projet-schemas-thumb.webp', duree: '2 min 11', notesAt: 121.9,
+  {id: 84, next: 26, titre: 'Les schémas', page: 'projet-schemas.html', thumb: 'projet-schemas-thumb.webp', duree: '2 min 12', notesAt: 121.9,
     table: 'clients',
     bubble: 'Organise les tables d’une grande base en espaces distincts grâce aux schémas.',
     chapters: ['Une base qui grandit', 'Deux espaces', 'CREATE SCHEMA', 'Une adresse', 'Le même nom', 'Les requêtes à réparer', 'Et dans SQLite ?', 'À retenir'],
@@ -1117,7 +1117,7 @@ const COURSES = [
       "{at: atp('p1'), from: A.c3, kind: 'sort',", "{label: 'CREATE SCHEMA bien_etre;', ok: true},", "{label: 'bien_etre.inscriptions', ok: true},",
       "{label: 'Non, leur schéma les distingue', ok: true},", "{at: atp('p5'), from: A.c15, kind: 'sort',", "{label: 'SELECT * FROM main.clients;', ok: true},",
       "['ea1', '{ka1|ALTER TABLE} clients'], ['ea2', '{ka2|SET SCHEMA} boutique;']", 'Prochaine leçon · INSERT INTO']},
-  {id: 26, next: 27, titre: 'INSERT', page: 'projet-insert.html', thumb: 'projet-insert-thumb.webp', duree: '3 min 58', notesAt: 162.2,
+  {id: 26, next: 27, titre: 'INSERT', page: 'projet-insert.html', thumb: 'projet-insert-thumb.webp', duree: '3 min 59', notesAt: 162.2,
     table: 'inscriptions',
     bubble: 'Ajoute de nouvelles lignes dans une table avec <span class="ic">INSERT</span>.',
     chapters: ['Karim passe la main', 'Une inscription', 'L’ordre des valeurs', 'Une colonne oubliée', 'Un groupe', 'Créer ou recharger', 'À retenir'],
@@ -1128,7 +1128,7 @@ const COURSES = [
       "{at: atp('p4'), from: A.c20, kind: 'tap', need: 1,", "{label: 'DO\u00a0UPDATE SET seances_restantes\u00a0= seances_restantes\u00a0+\u00a010', ok: true},",
       "{at: atp('p6'), from: A.c30, kind: 'sort',", "b += out('o-fk', 'err', 'Requête refusée', 'FOREIGN KEY constraint failed', 'm');",
       "c += out('o-un', 'err', 'Requête refusée', 'UNIQUE constraint failed:<br>cartes.client_id', 'm', true);", 'Prochaine leçon · UPDATE']},
-  {id: 27, next: 82, titre: 'UPDATE', page: 'projet-update.html', thumb: 'projet-update-thumb.webp', duree: '3 min 05', notesAt: 173.4,
+  {id: 27, next: 82, titre: 'UPDATE', page: 'projet-update.html', thumb: 'projet-update-thumb.webp', duree: '3 min 07', notesAt: 173.4,
     table: 'ateliers',
     bubble: 'Modifie les données déjà présentes dans une table avec <span class="ic">UPDATE</span>.',
     chapters: ['Trois demandes', 'Cibler une ligne', 'L’oubli du WHERE', 'Lire avant d’écrire', 'Une valeur calculée', 'Une règle de la table', 'À retenir'],
@@ -1139,7 +1139,7 @@ const COURSES = [
       "{label: 'SELECT\u00a0*\u00a0FROM\u00a0ateliers WHERE\u00a0id\u00a0=\u00a02', ok: true},", "{label: 'SET seances_restantes\u00a0= seances_restantes\u00a0+\u00a02', ok: true},",
       "{label: 'Le solde deviendrait négatif, ce que CHECK interdit', ok: true}]}",
       "b += out('o-5', 'warn', 'Requête exécutée', '5 lignes modifiées.');", "c += out('o-ck', 'err', 'Requête refusée', 'CHECK constraint failed:<br>seances_restantes &gt;= 0', 'm', true);", 'Prochaine leçon · MERGE']},
-  {id: 28, next: 68, titre: 'DELETE', page: 'projet-delete.html', thumb: 'projet-delete-thumb.webp', duree: '3 min 00', notesAt: 140.34,
+  {id: 28, next: 68, titre: 'DELETE', page: 'projet-delete.html', thumb: 'projet-delete-thumb.webp', duree: '3 min 02', notesAt: 140.34,
     table: 'inscriptions',
     bubble: 'Supprime les lignes qui ne doivent plus être conservées avec <span class="ic">DELETE</span>.',
     chapters: ['Trois demandes', 'Supprimer une ligne', 'Le bon client', 'Plusieurs lignes', 'L’oubli du WHERE', 'Trois mots-clés', 'À retenir'],
@@ -1151,7 +1151,7 @@ const COURSES = [
       "b += out('o-8', 'warn', 'Requête exécutée', '8 lignes supprimées.');", "c += out('o-2', 'ok', 'Requête exécutée', '1 ligne supprimée.');", 'Prochaine leçon · ON DELETE']},
   /* Le chapitre 10, ajouté le 30 octobre (Elisa : le mini-jeu de synchronisation d’urgence) : l’alerte stock, l’inventaire de l’entrepôt,
      MERGE par étapes, le piège du Magnésium, la requête du collègue aux actions inversées, puis l’équivalent SQLite. */
-  {id: 82, next: 28, titre: 'MERGE', page: 'projet-merge.html', thumb: 'projet-merge-thumb.webp', duree: '3 min 08', notesAt: 165.3,
+  {id: 82, next: 28, titre: 'MERGE', page: 'projet-merge.html', thumb: 'projet-merge-thumb.webp', duree: '3 min 10', notesAt: 165.3,
     table: 'produits',
     bubble: 'Utilise <span class="ic">MERGE</span> pour mettre à jour les lignes&nbsp;existantes et ajouter les nouvelles en une seule&nbsp;requête.',
     chapters: ['L’alerte stock', 'Une action par produit', 'La clé de comparaison', 'MATCHED ou NOT MATCHED', 'Le piège', 'La requête du collègue', 'Et dans SQLite ?', 'À retenir'],
@@ -1160,7 +1160,7 @@ const COURSES = [
       "{at: atp('p1'), from: A.c3, kind: 'sort',", "{label: 'ON produits.id = entrepot.id', ok: true},", "{label: 'UPDATE SET stock = entrepot.stock', ok: true},",
       "{at: atp('p4'), from: A.c18, kind: 'tap', need: 1,", "{label: 'Il reste tel quel', ok: true}]},", "{at: atp('p6'), from: A.c26, kind: 'sort',",
       "b += out('o-run', 'ok', 'Requête exécutée', '3 lignes traitées : 2 modifiées, 1 ajoutée.');", "['eq4', 'SET stock = {qx|excluded}.stock;']", 'Prochaine leçon · DELETE']},
-  {id: 68, next: 62, titre: 'ON DELETE', page: 'projet-ondelete.html', thumb: 'projet-ondelete-thumb.webp', duree: '4 min 07', notesAt: 237.78,
+  {id: 68, next: 62, titre: 'ON DELETE', page: 'projet-ondelete.html', thumb: 'projet-ondelete-thumb.webp', duree: '4 min 08', notesAt: 238.78,
     table: 'avis', article: 'une',
     bubble: 'Définis ce qui doit arriver aux données&nbsp;liées lorsqu’une&nbsp;ligne est supprimée.',
     chapters: ['Après l’atelier', 'De la feuille à la base', 'Quelque temps plus tard…', 'Le moment de la suppression', 'Découvrir ON DELETE', 'À toi de choisir', 'Retour sur le site web', 'Chaque cas, sa règle', 'À retenir'],
@@ -1170,7 +1170,7 @@ const COURSES = [
       "{at: atp('p3'), from: A.g1, kind: 'tap', need: 1,", "{label: 'La suppression du compte est refusée', ok: true}]},", "{label: 'Le site web, sans compte associé', ok: true,",
       "{at: atp('p6'), from: A.h1, kind: 'sort',",
       "w += out('o-rs', 'err', 'Suppression bloquée', 'FOREIGN KEY constraint failed', 'm');", "out('o-nn', 'err', 'Suppression du compte refusée', 'NOT NULL constraint failed:<br>avis.client_id', 'm', true)", 'Prochaine leçon · Transactions']},
-  {id: 62, next: 63, titre: 'Transactions', page: 'projet-transaction.html', thumb: 'projet-transaction-thumb.webp', duree: '4 min 19', notesAt: 245.25,
+  {id: 62, next: 63, titre: 'Transactions', page: 'projet-transaction.html', thumb: 'projet-transaction-thumb.webp', duree: '4 min 20', notesAt: 246.2,
     table: 'remplacements',
     bubble: 'Regroupe plusieurs modifications pour les valider ensemble ou toutes les annuler.',
     chapters: ['Un colis abîmé', 'Deux modifications à réaliser', 'Ce qui peut mal se passer', 'Démarrer une transaction', 'Effectuer les modifications', 'Valider avec COMMIT',
@@ -1182,7 +1182,7 @@ const COURSES = [
       "{at: atp('p1'), from: A.c1, kind: 'tap', need: 1,", "{at: atp('p2'), from: A.f1, kind: 'pick', text: true,", "{label: '30 : la valeur de départ', ok: true,",
       "{label: 'COMMIT', ok: true,", "{label: 'Annuler avec ROLLBACK', ok: true,", "{label: 'Recommencer toute la transaction', ok: true,", "{at: atp('p6'), from: A.i1, kind: 'sort',",
       "w += out('o-i1', 'err', 'Remplacement non enregistré', 'NOT NULL constraint failed:<br>remplacements.personnalisation', 'm', true);", 'Prochaine leçon · SAVEPOINT']},
-  {id: 63, next: 83, titre: 'SAVEPOINT', page: 'projet-savepoint.html', thumb: 'projet-savepoint-thumb.webp', duree: '4 min 13', notesAt: 231.76,
+  {id: 63, next: 83, titre: 'SAVEPOINT', page: 'projet-savepoint.html', thumb: 'projet-savepoint-thumb.webp', duree: '4 min 14', notesAt: 232.76,
     table: 'cadeaux',
     bubble: 'Crée un point de sauvegarde pour annuler seulement une partie d’une&nbsp;transaction.',
     chapters: ['Un petit geste pour Léa', 'Pouvoir revenir en arrière', 'Ajouter le cadeau', 'Léa préfère un autre cadeau', 'Observer ce qui est annulé', 'Ajouter la protéine',
@@ -1197,7 +1197,7 @@ const COURSES = [
       "{at: atp('p6'), from: A.g1, kind: 'sort',", "const Q_RT = [['-- Revenir au point de retour'], ['ROLLBACK TO SAVEPOINT avant_cadeau;']]", 'Prochaine leçon · Procédures et fonctions']},
   /* Le chapitre 15, ajouté le 30 octobre (le scénario d’Elisa : 18 h 02, les commandes affluent) : une action ou une valeur, la procédure
      expedier_commande et son paramètre, la fonction calculer_points et son réglage, le duel, les quatre tickets, puis leur création dans PostgreSQL. */
-  {id: 83, next: 70, titre: 'Procédures et fonctions stockées', page: 'projet-procedures.html', thumb: 'projet-procedures-thumb.webp', duree: '3 min 07', notesAt: 161.82,
+  {id: 83, next: 70, titre: 'Procédures et fonctions stockées', page: 'projet-procedures.html', thumb: 'projet-procedures-thumb.webp', duree: '3 min 08', notesAt: 161.82,
     table: 'commandes',
     bubble: 'Enregistre&nbsp;des actions et des calculs dans la base pour pouvoir les réutiliser.',
     chapters: ['Les commandes affluent', 'Action ou calcul ?', 'Une procédure stockée', 'Une fonction stockée', 'Le duel', 'Les quatre tickets', 'Selon le SGBD', 'À retenir'],
@@ -1206,7 +1206,7 @@ const COURSES = [
       "{at: atp('p1'), from: A.c3, kind: 'sort',", "{label: 'L’identifiant de la commande', ok: true},", "{at: atp('p3'), from: A.c19, kind: 'tune',",
       "{label: 'Une procédure stockée', ok: true},", "{label: 'Une fonction stockée', ok: true}]},", "{at: atp('p6'), from: A.c25, kind: 'sort',",
       "['ec1', '{kc1|CALL} expedier_commande({pa1|13});']", "['eg1', '{gp|CREATE PROCEDURE} expedier_commande(id_commande INT)']", 'Prochaine leçon · Les triggers']},
-  {id: 70, next: 71, titre: 'Les triggers', page: 'projet-trigger.html', thumb: 'projet-trigger-thumb.webp', duree: '4 min 07', notesAt: 244.94,
+  {id: 70, next: 71, titre: 'Les triggers', page: 'projet-trigger.html', thumb: 'projet-trigger-thumb.webp', duree: '4 min 08', notesAt: 245.94,
     table: 'historique_prix',
     bubble: 'Déclenche automatiquement une action lorsqu’un&nbsp;événement précis se produit dans la base.',
     chapters: ['Qui a changé le prix ?', 'Garder chaque changement', 'Créer le trigger', 'Modifier le prix', 'Lire la nouvelle ligne', 'Vérifier avec le stock',
@@ -1219,7 +1219,7 @@ const COURSES = [
       "{at: atp('p2'), from: A.c1, kind: 'pick', text: true,", "{label: 'Après une modification de prix d’un produit', ok: true,", "{label: '39.90, le prix avant la modification', ok: true,",
       "{at: atp('p4'), from: A.d5, kind: 'tap', need: 1,", "{label: 'Non, aucune ligne n’est ajoutée', ok: true,", "{at: atp('p6'), from: A.g1, kind: 'sort',",
       "['{twh|WHEN OLD.prix &lt;&gt; NEW.prix}']", 'Prochaine leçon · Concurrence et isolation']},
-  {id: 71, next: 64, titre: 'Concurrence et isolation', page: 'projet-concurrence.html', thumb: 'projet-concurrence-thumb.webp', duree: '4 min 09', notesAt: 249.94,
+  {id: 71, next: 64, titre: 'Concurrence et isolation', page: 'projet-concurrence.html', thumb: 'projet-concurrence-thumb.webp', duree: '4 min 10', notesAt: 250.89,
     table: 'inscriptions',
     bubble: 'Comprends comment la base gère plusieurs opérations effectuées au même moment.',
     chapters: ['Deux clients, une seule place', 'Au ralenti', 'La concurrence', 'Verrouiller la ligne', 'Rejouer avec le verrou', 'Et avec ROLLBACK ?',
@@ -1231,7 +1231,7 @@ const COURSES = [
       "{at: atp('p1'), from: A.b0, kind: 'tap', need: 1,", "{label: 'Verrouiller la ligne de l’atelier pendant la réservation', ok: true,",
       "{label: 'Elle attend de pouvoir verrouiller la même ligne', ok: true,", "{label: '0 place : aucune inscription pour lui', ok: true,",
       "{label: 'Elle reste disponible pour Nathan Petit', ok: true,", "{at: atp('p6'), from: A.g1, kind: 'sort',", "['{xfu|FOR UPDATE};']", 'Prochaine leçon · CREATE VIEW']},
-  {id: 64, next: 57, titre: 'CREATE VIEW', page: 'projet-vue.html', thumb: 'projet-vue-thumb.webp', duree: '3 min 52', notesAt: 210.54,
+  {id: 64, next: 57, titre: 'CREATE VIEW', page: 'projet-vue.html', thumb: 'projet-vue-thumb.webp', duree: '3 min 53', notesAt: 211.54,
     table: 'produits',
     bubble: 'Enregistre une requête sous forme de vue pour consulter facilement un résultat réutilisable.',
     chapters: ['La box surprise', 'Le catalogue interne', 'Créer la vue', 'Consulter la vue', 'Petit changement', 'Et les droits ?', 'Dans la vue ou non ?', 'À retenir'],
@@ -1241,7 +1241,7 @@ const COURSES = [
       "{at: atp('p1'), from: A.a1, kind: 'tap', need: 3,", "{label: 'nom, categorie et prix', ok: true,", "{label: 'Les 3 produits de la box : nom, catégorie et prix', ok: true,",
       "{label: 'Non, il suffit de consulter à nouveau la vue', ok: true,", "{at: atp('p5'), from: A.e3, kind: 'tap', need: 1,", "{at: atp('p6'), from: A.g1, kind: 'sort',",
       "['{vwh|WHERE selection_box = 1};']", 'Prochaine leçon · Les index et EXPLAIN']},
-  {id: 57, next: 50, titre: 'Les index et EXPLAIN', page: 'projet-index.html', thumb: 'projet-index-thumb.webp', duree: '3 min 25', notesAt: 202.54,
+  {id: 57, next: 50, titre: 'Les index et EXPLAIN', page: 'projet-index.html', thumb: 'projet-index-thumb.webp', duree: '3 min 26', notesAt: 203.49,
     table: 'commandes',
     bubble: 'Découvre comment accélérer les recherches et analyser la façon dont une requête est exécutée.',
     chapters: ['La file d’attente s’allonge', 'La recherche de la commande', 'Lire le plan', 'Créer l’index', 'Le nouveau plan', 'Le plan ou la mesure ?', 'Des index partout ?', 'À retenir'],
@@ -1253,7 +1253,7 @@ const COURSES = [
       "{at: atp('p4'), from: A.d1, kind: 'tap', need: 1,", "{at: atp('p5'), from: A.e0, kind: 'tune',", "{label: 'Non : chaque index a un coût', ok: true,",
       "['CREATE INDEX {inm|idx_commandes_numero}']", 'Prochaine leçon · Sécurité et droits']},
   /* Le dernier chapitre du projet, et le dernier cours de l’app : pas de leçon suivante (next: null). */
-  {id: 50, next: null, titre: 'Sécurité et droits', page: 'projet-droits.html', thumb: 'projet-droits-thumb.webp', duree: '4 min 40', notesAt: 248.44,
+  {id: 50, next: null, titre: 'Sécurité et droits', page: 'projet-droits.html', thumb: 'projet-droits-thumb.webp', duree: '4 min 41', notesAt: 250.04,
     table: 'commandes',
     bubble: 'Contrôle qui peut consulter ou modifier les données grâce aux droits d’accès.',
     chapters: ['Un accès trop large', 'Les accès nécessaires', 'Ce qu’elle peut consulter', 'Autoriser la consultation', 'Une modification précise', 'Les limites de son accès', 'Retirer les accès',
@@ -1321,7 +1321,9 @@ for (const c of COURSES) {
        qui parle, les mots qui arrivent, le surligneur ; Elisa, 30 octobre, 23 h 42), ~6 Ko dans le moteur commun. */
     /* 530 Ko depuis le 31 octobre, midi (et 10 Ko de plus pour les cours qui ont leur propre plafond) : la voix off dans le moteur
        commun (les phrases calées sur les légendes, ~6 Ko) ; les fichiers audio, eux, sont à part (assets/voix). */
-    assert.ok(total < ((c.maxKo || 520) + 10) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
+    /* 540 Ko depuis le 1er novembre (et 10 Ko de plus pour les cours qui ont leur propre plafond) : le lien avec la leçon d’avant et celle
+       d’après (Elisa, 1er novembre, 21 h 30), ~4 Ko dans le moteur commun ; ses phrases sont dans liens.js. */
+    assert.ok(total < ((c.maxKo || 520) + 20) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
     for (const f of [`./assets/anim/${c.page}?app&embed`, `./assets/anim/${c.thumb}`]) assert.ok(sw.includes(`'${f}'`), `préchargé : ${f}`);
   });
 }
@@ -1794,7 +1796,7 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
 
 test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six moments sur l’image, clients de la base', async () => {
   const l56 = cut('guide({ id:56, titre:"Normaliser les inscriptions"', 'guide({ id:72,');
-  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'3 min 03',moments:6,seuil:4}"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'3 min 09',moments:6,seuil:4}"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/projet-normaliser.html'), 'utf8');
   const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
   assert.ok(a > 0 && b > a, 'données de la page localisées');
@@ -1887,7 +1889,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   assert.deepEqual(D.COACHS.map(c => c[3]), C1.COACHS.map((c, i) => i === 0 ? C1.NEWMAIL : c[3]), 'leurs adresses, celle de Salma Haddad mise à jour');
   assert.deepEqual(D.ATELIERS, C1.ATELIERS.concat([C1.YOGA]).map(a => [a[0], a[1], a[3], a[4]]), 'les cinq ateliers et leur coach');
   assert.deepEqual(D.INSCR, C1.INSCR.map((r, i) => [i + 1, r[0], r[1], r[3]]), 'les six inscriptions, dans le même ordre');
-  assert.ok(ch1.includes('</span>Chapitre 2 · Clés et relations</span>') && page.includes('</span>Chapitre 3 · Modéliser avec UML</span>') && html.includes('guide({ id:81, titre:"Modéliser avec UML"'), 'chaque chapitre annonce le suivant sous son vrai titre');
+  assert.ok(ch1.includes('</span>Prochaine leçon · Clés et relations</span>') && page.includes('</span>Prochaine leçon · Modéliser avec UML</span>') && html.includes('guide({ id:81, titre:"Modéliser avec UML"'), 'chaque chapitre annonce le suivant sous son vrai titre');
   /* Les six moments */
   assert.deepEqual(D.PICKS.map(p => p.kind), ['pick', 'tap', 'pick', 'tap', 'pick', 'sort'], 'choisir, toucher, ranger');
   assert.ok(D.PICKS.filter(p => p.kind === 'tap').every(p => /^Touche /.test(p.prompt)), 'chaque moment à toucher dit qu’il faut toucher l’image');
@@ -1905,7 +1907,7 @@ test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre
   const name = id => D.CLIENTS.find(c => c[0] === id).slice(1).join(' '), atl = id => D.ATELIERS.find(a => a[0] === id);
   const caps = D.CAPTIONS.map(c => c[2]).join('\n');
   /* La vidéo rappelle d’abord le contexte, puis ce que le chapitre 1 a produit. */
-  assert.ok(D.CAPTIONS[0][2].startsWith('NutriBoost lance des ateliers bien-être') && D.CAPTIONS[1][2] === 'Au chapitre 1, tu as réparti<br>les informations du fichier Excel<br>dans trois tables.' && D.CAPTIONS[2][2] === 'Ce sont les tables <code>coachs</code>,<br><code>ateliers</code> et <code>inscriptions</code>.', 'le contexte avant tout');
+  assert.ok(D.CAPTIONS[0][2].startsWith('NutriBoost lance des ateliers bien-être') && D.CAPTIONS[1][2] === 'Dans la leçon précédente, tu as réparti<br>les informations du fichier Excel<br>dans trois tables.' && D.CAPTIONS[2][2] === 'Ce sont les tables <code>coachs</code>,<br><code>ateliers</code> et <code>inscriptions</code>.', 'le contexte avant tout');
   /* Le problème : la table inscriptions ne contient que des dates ; la question arrive avec la ligne du 4 septembre et les deux « ? ». */
   /* Animations et sons des légendes du début : les trois tables s’allument à leur couleur quand elles sont nommées, toutes
      les dates s’allument, puis seule la ligne du 4 septembre ; le « ? » des puces devient une clé ; chaque id pulse quand la
@@ -2145,7 +2147,7 @@ test('« Identifiant », jamais « numéro », pour la valeur d’une clé : vid
 
 test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des tables du chapitre 2, chaque multiplicité et chaque traduction vérifiées', async () => {
   const l81 = cut('guide({ id:81, titre:"Modéliser avec UML"', 'guide({ id:61,');
-  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'4 min 57',moments:6,seuil:4}"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'4 min 58',moments:6,seuil:4}"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -2201,7 +2203,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   /* L’ouverture (texte d’Elisa du 23 octobre, 11:59) : le rappel du chapitre 2, puis la phrase sur les liens, en une bulle ;
      ses trois gestes ont lieu pendant elle : les cinq tables s’allument, les quatre clés étrangères s’entourent, puis les trois tables qu’elles désignent. */
   const io = D.CAPTIONS.findIndex(c => c[2] === 'Pour comprendre ces liens, il faut retrouver chaque clé étrangère et la table à laquelle elle fait référence.');
-  assert.ok(io > 0 && flat(io - 1) === 'Au chapitre 2, tu as organisé les données dans cinq tables, reliées par des clés étrangères.', 'le rappel du chapitre 2, puis la phrase sur les liens');
+  assert.ok(io > 0 && flat(io - 1) === 'Dans la leçon précédente, tu as organisé les données dans cinq tables, reliées par des clés étrangères.', 'le rappel du chapitre 2, puis la phrase sur les liens');
   assert.ok(D.CAPTIONS[io - 1][1] < D.CAPTIONS[io][0] && D.CAPTIONS[io][1] < D.OPENS[0].at, 'deux légendes qui se suivent, sans se chevaucher, avant le mail');
   const fkt = D.TABLES2.flatMap(t => t[3].filter(isFk).map(c => c[1]));
   assert.deepEqual(fkt, ['co', 'cl', 'at', 'cl'], 'les quatre clés étrangères, dans l’ordre d’affichage, et la table que chacune désigne');
@@ -2996,7 +2998,7 @@ test('moments « À toi » : la légende annonce le moment sans répéter la con
 
 test('leçon seule (Quel JOIN choisir ?) : la vidéo interactive valide la leçon, sans exercice, quiz ni révision', () => {
   const l44 = cut('guide({ id:44, titre:"Quel JOIN choisir ?"', 'guide({ id:45,');
-  assert.ok(l44.includes('leconSeule:true,') && l44.includes(",duree:'3 min 11',moments:9,"), 'leçon 44 : leçon seule, 9 moments');
+  assert.ok(l44.includes('leconSeule:true,') && l44.includes(",duree:'3 min 22',moments:9,"), 'leçon 44 : leçon seule, 9 moments');
   assert.ok(html.includes("'joinRecap','leconSeule','exoNeeds','video']"), 'drapeau copié par guide()');
   assert.ok(html.includes('function revisable(l){ return !!(l&&!l.leconSeule&&l.consigne&&l.solution); }') && html.includes('function dueList(){ return allLessons.filter(l=>isDue(l.id)&&revisable(l)); }'), 'pas de révision « De mémoire » sans exercice');
   assert.ok(html.includes("if(current.leconSeule)return [{i:0,l:'Leçon'") && html.includes("if(leconSeule(id))return !!(state.lessons[id]&&state.lessons[id].done);"), 'une seule étape : la leçon');

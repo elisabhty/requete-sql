@@ -128,8 +128,8 @@ test('la page montre la base du chapitre 9 : huit tables et leurs lignes ; la ta
   assert.deepEqual(val('PRODUITS'), produits(db).map(r => [r[0], r[1], r[2], r[3], r[4]]), 'la table produits de la page est celle de la base');
   assert.ok(page.includes('<span>8 tables</span>') && page.includes('<span id="pc0">8 lignes</span><span id="pc1">9 lignes</span>'), 'la table produits passe de 8 à 9 lignes');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les autres chapitres');
-  assert.equal(caps[1], 'Au chapitre 9, tu as modifié<br>des lignes avec <code>UPDATE</code>.', 'le chapitre précédent');
+  assert.equal(caps[0], 'Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les autres chapitres');
+  assert.equal(caps[1], 'Dans la leçon précédente, tu as modifié<br>des lignes avec <code>UPDATE</code>.', 'le chapitre précédent');
 });
 
 test('moment 1 : chaque produit reçoit l’action que MERGE prendra ensuite', () => {
@@ -206,7 +206,7 @@ test('moment 6 : la requête du collègue a inversé les deux actions ; chacune 
 });
 
 test('chapitre 10 : écran titre, annonce par UPDATE, annonce de DELETE, et récapitulatif dans la vidéo comme dans la fiche', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 10 : MERGE</title>') && page.includes('<div class="tagpill">Projet · Chapitre 10</div>')
+  assert.ok(page.includes('<title>Requête · Projet : MERGE</title>') && page.includes('<div class="tagpill">Projet · Module 10</div>')
     && page.includes('<span>M</span><span>E</span><span>R</span><span>G</span><span>E</span>') && page.includes('<div class="abs sub">Synchroniser deux tables</div>'));
   const upd = fs.readFileSync(path.join(root, 'assets/anim/projet-update.html'), 'utf8');
   assert.ok(upd.includes('deux tables avec <code>MERGE</code>.') && upd.includes('Prochaine leçon · MERGE</span>'), 'le chapitre 9 annonce celui-ci');

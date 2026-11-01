@@ -114,9 +114,9 @@ test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', ()
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 249.94);
-  assert.ok(page.includes('notesAt: 249.94,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 257.14);
+  assert.equal(val('NOTES'), 250.89);
+  assert.ok(page.includes('notesAt: 250.89,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 258.09);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   /* Les deux parties de la trame d’Elisa, avec ses titres (« Deux clients, une seule place », la sécurisation de la dernière place), découpées
@@ -274,12 +274,12 @@ test('le message : l’équipe ateliers écrit par SMS ; l’app s’arrête sur
 });
 
 test('chapitre 17 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 17 : Concurrence et isolation</title>') && page.includes('<div class="tagpill">Projet · Chapitre 17</div>')
+  assert.ok(page.includes('<title>Requête · Projet : Concurrence et isolation</title>') && page.includes('<div class="tagpill">Projet · Module 13</div>')
     && page.includes('<span>C</span><span>O</span><span>N</span><span>C</span><span>U</span><span>R</span><span>R</span><span>E</span><span>N</span><span>C</span><span>E</span>')
-    && page.includes('<div class="abs sub">Gérer les accès simultanés</div>'), 'écran titre : « Projet · Chapitre 17 », CONCURRENCE, « Gérer les accès simultanés »');
+    && page.includes('<div class="abs sub">Gérer les accès simultanés</div>'), 'écran titre : « Projet · Module 13 », CONCURRENCE, « Gérer les accès simultanés »');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.');
-  assert.equal(caps[1], 'Au chapitre 16, un trigger<br>t’a permis de garder<br>chaque changement de prix.', 'le chapitre précédent');
+  assert.equal(caps[0], 'Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.');
+  assert.equal(caps[1], 'Dans la leçon précédente, un trigger<br>t’a permis de garder<br>chaque changement de prix.', 'le chapitre précédent');
   const tg = fs.readFileSync(path.join(root, 'assets/anim/projet-trigger.html'), 'utf8');
   assert.ok(tg.includes('deux clients<br>réserveront la dernière place') && tg.includes('Prochaine leçon · Concurrence et isolation</span>'), 'le chapitre 16 annonce celui-ci');
   assert.ok(caps.includes('Dans la prochaine leçon, tu découvriras<br>les vues : des requêtes enregistrées<br>sous un nom.') && page.includes('Prochaine leçon · CREATE VIEW</span>'), 'annonce de la prochaine leçon');

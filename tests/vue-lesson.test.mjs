@@ -108,9 +108,9 @@ test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', ()
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 210.54);
-  assert.ok(page.includes('notesAt: 210.54,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 217.74);
+  assert.equal(val('NOTES'), 211.54);
+  assert.ok(page.includes('notesAt: 211.54,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 218.74);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   /* La trame d’Elisa : la box et le message de Camille, le catalogue, la vue créée puis consultée, le changement de sélection, les droits ;
@@ -292,12 +292,12 @@ test('moment 6 : chaque information est rangée selon ce que la vue présente, c
 });
 
 test('chapitre 18 : écran titre, ouverture comme aux autres chapitres, la box surprise d’Elisa, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 18 : CREATE VIEW</title>') && page.includes('<div class="tagpill">Projet · Chapitre 18</div>')
+  assert.ok(page.includes('<title>Requête · Projet : CREATE VIEW</title>') && page.includes('<div class="tagpill">Projet · Module 14</div>')
     && page.includes('<span>C</span><span>R</span><span>E</span><span>A</span><span>T</span><span class="sp">E</span><span>V</span><span>I</span><span>E</span><span>W</span>')
-    && page.includes('<div class="abs sub">Enregistrer une requête sous un nom</div>'), 'écran titre : « Projet · Chapitre 18 », CREATE VIEW, « Enregistrer une requête sous un nom »');
+    && page.includes('<div class="abs sub">Enregistrer une requête sous un nom</div>'), 'écran titre : « Projet · Module 14 », CREATE VIEW, « Enregistrer une requête sous un nom »');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.');
-  assert.equal(caps[1], 'Au chapitre 17, un verrou<br>a gardé la dernière place<br>pour une seule réservation.', 'le chapitre précédent');
+  assert.equal(caps[0], 'Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.');
+  assert.equal(caps[1], 'Dans la leçon précédente, un verrou<br>a gardé la dernière place<br>pour une seule réservation.', 'le chapitre précédent');
   const cc = fs.readFileSync(path.join(root, 'assets/anim/projet-concurrence.html'), 'utf8');
   assert.ok(cc.includes('les vues : des requêtes enregistrées') && cc.includes('Prochaine leçon · CREATE VIEW</span>'), 'le chapitre 17 annonce celui-ci');
   assert.ok(caps.includes('Dans la prochaine leçon,<br>la file des commandes à préparer<br>s’allongera.') && page.includes('Prochaine leçon · Les index et EXPLAIN</span>'),

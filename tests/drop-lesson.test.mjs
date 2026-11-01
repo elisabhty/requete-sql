@@ -223,15 +223,15 @@ test('moment 4 : quatre tables font référence à la table clients ; la légend
 
 /* ---------- Propre au chapitre 6 : la suite du chapitre 5 ---------- */
 test('chapitre 6 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 6 : DROP TABLE</title>') && page.includes('<div class="tagpill">Projet · Chapitre 6</div>')
+  assert.ok(page.includes('<title>Requête · Projet : DROP TABLE</title>') && page.includes('<div class="tagpill">Projet · Module 9</div>')
     && page.includes('<span>D</span><span>R</span><span>O</span><span>P</span>') && page.includes('<div class="abs sub">Supprimer une table</div>'),
-    'écran titre : « Projet · Chapitre 6 », DROP, « Supprimer une table »');
+    'écran titre : « Projet · Module 9 », DROP, « Supprimer une table »');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les chapitres 2 à 5');
-  assert.equal(caps[1], 'Au chapitre 5, tu as fait évoluer les tables avec <code>ALTER TABLE</code>.', 'le chapitre précédent');
-  /* La fin du chapitre 5 annonce « Chapitre 6 · DROP » et « DROP TABLE » : c’est ce chapitre. */
+  assert.equal(caps[0], 'Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les chapitres 2 à 5');
+  assert.equal(caps[1], 'Dans la leçon précédente, tu as fait évoluer les tables avec <code>ALTER TABLE</code>.', 'le chapitre précédent');
+  /* La fin du chapitre 5 annonce « Prochaine leçon · DROP » et « DROP TABLE » : c’est ce chapitre. */
   const alter = fs.readFileSync(path.join(root, 'assets/anim/projet-alter.html'), 'utf8');
-  assert.ok(alter.includes('Chapitre 6 · DROP') && alter.includes('Tu le feras avec <code>DROP TABLE</code> :'), 'le chapitre 5 annonce celui-ci');
+  assert.ok(alter.includes('Prochaine leçon · DROP') && alter.includes('Tu le feras avec <code>DROP TABLE</code> :'), 'le chapitre 5 annonce celui-ci');
   /* Il annonce à son tour la leçon suivante du cours : INSERT (texte d’Elisa, 24 octobre, 10:15). */
   assert.ok(caps.includes('Dans la prochaine leçon, tu rangeras les tables de ta base en espaces, avec les schémas.') && page.includes('Prochaine leçon · Les schémas</span>'), 'annonce de la prochaine leçon');
   assert.equal(lessons[lessons.findIndex(l => l.id === 66) + 1].id, 84);

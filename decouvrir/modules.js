@@ -41,99 +41,99 @@ window.MODULES=[
   themes:['Requêtes SELECT','Filtres et tris','Fonctions','Agrégats','Jointures','Sous-requêtes','CTE','Fonctions de fenêtre','Modélisation','Création de tables','Transactions','Index et performance','Sécurité'],
   programme:[
     {titre:"Introduction", sous:"Bases de données, tables, relations et SELECT", lecons:[
-      ["Les bases de données relationnelles", "Tables, clés et lecture avec SELECT", 580]
+      ["Les bases de données relationnelles", "Tables, clés et lecture avec SELECT", 586]
     ]},
     {titre:"Lire une table", sous:"SELECT, filtres, tri et pagination", lecons:[
-      ["Renommer avec AS", "Donner un nom lisible à une colonne du résultat", 94],
-      ["DISTINCT", "Valeurs uniques", 140],
-      ["WHERE", "Filtrer les lignes", 112],
-      ["Comparer des valeurs", "Filtrer avec =, !=, >, <, >=, <=", 128],
-      ["AND et OR", "Combiner plusieurs conditions", 132],
-      ["NOT", "Exclure selon une condition", 138],
-      ["NULL", "La valeur absente", 113],
-      ["LIKE", "Chercher un motif", 157],
-      ["IN", "Filtrer avec une liste", 132],
-      ["BETWEEN", "Filtrer un intervalle", 138],
-      ["ORDER BY", "Ordonner le résultat", 118],
-      ["LIMIT et OFFSET", "Limiter le résultat et le découper en pages", 205]
+      ["Renommer avec AS", "Donner un nom lisible à une colonne du résultat", 107],
+      ["DISTINCT", "Valeurs uniques", 151],
+      ["WHERE", "Filtrer les lignes", 124],
+      ["Comparer des valeurs", "Filtrer avec =, !=, >, <, >=, <=", 139],
+      ["AND et OR", "Combiner plusieurs conditions", 143],
+      ["NOT", "Exclure selon une condition", 150],
+      ["NULL", "La valeur absente", 124],
+      ["LIKE", "Chercher un motif", 169],
+      ["IN", "Filtrer avec une liste", 143],
+      ["BETWEEN", "Filtrer un intervalle", 149],
+      ["ORDER BY", "Ordonner le résultat", 130],
+      ["LIMIT et OFFSET", "Limiter le résultat et le découper en pages", 217]
     ]},
     {titre:"Fonctions et expressions", sous:"Transformer les valeurs ligne par ligne", lecons:[
-      ["Fonctions de texte", "Transformer, nettoyer et découper du texte", 188],
-      ["Fonctions numériques", "Calculer, arrondir et manipuler des nombres", 138],
-      ["Fonctions de dates et heures", "Obtenir, extraire et calculer avec une date", 136],
-      ["Fonctions de conversion de types", "Passer d’un type à un autre", 150],
-      ["CASE", "Afficher une valeur selon une condition", 144],
-      ["COALESCE", "Remplacer les valeurs absentes", 138]
+      ["Fonctions de texte", "Transformer, nettoyer et découper du texte", 201],
+      ["Fonctions numériques", "Calculer, arrondir et manipuler des nombres", 151],
+      ["Fonctions de dates et heures", "Obtenir, extraire et calculer avec une date", 149],
+      ["Fonctions de conversion de types", "Passer d’un type à un autre", 162],
+      ["CASE", "Afficher une valeur selon une condition", 155],
+      ["COALESCE", "Remplacer les valeurs absentes", 149]
     ]},
     {titre:"Agrégats et regroupements", sous:"Calculer, regrouper et agréger", lecons:[
-      ["COUNT", "Compter les lignes", 126],
-      ["GROUP BY", "Un calcul par groupe", 129],
-      ["HAVING", "Filtrer après regroupement", 133],
-      ["GROUP_CONCAT", "Rassembler les textes d’un groupe", 153]
+      ["COUNT", "Compter les lignes", 138],
+      ["GROUP BY", "Un calcul par groupe", 139],
+      ["HAVING", "Filtrer après regroupement", 145],
+      ["GROUP_CONCAT", "Rassembler les textes d’un groupe", 164]
     ]},
     {titre:"Jointures", sous:"Interroger plusieurs tables à la fois", lecons:[
-      ["INNER JOIN", "Associer les lignes correspondantes de deux tables", 125],
-      ["LEFT JOIN", "Garder même sans correspondance", 148],
-      ["RIGHT JOIN", "Tout garder à droite", 186],
-      ["FULL OUTER JOIN", "Tout garder des deux côtés", 179],
-      ["CROSS JOIN", "Créer toutes les combinaisons", 143],
-      ["Jointure de 3 tables", "Relier toute l’histoire", 202],
-      ["JOIN + GROUP BY", "Compter les commandes par ville", 154],
-      ["SELF JOIN", "Retrouver les clients qui habitent dans la même ville", 161],
-      ["Plusieurs conditions dans ON", "Relier seulement les produits encore en stock", 183],
-      ["Quel JOIN choisir ?", "Choisir la bonne jointure selon les lignes à garder", 191]
+      ["INNER JOIN", "Associer les lignes correspondantes de deux tables", 139],
+      ["LEFT JOIN", "Garder même sans correspondance", 160],
+      ["RIGHT JOIN", "Tout garder à droite", 200],
+      ["FULL OUTER JOIN", "Tout garder des deux côtés", 192],
+      ["CROSS JOIN", "Créer toutes les combinaisons", 156],
+      ["Jointure de 3 tables", "Relier toute l’histoire", 214],
+      ["JOIN + GROUP BY", "Compter les commandes par ville", 166],
+      ["SELF JOIN", "Retrouver les clients qui habitent dans la même ville", 172],
+      ["Plusieurs conditions dans ON", "Relier seulement les produits encore en stock", 195],
+      ["Quel JOIN choisir ?", "Choisir la bonne jointure selon les lignes à garder", 202]
     ]},
     {titre:"Sous-requêtes et ensembles", sous:"IN, EXISTS, CTE et UNION", lecons:[
-      ["Sous-requête dans WHERE avec IN", "Quels clients ont déjà commandé du Magnésium ?", 223],
-      ["Sous-requête dans SELECT", "Calculer une valeur pour chaque ligne", 192],
-      ["Sous-requête dans FROM", "Utiliser une sous-requête comme table", 182],
-      ["EXISTS et NOT EXISTS", "Tester la présence ou l’absence d’une ligne liée", 210],
-      ["WITH (CTE)", "Créer et réutiliser un résultat intermédiaire", 209],
-      ["UNION et UNION ALL", "Empiler deux résultats, avec ou sans doublons", 206],
-      ["INTERSECT et EXCEPT", "Comparer deux résultats", 167],
-      ["WITH RECURSIVE (CTE RECURSIVE)", "Créer une suite automatiquement", 186]
+      ["Sous-requête dans WHERE avec IN", "Quels clients ont déjà commandé du Magnésium ?", 236],
+      ["Sous-requête dans SELECT", "Calculer une valeur pour chaque ligne", 204],
+      ["Sous-requête dans FROM", "Utiliser une sous-requête comme table", 195],
+      ["EXISTS et NOT EXISTS", "Tester la présence ou l’absence d’une ligne liée", 223],
+      ["WITH (CTE)", "Créer et réutiliser un résultat intermédiaire", 220],
+      ["UNION et UNION ALL", "Empiler deux résultats, avec ou sans doublons", 219],
+      ["INTERSECT et EXCEPT", "Comparer deux résultats", 178],
+      ["WITH RECURSIVE (CTE RECURSIVE)", "Créer une suite automatiquement", 199]
     ]},
     {titre:"Fonctions de fenêtre", sous:"Calculer sans regrouper les lignes", lecons:[
-      ["OVER()", "Calculer sans regrouper les lignes", 186],
-      ["Fonctions de rang", "Classer les lignes, ex æquo compris", 165],
-      ["LAG et LEAD", "Comparer une ligne à la précédente ou à la suivante", 188],
-      ["Fenêtres glissantes", "Suivre l’évolution des commandes", 169]
+      ["OVER()", "Calculer sans regrouper les lignes", 198],
+      ["Fonctions de rang", "Classer les lignes, ex æquo compris", 178],
+      ["LAG et LEAD", "Comparer une ligne à la précédente ou à la suivante", 200],
+      ["Fenêtres glissantes", "Suivre l’évolution des commandes", 182]
     ]},
     {titre:"Modéliser", sous:"Normalisation, cardinalités et UML", lecons:[
-      ["Normaliser les inscriptions", "Du fichier Excel des ateliers aux tables", 183],
+      ["Normaliser les inscriptions", "Du fichier Excel des ateliers aux tables", 189],
       ["Clés et relations", "Relier les tables entre elles", 282],
-      ["Modéliser avec UML", "Du diagramme de classes aux tables", 297]
+      ["Modéliser avec UML", "Du diagramme de classes aux tables", 298]
     ]},
     {titre:"Créer et faire évoluer les tables", sous:"CREATE, ALTER et DROP TABLE", lecons:[
-      ["CREATE TABLE", "Créer la structure d’une table", 257],
-      ["ALTER TABLE", "Faire évoluer la structure d’une table", 287],
-      ["DROP", "Supprimer une table de la base", 156],
-      ["Les schémas", "Ranger les tables par espace", 131]
+      ["CREATE TABLE", "Créer la structure d’une table", 259],
+      ["ALTER TABLE", "Faire évoluer la structure d’une table", 288],
+      ["DROP", "Supprimer une table de la base", 157],
+      ["Les schémas", "Ranger les tables par espace", 132]
     ]},
     {titre:"Écrire et modifier les données", sous:"INSERT, UPDATE, DELETE", lecons:[
-      ["INSERT", "Ajouter des lignes", 238],
-      ["UPDATE", "Modifier des lignes", 185],
-      ["MERGE", "Synchroniser deux tables", 188],
-      ["DELETE", "Supprimer des lignes", 180]
+      ["INSERT", "Ajouter des lignes", 239],
+      ["UPDATE", "Modifier des lignes", 187],
+      ["MERGE", "Synchroniser deux tables", 190],
+      ["DELETE", "Supprimer des lignes", 182]
     ]},
     {titre:"Contraintes et intégrité", sous:"Les règles que les données doivent respecter", lecons:[
-      ["ON DELETE", "Décider du sort des lignes liées", 247]
+      ["ON DELETE", "Décider du sort des lignes liées", 248]
     ]},
     {titre:"Transactions", sous:"Tout valider ou tout annuler", lecons:[
-      ["Transactions", "Valider les modifications ensemble", 259],
-      ["SAVEPOINT", "Annuler une partie des modifications", 253]
+      ["Transactions", "Valider les modifications ensemble", 260],
+      ["SAVEPOINT", "Annuler une partie des modifications", 254]
     ]},
     {titre:"Triggers et concurrence", sous:"Automatiser et isoler les écritures", lecons:[
-      ["Procédures et fonctions stockées", "Réutiliser un traitement ou un calcul", 187],
-      ["Les triggers", "Déclencher une action automatiquement", 247],
-      ["Concurrence et isolation", "Gérer les accès simultanés", 249]
+      ["Procédures et fonctions stockées", "Réutiliser un traitement ou un calcul", 188],
+      ["Les triggers", "Déclencher une action automatiquement", 248],
+      ["Concurrence et isolation", "Gérer les accès simultanés", 250]
     ]},
     {titre:"Vues, index et optimisation", sous:"Structurer et accélérer", lecons:[
-      ["CREATE VIEW", "Enregistrer une requête sous un nom", 232],
-      ["Les index et EXPLAIN", "Accélérer une recherche et lire son plan", 205]
+      ["CREATE VIEW", "Enregistrer une requête sous un nom", 233],
+      ["Les index et EXPLAIN", "Accélérer une recherche et lire son plan", 206]
     ]},
     {titre:"Sécurité et droits", sous:"Contrôler les accès", lecons:[
-      ["Sécurité et droits", "Contrôler les accès avec GRANT et REVOKE", 280]
+      ["Sécurité et droits", "Contrôler les accès avec GRANT et REVOKE", 281]
     ]}
   ]
 }

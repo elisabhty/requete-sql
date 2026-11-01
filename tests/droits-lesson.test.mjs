@@ -116,9 +116,9 @@ test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', ()
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 248.44);
-  assert.ok(page.includes('notesAt: 248.44,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 255.64);
+  assert.equal(val('NOTES'), 250.04);
+  assert.ok(page.includes('notesAt: 250.04,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 257.24);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   assert.deepEqual(chaps.map(c => c.label), ['Un accès trop large', 'Les accès nécessaires', 'Ce qu’elle peut consulter', 'Autoriser la consultation', 'Une modification précise',
@@ -274,12 +274,12 @@ test('la base, rejouée dans SQLite : la vue commandes_expedition, les commandes
 });
 
 test('chapitre 20 : écran titre, ouverture comme aux autres chapitres, la photo d’Elisa, puis la fin du projet', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 20 : Sécurité et droits</title>') && page.includes('<div class="tagpill">Projet · Chapitre 20</div>')
+  assert.ok(page.includes('<title>Requête · Projet : Sécurité et droits</title>') && page.includes('<div class="tagpill">Projet · Module 15</div>')
     && page.includes('<span>G</span><span>R</span><span>A</span><span>N</span><span class="sp">T</span><span>R</span><span>E</span><span>V</span><span>O</span><span>K</span><span>E</span>')
-    && page.includes('<div class="abs sub">Contrôler les accès avec GRANT et REVOKE</div>'), 'écran titre : « Projet · Chapitre 20 », GRANT REVOKE, le résumé de la leçon');
+    && page.includes('<div class="abs sub">Contrôler les accès avec GRANT et REVOKE</div>'), 'écran titre : « Projet · Module 15 », GRANT REVOKE, le résumé de la leçon');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.');
-  assert.equal(caps[1], 'Au chapitre 19, un index a accéléré<br>la recherche des commandes.', 'le chapitre précédent');
+  assert.equal(caps[0], 'Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.');
+  assert.equal(caps[1], 'Dans la leçon précédente, un index a accéléré<br>la recherche des commandes.', 'le chapitre précédent');
   const ix = fs.readFileSync(path.join(root, 'assets/anim/projet-index.html'), 'utf8');
   assert.ok(ix.includes('Dans la prochaine leçon,<br>une nouvelle collègue aura besoin<br>des bons accès.') && ix.includes('Prochaine leçon · Sécurité et droits</span>'), 'le chapitre 19 annonce celui-ci');
   /* Le compte trop large, au conditionnel : son compte ne dispose encore d’aucun accès aux tables (la précision d’Elisa, plus loin) */
@@ -332,8 +332,8 @@ test('zones à toucher : les accès de la fiche font 100 px, les parties de la c
 
 test('ce qu’est une vue, et à quoi elle sert ; les interrupteurs ne passent au vert qu’avec GRANT (Elisa, 26 octobre, 22 h 30)', () => {
   const lus = val('CAPTIONS').map(c => strip(c[2]));
-  const i = lus.indexOf('Tu réutilises ici la notion de vue, découverte au chapitre 18.');
-  assert.deepEqual(lus.slice(i, i + 8), ['Tu réutilises ici la notion de vue, découverte au chapitre 18.', 'Une vue est une requête enregistrée sous un nom.',
+  const i = lus.indexOf('Tu réutilises ici la notion de vue, découverte dans la leçon CREATE VIEW.');
+  assert.deepEqual(lus.slice(i, i + 8), ['Tu réutilises ici la notion de vue, découverte dans la leçon CREATE VIEW.', 'Une vue est une requête enregistrée sous un nom.',
     'Les informations utiles à Lina sont dans la table commandes et la table clients.', 'Ces tables contiennent aussi des données qu’elle n’a pas à voir, comme l’e-mail ou le téléphone.',
     'Une vue lui montre uniquement le nécessaire, sans lui ouvrir les tables entières.', 'Une vue commandes_expedition a été préparée.',
     'Elle contient uniquement ces quatre colonnes.', 'La vue ne copie pas les données : elle les lit dans les tables à chaque consultation.']);

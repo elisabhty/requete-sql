@@ -120,8 +120,8 @@ test('la base du chapitre 6 : huit tables (la copie du fichier Excel barrée pui
   const fk = t => db.exec(`SELECT "table" FROM pragma_foreign_key_list('${t}')`)[0]?.values.flat() ?? [];
   assert.deepEqual([fk('ateliers'), fk('inscriptions').sort()], [['coachs'], ['ateliers', 'clients']]);
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.');
-  assert.equal(caps[1], 'Au chapitre 6, tu as retiré la copie du fichier Excel avec <code>DROP TABLE</code>.', 'le chapitre précédent');
+  assert.equal(caps[0], 'Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.');
+  assert.equal(caps[1], 'Dans la leçon précédente, tu as retiré la copie du fichier Excel avec <code>DROP TABLE</code>.', 'le chapitre précédent');
   const mail = val('MAILS')[0];
   assert.deepEqual([mail[0][0], mail[0][1], mail[2]], ['Karim', 'Benali', 'développeur'], 'Karim écrit par mail, comme aux chapitres 4 et 6');
   assert.ok(strip(mail[4].join(' ')).includes('sans supprimer ni recréer aucune table'), 'la mission d’Elisa : ranger sans supprimer ni recréer');
@@ -160,13 +160,13 @@ test('SQLite : pas de CREATE SCHEMA ; main.clients lit la table clients ; boutiq
 });
 
 test('chapitre 7 : écran titre ; annoncé par DROP, il annonce INSERT, qui s’ouvre sur lui ; le récapitulatif dans la vidéo comme dans la fiche', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 7 : Les schémas</title>') && page.includes('<div class="tagpill">Projet · Chapitre 7</div>')
+  assert.ok(page.includes('<title>Requête · Projet : Les schémas</title>') && page.includes('<div class="tagpill">Projet · Module 9</div>')
     && page.includes('<div class="abs sub">Ranger les tables par espace</div>'));
   const drop = fs.readFileSync(path.join(root, 'assets/anim/projet-drop.html'), 'utf8');
   assert.ok(drop.includes('Prochaine leçon · Les schémas</span>'), 'le chapitre 6 annonce celui-ci');
   assert.ok(page.includes('Prochaine leçon · INSERT INTO</span>'), 'il annonce INSERT');
   const ins = fs.readFileSync(path.join(root, 'assets/anim/projet-insert.html'), 'utf8');
-  assert.ok(ins.includes('Au chapitre 7, tu as découvert<br>les schémas, qui rangent<br>les tables par espace.'), 'INSERT s’ouvre sur ce chapitre');
+  assert.ok(ins.includes('Dans la leçon précédente, tu as découvert les schémas, qui rangent les tables par espace.'), 'INSERT s’ouvre sur ce chapitre');
   const rows = [...page.matchAll(/<div class="rrow"><div class="rico emo">([^<]+)<\/div><div class="rtxt">(.*?)<\/div><\/div>/g)].map(m => {
     const [phrase, detail] = m[2].split('<span class="rs">');
     return [m[1], strip(phrase), strip(detail.replace(/<\/span>$/, ''))];

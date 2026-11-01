@@ -250,7 +250,7 @@ test('moment 6 : retirer 8 séances à Nathan Petit (7 séances après le cadeau
   for (const t of ["out('o-ck', 'err', 'Requête refusée', 'CHECK constraint failed:<br>seances_restantes &gt;= 0', 'm', true)", '<span><b>CHECK</b> (seances_restantes &gt;= 0)</span>', '<i class="calc bad" id="cx">7 − 8 = −1</i>'])
     assert.ok(page.includes(t), `la page montre : ${t}`);
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.ok(caps.includes('La règle <code>CHECK</code> du chapitre 4<br>s’applique aussi quand<br>tu modifies une ligne.') && caps.includes('Une modification refusée<br>n’est pas écrite :<br>Nathan conserve ses 7 séances.'), 'les légendes disent la même chose');
+  assert.ok(caps.includes('La règle <code>CHECK</code>, vue dans la leçon CREATE TABLE, s’applique aussi quand tu modifies une ligne.') && caps.includes('Une modification refusée<br>n’est pas écrite :<br>Nathan conserve ses 7 séances.'), 'les légendes disent la même chose');
   const mail = val('MAILS')[2][4].join(' ');
   assert.ok(mail.includes('Nathan Petit s’inscrit à un stage de 8 séances.') && mail.includes('retirer ces 8 séances de sa carte'), 'le mail du service client NutriBoost');
 });
@@ -287,12 +287,12 @@ test('les trois mails : Moussa Diallo, l’équipe NutriBoost, puis le service c
 
 /* ---------- Propre au chapitre 9 : la suite du chapitre 8, l’annonce de la leçon MERGE ---------- */
 test('chapitre 9 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 9 : UPDATE</title>') && page.includes('<div class="tagpill">Projet · Chapitre 9</div>')
+  assert.ok(page.includes('<title>Requête · Projet : UPDATE</title>') && page.includes('<div class="tagpill">Projet · Module 10</div>')
     && page.includes('<span>U</span><span>P</span><span>D</span><span>A</span><span>T</span><span>E</span>') && page.includes('<div class="abs sub">Modifier des lignes</div>')
-    && page.includes('Modifie les données déjà présentes dans une table avec <span class="ic">UPDATE</span>.'), 'écran titre : « Projet · Chapitre 9 », UPDATE, « Modifier des lignes »');
+    && page.includes('Modifie les données déjà présentes dans une table avec <span class="ic">UPDATE</span>.'), 'écran titre : « Projet · Module 10 », UPDATE, « Modifier des lignes »');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les chapitres 2 à 8');
-  assert.equal(caps[1], 'Au chapitre 8, tu as ajouté des lignes avec <code>INSERT INTO</code>.', 'le chapitre précédent');
+  assert.equal(caps[0], 'Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les chapitres 2 à 8');
+  assert.equal(caps[1], 'Dans la leçon précédente, tu as ajouté des lignes avec <code>INSERT INTO</code>.', 'le chapitre précédent');
   /* La fin du chapitre 8 annonce « UPDATE » : c’est ce chapitre. */
   const insert = fs.readFileSync(path.join(root, 'assets/anim/projet-insert.html'), 'utf8');
   assert.ok(insert.includes('à modifier les données avec <code>UPDATE</code>.') && insert.includes('Prochaine leçon · UPDATE</span>'), 'le chapitre 8 annonce celui-ci');

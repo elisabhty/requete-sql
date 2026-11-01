@@ -100,9 +100,9 @@ test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', ()
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
   /* Le bouton des notes est écrit en clair dans Course(…) : il suit la dernière légende. */
-  assert.equal(val('NOTES'), 245.25);
-  assert.ok(page.includes('notesAt: 245.25,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 252.45);
+  assert.equal(val('NOTES'), 246.2);
+  assert.ok(page.includes('notesAt: 246.2,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 253.4);
   /* Des légendes qui se suivent sans se chevaucher, chaque chapitre commençant 0,4 s après la légende précédente. */
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
@@ -308,12 +308,12 @@ test('les messages : Léa Simon écrit elle-même par SMS, sa photo dessous ; le
 });
 
 test('chapitre 13 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
-  assert.ok(page.includes('<title>Requête · Projet, chapitre 13 : TRANSACTION</title>') && page.includes('<div class="tagpill">Projet · Chapitre 13</div>')
+  assert.ok(page.includes('<title>Requête · Projet : TRANSACTION</title>') && page.includes('<div class="tagpill">Projet · Module 12</div>')
     && page.includes('<span>T</span><span>R</span><span>A</span><span>N</span><span>S</span><span>A</span><span>C</span><span>T</span><span>I</span><span>O</span><span>N</span>')
-    && page.includes('<div class="abs sub">Valider les modifications ensemble</div>'), 'écran titre : « Projet · Chapitre 13 », TRANSACTION, « Valider les modifications ensemble »');
+    && page.includes('<div class="abs sub">Valider les modifications ensemble</div>'), 'écran titre : « Projet · Module 12 », TRANSACTION, « Valider les modifications ensemble »');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.equal(caps[0], 'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les autres chapitres');
-  assert.equal(caps[1], 'Au chapitre 12, tu as décidé<br>du sort des lignes liées<br>avec <code>ON DELETE</code>.', 'le chapitre précédent');
+  assert.equal(caps[0], 'Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.', 'la même première légende que les autres chapitres');
+  assert.equal(caps[1], 'Dans la leçon précédente, tu as décidé<br>du sort des lignes liées<br>avec <code>ON DELETE</code>.', 'le chapitre précédent');
   /* La fin du chapitre 12 annonce les transactions : c’est ce chapitre. */
   const od = fs.readFileSync(path.join(root, 'assets/anim/projet-ondelete.html'), 'utf8');
   assert.ok(od.includes('à tout valider ou tout annuler<br>avec une transaction.') && od.includes('Prochaine leçon · Transactions</span>'), 'le chapitre 12 annonce celui-ci');

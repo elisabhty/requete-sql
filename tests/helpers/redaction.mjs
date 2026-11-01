@@ -222,11 +222,14 @@ export function leconsDuProjet() {
 /* Le numéro de chapitre d’une page du projet (« Projet · Chapitre 9 » sur son écran titre) ou de la fiche d’une leçon du projet ;
    99 pour tout autre texte (les exemples des règles) : une règle posée « à partir du chapitre N » les regarde. */
 const NUMEROS_DE_CHAPITRE = new Map();
+const ORDRE_DU_PROJET = ['normaliser', 'cles', 'uml', 'create', 'alter', 'drop', 'schemas', 'insert', 'update', 'merge', 'delete', 'ondelete',
+  'transaction', 'savepoint', 'procedures', 'trigger', 'concurrence', 'vue', 'index', 'droits'].map(c => 'projet-' + c);
 export function chapitreDe(page) {
   if (NUMEROS_DE_CHAPITRE.has(page)) return NUMEROS_DE_CHAPITRE.get(page);
   const f = /^leçon \d+$/.test(page) ? leconsDuProjet().find(l => l.id === +page.slice(6))?.page : /^projet-[a-z-]+$/.test(page) ? `${page}.html` : null;
-  const m = f && fs.existsSync(path.join(ANIM, f)) ? lire(path.join(ANIM, f)).match(/<div class="tagpill">Projet · Chapitre (\d+)<\/div>/) : null;
-  const n = m ? +m[1] : 99;
+  /* Le rang de la vidéo dans le projet (1 à 20) : son ordre dans l’app, celui de liens.js (l’écran titre dit « Projet · Module 8 »… depuis le 1er novembre). */
+  const k = f ? ORDRE_DU_PROJET.indexOf(f.replace(/\.html$/, '')) : -1;
+  const n = k >= 0 ? k + 1 : 99;
   NUMEROS_DE_CHAPITRE.set(page, n);
   return n;
 }

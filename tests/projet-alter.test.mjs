@@ -150,13 +150,13 @@ test(`${FILE} : deux réponses enchaînées, clear() retire la classe de flash()
 /* ---------- Propre au chapitre 5 ---------- */
 
 test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapitre 6 et récapitulatif`, () => {
-  assert.ok(page.includes('<div class="tagpill">Projet · Chapitre 5</div>') && page.includes('<span>A</span><span>L</span><span>T</span><span>E</span><span>R</span>')
-    && page.includes('<div class="abs sub">Faire évoluer les tables</div>'), 'écran titre : « Projet · Chapitre 5 », ALTER, « Faire évoluer les tables »');
+  assert.ok(page.includes('<div class="tagpill">Projet · Module 9</div>') && page.includes('<span>A</span><span>L</span><span>T</span><span>E</span><span>R</span>')
+    && page.includes('<div class="abs sub">Faire évoluer les tables</div>'), 'écran titre : « Projet · Module 9 », ALTER, « Faire évoluer les tables »');
   assert.ok(page.includes('<div class="abs bubble">Modifie la structure d’une&nbsp;table existante sans avoir à la recréer.</div>'), 'bulle de la mascotte');
   /* Les bulles du scénario validé, dans l’ordre (les « À toi ! » mis à part) ; seuls les <br> et les espaces insécables sont libres. */
   const BULLES = [
-    'Depuis le chapitre 1, tu construis la base des ateliers bien-être de NutriBoost.',
-    'Au chapitre 4, tu as créé les tables des ateliers avec CREATE TABLE.',
+    'Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.',
+    'Dans la leçon précédente, tu as créé les tables des ateliers avec CREATE TABLE.',
     'Karim y a enregistré les coachs, les ateliers, les inscriptions et les premières cartes de membre.',
     'Les premières séances amènent aussi des demandes de changement.',
     'Pour enregistrer le nombre de places de chaque atelier, on ajoute une colonne places.',
@@ -214,7 +214,7 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
   assert.ok(D.OPENS[0].at < D.PICKS[0].from && D.OPENS[1].at < D.PICKS[1].at && D.OPENS[1].at > D.PICKS[0].at && D.OPENS[2].at < D.PICKS[3].at && D.OPENS[2].at > D.PICKS[2].at
     && D.OPENS[3].at < D.PICKS[4].at && D.OPENS[3].at > D.PICKS[3].at && D.PICKS[4].from < D.OPENS[3].at, 'chaque mail avant son moment');
   /* L’annonce du chapitre suivant, sous son vrai titre. */
-  assert.ok(page.includes('<span class="emo">🗑️</span>Chapitre 6 · DROP</span>'), 'pilule « 🗑️ Chapitre 6 · DROP »');
+  assert.ok(page.includes('<span class="emo">🗑️</span>Prochaine leçon · DROP</span>'), 'pilule « 🗑️ Chapitre 6 · DROP »');
   /* La suite de la fin du chapitre 4 : une table qui vient d’être créée affiche « 0 ligne » ; Karim arrive dans la même pilule
      (KB, ✍️, la commande) : INSERT INTO quand il remplit les tables, puis UPDATE quand il change des valeurs. */
   assert.ok(page.includes('<i class="e">0 ligne</i>') && !page.includes('<i class="e">vide</i>'), '« 0 ligne », comme au chapitre 4');
