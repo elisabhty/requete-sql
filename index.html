@@ -14121,13 +14121,18 @@ function lqPinFx(btn,on){
   btn.classList.remove('is-pin','is-unpin'); void btn.offsetWidth; btn.classList.add(on?'is-pin':'is-unpin');
   clearTimeout(btn._pinT); btn._pinT=setTimeout(()=>btn.classList.remove('is-pin','is-unpin'),800);
   if(on&&typeof lqBurst==='function'){ const k=btn.querySelector('.lq-stk'); if(k)lqBurst(btn,k); }
-  /* Épinglé : la coche « Épinglée » sur le bouton même, au lieu d’une notification (Elisa, 1er novembre, 9 h 24). */
-  if(on&&typeof lqDone==='function')lqDone(btn,'Épinglée');
+  /* Épinglé : la coche « Épinglée » sur le bouton même, au lieu d’une notification (Elisa, 1er novembre, 9 h 24) ; désépinglé,
+     la même coche, « Désépinglée » (13 h 28 : « pareil pour désépinglé »). */
+  if(typeof lqDone==='function')lqDone(btn,on?'Épinglée':'Désépinglée');
   else if(typeof buzz==='function')buzz('light');
 }
 function unpinConsoleQuery(i){
   const p=projOf(activeDbId);if(!p.pins[i])return;
-  p.pins=removeConsoleQuery(p.pins,p.pins[i].sql);saveProjState();renderConsoleSide();lqSay('Requête désépinglée');
+  const head=document.querySelector('#scr-console .console-library-head');
+  p.pins=removeConsoleQuery(p.pins,p.pins[i].sql);saveProjState();renderConsoleSide();
+  /* La requête quitte la liste : la coche « Désépinglée » se pose sur le titre des épinglées. */
+  if(typeof lqDone==='function')lqDone(head&&head.isConnected?head.querySelector('h2')||head:null,'Désépinglée','Requête désépinglée');
+  else lqSay('Requête désépinglée');
 }
 function toggleHistoryPin(i){
   const p=projOf(activeDbId),it=p.hist[i];if(!it)return;
@@ -15862,10 +15867,11 @@ function buildSteps(sql,database){
   const tm=/^(?:"([^"]+)"|`([^`]+)`|\[([^\]]+)\]|([A-Za-zÀ-ÿ_][A-Za-zÀ-ÿ0-9_]*))(?:\s+(?:AS\s+)?[A-Za-zÀ-ÿ_][A-Za-zÀ-ÿ0-9_]*)?$/i.exec(from);
   const nom=!joint&&tm?(tm[1]||tm[2]||tm[3]||tm[4]):'',simple=!!nom;
   /* Elisa, 1er novembre, 8 h 53 : « ne pas mettre "part", je ne trouve pas ça classe » → « La requête utilise les 18 lignes de
-     aeroports, telles qu’elles sont enregistrées. Rien n’est encore filtré ni trié. » */
+     aeroports, telles qu’elles sont enregistrées. Rien n’est encore filtré ni trié. » 13 h 28 : « préciser toujours de la table
+     plats » → « … les 20 lignes de la table plats … ». */
   steps.push({n:'FROM',t:joint?'Relier les tables':simple?`Lire la table ${nom}`:'Lire les données',
     e:joint?`La requête utilise les lignes obtenues en reliant les tables (<code>${esc(from)}</code>) : ${lignes(nb)}, avant tout filtre ou tri.`
-      :`La requête utilise ${nb===1?'la seule ligne':`les ${nb} lignes`} de <code>${esc(simple?nom:from)}</code>, telles qu’elles sont enregistrées. Rien n’est encore filtré ni trié.`,
+      :`La requête utilise ${nb===1?'la seule ligne':`les ${nb} lignes`} de ${simple?'la table ':''}<code>${esc(simple?nom:from)}</code>, telles qu’elles sont enregistrées. Rien n’est encore filtré ni trié.`,
     cols:base.columns,rows:base.values.map(v=>({v}))});
   let kept=base.values;
   const whereSql=c.where?' WHERE '+c.where:'';
@@ -31272,7 +31278,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-profile-identity-v2249';
+  const SW_CACHE='requete-2026-11-01-latable-v2250';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

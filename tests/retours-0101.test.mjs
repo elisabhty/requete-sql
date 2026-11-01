@@ -76,7 +76,7 @@ test('1 h 48 : la barre Schéma de la Console sans autocollant', () => {
 
 test('8 h 53 : le pas à pas « utilise » les lignes de la table (plus « part »), nom sans guillemets ni alias', () => {
   assert.ok(!app.includes('La requête part '));
-  assert.ok(app.includes("`La requête utilise ${nb===1?'la seule ligne':`les ${nb} lignes`} de <code>${esc(simple?nom:from)}</code>, telles qu’elles sont enregistrées. Rien n’est encore filtré ni trié.`"));
+  assert.ok(app.includes("`La requête utilise ${nb===1?'la seule ligne':`les ${nb} lignes`} de ${simple?'la table ':''}<code>${esc(simple?nom:from)}</code>, telles qu’elles sont enregistrées. Rien n’est encore filtré ni trié.`"));
   assert.ok(app.includes('const nom=!joint&&tm?(tm[1]||tm[2]||tm[3]||tm[4]):\'\',simple=!!nom;'));
 });
 
@@ -105,7 +105,7 @@ test('9 h 19 : pas à pas dans la DA du site, épingle en icône animée partout
 
 test('9 h 24 : curseur (réglages typographiques identiques), coche « Épinglée » au lieu d’une notification, prochaine carte vivante', () => {
   assert.ok(css.includes('letter-spacing:0!important;word-spacing:0!important;font-kerning:none!important;font-optical-sizing:none!important;'));
-  assert.ok(app.includes("if(on&&typeof lqDone==='function')lqDone(btn,'Épinglée');"));
+  assert.ok(app.includes("if(typeof lqDone==='function')lqDone(btn,on?'Épinglée':'Désépinglée');"), 'désépinglée aussi (13 h 28)');
   assert.ok(!app.includes("toast('Projet créé'") && !app.includes("toast('Doublons fusionnés'") && !app.includes("toast('Modèle de table prêt'"), 'les petites confirmations deviennent une coche sur place');
   assert.ok(app.includes(`<span class="coll-next-card" aria-hidden="true"><i>\${lqStkSvg('cards')}</i></span>`));
 });
