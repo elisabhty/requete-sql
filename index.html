@@ -6643,7 +6643,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=69">
+<link rel="stylesheet" href="ludique.css?v=70">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -11517,7 +11517,8 @@ function createProjectFromForm(event){
   projOf(id);saveProjState();
   consoleCreateOpen=false;
   openConsoleProject(id);
-  toast('Projet créé','Importe un fichier ou crée une table.');
+  /* La coche sur le titre du projet, au lieu d’une notification (9 h 24 : « pareil ailleurs, ex : console »). */
+  requestAnimationFrame(()=>lqDone(document.querySelector('#scr-console .lgtitle h1'),'Projet créé','Projet créé : importe un fichier ou crée une table.'));
 }
 async function renameDb(id){
   if(isDemoDb(id))return;
@@ -11756,7 +11757,9 @@ function lqPinFx(btn,on){
   btn.classList.remove('is-pin','is-unpin'); void btn.offsetWidth; btn.classList.add(on?'is-pin':'is-unpin');
   clearTimeout(btn._pinT); btn._pinT=setTimeout(()=>btn.classList.remove('is-pin','is-unpin'),800);
   if(on&&typeof lqBurst==='function'){ const k=btn.querySelector('.lq-stk'); if(k)lqBurst(btn,k); }
-  if(typeof buzz==='function')buzz(on?'success':'light');
+  /* Épinglé : la coche « Épinglée » sur le bouton même, au lieu d’une notification (Elisa, 1er novembre, 9 h 24). */
+  if(on&&typeof lqDone==='function')lqDone(btn,'Épinglée');
+  else if(typeof buzz==='function')buzz('light');
 }
 function unpinConsoleQuery(i){
   const p=projOf(activeDbId);if(!p.pins[i])return;
@@ -22947,7 +22950,7 @@ function renderCollection(){
       const next=revisables.filter(l=>state.lessons[l.id]&&state.lessons[l.id].due).map(l=>state.lessons[l.id].due).sort((x,y)=>x-y)[0];
       review=`<div class="coll-review"><div class="coll-review-copy"><small>Révision</small><b>Rien à revoir aujourd’hui</b><span>${next?`Prochaine révision ${esc(collNextReviewLabel(next))}.`:'Tes cartes reviennent au bon moment.'}</span></div></div>`;
     }else review='';
-    const nextRow=!dueCards.length?`<div class="coll-overview-next"><span><small>${nextLesson?'Prochaine carte':'Collection complète'}</small><b>${nextLesson?esc(CARTES[nextLesson.id].k):'Toutes les cartes sont disponibles'}</b></span>${nextLesson?`<button type="button" onclick="openLesson(${nextLesson.id})">Voir la leçon</button>`:''}</div>`:'';
+    const nextRow=!dueCards.length?`<div class="coll-overview-next${nextLesson?' has-next':''}">${nextLesson?`<span class="coll-next-card" aria-hidden="true"><i>${lqStkSvg('cards')}</i></span>`:''}<span><small>${nextLesson?'Prochaine carte':'Collection complète'}</small><b>${nextLesson?esc(CARTES[nextLesson.id].k):'Toutes les cartes sont disponibles'}</b></span>${nextLesson?`<button type="button" onclick="openLesson(${nextLesson.id})">Voir la leçon</button>`:''}</div>`:'';
     overview.innerHTML=`<section class="coll-overview"><div class="coll-overview-main"><span class="coll-overview-ring" style="--p:${pct}" role="img" aria-label="${pct}% des cartes débloquées"><b>${pct}%</b></span><div class="coll-overview-copy"><small>Ta collection</small><strong>${n} carte${n>1?'s':''} débloquée${n>1?'s':''}</strong><span>${n} sur ${TOTAL_CARTES} · ${completedModules} module${completedModules>1?'s':''} complet${completedModules>1?'s':''} · ${locked} à obtenir</span></div></div>${review}${nextRow}</section>`;
   }
   const t=document.getElementById('coll-t');
@@ -26595,7 +26598,7 @@ function mergeDuplicateNotes(){
   });
   state.notes=(state.notes||[]).filter(n=>!drop.has(n.id));
   save(); notesEnter=false; renderNotes();
-  toast('Doublons fusionnés',drop.size+(drop.size>1?' notes retirées':' note retirée'));
+  lqDone(document.querySelector('#scr-notes .lgtitle h1')||notesRoot(),drop.size>1?`${drop.size} doublons fusionnés`:'Doublon fusionné');
 }
 /* Le classement change quand on épingle : les cartes glissent à leur nouvelle place. */
 function notesRoot(){
@@ -26945,7 +26948,7 @@ function startFirstTable(){
   fillConsoleSql("CREATE TABLE contacts (\n  id INTEGER PRIMARY KEY,\n  nom TEXT NOT NULL,\n  ville TEXT\n);\nINSERT INTO contacts (nom, ville)\nVALUES ('Sophie Martin', 'Paris');\nSELECT * FROM contacts;");
   const ta=document.getElementById('ed-console');
   if(ta)try{ ta.focus({preventScroll:false}); }catch(e){}
-  toast('Modèle de table prêt','Adapte-le, puis appuie sur « Exécuter ».','info');
+  lqDone(document.querySelector('#scr-console .console-editor-shell .editor-bar'),'Modèle prêt','Modèle de table prêt : adapte-le, puis appuie sur Exécuter.');
 }
 function fillConsole(i){
   const ta=document.getElementById('ed-console');
@@ -28769,7 +28772,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-pas-a-pas-da-v2239';
+  const SW_CACHE='requete-2026-11-01-coches-v2240';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
