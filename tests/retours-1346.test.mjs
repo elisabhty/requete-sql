@@ -282,3 +282,8 @@ test('19 h 48 : « Ta session » a son animation (sablier qui coule et se retour
 test('19 h 53 : moins d’espace entre la série et « Ton parcours »', () => {
   assert.ok(css.includes('html.lq #scr-learn #modules{margin-top:6px;padding-top:16px}'));
 });
+
+test('19 h 55 : parcours terminé, plus de « Tu es ici »', () => {
+  assert.ok(app.includes('try{const s=recommendedSession();if(s&&!isDefiId(s.id))id=s.id;fini=!s;}catch(e){}'));
+  assert.ok(app.includes('if(fini){lqPathCurrent=null;setTimeout(()=>{lqPathCurrent=undefined;},0);return null;}'));
+});

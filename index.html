@@ -18750,8 +18750,11 @@ let lqAutoOpenModule=null,catalogToolsOpen=false,lqPathCurrent,lqDoneSnapshot=nu
    l’accueil (séance recommandée), sinon la première leçon pas terminée. */
 function pathCurrentLessonId(){
   if(lqPathCurrent!==undefined)return lqPathCurrent;
-  let id=null;
-  try{const s=recommendedSession();if(s&&!isDefiId(s.id))id=s.id;}catch(e){}
+  let id=null,fini=false;
+  try{const s=recommendedSession();if(s&&!isDefiId(s.id))id=s.id;fini=!s;}catch(e){}
+  /* Elisa, 1er novembre, 19 h 55 : « quand on a fini tout le parcours, ne plus mettre “Tu es ici” ». Parcours terminé (plus aucune
+     séance, l’accueil dit « Parcours terminé ») : aucun repère, même si des leçons laissées de côté par le niveau choisi restent à faire. */
+  if(fini){lqPathCurrent=null;setTimeout(()=>{lqPathCurrent=undefined;},0);return null;}
   /* Sinon : la première leçon pas encore validée, avec la même règle que les
      compteurs des modules (sinon un module « validé » pourrait être marqué
      « en cours »). */
@@ -33057,7 +33060,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-parcours-v2288';
+  const SW_CACHE='requete-2026-11-01-fin-ici-v2289';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

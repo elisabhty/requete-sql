@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-01-parcours-v2288';
+const CACHE = 'requete-2026-11-01-fin-ici-v2289';
 
 const PRECACHE = [
   './onboarding-focus.js',
