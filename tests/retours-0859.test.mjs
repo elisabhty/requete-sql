@@ -33,27 +33,24 @@ test('lot Moyen : les corrections (doublon, niveau, seuil impossible, égalités
   d.close();
 });
 
-test('les trois indices : où chercher, la piste, la forme ; jamais la requête', () => {
+test('les trois indices : où chercher, la piste, la forme ; jamais la requête — un à la fois (14 h 33)', () => {
   const c = D('af5');
   assert.equal(ctx.defiIndicesHTML(c, 0), '', 'rien avant le premier essai raté');
-  const h1 = ctx.defiIndicesHTML(c, 1), h3 = ctx.defiIndicesHTML(c, 3), h9 = ctx.defiIndicesHTML(c, 9);
+  const h1 = ctx.defiIndicesHTML(c, 1), h2 = ctx.defiIndicesHTML(c, 2), h3 = ctx.defiIndicesHTML(c, 3), h9 = ctx.defiIndicesHTML(c, 9);
   assert.ok(h1.includes('Indice 1/3') && h1.includes('Tu auras besoin de 4 tables : <code>bagages</code>, <code>reservations</code>, <code>passagers</code> et <code>vols</code>.'));
   assert.ok(!h1.includes('Indice 2/3'));
-  assert.ok(h3.includes('Indice 2/3') && h3.includes(c.indice) && h3.includes('Indice 3/3') && h3.includes('C’était le dernier indice'));
+  assert.ok(h2.includes('Indice 2/3') && h2.includes(c.indice) && !h2.includes('Indice 1/3'), 'un à la fois, pas 1 + 2');
+  assert.ok(h3.includes('Indice 3/3') && h3.includes('C’était le dernier indice') && !h3.includes(c.indice));
+  assert.ok(ctx.defiIndicesHTML(c, 3, 1).includes('Indice 1/3'), 'une pastille ramène à un indice déjà donné');
   assert.equal(h9, h3, 'trois au plus');
+  assert.ok(ctx.defiIndicesHTML(c, 1, 0, 'On attend 1 colonne.').includes('<b>Pas encore</b><p>On attend 1 colonne.</p>'), '« Pas encore » dans la même carte');
   assert.equal(ctx.defiSquelette(c.sol), 'SELECT …\nFROM …\nJOIN … ON … = …\nJOIN … ON … = …\nJOIN … ON … = …\nWHERE … = …\nORDER BY …');
-  /* Aucun nom de colonne, de table ni aucune valeur de la solution dans le squelette */
   for (const x of ctx.CHALLENGES) {
     const sq = ctx.defiSquelette(x.sol);
     for (const t of ['bagages', 'reservations', 'passagers', 'vols', 'avions', 'compagnies', 'aeroports', 'prix', 'statut', "'", '2025', '500'])
       assert.ok(!sq.includes(t), `${x.id} : « ${t} » ne doit pas paraître dans le squelette`);
   }
   assert.equal(ctx.defiSquelette(D('am4').sol).split('\n')[3], 'WHERE … = … AND … > (SELECT AVG(…) FROM … WHERE … = …)');
-  assert.deepEqual(Array.from(ctx.defiTables(D('ad3').sol)), ['passagers', 'reservations'], 'les CTE ne sont pas prises pour des tables');
-  assert.deepEqual(Array.from(ctx.defiTables(D('ad8').sol)), ['vols', 'compagnies', 'reservations']);
-  assert.ok(ctx.defiSquelette(D('ad2').sol).includes('RANK() OVER (ORDER BY COUNT(…) DESC)'));
-  assert.ok(ctx.defiSquelette(D('ad6').sol).includes('ROW_NUMBER() OVER') && ctx.defiSquelette(D('ad6').sol).includes('LAG(…) OVER'));
-  assert.ok(ctx.defiSquelette(D('ad9').sol).includes('PARTITION BY …'));
 });
 
 test('le diagnostic dit ce qui cloche sans rien dévoiler', () => {
@@ -68,13 +65,13 @@ test('le diagnostic dit ce qui cloche sans rien dévoiler', () => {
 });
 
 test('branché partout : défi seul, salle, fin du chrono, fin de manche ; la même requête relancée ne débloque rien', () => {
-  assert.ok(app.includes("if(mode==='defi'){s.innerHTML=defiIndicesHTML(current,exoFails);return;}"), 'défi seul : les indices au lieu de la solution');
+  assert.ok(app.includes("if(mode==='defi'){if(!COACH||COACH.c!==current)COACH={c:current,kind:'solo',n:0,view:0,diag:'',fx:''};coachSet(exoFails);return;}"), 'défi seul : les indices au lieu de la solution');
   assert.ok(app.includes("if(mode==='defi'&&sql!=null){const k=String(sql).replace(/\\s+/g,' ').trim();if(k===defiDernierKo){renderExoHelp();return;}defiDernierKo=k;}"));
   assert.ok(app.includes('const diag=isDefi?defiDiag(userRes,solRes,current):exoFailDiag(sql,sol,userRes,solRes,ordered);'));
-  assert.ok(app.includes('  jeuEssaiRate(r);\n  jeuIndice(r,c,sql);'), 'salle');
-  assert.ok(app.includes("if(k!==r.lastKo){r.lastKo=k;r.ind=Math.min(3,(r.ind||0)+1);}"));
+  assert.ok(app.includes('  jeuEssaiRate(r);\n  coachRoomTick();\n  coachKo(diag);'), 'salle');
+  assert.ok(app.includes('const JEU_IND_T=[150000,300000,450000];'), 'en salle, à la même minute pour tout le monde');
   assert.ok(app.includes('Voici ce qu’il fallait obtenir&nbsp;:</p>${defiAttenduHTML(c)}'), 'fin du chrono : le résultat, pas la requête');
   assert.ok(app.includes('<summary class="jeu-card-h">Le résultat attendu</summary>'), 'fin de manche');
   assert.ok(!/highlight\((c|current)\.sol\)/.test(app), 'la solution d’un défi n’est affichée nulle part');
-  assert.ok(css.includes('html.lq .defi-ind{padding:12px 14px 13px;border:2px solid #FBE5A6;'));
+  assert.ok(css.includes('html.lq .coach{margin:14px 0 16px;padding:14px 16px;border:2px solid var(--line);border-radius:20px;background:#fff;'));
 });

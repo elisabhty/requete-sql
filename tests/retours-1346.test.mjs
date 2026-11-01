@@ -61,3 +61,13 @@ test('onboarding : le parcours qui se construit, la promesse en grand chiffre, l
     'html #onboarding.ob-vitrine .ob-build-path span.is-start{background:var(--v-sun);', 'html #onboarding.ob-vitrine.ob-fit-3 .ob-chat{display:none!important}'])
     assert.ok(v.includes(part), part);
 });
+
+test('14 h 33 : un seul cadre pour « Pas encore » et l’indice ; en salle, les indices à la même minute pour tous ; la base dans la barre', () => {
+  assert.ok(app.includes("${coach?'<div id=\"hint-slot\"></div>':''}"), 'la carte avant le résultat');
+  assert.ok(app.includes("if(isDefi&&COACH&&COACH.c===current){setLessonOut(table);COACH.diag=diag;COACH.fx='is-new-ko';}"), 'défi seul');
+  assert.ok(app.includes('const due=JEU_IND_T.filter(t=>Date.now()-r.t1>=t).length;'), 'en salle : le temps de la manche, le même pour tous');
+  assert.ok(app.includes("pour tout le monde dans <b id=\"coach-cd\">${jeuChrono(next)}</b>"));
+  assert.ok(app.includes("<span class=\"l-kicker\">Manche ${n+1}/${J.nb} · ${JEU_NIVL[c.niv]}${defiBaseId(c)?` · Base ${esc(DEFI_BASES[defiBaseId(c)].nom)}`:''}</span>"));
+  for (const part of ['html.lq .coach.is-new-ko .coach-st{animation:coachKo .45s ease}', 'html.lq .coach-dot.is-cur{transform:scale(1.3);', 'html.lq .coach-tag{flex:none;padding:4px 10px;border-radius:99px;background:var(--sun);'])
+    assert.ok(css.includes(part), part);
+});
