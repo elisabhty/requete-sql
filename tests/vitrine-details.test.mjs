@@ -351,7 +351,7 @@ test('vidéo : « Apprends le SQL maintenant. » puis les neuf tuiles des foncti
   assert.ok(s9.includes('<p class="abs sub">progresse à ton rythme.</p>'), 'la phrase continue sous le titre');
   const tuiles = [...s9.matchAll(/<div class="ft(?: more)?">.*?<b>(.*?)<\/b><\/div>/g)].map(m => m[1]);
   assert.deepEqual(tuiles, ['65 cours immersifs', 'Un labo&nbsp;SQL interactif', '267 cas pratiques', 'Importe tes propres données',
-    '75 questions d’entretien', 'Cartes mémo &amp; stickers', 'Défie tes amis', 'Ta série de jours',
+    '102 questions d’entretien', 'Cartes mémo &amp; stickers', 'Défie tes amis', 'Ta série de jours',
     'Et bien plus encore<small>Découvre-les maintenant&nbsp;!</small>']);
   /* Quatre rangées de deux, puis « Et bien plus encore » sur toute la largeur (Elisa, 20 h 01 : « tout est tassé »).
      Sur ordinateur et tablette (cadre d’au moins 420 px), des tuiles hautes et espacées, finies avant 1 020 px : les deux
@@ -374,7 +374,7 @@ test('vidéo : « Apprends le SQL maintenant. » puis les neuf tuiles des foncti
   assert.match(video, /#end\.on a,#end\.on button\{animation:endPop [^}]*backwards\}/, 'l’entrée ne bloque pas le survol');
   /* Texte lu par VoiceOver */
   assert.ok(video.includes("'Apprends le SQL maintenant. Pratique sur de vraies données avec Requête. L’app, pensée pour les futurs data analysts. Des cours interactifs"));
-  assert.ok(video.includes("'Du premier SELECT aux requêtes avancées, progresse à ton rythme. 65 cours immersifs, un labo SQL interactif, 267 cas pratiques et 75 questions d’entretien"));
+  assert.ok(video.includes("'Du premier SELECT aux requêtes avancées, progresse à ton rythme. 65 cours immersifs, un labo SQL interactif, 267 cas pratiques et 102 questions d’entretien"));
 });
 
 /* Elisa, 30 octobre, 17 h 31 : un écran d’onboarding avec des logos de Harvard, Stanford et Emory (« est-ce qu’on peut
