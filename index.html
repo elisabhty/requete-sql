@@ -6643,7 +6643,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=68">
+<link rel="stylesheet" href="ludique.css?v=69">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=2">
 <style id="lesson-video-css">
@@ -13612,7 +13612,7 @@ function vizCtaHTML(sql,taId){
   const et=[['FROM',1],['WHERE',c.where],['GROUP BY',c.group],['HAVING',c.having],['SELECT',1],['ORDER BY',c.order],['LIMIT',c.limit]].filter(x=>x[1]).map(x=>x[0]);
   return `<button type="button" class="viz-row" style="--n:${et.length}" onclick="openViz('${taId}')" aria-label="Voir le pas à pas : ${et.length} étapes, ${et.join(', ')}">
     <span class="viz-row-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></svg></span>
-    <span class="viz-row-t"><b>Pas à pas</b><span class="viz-row-steps" aria-hidden="true">${et.map((k,i)=>`<i style="--i:${i}">${k}</i>`).join('')}</span></span>
+    <span class="viz-row-t"><b>Pas à pas</b><span class="viz-row-steps" aria-hidden="true">${et.map((k,i)=>`${i?'<em>›</em>':''}<i style="--i:${i}">${k}</i>`).join('')}</span></span>
     <span class="viz-row-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
   </button>`;
 }
@@ -14284,6 +14284,8 @@ function switchTab(name){
   }
   /* Une sous-page ouverte depuis une autre page s’en souvient (le retour y ramène) ; pas quand on y revient par « retour ». */
   if(activeTab&&name!==activeTab&&primaryTabFor(name)!==name&&!tabBackNav&&!restoringNav)tabFrom[name]=activeTab;
+  /* Défis s’ouvre toujours en haut, sur la salle (Elisa, 1er novembre, 9 h 19 : « quand j’entre dans la salle, être en haut au début »). */
+  if(name==='defis')tabScrollPositions.defis=0;
   activeTab=name;
   syncTabBack(name);
   document.getElementById('fab')?.classList.remove('is-tucked');
@@ -15234,7 +15236,7 @@ function renderDefisRoom(){
     <div class="room-head"><span class="room-stk" aria-hidden="true">${lqStkSvg('target')}</span><div>
     <p class="room-kicker">Salle de défi</p>
     <h2 id="room-h">Entre dans la salle</h2>
-    <p class="room-sub">Un défi tiré au sort, au niveau que tu choisis. Le chrono part de 00:00.</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
+    <p class="room-sub">Un défi tiré au sort, au niveau que tu choisis.</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
     <div class="room-field"><p class="jeu-lab" id="room-niv-l">Niveau</p>
       <div class="room-levels" role="radiogroup" aria-labelledby="room-niv-l">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="jeuRoomSet('niv','${k}')"${vide?' disabled':''}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b><small>${vide?'Bientôt':stat(k)}</small></button>`;}).join('')}</div></div>
     <div class="room-field"><p class="jeu-lab" id="room-mode-l">Avec qui ?</p>
@@ -26784,7 +26786,7 @@ function openNote(id,pre){
     </div>
     <div class="ne-row">
       <button class="prim" type="button" onclick="saveNote()">Enregistrer</button>
-      <button class="sec ne-pin ${e.pin?'pin-on':''}" type="button" aria-pressed="${e.pin?'true':'false'}" onclick="togglePin()">${lqStkSvg('pin')}<span>${e.pin?'Épinglée':'Épingler'}</span></button>
+      <button class="sec ne-pin ${e.pin?'pin-on':''}" type="button" aria-pressed="${e.pin?'true':'false'}" onclick="togglePin()" title="${e.pin?'Désépingler':'Épingler'}">${lqStkSvg('pin')}<span class="sr">${e.pin?'Épinglée':'Épingler'}</span></button>
       ${n?`<button class="del" type="button" onclick="deleteNote('${e.id}')">Supprimer</button>`:''}
     </div>
     ${e.sql?`<div class="ne-row" style="margin-top:9px"><button class="sec" style="flex:1" type="button" onclick="noteToConsole()">Ouvrir dans la console</button></div>`:''}`;
@@ -28767,7 +28769,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-01-curseur-v2238';
+  const SW_CACHE='requete-2026-11-01-pas-a-pas-da-v2239';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
