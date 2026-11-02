@@ -17,12 +17,13 @@ const page = fs.readFileSync(path.join(ROOT, 'decouvrir', 'video.html'), 'utf8')
 const FIN = +(/const DURATION = ([\d.]+);/.exec(page) || [])[1];
 if (!FIN) { console.log('DURATION introuvable dans decouvrir/video.html'); process.exit(1); }
 const dur = f => +execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f]).toString().trim();
+const enc = (a, b, o) => execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', a, '-codec:a', 'libmp3lame', ...o, b]);
 fs.mkdirSync(dst, {recursive: true});
 const scenes = [], manque = [];
 job.elements.forEach((e, i) => {
   const f = path.join(src, e.id + '.mp3');
   if (!fs.existsSync(f)) { manque.push(e.id); return; }
-  fs.copyFileSync(f, path.join(dst, e.id + '.mp3'));
+  enc(f, path.join(dst, e.id + '.mp3'), ['-ac', '1', '-b:a', '64k']);   // la voix en mono 64 kb/s, comme dans les cours
   const fin = i + 1 < job.elements.length ? job.elements[i + 1].debut : FIN, d = +dur(f).toFixed(2), t = +(e.debut + .35).toFixed(2);
   scenes.push({id: e.id, t, fin, d});
   const marge = fin - t - d;
@@ -31,7 +32,7 @@ job.elements.forEach((e, i) => {
 if (manque.length) { console.log('Il manque : ' + manque.join(', ')); process.exit(1); }
 const out = {scenes};
 const m = path.join(src, 'musique.mp3');
-if (fs.existsSync(m)) { fs.copyFileSync(m, path.join(dst, 'musique.mp3')); out.musique = {d: +dur(m).toFixed(2)}; console.log(`musique  ${out.musique.d.toFixed(1)} s`); }
+if (fs.existsSync(m)) { enc(m, path.join(dst, 'musique.mp3'), ['-ac', '2', '-b:a', '96k']); out.musique = {d: +dur(m).toFixed(2)}; console.log(`musique  ${out.musique.d.toFixed(1)} s`); }
 else console.log('Pas de musique : la voix seule.');
 fs.writeFileSync(path.join(dst, 'voix.json'), JSON.stringify(out, null, 1) + '\n');
 console.log(`\n${scenes.length} phrases dans decouvrir/voix/ ; voix.json écrit.`);
