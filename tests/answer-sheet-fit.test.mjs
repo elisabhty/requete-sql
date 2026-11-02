@@ -259,3 +259,16 @@ test('les zones d’un moment sont remesurées une fois l’image posée (les ca
   const r = html.indexOf('function lvPkSpotsRefresh(P){'), ref = html.slice(r, html.indexOf('\n}\n', r));
   assert.ok(ref.includes('IX.spots(P.i)') && ref.includes('lvPkLayerPlace();'), 'la nouvelle mesure vient de la page, puis les cadres se replacent');
 });
+
+test('voix : une phrase finie pendant un arrêt (bouton à toucher, moment) n’est pas redite à la reprise', () => {
+  /* Elisa, 2 novembre, 19 h 31 : « Quand j’ai cliqué sur le bouton Exécuter ça l’a redit au niveau du son : clique sur Exécuter… Exécuter ». */
+  assert.ok(html.includes("if(q>=0||pk>=0||op>=0||end){ const vc=this.vc>=0&&this.voice?this.voice.clips[this.vc]:null; this.vSkip=vc&&vc.t+vc.d-t<=1.4?this.vc:-1; LvVoice.finish(vc);"));
+  assert.ok(html.includes('if(k>=0&&k===this.vSkip){ this.vc=k; return; }') && html.includes('if(k!==this.vSkip)this.vSkip=-1;'), 'à la reprise, la phrase finie n’est pas relancée');
+  assert.ok(html.includes('LvSfx.stop(); LvVoice.stop(); this.vc=-1; this.vSkip=-1;'), 'un retour en arrière la fait entendre de nouveau');
+});
+
+test('vidéos : le texte garde sa taille sur iPhone (pas de grossissement automatique de Safari)', () => {
+  /* Elisa, 2 novembre, 19 h 31 : « Pb de chevauchement (mobile) » : les cartes s’allongeaient et passaient sous la légende. */
+  const core = fs.readFileSync(path.join(root, 'assets/anim/core.css'), 'utf8'), where = fs.readFileSync(path.join(root, 'assets/anim/where.html'), 'utf8');
+  for (const css of [core, where]) assert.ok(css.includes('html{-webkit-text-size-adjust:100%;text-size-adjust:100%}'));
+});

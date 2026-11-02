@@ -73,9 +73,9 @@ test('lecteur : une seule balise audio, déverrouillée au premier appui, qui su
   assert.ok(sfxToAnim.includes('const LvVoice=(()=>{'), 'LvVoice, à côté des sons du lecteur');
   const anim = cut('class LvAnim{', 'function lessonVideoOn(l)');
   for (const s of ['LvVoice.preload(this.voice.files);', "LvVoice.onBlocked(()=>{ if(!this.dead&&!this.paused&&!this._muted){ this.pause(); this._emit('blocked'); } });",
-    'LvSfx.stop(); LvVoice.stop(); this.vc=-1; this.vwait=0;', 'set playbackRate(r){ this._rate=+r||1; LvVoice.setRate(this._rate); }', 'LvVoice.setMuted(this._muted);',
+    'LvSfx.stop(); LvVoice.stop(); this.vc=-1; this.vSkip=-1; this.vwait=0;', 'set playbackRate(r){ this._rate=+r||1; LvVoice.setRate(this._rate); }', 'LvVoice.setMuted(this._muted);',
     'LvVoice.unlock(this.voice.clips.find(c=>c.t+c.d>this.t)||this.voice.clips[0]);', "LvVoice.pause(); this.vwait=0; LvSfx.stop(); LvSfx.idle(); this._emit('pause');",
-    'this._voice(t,now);', 'if(q>=0||pk>=0||op>=0||end){ LvVoice.finish(this.vc>=0?this.voice.clips[this.vc]:null); this.vc=-1; this.vwait=0; }',
+    'this._voice(t,now);', 'if(q>=0||pk>=0||op>=0||end){ const vc=this.vc>=0&&this.voice?this.voice.clips[this.vc]:null; this.vSkip=vc&&vc.t+vc.d-t<=1.4?this.vc:-1; LvVoice.finish(vc); this.vc=-1; this.vwait=0; }',
     'if(k<0){ LvVoice.finish(was); return; }',
     'if(this.vwait){ if(LvVoice.ready()||now-this.vwait>2500)this.vwait=0; else{ this.last=now; this._loop(); return; } }'])
     assert.ok(anim.includes(s), s);
