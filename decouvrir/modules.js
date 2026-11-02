@@ -134,7 +134,7 @@ window.MODULES=[
       ["Les index et EXPLAIN", "Accélérer une recherche et lire son plan", 217]
     ]},
     {titre:"Sécurité et droits", sous:"Contrôler les accès", lecons:[
-      ["Sécurité et droits", "Contrôler les accès avec GRANT et REVOKE", 281]
+      ["Sécurité et droits", "Contrôler les accès avec GRANT et REVOKE", 287]
     ]}
   ]
 }
