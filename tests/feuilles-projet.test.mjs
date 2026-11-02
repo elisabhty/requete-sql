@@ -76,26 +76,22 @@ test('enregistrer : le bouton passe au menthe, la coche se dessine, des confetti
     assert.ok(s39.includes(part), part);
 });
 
-test('épingler : la punaise en autocollant partout ; elle se plante en sautant, se décroche d’un bond', () => {
-  const ctx = vm.createContext({});
-  vm.runInContext(cut(app, 'function lqStkSvg(k){', '\n}\n') + '\n}\nthis.stk=lqStkSvg;', ctx);
-  const pin = ctx.stk('pin');
-  assert.ok(pin.includes('<rect x="15" y="5" width="18" height="7.5" rx="3.6" fill="#FF6B6B"') && pin.includes('stroke="#1B1640" stroke-width="3"'), 'une punaise corail, l’aiguille à l’encre');
-  for (const part of ["if(glyph&&!glyph.querySelector('.lq-stk'))glyph.innerHTML=lqStkSvg('pin');", `data-pin-key="\${escAttr(consoleSqlKey(it.sql))}" onclick="toggleHistoryPin(\${i})"`,
-    `onclick="unpinConsoleQuery(\${i})" aria-label="Désépingler cette requête" aria-pressed="true">\${lqStkSvg('pin')}</button>`, `togglePinFromList('\${n.id}')">\${lqStkSvg('pin')}</button>`,
+test('épingler : une coche ronde animée partout (Elisa, 2 novembre, 7 h 26 : « pour les épingles je veux juste une coche V animée »)', () => {
+  assert.ok(app.includes(`const PIN_CK='<svg class="pin-ck" viewBox="0 0 24 24" aria-hidden="true"><circle class="pin-ck-c" cx="12" cy="12" r="9.5"/><path class="pin-ck-v" d="M7.6 12.3l3 3.1 5.9-6.3"/></svg>';`));
+  for (const part of ["if(glyph&&!glyph.querySelector('.pin-ck'))glyph.innerHTML=PIN_CK;", `data-pin-key="\${escAttr(consoleSqlKey(it.sql))}" onclick="toggleHistoryPin(\${i})"`,
+    `onclick="unpinConsoleQuery(\${i})" aria-label="Désépingler cette requête" aria-pressed="true">\${PIN_CK}</button>`, `togglePinFromList('\${n.id}')">\${PIN_CK}</button>`,
     `<button class="sec ne-pin \${e.pin?'pin-on':''}"`, "lqPinFx(document.getElementById('console-pin-current'),idx<0);", 'lqPinFx(btn,e.pin);'])
     assert.ok(app.includes(part), part);
-  /* lqPinFx : la classe de l’animation, les confettis seulement quand on épingle */
-  const cls = new Set(); let bursts = 0;
+  /* lqPinFx : la classe de l’animation, ni confettis ni étiquette */
+  const cls = new Set(); let bursts = 0, done = 0;
   const b = { classList: { add: c => cls.add(c), remove: (...cs) => cs.forEach(c => cls.delete(c)) }, offsetWidth: 1, querySelector: () => ({}) };
-  const f = vm.createContext({ prefersReduceMotion: () => false, lqBurst: () => { bursts++; }, buzz() {}, setTimeout() {}, clearTimeout() {} });
+  const f = vm.createContext({ prefersReduceMotion: () => false, lqBurst: () => { bursts++; }, lqDone: () => { done++; }, buzz() {}, setTimeout() {}, clearTimeout() {} });
   vm.runInContext(cut(app, 'function lqPinFx(btn,on){', '\n}\n') + '\n}\nthis.fx=lqPinFx;', f);
-  f.fx(b, true); assert.ok(cls.has('is-pin') && bursts === 1);
-  f.fx(b, false); assert.ok(cls.has('is-unpin') && !cls.has('is-pin') && bursts === 1);
-  for (const part of ['@keyframes lqPinPlant{', 'html.lq #scr-console .console-pin-current{position:relative;overflow:visible;display:flex;', 'border:2px solid var(--line)!important;border-radius:16px!important;background:#fff!important;box-shadow:0 4px 0 var(--lip)!important;',
-    'html.lq #scr-console .console-pin-current.on{background:#FFF4D6!important;', 'html.lq #scr-console .console-query-pin.on svg{rotate:0deg;filter:none;opacity:1}',
-    'html.lq .ncard.pin .npin-btn svg{rotate:0deg;filter:none;opacity:1}', 'html.lq .is-pin .lq-stk{animation:lqPinPlant', 'html.lq #scr-console .console-query-empty .console-query-stk{'])
-    assert.ok(s39.includes(part), part);
+  f.fx(b, true); assert.ok(cls.has('is-pin') && bursts === 0 && done === 0);
+  f.fx(b, false); assert.ok(cls.has('is-unpin') && !cls.has('is-pin'));
+  for (const part of ['@keyframes pinCkPop{', '@keyframes pinCkDraw{from{stroke-dashoffset:16}to{stroke-dashoffset:0}}', 'html.lq .is-pin .pin-ck-v{animation:pinCkDraw',
+    'html.lq :is(.ncard.pin .npin-btn,.ne-pin.pin-on,.console-query-pin.on,.console-pin-current.on) .pin-ck-c{fill:var(--accent);stroke:var(--accent)}'])
+    assert.ok(lq.includes(part), part);
 });
 
 test('tables d’un projet : le nom en entier, « 1 ligne » dessous, les actions groupées ; la description se dit « Description de la table »', () => {

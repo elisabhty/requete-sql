@@ -6641,7 +6641,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=103">
+<link rel="stylesheet" href="ludique.css?v=104">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -15280,7 +15280,7 @@ function updateConsolePinButton(){
   const run=document.getElementById('btn-run-console');
   if(run&&!run.classList.contains('running'))run.disabled=!hasSql;
   btn.classList.toggle('on',on);btn.setAttribute('aria-pressed',on?'true':'false');
-  const glyph=btn.querySelector('.console-pin-glyph');if(glyph&&!glyph.querySelector('.lq-stk'))glyph.innerHTML=lqStkSvg('pin');
+  const glyph=btn.querySelector('.console-pin-glyph');if(glyph&&!glyph.querySelector('.pin-ck'))glyph.innerHTML=PIN_CK;
   const label=btn.querySelector('b');if(label)label.textContent=on?'Désépingler cette requête':'Épingler cette requête';
 }
 function renderConsoleSide(){
@@ -15302,7 +15302,7 @@ function renderConsoleSide(){
             <span class="console-query-copy"><code>${esc(it.sql)}</code><small>${esc(fmtPinnedWhen(it.ts))}</small></span>
             <span class="console-query-chev" aria-hidden="true">${CONSOLE_CHEV_SVG}</span>
           </button>
-          <button type="button" class="console-query-pin on" onclick="unpinConsoleQuery(${i})" aria-label="Désépingler cette requête" aria-pressed="true">${lqStkSvg('pin')}</button>
+          <button type="button" class="console-query-pin on" onclick="unpinConsoleQuery(${i})" aria-label="Désépingler cette requête" aria-pressed="true">${PIN_CK}</button>
         </div>`).join('')
       : `<p class="console-query-empty">${q?'':`<span class="console-query-stk" aria-hidden="true">${lqStkSvg('pin')}</span>`}<b>${q?'Aucun résultat':'Aucune requête épinglée'}</b>${q?'Essaie un autre mot-clé.':'Épingle une requête utile pour la retrouver ici.'}${q?'<button type="button" class="sq-reset" onclick="clearConsoleQuerySearch()">Effacer la recherche</button>':''}</p>`;
     if(qTok.length)SQ.mark(pins.querySelectorAll('code'),qTok);
@@ -15319,7 +15319,7 @@ function renderConsoleSide(){
               <span class="console-query-copy"><code>${esc(it.sql)}</code><small>${esc(meta)}</small></span>
               <span class="console-query-chev" aria-hidden="true">${CONSOLE_CHEV_SVG}</span>
             </button>
-            <button type="button" class="console-query-pin ${on?'on':''}" data-pin-key="${escAttr(consoleSqlKey(it.sql))}" onclick="toggleHistoryPin(${i})" aria-label="${on?'Désépingler':'Épingler'} cette requête" aria-pressed="${on?'true':'false'}">${lqStkSvg('pin')}</button>
+            <button type="button" class="console-query-pin ${on?'on':''}" data-pin-key="${escAttr(consoleSqlKey(it.sql))}" onclick="toggleHistoryPin(${i})" aria-label="${on?'Désépingler':'Épingler'} cette requête" aria-pressed="${on?'true':'false'}">${PIN_CK}</button>
           </div>`;
         }).join('')
       : `<p class="console-query-empty"><b>${q?'Aucun résultat':consoleHistFilter==='err'?'Aucune erreur':consoleHistFilter==='ok'?'Aucune exécution réussie':'Historique vide'}</b>${q?'Essaie un autre mot-clé.':'Chaque exécution apparaîtra ici avec son résultat.'}${q?'<button type="button" class="sq-reset" onclick="clearConsoleQuerySearch()">Effacer la recherche</button>':''}</p>`;
@@ -15357,15 +15357,15 @@ function pinConsoleQuery(){
 }
 /* Épingler (Elisa, 31 octobre, 0 h 19 : « améliorer le bouton d’épingle en fonction de la DA du site, ici ou ailleurs ») : la punaise se
    plante en sautant, avec des confettis ; désépinglée, elle se décroche d’un petit bond (CSS, .is-pin / .is-unpin). */
+/* Elisa, 2 novembre, 7 h 26 : « pour les épingles je veux juste une coche V animée ». Toutes les épingles (notes, éditeur de note, console)
+   sont une coche ronde : vide, elle attend ; épinglée, le rond se remplit en violet et la coche se trace en blanc, d’un rebond. Plus de
+   punaise, de confettis ni d’étiquette « Épinglée ». L’animation part du bouton tel qu’il est affiché, même dans la feuille des notes. */
+const PIN_CK='<svg class="pin-ck" viewBox="0 0 24 24" aria-hidden="true"><circle class="pin-ck-c" cx="12" cy="12" r="9.5"/><path class="pin-ck-v" d="M7.6 12.3l3 3.1 5.9-6.3"/></svg>';
 function lqPinFx(btn,on){
+  if(typeof buzz==='function')buzz('light');
   if(!btn||(typeof prefersReduceMotion==='function'&&prefersReduceMotion()))return;
   btn.classList.remove('is-pin','is-unpin'); void btn.offsetWidth; btn.classList.add(on?'is-pin':'is-unpin');
   clearTimeout(btn._pinT); btn._pinT=setTimeout(()=>btn.classList.remove('is-pin','is-unpin'),800);
-  if(on&&typeof lqBurst==='function'){ const k=btn.querySelector('.lq-stk'); if(k)lqBurst(btn,k); }
-  /* Épinglé : la coche « Épinglée » sur le bouton même, au lieu d’une notification (Elisa, 1er novembre, 9 h 24) ; désépinglé,
-     la même coche, « Désépinglée » (13 h 28 : « pareil pour désépinglé »). */
-  if(typeof lqDone==='function')lqDone(btn,on?'Épinglée':'Désépinglée');
-  else if(typeof buzz==='function')buzz('light');
 }
 function unpinConsoleQuery(i){
   const p=projOf(activeDbId);if(!p.pins[i])return;
@@ -30665,7 +30665,7 @@ function noteCardHtml(n,i){
         ${n.sql?`<div class="nsql">${highlight(n.sql)}</div>`:''}
         <div class="nfoot"><span class="ndate">${fmtDate(n.ts)}</span>
           <button type="button" class="nmore" aria-expanded="false" onclick="event.stopPropagation();toggleNoteMore(this)">Voir tout</button>
-          <button class="npin-btn" type="button" aria-label="${n.pin?'Désépingler':'Épingler'}" aria-pressed="${n.pin?'true':'false'}" onclick="event.stopPropagation();togglePinFromList('${n.id}')">${lqStkSvg('pin')}</button>
+          <button class="npin-btn" type="button" aria-label="${n.pin?'Désépingler':'Épingler'}" aria-pressed="${n.pin?'true':'false'}" onclick="event.stopPropagation();togglePinFromList('${n.id}')">${PIN_CK}</button>
         </div>
       </div>`;
 }
@@ -30724,8 +30724,7 @@ function notesFlip(before,popId){
     const dy=t0-el.getBoundingClientRect().top;
     if(Math.abs(dy)>2)el.animate([{transform:`translateY(${dy}px)`},{transform:'none'}],{duration:420,easing:'cubic-bezier(.2,.9,.3,1)'});
     if(id===popId){
-      const ic=el.querySelector('.npin-btn svg');
-      if(ic&&ic.animate)ic.animate([{transform:'scale(.55) rotate(-30deg)'},{transform:'scale(1.3) rotate(10deg)',offset:.55},{transform:'rotate(-16deg)'}],{duration:460,easing:'cubic-bezier(.2,.9,.3,1)'});
+      /* la coche de l’épingle a sa propre animation (lqPinFx) */
     }
   });
 }
@@ -30899,7 +30898,7 @@ function openNote(id,pre){
     </div>
     <div class="ne-row">
       <button class="prim" type="button" onclick="saveNote()">Enregistrer</button>
-      <button class="sec ne-pin ${e.pin?'pin-on':''}" type="button" aria-pressed="${e.pin?'true':'false'}" onclick="togglePin()" title="${e.pin?'Désépingler':'Épingler'}">${lqStkSvg('pin')}<span class="sr">${e.pin?'Épinglée':'Épingler'}</span></button>
+      <button class="sec ne-pin ${e.pin?'pin-on':''}" type="button" aria-pressed="${e.pin?'true':'false'}" onclick="togglePin()" title="${e.pin?'Désépingler':'Épingler'}">${PIN_CK}<span class="sr">${e.pin?'Épinglée':'Épingler'}</span></button>
       ${n?`<button class="del" type="button" onclick="deleteNote('${e.id}')">Supprimer</button>`:''}
     </div>
     ${e.sql?`<div class="ne-row" style="margin-top:9px"><button class="sec" style="flex:1" type="button" onclick="noteToConsole()">Ouvrir dans la console</button></div>`:''}`;
@@ -33172,7 +33171,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-ordre-camera-v2311';
+  const SW_CACHE='requete-2026-11-02-epingle-coche-v2312';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

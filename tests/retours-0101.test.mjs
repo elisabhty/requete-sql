@@ -97,7 +97,7 @@ test('9 h 16 : le curseur de l’éditeur suit le texte (la copie colorée a la 
 test('9 h 19 : pas à pas dans la DA du site, épingle en icône animée partout, salle sans le chrono, Défis en haut', () => {
   assert.ok(css.includes('html.lq .viz-row{position:relative;isolation:isolate;overflow:hidden;gap:14px;padding:13px 14px;border-radius:20px;color:#fff;'));
   assert.ok(app.includes("${i?'<em>›</em>':''}<i style=\"--i:${i}\">${k}</i>"));
-  assert.ok(app.includes(`onclick="togglePin()" title="\${e.pin?'Désépingler':'Épingler'}">\${lqStkSvg('pin')}<span class="sr">`), 'l’épingle de la note en icône');
+  assert.ok(app.includes(`onclick="togglePin()" title="\${e.pin?'Désépingler':'Épingler'}">\${PIN_CK}<span class="sr">`), 'l’épingle de la note en icône (une coche ronde depuis le 2 novembre)');
   assert.ok(css.includes('@keyframes pinSway{'));
   assert.ok(app.includes('<p class="room-sub">Un défi tiré au sort, au niveau que tu choisis.</p>'));
   assert.ok(app.includes("if(name==='defis')tabScrollPositions.defis=0;"));
@@ -105,7 +105,7 @@ test('9 h 19 : pas à pas dans la DA du site, épingle en icône animée partout
 
 test('9 h 24 : curseur (réglages typographiques identiques), coche « Épinglée » au lieu d’une notification, prochaine carte vivante', () => {
   assert.ok(css.includes('letter-spacing:0!important;word-spacing:0!important;font-kerning:none!important;font-optical-sizing:none!important;'));
-  assert.ok(app.includes("if(typeof lqDone==='function')lqDone(btn,on?'Épinglée':'Désépinglée');"), 'désépinglée aussi (13 h 28)');
+  assert.ok(!app.includes("lqDone(btn,on?'Épinglée':'Désépinglée');"), 'depuis le 2 novembre, 7 h 26 : juste la coche animée, plus d’étiquette');
   assert.ok(!app.includes("toast('Projet créé'") && !app.includes("toast('Doublons fusionnés'") && !app.includes("toast('Modèle de table prêt'"), 'les petites confirmations deviennent une coche sur place');
   assert.ok(app.includes(`<span class="coll-next-card" aria-hidden="true"><i>\${lqStkSvg('cards')}</i></span>`));
 });
