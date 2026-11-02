@@ -86,3 +86,5 @@ L'information de confidentialité sera mise à jour à l'activation réelle. Auc
 L'advisor signale les quatre RPC comme fonctions `SECURITY DEFINER` accessibles aux utilisateurs connectés. Cet accès est intentionnel : les écritures directes sont interdites, chaque fonction vérifie `auth.uid()` et ne traite que les données de ce compte. Aucun de ces points d'entrée n'est accessible au rôle `anon`. [Explication du contrôle Supabase](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable).
 
 Références : [fonctions Postgres](https://supabase.com/docs/guides/database/functions), [protection des données par RLS](https://supabase.com/docs/guides/database/postgres/row-level-security).
+
+Les [notes et requêtes explicitement sauvegardées](NOTES-REQUETES.md) disposent maintenant de leur propre espace privé, avec une file et une époque d’effacement distinctes. Elles restent exclues des envois de progression ; les brouillons et bases locales ne sont pas importés. Le moteur de file commun réside dans `account/sync-engine.mjs`, sans changement de stockage ou de protocole pour la progression.
