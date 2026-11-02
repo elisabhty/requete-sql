@@ -1512,7 +1512,7 @@ function setPlaying(on){ pp.innerHTML = on ? PAUSE : PLAY; pp.setAttribute('aria
    voix/voix.json (écrit à l’intégration des fichiers d’ElevenLabs) : chaque scène a sa phrase, posée à son début ({id, t, d}),
    et une musique douce dessous. Tant que ce fichier n’existe pas, la vidéo reste muette et démarre seule, comme avant. Avec la voix,
    elle attend un toucher (le son ne peut partir qu’après un geste) ; la voix suit l’image : pause, retour en arrière, barre de lecture. */
-const SON = {ok: false, clips: [], music: null, vol: .16};
+const SON = {ok: false, clips: [], music: null, vol: .18};
 function sonSync(){
   if (!SON.ok) return;
   const t = C.time(), on = !C.paused() && t < VDUR() - .05;
@@ -1523,10 +1523,13 @@ function sonSync(){
     const off = t - unwarp(c.t);
     if (c.a.paused || Math.abs(c.a.currentTime - off) > .3) { try { c.a.currentTime = off; } catch (e) {} c.a.play().catch(() => {}); }
   });
+  /* La musique couvre toute la vidéo, arrêts compris : elle est jouée un peu plus lentement (sa hauteur est gardée) pour finir avec l’image. */
   const m = SON.music;
   if (m) {
-    if (!on || t >= (m.d || VDUR())) { if (!m.a.paused) m.a.pause(); }
-    else if (m.a.paused || Math.abs(m.a.currentTime - t) > .5) { try { m.a.currentTime = t; } catch (e) {} m.a.play().catch(() => {}); }
+    const k = m.d ? Math.min(1, m.d / VDUR()) : 1, mt = t * k;
+    if (Math.abs(m.a.playbackRate - k) > .001) { try { m.a.preservesPitch = true; m.a.playbackRate = k; } catch (e) {} }
+    if (!on || mt >= (m.d || VDUR())) { if (!m.a.paused) m.a.pause(); }
+    else if (m.a.paused || Math.abs(m.a.currentTime - mt) > .5) { try { m.a.currentTime = mt; } catch (e) {} m.a.play().catch(() => {}); }
   }
 }
 function sonLoad(){
