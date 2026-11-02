@@ -7605,6 +7605,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
   <div class="viz" id="schema-sheet" role="dialog" aria-modal="true" aria-labelledby="schema-head-title">
     <div class="viz-head"><div class="grab"></div><b id="schema-head-title">Schéma · base du cours</b><button type="button" onclick="closeSchemaSheet()" aria-label="Fermer">✕</button></div>
     <div class="viz-body sch-sheet-body" id="schema-body"></div>
+    <div class="sch-foot"><button type="button" class="sch-ret" onclick="closeSchemaSheet()"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Retour</button></div>
   </div>
 
   <!-- Selon le SGBD : ouvert depuis un cours, par-dessus l’écran -->
@@ -17618,11 +17619,16 @@ function renderSchemaSheet(){
   const database=dId?new SQL.Database(defiBaseBytes(dId)):db;
   try{
   const tables=dId?listTables(database):courseTableNames();
-  body.innerHTML=(dId?`<p class="sch-base"><b>Base ${esc(DEFI_BASES[dId].nom)}</b> ${esc(DEFI_BASES[dId].desc)}</p>`:'')+(tables.map(name=>{
+  /* Une table à la fois : des onglets en haut, la dernière table choisie reste ouverte (par base). */
+  const key=dId||'cours';
+  let cur=schTabSel[key];if(!tables.includes(cur))cur=tables[0];
+  const tabs=tables.length>1?`<div class="sch-tabs" role="tablist" aria-label="Tables de la base">${tables.map(name=>`<button type="button" role="tab" class="sch-tab${name===cur?' on':''}" aria-selected="${name===cur}" data-t="${esc(name)}" onclick="schemaPickTab(this)">${esc(name)}</button>`).join('')}</div>`:'';
+  body.dataset.base=key;
+  body.innerHTML=(dId?`<p class="sch-base"><b>Base ${esc(DEFI_BASES[dId].nom)}</b> ${esc(DEFI_BASES[dId].desc)}</p>`:'')+tabs+(tables.map(name=>{
     const meta=SCHEMA_META.find(t=>t.table===name);
     const n=database?tableRowCount(database,name):(meta?meta.n:'?');
     const cols=introspectTable(database,name,tables);
-    return `<div class="sch-table">
+    return `<div class="sch-table" role="tabpanel" data-t="${esc(name)}"${name===cur?'':' hidden'}>
       <div class="sch-head">${schemaTableIcon()}<b>${esc(name)}</b><small>${n} ligne${n>1?'s':''}</small></div>
       ${dId&&tableNote(dId,name)?`<p class="sch-tnote">${esc(tableNote(dId,name))}</p>`:''}
       ${cols.map(c=>`<div class="sch-col">
@@ -17636,6 +17642,14 @@ function renderSchemaSheet(){
     </div>`;
   }).join('')||'<p class="viz-e">Aucune table disponible.</p>');
   }finally{if(dId)database.close();}
+}
+const schTabSel={};
+function schemaPickTab(btn){
+  const body=document.getElementById('schema-body'),t=btn.dataset.t;
+  schTabSel[body.dataset.base||'cours']=t;
+  body.querySelectorAll('.sch-tab').forEach(b=>{const on=b===btn;b.classList.toggle('on',on);b.setAttribute('aria-selected',on);});
+  body.querySelectorAll('.sch-table').forEach(p=>{p.hidden=p.dataset.t!==t;});
+  btn.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
 }
 function openSchemaSheet(){
   document.querySelectorAll('.sch-attn').forEach(b=>b.classList.remove('sch-attn'));
@@ -33511,7 +33525,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-safari-status-v2395';
+  const SW_CACHE='requete-2026-11-02-clavier-schema-v2396';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

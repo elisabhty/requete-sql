@@ -49,3 +49,9 @@ test('la couleur est relue après restauration ou interaction, même si elle n�
   b.color('#F4F2FC');b.mutation();b.flush();assert.equal(sample.style.backgroundColor,'#F4F2FC');
   b.color('#6E50F6');b.mutation();b.mutation();b.flush();assert.equal(sample.style.backgroundColor,'#6E50F6');assert.equal(sample.style.height,'12px');
 });
+
+test('Safari iOS 26 : aucune règle de layout sur html/body (clavier, barre SQL et feuilles restent à leur place)',()=>{
+  const css=readFileSync(new URL('../safari-surface.css',import.meta.url),'utf8').replace(/\/\*[\s\S]*?\*\//g,'');
+  for(const bad of [/html\.safari-glass\s*\{[^}]*overflow/,/html\.safari-glass body\s*\{[^}]*(min-height|overflow)/,/html\.safari-glass #app/,/position:absolute;inset:0 0 auto;height:var\(--browser-canvas-height\)/,/--browser-bleed/])
+    assert(!bad.test(css),String(bad));
+});

@@ -124,3 +124,13 @@ test('feuille « Schéma » : l’en-tête violet des feuilles et les cartes des
   for (const part of ['html.lq #schema-sheet .sch-table{margin:0 16px 14px;border:2px solid var(--line);', 'html.lq #schema-sheet .sch-col .badge.pk{background:var(--sun);', 'html.lq #schema-sheet.on .sch-table{animation:dbColIn'])
     assert.ok(s41.includes(part), part);
 });
+
+test('Schéma : une table à la fois choisie dans des onglets en haut, et un bouton Retour', () => {
+  const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
+  const r = app.slice(app.indexOf('function renderSchemaSheet(){'), app.indexOf('function openSchemaSheet(){'));
+  assert.ok(r.includes('class="sch-tabs" role="tablist"') && r.includes('role="tabpanel"') && r.includes("onclick=\"schemaPickTab(this)\""));
+  assert.ok(app.includes('class="sch-ret" onclick="closeSchemaSheet()"'));
+  assert.ok(css.includes('html.lq #schema-sheet .sch-tabs{position:sticky;top:0'));
+  assert.ok(!/coach-tag\.is-go\{[^}]*animation/.test(css), '« À toi de jouer » sans animation infinie (texte flou)');
+});
