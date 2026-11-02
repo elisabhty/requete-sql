@@ -40,7 +40,7 @@ const moments = mSrc.split(/\{\s*at:/).slice(1).map(seg => ({prompt: str(seg, 'p
 const plain = h => String(h).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
 /* Le code, dit à voix haute. */
 const DIRE = [[/\bSELECT \*/g, 'SELECT étoile'], [/(\w)_(\w)/g, '$1 underscore $2'], [/« Prix \(€\) »/g, '« Prix en euros »'], [/\(€\)/g, 'le symbole euro'],
-  [/ = /g, ' égale '], [/ \+ /g, ' avec '], [/'([^']+)'/g, '$1'], [/\s*;\s*$/g, '.']];
+  [/ = /g, ' égale '], [/ \+ /g, ' plus '], [/'([^']+)'/g, '$1'], [/\s*;\s*$/g, '.']];
 /* Elisa, 2 novembre, 1 h 06 : « c’est pas A-S c’est AS (attaché comme en anglais) » ; « quantité qu’elle a prononcé quantite ».
    Les mots-clés courts, écrits en capitales, que la voix épelait : écrits comme ils se disent (à l’anglaise, d’un seul mot). */
 /* Elisa, 2 novembre, 1 h 32 : « elle dit DISTINCT (à la française), il faut dire distincte ». Les mots-clés qui sont aussi des mots français
@@ -48,7 +48,11 @@ const DIRE = [[/\bSELECT \*/g, 'SELECT étoile'], [/(\w)_(\w)/g, '$1 underscore 
 const MOTS_CLES = {AS: 'aze', IN: 'inne', ON: 'onne', OR: 'or', BY: 'baï', IS: 'ize', AND: 'ènde', NOT: 'notte', ALL: 'ol', ASC: 'assk', DESC: 'dissk',
   DISTINCT: 'distinkte', CASE: 'kéïsse', UNION: 'iounionne', LIKE: 'laïke',
   /* Le premier module en entier (Elisa, 2 novembre, 7 h 49) : IN, BETWEEN, ORDER BY, LIMIT et OFFSET. */
-  BETWEEN: 'bitouine', ORDER: 'ordeur', LIMIT: 'limitte', OFFSET: 'offsette'};
+  BETWEEN: 'bitouine', ORDER: 'ordeur', LIMIT: 'limitte', OFFSET: 'offsette',
+  /* Le module « Fonctions et expressions » (Elisa, 2 novembre, 8 h 29, voix d’Adam) : les fonctions dites à l’anglaise. */
+  UPPER: 'appeur', LOWER: 'loweur', TRIM: 'trimme', LENGTH: 'lènnguethe', SUBSTR: 'sub-stringue', INSTR: 'inne-stringue', REPLACE: 'riplèïsse',
+  ROUND: 'raounde', FLOOR: 'flôr', CEIL: 'sîle', STRFTIME: 'strèf-taïme', CAST: 'kaste', INTEGER: 'inntédjeur', REAL: 'riale', TEXT: 'tèxte',
+  WHEN: 'ouènne', THEN: 'zènne', ELSE: 'èlse', END: 'ènde', COALESCE: 'koalèsse', COUNT: 'kaounte'};
 /* Les noms de colonnes et de tables sans accent (le code n’en met pas) : dits avec leurs accents. */
 const ACCENTS = {prenom: 'prénom', prenoms: 'prénoms', age: 'âge', ages: 'âges', selection: 'sélection', quantite: 'quantité', quantites: 'quantités',
   categorie: 'catégorie', categories: 'catégories', numero: 'numéro', etre: 'être', fidelite: 'fidélité', seance: 'séance', seances: 'séances',
@@ -57,7 +61,7 @@ const ACCENTS = {prenom: 'prénom', prenoms: 'prénoms', age: 'âge', ages: 'âg
   evenement: 'événement', evenements: 'événements', reference: 'référence', region: 'région', duree: 'durée', employe: 'employé', employes: 'employés',
   depense: 'dépense', depenses: 'dépenses', creation: 'création', cree: 'créé', modifie: 'modifié', genre: 'genre', periode: 'période', tache: 'tâche',
   taches: 'tâches', theme: 'thème', etat: 'état', eleve: 'élève', eleves: 'élèves', reduction: 'réduction', reserve: 'réservé', reservation: 'réservation',
-  reservations: 'réservations', id: 'identifiant', interet: 'intérêt', adherent: 'adhérent', adherents: 'adhérents', echeance: 'échéance', reglement: 'règlement'};
+  reservations: 'réservations', id: 'identifiant', typeof: 'taïpe-off', integer: 'inntédjeur', text: 'tèxte', interet: 'intérêt', adherent: 'adhérent', adherents: 'adhérents', echeance: 'échéance', reglement: 'règlement'};
 /* Les signes de comparaison, les motifs de LIKE et les flèches, dits en mots (Elisa, 2 novembre, 7 h 23 : les cinq cours suivants). */
 const SIGNES = {'<=': 'inférieur ou égal', '>=': 'supérieur ou égal', '!=': 'différent', '<>': 'différent', '<': 'inférieur', '>': 'supérieur', '=': 'égal'};
 DIRE.unshift([/'([^']+)'/g, '$1'], [/(\d)\s*%/g, '$1 pour cent'], [/\s*→\s*/g, ', donne '],
@@ -65,8 +69,11 @@ DIRE.unshift([/'([^']+)'/g, '$1'], [/(\d)\s*%/g, '$1 pour cent'], [/\s*→\s*/g,
     ? a + w.split(/([%_])/).filter(Boolean).map(x => x === '%' ? 'pourcent' : x === '_' ? 'tiret bas' : x).join(', ') : m],
   /* Suivi d’une valeur : « inférieur à 60 », « différent de Accessoire » ; suivi d’un mot de la phrase (« > et < », « != à la place ») : le signe seul. */
   [/\s*(<=|>=|!=|<>|<|>)\s*(?=[A-Za-zÀ-ÿ0-9'«])(?!(?:et|ou|à|est|pas|qui|ni)\b)/g, (m, op) => ' ' + SIGNES[op] + (/^(!=|<>)$/.test(op) ? ' de ' : ' à ')], [/(<=|>=|!=|<>|<|>)/g, op => SIGNES[op]],
-  [/(^|\s)=(?=[,.;:])/g, '$1égal']);
-DIRE.push([/\b(AS|IN|ON|OR|BY|IS|AND|NOT|ALL|ASC|DESC|DISTINCT|CASE|UNION|LIKE|BETWEEN|ORDER|LIMIT|OFFSET)\b/g, (m, w, off, all) => { const d = MOTS_CLES[w];
+  [/(^|\s)=(?=[,.;:])/g, '$1égal'],
+  /* Les calculs du module « Fonctions et expressions » : ||, ×, *, −, +7, 29.9, (), 1ᵉʳ. */
+  [/\s*\|\|\s*/g, ' deux barres verticales '], [/\s*[×*]\s*(?=\d)/g, ' fois '], [/ − /g, ' moins '], [/(^|[\s'])\+(?=\d)/g, '$1plus '],
+  [/(^|\s)\+(?=[,\s])/g, '$1le signe plus'], [/(\d)\.(\d)/g, '$1 virgule $2'], [/\(\)/g, ''], [/ᵉʳ/g, 'er'], [/ +(?=[.,])/g, '']);
+DIRE.push([new RegExp('\\b(' + Object.keys(MOTS_CLES).join('|') + ')\\b', 'g'), (m, w, off, all) => { const d = MOTS_CLES[w];
     return off === 0 || /[.!?:]\s+$/.test(all.slice(0, off)) && !/:\s+$/.test(all.slice(0, off)) ? d.charAt(0).toUpperCase() + d.slice(1) : d; }],
   [/(^|[^A-Za-zÀ-ÿ])([a-z]+)(?=$|[^A-Za-zÀ-ÿ])/g, (m, a, w) => a + (ACCENTS[w] || w)]);
 /* Une phrase qui ne se lit pas telle quelle : sa version dite (la légende, elle, ne change pas). */
@@ -83,6 +90,22 @@ const PHRASES = {
   'Avec =, on retrouve une valeur exacte : prenom = \'Sophie\' → Sophie Martin.': 'Avec le signe égal, on retrouve une valeur exacte : prénom égal Sophie donne Sophie Martin.',
   'C’est l’équivalent de >= pour le début et de <= pour la fin.': 'C’est l’équivalent du signe supérieur ou égal pour le début, et du signe inférieur ou égal pour la fin.',
   'On saute (page − 1) × 3 lignes : 0 pour la page 1, puis 3, puis 6.': 'On saute le numéro de la page moins un, fois 3 lignes : 0 pour la page 1, puis 3, puis 6.',
+  'Attention : avec + à la place de ||, la requête renvoie 0.': 'Attention : avec le signe plus à la place des deux barres verticales, la requête renvoie 0.',
+  'Pour assembler des textes, utilise donc toujours ||, jamais +.': 'Pour assembler des textes, utilise donc toujours les deux barres verticales, jamais le signe plus.',
+  'INSTR(adresse, \' \') donne la position de ce premier espace : 3.': 'inne-stringue, adresse, espace, donne la position de ce premier espace : 3.',
+  'SUBSTR garde les caractères avant cet espace, soit 3 − 1 = 2 : 12.': 'sub-stringue garde les caractères avant cet espace, soit 3 moins 1, égale 2 : 12.',
+  'Le + 1 permet de commencer juste après le premier espace.': 'Le plus 1 permet de commencer juste après le premier espace.',
+  'Et avec + à la place de ||, que renvoie UPPER(nom) + \' \' + prenom ?': 'Et avec le signe plus à la place des deux barres verticales, que renvoie appeur de nom, plus espace, plus prénom ?',
+  'Dans une requête, +, -, * et / calculent comme sur une calculatrice.': 'Dans une requête, plus, moins, fois et divisé calculent comme sur une calculatrice.',
+  'Et % donne le reste d’une division : 80 % 6 donne 2.': 'Et le signe pourcent donne le reste d’une division : 80 modulo 6 donne 2.',
+  'FLOOR(prix) retire les centimes, puis × 2 calcule les points gagnés.': 'flôr de prix retire les centimes, puis fois 2 calcule les points gagnés.',
+  'Les dates s’affichent au format année-mois-jour : 2026-07-02.': 'Les dates s’affichent au format année, mois, jour : 2026, tiret, 07, tiret, 02.',
+  'Le format \'%d/%m/%Y\' affiche la date 2026-07-02 en 02/07/2026.': 'Le format pourcent d, barre, pourcent m, barre, pourcent Y affiche le 2 juillet 2026 sous la forme 02/07/2026.',
+  'Chaque format récupère une partie de la date. Ici, \'%d\' renvoie 02, le numéro du jour dans le mois.': 'Chaque format récupère une partie de la date. Ici, pourcent d renvoie 02, le numéro du jour dans le mois.',
+  'car le texte commence par CMD-, et non par des chiffres.': 'car le texte commence par C M D tiret, et non par des chiffres.',
+  'et \'CMD-2026-1002481\' du texte, écrit entre apostrophes.': 'et C M D, tiret, 2026, tiret, 1002481 du texte, écrit entre apostrophes.',
+  'Un texte vide \'\' ne contient aucun caractère, mais ce n’est pas NULL.': 'Un texte vide, deux apostrophes sans rien entre elles, ne contient aucun caractère, mais ce n’est pas NULL.',
+  'Que renvoie COALESCE(\'\', \'Non renseigné\') ?': 'Que renvoie koalèsse d’un texte vide et de Non renseigné ?',
   '\'%ie%\' renvoie Sophie Martin et Gabriel Michel, dont le prénom contient « ie ».': 'Le motif pourcent, i e, pourcent renvoie Sophie Martin et Gabriel Michel, dont le prénom contient i e.'
 };
 const dire = s => PHRASES[s] || DIRE.reduce((t, [a, b]) => t.replace(a, b), s);
@@ -116,10 +139,16 @@ for (const k of ['avant', 'apres']) if (liens[k]) out.push({id: 'lien' + k, text
 const COMMUNES = ['bienvu', 'rattrape', 'presque', 'finbravo', 'fineffort'];
 COMMUNES.forEach(id => out.push(base.elements.find(x => x.id === id)));
 
-const job = {cours, titre: intro.sub, voix: base.voix, modele: base.modele, langue: base.langue, format: base.format, elements: out};
+/* La voix (Elisa, 2 novembre, 8 h 29) : Agathe garde les cours déjà voisés (l’introduction et « Lire une table ») ; à partir du module
+   « Fonctions et expressions », c’est Adam (« Adam – Formation, Tutos & Éducation »). Ses phrases communes sont générées avec lui. */
+const AGATHE = ['bases-relationnelles', 'as', 'distinct', 'where', 'comparer', 'and-or', 'not', 'null', 'like', 'in', 'between', 'order-by', 'limit-offset'];
+const ADAM = {id: 'TGAegA0zNRi8I6nUdq3i', nom: 'Adam'};
+const voix = AGATHE.includes(cours) ? base.voix : ADAM;
+const job = {cours, titre: intro.sub, voix, modele: base.modele, langue: base.langue, format: base.format, elements: out};
 fs.writeFileSync(path.join(DIR, cours + '.json'), JSON.stringify(job, null, 2) + '\n');
 /* Les phrases communes : copiées depuis le premier cours (si ses fichiers bruts sont là). */
 const src = path.join(DIR, 'sortie', 'bases-relationnelles'), dst = path.join(DIR, 'sortie', cours);
-if (fs.existsSync(src)) { fs.mkdirSync(dst, {recursive: true}); for (const id of COMMUNES) for (const x of ['.mp3', '.json']) if (fs.existsSync(path.join(src, id + x)) && !fs.existsSync(path.join(dst, id + x))) fs.copyFileSync(path.join(src, id + x), path.join(dst, id + x)); }
-const n = out.filter(e => !COMMUNES.includes(e.id)).reduce((a, e) => a + e.texte.length, 0);
-console.log(`${cours} : ${out.length} fichiers (${out.length - COMMUNES.length} à générer, ${COMMUNES.length} repris), environ ${n.toLocaleString('fr-FR')} crédits`);
+if (voix.id === base.voix.id && fs.existsSync(src)) { fs.mkdirSync(dst, {recursive: true}); for (const id of COMMUNES) for (const x of ['.mp3', '.json']) if (fs.existsSync(path.join(src, id + x)) && !fs.existsSync(path.join(dst, id + x))) fs.copyFileSync(path.join(src, id + x), path.join(dst, id + x)); }
+const repris = voix.id === base.voix.id ? COMMUNES : [];
+const n = out.filter(e => !repris.includes(e.id)).reduce((a, e) => a + e.texte.length, 0);
+console.log(`${cours} (voix ${voix.nom}) : ${out.length} fichiers (${out.length - repris.length} à générer, ${repris.length} repris), environ ${n.toLocaleString('fr-FR')} crédits`);
