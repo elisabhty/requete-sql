@@ -54,7 +54,9 @@ const MOTS_CLES = {AS: 'aze', IN: 'inne', ON: 'onne', OR: 'or', BY: 'baï', IS: 
   ROUND: 'raounde', FLOOR: 'flôr', CEIL: 'sîle', STRFTIME: 'strèf-taïme', CAST: 'kaste', INTEGER: 'inntédjeur', REAL: 'riale', TEXT: 'tèxte',
   WHEN: 'ouènne', THEN: 'zènne', ELSE: 'èlse', END: 'ènde', COALESCE: 'koalèsse', COUNT: 'kaounte',
   /* Le module « Agrégats et regroupements » (voix d’Antoine). */
-  SUM: 'seumme', AVG: 'avèredje', MIN: 'minne', MAX: 'maxe', GROUP: 'groupe', HAVING: 'hèvinngue', GROUP_CONCAT: 'groupe-konkatte', SEPARATOR: 'séparateur'};
+  SUM: 'seumme', AVG: 'avèredje', MIN: 'minne', MAX: 'maxe', GROUP: 'groupe', HAVING: 'hèvinngue', GROUP_CONCAT: 'groupe-konkatte', SEPARATOR: 'séparateur',
+  /* Le module « Jointures » (voix de Perle). */
+  JOIN: 'djoïnne', INNER: 'ineur', LEFT: 'lèfte', RIGHT: 'raïte', FULL: 'foul', OUTER: 'aouteur', CROSS: 'krosse', SELF: 'sèlfe', USING: 'iouzinngue'};
 /* Les noms de colonnes et de tables sans accent (le code n’en met pas) : dits avec leurs accents. */
 const ACCENTS = {prenom: 'prénom', prenoms: 'prénoms', age: 'âge', ages: 'âges', selection: 'sélection', quantite: 'quantité', quantites: 'quantités',
   categorie: 'catégorie', categories: 'catégories', numero: 'numéro', etre: 'être', fidelite: 'fidélité', seance: 'séance', seances: 'séances',
@@ -66,7 +68,7 @@ const ACCENTS = {prenom: 'prénom', prenoms: 'prénoms', age: 'âge', ages: 'âg
   reservations: 'réservations', id: 'identifiant', typeof: 'taïpe-off', preparation: 'préparation', integer: 'inntédjeur', text: 'tèxte', interet: 'intérêt', adherent: 'adhérent', adherents: 'adhérents', echeance: 'échéance', reglement: 'règlement'};
 /* Les signes de comparaison, les motifs de LIKE et les flèches, dits en mots (Elisa, 2 novembre, 7 h 23 : les cinq cours suivants). */
 const SIGNES = {'<=': 'inférieur ou égal', '>=': 'supérieur ou égal', '!=': 'différent', '<>': 'différent', '<': 'inférieur', '>': 'supérieur', '=': 'égal'};
-DIRE.unshift([/GROUP_CONCAT/g, 'groupe-konkatte'], [/'([^']+)'/g, '$1'], [/(\d)\s*%/g, '$1 pour cent'], [/\s*→\s*/g, ', donne '],
+DIRE.unshift([/GROUP_CONCAT/g, 'groupe-konkatte'], [/rendez_vous/g, 'rendez-vous'], [/([A-Za-zÀ-ÿ0-9])\.(?=[a-zà-ÿ])/g, '$1 point '], [/'([^']+)'/g, '$1'], [/(\d)\s*%/g, '$1 pour cent'], [/\s*→\s*/g, ', donne '],
   [/(^|\s)([%_A-Za-zÀ-ÿ]*[%_][%_A-Za-zÀ-ÿ]*)(?=[\s,.;:!?»)]|$)/g, (m, a, w) => /[%_]/.test(w) && !/[A-Za-zÀ-ÿ]_[A-Za-zÀ-ÿ]/.test(w)
     ? a + w.split(/([%_])/).filter(Boolean).map(x => x === '%' ? 'pourcent' : x === '_' ? 'tiret bas' : x).join(', ') : m],
   /* Suivi d’une valeur : « inférieur à 60 », « différent de Accessoire » ; suivi d’un mot de la phrase (« > et < », « != à la place ») : le signe seul. */
@@ -148,7 +150,10 @@ const AGATHE = ['bases-relationnelles', 'as', 'distinct', 'where', 'comparer', '
 const ADAM = {id: 'TGAegA0zNRi8I6nUdq3i', nom: 'Adam'};
 /* 8 h 55 : le module « Agrégats et regroupements » avec Antoine (« Antoine – Dynamic, Captivating, and Professional Voice »). */
 const ANTOINE = {id: 'nbiTBaMRdSobTQJDzIWm', nom: 'Antoine'}, AGREGATS = ['count', 'agregats', 'group-by', 'having', 'group-concat'];
-const voix = AGATHE.includes(cours) ? base.voix : AGREGATS.includes(cours) ? ANTOINE : ADAM;
+/* 9 h 02 : le module « Jointures » avec Perle (« Perle | Premium French Corporate Voice »), la formatrice. */
+const PERLE = {id: 'UaGvaD7NWzU5mJNoUqoY', nom: 'Perle'}, JOINTURES = ['inner-join', 'left-join', 'right-join', 'full-outer-join', 'cross-join',
+  'jointure-3-tables', 'join-group-by', 'self-join', 'plusieurs-conditions-on', 'quel-join-choisir'];
+const voix = AGATHE.includes(cours) ? base.voix : AGREGATS.includes(cours) ? ANTOINE : JOINTURES.includes(cours) ? PERLE : ADAM;
 const job = {cours, titre: intro.sub, voix, modele: base.modele, langue: base.langue, format: base.format, elements: out};
 fs.writeFileSync(path.join(DIR, cours + '.json'), JSON.stringify(job, null, 2) + '\n');
 /* Les phrases communes : copiées depuis le premier cours (si ses fichiers bruts sont là). */
