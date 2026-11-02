@@ -78,3 +78,5 @@ Exécuter `supabase/tests/compte_profil.sql` dans l'éditeur SQL Supabase avec l
 `node --test tests/account-service.test.mjs tests/account-deletion.test.mjs` vérifie les parcours avec un client simulé, le verrou d'activation, les confirmations, les erreurs, l'isolation des identifiants et l'ordre révocation/suppression. Aucun compte réel n'est créé ou supprimé. L'envoi des e-mails, les retours de connexion et la suppression réelle ne sont pas validés en production tant que les parcours restent désactivés.
 
 Référence : [gestion des données utilisateur Supabase](https://supabase.com/docs/guides/auth/managing-user-data).
+
+La préparation des révisions et du planning commun est décrite dans [REVISIONS-PLANNING.md](REVISIONS-PLANNING.md). Elle reste inactive et réutilise les tables de progression ; la suppression du compte couvre donc également ces données.

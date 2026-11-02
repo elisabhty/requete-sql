@@ -1,3 +1,4 @@
+import {validatePlan} from './learning.mjs';
 // Prepared sync engine. No SDK, storage, timer or network is initialized at import.
 const clone=value=>JSON.parse(JSON.stringify(value));
 const object=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
@@ -6,6 +7,7 @@ const stable=x=>JSON.stringify(x,(_,v)=>object(v)?Object.fromEntries(Object.keys
 const same=(a,b)=>stable(a)===stable(b);
 function fail(code){throw Object.assign(new Error(code),{code});}
 export function validateProgression(key,data){
+  if(key==='planning:main')return validatePlan(data);
   if(!/^(lesson|challenge|video|interview|activity):[A-Za-z0-9_.-]{1,96}$/.test(key)||!object(data)||new TextEncoder().encode(JSON.stringify(data)).length>32768)fail('invalid_progression');
   const kind=key.split(':')[0],allowed={lesson:['done','etapes','at','due','level'],challenge:['done'],video:['position','answers','contentVersion'],interview:['mark'],activity:['active']}[kind];
   for(const [k,v] of Object.entries(data)){
@@ -55,7 +57,7 @@ export function extractProgression(state,{lessonIds,challengeIds,videoPositions=
     const lesson=state.lessons?.[id],data={};
     if(lesson?.done)data.done=true;
     if(object(lesson?.etapes)){const etapes=Object.fromEntries(Object.entries(lesson.etapes).filter(([k,v])=>/^(exo|q\d{1,3})$/.test(k)&&[true,1,'1'].includes(v)).map(([k])=>[k,1]));if(Object.keys(etapes).length)data.etapes=etapes;}
-    for(const k of ['at','due','level'])if(Number.isSafeInteger(lesson?.[k])&&(k!=='level'||lesson[k]>0))data[k]=lesson[k];
+    for(const k of ['at','due','level'])if(Number.isSafeInteger(lesson?.[k]))data[k]=lesson[k];
     if(Object.keys(data).length)add('lesson:'+id,data);
     const answers={};
     for(const [k,v] of Object.entries(videoAnswers[id]||{}))if(/^p?\d{1,3}$/.test(k)&&object(v))answers[k]=k.startsWith('p')?{first:v.first,err:v.err}:{k:v.k,q:v.q};
