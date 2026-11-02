@@ -95,10 +95,10 @@ window.MODULES=[
       ["WITH RECURSIVE (CTE RECURSIVE)", "Créer une suite automatiquement", 199]
     ]},
     {titre:"Fonctions de fenêtre", sous:"Calculer sans regrouper les lignes", lecons:[
-      ["OVER()", "Calculer sans regrouper les lignes", 198],
+      ["OVER()", "Calculer sans regrouper les lignes", 200],
       ["Fonctions de rang", "Classer les lignes, ex æquo compris", 178],
-      ["LAG et LEAD", "Comparer une ligne à la précédente ou à la suivante", 200],
-      ["Fenêtres glissantes", "Suivre l’évolution des commandes", 182]
+      ["LAG et LEAD", "Comparer une ligne à la précédente ou à la suivante", 203],
+      ["Fenêtres glissantes", "Suivre l’évolution des commandes", 185]
     ]},
     {titre:"Modéliser", sous:"Normalisation, cardinalités et UML", lecons:[
       ["Normaliser les inscriptions", "Du fichier Excel des ateliers aux tables", 189],
