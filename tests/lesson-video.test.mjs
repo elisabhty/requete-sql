@@ -881,7 +881,7 @@ const COURSES = [
       '<span class="glow" id="cj3"><span class="kw">CROSS JOIN</span></span> produits', '<span class="vi"><span class="emo">✖️</span>Pas de <span class="ic">ON</span>&nbsp;: aucune condition</span>',
       '<span id="d4" class="glow"><span class="kw">DISTINCT</span> </span>', '<span class="ic blk sm">6 villes × 8 produits = 48 combinaisons</span>',
       '✓ Chaque produit, dans chaque ville']},
-  {id: 19, next: 41, titre: 'Jointure de 3 tables', page: 'jointure-3-tables.html', thumb: 'jointure-3-tables-thumb.jpg', duree: '3 min 48', notesAt: '196.7',
+  {id: 19, next: 41, titre: 'Jointure de 3 tables', page: 'jointure-3-tables.html', thumb: 'jointure-3-tables-thumb.jpg', duree: '3 min 48', notesAt: '196.7', maxKo: 525,
     table: 'clients',
     bubble: 'Enchaîne plusieurs <span class="ic">JOIN</span> pour récupérer des données réparties dans trois tables.',
     chapters: ['Situation', 'Le problème', 'Deux JOIN en action', 'Filtrer', 'Le piège', 'Le résultat', 'À retenir'],
@@ -1072,7 +1072,7 @@ const COURSES = [
       '<span class="b"><span class="glow" id="p4"><span class="kw">2 PRECEDING</span></span></span>', '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> date_commande</span>',
       '✕ Les deux commandes du 2 juillet ont le même cumul', '<div class="lim" id="lim6"><span>Palier&nbsp;: 700&nbsp;€</span></div>',
       '✓ Palier franchi le 1er&nbsp;août']},
-  {id: 89, next: 56, titre: 'FIRST_VALUE, LAST_VALUE et NTILE', page: 'first-last-ntile.html', thumb: 'first-last-ntile-thumb.jpg', duree: '3 min 30', notesAt: 183.1,
+  {id: 89, next: 56, titre: 'FIRST_VALUE, LAST_VALUE et NTILE', page: 'first-last-ntile.html', thumb: 'first-last-ntile-thumb.jpg', duree: '3 min 33', notesAt: 183.1,
     table: 'produits',
     bubble: 'Lis la première ou la dernière valeur d’une fenêtre, et répartis les lignes en groupes égaux.',
     chapters: ['Situation', 'FIRST_VALUE', 'LAST_VALUE', 'Le cadre', 'NTILE', 'Le résultat', 'À retenir'],
@@ -2993,7 +2993,7 @@ test('moment « À toi » : la légende de l’image se cache tant que la feuill
   const close = cut('function lvPkClose(answered){', 'function lvReplay(){');
   assert.ok(close.includes("LV.root.classList.remove('is-q','is-pk');\n  lvCapHide(false);"), 'rendue à la fermeture');
   /* 2 novembre, 1 h 32 : la caméra de la page revient à 1 pendant le moment (le lecteur règle la taille de l’image) */
-  assert.ok(html.includes("function lvCapHide(on){ try{ const w=LV&&LV.video&&LV.video.win, d=w&&w.document; if(d&&d.body)d.body.classList.toggle('lv-pk-open',on); if(w&&typeof w.__camPause==='function')w.__camPause(on); }catch(e){} }"), 'la page reçoit lv-pk-open');
+  assert.ok(html.includes("function lvCapHide(on){ try{ const w=LV&&LV.video&&LV.video.win, d=w&&w.document; if(d&&d.body)d.body.classList.toggle('lv-pk-open',on); if(w&&typeof w.__camPause==='function')w.__camPause(on); if(w&&typeof w.__repaint==='function')setTimeout(()=>{ try{ w.__repaint(); }catch(e){} },180); }catch(e){} }"), 'la page reçoit lv-pk-open');
   const coreCss = fs.readFileSync(path.join(ROOT, 'assets/anim/core.css'), 'utf8');
   assert.ok(coreCss.includes('body.lv-pk-open #cap{visibility:hidden!important}'), 'le moteur cache la légende (plus fort que les styles posés par la timeline)');
 });
