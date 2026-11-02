@@ -10,7 +10,7 @@ Depuis le 2 novembre 2026, les fonctions de compte sont préparées dans `accoun
 - `signUp({email,password})` : inscription par e-mail, avec retour distinct « confirmation requise ». Un objet utilisateur sans session n'est jamais présenté comme une connexion réussie.
 - `signIn({email,password})` : connexion par e-mail. La création du profil est une étape séparée, réessayable sans faire échouer la connexion.
 - `ensureProfile(prenom)` : création du profil après connexion, sans écraser un prénom déjà enregistré et sans collision entre deux appareils.
-- `updateProfile({prenom})` : modification du prénom seulement ; identifiant tiré de la session, jamais d'une saisie.
+- `updateProfile({prenom}, {revision})` : modification du prénom avec la version affichée et contrôle du compte attendu ; propriétaire tiré de la session.
 - `requestPasswordReset(email)` et `changePassword(password)` : récupération avec adresse de retour configurée et changement du mot de passe dans une session valide. Le futur écran doit traiter l'événement `PASSWORD_RECOVERY` du SDK.
 - `startProvider(provider)` : démarrage du parcours web d'un fournisseur explicitement autorisé. Ne signifie pas que la connexion est déjà terminée. Apple et Google ne sont pas autorisés par défaut.
 - `signOut()` : déconnexion de cet appareil ; `signOut({allDevices:true})` pour tous les appareils. Le module ne supprime pas la progression locale.
@@ -31,8 +31,8 @@ const account = createAccountService(supabase, {enabled:false});
 ## Données et accès
 
 - Supabase Auth est responsable des identités, adresses e-mail, mots de passe, sessions et futurs fournisseurs de connexion. Ne jamais copier les mots de passe dans une table de l'application.
-- `public.compte_profil` contient `user_id` (clé de `auth.users`), `prenom` (80 caractères au maximum), `cree_le` et `modifie_le`.
-- RLS impose `auth.uid() = user_id` à la lecture, à la création et à la modification. Aucun accès `anon`. Le navigateur ne peut modifier que le prénom, jamais le propriétaire ni les dates.
+- `public.compte_profil` contient `user_id` (clé de `auth.users`), `prenom` (80 caractères au maximum), `objectif`, `fuseau_horaire`, `revision`, `cree_le` et `modifie_le`.
+- RLS impose `auth.uid() = user_id` à la lecture, à la création et à la modification. Aucun accès `anon`. Le navigateur ne peut plus écrire directement les modifications : les RPC valident prénom, objectif et fuseau avec une version attendue, jamais le propriétaire ni les dates.
 - La suppression du compte Auth supprime son profil en cascade. Une future suppression de compte devra aussi révoquer ses sessions et traiter ses autres données.
 - Aucun trigger n'est installé sur `auth.users`. Le profil sera initialisé après une connexion réussie : sa création ne doit pas bloquer l'inscription.
 - Les pseudos, scores et clés d’appareil actuels restent indépendants tant que les comptes sont inactifs. Leur association est maintenant préparée dans [MULTIJOUEUR-COMPTE.md](MULTIJOUEUR-COMPTE.md), avec preuve de possession de la clé et sans import de points locaux.
@@ -80,3 +80,5 @@ Exécuter `supabase/tests/compte_profil.sql` dans l'éditeur SQL Supabase avec l
 Référence : [gestion des données utilisateur Supabase](https://supabase.com/docs/guides/auth/managing-user-data).
 
 La préparation des révisions et du planning commun est décrite dans [REVISIONS-PLANNING.md](REVISIONS-PLANNING.md). Elle reste inactive et réutilise les tables de progression ; la suppression du compte couvre donc également ces données.
+
+Le profil privé commun est complété, toujours sans activation : [PROFIL-PRIVE.md](PROFIL-PRIVE.md). Il conserve prénom, objectif et fuseau, et protège les modifications concurrentes web/iPhone.

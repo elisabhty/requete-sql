@@ -15,7 +15,7 @@ function fake({profile=null,session=true,existingProfileOnInsert=false}={}){
   resetPasswordForEmail:async(...args)=>{calls.push(['reset',...args]);return {data:{},error:null};},
   updateUser:async args=>{calls.push(['updateUser',args]);return {data:{user},error:null};},
   signOut:async args=>{calls.push(['signOut',args]);return {error:null};}
- },functions:{invoke:async(...args)=>{calls.push(['invoke',...args]);return {data:{deleted:true},error:null};}},from(name){
+ },rpc:async(name,args)=>{calls.push(['rpc',name,args]);return {data:{ok:true,profile:{user_id:user.id,...row,...args.p_donnees,revision:args.p_revision+1}},error:null};},functions:{invoke:async(...args)=>{calls.push(['invoke',...args]);return {data:{deleted:true},error:null};}},from(name){
   calls.push(['from',name]);let operation='select',payload;
   const q={select(){return q;},eq(key,id){calls.push(['eq',key,id]);return q;},insert(value){operation='insert';payload=value;calls.push(['insert',value]);return q;},update(value){operation='update';payload=value;calls.push(['update',value]);return q;},async maybeSingle(){return {data:row,error:null};},async single(){
    if(operation==='insert'&&existingProfileOnInsert){row={user_id:user.id,prenom:'Déjà créé'};return {data:null,error:{code:'23505'}};}
@@ -74,9 +74,9 @@ test('deux appareils peuvent initialiser le profil sans écraser le premier',asy
 });
 test('seul le prénom peut être envoyé à la modification du profil',async()=>{
  const {client,calls}=fake({profile:{user_id:user.id,prenom:'Alice'}});const service=createAccountService(client,settings);
- await service.updateProfile({prenom:'  Elisa  ',user_id:'other-user',role:'admin'});
- assert.deepEqual(calls.find(c=>c[0]==='update')[1],{prenom:'Elisa'});
- assert.ok(calls.some(c=>c[0]==='eq'&&c[2]===user.id));
+ await service.updateProfile({prenom:'  Elisa  ',user_id:'other-user',role:'admin'},{revision:1});
+ assert.deepEqual(calls.find(c=>c[0]==='rpc'),['rpc','compte_profil_enregistrer',{p_revision:1,p_donnees:{prenom:'Elisa'},p_compte_attendu:user.id}]);
+ assert.equal(calls.some(c=>c[0]==='update'),false);
 });
 test('la déconnexion est locale par défaut et globale seulement sur demande',async()=>{
  const {client,calls}=fake();const service=createAccountService(client,settings);
@@ -116,4 +116,10 @@ test('le service ne touche pas aux données locales et aucun écran ne le charge
  const module=fs.readFileSync(new URL('../account/service.mjs',import.meta.url),'utf8');
  assert.doesNotMatch(module,/\b(?:window|document|localStorage|sessionStorage)\s*[.\[]/);
  for(const name of ['index.html','decouvrir/connexion.html','sw.js'])assert.doesNotMatch(fs.readFileSync(new URL('../'+name,import.meta.url),'utf8'),/account\/service\.mjs|compte-supprimer/);
+});
+test('modifier le prénom exige la version affichée et ne masque pas un conflit',async()=>{
+ const {client,calls}=fake();const service=createAccountService(client,settings);
+ await assert.rejects(service.updateProfile({prenom:'Elisa'}),{code:'revision_required'});assert.equal(calls.length,0);
+ client.rpc=async()=>({data:{ok:false,reason:'revision_or_missing',profile:{prenom:'Alice',revision:2}}});
+ await assert.rejects(service.updateProfile({prenom:'Elisa'},{revision:1}),{code:'profile_conflict'});
 });
