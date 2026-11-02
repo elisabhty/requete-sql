@@ -33,3 +33,17 @@ test('réf. 3 : les zones où l’on range les étiquettes sont blanches, plus g
 test('le badge « Votre formatrice » : centré en bas du portrait, sans descendre vers le lecteur (21 h 04)', () => {
   assert.ok(anim('bases-relationnelles.html').includes('#cap .cap-stk::after{content:"Votre formatrice";position:absolute;left:50%;bottom:-6px;top:auto;translate:-50% 0;'));
 });
+
+test('20 h 29 : le premier cours dit ce qu’est le SQL et une requête, puis le type de donnée sur le code de la table clients', () => {
+  const p = anim('bases-relationnelles.html');
+  for (const t of ['[197.15, 201.35, "Le <b>SQL</b> est le langage qui permet<br>de communiquer avec le SGBD."]',
+    '"Une <b>requête</b> est une instruction<br>écrite en SQL : elle demande au SGBD<br>de lire ou de modifier des données."',
+    '[207.85, 212.05, "Ici, <code>SELECT * FROM produits</code><br>demande tous les produits."]',
+    '[212.15, 216.95, "Le SGBD l’<b>exécute</b>',
+    '[290.45, 296.55, "Elle se déclare à la création de la table, avec <code>PRIMARY KEY</code> placé juste après le type de la colonne."]',
+    '[296.65, 301.65, "<code>INTEGER</code> est le <b>type de donnée</b><br>de la colonne <code>id</code> : un nombre entier."]',
+    '<span><code>clients.prenom</code><b>TEXT</b></span><span><code>clients.email</code><b>TEXT</b></span><span><code>produits.prix</code><b>REAL</b></span>',
+    "pulse($$('#rq1 .kw'), 208.1, 3, 'rgba(255,224,138,.55)');", "stackBelow('#pkty', '#pk5', 0, 34);", 'const DURATION = 527.55;'])
+    assert.ok(p.includes(t), t);
+  assert.ok(app.includes("thumb:'assets/anim/bases-relationnelles-thumb.webp',duree:'10 min 18'"), 'la fiche du cours : sa nouvelle durée');
+});
