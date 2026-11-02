@@ -3105,7 +3105,7 @@
   /* La feuille « Carte » : « Ajouter à mes notes » reste près de « À retenir », et « Syntaxe » reprend de l’air sous le bouton (0 px avant :
      le libellé touchait le bouton, presque coupé ; Elisa, 25 octobre, Réf 3). */
   #card-body .cd-memo + .coda-note{margin-top:-2px}
-  #card-body .coda-note[data-had]{background:#E9FBF2;color:#0F7A4A;box-shadow:inset 0 0 0 2px #BDEFD5}
+  #card-body .coda-note[data-had]{background:#E9FBF2;color:#0F7A4A;box-shadow:inset 0 0 0 2px #BDEFD5;cursor:default;pointer-events:none;-webkit-user-select:none;user-select:none}
   #card-body .coda-note-ok{flex:none;display:grid;place-items:center;width:24px;height:24px;margin:-2px 0;border-radius:50%;background:#9FF0C6;color:#0F5C38}
   #card-body .coda-note-ok svg{width:14px;height:14px}
   html.lq #card-body .coda-note[data-had]{background:#E9FBF2!important;border-color:#BDEFD5!important;color:#0F7A4A!important;box-shadow:0 3px 0 #BDEFD5!important}
@@ -21949,6 +21949,10 @@ function lvPkLayer(P){
   LV.root.appendChild(layer);
   P.layer=layer; P.spots=[...layer.querySelectorAll('.lv-pk-spot')];
   lvPkLayerPlace();
+  /* Les zones sont remesurées une fois l’image posée (Elisa, 2 novembre, 19 h 00 : les cadres barraient les lignes de la fiche de
+     Lina, « ça arrive dans beaucoup de cours ») : à l’ouverture du moment, l’image pouvait encore finir un mouvement (la fiche, plus
+     grande d’un dixième, se posait), et les cadres gardaient cette première mesure. */
+  [150,450,1000].forEach(ms=>setTimeout(()=>{ if(LV&&LV.pk===P&&P.layer===layer)lvPkSpotsRefresh(P); },ms));
   layer.addEventListener('pointerdown',e=>{ const b=e.target.closest('.lv-pk-spot'); if(b&&!b.disabled&&!P.done&&!P.busy)lvPkRipple(e.clientX,e.clientY); },true);
   if(P.kind==='tap'){
     /* Le clic reste pour le clavier et VoiceOver ; au doigt et à la souris, c’est la visée (lvPkAim) qui choisit la ligne. */
@@ -27148,13 +27152,14 @@ function openCard(id){
   const shareIco=`<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M8.5 6.5 12 3l3.5 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 12v6.5A2.5 2.5 0 0 0 7.5 21h9a2.5 2.5 0 0 0 2.5-2.5V12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
   const tryIco=`<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9.05 5.36c-.7-.42-1.55.1-1.55.9v11.48c0 .8.85 1.32 1.55.9l9.52-5.74c.66-.4.66-1.4 0-1.8L9.05 5.36z" fill="currentColor"/></svg>`;
   const syntaxHead=c.ss&&c.ss.length?'':`<p class="cd-lab">Syntaxe</p>`;
-  /* Déjà dans les notes : le bouton le dit, validé comme sur le site (Elisa, 2 novembre, 18 h 54, Réf 2) ; le toucher ouvre la note. */
+  /* Déjà dans les notes : « Déjà dans mes notes », validé comme sur le site (Elisa, 2 novembre, 18 h 54, Réf 2) ; ce n’est plus un
+     bouton, rien ne se passe au toucher (19 h 00 : « Quand c’est déjà dans note c’est pas un bouton du coup on peut pas cliquer dessus »). */
   const had=!!cardNoteExisting(id);
   document.getElementById('card-body').innerHTML=`
     <div class="cd-share collectible">${collectibleFace(id)}<i class="cd-shine" aria-hidden="true"></i></div>
     <p class="cd-lab memo"><span class="cd-memo-stk" aria-hidden="true">${lqStkSvg('bulb')}</span><span class="cd-memo-tag">À retenir</span></p>
     <div class="cd-memo">${carteRetenirHtml(id)||cardMemoHtml(c.m)}</div>
-    <button type="button" class="coda-note"${had?' data-had="1"':''} onclick="noteFromCard(${id})">${had?`<span class="coda-note-ok" aria-hidden="true">${CHECK_SVG}</span>Déjà dans mes notes`:`<span class="coda-note-stk" aria-hidden="true">${lqStkSvg('note')}</span>Ajouter à mes notes`}</button>
+    ${had?`<p class="coda-note" data-had="1"><span class="coda-note-ok" aria-hidden="true">${CHECK_SVG}</span>Déjà dans mes notes</p>`:`<button type="button" class="coda-note" onclick="noteFromCard(${id})"><span class="coda-note-stk" aria-hidden="true">${lqStkSvg('note')}</span>Ajouter à mes notes</button>`}
     ${syntaxHead}
     ${cardSyntaxHtml(c)}
     <div class="cd-actions">
@@ -33337,7 +33342,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-cartes-v2381';
+  const SW_CACHE='requete-2026-11-02-zones-v2382';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
