@@ -62,7 +62,7 @@ const MOTS_CLES = {AS: 'aze', IN: 'inne', ON: 'onne', OR: 'or', BY: 'baï', IS: 
   BETWEEN: 'bitouine', ORDER: 'ordeur', LIMIT: 'limitte', OFFSET: 'offsette',
   /* Le module « Fonctions et expressions » (Elisa, 2 novembre, 8 h 29, voix d’Adam) : les fonctions dites à l’anglaise. */
   UPPER: 'appeur', LOWER: 'loweur', TRIM: 'trimme', LENGTH: 'lènnguethe', SUBSTR: 'sub-stringue', INSTR: 'inne-stringue', REPLACE: 'riplèïsse',
-  ROUND: 'round', FLOOR: 'flôr', CEIL: 'sîle', STRFTIME: 'strèf-taïme', CAST: 'kaste', INTEGER: 'inntédjeur', REAL: 'riale', TEXT: 'tèxte',
+  ROUND: 'round', FLOOR: 'flôr', CEIL: 'sîle', STRFTIME: 'strèf-taïme', CAST: 'kaste', INTEGER: 'integer', REAL: 'riale', TEXT: 'tèxte',
   WHEN: 'when', THEN: 'then', ELSE: 'else', END: 'end', COALESCE: 'koalèsse', COUNT: 'count',
   /* Le module « Agrégats et regroupements » (voix d’Antoine). 9 h 54 : « compté » pour COUNT, un accent espagnol sur SUM, AVG, MIN et MAX,
      « averge », « rounde » : ces fonctions s’écrivent désormais en anglais, comme des mots anglais (count, sum, average, min, max, round). */
@@ -76,9 +76,10 @@ const MOTS_CLES = {AS: 'aze', IN: 'inne', ON: 'onne', OR: 'or', BY: 'baï', IS: 
   FOLLOWING: 'folôouinngue', CURRENT: 'current', UNBOUNDED: 'eunnbaoundide', RANGE: 'réïndje',
   /* Le projet (voix d’Agathe) : la suite parle de CREATE TABLE. */
   CREATE: 'criéïte', TABLE: 'téïbeul',
-  /* Le module « Créer et faire évoluer les tables » (voix d’Anaïs, 2 novembre, 9 h 33). */
-  ALTER: 'olteur', RENAME: 'rinéïme', COLUMN: 'kolomme', DEFAULT: 'difolte', CHECK: 'tchèk', FOREIGN: 'foreune', KEY: 'ki', REFERENCES: 'rèfeurennssize',
-  SCHEMA: 'skima', DROP: 'drope', UPDATE: 'eupdéïte', INSERT: 'innseurte', INTO: 'inntou', DELETE: 'dilîte', TO: 'tou', PRIMARY: 'praïmeri', UNIQUE: 'iounique', ADD: 'adde', IF: 'iffe', SET: 'sètte', DATE: 'date',
+  /* Le module « Créer et faire évoluer les tables » (voix d’Anaïs, 2 novembre, 9 h 33). 18 h 08 : « elle dit INTEJEIUUER au lieu de le
+     prononcer à l’anglaise, pareil pour primary key » : INTEGER, PRIMARY KEY, FOREIGN KEY et REFERENCES s’écrivent en anglais, comme count ou commit. */
+  ALTER: 'olteur', RENAME: 'rinéïme', COLUMN: 'kolomme', DEFAULT: 'difolte', CHECK: 'tchèk', FOREIGN: 'foreign', KEY: 'key', REFERENCES: 'references',
+  SCHEMA: 'skima', DROP: 'drope', UPDATE: 'eupdéïte', INSERT: 'innseurte', INTO: 'inntou', DELETE: 'dilîte', TO: 'tou', PRIMARY: 'primary', UNIQUE: 'iounique', ADD: 'adde', IF: 'iffe', SET: 'sètte', DATE: 'date',
   /* Le module « Écrire et modifier les données » (voix d’Emily, 2 novembre, 9 h 42). */
   VALUES: 'valiouze', CONFLICT: 'konnflikte', MERGE: 'meurdje', MATCHED: 'matchte',
   /* Le module « Transactions et concurrence » (voix d’Arthur, 10 h 07) : écrits en anglais, comme count ou sum. */

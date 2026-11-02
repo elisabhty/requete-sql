@@ -130,6 +130,20 @@ function bySilence(L, n, dur){
   return out;
 }
 
+/* La fin du « À toi ! » d’une consigne : la pause qui suit le « ! » (minutage d’ElevenLabs), sinon la première pause entre 0,4 et 1,6 s. */
+function apresAToi(L, T, dur){
+  const S = silences(L);
+  let e = null;
+  if (T) { const txt = T.chars.join(''), k = txt.indexOf('!'); if (k >= 0 && k < 20 && /toi/i.test(txt.slice(0, k))) e = T.en[k]; }
+  /* ElevenLabs donne au « ! » la pause qui le suit : la pause cherchée finit près de ce temps (un peu avant ou après). */
+  const p = e != null ? S.filter(x => x[0] >= 0.25 && x[1] >= e - 0.3 && x[0] <= e + 0.45).sort((x, y) => Math.abs(x[1] - e) - Math.abs(y[1] - e))[0]
+    : S.find(x => x[0] >= 0.4 && x[0] <= 1.6);
+  if (!p) return null;
+  const low = L.thr * 0.25; let i = Math.round(p[1] * 100);
+  while (i > Math.round(p[0] * 100) && L.rms[i - 1] >= low) i--;   // le début du mot suivant, au quart du seuil
+  return r3(Math.max(0, i / 100 - 0.06));
+}
+const ATOI_DIT = job.elements.some(el => /^ch\d/.test(el.id) && (el.phrases || []).some(ph => /^À toi\s*!$/.test(ph.trim())));
 fs.mkdirSync(OUT, {recursive: true});
 const caps = [], say = {}, report = [];
 let intro = null, ci = 0, total = 0, bytes = 0;
@@ -142,7 +156,13 @@ for (const el of job.elements) {
   execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', src, '-ac', '1', '-ar', '44100', '-codec:a', 'libmp3lame', '-b:a', '64k', '-map_metadata', '-1', dst]);
   const dur = probe(dst), L = levels(dst);
   total += dur; bytes += fs.statSync(dst).size;
-  if (!el.phrases) { say[el.id] = [el.id].concat(speech(L, dur)); continue; }
+  if (!el.phrases) {
+    const sp = speech(L, dur);
+    /* Elisa, 2 novembre, 18 h 08 : « on a aussi une répétition de "à toi" ». Dans les projets, la légende « À toi ! » est déjà dite
+       par le chapitre, juste avant le moment : la consigne part donc après son propre « À toi ! » (la pause qui suit le « ! »). */
+    if (/^at\d/.test(el.id) && ATOI_DIT) { const t = apresAToi(L, timing(rec), dur); if (t != null && t < sp[1] - 0.5) sp[0] = t; }
+    say[el.id] = [el.id].concat(sp); continue;
+  }
   const T = timing(rec);
   let spans = T ? locate(T, el.phrases) : null;
   if (!spans || spans.some(x => !x)) { report.push(`${el.id} : minutage incomplet, découpage aux silences`); spans = bySilence(L, el.phrases.length, dur); }
