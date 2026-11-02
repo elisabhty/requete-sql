@@ -52,7 +52,9 @@ const MOTS_CLES = {AS: 'aze', IN: 'inne', ON: 'onne', OR: 'or', BY: 'baï', IS: 
   /* Le module « Fonctions et expressions » (Elisa, 2 novembre, 8 h 29, voix d’Adam) : les fonctions dites à l’anglaise. */
   UPPER: 'appeur', LOWER: 'loweur', TRIM: 'trimme', LENGTH: 'lènnguethe', SUBSTR: 'sub-stringue', INSTR: 'inne-stringue', REPLACE: 'riplèïsse',
   ROUND: 'raounde', FLOOR: 'flôr', CEIL: 'sîle', STRFTIME: 'strèf-taïme', CAST: 'kaste', INTEGER: 'inntédjeur', REAL: 'riale', TEXT: 'tèxte',
-  WHEN: 'ouènne', THEN: 'zènne', ELSE: 'èlse', END: 'ènde', COALESCE: 'koalèsse', COUNT: 'kaounte'};
+  WHEN: 'ouènne', THEN: 'zènne', ELSE: 'èlse', END: 'ènde', COALESCE: 'koalèsse', COUNT: 'kaounte',
+  /* Le module « Agrégats et regroupements » (voix d’Antoine). */
+  SUM: 'seumme', AVG: 'avèredje', MIN: 'minne', MAX: 'maxe', GROUP: 'groupe', HAVING: 'hèvinngue', GROUP_CONCAT: 'groupe-konkatte', SEPARATOR: 'séparateur'};
 /* Les noms de colonnes et de tables sans accent (le code n’en met pas) : dits avec leurs accents. */
 const ACCENTS = {prenom: 'prénom', prenoms: 'prénoms', age: 'âge', ages: 'âges', selection: 'sélection', quantite: 'quantité', quantites: 'quantités',
   categorie: 'catégorie', categories: 'catégories', numero: 'numéro', etre: 'être', fidelite: 'fidélité', seance: 'séance', seances: 'séances',
@@ -61,10 +63,10 @@ const ACCENTS = {prenom: 'prénom', prenoms: 'prénoms', age: 'âge', ages: 'âg
   evenement: 'événement', evenements: 'événements', reference: 'référence', region: 'région', duree: 'durée', employe: 'employé', employes: 'employés',
   depense: 'dépense', depenses: 'dépenses', creation: 'création', cree: 'créé', modifie: 'modifié', genre: 'genre', periode: 'période', tache: 'tâche',
   taches: 'tâches', theme: 'thème', etat: 'état', eleve: 'élève', eleves: 'élèves', reduction: 'réduction', reserve: 'réservé', reservation: 'réservation',
-  reservations: 'réservations', id: 'identifiant', typeof: 'taïpe-off', integer: 'inntédjeur', text: 'tèxte', interet: 'intérêt', adherent: 'adhérent', adherents: 'adhérents', echeance: 'échéance', reglement: 'règlement'};
+  reservations: 'réservations', id: 'identifiant', typeof: 'taïpe-off', preparation: 'préparation', integer: 'inntédjeur', text: 'tèxte', interet: 'intérêt', adherent: 'adhérent', adherents: 'adhérents', echeance: 'échéance', reglement: 'règlement'};
 /* Les signes de comparaison, les motifs de LIKE et les flèches, dits en mots (Elisa, 2 novembre, 7 h 23 : les cinq cours suivants). */
 const SIGNES = {'<=': 'inférieur ou égal', '>=': 'supérieur ou égal', '!=': 'différent', '<>': 'différent', '<': 'inférieur', '>': 'supérieur', '=': 'égal'};
-DIRE.unshift([/'([^']+)'/g, '$1'], [/(\d)\s*%/g, '$1 pour cent'], [/\s*→\s*/g, ', donne '],
+DIRE.unshift([/GROUP_CONCAT/g, 'groupe-konkatte'], [/'([^']+)'/g, '$1'], [/(\d)\s*%/g, '$1 pour cent'], [/\s*→\s*/g, ', donne '],
   [/(^|\s)([%_A-Za-zÀ-ÿ]*[%_][%_A-Za-zÀ-ÿ]*)(?=[\s,.;:!?»)]|$)/g, (m, a, w) => /[%_]/.test(w) && !/[A-Za-zÀ-ÿ]_[A-Za-zÀ-ÿ]/.test(w)
     ? a + w.split(/([%_])/).filter(Boolean).map(x => x === '%' ? 'pourcent' : x === '_' ? 'tiret bas' : x).join(', ') : m],
   /* Suivi d’une valeur : « inférieur à 60 », « différent de Accessoire » ; suivi d’un mot de la phrase (« > et < », « != à la place ») : le signe seul. */
@@ -72,7 +74,7 @@ DIRE.unshift([/'([^']+)'/g, '$1'], [/(\d)\s*%/g, '$1 pour cent'], [/\s*→\s*/g,
   [/(^|\s)=(?=[,.;:])/g, '$1égal'],
   /* Les calculs du module « Fonctions et expressions » : ||, ×, *, −, +7, 29.9, (), 1ᵉʳ. */
   [/\s*\|\|\s*/g, ' deux barres verticales '], [/\s*[×*]\s*(?=\d)/g, ' fois '], [/ − /g, ' moins '], [/(^|[\s'])\+(?=\d)/g, '$1plus '],
-  [/(^|\s)\+(?=[,\s])/g, '$1le signe plus'], [/(\d)\.(\d)/g, '$1 virgule $2'], [/\(\)/g, ''], [/ᵉʳ/g, 'er'], [/ +(?=[.,])/g, '']);
+  [/(^|\s)\+(?=[,\s])/g, '$1le signe plus'], [/(\d)\.(\d)/g, '$1 virgule $2'], [/\(\)/g, ''], [/ᵉʳ/g, 'er'], [/ +(?=[.,])/g, ''], [/n°\s*/g, 'numéro ']);
 DIRE.push([new RegExp('\\b(' + Object.keys(MOTS_CLES).join('|') + ')\\b', 'g'), (m, w, off, all) => { const d = MOTS_CLES[w];
     return off === 0 || /[.!?:]\s+$/.test(all.slice(0, off)) && !/:\s+$/.test(all.slice(0, off)) ? d.charAt(0).toUpperCase() + d.slice(1) : d; }],
   [/(^|[^A-Za-zÀ-ÿ])([a-z]+)(?=$|[^A-Za-zÀ-ÿ])/g, (m, a, w) => a + (ACCENTS[w] || w)]);
@@ -106,6 +108,7 @@ const PHRASES = {
   'et \'CMD-2026-1002481\' du texte, écrit entre apostrophes.': 'et C M D, tiret, 2026, tiret, 1002481 du texte, écrit entre apostrophes.',
   'Un texte vide \'\' ne contient aucun caractère, mais ce n’est pas NULL.': 'Un texte vide, deux apostrophes sans rien entre elles, ne contient aucun caractère, mais ce n’est pas NULL.',
   'Que renvoie COALESCE(\'\', \'Non renseigné\') ?': 'Que renvoie koalèsse d’un texte vide et de Non renseigné ?',
+  'Que renvoie GROUP_CONCAT(client_id, \', \') ?': 'Que renvoie groupe-konkatte de client underscore identifiant, avec virgule et espace comme séparateur ?',
   '\'%ie%\' renvoie Sophie Martin et Gabriel Michel, dont le prénom contient « ie ».': 'Le motif pourcent, i e, pourcent renvoie Sophie Martin et Gabriel Michel, dont le prénom contient i e.'
 };
 const dire = s => PHRASES[s] || DIRE.reduce((t, [a, b]) => t.replace(a, b), s);
@@ -143,7 +146,9 @@ COMMUNES.forEach(id => out.push(base.elements.find(x => x.id === id)));
    « Fonctions et expressions », c’est Adam (« Adam – Formation, Tutos & Éducation »). Ses phrases communes sont générées avec lui. */
 const AGATHE = ['bases-relationnelles', 'as', 'distinct', 'where', 'comparer', 'and-or', 'not', 'null', 'like', 'in', 'between', 'order-by', 'limit-offset'];
 const ADAM = {id: 'TGAegA0zNRi8I6nUdq3i', nom: 'Adam'};
-const voix = AGATHE.includes(cours) ? base.voix : ADAM;
+/* 8 h 55 : le module « Agrégats et regroupements » avec Antoine (« Antoine – Dynamic, Captivating, and Professional Voice »). */
+const ANTOINE = {id: 'nbiTBaMRdSobTQJDzIWm', nom: 'Antoine'}, AGREGATS = ['count', 'agregats', 'group-by', 'having', 'group-concat'];
+const voix = AGATHE.includes(cours) ? base.voix : AGREGATS.includes(cours) ? ANTOINE : ADAM;
 const job = {cours, titre: intro.sub, voix, modele: base.modele, langue: base.langue, format: base.format, elements: out};
 fs.writeFileSync(path.join(DIR, cours + '.json'), JSON.stringify(job, null, 2) + '\n');
 /* Les phrases communes : copiées depuis le premier cours (si ses fichiers bruts sont là). */
