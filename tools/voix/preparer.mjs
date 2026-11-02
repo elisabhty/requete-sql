@@ -105,6 +105,8 @@ const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 
 /* SQLite, excluded et true (le module « Écrire et modifier les données ») : dits à l’anglaise. */
 /* FIRST_VALUE, LAST_VALUE et NTILE : dits en anglais, sans « underscore ». */
 DIRE.unshift([/\bFIRST_VALUE\b/g, 'First value'], [/\bLAST_VALUE\b/g, 'Last value'], [/\bNTILE\((\d+)\)/g, 'ènne-taïle de $1'], [/\bNTILE\b/g, 'ènne-taïle']);
+/* « 1re forme normale », « 2e », « 3e » : dits en toutes lettres. */
+DIRE.unshift([/\b([123])(?:re|e)(?= forme)/g, (m, n, off, all) => { const w = ['première', 'deuxième', 'troisième'][n - 1]; return off === 0 || /[.!?]\s+$/.test(all.slice(0, off)) ? w.charAt(0).toUpperCase() + w.slice(1) : w; }]);
 DIRE.unshift([/\b(\d{1,2})\/(\d{2})\/(\d{4})\b/g, (m, j, mo, a) => (+j === 1 ? '1er' : String(+j)) + ' ' + MOIS[+mo - 1] + ' ' + a],
   [/\b(\d{1,2}):(\d{2})\b/g, '$1 h $2'], [/PostgreSQL/g, 'Postgres Q L'], [/\bNB-(\d+)/g, 'N B $1'], [/CURRENT_TIMESTAMP/g, 'current timestamp'], [/(^|\s)−(?=\d)/g, '$1moins '], [/SQLite/g, 'S Q Laïte'], [/\bexcluded\b/g, 'ixcloudide'], [/\bWHERE true\b/g, 'WHERE trou']);
 DIRE.unshift([/\b(\d{4})-(\d{2})-(\d{2})\b/g, (m, a, mo, j) => (+j === 1 ? '1er' : String(+j)) + ' ' + MOIS[+mo - 1] + ' ' + a],
@@ -211,7 +213,7 @@ const MIA = {id: 'PrwKJdvtTbJVdosRhS1O', nom: 'Mia'}, SOUS_REQUETES = ['sous-req
 /* 9 h 14 : le module « Fonctions de fenêtre » avec Dorian (« Dorian – Jeune homme calme français sans accent »), le formateur. */
 const DORIAN = {id: 'vp2FCFmQCE4NzuQj9QNe', nom: 'Dorian'}, FENETRES = ['over', 'fonctions-rang', 'lag-lead', 'fenetres-glissantes', 'first-last-ntile'];
 /* 9 h 21 : le module « Modéliser » reprend la formatrice du premier module (Agathe, la blonde). */
-const MODELISER = ['projet-normaliser', 'projet-cles', 'projet-uml'];
+const MODELISER = ['formes-normales', 'projet-normaliser', 'projet-cles', 'projet-uml'];
 /* 9 h 33 : le module « Créer et faire évoluer les tables » avec Anaïs (« Anaïs – News, podcasting and e-learning »), la formatrice. */
 const ANAIS = {id: '5OnMHwgTFgvPVwE8jP6B', nom: 'Anaïs'}, TABLES = ['projet-create', 'projet-alter', 'projet-drop', 'projet-schemas'];
 /* 9 h 42 : le module « Écrire et modifier les données » avec Emily (« Emily – Australian Female »), la formatrice. */
