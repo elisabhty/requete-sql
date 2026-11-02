@@ -17,7 +17,7 @@ const l81 = lessons.find(l => l.id === 81);
 
 test('Modéliser avec UML : dans le module Modéliser, après Clés et relations et avant CREATE TABLE', () => {
   const m = modules.find(x => x.titre === 'Modéliser');
-  assert.deepEqual([...m.lessons.map(l => l.id)], [56, 72, 81]);
+  assert.deepEqual([...m.lessons.map(l => l.id)], [90, 56, 72, 81]);
   assert.equal(m.sous, 'Normalisation, cardinalités et UML');
   const ids = lessons.map(l => l.id);
   assert.equal(ids.indexOf(81), ids.indexOf(72) + 1);

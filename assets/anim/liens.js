@@ -55,6 +55,7 @@ window.LIENS = [
   {page: 'lag-lead', titre: 'LAG et LEAD', passe: 'tu as comparé chaque ligne à sa voisine avec <code>LAG</code> et <code>LEAD</code>', futur: 'tu compareras chaque ligne à sa voisine avec <code>LAG</code> et <code>LEAD</code>'},
   {page: 'fenetres-glissantes', titre: 'Fenêtres glissantes', passe: 'tu as suivi un total cumulé avec une fenêtre glissante', futur: 'tu suivras un total cumulé avec une fenêtre glissante'},
   {page: 'first-last-ntile', titre: 'FIRST_VALUE, LAST_VALUE et NTILE', passe: 'tu as lu la première et la dernière valeur d’une fenêtre avec <code>FIRST_VALUE</code> et <code>LAST_VALUE</code>', futur: 'tu liras la première et la dernière valeur d’une fenêtre avec <code>FIRST_VALUE</code> et <code>LAST_VALUE</code>'},
+  {page: 'formes-normales', titre: 'Les formes normales', passe: 'tu as appliqué les trois formes normales', futur: 'tu appliqueras les trois formes normales'},
   /* Le projet : ses vidéos disent elles-mêmes le lien (« Dans la leçon précédente… », « Dans la prochaine leçon… »), sauf l’entrée du projet. */
   {page: 'projet-normaliser', titre: 'Normaliser les inscriptions', futur: 'tu commenceras le projet : la base des ateliers bien-être de NutriBoost', apres: false},
   {page: 'projet-cles', titre: 'Clés et relations', avant: false, apres: false},

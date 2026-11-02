@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-02-first-last-ntile-v2347';
+const CACHE = 'requete-2026-11-02-formes-normales-v2348';
 
 const PRECACHE = [
   './onboarding-focus.js',
@@ -99,6 +99,7 @@ const PRECACHE = [
   './assets/anim/lag-lead.html?app&embed',
   './assets/anim/fenetres-glissantes.html?app&embed',
   './assets/anim/first-last-ntile.html?app&embed',
+  './assets/anim/formes-normales.html?app&embed',
   './assets/anim/projet-normaliser.html?app&embed',
   './assets/anim/projet-cles.html?app&embed',
   './assets/anim/projet-uml.html?app&embed',
@@ -195,6 +196,7 @@ const PRECACHE = [
   './assets/anim/lag-lead-thumb.jpg',
   './assets/anim/fenetres-glissantes-thumb.jpg',
   './assets/anim/first-last-ntile-thumb.jpg',
+  './assets/anim/formes-normales-thumb.jpg',
   './assets/anim/projet-normaliser-thumb.jpg',
   './assets/anim/projet-cles-thumb.jpg',
   './assets/anim/projet-uml-thumb.jpg',
