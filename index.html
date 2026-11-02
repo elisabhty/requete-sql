@@ -1922,6 +1922,7 @@
   .room-sub{margin:6px 0 0;color:#6C6F78;font-size:13.5px;line-height:1.43}
   .room-field{margin-top:16px}
   .room-field[hidden]{display:none}
+  .room-field:empty{display:none}
   .room-field > .jeu-lab{margin:0 0 7px!important}
   .room-levels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
   .room-level{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;min-height:88px;padding:12px 6px 10px;border:1.5px solid rgba(39,42,54,.1);border-radius:18px;background:#fff;color:var(--ink);font:inherit;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:border-color .16s,background .16s,transform .16s var(--spring-ios),box-shadow .16s}
@@ -16962,6 +16963,8 @@ function normalizeState(raw){
   /* Le pseudo réservé (jeu_pseudo) et la date de sa dernière confirmation. */
   if(typeof salleSrc.pseudo==='string'){const p=psForme(salleSrc.pseudo);if(p)salle.pseudo=p;}
   if(salleSrc.pseudoVu)salle.pseudoVu=salleBig(salleSrc.pseudoVu);
+  /* Le pseudo tapé dans l’onboarding sans réseau : réservé plus tard, sans le redemander (psReserverSansDemander). */
+  if(typeof salleSrc.psVoulu==='string'){const p=psForme(salleSrc.psVoulu);if(p)salle.psVoulu=p;}
   /* « Plus tard » sur la mini-page du pseudo : gardé d’un lancement à l’autre, sinon elle revenait à chaque ouverture. */
   if(salleSrc.psPage)salle.psPage=1;
   if(salleSrc.clsRefus){const r=salleNom(salleSrc.clsRefus);if(r)salle.clsRefus=r;}
@@ -19553,7 +19556,7 @@ function psLibre(p){return clsRpc('jeu_pseudo_libre',{p_pseudo:p,p_cle:clsCle()}
 /* Le pseudo réservé, gardé dans la progression ; le prénom (state.name) n’y est pour rien. */
 function psAdopter(p){
   const n=psForme(p);if(!n)return;
-  const s=clsSalle();s.pseudo=n;s.pseudoVu=Date.now();delete s.clsRefus;
+  const s=clsSalle();s.pseudo=n;s.pseudoVu=Date.now();delete s.clsRefus;delete s.psVoulu;
   try{localStorage.setItem('rq-jeu-nom',n);}catch(e){}
   save();
 }
@@ -19635,10 +19638,20 @@ function obPseudoSuivant(){
     if(btn)btn.classList.remove('is-busy');
     if(r&&r.ok){if(typeof buzz==='function')buzz('success');lqSay('Pseudo réservé : '+(r.pseudo||n));psPageFin(true);return;}
     psAfficher('ob',(r&&r.raison)||'pris',n,r&&r.idees);
-  },()=>{if(btn)btn.classList.remove('is-busy');psAfficher('ob','horsligne',n);});
+  },()=>{
+    /* Sans réseau : le pseudo est gardé et réservé dès le retour en ligne (avant, la page restait bloquée et le pseudo se perdait). */
+    if(btn)btn.classList.remove('is-busy');
+    const s=clsSalle();s.psVoulu=n;save();
+    lqSay('Pas de réseau : '+n+' sera réservé dès ton retour en ligne.');psPageFin(false);
+  });
 }
 /* « Plus tard » : on le retrouvera quand il en faudra un (salle entre amis, classement, Mon compte). */
-function obPseudoPlusTard(){const s=clsSalle();s.psPage=1;save();psPageFin(false);}
+function obPseudoPlusTard(){
+  const s=clsSalle();s.psPage=1;
+  /* Un pseudo tapé mais pas vérifié faute de réseau (« il sera vérifié dès ton retour en ligne ») : gardé, pas redemandé. */
+  const n=psForme(draft&&draft.pseudo);if(n&&PS.etat.ob==='horsligne')s.psVoulu=n;
+  save();psPageFin(false);
+}
 function psPageFin(ok){
   const root=document.getElementById('onboarding');
   if(root){root.classList.remove('on','ob-account-step','ob-welcome-step','ob-profile-step','ob-legal-step');root.setAttribute('aria-hidden','true');}
@@ -19655,6 +19668,13 @@ function psVerifier(){
     if(!state.onboarded||(typeof navigator!=='undefined'&&navigator.onLine===false))return;
     const s=state.salle||{},mien=psMien();
     if(!mien){
+      if(psVouluConnu()){
+        psReserverSansDemander().then(r=>{
+          if(r.ok){if(typeof renderDefis==='function'&&activeTab==='defis')renderDefis();return;}
+          if((r.raison==='pris'||r.raison==='refuse')&&!psPageOuverte())psPage({raison:r.raison,idees:r.idees,voulu:r.voulu});
+        },()=>{});
+        return;
+      }
       if(!s.psPage&&!psPageOuverte()){clsSalle().psPage=1;save();psPage({voulu:psAncien()});}
       return;
     }
@@ -19668,7 +19688,19 @@ function psVerifier(){
 /* Une salle entre amis a besoin du pseudo réservé : sans lui, la mini-page, puis la salle. */
 function jeuAvecPseudo(f){
   if(psMien()){f();return;}
-  psPage({siOk:f});
+  if(!psVouluConnu()){psPage({siOk:f});return;}
+  psReserverSansDemander().then(r=>{
+    if(r.ok){f();return;}
+    /* Pris entre-temps (ou refusé) : la seule fois où il faut en choisir un autre, avec trois pseudos libres. */
+    psPage({raison:r.raison==='refuse'?'refuse':'pris',idees:r.idees,voulu:r.voulu,siOk:f});
+  },()=>lqInfo('Pas de réseau','Il faut une connexion internet pour jouer entre amis. Réessaie dans un instant.','📶'));
+}
+/* Le pseudo donné dans l’onboarding mais pas encore réservé : celui tapé sans réseau, ou celui des salles d’avant (rq-jeu-nom). */
+function psVouluConnu(){const s=state.salle||{};return psForme(s.psVoulu||'')||psAncien();}
+function psReserverSansDemander(){
+  const n=psVouluConnu();
+  if(!n)return Promise.resolve({ok:false,raison:'aucun'});
+  return psPrendre(n).then(r=>Object.assign({},r||{},{voulu:n,ok:!!(r&&r.ok)&&!!psMien()}));
 }
 /* Supprimer son pseudo (Mon compte › Données) : il est libéré, avec les scores du classement ; la progression reste. */
 function psSupprimer(){
@@ -19677,7 +19709,7 @@ function psSupprimer(){
     .then(ok=>{
       if(!ok)return;
       clsRpc('jeu_pseudo_liberer',{p_cle:clsCle()}).then(()=>{
-        const s=clsSalle();delete s.pseudo;delete s.pseudoVu;delete s.clsId;delete s.defisEnv;delete s.clsRefus;s.envoi=[];s.psPage=1;save();
+        const s=clsSalle();delete s.pseudo;delete s.pseudoVu;delete s.psVoulu;delete s.clsId;delete s.defisEnv;delete s.clsRefus;s.envoi=[];s.psPage=1;save();
         try{localStorage.removeItem('rq-jeu-nom');}catch(e){}
         CLS.data=null;CLS.at=0;
         if(typeof closePlusDetails==='function')closePlusDetails();
@@ -25556,7 +25588,10 @@ function jeuNomField(id){
   const nom=jeuSavedNom();
   /* Elisa, 1er novembre, 1 h 07 : « Tu joues en tant que » dans la DA du site, comme la carte du pseudo de Mon compte : aplat
      violet, avatar contouré d’encre, cadenas dans sa pastille jaune, surtitre menthe, @ en jaune. */
-  if(!nom)return `<button type="button" class="jeu-me is-vide" onclick="psPage({})"><b class="jeu-av is-empty" aria-hidden="true">?</b><span class="jeu-me-t"><small>Pour jouer entre amis</small><b>Choisis ton pseudo</b></span><span class="jeu-me-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span></button>`;
+  /* Elisa, 2 novembre, 23 h 14 : « le pseudo est défini dans l’onboarding, pas besoin de le redemander ». Sans pseudo réservé, la
+     salle ne montre plus de carte « Choisis ton pseudo » : « Ouvrir la salle » réserve celui de l’onboarding sans rien demander
+     (jeuAvecPseudo). */
+  if(!nom)return '';
   const at=nom.charAt(0)==='@';
   return `<div class="jeu-me" data-nom="${id}"><span class="jeu-me-av"><b class="jeu-av" data-c="0" aria-hidden="true">${jeuInitial(nom)}</b><span class="jeu-me-lock" aria-label="Pseudo verrouillé" role="img">${PS_LOCK_SVG}</span></span><span class="jeu-me-t"><small>Tu joues en tant que</small><b>${at?'<i class="jeu-me-at">@</i>':''}${esc(at?nom.slice(1):nom)}</b></span><input id="${id}" type="hidden" value="${escAttr(nom)}"></div>`;
 }
@@ -33678,7 +33713,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-recherche-entretien-v2405';
+  const SW_CACHE='requete-2026-11-02-pseudo-onboarding-v2406';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

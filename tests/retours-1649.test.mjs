@@ -143,10 +143,14 @@ test('pseudo — « C’est mon pseudo » le réserve pour l’appareil, sans to
   assert.match(q.el('ob-ps-idees').innerHTML, /data-v="@tom_sql"/); assert.equal(q.el('ob-next').disabled, true);
   assert.equal(q.ctx.state.salle, undefined, 'rien n’est réservé');
   q.ev("obPseudoSuivant()"); assert.equal(q.calls.length, 1);
-  /* Sans réseau : on le dit, la page reste */
+  /* Sans réseau : le pseudo est gardé (réservé au retour du réseau, sans être redemandé) et la page se ferme */
   const off = pseudoCtx({ reply: () => new TypeError('Failed to fetch') });
   off.ev('psPage({})'); off.ev("draft.pseudo='@zoé';PS.etat.ob='horsligne';obPseudoSuivant()"); await flush();
-  assert.ok(off.root.classList.contains('on')); assert.match(off.el('ob-ps-etat').innerHTML, /Pas de réseau/);
+  assert.ok(!off.root.classList.contains('on')); assert.equal(off.ctx.state.salle.psVoulu, '@zoé');
+  assert.deepEqual(off.said, ['Pas de réseau : @zoé sera réservé dès ton retour en ligne.']);
+  const off2 = pseudoCtx({ reply: () => new TypeError('Failed to fetch') });
+  off2.ev('psPage({})'); off2.ev("draft.pseudo='@zoé';PS.etat.ob='horsligne';obPseudoPlusTard()");
+  assert.equal(off2.ctx.state.salle.psVoulu, '@zoé', '« Plus tard » sans réseau : le pseudo tapé est gardé');
   /* « Plus tard » : la suite continue, pas ce qui attendait le pseudo ; la page ne revient plus toute seule */
   const l = pseudoCtx();
   l.ctx.suite = () => { l.ctx.s1 = 1; }; l.ctx.ok = () => { l.ctx.s2 = 1; };
@@ -171,12 +175,25 @@ test('pseudo — une salle entre amis a besoin du pseudo réservé ; à l’ouve
     const v = pseudoCtx(o); v.ev('psVerifier()'); await flush();
     assert.equal(v.calls.length, 0, JSON.stringify(o)); assert.ok(!v.root.classList.contains('on'), JSON.stringify(o));
   }
-  const n = pseudoCtx(); n.store['rq-jeu-nom'] = 'Zoé';
-  n.ev('psVerifier()');
-  assert.ok(n.root.classList.contains('on'), 'pas encore de pseudo : la mini-page');
-  assert.equal(n.ctx.draft.pseudo, '@zoé', 'le pseudo des salles d’avant, proposé (en identifiant)');
-  assert.equal(n.ctx.state.salle.psPage, 1, 'une seule fois');
-  n.ev('obPseudoPlusTard();psVerifier()'); assert.ok(!n.root.classList.contains('on'), 'elle ne revient pas toute seule');
+  const n = pseudoCtx({ reply: (f, b) => ({ ok: true, pseudo: b.p_pseudo }) }); n.store['rq-jeu-nom'] = 'Zoé';
+  n.ev('psVerifier()'); await flush();
+  assert.ok(!n.root.classList.contains('on'), 'un pseudo déjà donné : pas de mini-page');
+  assert.deepEqual(n.calls.map(x => x.body.p_pseudo), ['@zoé'], 'réservé sans le redemander (en identifiant)');
+  assert.equal(n.ctx.state.salle.pseudo, '@zoé');
+  const none = pseudoCtx();
+  none.ev('psVerifier()');
+  assert.ok(none.root.classList.contains('on'), 'jamais de pseudo : la mini-page');
+  assert.equal(none.ctx.state.salle.psPage, 1, 'une seule fois');
+  none.ev('obPseudoPlusTard();psVerifier()'); assert.ok(!none.root.classList.contains('on'), 'elle ne revient pas toute seule');
+  /* Salle entre amis : le pseudo de l’onboarding gardé sans réseau est réservé sans rien demander, puis la salle s’ouvre */
+  const w = pseudoCtx({ salle: { psVoulu: '@léa' }, reply: (f, b) => ({ ok: true, pseudo: b.p_pseudo }) });
+  w.ctx.ran = 0; w.ctx.go = () => { w.ctx.ran++; };
+  w.ev('jeuAvecPseudo(go)'); await flush();
+  assert.equal(w.ctx.ran, 1); assert.ok(!w.root.classList.contains('on')); assert.equal(w.ctx.state.salle.pseudo, '@léa'); assert.equal(w.ctx.state.salle.psVoulu, undefined);
+  const t = pseudoCtx({ salle: { psVoulu: '@léa' }, reply: () => ({ ok: false, raison: 'pris', idees: ['@léa_sql'] }) });
+  t.ctx.ran = 0; t.ctx.go = () => { t.ctx.ran++; };
+  t.ev('jeuAvecPseudo(go)'); await flush();
+  assert.ok(t.root.classList.contains('on') && t.ev('PS.page.raison') === 'pris' && t.ev('PS.siOk===go') && t.ctx.ran === 0, 'pris entre-temps : seulement alors, la mini-page avec des pseudos libres');
   const old = pseudoCtx({ salle: { pseudo: 'Léa', pseudoVu: Date.now() - 21 * 3600e3 }, reply: () => ({ ok: true, pseudo: 'Léa' }) });
   old.ev('psVerifier()'); await flush();
   assert.deepEqual(old.calls.map(x => x.body.p_pseudo), ['Léa'], 'une fois par jour, la réservation est vérifiée');

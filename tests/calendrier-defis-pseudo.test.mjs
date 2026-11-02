@@ -201,7 +201,7 @@ test('réf 5 — le prénom dans l’onboarding (17 h 53), le pseudo juste aprè
   assert.ok(chip.includes('class="jeu-me-lock"') && chip.includes('<svg data-k="lock"></svg>') && !chip.includes('jeuNomEdit'), 'verrouillé : plus de « Changer »');
   ctx.state.salle = {};
   const field = vm.runInContext("jeuNomField('jeu-nom')", ctx);
-  assert.ok(field.includes('<b>Choisis ton pseudo</b>') && field.includes('onclick="psPage({})"') && !field.includes('<input'), 'pas encore de pseudo : la mini-page pour le choisir');
+  assert.equal(field, '', 'pas encore de pseudo : la salle ne le redemande pas (2 novembre, 23 h 14 : il se choisit dans l’onboarding)');
   /* La salle prend le pseudo réservé ; sans lui, la mini-page s’ouvre et rien ne part */
   const opened = [];
   Object.assign(ctx, { psPage: o => opened.push(o), jeuMsgEl: () => null });
