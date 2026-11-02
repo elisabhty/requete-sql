@@ -63,7 +63,7 @@ const MOTS_CLES = {AS: 'aze', IN: 'inne', ON: 'onne', OR: 'or', BY: 'baï', IS: 
   /* Le module « Fonctions et expressions » (Elisa, 2 novembre, 8 h 29, voix d’Adam) : les fonctions dites à l’anglaise. */
   UPPER: 'appeur', LOWER: 'loweur', TRIM: 'trimme', LENGTH: 'lènnguethe', SUBSTR: 'sub-stringue', INSTR: 'inne-stringue', REPLACE: 'riplèïsse',
   ROUND: 'round', FLOOR: 'flôr', CEIL: 'sîle', STRFTIME: 'strèf-taïme', CAST: 'kaste', INTEGER: 'inntédjeur', REAL: 'riale', TEXT: 'tèxte',
-  WHEN: 'ouènne', THEN: 'zènne', ELSE: 'èlse', END: 'ènde', COALESCE: 'koalèsse', COUNT: 'count',
+  WHEN: 'when', THEN: 'then', ELSE: 'else', END: 'end', COALESCE: 'koalèsse', COUNT: 'count',
   /* Le module « Agrégats et regroupements » (voix d’Antoine). 9 h 54 : « compté » pour COUNT, un accent espagnol sur SUM, AVG, MIN et MAX,
      « averge », « rounde » : ces fonctions s’écrivent désormais en anglais, comme des mots anglais (count, sum, average, min, max, round). */
   SUM: 'sum', AVG: 'average', MIN: 'min', MAX: 'max', GROUP: 'groupe', HAVING: 'hèvinngue', GROUP_CONCAT: 'groupe-konkatte', SEPARATOR: 'séparateur',
@@ -73,7 +73,7 @@ const MOTS_CLES = {AS: 'aze', IN: 'inne', ON: 'onne', OR: 'or', BY: 'baï', IS: 
   EXISTS: 'ègzisste', WITH: 'ouisse', RECURSIVE: 'rikeursive', INTERSECT: 'inntersècte', EXCEPT: 'ixèpte', OVER: 'ôveur',
   /* Le module « Fonctions de fenêtre » (voix de Dorian). */
   PARTITION: 'partition', RANK: 'rannk', LAG: 'lague', LEAD: 'lîde', ROWS: 'raôze', ROW: 'raô', PRECEDING: 'prissîdinngue',
-  FOLLOWING: 'folôouinngue', CURRENT: 'keurennte', UNBOUNDED: 'eunnbaoundide', RANGE: 'réïndje',
+  FOLLOWING: 'folôouinngue', CURRENT: 'current', UNBOUNDED: 'eunnbaoundide', RANGE: 'réïndje',
   /* Le projet (voix d’Agathe) : la suite parle de CREATE TABLE. */
   CREATE: 'criéïte', TABLE: 'téïbeul',
   /* Le module « Créer et faire évoluer les tables » (voix d’Anaïs, 2 novembre, 9 h 33). */
@@ -82,7 +82,10 @@ const MOTS_CLES = {AS: 'aze', IN: 'inne', ON: 'onne', OR: 'or', BY: 'baï', IS: 
   /* Le module « Écrire et modifier les données » (voix d’Emily, 2 novembre, 9 h 42). */
   VALUES: 'valiouze', CONFLICT: 'konnflikte', MERGE: 'meurdje', MATCHED: 'matchte',
   /* Le module « Transactions et concurrence » (voix d’Arthur, 10 h 07) : écrits en anglais, comme count ou sum. */
-  BEGIN: 'begin', TRANSACTION: 'transaction', COMMIT: 'commit', ROLLBACK: 'rollback', SAVEPOINT: 'savepoint', FOR: 'for'};
+  BEGIN: 'begin', TRANSACTION: 'transaction', COMMIT: 'commit', ROLLBACK: 'rollback', SAVEPOINT: 'savepoint', FOR: 'for',
+  /* Le module « Procédures et triggers » (voix de Sam, 10 h 22). */
+  CALL: 'call', PROCEDURE: 'procedure', FUNCTION: 'function', TRIGGER: 'trigger', AFTER: 'after', BEFORE: 'before', OLD: 'old', NEW: 'new',
+  TIMESTAMP: 'timestamp', RETURNS: 'returns', RETURN: 'return'};
 /* Les noms de colonnes et de tables sans accent (le code n’en met pas) : dits avec leurs accents. */
 const ACCENTS = {schema: 'schéma', sql: 'S Q L', prenom: 'prénom', prenoms: 'prénoms', age: 'âge', ages: 'âges', selection: 'sélection', quantite: 'quantité', quantites: 'quantités',
   categorie: 'catégorie', categories: 'catégories', numero: 'numéro', etre: 'être', fidelite: 'fidélité', seance: 'séance', seances: 'séances',
@@ -96,7 +99,8 @@ const ACCENTS = {schema: 'schéma', sql: 'S Q L', prenom: 'prénom', prenoms: 'p
 const SIGNES = {'<=': 'inférieur ou égal', '>=': 'supérieur ou égal', '!=': 'différent', '<>': 'différent', '<': 'inférieur', '>': 'supérieur', '=': 'égal'};
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 /* SQLite, excluded et true (le module « Écrire et modifier les données ») : dits à l’anglaise. */
-DIRE.unshift([/(^|\s)−(?=\d)/g, '$1moins '], [/SQLite/g, 'S Q Laïte'], [/\bexcluded\b/g, 'ixcloudide'], [/\bWHERE true\b/g, 'WHERE trou']);
+DIRE.unshift([/\b(\d{1,2})\/(\d{2})\/(\d{4})\b/g, (m, j, mo, a) => (+j === 1 ? '1er' : String(+j)) + ' ' + MOIS[+mo - 1] + ' ' + a],
+  [/\b(\d{1,2}):(\d{2})\b/g, '$1 h $2'], [/PostgreSQL/g, 'Postgres Q L'], [/CURRENT_TIMESTAMP/g, 'current timestamp'], [/(^|\s)−(?=\d)/g, '$1moins '], [/SQLite/g, 'S Q Laïte'], [/\bexcluded\b/g, 'ixcloudide'], [/\bWHERE true\b/g, 'WHERE trou']);
 DIRE.unshift([/\b(\d{4})-(\d{2})-(\d{2})\b/g, (m, a, mo, j) => (+j === 1 ? '1er' : String(+j)) + ' ' + MOIS[+mo - 1] + ' ' + a],
   [/(\d)\.\.\*/g, '$1 point point étoile'], [/(\d)\.\.(\d)/g, '$1 point point $2'], [/(^|\s)\*(?=\s)(?!\s*\d)/g, '$1étoile'], [/([a-zé])\/(?=l[ae] )/g, '$1 ou '],
   [/GROUP_CONCAT/g, 'groupe-konkatte'], [/ROW_NUMBER/g, 'raô-nommbeur'], [/DENSE_RANK/g, 'dènnse-rannk'], [/PERCENT_RANK/g, 'peursènnte-rannk'], [/rendez_vous/g, 'rendez-vous'], [/([A-Za-zÀ-ÿ0-9])\.(?=[a-zà-ÿ])/g, '$1 point '], [/'([^']+)'/g, '$1'], [/(\d)\s*%/g, '$1 pour cent'], [/\s*→\s*/g, ', donne '],
@@ -148,7 +152,10 @@ const dire = s => PHRASES[s] || DIRE.reduce((t, [a, b]) => t.replace(a, b), s);
 
 const intro = (() => {
   const a = page.indexOf('class="abs title"'), seg = page.slice(a, a + 1600);
-  const sub = plain((seg.match(/class="abs sub">([\s\S]*?)<\/div>/) || [])[1] || '');
+  let sub = plain((seg.match(/class="abs sub">([\s\S]*?)<\/div>/) || [])[1] || '');
+  /* Un sous-titre qui continue le grand titre (« PROCÉDURES » puis « et fonctions stockées ») : le titre est dit avant. */
+  const big = plain((seg.match(/class="abs title">([\s\S]*?)<\/div>/) || [])[1] || '').replace(/\s+/g, '');
+  if (/^(et|ou|de|du|des|avec)\b/.test(sub) && big) sub = big.charAt(0) + big.slice(1).toLowerCase() + ' ' + sub;
   /* La bulle de l’intro : le premier bloc de texte assez long après le sous-titre, balises comprises. */
   const rest = seg.slice(seg.indexOf('abs sub')).replace(/^[^>]*>[\s\S]*?<\/div>/, '');
   const bulle = (rest.split(/<\/(?:p|div)>/).map(plain).find(t => t.length > 25) || '');
@@ -199,8 +206,10 @@ const EMILY = {id: 'p43fx6U8afP2xoq1Ai9f', nom: 'Emily'}, DONNEES = ['projet-ins
 const KORALY = {id: 'QbsdzCokdlo98elkq4Pc', nom: 'Koraly'}, INTEGRITE = ['projet-ondelete'];
 /* 10 h 07 : le module « Transactions et concurrence » avec Arthur (« Arthur – Chill Gen Z American Male »), le formateur. */
 const ARTHUR = {id: 'i32gAGa2D3T8nPzY1EsZ', nom: 'Arthur'}, TRANSACTIONS = ['projet-transaction', 'projet-savepoint', 'projet-concurrence'];
+/* 10 h 22 : le module « Procédures et triggers » avec Sam (« Sam – British Male – Warm, Articulate Non-Fiction Narrator »), le formateur. */
+const SAM = {id: 'G7ILShrCNLfmS0A37SXS', nom: 'Sam'}, PROCEDURES = ['projet-procedures', 'projet-trigger'];
 const voix = AGATHE.includes(cours) || MODELISER.includes(cours) ? base.voix : AGREGATS.includes(cours) ? ANTOINE : JOINTURES.includes(cours) ? PERLE
-  : SOUS_REQUETES.includes(cours) ? MIA : FENETRES.includes(cours) ? DORIAN : TABLES.includes(cours) ? ANAIS : DONNEES.includes(cours) ? EMILY : INTEGRITE.includes(cours) ? KORALY : TRANSACTIONS.includes(cours) ? ARTHUR : ADAM;
+  : SOUS_REQUETES.includes(cours) ? MIA : FENETRES.includes(cours) ? DORIAN : TABLES.includes(cours) ? ANAIS : DONNEES.includes(cours) ? EMILY : INTEGRITE.includes(cours) ? KORALY : TRANSACTIONS.includes(cours) ? ARTHUR : PROCEDURES.includes(cours) ? SAM : ADAM;
 const job = {cours, titre: intro.sub, voix, modele: base.modele, langue: base.langue, format: base.format, elements: out};
 fs.writeFileSync(path.join(DIR, cours + '.json'), JSON.stringify(job, null, 2) + '\n');
 /* Les phrases communes : copiées depuis le premier cours (si ses fichiers bruts sont là). */
