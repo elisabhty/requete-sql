@@ -2,6 +2,32 @@
 
 La migration `comptes_socle_profils_prives` est appliquée au projet Supabase de Requête. Aucun branchement Auth n'est ajouté au site ou à l'application, aucun compte existant n'est créé ou importé, et aucun réglage Auth n'est changé. La page de connexion reste un aperçu.
 
+Depuis le 2 novembre 2026, les fonctions de compte sont préparées dans `account/service.mjs`. Elles ne sont importées par aucun écran et restent désactivées par défaut. La fonction de suppression est préparée dans `supabase/functions/compte-supprimer/`, sans être déployée. Aucun e-mail n'est envoyé et aucune progression locale n'est téléversée par cette préparation.
+
+## Fonctions préparées, non activées
+
+- `current()` : utilisateur vérifié par le serveur Auth et son profil privé ; état déconnecté si aucune session.
+- `signUp({email,password})` : inscription par e-mail, avec retour distinct « confirmation requise ». Un objet utilisateur sans session n'est jamais présenté comme une connexion réussie.
+- `signIn({email,password})` : connexion par e-mail. La création du profil est une étape séparée, réessayable sans faire échouer la connexion.
+- `ensureProfile(prenom)` : création du profil après connexion, sans écraser un prénom déjà enregistré et sans collision entre deux appareils.
+- `updateProfile({prenom})` : modification du prénom seulement ; identifiant tiré de la session, jamais d'une saisie.
+- `requestPasswordReset(email)` et `changePassword(password)` : récupération avec adresse de retour configurée et changement du mot de passe dans une session valide. Le futur écran doit traiter l'événement `PASSWORD_RECOVERY` du SDK.
+- `startProvider(provider)` : démarrage du parcours web d'un fournisseur explicitement autorisé. Ne signifie pas que la connexion est déjà terminée. Apple et Google ne sont pas autorisés par défaut.
+- `signOut()` : déconnexion de cet appareil ; `signOut({allDevices:true})` pour tous les appareils. Le module ne supprime pas la progression locale.
+- `deleteAccount('SUPPRIMER')` : appel du futur service de suppression avec confirmation explicite. Aucun identifiant cible n'est fourni par l'appareil.
+
+Le service utilise un client officiel Supabase fourni par le futur point d'entrée, sans initialiser de SDK ou de requête à l'import. La dépendance du futur service serveur est épinglée à `@supabase/supabase-js@2.118.0`.
+
+```js
+import {createAccountService} from './account/service.mjs';
+
+// Préparation : aucune requête n'est effectuée par le service.
+const account = createAccountService(supabase, {enabled:false});
+// await account.current() => {enabled:false,user:null,profile:null}
+```
+
+À l'activation, le point d'entrée créera le client Supabase, configurera ses sessions et fournira une adresse HTTPS de retour autorisée dans Supabase. Le service partagé accepte `enabled:true` uniquement par configuration explicite. Le build Capacitor actuel ne copie pas ce dossier : il faudra l'inclure au moment de son raccordement, puis tester l'app iOS réellement compilée.
+
 ## Données et accès
 
 - Supabase Auth est responsable des identités, adresses e-mail, mots de passe, sessions et futurs fournisseurs de connexion. Ne jamais copier les mots de passe dans une table de l'application.
@@ -31,10 +57,24 @@ if (!profile) {
 
 La sauvegarde et la synchronisation de progression ne sont pas implémentées par ce socle. Elles nécessiteront leur propre schéma et une gestion des conflits entre appareils.
 
+Le compte commun sera identifié par le même `auth.users.id` sur le web et iOS. Ni le prénom ni le pseudo ne servent de preuve d'identité. La reprise du pseudo multijoueur actuel devra prouver la possession de la clé d'appareil ; elle n'est pas réalisée par le service préparé. Lors du raccordement, isoler les données locales par compte et demander une fusion explicite de la progression invitée, pour éviter de mélanger deux utilisateurs du même appareil.
+
+## Suppression préparée pour les comptes e-mail
+
+`compte-supprimer` doit être déployée ultérieurement avec `verify_jwt=true`. Elle est également désactivée tant que la variable serveur `REQUETE_COMPTES_ENABLED` n'est pas exactement `true`. Garder la clé privilégiée dans l'environnement Supabase uniquement.
+
+Le service exige un jeton vérifié par Auth et la confirmation `SUPPRIMER`. Il révoque les sessions avant de supprimer l'utilisateur Auth identifié par ce jeton ; le profil est supprimé par la clé étrangère en cascade. Les erreurs internes ne sont pas exposées au client. Si la suppression échoue après révocation, l'utilisateur devra se reconnecter pour réessayer.
+
+Ce périmètre couvre le compte Auth et le profil préparé aujourd'hui. Tout ajout futur de fichiers, progression cloud ou association de scores devra intégrer leur nettoyage au parcours de suppression. Les données historiques uniquement liées à une clé d'appareil ne sont pas automatiquement associées au compte.
+
+La suppression d'un compte Apple est volontairement refusée dans ce code préparatoire : il faut d'abord ajouter la révocation des jetons Apple et la vérifier. Ne pas activer Apple avant d'avoir terminé ce parcours. Pour iOS, configurer aussi la capacité Sign in with Apple et le retour natif du bundle `fr.requete.app` ; un appel OAuth web ne remplace pas à lui seul l'intégration native.
+
 Avant d'activer la connexion : choisir les fournisseurs (e-mail, Google, Apple…), configurer les URL de retour web/mobile et l'envoi des e-mails, relier inscription/connexion/déconnexion/récupération, puis vérifier l'expiration des sessions et les parcours sur deux appareils. Mettre à jour l'information de confidentialité lors de l'activation réelle.
 
 ## Vérification
 
 Exécuter `supabase/tests/compte_profil.sql` dans l'éditeur SQL Supabase avec les droits du propriétaire. Le script teste les accès du propriétaire et d'un autre utilisateur, le refus des accès anonymes, les colonnes protégées, les contraintes et la suppression en cascade. Toute la transaction est annulée : aucun compte de test, profil ou mot de passe n'est conservé.
+
+`node --test tests/account-service.test.mjs tests/account-deletion.test.mjs` vérifie les parcours avec un client simulé, le verrou d'activation, les confirmations, les erreurs, l'isolation des identifiants et l'ordre révocation/suppression. Aucun compte réel n'est créé ou supprimé. L'envoi des e-mails, les retours de connexion et la suppression réelle ne sont pas validés en production tant que les parcours restent désactivés.
 
 Référence : [gestion des données utilisateur Supabase](https://supabase.com/docs/guides/auth/managing-user-data).
