@@ -1597,13 +1597,14 @@ function sonSync(){
   const t = C.time(), on = !C.paused() && t < VDUR() - .05;
   let cur = null;
   let ci = -1;
-  SON.clips.forEach((c, k) => { const v = unwarp(c.t); if (t >= v && t < v + c.d) ci = k; });
+  /* la phrase est lancée 0,12 s avant son heure : le temps que le son parte vraiment */
+  SON.clips.forEach((c, k) => { const v = unwarp(c.t); if (t >= v - .12 && t < v + c.d) ci = k; });
   /* 17 h 13 : « ça bug pendant 3 s quand on appuie sur Commencer ». Les 17 phrases se chargeaient toutes d’un coup à l’ouverture.
      Deux lecteurs seulement (débloqués au premier toucher) : l’un joue la phrase en cours, l’autre charge déjà la suivante. */
   const P2 = SON.pool, want = id => P2.find(a => a.dataset.id === id);
   if (ci < 0 || !on) P2.forEach(a => { if (!a.paused) a.pause(); });
   if (ci >= 0) {
-    const c = SON.clips[ci], off = t - unwarp(c.t);
+    const c = SON.clips[ci], off = Math.max(0, t - unwarp(c.t));
     let a = want(c.id);
     if (!a) { a = P2.find(x => x !== SON.cur) || P2[0]; a.dataset.id = c.id; a.src = 'voix/' + c.id + '.mp3'; a.preload = 'auto'; }
     P2.forEach(x => { if (x !== a && !x.paused) x.pause(); });
@@ -1633,7 +1634,11 @@ function sonLoad(){
     if (SON.pool[0].dataset.id !== SON.clips[0].id) { SON.pool[0].dataset.id = SON.clips[0].id; SON.pool[0].src = 'voix/' + SON.clips[0].id + '.mp3'; }
     /* Une phrase plus longue que sa scène : l’image s’arrête juste avant la sortie de la scène, le temps que la phrase finisse
        (Elisa, 2 novembre, 16 h 14 : son script, plus long par endroits). */
-    CLK.holds = SON.clips.filter(c => c.fin && c.d + .45 > c.fin - c.t).map(c => [+(c.fin - .55).toFixed(2), +(c.d + .45 - (c.fin - c.t)).toFixed(2)]).sort((a, b) => a[0] - b[0]);
+    /* 18 h 24 : une phrase plus longue que sa scène ne fige plus l’image en fin de scène (1,5 s d’image arrêtée, qui faisait « bug »
+       juste avant la requête suivante) : la scène entière ralentit un peu, pour finir avec la voix. Sauf « Ton profil » (s11), dont les
+       cartes arrivent sur les mots : sa fin, déjà immobile, attend la voix. */
+    CLK.holds = SON.clips.filter(c => c.fin && c.d + .45 > c.fin - c.t).map(c => { const b = +(c.fin - .55).toFixed(2), d = +(c.d + .45 - (c.fin - c.t)).toFixed(2);
+      return [c.id === 's11' ? b : +Math.max(c.t + .2, b - 6).toFixed(2), b, d]; }).sort((x, y) => x[0] - y[0]);
     if (j.musique) SON.music = {d: j.musique.d, a: SON.musicEl};
     SON.ok = true; return true;
   }).catch(() => false);
@@ -1641,9 +1646,10 @@ function sonLoad(){
 /* Horloge de la vidéo : le temps de la vidéo (v) avance seul ; l’image (T) le suit, sauf pendant un arrêt (CLK.holds : [temps de l’image,
    durée]), où elle reste figée pendant que la voix finit sa phrase. Sans voix, aucun arrêt : v = temps de l’image. */
 const CLK = {v: 0, on: false, holds: [], last: 0, raf: 0};
-const VDUR = () => DURATION + CLK.holds.reduce((n, h) => n + h[1], 0);
-const warp = v => { let acc = 0; for (const [h, d] of CLK.holds) { if (v <= h + acc) return v - acc; if (v <= h + acc + d) return h; acc += d; } return v - acc; };
-const unwarp = t => t + CLK.holds.reduce((n, [h, d]) => n + (h < t ? d : 0), 0);
+const VDUR = () => DURATION + CLK.holds.reduce((n, h) => n + h[2], 0);
+/* CLK.holds : [a, b, d] : de a à b (temps de l’image), la vidéo prend d secondes de plus (a = b : image arrêtée d secondes). */
+const warp = v => { let acc = 0; for (const [a, b, d] of CLK.holds) { if (v <= a + acc) return v - acc; if (v <= b + acc + d) return b > a ? a + (v - a - acc) * (b - a) / (b - a + d) : a; acc += d; } return v - acc; };
+const unwarp = t => t + CLK.holds.reduce((n, [a, b, d]) => n + (t >= b && b > a ? d : t > b ? d : t > a ? d * (t - a) / (b - a) : 0), 0);
 function clkSet(v){ CLK.v = Math.max(0, Math.min(VDUR(), v)); T.time(warp(CLK.v)); ui(CLK.v); sonSync(); }
 function clkTick(now){
   if (!CLK.on) return;
@@ -1653,7 +1659,10 @@ function clkTick(now){
      qui donne l’heure ; l’image la suit, et le son n’est plus recalé qu’après un saut (barre de lecture, flèches, « Revoir »). */
   let v = CLK.v + dt;
   const a = SON.ok && SON.cur, cur = a && !a.paused && !a.ended && a.currentTime > .05 && SON.clips.find(c => c.id === a.dataset.id);
-  if (cur) { const va = unwarp(cur.t) + a.currentTime; if (Math.abs(va - v) < 1.5) v = va; }
+  /* 18 h 24 : « la vidéo a des bugs, surtout au début des requêtes, comme des bugs de 2 s ». L’image se calait d’un coup sur la voix :
+     au départ de chaque phrase (le son démarre un peu en retard), elle reculait, et sur iPhone, où l’heure du son avance par à-coups,
+     elle avançait par saccades. Elle suit maintenant la voix en douceur : au plus 30 % plus vite ou plus lentement, jamais en arrière. */
+  if (cur) { const err = unwarp(cur.t) + a.currentTime - v; if (Math.abs(err) < 1.5) v += Math.max(-dt * .3, Math.min(dt * .3, err * .12)); }
   clkSet(v);
   if (CLK.v >= VDUR() - .001) { CLK.on = false; sonSync(); ended(); return; }
   CLK.raf = requestAnimationFrame(clkTick);
