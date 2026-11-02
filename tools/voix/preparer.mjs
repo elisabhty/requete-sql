@@ -87,7 +87,9 @@ const MOTS_CLES = {AS: 'aze', IN: 'inne', ON: 'onne', OR: 'or', BY: 'baï', IS: 
   CALL: 'call', PROCEDURE: 'procedure', FUNCTION: 'function', TRIGGER: 'trigger', AFTER: 'after', BEFORE: 'before', OLD: 'old', NEW: 'new',
   TIMESTAMP: 'timestamp', RETURNS: 'returns', RETURN: 'return',
   /* Le module « Vues, index et optimisation » (voix d’Abraham, 10 h 27). */
-  VIEW: 'view', EXPLAIN: 'explain', QUERY: 'query', PLAN: 'plan', SCAN: 'scan', SEARCH: 'search'};
+  VIEW: 'view', EXPLAIN: 'explain', QUERY: 'query', PLAN: 'plan', SCAN: 'scan', SEARCH: 'search',
+  /* Le module « Sécurité et droits » (voix d’Anna, 10 h 32). */
+  GRANT: 'grant', REVOKE: 'revoke'};
 /* Les noms de colonnes et de tables sans accent (le code n’en met pas) : dits avec leurs accents. */
 const ACCENTS = {schema: 'schéma', sql: 'S Q L', prenom: 'prénom', prenoms: 'prénoms', age: 'âge', ages: 'âges', selection: 'sélection', quantite: 'quantité', quantites: 'quantités',
   categorie: 'catégorie', categories: 'catégories', numero: 'numéro', etre: 'être', fidelite: 'fidélité', seance: 'séance', seances: 'séances',
@@ -212,8 +214,10 @@ const ARTHUR = {id: 'i32gAGa2D3T8nPzY1EsZ', nom: 'Arthur'}, TRANSACTIONS = ['pro
 const SAM = {id: 'G7ILShrCNLfmS0A37SXS', nom: 'Sam'}, PROCEDURES = ['projet-procedures', 'projet-trigger'];
 /* 10 h 27 : le module « Vues, index et optimisation » avec Abraham (« Abraham – Casual Narrator »), le formateur. */
 const ABRAHAM = {id: 'coQWS9nJLPoZCZPQu6km', nom: 'Abraham'}, VUES = ['projet-vue', 'projet-index'];
+/* 10 h 32 : le module « Sécurité et droits » avec Anna (« Anna – Customer Service & Training »), la formatrice. */
+const ANNA = {id: '0VPW6YsfGkzxile59Ueo', nom: 'Anna'}, DROITS = ['projet-droits'];
 const voix = AGATHE.includes(cours) || MODELISER.includes(cours) ? base.voix : AGREGATS.includes(cours) ? ANTOINE : JOINTURES.includes(cours) ? PERLE
-  : SOUS_REQUETES.includes(cours) ? MIA : FENETRES.includes(cours) ? DORIAN : TABLES.includes(cours) ? ANAIS : DONNEES.includes(cours) ? EMILY : INTEGRITE.includes(cours) ? KORALY : TRANSACTIONS.includes(cours) ? ARTHUR : PROCEDURES.includes(cours) ? SAM : VUES.includes(cours) ? ABRAHAM : ADAM;
+  : SOUS_REQUETES.includes(cours) ? MIA : FENETRES.includes(cours) ? DORIAN : TABLES.includes(cours) ? ANAIS : DONNEES.includes(cours) ? EMILY : INTEGRITE.includes(cours) ? KORALY : TRANSACTIONS.includes(cours) ? ARTHUR : PROCEDURES.includes(cours) ? SAM : VUES.includes(cours) ? ABRAHAM : DROITS.includes(cours) ? ANNA : ADAM;
 const job = {cours, titre: intro.sub, voix, modele: base.modele, langue: base.langue, format: base.format, elements: out};
 fs.writeFileSync(path.join(DIR, cours + '.json'), JSON.stringify(job, null, 2) + '\n');
 /* Les phrases communes : copiées depuis le premier cours (si ses fichiers bruts sont là). */
