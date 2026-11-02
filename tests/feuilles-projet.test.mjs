@@ -67,7 +67,7 @@ test('enregistrer : le bouton passe au menthe, la coche se dessine, des confetti
   assert.deepEqual([bursts, delays[0]], [1, 0], 'mouvement réduit : ni confettis ni attente');
   /* Partout où l’on enregistre */
   assert.ok(cut(app, 'function lqPrompt(o){', '/* On enregistre').includes("const ok=()=>{ if(fini||el._saving)return; el._saving=1; const v=input.value.replace(/\\s+$/,'').replace(/^\\s+/,''); lqSaved(el.querySelector('.lq-ask-oui'),lqSavedLabel(o.oui||'Enregistrer')).then(()=>fin(v)); };"), 'les feuilles à champ (descriptions, renommer)');
-  assert.ok(cut(app, 'function saveNote(){', 'function togglePin(){').includes("lqSaved(b,'Enregistrée').then(()=>{backToNotesList();"), 'une note');
+  assert.ok(cut(app, 'function saveNote(){', 'function togglePinFromList(id){').includes("lqSaved(b,'Enregistrée').then(()=>{backToNotesList();"), 'une note');
   assert.ok(cut(app, 'function applyPlanAdjustment(){', 'function planAdjustCommit(preview){').includes("lqSaved(btn,'Rythme appliqué').then(()=>planAdjustCommit(preview));"), 'le rythme');
   assert.ok(cut(app, 'async function editDbNote(id){', 'async function editTableNote(name){').includes("lqFresh(document.querySelector('#scr-console .console-desc'));"));
   assert.ok(cut(app, 'async function editTableNote(name){', 'function projectName(id){').includes('lqFresh(document.querySelector(`#db-tables .db-tblock[data-table="${CSS.escape(name)}"]`));'));
@@ -80,8 +80,10 @@ test('épingler : une coche ronde animée partout (Elisa, 2 novembre, 7 h 26 : �
   assert.ok(app.includes(`const PIN_CK='<svg class="pin-ck" viewBox="0 0 24 24" aria-hidden="true"><circle class="pin-ck-c" cx="12" cy="12" r="9.5"/><path class="pin-ck-v" d="M7.6 12.3l3 3.1 5.9-6.3"/></svg>';`));
   for (const part of ["if(glyph&&!glyph.querySelector('.pin-ck'))glyph.innerHTML=PIN_CK;", `data-pin-key="\${escAttr(consoleSqlKey(it.sql))}" onclick="toggleHistoryPin(\${i})"`,
     `onclick="unpinConsoleQuery(\${i})" aria-label="Désépingler cette requête" aria-pressed="true">\${PIN_CK}</button>`, `togglePinFromList('\${n.id}')">\${PIN_CK}</button>`,
-    `<button class="sec ne-pin \${e.pin?'pin-on':''}"`, "lqPinFx(document.getElementById('console-pin-current'),idx<0);", 'lqPinFx(btn,e.pin);'])
+    "lqPinFx(document.getElementById('console-pin-current'),idx<0);"])
     assert.ok(app.includes(part), part);
+  /* La note s’épingle depuis sa carte, plus depuis l’éditeur (Elisa, 2 novembre, 18 h 45 : « Il y a trop de bouton »). */
+  assert.ok(!app.includes('class="sec ne-pin') && !app.includes('onclick="togglePin()"'), 'pas d’épingle dans l’éditeur de note');
   /* lqPinFx : la classe de l’animation, ni confettis ni étiquette */
   const cls = new Set(); let bursts = 0, done = 0;
   const b = { classList: { add: c => cls.add(c), remove: (...cs) => cs.forEach(c => cls.delete(c)) }, offsetWidth: 1, querySelector: () => ({}) };

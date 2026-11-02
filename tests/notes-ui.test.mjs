@@ -66,19 +66,20 @@ test('éditeur de note : Supprimer supprime vraiment, et peut être annulé', ()
   assert.ok(/<button type="button" class="tgo" id="toast-go">/.test(html), 'bouton du toast : un vrai bouton');
 });
 
-test('éditeur de note : Enregistrer et Épingler donnent un retour visible', () => {
-  assert.equal((html.match(/\nfunction togglePin\(/g) || []).length, 1, 'une seule fonction togglePin (l’ancienne masquait la nouvelle)');
+test('éditeur de note : Enregistrer donne un retour visible ; l’épingle est sur la carte de la note', () => {
+  /* Elisa, 2 novembre, 18 h 45 : « Qu’est-ce que le bouton en trop au milieu ? Il y a trop de bouton ». L’éditeur garde une seule
+     action, « Enregistrer » (et « Supprimer » pour une note déjà enregistrée) ; « Ouvrir dans la console » devient un lien à côté de
+     « Requête associée » ; l’épingle reste sur chaque carte de la liste. */
+  assert.equal((html.match(/\nfunction togglePin\(/g) || []).length, 0, 'plus d’épingle dans l’éditeur');
+  const open = fnSrc('openNote');
+  assert.ok(!/ne-pin|togglePin\(\)/.test(open) && /<button class="prim" type="button" onclick="saveNote\(\)">Enregistrer<\/button>/.test(open), 'une seule action principale');
+  assert.ok(open.includes('<div class="ne-lab"><span>Requête associée</span>${e.sql?`<button class="ne-open" type="button" onclick="noteToConsole()">Ouvrir dans la console ›</button>`:\'\'}</div>'), '« Ouvrir dans la console » : un lien à côté de « Requête associée »');
+  assert.ok(/setupEditor\('ne-sql','hl-ne-sql'\);[^]*?syncHL\('ne-sql','hl-ne-sql'\);/.test(open), 'la requête associée se voit dès l’ouverture (elle restait invisible jusqu’à la première frappe)');
   const save = fnSrc('saveNote');
   /* 31 octobre : le même retour que partout où l’on enregistre (lqSaved : menthe, coche qui se dessine, confettis) */
   assert.ok(/lqSaved\(b,'Enregistrée'\)\.then\(/.test(save) && /btn\.innerHTML=`<span class="lq-saved-ico" aria-hidden="true">\$\{CHECK_SVG\}<\/span><span>\$\{esc\(label\|\|'Enregistré'\)\}<\/span>`/.test(html), 'le bouton passe à « ✓ Enregistrée »');
   /* 31 octobre, 1 h 34 (« ne pas mettre de notification mais des micro-interactions ») : le bouton qui passe à « ✓ Enregistrée » suffit ;
      la phrase reste annoncée au lecteur d’écran (lqSay), sans notification à l’écran */
   assert.ok(/lqSay\(wasNew\?'Note enregistrée':'Modifications enregistrées'\)/.test(save) && !/toast\(wasNew\?'Note enregistrée'/.test(save), 'annoncé, sans notification');
-  const pin = fnSrc('togglePin');
-  assert.ok(/persistEditingNote\(\)/.test(pin), 'l’épingle compte tout de suite');
-  assert.ok(/lqSay\(\(e\.pin\?'Note épinglée':'Note désépinglée'\)/.test(pin) && /lqPinFx\(btn,e\.pin\);/.test(pin) && !/toast\(/.test(pin), 'l’épingle qui se plante (lqPinFx), annoncée sans notification');
-  assert.ok(/lqSay\(n\.pin\?'Note épinglée/.test(fnSrc('togglePinFromList')) && /lqPinFx\(/.test(fnSrc('togglePinFromList')), 'même retour depuis la liste');
-  const css = fs.readFileSync(path.join(root, 'ludique.css'), 'utf8');
-  assert.ok(/html\.lq \.ne-row \.sec\.pin-on\{background:var\(--accent-soft\)!important;border-color:var\(--accent\)!important/.test(css), '« Épinglée » se voit (le style ludique forçait le bouton en blanc)');
-  assert.ok(/\.ne-row button svg\{width:16px;height:16px;flex:none\}/.test(html), 'l’icône d’épingle n’est plus écrasée sur téléphone');
+  assert.ok(/lqSay\(n\.pin\?'Note épinglée/.test(fnSrc('togglePinFromList')) && /lqPinFx\(/.test(fnSrc('togglePinFromList')), 'l’épingle de la carte : la coche qui se plante, annoncée sans notification');
 });
