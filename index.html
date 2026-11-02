@@ -6641,7 +6641,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=104">
+<link rel="stylesheet" href="ludique.css?v=105">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -22517,10 +22517,7 @@ function bravoRecapHtml(l){
   }
   if(!body) return '';
   return `<div class="bravo-recap">
-    <div class="bravo-recap-head">
-      <span class="fi">✓</span>
-      <div><b>Ce que tu retiens</b><small>Le réflexe de cette leçon</small></div>
-    </div>
+    <div class="bravo-recap-head bv-lab"><span class="bv-bulb" aria-hidden="true">${typeof lqStkSvg==='function'?lqStkSvg('bulb'):''}</span><span class="bv-tag"><b>Ce que tu retiens</b></span></div>
     ${body}
     ${lessonHasVideo(l)&&lessonReflexText(l)?bravoNoteHtml(l):''}
   </div>`;
@@ -22929,17 +22926,27 @@ function bravoUnlockHtml(l){
     <div class="bravo-unlock-copy"><small>Carte débloquée</small><b>Touche-la pour la retourner</b><p>L’essentiel de la leçon, rangé dans tes cartes mémo.</p></div>
   </div>`;
 }
-function renderBravoSlide(l){
-  return `
-    <div class="ls-main bravo-wrap">
-      <div class="bravo-hero">
-        <div class="bravo-sparks" aria-hidden="true"><span class="bravo-spark"></span><span class="bravo-spark"></span><span class="bravo-spark"></span><span class="bravo-spark"></span><span class="bravo-spark"></span></div>
-        <div class="bravo-ring" aria-hidden="true"><i>✓</i></div>
-        <div class="bravo-kicker">Leçon ${l.id} · validée</div>
+/* Elisa, 2 novembre, 8 h 01 : « cette page est encore de l’ancienne DA (je préférais la DA du site internet) ». Le haut du bilan reprend
+   la carte de la page de départ du cours (lessonStartShow) : la scène violette quadrillée de la vitrine, le module en menthe et la place
+   dans le module, « Bravo ! » en jaune soleil, le titre de la leçon, les pastilles de verre (la première blanche), l’étiquette menthe
+   « Validée » inclinée et la mascotte qui dépasse de la carte. */
+function bravoHeroHtml(l){
+  const m=typeof moduleDeLecon==='function'?moduleDeLecon(l.id):null,mi=m?MODULES.indexOf(m):-1,pos=m?m.lessons.findIndex(x=>x.id===l.id)+1:0;
+  return `<div class="bravo-hero bv">
+        <i class="lst-sp s1" aria-hidden="true"></i><i class="lst-sp s2" aria-hidden="true"></i>
+        <span class="bv-ok"><i aria-hidden="true">✓</i>Validée</span>
+        <p class="lst-kicker">${m?`Module ${mi+1} · ${esc(m.titre)}`:'Cours'}</p>
+        ${pos?`<p class="lst-pos">Leçon ${pos} sur ${m.lessons.length}</p>`:''}
         <h1>Bravo !</h1>
         <p class="bravo-lesson">${esc(l.titre)}<small>${l.leconSeule?'Leçon au complet':'Exercice et quiz au complet'}</small></p>
         ${bravoStepsHtml(l)}
-      </div>
+        <img class="lst-stk bv-stk" src="${typeof MASCOT_IMG!=='undefined'?MASCOT_IMG:''}" width="450" height="674" alt="" draggable="false">
+      </div>`;
+}
+function renderBravoSlide(l){
+  return `
+    <div class="ls-main bravo-wrap">
+      ${bravoHeroHtml(l)}
       ${stkBravoHtml()}
       ${bravoRecapHtml(l)}
       ${bravoUnlockHtml(l)}
@@ -33171,7 +33178,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-voix-in-between-v2315';
+  const SW_CACHE='requete-2026-11-02-bilan-da-v2316';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
