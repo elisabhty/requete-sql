@@ -1264,7 +1264,7 @@ const COURSES = [
       "{at: atp('p4'), from: A.d1, kind: 'tap', need: 1,", "{at: atp('p5'), from: A.e0, kind: 'tune',", "{label: 'Non : chaque index a un coût', ok: true,",
       "['CREATE INDEX {inm|idx_commandes_numero}']", 'Prochaine leçon · Sécurité et droits']},
   /* Le dernier chapitre du projet, et le dernier cours de l’app : pas de leçon suivante (next: null). */
-  {id: 50, next: null, titre: 'Sécurité et droits', page: 'projet-droits.html', thumb: 'projet-droits-thumb.webp', duree: '4 min 41', notesAt: 250.04,
+  {id: 50, next: null, titre: 'Sécurité et droits', page: 'projet-droits.html', thumb: 'projet-droits-thumb.webp', duree: '4 min 47', notesAt: 250.04,
     table: 'commandes',
     bubble: 'Contrôle qui peut consulter ou modifier les données grâce aux droits d’accès.',
     chapters: ['Un accès trop large', 'Les accès nécessaires', 'Ce qu’elle peut consulter', 'Autoriser la consultation', 'Une modification précise', 'Les limites de son accès', 'Retirer les accès',

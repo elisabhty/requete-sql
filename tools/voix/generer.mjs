@@ -8,7 +8,8 @@
    <id>.mp3 et <id>.json (le texte et le minutage de chaque caractère, qui sert à caler les légendes sur la voix).
    Un fichier déjà généré n’est pas refait (sauf si son texte a changé) : relancer le script ne dépense rien de plus.
 
-   Options : <cours> (par défaut le seul fichier .json du dossier), --refaire ch06,at2 (regénère ces fichiers),
+   Options : <cours> (par défaut le seul fichier .json du dossier), --toutes (toutes les leçons qui ont un fichier manquant ou changé),
+   --refaire ch06,at2 (regénère ces fichiers),
    --tout (regénère tout), --oui (ne demande pas de confirmation), --cle (redemande la clé API). */
 import fs from 'node:fs';
 import os from 'node:os';
@@ -76,6 +77,27 @@ async function call(key, url, init){
 
 async function main(){
   const jobs = fs.readdirSync(DIR).filter(f => f.endsWith('.json'));
+  /* --toutes (Elisa, 2 novembre, 10 h 44 : « une commande qui regroupe tout ce que j’ai oublié ») : chaque cours dont un fichier
+     manque ou dont le texte a changé, l’un après l’autre ; les cours déjà complets sont sautés sans rien dépenser. */
+  if (flag('--toutes')) {
+    const reste = jobs.map(f => { const job = JSON.parse(fs.readFileSync(path.join(DIR, f), 'utf8')), out = path.join(DIR, 'sortie', job.cours);
+      const ok = el => { try { return fs.existsSync(path.join(out, el.id + '.mp3')) && JSON.parse(fs.readFileSync(path.join(out, el.id + '.json'), 'utf8')).texte === el.texte; } catch (e) { return false; } };
+      const todo = (job.elements || []).filter(el => !ok(el));
+      return {cours: f.replace(/\.json$/, ''), voix: job.voix && job.voix.nom, n: todo.length, cost: todo.reduce((a, el) => a + el.texte.length, 0)}; }).filter(x => x.n);
+    if (!reste.length) { console.log('\nToutes les leçons sont déjà générées. Rien à faire.'); return; }
+    console.log('\nÀ générer :');
+    for (const x of reste) console.log(`  ${x.cours.padEnd(24)} ${String(x.n).padStart(2)} fichier${x.n > 1 ? 's' : ' '}  (${x.voix})`);
+    const cost = reste.reduce((a, x) => a + x.cost, 0);
+    console.log(`Total : ${reste.length} leçon${reste.length > 1 ? 's' : ''}, environ ${nb(cost)} crédits.`);
+    if (!flag('--oui')) {
+      const a = (await question('On y va ? (o/n) ')).trim().toLowerCase();
+      if (!a.startsWith('o') && !a.startsWith('y')) { console.log('D’accord, rien n’est fait.'); return; }
+    }
+    const {execFileSync} = await import('node:child_process');
+    for (const x of reste) execFileSync(process.execPath, [fileURLToPath(import.meta.url), x.cours, '--oui'], {stdio: 'inherit'});
+    console.log('\nFini : dis à Claude « fini » pour qu’il intègre les nouvelles voix.');
+    return;
+  }
   const name = args.find(a => !a.startsWith('--') && jobs.includes(a.replace(/\.json$/, '') + '.json') && args[args.indexOf(a) - 1] !== '--refaire');
   const file = name ? name.replace(/\.json$/, '') + '.json' : (jobs.length === 1 ? jobs[0] : null);
   if (!file) { console.log('Quel cours ? ' + jobs.map(f => f.replace(/\.json$/, '')).join(', ')); process.exit(1); }
