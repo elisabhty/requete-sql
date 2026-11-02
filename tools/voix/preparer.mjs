@@ -31,10 +31,17 @@ for (const m of page.matchAll(/^const ([A-Z_][A-Z0-9_]* = [^;\n]+);/gm))   // «
     try { consts[k] = vm.runInContext(v, vm.createContext(Object.assign({APP: true}, consts))); } catch (e) {} }
 const chapters = run(block('CHAPTERS'), 'CHAPTERS', consts);
 const captions = run(block('CAPTIONS'), 'CAPTIONS', consts);
-const opens = block('OPENS', '];') ? run(block('OPENS', '];'), 'OPENS', consts) : [];
+/* Les cours du projet construisent OPENS avec un .map(…) sur leurs mails : on rejoue alors les tableaux dont il dépend. */
+const opens = (() => { if (!block('OPENS', '];')) return [];
+  try { const o = run(block('OPENS', '];'), 'OPENS', consts); if (Array.isArray(o) && o.every(x => x && x.prompt)) return o; } catch (e) {}
+  const ctx = Object.assign({}, consts);
+  for (const m of page.matchAll(/^const ([A-Z_][A-Z0-9_]*) = \[/gm)) if (m[1] !== 'OPENS') { try { ctx[m[1]] = run(block(m[1]), m[1], ctx); } catch (e) {} }
+  const a = page.indexOf('const OPENS = ['), end = page.indexOf('\n});', a), line = page.indexOf(';\n', a);
+  const src = page.slice(a, end > 0 && end < page.indexOf('\nconst ', a + 10) ? end + 4 : line + 1);
+  try { const o = run(src, 'OPENS', ctx); return Array.isArray(o) ? o : []; } catch (e) { return []; } })();
 /* Les moments : leurs consignes et indices, lus dans le texte (le reste du tableau dépend de la page). Un moment = un « {at: ». */
 const str = (seg, k) => { const m = seg.match(new RegExp('\\b' + k + ":\\s*'((?:[^'\\\\]|\\\\.)*)'")); return m ? m[1].replace(/\\'/g, "'") : ''; };
-const mSrc = block('MOMENTS') || '';
+const mSrc = block('MOMENTS') || block('PICKS') || '';   // les cours du projet appellent leurs moments PICKS
 const moments = mSrc.split(/\{\s*at:/).slice(1).map(seg => ({prompt: str(seg, 'prompt'), hint: str(seg, 'hint')}));
 
 const plain = h => String(h).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
@@ -61,7 +68,9 @@ const MOTS_CLES = {AS: 'aze', IN: 'inne', ON: 'onne', OR: 'or', BY: 'baï', IS: 
   EXISTS: 'ègzisste', WITH: 'ouisse', RECURSIVE: 'rikeursive', INTERSECT: 'inntersècte', EXCEPT: 'ixèpte', OVER: 'ôveur',
   /* Le module « Fonctions de fenêtre » (voix de Dorian). */
   PARTITION: 'partition', RANK: 'rannk', LAG: 'lague', LEAD: 'lîde', ROWS: 'raôze', ROW: 'raô', PRECEDING: 'prissîdinngue',
-  FOLLOWING: 'folôouinngue', CURRENT: 'keurennte', UNBOUNDED: 'eunnbaoundide', RANGE: 'réïndje'};
+  FOLLOWING: 'folôouinngue', CURRENT: 'keurennte', UNBOUNDED: 'eunnbaoundide', RANGE: 'réïndje',
+  /* Le projet (voix d’Agathe) : la suite parle de CREATE TABLE. */
+  CREATE: 'criéïte', TABLE: 'téïbeul'};
 /* Les noms de colonnes et de tables sans accent (le code n’en met pas) : dits avec leurs accents. */
 const ACCENTS = {prenom: 'prénom', prenoms: 'prénoms', age: 'âge', ages: 'âges', selection: 'sélection', quantite: 'quantité', quantites: 'quantités',
   categorie: 'catégorie', categories: 'catégories', numero: 'numéro', etre: 'être', fidelite: 'fidélité', seance: 'séance', seances: 'séances',
@@ -75,6 +84,7 @@ const ACCENTS = {prenom: 'prénom', prenoms: 'prénoms', age: 'âge', ages: 'âg
 const SIGNES = {'<=': 'inférieur ou égal', '>=': 'supérieur ou égal', '!=': 'différent', '<>': 'différent', '<': 'inférieur', '>': 'supérieur', '=': 'égal'};
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 DIRE.unshift([/\b(\d{4})-(\d{2})-(\d{2})\b/g, (m, a, mo, j) => (+j === 1 ? '1er' : String(+j)) + ' ' + MOIS[+mo - 1] + ' ' + a],
+  [/(\d)\.\.\*/g, '$1 point point étoile'], [/(\d)\.\.(\d)/g, '$1 point point $2'], [/(^|\s)\*(?=\s)/g, '$1étoile'], [/([a-zé])\/(?=l[ae] )/g, '$1 ou '],
   [/GROUP_CONCAT/g, 'groupe-konkatte'], [/ROW_NUMBER/g, 'raô-nommbeur'], [/DENSE_RANK/g, 'dènnse-rannk'], [/PERCENT_RANK/g, 'peursènnte-rannk'], [/rendez_vous/g, 'rendez-vous'], [/([A-Za-zÀ-ÿ0-9])\.(?=[a-zà-ÿ])/g, '$1 point '], [/'([^']+)'/g, '$1'], [/(\d)\s*%/g, '$1 pour cent'], [/\s*→\s*/g, ', donne '],
   [/(^|\s)([%_A-Za-zÀ-ÿ]*[%_][%_A-Za-zÀ-ÿ]*)(?=[\s,.;:!?»)]|$)/g, (m, a, w) => /[%_]/.test(w) && !/[A-Za-zÀ-ÿ]_[A-Za-zÀ-ÿ]/.test(w)
     ? a + w.split(/([%_])/).filter(Boolean).map(x => x === '%' ? 'pourcent' : x === '_' ? 'tiret bas' : x).join(', ') : m],
@@ -165,7 +175,9 @@ const MIA = {id: 'PrwKJdvtTbJVdosRhS1O', nom: 'Mia'}, SOUS_REQUETES = ['sous-req
   'with-cte', 'union', 'intersect-except', 'with-recursive'];
 /* 9 h 14 : le module « Fonctions de fenêtre » avec Dorian (« Dorian – Jeune homme calme français sans accent »), le formateur. */
 const DORIAN = {id: 'vp2FCFmQCE4NzuQj9QNe', nom: 'Dorian'}, FENETRES = ['over', 'fonctions-rang', 'lag-lead', 'fenetres-glissantes'];
-const voix = AGATHE.includes(cours) ? base.voix : AGREGATS.includes(cours) ? ANTOINE : JOINTURES.includes(cours) ? PERLE
+/* 9 h 21 : le module « Modéliser » reprend la formatrice du premier module (Agathe, la blonde). */
+const MODELISER = ['projet-normaliser', 'projet-cles', 'projet-uml'];
+const voix = AGATHE.includes(cours) || MODELISER.includes(cours) ? base.voix : AGREGATS.includes(cours) ? ANTOINE : JOINTURES.includes(cours) ? PERLE
   : SOUS_REQUETES.includes(cours) ? MIA : FENETRES.includes(cours) ? DORIAN : ADAM;
 const job = {cours, titre: intro.sub, voix, modele: base.modele, langue: base.langue, format: base.format, elements: out};
 fs.writeFileSync(path.join(DIR, cours + '.json'), JSON.stringify(job, null, 2) + '\n');
