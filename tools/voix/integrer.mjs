@@ -76,7 +76,11 @@ function bounds(L, spans, dur){
   const head = (s0, s1) => { let first = Math.round(s1 * 100); for (let i = first - 1; i >= Math.round(s0 * 100); i--) { if (L.rms[i] >= low) first = i; else if (still(i - 5, 6)) break; } return first / 100; };
   /* La pause entre deux phrases : le silence qui finit là où la phrase suivante commence (le minutage situe bien les débuts ;
      la fin d’une phrase, lui, la place parfois avant sa dernière syllabe, et un « t » ou un « p » y fait un court silence). */
-  const pause = t => S.filter(x => x[1] >= t - 0.3 && x[1] <= t + 0.15).sort((x, y) => Math.abs(x[1] - t) - Math.abs(y[1] - t))[0];
+  /* Elisa, 2 novembre, 18 h 08 : « on perd la voix : "chh. Chaque colonne…" ». Le « ch » de « Chaque » est suivi d’un blanc de 80 ms
+     avant « aque » : la coupe tombait dans ce blanc, au milieu du mot. Une vraie pause entre deux phrases dure au moins 0,15 s :
+     la plus proche de ces pauses-là passe d’abord, un blanc plus court ne sert que s’il n’y en a pas. */
+  const pause = t => { const c = S.filter(x => x[1] >= t - 0.45 && x[1] <= t + 0.15), near = (x, y) => Math.abs(x[1] - t) - Math.abs(y[1] - t);
+    return c.filter(x => x[1] - x[0] >= 0.15).sort(near)[0] || c.filter(x => x[1] >= t - 0.3).sort(near)[0]; };
   const cuts = spans.map(([s], k) => k ? pause(s) : null);
   return spans.map(([s, e], k) => {
     const pre = k ? cuts[k] : pause(s), post = k + 1 < spans.length ? cuts[k + 1] : S.filter(x => x[0] >= e - 0.3 && x[1] >= dur - 0.05)[0];

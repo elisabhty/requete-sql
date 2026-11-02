@@ -478,7 +478,7 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '9 min 46', notesAt: 492.4, maxKo: 760,   // 760 Ko depuis le 31 octobre (la voix off d’Agathe : ses phrases calées dans la page, ~9 Ko) ; 730 Ko depuis le 29 octobre (nouvelle intro du moteur commun, ~9 Ko, et sa vignette refaite dans la DA de la vitrine, 22 → 36 Ko) ; 700 Ko depuis le 28 octobre : le recrutement (SMS, l’image du badge d’Elisa, 75 Ko) et le site qui interroge le SGBD
+  {id: 0, next: 2, titre: 'Les bases de données relationnelles', page: 'bases-relationnelles.html', thumb: 'bases-relationnelles-thumb.webp', duree: '9 min 50', notesAt: 492.4, maxKo: 760,   // 760 Ko depuis le 31 octobre (la voix off d’Agathe : ses phrases calées dans la page, ~9 Ko) ; 730 Ko depuis le 29 octobre (nouvelle intro du moteur commun, ~9 Ko, et sa vignette refaite dans la DA de la vitrine, 22 → 36 Ko) ; 700 Ko depuis le 28 octobre : le recrutement (SMS, l’image du badge d’Elisa, 75 Ko) et le site qui interroge le SGBD
     table: 'clients',
     bubble: 'Découvre comment les données sont organisées en tables et reliées entre elles.',
     chapters: ['Situation', 'Le problème', 'Ta mission', 'Le découpage', 'Base de données et SGBD', 'La clé primaire', 'La clé étrangère', 'Lire une table', 'Choisir les colonnes', 'Deux pièges', 'À retenir'],
@@ -587,7 +587,7 @@ const COURSES = [
     traps: ['<span class="kw">WHERE</span> stock <span class="cbox" id="eqA">=<i class="mbox"></i></span><span class="glow" id="leA">&lt;=</span> 60;',
       'Son stock est-il inférieur<br>ou égal à 60 ?', '<span class="kw">WHERE</span> stock &lt; 60', '<span class="kw">WHERE</span> stock &lt;= 60',
       "<span class=\"kw\">WHERE</span> categorie != <span class=\"str glow\" id=\"s6str\">'Accessoire'</span>;", 'Un texte, entre guillemets simples']},
-  {id: 6, next: 22, titre: 'AND et OR', page: 'and-or.html', thumb: 'and-or-thumb.jpg', duree: '2 min 37', notesAt: 111.5,
+  {id: 6, next: 22, titre: 'AND et OR', page: 'and-or.html', thumb: 'and-or-thumb.jpg', duree: '2 min 36', notesAt: 111.5,
     maxKo: 560,   // la photo de la conférence (43 Ko), comme le badge du cours 0
     table: 'clients',
     bubble: 'Combine plusieurs conditions avec <span class="ic">AND</span> et <span class="ic">OR</span> pour préciser ton filtre.',
@@ -597,7 +597,7 @@ const COURSES = [
       '<span class="op2">AND</span>', '<span class="op2">OR</span>', 'AND est prioritaire sur OR', 'entre parenthèses : calculé en premier', 'Ne remplit pas<br>le critère d’âge',
       'Nathan Dupont, 30 ans, est ainsi invité alors qu’il ne devrait pas l’être.',
       '<span id="lp">(</span><span id="cP">ville = <span class="str">\'Paris\'</span></span> <span class="kw">OR</span> <span id="cL">ville = <span class="str">\'Lyon\'</span></span><span id="rp">)</span> <span class="kw" id="and5">AND</span> <span id="cA">age &gt; 30</span>']},
-  {id: 22, next: 7, titre: 'NOT', page: 'not.html', thumb: 'not-thumb.jpg', duree: '2 min 47', notesAt: 109.7,
+  {id: 22, next: 7, titre: 'NOT', page: 'not.html', thumb: 'not-thumb.jpg', duree: '2 min 45', notesAt: 109.7,
     table: 'clients',
     bubble: 'Utilise <span class="ic">NOT</span> pour exclure les lignes qui respectent une condition.',
     chapters: ['Situation', 'Le problème', 'NOT en action', 'NOT ou l’inverse', 'Les parenthèses', 'Le résultat', 'À retenir'],
@@ -712,7 +712,7 @@ const COURSES = [
       '"Pendant la semaine des <b>points doublés</b>, organisée une fois dans l’année, <span class=\\"nw\\">seuls les euros entiers comptent</span>."',
       '"<code>FLOOR(prix)</code> retire les centimes, <span class=\\"nw\\">puis ×\\u00a02</span> calcule les points gagnés."', 'hold(2.3, 3.1);',
       '"Sur chaque fiche produit, le site web veut afficher les points gagnés à l’achat."']},
-  {id: 53, next: 54, titre: 'Fonctions de dates et heures', page: 'fonctions-dates.html', thumb: 'fonctions-dates-thumb.jpg', duree: '2 min 53', notesAt: 131.5,
+  {id: 53, next: 54, titre: 'Fonctions de dates et heures', page: 'fonctions-dates.html', thumb: 'fonctions-dates-thumb.jpg', duree: '2 min 50', notesAt: 131.5,
     table: 'commandes',
     bubble: 'Extrais, transforme et compare des dates et des heures.',
     chapters: ['Situation', 'Le problème', 'DATE en action', 'Le calendrier', 'Changer l’affichage', 'Le résultat', 'À retenir'],
@@ -722,7 +722,7 @@ const COURSES = [
       '<span class="pt">2026<span class="dim">-07-02</span></span><span class="pj">+</span><span class="pt">7</span>', '<b>Résultat : 2033</b><span class="s">La date est lue comme le nombre 2026.</span>',
       '<span class="cp bad" id="bad4">✕ <s>2026-07-35</s></span><span class="cp good" id="good4">✓ 2026-08-04</span>',
       '<span class="dc">\'+1 month\'</span>', '<span class="dc">\'%d/%m/%Y\'</span><span class="ol">à la française</span>', '<span class="dc">\'%d\'</span><span class="ol">le jour</span>', '<span class="ic">STRFTIME()</span> change<br>l’<b>affichage</b> d’une date&nbsp;:', '✓ 16 messages planifiés']},
-  {id: 54, next: 21, titre: 'Fonctions de conversion de types', page: 'conversion-types.html', thumb: 'conversion-types-thumb.jpg', duree: '3 min 06', notesAt: 148.4,
+  {id: 54, next: 21, titre: 'Fonctions de conversion de types', page: 'conversion-types.html', thumb: 'conversion-types-thumb.jpg', duree: '3 min 05', notesAt: 148.4,
     table: 'commandes',
     bubble: 'Utilise <span class="ic">CAST</span> pour convertir une valeur d’un&nbsp;type vers un autre.',
     chapters: ['Situation', 'Le problème', 'CAST en action', 'Extraire, puis convertir', 'Les types', 'Le résultat', 'À retenir'],
@@ -1063,7 +1063,7 @@ const COURSES = [
       '<span class="glow" id="nb5"><span class="kw">ORDER BY</span> client_id, date_commande, id</span>', '<span class="jr" id="j5b">−23</span>',
       '✕ Lucas Bernard lit la commande de Sophie Martin', '<span class="glow" id="av6"><span class="kw">COALESCE</span>(<span class="kw">AVG</span>(jours_depuis), 10)</span>',
       '🔔 Hugo Laurent et Gabriel Michel&nbsp;: 10 jours par défaut', '✓ 8 rappels programmés']},
-  {id: 79, next: 89, titre: 'Fenêtres glissantes', page: 'fenetres-glissantes.html', thumb: 'fenetres-glissantes-thumb.jpg', duree: '3 min 06', notesAt: 162.7,
+  {id: 79, next: 89, titre: 'Fenêtres glissantes', page: 'fenetres-glissantes.html', thumb: 'fenetres-glissantes-thumb.jpg', duree: '3 min 05', notesAt: 162.7,
     table: 'commandes',
     bubble: 'Définis les lignes à prendre en compte autour de chaque ligne pour effectuer un calcul.',
     chapters: ['Situation', 'Le problème', 'Le cumul', 'La moyenne mobile', 'Le piège', 'Le résultat', 'À retenir'],
@@ -1123,7 +1123,7 @@ const COURSES = [
       "const SHOP_ASSOCS = ASSOCS.concat([['pa', 'passe', '▾', 'cl', '0..1', 'cm', '0..*'], ['ce', 'concerne', '◂', 'cm', '0..*', 'pr', '1']]);",
       '<line id="ln-an"/><line id="ln-po"/><line id="ln-in"/><line id="ln-cx" class="dash"/>', "tl.to('#sb .mp:not(.ask) .mn', {opacity: 0.28,",
       'Prochaine leçon · CREATE TABLE']},
-  {id: 61, next: 65, titre: 'CREATE TABLE', page: 'projet-create.html', thumb: 'projet-create-thumb.webp', duree: '4 min 35', notesAt: 198.9,
+  {id: 61, next: 65, titre: 'CREATE TABLE', page: 'projet-create.html', thumb: 'projet-create-thumb.webp', duree: '4 min 34', notesAt: 198.9,
     table: 'coachs',
     bubble: 'Crée une nouvelle table en définissant ses colonnes, leurs types et leurs règles.',
     chapters: ['Le plan', 'La table coachs', 'L’ordre des tables', 'La table ateliers', 'La carte de membre', 'Exécuter', 'À retenir'],
