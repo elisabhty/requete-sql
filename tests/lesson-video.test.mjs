@@ -768,6 +768,7 @@ const COURSES = [
       '<span class="glow" id="as6b"><span class="kw">AS</span> categories</span>', '✓ Compteurs à jour']},
   /* SUM, AVG, MIN et MAX (1er novembre, Elisa, 22 h 47 : « de manière gamifiée ») : le tableau de bord du stock, une étoile par compteur. */
   {id: 85, next: 16, titre: 'SUM, AVG, MIN et MAX', page: 'agregats.html', thumb: 'agregats-thumb.jpg', duree: '3 min 00', notesAt: 140.1,
+    maxKo: 525,   // 525 depuis le 2 novembre, 10 h 32 : les portraits des douze formateurs dans core.css
     table: 'produits',
     bubble: 'Additionne, fais la moyenne ou trouve les extrêmes d’une&nbsp;colonne.',
     chapters: ['Situation', 'SUM', 'AVG', 'MIN et MAX', 'D’autres colonnes', 'Le résultat', 'À retenir'],
