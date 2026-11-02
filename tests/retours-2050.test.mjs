@@ -42,8 +42,15 @@ test('20 h 29 : le premier cours dit ce qu’est le SQL et une requête, puis le
     '[212.15, 216.95, "Le SGBD l’<b>exécute</b>',
     '[290.45, 296.55, "Elle se déclare à la création de la table, avec <code>PRIMARY KEY</code> placé juste après le type de la colonne."]',
     '[296.65, 301.65, "<code>INTEGER</code> est le <b>type de donnée</b><br>de la colonne <code>id</code> : un nombre entier."]',
-    '<span><code>clients.prenom</code><b>TEXT</b></span><span><code>clients.email</code><b>TEXT</b></span><span><code>produits.prix</code><b>REAL</b></span>',
+    '<span><code>prenom</code><b>TEXT</b></span><span><code>email</code><b>TEXT</b></span><span><code>prix</code><b>REAL</b></span>',
     "pulse($$('#rq1 .kw'), 208.1, 3, 'rgba(255,224,138,.55)');", "stackBelow('#pkty', '#pk5', 0, 34);", 'const DURATION = 527.55;'])
     assert.ok(p.includes(t), t);
   assert.ok(app.includes("thumb:'assets/anim/bases-relationnelles-thumb.webp',duree:'10 min 20'"), 'la fiche du cours : sa nouvelle durée');
+});
+
+test('20 h 56 : les étiquettes des types sans le nom de la table ; « 1er » en exposant ; le résultat de CASE au-dessus de la légende', () => {
+  const dates = anim('fonctions-dates.html'), cas = anim('case.html');
+  assert.ok(dates.includes('la date passe au 1<sup>er</sup> août."]') && dates.includes('["vwjy7or","ch04",5.24,9.99]') && !dates.includes('1ᵉʳ'), '1er, la voix suit');
+  assert.ok(dates.includes('#cap sup{font-size:.62em;line-height:0;vertical-align:.62em;letter-spacing:0}'));
+  assert.ok(cas.includes('<div class="tbl card" id="tbl6">') && cas.includes("stackBelow('#tbl6', '#s6code', 0, 24);") && cas.includes('#rows6 .tr.tc{height:42px;font-size:26px}'));
 });
