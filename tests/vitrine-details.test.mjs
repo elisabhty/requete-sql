@@ -157,7 +157,7 @@ test('langue : bien en vue — dans la barre dès 480 px, en tête du menu sur l
   assert.doesNotMatch(css, /\.lang-btn \.gl\{display:none\}/, 'le globe reste visible');
 });
 test('héros : le nouveau texte d’accroche', () => {
-  assert.ok(lire('index.html').includes('<p class="lead load l2">67 cours immersifs, un labo SQL interactif et la possibilité d’importer tes propres données. Même si tu n’as jamais codé, tu apprends pas à pas et progresses à ton rythme, en quelques minutes par jour.</p>'));
+  assert.ok(lire('index.html').includes('<p class="lead load l2">68 cours immersifs, un labo SQL interactif et la possibilité d’importer tes propres données. Même si tu n’as jamais codé, tu apprends pas à pas et progresses à ton rythme, en quelques minutes par jour.</p>'));
 });
 
 test('héros : la photo est l’avis audio de Sofia, avec les autocollants autour ; voix de synthèse dite dans les mentions légales', () => {
@@ -350,7 +350,7 @@ test('vidéo : « Apprends le SQL maintenant. » puis les neuf tuiles des foncti
   assert.ok(s9.includes('<span>Du premier <code>SELECT</code></span>') && s9.includes('<span>aux requêtes <em>avancées</em>,</span>'), 'titre');
   assert.ok(s9.includes('<p class="abs sub">progresse à ton rythme.</p>'), 'la phrase continue sous le titre');
   const tuiles = [...s9.matchAll(/<div class="ft(?: more)?">.*?<b>(.*?)<\/b><\/div>/g)].map(m => m[1]);
-  assert.deepEqual(tuiles, ['67 cours immersifs', 'Un labo&nbsp;SQL interactif', '267 cas pratiques', 'Importe tes propres données',
+  assert.deepEqual(tuiles, ['68 cours immersifs', 'Un labo&nbsp;SQL interactif', '267 cas pratiques', 'Importe tes propres données',
     '141 questions d’entretien', 'Cartes mémo &amp; stickers', 'Défie tes amis', 'Ta série de jours',
     'Et bien plus encore<small>Découvre-les maintenant&nbsp;!</small>']);
   /* Quatre rangées de deux, puis « Et bien plus encore » sur toute la largeur (Elisa, 20 h 01 : « tout est tassé »).
@@ -374,7 +374,7 @@ test('vidéo : « Apprends le SQL maintenant. » puis les neuf tuiles des foncti
   assert.match(video, /#end\.on a,#end\.on button\{animation:endPop [^}]*backwards\}/, 'l’entrée ne bloque pas le survol');
   /* Texte lu par VoiceOver */
   assert.ok(video.includes("'Apprends le SQL maintenant. Pratique sur de vraies données avec Requête. L’app, pensée pour les futurs data analysts. Des cours interactifs"));
-  assert.ok(video.includes("'Du premier SELECT aux requêtes avancées, progresse à ton rythme. 67 cours immersifs, un labo SQL interactif, 267 cas pratiques et 141 questions d’entretien"));
+  assert.ok(video.includes("'Du premier SELECT aux requêtes avancées, progresse à ton rythme. 68 cours immersifs, un labo SQL interactif, 267 cas pratiques et 141 questions d’entretien"));
 });
 
 /* Elisa, 30 octobre, 17 h 31 : un écran d’onboarding avec des logos de Harvard, Stanford et Emory (« est-ce qu’on peut

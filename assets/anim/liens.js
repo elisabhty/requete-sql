@@ -27,6 +27,7 @@ window.LIENS = [
   {page: 'count', titre: 'COUNT', passe: 'tu as compté des lignes avec <code>COUNT</code>', futur: 'tu compteras des lignes avec <code>COUNT</code>'},
   {page: 'agregats', titre: 'SUM, AVG, MIN et MAX', passe: 'tu as calculé totaux, moyennes et extrêmes avec <code>SUM</code>, <code>AVG</code>, <code>MIN</code> et <code>MAX</code>', futur: 'tu calculeras totaux, moyennes et extrêmes avec <code>SUM</code>, <code>AVG</code>, <code>MIN</code> et <code>MAX</code>'},
   {page: 'group-by', titre: 'GROUP BY', passe: 'tu as fait un calcul par groupe avec <code>GROUP BY</code>', futur: 'tu feras un calcul par groupe avec <code>GROUP BY</code>'},
+  {page: 'group-by-colonnes', titre: 'GROUP BY sur plusieurs colonnes', passe: 'tu as regroupé sur plusieurs colonnes avec <code>GROUP BY</code>', futur: 'tu regrouperas sur plusieurs colonnes avec <code>GROUP BY</code>'},
   {page: 'having', titre: 'HAVING', passe: 'tu as filtré des groupes avec <code>HAVING</code>', futur: 'tu filtreras des groupes avec <code>HAVING</code>'},
   {page: 'group-concat', titre: 'GROUP_CONCAT', passe: 'tu as rassemblé les textes d’un groupe avec <code>GROUP_CONCAT</code>', futur: 'tu rassembleras les textes d’un groupe avec <code>GROUP_CONCAT</code>'},
   {page: 'inner-join', titre: 'INNER JOIN', passe: 'tu as associé deux tables avec <code>INNER JOIN</code>', futur: 'tu associeras deux tables avec <code>INNER JOIN</code>'},
