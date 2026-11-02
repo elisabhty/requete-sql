@@ -800,7 +800,7 @@ const COURSES = [
       '<span class="glow" id="pn5">prenom</span>, ville, <span class="kw">COUNT</span>(*)', '<span class="vv" id="so5">Sophie</span>',
       '<span class="ok">SQLite&nbsp;: un prénom au choix</span><span class="ko">Autres bases&nbsp;: une erreur</span>', '<span class="cv">✕ ni l’un ni l’autre</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> nb_clients</span>', '✓ Paris en tête avec 4 clients']},
-  {id: 87, next: 17, titre: 'GROUP BY sur plusieurs colonnes', page: 'group-by-colonnes.html', thumb: 'group-by-colonnes-thumb.jpg', duree: '3 min 15', notesAt: 180.3,
+  {id: 87, next: 17, titre: 'GROUP BY sur plusieurs colonnes', page: 'group-by-colonnes.html', thumb: 'group-by-colonnes-thumb.jpg', duree: '3 min 19', notesAt: 180.3,
     table: 'commandes',
     bubble: 'Regroupe les lignes selon plusieurs colonnes à la fois&nbsp;: un groupe par combinaison de valeurs.',
     chapters: ['Situation', 'Le problème', 'Deux colonnes', 'Le groupe absent', 'Le piège', 'Le résultat', 'À retenir'],
