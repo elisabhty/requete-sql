@@ -823,7 +823,7 @@ const COURSES = [
       '<span class="emo">🎂</span>&nbsp;7 clients de 30 ans ou plus</span>', '<span class="kw">WHERE</span> <span class="glow" id="cw5"><span class="kw">COUNT</span>(*) &gt;= 2</span>',
       '<b>Erreur SQL</b><span class="m">misuse of aggregate: COUNT()</span>', '<span class="sk">HAVING</span><span class="sx">trie les groupes</span><span class="sc ok" id="sc5c">COUNT(*) ✓</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> nb_clients</span>', '✓ 2 ateliers&nbsp;: Paris et Lyon']},
-  {id: 88, next: 76, titre: 'L’ordre d’exécution', page: 'ordre-execution.html', thumb: 'ordre-execution-thumb.jpg', duree: '3 min 15', notesAt: 181.2,
+  {id: 88, next: 76, titre: 'L’ordre d’exécution', page: 'ordre-execution.html', thumb: 'ordre-execution-thumb.jpg', duree: '3 min 17', notesAt: 181.2,
     table: 'commandes',
     bubble: 'Découvre dans quel ordre les clauses d’une requête sont exécutées, et ce que cela change.',
     chapters: ['Situation', 'Écrire, exécuter', 'Étape par étape', 'WHERE ou HAVING', 'L’alias', 'Le résultat', 'À retenir'],
