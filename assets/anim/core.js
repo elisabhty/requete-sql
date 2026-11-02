@@ -1013,6 +1013,10 @@ function contentBox(){
   /* Une pastille centrée (.pack : « 6 situations à ranger », « 2 clés étrangères »…) : son conteneur est transparent et c’est elle qui porte le cadre.
      Sans elle, la feuille de réponse la recouvrait (Elisa, 25 octobre, 15 h 48 : « la pastille qu’on ne voit pas »). */
   if (!veil) $$('section.scene > .pack > span', stage).forEach(take);
+  /* De même pour toute pastille posée dans un conteneur transparent (.pill, .badge, le verdict .vd de « Quel JOIN choisir ? »…) :
+     c’est son enfant qui porte le fond. Sans lui, le verdict apparu après la réponse restait sous la feuille de correction
+     (Elisa, 2 novembre, 12 h 17, réf. 5 et 6). */
+  if (!veil) $$('section.scene > *', stage).forEach(el => { if (!isBox(el) && !el.matches('.card, .code, .mb')) [...el.children].forEach(c => { if (c.nodeType === 1 && isBox(c)) take(c); }); });
   let best = null;
   set.forEach(el => {
     if (el.closest('#cap, #chapter, #chap') || shown(el) < 0.3) return;

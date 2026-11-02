@@ -139,7 +139,7 @@ circle.ok{fill:#2FA36B}circle.ko{fill:#E5484D}circle.cr{fill:#8B6CFF}
     <div class="abs title"><span>J</span><span>O</span><span>I</span><span class="sp">N</span><span>?</span></div>
     <div class="abs sub">Choisir la bonne jointure</div>
     <img class="abs mascot" src="mascotte.webp" alt="">
-    <div class="abs bubble">Apprends à choisir le type de <span class="ic">JOIN</span> adapté au résultat que tu veux obtenir.</div>
+    <div class="abs bubble">As-tu bien compris les jointures&nbsp;? Choisis la bonne dans six lieux différents, loin des bases de NutriBoost.</div>
   </section>
 
   <!-- 1 à 6 · Les six cas : chaque scène est construite par dom() à partir de CASES et de PICKS -->
@@ -321,7 +321,7 @@ const CAPTIONS = [
   [73.7, 79.0,   "<code>LEFT JOIN</code> garde toute la table placée après <code>FROM</code> : ici, les bassins."],
   [79.1, 83.8,   "Les Abysses apparaissent avec <code>NULL</code> : aucun animal n’y vit."],
   [84.6, 90.6,   "À la bibliothèque, l’inventaire montre <b>tous les livres</b>, même jamais empruntés."],
-  [90.7, 96.6,   "Or la requête part de la table <code>emprunts</code>, et Germinal n’a jamais été emprunté."],
+  [90.7, 96.6,   "Or la requête part de la table <code>emprunts</code>, et le livre Germinal n’a jamais été emprunté."],
   [96.7, 100.7,  "À toi !"],
   [100.8, 106.1, "<code>RIGHT JOIN</code> garde toute la table placée après <code>JOIN</code> : ici, les livres."],
   [106.2, 113.4, "À toi !"],
@@ -558,7 +558,7 @@ function endCase(n, t){
 function build(){
   introScene();
   gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
-  hold(2.3, 2.3);   // le temps de lire la bulle de la mascotte
+  hold(2.3, 4.6);   // le temps de lire la bulle de la mascotte (Elisa, 2 novembre, 12 h 17 : une intro qui dit pourquoi on quitte NutriBoost)
   layout();
   /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
      la consigne, la légende ne la répète pas. Le passage d’attente est coupé (rien ne s’y anime). */
@@ -832,7 +832,9 @@ const IX = (() => {
     // Le verdict
     const v = put(S, vdHTML(P, o, ok, '', '', 'vx' + uid++), VT[i]);
     anim(v, [{opacity: 0, transform: 'scale(.7)'}, {opacity: 1, transform: 'none'}], {delay: tv, duration: 380});
-    return new Promise(res => later(tv, () => res({ok, say: fr(o.say), why: fr(o.why || o.say)})));
+    /* La correction arrive une fois le verdict posé (son apparition dure 380 ms) : l’app mesure alors le contenu complet et réduit
+       l’image d’un coup, sans cacher le verdict sous la feuille (Elisa, 2 novembre, 12 h 17, réf. 5 et 6). */
+    return new Promise(res => later(tv + 400, () => res({ok, say: fr(o.say), why: fr(o.why || o.say)})));
   }
   /* Deux erreurs : une phrase pour orienter le raisonnement, sous la consigne. */
   function hint(i){
