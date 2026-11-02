@@ -1551,7 +1551,7 @@ function pontVoice(v){
    AVANT qu’un nouvel élément n’arrive (rien n’est jamais coupé), et passe d’une taille à l’autre en douceur. Sur un téléphone, l’image
    remplit déjà la largeur : rien ne change. Le contenu de chaque instant est relevé une fois (par petits lots, sans gêner la lecture). */
 const CAM_ZMAX = 1.6, CAM_STEP = 0.2, CAM_MIN = 1.06;
-const CAM = {on: false, samp: null, z: null, y0: null, lastT: 0};
+const CAM = {on: false, samp: null, z: null, o: null, lastT: 0};
 if (typeof window !== 'undefined') window.__cam = CAM;
 function camVis(el){ const cs = getComputedStyle(el); return cs.display !== 'none' && cs.visibility !== 'hidden' && +cs.opacity > 0.3; }
 /* Le cadre visible d’un élément : lui-même s’il porte un fond, un cadre ou du texte ; sinon ce que montrent ses enfants. */
@@ -1600,25 +1600,38 @@ function camPlan(dur){
 function camFit(){
   const stage = $('#stage'); if (!CAM.samp || !stage) return;
   const k = stage.getBoundingClientRect().width / 1080 || 1, capT = ($('#cap') ? $('#cap').offsetTop : 1526) - 56, half = (innerWidth / 2 - 18) / k;
-  const y0 = new Map(), at = (i, s) => (CAM.samp[i] || []).find(x => x.s === s);
-  CAM.samp.forEach(h => (h || []).forEach(x => y0.set(x.s, Math.min(y0.has(x.s) ? y0.get(x.s) : 1e9, x.b.t))));
-  /* Le haut de la scène reste sous la puce du chapitre : une scène qui monte jusqu’à elle ne grandit pas. */
-  const zOf = x => { const Y = y0.get(x.s); if (Y < 185) return 1;
-    const hw = Math.max(540 - x.b.l, x.b.r - 540, 1), vh = Math.max(x.b.b - Y, 1);
-    return Math.max(1, Math.min(CAM_ZMAX, half / hw, ((x.free ? 1880 : capT) - Y) / vh)); };
-  const zs = new Map();
+  const at = (i, s) => (CAM.samp[i] || []).find(x => x.s === s), scenes = new Set();
+  CAM.samp.forEach(h => (h || []).forEach(x => scenes.add(x.s)));
+  /* Elisa, 2 novembre, 0 h 57 (réf. 2) : « tu peux le centrer (trop bas, corrige ailleurs) ». La scène grandit autour d’un point choisi pour
+     que ses vides au-dessus (sous la puce du chapitre) et au-dessous (jusqu’à la bulle, ou jusqu’en bas quand la bulle est cachée) restent
+     dans la même proportion : un contenu centré reste centré, un contenu calé en haut reste en haut. Une scène qui monte jusqu’à la puce
+     ne grandit pas. */
+  const A = 185;
+  const fitOf = x => { const B = x.free ? 1880 : capT, h = Math.max(x.b.b - x.b.t, 1), ga = x.b.t - A, gb = B - x.b.b;
+    if (ga < 0 || gb < 0) return {z: 1, o: x.b.t};
+    const hw = Math.max(540 - x.b.l, x.b.r - 540, 1);
+    return {z: Math.max(1, Math.min(CAM_ZMAX, half / hw, (B - A) / h)), o: x.b.t + h * ga / (ga + gb)}; };
+  const zs = new Map(), os = new Map();
   let top = 1, ext = 0;
-  for (const s of y0.keys()) {
-    let a = CAM.samp.map((_, i) => { const x = at(i, s); return x ? zOf(x) : null; });
-    let last = null; a = a.map(z => (z == null ? last : (last = z)));
-    let next = null; for (let i = a.length - 1; i >= 0; i--) { if (a[i] == null) a[i] = next; else next = a[i]; }
-    a = a.map(z => (z == null ? 1 : z));
+  const fill = a => { let last = null; a = a.map(v => (v == null ? last : (last = v)));
+    let next = null; for (let i = a.length - 1; i >= 0; i--) { if (a[i] == null) a[i] = next; else next = a[i]; } return a; };
+  const avg = a => a.map((_, i) => { const w = a.slice(Math.max(0, i - 2), i + 3); return w.reduce((p, q) => p + q, 0) / w.length; });
+  for (const s of scenes) {
+    const f = CAM.samp.map((_, i) => { const x = at(i, s); return x ? fitOf(x) : null; });
+    let a = fill(f.map(v => v && v.z)).map(z => (z == null ? 1 : z));
     a = a.map((_, i) => Math.min(...a.slice(Math.max(0, i - 2), i + 5)));   // réduit 1 s avant l’arrivée d’un élément (et le moyennage ne dépasse jamais)
-    a = a.map((_, i) => { const w = a.slice(Math.max(0, i - 2), i + 3); return w.reduce((p, q) => p + q, 0) / w.length; });   // en douceur
-    zs.set(s, a);
+    a = avg(a);   // en douceur
+    const o = avg(fill(f.map(v => v && v.o)).map(v => (v == null ? 240 : v)));
+    /* Dernier contrôle, avec le point retenu : sur toute la fenêtre de lissage, le contenu agrandi reste sous la puce et au-dessus de la bulle. */
+    a = a.map((z, i) => { for (let j = Math.max(0, i - 2); j <= Math.min(a.length - 1, i + 4); j++) { const x = at(j, s); if (!x) continue;
+      const B = x.free ? 1880 : capT;
+      if (o[i] > x.b.t + 0.5) z = Math.min(z, Math.max(1, (o[i] - A) / (o[i] - x.b.t)));
+      if (x.b.b > o[i] + 0.5) z = Math.min(z, Math.max(1, (B - o[i]) / (x.b.b - o[i]))); }
+      return z; });
+    zs.set(s, a); os.set(s, o);
     a.forEach((z, i) => { top = Math.max(top, z); const x = at(i, s); if (x) ext = Math.max(ext, Math.max(540 - x.b.l, x.b.r - 540) * z - 540); });
   }
-  CAM.z = zs; CAM.y0 = y0; CAM.on = top >= CAM_MIN;
+  CAM.z = zs; CAM.o = os; CAM.on = top >= CAM_MIN;
   /* La scène agrandie déborde sur les côtés de l’image (le haut et le bas restent coupés comme avant). */
   stage.style.overflow = CAM.on ? 'visible' : '';
   stage.style.clipPath = CAM.on ? `inset(0 ${-Math.ceil(Math.max(0, ext) + 40)}px)` : '';
@@ -1629,8 +1642,8 @@ function camRender(t){
   if (!CAM.on || !CAM.z) return;
   const f = Math.max(0, t) / CAM_STEP, i = Math.floor(f), w = f - i;
   for (const [s, a] of CAM.z) {
-    const z0 = a[Math.min(i, a.length - 1)], z1 = a[Math.min(i + 1, a.length - 1)], z = z0 + (z1 - z0) * w;
-    s.style.transformOrigin = `540px ${CAM.y0.get(s).toFixed(1)}px`;
+    const j = Math.min(i, a.length - 1), j1 = Math.min(i + 1, a.length - 1), z = a[j] + (a[j1] - a[j]) * w, O = CAM.o.get(s), o = O[j] + (O[j1] - O[j]) * w;
+    s.style.transformOrigin = `540px ${o.toFixed(1)}px`;
     s.style.scale = z > 1.005 ? z.toFixed(4) : '';
   }
 }
