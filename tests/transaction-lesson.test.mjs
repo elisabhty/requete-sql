@@ -100,9 +100,9 @@ test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', ()
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
   /* Le bouton des notes est écrit en clair dans Course(…) : il suit la dernière légende. */
-  assert.equal(val('NOTES'), 246.2);
-  assert.ok(page.includes('notesAt: 246.2,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 253.4);
+  assert.equal(val('NOTES'), 266.7);
+  assert.ok(page.includes('notesAt: 266.7,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 273.9);
   /* Des légendes qui se suivent sans se chevaucher, chaque chapitre commençant 0,4 s après la légende précédente. */
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });

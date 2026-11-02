@@ -1249,7 +1249,7 @@ const COURSES = [
       "{at: atp('p3'), from: A.g1, kind: 'tap', need: 1,", "{label: 'La suppression du compte est refusée', ok: true}]},", "{label: 'Le site web, sans compte associé', ok: true,",
       "{at: atp('p6'), from: A.h1, kind: 'sort',",
       "w += out('o-rs', 'err', 'Suppression bloquée', 'FOREIGN KEY constraint failed', 'm');", "out('o-nn', 'err', 'Suppression du compte refusée', 'NOT NULL constraint failed:<br>avis.client_id', 'm', true)", 'Prochaine leçon · Transactions']},
-  {id: 62, next: 63, titre: 'Transactions', page: 'projet-transaction.html', thumb: 'projet-transaction-thumb.webp', duree: '4 min 28', notesAt: 246.2,
+  {id: 62, next: 63, titre: 'Transactions', page: 'projet-transaction.html', thumb: 'projet-transaction-thumb.webp', duree: '4 min 49', notesAt: 266.7,
     table: 'remplacements',
     bubble: 'Regroupe plusieurs modifications pour les valider ensemble ou toutes les annuler.',
     chapters: ['Un colis abîmé', 'Deux modifications à réaliser', 'Ce qui peut mal se passer', 'Démarrer une transaction', 'Effectuer les modifications', 'Valider avec COMMIT',
