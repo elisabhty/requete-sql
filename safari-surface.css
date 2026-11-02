@@ -45,35 +45,13 @@ html.lq .mu{
   background-image:linear-gradient(180deg,#16123A,transparent 18%,transparent 80%,#16123A),radial-gradient(120% 70% at 50% 22%,#5B47D6 0%,#2E2580 44%,#16123A 100%);
 }
 
-/* Safari 26.x : 100lvh reste plus petit que l'écran dans la barre compacte
-   (754 px contre 874 px dans le simulateur). Un fond limité à dvh/lvh se
-   termine donc AVANT les boutons en verre. Le décor utilise la hauteur de
-   l'écran ; le rembourrage garde les commandes dans les 100dvh utilisables.
-   Les autres navigateurs, l'app native et le mode installé gardent leur layout. */
-html.safari-glass{
-  --browser-bleed:max(0px,calc(var(--browser-canvas-height) - 100dvh));
-  overflow:hidden;
-}
-html.safari-glass body{
-  min-height:var(--browser-canvas-height);
-  overflow:hidden;
-  background-image:linear-gradient(to bottom,var(--browser-top) 0,var(--browser-top) 100dvh,var(--browser-bottom) 100dvh,var(--browser-bottom) 100%);
-}
-/* L'accueil guidé et le chargement ne doivent pas être coupés par #app. */
-html.safari-glass #app{overflow:visible}
-html.safari-glass :is(.lv,.mu,.lst){position:absolute;inset:0 0 auto;height:var(--browser-canvas-height)}
-html.safari-glass .lv{padding-bottom:calc(var(--safe-bottom) + var(--browser-bleed))}
-html.safari-glass .mu{padding-bottom:var(--browser-bleed)}
-html.safari-glass .lst{padding-bottom:calc(var(--safe-bottom) + 26px + var(--browser-bleed))}
-html.safari-glass #onboarding{bottom:auto;height:var(--browser-canvas-height);padding-bottom:var(--browser-bleed)}
-html.safari-glass #loader{bottom:auto;height:var(--browser-canvas-height);padding-bottom:calc(32px + var(--browser-bleed))}
-/* lvQPlace et lvPkPlace utilisent déjà le cadre visible et paddingBottom. */
+/* Safari 26.x : un premier essai étirait html/body à la hauteur physique
+   de l'écran (overflow:hidden, min-height, écrans en position absolue).
+   Sur iPhone, ce document plus haut que la zone visible décalait le clavier,
+   la barre de touches SQL et les feuilles (bande vide en bas, champs masqués).
+   On garde uniquement les aplats de couleur : le fond racine peint déjà
+   toute la toile derrière le verre de Safari, sans toucher au layout. */
 html.safari-glass .lv.is-fin-end{background:radial-gradient(130% 75% at 50% 0%,#4A3BB5 0%,#2A2272 48%,#16123A 100%)}
-html.safari-glass .lv.is-fin-end .lv-end{position:absolute;background:transparent}
-/* Safari choisit le fond uni de la page pour la zone de l'heure. Un dégradé
-   de repli sur body masque ce choix : les écrans immersifs peignent déjà
-   leur propre décor jusqu'au bas physique de l'écran. */
-html.safari-glass:has(:where(.lv,.mu,#onboarding.on,#loader:not(.fade-out):not([hidden]):not([style*="display: none"]):not([style*="display:none"]))) body{background-image:none}
 /* Élément vide : WebKit lit son aplat sans qu'il ne peigne de bande.
    Un élément DOM et une brève variation de hauteur évitent la teinte figée
    d'un pseudo-élément après navigation, retour d'onglet ou interaction.
@@ -85,6 +63,3 @@ html.safari-glass #browser-status-sample{
   background-clip:text;-webkit-background-clip:text;
 }
 html.safari-glass #onboarding.ob-vitrine .ob-foot{background:transparent!important}
-
-html.safari-glass .lv-q{bottom:calc(12px + var(--browser-bleed))}
-html.safari-glass .lv-pk{bottom:calc(env(safe-area-inset-bottom,0px) + 10px + var(--browser-bleed))}
