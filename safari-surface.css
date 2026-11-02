@@ -1,0 +1,46 @@
+/* Safari garde son verre natif : on prolonge seulement les surfaces de la page.
+   Le haut suit l'écran ; le bas suit la surface qui touche la barre d'accueil.
+   Ces couleurs servent aussi à theme-color et à la barre d'état native. */
+html.lq{
+  --browser-top:var(--bg);
+  --browser-bottom:#FFFFFF;
+  --immersive-top:#6E50F6;
+  --immersive-mid:#5538E6;
+  --immersive-bottom:#4529CC;
+  --immersive-background:linear-gradient(180deg,var(--immersive-top) 0%,var(--immersive-mid) 48%,var(--immersive-bottom) 100%);
+}
+html.lq:has(:where(body.in-lesson)),
+html.lq:has(:where(.lst)),
+html.lq:has(:where(.viz.on)){--browser-bottom:var(--bg)}
+html.lq:has(:where(.imp-sheet.on)){--browser-bottom:var(--surface)}
+html.lq:has(:where(#onboarding.on)),
+html.lq:has(:where(#loader:not(.fade-out):not([hidden]):not([style*="display: none"]):not([style*="display:none"]))){
+  --browser-top:var(--immersive-top);
+  --browser-bottom:var(--immersive-bottom);
+}
+/* Le lecteur reste propriétaire de ses bords pendant son fondu de fermeture. */
+html.lq:has(:where(.lv)){--browser-top:var(--immersive-top);--browser-bottom:var(--immersive-bottom)}
+html.lq:has(:where(.lv.is-fin-end)){--browser-top:#4A3BB5;--browser-bottom:#16123A}
+html.lq:has(:where(.mu)){--browser-top:#16123A;--browser-bottom:#16123A}
+
+/* Des aplats explicites : Safari récent lit les fonds, les autres navigateurs
+   utilisent theme-color. Aucun voile fixe n'est ajouté devant le contenu. */
+html.lq{background-color:var(--browser-bottom)}
+html.lq body{background-color:var(--browser-top)}
+/* Les dégradés atteignent leurs couleurs exactes aux deux extrémités. Les
+   décors s'effacent aux bords pour ne pas créer de raccord grille/aplat. */
+html.lq .lv{background-color:var(--immersive-top);background-image:var(--immersive-background)}
+html #onboarding.ob-vitrine{background:var(--immersive-background)!important}
+html.lq #loader{background:var(--immersive-background)!important}
+html.lq .lv::before,
+html #onboarding.ob-vitrine::before,
+html #onboarding.ob-vitrine::after{
+  -webkit-mask-image:linear-gradient(transparent,#000 72px,#000 calc(100% - 72px),transparent);
+  mask-image:linear-gradient(transparent,#000 72px,#000 calc(100% - 72px),transparent);
+}
+
+/* La lumière des récompenses reste au centre ; leurs bords rejoignent le fond sombre. */
+html.lq .mu{
+  background-color:#16123A;
+  background-image:linear-gradient(180deg,#16123A,transparent 18%,transparent 80%,#16123A),radial-gradient(120% 70% at 50% 22%,#5B47D6 0%,#2E2580 44%,#16123A 100%);
+}
