@@ -15810,9 +15810,10 @@ function renderDbWorkspace(){
   const activeName=projectName(activeDbId);
   /* 18 h 42 : « ne pas pouvoir importer, modifier, supprimer les bases d’entraînement (toutes), même par requête ». Elles sont en
      lecture seule : pas d’import ni de bouton qui les modifie, et les requêtes qui écriraient sont refusées (PRAGMA query_only). */
+  /* Plus de « Créer un projet » sous le cadenas (Elisa, 2 novembre, 22 h 03, Réf 2) : on crée un projet depuis le choix de la base. */
   const verrou=isDemoDb(activeDbId);
   bar.innerHTML=verrou
-    ?`<span class="db-pill is-lock"><span aria-hidden="true">🔒</span><span>Base d’entraînement · lecture seule</span></span><button type="button" class="db-pill add" onclick="openProjectCreator()">${CONSOLE_PLUS_SVG}<span>Créer un projet</span></button>`
+    ?`<span class="db-pill is-lock"><span aria-hidden="true">🔒</span><span>Base d’entraînement · lecture seule</span></span>`
     :`<button type="button" class="db-pill add" onclick="document.getElementById('data-import').click()">${CONSOLE_UPLOAD_SVG}<span>Importer</span></button>`;
   const database=activeDb();
   renderConsoleSchemaSummary();
@@ -29283,7 +29284,16 @@ function lqPrompt(o){
       </div>`;
     const input=el.querySelector('#lq-ask-in'), count=el.querySelector('#lq-ask-n'), vv=window.visualViewport;
     const upd=()=>{ const n=input.value.length; count.textContent=`${n} / ${max}`; count.className=n>=max?'is-max':n>=max*.9?'is-near':''; };
-    const fit=()=>{ if(!vv)return; el.style.top=vv.offsetTop+'px'; el.style.height=vv.height+'px'; el.style.bottom='auto'; };
+    /* Clavier fermé (✓ de la barre iOS, ou touche hors du champ) : la feuille rejoint d’un seul glissé le bas de l’écran. Avant, elle
+       suivait chaque étape du clavier qui se range (taille, puis défilement) et descendait en deux fois (Elisa, 2 novembre, 22 h 03,
+       Réf 3). Tant que le champ n’a plus le focus, les étapes intermédiaires de visualViewport sont ignorées. */
+    const fit=()=>{
+      if(!vv)return;
+      const open=document.activeElement===input;
+      el.style.top=(open?vv.offsetTop:0)+'px'; el.style.height=(open?vv.height:window.innerHeight)+'px'; el.style.bottom='auto';
+    };
+    input.addEventListener('blur',()=>{ if(!fini)fit(); });
+    input.addEventListener('focus',()=>{ if(!fini)requestAnimationFrame(fit); });
     let fini=false;
     const fin=v=>{
       if(fini)return; fini=true;
@@ -33550,7 +33560,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-notes-carte-v2400';
+  const SW_CACHE='requete-2026-11-02-barre-bas-v2401';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

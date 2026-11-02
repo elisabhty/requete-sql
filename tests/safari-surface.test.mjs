@@ -8,16 +8,16 @@ function browser({ua=safari,standalone=false,native=false,orientation=0,touchPoi
   const classes=new Set(),properties=new Map(),events={},frames=new Map(),nodes=[];
   const root={style:{setProperty:(k,v)=>properties.set(k,v)},classList:{add:k=>classes.add(k)}};
   const meta={content:'#F4F2FC'};
-  let top='#6E50F6',mutation,nextFrame=0;
+  let top='#6E50F6',bottom='#4529CC',mutation,nextFrame=0;
   const makeNode=()=>({style:{},attributes:new Map(),setAttribute(k,v){this.attributes.set(k,v)}});
   const context={navigator:{userAgent:ua,maxTouchPoints:touchPoints},screen:{width:402,height:874,orientation:{angle:orientation}},innerWidth:402,innerHeight:714,
     document:{documentElement:root,body:{appendChild:n=>nodes.push(n)},createElement:makeNode,querySelector:()=>meta,addEventListener:(k,cb)=>events['document:'+k]=cb},
-    getComputedStyle:()=>({getPropertyValue:()=>top}),matchMedia:()=>({matches:standalone}),
+    getComputedStyle:()=>({getPropertyValue:k=>k==='--browser-bottom'?bottom:top}),matchMedia:()=>({matches:standalone}),
     MutationObserver:class{constructor(cb){mutation=cb}observe(){}},
     requestAnimationFrame:cb=>{const id=++nextFrame;frames.set(id,cb);return id},cancelAnimationFrame:id=>frames.delete(id),addEventListener:(k,cb)=>events[k]=cb,
     Capacitor:{isNativePlatform:()=>native}};
   context.window=context;vm.runInNewContext(source,context);
-  return {context,classes,properties,root,meta,events,nodes,step:()=>{if(frames.size){const [id,cb]=frames.entries().next().value;frames.delete(id);cb()}},mutation:()=>mutation([{type:'attributes',target:{matches:()=>true}}]),color:c=>top=c,flush:()=>{while(frames.size){const [id,cb]=frames.entries().next().value;frames.delete(id);cb()}}};
+  return {context,classes,properties,root,meta,events,nodes,step:()=>{if(frames.size){const [id,cb]=frames.entries().next().value;frames.delete(id);cb()}},mutation:()=>mutation([{type:'attributes',target:{matches:()=>true}}]),color:c=>top=c,bottomColor:c=>bottom=c,flush:()=>{while(frames.size){const [id,cb]=frames.entries().next().value;frames.delete(id);cb()}}};
 }
 test('Safari iPhone : le décor couvre la hauteur physique, même avec les commandes du navigateur ouvertes',()=>{
   const b=browser();assert(b.classes.has('safari-glass'));assert.equal(b.properties.get('--browser-canvas-height'),'874px');
@@ -37,7 +37,7 @@ test('le traitement Safari ne modifie ni le mode installé, ni Capacitor, ni les
 });
 
 test('la référence de couleur est un élément vide et masqué aux technologies d’assistance',()=>{
-  const b=browser();assert.equal(b.nodes.length,1);
+  const b=browser();assert.equal(b.nodes.length,2);
   const sample=b.nodes[0];assert.equal(sample.id,'browser-status-sample');assert.equal(sample.attributes.get('aria-hidden'),'true');
   assert.equal(sample.style.height,'13px');b.flush();assert.equal(sample.style.height,'12px');
 });
@@ -54,4 +54,13 @@ test('Safari iOS 26 : aucune règle de layout sur html/body (clavier, barre SQL 
   const css=readFileSync(new URL('../safari-surface.css',import.meta.url),'utf8').replace(/\/\*[\s\S]*?\*\//g,'');
   for(const bad of [/html\.safari-glass\s*\{[^}]*overflow/,/html\.safari-glass body\s*\{[^}]*(min-height|overflow)/,/html\.safari-glass #app/,/position:absolute;inset:0 0 auto;height:var\(--browser-canvas-height\)/,/--browser-bleed/])
     assert(!bad.test(css),String(bad));
+});
+
+test('Safari 26 : un repère invisible en bas donne à la barre d’adresse la couleur du bas de l’écran (et non le haut du dégradé)',()=>{
+  const b=browser();b.flush();const bas=b.nodes[1];
+  assert.equal(bas.id,'browser-bottom-sample');assert.equal(bas.attributes.get('aria-hidden'),'true');
+  assert.equal(bas.style.backgroundColor,'#4529CC');assert.equal(bas.style.height,'12px');
+  b.bottomColor('#FFFFFF');b.mutation();b.flush();assert.equal(bas.style.backgroundColor,'#FFFFFF');
+  const css=readFileSync(new URL('../safari-surface.css',import.meta.url),'utf8');
+  assert.ok(/html\.safari-glass #browser-bottom-sample\{[^}]*position:fixed;inset:auto 0 0;[^}]*background-color:var\(--browser-bottom\);[^}]*-webkit-background-clip:text/.test(css));
 });
