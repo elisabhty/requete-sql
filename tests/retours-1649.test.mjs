@@ -320,7 +320,7 @@ test('réf. 4 et 5 — la note de la salle garde sa première phrase ; « Un cod
   assert.ok(!join.includes('jeuNomField'), 'le pseudo n’y est plus rappelé');
   assert.ok(join.includes('<label class="jeu-lab" for="jeu-code">Code de la salle</label>') && join.includes('<p class="jeu-msg" role="status" aria-live="polite"></p>'));
   for (const part of ['html.lq .def-join-body{padding:2px 16px 18px!important;gap:10px!important}', 'html.lq .def-join-body>.jeu-msg:empty{display:none}',
-    'html.lq .def-join>summary:focus-visible{box-shadow:inset 0 0 0 2.5px rgba(106,77,244,.45)!important;'])
+    'html.lq:not(.pointer-nav) .def-join>summary:focus-visible{box-shadow:inset 0 0 0 2.5px rgba(106,77,244,.45)!important;'])
     assert.ok(s51.includes(part), part);
 });
 
