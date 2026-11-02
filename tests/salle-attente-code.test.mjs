@@ -1,0 +1,20 @@
+#!/usr/bin/env node
+/* Salle d’attente (Elisa, 2 novembre, 23 h 48) : plus de réglages une fois dans la salle ; le code en tête, dans la carte violette.
+   Et jamais la page « Choisis ton pseudo » avant une salle (23 h 45), y compris quand la base ne connaît pas encore le pseudo. */
+import fs from 'fs';
+import path from 'path';
+const ROOT = path.resolve(import.meta.dirname, '..');
+const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+const sec = fs.readFileSync(path.join(ROOT, 'multiplayer-security.js'), 'utf8');
+let passed = 0, failed = 0;
+const assert = (c, l) => { if (c) { passed++; console.log(`  ✓ ${l}`); } else { failed++; console.log(`  ✗ ${l}`); } };
+console.log('\n=== Salle d’attente ===');
+const i = html.indexOf("}else if(v==='lobby'){"), lobby = html.slice(i, html.indexOf("}else if(v.startsWith('draw')){", i));
+assert(!lobby.includes('jeu-set') && !lobby.includes('jeuLobbySet('), 'pas de carte Niveau / Nombre de manches dans la salle');
+assert(lobby.includes("const frame=etat('target',") && lobby.includes('html=frame+players+'), 'le code d’abord, dans la carte violette, puis les joueurs');
+assert(lobby.includes('${chips()}') && lobby.includes('onclick="jeuShare()">Partager l’invitation</button>'), 'réglages en lecture seule et partage dans la carte');
+assert(!/psPage\(/.test(sec), 'la salle sécurisée n’ouvre plus la page du pseudo');
+assert(sec.includes('psReserverPourSalle()') && sec.includes('nameRetry:true'), 'pseudo inconnu de la base : réservé sans rien demander, puis on entre');
+assert(html.includes('multiplayer-security.js?v=2') && fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8').includes("'./multiplayer-security.js?v=2'"), 'script versionné');
+console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
+process.exit(failed ? 1 : 0);
