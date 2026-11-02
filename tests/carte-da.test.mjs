@@ -39,7 +39,10 @@ test('la feuille : l’ampoule autocollante et l’étiquette « À retenir », 
   const open = fn('openCard');
   assert.ok(open.includes('<p class="cd-lab memo"><span class="cd-memo-stk" aria-hidden="true">${lqStkSvg(\'bulb\')}</span><span class="cd-memo-tag">À retenir</span></p>'));
   assert.ok(open.includes('<div class="cd-memo">${carteRetenirHtml(id)||cardMemoHtml(c.m)}</div>'), 'même bloc, toujours suivi du bouton ; les trois idées de la vidéo quand la leçon en a (Elisa, 2 novembre, 12 h 48)');
-  assert.ok(open.includes('<span class="coda-note-stk" aria-hidden="true">${lqStkSvg(\'note\')}</span>Ajouter à mes notes</button>'));
+  assert.ok(open.includes('<span class="coda-note-stk" aria-hidden="true">${lqStkSvg(\'note\')}</span>Ajouter à mes notes`}</button>'));
+  /* Déjà dans les notes : « Déjà dans mes notes », validé (menthe, coche ronde), et le toucher ouvre la note (Elisa, 2 novembre, 18 h 54, Réf 2). */
+  assert.ok(open.includes('const had=!!cardNoteExisting(id);') && open.includes('<span class="coda-note-ok" aria-hidden="true">${CHECK_SVG}</span>Déjà dans mes notes'));
+  assert.ok(fn('noteFromCard').includes('if(had)openNote(had.id); else openNote(null,pre);'));
   assert.ok(open.includes('<div class="cd-share collectible">${collectibleFace(id)}<i class="cd-shine" aria-hidden="true"></i></div>'));
   assert.ok(open.includes("cardTilt(document.querySelector('#card-body .cd-share'));"));
   const tilt = fn('cardTilt');

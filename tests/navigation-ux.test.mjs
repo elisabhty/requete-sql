@@ -60,3 +60,13 @@ key(4,'ArrowRight');assert.equal(chosen,0);
 key(2,'End');assert.equal(chosen,4);
 key(2,'Home');assert.equal(chosen,0);
 console.log('Recherche des cours, accents, état vide, effacement et navigation clavier : OK.');
+
+/* Une base s’ouvre en haut de sa page ; le retour retrouve la liste où on l’avait laissée. */
+{
+  /* Elisa, 2 novembre, 18 h 54, Réf 1 : « Quand on clique sur une base on arrive à la fin de la page ». */
+  const a = html.indexOf('function openConsoleProject(id){'), b = html.indexOf('function openProjectCreator(){');
+  const src = html.slice(a, b);
+  assert.ok(src.includes("if(scr0&&activeTab==='console'&&consoleView==='list')consoleListScroll=scr0.scrollTop;"), 'la position de la liste est gardée');
+  assert.ok(/renderConsoleScreen\(\);\n  const scr=document\.getElementById\('scr-console'\);\n  if\(scr\)scr\.scrollTop=0;\n  tabScrollPositions\.console=0;/.test(src), 'la base s’ouvre en haut');
+  assert.ok(src.includes('if(scr)scr.scrollTop=consoleListScroll||0;'), 'le retour retrouve la liste');
+}
