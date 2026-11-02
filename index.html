@@ -6689,7 +6689,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=109">
+<link rel="stylesheet" href="ludique.css?v=110">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -26438,7 +26438,7 @@ function jeuRender(){
        reçu, monte-le en haut dans le cadre Entre dans la salle » : le code est en tête, en tuiles, dans la carte violette de la salle
        de défi, avec « Partager l’invitation ». */
     const frame=etat('target',host?'Invite tes amis':`Salle ${jeuDe(hostName)}`,'Tes amis entrent dans la salle avec ce code.',
-      `<div class="jeu-lobby-body">${chips()}<button type="button" class="jeu-btn is-wide" onclick="jeuShare()">Partager l’invitation</button><p class="jeu-copied" id="jeu-copied" aria-live="polite"></p></div>`,'is-lobby');
+      `<div class="jeu-lobby-body">${chips()}<button type="button" class="jeu-btn is-wide jeu-copy" id="jeu-copy" onclick="jeuCopyCode()">${JEU_COPY_SVG}<span>Copier le code</span></button><p class="jeu-copied" id="jeu-copied" aria-live="polite"></p></div>`,'is-lobby');
     const players=`<div class="jeu-card"><p class="jeu-card-h">Joueurs <span class="jeu-n" id="jeu-n">${jeuLive().length}/${J.max}</span></p><ul class="jeu-players" id="jeu-players">${jeuPlayersHTML('lobby')}</ul>
       ${host?`<button type="button" class="journey-primary" id="jeu-go" onclick="jeuNextRound()"><span id="jeu-go-label">${jeuLobbyLabel()}</span>${DEF_CHEV_SVG}</button><p class="jeu-hint" id="jeu-lobby-hint">${jeuLobbyHint()}</p>`
         :`<button type="button" class="jeu-ready${J.ready[J.me]?' on':''}" id="jeu-ready" aria-pressed="${!!J.ready[J.me]}" onclick="jeuToggleReady()"><span>${J.ready[J.me]?'C’est bon pour moi ✓':'C’est bon pour moi'}</span></button>
@@ -26597,6 +26597,33 @@ function jeuReact(e){
    en sautillant, l’étiquette « hôte » change de place), plus de bulles en bas de l’écran (Elisa, 31 octobre, 1 h 34 : « ne pas mettre
    de notification, mais des micro-interactions »). */
 function jeuToast(txt){ if(typeof lqSay==='function')lqSay(txt); }
+/* « Copier le code plutôt » (Elisa, 2 novembre, 23 h 52) : le bouton de la salle d’attente copie les 6 caractères du code, rien
+   d’autre ; il dit « Code copié » une seconde et demie, les tuiles sautent. Sans presse-papiers, le code s’affiche pour être recopié. */
+const JEU_COPY_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><path d="M15.5 8.5V6.5a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg>';
+const JEU_COPIED_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>';
+function jeuCopyText(t){
+  if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(t);
+  return new Promise((ok,ko)=>{
+    const ta=document.createElement('textarea');ta.value=t;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;top:-100px;opacity:0';
+    document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,t.length);
+    let done=false;try{done=document.execCommand('copy');}catch(e){}
+    ta.remove();done?ok():ko(new Error('copie'));
+  });
+}
+function jeuCopyCode(){
+  const J=JEU;if(!J)return;
+  const btn=document.getElementById('jeu-copy'),out=document.getElementById('jeu-copied');
+  jeuCopyText(J.code).then(()=>{
+    if(out)out.textContent='';
+    if(typeof buzz==='function')buzz('success');
+    if(btn){
+      btn.classList.add('is-done');btn.innerHTML=JEU_COPIED_SVG+'<span>Code copié</span>';
+      clearTimeout(btn._t);btn._t=setTimeout(()=>{if(btn.isConnected){btn.classList.remove('is-done');btn.innerHTML=JEU_COPY_SVG+'<span>Copier le code</span>';}},1500);
+    }
+    const tiles=document.querySelector('.jeu-etat.is-lobby .jeu-etat-code');
+    if(tiles&&!prefersReduceMotion()){tiles.classList.remove('is-copied');void tiles.offsetWidth;tiles.classList.add('is-copied');}
+  },()=>{if(out)out.textContent='Copie impossible : le code est '+J.code+'.';});
+}
 async function jeuShare(){
   const J=JEU;if(!J)return;
   /* Dans l’app iOS, l’adresse locale (capacitor://) ne s’ouvre pas chez les amis :
@@ -33750,7 +33777,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-salle-code-en-haut-v2409';
+  const SW_CACHE='requete-2026-11-02-copier-code-v2410';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -12,7 +12,7 @@ console.log('\n=== Salle d’attente ===');
 const i = html.indexOf("}else if(v==='lobby'){"), lobby = html.slice(i, html.indexOf("}else if(v.startsWith('draw')){", i));
 assert(!lobby.includes('jeu-set') && !lobby.includes('jeuLobbySet('), 'pas de carte Niveau / Nombre de manches dans la salle');
 assert(lobby.includes("const frame=etat('target',") && lobby.includes('html=frame+players+'), 'le code d’abord, dans la carte violette, puis les joueurs');
-assert(lobby.includes('${chips()}') && lobby.includes('onclick="jeuShare()">Partager l’invitation</button>'), 'réglages en lecture seule et partage dans la carte');
+assert(lobby.includes('${chips()}') && lobby.includes('onclick="jeuCopyCode()">${JEU_COPY_SVG}<span>Copier le code</span></button>'), 'réglages en lecture seule et « Copier le code » dans la carte');
 assert(!/psPage\(/.test(sec), 'la salle sécurisée n’ouvre plus la page du pseudo');
 assert(sec.includes('psReserverPourSalle()') && sec.includes('nameRetry:true'), 'pseudo inconnu de la base : réservé sans rien demander, puis on entre');
 assert(html.includes('multiplayer-security.js?v=2') && fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8').includes("'./multiplayer-security.js?v=2'"), 'script versionné');
