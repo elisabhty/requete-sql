@@ -90,7 +90,8 @@ window.MODULES=[
     {titre:"Sous-requêtes et ensembles", sous:"IN, EXISTS, CTE et UNION", lecons:[
       ["Sous-requête dans WHERE avec IN", "Quels clients ont déjà commandé du Magnésium ?", 236],
       ["Sous-requête dans SELECT", "Calculer une valeur pour chaque ligne", 204],
-      ["Sous-requête dans FROM", "Utiliser une sous-requête comme table", 197],
+      ["Sous-requête dans FROM", "Utiliser une sous-requête comme table", 195],
+      ["INSERT … SELECT et CREATE TABLE AS", "Enregistrer le résultat d’une requête", 194],
       ["EXISTS et NOT EXISTS", "Tester la présence ou l’absence d’une ligne liée", 223],
       ["ANY et ALL", "Comparer à toute une liste", 203],
       ["WITH (CTE)", "Créer et réutiliser un résultat intermédiaire", 221],

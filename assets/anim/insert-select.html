@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="fr" class="tr-f tr-mia">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Enregistrer le résultat d’une requête en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+/* Leçon « INSERT … SELECT et CREATE TABLE AS » (Elisa, 2 novembre, 11 h 16 : « est-ce que tu peux regarder s’il manque une
+   notion ? » … « oui ») : dans le module « Sous-requêtes et ensembles », après « Sous-requête dans FROM » : le projet (de
+   « Normaliser les inscriptions » à « Sécurité et droits ») se suit sans interruption, la leçon ne peut pas suivre INSERT.
+   Les invités sont les clients de Paris, puis de Lyon, de la table clients de l’app (Hugo Laurent n’a pas d’e-mail). */
+#s0 .title{font-size:184px;top:404px;letter-spacing:-4px}
+#s0 .sub{font-size:56px}
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:38px;white-space:nowrap}
+.nw{white-space:nowrap}
+
+.code.sm .body{font-size:30px;line-height:48px;padding:24px 28px}
+.code.sm .ln{height:48px}
+.code.sm .caret i{top:-35px;height:40px}
+.mini.mm{font-size:28px;line-height:44px;padding:18px 26px}
+.mini .ml{display:block}
+
+/* ---------- 1 · La soirée ---------- */
+.board{left:64px;width:952px;padding:0 0 8px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar>span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.lx{padding:28px 34px 26px}
+.lx-hero{display:flex;align-items:center;gap:26px}
+.lx-ico{width:112px;height:112px;border-radius:34px;background:#FFF8D6;display:flex;align-items:center;justify-content:center;font-size:64px;flex:none}
+.lx-t1{font-size:42px;font-weight:800;color:var(--ink);white-space:nowrap}
+.lx-t2{margin-top:6px;font-size:30px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.lx-conds{margin-top:26px;display:flex;align-items:center;gap:14px}
+.cd{height:60px;padding:0 22px;border-radius:999px;font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.cd.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.cd.am{background:#FFF4E5;color:#9A5B00}
+.pill{left:0;width:1080px;display:flex;justify-content:center}
+.pill>span{height:62px;padding:0 24px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill.vi>span{background:var(--accent-soft);color:var(--accent-ink)}
+.pill.gr>span{background:#E7F7EE;color:#1B7A45}
+.pill.rd>span{background:#FDEBEC;color:#C2323A}
+.pill .ic{font-size:.92em;background:#fff}
+
+/* ---------- La table invites ---------- */
+.rgI{display:grid;grid-template-columns:200px 220px 1fr;padding:0 26px;align-items:center}
+.tr.t5{height:54px;font-size:29px}
+.tr .nul{color:var(--ink-3);font-family:var(--mono);font-size:26px}
+.tr.new{background:#ECF8F1}
+.err{margin-top:18px}
+
+/* ---------- 5 · Une copie figée ---------- */
+.duo5{left:64px;width:952px;display:flex;gap:18px}
+.cp{flex:1;min-width:0;padding:22px 24px 26px}
+.cph{display:flex;gap:10px;align-items:center;font-size:28px;font-weight:800;color:var(--ink);white-space:nowrap}
+.cpr{margin-top:16px;border-radius:18px;background:var(--surface-2);padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.cpr b{font-size:29px;color:var(--ink);white-space:nowrap}
+.pv{display:grid}
+.pv i{grid-area:1/1;font-style:normal;font-family:var(--mono);font-size:23px;font-weight:700;color:var(--accent-ink);white-space:nowrap}
+
+/* ---------- 6 · Les invitations ---------- */
+.ms{position:relative;padding:28px 34px 30px}
+.ms-h{display:flex;align-items:center;gap:24px}
+.ms-ico{width:104px;height:104px;border-radius:32px;background:#FFF8D6;display:flex;align-items:center;justify-content:center;font-size:58px;flex:none}
+.ms-t1{font-size:38px;font-weight:800;color:var(--ink);white-space:nowrap}
+.ms-t2{margin-top:6px;font-size:27px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.ms-to{margin-top:22px;display:flex;flex-wrap:wrap;gap:10px;padding-right:200px}
+.rc{height:50px;padding:0 16px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+#sp6{right:30px;top:auto;bottom:26px}
+
+/* ---------- 7 · À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:20px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Sous-requêtes</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>A</span><span>S</span><span>·</span><span>I</span><span>N</span><span>T</span><span>O</span></div>
+    <div class="abs sub">Enregistrer le résultat d’une requête</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Range le résultat d’une requête dans une table, nouvelle ou déjà créée.</div>
+  </section>
+
+  <!-- 1 · Situation : la soirée des clients parisiens -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="ab1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Événements · soirée clients</span><span class="tb" id="tb1">table invites</span></div>
+      <div class="lx">
+        <div class="lx-hero"><div class="lx-ico" id="ic1">🥂</div><div><div class="lx-t1">Soirée NutriBoost</div><div class="lx-t2">Pour les clients de Paris</div></div></div>
+        <div class="lx-conds"><span class="cd vi" id="cd1">📋 Une liste d’invités</span><span class="cd am" id="cd2">🗄️ Gardée dans une table</span></div>
+      </div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">👤</span><span class="nl">Le prénom et le nom</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">✉️</span><span class="nl">L’e-mail</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">📍</span><span class="nl">La ville, pour choisir</span><span class="tag">table clients</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · CREATE TABLE … AS SELECT -->
+  <section class="scene" id="s2">
+    <div class="abs card trap" id="q2" style="top:300px">
+      <div class="trap-h"><span class="emo">📸</span><span>Créer une table depuis un résultat</span></div>
+      <div class="mini mm"><span class="ml"><span class="glow" id="k2"><span class="kw">CREATE TABLE</span> invites <span class="kw">AS</span></span></span><span class="ml"><span class="glow" id="sl2"><span class="kw">SELECT</span> prenom, nom, email</span></span><span class="ml"><span class="kw">FROM</span> clients</span><span class="ml"><span class="kw">WHERE</span> <span class="glow" id="w2">ville = <span class="st">'Paris'</span></span>;</span></div>
+    </div>
+    <div class="tbl card" id="t2">
+      <div class="tt"><span class="emo">🗄️</span><span>Table invites</span><span class="cnt"><span id="cnt2">4 lignes</span></span></div>
+      <div class="rgI th" id="h2"><div>prenom</div><div>nom</div><div>email</div></div>
+      <div class="rows" id="rows2"></div>
+    </div>
+  </section>
+
+  <!-- 3 · INSERT INTO … SELECT -->
+  <section class="scene" id="s3">
+    <div class="abs card trap" id="q3" style="top:300px">
+      <div class="trap-h"><span class="emo">➕</span><span>Ajouter les lignes d’un résultat</span></div>
+      <div class="mini mm"><span class="ml"><span class="glow" id="k3"><span class="kw">INSERT INTO</span> invites</span></span><span class="ml"><span class="kw">SELECT</span> prenom, nom, email</span><span class="ml"><span class="kw">FROM</span> clients</span><span class="ml"><span class="kw">WHERE</span> <span class="glow" id="w3">ville = <span class="st">'Lyon'</span></span>;</span></div>
+    </div>
+    <div class="tbl card" id="t3">
+      <div class="tt"><span class="emo">🗄️</span><span>Table invites</span><span class="cnt"><span id="cnt3">6 lignes</span></span></div>
+      <div class="rgI th"><div>prenom</div><div>nom</div><div>email</div></div>
+      <div class="rows" id="rows3"></div>
+    </div>
+  </section>
+
+  <!-- 4 · Le piège : le nombre et l’ordre des colonnes -->
+  <section class="scene" id="s4">
+    <div class="abs card trap" id="q4" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Une colonne en moins</span></div>
+      <div class="mini mm"><span class="ml"><span class="kw">INSERT INTO</span> invites</span><span class="ml"><span class="kw">SELECT</span> <span class="glow" id="c4">prenom, email</span></span><span class="ml"><span class="kw">FROM</span> clients</span><span class="ml"><span class="kw">WHERE</span> ville = <span class="st">'Lyon'</span>;</span></div>
+      <div class="out err" id="err4"><span class="oi">!</span><div class="ot"><b>Erreur SQL</b><span class="m">table invites has 3 columns but 2 values were supplied</span></div></div>
+    </div>
+    <div class="abs pill gr" id="ok4"><span>✓ <span class="ic">prenom, nom, email</span>&nbsp;: 3 colonnes, dans l’ordre</span></div>
+  </section>
+
+  <!-- 5 · Une copie figée -->
+  <section class="scene" id="s5">
+    <div class="abs duo5" id="d5" style="top:300px">
+      <div class="card cp" id="cc5"><div class="cph"><span>👥</span><span>table clients</span></div><div class="cpr"><b>Léa Simon</b><span class="pv"><i>lea@mail.fr</i><i class="nwv">lea.simon@mail.fr</i></span></div></div>
+      <div class="card cp" id="ci5"><div class="cph"><span>🗄️</span><span>table invites</span></div><div class="cpr"><b>Léa Simon</b><span class="pv"><i>lea@mail.fr</i></span></div></div>
+    </div>
+    <div class="abs pill vi" id="p5"><span>📸 Une copie, faite au moment de la requête</span></div>
+  </section>
+
+  <!-- 6 · Le résultat -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">CREATE TABLE</span> invites <span class="kw">AS</span><span class="caret"><i></i></span></span><span class="ln" id="s6l2"><span class="kw">SELECT</span> prenom, nom, email<span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="kw">FROM</span> clients <span class="kw">WHERE</span> ville = <span class="st">'Paris'</span>;<span class="caret"><i></i></span></span><span class="ln" id="s6l4"><span class="kw">INSERT INTO</span> invites<span class="caret"><i></i></span></span><span class="ln" id="s6l5"><span class="kw">SELECT</span> prenom, nom, email<span class="caret"><i></i></span></span><span class="ln" id="s6l6"><span class="kw">FROM</span> clients <span class="kw">WHERE</span> ville = <span class="st">'Lyon'</span>;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6">
+      <div class="tt"><span class="emo">🗄️</span><span>Table invites</span><span class="cnt"><span id="cnt6">6 lignes</span></span></div>
+      <div class="rgI th"><div>prenom</div><div>nom</div><div>email</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card board" id="ab6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Événements · soirée clients</span></div>
+      <div class="ms">
+        <div class="ms-h"><span class="ms-ico">🥂</span><div><div class="ms-t1">6 invitations</div><div class="ms-t2">Paris et Lyon</div></div></div>
+        <div class="ms-to" id="to6"></div>
+        <div class="stamp" id="sp6">Envoyé</div>
+      </div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ 6 invités dans la table</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">📸</div><div class="rtxt"><b>CREATE TABLE … AS SELECT</b><span class="rs">Crée une nouvelle table avec le résultat d’une requête&nbsp;: ses colonnes et ses lignes.</span></div></div>
+      <div class="rrow"><div class="rico emo">➕</div><div class="rtxt"><b>INSERT INTO … SELECT</b><span class="rs">Ajoute dans une table existante les lignes renvoyées par une requête.</span></div></div>
+      <div class="rrow"><div class="rico emo">🧮</div><div class="rtxt"><b>Mêmes colonnes, même ordre</b><span class="rs">Le <span class="ic">SELECT</span> fournit autant de colonnes que la table, dans son ordre. La copie ne suit pas la table d’origine.</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="liens.js"></script>
+<script src="core.js"></script>
+<script src="moments.js"></script>
+<script>
+'use strict';
+const DURATION = 182.2;
+
+/* La table clients de l’app : les invités de Paris, puis ceux de Lyon (Hugo Laurent n’a pas d’e-mail). */
+const PARIS = [['Sophie', 'Martin', 'sophie@mail.fr'], ['Nathan', 'Petit', 'nathan@mail.fr'], ['Léa', 'Simon', 'lea@mail.fr'], ['Nathan', 'Dupont', 'nathan.dupont@mail.fr']];
+const LYON = [['Lucas', 'Bernard', 'lucas@mail.fr'], ['Hugo', 'Laurent', null]];
+
+const CHAPTERS = [
+  {n:1, label:'Situation',          a:5.0,   b:26.0},
+  {n:2, label:'CREATE TABLE AS',    a:26.0,  b:58.1},
+  {n:3, label:'INSERT … SELECT',    a:58.1,  b:91.9},
+  {n:4, label:'Le piège',           a:91.9,  b:121.9},
+  {n:5, label:'Une copie',          a:121.9, b:146.1},
+  {n:6, label:'Le résultat',        a:146.1, b:172.1},
+  {n:7, label:'À retenir',          a:172.1, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 9.6,     "NutriBoost organise une <b>soirée</b><br>pour ses clients parisiens."],
+  [9.7, 15.4,    "L’équipe veut ranger les invités<br>dans une nouvelle table,<br>la <b>table invites</b>."],
+  [15.5, 20.8,   "Leur prénom, leur nom et leur e-mail<br>se trouvent dans la <b>table clients</b>."],
+  [20.9, 25.6,   "Pas besoin de les recopier à la main :<br>une requête peut remplir la table."],
+  [26.3, 31.6,   "<code>CREATE TABLE invites AS</code> crée<br>une table à partir d’un résultat."],
+  [31.7, 36.6,   "Le <code>SELECT</code> qui suit choisit<br>les colonnes et les lignes."],
+  [36.7, 41.4,   "Ici, les clients dont la ville est Paris."],
+  [42.4, 47.6,   "La <b>table invites</b> reçoit 3 colonnes<br>et <b>4 lignes</b>, une par client parisien."],
+  [47.7, 52.8,   "Ses colonnes portent les noms<br>du <code>SELECT</code> : prenom, nom et email."],
+  [52.9, 57.6,   "La table existe désormais<br>dans la base."],
+  [58.6, 63.8,   "Une semaine plus tard, la soirée<br>s’ouvre aussi aux clients de Lyon."],
+  [63.9, 69.0,   "La table existe déjà :<br>on ne la recrée pas."],
+  [69.1, 74.2,   "<code>INSERT INTO invites</code>, suivi d’un <code>SELECT</code>,<br>ajoute les lignes du résultat."],
+  [74.3, 79.4,   "Le <code>SELECT</code> lit les clients de Lyon :<br>Lucas&nbsp;Bernard et Hugo&nbsp;Laurent."],
+  [79.5, 85.0,   "La <b>table invites</b> passe<br>de 4 à <b>6 lignes</b>."],
+  [85.1, 91.4,   "Hugo&nbsp;Laurent n’a pas d’e-mail :<br>sa ligne arrive avec <code>NULL</code>."],
+  [92.4, 97.6,   "Attention : la <b>table invites</b><br>a <b>3 colonnes</b>."],
+  [97.7, 102.8,  "Ici, le <code>SELECT</code> n’en fournit<br>que deux."],
+  [102.9, 108.0, "La requête est refusée :<br>3 colonnes, mais 2 valeurs."],
+  [109.0, 114.2, "Il faut les mêmes colonnes,<br><b>dans le même ordre</b> que la table."],
+  [114.3, 121.4, "Sinon, un e-mail pourrait finir<br>dans la colonne nom."],
+  [122.6, 127.8, "La <b>table invites</b> est une <b>copie</b> :<br>elle ne suit pas la <b>table clients</b>."],
+  [127.9, 133.0, "Léa&nbsp;Simon change d’e-mail<br>dans la <b>table clients</b>."],
+  [134.0, 139.2, "La <b>table invites</b> garde l’ancien :<br>la copie date de la requête."],
+  [139.3, 145.4, "Pour la mettre à jour, il faut<br>relancer une requête."],
+  [146.6, 152.0, "Les deux requêtes créent la table,<br>puis la complètent."],
+  [152.1, 157.2, "Résultat : la <b>table invites</b><br>compte <b>6 lignes</b>."],
+  [157.3, 162.4, "4 clients de Paris<br>et 2 clients de Lyon."],
+  [162.5, 167.6, "Les 6 invitations peuvent partir."],
+  [172.4, 177.2, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [177.3, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
+      : [177.3, 999, "<code>CREATE TABLE … AS</code> crée, <code>INSERT INTO … SELECT</code> ajoute."]
+];
+
+const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse. */
+const MOMENTS = [
+  // CREATE TABLE AS expliqué : avant que la vidéo ne remplisse la table
+  {at: 41.9, from: 26.3, kind: 'pick', text: true, prompt: 'Combien de lignes compte la <b>table invites</b> créée&nbsp;?', options: [
+    {label: '4 lignes', ok: true, why: 'Sophie Martin, Nathan Petit, Léa Simon et Nathan Dupont habitent à Paris : 4 lignes.'},
+    {label: '10 lignes', why: 'Le <code>WHERE</code> ne garde que les clients de Paris : les 10 clients ne sont pas tous copiés.'},
+    {label: '3 lignes', why: '3, c’est le nombre de colonnes : prenom, nom et email.'}],
+    tip: 'Compte les clients dont la ville est Paris.'},
+  // Le piège : avant que la vidéo ne corrige le SELECT
+  {at: 108.5, from: 92.4, kind: 'pick', slot: '#mbX', prompt: 'Que faut-il ajouter au <code>SELECT</code> pour que la requête soit acceptée&nbsp;?',
+    hint: 'Sélectionne une réponse, ou fais-la glisser directement dans le « ? ».',
+    board: {y: 470, html: '<span class="mb-k">La table invites : prenom, nom, email</span><div class="mb-q" style="font-size:32px"><span class="k">INSERT INTO</span> invites\n<span class="k">SELECT</span> prenom, <span class="mb-hole" id="mbX">?</span>, email\n<span class="k">FROM</span> clients\n<span class="k">WHERE</span> ville = \'Lyon\';</div>'},
+    options: [
+    {label: 'nom', ok: true, why: 'prenom, nom, email : 3 colonnes, dans l’ordre de la <b>table invites</b>.'},
+    {label: 'ville', why: 'Il y aurait bien 3 valeurs, mais la ville irait dans la colonne nom.'},
+    {label: '*', why: '<code>*</code> donne toutes les colonnes de la <b>table clients</b> : bien plus que 3.'}],
+    tip: 'Regarde les colonnes de la table invites, dans l’ordre.'},
+  // La copie : avant que la vidéo ne montre la table invites
+  {at: 133.5, from: 122.6, kind: 'pick', text: true, prompt: 'Léa Simon a changé d’e-mail dans la <b>table clients</b>. Que montre la <b>table invites</b>&nbsp;?', options: [
+    {label: 'L’ancien e-mail', ok: true, why: 'La <b>table invites</b> est une copie faite au moment de la requête : elle ne suit pas les changements.'},
+    {label: 'Le nouvel e-mail', why: 'Rien ne relie les deux tables : la copie garde les valeurs du moment où elle a été faite.'},
+    {label: 'NULL', why: 'La valeur copiée reste en place : elle n’est ni effacée, ni remplacée.'}],
+    tip: 'Une copie garde les valeurs du jour où elle est faite.'}
+];
+
+function dom(){
+  const row = ([p, n, e], cls = '') => `<div class="rgI tr t5 ${cls}"><span class="hl"></span><div>${p}</div><div>${n}</div><div>${e === null ? '<span class="nul">NULL</span>' : e}</div></div>`;
+  $('#rows2').innerHTML = PARIS.map(r => row(r)).join('');
+  $('#rows3').innerHTML = PARIS.map(r => row(r)).join('') + LYON.map(r => row(r, 'new')).join('');
+  $('#rows6').innerHTML = [...PARIS, ...LYON].map(r => row(r)).join('');
+  $('#to6').innerHTML = [...PARIS, ...LYON].map(([p, n]) => `<span class="rc">✉️ ${p} ${n}</span>`).join('');
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(sel, $(id));
+  gsap.set(items, {autoAlpha: 0, y: 24});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => cue(t + 0.65 + i * step, 'pop', 0.55, i % 5));
+  return items;
+}
+const pop = (el, t, n = 2) => { show(el, t, {y: 0, scale: 0.7}, 0.4, 'back.out(2)'); cue(t, 'pop', 0.7, n); };
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});
+  hold(2.3, 2.4);
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  boardIn('#ab1', 5.15, '.lx-hero');
+  gsap.set(['#cd1', '#cd2', '#tb1'], {autoAlpha: 0});
+  pop('#cd1', 10.4, 1);
+  pop('#cd2', 12.2, 3);
+  pop('#tb1', 13.8, 2);
+  stackBelow('#s1 .need', '#ab1');
+  show('#s1 .need', 16.0, {y: 60});
+  cue(16.0, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.4}, 16.4);
+  [0, 1, 2].forEach(i => cue(16.4 + i * 0.4, 'pop', 0.7, i));
+  hide(['#ab1', '#s1 .need'], 25.6);
+  sceneOff('#s1', 26.0);
+
+  /* ===== 2 · CREATE TABLE AS ===== */
+  sceneOn('#s2', 26.0);
+  show('#q2', 26.05, {y: 50});
+  cue(26.05, 'whoosh', 0.6);
+  pulse('#k2', 27.0, 3, 'rgba(201,188,255,.5)');
+  pulse('#sl2', 32.4, 3, 'rgba(201,188,255,.5)');
+  pulse('#w2', 37.4, 3, 'rgba(255,214,140,.5)');
+  // La table invites : 3 colonnes, 4 lignes
+  stackBelow('#t2', '#q2', 0, 30);
+  show('#t2', 42.6, {y: 40}, 0.5);
+  cue(42.6, 'whoosh', 0.6);
+  rowsIn($$('#rows2 .tr'), 43.0, 0.25);
+  gsap.set('#cnt2', {autoAlpha: 0});
+  pop('#cnt2', 44.4, 3);
+  pulse($$('#h2 div'), 48.2, 3, 'rgba(201,188,255,.6)');
+  bump('#t2', 53.4, 1.03, 1);
+  cue(53.4, 'chord', 0.6);
+  hide(['#q2', '#t2'], 57.6, {y: -40});
+  sceneOff('#s2', 58.1);
+
+  /* ===== 3 · INSERT … SELECT ===== */
+  sceneOn('#s3', 58.1);
+  show('#q3', 58.15, {y: 50});
+  cue(58.15, 'whoosh', 0.6);
+  pulse('#w3', 59.6, 3, 'rgba(255,214,140,.5)');
+  // La table existe déjà : ses 4 lignes
+  stackBelow('#t3', '#q3', 0, 30);
+  show('#t3', 64.2, {y: 40}, 0.5);
+  const r3 = $$('#rows3 .tr');
+  rowsIn(r3.slice(0, 4), 64.5, 0.12);
+  gsap.set(r3.slice(4), {autoAlpha: 0, y: 14});
+  pulse('#k3', 69.6, 3, 'rgba(201,188,255,.5)');
+  // Les clients de Lyon arrivent
+  tl.to(r3.slice(4), {autoAlpha: 1, y: 0, duration: 0.35, ease: 'back.out(2)', stagger: 0.5}, 75.0);
+  [0, 1].forEach(i => cue(75.0 + i * 0.5, 'pop', 0.7, i + 2));
+  gsap.set('#cnt3', {autoAlpha: 0});
+  pop('#cnt3', 80.0, 3);
+  bump('#cnt3', 80.6, 1.15, 3);
+  pulse(r3[5].querySelector('.nul'), 85.8, 3, 'rgba(255,214,140,.6)');
+  hide(['#q3', '#t3'], 91.4, {y: -40});
+  sceneOff('#s3', 91.9);
+
+  /* ===== 4 · Le piège ===== */
+  sceneOn('#s4', 91.9);
+  show('#q4', 91.95, {y: 50});
+  cue(91.95, 'whoosh', 0.6);
+  pulse('#c4', 98.2, 3, 'rgba(255,170,170,.6)');
+  show('#err4', 103.4, {y: 0, scale: 0.92}, 0.4, 'back.out(1.6)');
+  cue(103.4, 'miss', 0.55);
+  shake('#err4', 104.0);
+  stackBelow('#ok4', '#q4', 0, 30);
+  pop('#ok4', 109.6, 3);
+  cue(109.6, 'true', 0.55);
+  hide(['#q4', '#ok4'], 121.4, {y: -40});
+  sceneOff('#s4', 121.9);
+
+  /* ===== 5 · Une copie figée ===== */
+  sceneOn('#s5', 121.9);
+  gsap.set('#d5', {autoAlpha: 1});
+  gsap.set(['#cc5', '#ci5', '.nwv'], {autoAlpha: 0});
+  show('#cc5', 122.8, {y: 40}, 0.5);
+  show('#ci5', 123.4, {y: 40}, 0.5);
+  cue(122.8, 'whoosh', 0.6);
+  // Léa Simon change d’e-mail dans la table clients
+  const pv = $$('#cc5 .pv i');
+  tl.to(pv[0], {autoAlpha: 0, duration: 0.2}, 129.4);
+  tl.to(pv[1], {autoAlpha: 1, duration: 0.25}, 129.5);
+  bump('#cc5 .cpr', 129.5, 1.05, 1);
+  cue(129.5, 'tick', 0.5, 2);
+  // La table invites garde l’ancien
+  pulse('#ci5 .cpr', 134.6, 3, 'rgba(255,214,140,.6)');
+  cue(134.6, 'pop', 0.6, 3);
+  stackBelow('#p5', '#d5', 0, 30);
+  pop('#p5', 135.4, 3);
+  hide(['#d5', '#p5'], 145.6, {y: -40});
+  sceneOff('#s5', 146.1);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 146.1);
+  show('#s6code', 146.15, {y: 60}, 0.6);
+  cue(146.15, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 146.65, 40);
+  for (const k of [2, 3, 4, 5, 6]) te = typeLine($('#s6l' + k), te + 0.1, 40);
+  press($('#s6run'), 151.6);
+  hide('#s6code', 152.0, {y: -40}, 0.35);
+  gsap.set('#tbl6', {top: 300});
+  show('#tbl6', 152.3, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 152.5, 0.15);
+  gsap.set('#cnt6', {autoAlpha: 0});
+  pop('#cnt6', 153.8, 3);
+  bump('#cnt6', 154.4, 1.15, 3);
+  const r6 = $$('#rows6 .tr');
+  pulse(r6.slice(0, 4), 157.6, 3, 'rgba(201,188,255,.45)');
+  pulse(r6.slice(4), 159.4, 3, 'rgba(191,232,208,.7)');
+  hide('#tbl6', 162.3, {y: -40}, 0.4);
+  boardIn('#ab6', 162.6, '.ms-h, .rc', 0.12);
+  gsap.set('#sp6', {autoAlpha: 0, scale: 1.8, rotation: -14});
+  tl.to('#sp6', {autoAlpha: 1, scale: 1, rotation: -8, duration: 0.35, ease: 'back.out(2)'}, 164.6);
+  cue(164.6, 'stamp', 0.8);
+  stackBelow('#badge6', '#ab6', 0, 50);
+  show('#badge6', 165.2, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(165.2, 'chord', 0.7);
+  hide(['#ab6', '#badge6'], 171.6);
+  sceneOff('#s6', 172.1);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(172.1, [172.8, 174.6, 176.4]);
+  hold(174.4, 7.0);
+  hold(176.2, 8.0);
+  hold(177.9, 6.0);
+  if (APP) cue(177.35, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 177.3, moments: MOMENTS,
+  glyphs: '🥂📋🗄️👤✉️📍📸➕⚠️✓👥🧮·…', dom, build});
+</script>
+</body>
+</html>

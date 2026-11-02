@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-02-injection-sql-v2349';
+const CACHE = 'requete-2026-11-02-insert-select-v2350';
 
 const PRECACHE = [
   './onboarding-focus.js',
@@ -89,6 +89,7 @@ const PRECACHE = [
   './assets/anim/sous-requete-in.html?app&embed',
   './assets/anim/sous-requete-select.html?app&embed',
   './assets/anim/sous-requete-from.html?app&embed',
+  './assets/anim/insert-select.html?app&embed',
   './assets/anim/exists.html?app&embed',
   './assets/anim/any-all.html?app&embed',
   './assets/anim/with-cte.html?app&embed',
@@ -187,6 +188,7 @@ const PRECACHE = [
   './assets/anim/sous-requete-in-thumb.jpg',
   './assets/anim/sous-requete-select-thumb.jpg',
   './assets/anim/sous-requete-from-thumb.jpg',
+  './assets/anim/insert-select-thumb.jpg',
   './assets/anim/exists-thumb.jpg',
   './assets/anim/any-all-thumb.jpg',
   './assets/anim/with-cte-thumb.jpg',

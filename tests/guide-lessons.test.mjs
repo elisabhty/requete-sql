@@ -12,7 +12,7 @@ const allLessons = vm.runInContext('MODULES.flatMap(m=>m.lessons)', ctx);
 /* Cours en vidéo : la vidéo est le cours, sans texte de secours (ni situation, ni étapes, ni exemple…) ; il garde le réflexe à
    retenir (fin de la vidéo, bilan, note). Les vérifications du cours texte portent sur les autres cours. */
 const videos = allLessons.filter(l => l.video);
-assert.equal(videos.length, 72, 'les 72 cours en vidéo (MERGE, Procédures et fonctions stockées, puis Les schémas, ajoutés le 30 octobre ; SUM, AVG, MIN et MAX le 1er novembre ; ANY et ALL, GROUP BY sur plusieurs colonnes, L’ordre d’exécution, FIRST_VALUE, LAST_VALUE et NTILE, Les formes normales, Injection SQL le 2 novembre)');
+assert.equal(videos.length, 73, 'les 73 cours en vidéo (MERGE, Procédures et fonctions stockées, puis Les schémas, ajoutés le 30 octobre ; SUM, AVG, MIN et MAX le 1er novembre ; ANY et ALL, GROUP BY sur plusieurs colonnes, L’ordre d’exécution, FIRST_VALUE, LAST_VALUE et NTILE, Les formes normales, Injection SQL, INSERT … SELECT le 2 novembre)');
 for (const l of videos) {
   assert.ok(!l.situation && !l.missionSql && !l.studio.problem && !l.studio.uses, `${l.titre} : pas de texte de secours`);
   for (const k of ['anatomie', 'exemple', 'attendu', 'retenir', 'learningCheck', 'testeVariants', 'joinRecap'])
