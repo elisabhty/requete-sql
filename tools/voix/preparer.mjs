@@ -103,6 +103,8 @@ const ACCENTS = {schema: 'schéma', sql: 'S Q L', prenom: 'prénom', prenoms: 'p
 const SIGNES = {'<=': 'inférieur ou égal', '>=': 'supérieur ou égal', '!=': 'différent', '<>': 'différent', '<': 'inférieur', '>': 'supérieur', '=': 'égal'};
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 /* SQLite, excluded et true (le module « Écrire et modifier les données ») : dits à l’anglaise. */
+/* FIRST_VALUE, LAST_VALUE et NTILE : dits en anglais, sans « underscore ». */
+DIRE.unshift([/\bFIRST_VALUE\b/g, 'First value'], [/\bLAST_VALUE\b/g, 'Last value'], [/\bNTILE\((\d+)\)/g, 'ènne-taïle de $1'], [/\bNTILE\b/g, 'ènne-taïle']);
 DIRE.unshift([/\b(\d{1,2})\/(\d{2})\/(\d{4})\b/g, (m, j, mo, a) => (+j === 1 ? '1er' : String(+j)) + ' ' + MOIS[+mo - 1] + ' ' + a],
   [/\b(\d{1,2}):(\d{2})\b/g, '$1 h $2'], [/PostgreSQL/g, 'Postgres Q L'], [/\bNB-(\d+)/g, 'N B $1'], [/CURRENT_TIMESTAMP/g, 'current timestamp'], [/(^|\s)−(?=\d)/g, '$1moins '], [/SQLite/g, 'S Q Laïte'], [/\bexcluded\b/g, 'ixcloudide'], [/\bWHERE true\b/g, 'WHERE trou']);
 DIRE.unshift([/\b(\d{4})-(\d{2})-(\d{2})\b/g, (m, a, mo, j) => (+j === 1 ? '1er' : String(+j)) + ' ' + MOIS[+mo - 1] + ' ' + a],
@@ -207,7 +209,7 @@ const PERLE = {id: 'UaGvaD7NWzU5mJNoUqoY', nom: 'Perle'}, JOINTURES = ['inner-jo
 const MIA = {id: 'PrwKJdvtTbJVdosRhS1O', nom: 'Mia'}, SOUS_REQUETES = ['sous-requete-in', 'sous-requete-select', 'sous-requete-from', 'exists', 'any-all',
   'with-cte', 'union', 'intersect-except', 'with-recursive'];
 /* 9 h 14 : le module « Fonctions de fenêtre » avec Dorian (« Dorian – Jeune homme calme français sans accent »), le formateur. */
-const DORIAN = {id: 'vp2FCFmQCE4NzuQj9QNe', nom: 'Dorian'}, FENETRES = ['over', 'fonctions-rang', 'lag-lead', 'fenetres-glissantes'];
+const DORIAN = {id: 'vp2FCFmQCE4NzuQj9QNe', nom: 'Dorian'}, FENETRES = ['over', 'fonctions-rang', 'lag-lead', 'fenetres-glissantes', 'first-last-ntile'];
 /* 9 h 21 : le module « Modéliser » reprend la formatrice du premier module (Agathe, la blonde). */
 const MODELISER = ['projet-normaliser', 'projet-cles', 'projet-uml'];
 /* 9 h 33 : le module « Créer et faire évoluer les tables » avec Anaïs (« Anaïs – News, podcasting and e-learning »), la formatrice. */

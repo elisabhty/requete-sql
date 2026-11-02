@@ -8924,6 +8924,18 @@ guide({ id:79, titre:"Fenêtres glissantes", résumé:"Suivre l’évolution des
       ["📊","Pour une <b>moyenne mobile</b> sur trois commandes, <code>AVG()</code> utilise la commande actuelle et les deux précédentes.","Au début, seules les lignes disponibles sont utilisées.","ROWS BETWEEN 2 PRECEDING AND CURRENT ROW"]
     ],label:"Les trois idées à retenir"}
   ]
+}),
+guide({ id:89, titre:"FIRST_VALUE, LAST_VALUE et NTILE", résumé:"Première et dernière valeur, groupes égaux",
+  /* Cours en vidéo : l’animation (assets/anim/first-last-ntile.html, moteur commun assets/anim/core.js) est le cours (Elisa, 2 novembre, 11 h 16 : « est-ce que tu peux regarder s’il manque une notion ? » … « oui »). Placé après « Fenêtres glissantes » : le piège de LAST_VALUE tient au cadre (ROWS BETWEEN) vu dans cette leçon. La vidéo suit les fiches produits : produit phare de la catégorie et gamme de prix. */
+  leconSeule:true,
+  video:{anim:'assets/anim/first-last-ntile.html?app&embed',thumb:'assets/anim/first-last-ntile-thumb.jpg',duree:'3 min 08',moments:3,seuil:2},
+  reflex:[
+    {recap:[
+      ["🥇","FIRST_VALUE et LAST_VALUE","La première et la dernière valeur de la fenêtre, sans regrouper les lignes."],
+      ["🖼️","Le cadre de LAST_VALUE","Avec <code>ORDER BY</code>, le cadre s’arrête à la ligne actuelle : étends-le avec <code>ROWS BETWEEN</code>."],
+      ["🧺","NTILE(n) : n groupes","Les lignes triées sont réparties en n groupes presque égaux ; les premiers reçoivent une ligne de plus."]
+    ],label:"Les trois idées à retenir"}
+  ]
 })
 ]},
 { titre:"Modéliser", sous:"Normalisation, cardinalités et UML", lessons:[
@@ -13957,6 +13969,8 @@ const CARTES={
  79:{k:"Cadres de fenêtre",t:"Cumuls et moyennes mobiles",s:"SUM(montant) OVER (\n  ORDER BY date_commande\n  ROWS BETWEEN UNBOUNDED PRECEDING\n  AND CURRENT ROW\n)",
    m:"Le cadre délimite les lignes utilisées pour chaque ligne : <code>UNBOUNDED PRECEDING … CURRENT ROW</code> → cumul ; <code>2 PRECEDING</code> → moyenne mobile. <code>NTILE(n)</code> forme n groupes."},
 
+ 89:{k:"FIRST_VALUE · NTILE",t:"Première valeur, groupes égaux",s:"FIRST_VALUE(nom) OVER (\n  PARTITION BY categorie\n  ORDER BY prix DESC\n)",
+    m:"<code>FIRST_VALUE</code> et <code>LAST_VALUE</code> renvoient la première et la dernière valeur de la fenêtre. Avec <code>ORDER BY</code>, le cadre s’arrête à la ligne actuelle : pour <code>LAST_VALUE</code>, ajoute <code>ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</code>. <code>NTILE(n)</code> répartit les lignes triées en n groupes presque égaux."},
  26:{k:"INSERT",t:"Ajouter une ligne",s:"INSERT INTO clients (prenom, ville)\nVALUES ('Théo', 'Lille');",
     m:"Le lien colonnes ↔ valeurs est <b>positionnel</b>. Nomme les colonnes. Les omises passent à NULL ; la clé primaire se remplit seule."},
  27:{k:"UPDATE",t:"Modifier des lignes",s:"UPDATE clients\nSET email = '…'\nWHERE id = 6;",
@@ -17627,6 +17641,7 @@ const SQ_ALIASES={
   74:'rank dense rank row number classement rang ex aequo podium top',
   78:'lag lead precedente suivante valeur precedente comparer ligne precedente decalage evolution',
   79:'fenetres glissantes cumul moyenne mobile rows between unbounded preceding following cadre running total ntile',
+  89:'first_value last_value ntile premiere valeur derniere valeur quartile groupes egaux fenetre cadre rows between unbounded',
   56:'normalisation formes normales 1fn 2fn 3fn redondance modelisation',
   72:'cles relations cle primaire cle etrangere primary key foreign key identifiant 1-1 1-n n-n modelisation cardinalite association table de jointure table de liaison un a plusieurs plusieurs a plusieurs liens tables unique',
   81:'uml diagramme de classes classe attribut association multiplicite 0..* 0..1 modelisation conception schema merise mcd classe d association table d association plan de la base',
@@ -33225,7 +33240,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-ordre-execution-v2346';
+  const SW_CACHE='requete-2026-11-02-first-last-ntile-v2347';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

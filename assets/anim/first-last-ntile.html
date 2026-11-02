@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="fr" class="tr-m tr-dorian">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · FIRST_VALUE, LAST_VALUE et NTILE en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+/* Leçon FIRST_VALUE, LAST_VALUE et NTILE (Elisa, 2 novembre, 11 h 16 : « est-ce que tu peux regarder s’il manque une notion ? »
+   … « oui ») : à la fin du module « Fonctions de fenêtre », après « Fenêtres glissantes », car le piège de LAST_VALUE tient
+   au cadre (ROWS BETWEEN) vu dans cette leçon. Les prix et catégories sont ceux de la table produits de l’app. */
+#s0 .title{font-size:150px;top:420px;letter-spacing:-3px}
+#s0 .title span.sp{margin-right:40px}
+#s0 .sub{font-size:58px}
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:38px;white-space:nowrap}
+.nw{white-space:nowrap}
+
+.code.sm .body{font-size:30px;line-height:48px;padding:24px 28px}
+.code.sm .ln{height:48px}
+.code.sm .caret i{top:-35px;height:40px}
+.mini.mm{font-size:27px;line-height:42px;padding:18px 24px}
+.mini .ml{display:block}
+
+/* ---------- 1 · La fiche produit ---------- */
+.board{left:64px;width:952px;padding:0 0 8px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar>span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.lx{padding:28px 34px 26px}
+.lx-hero{display:flex;align-items:center;gap:26px}
+.lx-ico{width:112px;height:112px;border-radius:34px;background:#FFF8D6;display:flex;align-items:center;justify-content:center;font-size:64px;flex:none}
+.lx-t1{font-size:42px;font-weight:800;color:var(--ink);white-space:nowrap}
+.lx-t2{margin-top:6px;font-size:30px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.lx-conds{margin-top:26px;display:flex;align-items:center;gap:14px}
+.cd{height:60px;padding:0 22px;border-radius:999px;font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.cd.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.cd.am{background:#FFF4E5;color:#9A5B00}
+.pill{left:0;width:1080px;display:flex;justify-content:center}
+.pill>span{height:62px;padding:0 24px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill.vi>span{background:var(--accent-soft);color:var(--accent-ink)}
+.pill.gr>span{background:#E7F7EE;color:#1B7A45}
+.pill.rd>span{background:#FDEBEC;color:#C2323A}
+.pill .ic{font-size:.92em;background:#fff}
+
+/* ---------- 2 à 4 · La fenêtre Bien-être ---------- */
+.win{left:64px;width:952px;padding:24px 28px 26px}
+.wt{position:relative;margin-top:18px;border-radius:24px;background:var(--surface-2);padding:8px 0}
+.wr{display:grid;grid-template-columns:60px 1fr 140px 300px;align-items:center;height:68px;padding:0 20px;font-size:29px;font-weight:700;color:var(--ink);white-space:nowrap}
+.wr.h{height:50px;font-size:23px;color:var(--ink-3)}
+.wr .rk{width:44px;height:44px;border-radius:50%;background:#fff;color:var(--ink-3);font-family:var(--mono);font-size:23px;display:flex;align-items:center;justify-content:center}
+.wr .px{font-family:var(--mono);font-size:27px;color:var(--ink-2)}
+.wr .v{position:relative;height:50px}
+.wr .v>span{position:absolute;left:0;top:0;height:50px;padding:0 16px;border-radius:999px;font-size:25px;font-weight:800;display:flex;align-items:center;white-space:nowrap;opacity:0}
+.v .ok{background:#E7F7EE;color:#1B7A45}
+.v .ko{background:#FDEBEC;color:#C2323A}
+.v .nt{background:#fff;color:var(--accent-ink)}
+.frame{position:absolute;left:8px;right:8px;top:58px;height:68px;border:4px solid var(--accent);border-radius:20px;background:rgba(124,92,255,.07);opacity:0;pointer-events:none}
+
+/* ---------- 5 · NTILE ---------- */
+.nt5{left:64px;width:952px;padding:22px 26px 24px}
+.nr{display:grid;grid-template-columns:1fr 150px 190px;align-items:center;height:56px;padding:0 18px;border-radius:16px;font-size:28px;font-weight:700;color:var(--ink);white-space:nowrap}
+.nr .px{font-family:var(--mono);font-size:26px;color:var(--ink-2)}
+.nr .gm{justify-self:end;height:44px;padding:0 16px;border-radius:999px;font-size:23px;font-weight:800;display:flex;align-items:center;opacity:0}
+.nr.g1 .gm{background:#E3DBFF;color:var(--accent-ink)}
+.nr.g2 .gm{background:#FFEBCC;color:#9A5B00}
+.nr.g3 .gm{background:#D6F2E2;color:#1B7A45}
+.nr.g1.on{background:#F1EDFF}
+.nr.g2.on{background:#FFF6E8}
+.nr.g3.on{background:#ECF8F1}
+.nlist{margin-top:14px;display:flex;flex-direction:column;gap:6px}
+
+/* ---------- 6 · Le résultat ---------- */
+.rgR{display:grid;grid-template-columns:1fr 120px 110px 290px;padding:0 24px;align-items:center}
+.tr.t6{height:52px;font-size:27px}
+.ms{position:relative;padding:28px 34px 30px}
+.ms-h{display:flex;align-items:center;gap:24px}
+.ms-ico{width:104px;height:104px;border-radius:32px;background:#FFF8D6;display:flex;align-items:center;justify-content:center;font-size:58px;flex:none}
+.ms-t1{font-size:38px;font-weight:800;color:var(--ink);white-space:nowrap}
+.ms-t2{margin-top:6px;font-size:27px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.ms-to{margin-top:22px;display:flex;flex-wrap:wrap;gap:10px;padding-right:200px}
+.rc{height:50px;padding:0 16px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+#sp6{right:30px;top:auto;bottom:26px}
+
+/* ---------- 7 · À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:20px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:32px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Fonctions de fenêtre</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>F</span><span>I</span><span>R</span><span>S</span><span class="sp">T</span><span>L</span><span>A</span><span>S</span><span>T</span></div>
+    <div class="abs sub">Première valeur, dernière valeur et NTILE</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Lis la première ou la dernière valeur d’une fenêtre, et répartis les lignes en groupes égaux.</div>
+  </section>
+
+  <!-- 1 · Situation : la fiche produit -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="ab1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Boutique · fiches produits</span><span class="tb" id="tb1">table produits</span></div>
+      <div class="lx">
+        <div class="lx-hero"><div class="lx-ico" id="ic1">🏷️</div><div><div class="lx-t1">Oméga 3 · 24,90&nbsp;€</div><div class="lx-t2">Catégorie Bien-être</div></div></div>
+        <div class="lx-conds"><span class="cd vi" id="cd1">🧺 Gamme de prix</span><span class="cd am" id="cd2">👑 Le plus cher de sa catégorie</span></div>
+      </div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">🏷️</span><span class="nl">Le nom et le prix</span><span class="tag">table produits</span></div>
+      <div class="need-row"><span class="emo">🗂️</span><span class="nl">La catégorie</span><span class="tag">table produits</span></div>
+      <div class="need-row"><span class="emo">🪟</span><span class="nl">Deux fonctions de fenêtre</span><span class="tag">FIRST_VALUE · NTILE</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · FIRST_VALUE -->
+  <section class="scene" id="s2">
+    <div class="abs card win" id="w2" style="top:300px">
+      <div class="trap-h"><span class="emo">🥇</span><span>La première valeur de la fenêtre</span></div>
+      <div class="mini mm"><span class="ml"><span class="kw">FIRST_VALUE</span>(nom) <span class="kw">OVER</span> (</span><span class="ml">  <span class="glow" id="pb2"><span class="kw">PARTITION BY</span> categorie</span></span><span class="ml">  <span class="glow" id="ob2"><span class="kw">ORDER BY</span> prix <span class="kw">DESC</span></span>)</span></div>
+      <div class="wt" id="wt2">
+        <div class="wr h"><span></span><span>Bien-être</span><span>prix</span><span>FIRST_VALUE</span></div>
+        <div class="wr"><span class="rk">1</span><span>Fibre Prébiotique</span><span class="px">29.90</span><span class="v"><span class="ok">Fibre Prébiotique</span></span></div>
+        <div class="wr"><span class="rk">2</span><span>Oméga 3</span><span class="px">24.90</span><span class="v"><span class="ok">Fibre Prébiotique</span></span></div>
+        <div class="wr"><span class="rk">3</span><span>Magnésium</span><span class="px">19.90</span><span class="v"><span class="ok">Fibre Prébiotique</span></span></div>
+      </div>
+    </div>
+    <div class="abs pill gr" id="p2"><span>✓ Les 3 lignes restent, chacune avec sa valeur</span></div>
+  </section>
+
+  <!-- 3 et 4 · LAST_VALUE, puis son cadre -->
+  <section class="scene" id="s3">
+    <div class="abs card win" id="w3" style="top:300px">
+      <div class="trap-h"><span class="emo">🔚</span><span>La dernière valeur&nbsp;?</span></div>
+      <div class="mini mm"><span class="ml"><span class="kw">LAST_VALUE</span>(nom) <span class="kw">OVER</span> (</span><span class="ml">  <span class="kw">PARTITION BY</span> categorie</span><span class="ml">  <span class="kw">ORDER BY</span> prix <span class="kw">DESC</span>)</span></div>
+      <div class="wt" id="wt3">
+        <div class="wr h"><span></span><span>Bien-être</span><span>prix</span><span>LAST_VALUE</span></div>
+        <div class="wr"><span class="rk">1</span><span>Fibre Prébiotique</span><span class="px">29.90</span><span class="v"><span class="ko">Fibre Prébiotique</span><span class="ok">Magnésium</span></span></div>
+        <div class="wr"><span class="rk">2</span><span>Oméga 3</span><span class="px">24.90</span><span class="v"><span class="ko">Oméga 3</span><span class="ok">Magnésium</span></span></div>
+        <div class="wr"><span class="rk">3</span><span>Magnésium</span><span class="px">19.90</span><span class="v"><span class="ok">Magnésium</span><span class="ok">Magnésium</span></span></div>
+        <div class="frame" id="fr3"></div>
+      </div>
+    </div>
+    <div class="abs pill rd" id="x3"><span>✕ Chaque ligne reçoit son propre nom</span></div>
+    <div class="abs card trap" id="rw4">
+      <div class="trap-h"><span class="emo">🖼️</span><span>Étendre le cadre à toute la fenêtre</span></div>
+      <div class="mini mm"><span class="ml"><span class="kw">ROWS BETWEEN UNBOUNDED PRECEDING</span></span><span class="ml">     <span class="kw">AND UNBOUNDED FOLLOWING</span></span></div>
+    </div>
+  </section>
+
+  <!-- 5 · NTILE -->
+  <section class="scene" id="s5">
+    <div class="abs card nt5" id="n5" style="top:300px">
+      <div class="trap-h"><span class="emo">🧺</span><span><span class="ic">NTILE(3)</span> <span class="ic">OVER (ORDER BY prix DESC)</span></span></div>
+      <div class="nlist" id="nl5"></div>
+    </div>
+    <div class="abs pill vi" id="p5"><span>🧺 3 + 3 + 2 = 8 produits</span></div>
+  </section>
+
+  <!-- 6 · Le résultat -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> nom, prix,<span class="caret"><i></i></span></span><span class="ln" id="s6l2">  <span class="kw">NTILE</span>(3) <span class="kw">OVER</span> (<span class="kw">ORDER BY</span> prix <span class="kw">DESC</span>) <span class="kw">AS</span> gamme,<span class="caret"><i></i></span></span><span class="ln" id="s6l3">  <span class="kw">FIRST_VALUE</span>(nom) <span class="kw">OVER</span> (<span class="caret"><i></i></span></span><span class="ln" id="s6l4">    <span class="kw">PARTITION BY</span> categorie <span class="kw">ORDER BY</span> prix <span class="kw">DESC</span><span class="caret"><i></i></span></span><span class="ln" id="s6l5">  ) <span class="kw">AS</span> <span class="glow" id="m6">phare</span><span class="caret"><i></i></span></span><span class="ln" id="s6l6"><span class="kw">FROM</span> produits<span class="caret"><i></i></span></span><span class="ln" id="s6l7"><span class="kw">ORDER BY</span> prix <span class="kw">DESC</span>;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">8 lignes</span></span></div>
+      <div class="rgR th"><div>nom</div><div>prix</div><div>gamme</div><div>phare</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card board" id="ab6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Boutique · fiches produits</span></div>
+      <div class="ms">
+        <div class="ms-h"><span class="ms-ico">🏷️</span><div><div class="ms-t1">8 fiches produits</div><div class="ms-t2">Gamme de prix et produit phare</div></div></div>
+        <div class="ms-to" id="to6"></div>
+        <div class="stamp" id="sp6">Publié</div>
+      </div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ 8 fiches prêtes</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🥇</div><div class="rtxt"><b>FIRST_VALUE et LAST_VALUE</b><span class="rs">La première et la dernière valeur de la fenêtre, sans regrouper les lignes.</span></div></div>
+      <div class="rrow"><div class="rico emo">🖼️</div><div class="rtxt"><b>Le cadre de LAST_VALUE</b><span class="rs">Avec <span class="ic">ORDER BY</span>, le cadre s’arrête à la ligne actuelle&nbsp;: étends-le avec <span class="ic">ROWS BETWEEN</span>.</span></div></div>
+      <div class="rrow"><div class="rico emo">🧺</div><div class="rtxt"><b>NTILE(n) : n groupes</b><span class="rs">Les lignes triées sont réparties en n groupes presque égaux&nbsp;; les premiers reçoivent une ligne de plus.</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="liens.js"></script>
+<script src="core.js"></script>
+<script src="moments.js"></script>
+<script>
+'use strict';
+const DURATION = 177.0;
+
+/* La table produits de l’app, triée par prix décroissant : [nom, prix, gamme NTILE(3), produit phare de sa catégorie]. */
+const PRODUITS = [['Collagène Marin', '39.90', 1, 'Collagène Marin'], ['Protéine Végétale', '34.90', 1, 'Protéine Végétale'],
+  ['Fibre Prébiotique', '29.90', 1, 'Fibre Prébiotique'], ['Oméga 3', '24.90', 2, 'Fibre Prébiotique'], ['Magnésium', '19.90', 2, 'Fibre Prébiotique'],
+  ['Shaker Inox', '15.00', 2, 'Shaker Inox'], ['Vitamine D', '14.90', 3, 'Protéine Végétale'], ['Tisane Détox', '12.50', 3, 'Tisane Détox']];
+
+const CHAPTERS = [
+  {n:1, label:'Situation',      a:5.0,   b:26.0},
+  {n:2, label:'FIRST_VALUE',    a:26.0,  b:58.1},
+  {n:3, label:'LAST_VALUE',     a:58.1,  b:79.1},
+  {n:4, label:'Le cadre',       a:79.1,  b:111.9},
+  {n:5, label:'NTILE',          a:111.9, b:139.5},
+  {n:6, label:'Le résultat',    a:139.5, b:166.9},
+  {n:7, label:'À retenir',      a:166.9, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 9.6,     "NutriBoost refait la fiche<br>de ses <b>8 produits</b>."],
+  [9.7, 15.4,    "Chaque fiche montre sa <b>gamme de prix</b><br>et le produit <b>le plus cher</b><br>de sa catégorie."],
+  [15.5, 20.8,   "Le nom, le prix et la catégorie<br>se trouvent dans la <b>table produits</b>."],
+  [20.9, 25.6,   "Deux fonctions de fenêtre suffisent :<br><code>FIRST_VALUE</code> et <code>NTILE</code>."],
+  [26.3, 31.6,   "<code>FIRST_VALUE(nom)</code> renvoie le nom<br>de la <b>première ligne</b> de la fenêtre."],
+  [31.7, 36.6,   "<code>PARTITION BY categorie</code> forme<br>une fenêtre par catégorie."],
+  [36.7, 41.4,   "<code>ORDER BY prix DESC</code> place<br>le produit le plus cher en premier."],
+  [41.5, 46.2,   "Dans Bien-être, la Fibre&nbsp;Prébiotique<br>arrive en tête, à 29,90 €."],
+  [47.2, 52.4,   "Les trois lignes de Bien-être<br>reçoivent donc <b>Fibre Prébiotique</b>."],
+  [52.5, 57.6,   "Contrairement à <code>GROUP BY</code>,<br>aucune ligne ne disparaît."],
+  [58.4, 63.4,   "Pour le moins cher, on essaie<br><code>LAST_VALUE(nom)</code>, la <b>dernière ligne</b>."],
+  [63.5, 68.6,   "On attend le Magnésium,<br>le moins cher de Bien-être."],
+  [68.7, 73.8,   "Surprise : chaque ligne reçoit<br><b>son propre nom</b>."],
+  [73.9, 78.6,   "Seul le Magnésium reçoit<br>la bonne valeur."],
+  [79.6, 84.6,   "Avec <code>ORDER BY</code>, la fenêtre a<br>un <b>cadre par défaut</b>."],
+  [84.7, 89.8,   "Ce cadre va de la première ligne<br>jusqu’à la <b>ligne actuelle</b>."],
+  [89.9, 95.0,   "Pour l’Oméga&nbsp;3, le cadre s’arrête<br>donc à l’Oméga&nbsp;3."],
+  [96.0, 101.4,  "Comme dans les fenêtres glissantes,<br><code>ROWS BETWEEN</code> étend le cadre<br>à toute la fenêtre."],
+  [101.5, 106.6, "Cette fois, les trois lignes<br>reçoivent le <b>Magnésium</b>."],
+  [106.7, 111.4, "<code>FIRST_VALUE</code> n’a pas ce souci :<br>la première ligne est toujours dans le cadre."],
+  [112.4, 117.6, "Reste la gamme de prix : <code>NTILE(3)</code><br>répartit les lignes en <b>3 groupes</b>."],
+  [117.7, 122.8, "Les 8 produits sont triés<br>du plus cher au moins cher."],
+  [122.9, 127.6, "Les groupes sont aussi égaux<br>que possible."],
+  [128.6, 133.8, "Comme 8 ne se divise pas par 3,<br>les premiers groupes reçoivent<br>une ligne de plus."],
+  [133.9, 139.0, "Résultat : 3 produits en gamme 1,<br>3 en gamme 2 et 2 en gamme 3."],
+  [140.0, 145.4, "La requête complète calcule la gamme<br>et le produit phare de chaque ligne."],
+  [145.5, 150.6, "Résultat : <b>8 lignes</b>, une par produit."],
+  [150.7, 155.8, "Le Collagène&nbsp;Marin, en gamme 1,<br>est le phare de la catégorie Beauté."],
+  [155.9, 161.0, "Seule dans la catégorie Boisson,<br>la Tisane&nbsp;Détox en est le phare."],
+  [161.1, 166.4, "Les 8 fiches produits<br>sont prêtes à être publiées."],
+  [167.2, 172.0, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [172.1, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
+      : [172.1, 999, "<code>FIRST_VALUE</code>, <code>LAST_VALUE</code> et <code>NTILE</code> : sans regrouper les lignes."]
+];
+
+const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse. */
+const MOMENTS = [
+  // FIRST_VALUE expliqué : avant que la vidéo ne remplisse la colonne
+  {at: 46.7, from: 26.3, kind: 'pick', text: true, prompt: 'Que renvoie <code>FIRST_VALUE(nom)</code> pour la ligne de l’Oméga&nbsp;3&nbsp;?', options: [
+    {label: 'Fibre Prébiotique', ok: true, why: 'Dans la fenêtre Bien-être triée par prix décroissant, la Fibre Prébiotique, à 29,90 €, est la première ligne.'},
+    {label: 'Oméga 3', why: '<code>FIRST_VALUE</code> ne renvoie pas la valeur de la ligne elle-même, mais celle de la première ligne de la fenêtre.'},
+    {label: 'Collagène Marin', why: 'Le Collagène Marin est le plus cher de tous, mais il est dans la catégorie Beauté : <code>PARTITION BY</code> l’écarte de la fenêtre Bien-être.'}],
+    tip: 'Pense à la fenêtre de la catégorie, triée du plus cher au moins cher.'},
+  // Le cadre par défaut expliqué : avant que la vidéo ne l’étende
+  {at: 95.5, from: 79.6, kind: 'pick', text: true, prompt: 'Avec le cadre par défaut, que renvoie <code>LAST_VALUE(nom)</code> pour la Fibre&nbsp;Prébiotique&nbsp;?', options: [
+    {label: 'Fibre Prébiotique', ok: true, why: 'Elle est la première ligne : son cadre va de la première ligne à elle-même et ne contient qu’elle.'},
+    {label: 'Magnésium', why: 'Le Magnésium est la dernière ligne de la fenêtre, mais le cadre par défaut s’arrête à la ligne actuelle.'},
+    {label: 'Oméga 3', why: 'L’Oméga 3 vient après la Fibre Prébiotique : il est hors de son cadre.'}],
+    tip: 'Le cadre va de la première ligne jusqu’à la ligne actuelle.'},
+  // NTILE expliqué : avant que la vidéo ne forme les groupes
+  {at: 128.1, from: 112.4, kind: 'pick', text: true, prompt: 'Avec <code>NTILE(3)</code>, comment les 8 produits sont-ils répartis&nbsp;?', options: [
+    {label: '3, 3 et 2', ok: true, why: '8 ÷ 3 donne 2, reste 2 : les deux premiers groupes reçoivent une ligne de plus.'},
+    {label: '2, 3 et 3', why: 'Les lignes en trop vont aux premiers groupes, pas aux derniers.'},
+    {label: '3, 3 et 3', why: 'Il n’y a que 8 produits : trois groupes de 3 en demanderaient 9.'}],
+    tip: 'Fais la division 8 ÷ 3 et regarde le reste.'}
+];
+
+function dom(){
+  /* Chapitre 5 : les 8 produits, du plus cher au moins cher, avec leur gamme */
+  $('#nl5').innerHTML = PRODUITS.map(([n, p, g]) => `<div class="nr g${g}"><span>${n}</span><span class="px">${p}</span><span class="gm">gamme ${g}</span></div>`).join('');
+  /* Chapitre 6 : le résultat, puis les fiches */
+  $('#rows6').innerHTML = PRODUITS.map(([n, p, g, ph]) => `<div class="rgR tr t6"><span class="hl"></span><div>${n}</div><div>${p}</div><div>${g}</div><div>${ph}</div></div>`).join('');
+  $('#to6').innerHTML = PRODUITS.map(([n, , g]) => `<span class="rc">${['🥇', '🥈', '🥉'][g - 1]} ${n}</span>`).join('');
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(sel, $(id));
+  gsap.set(items, {autoAlpha: 0, y: 24});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => cue(t + 0.65 + i * step, 'pop', 0.55, i % 5));
+  return items;
+}
+/* Une valeur apparaît dans la colonne d’une ligne. */
+const val = (el, t) => { tl.fromTo(el, {autoAlpha: 0, scale: 0.6}, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', immediateRender: false}, t); };
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});
+  hold(2.3, 2.4);
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  boardIn('#ab1', 5.15, '.lx-hero');
+  gsap.set(['#cd1', '#cd2', '#tb1'], {autoAlpha: 0});
+  show('#cd1', 10.8, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(10.8, 'pop', 0.7, 1);
+  show('#cd2', 12.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(12.6, 'pop', 0.7, 3);
+  stackBelow('#s1 .need', '#ab1');
+  show('#tb1', 16.0, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(16.0, 'pop', 0.7, 2);
+  show('#s1 .need', 16.4, {y: 60});
+  cue(16.4, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows.slice(0, 2), {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.25}, 16.7);
+  [0, 1].forEach(i => cue(16.7 + i * 0.25, 'pop', 0.7, i));
+  tl.to(needRows[2], {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, 21.4);
+  cue(21.4, 'pop', 0.7, 4);
+  hide(['#ab1', '#s1 .need'], 25.6);
+  sceneOff('#s1', 26.0);
+
+  /* ===== 2 · FIRST_VALUE ===== */
+  sceneOn('#s2', 26.0);
+  show('#w2', 26.05, {y: 50});
+  cue(26.05, 'whoosh', 0.6);
+  const r2 = $$('#wt2 .wr:not(.h)');
+  gsap.set(r2, {autoAlpha: 0});
+  pulse('#pb2', 32.2, 3, 'rgba(201,188,255,.5)');
+  tl.to(r2, {autoAlpha: 1, duration: 0.3, stagger: 0.15}, 33.4);
+  r2.forEach((_, i) => cue(33.4 + i * 0.15, 'tick', 0.45, i));
+  pulse('#ob2', 37.2, 3, 'rgba(201,188,255,.5)');
+  pulse(r2[0], 42.0, 3, 'rgba(255,214,140,.6)');
+  cue(42.0, 'pop', 0.7, 2);
+  // Les trois lignes reçoivent Fibre Prébiotique
+  $$('#wt2 .v > span').forEach((el, i) => { val(el, 47.6 + i * 0.4); cue(47.6 + i * 0.4, 'true', 0.45); });
+  stackBelow('#p2', '#w2', 0, 30);
+  show('#p2', 53.0, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(53.0, 'chord', 0.6);
+  hide(['#w2', '#p2'], 57.6, {y: -40});
+  sceneOff('#s2', 58.1);
+
+  /* ===== 3 · LAST_VALUE ===== */
+  sceneOn('#s3', 58.1);
+  show('#w3', 58.15, {y: 50});
+  cue(58.15, 'whoosh', 0.6);
+  const v3 = $$('#wt3 .wr:not(.h) .v');
+  // On attend le Magnésium : il s’allume
+  pulse($$('#wt3 .wr')[3], 64.4, 3, 'rgba(191,232,208,.8)');
+  // Surprise : chaque ligne reçoit son propre nom
+  v3.forEach((v, i) => { val(v.children[0], 69.2 + i * 0.4); cue(69.2 + i * 0.4, i < 2 ? 'miss' : 'true', 0.45); });
+  stackBelow('#x3', '#w3', 0, 30);
+  show('#x3', 70.8, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  shake('#x3', 71.4);
+  hide('#x3', 79.2, {scale: 0.8}, 0.3);
+
+  /* ===== 4 · Le cadre ===== */
+  // Le cadre par défaut : de la première ligne jusqu’à la ligne actuelle (ici, l’Oméga 3)
+  gsap.set('#fr3', {height: 68});
+  tl.to('#fr3', {autoAlpha: 1, duration: 0.3}, 80.2);
+  cue(80.2, 'pop', 0.7, 2);
+  tl.to('#fr3', {height: 136, duration: 0.6, ease: 'power2.inOut'}, 85.4);
+  pulse($$('#wt3 .wr')[2], 90.4, 3, 'rgba(201,188,255,.6)');
+  cue(90.4, 'tick', 0.5, 3);
+  // ROWS BETWEEN étend le cadre à toute la fenêtre
+  stackBelow('#rw4', '#w3', 0, 30);
+  show('#rw4', 96.4, {y: 40}, 0.5);
+  cue(96.4, 'whoosh', 0.6);
+  tl.to('#fr3', {height: 204, duration: 0.6, ease: 'power2.inOut'}, 98.6);
+  cue(98.6, 'chord', 0.6);
+  v3.forEach((v, i) => {
+    if (i < 2) { tl.to(v.children[0], {autoAlpha: 0, duration: 0.2}, 102.0 + i * 0.4); val(v.children[1], 102.1 + i * 0.4); cue(102.1 + i * 0.4, 'true', 0.45); }
+  });
+  hide(['#w3', '#rw4'], 111.4, {y: -40});
+  sceneOff('#s3', 111.9);
+
+  /* ===== 5 · NTILE ===== */
+  sceneOn('#s5', 111.9);
+  show('#n5', 111.95, {y: 50});
+  cue(111.95, 'whoosh', 0.6);
+  const nr = $$('#nl5 .nr');
+  rowsIn(nr, 118.0, 0.2);
+  // Les groupes : 3, 3 et 2
+  [[0, 3], [3, 6], [6, 8]].forEach(([a, b], g) => {
+    const t = 129.0 + g * 1.4;
+    nr.slice(a, b).forEach((r, i) => {
+      tl.set(r, {attr: {class: `nr g${g + 1} on`}}, t + i * 0.15);
+      tl.fromTo(r.querySelector('.gm'), {autoAlpha: 0, scale: 0.6}, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', immediateRender: false}, t + i * 0.15);
+    });
+    cue(t, 'pop', 0.7, g + 1);
+  });
+  stackBelow('#p5', '#n5', 0, 30);
+  show('#p5', 134.4, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(134.4, 'chord', 0.6);
+  hide(['#n5', '#p5'], 139.0, {y: -40});
+  sceneOff('#s5', 139.5);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 139.5);
+  show('#s6code', 139.55, {y: 60}, 0.6);
+  cue(139.55, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 140.05, 40);
+  for (const k of [2, 3, 4, 5, 6, 7]) te = typeLine($('#s6l' + k), te + 0.1, 40);
+  press($('#s6run'), 145.2);
+  hide('#s6code', 145.6, {y: -40}, 0.35);
+  gsap.set('#tbl6', {top: 300});
+  show('#tbl6', 145.9, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 146.1, 0.15);
+  gsap.set('#cnt6', {autoAlpha: 0});
+  show('#cnt6', 147.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 148.2, 1.15, 3);
+  const r6 = $$('#rows6 .tr');
+  pulse(r6[0], 151.2, 3, 'rgba(201,188,255,.45)');
+  pulse(r6[7], 156.4, 3, 'rgba(201,188,255,.45)');
+  hide('#tbl6', 160.8, {y: -40}, 0.4);
+  boardIn('#ab6', 161.1, '.ms-h, .rc', 0.12);
+  gsap.set('#sp6', {autoAlpha: 0, scale: 1.8, rotation: -14});
+  tl.to('#sp6', {autoAlpha: 1, scale: 1, rotation: -8, duration: 0.35, ease: 'back.out(2)'}, 163.0);
+  cue(163.0, 'stamp', 0.8);
+  stackBelow('#badge6', '#ab6', 0, 50);
+  show('#badge6', 163.6, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(163.6, 'chord', 0.7);
+  hide(['#ab6', '#badge6'], 166.4);
+  sceneOff('#s6', 166.9);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(166.9, [167.6, 169.4, 171.2]);
+  hold(169.2, 7.0);
+  hold(171.0, 9.0);
+  hold(172.7, 6.0);
+  if (APP) cue(172.15, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 172.1, moments: MOMENTS,
+  glyphs: '🏷️🧺👑🗂️🪟🥇🔚🖼️✓✕🥈🥉🔎·…÷', dom, build});
+</script>
+</body>
+</html>
