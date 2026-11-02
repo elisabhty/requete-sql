@@ -3254,6 +3254,9 @@
   @media (max-width:420px){.ne-row{gap:8px}.ne-row button{padding-left:10px;padding-right:10px;gap:5px}.ne-row .del{padding-left:14px;padding-right:14px}}
   @media (max-width:350px){.ne-row{flex-wrap:wrap}.ne-row .del{flex:1 1 100%}}
   .ne-lab{font-size:11.5px;font-weight:750;color:var(--ink-2);text-transform:uppercase;letter-spacing:.6px;margin:18px 4px 6px}
+  .ne-lab{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .ne-open{border:none;background:none;padding:6px 0;margin:-6px 0;font-family:var(--ui);font-size:13.5px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--accent);cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap}
+  .ne-open:active{opacity:.6}
   .notes-hub-new{width:100%;margin:0;background:var(--surface);color:var(--accent);border:1px solid var(--card-border);border-radius:18px;padding:15px 18px;font-family:var(--ui);font-size:15px;font-weight:750;cursor:pointer;box-shadow:var(--card-shadow);display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .16s var(--spring-ios),background .16s}
   .notes-hub-new:active{background:var(--surface-2);transform:scale(.98)}
   .notes-hub-new svg{width:17px;height:17px}
@@ -16190,7 +16193,11 @@ async function confirmImport(){
   }
 }
 
-const KW=new Set(['SELECT','FROM','WHERE','AND','OR','NOT','ORDER','BY','ASC','DESC','LIMIT','OFFSET','DISTINCT','GROUP','HAVING','JOIN','INNER','LEFT','RIGHT','OUTER','FULL','ON','AS','IN','IS','NULL','LIKE','BETWEEN','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','INDEX','UNIQUE','EXPLAIN','QUERY','PLAN','UNION','ALL','EXISTS','CASE','WHEN','THEN','ELSE','END','CAST','WITH','RECURSIVE','OVER','PARTITION','ROW_NUMBER','RANK','DENSE_RANK','LAG','LEAD','FIRST_VALUE','LAST_VALUE','NTILE','ROWS','RANGE','CURRENT','UNBOUNDED','PRECEDING','FOLLOWING','GROUP_CONCAT','STRING_AGG']);
+const KW=new Set(['SELECT','FROM','WHERE','AND','OR','NOT','ORDER','BY','ASC','DESC','LIMIT','OFFSET','DISTINCT','GROUP','HAVING','JOIN','INNER','LEFT','RIGHT','OUTER','FULL','ON','AS','IN','IS','NULL','LIKE','BETWEEN','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','INDEX','UNIQUE','EXPLAIN','QUERY','PLAN','UNION','ALL','EXISTS','CASE','WHEN','THEN','ELSE','END','CAST','WITH','RECURSIVE','OVER','PARTITION','ROW_NUMBER','RANK','DENSE_RANK','LAG','LEAD','FIRST_VALUE','LAST_VALUE','NTILE','ROWS','RANGE','CURRENT','UNBOUNDED','PRECEDING','FOLLOWING','GROUP_CONCAT','STRING_AGG',
+  /* Définir, modifier, sécuriser (les chapitres du projet) : GRANT, REVOKE et TO restaient en blanc dans la requête d’une note
+     (Elisa, 2 novembre, 18 h 45). */
+  'GRANT','REVOKE','TO','VIEW','PRIMARY','KEY','FOREIGN','REFERENCES','DROP','ALTER','ADD','COLUMN','RENAME','DEFAULT','CHECK','CONSTRAINT',
+  'CASCADE','TRIGGER','BEGIN','COMMIT','ROLLBACK','TRANSACTION','SAVEPOINT','RELEASE']);
 const FN=new Set(['COUNT','SUM','AVG','MIN','MAX','ROUND','ABS','CEIL','FLOOR','LENGTH','UPPER','LOWER','TRIM','LTRIM','RTRIM','SUBSTR','INSTR','REPLACE','COALESCE','NULLIF','RANDOM','STRFTIME','DATE','TYPEOF','IFNULL',
   /* SQLite, suite : dates, texte, nombres, conditions */
   'DATETIME','TIME','JULIANDAY','UNIXEPOCH','PRINTF','FORMAT','CONCAT','CONCAT_WS','SUBSTRING','IIF','CHAR','UNICODE','HEX','QUOTE','TOTAL','POWER','SQRT','EXP','LOG','LOG10','SIGN','PI','SQUARE','REVERSE','REPLICATE','CHARINDEX','PROPER','MEDIAN','STDEV','VARIANCE',
@@ -31025,7 +31032,7 @@ function openNote(id,pre){
   noteView='edit';
   editingNote=n?{...n,isNew:false}:{id:'n'+Date.now()+Math.random().toString(36).slice(2,6),txt:(pre&&pre.txt)||'',sql:(pre&&pre.sql)||'',ctx:(pre&&pre.ctx)||'',ts:Date.now(),pin:false,isNew:true};
   document.getElementById('note-head').textContent=n?'Note':'Nouvelle note';
-  lqVizCap('note-sheet','pen',n?'Retouche-la, épingle-la ou garde-la telle quelle.':'Une idée, une requête à revoir ou une question.');
+  lqVizCap('note-sheet','pen',n?'Retouche-la ou garde-la telle quelle.':'Une idée, une requête à revoir ou une question.');
   document.getElementById('note-back').classList.add('on');
   document.getElementById('note-sheet').classList.add('on');
   document.getElementById('fab').classList.add('hide');
@@ -31037,17 +31044,15 @@ function openNote(id,pre){
       <span style="font-size:12px;color:var(--ink-3)">${n?fmtDate(e.ts):'Maintenant'}</span>
     </div>
     <textarea class="ne-ta" id="ne-ta" placeholder="Écris ce que tu veux retenir…"></textarea>
-    <div class="ne-lab"><span>Requête associée</span></div>
+    <div class="ne-lab"><span>Requête associée</span>${e.sql?`<button class="ne-open" type="button" onclick="noteToConsole()">Ouvrir dans la console ›</button>`:''}</div>
     <div class="editor-shell ne-sql-shell">
       <div class="editor-area"><pre><code id="hl-ne-sql"></code></pre>
       <textarea id="ne-sql" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="-- optionnel"></textarea></div>
     </div>
     <div class="ne-row">
       <button class="prim" type="button" onclick="saveNote()">Enregistrer</button>
-      <button class="sec ne-pin ${e.pin?'pin-on':''}" type="button" aria-pressed="${e.pin?'true':'false'}" onclick="togglePin()" title="${e.pin?'Désépingler':'Épingler'}">${PIN_CK}<span class="sr">${e.pin?'Épinglée':'Épingler'}</span></button>
       ${n?`<button class="del" type="button" onclick="deleteNote('${e.id}')">Supprimer</button>`:''}
-    </div>
-    ${e.sql?`<div class="ne-row" style="margin-top:9px"><button class="sec" style="flex:1" type="button" onclick="noteToConsole()">Ouvrir dans la console</button></div>`:''}`;
+    </div>`;
   const ta=document.getElementById('ne-ta');
   ta.value=e.txt||'';
   const grow=()=>{ta.style.height='auto';ta.style.height=Math.max(160,Math.min(ta.scrollHeight,320))+'px'};grow();
@@ -31055,6 +31060,9 @@ function openNote(id,pre){
   const sq=document.getElementById('ne-sql');
   sq.value=e.sql||'';
   setupEditor('ne-sql','hl-ne-sql');
+  /* La copie colorée se remplit tout de suite : sans elle, la requête associée restait invisible jusqu’à la première frappe
+     (Elisa, 2 novembre, 18 h 45 : un grand cadre sombre et vide). */
+  syncHL('ne-sql','hl-ne-sql');
   if(!n)setTimeout(()=>ta.focus(),260);
   document.getElementById('note-body').scrollTop=0;
 }
@@ -31095,21 +31103,8 @@ function saveNote(){
   backToNotesList();
   if(!ok&&empty)toast(wasNew?'Rien à enregistrer':'Note vide supprimée',wasNew?'La note est vide.':'Elle ne contenait plus rien.','info');
 }
-function togglePin(){
-  const e=collectNote(); if(!e)return;
-  e.pin=!e.pin;
-  const btn=document.querySelector('#note-body .ne-row .sec');
-  if(btn){
-    btn.classList.toggle('pin-on',e.pin);
-    const sp=btn.querySelector('span'); if(sp) sp.textContent=e.pin?'Épinglée':'Épingler';
-    btn.setAttribute('aria-pressed',e.pin?'true':'false');
-    lqPinFx(btn,e.pin);
-  }
-  /* L’épingle compte tout de suite (sans attendre « Enregistrer ») dès que la note a un contenu. */
-  const has=String(e.txt||'').trim()||String(e.sql||'').trim();
-  const ok=has&&persistEditingNote();
-  lqSay((e.pin?'Note épinglée':'Note désépinglée')+(ok?'':' : écris ta note, puis enregistre-la'));
-}
+/* Épingler une note : depuis sa carte, dans la liste (la coche ronde animée). L’éditeur n’a plus son bouton (Elisa, 2 novembre,
+   18 h 45 : « Qu’est-ce que le bouton en trop au milieu ? Il y a trop de bouton ») : une seule action, « Enregistrer ». */
 function togglePinFromList(id){
   const n=(state.notes||[]).find(x=>x.id===id); if(!n)return;
   const root=notesRoot(),before=new Map();
@@ -33314,7 +33309,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-anneau-v2379';
+  const SW_CACHE='requete-2026-11-02-notes-v2380';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
