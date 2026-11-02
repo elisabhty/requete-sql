@@ -29,8 +29,12 @@ const consts = {};
 for (const m of page.matchAll(/^const ([A-Z_][A-Z0-9_]* = [^;\n]+);/gm))   // « const A = 1, B = 2; » : chacune des constantes
   for (const d of m[1].split(/,\s*(?=[A-Z_][A-Z0-9_]* = )/)) { const k = d.slice(0, d.indexOf(' = ')), v = d.slice(d.indexOf(' = ') + 3);
     try { consts[k] = vm.runInContext(v, vm.createContext(Object.assign({APP: true}, consts))); } catch (e) {} }
-const chapters = run(block('CHAPTERS'), 'CHAPTERS', consts);
-const captions = run(block('CAPTIONS'), 'CAPTIONS', consts);
+/* Les cours qui posent leurs légendes avec cap(…) (DROP, schémas) : CAPTIONS et CHAPTERS sortent de SCH ; on rejoue ce déroulé. */
+const sch = (() => { if (block('CHAPTERS')) return null; const a = page.indexOf('const SCH = {'), z = page.indexOf('\n', page.indexOf('const CHAPTERS = ', a));
+  if (a < 0 || z < 0) return null;
+  return vm.runInContext(page.slice(a, z) + ';({CAPTIONS, CHAPTERS})', vm.createContext(Object.assign({APP: true}, consts))); })();
+const chapters = sch ? sch.CHAPTERS : run(block('CHAPTERS'), 'CHAPTERS', consts);
+const captions = sch ? sch.CAPTIONS : run(block('CAPTIONS'), 'CAPTIONS', consts);
 /* Les cours du projet construisent OPENS avec un .map(…) sur leurs mails : on rejoue alors les tableaux dont il dépend. */
 const opens = (() => { if (!block('OPENS', '];')) return [];
   try { const o = run(block('OPENS', '];'), 'OPENS', consts); if (Array.isArray(o) && o.every(x => x && x.prompt)) return o; } catch (e) {}
@@ -40,7 +44,7 @@ const opens = (() => { if (!block('OPENS', '];')) return [];
   const src = page.slice(a, end > 0 && end < page.indexOf('\nconst ', a + 10) ? end + 4 : line + 1);
   try { const o = run(src, 'OPENS', ctx); return Array.isArray(o) ? o : []; } catch (e) { return []; } })();
 /* Les moments : leurs consignes et indices, lus dans le texte (le reste du tableau dépend de la page). Un moment = un « {at: ». */
-const str = (seg, k) => { const m = seg.match(new RegExp('\\b' + k + ":\\s*'((?:[^'\\\\]|\\\\.)*)'")); return m ? m[1].replace(/\\'/g, "'") : ''; };
+const str = (seg, k) => { const m = seg.match(new RegExp('\\b' + k + ":\\s*'((?:[^'\\\\]|\\\\.)*)'")); return m ? m[1].replace(/\\u([0-9a-fA-F]{4})/g, (x, h) => String.fromCharCode(parseInt(h, 16))).replace(/\\'/g, "'") : ''; };
 const mSrc = block('MOMENTS') || block('PICKS') || '';   // les cours du projet appellent leurs moments PICKS
 const moments = mSrc.split(/\{\s*at:/).slice(1).map(seg => ({prompt: str(seg, 'prompt'), hint: str(seg, 'hint')}));
 
@@ -70,14 +74,17 @@ const MOTS_CLES = {AS: 'aze', IN: 'inne', ON: 'onne', OR: 'or', BY: 'baï', IS: 
   PARTITION: 'partition', RANK: 'rannk', LAG: 'lague', LEAD: 'lîde', ROWS: 'raôze', ROW: 'raô', PRECEDING: 'prissîdinngue',
   FOLLOWING: 'folôouinngue', CURRENT: 'keurennte', UNBOUNDED: 'eunnbaoundide', RANGE: 'réïndje',
   /* Le projet (voix d’Agathe) : la suite parle de CREATE TABLE. */
-  CREATE: 'criéïte', TABLE: 'téïbeul'};
+  CREATE: 'criéïte', TABLE: 'téïbeul',
+  /* Le module « Créer et faire évoluer les tables » (voix d’Anaïs, 2 novembre, 9 h 33). */
+  ALTER: 'olteur', RENAME: 'rinéïme', COLUMN: 'kolomme', DEFAULT: 'difolte', CHECK: 'tchèk', FOREIGN: 'foreune', KEY: 'ki', REFERENCES: 'rèfeurennssize',
+  SCHEMA: 'skima', DROP: 'drope', UPDATE: 'eupdéïte', INSERT: 'innseurte', INTO: 'inntou', DELETE: 'dilîte', TO: 'tou', PRIMARY: 'praïmeri', UNIQUE: 'iounique', ADD: 'adde', IF: 'iffe', SET: 'sètte', DATE: 'date'};
 /* Les noms de colonnes et de tables sans accent (le code n’en met pas) : dits avec leurs accents. */
-const ACCENTS = {prenom: 'prénom', prenoms: 'prénoms', age: 'âge', ages: 'âges', selection: 'sélection', quantite: 'quantité', quantites: 'quantités',
+const ACCENTS = {schema: 'schéma', sql: 'S Q L', prenom: 'prénom', prenoms: 'prénoms', age: 'âge', ages: 'âges', selection: 'sélection', quantite: 'quantité', quantites: 'quantités',
   categorie: 'catégorie', categories: 'catégories', numero: 'numéro', etre: 'être', fidelite: 'fidélité', seance: 'séance', seances: 'séances',
   medecin: 'médecin', medecins: 'médecins', salarie: 'salarié', salaries: 'salariés', expedition: 'expédition', expedier: 'expédier', expedie: 'expédié',
   telephone: 'téléphone', entrepot: 'entrepôt', derniere: 'dernière', dernier: 'dernier', delai: 'délai', delais: 'délais', annee: 'année', annees: 'années',
   evenement: 'événement', evenements: 'événements', reference: 'référence', region: 'région', duree: 'durée', employe: 'employé', employes: 'employés',
-  depense: 'dépense', depenses: 'dépenses', creation: 'création', cree: 'créé', modifie: 'modifié', genre: 'genre', periode: 'période', tache: 'tâche',
+  depense: 'dépense', depenses: 'dépenses', creation: 'création', cree: 'créé', genre: 'genre', periode: 'période', tache: 'tâche',
   taches: 'tâches', theme: 'thème', etat: 'état', eleve: 'élève', eleves: 'élèves', reduction: 'réduction', reserve: 'réservé', reservation: 'réservation',
   reservations: 'réservations', id: 'identifiant', typeof: 'taïpe-off', preparation: 'préparation', integer: 'inntédjeur', text: 'tèxte', interet: 'intérêt', adherent: 'adhérent', adherents: 'adhérents', echeance: 'échéance', reglement: 'règlement'};
 /* Les signes de comparaison, les motifs de LIKE et les flèches, dits en mots (Elisa, 2 novembre, 7 h 23 : les cinq cours suivants). */
@@ -177,8 +184,10 @@ const MIA = {id: 'PrwKJdvtTbJVdosRhS1O', nom: 'Mia'}, SOUS_REQUETES = ['sous-req
 const DORIAN = {id: 'vp2FCFmQCE4NzuQj9QNe', nom: 'Dorian'}, FENETRES = ['over', 'fonctions-rang', 'lag-lead', 'fenetres-glissantes'];
 /* 9 h 21 : le module « Modéliser » reprend la formatrice du premier module (Agathe, la blonde). */
 const MODELISER = ['projet-normaliser', 'projet-cles', 'projet-uml'];
+/* 9 h 33 : le module « Créer et faire évoluer les tables » avec Anaïs (« Anaïs – News, podcasting and e-learning »), la formatrice. */
+const ANAIS = {id: '5OnMHwgTFgvPVwE8jP6B', nom: 'Anaïs'}, TABLES = ['projet-create', 'projet-alter', 'projet-drop', 'projet-schemas'];
 const voix = AGATHE.includes(cours) || MODELISER.includes(cours) ? base.voix : AGREGATS.includes(cours) ? ANTOINE : JOINTURES.includes(cours) ? PERLE
-  : SOUS_REQUETES.includes(cours) ? MIA : FENETRES.includes(cours) ? DORIAN : ADAM;
+  : SOUS_REQUETES.includes(cours) ? MIA : FENETRES.includes(cours) ? DORIAN : TABLES.includes(cours) ? ANAIS : ADAM;
 const job = {cours, titre: intro.sub, voix, modele: base.modele, langue: base.langue, format: base.format, elements: out};
 fs.writeFileSync(path.join(DIR, cours + '.json'), JSON.stringify(job, null, 2) + '\n');
 /* Les phrases communes : copiées depuis le premier cours (si ses fichiers bruts sont là). */

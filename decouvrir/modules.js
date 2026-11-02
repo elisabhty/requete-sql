@@ -77,11 +77,11 @@ window.MODULES=[
       ["LEFT JOIN", "Garder même sans correspondance", 167],
       ["RIGHT JOIN", "Tout garder à droite", 204],
       ["FULL OUTER JOIN", "Tout garder des deux côtés", 196],
-      ["CROSS JOIN", "Créer toutes les combinaisons", 156],
-      ["Jointure de 3 tables", "Relier toute l’histoire", 214],
-      ["JOIN + GROUP BY", "Compter les commandes par ville", 166],
-      ["SELF JOIN", "Retrouver les clients qui habitent dans la même ville", 173],
-      ["Plusieurs conditions dans ON", "Relier seulement les produits encore en stock", 195],
+      ["CROSS JOIN", "Créer toutes les combinaisons", 159],
+      ["Jointure de 3 tables", "Relier toute l’histoire", 228],
+      ["JOIN + GROUP BY", "Compter les commandes par ville", 169],
+      ["SELF JOIN", "Retrouver les clients qui habitent dans la même ville", 191],
+      ["Plusieurs conditions dans ON", "Relier seulement les produits encore en stock", 206],
       ["Quel JOIN choisir ?", "Choisir la bonne jointure selon les lignes à garder", 210]
     ]},
     {titre:"Sous-requêtes et ensembles", sous:"IN, EXISTS, CTE et UNION", lecons:[
