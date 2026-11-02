@@ -35,7 +35,7 @@ const str = (seg, k) => { const m = seg.match(new RegExp('\\b' + k + ":\\s*'((?:
 const mSrc = block('MOMENTS') || '';
 const moments = mSrc.split(/\{\s*at:/).slice(1).map(seg => ({prompt: str(seg, 'prompt'), hint: str(seg, 'hint')}));
 
-const plain = h => String(h).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+const plain = h => String(h).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
 /* Le code, dit à voix haute. */
 const DIRE = [[/\bSELECT \*/g, 'SELECT étoile'], [/(\w)_(\w)/g, '$1 underscore $2'], [/« Prix \(€\) »/g, '« Prix en euros »'], [/\(€\)/g, 'le symbole euro'],
   [/ = /g, ' égale '], [/ \+ /g, ' avec '], [/'([^']+)'/g, '$1'], [/\s*;\s*$/g, '.']];
@@ -44,7 +44,7 @@ const DIRE = [[/\bSELECT \*/g, 'SELECT étoile'], [/(\w)_(\w)/g, '$1 underscore 
 /* Elisa, 2 novembre, 1 h 32 : « elle dit DISTINCT (à la française), il faut dire distincte ». Les mots-clés qui sont aussi des mots français
    (DISTINCT, CASE, UNION) se disent à l’anglaise, eux aussi. */
 const MOTS_CLES = {AS: 'aze', IN: 'inne', ON: 'onne', OR: 'or', BY: 'baï', IS: 'ize', AND: 'ènde', NOT: 'notte', ALL: 'ol', ASC: 'assk', DESC: 'dissk',
-  DISTINCT: 'distinkte', CASE: 'kéïsse', UNION: 'iounionne'};
+  DISTINCT: 'distinkte', CASE: 'kéïsse', UNION: 'iounionne', LIKE: 'laïke'};
 /* Les noms de colonnes et de tables sans accent (le code n’en met pas) : dits avec leurs accents. */
 const ACCENTS = {prenom: 'prénom', prenoms: 'prénoms', age: 'âge', ages: 'âges', selection: 'sélection', quantite: 'quantité', quantites: 'quantités',
   categorie: 'catégorie', categories: 'catégories', numero: 'numéro', etre: 'être', fidelite: 'fidélité', seance: 'séance', seances: 'séances',
@@ -54,14 +54,30 @@ const ACCENTS = {prenom: 'prénom', prenoms: 'prénoms', age: 'âge', ages: 'âg
   depense: 'dépense', depenses: 'dépenses', creation: 'création', cree: 'créé', modifie: 'modifié', genre: 'genre', periode: 'période', tache: 'tâche',
   taches: 'tâches', theme: 'thème', etat: 'état', eleve: 'élève', eleves: 'élèves', reduction: 'réduction', reserve: 'réservé', reservation: 'réservation',
   reservations: 'réservations', interet: 'intérêt', adherent: 'adhérent', adherents: 'adhérents', echeance: 'échéance', reglement: 'règlement'};
-DIRE.push([/\b(AS|IN|ON|OR|BY|IS|AND|NOT|ALL|ASC|DESC|DISTINCT|CASE|UNION)\b/g, (m, w, off, all) => { const d = MOTS_CLES[w];
+/* Les signes de comparaison, les motifs de LIKE et les flèches, dits en mots (Elisa, 2 novembre, 7 h 23 : les cinq cours suivants). */
+const SIGNES = {'<=': 'inférieur ou égal', '>=': 'supérieur ou égal', '!=': 'différent', '<>': 'différent', '<': 'inférieur', '>': 'supérieur', '=': 'égal'};
+DIRE.unshift([/'([^']+)'/g, '$1'], [/(\d)\s*%/g, '$1 pour cent'], [/\s*→\s*/g, ', donne '],
+  [/(^|\s)([%_A-Za-zÀ-ÿ]*[%_][%_A-Za-zÀ-ÿ]*)(?=[\s,.;:!?»)]|$)/g, (m, a, w) => /[%_]/.test(w) && !/[A-Za-zÀ-ÿ]_[A-Za-zÀ-ÿ]/.test(w)
+    ? a + w.split(/([%_])/).filter(Boolean).map(x => x === '%' ? 'pourcent' : x === '_' ? 'tiret bas' : x).join(', ') : m],
+  /* Suivi d’une valeur : « inférieur à 60 », « différent de Accessoire » ; suivi d’un mot de la phrase (« > et < », « != à la place ») : le signe seul. */
+  [/\s*(<=|>=|!=|<>|<|>)\s*(?=[A-Za-zÀ-ÿ0-9'«])(?!(?:et|ou|à|est|pas|qui|ni)\b)/g, (m, op) => ' ' + SIGNES[op] + (/^(!=|<>)$/.test(op) ? ' de ' : ' à ')], [/(<=|>=|!=|<>|<|>)/g, op => SIGNES[op]],
+  [/(^|\s)=(?=[,.;:])/g, '$1égal']);
+DIRE.push([/\b(AS|IN|ON|OR|BY|IS|AND|NOT|ALL|ASC|DESC|DISTINCT|CASE|UNION|LIKE)\b/g, (m, w, off, all) => { const d = MOTS_CLES[w];
     return off === 0 || /[.!?:]\s+$/.test(all.slice(0, off)) && !/:\s+$/.test(all.slice(0, off)) ? d.charAt(0).toUpperCase() + d.slice(1) : d; }],
   [/(^|[^A-Za-zÀ-ÿ])([a-z]+)(?=$|[^A-Za-zÀ-ÿ])/g, (m, a, w) => a + (ACCENTS[w] || w)]);
 /* Une phrase qui ne se lit pas telle quelle : sa version dite (la légende, elle, ne change pas). */
 const PHRASES = {
   "'paris' ≠ 'Paris' : écris la valeur telle qu’elle figure dans la table.": 'Attention aux majuscules : paris n’est pas Paris. Écris la valeur telle qu’elle figure dans la table.',
   'Dans la prochaine leçon, tu compareras des valeurs avec =, > ou <.': 'Dans la prochaine leçon, tu compareras des valeurs avec les signes égal, plus grand que et plus petit que.',
-  'Dans la leçon précédente, tu as comparé des valeurs avec =, > ou <.': 'Dans la leçon précédente, tu as comparé des valeurs avec les signes égal, plus grand que et plus petit que.'
+  'Dans la leçon précédente, tu as comparé des valeurs avec =, > ou <.': 'Dans la leçon précédente, tu as comparé des valeurs avec les signes égal, plus grand que et plus petit que.',
+  'On remplace = par <=, qui signifie inférieur ou égal à.': 'On remplace le signe égal par le signe inférieur ou égal.',
+  'Avec > et <, la limite est exclue : une valeur égale n’est pas gardée.': 'Avec les signes strictement supérieur et strictement inférieur, la limite est exclue : une valeur égale n’est pas gardée.',
+  'Avec >= et <=, la limite est incluse : une valeur égale à la limite est gardée.': 'Avec les signes supérieur ou égal et inférieur ou égal, la limite est incluse : une valeur égale à la limite est gardée.',
+  'Avec !=, on compare aussi du texte : seul le Shaker Inox est écarté.': 'Avec le signe différent, on compare aussi du texte : seul le Shaker Inox est écarté.',
+  'Pour dire « différent de », tu peux utiliser != à la place de NOT devant une égalité.': 'Pour dire « différent de », tu peux utiliser le signe différent à la place de notte devant une égalité.',
+  'Attention, l’inverse de < est >=, pas > : le 1er mars compte aussi.': 'Attention, l’inverse de strictement inférieur est supérieur ou égal, pas strictement supérieur : le 1er mars compte aussi.',
+  'Avec =, on retrouve une valeur exacte : prenom = \'Sophie\' → Sophie Martin.': 'Avec le signe égal, on retrouve une valeur exacte : prénom égal Sophie donne Sophie Martin.',
+  '\'%ie%\' renvoie Sophie Martin et Gabriel Michel, dont le prénom contient « ie ».': 'Le motif pourcent, i e, pourcent renvoie Sophie Martin et Gabriel Michel, dont le prénom contient i e.'
 };
 const dire = s => PHRASES[s] || DIRE.reduce((t, [a, b]) => t.replace(a, b), s);
 
