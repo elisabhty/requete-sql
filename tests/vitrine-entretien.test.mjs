@@ -45,7 +45,8 @@ test('l’appli a bien ses questions d’entretien, lues ici sans en perdre', ()
   assert.deepEqual(NIVEAUX, ['Débutant', 'Intermédiaire', 'Avancé']);
   assert.deepEqual(NIVEAUX.map(n => QUESTIONS.filter(q => q.niveau === n).length), [47, 48, 46], 'la question du test A/B passe en Intermédiaire (Elisa, 2 novembre, 21 h 54)');
   assert.deepEqual([...FILTRES.map(f => f.key)].sort(), [...NOTIONS].sort(), 'les notions de la liste sont celles de la banque (rangées dans l’ordre où on les apprend, 18 h 48)');
-  assert.equal(FILTRES[0].key, 'SELECT', 'SELECT en haut');
+  assert.equal(FILTRES[0].key, 'Bases du SQL', 'les bases du langage en haut, puis SELECT (22 h 08 : « Débutant · Bases du SQL »)');
+  assert.equal(FILTRES[1].key, 'SELECT');
   assert.ok(!NOTIONS.some(n => ['Requêtes', 'Bases', 'Entretien'].includes(n)), 'plus de notion qui ne veut rien dire');
   assert.ok(QUESTIONS.every(q => q.id && q.cat && q.q && q.a && q.niveau && q.dialectes?.length), 'chaque carte a ses métadonnées');
 });

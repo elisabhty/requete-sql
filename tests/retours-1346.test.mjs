@@ -212,7 +212,7 @@ test('18 h 42 : « Base NutriBoost » ; les bases d’entraînement en lecture s
 
 test('18 h 48 : questions d’entretien en entier, notions qui ont un sens, nouvelle photo de la formatrice avec sa pastille', () => {
   assert.ok(app.includes('#scr-entretien .ecard .eq{display:block;overflow:visible}') && !app.includes('#scr-entretien .ecard .eq{display:-webkit-box;-webkit-line-clamp:2;'));
-  assert.ok(app.includes("const ENTRETIEN_CATS=[['all','Toutes les notions'],['SELECT','SELECT'],"));
+  assert.ok(app.includes("const ENTRETIEN_CATS=[['all','Toutes les notions'],['Bases du SQL','Bases du SQL'],['SELECT','SELECT'],"), 'les bases du langage avant SELECT (2 novembre, 22 h 08)');
   const lecon = fs.readFileSync(new URL('../assets/anim/bases-relationnelles.html', import.meta.url), 'utf8');
   assert.ok(lecon.includes('#cap .cap-stk::after{content:"Votre formatrice";'));
   assert.ok(lecon.includes('#cap .cap-stk{background:url(formatrice.webp) 50% 0/134px 134px no-repeat,'));
