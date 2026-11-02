@@ -6641,7 +6641,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=102">
+<link rel="stylesheet" href="ludique.css?v=103">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -19682,7 +19682,7 @@ function openLesson(id, restoreStep){
   if(lessonStep===0&&lessonVideoOn(l)&&!restoringNav)openLessonVideo();
 }
 /* La page de départ d’un cours, dans la DA du site : la carte violette quadrillée, le module en menthe, le titre en jaune soleil,
-   ce que contient le cours en pastilles, la mascotte, et un seul bouton, « Commencer » (« Revoir le cours » une fois terminé). */
+   ce que contient le cours en pastilles, la mascotte, et un seul bouton, « Commencer » (« Voir le bilan », coché, une fois la leçon validée). */
 function lessonStartShow(l,go){
   document.getElementById('lesson-start')?.remove();
   const m=moduleDeLecon(l.id),mi=m?MODULES.indexOf(m):-1,pos=m?m.lessons.findIndex(x=>x.id===l.id)+1:0;
@@ -19715,7 +19715,7 @@ function lessonStartShow(l,go){
       <img class="lst-stk" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">
     </div>
     <ol class="lst-plan">${plan.map(([t,d],i)=>`<li style="--i:${i}"><b class="lst-n">${i+1}</b><span><b>${t}</b><small>${d}</small></span></li>`).join('')}</ol>
-    <button type="button" class="lst-go"><span>${done?'Revoir le cours':started?'Continuer':'Commencer'}</span>${DEF_CHEV_SVG}</button>`;
+    <button type="button" class="lst-go${done?' is-done':''}">${done?'<i class="lst-ok" aria-hidden="true">✓</i>':''}<span>${done?'Voir le bilan':started?'Continuer':'Commencer'}</span>${DEF_CHEV_SVG}</button>`;
   document.body.appendChild(root);
   lstFit();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(lstFit);
   const close=ok=>{
@@ -19726,7 +19726,11 @@ function lessonStartShow(l,go){
     setTimeout(()=>root.remove(),prefersReduceMotion()?0:220);
     if(ok)go&&go();
   };
-  root.querySelector('.lst-go').onclick=()=>{if(typeof buzz==='function')buzz('light');close(true);};
+  /* Elisa, 2 novembre, 1 h 06 (réf. 4) : « j’ai validé la leçon donc plutôt mettre voir le bilan avec une coche validé ». Une leçon validée
+     s’ouvre sur son bilan (la vidéo se revoit depuis le bilan ou l’étape du cours). */
+  root.querySelector('.lst-go').onclick=()=>{if(typeof buzz==='function')buzz('light');
+    if(done){ root.classList.add('is-out'); setTimeout(()=>root.remove(),prefersReduceMotion()?0:220); if(current===l)setLessonStep(3); return; }
+    close(true);};
   root.querySelector('.lst-close').onclick=()=>close(false);
   root.tabIndex=-1;
   requestAnimationFrame(()=>{try{root.focus({preventScroll:true});}catch(e){}});
@@ -21550,7 +21554,8 @@ function lvPkFit(P,settled){
   if(P.fitDone&&!calm){ wait(); return; }
   P.fitDone=true;
   let B=null; try{ B=w.__contentBottom(); }catch(e){}
-  if(B==null)return;
+  /* La carte du moment encore en train d’apparaître : on mesurera de nouveau dans un instant. */
+  if(B==null){ if(!settled)wait(); return; }
   const st=LV.root.querySelector('.lv-stage'), r=st.getBoundingClientRect(), R=LV.root.getBoundingClientRect();
   const sig=Math.round(r.width)+'x'+Math.round(r.height);
   if(P.fitSig!==sig){ P.fitSig=sig; P.zoom=null; }
@@ -21577,10 +21582,11 @@ function lvPkZoomIn(w,r,R,top){
   if(a.x<ox)z=Math.min(z,(ox-L)/(ox-a.x));
   if(c.x>ox)z=Math.min(z,(Rt-ox)/(c.x-ox));
   /* La croix (en haut à gauche) : le coin du contenu agrandi ne passe pas dessous. */
-  const x=LV.root.querySelector('.lv-close'), xr=x&&x.getBoundingClientRect();
-  if(xr&&xr.width){
+  /* Le coin haut gauche du contenu lui-même (la puce du chapitre est en haut à droite, loin de la croix). */
+  const x=LV.root.querySelector('.lv-close'), xr=x&&x.getBoundingClientRect(), C=F.c?lvPt(F.c.l,F.c.t,1):a;
+  if(xr&&xr.width&&C){
     const xb=xr.bottom-R.top+8, xe=xr.right-R.left+8;
-    for(let k=0;k<20&&z>1;k++){ const tl=oy+(a.y-oy)*z, ll=ox+(a.x-ox)*z; if(tl>=xb||ll>=xe)break; z-=.02; }
+    for(let k=0;k<30&&z>1;k++){ const tl=oy+(C.y-oy)*z, ll=ox+(C.x-ox)*z; if(tl>=xb||ll>=xe)break; z-=.02; }
   }
   return z<1.04?1:+z.toFixed(4);
 }
@@ -28024,7 +28030,7 @@ function stkOpen(id){
         <button type="button" class="lq-btn stk-btn" onclick="stkDownload('${id}')">${STK_DL_SVG}<span>Télécharger</span></button>
         <button type="button" class="lq-btn-2 stk-btn" onclick="stkTogglePlace('${id}')">${placed?'Retirer du tableau':'Coller sur le tableau'}</button>
       </div>
-      <p class="stk-note">Une image PNG détourée, sur fond transparent : sur iPhone, choisis Photos, Fichiers ou l’appli de ton imprimante à stickers ; sur ordinateur, elle arrive dans Téléchargements.${s.holo?' L’effet holo reste à l’écran : imprime-le sur du papier holographique pour le retrouver.':''}</p>`;
+`;   /* Elisa, 2 novembre, 1 h 06 (réf. 3) : plus de texte sous les boutons. */
   }else{
     const how=s.kind==='module'?'Termine ce module pour gagner ce sticker.':s.how;
     const prog=s.goal>1?`<div class="stk-prog" role="progressbar" aria-label="${escAttr(`${unit(s.now)} sur ${s.goal}`)}" aria-valuemin="0" aria-valuemax="${s.goal}" aria-valuenow="${s.now}"><i style="width:${Math.round(s.now/s.goal*100)}%"></i></div><p class="stk-prog-t">${unit(s.now)} sur ${s.goal}</p>`:'';
@@ -33151,7 +33157,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-camera-centre-v2309';
+  const SW_CACHE='requete-2026-11-02-bilan-camera-v2310';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
