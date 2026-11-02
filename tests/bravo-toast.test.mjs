@@ -23,7 +23,7 @@ test('bilan « Bravo ! » d’une leçon seule : « Leçon au complet », jamais
     esc: s => s, stkBravoHtml: () => '', bravoRecapHtml: () => '', bravoUnlockHtml: () => '', bravoNextHtml: () => '', bravoActionsHtml: () => '',
     lvPkScore: () => 6, lvPkErrs: () => 0, lvErreursMax: () => null,
   });
-  vm.runInContext(cut('function bravoStepsHtml(l){', 'function bravoCardHtml(l){') + cut('function renderBravoSlide(l){', '/* ---------- Blocs de cours enrichis'), ctx);
+  vm.runInContext(cut('function bravoStepsHtml(l){', 'function bravoCardHtml(l){') + cut('/* Elisa, 2 novembre, 8 h 01 : « cette page est encore', '/* ---------- Blocs de cours enrichis'), ctx);
   const seule = {id: 28, titre: 'DELETE', leconSeule: true, video: {moments: 6}};
   const slide = ctx.renderBravoSlide(seule);
   assert.ok(slide.includes('<small>Leçon au complet</small>'), 'sous le titre : « Leçon au complet »');
