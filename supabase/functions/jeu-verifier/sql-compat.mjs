@@ -328,7 +328,7 @@ const SQLX=(()=>{
    ISNULL(a, b) → IFNULL(a, b) ; CONVERT(type, x) et CAST(x AS DATE) ; DATE_ADD(d, INTERVAL 7 DAY) et d + INTERVAL '7 days' ;
    LISTAGG / STRING_AGG … WITHIN GROUP (ORDER BY …) → GROUP_CONCAT(… ORDER BY …) ; ILIKE → LIKE ; x::int → CAST(x AS INTEGER). */
 function sqlCompat(sql){
-  if(typeof sql!=='string'||!/\b(?:TOP|FETCH|OFFSET|EXTRACT|DATEADD|DATEDIFF|DATEPART|DATETRUNC|ISNULL|CONVERT|CAST|INTERVAL|WITHIN|ILIKE|SYSDATE|SYSTIMESTAMP|CURRENT_DATE|CURRENT_TIME|CURRENT_TIMESTAMP|SEPARATOR|POSITION|FORMAT|TRUNCATE|SERIAL|BIGSERIAL|SMALLSERIAL|AUTO_INCREMENT|IDENTITY|TRY_CAST|TRY_CONVERT|SUBSTRING|TRIM|RLIKE|PERCENTILE_CONT|PERCENTILE_DISC|MODE|DATENAME|TIMESTAMPDIFF|TIMESTAMPADD|ANY|SOME|ALL|ANY_VALUE|ARRAY_AGG|ARRAY|JSON_VALUE|JSON_QUERY|SAFE_CAST|VERSION|SIMILAR|SYMMETRIC|GENERATE_SERIES|DATE|TIMESTAMP|TIME|DISTINCT|CURRENT_USER|SESSION_USER)\b|::|~/i.test(sql))return sql;
+  if(typeof sql!=='string'||!/\b(?:TOP|FETCH|OFFSET|EXTRACT|DATEADD|DATEDIFF|DATEPART|DATETRUNC|ISNULL|CONVERT|CAST|INTERVAL|WITHIN|ILIKE|SYSDATE|SYSTIMESTAMP|CURRENT_DATE|CURRENT_TIME|CURRENT_TIMESTAMP|SEPARATOR|POSITION|FORMAT|TRUNCATE|SERIAL|BIGSERIAL|SMALLSERIAL|AUTO_INCREMENT|IDENTITY|TRY_CAST|TRY_CONVERT|SUBSTRING|TRIM|RLIKE|PERCENTILE_CONT|PERCENTILE_DISC|MODE|DATENAME|TIMESTAMPDIFF|TIMESTAMPADD|ANY|SOME|ALL|ANY_VALUE|ARRAY_AGG|ARRAY|JSON_VALUE|JSON_QUERY|SAFE_CAST|VERSION|SIMILAR|SYMMETRIC|GENERATE_SERIES|DATE|TIMESTAMP|TIME|DISTINCT|CURRENT_USER|SESSION_USER|ROLLUP|CUBE|GROUPING|PIVOT)\b|::|~/i.test(sql))return sql;
   const keep=[];
   let t=sql.replace(/'(?:[^']|'')*'|"(?:[^"]|"")*"|`[^`]*`|\[[^\]]*\]|--[^\n]*|\/\*[\s\S]*?\*\//g,m=>{keep.push(m);return '\u0001'+(keep.length-1)+'\u0002';});
   const PH=/^\u0001(\d+)\u0002$/;
@@ -510,6 +510,104 @@ function sqlCompat(sql){
     if(tm&&tm[0]&&tm[0].split(/(\u0001\d+\u0002)/).every(x=>!x||/^\s*$/.test(x)||isComment(x))){tail=tm[0];body=body.slice(0,body.length-tail.length);}
     return m[1]+body+' LIMIT '+m[2]+tail;
   }).join(';');
+  /* Elisa, 2 novembre, 21 h 03 : « fais-le ». ROLLUP, CUBE, GROUPING SETS (et WITH ROLLUP de MySQL) : une requête par regroupement,
+     réunies par UNION ALL (les colonnes absentes du regroupement valent NULL ; GROUPING(x) vaut 1 quand x est « tout ») ; l’ORDER BY passe
+     sur le résultat réuni. PIVOT (SQL Server, Oracle) : une colonne par valeur, calculée avec CASE, la source étant une sous-requête qui
+     nomme ses colonnes. Hors de ces cas simples (UNION dans la même requête, source PIVOT sans colonnes nommées), un message clair. */
+  if(/\b(?:ROLLUP|CUBE|GROUPING\s+SETS|PIVOT)\b/i.test(t)){
+    const depthAt=s=>{const a=new Array(s.length);let d=0;for(let k=0;k<s.length;k++){if(s[k]===')')d--;a[k]=d;if(s[k]==='(')d++;}return a;};
+    const topAll=(s,re)=>{const dp=depthAt(s),out=[];let m;re.lastIndex=0;while((m=re.exec(s))){if(dp[m.index]===0)out.push(m);if(!m[0])re.lastIndex++;}return out;};
+    const nrm=x=>x.replace(/\s+/g,'').toLowerCase();
+    const esc=x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const AGG=/\b(?:SUM|COUNT|AVG|MIN|MAX|TOTAL|GROUP_CONCAT|STRING_AGG|LISTAGG|json_group_array|MEDIAN|STDDEV\w*|VAR\w*)\s*\(/gi;
+    /* Une colonne absente du regroupement devient NULL, sauf dans un agrégat (SUM(prix) reste SUM(prix)). */
+    const sansCols=(x,absentes,S)=>{
+      x=x.replace(/\bGROUPING\s*\(([^()]*)\)/gi,(m,c)=>S.some(s=>nrm(s)===nrm(c))?'0':'1');
+      if(!absentes.length)return x;
+      const spans=[];let m;AGG.lastIndex=0;while((m=AGG.exec(x))){const p=m.index+m[0].length-1,e=close(x,p);if(e<0)break;spans.push([m.index,e+1]);AGG.lastIndex=e+1;}
+      let out='',i=0;const part=s=>absentes.reduce((acc,c)=>acc.replace(new RegExp(`(^|[^\\w.])${esc(c.trim())}(?![\\w(])`,'gi'),'$1NULL'),s);
+      for(const [a,b] of spans){out+=part(x.slice(i,a))+x.slice(a,b);i=b;}
+      return out+part(x.slice(i));};
+    t=t.split(';').map(st=>{
+      if(!/\b(?:ROLLUP|CUBE|GROUPING\s+SETS|PIVOT)\b/i.test(st))return st;
+      /* PIVOT */
+      const pv=topAll(st,/\bPIVOT\s*\(/gi)[0];
+      if(pv){
+        const fr=topAll(st.slice(0,pv.index),/\bFROM\b/gi).pop();if(!fr)return st;
+        const p=pv.index+pv[0].length-1,e=close(st,p);if(e<0)return st;
+        const body=/^\s*([A-Za-z_]\w*)\s*\(([\s\S]*?)\)\s+FOR\s+((?:[A-Za-z_]\w*\.)?[A-Za-z_]\w*)\s+IN\s*\(([\s\S]*)\)\s*$/i.exec(st.slice(p+1,e));
+        if(!body)throw new Error('PIVOT : écris-le sous la forme PIVOT (SUM(valeur) FOR colonne IN (…)).');
+        const [,agg,val,col,list]=body;
+        let src=st.slice(fr.index+fr[0].length,pv.index).trim();
+        const sq=/^\(([\s\S]*)\)\s*(?:AS\s+)?([A-Za-z_]\w*)?$/i.exec(src);
+        if(!sq||!/^\s*SELECT\b/i.test(sq[1]))throw new Error('PIVOT : la source doit être une sous-requête qui nomme ses colonnes, par exemple FROM (SELECT categorie, mois, prix FROM produits) AS src PIVOT (…).');
+        const inner=sq[1],fromIn=topAll(inner,/\bFROM\b/gi)[0];
+        const cols=splitTop(inner.slice(inner.search(/\bSELECT\b/i)+6,fromIn?fromIn.index:inner.length).replace(/^\s*DISTINCT\b/i,'')).map(c=>{
+          const a=/\s(?:AS\s+)?([A-Za-z_]\w*)\s*$/i.exec(c.trim())||/(?:^|\.)([A-Za-z_]\w*)\s*$/.exec(c.trim());return a?a[1]:null;});
+        if(cols.some(c=>!c||c==='*'))throw new Error('PIVOT : nomme chaque colonne de la sous-requête (pas d’étoile).');
+        const nomCol=col.split('.').pop(),nomVal=val.trim().split('.').pop();
+        const grp=cols.filter(c=>nrm(c)!==nrm(nomCol)&&nrm(c)!==nrm(nomVal));
+        const items=splitTop(list).map(x=>{x=x.trim();const ph=PH.exec(x.replace(/\s+(?:AS\s+)?[A-Za-z_]\w*$/i,''));
+          const al=/\s(?:AS\s+)?([A-Za-z_]\w*)$/i.exec(x);
+          if(ph){const k=keep[+ph[1]];const v=k[0]==='['?k.slice(1,-1):textOf(ph[0]);if(v===null)return null;
+            return {v:/^-?\d+(\.\d+)?$/.test(v)&&k[0]==='['?v:`'${v.replace(/'/g,"''")}'`,n:al?al[1]:v};}
+          if(/^-?\d+(\.\d+)?$/.test(x))return {v:x,n:x};return null;});
+        if(!items.length||items.some(i=>!i))throw new Error('PIVOT : les valeurs de IN (…) s’écrivent [valeur] ou \'valeur\'.');
+        const after=st.slice(e+1),al=/^\s+(?:AS\s+)?([A-Za-z_]\w*)\b/i.exec(after);
+        const kw=al&&/^(WHERE|GROUP|ORDER|LIMIT|HAVING|UNION|JOIN)$/i.test(al[1])?null:al;
+        const piv=`(SELECT ${grp.length?grp.join(', ')+', ':''}${items.map(i=>`${agg}(CASE WHEN ${nomCol} = ${i.v} THEN ${nomVal} END) AS "${i.n.replace(/"/g,'""')}"`).join(', ')} FROM ${src}${sq[2]?'':' AS src'}${grp.length?' GROUP BY '+grp.join(', '):''}) AS ${kw?kw[1]:'pvt'}`;
+        return st.slice(0,fr.index+fr[0].length)+' '+piv+(kw?after.slice(kw[0].length):after);
+      }
+      /* ROLLUP, CUBE, GROUPING SETS, WITH ROLLUP */
+      if(topAll(st,/\b(?:UNION|INTERSECT|EXCEPT)\b/gi).length)throw new Error('ROLLUP, CUBE et GROUPING SETS : seulement dans une requête sans UNION, INTERSECT ni EXCEPT.');
+      const sel=topAll(st,/\bSELECT\b/gi)[0],gb=topAll(st,/\bGROUP\s+BY\b/gi)[0];if(!sel||!gb)return st;
+      const ends=topAll(st,/\b(?:HAVING|WINDOW|ORDER\s+BY|LIMIT)\b/gi).filter(m=>m.index>gb.index);
+      const cut=(re,from)=>{const m=topAll(st,re).find(x=>x.index>=from);return m;};
+      const fromM=cut(/\bFROM\b/gi,sel.index);if(!fromM)return st;
+      const whereM=topAll(st,/\bWHERE\b/gi).find(x=>x.index>fromM.index&&x.index<gb.index);
+      const havM=ends.find(m=>/^HAVING/i.test(m[0])),ordM=ends.find(m=>/^ORDER/i.test(m[0])),limM=ends.find(m=>/^LIMIT/i.test(m[0])),winM=ends.find(m=>/^WINDOW/i.test(m[0]));
+      if(winM)throw new Error('ROLLUP, CUBE et GROUPING SETS : pas avec WINDOW.');
+      const gEnd=ends.length?ends[0].index:st.length;
+      let gtxt=st.slice(gb.index+gb[0].length,gEnd),withRollup=false;
+      gtxt=gtxt.replace(/\s+WITH\s+ROLLUP\s*$/i,()=>{withRollup=true;return '';});
+      const prefix=st.slice(0,sel.index);
+      let selList=st.slice(sel.index+6,fromM.index),distinct='';
+      selList=selList.replace(/^\s*(DISTINCT|ALL)\b/i,m=>{distinct=m.trim()+' ';return '';});
+      const fromTxt=st.slice(fromM.index,gb.index);
+      const havTxt=havM?st.slice(havM.index+havM[0].length,ordM?ordM.index:(limM?limM.index:st.length)):null;
+      const ordTxt=ordM?st.slice(ordM.index+ordM[0].length,limM?limM.index:st.length):null;
+      const limTxt=limM?st.slice(limM.index):'';
+      /* Les regroupements : le produit des éléments du GROUP BY */
+      const prefixes=c=>c.map((_,k)=>c.slice(0,c.length-k)).concat([[]]);
+      const subsets=c=>{let r=[[]];for(const x of c)r=r.flatMap(s=>[s.concat([x]),s]);return r.sort((a,b)=>b.length-a.length);};
+      const flat=x=>{const m=/^\(([\s\S]*)\)$/.exec(x.trim());return m?splitTop(m[1]).map(s=>s.trim()).filter(Boolean):[x.trim()];};
+      const opts=splitTop(gtxt).map(x=>x.trim()).filter(Boolean).map(x=>{
+        let m;
+        if((m=/^ROLLUP\s*\(([\s\S]*)\)$/i.exec(x)))return prefixes(splitTop(m[1]).flatMap(flat));
+        if((m=/^CUBE\s*\(([\s\S]*)\)$/i.exec(x)))return subsets(splitTop(m[1]).flatMap(flat));
+        if((m=/^GROUPING\s+SETS\s*\(([\s\S]*)\)$/i.exec(x)))return splitTop(m[1]).map(s=>s.trim()).filter(s=>s!=='').map(flat);
+        return [[x]];});
+      if(withRollup){const all=opts.map(o=>o[0][0]);opts.length=0;opts.push(prefixes(all));}
+      let sets=[[]];for(const o of opts)sets=sets.flatMap(a=>o.map(b=>a.concat(b.filter(c=>!a.some(d=>nrm(d)===nrm(c))))));
+      const tous=[];sets.flat().forEach(c=>{if(!tous.some(d=>nrm(d)===nrm(c)))tous.push(c);});
+      const items=splitTop(selList).map(x=>x.trim());
+      const alias=x=>{const a=/\s(?:AS\s+)?("[^"]*"|[A-Za-z_]\w*|\u0001\d+\u0002)$/i.exec(x);return a&&!/^(END|NULL)$/i.test(a[1])?a[1]:null;};
+      const branche=(S,premiere)=>{
+        const abs=tous.filter(c=>!S.some(s=>nrm(s)===nrm(c)));
+        const sl=items.map(x=>{const y=sansCols(x,abs,S);if(!premiere||y===x||alias(x))return y;
+          const nom=/(?:^|\.)([A-Za-z_]\w*)$/.exec(x)?/(?:^|\.)([A-Za-z_]\w*)$/.exec(x)[1]:x.replace(/"/g,'""');return `${y} AS "${nom}"`;}).join(', ');
+        return `SELECT ${distinct}${sl} ${fromTxt}${S.length?'GROUP BY '+S.join(', ')+' ':''}${havTxt!==null?'HAVING '+sansCols(havTxt,abs,S)+' ':''}`.replace(/\s+$/,'');};
+      let ord='';
+      if(ordTxt!==null){
+        ord=' ORDER BY '+splitTop(ordTxt).map(o=>{const m=/^\s*([\s\S]*?)(\s+(?:ASC|DESC)\b[\s\S]*|\s+NULLS\s+(?:FIRST|LAST)\s*)?$/i.exec(o);const ex=m[1].trim(),dir=m[2]||'';
+          if(/^\d+$/.test(ex))return ex+dir;
+          const k=items.findIndex(x=>{const a=alias(x);return nrm(x)===nrm(ex)||(a&&nrm(a.replace(/"/g,''))===nrm(ex.replace(/"/g,'')))||nrm(x.replace(/\s(?:AS\s+)?("[^"]*"|[A-Za-z_]\w*)$/i,''))===nrm(ex);});
+          const nulls=/NULLS/i.test(dir)?'':/DESC/i.test(dir)?' NULLS FIRST':' NULLS LAST';   // comme PostgreSQL : la ligne « total » (NULL) en dernier
+          return (k>=0?String(k+1):ex)+dir+nulls;}).join(', ');
+      }
+      return prefix+sets.map((S,i)=>branche(S,i===0)).join(' UNION ALL ')+ord+(limTxt?' '+limTxt:'');
+    }).join(';');
+  }
   return t.replace(/\u0001(\d+)\u0002/g,(m,i)=>keep[+i]);
 }
 function attachSqlFn(database,name,fn,variadic){
