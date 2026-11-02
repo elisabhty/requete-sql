@@ -5,10 +5,29 @@
   const meta=document.querySelector('meta[name="theme-color"]');
   const surfaces='.screen,#onboarding,#loader,.lv,.mu,.lst,.viz,.imp-sheet';
   let frame=0,lastNative='';
+  const version=Number(navigator.userAgent.match(/Version\/(\d+)/)?.[1]||0);
+  const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1);
+  const installed=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+  const native=window.Capacitor?.isNativePlatform?.();
+  const glass=ios&&version>=26&&/Safari\//.test(navigator.userAgent)&&!installed&&!native;
+  function sizeCanvas(){
+    if(!glass)return;
+    // Le clavier peut rendre la zone visible plus large que haute :
+    // son ouverture ne doit pas être prise pour une rotation de l'iPhone.
+    const angle=screen.orientation?.angle??window.orientation;
+    const landscape=typeof angle==='number'?Math.abs(angle)%180===90:screen.width>screen.height;
+    const height=Math.max(innerHeight,landscape?Math.min(screen.width,screen.height):Math.max(screen.width,screen.height));
+    root.style.setProperty('--browser-canvas-height',height+'px');
+    root.classList.add('safari-glass');
+  }
+  sizeCanvas();
   function sync(){
     frame=0;
     const css=getComputedStyle(root),color=css.getPropertyValue('--browser-top').trim();
     if(!color)return;
+    // La zone système du haut lit le fond racine. Écrire l'aplat résolu
+    // évite de conserver la teinte du chargement lors d'un changement d'écran.
+    if(glass&&root.style.backgroundColor!==color)root.style.backgroundColor=color;
     if(meta&&meta.content!==color)meta.content=color;
     const status=window.Capacitor?.Plugins?.StatusBar;
     if(!status)return;
@@ -26,7 +45,8 @@
       [...r.addedNodes,...r.removedNodes].some(n=>n.nodeType===1&&n.matches(surfaces))))schedule();
   }).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden']});
   addEventListener('pageshow',schedule);
-  addEventListener('resize',schedule,{passive:true});
+  addEventListener('resize',()=>{sizeCanvas();schedule();},{passive:true});
+  addEventListener('orientationchange',()=>{sizeCanvas();schedule();},{passive:true});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule();});
   sync();
 })();
