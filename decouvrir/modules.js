@@ -73,16 +73,16 @@ window.MODULES=[
       ["GROUP_CONCAT", "Rassembler les textes d’un groupe", 172]
     ]},
     {titre:"Jointures", sous:"Interroger plusieurs tables à la fois", lecons:[
-      ["INNER JOIN", "Associer les lignes correspondantes de deux tables", 139],
-      ["LEFT JOIN", "Garder même sans correspondance", 160],
-      ["RIGHT JOIN", "Tout garder à droite", 200],
-      ["FULL OUTER JOIN", "Tout garder des deux côtés", 192],
+      ["INNER JOIN", "Associer les lignes correspondantes de deux tables", 151],
+      ["LEFT JOIN", "Garder même sans correspondance", 167],
+      ["RIGHT JOIN", "Tout garder à droite", 204],
+      ["FULL OUTER JOIN", "Tout garder des deux côtés", 196],
       ["CROSS JOIN", "Créer toutes les combinaisons", 156],
       ["Jointure de 3 tables", "Relier toute l’histoire", 214],
       ["JOIN + GROUP BY", "Compter les commandes par ville", 166],
       ["SELF JOIN", "Retrouver les clients qui habitent dans la même ville", 173],
       ["Plusieurs conditions dans ON", "Relier seulement les produits encore en stock", 195],
-      ["Quel JOIN choisir ?", "Choisir la bonne jointure selon les lignes à garder", 202]
+      ["Quel JOIN choisir ?", "Choisir la bonne jointure selon les lignes à garder", 210]
     ]},
     {titre:"Sous-requêtes et ensembles", sous:"IN, EXISTS, CTE et UNION", lecons:[
       ["Sous-requête dans WHERE avec IN", "Quels clients ont déjà commandé du Magnésium ?", 236],

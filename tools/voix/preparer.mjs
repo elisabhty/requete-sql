@@ -58,7 +58,10 @@ const MOTS_CLES = {AS: 'aze', IN: 'inne', ON: 'onne', OR: 'or', BY: 'baï', IS: 
   /* Le module « Jointures » (voix de Perle). */
   JOIN: 'djoïnne', INNER: 'ineur', LEFT: 'lèfte', RIGHT: 'raïte', FULL: 'foul', OUTER: 'aouteur', CROSS: 'krosse', SELF: 'sèlfe', USING: 'iouzinngue',
   /* Le module « Sous-requêtes et ensembles » (voix de Mia). */
-  EXISTS: 'ègzisste', WITH: 'ouisse', RECURSIVE: 'rikeursive', INTERSECT: 'inntersècte', EXCEPT: 'ixèpte', OVER: 'ôveur'};
+  EXISTS: 'ègzisste', WITH: 'ouisse', RECURSIVE: 'rikeursive', INTERSECT: 'inntersècte', EXCEPT: 'ixèpte', OVER: 'ôveur',
+  /* Le module « Fonctions de fenêtre » (voix de Dorian). */
+  PARTITION: 'partition', RANK: 'rannk', LAG: 'lague', LEAD: 'lîde', ROWS: 'raôze', ROW: 'raô', PRECEDING: 'prissîdinngue',
+  FOLLOWING: 'folôouinngue', CURRENT: 'keurennte', UNBOUNDED: 'eunnbaoundide', RANGE: 'réïndje'};
 /* Les noms de colonnes et de tables sans accent (le code n’en met pas) : dits avec leurs accents. */
 const ACCENTS = {prenom: 'prénom', prenoms: 'prénoms', age: 'âge', ages: 'âges', selection: 'sélection', quantite: 'quantité', quantites: 'quantités',
   categorie: 'catégorie', categories: 'catégories', numero: 'numéro', etre: 'être', fidelite: 'fidélité', seance: 'séance', seances: 'séances',
@@ -72,7 +75,7 @@ const ACCENTS = {prenom: 'prénom', prenoms: 'prénoms', age: 'âge', ages: 'âg
 const SIGNES = {'<=': 'inférieur ou égal', '>=': 'supérieur ou égal', '!=': 'différent', '<>': 'différent', '<': 'inférieur', '>': 'supérieur', '=': 'égal'};
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 DIRE.unshift([/\b(\d{4})-(\d{2})-(\d{2})\b/g, (m, a, mo, j) => (+j === 1 ? '1er' : String(+j)) + ' ' + MOIS[+mo - 1] + ' ' + a],
-  [/GROUP_CONCAT/g, 'groupe-konkatte'], [/rendez_vous/g, 'rendez-vous'], [/([A-Za-zÀ-ÿ0-9])\.(?=[a-zà-ÿ])/g, '$1 point '], [/'([^']+)'/g, '$1'], [/(\d)\s*%/g, '$1 pour cent'], [/\s*→\s*/g, ', donne '],
+  [/GROUP_CONCAT/g, 'groupe-konkatte'], [/ROW_NUMBER/g, 'raô-nommbeur'], [/DENSE_RANK/g, 'dènnse-rannk'], [/PERCENT_RANK/g, 'peursènnte-rannk'], [/rendez_vous/g, 'rendez-vous'], [/([A-Za-zÀ-ÿ0-9])\.(?=[a-zà-ÿ])/g, '$1 point '], [/'([^']+)'/g, '$1'], [/(\d)\s*%/g, '$1 pour cent'], [/\s*→\s*/g, ', donne '],
   [/(^|\s)([%_A-Za-zÀ-ÿ]*[%_][%_A-Za-zÀ-ÿ]*)(?=[\s,.;:!?»)]|$)/g, (m, a, w) => /[%_]/.test(w) && !/[A-Za-zÀ-ÿ]_[A-Za-zÀ-ÿ]/.test(w)
     ? a + w.split(/([%_])/).filter(Boolean).map(x => x === '%' ? 'pourcent' : x === '_' ? 'tiret bas' : x).join(', ') : m],
   /* Suivi d’une valeur : « inférieur à 60 », « différent de Accessoire » ; suivi d’un mot de la phrase (« > et < », « != à la place ») : le signe seul. */
@@ -80,7 +83,7 @@ DIRE.unshift([/\b(\d{4})-(\d{2})-(\d{2})\b/g, (m, a, mo, j) => (+j === 1 ? '1er'
   [/(^|\s)=(?=[,.;:])/g, '$1égal'],
   /* Les calculs du module « Fonctions et expressions » : ||, ×, *, −, +7, 29.9, (), 1ᵉʳ. */
   [/\s*\|\|\s*/g, ' deux barres verticales '], [/\s*[×*]\s*(?=\d)/g, ' fois '], [/ − /g, ' moins '], [/(^|[\s'])\+(?=\d)/g, '$1plus '],
-  [/(^|\s)\+(?=[,\s])/g, '$1le signe plus'], [/(\d)\.(\d)/g, '$1 virgule $2'], [/\(\)/g, ''], [/ᵉʳ/g, 'er'], [/ +(?=[.,])/g, ''], [/n°\s*/g, 'numéro ']);
+  [/(^|\s)\+(?=,|\s(?!\d))/g, '$1le signe plus'], [/\s*÷\s*/g, ' divisé par '], [/(\d)\.(\d)/g, '$1 virgule $2'], [/\(\)/g, ''], [/ᵉʳ/g, 'er'], [/ +(?=[.,])/g, ''], [/n°\s*/g, 'numéro ']);
 DIRE.push([new RegExp('\\b(' + Object.keys(MOTS_CLES).join('|') + ')\\b', 'g'), (m, w, off, all) => { const d = MOTS_CLES[w];
     return off === 0 || /[.!?:]\s+$/.test(all.slice(0, off)) && !/:\s+$/.test(all.slice(0, off)) ? d.charAt(0).toUpperCase() + d.slice(1) : d; }],
   [/(^|[^A-Za-zÀ-ÿ])([a-z]+)(?=$|[^A-Za-zÀ-ÿ])/g, (m, a, w) => a + (ACCENTS[w] || w)]);
@@ -160,8 +163,10 @@ const PERLE = {id: 'UaGvaD7NWzU5mJNoUqoY', nom: 'Perle'}, JOINTURES = ['inner-jo
 /* 9 h 06 : le module « Sous-requêtes et ensembles » avec Mia (« Mia García – Cálida instructora e-learning »), la formatrice. */
 const MIA = {id: 'PrwKJdvtTbJVdosRhS1O', nom: 'Mia'}, SOUS_REQUETES = ['sous-requete-in', 'sous-requete-select', 'sous-requete-from', 'exists',
   'with-cte', 'union', 'intersect-except', 'with-recursive'];
+/* 9 h 14 : le module « Fonctions de fenêtre » avec Dorian (« Dorian – Jeune homme calme français sans accent »), le formateur. */
+const DORIAN = {id: 'vp2FCFmQCE4NzuQj9QNe', nom: 'Dorian'}, FENETRES = ['over', 'fonctions-rang', 'lag-lead', 'fenetres-glissantes'];
 const voix = AGATHE.includes(cours) ? base.voix : AGREGATS.includes(cours) ? ANTOINE : JOINTURES.includes(cours) ? PERLE
-  : SOUS_REQUETES.includes(cours) ? MIA : ADAM;
+  : SOUS_REQUETES.includes(cours) ? MIA : FENETRES.includes(cours) ? DORIAN : ADAM;
 const job = {cours, titre: intro.sub, voix, modele: base.modele, langue: base.langue, format: base.format, elements: out};
 fs.writeFileSync(path.join(DIR, cours + '.json'), JSON.stringify(job, null, 2) + '\n');
 /* Les phrases communes : copiées depuis le premier cours (si ses fichiers bruts sont là). */
