@@ -30692,7 +30692,7 @@ const ENTRETIEN=[
  {id:'ent-v2-136',niveau:'Avancé',cat:'Fonctions fenêtre',dialectes:['Standard'],q:"Comment calculer une moyenne mobile sur 7 jours ?",a:"Avec une fonction fenêtre et un cadre de lignes : AVG(valeur) OVER (ORDER BY jour ROWS BETWEEN 6 PRECEDING AND CURRENT ROW). Attention aux jours sans données : il faut les compléter (table calendrier) pour que 7 lignes valent bien 7 jours.",sql:"SELECT jour, ventes, AVG(ventes) OVER (ORDER BY jour ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS moyenne_7j FROM ventes_jour;"},
  {id:'ent-v2-137',niveau:'Avancé',cat:'Fonctions fenêtre',dialectes:['Standard'],q:"Comment calculer un pourcentage cumulé du chiffre d’affaires ?",a:"On trie les produits du plus gros au plus petit, on calcule le total cumulé avec SUM() OVER (ORDER BY …), puis on le divise par le total général, SUM() OVER (). Utile pour une analyse de Pareto (20 % des produits font 80 % du CA).",sql:"SELECT produit, ca, ROUND(100.0 * SUM(ca) OVER (ORDER BY ca DESC) / SUM(ca) OVER (), 1) AS pct_cumule FROM ca_produits;"},
  {id:'ent-v2-138',niveau:'Avancé',cat:'Agrégats',dialectes:['Standard'],q:"Comment utiliser SQL pour mesurer le taux de conversion entre deux étapes d’un parcours utilisateur ?",a:"On compte d’abord le nombre d’utilisateurs uniques ayant réalisé chaque étape, par exemple l’inscription et le premier achat, puis on calcule le pourcentage d’inscrits ayant effectué un achat. En SQL, on utilise COUNT(DISTINCT CASE WHEN … THEN user_id END) pour compter les utilisateurs de chaque étape (DISTINCT : un client qui achète trois fois ne compte qu’une fois), puis taux = acheteurs ÷ inscrits × 100. On écrit 100.0 pour forcer un calcul décimal : sinon 50 / 200 donne 0 (division entière). Exemple : sur 200 inscrits, 50 ont effectué un achat. 50 ÷ 200 = 0,25, soit un taux de conversion de 25 %.",sql:"WITH etapes AS (\n  SELECT\n    COUNT(DISTINCT CASE WHEN etape = 'inscription' THEN user_id END) AS inscrits,\n    COUNT(DISTINCT CASE WHEN etape = 'achat' THEN user_id END) AS acheteurs\n  FROM evenements\n)\nSELECT inscrits, acheteurs,\n       ROUND(100.0 * acheteurs / inscrits, 1) AS taux_conversion\nFROM etapes;\n-- 200 inscrits, 50 acheteurs : 100.0 * 50 / 200 = 25.0 (%)"},
- {id:'ent-v2-139',niveau:'Avancé',cat:'Fonctions fenêtre',dialectes:['Standard'],q:"Comment regrouper des événements en sessions ?",a:"On compare chaque événement au précédent avec LAG() : s’il s’est écoulé plus de 30 minutes, une nouvelle session commence (on marque 1, sinon 0). Le total cumulé de ces 1 donne le numéro de session de chaque événement.",sql:"WITH e AS (SELECT user_id, t, CASE WHEN (julianday(t) - julianday(LAG(t) OVER (PARTITION BY user_id ORDER BY t))) * 1440 > 30 OR LAG(t) OVER (PARTITION BY user_id ORDER BY t) IS NULL THEN 1 ELSE 0 END AS debut FROM evenements)\nSELECT user_id, t, SUM(debut) OVER (PARTITION BY user_id ORDER BY t) AS session FROM e;"},
+ {id:'ent-v2-139',niveau:'Avancé',cat:'Fonctions fenêtre',notions:['LAG()','CASE WHEN','SUM() OVER()'],dialectes:['Standard'],q:"Comment identifier les sessions d’activité d’un utilisateur en SQL, sachant qu’une nouvelle session commence après plus de 30 minutes d’inactivité ?",a:"On utilise <code>LAG()</code> pour récupérer l’heure de l’événement précédent de chaque utilisateur.\n\nSi plus de 30 minutes se sont écoulées entre deux événements, on considère qu’une nouvelle session commence : on marque 1 (sinon 0) avec <code>CASE WHEN</code>.\n\nOn utilise ensuite <code>SUM() OVER()</code> : le total cumulé de ces 1 attribue un numéro à chaque session.",ex:{intro:"Un utilisateur réalise plusieurs actions sur une application :",cols:['Heure','Action','Écart','Session'],rows:[['10:00','Connexion','—','1'],['10:15','Consultation d’un cours','15 min','1'],['10:50','Réalisation d’un exercice','35 min','2'],['11:05','Consultation d’un cours','15 min','2']],cut:2,note:"Entre 10 h 15 et 10 h 50, 35 minutes se sont écoulées : une nouvelle session commence."},sql:"WITH e AS (\n  SELECT user_id, t, action,\n    LAG(t) OVER (\n      PARTITION BY user_id\n      ORDER BY t) AS t_prec\n  FROM evenements\n),\nd AS (\n  SELECT *,\n    CASE WHEN t_prec IS NULL\n      OR (julianday(t)\n        - julianday(t_prec))\n        * 1440 > 30\n    THEN 1 ELSE 0 END AS nouvelle\n  FROM e\n)\nSELECT user_id, t, action,\n  SUM(nouvelle) OVER (\n    PARTITION BY user_id\n    ORDER BY t) AS session\nFROM d;\n-- julianday(…) * 1440 :\n-- l’écart en minutes (SQLite)"},
  {id:'ent-v2-140',niveau:'Avancé',cat:'Jointures',dialectes:['Standard'],q:"Comment trouver les produits souvent achetés ensemble ?",a:"On joint la table des lignes de commande à elle-même sur la même commande, en gardant seulement les paires où le premier produit est « avant » le second (a.produit_id < b.produit_id) pour ne pas compter deux fois. On compte ensuite les paires.",sql:"SELECT a.produit_id, b.produit_id, COUNT(*) AS nb FROM lignes_commande a JOIN lignes_commande b ON b.commande_id = a.commande_id AND a.produit_id < b.produit_id GROUP BY 1, 2 ORDER BY nb DESC;"},
  {id:'ent-v2-141',niveau:'Avancé',cat:'Agrégats',dialectes:['Standard'],q:"Comment calculer le taux de conversion d’un test A/B ?",a:"Pour chaque groupe (A et B), on divise le nombre d’utilisateurs qui ont converti par le nombre d’utilisateurs exposés. On compare ensuite les deux taux ; savoir si l’écart est significatif relève d’un test statistique, en dehors du SQL.",sql:"SELECT groupe, COUNT(*) AS exposes, SUM(converti) AS conversions, ROUND(100.0 * AVG(converti), 2) AS taux_pct FROM test_ab GROUP BY groupe;"}
 ];
@@ -30789,6 +30789,14 @@ function paintEntProgress(){
     <div class="ent-readiness-stats"><div><b>${ok}</b><small>Maîtrisées</small></div><div><b>${reviewed}</b><small>À retravailler</small></div><div><b>${masteredTopics}/${notions.length}</b><small>Notions validées</small></div></div>
     <button type="button" class="ent-hero-cta" onclick="startEntretien()"><span>${cta}</span>${ENT_CHEV_SVG}</button>`;
 }
+/* Un exemple concret sous la réponse (Elisa, 2 novembre, 21 h 49 : la question des sessions « manque de contexte ») :
+   un petit tableau, la ligne où tout bascule mise en avant (cut = son index), puis la phrase qui l’explique. */
+function entExemple(ex){
+  return `<div class="ent-ex"><span class="ent-ex-lab">Exemple concret</span>${ex.intro?`<p>${esc(ex.intro)}</p>`:''}
+    <div class="ent-ex-tw"><table><thead><tr>${ex.cols.map(c=>`<th scope="col">${esc(c)}</th>`).join('')}</tr></thead>
+    <tbody>${ex.rows.map((r,i)=>`<tr${i===ex.cut?' class="is-cut"':''}>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    ${ex.note?`<p class="ent-ex-note">${esc(ex.note)}</p>`:''}</div>`;
+}
 function renderEntretienFocus(x){
   const revealed=!!entRevealed[x.id]||entOk(x.id);
   /* La question sur la carte violette de l’accueil, le micro en autocollant, l’onde qui parle (Elisa, 30 octobre, 22 h 11 :
@@ -30802,7 +30810,9 @@ function renderEntretienFocus(x){
     </header>
     <section class="ent-answer-card" aria-live="polite">
       ${revealed?`<span class="ent-answer-label">Réponse attendue</span>
-        <p class="eans">${x.q.a}</p>
+        ${x.q.a.split('\n\n').map(p=>`<p class="eans">${p}</p>`).join('')}
+        ${x.q.notions?`<div class="ent-notions" aria-label="Notions évaluées">${x.q.notions.map(n=>`<code>${esc(n)}</code>`).join('')}</div>`:''}
+        ${x.q.ex?entExemple(x.q.ex):''}
         ${x.q.sql?`<div class="esql sql-copy-wrap"><span class="esql-lab">Exemple SQL</span>${sqlCopyBtn()}<pre>${highlight(x.q.sql)}</pre></div>`:''}
         ${entSgbdTheme(x.q)?`<button type="button" class="ent-sgbd" onclick="entVoirSgbd('${x.id}','${entSgbdTheme(x.q)}')"><span class="ent-sgbd-ico" aria-hidden="true">${typeof lqStkSvg==='function'?lqStkSvg('info'):''}</span><span><b>Voir selon le SGBD</b><small>${esc((SGBD_PAGE.find(s=>s.id===entSgbdTheme(x.q))||{}).t||'')} · SQLite, PostgreSQL, MySQL…</small></span>${ENT_CHEV_SVG}</button>`:''}`:
         `<div class="ent-answer-lock"><span class="ent-answer-lock-ico" aria-hidden="true">${lqStkSvg('bubble')}</span><b>À toi de répondre</b><p>Prends quelques secondes pour structurer ta réponse avant de regarder.</p><button type="button" class="ent-reveal-primary" onclick="revealEntretien('${x.id}')">${ENT_EYE_SVG}<span>Révéler la réponse</span></button></div>`}
@@ -30939,7 +30949,7 @@ function prevEntretien(id){const t=entPrevTarget(id);if(t)openEntretienQuestion(
 const ENT_SGBD_CAT={Dates:'dates','Chaînes':'texte',NULL:'null',Conditions:'null',Transactions:'transactions','Modifier les données':'tables'};
 function entSgbdTheme(q){
   if(ENT_SGBD_CAT[q.cat])return ENT_SGBD_CAT[q.cat];
-  const t=`${q.q} ${q.a} ${q.sql||''}`;
+  const t=`${q.q} ${q.a.replace(/<[^>]+>/g,'')} ${q.sql||''}`;
   if(/\b(GROUP_CONCAT|STRING_AGG|LISTAGG)\b/i.test(t))return 'agregats';
   if(/\b(LIMIT|OFFSET|FETCH FIRST|TOP \d)\b/.test(t))return 'pagination';
   if(/\b(COALESCE|IFNULL|NVL|ISNULL)\b/.test(t))return 'null';
@@ -33525,7 +33535,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-conversion-v2397';
+  const SW_CACHE='requete-2026-11-02-sessions-v2398';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
