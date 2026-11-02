@@ -50,6 +50,8 @@
 /* ---------- La table invites ---------- */
 .rgI{display:grid;grid-template-columns:200px 220px 1fr;padding:0 26px;align-items:center}
 .tr.t5{height:54px;font-size:29px}
+.rgC{display:grid;grid-template-columns:220px 240px 1fr;padding:0 26px;align-items:center}
+.tr.tc{height:46px;font-size:27px}
 .tr .nul{color:var(--ink-3);font-family:var(--mono);font-size:26px}
 .tr.new{background:#ECF8F1}
 .err{margin-top:18px}
@@ -127,6 +129,11 @@
     <div class="abs card trap" id="q2" style="top:300px">
       <div class="trap-h"><span class="emo">📸</span><span>Créer une table depuis un résultat</span></div>
       <div class="mini mm"><span class="ml"><span class="glow" id="k2"><span class="kw">CREATE TABLE</span> invites <span class="kw">AS</span></span></span><span class="ml"><span class="glow" id="sl2"><span class="kw">SELECT</span> prenom, nom, email</span></span><span class="ml"><span class="kw">FROM</span> clients</span><span class="ml"><span class="kw">WHERE</span> <span class="glow" id="w2">ville = <span class="st">'Paris'</span></span>;</span></div>
+    </div>
+    <div class="tbl card" id="cl2">
+      <div class="tt"><span class="emo">👥</span><span>Table clients</span></div>
+      <div class="rgC th"><div>prenom</div><div>nom</div><div>ville</div></div>
+      <div class="rows" id="rowsC"></div>
     </div>
     <div class="tbl card" id="t2">
       <div class="tt"><span class="emo">🗄️</span><span>Table invites</span><span class="cnt"><span id="cnt2">4 lignes</span></span></div>
@@ -215,6 +222,11 @@ const DURATION = 182.2;
 /* La table clients de l’app : les invités de Paris, puis ceux de Lyon (Hugo Laurent n’a pas d’e-mail). */
 const PARIS = [['Sophie', 'Martin', 'sophie@mail.fr'], ['Nathan', 'Petit', 'nathan@mail.fr'], ['Léa', 'Simon', 'lea@mail.fr'], ['Nathan', 'Dupont', 'nathan.dupont@mail.fr']];
 const LYON = [['Lucas', 'Bernard', 'lucas@mail.fr'], ['Hugo', 'Laurent', null]];
+/* Les 10 clients de la table clients, avec leur ville (Elisa, 2 novembre, 12 h 48 : « il faudrait mettre toute la table car pour répondre
+   à la question on fait comment ? »). */
+const CLIENTS = [['Sophie', 'Martin', 'Paris'], ['Lucas', 'Bernard', 'Lyon'], ['Emma', 'Dubois', 'Marseille'], ['Nathan', 'Petit', 'Paris'],
+  ['Chloé', 'Moreau', 'Bordeaux'], ['Hugo', 'Laurent', 'Lyon'], ['Léa', 'Simon', 'Paris'], ['Gabriel', 'Michel', 'Toulouse'],
+  ['Inès', 'Lefebvre', 'Nantes'], ['Nathan', 'Dupont', 'Paris']];
 
 const CHAPTERS = [
   {n:1, label:'Situation',          a:5.0,   b:26.0},
@@ -228,12 +240,12 @@ const CHAPTERS = [
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
 const CAPTIONS = [
-  [5.3, 9.6,     "NutriBoost organise une <b>soirée</b><br>pour ses clients parisiens."],
-  [9.7, 15.4,    "L’équipe veut ranger les invités<br>dans une nouvelle table,<br>la <b>table invites</b>."],
+  [5.3, 9.6,     "NutriBoost organise une <b>soirée privée</b><br>pour ses clients parisiens."],
+  [9.7, 15.4,    "L’équipe veut créer une <b>table invites</b><br>pour y regrouper tous les invités<br>et leur envoyer leur invitation."],
   [15.5, 20.8,   "Leur prénom, leur nom et leur e-mail<br>se trouvent dans la <b>table clients</b>."],
-  [20.9, 25.6,   "Pas besoin de les recopier à la main :<br>une requête peut remplir la table."],
-  [26.3, 31.6,   "<code>CREATE TABLE invites AS</code> crée<br>une table à partir d’un résultat."],
-  [31.7, 36.6,   "Le <code>SELECT</code> qui suit choisit<br>les colonnes et les lignes."],
+  [20.9, 25.6,   "Pas besoin de les recopier à la main :<br>une requête peut remplir la table<br>automatiquement."],
+  [26.3, 31.6,   "<code>CREATE TABLE invites</code> crée<br>une nouvelle table appelée <code>invites</code>."],
+  [31.7, 36.6,   "Après <code>AS</code>, le <code>SELECT</code> choisit<br>les colonnes et les lignes à copier."],
   [36.7, 41.4,   "Ici, les clients dont la ville est Paris."],
   [42.4, 47.6,   "La <b>table invites</b> reçoit 3 colonnes<br>et <b>4 lignes</b>, une par client parisien."],
   [47.7, 52.8,   "Ses colonnes portent les noms<br>du <code>SELECT</code> : prenom, nom et email."],
@@ -291,6 +303,7 @@ const MOMENTS = [
 function dom(){
   const row = ([p, n, e], cls = '') => `<div class="rgI tr t5 ${cls}"><span class="hl"></span><div>${p}</div><div>${n}</div><div>${e === null ? '<span class="nul">NULL</span>' : e}</div></div>`;
   $('#rows2').innerHTML = PARIS.map(r => row(r)).join('');
+  $('#rowsC').innerHTML = CLIENTS.map(([p, n, v]) => `<div class="rgC tr tc" data-v="${v}"><span class="hl"></span><div>${p}</div><div>${n}</div><div>${v}</div></div>`).join('');
   $('#rows3').innerHTML = PARIS.map(r => row(r)).join('') + LYON.map(r => row(r, 'new')).join('');
   $('#rows6').innerHTML = [...PARIS, ...LYON].map(r => row(r)).join('');
   $('#to6').innerHTML = [...PARIS, ...LYON].map(([p, n]) => `<span class="rc">✉️ ${p} ${n}</span>`).join('');
@@ -346,13 +359,21 @@ function build(){
   pulse('#k2', 27.0, 3, 'rgba(201,188,255,.5)');
   pulse('#sl2', 32.4, 3, 'rgba(201,188,255,.5)');
   pulse('#w2', 37.4, 3, 'rgba(255,214,140,.5)');
+  // La table clients, en entier : de quoi compter les clients de Paris pendant le moment
+  stackBelow('#cl2', '#q2', 0, 24);
+  show('#cl2', 37.0, {y: 40}, 0.45);
+  cue(37.0, 'whoosh', 0.6);
+  rowsIn($$('#rowsC .tr'), 37.2, 0.05);
+  // Après le moment : les clients de Paris s’allument, puis la table invites prend la place
+  pulse($$('#rowsC .tr[data-v="Paris"]'), 42.5, 1, 'rgba(255,214,140,.6)');
+  hide('#cl2', 43.4, {y: 30}, 0.3);
   // La table invites : 3 colonnes, 4 lignes
   stackBelow('#t2', '#q2', 0, 30);
-  show('#t2', 42.6, {y: 40}, 0.5);
-  cue(42.6, 'whoosh', 0.6);
-  rowsIn($$('#rows2 .tr'), 43.0, 0.25);
+  show('#t2', 43.6, {y: 40}, 0.5);
+  cue(43.6, 'whoosh', 0.6);
+  rowsIn($$('#rows2 .tr'), 43.9, 0.2);
   gsap.set('#cnt2', {autoAlpha: 0});
-  pop('#cnt2', 44.4, 3);
+  pop('#cnt2', 45.0, 3);
   pulse($$('#h2 div'), 48.2, 3, 'rgba(201,188,255,.6)');
   bump('#t2', 53.4, 1.03, 1);
   cue(53.4, 'chord', 0.6);

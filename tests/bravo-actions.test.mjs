@@ -105,7 +105,7 @@ test('la carte mémo débloquée : sa ligne, avant la suite du parcours ; son ti
   assert.equal(bilan({session: SEANCE}).bravoUnlockHtml({id: 70}), '', 'pas de carte, pas de ligne');
   assert.ok(!ctx.bravoActionsHtml({id: 56}).includes('bravo-gcard'), 'la carte n’est plus mêlée aux boutons');
   const slide = cut('function renderBravoSlide(l){', '/* ---------- Blocs de cours enrichis');
-  const order = ['${bravoRecapHtml(l)}', '${bravoUnlockHtml(l)}', '${bravoNextHtml(l)}', '${bravoActionsHtml(l)}'].map(s => slide.indexOf(s));
+  const order = ['bravoRecapHtml(l)}', '${bravoUnlockHtml(l)}', '${bravoNextHtml(l)}', '${bravoActionsHtml(l)}'].map(s => slide.indexOf(s));
   assert.ok(order.every((v, i) => v > 0 && (!i || v > order[i - 1])), 'récapitulatif, carte, suite du parcours, autres actions');
   /* « Normalisation » débordait de la carte : le titre rétrécit jusqu’à tenir dans sa largeur. */
   const fit = vm.createContext({getComputedStyle: e => ({fontSize: e.style.fontSize || '16.4px'})});
