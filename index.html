@@ -6650,17 +6650,6 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
   padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);
   opacity:0;transform:translateY(28px) scale(.985);transition:opacity .26s ease,transform .38s cubic-bezier(.2,.8,.2,1)}
 .lv.on{opacity:1;transform:none}
-/* Elisa, 2 novembre, 14 h 24 et 14 h 49 : « pourquoi il y a des barres en haut et en bas ? ». Sur un téléphone, l’image du cours remplit la
-   largeur ; au-dessus (sous l’heure et la batterie) et en dessous (sous la barre de Safari), le fond clair du lecteur restait visible en
-   deux bandes. Le fond du lecteur prend les violets du haut et du bas de l’image : elle se prolonge jusqu’aux bords de l’écran.
-   14 h 53 : « elles sont toujours là ». Safari (iOS 26) ne peint pas ces deux zones avec le lecteur, mais avec la couleur de la page
-   (fond de <html> et de <body>), et n’y prend jamais un dégradé : la page passe au violet tant que le lecteur est ouvert (html.lv-open),
-   le lecteur a une couleur de fond unie sous son dégradé, et la couleur du navigateur (theme-color) est le violet du haut. */
-@media (max-width:700px){
-  .lv{background-color:#6850ED;background-image:linear-gradient(180deg,#6850ED 0%,#5A44DE 50%,#4E3ECB 100%)}
-  .lv-video{background:transparent}
-  html.lv-open,html.lv-open body{background:#5A44DE!important}
-}
 /* Pendant le fondu de fermeture (320 ms), le lecteur devenu transparent ne retient plus le doigt : on peut déjà faire défiler le cours. */
 .lv:not(.on){pointer-events:none}
 /* Confettis d’un bouton réussi dans la vidéo (lvConfetti) : par-dessus l’image, sans jamais retenir le doigt. */
@@ -7279,6 +7268,8 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
 #sgbd-back{z-index:84}
 #sgbd-sheet{z-index:85}
 </style>
+<link rel="stylesheet" href="safari-surface.css?v=1">
+<script src="safari-surface.js?v=1" defer></script>
 </head>
 <body>
 <div id="app">
@@ -20470,7 +20461,6 @@ function openLessonVideo(fin){
   LV={id:l.id,fin:!!fin,firstDone:fin?!!fin.first:undefined,root,video,seek,fill:root.querySelector('.lv-fill'),knob:root.querySelector('.lv-knob'),seeking:false,gate:-1,gateResume:false,retry:false,redo:null,note:null,q:null,cap:null,saved:0,tap:{t:0,side:0,timer:0,total:0,burst:0}};
   /* Le lecteur a le fond violet de la vitrine (ludique.css, section 35) : texte clair dans la barre d’état, le temps de la vidéo. */
   if(typeof obBarreEtat==='function')obBarreEtat(true);
-  document.documentElement.classList.add('lv-open');   // fond violet sous l’heure et sous la barre de Safari
   /* « Rejouer les moments ratés » : la vidéo ne s’arrête que sur eux. */
   if(video instanceof LvAnim)video.skip=i=>!!(LV&&LV.video===video&&LV.redo&&!LV.redo.list.includes(i));
   const noteEl=root.querySelector('.lv-note');
@@ -22375,7 +22365,6 @@ function closeLessonVideo(instant){
   clearTimeout(LV.flashT);
   const {id,root,video,note,ro,place,tap,fin,firstDone}=LV;
   if(typeof obBarreEtat==='function')obBarreEtat(false);
-  document.documentElement.classList.remove('lv-open');
   /* La vidéo de fin fermée par la croix : la leçon est réussie, on va au bilan. */
   if(fin&&!instant)setTimeout(()=>{ if(!LV&&mode==='lesson'&&current&&current.id===id)leconSeuleBilan(!!firstDone); },0);
   LV=null;
@@ -31570,12 +31559,9 @@ const OB_JOBS=[
   ['career-change','En reconversion','refresh'],
   ['other','Autre activité','more']
 ];
-/* Onboarding sur fond violet : texte clair dans la barre d’état de l’appli iOS et couleur de
-   navigateur assortie, le temps du parcours ; retour au réglage clair de l’appli ensuite. */
-function obBarreEtat(sombre){
-  try{const P=window.Capacitor&&window.Capacitor.Plugins;if(P&&P.StatusBar)P.StatusBar.setStyle({style:sombre?'DARK':'LIGHT'});}catch(e){}
-  const m=document.querySelector('meta[name="theme-color"]');
-  if(m){if(!m.dataset.clair)m.dataset.clair=m.getAttribute('content')||'';m.setAttribute('content',sombre?(document.querySelector('.lv')?'#6850ED':'#6E50F6'):m.dataset.clair);}
+/* Les couleurs suivent la surface visible, y compris une vidéo au-dessus de l'onboarding. */
+function obBarreEtat(){
+  if(typeof window.rqSyncBrowserChrome==='function')window.rqSyncBrowserChrome();
 }
 function startOnboarding(initial='welcome'){
   obEntry=OB_SLIDES.includes(initial)?initial:'welcome';
@@ -33304,7 +33290,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-safari-violet-v2363';
+  const SW_CACHE='requete-2026-11-02-safari-surfaces-v2364';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
