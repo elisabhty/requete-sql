@@ -66,12 +66,10 @@ test('notification : au ras du bas de l’écran quand aucun bouton collant n’
   assert.ok(cut('function showUnlock(', '\n}\n').includes('toastLift(t)'), '« Carte débloquée » (showUnlock) passe aussi par toastLift');
 });
 
-test('feuille « Carte » : « Ajouter à mes notes » reste près de « À retenir », « Syntaxe » reprend de l’air sous le bouton', () => {
+test('feuille « Carte » : la note rejoint « Essayer » en bas (21 h 58, Réf 3 : « remplacer le bouton partager par note »)', () => {
   const open = cut('function openCard(id){', 'function closeCard(){');
-  const ordre = ['class="cd-memo"', 'class="coda-note"', '${syntaxHead}', '${cardSyntaxHtml(c)}'].map(s => open.indexOf(s));
-  assert.ok(ordre.every(i => i > 0) && ordre.every((i, k) => !k || i > ordre[k - 1]), 'ordre de la feuille : À retenir, bouton, libellé « Syntaxe », code');
-  assert.ok(open.includes('const syntaxHead=c.ss&&c.ss.length?\'\':`<p class="cd-lab">Syntaxe</p>`;'), 'le libellé « Syntaxe » suit le bouton (ou, avec plusieurs syntaxes, leur bloc)');
-  assert.ok(html.includes('#card-body .cd-memo + .coda-note{margin-top:-2px}'), 'le bouton se rapproche de « À retenir » (30 px → 14 px)');
-  assert.ok(html.includes('#card-body .coda-note + .cd-lab,#card-body .coda-note + .cd-syntaxes{margin-top:26px}'), '« Syntaxe » : 26 px sous le bouton (0 px avant), pour le libellé seul comme pour le bloc de plusieurs syntaxes');
+  const ordre = ['class="cd-memo"', '${syntaxHead}', '${cardSyntaxHtml(c)}', 'class="cd-actions"', 'class="cd-note-btn"', 'class="cd-try-btn"'].map(s => open.indexOf(s));
+  assert.ok(ordre.every(i => i > 0) && ordre.every((i, k) => !k || i > ordre[k - 1]), 'ordre : À retenir, Syntaxe, code, puis Noter et Essayer côte à côte');
+  assert.ok(!open.includes('coda-note') && !open.includes('shareCard('), 'plus de bandeau vert ni de « Partager » sur la carte');
   assert.ok(html.includes('<div class="cd-syntaxes">'), 'le bloc de plusieurs syntaxes existe toujours');
 });
