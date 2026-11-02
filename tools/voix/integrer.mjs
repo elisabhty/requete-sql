@@ -12,6 +12,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+import {aToi} from './atoi-lib.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(DIR, '..', '..');
@@ -147,9 +148,10 @@ function apresAToi(L, T, dur){
   while (i > Math.round(p[0] * 100) && L.rms[i - 1] >= low) i--;   // le début du mot suivant, au quart du seuil
   return r3(Math.max(0, i / 100 - 0.06));
 }
+const MOMENTS_JS = page.includes('src="moments.js"');
 const ATOI_DIT = job.elements.some(el => /^ch\d/.test(el.id) && (el.phrases || []).some(ph => /^À toi\s*!$/.test(ph.trim())));
 fs.mkdirSync(OUT, {recursive: true});
-const caps = [], say = {}, report = [];
+const caps = [], say = {}, toi = {}, report = [];
 let intro = null, ci = 0, total = 0, bytes = 0;
 const capN = CAPTIONS.map(c => norm(plainCap(c[2])));
 for (const el of job.elements) {
@@ -165,6 +167,9 @@ for (const el of job.elements) {
     /* Elisa, 2 novembre, 18 h 08 : « on a aussi une répétition de "à toi" ». Dans les projets, la légende « À toi ! » est déjà dite
        par le chapitre, juste avant le moment : la consigne part donc après son propre « À toi ! » (la pause qui suit le « ! »). */
     if (/^at\d/.test(el.id) && ATOI_DIT) { const t = apresAToi(L, timing(rec), dur); if (t != null && t < sp[1] - 0.5) sp[0] = t; }
+    /* Elisa, 2 novembre, 19 h 53 : « Dans LEFT JOIN, par exemple, [la formatrice] ne dit pas à toi ». Dans les cours à moments
+       (moments.js), la légende « À toi ! » dit le début de la consigne, la feuille la suite (VOICE.toi ; tools/voix/atoi.mjs). */
+    if (/^at\d/.test(el.id) && !ATOI_DIT && MOMENTS_JS) { const t = aToi(L, timing(rec), dur, sp[0], sp[1]); if (t) toi[el.id] = t; }
     say[el.id] = [el.id].concat(sp); continue;
   }
   const T = timing(rec);
@@ -189,7 +194,7 @@ const block = `/* Voix off (tools/voix/integrer.mjs, voix ${job.voix.nom} d’El
 const VOICE = {dir: '../voix/${cours}/', intro: ${JSON.stringify(intro)},
   caps: [
 ${lines}],
-  say: ${JSON.stringify(say)}};
+  say: ${JSON.stringify(say)}${Object.keys(toi).length ? `,\n  toi: ${JSON.stringify(toi)}` : ''}};
 /* Fin de la voix off */
 `;
 let out = page;

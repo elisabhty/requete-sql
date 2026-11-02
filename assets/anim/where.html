@@ -1321,11 +1321,21 @@ function voiceOut(){
   const clips = [], used = new Set();
   if (VCFG.intro) clips.push(Object.assign({t: unwarp(VOICE_INTRO)}, clip(VCFG.intro)));
   MP.captions.forEach(c => { const k = vkey(c[2]), v = VCAPS.get(k); if (v && c[0] < MP.duration) { used.add(k); clips.push(Object.assign({t: unwarp(c[0] + VOICE_LEAD)}, clip(v))); } });
-  const say = VCFG.say || {}, s = k => clip(say[k]), n = (k, m) => Array.from({length: m}, (_, i) => s(k + (i + 1)));
+  /* « À toi ! » dit avec sa légende (comme moments.js, momentVoice) : le début de la consigne du moment ; la feuille dit la suite. */
+  const say = Object.assign({}, VCFG.say || {}), toi = VCFG.toi || {};
+  let nk = 0;
+  MP.captions.forEach(c => {
+    if (c[2] !== 'À toi !') return;
+    const key = 'at' + (++nk), v = say[key], t = toi[key];
+    if (!v || !t || !(t[0] > v[1])) return;
+    clips.push(Object.assign({t: unwarp(c[0] + VOICE_LEAD)}, clip([v[0], v[1], Math.min(t[0], v[2])])));
+    say[key] = t[1] < v[2] - 0.3 ? [v[0], t[1], v[2]] : null;
+  });
+  const s = k => clip(say[k]), n = (k, m) => Array.from({length: m}, (_, i) => s(k + (i + 1)));
   clips.sort((x, y) => x.t - y.t);
   return {clips, picks: n('at', MP.picks.length), tips: n('indice', MP.picks.length), opens: [], ok: s('bienvu'), late: s('rattrape'), ko: s('presque'),
     end: {win: s('finbravo'), retry: s('fineffort')},
-    files: [...new Set(clips.map(c => c.src).concat(Object.values(say).map(v => src(v[0]))))], missing: [...VCAPS.keys()].filter(k => !used.has(k))};
+    files: [...new Set(clips.map(c => c.src).concat(Object.values(say).filter(Boolean).map(v => src(v[0]))))], missing: [...VCAPS.keys()].filter(k => !used.has(k))};
 }
 function applyMoments(){
   voiceInit();
@@ -1731,7 +1741,8 @@ const VOICE = {dir: '../voix/where/', intro: ["ch00",0,6.58],
     ["vlehbb7","ch06",4.98,9.98],
     ["v1uarxau","ch07",0.02,2.83],
     ["v1h0tc4w","ch07",3.15,7.66]],
-  say: {"at1":["at1",0.06,4.9],"at2":["at2",0.04,4.41],"at3":["at3",0.13,5.564],"indice1":["indice1",0.01,5.956],"lienavant":["lienavant",0.04,4.89],"lienapres":["lienapres",0,5.97],"bienvu":["bienvu",0.06,1.09],"rattrape":["rattrape",0.03,1.25],"presque":["presque",0.19,3.49],"finbravo":["finbravo",0,2.46],"fineffort":["fineffort",0.04,3.77]}};
+  say: {"at1":["at1",0.06,4.9],"at2":["at2",0.04,4.41],"at3":["at3",0.13,5.564],"indice1":["indice1",0.01,5.956],"lienavant":["lienavant",0.04,4.89],"lienapres":["lienapres",0,5.97],"bienvu":["bienvu",0.06,1.09],"rattrape":["rattrape",0.03,1.25],"presque":["presque",0.19,3.49],"finbravo":["finbravo",0,2.46],"fineffort":["fineffort",0.04,3.77]},
+  toi: {"at1":[0.67,1.01],"at2":[0.66,0.9],"at3":[0.74,1.07]}};
 /* Fin de la voix off */
 window.__ready = (async () => {
   buildDom();

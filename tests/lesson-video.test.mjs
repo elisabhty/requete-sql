@@ -1387,7 +1387,9 @@ for (const c of COURSES) {
        la carte d’intro qui recule sous la bulle du lien et le cadre du contenu pour le zoom des moments (Elisa, 1er nov., 23 h 33 et 23 h 46), ~4 Ko. */
     /* 555 Ko depuis le 2 novembre, 0 h 40 (et 10 Ko de plus pour les cours qui ont leur propre plafond) : la caméra du lecteur sur grand
        écran (la scène grandit dans la place libre, Elisa, 2 novembre, 0 h 26, réf. 4), ~7 Ko dans le moteur commun. */
-    assert.ok(total < ((c.maxKo || 520) + 35) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
+    /* 560 Ko depuis le 2 novembre, 20 h (et 5 Ko de plus pour les cours qui ont leur propre plafond) : « À toi ! » dit avec sa légende
+       (moments.js, momentVoice ; Elisa, 19 h 53) et le texte qui garde sa taille sur iPhone (core.css ; 19 h 31), ~2 Ko. */
+    assert.ok(total < ((c.maxKo || 520) + 40) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
     for (const f of [`./assets/anim/${c.page}?app&embed`, `./assets/anim/${c.thumb}`]) assert.ok(sw.includes(`'${f}'`), `préchargé : ${f}`);
   });
 }
