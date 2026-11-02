@@ -82,3 +82,5 @@ Référence : [gestion des données utilisateur Supabase](https://supabase.com/d
 La préparation des révisions et du planning commun est décrite dans [REVISIONS-PLANNING.md](REVISIONS-PLANNING.md). Elle reste inactive et réutilise les tables de progression ; la suppression du compte couvre donc également ces données.
 
 Le profil privé commun est complété, toujours sans activation : [PROFIL-PRIVE.md](PROFIL-PRIVE.md). Il conserve prénom, objectif et fuseau, et protège les modifications concurrentes web/iPhone.
+
+La [collection personnelle](COLLECTION.md) est également préparée sans activation : elle se reconstruit depuis les validations privées synchronisées du compte. Aucune nouvelle table d’acquisitions n’est ajoutée.
