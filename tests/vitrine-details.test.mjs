@@ -327,17 +327,19 @@ test('contact : pièces jointes (images et fichiers), choisies, glissées ou col
   assert.match(css, /@media \(hover:none\)\{\.ct-drop-pc\{display:none\}\}/, 'sur téléphone, pas d’invitation à glisser des fichiers');
 });
 
+const voixSite = JSON.parse(fs.readFileSync(path.join(root, 'tools/voix/video-site.json'), 'utf8'));
 /* Elisa, 2 novembre, 17 h 24 : « pas que reconversion : mais les gens qui veulent apprendre, étudiant ou se perfectionner » */
-test('vidéo : trois profils (reconversion, étudiant, en poste) puis « Requête t’accompagne dans ta progression », sans toucher la source', () => {
+test('vidéo : trois profils (reconversion, étudiant, en poste) puis « Requête s’adapte à ton niveau », sans toucher la source', () => {
   const i = video.indexOf('<section class="scene" id="sr">'), sr = video.slice(i, video.indexOf('</section>', i));
   assert.deepEqual([...sr.matchAll(/<div class="pf \w" id="pf-(\w+)">/g)].map(m => m[1]), ['rc', 'et', 'po']);
-  for (const t of ['En reconversion', 'Étudiant', 'Déjà en poste', '<strong id="rc-n">1,4</strong> million de reconversions par an', 'Départ', 'Les bases', 'Avancé']) assert.ok(sr.includes(t), t);
-  assert.ok(sr.includes('<p class="abs" id="rc-link">Requête t’accompagne<br>dans ta <em>progression</em>.</p>'));
+  for (const t of ['En reconversion', 'Pars de zéro et progresse étape par étape', 'Étudiant', 'Développe tes compétences et prépare ton avenir', 'Déjà en poste', 'Perfectionne ton SQL et maîtrise les notions avancées', 'Départ', 'Les bases', 'Avancé']) assert.ok(sr.includes(t), t);
+  assert.ok(sr.includes('<p class="abs" id="rc-link">Requête s’adapte<br>à ton <em>niveau</em>.</p>'));
   assert.doesNotMatch(sr, /sauter le pas|Envie de changer|Et si le prochain/);
-  assert.ok(video.includes('Tu es étudiant, ou déjà en poste et tu veux te perfectionner ? Requête t’accompagne dans ta progression'), 'texte lu par VoiceOver');
+  assert.ok(video.includes('Que tu sois en reconversion, étudiant ou déjà en poste, Requête s’adapte à ton niveau'), 'texte lu par VoiceOver');
+  assert.ok(voixSite.elements.find(e => e.id === 's11').texte.endsWith('Que tu sois en reconversion, étudiant ou déjà en poste, Requête s’adapte à ton niveau et t’accompagne pour apprendre, pratiquer ou perfectionner ton SQL.'), 'le script de la voix');
   assert.ok(video.includes("[75.5, 'Ton profil']"), 'chapitre');
   const top = id => +video.match(new RegExp(`#${id}\\{left:\\d+px;top:(\\d+)px`))[1];
-  assert.ok(top('rc-pf') + 3 * 166 + 2 * 24 + 30 < top('rc-link'), 'les trois cartes au-dessus de la phrase');
+  assert.ok(top('rc-pf') + 3 * 172 + 2 * 22 + 30 < top('rc-link'), 'les trois cartes au-dessus de la phrase');
   assert.ok(top('rc-link') + 2 * 52 * 1.1 + 12 < top('src'), 'deux lignes au-dessus de la ligne de source');
   /* et « Sur plus de 66 000 offres » : Huntr 65 263 + Adzuna 859 */
   assert.ok(video.includes('Sur plus de <b>66&nbsp;000 offres</b> analysées, le <b>SQL</b> arrive en tête, <b>devant Power BI et Python</b>.'));
