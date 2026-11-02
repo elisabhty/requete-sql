@@ -118,7 +118,7 @@ window.MODULES=[
       ["DELETE", "Supprimer des lignes", 187]
     ]},
     {titre:"Intégrité des tables liées", sous:"Ce que deviennent les lignes liées", lecons:[
-      ["ON DELETE", "Décider du sort des lignes liées", 248]
+      ["ON DELETE", "Décider du sort des lignes liées", 266]
     ]},
     {titre:"Transactions et concurrence", sous:"Tout valider, tout annuler, sans conflit", lecons:[
       ["Transactions", "Valider les modifications ensemble", 260],

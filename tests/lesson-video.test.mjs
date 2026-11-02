@@ -1170,7 +1170,7 @@ const COURSES = [
       "{at: atp('p1'), from: A.c3, kind: 'sort',", "{label: 'ON produits.id = entrepot.id', ok: true},", "{label: 'UPDATE SET stock = entrepot.stock', ok: true},",
       "{at: atp('p4'), from: A.c18, kind: 'tap', need: 1,", "{label: 'Il reste tel quel', ok: true}]},", "{at: atp('p6'), from: A.c26, kind: 'sort',",
       "b += out('o-run', 'ok', 'Requête exécutée', '3 lignes traitées : 2 modifiées, 1 ajoutée.');", "['eq4', 'SET stock = {qx|excluded}.stock;']", 'Prochaine leçon · DELETE']},
-  {id: 68, next: 62, titre: 'ON DELETE', page: 'projet-ondelete.html', thumb: 'projet-ondelete-thumb.webp', duree: '4 min 08', notesAt: 238.78,
+  {id: 68, next: 62, titre: 'ON DELETE', page: 'projet-ondelete.html', thumb: 'projet-ondelete-thumb.webp', duree: '4 min 26', notesAt: 238.78,
     table: 'avis', article: 'une',
     bubble: 'Définis ce qui doit arriver aux données&nbsp;liées lorsqu’une&nbsp;ligne est supprimée.',
     chapters: ['Après l’atelier', 'De la feuille à la base', 'Quelque temps plus tard…', 'Le moment de la suppression', 'Découvrir ON DELETE', 'À toi de choisir', 'Retour sur le site web', 'Chaque cas, sa règle', 'À retenir'],
