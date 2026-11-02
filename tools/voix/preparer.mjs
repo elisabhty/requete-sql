@@ -120,8 +120,8 @@ DIRE.unshift([/\b(\d{4})-(\d{2})-(\d{2})\b/g, (m, a, mo, j) => (+j === 1 ? '1er'
   /* Les calculs du module « Fonctions et expressions » : ||, ×, *, −, +7, 29.9, (), 1ᵉʳ. */
   [/\s*\|\|\s*/g, ' deux barres verticales '], [/\s*[×*]\s*(?=\d)/g, ' fois '], [/ − /g, ' moins '], [/(^|[\s'])\+(?=\d)/g, '$1plus '],
   [/(^|\s)\+(?=,|\s(?!\d))/g, '$1le signe plus'], [/\s*÷\s*/g, ' divisé par '], [/(\d)\.(\d)/g, '$1 virgule $2'], [/\(\)/g, ''], [/ᵉʳ/g, 'er'], [/ +(?=[.,])/g, ''], [/n°\s*/g, 'numéro ']);
-/* Injection SQL : « ' OR '1'='1 » dit « or un égale un », le « ? » d’une requête paramétrée dit en toutes lettres, l’e-mail dit avec « arobase ». */
-DIRE.unshift([/(?:' )?OR '1'='1'?/g, 'or un égale un'], [/'1'='1'/g, (m, off, all) => off === 0 || /[.!?:]\s+$/.test(all.slice(0, off)) ? 'Un égale un' : 'un égale un'], [/\b(un|son) \?(?=[.,]| [a-zà-ÿ])/g, '$1 point d’interrogation'], [/sophie@mail\.fr/g, 'sophie arobase mail point fr']);
+/* ACID dit « acide ». Injection SQL : « ' OR '1'='1 » dit « or un égale un », le « ? » d’une requête paramétrée dit en toutes lettres, l’e-mail dit avec « arobase ». */
+DIRE.unshift([/\bACID\b/g, 'acide'], [/(?:' )?OR '1'='1'?/g, 'or un égale un'], [/'1'='1'/g, (m, off, all) => off === 0 || /[.!?:]\s+$/.test(all.slice(0, off)) ? 'Un égale un' : 'un égale un'], [/\b(un|son) \?(?=[.,]| [a-zà-ÿ])/g, '$1 point d’interrogation'], [/sophie@mail\.fr/g, 'sophie arobase mail point fr']);
 DIRE.push([new RegExp('\\b(' + Object.keys(MOTS_CLES).join('|') + ')\\b', 'g'), (m, w, off, all) => { const d = MOTS_CLES[w];
     return off === 0 || /[.!?:]\s+$/.test(all.slice(0, off)) && !/:\s+$/.test(all.slice(0, off)) ? d.charAt(0).toUpperCase() + d.slice(1) : d; }],
   [/(^|[^A-Za-zÀ-ÿ])([a-z]+)(?=$|[^A-Za-zÀ-ÿ])/g, (m, a, w) => a + (ACCENTS[w] || w)]);

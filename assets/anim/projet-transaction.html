@@ -183,6 +183,12 @@
 .zph img{display:block;width:100%;height:100%}
 
 /* ---------- 8 · Deux cases où ranger les situations : COMMIT, ROLLBACK ---------- */
+.acid{left:64px;width:952px;padding:24px 28px 26px}
+.ach{display:flex;align-items:center;gap:14px;padding:0 6px 14px;font-size:36px;font-weight:700;color:var(--accent-ink);white-space:nowrap}
+.acr{display:grid;grid-template-columns:84px 260px 1fr;align-items:center;height:96px;padding:0 10px;border-radius:24px;white-space:nowrap}
+.acr b{width:68px;height:68px;border-radius:20px;background:var(--accent);color:#fff;font-size:40px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.acr span{font-size:34px;font-weight:800;color:var(--ink)}
+.acr i{font-style:normal;font-size:30px;font-weight:600;color:var(--ink-3)}
 .dbn{left:64px;width:952px;height:300px;box-sizing:border-box;padding:20px 28px 22px;border-radius:36px;border:4px dashed #C9BCFF;background:#fff;display:flex;flex-direction:column}
 .dbn .hh{display:flex;align-items:baseline;gap:20px;white-space:nowrap}
 .dbn .dn{font-family:var(--mono);font-size:34px;font-weight:800;color:var(--accent-ink)}
@@ -362,6 +368,12 @@ toi('p6');
 cap('i2', "<code>COMMIT</code> valide toutes les modifications<br>de la transaction.", 3.8);
 cap('i3', "<code>ROLLBACK</code> annule toutes celles<br>qui ne sont pas encore validées.", 3.8);
 cap('i4', "Après <code>COMMIT</code>, tu ne peux plus utiliser<br><code>ROLLBACK</code> pour annuler<br>cette transaction.", 4.6);
+/* ACID (Elisa, 2 novembre : « il manque une notion ? ») : les quatre garanties d’une transaction, la première vue dans ce chapitre */
+cap('i4b', "Ces garanties portent un nom :<br><b>ACID</b>.", 3.4);
+cap('i4c', "<b>Atomicité</b> : tout ou rien,<br>comme avec <code>COMMIT</code> et <code>ROLLBACK</code>.", 4.4);
+cap('i4d', "<b>Cohérence</b> : les règles de la base<br>sont toujours respectées.", 4.2);
+cap('i4e', "<b>Isolation</b> : les transactions<br>ne se mélangent pas.", 3.8);
+cap('i4f', "<b>Durabilité</b> : une modification validée<br>reste enregistrée.", 4.2);
 /* la suite : la prochaine leçon */
 cap('i5', "Dans la prochaine leçon, tu apprendras<br>à annuler une partie d’une transaction<br>avec <code>SAVEPOINT</code>.", 7.0);
 /* 9 · À retenir */
@@ -528,7 +540,11 @@ function dom(){
   /* COMMIT ou ROLLBACK : une case chacune, où ranger les situations */
   $('#sd').innerHTML = BINS.map(([k, n, d], q) => `<div class="abs dbn" id="db-${k}" data-k="${k}" style="top:${300 + q * 330}px"><div class="hh"><span class="dn">${n}</span><span class="dd">${d}</span></div>` +
     `<div class="cs">${ITEMS.map((x, i) => x[1] === k ? `<div class="rc" id="sbu${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
-    '<div class="abs pack" id="bpack"><span><span class="emo">📬</span>6 situations à ranger</span></div>';
+    '<div class="abs pack" id="bpack"><span><span class="emo">📬</span>6 situations à ranger</span></div>' +
+    /* ACID : une lettre par garantie */
+    '<div class="abs card acid" id="acid" style="top:300px"><div class="ach"><span class="emo">🛡️</span>Les garanties <b>ACID</b></div>' +
+    [['A', 'Atomicité', 'tout ou rien'], ['C', 'Cohérence', 'les règles respectées'], ['I', 'Isolation', 'pas de mélange'], ['D', 'Durabilité', 'validé, enregistré']]
+      .map(([l, n, d], i) => `<div class="acr" id="acr${i}"><b>${l}</b><span>${n}</span><i>${d}</i></div>`).join('') + '</div>';
   /* La suite : la prochaine leçon */
   $('#sn').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🔖</span>Prochaine leçon · SAVEPOINT</span></div>';
   // les requêtes, découpées en caractères pour la frappe
@@ -677,7 +693,7 @@ function build(){
   gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
   hold(2.3, 2.7);   // le temps de lire la bulle de la mascotte
   layout();
-  gsap.set(['.sq', '.out', '.pack', '#bc', '#tp', '#tr', '#tg', '#tgo', '.bt', '#keyc', '.dbn', '#tapf', '#tapw', '#zbg', '#zph'], {autoAlpha: 0});
+  gsap.set(['#acid', '.acr', '.sq', '.out', '.pack', '#bc', '#tp', '#tr', '#tg', '#tgo', '.bt', '#keyc', '.dbn', '#tapf', '#tapw', '#zbg', '#zph'], {autoAlpha: 0});
   gsap.set(['#sk .a1', '.dbn .rc'], {autoAlpha: 0});
 
   /* Moments « À toi » : la légende « À toi ! » reste un instant, puis l’image s’arrête aussitôt — la carte du lecteur donne
@@ -908,6 +924,13 @@ function build(){
   bump('#db-co', A.i4 + 0.5, 1.03); cue(A.i4 + 0.5, 'tick', 0.5, 2);
   shake('#db-ro', A.i4 + 1.9, 8); cue(A.i4 + 1.9, 'miss', 0.4);
   hide('.dbn', B.i4 - 0.1, {y: -40}, 0.4);
+  // ACID : les quatre garanties, une à une
+  show('#acid', A.i4b + 0.1, {y: 50}, 0.5); cue(A.i4b + 0.1, 'whoosh', 0.6);
+  ['i4c', 'i4d', 'i4e', 'i4f'].forEach((k, i) => {
+    tl.fromTo('#acr' + i, {autoAlpha: 0, x: -30}, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out', immediateRender: false}, A[k] + 0.1);
+    pulse('#acr' + i, A[k] + 0.4, 1, 'rgba(201,188,255,.4)'); cue(A[k] + 0.1, 'pop', 0.65, i + 1);
+  });
+  hide('#acid', B.i4f - 0.1, {y: -40}, 0.4);
   // la suite : la prochaine leçon
   sceneOff('#sd', A.i5 + 0.3);
   sceneOn('#sn', A.i5);
@@ -1078,7 +1101,7 @@ const VOICE = {dir: '../voix/projet-transaction/', intro: ["ch00",0,7.7],
     ["v157lrmh","ch09",3.17,6.22]],
   say: {"at1":["at1",0.04,3.91],"at2":["at2",0.02,4.77],"at3":["at3",0.04,5.51],"at4":["at4",0.04,3.74],"at5":["at5",0.04,4.73],"at6":["at6",0.03,3.92],"indice6":["indice6",0.12,6.28],"bienvu":["bienvu",0.12,1.09],"rattrape":["rattrape",0.05,1.35],"presque":["presque",0.05,3.67],"finbravo":["finbravo",0,2.49],"fineffort":["fineffort",0.05,4.03]}};
 /* Fin de la voix off */
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 246.2, picks: PICKS, opens: OPENS, voice: VOICE,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 266.7, picks: PICKS, opens: OPENS, voice: VOICE,
   glyphs: '🗄️👥🛒⭐📦🧑‍🏫📅📝💳💬🔁🔑🔗⚠️⏳✅↩️💡👆🧺🚚📬🔖🚦✓✕!…«»·−',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>
