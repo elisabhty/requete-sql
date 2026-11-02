@@ -25,7 +25,9 @@ assert.match(ctx.planDayMoreLabel(true,33),/Réduire la liste/);
 /* Carte du jour : une seule liste, bouton en relief, avancement seulement une fois commencé. */
 const sem=slice('function renderSemaine(','const PL_OK_SVG=');
 assert(!sem.includes('class="cgo"'),'plus de chevron redondant dans les lignes');
-assert(sem.includes('class="nx"'),'le calendrier pour déplacer reste');
+/* Elisa, 2 novembre, 1 h 32 : l’ordre des leçons est bloqué dans le planning : ni calendrier pour déplacer, ni poignée pour glisser. */
+assert(!sem.includes('class="nx"') && !sem.includes('class="hdl"'),'plus de déplacement ni de glisser');
+assert(html.includes('function brancherDrag(){}') && html.includes('  ordonnerPlan();\n  const st=statsPlan();'),'le planning garde l’ordre du parcours');
 assert(sem.includes('id="pl-day-list"') && sem.includes('class="pl-chips-more"') && sem.includes('aria-controls="pl-day-list"'),'bouton Voir plus relié à la liste');
 assert(sem.indexOf('class="dp-prog"')<sem.indexOf('class="dp-go"'),'avancement au-dessus du bouton');
 assert(/started\?`<div class="dp-prog"/.test(sem),'barre affichée seulement une fois la séance commencée');

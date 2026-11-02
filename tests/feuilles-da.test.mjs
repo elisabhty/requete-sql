@@ -59,7 +59,7 @@ test('Planning : « Auj. » se voit, un jour passé ne propose plus d’y glisse
   const ctx = vm.createContext({ DEF_CHEV_SVG: '<svg></svg>' });
   vm.runInContext(cut('function dayPauseHTML(passe){', '/* Liste du jour'), ctx);
   const futur = ctx.dayPauseHTML(false), passe = ctx.dayPauseHTML(true);
-  assert.ok(futur.includes('<b>Journée libre</b>') && futur.includes('Glisse une leçon ici si tu veux avancer.') && futur.includes("onclick=\"switchTab('defis')\""));
+  assert.ok(futur.includes('<b>Journée libre</b>') && futur.includes('Profites-en pour revoir tes cartes mémo ou faire un défi.') && !futur.includes('Glisse')   /* 2 novembre, 1 h 32 : plus rien à glisser dans le planning */ && futur.includes("onclick=\"switchTab('defis')\""));
   assert.ok(!futur.includes('ou un défi') && !passe.includes('Glisse'), 'plus de défi à glisser ; rien à glisser dans le passé');
   assert.ok(passe.includes('Pas de séance ce jour-là'));
   const sem = cut('function renderSemaine(){', 'const PL_OK_SVG=');

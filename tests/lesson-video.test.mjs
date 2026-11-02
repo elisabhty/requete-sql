@@ -2942,7 +2942,8 @@ test('moment « À toi » : la légende de l’image se cache tant que la feuill
   assert.ok(show.includes("LV.root.classList.add('is-q','is-pk');\n  lvCapHide(true);"), 'cachée à l’ouverture de la feuille');
   const close = cut('function lvPkClose(answered){', 'function lvReplay(){');
   assert.ok(close.includes("LV.root.classList.remove('is-q','is-pk');\n  lvCapHide(false);"), 'rendue à la fermeture');
-  assert.ok(html.includes("function lvCapHide(on){ try{ const w=LV&&LV.video&&LV.video.win, d=w&&w.document; if(d&&d.body)d.body.classList.toggle('lv-pk-open',on); }catch(e){} }"), 'la page reçoit lv-pk-open');
+  /* 2 novembre, 1 h 32 : la caméra de la page revient à 1 pendant le moment (le lecteur règle la taille de l’image) */
+  assert.ok(html.includes("function lvCapHide(on){ try{ const w=LV&&LV.video&&LV.video.win, d=w&&w.document; if(d&&d.body)d.body.classList.toggle('lv-pk-open',on); if(w&&typeof w.__camPause==='function')w.__camPause(on); }catch(e){} }"), 'la page reçoit lv-pk-open');
   const coreCss = fs.readFileSync(path.join(ROOT, 'assets/anim/core.css'), 'utf8');
   assert.ok(coreCss.includes('body.lv-pk-open #cap{visibility:hidden!important}'), 'le moteur cache la légende (plus fort que les styles posés par la timeline)');
 });
