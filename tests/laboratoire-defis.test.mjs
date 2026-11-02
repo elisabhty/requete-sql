@@ -55,8 +55,16 @@ test('les 30 solutions Laboratoire renvoient des résultats non vides et des tri
 test('les résultats repères des défis Laboratoire correspondent au seed', () => {
   const db = base();
   const rows = id => db.exec(challenge(id).sol)[0].values;
-  assert.equal(challenge('ld7').titre, 'Quels projets sont plus financés que la moyenne de leur équipe ?');
-  assert.equal(challenge('ld8').titre, 'Quel est le classement des projets par nombre de publications avec RANK() ?');
+  /* 2 novembre, 21 h 22 : ld7, ld8 et ld10 copiaient lm10, ld5 et ld4 ; remplacés par le cumul des budgets, le premier projet de chaque
+     équipe et l’expérience la plus longue de chaque projet. */
+  assert.equal(challenge('ld7').titre, 'Comment le budget de chaque équipe s’accumule-t-il ?');
+  assert.deepEqual(rows('ld7')[2], ['Équipe Astrophysique', 'Spectroscopie des galaxies', '2024-05-01', 380000, 1300000]);
+  assert.equal(challenge('ld8').titre, 'Quel est le premier projet de chaque équipe ?');
+  assert.deepEqual(rows('ld8')[0], ['Équipe Astrophysique', 'Observation des exoplanètes', '2021-06-01']);
+  assert.equal(rows('ld8').length, 6);
+  assert.equal(challenge('ld10').titre, 'Quelle est l’expérience la plus longue de chaque projet ?');
+  assert.equal(rows('ld10').length, 14);
+  const sols = new Set(); for (const c of laboratory) { assert.ok(!sols.has(c.sol), c.id + ' : pas une copie d’un autre défi'); sols.add(c.sol); }
   assert.equal(rows('lf1').length, 9);
   assert.equal(rows('lf2').length, 6);
   assert.deepEqual(rows('lf4')[0], [7, 'Intensité fluorescence', 'Microscopie confocale']);
