@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="fr" class="tr-m tr-antoine">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · L’ordre d’exécution en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+/* Leçon « L’ordre d’exécution » (Elisa, 2 novembre, 11 h 16 : « est-ce que tu peux regarder s’il manque une notion ? » … « oui ») :
+   dans le module « Agrégats et regroupements », juste après HAVING. La requête suit les produits les plus expédiés de la
+   table commandes de l’app : 16 commandes, 11 expédiées, 7 produits, 3 produits expédiés au moins deux fois. */
+#s0 .title{font-size:200px;top:404px;letter-spacing:-4px}
+#s0 .sub{font-size:62px}
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:38px;white-space:nowrap}
+.nw{white-space:nowrap}
+
+.code.sm .body{font-size:31px;line-height:50px;padding:26px 30px}
+.code.sm .ln{height:50px}
+.code.sm .caret i{top:-37px;height:42px}
+.mini.mm{font-size:29px;line-height:46px;padding:20px 28px}
+.mini .ml{display:block}
+
+/* ---------- 1 · Les produits les plus expédiés ---------- */
+.board{left:64px;width:952px;padding:0 0 8px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar>span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.lx{padding:28px 34px 26px}
+.lx-hero{display:flex;align-items:center;gap:26px}
+.lx-ico{width:112px;height:112px;border-radius:34px;background:#FFF8D6;display:flex;align-items:center;justify-content:center;font-size:64px;flex:none}
+.lx-t1{font-size:42px;font-weight:800;color:var(--ink);white-space:nowrap}
+.lx-t2{margin-top:6px;font-size:30px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.lx-conds{margin-top:26px;display:flex;align-items:center;gap:14px}
+.cd{height:60px;padding:0 22px;border-radius:999px;font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.cd.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.cd.am{background:#FFF4E5;color:#9A5B00}
+.pill{left:0;width:1080px;display:flex;justify-content:center}
+.pill>span{height:62px;padding:0 24px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill.vi>span{background:var(--accent-soft);color:var(--accent-ink)}
+.pill.gr>span{background:#E7F7EE;color:#1B7A45}
+.pill.rd>span{background:#FDEBEC;color:#C2323A}
+.pill .ic{font-size:.92em;background:#fff}
+
+/* ---------- 2 · Écriture et exécution ---------- */
+.ord{left:64px;width:952px;padding:24px 28px 26px}
+.oh{display:grid;grid-template-columns:120px 1fr 150px;padding:14px 8px 6px;font-size:24px;font-weight:700;color:var(--ink-3);white-space:nowrap}
+.oh span:last-child{text-align:center}
+.orow{display:grid;grid-template-columns:120px 1fr 150px;align-items:center;height:76px;padding:0 8px;box-shadow:inset 0 2px 0 var(--line-2)}
+.nb{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:28px;font-weight:800}
+.nb.w{background:var(--surface-2);color:var(--ink-3)}
+.nb.x{margin:0 auto;background:var(--accent);color:#fff;box-shadow:0 5px 0 #4B30CC}
+.cl{font-family:var(--mono);font-size:30px;font-weight:700;color:var(--ink);white-space:nowrap}
+.cl .kw{color:var(--accent-ink)}
+
+/* ---------- 3 · Étape par étape ---------- */
+.pipe{left:64px;width:952px;padding:20px 28px 22px}
+.stp{display:grid;grid-template-columns:64px 1fr 240px;align-items:center;height:70px;padding:0 6px;border-radius:20px}
+.stp .nb{width:48px;height:48px;font-size:25px;background:var(--surface-2);color:var(--ink-3)}
+.stp .cl{font-size:28px}
+.stp .ct{justify-self:end;height:48px;padding:0 18px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:25px;font-weight:800;display:flex;align-items:center;white-space:nowrap;opacity:0}
+.stp.on{background:#F3F0FF}
+.stp.on .nb{background:var(--accent);color:#fff}
+.chips{left:64px;width:952px;padding:22px 26px 24px}
+.chips .sc-h{display:flex;align-items:center;gap:12px;padding:0 6px 14px;font-size:30px;font-weight:700;color:var(--ink);white-space:nowrap}
+.cg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.chp{height:84px;border-radius:20px;background:var(--surface-2);border:3px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;white-space:nowrap}
+.chp b{font-family:var(--mono);font-size:26px;font-weight:800;color:var(--ink)}
+.chp i{font-style:normal;font-size:22px;font-weight:700;color:var(--ink-3)}
+.chp.k{background:#E7F7EE;border-color:#8ED6AC}
+.chp.k b{color:#1B7A45}
+
+/* ---------- 5 · L’alias ---------- */
+.al5{left:64px;width:952px;padding:24px 28px 26px}
+.flow{display:flex;align-items:center;gap:8px;margin-top:20px;flex-wrap:nowrap}
+.fs{height:62px;padding:0 14px;border-radius:16px;background:var(--surface-2);font-family:var(--mono);font-size:23px;font-weight:800;color:var(--ink-2);display:flex;align-items:center;white-space:nowrap}
+.fs.sel{background:var(--accent);color:#fff}
+.fa{font-size:24px;color:var(--ink-3)}
+.vrow{display:flex;gap:16px;margin-top:22px}
+.vrow>div{flex:1;height:110px;border-radius:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;white-space:nowrap}
+.vrow b{font-family:var(--mono);font-size:27px}
+.vrow i{font-style:normal;font-size:24px;font-weight:700}
+.vrow .y{background:#E7F7EE;color:#1B7A45}
+.vrow .n{background:#FDEBEC;color:#C2323A}
+.tagn{display:inline-flex;height:46px;padding:0 16px;border-radius:999px;background:#FFF4E5;color:#9A5B00;font-family:var(--mono);font-size:25px;font-weight:800;align-items:center}
+
+/* ---------- 6 · Le résultat ---------- */
+.rgR{display:grid;grid-template-columns:1fr 260px;padding:0 26px;align-items:center}
+.tr.t6{height:56px;font-size:31px}
+.ms{position:relative;padding:30px 34px 32px}
+.ms-h{display:flex;align-items:center;gap:24px}
+.ms-ico{width:104px;height:104px;border-radius:32px;background:#FFF8D6;display:flex;align-items:center;justify-content:center;font-size:58px;flex:none}
+.ms-t1{font-size:38px;font-weight:800;color:var(--ink);white-space:nowrap}
+.ms-t2{margin-top:6px;font-size:27px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.ms-to{margin-top:24px;display:flex;flex-direction:column;gap:12px;padding-right:200px}
+.rc{align-self:flex-start;height:52px;padding:0 18px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:27px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+#sp6{right:30px;top:auto;bottom:26px}
+
+/* ---------- 7 · À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:20px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Agrégats et regroupements</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>O</span><span>R</span><span>D</span><span>R</span><span>E</span></div>
+    <div class="abs sub">L’ordre d’exécution d’une requête</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Découvre dans quel ordre les clauses d’une requête sont exécutées, et ce que cela change.</div>
+  </section>
+
+  <!-- 1 · Situation : les produits les plus expédiés -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="ab1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Logistique · top des envois</span><span class="tb" id="tb1">table commandes</span></div>
+      <div class="lx">
+        <div class="lx-hero"><div class="lx-ico" id="ic1">🚚</div><div><div class="lx-t1">Produits les plus expédiés</div><div class="lx-t2">Pour renforcer leur stock</div></div></div>
+        <div class="lx-conds"><span class="cd vi" id="cd1">🔢 Au moins 2 envois</span><span class="cd am" id="cd2">⬇️ Du plus au moins expédié</span></div>
+      </div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">🏷️</span><span class="nl">Le produit commandé</span><span class="tag">table commandes</span></div>
+      <div class="need-row"><span class="emo">📦</span><span class="nl">Le statut de la commande</span><span class="tag">table commandes</span></div>
+      <div class="need-row"><span class="emo">🔢</span><span class="nl">Le nombre d’envois</span><span class="tag">COUNT(*)</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · L’ordre d’écriture, puis l’ordre d’exécution -->
+  <section class="scene" id="s2">
+    <div class="abs card ord" id="or2" style="top:300px">
+      <div class="trap-h"><span class="emo">✍️</span><span>Écrire, puis exécuter</span></div>
+      <div class="oh"><span>Écriture</span><span>Clause</span><span id="hx2">Exécution</span></div>
+      <div class="orow"><span class="nb w">1</span><span class="cl"><span class="kw">SELECT</span> produit_id, <span class="kw">COUNT</span>(*)</span><span class="nb x" data-x="5">5</span></div>
+      <div class="orow"><span class="nb w">2</span><span class="cl"><span class="kw">FROM</span> commandes</span><span class="nb x" data-x="1">1</span></div>
+      <div class="orow"><span class="nb w">3</span><span class="cl"><span class="kw">WHERE</span> statut = <span class="st">'expédiée'</span></span><span class="nb x" data-x="2">2</span></div>
+      <div class="orow"><span class="nb w">4</span><span class="cl"><span class="kw">GROUP BY</span> produit_id</span><span class="nb x" data-x="3">3</span></div>
+      <div class="orow"><span class="nb w">5</span><span class="cl"><span class="kw">HAVING</span> <span class="kw">COUNT</span>(*) &gt;= 2</span><span class="nb x" data-x="4">4</span></div>
+      <div class="orow"><span class="nb w">6</span><span class="cl"><span class="kw">ORDER BY</span> nb_envois <span class="kw">DESC</span></span><span class="nb x" data-x="6">6</span></div>
+    </div>
+  </section>
+
+  <!-- 3 · Étape par étape -->
+  <section class="scene" id="s3">
+    <div class="abs card pipe" id="pp3" style="top:300px">
+      <div class="stp" id="st1"><span class="nb">1</span><span class="cl"><span class="kw">FROM</span> commandes</span><span class="ct">16 lignes</span></div>
+      <div class="stp" id="st2"><span class="nb">2</span><span class="cl"><span class="kw">WHERE</span> statut = <span class="st">'expédiée'</span></span><span class="ct">11 lignes</span></div>
+      <div class="stp" id="st3"><span class="nb">3</span><span class="cl"><span class="kw">GROUP BY</span> produit_id</span><span class="ct">7 groupes</span></div>
+      <div class="stp" id="st4"><span class="nb">4</span><span class="cl"><span class="kw">HAVING</span> <span class="kw">COUNT</span>(*) &gt;= 2</span><span class="ct">3 groupes</span></div>
+      <div class="stp" id="st5"><span class="nb">5</span><span class="cl"><span class="kw">SELECT</span> … <span class="kw">AS</span> nb_envois</span><span class="ct">2 colonnes</span></div>
+      <div class="stp" id="st6"><span class="nb">6</span><span class="cl"><span class="kw">ORDER BY</span> nb_envois <span class="kw">DESC</span></span><span class="ct">lignes triées</span></div>
+    </div>
+    <div class="abs card chips" id="cg3">
+      <div class="sc-h"><span class="emo">📦</span><span>Les 7 groupes : produit et nombre d’envois</span></div>
+      <div class="cg" id="cgg"></div>
+    </div>
+  </section>
+
+  <!-- 4 · WHERE ou HAVING -->
+  <section class="scene" id="s4">
+    <div class="abs card trap" id="tr4" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span><span class="ic">COUNT(*)</span> dans le <span class="ic">WHERE</span>&nbsp;?</span></div>
+      <div class="mini mm"><span class="ml"><span class="kw">SELECT</span> produit_id, <span class="kw">COUNT</span>(*)</span><span class="ml"><span class="kw">FROM</span> commandes</span><span class="ml"><span class="kw">WHERE</span> <span class="glow" id="w4"><span class="kw">COUNT</span>(*) &gt;= 2</span></span><span class="ml"><span class="kw">GROUP BY</span> produit_id;</span></div>
+      <div class="out err" id="err4"><span class="oi">!</span><div class="ot"><b>Erreur SQL</b><span class="m">misuse of aggregate: COUNT()</span></div></div>
+    </div>
+    <div class="abs pill rd" id="x4"><span>⏱️ <span class="ic">WHERE</span> passe avant le comptage</span></div>
+    <div class="abs pill gr" id="ok4"><span>✓ <span class="ic">HAVING COUNT(*) &gt;= 2</span></span></div>
+  </section>
+
+  <!-- 5 · L’alias du SELECT -->
+  <section class="scene" id="s5">
+    <div class="abs card al5" id="al5" style="top:300px">
+      <div class="trap-h"><span class="emo">🏷️</span><span>Où l’alias existe-t-il&nbsp;?</span></div>
+      <div class="flow"><span class="fs">FROM</span><span class="fa">→</span><span class="fs" id="fW">WHERE</span><span class="fa">→</span><span class="fs">GROUP BY</span><span class="fa">→</span><span class="fs">HAVING</span><span class="fa">→</span><span class="fs sel" id="fS">SELECT</span><span class="fa">→</span><span class="fs" id="fO">ORDER BY</span></div>
+      <div style="margin-top:20px;text-align:center"><span class="tagn" id="tn5">🏷️ nb_envois naît ici</span></div>
+      <div class="vrow"><div class="y" id="vy5"><b>ORDER BY nb_envois</b><i>✓ connu : après SELECT</i></div><div class="n" id="vn5"><b>WHERE nb_envois &gt;= 2</b><i>✕ inconnu : avant SELECT</i></div></div>
+    </div>
+  </section>
+
+  <!-- 6 · Le résultat -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> produit_id, <span class="kw">COUNT</span>(*) <span class="kw">AS</span> nb_envois<span class="caret"><i></i></span></span><span class="ln" id="s6l2"><span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="kw">WHERE</span> statut = <span class="st">'expédiée'</span><span class="caret"><i></i></span></span><span class="ln" id="s6l4"><span class="kw">GROUP BY</span> produit_id<span class="caret"><i></i></span></span><span class="ln" id="s6l5"><span class="kw">HAVING</span> <span class="kw">COUNT</span>(*) &gt;= 2<span class="caret"><i></i></span></span><span class="ln" id="s6l6"><span class="kw">ORDER BY</span> <span class="glow" id="m6">nb_envois</span> <span class="kw">DESC</span>, produit_id;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">3 lignes</span></span></div>
+      <div class="rgR th"><div>produit_id</div><div>nb_envois</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card board" id="ab6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Logistique · réassort</span></div>
+      <div class="ms">
+        <div class="ms-h"><span class="ms-ico">🚚</span><div><div class="ms-t1">Stock à renforcer</div><div class="ms-t2">Les produits les plus expédiés</div></div></div>
+        <div class="ms-to" id="to6"></div>
+        <div class="stamp" id="sp6">Commandé</div>
+      </div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ 3 produits à réassortir</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🔢</div><div class="rtxt"><b>L’ordre d’exécution</b><span class="rs"><span class="ic">FROM</span>, <span class="ic">WHERE</span>, <span class="ic">GROUP BY</span>, <span class="ic">HAVING</span>, <span class="ic">SELECT</span>, <span class="ic">ORDER BY</span>, puis <span class="ic">LIMIT</span>.</span></div></div>
+      <div class="rrow"><div class="rico emo">⚖️</div><div class="rtxt"><b>WHERE avant, HAVING après</b><span class="rs">Une condition sur un comptage va dans <span class="ic">HAVING</span>&nbsp;: <span class="ic">WHERE</span> passe avant le regroupement.</span></div></div>
+      <div class="rrow"><div class="rico emo">🏷️</div><div class="rtxt"><b>L’alias du SELECT</b><span class="rs"><span class="ic">ORDER BY</span> peut l’utiliser&nbsp;; <span class="ic">WHERE</span>, exécuté avant, ne le connaît pas encore.</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="liens.js"></script>
+<script src="core.js"></script>
+<script src="moments.js"></script>
+<script>
+'use strict';
+const DURATION = 186.1;
+
+/* Les 7 produits des commandes expédiées : [produit_id, nom, nombre d’envois]. HAVING COUNT(*) >= 2 garde les n°1, 3 et 6. */
+const ENVOIS = [[1, 'Fibre Prébiotique', 3], [2, 'Collagène Marin', 1], [3, 'Magnésium', 2], [4, 'Vitamine D', 1],
+  [5, 'Tisane Détox', 1], [6, 'Protéine Végétale', 2], [7, 'Oméga 3', 1]];
+/* Le résultat, trié par nb_envois décroissant, puis par produit_id. */
+const RES = ENVOIS.filter(e => e[2] >= 2).sort((a, b) => b[2] - a[2] || a[0] - b[0]);
+
+const CHAPTERS = [
+  {n:1, label:'Situation',         a:5.0,   b:26.0},
+  {n:2, label:'Écrire, exécuter',  a:26.0,  b:56.1},
+  {n:3, label:'Étape par étape',   a:56.1,  b:99.1},
+  {n:4, label:'WHERE ou HAVING',   a:99.1,  b:127.1},
+  {n:5, label:'L’alias',           a:127.1, b:149.0},
+  {n:6, label:'Le résultat',       a:149.0, b:176.0},
+  {n:7, label:'À retenir',         a:176.0, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 9.6,     "Le service logistique veut savoir<br>quels produits partent le plus."],
+  [9.7, 15.4,    "Il lui faut les produits expédiés<br><b>au moins 2 fois</b>, du plus expédié<br>au moins expédié."],
+  [15.5, 20.8,   "Le produit et le statut de chaque commande<br>se trouvent dans la <b>table commandes</b>."],
+  [20.9, 25.6,   "La requête utilise six clauses,<br>de <code>SELECT</code> à <code>ORDER BY</code>."],
+  [26.3, 31.6,   "On écrit d’abord <code>SELECT</code>, puis <code>FROM</code>,<br><code>WHERE</code>, <code>GROUP BY</code>, <code>HAVING</code><br>et <code>ORDER BY</code>."],
+  [31.7, 36.6,   "C’est l’<b>ordre d’écriture</b>,<br>imposé par la syntaxe de SQL."],
+  [36.7, 41.4,   "Mais les clauses ne sont pas<br>exécutées dans cet ordre."],
+  [41.9, 46.2,   "L’exécution commence par la table,<br>pas par les colonnes à afficher."],
+  [46.3, 51.0,   "L’<b>ordre d’exécution</b> commence<br>par <code>FROM</code>, <code>WHERE</code>, <code>GROUP BY</code><br>et <code>HAVING</code>."],
+  [51.1, 55.6,   "Viennent ensuite <code>SELECT</code>,<br>puis <code>ORDER BY</code>."],
+  [56.4, 61.4,   "<code>FROM commandes</code> charge<br>les <b>16 commandes</b> de la table."],
+  [61.5, 66.6,   "<code>WHERE</code> garde les commandes expédiées :<br>il en reste <b>11</b>."],
+  [66.7, 71.8,   "<code>GROUP BY produit_id</code> les range<br>en <b>7 groupes</b>, un par produit."],
+  [71.9, 76.4,   "Chaque groupe reçoit<br>son nombre d’envois."],
+  [77.4, 82.6,   "<code>HAVING</code> garde les groupes<br>d’au moins 2 envois : <b>3 groupes</b>."],
+  [82.7, 87.8,   "<code>SELECT</code> choisit ensuite les colonnes<br>et nomme le comptage <code>nb_envois</code>."],
+  [87.9, 93.0,   "Enfin, <code>ORDER BY</code> trie les lignes,<br>du plus expédié au moins expédié."],
+  [93.1, 98.6,   "Avec un <code>LIMIT</code>, il viendrait<br>en tout dernier."],
+  [99.6, 104.6,  "Attention : <code>WHERE</code> s’exécute<br><b>avant</b> <code>GROUP BY</code>."],
+  [104.7, 109.8, "À ce moment, les groupes n’existent pas<br>et rien n’a encore été compté."],
+  [109.9, 115.0, "<code>WHERE COUNT(*) &gt;= 2</code> provoque donc<br>une erreur dans SQLite."],
+  [115.1, 120.2, "Une condition sur un comptage<br>va dans <code>HAVING</code>, après le regroupement."],
+  [121.2, 126.6, "Une condition sur une colonne<br>va dans <code>WHERE</code>, avant le regroupement."],
+  [127.6, 132.6, "L’alias <code>nb_envois</code> naît<br>dans le <code>SELECT</code>."],
+  [132.7, 137.8, "<code>ORDER BY</code> passe après le <code>SELECT</code> :<br>il peut utiliser <code>nb_envois</code>."],
+  [137.9, 143.0, "<code>WHERE</code> passe avant :<br>l’alias n’y existe pas encore."],
+  [143.1, 148.4, "Un alias dans <code>WHERE</code> est donc refusé<br>par la plupart des bases."],
+  [149.6, 155.0, "La requête complète suit cet ordre<br>pour produire le résultat."],
+  [155.1, 160.0, "Résultat : <b>3 lignes</b>, triées<br>par nombre d’envois."],
+  [160.1, 165.2, "Le produit n°1, la Fibre&nbsp;Prébiotique,<br>part le plus avec 3 envois."],
+  [165.3, 170.4, "Le Magnésium et la Protéine&nbsp;Végétale<br>suivent avec 2 envois chacun."],
+  [170.5, 175.4, "La logistique renforce le stock<br>de ces trois produits."],
+  [176.3, 181.1, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [181.2, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
+      : [181.2, 999, "<code>FROM</code> d’abord, <code>SELECT</code> presque en dernier."]
+];
+
+/* Pas de question en pleine vidéo : les moments « À toi » font participer l’élève. */
+const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse. */
+const MOMENTS = [
+  // L’ordre d’écriture montré : avant que la vidéo ne dise par quoi la base commence
+  {at: 41.4, from: 36.7, kind: 'pick', text: true, prompt: 'Quelle clause est exécutée <b>en premier</b>&nbsp;?', options: [
+    {label: 'FROM', ok: true, why: 'Avant tout, les lignes de la table sont chargées : <code>FROM</code> passe en premier.'},
+    {label: 'SELECT', why: '<code>SELECT</code> s’écrit en premier, mais il est exécuté presque en dernier, une fois les groupes formés.'},
+    {label: 'WHERE', why: '<code>WHERE</code> filtre des lignes : il faut d’abord les avoir chargées avec <code>FROM</code>.'}],
+    tip: 'L’exécution part de la table, puis la filtre et la regroupe.'},
+  // Les 7 groupes formés : avant que la vidéo n’applique HAVING
+  {at: 76.9, from: 66.7, kind: 'pick', text: true, prompt: 'Combien de groupes garde <code>HAVING COUNT(*) &gt;= 2</code>&nbsp;?', options: [
+    {label: '3 groupes', ok: true, why: 'Les produits n°1 (3 envois), n°3 et n°6 (2 envois chacun) ont au moins 2 envois.'},
+    {label: '7 groupes', why: 'Quatre produits n’ont qu’un seul envoi : <code>HAVING</code> les écarte.'},
+    {label: '1 groupe', why: 'Seul le n°1 dépasse 2, mais <code>&gt;= 2</code> garde aussi les groupes qui en ont exactement 2.'}],
+    tip: 'Compte les produits qui ont 2 envois ou plus.'},
+  // WHERE ou HAVING : avant que la vidéo ne range la condition sur une colonne
+  {at: 120.7, from: 99.6, kind: 'sort', text: true, prompt: 'Chaque condition va-t-elle dans <code>WHERE</code> ou dans <code>HAVING</code>&nbsp;?',
+    hint: 'Sélectionne une condition, puis appuie sur l’emplacement où tu veux la placer. Tu peux aussi la faire glisser directement.', next: '« {x} » : appuie sur l’emplacement où tu veux la placer.',
+    board: {y: 470, html: '<span class="mb-k">WHERE avant le regroupement, HAVING après</span><div class="mb-cols" style="gap:28px"><div class="mb-col"><div class="mb-bin" id="mbW"><b>WHERE</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin" id="mbH"><b>HAVING</b><div class="mb-drop"></div></div></div></div>'},
+    spots: [{k: 'W', sel: '#mbW', label: 'WHERE'}, {k: 'H', sel: '#mbH', label: 'HAVING'}],
+    options: [
+      {label: "statut = 'expédiée'", to: 'W', why: 'Une condition sur une colonne de la table : elle filtre les lignes avant le regroupement.'},
+      {label: 'COUNT(*) >= 2', to: 'H', why: 'Un comptage n’existe qu’une fois les groupes formés : il va dans HAVING.'},
+      {label: 'quantite > 1', to: 'W', why: 'quantite est une colonne de la table : la condition va dans WHERE.'},
+      {label: 'SUM(quantite) >= 3', to: 'H', why: 'SUM calcule un total par groupe : la condition va dans HAVING.'}],
+    tip: 'Une fonction d’agrégat (COUNT, SUM…) dans la condition : c’est HAVING.'}
+];
+
+function dom(){
+  /* Chapitre 3 : les 7 groupes, un par produit expédié */
+  $('#cgg').innerHTML = ENVOIS.map(([id, n, e]) => `<div class="chp" data-k="${e >= 2 ? 1 : 0}"><b>n°${id}</b><i>${e} envoi${e > 1 ? 's' : ''}</i></div>`).join('');
+  /* Chapitre 6 : le résultat, puis les produits à réassortir */
+  $('#rows6').innerHTML = RES.map(([id, , e]) => `<div class="rgR tr t6"><span class="hl"></span><div>${id}</div><div>${e}</div></div>`).join('');
+  $('#to6').innerHTML = RES.map(([id, n, e]) => `<span class="rc">📦 ${n} : ${e} envois</span>`).join('');
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(sel, $(id));
+  gsap.set(items, {autoAlpha: 0, y: 24});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => cue(t + 0.65 + i * step, 'pop', 0.55, i % 5));
+  return items;
+}
+/* Chapitre 3 : une étape s’allume, puis son compteur apparaît. */
+function step(k, t){
+  if (k > 1) tl.set('#st' + (k - 1), {attr: {class: 'stp'}}, t);
+  tl.set('#st' + k, {attr: {class: 'stp on'}}, t);
+  tl.fromTo(`#st${k} .ct`, {autoAlpha: 0, scale: 0.6}, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)', immediateRender: false}, t + 0.6);
+  cue(t, 'tick', 0.5, k % 5);
+  cue(t + 0.6, 'pop', 0.65, k % 5);
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});
+  hold(2.3, 2.4);
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  boardIn('#ab1', 5.15, '.lx-hero');
+  gsap.set(['#cd1', '#cd2', '#tb1'], {autoAlpha: 0});
+  show('#cd1', 11.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(11.2, 'pop', 0.7, 1);
+  show('#cd2', 13.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(13.4, 'pop', 0.7, 3);
+  stackBelow('#s1 .need', '#ab1');
+  show('#tb1', 16.0, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(16.0, 'pop', 0.7, 2);
+  show('#s1 .need', 16.4, {y: 60});
+  cue(16.4, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows.slice(0, 2), {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.25}, 16.7);
+  [0, 1].forEach(i => cue(16.7 + i * 0.25, 'pop', 0.7, i));
+  tl.to(needRows[2], {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, 21.4);
+  cue(21.4, 'pop', 0.7, 4);
+  hide(['#ab1', '#s1 .need'], 25.6);
+  sceneOff('#s1', 26.0);
+
+  /* ===== 2 · Écrire, puis exécuter ===== */
+  sceneOn('#s2', 26.0);
+  show('#or2', 26.05, {y: 50});
+  cue(26.05, 'whoosh', 0.6);
+  const rows2 = $$('#or2 .orow'), xs = $$('#or2 .nb.x');
+  gsap.set(rows2, {autoAlpha: 0, x: -30});
+  gsap.set([...xs, '#hx2'], {autoAlpha: 0});
+  tl.to(rows2, {autoAlpha: 1, x: 0, duration: 0.4, ease: 'power3.out', stagger: 0.55}, 26.6);
+  rows2.forEach((_, i) => cue(26.6 + i * 0.55, 'tick', 0.5, i % 5));
+  pulse($$('#or2 .nb.w'), 32.4, 3, 'rgba(201,188,255,.6)');
+  shake('#or2', 38.6);
+  cue(38.6, 'miss', 0.5);
+  // L’ordre d’exécution : les numéros arrivent de 1 à 6
+  tl.to('#hx2', {autoAlpha: 1, duration: 0.3}, 42.2);
+  const byX = [...xs].sort((a, b) => a.dataset.x - b.dataset.x);
+  const tx = [42.6, 46.9, 47.7, 48.6, 51.6, 53.6];
+  byX.forEach((el, i) => {
+    tl.fromTo(el, {autoAlpha: 0, scale: 0.4}, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.4)', immediateRender: false}, tx[i]);
+    cue(tx[i], 'pop', 0.7, i % 5);
+  });
+  hide('#or2', 55.6, {y: -40}, 0.4);
+  sceneOff('#s2', 56.1);
+
+  /* ===== 3 · Étape par étape ===== */
+  sceneOn('#s3', 56.1);
+  show('#pp3', 56.15, {y: 50});
+  cue(56.15, 'whoosh', 0.6);
+  step(1, 57.0);
+  step(2, 62.2);
+  step(3, 67.4);
+  // Les 7 groupes et leur nombre d’envois
+  stackBelow('#cg3', '#pp3', 0, 26);
+  show('#cg3', 69.0, {y: 40}, 0.5);
+  cue(69.0, 'whoosh', 0.6);
+  const chips = $$('#cgg .chp');
+  gsap.set(chips, {autoAlpha: 0, scale: 0.7});
+  tl.to(chips, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.2}, 72.2);
+  chips.forEach((_, i) => cue(72.2 + i * 0.2, 'tick', 0.45, i % 5));
+  // HAVING : les groupes d’au moins 2 envois restent
+  step(4, 77.6);
+  chips.forEach(c => { if (c.dataset.k === '1') tl.set(c, {attr: {class: 'chp k'}}, 78.6); else tl.to(c, {opacity: 0.3, duration: 0.3}, 78.6); });
+  cue(78.6, 'chord', 0.6);
+  hide('#cg3', 82.6, {y: 30}, 0.35);
+  step(5, 83.2);
+  step(6, 88.4);
+  hide('#pp3', 98.6, {y: -40});
+  sceneOff('#s3', 99.1);
+
+  /* ===== 4 · WHERE ou HAVING ===== */
+  sceneOn('#s4', 99.1);
+  show('#tr4', 99.15, {y: 50});
+  cue(99.15, 'whoosh', 0.6);
+  pulse('#w4', 100.6, 3, 'rgba(255,170,170,.6)');
+  stackBelow('#x4', '#tr4', 0, 30);
+  show('#x4', 105.2, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(105.2, 'pop', 0.7, 2);
+  show('#err4', 110.6, {y: 0, scale: 0.92}, 0.4, 'back.out(1.6)');
+  cue(110.6, 'miss', 0.55);
+  shake('#err4', 111.2);
+  hide('#x4', 115.0, {scale: 0.8}, 0.3);
+  stackBelow('#ok4', '#tr4', 0, 30);
+  show('#ok4', 115.6, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(115.6, 'true', 0.6);
+  hide(['#tr4', '#ok4'], 126.6, {y: -40});
+  sceneOff('#s4', 127.1);
+
+  /* ===== 5 · L’alias ===== */
+  sceneOn('#s5', 127.1);
+  show('#al5', 127.15, {y: 50});
+  cue(127.15, 'whoosh', 0.6);
+  gsap.set(['#tn5', '#vy5', '#vn5'], {autoAlpha: 0});
+  show('#tn5', 128.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#fS', 128.6, 1.12, 1);
+  cue(128.6, 'pop', 0.7, 2);
+  show('#vy5', 133.4, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  pulse('#fO', 133.4, 3, 'rgba(191,232,208,.9)');
+  cue(133.4, 'true', 0.55);
+  show('#vn5', 138.6, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  pulse('#fW', 138.6, 3, 'rgba(255,170,170,.8)');
+  cue(138.6, 'miss', 0.55);
+  shake('#vn5', 144.0);
+  hide('#al5', 148.5, {y: -40});
+  sceneOff('#s5', 149.0);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 149.0);
+  show('#s6code', 149.05, {y: 60}, 0.6);
+  cue(149.05, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 149.55, 40);
+  for (const k of [2, 3, 4, 5, 6]) te = typeLine($('#s6l' + k), te + 0.1, 40);
+  press($('#s6run'), 155.0);
+  stackBelow('#tbl6', '#s6code', 0, 30);
+  show('#tbl6', 155.3, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 155.5, 0.25);
+  gsap.set('#cnt6', {autoAlpha: 0});
+  show('#cnt6', 156.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 157.0, 1.15, 3);
+  const r6 = $$('#rows6 .tr');
+  pulse(r6[0], 160.6, 3, 'rgba(201,188,255,.45)');
+  pulse([r6[1], r6[2]], 165.8, 3, 'rgba(201,188,255,.45)');
+  hide(['#s6code', '#tbl6'], 170.4, {y: -40}, 0.4);
+  boardIn('#ab6', 170.7, '.ms-h, .rc', 0.25);
+  gsap.set('#sp6', {autoAlpha: 0, scale: 1.8, rotation: -14});
+  tl.to('#sp6', {autoAlpha: 1, scale: 1, rotation: -8, duration: 0.35, ease: 'back.out(2)'}, 172.2);
+  cue(172.2, 'stamp', 0.8);
+  stackBelow('#badge6', '#ab6', 0, 50);
+  show('#badge6', 172.8, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(172.8, 'chord', 0.7);
+  hide(['#ab6', '#badge6'], 175.5);
+  sceneOff('#s6', 176.0);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(176.0, [176.7, 178.5, 180.3]);
+  hold(178.3, 7.0);
+  hold(180.1, 8.0);
+  hold(181.8, 5.0);
+  if (APP) cue(181.25, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 181.2, moments: MOMENTS,
+  glyphs: '🚚🔢⬇️🏷️📦✍️⚠️⏱️✓✕→⚖️🔎·…', dom, build});
+</script>
+</body>
+</html>

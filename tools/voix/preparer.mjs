@@ -199,7 +199,7 @@ COMMUNES.forEach(id => out.push(base.elements.find(x => x.id === id)));
 const AGATHE = ['bases-relationnelles', 'as', 'distinct', 'where', 'comparer', 'and-or', 'not', 'null', 'like', 'in', 'between', 'order-by', 'limit-offset'];
 const ADAM = {id: 'TGAegA0zNRi8I6nUdq3i', nom: 'Adam'};
 /* 8 h 55 : le module « Agrégats et regroupements » avec Antoine (« Antoine – Dynamic, Captivating, and Professional Voice »). */
-const ANTOINE = {id: 'nbiTBaMRdSobTQJDzIWm', nom: 'Antoine'}, AGREGATS = ['count', 'agregats', 'group-by', 'group-by-colonnes', 'having', 'group-concat'];
+const ANTOINE = {id: 'nbiTBaMRdSobTQJDzIWm', nom: 'Antoine'}, AGREGATS = ['count', 'agregats', 'group-by', 'group-by-colonnes', 'having', 'ordre-execution', 'group-concat'];
 /* 9 h 02 : le module « Jointures » avec Perle (« Perle | Premium French Corporate Voice »), la formatrice. */
 const PERLE = {id: 'UaGvaD7NWzU5mJNoUqoY', nom: 'Perle'}, JOINTURES = ['inner-join', 'left-join', 'right-join', 'full-outer-join', 'cross-join',
   'jointure-3-tables', 'join-group-by', 'self-join', 'plusieurs-conditions-on', 'quel-join-choisir'];

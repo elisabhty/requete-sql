@@ -29,6 +29,7 @@ window.LIENS = [
   {page: 'group-by', titre: 'GROUP BY', passe: 'tu as fait un calcul par groupe avec <code>GROUP BY</code>', futur: 'tu feras un calcul par groupe avec <code>GROUP BY</code>'},
   {page: 'group-by-colonnes', titre: 'GROUP BY sur plusieurs colonnes', passe: 'tu as regroupé sur plusieurs colonnes avec <code>GROUP BY</code>', futur: 'tu regrouperas sur plusieurs colonnes avec <code>GROUP BY</code>'},
   {page: 'having', titre: 'HAVING', passe: 'tu as filtré des groupes avec <code>HAVING</code>', futur: 'tu filtreras des groupes avec <code>HAVING</code>'},
+  {page: 'ordre-execution', titre: 'L’ordre d’exécution', passe: 'tu as vu dans quel ordre une requête est exécutée', futur: 'tu verras dans quel ordre une requête est exécutée'},
   {page: 'group-concat', titre: 'GROUP_CONCAT', passe: 'tu as rassemblé les textes d’un groupe avec <code>GROUP_CONCAT</code>', futur: 'tu rassembleras les textes d’un groupe avec <code>GROUP_CONCAT</code>'},
   {page: 'inner-join', titre: 'INNER JOIN', passe: 'tu as associé deux tables avec <code>INNER JOIN</code>', futur: 'tu associeras deux tables avec <code>INNER JOIN</code>'},
   {page: 'left-join', titre: 'LEFT JOIN', passe: 'tu as gardé toutes les lignes de la table de gauche avec <code>LEFT JOIN</code>', futur: 'tu garderas toutes les lignes de la table de gauche avec <code>LEFT JOIN</code>'},
