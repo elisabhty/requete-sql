@@ -89,7 +89,8 @@ window.MODULES=[
       ["Sous-requête dans SELECT", "Calculer une valeur pour chaque ligne", 204],
       ["Sous-requête dans FROM", "Utiliser une sous-requête comme table", 197],
       ["EXISTS et NOT EXISTS", "Tester la présence ou l’absence d’une ligne liée", 223],
-      ["WITH (CTE)", "Créer et réutiliser un résultat intermédiaire", 222],
+      ["ANY et ALL", "Comparer à toute une liste", 203],
+      ["WITH (CTE)", "Créer et réutiliser un résultat intermédiaire", 221],
       ["UNION et UNION ALL", "Empiler deux résultats, avec ou sans doublons", 219],
       ["INTERSECT et EXCEPT", "Comparer deux résultats", 179],
       ["WITH RECURSIVE (CTE RECURSIVE)", "Créer une suite automatiquement", 199]

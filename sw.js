@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-02-anna-voix-v2343';
+const CACHE = 'requete-2026-11-02-any-all-v2344';
 
 const PRECACHE = [
   './onboarding-focus.js',
@@ -87,6 +87,7 @@ const PRECACHE = [
   './assets/anim/sous-requete-select.html?app&embed',
   './assets/anim/sous-requete-from.html?app&embed',
   './assets/anim/exists.html?app&embed',
+  './assets/anim/any-all.html?app&embed',
   './assets/anim/with-cte.html?app&embed',
   './assets/anim/union.html?app&embed',
   './assets/anim/intersect-except.html?app&embed',
@@ -179,6 +180,7 @@ const PRECACHE = [
   './assets/anim/sous-requete-select-thumb.jpg',
   './assets/anim/sous-requete-from-thumb.jpg',
   './assets/anim/exists-thumb.jpg',
+  './assets/anim/any-all-thumb.jpg',
   './assets/anim/with-cte-thumb.jpg',
   './assets/anim/union-thumb.jpg',
   './assets/anim/intersect-except-thumb.jpg',
