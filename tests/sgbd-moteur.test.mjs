@@ -127,3 +127,34 @@ test('2 novembre, 20 h 48 : les écritures ajoutées au moteur donnent le résul
     assert.equal(col("SELECT 'DATE ''x'' SIMILAR TO' AS v"), "DATE 'x' SIMILAR TO", 'un texte reste intact');
   } finally { d.close(); }
 });
+
+/* Elisa, 2 novembre, 21 h 03 : « fais-le » — ROLLUP, CUBE, GROUPING SETS et PIVOT, dans les cas simples ; sinon un message clair. */
+test('ROLLUP, WITH ROLLUP, CUBE, GROUPING SETS, GROUPING() et PIVOT : réécrits pour SQLite', () => {
+  const d = new SQL.Database(); ctx.attachDateFns(d);
+  d.run(`CREATE TABLE produits(id INTEGER PRIMARY KEY, nom TEXT, categorie TEXT, prix REAL, stock INTEGER);
+    INSERT INTO produits VALUES (1,'Fibre Prébiotique','Bien-être',29.90,120),(2,'Collagène Marin','Beauté',39.90,80),(3,'Magnésium','Bien-être',19.90,500),
+    (4,'Vitamine D','Nutrition',14.90,150),(5,'Tisane Détox','Boisson',12.50,60),(6,'Protéine Végétale','Nutrition',34.90,45),(7,'Oméga 3','Bien-être',24.90,90),(8,'Shaker Inox','Accessoire',15.00,30);
+    CREATE TABLE ventes(categorie TEXT, mois TEXT, montant REAL);
+    INSERT INTO ventes VALUES ('Bien-être','juillet',50),('Bien-être','août',20),('Beauté','juillet',40),('Bien-être','juillet',5);`);
+  const rows = q => d.exec(q)[0];
+  try {
+    let r = rows('SELECT categorie, COUNT(*) AS n FROM produits GROUP BY ROLLUP(categorie) ORDER BY categorie');
+    assert.deepEqual(r.columns, ['categorie', 'n']);
+    assert.deepEqual(r.values, [['Accessoire', 1], ['Beauté', 1], ['Bien-être', 3], ['Boisson', 1], ['Nutrition', 2], [null, 8]], 'le total en dernier, comme PostgreSQL');
+    r = rows("SELECT COALESCE(categorie, 'Total') AS cat, COUNT(*) AS n FROM produits GROUP BY categorie WITH ROLLUP");
+    assert.deepEqual(r.values.at(-1), ['Total', 8], 'WITH ROLLUP (MySQL), COALESCE pour nommer le total');
+    r = rows('SELECT categorie, GROUPING(categorie) AS g, COUNT(*) AS n FROM produits WHERE stock > 50 GROUP BY ROLLUP(categorie) HAVING COUNT(*) >= 1');
+    assert.deepEqual(r.values.at(-1), [null, 1, 6], 'WHERE, HAVING, GROUPING()');
+    r = rows("SELECT categorie, mois, SUM(montant) AS total FROM ventes GROUP BY GROUPING SETS ((categorie), (mois), ()) ORDER BY total DESC");
+    assert.deepEqual(r.values, [[null, null, 115], [null, 'juillet', 95], ['Bien-être', null, 75], ['Beauté', null, 40], [null, 'août', 20]], 'GROUPING SETS, ORDER BY sur le total');
+    assert.equal(rows('SELECT categorie, mois, SUM(montant) FROM ventes GROUP BY CUBE(categorie, mois)').values.length, 3 + 2 + 2 + 1, 'CUBE : tous les regroupements');
+    r = rows("SELECT * FROM (SELECT categorie, mois, montant FROM ventes) AS src PIVOT (SUM(montant) FOR mois IN ([juillet], [août])) AS pv ORDER BY categorie");
+    assert.deepEqual(r.columns, ['categorie', 'juillet', 'août']);
+    assert.deepEqual(r.values, [['Beauté', 40, null], ['Bien-être', 55, 20]], 'PIVOT de SQL Server');
+    r = rows("SELECT * FROM (SELECT categorie, mois, montant FROM ventes) PIVOT (COUNT(montant) FOR mois IN ('juillet' AS jul, 'août' AS aou))");
+    assert.deepEqual(r.columns, ['categorie', 'jul', 'aou'], 'PIVOT d’Oracle, valeurs nommées');
+    assert.throws(() => d.exec('SELECT * FROM ventes PIVOT (SUM(montant) FOR mois IN ([juillet]))'), /sous-requête qui nomme ses colonnes/);
+    assert.throws(() => d.exec("SELECT categorie FROM produits GROUP BY ROLLUP(categorie) UNION SELECT 'x'"), /sans UNION/);
+    assert.deepEqual(rows("SELECT 'ROLLUP(x) PIVOT' AS t").values, [['ROLLUP(x) PIVOT']], 'un texte reste intact');
+  } finally { d.close(); }
+});
