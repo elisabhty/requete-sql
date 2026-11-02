@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
 <link rel="preload" href="../assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/inter-semibold.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="vitrine.css?v=474c730a">
+<link rel="stylesheet" href="vitrine.css?v=94bd7218">
 <script>document.documentElement.classList.add('js')</script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
@@ -814,7 +814,13 @@ document.documentElement.classList.add('js');
   if(!rail)return;
   var cards=rail.children,total=cards.length;
   [].forEach.call(cards,function(c,i){c.style.setProperty('--i',i);});
-  if('IntersectionObserver' in window){var ro=new IntersectionObserver(function(es){if(es[0].isIntersecting){rail.classList.add('on');ro.disconnect();}},{threshold:.2});ro.observe(rail);}else rail.classList.add('on');
+  /* 2 novembre, 17 h 30 (« pousser vers la gauche », mobile) : les cartes arrivent décalées de 46 px, et le navigateur calait
+     l’aimantation sur cette position décalée : la première carte restait coupée à gauche. L’aimantation attend la fin de l’arrivée. */
+  var pret=function(){if(rail.classList.contains('pret'))return;rail.classList.add('pret');};
+  ['pointerdown','touchstart','wheel','keydown'].forEach(function(t){rail.addEventListener(t,pret,{passive:true,once:true});});
+  var arrive=function(){rail.classList.add('on');setTimeout(function(){if(!rail.classList.contains('pret')){if(rail.scrollLeft<60)rail.scrollLeft=0;pret();}},1800);};
+  rail.scrollLeft=0;
+  if('IntersectionObserver' in window){var ro=new IntersectionObserver(function(es){if(es[0].isIntersecting){arrive();ro.disconnect();}},{threshold:.2});ro.observe(rail);}else arrive();
   var pas=function(){return cards[0].getBoundingClientRect().width+parseFloat(getComputedStyle(rail).columnGap||18);};
   /* Plus fluide (Elisa, 31 octobre, 15 h 16, réf. 8) : la barre de progression suit le doigt en continu (une image par rafraîchissement
      d’écran), le compteur et les flèches se mettent à jour au même rythme. */
@@ -830,8 +836,8 @@ document.documentElement.classList.add('js');
   };
   var demande=function(){if(!raf)raf=requestAnimationFrame(maj);};
   var aller=function(sens){rail.scrollBy({left:sens*pas()*Math.max(1,Math.floor(rail.clientWidth/pas())),behavior:REDUIT?'auto':'smooth'});};
-  prev.addEventListener('click',function(){aller(-1);});
-  next.addEventListener('click',function(){aller(1);});
+  prev.addEventListener('click',function(){pret();aller(-1);});
+  next.addEventListener('click',function(){pret();aller(1);});
   rail.addEventListener('scroll',demande,{passive:true});addEventListener('resize',demande);maj();
 });
 
