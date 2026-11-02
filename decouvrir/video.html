@@ -1059,7 +1059,7 @@ $$('#scale .tk').forEach(t => t.style.left = sx(+t.dataset.v));
 /* ---------- Timeline ---------- */
 const P = {avg: 0, cities: 0, tj: 0, tjx: 0, wef: 0, wef2: 0, da: 0, seven: 0, skills: 0, sk: 2, x15: 1, du: 0, dq: 0, dn: 8, imp: 0, tb: 3, tq: 0, en: 12};
 Object.keys(Q).forEach(k => P[k] = 0);
-const T = gsap.timeline({paused: true, defaults: {ease: 'expo.out', duration: .9}, onUpdate: sync, onComplete: ended});
+const T = gsap.timeline({paused: true, defaults: {ease: 'expo.out', duration: .9}, onUpdate: sync});
 
 function scene(id, a, b){
   T.fromTo('#' + id, {autoAlpha: 0}, {autoAlpha: 1, duration: .35, ease: 'none'}, a);
@@ -1492,8 +1492,7 @@ function sync(){
   if (ci !== chapIdx) { chapIdx = ci; chapN.textContent = String(ci + 1).padStart(2, '0'); chapT.textContent = CHAPTERS[ci][1]; live.textContent = SAY[ci]; }
   let si = -1; SRC.forEach((s, i) => { if (t >= s[0]) si = i; });
   if (si !== srcIdx) { srcIdx = si; srcEl.innerHTML = si >= 0 ? SRC[si][1] : ''; }
-  ui(t);
-  sonSync();
+  if (typeof CLK !== 'undefined') ui(CLK.v);
 }
 
 /* ---------- Lecteur ---------- */
@@ -1501,12 +1500,10 @@ const frame = $('#frame'), stage = $('#stage'), pp = $('#pp'), seek = $('#seek')
 const PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5Z"/></svg>';
 const PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>';
 const mmss = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
-seek.setAttribute('aria-valuemax', DURATION);
-CHAPTERS.slice(1).forEach(c => { const i = document.createElement('i'); i.className = 'tick'; i.style.left = (c[0] / DURATION * 100) + '%'; seek.appendChild(i); });
 
 function ui(t){
-  fill.style.width = (t / DURATION * 100) + '%';
-  time.textContent = `${mmss(t)} / ${mmss(DURATION)}`;
+  fill.style.width = (t / VDUR() * 100) + '%';
+  time.textContent = `${mmss(t)} / ${mmss(VDUR())}`;
   seek.setAttribute('aria-valuenow', Math.round(t));
   seek.setAttribute('aria-valuetext', `${mmss(t)}, ${CHAPTERS[Math.max(0, chapIdx)][1]}`);
 }
@@ -1518,43 +1515,68 @@ function setPlaying(on){ pp.innerHTML = on ? PAUSE : PLAY; pp.setAttribute('aria
 const SON = {ok: false, clips: [], music: null, vol: .16};
 function sonSync(){
   if (!SON.ok) return;
-  const t = T.time(), on = !T.paused() && t < DURATION - .05;
+  const t = C.time(), on = !C.paused() && t < VDUR() - .05;
   let cur = null;
-  SON.clips.forEach(c => { if (t >= c.t && t < c.t + c.d) cur = c; });
+  SON.clips.forEach(c => { const v = unwarp(c.t); if (t >= v && t < v + c.d) cur = c; });
   SON.clips.forEach(c => {
     if (c !== cur || !on) { if (!c.a.paused) c.a.pause(); return; }
-    const off = t - c.t;
+    const off = t - unwarp(c.t);
     if (c.a.paused || Math.abs(c.a.currentTime - off) > .3) { try { c.a.currentTime = off; } catch (e) {} c.a.play().catch(() => {}); }
   });
   const m = SON.music;
   if (m) {
-    if (!on || t >= (m.d || DURATION)) { if (!m.a.paused) m.a.pause(); }
+    if (!on || t >= (m.d || VDUR())) { if (!m.a.paused) m.a.pause(); }
     else if (m.a.paused || Math.abs(m.a.currentTime - t) > .5) { try { m.a.currentTime = t; } catch (e) {} m.a.play().catch(() => {}); }
   }
 }
 function sonLoad(){
   return fetch('voix/voix.json', {cache: 'no-cache'}).then(r => r.ok ? r.json() : null).then(j => {
     if (!j || !Array.isArray(j.scenes) || !j.scenes.length) return false;
-    SON.clips = j.scenes.map(c => { const a = new Audio('voix/' + c.id + '.mp3'); a.preload = 'auto'; return {t: c.t, d: c.d, a}; });
+    SON.clips = j.scenes.map(c => { const a = new Audio('voix/' + c.id + '.mp3'); a.preload = 'auto'; return {t: c.t, fin: c.fin, d: c.d, a}; });
+    /* Une phrase plus longue que sa scène : l’image s’arrête juste avant la sortie de la scène, le temps que la phrase finisse
+       (Elisa, 2 novembre, 16 h 14 : son script, plus long par endroits). */
+    CLK.holds = SON.clips.filter(c => c.fin && c.d + .45 > c.fin - c.t).map(c => [+(c.fin - .55).toFixed(2), +(c.d + .45 - (c.fin - c.t)).toFixed(2)]).sort((a, b) => a[0] - b[0]);
     if (j.musique) { const a = new Audio('voix/musique.mp3'); a.preload = 'auto'; a.volume = SON.vol; SON.music = {d: j.musique.d, a}; }
     SON.ok = true; return true;
   }).catch(() => false);
+}
+/* Horloge de la vidéo : le temps de la vidéo (v) avance seul ; l’image (T) le suit, sauf pendant un arrêt (CLK.holds : [temps de l’image,
+   durée]), où elle reste figée pendant que la voix finit sa phrase. Sans voix, aucun arrêt : v = temps de l’image. */
+const CLK = {v: 0, on: false, holds: [], last: 0, raf: 0};
+const VDUR = () => DURATION + CLK.holds.reduce((n, h) => n + h[1], 0);
+const warp = v => { let acc = 0; for (const [h, d] of CLK.holds) { if (v <= h + acc) return v - acc; if (v <= h + acc + d) return h; acc += d; } return v - acc; };
+const unwarp = t => t + CLK.holds.reduce((n, [h, d]) => n + (h < t ? d : 0), 0);
+function clkSet(v){ CLK.v = Math.max(0, Math.min(VDUR(), v)); T.time(warp(CLK.v)); ui(CLK.v); sonSync(); }
+function clkTick(now){
+  if (!CLK.on) return;
+  const dt = Math.min(.1, (now - CLK.last) / 1000); CLK.last = now;
+  clkSet(CLK.v + dt);
+  if (CLK.v >= VDUR() - .001) { CLK.on = false; sonSync(); ended(); return; }
+  CLK.raf = requestAnimationFrame(clkTick);
+}
+const C = {time: v => v == null ? CLK.v : clkSet(v), paused: () => !CLK.on,
+  play(){ if (CLK.on) return; CLK.on = true; CLK.last = performance.now(); CLK.raf = requestAnimationFrame(clkTick); },
+  pause(){ CLK.on = false; cancelAnimationFrame(CLK.raf); }};
+function ticks(){
+  $$('#seek .tick').forEach(i => i.remove());
+  CHAPTERS.slice(1).forEach(c => { const i = document.createElement('i'); i.className = 'tick'; i.style.left = (unwarp(c[0]) / VDUR() * 100) + '%'; seek.appendChild(i); });
+  seek.setAttribute('aria-valuemax', Math.round(VDUR()));
 }
 /* Le premier toucher débloque chaque piste (iPhone : un play() par piste pendant le geste), puis la vidéo part du début, avec le son. */
 function sonUnlock(){
   SON.clips.concat(SON.music ? [SON.music] : []).forEach(c => { const p = c.a.play(); if (p && p.then) p.then(() => c.a.pause()).catch(() => {}); });
 }
-function play(){ const go = $('#go'); if (go && !go.hidden) { go.hidden = true; T.time(0); } if (T.time() >= DURATION - .05) T.time(0); endEl.classList.remove('on'); T.play(); setPlaying(true); sonSync(); }
-function pause(){ T.pause(); setPlaying(false); sonSync(); }
-function toggle(){ T.paused() || T.time() >= DURATION - .05 ? play() : pause(); }
+function play(){ const go = $('#go'); if (go && !go.hidden) { go.hidden = true; C.time(0); } if (C.time() >= VDUR() - .05) C.time(0); endEl.classList.remove('on'); C.play(); setPlaying(true); sonSync(); }
+function pause(){ C.pause(); setPlaying(false); sonSync(); }
+function toggle(){ C.paused() || C.time() >= VDUR() - .05 ? play() : pause(); }
 function ended(){ setPlaying(false); endEl.classList.add('on'); }
 
 pp.addEventListener('click', e => { e.stopPropagation(); toggle(); });
 frame.addEventListener('click', e => { if (!endEl.contains(e.target)) toggle(); });
-$('#again').addEventListener('click', e => { e.stopPropagation(); T.time(0); play(); });
+$('#again').addEventListener('click', e => { e.stopPropagation(); C.time(0); play(); });
 const srcBox = $('#sources');
 let resumeAfterSources = false;
-$('#src-btn').addEventListener('click', () => { resumeAfterSources = !T.paused(); pause(); srcBox.classList.add('on'); $('#src-close').focus(); });
+$('#src-btn').addEventListener('click', () => { resumeAfterSources = !C.paused(); pause(); srcBox.classList.add('on'); $('#src-close').focus(); });
 const closeSources = () => { srcBox.classList.remove('on'); $('#src-btn').focus(); if (resumeAfterSources) play(); };
 $('#src-close').addEventListener('click', closeSources);
 srcBox.addEventListener('click', e => { if (e.target === srcBox) closeSources(); });
@@ -1562,14 +1584,14 @@ addEventListener('keydown', e => {
   if (srcBox.classList.contains('on')) { if (e.key === 'Escape') closeSources(); return; }
   if (e.target.closest && e.target.closest('a,button')) return;
   if (e.key === ' ' || e.key === 'k') { e.preventDefault(); toggle(); }
-  if (e.key === 'ArrowRight') T.time(Math.min(DURATION, T.time() + 5));
-  if (e.key === 'ArrowLeft') { T.time(Math.max(0, T.time() - 5)); endEl.classList.remove('on'); }
+  if (e.key === 'ArrowRight') C.time(Math.min(VDUR(), C.time() + 5));
+  if (e.key === 'ArrowLeft') { C.time(Math.max(0, C.time() - 5)); endEl.classList.remove('on'); }
 });
 let dragging = false, wasPlaying = false;
-const seekTo = x => { const r = seek.getBoundingClientRect(); T.time(Math.max(0, Math.min(1, (x - r.left) / r.width)) * DURATION); if (T.time() < DURATION - .05) endEl.classList.remove('on'); };
-seek.addEventListener('pointerdown', e => { dragging = true; wasPlaying = !T.paused(); T.pause(); seek.setPointerCapture(e.pointerId); seekTo(e.clientX); });
+const seekTo = x => { const r = seek.getBoundingClientRect(); C.time(Math.max(0, Math.min(1, (x - r.left) / r.width)) * VDUR()); if (C.time() < VDUR() - .05) endEl.classList.remove('on'); };
+seek.addEventListener('pointerdown', e => { dragging = true; wasPlaying = !C.paused(); C.pause(); seek.setPointerCapture(e.pointerId); seekTo(e.clientX); });
 seek.addEventListener('pointermove', e => { if (dragging) seekTo(e.clientX); });
-seek.addEventListener('pointerup', () => { dragging = false; if (wasPlaying && T.time() < DURATION - .05) play(); else setPlaying(!T.paused()); });
+seek.addEventListener('pointerup', () => { dragging = false; if (wasPlaying && C.time() < VDUR() - .05) play(); else setPlaying(!C.paused()); });
 
 function fit(){
   const bars = $$('.bar').reduce((s, b) => s + b.offsetHeight, 0);
@@ -1583,14 +1605,14 @@ function fit(){
 addEventListener('resize', fit);
 fit();
 
-setPlaying(false); sync();
+setPlaying(false); ticks(); sync();
 Promise.all([document.fonts ? document.fonts.ready : 0, sonLoad(), ...$$('img').map(i => i.decode ? i.decode().catch(() => 0) : 0)])
   .then(([, son]) => {
-    fit();
+    fit(); ticks(); ui(C.time());
     if (son) {
       /* Avec la voix : on attend un toucher. */
       const go = $('#go'); go.hidden = false; go.focus({preventScroll: true});
-      T.time(2.6);   // derrière le bouton, l’image d’ouverture (le titre « Data analyst »)
+      C.time(2.6);   // derrière le bouton, l’image d’ouverture (le titre « Data analyst »)
       go.addEventListener('click', e => { e.stopPropagation(); sonUnlock(); play(); });
       return;
     }
