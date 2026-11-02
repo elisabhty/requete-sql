@@ -59,18 +59,18 @@ window.MODULES=[
     ]},
     {titre:"Fonctions et expressions", sous:"Transformer les valeurs ligne par ligne", lecons:[
       ["Fonctions de texte", "Transformer, nettoyer et découper du texte", 217],
-      ["Fonctions numériques", "Calculer, arrondir et manipuler des nombres", 167],
+      ["Fonctions numériques", "Calculer, arrondir et manipuler des nombres", 166],
       ["Fonctions de dates et heures", "Obtenir, extraire et calculer avec une date", 173],
       ["Fonctions de conversion de types", "Passer d’un type à un autre", 186],
-      ["CASE", "Afficher une valeur selon une condition", 166],
+      ["CASE", "Afficher une valeur selon une condition", 165],
       ["COALESCE", "Remplacer les valeurs absentes", 153]
     ]},
     {titre:"Agrégats et regroupements", sous:"Calculer, regrouper et agréger", lecons:[
-      ["COUNT", "Compter les lignes", 147],
+      ["COUNT", "Compter les lignes", 145],
       ["SUM, AVG, MIN et MAX", "Somme, moyenne, minimum et maximum", 180],
-      ["GROUP BY", "Un calcul par groupe", 150],
+      ["GROUP BY", "Un calcul par groupe", 149],
       ["HAVING", "Filtrer après regroupement", 155],
-      ["GROUP_CONCAT", "Rassembler les textes d’un groupe", 172]
+      ["GROUP_CONCAT", "Rassembler les textes d’un groupe", 173]
     ]},
     {titre:"Jointures", sous:"Interroger plusieurs tables à la fois", lecons:[
       ["INNER JOIN", "Associer les lignes correspondantes de deux tables", 151],
@@ -95,7 +95,7 @@ window.MODULES=[
       ["WITH RECURSIVE (CTE RECURSIVE)", "Créer une suite automatiquement", 199]
     ]},
     {titre:"Fonctions de fenêtre", sous:"Calculer sans regrouper les lignes", lecons:[
-      ["OVER()", "Calculer sans regrouper les lignes", 200],
+      ["OVER()", "Calculer sans regrouper les lignes", 201],
       ["Fonctions de rang", "Classer les lignes, ex æquo compris", 178],
       ["LAG et LEAD", "Comparer une ligne à la précédente ou à la suivante", 203],
       ["Fenêtres glissantes", "Suivre l’évolution des commandes", 185]
@@ -130,8 +130,8 @@ window.MODULES=[
       ["Les triggers", "Déclencher une action automatiquement", 248]
     ]},
     {titre:"Vues, index et optimisation", sous:"Structurer et accélérer", lecons:[
-      ["CREATE VIEW", "Enregistrer une requête sous un nom", 233],
-      ["Les index et EXPLAIN", "Accélérer une recherche et lire son plan", 206]
+      ["CREATE VIEW", "Enregistrer une requête sous un nom", 244],
+      ["Les index et EXPLAIN", "Accélérer une recherche et lire son plan", 217]
     ]},
     {titre:"Sécurité et droits", sous:"Contrôler les accès", lecons:[
       ["Sécurité et droits", "Contrôler les accès avec GRANT et REVOKE", 281]
