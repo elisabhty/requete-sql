@@ -14148,11 +14148,20 @@ function saveNav(override){
     }
     if(!nav) nav={view:'tab',tab:activeTab};
   }
+  /* Un projet ouvert dans la console est repris tel quel au rechargement (Elisa, 2 novembre, 22 h 08). */
+  if(nav.view==='tab'&&nav.tab==='console'&&typeof consoleView!=='undefined'&&consoleView==='work'&&activeDbId!=null)nav={...nav,project:activeDbId};
   const txt=JSON.stringify(nav);
   try{ sessionStorage.setItem(NAV_KEY,txt); }catch(e){}
   try{ localStorage.setItem(NAV_KEY_LONG,JSON.stringify({nav,ts:Date.now()})); }catch(e){}
 }
+let navTried=false;
+/* La page quittée ou rechargée (Safari, tirer pour actualiser, nouvelle version) : la position est relue juste avant. */
+if(typeof window!=='undefined'&&window.addEventListener){
+  window.addEventListener('pagehide',()=>{try{if(state&&state.onboarded&&navTried)saveNav();}catch(e){}});
+  document.addEventListener('visibilitychange',()=>{try{if(document.visibilityState==='hidden'&&state&&state.onboarded&&navTried)saveNav();}catch(e){}});
+}
 function restoreNav(){
+  navTried=true;
   let nav=null;
   try{ nav=JSON.parse(sessionStorage.getItem(NAV_KEY)); }catch(e){}
   if(!nav){
@@ -14181,6 +14190,7 @@ function restoreNav(){
       /* Cours retiré ou renuméroté depuis la dernière visite : on revient au
          moins sur l'onglet d'où l'on venait, plutôt que de tout perdre. */
       switchTab(nav.tab||nav.fromTab||activeTab);
+      if(nav.tab==='console'&&nav.project!=null)openConsoleProject(nav.project);
     }
   }finally{
     restoringNav=false;
@@ -14293,6 +14303,8 @@ async function boot(){
     initStudyClock();
   }catch(e){
     console.error('Erreur pendant l’initialisation :',e);
+    /* Une erreur avant la reprise ne doit pas renvoyer à l’accueil au rechargement : on reprend quand même la page ouverte. */
+    if(!navTried&&state&&state.onboarded){try{restoreNav();}catch(err){}}
   }
   hideLoader();
 }
@@ -15372,12 +15384,14 @@ function openConsoleProject(id){
   const scr=document.getElementById('scr-console');
   if(scr)scr.scrollTop=0;
   tabScrollPositions.console=0;
+  saveNav();
 }
 function closeConsoleProject(){
   persistEditor('ed-console');
   consoleView='list';
   consoleCreateOpen=false;
   renderConsoleScreen();
+  saveNav();
   const scr=document.getElementById('scr-console');
   if(scr)scr.scrollTop=consoleListScroll||0;
 }
@@ -30674,7 +30688,7 @@ const ENTRETIEN=[
  {id:'ent-v2-109',niveau:'Débutant',cat:'Modélisation',dialectes:['Standard'],q:"Quelle est la différence entre SQL et NoSQL ?",a:"Une base SQL range les données dans des tables au schéma fixe, reliées par des clés, avec des transactions ACID. Une base NoSQL (documents, clé-valeur, graphes…) a un schéma plus souple et se répartit facilement sur plusieurs serveurs, au prix de garanties souvent plus légères."},
  {id:'ent-v2-110',niveau:'Débutant',cat:'NULL',dialectes:['Standard'],q:"Quelle est la différence entre NULL, zéro et une chaîne vide ?",a:"Zéro est un nombre et '' est un texte vide : ce sont des valeurs connues. NULL signifie « valeur inconnue ou absente » : il ne s’égale à rien, même pas à lui-même, et on le teste avec IS NULL.",sql:"SELECT COUNT(*) FROM clients WHERE telephone IS NULL OR telephone = '';"},
  {id:'ent-v2-111',niveau:'Débutant',cat:'NULL',dialectes:['Standard'],q:"Pourquoi <> et != ne trouvent jamais les lignes NULL ?",a:"Comparer NULL à une valeur donne « inconnu », ni vrai ni faux, et WHERE ne garde que ce qui est vrai. Pour inclure les NULL, on l’écrit explicitement : « ville <> 'Paris' OR ville IS NULL ».",sql:"SELECT nom FROM clients WHERE ville <> 'Paris' OR ville IS NULL;"},
- {id:'ent-v2-112',niveau:'Débutant',cat:'SELECT',dialectes:['Standard'],q:"Qu’est-ce qu’un dialecte SQL ?",a:"C’est la version du langage propre à un SGBD : PostgreSQL, MySQL, SQL Server, Oracle ou SQLite partagent le standard SQL, mais chacun a ses fonctions et ses syntaxes (LIMIT ou TOP, || ou CONCAT, fonctions de dates…).",sql:"SELECT nom FROM clients LIMIT 5;  -- SQL Server : SELECT TOP 5 nom FROM clients;"},
+ {id:'ent-v2-112',niveau:'Débutant',cat:'Bases du SQL',dialectes:['Standard'],q:"Qu’est-ce qu’un dialecte SQL ?",a:"Un dialecte SQL est une adaptation du langage SQL propre à un système de gestion de bases de données (SGBD).\n\nPostgreSQL, MySQL, SQL Server et Oracle utilisent tous le SQL, mais certaines commandes, fonctions ou syntaxes peuvent être différentes.\n\nExemple : pour afficher les 5 premiers clients.",sql:"-- Avec PostgreSQL ou MySQL\nSELECT nom FROM clients LIMIT 5;\n\n-- Avec SQL Server\nSELECT TOP 5 nom FROM clients;",apres:"Le résultat recherché est le même, mais la syntaxe change selon le dialecte SQL.",retenir:"Le SQL est un langage commun, mais chaque SGBD peut avoir ses propres particularités."},
  {id:'ent-v2-113',niveau:'Débutant',cat:'Jointures',dialectes:['Standard'],q:"LEFT JOIN et LEFT OUTER JOIN, est-ce la même chose ?",a:"Oui : le mot OUTER est facultatif. LEFT JOIN, RIGHT JOIN et FULL JOIN sont des jointures externes ; seule INNER JOIN (ou JOIN tout court) est interne.",sql:"SELECT c.nom, co.id FROM clients c LEFT OUTER JOIN commandes co ON co.client_id = c.id;"},
  {id:'ent-v2-114',niveau:'Débutant',cat:'Trier et limiter',dialectes:['SQLite', 'PostgreSQL', 'MySQL', 'SQL Server'],q:"Comment tirer des lignes au hasard ?",a:"On trie sur une valeur aléatoire puis on limite : ORDER BY RANDOM() en SQLite et PostgreSQL, RAND() en MySQL, NEWID() en SQL Server. Sur une très grosse table, c’est coûteux : on préfère alors TABLESAMPLE.",sql:"SELECT nom FROM clients ORDER BY RANDOM() LIMIT 3;"},
  {id:'ent-v2-115',niveau:'Débutant',cat:'Modifier les données',dialectes:['Standard'],q:"Comment insérer plusieurs lignes en une seule requête ?",a:"Un seul INSERT INTO suivi de plusieurs groupes de valeurs séparés par des virgules. C’est plus rapide que plusieurs INSERT et, en cas d’erreur, aucune ligne n’est ajoutée.",sql:"INSERT INTO produits (nom, prix) VALUES ('Magnésium', 19.9), ('Oméga 3', 24.9), ('Zinc', 12.5);"},
@@ -30707,7 +30721,7 @@ const ENTRETIEN=[
 ];
 /* Elisa, 1er novembre, 18 h 38 : « il y a trop de notions, comment dégrossir ? ». Les 28 notions des questions restent (elles rangent la
    liste) ; les filtres, eux, passent par 8 familles. */
-const ENT_FAMILLES=[['all','Toutes'],['bases','Bases',['SELECT','Filtres','Trier et limiter']],
+const ENT_FAMILLES=[['all','Toutes'],['bases','Bases',['Bases du SQL','SELECT','Filtres','Trier et limiter']],
   ['fonctions','Fonctions',['NULL','Conditions','Dates','Chaînes']],['agregats','Agrégats',['Agrégats','Doublons']],
   ['jointures','Jointures',['Jointures','Ensembles','Sous-requêtes','CTE']],['fenetres','Fonctions fenêtre',['Fonctions fenêtre']],
   ['conception','Conception',['Clés et contraintes','Modélisation','JSON']],['transactions','Transactions',['Modifier les données','Transactions','Procédures','Triggers']],
@@ -30716,7 +30730,7 @@ const ENT_FAMILLE_DE=Object.fromEntries(ENT_FAMILLES.flatMap(([k,,cats])=>(cats|
 function entInFilter(q){return entFilter==='all'||ENT_FAMILLE_DE[q.cat]===entFilter;}
 /* 18 h 48 : « Requêtes » ne voulait rien dire : chaque question a sa notion (SELECT, Trier et limiter, Clés et contraintes, Modifier les données…),
    et les notions se suivent dans l’ordre où on les apprend (SELECT en haut). */
-const ENTRETIEN_CATS=[['all','Toutes les notions'],['SELECT','SELECT'],['Filtres','Filtres'],['Trier et limiter','Trier et limiter'],['NULL','NULL'],['Conditions','Conditions'],['Chaînes','Chaînes'],['Dates','Dates'],['Agrégats','Agrégats'],['Doublons','Doublons'],['Jointures','Jointures'],['Ensembles','Ensembles'],['Sous-requêtes','Sous-requêtes'],['CTE','CTE'],['Fonctions fenêtre','Fonctions fenêtre'],['Clés et contraintes','Clés et contraintes'],['Modélisation','Modélisation'],['Modifier les données','Modifier les données'],['Transactions','Transactions'],['Procédures','Procédures'],['Triggers','Triggers'],['Vues','Vues'],['Index','Index'],['Performances','Performances'],['JSON','JSON'],['Sécurité','Sécurité']];
+const ENTRETIEN_CATS=[['all','Toutes les notions'],['Bases du SQL','Bases du SQL'],['SELECT','SELECT'],['Filtres','Filtres'],['Trier et limiter','Trier et limiter'],['NULL','NULL'],['Conditions','Conditions'],['Chaînes','Chaînes'],['Dates','Dates'],['Agrégats','Agrégats'],['Doublons','Doublons'],['Jointures','Jointures'],['Ensembles','Ensembles'],['Sous-requêtes','Sous-requêtes'],['CTE','CTE'],['Fonctions fenêtre','Fonctions fenêtre'],['Clés et contraintes','Clés et contraintes'],['Modélisation','Modélisation'],['Modifier les données','Modifier les données'],['Transactions','Transactions'],['Procédures','Procédures'],['Triggers','Triggers'],['Vues','Vues'],['Index','Index'],['Performances','Performances'],['JSON','JSON'],['Sécurité','Sécurité']];
 let entFilter='all';
 let entStatus='review';
 let entOpen=null;
@@ -30823,6 +30837,8 @@ function renderEntretienFocus(x){
         ${x.q.notions?`<div class="ent-notions" aria-label="Notions évaluées">${x.q.notions.map(n=>`<code>${esc(n)}</code>`).join('')}</div>`:''}
         ${x.q.ex?entExemple(x.q.ex):''}
         ${x.q.sql?`<div class="esql sql-copy-wrap"><span class="esql-lab">Exemple SQL</span>${sqlCopyBtn()}<pre>${highlight(x.q.sql)}</pre></div>`:''}
+        ${x.q.apres?x.q.apres.split('\n\n').map(p=>`<p class="eans eans-apres">${p}</p>`).join(''):''}
+        ${x.q.retenir?`<p class="ent-retenir"><span class="ent-retenir-stk" aria-hidden="true">${lqStkSvg('bulb')}</span><span><b>À retenir</b>${x.q.retenir}</span></p>`:''}
         ${entSgbdTheme(x.q)?`<button type="button" class="ent-sgbd" onclick="entVoirSgbd('${x.id}','${entSgbdTheme(x.q)}')"><span class="ent-sgbd-ico" aria-hidden="true">${typeof lqStkSvg==='function'?lqStkSvg('info'):''}</span><span><b>Voir selon le SGBD</b><small>${esc((SGBD_PAGE.find(s=>s.id===entSgbdTheme(x.q))||{}).t||'')} · SQLite, PostgreSQL, MySQL…</small></span>${ENT_CHEV_SVG}</button>`:''}`:
         `<div class="ent-answer-lock"><span class="ent-answer-lock-ico" aria-hidden="true">${lqStkSvg('bubble')}</span><b>À toi de répondre</b><p>Prends quelques secondes pour structurer ta réponse avant de regarder.</p><button type="button" class="ent-reveal-primary" onclick="revealEntretien('${x.id}')">${ENT_EYE_SVG}<span>Révéler la réponse</span></button></div>`}
     </section>
@@ -33560,7 +33576,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-barre-bas-v2401';
+  const SW_CACHE='requete-2026-11-02-reprise-v2402';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
