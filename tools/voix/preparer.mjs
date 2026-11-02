@@ -39,6 +39,20 @@ const plain = h => String(h).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, ''
 /* Le code, dit à voix haute. */
 const DIRE = [[/\bSELECT \*/g, 'SELECT étoile'], [/(\w)_(\w)/g, '$1 underscore $2'], [/« Prix \(€\) »/g, '« Prix en euros »'], [/\(€\)/g, 'le symbole euro'],
   [/ = /g, ' égale '], [/ \+ /g, ' avec '], [/'([^']+)'/g, '$1'], [/\s*;\s*$/g, '.']];
+/* Elisa, 2 novembre, 1 h 06 : « c’est pas A-S c’est AS (attaché comme en anglais) » ; « quantité qu’elle a prononcé quantite ».
+   Les mots-clés courts, écrits en capitales, que la voix épelait : écrits comme ils se disent (à l’anglaise, d’un seul mot). */
+const MOTS_CLES = {AS: 'aze', IN: 'inne', ON: 'onne', OR: 'or', BY: 'baï', IS: 'ize', AND: 'ènde', NOT: 'notte', ALL: 'ol', ASC: 'assk', DESC: 'dissk'};
+/* Les noms de colonnes et de tables sans accent (le code n’en met pas) : dits avec leurs accents. */
+const ACCENTS = {prenom: 'prénom', prenoms: 'prénoms', age: 'âge', ages: 'âges', selection: 'sélection', quantite: 'quantité', quantites: 'quantités',
+  categorie: 'catégorie', categories: 'catégories', numero: 'numéro', etre: 'être', fidelite: 'fidélité', seance: 'séance', seances: 'séances',
+  medecin: 'médecin', medecins: 'médecins', salarie: 'salarié', salaries: 'salariés', expedition: 'expédition', expedier: 'expédier', expedie: 'expédié',
+  telephone: 'téléphone', entrepot: 'entrepôt', derniere: 'dernière', dernier: 'dernier', delai: 'délai', delais: 'délais', annee: 'année', annees: 'années',
+  evenement: 'événement', evenements: 'événements', reference: 'référence', region: 'région', duree: 'durée', employe: 'employé', employes: 'employés',
+  depense: 'dépense', depenses: 'dépenses', creation: 'création', cree: 'créé', modifie: 'modifié', genre: 'genre', periode: 'période', tache: 'tâche',
+  taches: 'tâches', theme: 'thème', etat: 'état', eleve: 'élève', eleves: 'élèves', reduction: 'réduction', reserve: 'réservé', reservation: 'réservation',
+  reservations: 'réservations', interet: 'intérêt', adherent: 'adhérent', adherents: 'adhérents', echeance: 'échéance', reglement: 'règlement'};
+DIRE.push([/\b(AS|IN|ON|OR|BY|IS|AND|NOT|ALL|ASC|DESC)\b/g, m => MOTS_CLES[m]],
+  [/(^|[^A-Za-zÀ-ÿ])([a-z]+)(?=$|[^A-Za-zÀ-ÿ])/g, (m, a, w) => a + (ACCENTS[w] || w)]);
 /* Une phrase qui ne se lit pas telle quelle : sa version dite (la légende, elle, ne change pas). */
 const PHRASES = {
   "'paris' ≠ 'Paris' : écris la valeur telle qu’elle figure dans la table.": 'Attention aux majuscules : paris n’est pas Paris. Écris la valeur telle qu’elle figure dans la table.',

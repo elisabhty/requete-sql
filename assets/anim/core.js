@@ -1027,10 +1027,11 @@ function contentBottom(){ const b = contentBox(); return b ? +b.b.toFixed(1) : n
    « À toi » quand il reste de la place autour (Elisa, 1er novembre, 23 h 46 : « il y a de l’espace autour donc peut zoomer »). */
 function contentFrame(){
   const b = contentBox(); if (!b) return null;
+  const c = {l: +b.l.toFixed(1), t: +b.t.toFixed(1), r: +b.r.toFixed(1), b: +b.b.toFixed(1)};   // le contenu seul (sans la puce : pour la croix)
   const ch = $$('#chapter .chip').find(c => +getComputedStyle(c).opacity > 0.3 && getComputedStyle(c).visibility !== 'hidden');
   if (ch) { const sr = $('#stage').getBoundingClientRect(), k = sr.width / 1080 || 1, r = ch.getBoundingClientRect();
     b.l = Math.min(b.l, (r.left - sr.left) / k); b.r = Math.max(b.r, (r.right - sr.left) / k); b.t = Math.min(b.t, (r.top - sr.top) / k); }
-  return {l: +b.l.toFixed(1), t: +b.t.toFixed(1), r: +b.r.toFixed(1), b: +b.b.toFixed(1)};
+  return {l: +b.l.toFixed(1), t: +b.t.toFixed(1), r: +b.r.toFixed(1), b: +b.b.toFixed(1), c};
 }
 
 /* ---------- La fin de la vidéo, avant le chapitre « À retenir » ---------- */
@@ -1125,13 +1126,16 @@ function pontRender(T){
 /* ---------- Caméra : sur un écran large, la scène grandit dans la place libre ----------
    Elisa, 2 novembre, 0 h 26 (réf. 4) : « sur le web on peut faire un zoom car on voit rien (ça doit s’adapter en fonction de l’écran) ».
    Dans le lecteur de l’app (?embed), l’image garde son format portrait : sur un ordinateur ou une tablette, elle est bordée de vide sur
-   les côtés, et une scène peu chargée (le tableau de bord seul) laisse un grand creux au-dessus de la bulle. La scène en cours grandit alors
-   (jusqu’à ×CAM_ZMAX, autour du milieu de son bord haut, qui ne bouge pas) tant que son contenu visible reste dans la fenêtre, à 14 px des
-   bords, et au-dessus de la bulle. La bulle, la puce du chapitre et l’intro ne bougent pas. Le zoom suit le contenu : il se réduit un peu
-   AVANT qu’un nouvel élément n’arrive (rien n’est jamais coupé), et passe d’une taille à l’autre en douceur. Sur un téléphone, l’image
-   remplit déjà la largeur : rien ne change. Le contenu de chaque instant est relevé une fois (par petits lots, sans gêner la lecture). */
+   les côtés, et une image peu chargée (le tableau de bord seul) laisse un grand creux au-dessus de la bulle. Ce qui se voit alors grandit
+   (jusqu’à ×CAM_ZMAX) tant que tout reste dans la fenêtre, à 18 px des bords, sous la puce du chapitre et au-dessus de la bulle (ou du bas
+   de l’image quand la bulle est cachée, le temps d’un mail). Une seule caméra pour toute l’image : les scènes et les cartes partagées
+   entre scènes (posées directement sur la scène, comme la requête du cours NULL) grandissent ensemble, rien ne se chevauche. Le point
+   fixe garde la proportion des vides au-dessus et au-dessous (Elisa, 0 h 57 : « tu peux le centrer ») : un contenu centré reste centré,
+   un contenu calé en haut reste en haut. Le zoom se réduit un peu AVANT qu’un nouvel élément n’arrive et passe d’une taille à l’autre en
+   douceur. La bulle, la puce, l’intro et les cartes des moments « À toi » ne bougent pas. Sur un téléphone, l’image remplit déjà la
+   largeur : rien n’est relevé, rien ne change. Le contenu de chaque instant est relevé une fois, par petits lots, sans gêner la lecture. */
 const CAM_ZMAX = 1.6, CAM_STEP = 0.2, CAM_MIN = 1.06;
-const CAM = {on: false, samp: null, z: null, o: null, lastT: 0};
+const CAM = {on: false, samp: null, z: null, o: null, lastT: 0, secs: [], loose: []};
 if (typeof window !== 'undefined') window.__cam = CAM;   // pour les contrôles (lecteur, tests)
 function camVis(el){ const cs = getComputedStyle(el); return cs.display !== 'none' && cs.visibility !== 'hidden' && +cs.opacity > 0.3; }
 /* Le cadre visible d’un élément : lui-même s’il porte un fond, un cadre ou du texte ; sinon ce que montrent ses enfants. */
@@ -1147,85 +1151,88 @@ function camRect(el, depth){
 }
 function camPlan(dur){
   if (!EMBED || /[?&]check\b/.test(location.search)) return;
-  const stage = $('#stage'), secs = $$('#stage > section.scene').filter(s => s.id !== 's0');
-  if (!stage || !secs.length) return;
+  const stage = $('#stage'); if (!stage) return;
+  const secs = $$('#stage > section.scene').filter(s => s.id !== 's0'), s0 = $('#s0');
+  /* Les cartes posées directement sur la scène, partagées entre scènes ; celles qui ont déjà leur propre `translate` ou `scale` restent telles quelles. */
+  const loose = $$('#stage > *').filter(e => !e.matches(['section.scene', '#cap', '#chapter', '#header', '#progress', '.blob', '.mb', '.mb-veil', '.pont-pill', 'script', 'style'].join()) &&
+    (getComputedStyle(e).translate || 'none') === 'none' && (getComputedStyle(e).scale || 'none') === 'none');
+  if (!secs.length) return;
   /* Sur un téléphone, l’image remplit déjà la largeur : rien à relever (on attend qu’un agrandissement de la fenêtre laisse de la place). */
   const wide = () => innerWidth > stage.getBoundingClientRect().width * CAM_MIN;
   if (!wide()) { const retry = () => { if (!wide()) return; removeEventListener('resize', retry); camPlan(dur); }; addEventListener('resize', retry); return; }
+  CAM.secs = secs; CAM.loose = loose;
   const N = Math.ceil(dur / CAM_STEP), samp = new Array(N + 1).fill(null);
   let i = 0;
   const chunk = () => {
     const end = Math.min(N, i + 30), sr = stage.getBoundingClientRect(), k = sr.width / 1080 || 1;
     for (; i <= end; i++) {
       tl.seek(i * CAM_STEP, true);
-      /* Chaque scène visible à cet instant (deux peuvent l’être ensemble, pendant un fondu) a son cadre. */
-      const here = [];
-      secs.forEach(s => { const cs = getComputedStyle(s); if (cs.visibility === 'hidden' || +cs.opacity < 0.05) return;
-        let b = null;
-        [...s.children].forEach(c => { if (!camVis(c)) return; const r = camRect(c, 0); if (!r) return;
-          const x = {l: (r.left - sr.left) / k, t: (r.top - sr.top) / k, r: (r.right - sr.left) / k, b: (r.bottom - sr.top) / k};
-          b = b ? {l: Math.min(b.l, x.l), t: Math.min(b.t, x.t), r: Math.max(b.r, x.r), b: Math.max(b.b, x.b)} : x; });
-        if (b) here.push({s, b}); });
-      /* La bulle cachée (le mail se lit seul) : la scène peut aussi descendre jusqu’en bas de l’image. */
+      /* L’intro a sa propre mise en page : tant qu’elle se voit, la caméra ne bouge pas. */
+      if (s0 && getComputedStyle(s0).visibility !== 'hidden' && +getComputedStyle(s0).opacity > 0.05) { samp[i] = {fixe: true}; continue; }
+      let b = null;
+      const add = c => { if (!camVis(c)) return; const r = camRect(c, 0); if (!r) return;
+        const x = {l: (r.left - sr.left) / k, t: (r.top - sr.top) / k, r: (r.right - sr.left) / k, b: (r.bottom - sr.top) / k};
+        b = b ? {l: Math.min(b.l, x.l), t: Math.min(b.t, x.t), r: Math.max(b.r, x.r), b: Math.max(b.b, x.b)} : x; };
+      secs.forEach(s => { const cs = getComputedStyle(s); if (cs.visibility === 'hidden' || +cs.opacity < 0.05) return; [...s.children].forEach(add); });
+      loose.forEach(add);
+      /* La bulle cachée (le mail se lit seul) : l’image peut aussi descendre jusqu’en bas. */
       const cp = $('#cap'), ccs = cp && getComputedStyle(cp), free = !cp || ccs.visibility === 'hidden' || +ccs.opacity < 0.05;
-      if (here.length) { here.forEach(x => { x.free = free; }); samp[i] = here; }
+      if (b) samp[i] = {b, free};
     }
     if (i <= N) { window.renderAt(CAM.lastT); setTimeout(chunk, 0); return; }
     CAM.samp = samp; camFit(); window.renderAt(CAM.lastT);
   };
-  secs.forEach(s => { s.style.scale = ''; });
   setTimeout(chunk, 0);
 }
-/* Le zoom de chaque instant, pour la fenêtre actuelle (recalculé quand elle change de taille). */
+/* Le zoom et le point fixe de chaque instant, pour la fenêtre actuelle (recalculés quand elle change de taille). */
 function camFit(){
   const stage = $('#stage'); if (!CAM.samp || !stage) return;
-  const k = stage.getBoundingClientRect().width / 1080 || 1, capT = ($('#cap') ? $('#cap').offsetTop : 1526) - 56, half = (innerWidth / 2 - 18) / k;
-  const at = (i, s) => (CAM.samp[i] || []).find(x => x.s === s), scenes = new Set();
-  CAM.samp.forEach(h => (h || []).forEach(x => scenes.add(x.s)));
-  /* Elisa, 2 novembre, 0 h 57 (réf. 2) : « tu peux le centrer (trop bas, corrige ailleurs) ». La scène grandit autour d’un point choisi pour
-     que ses vides au-dessus (sous la puce du chapitre) et au-dessous (jusqu’à la bulle, ou jusqu’en bas quand la bulle est cachée) restent
-     dans la même proportion : un contenu centré reste centré, un contenu calé en haut reste en haut. Une scène qui monte jusqu’à la puce
-     ne grandit pas. */
-  const A = 185;
-  const fitOf = x => { const B = x.free ? 1880 : capT, h = Math.max(x.b.b - x.b.t, 1), ga = x.b.t - A, gb = B - x.b.b;
+  const k = stage.getBoundingClientRect().width / 1080 || 1, capT = ($('#cap') ? $('#cap').offsetTop : 1526) - 56, half = (innerWidth / 2 - 18) / k, A = 185;
+  const S = CAM.samp;
+  const fitOf = x => { if (!x || x.fixe) return null; const B = x.free ? 1880 : capT, h = Math.max(x.b.b - x.b.t, 1), ga = x.b.t - A, gb = B - x.b.b;
     if (ga < 0 || gb < 0) return {z: 1, o: x.b.t};
     const hw = Math.max(540 - x.b.l, x.b.r - 540, 1);
     return {z: Math.max(1, Math.min(CAM_ZMAX, half / hw, (B - A) / h)), o: x.b.t + h * ga / (ga + gb)}; };
-  const zs = new Map(), os = new Map();
-  let top = 1, ext = 0;
   const fill = a => { let last = null; a = a.map(v => (v == null ? last : (last = v)));
     let next = null; for (let i = a.length - 1; i >= 0; i--) { if (a[i] == null) a[i] = next; else next = a[i]; } return a; };
   const avg = a => a.map((_, i) => { const w = a.slice(Math.max(0, i - 2), i + 3); return w.reduce((p, q) => p + q, 0) / w.length; });
-  for (const s of scenes) {
-    const f = CAM.samp.map((_, i) => { const x = at(i, s); return x ? fitOf(x) : null; });
-    let a = fill(f.map(v => v && v.z)).map(z => (z == null ? 1 : z));
-    a = a.map((_, i) => Math.min(...a.slice(Math.max(0, i - 2), i + 5)));   // réduit 1 s avant l’arrivée d’un élément (et le moyennage ne dépasse jamais)
-    a = avg(a);   // en douceur
-    const o = avg(fill(f.map(v => v && v.o)).map(v => (v == null ? 240 : v)));
-    /* Dernier contrôle, avec le point retenu : sur toute la fenêtre de lissage, le contenu agrandi reste sous la puce et au-dessus de la bulle. */
-    a = a.map((z, i) => { for (let j = Math.max(0, i - 2); j <= Math.min(a.length - 1, i + 4); j++) { const x = at(j, s); if (!x) continue;
+  const f = S.map(fitOf);
+  let z = S.map((x, i) => (x && x.fixe ? 1 : f[i] ? f[i].z : null));
+  z = fill(z).map(v => (v == null ? 1 : v));
+  z = z.map((_, i) => Math.min(...z.slice(Math.max(0, i - 2), i + 5)));   // réduit 1 s avant l’arrivée d’un élément (et le moyennage ne dépasse jamais)
+  z = avg(z);   // en douceur
+  const o = avg(fill(f.map(v => v && v.o)).map(v => (v == null ? 240 : v)));
+  /* Dernier contrôle, avec le point retenu : sur toute la fenêtre de lissage, le contenu agrandi reste sous la puce et au-dessus de la bulle. */
+  z = z.map((v, i) => { for (let j = Math.max(0, i - 2); j <= Math.min(z.length - 1, i + 4); j++) { const x = S[j]; if (!x) continue; if (x.fixe) return 1;
       const B = x.free ? 1880 : capT;
-      if (o[i] > x.b.t + 0.5) z = Math.min(z, Math.max(1, (o[i] - A) / (o[i] - x.b.t)));
-      if (x.b.b > o[i] + 0.5) z = Math.min(z, Math.max(1, (B - o[i]) / (x.b.b - o[i]))); }
-      return z; });
-    zs.set(s, a); os.set(s, o);
-    a.forEach((z, i) => { top = Math.max(top, z); const x = at(i, s); if (x) ext = Math.max(ext, Math.max(540 - x.b.l, x.b.r - 540) * z - 540); });
-  }
-  CAM.z = zs; CAM.o = os; CAM.on = top >= CAM_MIN;
-  /* La scène agrandie déborde sur les côtés de l’image (le haut et le bas restent coupés comme avant). */
+      if (o[i] > x.b.t + 0.5) v = Math.min(v, Math.max(1, (o[i] - A) / (o[i] - x.b.t)));
+      if (x.b.b > o[i] + 0.5) v = Math.min(v, Math.max(1, (B - o[i]) / (x.b.b - o[i]))); }
+    return v; });
+  let top = 1, ext = 0;
+  z.forEach((v, i) => { top = Math.max(top, v); const x = S[i]; if (x && x.b) ext = Math.max(ext, Math.max(540 - x.b.l, x.b.r - 540) * v - 540); });
+  CAM.z = z; CAM.o = o; CAM.on = top >= CAM_MIN;
+  /* L’image agrandie déborde sur les côtés (le haut et le bas restent coupés comme avant). */
   stage.style.overflow = CAM.on ? 'visible' : '';
   stage.style.clipPath = CAM.on ? `inset(0 ${-Math.ceil(Math.max(0, ext) + 40)}px)` : '';
-  if (!CAM.on) $$('#stage > section.scene').forEach(s => { s.style.scale = ''; });
+  if (!CAM.on) camApply(1, 240);
+}
+/* Le même agrandissement pour tout : les scènes autour du point (540, o) ; une carte partagée, autour du même point, en gardant son
+   propre point d’origine (celui de ses animations) : on la décale de (point − origine) × (1 − z). */
+function camApply(z, o){
+  const on = z > 1.005;
+  CAM.secs.forEach(s => { s.style.transformOrigin = on ? `540px ${o.toFixed(1)}px` : ''; s.style.scale = on ? z.toFixed(4) : ''; });
+  CAM.loose.forEach(e => {
+    if (!on) { e.style.scale = ''; e.style.translate = ''; return; }
+    const to = getComputedStyle(e).transformOrigin.split(' ').map(parseFloat), Ox = e.offsetLeft + (to[0] || 0), Oy = e.offsetTop + (to[1] || 0);
+    e.style.scale = z.toFixed(4); e.style.translate = `${((540 - Ox) * (1 - z)).toFixed(1)}px ${((o - Oy) * (1 - z)).toFixed(1)}px`;
+  });
 }
 function camRender(t){
   CAM.t = t;
   if (!CAM.on || !CAM.z) return;
-  const f = Math.max(0, t) / CAM_STEP, i = Math.floor(f), w = f - i;
-  for (const [s, a] of CAM.z) {
-    const j = Math.min(i, a.length - 1), j1 = Math.min(i + 1, a.length - 1), z = a[j] + (a[j1] - a[j]) * w, O = CAM.o.get(s), o = O[j] + (O[j1] - O[j]) * w;
-    s.style.transformOrigin = `540px ${o.toFixed(1)}px`;
-    s.style.scale = z > 1.005 ? z.toFixed(4) : '';
-  }
+  const f = Math.max(0, t) / CAM_STEP, i = Math.floor(f), w = f - i, a = CAM.z, O = CAM.o;
+  const j = Math.min(i, a.length - 1), j1 = Math.min(i + 1, a.length - 1);
+  camApply(a[j] + (a[j1] - a[j]) * w, O[j] + (O[j1] - O[j]) * w);
 }
 if (typeof addEventListener === 'function') addEventListener('resize', () => { if (CAM.samp) { camFit(); if (window.renderAt) window.renderAt(CAM.lastT); } });
 
