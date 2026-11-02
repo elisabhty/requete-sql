@@ -250,3 +250,12 @@ test('la correction posée est mesurée aussitôt, puis une dernière fois 150 m
   assert.equal(zoomOf(p), 1, 'mesurée aussitôt');
   assert.ok(p.calls.timers.length > n && lastTimer(p).ms === 150, 'une dernière mesure est programmée');
 });
+
+test('les zones d’un moment sont remesurées une fois l’image posée (les cadres barraient les lignes de la fiche de Lina)', () => {
+  /* Elisa, 2 novembre, 19 h 00 : « ça arrive dans beaucoup de cours ». À l’ouverture du moment, l’image pouvait encore finir un
+     mouvement ; les cadres gardaient cette première mesure, plus grands d’un dixième et décalés. */
+  const a = html.indexOf('function lvPkLayer(P){'), src = html.slice(a, html.indexOf('\n}\n', a));
+  assert.ok(src.includes('[150,450,1000].forEach(ms=>setTimeout(()=>{ if(LV&&LV.pk===P&&P.layer===layer)lvPkSpotsRefresh(P); },ms));'));
+  const r = html.indexOf('function lvPkSpotsRefresh(P){'), ref = html.slice(r, html.indexOf('\n}\n', r));
+  assert.ok(ref.includes('IX.spots(P.i)') && ref.includes('lvPkLayerPlace();'), 'la nouvelle mesure vient de la page, puis les cadres se replacent');
+});
