@@ -101,7 +101,8 @@ window.MODULES=[
       ["OVER()", "Calculer sans regrouper les lignes", 201],
       ["Fonctions de rang", "Classer les lignes, ex æquo compris", 178],
       ["LAG et LEAD", "Comparer une ligne à la précédente ou à la suivante", 203],
-      ["Fenêtres glissantes", "Suivre l’évolution des commandes", 185]
+      ["Fenêtres glissantes", "Suivre l’évolution des commandes", 185],
+      ["FIRST_VALUE, LAST_VALUE et NTILE", "Première et dernière valeur, groupes égaux", 188]
     ]},
     {titre:"Modéliser", sous:"Normalisation, cardinalités et UML", lecons:[
       ["Normaliser les inscriptions", "Du fichier Excel des ateliers aux tables", 189],
