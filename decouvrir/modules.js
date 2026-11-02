@@ -58,12 +58,12 @@ window.MODULES=[
       ["LIMIT et OFFSET", "Limiter le résultat et le découper en pages", 234]
     ]},
     {titre:"Fonctions et expressions", sous:"Transformer les valeurs ligne par ligne", lecons:[
-      ["Fonctions de texte", "Transformer, nettoyer et découper du texte", 203],
-      ["Fonctions numériques", "Calculer, arrondir et manipuler des nombres", 151],
-      ["Fonctions de dates et heures", "Obtenir, extraire et calculer avec une date", 149],
-      ["Fonctions de conversion de types", "Passer d’un type à un autre", 162],
-      ["CASE", "Afficher une valeur selon une condition", 155],
-      ["COALESCE", "Remplacer les valeurs absentes", 149]
+      ["Fonctions de texte", "Transformer, nettoyer et découper du texte", 217],
+      ["Fonctions numériques", "Calculer, arrondir et manipuler des nombres", 167],
+      ["Fonctions de dates et heures", "Obtenir, extraire et calculer avec une date", 173],
+      ["Fonctions de conversion de types", "Passer d’un type à un autre", 186],
+      ["CASE", "Afficher une valeur selon une condition", 166],
+      ["COALESCE", "Remplacer les valeurs absentes", 153]
     ]},
     {titre:"Agrégats et regroupements", sous:"Calculer, regrouper et agréger", lecons:[
       ["COUNT", "Compter les lignes", 139],
