@@ -108,12 +108,15 @@ function timing(rec){
   return null;
 }
 /* Où est chaque phrase dans le minutage : recherche dans l’ordre, sur le texte réduit à ses lettres et chiffres. */
+const brut = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '');
 function locate(T, phrases){
   let flat = '', idx = [];
-  T.chars.forEach((c, i) => { for (const ch of norm(c).replace(/ /g, '')) { flat += ch; idx.push(i); } });
+  /* Elisa, 2 novembre, 20 h 10 : le minutage du chapitre 1 de « Types de données » restait incomplet : « N° » devenait « numero » dans
+     la phrase (norm), mais « n » dans le minutage, lu lettre par lettre. Ici, les deux côtés sont réduits de la même façon, sans ces remplacements. */
+  T.chars.forEach((c, i) => { for (const ch of brut(c)) { flat += ch; idx.push(i); } });
   let pos = 0;
   return phrases.map(p => {
-    const q = norm(p).replace(/ /g, '');
+    const q = brut(p);
     let k = flat.indexOf(q, pos);
     if (k < 0) {   // texte prononcé un peu différent : début et fin cherchés séparément
       const h = flat.indexOf(q.slice(0, 14), pos), t = h >= 0 ? flat.indexOf(q.slice(-14), h) : -1;

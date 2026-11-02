@@ -158,11 +158,11 @@ test('le cours « Les bases de données relationnelles » a sa voix : chaque phr
   assert.equal(VOICE.dir, '../voix/bases-relationnelles/');
   const keys = new Set(CAPTIONS.map(c => vkey(c[2])));
   const phrases = job.elements.filter(e => e.phrases && e.id !== 'ch00').reduce((n, e) => n + e.phrases.length, 0);
-  assert.equal(VOICE.caps.length, phrases, 'une phrase par légende, chapitres 1 à 10');
+  assert.equal(VOICE.caps.length, phrases, 'une phrase par légende, chapitres 1 à 11');
   for (const [k, f, a, b] of VOICE.caps) {
     assert.ok(keys.has(k), `légende trouvée : ${k}`);
     assert.ok(b - a > 0.5 && a >= 0, `${k} : passage de ${a} à ${b}`);
-    assert.ok(/^ch(0[1-9]|10)$/.test(f), f);
+    assert.ok(/^ch(0[1-9]|1[01])$/.test(f), f);   // 20 h 10 : chapitre 11, « À retenir », lui aussi dit
   }
   assert.ok(VOICE.intro && VOICE.intro[0] === 'ch00' && VOICE.intro[2] - VOICE.intro[1] > 3, 'l’intro dit le titre et le sous-titre');
   const M = (page.match(/\{at: [\d.]+, from: [\d.]+, kind: /g) || []).length, O = (page.match(/\{at: OPEN\d, sel: /g) || []).length;
