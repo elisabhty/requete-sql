@@ -374,7 +374,7 @@ test('vidéo : « Apprends le SQL maintenant. » puis les neuf tuiles des foncti
   assert.match(video, /#end\.on a::after\{animation:ctaShine /);
   assert.match(video, /#end\.on a,#end\.on button\{animation:endPop [^}]*backwards\}/, 'l’entrée ne bloque pas le survol');
   /* Texte lu par VoiceOver */
-  assert.ok(video.includes("'Apprends le SQL maintenant. Pratique sur de vraies données avec Requête. L’app, pensée pour les futurs data analysts. Des cours interactifs"));
+  assert.ok(video.includes("'Apprends le SQL maintenant avec Requête : plus de 70 cours, animés par une dizaine de formateurs. Des cours immersifs"));
   assert.ok(video.includes("'Du premier SELECT aux requêtes avancées, progresse à ton rythme. 71 cours immersifs, un labo SQL interactif, 267 cas pratiques et 141 questions d’entretien"));
 });
 
