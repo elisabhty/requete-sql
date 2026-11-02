@@ -3083,7 +3083,7 @@ test('moments « À toi » : la légende annonce le moment sans répéter la con
 
 test('leçon seule (Quel JOIN choisir ?) : la vidéo interactive valide la leçon, sans exercice, quiz ni révision', () => {
   const l44 = cut('guide({ id:44, titre:"Quel JOIN choisir ?"', 'guide({ id:45,');
-  assert.ok(l44.includes('leconSeule:true,') && l44.includes(",duree:'3 min 30',moments:9,"), 'leçon 44 : leçon seule, 9 moments');
+  assert.ok(l44.includes('leconSeule:true,') && l44.includes(",duree:'3 min 31',moments:9,"), 'leçon 44 : leçon seule, 9 moments');
   assert.ok(html.includes("'joinRecap','leconSeule','exoNeeds','video']"), 'drapeau copié par guide()');
   assert.ok(html.includes('function revisable(l){ return !!(l&&!l.leconSeule&&l.consigne&&l.solution); }') && html.includes('function dueList(){ return allLessons.filter(l=>isDue(l.id)&&revisable(l)); }'), 'pas de révision « De mémoire » sans exercice');
   assert.ok(html.includes("if(current.leconSeule)return [{i:0,l:'Leçon'") && html.includes("if(leconSeule(id))return !!(state.lessons[id]&&state.lessons[id].done);"), 'une seule étape : la leçon');
