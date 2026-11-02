@@ -587,7 +587,7 @@ const COURSES = [
     traps: ['<span class="kw">WHERE</span> stock <span class="cbox" id="eqA">=<i class="mbox"></i></span><span class="glow" id="leA">&lt;=</span> 60;',
       'Son stock est-il inférieur<br>ou égal à 60 ?', '<span class="kw">WHERE</span> stock &lt; 60', '<span class="kw">WHERE</span> stock &lt;= 60',
       "<span class=\"kw\">WHERE</span> categorie != <span class=\"str glow\" id=\"s6str\">'Accessoire'</span>;", 'Un texte, entre guillemets simples']},
-  {id: 6, next: 91, titre: 'AND et OR', page: 'and-or.html', thumb: 'and-or-thumb.jpg', duree: '2 min 37', notesAt: 111.5,
+  {id: 6, next: 22, titre: 'AND et OR', page: 'and-or.html', thumb: 'and-or-thumb.jpg', duree: '2 min 36', notesAt: 111.5,
     maxKo: 560,   // la photo de la conférence (43 Ko), comme le badge du cours 0
     table: 'clients',
     bubble: 'Combine plusieurs conditions avec <span class="ic">AND</span> et <span class="ic">OR</span> pour préciser ton filtre.',
@@ -597,16 +597,6 @@ const COURSES = [
       '<span class="op2">AND</span>', '<span class="op2">OR</span>', 'AND est prioritaire sur OR', 'entre parenthèses : calculé en premier', 'Ne remplit pas<br>le critère d’âge',
       'Nathan Dupont, 30 ans, est ainsi invité alors qu’il ne devrait pas l’être.',
       '<span id="lp">(</span><span id="cP">ville = <span class="str">\'Paris\'</span></span> <span class="kw">OR</span> <span id="cL">ville = <span class="str">\'Lyon\'</span></span><span id="rp">)</span> <span class="kw" id="and5">AND</span> <span id="cA">age &gt; 30</span>']},
-  {id: 91, next: 22, titre: 'Injection SQL et requêtes paramétrées', page: 'injection-sql.html', thumb: 'injection-sql-thumb.jpg', duree: '3 min 12', notesAt: 178.3,
-    table: 'clients',
-    bubble: 'Protège tes requêtes&nbsp;: une saisie reste une valeur, jamais un morceau de code SQL.',
-    chapters: ['Situation', 'L’attaque', 'Pourquoi', 'La requête paramétrée', 'Le piège', 'Le résultat', 'À retenir'],
-    traps: ["<span class=\"inj\" id=\"ij1\"><span class=\"kw\">OR</span> '1'='1'</span>",
-      "<span>💉 Injection SQL&nbsp;: les 10 clients exposés</span>",
-      "<span class=\"q\" id=\"q4\">?</span>",
-      "<span class=\"zero\">0 ligne : aucun client n’a cet e-mail</span>",
-      "<b>email</b><i>✕ hors liste : refusé</i>",
-      "<span class=\"kw\">WHERE</span> email = <span class=\"glow\" id=\"m6\">?</span>;"]},
   {id: 22, next: 7, titre: 'NOT', page: 'not.html', thumb: 'not-thumb.jpg', duree: '2 min 47', notesAt: 109.7,
     table: 'clients',
     bubble: 'Utilise <span class="ic">NOT</span> pour exclure les lignes qui respectent une condition.',
@@ -1082,7 +1072,7 @@ const COURSES = [
       '<span class="b"><span class="glow" id="p4"><span class="kw">2 PRECEDING</span></span></span>', '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> date_commande</span>',
       '✕ Les deux commandes du 2 juillet ont le même cumul', '<div class="lim" id="lim6"><span>Palier&nbsp;: 700&nbsp;€</span></div>',
       '✓ Palier franchi le 1er&nbsp;août']},
-  {id: 89, next: 90, titre: 'FIRST_VALUE, LAST_VALUE et NTILE', page: 'first-last-ntile.html', thumb: 'first-last-ntile-thumb.jpg', duree: '3 min 28', notesAt: 183.1,
+  {id: 89, next: 56, titre: 'FIRST_VALUE, LAST_VALUE et NTILE', page: 'first-last-ntile.html', thumb: 'first-last-ntile-thumb.jpg', duree: '3 min 30', notesAt: 183.1,
     table: 'produits',
     bubble: 'Lis la première ou la dernière valeur d’une fenêtre, et répartis les lignes en groupes égaux.',
     chapters: ['Situation', 'FIRST_VALUE', 'LAST_VALUE', 'Le cadre', 'NTILE', 'Le résultat', 'À retenir'],
@@ -1092,25 +1082,15 @@ const COURSES = [
       "['Vitamine D', '14.90', 3, 'Protéine Végétale', 'Nutrition']",
       "<span>🧺 3 + 3 + 2 = 8 produits</span>",
       "  ) <span class=\"kw\">AS</span> <span class=\"glow\" id=\"m6\">produit_le_plus_cher</span>"]},
-  {id: 90, next: 56, titre: 'Les formes normales', page: 'formes-normales.html', thumb: 'formes-normales-thumb.jpg', duree: '3 min 09', notesAt: 171.7,
-    table: 'clients',
-    bubble: 'Applique trois règles pour ranger les données sans répétition, une information à un seul endroit.',
-    chapters: ['Situation', 'Le problème', '1FN', '2FN', '3FN', 'Le résultat', 'À retenir'],
-    traps: ["<b>1FN</b><span>Une seule valeur dans chaque cellule</span>",
-      "<b>2FN</b><span>Chaque colonne dépend de toute la clé</span>",
-      "<b>3FN</b><span>Aucune colonne ne dépend d’une autre colonne</span>",
-      "const CLIENTS = [['Sophie Martin', 'Paris'], ['Lucas Bernard', 'Lyon']];",
-      "<span>🔑 Clé composée&nbsp;: <span class=\"ic\">commande + produit</span></span>",
-      "<span>✕ Sophie&nbsp;Martin habite dans deux villes</span>"]},
-  {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '3 min 09', notesAt: 159.3,
+  {id: 56, next: 72, titre: 'Normaliser les inscriptions', page: 'projet-normaliser.html', thumb: 'projet-normaliser-thumb.jpg', duree: '3 min 56', notesAt: 203.3,
     table: 'inscriptions',
     bubble: 'Réorganise des données mélangées en plusieurs tables pour éviter les répétitions et les incohérences.',
-    chapters: ['Le fichier Excel', 'Les copies', 'Supprimer, ajouter', 'Une table par sujet', 'Les tables remplies', 'À retenir'],
+    chapters: ['Le fichier Excel', 'Les copies', 'Supprimer, ajouter', 'Une table par sujet', 'Les formes normales', 'Les tables remplies', 'À retenir'],
     traps: ["const INSCR = [[1, 1, '01/09', '2026-09-01'], [4, 1, '02/09', '2026-09-02'], [5, 2, '03/09', '2026-09-03'], [7, 3, '04/09', '2026-09-04'],",
       "const YOGA = [5, 'Yoga du matin', '03/10', '2026-10-03', 2, '🌅'];", '<span id="xn1">6 inscriptions</span>', "const COLS = ['client', 'atelier', 'date', 'coach', 'e-mail du coach', 'inscrit le'];",
       // Les six moments : les copies de l’e-mail, la ligne à supprimer, la case client du Yoga, les colonnes à ranger, la table du Yoga, la table sans liens
       "{at: 40.0, from: 34.6, kind: 'tap', need: 3,", "{at: 61.6, from: 52.1, kind: 'tap', need: 1,", "{label: 'Tu crées une ligne d’atelier dans un tableau censé contenir des inscriptions.', ok: true,",
-      "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 129.8, from: 119.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}", "{at: 141.4, from: 135.95, kind: 'pick',",
+      "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 173.8, from: 163.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}", "{at: 185.4, from: 179.95, kind: 'pick',",
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Prochaine leçon · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
   {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 42', notesAt: 167.9,
@@ -1880,7 +1860,7 @@ test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme 
 
 test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six moments sur l’image, clients de la base', async () => {
   const l56 = cut('guide({ id:56, titre:"Normaliser les inscriptions"', 'guide({ id:72,');
-  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'3 min 09',moments:6,seuil:4}"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l56.includes('leconSeule:true,') && l56.includes(",duree:'3 min 56',moments:6,seuil:4}"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/projet-normaliser.html'), 'utf8');
   const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
   assert.ok(a > 0 && b > a, 'données de la page localisées');
@@ -1902,12 +1882,12 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
     assert.equal(o.sel, '#ml' + (n + 1)); assert.equal(o.prompt, `Touche le ${['mail', 'message', 'mail'][n]} pour l’ouvrir.`, 'un client (Léa Simon) écrit par SMS : un message, pas un mail');
     assert.ok(o.at < D.PICKS[n].at && (n === 0 || o.at > D.PICKS[n - 1].at), `mail ${n + 1} : ouvert avant son moment « À toi »`);
   });
-  assert.ok(page.includes('Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 159.3, picks: PICKS, opens: OPENS,'), 'mails envoyés au lecteur');
+  assert.ok(page.includes('Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 203.3, picks: PICKS, opens: OPENS,'), 'mails envoyés au lecteur');
   const caps = page.slice(page.indexOf('const CAPTIONS = ['), page.indexOf('const QUESTIONS = []'));
   assert.ok(!caps.includes('tableur') && !/<b>(Salma Haddad|Léa Simon|Moussa Diallo)<\/b> : « /.test(caps), 'les demandes sont dans les mails, pas dans les légendes ; « le fichier »');
   for (const part of ["['an1', 'Anomalie de mise à jour'], ['an2', 'Anomalie de suppression'], ['an3', 'Anomalie d’insertion']", "['Mise à jour', 'Suppression', 'Insertion']",
     "mailIn(1, 34.7, OPENS[0].at);", "mailIn(2, 52.2, OPENS[1].at);", "mailIn(3, 68.75, OPENS[2].at);", "stampIn('#an1', 49.6, -5);", "stampIn('#an2', 65.5, -5);",
-    "SALMA.slice(0, 2).forEach((r, k) => fixMail(r, 46.9 + k * 0.6));", '<i class="you">Toi</i>', "pop('#rcm', 122.5, 0.4);"])
+    "SALMA.slice(0, 2).forEach((r, k) => fixMail(r, 46.9 + k * 0.6));", '<i class="you">Toi</i>', "pop('#rcm', 166.5, 0.4);"])
     assert.ok(page.includes(part), `récit : ${part}`);
   assert.ok(page.includes('spots, act, pick, hint,') && page.includes("if (i === 0) return {text: 'L’e-mail du coach est dans la colonne E.'"), 'un indice par moment à toucher ou à glisser');
   const coreJs = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8'), coreCss = fs.readFileSync(path.join(ROOT, 'assets/anim/core.css'), 'utf8');

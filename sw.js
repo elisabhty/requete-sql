@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-02-debordements-v2357';
+const CACHE = 'requete-2026-11-02-formes-dans-projet-v2358';
 
 const PRECACHE = [
   './onboarding-focus.js',
@@ -55,7 +55,6 @@ const PRECACHE = [
   './assets/anim/distinct.html?app&embed',
   './assets/anim/comparer.html?app&embed',
   './assets/anim/and-or.html?app&embed',
-  './assets/anim/injection-sql.html?app&embed',
   './assets/anim/not.html?app&embed',
   './assets/anim/null.html?app&embed',
   './assets/anim/like.html?app&embed',
@@ -101,7 +100,6 @@ const PRECACHE = [
   './assets/anim/lag-lead.html?app&embed',
   './assets/anim/fenetres-glissantes.html?app&embed',
   './assets/anim/first-last-ntile.html?app&embed',
-  './assets/anim/formes-normales.html?app&embed',
   './assets/anim/projet-normaliser.html?app&embed',
   './assets/anim/projet-cles.html?app&embed',
   './assets/anim/projet-uml.html?app&embed',
@@ -154,7 +152,6 @@ const PRECACHE = [
   './assets/anim/distinct-thumb.jpg',
   './assets/anim/comparer-thumb.jpg',
   './assets/anim/and-or-thumb.jpg',
-  './assets/anim/injection-sql-thumb.jpg',
   './assets/anim/not-thumb.jpg',
   './assets/anim/null-thumb.jpg',
   './assets/anim/like-thumb.jpg',
@@ -200,7 +197,6 @@ const PRECACHE = [
   './assets/anim/lag-lead-thumb.jpg',
   './assets/anim/fenetres-glissantes-thumb.jpg',
   './assets/anim/first-last-ntile-thumb.jpg',
-  './assets/anim/formes-normales-thumb.jpg',
   './assets/anim/projet-normaliser-thumb.jpg',
   './assets/anim/projet-cles-thumb.jpg',
   './assets/anim/projet-uml-thumb.jpg',
