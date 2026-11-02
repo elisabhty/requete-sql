@@ -161,10 +161,22 @@ test('pseudo — « C’est mon pseudo » le réserve pour l’appareil, sans to
 });
 
 test('pseudo — une salle entre amis a besoin du pseudo réservé ; à l’ouverture de l’appli, la mini-page une fois ; supprimer son pseudo', async () => {
-  const a = pseudoCtx();
+  /* 2 novembre, 23 h 45 : « ne pas le mettre avant d’entrer dans une salle défi » : jamais la mini-page ici. Sans pseudo, celui
+     du prénom de l’onboarding est réservé sans rien demander, et la salle s’ouvre. */
+  const a = pseudoCtx({ reply: (f, b) => ({ ok: true, pseudo: b.p_pseudo }) });
   a.ctx.ran = 0; a.ctx.go = () => { a.ctx.ran++; };
-  a.ev('jeuAvecPseudo(go)');
-  assert.ok(a.root.classList.contains('on') && a.ctx.ran === 0 && a.ev('PS.siOk===go'), 'pas de pseudo : la mini-page, la salle ensuite');
+  a.ev('jeuAvecPseudo(go)'); await flush(); await flush();
+  assert.ok(!a.root.classList.contains('on') && a.ctx.ran === 1, 'pas de mini-page : la salle s’ouvre');
+  assert.deepEqual(a.calls.map(x => x.body.p_pseudo), ['@elisa'], 'le prénom de l’onboarding, en identifiant');
+  assert.deepEqual(a.said, ['Tu joues en tant que @elisa']);
+  const a2 = pseudoCtx({ reply: (f, b) => (b.p_pseudo === '@elisa' ? { ok: false, raison: 'pris', idees: ['@elisa_sql'] } : { ok: true, pseudo: b.p_pseudo }) });
+  a2.ctx.ran = 0; a2.ctx.go = () => { a2.ctx.ran++; };
+  a2.ev('jeuAvecPseudo(go)'); for (let i = 0; i < 4; i++) await flush();
+  assert.ok(!a2.root.classList.contains('on') && a2.ctx.ran === 1 && a2.ctx.state.salle.pseudo === '@elisa_sql', 'pris : le premier pseudo libre proposé, sans rien demander');
+  const a3 = pseudoCtx({ reply: () => new TypeError('Failed to fetch') });
+  a3.ctx.ran = 0; a3.ctx.go = () => { a3.ctx.ran++; };
+  a3.ev('jeuAvecPseudo(go)'); for (let i = 0; i < 4; i++) await flush();
+  assert.ok(!a3.root.classList.contains('on') && a3.ctx.ran === 0 && a3.infos[0][0] === 'Pas de réseau', 'sans réseau : on le dit, sans mini-page');
   const b = pseudoCtx({ salle: { pseudo: 'Léa' } });
   b.ctx.ran = 0; b.ctx.go = () => { b.ctx.ran++; };
   b.ev('jeuAvecPseudo(go)');
@@ -190,10 +202,10 @@ test('pseudo — une salle entre amis a besoin du pseudo réservé ; à l’ouve
   w.ctx.ran = 0; w.ctx.go = () => { w.ctx.ran++; };
   w.ev('jeuAvecPseudo(go)'); await flush();
   assert.equal(w.ctx.ran, 1); assert.ok(!w.root.classList.contains('on')); assert.equal(w.ctx.state.salle.pseudo, '@léa'); assert.equal(w.ctx.state.salle.psVoulu, undefined);
-  const t = pseudoCtx({ salle: { psVoulu: '@léa' }, reply: () => ({ ok: false, raison: 'pris', idees: ['@léa_sql'] }) });
+  const t = pseudoCtx({ salle: { psVoulu: '@léa' }, reply: (f, b) => (b.p_pseudo === '@léa' ? { ok: false, raison: 'pris', idees: ['@léa_sql'] } : { ok: true, pseudo: b.p_pseudo }) });
   t.ctx.ran = 0; t.ctx.go = () => { t.ctx.ran++; };
-  t.ev('jeuAvecPseudo(go)'); await flush();
-  assert.ok(t.root.classList.contains('on') && t.ev('PS.page.raison') === 'pris' && t.ev('PS.siOk===go') && t.ctx.ran === 0, 'pris entre-temps : seulement alors, la mini-page avec des pseudos libres');
+  t.ev('jeuAvecPseudo(go)'); for (let i = 0; i < 4; i++) await flush();
+  assert.ok(!t.root.classList.contains('on') && t.ctx.ran === 1 && t.ctx.state.salle.pseudo === '@léa_sql', 'pris entre-temps : le premier pseudo libre, sans mini-page');
   const old = pseudoCtx({ salle: { pseudo: 'Léa', pseudoVu: Date.now() - 21 * 3600e3 }, reply: () => ({ ok: true, pseudo: 'Léa' }) });
   old.ev('psVerifier()'); await flush();
   assert.deepEqual(old.calls.map(x => x.body.p_pseudo), ['Léa'], 'une fois par jour, la réservation est vérifiée');
