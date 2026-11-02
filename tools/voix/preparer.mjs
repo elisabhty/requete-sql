@@ -41,7 +41,10 @@ const DIRE = [[/\bSELECT \*/g, 'SELECT étoile'], [/(\w)_(\w)/g, '$1 underscore 
   [/ = /g, ' égale '], [/ \+ /g, ' avec '], [/'([^']+)'/g, '$1'], [/\s*;\s*$/g, '.']];
 /* Elisa, 2 novembre, 1 h 06 : « c’est pas A-S c’est AS (attaché comme en anglais) » ; « quantité qu’elle a prononcé quantite ».
    Les mots-clés courts, écrits en capitales, que la voix épelait : écrits comme ils se disent (à l’anglaise, d’un seul mot). */
-const MOTS_CLES = {AS: 'aze', IN: 'inne', ON: 'onne', OR: 'or', BY: 'baï', IS: 'ize', AND: 'ènde', NOT: 'notte', ALL: 'ol', ASC: 'assk', DESC: 'dissk'};
+/* Elisa, 2 novembre, 1 h 32 : « elle dit DISTINCT (à la française), il faut dire distincte ». Les mots-clés qui sont aussi des mots français
+   (DISTINCT, CASE, UNION) se disent à l’anglaise, eux aussi. */
+const MOTS_CLES = {AS: 'aze', IN: 'inne', ON: 'onne', OR: 'or', BY: 'baï', IS: 'ize', AND: 'ènde', NOT: 'notte', ALL: 'ol', ASC: 'assk', DESC: 'dissk',
+  DISTINCT: 'distinkte', CASE: 'kéïsse', UNION: 'iounionne'};
 /* Les noms de colonnes et de tables sans accent (le code n’en met pas) : dits avec leurs accents. */
 const ACCENTS = {prenom: 'prénom', prenoms: 'prénoms', age: 'âge', ages: 'âges', selection: 'sélection', quantite: 'quantité', quantites: 'quantités',
   categorie: 'catégorie', categories: 'catégories', numero: 'numéro', etre: 'être', fidelite: 'fidélité', seance: 'séance', seances: 'séances',
@@ -51,7 +54,8 @@ const ACCENTS = {prenom: 'prénom', prenoms: 'prénoms', age: 'âge', ages: 'âg
   depense: 'dépense', depenses: 'dépenses', creation: 'création', cree: 'créé', modifie: 'modifié', genre: 'genre', periode: 'période', tache: 'tâche',
   taches: 'tâches', theme: 'thème', etat: 'état', eleve: 'élève', eleves: 'élèves', reduction: 'réduction', reserve: 'réservé', reservation: 'réservation',
   reservations: 'réservations', interet: 'intérêt', adherent: 'adhérent', adherents: 'adhérents', echeance: 'échéance', reglement: 'règlement'};
-DIRE.push([/\b(AS|IN|ON|OR|BY|IS|AND|NOT|ALL|ASC|DESC)\b/g, m => MOTS_CLES[m]],
+DIRE.push([/\b(AS|IN|ON|OR|BY|IS|AND|NOT|ALL|ASC|DESC|DISTINCT|CASE|UNION)\b/g, (m, w, off, all) => { const d = MOTS_CLES[w];
+    return off === 0 || /[.!?:]\s+$/.test(all.slice(0, off)) && !/:\s+$/.test(all.slice(0, off)) ? d.charAt(0).toUpperCase() + d.slice(1) : d; }],
   [/(^|[^A-Za-zÀ-ÿ])([a-z]+)(?=$|[^A-Za-zÀ-ÿ])/g, (m, a, w) => a + (ACCENTS[w] || w)]);
 /* Une phrase qui ne se lit pas telle quelle : sa version dite (la légende, elle, ne change pas). */
 const PHRASES = {
@@ -72,7 +76,7 @@ const intro = (() => {
 const ouverture = opt('--ouverture') || `Nouveau cours : ${intro.sub.charAt(0).toLowerCase() + intro.sub.slice(1)}.`;
 
 const el = [];
-const ch00 = [ouverture, intro.bulle].filter(Boolean);
+const ch00 = [ouverture, intro.bulle].filter(Boolean).map(dire);   // l’ouverture aussi : « Utilise distinkte pour… »
 el.push({id: 'ch00', titre: '00 · Ouverture', phrases: ch00});
 chapters.forEach((c, i) => {
   const lg = captions.filter(x => x[0] >= c.a && x[0] < c.b).map(x => plain(x[2]));

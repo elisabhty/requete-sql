@@ -14154,6 +14154,7 @@ async function boot(){
     normaliserPlan();
     /* Un cours fusionné ou retiré ne doit pas rester dans le parcours enregistré : l'accueil s'en sert avant l'affichage du planning. */
     nettoyerPlan();
+    try{ if(state.plan)ordonnerPlan(); }catch(e){}   // les leçons à faire, dans l’ordre du parcours (l’accueil s’en sert aussi)
     stkSync();
     if(!Array.isArray(state.notes)){
       const old=state.notes&&typeof state.notes==='object'?state.notes:{};
@@ -21614,7 +21615,7 @@ function lvZoomTo(z){
 /* Pendant un moment « À toi », la légende de l’image (« À toi ! ») se cache : la feuille la recouvrait, mais quand l’image se réduit pour
    faire place à la feuille, puis que la feuille raccourcit (étiquettes rangées), la légende remontée dépassait au-dessus d’elle
    (Elisa, 25 octobre, 16 h 56 : « il y a un cadre en dessous, ça fait bizarre »). Une vidéo en fichier n’a pas de légende à cacher. */
-function lvCapHide(on){ try{ const w=LV&&LV.video&&LV.video.win, d=w&&w.document; if(d&&d.body)d.body.classList.toggle('lv-pk-open',on); }catch(e){} }
+function lvCapHide(on){ try{ const w=LV&&LV.video&&LV.video.win, d=w&&w.document; if(d&&d.body)d.body.classList.toggle('lv-pk-open',on); if(w&&typeof w.__camPause==='function')w.__camPause(on); }catch(e){} }
 function lvPkClose(answered){
   const P=LV&&LV.pk; if(!P)return;
   LV.pk=null;
@@ -28369,6 +28370,20 @@ function trierSessions(){
   p.sessions.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
 }
 function sessionDe(iso){return (state.plan.sessions||[]).find(s=>s.d===iso);}
+/* Les leçons à faire suivent toujours l’ordre du parcours (Elisa, 2 novembre, 1 h 32 : « faire en sorte que les cours se suivent dans le
+   bon ordre toujours dans planning, pour ne pas avoir un cours avant l’autre ») : chaque jour garde son nombre de leçons, et les leçons
+   pas encore validées reprennent, de jour en jour, l’ordre des cours. Les leçons validées restent où elles sont. */
+function ordonnerPlan(){
+  const p=state.plan; if(!p||!Array.isArray(p.sessions))return false;
+  trierSessions();
+  const rang=new Map(allLessons.map((l,i)=>[l.id,i])), slots=[], ids=[];
+  p.sessions.forEach((s,si)=>s.lessons.forEach((id,li)=>{ if(!isDefiId(id)&&rang.has(id)&&!itemDone(id)){ slots.push([si,li]); ids.push(id); } }));
+  const tri=ids.slice().sort((a,b)=>rang.get(a)-rang.get(b));
+  let change=false;
+  slots.forEach(([si,li],k)=>{ if(p.sessions[si].lessons[li]!==tri[k]){ p.sessions[si].lessons[li]=tri[k]; change=true; } });
+  if(change)try{save();}catch(e){}
+  return change;
+}
 function sessionFaite(s){return s&&s.lessons.length>0&&s.lessons.every(itemDone);}
 function resteDe(s){return s?s.lessons.filter(id=>!itemDone(id)).length:0;}
 /* `sessions[].lessons` est un ancien nom de stockage. Ce tableau contient des
@@ -29394,10 +29409,10 @@ function renderSemaine(){
     const arg=isDefiId(id)?`'${id}'`:id;
     const isToday=jourSel===t;
     return `<div class="pl-chip ${ok?'ok':''} ${m.defi?'defi':''} ${isToday?'today':''}${vis&&!vis.has(i)?' is-extra':''}" data-lesson="${id}" data-pos="${i}" onclick="chipTap(event,${arg})">
-      <span class="hdl" data-drag="${id}" aria-hidden="true"><svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true"><path d="M1 2h12M1 5h12M1 8h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span class="cn" aria-hidden="true">${ok?PL_OK_SVG:i+1}</span>
+      <span class="cn" aria-hidden="true">${ok?PL_OK_SVG:i+1}</span>
       <span class="ct"><span>${esc(m.titre)}</span><small>${esc(m.sous)}</small></span>
       ${ok?'<span class="pl-chip-valid"><i aria-hidden="true">✓</i>Validé</span>':''}
-      <button type="button" class="nx" onclick="event.stopPropagation();openMoveSheet(${arg})" aria-label="Déplacer vers un autre jour : ${esc(m.titre)}"><svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1.7" y="3.3" width="12.6" height="11" rx="2.6" stroke="currentColor" stroke-width="1.5"/><path d="M4.9 1.7v2.6M11.1 1.7v2.6M1.7 6.9h12.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>`;
+</div>`;
   }).join(''):'';
   const nL=sess?sess.lessons.filter(id=>!isDefiId(id)).length:0;
   const nD=sess?sess.lessons.length-nL:0;
@@ -29420,7 +29435,7 @@ function renderSemaine(){
       ${vis?`<button type="button" class="pl-chips-more" aria-controls="pl-day-list" aria-expanded="${listOpen?'true':'false'}" data-more="${hiddenN}" onclick="togglePlanDayList(this)">${planDayMoreLabel(listOpen,hiddenN)}</button>`:''}
     </div>
     ${nextDayPreviewHTML()}
-    <p class="pl-hint">Appuie longuement sur une activité pour la réordonner, ou utilise son calendrier pour la déplacer.</p>`;
+    <p class="pl-hint">Les leçons suivent l’ordre du parcours : chacune arrive après celle qui la prépare.</p>`;
 }
 const PL_OK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 /* Un jour sans séance. Les défis ne sont plus dans le planning : ils se font dans Pratiquer (Elisa, 30 octobre, 22 h 11 :
@@ -29430,7 +29445,7 @@ const DP_GO_ARR_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 function dayPauseHTML(passe){
   const stk=k=>typeof lqStkSvg==='function'?lqStkSvg(k):'';
   if(passe)return `<div class="dp-pause is-past"><span class="dp-stk" aria-hidden="true">${stk('moon')}</span><b>Pas de séance ce jour-là</b><small>Rien n’était prévu dans ton planning.</small></div>`;
-  return `<div class="dp-pause"><span class="dp-stk" aria-hidden="true">${stk('mug')}<i class="dp-sp s1"></i><i class="dp-sp s2"></i></span><b>Journée libre</b><small>Glisse une leçon ici si tu veux avancer.</small>
+  return `<div class="dp-pause"><span class="dp-stk" aria-hidden="true">${stk('mug')}<i class="dp-sp s1"></i><i class="dp-sp s2"></i></span><b>Journée libre</b><small>Profites-en pour revoir tes cartes mémo ou faire un défi.</small>
     <button type="button" class="dp-defis" onclick="switchTab('defis')"><span>Envie d’un défi ? Ils t’attendent dans Pratiquer</span>${DEF_CHEV_SVG}</button></div>`;
 }
 /* Liste du jour : au-delà de 8 activités, on n'affiche que les 6 prochaines
@@ -29673,6 +29688,7 @@ function renderPlanning(){
   }
   migrerPlan();
   nettoyerPlan();
+  ordonnerPlan();
   const st=statsPlan();
   const sub=document.getElementById('pl-sub');
   if(sub)sub.textContent='Ta semaine, organisée pour toi.';
@@ -29712,10 +29728,9 @@ function majBadgePlanning(){
 
 /* ---------- Glisser-déposer ---------- */
 let dragging=null,ghost=null,lastOver=null,navHover=null,navTimer=null,dragX=0,dragY=0,aBouge=false,blocTap=0,dragFromIso=null;
-function brancherDrag(){
-  document.querySelectorAll('.pl-chip .hdl').forEach(h=>h.addEventListener('pointerdown',startDrag));
-  document.querySelectorAll('.pl-chip').forEach(c=>c.addEventListener('pointerdown',armerAppuiLong));
-}
+/* Elisa, 2 novembre, 1 h 32 : « l’ordre des cours est bloqué et inchangeable dans planning ; le drag and drop est difficile ».
+   Plus de glisser-déposer ni de déplacement d’une leçon : le planning garde l’ordre du parcours (ordonnerPlan). */
+function brancherDrag(){}
 /* Appui long sur une carte : permet de la glisser sans viser la poignée. */
 let lpTimer=null,lpChip=null,asRaf=0,asDelta=0,dragHdl=false;
 function armerAppuiLong(e){
@@ -33157,7 +33172,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-bilan-camera-v2310';
+  const SW_CACHE='requete-2026-11-02-ordre-camera-v2311';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

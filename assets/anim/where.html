@@ -1554,16 +1554,21 @@ function pontVoice(v){
    un contenu calé en haut reste en haut. Le zoom se réduit un peu AVANT qu’un nouvel élément n’arrive et passe d’une taille à l’autre en
    douceur. La bulle, la puce, l’intro et les cartes des moments « À toi » ne bougent pas. Sur un téléphone, l’image remplit déjà la
    largeur : rien n’est relevé, rien ne change. Le contenu de chaque instant est relevé une fois, par petits lots, sans gêner la lecture. */
-const CAM_ZMAX = 1.6, CAM_STEP = 0.2, CAM_MIN = 1.06;
+const CAM_ZMAX = 1.6, CAM_ZOUT = 0.8, CAM_STEP = 0.2, CAM_MIN = 1.06;
 const CAM = {on: false, samp: null, z: null, o: null, lastT: 0, secs: [], loose: []};
 if (typeof window !== 'undefined') window.__cam = CAM;   // pour les contrôles (lecteur, tests)
 function camVis(el){ const cs = getComputedStyle(el); return cs.display !== 'none' && cs.visibility !== 'hidden' && +cs.opacity > 0.3; }
 /* Le cadre visible d’un élément : lui-même s’il porte un fond, un cadre ou du texte ; sinon ce que montrent ses enfants. */
 function camRect(el, depth){
   const cs = getComputedStyle(el);
-  const box = cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || cs.backgroundImage !== 'none' || parseFloat(cs.borderTopWidth) > 0 || cs.boxShadow !== 'none' ||
-    el.tagName === 'IMG' || el.tagName === 'svg' || [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
-  if (box || depth > 3) { const r = el.getBoundingClientRect(); return r.width > 1 && r.height > 1 ? r : null; }
+  let box = cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || cs.backgroundImage !== 'none' || parseFloat(cs.borderTopWidth) > 0 || cs.boxShadow !== 'none' ||
+    el.tagName === 'IMG' || el.tagName === 'svg' || (typeof SVGGraphicsElement !== 'undefined' && el instanceof SVGGraphicsElement && !/^(g|svg)$/i.test(el.tagName)) ||
+    [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
+  if (box || depth > 3) { const r = el.getBoundingClientRect();
+    /* Un calque SVG grand comme la scène (liaisons, flèches) : seuls ses tracés comptent. */
+    const st = $('#stage').getBoundingClientRect();
+    if (el.tagName === 'svg' && depth <= 3 && r.width > st.width * 0.8 && r.height > st.height * 0.4) box = false;
+    else return r.width > 1 && r.height > 1 ? r : null; }
   let u = null;
   [...el.children].forEach(c => { if (!camVis(c)) return; const r = camRect(c, depth + 1); if (!r) return;
     u = u ? {left: Math.min(u.left, r.left), top: Math.min(u.top, r.top), right: Math.max(u.right, r.right), bottom: Math.max(u.bottom, r.bottom)} : {left: r.left, top: r.top, right: r.right, bottom: r.bottom}; });
@@ -1577,9 +1582,7 @@ function camPlan(dur){
   const loose = $$('#stage > *').filter(e => !e.matches(['section.scene', '#cap', '#chapter', '#header', '#progress', '.blob', '.mb', '.mb-veil', '.pont-pill', 'script', 'style'].join()) &&
     (getComputedStyle(e).translate || 'none') === 'none' && (getComputedStyle(e).scale || 'none') === 'none');
   if (!secs.length) return;
-  /* Sur un téléphone, l’image remplit déjà la largeur : rien à relever (on attend qu’un agrandissement de la fenêtre laisse de la place). */
-  const wide = () => innerWidth > stage.getBoundingClientRect().width * CAM_MIN;
-  if (!wide()) { const retry = () => { if (!wide()) return; removeEventListener('resize', retry); camPlan(dur); }; addEventListener('resize', retry); return; }
+  /* Sur un téléphone aussi : l’image n’y grandit pas (elle remplit déjà la largeur), mais un contenu qui passerait sous la bulle s’y réduit. */
   CAM.secs = secs; CAM.loose = loose;
   const N = Math.ceil(dur / CAM_STEP), samp = new Array(N + 1).fill(null);
   let i = 0;
@@ -1599,7 +1602,7 @@ function camPlan(dur){
       const cp = $('#cap'), ccs = cp && getComputedStyle(cp), free = !cp || ccs.visibility === 'hidden' || +ccs.opacity < 0.05;
       if (b) samp[i] = {b, free};
     }
-    if (i <= N) { window.renderAt(CAM.lastT); setTimeout(chunk, 0); return; }
+    if (i <= N) { window.renderAt(CAM.lastT); setTimeout(chunk, 12); return; }
     CAM.samp = samp; camFit(); window.renderAt(CAM.lastT);
   };
   setTimeout(chunk, 0);
@@ -1608,11 +1611,16 @@ function camPlan(dur){
 function camFit(){
   const stage = $('#stage'); if (!CAM.samp || !stage) return;
   const k = stage.getBoundingClientRect().width / 1080 || 1, capT = ($('#cap') ? $('#cap').offsetTop : 1526) - 56, half = (innerWidth / 2 - 18) / k, A = 185;
+  /* L’image ne grandit que s’il y a de la place sur les côtés (ordinateur, tablette) ; sur un téléphone, elle peut seulement se réduire. */
+  const ZMAX = innerWidth > stage.getBoundingClientRect().width * CAM_MIN ? CAM_ZMAX : 1;
   const S = CAM.samp;
+  /* Elisa, 1 h 32 (réf. 2) : « ça cache le résultat » : un contenu qui descend sous la bulle se réduit (jusqu’à ×CAM_ZOUT) pour finir au-dessus
+     d’elle, son haut restant en place. */
   const fitOf = x => { if (!x || x.fixe) return null; const B = x.free ? 1880 : capT, h = Math.max(x.b.b - x.b.t, 1), ga = x.b.t - A, gb = B - x.b.b;
-    if (ga < 0 || gb < 0) return {z: 1, o: x.b.t};
+    if (ga < 0) return {z: 1, o: x.b.t};
+    if (gb < 0) return {z: Math.max(CAM_ZOUT, (B - x.b.t) / h), o: x.b.t};
     const hw = Math.max(540 - x.b.l, x.b.r - 540, 1);
-    return {z: Math.max(1, Math.min(CAM_ZMAX, half / hw, (B - A) / h)), o: x.b.t + h * ga / (ga + gb)}; };
+    return {z: Math.max(1, Math.min(ZMAX, half / hw, (B - A) / h)), o: x.b.t + h * ga / (ga + gb)}; };
   const fill = a => { let last = null; a = a.map(v => (v == null ? last : (last = v)));
     let next = null; for (let i = a.length - 1; i >= 0; i--) { if (a[i] == null) a[i] = next; else next = a[i]; } return a; };
   const avg = a => a.map((_, i) => { const w = a.slice(Math.max(0, i - 2), i + 3); return w.reduce((p, q) => p + q, 0) / w.length; });
@@ -1626,11 +1634,11 @@ function camFit(){
   z = z.map((v, i) => { for (let j = Math.max(0, i - 2); j <= Math.min(z.length - 1, i + 4); j++) { const x = S[j]; if (!x) continue; if (x.fixe) return 1;
       const B = x.free ? 1880 : capT;
       if (o[i] > x.b.t + 0.5) v = Math.min(v, Math.max(1, (o[i] - A) / (o[i] - x.b.t)));
-      if (x.b.b > o[i] + 0.5) v = Math.min(v, Math.max(1, (B - o[i]) / (x.b.b - o[i]))); }
+      if (x.b.b > o[i] + 0.5) v = Math.min(v, Math.max(CAM_ZOUT, (B - o[i]) / (x.b.b - o[i]))); }
     return v; });
-  let top = 1, ext = 0;
-  z.forEach((v, i) => { top = Math.max(top, v); const x = S[i]; if (x && x.b) ext = Math.max(ext, Math.max(540 - x.b.l, x.b.r - 540) * v - 540); });
-  CAM.z = z; CAM.o = o; CAM.on = top >= CAM_MIN;
+  let top = 1, low = 1, ext = 0;
+  z.forEach((v, i) => { top = Math.max(top, v); low = Math.min(low, v); const x = S[i]; if (x && x.b) ext = Math.max(ext, Math.max(540 - x.b.l, x.b.r - 540) * v - 540); });
+  CAM.z = z; CAM.o = o; CAM.on = top >= CAM_MIN || low <= 0.97;
   /* L’image agrandie déborde sur les côtés (le haut et le bas restent coupés comme avant). */
   stage.style.overflow = CAM.on ? 'visible' : '';
   stage.style.clipPath = CAM.on ? `inset(0 ${-Math.ceil(Math.max(0, ext) + 40)}px)` : '';
@@ -1639,7 +1647,7 @@ function camFit(){
 /* Le même agrandissement pour tout : les scènes autour du point (540, o) ; une carte partagée, autour du même point, en gardant son
    propre point d’origine (celui de ses animations) : on la décale de (point − origine) × (1 − z). */
 function camApply(z, o){
-  const on = z > 1.005;
+  const on = Math.abs(z - 1) > 0.005;
   CAM.secs.forEach(s => { s.style.transformOrigin = on ? `540px ${o.toFixed(1)}px` : ''; s.style.scale = on ? z.toFixed(4) : ''; });
   CAM.loose.forEach(e => {
     if (!on) { e.style.scale = ''; e.style.translate = ''; return; }
@@ -1647,13 +1655,29 @@ function camApply(z, o){
     e.style.scale = z.toFixed(4); e.style.translate = `${((540 - Ox) * (1 - z)).toFixed(1)}px ${((o - Oy) * (1 - z)).toFixed(1)}px`;
   });
 }
+function camAt(t){
+  const f = Math.max(0, t) / CAM_STEP, i = Math.floor(f), w = f - i, a = CAM.z, O = CAM.o;
+  const j = Math.min(i, a.length - 1), j1 = Math.min(i + 1, a.length - 1);
+  return [a[j] + (a[j1] - a[j]) * w, O[j] + (O[j1] - O[j]) * w];
+}
 function camRender(t){
   CAM.t = t;
   if (!CAM.on || !CAM.z) return;
-  const f = Math.max(0, t) / CAM_STEP, i = Math.floor(f), w = f - i, a = CAM.z, O = CAM.o;
-  const j = Math.min(i, a.length - 1), j1 = Math.min(i + 1, a.length - 1);
-  camApply(a[j] + (a[j1] - a[j]) * w, O[j] + (O[j1] - O[j]) * w);
+  if (CAM.pause) { camApply(1, 240); return; }
+  const [z, o] = camAt(t); camApply(z, o);
 }
+/* Pendant un moment « À toi », le lecteur de l’app règle lui-même la taille de l’image au-dessus de sa feuille (lvPkFit) : la caméra revient
+   à 1 en 0,12 s, puis reprend sa taille à la fermeture (Elisa, 2 novembre, 1 h 32, réf. 3 : la feuille cachait le bas de la liste). */
+if (typeof window !== "undefined") window.__camPause = on => {
+  if (!CAM.on || !CAM.z || !!CAM.pause === !!on) { CAM.pause = !!on; return; }
+  const [z, o] = camAt(CAM.t || 0), t0 = performance.now(), D = 120;
+  CAM.pause = !!on;
+  const step = now => { const k = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - k, 3);
+    if (CAM.pause !== !!on) return;
+    camApply(on ? z + (1 - z) * e : 1 + (z - 1) * e, o);
+    if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+};
 if (typeof addEventListener === 'function') addEventListener('resize', () => { if (CAM.samp) { camFit(); if (window.renderAt) window.renderAt(CAM.lastT); } });
 function renderAt(T){
   const t = T;
