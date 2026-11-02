@@ -56,7 +56,9 @@ const MOTS_CLES = {AS: 'aze', IN: 'inne', ON: 'onne', OR: 'or', BY: 'baï', IS: 
   /* Le module « Agrégats et regroupements » (voix d’Antoine). */
   SUM: 'seumme', AVG: 'avèredje', MIN: 'minne', MAX: 'maxe', GROUP: 'groupe', HAVING: 'hèvinngue', GROUP_CONCAT: 'groupe-konkatte', SEPARATOR: 'séparateur',
   /* Le module « Jointures » (voix de Perle). */
-  JOIN: 'djoïnne', INNER: 'ineur', LEFT: 'lèfte', RIGHT: 'raïte', FULL: 'foul', OUTER: 'aouteur', CROSS: 'krosse', SELF: 'sèlfe', USING: 'iouzinngue'};
+  JOIN: 'djoïnne', INNER: 'ineur', LEFT: 'lèfte', RIGHT: 'raïte', FULL: 'foul', OUTER: 'aouteur', CROSS: 'krosse', SELF: 'sèlfe', USING: 'iouzinngue',
+  /* Le module « Sous-requêtes et ensembles » (voix de Mia). */
+  EXISTS: 'ègzisste', WITH: 'ouisse', RECURSIVE: 'rikeursive', INTERSECT: 'inntersècte', EXCEPT: 'ixèpte', OVER: 'ôveur'};
 /* Les noms de colonnes et de tables sans accent (le code n’en met pas) : dits avec leurs accents. */
 const ACCENTS = {prenom: 'prénom', prenoms: 'prénoms', age: 'âge', ages: 'âges', selection: 'sélection', quantite: 'quantité', quantites: 'quantités',
   categorie: 'catégorie', categories: 'catégories', numero: 'numéro', etre: 'être', fidelite: 'fidélité', seance: 'séance', seances: 'séances',
@@ -68,7 +70,9 @@ const ACCENTS = {prenom: 'prénom', prenoms: 'prénoms', age: 'âge', ages: 'âg
   reservations: 'réservations', id: 'identifiant', typeof: 'taïpe-off', preparation: 'préparation', integer: 'inntédjeur', text: 'tèxte', interet: 'intérêt', adherent: 'adhérent', adherents: 'adhérents', echeance: 'échéance', reglement: 'règlement'};
 /* Les signes de comparaison, les motifs de LIKE et les flèches, dits en mots (Elisa, 2 novembre, 7 h 23 : les cinq cours suivants). */
 const SIGNES = {'<=': 'inférieur ou égal', '>=': 'supérieur ou égal', '!=': 'différent', '<>': 'différent', '<': 'inférieur', '>': 'supérieur', '=': 'égal'};
-DIRE.unshift([/GROUP_CONCAT/g, 'groupe-konkatte'], [/rendez_vous/g, 'rendez-vous'], [/([A-Za-zÀ-ÿ0-9])\.(?=[a-zà-ÿ])/g, '$1 point '], [/'([^']+)'/g, '$1'], [/(\d)\s*%/g, '$1 pour cent'], [/\s*→\s*/g, ', donne '],
+const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+DIRE.unshift([/\b(\d{4})-(\d{2})-(\d{2})\b/g, (m, a, mo, j) => (+j === 1 ? '1er' : String(+j)) + ' ' + MOIS[+mo - 1] + ' ' + a],
+  [/GROUP_CONCAT/g, 'groupe-konkatte'], [/rendez_vous/g, 'rendez-vous'], [/([A-Za-zÀ-ÿ0-9])\.(?=[a-zà-ÿ])/g, '$1 point '], [/'([^']+)'/g, '$1'], [/(\d)\s*%/g, '$1 pour cent'], [/\s*→\s*/g, ', donne '],
   [/(^|\s)([%_A-Za-zÀ-ÿ]*[%_][%_A-Za-zÀ-ÿ]*)(?=[\s,.;:!?»)]|$)/g, (m, a, w) => /[%_]/.test(w) && !/[A-Za-zÀ-ÿ]_[A-Za-zÀ-ÿ]/.test(w)
     ? a + w.split(/([%_])/).filter(Boolean).map(x => x === '%' ? 'pourcent' : x === '_' ? 'tiret bas' : x).join(', ') : m],
   /* Suivi d’une valeur : « inférieur à 60 », « différent de Accessoire » ; suivi d’un mot de la phrase (« > et < », « != à la place ») : le signe seul. */
@@ -153,7 +157,11 @@ const ANTOINE = {id: 'nbiTBaMRdSobTQJDzIWm', nom: 'Antoine'}, AGREGATS = ['count
 /* 9 h 02 : le module « Jointures » avec Perle (« Perle | Premium French Corporate Voice »), la formatrice. */
 const PERLE = {id: 'UaGvaD7NWzU5mJNoUqoY', nom: 'Perle'}, JOINTURES = ['inner-join', 'left-join', 'right-join', 'full-outer-join', 'cross-join',
   'jointure-3-tables', 'join-group-by', 'self-join', 'plusieurs-conditions-on', 'quel-join-choisir'];
-const voix = AGATHE.includes(cours) ? base.voix : AGREGATS.includes(cours) ? ANTOINE : JOINTURES.includes(cours) ? PERLE : ADAM;
+/* 9 h 06 : le module « Sous-requêtes et ensembles » avec Mia (« Mia García – Cálida instructora e-learning »), la formatrice. */
+const MIA = {id: 'PrwKJdvtTbJVdosRhS1O', nom: 'Mia'}, SOUS_REQUETES = ['sous-requete-in', 'sous-requete-select', 'sous-requete-from', 'exists',
+  'with-cte', 'union', 'intersect-except', 'with-recursive'];
+const voix = AGATHE.includes(cours) ? base.voix : AGREGATS.includes(cours) ? ANTOINE : JOINTURES.includes(cours) ? PERLE
+  : SOUS_REQUETES.includes(cours) ? MIA : ADAM;
 const job = {cours, titre: intro.sub, voix, modele: base.modele, langue: base.langue, format: base.format, elements: out};
 fs.writeFileSync(path.join(DIR, cours + '.json'), JSON.stringify(job, null, 2) + '\n');
 /* Les phrases communes : copiées depuis le premier cours (si ses fichiers bruts sont là). */

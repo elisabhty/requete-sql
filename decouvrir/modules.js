@@ -66,11 +66,11 @@ window.MODULES=[
       ["COALESCE", "Remplacer les valeurs absentes", 153]
     ]},
     {titre:"Agrégats et regroupements", sous:"Calculer, regrouper et agréger", lecons:[
-      ["COUNT", "Compter les lignes", 139],
-      ["SUM, AVG, MIN et MAX", "Somme, moyenne, minimum et maximum", 165],
-      ["GROUP BY", "Un calcul par groupe", 141],
-      ["HAVING", "Filtrer après regroupement", 145],
-      ["GROUP_CONCAT", "Rassembler les textes d’un groupe", 164]
+      ["COUNT", "Compter les lignes", 147],
+      ["SUM, AVG, MIN et MAX", "Somme, moyenne, minimum et maximum", 183],
+      ["GROUP BY", "Un calcul par groupe", 150],
+      ["HAVING", "Filtrer après regroupement", 155],
+      ["GROUP_CONCAT", "Rassembler les textes d’un groupe", 172]
     ]},
     {titre:"Jointures", sous:"Interroger plusieurs tables à la fois", lecons:[
       ["INNER JOIN", "Associer les lignes correspondantes de deux tables", 139],
