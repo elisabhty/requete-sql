@@ -7,6 +7,7 @@
   let opening = false;
   jeuStart = async function(code, host, cid, options = {}) {
     if (opening) return;
+    let needName = false;
     // Practice remains available without a network or a reserved public name.
     if (options.solo && (!navigator.onLine || !psMien())) {
       return localStart(code, host, cid, {...options, secure:false});
@@ -30,13 +31,19 @@
       localStart(code, host, cid, {...options, secure:true});
     } catch (error) {
       const text = String(error?.message || 'La salle est indisponible. Vérifie ta connexion et réessaie.');
-      if (/pseudo/.test(text) && typeof psPage === 'function') psPage({});
-      else lqInfo('Connexion à la salle', text, '📶');
+      // The public name is chosen during onboarding: never ask for it again before a room (2 November, 23:45).
+      // The server has no name for this device yet: reserve it silently, then enter once more.
+      if (/pseudo/.test(text) && !options.nameRetry && typeof psReserverPourSalle === 'function') needName = true;
+      else lqInfo('Connexion à la salle', /pseudo/.test(text) ? 'Ton pseudo n’a pas pu être réservé. Réessaie dans un instant.' : text, '📶');
     } finally {
       clearTimeout(deadline);
       opening = false;
       if (button?.isConnected) button.disabled = false;
     }
+    if (!needName) return;
+    const reserved = await psReserverPourSalle().catch(() => false);
+    if (reserved) return jeuStart(code, host, cid, {...options, nameRetry:true});
+    lqInfo('Connexion à la salle', 'Ton pseudo n’a pas pu être réservé. Réessaie dans un instant.', '📶');
   };
   jeuRun = async function() {
     const game = JEU;
