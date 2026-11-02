@@ -48,7 +48,7 @@ window.MODULES=[
       ["DISTINCT", "Valeurs uniques", 151],
       ["WHERE", "Filtrer les lignes", 126],
       ["Comparer des valeurs", "Filtrer avec =, !=, >, <, >=, <=", 159],
-      ["AND et OR", "Combiner plusieurs conditions", 156],
+      ["AND et OR", "Combiner plusieurs conditions", 157],
       ["NOT", "Exclure selon une condition", 167],
       ["NULL", "La valeur absente", 130],
       ["LIKE", "Chercher un motif", 191],
@@ -69,9 +69,9 @@ window.MODULES=[
       ["COUNT", "Compter les lignes", 145],
       ["SUM, AVG, MIN et MAX", "Somme, moyenne, minimum et maximum", 180],
       ["GROUP BY", "Un calcul par groupe", 149],
-      ["GROUP BY sur plusieurs colonnes", "Un groupe par combinaison de valeurs", 199],
+      ["GROUP BY sur plusieurs colonnes", "Un groupe par combinaison de valeurs", 203],
       ["HAVING", "Filtrer après regroupement", 155],
-      ["L’ordre d’exécution", "Dans quel ordre une requête est exécutée", 197],
+      ["L’ordre d’exécution", "Dans quel ordre une requête est exécutée", 204],
       ["GROUP_CONCAT", "Rassembler les textes d’un groupe", 173]
     ]},
     {titre:"Jointures", sous:"Interroger plusieurs tables à la fois", lecons:[
@@ -89,24 +89,24 @@ window.MODULES=[
     {titre:"Sous-requêtes et ensembles", sous:"IN, EXISTS, CTE et UNION", lecons:[
       ["Sous-requête dans WHERE avec IN", "Quels clients ont déjà commandé du Magnésium ?", 236],
       ["Sous-requête dans SELECT", "Calculer une valeur pour chaque ligne", 204],
-      ["Sous-requête dans FROM", "Utiliser une sous-requête comme table", 195],
-      ["INSERT … SELECT et CREATE TABLE AS", "Enregistrer le résultat d’une requête", 195],
-      ["EXISTS et NOT EXISTS", "Tester la présence ou l’absence d’une ligne liée", 223],
-      ["ANY et ALL", "Comparer à toute une liste", 204],
-      ["WITH (CTE)", "Créer et réutiliser un résultat intermédiaire", 221],
+      ["Sous-requête dans FROM", "Utiliser une sous-requête comme table", 208],
+      ["INSERT … SELECT et CREATE TABLE AS", "Enregistrer le résultat d’une requête", 199],
+      ["EXISTS et NOT EXISTS", "Tester la présence ou l’absence d’une ligne liée", 243],
+      ["ANY et ALL", "Comparer à toute une liste", 225],
+      ["WITH (CTE)", "Créer et réutiliser un résultat intermédiaire", 249],
       ["UNION et UNION ALL", "Empiler deux résultats, avec ou sans doublons", 219],
       ["INTERSECT et EXCEPT", "Comparer deux résultats", 179],
       ["WITH RECURSIVE (CTE RECURSIVE)", "Créer une suite automatiquement", 199]
     ]},
     {titre:"Fonctions de fenêtre", sous:"Calculer sans regrouper les lignes", lecons:[
-      ["OVER()", "Calculer sans regrouper les lignes", 201],
+      ["OVER()", "Calculer sans regrouper les lignes", 202],
       ["Fonctions de rang", "Classer les lignes, ex æquo compris", 178],
       ["LAG et LEAD", "Comparer une ligne à la précédente ou à la suivante", 203],
-      ["Fenêtres glissantes", "Suivre l’évolution des commandes", 185],
-      ["FIRST_VALUE, LAST_VALUE et NTILE", "Première et dernière valeur, groupes égaux", 213]
+      ["Fenêtres glissantes", "Suivre l’évolution des commandes", 186],
+      ["FIRST_VALUE, LAST_VALUE et NTILE", "Première et dernière valeur, groupes égaux", 217]
     ]},
     {titre:"Modéliser", sous:"Normalisation, cardinalités et UML", lecons:[
-      ["Normaliser les inscriptions", "Du fichier Excel des ateliers aux tables", 236],
+      ["Normaliser les inscriptions", "Du fichier Excel des ateliers aux tables", 238],
       ["Clés et relations", "Relier les tables entre elles", 282],
       ["Modéliser avec UML", "Du diagramme de classes aux tables", 298]
     ]},
@@ -126,7 +126,7 @@ window.MODULES=[
       ["ON DELETE", "Décider du sort des lignes liées", 266]
     ]},
     {titre:"Transactions et concurrence", sous:"Tout valider, tout annuler, sans conflit", lecons:[
-      ["Transactions", "Valider les modifications ensemble", 289],
+      ["Transactions", "Valider les modifications ensemble", 294],
       ["SAVEPOINT", "Annuler une partie des modifications", 263],
       ["Concurrence et isolation", "Gérer les accès simultanés", 261]
     ]},
