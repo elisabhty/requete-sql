@@ -202,12 +202,12 @@ test('réf 5 — le prénom dans l’onboarding (17 h 53), le pseudo juste aprè
   ctx.state.salle = {};
   const field = vm.runInContext("jeuNomField('jeu-nom')", ctx);
   assert.equal(field, '', 'pas encore de pseudo : la salle ne le redemande pas (2 novembre, 23 h 14 : il se choisit dans l’onboarding)');
-  /* La salle prend le pseudo réservé ; sans lui, la mini-page s’ouvre et rien ne part */
-  const opened = [];
-  Object.assign(ctx, { psPage: o => opened.push(o), jeuMsgEl: () => null });
+  /* La salle prend le pseudo réservé ; sans lui, rien ne part et la mini-page ne s’ouvre pas (2 novembre, 23 h 45) */
+  const opened = [], msg = { textContent: '' };
+  Object.assign(ctx, { psPage: o => opened.push(o), jeuMsgEl: () => msg });
   vm.runInContext(fn('jeuAskNom'), ctx);
   assert.equal(vm.runInContext("jeuAskNom('jeu-nom')", ctx), null);
-  assert.equal(opened.length, 1, 'la mini-page « Choisis ton pseudo »');
+  assert.equal(opened.length, 0, 'pas de mini-page avant la salle'); assert.match(msg.textContent, /pas encore réservé/);
   store['rq-jeu-nom'] = 'Zoé';
   assert.equal(vm.runInContext("jeuAskNom('jeu-nom')", ctx), null, 'un ancien pseudo non réservé ne suffit pas');
   ctx.state.salle.pseudo = '  Zoé  ';

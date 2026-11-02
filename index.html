@@ -19685,15 +19685,34 @@ function psVerifier(){
     },()=>{});
   }catch(e){}
 }
-/* Une salle entre amis a besoin du pseudo réservé : sans lui, la mini-page, puis la salle. */
+/* Une salle entre amis a besoin d’un pseudo réservé. Elisa, 2 novembre, 23 h 45 : « le pseudo est déjà défini dans l’onboarding, ne
+   pas le mettre avant d’entrer dans une salle défi » : la mini-page ne s’ouvre plus ici. On réserve sans rien demander le pseudo de
+   l’onboarding (gardé sans réseau, ou celui des salles d’avant), à défaut celui tiré du prénom donné dans l’onboarding ; s’il est
+   pris, le premier pseudo libre proposé par la base. La salle s’ouvre et un message dit sous quel pseudo on joue. */
 function jeuAvecPseudo(f){
   if(psMien()){f();return;}
-  if(!psVouluConnu()){psPage({siOk:f});return;}
-  psReserverSansDemander().then(r=>{
-    if(r.ok){f();return;}
-    /* Pris entre-temps (ou refusé) : la seule fois où il faut en choisir un autre, avec trois pseudos libres. */
-    psPage({raison:r.raison==='refuse'?'refuse':'pris',idees:r.idees,voulu:r.voulu,siOk:f});
+  psReserverPourSalle().then(ok=>{
+    if(ok){lqSay('Tu joues en tant que '+psMien());f();return;}
+    lqInfo('Salle indisponible','Ton pseudo n’a pas pu être réservé. Réessaie dans un instant.','📶');
   },()=>lqInfo('Pas de réseau','Il faut une connexion internet pour jouer entre amis. Réessaie dans un instant.','📶'));
+}
+function psJoueurAuHasard(){return psForme('joueur'+Math.floor(1000+Math.random()*9000));}
+function psCandidats(){
+  const out=[],add=v=>{const p=psForme(v);if(p&&!out.includes(p))out.push(p);};
+  add(psVouluConnu());add(state.name||'');
+  if(!out.length)out.push(psJoueurAuHasard());
+  return out;
+}
+/* Quatre essais au plus : le pseudo connu, puis ce que la base propose (ou le candidat suivant). */
+function psReserverPourSalle(){
+  const essais=psCandidats();let tours=0;
+  const essai=n=>psPrendre(n).then(r=>{
+    if(r&&r.ok&&psMien())return true;
+    if(++tours>=4)return false;
+    const idee=(Array.isArray(r&&r.idees)?r.idees:[]).map(psForme).find(Boolean);
+    return essai(idee||essais.shift()||psJoueurAuHasard());
+  });
+  return essai(essais.shift());
 }
 /* Le pseudo donné dans l’onboarding mais pas encore réservé : celui tapé sans réseau, ou celui des salles d’avant (rq-jeu-nom). */
 function psVouluConnu(){const s=state.salle||{};return psForme(s.psVoulu||'')||psAncien();}
@@ -25825,7 +25844,8 @@ function jeuMsgEl(id){
 /* Le pseudo de la salle : celui de l’appli, réservé et qui ne se change plus (16 h 49). Pas encore de pseudo : la feuille. */
 function jeuAskNom(id){
   const n=jeuSavedNom();
-  if(!n){if(typeof psPage==='function')psPage({});else{const msg=jeuMsgEl(id);if(msg)msg.textContent='Choisis d’abord un pseudo.';}return null;}
+  /* Filet : la salle passe toujours par jeuAvecPseudo, qui réserve le pseudo sans rien demander (2 novembre, 23 h 45). */
+  if(!n){const msg=jeuMsgEl(id);if(msg)msg.textContent='Ton pseudo n’est pas encore réservé. Réessaie dans un instant.';return null;}
   return n;
 }
 /* Écran Défis : les choix de la salle se changent sur place (rien n’est redessiné). */
@@ -33730,7 +33750,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-continuer-a-revoir-v2407';
+  const SW_CACHE='requete-2026-11-02-salle-sans-pseudo-v2408';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
