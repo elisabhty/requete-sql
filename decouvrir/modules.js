@@ -48,8 +48,7 @@ window.MODULES=[
       ["DISTINCT", "Valeurs uniques", 151],
       ["WHERE", "Filtrer les lignes", 126],
       ["Comparer des valeurs", "Filtrer avec =, !=, >, <, >=, <=", 159],
-      ["AND et OR", "Combiner plusieurs conditions", 157],
-      ["Injection SQL et requêtes paramétrées", "Une saisie reste une valeur", 192],
+      ["AND et OR", "Combiner plusieurs conditions", 156],
       ["NOT", "Exclure selon une condition", 167],
       ["NULL", "La valeur absente", 130],
       ["LIKE", "Chercher un motif", 191],
@@ -104,11 +103,10 @@ window.MODULES=[
       ["Fonctions de rang", "Classer les lignes, ex æquo compris", 178],
       ["LAG et LEAD", "Comparer une ligne à la précédente ou à la suivante", 203],
       ["Fenêtres glissantes", "Suivre l’évolution des commandes", 185],
-      ["FIRST_VALUE, LAST_VALUE et NTILE", "Première et dernière valeur, groupes égaux", 208]
+      ["FIRST_VALUE, LAST_VALUE et NTILE", "Première et dernière valeur, groupes égaux", 210]
     ]},
     {titre:"Modéliser", sous:"Normalisation, cardinalités et UML", lecons:[
-      ["Les formes normales", "1FN, 2FN et 3FN pas à pas", 189],
-      ["Normaliser les inscriptions", "Du fichier Excel des ateliers aux tables", 189],
+      ["Normaliser les inscriptions", "Du fichier Excel des ateliers aux tables", 236],
       ["Clés et relations", "Relier les tables entre elles", 282],
       ["Modéliser avec UML", "Du diagramme de classes aux tables", 298]
     ]},

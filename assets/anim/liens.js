@@ -11,7 +11,6 @@ window.LIENS = [
   {page: 'where', titre: 'WHERE', passe: 'tu as filtré les lignes avec <code>WHERE</code>', futur: 'tu filtreras les lignes avec <code>WHERE</code>'},
   {page: 'comparer', titre: 'Comparer des valeurs', passe: 'tu as comparé des valeurs avec <code>=</code>, <code>&gt;</code> ou <code>&lt;</code>', futur: 'tu compareras des valeurs avec <code>=</code>, <code>&gt;</code> ou <code>&lt;</code>'},
   {page: 'and-or', titre: 'AND et OR', passe: 'tu as combiné plusieurs conditions avec <code>AND</code> et <code>OR</code>', futur: 'tu combineras plusieurs conditions avec <code>AND</code> et <code>OR</code>'},
-  {page: 'injection-sql', titre: 'Injection SQL et requêtes paramétrées', passe: 'tu as protégé tes requêtes contre l’injection SQL', futur: 'tu protégeras tes requêtes contre l’injection SQL'},
   {page: 'not', titre: 'NOT', passe: 'tu as exclu des lignes avec <code>NOT</code>', futur: 'tu excluras des lignes avec <code>NOT</code>'},
   {page: 'null', titre: 'NULL', passe: 'tu as repéré les valeurs absentes avec <code>IS NULL</code> et <code>IS NOT NULL</code>', futur: 'tu repéreras les valeurs absentes avec <code>IS NULL</code> et <code>IS NOT NULL</code>'},
   {page: 'like', titre: 'LIKE', passe: 'tu as cherché un motif dans un texte avec <code>LIKE</code>', futur: 'tu chercheras un motif dans un texte avec <code>LIKE</code>'},
@@ -57,7 +56,6 @@ window.LIENS = [
   {page: 'lag-lead', titre: 'LAG et LEAD', passe: 'tu as comparé chaque ligne à sa voisine avec <code>LAG</code> et <code>LEAD</code>', futur: 'tu compareras chaque ligne à sa voisine avec <code>LAG</code> et <code>LEAD</code>'},
   {page: 'fenetres-glissantes', titre: 'Fenêtres glissantes', passe: 'tu as suivi un total cumulé avec une fenêtre glissante', futur: 'tu suivras un total cumulé avec une fenêtre glissante'},
   {page: 'first-last-ntile', titre: 'FIRST_VALUE, LAST_VALUE et NTILE', passe: 'tu as lu la première et la dernière valeur d’une fenêtre avec <code>FIRST_VALUE</code> et <code>LAST_VALUE</code>', futur: 'tu liras la première et la dernière valeur d’une fenêtre avec <code>FIRST_VALUE</code> et <code>LAST_VALUE</code>'},
-  {page: 'formes-normales', titre: 'Les formes normales', passe: 'tu as appliqué les trois formes normales', futur: 'tu appliqueras les trois formes normales'},
   /* Le projet : ses vidéos disent elles-mêmes le lien (« Dans la leçon précédente… », « Dans la prochaine leçon… »), sauf l’entrée du projet. */
   {page: 'projet-normaliser', titre: 'Normaliser les inscriptions', futur: 'tu commenceras le projet : la base des ateliers bien-être de NutriBoost', apres: false},
   {page: 'projet-cles', titre: 'Clés et relations', avant: false, apres: false},

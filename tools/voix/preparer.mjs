@@ -202,7 +202,7 @@ COMMUNES.forEach(id => out.push(base.elements.find(x => x.id === id)));
 
 /* La voix (Elisa, 2 novembre, 8 h 29) : Agathe garde les cours déjà voisés (l’introduction et « Lire une table ») ; à partir du module
    « Fonctions et expressions », c’est Adam (« Adam – Formation, Tutos & Éducation »). Ses phrases communes sont générées avec lui. */
-const AGATHE = ['bases-relationnelles', 'as', 'distinct', 'where', 'comparer', 'and-or', 'injection-sql', 'not', 'null', 'like', 'in', 'between', 'order-by', 'limit-offset'];
+const AGATHE = ['bases-relationnelles', 'as', 'distinct', 'where', 'comparer', 'and-or', 'not', 'null', 'like', 'in', 'between', 'order-by', 'limit-offset'];
 const ADAM = {id: 'TGAegA0zNRi8I6nUdq3i', nom: 'Adam'};
 /* 8 h 55 : le module « Agrégats et regroupements » avec Antoine (« Antoine – Dynamic, Captivating, and Professional Voice »). */
 const ANTOINE = {id: 'nbiTBaMRdSobTQJDzIWm', nom: 'Antoine'}, AGREGATS = ['count', 'agregats', 'group-by', 'group-by-colonnes', 'having', 'ordre-execution', 'group-concat'];
@@ -215,7 +215,7 @@ const MIA = {id: 'PrwKJdvtTbJVdosRhS1O', nom: 'Mia'}, SOUS_REQUETES = ['sous-req
 /* 9 h 14 : le module « Fonctions de fenêtre » avec Dorian (« Dorian – Jeune homme calme français sans accent »), le formateur. */
 const DORIAN = {id: 'vp2FCFmQCE4NzuQj9QNe', nom: 'Dorian'}, FENETRES = ['over', 'fonctions-rang', 'lag-lead', 'fenetres-glissantes', 'first-last-ntile'];
 /* 9 h 21 : le module « Modéliser » reprend la formatrice du premier module (Agathe, la blonde). */
-const MODELISER = ['formes-normales', 'projet-normaliser', 'projet-cles', 'projet-uml'];
+const MODELISER = ['projet-normaliser', 'projet-cles', 'projet-uml'];
 /* 9 h 33 : le module « Créer et faire évoluer les tables » avec Anaïs (« Anaïs – News, podcasting and e-learning »), la formatrice. */
 const ANAIS = {id: '5OnMHwgTFgvPVwE8jP6B', nom: 'Anaïs'}, TABLES = ['projet-create', 'projet-alter', 'projet-drop', 'projet-schemas'];
 /* 9 h 42 : le module « Écrire et modifier les données » avec Emily (« Emily – Australian Female »), la formatrice. */
