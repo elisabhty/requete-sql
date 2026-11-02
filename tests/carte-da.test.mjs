@@ -39,11 +39,10 @@ test('la feuille : l’ampoule autocollante et l’étiquette « À retenir », 
   const open = fn('openCard');
   assert.ok(open.includes('<p class="cd-lab memo"><span class="cd-memo-stk" aria-hidden="true">${lqStkSvg(\'bulb\')}</span><span class="cd-memo-tag">À retenir</span></p>'));
   assert.ok(open.includes('<div class="cd-memo">${carteRetenirHtml(id)||cardMemoHtml(c.m)}</div>'), 'même bloc, toujours suivi du bouton ; les trois idées de la vidéo quand la leçon en a (Elisa, 2 novembre, 12 h 48)');
-  assert.ok(open.includes('<button type="button" class="coda-note" onclick="noteFromCard(${id})"><span class="coda-note-stk" aria-hidden="true">${lqStkSvg(\'note\')}</span>Ajouter à mes notes</button>'));
+  assert.ok(open.includes('<button type="button" class="cd-note-btn" onclick="noteFromCard(${id})"><span class="cd-note-stk" aria-hidden="true">${lqStkSvg(\'note\')}</span>Noter</button>'), 'le carnet de « Noter », à côté d’« Essayer » (21 h 58, Réf 3)');
   /* Déjà dans les notes : « Déjà dans mes notes », validé (menthe, coche ronde) ; ce n’est pas un bouton (Elisa, 2 novembre, 18 h 54,
      Réf 2, puis 19 h 00 : « Quand c’est déjà dans note c’est pas un bouton du coup on peut pas cliquer dessus »). */
-  assert.ok(open.includes('const had=!!cardNoteExisting(id);') && open.includes('<p class="coda-note" data-had="1"><span class="coda-note-ok" aria-hidden="true">${CHECK_SVG}</span>Déjà dans mes notes</p>'));
-  assert.ok(app.includes('#card-body .coda-note[data-had]{background:#E9FBF2;color:#0F7A4A;box-shadow:inset 0 0 0 2px #BDEFD5;cursor:default;pointer-events:none;'));
+  assert.ok(open.includes('const had=!!cardNoteExisting(id);') && open.includes('<p class="cd-note-btn is-had" role="status"><span class="cd-note-ok" aria-hidden="true">${CHECK_SVG}</span>Dans mes notes</p>'), 'déjà notée : coche violette, pas un bouton, plus de vert (21 h 58)');
   assert.ok(fn('noteFromCard').includes('if(had)openNote(had.id); else openNote(null,pre);'));
   assert.ok(open.includes('<div class="cd-share collectible">${collectibleFace(id)}<i class="cd-shine" aria-hidden="true"></i></div>'));
   assert.ok(open.includes("cardTilt(document.querySelector('#card-body .cd-share'));"));

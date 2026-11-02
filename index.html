@@ -27332,21 +27332,20 @@ function openCard(id){
   document.getElementById('card-back').classList.add('on');
   document.getElementById('card-sheet').classList.add('on');
   document.getElementById('fab').classList.add('hide');
-  const shareIco=`<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M8.5 6.5 12 3l3.5 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 12v6.5A2.5 2.5 0 0 0 7.5 21h9a2.5 2.5 0 0 0 2.5-2.5V12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
   const tryIco=`<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9.05 5.36c-.7-.42-1.55.1-1.55.9v11.48c0 .8.85 1.32 1.55.9l9.52-5.74c.66-.4.66-1.4 0-1.8L9.05 5.36z" fill="currentColor"/></svg>`;
   const syntaxHead=c.ss&&c.ss.length?'':`<p class="cd-lab">Syntaxe</p>`;
-  /* Déjà dans les notes : « Déjà dans mes notes », validé comme sur le site (Elisa, 2 novembre, 18 h 54, Réf 2) ; ce n’est plus un
-     bouton, rien ne se passe au toucher (19 h 00 : « Quand c’est déjà dans note c’est pas un bouton du coup on peut pas cliquer dessus »). */
+  /* La note prend la place de « Partager », à côté d’« Essayer » (Elisa, 2 novembre, 21 h 58, Réf 3 : « la couleur verte ne va pas
+     avec la page ; remplacer le bouton partager par note »). Déjà notée : « Dans mes notes », coche violette, ce n’est pas un bouton
+     (19 h 00 : « Quand c’est déjà dans note c’est pas un bouton »). */
   const had=!!cardNoteExisting(id);
   document.getElementById('card-body').innerHTML=`
     <div class="cd-share collectible">${collectibleFace(id)}<i class="cd-shine" aria-hidden="true"></i></div>
     <p class="cd-lab memo"><span class="cd-memo-stk" aria-hidden="true">${lqStkSvg('bulb')}</span><span class="cd-memo-tag">À retenir</span></p>
     <div class="cd-memo">${carteRetenirHtml(id)||cardMemoHtml(c.m)}</div>
-    ${had?`<p class="coda-note" data-had="1"><span class="coda-note-ok" aria-hidden="true">${CHECK_SVG}</span>Déjà dans mes notes</p>`:`<button type="button" class="coda-note" onclick="noteFromCard(${id})"><span class="coda-note-stk" aria-hidden="true">${lqStkSvg('note')}</span>Ajouter à mes notes</button>`}
     ${syntaxHead}
     ${cardSyntaxHtml(c)}
     <div class="cd-actions">
-      <button type="button" class="cd-share-btn" onclick="shareCard(${id})">${shareIco}Partager</button>
+      ${had?`<p class="cd-note-btn is-had" role="status"><span class="cd-note-ok" aria-hidden="true">${CHECK_SVG}</span>Dans mes notes</p>`:`<button type="button" class="cd-note-btn" onclick="noteFromCard(${id})"><span class="cd-note-stk" aria-hidden="true">${lqStkSvg('note')}</span>Noter</button>`}
       <button type="button" class="cd-try-btn" onclick="cardToConsole(${id})">${tryIco}Essayer</button>
     </div>`;
   document.getElementById('card-body').scrollTop=0;
@@ -31333,12 +31332,28 @@ function saveNote(){
    18 h 45 : « Qu’est-ce que le bouton en trop au milieu ? Il y a trop de bouton ») : une seule action, « Enregistrer ». */
 function togglePinFromList(id){
   const n=(state.notes||[]).find(x=>x.id===id); if(!n)return;
-  const root=notesRoot(),before=new Map();
-  if(root)root.querySelectorAll('.ncard[data-id]').forEach(el=>before.set(el.dataset.id,el.getBoundingClientRect().top));
-  n.pin=!n.pin; save(); notesEnter=false; renderNotes();
-  notesFlip(before,id);
-  lqPinFx(root&&root.querySelector(`.ncard[data-id="${id}"] .npin-btn`)||notesRoot()?.querySelector(`.ncard[data-id="${id}"] .npin-btn`),n.pin);
+  const root=notesRoot(),card=root&&root.querySelector(`.ncard[data-id="${id}"]`),btn=card&&card.querySelector('.npin-btn');
+  if(btn&&btn._busy)return;
+  n.pin=!n.pin; save();
+  /* La coche se joue d’abord sur place, là où le doigt a touché (Elisa, 2 novembre, 21 h 58, Réf 1 : « pas de micro-interaction
+     à l’appui du V ») : avant, la carte filait tout de suite en haut de la liste et l’animation se jouait hors de vue. */
+  if(card){card.classList.toggle('pin',n.pin);btn.setAttribute('aria-pressed',n.pin?'true':'false');btn.setAttribute('aria-label',n.pin?'Désépingler':'Épingler');}
+  lqPinFx(btn,n.pin);
   lqSay(n.pin?'Note épinglée : elle s’affiche en haut de tes notes':'Note désépinglée');
+  const reflow=()=>{
+    const r=notesRoot(),before=new Map();
+    if(r)r.querySelectorAll('.ncard[data-id]').forEach(el=>before.set(el.dataset.id,el.getBoundingClientRect().top));
+    notesEnter=false; renderNotes(); notesFlip(before,id);
+    const el=r&&r.querySelector(`.ncard[data-id="${id}"]`);
+    if(el){
+      const sc=el.closest('.viz-body,.screen'),box=sc&&sc.getBoundingClientRect(),rb=el.getBoundingClientRect();
+      if(box&&(rb.top<box.top||rb.bottom>box.bottom))el.scrollIntoView({block:'nearest',behavior:motionOff()?'auto':'smooth'});
+      if(!motionOff()){el.classList.remove('is-moved');void el.offsetWidth;el.classList.add('is-moved');setTimeout(()=>el.classList.remove('is-moved'),1100);}
+    }
+  };
+  if(!btn||motionOff())return reflow();
+  btn._busy=true;
+  setTimeout(()=>{btn._busy=false;reflow();},560);
 }
 function deleteNote(id){
   const all=state.notes||[],i=all.findIndex(x=>x.id===id),gone=i>=0?all[i]:null;
@@ -33535,7 +33550,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-test-ab-v2399';
+  const SW_CACHE='requete-2026-11-02-notes-carte-v2400';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
