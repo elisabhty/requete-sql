@@ -979,7 +979,7 @@ const COURSES = [
       '<span class="glow" id="mul3">produits.prix * commandes.quantite</span>', '<span class="glow" id="al3"><span class="kw">AS</span> commandes_montants</span>',
       '<span class="t2"><span class="emo">🗃️</span><span>commandes_montants</span></span>', '<span class="m">no such column: quantite</span>',
       '<span class="col gh" id="gh5">✕ quantite</span>', '<div>46.71875</div>', '✓ Indicateur mis à jour']},
-  {id: 92, next: 55, titre: 'INSERT … SELECT et CREATE TABLE AS', page: 'insert-select.html', thumb: 'insert-select-thumb.jpg', duree: '3 min 14', notesAt: 177.3,
+  {id: 92, next: 55, titre: 'INSERT … SELECT et CREATE TABLE AS', page: 'insert-select.html', thumb: 'insert-select-thumb.jpg', duree: '3 min 15', notesAt: 177.3,
     table: 'clients',
     bubble: 'Range le résultat d’une requête dans une table, nouvelle ou déjà créée.',
     chapters: ['Situation', 'CREATE TABLE AS', 'INSERT … SELECT', 'Le piège', 'Une copie', 'Le résultat', 'À retenir'],

@@ -45,7 +45,10 @@ test('les retours possibles : après une phrase, après « : » ou « ; », jama
   assert.ok(ctx.cuts(join, ['sent']).includes('Abysses.<br><code>RIGHT</code>') && !ctx.cuts(join, ['sent']).includes(':<br>'), 'les phrases seules');
   assert.ok(ctx.cuts(join, ['colon']).includes(`</code>${NB}:<br>les`) && !ctx.cuts(join, ['colon']).includes('Abysses.<br>'), 'les « : » seuls');
   assert.equal(ctx.cuts(ctx.typo('<code>SELECT a ; SELECT b</code> : deux.')), ctx.typo('<code>SELECT a ; SELECT b</code> : deux.'), 'rien dans le code, rien de trop court');
-  assert.equal(ctx.cuts(ctx.typo('<code>SELECT a ; SELECT b</code> : deux requêtes.')), ctx.typo('<code>SELECT a ; SELECT b</code> :<br>deux requêtes.'), 'après le code, oui');
+  assert.equal(ctx.cuts(ctx.typo('<code>SELECT a FROM t ; SELECT b FROM t</code> : deux requêtes.')), ctx.typo('<code>SELECT a FROM t ; SELECT b FROM t</code> :<br>deux requêtes.'), 'après le code, oui');
+  /* Elisa, 2 novembre, 12 h 48 : pas de retour après un début trop court (« prenom, nom, email : / 3 colonnes… ») */
+  const court = ctx.typo('prenom, nom, email : 3 colonnes, dans l’ordre de la <b>table invites</b>.');
+  assert.equal(ctx.cuts(court), court, 'trop court avant « : » : pas de retour');
 });
 
 test('les retours ne sont posés que s’ils n’ajoutent pas de ligne : iPhone et ordinateur', () => {

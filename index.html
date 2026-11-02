@@ -8805,7 +8805,7 @@ guide({ id:48, titre:"Sous-requête dans FROM", résumé:"Utiliser une sous-requ
 guide({ id:92, titre:"INSERT … SELECT et CREATE TABLE AS", résumé:"Enregistrer le résultat d’une requête",
   /* Cours en vidéo : l’animation (assets/anim/insert-select.html, moteur commun assets/anim/core.js) est le cours (Elisa, 2 novembre, 11 h 16 : « est-ce que tu peux regarder s’il manque une notion ? » … « oui »). Après « Sous-requête dans FROM » : le projet (de « Normaliser les inscriptions » à « Sécurité et droits ») se suit sans interruption, la leçon ne peut pas suivre INSERT. La vidéo suit la soirée des clients : CREATE TABLE invites AS SELECT (Paris), puis INSERT INTO invites SELECT (Lyon). */
   leconSeule:true,
-  video:{anim:'assets/anim/insert-select.html?app&embed',thumb:'assets/anim/insert-select-thumb.jpg',duree:'3 min 14',moments:3,seuil:2},
+  video:{anim:'assets/anim/insert-select.html?app&embed',thumb:'assets/anim/insert-select-thumb.jpg',duree:'3 min 15',moments:3,seuil:2},
   reflex:[
     {recap:[
       ["📸","CREATE TABLE … AS SELECT","Crée une nouvelle table avec le résultat d’une requête : ses colonnes et ses lignes."],
@@ -21253,6 +21253,9 @@ function lvNw(h){ return String(h||'').replace(/(<[^>]*>)|([0-9A-Za-zÀ-ÖØ-ö�
      14 caractères : jamais « aucune ligne. » seul), seulement si cela n’ajoute pas de ligne : sur l’iPhone, « … de Léa Simon : /
      celle de Nathan Petit attend son tour. » ; sur l’ordinateur, plus large, le texte garde ses deux lignes pleines. */
 const LV_CUT_MIN=14;
+/* Elisa, 2 novembre, 12 h 48 : « attention au formatage … elles vont à la ligne pour rien » (« prenom, nom, email : / 3 colonnes… »).
+   Après « : » ou « ; », la ligne ne se coupe que si ce qui précède est assez long (une vraie moitié de ligne, LV_CUT_COLON caractères). */
+const LV_CUT_COLON=30;
 const LV_SHORT=new Set(('à au aux de du des d le la les l un une en et ou ni par sur sous pour dans avec sans chez vers entre ce cet cette ces son sa ses '+
   'leur leurs mon ma mes ton ta tes notre votre nos vos chaque il elle on ils elles se ne que qu qui si y').split(' '));
 function lvFlowTypo(h){
@@ -21283,10 +21286,10 @@ function lvCuts(h,kinds){
   const re=/([  ][:;])( )(?=\S)|([.!?…])( )(?=[«\p{Lu}])/gu, cands=[]; let m;
   while((m=re.exec(plain))){
     const k=m[1]?'colon':'sent', at=m.index+(m[1]||m[3]).length, p=pos[at];
-    if((!kinds||kinds.includes(k))&&p&&!p.code&&!pos[at-1].code)cands.push({at,p});
+    if((!kinds||kinds.includes(k))&&p&&!p.code&&!pos[at-1].code)cands.push({at,p,k});
   }
   let last=0; const keep=[];
-  cands.forEach(c=>{ if(c.at-last>=LV_CUT_MIN&&plain.length-c.at-1>=LV_CUT_MIN){ keep.push(c); last=c.at; } });
+  cands.forEach(c=>{ if(c.at-last>=(c.k==='colon'?LV_CUT_COLON:LV_CUT_MIN)&&plain.length-c.at-1>=LV_CUT_MIN){ keep.push(c); last=c.at; } });
   keep.reverse().forEach(({p})=>{ const t=parts[p.i]; parts[p.i]=t.slice(0,p.j)+'<br>'+t.slice(p.j+1); });
   return parts.join('');
 }
@@ -23030,7 +23033,7 @@ function bravoUnlockHtml(l){
   if(!CARTES[l.id])return '';
   return `<div class="bravo-unlock">
     ${bravoCardHtml(l)}
-    <div class="bravo-unlock-copy"><small>Carte débloquée</small><b>Touche-la pour la retourner</b><p>L’essentiel de la leçon, rangé dans tes cartes mémo.</p></div>
+    <div class="bravo-unlock-copy"><small>Carte débloquée</small><b>Touche-la pour la retourner</b><p>${carteRetenirHtml(l.id)?'Ce qu’il faut retenir de la leçon est dans la carte, rangée dans ta collection.':'L’essentiel de la leçon, rangé dans tes cartes mémo.'}</p></div>
   </div>`;
 }
 /* Elisa, 2 novembre, 8 h 01 : « cette page est encore de l’ancienne DA (je préférais la DA du site internet) ». Le haut du bilan reprend
@@ -23050,12 +23053,19 @@ function bravoHeroHtml(l){
         <img class="lst-stk bv-stk" src="${typeof MASCOT_IMG!=='undefined'?MASCOT_IMG:''}" width="450" height="674" alt="" draggable="false">
       </div>`;
 }
+/* Elisa, 2 novembre, 12 h 48 : « dans voir mon bilan pas de À retenir, elle se mettra dans la carte de collection, comme ça on voit
+   la carte partout ». Une leçon qui a sa carte : le bilan montre la carte, et son « À retenir » (les trois idées de la vidéo) est dans
+   la carte, comme dans la collection. Sans carte, le bilan garde « Ce que tu retiens ». */
+function carteRetenirHtml(id){
+  const l=typeof allLessons!=='undefined'?allLessons.find(x=>x.id===id):null;
+  return l&&typeof lessonHasVideo==='function'&&lessonHasVideo(l)&&lessonReflexHtml(l)?lessonReflexHtml(l):'';
+}
 function renderBravoSlide(l){
   return `
     <div class="ls-main bravo-wrap">
       ${bravoHeroHtml(l)}
       ${stkBravoHtml()}
-      ${bravoRecapHtml(l)}
+      ${typeof CARTES!=='undefined'&&CARTES[l.id]&&carteRetenirHtml(l.id)?'':bravoRecapHtml(l)}
       ${bravoUnlockHtml(l)}
       ${bravoNextHtml(l)}
       ${bravoActionsHtml(l)}
@@ -27098,7 +27108,7 @@ function openCard(id){
   document.getElementById('card-body').innerHTML=`
     <div class="cd-share collectible">${collectibleFace(id)}<i class="cd-shine" aria-hidden="true"></i></div>
     <p class="cd-lab memo"><span class="cd-memo-stk" aria-hidden="true">${lqStkSvg('bulb')}</span><span class="cd-memo-tag">À retenir</span></p>
-    <div class="cd-memo">${cardMemoHtml(c.m)}</div>
+    <div class="cd-memo">${carteRetenirHtml(id)||cardMemoHtml(c.m)}</div>
     <button type="button" class="coda-note" onclick="noteFromCard(${id})"><span class="coda-note-stk" aria-hidden="true">${lqStkSvg('note')}</span>Ajouter à mes notes</button>
     ${syntaxHead}
     ${cardSyntaxHtml(c)}
@@ -30975,7 +30985,8 @@ function startNoteHere(txt){
 }
 function noteFromCard(id){
   const c=CARTES[id]; closeCard();
-  openNote(null,{ctx:`Carte ${id} · ${c.k}`,sql:c.s,txt:noteTextFromHtml(c.m)});
+  const l=allLessons.find(x=>x.id===id);
+  openNote(null,{ctx:`Carte ${id} · ${c.k}`,sql:c.s,txt:carteRetenirHtml(id)?lessonReflexText(l):noteTextFromHtml(c.m)});
 }
 function saveConsoleQuery(){
   const sql=document.getElementById('ed-console').value.trim();
@@ -33285,7 +33296,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-ordre-textes-v2354';
+  const SW_CACHE='requete-2026-11-02-carte-retenir-v2355';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
