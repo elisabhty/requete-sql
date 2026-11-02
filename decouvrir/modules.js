@@ -55,7 +55,7 @@ window.MODULES=[
       ["IN", "Filtrer avec une liste", 160],
       ["BETWEEN", "Filtrer un intervalle", 157],
       ["ORDER BY", "Ordonner le résultat", 135],
-      ["LIMIT et OFFSET", "Limiter le résultat et le découper en pages", 217]
+      ["LIMIT et OFFSET", "Limiter le résultat et le découper en pages", 234]
     ]},
     {titre:"Fonctions et expressions", sous:"Transformer les valeurs ligne par ligne", lecons:[
       ["Fonctions de texte", "Transformer, nettoyer et découper du texte", 203],

@@ -656,8 +656,8 @@ const COURSES = [
       '<span class="sus"><span class="emo">🔍</span>50 ou 500 ?</span>', '<span class="tx">30 → 500</span><span class="tx">500 → 30</span>',
       '<span class="tx">A → Z</span><span class="tx">Z → A</span>', '<span class="kw">ORDER BY</span> categorie, prix<span class="sens" id="descC"> <span class="kw glow">DESC</span></span>;',
       '✓ Vérifications prêtes']},
-  {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '3 min 37', notesAt: 173.5,
-    maxKo: 530,   // les quatre démonstrations des usages (Elisa, 29 octobre, 12 h 02)
+  {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '3 min 54', notesAt: 173.5,
+    maxKo: 540,   // les quatre démonstrations des usages (Elisa, 29 octobre, 12 h 02) ; 540 depuis sa voix off (38 phrases calées, Elisa, 2 novembre, 8 h 07)
     table: 'produits',
     bubble: 'Choisis combien de lignes afficher et à partir de laquelle commencer.',
     chapters: ['Situation', 'Le problème', 'LIMIT en action', 'Sauter avec OFFSET', 'Un classement stable', 'Le résultat', 'À quoi ça sert', 'À retenir'],
