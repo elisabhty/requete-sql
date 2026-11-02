@@ -20231,7 +20231,7 @@ class LvAnim{
     this.raf=0; this.last=0; this.ci=0; this.lastTU=0; this.wantPlay=false; this.dead=false;
     this.cues=[]; this.chapters=[]; this.questions=[]; this.picks=[]; this.opens=[]; this.captions=[]; this.answered=new Set();
     /* Voix off (LvVoice) : vc, la phrase en cours (indice dans voice.clips) ; vwait, l’image attend que la phrase puisse partir. */
-    this.voice=null; this.vc=-1; this.vwait=0;
+    this.voice=null; this.vc=-1; this.vwait=0; this.vSkip=-1;
     const fail=()=>{ if(this.dead||this.info)return; this.dead=true; this._emit('error'); };
     this.timer=setTimeout(fail,12000);
     frame.addEventListener('load',async()=>{
@@ -20261,7 +20261,7 @@ class LvAnim{
   set currentTime(v){
     v=Math.max(0,+v||0); if(this.duration>0)v=Math.min(v,this.duration);
     this.t=v; this.ended=this.duration>0&&v>=this.duration;
-    LvSfx.stop(); LvVoice.stop(); this.vc=-1; this.vwait=0; this._seekCues(); this._render();
+    LvSfx.stop(); LvVoice.stop(); this.vc=-1; this.vSkip=-1; this.vwait=0; this._seekCues(); this._render();
     this._emit('timeupdate'); this._emit('seeked');
   }
   get playbackRate(){ return this._rate; }
@@ -20293,9 +20293,14 @@ class LvAnim{
   _vAt(t){ const cs=this.voice?this.voice.clips:[]; for(let i=0;i<cs.length;i++){ const c=cs[i]; if(t<c.t)break; if(t<c.t+c.d)return i; } return -1; }
   /* La voix suit la vidéo : une phrase qui commence part (l’image l’attend si son fichier n’est pas prêt, 2,5 s au plus), celle en cours
      est tenue calée (à 0,3 s près, plus en lecture rapide), et la voix se tait entre deux phrases, une fois son dernier mot fini. */
+  /* Une phrase en cours quand l’image s’arrête (un bouton à toucher, un moment) est dite jusqu’au bout pendant l’arrêt (finish) ; à la
+     reprise, l’image est encore dans son passage : elle n’est pas relancée (Elisa, 2 novembre, 19 h 31 : après « Exécuter » touché, la
+     voix redisait la fin de « clique sur Exécuter »). vSkip : la phrase ainsi finie ; un retour en arrière (currentTime) la rend. */
   _voice(t,now){
     if(!this.voice||this._muted)return;
     const k=this._vAt(t);
+    if(k>=0&&k===this.vSkip){ this.vc=k; return; }
+    if(k!==this.vSkip)this.vSkip=-1;
     if(k!==this.vc){ const was=this.vc>=0?this.voice.clips[this.vc]:null; this.vc=k; if(k<0){ LvVoice.finish(was); return; } const c=this.voice.clips[k]; LvVoice.start(c,t-c.t); if(!LvVoice.ready())this.vwait=now; return; }
     if(k>=0){ const c=this.voice.clips[k]; LvVoice.keep(c,t-c.t); }
   }
@@ -20321,7 +20326,8 @@ class LvAnim{
       while(this.ci<this.cues.length&&this.cues[this.ci].t<=t){ const c=this.cues[this.ci]; if(c.t>this.t){ if(c.type==='confetti')lvConfetti(this.frame,c); else LvSfx.play(c.type,c.pitch||0,c.gain==null?1:c.gain,.36*Math.sin(this.ci*2.399)); } this.ci++; }
       this.t=t; this._render();
       /* Arrêt (question, moment, message à toucher, fin) : la voix se tait ; le lecteur y dit la consigne à part (LvVoice.say). */
-      if(q>=0||pk>=0||op>=0||end){ LvVoice.finish(this.vc>=0?this.voice.clips[this.vc]:null); this.vc=-1; this.vwait=0; }
+      /* La phrase en cours se finit pendant l’arrêt (finish : 1,5 s au plus) ; si elle tient dans ce délai, la reprise ne la redit pas. */
+      if(q>=0||pk>=0||op>=0||end){ const vc=this.vc>=0&&this.voice?this.voice.clips[this.vc]:null; this.vSkip=vc&&vc.t+vc.d-t<=1.4?this.vc:-1; LvVoice.finish(vc); this.vc=-1; this.vwait=0; }
       if(now-this.lastTU>=80||end||q>=0||pk>=0||op>=0){ this.lastTU=now; this._emit('timeupdate'); }
       if(q>=0){ this.paused=true; this._emit('pause'); this._emit('question',{i:q,q:this.questions[q]}); return; }
       if(pk>=0){ this.paused=true; this._emit('pause'); this._emit('pick',{i:pk,p:this.picks[pk]}); return; }
@@ -33342,7 +33348,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-voix-coupes-v2383';
+  const SW_CACHE='requete-2026-11-02-voix-v2384';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
