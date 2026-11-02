@@ -23,7 +23,7 @@ const take = (from, to) => {
 /* Les règles CSS dont le sélecteur contient `part` (hors commentaires ; le JS qui passe par là est écarté : un sélecteur commence par « . »). */
 const rules = part => [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
   .map(m => ({ sel: m[1].trim(), body: m[2].trim() }))
-  .filter(r => r.sel.startsWith('.') && r.sel.includes(part));
+  .filter(r => /^(\.|:where\()/.test(r.sel) && r.sel.includes(part));
 const one = sel => {
   /* La règle « mouvement réduit » (même sélecteur, dans un @media) est vérifiée à part. */
   const found = rules(sel).filter(r => r.sel === sel && r.body !== 'transition:none!important');
@@ -71,7 +71,7 @@ test('états du rond : 18 px au repos, 22 px sous le doigt, anneau vert pour un 
   assert.ok(b.includes('left:-9px;top:-9px;width:18px;height:18px;box-sizing:border-box;border-radius:50%;background:#fff;border:3px solid var(--accent,#6A4DF4);box-shadow:0 2px 6px rgba(40,20,120,.25)'), 'même rond blanc à bordure violette qu’avant');
   assert.ok(one('.lv.is-seeking .lv-knob::before').includes('left:-11px;top:-11px;width:22px;height:22px'), 'sous le doigt : 22 px, centré au même point (pas de demi-pixel : le rond reste net)');
   assert.ok(one('.lv.is-valid .lv-knob::before').includes('border-color:#169447;box-shadow:0 0 0 6px rgba(22,148,71,.22),0 2px 6px rgba(40,20,120,.25)'), 'exercice réussi : bordure et anneau verts');
-  assert.equal(one('.lv-seek:focus-visible~.lv-knob::before'), 'box-shadow:0 0 0 4px rgba(106,77,244,.28)', 'focus clavier : anneau violet clair, comme avant');
+  assert.equal(one(':where(html:not(.pointer-nav)) .lv-seek:focus-visible~.lv-knob::before'), 'box-shadow:0 0 0 4px rgba(106,77,244,.28)', 'focus clavier : anneau violet clair, comme avant');
   assert.ok(css.includes('@media (prefers-reduced-motion:reduce){.lv-pkm i{transition:none!important}.lv-knob::before{transition:none!important}}'), 'mouvement réduit : le rond change sans transition');
   const k = one('.lv-knob');
   assert.ok(k.includes('position:absolute') && k.includes('z-index:1') && k.includes('top:50%') && k.includes('left:9px') && k.includes('width:0;height:0') && k.includes('pointer-events:none'),

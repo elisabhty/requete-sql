@@ -68,7 +68,7 @@ window.MODULES=[
     {titre:"Agrégats et regroupements", sous:"Calculer, regrouper et agréger", lecons:[
       ["COUNT", "Compter les lignes", 145],
       ["SUM, AVG, MIN et MAX", "Somme, moyenne, minimum et maximum", 180],
-      ["GROUP BY", "Un calcul par groupe", 149],
+      ["GROUP BY", "Un calcul par groupe", 150],
       ["GROUP BY sur plusieurs colonnes", "Un groupe par combinaison de valeurs", 203],
       ["HAVING", "Filtrer après regroupement", 155],
       ["L’ordre d’exécution", "Dans quel ordre une requête est exécutée", 204],
@@ -87,16 +87,16 @@ window.MODULES=[
       ["Quel JOIN choisir ?", "Choisir la bonne jointure selon les lignes à garder", 211]
     ]},
     {titre:"Sous-requêtes et ensembles", sous:"IN, EXISTS, CTE et UNION", lecons:[
-      ["Sous-requête dans WHERE avec IN", "Quels clients ont déjà commandé du Magnésium ?", 236],
-      ["Sous-requête dans SELECT", "Calculer une valeur pour chaque ligne", 204],
+      ["Sous-requête dans WHERE avec IN", "Quels clients ont déjà commandé du Magnésium ?", 245],
+      ["Sous-requête dans SELECT", "Calculer une valeur pour chaque ligne", 209],
       ["Sous-requête dans FROM", "Utiliser une sous-requête comme table", 208],
       ["INSERT … SELECT et CREATE TABLE AS", "Enregistrer le résultat d’une requête", 199],
       ["EXISTS et NOT EXISTS", "Tester la présence ou l’absence d’une ligne liée", 243],
       ["ANY et ALL", "Comparer à toute une liste", 225],
       ["WITH (CTE)", "Créer et réutiliser un résultat intermédiaire", 249],
-      ["UNION et UNION ALL", "Empiler deux résultats, avec ou sans doublons", 219],
-      ["INTERSECT et EXCEPT", "Comparer deux résultats", 179],
-      ["WITH RECURSIVE (CTE RECURSIVE)", "Créer une suite automatiquement", 199]
+      ["UNION et UNION ALL", "Empiler deux résultats, avec ou sans doublons", 232],
+      ["INTERSECT et EXCEPT", "Comparer deux résultats", 182],
+      ["WITH RECURSIVE (CTE RECURSIVE)", "Créer une suite automatiquement", 216]
     ]},
     {titre:"Fonctions de fenêtre", sous:"Calculer sans regrouper les lignes", lecons:[
       ["OVER()", "Calculer sans regrouper les lignes", 202],
@@ -107,8 +107,8 @@ window.MODULES=[
     ]},
     {titre:"Modéliser", sous:"Normalisation, cardinalités et UML", lecons:[
       ["Normaliser les inscriptions", "Du fichier Excel des ateliers aux tables", 238],
-      ["Clés et relations", "Relier les tables entre elles", 282],
-      ["Modéliser avec UML", "Du diagramme de classes aux tables", 298]
+      ["Clés et relations", "Relier les tables entre elles", 307],
+      ["Modéliser avec UML", "Du diagramme de classes aux tables", 323]
     ]},
     {titre:"Créer et faire évoluer les tables", sous:"CREATE, ALTER et DROP TABLE", lecons:[
       ["CREATE TABLE", "Créer la structure d’une table", 275],
@@ -131,8 +131,8 @@ window.MODULES=[
       ["Concurrence et isolation", "Gérer les accès simultanés", 261]
     ]},
     {titre:"Procédures et triggers", sous:"Automatiser les traitements", lecons:[
-      ["Procédures et fonctions stockées", "Réutiliser un traitement ou un calcul", 188],
-      ["Les triggers", "Déclencher une action automatiquement", 248]
+      ["Procédures et fonctions stockées", "Réutiliser un traitement ou un calcul", 198],
+      ["Les triggers", "Déclencher une action automatiquement", 263]
     ]},
     {titre:"Vues, index et optimisation", sous:"Structurer et accélérer", lecons:[
       ["CREATE VIEW", "Enregistrer une requête sous un nom", 244],

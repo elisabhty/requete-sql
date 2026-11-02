@@ -778,7 +778,7 @@ const COURSES = [
       '<span>Une valeur, pas un produit</span>', '<span class="ko">✕ pas dans le résultat</span>', '<span>L’âge des 10 clients</span>',
       "{label: '1 075 unités', ok: true,", "kind: 'tap', need: 1,", "{label: 'L’âge du client le plus jeune', to: 'N',",
       '<span class="glow" id="as6d"><span class="kw">AS</span> prix_max</span>', '✓ 4 / 4 · Tableau de bord complet']},
-  {id: 16, next: 87, titre: 'GROUP BY', page: 'group-by.html', thumb: 'group-by-thumb.jpg', duree: '2 min 29', notesAt: 126.3,
+  {id: 16, next: 87, titre: 'GROUP BY', page: 'group-by.html', thumb: 'group-by-thumb.jpg', duree: '2 min 30', notesAt: 126.3,
     table: 'clients',
     bubble: 'Regroupe les lignes qui ont un point commun pour effectuer des calculs par groupe.',
     chapters: ['Situation', 'Le problème', 'GROUP BY en action', 'Un calcul par groupe', 'Le piège', 'Le résultat', 'À retenir'],
@@ -945,7 +945,7 @@ const COURSES = [
       '<span class="cm hid" id="q5c">-- sans ON</span>', "if (out.length + rest.length <= 6) rest.forEach(s => { out.push(JSON.parse(s)); mk.push('m'); });",
       "leave(i, answered){ if (answered && X && X.ok && X.i === i) wait = i; else clear(); },",
       "tick(t = tl.time()){ if (wait < 0) return; const a = PICKS[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear(); }"]},
-  {id: 45, next: 47, titre: 'Sous-requête dans WHERE avec IN', page: 'sous-requete-in.html', thumb: 'sous-requete-in-thumb.jpg', duree: '3 min 56', notesAt: 213.5,
+  {id: 45, next: 47, titre: 'Sous-requête dans WHERE avec IN', page: 'sous-requete-in.html', thumb: 'sous-requete-in-thumb.jpg', duree: '4 min 05', notesAt: 213.5,
     table: 'clients',
     bubble: 'Utilise le résultat d’une&nbsp;requête comme liste de valeurs dans le filtre d’une&nbsp;autre.',
     chapters: ['Situation', 'Le problème', 'La sous-requête', 'IN en action', 'Le piège', 'Le résultat', 'À retenir'],
@@ -953,7 +953,7 @@ const COURSES = [
       '<span class="nt" id="nt3">commande n°16 · sans client</span>', '<span class="kw glow" id="k3">IN</span> <span class="glow" id="p3a">(</span>',
       '<span class="glow" id="eq5">=</span> (', '<span class="n2" id="n5">1 ligne</span><span class="ok2" id="ok5">✓ Aucune erreur</span>',
       '<span class="orph" id="m5a"><span class="emo">✕</span>Sophie Martin</span>', '✓ 4 clients à appeler']},
-  {id: 47, next: 48, titre: 'Sous-requête dans SELECT', page: 'sous-requete-select.html', thumb: 'sous-requete-select-thumb.jpg', duree: '3 min 24', notesAt: 187.2,
+  {id: 47, next: 48, titre: 'Sous-requête dans SELECT', page: 'sous-requete-select.html', thumb: 'sous-requete-select-thumb.jpg', duree: '3 min 29', notesAt: 187.2,
     table: 'produits',
     bubble: 'Ajoute à chaque ligne une valeur calculée par une autre requête.',
     chapters: ['Situation', 'Le problème', 'La sous-requête', 'Ligne par ligne', 'Le piège', 'Le résultat', 'À retenir'],
@@ -1002,7 +1002,7 @@ const COURSES = [
       '<span class="glow" id="nn3"><span class="kw">WHERE</span> client_id <span class="kw">IS NOT NULL</span></span>',
       '<span class="glow" id="wh4"><span class="kw">WHERE</span> nb_commandes &gt;= 2</span>;', '<span class="m">no such table: totaux</span>',
       '<span class="glow" id="j6"><span class="kw">JOIN</span> totaux</span>', '✓ 6 invitations envoyées']},
-  {id: 73, next: 80, titre: 'UNION et UNION ALL', page: 'union.html', thumb: 'union-thumb.jpg', duree: '3 min 39', notesAt: 155.7,
+  {id: 73, next: 80, titre: 'UNION et UNION ALL', page: 'union.html', thumb: 'union-thumb.jpg', duree: '3 min 52', notesAt: 155.7,
     table: 'clients',
     bubble: 'Réunis les résultats de plusieurs requêtes les uns à la suite des autres.',
     chapters: ['Situation', 'Le problème', 'UNION ALL', 'Les noms de colonnes', 'Le piège', 'Le résultat', 'À retenir'],
@@ -1012,7 +1012,7 @@ const COURSES = [
       '<span class="m">SELECTs to the left and right of UNION ALL do not have the same number of result columns</span>',
       '<span class="k ko">3 colonnes</span>', '✓ Un indicateur de plus = une ligne de plus', '✓ Tableau de bord à jour',
       '<div class="mn-l"><span class="ic">UNION</span> rallonge</div>']},
-  {id: 80, next: 77, titre: 'INTERSECT et EXCEPT', page: 'intersect-except.html', thumb: 'intersect-except-thumb.jpg', duree: '2 min 59', notesAt: 159.2,
+  {id: 80, next: 77, titre: 'INTERSECT et EXCEPT', page: 'intersect-except.html', thumb: 'intersect-except-thumb.jpg', duree: '3 min 02', notesAt: 159.2,
     table: 'produits',
     bubble: 'Compare deux résultats pour trouver leurs lignes communes ou leurs différences.',
     chapters: ['Situation', 'Le problème', 'INTERSECT', 'EXCEPT', 'Le piège', 'Le résultat', 'À retenir'],
@@ -1022,7 +1022,7 @@ const COURSES = [
       '🏷️ Tisane Détox&nbsp;: à écouler en promotion', "tl.to(blocB, {y: -4 * LH, duration: 0.6, ease: 'power2.inOut'}, 113.0);",
       '✕ Des stocks confortables&nbsp;: 120, 500 et 150 unités', '✓ Commande envoyée au fournisseur',
       '<div class="mn-l"><span class="ic">EXCEPT</span><span>retire la seconde</span></div>']},
-  {id: 77, next: 60, titre: 'WITH RECURSIVE (CTE RECURSIVE)', page: 'with-recursive.html', thumb: 'with-recursive-thumb.jpg', duree: '3 min 19', notesAt: 159.2,
+  {id: 77, next: 60, titre: 'WITH RECURSIVE (CTE RECURSIVE)', page: 'with-recursive.html', thumb: 'with-recursive-thumb.jpg', duree: '3 min 36', notesAt: 159.2,
     table: 'commandes',
     bubble: 'Construis progressivement une suite de résultats à partir d’un&nbsp;point de départ.',
     chapters: ['Situation', 'Le problème', 'L’ancre', 'La partie récursive', 'Le piège', 'Le résultat', 'À retenir'],
@@ -1093,7 +1093,7 @@ const COURSES = [
       "{at: 105.0, from: 94.3, kind: 'sort',", "{at: 173.8, from: 163.0, kind: 'tap', need: 1,", "{label: 'Impossible à savoir', ok: true}", "{at: 185.4, from: 179.95, kind: 'pick',",
       '<span class="bad hid" id="xn2">7 inscriptions&nbsp;?</span>', 'Effacé avec la ligne', '<span class="m0">Nouveau mail</span>', 'Prochaine leçon · Clés et relations',
       '<span class="miss" id="ms1">? client</span><span class="miss" id="ms2">? atelier</span>']},
-  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '4 min 42', notesAt: 167.9,
+  {id: 72, next: 81, titre: 'Clés et relations', page: 'projet-cles.html', thumb: 'projet-cles-thumb.jpg', duree: '5 min 07', notesAt: 167.9,
     table: 'inscriptions',
     bubble: 'Relie les tables entre elles grâce aux clés primaires et étrangères.',
     chapters: ['Le problème', 'La clé primaire', 'La clé étrangère', '1 → N', 'N ↔ N', '1 ↔ 1', 'À retenir'],
@@ -1108,7 +1108,7 @@ const COURSES = [
       "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
       "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.9);", 'Prochaine leçon · Modéliser avec UML']},
-  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '4 min 58', notesAt: 224.15,
+  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '5 min 23', notesAt: 224.15,
     table: 'ateliers',
     bubble: 'Représente les tables et leurs relations avant de construire la base de données.',
     chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
@@ -1257,7 +1257,7 @@ const COURSES = [
       "{at: atp('p6'), from: A.g1, kind: 'sort',", "const Q_RT = [['-- Revenir au point de retour'], ['ROLLBACK TO SAVEPOINT avant_cadeau;']]", 'Prochaine leçon · Concurrence et isolation']},
   /* Le chapitre 15, ajouté le 30 octobre (le scénario d’Elisa : 18 h 02, les commandes affluent) : une action ou une valeur, la procédure
      expedier_commande et son paramètre, la fonction calculer_points et son réglage, le duel, les quatre tickets, puis leur création dans PostgreSQL. */
-  {id: 83, next: 70, titre: 'Procédures et fonctions stockées', page: 'projet-procedures.html', thumb: 'projet-procedures-thumb.webp', duree: '3 min 08', notesAt: 161.82,
+  {id: 83, next: 70, titre: 'Procédures et fonctions stockées', page: 'projet-procedures.html', thumb: 'projet-procedures-thumb.webp', duree: '3 min 18', notesAt: 161.82,
     table: 'commandes',
     bubble: 'Enregistre&nbsp;des actions et des calculs dans la base pour pouvoir les réutiliser.',
     chapters: ['Les commandes affluent', 'Action ou calcul ?', 'Une procédure stockée', 'Une fonction stockée', 'Le duel', 'Les quatre tickets', 'Selon le SGBD', 'À retenir'],
@@ -1266,7 +1266,7 @@ const COURSES = [
       "{at: atp('p1'), from: A.c3, kind: 'sort',", "{label: 'L’identifiant de la commande', ok: true},", "{at: atp('p3'), from: A.c19, kind: 'tune',",
       "{label: 'Une procédure stockée', ok: true},", "{label: 'Une fonction stockée', ok: true}]},", "{at: atp('p6'), from: A.c25, kind: 'sort',",
       "['ec1', '{kc1|CALL} expedier_commande({pa1|13});']", "['eg1', '{gp|CREATE PROCEDURE} expedier_commande(id_commande INT)']", 'Prochaine leçon · Les triggers']},
-  {id: 70, next: 64, titre: 'Les triggers', page: 'projet-trigger.html', thumb: 'projet-trigger-thumb.webp', duree: '4 min 08', notesAt: 245.94,
+  {id: 70, next: 64, titre: 'Les triggers', page: 'projet-trigger.html', thumb: 'projet-trigger-thumb.webp', duree: '4 min 23', notesAt: 245.94,
     table: 'historique_prix',
     bubble: 'Déclenche automatiquement une action lorsqu’un&nbsp;événement précis se produit dans la base.',
     chapters: ['Qui a changé le prix ?', 'Garder chaque changement', 'Créer le trigger', 'Modifier le prix', 'Lire la nouvelle ligne', 'Vérifier avec le stock',
@@ -1937,7 +1937,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
 
 test('Clés et relations (projet, chapitre 2) : leçon seule, le cas du chapitre 1 relié par des clés, chaque réponse vérifiée dans SQLite', async () => {
   const l72 = cut('guide({ id:72, titre:"Clés et relations"', 'guide({ id:81,');
-  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'4 min 42',moments:6,seuil:4}"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l72.includes('leconSeule:true,') && l72.includes(",duree:'5 min 07',moments:6,seuil:4}"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -2211,7 +2211,7 @@ test('« Identifiant », jamais « numéro », pour la valeur d’une clé : vid
 
 test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des tables du chapitre 2, chaque multiplicité et chaque traduction vérifiées', async () => {
   const l81 = cut('guide({ id:81, titre:"Modéliser avec UML"', 'guide({ id:61,');
-  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'4 min 58',moments:6,seuil:4}"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'5 min 23',moments:6,seuil:4}"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
