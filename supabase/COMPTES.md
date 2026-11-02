@@ -55,7 +55,7 @@ if (!profile) {
 }
 ```
 
-La sauvegarde et la synchronisation de progression ne sont pas implémentées par ce socle. Elles nécessiteront leur propre schéma et une gestion des conflits entre appareils.
+La synchronisation de progression est désormais préparée séparément, sans activation, dans [PROGRESSION.md](PROGRESSION.md). Son schéma et son moteur gèrent les conflits entre appareils ; le raccordement aux écrans et au stockage iOS/web reste à réaliser.
 
 Le compte commun sera identifié par le même `auth.users.id` sur le web et iOS. Ni le prénom ni le pseudo ne servent de preuve d'identité. La reprise du pseudo multijoueur actuel devra prouver la possession de la clé d'appareil ; elle n'est pas réalisée par le service préparé. Lors du raccordement, isoler les données locales par compte et demander une fusion explicite de la progression invitée, pour éviter de mélanger deux utilisateurs du même appareil.
 
@@ -65,7 +65,7 @@ Le compte commun sera identifié par le même `auth.users.id` sur le web et iOS.
 
 Le service exige un jeton vérifié par Auth et la confirmation `SUPPRIMER`. Il révoque les sessions avant de supprimer l'utilisateur Auth identifié par ce jeton ; le profil est supprimé par la clé étrangère en cascade. Les erreurs internes ne sont pas exposées au client. Si la suppression échoue après révocation, l'utilisateur devra se reconnecter pour réessayer.
 
-Ce périmètre couvre le compte Auth et le profil préparé aujourd'hui. Tout ajout futur de fichiers, progression cloud ou association de scores devra intégrer leur nettoyage au parcours de suppression. Les données historiques uniquement liées à une clé d'appareil ne sont pas automatiquement associées au compte.
+Ce périmètre couvre le compte Auth, le profil et les deux tables de progression préparées, supprimées en cascade. Tout ajout futur de fichiers ou association de scores devra intégrer leur nettoyage au parcours de suppression. Les données historiques uniquement liées à une clé d'appareil ne sont pas automatiquement associées au compte.
 
 La suppression d'un compte Apple est volontairement refusée dans ce code préparatoire : il faut d'abord ajouter la révocation des jetons Apple et la vérifier. Ne pas activer Apple avant d'avoir terminé ce parcours. Pour iOS, configurer aussi la capacité Sign in with Apple et le retour natif du bundle `fr.requete.app` ; un appel OAuth web ne remplace pas à lui seul l'intégration native.
 
