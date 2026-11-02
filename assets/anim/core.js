@@ -1250,6 +1250,15 @@ function camRender(t){
   if (CAM.pause) { camApply(1, 240); return; }
   const [z, o] = camAt(t); camApply(z, o);
 }
+/* Sur iPhone, Safari peut garder à l’écran des traces de l’image à son ancienne taille (bandes violettes en travers des lignes, bords de
+   cartes sur le côté) quand l’agrandissement change pendant une pause (Elisa, 2 novembre, 14 h 24, réf. 2) : la scène est redessinée
+   en entier, sans rien changer à l’image (display retiré puis remis dans la même image). */
+function stageRepaint(){
+  const st = typeof document !== 'undefined' && document.getElementById('stage');
+  if (!st) return;
+  const d = st.style.display; st.style.display = 'none'; void st.offsetHeight; st.style.display = d;
+}
+if (typeof window !== 'undefined') window.__repaint = stageRepaint;
 /* Pendant un moment « À toi », le lecteur de l’app règle lui-même la taille de l’image au-dessus de sa feuille (lvPkFit) : la caméra revient
    à 1 en 0,12 s, puis reprend sa taille à la fermeture (Elisa, 2 novembre, 1 h 32, réf. 3 : la feuille cachait le bas de la liste). */
 if (typeof window !== "undefined") window.__camPause = on => {
@@ -1259,7 +1268,7 @@ if (typeof window !== "undefined") window.__camPause = on => {
   const step = now => { const k = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - k, 3);
     if (CAM.pause !== !!on) return;
     camApply(on ? z + (1 - z) * e : 1 + (z - 1) * e, o);
-    if (k < 1) requestAnimationFrame(step); };
+    if (k < 1) requestAnimationFrame(step); else stageRepaint(); };
   requestAnimationFrame(step);
 };
 if (typeof addEventListener === 'function') addEventListener('resize', () => { if (CAM.samp) { camFit(); if (window.renderAt) window.renderAt(CAM.lastT); } });

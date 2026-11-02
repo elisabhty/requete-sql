@@ -6663,7 +6663,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 .lv-ico.is-muted{color:var(--ink-3,#6A6490)}
 .lv-stage{position:relative;flex:1;min-height:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .lv-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#F4F2FC}
-.lv-anim{border:0;display:block;pointer-events:none;background:transparent;opacity:0;transition:opacity .25s ease}
+.lv-anim{border:0;display:block;pointer-events:none;background:transparent;opacity:0;transition:opacity .25s ease;will-change:transform}
 .lv.is-ready .lv-anim{opacity:1}
 .lv.is-loading .lv-big,.lv.is-q .lv-big{opacity:0!important;pointer-events:none!important}
 .lv-stage{touch-action:manipulation}
@@ -8940,7 +8940,7 @@ guide({ id:79, titre:"Fenêtres glissantes", résumé:"Suivre l’évolution des
 guide({ id:89, titre:"FIRST_VALUE, LAST_VALUE et NTILE", résumé:"Première et dernière valeur, groupes égaux",
   /* Cours en vidéo : l’animation (assets/anim/first-last-ntile.html, moteur commun assets/anim/core.js) est le cours (Elisa, 2 novembre, 11 h 16 : « est-ce que tu peux regarder s’il manque une notion ? » … « oui »). Placé après « Fenêtres glissantes » : le piège de LAST_VALUE tient au cadre (ROWS BETWEEN) vu dans cette leçon. La vidéo suit les fiches produits : produit phare de la catégorie et gamme de prix. */
   leconSeule:true,
-  video:{anim:'assets/anim/first-last-ntile.html?app&embed',thumb:'assets/anim/first-last-ntile-thumb.jpg',duree:'3 min 30',moments:3,seuil:2},
+  video:{anim:'assets/anim/first-last-ntile.html?app&embed',thumb:'assets/anim/first-last-ntile-thumb.jpg',duree:'3 min 33',moments:3,seuil:2},
   reflex:[
     {recap:[
       ["🥇","FIRST_VALUE et LAST_VALUE","La première et la dernière valeur de la fenêtre, sans regrouper les lignes."],
@@ -19572,23 +19572,31 @@ function leaveLessonScreen(toTab,instant){
   activeTab=tab;
   const scr=document.getElementById('scr-lesson');
   const target=screenForTab(tab);
-  const finish=()=>{
+  const finish=rendered=>{
     document.querySelectorAll('.screen').forEach(s=>{ if(s!==target) s.classList.remove('active','push','push-back'); });
     if(target) target.classList.add('active');
     document.body.classList.remove('in-lesson');
     const fab=document.getElementById('fab');
     if(fab) fab.classList.remove('hide');
     showKbar(false);
-    syncTabUI(tab);
-    refreshTabScreen(tab);
+    if(!rendered){ syncTabUI(tab); refreshTabScreen(tab); }
     saveNav({view:'tab',tab});
   };
   if(!scr||!target||prefersReduceMotion()||restoringNav||instant){ finish(); return; }
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active','push','push-back'));
-  target.classList.add('active');
-  scr.classList.add('active','push-back');
-  document.body.classList.remove('in-lesson');
-  setTimeout(finish,260);
+  /* Elisa, 2 novembre, 14 h 24 : « le bouton de retour n’est pas fluide … et quand on retourne à l’accueil il y a comme un petit temps
+     blanc ». L’accueil était redessiné à la fin du glissement : il apparaissait d’abord tel qu’il était, puis se vidait un instant. Il est
+     maintenant prêt sous la leçon avant qu’elle ne glisse, et le glissement démarre à l’image suivante, sans travail pendant l’animation. */
+  scr.style.zIndex='3'; target.classList.add('active');   // l’accueil se dessine sous la leçon, encore au-dessus
+  syncTabUI(tab);
+  refreshTabScreen(tab);
+  requestAnimationFrame(()=>{
+    scr.style.zIndex='';
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active','push','push-back'));
+    target.classList.add('active');
+    scr.classList.add('active','push-back');
+    document.body.classList.remove('in-lesson');
+    setTimeout(()=>finish(true),260);
+  });
 }
 function exitLessonToTab(tab){
   leaveLessonScreen(tab);
@@ -21227,7 +21235,7 @@ const LV_CUT_MIN=14;
    Après « : » ou « ; », la ligne ne se coupe que si ce qui précède est assez long (une vraie moitié de ligne, LV_CUT_COLON caractères). */
 const LV_CUT_COLON=30;
 const LV_SHORT=new Set(('à au aux de du des d le la les l un une en et ou ni par sur sous pour dans avec sans chez vers entre ce cet cette ces son sa ses '+
-  'leur leurs mon ma mes ton ta tes notre votre nos vos chaque il elle on ils elles se ne que qu qui si y').split(' '));
+  'leur leurs mon ma mes ton ta tes notre votre nos vos chaque quel quelle quels quelles il elle on ils elles se ne que qu qui si y').split(' '));
 function lvFlowTypo(h){
   /* « d’un », « d’une » : l’article après l’apostrophe compte aussi (« Les cartes de membre d’un / client » coupait là) ; « qu’une » reste
      libre, comme au 26 octobre. */
@@ -21707,7 +21715,7 @@ function lvZoomTo(z){
 /* Pendant un moment « À toi », la légende de l’image (« À toi ! ») se cache : la feuille la recouvrait, mais quand l’image se réduit pour
    faire place à la feuille, puis que la feuille raccourcit (étiquettes rangées), la légende remontée dépassait au-dessus d’elle
    (Elisa, 25 octobre, 16 h 56 : « il y a un cadre en dessous, ça fait bizarre »). Une vidéo en fichier n’a pas de légende à cacher. */
-function lvCapHide(on){ try{ const w=LV&&LV.video&&LV.video.win, d=w&&w.document; if(d&&d.body)d.body.classList.toggle('lv-pk-open',on); if(w&&typeof w.__camPause==='function')w.__camPause(on); }catch(e){} }
+function lvCapHide(on){ try{ const w=LV&&LV.video&&LV.video.win, d=w&&w.document; if(d&&d.body)d.body.classList.toggle('lv-pk-open',on); if(w&&typeof w.__camPause==='function')w.__camPause(on); if(w&&typeof w.__repaint==='function')setTimeout(()=>{ try{ w.__repaint(); }catch(e){} },180); }catch(e){} }
 function lvPkClose(answered){
   const P=LV&&LV.pk; if(!P)return;
   LV.pk=null;
@@ -33278,7 +33286,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-formes-dans-projet-v2358';
+  const SW_CACHE='requete-2026-11-02-ios-repaint-v2359';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
