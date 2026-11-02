@@ -71,6 +71,15 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:cente
 
 #end{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:12px;padding:0 10% 7%;background:linear-gradient(180deg,rgba(244,242,252,0) 62%,rgba(244,242,252,.96) 80%);opacity:0;visibility:hidden;transition:opacity .4s,visibility .4s;cursor:default}
 #end.on{opacity:1;visibility:visible}
+#go{position:absolute;inset:0;z-index:6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;border:0;background:rgba(40,22,140,.66);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);cursor:pointer;color:#fff;-webkit-tap-highlight-color:transparent}
+#go[hidden]{display:none}
+#go .go-b{width:112px;height:112px;border-radius:50%;display:grid;place-items:center;background:var(--sun,#FFC83D);color:#1B1640;box-shadow:0 8px 0 #E0A100,0 24px 50px -16px rgba(10,4,60,.6);animation:goPulse 1.8s ease-in-out infinite}
+#go .go-b svg{width:46px;height:46px;margin-left:6px}
+#go .go-t{display:flex;flex-direction:column;align-items:center;gap:4px;font:800 26px/1.1 var(--display);text-shadow:0 2px 10px rgba(10,4,60,.35)}
+#go .go-t small{font:700 16px/1 var(--ui);opacity:.85}
+#go:active .go-b{transform:translateY(6px);box-shadow:0 2px 0 #E0A100}
+@keyframes goPulse{50%{transform:scale(1.06)}}
+@media (prefers-reduced-motion:reduce){#go .go-b{animation:none}}
 #end a,#end button{width:100%;max-width:360px;min-height:56px;border-radius:18px;display:flex;align-items:center;justify-content:center;gap:10px;font:700 18px/1 var(--display);text-decoration:none;cursor:pointer;transition:transform .12s var(--press),box-shadow .12s var(--press)}
 #end a{background:var(--accent);color:#fff;border:0;box-shadow:0 5px 0 var(--accent-lip)}
 #end a:active{transform:translateY(5px);box-shadow:0 0 0 var(--accent-lip)}
@@ -938,6 +947,8 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:cente
   <div class="abs" id="src"></div>
 </div>
 
+<!-- Départ avec le son (Elisa, 2 novembre, 15 h 48 : « attend un toucher pour lancer la voix ») : affiché seulement quand la voix off est là -->
+<button type="button" id="go" hidden><span class="go-b" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5Z"/></svg></span><span class="go-t">Lancer la vidéo<small>avec le son</small></span></button>
 <div id="end">
   <a href="connexion.html">Commencer<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
   <button type="button" id="again"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Revoir la vidéo</button>
@@ -1482,6 +1493,7 @@ function sync(){
   let si = -1; SRC.forEach((s, i) => { if (t >= s[0]) si = i; });
   if (si !== srcIdx) { srcIdx = si; srcEl.innerHTML = si >= 0 ? SRC[si][1] : ''; }
   ui(t);
+  sonSync();
 }
 
 /* ---------- Lecteur ---------- */
@@ -1499,8 +1511,41 @@ function ui(t){
   seek.setAttribute('aria-valuetext', `${mmss(t)}, ${CHAPTERS[Math.max(0, chapIdx)][1]}`);
 }
 function setPlaying(on){ pp.innerHTML = on ? PAUSE : PLAY; pp.setAttribute('aria-label', on ? 'Pause' : 'Lecture'); }
-function play(){ if (T.time() >= DURATION - .05) T.time(0); endEl.classList.remove('on'); T.play(); setPlaying(true); }
-function pause(){ T.pause(); setPlaying(false); }
+/* ---------- Voix off et musique (Elisa, 2 novembre, 15 h 48) ----------
+   voix/voix.json (écrit à l’intégration des fichiers d’ElevenLabs) : chaque scène a sa phrase, posée à son début ({id, t, d}),
+   et une musique douce dessous. Tant que ce fichier n’existe pas, la vidéo reste muette et démarre seule, comme avant. Avec la voix,
+   elle attend un toucher (le son ne peut partir qu’après un geste) ; la voix suit l’image : pause, retour en arrière, barre de lecture. */
+const SON = {ok: false, clips: [], music: null, vol: .16};
+function sonSync(){
+  if (!SON.ok) return;
+  const t = T.time(), on = !T.paused() && t < DURATION - .05;
+  let cur = null;
+  SON.clips.forEach(c => { if (t >= c.t && t < c.t + c.d) cur = c; });
+  SON.clips.forEach(c => {
+    if (c !== cur || !on) { if (!c.a.paused) c.a.pause(); return; }
+    const off = t - c.t;
+    if (c.a.paused || Math.abs(c.a.currentTime - off) > .3) { try { c.a.currentTime = off; } catch (e) {} c.a.play().catch(() => {}); }
+  });
+  const m = SON.music;
+  if (m) {
+    if (!on || t >= (m.d || DURATION)) { if (!m.a.paused) m.a.pause(); }
+    else if (m.a.paused || Math.abs(m.a.currentTime - t) > .5) { try { m.a.currentTime = t; } catch (e) {} m.a.play().catch(() => {}); }
+  }
+}
+function sonLoad(){
+  return fetch('voix/voix.json', {cache: 'no-cache'}).then(r => r.ok ? r.json() : null).then(j => {
+    if (!j || !Array.isArray(j.scenes) || !j.scenes.length) return false;
+    SON.clips = j.scenes.map(c => { const a = new Audio('voix/' + c.id + '.mp3'); a.preload = 'auto'; return {t: c.t, d: c.d, a}; });
+    if (j.musique) { const a = new Audio('voix/musique.mp3'); a.preload = 'auto'; a.volume = SON.vol; SON.music = {d: j.musique.d, a}; }
+    SON.ok = true; return true;
+  }).catch(() => false);
+}
+/* Le premier toucher débloque chaque piste (iPhone : un play() par piste pendant le geste), puis la vidéo part du début, avec le son. */
+function sonUnlock(){
+  SON.clips.concat(SON.music ? [SON.music] : []).forEach(c => { const p = c.a.play(); if (p && p.then) p.then(() => c.a.pause()).catch(() => {}); });
+}
+function play(){ const go = $('#go'); if (go && !go.hidden) { go.hidden = true; T.time(0); } if (T.time() >= DURATION - .05) T.time(0); endEl.classList.remove('on'); T.play(); setPlaying(true); sonSync(); }
+function pause(){ T.pause(); setPlaying(false); sonSync(); }
 function toggle(){ T.paused() || T.time() >= DURATION - .05 ? play() : pause(); }
 function ended(){ setPlaying(false); endEl.classList.add('on'); }
 
@@ -1539,8 +1584,18 @@ addEventListener('resize', fit);
 fit();
 
 setPlaying(false); sync();
-Promise.all([document.fonts ? document.fonts.ready : 0, ...$$('img').map(i => i.decode ? i.decode().catch(() => 0) : 0)])
-  .then(() => { fit(); if (!new URLSearchParams(location.search).has('pause') && !matchMedia('(prefers-reduced-motion: reduce)').matches) play(); });
+Promise.all([document.fonts ? document.fonts.ready : 0, sonLoad(), ...$$('img').map(i => i.decode ? i.decode().catch(() => 0) : 0)])
+  .then(([, son]) => {
+    fit();
+    if (son) {
+      /* Avec la voix : on attend un toucher. */
+      const go = $('#go'); go.hidden = false; go.focus({preventScroll: true});
+      T.time(2.6);   // derrière le bouton, l’image d’ouverture (le titre « Data analyst »)
+      go.addEventListener('click', e => { e.stopPropagation(); sonUnlock(); play(); });
+      return;
+    }
+    if (!new URLSearchParams(location.search).has('pause') && !matchMedia('(prefers-reduced-motion: reduce)').matches) play();
+  });
 </script>
 </body>
 </html>
