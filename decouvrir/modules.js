@@ -51,7 +51,7 @@ window.MODULES=[
       ["AND et OR", "Combiner plusieurs conditions", 143],
       ["NOT", "Exclure selon une condition", 150],
       ["NULL", "La valeur absente", 124],
-      ["LIKE", "Chercher un motif", 170],
+      ["LIKE", "Chercher un motif", 191],
       ["IN", "Filtrer avec une liste", 143],
       ["BETWEEN", "Filtrer un intervalle", 149],
       ["ORDER BY", "Ordonner le résultat", 131],
