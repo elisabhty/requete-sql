@@ -154,7 +154,7 @@ test('le cours « Les bases de données relationnelles » a sa voix : chaque phr
   const vSrc = page.slice(page.indexOf('const VOICE = {'), page.indexOf('/* Fin de la voix off */'));
   assert.ok(vSrc.length > 100, 'VOICE dans la page');
   const VOICE = vm.runInContext(vSrc.replace('const VOICE =', 'VOICE =') + ';VOICE', vm.createContext({VOICE: null}));
-  assert.ok(/\nCourse\(\{duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 492\.4, moments: MOMENTS, opens: OPENS, voice: VOICE,\n/.test(page));
+  assert.ok(/\nCourse\(\{duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 519\.2, moments: MOMENTS, opens: OPENS, voice: VOICE,\n/.test(page));
   assert.equal(VOICE.dir, '../voix/bases-relationnelles/');
   const keys = new Set(CAPTIONS.map(c => vkey(c[2])));
   const phrases = job.elements.filter(e => e.phrases && e.id !== 'ch00').reduce((n, e) => n + e.phrases.length, 0);
