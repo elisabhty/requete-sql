@@ -14667,7 +14667,7 @@ const SQLX=(()=>{
    ISNULL(a, b) → IFNULL(a, b) ; CONVERT(type, x) et CAST(x AS DATE) ; DATE_ADD(d, INTERVAL 7 DAY) et d + INTERVAL '7 days' ;
    LISTAGG / STRING_AGG … WITHIN GROUP (ORDER BY …) → GROUP_CONCAT(… ORDER BY …) ; ILIKE → LIKE ; x::int → CAST(x AS INTEGER). */
 function sqlCompat(sql){
-  if(typeof sql!=='string'||!/\b(?:TOP|FETCH|OFFSET|EXTRACT|DATEADD|DATEDIFF|DATEPART|DATETRUNC|ISNULL|CONVERT|CAST|INTERVAL|WITHIN|ILIKE|SYSDATE|SYSTIMESTAMP|CURRENT_DATE|CURRENT_TIME|CURRENT_TIMESTAMP|SEPARATOR|POSITION|FORMAT|TRUNCATE|SERIAL|BIGSERIAL|SMALLSERIAL|AUTO_INCREMENT|IDENTITY|TRY_CAST|TRY_CONVERT|SUBSTRING|TRIM|RLIKE|PERCENTILE_CONT|PERCENTILE_DISC|MODE|DATENAME|TIMESTAMPDIFF|TIMESTAMPADD)\b|::|~/i.test(sql))return sql;
+  if(typeof sql!=='string'||!/\b(?:TOP|FETCH|OFFSET|EXTRACT|DATEADD|DATEDIFF|DATEPART|DATETRUNC|ISNULL|CONVERT|CAST|INTERVAL|WITHIN|ILIKE|SYSDATE|SYSTIMESTAMP|CURRENT_DATE|CURRENT_TIME|CURRENT_TIMESTAMP|SEPARATOR|POSITION|FORMAT|TRUNCATE|SERIAL|BIGSERIAL|SMALLSERIAL|AUTO_INCREMENT|IDENTITY|TRY_CAST|TRY_CONVERT|SUBSTRING|TRIM|RLIKE|PERCENTILE_CONT|PERCENTILE_DISC|MODE|DATENAME|TIMESTAMPDIFF|TIMESTAMPADD|ANY|SOME|ALL)\b|::|~/i.test(sql))return sql;
   const keep=[];
   let t=sql.replace(/'(?:[^']|'')*'|"(?:[^"]|"")*"|`[^`]*`|\[[^\]]*\]|--[^\n]*|\/\*[\s\S]*?\*\//g,m=>{keep.push(m);return '\u0001'+(keep.length-1)+'\u0002';});
   const PH=/^\u0001(\d+)\u0002$/;
@@ -14776,6 +14776,22 @@ function sqlCompat(sql){
     const rep=castTo(t.slice(a,k),ty);
     t=t.slice(0,a)+rep+t.slice(k+after[0].length);k=a+rep.length-2;
   }
+  /* Comparaison à une sous-requête avec ANY / SOME / ALL (absents de SQLite ; cours « ANY et ALL ») : la valeur à battre est calculée
+     dans une sous-requête nommée (WITH, qui garde la corrélation) : > ANY → plus grand que le minimum, > ALL → plus grand que le
+     maximum (un ensemble vide laisse tout passer, comme ALL) ; = ANY → IN, <> ALL → NOT IN ; = ALL et <> ANY : une seule valeur
+     distincte. Une sous-requête imbriquée est réécrite au tour suivant. */
+  {let nq=0;
+  for(let tour=0;tour<6&&/\b(?:ANY|SOME|ALL)\s*\(/i.test(t);tour++){const avant=t;
+    calls(/(<>|!=|<=|>=|=|<|>)\s*(ANY|SOME|ALL)\s*\(/gi,(inner,suite,m)=>{
+      if(!/^\s*(?:\u0001\d+\u0002\s*)*(?:SELECT|WITH|VALUES)\b/i.test(inner))return null;
+      const op=m[1]==='!='?'<>':m[1],tous=/^ALL$/i.test(m[2]),q='__q'+(++nq),cte=`WITH ${q}(__v) AS (${inner})`;
+      const une=`(${cte} SELECT MIN(__v) FROM ${q} HAVING COUNT(DISTINCT __v)=1 AND COUNT(__v)=COUNT(*))`;
+      if(op==='=')return [tous?`IN ${une}`:`IN (${inner})`];
+      if(op==='<>')return [tous?`NOT IN (${inner})`:`NOT IN ${une}`];
+      const haut=op[0]==='>';
+      const agg=tous?(haut?'MAX':'MIN'):(haut?'MIN':'MAX');
+      return [`${op} (${cte} SELECT ${tous?`COALESCE(${agg}(__v), ${haut?'-9e999':'9e999'})`:`${agg}(__v)`} FROM ${q})`];});
+    if(t===avant)break;}}
   /* TRUNCATE TABLE t → DELETE FROM t (début d’instruction seulement : TRUNCATE(x, 2) reste la fonction de MySQL). */
   t=t.replace(/(^|;)(\s*(?:\u0001\d+\u0002\s*)*)TRUNCATE\s+(?:TABLE\s+)?(?=[A-Za-z_"`\[\u0001])/gi,'$1$2DELETE FROM ');
   /* Un identifiant qui s’incrémente, écrit à la PostgreSQL (SERIAL), MySQL (AUTO_INCREMENT), SQL Server (IDENTITY(1,1)) ou Oracle
@@ -33348,7 +33364,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-voix-types-v2387';
+  const SW_CACHE='requete-2026-11-02-any-all-v2388';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
