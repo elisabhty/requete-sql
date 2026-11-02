@@ -65,7 +65,7 @@ Le compte commun sera identifié par le même `auth.users.id` sur le web et iOS.
 
 Le service exige un jeton vérifié par Auth et la confirmation `SUPPRIMER`. Il révoque les sessions avant de supprimer l'utilisateur Auth identifié par ce jeton ; le profil est supprimé par la clé étrangère en cascade. Les erreurs internes ne sont pas exposées au client. Si la suppression échoue après révocation, l'utilisateur devra se reconnecter pour réessayer.
 
-Ce périmètre couvre le compte Auth, le profil, les deux tables de progression, les deux tables de documents et les deux tables de projets préparées, supprimées en cascade. Le lien multijoueur préparé ajoute aussi un nettoyage des données de jeu à la suppression du compte ; voir [MULTIJOUEUR-COMPTE.md](MULTIJOUEUR-COMPTE.md). Tout ajout futur de fichiers devra intégrer son nettoyage au parcours de suppression. Les données historiques uniquement liées à une clé d'appareil ne sont pas automatiquement associées au compte.
+Ce périmètre couvre le compte Auth, le profil, les deux tables de progression, les deux tables de documents et les deux tables de projets et les deux tables de personnalisation préparées, supprimées en cascade. Le lien multijoueur préparé ajoute aussi un nettoyage des données de jeu à la suppression du compte ; voir [MULTIJOUEUR-COMPTE.md](MULTIJOUEUR-COMPTE.md). Tout ajout futur de fichiers devra intégrer son nettoyage au parcours de suppression. Les données historiques uniquement liées à une clé d'appareil ne sont pas automatiquement associées au compte.
 
 La suppression d'un compte Apple est volontairement refusée dans ce code préparatoire : il faut d'abord ajouter la révocation des jetons Apple et la vérifier. Ne pas activer Apple avant d'avoir terminé ce parcours. Pour iOS, configurer aussi la capacité Sign in with Apple et le retour natif du bundle `fr.requete.app` ; un appel OAuth web ne remplace pas à lui seul l'intégration native.
 
@@ -88,3 +88,5 @@ La [collection personnelle](COLLECTION.md) est également préparée sans activa
 Les [notes et requêtes enregistrées](NOTES-REQUETES.md) sont préparées dans un espace privé séparé : leur effacement ne touche pas les cours et la suppression du compte les efface en cascade. Aucun envoi automatique n’est activé.
 
 Les [projets personnels](PROJETS-PERSONNELS.md) sont préparés dans un espace privé séparé, avec sauvegarde de l’espace SQL ou instantané SQLite explicitement choisi. Aucun projet existant n’est envoyé automatiquement.
+
+Les [stickers, statistiques et préférences](STICKERS-STATS-PREFERENCES.md) sont également préparés sans activation, avec tableau personnel, durées d’étude dédoublonnées et reprise historique explicite depuis un seul appareil.
