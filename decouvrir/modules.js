@@ -71,6 +71,7 @@ window.MODULES=[
       ["GROUP BY", "Un calcul par groupe", 149],
       ["GROUP BY sur plusieurs colonnes", "Un groupe par combinaison de valeurs", 195],
       ["HAVING", "Filtrer après regroupement", 155],
+      ["L’ordre d’exécution", "Dans quel ordre une requête est exécutée", 195],
       ["GROUP_CONCAT", "Rassembler les textes d’un groupe", 173]
     ]},
     {titre:"Jointures", sous:"Interroger plusieurs tables à la fois", lecons:[

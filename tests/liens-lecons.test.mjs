@@ -18,7 +18,7 @@ const APP = [...html.matchAll(/guide\(\{ id:\d+, titre:"([^"]+)"/g)].map((m, i, 
 }).filter(Boolean);
 
 test('liens.js suit l’ordre des leçons de l’app, de la première à la dernière', () => {
-  assert.equal(APP.length, 68, '68 leçons en vidéo');
+  assert.equal(APP.length, 69, '69 leçons en vidéo');
   assert.deepEqual(LIENS.map(l => l.page), APP.map(a => a[0]));
 });
 

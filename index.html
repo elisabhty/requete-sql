@@ -8588,6 +8588,18 @@ guide({ id:17, titre:"HAVING", résumé:"Filtrer après regroupement",
     ],label:"Les trois idées à retenir"}
   ]
 }),
+guide({ id:88, titre:"L’ordre d’exécution", résumé:"Dans quel ordre une requête est exécutée",
+  /* Cours en vidéo : l’animation (assets/anim/ordre-execution.html, moteur commun assets/anim/core.js) est le cours (Elisa, 2 novembre, 11 h 16 : « est-ce que tu peux regarder s’il manque une notion ? » … « oui »). La vidéo suit les produits les plus expédiés : FROM, WHERE, GROUP BY, HAVING, SELECT puis ORDER BY, et ce que cet ordre change pour HAVING et pour les alias. */
+  leconSeule:true,
+  video:{anim:'assets/anim/ordre-execution.html?app&embed',thumb:'assets/anim/ordre-execution-thumb.jpg',duree:'3 min 15',moments:3,seuil:2},
+  reflex:[
+    {recap:[
+      ["🔢","L’ordre d’exécution","<code>FROM</code>, <code>WHERE</code>, <code>GROUP BY</code>, <code>HAVING</code>, <code>SELECT</code>, <code>ORDER BY</code>, puis <code>LIMIT</code>."],
+      ["⚖️","WHERE avant, HAVING après","Une condition sur un comptage va dans <code>HAVING</code> : <code>WHERE</code> passe avant le regroupement."],
+      ["🏷️","L’alias du SELECT","<code>ORDER BY</code> peut l’utiliser ; <code>WHERE</code>, exécuté avant, ne le connaît pas encore."]
+    ],label:"Les trois idées à retenir"}
+  ]
+}),
 guide({ id:76, titre:"GROUP_CONCAT", résumé:"Rassembler les textes d’un groupe",
   /* Cours en vidéo : l’animation (assets/anim/group-concat.html, moteur commun assets/anim/core.js) est le cours.
      La vidéo suit le tableau de bord de l’entrepôt (les commandes de chaque statut). */
@@ -13886,6 +13898,8 @@ const CARTES={
  17:{k:"HAVING",t:"Filtrer les groupes",s:"GROUP BY …\nHAVING …",
     run:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",
     m:"<code>WHERE</code> choisit les lignes avant la création des groupes. <code>HAVING</code> choisit les groupes après leur création par <code>GROUP BY</code>."},
+ 88:{k:"Ordre d’exécution",t:"FROM d’abord, SELECT presque en dernier",s:"FROM\nWHERE\nGROUP BY\nHAVING\nSELECT\nORDER BY\nLIMIT",
+    m:"Une requête n’est pas exécutée dans l’ordre où on l’écrit : <code>FROM</code>, <code>WHERE</code>, <code>GROUP BY</code>, <code>HAVING</code>, puis <code>SELECT</code>, <code>ORDER BY</code> et <code>LIMIT</code>. Un comptage se filtre donc avec <code>HAVING</code>, et un alias du <code>SELECT</code> s’utilise dans <code>ORDER BY</code>, pas dans <code>WHERE</code>."},
  76:{k:"GROUP_CONCAT",t:"Agréger du texte",s:"GROUP_CONCAT(nom, ', ')",
     m:"Dans SQLite, <code>GROUP_CONCAT</code> assemble les textes non nuls d’un groupe. Le séparateur est le second argument. Pour les autres SGBD, voir la page <button type='button' class='sgbd-link' data-sgbd='agregats'>Selon le SGBD</button> de la Bibliothèque."},
  18:{k:"INNER JOIN",t:"L’enquête de satisfaction",s:"FROM commandes\nINNER JOIN clients\nON commandes.client_id = clients.id",
@@ -17588,6 +17602,7 @@ const SQ_ALIASES={
   16:'group by regrouper grouper groupe par agregat calcul par groupe avg sum min max moyenne somme total maximum minimum fonctions d agregation agregats',
   87:'group by plusieurs colonnes deux colonnes combinaison regrouper par mois et statut groupes multiples',
   17:'having filtrer groupes apres regroupement condition sur agregat',
+  88:'ordre d execution ordre logique requete from where group by having select order by limit alias where erreur execution clauses',
   76:'group concat rassembler concatener liste texte groupe string agg',
   18:'inner join jointure interne relier tables correspondance on',
   20:'left join jointure gauche garder lignes sans correspondance null clients sans commande sans commande fidelite points carte bilan',
@@ -33210,7 +33225,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-group-by-colonnes-v2345';
+  const SW_CACHE='requete-2026-11-02-ordre-execution-v2346';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

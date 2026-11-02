@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-02-group-by-colonnes-v2345';
+const CACHE = 'requete-2026-11-02-ordre-execution-v2346';
 
 const PRECACHE = [
   './onboarding-focus.js',
@@ -73,6 +73,7 @@ const PRECACHE = [
   './assets/anim/group-by.html?app&embed',
   './assets/anim/group-by-colonnes.html?app&embed',
   './assets/anim/having.html?app&embed',
+  './assets/anim/ordre-execution.html?app&embed',
   './assets/anim/group-concat.html?app&embed',
   './assets/anim/inner-join.html?app&embed',
   './assets/anim/left-join.html?app&embed',
@@ -167,6 +168,7 @@ const PRECACHE = [
   './assets/anim/group-by-thumb.jpg',
   './assets/anim/group-by-colonnes-thumb.jpg',
   './assets/anim/having-thumb.jpg',
+  './assets/anim/ordre-execution-thumb.jpg',
   './assets/anim/group-concat-thumb.jpg',
   './assets/anim/inner-join-thumb.jpg',
   './assets/anim/left-join-thumb.jpg',

@@ -56,7 +56,7 @@ const ANCIEN={
  11:{id:11,titre:'ORDER BY',solution:'SELECT nom, categorie, stock FROM produits ORDER BY categorie, stock DESC;'},
  12:{id:12,titre:'LIMIT et OFFSET',solution:'SELECT id, nom, prix\nFROM produits\nORDER BY prix ASC, id ASC\nLIMIT 3 OFFSET 6;'}
 };
-assert.equal(lessons.length,68);
+assert.equal(lessons.length,69);
 assert.equal(ctx.exerciseResultsMatch(query('SELECT nom,stock FROM produits'),query(ANCIEN[2].solution),ANCIEN[2]),false,'alias requis');
 assert.equal(ctx.exerciseResultsMatch(query(DEUX_COLONNES.solution+' SELECT 99;'),query(DEUX_COLONNES.solution),DEUX_COLONNES),false,'résultats multiples');
 assert.equal(ctx.exerciseResultsMatch(query("SELECT nom,prix FROM produits WHERE categorie='Nutrition' OR categorie='Boisson' AND prix<20"),query(ANCIEN[6].solution),ANCIEN[6]),false,'parenthèses requises avec AND et OR');
