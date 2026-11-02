@@ -93,7 +93,7 @@ window.MODULES=[
       ["Sous-requête dans FROM", "Utiliser une sous-requête comme table", 195],
       ["INSERT … SELECT et CREATE TABLE AS", "Enregistrer le résultat d’une requête", 195],
       ["EXISTS et NOT EXISTS", "Tester la présence ou l’absence d’une ligne liée", 223],
-      ["ANY et ALL", "Comparer à toute une liste", 203],
+      ["ANY et ALL", "Comparer à toute une liste", 204],
       ["WITH (CTE)", "Créer et réutiliser un résultat intermédiaire", 221],
       ["UNION et UNION ALL", "Empiler deux résultats, avec ou sans doublons", 219],
       ["INTERSECT et EXCEPT", "Comparer deux résultats", 179],
@@ -104,7 +104,7 @@ window.MODULES=[
       ["Fonctions de rang", "Classer les lignes, ex æquo compris", 178],
       ["LAG et LEAD", "Comparer une ligne à la précédente ou à la suivante", 203],
       ["Fenêtres glissantes", "Suivre l’évolution des commandes", 185],
-      ["FIRST_VALUE, LAST_VALUE et NTILE", "Première et dernière valeur, groupes égaux", 186]
+      ["FIRST_VALUE, LAST_VALUE et NTILE", "Première et dernière valeur, groupes égaux", 208]
     ]},
     {titre:"Modéliser", sous:"Normalisation, cardinalités et UML", lecons:[
       ["Les formes normales", "1FN, 2FN et 3FN pas à pas", 189],
