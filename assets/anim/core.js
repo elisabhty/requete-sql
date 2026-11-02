@@ -206,7 +206,7 @@ function voiceOut(captions, nPicks, nOpens, end){
   clips.sort((x, y) => x.t - y.t);
   return {clips, picks: n('at', nPicks), tips: n('indice', nPicks), opens: n('touche', nOpens), ok: s('bienvu'), late: s('rattrape'), ko: s('presque'),
     end: {win: s('finbravo'), retry: s('fineffort')},
-    files: [...new Set(clips.map(c => c.src).concat(Object.values(say).map(v => src(v[0]))))], missing: VOICE_MISSING};
+    files: [...new Set(clips.map(c => c.src).concat(Object.values(say).filter(Boolean).map(v => src(v[0]))))], missing: VOICE_MISSING};
 }
 /* Les phrases du lien avec la leçon d’avant et d’après (VOICE.say.lienavant / lienapres), à leur instant dans la vidéo. */
 function pontVoice(v){

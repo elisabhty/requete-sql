@@ -203,9 +203,27 @@ function momentIX(P){
   };
 }
 
+/* « À toi ! » dit avec sa légende (Elisa, 2 novembre, 19 h 53 : « Dans LEFT JOIN, par exemple, [la formatrice] ne dit pas à toi »).
+   Chaque consigne (at1…) commence par son « À toi ! » ; VOICE.toi (tools/voix/atoi.mjs) donne, pour chacune, la fin de ce « À toi ! »
+   et le début de la suite. La légende « À toi ! » du k-ième moment dit le début du fichier ; la feuille, la suite : un seul « À toi ! »,
+   au moment où il s’affiche, comme dans les chapitres du projet. Sans VOICE.toi, rien ne change. */
+function momentVoice(caps){
+  const V = typeof VCFG !== 'undefined' ? VCFG : null;
+  if (!V || !V.toi || !V.say) return;
+  let k = 0;
+  caps.forEach((c, j) => {
+    if (c[2] !== 'À toi !') return;
+    const key = 'at' + (++k), s = V.say[key], t = V.toi[key];
+    if (!s || !t || !(t[0] > s[1])) return;
+    caps[j] = c.concat([{voice: [s[0], s[1], Math.min(t[0], s[2])]}]);
+    V.say[key] = t[1] < s[2] - 0.3 ? [s[0], t[1], s[2]] : null;   // une consigne qui n’était que « À toi ! » : la feuille se tait
+  });
+}
+
 /* Course({…, moments}) passe par ici (core.js) : les temps de la page deviennent ceux de la vidéo avec ses moments. */
 function withMoments(cfg){
   const M = momentPlan(cfg.moments, cfg.captions, cfg.chapters, cfg.duration, cfg.notesAt);
+  momentVoice(M.captions);
   const clashes = [];
   const build0 = cfg.build;
   /* Les arrêts « toucher » de la page (opens : un message à ouvrir, un bouton ; le recrutement du cours 0) suivent la vidéo avec ses moments. */
