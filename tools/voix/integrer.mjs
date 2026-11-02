@@ -30,8 +30,11 @@ const vkey = vm.runInContext('vkey', ctx);
 
 /* Les légendes de la page, telles que l’app les voit (APP). */
 const page = fs.readFileSync(PAGE, 'utf8');
-const capSrc = page.slice(page.indexOf('const CAPTIONS = ['), page.indexOf('\n];', page.indexOf('const CAPTIONS = [')) + 3);
-const CAPTIONS = vm.runInContext(capSrc.replace('const CAPTIONS =', 'CAPTIONS =') + ';CAPTIONS', vm.createContext({APP: true, CAPTIONS: null}));
+/* Les cours qui posent leurs légendes avec cap(…) (DROP, schémas) : CAPTIONS = SCH.caps, rejoué depuis « const SCH = {». */
+const CAPTIONS = page.includes('const CAPTIONS = [') ? (() => {
+  const capSrc = page.slice(page.indexOf('const CAPTIONS = ['), page.indexOf('\n];', page.indexOf('const CAPTIONS = [')) + 3);
+  return vm.runInContext(capSrc.replace('const CAPTIONS =', 'CAPTIONS =') + ';CAPTIONS', vm.createContext({APP: true, CAPTIONS: null})); })()
+  : vm.runInContext(page.slice(page.indexOf('const SCH = {'), page.indexOf('\n', page.indexOf('const CAPTIONS = SCH.caps;'))) + ';CAPTIONS', vm.createContext({APP: true}));
 
 const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
   .replace(/client_id/g, 'client underscore id').replace(/produit_id/g, 'produit underscore id').replace(/select \*/g, 'select etoile')
