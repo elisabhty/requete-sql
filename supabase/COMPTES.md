@@ -35,7 +35,7 @@ const account = createAccountService(supabase, {enabled:false});
 - RLS impose `auth.uid() = user_id` à la lecture, à la création et à la modification. Aucun accès `anon`. Le navigateur ne peut modifier que le prénom, jamais le propriétaire ni les dates.
 - La suppression du compte Auth supprime son profil en cascade. Une future suppression de compte devra aussi révoquer ses sessions et traiter ses autres données.
 - Aucun trigger n'est installé sur `auth.users`. Le profil sera initialisé après une connexion réussie : sa création ne doit pas bloquer l'inscription.
-- Les pseudos, scores et clés d'appareil actuels restent indépendants. Une association future devra prouver la possession de la clé d'appareil côté serveur. Ne jamais rattacher des scores à partir d'un pseudo seul ni accepter des points locaux comme preuve.
+- Les pseudos, scores et clés d’appareil actuels restent indépendants tant que les comptes sont inactifs. Leur association est maintenant préparée dans [MULTIJOUEUR-COMPTE.md](MULTIJOUEUR-COMPTE.md), avec preuve de possession de la clé et sans import de points locaux.
 
 ## Contrat pour le futur client
 
@@ -57,7 +57,7 @@ if (!profile) {
 
 La synchronisation de progression est désormais préparée séparément, sans activation, dans [PROGRESSION.md](PROGRESSION.md). Son schéma et son moteur gèrent les conflits entre appareils ; le raccordement aux écrans et au stockage iOS/web reste à réaliser.
 
-Le compte commun sera identifié par le même `auth.users.id` sur le web et iOS. Ni le prénom ni le pseudo ne servent de preuve d'identité. La reprise du pseudo multijoueur actuel devra prouver la possession de la clé d'appareil ; elle n'est pas réalisée par le service préparé. Lors du raccordement, isoler les données locales par compte et demander une fusion explicite de la progression invitée, pour éviter de mélanger deux utilisateurs du même appareil.
+Le compte commun sera identifié par le même `auth.users.id` sur le web et iOS. Ni le prénom ni le pseudo ne servent de preuve d'identité. La reprise du pseudo multijoueur actuel est préparée séparément dans `account/multiplayer.mjs`, avec preuve de possession de la clé d’appareil ; elle reste inactive et n’est pas appelée par le service de compte. Lors du raccordement, isoler les données locales par compte et demander une fusion explicite de la progression invitée, pour éviter de mélanger deux utilisateurs du même appareil.
 
 ## Suppression préparée pour les comptes e-mail
 
@@ -65,7 +65,7 @@ Le compte commun sera identifié par le même `auth.users.id` sur le web et iOS.
 
 Le service exige un jeton vérifié par Auth et la confirmation `SUPPRIMER`. Il révoque les sessions avant de supprimer l'utilisateur Auth identifié par ce jeton ; le profil est supprimé par la clé étrangère en cascade. Les erreurs internes ne sont pas exposées au client. Si la suppression échoue après révocation, l'utilisateur devra se reconnecter pour réessayer.
 
-Ce périmètre couvre le compte Auth, le profil et les deux tables de progression préparées, supprimées en cascade. Tout ajout futur de fichiers ou association de scores devra intégrer leur nettoyage au parcours de suppression. Les données historiques uniquement liées à une clé d'appareil ne sont pas automatiquement associées au compte.
+Ce périmètre couvre le compte Auth, le profil et les deux tables de progression préparées, supprimées en cascade. Le lien multijoueur préparé ajoute aussi un nettoyage des données de jeu à la suppression du compte ; voir [MULTIJOUEUR-COMPTE.md](MULTIJOUEUR-COMPTE.md). Tout ajout futur de fichiers devra intégrer son nettoyage au parcours de suppression. Les données historiques uniquement liées à une clé d'appareil ne sont pas automatiquement associées au compte.
 
 La suppression d'un compte Apple est volontairement refusée dans ce code préparatoire : il faut d'abord ajouter la révocation des jetons Apple et la vérifier. Ne pas activer Apple avant d'avoir terminé ce parcours. Pour iOS, configurer aussi la capacité Sign in with Apple et le retour natif du bundle `fr.requete.app` ; un appel OAuth web ne remplace pas à lui seul l'intégration native.
 
