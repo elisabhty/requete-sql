@@ -8344,12 +8344,24 @@ guide({ id:5, titre:"Comparer des valeurs", résumé:"Filtrer avec =, !=, >, <, 
 guide({ id:6, titre:"AND et OR", résumé:"Combiner plusieurs conditions",
   /* Cours en vidéo, comme WHERE, SELECT, AS, DISTINCT et « Comparer des valeurs » : l’animation (assets/anim/and-or.html, moteur commun assets/anim/core.js) est le cours. */
   leconSeule:true,
-  video:{anim:'assets/anim/and-or.html?app&embed',thumb:'assets/anim/and-or-thumb.jpg',duree:'2 min 36',moments:3,seuil:2},
+  video:{anim:'assets/anim/and-or.html?app&embed',thumb:'assets/anim/and-or-thumb.jpg',duree:'2 min 37',moments:3,seuil:2},
   reflex:[
     {recap:[
       ["🔗","<code>AND</code> relie des conditions : une ligne est gardée si <b>toutes</b> sont vraies.",null,"WHERE ville = 'Paris' AND age > 30"],
       ["🔀","<code>OR</code> relie des conditions : une ligne est gardée si <b>au moins une</b> est vraie.",null,"WHERE ville = 'Paris' OR ville = 'Lyon'"],
       ["🧩","Avec <code>AND</code> et <code>OR</code> ensemble, <b>mets les parenthèses</b> : SQL calcule d’abord les <code>AND</code>.",null,"(a OR b) AND c"]
+    ],label:"Les trois idées à retenir"}
+  ]
+}),
+guide({ id:91, titre:"Injection SQL et requêtes paramétrées", résumé:"Une saisie reste une valeur",
+  /* Cours en vidéo : l’animation (assets/anim/injection-sql.html, moteur commun assets/anim/core.js) est le cours (Elisa, 2 novembre, 11 h 16 : « est-ce que tu peux regarder s’il manque une notion ? » … « oui »). Juste après AND et OR : l’attaque ' OR '1'='1 repose sur OR. Le projet (de « Normaliser les inscriptions » à « Sécurité et droits ») se suit sans interruption et se termine avec « Sécurité et droits » : la leçon ne peut pas s’y insérer. La parade : la requête paramétrée, et la liste autorisée pour les noms. */
+  leconSeule:true,
+  video:{anim:'assets/anim/injection-sql.html?app&embed',thumb:'assets/anim/injection-sql-thumb.jpg',duree:'3 min 12',moments:3,seuil:2},
+  reflex:[
+    {recap:[
+      ["💉","L’injection SQL","Une saisie collée dans la requête peut en changer le sens : <code>OR '1'='1'</code> renvoie toute la table."],
+      ["🧷","La requête paramétrée","Un <code>?</code> à la place de la valeur, envoyée à part : la saisie reste une simple valeur."],
+      ["📋","Les noms : une liste autorisée","Un <code>?</code> remplace une valeur, pas une colonne ni une table : compare le choix à une liste."]
     ],label:"Les trois idées à retenir"}
   ]
 }),
@@ -13891,6 +13903,8 @@ const CARTES={
     m:"<code>AND</code> : toutes les conditions doivent être vraies. <code>OR</code> : une seule suffit. <code>AND</code> passe avant <code>OR</code> : regroupe avec des parenthèses."},
   7:{k:"NULL",t:"La valeur absente",s:"WHERE email IS NULL",
     m:"<code>NULL</code> = valeur absente, pas 0 ni <code>''</code>. Jamais <code>=</code> : <code>IS NULL</code> / <code>IS NOT NULL</code>."},
+ 91:{k:"Injection SQL",t:"Une saisie reste une valeur",s:"SELECT prenom, nom, email\nFROM clients\nWHERE email = ?;",
+    m:"Ne colle jamais une saisie dans le texte d’une requête : <code>' OR '1'='1</code> changerait son sens. Écris un <code>?</code> et envoie la valeur à part (requête paramétrée). Un <code>?</code> ne remplace qu’une valeur : pour un nom de colonne ou de table, compare le choix à une liste autorisée."},
  8:{k:"LIKE",t:"Chercher un motif",s:"WHERE prenom LIKE 'L%'",
     m:"<code>%</code> = n’importe quelle suite. <code>'L%'</code> commence par L · <code>'%mot%'</code> contient. Sans <code>%</code>, <code>LIKE</code> vaut presque <code>=</code>."},
  9:{k:"IN",t:"Filtrer avec une liste",s:"WHERE ville IN ('Paris','Lyon')",
@@ -17612,6 +17626,7 @@ const SQ_ALIASES={
   4:'filtrer filtre condition critere clause where lignes selectionner',
   5:'comparer comparaison egal different superieur inferieur plus grand plus petit = != <> > < >= <= operateurs',
   6:'et ou conditions multiples cumuler and or alternative une des conditions parentheses priorite',
+  91:'injection sql requete parametree parametre point d interrogation securite attaque formulaire saisie or 1=1 liste autorisee',
   22:'pas negation exclure sauf different de not',
   7:'null vide absent manquant valeur inconnue is null is not null sans valeur',
   8:'like motif recherche texte commence par finit par contient joker pourcentage % _ wildcard',
@@ -33255,7 +33270,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-formes-normales-v2348';
+  const SW_CACHE='requete-2026-11-02-injection-sql-v2349';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

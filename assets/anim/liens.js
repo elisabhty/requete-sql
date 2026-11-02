@@ -11,6 +11,7 @@ window.LIENS = [
   {page: 'where', titre: 'WHERE', passe: 'tu as filtré les lignes avec <code>WHERE</code>', futur: 'tu filtreras les lignes avec <code>WHERE</code>'},
   {page: 'comparer', titre: 'Comparer des valeurs', passe: 'tu as comparé des valeurs avec <code>=</code>, <code>&gt;</code> ou <code>&lt;</code>', futur: 'tu compareras des valeurs avec <code>=</code>, <code>&gt;</code> ou <code>&lt;</code>'},
   {page: 'and-or', titre: 'AND et OR', passe: 'tu as combiné plusieurs conditions avec <code>AND</code> et <code>OR</code>', futur: 'tu combineras plusieurs conditions avec <code>AND</code> et <code>OR</code>'},
+  {page: 'injection-sql', titre: 'Injection SQL et requêtes paramétrées', passe: 'tu as protégé tes requêtes contre l’injection SQL', futur: 'tu protégeras tes requêtes contre l’injection SQL'},
   {page: 'not', titre: 'NOT', passe: 'tu as exclu des lignes avec <code>NOT</code>', futur: 'tu excluras des lignes avec <code>NOT</code>'},
   {page: 'null', titre: 'NULL', passe: 'tu as repéré les valeurs absentes avec <code>IS NULL</code> et <code>IS NOT NULL</code>', futur: 'tu repéreras les valeurs absentes avec <code>IS NULL</code> et <code>IS NOT NULL</code>'},
   {page: 'like', titre: 'LIKE', passe: 'tu as cherché un motif dans un texte avec <code>LIKE</code>', futur: 'tu chercheras un motif dans un texte avec <code>LIKE</code>'},
