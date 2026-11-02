@@ -85,7 +85,7 @@ window.MODULES=[
       ["JOIN + GROUP BY", "Compter les commandes par ville", 169],
       ["SELF JOIN", "Retrouver les clients qui habitent dans la même ville", 191],
       ["Plusieurs conditions dans ON", "Relier seulement les produits encore en stock", 206],
-      ["Quel JOIN choisir ?", "Choisir la bonne jointure selon les lignes à garder", 210]
+      ["Quel JOIN choisir ?", "Choisir la bonne jointure selon les lignes à garder", 211]
     ]},
     {titre:"Sous-requêtes et ensembles", sous:"IN, EXISTS, CTE et UNION", lecons:[
       ["Sous-requête dans WHERE avec IN", "Quels clients ont déjà commandé du Magnésium ?", 236],
