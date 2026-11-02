@@ -106,10 +106,10 @@ window.MODULES=[
       ["Modéliser avec UML", "Du diagramme de classes aux tables", 298]
     ]},
     {titre:"Créer et faire évoluer les tables", sous:"CREATE, ALTER et DROP TABLE", lecons:[
-      ["CREATE TABLE", "Créer la structure d’une table", 259],
-      ["ALTER TABLE", "Faire évoluer la structure d’une table", 288],
-      ["DROP", "Supprimer une table de la base", 157],
-      ["Les schémas", "Ranger les tables par espace", 139]
+      ["CREATE TABLE", "Créer la structure d’une table", 275],
+      ["ALTER TABLE", "Faire évoluer la structure d’une table", 298],
+      ["DROP", "Supprimer une table de la base", 160],
+      ["Les schémas", "Ranger les tables par espace", 144]
     ]},
     {titre:"Écrire et modifier les données", sous:"INSERT, UPDATE, DELETE", lecons:[
       ["INSERT", "Ajouter des lignes", 239],

@@ -66,7 +66,8 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
   /* 515 Kio depuis le 1er novembre : la voix off (~6 Kio) et le lien avec la leçon d’avant et celle d’après (~4 Kio) dans le moteur commun. */
   /* 525 Kio depuis le 2 novembre : légendes équilibrées, carte d’intro sous la bulle du lien, cadre du contenu pour le zoom des moments (~4 Kio). */
   /* 535 Kio depuis le 2 novembre, 0 h 40 : la caméra du lecteur sur grand écran (~7 Kio). */
-  assert.ok(total < 535 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
+  /* 545 Kio depuis le 2 novembre, 9 h 48 : la voix d’Anaïs dans la page (VOICE, ~4 Kio) et les portraits des formateurs dans le moteur commun. */
+  assert.ok(total < 545 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
   assert.ok(fs.statSync(path.join(ANIM, THUMB)).size > 1000, 'vignette');
 });
 
