@@ -25,7 +25,7 @@ test('réf. 2 — « Question suivante » reste dans l’onglet : à revoir, tou
     .map(a => { const i = app.indexOf(a); const j = app.indexOf('\nfunction ', i + 10); return app.slice(i, j); }).join('\n');
   const opened = [];
   const ctx = vm.createContext({ state: { entretien: {} }, opened, renderEntretien() { opened.push('liste'); }, entScrollTop() {}, openEntretienQuestion: id => opened.push(id) });
-  vm.runInContext(ent + '\nlet entFilter="all",entStatus="review",entOpen="x";\n' + fns, ctx);
+  vm.runInContext(ent + '\nlet entFilter="all",entStatus="review",entOpen="x",entRun=false;\n' + fns, ctx);
   const ids = vm.runInContext('ENTRETIEN.map((q,i)=>entId(q,i))', ctx);
   const set = (status, ok) => { vm.runInContext(`entStatus=${JSON.stringify(status)};state.entretien=${JSON.stringify(Object.fromEntries(ok.map(id => [id, 'ok'])))}`, ctx); };
   const next = id => { opened.length = 0; vm.runInContext(`nextEntretien(${JSON.stringify(id)})`, ctx); return opened[0]; };

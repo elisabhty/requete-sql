@@ -30857,6 +30857,7 @@ const ENTRETIEN_CATS=[['all','Toutes les notions'],['Bases du SQL','Bases du SQL
 let entFilter='all';
 let entStatus='review';
 let entOpen=null;
+let entRun=false;
 const entRevealed=Object.create(null);
 const ENT_CHEV_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
 const ENT_OK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>';
@@ -31063,29 +31064,45 @@ function entScrollTop(){
 }
 /* 16 h 48 : la question d’entretien ouverte (et sa réponse dévoilée) rouvre au rechargement, au lieu de revenir à la liste. */
 const ENT_SES_KEY='rq-entretien-ouvert';
-function entSesSave(){try{if(entOpen)localStorage.setItem(ENT_SES_KEY,JSON.stringify({id:entOpen,rev:entRevealed[entOpen]?1:0}));else localStorage.removeItem(ENT_SES_KEY);}catch(e){}}
+function entSesSave(){try{if(entOpen)localStorage.setItem(ENT_SES_KEY,JSON.stringify({id:entOpen,rev:entRevealed[entOpen]?1:0,run:entRun?1:0}));else localStorage.removeItem(ENT_SES_KEY);}catch(e){}}
 function entSesRestore(){
   let o=null;try{o=JSON.parse(localStorage.getItem(ENT_SES_KEY)||'null');}catch(e){}
   if(!o||!entAllItems().some(x=>x.id===o.id))return;
   if(o.rev)entRevealed[o.id]=1;
-  openEntretienQuestion(o.id);
+  openEntretienQuestion(o.id,!!o.run);
 }
-function openEntretienQuestion(id){
+/* « Continuer la préparation » (Elisa, 2 novembre, 23 h 22 : « il ne faut pas que ce soit les déjà maîtrisées ») : une série lancée par
+   la carte violette ne passe que par les questions pas encore maîtrisées, quel que soit l’onglet ouvert (« Toutes », « Maîtrisées »).
+   Une question touchée dans la liste, elle, suit l’onglet comme avant (31 octobre, réf. 2). entRun est déclaré avec entOpen. */
+function openEntretienQuestion(id,run){
   if(!entAllItems().some(x=>x.id===id))return;
+  entRun=!!run;
   entOpen=id;
   renderEntretien();
   entScrollTop();
   if(navigator.vibrate)navigator.vibrate(6);
 }
 function startEntretien(){
-  const pool=entAllItems().filter(x=>entInFilter(x.q));
-  const target=pool.find(x=>!entOk(x.id))||pool[0]||entAllItems()[0];
-  if(target)openEntretienQuestion(target.id);
+  const todo=entAllItems().filter(x=>!entOk(x.id));
+  if(!todo.length){
+    /* Tout est maîtrisé : « Revoir une question » repart de la première, en suivant l’onglet. */
+    const pool=entAllItems().filter(x=>entInFilter(x.q));
+    const t=pool[0]||entAllItems()[0];
+    if(t)openEntretienQuestion(t.id);
+    return;
+  }
+  let target=todo.find(x=>entInFilter(x.q));
+  if(!target){
+    /* La famille ou la recherche choisie est déjà maîtrisée : on reprend parmi toutes les questions à revoir. */
+    entFilter='all';entSearch='';syncEntSearchChrome();
+    target=todo[0];
+  }
+  openEntretienQuestion(target.id,true);
 }
 /* « Question suivante » reste dans l’onglet choisi (Elisa, 31 octobre, 15 h 16, réf. 2 : « la question qui est à revoir si on est dans
    l’onglet à revoir, toutes si on est dans toutes et maîtrisées quand on est dans maîtrisées ») : la suivante dans l’ordre de la liste,
    à partir de la question ouverte, parmi celles de l’onglet (et du thème choisi). Plus aucune autre : retour à la liste. */
-function entInTab(x){ return entStatus==='ok'?entOk(x.id):entStatus==='review'?!entOk(x.id):true; }
+function entInTab(x){ if(entRun)return !entOk(x.id); return entStatus==='ok'?entOk(x.id):entStatus==='review'?!entOk(x.id):true; }
 function entNextTarget(id){
   const pool=entAllItems().filter(x=>entInFilter(x.q));
   const cur=pool.findIndex(x=>x.id===id);
@@ -31105,7 +31122,7 @@ function entPrevTarget(id){
   }
   return null;
 }
-function prevEntretien(id){const t=entPrevTarget(id);if(t)openEntretienQuestion(t.id);}
+function prevEntretien(id){const t=entPrevTarget(id);if(t)openEntretienQuestion(t.id,entRun);}
 /* 18 h 38, réf. 2 : « un bouton Voir selon le SGBD qui nous dirige vers l’onglet Selon le SGBD au bon endroit ». Le thème de la page
    vient de la notion de la question, ou à défaut des fonctions qu’elle cite ; le retour ramène à la question. */
 const ENT_SGBD_CAT={Dates:'dates','Chaînes':'texte',NULL:'null',Conditions:'null',Transactions:'transactions','Modifier les données':'tables'};
@@ -31132,12 +31149,12 @@ function entVoirSgbd(id,theme){
 }
 function nextEntretien(id){
   const target=entNextTarget(id);
-  if(target){ openEntretienQuestion(target.id); return; }
-  entOpen=null; renderEntretien(); entScrollTop();
+  if(target){ openEntretienQuestion(target.id,entRun); return; }
+  entOpen=null; entRun=false; renderEntretien(); entScrollTop();
 }
 function entretienBack(){
   if(entOpen){
-    entOpen=null;
+    entOpen=null;entRun=false;
     renderEntretien();
     entScrollTop();
     return;
@@ -33713,7 +33730,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-pseudo-onboarding-v2406';
+  const SW_CACHE='requete-2026-11-02-continuer-a-revoir-v2407';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
