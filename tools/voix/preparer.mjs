@@ -62,10 +62,11 @@ const MOTS_CLES = {AS: 'aze', IN: 'inne', ON: 'onne', OR: 'or', BY: 'baï', IS: 
   BETWEEN: 'bitouine', ORDER: 'ordeur', LIMIT: 'limitte', OFFSET: 'offsette',
   /* Le module « Fonctions et expressions » (Elisa, 2 novembre, 8 h 29, voix d’Adam) : les fonctions dites à l’anglaise. */
   UPPER: 'appeur', LOWER: 'loweur', TRIM: 'trimme', LENGTH: 'lènnguethe', SUBSTR: 'sub-stringue', INSTR: 'inne-stringue', REPLACE: 'riplèïsse',
-  ROUND: 'raounde', FLOOR: 'flôr', CEIL: 'sîle', STRFTIME: 'strèf-taïme', CAST: 'kaste', INTEGER: 'inntédjeur', REAL: 'riale', TEXT: 'tèxte',
-  WHEN: 'ouènne', THEN: 'zènne', ELSE: 'èlse', END: 'ènde', COALESCE: 'koalèsse', COUNT: 'kaounte',
-  /* Le module « Agrégats et regroupements » (voix d’Antoine). */
-  SUM: 'seumme', AVG: 'avèredje', MIN: 'minne', MAX: 'maxe', GROUP: 'groupe', HAVING: 'hèvinngue', GROUP_CONCAT: 'groupe-konkatte', SEPARATOR: 'séparateur',
+  ROUND: 'round', FLOOR: 'flôr', CEIL: 'sîle', STRFTIME: 'strèf-taïme', CAST: 'kaste', INTEGER: 'inntédjeur', REAL: 'riale', TEXT: 'tèxte',
+  WHEN: 'ouènne', THEN: 'zènne', ELSE: 'èlse', END: 'ènde', COALESCE: 'koalèsse', COUNT: 'count',
+  /* Le module « Agrégats et regroupements » (voix d’Antoine). 9 h 54 : « compté » pour COUNT, un accent espagnol sur SUM, AVG, MIN et MAX,
+     « averge », « rounde » : ces fonctions s’écrivent désormais en anglais, comme des mots anglais (count, sum, average, min, max, round). */
+  SUM: 'sum', AVG: 'average', MIN: 'min', MAX: 'max', GROUP: 'groupe', HAVING: 'hèvinngue', GROUP_CONCAT: 'groupe-konkatte', SEPARATOR: 'séparateur',
   /* Le module « Jointures » (voix de Perle). */
   JOIN: 'djoïnne', INNER: 'ineur', LEFT: 'lèfte', RIGHT: 'raïte', FULL: 'foul', OUTER: 'aouteur', CROSS: 'krosse', SELF: 'sèlfe', USING: 'iouzinngue',
   /* Le module « Sous-requêtes et ensembles » (voix de Mia). */
@@ -95,7 +96,7 @@ const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 
 /* SQLite, excluded et true (le module « Écrire et modifier les données ») : dits à l’anglaise. */
 DIRE.unshift([/SQLite/g, 'S Q Laïte'], [/\bexcluded\b/g, 'ixcloudide'], [/\bWHERE true\b/g, 'WHERE trou']);
 DIRE.unshift([/\b(\d{4})-(\d{2})-(\d{2})\b/g, (m, a, mo, j) => (+j === 1 ? '1er' : String(+j)) + ' ' + MOIS[+mo - 1] + ' ' + a],
-  [/(\d)\.\.\*/g, '$1 point point étoile'], [/(\d)\.\.(\d)/g, '$1 point point $2'], [/(^|\s)\*(?=\s)/g, '$1étoile'], [/([a-zé])\/(?=l[ae] )/g, '$1 ou '],
+  [/(\d)\.\.\*/g, '$1 point point étoile'], [/(\d)\.\.(\d)/g, '$1 point point $2'], [/(^|\s)\*(?=\s)(?!\s*\d)/g, '$1étoile'], [/([a-zé])\/(?=l[ae] )/g, '$1 ou '],
   [/GROUP_CONCAT/g, 'groupe-konkatte'], [/ROW_NUMBER/g, 'raô-nommbeur'], [/DENSE_RANK/g, 'dènnse-rannk'], [/PERCENT_RANK/g, 'peursènnte-rannk'], [/rendez_vous/g, 'rendez-vous'], [/([A-Za-zÀ-ÿ0-9])\.(?=[a-zà-ÿ])/g, '$1 point '], [/'([^']+)'/g, '$1'], [/(\d)\s*%/g, '$1 pour cent'], [/\s*→\s*/g, ', donne '],
   [/(^|\s)([%_A-Za-zÀ-ÿ]*[%_][%_A-Za-zÀ-ÿ]*)(?=[\s,.;:!?»)]|$)/g, (m, a, w) => /[%_]/.test(w) && !/[A-Za-zÀ-ÿ]_[A-Za-zÀ-ÿ]/.test(w)
     ? a + w.split(/([%_])/).filter(Boolean).map(x => x === '%' ? 'pourcent' : x === '_' ? 'tiret bas' : x).join(', ') : m],

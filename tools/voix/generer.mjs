@@ -6,7 +6,7 @@
 
    Il lit tools/voix/<cours>.json (voix, modèle, textes) et range chaque fichier dans tools/voix/sortie/<cours>/ (hors Git) :
    <id>.mp3 et <id>.json (le texte et le minutage de chaque caractère, qui sert à caler les légendes sur la voix).
-   Un fichier déjà généré n’est pas refait : relancer le script ne dépense rien de plus.
+   Un fichier déjà généré n’est pas refait (sauf si son texte a changé) : relancer le script ne dépense rien de plus.
 
    Options : <cours> (par défaut le seul fichier .json du dossier), --refaire ch06,at2 (regénère ces fichiers),
    --tout (regénère tout), --oui (ne demande pas de confirmation), --cle (redemande la clé API). */
@@ -84,7 +84,9 @@ async function main(){
   fs.mkdirSync(out, {recursive: true});
 
   const redo = new Set((opt('--refaire') || '').split(',').map(s => s.trim()).filter(Boolean));
-  const done = el => fs.existsSync(path.join(out, el.id + '.mp3')) && fs.existsSync(path.join(out, el.id + '.json'));
+  /* Un fichier dont le texte a changé depuis (une prononciation corrigée dans preparer.mjs) est refait, lui seul. */
+  const same = el => { try { return JSON.parse(fs.readFileSync(path.join(out, el.id + '.json'), 'utf8')).texte === el.texte; } catch (e) { return false; } };
+  const done = el => fs.existsSync(path.join(out, el.id + '.mp3')) && fs.existsSync(path.join(out, el.id + '.json')) && same(el);
   const todo = job.elements.filter(el => flag('--tout') || redo.has(el.id) || !done(el));
   console.log(`\nVoix off · ${job.titre} · voix ${job.voix.nom} (${job.modele})`);
   if (!todo.length) { console.log('Tout est déjà généré dans tools/voix/sortie/' + job.cours + '. Rien à faire.'); return; }
