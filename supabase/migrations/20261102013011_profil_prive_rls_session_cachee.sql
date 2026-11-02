@@ -1,0 +1,3 @@
+alter policy compte_profil_lire on public.compte_profil using((select auth.uid())=user_id and coalesce(((select auth.jwt())->>'is_anonymous'),'false')<>'true');
+alter policy compte_profil_creer on public.compte_profil with check((select auth.uid())=user_id and coalesce(((select auth.jwt())->>'is_anonymous'),'false')<>'true');
+alter policy compte_profil_modifier on public.compte_profil using((select auth.uid())=user_id and coalesce(((select auth.jwt())->>'is_anonymous'),'false')<>'true') with check((select auth.uid())=user_id and coalesce(((select auth.jwt())->>'is_anonymous'),'false')<>'true');

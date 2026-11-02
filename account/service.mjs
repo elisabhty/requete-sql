@@ -15,7 +15,7 @@ function passwordValue(value,creating=false){
 }
 function firstName(value){
   const name=String(value??'').trim();
-  if(name.length>80)fail('invalid_name','Le prénom doit contenir au maximum 80 caractères.');
+  if([...name].length>80||/[\u0000-\u001f\u007f-\u009f]/.test(name))fail('invalid_name','Le prénom doit contenir au maximum 80 caractères.');
   return name;
 }
 function check(result){
@@ -41,12 +41,12 @@ export function createAccountService(client,{enabled=false,redirectUrl,providers
     return user;
   }
   async function readProfile(user){
-    return check(await client.from('compte_profil').select('user_id,prenom,cree_le,modifie_le').eq('user_id',user.id).maybeSingle());
+    return check(await client.from('compte_profil').select('user_id,prenom,objectif,fuseau_horaire,revision,cree_le,modifie_le').eq('user_id',user.id).maybeSingle());
   }
   async function ensureProfile(prenom=''){
     const user=await verifiedUser();let profile=await readProfile(user);
     if(profile)return profile; // Never overwrite a cloud profile with a guest/device name.
-    const inserted=await client.from('compte_profil').insert({user_id:user.id,prenom:firstName(prenom)}).select('user_id,prenom,cree_le,modifie_le').single();
+    const inserted=await client.from('compte_profil').insert({user_id:user.id,prenom:firstName(prenom)}).select('user_id,prenom,objectif,fuseau_horaire,revision,cree_le,modifie_le').single();
     if(inserted.error?.code==='23505'){
       profile=await readProfile(user);
       if(profile)return profile; // Another device created it during sign-in.
@@ -82,9 +82,13 @@ export function createAccountService(client,{enabled=false,redirectUrl,providers
       return check(await client.auth.signInWithOAuth({provider,options:{redirectTo:redirect()}}));
     },
     ensureProfile,
-    async updateProfile({prenom}){
+    async updateProfile({prenom},{revision}={}){
+      requireEnabled();
+      if(!Number.isSafeInteger(revision)||revision<1)fail('revision_required','Recharge ton profil avant de le modifier.');
       const name=firstName(prenom),user=await verifiedUser();
-      return check(await client.from('compte_profil').update({prenom:name}).eq('user_id',user.id).select('user_id,prenom,cree_le,modifie_le').single());
+      const result=check(await client.rpc('compte_profil_enregistrer',{p_revision:revision,p_donnees:{prenom:name},p_compte_attendu:user.id}));
+      if(!result?.ok)fail('profile_conflict','Ton profil a changé sur un autre appareil. Recharge-le avant de réessayer.');
+      return result.profile;
     },
     async requestPasswordReset(email){
       requireProvider('email');
