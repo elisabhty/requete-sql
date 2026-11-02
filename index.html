@@ -8779,11 +8779,25 @@ guide({ id:55, titre:"EXISTS et NOT EXISTS", résumé:"Tester la présence ou l�
     ],label:"Les trois idées à retenir"}
   ]
 }),
+guide({ id:86, titre:"ANY et ALL", résumé:"Comparer à toute une liste",
+  /* Cours en vidéo : l’animation (assets/anim/any-all.html, moteur commun assets/anim/core.js) est le cours (Elisa, 2 novembre, 10 h 57 :
+     « on a un cours ANY/ALL ? » … « oui stp »). La vidéo suit la gamme premium : les produits plus chers que tous les produits Bien-être.
+     SQLite n’a ni ANY ni ALL : la vidéo montre leurs équivalents, MAX, MIN et IN. */
+  leconSeule:true,
+  video:{anim:'assets/anim/any-all.html?app&embed',thumb:'assets/anim/any-all-thumb.jpg',duree:'3 min 23',moments:3,seuil:2},
+  reflex:[
+    {recap:[
+      ["🔝","Comparer à toute une liste","<code>ALL</code> est vrai si la comparaison est vraie pour <b>toutes</b> les valeurs de la sous-requête, <code>ANY</code> si elle l’est pour <b>au moins une</b>."],
+      ["🧩","Dans SQLite, une seule valeur","<code>ANY</code> et <code>ALL</code> n’y existent pas : <code>&gt; ALL</code> devient <code>&gt; (SELECT MAX(…))</code>, <code>&gt; ANY</code> devient <code>&gt; (SELECT MIN(…))</code>."],
+      ["🟰","Égal à au moins une valeur","<code>= ANY (…)</code> revient à <code>IN (…)</code>, que tu connais déjà."]
+    ],label:"Les trois idées à retenir"}
+  ]
+}),
 guide({ id:59, titre:"WITH (CTE)", résumé:"Créer et réutiliser un résultat intermédiaire",
   /* Cours en vidéo : l’animation (assets/anim/with-cte.html, moteur commun assets/anim/core.js) est le cours.
      La vidéo suit l’avant-première des clients réguliers : la CTE totaux compte les commandes de chaque client. */
   leconSeule:true,
-  video:{anim:'assets/anim/with-cte.html?app&embed',thumb:'assets/anim/with-cte-thumb.jpg',duree:'3 min 42',moments:3,seuil:2},
+  video:{anim:'assets/anim/with-cte.html?app&embed',thumb:'assets/anim/with-cte-thumb.jpg',duree:'3 min 41',moments:3,seuil:2},
   reflex:[
     {recap:[
       ["🧩","Organiser une requête en étapes","La clause <code>WITH</code> définit un résultat intermédiaire nommé, appelé CTE. Elle rend les différentes étapes de la requête plus faciles à lire."],
@@ -13894,6 +13908,8 @@ const CARTES={
     m:"Dans <code>FROM</code>, la sous-requête produit un résultat que la requête principale utilise comme une table. On l’appelle <b>table dérivée</b> : donne-lui toujours un alias."},
  55:{k:"EXISTS",t:"Présence ou absence d’une ligne",s:"WHERE EXISTS (\n  SELECT 1 FROM commandes\n  WHERE client_id = clients.id\n)",
     m:"Avec <code>IN</code>, tu cherches une valeur dans une liste. Avec <code>EXISTS</code>, tu vérifies qu’une correspondance existe. Vérifie toujours que la sous-requête est bien reliée à la ligne en cours."},
+ 86:{k:"ANY · ALL",t:"Comparer à toute une liste",s:"WHERE prix > ALL (\n  SELECT prix FROM produits\n  WHERE categorie = 'Bien-être'\n)",
+    m:"<code>ALL</code> : la comparaison doit être vraie pour <b>toutes</b> les valeurs de la sous-requête ; <code>ANY</code> : pour <b>au moins une</b>. SQLite n’a ni l’un ni l’autre : <code>&gt; ALL</code> s’écrit <code>&gt; (SELECT MAX(…))</code>, <code>&gt; ANY</code> s’écrit <code>&gt; (SELECT MIN(…))</code>, et <code>= ANY</code> s’écrit <code>IN</code>."},
  56:{k:"Normalisation",t:"Répartir les données",s:"ateliers · coachs · inscriptions",
     m:"Chaque information est écrite <b>une seule fois</b>, dans la table de ce qu’elle décrit : l’atelier, le coach ou le client. La date d’inscription décrit un <b>lien</b> : elle va dans la table <code>inscriptions</code>."},
  57:{k:"INDEX · EXPLAIN",t:"Retrouver plus vite, et vérifier",s:"CREATE INDEX idx_clients_ville\nON clients(ville);\n\nEXPLAIN QUERY PLAN\nSELECT * FROM clients\nWHERE ville = 'Paris';",
@@ -17572,6 +17588,7 @@ const SQ_ALIASES={
   47:'sous requete dans select subquery scalaire valeur par ligne',
   48:'sous requete dans from table derivee subquery from',
   55:'exists not exists existence absence correlee clients sans commande jamais commande not in',
+  86:'any all some toutes au moins une comparer liste valeurs sous requete plus grand que tous max min',
   59:'with cte common table expression requete intermediaire nommee',
   77:'with recursive cte recursive suite serie recursion generer',
   73:'union union all empiler fusionner resultats concatener requetes',
@@ -33178,7 +33195,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-anna-voix-v2343';
+  const SW_CACHE='requete-2026-11-02-any-all-v2344';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

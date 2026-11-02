@@ -56,7 +56,7 @@ const DIRE = [[/\bSELECT \*/g, 'SELECT étoile'], [/(\w)_(\w)/g, '$1 underscore 
    Les mots-clés courts, écrits en capitales, que la voix épelait : écrits comme ils se disent (à l’anglaise, d’un seul mot). */
 /* Elisa, 2 novembre, 1 h 32 : « elle dit DISTINCT (à la française), il faut dire distincte ». Les mots-clés qui sont aussi des mots français
    (DISTINCT, CASE, UNION) se disent à l’anglaise, eux aussi. */
-const MOTS_CLES = {AS: 'aze', IN: 'inne', ON: 'onne', OR: 'or', BY: 'baï', IS: 'ize', AND: 'ènde', NOT: 'notte', ALL: 'ol', ASC: 'assk', DESC: 'dissk',
+const MOTS_CLES = {AS: 'aze', IN: 'inne', ON: 'onne', OR: 'or', BY: 'baï', IS: 'ize', AND: 'ènde', NOT: 'notte', ALL: 'ol', ANY: 'èni', SOME: 'somme', ASC: 'assk', DESC: 'dissk',
   DISTINCT: 'distinkte', CASE: 'kéïsse', UNION: 'iounionne', LIKE: 'laïke',
   /* Le premier module en entier (Elisa, 2 novembre, 7 h 49) : IN, BETWEEN, ORDER BY, LIMIT et OFFSET. */
   BETWEEN: 'bitouine', ORDER: 'ordeur', LIMIT: 'limitte', OFFSET: 'offsette',
@@ -121,6 +121,14 @@ DIRE.push([new RegExp('\\b(' + Object.keys(MOTS_CLES).join('|') + ')\\b', 'g'), 
   [/(^|[^A-Za-zÀ-ÿ])([a-z]+)(?=$|[^A-Za-zÀ-ÿ])/g, (m, a, w) => a + (ACCENTS[w] || w)]);
 /* Une phrase qui ne se lit pas telle quelle : sa version dite (la légende, elle, ne change pas). */
 const PHRASES = {
+  /* ANY et ALL : « > ALL » en tête de phrase, « (…) » qui ne se lit pas, « = ANY » à dire « égal à ANY ». */
+  '> ALL est vrai si le prix est plus grand que chacune des valeurs de la sous-requête.': 'Supérieur à ol est vrai si le prix est plus grand que chacune des valeurs de la sous-requête.',
+  '> ANY est vrai si le prix dépasse au moins une valeur de la sous-requête.': 'Supérieur à èni est vrai si le prix dépasse au moins une valeur de la sous-requête.',
+  'Et = ANY revient à IN : égal à au moins une valeur de la liste.': 'Et égal à èni revient à inne : égal à au moins une valeur de la liste.',
+  'Or > compare un prix à une seule valeur.': 'Or le signe supérieur à compare un prix à une seule valeur.',
+  'Et à la place de = ANY, on écrit IN.': 'Et à la place de égal à èni, on écrit inne.',
+  'Pour chaque produit, prix > ALL (…) est-il vrai ou faux ?': 'Pour chaque produit, prix supérieur à ol est-il vrai ou faux ?',
+  'Avec prix > ANY (…), combien des 8 produits sont retenus ?': 'Avec prix supérieur à èni, combien des 8 produits sont retenus ?',
   "'paris' ≠ 'Paris' : écris la valeur telle qu’elle figure dans la table.": 'Attention aux majuscules : paris n’est pas Paris. Écris la valeur telle qu’elle figure dans la table.',
   'Dans la prochaine leçon, tu compareras des valeurs avec =, > ou <.': 'Dans la prochaine leçon, tu compareras des valeurs avec les signes égal, plus grand que et plus petit que.',
   'Dans la leçon précédente, tu as comparé des valeurs avec =, > ou <.': 'Dans la leçon précédente, tu as comparé des valeurs avec les signes égal, plus grand que et plus petit que.',
@@ -196,7 +204,7 @@ const ANTOINE = {id: 'nbiTBaMRdSobTQJDzIWm', nom: 'Antoine'}, AGREGATS = ['count
 const PERLE = {id: 'UaGvaD7NWzU5mJNoUqoY', nom: 'Perle'}, JOINTURES = ['inner-join', 'left-join', 'right-join', 'full-outer-join', 'cross-join',
   'jointure-3-tables', 'join-group-by', 'self-join', 'plusieurs-conditions-on', 'quel-join-choisir'];
 /* 9 h 06 : le module « Sous-requêtes et ensembles » avec Mia (« Mia García – Cálida instructora e-learning »), la formatrice. */
-const MIA = {id: 'PrwKJdvtTbJVdosRhS1O', nom: 'Mia'}, SOUS_REQUETES = ['sous-requete-in', 'sous-requete-select', 'sous-requete-from', 'exists',
+const MIA = {id: 'PrwKJdvtTbJVdosRhS1O', nom: 'Mia'}, SOUS_REQUETES = ['sous-requete-in', 'sous-requete-select', 'sous-requete-from', 'exists', 'any-all',
   'with-cte', 'union', 'intersect-except', 'with-recursive'];
 /* 9 h 14 : le module « Fonctions de fenêtre » avec Dorian (« Dorian – Jeune homme calme français sans accent »), le formateur. */
 const DORIAN = {id: 'vp2FCFmQCE4NzuQj9QNe', nom: 'Dorian'}, FENETRES = ['over', 'fonctions-rang', 'lag-lead', 'fenetres-glissantes'];

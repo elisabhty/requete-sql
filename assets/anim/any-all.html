@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="fr" class="tr-f tr-mia">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · ANY et ALL en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+/* Leçon ANY et ALL (Elisa, 2 novembre, 10 h 57 : « on a un cours ANY/ALL ? » … « oui stp ») : dans le module « Sous-requêtes et
+   ensembles », entre EXISTS et WITH (CTE). SQLite (la base de l’app) n’a ni ANY ni ALL : la vidéo les explique, puis montre
+   leurs équivalents (MAX, MIN, IN), comme la leçon MERGE. Les prix sont ceux de la table produits de l’app. */
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .sub{font-size:64px}
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:38px;white-space:nowrap}
+.nw{white-space:nowrap}
+
+/* Code : sept lignes (chapitre 6) */
+.code.sm .body{font-size:32px;line-height:50px;padding:26px 36px}
+.code.sm .ln{height:50px}
+.code.sm .caret i{top:-37px;height:42px}
+/* Mini-requêtes */
+.mini.mm{font-size:30px;line-height:46px;padding:20px 30px}
+.mini .ml{display:block}
+/* Valeurs qui changent sur place : empilées dans la même case, une seule visible */
+.pn{display:inline-grid}
+.pn>b{grid-area:1/1;font-weight:inherit;opacity:0}
+
+/* ---------- 1 · La gamme premium ---------- */
+.board{left:64px;width:952px;padding:0 0 8px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar>span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.lx{padding:28px 34px 26px}
+.lx-hero{display:flex;align-items:center;gap:26px}
+.lx-ico{width:112px;height:112px;border-radius:34px;background:#FFF8D6;display:flex;align-items:center;justify-content:center;font-size:64px;flex:none}
+.lx-t1{font-size:42px;font-weight:800;color:var(--ink);white-space:nowrap}
+.lx-t2{margin-top:6px;font-size:30px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.lx-conds{margin-top:26px;display:flex;align-items:center;gap:14px}
+.cd{height:60px;padding:0 22px;border-radius:999px;font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.cd.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.cd.am{background:#E7F7EE;color:#1B7A45}
+.pill{left:0;width:1080px;display:flex;justify-content:center}
+.pill>span{height:62px;padding:0 24px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill.vi>span{background:var(--accent-soft);color:var(--accent-ink)}
+.pill.gr>span{background:#E7F7EE;color:#1B7A45}
+.pill.rd>span{background:#FDEBEC;color:#C2323A}
+.pill .ic{font-size:.92em;background:#fff}
+
+/* ---------- 2 · Le problème : trois valeurs pour une seule comparaison ---------- */
+.sc{left:64px;width:952px;padding:24px 26px 26px}
+.sc-h{display:flex;align-items:center;gap:12px;padding:0 6px 16px;font-size:31px;font-weight:700;color:var(--ink);white-space:nowrap}
+.sc-h .emo{font-size:31px}
+.vals{display:flex;gap:16px;margin-top:18px}
+.vc3{flex:1;height:96px;border-radius:24px;background:#E7F7EE;border:2px solid #BFE8D0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;white-space:nowrap}
+.vc3 b{font-family:var(--mono);font-size:34px;font-weight:800;color:#1B7A45}
+.vc3 i{font-style:normal;font-size:22px;font-weight:700;color:#3D8F62}
+.goal{left:64px;width:952px;height:96px;border-radius:32px;background:#E7F7EE;border:3px solid #BFE8D0;display:flex;align-items:center;justify-content:center;gap:14px;font-size:33px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.goal .emo{font-size:36px}
+.duo{left:64px;width:952px;display:flex;gap:20px}
+.duo>div{flex:1;height:96px;border-radius:30px;display:flex;align-items:center;justify-content:center;gap:14px;font-size:30px;font-weight:700;white-space:nowrap}
+.duo .al{background:var(--accent-soft);color:var(--accent-ink)}
+.duo .an{background:#FFF4E5;color:#9A5B00}
+.duo .ic{font-size:30px;background:#fff}
+
+/* ---------- 3 et 4 · ALL, puis ANY : un produit, trois comparaisons ---------- */
+.who{position:relative;height:56px;margin-top:16px}
+.who>span{position:absolute;left:0;top:0;height:56px;padding:0 20px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap;opacity:0}
+.cmps{position:relative;margin-top:16px;height:70px}
+.cmps>div{position:absolute;left:0;top:0;right:0;display:flex;gap:12px;opacity:0}
+.cm{flex:1;height:70px;border-radius:18px;background:var(--surface-2);border:2px solid var(--line);font-family:var(--mono);font-size:26px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
+.cm.y{background:#E7F7EE;border-color:#BFE8D0;color:#1B7A45}
+.cm.n{background:#FDEBEC;border-color:#F2B8BC;color:#C2323A}
+.rz{position:relative;margin-top:16px;height:76px;border-radius:20px;background:var(--surface-2);overflow:hidden}
+.rz>div{position:absolute;left:0;top:0;right:0;bottom:0;display:flex;align-items:center;gap:18px;padding:0 22px;white-space:nowrap;opacity:0}
+.rz .rv{font-size:29px;font-weight:700;color:var(--ink)}
+.vd{margin-left:auto;height:54px;padding:0 20px;border-radius:999px;font-family:var(--mono);font-size:26px;font-weight:800;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.vd.ok{background:#E7F7EE;color:#1B7A45}
+.vd.ko{background:#FDEBEC;color:#C2323A}
+/* La table produits, avec les deux verdicts */
+.rgP{display:grid;grid-template-columns:1fr 180px 150px 150px;padding:0 26px;align-items:center}
+.tr.t4{height:52px;font-size:29px}
+.tr>div.vc{position:relative;height:40px;padding:0;overflow:visible}
+.vc>i{position:absolute;left:0;top:0;height:40px;padding:0 14px;border-radius:999px;font-family:var(--ui);font-size:23px;font-weight:800;font-style:normal;display:flex;align-items:center;opacity:0}
+.vc .y{background:#E7F7EE;color:#1B7A45}
+.vc .n{background:#FDEBEC;color:#C2323A}
+#cnt4{white-space:nowrap}
+
+/* ---------- 5 · Dans SQLite : les équivalents ---------- */
+.eqc{left:64px;width:952px;padding:24px 28px 28px}
+.eq{display:grid;grid-template-columns:300px 60px 1fr;align-items:center;margin-top:16px}
+.eq>span{height:70px;border-radius:18px;font-family:var(--mono);font-size:27px;font-weight:700;display:flex;align-items:center;padding:0 20px;white-space:nowrap}
+.eq .a{background:#FDEBEC;color:#C2323A;text-decoration-thickness:3px}
+.eq .ar{justify-content:center;font-family:var(--ui);font-size:36px;color:var(--ink-3);padding:0}
+.eq .b{background:#E7F7EE;color:#1B7A45}
+
+/* ---------- 6 · Le résultat ---------- */
+.rgR{display:grid;grid-template-columns:1fr 200px;padding:0 26px;align-items:center}
+.tr.t6{height:56px;font-size:31px}
+.ms{position:relative;padding:30px 34px 32px}
+.ms-h{display:flex;align-items:center;gap:24px}
+.ms-ico{width:104px;height:104px;border-radius:32px;background:#FFF8D6;display:flex;align-items:center;justify-content:center;font-size:58px;flex:none}
+.ms-t1{font-size:38px;font-weight:800;color:var(--ink);white-space:nowrap}
+.ms-t2{margin-top:6px;font-size:27px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.ms-to{margin-top:24px;display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding-right:200px}
+.ms-to .lb{font-size:27px;font-weight:700;color:var(--ink-3);margin-right:4px}
+.rc{height:52px;padding:0 18px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:27px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+#sp6{right:30px;top:auto;bottom:26px}
+
+/* ---------- 7 · À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:20px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Sous-requêtes</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>A</span><span>N</span><span>Y</span><span>·</span><span>A</span><span>L</span><span>L</span></div>
+    <div class="abs sub">Comparer à toute une liste</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Compare une valeur à toutes celles d’une sous-requête, ou à au moins une.</div>
+  </section>
+
+  <!-- 1 · Situation : la gamme premium -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="ab1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Boutique · gamme premium</span><span class="tb" id="tb1">table produits</span></div>
+      <div class="lx">
+        <div class="lx-hero"><div class="lx-ico" id="ic1">💎</div><div><div class="lx-t1">Gamme premium</div><div class="lx-t2">Les produits haut de gamme de NutriBoost</div></div></div>
+        <div class="lx-conds"><span class="cd vi" id="cd1">💶 Plus chers que</span><span class="cd am" id="cd2">🌿 tous les produits Bien-être</span></div>
+      </div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">🏷️</span><span class="nl">Le nom du produit</span><span class="tag">table produits</span></div>
+      <div class="need-row"><span class="emo">💶</span><span class="nl">Son prix</span><span class="tag">table produits</span></div>
+      <div class="need-row"><span class="emo">🌿</span><span class="nl">Les prix Bien-être</span><span class="tag">table produits</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : la sous-requête renvoie trois valeurs -->
+  <section class="scene" id="s2">
+    <div class="abs card sc" id="sc2" style="top:300px">
+      <div class="sc-h"><span class="emo">🌿</span><span>Les prix des produits Bien-être</span></div>
+      <div class="mini mm"><span class="ml"><span class="kw">SELECT</span> prix</span><span class="ml"><span class="kw">FROM</span> produits</span><span class="ml"><span class="kw">WHERE</span> categorie = <span class="st">'Bien-être'</span>;</span></div>
+      <div class="vals" id="vals2"><div class="vc3"><b>29.90</b><i>Fibre Prébiotique</i></div><div class="vc3"><b>19.90</b><i>Magnésium</i></div><div class="vc3"><b>24.90</b><i>Oméga 3</i></div></div>
+    </div>
+    <div class="abs card trap" id="gt2">
+      <div class="trap-h"><span class="emo">⚖️</span><span>Un prix, trois valeurs</span></div>
+      <div class="mini mm"><span class="ml"><span class="kw">WHERE</span> prix <span class="glow" id="op2">&gt;</span> (</span><span class="ml">  <span class="kw">SELECT</span> prix <span class="kw">FROM</span> produits</span><span class="ml">  <span class="kw">WHERE</span> categorie = <span class="st">'Bien-être'</span></span><span class="ml">)</span></div>
+    </div>
+    <div class="abs goal" id="goal2"><span class="emo">❓</span>Plus cher que toutes, ou qu’au moins une&nbsp;?</div>
+    <div class="abs duo" id="duo2"><div class="al"><span class="ic">ALL</span> toutes les valeurs</div><div class="an"><span class="ic">ANY</span> au moins une</div></div>
+  </section>
+
+  <!-- 3 · ALL : plus grand que chacune des valeurs -->
+  <section class="scene" id="s3">
+    <div class="abs card trap" id="al3" style="top:300px">
+      <div class="trap-h"><span class="emo">🔝</span><span>Plus grand que chacune des valeurs</span></div>
+      <div class="mini mm"><span class="ml"><span class="kw">WHERE</span> prix <span class="glow" id="k3">&gt; <span class="kw">ALL</span></span> (</span><span class="ml">  <span class="kw">SELECT</span> prix <span class="kw">FROM</span> produits</span><span class="ml">  <span class="kw">WHERE</span> categorie = <span class="st">'Bien-être'</span></span><span class="ml">)</span></div>
+      <div class="who"><span id="wa3">💪 Protéine Végétale · 34,90&nbsp;€</span><span id="wb3">🐟 Oméga 3 · 24,90&nbsp;€</span></div>
+      <div class="cmps"><div id="ca3"><span class="cm y">34.90 &gt; 29.90 ✓</span><span class="cm y">34.90 &gt; 19.90 ✓</span><span class="cm y">34.90 &gt; 24.90 ✓</span></div><div id="cb3"><span class="cm n">24.90 &gt; 29.90 ✕</span><span class="cm y">24.90 &gt; 19.90 ✓</span><span class="cm n">24.90 &gt; 24.90 ✕</span></div></div>
+      <div class="rz" id="rz3">
+        <div id="ra3"><span class="rv">Les trois comparaisons sont vraies</span><span class="vd ok">ALL → vrai</span></div>
+        <div id="rb3"><span class="rv">Une comparaison fausse suffit</span><span class="vd ko">ALL → faux</span></div>
+      </div>
+    </div>
+    <div class="abs pill vi" id="p3"><span>🔝 Avec <span class="ic">&gt; ALL</span>&nbsp;: 2 produits</span></div>
+  </section>
+
+  <!-- 4 · ANY : plus grand qu’au moins une valeur -->
+  <section class="scene" id="s4">
+    <div class="abs card trap" id="an4" style="top:300px">
+      <div class="trap-h"><span class="emo">🎯</span><span>Plus grand qu’au moins une valeur</span></div>
+      <div class="mini mm"><span class="ml"><span class="kw">WHERE</span> prix <span class="glow" id="k4">&gt; <span class="kw">ANY</span></span> (</span><span class="ml">  <span class="kw">SELECT</span> prix <span class="kw">FROM</span> produits</span><span class="ml">  <span class="kw">WHERE</span> categorie = <span class="st">'Bien-être'</span></span><span class="ml">)</span></div>
+      <div class="who"><span id="wa4">🐟 Oméga 3 · 24,90&nbsp;€</span><span id="wb4">🧂 Magnésium · 19,90&nbsp;€</span></div>
+      <div class="cmps"><div id="ca4"><span class="cm n">24.90 &gt; 29.90 ✕</span><span class="cm y">24.90 &gt; 19.90 ✓</span><span class="cm n">24.90 &gt; 24.90 ✕</span></div><div id="cb4"><span class="cm n">19.90 &gt; 29.90 ✕</span><span class="cm n">19.90 &gt; 19.90 ✕</span><span class="cm n">19.90 &gt; 24.90 ✕</span></div></div>
+      <div class="rz" id="rz4">
+        <div id="ra4"><span class="rv">Une comparaison vraie suffit</span><span class="vd ok">ANY → vrai</span></div>
+        <div id="rb4"><span class="rv">Aucune comparaison n’est vraie</span><span class="vd ko">ANY → faux</span></div>
+      </div>
+    </div>
+    <div class="tbl card" id="tp4">
+      <div class="tt"><span class="emo">📦</span><span>Table produits</span><span class="cnt"><span id="cnt4">ALL&nbsp;: 2 · ANY&nbsp;: 4</span></span></div>
+      <div class="rgP th"><div>nom</div><div>prix</div><div>&gt; ALL</div><div>&gt; ANY</div></div>
+      <div class="rows" id="rows4"></div>
+    </div>
+    <div class="abs pill vi" id="in4"><span>🟰 <span class="ic">= ANY (…)</span> revient à <span class="ic">IN (…)</span></span></div>
+  </section>
+
+  <!-- 5 · Dans SQLite : MAX, MIN et IN -->
+  <section class="scene" id="s5">
+    <div class="abs card eqc" id="eq5" style="top:300px">
+      <div class="trap-h"><span class="emo">🧩</span><span>Dans SQLite, la base de l’app</span></div>
+      <div class="eq" id="e51"><span class="a"><span>&gt; ALL (…)</span></span><span class="ar">→</span><span class="b"><span>&gt; (<span class="kw">SELECT</span> <span class="glow" id="mx5">MAX(prix)</span> …)</span></span></div>
+      <div class="eq" id="e52"><span class="a"><span>&gt; ANY (…)</span></span><span class="ar">→</span><span class="b"><span>&gt; (<span class="kw">SELECT</span> <span class="glow" id="mn5">MIN(prix)</span> …)</span></span></div>
+      <div class="eq" id="e53"><span class="a"><span>= ANY (…)</span></span><span class="ar">→</span><span class="b"><span><span class="kw">IN</span> (…)</span></span></div>
+    </div>
+    <div class="abs pill rd" id="x5"><span>✕ <span class="ic">ANY</span> et <span class="ic">ALL</span>&nbsp;: inconnus de SQLite</span></div>
+  </section>
+
+  <!-- 6 · Le résultat : la requête complète, puis la gamme premium -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> nom, prix<span class="caret"><i></i></span></span><span class="ln" id="s6l2"><span class="kw">FROM</span> produits<span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="kw">WHERE</span> prix &gt; (<span class="caret"><i></i></span></span><span class="ln" id="s6l4">  <span class="kw">SELECT</span> <span class="glow" id="m6">MAX(prix)</span><span class="caret"><i></i></span></span><span class="ln" id="s6l5">  <span class="kw">FROM</span> produits<span class="caret"><i></i></span></span><span class="ln" id="s6l6">  <span class="kw">WHERE</span> categorie = <span class="st">'Bien-être'</span><span class="caret"><i></i></span></span><span class="ln" id="s6l7">);<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">2 lignes</span></span></div>
+      <div class="rgR th"><div>nom</div><div>prix</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card board" id="ab6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Boutique · nouvelle page</span></div>
+      <div class="ms">
+        <div class="ms-h"><span class="ms-ico">💎</span><div><div class="ms-t1">La gamme premium</div><div class="ms-t2">Nos produits les plus haut de gamme</div></div></div>
+        <div class="ms-to" id="to6"><span class="lb">Produits&nbsp;:</span></div>
+        <div class="stamp" id="sp6">En ligne</div>
+      </div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ 2 produits premium</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🔝</div><div class="rtxt"><b>Comparer à toute une liste</b><span class="rs"><span class="ic">ALL</span> est vrai si la comparaison est vraie pour <b>toutes</b> les valeurs de la <span class="nw">sous-requête</span>, <span class="ic">ANY</span> si elle l’est pour <b>au moins une</b>.</span></div></div>
+      <div class="rrow"><div class="rico emo">🧩</div><div class="rtxt"><b>Dans SQLite, une seule valeur</b><span class="rs"><span class="ic">ANY</span> et <span class="ic">ALL</span> n’y existent pas&nbsp;: <span class="ic">&gt; ALL</span> devient <span class="ic">&gt; MAX</span>, <span class="ic">&gt; ANY</span> devient <span class="ic">&gt; MIN</span>.</span></div></div>
+      <div class="rrow"><div class="rico emo">🟰</div><div class="rtxt"><b>Égal à au moins une valeur</b><span class="rs"><span class="ic">= ANY (…)</span> revient à <span class="ic">IN (…)</span>, que tu connais déjà.</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="liens.js"></script>
+<script src="core.js"></script>
+<script src="moments.js"></script>
+<script>
+'use strict';
+const DURATION = 190.2;
+
+/* La table produits de l’app : [nom, prix, > ALL (plus cher que 29,90), > ANY (plus cher que 19,90)]. */
+const PRODUITS = [['Fibre Prébiotique', '29.90', 0, 1], ['Collagène Marin', '39.90', 1, 1], ['Magnésium', '19.90', 0, 0], ['Vitamine D', '14.90', 0, 0],
+  ['Tisane Détox', '12.50', 0, 0], ['Protéine Végétale', '34.90', 1, 1], ['Oméga 3', '24.90', 0, 1], ['Shaker Inox', '15.00', 0, 0]];
+
+const CHAPTERS = [
+  {n:1, label:'Situation',     a:5.0,   b:26.0},
+  {n:2, label:'Le problème',   a:26.0,  b:56.1},
+  {n:3, label:'ALL',           a:56.1,  b:91.9},
+  {n:4, label:'ANY',           a:91.9,  b:126.9},
+  {n:5, label:'Dans SQLite',   a:126.9, b:156.5},
+  {n:6, label:'Le résultat',   a:156.5, b:180.1},
+  {n:7, label:'À retenir',     a:180.1, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 9.6,     "La boutique NutriBoost lance<br>une <b>gamme premium</b>."],
+  [9.7, 15.4,    "L’équipe veut y placer les produits<br>plus chers que <b>tous</b> les produits<br>de la catégorie Bien-être."],
+  [15.5, 20.8,   "Pour les afficher, on récupère<br>le nom et le prix des produits<br>dans la <b>table produits</b>."],
+  [20.9, 25.6,   "Les prix des produits Bien-être<br>se trouvent dans la même table."],
+  [26.3, 31.6,   "Une <span class=\"nw\">sous-requête</span> lit le prix<br>des produits Bien-être :<br>elle renvoie <b>trois valeurs</b>."],
+  [31.7, 36.2,   "29,90 € pour la Fibre&nbsp;Prébiotique,<br>19,90 € pour le Magnésium<br>et 24,90 € pour l’Oméga&nbsp;3."],
+  [36.3, 40.8,   "Or <code>&gt;</code> compare un prix<br>à <b>une seule</b> valeur."],
+  [40.9, 45.7,   "Avec trois valeurs, il faut préciser<br>comment comparer."],
+  [45.8, 50.6,   "Plus cher que <b>toutes</b> les valeurs,<br>ou plus cher qu’<b>au moins une</b> ?"],
+  [50.7, 55.6,   "C’est le rôle de <code>ALL</code><br>et de <code>ANY</code>."],
+  [56.4, 61.6,   "<code>&gt; ALL</code> est vrai si le prix est<br>plus grand que <b>chacune</b> des valeurs<br>de la <span class=\"nw\">sous-requête</span>."],
+  [61.7, 66.4,   "Le prix doit donc dépasser<br>29,90 €, 19,90 € <b>et</b> 24,90 €."],
+  [67.4, 71.6,   "Prenons la Protéine&nbsp;Végétale,<br>à 34,90 €."],
+  [71.7, 76.4,   "Les trois comparaisons sont vraies :<br><code>ALL</code> est vrai."],
+  [76.5, 80.4,   "Prenons maintenant l’Oméga&nbsp;3,<br>à 24,90 €."],
+  [80.5, 86.6,   "Son prix ne dépasse pas 29,90 € :<br>une comparaison fausse suffit,<br><code>ALL</code> est faux."],
+  [86.7, 91.4,   "Avec <code>&gt; ALL</code>, seuls deux produits<br>restent : les plus chers."],
+  [92.2, 97.6,   "<code>&gt; ANY</code> est vrai si le prix<br>dépasse <b>au moins une</b> valeur<br>de la <span class=\"nw\">sous-requête</span>."],
+  [97.7, 103.2,  "Cette fois, l’Oméga&nbsp;3, à 24,90 €,<br>dépasse 19,90 € :<br><code>ANY</code> est vrai."],
+  [103.3, 108.6, "Le Magnésium, à 19,90 €,<br>ne dépasse aucune des trois valeurs :<br><code>ANY</code> est faux."],
+  [109.6, 115.0, "Produit par produit, <code>ALL</code> garde<br><b>2 produits</b>, et <code>ANY</code> en garde <b>4</b>."],
+  [115.1, 120.6, "Avec <code>&gt; ANY</code>, il suffit de dépasser<br>le moins cher des produits Bien-être."],
+  [120.7, 126.4, "Et <code>= ANY</code> revient à <code>IN</code> :<br>égal à au moins une valeur de la liste."],
+  [127.2, 132.4, "Dans SQLite, la base de l’app,<br><code>ANY</code> et <code>ALL</code> n’existent pas."],
+  [132.5, 137.6, "On obtient le même résultat<br>en comparant à <b>une seule</b> valeur."],
+  [138.6, 144.6, "Plus grand que toutes les valeurs,<br>c’est plus grand que la plus grande :<br><code>MAX(prix)</code>."],
+  [144.7, 150.6, "Plus grand qu’au moins une valeur,<br>c’est plus grand que la plus petite :<br><code>MIN(prix)</code>."],
+  [150.7, 156.0, "Et à la place de <code>= ANY</code>,<br>on écrit <code>IN</code>."],
+  [156.8, 162.6, "La requête complète compare<br>chaque prix au plus cher<br>des produits Bien-être."],
+  [162.7, 167.6, "<code>MAX(prix)</code> renvoie 29,90 €,<br>la valeur la plus grande."],
+  [167.7, 173.2, "Résultat : <b>2 lignes</b>, le Collagène&nbsp;Marin<br>et la Protéine&nbsp;Végétale."],
+  [173.3, 179.6, "Les deux produits rejoignent<br>la gamme premium."],
+  [180.4, 185.2, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [185.3, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
+      : [185.3, 999, "<code>ALL</code> : toutes les valeurs. <code>ANY</code> : au moins une."]
+];
+
+/* Pas de question en pleine vidéo : les moments « À toi » font participer l’élève. */
+const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse. */
+const MOMENTS = [
+  // ALL expliqué : avant que la vidéo ne compare la Protéine Végétale et l’Oméga 3
+  {at: 66.9, from: 56.4, kind: 'sort', text: true, prompt: 'Pour chaque produit, <code>prix &gt; ALL (…)</code> est-il vrai ou faux ?',
+    hint: 'Sélectionne un produit, puis appuie sur l’emplacement où tu veux le placer. Tu peux aussi le faire glisser directement.', next: '« {x} » : appuie sur l’emplacement où tu veux le placer.',
+    board: {y: 470, html: '<span class="mb-k">Prix des produits Bien-être : 29,90 €, 19,90 € et 24,90 €</span><div class="mb-cols" style="gap:28px"><div class="mb-col"><div class="mb-bin" id="mbV"><b>ALL vrai</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin" id="mbF"><b>ALL faux</b><div class="mb-drop"></div></div></div></div>'},
+    spots: [{k: 'V', sel: '#mbV', label: 'ALL vrai'}, {k: 'F', sel: '#mbF', label: 'ALL faux'}],
+    options: [
+      {label: 'Protéine Végétale, 34,90 €', to: 'V', why: '34,90 € dépasse 29,90 €, 19,90 € et 24,90 € : les trois comparaisons sont vraies.'},
+      {label: 'Oméga 3, 24,90 €', to: 'F', why: '24,90 € ne dépasse pas 29,90 € : une comparaison fausse suffit, ALL est faux.'},
+      {label: 'Collagène Marin, 39,90 €', to: 'V', why: '39,90 € dépasse les trois prix Bien-être : ALL est vrai.'},
+      {label: 'Fibre Prébiotique, 29,90 €', to: 'F', why: '29,90 € n’est pas plus grand que 29,90 € : cette comparaison est fausse, ALL est faux.'}],
+    tip: 'ALL est vrai seulement si le prix dépasse le plus cher des produits Bien-être, 29,90 €.'},
+  // ANY expliqué : avant que la vidéo ne montre les verdicts de toute la table
+  {at: 109.1, from: 92.2, kind: 'pick', text: true, prompt: 'Avec <code>prix &gt; ANY (…)</code>, combien des 8 produits sont retenus ?', options: [
+    {label: '4 produits', ok: true, why: 'Il suffit de dépasser 19,90 € : la Fibre Prébiotique, le Collagène Marin, la Protéine Végétale et l’Oméga 3.'},
+    {label: '2 produits', why: 'Deux produits, c’est le résultat de ALL : avec ANY, dépasser une seule valeur suffit.'},
+    {label: '7 produits', why: 'Le Magnésium, la Vitamine D, la Tisane Détox et le Shaker Inox ne dépassent aucune des trois valeurs.'}],
+    tip: 'Avec ANY, il suffit de dépasser la plus petite des trois valeurs, 19,90 €.'},
+  // Dans SQLite : avant que la vidéo ne montre MAX
+  {at: 138.1, from: 127.2, kind: 'pick', slot: '#mbX', prompt: 'Dans SQLite, par quoi remplacer <code>&gt; ALL</code> pour garder les mêmes produits ?',
+    hint: 'Sélectionne une réponse, ou fais-la glisser directement dans le « ? ».',
+    board: {y: 470, html: '<span class="mb-k">Plus cher que tous les produits Bien-être</span><div class="mb-q" style="font-size:32px"><span class="k">SELECT</span> nom, prix\n<span class="k">FROM</span> produits\n<span class="k">WHERE</span> prix &gt; (\n  <span class="k">SELECT</span> <span class="mb-hole" id="mbX">?</span>\n  <span class="k">FROM</span> produits\n  <span class="k">WHERE</span> categorie = \'Bien-être\'\n);</div>'},
+    options: [
+    {label: 'MAX(prix)', ok: true, why: 'Plus grand que toutes les valeurs, c’est plus grand que la plus grande : <code>MAX(prix)</code>, soit 29,90 €.'},
+    {label: 'MIN(prix)', why: '<code>MIN(prix)</code> renvoie 19,90 € : c’est l’équivalent de <code>&gt; ANY</code>, pas de <code>&gt; ALL</code>.'},
+    {label: 'COUNT(prix)', why: '<code>COUNT(prix)</code> compte les produits (3) : on comparerait les prix à 3, pas à un prix.'}],
+    tip: 'Il faut la plus grande des trois valeurs.'}
+];
+
+function dom(){
+  /* Chapitre 4 : la table produits, avec les verdicts de > ALL et de > ANY */
+  $('#rows4').innerHTML = PRODUITS.map(([n, p]) => `<div class="rgP tr t4"><span class="hl"></span><div>${n}</div><div>${p}</div>` +
+    `<div class="vc va"><i class="y">vrai</i><i class="n">faux</i></div><div class="vc vn"><i class="y">vrai</i><i class="n">faux</i></div></div>`).join('');
+  /* Chapitre 6 : le résultat, puis la page de la gamme premium */
+  const premium = PRODUITS.filter(p => p[2]);
+  $('#rows6').innerHTML = premium.map(([n, p]) => `<div class="rgR tr t6"><span class="hl"></span><div>${n}</div><div>${p}</div></div>`).join('');
+  $('#to6').insertAdjacentHTML('beforeend', premium.map(([n]) => `<span class="rc">${n}</span>`).join(''));
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+/* Une carte arrive en tournant légèrement, puis ses éléments un à un. */
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(sel, $(id));
+  gsap.set(items, {autoAlpha: 0, y: 24});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => cue(t + 0.65 + i * step, 'pop', 0.55, i % 5));
+  return items;
+}
+/* Un produit, ses trois comparaisons une à une, puis le verdict (chapitres 3 et 4). */
+function compare(who, cmps, res, t, ok){
+  show(who, t, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(t, 'pop', 0.65, 2);
+  const cells = $$('.cm', $(cmps));
+  tl.set(cmps, {autoAlpha: 1}, t + 0.6);
+  gsap.set(cells, {autoAlpha: 0, scale: 0.8});
+  tl.to(cells, {autoAlpha: 1, scale: 1, duration: 0.28, ease: 'back.out(2)', stagger: 0.45}, t + 0.6);
+  cells.forEach((c, i) => cue(t + 0.6 + i * 0.45, c.classList.contains('y') ? 'true' : 'miss', 0.4));
+  return res;
+}
+/* Chapitre 4 : la ligne s’allume, puis les verdicts de > ALL et de > ANY. */
+function verdicts(i, t){
+  const r = $$('#rows4 .tr')[i], [, , a, n] = PRODUITS[i];
+  tl.fromTo(r.querySelector('.va ' + (a ? '.y' : '.n')), {autoAlpha: 0, scale: 0.6}, {autoAlpha: 1, scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false}, t);
+  tl.fromTo(r.querySelector('.vn ' + (n ? '.y' : '.n')), {autoAlpha: 0, scale: 0.6}, {autoAlpha: 1, scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false}, t + 0.15);
+  cue(t, 'tick', 0.45, i % 5);
+  if (!n) tl.to(r, {opacity: 0.5, duration: 0.25}, t + 0.3);
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.4);   // le temps de lire la bulle de la mascotte
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  boardIn('#ab1', 5.15, '.lx-hero');
+  gsap.set(['#cd1', '#cd2', '#tb1'], {autoAlpha: 0});
+  // Plus chers que tous les produits Bien-être
+  show('#cd1', 11.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(11.0, 'pop', 0.7, 1);
+  show('#cd2', 13.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(13.6, 'pop', 0.7, 3);
+  // Le nom et le prix : table produits
+  stackBelow('#s1 .need', '#ab1');   // la liste se cale sous la carte, sans la toucher
+  show('#tb1', 16.0, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(16.0, 'pop', 0.7, 2);
+  show('#s1 .need', 16.4, {y: 60});
+  cue(16.4, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows.slice(0, 2), {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.25}, 16.7);
+  [0, 1].forEach(i => cue(16.7 + i * 0.25, 'pop', 0.7, i));
+  // Les prix Bien-être, dans la même table
+  tl.to(needRows[2], {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, 21.4);
+  cue(21.4, 'pop', 0.7, 4);
+  hide(['#ab1', '#s1 .need'], 25.6);
+  sceneOff('#s1', 26.0);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 26.0);
+  show('#sc2', 26.05, {y: 50});
+  cue(26.05, 'whoosh', 0.6);
+  const v2 = $$('#vals2 .vc3');
+  gsap.set(v2, {autoAlpha: 0, scale: 0.7});
+  tl.to(v2, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)', stagger: 0.3}, 29.6);   // « trois valeurs »
+  v2.forEach((_, i) => cue(29.6 + i * 0.3, 'pop', 0.6, i + 1));
+  [32.0, 33.6, 34.9].forEach((t, i) => bump(v2[i], t, 1.08, 1));   // 29,90 €, 19,90 €, 24,90 €
+  // Or > compare un prix à une seule valeur
+  stackBelow('#gt2', '#sc2', 0, 30);
+  show('#gt2', 36.5, {y: 50});
+  cue(36.5, 'whoosh', 0.6);
+  pulse('#op2', 37.6, 3, 'rgba(255,214,140,.6)');
+  cue(37.6, 'tick', 0.5, 2);
+  shake('#gt2', 41.6);
+  cue(41.6, 'miss', 0.55);
+  // Toutes, ou au moins une ?
+  stackBelow('#goal2', '#gt2', 0, 30);
+  show('#goal2', 46.0, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(46.0, 'pop', 0.75, 3);
+  // ALL et ANY
+  stackBelow('#duo2', '#goal2', 0, 24);
+  const duo = $$('#duo2 > div');
+  gsap.set(duo, {autoAlpha: 0, scale: 0.7});
+  tl.to(duo, {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)', stagger: 0.6}, 51.4);
+  duo.forEach((_, i) => cue(51.4 + i * 0.6, 'pop', 0.7, i + 2));
+  hide(['#sc2', '#gt2', '#goal2', '#duo2'], 55.6, {y: -40}, 0.4);
+  sceneOff('#s2', 56.1);
+
+  /* ===== 3 · ALL ===== */
+  sceneOn('#s3', 56.1);
+  show('#al3', 56.15, {y: 50});
+  cue(56.15, 'whoosh', 0.6);
+  gsap.set(['#wa3', '#wb3', '#ca3', '#cb3', '#ra3', '#rb3'], {autoAlpha: 0});
+  pulse('#k3', 57.2, 3, 'rgba(201,188,255,.5)');
+  cue(57.2, 'tick', 0.5, 2);
+  // La Protéine Végétale, à 34,90 € : trois comparaisons vraies, ALL vrai
+  compare('#wa3', '#ca3', '#ra3', 67.6, true);
+  tl.to('#ra3', {autoAlpha: 1, duration: 0.3}, 71.9);
+  bump($$('#ra3 .vd')[0], 72.6, 1.12, 1);
+  cue(72.6, 'true', 0.55);
+  // L’Oméga 3, à 24,90 € : une comparaison fausse suffit, ALL faux
+  tl.to(['#wa3', '#ca3', '#ra3'], {autoAlpha: 0, duration: 0.25}, 76.4);
+  compare('#wb3', '#cb3', '#rb3', 76.7, false);
+  tl.to('#rb3', {autoAlpha: 1, duration: 0.3}, 80.7);
+  cue(80.7, 'miss', 0.55);
+  shake($$('#rb3 .vd')[0], 81.4);
+  // Avec > ALL : deux produits
+  stackBelow('#p3', '#al3', 0, 30);
+  show('#p3', 87.2, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(87.2, 'chord', 0.6);
+  hide(['#al3', '#p3'], 91.4, {y: -40});
+  sceneOff('#s3', 91.9);
+
+  /* ===== 4 · ANY ===== */
+  sceneOn('#s4', 91.9);
+  show('#an4', 91.95, {y: 50});
+  cue(91.95, 'whoosh', 0.6);
+  gsap.set(['#wa4', '#wb4', '#ca4', '#cb4', '#ra4', '#rb4'], {autoAlpha: 0});
+  pulse('#k4', 93.2, 3, 'rgba(255,214,140,.6)');
+  cue(93.2, 'tick', 0.5, 2);
+  // L’Oméga 3 dépasse 19,90 € : ANY vrai
+  compare('#wa4', '#ca4', '#ra4', 97.9, true);
+  tl.to('#ra4', {autoAlpha: 1, duration: 0.3}, 99.6);
+  bump($$('#ra4 .vd')[0], 100.2, 1.12, 1);
+  cue(99.6, 'true', 0.55);
+  // Le Magnésium ne dépasse aucune valeur : ANY faux
+  tl.to(['#wa4', '#ca4', '#ra4'], {autoAlpha: 0, duration: 0.25}, 103.2);
+  compare('#wb4', '#cb4', '#rb4', 103.5, false);
+  tl.to('#rb4', {autoAlpha: 1, duration: 0.3}, 105.2);
+  cue(105.2, 'miss', 0.55);
+  shake($$('#rb4 .vd')[0], 105.8);
+  // Produit par produit : ALL garde 2 produits, ANY en garde 4
+  hide('#an4', 109.6, {y: -40}, 0.35);
+  gsap.set('#tp4', {top: 300});
+  show('#tp4', 109.9, {y: 50});
+  cue(109.9, 'whoosh', 0.6);
+  rowsIn($$('#rows4 .tr'), 110.2, 0.06);
+  for (let i = 0; i < PRODUITS.length; i++) verdicts(i, 111.0 + i * 0.45);
+  gsap.set('#cnt4', {autoAlpha: 0});
+  show('#cnt4', 114.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt4', 115.2, 1.12, 3);
+  cue(114.6, 'chord', 0.6);
+  // = ANY revient à IN
+  stackBelow('#in4', '#tp4', 0, 30);
+  show('#in4', 121.4, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(121.4, 'pop', 0.7, 3);
+  hide(['#tp4', '#in4'], 126.4, {y: -40});
+  sceneOff('#s4', 126.9);
+
+  /* ===== 5 · Dans SQLite ===== */
+  sceneOn('#s5', 126.9);
+  show('#eq5', 126.95, {y: 50});
+  cue(126.95, 'whoosh', 0.6);
+  const eqs = ['#e51', '#e52', '#e53'];
+  gsap.set(eqs, {autoAlpha: 0});
+  gsap.set($$('#eq5 .ar, #eq5 .b'), {autoAlpha: 0, x: -24});
+  // ANY et ALL n’existent pas dans SQLite
+  tl.to(eqs, {autoAlpha: 1, duration: 0.3, stagger: 0.2}, 128.6);
+  stackBelow('#x5', '#eq5', 0, 30);
+  show('#x5', 130.2, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(130.2, 'miss', 0.55);
+  hide('#x5', 137.2, {y: 0, scale: 0.8}, 0.3);
+  // > ALL devient > MAX(prix)
+  const pair = id => $$(`${id} .ar, ${id} .b`);
+  tl.to(pair('#e51'), {autoAlpha: 1, x: 0, duration: 0.35, ease: 'power3.out', stagger: 0.2}, 140.4);
+  tl.set('#e51 .a', {textDecoration: 'line-through'}, 140.4);
+  pulse('#mx5', 142.6, 3, 'rgba(201,188,255,.6)');
+  cue(140.4, 'pop', 0.7, 2);
+  // > ANY devient > MIN(prix)
+  tl.to(pair('#e52'), {autoAlpha: 1, x: 0, duration: 0.35, ease: 'power3.out', stagger: 0.2}, 146.5);
+  tl.set('#e52 .a', {textDecoration: 'line-through'}, 146.5);
+  pulse('#mn5', 148.6, 3, 'rgba(201,188,255,.6)');
+  cue(146.5, 'pop', 0.7, 3);
+  // = ANY devient IN
+  tl.to(pair('#e53'), {autoAlpha: 1, x: 0, duration: 0.35, ease: 'power3.out', stagger: 0.2}, 152.2);
+  tl.set('#e53 .a', {textDecoration: 'line-through'}, 152.2);
+  cue(152.2, 'pop', 0.7, 4);
+  hide('#eq5', 156.0, {y: -40});
+  sceneOff('#s5', 156.5);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 156.5);
+  show('#s6code', 156.55, {y: 60}, 0.6);
+  cue(156.55, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 157.05, 40);
+  for (const k of [2, 3, 4, 5, 6, 7]) te = typeLine($('#s6l' + k), te + 0.1, 40);
+  pulse('#m6', 163.2, 3, 'rgba(201,188,255,.45)');
+  press($('#s6run'), 167.0);
+  stackBelow('#tbl6', '#s6code', 0, 30);
+  show('#tbl6', 167.3, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 167.5, 0.25);
+  gsap.set('#cnt6', {autoAlpha: 0});
+  show('#cnt6', 168.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 169.0, 1.15, 3);
+  hide(['#s6code', '#tbl6'], 173.2, {y: -40}, 0.4);
+  // La page de la gamme premium
+  boardIn('#ab6', 173.5, '.ms-h, .ms-to', 0.25);
+  gsap.set('#sp6', {autoAlpha: 0, scale: 1.8, rotation: -14});
+  tl.to('#sp6', {autoAlpha: 1, scale: 1, rotation: -8, duration: 0.35, ease: 'back.out(2)'}, 174.6);
+  cue(174.6, 'stamp', 0.8);
+  stackBelow('#badge6', '#ab6', 0, 50);
+  show('#badge6', 175.2, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(175.2, 'chord', 0.7);
+  hide(['#ab6', '#badge6'], 179.6);
+  sceneOff('#s6', 180.1);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(180.1, [180.8, 182.6, 184.4]);
+  hold(182.4, 7.0);   // le temps de lire chaque idée et sa précision avant la suivante
+  hold(184.2, 8.5);
+  hold(185.9, 5.0);   // la dernière idée reste à l’écran avant la fin
+  // Le bouton « Ajouter à mes notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(185.35, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 185.3, moments: MOMENTS,
+  glyphs: '💎💶🌿🏷️⚖️❓🔝💪🐟🧂✓✕🎯📦🟰🧩→🔎·…', dom, build});
+</script>
+</body>
+</html>
