@@ -109,3 +109,29 @@ test('les dates de révision ne sont pas fusionnées en prenant automatiquement 
  await a.sync.enqueue('lesson:0',{done:true,level:4,due:1000});await b.sync.enqueue('lesson:0',{done:true,level:0,due:100});await a.sync.flush();
  assert.deepEqual((await b.sync.flush()).conflicts,[{key:'lesson:0',reason:'revision'}]);assert.equal(api.state('A').elements['lesson:0'].data.due,1000);
 });
+
+const samplePlan=()=>({niveau:'debutant',rythme:'regulier',freq:3,per:3,mix:true,timeZone:'Europe/Paris',sessions:[{d:'2026-11-02',lessons:[0,1]}],archive:[]});
+test('deux plannings concurrents ne s’écrasent pas ; le déplacement requiert un choix explicite',async()=>{
+ const api=cloud(),a=device(api),b=device(api);await a.sync.pull();await a.sync.enqueue('planning:main',samplePlan());await a.sync.flush();await b.sync.pull();
+ const pa=samplePlan(),pb=samplePlan();pa.sessions=[{d:'2026-11-04',lessons:[0,1]}];pb.sessions=[{d:'2026-11-05',lessons:[1,0]}];
+ await a.sync.enqueue('planning:main',pa);await b.sync.enqueue('planning:main',pb);await a.sync.flush();
+ assert.deepEqual((await b.sync.flush()).conflicts,[{key:'planning:main',reason:'revision'}]);assert.deepEqual(api.state('A').elements['planning:main'].data,pa);
+ await b.sync.resolve('planning:main','local');await b.sync.flush();assert.deepEqual(api.state('A').elements['planning:main'].data,pb);
+});
+test('une suppression de planning empêche sa résurrection depuis un appareil hors ligne',async()=>{
+ const api=cloud(),a=device(api),b=device(api);await a.sync.pull();await a.sync.enqueue('planning:main',samplePlan());await a.sync.flush();await b.sync.pull();
+ await b.sync.enqueue('planning:main',samplePlan());await a.sync.reset('planning:main','RECOMMENCER');
+ assert.deepEqual((await b.sync.flush()).conflicts,[{key:'planning:main',reason:'generation'}]);
+ await assert.rejects(b.sync.resolve('planning:main','local'),{code:'reset_conflict'});assert.equal(api.state('A').elements['planning:main'].deleted,true);
+});
+test('le planning survit à une panne réseau et un accusé perdu sans double écriture',async()=>{
+ const api=cloud(),d=device(api);await d.sync.pull();api.offline=true;await d.sync.enqueue('planning:main',samplePlan());
+ await assert.rejects(d.sync.flush());api.offline=false;api.loseAck=true;await assert.rejects(d.sync.flush());
+ await createProgressionSync(d.options).flush();assert.equal(api.state('A').elements['planning:main'].revision,1);
+});
+test('une révision échouée conserve ensemble niveau zéro et prochaine échéance après résolution',async()=>{
+ const api=cloud(),a=device(api),b=device(api);await a.sync.pull();await b.sync.pull();
+ await a.sync.enqueue('lesson:0',{done:true,level:4,due:1000});await b.sync.enqueue('lesson:0',{done:true,level:0,due:100});await a.sync.flush();await b.sync.flush();
+ await b.sync.resolve('lesson:0','local');await b.sync.flush();
+ assert.equal(api.state('A').elements['lesson:0'].data.level,0);assert.equal(api.state('A').elements['lesson:0'].data.due,100);
+});

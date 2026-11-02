@@ -10,9 +10,10 @@ Le backend est préparé dans Supabase. Le moteur `account/progression.mjs` n'es
 | `challenge:ID` | Réussite personnelle uniquement |
 | `video:ID` | Position en secondes, version du contenu, réponses aux questions et moments validés |
 | `interview:ID` | Marque personnelle « acquis » ou « à revoir » |
+| `planning:main` | Planning complet, ordre des leçons et fuseau partagé ; voir [Révisions et planning](REVISIONS-PLANNING.md) |
 | `activity:AAAA-MM-JJ` | Présence d'une activité ce jour-là, sans additionner les compteurs de deux appareils |
 
-`extractProgression` sélectionne explicitement ces données à partir de l'état actuel de l'app et des positions/réponses vidéo fournies. Les identifiants des leçons et défis doivent venir du catalogue connu. Les brouillons SQL, réponses partielles d'animations, notes, fichiers, bases importées, jetons de connexion, clés d'appareil et points du classement sont exclus. Les minutes d'apprentissage, le planning et la collection ne sont pas synchronisés dans cette étape.
+`extractProgression` sélectionne explicitement ces données à partir de l'état actuel de l'app et des positions/réponses vidéo fournies. Les identifiants des leçons et défis doivent venir du catalogue connu. Les brouillons SQL, réponses partielles d'animations, notes, fichiers, bases importées, jetons de connexion, clés d'appareil et points du classement sont exclus. Le planning est maintenant préparé par le module `account/learning.mjs`, sans activation ; les minutes d'apprentissage et la collection ne sont pas synchronisées dans cette étape.
 
 Ces validations sont déclaratives et privées. Elles ne constituent jamais une preuve de réussite pour le classement public, dont la vérification serveur reste indépendante.
 
