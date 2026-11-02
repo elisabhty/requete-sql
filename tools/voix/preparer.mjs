@@ -108,7 +108,7 @@ DIRE.unshift([/\bFIRST_VALUE\b/g, 'First value'], [/\bLAST_VALUE\b/g, 'Last valu
 /* « 1re forme normale », « 2e », « 3e » : dits en toutes lettres. */
 DIRE.unshift([/\b([123])(?:re|e)(?= forme)/g, (m, n, off, all) => { const w = ['première', 'deuxième', 'troisième'][n - 1]; return off === 0 || /[.!?]\s+$/.test(all.slice(0, off)) ? w.charAt(0).toUpperCase() + w.slice(1) : w; }]);
 DIRE.unshift([/\b(\d{1,2})\/(\d{2})\/(\d{4})\b/g, (m, j, mo, a) => (+j === 1 ? '1er' : String(+j)) + ' ' + MOIS[+mo - 1] + ' ' + a],
-  [/\b(\d{1,2}):(\d{2})\b/g, '$1 h $2'], [/PostgreSQL/g, 'Postgres Q L'], [/\bNB-(\d+)/g, 'N B $1'], [/CURRENT_TIMESTAMP/g, 'current timestamp'], [/(^|\s)−(?=\d)/g, '$1moins '], [/SQLite/g, 'S Q Laïte'], [/\bexcluded\b/g, 'ixcloudide'], [/\bWHERE true\b/g, 'WHERE trou']);
+  [/\b(\d{1,2}):(\d{2})\b/g, '$1 h $2'], [/PostgreSQL/g, 'Postgres Q L'], [/\bNB-(\d+)/g, 'N B $1'], [/CURRENT_TIMESTAMP/g, 'current timestamp'], [/(^|\s)−(?=\d)/g, '$1moins '], [/SQLite/g, 'S Q L light'], [/\bexcluded\b/g, 'ixcloudide'], [/\bWHERE true\b/g, 'WHERE trou']);
 DIRE.unshift([/\b(\d{4})-(\d{2})-(\d{2})\b/g, (m, a, mo, j) => (+j === 1 ? '1er' : String(+j)) + ' ' + MOIS[+mo - 1] + ' ' + a],
   [/(\d)\.\.\*/g, '$1 point point étoile'], [/(\d)\.\.(\d)/g, '$1 point point $2'], [/(^|\s)\*(?=\s)(?!\s*\d)/g, '$1étoile'], [/([a-zé])\/(?=l[ae] )/g, '$1 ou '],
   [/GROUP_CONCAT/g, 'groupe-konkatte'], [/ROW_NUMBER/g, 'raô-nommbeur'], [/DENSE_RANK/g, 'dènnse-rannk'], [/PERCENT_RANK/g, 'peursènnte-rannk'], [/rendez_vous/g, 'rendez-vous'], [/([A-Za-zÀ-ÿ0-9])\.(?=[a-zà-ÿ])/g, '$1 point '], [/'([^']+)'/g, '$1'], [/(\d)\s*%/g, '$1 pour cent'], [/\s*→\s*/g, ', donne '],
