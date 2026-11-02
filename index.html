@@ -6663,7 +6663,10 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 .lv-ico.is-muted{color:var(--ink-3,#6A6490)}
 .lv-stage{position:relative;flex:1;min-height:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .lv-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#F4F2FC}
-.lv-anim{border:0;display:block;pointer-events:none;background:transparent;opacity:0;transition:opacity .25s ease;will-change:transform}
+.lv-anim{border:0;display:block;pointer-events:none;background:transparent;opacity:0;transition:opacity .25s ease}
+/* Sur iPhone et iPad seulement, l’image réduite pendant un moment « À toi » garde sa couche (plus de flash noir en touchant une étiquette) ;
+   sur l’ordinateur, la couche gardée faisait sauter l’image à l’ouverture de la question (Elisa, 2 novembre, 14 h 41). */
+html.ios .lv-anim{will-change:transform}
 .lv.is-ready .lv-anim{opacity:1}
 .lv.is-loading .lv-big,.lv.is-q .lv-big{opacity:0!important;pointer-events:none!important}
 .lv-stage{touch-action:manipulation}
@@ -16236,6 +16239,8 @@ function fitSqlEditor(ta){
 }
 /* iPhone, iOS 26 : la barre du formulaire (∧ ∨ ✓) et, dans Safari, l’adresse flottent au-dessus du clavier sans réduire la partie
    visible de la page ; la barre de touches SQL s’y cachait (Elisa, 29 octobre, 18 h 18). Elle monte au-dessus d’elles. */
+/* iPhone et iPad : une classe sur <html> pour les réglages propres à Safari mobile (couche gardée de l’image d’un cours). */
+try{ const ua=navigator.userAgent||''; if(/iP(hone|od|ad)/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1))document.documentElement.classList.add('ios'); }catch(e){}
 const IOS_KB_OVERLAY=(()=>{
   try{
     const ua=navigator.userAgent||'',ios=/iP(hone|od|ad)/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
@@ -33286,7 +33291,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-ios-repaint-v2359';
+  const SW_CACHE='requete-2026-11-02-sans-ecran-noir-v2360';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
