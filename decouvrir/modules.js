@@ -112,10 +112,10 @@ window.MODULES=[
       ["Les schémas", "Ranger les tables par espace", 144]
     ]},
     {titre:"Écrire et modifier les données", sous:"INSERT, UPDATE, DELETE", lecons:[
-      ["INSERT", "Ajouter des lignes", 239],
-      ["UPDATE", "Modifier des lignes", 187],
-      ["MERGE", "Synchroniser deux tables", 190],
-      ["DELETE", "Supprimer des lignes", 182]
+      ["INSERT", "Ajouter des lignes", 248],
+      ["UPDATE", "Modifier des lignes", 202],
+      ["MERGE", "Synchroniser deux tables", 201],
+      ["DELETE", "Supprimer des lignes", 187]
     ]},
     {titre:"Intégrité des tables liées", sous:"Ce que deviennent les lignes liées", lecons:[
       ["ON DELETE", "Décider du sort des lignes liées", 248]

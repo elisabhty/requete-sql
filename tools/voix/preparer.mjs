@@ -193,8 +193,10 @@ const MODELISER = ['projet-normaliser', 'projet-cles', 'projet-uml'];
 const ANAIS = {id: '5OnMHwgTFgvPVwE8jP6B', nom: 'Anaïs'}, TABLES = ['projet-create', 'projet-alter', 'projet-drop', 'projet-schemas'];
 /* 9 h 42 : le module « Écrire et modifier les données » avec Emily (« Emily – Australian Female »), la formatrice. */
 const EMILY = {id: 'p43fx6U8afP2xoq1Ai9f', nom: 'Emily'}, DONNEES = ['projet-insert', 'projet-update', 'projet-merge', 'projet-delete'];
+/* 9 h 59 : le module « Intégrité des tables liées » avec Koraly (« Koraly – E-learning Instructor »), la formatrice. */
+const KORALY = {id: 'QbsdzCokdlo98elkq4Pc', nom: 'Koraly'}, INTEGRITE = ['projet-ondelete'];
 const voix = AGATHE.includes(cours) || MODELISER.includes(cours) ? base.voix : AGREGATS.includes(cours) ? ANTOINE : JOINTURES.includes(cours) ? PERLE
-  : SOUS_REQUETES.includes(cours) ? MIA : FENETRES.includes(cours) ? DORIAN : TABLES.includes(cours) ? ANAIS : DONNEES.includes(cours) ? EMILY : ADAM;
+  : SOUS_REQUETES.includes(cours) ? MIA : FENETRES.includes(cours) ? DORIAN : TABLES.includes(cours) ? ANAIS : DONNEES.includes(cours) ? EMILY : INTEGRITE.includes(cours) ? KORALY : ADAM;
 const job = {cours, titre: intro.sub, voix, modele: base.modele, langue: base.langue, format: base.format, elements: out};
 fs.writeFileSync(path.join(DIR, cours + '.json'), JSON.stringify(job, null, 2) + '\n');
 /* Les phrases communes : copiées depuis le premier cours (si ses fichiers bruts sont là). */
