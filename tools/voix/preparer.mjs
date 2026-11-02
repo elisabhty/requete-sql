@@ -120,6 +120,8 @@ DIRE.unshift([/\b(\d{4})-(\d{2})-(\d{2})\b/g, (m, a, mo, j) => (+j === 1 ? '1er'
   /* Les calculs du module « Fonctions et expressions » : ||, ×, *, −, +7, 29.9, (), 1ᵉʳ. */
   [/\s*\|\|\s*/g, ' deux barres verticales '], [/\s*[×*]\s*(?=\d)/g, ' fois '], [/ − /g, ' moins '], [/(^|[\s'])\+(?=\d)/g, '$1plus '],
   [/(^|\s)\+(?=,|\s(?!\d))/g, '$1le signe plus'], [/\s*÷\s*/g, ' divisé par '], [/(\d)\.(\d)/g, '$1 virgule $2'], [/\(\)/g, ''], [/ᵉʳ/g, 'er'], [/ +(?=[.,])/g, ''], [/n°\s*/g, 'numéro ']);
+/* Injection SQL : « ' OR '1'='1 » dit « or un égale un », le « ? » d’une requête paramétrée dit en toutes lettres, l’e-mail dit avec « arobase ». */
+DIRE.unshift([/(?:' )?OR '1'='1'?/g, 'or un égale un'], [/'1'='1'/g, (m, off, all) => off === 0 || /[.!?:]\s+$/.test(all.slice(0, off)) ? 'Un égale un' : 'un égale un'], [/\b(un|son) \?(?=[.,]| [a-zà-ÿ])/g, '$1 point d’interrogation'], [/sophie@mail\.fr/g, 'sophie arobase mail point fr']);
 DIRE.push([new RegExp('\\b(' + Object.keys(MOTS_CLES).join('|') + ')\\b', 'g'), (m, w, off, all) => { const d = MOTS_CLES[w];
     return off === 0 || /[.!?:]\s+$/.test(all.slice(0, off)) && !/:\s+$/.test(all.slice(0, off)) ? d.charAt(0).toUpperCase() + d.slice(1) : d; }],
   [/(^|[^A-Za-zÀ-ÿ])([a-z]+)(?=$|[^A-Za-zÀ-ÿ])/g, (m, a, w) => a + (ACCENTS[w] || w)]);
@@ -200,7 +202,7 @@ COMMUNES.forEach(id => out.push(base.elements.find(x => x.id === id)));
 
 /* La voix (Elisa, 2 novembre, 8 h 29) : Agathe garde les cours déjà voisés (l’introduction et « Lire une table ») ; à partir du module
    « Fonctions et expressions », c’est Adam (« Adam – Formation, Tutos & Éducation »). Ses phrases communes sont générées avec lui. */
-const AGATHE = ['bases-relationnelles', 'as', 'distinct', 'where', 'comparer', 'and-or', 'not', 'null', 'like', 'in', 'between', 'order-by', 'limit-offset'];
+const AGATHE = ['bases-relationnelles', 'as', 'distinct', 'where', 'comparer', 'and-or', 'injection-sql', 'not', 'null', 'like', 'in', 'between', 'order-by', 'limit-offset'];
 const ADAM = {id: 'TGAegA0zNRi8I6nUdq3i', nom: 'Adam'};
 /* 8 h 55 : le module « Agrégats et regroupements » avec Antoine (« Antoine – Dynamic, Captivating, and Professional Voice »). */
 const ANTOINE = {id: 'nbiTBaMRdSobTQJDzIWm', nom: 'Antoine'}, AGREGATS = ['count', 'agregats', 'group-by', 'group-by-colonnes', 'having', 'ordre-execution', 'group-concat'];
