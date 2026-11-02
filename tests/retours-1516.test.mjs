@@ -101,7 +101,7 @@ test('réf. 8 — vitrine : la phrase sur toute la largeur, une barre de progres
   assert.ok(vit.includes("var demande=function(){if(!raf)raf=requestAnimationFrame(maj);};") && vit.includes("rail.addEventListener('scroll',demande,{passive:true});"));
   assert.ok(vcss.includes('.rail-ctl{display:flex;flex-direction:column;align-items:stretch;gap:16px}'), 'sur téléphone, la phrase au-dessus des flèches');
   assert.ok(vcss.includes('@media (hover:hover){.poster:hover{transform:translateY(-4px) rotate(0)}}'), 'pas de survol collé au doigt sur iPhone');
-  const rail = vit.slice(vit.indexOf('<div class="rail" id="rail"'), vit.indexOf('<div class="rail-ctl">'));
+  const r0 = vit.indexOf('<div class="rail" id="rail"'), rail = vit.slice(r0, vit.indexOf('<div class="rail-ctl">', r0));
   const imgs = rail.match(/<img [^>]+>/g);
   assert.ok(imgs.slice(0, 3).every(t => !t.includes('loading="lazy"')) && imgs.slice(3).every(t => t.includes('loading="lazy"')), 'les trois premières affiches tout de suite');
 });
