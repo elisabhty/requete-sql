@@ -6554,7 +6554,7 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 <script>if(/[?&]perf=1(&|$)/.test(location.search)){var pp=document.createElement("script");pp.src="perf-probe.js";pp.defer=true;document.head.appendChild(pp);}</script>
 <link rel="stylesheet" href="home-journey.css?v=1131">
 <link rel="stylesheet" href="design-premium.css?v=1237">
-<script src="design-premium.js?v=1402" defer></script>
+<script src="design-premium.js?v=1403" defer></script>
 <script src="import-formats.js?v=3" defer></script>
 <!-- Curseur de la vitrine et de l’appli (sur ordinateur seulement) : flèche et main en autocollant, halo qui suit (Elisa, 30 octobre, 22 h 58) -->
 <script src="assets/curseur.js?v=60b94b87" defer></script>
@@ -6689,7 +6689,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=111">
+<link rel="stylesheet" href="ludique.css?v=112">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -14171,6 +14171,10 @@ function saveNav(override){
   let nav=override;
   if(!nav){
     const onLesson=document.getElementById('scr-lesson').classList.contains('active');
+    /* Elisa, 3 novembre, 0 h 00 : « quand on rafraîchit, ça quitte la salle et les défis » : une salle entre amis est reprise avec
+       son code (jeuReprendre) ; une partie seul ramène sur Défis. */
+    if(onLesson&&mode==='jeu'&&typeof JEU!=='undefined'&&JEU)
+      nav=JEU.solo?{view:'tab',tab:'defis'}:{view:'jeu',code:JEU.code,host:jeuIsHost()?1:0,niv:JEU.niv,nb:JEU.nb,fromTab:'defis'};
     if(onLesson&&current){
       if(mode==='lesson') nav={view:'lesson',lessonId:current.id,lessonStep,fromTab:activeTab};
       else if(mode==='defi') nav={view:'defi',defiId:current.id,fromTab:activeTab};
@@ -14214,6 +14218,9 @@ function restoreNav(){
       openLesson(nav.lessonId,nav.lessonStep);
     }else if(nav.view==='defi'&&nav.defiId!=null&&CHALLENGES.some(c=>c.id===nav.defiId)){
       openChallenge(nav.defiId);
+    }else if(nav.view==='jeu'&&/^[A-Z0-9]{6}$/.test(nav.code||'')&&typeof jeuReprendre==='function'){
+      switchTab('defis');
+      setTimeout(()=>jeuReprendre(nav),0);
     }else if(nav.view==='review'&&nav.reviewId!=null&&allLessons.some(l=>l.id===nav.reviewId)){
       openReview(nav.reviewId);
     }else{
@@ -19895,6 +19902,9 @@ function leaveLessonScreen(toTab,instant){
   if(mode==='jeu')jeuStop();
   const tab=toTab||activeTab||'learn';
   activeTab=tab;
+  /* 3 novembre, 0 h 00 : « au retour avec Défis, il y a un décalage » : Défis (comme Console, Notes, Entretien…) est une sous-page,
+     et l’observateur des transitions la faisait entrer par la droite, comme un écran suivant. Un retour arrive par la gauche. */
+  if(typeof window!=='undefined'&&typeof window.pNavBack==='function')window.pNavBack();
   const scr=document.getElementById('scr-lesson');
   const target=screenForTab(tab);
   const finish=rendered=>{
@@ -25906,11 +25916,24 @@ function jeuStart(code,host,cid,opts){
   JEU.tick=setInterval(jeuTick,500);
   if(!solo||opts.secure)JEU.ping=setInterval(jeuPing,JEU_PING_MS);
   if(!host){
-    const J=JEU,wait=()=>{if(JEU!==J||J.hostPid)return;if(J.net===false){J.waitCfg=setTimeout(wait,3000);return;}J.view='';J.lost=true;jeuPaint();};
-    J.waitCfg=setTimeout(wait,7000);
+    const rep=opts.reprise&&opts.reprise.host;
+    const J=JEU,wait=()=>{if(JEU!==J||J.hostPid)return;
+      if(rep){jeuStart(code,true,null,{nomId:opts.nomId});return;}
+      if(J.net===false){J.waitCfg=setTimeout(wait,3000);return;}
+      J.view='';J.lost=true;jeuPaint();};
+    J.waitCfg=setTimeout(wait,rep?3000:7000);
   }
   if(solo&&!opts.secure)jeuNextRound();
   jeuPaint();
+  try{saveNav();}catch(e){}
+}
+/* Après un rechargement : on revient dans la même salle. Des amis y sont : on la rejoint (l’un d’eux est devenu l’hôte). Personne
+   ne répond et on en était l’hôte : on la rouvre, même code, mêmes réglages (3 novembre, 0 h 00). */
+function jeuReprendre(nav){
+  if(!nav||!/^[A-Z0-9]{6}$/.test(nav.code||''))return;
+  if(['f','m','d'].includes(nav.niv))jeuNiv=nav.niv;
+  if([1,3,5].includes(nav.nb))jeuNb=nav.nb;
+  jeuPseudoPuis(()=>jeuStart(nav.code,false,null,{nomId:'jeu-nom',reprise:{host:!!nav.host}}));
 }
 function jeuJoin(code){
   const c=jeuCleanCode(code),msg=jeuMsgEl('jeu-nom-join');
@@ -26629,9 +26652,10 @@ function jeuCopyCode(){
     }
     if(btn){
       btn.classList.remove('is-done');void btn.offsetWidth;
-      btn.classList.add('is-done');btn.innerHTML=JEU_COPIED_SVG+'<span>Code copié</span>';
+      /* 3 novembre, 0 h 00 : « mets juste le V » : la coche seule, sans libellé (le lecteur d’écran entend « Code copié »). */
+      btn.classList.add('is-done');btn.innerHTML=JEU_COPIED_SVG;btn.setAttribute('aria-label','Code copié');
       if(typeof lqBurst==='function')lqBurst(btn,btn.querySelector('svg'));
-      clearTimeout(btn._t);btn._t=setTimeout(()=>{if(btn.isConnected){btn.classList.remove('is-done');btn.innerHTML=JEU_COPY_SVG+'<span>Copier le code</span>';}if(out&&out.isConnected)out.textContent='';},1800);
+      clearTimeout(btn._t);btn._t=setTimeout(()=>{if(btn.isConnected){btn.classList.remove('is-done');btn.removeAttribute('aria-label');btn.innerHTML=JEU_COPY_SVG+'<span>Copier le code</span>';}if(out&&out.isConnected)out.textContent='';},1800);
     }
   },()=>{if(out){out.classList.remove('is-ok');out.textContent='Copie impossible : le code est '+J.code+'.';}});
 }
@@ -33788,7 +33812,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-code-en-bas-v2411';
+  const SW_CACHE='requete-2026-11-03-salle-reprise-v2412';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

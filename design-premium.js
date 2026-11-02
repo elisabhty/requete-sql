@@ -62,10 +62,14 @@
   window.pNavBack=function(){backNext=true;setTimeout(function(){backNext=false;},400);};
   function onActive(screen){
     if(!screen||screen===prev)return;
+    /* L'écran qui s'en va en glissant (leçon, salle de défi) redevient « active » le temps de sortir : ce n'est pas une arrivée.
+       Elisa, 3 novembre, 0 h 00 : « au retour avec Défis, il y a un décalage » — Défis entrait ensuite par la droite, comme un écran
+       suivant. Quitter la leçon est toujours un retour : on arrive par la gauche. */
+    if(screen.classList.contains('push-back'))return;
     var from=prev;prev=screen;
     if(!from||document.body.classList.contains('nav-restoring'))return;
     var kind='p-enter-fade';
-    if(backNext||(SUB[from.id]&&!SUB[screen.id]))kind='p-enter-back';
+    if(backNext||from.id==='scr-lesson'||(SUB[from.id]&&!SUB[screen.id]))kind='p-enter-back';
     else if(SUB[screen.id])kind='p-enter-push';
     backNext=false;
     screen.classList.remove('p-enter-fade','p-enter-push','p-enter-back');
