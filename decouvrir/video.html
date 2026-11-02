@@ -1521,7 +1521,8 @@ function sonSync(){
   SON.clips.forEach(c => {
     if (c !== cur || !on) { if (!c.a.paused) c.a.pause(); return; }
     const off = t - unwarp(c.t);
-    if (c.a.paused || Math.abs(c.a.currentTime - off) > .3) { try { c.a.currentTime = off; } catch (e) {} c.a.play().catch(() => {}); }
+    if (c.a.paused) { if (off < c.d - .1) { try { if (Math.abs(c.a.currentTime - off) > .15) c.a.currentTime = off; } catch (e) {} c.a.play().catch(() => {}); } }
+    else if (Math.abs(c.a.currentTime - off) > 1.5) { try { c.a.currentTime = off; } catch (e) {} }
   });
   /* La musique couvre toute la vidéo, arrêts compris : elle est jouée un peu plus lentement (sa hauteur est gardée) pour finir avec l’image. */
   const m = SON.music;
@@ -1529,7 +1530,8 @@ function sonSync(){
     const k = m.d ? Math.min(1, m.d / VDUR()) : 1, mt = t * k;
     if (Math.abs(m.a.playbackRate - k) > .001) { try { m.a.preservesPitch = true; m.a.playbackRate = k; } catch (e) {} }
     if (!on || mt >= (m.d || VDUR())) { if (!m.a.paused) m.a.pause(); }
-    else if (m.a.paused || Math.abs(m.a.currentTime - mt) > .5) { try { m.a.currentTime = mt; } catch (e) {} m.a.play().catch(() => {}); }
+    else if (m.a.paused) { try { if (Math.abs(m.a.currentTime - mt) > .3) m.a.currentTime = mt; } catch (e) {} m.a.play().catch(() => {}); }
+    else if (Math.abs(m.a.currentTime - mt) > 2) { try { m.a.currentTime = mt; } catch (e) {} }
   }
 }
 function sonLoad(){
@@ -1553,7 +1555,13 @@ function clkSet(v){ CLK.v = Math.max(0, Math.min(VDUR(), v)); T.time(warp(CLK.v)
 function clkTick(now){
   if (!CLK.on) return;
   const dt = Math.min(.1, (now - CLK.last) / 1000); CLK.last = now;
-  clkSet(CLK.v + dt);
+  /* 17 h 02 : « parfois il y a des bugs ». L’horloge de l’image et celle du son dérivaient (images sautées, onglet ralenti) : le son
+     était recalé toutes les quelques secondes, ce qui s’entendait (bout de phrase répété ou coupé). Pendant une phrase, c’est la voix
+     qui donne l’heure ; l’image la suit, et le son n’est plus recalé qu’après un saut (barre de lecture, flèches, « Revoir »). */
+  let v = CLK.v + dt;
+  const cur = SON.ok && SON.clips.find(c => !c.a.paused && !c.a.ended && c.a.currentTime > .05);
+  if (cur) { const va = unwarp(cur.t) + cur.a.currentTime; if (Math.abs(va - v) < 1.5) v = va; }
+  clkSet(v);
   if (CLK.v >= VDUR() - .001) { CLK.on = false; sonSync(); ended(); return; }
   CLK.raf = requestAnimationFrame(clkTick);
 }
