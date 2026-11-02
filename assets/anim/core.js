@@ -1250,13 +1250,14 @@ function camRender(t){
   if (CAM.pause) { camApply(1, 240); return; }
   const [z, o] = camAt(t); camApply(z, o);
 }
-/* Sur iPhone, Safari peut garder à l’écran des traces de l’image à son ancienne taille (bandes violettes en travers des lignes, bords de
-   cartes sur le côté) quand l’agrandissement change pendant une pause (Elisa, 2 novembre, 14 h 24, réf. 2) : la scène est redessinée
-   en entier, sans rien changer à l’image (display retiré puis remis dans la même image). */
+/* iPhone, iPad : traces de l’ancienne taille après un changement d’agrandissement en pause (Elisa, 2 nov., 14 h 24) : la scène est
+   repeinte (opacité 0,999 deux images) ; pas sur l’ordinateur, où l’image sautait (14 h 41). */
+const STAGE_IOS = typeof navigator !== 'undefined' && (/iP(hone|ad|od)/.test(navigator.userAgent || '') || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform || '')));
 function stageRepaint(){
-  const st = typeof document !== 'undefined' && document.getElementById('stage');
-  if (!st) return;
-  const d = st.style.display; st.style.display = 'none'; void st.offsetHeight; st.style.display = d;
+  const st = STAGE_IOS && typeof document !== 'undefined' && document.getElementById('stage');
+  if (!st || typeof requestAnimationFrame !== 'function') return;
+  st.style.opacity = '0.999';
+  requestAnimationFrame(() => requestAnimationFrame(() => { st.style.opacity = ''; }));
 }
 if (typeof window !== 'undefined') window.__repaint = stageRepaint;
 /* Pendant un moment « À toi », le lecteur de l’app règle lui-même la taille de l’image au-dessus de sa feuille (lvPkFit) : la caméra revient
