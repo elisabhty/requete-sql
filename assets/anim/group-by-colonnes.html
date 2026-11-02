@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="fr" class="tr-m tr-antoine">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · GROUP BY sur plusieurs colonnes en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+/* Leçon GROUP BY sur plusieurs colonnes (Elisa, 2 novembre, 11 h 16 : « est-ce que tu peux regarder s’il manque une notion ? »
+   … « oui ») : dans le module « Agrégats et regroupements », juste après GROUP BY. Les commandes sont celles de la table
+   commandes de l’app : 11 expédiées en juillet, 3 en préparation en juillet, 2 en préparation en août. */
+#s0 .title{font-size:184px;top:404px;letter-spacing:-4px}
+#s0 .title span.sp{margin-right:52px}
+#s0 .sub{font-size:62px}
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:38px;white-space:nowrap}
+.nw{white-space:nowrap}
+
+/* Code : cinq lignes (chapitre 6) */
+.code.sm .body{font-size:31px;line-height:50px;padding:26px 30px}
+.code.sm .ln{height:50px}
+.code.sm .caret i{top:-37px;height:42px}
+.mini.mm{font-size:29px;line-height:46px;padding:20px 28px}
+.mini .ml{display:block}
+
+/* ---------- 1 · Le bilan mensuel ---------- */
+.board{left:64px;width:952px;padding:0 0 8px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar>span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.lx{padding:28px 34px 26px}
+.lx-hero{display:flex;align-items:center;gap:26px}
+.lx-ico{width:112px;height:112px;border-radius:34px;background:#FFF8D6;display:flex;align-items:center;justify-content:center;font-size:64px;flex:none}
+.lx-t1{font-size:42px;font-weight:800;color:var(--ink);white-space:nowrap}
+.lx-t2{margin-top:6px;font-size:30px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.lx-conds{margin-top:26px;display:flex;align-items:center;gap:14px}
+.cd{height:60px;padding:0 22px;border-radius:999px;font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.cd.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.cd.am{background:#FFF4E5;color:#9A5B00}
+.pill{left:0;width:1080px;display:flex;justify-content:center}
+.pill>span{height:62px;padding:0 24px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill.vi>span{background:var(--accent-soft);color:var(--accent-ink)}
+.pill.gr>span{background:#E7F7EE;color:#1B7A45}
+.pill.rd>span{background:#FDEBEC;color:#C2323A}
+.pill .ic{font-size:.92em;background:#fff}
+
+/* ---------- 2 · Deux essais, deux mélanges ---------- */
+.duo2{left:64px;width:952px;display:flex;gap:20px;align-items:flex-start}
+.try{flex:1;padding:24px 24px 22px;border-radius:40px}
+.try .trap-h{font-size:31px}
+.try .mini.mm{font-size:27px;padding:16px 22px;margin-top:16px}
+.rs2{margin-top:16px;border-radius:20px;background:var(--surface-2);overflow:hidden}
+.rs2>div{display:flex;align-items:center;justify-content:space-between;height:58px;padding:0 20px;font-size:28px;font-weight:700;color:var(--ink);box-shadow:inset 0 -2px 0 var(--line-2)}
+.rs2 b{font-family:var(--mono);font-size:28px;color:var(--accent-ink)}
+.rs2 .mx{font-family:var(--mono);font-size:26px;color:var(--ink-2)}
+.ko2{margin-top:16px;height:58px;border-radius:999px;background:#FDEBEC;color:#C2323A;font-size:27px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;white-space:nowrap}
+.goal{left:64px;width:952px;height:96px;border-radius:32px;background:#E7F7EE;border:3px solid #BFE8D0;display:flex;align-items:center;justify-content:center;gap:14px;font-size:33px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.goal .emo{font-size:36px}
+.goal .ic{font-size:30px;background:#fff}
+
+/* ---------- 3 · Les 16 commandes se rangent en 3 groupes ---------- */
+.cmd{left:64px;width:952px;padding:0 0 22px}
+.cmd .tt{height:74px;display:flex;align-items:center;padding:0 30px;gap:14px;font-weight:700;font-size:32px;color:var(--ink)}
+.cmd .tt .emo{font-size:34px}
+.grid16{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:0 24px}
+.tl{position:relative;height:84px;border-radius:20px;background:var(--surface-2);border:3px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;white-space:nowrap}
+.tl b{font-family:var(--mono);font-size:27px;font-weight:800;color:var(--ink)}
+.tl i{font-style:normal;font-size:22px;font-weight:700;color:var(--ink-3)}
+.tl.g1{background:#EFEBFF;border-color:#C9BCFF}
+.tl.g2{background:#FFF4E5;border-color:#FFD8A1}
+.tl.g3{background:#E7F7EE;border-color:#BFE8D0}
+.grp{left:64px;width:952px;display:flex;gap:16px}
+.grp>div{flex:1;height:128px;border-radius:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;white-space:nowrap}
+.grp i{font-style:normal;font-size:26px;font-weight:700}
+.grp b{font-family:var(--mono);font-size:44px;font-weight:800}
+.grp .g1{background:#EFEBFF;color:var(--accent-ink)}
+.grp .g2{background:#FFF4E5;color:#9A5B00}
+.grp .g3{background:#E7F7EE;color:#1B7A45}
+
+/* ---------- 4 · La combinaison absente ---------- */
+.mx4{left:64px;width:952px;padding:24px 28px 28px}
+.mat{display:grid;grid-template-columns:200px 1fr 1fr;gap:14px;margin-top:18px;align-items:center}
+.mat .h{font-size:27px;font-weight:700;color:var(--ink-3);text-align:center;white-space:nowrap}
+.mat .rh{font-size:30px;font-weight:800;color:var(--ink);white-space:nowrap}
+.mat .c{height:104px;border-radius:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;white-space:nowrap}
+.mat .c b{font-family:var(--mono);font-size:40px;font-weight:800}
+.mat .c i{font-style:normal;font-size:22px;font-weight:700}
+.mat .g1{background:#EFEBFF;color:var(--accent-ink)}
+.mat .g2{background:#FFF4E5;color:#9A5B00}
+.mat .g3{background:#E7F7EE;color:#1B7A45}
+.mat .no{background:var(--surface-2);border:3px dashed var(--line);color:var(--ink-3)}
+
+/* ---------- Résultats (chapitres 4, 5 et 6) ---------- */
+.rgM{display:grid;grid-template-columns:150px 1fr 260px;padding:0 26px;align-items:center}
+.rgT{display:grid;grid-template-columns:1fr 1fr;padding:0 26px;align-items:center}
+.tr.t5{height:58px;font-size:31px}
+.qm{display:inline-flex;margin-left:14px;height:42px;padding:0 14px;border-radius:999px;background:#FDEBEC;color:#C2323A;font-size:24px;font-weight:800;align-items:center}
+
+/* ---------- 6 · Le bilan envoyé ---------- */
+.ms{position:relative;padding:30px 34px 32px}
+.ms-h{display:flex;align-items:center;gap:24px}
+.ms-ico{width:104px;height:104px;border-radius:32px;background:#FFF8D6;display:flex;align-items:center;justify-content:center;font-size:58px;flex:none}
+.ms-t1{font-size:38px;font-weight:800;color:var(--ink);white-space:nowrap}
+.ms-t2{margin-top:6px;font-size:27px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.ms-to{margin-top:24px;display:flex;flex-direction:column;gap:12px;padding-right:200px}
+.rc{align-self:flex-start;height:52px;padding:0 18px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:27px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+#sp6{right:30px;top:auto;bottom:26px}
+
+/* ---------- 7 · À retenir ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:20px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Agrégats et regroupements</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>G</span><span>R</span><span>O</span><span>U</span><span class="sp">P</span><span>B</span><span>Y</span></div>
+    <div class="abs sub">Regrouper sur plusieurs colonnes</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Regroupe les lignes selon plusieurs colonnes à la fois&nbsp;: un groupe par combinaison de valeurs.</div>
+  </section>
+
+  <!-- 1 · Situation : le bilan mensuel -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="ab1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Direction · bilan mensuel</span><span class="tb" id="tb1">table commandes</span></div>
+      <div class="lx">
+        <div class="lx-hero"><div class="lx-ico" id="ic1">📊</div><div><div class="lx-t1">Bilan des commandes</div><div class="lx-t2">Juillet et août 2026</div></div></div>
+        <div class="lx-conds"><span class="cd vi" id="cd1">📅 Pour chaque mois</span><span class="cd am" id="cd2">📦 Pour chaque statut</span></div>
+      </div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">📅</span><span class="nl">Le mois de la commande</span><span class="tag">table commandes</span></div>
+      <div class="need-row"><span class="emo">📦</span><span class="nl">Son statut</span><span class="tag">table commandes</span></div>
+      <div class="need-row"><span class="emo">🔢</span><span class="nl">Le nombre de commandes</span><span class="tag">COUNT(*)</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : un regroupement sur une seule colonne mélange l’autre -->
+  <section class="scene" id="s2">
+    <div class="abs duo2" id="duo2" style="top:300px">
+      <div class="try card" id="tA">
+        <div class="trap-h"><span class="emo">1️⃣</span><span>Par statut</span></div>
+        <div class="mini mm"><span class="ml"><span class="kw">GROUP BY</span> <span class="glow" id="gA">statut</span></span></div>
+        <div class="rs2" id="rA"><div><span class="mx">expédiée</span><b>11</b></div><div><span class="mx">en_preparation</span><b>5</b></div></div>
+        <div class="ko2" id="kA">✕ Mois mélangés</div>
+      </div>
+      <div class="try card" id="tB">
+        <div class="trap-h"><span class="emo">2️⃣</span><span>Par mois</span></div>
+        <div class="mini mm"><span class="ml"><span class="kw">GROUP BY</span> <span class="glow" id="gB">mois</span></span></div>
+        <div class="rs2" id="rB"><div><span class="mx">07</span><b>14</b></div><div><span class="mx">08</span><b>2</b></div></div>
+        <div class="ko2" id="kB">✕ Statuts mélangés</div>
+      </div>
+    </div>
+    <div class="abs goal" id="goal2"><span class="emo">🧩</span>Le mois <b>et</b> le statut, à la fois</div>
+    <div class="abs pill vi" id="p2"><span>✍️ <span class="ic">GROUP BY mois, statut</span></span></div>
+  </section>
+
+  <!-- 3 · Deux colonnes : un groupe par combinaison -->
+  <section class="scene" id="s3">
+    <div class="abs card cmd" id="cm3" style="top:300px">
+      <div class="tt"><span class="emo">📦</span><span>Les 16 commandes</span></div>
+      <div class="grid16" id="g16"></div>
+    </div>
+    <div class="abs grp" id="gr3">
+      <div class="g1" id="q1"><i>07 · expédiée</i><b>11</b></div>
+      <div class="g2" id="q2"><i>07 · en préparation</i><b>3</b></div>
+      <div class="g3" id="q3"><i>08 · en préparation</i><b>2</b></div>
+    </div>
+    <div class="abs pill vi" id="p3"><span>🔢 <span class="ic">COUNT(*)</span> compte chaque groupe</span></div>
+  </section>
+
+  <!-- 4 · La combinaison absente : août et expédiée -->
+  <section class="scene" id="s4">
+    <div class="abs card mx4" id="mx4" style="top:300px">
+      <div class="trap-h"><span class="emo">🗓️</span><span>Mois × statut</span></div>
+      <div class="mat">
+        <span></span><span class="h">expédiée</span><span class="h">en_preparation</span>
+        <span class="rh">07 · juillet</span><span class="c g1" id="c71"><b>11</b><i>commandes</i></span><span class="c g2" id="c72"><b>3</b><i>commandes</i></span>
+        <span class="rh">08 · août</span><span class="c no" id="c81"><b>—</b><i>aucune commande</i></span><span class="c g3" id="c82"><b>2</b><i>commandes</i></span>
+      </div>
+    </div>
+    <div class="abs pill rd" id="x4"><span>✕ Pas de groupe, donc pas de ligne</span></div>
+    <div class="tbl card" id="tb4">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt4">3 lignes</span></span></div>
+      <div class="rgM th"><div>mois</div><div>statut</div><div>nb_commandes</div></div>
+      <div class="rows" id="rows4"></div>
+    </div>
+  </section>
+
+  <!-- 5 · Le piège : une colonne du GROUP BY oubliée dans le SELECT -->
+  <section class="scene" id="s5">
+    <div class="abs card trap" id="tr5" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Une colonne oubliée</span></div>
+      <div class="mini mm" id="mq5"><span class="ml"><span class="kw">SELECT</span> mois, <span class="glow" id="h5">…</span> <span class="kw">COUNT</span>(*)</span><span class="ml"><span class="kw">FROM</span> commandes</span><span class="ml"><span class="kw">GROUP BY</span> mois, <span class="glow" id="s5s">statut</span>;</span></div>
+    </div>
+    <div class="tbl card" id="tb5">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt5">2 lignes « 07 »</span></span></div>
+      <div class="rgT th"><div>mois</div><div>COUNT(*)</div></div>
+      <div class="rows" id="rows5"></div>
+    </div>
+    <div class="abs pill rd" id="x5"><span>❓ Laquelle compte les commandes expédiées&nbsp;?</span></div>
+    <div class="abs pill gr" id="ok5"><span>✓ <span class="ic">SELECT mois, statut, COUNT(*)</span></span></div>
+  </section>
+
+  <!-- 6 · Le résultat : la requête complète, puis le bilan -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> <span class="kw">STRFTIME</span>(<span class="st">'%m'</span>, date_commande) <span class="kw">AS</span> mois,<span class="caret"><i></i></span></span><span class="ln" id="s6l2">       statut, <span class="kw">COUNT</span>(*) <span class="kw">AS</span> nb_commandes<span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="s6l4"><span class="kw">GROUP BY</span> <span class="glow" id="m6">mois, statut</span>;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">3 lignes</span></span></div>
+      <div class="rgM th"><div>mois</div><div>statut</div><div>nb_commandes</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card board" id="ab6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Direction · bilan mensuel</span></div>
+      <div class="ms">
+        <div class="ms-h"><span class="ms-ico">📊</span><div><div class="ms-t1">Bilan des commandes</div><div class="ms-t2">Par mois et par statut</div></div></div>
+        <div class="ms-to" id="to6"></div>
+        <div class="stamp" id="sp6">Envoyé</div>
+      </div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ 3 lignes, une par combinaison</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🧩</div><div class="rtxt"><b>Un groupe par combinaison</b><span class="rs"><span class="ic">GROUP BY mois, statut</span> rassemble les lignes qui ont le même mois <b>et</b> le même statut.</span></div></div>
+      <div class="rrow"><div class="rico emo">🚫</div><div class="rtxt"><b>Pas de ligne pour une absence</b><span class="rs">Une combinaison absente de la table ne forme aucun groupe&nbsp;: le résultat n’affiche pas de ligne à 0.</span></div></div>
+      <div class="rrow"><div class="rico emo">📋</div><div class="rtxt"><b>Tout le GROUP BY dans le SELECT</b><span class="rs">Affiche chaque colonne de regroupement, pour savoir quel groupe chaque ligne compte.</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="liens.js"></script>
+<script src="core.js"></script>
+<script src="moments.js"></script>
+<script>
+'use strict';
+const DURATION = 185.2;
+
+/* La table commandes de l’app : [numéro, jour, mois, statut, groupe]. Juillet expédiée (g1), juillet en préparation (g2), août en préparation (g3). */
+const CMD = [[1, '02', '07', 'e'], [2, '02', '07', 'e'], [3, '05', '07', 'e'], [4, '08', '07', 'e'], [5, '11', '07', 'e'], [6, '12', '07', 'e'],
+  [7, '15', '07', 'e'], [8, '18', '07', 'e'], [9, '18', '07', 'e'], [10, '20', '07', 'e'], [11, '22', '07', 'e'], [12, '25', '07', 'p'],
+  [13, '28', '07', 'p'], [14, '30', '07', 'p'], [15, '01', '08', 'p'], [16, '03', '08', 'p']].map(([n, j, m, s]) => [n, j, m, s, m === '08' ? 3 : s === 'e' ? 1 : 2]);
+/* Le résultat, dans l’ordre de SQLite (groupes rangés par mois, puis par statut). */
+const RES = [['07', 'en_preparation', 3], ['07', 'expédiée', 11], ['08', 'en_preparation', 2]];
+
+const CHAPTERS = [
+  {n:1, label:'Situation',          a:5.0,   b:26.0},
+  {n:2, label:'Le problème',        a:26.0,  b:56.1},
+  {n:3, label:'Deux colonnes',      a:56.1,  b:91.9},
+  {n:4, label:'Le groupe absent',   a:91.9,  b:118.1},
+  {n:5, label:'Le piège',           a:118.1, b:148.2},
+  {n:6, label:'Le résultat',        a:148.2, b:175.1},
+  {n:7, label:'À retenir',          a:175.1, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 9.6,     "NutriBoost prépare le <b>bilan mensuel</b><br>de ses commandes."],
+  [9.7, 15.4,    "Pour chaque mois, la direction veut<br>le nombre de commandes <b>expédiées</b><br>et <b>en préparation</b>."],
+  [15.5, 20.8,   "Le mois et le statut se trouvent<br>dans la <b>table commandes</b>."],
+  [20.9, 25.6,   "Le mois se calcule avec <code>STRFTIME</code>,<br>comme dans la leçon sur les dates."],
+  [26.3, 31.6,   "Premier essai : <code>GROUP BY statut</code><br>donne <b>2 lignes</b>."],
+  [31.7, 36.6,   "11 commandes expédiées et 5 en préparation,<br>mais juillet et août sont <b>mélangés</b>."],
+  [36.7, 41.4,   "Deuxième essai : <code>GROUP BY mois</code><br>donne 14 commandes en juillet et 2 en août."],
+  [41.5, 46.2,   "Cette fois, ce sont les statuts<br>qui sont <b>mélangés</b>."],
+  [46.3, 51.0,   "Il faut regrouper selon le mois<br>et le statut <b>à la fois</b>."],
+  [51.1, 55.6,   "Pour cela, on écrit <b>les deux colonnes</b><br>dans le <code>GROUP BY</code>."],
+  [56.4, 61.6,   "<code>GROUP BY mois, statut</code> forme<br>un groupe pour <b>chaque combinaison</b><br>de mois et de statut."],
+  [61.7, 66.4,   "Deux commandes vont dans le même groupe<br>si elles ont le même mois <b>et</b> le même statut."],
+  [67.4, 72.2,   "Juillet et expédiée : <b>11 commandes</b>."],
+  [72.3, 76.8,   "Juillet et en préparation : <b>3 commandes</b>."],
+  [76.9, 81.4,   "Août et en préparation : <b>2 commandes</b>."],
+  [81.5, 86.6,   "Les 16 commandes forment <b>3 groupes</b>,<br>donc 3 lignes dans le résultat."],
+  [86.7, 91.4,   "<code>COUNT(*)</code> compte ensuite<br>les commandes de chaque groupe."],
+  [92.2, 97.2,   "Et les commandes expédiées en août ?"],
+  [98.2, 103.2,  "Il n’y en a aucune :<br>ce groupe n’existe pas."],
+  [103.3, 108.6, "<code>GROUP BY</code> ne crée <b>aucune ligne</b><br>pour une combinaison absente de la table."],
+  [108.7, 113.8, "Le résultat ne contient donc<br>aucune ligne avec 0 commande."],
+  [113.9, 117.6, "Seuls les groupes qui ont des lignes<br>apparaissent dans le résultat."],
+  [118.6, 123.6, "Attention : chaque colonne du <code>GROUP BY</code><br>doit aussi figurer dans le <code>SELECT</code>."],
+  [123.7, 128.8, "Ici, <code>statut</code> manque dans le <code>SELECT</code>."],
+  [128.9, 134.0, "Résultat : deux lignes « 07 »,<br>avec 3 et 11 commandes."],
+  [134.1, 139.4, "Impossible de savoir laquelle<br>compte les commandes expédiées."],
+  [140.4, 145.6, "Avec <code>statut</code> dans le <code>SELECT</code>,<br>chaque ligne dit quel groupe elle compte."],
+  [148.8, 154.6, "La requête complète calcule le mois,<br>puis regroupe par mois et par statut."],
+  [154.7, 159.6, "Résultat : <b>3 lignes</b>, une par combinaison."],
+  [159.7, 164.6, "En juillet, 11 commandes sont expédiées<br>et 3 sont en préparation."],
+  [164.7, 169.6, "En août, 2 commandes sont<br>encore en préparation."],
+  [169.7, 174.6, "Le bilan mensuel est prêt<br>pour la direction."],
+  [175.4, 180.2, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [180.3, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
+      : [180.3, 999, "<code>GROUP BY a, b</code> : un groupe par combinaison."]
+];
+
+/* Pas de question en pleine vidéo : les moments « À toi » font participer l’élève. */
+const QUESTIONS = [];
+/* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse. */
+const MOMENTS = [
+  // La règle des groupes expliquée : avant que la vidéo ne range les commandes
+  {at: 66.9, from: 56.4, kind: 'sort', text: true, prompt: 'Avec <code>GROUP BY mois, statut</code>, quelles commandes vont dans le même groupe que la n°1&nbsp;?',
+    hint: 'Sélectionne une commande, puis appuie sur l’emplacement où tu veux la placer. Tu peux aussi la faire glisser directement.', next: '« {x} » : appuie sur l’emplacement où tu veux la placer.',
+    board: {y: 470, html: '<span class="mb-k">Commande n°1 : 2 juillet, expédiée</span><div class="mb-cols" style="gap:28px"><div class="mb-col"><div class="mb-bin" id="mbM"><b>Même groupe</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin" id="mbA"><b>Autre groupe</b><div class="mb-drop"></div></div></div></div>'},
+    spots: [{k: 'M', sel: '#mbM', label: 'Même groupe'}, {k: 'A', sel: '#mbA', label: 'Autre groupe'}],
+    options: [
+      {label: '18 juillet, expédiée', to: 'M', why: 'Même mois, juillet, et même statut, expédiée : même groupe que la n°1.'},
+      {label: '25 juillet, en préparation', to: 'A', why: 'Même mois, mais pas le même statut : c’est un autre groupe.'},
+      {label: '1er août, en préparation', to: 'A', why: 'Ni le même mois, ni le même statut : c’est un autre groupe.'},
+      {label: '22 juillet, expédiée', to: 'M', why: 'Juillet et expédiée, comme la n°1 : même groupe.'}],
+    tip: 'Deux commandes partagent un groupe seulement si le mois et le statut sont identiques.'},
+  // La combinaison absente : avant que la vidéo ne réponde
+  {at: 97.7, from: 92.2, kind: 'pick', text: true, prompt: 'Aucune commande n’a été expédiée en août. Que montre le résultat pour cette combinaison&nbsp;?', options: [
+    {label: 'Aucune ligne', ok: true, why: 'Sans commande, pas de groupe : <code>GROUP BY</code> ne crée aucune ligne pour août et expédiée.'},
+    {label: 'Une ligne avec 0', why: '<code>GROUP BY</code> ne forme des groupes qu’à partir des lignes de la table : il n’invente pas de ligne à 0.'},
+    {label: 'Une ligne avec NULL', why: 'Il n’y a pas de groupe du tout : ni 0, ni <code>NULL</code>, aucune ligne.'}],
+    tip: 'Un groupe n’existe que si au moins une ligne de la table lui appartient.'},
+  // Le piège : avant que la vidéo ne corrige le SELECT
+  {at: 139.9, from: 118.6, kind: 'pick', slot: '#mbX', prompt: 'Quelle colonne ajouter au <code>SELECT</code> pour savoir quel groupe chaque ligne compte&nbsp;?',
+    hint: 'Sélectionne une réponse, ou fais-la glisser directement dans le « ? ».',
+    board: {y: 470, html: '<span class="mb-k">Le bilan par mois et par statut</span><div class="mb-q" style="font-size:32px"><span class="k">SELECT</span> mois, <span class="mb-hole" id="mbX">?</span>, <span class="k">COUNT</span>(*)\n<span class="k">FROM</span> commandes\n<span class="k">GROUP BY</span> mois, statut;</div>'},
+    options: [
+    {label: 'statut', ok: true, why: '<code>statut</code> est dans le <code>GROUP BY</code> : avec lui, chaque ligne dit quel groupe elle compte.'},
+    {label: 'date_commande', why: 'Chaque groupe contient plusieurs dates : <code>date_commande</code> n’est ni dans le <code>GROUP BY</code>, ni dans un calcul.'},
+    {label: 'id', why: 'Un groupe rassemble plusieurs commandes : un seul <code>id</code> ne le représente pas.'}],
+    tip: 'Chaque colonne du GROUP BY a sa place dans le SELECT.'}
+];
+
+function dom(){
+  /* Chapitre 3 : les 16 commandes, une tuile par commande */
+  $('#g16').innerHTML = CMD.map(([n, j, m, s, g]) => `<div class="tl" data-g="${g}"><b>${j}/${m}</b><i>${s === 'e' ? 'expédiée' : 'en préparation'}</i></div>`).join('');
+  /* Chapitres 4 et 6 : le résultat ; chapitre 5 : les deux lignes « 07 » sans statut */
+  const rowsM = RES.map(([m, s, n]) => `<div class="rgM tr t5"><span class="hl"></span><div>${m}</div><div>${s}</div><div>${n}</div></div>`).join('');
+  $('#rows4').innerHTML = rowsM;
+  $('#rows6').innerHTML = rowsM;
+  $('#rows5').innerHTML = RES.slice(0, 2).map(([m, , n]) => `<div class="rgT tr t5"><span class="hl"></span><div>${m}<span class="qm">?</span></div><div>${n}</div></div>`).join('');
+  $('#to6').innerHTML = ['📦 Juillet : 11 expédiées, 3 en préparation', '📦 Août : 2 en préparation'].map(x => `<span class="rc">${x}</span>`).join('');
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+/* Une carte arrive en tournant légèrement, puis ses éléments un à un. */
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(sel, $(id));
+  gsap.set(items, {autoAlpha: 0, y: 24});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => cue(t + 0.65 + i * step, 'pop', 0.55, i % 5));
+  return items;
+}
+/* Chapitre 3 : les tuiles d’un groupe prennent sa couleur, puis la carte du groupe apparaît avec son nombre. */
+function groupe(g, t){
+  const tiles = $$(`#g16 .tl[data-g="${g}"]`);
+  tiles.forEach((el, i) => tl.set(el, {attr: {class: 'tl g' + g}}, t + i * 0.08));
+  tl.fromTo(tiles, {scale: 0.86}, {scale: 1, duration: 0.3, ease: 'back.out(2.4)', stagger: 0.08, immediateRender: false}, t);
+  tiles.forEach((_, i) => cue(t + i * 0.08, 'tick', 0.4, i % 5));
+  show('#q' + g, t + tiles.length * 0.08 + 0.2, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(t + tiles.length * 0.08 + 0.2, 'pop', 0.7, g + 1);
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.4);   // le temps de lire la bulle de la mascotte
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  boardIn('#ab1', 5.15, '.lx-hero');
+  gsap.set(['#cd1', '#cd2', '#tb1'], {autoAlpha: 0});
+  // Pour chaque mois : expédiées et en préparation
+  show('#cd1', 10.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(10.6, 'pop', 0.7, 1);
+  show('#cd2', 12.8, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(12.8, 'pop', 0.7, 3);
+  // Le mois et le statut : table commandes
+  stackBelow('#s1 .need', '#ab1');   // la liste se cale sous la carte, sans la toucher
+  show('#tb1', 16.0, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(16.0, 'pop', 0.7, 2);
+  show('#s1 .need', 16.4, {y: 60});
+  cue(16.4, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows.slice(0, 2), {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.25}, 16.7);
+  [0, 1].forEach(i => cue(16.7 + i * 0.25, 'pop', 0.7, i));
+  // Le nombre de commandes
+  tl.to(needRows[2], {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, 21.4);
+  cue(21.4, 'pop', 0.7, 4);
+  hide(['#ab1', '#s1 .need'], 25.6);
+  sceneOff('#s1', 26.0);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 26.0);
+  show('#duo2', 26.05, {y: 50});
+  cue(26.05, 'whoosh', 0.6);
+  gsap.set(['#tB', '#rA', '#rB', '#kA', '#kB'], {autoAlpha: 0});
+  // Par statut : 2 lignes, mois mélangés
+  pulse('#gA', 27.0, 3, 'rgba(201,188,255,.5)');
+  rowsIn($$('#rA > div'), 28.6, 0.3);
+  tl.set('#rA', {autoAlpha: 1}, 28.6);
+  show('#kA', 33.6, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(33.6, 'miss', 0.55);
+  shake('#kA', 34.2);
+  // Par mois : 14 et 2, statuts mélangés
+  show('#tB', 36.9, {y: 30}, 0.5);
+  cue(36.9, 'whoosh', 0.6);
+  pulse('#gB', 37.6, 3, 'rgba(201,188,255,.5)');
+  rowsIn($$('#rB > div'), 38.8, 0.3);
+  tl.set('#rB', {autoAlpha: 1}, 38.8);
+  show('#kB', 42.4, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(42.4, 'miss', 0.55);
+  shake('#kB', 43.0);
+  // Le mois et le statut à la fois
+  stackBelow('#goal2', '#duo2', 0, 30);
+  show('#goal2', 47.0, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(47.0, 'pop', 0.75, 3);
+  stackBelow('#p2', '#goal2', 0, 24);
+  show('#p2', 52.2, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(52.2, 'chord', 0.6);
+  hide(['#duo2', '#goal2', '#p2'], 55.6, {y: -40}, 0.4);
+  sceneOff('#s2', 56.1);
+
+  /* ===== 3 · Deux colonnes ===== */
+  sceneOn('#s3', 56.1);
+  show('#cm3', 56.15, {y: 50});
+  cue(56.15, 'whoosh', 0.6);
+  const tiles = $$('#g16 .tl');
+  gsap.set(tiles, {autoAlpha: 0, scale: 0.7});
+  tl.to(tiles, {autoAlpha: 1, scale: 1, duration: 0.25, ease: 'back.out(2)', stagger: 0.06}, 57.0);
+  tiles.forEach((_, i) => cue(57.0 + i * 0.06, 'tick', 0.35, i % 5));
+  stackBelow('#gr3', '#cm3', 0, 28);
+  gsap.set(['#q1', '#q2', '#q3'], {autoAlpha: 0});
+  // Un groupe par combinaison
+  groupe(1, 67.6);
+  groupe(2, 72.6);
+  groupe(3, 77.2);
+  bump('#gr3', 82.4, 1.04, 1);
+  cue(82.4, 'chord', 0.6);
+  // COUNT(*) compte chaque groupe
+  stackBelow('#p3', '#gr3', 0, 28);
+  show('#p3', 87.2, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(87.2, 'pop', 0.7, 3);
+  [1, 2, 3].forEach((g, i) => bump(`#q${g} b`, 88.4 + i * 0.5, 1.2, 1));
+  hide(['#cm3', '#gr3', '#p3'], 91.4, {y: -40});
+  sceneOff('#s3', 91.9);
+
+  /* ===== 4 · Le groupe absent ===== */
+  sceneOn('#s4', 91.9);
+  show('#mx4', 91.95, {y: 50});
+  cue(91.95, 'whoosh', 0.6);
+  const cells = ['#c71', '#c72', '#c82'];
+  gsap.set([...cells, '#c81'], {autoAlpha: 0, scale: 0.7});
+  tl.to(cells, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)', stagger: 0.25}, 92.6);
+  cells.forEach((_, i) => cue(92.6 + i * 0.25, 'pop', 0.6, i + 1));
+  // Août et expédiée : aucune commande
+  tl.to('#c81', {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)'}, 98.4);
+  cue(98.4, 'miss', 0.55);
+  shake('#c81', 99.0);
+  stackBelow('#x4', '#mx4', 0, 30);
+  show('#x4', 103.8, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(103.8, 'pop', 0.7, 2);
+  // Le résultat : 3 lignes, aucune à 0
+  stackBelow('#tb4', '#x4', 0, 30);
+  show('#tb4', 109.0, {y: 40}, 0.5);
+  cue(109.0, 'whoosh', 0.6);
+  rowsIn($$('#rows4 .tr'), 109.4, 0.25);
+  gsap.set('#cnt4', {autoAlpha: 0});
+  show('#cnt4', 110.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt4', 114.4, 1.12, 3);
+  hide(['#mx4', '#x4', '#tb4'], 117.6, {y: -40});
+  sceneOff('#s4', 118.1);
+
+  /* ===== 5 · Le piège ===== */
+  sceneOn('#s5', 118.1);
+  show('#tr5', 118.15, {y: 50});
+  cue(118.15, 'whoosh', 0.6);
+  pulse('#s5s', 120.4, 3, 'rgba(201,188,255,.5)');
+  pulse('#h5', 124.4, 3, 'rgba(255,170,170,.6)');
+  cue(124.4, 'miss', 0.5);
+  stackBelow('#tb5', '#tr5', 0, 30);
+  show('#tb5', 129.0, {y: 40}, 0.5);
+  cue(129.0, 'whoosh', 0.6);
+  rowsIn($$('#rows5 .tr'), 129.4, 0.3);
+  gsap.set('#cnt5', {autoAlpha: 0});
+  show('#cnt5', 130.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  stackBelow('#x5', '#tb5', 0, 30);
+  show('#x5', 134.6, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(134.6, 'miss', 0.55);
+  shake('#x5', 135.2);
+  // La correction : statut dans le SELECT
+  hide('#x5', 140.2, {scale: 0.8}, 0.3);
+  gsap.set('#ok5', {top: 0});
+  stackBelow('#ok5', '#tb5', 0, 30);
+  show('#ok5', 140.6, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(140.6, 'true', 0.6);
+  hide(['#tr5', '#tb5', '#ok5'], 147.7, {y: -40});
+  sceneOff('#s5', 148.2);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 148.2);
+  show('#s6code', 148.25, {y: 60}, 0.6);
+  cue(148.25, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 148.75, 40);
+  for (const k of [2, 3, 4]) te = typeLine($('#s6l' + k), te + 0.1, 40);
+  pulse('#m6', 152.6, 3, 'rgba(201,188,255,.45)');
+  press($('#s6run'), 154.6);
+  stackBelow('#tbl6', '#s6code', 0, 30);
+  show('#tbl6', 154.9, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 155.1, 0.25);
+  gsap.set('#cnt6', {autoAlpha: 0});
+  show('#cnt6', 156.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 156.6, 1.15, 3);
+  const r6 = $$('#rows6 .tr');
+  pulse([r6[1], r6[0]], 160.0, 3, 'rgba(201,188,255,.45)');
+  pulse(r6[2], 165.0, 3, 'rgba(191,232,208,.6)');
+  hide(['#s6code', '#tbl6'], 169.6, {y: -40}, 0.4);
+  // Le bilan envoyé à la direction
+  boardIn('#ab6', 169.9, '.ms-h, .rc', 0.25);
+  gsap.set('#sp6', {autoAlpha: 0, scale: 1.8, rotation: -14});
+  tl.to('#sp6', {autoAlpha: 1, scale: 1, rotation: -8, duration: 0.35, ease: 'back.out(2)'}, 171.2);
+  cue(171.2, 'stamp', 0.8);
+  stackBelow('#badge6', '#ab6', 0, 50);
+  show('#badge6', 171.8, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(171.8, 'chord', 0.7);
+  hide(['#ab6', '#badge6'], 174.6);
+  sceneOff('#s6', 175.1);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(175.1, [175.8, 177.6, 179.4]);
+  hold(177.4, 7.0);   // le temps de lire chaque idée et sa précision avant la suivante
+  hold(179.2, 8.0);
+  hold(180.9, 5.0);   // la dernière idée reste à l’écran avant la fin
+  // Le bouton « Ajouter à mes notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(180.35, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 180.3, moments: MOMENTS,
+  glyphs: '📊📅📦🔢1️⃣2️⃣✕🧩✍️🗓️—⚠️❓✓🔎🚫📋·…×', dom, build});
+</script>
+</body>
+</html>

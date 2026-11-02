@@ -8563,6 +8563,18 @@ guide({ id:16, titre:"GROUP BY", résumé:"Un calcul par groupe",
     ],label:"Les trois idées à retenir"}
   ]
 }),
+guide({ id:87, titre:"GROUP BY sur plusieurs colonnes", résumé:"Un groupe par combinaison de valeurs",
+  /* Cours en vidéo : l’animation (assets/anim/group-by-colonnes.html, moteur commun assets/anim/core.js) est le cours (Elisa, 2 novembre, 11 h 16 : « est-ce que tu peux regarder s’il manque une notion ? » … « oui »). La vidéo suit le bilan mensuel des commandes : GROUP BY mois, statut forme un groupe par combinaison. */
+  leconSeule:true,
+  video:{anim:'assets/anim/group-by-colonnes.html?app&embed',thumb:'assets/anim/group-by-colonnes-thumb.jpg',duree:'3 min 15',moments:3,seuil:2},
+  reflex:[
+    {recap:[
+      ["🧩","Un groupe par combinaison","<code>GROUP BY mois, statut</code> rassemble les lignes qui ont le même mois <b>et</b> le même statut."],
+      ["🚫","Pas de ligne pour une absence","Une combinaison absente de la table ne forme aucun groupe : le résultat n’affiche pas de ligne à 0."],
+      ["📋","Tout le GROUP BY dans le SELECT","Affiche chaque colonne de regroupement, pour savoir quel groupe chaque ligne compte."]
+    ],label:"Les trois idées à retenir"}
+  ]
+}),
 guide({ id:17, titre:"HAVING", résumé:"Filtrer après regroupement",
   /* Cours en vidéo : l’animation (assets/anim/having.html, moteur commun assets/anim/core.js) est le cours.
      La vidéo suit les villes des ateliers bien-être (au moins 2 clients). */
@@ -13869,6 +13881,8 @@ const CARTES={
     m:"<code>SUM</code> additionne, <code>AVG</code> fait la moyenne, <code>MIN</code> et <code>MAX</code> donnent la plus petite et la plus grande valeur. Le résultat tient en une ligne ; les <code>NULL</code> sont ignorés."},
  16:{k:"GROUP BY",t:"Un calcul par groupe",s:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville;",
     m:"<code>GROUP BY</code> rassemble les lignes qui partagent la même valeur, puis permet de calculer sur chaque groupe."},
+ 87:{k:"GROUP BY a, b",t:"Un groupe par combinaison",s:"SELECT mois, statut, COUNT(*)\nFROM commandes\nGROUP BY mois, statut;",
+    m:"Avec plusieurs colonnes dans le <code>GROUP BY</code>, chaque <b>combinaison</b> de valeurs forme un groupe. Une combinaison absente de la table ne donne aucune ligne (pas de ligne à 0). Mets chaque colonne du <code>GROUP BY</code> dans le <code>SELECT</code>."},
  17:{k:"HAVING",t:"Filtrer les groupes",s:"GROUP BY …\nHAVING …",
     run:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",
     m:"<code>WHERE</code> choisit les lignes avant la création des groupes. <code>HAVING</code> choisit les groupes après leur création par <code>GROUP BY</code>."},
@@ -17572,6 +17586,7 @@ const SQ_ALIASES={
   14:'count compter nombre de lignes comptage count(*) count distinct',
   85:'sum avg min max somme moyenne minimum maximum total additionner plus petit plus grand extremes agregat agregats fonctions d agregation',
   16:'group by regrouper grouper groupe par agregat calcul par groupe avg sum min max moyenne somme total maximum minimum fonctions d agregation agregats',
+  87:'group by plusieurs colonnes deux colonnes combinaison regrouper par mois et statut groupes multiples',
   17:'having filtrer groupes apres regroupement condition sur agregat',
   76:'group concat rassembler concatener liste texte groupe string agg',
   18:'inner join jointure interne relier tables correspondance on',
@@ -33195,7 +33210,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-any-all-v2344';
+  const SW_CACHE='requete-2026-11-02-group-by-colonnes-v2345';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
