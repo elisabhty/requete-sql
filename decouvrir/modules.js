@@ -67,7 +67,7 @@ window.MODULES=[
     ]},
     {titre:"Agrégats et regroupements", sous:"Calculer, regrouper et agréger", lecons:[
       ["COUNT", "Compter les lignes", 147],
-      ["SUM, AVG, MIN et MAX", "Somme, moyenne, minimum et maximum", 183],
+      ["SUM, AVG, MIN et MAX", "Somme, moyenne, minimum et maximum", 180],
       ["GROUP BY", "Un calcul par groupe", 150],
       ["HAVING", "Filtrer après regroupement", 155],
       ["GROUP_CONCAT", "Rassembler les textes d’un groupe", 172]
