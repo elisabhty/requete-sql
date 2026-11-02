@@ -38,12 +38,12 @@ test('20 h 29 : le premier cours dit ce qu’est le SQL et une requête, puis le
   const p = anim('bases-relationnelles.html');
   for (const t of ['[197.15, 201.35, "Le <b>SQL</b> est le langage qui permet<br>de communiquer avec le SGBD."]',
     '"Une <b>requête</b> est une instruction<br>écrite en SQL : elle demande au SGBD<br>de lire ou de modifier des données."',
-    '[207.85, 212.05, "Ici, <code>SELECT * FROM produits</code><br>demande tous les produits."]',
+    '[207.85, 212.05, "Ici, <code>SELECT * FROM produits</code><br>demande d’afficher tous les produits<br>de notre catalogue (la <b>table produits</b>)."]',
     '[212.15, 216.95, "Le SGBD l’<b>exécute</b>',
     '[290.45, 296.55, "Elle se déclare à la création de la table, avec <code>PRIMARY KEY</code> placé juste après le type de la colonne."]',
     '[296.65, 301.65, "<code>INTEGER</code> est le <b>type de donnée</b><br>de la colonne <code>id</code> : un nombre entier."]',
     '<span><code>clients.prenom</code><b>TEXT</b></span><span><code>clients.email</code><b>TEXT</b></span><span><code>produits.prix</code><b>REAL</b></span>',
     "pulse($$('#rq1 .kw'), 208.1, 3, 'rgba(255,224,138,.55)');", "stackBelow('#pkty', '#pk5', 0, 34);", 'const DURATION = 527.55;'])
     assert.ok(p.includes(t), t);
-  assert.ok(app.includes("thumb:'assets/anim/bases-relationnelles-thumb.webp',duree:'10 min 18'"), 'la fiche du cours : sa nouvelle durée');
+  assert.ok(app.includes("thumb:'assets/anim/bases-relationnelles-thumb.webp',duree:'10 min 20'"), 'la fiche du cours : sa nouvelle durée');
 });

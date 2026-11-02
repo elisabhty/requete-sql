@@ -92,3 +92,38 @@ test('ANY / SOME / ALL devant une sous-requête : les résultats du cours (prix 
     assert.equal(noms("SELECT 'ANY (x)' UNION ALL SELECT nom FROM produits WHERE id = 1"), 'ANY (x), Fibre Prébiotique', 'UNION ALL et un texte intacts');
   } finally { d.close(); }
 });
+
+/* Elisa, 2 novembre, 20 h 48 : « il y a d’autres fonctions que tu peux ajouter dans le moteur ? » */
+test('2 novembre, 20 h 48 : les écritures ajoutées au moteur donnent le résultat des autres SGBD', () => {
+  const d = new SQL.Database(); ctx.attachDateFns(d);
+  d.run(`CREATE TABLE t(n TEXT, p REAL, q INT, d TEXT, c TEXT);
+    INSERT INTO t VALUES('Fibre',29.9,2,'2026-07-02','Bien-être'),('Magnésium',19.9,1,'2026-07-05','Bien-être'),('Shaker',15,3,'2026-08-01','Accessoire');`);
+  const all = q => d.exec(q)[0]?.values || [];
+  const col = q => all(q).map(r => r[0]).join(', ');
+  try {
+    assert.equal(col("SELECT d + INTERVAL '7 days' FROM t"), '2026-07-09, 2026-07-12, 2026-08-08', 'l’unité de l’intervalle ne mange plus le FROM');
+    assert.equal(col("SELECT n FROM t WHERE d >= DATE '2026-07-03'"), 'Magnésium, Shaker', 'littéral DATE');
+    assert.equal(col("SELECT EXTRACT(EPOCH FROM TIMESTAMP '1970-01-02 00:00:00')"), '86400', 'littéral TIMESTAMP, EPOCH');
+    assert.equal(col("SELECT AGE('2026-12-31', '2026-07-02')"), '5 mons 29 days');
+    assert.equal(col("SELECT AGE('2028-03-05', '2026-01-01')"), '2 years 2 mons 4 days');
+    assert.equal(col('SELECT c || ANY_VALUE(c) FROM t GROUP BY c ORDER BY c'), 'AccessoireAccessoire, Bien-êtreBien-être', 'ANY_VALUE');
+    assert.equal(col('SELECT ARRAY_AGG(n ORDER BY n) FROM t'), '["Fibre","Magnésium","Shaker"]', 'ARRAY_AGG : un tableau');
+    assert.equal(col(`SELECT JSON_VALUE('{"a":{"b":2}}', '$.a.b')`), '2');
+    assert.equal(col("SELECT SAFE_CAST('3' AS INT) + 1"), '4');
+    assert.match(col('SELECT VERSION()'), /^SQLite 3\./);
+    assert.equal(col("SELECT n FROM t WHERE n SIMILAR TO '(F|S)%'"), 'Fibre, Shaker', 'SIMILAR TO');
+    assert.equal(col("SELECT n FROM t WHERE n NOT SIMILAR TO 'F%'"), 'Magnésium, Shaker');
+    assert.equal(col('SELECT n FROM t WHERE q BETWEEN SYMMETRIC 3 AND 2'), 'Fibre, Shaker', 'BETWEEN SYMMETRIC');
+    assert.equal(col('SELECT * FROM generate_series(1, 4)'), '1, 2, 3, 4', 'generate_series : des nombres');
+    assert.equal(col('SELECT x FROM generate_series(10, 1, -3) AS g(x)'), '10, 7, 4, 1', 'pas négatif, colonne nommée');
+    assert.equal(col("SELECT jour FROM generate_series('2026-07-30', '2026-08-02', '1 day') AS j(jour)"), '2026-07-30, 2026-07-31, 2026-08-01, 2026-08-02', 'des dates');
+    assert.equal(col('SELECT COUNT(*) FROM generate_series(1, 1000000)'), '100000', 'jamais plus de 100 000 lignes');
+    assert.equal(col("SELECT n FROM t WHERE c = ANY (ARRAY['Accessoire', 'Boisson'])"), 'Shaker', '= ANY (ARRAY[…])');
+    assert.equal(col('SELECT n FROM t WHERE p > ALL (ARRAY[10, 20])'), 'Fibre');
+    assert.equal(col("SELECT STRING_AGG(DISTINCT c, ' / ' ORDER BY c) FROM t"), 'Accessoire / Bien-être', 'STRING_AGG(DISTINCT …, séparateur)');
+    assert.equal(col("SELECT GROUP_CONCAT(DISTINCT c ORDER BY c SEPARATOR ' / ') FROM t"), 'Accessoire / Bien-être');
+    assert.equal(col("SELECT SOUNDEX('Robert') || SOUNDEX('Rupert') || SOUNDEX('Tymczak')"), 'R163R163T522', 'SOUNDEX');
+    assert.equal(col("SELECT TIME_FORMAT('10:30:00', '%H h %i')"), '10 h 30');
+    assert.equal(col("SELECT 'DATE ''x'' SIMILAR TO' AS v"), "DATE 'x' SIMILAR TO", 'un texte reste intact');
+  } finally { d.close(); }
+});
