@@ -69,3 +69,26 @@ test('les résultats des écritures boostées sont les bons', () => {
   assert.equal(one('SELECT ISNUMERIC(x) FROM t'), 1);
   assert.equal(one("SELECT LENGTH(UUID())"), 36);
 });
+
+/* Elisa, 2 novembre : le cours « ANY et ALL ». SQLite n’a ni ANY, ni SOME, ni ALL devant une sous-requête : la requête du cours,
+   tapée dans la console, tombait en erreur. sqlCompat calcule la valeur à battre (le plus petit ou le plus grand prix). */
+test('ANY / SOME / ALL devant une sous-requête : les résultats du cours (prix Bien-être 19,90, 24,90 et 29,90)', () => {
+  const d = new SQL.Database(); ctx.attachDateFns(d);
+  d.run(`CREATE TABLE produits(id INTEGER PRIMARY KEY, nom TEXT, categorie TEXT, prix REAL);
+    INSERT INTO produits VALUES (1,'Fibre Prébiotique','Bien-être',29.90),(2,'Collagène Marin','Beauté',39.90),(3,'Magnésium','Bien-être',19.90),
+    (4,'Vitamine D','Nutrition',14.90),(5,'Tisane Détox','Boisson',12.50),(6,'Protéine Végétale','Nutrition',34.90),(7,'Oméga 3','Bien-être',24.90),(8,'Shaker Inox','Accessoire',15.00);`);
+  const B = "(\n  SELECT prix FROM produits\n  WHERE categorie = 'Bien-être'\n)";
+  const noms = q => (d.exec(q)[0]?.values || []).map(r => r[0]).join(', ');
+  try {
+    assert.equal(noms(`SELECT nom FROM produits WHERE prix > ALL ${B};`), 'Collagène Marin, Protéine Végétale');
+    assert.equal(noms(`SELECT nom FROM produits WHERE prix > ANY ${B};`), 'Fibre Prébiotique, Collagène Marin, Protéine Végétale, Oméga 3');
+    assert.equal(noms(`SELECT nom FROM produits WHERE prix > SOME ${B};`), 'Fibre Prébiotique, Collagène Marin, Protéine Végétale, Oméga 3');
+    assert.equal(noms(`SELECT nom FROM produits WHERE prix < ALL ${B};`), 'Vitamine D, Tisane Détox, Shaker Inox');
+    assert.equal(noms(`SELECT nom FROM produits WHERE prix = ANY ${B};`), 'Fibre Prébiotique, Magnésium, Oméga 3');
+    assert.equal(noms(`SELECT nom FROM produits WHERE prix <> ALL ${B};`), 'Collagène Marin, Vitamine D, Tisane Détox, Protéine Végétale, Shaker Inox');
+    assert.equal(noms("SELECT nom FROM produits WHERE prix > ALL (SELECT prix FROM produits WHERE categorie = 'Rien')").split(', ').length, 8, 'ensemble vide : ALL laisse tout passer');
+    assert.equal(noms('SELECT nom FROM produits p WHERE prix >= ALL (SELECT prix FROM produits q WHERE q.categorie = p.categorie)'),
+      'Fibre Prébiotique, Collagène Marin, Tisane Détox, Protéine Végétale, Shaker Inox', 'sous-requête corrélée : le plus cher de chaque catégorie');
+    assert.equal(noms("SELECT 'ANY (x)' UNION ALL SELECT nom FROM produits WHERE id = 1"), 'ANY (x), Fibre Prébiotique', 'UNION ALL et un texte intacts');
+  } finally { d.close(); }
+});
