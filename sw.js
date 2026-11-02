@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-02-emily-koraly-v2335';
+const CACHE = 'requete-2026-11-02-koraly-arthur-v2336';
 
 const PRECACHE = [
   './onboarding-focus.js',
@@ -131,6 +131,7 @@ const PRECACHE = [
   './assets/anim/formatrice-anais.webp',
   './assets/anim/formatrice-emily.webp',
   './assets/anim/formatrice-koraly.webp',
+  './assets/anim/formateur-arthur.webp',
   './assets/anim/formateur-dorian.webp',
   './assets/anim/bases-relationnelles-thumb.webp',
   './assets/anim/nutriboost.webp',
