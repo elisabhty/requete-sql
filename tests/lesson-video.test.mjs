@@ -498,7 +498,7 @@ const COURSES = [
       "'Nous gérons actuellement nos données dans Excel, mais ce fichier atteint ses limites : doublons, erreurs de saisie et difficultés de suivi.'",
       "'Nous avons besoin d’une base de données structurée pour centraliser nos informations et faciliter leur gestion au quotidien.'",
       "'En tant que développeur/analyste, ta mission sera de concevoir cette base, puis de l’implémenter dans un système de gestion de bases de données (SGBD) et de nous accompagner dans l’analyse de nos besoins au vu de la croissance rapide de notre marque.'",
-      "'Souhaites-tu nous accompagner dans ce projet ?'", "const REPONSE = ['Avec plaisir !', 'On commence quand tu veux !'];",
+      "'Souhaites-tu nous accompagner dans ce projet ?'", "const REPONSE = ['Avec plaisir !', 'On commence quand vous le voulez !'];",
       "const BIENVENUE = ['Bienvenue dans l’équipe !', 'Voici ton badge.', 'Commençons par découvrir nos besoins ensemble.'];",
       '<span class="emo">🤝</span>J’accepte la mission', 'const CONV_TOP = 249, CONV_MAX = 1790,', 'tl.to(smsV, {height: h,', '<img src="badge-nutriboost.webp"', 'Bienvenue dans l’équipe NutriBoost !',
       'Ta mission : analyser les besoins métier,<br>concevoir la <b>base de données</b><br>et l’implémenter dans le SGBD.', 'Analyste-développeur', 'opens: OPENS,',
