@@ -121,9 +121,9 @@ window.MODULES=[
       ["ON DELETE", "Décider du sort des lignes liées", 266]
     ]},
     {titre:"Transactions et concurrence", sous:"Tout valider, tout annuler, sans conflit", lecons:[
-      ["Transactions", "Valider les modifications ensemble", 260],
-      ["SAVEPOINT", "Annuler une partie des modifications", 254],
-      ["Concurrence et isolation", "Gérer les accès simultanés", 250]
+      ["Transactions", "Valider les modifications ensemble", 268],
+      ["SAVEPOINT", "Annuler une partie des modifications", 263],
+      ["Concurrence et isolation", "Gérer les accès simultanés", 261]
     ]},
     {titre:"Procédures et triggers", sous:"Automatiser les traitements", lecons:[
       ["Procédures et fonctions stockées", "Réutiliser un traitement ou un calcul", 188],
