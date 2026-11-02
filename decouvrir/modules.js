@@ -41,15 +41,15 @@ window.MODULES=[
   themes:['Requêtes SELECT','Filtres et tris','Fonctions','Agrégats','Jointures','Sous-requêtes','CTE','Fonctions de fenêtre','Modélisation','Création de tables','Transactions','Index et performance','Sécurité'],
   programme:[
     {titre:"Introduction", sous:"Bases de données, tables, relations et SELECT", lecons:[
-      ["Les bases de données relationnelles", "Tables, clés et lecture avec SELECT", 586]
+      ["Les bases de données relationnelles", "Tables, clés et lecture avec SELECT", 590]
     ]},
     {titre:"Lire une table", sous:"SELECT, filtres, tri et pagination", lecons:[
       ["Renommer avec AS", "Donner un nom lisible à une colonne du résultat", 107],
       ["DISTINCT", "Valeurs uniques", 151],
       ["WHERE", "Filtrer les lignes", 126],
       ["Comparer des valeurs", "Filtrer avec =, !=, >, <, >=, <=", 159],
-      ["AND et OR", "Combiner plusieurs conditions", 157],
-      ["NOT", "Exclure selon une condition", 167],
+      ["AND et OR", "Combiner plusieurs conditions", 156],
+      ["NOT", "Exclure selon une condition", 165],
       ["NULL", "La valeur absente", 130],
       ["LIKE", "Chercher un motif", 191],
       ["IN", "Filtrer avec une liste", 160],
@@ -60,8 +60,8 @@ window.MODULES=[
     {titre:"Fonctions et expressions", sous:"Transformer les valeurs ligne par ligne", lecons:[
       ["Fonctions de texte", "Transformer, nettoyer et découper du texte", 217],
       ["Fonctions numériques", "Calculer, arrondir et manipuler des nombres", 166],
-      ["Fonctions de dates et heures", "Obtenir, extraire et calculer avec une date", 173],
-      ["Fonctions de conversion de types", "Passer d’un type à un autre", 186],
+      ["Fonctions de dates et heures", "Obtenir, extraire et calculer avec une date", 170],
+      ["Fonctions de conversion de types", "Passer d’un type à un autre", 185],
       ["CASE", "Afficher une valeur selon une condition", 165],
       ["COALESCE", "Remplacer les valeurs absentes", 153]
     ]},
@@ -102,7 +102,7 @@ window.MODULES=[
       ["OVER()", "Calculer sans regrouper les lignes", 202],
       ["Fonctions de rang", "Classer les lignes, ex æquo compris", 178],
       ["LAG et LEAD", "Comparer une ligne à la précédente ou à la suivante", 203],
-      ["Fenêtres glissantes", "Suivre l’évolution des commandes", 186],
+      ["Fenêtres glissantes", "Suivre l’évolution des commandes", 185],
       ["FIRST_VALUE, LAST_VALUE et NTILE", "Première et dernière valeur, groupes égaux", 217]
     ]},
     {titre:"Modéliser", sous:"Normalisation, cardinalités et UML", lecons:[
@@ -111,7 +111,7 @@ window.MODULES=[
       ["Modéliser avec UML", "Du diagramme de classes aux tables", 323]
     ]},
     {titre:"Créer et faire évoluer les tables", sous:"CREATE, ALTER et DROP TABLE", lecons:[
-      ["CREATE TABLE", "Créer la structure d’une table", 275],
+      ["CREATE TABLE", "Créer la structure d’une table", 274],
       ["ALTER TABLE", "Faire évoluer la structure d’une table", 298],
       ["DROP", "Supprimer une table de la base", 160],
       ["Les schémas", "Ranger les tables par espace", 144]
