@@ -4,7 +4,8 @@
   const root=document.documentElement;
   const meta=document.querySelector('meta[name="theme-color"]');
   const surfaces='.screen,#onboarding,#loader,.lv,.mu,.lst,.viz,.imp-sheet';
-  let frame=0,lastNative='';
+  let frame=0,lastNative='',sampleFrame=0;
+  let sample=null;
   const version=Number(navigator.userAgent.match(/Version\/(\d+)/)?.[1]||0);
   const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1);
   const installed=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone;
@@ -21,6 +22,23 @@
     root.classList.add('safari-glass');
   }
   sizeCanvas();
+  if(glass){
+    sample=document.createElement('div');
+    sample.id='browser-status-sample';
+    sample.setAttribute('aria-hidden','true');
+    document.body.appendChild(sample);
+  }
+  function refreshSample(color){
+    if(!sample)return;
+    sample.style.backgroundColor=color;
+    if(sampleFrame)cancelAnimationFrame(sampleFrame);
+    sample.style.height='13px';
+    // Présenter la géométrie modifiée avant de revenir à la hauteur normale.
+    // Ce changement est sans pixels visibles (fond limité à un texte vide).
+    sampleFrame=requestAnimationFrame(()=>{
+      sampleFrame=requestAnimationFrame(()=>{sample.style.height='12px';sampleFrame=0;});
+    });
+  }
   function sync(){
     frame=0;
     const css=getComputedStyle(root),color=css.getPropertyValue('--browser-top').trim();
@@ -29,6 +47,7 @@
     // évite de conserver la teinte du chargement lors d'un changement d'écran.
     if(glass&&root.style.backgroundColor!==color)root.style.backgroundColor=color;
     if(meta&&meta.content!==color)meta.content=color;
+    refreshSample(color);
     const status=window.Capacitor?.Plugins?.StatusBar;
     if(!status)return;
     const rgb=color.startsWith('#')?color.slice(1).match(/\w\w/g)?.map(c=>parseInt(c,16)):color.match(/[\d.]+/g)?.slice(0,3).map(Number);
@@ -47,6 +66,7 @@
   addEventListener('pageshow',schedule);
   addEventListener('resize',()=>{sizeCanvas();schedule();},{passive:true});
   addEventListener('orientationchange',()=>{sizeCanvas();schedule();},{passive:true});
+  if(glass)document.addEventListener('pointerup',schedule,{passive:true});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule();});
   sync();
 })();
