@@ -344,8 +344,9 @@ test('vidéo : « Apprends le SQL maintenant. » puis les neuf tuiles des foncti
   const scene = id => { const i = video.indexOf(`<section class="scene" id="${id}">`); return video.slice(i, video.indexOf('</section>', i)); };
   const s8 = scene('s8'), s9 = scene('s9');
   assert.ok(s8.includes('<h2 class="ttl"><span class="mask"><span>Apprends le SQL</span></span><span class="mask"><span><em>maintenant</em>.</span></span></h2>'), 'titre');
-  assert.ok(s8.includes('<p class="abs sub">Pratique sur de vraies<br>données avec <b>Requête</b>.</p>'), 'sous-titre');
-  assert.ok(s8.includes('L’app, pensée pour les futurs data analysts.</p>'), 'accroche (Elisa, 20 h 41 : « L’app, pensé pour les futurs data analysts »)');
+  /* 2 novembre, 17 h 10 : sous le titre, « 70+ cours » et les formateurs (la voix les annonce), à la place du sous-titre et de l’accroche */
+  assert.ok(s8.includes('<div class="abs" id="crs"><span class="crs-n"><b id="crs-n">0</b><i>+</i></span><span class="crs-t">cours</span></div>'), '70+ cours');
+  assert.ok(s8.includes('<span class="trs-t">animés par une dizaine<br>de formateurs</span>') && s8.includes('<div class="stk" id="stk-int">Immersif<svg'), 'formateurs, Immersif');
   assert.doesNotMatch(video, /1<sup>re<\/sup> application|1re application/, 'plus de « 1re application des data analysts »');
   assert.ok(s9.includes('<span>Du premier <code>SELECT</code></span>') && s9.includes('<span>aux requêtes <em>avancées</em>,</span>'), 'titre');
   assert.ok(s9.includes('<p class="abs sub">progresse à ton rythme.</p>'), 'la phrase continue sous le titre');
