@@ -52,9 +52,9 @@ window.MODULES=[
       ["NOT", "Exclure selon une condition", 167],
       ["NULL", "La valeur absente", 130],
       ["LIKE", "Chercher un motif", 191],
-      ["IN", "Filtrer avec une liste", 143],
-      ["BETWEEN", "Filtrer un intervalle", 149],
-      ["ORDER BY", "Ordonner le résultat", 131],
+      ["IN", "Filtrer avec une liste", 160],
+      ["BETWEEN", "Filtrer un intervalle", 157],
+      ["ORDER BY", "Ordonner le résultat", 135],
       ["LIMIT et OFFSET", "Limiter le résultat et le découper en pages", 217]
     ]},
     {titre:"Fonctions et expressions", sous:"Transformer les valeurs ligne par ligne", lecons:[
