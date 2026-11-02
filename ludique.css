@@ -6226,11 +6226,23 @@ html.lq #app #scr-entretien .ent-search-clear:focus-visible{outline:3px solid rg
 html.lq #app #scr-entretien .ent-hit{background:#FFE49A;color:var(--ink);border-radius:5px;padding:0 2px;margin:0 -1px}
 html.lq #app #scr-entretien .ent-empty-search .ent-empty-ico{background:var(--accent-soft);color:var(--accent)}
 html.lq #app #scr-entretien .ent-empty-search span:not(.ent-empty-ico){display:block;max-width:300px;margin:0 auto}
-/* Salle d’attente : « Copier le code » (Elisa, 2 novembre, 23 h 52). L’icône à gauche du libellé ; copié, le bouton passe au menthe
-   avec sa coche, et les tuiles du code sautent l’une après l’autre. */
-html.lq #jeu-root .jeu-copy{display:flex;align-items:center;justify-content:center;gap:9px}
+/* Salle d’attente : « Copier le code » (Elisa, 2 novembre, 23 h 52), sous les pastilles avec le code juste au-dessus (23 h 55).
+   Micro-interaction au copiage (23 h 55) : le bouton s’enfonce puis rebondit, passe au menthe, sa coche se dessine et lâche des
+   confettis ; les tuiles du code sautent l’une après l’autre en passant au menthe, puis reviennent. */
+html.lq #jeu-root .jeu-lobby-body .jeu-etat-code{margin:18px 0 14px}
+html.lq #jeu-root .jeu-copy{position:relative;display:flex;align-items:center;justify-content:center;gap:9px;overflow:visible}
 html.lq #jeu-root .jeu-copy svg{width:20px;height:20px;flex:none}
-html.lq #jeu-root .jeu-copy.is-done{background:#E3F8EC!important;border-color:#9FE0BC!important;color:#1E7A4A!important;box-shadow:0 3px 0 #9FE0BC!important}
-html.lq .jeu-etat-code.is-copied b{animation:jeuCodeHop .42s cubic-bezier(.3,.7,.4,1.5) both;animation-delay:calc(var(--i,0)*45ms)}
-@keyframes jeuCodeHop{0%{transform:none}40%{transform:translateY(-7px)}100%{transform:none}}
-@media (prefers-reduced-motion:reduce){html.lq .jeu-etat-code.is-copied b{animation:none}}
+html.lq #jeu-root .jeu-copy.is-done{background:#E3F8EC!important;border-color:#9FE0BC!important;color:#1E7A4A!important;box-shadow:0 3px 0 #9FE0BC!important;animation:jeuCopyPress .42s cubic-bezier(.3,.7,.4,1.5) both}
+html.lq #jeu-root .jeu-copy.is-done svg path{stroke-dasharray:24;stroke-dashoffset:24;animation:jeuCopyCheck .34s ease-out .12s forwards}
+html.lq #jeu-root .jeu-copy.is-done span{animation:jeuCopyLabel .3s ease-out both}
+html.lq .jeu-etat-code.is-settled b{animation:none}
+html.lq .jeu-etat-code.is-copied b{animation:jeuCodeHop .5s cubic-bezier(.3,.7,.4,1.5) both;animation-delay:calc(var(--i,0)*55ms);
+  background:#E3F8EC;border-color:#9FE0BC;color:#1E7A4A;box-shadow:0 3px 0 #9FE0BC;transition:background .2s,border-color .2s,color .2s,box-shadow .2s;transition-delay:calc(var(--i,0)*55ms)}
+html.lq .jeu-etat-code b{transition:background .35s,border-color .35s,color .35s,box-shadow .35s}
+html.lq #jeu-root .jeu-copied.is-ok{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;margin:0!important}
+@keyframes jeuCodeHop{0%{transform:none}35%{transform:translateY(-9px) rotate(-4deg)}65%{transform:translateY(1px) rotate(1deg)}100%{transform:none}}
+@keyframes jeuCopyPress{0%{transform:translateY(3px) scale(.97)}55%{transform:translateY(-1px) scale(1.02)}100%{transform:none}}
+@keyframes jeuCopyCheck{to{stroke-dashoffset:0}}
+@keyframes jeuCopyLabel{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){html.lq .jeu-etat-code.is-copied b,html.lq #jeu-root .jeu-copy.is-done,html.lq #jeu-root .jeu-copy.is-done span{animation:none}html.lq #jeu-root .jeu-copy.is-done svg path{animation:none;stroke-dashoffset:0}}
+html[data-motion="reduce"].lq .jeu-etat-code.is-copied b{animation:none!important}

@@ -6689,7 +6689,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=110">
+<link rel="stylesheet" href="ludique.css?v=111">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -26417,10 +26417,12 @@ function jeuRender(){
   /* Entrer dans une salle, et ses impasses (Elisa, 1er novembre, 1 h 01, réf. 1 : « rejoint la salle » et « Salle introuvable » étaient
      de l’ancienne DA). La carte de l’écran Défis : l’en-tête violet quadrillé, l’autocollant, le surtitre menthe, le titre jaune ;
      dessous, le code de la salle en tuiles, puis le bouton violet. */
-  const etat=(stk,titre,sub,corps,cls)=>`<section class="room-card jeu-etat${cls?' '+cls:''}" aria-labelledby="jeu-etat-h">
+  /* Les tuiles du code ; « codeEnBas » : la salle d’attente les met en bas de la carte, juste au-dessus de « Copier le code ». */
+  const codeTuiles=()=>`<div class="jeu-etat-code" id="jeu-code-tuiles"><small>Code de la salle</small><span aria-label="${esc(J.code.split('').join(' '))}">${J.code.split('').map((ch,i)=>`<b style="--i:${i}" aria-hidden="true">${esc(ch)}</b>`).join('')}</span></div>`;
+  const etat=(stk,titre,sub,corps,cls,codeEnBas)=>`<section class="room-card jeu-etat${cls?' '+cls:''}" aria-labelledby="jeu-etat-h">
       <div class="room-head"><span class="room-stk" aria-hidden="true">${lqStkSvg(stk)}</span><div>
       <p class="room-kicker">Salle de défi</p><h1 id="jeu-etat-h">${titre}</h1><p class="room-sub" id="jeu-sub">${sub}</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
-      <div class="jeu-etat-code"><small>Code de la salle</small><span aria-label="${esc(J.code.split('').join(' '))}">${J.code.split('').map((ch,i)=>`<b style="--i:${i}" aria-hidden="true">${esc(ch)}</b>`).join('')}</span></div>
+      ${codeEnBas?'':codeTuiles()}
       ${corps}</section>`;
   const retour=`<button type="button" class="room-go" onclick="openJeu()"><span>Revenir aux défis</span>${DEF_CHEV_SVG}</button>`;
   if(v==='join'){
@@ -26433,12 +26435,13 @@ function jeuRender(){
     html=etat('user','La salle est complète',`Une salle accueille ${J.max} joueurs au maximum. Demande à l’hôte de libérer une place, ou ouvre ta propre salle.`,retour,'is-lost');
   }else if(v==='lobby'){
     const hostName=(J.players[J.hostPid]||{}).name||'l’hôte';
-    /* Elisa, 2 novembre, 23 h 48 : « ne pas pouvoir modifier après qu’on rentre dans la salle » : plus de carte Niveau / Nombre de
+    /* 23 h 55 : « descends le code de salle en bas » : les pastilles d’abord, puis le code et « Copier le code » ensemble.
+       Elisa, 2 novembre, 23 h 48 : « ne pas pouvoir modifier après qu’on rentre dans la salle » : plus de carte Niveau / Nombre de
        manches dans la salle d’attente, les réglages se choisissent avant d’entrer (ils restent lisibles en pastilles) ; « le code
        reçu, monte-le en haut dans le cadre Entre dans la salle » : le code est en tête, en tuiles, dans la carte violette de la salle
        de défi, avec « Partager l’invitation ». */
     const frame=etat('target',host?'Invite tes amis':`Salle ${jeuDe(hostName)}`,'Tes amis entrent dans la salle avec ce code.',
-      `<div class="jeu-lobby-body">${chips()}<button type="button" class="jeu-btn is-wide jeu-copy" id="jeu-copy" onclick="jeuCopyCode()">${JEU_COPY_SVG}<span>Copier le code</span></button><p class="jeu-copied" id="jeu-copied" aria-live="polite"></p></div>`,'is-lobby');
+      `<div class="jeu-lobby-body">${chips()}${codeTuiles()}<button type="button" class="jeu-btn is-wide jeu-copy" id="jeu-copy" onclick="jeuCopyCode()">${JEU_COPY_SVG}<span>Copier le code</span></button><p class="jeu-copied" id="jeu-copied" role="status" aria-live="polite"></p></div>`,'is-lobby',true);
     const players=`<div class="jeu-card"><p class="jeu-card-h">Joueurs <span class="jeu-n" id="jeu-n">${jeuLive().length}/${J.max}</span></p><ul class="jeu-players" id="jeu-players">${jeuPlayersHTML('lobby')}</ul>
       ${host?`<button type="button" class="journey-primary" id="jeu-go" onclick="jeuNextRound()"><span id="jeu-go-label">${jeuLobbyLabel()}</span>${DEF_CHEV_SVG}</button><p class="jeu-hint" id="jeu-lobby-hint">${jeuLobbyHint()}</p>`
         :`<button type="button" class="jeu-ready${J.ready[J.me]?' on':''}" id="jeu-ready" aria-pressed="${!!J.ready[J.me]}" onclick="jeuToggleReady()"><span>${J.ready[J.me]?'C’est bon pour moi ✓':'C’est bon pour moi'}</span></button>
@@ -26614,15 +26617,23 @@ function jeuCopyCode(){
   const J=JEU;if(!J)return;
   const btn=document.getElementById('jeu-copy'),out=document.getElementById('jeu-copied');
   jeuCopyText(J.code).then(()=>{
-    if(out)out.textContent='';
+    /* 23 h 55 : « micro-interaction au copiage » : les tuiles passent au menthe l’une après l’autre en sautant, le bouton s’enfonce
+       puis devient « Code copié » avec sa coche qui se dessine et des confettis ; tout revient au bout de 1,8 s. */
+    if(out){out.textContent='Code copié';out.classList.add('is-ok');}
     if(typeof buzz==='function')buzz('success');
-    if(btn){
-      btn.classList.add('is-done');btn.innerHTML=JEU_COPIED_SVG+'<span>Code copié</span>';
-      clearTimeout(btn._t);btn._t=setTimeout(()=>{if(btn.isConnected){btn.classList.remove('is-done');btn.innerHTML=JEU_COPY_SVG+'<span>Copier le code</span>';}},1500);
+    const tiles=document.getElementById('jeu-code-tuiles');
+    if(tiles){
+      /* is-settled : l’entrée des tuiles ne se rejoue pas quand le menthe s’en va. */
+      tiles.classList.add('is-settled');tiles.classList.remove('is-copied');void tiles.offsetWidth;tiles.classList.add('is-copied');
+      clearTimeout(tiles._t);tiles._t=setTimeout(()=>tiles.classList.remove('is-copied'),1800);
     }
-    const tiles=document.querySelector('.jeu-etat.is-lobby .jeu-etat-code');
-    if(tiles&&!prefersReduceMotion()){tiles.classList.remove('is-copied');void tiles.offsetWidth;tiles.classList.add('is-copied');}
-  },()=>{if(out)out.textContent='Copie impossible : le code est '+J.code+'.';});
+    if(btn){
+      btn.classList.remove('is-done');void btn.offsetWidth;
+      btn.classList.add('is-done');btn.innerHTML=JEU_COPIED_SVG+'<span>Code copié</span>';
+      if(typeof lqBurst==='function')lqBurst(btn,btn.querySelector('svg'));
+      clearTimeout(btn._t);btn._t=setTimeout(()=>{if(btn.isConnected){btn.classList.remove('is-done');btn.innerHTML=JEU_COPY_SVG+'<span>Copier le code</span>';}if(out&&out.isConnected)out.textContent='';},1800);
+    }
+  },()=>{if(out){out.classList.remove('is-ok');out.textContent='Copie impossible : le code est '+J.code+'.';}});
 }
 async function jeuShare(){
   const J=JEU;if(!J)return;
@@ -33777,7 +33788,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-copier-code-v2410';
+  const SW_CACHE='requete-2026-11-02-code-en-bas-v2411';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
