@@ -210,7 +210,7 @@ const ANTOINE = {id: 'nbiTBaMRdSobTQJDzIWm', nom: 'Antoine'}, AGREGATS = ['count
 const PERLE = {id: 'UaGvaD7NWzU5mJNoUqoY', nom: 'Perle'}, JOINTURES = ['inner-join', 'left-join', 'right-join', 'full-outer-join', 'cross-join',
   'jointure-3-tables', 'join-group-by', 'self-join', 'plusieurs-conditions-on', 'quel-join-choisir'];
 /* 9 h 06 : le module « Sous-requêtes et ensembles » avec Mia (« Mia García – Cálida instructora e-learning »), la formatrice. */
-const MIA = {id: 'PrwKJdvtTbJVdosRhS1O', nom: 'Mia'}, SOUS_REQUETES = ['sous-requete-in', 'sous-requete-select', 'sous-requete-from', 'exists', 'any-all',
+const MIA = {id: 'PrwKJdvtTbJVdosRhS1O', nom: 'Mia'}, SOUS_REQUETES = ['sous-requete-in', 'sous-requete-select', 'sous-requete-from', 'insert-select', 'exists', 'any-all',
   'with-cte', 'union', 'intersect-except', 'with-recursive'];
 /* 9 h 14 : le module « Fonctions de fenêtre » avec Dorian (« Dorian – Jeune homme calme français sans accent »), le formateur. */
 const DORIAN = {id: 'vp2FCFmQCE4NzuQj9QNe', nom: 'Dorian'}, FENETRES = ['over', 'fonctions-rang', 'lag-lead', 'fenetres-glissantes', 'first-last-ntile'];

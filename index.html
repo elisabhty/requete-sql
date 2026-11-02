@@ -8793,12 +8793,24 @@ guide({ id:48, titre:"Sous-requête dans FROM", résumé:"Utiliser une sous-requ
   /* Cours en vidéo : l’animation (assets/anim/sous-requete-from.html, moteur commun assets/anim/core.js) est le cours.
      La vidéo suit le panier moyen : les montants calculés par la sous-requête forment la table dérivée commandes_montants. */
   leconSeule:true,
-  video:{anim:'assets/anim/sous-requete-from.html?app&embed',thumb:'assets/anim/sous-requete-from-thumb.jpg',duree:'3 min 17',moments:3,seuil:2},
+  video:{anim:'assets/anim/sous-requete-from.html?app&embed',thumb:'assets/anim/sous-requete-from-thumb.jpg',duree:'3 min 15',moments:3,seuil:2},
   reflex:[
     {recap:[
       ["🗃️","Une sous-requête dans <code>FROM</code> fournit un résultat utilisé <b>comme une table</b> par la requête principale.","Ce résultat est appelé une « table dérivée »."],
       ["🏷️","Donne un nom à cette table dérivée grâce à un <b>alias</b>.","Exemple :","FROM (SELECT …) AS commandes_montants"],
       ["🧮","Cette méthode permet de <b>calculer à partir d’un premier résultat</b>.","Ici : calculer le montant de chaque commande, puis la moyenne de ces montants."]
+    ],label:"Les trois idées à retenir"}
+  ]
+}),
+guide({ id:92, titre:"INSERT … SELECT et CREATE TABLE AS", résumé:"Enregistrer le résultat d’une requête",
+  /* Cours en vidéo : l’animation (assets/anim/insert-select.html, moteur commun assets/anim/core.js) est le cours (Elisa, 2 novembre, 11 h 16 : « est-ce que tu peux regarder s’il manque une notion ? » … « oui »). Après « Sous-requête dans FROM » : le projet (de « Normaliser les inscriptions » à « Sécurité et droits ») se suit sans interruption, la leçon ne peut pas suivre INSERT. La vidéo suit la soirée des clients : CREATE TABLE invites AS SELECT (Paris), puis INSERT INTO invites SELECT (Lyon). */
+  leconSeule:true,
+  video:{anim:'assets/anim/insert-select.html?app&embed',thumb:'assets/anim/insert-select-thumb.jpg',duree:'3 min 14',moments:3,seuil:2},
+  reflex:[
+    {recap:[
+      ["📸","CREATE TABLE … AS SELECT","Crée une nouvelle table avec le résultat d’une requête : ses colonnes et ses lignes."],
+      ["➕","INSERT INTO … SELECT","Ajoute dans une table existante les lignes renvoyées par une requête."],
+      ["🧮","Mêmes colonnes, même ordre","Le <code>SELECT</code> fournit autant de colonnes que la table, dans son ordre. La copie ne suit pas la table d’origine."]
     ],label:"Les trois idées à retenir"}
   ]
 }),
@@ -13972,6 +13984,8 @@ const CARTES={
     m:"Dans <code>SELECT</code>, la sous-requête calcule une valeur pour chaque ligne. Elle est <b>corrélée</b> : elle utilise <code>produits.id</code>. Sans ce lien, chaque ligne affiche le même total."},
  48:{k:"Sous-requête FROM",t:"Un résultat intermédiaire",s:"SELECT AVG(montant)\nFROM (\n  SELECT prix * quantite AS montant\n  FROM commandes\n  JOIN produits ON …\n) AS commandes_montants",
     m:"Dans <code>FROM</code>, la sous-requête produit un résultat que la requête principale utilise comme une table. On l’appelle <b>table dérivée</b> : donne-lui toujours un alias."},
+ 92:{k:"AS SELECT · INTO",t:"Enregistrer un résultat",s:"CREATE TABLE invites AS\nSELECT prenom, nom, email\nFROM clients\nWHERE ville = 'Paris';",
+    m:"<code>CREATE TABLE … AS SELECT</code> crée une table avec le résultat d’une requête. <code>INSERT INTO table SELECT …</code> ajoute les lignes d’un résultat dans une table existante : mêmes colonnes, dans le même ordre. La table obtenue est une copie : elle ne suit pas les changements de la table d’origine."},
  55:{k:"EXISTS",t:"Présence ou absence d’une ligne",s:"WHERE EXISTS (\n  SELECT 1 FROM commandes\n  WHERE client_id = clients.id\n)",
     m:"Avec <code>IN</code>, tu cherches une valeur dans une liste. Avec <code>EXISTS</code>, tu vérifies qu’une correspondance existe. Vérifie toujours que la sous-requête est bien reliée à la ligne en cours."},
  86:{k:"ANY · ALL",t:"Comparer à toute une liste",s:"WHERE prix > ALL (\n  SELECT prix FROM produits\n  WHERE categorie = 'Bien-être'\n)",
@@ -17660,6 +17674,7 @@ const SQ_ALIASES={
   45:'sous requete subquery in where imbriquee not in',
   47:'sous requete dans select subquery scalaire valeur par ligne',
   48:'sous requete dans from table derivee subquery from',
+  92:'insert into select create table as select copier resultat requete enregistrer nouvelle table copie remplir table',
   55:'exists not exists existence absence correlee clients sans commande jamais commande not in',
   86:'any all some toutes au moins une comparer liste valeurs sous requete plus grand que tous max min',
   59:'with cte common table expression requete intermediaire nommee',
@@ -33270,7 +33285,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-02-injection-sql-v2349';
+  const SW_CACHE='requete-2026-11-02-insert-select-v2350';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
