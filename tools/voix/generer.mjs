@@ -54,6 +54,9 @@ async function apiKey(){
   return k;
 }
 
+/* La musique est faite quand son fichier est là et que sa consigne n’a pas changé. */
+function musiqueFaite(job, out){ try { return fs.existsSync(path.join(out, 'musique.mp3')) && JSON.parse(fs.readFileSync(path.join(out, 'musique.json'), 'utf8')).prompt === job.musique.prompt; } catch (e) { return false; } }
+
 function forget(){ try { fs.unlinkSync(KEY_FILE); } catch (e) {} }
 
 async function detail(r){
@@ -82,11 +85,11 @@ async function main(){
   if (flag('--toutes')) {
     const reste = jobs.map(f => { const job = JSON.parse(fs.readFileSync(path.join(DIR, f), 'utf8')), out = path.join(DIR, 'sortie', job.cours);
       const ok = el => { try { return fs.existsSync(path.join(out, el.id + '.mp3')) && JSON.parse(fs.readFileSync(path.join(out, el.id + '.json'), 'utf8')).texte === el.texte; } catch (e) { return false; } };
-      const todo = (job.elements || []).filter(el => !ok(el));
-      return {cours: f.replace(/\.json$/, ''), voix: job.voix && job.voix.nom, n: todo.length, cost: todo.reduce((a, el) => a + el.texte.length, 0)}; }).filter(x => x.n);
+      const todo = (job.elements || []).filter(el => !ok(el)), mus = job.musique && !musiqueFaite(job, out) ? 1 : 0;
+      return {cours: f.replace(/\.json$/, ''), voix: job.voix && job.voix.nom, n: todo.length + mus, mus, cost: todo.reduce((a, el) => a + el.texte.length, 0)}; }).filter(x => x.n);
     if (!reste.length) { console.log('\nToutes les leçons sont déjà générées. Rien à faire.'); return; }
     console.log('\nÀ générer :');
-    for (const x of reste) console.log(`  ${x.cours.padEnd(24)} ${String(x.n).padStart(2)} fichier${x.n > 1 ? 's' : ' '}  (${x.voix})`);
+    for (const x of reste) console.log(`  ${x.cours.padEnd(24)} ${String(x.n).padStart(2)} fichier${x.n > 1 ? 's' : ' '}  (${x.voix})${x.mus ? ' + la musique' : ''}`);
     const cost = reste.reduce((a, x) => a + x.cost, 0);
     console.log(`Total : ${reste.length} leçon${reste.length > 1 ? 's' : ''}, environ ${nb(cost)} crédits.`);
     if (!flag('--oui')) {
@@ -110,8 +113,9 @@ async function main(){
   const same = el => { try { return JSON.parse(fs.readFileSync(path.join(out, el.id + '.json'), 'utf8')).texte === el.texte; } catch (e) { return false; } };
   const done = el => fs.existsSync(path.join(out, el.id + '.mp3')) && fs.existsSync(path.join(out, el.id + '.json')) && same(el);
   const todo = job.elements.filter(el => flag('--tout') || redo.has(el.id) || !done(el));
+  const musTodo = !!job.musique && (flag('--tout') || redo.has('musique') || !musiqueFaite(job, out));
   console.log(`\nVoix off · ${job.titre} · voix ${job.voix.nom} (${job.modele})`);
-  if (!todo.length) { console.log('Tout est déjà généré dans tools/voix/sortie/' + job.cours + '. Rien à faire.'); return; }
+  if (!todo.length && !musTodo) { console.log('Tout est déjà généré dans tools/voix/sortie/' + job.cours + '. Rien à faire.'); return; }
 
   const key = await apiKey();
   /* Crédits restants (une clé limitée à « Text to Speech » ne peut pas les lire : on s’en passe). */
@@ -123,7 +127,8 @@ async function main(){
     if (!/permission/i.test(d)) { forget(); console.log('\nElevenLabs refuse cette clé (' + d + '). Relance le script et colle une autre clé.'); process.exit(1); }
   }
   const cost = todo.reduce((a, el) => a + el.texte.length, 0);
-  console.log(`À générer : ${todo.length} fichier${todo.length > 1 ? 's' : ''}, environ ${nb(cost)} crédits` + (left != null ? ` (il t’en reste ${nb(left)}).` : '.'));
+  console.log(`À générer : ${todo.length} fichier${todo.length > 1 ? 's' : ''}, environ ${nb(cost)} crédits` + (left != null ? ` (il t’en reste ${nb(left)}).` : '.')
+    + (musTodo ? `\n  + la musique de fond (${Math.round(job.musique.ms / 1000)} s, avec ElevenLabs Music : décomptée à part, selon ton abonnement)` : ''));
   if (left != null && left < cost) { console.log('Pas assez de crédits ce mois-ci : rien n’est fait.'); process.exit(1); }
   if (!flag('--oui')) {
     const a = (await question('On y va ? (o/n) ')).trim().toLowerCase();
@@ -179,7 +184,22 @@ async function main(){
     ok++;
     console.log(`ok (${Math.round(audio.length / 1024)} Ko)`);
   }
-  const all = job.elements.every(done);
+  /* La musique de fond (vidéo du site, Elisa, 2 novembre, 15 h 48 : « musique douce oui ») : une piste instrumentale, d’un seul tenant. */
+  if (musTodo) {
+    process.stdout.write('  musique  ');
+    const r = await call(key, `/v1/music?output_format=${encodeURIComponent(job.format || 'mp3_44100_128')}`, {method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({prompt: job.musique.prompt, music_length_ms: job.musique.ms, force_instrumental: true, model_id: 'music_v1'})});
+    if (r.ok) {
+      const audio = Buffer.from(await r.arrayBuffer());
+      fs.writeFileSync(path.join(out, 'musique.mp3'), audio);
+      fs.writeFileSync(path.join(out, 'musique.json'), JSON.stringify({prompt: job.musique.prompt, ms: job.musique.ms, cree: new Date().toISOString()}));
+      console.log(`ok (${Math.round(audio.length / 1024)} Ko)`);
+    } else {
+      const d = await detail(r);
+      console.log('échec : ' + d + (r.status === 401 || r.status === 403 ? '\nLa clé n’a peut-être pas l’accès « Music » : sur elevenlabs.io › Developers › API Keys, ajoute-le, puis relance.' : ''));
+    }
+  }
+  const all = job.elements.every(done) && (!job.musique || musiqueFaite(job, out));
   fs.writeFileSync(path.join(out, '_etat.json'), JSON.stringify({cours: job.cours, complet: all, faits: job.elements.filter(done).map(e => e.id), fini: new Date().toISOString()}));
   console.log(all ? `\nC’est fini : ${job.elements.length} fichiers dans tools/voix/sortie/${job.cours}. Tu peux le dire à Claude.`
     : `\n${ok} fichier${ok > 1 ? 's' : ''} généré${ok > 1 ? 's' : ''}, il en manque : relance la même commande pour finir (seuls les manquants seront faits).`);
