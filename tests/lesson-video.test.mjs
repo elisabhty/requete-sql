@@ -811,7 +811,7 @@ const COURSES = [
       '<span class="snote" id="sn4">une virgule sans espace</span>', '<span class="vc nul" id="vn4"><small>commande n°16</small><b>NULL</b>', '<span class="b">4, 1, 3, 5</span>',
       '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> statut <span class="kw">DESC</span></span>', '<span class="b">16, 15, 14, 13, 12</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> commandes</span>', '✓ 16 commandes, chacune sous son statut']},
-  {id: 18, next: 20, titre: 'INNER JOIN', page: 'inner-join.html', thumb: 'inner-join-thumb.jpg', duree: '2 min 19', notesAt: 120.9,
+  {id: 18, next: 20, titre: 'INNER JOIN', page: 'inner-join.html', thumb: 'inner-join-thumb.jpg', duree: '2 min 31', notesAt: 120.9,
     table: 'commandes',
     bubble: 'Relie deux tables et conserve uniquement les lignes qui ont une correspondance.',
     chapters: ['Situation', 'Le problème', 'INNER JOIN en action', 'Sans correspondance', 'Le piège', 'Le résultat', 'À retenir'],
@@ -822,7 +822,7 @@ const COURSES = [
       '<span class="qm" id="qm4"><span class="sw"><span class="a">?</span><span class="b">✕</span></span></span>',
       '<b>Erreur SQL</b><span class="m">ambiguous column name: id</span>', '<span class="glow" id="id5"><span id="pre5">commandes.</span>id</span>, prenom, nom',
       '<span>🤝 4 correspondances, 4 lignes</span>', '✓ 4 étiquettes imprimées']},
-  {id: 20, next: 38, titre: 'LEFT JOIN', page: 'left-join.html', thumb: 'left-join-thumb.jpg', duree: '2 min 40', notesAt: 145.4,
+  {id: 20, next: 38, titre: 'LEFT JOIN', page: 'left-join.html', thumb: 'left-join-thumb.jpg', duree: '2 min 47', notesAt: 145.4,
     table: 'clients',
     bubble: 'Relie deux tables tout&nbsp;en conservant toutes les lignes de la table de gauche.',
     chapters: ['Situation', 'Le problème', 'LEFT JOIN en action', 'Clients sans carte', 'Le piège', 'Le résultat', 'À retenir'],
@@ -831,7 +831,7 @@ const COURSES = [
       '<span class="glow" id="lw3">LEFT</span>', '<span class="glow" id="o3"><span class="kw">ON</span> clients.id = fidelite.client_id</span>', '<span>👥 10 clients, 10 lignes</span>',
       '<span class="glow" id="w4"><span class="kw">WHERE</span> fidelite.id <span class="kw">IS NULL</span></span>',
       '<span class="glow" id="f5"><span class="kw">FROM</span> fidelite</span>', 'Les 6 clients sans carte ont disparu', '✓ 4 clients sur 10 ont une carte']},
-  {id: 38, next: 39, titre: 'RIGHT JOIN', page: 'right-join.html', thumb: 'right-join-thumb.jpg', duree: '3 min 20', notesAt: 183.1,
+  {id: 38, next: 39, titre: 'RIGHT JOIN', page: 'right-join.html', thumb: 'right-join-thumb.jpg', duree: '3 min 24', notesAt: 183.1,
     table: 'commandes',
     bubble: 'Relie deux tables tout&nbsp;en conservant toutes les lignes de la table de droite.',
     chapters: ['Situation', 'Le problème', 'RIGHT JOIN en action', 'Commande sans client', 'Le piège', 'Le résultat', 'À retenir'],
@@ -840,7 +840,7 @@ const COURSES = [
       '<span class="glow" id="o3"><span class="kw">ON</span> clients.id = commandes.client_id</span>', '<span>🧾 16 commandes, 16 lignes</span>',
       '<span class="glow" id="w4"><span class="kw">WHERE</span> clients.id <span class="kw">IS NULL</span></span>',
       '<span class="kw">RIGHT JOIN</span> <span class="glow" id="c5">clients</span>', 'La commande n°16 a disparu', '✓ 16 commandes exportées, dont 1 sans client']},
-  {id: 39, next: 40, titre: 'FULL OUTER JOIN', page: 'full-outer-join.html', thumb: 'full-outer-join-thumb.jpg', duree: '3 min 12', notesAt: 175.6,
+  {id: 39, next: 40, titre: 'FULL OUTER JOIN', page: 'full-outer-join.html', thumb: 'full-outer-join-thumb.jpg', duree: '3 min 16', notesAt: 175.6,
     table: 'clients',
     bubble: 'Relie deux tables en conservant toutes les lignes, avec ou sans<wbr> correspondance.',
     chapters: ['Situation', 'Le problème', 'FULL OUTER JOIN en action', 'Sans correspondance', 'Le piège', 'Le résultat', 'À retenir'],
@@ -900,7 +900,7 @@ const COURSES = [
       '✓ 2 commandes pour le coursier', '<span class="c">Lyon ✕</span>', '"À ne pas confondre : 13 est l’identifiant de la commande, 1 celui de la cliente."',
       '"Première condition :<br>la commande n°13 appartient-elle<br>à la cliente Sophie Martin ?"', '"Deuxième condition :<br>Sophie Martin habite-t-elle à Paris ?<br>Oui, sa ville est Paris."',
       '<span class="bike" id="bike6"><span class="emo">🛵</span></span>', '<span class="lvr">✓ Livrée</span>']},
-  {id: 44, next: 45, titre: 'Quel JOIN choisir ?', page: 'quel-join-choisir.html', thumb: 'quel-join-choisir-thumb.jpg', duree: '3 min 22', notesAt: 218.5,
+  {id: 44, next: 45, titre: 'Quel JOIN choisir ?', page: 'quel-join-choisir.html', thumb: 'quel-join-choisir-thumb.jpg', duree: '3 min 30', notesAt: 218.5,
     table: 'clients',
     bubble: 'Apprends à choisir le type de <span class="ic">JOIN</span> adapté au résultat que tu veux obtenir.',
     chapters: ['Le cabinet des Tilleuls', 'L’aquarium de l’Atlas', 'La bibliothèque des Lumières', 'L’hôtel des Cimes', 'Le glacier parisien', 'L’agence Horizon', 'À retenir'],
@@ -3013,7 +3013,7 @@ test('moments « À toi » : la légende annonce le moment sans répéter la con
 
 test('leçon seule (Quel JOIN choisir ?) : la vidéo interactive valide la leçon, sans exercice, quiz ni révision', () => {
   const l44 = cut('guide({ id:44, titre:"Quel JOIN choisir ?"', 'guide({ id:45,');
-  assert.ok(l44.includes('leconSeule:true,') && l44.includes(",duree:'3 min 22',moments:9,"), 'leçon 44 : leçon seule, 9 moments');
+  assert.ok(l44.includes('leconSeule:true,') && l44.includes(",duree:'3 min 30',moments:9,"), 'leçon 44 : leçon seule, 9 moments');
   assert.ok(html.includes("'joinRecap','leconSeule','exoNeeds','video']"), 'drapeau copié par guide()');
   assert.ok(html.includes('function revisable(l){ return !!(l&&!l.leconSeule&&l.consigne&&l.solution); }') && html.includes('function dueList(){ return allLessons.filter(l=>isDue(l.id)&&revisable(l)); }'), 'pas de révision « De mémoire » sans exercice');
   assert.ok(html.includes("if(current.leconSeule)return [{i:0,l:'Leçon'") && html.includes("if(leconSeule(id))return !!(state.lessons[id]&&state.lessons[id].done);"), 'une seule étape : la leçon');

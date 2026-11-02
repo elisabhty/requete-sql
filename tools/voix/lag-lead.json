@@ -1,0 +1,193 @@
+{
+  "cours": "lag-lead",
+  "titre": "Lire la ligne précédente ou suivante",
+  "voix": {
+    "id": "vp2FCFmQCE4NzuQj9QNe",
+    "nom": "Dorian"
+  },
+  "modele": "eleven_v4",
+  "langue": "fr",
+  "format": "mp3_44100_128",
+  "elements": [
+    {
+      "id": "ch00",
+      "titre": "00 · Ouverture",
+      "texte": "[cheerful] Nouveau cours : lire la ligne précédente ou suivante.\n\nAccède à la valeur de la ligne précédente ou suivante pour la comparer à la ligne actuelle.",
+      "avant": null,
+      "apres": "L’équipe marketing veut rappeler à chaque client de recommander, au bon moment.",
+      "phrases": [
+        "Nouveau cours : lire la ligne précédente ou suivante.",
+        "Accède à la valeur de la ligne précédente ou suivante pour la comparer à la ligne actuelle."
+      ]
+    },
+    {
+      "id": "ch01",
+      "titre": "01 · Situation",
+      "texte": "[cheerful] L’équipe marketing veut rappeler à chaque client de recommander, au bon moment.\n\nCe moment dépend du délai moyen qui sépare deux commandes du client.\n\nPour le calculer, on récupère les dates des commandes dans la table commandes.\n\nEt un client qui n’a commandé qu’une fois recevra son rappel après 10 jours.",
+      "avant": "Accède à la valeur de la ligne précédente ou suivante pour la comparer à la ligne actuelle.",
+      "apres": "Dans la table, chaque commande a sa propre ligne, tous clients confondus.",
+      "phrases": [
+        "L’équipe marketing veut rappeler à chaque client de recommander, au bon moment.",
+        "Ce moment dépend du délai moyen qui sépare deux commandes du client.",
+        "Pour le calculer, on récupère les dates des commandes dans la table commandes.",
+        "Et un client qui n’a commandé qu’une fois recevra son rappel après 10 jours."
+      ]
+    },
+    {
+      "id": "ch02",
+      "titre": "02 · Le problème",
+      "texte": "[cheerful] Dans la table, chaque commande a sa propre ligne, tous clients confondus.\n\nLe client 2, Lucas Bernard, a commandé le 5 juillet, puis le 20 juillet.\n\nPour mesurer son délai, la seconde commande doit lire une date sur une autre ligne.\n\nEt cette date doit être celle de la commande précédente du même client.",
+      "avant": "Et un client qui n’a commandé qu’une fois recevra son rappel après 10 jours.",
+      "apres": "Avec lague(date underscore commande), chaque ligne lit la date de la ligne précédente.",
+      "phrases": [
+        "Dans la table, chaque commande a sa propre ligne, tous clients confondus.",
+        "Le client 2, Lucas Bernard, a commandé le 5 juillet, puis le 20 juillet.",
+        "Pour mesurer son délai, la seconde commande doit lire une date sur une autre ligne.",
+        "Et cette date doit être celle de la commande précédente du même client."
+      ]
+    },
+    {
+      "id": "ch03",
+      "titre": "03 · LAG() et LEAD()",
+      "texte": "[cheerful] Avec lague(date underscore commande), chaque ligne lit la date de la ligne précédente.\n\nPartition baï sépare les clients, et ordeur baï range les commandes de chacun par date.\n\nPour la première commande de chaque client, lague renvoie NULL, car aucune commande ne la précède.\n\nLîde lit la ligne suivante : c’est alors la dernière commande qui affiche NULL.",
+      "avant": "Et cette date doit être celle de la commande précédente du même client.",
+      "apres": "Pour le délai, julianday convertit chaque date en nombre de jours.",
+      "phrases": [
+        "Avec lague(date underscore commande), chaque ligne lit la date de la ligne précédente.",
+        "Partition baï sépare les clients, et ordeur baï range les commandes de chacun par date.",
+        "Pour la première commande de chaque client, lague renvoie NULL, car aucune commande ne la précède.",
+        "Lîde lit la ligne suivante : c’est alors la dernière commande qui affiche NULL."
+      ],
+      "legendes": [
+        "Avec LAG(date_commande), chaque ligne lit la date de la ligne précédente.",
+        "PARTITION BY sépare les clients, et ORDER BY range les commandes de chacun par date.",
+        "Pour la première commande de chaque client, LAG() renvoie NULL, car aucune commande ne la précède.",
+        "LEAD() lit la ligne suivante : c’est alors la dernière commande qui affiche NULL."
+      ]
+    },
+    {
+      "id": "ch04",
+      "titre": "04 · Le délai en jours",
+      "texte": "[cheerful] Pour le délai, julianday convertit chaque date en nombre de jours.\n\nLa différence donne le délai : Lucas Bernard a recommandé après 15 jours.\n\nSophie Martin a passé deux commandes le 2 juillet : l’écart entre elles est de 0 jour.\n\nSa commande suivante, le 28 juillet, arrive 26 jours après la précédente.\n\nSans commande précédente, pas de délai : les premières commandes restent à NULL.",
+      "avant": "Lîde lit la ligne suivante : c’est alors la dernière commande qui affiche NULL.",
+      "apres": "Attention : sans partition baï, toutes les commandes forment une seule suite.",
+      "phrases": [
+        "Pour le délai, julianday convertit chaque date en nombre de jours.",
+        "La différence donne le délai : Lucas Bernard a recommandé après 15 jours.",
+        "Sophie Martin a passé deux commandes le 2 juillet : l’écart entre elles est de 0 jour.",
+        "Sa commande suivante, le 28 juillet, arrive 26 jours après la précédente.",
+        "Sans commande précédente, pas de délai : les premières commandes restent à NULL."
+      ],
+      "legendes": [
+        "Pour le délai, julianday() convertit chaque date en nombre de jours.",
+        "La différence donne le délai : Lucas Bernard a recommandé après 15 jours.",
+        "Sophie Martin a passé deux commandes le 2 juillet : l’écart entre elles est de 0 jour.",
+        "Sa commande suivante, le 28 juillet, arrive 26 jours après la précédente.",
+        "Sans commande précédente, pas de délai : les premières commandes restent à NULL."
+      ]
+    },
+    {
+      "id": "ch05",
+      "titre": "05 · Le piège",
+      "texte": "[cheerful] Attention : sans partition baï, toutes les commandes forment une seule suite.\n\nLa toute première commande de Lucas Bernard lit alors la dernière de Sophie Martin.\n\nLe délai calculé vaut −23 jours : un résultat qui n’a aucun sens.\n\nAvec partition baï client underscore identifiant, chaque client garde sa propre suite.",
+      "avant": "Sans commande précédente, pas de délai : les premières commandes restent à NULL.",
+      "apres": "D’abord, un ouisse nommé délais calcule le délai de chaque commande.",
+      "phrases": [
+        "Attention : sans partition baï, toutes les commandes forment une seule suite.",
+        "La toute première commande de Lucas Bernard lit alors la dernière de Sophie Martin.",
+        "Le délai calculé vaut −23 jours : un résultat qui n’a aucun sens.",
+        "Avec partition baï client underscore identifiant, chaque client garde sa propre suite."
+      ],
+      "legendes": [
+        "Attention : sans PARTITION BY, toutes les commandes forment une seule suite.",
+        "La toute première commande de Lucas Bernard lit alors la dernière de Sophie Martin.",
+        "Le délai calculé vaut −23 jours : un résultat qui n’a aucun sens.",
+        "Avec PARTITION BY client_id, chaque client garde sa propre suite."
+      ]
+    },
+    {
+      "id": "ch06",
+      "titre": "06 · Le résultat",
+      "texte": "[cheerful] D’abord, un ouisse nommé délais calcule le délai de chaque commande.\n\nEnsuite, avèredje calcule la moyenne de chaque client.\n\nPour Sophie Martin, les écarts entre deux commandes successives sont de 0 et 26 jours.\n\nLe délai moyen est donc de (0 plus 26) divisé par 2 égale 13 jours.\n\nLe NULL de sa première commande est ignoré par avèredje.\n\nHugo Laurent et Gabriel Michel n’ont passé qu’une seule commande chacun :\n\nimpossible de calculer un délai entre deux commandes.\n\nKoalèsse remplace donc leur moyenne NULL par 10 jours, la valeur choisie par défaut.\n\nChaque client recevra son rappel au bon moment : 8 rappels sont programmés.",
+      "avant": "Avec partition baï client underscore identifiant, chaque client garde sa propre suite.",
+      "apres": "Pour finir, voici les trois idées à retenir.",
+      "phrases": [
+        "D’abord, un ouisse nommé délais calcule le délai de chaque commande.",
+        "Ensuite, avèredje calcule la moyenne de chaque client.",
+        "Pour Sophie Martin, les écarts entre deux commandes successives sont de 0 et 26 jours.",
+        "Le délai moyen est donc de (0 plus 26) divisé par 2 égale 13 jours.",
+        "Le NULL de sa première commande est ignoré par avèredje.",
+        "Hugo Laurent et Gabriel Michel n’ont passé qu’une seule commande chacun :",
+        "impossible de calculer un délai entre deux commandes.",
+        "Koalèsse remplace donc leur moyenne NULL par 10 jours, la valeur choisie par défaut.",
+        "Chaque client recevra son rappel au bon moment : 8 rappels sont programmés."
+      ],
+      "legendes": [
+        "D’abord, un WITH nommé delais calcule le délai de chaque commande.",
+        "Ensuite, AVG() calcule la moyenne de chaque client.",
+        "Pour Sophie Martin, les écarts entre deux commandes successives sont de 0 et 26 jours.",
+        "Le délai moyen est donc de (0 + 26) ÷ 2 = 13 jours.",
+        "Le NULL de sa première commande est ignoré par AVG().",
+        "Hugo Laurent et Gabriel Michel n’ont passé qu’une seule commande chacun :",
+        "impossible de calculer un délai entre deux commandes.",
+        "COALESCE() remplace donc leur moyenne NULL par 10 jours, la valeur choisie par défaut.",
+        "Chaque client recevra son rappel au bon moment : 8 rappels sont programmés."
+      ]
+    },
+    {
+      "id": "ch07",
+      "titre": "07 · À retenir",
+      "texte": "[cheerful] Pour finir, voici les trois idées à retenir.\n\nAjoute ce résumé à tes notes pour le retrouver facilement.",
+      "avant": "Chaque client recevra son rappel au bon moment : 8 rappels sont programmés.",
+      "apres": null,
+      "phrases": [
+        "Pour finir, voici les trois idées à retenir.",
+        "Ajoute ce résumé à tes notes pour le retrouver facilement."
+      ]
+    },
+    {
+      "id": "at1",
+      "texte": "[cheerful] À toi ! Et avec lîde, quelle commande de chaque client affiche NULL ?"
+    },
+    {
+      "id": "at2",
+      "texte": "[cheerful] À toi ! Sophie Martin a commandé le 2 juillet, encore le 2 juillet, puis le 28 juillet. Relie chaque commande à son délai."
+    },
+    {
+      "id": "at3",
+      "texte": "[cheerful] À toi ! Sans partition baï, que lit lague pour la première commande de Lucas Bernard ?"
+    },
+    {
+      "id": "indice2",
+      "texte": "[warmly] Sélectionne une commande, puis appuie sur son délai. Tu peux aussi tracer le trait directement du doigt."
+    },
+    {
+      "id": "lienavant",
+      "texte": "[cheerful] Dans la leçon précédente, tu as classé les lignes avec les fonctions de rang."
+    },
+    {
+      "id": "lienapres",
+      "texte": "[cheerful] Dans la prochaine leçon, tu suivras un total cumulé avec une fenêtre glissante."
+    },
+    {
+      "id": "bienvu",
+      "texte": "[cheerful] Bien vu !"
+    },
+    {
+      "id": "rattrape",
+      "texte": "[cheerful] Bien rattrapé !"
+    },
+    {
+      "id": "presque",
+      "texte": "[warmly] Pas tout à fait. Lis l’explication, puis réessaie."
+    },
+    {
+      "id": "finbravo",
+      "texte": "[cheerful] Bravo ! Tu as validé la leçon."
+    },
+    {
+      "id": "fineffort",
+      "texte": "[warmly] Encore un effort ! Rejoue les moments ratés pour valider la leçon."
+    }
+  ]
+}
