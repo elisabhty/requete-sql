@@ -6689,7 +6689,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=123">
+<link rel="stylesheet" href="ludique.css?v=124">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -15924,10 +15924,11 @@ function renderDbWorkspace(){
       ${open?`<div class="db-tdetail">
         ${noteHtml}
         <span class="db-tacts">
-        <button type="button" class="tb" onclick="queryTable(decodeURIComponent('${enc}'))">SELECT</button>
+        <button type="button" class="tb db-tsel${tblPreview.has(t)?' on':''}" onclick="queryTable(decodeURIComponent('${enc}'))" aria-expanded="${tblPreview.has(t)?'true':'false'}">${tblPreview.has(t)?'Masquer les lignes':'SELECT'}</button>
         ${verrou?'':`<button type="button" class="tb reset-table" data-table="${escAttr(t)}" onclick="resetTable(decodeURIComponent('${enc}'))" aria-label="${resettable?`Réinitialiser la table ${escAttr(t)}`:`Aucun état initial pour la table ${escAttr(t)}`}" title="${resettable?'Restaurer les données initiales':'Aucun état initial enregistré'}" ${resettable?'':'disabled'}>${CONSOLE_RESET_SVG}<span>Restaurer</span></button>
         <button type="button" class="tb danger drop-table" onclick="dropTable(decodeURIComponent('${enc}'))" aria-label="Supprimer la table ${escAttr(t)}" title="Supprimer la table">${CONSOLE_TRASH_SVG}</button>`}
         </span>
+        ${tblPreview.has(t)?tablePreviewHTML(t):''}
         ${colsHtml}
       </div>`:''}
     </div>`;
@@ -15936,10 +15937,46 @@ function renderDbWorkspace(){
   if(!prefersReduceMotion())tables.forEach(t=>{ if(!fresh[t])return; const el=host.querySelector(`.db-tblock[data-table="${CSS.escape(t)}"]`); if(el)el.classList.add(fresh[t]); });
 }
 function toggleTableSchema(name){
+  if(openTableSchema===name)tblPreview.delete(name);
   openTableSchema=openTableSchema===name?null:name;
   renderDbWorkspace();
 }
+/* SELECT sur une table (Elisa, 3 novembre, 7 h 58 : « le SELECT fait sauter la page ») : avant, la requête partait dans l’éditeur, la
+   page remontait jusqu’à lui, puis redescendait au résultat. Les lignes s’affichent maintenant sur place, sous les boutons de la table,
+   et la page ne bouge pas ; « Ouvrir dans l’éditeur » garde l’ancien chemin, quand on veut retravailler la requête. */
+const tblPreview=new Set();
+const TBL_PREVIEW_N=20;
+function tablePreviewHTML(name){
+  let body='';
+  try{
+    const db0=activeDb(),q=quoteIdent(name);
+    const res=db0.exec(`SELECT * FROM ${q} LIMIT ${TBL_PREVIEW_N}`);
+    const tot=tableRowCount(db0,name);
+    body=renderTable(res,null)+(typeof tot==='number'&&tot>TBL_PREVIEW_N?`<p class="db-tpreview-more">Les ${TBL_PREVIEW_N} premières lignes sur ${tot}.</p>`:'');
+  }catch(e){body=errBox(String(e.message||e));}
+  const enc=encodeURIComponent(name);
+  return `<div class="db-tpreview">${body}<button type="button" class="db-tpreview-open" onclick="queryTableEditor(decodeURIComponent('${enc}'))">${CONSOLE_EDIT_SVG}<span>Ouvrir dans l’éditeur</span></button></div>`;
+}
 function queryTable(name){
+  const host=document.querySelector(`#scr-console .db-tblock[data-table="${CSS.escape(name)}"]`);
+  const on=!tblPreview.has(name);
+  if(on)tblPreview.add(name);else tblPreview.delete(name);
+  if(!host)return renderDbWorkspace();
+  const btn=host.querySelector('.db-tsel');
+  if(btn){btn.classList.toggle('on',on);btn.setAttribute('aria-expanded',on?'true':'false');btn.textContent=on?'Masquer les lignes':'SELECT';}
+  const old=host.querySelector('.db-tpreview');
+  if(old)old.remove();
+  if(on){
+    const acts=host.querySelector('.db-tacts');
+    const wrap=document.createElement('div');wrap.innerHTML=tablePreviewHTML(name);
+    const node=wrap.firstElementChild;
+    if(acts)acts.after(node);else host.querySelector('.db-tdetail')?.prepend(node);
+    bindTableSwipe(node);
+    if(!prefersReduceMotion())node.classList.add('is-in');
+  }
+  if(navigator.vibrate)navigator.vibrate(6);
+}
+function queryTableEditor(name){
   fillConsoleSql(`SELECT * FROM ${quoteIdent(name)}\nLIMIT 50;`);
   runConsole();
 }
@@ -33901,7 +33938,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-03-bulle-planning-v2458';
+  const SW_CACHE='requete-2026-11-03-select-sur-place-v2459';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
