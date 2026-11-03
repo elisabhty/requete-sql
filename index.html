@@ -31954,13 +31954,17 @@ function maybeOnboard(){
   if(state.onboarded){renderGreeting();renderHomeHero();if(viaVitrine)switchTab('learn');return;}
   const done=Object.values(state.lessons||{}).some(l=>l.done);
   if(done){state.onboarded=true;save();renderGreeting();renderHomeHero();return;}
-  if(viaConnexion){accueilDepuisConnexion();return;}
+  /* « Se connecter » sans rien sur cet appareil : tant que les comptes n’existent pas (aucun fournisseur de connexion,
+     obAuthReady), il n’y a aucune progression à retrouver ; c’est quelqu’un qui découvre l’appli, il passe par l’onboarding
+     comme les autres (Elisa, 3 novembre, 13 h 04 : un nouveau qui cliquait « Se connecter » n’avait ni prénom, ni objectif,
+     ni rythme). Une fois les comptes branchés, la connexion ramène sa progression : l’accueil directement. */
+  if(viaConnexion&&typeof obAuthReady==='function'&&obAuthReady()){accueilDepuisConnexion();return;}
   startOnboarding();
 }
-/* Arrivée par « Se connecter » (decouvrir/connexion.html → ./?depuis=connexion) : on atterrit directement sur
-   l’accueil, sans le parcours de bienvenue (Elisa, 30 octobre, 21 h 33). Tant que les comptes n’existent pas, un
-   premier passage prend le planning par défaut (débutant, régulier, 7 jours sur 7) et l’objectif choisi sur la
-   vitrine ; tout se règle ensuite dans Planning et dans Mon compte. « Créer un compte » garde le parcours. */
+/* Arrivée par « Se connecter » (decouvrir/connexion.html → ./?depuis=connexion) : avec un compte, on atterrit directement
+   sur l’accueil, sans le parcours de bienvenue (Elisa, 30 octobre, 21 h 33) ; sans compte possible (aperçu), l’onboarding
+   (voir maybeOnboard). Un premier passage prend le planning par défaut (débutant, régulier, 7 jours sur 7) et l’objectif
+   choisi sur la vitrine ; tout se règle ensuite dans Planning et dans Mon compte. « Créer un compte » garde le parcours. */
 function depuisConnexion(){
   try{ return new URLSearchParams(location.search).get('depuis')==='connexion'; }catch(e){ return false; }
 }
