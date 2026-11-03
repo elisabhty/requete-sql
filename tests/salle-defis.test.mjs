@@ -528,7 +528,7 @@ test('solo : la manche dure 10 min au plus ; trouvée après 7 min, elle rapport
   s.ev('jeuNextRound()'); sec(w, 4);
   sec(w, 9.5 * 60); assert.equal(s.view(), 'play1');
   sec(w, 31); assert.equal(s.view(), 'res1', 'à 10 min, la manche s’arrête');
-  assert.match(s.html, /Temps écoulé\./);
+  assert.match(s.html, /<b>Temps écoulé<\/b>.*<b>Non validée<\/b>/s, "la carte de la manche ratée (3 novembre, 7 h 25)");
   s.ev('jeuFinish()'); sec(w, 1);
   assert.equal(s.ev('state.salle.pts'), 75);
 });
